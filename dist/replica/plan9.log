@@ -13159,3 +13159,11 @@
 1071779501 1 c sys/src/cmd/8l/obj.c - 664 sys sys 1071778472 24102
 1071779501 2 c sys/src/cmd/8l/optab.c - 664 sys sys 1071778472 16231
 1071802905 0 a sys/man/1/lsof - 664 sys sys 1071802922 620
+1071846111 0 c sys/include/ape/bsd.h - 664 sys sys 1071844798 1136
+1071846111 1 d sys/man/1/lsof - 664 sys sys 1071802922 0
+1071873114 0 c sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1071872236 9869
+1071873114 1 c sys/src/ape/lib/ap/plan9/kill.c - 664 sys sys 1071872236 874
+1071874914 0 c 386/init - 775 sys sys 1071873631 99057
+1071874914 1 c 386/lib/ape/libap.a - 664 sys sys 1071873689 815578
+1071874914 2 c sys/src/cmd/init.c - 664 sys sys 1071873627 4452
+1071885716 0 a sys/src/cmd/rc/compiling.on.unix - 664 sys sys 1071884773 37638

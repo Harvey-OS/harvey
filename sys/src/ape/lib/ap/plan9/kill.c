@@ -53,6 +53,5 @@ kill(pid_t pid, int sig)
 		r = note(getpid(), msg, "/proc/%d/notepg");
 	else
 		r = note(pid, msg, "/proc/%d/note");
-
 	return r;
 }

@@ -38,6 +38,7 @@ extern char*	strdup(char*);
 extern int	strcasecmp(char*, char*);
 extern int 	putenv(char*);
 extern int	strncasecmp(char*, char*,int);
+extern void* memccpy(void*, void*, int, size_t);
 
 extern int	getopt(int, char**, char*);
 extern int	opterr;

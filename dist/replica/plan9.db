@@ -501,12 +501,12 @@
 386/include/ape/ureg.h - 664 sys sys 944946041 812
 386/include/u.h - 664 sys sys 1042604326 1450
 386/include/ureg.h - 664 sys sys 944946012 523
-386/init - 775 sys sys 1064598407 98365
+386/init - 775 sys sys 1071873631 99057
 386/ld.com - 775 sys sys 1071340494 65192
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 944969312 0
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
-386/lib/ape/libap.a - 664 sys sys 1071245376 815548
+386/lib/ape/libap.a - 664 sys sys 1071873689 815578
 386/lib/ape/libbsd.a - 664 sys sys 1070342465 179718
 386/lib/ape/libdraw.a - 664 sys sys 1071245377 574556
 386/lib/ape/libfmt.a - 664 sys sys 1070519112 148600
@@ -3320,7 +3320,7 @@ sys/include/ape/ar.h - 664 sys sys 944948759 354
 sys/include/ape/arpa - 20000000775 sys sys 944948760 0
 sys/include/ape/arpa/inet.h - 664 sys sys 944948760 4717
 sys/include/ape/assert.h - 664 sys sys 944948760 287
-sys/include/ape/bsd.h - 664 sys sys 944948760 1087
+sys/include/ape/bsd.h - 664 sys sys 1071844798 1136
 sys/include/ape/ctype.h - 664 sys sys 1014927763 1654
 sys/include/ape/cursor.h - 664 sys sys 1070327358 118
 sys/include/ape/dirent.h - 664 sys sys 1035117682 717
@@ -4649,7 +4649,6 @@ sys/man/1/lex - 664 sys sys 1032058565 1520
 sys/man/1/look - 664 sys sys 944959673 1348
 sys/man/1/lp - 664 sys sys 1015024739 3304
 sys/man/1/ls - 664 sys sys 1049813576 2791
-sys/man/1/lsof - 664 sys sys 1071802922 620
 sys/man/1/mail - 664 sys sys 1050078464 2158
 sys/man/1/man - 664 sys sys 1059484724 1740
 sys/man/1/marshal - 664 sys sys 1050078464 3307
@@ -6006,7 +6005,7 @@ sys/src/ape/lib/ap/plan9/9read.c - 664 sys sys 1014921986 169
 sys/src/ape/lib/ap/plan9/9readn.c - 664 sys sys 1070330880 221
 sys/src/ape/lib/ap/plan9/9wait.c - 664 sys sys 1014921986 1517
 sys/src/ape/lib/ap/plan9/9write.c - 664 sys sys 1014921986 171
-sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1071178644 9850
+sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1071872236 9869
 sys/src/ape/lib/ap/plan9/_dirconv.c - 664 sys sys 1014921985 1419
 sys/src/ape/lib/ap/plan9/_envsetup.c - 664 sys sys 1048644333 2198
 sys/src/ape/lib/ap/plan9/_errno.c - 664 sys sys 1014921985 3909
@@ -6063,7 +6062,7 @@ sys/src/ape/lib/ap/plan9/getpwnam.c - 664 sys sys 1014921984 507
 sys/src/ape/lib/ap/plan9/getpwuid.c - 664 sys sys 1014921984 527
 sys/src/ape/lib/ap/plan9/getuid.c - 664 sys sys 1014921984 199
 sys/src/ape/lib/ap/plan9/isatty.c - 664 sys sys 1014921984 471
-sys/src/ape/lib/ap/plan9/kill.c - 664 sys sys 1014921984 875
+sys/src/ape/lib/ap/plan9/kill.c - 664 sys sys 1071872236 874
 sys/src/ape/lib/ap/plan9/lib.h - 664 sys sys 1014921984 2061
 sys/src/ape/lib/ap/plan9/link.c - 664 sys sys 1014921984 168
 sys/src/ape/lib/ap/plan9/lseek.c - 664 sys sys 1038237526 358
@@ -9378,7 +9377,7 @@ sys/src/cmd/htmlfmt/util.c - 664 sys sys 1015364025 1765
 sys/src/cmd/iconv.c - 664 sys sys 1039753035 1801
 sys/src/cmd/idiff.c - 664 sys sys 1014926695 6896
 sys/src/cmd/import.c - 664 sys sys 1044893799 6192
-sys/src/cmd/init.c - 664 sys sys 1016833880 4254
+sys/src/cmd/init.c - 664 sys sys 1071873627 4452
 sys/src/cmd/iostats - 20000000775 sys sys 944962001 0
 sys/src/cmd/iostats/iostats.c - 664 sys sys 1014925727 9691
 sys/src/cmd/iostats/mkfile - 664 sys sys 1014925727 122
@@ -10140,6 +10139,7 @@ sys/src/cmd/ratfs/proto.c - 664 sys sys 1016943965 8528
 sys/src/cmd/ratfs/ratfs.h - 664 sys sys 1016943965 2743
 sys/src/cmd/rc - 20000000775 sys sys 945182874 0
 sys/src/cmd/rc/code.c - 664 sys sys 1055698766 8158
+sys/src/cmd/rc/compiling.on.unix - 664 sys sys 1071884773 37638
 sys/src/cmd/rc/exec.c - 664 sys sys 1055698767 16060
 sys/src/cmd/rc/exec.h - 664 sys sys 1055698767 2779
 sys/src/cmd/rc/fmtquote.c - 664 sys sys 1055698768 3609

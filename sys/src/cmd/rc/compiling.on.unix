@@ -1,0 +1,1866 @@
+From geoff@collyer.net Fri Dec 19 01:21:40 EST 2003
+Received: from plan9.cs.bell-labs.com ([135.104.9.2]) by plan9; Fri Dec 19 01:21:39 EST 2003
+Received: from collyer.net ([63.192.14.226]) by plan9; Fri Dec 19 01:21:35 EST 2003
+Message-ID: <c790d8b1e06b3918ad2c7848a3ae0ec7@collyer.net>
+subject: rc on unix, part 1
+From: Geoff Collyer <geoff@collyer.net>
+Date: Thu, 18 Dec 2003 22:21:33 -0800
+To: presotto@plan9.bell-labs.com, rsc@plan9.bell-labs.com, geoff@collyer.net
+MIME-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+
+I got /sys/src/cmd/rc to compile under APE (in preparation for moving it
+to Unixes) with the following changed files.  I cadged some include files
+from rsc but had to edit lib9.h slightly.  I'll send the include files
+separately.  I can't tell if it works yet, but it does complain about
+/usr/lib/rcmain being absent when I start it.  Oh, and I haven't yet
+simulated the effect of the OCEXEC bit.
+
+
+# To unbundle, run this file
+echo mkfile
+sed 's/^X//' >mkfile <<'!'
+X</$objtype/mkfile
+
+TARG=rc
+COMMONOFILES=\
+X	code.$O\
+X	exec.$O\
+X	getflags.$O\
+X	glob.$O\
+X	here.$O\
+X	io.$O\
+X	lex.$O\
+X	pcmd.$O\
+X	pfnc.$O\
+X	simple.$O\
+X	subr.$O\
+X	trap.$O\
+X	tree.$O\
+X	var.$O\
+X	havefork.$O\
+
+PLAN9OFILES=plan9.$O\
+
+UNIXOFILES=unix.$O\
+
+OFILES=$COMMONOFILES $UNIXOFILES y.tab.$O
+
+HFILES=rc.h\
+X	x.tab.h\
+X	io.h\
+X	exec.h\
+X	fns.h\
+
+YFILES=syn.y
+
+BIN=/$objtype/bin
+
+UPDATE=\
+X	mkfile\
+X	$HFILES\
+X	${COMMONOFILES:%.$O=%.c}\
+X	${UNIXOFILES:%.$O=%.c}\
+X	${PLAN9OFILES:%.$O=%.c}\
+X	$YFILES\
+X	${TARG:%=/386/bin/%}\
+
+CC=pcc -c -B -I../include
+LD=pcc
+
+X</sys/src/cmd/mkone
+
+x.tab.h: y.tab.h
+X	cmp -s x.tab.h y.tab.h || cp y.tab.h x.tab.h
+
+clean:V:
+X	rm -f [$OS].out *.[$OS] [xy].tab.? y.debug $TARG
+
+regress: $O.out
+X	cd test
+X	mk
+
+unregress:V:
+X	for(test in test/*.test) rc $test >$test.out
+
+listing:
+X	pr mkfile $HFILES $FILES $FILES9 $FILESUNIX $YFILES|lp -du
+!
+echo simple.c
+sed 's/^X//' >simple.c <<'!'
+X/*
+X * Maybe `simple' is a misnomer.
+X */
+X#include "rc.h"
+X#include "getflags.h"
+X#include "exec.h"
+X#include "io.h"
+X#include "fns.h"
+X/*
+X * Search through the following code to see if we're just going to exit.
+X */
+exitnext(void){
+X	union code *c=&runq->code[runq->pc];
+X	while(c->f==Xpopredir) c++;
+X	return c->f==Xexit;
+X}
+
+void
+XXsimple(void)
+X{
+X	word *a;
+X	thread *p = runq;
+X	var *v;
+X	struct builtin *bp;
+X	int pid;
+X	globlist();
+X	a = runq->argv->words;
+X	if(a==0){
+X		Xerror1("empty argument list");
+X		return;
+X	}
+X	if(flag['x'])
+X		pfmt(err, "%v\n", p->argv->words); /* wrong, should do redirs */
+X	v = gvlook(a->word);
+X	if(v->fn)
+X		execfunc(v);
+X	else{
+X		if(strcmp(a->word, "builtin")==0){
+X			if(count(a)==1){
+X				pfmt(err, "builtin: empty argument list\n");
+X				setstatus("empty arg list");
+X				poplist();
+X				return;
+X			}
+X			a = a->next;
+X			popword();
+X		}
+X		for(bp = Builtin;bp->name;bp++)
+X			if(strcmp(a->word, bp->name)==0){
+X				(*bp->fnc)();
+X				return;
+X			}
+X		if(exitnext()){
+X			/* fork and wait is redundant */
+X			pushword("exec");
+X			execexec();
+X			Xexit();
+X		}
+X		else{
+X			flush(err);
+X			Updenv();	/* necessary so changes don't go out again */
+X			if((pid = execforkexec()) < 0){
+X				Xerror("try again");
+X				return;
+X			}
+
+X			/* interrupts don't get us out */
+X			poplist();
+X			while(Waitfor(pid, 1) < 0)
+X				;
+X		}
+X	}
+X}
+struct word nullpath = { "", 0};
+
+void
+doredir(redir *rp)
+X{
+X	if(rp){
+X		doredir(rp->next);
+X		switch(rp->type){
+X		case ROPEN:
+X			if(rp->from!=rp->to){
+X				Dup(rp->from, rp->to);
+X				close(rp->from);
+X			}
+X			break;
+X		case RDUP:
+X			Dup(rp->from, rp->to);
+X			break;
+X		case RCLOSE:
+X			close(rp->from);
+X			break;
+X		}
+X	}
+X}
+
+word*
+searchpath(char *w)
+X{
+X	word *path;
+X	if(strncmp(w, "/", 1)==0
+X	|| strncmp(w, "#", 1)==0
+X	|| strncmp(w, "./", 2)==0
+X	|| strncmp(w, "../", 3)==0
+X	|| (path = vlook("path")->val)==0)
+X		path=&nullpath;
+X	return path;
+X}
+
+void
+execexec(void)
+X{
+X	popword();	/* "exec" */
+X	if(runq->argv->words==0){
+X		Xerror1("empty argument list");
+X		return;
+X	}
+X	doredir(runq->redir);
+X	Execute(runq->argv->words, searchpath(runq->argv->words->word));
+X	poplist();
+X}
+
+void
+execfunc(var *func)
+X{
+X	word *starval;
+X	popword();
+X	starval = runq->argv->words;
+X	runq->argv->words = 0;
+X	poplist();
+X	start(func->fn, func->pc, (struct var *)0);
+X	runq->local = newvar(strdup("*"), runq->local);
+X	runq->local->val = starval;
+X	runq->local->changed = 1;
+X}
+
+int
+dochdir(char *word)
+X{
+X	/* report to /dev/wdir if it exists and we're interactive */
+X	static int wdirfd = -2;
+X	if(chdir(word)<0) return -1;
+X	if(flag['i']!=0){
+X		if(wdirfd==-2)	/* try only once */
+X			/* TODO: arrange close-on-exec on Unix */
+X			wdirfd = open("/dev/wdir", OWRITE|OCEXEC);
+X		if(wdirfd>=0)
+X			write(wdirfd, word, strlen(word));
+X	}
+X	return 1;
+X}
+
+void
+execcd(void)
+X{
+X	word *a = runq->argv->words;
+X	word *cdpath;
+X	char dir[512];
+X	setstatus("can't cd");
+X	cdpath = vlook("cdpath")->val;
+X	switch(count(a)){
+X	default:
+X		pfmt(err, "Usage: cd [directory]\n");
+X		break;
+X	case 2:
+X		if(a->next->word[0]=='/' || cdpath==0)
+X			cdpath=&nullpath;
+X		for(;cdpath;cdpath = cdpath->next){
+X			strcpy(dir, cdpath->word);
+X			if(dir[0])
+X				strcat(dir, "/");
+X			strcat(dir, a->next->word);
+X			if(dochdir(dir)>=0){
+X				if(strlen(cdpath->word)
+X				&& strcmp(cdpath->word, ".")!=0)
+X					pfmt(err, "%s\n", dir);
+X				setstatus("");
+X				break;
+X			}
+X		}
+X		if(cdpath==0)
+X			pfmt(err, "Can't cd %s: %r\n", a->next->word);
+X		break;
+X	case 1:
+X		a = vlook("home")->val;
+X		if(count(a)>=1){
+X			if(dochdir(a->word)>=0)
+X				setstatus("");
+X			else
+X				pfmt(err, "Can't cd %s: %r\n", a->word);
+X		}
+X		else
+X			pfmt(err, "Can't cd -- $home empty\n");
+X		break;
+X	}
+X	poplist();
+X}
+
+void
+execexit(void)
+X{
+X	switch(count(runq->argv->words)){
+X	default:
+X		pfmt(err, "Usage: exit [status]\nExiting anyway\n");
+X	case 2:
+X		setstatus(runq->argv->words->next->word);
+X	case 1:	Xexit();
+X	}
+X}
+
+void
+execshift(void)
+X{
+X	int n;
+X	word *a;
+X	var *star;
+X	switch(count(runq->argv->words)){
+X	default:
+X		pfmt(err, "Usage: shift [n]\n");
+X		setstatus("shift usage");
+X		poplist();
+X		return;
+X	case 2:
+X		n = atoi(runq->argv->words->next->word);
+X		break;
+X	case 1:
+X		n = 1;
+X		break;
+X	}
+X	star = vlook("*");
+X	for(;n && star->val;--n){
+X		a = star->val->next;
+X		efree(star->val->word);
+X		efree((char *)star->val);
+X		star->val = a;
+X		star->changed = 1;
+X	}
+X	setstatus("");
+X	poplist();
+X}
+
+int
+octal(char *s)
+X{
+X	int n = 0;
+X	while(*s==' ' || *s=='\t' || *s=='\n') s++;
+X	while('0'<=*s && *s<='7') n = n*8+*s++-'0';
+X	return n;
+X}
+
+int
+mapfd(int fd)
+X{
+X	redir *rp;
+X	for(rp = runq->redir;rp;rp = rp->next){
+X		switch(rp->type){
+X		case RCLOSE:
+X			if(rp->from==fd)
+X				fd=-1;
+X			break;
+X		case RDUP:
+X		case ROPEN:
+X			if(rp->to==fd)
+X				fd = rp->from;
+X			break;
+X		}
+X	}
+X	return fd;
+X}
+union code rdcmds[4];
+
+void
+execcmds(io *f)
+X{
+X	static int first = 1;
+X	if(first){
+X		rdcmds[0].i = 1;
+X		rdcmds[1].f = Xrdcmds;
+X		rdcmds[2].f = Xreturn;
+X		first = 0;
+X	}
+X	start(rdcmds, 1, runq->local);
+X	runq->cmdfd = f;
+X	runq->iflast = 0;
+X}
+
+void
+execeval(void)
+X{
+X	char *cmdline, *s, *t;
+X	int len = 0;
+X	word *ap;
+X	if(count(runq->argv->words)<=1){
+X		Xerror1("Usage: eval cmd ...");
+X		return;
+X	}
+X	eflagok = 1;
+X	for(ap = runq->argv->words->next;ap;ap = ap->next)
+X		len+=1+strlen(ap->word);
+X	cmdline = emalloc(len);
+X	s = cmdline;
+X	for(ap = runq->argv->words->next;ap;ap = ap->next){
+X		for(t = ap->word;*t;) *s++=*t++;
+X		*s++=' ';
+X	}
+X	s[-1]='\n';
+X	poplist();
+X	execcmds(opencore(cmdline, len));
+X	efree(cmdline);
+X}
+union code dotcmds[14];
+
+void
+execdot(void)
+X{
+X	int iflag = 0;
+X	int fd;
+X	list *av;
+X	thread *p = runq;
+X	char *zero;
+X	static int first = 1;
+X	char file[512];
+X	word *path;
+X	if(first){
+X		dotcmds[0].i = 1;
+X		dotcmds[1].f = Xmark;
+X		dotcmds[2].f = Xword;
+X		dotcmds[3].s="0";
+X		dotcmds[4].f = Xlocal;
+X		dotcmds[5].f = Xmark;
+X		dotcmds[6].f = Xword;
+X		dotcmds[7].s="*";
+X		dotcmds[8].f = Xlocal;
+X		dotcmds[9].f = Xrdcmds;
+X		dotcmds[10].f = Xunlocal;
+X		dotcmds[11].f = Xunlocal;
+X		dotcmds[12].f = Xreturn;
+X		first = 0;
+X	}
+X	else
+X		eflagok = 1;
+X	popword();
+X	if(p->argv->words && strcmp(p->argv->words->word, "-i")==0){
+X		iflag = 1;
+X		popword();
+X	}
+X	/* get input file */
+X	if(p->argv->words==0){
+X		Xerror1("Usage: . [-i] file [arg ...]");
+X		return;
+X	}
+X	zero = strdup(p->argv->words->word);
+X	popword();
+X	fd=-1;
+X	for(path = searchpath(zero);path;path = path->next){
+X		strcpy(file, path->word);
+X		if(file[0])
+X			strcat(file, "/");
+X		strcat(file, zero);
+X		if((fd = open(file, 0))>=0) break;
+X		if(strcmp(file, "/dev/stdin")==0){	/* for sun & ucb */
+X			fd = Dup1(0);
+X			if(fd>=0)
+X				break;
+X		}
+X	}
+X	if(fd<0){
+X		pfmt(err, "%s: ", zero);
+X		setstatus("can't open");
+X		Xerror(".: can't open");
+X		return;
+X	}
+X	/* set up for a new command loop */
+X	start(dotcmds, 1, (struct var *)0);
+X	pushredir(RCLOSE, fd, 0);
+X	runq->cmdfile = zero;
+X	runq->cmdfd = openfd(fd);
+X	runq->iflag = iflag;
+X	runq->iflast = 0;
+X	/* push $* value */
+X	pushlist();
+X	runq->argv->words = p->argv->words;
+X	/* free caller's copy of $* */
+X	av = p->argv;
+X	p->argv = av->next;
+X	efree((char *)av);
+X	/* push $0 value */
+X	pushlist();
+X	pushword(zero);
+X	ndot++;
+X}
+
+void
+execflag(void)
+X{
+X	char *letter, *val;
+X	switch(count(runq->argv->words)){
+X	case 2:
+X		setstatus(flag[runq->argv->words->next->word[0]]?"":"flag not set");
+X		break;
+X	case 3:
+X		letter = runq->argv->words->next->word;
+X		val = runq->argv->words->next->next->word;
+X		if(strlen(letter)==1){
+X			if(strcmp(val, "+")==0){
+X				flag[letter[0]] = flagset;
+X				break;
+X			}
+X			if(strcmp(val, "-")==0){
+X				flag[letter[0]] = 0;
+X				break;
+X			}
+X		}
+X	default:
+X		Xerror1("Usage: flag [letter] [+-]");
+X		return;
+X	}
+X	poplist();
+X}
+
+void
+execwhatis(void){	/* mildly wrong -- should fork before writing */
+X	word *a, *b, *path;
+X	var *v;
+X	struct builtin *bp;
+X	char file[512];
+X	struct io out[1];
+X	int found, sep;
+X	a = runq->argv->words->next;
+X	if(a==0){
+X		Xerror1("Usage: whatis name ...");
+X		return;
+X	}
+X	setstatus("");
+X	out->fd = mapfd(1);
+X	out->bufp = out->buf;
+X	out->ebuf = &out->buf[NBUF];
+X	out->strp = 0;
+X	for(;a;a = a->next){
+X		v = vlook(a->word);
+X		if(v->val){
+X			pfmt(out, "%s=", a->word);
+X			if(v->val->next==0)
+X				pfmt(out, "%q\n", v->val->word);
+X			else{
+X				sep='(';
+X				for(b = v->val;b && b->word;b = b->next){
+X					pfmt(out, "%c%q", sep, b->word);
+X					sep=' ';
+X				}
+X				pfmt(out, ")\n");
+X			}
+X			found = 1;
+X		}
+X		else
+X			found = 0;
+X		v = gvlook(a->word);
+X		if(v->fn)
+X			pfmt(out, "fn %s %s\n", v->name, v->fn[v->pc-1].s);
+X		else{
+X			for(bp = Builtin;bp->name;bp++)
+X				if(strcmp(a->word, bp->name)==0){
+X					pfmt(out, "builtin %s\n", a->word);
+X					break;
+X				}
+X			if(!bp->name){
+X				for(path = searchpath(a->word);path;path = path->next){
+X					strcpy(file, path->word);
+X					if(file[0])
+X						strcat(file, "/");
+X					strcat(file, a->word);
+X					if(Executable(file)){
+X						pfmt(out, "%s\n", file);
+X						break;
+X					}
+X				}
+X				if(!path && !found){
+X					pfmt(err, "%s: not found\n", a->word);
+X					setstatus("not found");
+X				}
+X			}
+X		}
+X	}
+X	poplist();
+X	flush(err);
+X}
+
+void
+execwait(void)
+X{
+X	switch(count(runq->argv->words)){
+X	default:
+X		Xerror1("Usage: wait [pid]");
+X		return;
+X	case 2:
+X		Waitfor(atoi(runq->argv->words->next->word), 0);
+X		break;
+X	case 1:
+X		Waitfor(-1, 0);
+X		break;
+X	}
+X	poplist();
+X}
+!
+echo havefork.c
+sed 's/^X//' >havefork.c <<'!'
+X#include "rc.h"
+X#include "getflags.h"
+X#include "exec.h"
+X#include "io.h"
+X#include "fns.h"
+
+int havefork = 1;
+
+void
+XXasync(void)
+X{
+X	int null = open("/dev/null", 0);
+X	int pid;
+X	char npid[10];
+X	if(null<0){
+X		Xerror("Can't open /dev/null\n");
+X		return;
+X	}
+X#ifdef Unix
+X	pid = fork();
+X#else
+X	pid = rfork(RFFDG|RFPROC|RFNOTEG);
+X#endif
+X	switch(pid){
+X	case -1:
+X		close(null);
+X		Xerror("try again");
+X		break;
+X	case 0:
+X		pushredir(ROPEN, null, 0);
+X		start(runq->code, runq->pc+1, runq->local);
+X		runq->ret = 0;
+X		break;
+X	default:
+X		close(null);
+X		runq->pc = runq->code[runq->pc].i;
+X		inttoascii(npid, pid);
+X		setvar("apid", newword(npid, (word *)0));
+X		break;
+X	}
+X}
+
+void
+XXpipe(void)
+X{
+X	struct thread *p = runq;
+X	int pc = p->pc, forkid;
+X	int lfd = p->code[pc++].i;
+X	int rfd = p->code[pc++].i;
+X	int pfd[2];
+X	if(pipe(pfd)<0){
+X		Xerror("can't get pipe");
+X		return;
+X	}
+X	switch(forkid = fork()){
+X	case -1:
+X		Xerror("try again");
+X		break;
+X	case 0:
+X		start(p->code, pc+2, runq->local);
+X		runq->ret = 0;
+X		close(pfd[PRD]);
+X		pushredir(ROPEN, pfd[PWR], lfd);
+X		break;
+X	default:
+X		start(p->code, p->code[pc].i, runq->local);
+X		close(pfd[PWR]);
+X		pushredir(ROPEN, pfd[PRD], rfd);
+X		p->pc = p->code[pc+1].i;
+X		p->pid = forkid;
+X		break;
+X	}
+X}
+
+X/*
+X * Who should wait for the exit from the fork?
+X */
+void
+XXbackq(void)
+X{
+X	char wd[8193];
+X	int c;
+X	char *s, *ewd=&wd[8192], *stop;
+X	struct io *f;
+X	var *ifs = vlook("ifs");
+X	word *v, *nextv;
+X	int pfd[2];
+X	int pid;
+X	stop = ifs->val?ifs->val->word:"";
+X	if(pipe(pfd)<0){
+X		Xerror("can't make pipe");
+X		return;
+X	}
+X	switch(pid = fork()){
+X	case -1:
+X		Xerror("try again");
+X		close(pfd[PRD]);
+X		close(pfd[PWR]);
+X		return;
+X	case 0:
+X		close(pfd[PRD]);
+X		start(runq->code, runq->pc+1, runq->local);
+X		pushredir(ROPEN, pfd[PWR], 1);
+X		return;
+X	default:
+X		close(pfd[PWR]);
+X		f = openfd(pfd[PRD]);
+X		s = wd;
+X		v = 0;
+X		while((c = rchr(f))!=EOF){
+X			if(strchr(stop, c) || s==ewd){
+X				if(s!=wd){
+X					*s='\0';
+X					v = newword(wd, v);
+X					s = wd;
+X				}
+X			}
+X			else *s++=c;
+X		}
+X		if(s!=wd){
+X			*s='\0';
+X			v = newword(wd, v);
+X		}
+X		closeio(f);
+X		Waitfor(pid, 0);
+X		/* v points to reversed arglist -- reverse it onto argv */
+X		while(v){
+X			nextv = v->next;
+X			v->next = runq->argv->words;
+X			runq->argv->words = v;
+X			v = nextv;
+X		}
+X		runq->pc = runq->code[runq->pc].i;
+X		return;
+X	}
+X}
+
+void
+XXpipefd(void)
+X{
+X	struct thread *p = runq;
+X	int pc = p->pc;
+X	char name[40];
+X	int pfd[2];
+X	int sidefd, mainfd;
+X	if(pipe(pfd)<0){
+X		Xerror("can't get pipe");
+X		return;
+X	}
+X	if(p->code[pc].i==READ){
+X		sidefd = pfd[PWR];
+X		mainfd = pfd[PRD];
+X	}
+X	else{
+X		sidefd = pfd[PRD];
+X		mainfd = pfd[PWR];
+X	}
+X	switch(fork()){
+X	case -1:
+X		Xerror("try again");
+X		break;
+X	case 0:
+X		start(p->code, pc+2, runq->local);
+X		close(mainfd);
+X		pushredir(ROPEN, sidefd, p->code[pc].i==READ?1:0);
+X		runq->ret = 0;
+X		break;
+X	default:
+X		close(sidefd);
+X		pushredir(ROPEN, mainfd, mainfd);	/* isn't this a noop? */
+X		strcpy(name, Fdprefix);
+X		inttoascii(name+strlen(name), mainfd);
+X		pushword(name);
+X		p->pc = p->code[pc+1].i;
+X		break;
+X	}
+X}
+
+void
+XXsubshell(void)
+X{
+X	int pid;
+X	switch(pid = fork()){
+X	case -1:
+X		Xerror("try again");
+X		break;
+X	case 0:
+X		start(runq->code, runq->pc+1, runq->local);
+X		runq->ret = 0;
+X		break;
+X	default:
+X		Waitfor(pid, 1);
+X		runq->pc = runq->code[runq->pc].i;
+X		break;
+X	}
+X}
+
+int
+execforkexec(void)
+X{
+X	int pid;
+X	int n;
+X	char buf[ERRMAX];
+
+X	switch(pid = fork()){
+X	case -1:
+X		return -1;
+X	case 0:
+X		pushword("exec");
+X		execexec();
+X		strcpy(buf, "can't exec: ");
+X		n = strlen(buf);
+X		errstr(buf+n, ERRMAX-n);
+X		Exit(buf);
+X	}
+X	return pid;
+X}
+!
+echo rc.h
+sed 's/^X//' >rc.h <<'!'
+X/*
+X * Plan9 is defined for plan 9
+X * V9 is defined for 9th edition
+X * Sun is defined for sun-os
+X * Please don't litter the code with ifdefs.  The three below should be enough.
+X */
+X#define Unix
+
+X#ifdef	Plan9
+X#include <u.h>
+X#include <libc.h>
+X#define	NSIG	32
+X#define	SIGINT	2
+X#define	SIGQUIT	3
+X#endif
+
+X#ifdef Unix
+X#define _POSIX_SOURCE
+X#define _BSD_EXTENSION
+
+X#include <stdlib.h>
+X#include <stdarg.h>
+X#include <string.h>
+X#include <unistd.h>
+X#include <fcntl.h>
+X#include <lib9.h>
+X#include <signal.h>
+X#endif
+
+X#ifndef ERRMAX
+X#define ERRMAX 128
+X#endif
+
+X#define	YYMAXDEPTH	500
+X#ifndef PAREN
+X#include "x.tab.h"
+X#endif
+typedef struct tree tree;
+typedef struct word word;
+typedef struct io io;
+typedef union code code;
+typedef struct var var;
+typedef struct list list;
+typedef struct redir redir;
+typedef struct thread thread;
+typedef struct builtin builtin;
+
+struct tree{
+X	int type;
+X	int rtype, fd0, fd1;		/* details of REDIR PIPE DUP tokens */
+X	char *str;
+X	int quoted;
+X	int iskw;
+X	tree *child[3];
+X	tree *next;
+X};
+tree *newtree(void);
+tree *token(char*, int), *klook(char*), *tree1(int, tree*);
+tree *tree2(int, tree*, tree*), *tree3(int, tree*, tree*, tree*);
+tree *mung1(tree*, tree*), *mung2(tree*, tree*, tree*);
+tree *mung3(tree*, tree*, tree*, tree*), *epimung(tree*, tree*);
+tree *simplemung(tree*), *heredoc(tree*);
+void freetree(tree*);
+tree *cmdtree;
+X/*
+X * The first word of any code vector is a reference count.
+X * Always create a new reference to a code vector by calling codecopy(.).
+X * Always call codefree(.) when deleting a reference.
+X */
+union code{
+X	void (*f)(void);
+X	int i;
+X	char *s;
+X};
+char *promptstr;
+int doprompt;
+X#define	NTOK	8192
+char tok[NTOK];
+X#define	APPEND	1
+X#define	WRITE	2
+X#define	READ	3
+X#define	HERE	4
+X#define	DUPFD	5
+X#define	CLOSE	6
+struct var{
+X	char *name;		/* ascii name */
+X	word *val;	/* value */
+X	int changed;
+X	code *fn;		/* pointer to function's code vector */
+X	int fnchanged;
+X	int pc;			/* pc of start of function */
+X	var *next;	/* next on hash or local list */
+X};
+var *vlook(char*), *gvlook(char*), *newvar(char*, var*);
+X#define	NVAR	521
+var *gvar[NVAR];				/* hash for globals */
+X#define	new(type)	((type *)emalloc(sizeof(type)))
+char *emalloc(long);
+void *Malloc(ulong);
+void efree(char*);
+X#define	NOFILE	128		/* should come from <param.h> */
+struct here{
+X	tree *tag;
+X	char *name;
+X	struct here *next;
+X};
+int mypid;
+X/*
+X * Glob character escape in strings:
+X *	In a string, GLOB must be followed by *?[ or GLOB.
+X *	GLOB* matches any string
+X *	GLOB? matches any single character
+X *	GLOB[...] matches anything in the brackets
+X *	GLOBGLOB matches GLOB
+X */
+X#define	GLOB	((char)0x01)
+X/*
+X * onebyte(c), twobyte(c), threebyte(c)
+X * Is c the first character of a one- two- or three-byte utf sequence?
+X */
+X#define	onebyte(c)	((c&0x80)==0x00)
+X#define	twobyte(c)	((c&0xe0)==0xc0)
+X#define	threebyte(c)	((c&0xf0)==0xe0)
+char **argp;
+char **args;
+int nerror;		/* number of errors encountered during compilation */
+int doprompt;		/* is it time for a prompt? */
+X/*
+X * Which fds are the reading/writing end of a pipe?
+X * Unfortunately, this can vary from system to system.
+X * 9th edition Unix doesn't care, the following defines
+X * work on plan 9.
+X */
+X#define	PRD	0
+X#define	PWR	1
+char Rcmain[], Fdprefix[];
+X#define	register
+X/*
+X * How many dot commands have we executed?
+X * Used to ensure that -v flag doesn't print rcmain.
+X */
+int ndot;
+char *getstatus(void);
+int lastc;
+int lastword;
+!
+echo unix.c
+sed 's/^X//' >unix.c <<'!'
+X/*
+X * Unix versions of system-specific functions
+X *	By convention, exported routines herein have names beginning with an
+X *	upper case letter.
+X */
+X#include "rc.h"
+X#include "io.h"
+X#include "exec.h"
+X#include "getflags.h"
+X#include <errno.h>
+
+char Rcmain[]="/usr/lib/rcmain";
+char Fdprefix[]="/dev/fd/";
+
+void execfinit(void);
+
+struct builtin Builtin[] = {
+X	"cd",		execcd,
+X	"whatis",	execwhatis,
+X	"eval",		execeval,
+X	"exec",		execexec,	/* but with popword first */
+X	"exit",		execexit,
+X	"shift",	execshift,
+X	"wait",		execwait,
+X	"umask",	execumask,
+X	".",		execdot,
+X	"finit",	execfinit,
+X	"flag",		execflag,
+X	0
+X};
+X#define	SEP	'\1'
+char **environp;
+
+struct word*
+enval(s)
+register char *s;
+X{
+X	char *t, c;
+X	struct word *v;
+X	for(t = s;*t && *t!=SEP;t++);
+X	c=*t;
+X	*t='\0';
+X	v = newword(s, c=='\0'?(struct word *)0:enval(t+1));
+X	*t = c;
+X	return v;
+X}
+
+void
+Vinit(void)
+X{
+X	extern char **environ;
+X	char *s;
+X	char **env = environ;
+X	environp = env;
+X	for(;*env;env++){
+X		for(s=*env;*s && *s!='(' && *s!='=';s++);
+X		switch(*s){
+X		case '\0':
+X			pfmt(err, "environment %q?\n", *env);
+X			break;
+X		case '=':
+X			*s='\0';
+X			setvar(*env, enval(s+1));
+X			*s='=';
+X			break;
+X		case '(':	/* ignore functions for now */
+X			break;
+X		}
+X	}
+X}
+
+char **envp;
+
+void
+XXrdfn(void)
+X{
+X	char *s;
+X	int len;
+X	for(;*envp;envp++){
+X		for(s=*envp;*s && *s!='(' && *s!='=';s++);
+X		switch(*s){
+X		case '\0':
+X			pfmt(err, "environment %q?\n", *envp);
+X			break;
+X		case '=':	/* ignore variables */
+X			break;
+X		case '(':		/* Bourne again */
+X			s=*envp+3;
+X			envp++;
+X			len = strlen(s);
+X			s[len]='\n';
+X			execcmds(opencore(s, len+1));
+X			s[len]='\0';
+X			return;
+X		}
+X	}
+X	Xreturn();
+X}
+
+union code rdfns[4];
+
+void
+execfinit(void)
+X{
+X	static int first = 1;
+X	if(first){
+X		rdfns[0].i = 1;
+X		rdfns[1].f = Xrdfn;
+X		rdfns[2].f = Xjump;
+X		rdfns[3].i = 1;
+X		first = 0;
+X	}
+X	Xpopm();
+X	envp = environp;
+X	start(rdfns, 1, runq->local);
+X}
+
+int
+cmpenv(const void *aa, const void *ab)
+X{
+X	char **a = aa, **b = ab;
+
+X	return strcmp(*a, *b);
+X}
+
+char **
+mkenv(void)
+X{
+X	char **env, **ep, *p, *q;
+X	struct var **h, *v;
+X	struct word *a;
+X	int nvar = 0, nchr = 0, sep;
+
+X	/*
+X	 * Slightly kludgy loops look at locals then globals.
+X	 * locals no longer exist - geoff
+X	 */
+X	for(h = gvar-1; h != &gvar[NVAR]; h++)
+X	for(v = h >= gvar? *h: runq->local; v ;v = v->next){
+X		if((v==vlook(v->name)) && v->val){
+X			nvar++;
+X			nchr+=strlen(v->name)+1;
+X			for(a = v->val;a;a = a->next)
+X				nchr+=strlen(a->word)+1;
+X		}
+X		if(v->fn){
+X			nvar++;
+X			nchr+=strlen(v->name)+strlen(v->fn[v->pc-1].s)+8;
+X		}
+X	}
+X	env = (char **)emalloc((nvar+1)*sizeof(char *)+nchr);
+X	ep = env;
+X	p = (char *)&env[nvar+1];
+X	for(h = gvar-1; h != &gvar[NVAR]; h++)
+X	for(v = h >= gvar? *h: runq->local;v;v = v->next){
+X		if((v==vlook(v->name)) && v->val){
+X			*ep++=p;
+X			q = v->name;
+X			while(*q) *p++=*q++;
+X			sep='=';
+X			for(a = v->val;a;a = a->next){
+X				*p++=sep;
+X				sep = SEP;
+X				q = a->word;
+X				while(*q) *p++=*q++;
+X			}
+X			*p++='\0';
+X		}
+X		if(v->fn){
+X			*ep++=p;
+X			*p++='#'; *p++='('; *p++=')';	/* to fool Bourne */
+X			*p++='f'; *p++='n'; *p++=' ';
+X			q = v->name;
+X			while(*q) *p++=*q++;
+X			*p++=' ';
+X			q = v->fn[v->pc-1].s;
+X			while(*q) *p++=*q++;
+X			*p++='\0';
+X		}
+X	}
+X	*ep = 0;
+X	qsort((void *)env, nvar, sizeof ep[0], cmpenv);
+X	return env;	
+X}
+char *sigmsg[] = {
+X/*  0 normal  */ 0,
+X/*  1 SIGHUP  */ "Hangup",
+X/*  2 SIGINT  */ 0,
+X/*  3 SIGQUIT */ "Quit",
+X/*  4 SIGILL  */ "Illegal instruction",
+X/*  5 SIGTRAP */ "Trace/BPT trap",
+X/*  6 SIGIOT  */ "abort",
+X/*  7 SIGEMT  */ "EMT trap",
+X/*  8 SIGFPE  */ "Floating exception",
+X/*  9 SIGKILL */ "Killed",
+X/* 10 SIGBUS  */ "Bus error",
+X/* 11 SIGSEGV */ "Memory fault",
+X/* 12 SIGSYS  */ "Bad system call",
+X/* 13 SIGPIPE */ 0,
+X/* 14 SIGALRM */ "Alarm call",
+X/* 15 SIGTERM */ "Terminated",
+X/* 16 unused  */ "signal 16",
+X/* 17 SIGSTOP */ "Process stopped",
+X/* 18 unused  */ "signal 18",
+X/* 19 SIGCONT */ "Process continued",
+X/* 20 SIGCHLD */ "Child death",
+X};
+
+void
+Waitfor(int pid, int persist)
+X{
+X	int wpid, sig;
+X	struct thread *p;
+X	int wstat;
+X	char wstatstr[12];
+
+X	for(;;){
+X		errno = 0;
+X		wpid = wait(&wstat);
+X		if(errno==EINTR && persist)
+X			continue;
+X		if(wpid==-1)
+X			break;
+X		sig = wstat&0177;
+X		if(sig==0177){
+X			pfmt(err, "trace: ");
+X			sig = (wstat>>8)&0177;
+X		}
+X		if(sig>(sizeof sigmsg/sizeof sigmsg[0]) || sigmsg[sig]){
+X			if(pid!=wpid)
+X				pfmt(err, "%d: ", wpid);
+X			if(sig<=(sizeof sigmsg/sizeof sigmsg[0]))
+X				pfmt(err, "%s", sigmsg[sig]);
+X			else if(sig==0177) pfmt(err, "stopped by ptrace");
+X			else pfmt(err, "signal %d", sig);
+X			if(wstat&0200)pfmt(err, " -- core dumped");
+X			pfmt(err, "\n");
+X		}
+X		wstat = sig?sig+1000:(wstat>>8)&0xFF;
+X		if(wpid==pid){
+X			inttoascii(wstatstr, wstat);
+X			setstatus(wstatstr);
+X			break;
+X		}
+X		else{
+X			for(p = runq->ret;p;p = p->ret)
+X				if(p->pid==wpid){
+X					p->pid=-1;
+X					inttoascii(p->status, wstat);
+X					break;
+X				}
+X		}
+X	}
+X}
+
+char **
+mkargv(a)
+register struct word *a;
+X{
+X	char **argv = (char **)emalloc((count(a)+2)*sizeof(char *));
+X	char **argp = argv+1;	/* leave one at front for runcoms */
+
+X	for(;a;a = a->next)
+X		*argp++=a->word;
+X	*argp = 0;
+X	return argv;
+X}
+
+void
+Updenv(void)
+X{
+X}
+
+void
+Execute(struct word *args, struct word *path)
+X{
+X	char *msg="not found";
+X#ifdef ETXTBSY
+X	int txtbusy = 0;
+X#endif
+X	char **env = mkenv();
+X	char **argv = mkargv(args);
+X	char file[512];
+
+X	for(;path;path = path->next){
+X		strcpy(file, path->word);
+X		if(file[0])
+X			strcat(file, "/");
+X		strcat(file, argv[1]);
+X#ifdef ETXTBSY
+ReExec:
+X#endif
+X		execve(file, argv+1, env);
+X		switch(errno){
+X		case ENOEXEC:
+X			pfmt(err, "%s: Bourne again\n", argv[1]);
+X			argv[0]="sh";
+X			argv[1] = strdup(file);
+X			execve("/bin/sh", argv, env);
+X			goto Bad;
+X#ifdef ETXTBSY
+X		case ETXTBSY:
+X			if(++txtbusy!=5){
+X				sleep(txtbusy);
+X				goto ReExec;
+X			}
+X			msg="text busy"; goto Bad;
+X#endif
+X		case EACCES:
+X			msg="no access";
+X			break;
+X		case ENOMEM:
+X			msg="not enough memory"; goto Bad;
+X		case E2BIG:
+X			msg="too big"; goto Bad;
+X		}
+X	}
+Bad:
+X	pfmt(err, "%s: %s\n", argv[1], msg);
+X	efree((char *)env);
+X	efree((char *)argv);
+X}
+
+X#define	NDIR	14		/* should get this from param.h */
+
+Globsize(p)
+register char *p;
+X{
+X	int isglob = 0, globlen = NDIR+1;
+X	for(;*p;p++){
+X		if(*p==GLOB){
+X			p++;
+X			if(*p!=GLOB)
+X				isglob++;
+X			globlen+=*p=='*'?NDIR:1;
+X		}
+X		else
+X			globlen++;
+X	}
+X	return isglob?globlen:0;
+X}
+
+X#include <sys/types.h>
+X#include <dirent.h>
+
+X#define	NDIRLIST	50
+
+DIR *dirlist[NDIRLIST];
+
+Opendir(name)
+char *name;
+X{
+X	DIR **dp;
+X	for(dp = dirlist;dp!=&dirlist[NDIRLIST];dp++)
+X		if(*dp==0){
+X			*dp = opendir(name);
+X			return *dp?dp-dirlist:-1;
+X		}
+X	return -1;
+X}
+
+int
+Readdir(int f, char *p, int /* onlydirs */ )
+X{
+X	struct dirent *dp = readdir(dirlist[f]);
+
+X	if(dp==0)
+X		return 0;
+X	strcpy(p, dp->d_name);
+X	return 1;
+X}
+
+void
+Closedir(int f)
+X{
+X	closedir(dirlist[f]);
+X	dirlist[f] = 0;
+X}
+
+char *Signame[] = {
+X	"sigexit",	"sighup",	"sigint",	"sigquit",
+X	"sigill",	"sigtrap",	"sigiot",	"sigemt",
+X	"sigfpe",	"sigkill",	"sigbus",	"sigsegv",
+X	"sigsys",	"sigpipe",	"sigalrm",	"sigterm",
+X	"sig16",	"sigstop",	"sigtstp",	"sigcont",
+X	"sigchld",	"sigttin",	"sigttou",	"sigtint",
+X	"sigxcpu",	"sigxfsz",	"sig26",	"sig27",
+X	"sig28",	"sig29",	"sig30",	"sig31",
+X	0,
+X};
+
+void
+gettrap(int sig)
+X{
+X	signal(sig, gettrap);
+X	trap[sig]++;
+X	ntrap++;
+X	if(ntrap>=NSIG){
+X		pfmt(err, "rc: Too many traps (trap %d), dumping core\n", sig);
+X		signal(SIGABRT, (void (*)())0);
+X		kill(getpid(), SIGABRT);
+X	}
+X}
+
+void
+Trapinit(void)
+X{
+X	int i;
+X	void (*sig)();
+
+X	if(1 || flag['d']){	/* wrong!!! */
+X		sig = signal(SIGINT, gettrap);
+X		if(sig==SIG_IGN)
+X			signal(SIGINT, SIG_IGN);
+X	}
+X	else{
+X		for(i = 1;i<=NSIG;i++) if(i!=SIGCHLD){
+X			sig = signal(i, gettrap);
+X			if(sig==SIG_IGN)
+X				signal(i, SIG_IGN);
+X		}
+X	}
+X}
+
+Unlink(name)
+char *name;
+X{
+X	return unlink(name);
+X}
+Write(fd, buf, cnt)
+char *buf;
+X{
+X	return write(fd, buf, cnt);
+X}
+Read(fd, buf, cnt)
+char *buf;
+X{
+X	return read(fd, buf, cnt);
+X}
+Seek(fd, cnt, whence)
+long cnt;
+X{
+X	return lseek(fd, cnt, whence);
+X}
+Executable(file)
+char *file;
+X{
+X	return(access(file, 01)==0);
+X}
+Creat(file)
+char *file;
+X{
+X	return creat(file, 0666);
+X}
+Dup(a, b){
+X	return dup2(a, b);
+X}
+Dup1(a){
+X	return dup(a);
+X}
+X/*
+X * Wrong:  should go through components of a|b|c and return the maximum.
+X */
+void
+Exit(char *stat)
+X{
+X	int n = 0;
+
+X	while(*stat){
+X		if(*stat!='|'){
+X			if(*stat<'0' || '9'<*stat)
+X				exit(1);
+X			else n = n*10+*stat-'0';
+X		}
+X		stat++;
+X	}
+X	exit(n);
+X}
+Eintr(){
+X	return errno==EINTR;
+X}
+
+void
+Noerror()
+X{
+X	errno = 0;
+X}
+Isatty(fd){
+X	return isatty(fd);
+X}
+
+void
+Abort()
+X{
+X	abort();
+X}
+
+void
+execumask(void)		/* wrong -- should fork before writing */
+X{
+X	int m;
+X	struct io out[1];
+X	switch(count(runq->argv->words)){
+X	default:
+X		pfmt(err, "Usage: umask [umask]\n");
+X		setstatus("umask usage");
+X		poplist();
+X		return;
+X	case 2:
+X		umask(octal(runq->argv->words->next->word));
+X		break;
+X	case 1: 
+X		umask(m = umask(0));
+X		out->fd = mapfd(1);
+X		out->bufp = out->buf;
+X		out->ebuf=&out->buf[NBUF];
+X		out->strp = 0;
+X		pfmt(out, "%o\n", m);
+X		break;
+X	}
+X	setstatus("");
+X	poplist();
+X}
+
+void
+Memcpy(a, b, n)
+char *a, *b;
+X{
+X	memmove(a, b, n);
+X}
+
+void*
+Malloc(unsigned long n)
+X{
+X	return (void *)malloc(n);
+X}
+
+void
+errstr(char *buf, int len)
+X{
+X	strncpy(buf, strerror(errno), len);
+X}
+!
+
+From geoff@collyer.net Fri Dec 19 01:23:26 EST 2003
+Received: from plan9.cs.bell-labs.com ([135.104.9.2]) by plan9; Fri Dec 19 01:23:25 EST 2003
+Received: from collyer.net ([63.192.14.226]) by plan9; Fri Dec 19 01:23:22 EST 2003
+Message-ID: <0b5ea130198a21a49139759d00d69939@collyer.net>
+subject: rc on unix, part 2
+From: Geoff Collyer <geoff@collyer.net>
+Date: Thu, 18 Dec 2003 22:23:21 -0800
+To: presotto@plan9.bell-labs.com, rsc@plan9.bell-labs.com, geoff@collyer.net
+MIME-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+
+These are the include files I used to emulate plan 9's include
+files on Unix (APE).
+
+
+# To unbundle, run this file
+mkdir include
+echo include/bio.h
+sed 's/^X//' >include/bio.h <<'!'
+X#ifndef _BIOH_
+X#define _BIOH_ 1
+
+X#include <sys/types.h>	/* for off_t */
+X#include <fcntl.h>	/* for O_RDONLY, O_WRONLY */
+
+typedef	struct	Biobuf	Biobuf;
+
+enum
+X{
+X	Bsize		= 8*1024,
+X	Bungetsize	= 4,		/* space for ungetc */
+X	Bmagic		= 0x314159,
+X	Beof		= -1,
+X	Bbad		= -2,
+
+X	Binactive	= 0,		/* states */
+X	Bractive,
+X	Bwactive,
+X	Bracteof,
+
+X	Bend
+X};
+
+struct	Biobuf
+X{
+X	int	icount;		/* neg num of bytes at eob */
+X	int	ocount;		/* num of bytes at bob */
+X	int	rdline;		/* num of bytes after rdline */
+X	int	runesize;		/* num of bytes of last getrune */
+X	int	state;		/* r/w/inactive */
+X	int	fid;		/* open file */
+X	int	flag;		/* magic if malloc'ed */
+X	off_t	offset;		/* offset of buffer in file */
+X	int	bsize;		/* size of buffer */
+X	unsigned char*	bbuf;		/* pointer to beginning of buffer */
+X	unsigned char*	ebuf;		/* pointer to end of buffer */
+X	unsigned char*	gbuf;		/* pointer to good data in buf */
+X	unsigned char	b[Bungetsize+Bsize];
+X};
+
+X#define	BGETC(bp)\
+X	((bp)->icount?(bp)->bbuf[(bp)->bsize+(bp)->icount++]:Bgetc((bp)))
+X#define	BPUTC(bp,c)\
+X	((bp)->ocount?(bp)->bbuf[(bp)->bsize+(bp)->ocount++]=(c),0:Bputc((bp),(c)))
+X#define	BOFFSET(bp)\
+X	(((bp)->state==Bractive)?\
+X		(bp)->offset + (bp)->icount:\
+X	(((bp)->state==Bwactive)?\
+X		(bp)->offset + ((bp)->bsize + (bp)->ocount):\
+X		-1))
+X#define	BLINELEN(bp)\
+X	(bp)->rdline
+X#define	BFILDES(bp)\
+X	(bp)->fid
+
+int	Bbuffered(Biobuf*);
+int	Bfildes(Biobuf*);
+int	Bflush(Biobuf*);
+int	Bgetc(Biobuf*);
+int	Bgetd(Biobuf*, double*);
+int	Binit(Biobuf*, int, int);
+int	Binits(Biobuf*, int, int, unsigned char*, int);
+int	Blinelen(Biobuf*);
+off_t	Boffset(Biobuf*);
+Biobuf*	Bopen(char*, int);
+int	Bprint(Biobuf*, char*, ...);
+int	Bputc(Biobuf*, int);
+void*	Brdline(Biobuf*, int);
+long	Bread(Biobuf*, void*, long);
+off_t	Bseek(Biobuf*, off_t, int);
+int	Bterm(Biobuf*);
+int	Bungetc(Biobuf*);
+long	Bwrite(Biobuf*, void*, long);
+
+long	Bgetrune(Biobuf*);
+int	Bputrune(Biobuf*, long);
+int	Bungetrune(Biobuf*);
+
+X#endif
+!
+echo include/fmt.h
+sed 's/^X//' >include/fmt.h <<'!'
+
+X/*
+X * The authors of this software are Rob Pike and Ken Thompson.
+X *              Copyright (c) 2002 by Lucent Technologies.
+X * Permission to use, copy, modify, and distribute this software for any
+X * purpose without fee is hereby granted, provided that this entire notice
+X * is included in all copies of any software which is or includes a copy
+X * or modification of this software and in all copies of the supporting
+X * documentation for such software.
+X * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+X * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE ANY
+X * REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+X * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
+X */
+
+X#ifndef _FMTH_
+X#define _FMTH_ 1
+
+X#include <stdarg.h>
+
+X#ifndef _UTFH_
+X#include <utf.h>
+X#endif
+
+typedef struct Fmt	Fmt;
+struct Fmt{
+X	unsigned char	runes;		/* output buffer is runes or chars? */
+X	void	*start;			/* of buffer */
+X	void	*to;			/* current place in the buffer */
+X	void	*stop;			/* end of the buffer; overwritten if flush fails */
+X	int	(*flush)(Fmt *);	/* called when to == stop */
+X	void	*farg;			/* to make flush a closure */
+X	int	nfmt;			/* num chars formatted so far */
+X	va_list	args;			/* args passed to dofmt */
+X	int	r;			/* % format Rune */
+X	int	width;
+X	int	prec;
+X	unsigned long	flags;
+X};
+
+enum{
+X	FmtWidth	= 1,
+X	FmtLeft		= FmtWidth << 1,
+X	FmtPrec		= FmtLeft << 1,
+X	FmtSharp	= FmtPrec << 1,
+X	FmtSpace	= FmtSharp << 1,
+X	FmtSign		= FmtSpace << 1,
+X	FmtZero		= FmtSign << 1,
+X	FmtUnsigned	= FmtZero << 1,
+X	FmtShort	= FmtUnsigned << 1,
+X	FmtLong		= FmtShort << 1,
+X	FmtVLong	= FmtLong << 1,
+X	FmtComma	= FmtVLong << 1,
+X	FmtByte		= FmtComma << 1,
+X	FmtLDouble	= FmtByte << 1,
+
+X	FmtFlag		= FmtLDouble << 1
+X};
+
+extern	int	print(char*, ...);
+extern	char*	seprint(char*, char*, char*, ...);
+extern	char*	vseprint(char*, char*, char*, va_list);
+extern	int	snprint(char*, int, char*, ...);
+extern	int	vsnprint(char*, int, char*, va_list);
+extern	char*	smprint(char*, ...);
+extern	char*	vsmprint(char*, va_list);
+extern	int	sprint(char*, char*, ...);
+extern	int	fprint(int, char*, ...);
+extern	int	vfprint(int, char*, va_list);
+
+extern	int	runesprint(Rune*, char*, ...);
+extern	int	runesnprint(Rune*, int, char*, ...);
+extern	int	runevsnprint(Rune*, int, char*, va_list);
+extern	Rune*	runeseprint(Rune*, Rune*, char*, ...);
+extern	Rune*	runevseprint(Rune*, Rune*, char*, va_list);
+extern	Rune*	runesmprint(char*, ...);
+extern	Rune*	runevsmprint(char*, va_list);
+
+extern	int	fmtfdinit(Fmt*, int, char*, int);
+extern	int	fmtfdflush(Fmt*);
+extern	int	fmtstrinit(Fmt*);
+extern	char*	fmtstrflush(Fmt*);
+
+extern	int	quotestrfmt(Fmt *f);
+extern	void	quotefmtinstall(void);
+extern	int	(*fmtdoquote)(int);
+
+
+extern	int	fmtinstall(int, int (*)(Fmt*));
+extern	int	dofmt(Fmt*, char*);
+extern	int	fmtprint(Fmt*, char*, ...);
+extern	int	fmtvprint(Fmt*, char*, va_list);
+extern	int	fmtrune(Fmt*, int);
+extern	int	fmtstrcpy(Fmt*, char*);
+
+extern	double	fmtstrtod(const char *, char **);
+extern	double	fmtcharstod(int(*)(void*), void*);
+
+X#endif
+!
+echo include/lib9.h
+sed 's/^X//' >include/lib9.h <<'!'
+X#include <string.h>
+X#include "utf.h"
+
+X#define nil ((void*)0)
+
+X#define uchar _fmtuchar
+X#define ushort _fmtushort
+X#define uint _fmtuint
+X#define ulong _fmtulong
+X#define vlong _fmtvlong
+X#define uvlong _fmtuvlong
+
+typedef unsigned char		uchar;
+typedef unsigned short		ushort;
+typedef unsigned int		uint;
+typedef unsigned long		ulong;
+
+X#define OREAD O_RDONLY
+X#define OWRITE O_WRONLY
+X#define ORDWR O_RDWR
+X#define OCEXEC 0
+!
+echo include/regexp9.h
+sed 's/^X//' >include/regexp9.h <<'!'
+X#ifndef _REGEXP9H_
+
+X#define _REGEXP9H_ 1
+X#include <utf.h>
+
+typedef struct Resub		Resub;
+typedef struct Reclass		Reclass;
+typedef struct Reinst		Reinst;
+typedef struct Reprog		Reprog;
+
+X/*
+X *	Sub expression matches
+X */
+struct Resub{
+X	union
+X	{
+X		char *sp;
+X		Rune *rsp;
+X	}s;
+X	union
+X	{
+X		char *ep;
+X		Rune *rep;
+X	}e;
+X};
+
+X/*
+X *	character class, each pair of rune's defines a range
+X */
+struct Reclass{
+X	Rune	*end;
+X	Rune	spans[64];
+X};
+
+X/*
+X *	Machine instructions
+X */
+struct Reinst{
+X	int	type;
+X	union	{
+X		Reclass	*cp;		/* class pointer */
+X		Rune	r;		/* character */
+X		int	subid;		/* sub-expression id for RBRA and LBRA */
+X		Reinst	*right;		/* right child of OR */
+X	}u1;
+X	union {	/* regexp relies on these two being in the same union */
+X		Reinst *left;		/* left child of OR */
+X		Reinst *next;		/* next instruction for CAT & LBRA */
+X	}u2;
+X};
+
+X/*
+X *	Reprogram definition
+X */
+struct Reprog{
+X	Reinst	*startinst;	/* start pc */
+X	Reclass	class[16];	/* .data */
+X	Reinst	firstinst[5];	/* .text */
+X};
+
+extern Reprog	*regcomp(char*);
+extern Reprog	*regcomplit(char*);
+extern Reprog	*regcompnl(char*);
+extern void	regerror(char*);
+extern int	regexec(Reprog*, char*, Resub*, int);
+extern void	regsub(char*, char*, int, Resub*, int);
+
+extern int	rregexec(Reprog*, Rune*, Resub*, int);
+extern void	rregsub(Rune*, Rune*, Resub*, int);
+
+X#endif
+!
+echo include/utf.h
+sed 's/^X//' >include/utf.h <<'!'
+X#ifndef _UTFH_
+X#define _UTFH_ 1
+
+typedef unsigned short Rune;	/* 16 bits */
+
+enum
+X{
+X	UTFmax		= 3,		/* maximum bytes per rune */
+X	Runesync	= 0x80,		/* cannot represent part of a UTF sequence (<) */
+X	Runeself	= 0x80,		/* rune and UTF sequences are the same (<) */
+X	Runeerror	= 0x80,		/* decoding error in UTF */
+X};
+
+X/*
+X * rune routines
+X */
+extern	int	runetochar(char*, Rune*);
+extern	int	chartorune(Rune*, char*);
+extern	int	runelen(long);
+extern	int	runenlen(Rune*, int);
+extern	int	fullrune(char*, int);
+extern	int	utflen(char*);
+extern	int	utfnlen(char*, long);
+extern	char*	utfrune(char*, long);
+extern	char*	utfrrune(char*, long);
+extern	char*	utfutf(char*, char*);
+extern	char*	utfecpy(char*, char*, char*);
+
+extern	Rune*	runestrcat(Rune*, Rune*);
+extern	Rune*	runestrchr(Rune*, Rune);
+extern	int	runestrcmp(Rune*, Rune*);
+extern	Rune*	runestrcpy(Rune*, Rune*);
+extern	Rune*	runestrncpy(Rune*, Rune*, long);
+extern	Rune*	runestrecpy(Rune*, Rune*, Rune*);
+extern	Rune*	runestrdup(Rune*);
+extern	Rune*	runestrncat(Rune*, Rune*, long);
+extern	int	runestrncmp(Rune*, Rune*, long);
+extern	Rune*	runestrrchr(Rune*, Rune);
+extern	long	runestrlen(Rune*);
+extern	Rune*	runestrstr(Rune*, Rune*);
+
+extern	Rune	tolowerrune(Rune);
+extern	Rune	totitlerune(Rune);
+extern	Rune	toupperrune(Rune);
+extern	int	isalpharune(Rune);
+extern	int	islowerrune(Rune);
+extern	int	isspacerune(Rune);
+extern	int	istitlerune(Rune);
+extern	int	isupperrune(Rune);
+
+X#endif
+!
+
