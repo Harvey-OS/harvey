@@ -496,15 +496,15 @@ readheaders(Biobuf *in, int *fp, String **sp, Addr **top, int strict)
 		// to let users type headers, I need some way to distinguish.  Therefore,
 		// marshal tries to know all likely headers and will indeed screw up if
 		// the user types an unlikely one. -- presotto
-		if(strict){
-			hdrtype = -1;
-			for(i = 0; i < nelem(hdrs); i++){
-				if(cistrncmp(hdrs[i], p, strlen(hdrs[i])) == 0){
-					*fp |= 1<<i;
-					hdrtype = i;
-					break;
-				}
+		hdrtype = -1;
+		for(i = 0; i < nelem(hdrs); i++){
+			if(cistrncmp(hdrs[i], p, strlen(hdrs[i])) == 0){
+				*fp |= 1<<i;
+				hdrtype = i;
+				break;
 			}
+		}
+		if(strict){
 			if(hdrtype == -1){
 				p[Blinelen(in)-1] = '\n';
 				Bseek(in, -Blinelen(in), 1);
