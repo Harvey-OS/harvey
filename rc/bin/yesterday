@@ -56,6 +56,7 @@ fn Xbind {
 year=`{date|sed 's/.* //'}
 copy=Xecho
 last=()
+defdump=dump
 while(! ~ $#* 0 && ~ $1 -* && ! ~ $1 --){
 	switch($1){
 	case -a
@@ -75,6 +76,9 @@ while(! ~ $#* 0 && ~ $1 -* && ! ~ $1 --){
 		shift
 	case -C
 		copy=Xcarefulcp
+		shift
+	case -s
+		defdump=snap
 		shift
 # The slashnhack is always right.
 #	case -N
@@ -127,23 +131,28 @@ if(! ~ $status ''){
 
 for(i){
 	xpath=`{cleanname -d $dir -- $i}
-	xdump=dump
+	xdump=$defdump
 	dumppath=$xpath
 	if(~ $slashnhack yes && ~ $xpath /n/*/*){
-		xdump=`{echo $xpath | sed 's:/n/([^/]+)/.*:\1dump:'}
+		xdump=`{echo $xpath | sed 's:/n/([^/]+)/.*:\1'$defdump':'}
 		dumppath=`{echo $xpath | sed 's:/n/[^/]+(/.*):\1:'}
 	}
 	if(! test -e /n/$xdump/$year)
 		9fs $xdump
 
-	if(~ $#last 0)
+	if(~ $#last 0){
 		xlast=`{ls -t /n/$xdump/$year|sed 1q}
+		switch($defdump){
+		case snap
+			xlast=`{ls -t $xlast|sed 1q}
+		}
+	}
 	if not
 		xlast=/n/$xdump/$last
 
 	if(! test -e $xlast){
 		echo 'yesterday:' \
-			`{echo $xlast|sed 's/.n.dump.(....).(..)(..)/\1 \2 \3/'} \
+			`{echo $xlast|sed 's/.n.'$defdump'.(....).(..)(..)/\1 \2 \3/'} \
 			'is not a backup day for' $xdump >[1=2]
 		exit 'bad date'
 	}

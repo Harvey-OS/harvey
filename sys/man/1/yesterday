@@ -4,7 +4,7 @@ yesterday \- print file names from the dump
 .SH SYNOPSIS
 .B yesterday
 [
-.B -abcCdD
+.B -abcCdDs
 ] [
 .B -n
 .I daysago
@@ -89,6 +89,12 @@ The
 option selects the dump
 .I daysago
 prior to the current day.
+.PP
+The
+.B -s
+option selects the most recent snapshot instead of the most
+recent archived dump.  Snapshots may occur more frequently
+than dumps.
 .PP
 .I Yesterday
 does not guarantee that the string it prints represents an existing file.

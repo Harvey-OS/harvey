@@ -10,7 +10,9 @@ OFILES=\
 	_fdinfo.$O\
 	_getpw.$O\
 	_nap.$O\
+	9mallocz.$O\
 	9read.$O\
+	9readn.$O\
 	9wait.$O\
 	9write.$O\
 	access.$O\
@@ -67,6 +69,7 @@ OFILES=\
 	pause.$O\
 	pipe.$O\
 	profile.$O\
+	qlock.$O\
 	raise.$O\
 	read.$O\
 	rename.$O\

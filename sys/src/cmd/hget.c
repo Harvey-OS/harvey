@@ -779,8 +779,8 @@ doftp(URL *u, URL *px, Range *r, int out, long mtime)
 	char conndir[NETPATHLEN];
 	char *p;
 
-	/* untestet, proxy dosn't work with ftp (I think) */
-	if(px->host != nil){
+	/* untested, proxy dosn't work with ftp (I think) */
+	if(px->host == nil){
 		ctl = dial(netmkaddr(u->host, tcpdir, u->port), 0, conndir, 0);
 	} else {
 		ctl = dial(netmkaddr(px->host, tcpdir, px->port), 0, conndir, 0);

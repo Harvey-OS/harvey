@@ -884,6 +884,36 @@ remoteaddr(int fd, char *dir)
 	return "";
 }
 
+//  create a file and 
+//	1) ensure the modes we asked for
+//	2) make gid == uid
+static int
+docreate(char *file, int perm)
+{
+	int fd;
+	Dir ndir;
+	Dir *d;
+
+	//  create the mbox
+	fd = create(file, OREAD, perm);
+	if(fd < 0){
+		fprint(2, "couldn't create %s\n", file);
+		return -1;
+	}
+	d = dirfstat(fd);
+	if(d == nil){
+		fprint(2, "couldn't stat %s\n", file);
+		return -1;
+	}
+	nulldir(&ndir);
+	ndir.mode = perm;
+	ndir.gid = d->uid;
+	if(dirfwstat(fd, &ndir) < 0)
+		fprint(2, "couldn't chmod %s: %r\n", file);
+	close(fd);
+	return 0;
+}
+
 //  create a mailbox
 int
 creatembox(char *user, char *folder)
@@ -891,8 +921,6 @@ creatembox(char *user, char *folder)
 	char *p;
 	String *mailfile;
 	char buf[512];
-	int fd;
-	Dir *d;
 	Mlock *ml;
 
 	mailfile = s_new();
@@ -919,32 +947,15 @@ creatembox(char *user, char *folder)
 			break;
 		*p = 0;
 		if(access(s_to_c(mailfile), 0) != 0){
-			if((fd = create(s_to_c(mailfile), OREAD, DMDIR|0711)) < 0){
-				fprint(2, "couldn't create %s\n", s_to_c(mailfile));
+			if(docreate(s_to_c(mailfile), DMDIR|0711) < 0)
 				return -1;
-			}
-			close(fd);
 		}
 		*p = '/';
 	}
 
 	//  create the mbox
-	fd = create(s_to_c(mailfile), OREAD, 0622|DMAPPEND|DMEXCL);
-	if(fd < 0){
-		fprint(2, "couldn't create %s\n", s_to_c(mailfile));
+	if(docreate(s_to_c(mailfile), 0622|DMAPPEND|DMEXCL) < 0)
 		return -1;
-	}
-	d = dirfstat(fd);
-	if(d == nil){
-		close(fd);
-		fprint(2, "couldn't chmod %s\n", s_to_c(mailfile));
-		return -1;
-	}
-	d->mode = 0622|DMAPPEND|DMEXCL;
-	if(dirfwstat(fd, d) < 0)
-		fprint(2, "couldn't chmod %s\n", s_to_c(mailfile));
-	free(d);
-	close(fd);
 
 	/*
 	 *  create the lock file if it doesn't exist

@@ -8,6 +8,30 @@
 #define NBLOCK	40	/* maximum blocksize */
 #define DBLOCK	20	/* default blocksize */
 #define NAMSIZ	100
+
+enum {
+	Maxpfx = 155,		/* from POSIX */
+	Maxname = NAMSIZ + 1 + Maxpfx,
+};
+
+/* POSIX link flags */
+enum {
+	LF_PLAIN1 =	'\0',
+	LF_PLAIN2 =	'0',
+	LF_LINK =	'1',
+	LF_SYMLINK1 =	'2',
+	LF_SYMLINK2 =	's',
+	LF_CHR =	'3',
+	LF_BLK =	'4',
+	LF_DIR =	'5',
+	LF_FIFO =	'6',
+	LF_CONTIG =	'7',
+	/* 'A' - 'Z' are reserved for custom implementations */
+};
+
+#define islink(lf)	(isreallink(lf) || issymlink(lf))
+#define isreallink(lf)	((lf) == LF_LINK)
+#define issymlink(lf)	((lf) == LF_SYMLINK1 || (lf) == LF_SYMLINK2)
 union	hblock
 {
 	char	dummy[TBLOCK];
@@ -22,14 +46,25 @@ union	hblock
 		char	chksum[8];
 		char	linkflag;
 		char	linkname[NAMSIZ];
+		/* rest are defined by POSIX's ustar format; see p1003.2b */
+		char	magic[6];	/* "ustar" */
+		char	version[2];
+		char	uname[32];
+		char	gname[32];
+		char	devmajor[8];
+		char	devminor[8];
+		char	prefix[155];  /* if non-null, path = prefix "/" name */
 	} dbuf;
 } dblock, tbuf[NBLOCK];
 
 Dir *stbuf;
 Biobuf bout;
+static int ustar;		/* flag: tape block just read is ustar format */
+static char *fullname;			/* if non-nil, prefix "/" name */
 
 int	rflag, xflag, vflag, tflag, mt, cflag, fflag, Tflag, Rflag;
 int	uflag, gflag;
+static int posix;		/* flag: we're writing ustar format archive */
 int	chksum, recno, first;
 int	nblock = DBLOCK;
 
@@ -54,6 +89,109 @@ void	backtar(void);
 void	flushtar(void);
 void	affix(int, char *);
 int	volprompt(void);
+
+static int
+isustar(struct header *hp)
+{
+	return strcmp(hp->magic, "ustar") == 0;
+}
+
+static void
+setustar(struct header *hp)
+{
+	strncpy(hp->magic, "ustar", sizeof hp->magic);
+	strncpy(hp->version, "00", sizeof hp->version);
+}
+
+/*
+ * s is at most n bytes long, but need not be NUL-terminated.
+ * if shorter than n bytes, all bytes after the first NUL must also
+ * be NUL.
+ */
+static int
+strnlen(char *s, int n)
+{
+	if (s[n - 1] != '\0')
+		return n;
+	else
+		return strlen(s);
+}
+
+/* set fullname from header; called from getdir() */
+static void
+getfullname(struct header *hp)
+{
+	int pfxlen, namlen;
+
+	if (fullname != nil)
+		free(fullname);
+	namlen = strnlen(hp->name, sizeof hp->name);
+	if (hp->prefix[0] == '\0' || !ustar) {
+		fullname = malloc(namlen + 1);
+		if (fullname == nil)
+			sysfatal("out of memory: %r");
+		memmove(fullname, hp->name, namlen);
+		fullname[namlen] = '\0';
+		return;
+	}
+	pfxlen = strnlen(hp->prefix, sizeof hp->prefix);
+	fullname = malloc(pfxlen + 1 + namlen + 1);
+	if (fullname == nil)
+		sysfatal("out of memory: %r");
+	memmove(fullname, hp->prefix, pfxlen);
+	fullname[pfxlen] = '/';
+	memmove(fullname + pfxlen + 1, hp->name, namlen);
+	fullname[pfxlen + 1 + namlen] = '\0';
+}
+
+/*
+ * if name is longer than NAMSIZ bytes, try to split it at a slash and fit the
+ * pieces into hp->prefix and hp->name.
+ */
+static int
+putfullname(struct header *hp, char *name)
+{
+	int namlen, pfxlen;
+	char *sl, *osl;
+
+	namlen = strlen(name);
+	if (namlen <= NAMSIZ) {
+		strncpy(hp->name, name, NAMSIZ);
+		hp->prefix[0] = '\0';		/* ustar paranoia */
+		return 0;
+	}
+	if (!posix || namlen > NAMSIZ + 1 + sizeof hp->prefix) {
+		fprint(2, "tar: name too long for tar header: %s\n", name);
+		return -1;
+	}
+	/*
+	 * try various splits until one results in pieces that fit into the
+	 * appropriate fields of the header.  look for slashes from right
+	 * to left, in the hopes of putting the largest part of the name into
+	 * hp->prefix, which is larger than hp->name.
+	 */
+	sl = strrchr(name, '/');
+	while (sl != nil) {
+		pfxlen = sl - name;
+		if (pfxlen <= sizeof hp->prefix && namlen-1 - pfxlen <= NAMSIZ)
+			break;
+		osl = sl;
+		*osl = '\0';
+		sl = strrchr(name, '/');
+		*osl = '/';
+	}
+	if (sl == nil) {
+		fprint(2, "tar: name can't be split to fit tar header: %s\n",
+			name);
+		return -1;
+	}
+	*sl = '\0';
+	strncpy(hp->prefix, name, sizeof hp->prefix);
+	*sl = '/';
+	strncpy(hp->name, sl + 1, sizeof hp->name);
+	return 0;
+}
+
 void
 main(int argc, char **argv)
 {
@@ -90,6 +228,9 @@ main(int argc, char **argv)
 		case 'c':
 			cflag++;
 			rflag++;
+			break;
+		case 'p':
+			posix++;
 			break;
 		case 'r':
 			rflag++;
@@ -248,10 +389,8 @@ getdir(void)
 		return;
 	if(stbuf == nil){
 		stbuf = malloc(sizeof(Dir));
-		if(stbuf == nil) {
-			fprint(2, "tar: can't malloc: %r\n");
-			exits("malloc");
-		}
+		if(stbuf == nil)
+			sysfatal("out of memory: %r");
 	}
 	sp = stbuf;
 	sp->mode = strtol(dblock.dbuf.mode, 0, 8);
@@ -260,13 +399,14 @@ getdir(void)
 	sp->length = strtol(dblock.dbuf.size, 0, 8);
 	sp->mtime = strtol(dblock.dbuf.mtime, 0, 8);
 	chksum = strtol(dblock.dbuf.chksum, 0, 8);
-	if (chksum != checksum()) {
-		fprint(2, "directory checksum error\n");
-		exits("checksum error");
-	}
+	if (chksum != checksum())
+		sysfatal("header checksum error");
 	sp->qid.type = 0;
+	ustar = isustar(&dblock.dbuf);
+	getfullname(&dblock.dbuf);
 	/* the mode test is ugly but sometimes necessary */
-	if (dblock.dbuf.linkflag == '5' || (sp->mode&0170000) == 040000) {
+	if (dblock.dbuf.linkflag == LF_DIR || (sp->mode&0170000) == 040000 ||
+	    strrchr(fullname, '\0')[-1] == '/') {
 		sp->qid.type |= QTDIR;
 		sp->mode |= DMDIR;
 	}
@@ -278,8 +418,13 @@ passtar(void)
 	long blocks;
 	char buf[TBLOCK];
 
-	if (dblock.dbuf.linkflag == '1' || dblock.dbuf.linkflag == 's')
+	switch (dblock.dbuf.linkflag) {
+	case LF_LINK:
+	case LF_SYMLINK1:
+	case LF_SYMLINK2:
+	case LF_FIFO:
 		return;
+	}
 	blocks = stbuf->length;
 	blocks += TBLOCK-1;
 	blocks /= TBLOCK;
@@ -296,7 +441,7 @@ putfile(char *dir, char *longname, char *sname)
 	char buf[TBLOCK];
 	char curdir[4096];
 	char shortname[4096];
-	char *cp, *cp2;
+	char *cp;
 	Dir *db;
 	int i, n;
 
@@ -321,17 +466,17 @@ putfile(char *dir, char *longname, char *sname)
 		for (i = 0, cp = buf; *cp++ = longname[i++];);
 		*--cp = '/';
 		*++cp = 0;
-		if( (cp - buf) >= NAMSIZ) {
-			fprint(2, "tar: %s: file name too long\n", longname);
-			close(infile);
-			return;
-		}
 		stbuf->length = 0;
+
 		tomodes(stbuf);
-		strcpy(dblock.dbuf.name,buf);
-		dblock.dbuf.linkflag = '5';		/* Directory */
+		if (putfullname(&dblock.dbuf, buf) < 0) {
+			close(infile);
+			return;		/* putfullname already complained */
+		}
+		dblock.dbuf.linkflag = LF_DIR;
 		sprint(dblock.dbuf.chksum, "%6o", checksum());
 		writetar( (char *) &dblock);
+
 		if (chdir(shortname) < 0) {
 			fprint(2, "tar: can't cd to %s: %r\n", shortname);
 			snprint(curdir, sizeof(curdir), "cd %s", shortname);
@@ -342,7 +487,8 @@ putfile(char *dir, char *longname, char *sname)
 			for(i = 0; i < n; i++){
 				strncpy(cp, db[i].name, sizeof buf - (cp-buf));
 				putfile(curdir, buf, db[i].name);
-			}free(db);
+			}
+			free(db);
 		}
 		close(infile);
 		if (chdir(dir) < 0 && chdir("..") < 0) {
@@ -353,26 +499,22 @@ putfile(char *dir, char *longname, char *sname)
 		return;
 	}
 
-
+	/* plain file; write header block first */
 	tomodes(stbuf);
-
-	cp2 = longname;
-	for (cp = dblock.dbuf.name, i=0; (*cp++ = *cp2++) && i < NAMSIZ; i++);
-	if (i >= NAMSIZ) {
-		fprint(2, "%s: file name too long\n", longname);
+	if (putfullname(&dblock.dbuf, longname) < 0) {
 		close(infile);
-		return;
+		return;		/* putfullname already complained */
 	}
-
 	blocks = (stbuf->length + (TBLOCK-1)) / TBLOCK;
 	if (vflag) {
 		fprint(2, "a %s ", longname);
 		fprint(2, "%ld blocks\n", blocks);
 	}
-	dblock.dbuf.linkflag = 0;			/* Regular file */
+	dblock.dbuf.linkflag = LF_PLAIN1;
 	sprint(dblock.dbuf.chksum, "%6o", checksum());
 	writetar( (char *) &dblock);
 
+	/* then copy contents */
 	while ((i = readn(infile, buf, TBLOCK)) > 0 && blocks > 0) {
 		writetar(buf);
 		blocks--;
@@ -389,8 +531,9 @@ void
 doxtract(char **argv)
 {
 	Dir null;
+	int wrsize;
 	long blocks, bytes;
-	char buf[TBLOCK], outname[NAMSIZ+4];
+	char buf[TBLOCK], outname[Maxname+3+1];
 	char **cp;
 	int ofile;
 
@@ -403,29 +546,30 @@ doxtract(char **argv)
 			goto gotit;
 
 		for (cp = argv; *cp; cp++)
-			if (prefix(*cp, dblock.dbuf.name))
+			if (prefix(*cp, fullname))
 				goto gotit;
 		passtar();
 		continue;
 
 gotit:
-		if(checkdir(dblock.dbuf.name, stbuf->mode, &(stbuf->qid)))
+		if(checkdir(fullname, stbuf->mode, &stbuf->qid))
 			continue;
 
-		if (dblock.dbuf.linkflag == '1') {
+		if (dblock.dbuf.linkflag == LF_LINK) {
 			fprint(2, "tar: can't link %s %s\n",
-				dblock.dbuf.linkname, dblock.dbuf.name);
-			remove(dblock.dbuf.name);
+				dblock.dbuf.linkname, fullname);
+			remove(fullname);
 			continue;
 		}
-		if (dblock.dbuf.linkflag == 's') {
-			fprint(2, "tar: %s: cannot symlink\n", dblock.dbuf.name);
+		if (dblock.dbuf.linkflag == LF_SYMLINK1 ||
+		    dblock.dbuf.linkflag == LF_SYMLINK2) {
+			fprint(2, "tar: %s: cannot symlink\n", fullname);
 			continue;
 		}
-		if(dblock.dbuf.name[0] != '/' || Rflag)
-			sprint(outname, "./%s", dblock.dbuf.name);
+		if(fullname[0] != '/' || Rflag)
+			sprint(outname, "./%s", fullname);
 		else
-			strcpy(outname, dblock.dbuf.name);
+			strcpy(outname, fullname);
 		if ((ofile = create(outname, OWRITE, stbuf->mode & 0777)) < 0) {
 			fprint(2, "tar: %s - cannot create: %r\n", outname);
 			passtar();
@@ -434,20 +578,16 @@ gotit:
 
 		blocks = ((bytes = stbuf->length) + TBLOCK-1)/TBLOCK;
 		if (vflag)
-			fprint(2, "x %s, %ld bytes\n",
-				dblock.dbuf.name, bytes);
+			fprint(2, "x %s, %ld bytes\n", fullname, bytes);
 		while (blocks-- > 0) {
 			readtar(buf);
-			if (bytes > TBLOCK) {
-				if (write(ofile, buf, TBLOCK) < 0) {
-					fprint(2, "tar: %s: HELP - extract write error: %r\n", dblock.dbuf.name);
-					exits("extract write");
-				}
-			} else
-				if (write(ofile, buf, bytes) < 0) {
-					fprint(2, "tar: %s: HELP - extract write error: %r\n", dblock.dbuf.name);
-					exits("extract write");
-				}
+			wrsize = (bytes > TBLOCK? TBLOCK: bytes);
+			if (write(ofile, buf, wrsize) != wrsize) {
+				fprint(2,
+				    "tar: %s: HELP - extract write error: %r\n",
+					fullname);
+				exits("extract write");
+			}
 			bytes -= TBLOCK;
 		}
 		if(Tflag){
@@ -468,7 +608,7 @@ dotable(void)
 			break;
 		if (vflag)
 			longt(stbuf);
-		Bprint(&bout, "%s", dblock.dbuf.name);
+		Bprint(&bout, "%s", fullname);
 		if (dblock.dbuf.linkflag == '1')
 			Bprint(&bout, " linked to %s", dblock.dbuf.linkname);
 		if (dblock.dbuf.linkflag == 's')
@@ -539,15 +679,17 @@ checkdir(char *name, int mode, Qid *qid)
 void
 tomodes(Dir *sp)
 {
-	char *cp;
-
-	for (cp = dblock.dummy; cp < &dblock.dummy[TBLOCK]; cp++)
-		*cp = '\0';
+	memset(dblock.dummy, 0, sizeof(dblock.dummy));
 	sprint(dblock.dbuf.mode, "%6lo ", sp->mode & 0777);
 	sprint(dblock.dbuf.uid, "%6o ", uflag);
 	sprint(dblock.dbuf.gid, "%6o ", gflag);
 	sprint(dblock.dbuf.size, "%11llo ", sp->length);
 	sprint(dblock.dbuf.mtime, "%11lo ", sp->mtime);
+	if (posix) {
+		setustar(&dblock.dbuf);
+		strncpy(dblock.dbuf.uname, sp->uid, sizeof dblock.dbuf.uname);
+		strncpy(dblock.dbuf.gname, sp->gid, sizeof dblock.dbuf.gname);
+	}
 }
 
 int

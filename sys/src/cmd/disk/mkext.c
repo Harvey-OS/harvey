@@ -151,7 +151,7 @@ mkdir(char *name, ulong mode, ulong mtime, char *uid, char *gid)
 		rerrstr(olderr, sizeof(olderr));
 		if((d = dirstat(name)) == nil || !(d->mode & DMDIR)){
 			free(d);
-			warn("can't make directory %q, mode %luo: %s", name, olderr);
+			warn("can't make directory %q, mode %luo: %s", name, mode, olderr);
 			return;
 		}
 	}
