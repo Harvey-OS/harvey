@@ -48,7 +48,24 @@ getdir(SConn *conn, char *id)
 		len -= n;
 	}
 	free(s);
+	free(ls);
 	return 0;
+}
+
+char *
+validatefile(char *f)
+{
+	char *nl;
+
+	if(f==nil || *f==0)
+		return nil;
+	if(nl = strchr(f, '\n'))
+		*nl = 0;
+	if(strchr(f,'/') != nil || strcmp(f,"..")==0 || strlen(f) >= 300){
+		syslog(0, LOG, "no slashes allowed: %s\n", f);
+		return nil;
+	}
+	return f;
 }
 
 static int
@@ -61,11 +78,6 @@ getfile(SConn *conn, char *id, char *gf)
 		return getdir(conn, id);
 
 	/* send file size */
-	if(strchr(gf,'/') != nil || strcmp(gf,"..")==0){
-		syslog(0, LOG, "no slashes allowed: %s\n", gf);
-		conn->write(conn, (uchar*)"-2", 2);
-		return -1;
-	}
 	s = emalloc(Maxmsg);
 	snprint(s, Maxmsg, "%s/store/%s/%s", SECSTORE_DIR, id, gf);
 	gd = open(s, OREAD);
@@ -76,7 +88,7 @@ getfile(SConn *conn, char *id, char *gf)
 		return -1;
 	}
 	len = seek(gd, 0, 2);
-	if(len < 0 || len > MAXFILESIZE){//assert
+	if(len < 0 || len > MAXFILESIZE){
 		syslog(0, LOG, "implausible filesize %d for %s\n", len, gf);
 		free(s);
 		conn->write(conn, (uchar*)"-3", 2);
@@ -111,7 +123,7 @@ putfile(SConn *conn, char *id, char *pf)
 
 	/* get file size */
 	n = readstr(conn, s);
-	if(n < 0){//assert
+	if(n < 0){
 		syslog(0, LOG, "remote: %s: %r\n", s);
 		return -1;
 	}
@@ -119,7 +131,7 @@ putfile(SConn *conn, char *id, char *pf)
 	if(len == -1){
 		syslog(0, LOG, "remote file %s does not exist\n", pf);
 		return -1;
-	}else if(len < 0 || len > MAXFILESIZE){//assert
+	}else if(len < 0 || len > MAXFILESIZE){
 		syslog(0, LOG, "implausible filesize %ld for %s\n", len, pf);
 		return -1;
 	}
@@ -131,18 +143,18 @@ putfile(SConn *conn, char *id, char *pf)
 	}
 	snprint(s, Maxmsg, "%s/store/%s/%s", SECSTORE_DIR, id, pf);
 	pd = create(s, OWRITE, 0660);
-	if(pd < 0){//assert
+	if(pd < 0){
 		syslog(0, LOG, "can't open %s: %r\n", s);
 		return -1;
 	}
 	while(len > 0){
 		n = conn->read(conn, (uchar*)s, Maxmsg);
-		if(n <= 0){//assert
+		if(n <= 0){
 			syslog(0, LOG, "empty file chunk\n");
 			return -1;
 		}
 		nw = write(pd, s, n);
-		if(nw != n){//assert
+		if(nw != n){
 			syslog(0, LOG, "write error on %s: %r", pf);
 			return -1;
 		}
@@ -161,16 +173,18 @@ removefile(SConn *conn, char *id, char *f)
 
 	snprint(buf, Maxmsg, "%s/store/%s/%s", SECSTORE_DIR, id, f);
 
-	if((d =dirstat(buf)) == nil){
+	if((d = dirstat(buf)) == nil){
 		snprint(buf, sizeof buf, "remove failed: %r");
 		writerr(conn, buf);
 		return -1;
 	}else if(d->mode & DMDIR){
 		snprint(buf, sizeof buf, "can't remove a directory");
 		writerr(conn, buf);
+		free(d);
 		return -1;
 	}
 
+	free(d);
 	if(remove(buf) < 0){
 		snprint(buf, sizeof buf, "remove failed: %r");
 		writerr(conn, buf);
@@ -206,7 +220,7 @@ static int
 dologin(int fd, char *S, int forceSTA)
 {
 	int i, n, rv;
-	char *file, *nl;
+	char *file;
 	char msg[Maxmsg+1];
 	PW *pw;
 	SConn *conn;
@@ -245,32 +259,27 @@ dologin(int fd, char *S, int forceSTA)
 
 	// perform operations as asked
 	while((n = readstr(conn, msg)) > 0){
+		syslog(0, LOG, "[%s] %s", pw->id, msg);
+
 		if(strncmp(msg, "GET ", 4) == 0){
-			file = msg+4;
-			if(nl = strchr(file, '\n'))
-				*nl = 0;
-			if(getfile(conn, pw->id, file) < 0)
-				goto Out;
-			syslog(0, LOG, "GET %s/%s", pw->id, file);
+			file = validatefile(msg+4);
+			if(file==nil || getfile(conn, pw->id, file) < 0)
+				goto Err;
+
 		}else if(strncmp(msg, "PUT ", 4) == 0){
-			file = msg+4;
-			if(nl = strchr(file, '\n'))
-				*nl = 0;
-			if(putfile(conn, pw->id, file) < 0){
-				writerr(conn, "write error");
+			file = validatefile(msg+4);
+			if(file==nil || putfile(conn, pw->id, file) < 0){
 				syslog(0, LOG, "failed PUT %s/%s", pw->id, file);
-				goto Out;
+				goto Err;
 			}
-			syslog(0, LOG, "PUT %s/%s", pw->id, file);
+
 		}else if(strncmp(msg, "RM ", 3) == 0){
-			file = msg + 3;
-			if(nl = strchr(file, '\n'))
-				*nl = 0;
-			if(removefile(conn, pw->id, file) < 0){
+			file = validatefile(msg+3);
+			if(file==nil || removefile(conn, pw->id, file) < 0){
 				syslog(0, LOG, "failed RM %s/%s", pw->id, file);
-				goto Out;
+				goto Err;
 			}
-			syslog(0, LOG, "RM %s/%s", pw->id, file);
+
 		}else if(strncmp(msg, "CHPASS", 6) == 0){
 			if(readstr(conn, msg) < 0){
 				syslog(0, LOG, "protocol botch CHPASS for %s", pw->id);
@@ -282,12 +291,12 @@ dologin(int fd, char *S, int forceSTA)
 				syslog(0, LOG, "password change failed for %s (%d): %r", pw->id, i);
 			if(i==4)
 				goto Out;
-			syslog(0, LOG, "CHPASS for '%s'", pw->id);
+
 		}else if(strncmp(msg, "BYE", 3) == 0){
 			rv = 0;
 			break;
+
 		}else{
-			syslog(0, LOG, "unrecognized operation: %s\n", msg);
 			writerr(conn, "unrecognized operation");
 			break;
 		}
@@ -300,6 +309,9 @@ Out:
 	freePW(pw);
 	conn->free(conn);
 	return rv;
+Err:
+	writerr(conn, "operation failed");
+	goto Out;
 }
 
 void

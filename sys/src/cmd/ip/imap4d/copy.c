@@ -196,6 +196,7 @@ saveMsg(char *dst, char *digest, int flags, char *head, int nhead, Biobuf *b, lo
 		if(dstate != nil)
 			sha1(nil, 0, shadig, dstate);
 		mbUnlock(ml);
+		close(fd);
 		return 0;
 	}
 	ok = 1;

@@ -13103,3 +13103,13 @@
 1062180110 17 c sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1062073146 42984
 1062180110 18 c sys/src/cmd/fossil/9proc.c - 664 sys sys 1062009435 15239
 1062180110 19 c sys/src/libc/9syscall/sys.h - 664 sys sys 1062076905 896
+1062279084 0 c 386/bin/auth/secstore - 775 sys sys 1062277697 188052
+1062279084 1 c 386/bin/auth/secstored - 775 sys sys 1062277702 193922
+1062279084 2 c 386/bin/auth/secuser - 775 sys sys 1062277712 151114
+1062279084 3 c sys/src/cmd/auth/secstore/dirls.c - 664 sys sys 1062277640 1842
+1062279084 4 c sys/src/cmd/auth/secstore/pak.c - 664 sys sys 1062277640 9297
+1062279084 5 c sys/src/cmd/auth/secstore/password.c - 664 sys sys 1062277640 2770
+1062279084 6 c sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1062277640 12269
+1062279084 7 c sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1062277641 7952
+1062291689 0 c sys/man/8/secstore - 664 sys sys 1062291170 1159
+1062298899 0 c sys/src/cmd/ip/imap4d/copy.c - 664 sys sys 1062298855 4597
