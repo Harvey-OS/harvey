@@ -171,7 +171,7 @@ cmd_create(void)
 	}
 	err = con_create(FID2, elem, uid, gid, perm, 0);
 	if(err)
-		cprint("can't create %s: %s\n", elem, errstr[err]);
+		cprint("can't create %s: %s\n", elem, errstring[err]);
 }
 
 void
@@ -194,7 +194,7 @@ cmd_rename(void)
 {
 	Dentry d;
 	char stat[DIRREC];
-	char oelem[NAMELEN], nelem[NAMELEN];
+	char oelem[NAMELEN], nxelem[NAMELEN];
 	int err;
 
 	if(con_clone(FID1, FID2))
@@ -210,19 +210,19 @@ cmd_rename(void)
 			}
 		memmove(oelem, elem, NAMELEN);
 	}
-	cname(nelem);
-	if(!con_walk(FID2, nelem))
-		cprint("file %s already exists\n", nelem);
+	cname(nxelem);
+	if(!con_walk(FID2, nxelem))
+		cprint("file %s already exists\n", nxelem);
 	else if(con_walk(FID2, oelem))
 		cprint("file does not already exist\n");
 	else if(err = con_stat(FID2, stat))
-		cprint("can't stat file: %s\n", errstr[err]);
+		cprint("can't stat file: %s\n", errstring[err]);
 	else{
 		convM2D(stat, &d);
-		strncpy(d.name, nelem, NAMELEN);
+		strncpy(d.name, nxelem, NAMELEN);
 		convD2M(&d, stat);
 		if(err = con_wstat(FID2, stat))
-			cprint("can't move file: %s\n", errstr[err]);
+			cprint("can't move file: %s\n", errstring[err]);
 	}
 }
 
@@ -247,12 +247,12 @@ cmd_cfs(void)
 	Filsys *fs;
 
 	if(*cons.arg != ' ') {
-		fs = &filsys[0];		/* default */
+		fs = &filesys[0];		/* default */
 	} else {
 		if(skipbl(1))
 			return;
 		if(!nextelem())
-			fs = &filsys[0];	/* default */
+			fs = &filesys[0];	/* default */
 		else
 			fs = fsstr(elem);
 	}
@@ -286,12 +286,16 @@ adduser(char *user)
 			break;
 		if(strcmp(uidspace+u->offset, user) == 0)
 			return 1;
-		if(c >= 10000)
+		if(c >= 9000)
 			continue;
 		if(c > nu)
 			nu = c;
 	}
 	nu++;
+	if(nu >= 9000) {
+		cprint("out of user ids\n");
+		return 0;
+	}
 
 	/*
 	 * write onto adm/users
@@ -308,7 +312,7 @@ adduser(char *user)
 	c = strlen(msg);
 	i = con_stat(FID2, stat);
 	if(i){
-		cprint("can't stat /adm/users: %s\n", errstr[i]);
+		cprint("can't stat /adm/users: %s\n", errstring[i]);
 		return 0;
 	}
 	i = con_write(FID2, msg, statlen(stat), c);
@@ -370,9 +374,9 @@ cmd_newuser(void)
 	cmd_exec(msg);
 	sprint(msg, "create /usr/%s/bin/386 %s %s 775 d", user, user, user);
 	cmd_exec(msg);
-	sprint(msg, "create /usr/%s/bin/68020 %s %s 775 d", user, user, user);
+	sprint(msg, "create /usr/%s/bin/power %s %s 775 d", user, user, user);
 	cmd_exec(msg);
-	sprint(msg, "create /usr/%s/bin/sparc %s %s 775 d", user, user, user);
+	sprint(msg, "create /usr/%s/bin/alpha %s %s 775 d", user, user, user);
 	cmd_exec(msg);
 }
 
@@ -406,11 +410,18 @@ cmd_disallow(void)
 	wstatallow = 0;
 }
 
+void
+cmd_chat(void)
+{
+	chat = 1 - chat;
+}
+
 Command	command[] =
 {
 	"allow",	cmd_allow,	"",
 	"allowoff",	cmd_disallow,	"",
-	"cfs",		cmd_cfs,	"[filsys]",
+	"cfs",		cmd_cfs,	"[filesys]",
+	"chat",		cmd_chat,	"",
 	"check",	cmd_check,	"[rftRdPpw]",
 	"clri",		cmd_clri,	"filename",
 	"create",	cmd_create,	"filename user group perm [ald]",

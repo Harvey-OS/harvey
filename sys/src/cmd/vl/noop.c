@@ -68,6 +68,7 @@ noops(void)
 			break;
 
 		/* too hard, just leave alone */
+		case ACASE:
 		case ASYSCALL:
 		case AWORD:
 		case ATLBWR:
@@ -98,6 +99,10 @@ noops(void)
 			q1->mark |= p->mark;
 			continue;
 
+		case ABCASE:
+			p->mark |= LABEL|SYNC;
+			goto dstlab;
+
 		case ABGEZAL:
 		case ABLTZAL:
 		case AJAL:
@@ -114,6 +119,8 @@ noops(void)
 		case ABFPT:
 		case ABFPF:
 			p->mark |= BRANCH;
+
+		dstlab:
 			q1 = p->cond;
 			if(q1 != P) {
 				while(q1->as == ANOP) {

@@ -41,6 +41,7 @@ main(int argc, char *argv[])
 	}
 	if(n == 0)
 		printfile(0);
+	exits(0);
 }
 
 void
@@ -56,7 +57,7 @@ printfile(int f)
 		for(i=1; i <= pglen; i++) {
 			s = Brdline(b, '\n');
 			if(s == 0){
-				n = BLINELEN(b);
+				n = Blinelen(b);
 				if(n > 0)	/* line too long for Brdline */
 					for(j=0; j<n; j++)
 						Bputc(&bout, Bgetc(b));

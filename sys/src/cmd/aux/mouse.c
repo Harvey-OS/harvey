@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <libg.h>
 
 enum
 {
@@ -20,11 +19,6 @@ char *speeds[] =
 	0,
 };
 
-typedef struct Trans {
-	Point off, num, den;
-} Trans;
-
-Trans	trans = {-46, 509, 559, 399, 4239, -3017};
 int	button2; 
 
 #define DEBUG if(debug)
@@ -113,6 +107,9 @@ toggleRTS(int fd)
 	 * reset the mouse (toggle RTS)
 	 * must be >100mS
 	 */
+	timedwrite(fd, "d1", 2);
+	timedwrite(fd, "r1", 2);
+	sleep(Sleep500);
 	timedwrite(fd, "d0", 2);
 	timedwrite(fd, "r0", 2);
 	sleep(Sleep500);
@@ -285,78 +282,12 @@ Wbaud(int ctl, int data, int baud)
 	slowread(data, buf, sizeof(buf), "setbaud: ");
 }
 
-Mouse
-rawpen(int fd)
-{
-	Mouse	m;
-	int	i, n;
-	char	buf[10];
-
-	while (1) {
-		while ((n = read(fd, buf, sizeof buf)) < 5)
-			;
-		for (i = 0; i < n && (buf[i]&0xa0) != 0xa0; i++)
-			;
-		if (i+5 > n)
-			continue;
-		m.buttons = buf[i]&7;
-		button2 = m.buttons&2;
-		m.xy.x = (buf[i+1]&0x7f) | (buf[i+2]&0x7f) << 7;
-		m.xy.y = (buf[i+3]&0x7f) | (buf[i+4]&0x7f) << 7;
-		return m;
-	}
-}
-
-void
-cross(Point p)
-{
-	segment(&screen, Pt(p.x-20, p.y), Pt(p.x+20, p.y), 0xff, S^D);
-	segment(&screen, Pt(p.x, p.y-20), Pt(p.x, p.y+20), 0xff, S^D);
-	bflush();
-}
-
-void
-dot(Point p)
-{
-	static	Point	old;
-
-	point(&screen, old, 0xff, S^D);
-	old = p;
-	point(&screen, old, 0xff, S^D);
-	bflush();
-}
-
-Point
-k2s(Trans t, Point p)
-{
-	p.x = t.off.x + (p.x*t.num.x)/t.den.x;
-	p.y = t.off.y + (p.y*t.num.y)/t.den.y;
-	return p;
-}
-
-Point
-hair(Point p, int fd)
-{
-	Mouse	m;
-
-	cross(p);
-	do {
-		m = rawpen(fd);
-		dot(k2s(trans, m.xy));
-	} while ((m.buttons&1) == 0 && !button2);
-	while (rawpen(fd).buttons&1)
-		;
-	cross(p);
-	dot(k2s(trans, m.xy));
-	return m.xy;
-}
-
 void
 main(int argc, char *argv[])
 {
 	char *p;
 	int baud;
-	int conf, ctl, data, def, type;
+	int tries, conf, ctl, data, def, type;
 	char buf[256];
 
 	def = 0;
@@ -383,75 +314,88 @@ main(int argc, char *argv[])
 	if(argc)
 		p = *argv;
 
-	if((conf = open("#b/mousectl", OWRITE)) == -1){
-		fprint(2, "%s: can't open #b/mousectl - %r\n", argv0);
+	if((conf = open("/dev/mousectl", OWRITE)) == -1){
+		fprint(2, "%s: can't open /dev/mousectl - %r\n", argv0);
 		if(dontset == 0)
-			exits("open #b");
+			exits("open /dev/mousectl");
 	}
 
-	if(strcmp(p, "ps2") == 0){
-		if(write(conf, "ps2", 3) < 0){
+	if(strncmp(p, "ps2", 3) == 0){
+		if(write(conf, p, strlen(p)) < 0){
 			fprint(2, "%s: error setting mouse type - %r\n", argv0);
 			exits("write conf");
 		}
 		exits(0);
 	}
 
-	sprint(buf, "#t/eia%sctl", p);
-	if((ctl = open(buf, ORDWR)) == -1){
-		fprint(2, "%s: can't open %s - %r\n", argv0, buf);
-		exits("open ctl");
-	}
-	sprint(buf, "#t/eia%s", p);
-	if((data = open(buf, ORDWR)) == -1){
-		fprint(2, "%s: can't open %s - %r\n", argv0, buf);
-		exits("open data");
-	}
-
-	notify(catch);
-
-	type = MorW(ctl, data);
-	if(type == 0)
-		type = C(ctl, data);
-	if(type == 0){
-		/* with the default we can't assume anything */
-		baud = 0;
-
-		/* try the default */
-		switch(def){
+	type = 0;
+	for(tries = 0; type == 0 && tries < 6; tries++){
+		if(tries)
+			fprint(2, "%s: Unknown mouse type, retrying...\n", argv0);
+		sprint(buf, "#t/eia%sctl", p);
+		if((ctl = open(buf, ORDWR)) == -1){
+			fprint(2, "%s: can't open %s - %r\n", argv0, buf);
+			exits("open ctl");
+		}
+		sprint(buf, "#t/eia%s", p);
+		if((data = open(buf, ORDWR)) == -1){
+			fprint(2, "%s: can't open %s - %r\n", argv0, buf);
+			exits("open data");
+		}
+	
+		notify(catch);
+	
+		type = MorW(ctl, data);
+		if(type == 0)
+			type = C(ctl, data);
+		if(type == 0){
+			/* with the default we can't assume anything */
+			baud = 0;
+	
+			/* try the default */
+			switch(def){
+			case 'C':
+				setupeia(ctl, "b1200", "l8");
+				break;
+			case 'M':
+				setupeia(ctl, "b1200", "l7");
+				break;
+			}
+	
+			type = def;
+		}
+	
+		sprint(buf, "serial %s", p);
+		switch(type){
+		case 0:
+			close(data);
+			close(ctl);
+			continue;
 		case 'C':
-			setupeia(ctl, "b1200", "l8");
+			DEBUG print("Logitech 5 byte mouse\n");
+			Cbaud(ctl, data, baud);
+			break;
+		case 'W':
+			DEBUG print("Type W mouse\n");
+			Wbaud(ctl, data, baud);
 			break;
 		case 'M':
-			setupeia(ctl, "b1200", "l7");
+			DEBUG print("Microsoft compatible mouse\n");
+			strcat(buf, " M");
 			break;
 		}
-
-		type = def;
 	}
 
-	sprint(buf, "serial %s", p);
-	switch(type){
-	case 0:
-		fprint(2, "%s: Unknown mouse type\n", argv0);
+	if(type == 0){
+		fprint(2, "%s: Unknown mouse type, giving up\n", argv0);
 		exits("no mouse");
-	case 'C':
-		DEBUG print("Logitech 5 byte mouse\n");
-		Cbaud(ctl, data, baud);
-		break;
-	case 'W':
-		DEBUG print("Type W mouse\n");
-		Wbaud(ctl, data, baud);
-		break;
-	case 'M':
-		DEBUG print("Microsoft compatible mouse\n");
-		strcat(buf, " M");
-		break;
 	}
+
 	DEBUG fprint(2, "mouse configured as '%s'\n", buf);
 	if(dontset == 0 && write(conf, buf, strlen(buf)) < 0){
 		fprint(2, "%s: error setting mouse type - %r\n", argv0);
 		exits("write conf");
 	}
+
 	exits(0);
 }

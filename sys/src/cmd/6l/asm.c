@@ -51,7 +51,7 @@ asmb(void)
 		if(debug['a']) {
 			Bprint(&bso, pcstr, pc);
 			for(op1 = and; op1 < andptr; op1++)
-				Bprint(&bso, " %.8ux", *op1);
+				Bprint(&bso, " %.8lux", *op1);
 			Bprint(&bso, "%.*s", (32+7-printcol)/8, "\t\t\t\t");
 			Bprint(&bso, "%P\n", curp);
 		}

@@ -14,11 +14,13 @@ TARG=\
 	wrkey\
 	convkeys\
 	warning\
+	convkeys2\
+	login\
+	uniq\
 
+HFILES=/sys/include/auth.h authsrv.h
 
-HFILES=authsrv.h
-
-LIB=lib.$O.a
+LIB=lib.$O.a /$objtype/lib/libc.a
 BIN=/$objtype/bin/auth
 CLIB=`{ls lib/*.c}
 
@@ -29,6 +31,12 @@ install:V:	$BIN/status
 $LIB: $CLIB
 	cd lib
 	mk install
+
+$O.auth.srv: auth.srv.$O secureidcheck.$O
+	$LD -o $O.auth.srv $prereq
+
+$O.guard.srv: guard.srv.$O secureidcheck.$O
+	$LD -o $O.guard.srv $prereq
 
 $BIN/netkey:V:	$O.netkey
 	cp $O.netkey /$objtype/bin/netkey

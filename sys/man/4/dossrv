@@ -1,10 +1,12 @@
 .TH DOSSRV 4
 .SH NAME
-dossrv, 9660srv, a:, b:, c:, eject \- DOS and ISO9660 file systems
+dossrv, 9660srv, a:, b:, c:, d:, 9fat:, dosmnt, eject \- DOS and ISO9660 file systems
 .SH SYNOPSIS
 .B dossrv
 [
 .B -v
+] [
+.B -r
 ] [
 .B -s
 ] [
@@ -16,6 +18,8 @@ dossrv, 9660srv, a:, b:, c:, eject \- DOS and ISO9660 file systems
 .PP
 .B 9660srv
 [
+.B -9J
+] [
 .B -v
 ] [
 .B -s
@@ -31,6 +35,12 @@ dossrv, 9660srv, a:, b:, c:, eject \- DOS and ISO9660 file systems
 .B b:
 .PP
 .B c:
+.PP
+.B 9fat:
+.PP
+.B dosmnt
+.I n
+.I mtpt
 .PP
 .B eject
 [
@@ -77,13 +87,16 @@ The
 flag instructs
 .I dossrv
 to use its standard input and output instead.
-The kernels use this if they are booting from a DOS disk.
+The kernels use this option if they are booting from a DOS disk.
 This flag also prevents the creation of an explicit service file in
 .BR /srv .
 .PP
 The
 .B -v
-flag causes verbose output for debugging.
+flag causes verbose output for debugging, while
+the
+.B -r
+flag makes the file system read-only.
 .PP
 The shell script
 .I a:
@@ -98,14 +111,86 @@ and is therefore a shorthand for mounting a floppy disk in drive A.
 The scripts
 .I b:
 and
-.I c:
-are similar.
+.I dosmnt
+are similar,
+mounting the second floppy disk
+and the
+.IR n th
+non-floppy DOS partition,
+respectively.
+.I C:
+and
+.I d:
+call
+.I dosmnt
+in an attempt to name the drives in
+the same order that Microsoft operating systems do.
+.I 9fat:
+provides access to the FAT component of the Plan 9 partition (see
+.IR prep (8)).
+.PP
+The file attribute flags used by the DOS file system
+do not map directly to those used by Plan 9.
+Since there is no concept of user or group,
+permission changes via
+.B wstat
+(see
+.IR stat (2))
+will fail unless the same (read, write, execute) permissions
+are specified for user, group, and other.
+For example, removing write permission in Plan 9
+corresponds to setting the read-only
+attribute in the DOS file system.
+Most of the other DOS attributes
+are not accessible.
+.PP
+Setting the exclusive use flag (CHEXCL)
+in Plan 9 corresponds to setting the
+system use attribute in the DOS file system.
+Such files are not actually restricted to exclusive use,
+but do merit special treatment that
+helps in the creation of boot disks:
+when 
+.I dossrv
+allocates a new block for such a file
+(caused, say, by a write that fills the file's
+last allocated block), it succeeds only if it can
+arrange for the file to be stored
+contiguously on disk.
+.PP
+Since other operating systems do not
+guarantee that system files are laid
+out contiguously, the CHAPPEND mode
+bit is set in file stat information
+only when the file is currently contiguous.
+Attempts to set the CHAPPEND mode bit
+explicitly will cause 
+.I dossrv
+to try to make the file contiguous,
+succeeding only if this is possible.
 .PP
 .I 9660srv
-is identical to
+is similar to
 .I dossrv
 in specification, except that it interprets ISO9660 CD-ROM
 file systems instead of DOS file systems.
+Some CDs contain multiple directory trees describing
+the same set of files.
+.IR 9660srv 's
+first choice in such a case is a standard ISO9660 tree
+with Plan 9 system use fields;
+the second choice is a Microsoft ``Joliet'' tree, which
+allows long file names and Unicode characters;
+the third choice is a standard ISO9660 or High Sierra tree.
+The
+.B -9
+flag causes
+.I 9660srv
+to ignore the Plan 9 system use fields,
+while the
+.B -J
+flag causes it to
+ignore the Joliet tree.
 .PP
 If the floppy drive has an ejection motor,
 .I eject
@@ -116,7 +201,6 @@ default 0.
 Mount a floppy disk with a DOS file system on it.
 .IP
 .EX
-dossrv
 a:
 .EE
 .SH "SEE ALSO"
@@ -127,3 +211,7 @@ a:
 .B /sys/src/cmd/9660srv
 .br
 .B /rc/bin/eject
+.SH BUGS
+The overloading of the semantics of
+the CHEXCL and CHAPPEND
+bits can be confusing.

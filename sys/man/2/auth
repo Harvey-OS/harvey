@@ -1,6 +1,6 @@
 .TH AUTH 2
 .SH NAME
-auth, amount, srvauth, authenticate, getchal, chalreply, newns, authdial, passtokey, nvcsum, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR \- network authentication
+auth, amount, srvauth, authenticate, getchal, chalreply, apopchal, apopreply, cramchal, cramreply,  newns, addns, authdial, passtokey, nvcsum, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR, login, httpauth, noworld \- network authentication
 .SH SYNOPSIS
 .nf
 .PP
@@ -8,6 +8,7 @@ auth, amount, srvauth, authenticate, getchal, chalreply, newns, authdial, passto
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
+.fi
 .PP
 .ft P
 .B
@@ -17,13 +18,28 @@ int	auth(int fd)
 int	srvauth(int fd, char *user)
 .PP
 .B
-int	getchal(Chalstate *c, char *user);
+int	getchal(Chalstate *c, char *user)
 .PP
 .B
-int	chalreply(Chalstate *c, char *response);
+int	chalreply(Chalstate *c, char *response)
+.PP
+.B
+int	apopchal(Apopchalstate *c, char *user)
+.PP
+.B
+int	apopreply(Apopchalstate *c, char *response)
+.PP
+.B
+int	cramchal(Cramchalstate *c, char *user)
+.PP
+.B
+int	cramreply(Cramchalstate *c, char *response)
 .PP
 .B
 int	newns(char *user, char *nsfile)
+.PP
+.B
+int	addns(char *user, char *nsfile)
 .PP
 .B
 int	authdial(char *service)
@@ -41,28 +57,37 @@ int	authenticate(int fd, int afd)
 int	amount(int fd, char *old, int flag, char *aname)
 .PP
 .B
-int	convT2M(Ticket *t, char *msg, char *key);
+int	convT2M(Ticket *t, char *msg, char *key)
 .PP
 .B
-void	convM2T(char *msg, Ticket *t, char *key);
+void	convM2T(char *msg, Ticket *t, char *key)
 .PP
 .B
-int	convA2M(Authenticator *a, char *msg, char *key);
+int	convA2M(Authenticator *a, char *msg, char *key)
 .PP
 .B
-void	convM2A(char *msg, Authenticator *a, char *key);
+void	convM2A(char *msg, Authenticator *a, char *key)
 .PP
 .B
-int	convTR2M(Ticketreq *tr, char *msg);
+int	convTR2M(Ticketreq *tr, char *msg)
 .PP
 .B
-void	convM2TR(char *msg, Ticketreq *tr);
+void	convM2TR(char *msg, Ticketreq *tr)
 .PP
 .B
-int	convPR2M(Passwordreq *pr, char *msg, char *key);
+int	convPR2M(Passwordreq *pr, char *msg, char *key)
 .PP
 .B
-void	convM2PR(char *msg, Passwordreq *pr, char *key);
+void	convM2PR(char *msg, Passwordreq *pr, char *key)
+.PP
+.B
+void	login(char *user, char *password, char *namespace)
+.PP
+.B
+int	httpauth(char *realm, char *password);
+.PP
+.B
+int	noworld(char *user);
 .SH DESCRIPTION
 These functions perform the authentication protocol as described in
 .IR auth (6)
@@ -114,7 +139,7 @@ It returns 0 if it reaches the authentication server
 or \-1 if it fails.
 The challenge should be printed for the user to see,
 and the user should use a Digital Pathways SecureNet Key or
-.I aux/netkey
+.I netkey
 (see
 .IR passwd (1))
 to generate the appropriate response.
@@ -124,9 +149,26 @@ should be called with the user's response, which is also a null-terminated text 
 It returns 0 if it succeeds,
 or \-1 if the user was not authenticated.
 .PP
-.I Srvauth
+.IR Apopchal ,
+.IR apopreply ,
+.IR cramchal ,
+and
+.I cramreply
+are like
+.I getchal
 and
 .I chalreply
+and are used the same way.
+They negotiate the challenge/reply protocols for APOP (RFC1939) and CRAM (RFC2195)
+authentication.
+They use the user's APOP secret which is different than his Plan 9
+password or SecureNet Key.
+.PP
+.IR Srvauth ,
+.IR chalreply ,
+.IR apopreply ,
+and
+.I cramreply
 set the process's user name (see
 .IR cons (3)).
 .PP
@@ -150,6 +192,14 @@ The format of
 .I nsfile
 is described in
 .IR namespace (6).
+.PP
+.I Addns
+also interprets and executes the commands in
+.IR nsfile .
+Unlike
+.I newns
+is applies the command to the current name space
+rather than starting from scratch.
 .PP
 .I Authdial
 calls
@@ -226,6 +276,36 @@ is used for encrypting the message before transmission and decrypting
 after reception.
 These routines are used by the others to communicate with the
 authentication server.
+.PP
+.I Login
+changes the the account the process is running as to
+.I user
+and recreates the namespace using the file
+.I namespace
+(default
+.BR /lib/namespace ).
+It does this by negotiating with the authentication server using
+.I password
+to encrypt the exchange.
+.PP
+.I Httpauth
+check a password for an HTTP page.  The
+.I realm
+identifies the password to check for.
+Like
+.IR login ,
+it does this by negotiating with the authentication server using
+.I password
+to encrypt the exchange.
+.I Httpauth
+returns 0 on success and \-1 on failure.
+.PP
+.I Noworld
+returns 1 if the user is in the group
+.B noworld
+in
+.BR /adm/users .
+Otherwise, it returns 0.
 .SH FILES
 .TF /lib/namespacexxx
 .PD
@@ -238,7 +318,8 @@ Default name space specification file.
 .IR passwd (1),
 .IR auth (6),
 .IR cons (3),
-.IR dial (2)
+.IR dial (2),
+.IR auth (8)
 .SH DIAGNOSTICS
 These routines set
 .IR errstr .

@@ -4,7 +4,7 @@
 #include "libc.h"
 
 /*
- * Portable version for systems from the ancien regime
+ * Portable version for systems from the ancient regime
  */
 
 void*

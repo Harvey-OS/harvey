@@ -184,8 +184,7 @@ font width tables for
 .IR grap (1),
 .IR doctype (1), 
 .IR ms (6),
-.IR mpm (6),
-.IR bitmap (6),
+.IR image (6),
 .IR tex (1),
 .IR deroff (1)
 .br

@@ -1,1442 +1,870 @@
 .TL
 Installing the Plan 9 Distribution
 .SH
-The software
+System requirements
 .PP
-The distribution is packaged on four 1.44MB floppy diskettes and one CD-ROM.
-Many software packages for PCs can install either from CD-ROM or diskette,
-but Plan 9 is different.
-The diskettes and the CD-ROM
-have
-.I different
-software on them.
-The first diskette is used to install the other versions of the system; it occupies
-about 1.4 megabytes of the DOS partition on your hard drive.
-The other three diskettes contain a small version of Plan 9
-for PCs, intended to let you familiarize yourself with the system; it occupies
-a separate 20 megabyte partition at the end of a hard disk, or on an entirely non-DOS disk.
-The CD-ROM has the full system, including all the programs and sources
-for all the architectures supported by Plan 9.
-You will need a 500 megabyte partition or disk to unpack the CD-ROM,
-although you may choose to remove pieces of the distribution, such as binaries
-for machines you don't have, after installation.
-The CD-ROM does not install itself; you must use the first diskette to install it.
+You need an x86-based PC with 16MB of RAM,
+a supported video card, 
+and a hard disk with at least 300MB of unpartitioned space
+and a free primary partition slot.
+If you wish to install from local media,
+you need an extant kfs, FAT or EXT2 file system,
+or a CD-ROM drive (and a CD writer or some other
+way to get the distribution archive on a CD).
+If you wish to install over the internet,
+you need a supported Ethernet card or
+a PPP dial-up account using a modem (not a Winmodem).
 .SH
-The hardware
+Overview
 .PP
-An accompanying document, ``The Various Ports'',
-discusses the hardware requirements for the system; you should read
-all the sections that describe hardware on which you are planning to run Plan 9.
-Throughout this document, we will be talking only about PCs unless other machines
-are explicitly mentioned.
+The Plan 9 installation takes a number of steps.
+First, you must read and agree to the license
+and then download a floppy disk image.
+You can optionally download the distribution archive
+to a local file system at this time.
+Once downloaded, the disk image is written
+to a disk that you then boot.
+The disk boots into an install program, which
+lets you create and format the disk partition on
+which you will install Plan 9.
+If you did not download the distribution archive,
+it will be downloaded for you
+via an Ethernet or a dialup PPP internet connection, 
+and then installed.
+After configuring a way to boot your system, 
+you're finished.
 .PP
-.I
-Note: Although Plan 9 runs on a number of different machine architectures,
-the installation package is designed to be run on a PC, even when installing
-the system for other architectures.
-.R
-.PP
-.I
-Note: If you have a copy of the 1993 distribution of the system,
-its 9P protocol is incompatible
-with this version.
-You must install this distribution without using any old Plan 9 systems.
-.R
-.PP
-Plan 9 runs in 32-bit protected mode on i386 or later processors.
-It does not use the BIOS, so not all hardware is automatically supported,
-only that for which Plan 9 drivers exist.
-A summary of the hardware requirements:
-An IBM PC clone with an i386, i486, or Pentium processor,
-eight megabytes of memory,
-ISA or EISA bus,
-IDE or SCSI disks,
-VGA, and a
-3-button serial or PS/2 mouse.
-The disk
-.CW A:
-must be a 3½" floppy drive.
-Even within these parameters, though, there are a number of restrictions.
-.PP
-.I
-Make sure you read the section of ``The Various Ports'' describing ``The IBM PC
-operating system''
-before you try installing the system.
-.R
+These instructions are intended to 
+be complete enough to carry out a 
+typical install, without needing any of
+the manual pages for the commands involved.
+Of course, the manual pages are still
+a more complete reference;
+in particular, see
+.I prep (8) 
+for information on more complex
+ways to manipulate the disk partitions.
 .SH
-Ways to install Plan 9
+Before you begin
 .PP
-This section gives an overview of how the installation procedure is arranged;
-make sure you read it before proceeding.
+\f4Back up anything you care about on your hard disk!\f1
+We have taken great pains to ensure that installing
+Plan 9 will not cause the loss of other data on your disk,
+but as with any operating system installation, there are
+times when you will be editing disk partition tables,
+and you might make a mistake, or there might
+be a bug somewhere in our install software.
+You are installing this software at your own risk.
 .PP
-.I
-Before installing Plan 9, you must first use diskette 1 to
-establish a special installation setup as a set of DOS files in the
-directory
-.CW C:\eplan9 .
-You will then use that software to install the real Plan 9 system.
-.R
-.PP
-Using the installation software,
-you have several choices about what sort of Plan 9 environment to build.
-Throughout this document, these setups are referred to by number:
-.IP 1.
-Install the three diskettes (numbered 2, 3, and 4) onto a separate partition on
-your hard disk.  This requires 20 megabytes of disk space.
-.IP 2.
-Install the CD-ROM onto a separate partition on
-your hard disk.  This requires 500 megabytes of disk space.
-.IP 3.
-Use the network
-to install a separate stand-alone file server and use it to supply files to other Plan 9
-systems (of any type) on the network.
-.IP 4.
-In a network setup, convert the PC into a CPU server and authentication server, with
-its files stored on the remote file server.
-.LP
-The best way to start is to use step 1 to build a system to use for learning
-about the system, even if you plan to do something more ambitious later.
-With that system, you can access the CD-ROM for anything else that might
-interest you.
-Once you're comfortable with that, if you have the disk space
-you can use step 2 to build a full Plan 9 system on your PC.
-If you have a networked environment or machines other than PCs, you would
-probably choose to skip step 2 and use steps 3 and 4 to establish
-a full-blown Plan 9 environment.
-.PP
-The most important thing the small installation
-system does is record a description of your hardware
-in a form that Plan 9 can read it.
-This information is kept in a text file called
-.CW plan9.ini
-stored on the DOS file system, in the directory
-.CW C:\eplan9 .
-Familiarize yourself with your hardware configuration before you begin,
-so you'll be ready to answer questions about your disks, VGA, and so on.
 .SH
-Disks
+Obtaining the boot disk
 .PP
-All four Plan 9 diskettes are in DOS format.
-The first is a boot diskette containing
-installation software to
-configure your system and install
-the other three diskettes and/or the CD-ROM.
+\f4Go to the web page
+._H <a href="http://plan9.bell-labs.com/plan9dist">
+http://plan9.bell-labs.com/plan9dist
+._H </a>
+and read and agree to the license terms.\fP
 .PP
-Your PC must have DOS installed on the hard disk.
-You will also need a separate disk
-.I partition
-for storing the Plan 9 file system.
-DOS has a partition table at the beginning of the
-disk and normally uses the whole disk area.
-To coexist with DOS, Plan 9 puts its partition table
-at the
-.I high
-end of the disk.
-You can avoid repartitioning the disk by installing Plan 9 on a separate disk,
-so if you have a spare disk we recommend you use it.
-.SH
-Finding some disk space for Plan 9
+\f4Describe your machine.\fP
+You need to select the monitor, video resolution, and mouse type
+that will be used during the installation.
+If you want to install over an Ethernet connection,
+you need to select an Ethernet card.
+If you do not find your monitor in the list, one
+of the multisyncs running at 640x480x8 or 800x600x8
+is likely to work
+if you are not using an LCD.
+If you find you cannot boot the resulting boot disk,
+your hardware is likely not supported.
 .PP
-The first thing you need to do is establish a disk partition to hold the Plan 9 file system.
-It must hold
-either 20 megabytes (or more) for installation step 1, or 500 megabytes
-(or more) for step 2.
-Unless you already have a suitable spare partition, which could be all of a spare disk,
-you will need to repartition your hard disk.
-This must be done carefully because changing the size of an existing partition will
-destroy its contents.
-If you already know how to repartition, use the method that you are comfortable with.
-Otherwise, this section is a thorough explanation of a simple-minded way
-to repartition; use this procedure if you're the least bit unsure how DOS
-uses its disks.
-Even if you already know how to repartition your disk, though,
-you should read this
-section so you know how Plan 9 is going to use the disk.
+\f4Download and write the disk.\fP
+After you have described your machine,
+download the boot disk (called
+.CW 9disk.9fd )
+from the web page.
+At this point, if you wish to install off local media,
+you can also download the distribution archive to
+a local FAT (DOS, Windows) or EXT2 (Linux)
+file system.
+Remember where you put it,
+and don't change its name
+.CW plan9.9gz ). (
 .PP
-Throughout this section,
-the explanation is structured as a description of what's about to happen,
-followed by the DOS commands to use and their output.
-In other words, don't do any step until you've read the words and the
-output of the commands presented here.
+Using a utility such as
+.CW rawrite
+under DOS
+._H <a href="ftp://ftp.freebsd.org/pub/FreeBSD/tools/rawrite.exe">
+[ftp://ftp.freebsd.org/pub/FreeBSD/tools/rawrite.exe]
+._H </a>
+(or
+.CW cat
+under a Unix variant),
+write the boot disk image (the file
+.CW 9disk.9fd )
+to a formatted floppy disk.
 .PP
-The first step is to back up the DOS system to floppy disks.
-Then you will repartition the disk.
-Finally, you will restore DOS into its new, smaller partition.
-.PP
-Our procedure backs up DOS to floppy disks.
-The backup will take approximately one floppy for every 1.4 megabytes in use.
-If you have a well-loaded system, start with lots of blank floppies.
-.PP
-Label one diskette
-.I PC
-.I system
-.I disk ,
-format it, and copy some useful stuff onto it:
-.P1
-C:\e> format a: /s
-C:\e> cd dos
-C:\e> copy format.* a:
-C:\e> copy backup.* a:
-C:\e> copy restore.* a:
-C:\e> copy fdisk.* a:
-.P2
-.LP
-Next, use the
-.CW backup
-program to copy the DOS system to the floppies.
-You'll end up inserting empty floppies one after
-another as it asks for them.
-As each diskette is finished, add to its label
-.I DOS
-.I backup
-.I n
-where
-.I n
-is the number of the diskette in the series:
-.P1
-C:\e> backup c: a: /s
-.P2
-.LP
-Now reboot the system with the
-.I PC
-.I system
-.I disk
-in drive
-.CW A: .
-When booting, the PC may ask you to enter date and time;
-just press
-.CW Enter .
-.PP
-You are about to repartition
-the hard disk by first removing the current
-partition and then creating a new smaller one.
-Run
-.CW FDISK .
-It is menu-driven; we present one step per menu:
-.P1
-A:\e> FDISK
-.P2
-.LP
-Choose
-.CW FDISK
-option 3, ``Delete DOS Partition'':
-.P1
-		FDISK Options
-
-1. Create DOS partition or Logical DOS Drive
-2. Set active partition
-3. Delete DOS partition
-4. ...
-
-Enter choice [3]
-.P2
-.LP
-Select the primary partition:
-.P1
-		Delete DOS Partition or ...
-
-1. Delete Primary DOS Partition
-2. Delete Extended DOS Partition
-3. ...
-4. ...
-
-Enter choice [1]
-.P2
-.LP
-Confirm that you really want to do it,
-choose partition 1, and don't enter a label:
-.P1 .2i
-		Delete Primary DOS Partition
-
-WARNING! Data in the Deleted Primary DOS Partition will be lost
-What primary partition do you want to delete..? [1]
-Enter Volume Label..............................? [          ]
-Are you sure (Y/N)..............................? [Y]
-.P2
-.LP
-Press
-.CW Esc
-to get back to the top level menu.
-.LP
-Create a new DOS partition by choosing option 1
-on the next menu:
-.P1
-		FDISK Options
-
-1. Create DOS partition or Logical DOS Drive
-2. Set active partition
-3. Delete DOS partition
-4. ...
-
-Enter choice [1]
-.P2
-.LP
-Create a primary partition by choosing option 1:
-.P1
-		Create DOS Partition or ...
-
-1. Create Primary DOS Partition
-2. Create Extended DOS Partition
-3. ...
-4. ...
-
-Enter choice [1]
-.P2
-.PP
-Now you need to pick a size for the primary DOS partition.
-Since you will restore DOS back into it and will need some free disk space,
-you must use a larger size than what you saved on the floppies.
-If you just want to install using Plan 9 installation setep 1,
-give DOS all but 20 megabytes.
-(The 20 megabytes for Plan 9 provides 8 megabytes for files unpacked from the diskettes
-and 12 megabytes for new files.)
-For setup 2, you'll need 500 megabytes to hold the contents of the CD-ROM.
-.PP
-To make things concrete, we'll assume you're leaving 39 megabytes for DOS,
-but be sure to use the number you've decided for your system:
-.P1
-		Create Primary DOS Partition
-
-Do you wish to use the maximum available size for a Primary
-DOS Partition and make the partition active(Y/N).....?[N]
-
-Enter partition size in Mbytes or percent of disk space (%) to
-create a Primary DOS Partition...............[39]
-.P2
-.LP
-Press
-.CW Esc
-to get back to the top level menu.
-Set the partition you
-just created to be ``active'':
-.P1
-		FDISK Options
-
-1. Create DOS partition or Logical DOS Drive
-2. Set active partition
-3. Delete DOS partition
-4. ...
-
-Enter choice [2]
-.P2
-.LP
-then:
-.P1 2m
-		Set Active Partition
-
-Enter the number of the partition you want to make active...[1]
-.P2
-.LP
-Press
-.CW Esc
-twice to get out of
-.CW FDISK .
-The machine will now reboot automatically.
-.LP
-Now you must format the resized DOS partition to
-be a DOS bootable partition; there's no need to label it:
-.P1
-A:\e> format c: /s
-
-WARNING, ALL DATA ON THE NON-REMOVABLE DISK
-DRIVE C: WILL BE LOST!
-Proceed with format(Y/N)?y
-
-Volume label (11 characters, ENTER for none)?
-.P2
-.LP
-Now restore your DOS system from the backup floppies.
-You will be asked to insert the backup floppies in the same
-order as you made them.
-This is as exciting as making the backup:
-.P1
-A> restore a: c: /s
-.P2
-.SH
-Installing diskette 1 on your DOS hard drive
-.PP
-With disk space established, you're now ready to start installing Plan 9.
-The first step is to use diskette 1 to build a special installation-only version
-of Plan 9 on the DOS file system on your hard disk.
-Insert diskette 1 in the floppy drive
-.CW A:
-and boot the machine.
-If you have problems doing this, now or later, you can also bring DOS up normally
-and then switch to the
-.CW A:
-drive and run
-.CW B ,
-that is:
-.P1
-C:\e> A:
-A:\e> B
-.P2
-The program
-.CW B ,
-also known as
-.CW b.com ,
-is documented in the manual section
-.I b.com (8);
-it is the Plan 9 bootstrap program that loads the kernel into memory.
-.PP
-If your PC has
-.I only
-SCSI disks, 
-you will need to configure diskette 1
-for the system to recognize what kind of SCSI controller you have.
-The installer will then write that information
-.I "on the diskette,
-whereupon you can reboot the system and it should behave like a regular PC.
-Because the install program must write on the diskette,
-you will first need to make a writable copy of it:
-the original diskette is write-protected.
-The easiest way to do this is with the DOS command:
-.P1
-DISKCOPY A: A: /V
-.P2
-.PP
-Note: if you have trouble doing any of these steps, you should read the section called
-``Read this section if you have trouble installing on the PC'' and follow its
-instructions to make a clean DOS boot diskette.
-.PP
-Once you've booted from diskette 1, the system will automatically load
-the install program.  Eventually it will display a line across the top of the screen that reads
-.P1
-System Installation & Configuration
-.P2
-It will then put up a menu.
-Use the arrow keys to navigate the
-various menus as you run this program;
-for those without arrow keys,
-.CW Tab
-also cycles through the menu items.
-The
-.CW Enter
-key selects from the menu.
-.PP
-If you boot from this disk more than once,
-you may be asked if you want to
-remove the Plan 9 installation already on the hard disk.
-It is always safe to remove that installation and let the install process
-install it again.
-Another option at this stage is to reconfigure the system,
-which is also safe; it just writes a new Plan 9 configuration file.
-Later in the installation process, you may return to this stage and use
-the reconfiguration option to rewrite the configuration.
-The final option, after you have brought up Plan 9 on your hard disk,
-is to boot from diskette 1 again and choose the ``File System Installation'' option.
-This is necessary to install a network-based Plan 9 setup, as will be
-discussed below.
-.PP
-The install program will tell you what it's doing each step of the way.
-First it will ask you to approve copying 1.44 megabytes onto
-.CW C: ,
-and then put up a scrolling window of the files it's copying.
-Once the files are installed, it will ask you to define the configuration
-of the devices on your PC.
-Use the menu to define which VGA controller and monitor,
-mouse port,
-Ethernet card if any,
-and so on down the list.
-For now, ignore the entry that says
-.P1
-File system console
-.P2
-If you make a mistake in the definition, you can go back and change anything
-from the main configuration menu (the one that starts with
-.CW VGA
-.CW setup ).
-.PP
-Once you choose the
-.CW Save
-.CW configuration
-option, the install program will show you the format of the file
-it is going to create as the DOS file
-.CW C:\eplan9\eplan9.ini .
-This file tells Plan 9 what the hardware configuration is.
-Inspect it carefully, and if it looks right,
-.CW Save
-it; if not,
-use the
-.CW Redo
-option on the submenu to return to the configuration menu.
-If you try to use an incorrect
-.CW plan9.ini
-file, the system will not work properly, but you can
-return to the ``Reconfigure system'' option on the first screen
-of the installation program and create a new
-.CW plan9.ini
-any time.
-If you're confused about what the file should look like or
-what hardware parameters there are, look at the manual page
-.I plan9.ini (8)
-in Volume 1 of the manual and also the ``Various Ports'' document.
-If you're unsure of the specifications of your hardware,
-you should find most of the information you need in the manuals
-supplied by the manufacturers of the devices.
-.PP
-Once you use the
-.CW Save
-option to write the
-.CW plan9.ini
-file to the hard disk, remove the floppy from drive
-.CW A:
-and follow the directions to reboot DOS.
-When you get back to the 
-.CW C:\e>\|\|
-DOS prompt, type
-.P1
-PLAN9\eB
-.P2
-and press
-.CW Enter .
-If all goes well, the system will bring up a new install program that reads, across
-the top of the screen,
-.P1
-File System Installation
-.P2
-You are now ready to use the little version of Plan 9 on your
-.CW C:
-drive to install a real Plan 9 from diskettes 2, 3, and 4 and/or the CD-ROM.
-You will see a menu with the various options displayed.
-The next few sections go through these options.
-The numbered sections refer to items in the top menu.
-Other sections provide background to the procedures.
-.SH
-1. Install 3 Diskette System to local drive.
-.PP
-In this installation option, you will install the version of the system on floppies 2, 3, and 4
-onto a separate Plan 9 partition on a hard disk.
-After it is installed, you will still use DOS to bootstrap Plan 9 by the usual method:
-typing
-.CW PLAN9\eB
-to run the version of
-.CW b.com
-installed on DOS drive
-.CW C: .
-.PP
-The first thing you will need to define is which drive has the partition you've
-reserved to hold the Plan 9 file system.
-The installer will prompt you with a menu of disks it discovers in your hardware.
-When you've chosen, the installer will set up the Plan 9 partition table at the
-end of that disk, start up the file system program, and
-prompt you to insert diskette 2.
-.PP
-As the diskettes unpack, a scrolling window will show the files being copied from
-the diskette to the new file system.
-After all three diskettes have been unpacked,
-you will see this menu:
-.P1
-Make the newly installed Plan 9 the default
-Reconfigure the system
-Exit to system
-Reboot
-.P2
-Take the first option, which will update your
-.CW plan9.ini
-to make the system use the newly created file system when you reboot.
-After you've done this, the menu will automatically select the
-.CW Reboot
-option.
-Remove the diskette from drive
-.CW A:
-and use the
-.CW Reboot
-option on the menu.
-.PP
-For the record,
-the second option on this menu gets you back to the configuration menu;
-the third exits to the little Plan 9 on
-.CW C: ,
-which is only for troubleshooting;
-the last will reboot DOS.
-.PP
-After the reboot, you will be back in DOS and should run
-.CW PLAN9\eB .
-The system will come up, but not all the way.
-It will stop with a line that reads something like this:
-.P1
-root is from (local, 9600, 19200, il)[local!#H/hd0fs]:
-.P2
-This is asking you to choose which device to use as the root file system;
-you want the default, whatever is in the square brackets, so press
-.CW Enter .
-Then you will be prompted for a user name:
-.P1
-user[none]:
-.P2
-Again, take the default.
-The system will turn on the VGA and ask you if it should start the window system.
-Say yes,
-and you're off.
-Click the left mouse button over the window holding text, and you're ready to type commands.
-.PP
-The next section describes how to establish
-a private environment.
-.SH
-Setting up a stand-alone machine
-.PP
-If you have set up a PC using option 1 or 2 of the installation menu,
-you will have a self-contained Plan 9 environment.
-The first thing you need to know about is
-the local file system.
-Whenever you are running a local Plan 9 file system from hard disk,
-a program called
-.CW kfs
-(see
-.I kfs (4))
-is providing file service.
-It has a set of commands to configure and control the file system; see
-.I kfscmd (8)).
-Before you reboot, you should run the command
-.P1
-disk/kfscmd halt
-.P2
-and wait for the command to complete in order to shut down safely.
-Other useful arguments to
-.CW disk/kfscmd
-are
-.CW sync ,
-which flushes
-.CW kfs 's
-buffer cache;
-.CW allow ,
-which allows anyone to read and write the files; and
-.CW disallow ,
-which restores normal permission checking.
-The
-.CW allow
-command is necessary to get users established on the file system.
-Even if you're planning to be the only person to use the machine,
-you should create a user name for yourself.
-In particular, don't use
-.CW none ,
-which has special meaning in Plan 9.
-.PP
-The permissions checking in kfs is not supposed to be secure, it's just to stop
-accidents from escalating into disaster.
-Stand-alone Plan 9 file servers have much better security,
-and therefore take more work to set up.
-We'll return to them in a later section.
-.PP
-For each user name to be established on the file system, run the command
-.P1
-/sys/lib/kfsuser username
-.P2
-This will do all the necessary work to establish a basic Plan 9 environment
-for that user.
-You might even take a look at the command to see how it works;
-it's an
-.I rc (1)
-script.
-After a user name has been added this way, run the command
-.P1
-disk/kfscmd users
-.P2
-to cause
-.CW kfs
-to reread the
-.CW /adm/users
-file.
-.PP
-When you reboot and log in using a real user name,
-you will be prompted for a password;
-just press
-.CW Enter
-until you have an authentication server set up,
-another topic we'll visit later.
-.PP
-To use the Ethernet, you'll have to add an entry in
-.CW /lib/ndb/local
-describing your machine.
-See the man page
-.I ndb (6)
-or look at the example for the machine called
-.CW term
-in the section
-of this document called ``Make this PC a CPU or Authentication Server''.
-.SH
-2. Install CD-ROM to local drive
-.PP
-This proceeds just like setup option 1, but installs a 500 megabyte file system with
-all the software.
-You will need to tell the installer which drive holds the CD-ROM.
-After that, the sequence is as in option 1.
-.PP
-Once the CD-ROM is unpacked, which will take several hours,
-you will see the top-level menu discussed under option 1;
-use it the same way.
-.PP
-When the system reboots, follow
-the same directions as under option 1.
-The system should come up the same way, but with many more files visible.
-.PP
-See the previous section to see how to
-get a private environment established now.
-.SH
-Building a Plan 9 network
-.PP
-A full Plan 9 environment includes networked file servers,
-CPU servers, and authentication servers.
-Before setting up such an environment, you should familiarize yourself
-with the simple stand-alone system built from the previous installation procedures.
-You should also read enough of the manuals to have an idea how the system
-is structured.
-.PP
-None of the networked machines needs to be a PC, but the distribution is packaged
-to install
-.I from
-a PC.
-For example, you can use the diskettes to set up a SUN file server, but you must do so
-from a PC talking to the SUN over the Ethernet.
-.PP
-The steps to install a Plan 9 network are as follows:
-.IP •
-Boot a file server.
-.IP •
-Use the installation package to load the CD-ROM onto the file server (installation option 3).
-.IP •
-The file server is now running without authentication.
-While it's in this state, edit administrative files holding information about
-network addresses, users, and so on.
-.IP •
-Use the file server unauthenticated for a while to get comfortable with the setup.
-.IP •
-Turn a PC into a combined CPU server and authentication server
-(installation option 4).
-.IP •
-Enable authentication on the file server.
-.SH
-3a. Make a PC file server boot disk
-.PP
-This section tells you how to build a boot diskette to bring up a PC as a file
-server.
-If your file server is not going to be a PC, ignore this section.
-You will, however, need to find a way to get the
-file server booted using
-.BOOTP
-to load the appropriate kernel from the CD-ROM; see
-.I booting (8).
-.PP
-Boot from diskette 1,
-and choose the ``File System Installation'' option.
-Reboot the machine, start Plan 9 normally, and it will
-automatically run the installation software again.
-Choose the appropriate option from its top-level menu.
-.PP
-This installation option writes a new diskette that will boot a Plan 9 PC file server.
-To do this, you must have a CD-ROM drive on the machine you are using
-to write the diskette, as it will hold files that are only shipped on the CD-ROM.
-This also means you must have the
-.CW plan9.ini
-file set up correctly to access the CD-ROM.
-.PP
-First you need to select a CD-ROM drive and
-load the CD-ROM in the drive.
-Then place a writable blank diskette
-in drive
-.CW A: .
-The install program will write the boot diskette.
-.PP
-At this point, you need to provide the configuration information
-.I "for the file server machine.
-Walk through the menus as usual, but this time also select the
-.P1
-File system console
-.P2
-option.
-This defines which device will serve as the administrative console for the file server machine.
-You probably want to choose the
-.CW CGA
-option unless you plan to do something like put a remote terminal on a file server
-housed in a machine room.
-The
-.CW VGA
-.CW setup
-option is not important, because the system won't use the VGA,
-but make sure you define the
-.CW Ethernet
-and
-.CW SCSI
-.CW Device
-options:
-the file server must talk on the Ethernet and the
-Plan 9 file sever supports only SCSI disks
-(see ``The Various Ports'').
-.PP
-When the configuration is written to the diskette, try booting the
-file server using the diskette as a boot disk.
-Read the next section before doing this, so you understand how the
-file server comes up: it's a completely different arrangement from a Plan 9 machine
-running the normal kernel.
-The PC file server behaves much like any other Plan 9 file server.
-The one peculiarity is that
-it uses the floppy both as a boot disk and as a place to store precious
-information stored in non-volatile RAM on other machines; see the
-.CW nvr
-entry in
-.I plan9.ini (8).
-.PP
-If the diskette has a bad configuration, you can return to the installation
-machine and write a new configuration file, iterating until it works.
-.SH
-Starting up the file server
-.PP
-.I
-Carefully read this section before booting the file server.
-You are about to write all over some disks.
-.R
-Also read
-.I fs (8)
-and
-.I fsconfig (8)
-to learn about the commands available on the server console.
-.PP
-When you have a boot disk for a PC file server,
-or have found a way to bootstrap another type of file server,
-boot the server machine.
-The system will chatter a bit and eventually print
-.P1
- ** NVR config checksum is incorrect **
-.P2
-and enter `config' mode.
-If you boot the disk a second time, the checksum
-in non-volatile RAM will be correct and the system will say
-.P1
-for config mode hit a key within 5 seconds
-.P2
-Do what it says.
-.PP
-The system will prompt you with
-.P1
-config:
-.P2
-To this prompt you must type several lines of text to set up the
-configuration of the file system.
-The first thing to set is the system's name as known to the network.
-If the machine is called
-.CW kremvax ,
-type
-.P1
-service kremvax
-.P2
-and a newline.
-Then set the machine's IP address, IP subnet mask, and the IP address of
-the gateway by typing (using the correct addresses):
-.P1
-ip 123.111.112.113
-ipgw 123.111.112.1
-ipmask 255.255.0.0
-.P2
-.PP
-Now you must establish the disk configuration.  First pick a single
-SCSI disk
-that will store the configuration information in block 0 of the drive.
-This information is held in a block (number zero) not otherwise used by the
-file system.  Typically, but not necessarily,
-it will live on the same drive as the main file system.
-Say that's SCSI unit 4.  Then type
-.P1
-config w4
-.P2
-The
-.CW w
-stands for `wren', Plan 9's generic name for SCSI magnetic disks.
-Next you must define the layout of the disks that the machine will use.
-Here are a couple of examples; if you can't confidently
-extrapolate from them to your setup, see
-.I fsconfig (8).
-A single SCSI disk on unit 4:
-.P1
-filsys main w4
-.P2
-A main file system on unit 4, another on unit 5:
-.P1
-filsys main w4
-filsys other w5
-.P2
-A single file system spanning units 4 and 5:
-.P1
-filsys main (w4w5)
-.P2
-A single file system spanning units 4 and 5, blockwise interleaved:
-.P1
-filsys main [w4w5]
-.P2
-One of the file systems you define must be called
-.CW main ,
-the default file system this machine will serve.
-Now initialize the structure on the disks:
-.P1
-ream main
-.P2
-(Ream any other file systems you've established, too.)
-.PP
-Take a careful look at what you've typed.
-If it's wrong, reset the machine and start again.
-Here's a representative display of what the screen should look like:
-.P1
-config: service kremvax
-config: ip 123.111.112.113
-config: ipgw 123.111.112.1
-config: ipmask 255.255.0.0
-config: config w4
-config: filsys main [w4w5]
-config: ream main
-.P2
-.PP
-All the configuration commands do is set up data structures; they
-do no real work.  Once you leave config mode, the file system will
-establish the structure you described.  This means that if you make
-a mistake you can reset the machine without doing any damage.
-To get out of config mode and on to real work, type
-.P1
-end
-.P2
-.PP
-After you leave config mode, the file server
-will initialize its disk and prompt you:
-.P1
-kremvax:
-.P2
-The prompt may get lost among the other output; type a couple of newlines.
-.PP
-If the system crashes horribly at this point, it's probably because the file server
-can't find its disks.
-The likeliest reasons are that the configuration was specified
-wrong or the NVRAM contains bad information.
-If the file server is a PC,
-write a new server boot diskette with the correct information; this will also
-clear the NVRAM section.
-If it's not a PC, reboot the system, enter config mode, and make sure the
-configuration is right.
-.PP
-When the server has prompted you with its service name, type
-.P1
-users default
-.P2
-to establish a minimal set of users to own the files unpacked from the disk.
-See
-.I fs (8)
-for more information about such commands.
-.PP
-Check the time the file server has recorded by typing
-.P1
-date
-.P2
-If it's wrong, fix it by adjusting the time in seconds; for example, to advance it an hour:
-.P1
-date +3600
-.P2
-We apologize for this interface, but in our lab we get the time from a local network server
-so the command is unused.
-.PP
-You now have a file server that will let you connect and talk to it,
-.I "as long as you connect with user name
-.CW none .
-If you try to connect as someone else, you will be rejected as an `unknown user'.
-As
-.CW none ,
-though, you will be able to install the CD-ROM.
-.SH
-3b. Install CD-ROM to network file server
-.PP
-When the file server is up, go back to the installation PC and select this option.
-(If you didn't do step 3a, read what it says about getting the installation software running again.)
-You will be prompted for the IP addresses of the installation PC,
-the gateway's IP address, and
-the subnet mask.
-The installation must be done with machines on the same subnet,
-but the information you provide here will be used to build the
-network databases on the file server.
-.PP
-After specifying the IP information for the PC,
-supply the IP address of the file server and its
-fully-qualified domain name, e.g.,
-.P1
-gnu-prep.ai.mit.edu
-.P2
-.PP
-Next the installer will ask you to choose whether to dial the server using
-IL or TCP.
-You want to use IL; the TCP option is for those trying to set up a UNIX
-machine as a Plan 9 file server, an arrangement not covered in this
-installation guide (see
-.I u9fs (4)).
-.PP
-The installer will now connect to the server.
-.PP
-Now load the CD-ROM, tell the installer its configuration,
-and you're off.
-As when installing to local disk, this will take a few hours.
-.SH
-A few more facts about the file server
-.PP
-If you need to reboot the file server
-after you have installed the CD-ROM but before you have
-authentication enabled, you will need to cheat a little.
-The reaming process turns off authentication to make it easy to
-establish the administration files, but that state is lost if the system is rebooted.
-To restore that state after a reboot,
-enter config mode (by typing quickly when prompted after the reboot)
-and issue an `allow' command:
-.P1
-config: allow
-.P2
-This turns off authentication and permission checking;
-don't make a habit of it.
-.PP
-On SUNs, writing the configuration information
-to NVRAM destroys the checksum.  When you eventually reboot, the ROM
-will decide its NVRAM is untrustworthy and reset all the values.
-You'll need to set them back to what you want.  The ROM will not
-touch the Plan 9 configuration information, though.
-Here's what we type to get the state back; your state might
-be different:
-.P1
-setenv diag-switch? false
-setenv selftest-#megs 0
-setenv auto-boot? false
-setenv boot-device net
-.P2
-You'll only need to do this once; afterwards everyone will be happy.
-The same problem applies to writing the password; see below.
-.SH
-4. Make this PC a CPU or Authentication Server
-.PP
-Before a PC can be turned into a CPU or authentication server,
-it must first have a Plan 9 partition table on its disk.
-The easiest way to do this is to use installation option 1 (3 diskette) or
-2 (CD-ROM) to create a file system on the hard drive.
-If you've already installed Plan 9 on this machine,
-boot the first diskette and select the ``Reconfigure
-system'' option.
-Define the configuration of the machine, and on the next menu select the option
-to run the build procedure.
-When the system reboots, it will come up with the top-level menu of
-installation options.
-.PP
-If you've just done the installation, the installer will already know the
-pertinent IP addresses for this machine; if not, you'll have to provide them.
-In either case, you'll have to provide the IP address and fully-qualified
-domain name of the file server.
-The installer will then connect to the server
-and then ask you to choose which hard disk to use to store the boot kernel.
-A partition named
+\f4Cold boot your machine from the floppy disk.\fP
+That is, power down,
+and power it back up rather than restarting
+from inside Windows or using the reset button.
+In a few cases (especially on laptops) the drivers
+get cranky when not starting from a cold boot.
+At the
+.CW root
+.CW is
+.CW from
+prompt, press enter.
+Booting may take a few minutes, depending on the
+speed of your floppy drive.
+If you find yourself at a 
 .CW boot
-is used to store the kernel from which a Plan 9 PC boots if the root file
-system is not a DOS file system.
-For example, if the disk is SCSI unit 0, the partition will be a file named
-.CW #w0/sd0boot
-or, if the device is bound to
-.CW /dev ,
-.CW /dev/sd0boot .
-The installer is asking you to identify the drive whose boot partition will be written.
+.CW from:
+prompt, it is likely that the bootstrap
+program has not detected your floppy drive;
+note the devices listed on the
+.CW boot
+.CW devices:
+line (which should be just above the 
+.CW boot
+.CW from:
+line), and jump to the troubleshooting section.
 .PP
-Now you need to choose an `authentication user id', or `authid'.
-This is a user name that applies to this authentication domain; it is the user name
-that all the servers in that domain will use to identify themselves to
-the authentication server; its authentication key is stored on the local machine.
-On PCs, the key is stored in a partition called
-.CW nvram ;
-on other machines, it's stored in real non-volatile RAM.
-The same authid must be used on all other file servers, CPU servers,
-and authentication servers in this domain.
-.PP
-After you've defined the authid, the installer will place
-.CW /386/9pccpu
-in the boot partition.
-This is a PC kernel for CPU service with its root file system on a remote server.
-.PP
-The installer will then ask you to reboot.
-Get back to the DOS prompt, then go to the console of the file server.
-On its console, type the command
-.P1
-passwd
-.P2
-This will prompt you for a password.
-This is the password to be used by all servers in the authentication domain; it is
-authid's password.
-Type the password, confirm it, and then you will be asked to give an authid.
-Give the same one as on the CPU server.
-Next you will need to give the authentication domain name.
-This will typically be the same as your authentication domain name.
-If your authid is
-.CW eduardo
-and your file server is named
-.CW kremvax.kremlin.mos.su ,
-the file server's screen will now look like this:
-.P1
-kremvax: passwd
-New password:
-Confirm password:
-Authentication id:eduardo
-
-Authentication domain:kremlin.mos.su
-.P2
-Finally, still on the file server, type the command
-.P1
-newuser eduardo
-.P2
-This adds the authid to the
-.CW /adm/users
-database file.
-The file server now has authentication established.
-.PP
-Now go back to the CPU server PC and reboot it normally.
-You will be prompted for a device from which to get the root file system; use
-.CW il .
-There will be a pause while the system BOOTPs to find out network information.
-Until you get a Plan 9 BOOTP server going, the system will not find what it needs,
-and after a few seconds it will give up and ask you.
-Type the appropriate information, giving all the relevant IP addresses.
-When you are asked for the IP address of the authentication server,
-take the default, 0.0.0.0.
-This peculiar address tells the kernel to use the local key for authentication
-instead of talking to a remote server; since this machine is to be the authentication
-server, its local key is the one to use.
-After all the IP addresses are specified, the system will come up and ask for a password.
-Type the authid password,
-.I "the same one you gave on the file server.
-The PC should come up and be a CPU server as well as providing authentication
-service to other machines.
-.PP
-You should now install Plan 9, probably just using installation option 1, onto another PC
-or get some other machine bootstrapped.
-This machine will be a terminal that uses the file server for its files and the authentication
-server for authentication.
-Then edit the network database
-.CW /lib/ndb/local
-to add an entry for the terminal.
-(Do this on the CPU server, and feel free to run
-.CW aux/vga
-and
-.CW 8½
-if you want a nicer environment.)
-The entry for a PC named
-.CW term
-might be:
-.P1
-ip=123.111.112.7 ether=00608cf2325b sys=term
-	dom=term.kremlin.mos.su
-	bootf=/386/9pc
-	proto=il
-.P2
-Once the terminal is set up,
-make sure its Ethernet is working by booting with
-.P1
-plan9\eb
-.P2
-and selecting the root file system to come from
-.CW il .
-This can be automated later by putting the line
-.P1
-bootfile=e!0
-.P2
-in
-.CW plan9.ini .
-.PP
-Now you should add users to the authentication databases.
-To install a user, say Ethel,
-do the following
-.IP •
-On the authentication server, type the command
-.P1
-auth/changeuser ethel
-.P2
-and provide the requested information.
-Ethel will need to provide her password.
-This step puts
-.CW ethel
-in the authentication server's key database.
-.IP •
-On the file server, type
-.P1
-newuser ethel
-.P2
-This puts
-.CW ethel
-in the file server's list of users and creates the directory
-.CW /usr/ethel .
-.IP •
-Boot the terminal and have Ethel log in there, complete with password.
-The system should get the VGA going and then complain about missing files.
-Type:
-.P1
-/sys/lib/newuser
-.P2
-This will establish a basic profile and start the window system.
-The next time Ethel logs in, the window system will start automatically.
-.PP
-Later, when everything seems solid, you should convert the CPU/authentication
-server to boot from local disk.
-It will then be able to serve Plan 9 BOOTP requests.
-.PP
-To keep things simple, this procedure has given the authentication machine the name
-.CW p9auth .
-If you want to call it something else, wait until everything looks like it's
-working and change its name in the file
-.CW /lib/ndb/local ;
-there will be changes to the entries for the machine itself and
-for the authentication server in the
-.CW ipnet
-entry.
-When you're doing that, you can also remove the lines marked
-.CW #INSTALL
-and
-.CW #END ;
-they're tags left over from the installation process.
+\f4Your screen should switch into graphics mode
+shortly after the floppy light goes off.\fP
+If it does not, or you find yourself at a
+.CW % 
+prompt, jump to the troubleshooting section at
+the end of this document.
 .SH
-When it all works
+The installation process
 .PP
-Sometime soon, check that you can compile the kernels,
-change the authid,
-and do other administrative things.
-The file
-.CW /adm/timezone/timezone
-contains a description of the default time zone;
-if that directory contains a file that describes your time zone, copy it to the default file.
-The file
-.CW /lib/sky/here
-contains the local geographic coordinates, which are certainly
-not the same as the location of our espresso machine.
+Once you have booted from the floppy disk, 
+you should find yourself looking at a grey
+screen with some windows.
+Interaction with the installation program is textual.
+The large upper window contains the
+install process itself.
+The window under it is a running log
+of what has happened.
+A statistics graph is in the bottom corner;
+if you're curious,
+the graphs, from top to bottom, show
+system load, memory usage, interrupt rate,
+system call rate, context switch rate,
+and ethernet packet rate.
 .PP
-Read the manual.
-Make sure to look at
-.I u9fs (4)
-to see how to set up Plan 9 access to Unix file systems, and
-.I nfsserver (8)
-to go the other way.
-See the directory
-.CW /sys/src/cmd/unix
-for some Unix-resident programs whose source is included.
+You are running the new Plan 9 window system,
+.CW rio .
+Unless you have prior experience with
+Unix's 
+.CW mux
+or
+Plan 9's
+.CW 8½ ,
+the window system is likely to be unfamiliar.
+For the purposes of the install process,
+you need not interact with the window system proper,
+so \f4simply do not touch the mouse.\fP
+On systems with very small screens, you
+may find it necessary to use the arrow
+keys to scroll the window up and down.
 .PP
-You have a system!
+Installation is short.
+First, you select a disk and create
+and initialize
+a Plan 9 partition.
+Then the distribution archives are
+located (or downloaded if necessary)
+and installed.
+Finally, you create a boot disk or
+prepare some other way to boot the system.
+.PP
+At many points, you will be prompted to
+provide some information (say, an IP address)
+or select from a list of choices (say, the disk
+to use).
+The prompts will be of the form
+.P1
+Your choice (foo, bar, baz, quux)[quux]:
+.P2
+When there are a small fixed list of possible
+answers, they will be listed in parentheses
+as in 
+.CW "(foo, bar, baz, quux)" .
+If there is a default choice, it will
+be in square brackets as in 
+.CW [quux] .
+Simply pressing enter at such a prompt
+selects the default.
+.PP
+The installation is broken down into 
+a number of things to do (select a disk,
+download the archives, etc.), some
+of which depend on others.
+The heart of the installation program 
+is a screen listing which parts you have
+accomplished, and which parts you can do next.
+For example:
+.P1
+The following tasks are done: 
+  pickdisk    - select disk to use for plan 9 file system
+  partdisk    - create plan 9 partition
+  prepdisk    - subdivide plan 9 partition
+  reamfs      - initialize plan 9 file system
+  mountfs     - mount the plan 9 file system
+
+The following unfinished tasks are ready to be done:
+  configarch  - configure source of distribution archives
+  stop        - save current state of install, to be resumed later
+
+Task to do [configarch]: 
+.P2
+A default will be provided, so
+pressing enter at the prompt will move
+the installation along.
+At the same time, you can select to 
+repeat a task to change your choices
+(for example, to select a different disk).
+Typing <control-d>
+at any prompt will abort the current task
+and return you to the main screen.
+.PP
+If you wish to stop the install process
+at any time, you can choose
+.CW stop ,
+which will save the state of the current
+installation to the boot floppy.
+When you are ready to continue, you can
+simply boot the floppy again.
+.SH
+Choosing a disk (pickdisk)
+.PP
+You need to select a disk on which to install Plan 9.
+The current partitioning scheme
+is incompatible with the scheme used by
+the 1995 and earlier releases,
+so you should not try to use an extant
+old Plan 9 disk as your install disk,
+unless you don't mind trashing your current
+installation.
+(While the installation creates a new-style
+disk, the old disk format is recognized 
+by the boot program and kernels, and the
+.CW kfs
+file system format has not changed, so
+old disks are still legible in the new system.
+If you have an old Plan 9 disk with data
+you want to save, we suggest you install
+to a clean disk and then copy the data over.)
+.PP
+The install process will scan your
+disk devices and give you a list of them, 
+along with manufacturer identification strings and 
+disk partition tables.  For example, you might see:
+.P1
+The following disk devices were found.
+
+sdC0 - WDC AC36400L
+ * p1                   63 4096575    (4096512 sectors, 1.95 GB) FATHUGE
+   p3              8193150 12594960   (4401810 sectors, 2.09 GB) LINUX
+empty partitions:  p2 p4
+
+sdD0 - IDE-CD ReWritable-2x2x63.014VO07982013140700210
+
+Disk to use (sdC0, sdD0):
+.P2
+The Plan 9 names for storage devices are
+of the form
+.CW sdXX .
+The names
+.CW sdC0
+and
+.CW sdC1
+are the master and slave on the primary ATA controller,
+.CW sdD0
+and
+.CW sdD1
+are on the secondary, 
+and 
+.CW sdE0 ,
+.CW sdE1 ,
+.CW sdF0 ,
+and
+.CW sdF1
+are on additional ATA cards.
+SCSI devices are named
+.CW sd\fINT\fP ,
+where 
+.I N
+is the SCSI controller number,
+and
+.I T
+the SCSI target number.
+.PP
+\f4Choose a disk on which to install Plan 9.\fP
+It should have at least 300MB of empty
+disk space.
+If you will be installing TeX on the system
+(see end)
+you'll need another 100MB.
+In order to have enough room for a swap 
+partition and some room to play, at least 500MB to a gigabyte is suggested.
+The disk on which you install also needs
+a spare entry for the Plan 9 partition
+in the primary partition table.
+That is, if the disk description says
+.CW empty "" ``
+.CW partitions:
+.CW none '',
+you cannot install Plan 9 on it
+(unless you delete an extant partition).
+.SH
+Creating a Plan 9 partition (partdisk)
+.PP
+Once you have chosen the disk, you will
+need to create a Plan 9 partition.
+To do this, the install process will run
+the Plan 9 
+.CW fdisk
+program and let you partition the disk.
+If the disk does not already have a Plan 9 
+partition, 
+.CW fdisk
+will suggest one by creating (but not writing)
+a partition in the largest contiguous empty space
+it can find.
+For example, you might see:
+.P1
+    mbr                   0 63         (63 sectors, 31.25 KB) EMPTY
+  * p1                   63 4096575    (4096512 sectors, 1.95 GB) FATHUGE
+ '  p2              4096575 8193150    (4096575 sectors, 1.95 GB) PLAN9
+    p3              8193150 12594960   (4401810 sectors, 2.09 GB) LINUX
+ >>>
+.P2
+Each line contains a partition name
+.CW p1 , (
+.CW p2 ,
+.CW p3 ,
+and
+.CW p4
+are the only valid names),
+the starting and ending sector, the size of the partition, 
+and the type of partition.
+Note that partitions include the starting
+sector but not the ending sector.
+.CW >>>
+is the prompt.
+The
+.CW mbr
+``partition'' is not really a partition, but a placeholder
+to keep from partitioning the track in
+use by the master boot record.
+In this example, the
+.CW *
+next to
+.CW p1
+means that
+.CW p1
+is the active partition (i.e. the one used when booting from the disk),
+and the
+.CW '
+next to
+.CW p2
+means that the partition table
+entry for
+.CW p2
+is different from what is on the disk; that is, changes
+have been made but not written.
+In this example,
+.CW fdisk
+has created
+.CW p2
+in what was previously unpartitioned space.
+.PP
+\f4Create the Plan 9 partition and quit fdisk\fP.
+If you agree with
+.CW fdisk 's
+proposal, you need only type
+.CW w
+to write the changes
+and then
+.CW q
+to quit 
+.CW fdisk .
+Otherwise, you can edit the table
+yourself, using the
+.CW "a\fI \fPp\fIN\fP
+and
+.CW "d\fI \fPp\fIN\fP
+commands to add and delete partitions.
+.SH
+Partitioning the Plan 9 partition (prepdisk)
+.PP
+The Plan 9 partition you just created is
+typically further subdivided into a small
+FAT configuration partition 
+.CW 9fat ), (
+a Plan 9 file system partition
+.CW fs ), (
+a swap partition
+.CW swap ), (
+and sometimes a network disk cache partition
+.CW cfs ). (
+Once you have created the Plan 9 partition,
+the install process will run 
+.CW prep ,
+which is used to partition the Plan 9 partition.
+The interface is very similar to
+.CW fdisk 's;
+the main differences are unrestricted names
+and the lack of an active partition and partition types.
+Just as 
+.CW fdisk
+did,
+.CW prep
+will, if there are no partitions already in place,
+create a suggested layout.
+.PP
+\f4Create 9fat, fs, and swap partitions and quit prep.\fP
+The 
+.CW 9fat
+partition must be located first within the Plan 9 partition.
+You do not need a lot of swap space \(em in normal usage
+Plan 9 terminals do not swap.  A swap partition half
+the size of your main memory is probably more than enough.
+As with
+.CW fdisk ,
+if you find the layout satisfactory you can
+simply write it and quit; otherwise
+you can edit it yourself.
+.SH
+Intializing the kfs file system (reamfs, mountfs)
+.PP
+Once you have partitioned your disk,
+the install process will initialize and mount a new
+.CW kfs
+file system in the newly created
+.CW fs 
+partition.
+.SH
+Locating the distribution on local disk (configarch)
+.PP
+At this point, you need to tell the install process
+where to find the distribution archives.
+If you downloaded the archives earlier,
+you will need to specify the disk partition on which
+they reside, along with the path name.
+.PP
+\f4Choose the partition containing the archives.\fP
+You will be shown a list of disk partitions
+that the install process can read.
+.PP
+\f4Choose the directory containing plan9.9gz.\fP
+Once you have chosen a partition, 
+you will need to give the name of
+the directory on that partition which
+contains the distribution archives.
+If you type 
+.CW browse
+instead of a directory name, you
+will be dropped into a minimal shell
+that you can use to find the files.
+Specifically, the shell has three
+commands: 
+.CW cw
+.I dir
+changes directories,
+.CW lc
+prints a columned list of files in the current directory, and
+.CW exit
+exits.
+Once you are in the directory
+containing the archive
+(or if you give up the search),
+simply exit the shell.
+.PP
+If you have found the distribution
+on local disk, you may skip
+the next section and go to ``Unpacking the distribution''.
+.SH
+Locating the distribution on the network (configarch)
+.PP
+\f4Configure your internet connection.\fP
+The install process will scan for devices:
+if both a serial port and an Ethernet card
+are found, you will be prompted whether to use
+Ethernet or PPP; otherwise the device that is found
+will be used.
+.PP
+If you are using Ethernet, you can enter
+your IP configuration manually or via DHCP.
+If you choose to enter the configuration
+manually, be sure to have your
+IP address, network mask, and gateway IP address.
+.PP
+If you are using PPP, you will have to choose
+a serial device and connection method.
+You can choose to dial and log yourself in or to have
+Plan 9 dial and use CHAP to log in (this is how the
+stock Windows PPP client connects, for example).
+.PP
+If you choose to log yourself in, 
+you will be dropped into a conversation
+with the modem.
+Dial, log in, and once PPP has started,
+type <control-d>.
+You may need to type <control-m> rather
+than <enter> to get a response from the modem.
+.PP
+If you use CHAP, the install process will
+prompt for a phone number (exactly as you
+would dial it yourself, with any necessary
+prefixes; numbers only), user name, and password.
+It will then dial and initialize the connection.
+.SH
+Fetching the distribution from the network (download)
+.PP
+Once the network is started, you can begin
+(or continue) downloading the distribution archive.
+If the last download was interrupted (e.g., the network
+connection was lost or you pressed the Delete key), it will
+begin where it left off.
+.PP
+Once the download is complete, you may wish to 
+run the task
+.CW stopppp
+to hang up your PPP
+connection.
+Similarly,
+.CW stopether
+will deactivate your Ethernet connection
+(but seems less useful).
+.SH
+Unpacking the distribution
+.PP
+Once the archive has been located or downloaded,
+selecting
+.CW unpack
+will extract the distribution archive
+to the newly created
+.CW kfs
+file system.
+The log window will display the name and
+size of each file as it is extracted.
+This takes about 45 minutes when installing
+from a local disk.
+.SH
+Preparing to boot the new installation (bootsetup)
+.PP
+The first time you run
+.CW bootsetup ,
+it initializes the
+.CW 9fat
+configuration partition with appropriate
+bootstrap code as well as a modified
+version of your
+.CW plan9.ini
+from the boot floppy, and a 
+.CW 9pcdisk
+kernel.
+.PP
+In order to boot into Plan 9, another
+bootstrap program must locate this partition,
+read 
+.CW plan9.ini ,
+and boot the kernel.
+There are a number of ways to make this happen,
+all selectable from the
+.CW bootsetup
+menu.  If you wish to use more than one
+method, simply run
+.CW bootsetup
+multiple times.
+.IP \f(CWfloppy\fP\ 
+Create a boot floppy.
+In addition to a bootstrap program,
+the floppy will contain a kernel and a backup of your
+.CW plan9.ini
+file named
+.CW plan9ini.bak ,
+but will not use them.
+Instead, the floppy will load
+.CW plan9.ini 
+and the kernel from your
+.CW 9fat
+partition.
+To boot the kernel on the floppy
+(useful as a rescue mechanism if you trash your
+.CW 9fat
+partition), copy
+.CW plan9ini.bak
+to
+.CW plan9.ini
+and change the line
+.CW bootfile=sdXX!9fat!9pcdisk
+to
+.CW bootfile=fd0!9pcdisk.gz .
+.IP \f(CWwin9x\fP\ 
+Edit the Windows startup menu to list
+Plan 9 as an option.
+Your
+.CW c:\econfig.sys
+and
+.CW c:\eautoexec.bat
+files will be saved as
+.CW config.p9
+and
+.CW autoexec.p9 ,
+and then edited.
+A bootstrap program as well as
+.CW plan9ini.bak
+and a kernel will be copied to
+the directory
+.CW c:\eplan9
+(created if necessary).
+The procedure described above for
+rescue works here too, but the bootfile
+should become
+.CW sdC0!dos!plan9/9pcdisk .
+.IP \f(CWwinnt\fP\ 
+Edit the Windows NT boot menu to list
+Plan 9 as an option.
+This is only possible when your ``c:'' drive
+is a FAT partition, since the boot configuration must be accessible.
+Your
+.CW c:\eboot.ini
+file will be saved as
+.CW boot.p9 ,
+and then edited.
+This will also create the file
+.CW c:\ebootsect.p9 ,
+which the NT boot manager will use to load Plan 9.
+.IP \f(CWplan9\fP\ 
+Set the Plan 9 partition to be the active one
+(i.e. the partition booted by default).
+This is only useful if you have installed Plan 9
+on your first hard disk.
+You can always set another partition active later
+by using
+.CW disk/fdisk .
+.SH
+Pausing and resuming the installation (stop)
+.PP
+If you need to stop the installation process
+and come back to it later,
+you can run the
+.CW stop
+task,
+which will save the state of the installation
+to the file
+.CW 9inst.cnf
+on the boot floppy and then let you
+turn off your system.
+Booting again from this floppy will
+pick up where you left off, with two exceptions.
+.PP
+First, if you have already initialized the destination
+file system, you will have to run the
+.CW mountfs
+task to remount it.
+.PP
+Second, if you have chosen to use Ethernet or PPP
+to obtain the archives but have
+not completed the download, you will need to
+explicitly run the 
+.CW startether
+or
+.CW startppp
+task to reestablish the connection.
+.SH
+The end (finish)
+.PP
+Choosing the 
+.CW finish
+task will halt the
+.CW kfs 
+file system and print a message saying it
+is safe to reboot your computer.
+.PP
+\f4Note: If your hard disk has a copy of the 1995 Plan 9 distribution, before
+booting the new distribution, rename or hide the old plan9.ini to
+avoid confusing the new installation.\f1
+.SH
+Setting up
+.PP
+Once the system's up you'll need to set up a few things.
+First, have a look at
+.I "Getting Started With Plan 9" ,
+in
+.CW /sys/doc/start.ms
+or
+._H <a href="http://plan9.bell-labs.com/sys/doc/start.html">
+.CW http://plan9.bell-labs.com/sys/doc/start.html .
+._H </a>
+.PP
+Many aspects of the system are configured by environment variables.
+Very early, you will want to make changes to
+.CW /rc/bin/termrc
+and
+.CW /rc/bin/cpurc
+to set up appropriate values for
+.CW $site
+(the local mail domain),
+.CW $fileserver
+(the local domain name of your networked file server, if you have one; it's shipped with value
+.CW kfs ,
+which points to the local disk-resident file system),
+.CW $cpu
+(the local domain name of your main CPU server), and
+.CW $facedom
+(the special name used in the faces database to identify your colleagues).
+For more such information, see the
+.I "Getting Started
+document.
 .SH
 Troubleshooting
 .PP
-This section collects comments about how to work around difficulties in the installation
-process.
+The initial bootstrap of a new operating system on new hardware is often
+problematic.  Here follow some suggestions that might help
+you clear some hurdles.
+We have set up a trouble line\(emmail to
+.CW 9trouble@plan9.bell-labs.com \(em
+but please try the following ideas before contacting us.
+Also the Plan 9 Usenet group,
+.CW comp.os.plan9 ,
+may be a source of help.
 .PP
-If the VGA will not turn on properly,
-try using the configuration
-.CW monitor=vga
-and resolution 640x480x1.
-If this works, you may be able to teach the system how to use
-a higher-resolution mode.
-Reconfigure the system to have no VGA or mouse, or edit
+The most common problems will be in the connection between hardware and software.
+First, make sure that the hardware you're running is supported by the drivers
+in the distribution.
+Check the list in
+._H <a href="http://plan9.bell-labs.com/plan9dist/pchardware.html">
+.CW http://plan9.bell-labs.com/plan9dist/pchardware.html .
+._H </a>
+.PP
+Your
 .CW plan9.ini
-to remove the lines defining the VGA, mouse, and monitor.
-When the system reboots, it will then continue to use CGA
-mode, and you will be able to explore the system.
-The file
-.CW /lib/vgadb
-contains descriptions for the various VGA controllers.
-See if you can find one that looks close, and add a configuration
-line for that controller; these strings look like
-.P1
-0xC0039="CL-GD540"      # Cirrus Logic BIOS
-.P2
-and define what string is at what hexadecimal address.
-To find such a string, enter
-.CW DEBUG
-from DOS, dump the BIOS memory starting at
-.CW C000:0 ,
-and look for an identifying string.
-For more information, see
-.I vgadb (6)
+file must be an accurate description of the machine.
+The first line of defense is therefore to look at the
+.CW plan9.ini
+file and edit it.
+The floppy is a DOS floppy, so you should be able to edit
+.CW plan9.ini
+from a Windows machine or other system.
+.PP
+.CW 9load
+(see
+.I 9load (8))
+is the program that loads and starts the kernel.
+It needs to find the kernel, based on
+.CW plan9.ini
+and the hardware it can discover,
+and copy it into memory.
+If
+.CW 9load
+has trouble,
+you can turn on debugging by typing a control-R at any time while it's running.
+Even if the debugging output doesn't help you, what's printed might
+help others, so make notes.
+.PP
+If the kernel hangs after printing
+.CW time... ,
+something in the startup scripts has failed.
+To see each command before it is executed,
+add the line
+.CW debug=1
+to the file
+.CW plan9.ini
+in the root directory of the boot floppy.
+If the kernel reboots before you get a chance
+to read what is on the screen, you might
+try attaching a serial console and adding
+the line
+.CW console=0
+or
+.CW console=1
+to send kernel output to DOS's COM1 or COM2
+as well as the screen.
+.PP
+If the kernel gets running but the VGA doesn't turn on
+you may need to play with the settings.
+If the screen goes black and you see nothing,
+.CW aux/vga
+thinks it recognizes your video card, but either
+the monitor settings being used are incorrect or
+.CW aux/vga
+doesn't really know everything it needs to program your card.
+In this case you might try a smaller screen resolution, starting
+at 
+.CW 640x480x8
+and working up.
+A
+.CW 640x480
+screen is perfectly adequate for the installation.
+If you are using an LCD, you should use the exact
+size of the LCD; 
+.CW aux/vga
+sometimes has problems stretching
+smaller resolutions on LCDs.
+If the kernel doesn't switch into VGA mode but continues to run in CGA mode,
+along with a complaint about
+.CW rio
+panicking and a shell prompt
+.CW % ), (
+the system doesn't recognize your video card at all.
+.CW Aux/vga
+will have left a hex dump of your VGA BIOS memory
+on the screen.
+The problem might be as simple as adding
+a line to
+.CW /lib/vgadb ,
+or the card might not be supported.
+Look through the strings in the memory
+for a chipset type and check the hardware list.
+.PP
+If you have other video cards, it can't hurt
+to try a different one.
+.PP
+Before invoking
+.CW aux/vga
+to start the VGA, the floppy boot script
+writes the output of
+.CW aux/vga
+.CW -ip
+to the file
+.CW vgainfo.txt
+in the root directory of the floppy disk.
+The boot disk uses the 
+.CW vgadb
+file from the root directory of the floppy disk as
+.CW /lib/vgadb ,
+to make it possible to edit on
+other systems.
+.PP
+See 
+.I vga (3),
+.I vgadb (6),
 and
-.I vga (8).
+.I vga (8)
+for more information.
+Sometimes it suffices to add some information to
+.CW /lib/vgadb ;
+if you find this to be true, please let us know so we can update our master database.
 .PP
-It is possible to examine the CD-ROM from a system other than Plan 9.
-The CD-ROM contains a single ISO-9660 file system.
-That file system is the complete Plan 9 distribution, structured
-as it will be after you install it.
-However, since Plan 9 file names do not respect 9660
-rules and because 9660 directories do not contain enough
-information for our purposes, 
-the directories on the disk are extended in a way that only
-our software understands.  (ISO-9660 has rules for doing this
-safely.)  Thus the structure you see with other software will be
-slightly different.  In particular:
-.IP
-The full status of the file \(em owner, group, permissions, etc. \(em
-is not visible to regular 9660 software.
-.IP
-If the name of the file as stored in 9660, after translation to
-lower case, is not the file name as Plan 9 wants it,
-a special rule is applied.
-The file will have a strictly legal 9660 name,
-in the form of either
-.CW F000023
-for a regular file and
-.CW D000314
-for a directory.
-The Plan 9-specific part of the directory will, however, contain the correct
-Plan 9 name.  All such mappings are recorded in the file
-.CW /_CONFORM.MAP .
-Each line of that file gives the mapping for one file basename,
-for example
-.P1
-F000023      8½.c
-.P2
-This allows non-Plan 9 software to discover, if desired,
-the proper file names.
+One note: the Plan 9 kernel now depends on 8 or more bits per pixel on the display,
+which means the standard VGA modes can't be relied on.
+The system really does need to know how to turn on
+some special settings in the VGA controller.
 .PP
-When you read the file system from Plan 9, of course,
-you see all the files as they are intended to be.
-You must therefore use Plan 9 to unpack the distribution.
-.SH
-Read this section if you have trouble installing on the PC
-.PP
-As you follow the instructions in the rest of this document, you may encounter
-problems such as lockups installing or running the system.
-If that happens, the first thing to try is to define a minimal hardware
-configuration for Plan 9.
-Put diskette 1 in drive
-.CW A:
-and reboot your machine.
-If that doesn't work, bring up DOS normally and then type
-.P1
-A:B
-.P2
-to the DOS prompt.
-Once the install package is up, use it to define the following hardware configuration
-.I only :
-.CW VGA
-640x480x1,
-.CW Monitor
-.CW vga ,
+As a last resort, ask the experts in
+.CW comp.os.plan9
+or mail
+.CW 9trouble@plan9.bell-labs.com .
+If you mail
+.CW 9trouble ,
+please include the
+contents of both
+.CW plan9.ini
 and
-.CW Mouse
-to be the correct port or PS/2.
-If your primary DOS partition is on the SCSI,
-you must also configure the SCSI controller.
-Save that configuration,
-take out the diskette from drive
-.CW A: ,
-and reboot DOS.  Then type
-.P1
-PLAN9\eB
-.P2
-to the DOS prompt.
-If that works, perform the installation of the 3-diskette system and use it
-to experiment with the configuration to get the rest of your hardware going.
-.PP
-If you still have trouble,
-try starting up the system using a fresh DOS boot diskette instead of booting from
-your hard drive.
-This will create the system environment in which Plan 9 is meant to be installed.
-.PP
-The following steps will create a DOS boot disk; follow them exactly.
-Make sure you understand what these steps do.
-Check your DOS manual if you don't understand something.
-.IP 1.
-First get a blank 1.44MB diskette.
-Type
-.CW C:
-and press
-.CW Enter .
-.IP 2.
-Insert the blank diskette into drive
-.CW A: .
-.IP 3.
-Type
-.CW FORMAT
-.CW A:/S
-and press
-.CW Enter .
-.IP 4.
-You will be prompted to insert a blank diskette into drive
-.CW A: .
-If you haven't already, insert it now.
-When the diskette is in, press
-.CW Enter .
-.IP 5.
-Once the disk has been formatted, you will be asked to label the disk.
-Type in a label or press
-.CW Enter
-for no label.
-.IP 6.
-You will now be asked whether to format another disk.
-Type
-.CW N
-and press
-.CW Enter .
-.IP 7.
-You must now create a
-.CW CONFIG.SYS
-file on your new boot disk by typing the following command at the
-.CW C:
-prompt:
-.P1
-EDIT A:\eCONFIG.SYS
-.P2
-and press
-.CW Enter .
-.IP
-When the edit screen appears, type:
-.P1
-DEVICE=C:\eDOS\eHIMEM.SYS
-DOS=HIGH
-FILES=30
-.P2
-.IP 8.
-Exit and save the file by pressing:
-.P1
-.CW ALT-F
-.CW X
-.CW Y
-.P2
-.IP 9.
-You will  also need an
-.CW AUTOEXEC.BAT
-file on your new boot disk.
-To create one, type:
-.P1
-EDIT A:\eAUTOEXEC.BAT
-.P2
-and press
-.CW Enter .
-When the edit screen appears, type:
-.P1
-@ECHO OFF
-C:
-.P2
-.IP 10.
-Exit and save the file by pressing:
-.P1
-.CW ALT-F
-.CW X
-.CW Y
-.P2
-.PP
-You now have a DOS boot diskette.
-Insert it into drive
-.CW A:
-and reboot the PC.
-The computer will boot up to the
-.CW C:
-prompt.
-If you have not been able to get Plan 9 diskette 1 to boot, you can now
-eject the DOS boot disk and insert Plan 9 diskette 1 into drive
-.CW A: .
-Then type:
-.P1
-A:b
-.P2
-and press
-.CW Enter
-to boot Plan 9 diskette 1.
-If you have already successfully installed Plan 9 onto the
-.CW C:
-drive, make sure there is no diskette in drive
-.CW A:
-and type:
-.P1
-plan9\eb
-.P2
-and press
-.CW Enter
-to bring up Plan 9 using the installed Plan 9 system on drive
-.CW C: .
+.CW vgainfo.txt
+from the boot floppy.

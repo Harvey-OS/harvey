@@ -1,0 +1,17 @@
+# translate local aliases from /mail/lib/namefiles
+[^!@.]+			translate	"/bin/upas/aliasmail '&'"
+
+# send names without domains to DEFAULTDOMAIN
+local!(.*)		alias	\1@DEFAULTDOMAIN
+
+# convert source domain address to a chain a@b@c@d...
+@([^@!,]*):([^!@]*)@([^!]*)		alias	\2@\3@\1
+@([^@!]*),@([^!@,]*):([^!@]*)@([^!]*)	alias	@\1:\3@\4@\2
+
+# convert a chain a@b@c@d... to ...d!c!b!a
+([^@]+)@([^@]+)@(.+)	alias		\2!\1@\3
+([^@]+)@([^@]+)		alias		\2!\1
+
+# send all remote mail to the mail gateway $smtp
+# defined in the /lib/ndb databases
+([^!]*)!(.*) 		| 		"/mail/lib/qmail '\s' 'net!$smtp'" "'\2@\1'"

@@ -1,6 +1,6 @@
 #include "astro.h"
 
-float	nutfp[] =
+double	nutfp[] =
 {
 	  .2088,	0,
 	-1.2730,	0,

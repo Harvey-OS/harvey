@@ -3,6 +3,7 @@
 
 #define	N	256
 
+long
 strcspn(char *s, char *b)
 {
 	char map[N], *os;

@@ -3,7 +3,7 @@ A Guide to the Lp
 Printer Spooler
 .AU
 Paul Glick
-pg@plan9.att.com
+pg@plan9.bell-labs.com
 .AB
 .PP
 .I Lp
@@ -495,8 +495,10 @@ command to determine the format of the input file.
 The appropriate preprocessor is then selected to transform the
 file to a format suitable for the printer.
 .PP
-Here is a list of the preprocessors and
+Here is a list of some of the preprocessors and
 a description of their function.
+A complete list of preprocessors and their descriptions can be found in the manual page
+.I lp (8).
 .sp
 .IP \f(CWdvipost\fP 14
 Converts TeX or LaTeX output (\f(CW.dvi\fP files) to PostScript
@@ -513,8 +515,9 @@ directory for troff font width table descriptions.
 See also the
 .CW /sys/lib/postscript/troff
 directory for mappings of
-troff UTF character space to PostScript
-font space.
+troff
+.CW UTF
+character space to PostScript font space.
 .IP \f(CWp9bitpost\fP
 Converts Plan 9 bitmaps (see
 .I bitfile (9.6))
@@ -651,15 +654,23 @@ time order.
 Jobs entering the queue have a dot (.) prefixed to their name
 to keep the scheduler from selecting them before they are complete.
 .NH
-When Thing Go Wrong
+Where Things Go Wrong
 .PP
 There are four directories where
 .I lp
 writes files.
 On the Plan 9 release these directories may be found
-in the directory
-.CW /n/bootesother/lp .
-The four directories are
+in a directory on a scratch filesystem that is not
+backed-up.
+This directory is
+.CW /n/emelieother/lp .
+It is built on top of a file system
+.CW other
+that is mounted on the file server
+.CW emelie .
+The four directories in
+this scratch directory
+are
 .CW log ,
 .CW prob ,
 .CW queue ,
@@ -677,6 +688,22 @@ directory is bound to the
 .CW /tmp
 directory so that the lp daemons, which run as user `none',
 may write into this directory.
+.PP
+On any new installation, it is important that these directories
+be set up and that the
+.I /rc/bin/lp
+command be editted to reflect the change.
+If you do not have a scratch filesystem for these directories,
+create the four directories
+.CW log ,
+.CW prob ,
+.CW queue ,
+and
+.CW tmp
+in
+.CW $LPLIB
+.CW (/sys/lib/lp)
+so that they are writable by anyone.
 .NH 2
 Log directory
 .PP
@@ -757,7 +784,7 @@ The file
 is executed when a call comes in on that port.
 The Plan 9
 .CW lpdaemon
-will accept jobs sent from BSD systems.
+will accept jobs sent from BSD LPR/LPD systems.
 The
 .CW /$cputype/bin/aux/lpdaemon
 command is executed from the service call and it accepts print jobs, requests for status,
@@ -766,6 +793,11 @@ The command
 .CW /$cputype/bin/aux/lpsend
 is used to send jobs
 to other Plan 9 machines and is usually called from
+within a spooler or daemon script.
+The command
+.CW /$cputype/bin/aux/lpdsend
+is used to send jobs
+to machines and printers that use the BSD LPR/LPD protocol and is also usually called from
 within a spooler or daemon script.
 .NH
 Acknowledgements

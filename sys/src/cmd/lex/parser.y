@@ -306,7 +306,7 @@ yylex(void)
 					case '{':
 						lgate();
 						while(getl(p) && strcmp((char*)p,"%}") != 0)
-							Bprint(&fout, "%s\n",p);
+							Bprint(&fout, "%s\n",(char*)p);
 						if(p[0] == '%') continue;
 						error("Premature eof");
 					case 's': case 'S':		/* start conditions */
@@ -321,7 +321,7 @@ yylex(void)
 							*p++ = 0;
 							if (*t == 0) continue;
 							i = sptr*2;
-							Bprint(&fout,"#define %s %d\n",t,i);
+							Bprint(&fout,"#define %s %d\n",(char*)t,i);
 							strcpy((char*)sp, (char*)t);
 							sname[sptr++] = sp;
 							sname[sptr] = 0;	/* required by lookup */
@@ -338,7 +338,7 @@ yylex(void)
 					}	/* end of switch after seeing '%' */
 				case ' ': case '\t':		/* must be code */
 					lgate();
-					Bprint(&fout, "%s\n",p);
+					Bprint(&fout, "%s\n",(char*)p);
 					continue;
 				default:		/* definition */
 					while(*p && !isspace(*p)) p++;
@@ -399,7 +399,7 @@ yylex(void)
 				if(peek == '{'){	/* included code */
 					getl(buf);
 					while(!eof && getl(buf) && strcmp("%}",(char*)buf) != 0)
-						Bprint(&fout,"%s\n",buf);
+						Bprint(&fout,"%s\n",(char*)buf);
 					continue;
 				}
 				if(peek == '%'){
@@ -620,7 +620,7 @@ yylex(void)
 		Bprint(&fout,"\n/*this comes from section three - debug */\n");
 # endif
 	while(getl(buf) && !eof)
-		Bprint(&fout,"%s\n",buf);
+		Bprint(&fout,"%s\n",(char*)buf);
 	return(freturn(0));
 }
 /* end of yylex */

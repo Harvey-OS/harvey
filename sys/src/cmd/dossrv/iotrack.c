@@ -15,9 +15,9 @@ static Iotrack	iobuf[NIOBUF];		/* the real ones */
 #define	LINK(h, p, nx, pr)	((p)->nx = (h)->nx, (p)->pr = (h), \
 				 (h)->nx->pr = (p), (h)->nx = (p))
 
-#define	HTOFRONT(h, p)	((h)->hnext != (p) ? (UNLINK(p,hnext,hprev), LINK(h,p,hnext,hprev)) : 0)
+#define	HTOFRONT(h, p)	((h)->hnext != (p) && (UNLINK(p,hnext,hprev), LINK(h,p,hnext,hprev)))
 
-#define	TOFRONT(h, p)	((h)->next  != (p) ? (UNLINK(p, next, prev), LINK(h,p, next, prev)) : 0)
+#define	TOFRONT(h, p)	((h)->next  != (p) && (UNLINK(p, next, prev), LINK(h,p, next, prev)))
 
 Iosect *
 getsect(Xfs *xf, long addr)
@@ -44,7 +44,7 @@ getiosect(Xfs *xf, long addr, int rflag)
 	t = getiotrack(xf, taddr);
 	if(rflag && (t->flags&BSTALE)){
 		if(tread(t) < 0){
-			unlock(&t->lock);
+			unmlock(&t->lock);
 			return 0;
 		}
 		t->flags &= ~BSTALE;
@@ -59,8 +59,8 @@ getiosect(Xfs *xf, long addr, int rflag)
 		p->t = t;
 		p->iobuf = t->tp->buf[toff];
 	}
-	unlock(&t->lock);
-	lock(&p->lock);
+	unmlock(&t->lock);
+	mlock(&p->lock);
 	return p;
 }
 
@@ -69,10 +69,10 @@ putsect(Iosect *p)
 {
 	Iotrack *t;
 
-	if(canlock(&p->lock))
+	if(canmlock(&p->lock))
 		panic("putsect");
 	t = p->t;
-	lock(&t->lock);
+	mlock(&t->lock);
 	t->flags |= p->flags;
 	p->flags = 0;
 	t->ref--;
@@ -81,8 +81,8 @@ putsect(Iosect *p)
 			twrite(t);
 		t->flags &= ~(BMOD|BIMM);
 	}
-	unlock(&t->lock);
-	unlock(&p->lock);
+	unmlock(&t->lock);
+	unmlock(&p->lock);
 }
 
 Iotrack *
@@ -105,30 +105,30 @@ loop:
 /*
  * look for it in the active list
  */
-	lock(&hp->lock);
+	mlock(&hp->lock);
 	for(p=hp->hnext; p != hp; p=p->hnext){
 		if(p->addr != addr || p->xf != xf)
 			continue;
-		unlock(&hp->lock);
-		lock(&p->lock);
+		unmlock(&hp->lock);
+		mlock(&p->lock);
 		if(p->addr == addr && p->xf == xf)
 			goto out;
-		unlock(&p->lock);
+		unmlock(&p->lock);
 		goto loop;
 	}
-	unlock(&hp->lock);
+	unmlock(&hp->lock);
 /*
  * not found
  * take oldest unref'd entry
  */
-	lock(&mp->lock);
+	mlock(&mp->lock);
 	for(p=mp->prev; p != mp; p=p->prev)
-		if(p->ref == 0 && canlock(&p->lock)){
+		if(p->ref == 0 && canmlock(&p->lock)){
 			if(p->ref == 0)
 				break;
-			unlock(&p->lock);
+			unmlock(&p->lock);
 		}
-	unlock(&mp->lock);
+	unmlock(&mp->lock);
 	if(p == mp){
 		print("iotrack all ref'd\n");
 		goto loop;
@@ -136,7 +136,7 @@ loop:
 	if(p->flags & BMOD){
 		twrite(p);
 		p->flags &= ~(BMOD|BIMM);
-		unlock(&p->lock);
+		unmlock(&p->lock);
 		goto loop;
 	}
 	purgetrack(p);
@@ -144,8 +144,12 @@ loop:
 	p->xf = xf;
 	p->flags = BSTALE;
 out:
-	lock(&hp->lock); HTOFRONT(hp, p); unlock(&hp->lock);
-	lock(&mp->lock); TOFRONT(mp, p); unlock(&mp->lock);
+	mlock(&hp->lock);
+	HTOFRONT(hp, p);
+	unmlock(&hp->lock);
+	mlock(&mp->lock);
+	TOFRONT(mp, p);
+	unmlock(&mp->lock);
 	return p;
 }
 
@@ -161,7 +165,7 @@ purgetrack(Iotrack *t)
 			--ref;
 			continue;
 		}
-		if(canlock(&p->lock)){
+		if(canmlock(&p->lock)){
 			freesect(p);
 			--ref;
 			t->tp->p[i] = 0;
@@ -206,7 +210,7 @@ tread(Iotrack *t)
 	for(i=0; i<Sect2trk; i++)
 		if(t->tp->p[i])
 			++ref;
-	chat("[tread %d...", t->addr);
+	chat("[tread %d+%d...", t->addr, t->xf->offset);
 	if(ref == 0){
 		if(devread(t->xf, t->addr, t->tp->buf, Trksize) < 0){
 			chat("error]");
@@ -238,14 +242,14 @@ purgebuf(Xfs *xf)
 	for(p=&iobuf[0]; p<&iobuf[NIOBUF]; p++){
 		if(p->xf != xf)
 			continue;
-		lock(&p->lock);
+		mlock(&p->lock);
 		if(p->xf == xf){
 			if(p->flags & BMOD)
 				twrite(p);
 			p->flags = BSTALE;
 			purgetrack(p);
 		}
-		unlock(&p->lock);
+		unmlock(&p->lock);
 	}
 }
 
@@ -257,12 +261,12 @@ sync(void)
 	for(p=&iobuf[0]; p<&iobuf[NIOBUF]; p++){
 		if(!(p->flags & BMOD))
 			continue;
-		lock(&p->lock);
+		mlock(&p->lock);
 		if(p->flags & BMOD){
 			twrite(p);
 			p->flags &= ~(BMOD|BIMM);
 		}
-		unlock(&p->lock);
+		unmlock(&p->lock);
 	}
 }
 
@@ -284,7 +288,7 @@ iotrack_init(void)
 	}
 }
 
-static Lock	freelock;
+static MLock	freelock;
 static Iosect *	freelist;
 
 Iosect *
@@ -292,12 +296,12 @@ newsect(void)
 {
 	Iosect *p;
 
-	lock(&freelock);
+	mlock(&freelock);
 	if(p = freelist)	/* assign = */
 		freelist = p->next;
 	else
 		p = malloc(sizeof(Iosect));
-	unlock(&freelock);
+	unmlock(&freelock);
 	p->next = 0;
 	return p;
 }
@@ -305,8 +309,8 @@ newsect(void)
 void
 freesect(Iosect *p)
 {
-	lock(&freelock);
+	mlock(&freelock);
 	p->next = freelist;
 	freelist = p;
-	unlock(&freelock);
+	unmlock(&freelock);
 }

@@ -30,9 +30,9 @@ struct specname {
  * to by multiple character names, e.g. \(mu for multiply.
  */
 struct charent {
-	int postfontid;		/* index into pfnamtab */
-	int postcharid;		/* e.g., 0x00 */
-	int troffcharwidth;
+	char postfontid;	/* index into pfnamtab */
+	char postcharid;	/* e.g., 0x00 */
+	short troffcharwidth;
 	char *name;
 	struct charent *next;
 };
@@ -41,7 +41,6 @@ extern struct charent **build_char_list;
 extern int build_char_cnt;
 
 struct pfnament {
-	int size;
 	char *str;
 	int used;
 };
@@ -86,7 +85,7 @@ void notavail(char *);
 void error(int, char *, ...);
 void loadfont(int, char *);
 void flushtext(void);
-void charhgt(int);
+void t_charht(int);
 void t_slant(int);
 void startstring(void);
 void endstring(void);

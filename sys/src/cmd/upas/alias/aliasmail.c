@@ -7,50 +7,81 @@
 
 /* predeclared */
 static String	*getdbfiles(void);
-static int	translate(char*, char*, String*, String*);
-static int	lookup(char*, String*, 	String*, String*);
+static int	translate(char*, char**, String*, String*);
+static int	lookup(String**, String*, String*);
 static int	compare(String*, char*);
 static char*	mklower(char*);
 
 static int debug;
+static int from;
+static char *namefiles = "namefiles";
 #define DEBUG if(debug)
 
 /* loop through the names to be translated */
 void
 main(int argc, char *argv[])
 {
+	String *s;
 	String *alias;		/* the alias for the name */
-	char *thissys;		/* name of this system */
+	char **names;		/* names of this system */
 	String *files;		/* list of files to search */
 	int i, rv;
+	char *p;
 
 	ARGBEGIN {
 	case 'd':
 		debug = 1;
 		break;
+	case 'f':
+		from = 1;
+		break;
+	case 'n':
+		namefiles = ARGF();
+		break;
 	} ARGEND
-	if (chdir(MAILROOT) < 0) {
-		perror("translate(chdir):");
-		exit(1);
-	}
-	if (chdir("lib") < 0) {
+	if (chdir(UPASLIB) < 0) {
 		perror("translate(chdir):");
 		exit(1);
 	}
 
 	/* get environmental info */
-	thissys = sysname_read();
+	names = sysnames_read();
 	files = getdbfiles();
 	alias = s_new();
 
 	/* loop through the names to be translated (from standard input) */
 	for(i=0; i<argc; i++) {
-		mklower(argv[i]);
-		rv = translate(argv[i], thissys, files, alias);
-		if (rv < 0 || *s_to_c(alias) == '\0')
-			print("local!%s\n", argv[i]);
+		s = unescapespecial(s_copy(mklower(argv[i])));
+		if(strchr(s_to_c(s), '!') == 0)
+			rv = translate(s_to_c(s), names, files, alias);
 		else
-			print("%s\n", s_to_c(alias));
+			rv = -1;
+		if(from){
+			if (rv >= 0 && *s_to_c(alias) != '\0'){
+				p = strchr(s_to_c(alias), '\n');
+				if(p)
+					*p = 0;
+				p = strchr(s_to_c(alias), '!');
+				if(p) {
+					*p = 0;
+					print("%s", s_to_c(alias));
+				} else {
+					p = strchr(s_to_c(alias), '@');
+					if(p)
+						print("%s", p+1);
+					else
+						print("%s", s_to_c(alias));
+				}
+			}
+		} else {
+			if (rv < 0 || *s_to_c(alias) == '\0')
+				print("local!%s\n", s_to_c(s));
+			else {
+				/* this must be a write, not a print */
+				write(1, s_to_c(alias), strlen(s_to_c(alias)));
+			}
+		}
+		s_free(s);
 	}
 	exits(0);
 }
@@ -61,9 +92,15 @@ getdbfiles(void)
 {
 	Biobuf *fp;
 	String *files = s_new();
+	char *nf;
+
+	if(from)
+		nf = "fromfiles";
+	else
+		nf = namefiles;
 
 	/* system wide aliases */
-	if ((fp = sysopen("namefiles", "r", 0)) != 0){
+	if ((fp = sysopen(nf, "r", 0)) != 0){
 		while(s_getline(fp, files))
 			s_append(files, " ");
 		sysclose(fp);
@@ -78,61 +115,102 @@ getdbfiles(void)
 /* loop through the translation files */
 static int
 translate(char *name,		/* name to translate */
-	char *thissys,		/* name of this system */
-	String *files,
+	char **namev,		/* names of this system */
+	String *files,		/* names of system alias files */
 	String *alias)		/* where to put the alias */
 {
 	String *file = s_new();
-	String *fullname;
 	char *user;
+	String **fullnamev;
+	int n, rv;
 
-	DEBUG print("translate(%s, %s, %s, %s)\n", name, thissys,
+	rv = -1;
+
+	DEBUG print("translate(%s, %s, %s)\n", name,
 		s_to_c(files), s_to_c(alias));
 
 	/* create the full name to avoid loops (system!name) */
-	fullname = s_copy(thissys);
-	s_append(fullname, "!");
-	s_append(fullname, name);
+	for(n = 0; namev[n]; n++)
+		;
+	fullnamev = (String**)malloc(sizeof(String*)*(n+2));
+	n = 0;
+	fullnamev[n++] = s_copy(name);
+	for(; *namev; namev++){
+		fullnamev[n] = s_copy(*namev);
+		s_append(fullnamev[n], "!");
+		s_append(fullnamev[n], name);
+		n++;
+	}
+	fullnamev[n] = 0;
 
 	/* look at user's local names */
-	user = getlog();
-	if (user != 0) {
-		mboxpath("names", user, s_restart(file), 0);
-		if (lookup(name, fullname, file, alias)==0) {
-			s_free(fullname);
-			s_free(file);
-			return 0;
+	if(!from){
+		user = getlog();
+		if(user) {
+			mboxpath("names", user, s_restart(file), 0);
+			if (lookup(fullnamev, file, alias)==0) {
+				s_append(alias, "_nosummary_\n");
+				rv = 0;
+				goto out;
+			}
 		}
 	}
 
 	/* look at system-wide names */
 	s_restart(files);
 	while (s_parse(files, s_restart(file)) != 0) {
-		if (lookup(name, fullname, file, alias)==0) {
-			s_free(fullname);
-			s_free(file);
-			return 0;
+		if (lookup(fullnamev, file, alias)==0) {
+			rv = 0;
+			goto out;
 		}
 	}
 
-	return -1;
+out:
+	for(n = 0; fullnamev[n]; n++)
+		s_free(fullnamev[n]);
+	s_free(file);
+	free(fullnamev);
+	return rv;
+}
+
+/*
+ *  very dumb conversion to bang format
+ */
+static String*
+attobang(String *token)
+{
+	char *p;
+	String *tok;
+
+	p = strchr(s_to_c(token), '@');
+	if(p == 0)
+		return token;
+
+	p++;
+	tok = s_copy(p);
+	s_append(tok, "!");
+	s_nappend(tok, s_to_c(token), p - s_to_c(token) - 1);
+
+	return tok;
 }
 
 /*  Loop through the entries in a translation file looking for a match.
  *  Return 0 if found, -1 otherwise.
  */
 static int
-lookup(	char *name,
-	String *fullname,
+lookup(
+	String **namev,
 	String *file,
 	String *alias)	/* returned String */
 {
 	Biobuf *fp;
 	String *line = s_new();
 	String *token = s_new();
-	int rv = -1;
+	String *bangtoken;
+	int i, rv = -1;
+	char *name =  s_to_c(namev[0]);
 
-	DEBUG print("lookup(%s, %s, %s, %s)\n", name, s_to_c(fullname),
+	DEBUG print("lookup(%s, %s, %s, %s)\n", s_to_c(namev[0]), s_to_c(namev[1]),
 		s_to_c(file), s_to_c(alias));
 
 	s_reset(alias);
@@ -149,16 +227,23 @@ lookup(	char *name,
 			continue;
 		/* match found, get the alias */
 		while(s_parse(line, s_restart(token))!=0) {
+			bangtoken = attobang(token);
+
 			/* avoid definition loops */
-			if (compare(token, name)==0 ||
-			    compare(token, s_to_c(fullname))==0){
-				s_append(alias, "local");
-				s_append(alias, "!");
-				s_append(alias, name);
-			} else {
+			for(i = 0; namev[i]; i++)
+				if(compare(bangtoken, s_to_c(namev[i]))==0) {
+					s_append(alias, "local");
+					s_append(alias, "!");
+					s_append(alias, name);
+					break;
+				}
+
+			if(namev[i] == 0)
 				s_append(alias, s_to_c(token));
-			}
-			s_append(alias, " ");
+			s_append(alias, "\n");
+
+			if(bangtoken != token)
+				s_free(bangtoken);
 		}
 		rv = 0;
 		break;
@@ -189,7 +274,7 @@ compare(String *s1,
 	return rv;
 }
 
-char*
+static char*
 mklower(char *name)
 {
 	char *p;

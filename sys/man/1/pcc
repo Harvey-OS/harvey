@@ -40,6 +40,11 @@ leave the result of preprocessing
 in
 .IB name .i\f1.
 .TP
+.B -E
+Like
+.BR -P ,
+but send the result to standard output.
+.TP
 .B -c
 Omit the loading phase.
 .TP
@@ -49,9 +54,20 @@ Insert profiling code into the executable output.
 .B -w
 Print compiler warning messages.
 .TP
+.BI -l lib
+Include
+.BI / $objtype /lib/ape/lib lib .a
+as a library during the linking phase.
+.TP
 .B -B
 Don't complain about functions used without
 ANSI function prototypes.
+.TP
+.B -V
+Enable
+.B void*
+conversion warnings, as in
+.IR 2c (1).
 .TP
 .B -v
 Echo the preprocessing, compiling, and loading commands

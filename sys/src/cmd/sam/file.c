@@ -1,464 +1,631 @@
 #include "sam.h"
+
 /*
- * Files are splayed out a factor of NDISC to reduce indirect block access
+ * Structure of Undo list:
+ * 	The Undo structure follows any associated data, so the list
+ *	can be read backwards: read the structure, then read whatever
+ *	data is associated (insert string, file name) and precedes it.
+ *	The structure includes the previous value of the modify bit
+ *	and a sequence number; successive Undo structures with the
+ *	same sequence number represent simultaneous changes.
  */
-Discdesc	*files[NDISC];
-Discdesc	*transcripts[NDISC];
-Buffer		*undobuf;
-static String	*ftempstr(Rune*, int);
-int		fcount;
-File		*lastfile;
 
-void	puthdr_csl(Buffer*, char, short, Posn);
-void	puthdr_cs(Buffer*, char, short);
-void	puthdr_M(Buffer*, Posn, Range, Range, Mod, short);
-void	puthdr_cll(Buffer*, char, Posn, Posn);
-void	Fflush(File*);
+typedef struct Undo Undo;
+typedef struct Merge Merge;
 
-enum{
-	SKIP=50,		/* max dist between file changes folded together */
-	MAXCACHE=STRSIZE,	/* max length of cache. must be < 32K-BLOCKSIZE */
+struct Undo
+{
+	short	type;		/* Delete, Insert, Filename, Dot, Mark */
+	short	mod;		/* modify bit */
+	uint	seq;		/* sequence number */
+	uint	p0;		/* location of change (unused in f) */
+	uint	n;		/* # runes in string or file name */
 };
 
-void
-Fstart(void)
+struct Merge
 {
-	undobuf = Bopen(Dstart());
-	snarfbuf = Bopen(Dstart());
-	plan9buf = Bopen(Dstart());
-}
+	File	*f;
+	uint	seq;		/* of logged change */
+	uint	p0;		/* location of change (unused in f) */
+	uint	n;		/* # runes to delete */
+	uint	nbuf;		/* # runes to insert */
+	Rune	buf[RBUFSIZE];
+};
 
-void
-Fmark(File *f, Mod m)
+enum
 {
-	Buffer *t = f->transcript;
-	Posn p;
+	Maxmerge = 50,
+	Undosize = sizeof(Undo)/sizeof(Rune),
+};
 
-	if(f->state == Readerr)
-		return;
-	if(f->state == Unread)	/* this is implicit 'e' of a file */
-		return;
-	p = m==0? -1 : f->markp;
-	f->markp = t->nrunes;
-	puthdr_M(t, p, f->dot.r, f->mark, f->mod, f->state);
-	f->ndot = f->dot;
-	f->marked = TRUE;
-	f->mod = m;
-	f->hiposn = -1;
-	/* Safety first */
-	f->cp1 = f->cp2 = 0;
-}
+static Merge	merge;
 
-File *
-Fopen(void)
+File*
+fileopen(void)
 {
 	File *f;
 
 	f = emalloc(sizeof(File));
-	if(files[fcount] == 0){
-		files[fcount] = Dstart();
-		transcripts[fcount] = Dstart();
-	}
-	f->buf = Bopen(files[fcount]);
-	f->transcript = Bopen(transcripts[fcount]);
-	if(++fcount == NDISC)
-		fcount = 0;
-	f->nrunes = 0;
-	f->markp = 0;
-	f->mod = 0;
 	f->dot.f = f;
 	f->ndot.f = f;
-	f->dev = ~0;
-	f->qid = ~0;
+	f->seq = 0;
+	f->mod = FALSE;
+	f->unread = TRUE;
 	Strinit0(&f->name);
-	Strinit(&f->cache);
-	f->state = Unread;
-	Fmark(f, (Mod)0);
+	return f;
+}
+
+int
+fileisdirty(File *f)
+{
+	return f->seq != f->cleanseq;
+}
+
+static void
+wrinsert(Buffer *delta, int seq, int mod, uint p0, Rune *s, uint ns)
+{
+	Undo u;
+
+	u.type = Insert;
+	u.mod = mod;
+	u.seq = seq;
+	u.p0 = p0;
+	u.n = ns;
+	bufinsert(delta, delta->nc, s, ns);
+	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+}
+
+static void
+wrdelete(Buffer *delta, int seq, int mod, uint p0, uint p1)
+{
+	Undo u;
+
+	u.type = Delete;
+	u.mod = mod;
+	u.seq = seq;
+	u.p0 = p0;
+	u.n = p1 - p0;
+	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+}
+
+void
+flushmerge(void)
+{
+	File *f;
+
+	f = merge.f;
+	if(f == nil)
+		return;
+	if(merge.seq != f->seq)
+		panic("flushmerge seq mismatch");
+	if(merge.n != 0)
+		wrdelete(&f->epsilon, f->seq, TRUE, merge.p0, merge.p0+merge.n);
+	if(merge.nbuf != 0)
+		wrinsert(&f->epsilon, f->seq, TRUE, merge.p0+merge.n, merge.buf, merge.nbuf);
+	merge.f = nil;
+	merge.n = 0;
+	merge.nbuf = 0;
+}
+
+void
+mergeextend(File *f, uint p0)
+{
+	uint mp0n;
+
+	mp0n = merge.p0+merge.n;
+	if(mp0n != p0){
+		bufread(f, mp0n, merge.buf+merge.nbuf, p0-mp0n);
+		merge.nbuf += p0-mp0n;
+		merge.n = p0-merge.p0;
+	}
+}
+
+/*
+ * like fileundelete, but get the data from arguments
+ */
+void
+loginsert(File *f, uint p0, Rune *s, uint ns)
+{
+	if(f->rescuing)
+		return;
+	if(ns == 0)
+		return;
+	if(ns<0 || ns>STRSIZE)
+		panic("loginsert");
+	if(f->seq < seq)
+		filemark(f);
+	if(p0 < f->hiposn)
+		error(Esequence);
+
+	if(merge.f != f
+	|| p0-(merge.p0+merge.n)>Maxmerge			/* too far */
+	|| merge.nbuf+((p0+ns)-(merge.p0+merge.n))>RBUFSIZE)	/* too long */
+		flushmerge();
+
+	if(ns>=RBUFSIZE){
+		if(!(merge.n == 0 && merge.nbuf == 0 && merge.f == nil))
+			panic("loginsert bad merge state");
+		wrinsert(&f->epsilon, f->seq, TRUE, p0, s, ns);
+	}else{
+		if(merge.f != f){
+			merge.f = f;
+			merge.p0 = p0;
+			merge.seq = f->seq;
+		}
+		mergeextend(f, p0);
+
+		/* append string to merge */
+		runemove(merge.buf+merge.nbuf, s, ns);
+		merge.nbuf += ns;
+	}
+
+	f->hiposn = p0;
+	if(!f->unread && !f->mod)
+		state(f, Dirty);
+}
+
+void
+logdelete(File *f, uint p0, uint p1)
+{
+	if(f->rescuing)
+		return;
+	if(p0 == p1)
+		return;
+	if(f->seq < seq)
+		filemark(f);
+	if(p1 < f->hiposn)
+		error(Esequence);
+
+	if(merge.f != f
+	|| p0-(merge.p0+merge.n)>Maxmerge			/* too far */
+	|| merge.nbuf+(p0-(merge.p0+merge.n))>RBUFSIZE){	/* too long */
+		flushmerge();
+		merge.f = f;
+		merge.p0 = p0;
+		merge.seq = f->seq;
+	}
+
+	mergeextend(f, p0);
+
+	/* add to deletion */
+	merge.n = p1-merge.p0;
+
+	f->hiposn = p1;
+	if(!f->unread && !f->mod)
+		state(f, Dirty);
+}
+
+/*
+ * like fileunsetname, but get the data from arguments
+ */
+void
+logsetname(File *f, String *s)
+{
+	Undo u;
+	Buffer *delta;
+
+	if(f->rescuing)
+		return;
+
+	if(f->unread){	/* This is setting initial file name */
+		filesetname(f, s);
+		return;
+	}
+
+	if(f->seq < seq)
+		filemark(f);
+
+	/* undo a file name change by restoring old name */
+	delta = &f->epsilon;
+	u.type = Filename;
+	u.mod = TRUE;
+	u.seq = f->seq;
+	u.p0 = 0;	/* unused */
+	u.n = s->n;
+	if(s->n)
+		bufinsert(delta, delta->nc, s->s, s->n);
+	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+	if(!f->unread && !f->mod)
+		state(f, Dirty);
+}
+
+#ifdef NOTEXT
+File*
+fileaddtext(File *f, Text *t)
+{
+	if(f == nil){
+		f = emalloc(sizeof(File));
+		f->unread = TRUE;
+	}
+	f->text = realloc(f->text, (f->ntext+1)*sizeof(Text*));
+	f->text[f->ntext++] = t;
+	f->curtext = t;
 	return f;
 }
 
 void
-Fclose(File *f)
+filedeltext(File *f, Text *t)
 {
-	if(f == lastfile)
-		lastfile = 0;
-	Bterm(f->buf);
-	Bterm(f->transcript);
+	int i;
+
+	for(i=0; i<f->ntext; i++)
+		if(f->text[i] == t)
+			goto Found;
+	panic("can't find text in filedeltext");
+
+    Found:
+	f->ntext--;
+	if(f->ntext == 0){
+		fileclose(f);
+		return;
+	}
+	memmove(f->text+i, f->text+i+1, (f->ntext-i)*sizeof(Text*));
+	if(f->curtext == t)
+		f->curtext = f->text[0];
+}
+#endif
+
+void
+fileinsert(File *f, uint p0, Rune *s, uint ns)
+{
+	if(p0 > f->nc)
+		panic("internal error: fileinsert");
+	if(f->seq > 0)
+		fileuninsert(f, &f->delta, p0, ns);
+	bufinsert(f, p0, s, ns);
+	if(ns)
+		f->mod = TRUE;
+}
+
+void
+fileuninsert(File *f, Buffer *delta, uint p0, uint ns)
+{
+	Undo u;
+
+	/* undo an insertion by deleting */
+	u.type = Delete;
+	u.mod = f->mod;
+	u.seq = f->seq;
+	u.p0 = p0;
+	u.n = ns;
+	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+}
+
+void
+filedelete(File *f, uint p0, uint p1)
+{
+	if(!(p0<=p1 && p0<=f->nc && p1<=f->nc))
+		panic("internal error: filedelete");
+	if(f->seq > 0)
+		fileundelete(f, &f->delta, p0, p1);
+	bufdelete(f, p0, p1);
+	if(p1 > p0)
+		f->mod = TRUE;
+}
+
+void
+fileundelete(File *f, Buffer *delta, uint p0, uint p1)
+{
+	Undo u;
+	Rune *buf;
+	uint i, n;
+
+	/* undo a deletion by inserting */
+	u.type = Insert;
+	u.mod = f->mod;
+	u.seq = f->seq;
+	u.p0 = p0;
+	u.n = p1-p0;
+	buf = fbufalloc();
+	for(i=p0; i<p1; i+=n){
+		n = p1 - i;
+		if(n > RBUFSIZE)
+			n = RBUFSIZE;
+		bufread(f, i, buf, n);
+		bufinsert(delta, delta->nc, buf, n);
+	}
+	fbuffree(buf);
+	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+
+}
+
+int
+filereadc(File *f, uint q)
+{
+	Rune r;
+
+	if(q >= f->nc)
+		return -1;
+	bufread(f, q, &r, 1);
+	return r;
+}
+
+void
+filesetname(File *f, String *s)
+{
+	if(!f->unread)	/* This is setting initial file name */
+		fileunsetname(f, &f->delta);
+	Strduplstr(&f->name, s);
+	sortname(f);
+	f->unread = TRUE;
+}
+
+void
+fileunsetname(File *f, Buffer *delta)
+{
+	String s;
+	Undo u;
+
+	/* undo a file name change by restoring old name */
+	u.type = Filename;
+	u.mod = f->mod;
+	u.seq = f->seq;
+	u.p0 = 0;	/* unused */
+	Strinit(&s);
+	Strduplstr(&s, &f->name);
+	fullname(&s);
+	u.n = s.n;
+	if(s.n)
+		bufinsert(delta, delta->nc, s.s, s.n);
+	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+	Strclose(&s);
+}
+
+void
+fileunsetdot(File *f, Buffer *delta, Range dot)
+{
+	Undo u;
+
+	u.type = Dot;
+	u.mod = f->mod;
+	u.seq = f->seq;
+	u.p0 = dot.p1;
+	u.n = dot.p2 - dot.p1;
+	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+}
+
+void
+fileunsetmark(File *f, Buffer *delta, Range mark)
+{
+	Undo u;
+
+	u.type = Mark;
+	u.mod = f->mod;
+	u.seq = f->seq;
+	u.p0 = mark.p1;
+	u.n = mark.p2 - mark.p1;
+	bufinsert(delta, delta->nc, (Rune*)&u, Undosize);
+}
+
+uint
+fileload(File *f, uint p0, int fd, int *nulls)
+{
+	if(f->seq > 0)
+		panic("undo in file.load unimplemented");
+	return bufload(f, p0, fd, nulls);
+}
+
+int
+fileupdate(File *f, int notrans, int toterm)
+{
+	uint p1, p2;
+	int mod;
+
+	if(f->rescuing)
+		return FALSE;
+
+	flushmerge();
+
+	/*
+	 * fix the modification bit
+	 * subtle point: don't save it away in the log.
+	 *
+	 * if another change is made, the correct f->mod
+	 * state is saved  in the undo log by filemark
+	 * when setting the dot and mark.
+	 *
+	 * if the change is undone, the correct state is
+	 * saved from f in the fileun... routines.
+	 */
+	mod = f->mod;
+	f->mod = f->prevmod;
+	if(f == cmd)
+		notrans = TRUE;
+	else{
+		fileunsetdot(f, &f->delta, f->prevdot);
+		fileunsetmark(f, &f->delta, f->prevmark);
+	}
+	f->dot = f->ndot;
+	fileundo(f, FALSE, !notrans, &p1, &p2, toterm);
+	f->mod = mod;
+
+	if(f->delta.nc == 0)
+		f->seq = 0;
+
+	if(f == cmd)
+		return FALSE;
+
+	if(f->mod){
+		f->closeok = 0;
+		quitok = 0;
+	}else
+		f->closeok = 1;
+	return TRUE;
+}
+
+long
+prevseq(Buffer *b)
+{
+	Undo u;
+	uint up;
+
+	up = b->nc;
+	if(up == 0)
+		return 0;
+	up -= Undosize;
+	bufread(b, up, (Rune*)&u, Undosize);
+	return u.seq;
+}
+
+long
+undoseq(File *f, int isundo)
+{
+	if(isundo)
+		return f->seq;
+
+	return prevseq(&f->epsilon);
+}
+
+void
+fileundo(File *f, int isundo, int canredo, uint *q0p, uint *q1p, int flag)
+{
+	Undo u;
+	Rune *buf;
+	uint i, n, up;
+	uint stop;
+	Buffer *delta, *epsilon;
+
+	if(isundo){
+		/* undo; reverse delta onto epsilon, seq decreases */
+		delta = &f->delta;
+		epsilon = &f->epsilon;
+		stop = f->seq;
+	}else{
+		/* redo; reverse epsilon onto delta, seq increases */
+		delta = &f->epsilon;
+		epsilon = &f->delta;
+		stop = 0;	/* don't know yet */
+	}
+
+	raspstart(f);
+	while(delta->nc > 0){
+		up = delta->nc-Undosize;
+		bufread(delta, up, (Rune*)&u, Undosize);
+		if(isundo){
+			if(u.seq < stop){
+				f->seq = u.seq;
+				raspdone(f, flag);
+				return;
+			}
+		}else{
+			if(stop == 0)
+				stop = u.seq;
+			if(u.seq > stop){
+				raspdone(f, flag);
+				return;
+			}
+		}
+		switch(u.type){
+		default:
+			panic("undo unknown u.type");
+			break;
+
+		case Delete:
+			f->seq = u.seq;
+			if(canredo)
+				fileundelete(f, epsilon, u.p0, u.p0+u.n);
+			f->mod = u.mod;
+			bufdelete(f, u.p0, u.p0+u.n);
+			raspdelete(f, u.p0, u.p0+u.n, flag);
+			*q0p = u.p0;
+			*q1p = u.p0;
+			break;
+
+		case Insert:
+			f->seq = u.seq;
+			if(canredo)
+				fileuninsert(f, epsilon, u.p0, u.n);
+			f->mod = u.mod;
+			up -= u.n;
+			buf = fbufalloc();
+			for(i=0; i<u.n; i+=n){
+				n = u.n - i;
+				if(n > RBUFSIZE)
+					n = RBUFSIZE;
+				bufread(delta, up+i, buf, n);
+				bufinsert(f, u.p0+i, buf, n);
+				raspinsert(f, u.p0+i, buf, n, flag);
+			}
+			fbuffree(buf);
+			*q0p = u.p0;
+			*q1p = u.p0+u.n;
+			break;
+
+		case Filename:
+			f->seq = u.seq;
+			if(canredo)
+				fileunsetname(f, epsilon);
+			f->mod = u.mod;
+			up -= u.n;
+
+			Strinsure(&f->name, u.n+1);
+			bufread(delta, up, f->name.s, u.n);
+			f->name.s[u.n] = 0;
+			f->name.n = u.n;
+			fixname(&f->name);
+			sortname(f);
+			break;
+		case Dot:
+			f->seq = u.seq;
+			if(canredo)
+				fileunsetdot(f, epsilon, f->dot.r);
+			f->mod = u.mod;
+			f->dot.r.p1 = u.p0;
+			f->dot.r.p2 = u.p0 + u.n;
+			break;
+		case Mark:
+			f->seq = u.seq;
+			if(canredo)
+				fileunsetmark(f, epsilon, f->mark);
+			f->mod = u.mod;
+			f->mark.p1 = u.p0;
+			f->mark.p2 = u.p0 + u.n;
+			break;
+		}
+		bufdelete(delta, up, delta->nc);
+	}
+	if(isundo)
+		f->seq = 0;
+	raspdone(f, flag);
+}
+
+void
+filereset(File *f)
+{
+	bufreset(&f->delta);
+	bufreset(&f->epsilon);
+	f->seq = 0;
+}
+
+void
+fileclose(File *f)
+{
 	Strclose(&f->name);
-	Strclose(&f->cache);
+	bufclose(f);
+	bufclose(&f->delta);
+	bufclose(&f->epsilon);
 	if(f->rasp)
 		listfree(f->rasp);
 	free(f);
 }
 
 void
-Finsert(File *f, String *str, Posn p1)
+filemark(File *f)
 {
-	Buffer *t = f->transcript;
 
-	if(f->state == Readerr)
+	if(f->unread)
 		return;
-	if(str->n == 0)
-		return;
-	if(str->n<0 || str->n>STRSIZE)
-		panic("Finsert");
-	if(f->mod < modnum)
-		Fmark(f, modnum);
-	if(p1 < f->hiposn)
-		error(Esequence);
-	if(str->n >= BLOCKSIZE){	/* don't bother with the cache */
-		Fflush(f);
-		puthdr_csl(t, 'i', str->n, p1);
-		Binsert(t, str, t->nrunes);
-	}else{	/* insert into the cache instead of the transcript */
-		if(f->cp2==0 && f->cp1==0 && f->cache.n==0)	/* empty cache */
-			f->cp1 = f->cp2 = p1;
-		if(p1-f->cp2>SKIP || f->cache.n+str->n>MAXCACHE-SKIP){
-			Fflush(f);
-			f->cp1 = f->cp2 = p1;
-		}
-		if(f->cp2 != p1){	/* grab the piece in between */
-			Rune buf[SKIP];
-			String s;
-			Fchars(f, buf, f->cp2, p1);
-			s.s = buf;
-			s.n = p1-f->cp2;
-			Strinsert(&f->cache, &s, f->cache.n);
-			f->cp2 = p1;
-		}
-		Strinsert(&f->cache, str, f->cache.n);
+	if(f->epsilon.nc)
+		bufdelete(&f->epsilon, 0, f->epsilon.nc);
+
+	if(f != cmd){
+		f->prevdot = f->dot.r;
+		f->prevmark = f->mark;
+		f->prevseq = f->seq;
+		f->prevmod = f->mod;
 	}
-	if(f != cmd)
-		quitok = FALSE;
-	f->closeok = FALSE;
-	if(f->state == Clean)
-		state(f, Dirty);
-	f->hiposn = p1;
-}
 
-void
-Fdelete(File *f, Posn p1, Posn p2)
-{
-	if(f->state == Readerr)
-		return;
-	if(p1==p2)
-		return;
-	if(f->mod<modnum)
-		Fmark(f, modnum);
-	if(p1<f->hiposn)
-		error(Esequence);
-	if(p1-f->cp2>SKIP)
-		Fflush(f);
-	if(f->cp2==0 && f->cp1==0 && f->cache.n==0)	/* empty cache */
-		f->cp1 = f->cp2 = p1;
-	if(f->cp2 != p1){	/* grab the piece in between */
-		if(f->cache.n+(p1-f->cp2)>MAXCACHE){
-			Fflush(f);
-			f->cp1 = f->cp2 = p1;
-		}else{
-			Rune buf[SKIP];
-			String s;
-			Fchars(f, buf, f->cp2, p1);
-			s.s = buf;
-			s.n = p1-f->cp2;
-			Strinsert(&f->cache, &s, f->cache.n);
-		}
-	}
-	f->cp2 = p2;
-	if(f!=cmd)
-		quitok = FALSE;
-	f->closeok = FALSE;
-	if(f->state==Clean)
-		state(f, Dirty);
-	f->hiposn = p2;
-}
-
-void
-Fflush(File *f)
-{
-	Buffer *t = f->transcript;
-	Posn p1 = f->cp1, p2 = f->cp2;
-
-	if(f->state == Readerr)
-		return;
-	if(p1 != p2)
-		puthdr_cll(t, 'd', p1, p2);
-	if(f->cache.n){
-		puthdr_csl(t, 'i', f->cache.n, p2);
-		Binsert(t, &f->cache, t->nrunes);
-		Strzero(&f->cache);
-	}
-	f->cp1 = f->cp2 = 0;
-}
-
-void
-Fsetname(File *f, String *s)
-{
-	Buffer *t = f->transcript;
-
-	if(f->state == Readerr)
-		return;
-	if(f->state == Unread){	/* This is setting initial file name */
-		Strduplstr(&f->name, s);
-		sortname(f);
-	}else{
-		if(f->mod < modnum)
-			Fmark(f, modnum);
-		puthdr_cs(t, 'f', s->n);
-		Binsert(t, s, t->nrunes);
-	}
-}
-
-/*
- * The heart of it all. Fupdate will run along the transcript list, executing
- * the commands and converting them into their inverses for a later undo pass.
- * The pass runs top to bottom, so addresses in the transcript are tracked
- * (by the var. delta) so they stay valid during the operation.  This causes
- * all operations to appear to happen simultaneously, which is why the addresses
- * passed to Fdelete and Finsert never take into account other changes occurring
- * in this command (and is why things are done this way).
- */
-int
-Fupdate(File *f, int mktrans, int toterm)
-{
-	Buffer *t = f->transcript;
-	Buffer *u = undobuf;
-	int n, ni;
-	Posn p0, p1, p2, p, deltadot = 0, deltamark = 0, delta = 0;
-	int changes = FALSE;
-	union Hdr buf;
-	Rune tmp[BLOCKSIZE+1];	/* +1 for NUL in 'f' case */
-
-	if(f->state == Readerr)
-		return FALSE;
-	if(lastfile && f!=lastfile)
-		Bclean(lastfile->transcript);	/* save memory when multifile */
-	lastfile = f;
-	Fflush(f);
-	if(f->marked)
-		p0 = f->markp+sizeof(Mark)/RUNESIZE;
-	else
-		p0 = 0;
-	f->dot = f->ndot;
-	while((n=Bread(t, (Rune*)&buf, sizeof buf/RUNESIZE, p0)) > 0){
-		switch(buf.cs.c){
-		default:
-			panic("unknown in Fupdate");
-		case 'd':
-			p1 = buf.cll.l;
-			p2 = buf.cll.l1;
-			p0 += sizeof(struct _cll)/RUNESIZE;
-			if(p2 <= f->dot.r.p1)
-				deltadot -= p2-p1;
-			if(p2 <= f->mark.p1)
-				deltamark -= p2-p1;
-			p1 += delta, p2+=delta;
-			delta -= p2-p1;
-			if(!mktrans)
-				for(p = p1; p<p2; p+=ni){
-					if(p2-p>BLOCKSIZE)
-						ni = BLOCKSIZE;
-					else
-						ni = p2-p;
-					puthdr_csl(u, 'i', ni, p1);
-					Bread(f->buf, tmp, ni, p);
-					Binsert(u, ftempstr(tmp, ni), u->nrunes);
-				}
-			f->nrunes -= p2-p1;
-			Bdelete(f->buf, p1, p2);
-			changes = TRUE;
-			break;
-
-		case 'f':
-			n = buf.cs.s;
-			p0 += sizeof(struct _cs)/RUNESIZE;
-			Strinsure(&genstr, n+1);
-			Bread(t, tmp, n, p0);
-			tmp[n] = 0;
-			p0 += n;
-			Strdupl(&genstr, tmp);
-			if(!mktrans){
-				puthdr_cs(u, 'f', f->name.n);
-				Binsert(u, &f->name, u->nrunes);
-			}
-			Strduplstr(&f->name, &genstr);
-			sortname(f);
-			changes = TRUE;
-			break;
-
-		case 'i':
-			n = buf.csl.s;
-			p1 = buf.csl.l;
-			p0 += sizeof(struct _csl)/RUNESIZE;
-			if(p1 < f->dot.r.p1)
-				deltadot += n;
-			if(p1 < f->mark.p1)
-				deltamark += n;
-			p1 += delta;
-			delta += n;
-			if(!mktrans)
-				puthdr_cll(u, 'd', p1, p1+n);
-			changes = TRUE;
-			f->nrunes += n;
-			while(n > 0){
-				if(n > BLOCKSIZE)
-					ni = BLOCKSIZE;
-				else
-					ni = n;
-				Bread(t, tmp, ni, p0);
-				Binsert(f->buf, ftempstr(tmp, ni), p1);
-				n -= ni;
-				p1 += ni;
-				p0 += ni;
-			}
-			break;
-		}
-	}
-	toterminal(f, toterm);
-	f->dot.r.p1 += deltadot;
-	f->dot.r.p2 += deltadot;
-	if(f->dot.r.p1 > f->nrunes)
-		f->dot.r.p1 = f->nrunes;
-	if(f->dot.r.p2 > f->nrunes)
-		f->dot.r.p2 = f->nrunes;
-	f->mark.p1 += deltamark;
-	f->mark.p2 += deltamark;
-	if(f->mark.p1 > f->nrunes)
-		f->mark.p1 = f->nrunes;
-	if(f->mark.p2 > f->nrunes)
-		f->mark.p2 = f->nrunes;
-	if(n < 0)
-		panic("Fupdate read");
-	if(f == cmd)
-		f->mod = 0;	/* can't undo command file */
-	if(p0 > f->markp+sizeof(Posn)/RUNESIZE){	/* for undo, this throws away the undo transcript */
-		if(f->mod > 0){	/* can't undo the dawn of time */
-			Bdelete(t, f->markp+sizeof(Mark)/RUNESIZE, t->nrunes);
-			/* copy the undo list back into the transcript */
-			for(p = 0; p<u->nrunes; p+=ni){
-				if(u->nrunes-p>BLOCKSIZE)
-					ni = BLOCKSIZE;
-				else
-					ni = u->nrunes-p;
-				Bread(u, tmp, ni, p);
-				Binsert(t, ftempstr(tmp, ni), t->nrunes);
-			}
-		}
-		Bdelete(u, (Posn)0, u->nrunes);
-	}
-	return f==cmd? FALSE : changes;
-}
-
-void
-puthdr_csl(Buffer *b, char c, short s, Posn p)
-{
-	struct _csl buf;
-
-	if(p < 0)
-		panic("puthdr_csP");
-	buf.c = c;
-	buf.s = s;
-	buf.l = p;
-	Binsert(b, ftempstr((Rune*)&buf, sizeof buf/RUNESIZE), b->nrunes);
-}
-
-void
-puthdr_cs(Buffer *b, char c, short s)
-{
-	struct _cs buf;
-
-	buf.c = c;
-	buf.s = s;
-	Binsert(b, ftempstr((Rune*)&buf, sizeof buf/RUNESIZE), b->nrunes);
-}
-
-void
-puthdr_M(Buffer *b, Posn p, Range dot, Range mk, Mod m, short s1)
-{
-	Mark mark;
-	static first = 1;
-
-	if(!first && p<0)
-		panic("puthdr_M");
-	mark.p = p;
-	mark.dot = dot;
-	mark.mark = mk;
-	mark.m = m;
-	mark.s1 = s1;
-	Binsert(b, ftempstr((Rune *)&mark, sizeof mark/RUNESIZE), b->nrunes);
-}
-
-void
-puthdr_cll(Buffer *b, char c, Posn p1, Posn p2)
-{
-	struct _cll buf;
-
-	if(p1<0 || p2<0)
-		panic("puthdr_cll");
-	buf.c = c;
-	buf.l = p1;
-	buf.l1 = p2;
-	Binsert(b, ftempstr((Rune*)&buf, sizeof buf/RUNESIZE), b->nrunes);
-}
-
-long
-Fchars(File *f, Rune *addr, Posn p1, Posn p2)
-{
-	return Bread(f->buf, addr, p2-p1, p1);
-}
-
-int
-Fgetcset(File *f, Posn p)
-{
-	if(p<0 || p>f->nrunes)
-		panic("Fgetcset out of range");
-	if((f->ngetc = Fchars(f, f->getcbuf, p, p+NGETC))<0)
-		panic("Fgetcset Bread fail");
-	f->getcp = p;
-	f->getci = 0;
-	return f->ngetc;
-}
-
-int
-Fbgetcset(File *f, Posn p)
-{
-	if(p<0 || p>f->nrunes)
-		panic("Fbgetcset out of range");
-	if((f->ngetc = Fchars(f, f->getcbuf, p<NGETC? (Posn)0 : p-NGETC, p))<0)
-		panic("Fbgetcset Bread fail");
-	f->getcp = p;
-	f->getci = f->ngetc;
-	return f->ngetc;
-}
-
-int
-Fgetcload(File *f, Posn p)
-{
-	if(Fgetcset(f, p)){
-		--f->ngetc;
-		f->getcp++;
-		return f->getcbuf[f->getci++];
-	}
-	return -1;
-}
-
-int
-Fbgetcload(File *f, Posn p)
-{
-	if(Fbgetcset(f, p)){
-		--f->getcp;
-		return f->getcbuf[--f->getci];
-	}
-	return -1;
-}
-
-static String*
-ftempstr(Rune *s, int n)
-{
-	static String p;
-
-	p.s = s;
-	p.n = n;
-	p.size = n;
-	return &p;
+	f->ndot = f->dot;
+	f->seq = seq;
+	f->hiposn = 0;
 }

@@ -7,10 +7,11 @@
 	Symbol	*sym;	/* symbol table pointer */
 	Inst	*inst;	/* machine instruction */
 	int	narg;	/* number of arguments */
+	Formal	*formals;	/* list of formal parameters */
 }
 %token	<sym>	NUMBER STRING PRINT VAR BLTIN UNDEF WHILE FOR IF ELSE
 %token	<sym>	FUNCTION PROCEDURE RETURN FUNC PROC READ
-%token	<narg>	ARG
+%type	<formals>	formals
 %type	<inst>	expr stmt asgn prlist stmtlist
 %type	<inst>	cond while for if begin end 
 %type	<sym>	procname
@@ -38,12 +39,6 @@ asgn:	  VAR '=' expr { code3(varpush,(Inst)$1,assign); $$=$3; }
 	| VAR MULEQ expr	{ code3(varpush,(Inst)$1,muleq); $$=$3; }
 	| VAR DIVEQ expr	{ code3(varpush,(Inst)$1,diveq); $$=$3; }
 	| VAR MODEQ expr	{ code3(varpush,(Inst)$1,modeq); $$=$3; }
-	| ARG '=' expr   { defnonly("$"); code2(argassign,(Inst)$1); $$=$3;}
-	| ARG ADDEQ expr { defnonly("$"); code2(argaddeq,(Inst)$1); $$=$3;}
-	| ARG SUBEQ expr { defnonly("$"); code2(argsubeq,(Inst)$1); $$=$3;}
-	| ARG MULEQ expr { defnonly("$"); code2(argmuleq,(Inst)$1); $$=$3;}
-	| ARG DIVEQ expr { defnonly("$"); code2(argdiveq,(Inst)$1); $$=$3;}
-	| ARG MODEQ expr { defnonly("$"); code2(argmodeq,(Inst)$1); $$=$3;}
 	;
 stmt:	  expr	{ code(xpop); }
 	| RETURN { defnonly("return"); code(procret); }
@@ -87,7 +82,6 @@ stmtlist: /* nothing */		{ $$ = progp; }
 	;
 expr:	  NUMBER { $$ = code2(constpush, (Inst)$1); }
 	| VAR	 { $$ = code3(varpush, (Inst)$1, eval); }
-	| ARG	 { defnonly("$"); $$ = code2(arg, (Inst)$1); }
 	| asgn
 	| FUNCTION begin '(' arglist ')'
 		{ $$ = $2; code3(call,(Inst)$1,(Inst)$4); }
@@ -121,9 +115,13 @@ prlist:	  expr			{ code(prexpr); }
 	| prlist ',' STRING	{ code2(prstr, (Inst)$3); }
 	;
 defn:	  FUNC procname { $2->type=FUNCTION; indef=1; }
-	    '(' ')' stmt { code(procret); define($2); indef=0; }
+	    '(' formals ')' stmt { code(procret); define($2, $5); indef=0; }
 	| PROC procname { $2->type=PROCEDURE; indef=1; }
-	    '(' ')' stmt { code(procret); define($2); indef=0; }
+	    '(' formals ')' stmt { code(procret); define($2, $5); indef=0; }
+	;
+formals:	{ $$ = 0; }
+	| VAR			{ $$ = formallist($1, 0); }
+	| VAR ',' formals	{ $$ = formallist($1, $3); }
 	;
 procname: VAR
 	| FUNCTION
@@ -199,16 +197,6 @@ yylex(void)		/* hoc6 */
 		yylval.sym = s;
 		return s->type == UNDEF ? VAR : s->type;
 	}
-	if (c == '$') {	/* argument? */
-		int n = 0;
-		while (isdigit(c=Bgetc(bin)))
-			n = 10 * n + c - '0';
-		Bungetc(bin);
-		if (n == 0)
-			execerror("strange $...", (char *)0);
-		yylval.narg = n;
-		return ARG;
-	}
 	if (c == '"') {	/* quoted string */
 		char sbuf[100], *p;
 		for (p = sbuf; (c=Bgetc(bin)) != '"'; p++) {
@@ -278,6 +266,7 @@ execerror(char* s, char* t)	/* recover from run-time error */
 {
 	warning(s, t);
 	Bseek(bin, 0L, 2);		/* flush rest of file */
+	restoreall();
 	longjmp(begin, 0);
 }
 
@@ -330,18 +319,50 @@ main(int argc, char* argv[])	/* hoc6 */
 
 moreinput(void)
 {
+	char *expr, buf[64];
+	int fd;
+	static Biobuf b;
+
 	if (gargc-- <= 0)
 		return 0;
-	if (bin != &binbuf)
+	if (bin && bin != &binbuf)
 		Bterm(bin);
 	infile = *gargv++;
 	lineno = 1;
 	if (strcmp(infile, "-") == 0) {
 		bin = &binbuf;
 		infile = 0;
-	} else if ((bin=Bopen(infile, 0)) == 0) {
-		fprint(2, "%s: can't open %s\n", progname, infile);
-		return moreinput();
+		return 1;
+	}
+	if(strncmp(infile, "-e", 2) == 0) {
+		if(infile[2]==0){
+			if(gargc == 0){
+				fprint(2, "%s: no argument for -e\n", progname);
+				return 0;
+			}
+			gargc--;
+			expr = *gargv++;
+		}else
+			expr = infile+2;
+		sprint(buf, "/tmp/hocXXXXXXX");
+		infile = mktemp(buf);
+		fd = create(infile, ORDWR|ORCLOSE, 0600);
+		if(fd < 0){
+			fprint(2, "%s: can't create temp. file: %r\n", progname);
+			return 0;
+		}
+		fprint(fd, "%s\n", expr);
+		/* leave fd around; file will be removed on exit */
+		/* the following looks wierd but is required for unix version */
+		bin = &b;
+		seek(fd, 0, 0);
+		Binit(bin, fd, OREAD);
+	} else {
+		bin=Bopen(infile, OREAD);
+		if (bin == 0) {
+			fprint(2, "%s: can't open %s\n", progname, infile);
+			return moreinput();
+		}
 	}
 	return 1;
 }

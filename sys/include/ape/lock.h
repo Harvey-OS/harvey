@@ -14,10 +14,10 @@ typedef struct
 extern "C" {
 #endif
 
-extern	void	lockinit(void);
 extern	void	lock(Lock*);
 extern	void	unlock(Lock*);
 extern	int	canlock(Lock*);
+extern	int	tas(int*);
 
 #ifdef __cplusplus
 }

@@ -1,12 +1,27 @@
-/*
-Copyright (c) 1989 AT&T
-	All Rights Reserved
+/****************************************************************
+Copyright (C) Lucent Technologies 1997
+All Rights Reserved
 
-THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T.
+Permission to use, copy, modify, and distribute this software and
+its documentation for any purpose and without fee is hereby
+granted, provided that the above copyright notice appear in all
+copies and that both that the copyright notice and this
+permission notice and warranty disclaimer appear in supporting
+documentation, and that the name Lucent Technologies or any of
+its entities not be used in advertising or publicity pertaining
+to distribution of the software without specific, written prior
+permission.
 
-The copyright notice above does not evidence any
-actual or intended publication of such source code.
-*/
+LUCENT DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+IN NO EVENT SHALL LUCENT OR ANY OF ITS ENTITIES BE LIABLE FOR ANY
+SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
+****************************************************************/
+
 
 #define DEBUG
 #include <stdio.h>
@@ -43,9 +58,9 @@ actual or intended publication of such source code.
 
 #define	MAXRE	512
 
-static uchar	re[MAXRE];	/* copy buffer */
+static char	re[MAXRE];	/* copy buffer */
 
-uchar	*patbeg;
+char	*patbeg;
 int	patlen;			/* number of chars in pattern */
 
 #define	NPATS	20		/* number of slots in pattern cache */
@@ -61,10 +76,10 @@ static int npats;		/* cache fill level */
 
 	/* Compile a pattern */
 void
-*compre(uchar *pat)
+*compre(char *pat)
 {
 	int i, j, inclass;
-	uchar c, *p, val, *s;
+	char c, *p, *s;
 	Reprog *program;
 
 	if (!compile_time) {	/* search cache for dynamic pattern */
@@ -165,21 +180,21 @@ void
 		}
 		pattern[i].re = tostring(pat);
 		pattern[i].program = program;
-		pattern[i++].use = 1;
+		pattern[i].use = 1;
 	}
 	return((void *) program);
 }
 
 	/* T/F match indication - matched string not exported */
 int
-match(void *p, uchar *s, uchar *start)
+match(void *p, char *s, char *)
 {
 	return regexec((Reprog *) p, (char *) s, 0, 0);
 }
 
 	/* match and delimit the matched string */
 int
-pmatch(void *p, uchar *s, uchar *start)
+pmatch(void *p, char *s, char *start)
 {
 	Resub m;
 
@@ -197,7 +212,7 @@ pmatch(void *p, uchar *s, uchar *start)
 
 	/* perform a non-empty match */
 int
-nematch(void *p, uchar *s, uchar *start)
+nematch(void *p, char *s, char *start)
 {
 	if (pmatch(p, s, start) == 1 && patlen > 0)
 		return 1;
@@ -228,10 +243,10 @@ hexstr(char **pp)	/* find and eval hex string at pp, return new p */
 
 	/* look for awk-specific escape sequences */
 
-#define isoctdigit(c) ((c) >= '0' && (c) <= '8') /* multiple use of arg */
+#define isoctdigit(c) ((c) >= '0' && (c) <= '7') /* multiple use of arg */
 
 void
-quoted(uchar **s, uchar **to, uchar *end)	/* handle escaped sequence */
+quoted(char **s, char **to, char *end)	/* handle escaped sequence */
 {
 	char *p = *s;
 	char *t = *to;
@@ -281,10 +296,10 @@ quoted(uchar **s, uchar **to, uchar *end)	/* handle escaped sequence */
 }
 	/* count rune positions */
 int
-countposn(uchar *s, int n)
+countposn(char *s, int n)
 {
 	int i;
-	uchar *end;
+	char *end;
 
 	for (i = 0, end = s+n; *s && s < end; i++)
 		s += mblen(s, n); 
@@ -296,11 +311,11 @@ countposn(uchar *s, int n)
 void
 regerror(char *s)
 {
-	ERROR "%s", s FATAL;
+	FATAL("%s", s);
 }
 
 void
 overflow(void)
 {
-	ERROR "%s", "regular expression too big" FATAL;
+	FATAL("%s", "regular expression too big");
 }

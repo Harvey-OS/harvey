@@ -7,8 +7,11 @@ root \- the root file system
 .B /boot
 .B /dev
 .B /env
-.B /proc
 .B /net
+.B /net.alt
+.B /proc
+.B /root
+.B /srv
 .fi
 .SH DESCRIPTION
 The syntax
@@ -29,5 +32,8 @@ The kernel does an
 of
 .B /boot
 when initializing.
+Some kernels are built with other services, such as
+.IR kfs (4) ,
+in the root directory.
 .SH SOURCE
 .B /sys/src/9/port/devroot.c

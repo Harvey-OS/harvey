@@ -8,13 +8,10 @@ The file server is the main file system for
 Plan 9.
 It is a stand-alone system that runs on
 a separate computer.
-It serves the Plan 9 protocol on a variety
-of networks including
-Datakit/URP,
-Ethernet IL/IP and
-Cyclone fiber direct connections.
+It serves the Plan 9 protocol via the IL/IP
+protocols on Ethernets.
 The name of the main file server at Murray Hill is
-.BR bootes .
+.BR emelie .
 .PP
 The file server normally requires all users except
 .L none
@@ -25,13 +22,25 @@ This can be disabled using the
 configuration command (see
 .IR fsconfig (8)).
 .PP
+The group numbered 9999, normally called
+.BR noworld ,
+is special
+on the file server.  Any user belonging to that group has
+attenuated access priviledges.  Specifically, when checking such
+a user's access to files, the file's permission bits are first ANDed
+with 0770 for normal files or 0771 for directories.  The effect is
+to deny world access permissions to
+.B noworld
+users, except
+when walking directories.
+.PP
 The user
 .B none
 is always allowed to attach to
-.B bootes
+.B emelie
 without authentication but has minimal permissions.
 .PP
-.B Bootes
+.B Emelie
 maintains three file systems
 on a combination of disks and
 write-once-read-many (WORM) magneto-optical disks.
@@ -116,10 +125,10 @@ ls -lp /n/dump/1992/02??/mips/bin/vc | uniq
 Make the
 .B other
 file system available in directory
-.BR /n/bootesother :
+.BR /n/emelieother :
 .IP
 .EX
-mount -c /srv/boot /n/bootesother other
+mount -c /srv/boot /n/emelieother other
 .EE
 .SH SOURCE
 .B /sys/src/fs

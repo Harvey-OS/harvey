@@ -1,3 +1,0 @@
-root=plframe(0, 0);
-pllabel(root, 0, "Hello, world!");
-plbutton(root, 0, "done", 0);

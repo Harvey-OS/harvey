@@ -1,1 +1,2 @@
-#!/bin/aux/rlogin
+#!/bin/rc
+exec /bin/ip/rlogind

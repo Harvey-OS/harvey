@@ -5,51 +5,57 @@
 #include "fns.h"
 #include "io.h"
 
-#include "ether.h"
+#include "etherif.h"
 
-static Ctlr ether[MaxEther];
+static Ether ether[MaxEther];
 
-static struct {
+extern struct {
 	char	*type;
-	int	(*reset)(Ctlr*);
-} cards[] = {
-	{ "NE2000", ne2000reset, },
-	{ "NE3210", ne3210reset, },
-	{ "3C509", tcm509reset, },
-	{ "WD8003", wd8003reset, },
-	{ 0, }
-};
+	int	(*reset)(Ether*);
+} ethercards[];
+
+static void xetherdetach(void);
 
 int
 etherinit(void)
 {
-	Ctlr *ctlr;
-	int ctlrno, i, mask, n;
+	Ether *ctlr;
+	int ctlrno, i, mask, n, x;
 
+	etherdetach = xetherdetach;
 	mask = 0;
 	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
 		ctlr = &ether[ctlrno];
-		memset(ctlr, 0, sizeof(Ctlr));
-		if(isaconfig("ether", ctlrno, &ctlr->card) == 0)
+		memset(ctlr, 0, sizeof(Ether));
+		if(isaconfig("ether", ctlrno, ctlr) == 0)
 			continue;
-		for(n = 0; cards[n].type; n++){
-			if(strcmp(cards[n].type, ctlr->card.type))
+
+		for(n = 0; ethercards[n].type; n++){
+			if(cistrcmp(ethercards[n].type, ctlr->type))
 				continue;
 			ctlr->ctlrno = ctlrno;
-			if((*cards[n].reset)(ctlr))
+
+			x = splhi();
+			if((*ethercards[n].reset)(ctlr)){
+				splx(x);
 				break;
+			}
 
-			ctlr->present = 1;
+			ctlr->state = 1;
 			mask |= 1<<ctlrno;
-			if(ctlr->card.irq == 2)
-				ctlr->card.irq = 9;
-			setvec(Int0vec + ctlr->card.irq, ctlr->card.intr, ctlr);
+			if(ctlr->irq == 2)
+				ctlr->irq = 9;
+			setvec(VectorPIC + ctlr->irq, ctlr->interrupt, ctlr);
 
-			print("ether%d: %s: port %lux irq %d addr %lux size %d width %d:",
-				ctlr->ctlrno, ctlr->card.type, ctlr->card.port, ctlr->card.irq,
-				ctlr->card.mem, ctlr->card.size, ctlr->card.bit16 ? 16: 8);
-			for(i = 0; i < sizeof(ctlr->card.ea); i++)
-				print(" %2.2ux", ctlr->card.ea[i]);
+			print("ether#%d: %s: port 0x%luX irq %d",
+				ctlr->ctlrno, ctlr->type, ctlr->port, ctlr->irq);
+			if(ctlr->mem)
+				print(" addr 0x%luX", ctlr->mem & ~KZERO);
+			if(ctlr->size)
+				print(" size 0x%luX", ctlr->size);
+			print(": ");
+			for(i = 0; i < sizeof(ctlr->ea); i++)
+				print("%2.2uX", ctlr->ea[i]);
 			print("\n");
 		
 			if(ctlr->nrb == 0)
@@ -68,7 +74,8 @@ etherinit(void)
 			ctlr->ti = 0;
 			for(i = 0; i < ctlr->ntb; i++)
 				ctlr->tb[i].owner = Host;
-		
+
+			splx(x);
 			break;
 		}
 	}
@@ -76,36 +83,57 @@ etherinit(void)
 	return mask;
 }
 
-static Ctlr*
+void
+etherinitdev(int i, char *s)
+{
+	sprint(s, "ether%d", i);
+}
+
+static Ether*
 attach(int ctlrno)
 {
-	Ctlr *ctlr;
+	Ether *ctlr;
 
-	if(ctlrno >= MaxEther || ether[ctlrno].present == 0)
+	if(ctlrno >= MaxEther || ether[ctlrno].state == 0)
 		return 0;
 
 	ctlr = &ether[ctlrno];
-	if(ctlr->present == 1){
-		ctlr->present = 2;
-		(*ctlr->card.attach)(ctlr);
+	if(ctlr->state == 1){
+		ctlr->state = 2;
+		(*ctlr->attach)(ctlr);
 	}
 
 	return ctlr;
 }
 
+static void
+xetherdetach(void)
+{
+	Ether *ctlr;
+	int ctlrno, x;
+
+	x = splhi();
+	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
+		ctlr = &ether[ctlrno];
+		if(ctlr->detach && ctlr->state != 0)
+			ctlr->detach(ctlr);
+	}
+	splx(x);
+}
+
 uchar*
 etheraddr(int ctlrno)
 {
-	Ctlr *ctlr;
+	Ether *ctlr;
 
 	if((ctlr = attach(ctlrno)) == 0)
 		return 0;
 
-	return ctlr->card.ea;
+	return ctlr->ea;
 }
 
 static int
-wait(RingBuf *ring, uchar owner, int timo)
+wait(RingBuf* ring, uchar owner, int timo)
 {
 	ulong start;
 
@@ -119,10 +147,10 @@ wait(RingBuf *ring, uchar owner, int timo)
 }
 
 int
-etherrxpkt(int ctlrno, Etherpkt *pkt, int timo)
+etherrxpkt(int ctlrno, Etherpkt* pkt, int timo)
 {
 	int n;
-	Ctlr *ctlr;
+	Ether *ctlr;
 	RingBuf *ring;
 
 	if((ctlr = attach(ctlrno)) == 0)
@@ -130,7 +158,9 @@ etherrxpkt(int ctlrno, Etherpkt *pkt, int timo)
 
 	ring = &ctlr->rb[ctlr->rh];
 	if(wait(ring, Interface, timo) == 0){
+		/*
 		print("ether%d: rx timeout\n", ctlrno);
+		 */
 		return 0;
 	}
 
@@ -143,15 +173,28 @@ etherrxpkt(int ctlrno, Etherpkt *pkt, int timo)
 }
 
 int
-ethertxpkt(int ctlrno, Etherpkt *pkt, int len, int timo)
+ethertxpkt(int ctlrno, Etherpkt* pkt, int len, int)
 {
-	Ctlr *ctlr;
+	Ether *ctlr;
 	RingBuf *ring;
+	int s;
 
 	if((ctlr = attach(ctlrno)) == 0)
 		return 0;
 
 	ring = &ctlr->tb[ctlr->th];
+	if(wait(ring, Interface, 1000) == 0){
+		print("ether%d: tx buffer timeout\n", ctlrno);
+		return 0;
+	}
+
+	memmove(pkt->s, ctlr->ea, Eaddrlen);
+if(debug) {
+	printea(pkt->s);
+	print(" to ");
+	printea(pkt->d);
+	print("...\n");
+}
 	memmove(ring->pkt, pkt, len);
 	if(len < ETHERMINTU){
 		memset(ring->pkt+len, 0, ETHERMINTU-len);
@@ -160,12 +203,9 @@ ethertxpkt(int ctlrno, Etherpkt *pkt, int len, int timo)
 	ring->len = len;
 	ring->owner = Interface;
 	ctlr->th = NEXT(ctlr->th, ctlr->ntb);
-	(*ctlr->card.transmit)(ctlr);
-
-	if(wait(ring, Interface, timo) == 0){
-		print("ether%d: rx timeout\n", ctlrno);
-		return 0;
-	}
+	s = splhi();
+	(*ctlr->transmit)(ctlr);
+	splx(s);
 
 	return 1;
 }

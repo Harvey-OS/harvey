@@ -29,7 +29,7 @@ codgen(Node *n, Node *nn)
 	 * isolate first argument
 	 */
 	if(REGARG) {
-		if(typesu[thisfn->link->etype] || typev[thisfn->link->etype]) {
+		if(typesuv[thisfn->link->etype]) {
 			nod1 = *nodret->left;
 			nodreg(&nod, &nod1, REGARG);
 			gopcode(OAS, &nod, Z, &nod1);
@@ -38,8 +38,7 @@ codgen(Node *n, Node *nn)
 			nod1 = *nodret->left;
 			nod1.sym = firstarg;
 			nod1.type = firstargtype;
-			if(firstargtype->width < tint->width)
-				nod1.xoffset += endian(firstargtype->width);
+			nod1.xoffset = align(0, firstargtype, Aarg1);
 			nod1.etype = firstargtype->etype;
 			nodreg(&nod, &nod1, REGARG);
 			gopcode(OAS, &nod, Z, &nod1);
@@ -104,7 +103,7 @@ loop:
 			gbranch(ORETURN);
 			break;
 		}
-		if(typesu[n->type->etype] || typev[n->type->etype]) {
+		if(typesuv[n->type->etype]) {
 			sugen(l, nodret, n->type->width);
 			noretval(3);
 			gbranch(ORETURN);
@@ -313,29 +312,29 @@ loop:
 
 	case OSET:
 	case OUSED:
-		n = n->left;
-		for(;;) {
-			if(n->op == OLIST) {
-				l = n->right;
-				n = n->left;
-				complex(l);
-				if(l->op == ONAME) {
-					if(o == OSET)
-						gins(ANOP, Z, l);
-					else
-						gins(ANOP, l, Z);
-				}
-			} else {
-				complex(n);
-				if(n->op == ONAME) {
-					if(o == OSET)
-						gins(ANOP, Z, n);
-					else
-						gins(ANOP, n, Z);
-				}
-				break;
-			}
-		}
+		usedset(n->left, o);
+		break;
+	}
+}
+
+void
+usedset(Node *n, int o)
+{
+	if(n->op == OLIST) {
+		usedset(n->left, o);
+		usedset(n->right, o);
+		return;
+	}
+	complex(n);
+	switch(n->op) {
+	case OADDR:	/* volatile */
+		gins(ANOP, n, Z);
+		break;
+	case ONAME:
+		if(o == OSET)
+			gins(ANOP, Z, n);
+		else
+			gins(ANOP, n, Z);
 		break;
 	}
 }
@@ -354,6 +353,141 @@ noretval(int n)
 		p->to.type = D_FREG;
 		p->to.reg = FREGRET;
 	}
+}
+
+void
+testshift(Node *n)
+{
+	ulong c3;
+	int o, s1, s2, c1, c2;
+
+	if(!typechlp[n->type->etype])
+		return;
+	switch(n->op) {
+	default:
+		return;
+	case OASHL:
+		s1 = 0;
+		break;
+	case OLSHR:
+		s1 = 1;
+		break;
+	case OASHR:
+		s1 = 2;
+		break;
+	}
+	if(n->right->op != OCONST)
+		return;
+	if(n->left->op != OAND)
+		return;
+	if(n->left->right->op != OCONST)
+		return;
+	switch(n->left->left->op) {
+	default:
+		return;
+	case OASHL:
+		s2 = 0;
+		break;
+	case OLSHR:
+		s2 = 1;
+		break;
+	case OASHR:
+		s2 = 2;
+		break;
+	}
+	if(n->left->left->right->op != OCONST)
+		return;
+
+	c1 = n->right->vconst;
+	c2 = n->left->left->right->vconst;
+	c3 = n->left->right->vconst;
+
+/*
+	if(debug['h'])
+		print("%.3o %ld %ld %d #%.lux\n",
+			(s1<<3)|s2, c1, c2, topbit(c3), c3);
+*/
+
+	o = n->op;
+	switch((s1<<3)|s2) {
+	case 000:	/* (((e <<u c2) & c3) <<u c1) */
+		c3 >>= c2;
+		c1 += c2;
+		if(c1 >= 32)
+			break;
+		goto rewrite1;
+
+	case 002:	/* (((e >>s c2) & c3) <<u c1) */
+		if(topbit(c3) >= (32-c2))
+			break;
+	case 001:	/* (((e >>u c2) & c3) <<u c1) */
+		if(c1 > c2) {
+			c3 <<= c2;
+			c1 -= c2;
+			o = OASHL;
+			goto rewrite1;
+		}
+		c3 <<= c1;
+		if(c1 == c2)
+			goto rewrite0;
+		c1 = c2-c1;
+		o = OLSHR;
+		goto rewrite2;
+
+	case 022:	/* (((e >>s c2) & c3) >>s c1) */
+		if(c2 <= 0)
+			break;
+	case 012:	/* (((e >>s c2) & c3) >>u c1) */
+		if(topbit(c3) >= (32-c2))
+			break;
+		goto s11;
+	case 021:	/* (((e >>u c2) & c3) >>s c1) */
+		if(topbit(c3) >= 31 && c2 <= 0)
+			break;
+		goto s11;
+	case 011:	/* (((e >>u c2) & c3) >>u c1) */
+	s11:
+		c3 <<= c2;
+		c1 += c2;
+		if(c1 >= 32)
+			break;
+		o = OLSHR;
+		goto rewrite1;
+
+	case 020:	/* (((e <<u c2) & c3) >>s c1) */
+		if(topbit(c3) >= 31)
+			break;
+	case 010:	/* (((e <<u c2) & c3) >>u c1) */
+		c3 >>= c1;
+		if(c1 == c2)
+			goto rewrite0;
+		if(c1 > c2) {
+			c1 -= c2;
+			goto rewrite2;
+		}
+		c1 = c2 - c1;
+		o = OASHL;
+		goto rewrite2;
+	}
+	return;
+
+rewrite0:	/* get rid of both shifts */
+	*n = *n->left;
+	n->left = n->left->left;
+	n->right->vconst = c3;
+	return;
+rewrite1:	/* get rid of lower shift */
+	n->left->left = n->left->left->left;
+	n->left->right->vconst = c3;
+	n->right->vconst = c1;
+	n->op = o;
+	return;
+rewrite2:	/* get rid of upper shift */
+	*n = *n->left;
+	n->right->vconst = c3;
+	n->left->right->vconst = c1;
+	n->left->op = o;
+	return;
 }
 
 /*
@@ -443,7 +577,7 @@ xcom(Node *n)
 		if(t >= 0) {
 			n->op = OASASHL;
 			r->vconst = t;
-			r->type = tint;
+			r->type = types[TINT];
 		}
 		break;
 
@@ -455,7 +589,8 @@ xcom(Node *n)
 		if(t >= 0) {
 			n->op = OASHL;
 			r->vconst = t;
-			r->type = tint;
+			r->type = types[TINT];
+			goto shift;
 		}
 		t = vlog(l);
 		if(t >= 0) {
@@ -465,7 +600,8 @@ xcom(Node *n)
 			r = l;
 			l = n->left;
 			r->vconst = t;
-			r->type = tint;
+			r->type = types[TINT];
+			goto shift;
 		}
 		break;
 
@@ -476,7 +612,7 @@ xcom(Node *n)
 		if(t >= 0) {
 			n->op = OASLSHR;
 			r->vconst = t;
-			r->type = tint;
+			r->type = types[TINT];
 		}
 		break;
 
@@ -487,7 +623,8 @@ xcom(Node *n)
 		if(t >= 0) {
 			n->op = OLSHR;
 			r->vconst = t;
-			r->type = tint;
+			r->type = types[TINT];
+			goto shift;
 		}
 		break;
 
@@ -509,6 +646,15 @@ xcom(Node *n)
 			n->op = OAND;
 			r->vconst--;
 		}
+		break;
+
+	case OLSHR:
+	case OASHL:
+	case OASHR:
+		xcom(l);
+		xcom(r);
+	shift:
+		testshift(n);
 		break;
 
 	default:

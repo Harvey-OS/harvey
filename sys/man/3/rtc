@@ -10,8 +10,7 @@ rtc \- real-time clock and non-volatile RAM
 .SH DESCRIPTION
 The
 .I rtc
-device supports the
-Mostek MK48T12-15 Zeropower/Timekeeper and similar devices
+device supports devices
 with real-time clocks and non-volatile RAM.
 .PP
 The

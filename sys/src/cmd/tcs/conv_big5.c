@@ -21,7 +21,6 @@ big5proc(int c, Rune **r, long input_loc)
 	static int lastc;
 	long n, ch, f, cold = c;
 
-again:
 	switch(state)
 	{
 	case state0:	/* idle state */
@@ -45,7 +44,7 @@ again:
 		else {
 			nerrors++;
 			if(squawk)
-				EPR "%s: bad big5 glyph (from 0x%x,0x%x) near byte %ld in %s\n",
+				EPR "%s: bad big5 glyph (from 0x%x,0x%lx) near byte %ld in %s\n",
 					argv0, lastc, cold, input_loc, file);
 			if(!clean)
 				emit(BADMAP);
@@ -57,7 +56,7 @@ again:
 		else {
 			nerrors++;
 			if(squawk)
-				EPR "%s: bad big5 font %d (from 0x%x,0x%x) near byte %ld in %s\n",
+				EPR "%s: bad big5 font %d (from 0x%x,0x%lx) near byte %ld in %s\n",
 					argv0, lastc-161, lastc, cold, input_loc, file);
 			if(!clean)
 				emit(BADMAP);
@@ -72,7 +71,7 @@ again:
 		if(ch < 0){
 			nerrors++;
 			if(squawk)
-				EPR "%s: unknown big5 %d (from 0x%x,0x%x) near byte %ld in %s\n",
+				EPR "%s: unknown big5 %ld (from 0x%x,0x%lx) near byte %ld in %s\n",
 					argv0, n, lastc, cold, input_loc, file);
 			if(!clean)
 				emit(BADMAP);

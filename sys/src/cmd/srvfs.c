@@ -4,7 +4,7 @@
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-d] [-f dbfile] srvname rootdir\n", argv0);
+	fprint(2, "usage: %s [-d] [-f dbfile] [-p perm] srvname rootdir\n", argv0);
 	exits("usage");
 }
 
@@ -14,6 +14,7 @@ main(int argc, char **argv)
 	char *ename, *arglist[16], **argp;
 	int n, fd, pipefd[2];
 	char buf[2*NAMELEN];
+	int perm = 0600;
 
 	argp = arglist;
 	ename = "/bin/exportfs";
@@ -28,6 +29,9 @@ main(int argc, char **argv)
 	case 'f':
 		*argp++ = "-f";
 		*argp++ = ARGF();
+		break;
+	case 'p':
+		perm = strtol(ARGF(), 0, 8);
 		break;
 	}ARGEND
 	*argp = 0;
@@ -70,7 +74,7 @@ main(int argc, char **argv)
 		exits("OK");
 	}
 	sprint(buf, "/srv/%s", argv[0]);
-	fd = create(buf, OWRITE, 0600);
+	fd = create(buf, OWRITE, perm);
 	if(fd < 0){
 		fprint(2, "can't create %s: %r\n", buf);
 		exits("create");

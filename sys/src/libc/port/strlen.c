@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 
+long
 strlen(char *s)
 {
 

@@ -52,7 +52,7 @@ bind(int fd, void *a, int alen)
 	}
 	lip = (struct sockaddr_in*)&r->addr;
 	if(lip->sin_port > 0)
-		sprintf(msg, "bind %d", lip->sin_port);
+		sprintf(msg, "bind %d", ntohs(lip->sin_port));
 	else
 		sprintf(msg, "bind *");
 	n = write(cfd, msg, strlen(msg));

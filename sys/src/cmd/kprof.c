@@ -24,8 +24,12 @@ error(int perr, char *s)
 }
 
 int
-compar(struct COUNTER *a, struct COUNTER *b)
+compar(void *va, void *vb)
 {
+	struct COUNTER *a, *b;
+
+	a = va;
+	b = vb;
 	if(a->time < b->time)
 		return -1;
 	if(a->time == b->time)
@@ -121,7 +125,7 @@ main(int argc, char *argv[])
 	Binit(&outbuf, 1, OWRITE);
 	Bprint(&outbuf, "ms	  %%	sym\n");
 	while(--k>=0)
-		Bprint(&outbuf, "%ld\t%3ld.%d\t%s\n",
+		Bprint(&outbuf, "%ld\t%3ld.%ld\t%s\n",
 				cp[k].time,
 				100*cp[k].time/delta,
 				(1000*cp[k].time/delta)%10,

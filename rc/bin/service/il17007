@@ -1,1 +1,2 @@
-#!/bin/exportfs -a
+#!/bin/rc
+exec /bin/exportfs -a

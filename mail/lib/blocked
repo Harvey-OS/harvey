@@ -1,0 +1,28 @@
+#
+#	addresses that we refuse to accept messages from
+#
+
+dial	152.166.0.0/15, 152.168.0.0/14		#aol modems
+dial	152.172.0.0/15, 152.174.0.0/16
+allow	63.12.0.0/16				#uunet modems (63.0.0.0-63.31.255.255 not 12)
+dial	63.0.0.0/11				#uunet modems (63.0.0.0-63.31.255.255 not 12)
+
+#
+#	sites
+#
+*block	cyberpromo.com!*
+block	255.255.255.255/32
+
+#
+#	users
+#
+
+*block	*!freeporn*
+
+#
+#	accounts
+#
+
+*block	aol.com!makemoneyfast
+*allow	cse.psu.edu!owner-9fans			#hi scott
+

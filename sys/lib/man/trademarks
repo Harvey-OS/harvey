@@ -8,28 +8,33 @@ Trademarks referenced in this document:
 .ps -1
 .vs -1
 .nf
-Plan 9 is a trademark of AT&T Corp.
+Plan 9 is a trademark of Lucent Technologies Inc.
 Aladdin Ghostscript is a trademark of Aladdin Enterprises.
-CGA is a trademark of International Business Machines Corporation.
-Challenge, Indigo\s-2\u2\d\s0, Indy, and POWER Series are trademarks of Silicon Graphics, Inc.
-Datakit is a registered trademark of AT&T Corp.
+ARM is a trademark of ARM Limited.
+Avanstar is a registered trademark of Star Gate Technologies, Inc.
+CGA and VGA are trademarks of International Business Machines Corporation.
+Silicon Graphics, IRIS Indigo, IRIS, IRIX, Challenge, and Indigo
+    are registered trademarks of Silicon Graphics, Inc.
+Indy and POWER Series are trademarks of Silicon Graphics, Inc.
 Ethernet is a trademark of Xerox Corporation.
-IBM, PS/2, and VGA are registered trademarks of International Business Machines Corporation.
-Intel, 8088, 80286, 80386, 80486, and Pentium are trademarks of Intel Corporation.
-Lucida and Pellucida are registered trademarks of Bigelow & Holmes.
-MIPS and R3000 are registered trademarks of MIPS Technologies, Inc.
-MS-DOS is a registered trademark of Microsoft Corporation.
+IBM, PS/2, and PowerPC are registered trademarks of
+    International Business Machines Corporation.
+Intel and Pentium are registered trademarks of Intel Corporation.
+8088, 80286, 80386, and 80486 are trademarks of Intel Corporation.
+Lucida is a registered trademark of Bigelow & Holmes.
+Pellucida is a trademark of Bigelow & Holmes.
+MIPS, R3000, R4000, and R4400 are registered trademarks of MIPS Technologies, Inc.
+R2000 and R6000 are trademarks of MIPS Technologies, Inc.
+Microsoft, Microsoft Word and Microsoft Office, and MS-DOS are
+    registered trademarks of Microsoft Corporation.
 NFS is a registered trademark of Sun Microsystems, Inc.
 PDP and VAX are registered trademarks of Digital Equipment Corp.
 PostScript is a registered trademark of Adobe Systems Incorporated.
-ProPhone is a registered trademark of Prolink Corporation.
 R2000, R6000, R4000, and R4400 are trademarks of MIPS Technologies, Inc.
-SecureNet is a registered trademark of Digital Pathways, Inc.
-Silicon Graphics, IRIS Indigo, IRIS, and IRIX are registered trademarks of Silicon Graphics, Inc.
+SecureNet is a trademark of Digital Pathways, Inc.
 Sound Blaster is a registered trademark of Creative Labs, Inc.
 SPARC is a registered trademark of SPARC International, Inc.
-ThinkJet  is a registered trademark of the Hewlett-Packard Company.
-Unicode is a registered trademark of Unicode, Inc.
+Unicode is a registered certification mark of Unicode, Inc.
 UNIX is a registered trademark in the USA and other countries licensed
     exclusively through X/Open Company Limited.
 .ps

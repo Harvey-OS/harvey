@@ -1,0 +1,43 @@
+.TH UNMIME 1
+.SH NAME
+unmime \- crack a mime mail message
+.SH SYNOPSIS
+.B upas/unmime
+[
+.B directory
+]
+.I < message
+.SH DESCRIPTION
+.I Unmime
+decodes a mime formatted message and prints it
+to standard output.
+.PP
+If
+.I directory
+is specified, each component part that
+has a
+.B name=
+attribute in the
+.B Content-type:
+header will be placed into a separate file in
+.IR directory .
+.I Unmime
+will print out the message
+.IP
+>>>>>>>>  creating filename  <<<<<<<<<<\n
+.LP
+for each file created.
+The intent is to place the binary components into
+files while printing out the ASCII header and messages.
+Intent and reality sometimes match.
+.PP
+.I Unmime
+is largely superseded by
+.B upas/fs
+(see
+.IR mail (1)).
+.SH SOURCE
+.B /sys/src/cmd/upas/mime/unmime.c
+.SH SEE ALSO
+.IR mail (1)
+

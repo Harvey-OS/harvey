@@ -5,22 +5,22 @@ fprintf, printf, sprintf, vfprintf, vprintf,  vsprintf \- print formatted output
 .B #include <stdio.h>
 .PP
 .B
-int fprintf(FILE *f, char *format, ...);
+int fprintf(FILE *f, char *format, ...)
 .PP
 .B
-int printf(char *format, ...);
+int printf(char *format, ...)
 .PP
 .B
-int sprintf(char *s, char *format, ...);
+int sprintf(char *s, char *format, ...)
 .PP
 .B
-int vfprintf(FILE *f, char *format, char *args);
+int vfprintf(FILE *f, char *format, char *args)
 .PP
 .B
-int vprintf(char *format, char *args);
+int vprintf(char *format, char *args)
 .PP
 .B
-int vsprintf(char *s, char *format, char *args);
+int vsprintf(char *s, char *format, char *args)
 .SH DESCRIPTION
 .I Fprintf
 places output on the named output stream
@@ -443,8 +443,8 @@ the argument yields undefined results.
 .TP
 .B P
 The
-.B void *
-argument is printed in an implementation defined way (for Plan 9:
+.B void*
+argument is printed in an implementation-defined way (for Plan 9:
 the address as hexadecimal number).
 .TP
 .B n

@@ -5,20 +5,19 @@
 #include <bio.h>
 #include <mach.h>
 
-#define	MINREG	0
-#define	MAXREG	0
-
-#define USIZE		0x1000
-#define UR(x)		(USIZE-((32)*4)+4*(x))
-
 /*
  *  until we decide how we'll take faults, we really
  *  don't know what the saved regs will look like.
  *  this is just a guess. -- presotto
  */
-#define SP	UR(29)
-#define PC	UR(30)
-#define	R4	UR(4)
+#define UR(x)		(4*(x))
+
+#define SP		UR(29)
+#define PC		UR(30)
+#define	R4		UR(4)
+
+#define	REGSIZE		(32*44)
+#define	FPREGSIZE	0
 
 Reglist i960reglist[] = {
 	{ "R0",		UR(0), RINT, 'X'},
@@ -58,26 +57,20 @@ Reglist i960reglist[] = {
 
 Mach mi960 =
 {
-	"960",
+	"960",		/* machine name */
 	MI960,		/* machine type */
-	i960reglist,		/* register list */
-	MINREG,		/* minimum register */
-	MAXREG,		/* maximum register */
-	"PC",
-	"SP",
+	i960reglist,	/* registers */
+	REGSIZE,	/* size of register set in bytes */
+	FPREGSIZE,	/* size of fp register set in bytes */
+	"PC",		/* name of PC */
+	"SP",		/* name of SP */
 	0,		/* link register */
-	R4,		/* return register */
+	"setSB",	/* static base register name */
+	0,		/* value */
 	0x1000,		/* page size */
 	0x80000000,	/* kernel base */
 	0,		/* kernel text mask */
-	0,		/* offset of ksp in /proc/proc */
-	0,		/* correction to ksp value */
-	4,		/* offset of kpc in /proc/proc */
-	0,		/* correction to kpc value */
-	0,		/* offset in ublk of syscall #*/
 	1,		/* quantization of pc */
-	"setSB",	/* static base register name */
-	0,		/* value */
 	4,		/* szaddr */
 	4,		/* szreg */
 	4,		/* szfloat */

@@ -6,15 +6,14 @@
 #include	"y.debug"
 #else
 #define	yydebug		0
+char*	yytoknames[1];		/* for debugging */
+char*	yystates[1];		/* for debugging */
 #endif
 
 /*	parser for yacc output	*/
 
 int	yynerrs = 0;		/* number of errors */
 int	yyerrflag = 0;		/* error recovery flag */
-
-char*	yytoknames[1];		/* for debugging */
-char*	yystates[1];		/* for debugging */
 
 extern	int	fprint(int, char*, ...);
 extern	int	sprint(char*, char*, ...);

@@ -86,7 +86,7 @@ extern int faxsend(Modem*, int, char*[]);
 extern int setflow(Modem*, int);
 extern int setspeed(Modem*, int);
 extern int rawmchar(Modem*, char*);
-extern int getmchar(Modem*, char*, int);
+extern int getmchar(Modem*, char*, long);
 extern int putmchar(Modem*, char*);
 extern int command(Modem*, char*);
 extern int response(Modem*, int);

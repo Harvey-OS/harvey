@@ -1,0 +1,2 @@
+#!/bin/rc
+awk -f /rc/lib/labels.awk $* | troff

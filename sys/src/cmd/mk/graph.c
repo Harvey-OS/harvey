@@ -37,15 +37,16 @@ applyrules(char *target, char *cnt)
 	char stem[NAMEBLOCK], buf[NAMEBLOCK];
 	Resub rmatch[NREGEXP];
 
-/*	print("applyrules(%ld='%s')\n", target, target);/**/
-	sym = symlook(target, S_NODE, (char *)0);
+/*	print("applyrules(%lux='%s')\n", target, target);/**/
+	sym = symlook(target, S_NODE, 0);
 	if(sym)
 		return (Node *)(sym->value);
 	target = strdup(target);
 	node = newnode(target);
 	head.n = 0;
 	head.next = 0;
-	sym = symlook(target, S_TARGET, (char *)0);
+	sym = symlook(target, S_TARGET, 0);
+	memset((char*)rmatch, 0, sizeof(rmatch));
 	for(r = sym? (Rule *)(sym->value):0; r; r = r->chain){
 		if(r->attr&META) continue;
 		if(strcmp(target, r->target)) continue;
@@ -79,7 +80,7 @@ applyrules(char *target, char *cnt)
 		if(r->attr&REGEXP){
 			stem[0] = 0;
 			patrule = r;
-			rmatch[0].sp = rmatch[0].ep = 0;
+			memset((char*)rmatch, 0, sizeof(rmatch));
 			if(regexec(r->pat, node->name, rmatch, NREGEXP) == 0)
 				continue;
 		} else {
@@ -95,9 +96,8 @@ applyrules(char *target, char *cnt)
  *		if(r->attr&DEL)
  *			node->flags |= DELETE;
  */
-
 		if(!r->tail || !r->tail->s || !*r->tail->s) {
-			a->next = newarc((Node *)0, r, strdup(stem), rmatch);
+			a->next = newarc((Node *)0, r, stem, rmatch);
 			a = a->next;
 		} else
 			for(w = r->tail; w; w = w->next){
@@ -105,7 +105,7 @@ applyrules(char *target, char *cnt)
 					regsub(w->s, buf, rmatch, NREGEXP);
 				else
 					subst(stem, w->s, buf);
-				a->next = newarc(applyrules(buf, cnt), r, strdup(stem), rmatch);
+				a->next = newarc(applyrules(buf, cnt), r, stem, rmatch);
 				a = a->next;
 			}
 		cnt[r->rule]--;
@@ -164,7 +164,7 @@ newnode(char *name)
 	register Node *node;
 
 	node = (Node *)Malloc(sizeof(Node));
-	symlook(name, S_NODE, (char *)node);
+	symlook(name, S_NODE, (void *)node);
 	node->name = name;
 	node->time = timeof(name, 0);
 	node->prereqs = 0;
@@ -179,11 +179,12 @@ dumpn(char *s, Node *n)
 	char buf[1024];
 	Arc *a;
 
-	sprint(buf, "%s   ", (*s == ' ')? s:"");
-	Bprint(&stdout, "%s%s@%ld: time=%ld flags=0x%x next=%ld\n",
+	Bprint(&bout, "%s%s@%p: time=%ld flags=0x%x next=%p\n",
 		s, n->name, n, n->time, n->flags, n->next);
-	for(a = n->prereqs; a; a = a->next)
+	for(a = n->prereqs; a; a = a->next){
+		sprint(buf, "%s   ", (*s == ' ')? s:"");
 		dumpa(buf, a);
+	}
 }
 
 static void

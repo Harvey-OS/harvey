@@ -159,3 +159,17 @@ issocket(int fd)
 	r = _sock_findrock(fd, 0);
 	return (r != 0);
 }
+
+/*
+ * probably should do better than this
+ */
+int getsockopt(int, int, int, void *, int *)
+{
+	return -1;
+}
+
+int setsockopt(int, int, int, void *, int)
+{
+	return 0;
+}
+

@@ -22,6 +22,7 @@ enum
 typedef struct
 {
 	char	*user;
+	char	*postid;
 	char	*name;
 	char	*dept;
 	char	*email[Nemail];
@@ -34,10 +35,12 @@ typedef struct {
 	Biobuf 	*b;
 } Fs;
 
-extern Fs fs[2];
+extern Fs fs[3];
 
 char	*findkey(char*, char*, char*);
 char	*setkey(char*, char*, char*);
+char	*findsecret(char*, char*, char*);
+char	*setsecret(char*, char*, char*);
 char	*netresp(char*, long, char*);
 char	*netdecimal(char*);
 int	netcheck(void*, long, char*);
@@ -48,16 +51,18 @@ void	fail(char*);
 void	succeed(char*);
 void	error(char*, ...);
 int	readarg(int, char*, int);
-int	readn(int, char*, int);
+long	readn(int, void*, long);
 void	readln(char*, char*, int, int);
-void	getpass(char*, int);
+long	getexpiration(char *db, char *u);
+void	getpass(char*, char*, int);
+int	getsecret(int, char*);
 int	getauthkey(char*);
-int	keyconv(void *, Fconv*);
-long	tm2sec(Tm tm);
+int	keyconv(va_list *, Fconv *);
 int	readfile(char*, char*, int);
 int	writefile(char*, char*, int);
-int	readn(int, char*, int);
 void	checksum(char*, char*);
 void	rdbio(char*, char*, Acctbio*);
 int	querybio(char*, char*, Acctbio*);
 void	wrbio(char*, Acctbio*);
+
+#pragma	varargck	type	"K"	char*

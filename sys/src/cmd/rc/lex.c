@@ -310,7 +310,7 @@ int yylex(void){
 		if(lastdol?!idchr(c):!wordchr(c)) break;
 		advance();
 	}
-Out:
+
 	lastword=1;
 	lastdol=0;
 	if(w!=0) *w='\0';

@@ -1,6 +1,6 @@
 .TH NDB 2
 .SH NAME
-ndbopen, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetval, ndbfree, ipattr, ipinfo, ndbhash, ndbparse, csgetval \- network database
+ndbopen, ndbcat, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetval, ndbfree, ipattr, ndbipinfo, csipinfo, ndbhash, ndbparse, csgetval, ndblookval, dnsquery \- network database
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -12,45 +12,59 @@ ndbopen, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetval, ndbfree, ipattr, i
 .ta \w'\fLNdbtuplexx 'u
 .PP
 .B
-Ndb*	ndbopen(char *file);
+Ndb*	ndbopen(char *file)
 .PP
 .B
-int	ndbreopen(Ndb *db);
+Ndb*	ndbcat(char *file)
 .PP
 .B
-void	ndbclose(Ndb *db);
+int	ndbreopen(Ndb *db)
 .PP
 .B
-Ndbtuple*	ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val);
+void	ndbclose(Ndb *db)
 .PP
 .B
-Ndbtuple*	ndbsnext(Ndbs *s, char *attr, char *val);
+Ndbtuple*	ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
+.PP
+.B
+Ndbtuple*	ndbsnext(Ndbs *s, char *attr, char *val)
 .PP
 .B
 Ndbtuple*	ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val,
 .br
 .B
-		char *rattr, char *buf);
+		char *rattr, char *buf)
 .PP
 .B
-Ndbtuple*	csgetval(char *attr, char *val, char *rattr, char *buf);
+Ndbtuple*	csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
 .PP
 .B
-void	ndbfree(Ndbtuple *db);
+void	ndbfree(Ndbtuple *db)
 .PP
 .B
-char*	ipattr(char *name);
+char*	ipattr(char *name)
 .PP
 .B
-int	ipinfo(Ndb *db, char *ether, char *ip, char *name,
+Ndbtuple*	ndbipinfo(Ndb *db, char *attr, char *val, char **attrs,
 .br
-.B		Ipinfo *iip);
+.B		int nattr)
 .PP
 .B
-ulong	ndbhash(char *val, int hlen);
+Ndbtuple*	csipinfo(char *netroot, char *attr, char *val, char **attrs,
+.br
+.B		int nattr)
 .PP
 .B
-Ndbtuple*	ndbparse(Ndb *db);
+ulong	ndbhash(char *val, int hlen)
+.PP
+.B
+Ndbtuple*	ndbparse(Ndb *db)
+.PP
+.B
+Ndbtuple*	dnsquery(char *netroot, char *domainname, char *type)
+.PP
+.B
+Ndbtuple*	ndblookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
 .SH DESCRIPTION
 These routines are used by network administrative programs to search
 the network database.
@@ -66,6 +80,10 @@ to allocate a buffer for it.
 If
 .I file
 is zero, all network database files are opened.
+.PP
+.I Ndbcat
+concatenates two open databases.  Either argument may be
+nil.
 .PP
 .I Ndbreopen
 checks if the database files associated with
@@ -169,6 +187,9 @@ is like
 .I ndbgetval
 but queries the connection server
 instead of looking directly at the database.
+It's first argument specifies the network root to use.
+If the argument is 0, it defaults to
+\f5"/net"\f1.
 .PP
 .I Ndbfree
 frees a list of tuples returned by one of the other
@@ -189,27 +210,52 @@ Internet number
 system name
 .RE
 .PP
-.I Ipinfo
-searches the database for Internet Protocol information about a
-system and returns it in the structure addressed by
-.IR iip.
-The arguments
-.I ether
-(textual Ethernet address),
-.I ip
-(textual IP address), and
-.I name
-identify the system.
-At least one must be non-zero.
-.I Ipinfo
-returns 0 if successful, \-1 otherwise.
-Both
-.IR bootp (8)
+.I Ndbipinfo
+looks up Internet protocol information about a system.
+This is an IP aware search.  It looks first for information
+in the system's database entry and then in the database entries
+for any IP subnets or networks containing the system.
+The system is identified by the
+attribute/value pair,
+.IR attr = val .
+.I Ndbipinfo
+returns a list of tuples whose attributes match the
+attributes in the 
+.I n
+element array
+.IR attrs .
+For example, consider the following database entries describing a network,
+a subnetwork, and a system.
+.PP
+.EX
+ipnet=big ip=10.0.0.0 ipsubmask=255.255.255.0
+	dns=dns.big.com
+	smtp=smtp.big.com
+ipnet=dept ip=10.1.1.0 ipmask=255.255.255.0
+	smtp=smtp1.big.com
+ip=10.1.1.4 dom=x.big.com
+	bootf=/386/9pc
+.EE
+.PP
+Calling
+.PP
+.EX
+   ndbipinfo(db, "dom", "x.big.com", ["bootf" "smtp" "dns"], 3)
+.EE
+.PP
+will return the tuples
+.BR bootf=/386/9pc ,
+.BR smtp=smtp1.big.com ,
 and
-.IR ipconfig (8)
-use
-.I ipinfo
-to search the database.
+.BR dns=dns.big.com .
+.PP
+.I Csipinfo
+is to
+.I ndbipinfo
+as
+.I csgetval
+is to
+.IR ndbgetval .
 .PP
 The last three calls are used by programs that create the
 hash tables and database files.
@@ -224,6 +270,92 @@ Multiple calls to
 .IR ndbparse
 parse sequential entries in the database file.
 A zero is returned at end of file.
+.PP
+.I Dnsquery
+submits a query about
+.I domainname
+to the
+.I ndb/dns
+mounted at
+.IB netroot /dns.
+It returns a linked list of
+.I Ndbtuple's
+representing a single database entry.
+The tuples are logicly arranged into lines using the
+.B line
+fieldin the structure.
+The possible
+.IR type 's
+of query are and the attributes on each returned tuple line is:
+.TP
+.B ip
+find the IP addresses.  Returns
+domain name
+.RI ( dom )
+and ip address
+.RI ( ip )
+.TP
+.B mx
+look up the mail exchangers.  Returns preference
+.RI ( pref )
+and exchanger
+.RI ( mx )
+.TP
+.B ptr
+do a reverse query.  Here
+.I domainname
+must be an
+.SM ASCII
+IP address.  Returns reverse name
+.RI ( ptr )
+and domain name 
+.RI ( dom )
+.TP
+.B cname
+get the system that this name is a nickname for.  Returns the nickname
+.RI ( dom )
+and the real name
+.RI ( cname )
+.TP
+.B soa
+return the start of area record for this field.  Returns
+area name
+.RI ( dom ),
+primary name server
+.RI ( ns ),
+serial number
+.RI ( serial ),
+refresh time in seconds
+.RI ( refresh ),
+retry time in seconds
+.RI ( retry ),
+expiration time in seconds
+.RI ( expire ),
+and minimum time to lie
+.RI ( ttl ).
+.TP
+.B ns
+name servers.  Returns domain name
+.RI ( dom )
+and name server
+.RI ( ns )
+.PP
+.I Ndblookval
+searches 
+.I entry
+for the tuple
+with attribute
+.IR attr ,
+copies the value into
+.IR to ,
+and returns a pointer to the tuple.
+If
+.I line
+points to a particular line in the entry, the
+search starts there and then wraps around to the beginning
+of the entry.
+.SH FILES
+.BR /lib/ndb "    directory of network database files
 .SH SOURCE
 .B /sys/src/libndb
 .SH SEE ALSO

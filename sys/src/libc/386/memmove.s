@@ -26,7 +26,7 @@ ok:
 	MOVL	BX, CX
 	REP;	MOVSB
 
-	MOVL	p+0(FP),AX
+	MOVL	p1+0(FP),AX
 	RET
 /*
  * whole thing backwards has

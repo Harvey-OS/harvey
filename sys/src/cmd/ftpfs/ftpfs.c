@@ -12,6 +12,7 @@ struct Fid
 	Node	*node;		/* path to remote file */
 	int	busy;
 	Fid	*next;
+	int	open;
 };
 
 Fid	*fids;			/* linked list of fids */
@@ -24,6 +25,8 @@ int	debug;
 int	usenlst;
 char	*ext;
 int	quiet;
+int	kapid = -1;
+int	dying;		/* set when any process decides to die */
 
 char	*rflush(Fid*), *rnop(Fid*), *rsession(Fid*),
 	*rattach(Fid*), *rclone(Fid*), *rwalk(Fid*),
@@ -64,7 +67,8 @@ OS oslist[] = {
 	{ NetWare,	"NetWare", },
 	{ OS½,		"OS/2", },
 	{ TSO,		"TSO", },
-	{ NT,		"Windows_NT", },
+	{ NT,		"Windows_NT", },	/* DOS like interface */
+	{ NT,		"WINDOWS_NT", },	/* Unix like interface */
 	{ Unknown,	0 },
 };
 
@@ -75,17 +79,8 @@ char *nosuchfile = "file does not exist";
 void
 usage(void)
 {
-	fprint(2, "ftpfs [-/dq] [-a passwd] [-m mountpoint] [net!]address\n");
+	fprint(2, "ftpfs [-/dqn] [-a passwd] [-m mountpoint] [-e ext] [-o os] [-r root] [net!]address\n");
 	exits("usage");
-}
-
-void
-notifyf(void *a, char *s)
-{
-	USED(a);
-	if(strncmp(s, "interrupt", 9) == 0)
-		noted(NCONT);
-	noted(NDFLT);
 }
 
 void
@@ -145,17 +140,22 @@ main(int argc, char *argv[])
 	/* initial handshakes with remote side */
 	hello(*argv);
 	if (cpassword == 0)
-		login();
+		rlogin();
 	else
 		clogin("anonymous", cpassword);
 	preamble(mountroot);
 
 	/* start the 9fs protocol */
-	notify(notifyf);	/* avoid dying due to keyboard interrupt */
-	switch(rfork(RFPROC|RFNAMEG|RFENVG|RFFDG|RFNOTEG)){
+	switch(rfork(RFPROC|RFNAMEG|RFENVG|RFFDG|RFNOTEG|RFREND)){
 	case -1:
 		fatal("fork: %r");
 	case 0:
+		/* seal off standard input/output */
+		close(0);
+		open("/dev/null", OREAD);
+		close(1);
+		open("/dev/null", OWRITE);
+
 		close(p[1]);
 		fmtinstall('F', fcallconv); /* debugging */
 		io();
@@ -190,7 +190,7 @@ newfid(int fid)
 			ff = f;
 	}
 	if(ff == 0){
-		ff = malloc(sizeof *f);
+		ff = mallocz(sizeof(*f), 1);
 		ff->next = fids;
 		fids = ff;
 	}
@@ -200,51 +200,49 @@ newfid(int fid)
 }
 
 /*
- *  a keep alive message
+ *  a process that sends keep alive messages to
+ *  keep the server from shutting down the connection
  */
 int
-rcvnote(void *a, char *msg)
+kaproc(void)
 {
-	USED(a);
-	if(strstr(msg, "alarm")){
-		nop();
-		return 1;
+	int pid;
+
+	switch(pid = rfork(RFPROC|RFMEM)){
+	case -1:
+		return -1;
+	case 0:
+		break;
+	default:
+		return pid;
 	}
-	return 0;
+
+	while(!dying){
+		sleep(15000);
+		nop();
+	}
+
+	_exits(0);
+	return -1;
 }
 
 void
 io(void)
 {
 	char *err;
-	char errbuf[ERRLEN];
 	int n;
+	
+	kapid = kaproc();
 
-	atnotify(rcvnote, 1);
-	for(;;){
-		/*
-		 * reading from a pipe or a network device
-		 * will give an error after a few eof reads
-		 * however, we cannot tell the difference
-		 * between a zero-length read and an interrupt
-		 * on the processes writing to us,
-		 * so we wait for the error
-		 */
-		alarm(15000);
+	while(!dying){
 		n = read(mfd, mdata, sizeof mdata);
-		if(n == 0)
-			continue;
-		if(n < 0){
-			errstr(errbuf);
-			if(strncmp(errbuf, "interrupted", 11) != 0)
-				fatal("mount read");
-		}
-		alarm(0);
+		if(n <= 0)
+			fatal("mount read");
 		if(convM2S(mdata, &rhdr, n) == 0)
 			continue;
 
-/*		if(debug)
-			fprint(2, "ftpfs:%F\n", &rhdr);/**/
+		if(debug)
+			fprint(2, "<-%F\n", &rhdr);/**/
 
 		thdr.data = mdata + MAXMSG;
 		if(!fcalls[rhdr.type])
@@ -259,6 +257,8 @@ io(void)
 			thdr.fid = rhdr.fid;
 		}
 		thdr.tag = rhdr.tag;
+		if(debug)
+			fprint(2, "->%F\n", &thdr);/**/
 		n = convS2M(&thdr, mdata);
 		if(write(mfd, mdata, n) != n)
 			fatal("mount write");
@@ -328,6 +328,11 @@ rwalk(Fid *f)
 		thdr.qid = f->node->d.qid;
 		return 0;
 	}
+	if(strcmp(name, ".flush.ftpfs") == 0){
+		/* hack to flush the cache */
+		invalidate(f->node);
+		readdir(f->node);
+	}
 
 	/* top level tops-20 names are special */
 	if((os == Tops || os == VM || os == VMS) && f->node == remroot){
@@ -341,18 +346,21 @@ rwalk(Fid *f)
 	}
 
 	f->node = extendpath(f->node, name);
-	if(ISCACHED(f->node->parent) && !ISOLD(f->node->parent)){
+	if(ISCACHED(f->node->parent)){
 		/* the cache of the parent directory is good, believe it */
 		if(!ISVALID(f->node))
 			return nosuchfile;
-		if(f->node->d.mode & CHSYML)
+		if(f->node->parent->chdirunknown || (f->node->d.mode & CHSYML))
 			fixsymbolic(f->node);
 	} else if(!ISVALID(f->node)){
 		/* this isn't a valid node, try cd'ing to see if it's a dir */
-		if(changedir(f->node) == 0)
+		if(changedir(f->node) == 0){
 			f->node->d.qid.path |= CHDIR;
-		else
+			f->node->d.mode |= CHDIR;
+		}else{
 			f->node->d.qid.path &= ~CHDIR;
+			f->node->d.mode &= ~CHDIR;
+		}
 	}
 
 	thdr.qid = f->node->d.qid;
@@ -389,8 +397,6 @@ ropen(Fid *f)
 		filedirty(f->node);
 	} else {
 		/* read the remote file or directory */
-		if(ISCACHED(f->node) && ISOLD(f->node))
-			uncache(f->node);
 		if(!ISCACHED(f->node)){
 			filefree(f->node);
 			if(f->node->d.qid.path & CHDIR){
@@ -406,6 +412,8 @@ ropen(Fid *f)
 	}
 
 	thdr.qid = f->node->d.qid;
+	f->open = 1;
+	f->node->opens++;
 	return 0;
 }
 
@@ -429,6 +437,8 @@ rcreate(Fid *f)
 	uncache(f->node->parent);
 
 	thdr.qid = f->node->d.qid;
+	f->open = 1;
+	f->node->opens++;
 	return 0;
 }
 
@@ -469,7 +479,7 @@ rread(Fid *f)
 		}
 	} else {
 		/* reread file if it's fallen out of the cache */
-		if(UNCACHED(f->node))
+		if(!ISCACHED(f->node))
 			if(readfile(f->node) < 0)
 				return errstring;
 		CACHED(f->node);
@@ -511,6 +521,10 @@ rclunk(Fid *f)
 		fileclean(f->node);
 		uncache(f->node);
 	}
+	if(f->open){
+		f->open = 0;
+		f->node->opens--;
+	}
 	f->busy = 0;
 	return 0;
 }
@@ -541,13 +555,15 @@ rstat(Fid *f)
 	Node *p;
 
 	p = f->node->parent;
-	if(!ISCACHED(p) || ISOLD(p)){
+	if(!ISCACHED(p)){
 		invalidate(p);
 		readdir(p);
 		CACHED(p);
 	}
 	if(!ISVALID(f->node))
 		return nosuchfile;
+	if(p->chdirunknown)
+		fixsymbolic(f->node);
 	convD2M(&f->node->d, thdr.stat);
 	return 0;
 }
@@ -565,11 +581,19 @@ rwstat(Fid *f)
 void
 fatal(char *fmt, ...)
 {
+	va_list arg;
 	char buf[8*1024], *s;
 
-	s = doprint(buf, buf + (sizeof(buf)-1) / sizeof(*buf), fmt, &fmt + 1);
+	dying = 1;
+
+	va_start(arg, fmt);
+	s = doprint(buf, buf + (sizeof(buf)-1) / sizeof(*buf), fmt, arg);
+	va_end(arg);
+
 	*s = 0;
 	fprint(2, "ftpfs: %s\n", buf);
+	if(kapid > 0)
+		postnote(PNGROUP, kapid, "die");
 	exits(buf);
 }
 
@@ -593,8 +617,11 @@ int
 seterr(char *fmt, ...)
 {
 	char *s;
+	va_list arg;
 
-	s = doprint(errstring, errstring + (sizeof(errstring)-1) / sizeof(*errstring), fmt, &fmt + 1);
+	va_start(arg, fmt);
+	s = doprint(errstring, errstring + (sizeof(errstring)-1) / sizeof(*errstring), fmt, arg);
+	va_end(arg);
 	*s = 0;
 	return -1;
 }
@@ -608,7 +635,7 @@ newnode(Node *parent, char *name)
 	Node *np;
 	static ulong path;
 
-	np = malloc(sizeof(Node));
+	np = mallocz(sizeof(Node), 1);
 	if(np == 0)
 		fatal("out of memory");
 	safecpy(np->d.name, name, sizeof(np->d.name));
@@ -673,9 +700,17 @@ invalidate(Node *node)
 {
 	Node *np;
 
+	if(node->opens)
+		return;		/* don't invalidate something that's open */
+
+	uncachedir(node, 0);
+
 	/* invalidate children */
 	for(np = node->children; np; np = np->sibs){
+		if(np->opens)
+			continue;	/* don't invalidate something that's open */
 		UNCACHED(np);
+		invalidate(np);
 		np->d.dev = 0;
 	}
 }
@@ -710,7 +745,7 @@ void
 fixsymbolic(Node *node)
 {
 	if(changedir(node) == 0){
-		node->d.mode |= CHDIR; 
+		node->d.mode |= CHDIR;
 		node->d.qid.path |= CHDIR;
 	}
 	node->d.mode &= ~CHSYML; 

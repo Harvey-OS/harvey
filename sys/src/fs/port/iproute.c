@@ -56,9 +56,9 @@ enum
  */
 enum
 {
-	Nroute=	2*1024,
-	Nhash=	256,		/* routing hash buckets */
-	Nifc=	16,
+	Nroute	= 2*1024,
+	Nhash	= 256,		/* routing hash buckets */
+	Nifc	= 16,
 };
 
 typedef struct Route	Route;
@@ -73,7 +73,8 @@ struct Route
 	int	inuse;
 	long	time;
 };
-struct {
+struct
+{
 	Lock;
 	Route	route[Nroute];
 	Route	*hash[Nhash];
@@ -82,7 +83,8 @@ struct {
 	int 	dorip;
 } ralloc;
 
-uchar classmask[4][4] = {
+uchar classmask[4][4] =
+{
 	0xff, 0x00, 0x00, 0x00,
 	0xff, 0x00, 0x00, 0x00,
 	0xff, 0xff, 0x00, 0x00,
@@ -108,7 +110,8 @@ iprouteinit(void)
 {
 	cmd_install("route", "subcommand -- ip routes", cmd_route);
 	ralloc.flag = flag_install("route", "-- verbose");
-	ralloc.dorip = 1;
+	if(!conf.ripoff)
+		ralloc.dorip = 1;
 }
 
 static void
@@ -127,9 +130,11 @@ usage:
 	}
 	if(strcmp(argv[1], "ripoff") == 0)
 		ralloc.dorip = 0;
-	else if(strcmp(argv[1], "ripon") == 0)
+	else
+	if(strcmp(argv[1], "ripon") == 0)
 		ralloc.dorip = 1;
-	else if(strcmp(argv[1], "add") == 0) {
+	else
+	if(strcmp(argv[1], "add") == 0) {
 		switch(argc){
 		default:
 			goto usage;
@@ -148,16 +153,16 @@ usage:
 		r.metric = 0;			/* rip can't nuke these */
 		deleteroute(&r);
 		considerroute(&r);
-	}
-	else if(strcmp(argv[1], "delete") == 0) {
+	} else
+	if(strcmp(argv[1], "delete") == 0) {
 		if(argc != 3)
 			goto usage;
 		if(chartoip(r.dest, argv[2]))
 			goto usage;
 		deleteroute(&r);
-	}
-	else if(strcmp(argv[1], "print") == 0) {
-		if(argc == 3){
+	} else
+	if(strcmp(argv[1], "print") == 0) {
+		if(argc == 3) {
 			if(chartoip(r.dest, argv[2]))
 				goto usage;
 			printroute(&r);
@@ -183,12 +188,12 @@ considerroute(Route *r)
 
 	lock(&ralloc);
 	h = rhash(r->dest);
-	for(hp = ralloc.hash[h]; hp; hp = hp->next){
-		if(equivip(hp->dest, r->dest) && equivip(hp->mask, r->mask)){
+	for(hp = ralloc.hash[h]; hp; hp = hp->next) {
+		if(equivip(hp->dest, r->dest) && equivip(hp->mask, r->mask)) {
 			/*
 			 *  found a match, replace if better (or much newer)
 			 */
-			if(r->metric < hp->metric || time()-hp->time > 10*60){
+			if(r->metric < hp->metric || time()-hp->time > 10*60) {
 				memmove(hp->gate, r->gate, Pasize);
 				hp->metric = r->metric;
 				DEBUG("route: replacement %I & %I -> %I (%d)\n",
@@ -212,9 +217,9 @@ considerroute(Route *r)
 	/*
 	 *  look for an old entry
 	 */
-	for(i = 0; hp == 0 && i < Nhash; i++){
+	for(i = 0; hp == 0 && i < Nhash; i++) {
 		l = &ralloc.hash[i];
-		for(hp = *l; hp; hp = *l){
+		for(hp = *l; hp; hp = *l) {
 			if(time() - hp->time > 10*60 && hp->metric > 0){
 				*l = hp->next;
 				break;
@@ -223,7 +228,7 @@ considerroute(Route *r)
 		}
 	}
 
-	if(hp == 0){
+	if(hp == 0) {
 		print("no more routes");
 		goto done;
 	}
@@ -254,11 +259,12 @@ deleteroute(Route *r)
 	Route *hp, **l;
 
 	lock(&ralloc);
-	for(h = 0; h < Nhash; h++){
+	for(h = 0; h < Nhash; h++) {
 		l = &ralloc.hash[h];
 		for(hp = *l; hp; hp = *l){
-			if(equivip(r->dest, hp->dest)){
+			if(equivip(r->dest, hp->dest)) {
 				*l = hp->next;
+				hp->next = 0;
 				hp->inuse = 0;
 				break;
 			}
@@ -283,7 +289,7 @@ printroutes(void)
 	unlock(&ralloc);
 
 	print("\nifc's\n");
-	for(i = enets; i; i = i->next){
+	for(i = enets; i; i = i->next) {
 		hnputl(mask, i->mask);
 		print("addr %I mask %I defgate %I\n", i->ipa, mask, i->netgate);
 	}
@@ -315,9 +321,9 @@ iproute(uchar *to, uchar *dst, uchar *def)
 	uchar net[Pasize];
 
 	h = rhash(dst);
-	for(hp = ralloc.hash[h]; hp; hp = hp->next){
+	for(hp = ralloc.hash[h]; hp; hp = hp->next) {
 		maskip(dst, hp->mask, net);
-		if(equivip(hp->dest, net)){
+		if(equivip(hp->dest, net)) {
 			def = hp->gate;
 			break;
 		}
@@ -344,14 +350,15 @@ udprecv(Msgbuf *mb, Ifc *ifc)
 	/* construct pseudo hdr and check sum */
 	uh->ttl = 0;
 	hnputs(uh->cksum, udplen);
-	if(ptclcsum((uchar*)uh+(Ensize+Ipsize-Udpphsize), udplen + Udpphsize) != 0) {
+	if(nhgets(uh->udpsum)
+	  && ptclcsum((uchar*)uh+(Ensize+Ipsize-Udpphsize), udplen + Udpphsize) != 0) {
 		if(ifc->sumerr < 3)
-			print("udp: cksum error\n");
+			print("udp: cksum error %I\n", uh->src);
 		ifc->sumerr++;
 		goto drop;
 	}
 
-	switch(nhgets(uh->udpdst)){
+	switch(nhgets(uh->udpdst)) {
 	case 520:
 		riprecv(mb, ifc);
 		break;
@@ -366,15 +373,13 @@ drop:
 }
 
 static void
-riprecv(Msgbuf *mb, Ifc *ifc)
+riprecv(Msgbuf *mb, Ifc*)
 {
 	int n;
 	Rip *r;
 	Ripmsg *m;
 	Udppkt *uh;
 	Route route;
-
-	USED(ifc);
 
 	if(ralloc.dorip == 0)
 		goto drop;
@@ -429,14 +434,13 @@ getmask(uchar *mask, uchar *dest)
 
 	ip = nhgetl(dest);
 	for(i = enets; i; i = i->next)
-		if((i->ipaddr & i->cmask) == (ip & i->cmask)){
+		if((i->ipaddr & i->cmask) == (ip & i->cmask)) {
 			hnputl(mask, i->mask);
 			return;
 		}
 
 	memmove(mask, classmask[CLASS(dest)], Pasize);
 }
-
 
 static void
 maskip(uchar *a, uchar *m, uchar *n)

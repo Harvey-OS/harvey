@@ -7,7 +7,6 @@ complex(Node *n)
 	if(n == Z)
 		return;
 
-
 	nearln = n->lineno;
 	if(debug['t'])
 		if(n->op != OCONST)
@@ -102,11 +101,29 @@ tcomo(Node *n, int f)
 		typeext(n->type, l);
 		if(tcompat(n, n->type, l->type, tasign))
 			break;
+		constas(n, n->type, l->type);
 		if(!sametype(n->type, l->type)) {
 			l = new1(OCAST, l, Z);
 			l->type = n->type;
 			n->left = l;
 		}
+		break;
+
+	case OASI:	/* same as as, but no test for const */
+		n->op = OAS;
+		o = tcom(l);
+		if(o | tcom(r))
+			goto bad;
+
+		typeext(l->type, r);
+		if(tlvalue(l) || tcompat(n, l->type, r->type, tasign))
+			goto bad;
+		if(!sametype(l->type, r->type)) {
+			r = new1(OCAST, r, Z);
+			r->type = l->type;
+			n->right = r;
+		}
+		n->type = l->type;
 		break;
 
 	case OAS:
@@ -117,6 +134,7 @@ tcomo(Node *n, int f)
 		typeext(l->type, r);
 		if(tlvalue(l) || tcompat(n, l->type, r->type, tasign))
 			goto bad;
+		constas(n, l->type, r->type);
 		if(!sametype(l->type, r->type)) {
 			r = new1(OCAST, r, Z);
 			r->type = l->type;
@@ -133,6 +151,7 @@ tcomo(Node *n, int f)
 		typeext1(l->type, r);
 		if(tlvalue(l) || tcompat(n, l->type, r->type, tasadd))
 			goto bad;
+		constas(n, l->type, r->type);
 		t = l->type;
 		arith(n, 0);
 		while(n->left->op == OCAST)
@@ -155,6 +174,7 @@ tcomo(Node *n, int f)
 		typeext1(l->type, r);
 		if(tlvalue(l) || tcompat(n, l->type, r->type, tmul))
 			goto bad;
+		constas(n, l->type, r->type);
 		t = l->type;
 		arith(n, 0);
 		while(n->left->op == OCAST)
@@ -220,12 +240,12 @@ tcomo(Node *n, int f)
 	case OPOSTDEC:
 		if(tcom(l))
 			goto bad;
-		if(tlvalue(l) || tcompat(n, l->type, tint, tadd))
+		if(tlvalue(l) || tcompat(n, l->type, types[TINT], tadd))
 			goto bad;
 		n->type = l->type;
 		if(n->type->etype == TIND)
 		if(n->type->link->width < 1)
-			diag(n, "illegal pointer operation");
+			diag(n, "inc/dec of a void pointer");
 		break;
 
 	case OEQ:
@@ -238,7 +258,7 @@ tcomo(Node *n, int f)
 		if(tcompat(n, l->type, r->type, trel))
 			goto bad;
 		arith(n, 0);
-		n->type = tint;
+		n->type = types[TINT];
 		break;
 
 	case OLT:
@@ -255,7 +275,7 @@ tcomo(Node *n, int f)
 		arith(n, 0);
 		if(typeu[n->type->etype])
 			n->op = logrel[relindex(n->op)];
-		n->type = tint;
+		n->type = types[TINT];
 		break;
 
 	case OCOND:
@@ -329,7 +349,7 @@ tcomo(Node *n, int f)
 		n->right = Z;
 		arith(n, 1);
 		n->right = new1(OCAST, r, Z);
-		n->right->type = tint;
+		n->right->type = types[TINT];
 		if(typeu[n->type->etype])
 			if(n->op == OASHR)
 				n->op = OLSHR;
@@ -363,7 +383,7 @@ tcomo(Node *n, int f)
 			goto bad;
 		if(tcompat(n, T, l->type, tnot))
 			goto bad;
-		n->type = tint;
+		n->type = types[TINT];
 		break;
 
 	case OANDAND:
@@ -374,7 +394,7 @@ tcomo(Node *n, int f)
 		if(tcompat(n, T, l->type, tnot) |
 		   tcompat(n, T, r->type, tnot))
 			goto bad;
-		n->type = tint;
+		n->type = types[TINT];
 		break;
 
 	case OCOMMA:
@@ -384,6 +404,30 @@ tcomo(Node *n, int f)
 		n->type = r->type;
 		break;
 
+
+	case OSIGN:	/* extension signof(type) returns a hash */
+		if(l != Z) {
+			if(l->op != OSTRING && l->op != OLSTRING)
+				if(tcomo(l, 0))
+					goto bad;
+			if(l->op == OBIT) {
+				diag(n, "signof bitfield");
+				goto bad;
+			}
+			n->type = l->type;
+		}
+		if(n->type == T)
+			goto bad;
+		if(n->type->width < 0) {
+			diag(n, "signof undefined type");
+			goto bad;
+		}
+		n->op = OCONST;
+		n->left = Z;
+		n->right = Z;
+		n->vconst = convvtox(signature(n->type, 10), TULONG);
+		n->type = types[TULONG];
+		break;
 
 	case OSIZE:
 		if(l != Z) {
@@ -409,8 +453,8 @@ tcomo(Node *n, int f)
 		n->op = OCONST;
 		n->left = Z;
 		n->right = Z;
-		n->vconst = convvtox(n->type->width, tint->etype);
-		n->type = tint;
+		n->vconst = convvtox(n->type->width, TINT);
+		n->type = types[TINT];
 		break;
 
 	case OFUNC:
@@ -432,6 +476,7 @@ tcomo(Node *n, int f)
 				nerrors--;
 				diag(n, "function args not checked: %F", l);
 			}
+		dpcheck(n);
 		break;
 
 	case ONAME:
@@ -526,13 +571,20 @@ tcomo(Node *n, int f)
 			goto bad;
 		break;
 	}
-	if(n->type == T)
+	t = n->type;
+	if(t == T)
 		goto bad;
-	if(n->type->width < 0) {
-		diag(n, "structure not fully declared");
-		goto bad;
+	if(t->width < 0) {
+		snap(t);
+		if(t->width < 0) {
+			if(typesu[t->etype] && t->tag)
+				diag(n, "structure not fully declared %s", t->tag->name);
+			else
+				diag(n, "structure not fully declared");
+			goto bad;
+		}
 	}
-	if(typeaf[n->type->etype]) {
+	if(typeaf[t->etype]) {
 		if(f & ADDROF)
 			goto addaddr;
 		if(f & ADDROP)
@@ -603,12 +655,12 @@ tcoma(Node *l, Node *n, Type *t, int f)
 		switch(t->etype) {
 		case TCHAR:
 		case TSHORT:
-			t = tint;
+			t = types[TINT];
 			break;
 
 		case TUCHAR:
 		case TUSHORT:
-			t = tuint;
+			t = types[TUINT];
 			break;
 		}
 	} else
@@ -616,12 +668,12 @@ tcoma(Node *l, Node *n, Type *t, int f)
 	{
 	case TCHAR:
 	case TSHORT:
-		t = tint;
+		t = types[TINT];
 		break;
 
 	case TUCHAR:
 	case TUSHORT:
-		t = tuint;
+		t = types[TUINT];
 		break;
 
 	case TFLOAT:
@@ -698,6 +750,7 @@ tcomx(Node *n)
 		typeext(t, r);
 		if(tcompat(n, t, r->type, tasign))
 			e++;
+		constas(n, t, r->type);
 		if(!e && !sametype(t, r->type)) {
 			r = new1(OCAST, r, Z);
 			r->type = t;
@@ -764,7 +817,7 @@ loop:
 		if(r->op == OCONST) {
 			t = n->type->width * 8;	/* bits per byte */
 			if(r->vconst >= t || r->vconst < 0)
-				warn(n, "stupid shift: %ld", r->vconst);
+				warn(n, "stupid shift: %lld", r->vconst);
 		}
 		break;
 
@@ -850,7 +903,7 @@ loop:
 		if(r->op == OCONST) {
 			t = n->type->width * 8;	/* bits per byte */
 			if(r->vconst >= t || r->vconst <= -t)
-				warn(n, "stupid shift: %ld", r->vconst);
+				warn(n, "stupid shift: %lld", r->vconst);
 		}
 		goto common;
 

@@ -1,6 +1,6 @@
 #include "astro.h"
 
-#define	MAXE	(.99)	/* cant do hyperbolas */
+#define	MAXE	(.999)	/* cant do hyperbolas */
 
 void
 comet(void)
@@ -37,7 +37,7 @@ comet(void)
 		61.5546,
 		75.2132,
 	};	/* austin 3, 1989c */
-	elem = (struct elem)
+/*	elem = (struct elem)
 	{
 		etdate(1990, 10, 24.36),
 		0.9385,
@@ -46,6 +46,26 @@ comet(void)
 		242.58,
 		138.57,
 	};	/* levy 6 , 1990c */
+/*	elem=(struct elem)
+	{
+		etdate(1996, 5, 1.3965),
+		0.230035,
+		0.999662,
+		124.9098,
+		130.2102,
+		188.0430,
+	};	/* C/1996 B2 (Hyakutake) */
+	elem=(struct elem)
+	{
+		etdate(1997, 4, 1.13413),
+		0.9141047,
+		0.9950989,
+		89.42932,
+		130.59066,
+		282.47069,
+		
+	};	/*C/1995 O1 (Hale-Bopp) */
+		
 
 	ecc = elem.e;
 	if(ecc > MAXE)
@@ -62,7 +82,7 @@ comet(void)
 		dele = (anom - enom + ecc * sin(enom)) /
 			(1 - ecc*cos(enom));
 		enom += dele;
-	} while(fabs(dele) > 1.e-8);
+	} while(fabs(dele) > converge);
 
 	vnom = 2*atan2(
 		sqrt((1+ecc)/(1-ecc))*sin(enom/2),

@@ -45,7 +45,7 @@ srvauth(int fd, char *user)
 		return -1;
 	}
 
-	/* get authenticator from kernel and pass to client*/
+	/* get authenticator from kernel and pass to client */
 	read(afd, tbuf, AUTHENTLEN);
 	close(afd);
 	if(write(fd, tbuf, AUTHENTLEN) < 0){

@@ -1,0 +1,33 @@
+.TH NA 8
+.SH NAME
+na \- assembler for the Symbios Logic PCI-SCSI I/O Processors
+.SH SYNOPSIS
+.B aux/na file
+.SH DESCRIPTION
+The SYM53C8XX series of PCI-SCSI I/O Processors contain
+loadable microcode to control their operation.
+The microcode is written in a language called SCRIPTS.
+.I Aux/na
+is an assembler for the SCRIPTS programming language.
+It assembles SCRIPTS code in
+.I file
+into an array of assembled SCRIPTS
+instructions, patches, defines and enums
+that can be included in a C device driver.
+.SH SOURCE
+.TF /sys/src/cmd/aux/na
+.TP
+.B /sys/src/cmd/aux/na
+.SH "SEE ALSO"
+Symbios Logic,
+``PCI-SCSI I/O Processors Programming Guide Version 2.1''
+.br
+.TF /sys/src/9/*/sd53c8xx.c
+.TP
+.B /sys/src/9/*/sd53c8xx.n
+SCRIPTS source code
+.TP
+.B /sys/src/9/*/sd53c8xx.c
+driver for the SYM53C8XX series of PCI-SCSI controllers
+.SH AUTHOR
+Nigel Roles (ngr@9fs.org)

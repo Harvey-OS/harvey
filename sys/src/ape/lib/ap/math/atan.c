@@ -41,9 +41,16 @@ xatan(double arg)
 {
 	double argsq, value;
 
-	argsq = arg*arg;
-	value = ((((p4*argsq + p3)*argsq + p2)*argsq + p1)*argsq + p0);
-	value = value/(((((argsq + q4)*argsq + q3)*argsq + q2)*argsq + q1)*argsq + q0);
+	/* get denormalized add in following if range arg**10 is much smaller
+	    than q1, so check for that case
+	*/
+	if(-.01 < arg && arg < .01)
+		value = p0/q0;
+	else {
+		argsq = arg*arg;
+		value = ((((p4*argsq + p3)*argsq + p2)*argsq + p1)*argsq + p0);
+		value = value/(((((argsq + q4)*argsq + q3)*argsq + q2)*argsq + q1)*argsq + q0);
+	}
 	return value*arg;
 }
 

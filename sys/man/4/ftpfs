@@ -4,7 +4,7 @@ ftpfs  \- file transfer protocol (FTP) file system
 .SH SYNOPSIS
 .B ftpfs
 [
-.B -/dq
+.B -/dqn
 ]
 [
 .B -m
@@ -13,6 +13,18 @@ ftpfs  \- file transfer protocol (FTP) file system
 [
 .B -a
 .I password
+]
+[
+.B -e
+.I ext
+]
+[
+.B -o
+.I os
+]
+[
+.B -r
+remoteroot
 ]
 .I system
 .SH DESCRIPTION
@@ -42,11 +54,16 @@ option and specifying the
 .IR password .
 .PP
 By default the file seen at the mount point is the user's
-remote home directory.
+remote home directory if he has one.
 The option
 .B -/
 forces the mount point to correspond to the
 remote root.
+The option
+.B -r
+forces the mount point to correspond to the
+remote directory
+.IR remoteroot .
 .PP
 To avoid seeing startup messages from the server use option
 .BR -q .
@@ -58,6 +75,53 @@ To terminate the connection,
 (see
 .IR bind (1))
 the mount point.
+.PP
+Since there is no specified format for metadata retrieved
+in response to an FTP directory request,
+.I ftpfs
+has to apply heuristics to steer the interpretation.  Sometimes,
+though rarely, these heuristics fail.  The following options are
+meant as last resorts to try to steer interpretation.
+.PP
+A major clue to the heuristics is the operating system at the other
+end.  Normally this can be determined automatically using the
+FTP SYST command.  However, in some cases the server doesn't implement
+the SYST command.  The
+.B -o
+option will force the case by specifyng the name of the operating
+system.  Known systems types are are:
+.BR Unix ,
+.BR Sun ,
+.BR Tops ,
+.BR Plan9
+.BR VM ,
+.BR VMS ,
+.BR MVS ,
+.BR NetWare ,
+.BR OS/2 ,
+.BR TSO ,
+and
+.BR WINDOWS_NT .
+.PP
+Some systems and/or FTP servers return directory listings that don't
+include the file extension.  The
+.B -e
+option allows the user to specify an extension to append to all
+remote files (other than directories).
+.PP
+Finally, there are two FTP commands to retrieve the contents of a
+directory, LIST and NLST.  LIST is approximately equivalent to
+.L ls -l
+and NLST to
+.LR ls .
+.I Ftpfs
+normally uses LIST.  However, some FTP servers interpret LIST
+to mean, give a wordy description of the file.
+.I Ftpfs
+normally notices this and switches to using NLST.  However, in
+some rare cases, the user must force the use of NLST with the
+.B -n
+option.
 .SH EXAMPLE
 You want anonymous FTP access to the system
 .BR export.lcs.mit.edu .

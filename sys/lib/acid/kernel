@@ -1,0 +1,109 @@
+defn printstring(s)
+{
+	print("\"", s, "\"");
+}
+
+defn printsyscall(name, fmt, arg) {
+	local f, i, a, argp, sl;
+
+	print(name, "(");
+	i = 0;
+	a = eval arg;
+	while fmt[i] != 0 do {
+		if fmt[i] == 's' then {
+			if *a == 0 then
+				print("nil");
+			else
+				printstring(*(*a\s));
+		} else if fmt[i] == 'S' then {
+			argp = *a;
+			argl = {};
+			while *argp != 0 do {
+				argl = append argl, *(*argp\s);
+				argp++;
+			}
+			print(argl);
+		} else
+			print(fmt(*a, fmt[i]));
+		if fmt[i+1] != 0 then
+			print(", ");
+		i = i+1;
+		a++;
+	}
+	print(")\n");
+}
+
+defn code(*e) { return e; }
+
+syscalls = {
+	{ 0, {"sysr1",		"s",		code(0)}},
+	{ 1, {"errstr",		"s",		code(*syserrstr:arg)}},
+	{ 2, {"bind",		"ssX",		code(*sysbind:arg)}},
+	{ 3, {"chdir",		"s",		code(*sysbind:arg)}},
+	{ 4, {"close",		"D",		code(*sysclose:arg)}},
+	{ 5, {"dup",		"DD",		code(*sysdup:arg)}},
+	{ 6, {"alarm",		"D",		code(*sysalarm:arg)}},
+	{ 7, {"exec",		"sS",		code(*sysexec:arg)}},
+	{ 8, {"exits",		"s",		code(*sysexits:arg)}},
+	{ 9, {"fsession",	"DX",		code(*sysfsession:arg)}},
+	{10, {"fauth",		"DX",		code(*sysfauth:arg)}},
+	{11, {"fstat",		"DX",		code(*sysfstat:arg)}},
+	{12, {"segbrk",		"XX",		code(*syssegbrk:arg)}},
+	{13, {"mount",		"DsXs",		code(*sysmount:arg)}},
+	{14, {"open",		"sD",		code(*sysopen:arg)}},
+	{15, {"read",		"DXD",		code(*sysread:arg)}},
+	{16, {"oseek",		"DDD",		code(*sysoseek:arg)}},
+	{17, {"sleep",		"D",		code(*syssleep:arg)}},
+	{18, {"stat",		"sX",		code(*sysstat:arg)}},
+	{19, {"rfork",		"X",		code(*sysstat:arg)}},
+	{20, {"write",		"DXD",		code(*syswrite:arg)}},
+	{21, {"pipe",		"X",		code(*syspipe:arg)}},
+	{22, {"create",		"sDO",		code(*syscreate:arg)}},
+	{23, {"fd2path",	"DXD",		code(*sysfd2path:arg)}},
+	{24, {"brk_",		"X",		code(*sysbrk_:arg)}},
+	{25, {"remove",		"s",		code(*sysremove:arg)}},
+	{26, {"wstat",		"sX",		code(*syswstat:arg)}},
+	{27, {"fwstat",		"DX",		code(*sysfwstat:arg)}},
+	{28, {"notify",		"X",		code(*sysnotify:arg)}},
+	{29, {"noted",		"D",		code(*sysnoted:arg)}},
+	{30, {"segattach",	"DsXD",		code(*syssegattach:arg)}},
+	{31, {"segdetach",	"X",		code(*syssegdetach:arg)}},
+	{32, {"segfree",	"XD",		code(*syssegfree:arg)}},
+	{33, {"segflush",	"XD",		code(*syssegflush:arg)}},
+	{34, {"rendezvous",	"XX",		code(*sysrendezvous:arg)}},
+	{35, {"unmount",	"ss",		code(*sysunmount:arg)}},
+	{36, {"wait",		"X",		code(*syswait:arg)}},
+	{37, {"read9p",		"DXD",		code(*sysread9p:arg)}},
+	{38, {"write9p",	"DXD",		code(*syswrite9p:arg)}},
+	{39, {"seek",		"DZD",		code(*sysseek:arg)}},
+};
+
+defn syscall() {
+	local n, sl, h, p;
+
+	map({"*data", 0, 0xffffffff, 0});
+	n = *syscall:scallnr;
+	sl = syscalls;
+	while sl != {} do {
+		h = head sl;
+		sl = tail sl;
+
+		if n == h[0] then {
+			p = h[1];
+			printsyscall(p[0], p[1], p[2]);
+		}
+	}
+}
+
+defn fd() {
+	rc("cat /proc/"+itoa(pid)+"/fd");
+}
+
+defn segment() {
+	rc("cat /proc/"+itoa(pid)+"/segment");
+}
+
+defn ns() {
+	rc("cat /proc/"+itoa(pid)+"/ns");
+}
+print("/sys/lib/acid/kernel");

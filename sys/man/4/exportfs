@@ -4,14 +4,18 @@ exportfs, srvfs \- network file server plumbing
 .SH SYNOPSIS
 .B exportfs
 [
-.B -an
-]
-[
-.B -c
-.I ctlfile
+.B -a
+] [
+.B -s
+] [
+.B -F
 ]
 .PP
 .B srvfs
+[
+.B -p
+.I perm
+]
 .I name
 .I dir
 .SH DESCRIPTION
@@ -21,7 +25,11 @@ than file servers, to export portions of a name space across networks.
 The service is started either by the
 .IR cpu (1)
 command or by a network listener process.  An initial protocol
-establishes a root directory for the exported name space.  The
+establishes a root directory for the exported name space; the
+.B -s
+option instead instructs
+.I exportfs
+to serve the root.  The
 connection to
 .I exportfs
 is then mounted, typically on
@@ -40,18 +48,12 @@ to authenticate the user, usually because it is
 being invoked from a remote machine.
 .PP
 The
-.B -n
-option disallows export to
-user
-.BR none .
-.PP
-The
-.B -c
-options specifies a network control file onto which
+.B -F
+option causes
 .I exportfs
-will push the
+to push the
 .I fcall
-line discipline.  This option is intended for networks that do not
+line discipline on its network connection.  This option is intended for networks that do not
 preserve read/write boundaries.
 .PP
 The
@@ -73,14 +75,21 @@ to create a mountable file system from a name space: a subsequent
 (see
 .IR bind (1))
 of
-.BI /srv/ name
+.BI /srv/ name ,
+which is created with mode
+.I perm
+(default 0600),
 will reproduce the name space rooted at
 .IR dir .
 One might use
 .I srvfs
 to enable mounting of an FTP file system (see
 .IR ftpfs (4))
-in several windows.
+in several windows, or to publish a
+.B /proc
+(see
+.IR proc (3))
+with a broken process so a remote person may debug the program.
 .SH SOURCE
 .B /sys/src/cmd/exportfs
 .br

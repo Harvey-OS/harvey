@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
@@ -54,7 +55,6 @@ static Clock clocks[] = {
 };
 	
 static ulong atix;
-static uchar bios[256];
 
 static uchar
 atixi(uchar index)
@@ -70,22 +70,17 @@ atixo(uchar index, uchar data)
 }
 
 static void
-atixinit(Vga *vga, Ctlr *ctlr)
+atixinit(Vga* vga, Ctlr*)
 {
 	uchar b;
 	Mach32 *mach32;
 
 	/*
-	 * Read in a part of the BIOS for configuration purposes,
-	 * and try to determine the extended register address.
-	 * Unfortunately, we can't determine the offset value, so
-	 * we'll just have to assume it's 2.
+	 * We could try to read in a part of the BIOS and try to determine
+	 * the extended register address, but since we can't determine the offset value,
+	 * we'll just have to assume the defaults all round.
 	 */
-	if(bios[0x00] == 0)
-		 readbios((char*)bios, sizeof(bios), 0xC0000);
-	if(atix == 0 && (atix = ((bios[0x11]<<8)|bios[0x10])) == 0)
-		atix = 0x1CE;
-	verbose("%s: atix=0x%lux\n", ctlr->name, atix);
+	atix = 0x1CE;
 
 	/*
 	 * Unlock the ATI Extended Registers.
@@ -108,12 +103,10 @@ atixinit(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-snarf(Vga *vga, Ctlr *ctlr)
+snarf(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 	Mach32 *mach32;
-
-	verbose("%s->snarf\n", ctlr->name);
 
 	atixinit(vga, ctlr);
 	for(i = 0xA0; i < 0xC0; i++)
@@ -132,19 +125,19 @@ snarf(Vga *vga, Ctlr *ctlr)
 	switch((mach32->misc>>2) & 0x03){
 
 	case 0:
-		vga->vmb = 512*1024;
+		vga->vmz = 512*1024;
 		break;
 
 	case 1:
-		vga->vmb = 1024*1024;
+		vga->vmz = 1024*1024;
 		break;
 
 	case 2:
-		vga->vmb = 2*1024*1024;
+		vga->vmz = 2*1024*1024;
 		break;
 
 	case 3:
-		vga->vmb = 4*1024*1024;
+		vga->vmz = 4*1024*1024;
 		break;
 	}
 
@@ -152,32 +145,30 @@ snarf(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-options(Vga *vga, Ctlr *ctlr)
+options(Vga*, Ctlr* ctlr)
 {
-	USED(vga);
-	verbose("%s->options\n", ctlr->name);
 	ctlr->flag |= Foptions;
 }
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
 	Clock *clockp;
 	Mode *mode;
 
-	verbose("%s->init\n", ctlr->name);
 	mode = vga->mode;
 
-	if(vga->f == 0)
-		vga->f = vga->mode->frequency;
+	if(vga->f[0] == 0)
+		vga->f[0] = vga->mode->frequency;
 	for(clockp = clocks; clockp->frequency; clockp++){
-		if(clockp->frequency > vga->f+100000)
+		if(clockp->frequency > vga->f[0]+100000)
 			continue;
-		if(clockp->frequency > vga->f-100000)
+		if(clockp->frequency > vga->f[0]-100000)
 			break;
 	}
 	if(clockp->frequency == 0)
-		error("%s: no suitable clock for %d\n", ctlr->name, vga->f);
+		error("%s: no suitable clock for %lud\n",
+			ctlr->name, vga->f[0]);
 
 	vga->crt[0xB0] &= 0xDA;
 	vga->crt[0xB1] &= 0x87;
@@ -229,11 +220,10 @@ init(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
 	ushort x;
 
-	verbose("%s->load\n", ctlr->name);
 	/*
 	 * Make sure we are in VGA mode,
 	 * and that we have access to all the video memory through
@@ -261,7 +251,7 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 	Mach32 *mach32;
@@ -274,15 +264,15 @@ dump(Vga *vga, Ctlr *ctlr)
 		return;
 
 	printitem(ctlr->name, "ADVFUNC");
-	print("%.4ux\n", mach32->advfunc);
+	Bprint(&stdout, "%.4ux\n", mach32->advfunc);
 	printitem(ctlr->name, "CLOCKSEL");
-	print("%.4ux\n", mach32->clocksel);
+	Bprint(&stdout, "%.4ux\n", mach32->clocksel);
 	printitem(ctlr->name, "MISC");
-	print("%.4ux\n", mach32->misc);
+	Bprint(&stdout, "%.4ux\n", mach32->misc);
 	printitem(ctlr->name, "MEMBNDRY");
-	print("%.4ux\n", mach32->membndry);
+	Bprint(&stdout, "%.4ux\n", mach32->membndry);
 	printitem(ctlr->name, "MEMCFG");
-	print("%.4ux\n", mach32->memcfg);
+	Bprint(&stdout, "%.4ux\n", mach32->memcfg);
 }
 
 Ctlr mach32 = {

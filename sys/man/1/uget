@@ -1,0 +1,123 @@
+.TH UGET 1 
+.SH NAME
+uget, hget  \- retrieve a web page corresponding to a url
+.SH SYNOPSIS
+.B uget
+[
+.B -d
+]
+[
+.B -o
+.I ofile
+]
+[
+.B -b
+.I base
+]
+[
+.B -p
+.I body
+]
+[
+.B -o
+file
+]
+.I url
+.PP
+.B uget
+[
+.B -d
+]
+.B -s
+.PP
+.B uget
+[
+.B -d
+]
+.B -s
+.PP
+.B hget
+[
+.B -v
+]
+[
+.B -o
+.I ofile
+]
+.I url
+.SH DESCRIPTION
+In the first form,
+.I uget
+retrieves the web page specified by the URL
+.I url
+and writes it, absent the
+.B -o
+option, to standard output.
+The known URL types are: http, ftp, gopher, exec, and
+afile.
+Option
+.B -b
+specifies a base URL to use should
+.I url
+be relative.
+.P
+If
+.I url
+is of type HTTP and the
+.B -p
+option is specified, then an HTTP POST is performed
+with
+.I body
+as the data to be posted.
+.PP
+The
+.B -o
+option is used to keep a local file in sync with a
+web page.  If the web page is newer than the file
+then it is copied into the file.  Otherwise, nothing
+is changed.
+.PP
+With option
+.BR -s ,
+.I uget
+acts as a server, reading URL's from standard input
+and writing the retrieved pages to standard output.  Each input
+line contains two strings;
+.I base
+and
+.IR path .
+.I Base
+is a base URL and
+.I path
+is a path relative to
+.IR base .
+Each retrieved page is written as a series of chunks.
+Each chunk is preceded by the decimal chunk size in bytes
+followed by a newline.  A zero length chunk signals the end
+of the page. 
+.PP
+Option
+.B -d
+turns on debugging written to standard error.
+.PP
+.I Hget
+is an in-progress replacement for
+.IR uget .
+At the moment, it accepts
+.B http:
+URLs only.
+Unlike
+.IR uget ,
+it is incremental: each time
+.I hget
+is called, it tries to complete fetching the
+.I ofile
+if the
+.B -o
+option is specified.
+.SH SOURCE
+.B /sys/src/cmd/uget
+.br
+.B /sys/src/cmd/hget.c
+.SH "SEE ALSO"
+.IR ftpfs (4)

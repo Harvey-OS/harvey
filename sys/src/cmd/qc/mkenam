@@ -1,0 +1,18 @@
+ed - ../qc/q.out.h <<'!'
+v/^	A/d
+g/^	AEND/s//&,/
+g/^	ALAST/s//&,/
+g/[ 	]*=.*,/s//,/
+v/,/p
+,s/^	A/	"/
+,s/,.*$/",/
+1i
+char	*anames[] =
+{
+.
+,a
+};
+.
+w enam.c
+Q
+!

@@ -5,7 +5,6 @@ FILES = \
 	trademarks.ps \
 	contents.ps \
 	9.ps \
-	README.ps \
 	acid.ps \
 	acidpaper.ps \
 	ape.ps \
@@ -13,28 +12,29 @@ FILES = \
 	comp.ps \
 	compiler.ps \
 	install.ps \
+	lexnames.ps \
 	libmach.ps \
 	lp.ps \
 	mk.ps \
 	mkfiles.ps \
 	names.ps \
+	plumb.ps \
 	port.ps \
 	rc.ps \
 	sleep.ps \
 	spin.ps \
+	start.ps \
 	troff.ps \
 	utf.ps \
 	colophon.ps \
+	release3.ps \
 
 DIRS = \
 	8½ \
 	acme \
-	alef \
 	fs \
-	gfx \
 	il \
 	net \
-	panel \
 	sam \
 
 all:V: dirs
@@ -44,13 +44,11 @@ print:V: \
 	trademarks.ps \
 	contents.ps\
 	9.ps \
-	README.ps \
 	names.ps \
+	start.ps \
 	net/net.ps \
 	comp.ps \
 	ape.ps \
-	alef/ug.ps \
-	alef/alef.ps \
 	acidpaper.ps \
 	acid.ps \
 	mk.ps \
@@ -60,14 +58,14 @@ print:V: \
 	rc.ps \
 	sam/sam.ps \
 	acme/acme.ps \
+	plumb.ps \
 	utf.ps \
 	compiler.ps \
 	libmach.ps \
 	fs/fs.ps \
 	il/il.ps \
 	sleep.ps \
-	gfx/gfx.ps \
-	panel/panel.ps \
+	lexnames.ps \
 	lp.ps \
 	troff.ps \
 	spin.ps \
@@ -76,6 +74,37 @@ print:V: \
 	colophon.ps
 	lp -dfn -H -i0 $prereq
 
+html:V: \
+	9.html \
+	names.html \
+	net/net.html \
+	start.html \
+	comp.html \
+	ape.html \
+	acidpaper.html \
+	acid.html \
+	mk.html \
+	mkfiles.html \
+	asm.html \
+	8½/8½.html \
+	rc.html \
+	sam/sam.html \
+	acme/acme.html \
+	plumb.html \
+	utf.html \
+	compiler.html \
+	libmach.html \
+	fs/fs.html \
+	il/il.html \
+	sleep.html \
+	lexnames.html \
+	lp.html \
+	troff.html \
+	spin.html \
+	port.html \
+	install.html \
+	release3.html
+	cp index.htm index.html
 
 dirs:V:	$FILES $DIRS
 	for(i in $DIRS) @{
@@ -83,8 +112,23 @@ dirs:V:	$FILES $DIRS
 		mk
 	}
 
+&.bs:	&.ms prfile
+	prfile $stem
+
+([^/]+)/([^/]+)\.bs:R:	prfile
+	cd $stem1; mk $stem2.bs
+
 title.ps:D:	title
 	troff $prereq | lp -dstdout > $target
+
+title.bs:D:	title
+	troff $prereq | lp -m.9 -dstdout > $target
+
+trademarks.bs:D:	/sys/lib/man/trademarks
+	troff $prereq | lp -m.9 -dstdout > $target
+
+contents.bs:D:	contents.ms
+	{ echo $FONTS; cat $prereq } | troff -ms -mnihongo | lp -m.9 -dstdout > $target
 
 contents.ps:D:	contents.ms
 	{ echo $FONTS; cat $prereq } | troff -ms -mnihongo | lp -dstdout > $target
@@ -94,6 +138,9 @@ trademarks.ps:D:	/sys/lib/man/trademarks
 
 colophon.ps:D:	/sys/lib/man/colophon
 	troff $prereq | lp -dstdout > $target
+
+colophon.bs:D:	/sys/lib/man/colophon
+	troff $prereq | lp -m.9 -dstdout > $target
 
 %.ps:D:	%.ms
 	{ echo $FONTS; cat $stem.ms } | tbl | troff -ms | lp -dstdout > $target
@@ -105,8 +152,11 @@ troff.trout:D:	troff.ms
 	{ echo $FONTS; cat $prereq } | tbl | eqn | troff -ms > $target
 
 troff.ps:D:	troff.ms
-	echo this gets some scary-looking errors, but they''re fine
+	echo this gets some scary-looking errors, but they''''re fine
 	{ echo $FONTS; cat $prereq } | tbl | eqn | troff -ms | lp -dstdout > $target
+
+plumb.ps:D:	plumb.ms
+	{ echo $FONTS; cat $prereq } | pic | troff -ms | lp -dstdout > $target
 
 comp.ps:D:	comp.ms
 	{ echo $FONTS; cat $prereq } | tbl | troff -ms -mnihongo | lp -dstdout > $target
@@ -130,3 +180,55 @@ gfx.ps:D:	gfx.ms
 
 worm.ps:D:	worm.ms
 	{ echo $FONTS; cat $prereq } | pic | eqn | troff -ms | lp -dstdout > $target
+
+%.html:D:	%.ms
+	{ echo $FONTS; cat $stem.ms } | tbl | ms2html > $target
+
+troff.html:D:	troff.ms
+	{ echo $FONTS; cat $prereq } | tbl | eqn | ms2html > $target
+
+plumb.html:D:	plumb.ms
+	{ echo $FONTS; cat $prereq } | pic | ms2html > $target
+
+comp.html:D:	comp.ms
+	{ echo $FONTS; cat $prereq } | tbl | ms2html > $target
+
+utf.html:D:	utf.ms
+	{ echo $FONTS; cat $prereq } | tbl | ms2html > $target
+
+9.html:D:	9.ms network.pic
+	{ echo $FONTS; cat 9.ms } | tbl | pic | ms2html > $target
+
+spin.html:D:	spin.ms
+	{ echo $FONTS; cat $prereq } | eqn | tbl | ms2html > $target
+
+gfx.html:D:	gfx.ms
+	{ echo $FONTS; cat $prereq } | tbl | pic | ms2html > $target
+
+worm.html:D:	worm.ms
+	{ echo $FONTS; cat $prereq } | pic | eqn | ms2html > $target
+
+fs/fs.html:
+	cd fs
+	mk fs.html
+
+net/net.html:
+	cd net
+	mk net.html
+
+sam/sam.html:
+	cd sam
+	mk sam.html
+
+acme/acme.html:
+	cd acme
+	mk acme.html
+
+il/il.html:
+	cd il
+	mk il.html
+
+release3.html:	release3.ms
+	# remove all those extra blank lines
+	{ echo $FONTS; cat release3.ms } | tbl | ms2html | uniq > $target
+

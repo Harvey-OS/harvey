@@ -6,11 +6,12 @@
  * Mips-specific debugger interface
  */
 
-static 	char	*mipsexcep(Map*, Rgetter);
+static	char	*mipsexcep(Map*, Rgetter);
 static	int	mipsfoll(Map*, ulong, Rgetter, ulong*);
 static	int	mipsinst(Map*, ulong, char, char*, int);
 static	int	mipsdas(Map*, ulong, char*, int);
 static	int	mipsinstlen(Map*, ulong);
+
 /*
  *	Debugger interface
  */
@@ -21,13 +22,36 @@ Machdata mipsmach =
 
 	beswab,			/* short to local byte order */
 	beswal,			/* long to local byte order */
+	beswav,			/* vlong to local byte order */
 	risctrace,		/* C traceback */
 	riscframe,		/* Frame finder */
-	0,			/* ublock fixup */
 	mipsexcep,		/* print exception */
 	0,			/* breakpoint fixup */
 	beieeesftos,		/* single precision float printer */
 	beieeedftos,		/* double precisioin float printer */
+	mipsfoll,		/* following addresses */
+	mipsinst,		/* print instruction */
+	mipsdas,		/* dissembler */
+	mipsinstlen,		/* instruction size */
+};
+
+/*
+ *	Debugger interface for little-endian mips
+ */
+Machdata mipsmach2le =
+{
+	{0, 0, 0, 0xD},		/* break point */
+	4,			/* break point size */
+
+	leswab,			/* short to local byte order */
+	leswal,			/* long to local byte order */
+	leswav,			/* vlong to local byte order */
+	risctrace,		/* C traceback */
+	riscframe,		/* Frame finder */
+	mipsexcep,		/* print exception */
+	0,			/* breakpoint fixup */
+	leieeesftos,		/* single precision float printer */
+	leieeedftos,		/* double precisioin float printer */
 	mipsfoll,		/* following addresses */
 	mipsinst,		/* print instruction */
 	mipsdas,		/* dissembler */
@@ -96,14 +120,16 @@ typedef struct {
 static Map *mymap;
 
 static int
-decode (ulong pc, Instr *i)
+decode(ulong pc, Instr *i)
 {
 	long w;
+	extern Mach mmips2le;
 
 	if (get4(mymap, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
 		return -1;
 	}
+
 	i->addr = pc;
 	i->size = 1;
 	i->op = (w >> 26) & 0x3F;
@@ -177,7 +203,11 @@ mkinstr(ulong pc, Instr *i)
 static void
 bprint(Instr *i, char *fmt, ...)
 {
-	i->curr = doprint(i->curr, i->end, fmt, (&fmt+1));
+	va_list arg;
+
+	va_start(arg, fmt);
+	i->curr = doprint(i->curr, i->end, fmt, arg);
+	va_end(arg);
 }
 
 typedef struct Opcode Opcode;
@@ -531,7 +561,7 @@ static Opcode sopcodes[64] = {
 	"DIVU",		0,	mipsrtrs,
 	"special1C",	0,	mipscoxxx,
 	"special1D",	0,	mipscoxxx,
-	"special1E",	0,	mipscoxxx,
+	"DDIV",		0,	"R%s,R%t",
 	"special1F",	0,	mipscoxxx,
 	"ADD",	      add,	mipsalu3op,
 	"ADDU",	      add,	mipsalu3op,
@@ -548,7 +578,7 @@ static Opcode sopcodes[64] = {
 	"special2C",	0,	mipscoxxx,
 	"special2D",	0,	mipscoxxx,
 	"special2E",	0,	mipscoxxx,
-	"special2F",	0,	mipscoxxx,
+	"DSUBU",	0,	"R%s,R%t,R%d",
 	"tge",		0,	mipscorsrt,
 	"tgeu",		0,	mipscorsrt,
 	"tlt",		0,	mipscorsrt,
@@ -1061,7 +1091,7 @@ mipsfoll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 	switch(l){
 	case 0:		/* SPECIAL */
 		if((w&0x3E) == 0x08){	/* JR, JALR */
-			sprint(buf, "R%d", (w>>21)&0x1F);
+			sprint(buf, "R%ld", (w>>21)&0x1F);
 			foll[0] = (*rget)(map, buf);
 			return 1;
 		}
@@ -1072,9 +1102,13 @@ mipsfoll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 		return 1;
 	case 1:		/* BCOND */
 	case 4:		/* BEQ */
+	case 20:	/* BEQL */
 	case 5:		/* BNE */
+	case 21:	/* BNEL */
 	case 6:		/* BLEZ */
+	case 22:	/* BLEZL */
 	case 7:		/* BGTZ */
+	case 23:	/* BGTZL */
 		goto Conditional;
 	case 2:		/* J */
 	case 3:		/* JAL */

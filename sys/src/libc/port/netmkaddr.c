@@ -8,7 +8,7 @@
 char *
 netmkaddr(char *linear, char *defnet, char *defsrv)
 {
-	static char addr[4*(NAMELEN+1)];
+	static char addr[256];
 	char *cp;
 
 	/*
@@ -18,17 +18,18 @@ netmkaddr(char *linear, char *defnet, char *defsrv)
 	if(cp == 0){
 		if(defnet==0){
 			if(defsrv)
-				sprint(addr, "net!%.*s!%.*s", 2*NAMELEN, linear,
-					NAMELEN, defsrv);
+				snprint(addr, sizeof(addr), "net!%s!%s",
+					linear, defsrv);
 			else
-				sprint(addr, "net!%.*s", 2*NAMELEN, linear);
-		} else {
+				snprint(addr, sizeof(addr), "net!%s", linear);
+		}
+		else {
 			if(defsrv)
-				sprint(addr, "%.*s!%.*s!%.*s", NAMELEN, defnet,
-					2*NAMELEN, linear, NAMELEN, defsrv);
+				snprint(addr, sizeof(addr), "%s!%s!%s", defnet,
+					linear, defsrv);
 			else
-				sprint(addr, "%.*s!%.*s", NAMELEN, defnet,
-					2*NAMELEN, linear);
+				snprint(addr, sizeof(addr), "%s!%s", defnet,
+					linear);
 		}
 		return addr;
 	}
@@ -45,8 +46,7 @@ netmkaddr(char *linear, char *defnet, char *defsrv)
 	 */
 	if(defsrv == 0)
 		return linear;
-	sprint(addr, "%.*s!%.*s", 3*NAMELEN, linear,
-		NAMELEN, defsrv);
+	snprint(addr, sizeof(addr), "%s!%s", linear, defsrv);
 
 	return addr;
 }

@@ -9,88 +9,235 @@
 # command and typing 'd c000:0' to obtain a dump of the first part of
 # the ROM. Note that some machines (e.g. AT&T/NCR laptops) have the
 # ROM mapped at 0xE0000, not 0xC0000.
-# The "clock", "ctlr", "link" and "ramdac"  entries give a chain in order
+# The "clock", "ctlr", "link" and "ramdac" entries give a chain in order
 # of functions to be called for this controller for initialisation, etc.
-# The "clock", "ctlr", "link" and "ramdac" values can all take an extension following
-# a '-'. This can be used as a speed-grade or subtype; matching is done without
-# the extension.
+# The "clock", "ctlr", "link" and "ramdac" values can all take an extension
+# following a '-'. This can be used as a speed-grade or subtype; matching
+# is done without the extension.
 #
 ctlr
-	0xC006F="8C801"						# STB PowerGraph X-24
+	0xC006F="8C801"					# STB PowerGraph X-24
 	link=vga
 	ramdac=att20c491-100
 	hwgc=s3hwgc
 	link=s3clock clock=icd2061a
 	ctlr=s3801 link=ibm8514
 ctlr
-	0xC004F="86C805"					# Orchid Fahrenheit 1280
-	0XC004F="86C801"					# Quadtel S3 86C801/805
+	0xC004F="86C805"				# Orchid Fahrenheit 1280
+	0XC004F="86C801"				# Quadtel S3 86C801/805
  	link=vga
 	hwgc=s3hwgc
 	ramdac=sc15025-80
 	link=s3clock clock=ch9294-g
 	ctlr=s3805 link=ibm8514
 ctlr
-	0xC0067="#9GXE"						# #9GXE Level-1[12]
+	0xC0067="#9GXE"					# #9GXE Level-1[12]
 	link=vga
 	ramdac=bt485-135
 	hwgc=bt485hwgc
-	ctlr=s3928 link=ibm8514
+	ctlr=s3928 linear=1
+	link=ibm8514
 	clock=icd2061a link=s3clock
 ctlr
-	0xC0064="#9GXE"						# #9GXE Level-16
+	0xC0064="#9GXE"					# #9GXE Level-16
 	link=vga
 	hwgc=tvp3020hwgc
-	ctlr=s3928 link=ibm8514
+	ctlr=s3928 linear=1
+	link=ibm8514
 	ramdac=tvp3020-200
 	clock=icd2061a link=s3clock
 ctlr
-	0xC0094="#9-864"					# #9GXE64
-	0xC0044="Phoenix S3 Vision864 (16Bit DAC)"		# GIS Globalyst 550
+	0xC0094="#9-864"				# #9GXE64
+	0xC012C="V864 PCI"				# GIS Globalyst 550
 	link=vga
 	hwgc=s3hwgc
-	ctlr=vision864 link=ibm8514
+	ctlr=vision864 linear=1
+	link=ibm8514
 	ramdac=att21c498-135
 	clock=icd2061a link=s3clock
 ctlr
-	0xC0076="Tseng Laboratories, Inc. 01/30/92 V8.00X"	# Cardinal VGA765
+	0xC0094="#9-964 BIOS Version 1.03.03"		# #9GXE64pro
+	0xC0094="#9-964 BIOS Version 1.03.11h"		# #9GXE64pro
+	0xC0094="#9-964 BIOS Version 2.01.02h"		# #9GXE64pro
 	link=vga
-	ramdac=att20c492-80
-	clock=ics2494a-237
-	ctlr=et4000
+	ramdac=tvp3025-170
+	hwgc=tvp3020hwgc
+	ctlr=vision964 link=ibm8514
+	link=s3clock clock=tvp3025clock
 ctlr
-	0xC0076="Tseng Laboratories, Inc. 03/04/94 V8.00N"	# Hercules Dynamite Power
+	0xC00F6="#9 T2R4 SB BIOS"			# #9 Revolution IV
+	0xC000A="3.06.04"				# #9 Revolution IV
+	ctlr=t2r4 linear=1
+	ramdac=rgb524mn-250 rgb524mnrefclk=37500000
+	hwgc=t2r4hwgc
+ctlr
+	0xC0045="Stealth 64 Video VRAM Vers. 1.01"
+	0xC0045="Stealth 64 Video VRAM Vers. 1.06"
+	0xC0045="Stealth 64 Video VRAM Vers. 2.02"
+	0xC0045="Stealth 64 Video VRAM Vers. 2.07"
 	link=vga
-	clock=ics2494a-324
-	ramdac=stg1702-135
-	ctlr=et4000-w32p
-	hwgc=et4000hwgc
-ctlr								# CL-GD542x
-	0xC0039="CL-GD540"					# Cirrus Logic BIOS
+	ramdac=tvp3026-175
+	ctlr=vision968 link=ibm8514 linear=1 vclkphs=1
+	link=s3clock clock=tvp3026clock
+	hwgc=tvp3026hwgc
+ctlr
+	0xC004C="S3 Vision968 IBM RGB524 DAC"		# STB Velocity 64 Video
+	link=vga
+	ramdac=rgb524-220
+	ctlr=vision968 linear=1 disa1sc=1
+	link=ibm8514
+	hwgc=rgb524hwgc
+ctlr
+	0xC006B="9FX Motion 771"			# #9FX Motion 771
+	0xC0045="Stealth 64 Video VRAM Vers. 3.02"	# Stealth 64 Video 3000
+	link=vga
+	ramdac=rgb524-220 rgb524refclk=16000000
+	ctlr=vision968 linear=1
+	link=ibm8514
+	hwgc=rgb524hwgc
+ctlr
+	0xC0045="Stealth 64 DRAM Vers. 2.02"
+	0xC0045="Stealth 64 DRAM Vers. 2.09"
+	0xC0045="Stealth 64 DRAM Vers. 1.14"
+	0xC0045="Stealth SE DRAM Vers. 1.01"
+	0xC0044="Phoenix S3 TRIO32 Enhanced VGA BIOS. Version 1.3-08-12-57MHz"
+	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.3-08"
+	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.00-06"
+	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.2-07"
+	link=vga
+	hwgc=s3hwgc
+	ctlr=trio64 linear=1
+	link=ibm8514
+# does not work; did not work on mar 1 1999, jun 1 1999. -rsc
+ctlr
+	0xC0044="Stealth64 Video 2001"			# Trio64V+
+	link=vga
+	hwgc=s3hwgc
+	ctlr=trio64
+	link=ibm8514
+ctlr
+	0xC0043="Stealth 3D 2000 Vers. 1.04"
+	0xC0048="Stealth 3D 2000 Vers. 2.03"
+	0xC0047="Stealth 3D 2000 Pro Vers. 3.04"
+	0xC0043="Stealth 3D 3000 Vers. 1.01"
+	0xC0043="Stealth 3D 3000 Vers. 1.02"
+	0xC0043="Stealth 3D 3000 Vers. 2.01"
+	0xC0043="Stealth 3D 3000 Vers. 2.02"
+	0xC0044="STB Velocity 3D BIOS. Version 1.10"	# STB Velocity 3D
+	0xC00D8="#9-325 BIOS Version 2.18.08"		# #9FX Reality 332
+	0xC001A="PNTNIBM VGA Compatible BIOS" 	# Hercules Terminator
+	link=vga
+	hwgc=s3hwgc
+	ctlr=virge linear=1
+
+# These use some weird virge/gx2 that has a 202MHz clock instead of a 170MHz.
+ctlr
+	0xC00DF="#9-357 BIOS Version 4.10.05"		# #9FX Reality 334
+	link=vga
+	hwgc=s3hwgc
+	ctlr=virge-202 linear=1
+# This card, in addition to having a weird gx2 clock, has slow memory.
+ctlr
+	0xC0044="STB Powergraph 64 3D BIOS. Version 1.50"
+	link=vga
+	hwgc=s3hwgc
+	ctlr=virge-202 linear=1
+ctlr							# CL-GD542x
+	0xC0039="CL-GD540"				# Cirrus Logic BIOS
 	0xC0039="CL-GD5422"
-	0xC0039="CL-GD542X VGA BIOS"				# NCR 3230
-	0xE0039="CL-GD540x/542x VGA BIOS"			# NCR 3230
-	0xC003B="SpeedStar PRO"					# Diamond SpeedStar Pro
-	0xC00F4="KELVIN 64"					# Orchid Kelvin 64
+	0xC0039="CL-GD542X VGA BIOS"			# NCR 3230
+	0xE0039="CL-GD540x/542x VGA BIOS"		# NCR 3230
+	0xC0039="CL-GD543x"
+	0xC003B="SpeedStar PRO"				# Diamond SpeedStar Pro
+	0xC0038="SpeedStar 64"				# Diamond SpeedStar 64
+	0xC00F4="KELVIN 64"				# Orchid Kelvin 64
+	0xC0039="CL-GD7543"				# notebook
 	link=vga
 	ctlr=clgd542x
+	hwgc=clgd542xhwgc
 ctlr
-	0xC008F="ATI ULTRA PRO"					# ATI ULtra Pro
+	0xC0039="CL-GD5436/46 PCI VGA BIOS Version 1.10" # CP5000M SBC
+	0xC0039="CL-GD5436/46 PCI VGA BIOS Version 1.25" # Ziatech ZT 5512 SBC
+	0xC0039="CL-GD5436/46 PCI VGA BIOS Version 1.20k"
+	0xC0039="CL-GD5446 PCI VGA BIOS Version 1.33"	 # CPV5000 SBC
 	link=vga
-	ctlr=mach32
+	ctlr=clgd542x linear=1
+	hwgc=clgd542xhwgc
 ctlr
-	0xC0085="ATI MACH64, PCI BIOS"				# AT&T Globalyst 600
+	0xC0039="CL-GD546x Laguna PCI VGA BIOS Version 1.71D" # ZT5550 SBC
+	0xC0039="CL-GD546x Laguna PCI VGA BIOS Version 1.61a" # HP Kayak
 	link=vga
-	ctlr=mach64
-#
-# Don't know enough to do anything other than 640x480 on these.
-# Time someone else did some programming...
-#
+	ctlr=clgd546x linear=1
+	hwgc=clgd546xhwgc
 ctlr
-	0xE002D="PARADISE003245-520"				# AT&T 3416
-	0xE0030="PhoenixVIEW(tm) VGA-Compatible BIOS"		# AT&T Safari NSX20
-	0xC008D="Chips 65540 VGA 32KB BIOS"			# ARM TS30
-	ctlr=vga
+	0xC00DC="MACH64CTPCIU"				# ATI Graphics Xpression
+	0xC00E7="MACH64GPPCIM"				# ATI xpert@work
+	0xC00E7="MACH64GBPCIM"				# ATI xpert@work
+	0xC00E7="MACH64GZPCIM"				# Rage IIC AGP
+	0xC00E7="MACH64GVPCIM"				# Rage IIC PCI
+	0xC00E6="MACH64GBPCIM"				# ATI xpert@work
+	0xC00E0="MACH64GBPCIMTSGU"			# MS-6131 NLX mb
+	0xC00E1="MACH64GBPCIMTSGU"			# MS-6131 NLX mb
+	0xC00CA="MACH64GBPCIMTSGU"			# Dell Optiplex GX1
+	0xC00EB="MACH64GPPCIMTSGU"			# ATI Xpert 98
+	0xC00F7="MACH64LIPCIMTSDU"			# Xpert LCD PCI
+	0xC00F8="MACH64LIPCIMTSDU"			# Xpert LCD PCI
+	0xC00F6="MACH64LMPC"				# COMPAQ Armada E500
+	0xC00E1="MACH64GTPCIUYMU"			# ATI Rage II PCI
+	0xC0000-0xC0200="MACH64CT"			# generic entries
+	0xC0000-0xC0200="MACH64GP"
+	0xC0000-0xC0200="MACH64GB"
+	0xC0000-0xC0200="MACH64GZ"
+	0xC0000-0xC0200="MACH64GV"
+	0xC0000-0xC0200="MACH64LP"
+	0xC0000-0xC0200="MACH64LI"
+	0xC0000-0xC0200="MACH64LM"
+	0xC0000-0xC0200="RAGE128"
+	link=vga
+	ctlr=mach64xx linear=1
+	hwgc=mach64xxhwgc
+	membw=530
+ctlr
+	0xC0083="Hercules Stingray 64(tm)"		# Stingray 64/Video
+	link=vga
+	clock=ch9294-g
+	ramdac=w30c516-135
+	ctlr=ark2000pv linear=1
+	hwgc=ark2000pvhwgc
+ctlr
+	0xC0083="Stealth64 Graphics 2001"
+	link=vga
+	ramdac=ics534x-135
+	ctlr=ark2000pv linear=1
+	hwgc=ark2000pvhwgc
+ctlr
+	0xE0090="Chips 65540"				# Globalyst 250
+	link=vga
+	ctlr=ct65540 linear=1
+	hwgc=ct65545hwgc
+ctlr
+	0xC7367="TVGA BIOS  Z6.1I (0.05) "		# IBM Thinkpad 560E
+	0xC7845="TVGA BIOS WEN 6.1 (31)   "		# NEC Versa SX
+	link=vga
+	ctlr=cyber938x linear=1
+	hwgc=cyber938xhwgc
+ctlr
+	0xC0090="CHIPS 65550 PCI & VL Accelerated VGA BIOS"	# NEC Versa 6030X/6200MX
+	0xC0090="CHIPS 69000 PCI Accelerated VGA BIOS"	# Rackmount
+	link=vga
+	ctlr=hiqvideo linear=1
+	hwgc=hiqvideohwgc
+ctlr
+	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V2.5 )"	# Millennium
+	0xC002D="MATROX/MISTRAL  VGA/VBE BIOS (V1."		# Millennium II
+	link=vga
+	ctlr=mga2164w linear=1
+	hwgc=mga2164whwgc
+ctlr
+	0xC0048="MagicGraph 128XD 40K"			# IBM Thinkpad 560X
+	0xC0048="MagicGraph 256 AV 48K"			# IBM Thinkpad 570, 600E
+	ctlr=neomagic linear=1
+	hwgc=neomagichwgc
 
 #
 # mode:
@@ -123,106 +270,422 @@ ctlr
 # An attribute 'alias=val' means continue using another monitor type. It can
 # be used to chain classes together. (bad explanation, i know).
 #
-include = 640x480@60Hz						# 60Hz, 31.5KHz
+include = 640x480					# 60Hz, 31.5KHz
 	clock=25.175
 	shb=664 ehb=760 ht=800
 	vrs=491 vre=493 vt=525
 
-include = 640x480@72Hz						# 72Hz, 38.5KHz
+include = 640x480@72Hz					# 72Hz, 38.5KHz
 	clock=32
 	shb=664 ehb=704 ht=832
 	vrs=489 vre=492 vt=520 
 
-include = 800x600@60Hz						# 60Hz, 37.9KHz
-	clock=40
+include = 800x600					# 60Hz, 37.9KHz
+	defaultclock=40
 	shb=840 ehb=1000 ht=1056
 	vrs=605 vre=607 vt=633
 
-include = 1024x768i@87Hz					# 87Hz, 35.5KHz (interlaced)
-	clock=44.9
+include = 1024x768i					# 87Hz, 35.5KHz
+	defaultclock=44.9
 	shb=1048 ehb=1208 ht=1264
 	vrs=776 vre=784 vt=817
 	interlace=v
 
-include = 1024x768@60Hz						# 60Hz, 48.4KHz
-	clock=65
+include = 1024x768@60Hz					# 60Hz, 48.4KHz
+	defaultclock=65
 	shb=1032 ehb=1176 ht=1344
+	shs=1056
 	vrs=771 vre=777 vt=806
 	hsync=- vsync=-
 
-include = 1024x768@70Hz						# 70Hz, 57.2KHz
-	clock=75
-	shb=1128 ehb=1232 ht=1328
+include = 1024x768					# 70Hz, 57.2KHz
+	defaultclock=75
+	shb=1096 ehb=1232 ht=1328
+	shs=1072
 	vrs=771 vre=777 vt=806
 	hsync=- vsync=-
 
-include = 1280x1024i@87Hz					# 87Hz, 48KHz (interlaced)
-	clock=80
+include = 1280x1024i					# 87Hz, 48KHz
+	defaultclock=80
 	shb=1312 ehb=1528 ht=1576
 	vrs=1028 vre=1034 vt=1105
 	interlace=v
 
-include = 1280x1024@74Hz					# 74Hz, 79.6KHz
-	clock=135
+include = 1280x1024					# 74Hz, 79.6KHz
+	defaultclock=135
 	shb=1376 ehb=1544 ht=1712
+	shs=1392
 	vrs=1028 vre=1034 vt=1075
 
-include = 1376x1024@70Hz					# 70Hz, 75.3KHz
-	clock=135
+include = 1376x1024					# 70Hz, 75.3KHz
+	defaultclock=135
 	shb=1440 ehb=1616 ht=1792
 	vrs=1032 vre=1040 vt=1075
 
 #
 # VGA.
 #
-vga = 640x480x1							# 60Hz, 31.5KHz
-	include=640x480@60Hz
-vga = 640x480x8							# 60Hz, 31.5KHz
-	include=640x480@60Hz
-vga = 800x600x1							# 60Hz, 37.9KHz
-	include=800x600@60Hz
-vga = 800x600x8							# 60Hz, 37.9KHz
-	include=800x600@60Hz
+vga = 640x480							# 60Hz, 31.5KHz
+	include=640x480
+vga = 800x600							# 60Hz, 37.9KHz
+	include=800x600
+
+#
+# SVGA (Laptop).
+#
+svga = 640x480
+	include=640x480
+svga = 800x600
+	include=800x600
+
+#
+# XGA (Laptop).
+#
+xga = 1024x768
+	include=1024x768
+xga
+	alias=svga
+
+#
+# LCD
+# Just a convenience, really.
+#
+lcd
+	alias=svga
 
 #
 # Multisync monitors with video bandwidth up to 65MHz.
 #
-multisync65 = 1024x768x1					# 60Hz, 48.4KHz
-	include=1024x768@60Hz
-multisync65 = 1024x768x8					# 60Hz, 48.4KHz
-	include=1024x768@60Hz
-multisync65 = 1024x768x1i					# 87Hz, 35.5KHz (interlaced)
-	include=1024x768i@87Hz
-multisync65 = 1024x768x8i					# 87Hz, 35.5KHz (interlaced)
-	include=1024x768i@87Hz
 multisync65
-	alias=vga
+	videobw=65
+	alias=multisync
+multisync65 = 1024x768					# 60Hz, 48.4KHz
+	include=1024x768@60Hz
 
 #
 # Multisync monitors with video bandwidth up to 75MHz.
 #
-multisync75 = 1024x768x1					# 70Hz, 57.2KHz
-	include=1024x768@70Hz
-multisync75 = 1024x768x8					# 70Hz, 57.2KHz
-	include=1024x768@70Hz
-multisync75 = 1280x1024x1i					# 87Hz, 48KHz (interlaced)
-	include=1280x1024i@87Hz
-multisync75 = 1280x1024x8i					# 87Hz, 48KHz (interlaced)
-	include=1280x1024i@87Hz
 multisync75
-	alias=multisync65
+	videobw=75
+	alias=multisync
 
 #
 # Multisync monitors with video bandwidth up to 135MHz.
 #
-multisync135 = 1280x1024x1					# 74Hz, 79.6KHz
-	include=1280x1024@74Hz
-multisync135 = 1280x1024x8					# 74Hz, 79.6KHz
-	include=1280x1024@74Hz
-multisync135 = 1376x1024x8					# 70Hz, 75.3KHz
-	include=1376x1024@70Hz
 multisync135
-	alias=multisync75
+	videobw=135
+	alias=multisync
+
+#
+# Multisync monitors.  The entry with alias=multisync supplies the bandwidth,
+# which in turn decides the refresh rates when possible.
+#
+multisync
+	alias=vga
+multisync = 1024x768
+	include=1024x768
+multisync = 1024x768i
+	include=1024x768i
+multisync = 1280x1024
+	include=1280x1024
+multisync = 1280x1024i
+	include=1280x1024i
+multisync = 1376x1024
+	include=1376x1024
+
+#
+# Dell VS17X
+#
+vs17x
+	videobw=86
+	alias=multisync
+vs17x = 1024x768					# ??Hz, ??.?KHz
+	defaultclock=86
+	shb=1128 ehb=1232 ht=1328
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
+#
+# Dell UltraScan 21TE (MODEL No. D2130T-HS)
+# Horizontal timing: 
+#	Allowable frequency range: 30-93KHz
+# Vertical timing:
+#	Allowable frequency range: 50-152Hz
+dell21te
+	videobw=135
+	alias=multisync				# this will do for now
+
+#
+# Hitachi CM751U
+# Horizontal timing:
+#	Allowable frequency range: 31-100 kHz
+#		for 31-52,  fp>0.1µs, 1.0µs<sync width<3.8µs,
+#			    bp>1.2µs, blank width>3.5µs
+#		for 52-100, fp>0.1µs, 0.8µs<sync width<2.4µs,
+#			    bp>1.1µs, blank width>2.4µs
+# Vertical timing:
+#	Allowable frequency range: 50-160Hz
+#		fp>9µs, sync width<100µs, bp>400µs, blank width>450µs
+# Video bandwidth:
+#	200MHz monitor
+#
+cm751u
+	videobw=200
+	alias=multisync
+cm751u = 1600x1200					# 75Hz, 93.75 kHz
+	defaultclock=200
+	shb=1664 ehb=1864 ht=2136
+	vrs=1202 vre=1207 vt=1260
+
+#
+# Hitachi CM801U
+# Horizontal timing: 
+#	Allowable frequency range: 31-96KHz
+# Vertical timing:
+#	Allowable frequency range: 50-160Hz
+# Video bandwidth:
+#	200MHz monitor
+#
+cm801u
+	videobw=200
+	alias=multisync
+cm801u = 1600x1200						# 75Hz, 93.3KHz
+	defaultclock=200
+	shb=1792 ehb=1896 ht=2032
+	shs=1680
+	vrs=1202 vre=1205 vt=1232
+cm801u = 1376x1024						# ??Hz, ??.?KHz
+	defaultclock=150
+	shb=1456 ehb=1616 ht=1864
+	shs=1424
+	vrs=1028 vre=1034 vt=1064
+
+#
+# IDEK 5421
+#
+mf5421
+	videobw=135
+	alias=multisync
+mf5421 = 1376x1024						# 72Hz, 90.4KHz
+	defaultclock=135
+	shb=1544 ehb=1616 ht=1792
+	vrs=1028 vre=1034 vt=1075
+
+#
+# IDEK Vision Master 17 (model no. MF-8617)
+# Horizontal timing:
+#	Allowable frequency range: 23.5-86.0KHz
+# Vertical timing:
+#	Allowable frequency range: 50-120Hz
+# Video bandwidth:
+#	135MHz
+#
+ms8617
+	videobw=135
+	alias=multisync
+
+#
+# IDEK Vision Master 21 (model no. MF-8221E)
+# Horizontal timing: 
+#	Allowable frequency range: 24.8-94.0KHz
+# Vertical timing:
+#	Allowable frequency range: 50-160Hz
+# Video bandwidth:
+#	200MHz monitor
+#
+mf8221e
+	videobw=200
+	alias=sm17GLsi
+mf8221e = 1600x1200					# 75Hz, 93.3KHz
+	defaultclock=200
+	shb=1664 ehb=2088 ht=2144
+	shs=1648
+	vrs=1202 vre=1208 vt=1240
+mf8221e = 1376x1024					# ??Hz, ??.?KHz
+	defaultclock=150
+	shb=1456 ehb=1616 ht=1864
+	shs=1424
+	vrs=1028 vre=1034 vt=1064
+pro502
+	alias=mf8221e
+
+#
+# Micron 17FGx
+# Horizontal timing: 
+#	Allowable frequency range: 30-64KHz
+# Vertical timing:
+#	Allowable frequency range: 50-100Hz
+# Video bandwidth:
+#	75MHz
+#
+micron-17FGx
+	videobw=75
+	alias=multisync
+micron-17FGx = 1024x768
+	defaultclock=75
+	shb=1072 ehb=1232 ht=1296
+	shs=1072
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
+#
+# Nanao FlexScan 6500 (greyscale)
+#
+nanao6500
+	videobw=135
+	alias=multisync
+nanao6500 = 1376x1024					# ??Hz, ??.?KHz
+	defaultclock=135
+	shb=1448 ehb=1616 ht=1760
+	shs=1536
+	vrs=1028 vre=1034 vt=1064
+
+#
+# NEC 4FG
+# Horizontal timing:
+#	Allowable frequency range: 27-57KHz
+# Vertical timing:
+#	Allowable frequency range: 55-90Hz
+# Video bandwidth:
+#	75MHz
+#
+nec4fg
+	videobw=75
+	alias=multisync
+
+#
+# NEC 5FG
+# Horizontal timing:
+#	Allowable frequency range: 27-79KHz
+# Vertical timing:
+#	Allowable frequency range: 55-90Hz
+# Video bandwidth:
+#	135MHz monitor
+#	75MHz cable
+#
+nec5fg
+	videobw=135
+	alias=multisync
+nec5fg = 1280x1024
+	defaultclock=135
+	shb=1352 ehb=1544 ht=1712
+	shs=1328
+	vrs=1028 vre=1034 vt=1075
+nec5fg = 1024x768					# 70Hz, 57.2KHz
+	defaultclock=75
+	shb=1080 ehb=1232 ht=1328
+	shs=1072
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
+#
+# NEC Versa 6030X/6200MX Laptop.
+#
+versa6xxx = 1024x768
+	clock=63
+	include=1024x768@60Hz
+versa6xxx = 800x600
+	clock=63
+	include=800x600@60Hz
+versa6xxx = 640x480
+	clock=63
+	include=640x480@60Hz
+
+#
+# NEC Versa LX Laptop, 13.3" 1024x768 screen.
+#
+versalx = 1024x768
+	clock=65
+	include=1024x768
+
+# smaller modes require programming centering, which i don't have right yet. -rsc
+# versalx = 800x600
+# 	clock=15
+# 	include=800x600
+# versalx = 640x480
+# 	clock=15
+# 	shb=832 ehb=1264 ht=1344
+# 	shs=872
+# 	vrs=626 vre=664 vt=806
+# 	hsync=- vsync=-
+
+#
+# Nokia Multigraph 445X
+# Horizontal timing:
+#	Allowable frequency range: 30-102KHz
+#	Blanking time: <= 20% of line period min.
+#	Back porch time: 0.6->1.0µs
+# Vertical timing:
+#	Allowable frequency range: 50-120Hz
+#	Sync width time: 0.045ms min. between start of sync
+#			 and start of video
+# Video bandwidth:
+#	200MHz
+#
+445x
+	videobw=200
+	alias=multisync
+445x = 1280x1024					# 74Hz, 79.6KHz
+	defaultclock=135
+	shb=1352 ehb=1544 ht=1712
+	shs=1392
+	vrs=1028 vre=1034 vt=1075
+445x = 1600x1200					# 72Hz, 90.4KHz
+	defaultclock=200
+	shb=1664 ehb=2088 ht=2208
+	vrs=1202 vre=1208 vt=1256
+445x = 640x480						# 72Hz, 38.5KHz
+	defaultclock=32
+	shb=664 ehb=760 ht=800
+	vrs=491 vre=493 vt=525
+
+#
+# Sampo KDM-1788
+# Horizontal timing: 
+#	Allowable frequency range: 30-82KHz
+# Vertical timing:
+#	Allowable frequency range: 50-120Hz
+# Video bandwidth:
+#	135MHz
+#
+kdm-1788
+	videobw=135
+	alias=multisync
+
+#
+# Samsung SyncMaster 17GLsi
+# Horizontal timing: 
+#	Allowable frequency range: 30-85KHz
+# Vertical timing:
+#	Allowable frequency range: 50-120Hz
+# Video bandwidth:
+#	135MHz monitor
+#
+sm17GLsi
+	videobw=135
+	alias=multisync
+sm17GLsi = 1280x1024					# 74Hz, 79.6KHz
+	defaultclock=135
+	shb=1344 ehb=1544 ht=1616
+	shs=1304
+	vrs=1028 vre=1034 vt=1064
+sm17GLsi = 1024x768						# 70Hz, 57.2KHz
+	defaultclock=75
+	shb=1080 ehb=1232 ht=1328
+	shs=1072
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
+#
+# Sony CPD-1304
+# Horizontal timing:
+#	Allowable frequency range: 28-50KHz
+# Vertical timing:
+#	Allowable frequency range: 50-87Hz
+#
+cpd-1304
+	videobw=65
+	alias=multisync
 
 #
 # Viewsonic 17 (model no. 1782)
@@ -239,71 +702,88 @@ multisync135
 #	Sync width time: 0.045ms min.
 #
 vs1782
+	videobw=135
 	alias=multisync135
+vs1782 = 1280x1024
+	defaultclock=135
+	shb=1360 ehb=1544 ht=1632
+	shs=1312
+	vrs=1028 vre=1034 vt=1075
 
 #
-# IDEK Vision Master 17 (model no. MF-8617)
-# Horizontal timing:
-#	Allowable frequency range: 23.5-86.0KHz
-# Vertical timing:
-#	Allowable frequency range: 50-120Hz
-# Video bandwidth:
-#	135MHz
+# Viewsonic G790
+# Hacked from the VS1782 for now
 #
-ms8617
-	alias=multisync135
+g790
+	videobw=135
+	alias=multisync
+g790 = 1280x1024
+	defaultclock=135
+	shb=1360 ehb=1544 ht=1632
+	shs=1312 ehs=1542
+	vrs=1028 vre=1034 vt=1075
 
 #
-# Nokia Multigraph 445X
-# Horizontal timing:
-#	Allowable frequency range: 30-102KHz
-#	Blanking time: <= 20% of line period min.
-#	Back porch time: 0.6->1.0µs
-# Vertical timing:
-#	Allowable frequency range: 50-120Hz
-#	Sync width time: 0.045ms min. between start of sync
-#			 and start of video
-# Video bandwidth:
-#	200MHz
+# Viewsonic P815
 #
-445x = 1600x1200x8						# 72Hz, 90.4KHz
-	clock=200
-	shb=1664 ehb=2088 ht=2208
-	vrs=1202 vre=1208 vt=1256
-445x
-	alias=multisync135
-
+p815
+	videobw=220
+	alias=multisync
+p815 = 1800x1350					# 70Hz, xx.xKHz
+	defaultclock=220
+	shb=1872 ehb=2128 ht=2248
+	shs=1824 ehs=1896
+	vrs=1356 vre=1368 vt=1394
+p815 = 1600x1200					# 75.4Hz, 93.5KHz
+	defaultclock=200
+	shb=1664 ehb=2088 ht=2144
+	shs=1648
+	vrs=1202 vre=1208 vt=1240
+p815 = 1024x768
+	clock=79
+	include=1024x768
 #
-# Sony CPD-1304
-# Horizontal timing:
-#	Allowable frequency range: 28-50KHz
-# Vertical timing:
-#	Allowable frequency range: 50-87Hz
+# SGI 1600SW Flat Panel
 #
-cpd-1304
-	alias=multisync65
-
+sgi1600sw = 1600x1024
+	clock=103.125
+	shb=1608 ehb=1624 ht=1632
+	vrs=1024 vre=1029 vt=1030
+	hsync=+ vsync=+
+sgi1600sw = 800x512
+	#clock=103.125
+	clock=54.375
+	shb=800 ehb=840 ht=848
+	vrs=512 vre=514 vt=515
+	zoom=1
+	hsync=+ vsync=+
 #
-# NEC 4FG
-# Horizontal timing:
-#	Allowable frequency range: 27-57KHz
-# Vertical timing:
-#	Allowable frequency range: 55-90Hz
-# Video bandwidth:
-#	75MHz
+# Viewsonic VPD150
 #
-nec4fg
-	alias=multisync75
-
+vpd150 = 1024x768
+	clock=65.14
+	shb=1096 ehb=1232 ht=1344
+	shs=1064 ehs=1200
+	vrs=770 vre=776 vt=806
+	hsync=- vsync=-
+vpd150 = 800x600
+	clock=65.14
+	include=800x600
+vpd150 = 640x480
+	clock=65.14
+	include=640x480
 #
-# NEC 5FG
-# Horizontal timing:
-#	Allowable frequency range: 27-79KHz
-# Vertical timing:
-#	Allowable frequency range: 55-90Hz
-# Video bandwidth:
-#	135MHz monitor
-#	75MHz cable
+# NEC Multisync LCD1525X
 #
-nec5fg
-	alias=multisync135
+lcd1525x = 1024x768
+	clock=78.82
+	shb=1096 ehb=1232 ht=1344
+	shs=1064 ehs=1200
+	vrs=770 vre=776 vt=806
+	hsync=- vsync=-
+#
+# COMPAQ Armada E500
+#
+e500 = 800x600
+	clock=79.74
+	include=800x600

@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 
-char choice[512];
+char choice[2048];
 char index[] = "/sys/games/lib/fortunes.index";
 char fortunes[] = "/sys/games/lib/fortunes";
 
@@ -12,7 +12,7 @@ main(int argc, char *argv[])
 	int i;
 	long offs;
 	uchar off[4];
-	int ix;
+	int ix, nix;
 	int newindex, oldindex;
 	char *p;
 	Dir fbuf, ixbuf;
@@ -32,9 +32,10 @@ main(int argc, char *argv[])
 			dirfstat(ix, &ixbuf);
 			dirfstat(Bfildes(f), &fbuf);
 			if(fbuf.mtime > ixbuf.mtime){
-				close(ix);
-				ix = create(index, OWRITE, 0666);
-				if(ix >= 0){
+				nix = create(index, OWRITE, 0666);
+				if(nix >= 0){
+					close(ix);
+					ix = nix;
 					newindex = 1;
 					oldindex = 0;
 				}
@@ -45,12 +46,8 @@ main(int argc, char *argv[])
 				newindex = 1;
 		}
 	}
-	srand(time(0));
-	i = getpid()&32767;
-	while(--i >= 0)
-		rand();
 	if(oldindex){
-		seek(ix, nrand(ixbuf.length/sizeof(offs))*sizeof(offs), 0);
+		seek(ix, fastrand()%(ixbuf.length/sizeof(offs))*sizeof(offs), 0);
 		read(ix, off, sizeof(off));
 		Bseek(f, off[0]|(off[1]<<8)|(off[2]<<16)|(off[3]<<24), 0);
 		p = Brdline(f, '\n');
@@ -75,7 +72,7 @@ main(int argc, char *argv[])
 				off[3] = offs>>24;
 				Bwrite(&g, off, sizeof(off));
 			}
-			if(nrand(i)==0)
+			if(fastrand()%i==0)
 				strcpy(choice, p);
 		}
 	}

@@ -1,0 +1,1773 @@
+#include	"u.h"
+#include	"../port/lib.h"
+#include	"mem.h"
+#include	"dat.h"
+#include	"fns.h"
+#include	"io.h"
+#include	"../port/error.h"
+
+/*
+ * WD95a Low level driver
+ *
+ * This is the code for the old SCSI device interface.
+ * It's the only documentation on the chips so it is left here
+ * in the event someone wants to fix up the sdwd95a stub.
+ */
+enum
+{
+	OwnID	=	0,		/* Host bus unit */
+
+	/*
+	 * Setup mode registers
+	 */
+	Sctl	= (0<<3),
+	SScnf	= (2<<3),
+	   ScnfClk2	= (1<<7),
+	   ScnfClk1	= (1<<6),
+	   ScnfClk0	= (1<<5),
+	   ScnfRSTF	= (1<<4),
+	   ScnfSPUE	= (1<<3),
+	   ScnfSPDE	= (1<<2),
+	   ScnfSCSIL	= (1<<1),
+	   ScnfLRCC	= (1<<0),
+	Sownid	= (4<<3),
+	STimout	= (6<<3),
+	SSleep	= (8<<3),
+	STimer	= (10<<3),
+	SCdbs1	= (12<<3),
+	SCdbs2	= (14<<3),
+	Sidflg0	= (16<<3),
+	Sidflg1	= (18<<3),
+	SDMAcnf	= (20<<3),
+	   DmaSwap	= (1<<7),
+	   Dma16	= (1<<6),
+	   DmaDac	= (1<<5),
+	   DmaDrq	= (1<<4),
+	   DmaDpen	= (1<<3),
+	   DmaPgen	= (1<<2),
+	   DmaMaster	= (1<<1),
+	   DmaBurst	= (1<<0),
+	SDMAtim	= (22<<3),
+	   DmaOE	= (1<<7),
+	   DmaDSRW	= (1<<6),
+	   DmaL2	= (1<<5),
+	   DmaL1	= (1<<4),
+	   DmaL0	= (1<<3),
+	   DmaH2	= (1<<2),
+	   DmaH1	= (1<<1),
+	   DmaH0	= (1<<0),
+	Stest0	= (24<<3),
+	SSC0	= (26<<3),
+	   BusSELO	= (1<<0),
+	   BusSELI	= (1<<1),
+	   BusBSYO	= (1<<2),
+	   BusBSYI	= (1<<3),
+	   BusRSTI	= (1<<5),
+	   BusSDP	= (1<<6),
+	   BusSDP1	= (1<<7),
+	SSC1	= (28<<3),
+	   BusREQ	= (1<<0),
+	   BusACK	= (1<<1),
+	   BusMSG	= (1<<2),
+	   BusCD	= (1<<3),
+	   BusIO	= (1<<4),
+	   BusATN	= (1<<5),
+	   BusTGS	= (1<<6),
+	   BusIGS	= (1<<7),
+	SSC2	= (30<<3),
+	SSC3	= (32<<3),
+	SCSadr	= (34<<3),
+	SCSprt0	= (36<<3),
+	SCSprt1	= (38<<3),
+	SCSprt2	= (40<<3),
+	SCSprt3	= (42<<3),
+	Ssqsel	= (44<<3),
+	Ssqrsl	= (46<<3),
+
+	SSQdma	= (48<<3),
+	   Halt	= 0x7f,
+	SDpradd	= (50<<3),
+	SDprtc	= (52<<3),
+	SPlr	= (54<<3),
+	SPsz0	= (56<<3),
+	SPsz1	= (58<<3),
+	SPing	= (60<<3),
+	SCmpix	= (62<<3),
+	SCmpval	= (64<<3),
+	SCmpmsk	= (66<<3),
+	SBBdl	= (68<<3),
+	SBBdh	= (70<<3),
+	SCver	= (72<<3),
+	STest1	= (74<<3),
+	SOffset	= (76<<3),
+
+	/*
+	 * Real registers
+	 */
+	Nctl		= (0<<3),
+	  Ctlrst0	= (1<<5),
+	  CtlLdtcl	= (1<<4),
+	  CtlLdtc	= (1<<3),
+	  CtlKill	= (1<<2),
+	  Ctlabt	= (1<<1),
+	  Ctlsetup	= (1<<0),
+	Nclta		= (2<<3),
+	  CtlaBYTEC	= (1<<7),
+	  CtlaPBS	= (1<<6),
+	  CtlaPAS	= (1<<5),
+	  CtlaPPEN	= (1<<4),
+	  CtlaPIO	= (1<<3),
+	  CtlaLRCGS	= (1<<2),
+	  CtlaATNHD	= (1<<1),
+	  CtlaMRM	= (1<<0),
+	Nisr		= (4<<3),
+	   IsrINTO	= (1<<7),
+	   IsrSREJ	= (1<<6),
+	   IsrVBSYI	= (1<<5),
+	   IsrBSYI	= (1<<4),
+	   IsrUEI	= (1<<3),
+	   IsrSTOPU	= (1<<2),
+	   IsrINTWCS	= (1<<1),
+	   IsrSTPWCS	= (1<<0),
+	Nstopu		= (6<<3),
+	   StpuSOE	= (1<<5),
+	   StpuTCUND	= (1<<4),
+	   StpuLRCE	= (1<<3),
+	   StpuPARE	= (1<<2),
+	   StpuSCSIT	= (1<<1),
+	   StpuABORTI	= (1<<0),
+	Nuei		= (8<<3),
+	   UeiRST	= (1<<7),
+	   UeiUPHAS	= (1<<6),
+	   UeiURSEL	= (1<<5),
+	   UeiUSEL	= (1<<4),
+	   UeiTCOVR	= (1<<3),
+	   UeiUDISC	= (1<<2),
+	   UeiATNI	= (1<<1),
+	   UeiFIFOE	= (1<<0),
+	Nisrm		= (10<<3),
+	   NisrmSREJM 	= (1<<6),
+	   NisrmVBSYIM	= (1<<5),
+	   NisrmBSYIM	= (1<<4),
+	   NisrmUEIM	= (1<<3),
+	   NisrmSTOPUM	= (1<<2),
+	   NisrmINTWCSM	= (1<<1),
+	   NisrmSTOPWCS	= (1<<0),
+	Nstopum		= (12<<3),
+	   StpumSOEM	= (1<<5),
+	   StpumTCUN	= (1<<4),
+	   StpumLRC	= (1<<3),
+	   StpumPAR	= (1<<2),
+	   StpumSCS	= (1<<1),
+	   StpumABOR	= (1<<0),
+	Nueim		= (14<<3),
+	   UeimRST	= (1<<7),
+	   UeimUPHASM	= (1<<6),
+	   UeimURSELM	= (1<<5),
+	   UeimUSELM	= (1<<4),
+	   UeimTCOVRM	= (1<<3),
+	   UeimUDISCM	= (1<<2),
+	   UeimATNIM	= (1<<1),
+	   UeimFIFOEM0	= (1<<0),
+	Nrespons	= (16<<3),
+	   NrespALLRR	= (1<<6),
+	   NrespAUTOD	= (1<<5),
+	   NrespAUTOR	= (1<<4),
+	   NrespRSELH	= (1<<3),
+	   NrespRESEL	= (1<<2),
+	   NrespSELH	= (1<<1),
+	   NrespSELL	= (1<<0),
+	Nsqint		= (18<<3),
+	Nsqadr		= (20<<3),
+	Nstc		= (22<<3),
+	   StcWIDE	= (1<<7),
+	Nspw		= (24<<3),
+	   SpwSlow	= 2,
+	Ndestid		= (26<<3),
+	Nsrcid		= (28<<3),
+	   NsrcidSIV	= (1<<4),
+	Nflag		= (30<<3),
+	   /* Initiator flag values defined by WCS code */
+	   WCSdataok	= (1<<0),	/* data phase ok */
+	   WCSdir	= (1<<1),	/* data phase direction (set == in) */
+	   WCSmultimsg	= (1<<2),	/* multiple byte message out */
+	Ntclo		= (32<<3),
+	Ntcmid		= (34<<3),
+	Ntchi		= (36<<3),
+	Ndata		= (38<<3),
+	Nsr		= (40<<3),
+	   NsrACTIVE	= (1<<2),
+	   NsrVBUSY	= (1<<1),
+	   NsrBUSY	= (1<<0),
+	Nfifos		= (42<<3),
+	Npbr		= (44<<3),
+	Nbr0		= (46<<3),
+	Nbr1		= (48<<3),
+	Npingr		= (50<<3),
+	Nlrcr0		= (52<<3),
+	Nlrcr1		= (54<<3),
+	Noddr		= (56<<3),
+	Ndpr		= (64<<3),
+
+	/* 
+	 * Scsi Messages
+	 */
+	Mcomplete	= 0x00,		/* complete */
+	Msaveptr	= 0x02,		/* save pointers */
+	Mrestptr	= 0x03,		/* restore pointers */
+	Mdisconnect	= 0x04,		/* disconnect */
+	Mabort		= 0x06,		/* abort */
+	Mreject		= 0x07,		/* reject */
+	Mnop		= 0x08,		/* nop */
+	Mbdr		= 0x0C,		/* bus device reset */
+	Midentify	= 0x80,		/* identify */
+	Mallowdisc	= 0x40,		/* disconnect ok */
+	Mwide		= 0x03,		/* wide message */
+	Mwide16		= 0x01,		/* 16 bits */
+	Mextend		= 0x01,		/* enetended message code */
+	Msynclen	= 0x03,		/* DTR length */
+	Msync		= 0x01,		/* Sync request */
+	
+	/*
+	 * Control store addresses
+	 */
+	WCSsel		= 0,		/* initiator starts sel */
+	WCSselnomsg	= 0x01,		/* where we stop without msgs*/
+	WCSitlnexus	= 0x02,		/* go do just a straight id */
+	WCSresel	= 0x0a,		/* initiator starts resel */
+	WCSrslunk	= 0x0a,		/* unknown message on resel */
+	WCSrslid	= 0x0b,		/* ID message */
+	WCSrslqt	= 0x0c,		/* que tag type message */
+	WCSrslque	= 0x0d,		/* que tag message */
+	WCSdispatch	= 0x0e,		/* initiator phase change handler */
+	WCSdata		= 0x1b,		/* in the midst of the data phase */
+	WCSunkmsg	= 0x24,		/* unknown message in phase */
+	WCSmsgi0	= 0x27,		/* extended message in with 0 len */
+	WCSmsgi1	= 0x29,		/* extended message in with 1 len */
+	WCSmsgi2	= 0x2b,		/* extended message in with 2 len */
+	WCSmsgi3	= 0x2d,		/* extended message in with 3 len */
+	WCSmsgi4	= 0x2f,		/* extended message in with 4 len */
+	WCSmsgi5	= 0x30,		/* extended message in with 5 len */
+	WCSsuprisedisc	= 0x32,		/* suprise disconnect */
+	WCSdisc		= 0x33,		/* disconnected from bus */
+	WCSconclude	= 0x46,		/* starting the conclusion sequence */
+	WCSeopfree	= 0x4d,		/* waiting for bus free */
+	WCScomplete	= 0x4e,		/* completed command */
+	WCSnatn		= 0x64,		/* negate attention, go to dispatch */
+	WCSselext	= 0x70,		/* sel with extended message */
+	WCSselenm	= 0x71,		/* sel with extended but no msg*/
+	WCSnresel	= 0x75,		/* new initiator starts resel */
+	WCSrslcont	= 0x75,		/* after reselection, continue here */
+	WCSnrslid	= 0x76,		/* just simple id reconnect */
+	WCSselnatn	= 0x7d,		/* select without atn */
+
+	/*
+	 * Initiator Dual port register locations
+	 */
+	WCSmsgout	= (0<<4),	/* message out block */
+	WCStagout	= (2<<4),	/* tag message for initial conn. */
+	WCSqueout	= (3<<4),	/* tag value for initial conn. */
+	WCSidout	= (5<<4),	/* Identify message out */
+	WCSmsgoutl	= (7<<4),	/* message out length */
+	WCSidin		= (8<<4),	/* identify message in for reconn. */
+	WCStagin	= (9<<4),	/* tag message for reconn. */
+	WCSquein	= (10<<4),	/* queue message for reconn. */
+	WCSstatus	= (11<<4),	/* status byte */
+	WCSmsgin	= (12<<4),	/* message in block */
+	WCScmdblk	= (20<<4),	/* command bytes */
+};
+
+enum
+{
+	NCtlr		= 4,
+	NTarget		= 8,
+	Nscratch	= 255,
+	Ninq		= 255,
+
+	Fbusy		= (1<<0),
+	Fidentified	= (1<<1),
+	Fdisconnected	= (1<<2),
+	Freselect	= (1<<3),
+	Fcomplete	= (1<<4),
+	Fidentifying	= (1<<9),
+	Fwide		= (1<<10),
+	Fsync		= (1<<11),
+	Fallowdisc	= (1<<12),
+
+	CMDinquire	= 0x12,
+	CMDreqsense	= 0x03,
+};
+
+typedef struct Target Target;
+struct Target
+{
+	QLock;
+	Lock	regs;
+	Rendez;
+
+	ulong	flags;
+	ulong	negotiate;
+	uchar	syncper;
+	uchar	syncoff;
+	uchar	transfer;
+	uchar	ok;			/* Device is active */
+
+	Target*	active;			/* link on active list */
+
+	int	target;			/* SCSI Unit and logical unit */
+	int	lun;
+	int	status;
+
+	uchar	cdb[16];		/* Scsi command and direction */
+	int	clen;
+	int	rflag;
+
+	uchar*	inq;			/* result of inquiry at probe */
+	uchar*	scratch;		/* scratch data area */
+
+	S1chan*	s1p;			/* DMA things */
+	ulong	addr;			/* Transfer address */
+	ulong	start;			/* Starting address */
+	int	len;			/* Length of whole transfer */
+	int	xfrlen;			/* Length we asked WD95 for */
+	int	mapsize;
+	ulong*	mapreg;
+
+	ulong	dev;			/* Device hardware address */
+
+	Target*	base;
+	Target*	ctlr;
+};
+
+#define DBG	if(0) print
+
+static	Target	target[NCtlr][NTarget];
+static	void	dmamap(Target*);
+static	void	dmaflush(Target*);
+	int	scsiexec(Target*, int, uchar*, int, void*, int*);
+
+#define LOGSIZE 2048
+char	logbuf[2][LOGSIZE];
+int	lp[2];
+Lock	logl[2];
+static void
+slog(int bus, char c, int l)
+{
+	if(l & 1)
+		ilock(&logl[bus]);
+	logbuf[bus][lp[bus]++] = c;
+	if(lp[bus] >= LOGSIZE)
+		lp[bus] = 0;
+	if(l & 2)
+		iunlock(&logl[bus]);	
+}
+
+static int
+done(void *arg)
+{
+	return (((Target*)arg)->flags & Fbusy) == 0;
+}
+
+static void
+wreg(Target *ctlr, int reg, int val)
+{
+	ulong *p;
+
+	p = (ulong*)(ctlr->dev + reg + 4);
+	*p = val;
+}
+
+static int
+rreg(Target *ctlr, int reg)
+{
+	ulong *p;
+
+	p = (ulong*)(ctlr->dev + reg + 4);
+	return *p & 0xff;
+}
+
+static int
+rdtc(Target *dev)
+{
+	int tc;
+
+	tc = rreg(dev, Ntchi);
+	tc = (tc<<8)|rreg(dev, Ntcmid);
+	return (tc<<8)|rreg(dev, Ntclo);
+}
+
+static char *key[] =
+{
+	"no sense",
+	"recovered error",
+	"not ready",
+	"medium error",
+	"hardware error",
+	"illegal request",
+	"unit attention",
+	"data protect",
+	"blank check",
+	"vendor specific",
+	"copy aborted",
+	"aborted command",
+	"equal",
+	"volume overflow",
+	"miscompare",
+	"reserved"
+};
+
+int
+scsireqsense(Target *tp, int lun, void *data, int *nbytes, int quiet)
+{
+	char *s;
+	int status, try;
+	uchar cmd[6], *sense;
+
+	sense = malloc(*nbytes);
+
+	for(try = 0; try < 5; try++) {
+		memset(cmd, 0, sizeof(cmd));
+		cmd[0] = CMDreqsense;
+		cmd[1] = lun<<5;
+		cmd[4] = *nbytes;
+		memset(sense, 0, *nbytes);
+
+		status = scsiexec(tp, SCSIread, cmd, sizeof(cmd), sense, nbytes);
+		if(status != STok){
+			free(sense);
+			return status;
+		}
+		*nbytes = sense[0x07]+8;
+		memmove(data, sense, *nbytes);
+
+		/*
+		 * Unit attention. We can handle that.
+		 */
+		if((sense[2] & 0x0F) == 0x00 || (sense[2] & 0x0F) == 0x06){
+			free(sense);
+			return STok;
+		}
+
+		/*
+		 * Recovered error. Why bother telling me.
+		 */
+		if((sense[2] & 0x0F) == 0x01){
+			free(sense);
+			return STok;
+		}
+
+		/*
+		 * Unit is becoming ready
+		 */
+		if(sense[12] != 0x04 || sense[13] != 0x01)
+			break;
+
+		delay(5000);
+	}
+
+	if(quiet == 0){
+		s = key[sense[2]&0xf];
+		print("scsi%d: unit %d reqsense: '%s' code #%2.2ux #%2.2ux\n",
+			tp->ctlr->s1p->chan, tp->target, s, sense[12], sense[13]);
+	}
+	free(sense);
+	return STcheck;
+}
+
+Target*
+scsiunit(int ctlr, int unit)
+{
+	Target *t;
+
+	if(ctlr < 0 || ctlr >= NCtlr)
+		return 0;
+	if(unit < 0 || unit > 7)
+		return 0;
+	if(target[ctlr][OwnID].ok == 0)
+		return 0;
+	t = &target[ctlr][unit];
+	if(t->ok == 0)
+		return 0;
+	return t;
+}
+
+int
+scsistart(Target *t, int lun, int s)
+{
+	uchar cmd[6];
+
+	memset(cmd, 0, sizeof cmd);
+	cmd[0] = 0x1b;
+	cmd[1] = lun<<5;
+	cmd[4] = s ? 1 : 0;
+	return scsiexec(t, SCSIread, cmd, sizeof(cmd), 0, 0);
+}
+
+int
+scsitur(Target *t, int lun)
+{
+	uchar cmd[6];
+
+	memset(cmd, 0, sizeof cmd);
+	cmd[1] = lun<<5;
+	return scsiexec(t, SCSIread, cmd, sizeof(cmd), 0, 0);
+}
+
+int
+scsiinquiry(Target *t, int lun, void *data, int *datalen)
+{
+	uchar cmd[6];
+
+	memset(cmd, 0, sizeof cmd);
+	cmd[0] = CMDinquire;
+	cmd[1] = lun<<5;
+	cmd[4] = *datalen;
+	return scsiexec(t, SCSIread, cmd, sizeof(cmd), data, datalen);
+}
+
+int
+scsicap(Target *t, int lun, ulong *size, ulong *bsize)
+{
+	int s, nbytes;
+	uchar cmd[10], *d;
+
+	memset(cmd, 0, sizeof(cmd));
+	cmd[0] = 0x25;
+	cmd[1] = lun<<5;
+
+	d = malloc(8);
+	if(d == 0)
+		return -1;
+
+	nbytes = 8;
+	if((s = scsiexec(t, SCSIread, cmd, sizeof(cmd), d, &nbytes)) == STok){
+		*size  = (d[0]<<24)|(d[1]<<16)|(d[2]<<8)|(d[3]<<0);
+		*bsize = (d[4]<<24)|(d[5]<<16)|(d[6]<<8)|(d[7]<<0);
+	}
+	free(d);
+	return s;
+}
+
+int
+scsibio(Target *t, int lun, int dir, void *b, long n, long bsize, long bno)
+{
+	uchar cmd[10];
+	int s, cdbsiz, nbytes;
+
+	memset(cmd, 0, sizeof cmd);
+	if(bno <= 0x1fffff && n < 256) {
+		cmd[0] = 0x0A;
+		if(dir == SCSIread)
+			cmd[0] = 0x08;
+		cmd[1] = (lun<<5) | bno >> 16;
+		cmd[2] = bno >> 8;
+		cmd[3] = bno;
+		cmd[4] = n;
+		cdbsiz = 6;
+	}
+	else {
+		cmd[0] = 0x2A;
+		if(dir == SCSIread)
+			cmd[0] = 0x28;
+		cmd[1] = (lun<<5);
+		cmd[2] = bno >> 24;
+		cmd[3] = bno >> 16;
+		cmd[4] = bno >> 8;
+		cmd[5] = bno;
+		cmd[6] = 0;
+		cmd[7] = n>>8;
+		cmd[8] = n;
+		cdbsiz = 10;
+	}
+	nbytes = n*bsize;
+	s = scsiexec(t, dir, cmd, cdbsiz, b, &nbytes);
+	if(s < 0) {
+		nbytes = Nscratch;
+		scsireqsense(t, lun, t->scratch, &nbytes, 0);
+		return -1;
+	}
+	return nbytes;
+}
+
+int
+scsierrstr(int errno)
+{
+	char *p;
+
+	switch(errno){
+	case STnomem:
+		p = Enomem;
+		break;
+	case STtimeout:
+		p = "bus timeout";
+		break;
+	case STownid:
+		p = "playing with myself";
+		break;
+	case STharderr:
+		p = Eio;
+		break;
+	case STok:
+		p = Enoerror;
+		break;
+	case STcheck:
+		p = "check condition";
+		break;
+	case STcondmet:
+		p = "condition met/good";
+		break;
+	case STbusy:
+		p = "busy";
+		break;
+	case STintok:
+		p = "intermediate/good";
+		break;
+	case STintcondmet:
+		p = "intermediate/condition met/good";
+		break;
+	case STresconf:
+		p = "reservation conflict";
+		break;
+	case STterminated:
+		p = "command terminated";
+		break;
+	case STqfull:
+		p = "queue full";
+		break;
+
+	default:
+		p = "unknown SCSI error";
+		break;
+	}
+	strncpy(up->error, p, NAMELEN);
+
+	return -1;
+}
+
+static void
+scsiprobe(Target *ctlr)
+{
+	Target *tp;
+	uchar cmd[6];
+	int i, s, nbytes;
+
+	for(i = 0; i < NTarget; i++) {
+		if(i == OwnID)
+			continue;
+
+		tp = &ctlr[i];
+
+		/*
+		 * Test unit ready
+		 */
+		memset(cmd, 0, sizeof(cmd));
+		s = scsiexec(tp, SCSIread, cmd, sizeof(cmd), 0, 0);
+		if(s < 0)
+			continue;
+		s = scsiexec(tp, SCSIread, cmd, sizeof(cmd), 0, 0);
+		if(s < 0)
+			continue;
+
+		/*
+		 * Determine if the drive exists and is not ready or
+		 * is simply not responding
+		 */
+		nbytes = Nscratch;
+		s = scsireqsense(tp, 0, tp->scratch, &nbytes, 0);
+		if(s != STok) {
+			print("scsi%d: unit %d unavailable, status %d\n",
+						tp->ctlr->s1p->chan, i, s);
+			continue;
+		}
+
+		/*
+		 * Inquire to find out what the device is
+		 * Drivers then use the result to attach to targets
+		 */
+		memset(tp->inq, 0, Ninq);
+		cmd[0] = CMDinquire;
+		cmd[4] = Ninq;
+		nbytes = Ninq;
+		s = scsiexec(tp, SCSIread, cmd, sizeof(cmd), tp->inq, &nbytes);
+		if(s < 0) {
+			print("scsi%d: unit %d inquire failed, status %d\n",
+						tp->ctlr->s1p->chan, i, s);
+			continue;
+		}
+		print("scsi%d: unit %d %s\n", tp->ctlr->s1p->chan, i, (char*)(tp->inq+8));
+		tp->ok = 1;
+	}
+}
+
+/*
+ * Inventory all the devices attached to the machine
+ */
+static void
+inventory(void)
+{
+	int i;
+	static Lock ilock;
+	static int inited;
+
+	lock(&ilock);
+	if(inited) {
+		unlock(&ilock);
+		return;
+	}
+	inited = 1;
+	unlock(&ilock);
+
+	for(i = 0; i < NCtlr; i++) {
+		if(target[i][OwnID].ok)
+			scsiprobe(target[i]);
+	}
+}
+
+int
+scsiinv(int devno, int *type, Target **rt, uchar **inq, char *id)
+{
+	Target *t;
+	int ctlr, *i, unit;
+
+	inventory();
+
+	for(;;) {
+		ctlr = devno/NTarget;
+		unit = devno%NTarget;
+		if(ctlr >= NCtlr)
+			return -1;
+
+		t = &target[ctlr][unit];
+		devno++;
+		if(unit != OwnID && t->ok){
+			for(i = type; *i >= 0; i++){
+				if((t->inq[0]&0x1F) != *i)
+					continue;
+				*rt = t;
+				*inq = t->inq;
+				sprint(id, "scsi%d: unit %d", ctlr, unit);
+				return devno;
+			}
+		}
+	}
+	return -1;
+}
+
+static void
+issue(Target *ctlr, int sqaddr)
+{
+	int try, v;
+
+	try = 5000;
+	for(;;) {
+		v = rreg(ctlr, Nsr);
+		if((v&NsrACTIVE) == 0)
+			break;
+		try--;
+		if(try == 0) {
+			print("scsi%d: issue, controller ACTIVE sr=#%ux\n",
+				ctlr->s1p->chan, v & 0xff);
+			break;
+		}
+	}
+	wreg(ctlr, Nsqadr, sqaddr);
+}
+
+static void
+status(Target *ctlr)
+{
+	Target *t;
+
+	t = ctlr->active;
+	t->status = rreg(ctlr, Ndpr+WCSstatus);
+
+	DBG("status=%d\n", t->status);
+}
+
+static int
+loadup(Target *dev)
+{
+	Target *tp;
+	int flg, l, i;
+
+	tp = dev->active;
+
+	/*
+	 * This 0x100 byte partial transfer is all monkey see/monkey do
+	 * from the SGI driver. There is no adequate explanation of either
+	 * the bug which causes it or the results of its manifestation
+	 */
+	i = 0x100 - (tp->addr & 0x7f);
+	if((tp->syncoff & 0x1f) == 0 && tp->rflag == SCSIread && tp->len > i) {
+		l = i;
+		wreg(dev, Nisrm, 0x7F);
+	}
+	else {
+		l = tp->len;
+		if((tp->syncoff&0x1f) && (l & 1))
+			l++;
+		wreg(dev, Nisrm, 0x6F);
+	}
+
+	tp->xfrlen = l;
+	wreg(dev, Ntclo,  (l>>0)&0xff);
+	if(l > 0xff) {
+		wreg(dev, Ntcmid, (l>>8)&0xff);
+		if(l > 0xffff)
+			wreg(dev, Ntchi,  (l>>16)&0xff);
+	}
+	wreg(dev, Nctl, CtlLdtcl);
+
+	flg = WCSdataok;
+	if(tp->rflag == SCSIread)
+		flg |= WCSdir;
+
+	dmamap(dev);
+	return flg;
+}
+
+static void
+arbitrate(Target *dev)
+{
+	Target *tp;
+	uchar cmd, negok;
+	int msg, flg, count;
+
+	tp = dev->active;
+	tp->flags |= Fidentifying;
+
+slog(dev->s1p->chan, 'A', 1);
+slog(dev->s1p->chan, tp->target+'0', 2);
+
+	wreg(dev, Ntclo, 0);
+	wreg(dev, Nctl, CtlLdtcl|CtlLdtc);
+
+	DBG("CMD: #%ux\n", tp->cdb[0]);
+
+	/*
+	 * DPR registers are on a weird spacing so shift count by 4
+	 */
+	for(count = 0; count < tp->clen; count++)
+		wreg(dev, Ndpr+WCScmdblk+(count<<4), tp->cdb[count]);
+
+	msg = Midentify | (tp->lun&7);
+	if(tp->flags & Fallowdisc)
+		msg |= Mallowdisc;
+
+	wreg(dev, Ndpr+WCSidout, msg);
+	wreg(dev, Nstc, tp->syncoff);
+	wreg(dev, Nspw, tp->syncper);
+
+	flg = 0;
+	tp->transfer = WCSsel;
+
+	/*
+	 * Decide if we want to negotiate for sync or wide transfers
+	 */
+	negok = 1;
+	cmd = tp->cdb[0];
+	if(tp->negotiate || cmd == CMDinquire || cmd == CMDreqsense)
+		negok = 0;
+
+	if(negok && (tp->flags & Fwide)) {
+		wreg(dev, Ndpr+WCSmsgoutl, 4);
+		wreg(dev, Ndpr+WCSmsgout+(1<<4), Mextend);
+		wreg(dev, Ndpr+WCSmsgout+(2<<4), 2);
+		wreg(dev, Ndpr+WCSmsgout+(3<<4), Mwide);
+		wreg(dev, Ndpr+WCSmsgout+(4<<4), Mwide16);
+
+		negok = 0;
+		tp->negotiate = Fwide;
+		tp->transfer = WCSselext;
+		flg |= WCSmultimsg;
+	}
+
+	if(negok && (tp->flags & Fsync)) {
+		tp->syncper = 25;
+		tp->syncoff = (tp->syncoff&StcWIDE) | 32;
+
+		wreg(dev, Ndpr+WCSmsgoutl, 5);
+		wreg(dev, Ndpr+WCSmsgout+(0<<4), Mextend);
+		wreg(dev, Ndpr+WCSmsgout+(1<<4), Msynclen);
+		wreg(dev, Ndpr+WCSmsgout+(2<<4), Msync);
+		wreg(dev, Ndpr+WCSmsgout+(3<<4), tp->syncper);
+		msg = tp->syncoff;
+		if(tp->flags & Fwide)
+			msg /= 2;
+		wreg(dev, Ndpr+WCSmsgout+(4<<4), msg);
+	
+		tp->negotiate = Fsync;
+		tp->transfer = WCSselext;
+		flg |= WCSmultimsg;
+	}
+
+	if(tp->len != 0)
+		flg |= loadup(dev);
+
+	wreg(dev, Nflag, flg);
+	wreg(dev, Ndestid, tp->target);
+	issue(dev, tp->transfer);
+}
+
+/*
+ * Target request complete.
+ * Only called from interrupt level,
+ * i.e. ctlr is 'locked'.
+ */
+static void
+complete(Target *ctlr)
+{
+	Target *tp;
+
+	tp = ctlr->active;
+	tp->flags &= Fidentified|Fbusy|Fsync|Fwide|Fallowdisc;
+
+	ctlr->active = tp->active;
+slog(ctlr->s1p->chan, 'C', 1);
+slog(ctlr->s1p->chan, tp->target+'0', 2);
+	DBG("C: TC=%d len=%d xfer=%d\n", rdtc(ctlr), tp->len, tp->xfrlen);
+
+	/*
+	 * Clean up the controller
+	 */
+	dmaflush(ctlr);
+
+	wreg(ctlr, Ntclo, 0);
+	wreg(ctlr, Nctl, CtlLdtcl|CtlLdtc);
+	wreg(ctlr, Nrespons, NrespRSELH|NrespRESEL);
+
+	/*
+	 * All done with this target, wakeup scsiio.
+	 * If there are other targets queued, start
+	 * one up.
+	 */
+	tp->flags &= Fidentified|Fsync|Fwide|Fallowdisc;
+	wakeup(tp);
+
+	if(ctlr->active){
+		arbitrate(ctlr);
+		return;
+	}
+	ctlr->flags &= ~Fbusy;
+}
+
+/*
+ * A target has disconnected.
+ * Unlink it from the active list and
+ * start another if possible.
+ * Only called from interrupt level,
+ * i.e. ctlr is 'locked'.
+ */
+static void
+disconnect(Target *ctlr)
+{
+	int l;
+	Target *tp;
+
+	tp = ctlr->active;
+	tp->flags &= ~Fidentifying;
+
+slog(ctlr->s1p->chan, 'D', 1);
+slog(ctlr->s1p->chan, tp->target+'0', 2);
+
+	dmaflush(ctlr);
+	if(tp->len) {
+		l = tp->xfrlen - rdtc(ctlr);
+		tp->addr += l;
+		tp->len -= l;
+	}
+
+	wreg(ctlr, Nspw, 0);
+	wreg(ctlr, Nstc, 0);
+	wreg(ctlr, Ntclo, 0);
+	wreg(ctlr, Nctl, CtlLdtcl|CtlLdtc);
+	wreg(ctlr, Nrespons, NrespRSELH|NrespRESEL);
+
+	tp->flags |= Fdisconnected;
+	ctlr->active = tp->active;
+
+	if(ctlr->active)
+		arbitrate(ctlr);
+	else
+		ctlr->flags &= ~Fbusy;
+}
+
+/*
+ * A target reselected, put it back
+ * on the ctlr active list. We mark the ctlr
+ * busy, and restart the transfer.
+ * Only called from interrupt level,
+ * i.e. ctlr is 'locked'.
+ */
+static void
+reselect(Target *dev)
+{
+	Target *tp;
+	int id, n, v, flg;
+
+	id = rreg(dev, Nsrcid);
+	if((id & NsrcidSIV) == 0) {
+		print("scsi%d: unit %d bad reselect SIV\n", dev->s1p->chan, id);
+		return;
+	}
+slog(dev->s1p->chan, 'R', 1);
+slog(dev->s1p->chan, (id&0xf)+'0', 2);
+
+	tp = &dev->base[id & 0xf];
+	if((tp->flags & Fdisconnected) == 0) {
+		print("scsi%d: target not disconnected", dev->s1p->chan);
+		return;
+	}
+
+	wreg(dev, Nspw, tp->syncper);
+	wreg(dev, Nstc, tp->syncoff);
+
+	tp->lun = rreg(dev, Ndpr+WCSidin) & 7;
+
+	/*
+	 * wd95 reslection work around
+	 */
+	wreg(dev, Nctl, CtlKill);
+	n = 200;
+	for(;;) {
+		v = rreg(dev, Nstopu);
+		if(v & StpuABORTI)
+			break;
+		if(--n == 0) {
+			print("scsi%d: reselect no ABORTI\n", dev->s1p->chan);
+			break;
+		}
+	}
+	wreg(dev, Nstopu, StpuABORTI);
+
+	tp->active = dev->active;
+	dev->active = tp;
+
+	dev->flags |= Fbusy;
+	tp->flags &= ~Fdisconnected;
+
+	flg = 0;
+	if(tp->len != 0)
+		flg = loadup(dev);
+
+	wreg(dev, Nflag, flg);
+	issue(dev, WCSdispatch);
+}
+
+static void
+stopuei(int ctlrno, Target *ctlr)
+{
+	Target *tp;
+	int uei, stpu, sqadr;
+
+	tp = ctlr->active;
+
+	stpu = rreg(ctlr, Nstopu);
+	uei = rreg(ctlr, Nuei);
+
+	if(stpu & StpuSCSIT) {			/* Selection timeout */
+		wreg(ctlr, Nstopu, StpuSCSIT);
+		complete(ctlr);
+	}
+
+	if(uei & UeiTCOVR) {			/* Unexpected TC overrun */
+		wreg(ctlr, Nuei, UeiTCOVR);
+		wreg(ctlr, Nctl, CtlLdtcl|CtlLdtc);
+	}
+
+	if(uei & UeiUDISC) {			/* Unexpected disconnect */
+		wreg(ctlr, Nuei, UeiUDISC);
+		sqadr = rreg(ctlr, Nsqadr);
+		switch(sqadr) {
+		default:
+			print("scsi%d: bad disconnect unit %d sqadr #%ux\n",
+					ctlrno, tp->target, sqadr);
+			break;
+		case WCSsuprisedisc:
+			disconnect(ctlr);
+			break;
+		case WCSeopfree:
+			status(ctlr);
+			complete(ctlr);
+			break;
+		}
+	}
+
+	if(stpu & StpuTCUND) {
+		wreg(ctlr, Nstopu, StpuTCUND);
+		print("scsi%d: TC underrun", ctlr->s1p->chan);
+	}
+
+	if(stpu & StpuLRCE) {
+		wreg(ctlr, Nstopu, StpuLRCE);
+		print("scsi%d: LRC word error", ctlr->s1p->chan);
+	}
+
+	if(stpu & StpuPARE) {
+		wreg(ctlr, Nstopu, StpuPARE);
+		print("scsi%d: parity error", ctlr->s1p->chan);
+	}
+
+	if(stpu & StpuSOE) {
+		wreg(ctlr, Nstopu, StpuSOE);
+		print("scsi%d: SCSI offset error", ctlr->s1p->chan);
+	}
+}
+
+static void
+uei(Target *ctlr)
+{
+	Target *tp;
+	uchar fcnt, data;
+	int uei, sqadr, res;
+
+	tp = ctlr->active;
+
+	uei = rreg(ctlr, Nuei);
+	if(uei & UeiURSEL) {			/* Unexpected reselection */
+		wreg(ctlr, Nuei, UeiURSEL);
+		if((rreg(ctlr, Nsr) & NsrACTIVE) == 0)
+			issue(ctlr, WCSnresel);
+	}
+
+	if(uei & UeiUPHAS) {			/* Unexpected phase */
+		wreg(ctlr, Nuei, UeiUPHAS);
+		sqadr = rreg(ctlr, Nsqadr);
+		switch(sqadr) {
+		case WCSrslcont:
+			reselect(ctlr);
+			break;
+		case WCSdata:
+			fcnt = rreg(ctlr, Nfifos) & 0x1f;
+			if(fcnt == 1) {
+				iprint("scsi%d: lbyte fix\n", ctlr->s1p->chan);
+				data = rreg(ctlr, Ndata);
+				dmaflush(ctlr);
+				res = rdtc(ctlr);
+				tp->addr += tp->len-res;
+				tp->len = res;
+				*(uchar*)tp->addr = data;
+				wreg(ctlr, Nctl, CtlLdtcl|CtlLdtc);
+			}
+			/* Fall through */
+		default:
+			issue(ctlr, WCSdispatch);
+			break;
+		}
+	}
+}
+
+static void
+stwcsintwcs(int ctlrno, Target *ctlr)
+{
+	uchar msg;
+	int sqadr;
+	Target *tp;
+	int per, reg, off, wide;
+
+	wreg(ctlr, Nisr, IsrINTWCS|IsrSTPWCS);
+
+	sqadr = rreg(ctlr, Nsqadr);
+	switch(sqadr) {
+	default:
+		print("scsi%d: intr sqaddr(#%ux)\n", ctlrno, sqadr);
+		break;
+	case WCScomplete:
+		status(ctlr);
+		complete(ctlr);
+		break;
+	case WCSdisc:
+		disconnect(ctlr);
+		break;
+	case WCSrslcont:
+		reselect(ctlr);
+		break;
+	case WCSunkmsg:
+		tp = ctlr->active;
+
+		msg = rreg(ctlr, Ndpr+WCSmsgin);
+		switch(msg) {
+		case Msaveptr:
+		case Mrestptr:		
+			/*
+			 * Just believe the TC at disconnect/reconnect for now
+			 */
+			issue(ctlr, WCSdispatch);
+			break;
+		case Mreject:
+			if(tp->negotiate != 0) {
+				tp->flags &= ~tp->negotiate;
+				tp->negotiate = 0;
+			}
+			issue(ctlr, WCSitlnexus);
+			break;
+		}
+		break;
+	case WCSmsgi1:
+	case WCSmsgi2:
+	case WCSmsgi3:
+	case WCSmsgi4:
+	case WCSmsgi5:
+		tp = ctlr->active;
+		tp->negotiate = 0;
+
+		msg = rreg(ctlr, Ndpr+WCSmsgin+(2<<4));
+		switch(msg) {
+		default:
+			print("scsi%d: unit %d unknown message #%ux\n",
+				ctlr->s1p->chan, tp->target, msg);
+			break;
+		case Msync:
+			per = rreg(ctlr, Ndpr+WCSmsgin+(3<<4));
+			reg = ((per * 2) - 26) / 25;
+			tp->syncper = (reg<<4)|reg;
+			off = rreg(ctlr, Ndpr+WCSmsgin+(4<<4));
+			tp->syncoff = (tp->syncoff&StcWIDE) | off;
+
+			tp->flags &= ~Fsync;
+
+			DBG("scsi%d: unit %d sync %d off %d\n",
+				ctlr->s1p->chan, tp->target, per, off);
+
+			wreg(ctlr, Nspw, tp->syncper);
+			wreg(ctlr, Nstc, tp->syncoff);
+			issue(ctlr, WCSdispatch);
+			break;
+		case Mwide:
+			wide = rreg(ctlr, Ndpr+WCSmsgin+(3<<4));
+			if(wide == Mwide16) {
+				tp->syncoff |= StcWIDE;
+				wreg(ctlr, Nstc, tp->syncoff);
+			}
+			tp->flags &= ~Fwide;
+
+			DBG("scsi%d: unit %d wide #%ux\n",
+					ctlr->s1p->chan, tp->target, wide);
+
+			issue(ctlr, WCSdispatch);
+			break;
+		}
+	}
+}
+
+static void
+busyi(Target *dev)
+{
+	int l, tc;
+	Target *tp;
+
+	tp = dev->active;
+	wreg(dev, Nisr, IsrBSYI);
+
+	tc = rdtc(dev);
+	l = tp->xfrlen - tc;
+
+	tp->addr += l;
+	tp->len -= l;
+
+	/*
+	 * This 0x100 byte partial transfer is all monkey see/monkey do
+	 * from the SGI driver. There is no adequate explanation of either
+	 * the bug which causes it or the manifestation of that bug
+	 */
+	if(tp->len > 0x100) {
+		tp->xfrlen = 0x100;
+		wreg(dev, Ntclo,  0x00);
+		wreg(dev, Ntcmid, 0x01);
+		wreg(dev, Nctl, CtlLdtcl);
+	}
+	else {
+		l = tp->len;
+		tp->xfrlen = l;
+		if((tp->syncoff&0x1f) && (l & 1))
+			l++;
+		
+		wreg(dev, Ntclo,  (l>>0)&0xff);
+		if(l > 0xff)
+			wreg(dev, Ntcmid, (l>>8)&0xff);
+		wreg(dev, Nctl, CtlLdtcl);
+		wreg(dev, Nisrm, 0x6F);
+	}
+}
+
+static void
+srej(Target *dev)
+{
+	int isr;
+	Target *tp;
+
+	wreg(dev, Nisr, IsrSREJ);
+	tp = dev->active;
+
+	if(tp->flags & Fidentifying) {
+		if(rdtc(dev) != tp->xfrlen)
+			print("scsi%d: srej but transfer\n", dev->s1p->chan);
+		dmaflush(dev);
+		tp->negotiate = 0;
+	}
+
+	wreg(dev, Ntclo, 0);
+	wreg(dev, Nctl, CtlLdtcl|CtlLdtc);
+
+	/*
+	 * This is probably not careful enough to prevent the
+	 * controller getting hung up
+	 */
+	isr = rreg(dev, Nisr);
+	if(isr == 0) {
+		print("scsi%d: srej arbitrate\n",  dev->s1p->chan);
+		arbitrate(dev);
+	}
+}
+
+void
+wd95aintr(int ctlrno)
+{
+	int n, isr;
+	Target *ctlr;
+
+	ctlr = &target[ctlrno][OwnID];
+
+	lock(&ctlr->regs);
+	wreg(ctlr, Nctl, 0);
+	n = 50;
+	for(;;) {
+		isr = rreg(ctlr, Nisr);
+		if((isr&IsrINTO) == 0)
+			break;
+
+		if(isr & IsrSREJ)
+			srej(ctlr);
+
+		if(isr & IsrBSYI) 
+			busyi(ctlr);
+
+		if(isr & IsrVBSYI)
+			panic("scsi%d: IsrVBSYI", ctlrno);
+
+		if(isr & (IsrSTOPU|IsrUEI))
+			stopuei(ctlrno, ctlr);
+
+		if(isr & (IsrINTWCS|IsrSTPWCS))
+			stwcsintwcs(ctlrno, ctlr);
+
+		if(isr & IsrUEI)
+			uei(ctlr);
+
+		if(--n == 0) {
+			print("scsi%d: WD95 jammed isr=#%ux\n", ctlrno, isr);
+			break;
+		}
+	}
+	unlock(&ctlr->regs);
+}
+
+int
+scsiexec(Target *tp, int rw, uchar *cmd, int cbytes, void *data, int *dbytes)
+{
+	ulong s;
+	int status;
+	Target *ctlr, **l, *f;
+
+	ctlr = tp->ctlr;
+
+slog(ctlr->s1p->chan, 'Q', 1);
+slog(ctlr->s1p->chan, tp->target+'0', 2);
+
+	qlock(tp);
+slog(ctlr->s1p->chan, 'G', 1);
+slog(ctlr->s1p->chan, tp->target+'0', 2);
+	tp->flags |= Fbusy;
+	tp->rflag = rw;
+	tp->addr = (ulong)data;
+	tp->start = tp->addr;
+	tp->len = 0;
+	if(dbytes != 0)
+		tp->len = *dbytes;
+
+	memmove(tp->cdb, cmd, cbytes);
+
+	tp->lun = cmd[1]>>5;
+	tp->clen = cbytes;
+	tp->status = STharderr;
+
+	s = splhi();
+	lock(&ctlr->regs);
+
+	/*
+	 * Link the target onto the end of the
+	 * ctlr active list and start the request if
+	 * the controller is idle.
+	 */
+	tp->active = 0;
+	l = &ctlr->active;
+	for(f = *l; f; f = f->active)
+		l = &f->active;
+	*l = tp;
+
+	if((ctlr->flags & Fbusy) == 0){
+		ctlr->flags |= Fbusy;
+		arbitrate(ctlr);
+	}
+
+	unlock(&ctlr->regs);
+	splx(s);
+
+	/*
+	 * Wait for the request to complete
+	 * and return the status.
+	 *
+	 * Since the buffer is not reference counted we cannot return
+	 * until the DMA is done writing into the buffer so the caller
+	 * cannot free the buffer prematurely
+	 */
+	while(waserror())
+		;
+
+	sleep(tp, done, tp);
+	poperror();
+
+	status = tp->status;
+	if(dbytes != 0)
+		*dbytes = tp->addr - tp->start;
+
+	qunlock(tp);
+
+	return status;
+}
+
+static void
+clrintr(Target *ctlr)
+{
+	uchar reg, mask;
+
+	reg = rreg(ctlr, Nuei);
+	for (mask = 0x80; mask != 0; mask >>= 1)
+		if (reg & mask)
+			wreg(ctlr, Nuei, mask);
+
+	reg = rreg(ctlr, Nstopu);
+	for (mask = 0x20; mask != 0; mask >>= 1)
+		if (reg & mask)
+			wreg(ctlr, Nstopu, mask);
+
+	reg = rreg(ctlr, Nisr);
+	for (mask = 0x40; mask != 0; mask >>= 1)
+		if (reg & mask)
+			wreg(ctlr, Nisr, mask);
+}
+
+/*
+ * Control store contents from jeremy@sgi.com SGI for WD95A in initiator mode
+ */
+ulong wcs[] =
+{
+	0x1805a801, 0x18041801, 0x1805b801, 0x0075984b,
+	0x1805a801, 0x18041801, 0x0814b001, 0x03f5988b,
+	0x1805b801, 0x00759847, 0x18021c51, 0x18025c53,
+	0x18059c55, 0x1005bc01, 0x00ac0801, 0x00b40c01,
+	0x00bc0401, 0x00cc0001, 0x010c1c01, 0x01a41801,
+	0x1005b001, 0x00758be9, 0x02358c57, 0x18007001,
+	0x00d5b001, 0x10007001, 0x18003001, 0x1805b000,
+	0x00753001, 0x00b40c01, 0x010c1c01, 0x01a41801,
+	0x1005b001, 0x18059c59, 0x018cc119, 0x0134c059,
+	0x1804c8d9, 0x10059c59, 0x18059c5b, 0x1004c01b,
+	0x18059c5d, 0x1004c05b, 0x18059c5f, 0x1004c09b,
+	0x18059c61, 0x1004c0db, 0x18059c63, 0x1004c11b,
+	0x10059c65, 0x1805bc01, 0x10059c59, 0x1005b001,
+	0x01b8b001, 0x1805b801, 0x00759841, 0x0214c04f,
+	0x0204c08f, 0x01fcc0cf, 0x01f4c10f, 0x01ecc14f,
+	0x1804c00f, 0x18059841, 0x18059843, 0x18059845,
+	0x18059847, 0x1004c00f, 0x02241801, 0x1005b001,
+	0x1805b801, 0x00759849, 0x18059c59, 0x0264c019,
+	0x1004c299, 0x1004c2d9, 0x1004c3d9, 0x1005b001,
+	0x1805bc01, 0x10059c59, 0x1005b001, 0x1805b401,
+	0x0075bc01, 0x0aa47001, 0x1802184b, 0x10047001,
+	0x10044be9, 0x1005b001, 0x0ae83001, 0x02c87001,
+	0x02d58001, 0x18058401, 0x1805b000, 0x10047001,
+	0x18053001, 0x10044c57, 0x10045c59, 0x1005a001,
+	0x10045841, 0x1005b001, 0x10045c59, 0x1005b001,
+	0x0075b801, 0x1005b001, 0x1005b001, 0x1005b001,
+	0x1005b001, 0x1005b001, 0x1005b001, 0x1005b001,
+	0x1005b001, 0x1005b001, 0x1005b001, 0x1005b001,
+	0x1805a801, 0x18041801, 0x0075984b, 0x1005b001,
+	0x1005b001, 0x10059c51, 0x08741c01, 0x005db001,
+	0x1005b001, 0x18059c00, 0x1005b001, 0x18059800,
+	0x1005b001, 0x0075a401, 0x00441801, 0x1005b001,
+};
+
+static void
+loadwcs(Target *ctlr)
+{
+	int i;
+	ulong v;
+
+	wreg(ctlr, Sctl, Ctlsetup|CtlKill);
+	wreg(ctlr, SCSadr, 0);
+
+	for (i = 0; i < nelem(wcs); i++) {
+		v = wcs[i];
+		wreg(ctlr, SCSprt0, v&0xff);
+		wreg(ctlr, SCSprt1, (v>>8) & 0xff);
+		wreg(ctlr, SCSprt2, (v>>16) & 0xff);
+		wreg(ctlr, SCSprt3, (v>>24) & 0xff);
+	}
+
+	wreg(ctlr, Sctl, Ctlabt);
+	clrintr(ctlr);
+}
+
+static void
+initctlr(Target *ctlr)
+{
+	/* Initialise the controller */
+	wreg(ctlr, Sctl, Ctlsetup);
+
+	wreg(ctlr, Stest0, 0x40);
+	wreg(ctlr, SScnf, ScnfClk2|ScnfSPUE|ScnfSPDE);
+	wreg(ctlr, Sownid, OwnID);
+	wreg(ctlr, STimout, 77);
+	wreg(ctlr, SSleep, 0);
+	wreg(ctlr, Sidflg0, 0);
+	wreg(ctlr, Sidflg1, 0);
+	wreg(ctlr, SDMAcnf, Dma16|DmaDpen|DmaPgen|DmaBurst);
+	wreg(ctlr, SDMAtim, DmaOE);
+	wreg(ctlr, SPlr, 0);
+	wreg(ctlr, SPsz0, 0);
+	wreg(ctlr, SPsz1, 0);
+	wreg(ctlr, Sctl, 0);
+	wreg(ctlr, Nclta, CtlaBYTEC|CtlaPBS);
+	wreg(ctlr, Nisrm, 0);
+	wreg(ctlr, Nstopum,
+		StpumABOR|StpumSCS|StpumPAR|StpumLRC|StpumTCUN|StpumSOEM);
+	wreg(ctlr, Nueim, 0xFF);
+	wreg(ctlr, Nspw, (SpwSlow<<4)|SpwSlow);
+	wreg(ctlr, Sctl, Ctlsetup);
+	wreg(ctlr, SSQdma, Halt);
+	wreg(ctlr, Ssqrsl, WCSnresel);
+}
+
+static int
+busreset(Target *ctlr)
+{
+	int i;
+
+	wreg(ctlr, Sctl, 0);
+	wreg(ctlr, Ntclo, 0);
+	wreg(ctlr, Nctl, CtlLdtcl|CtlLdtc);
+
+	dmaflush(ctlr);
+
+	wreg(ctlr, Sctl, Ctlrst0|Ctlsetup);
+
+	delay(1000);
+
+	i  = rreg(ctlr, SSC1) & (BusREQ|BusACK|BusMSG|BusCD|BusIO|BusATN);
+	i |= rreg(ctlr, SSC0) & (BusSELI|BusBSYI|BusSDP);
+	if(i != 0) {
+		print("scsi%d: Bus jammed at reset! - Check cables\n",
+					 ctlr->s1p->chan);
+		return 1;
+	}
+
+	wreg(ctlr, Sctl, 0);
+	wreg(ctlr, Nuei, UeiRST);
+
+	initctlr(ctlr);
+
+	wreg(ctlr, Nctl, 0);
+	wreg(ctlr, Nisrm,
+		NisrmSREJM|NisrmVBSYIM|NisrmUEIM|
+		NisrmSTOPUM|NisrmINTWCSM|NisrmSTOPWCS);
+
+	clrintr(ctlr);
+
+	return 0;
+}
+
+/*
+ * Called at boot time.
+ * Initialise the hardware.
+ * There will be an interrupt in reponse
+ * to the reset.
+ */
+void
+bootscsi(int ctlrnr, S1chan *s1p, ulong dev)
+{
+	int i;
+	S1chan *s;
+	uvlong cmd;
+	Target *ctlr, *tp;
+
+	if(ctlrnr > NCtlr)
+		panic("scsi: too many controllers");
+
+	ctlr = &target[ctlrnr][OwnID];
+
+	ctlr->dev = dev;
+	ctlr->s1p = s1p;
+	ctlr->base = target[ctlrnr];
+
+	/*
+	 * Use the S1 chip to reset the dma and scsi
+	 */
+	s = ctlr->s1p;
+	cmd = (2<<s->chan) | 0;
+	uvst(s->srcmd, &cmd);
+	delay(200);
+	cmd = (2<<s->chan) | 1;
+	uvst(s->srcmd, &cmd);
+	*s->dmareset = 0;
+	delay(500);
+
+	loadwcs(ctlr);
+	busreset(ctlr);
+
+	for(i = 0; i < NTarget; i++) {
+		if(i == OwnID)
+			continue;
+
+		tp = &target[ctlrnr][i];
+		tp->lun = 0;
+		tp->target = i;
+		tp->ctlr = ctlr;
+
+		tp->syncper = (SpwSlow<<4)|SpwSlow;
+		tp->syncoff = 0;
+
+		tp->scratch = xalloc(Nscratch);
+		tp->inq = xalloc(Ninq);
+
+		tp->mapsize = 0;
+		tp->mapreg = 0;
+
+		tp->flags = Fsync|Fwide|Fallowdisc;
+		tp->ok = 0;
+	}
+
+	ctlr->ok = 1;
+}
+
+/*
+ * Called by s1init to establish the identity of a scsi controller
+ * in an S1 slice
+ */
+int
+wd95acheck(ulong devaddr)
+{
+	int v;
+	Target t;
+
+	t.dev = devaddr;
+
+	wreg(&t, Sctl, Ctlsetup);
+	wreg(&t, STimout, 77);
+	v = rreg(&t, STimout)&0xff;
+	if(v != 77)
+		return 1;
+
+	wreg(&t, SSleep, 33);
+	v = rreg(&t, SSleep)&0xff;
+	if(v != 33)
+		return 1;
+
+	return 0;
+}
+
+static void
+dmaflush(Target *t)
+{
+	ulong m;
+	S1chan *s;
+	int timeo;
+	uvlong sr, ierr;
+	ulong srlo, ierrlo;
+
+	s = t->s1p;
+
+	timeo = 5000;
+	*s->dmaflush = 0;
+
+	for(;;) {
+		uvld(s->srcmd, &sr);
+		srlo = sr;
+		if((srlo & S1DMAON(s->chan)) == 0)
+			break;
+		timeo--;
+		if(timeo == 0) {
+			print("scsi%d: unit %d flush timeout\n", t->target, s->chan);
+			break;
+		}
+	}
+
+	uvld(s->srcmd, &sr);
+	m = S1srPIODrop|S1srINVPIO|S1srMWD|S1srWDOR;
+	m |= S1RERR(s->chan)|S1DERR(s->chan);
+	srlo = sr;
+	if(srlo & m) {
+		print("scsi%d: S1 ERROR at flush sr=0x%lux\n", s->chan, srlo);
+		srlo &= m;
+		sr = srlo;
+		uvst(s->srcmd, &sr);
+
+		*s->dmareset = 0;
+		delay(10000);
+		uvld(s->srcmd, &sr);
+		srlo = sr;
+		if(srlo & m)
+			print("scsi%d: S1 reset failed sr=0x%lux\n",
+							s->chan, srlo);
+	}
+	if(srlo & S1srIBERR) {
+		uvld(s->ibuserr, &ierr);
+		ierrlo = ierr;
+		if(ierrlo & ((1<<19)|(1<<20)|(1<<21)|(1<<6)|(1<<7)|(1<<8))) {
+			print("scsi%d: IBUS error sr=0x%lux ierr=0x%lux\n",
+				s->chan, srlo, ierrlo);
+			/* Clear mask */
+			uvst(s->ibuserr, &ierr);
+		}
+	}
+}
+
+/*
+ * This only supports 32 (of 40) bits of physical address
+ * The address to map must be in KZERO
+ */
+static void
+dmamap(Target *ctlr)
+{
+	int len;
+	S1chan *s;
+	Target *t;
+	ulong addr, offset, *m;
+
+	t = ctlr->active;
+	s = ctlr->s1p;
+
+	len = t->len+BY2PG;
+	if(len > t->mapsize) {
+		if(t->mapreg != 0)
+			free(t->mapreg);
+
+		t->mapsize = len;
+		t->mapreg = smalloc((t->mapsize/BY2PG)*sizeof(t->mapreg[0]));
+	}
+
+	addr = t->addr & ~(BY2PG-1);
+	offset = t->addr & (BY2PG-1);
+
+	m = t->mapreg;
+	while(len > 0) {
+		*m++ = PADDR(addr) >> (PGSHIFT-4);
+		addr += BY2PG;
+		len -= BY2PG;
+	}
+
+	*s->dmaxlathi = 0;
+	*s->dmaxlatlo = PADDR(t->mapreg);
+	if(t->rflag == SCSIread)
+		*s->dmawrite = offset;
+	else
+		*s->dmaread = offset;
+}

@@ -38,12 +38,12 @@ void	dorep(char **);
 int	endtar(void);
 void	getdir(void);
 void	passtar(void);
-void	putfile(char *, char *);
+void	putfile(char*, char *, char *);
 void	doxtract(char **);
 void	dotable(void);
 void	putempty(void);
 void	longt(Dir *);
-int	checkdir(char *);
+int	checkdir(char *, int);
 void	tomodes(Dir *);
 int	checksum(void);
 int	checkupdate(char *);
@@ -120,7 +120,7 @@ main(int argc, char **argv)
 	if (rflag) {
 		if (!usefile) {
 			if (cflag == 0) {
-				fprint(2, "Can only create standard output archives\n");
+				fprint(2, "tar: can only create standard output archives\n");
 				exits("arg error");
 			}
 			mt = dup(1, -1);
@@ -128,7 +128,7 @@ main(int argc, char **argv)
 		}
 		else if ((mt = open(usefile, ORDWR)) < 0) {
 			if (cflag == 0 || (mt = create(usefile, OWRITE, 0666)) < 0) {
-				fprint(2, "tar: cannot open %s\n", usefile);
+				fprint(2, "tar: cannot open %s: %r\n", usefile);
 				exits("open");
 			}
 		}
@@ -140,7 +140,7 @@ main(int argc, char **argv)
 			nblock = 1;
 		}
 		else if ((mt = open(usefile, OREAD)) < 0) {
-			fprint(2, "tar: cannot open %s\n", usefile);
+			fprint(2, "tar: cannot open %s: %r\n", usefile);
 			exits("open");
 		}
 		doxtract(argv);
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 			nblock = 1;
 		}
 		else if ((mt = open(usefile, OREAD)) < 0) {
-			fprint(2, "tar: cannot open %s\n", usefile);
+			fprint(2, "tar: cannot open %s: %r\n", usefile);
 			exits("open");
 		}
 		dotable();
@@ -171,7 +171,15 @@ usage(void)
 void
 dorep(char **argv)
 {
+	char cwdbuf[2048], *cwd, thisdir[2048];
 	char *cp, *cp2;
+	int cd;
+
+	if (getwd(cwdbuf, sizeof(cwdbuf)) == 0) {
+		fprint(2, "tar: can't find current directory: %s: %r\n", cwdbuf);
+		exits("cwd");
+	}
+	cwd = cwdbuf;
 
 	if (!cflag) {
 		getdir();
@@ -187,19 +195,31 @@ dorep(char **argv)
 			argv++;
 			if (chdir(*argv) < 0)
 				perror(*argv);
+			cwd = *argv;
 			argv++;
 			continue;
 		}
+		cd = 0;
 		for (cp = *argv; *cp; cp++)
 			if (*cp == '/')
 				cp2 = cp;
 		if (cp2 != *argv) {
 			*cp2 = '\0';
 			chdir(*argv);
+			if(**argv == '/')
+				strncpy(thisdir, *argv, sizeof(thisdir));
+			else
+				snprint(thisdir, sizeof(thisdir), "%s/%s", cwd, *argv);
 			*cp2 = '/';
 			cp2++;
+			cd = 1;
+		} else
+			strncpy(thisdir, cwd, sizeof(thisdir));
+		putfile(thisdir, *argv++, cp2);
+		if(cd && chdir(cwd) < 0) {
+			fprint(2, "tar: can't cd back to %s: %r\n", cwd);
+			exits("cwd");
 		}
-		putfile(*argv++, cp2);
 	}
 	putempty();
 	putempty();
@@ -259,11 +279,12 @@ passtar(void)
 }
 
 void
-putfile(char *longname, char *sname)
+putfile(char *dir, char *longname, char *sname)
 {
 	int infile;
 	long blocks;
 	char buf[TBLOCK], shortname[NAMELEN+4];
+	char curdir[4096];
 	char *cp, *cp2;
 	Dir db[50];
 	int i, n;
@@ -271,44 +292,50 @@ putfile(char *longname, char *sname)
 	sprint(shortname, "./%s", sname);
 	infile = open(shortname, OREAD);
 	if (infile < 0) {
-		fprint(2, "tar: %s: cannot open file\n", longname);
+		fprint(2, "tar: %s: cannot open file - %r\n", longname);
 		return;
 	}
 
 	dirfstat(infile, &stbuf);
 
 	if (stbuf.qid.path & CHDIR) {
+		/* Directory */
 		for (i = 0, cp = buf; *cp++ = longname[i++];);
 		*--cp = '/';
 		*++cp = 0;
 		if( (cp - buf) >= NAMSIZ) {
-			fprint(2, "%s: file name too long\n", longname);
+			fprint(2, "tar: %s: file name too long\n", longname);
 			close(infile);
 			return;
 		}
 		stbuf.length = 0;
 		tomodes(&stbuf);
 		strcpy(dblock.dbuf.name,buf);
+		dblock.dbuf.linkflag = '5';		/* Directory */
 		sprint(dblock.dbuf.chksum, "%6o", checksum());
 		writetar( (char *) &dblock);
 		if (chdir(shortname) < 0) {
-			fprint(2, "tar: can't cd to %s\n", shortname);
-			exits("cd");
+			fprint(2, "tar: can't cd to %s: %r\n", shortname);
+			snprint(curdir, sizeof(curdir), "cd %s", shortname);
+			exits(curdir);
 		}
+		sprint(curdir, "%s/%s", dir, sname);
 		while ((n = dirread(infile, db, sizeof(db))) > 0) {
 			n /= sizeof(Dir);
 			for(i = 0; i < n; i++) {
 				strncpy(cp, db[i].name, NAMELEN);
-				putfile(buf, cp);
+				putfile(curdir, buf, cp);
 			}
 		}
 		close(infile);
-		if (chdir("..") < 0) {
-			fprint(2, "tar: can't cd to ..\n");
-			exits("cd");
+		if (chdir(dir) < 0 && chdir("..") < 0) {
+			fprint(2, "tar: can't cd to ..(%s): %r\n", dir);
+			snprint(curdir, sizeof(curdir), "cd ..(%s)", dir);
+			exits(curdir);
 		}
 		return;
 	}
+
 
 	tomodes(&stbuf);
 
@@ -325,10 +352,11 @@ putfile(char *longname, char *sname)
 		fprint(2, "a %s ", longname);
 		fprint(2, "%ld blocks\n", blocks);
 	}
+	dblock.dbuf.linkflag = 0;			/* Regular file */
 	sprint(dblock.dbuf.chksum, "%6o", checksum());
 	writetar( (char *) &dblock);
 
-	while ((i = read(infile, buf, TBLOCK)) > 0 && blocks > 0) {
+	while ((i = readn(infile, buf, TBLOCK)) > 0 && blocks > 0) {
 		writetar(buf);
 		blocks--;
 	}
@@ -364,7 +392,7 @@ doxtract(char **argv)
 		continue;
 
 gotit:
-		if(checkdir(dblock.dbuf.name))
+		if(checkdir(dblock.dbuf.name, stbuf.mode))
 			continue;
 
 		if (dblock.dbuf.linkflag == '1') {
@@ -374,7 +402,7 @@ gotit:
 			continue;
 		}
 		if (dblock.dbuf.linkflag == 's') {
-			fprint(2, "%s: cannot symlink\n", dblock.dbuf.name);
+			fprint(2, "tar: %s: cannot symlink\n", dblock.dbuf.name);
 			continue;
 		}
 		if(dblock.dbuf.name[0] != '/')
@@ -382,7 +410,7 @@ gotit:
 		else
 			strcpy(outname, dblock.dbuf.name);
 		if ((ofile = create(outname, OWRITE, stbuf.mode & 0777)) < 0) {
-			fprint(2, "tar: %s - cannot create\n", dblock.dbuf.name);
+			fprint(2, "tar: %s - cannot create: %r\n", dblock.dbuf.name);
 			passtar();
 			continue;
 		}
@@ -395,12 +423,12 @@ gotit:
 			readtar(buf);
 			if (bytes > TBLOCK) {
 				if (write(ofile, buf, TBLOCK) < 0) {
-					fprint(2, "tar: %s: HELP - extract write error\n", dblock.dbuf.name);
+					fprint(2, "tar: %s: HELP - extract write error: %r\n", dblock.dbuf.name);
 					exits("extract write");
 				}
 			} else
 				if (write(ofile, buf, bytes) < 0) {
-					fprint(2, "tar: %s: HELP - extract write error\n", dblock.dbuf.name);
+					fprint(2, "tar: %s: HELP - extract write error: %r\n", dblock.dbuf.name);
 					exits("extract write");
 				}
 			bytes -= TBLOCK;
@@ -447,17 +475,18 @@ longt(Dir *st)
 {
 	char *cp;
 
-	Bprint(&bout, "%M %4d/%1d", st->mode, 0, 0);	/* 0/0 uid/gid */
-	Bprint(&bout, "%7d", st->length);
+	Bprint(&bout, "%M %4d/%1d ", st->mode, 0, 0);	/* 0/0 uid/gid */
+	Bprint(&bout, "%8lld", st->length);
 	cp = ctime(st->mtime);
 	Bprint(&bout, " %-12.12s %-4.4s ", cp+4, cp+24);
 }
 
 int
-checkdir(char *name)
+checkdir(char *name, int mode)
 {
 	char *cp;
 	int f;
+	Dir d;
 
 	cp = name;
 	if(*cp == '/')
@@ -466,15 +495,24 @@ checkdir(char *name)
 		if (*cp == '/') {
 			*cp = '\0';
 			if (access(name, 0) < 0) {
-				f = create(name, OREAD, CHDIR + 0777L);
-				close(f);
+				f = create(name, OREAD, CHDIR + 0775L);
 				if(f < 0)
-					fprint(2, "tar: mkdir %s failed\n", name);
+					fprint(2, "tar: mkdir %s failed: %r\n", name);
+				close(f);
 			}
 			*cp = '/';
 		}
 	}
-	return(cp[-1]=='/');
+
+	/* if this is a directory, chmod it to the mode in the tar plus 700 */
+	if(cp[-1] == '/'){
+		if(dirstat(name, &d) >= 0){
+			d.mode = CHDIR | (mode & 0777) | 0700;
+			dirwstat(name, &d);
+		}
+		return 1;
+	} else
+		return 0;
 }
 
 void
@@ -484,10 +522,10 @@ tomodes(Dir *sp)
 
 	for (cp = dblock.dummy; cp < &dblock.dummy[TBLOCK]; cp++)
 		*cp = '\0';
-	sprint(dblock.dbuf.mode, "%6o ", sp->mode & 0777);
+	sprint(dblock.dbuf.mode, "%6lo ", sp->mode & 0777);
 	sprint(dblock.dbuf.uid, "%6o ", uflag);
 	sprint(dblock.dbuf.gid, "%6o ", gflag);
-	sprint(dblock.dbuf.size, "%11lo ", sp->length);
+	sprint(dblock.dbuf.size, "%11llo ", sp->length);
 	sprint(dblock.dbuf.mtime, "%11lo ", sp->mtime);
 }
 
@@ -501,7 +539,7 @@ checksum(void)
 		*cp = ' ';
 	i = 0;
 	for (cp = dblock.dummy; cp < &dblock.dummy[TBLOCK]; cp++)
-		i += *cp;
+		i += *cp & 0xff;
 	return(i);
 }
 
@@ -522,19 +560,18 @@ readtar(char *buffer)
 	int i;
 
 	if (recno >= nblock || first == 0) {
-redo:
 		if ((i = read(mt, tbuf, TBLOCK*nblock)) <= 0) {
-			fprint(2, "Tar: archive read error\n");
+			fprint(2, "tar: archive read error: %r\n");
 			exits("archive read");
 		}
 		if (first == 0) {
 			if ((i % TBLOCK) != 0) {
-				fprint(2, "Tar: archive blocksize error\n");
+				fprint(2, "tar: archive blocksize error: %r\n");
 				exits("blocksize");
 			}
 			i /= TBLOCK;
 			if (i != nblock) {
-				fprint(2, "Tar: blocksize = %d\n", i);
+				fprint(2, "tar: blocksize = %d\n", i);
 				nblock = i;
 			}
 		}
@@ -551,7 +588,7 @@ writetar(char *buffer)
 	first = 1;
 	if (recno >= nblock) {
 		if (write(mt, tbuf, TBLOCK*nblock) != TBLOCK*nblock) {
-			fprint(2, "Tar: archive write error\n");
+			fprint(2, "tar: archive write error: %r\n");
 			exits("write");
 		}
 		recno = 0;
@@ -559,7 +596,7 @@ writetar(char *buffer)
 	memmove(&tbuf[recno++], buffer, TBLOCK);
 	if (recno >= nblock) {
 		if (write(mt, tbuf, TBLOCK*nblock) != TBLOCK*nblock) {
-			fprint(2, "Tar: archive write error\n");
+			fprint(2, "tar: archive write error: %r\n");
 			exits("write");
 		}
 		recno = 0;
@@ -669,7 +706,7 @@ fixname(char *original)
 		longnamefd = open("longnamelist", OWRITE);
 		if(longnamefd < 0){
 			if((longnamefd = create("longnamelist", OWRITE, 0666)) == -1){
-				fprint(2, "can't create longnamelist file\n");
+				fprint(2, "tar: can't create longnamelist file: %r\n");
 				exits("create");
 			}
 		}

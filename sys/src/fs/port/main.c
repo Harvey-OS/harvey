@@ -22,7 +22,7 @@ static
 void
 confinit(void)
 {
-	conf.nmach = 2;
+	conf.nmach = 1;
 	conf.nproc = 50;
 
 	conf.mem = meminit();
@@ -31,11 +31,11 @@ confinit(void)
 	conf.nalarm = 200;
 	conf.nuid = 1000;
 	conf.nserve = 15;
-	conf.nrahead = 10;
 	conf.nfile = 30000;
 	conf.nlgmsg = 100;
 	conf.nsmmsg = 500;
 	conf.wcpsize = 1024*1024;
+	localconfinit();
 
 	conf.nwpath = conf.nfile*8;
 	conf.gidspace = conf.nuid*3;
@@ -102,24 +102,54 @@ main(void)
  * read message from q and then
  * read the device.
  */
+int
+rbcmp(void *va, void *vb)
+{
+	Rabuf *ra, *rb;
+
+	ra = *(Rabuf**)va;
+	rb = *(Rabuf**)vb;
+	if(rb == 0)
+		return 1;
+	if(ra == 0)
+		return -1;
+	if(ra->dev > rb->dev)
+		return 1;
+	if(ra->dev < rb->dev)
+		return -1;
+	if(ra->addr > rb->addr)
+		return 1;
+	if(ra->addr < rb->addr)
+		return -1;
+	return 0;
+}
+
 void
 rahead(void)
 {
-	Rabuf *rb;
+	Rabuf *rb[50];
 	Iobuf *p;
+	int i, n;
 
 loop:
-	rb = recv(raheadq, 0);
-	if(rb == 0)
-		goto loop;
-	p = getbuf(rb->dev, rb->addr, Bread);
-	if(p)
-		putbuf(p);
-
-	lock(&rabuflock);
-	rb->link = rabuffree;
-	rabuffree = rb;
-	unlock(&rabuflock);
+	rb[0] = recv(raheadq, 0);
+	for(n=1; n<nelem(rb); n++) {
+		if(raheadq->count <= 0)
+			break;
+		rb[n] = recv(raheadq, 0);
+	}
+	qsort(rb, n, sizeof(rb[0]), rbcmp);
+	for(i=0; i<n; i++) {
+		if(rb[i] == 0)
+			continue;
+		p = getbuf(rb[i]->dev, rb[i]->addr, Bread);
+		if(p)
+			putbuf(p);
+		lock(&rabuflock);
+		rb[i]->link = rabuffree;
+		rabuffree = rb[i];
+		unlock(&rabuflock);
+	}
 	goto loop;
 }
 
@@ -173,8 +203,14 @@ loop:
 	/*
 	 * call the file system
 	 */
-	cons.work.count++;
-	cons.rate.count += mb->count;
+	cons.work[0].count++;
+	cons.work[1].count++;
+	cons.work[2].count++;
+	cp->work.count++;
+	cons.rate[0].count += mb->count;
+	cons.rate[1].count += mb->count;
+	cons.rate[2].count += mb->count;
+	cp->rate.count += mb->count;
 	fo.err = 0;
 
 	(*p9call[t])(cp, &fi, &fo);
@@ -183,6 +219,9 @@ loop:
 	fo.tag = fi.tag;
 
 	if(fo.err) {
+		if(cons.flags&errorflag)
+			print("	type %d: error: %s\n", t,
+				errstr[fo.err]);
 		if(CHAT(cp))
 			print("	error: %s\n", errstr[fo.err]);
 		fo.type = Rerror;
@@ -197,7 +236,10 @@ loop:
 	}
 	mb1->count = n;
 	mb1->param = mb->param;
-	cons.rate.count += n;
+	cons.rate[0].count += n;
+	cons.rate[1].count += n;
+	cons.rate[2].count += n;
+	cp->rate.count += n;
 	send(cp->reply, mb1);
 
 out:
@@ -217,6 +259,7 @@ error:
 	print(" %.2x %.2x %.2x %.2x\n",
 		mb->data[9]&0xff, mb->data[10]&0xff,
 		mb->data[11]&0xff, mb->data[12]&0xff);
+
 	mb1 = mballoc(3, cp, Mbreply4);
 	mb1->data[0] = Rnop;	/* your nop was ok */
 	mb1->data[1] = ~0;
@@ -302,7 +345,8 @@ wormcopy(void)
 {
 	int f;
 	Filsys *fs;
-	long nddate, t, dt;
+	ulong nddate, ntoytime, t;
+	long dt;
 
 recalc:
 	/*
@@ -311,7 +355,10 @@ recalc:
 	 */
 	t = time();
 	nddate = nextime(t+MINUTE(100), DUMPTIME, WEEKMASK);
-	print("next dump at %T\n", nddate);
+	if(!conf.nodump)
+		print("next dump at %T\n", nddate);
+
+	ntoytime = time() + HOUR(1);
 
 loop:
 	dt = time() - t;
@@ -326,19 +373,34 @@ loop:
 	t += dt;
 	f = 0;
 
+	if(t > ntoytime) {
+		dt = time() - rtctime();
+		if(dt < 0)
+			dt = -dt;
+		if(dt > 10)
+			print("rtc time more than 10 secounds out\n");
+		else
+		if(dt > 1)
+			settime(rtctime());
+		ntoytime = time() + HOUR(1);
+		goto loop;
+	}
+
 	if(!f) {
 		if(t > nddate) {
-			print("automatic dump %T\n", t);
-			for(fs=filsys; fs->name; fs++)
-				if(fs->dev.type == Devcw)
-					cfsdump(fs);
+			if(!conf.nodump) {
+				print("automatic dump %T\n", t);
+				for(fs=filsys; fs->name; fs++)
+					if(fs->dev->type == Devcw)
+						cfsdump(fs);
+			}
 			goto recalc;
 		}
 	}
 
 	rlock(&mainlock);
 	for(fs=filsys; fs->name; fs++)
-		if(fs->dev.type == Devcw)
+		if(fs->dev->type == Devcw)
 			f |= dumpblock(fs->dev);
 	runlock(&mainlock);
 
@@ -358,7 +420,6 @@ loop:
  * in both cases, it takes about 10 seconds
  * to get up-to-date.
  */
-
 void
 synccopy(void)
 {

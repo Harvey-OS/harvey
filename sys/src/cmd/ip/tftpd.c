@@ -4,15 +4,8 @@
 #include <ip.h>
 #include <ndb.h>
 
-void	fatal(int syserr, char *fmt, ...);
-void	openlisten(void);
-
 int 	dbg;
 int	restricted;
-int	tftpreq;
-int	tftpaddr;
-int	tftpctl;
-void	openlisten(void);
 void	sendfile(int, char*, char*);
 void	recvfile(int, char*, char*);
 void	nak(int, int, char*);
@@ -20,14 +13,17 @@ void	ack(int, ushort);
 void	clrcon(void);
 void	setuser(void);
 char*	sunkernel(char*);
+void	remoteaddr(char*, char*, int);
+void	doserve(int);
 
-char	mbuf[32768];
-char	raddr[32];
+char	bigbuf[32768];
+char	raddr[64];
 
 char	*dir = "/lib/tftpd";
 char	*dirsl;
 int	dirsllen;
 char	flog[] = "ipboot";
+char	net[2*NAMELEN];
 
 enum
 {
@@ -40,14 +36,21 @@ enum
 };
 
 void
+usage(void)
+{
+	fprint(2, "usage: %s [-dr] [-h homedir] [-x netmtpt]\n", argv0);
+	exits("usage");
+}
+
+void
 main(int argc, char **argv)
 {
-	int n, dlen, clen;
-	char connect[64], buf[64], datadir[64];
-	char *mode, *p;
-	short op;
-	int ctl, data;
+	char buf[64];
+	char adir[64], ldir[64];
+	int cfd, lcfd, dfd;
+	char *p;
 
+	setnetmtpt(net, sizeof(net), nil);
 	ARGBEGIN{
 	case 'd':
 		dbg++;
@@ -58,11 +61,15 @@ main(int argc, char **argv)
 	case 'r':
 		restricted = 1;
 		break;
+	case 'x':
+		p = ARGF();
+		if(p == nil)
+			usage();
+		setnetmtpt(net, sizeof(net), p);
+		break;
 	default:
-		fprint(2, "usage: tftpd [-dr] [-h homedir]\n");
-		exits("usage");
+		usage();
 	}ARGEND
-	USED(argc); USED(argv);
 
 	snprint(buf, sizeof buf, "%s/", dir);
 	dirsl = strdup(buf);
@@ -72,96 +79,94 @@ main(int argc, char **argv)
 	fmtinstall('I', eipconv);
 
 	if(chdir(dir) < 0)
-		fatal(1, "cant get to directory %s", dir);
+		sysfatal("can't get to directory %s: %r", dir);
 
-	switch(rfork(RFNOTEG|RFPROC|RFFDG)) {
-	case -1:
-		fatal(1, "fork");
-	case 0:
-		break;
-	default:
-		exits(0);
-	}
+	if(!dbg)
+		switch(rfork(RFNOTEG|RFPROC|RFFDG)) {
+		case -1:
+			sysfatal("fork: %r");
+		case 0:
+			break;
+		default:
+			exits(0);
+		}
 
 	syslog(dbg, flog, "started");
 
-	openlisten();
+	sprint(buf, "%s/udp!*!69", net);
+	cfd = announce(buf, adir);
 	setuser();
 	for(;;) {
-		dlen = read(tftpreq, mbuf, sizeof(mbuf));
-		if(dlen < 0)
-			fatal(1, "listen read");
-		seek(tftpaddr, 0, 0);
-		clen = read(tftpaddr, raddr, sizeof(raddr));
-		if(clen < 0)
-			fatal(1, "request address read");
-		raddr[clen-1] = '\0';
-		clrcon();
+		lcfd = listen(adir, ldir);
+		if(lcfd < 0)
+			sysfatal("listening: %r");
 
-		ctl = open("/net/udp/clone", ORDWR);
-		if(ctl < 0)
-			fatal(1, "open udp clone");
-		n = read(ctl, buf, sizeof(buf));
-		if(n < 0)
-			fatal(1, "read udp ctl");
-		buf[n] = 0;
-
-		clen = sprint(connect, "connect %s", raddr);
-		n = write(ctl, connect, clen);
-		if(n < 0)
-			fatal(1, "udp %s", raddr);
-
-		sprint(datadir, "/net/udp/%s/data", buf);
-		data = open(datadir, ORDWR);
-		if(data < 0)
-			fatal(1, "open udp data");
-
-		close(ctl);
-
-		dlen -= 2;
-		mode = mbuf+2;
-		while(*mode != '\0' && dlen--)
-			mode++;
-		mode++;
-		p = mode;
-		while(*p && dlen--)
-			p++;
-		if(dlen == 0) {
-			nak(data, 0, "bad tftpmode");
-			close(data);
-			syslog(dbg, flog, "bad mode %s", raddr);
-			continue;
-		}
-
-		op = mbuf[0]<<8 | mbuf[1];
-		if(op != Tftp_READ && op != Tftp_WRITE) {
-			nak(data, 4, "Illegal TFTP operation");
-			close(data);
-			syslog(dbg, flog, "bad request %d %s", op, raddr);
-			continue;
-		}
-		if(restricted){
-			if(strncmp(mbuf+2, "../", 3) || strstr(mbuf+2, "/../") ||
-			  (mbuf[2] == '/' && strncmp(mbuf+2, dirsl, dirsllen)!=0)){
-				nak(data, 4, "Permission denied");
-				close(data);
-				syslog(dbg, flog, "bad request %d %s", op, raddr);
-				continue;
-			}
-		}
 		switch(fork()) {
 		case -1:
-			fatal(1, "fork");
+			sysfatal("fork: %r");
 		case 0:
-			if(op == Tftp_READ)
-				sendfile(data, mbuf+2, mode);
-			else
-				recvfile(data, mbuf+2, mode);
+			dfd = accept(cfd, ldir);
+			if(dfd < 0)
+ 				exits(0);
+			remoteaddr(ldir, raddr, sizeof(raddr));
+			doserve(dfd);
 			exits("done");
+			break;
 		default:
-			close(data);
+			close(lcfd);
+			continue;
 		}
-	}	
+	}
+}
+
+void
+doserve(int fd)
+{
+	int dlen;
+	char *mode, *p;
+	short op;
+
+	dlen = read(fd, bigbuf, sizeof(bigbuf));
+	if(dlen < 0)
+		sysfatal("listen read: %r");
+
+	op = (bigbuf[0]<<8) | bigbuf[1];
+	dlen -= 2;
+	mode = bigbuf+2;
+	while(*mode != '\0' && dlen--)
+		mode++;
+	mode++;
+	p = mode;
+	while(*p && dlen--)
+		p++;
+	if(dlen == 0) {
+		nak(fd, 0, "bad tftpmode");
+		close(fd);
+		syslog(dbg, flog, "bad mode %s", raddr);
+		return;
+	}
+
+	if(op != Tftp_READ && op != Tftp_WRITE) {
+		nak(fd, 4, "Illegal TFTP operation");
+		close(fd);
+		syslog(dbg, flog, "bad request %d %s", op, raddr);
+		return;
+	}
+
+	if(restricted){
+		if(strncmp(bigbuf+2, "../", 3) || strstr(bigbuf+2, "/../") ||
+		  (bigbuf[2] == '/' && strncmp(bigbuf+2, dirsl, dirsllen)!=0)){
+			nak(fd, 4, "Permission denied");
+			close(fd);
+			syslog(dbg, flog, "bad request %d %s", op, raddr);
+			return;
+		}
+	}
+
+	if(op == Tftp_READ)
+		sendfile(fd, bigbuf+2, mode);
+	else
+		recvfile(fd, bigbuf+2, mode);
 }
 
 void
@@ -218,11 +223,14 @@ sendfile(int fd, char *name, char *mode)
 			}
 			txtry = 0;
 		}
-		else
+		else {
+			syslog(dbg, flog, "rexmit %d %s:%d to %s", 4+n, name, block, raddr);
 			txtry++;
+		}
+
 		ret = write(fd, buf, 4+n);
 		if(ret < 0)
-			fatal(1, "tftp: network write error");
+			sysfatal("tftpd: network write error: %r");
 
 		for(rxl = 0; rxl < 10; rxl++) {
 			rexmit = 0;
@@ -316,7 +324,7 @@ ack(int fd, ushort block)
 
 	n = write(fd, ack, 4);
 	if(n < 0)
-		fatal(1, "network write");
+		sysfatal("network write: %r");
 }
 
 void
@@ -333,64 +341,7 @@ nak(int fd, int code, char *msg)
 	n = strlen(msg) + 4 + 1;
 	n = write(fd, buf, n);
 	if(n < 0)
-		fatal(1, "write nak");
-}
-
-void
-fatal(int syserr, char *fmt, ...)
-{
-	char buf[ERRLEN], sysbuf[ERRLEN];
-
-	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
-	if(syserr) {
-		errstr(sysbuf);
-		fprint(2, "tftpd: %s: %s\n", buf, sysbuf);
-	}
-	else
-		fprint(2, "tftpd: %s\n", buf);
-	exits(buf);
-}
-
-void
-openlisten(void)
-{
-	char buf[128], data[128];
-	int n;
-
-	tftpctl = open("/net/udp/clone", ORDWR);
-	if(tftpctl < 0)
-		fatal(1, "open udp clone");
-
-	n = read(tftpctl, buf, sizeof(buf));
-	if(n < 0)
-		fatal(1, "read clone");
-	buf[n] = 0;
-
-	n = write(tftpctl, "announce 69", sizeof("announce 69"));
-	if(n < 0)
-		fatal(1, "can't announce");
-
-	sprint(data, "/net/udp/%s/data", buf);
-
-	tftpreq = open(data, ORDWR);
-	if(tftpreq < 0)
-		fatal(1, "open udp/data");
-
-	sprint(data, "/net/udp/%s/remote", buf);
-	tftpaddr = open(data, OREAD);
-	if(tftpaddr < 0)
-		fatal(1, "open udp/remote");
-
-}
-
-void
-clrcon(void)
-{
-	int n;
-
-	n = write(tftpctl, "connect 0.0.0.0!0!r", sizeof("connect 0.0.0.0!0!r"));
-	if(n < 0)
-		fatal(1, "clear connect");
+		sysfatal("write nak: %r");
 }
 
 void
@@ -405,6 +356,30 @@ setuser(void)
 	close(f);
 }
 
+char*
+lookup(char *sattr, char *sval, char *tattr, char *tval)
+{
+	static Ndb *db;
+	char *attrs[1];
+	Ndbtuple *t;
+
+	if(db == nil)
+		db = ndbopen(0);
+	if(db == nil)
+		return nil;
+
+	if(sattr == nil)
+		sattr = ipattr(sval);
+
+	attrs[0] = tattr;
+	t = ndbipinfo(db, sattr, sval, attrs, 1);
+	if(t == nil)
+		return nil;
+	strcpy(tval, t->val);
+	ndbfree(t);
+	return tval;
+}
+
 /*
  *  for sun kernel boots, replace the requested file name with
  *  a one from our database.  If the database doesn't specify a file,
@@ -414,27 +389,43 @@ char*
 sunkernel(char *name)
 {
 	ulong addr;
-	uchar ipaddr[4];
-	char buf[32];
-	static Ipinfo info;
-	static Ndb *db;
+	uchar v4[IPv4addrlen];
+	uchar v6[IPaddrlen];
+	char buf[Ndbvlen];
+	char ipbuf[Ndbvlen];
 
 	if(strlen(name) != 14 || strncmp(name + 8, ".SUN", 4) != 0)
 		return name;
 
 	addr = strtoul(name, 0, 16);
-	ipaddr[0] = addr>>24;
-	ipaddr[1] = addr>>16;
-	ipaddr[2] = addr>>8;
-	ipaddr[3] = addr;
-	sprint(buf, "%I", ipaddr);
-	if(db == 0)
-		db = ndbopen(0);
-	if(db == 0)
-		return 0;
-	if(ipinfo(db, 0, buf, 0, &info) < 0)
-		return 0;
-	if(info.bootf[0])
-		return info.bootf;
-	return 0;
+	v4[0] = addr>>24;
+	v4[1] = addr>>16;
+	v4[2] = addr>>8;
+	v4[3] = addr;
+	v4tov6(v6, v4);
+	sprint(ipbuf, "%I", v6);
+	return lookup("ip", ipbuf, "bootf", buf);
+}
+
+void
+remoteaddr(char *dir, char *raddr, int len)
+{
+	char buf[64];
+	int fd, n;
+
+	snprint(buf, sizeof(buf), "%s/remote", dir);
+	fd = open(buf, OREAD);
+	if(fd < 0){
+		snprint(raddr, sizeof(raddr), "unknown");
+		return;
+	}
+	n = read(fd, raddr, len-1);
+	close(fd);
+	if(n <= 0){
+		snprint(raddr, sizeof(raddr), "unknown");
+		return;
+	}
+	if(n > 0)
+		n--;
+	raddr[n] = 0;
 }

@@ -6,7 +6,7 @@ cgen(Node *n, Node *nn)
 	Node *l, *r;
 	Prog *p1;
 	Node nod, nod1, nod2, nod3, nod4;
-	int o;
+	int o, hardleft;
 	long v, curs;
 
 	if(debug['g']) {
@@ -15,19 +15,29 @@ cgen(Node *n, Node *nn)
 	}
 	if(n == Z || n->type == T)
 		return;
-	if(typesu[n->type->etype] || typev[n->type->etype]) {
+	if(typesuv[n->type->etype]) {
 		sugen(n, nn, n->type->width);
 		return;
 	}
-	if(n->addable >= INDEXED) {
-		if(nn != Z)
-			gmove(n, nn);
-		return;
-	}
-	curs = cursafe;
 	l = n->left;
 	r = n->right;
 	o = n->op;
+	if(n->addable >= INDEXED) {
+		if(nn == Z) {
+			switch(o) {
+			default:
+				nullwarn(Z, Z);
+				break;
+			case OINDEX:
+				nullwarn(l, r);
+				break;
+			}
+			return;
+		}
+		gmove(n, nn);
+		return;
+	}
+	curs = cursafe;
 
 	if(l->complex >= FNX)
 	if(r != Z && r->complex >= FNX)
@@ -55,6 +65,7 @@ cgen(Node *n, Node *nn)
 		break;
 	}
 
+	hardleft = l->addable < INDEXED || l->complex >= FNX;
 	switch(o) {
 	default:
 		diag(n, "unknown op in cgen: %O", o);
@@ -77,11 +88,16 @@ cgen(Node *n, Node *nn)
 		}
 		if(l->op == OBIT)
 			goto bitas;
-		if(l->addable >= INDEXED && l->complex < FNX) {
+		if(!hardleft) {
 			if(nn != Z || r->addable < INDEXED) {
-				regalloc(&nod, r, nn);
+				if(r->complex >= FNX && nn == Z)
+					regret(&nod, r);
+				else
+					regalloc(&nod, r, nn);
 				cgen(r, &nod);
 				gmove(&nod, l);
+				if(nn != Z)
+					gmove(&nod, nn);
 				regfree(&nod);
 			} else
 				gmove(r, l);
@@ -345,12 +361,12 @@ cgen(Node *n, Node *nn)
 
 		if(r->complex >= l->complex) {
 			cgen(r, &nod);
-			if(l->addable < INDEXED)
+			if(hardleft)
 				reglcgen(&nod1, l, Z);
 			else
 				nod1 = *l;
 		} else {
-			if(l->addable < INDEXED)
+			if(hardleft)
 				reglcgen(&nod1, l, Z);
 			else
 				nod1 = *l;
@@ -361,7 +377,7 @@ cgen(Node *n, Node *nn)
 		regfree(&nod);
 		if(nn != Z)
 			gmove(&nod1, nn);
-		if(l->addable < INDEXED)
+		if(hardleft)
 			regfree(&nod1);
 		break;
 
@@ -376,7 +392,7 @@ cgen(Node *n, Node *nn)
 		if(typefd[n->type->etype])
 			goto asfop;
 		if(l->complex >= r->complex) {
-			if(l->addable < INDEXED)
+			if(hardleft)
 				reglcgen(&nod, l, Z);
 			else
 				nod = *l;
@@ -390,7 +406,7 @@ cgen(Node *n, Node *nn)
 		} else {
 			regalloc(&nod1, r, nn);
 			cgen(r, &nod1);
-			if(l->addable < INDEXED)
+			if(hardleft)
 				reglcgen(&nod, l, Z);
 			else
 				nod = *l;
@@ -399,7 +415,7 @@ cgen(Node *n, Node *nn)
 		}
 		if(nn != Z)
 			gmove(&nod, nn);
-		if(l->addable < INDEXED)
+		if(hardleft)
 			regfree(&nod);
 		break;
 
@@ -465,7 +481,7 @@ cgen(Node *n, Node *nn)
 		reg[D_DX]++;
 
 		if(l->complex >= r->complex) {
-			if(l->addable < INDEXED)
+			if(hardleft)
 				reglcgen(&nod2, l, Z);
 			else
 				nod2 = *l;
@@ -475,7 +491,7 @@ cgen(Node *n, Node *nn)
 			if(o == OASLDIV || o == OASLMOD)
 				gins(AMOVL, nodconst(0), &nod1);
 			if(r->addable < INDEXED || r->op == OCONST ||
-			   !typel[r->type->etype]) {
+			   !typeil[r->type->etype]) {
 				regalloc(&nod3, r, Z);
 				cgen(r, &nod3);
 				gopcode(o, l->type, &nod3, Z);
@@ -485,7 +501,7 @@ cgen(Node *n, Node *nn)
 		} else {
 			regalloc(&nod3, r, Z);
 			cgen(r, &nod3);
-			if(l->addable < INDEXED)
+			if(hardleft)
 				reglcgen(&nod2, l, Z);
 			else
 				nod2 = *l;
@@ -506,7 +522,7 @@ cgen(Node *n, Node *nn)
 			if(nn != Z)
 				gmove(&nod, nn);
 		}
-		if(l->addable < INDEXED)
+		if(hardleft)
 			regfree(&nod2);
 		regfree(&nod);
 		regfree(&nod1);
@@ -533,14 +549,14 @@ cgen(Node *n, Node *nn)
 
 	asfop:
 		if(l->complex >= r->complex) {
-			if(l->addable < INDEXED)
+			if(hardleft)
 				reglcgen(&nod, l, Z);
 			else
 				nod = *l;
 			cgen(r, &fregnode0);
 		} else {
 			cgen(r, &fregnode0);
-			if(l->addable < INDEXED)
+			if(hardleft)
 				reglcgen(&nod, l, Z);
 			else
 				nod = *l;
@@ -555,7 +571,7 @@ cgen(Node *n, Node *nn)
 		gmove(&fregnode0, &nod);
 		if(nn != Z)
 			gmove(&fregnode0, nn);
-		if(l->addable < INDEXED)
+		if(hardleft)
 			regfree(&nod);
 		break;
 
@@ -582,7 +598,7 @@ cgen(Node *n, Node *nn)
 			onod.op = o;
 			onod.complex = 2;
 			onod.addable = 0;
-			onod.type = types[TFIELD];
+			onod.type = tfield;
 			onod.left = &nod4;
 			onod.right = &nod3;
 			cgen(&onod, Z);
@@ -723,17 +739,17 @@ cgen(Node *n, Node *nn)
 
 	case ODOT:
 		sugen(l, nodrat, l->type->width);
-		if(nn != Z) {
-			warn(n, "non-interruptable temporary");
-			nod = *nodrat;
-			if(!r || r->op != OCONST) {
-				diag(n, "DOT and no offset");
-				break;
-			}
-			nod.xoffset += (long)r->vconst;
-			nod.type = n->type;
-			cgen(&nod, nn);
+		if(nn == Z)
+			break;
+		warn(n, "non-interruptable temporary");
+		nod = *nodrat;
+		if(!r || r->op != OCONST) {
+			diag(n, "DOT and no offset");
+			break;
 		}
+		nod.xoffset += (long)r->vconst;
+		nod.type = n->type;
+		cgen(&nod, nn);
 		break;
 
 	case OCOND:
@@ -759,7 +775,7 @@ cgen(Node *n, Node *nn)
 		if(nn == Z)
 			goto pre;
 
-		if(l->addable < INDEXED)
+		if(hardleft)
 			reglcgen(&nod, l, Z);
 		else
 			nod = *l;
@@ -768,7 +784,7 @@ cgen(Node *n, Node *nn)
 			goto fltinc;
 		gmove(&nod, nn);
 		gopcode(OADD, n->type, nodconst(v), &nod);
-		if(l->addable < INDEXED)
+		if(hardleft)
 			regfree(&nod);
 		break;
 
@@ -783,7 +799,7 @@ cgen(Node *n, Node *nn)
 			goto bitinc;
 
 	pre:
-		if(l->addable < INDEXED)
+		if(hardleft)
 			reglcgen(&nod, l, Z);
 		else
 			nod = *l;
@@ -792,7 +808,7 @@ cgen(Node *n, Node *nn)
 		gopcode(OADD, n->type, nodconst(v), &nod);
 		if(nn != Z)
 			gmove(&nod, nn);
-		if(l->addable < INDEXED)
+		if(hardleft)
 			regfree(&nod);
 		break;
 
@@ -808,7 +824,7 @@ cgen(Node *n, Node *nn)
 		if(nn != Z && (o == OPREINC || o == OPREDEC))
 			gins(AFMOVD, &fregnode0, &fregnode0);
 		gmove(&fregnode0, &nod);
-		if(l->addable < INDEXED)
+		if(hardleft)
 			regfree(&nod);
 		break;
 
@@ -816,21 +832,16 @@ cgen(Node *n, Node *nn)
 		if(nn != Z && (o == OPOSTINC || o == OPOSTDEC)) {
 			bitload(l, &nod, &nod1, &nod2, Z);
 			gmove(&nod, nn);
-			gopcode(OADD, types[TFIELD], nodconst(v), &nod);
+			gopcode(OADD, tfield, nodconst(v), &nod);
 			bitstore(l, &nod, &nod1, &nod2, Z);
 			break;
 		}
 		bitload(l, &nod, &nod1, &nod2, nn);
-		gopcode(OADD, types[TFIELD], nodconst(v), &nod);
+		gopcode(OADD, tfield, nodconst(v), &nod);
 		bitstore(l, &nod, &nod1, &nod2, nn);
 		break;
 	}
 	cursafe = curs;
-	return;
-
-bad:
-	cursafe = curs;
-	diag(n, "%O not implemented", o);
 }
 
 void
@@ -1170,18 +1181,18 @@ sugen(Node *n, Node *nn, long w)
 	case ODOT:
 		l = n->left;
 		sugen(l, nodrat, l->type->width);
-		if(nn != Z) {
-			warn(n, "non-interruptable temporary");
-			nod1 = *nodrat;
-			r = n->right;
-			if(!r || r->op != OCONST) {
-				diag(n, "DOT and no offset");
-				break;
-			}
-			nod1.xoffset += (long)r->vconst;
-			nod1.type = n->type;
-			sugen(&nod1, nn, w);
+		if(nn == Z)
+			break;
+		warn(n, "non-interruptable temporary");
+		nod1 = *nodrat;
+		r = n->right;
+		if(!r || r->op != OCONST) {
+			diag(n, "DOT and no offset");
+			break;
 		}
+		nod1.xoffset += (long)r->vconst;
+		nod1.type = n->type;
+		sugen(&nod1, nn, w);
 		break;
 
 	case OSTRUCT:
@@ -1265,7 +1276,7 @@ sugen(Node *n, Node *nn, long w)
 				sugen(n->right, n->left, w);
 			break;
 		}
-		/* BOTCH -- functions can clobber rathole */
+
 		sugen(n->right, nodrat, w);
 		warn(n, "non-interruptable temporary");
 		sugen(nodrat, n->left, w);

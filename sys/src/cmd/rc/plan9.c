@@ -56,6 +56,7 @@ void execnewpgrp(void){
 			goto Usage;
 		case 'n': arg|=RFNAMEG;  break;
 		case 'N': arg|=RFCNAMEG; break;
+		case 'm': arg|=RFNOMNT;  break;
 		case 'e': arg|=RFENVG;   break;
 		case 'E': arg|=RFCENVG;  break;
 		case 's': arg|=RFNOTEG;  break;
@@ -65,7 +66,7 @@ void execnewpgrp(void){
 		break;
 	default:
 	Usage:
-		pfmt(err, "Usage: %s [fnesFNE]\n", runq->argv->words->word);
+		pfmt(err, "Usage: %s [fnesFNEm]\n", runq->argv->words->word);
 		setstatus("rfork usage");
 		poplist();
 		return;
@@ -159,7 +160,7 @@ void execfinit(void){
 	start(rdfns, 1, runq->local);
 }
 #endif
-int Waitfor(int pid, int persist){
+int Waitfor(int pid, int){
 	thread *p;
 	Waitmsg w;
 	int cpid;
@@ -341,7 +342,7 @@ void Closedir(int f){
 }
 int interrupted = 0;
 void
-notifyf(void *a, char *s)
+notifyf(void*, char *s)
 {
 	int i;
 	for(i=0;syssigname[i];i++) if(strncmp(s, syssigname[i], strlen(syssigname[i]))==0){
@@ -375,11 +376,9 @@ long Write(int fd, char *buf, long cnt)
 }
 long Read(int fd, char *buf, long cnt)
 {
-	int n;
-
 	return read(fd, buf, cnt);
 }
-long Seek(int fd, long cnt, int whence)
+long Seek(int fd, long cnt, long whence)
 {
 	return seek(fd, cnt, whence);
 }
@@ -396,7 +395,7 @@ int Creat(char *file)
 int Dup(int a, int b){
 	return dup(a, b);
 }
-int Dup1(int a){
+int Dup1(int){
 	return -1;
 }
 void Exit(char *stat)
@@ -414,7 +413,7 @@ void Noerror(void){
 int Isatty(int fd){
 	Dir d1, d2;
 
-	if(dirfstat(0, &d1)==-1) return 0;
+	if(dirfstat(fd, &d1)==-1) return 0;
 	if(strncmp(d1.name, "ptty", 4)==0) return 1;	/* fwd complaints to philw */
 	if(dirstat("/dev/cons", &d2)==-1) return 0;
 	return d1.type==d2.type&&d1.dev==d2.dev&&d1.qid.path==d2.qid.path;
@@ -430,10 +429,4 @@ void Memcpy(char *a, char *b, long n)
 }
 void *Malloc(ulong n){
 	return malloc(n);
-}
-char *Geterrstr(void){
-	static char error[ERRLEN];
-	error[0]='\0';
-	errstr(error);
-	return error;
 }

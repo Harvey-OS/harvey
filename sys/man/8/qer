@@ -1,13 +1,41 @@
 .TH QER 8 
 .SH NAME
-qer, runq \- queues management for spooled files
+qer, runq \- queue management for spooled files
 .SH SYNOPSIS
 .B qer
+[
+.B -q
+.I subdir
+]
+[
+.B -f
+.I file
+]
 .I root tag reply args
 .br
 .B runq
 [
-.B -ad
+.B -adsE
+]
+[
+.B -f
+.I file
+]
+[
+.B -q
+.I subdir
+]
+[
+.B -l
+.I load
+]
+[
+.B -t
+.I time
+]
+[
+.B -n
+.I nprocs
 ]
 .I root cmd
 .SH DESCRIPTION
@@ -22,14 +50,32 @@ separated by spaces.
 The data file contains the standard input to
 .IR qer .
 The files are created in the directory
-.IR root / user ,
+.IR root / subdir ,
 where
-.I user
-is the contents of
+.I subdir
+is the argument to
+.B -q
+if present, else the contents of
 .BR /dev/user .
+The names of the control and data files differ only
+in the first character which is `C' and `D' respectively.
 .IR Mktemp (2)
 is used to create the actual names of the control and
 data file.
+.P
+Some commands, such as
+.I fax
+(see
+.IR telco (4)),
+must queue more files than just the data file.
+Each
+.I file
+following a
+.B \-f
+flag is copied into the queue directory.  The names
+of the copies differ from the name of the data file
+only in the first character.  The first one is
+starts with 'F', the second 'G', etc.
 .P
 .I Runq
 processes the files queued by
@@ -39,10 +85,12 @@ Without the
 option,
 .I runq
 processes all requests in the directory
-.IR root / user ,
+.IR root / subdir ,
 where
-.I user
-is the contents of
+.I subdir
+is the argument to
+.B -q
+if present, else the contents of
 .BR /dev/user .
 With the
 .B -a
@@ -82,11 +130,47 @@ a data file younger than one hour will not be processed if its
 error file exists and was last modified within the preceding 10 minutes.
 A data file older than one hour will not be processed if its error
 file exists and was last modified within the preceding hour.
+The 
+.B -E
+flag causes all files to be reprocessed regardless of
+the file times.
 .P
 The
 .B -d
 option causes debugging output on standard error
 describing the progress through the queues.
+.P
+The
+.B -t
+flags specifies the number of hours
+that retries will continue after a send
+failure.  The default is 48 hours.
+.P
+The
+.BR -s ,
+.BR -n ,
+and
+.B -l
+flags are only meaningful with the
+.B -a
+flag.  They control amount of parallelism that
+is used when sweeping all of the queues.  The argument following the
+.B -n
+flag specifies the number of queues that are swept
+in parallel; the default is 50.  The argument following the
+.B -l
+flag specifies the total number of queues that are being swept.
+By default, there is no limit.  The number of active sweeps
+is cumulative over all active executions of
+.IR runq .
+The
+.B -s
+flag forces each queue directory to be processed by exactly
+one instance of
+.IR runq .
+This is useful on systems that connect to slow
+external systems and prevents all the queue sweeps from
+piling up trying to process a few slow systems.
 .PP
 .I Runq
 is often called from
@@ -100,7 +184,7 @@ by an entry such as
 .LP
 The entry must be a single line; it is folded here only so it fits on the page.
 .SH FILES
-.TF \fIroot\fP/\fIuser\fP/D.XXXXXX
+.TF \fIroot\fP/\fIuser\fP/[F-Z].XXXXXX
 .TP
 .B \fIroot\fP/\fIuser\fP
 queue directory for
@@ -114,6 +198,9 @@ control file
 .TP
 .B \fIroot\fP/\fIuser\fP/E.XXXXXX
 error file
+.TP
+.B \fIroot\fP/\fIuser\fP/[F-Z].XXXXXX
+secondary data files
 .SH SOURCE
 .B /sys/src/cmd/upas/q
 .SH "SEE ALSO"

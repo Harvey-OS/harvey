@@ -8,7 +8,8 @@ newfile(void)
 {
 	File *f;
 
-	inslist(&file, 0, (long)(f = Fopen()));
+	f = fileopen();
+	inslist(&file, 0, (long)f);
 	f->tag = tag++;
 	if(downloaded)
 		outTs(Hnewname, f->tag);
@@ -37,7 +38,33 @@ delfile(File *f)
 	if(downloaded)
 		outTs(Hdelname, f->tag);
 	dellist(&file, w);
-	Fclose(f);
+	fileclose(f);
+}
+
+void
+fullname(String *name)
+{
+	if(name->n > 0 && name->s[0]!='/' && name->s[0]!=0)
+		Strinsert(name, &curwd, (Posn)0);
+}
+
+void
+fixname(String *name)
+{
+	String *t;
+	char *s;
+
+	fullname(name);
+	s = Strtoc(name);
+	if(strlen(s) > 0)
+		s = cleanname(s);
+	t = tmpcstr(s);
+	Strduplstr(name, t);
+	free(s);
+	freetmpstr(t);
+
+	if(Strispre(&curwd, name))
+		Strdelete(name, 0, curwd.n);
 }
 
 void
@@ -51,13 +78,15 @@ sortname(File *f)
 	dellist(&file, w);
 	if(f == cmd)
 		i = 0;
-	else for(i=0; i<file.nused; i++){
-		cmp = Strcmp(&f->name, &file.filepptr[i]->name);
-		if(cmp==0 && !dupwarned){
-			dupwarned = TRUE;
-			warn_S(Wdupname, &f->name);
-		}else if(cmp<0 && (i>0 || cmd==0))
-			break;
+	else{
+		for(i=0; i<file.nused; i++){
+			cmp = Strcmp(&f->name, &file.filepptr[i]->name);
+			if(cmp==0 && !dupwarned){
+				dupwarned = TRUE;
+				warn_S(Wdupname, &f->name);
+			}else if(cmp<0 && (i>0 || cmd==0))
+				break;
+		}
 	}
 	inslist(&file, i, (long)f);
 	if(downloaded)
@@ -69,13 +98,17 @@ state(File *f, int cleandirty)
 {
 	if(f == cmd)
 		return;
+	f->unread = FALSE;
 	if(downloaded && whichmenu(f)>=0){	/* else flist or menu */
-		if(f->state==Dirty && cleandirty!=Dirty)
+		if(f->mod && cleandirty!=Dirty)
 			outTs(Hclean, f->tag);
-		else if(f->state!=Dirty && cleandirty==Dirty)
+		else if(!f->mod && cleandirty==Dirty)
 			outTs(Hdirty, f->tag);
 	}
-	f->state = cleandirty;
+	if(cleandirty == Clean)
+		f->mod = FALSE;
+	else
+		f->mod = TRUE;
 }
 
 File *

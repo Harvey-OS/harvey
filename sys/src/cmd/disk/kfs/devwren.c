@@ -11,13 +11,14 @@ typedef struct Wren	Wren;
 struct Wren{
 	QLock;
 	Device	dev;
-	ulong	size;
+	uvlong	size;
 	int	fd;
 };
 
 static Wren	*wrens;
 static int	maxwren;
 char		*wrenfile;
+int		nwren;
 int		badmagic;
 
 static Wren *
@@ -38,14 +39,17 @@ wren(Device dev)
  * we call this because convM2D is different
  * for the file system than in the os
  */
-long
+uvlong
 statlen(char *ap)
 {
 	uchar *p;
+	ulong ll, hl;
 
 	p = (uchar*)ap;
 	p += 3*NAMELEN+5*4;
-	return p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
+	ll = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
+	hl = p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24);
+	return ll | ((uvlong) hl << 32);
 }
 
 void
@@ -159,7 +163,7 @@ wrenread(Device dev, long addr, void *b)
 	w = wren(dev);
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, addr*RBUFSIZE, 0) < 0 || read(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (vlong)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	return i;
 }
@@ -173,7 +177,7 @@ wrenwrite(Device dev, long addr, void *b)
 	w = wren(dev);
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, addr*RBUFSIZE, 0) < 0 || write(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (vlong)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	return i;
 }

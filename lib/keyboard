@@ -406,6 +406,8 @@
 207D  s(          ⁽	superscript opening parenthesis
 207E  s)          ⁾	superscript closing parenthesis
 207F  sn          ⁿ	superscript latin small letter n
+2013  en          –	en dash
+2014  em          –	em dash
 2080  b0          ₀	subscript digit zero
 2081  b1          ₁	subscript digit one
 2082  b2          ₂	subscript digit two
@@ -535,6 +537,7 @@
 22E7  >!~         ⋧	greater than but not equivalent to
 22EF  el          ⋯	midline horizontal ellipsis
 2423              ␣	open box
+263A  :)          ☺ smiley face
 2654  wk          ♔	white chess king
 2655  wq          ♕	white chess queen
 2656  wr          ♖	white chess rook

@@ -1,7 +1,10 @@
 PFILES=`{builtin cd ../port;echo *.c | sed 's/ /|/g; s/\.c//g'}
-
 ^($PFILES)\.$O:R:	'../port/\1.c'
 	$CC $CFLAGS -I. ../port/$stem1.c
+
+IPFILES=`{builtin cd ../ip;echo *.c | sed 's/ /|/g; s/\.c//g'}
+^($IPFILES)\.$O:R:	'../ip/\1.c' ../ip/ip.h
+	$CC $CFLAGS -I. ../ip/$stem1.c
 
 %.$O:	%.s
 	$AS $stem.s
@@ -9,8 +12,14 @@ PFILES=`{builtin cd ../port;echo *.c | sed 's/ /|/g; s/\.c//g'}
 %.$O:	%.c
 	$CC $CFLAGS $stem.c
 
-install:V:	9$CONF
-	cp 9$CONF /$objtype/9$CONF
+%.acid:	%.c
+	$CC $CFLAGS -a $stem.c >$stem.acid
+
+%.acid:	../ip/%.c
+	$CC $CFLAGS -a -I.  ../ip/$stem.c >$stem.acid
+
+%.acid:	../port/%.c
+	$CC $CFLAGS -a -I. ../port/$stem.c >$stem.acid
 
 installall:V:
 	for(i in $CONFLIST)
@@ -21,65 +30,75 @@ all:V:
 		mk 'CONF='$i
 
 clean:V:
-	rm -f *.[$OS] *.root.s devtab.h cfs.h fs.h init.h conf.h *.out
+	rm -f *.[$OS] *.root.s cfs.h fs.h init.h conf.h *.out
 	for(i in $CONFLIST)
-		rm -f $i.c 9$i boot$i.* boot9$i.*
+		rm -f $i.c [9bz]$i [9bz]$i.gz boot$i.*
 
-%.$O:	u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h devtab.h
+%.$O:	/$objtype/include/u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h
 
-../port/systab.h:	/sys/src/libc/9syscall/sys.h
+../port/systab.h:	/sys/src/libc/9syscall/sys.h ../port/mksystab
 	rc ../port/mksystab > ../port/systab.h
 
-$CONF.c: ../port/mkdevc $CONF
-	rc ../port/mkdevc $CONF > $CONF.c
+$CONF.$O:	$CONF.c
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
 
-devtab.h:	../port/mkdevh $CONFLIST
-	rc ../port/mkdevh $CONFLIST > devtab.h
+$CONF.c:	../port/mkdevc $CONF
+	rc ../port/mkdevc $CONF > $CONF.c
 
 errstr.h:	../port/mkerrstr ../port/error.h
 	rc ../port/mkerrstr > errstr.h
 
+../port/latin1.h:	/lib/keyboard
+	aux/mklatinkbd /lib/keyboard > ../port/latin1.h
+
 %.db:		main.$O
 	$CC -s$stem main.c | dbfmt > $stem.db
 
-../boot/libboot.a$O: /dev/cons
-	builtin cd ../boot
-	mk
-
-dev.$O:		devtab.h
+alloc.$O:	/sys/include/pool.h
 devmnt.$O:	/sys/include/fcall.h
 proc.$O:	errstr.h
 devroot.$O:	errstr.h
-tcpinput.$O:	../port/ipdat.h
-tcpoutput.$O:	../port/ipdat.h
-tcptimer.$O:	../port/ipdat.h
-tcpif.$O:	../port/ipdat.h
-stil.$O:	../port/ipdat.h
-devip.$O:	../port/ipdat.h
 trap.$O:	/$objtype/include/ureg.h
 devproc.$O:	/$objtype/include/ureg.h
 main.$O:	init.h
 segment.$O:	segment.h
 trap.$O:	../port/systab.h
-devbit.$O:	screen.h
+devns16552.$O:	ns16552.h
+devns16552.$O devpipe.$O netif.$O:	../port/netif.h
+devmouse.$O:	screen.h
+latin1.$O:	../port/latin1.h
 
 kfs.root.s:	/$objtype/bin/disk/kfs
 	cp $prereq kfs.out
 	strip kfs.out
-	../port/mkroot kfs fs
+	../port/mkroot kfs kfs
 
 cfs.root.s:	/$objtype/bin/cfs
-	cp $prereq cfs.out
+	cp /$objtype/bin/cfs cfs.out
 	strip cfs.out
 	../port/mkroot cfs cfs
 
-k9660srv.root.s:	/$objtype/bin/9660srv
-	cp $prereq k9660srv.out
-	strip k9660srv.out
-	../port/mkroot k9660srv fs
+ppp.root.s:	/$objtype/bin/ip/ppp
+	cp /$objtype/bin/ip/ppp ppp.out
+	strip ppp.out
+	../port/mkroot ppp ppp
 
-boot$CONF.root.s: $CONF print.$O ../boot/boot.c ../boot/libboot.a$O
-	../boot/mkboot $CONF > boot$CONF.c
+ls.root.s:	/$objtype/bin/ls
+	cp /$objtype/bin/ls ls.out
+	../port/mkroot ls ls
+
+ipconfig.root.s:	/$objtype/bin/ip/ipconfig
+	cp /$objtype/bin/ip/ipconfig ipconfig.out
+	strip ipconfig.out
+	../port/mkroot ipconfig ipconfig
+
+vdfs.root.s: /sys/lib/pcdist/bin/$objtype/vdfs
+	cp $prereq vdfs.out
+	strip vdfs.out
+	../port/mkroot vdfs kfs
+
+boot$CONF.root.s: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
+	$BOOTDIR/mkboot $CONF > boot$CONF.c
 	$CC $CFLAGS boot$CONF.c
-	$LD -o boot$CONF.out -s boot$CONF.$O ../boot/libboot.a$O print.$O
+	$LD -o boot$CONF.out -s boot$CONF.$O $BOOTLIB print.$O
 	../port/mkroot boot$CONF boot

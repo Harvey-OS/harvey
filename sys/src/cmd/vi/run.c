@@ -14,24 +14,30 @@ void	Ilw(ulong);
 void	Ijal(ulong);
 void	Ispecial(ulong);
 void	Ibeq(ulong);
+void	Ibeql(ulong);
 void	Iaddiu(ulong);
 void	Ilb(ulong);
 void	Iandi(ulong);
 void	Ij(ulong);
 void	Ibne(ulong);
+void	Ibnel(ulong);
 void	Isb(ulong);
 void	Islti(ulong);
 void	Ibcond(ulong);
 void	Ibgtz(ulong);
+void	Ibgtzl(ulong);
 void	Ilbu(ulong);
 void	Ilhu(ulong);
 void	Ish(ulong);
 void	Ilh(ulong);
 void	Iblez(ulong);
+void	Iblezl(ulong);
 void	Isltiu(ulong);
 void	Iswc1(ulong);
 void	Ilwc1(ulong);
 void	Icop1(ulong);
+void	Ilwl(ulong);
+void	Ilwr(ulong);
 
 Inst itab[] = {
 	{ Ispecial,	0 },
@@ -54,10 +60,10 @@ Inst itab[] = {
 	{ Icop1,	"cop1",		Ifloat },
 	{ undef,	"" },
 	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
-	{ undef,	"" },
+	{ Ibeql,	"beql" },
+	{ Ibnel,	"bnel" },
+	{ Iblezl,	"blezl" },
+	{ Ibgtzl,	"bgtzl" },
 	{ undef,	"" },
 	{ undef,	"" },
 	{ undef,	"" },
@@ -68,11 +74,11 @@ Inst itab[] = {
 	{ undef,	"" },
 	{ Ilb,		"lb",		Iload },
 	{ Ilh,		"lh",		Iload },
-	{ undef,	"" },
+	{ Ilwl,		"lwl", 		Iload },
 	{ Ilw,		"lw",		Iload },
 	{ Ilbu,		"lbu",		Iload },
 	{ Ilhu,		"lhu",		Iload },
-	{ undef,	"" },
+	{ Ilwr,		"lwr",		Iload },
 	{ undef,	"" },
 	{ Isb,		"sb",		Istore },
 	{ Ish,		"sh",		Istore },
@@ -102,6 +108,16 @@ Inst itab[] = {
 };
 
 void
+dortrace(void)
+{
+	int i;
+
+	for(i = 0; i < 32; i++)
+		if(rtrace & (1<<i))
+			Bprint(bioout, "R%.2d %.8lux\n", i, reg.r[i]);
+}
+
+void
 run(void)
 {
 	do {
@@ -111,6 +127,9 @@ run(void)
 		reg.pc += 4;
 		if(bplist)
 			brkchk(reg.pc, Instruction);
+		if(rtrace)
+			dortrace();
+Bflush(bioout);
 	}while(--count);
 }
 
@@ -164,17 +183,17 @@ Isw(ulong inst)
 {
 	int rt, rb;
 	int off;
-	ulong value;
+	ulong v;
 
 	Getrbrt(rb, rt, inst);
 	off = (short)(inst&0xffff);
 
-	value = reg.r[rt];
+	v = reg.r[rt];
 	if(trace)
 		itrace("sw\tr%d,0x%x(r%d) %lux=%lux",
-				rt, off, rb, reg.r[rb]+off, value);
+				rt, off, rb, reg.r[rb]+off, v);
 
-	putmem_w(reg.r[rb]+off, value);
+	putmem_w(reg.r[rb]+off, v);
 }
 
 void
@@ -263,14 +282,92 @@ Ilw(ulong inst)
 {
 	int rt, rb;
 	int off;
+	ulong v, va;
 
 	Getrbrt(rb, rt, inst);
 	off = (short)(inst&0xffff);
 
-	if(trace)
-		itrace("lw\tr%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb]+off);
+	va = reg.r[rb]+off;
 
-	reg.r[rt] = getmem_w(reg.r[rb]+off);
+	if(trace) {
+		v = 0;
+		if(!badvaddr(va, 4))
+			v = getmem_w(va);
+		itrace("lw\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb, va, v);
+	}
+
+	reg.r[rt] = getmem_w(va);
+}
+
+void
+Ilwl(ulong inst)
+{
+	int rt, rb;
+	int off;
+	ulong v, va;
+
+	Getrbrt(rb, rt, inst);
+	off = (short)(inst&0xffff);
+
+	va = reg.r[rb]+off;
+
+	if(trace) {
+		v = 0;
+		if(!badvaddr(va, 4))
+			v = getmem_w(va & ~3) << ((va & 3) << 3);
+		itrace("lwl\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb, va, v);
+	}
+
+	v = getmem_w(va & ~3);
+	switch(va & 3) {
+	case 0:
+		reg.r[rt] = v;
+		break;
+	case 1:
+		reg.r[rt] = (v<<8) | (reg.r[rt] & 0xff);
+		break;
+	case 2:
+		reg.r[rt] = (v<<16) | (reg.r[rt] & 0xffff);
+		break;
+	case 3:
+		reg.r[rt] = (v<<24) | (reg.r[rt] & 0xffffff);
+		break;
+	}
+}
+
+void
+Ilwr(ulong inst)
+{
+	int rt, rb;
+	int off;
+	ulong v, va;
+
+	Getrbrt(rb, rt, inst);
+	off = (short)(inst&0xffff);
+
+	va = reg.r[rb]+off;
+
+	if(trace) {
+		v = 0;
+		if(!badvaddr(va, 4))
+			v = getmem_w(va & ~3) << ((va & 3) << 3);
+		itrace("lwr\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb, va, v);
+	}
+
+	v = getmem_w(va & ~3);
+	switch(va & 3) {
+	case 0:
+		break;
+	case 1:
+		reg.r[rt] = (v>>24) | (reg.r[rt] & 0xffffff00);
+		break;
+	case 2:
+		reg.r[rt] = (v>>16) | (reg.r[rt] & 0xffff0000);
+		break;
+	case 3:
+		reg.r[rt] = (v>>8) | (reg.r[rt] & 0xff0000000);
+		break;
+	}
 }
 
 void
@@ -278,14 +375,87 @@ Ilh(ulong inst)
 {
 	int rt, rb;
 	int off;
+	ulong v, va;
 
 	Getrbrt(rb, rt, inst);
 	off = (short)(inst&0xffff);
 
-	if(trace)
-		itrace("lh\tr%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb]+off);
+	va = reg.r[rb]+off;
 
-	reg.r[rt] = (short)getmem_h(reg.r[rb]+off);
+	if(trace) {
+		v = 0;
+		if(!badvaddr(va, 2))
+			v = (short)getmem_h(va);
+		itrace("lw\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb, va, v);
+	}
+
+	reg.r[rt] = (short)getmem_h(va);
+}
+
+void
+Ilhu(ulong inst)
+{
+	int rt, rb;
+	int off;
+	ulong v, va;
+
+	Getrbrt(rb, rt, inst);
+	off = (short)(inst&0xffff);
+
+	va = reg.r[rb]+off;
+
+	if(trace) {
+		v = 0;
+		if(!badvaddr(va, 2))
+			v = getmem_h(va) & 0xffff;
+		itrace("lhu\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb, va, v);
+	}
+
+	reg.r[rt] = getmem_h(va) & 0xffff;
+}
+
+void
+Ilb(ulong inst)
+{
+	int rt, rb;
+	int off;
+	ulong v, va;
+
+	Getrbrt(rb, rt, inst);
+	off = (short)(inst&0xffff);
+
+	va = reg.r[rb]+off;
+
+	if(trace) {
+		v = 0;
+		if(!badvaddr(va, 1))
+			v = (schar)getmem_b(va);
+		itrace("lb\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb, va, v);
+	}
+
+	reg.r[rt] = (schar)getmem_b(va);
+}
+
+void
+Ilbu(ulong inst)
+{
+	int rt, rb;
+	int off;
+	ulong v, va;
+
+	Getrbrt(rb, rt, inst);
+	off = (short)(inst&0xffff);
+
+	va = reg.r[rb]+off;
+
+	if(trace) {
+		v = 0;
+		if(!badvaddr(va, 1))
+			v = getmem_b(va) & 0xff;
+		itrace("lbu\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb, va, v);
+	}
+
+	reg.r[rt] = getmem_b(va) & 0xff;
 }
 
 void
@@ -356,6 +526,30 @@ Ibeq(ulong inst)
 }
 
 void
+Ibeql(ulong inst)
+{
+	int rt, rs;
+	int off;
+	ulong npc;
+
+	Getrsrt(rs, rt, inst);
+	off = (short)(inst&0xffff);
+
+	npc = reg.pc + (off<<2) + 4;
+	if(trace)
+		itrace("beq\tr%d,r%d,0x%lux", rs, rt, npc);
+
+	if(reg.r[rs] == reg.r[rt]) {
+		/* Do the delay slot */
+		reg.ir = ifetch(reg.pc+4);
+		Statbra();
+		Iexec(reg.ir);
+		reg.pc = npc-4;
+	} else
+		reg.pc += 4;
+}
+
+void
 Ibgtz(ulong inst)
 {
 	int rs;
@@ -376,6 +570,30 @@ Ibgtz(ulong inst)
 		Iexec(reg.ir);
 		reg.pc = npc-4;
 	}
+}
+
+void
+Ibgtzl(ulong inst)
+{
+	int rs;
+	int off;
+	ulong npc, r;
+
+	rs = (inst>>21)&0x1f;
+	off = (short)(inst&0xffff);
+
+	npc = reg.pc + (off<<2) + 4;
+	if(trace)
+		itrace("bgtz\tr%d,0x%lux", rs, npc);
+
+	r = reg.r[rs];
+	if(!(r&SIGNBIT) && r != 0) {
+		/* Do the delay slot */
+		reg.ir = ifetch(reg.pc+4);
+		Iexec(reg.ir);
+		reg.pc = npc-4;
+	} else
+		reg.pc += 4;
 }
 
 void
@@ -403,6 +621,31 @@ Iblez(ulong inst)
 }
 
 void
+Iblezl(ulong inst)
+{
+	int rs;
+	int off;
+	ulong npc, r;
+
+	rs = (inst>>21)&0x1f;
+	off = (short)(inst&0xffff);
+
+	npc = reg.pc + (off<<2) + 4;
+	if(trace)
+		itrace("blez\tr%d,0x%lux", rs, npc);
+
+	r = reg.r[rs];
+	if((r&SIGNBIT) || r == 0) {
+		/* Do the delay slot */
+		reg.ir = ifetch(reg.pc+4);
+		Statbra();
+		Iexec(reg.ir);
+		reg.pc = npc-4;
+	} else
+		reg.pc += 4;
+}
+
+void
 Ibne(ulong inst)
 {
 	int rt, rs;
@@ -423,6 +666,30 @@ Ibne(ulong inst)
 		Iexec(reg.ir);
 		reg.pc = npc-4;
 	}
+}
+
+void
+Ibnel(ulong inst)
+{
+	int rt, rs;
+	int off;
+	ulong npc;
+
+	Getrsrt(rs, rt, inst);
+	off = (short)(inst&0xffff);
+
+	npc = reg.pc + (off<<2) + 4;
+	if(trace)
+		itrace("bne\tr%d,r%d,0x%lux", rs, rt, npc);
+
+	if(reg.r[rs] != reg.r[rt]) {
+		/* Do the delay slot */
+		reg.ir = ifetch(reg.pc+4);
+		Statbra();
+		Iexec(reg.ir);
+		reg.pc = npc-4;
+	} else
+		reg.pc += 4;
 }
 
 void
@@ -470,57 +737,16 @@ Isltiu(ulong inst)
 	reg.r[rt] = (ulong)reg.r[rs] < (ulong)imm ? 1 : 0;
 }
 
-void
-Ilb(ulong inst)
-{
-	int rt, rb;
-	int off;
-
-	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
-
-	if(trace)
-		itrace("lb\tr%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb]+off);
-
-	reg.r[rt] = (schar)getmem_b(reg.r[rb]+off);
-}
-
-void
-Ilbu(ulong inst)
-{
-	int rt, rb;
-	int off;
-
-	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
-
-	if(trace)
-		itrace("lbu\tr%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb]+off);
-
-	reg.r[rt] = getmem_b(reg.r[rb]+off) & 0xff;
-}
-
-void
-Ilhu(ulong inst)
-{
-	int rt, rb;
-	int off;
-
-	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
-
-	if(trace)
-		itrace("lhu\tr%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb]+off);
-
-	reg.r[rt] = getmem_h(reg.r[rb]+off) & 0xffff;
-}
-
 enum
 {
 	Bltz	= 0,
 	Bgez	= 1,
 	Bltzal	= 0x10,
 	Bgezal	= 0x11,
+	Bltzl	= 2,
+	Bgezl	= 3,
+	Bltzall	= 0x12,
+	Bgezall	= 0x13,
 };
 
 static char *sbcond[] =
@@ -529,44 +755,55 @@ static char *sbcond[] =
 	[Bgez]		"gez",
 	[Bltzal]	"ltzal",
 	[Bgezal]	"gezal",
+	[Bltzl]		"ltzl",
+	[Bgezl]		"gezl",
+	[Bltzall]	"ltzall",
+	[Bgezall]	"gezall",
 };
 
 void
 Ibcond(ulong inst)
 {
 	int rs, bran;
-	int off, doit;
+	int off, doit, likely;
 	ulong npc;
 
 	rs = (inst>>21)&0x1f;
 	bran = (inst>>16)&0x1f;
 	off = (short)(inst&0xffff);
 	doit = 0;
+	likely = 0;
 
 	npc = reg.pc + (off<<2) + 4;
 	switch(bran) {
 	default:
 		Bprint(bioout, "bcond=%d\n", bran);
 		undef(inst);
+	case Bltzl:
+		likely = 1;
 	case Bltz:
 		if(reg.r[rs]&SIGNBIT)
 			doit = 1;
 		break;
+	case Bgezl:
+		likely = 1;
 	case Bgez:
 		if(!(reg.r[rs]&SIGNBIT))
 			doit = 1;
 		break;
+	case Bltzall:
+		likely = 1;
 	case Bltzal:
-		if(reg.r[rs]&SIGNBIT) {
+		reg.r[31] = reg.pc+8;
+		if(reg.r[rs]&SIGNBIT)
 			doit = 1;
-			reg.r[31] = reg.pc+8;
-		}
 		break;
+	case Bgezall:
+		likely = 1;
 	case Bgezal:
-		if(reg.r[rs] >= 0) {
+		reg.r[31] = reg.pc+8;
+		if(!(reg.r[rs]&SIGNBIT))
 			doit = 1;
-			reg.r[31] = reg.pc+8;
-		}
 		break;
 	}
 
@@ -579,6 +816,8 @@ Ibcond(ulong inst)
 		Statbra();
 		Iexec(reg.ir);
 		reg.pc = npc-4;
-	}
+	} else
+	if(likely)
+		reg.pc += 4;
 
 }

@@ -296,8 +296,8 @@ objfile(char *file)
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f ldlib: %s\n", cputime(), file);
-	l = read(f, &arhdr, sizeof(struct ar_hdr));
-	if(l != sizeof(struct ar_hdr)) {
+	l = read(f, &arhdr, SAR_HDR);
+	if(l != SAR_HDR) {
 		diag("%s: short read on archive file symbol header\n", file);
 		goto out;
 	}
@@ -306,8 +306,8 @@ objfile(char *file)
 		goto out;
 	}
 
-	esym = SARMAG + sizeof(struct ar_hdr) + atolwhex(arhdr.size);
-	off = SARMAG + sizeof(struct ar_hdr);
+	esym = SARMAG + SAR_HDR + atolwhex(arhdr.size);
+	off = SARMAG + SAR_HDR;
 
 	/*
 	 * just bang the whole symbol file into memory
@@ -342,8 +342,8 @@ objfile(char *file)
 			l |= (e[3] & 0xff) << 16;
 			l |= (e[4] & 0xff) << 24;
 			seek(f, l, 0);
-			l = read(f, &arhdr, sizeof(struct ar_hdr));
-			if(l != sizeof(struct ar_hdr))
+			l = read(f, &arhdr, SAR_HDR);
+			if(l != SAR_HDR)
 				goto bad;
 			if(strncmp(arhdr.fmag, ARFMAG, sizeof(arhdr.fmag)))
 				goto bad;
@@ -414,7 +414,7 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 	if(s == S)
 		return c;
 
-dosym:
+
 	t = a->type;
 	if(t != D_AUTO && t != D_PARAM)
 		return c;
@@ -1064,7 +1064,7 @@ ieeedtod(Ieee *ieee)
  * fake malloc
  */
 void*
-malloc(long n)
+malloc(ulong n)
 {
 	void *p;
 
@@ -1085,7 +1085,7 @@ free(void *p)
 }
 
 void*
-calloc(long m, long n)
+calloc(ulong m, ulong n)
 {
 	void *p;
 
@@ -1096,10 +1096,10 @@ calloc(long m, long n)
 }
 
 void*
-realloc(void *p, long n)
+realloc(void *p, ulong n)
 {
 
-	fprint(2, "realloc called\n", p, n);
+	fprint(2, "realloc(0x%p %ld) called\n", p, n);
 	abort();
 	return 0;
 }

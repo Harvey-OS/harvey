@@ -26,12 +26,15 @@ dorecipe(Node *node)
 			fprint(2, "mk: no recipe to make '%s'\n", node->name);
 			Exit();
 		}
-		update(0, node);
+		if(strchr(node->name, '(') && node->time == 0)
+			MADESET(node, MADE);
+		else
+			update(0, node);
 		if(tflag){
 			if(!(node->flags&VIRTUAL))
 				touch(node->name);
 			else if(explain)
-				Bprint(&stdout, "no touch of virtual '%s'\n", node->name);
+				Bprint(&bout, "no touch of virtual '%s'\n", node->name);
 		}
 		return(did);
 	}
@@ -54,9 +57,16 @@ dorecipe(Node *node)
 				strcpy(buf, w->s);
 			aw->next = newword(buf);
 			aw = aw->next;
-			if((s = symlook(buf, S_NODE, (char *)0)) == 0)
+			if((s = symlook(buf, S_NODE, 0)) == 0)
 				continue;	/* not a node we are interested in */
 			n = (Node *)s->value;
+			if(aflag == 0 && n->time) {
+				for(a = n->prereqs; a; a = a->next)
+					if(a->n && outofdate(n, a, 0))
+						break;
+				if(a == 0)
+					continue;
+			}
 			ww->next = newword(buf);
 			ww = ww->next;
 			if(n == node) continue;
@@ -89,7 +99,7 @@ dorecipe(Node *node)
 		}
 		MADESET(n, BEINGMADE);
 	}
-/*	print("lt=%s ln=%s lp=%s\n",wtos(head.next),wtos(ln.next),wtos(lp.next));/**/
+/*	print("lt=%s ln=%s lp=%s\n",wtos(head.next, ' '),wtos(ln.next, ' '),wtos(lp.next, ' '));/**/
 	run(newjob(r, node, aa->stem, aa->match, lp.next, ln.next, head.next, ahead.next));
 	return(1);
 }

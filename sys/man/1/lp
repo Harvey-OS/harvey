@@ -90,14 +90,14 @@ separated by commas.
 .TP
 .BI -l " n"
 Set the number of lines per page to
-.I n.
+.IR n .
 .TP
 .B -L
 Print pages in landscape mode (i.e. turned 90 degrees).
 .TP
 .BI -m " v"
 Set magnification to
-.I v.
+.IR v .
 .TP
 .BI -n " n"
 Print
@@ -147,7 +147,7 @@ Print a file in a small font at 100 lines per page.
 .TP
 .L
 lp -dstdout /dev/windows/3/window > doc.ps
-Convert a bitmap to a postscript file.
+Convert an image to a postscript file.
 .SH SEE ALSO
 .IR lp (8)
 .br
@@ -156,6 +156,3 @@ P. Glick,
 .SH BUGS
 Not all options work with all output devices.
 Any user can kill any job.
-.I Lp
-will accept jobs from BSD style lpdaemons but cannot
-send jobs to such systems.

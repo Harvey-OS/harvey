@@ -24,6 +24,7 @@ enum
 	Fword,
 	Aword,
 	Alword,
+	Lword,
 	I1,
 	I2,
 	I3,
@@ -39,29 +40,39 @@ struct
 	int	class;
 } dict[] =
 {
+	"PATH",		Lword,
 	"TEXT",		Aword,
 	"adt",		Alword,
 	"aggr",		Alword,
 	"alef",		Alword,
+	"array",	Lword,
 	"block",	Fword,
 	"chan",		Alword,
 	"char",		Cword,
 	"common",	Fword,
+	"con",		Lword,
 	"data",		Fword,
 	"dimension",	Fword,	
 	"double",	Cword,
 	"extern",	Cword,
 	"bio",		I2,
 	"float",	Cword,
+	"fn",		Lword,
 	"function",	Fword,
 	"h",		I3,
+	"implement",	Lword,
+	"import",	Lword,
 	"include",	I1,
 	"int",		Cword,
 	"integer",	Fword,
+	"iota",		Lword,
 	"libc",		I2,
 	"long",		Cword,
+	"module",	Lword,
 	"real",		Fword,
+	"ref",		Lword,
 	"register",	Cword,
+	"self",		Lword,
 	"short",	Cword,
 	"static",	Cword,
 	"stdio",	I2,
@@ -71,7 +82,7 @@ struct
 	"void",		Cword,
 };
 
-	/* codes for 'mode' field in language structure */
+/* codes for 'mode' field in language structure */
 enum	{
 		Normal	= 0,
 		First,		/* first entry for language spanning several ranges */
@@ -129,19 +140,23 @@ enum
 } guess;
 
 void	bump_utf_count(Rune);
+int	cistrncmp(char*, char*, int);
 void	filetype(int);
-int	getfontnum(uchar *, uchar **);
+int	getfontnum(uchar*, uchar**);
 int	isas(void);
 int	isc(void);
 int	iscint(void);
 int	isenglish(void);
+int	ishp(void);
+int	ishtml(void);
+int	islimbo(void);
 int	ismung(void);
 int	isp9bit(void);
 int	isp9font(void);
 int	istring(void);
 int	long0(void);
-int	p9bitnum(uchar *);
-int	p9subfont(uchar *);
+int	p9bitnum(uchar*);
+int	p9subfont(uchar*);
 void	print_utf(void);
 int	short0(void);
 void	type(char*, int);
@@ -153,15 +168,23 @@ int	(*call[])(void) =
 	long0,		/* recognizable by first 4 bytes */
 	short0,		/* recognizable by first 2 bytes */
 	istring,	/* recognizable by first string */
+	ishtml,		/* html keywords */
 	iscint,		/* compiler/assembler intermediate */
+	islimbo,	/* limbo source */
 	isc,		/* c & alef compiler key words */
 	isas,		/* assembler key words */
 	ismung,		/* entropy compressed/encrypted */
-	isenglish,	/* char frequency English */
 	isp9font,	/* plan 9 font */
-	isp9bit,	/* plan 9 bitmap (as from /dev/window) */
+	isp9bit,	/* plan 9 image (as from /dev/window) */
+	isenglish,	/* char frequency English */
+	ishp,		/* HP Job Control Language - Postscript */
 	0
 };
+
+int mime;
+
+#define OCTET	"application/octet-stream\n"
+#define PLAIN	"text/plain\n"
 
 void
 main(int argc, char *argv[])
@@ -170,19 +193,31 @@ main(int argc, char *argv[])
 	char *cp;
 	Rune r;
 
+	ARGBEGIN{
+	case 'm':
+		mime = 1;
+		break;
+	default:
+		fprint(2, "usage: file [-m] [file...]\n");
+		exits("usage");
+	}ARGEND;
+
 	maxlen = 0;
-	for(i = 1; i < argc; i++) {
-		for (j = 0, cp = argv[i]; *cp; j++, cp += chartorune(&r, cp))
-				;
-		if(j > maxlen)
-			maxlen = j;
+	if(mime == 0 || argc > 1){
+		for(i = 0; i < argc; i++) {
+			for (j = 0, cp = argv[i]; *cp; j++, cp += chartorune(&r, cp))
+					;
+			if(j > maxlen)
+				maxlen = j;
+		}
 	}
-	if (argc <= 1) {
-		print ("stdin: ");
+	if (argc <= 0) {
+		if(!mime)
+			print ("stdin: ");
 		filetype(0);
 	}
 	else {
-		for(i = 1; i < argc; i++)
+		for(i = 0; i < argc; i++)
 			type(argv[i], maxlen);
 	}
 	exits(0);
@@ -195,13 +230,15 @@ type(char *file, int nlen)
 	int i;
 	char *p;
 
-	slash = 0;
-	for (i = 0, p = file; *p; i++) {
-		if (*p == '/')			/* find rightmost slash */
-			slash = p;
-		p += chartorune(&r, p);		/* count runes */
+	if(nlen > 0){
+		slash = 0;
+		for (i = 0, p = file; *p; i++) {
+			if (*p == '/')			/* find rightmost slash */
+				slash = p;
+			p += chartorune(&r, p);		/* count runes */
+		}
+		print("%s:%*s",file, nlen-i+1, "");
 	}
-	print("%s:%*s",file, nlen-i+1, "");
 	fname = file;
 	if ((fd = open(file, OREAD)) < 0) {
 		print("cannot open\n");
@@ -223,11 +260,12 @@ filetype(int fd)
 		return;
 	}
 	if(mbuf.mode & CHDIR) {
-		print("directory\n");
+		print(mime ? "text/directory\n" : "directory\n");
 		return;
 	}
 	if(mbuf.type != 'M' && mbuf.type != '|') {
-		print("special file #%c\n", mbuf.type);
+		print(mime ? OCTET : "special file #%c/%s\n",
+			mbuf.type, mbuf.name);
 		return;
 	}
 	nbuf = read(fd, buf, sizeof(buf));
@@ -237,7 +275,7 @@ filetype(int fd)
 		return;
 	}
 	if(nbuf == 0) {
-		print("empty\n");
+		print(mime ? PLAIN : "empty file\n");
 		return;
 	}
 
@@ -283,7 +321,7 @@ filetype(int fd)
 	else if (cfreq[Ceascii])
 		guess = Feascii;
 	else if (cfreq[Cnull] == n) {
-		print("all null bytes\n");
+		print(mime ? OCTET : "all null bytes\n");
 		return;
 	}
 	else guess = Fascii;
@@ -291,7 +329,7 @@ filetype(int fd)
 	 * lookup dictionary words
 	 */
 	memset(wfreq, 0, sizeof(wfreq));
-	if(guess == Fascii || guess == Flatin) 
+	if(guess == Fascii || guess == Flatin || guess == Futf) 
 		wordfreq();
 	/*
 	 * call individual classify routines
@@ -305,16 +343,16 @@ filetype(int fd)
 	 * print out gross classification
 	 */
 	if (nbuf < 100)
-		print("short ");
+		print(mime ? PLAIN : "short ");
 	if (guess == Fascii)
-		print("Ascii\n");
+		print(mime ? PLAIN : "Ascii\n");
 	else if (guess == Feascii)
-		print("extended ascii\n");
+		print(mime ? PLAIN : "extended ascii\n");
 	else if (guess == Flatin)
-		print("latin ascii\n");
+		print(mime ? PLAIN : "latin ascii\n");
 	else if (guess == Futf && utf_count() < 4)
 		print_utf();
-	else print("binary\n");
+	else print(mime ? OCTET : "binary\n");
 }
 
 void
@@ -384,6 +422,10 @@ print_utf(void)
 {
 	int i, printed, j;
 
+	if(mime){
+		print(PLAIN);
+		return;
+	}
 	if (chkascii()) {
 		printed = 1;
 		print("Ascii");
@@ -454,26 +496,33 @@ int
 long0(void)
 {
 	Fhdr f;
+	long x;
 
 	seek(fd, 0, 0);		/* reposition to start of file */
-	if (crackhdr(fd, &f)) {
-		print("%s\n", f.name);
+	if(crackhdr(fd, &f)) {
+		print(mime ? OCTET : "%s\n", f.name);
 		return 1;
 	}
-	switch(LENDIAN(buf)) {
+	x = LENDIAN(buf);
+	switch(x) {
 	case 0xf16df16d:
-		print("pac1 audio file\n");
+		print(mime ? OCTET : "pac1 audio file\n");
 		return 1;
 	case 0x31636170:
-		print("pac3 audio file\n");
+		print(mime ? OCTET : "pac3 audio file\n");
 		return 1;
-	case 0x32636170:
-		print("pac4 audio file\n");
+	case 0xba010000:
+		print(mime ? OCTET : "mpeg system stream\n");
 		return 1;
-	default:
-		return 0;
+	case 0x30800cc0:
+		print(mime ? OCTET : "inferno .dis executable\n");
+		return 1;
 	}
-	return 1;
+	if(((x ^ 0x32636170) & 0xffff00ff) == 0) {
+		print(mime ? OCTET : "pac4 audio file\n");
+		return 1;
+	}
+	return 0;
 }
 
 int
@@ -482,11 +531,11 @@ short0(void)
 
 	switch(LENDIAN(buf) & 0xffff) {
 	case 070707:
-		print("cpio archive\n");
+		print(mime ? OCTET : "cpio archive\n");
 		break;
 
 	case 0x02f7:
-		print("tex dvi\n");
+		print(mime ? OCTET : "tex dvi\n");
 		break;
 	default:
 		return 0;
@@ -502,22 +551,35 @@ struct	FILE_STRING
 	char 	*key;
 	char	*filetype;
 	int	length;
-}	file_string[] =
+	char	*mime;
+} file_string[] =
 {
-	"!<arch>\n__.SYMDEF",	"archive random library",	16,
-	"!<arch>\n",		"archive",			8,
-	"070707",		"cpio archive - ascii header",	6,
-	"#!/bin/rc",		"rc executable file",		9,
-	"#!/bin/sh",		"sh executable file",		9,
-	"%!",			"postscript",			2,
-	"x T post",		"troff output for post",	8,
-	"x T Latin1",		"troff output for Latin1",	10,
-	"x T utf",		"troff output for UTF",		7,
-	"x T 202",		"troff output for 202",		7,
-	"x T aps",		"troff output for aps",		7,
-	"GIF",			"GIF image", 			3,
-	"\0PC Research, Inc", "ghostscript fax file",	23,	
-	0,0,0
+	"!<arch>\n__.SYMDEF",	"archive random library",	16,	"application/octet-stream",
+	"!<arch>\n",		"archive",			8,	"application/octet-stream",
+	"070707",		"cpio archive - ascii header",	6,	"application/octet-stream",
+	"#!/bin/rc",		"rc executable file",		9,	"text/plain",
+	"#!/bin/sh",		"sh executable file",		9,	"text/plain",
+	"%!",			"postscript",			2,	"application/postscript",
+	"\004%!",		"postscript",			3,	"application/postscript",
+	"x T post",		"troff output for post",	8,	"application/troff",
+	"x T Latin1",		"troff output for Latin1",	10,	"application/troff",
+	"x T utf",		"troff output for UTF",		7,	"application/troff",
+	"x T 202",		"troff output for 202",		7,	"application/troff",
+	"x T aps",		"troff output for aps",		7,	"application/troff",
+	"GIF",			"GIF image", 			3,	"image/gif",
+	"\0PC Research, Inc\0",	"ghostscript fax file",		18,	"application/ghostscript",
+	"%PDF",			"PDF",				4,	"image/pdf",
+	"<html>\n",		"HTML file",			7,	"text/html",
+	"<HTML>\n",		"HTML file",			7,	"text/html",
+	"compressed\n",		"Compressed image or subfont",	11,	"application/octet-stream",
+	"\111\111\052\000",	"tiff",				4,	"image/tiff",
+	"\115\115\000\052",	"tiff",				4,	"image/tiff",
+	"\377\330\377\340",	"jpeg",				4,	"image/jpeg",
+	"\377\330\377\341",	"jpeg",				4,	"image/jpeg",
+	"\377\330\377\333",	"jpeg",				4,	"image/jpeg",
+	"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",	"microsoft office document",	8,	"application/octet-stream",
+
+	0,0,0,0
 };
 
 int
@@ -528,7 +590,10 @@ istring(void)
 
 	for(p = file_string; p->key; p++) {
 		if(nbuf >= p->length && !memcmp(buf, p->key, p->length)) {
-			print("%s\n", p->filetype);
+			if(mime)
+				print("%s\n", p->mime);
+			else
+				print("%s\n", p->filetype);
 			return 1;
 		}
 	}
@@ -536,10 +601,92 @@ istring(void)
 		for(i = 5; i < nbuf; i++)
 			if(buf[i] == '\n')
 				break;
-		print("%.*s picture\n", i-5, buf+5);
+		if(mime)
+			print(OCTET);
+		else
+			print("%.*s picture\n", i-5, (char*)buf+5);
 		return 1;
 	}
 	return 0;
+}
+
+char*	html_string[] =
+{
+	"title",
+	"body",
+	"head",
+	"strong",
+	"h1",
+	"h2",
+	"h3",
+	"h4",
+	"h5",
+	"h6",
+	"ul",
+	"li",
+	"dl",
+	"br",
+	"em",
+	0,
+};
+
+int
+ishtml(void)
+{
+	uchar *p, *q;
+	int i, count;
+
+		/* compare strings between '<' and '>' to html table */
+	count = 0;
+	p = buf;
+	for(;;) {
+		while (p < buf+nbuf && *p != '<')
+			p++;
+		p++;
+		if (p >= buf+nbuf)
+			break;
+		if(*p == '/')
+			p++;
+		q = p;
+		while(p < buf+nbuf && *p != '>')
+			p++;
+		if (p >= buf+nbuf)
+			break;
+		for(i = 0; html_string[i]; i++) {
+			if(cistrncmp(html_string[i], (char*)q, p-q) == 0) {
+				if(count++ > 4) {
+					print(mime ? "text/html\n" : "HTML file\n");
+					return 1;
+				}
+				break;
+			}
+		}
+		p++;
+	}
+	return 0;
+}
+
+/*
+ *  case independent string compare
+ */
+int
+cistrncmp(char *s1, char *s2, int n)
+{
+	int c1, c2;
+
+	for(; n > 0; n--){
+		c1 = *s1++;
+		c2 = *s2++;
+		if(isupper(c1))
+			c1 = tolower(c1);
+		if(isupper(c2))
+			c2 = tolower(c2);
+		if(c2 != c1)
+			break;
+		if(c1 == 0)
+			return 0;
+	}
+	return 1;
 }
 
 int
@@ -555,7 +702,10 @@ iscint(void)
 	type = objtype(&b, &name);
 	if(type < 0)
 		return 0;
-	print("%s intermediate\n", name);
+	if(mime)
+		print(OCTET);
+	else
+		print("%s intermediate\n", name);
 	return 1;
 }
 
@@ -585,10 +735,27 @@ isc(void)
 	return 0;
 
 yes:
+	if(mime){
+		print(PLAIN);
+		return 1;
+	}
 	if(wfreq[Alword] > 0)
 		print("alef program\n");
 	else 
 		print("c program\n");
+	return 1;
+}
+
+int
+islimbo(void)
+{
+
+	/*
+	 * includes
+	 */
+	if(wfreq[Lword] < 4)
+		return 0;
+	print(mime ? PLAIN : "limbo program\n");
 	return 1;
 }
 
@@ -601,7 +768,7 @@ isas(void)
 	 */
 	if(wfreq[Aword] < 2)
 		return 0;
-	print("as program\n");
+	print(mime ? PLAIN : "as program\n");
 	return 1;
 }
 
@@ -625,10 +792,10 @@ ismung(void)
 		cs += (bucket[i]-8)*(bucket[i]-8);
 	cs /= 8.;
 	if(cs <= 24.322) {
-		if(buf[0]==037 && buf[1]==0235)
-			print("compressed\n");
+		if(buf[0]==0x1f && (buf[1]==0x8b || buf[1]==0x9d))
+			print(mime ? OCTET : "compressed\n");
 		else
-			print("encrypted\n");
+			print(mime ? OCTET : "encrypted\n");
 		return 1;
 	}
 	return 0;
@@ -683,7 +850,7 @@ isenglish(void)
 		rare += cfreq[tolower(*p)];
 	}
 	if(vow*5 >= nbuf-cfreq[' '] && comm >= 10*rare) {
-		print("English text\n");
+		print(mime ? PLAIN : "English text\n");
 		return 1;
 	}
 	return 0;
@@ -720,46 +887,92 @@ p9bitnum(uchar *bp)
 }
 
 int
+depthof(char *s, int *newp)
+{
+	char *es;
+	int d;
+
+	*newp = 0;
+	es = s+12;
+	while(s<es && *s==' ')
+		s++;
+	if(s == es)
+		return -1;
+	if('0'<=*s && *s<='9')
+		return 1<<atoi(s);
+
+	*newp = 1;
+	d = 0;
+	while(s<es && *s!=' '){
+		s++;	/* skip letter */
+		d += strtoul(s, &s, 10);
+	}
+	
+	switch(d){
+	case 32:
+	case 24:
+	case 16:
+	case 8:
+		return d;
+	}
+	return -1;
+}
+
+int
 isp9bit(void)
 {
-	int ldep, lox, loy, hix, hiy, px;
+	int dep, lox, loy, hix, hiy, px, new;
 	ulong t;
 	long len;
+	char *newlabel;
 
-	ldep = p9bitnum(buf + 0*P9BITLEN);
+	newlabel = "old ";
+
+	dep = depthof((char*)buf + 0*P9BITLEN, &new);
+	if(new)
+		newlabel = "";
 	lox = p9bitnum(buf + 1*P9BITLEN);
 	loy = p9bitnum(buf + 2*P9BITLEN);
 	hix = p9bitnum(buf + 3*P9BITLEN);
 	hiy = p9bitnum(buf + 4*P9BITLEN);
-
-	if(ldep < 0 || lox < 0 || loy < 0 || hix < 0 || hiy < 0)
+	if(dep < 0 || lox < 0 || loy < 0 || hix < 0 || hiy < 0)
 		return 0;
 
-	px = 1<<(3-ldep);	/* pixels per byte */
-	/* set l to number of bytes of data per scan line */
-	if(lox >= 0)
-		len = (hix+px-1)/px - lox/px;
-	else{	/* make positive before divide */
-		t = (-lox)+px-1;
-		t = (t/px)*px;
-		len = (t+hix+px-1)/px;
-	}
+	if(dep < 8){
+		px = 8/dep;	/* pixels per byte */
+		/* set l to number of bytes of data per scan line */
+		if(lox >= 0)
+			len = (hix+px-1)/px - lox/px;
+		else{	/* make positive before divide */
+			t = (-lox)+px-1;
+			t = (t/px)*px;
+			len = (t+hix+px-1)/px;
+		}
+	}else
+		len = (hix-lox)*dep/8;
 	len *= (hiy-loy);		/* col length */
 	len += 5*P9BITLEN;		/* size of initial ascii */
 
 	/*
-	 * for bitmap file, length is non-zero and must match calculation above
+	 * for image file, length is non-zero and must match calculation above
 	 * for /dev/window and /dev/screen the length is always zero
 	 * for subfont, the subfont header should follow immediately.
 	 */
-	if (mbuf.length == 0)
-		return 0;
+	if (len != 0 && mbuf.length == 0) {
+		print("%splan 9 image\n", newlabel);
+		return 1;
+	}
 	if (mbuf.length == len) {
-		print("plan 9 bitmap\n");
+		print("%splan 9 image\n", newlabel);
+		return 1;
+	}
+	/* Ghostscript sometimes produces a little extra on the end */
+	if (mbuf.length < len+P9BITLEN) {
+		print("%splan 9 image\n", newlabel);
 		return 1;
 	}
 	if (p9subfont(buf+len)) {
-		print("subfont file\n");
+		print("%ssubfont file\n", newlabel);
 		return 1;
 	}
 	return 0;
@@ -770,7 +983,7 @@ p9subfont(uchar *p)
 {
 	int n, h, a;
 
-		/* if bitmap too big, assume it's a subfont */
+		/* if image too big, assume it's a subfont */
 	if (p+3*P9BITLEN > buf+sizeof(buf))
 		return 1;
 
@@ -844,4 +1057,14 @@ getfontnum(uchar *cp, uchar **rp)
 	if (!WHITESPACE(**rp))
 		return 0;
 	return 1;
+}
+
+int
+ishp(void)
+{
+	if (strncmp("\033%-12345X", (char *)buf, 9)==0) {
+		print("HPJCL file\n");
+		return 1;
+	}
+	return 0;
 }

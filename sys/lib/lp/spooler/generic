@@ -5,7 +5,7 @@ if (! ~ $DEBUG '') flag x +
 if (~ $THIS_HOST $DEST_HOST) {
 	if (! test -d $LPSPOOL/$LPDEST) {
 		mkdir $LPSPOOL/$LPDEST
-		chmod 777 $LPSPOOL/$LPDEST
+		chmod 777 $LPSPOOL/$LPDEST >[2]/dev/null
 	}
 }
 # Process and enqueue files to be printed

@@ -1,8 +1,9 @@
 
 RCFILES=mail.rc\
 
-all:Q:		install
+all:Q:
 	;
+
 installall:Q:	install
 	;
 

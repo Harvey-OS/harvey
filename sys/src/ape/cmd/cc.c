@@ -23,16 +23,18 @@ typedef struct Objtype {
 } Objtype;
 
 Objtype objtype[] = {
-	{"mips",	"vc", "vl", "v"},
-	{"68020",	"2c", "2l", "2"},
-	{"sparc",	"kc", "kl", "k"},
 	{"386",		"8c", "8l", "8"},
-	{"hobbit",	"zc", "zl", "z"},
+	{"68020",	"2c", "2l", "2"},
+	{"alpha",	"7c", "7l", "7"},
+	{"mips",	"vc", "vl", "v"},
+	{"mips2",	"4c", "4l", "4"},
+	{"power",	"qc", "ql", "q"},
+	{"sparc",	"kc", "kl", "k"},
 };
 
 enum {
 	Nobjs = (sizeof objtype)/(sizeof objtype[0]),
-	Maxlist = 500,
+	Maxlist = 2000,
 };
 
 typedef struct List {
@@ -40,9 +42,9 @@ typedef struct List {
 	int	n;
 } List;
 
-List	srcs, objs, cpp, cc, ld, ldargs;
+List	srcs, objs, cpp, cc, ld, ldargs, srchlibs;
 int	cflag, vflag, Eflag, Sflag, Aflag;
-char	*allos = "28kvz";
+char	*allos = "2478kqv";
 
 void	append(List *, char *);
 char	*changeext(char *, char *);
@@ -59,6 +61,7 @@ main(int argc, char *argv[])
 {
 	char *s, *suf, *ccpath, *lib;
 	char *oname;
+	int haveoname = 0;
 	int i, cppn, ccn;
 	Objtype *ot;
 
@@ -69,8 +72,8 @@ main(int argc, char *argv[])
 	append(&cpp, "-D_POSIX_SOURCE=");
 	append(&cpp, "-N");		/* turn off standard includes */
 	append(&cc, ot->cc);
-	append(&cc, "-J");		/* old/new decl mixture hack */
 	append(&ld, ot->ld);
+	append(&srchlibs, str("/%s/lib/ape", ot->name));
 	while(argc > 0) {
 		ARGBEGIN {
 		case 'c':
@@ -85,6 +88,7 @@ main(int argc, char *argv[])
 			break;
 		case 'o':
 			oname = ARGF();
+			haveoname = 1;
 			if(!oname)
 				fatal("cc: no -o argument");
 			break;
@@ -99,6 +103,17 @@ main(int argc, char *argv[])
 			break;
 		case 's':
 		case 'g':
+			break;
+		case 'L':
+			lib = ARGF();
+			if(!lib)
+				fprint(2, "cc: no -L argument\n");
+			else
+				append(&srchlibs, lib);
+			break;
+		case 'N':
+			append(&cc, "-N");
+			break;
 		case 'O':
 			break;
 		case 'W':
@@ -124,6 +139,9 @@ main(int argc, char *argv[])
 			vflag = 1;
 			append(&ldargs, "-v");
 			break;
+		case 'w':
+			append(&cc, "-w");
+			break;
 		case 'A':
 			Aflag = 1;
 			break;
@@ -134,8 +152,10 @@ main(int argc, char *argv[])
 			fprint(2, "cc: flag -%c ignored\n", ARGC());
 			break;
 		} ARGEND
-		if(!Aflag)
+		if(!Aflag) {
+			append(&cc, "-J");		/* old/new decl mixture hack */
 			append(&cc, "-B");		/* turn off non-prototype warnings */
+		}
 		if(argc > 0) {
 			s = argv[0];
 			suf = utfrrune(s, '.');
@@ -172,7 +192,10 @@ main(int argc, char *argv[])
 				append(&cc, "-S");
 			else {
 				append(&cc, "-o");
-				append(&cc, changeext(objs.strings[i], "o"));
+				if (haveoname && cflag)
+					append(&cc, oname);
+				else
+					append(&cc, changeext(objs.strings[i], "o"));
 			}
 			dopipe("/bin/cpp", &cpp, ccpath, &cc);
 		}
@@ -198,24 +221,35 @@ char *
 searchlib(char *s, char *objtype)
 {
 	char *l;
+	int i;
+	char sbuf[DIRLEN];
+
 	if(!s)
 		return 0;
-	switch(s[0]) {
-	case 'c':
-		l = str("/%s/lib/ape/libap.a", objtype);
-		break;
-	case 'm':
-		l = str("/%s/lib/ape/libap.a", objtype);
-		break;
-	case 'l':
-		l = str("/%s/lib/ape/libl.a", objtype);
-		break;
-	case 'y':
-		l = str("/%s/lib/ape/liby.a", objtype);
-		break;
-	default:
-		l = str("/%s/lib/ape/lib%s.a", objtype, s);
+	for(i = srchlibs.n-1; i>=0; i--) {
+		l = str("%s/lib%s.a", srchlibs.strings[i], s);
+		if(stat(l, sbuf) >= 0)
+			return l;
 	}
+	if(s[1] == 0)
+		switch(s[0]) {
+		case 'c':
+			l = str("/%s/lib/ape/libap.a", objtype);
+			break;
+		case 'm':
+			l = str("/%s/lib/ape/libap.a", objtype);
+			break;
+		case 'l':
+			l = str("/%s/lib/ape/libl.a", objtype);
+			break;
+		case 'y':
+			l = str("/%s/lib/ape/liby.a", objtype);
+			break;
+		default:
+			l = 0;
+		}
+	else
+		l = 0;
 	return l;
 }
 
@@ -360,8 +394,11 @@ str(char *fmt, ...)
 {
 	char *s;
 	char buf[1000];
+	va_list arg;
 
-	doprint(buf, &buf[sizeof buf], fmt, ((long *)&fmt)+1);
+	va_start(arg, fmt);
+	doprint(buf, &buf[sizeof buf], fmt, arg);
+	va_end(arg);
 	s = malloc(strlen(buf)+1);
 	strcpy(s, buf);
 	return s;

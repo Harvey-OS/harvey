@@ -20,9 +20,9 @@ Machdata sparcmach =
 
 	beswab,			/* convert short to local byte order */
 	beswal,			/* convert long to local byte order */
+	beswav,			/* convert vlong to local byte order */
 	risctrace,		/* C traceback */
 	riscframe,		/* frame finder */
-	0,			/* ublock fixup */
 	sparcexcep,		/* print exception */
 	0,			/* breakpoint fixup */
 	beieeesftos,		/* single precision float printer */
@@ -56,9 +56,9 @@ excname(ulong tbr)
 	if(tbr < sizeof trapname/sizeof(char*))
 		return trapname[tbr];
 	if(tbr >= 130)
-		sprint(buf, "trap instruction %d", tbr-128);
+		sprint(buf, "trap instruction %ld", tbr-128);
 	else if(17<=tbr && tbr<=31)
-		sprint(buf, "interrupt level %d", tbr-16);
+		sprint(buf, "interrupt level %ld", tbr-16);
 	else switch(tbr){
 	case 36:
 		return "cp disabled";
@@ -69,9 +69,8 @@ excname(ulong tbr)
 	case 129:
 		return "breakpoint";
 	default:
-		sprint(buf, "unknown trap %d", tbr);
+		sprint(buf, "unknown trap %ld", tbr);
 	}
-    Return:
 	return buf;
 }
 
@@ -281,7 +280,11 @@ static struct opcode sparcop3[64]={
 static void
 bprint(Instr *i, char *fmt, ...)
 {
-	i->curr = doprint(i->curr, i->end, fmt, (&fmt+1));
+	va_list arg;
+
+	va_start(arg, fmt);
+	i->curr = doprint(i->curr, i->end, fmt, arg);
+	va_end(arg);
 }
 
 static int
@@ -405,19 +408,20 @@ printins(Map *map, ulong pc, char *buf, int n)
 
 /* convert to lower case from upper, according to dascase */
 static int
-Xconv(void *oa, Fconv *f)
+Xconv(va_list *arg, Fconv *f)
 {
 	char buf[128];
-	char *s, *t;
+	char *s, *t, *oa;
 
+	oa = va_arg(*arg, char*);
 	if(dascase){
-		for(s=*(char**)oa,t=buf; *t = *s; s++,t++)
+		for(s=oa,t=buf; *t = *s; s++,t++)
 			if('A'<=*t && *t<='Z')
 				*t += 'a'-'A';
 		strconv(buf, f);
 	}else
-		strconv(*(char**)oa, f);
-	return sizeof(char*);
+		strconv(oa, f);
+	return 0;
 }
 
 static int
@@ -724,7 +728,7 @@ storea(Instr *i, char *m)		/* page 74 */
 		bprint(i, "%s\tR%d, %d(R%d, %d), ???", m, i->rd, i->simm13, i->rs1, i->asi);
 }
 
-void
+static void
 shift(Instr *i, char *m)	/* page 88 */
 {
 	if(i->i == 0){
@@ -1029,12 +1033,12 @@ sparcfoll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 	}
 
 	if((w&0xC1F80000) == 0x81C00000){	/* JMPL */
-		sprint(buf, "R%d", (w>>14)&0xF);
+		sprint(buf, "R%ld", (w>>14)&0xF);
 		r1 = (*rget)(map, buf);
 		if(w & 0x2000)			/* JMPL R1+simm13 */
 			r2 = i.simm13;
 		else{				/* JMPL R1+R2 */
-			sprint(buf, "R%d", w&0xF);
+			sprint(buf, "R%ld", w&0xF);
 			r2 = (*rget)(map, buf);
 		}
 		foll[0] = r1 + r2;

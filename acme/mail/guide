@@ -1,3 +1,4 @@
-Mail /mail/box/$user/stored
-mkbox /mail/box/$user/new_box
+Mail stored
+plumb /mail/box/$user/names
 mail -'x' someaddress
+mkbox /mail/box/$user/new_box

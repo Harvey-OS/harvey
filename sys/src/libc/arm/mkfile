@@ -1,0 +1,23 @@
+objtype=arm
+</arm/mkfile
+
+LIB=/$objtype/lib/libc.a
+OFILES=\
+	main9.$O\
+	main9p.$O\
+	argv0.$O\
+	setjmp.$O\
+	div.$O\
+	vlrt.$O\
+	vlop.$O\
+	nan.$O\
+	frexp.$O\
+	memmove.$O\
+	memset.$O\
+	strchr.$O\
+	strcmp.$O\
+	strcpy.$O\
+
+HFILES=/sys/include/libc.h
+
+</sys/src/cmd/mksyslib

@@ -1,0 +1,12 @@
+</$objtype/mkfile
+
+TARG=fdisk prep
+
+YFILES=calc.y
+HFILES=edit.h
+OFILES=\
+	edit.$O\
+	y.tab.$O\
+
+BIN=/$objtype/bin/disk
+</sys/src/cmd/mkmany

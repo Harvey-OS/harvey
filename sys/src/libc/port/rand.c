@@ -5,6 +5,7 @@
  *	algorithm by
  *	D. P. Mitchell & J. A. Reeds
  */
+
 #define	LEN	607
 #define	TAP	273
 #define	MASK	0x7fffffffL
@@ -52,25 +53,24 @@ lrand(void)
 	ulong x;
 
 	rng_tap--;
-        if(rng_tap < rng_vec) {
-                if(rng_feed == 0) {
+	if(rng_tap < rng_vec) {
+		if(rng_feed == 0) {
 			srand(1);
 			rng_tap--;
 		}
-                rng_tap += LEN;
-        }
+		rng_tap += LEN;
+	}
 	rng_feed--;
-        if(rng_feed < rng_vec)
-                rng_feed += LEN;
+	if(rng_feed < rng_vec)
+		rng_feed += LEN;
 	x = (*rng_feed + *rng_tap) & MASK;
 	*rng_feed = x;
-        return x;
+	return x;
 }
 
 int
 rand(void)
 {
-
 	return lrand() & 0x7fff;
 }
 

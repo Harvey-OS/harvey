@@ -28,7 +28,7 @@ When a command is run under
 a directory holding these files is mounted on
 .B /mnt/acme
 (also bound to
-.BR /mnt/8½ )
+.BR /mnt/wsys )
 and also
 .BR /dev ;
 the files mentioned here
@@ -38,7 +38,7 @@ Some of these files supply virtual versions of services available from the under
 environment, in particular the character terminal files
 .IR cons (3).
 (Unlike in
-.IR 8½ (1),
+.IR rio (1),
 each command under
 .I acme
 sees the same set of files; there is not a distinct
@@ -98,7 +98,7 @@ file.
 .TP
 .B label
 is an empty file, writable without effect, present only for compatibility with
-.BR 8½ .
+.BR rio .
 .TP
 .B new
 A directory analogous to the numbered directories
@@ -401,6 +401,6 @@ is always appended; the file offset is ignored.
 .SH SOURCE
 .B /sys/src/cmd/acme
 .SH SEE ALSO
-.IR 8½ (1),
+.IR rio (1),
 .IR acme (1),
 .IR cons (3).

@@ -4,12 +4,14 @@ LIB=/$objtype/lib/libc.a
 OFILES=\
 	abort.$O\
 	access.$O\
+	announce.$O\
 	convD2M.$O\
 	convM2D.$O\
 	convM2S.$O\
 	convS2M.$O\
 	cputime.$O\
 	ctime.$O\
+	dial.$O\
 	dirfstat.$O\
 	dirfwstat.$O\
 	dirmodeconv.$O\
@@ -23,12 +25,20 @@ OFILES=\
 	getpid.$O\
 	getppid.$O\
 	getwd.$O\
+	nsec.$O\
 	postnote.$O\
+	pushssl.$O\
 	putenv.$O\
+	qlock.$O\
 	sbrk.$O\
+	setnetmtpt.$O\
+	sysfatal.$O\
 	syslog.$O\
+	sysname.$O\
 	time.$O\
 	times.$O\
+	tm2sec.$O\
+	truerand.$O\
 	werrstr.$O\
 
 HFILES=/sys/include/libc.h

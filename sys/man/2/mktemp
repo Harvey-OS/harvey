@@ -32,11 +32,7 @@ is generated.
 If no such name can be generated,
 .I mktemp
 returns
-.BR \&"/" .
-.SH Alef
-There is no
-.I mktemp
-in Alef.
+\f5"/"\f1 .
 .SH SOURCE
 .B /sys/src/libc/port/mktemp.c
 .SH "SEE ALSO"

@@ -6,11 +6,17 @@ proc \- running processes
 .B bind #p /proc
 
 .BI /proc/ n /ctl
+.BI /proc/ n /fd
+.BI /proc/ n /fpregs
+.BI /proc/ n /kregs
 .BI /proc/ n /mem
 .BI /proc/ n /note
 .BI /proc/ n /noteid
 .BI /proc/ n /notepg
+.BI /proc/ n /ns
 .BI /proc/ n /proc
+.BI /proc/ n /profile
+.BI /proc/ n /regs
 .BI /proc/ n /segment
 .BI /proc/ n /status
 .BI /proc/ n /text
@@ -51,6 +57,45 @@ structure.
 Its main use is to recover the kernel stack and program counter
 for kernel debugging.
 .PP
+The files
+.BR regs ,
+.BR fpregs ,
+and
+.BR kregs
+hold representations of the user-level registers, floating-point registers,
+and kernel registers in machine-dependent form.
+The
+.B kregs
+file is read-only.
+.PP
+The read-only
+.B fd
+file lists the open file descriptors of the process.
+The first line of the file is its current directory; subsequent lines list, one per line,
+the open files, giving the decimal file descriptor number; whether the file is open for read
+.RB ( r ),
+write,
+.RB ( w ),
+or both
+.RB ( rw );
+the type, device number, and qid of the file; its I/O offset; and its name at the time it was opened.
+.PP
+The read-only
+.B ns
+file contains a textual representation of the process's file name space, in the format of
+.IR namespace (6)
+accepted by
+.B newns
+(see
+.IR auth (2)).
+The last line of the file identifies the current working directory of the process, in the form of a
+.B cd
+command
+(see
+.IR rc (1)).
+The information in this file is based on the names files had when the name space was assembled,
+so the names it contains may be inaccessible if the files have been subsequently renamed or rearranged.
+.PP
 The read-only
 .B segment
 file contains a textual display of the memory segments
@@ -68,15 +113,22 @@ ending virtual address, and reference count.
 .PP
 The read-only
 .B status
-file contains a string with eight fields, each followed by a space.
-The fields are: the process name and user name, each 27 characters left justified;
+file contains a string with twelve fields, each followed by a space.
+The fields are:
+.IP \-
+the process name and user name, each 27 characters left justified
+.IP \-
 the process state, 11 characters left justified (see
-.IR ps (1));
+.IR ps (1))
+.IP \-
 the six 11-character numbers also held in the process's
 .B #c/cputime
-file,
-and the amount of memory used by the process, except its stack,
-in units of 1024 bytes.
+file
+.IP \-
+the amount of memory used by the process, except its stack,
+in units of 1024 bytes
+.IP \-
+the base and current scheduling priority, each 11 character numbers
 .PP
 The
 .B text
@@ -155,11 +207,43 @@ state before returning to user mode.
 This bit is inherited across a
 .IR fork (2).
 .TP 10n
+.B closefiles
+Close all open file descriptors in the process.
+.TP 10n
 .B nohang
 Clear the hang bit.
 .TP 10n
 .B kill
 Kill the process the next time it crosses the user/kernel boundary.
+.TP 10n
+.B "pri\ \fIn
+Set the base priority for the process to the integer
+.IR n .
+.TP 10n
+.B "wire\ \fIn
+Wire the process to processor
+.IR n .
+.PD
+.PP
+The priority is interpreted by Plan 9's multilevel process scheduler.
+Priorities run from 0 to 19, with higher
+numbers representing higher priorities.
+A process has a base priority and
+a running priority which is less than or equal to the base priority.
+As a process uses up more of its allocated time, its priority is lowered.
+Unless
+explicitly set, user processes have base priority 10, kernel processes
+13.
+Children inherit the parent's base priority.
+.PP
+The read-only
+.B profile
+file contains the instruction frequency count information used for multiprocess profiling; see
+.B tprof
+in
+.IR prof (1).
+The information is gleaned by sampling the program's user-level program counter
+at interrupt time.
 .PP
 Strings written to the
 .B note
@@ -167,11 +251,11 @@ file will be posted as a note to the process
 (see
 .IR notify (2)).
 The note should be less than
-.L ERRLEN-1
+.B ERRLEN-1
 characters long;
 the last character is reserved for a terminating NUL character.
 A read of at least
-.L ERRLEN
+.B ERRLEN
 characters will retrieve the oldest note posted to the
 process and prevent its delivery to the process.
 The

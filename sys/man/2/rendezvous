@@ -36,9 +36,13 @@ system calls.
 Both processes are awakened when
 the rendezvous succeeds.
 .PP
-The tag space is common to processes in the same file name space, so
-.I rendezvous
-only works between processes in the same file name space.
+The set of tag values which two processes may use to rendezvous\(emtheir tag space\(emis
+inherited when a process forks, unless
+.B RFREND
+is set in the argument to
+.BR rfork ;
+see
+.IR fork (2).
 .PP
 If a rendezvous is interrupted the return value is
 .BR ~0 ,
@@ -51,17 +55,3 @@ so that value should not be used in normal communication.
 .SH DIAGNOSTICS
 Sets
 .IR errstr .
-.SH BUGS
-The correlation of rendezvous tags and file name space is a historical accident.
-If two unrelated processes happen to be in the same name space and do a
-.BR  rendezvous ,
-trouble will result.
-The solution is to call
-.B rfork(RFNAMEG)
-(see
-.IR fork (2))
-in programs that use
-.I rendezvous
-unless they need to share the name space with
-their parent.
-This is especially important in Alef programs.

@@ -27,7 +27,7 @@ struct	Biobufhdr
 	int	state;		/* r/w/inactive */
 	int	fid;		/* open file */
 	int	flag;		/* magic if malloc'ed */
-	long	offset;		/* offset of buffer in file */
+	vlong	offset;		/* offset of buffer in file */
 	int	bsize;		/* size of buffer */
 	uchar*	bbuf;		/* pointer to beginning of buffer */
 	uchar*	ebuf;		/* pointer to end of buffer */
@@ -40,20 +40,12 @@ struct	Biobuf
 	uchar	b[Bungetsize+Bsize];
 };
 
-#define	BGETC(bp)\
-	((bp)->icount?(bp)->bbuf[(bp)->bsize+(bp)->icount++]:Bgetc((bp)))
-#define	BPUTC(bp,c)\
-	((bp)->ocount?(bp)->bbuf[(bp)->bsize+(bp)->ocount++]=(c),0:Bputc((bp),(c)))
-#define	BOFFSET(bp)\
-	(((bp)->state==Bractive)?\
-		(bp)->offset + (bp)->icount:\
-	(((bp)->state==Bwactive)?\
-		(bp)->offset + ((bp)->bsize + (bp)->ocount):\
-		-1))
-#define	BLINELEN(bp)\
-	(bp)->rdline
-#define	BFILDES(bp)\
-	(bp)->fid
+/* Dregs, redefined as functions for backwards compatibility */
+#define	BGETC(bp)	Bgetc(bp)
+#define	BPUTC(bp,c)	Bputc(bp,c)
+#define	BOFFSET(bp)	Boffset(bp)
+#define	BLINELEN(bp)	Blinelen(bp)
+#define	BFILDES(bp)	Bfildes(bp)
 
 int	Bbuffered(Biobufhdr*);
 int	Bfildes(Biobufhdr*);
@@ -64,15 +56,17 @@ long	Bgetrune(Biobufhdr*);
 int	Binit(Biobuf*, int, int);
 int	Binits(Biobufhdr*, int, int, uchar*, int);
 int	Blinelen(Biobufhdr*);
-long	Boffset(Biobufhdr*);
+vlong	Boffset(Biobufhdr*);
 Biobuf*	Bopen(char*, int);
 int	Bprint(Biobufhdr*, char*, ...);
 int	Bputc(Biobufhdr*, int);
 int	Bputrune(Biobufhdr*, long);
 void*	Brdline(Biobufhdr*, int);
 long	Bread(Biobufhdr*, void*, long);
-long	Bseek(Biobufhdr*, long, int);
+vlong	Bseek(Biobufhdr*, vlong, int);
 int	Bterm(Biobufhdr*);
 int	Bungetc(Biobufhdr*);
 int	Bungetrune(Biobufhdr*);
 long	Bwrite(Biobufhdr*, void*, long);
+
+#pragma	varargck	argpos	Bprint	2

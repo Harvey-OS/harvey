@@ -2,7 +2,7 @@
 Plan 9 C Compilers
 .AU
 Ken Thompson
-ken@plan9.att.com
+ken@plan9.bell-labs.com
 .AB
 .FS
 Originally appeared, in a different form, in
@@ -20,12 +20,12 @@ is yet to be written.
 .NH
 Introduction
 .LP
-There are currently six compilers in the series.
-Four of the compilers (MIPS 3000, SPARC, Intel 386, and Motorola 68020)
+There are many compilers in the series.
+Six of the compilers (MIPS 3000, SPARC, Intel 386, Power PC, DEC Alpha, and Motorola 68020)
 are considered active and are used to compile
 current versions of Plan 9.
-The other two (AT&T 3210, Intel 960) have been used
-only to program peripherals.
+Several others (Motorola 68000, Intel 960, ARM 7500, AMD 29000) have had only limited use, such as
+to program peripherals or experimental devices.
 .NH
 Structure
 .LP
@@ -52,12 +52,16 @@ are as follows:
 .de Ta
 \\$1	\f(CW\\$2\fP  \f(CW\\$3\fP  \f(CW\\$4\fP
 ..
-.Ta MIPS vc vl va
 .Ta SPARC kc kl ka
-.Ta Intel\ 386 8c 8l 8a
+.Ta Power\ PC qc ql qa
+.Ta MIPS vc vl va
+.Ta Motorola\ 68000 1c 1l 1a
 .Ta Motorola\ 68020 2c 2l 2a
-.Ta AT&T\ 3210 xc xl xa
-.Ta Intel\ 960 9c 9l 9a
+.Ta ARM\ 7500 5c 5l 5a
+.Ta Intel\ 960 6c 6l 6a
+.Ta DEC\ Alpha 7c 7l 7a
+.Ta Intel\ 386 8c 8l 8a
+.Ta AMD\ 29000 9c 9l 9a
 .DE
 There is a further breakdown
 in the source of the compilers into
@@ -95,19 +99,22 @@ paper.
 .NH 2
 Register, volatile, const
 .LP
-The keywords
-.CW register ,
-.CW volatile ,
-and
+The keyword
+.CW register
+is recognized syntactically
+but is semantically ignored.
+Thus taking the address of a
+.CW register
+variable is not diagnosed.
+The keyword
+.CW volatile
+disables all optimizations, in particular registerization, of the corresponding variable.
+The keyword
 .CW const
-are recognized syntactically
-but are semantically ignored.
-Thus
-assigning to a
-.CW const
-variable is not diagnosed, nor is
-taking the address of a
-.CW register .
+generates warnings (if warnings are enabled by the compiler's
+.CW -w
+option) of non-constant use of the variable,
+but does not affect the generated code.
 .NH 2
 The preprocessor
 .LP
@@ -208,6 +215,16 @@ Another example,
 will pass a pointer to the
 .CW Lock
 substructure.
+.LP
+Finally, in places where context is insufficient to identify the unnamed structure,
+the type name (it must be a
+.CW typedef )
+of the unnamed structure can be used as an identifier.
+In our example,
+.CW &node->Lock
+gives the address of the anonymous
+.CW Lock
+structure.
 .NH 2
 Structure displays
 .LP
@@ -331,6 +348,63 @@ Such
 statements in header files guarantee that the correct
 libraries are always linked with a program without the
 need to specify them explicitly at link time.
+.LP
+They also accept
+.CW #pragma
+.CW hjdicks
+.CW on
+(or
+.CW yes
+or
+.CW 1 )
+to cause subsequently declared data, until
+.CW #pragma
+.CW hjdicks
+.CW off
+(or
+.CW no
+or
+.CW 0 ),
+to be laid out in memory tightly packed in successive bytes, disregarding
+the usual alignment rules.
+Accessing such data can cause faults.
+.LP
+Two
+.CW #pragma
+statements allow type-checking of
+.CW print -like
+functions.
+The first, of the form
+.P1
+#pragma varargck argpos error 2
+.P2
+tells the compiler that the second argument to
+.CW error
+is a
+.CW print
+format string (see the manual page
+.I print (2))
+that specifies how to format
+.CW error 's
+subsequent arguments.
+The second, of the form
+.P1
+#pragma varargck type "s" char*
+.P2
+says that the
+.CW print
+format verb
+.CW s
+processes an argument of
+type
+.CW char* .
+If the compiler's
+.CW -F
+option is enabled, the compiler will use this information
+to report type violations in the arguments to
+.CW print ,
+.CW error ,
+and similar routines.
 .NH
 Object module conventions
 .LP

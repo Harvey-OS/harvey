@@ -4,7 +4,7 @@
 #include "iolib.h"
 #include <string.h>
 
-FILE *sopenr(const char *s){
+FILE *_IO_sopenr(const char *s){
 	FILE *f;
 	for(f=_IO_stream;f!=&_IO_stream[FOPEN_MAX];f++) if(f->state==CLOSED) break;
 	if(f==&_IO_stream[FOPEN_MAX]) return NULL;

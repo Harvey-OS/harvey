@@ -21,9 +21,9 @@ Machdata i960mach =
 
 	leswab,			/* convert short to local byte order */
 	leswal,			/* convert long to local byte order */
+	leswav,			/* vlong to local byte order */
 	cisctrace,		/* C traceback */
 	ciscframe,		/* frame finder */
-	0,			/* ublock fixup */
 	i960excep,		/* print exception */
 	0,			/* breakpoint fixup */
 	leieeesftos,		/* single precision float printer */

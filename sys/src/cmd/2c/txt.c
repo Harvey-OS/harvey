@@ -149,16 +149,7 @@ ginit(void)
 	cases = C;
 	firstp = P;
 	lastp = P;
-	tfield = types[TFIELD];
-	if(TINT == TSHORT) {
-		tint = types[TSHORT];
-		tuint = types[TUSHORT];
-		types[TFUNC]->link = tint;
-	}
-	ewidth[TENUM] = ewidth[TINT];
-	types[TENUM]->width = ewidth[TENUM];
-	suround = SU_ALLIGN;
-	supad = SU_PAD;
+	tfield = types[TLONG];
 
 	zprog.link = P;
 	zprog.as = AGOK;
@@ -246,6 +237,8 @@ oinit(int o, int ab, int aw, int al, int af, int ad)
 	opxt[i][TUCHAR] = ab;
 	opxt[i][TSHORT] = aw;
 	opxt[i][TUSHORT] = aw;
+	opxt[i][TINT] = al;
+	opxt[i][TUINT] = al;
 	opxt[i][TLONG] = al;
 	opxt[i][TULONG] = al;
 	opxt[i][TIND] = al;
@@ -258,7 +251,7 @@ prg(void)
 {
 	Prog *p;
 
-	ALLOC(p, Prog);
+	p = alloc(sizeof(*p));
 	*p = zprog;
 	return p;
 }
@@ -886,38 +879,49 @@ exreg(Type *t)
 	return 0;
 }
 
-
-schar	ewidth[XTYPE] =
+schar	ewidth[NTYPE] =
 {
-	-1,				/* TXXX */
-	SZ_CHAR,	SZ_CHAR,	/* TCHAR	TUCHAR */
-	SZ_SHORT,	SZ_SHORT,	/* TSHORT	TUSHORT */
-	SZ_LONG,	SZ_LONG,	/* TLONG	TULONG */
-	SZ_VLONG,	SZ_VLONG,	/* TVLONG	TUVLONG */
-	SZ_FLOAT,	SZ_DOUBLE,	/* TFLOAT	TDOUBLE */
-	SZ_IND,		0,		/* TIND		TFUNC */
-	-1,		0,		/* TARRAY	TVOID */
-	-1,		-1,		/* TSTRUCT	TUNION */
-	-1				/* TENUM */
+	-1,		/* [TXXX] */
+	SZ_CHAR,	/* [TCHAR] */
+	SZ_CHAR,	/* [TUCHAR] */
+	SZ_SHORT,	/* [TSHORT] */
+	SZ_SHORT,	/* [TUSHORT] */
+	SZ_INT,		/* [TINT] */
+	SZ_INT,		/* [TUINT] */
+	SZ_LONG,	/* [TLONG] */
+	SZ_LONG,	/* [TULONG] */
+	SZ_VLONG,	/* [TVLONG] */
+	SZ_VLONG,	/* [TUVLONG] */
+	SZ_FLOAT,	/* [TFLOAT] */
+	SZ_DOUBLE,	/* [TDOUBLE] */
+	SZ_IND,		/* [TIND] */
+	0,		/* [TFUNC] */
+	-1,		/* [TARRAY] */
+	0,		/* [TVOID] */
+	-1,		/* [TSTRUCT] */
+	-1,		/* [TUNION] */
+	SZ_INT,		/* [TENUM] */
 };
-long	ncast[XTYPE] =
+long	ncast[NTYPE] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BCHAR|BUCHAR,
-	/* TUCHAR */	BCHAR|BUCHAR,
-	/* TSHORT */	BSHORT|BUSHORT,
-	/* TUSHORT */	BSHORT|BUSHORT,
-	/* TLONG */	BLONG|BULONG|BIND,
-	/* TULONG */	BLONG|BULONG|BIND,
-	/* TVLONG */	BVLONG|BUVLONG,
-	/* TUVLONG */	BVLONG|BUVLONG,
-	/* TFLOAT */	BFLOAT,
-	/* TDOUBLE */	BDOUBLE,
-	/* TIND */	BLONG|BULONG|BIND,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	0,
-	/* TSTRUCT */	BSTRUCT,
-	/* TUNION */	BUNION,
-	/* TENUM */	0,
+	0,				/* [TXXX] */
+	BCHAR|BUCHAR,			/* [TCHAR] */
+	BCHAR|BUCHAR,			/* [TUCHAR] */
+	BSHORT|BUSHORT,			/* [TSHORT] */
+	BSHORT|BUSHORT,			/* [TUSHORT] */
+	BINT|BUINT|BLONG|BULONG|BIND,	/* [TINT] */
+	BINT|BUINT|BLONG|BULONG|BIND,	/* [TUINT] */
+	BINT|BUINT|BLONG|BULONG|BIND,	/* [TLONG] */
+	BINT|BUINT|BLONG|BULONG|BIND,	/* [TULONG] */
+	BVLONG|BUVLONG,			/* [TVLONG] */
+	BVLONG|BUVLONG,			/* [TUVLONG] */
+	BFLOAT,				/* [TFLOAT] */
+	BDOUBLE,			/* [TDOUBLE] */
+	BLONG|BULONG|BIND,		/* [TIND] */
+	0,				/* [TFUNC] */
+	0,				/* [TARRAY] */
+	0,				/* [TVOID] */
+	BSTRUCT,			/* [TSTRUCT] */
+	BUNION,				/* [TUNION] */
+	0,				/* [TENUM] */
 };

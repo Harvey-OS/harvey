@@ -23,14 +23,14 @@ cmdexec(File *f, Cmd *cp)
 	Addr *ap;
 	Address a;
 
-	if(f && f->state==Unread)
+	if(f && f->unread)
 		load(f);
 	if(f==0 && (cp->addr==0 || cp->addr->type!='"') &&
-	    !utfrune("bBnqUXY!{", cp->cmdc) &&
+	    !utfrune("bBnqUXY!", cp->cmdc) &&
 	    cp->cmdc!=('c'|0x100) && !(cp->cmdc=='D' && cp->ctext))
 		error(Enofile);
 	i = lookup(cp->cmdc);
-	if(cmdtab[i].defaddr != aNo){
+	if(i >= 0 && cmdtab[i].defaddr != aNo){
 		if((ap=cp->addr)==0 && cp->cmdc!='\n'){
 			cp->addr = ap = newaddr();
 			ap->type = '.';
@@ -79,7 +79,7 @@ b_cmd(File *f, Cmd *cp)
 {
 	USED(f);
 	f = cp->cmdc=='b'? tofile(cp->ctext) : getfile(cp->ctext);
-	if(f->state == Unread)
+	if(f->unread)
 		load(f);
 	else if(nest == 0)
 		filename(f);
@@ -89,7 +89,7 @@ b_cmd(File *f, Cmd *cp)
 int
 c_cmd(File *f, Cmd *cp)
 {
-	Fdelete(f, addr.r.p1, addr.r.p2);
+	logdelete(f, addr.r.p1, addr.r.p2);
 	f->ndot.r.p1 = f->ndot.r.p2 = addr.r.p2;
 	return append(f, cp, addr.r.p2);
 }
@@ -98,7 +98,7 @@ int
 d_cmd(File *f, Cmd *cp)
 {
 	USED(cp);
-	Fdelete(f, addr.r.p1, addr.r.p2);
+	logdelete(f, addr.r.p1, addr.r.p2);
 	f->ndot.r.p1 = f->ndot.r.p2 = addr.r.p1;
 	return TRUE;
 }
@@ -231,7 +231,7 @@ s_cmd(File *f, Cmd *cp)
 					j = c-'0';
 					if(sel.p[j].p2-sel.p[j].p1>BLOCKSIZE)
 						error(Elongtag);
-					Fchars(f, genbuf, sel.p[j].p1, sel.p[j].p2);
+					bufread(f, sel.p[j].p1, genbuf, sel.p[j].p2-sel.p[j].p1);
 					Strinsert(&genstr, tmprstr(genbuf, (sel.p[j].p2-sel.p[j].p1)), genstr.n);
 				}else
 				 	Straddc(&genstr, c);
@@ -240,17 +240,17 @@ s_cmd(File *f, Cmd *cp)
 			else{
 				if(sel.p[0].p2-sel.p[0].p1>BLOCKSIZE)
 					error(Elongrhs);
-				Fchars(f, genbuf, sel.p[0].p1, sel.p[0].p2);
+				bufread(f, sel.p[0].p1, genbuf, sel.p[0].p2-sel.p[0].p1);
 				Strinsert(&genstr,
 					tmprstr(genbuf, (int)(sel.p[0].p2-sel.p[0].p1)),
 					genstr.n);
 			}
 		if(sel.p[0].p1!=sel.p[0].p2){
-			Fdelete(f, sel.p[0].p1, sel.p[0].p2);
+			logdelete(f, sel.p[0].p1, sel.p[0].p2);
 			delta-=sel.p[0].p2-sel.p[0].p1;
 		}
 		if(genstr.n){
-			Finsert(f, &genstr, sel.p[0].p2);
+			loginsert(f, sel.p[0].p2, genstr.s, genstr.n);
 			delta+=genstr.n;
 		}
 		didsub = 1;
@@ -267,19 +267,29 @@ int
 u_cmd(File *f, Cmd *cp)
 {
 	int n;
+
 	USED(f);
 	USED(cp);
 	n = cp->num;
-	while(n-- && undo())
-		;
+	if(n >= 0)
+		while(n-- && undo(TRUE))
+			;
+	else
+		while(n++ && undo(FALSE))
+			;
 	return TRUE;
 }
 
 int
 w_cmd(File *f, Cmd *cp)
 {
+	int fseq;
+
+	fseq = f->seq;
 	if(getname(f, cp->ctext, FALSE)==0)
 		error(Enoname);
+	if(fseq == seq)
+		error_s(Ewseq, genc);
 	writef(f);
 	return TRUE;
 }
@@ -334,10 +344,13 @@ eq_cmd(File *f, Cmd *cp)
 int
 nl_cmd(File *f, Cmd *cp)
 {
+	Address a;
+
 	if(cp->addr == 0){
 		/* First put it on newline boundaries */
 		addr = lineaddr((Posn)0, f->dot, -1);
-		addr.r.p2 = lineaddr((Posn)0, f->dot, 1).r.p2;
+		a = lineaddr((Posn)0, f->dot, 1);
+		addr.r.p2 = a.r.p2;
 		if(addr.r.p1==f->dot.r.p1 && addr.r.p2==f->dot.r.p2)
 			addr = lineaddr((Posn)1, f->dot, 1);
 		display(f);
@@ -362,7 +375,7 @@ append(File *f, Cmd *cp, Posn p)
 	if(cp->ctext->n>0 && cp->ctext->s[cp->ctext->n-1]==0)
 		--cp->ctext->n;
 	if(cp->ctext->n>0)
-		Finsert(f, cp->ctext, p);
+		loginsert(f, p, cp->ctext->s, cp->ctext->n);
 	f->ndot.r.p1 = p;
 	f->ndot.r.p2 = p+cp->ctext->n;
 	return TRUE;
@@ -372,26 +385,28 @@ int
 display(File *f)
 {
 	Posn p1, p2;
-	int np, n;
+	int np;
 	char *c;
 
 	p1 = addr.r.p1;
 	p2 = addr.r.p2;
+	if(p2 > f->nc){
+		fprint(2, "bad display addr p1=%ld p2=%ld f->nc=%d\n", p1, p2, f->nc); /*ZZZ should never happen, can remove */
+		p2 = f->nc;
+	}
 	while(p1 < p2){
 		np = p2-p1;
 		if(np>BLOCKSIZE-1)
 			np = BLOCKSIZE-1;
-		n = Fchars(f, genbuf, p1, p1+np);
-		if(n <= 0)
-			panic("display");
-		genbuf[n] = 0;
-		c = Strtoc(tmprstr(genbuf, n+1));
+		bufread(f, p1, genbuf, np);
+		genbuf[np] = 0;
+		c = Strtoc(tmprstr(genbuf, np+1));
 		if(downloaded)
 			termwrite(c);
 		else
 			Write(1, c, strlen(c));
 		free(c);
-		p1+=n;
+		p1 += np;
 	}
 	f->dot = addr;
 	return TRUE;
@@ -439,7 +454,7 @@ linelooper(File *f, Cmd *cp)
 {
 	Posn p;
 	Range r, linesel;
-	Address a3;
+	Address a, a3;
 
 	nest++;
 	r = addr.r;
@@ -448,8 +463,10 @@ linelooper(File *f, Cmd *cp)
 	for(p = r.p1; p<r.p2; p = a3.r.p2){
 		a3.r.p1 = a3.r.p2;
 /*pjw		if(p!=r.p1 || (linesel = lineaddr((Posn)0, a3, 1)).r.p2==p)*/
-		if(p!=r.p1 || ((linesel = lineaddr((Posn)0, a3, 1).r), linesel.p2==p))
-			linesel = lineaddr((Posn)1, a3, 1).r;
+		if(p!=r.p1 || (a = lineaddr((Posn)0, a3, 1), linesel = a.r, linesel.p2==p)){
+			a = lineaddr((Posn)1, a3, 1);
+			linesel = a.r;
+		}
 		if(linesel.p1 >= r.p2)
 			break;
 		if(linesel.p2 >= r.p2)

@@ -6,8 +6,14 @@ DEPS	=	net.ms\
 net.ps:D:	$DEPS
 	{ echo $FONTS; cat net.ms } | tbl | troff -ms | lp -dstdout > net.ps
 
+net.bs:D:	$DEPS
+	../prfile net
+
 net.trout:D:	$DEPS
 	{ echo $FONTS; cat net.ms } | tbl | troff -ms > net.trout
 
 tree.pout:D:	tree
 	pic tree > tree.pout
+
+net.html:D:	$DEPS
+	{ echo $FONTS; cat net.ms } | tbl | ms2html > net.html

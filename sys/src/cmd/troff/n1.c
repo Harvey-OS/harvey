@@ -278,7 +278,8 @@ void cvtime(void)
 
 	time(&tt);
 	ltime = localtime(&tt);
-	numtabp[YR].val = ltime->tm_year;
+	numtabp[YR].val = ltime->tm_year % 100;
+	numtabp[YR].fmt = 2;
 	numtabp[MO].val = ltime->tm_mon + 1;	/* troff uses 1..12 */
 	numtabp[DY].val = ltime->tm_mday;
 	numtabp[DW].val = ltime->tm_wday + 1;	/* troff uses 1..7 */
@@ -298,7 +299,7 @@ void errprint(void)	/* error message printer */
 	fprintf(stderr, "%s: ", progname);
 	fputs(errbuf, stderr);
 	if (cfname[ifi][0])
-		fprintf(stderr, "; line %d, file %s", numtabp[CD].val, cfname[ifi]);
+		fprintf(stderr, "; %s:%d", cfname[ifi], numtabp[CD].val);
 	fputs("\n", stderr);
 	if (cfname[ifi][0])
 		stackdump();

@@ -26,7 +26,7 @@ void rarc(double x1, double y1, double x2, double y2, double xc, double yc, doub
 	if (rr < 0) 
 		ph = 6.2832 - ph;
 	if (ph < dph) 
-		line(x1, y1, x2, y2);
+		plotline(x1, y1, x2, y2);
 	else {
 		n = ph / dph; 
 		a = cos(dph); 

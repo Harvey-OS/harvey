@@ -1,0 +1,30 @@
+.\" $Id: dvipdf.1,v 1.1 2000/03/09 08:40:40 lpd Exp $
+.TH DVIPDF 1 "3 February 2000" 6.0 Ghostscript \" -*- nroff -*-
+.SH NAME
+dvipdf \- Convert TeX DVI file to PDF using ghostscript and dvips
+.SH SYNOPSIS
+\fBdvipdf\fR [ \fIoptions\fR ] \fIinput.dvi\fR [ \fIoutput.pdf\fR ] ...
+.SH DESCRIPTION
+This script invokes
+.BR dvips (1)
+with the
+.B -q
+option, and pipes its output into
+.BR gs (1)
+with the following options:
+
+.ce
+.B -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite
+
+as well as 
+.B -sOutputFile
+and any options from the command-line.
+.SH SEE ALSO
+gs(1), dvips(1)
+.SH VERSION
+This document was last revised for Ghostscript version 6.0.
+.SH AUTHOR
+L. Peter Deutsch <ghost@aladdin.com> is the principal author of Ghostscript.
+Russell J. Lang <rjl@aladdin.com> is the author of most of the MS Windows
+code in Ghostscript.
+This manpage by George Ferguson.

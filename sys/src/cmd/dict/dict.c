@@ -535,9 +535,13 @@ getfield(Rune *rp)
  * A compare longs function suitable for qsort
  */
 static int
-longcmp(long *a, long *b)
+longcmp(void *av, void *bv)
 {
 	long v;
+	long *a, *b;
+
+	a = av;
+	b = bv;
 
 	v = *a - *b;
 	if(v < 0)

@@ -1,0 +1,6 @@
+#!/bin/rc
+if(! test -f /srv/dos)
+	dossrv >/dev/null </dev/null >[2]/dev/null
+
+unmount /n/9fat >/dev/null >[2]/dev/null
+mount -c /srv/dos /n/9fat /dev/sdC0/9fat

@@ -22,6 +22,10 @@ Output line length is
 .IR n ,
 including indent (default 70).
 .TP
+.BI -w " n
+A synonym for
+.BR -l .
+.TP
 .BI -i " n
 Indent
 .I n
@@ -37,5 +41,3 @@ Empty lines are inserted between input files.
 is idempotent: it leaves already formatted text unchanged.
 .SH SOURCE
 .B /sys/src/cmd/fmt.c
-.SH BUGS
-Words longer than 256 characters are split.

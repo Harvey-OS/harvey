@@ -62,23 +62,30 @@ is executed;
 any number of
 .B -v
 options may be present.
+.B \-F
+.IR fs
+option defines the input field separator to be the regular expression
+.IR fs .
 .PP
 An input line is normally made up of fields separated by white space,
 or by regular expression
-.IR fs .
+.BR FS .
 The fields are denoted
 .BR $1 ,
 .BR $2 ,
 \&..., while
 .B $0
 refers to the entire line.
+If
+.BR FS
+is null, the input line is split into one field per character.
 .PP
 To compensate for inadequate implementation of storage management,
 the 
-.B -mr
+.B \-mr
 option can be used to set the maximum size of the input record,
 and the
-.B -mf
+.B \-mf
 option to set the maximum number of fields.
 .PP
 A pattern-action statement has the form
@@ -109,7 +116,9 @@ print\fR [ \fP\fIexpression-list \fP\fR] \fP\fR[ \fP>\fI expression \fP\fR]\fP
 printf\fI format \fP\fR[ \fP,\fI expression-list \fP\fR] \fP\fR[ \fP>\fI expression \fP\fR]\fP
 return\fR [ \fP\fIexpression \fP\fR]\fP
 next	#\fR skip remaining patterns on this input line\fP
+nextfile	#\fR skip rest of this file, open next, start at top\fP
 delete\fI array\fP[\fI expression \fP]	#\fR delete an array element\fP
+delete\fI array\fP	#\fR delete all elements of array\fP
 exit\fR [ \fP\fIexpression \fP\fR]\fP	#\fR exit immediately; status is \fP\fIexpression\fP
 .EE
 .DT
@@ -124,11 +133,11 @@ String constants are quoted \&\fL"\ "\fR,
 with the usual C escapes recognized within.
 Expressions take on string or numeric values as appropriate,
 and are built using the operators
-.B + - * / % ^
+.B + \- * / % ^
 (exponentiation), and concatenation (indicated by white space).
 The operators
 .B
-! ++ -- += -= *= /= %= ^= > >= < <= == != ?:
+! ++ \-\- += \-= *= /= %= ^= > >= < <= == != ?:
 are also available in expressions.
 Variables may be scalars, array elements
 (denoted
@@ -169,6 +178,10 @@ statement formats its expression list according to the format
 The built-in function
 .BI close( expr )
 closes the file or pipe
+.IR expr .
+The built-in function
+.BI fflush( expr )
+flushes any buffered output for the file or pipe
 .IR expr .
 .PP
 The mathematical functions
@@ -251,6 +264,8 @@ or with the field separator
 if
 .I fs
 is not given.
+An empty string as field separator splits the string
+into one array element per character.
 .TP
 .BI sub( r , " t" , " s\fL)
 substitutes
@@ -287,14 +302,25 @@ format
 executes
 .I cmd
 and returns its exit status
+.TP
+.BI tolower( str )
+returns a copy of
+.I str
+with all upper-case characters translated to their
+corresponding lower-case equivalents.
+.TP
+.BI toupper( str )
+returns a copy of
+.I str
+with all lower-case characters translated to their
+corresponding upper-case equivalents.
 .PD
 .PP
 The ``function''
 .B getline
 sets
 .B $0
-to
-the next input record from the current input file;
+to the next input record from the current input file;
 .B getline
 .BI < file
 sets
@@ -386,10 +412,15 @@ do not combine with other patterns.
 Variable names with special meanings:
 .TF FILENAME
 .TP
+.B CONVFMT
+conversion format used when converting numbers
+(default
+.BR "%.6g" )
+.TP
 .B FS
 regular expression used to separate fields; also settable
 by option
-.BI -F fs\f1.
+.BI \-F fs\f1.
 .TP
 .BR NF
 number of fields in the current record
@@ -443,7 +474,7 @@ the function definition.
 .SH EXAMPLES
 .TP
 .L
-length > 72
+length($0) > 72
 Print lines longer than 72 characters.
 .TP
 .L
@@ -485,7 +516,7 @@ BEGIN	{	# Simulate echo(1)
 A. V. Aho, B. W. Kernighan, P. J. Weinberger,
 .I
 The AWK Programming Language,
-Addison-Wesley, 1988.
+Addison-Wesley, 1988.  ISBN 0-201-07981-X
 .SH BUGS
 There are no explicit conversions between numbers and strings.
 To force an expression to be treated as a number add 0 to it;

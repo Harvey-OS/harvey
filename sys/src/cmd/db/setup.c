@@ -15,9 +15,6 @@ Map	*dotmap;
 int fsym, fcor;
 static Fhdr fhdr;
 
-extern	Mach		mmips;
-extern	Machdata	mipsmach;
-
 static int getfile(char*, int, int);
 
 void
@@ -27,8 +24,6 @@ setsym(void)
 
 	if((fsym = getfile(symfil, 1, wtflag)) < 0) {
 		symmap = dumbmap(-1);
-		machdata = &mipsmach;
-		mach = &mmips;
 		return;
 	}
 	if (crackhdr(fsym, &fhdr)) {
@@ -48,24 +43,13 @@ setsym(void)
 void
 setcor(void)
 {
-	char buf[64];
-	int fd;
-	ulong ksp;
-	long proc;		/* address of proc table */
+	int i;
 
-
-	if(pid > 0){	/* set kbase; should probably do other things, too */
-		sprint(buf, "/proc/%d/proc", pid);
-		fd = open(buf, 0);
-		if(fd >= 0){
-			seek(fd, mach->kspoff, 0);
-			if(read(fd, (char *)&ksp, 4) == 4)
- 			mach->kbase = machdata->swal(ksp) & ~(mach->pgsize-1);
-			close(fd);
-		}
+	if (cormap) {
+		for (i = 0; i < cormap->nsegs; i++)
+			if (cormap->seg[i].inuse)
+				close(cormap->seg[i].fd);
 	}
-	if (cormap)
-		close(fcor);
 
 	fcor = getfile(corfil, 2, ORDWR);
 	if (fcor <= 0) {
@@ -74,19 +58,16 @@ setcor(void)
 		cormap = dumbmap(-1);
 		return;
 	}
-	cormap = newmap(cormap, fcor, 3);
-	if (!cormap)
-		return;
-	setmap(cormap, fhdr.txtaddr, fhdr.txtaddr+fhdr.txtsz, fhdr.txtaddr, "text");
-	setmap(cormap, fhdr.dataddr, mach->kbase, fhdr.dataddr, "data");
-	setmap(cormap, mach->kbase, mach->kbase+mach->pgsize, mach->kbase, "ublock");
-	fixregs(cormap);
-	if (kflag) {
-		if (get4(cormap, mach->kbase, &proc) < 0)
-			error("can't find proc table: %r");
-
-		adjustreg(mach->pc, proc+mach->kpcoff, mach->kpcdelta);
-		adjustreg(mach->sp, proc+mach->kspoff, mach->kspdelta);
+	if(pid > 0) {	/* provide addressability to executing process */
+		cormap = attachproc(pid, kflag, fcor, &fhdr);
+		if (!cormap)
+			cormap = dumbmap(-1);
+	} else {
+		cormap = newmap(cormap, 2);
+		if (!cormap)
+			cormap = dumbmap(-1);
+		setmap(cormap, fcor, fhdr.txtaddr, fhdr.txtaddr+fhdr.txtsz, fhdr.txtaddr, "text");
+		setmap(cormap, fcor, fhdr.dataddr, 0xffffffff, fhdr.dataddr, "data");
 	}
 	kmsys();
 	return;
@@ -96,15 +77,16 @@ Map *
 dumbmap(int fd)
 {
 	Map *dumb;
-	extern Mach mmips;
-	extern Machdata mipsmach;
 
-	dumb = newmap(0, fd, 1);
-	setmap(dumb, 0, 0xffffffff, 0, "data");
-	if (!mach) 			/* default machine = mips */
-		mach = &mmips;
+	extern Mach mi386;
+	extern Machdata i386mach;
+
+	dumb = newmap(0, 1);
+	setmap(dumb, fd, 0, 0xffffffff, 0, "data");
+	if (!mach) 			/* default machine = 386 */
+		mach = &mi386;
 	if (!machdata)
-		machdata = &mipsmach;
+		machdata = &i386mach;
 	return dumb;
 }
 
@@ -196,16 +178,10 @@ kmsys(void)
 		symmap->seg[i].b |= mach->kbase;
 		symmap->seg[i].e |= mach->kbase;
 	}
-	i = findseg(symmap, "ublock");
-	if (i >= 0)
-		unusemap(symmap, i);
-	cormap = newmap(cormap, fcor, 1);
-	if (cormap)
-		setmap(cormap, 0, ~0, 0, "data");
 }
 
 void
-attachproc(void)
+attachprocess(void)
 {
 	char buf[100];
 	int statstat;
@@ -217,10 +193,10 @@ attachproc(void)
 		return;
 	}
 	statstat = dirfstat(fsym, &sym);
-	sprint(buf, "/proc/%d/mem", adrval);
+	sprint(buf, "/proc/%lud/mem", adrval);
 	corfil = buf;
 	setcor();
-	sprint(buf, "/proc/%d/text", adrval);
+	sprint(buf, "/proc/%lud/text", adrval);
 	fd = open(buf, OREAD);
 	if (statstat < 0 || fd < 0 || dirfstat(fd, &mem) < 0
 				|| sym.qid.path != mem.qid.path)

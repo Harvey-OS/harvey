@@ -128,41 +128,12 @@ followed by a terminating null pointer; and
 the return register (e.g.
 .B R0
 on the 68020) contains the address of the clock.
-.SS Alef
-In Alef, the intent and syntax are the same but the implementation is
-different.
-.I Exec
-(or
-.IR execl ;
-this description applies to either) may be called only by a
-.B proc
-holding a single task, typically the implicit main task of the
-.BR proc .
-First,
-.IR access (2)
-is called to see if the named file exists and has execute permission.
-If not,
-.I exec
-returns \-1 immediately.  Otherwise, it will never return:
-it frees resources private to the invoking
-.B proc
-and calls the
-.I exec
-system call.  If this fails, it calls the bare
-.B _exits
-system call
-(see
-.IR exits (2))
-with the error string as argument.
-Therefore, if the file looks executable, the calling process
-is lost, whether the
-.I exec
-succeeds or not.
 .SH SOURCE
 .B /sys/src/libc/9syscall
 .br
 .B /sys/src/libc/port/execl.c
 .SH SEE ALSO
+.IR prof (1),
 .IR intro (2),
 .IR stat (2)
 .SH DIAGNOSTICS

@@ -35,7 +35,7 @@ Xspalbers(struct place *place, double *x, double *y)
 
 static proj albinit(double lat1, double lat2, double e2)
 {
-	double r1,r2;
+	double r1;
 	double t;
 	for(;;) {
 		if(lat1 < -90)
@@ -63,7 +63,6 @@ static proj albinit(double lat1, double lat2, double e2)
 	    plat2.c*plat2.c/(1-e2*plat2.s*plat2.s)) /
 	    (2*(1-e2)*den*(sinb2-sinb1));
 	r1 = plat1.c/(n*sqrt(1-e2*plat1.s*plat1.s));
-	r2 = plat2.c/(n*sqrt(2-e2*plat2.s*plat2.s));
 	r1sq = r1*r1;
 	r0sq = r1sq + 2*(1-e2)*den*sinb1/n;
 	southpole = lat1<0 && plat2.c>plat1.c;

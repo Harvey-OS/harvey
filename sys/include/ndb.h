@@ -30,6 +30,7 @@ struct Ndb
 	char		file[2*NAMELEN];/* path name of db file */
 	ulong		length;		/* length of db file */
 
+	int		nohash;		/* don't look for hash files */
 	Ndbhf		*hf;		/* open hash files */
 };
 
@@ -127,34 +128,44 @@ struct Dns
 	Ndbtuple	*cache[DNScache];
 };
 
+#define NDB_IPlen 16
+
 /*
  *  ip information about a system
  */
 typedef struct Ipinfo	Ipinfo;
 struct Ipinfo
 {
-	char	domain[128];		/* system domain name */
-	char	bootf[128];		/* boot file */
-	uchar	ipaddr[4];		/* ip address of system */
-	uchar	ipmask[4];		/* ip network mask */
-	uchar	ipnet[4];		/* ip network address (ipaddr & ipmask) */
+	int	indb;			/* true if found in database */
+	char	domain[Ndbvlen];	/* system domain name */
+	char	bootf[Ndbvlen];		/* boot file */
+	uchar	ipaddr[NDB_IPlen];	/* ip address of system */
+	uchar	ipmask[NDB_IPlen];	/* ip network mask */
+	uchar	ipnet[NDB_IPlen];	/* ip network address (ipaddr & ipmask) */
 	uchar	etheraddr[6];		/* ethernet address */
-	uchar	gwip[4];		/* gateway ip address */
-	uchar	fsip[4];		/* file system ip address */
-	uchar	auip[4];		/* authentication server ip address */
+	uchar	gwip[NDB_IPlen];	/* gateway ip address */
+	uchar	fsip[NDB_IPlen];	/* file system ip address */
+	uchar	auip[NDB_IPlen];	/* authentication server ip address */
+	char	dhcpgroup[Ndbvlen];
+	char	vendor[Ndbvlen];	/* vendor info */
 };
 
 ulong		ndbhash(char*, int);
 Ndbtuple*	ndbparse(Ndb*);
 void		ndbfree(Ndbtuple*);
 Ndb*		ndbopen(char*);
+Ndb*		ndbcat(Ndb*, Ndb*);
 int		ndbreopen(Ndb*);
 void		ndbclose(Ndb*);
+Ndbtuple*	ndblookval(Ndbtuple*, Ndbtuple*, char*, char*);
 long		ndbseek(Ndb*, long);
 Ndbtuple*	ndbsearch(Ndb*, Ndbs*, char*, char*);
 Ndbtuple*	ndbsnext(Ndbs*, char*, char*);
 Ndbtuple*	ndbgetval(Ndb*, Ndbs*, char*, char*, char*, char*);
-Ndbtuple*	csgetval(char*, char*, char*, char*);
+Ndbtuple*	csgetval(char*, char*, char*, char*, char*);
 char*		ipattr(char*);
 int		ipinfo(Ndb*, char*, char*, char*, Ipinfo*);
+Ndbtuple*	ndbipinfo(Ndb*, char*, char*, char**, int);
+Ndbtuple*	csipinfo(char*, char*, char*, char**, int);
+Ndbtuple*	dnsquery(char*, char*, char*);
 

@@ -99,14 +99,14 @@ xlong:
 	if(y<1 || y>9999)
 		goto badarg;
 	Bprint(&bout, "\n\n\n");
-	Bprint(&bout, "				%ud\n", y);
+	Bprint(&bout, "                                %ud\n", y);
 	Bprint(&bout, "\n");
 	for(i=0; i<12; i+=3) {
 		for(j=0; j<6*72; j++)
 			string[j] = '\0';
-		Bprint(&bout, "	 %.3s", smon[i]);
-		Bprint(&bout, "			%.3s", smon[i+1]);
-		Bprint(&bout, "		       %.3s\n", smon[i+2]);
+		Bprint(&bout, "         %.3s", smon[i]);
+		Bprint(&bout, "                    %.3s", smon[i+1]);
+		Bprint(&bout, "                    %.3s\n", smon[i+2]);
 		Bprint(&bout, "%s   %s   %s\n", dayw, dayw, dayw);
 		cal(i+1, y, string, 72);
 		cal(i+2, y, string+23, 72);
@@ -130,7 +130,7 @@ struct
 	"jan",		1,
 	"january",	1,
 	"feb",		2,
-	"feburary",	2,
+	"february",	2,
 	"mar",		3,
 	"march",	3,
 	"apr",		4,

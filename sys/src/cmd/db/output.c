@@ -22,12 +22,12 @@ printc(int c)
 
 /* move to next f1-sized tab stop */
 int
-tconv(void *oa, Fconv *f)
+tconv(va_list *arg, Fconv *f)
 {
 	int n;
 	char buf[128];
 
-	USED(oa);
+	USED(arg);
 	n = f->f1 - (printcol%f->f1);
 	if(n != 0) {
 		memset(buf, ' ', n);
@@ -38,25 +38,12 @@ tconv(void *oa, Fconv *f)
 	return 0;
 }
 
-/* hexadecimal with initial # */
+/* hexadecimal with initial 0x */
 int
-myxconv(void *oa, Fconv *f)
+myxconv(va_list *arg, Fconv *f)
 {
-
-	/* if unsigned, emit #1234 */
-	if((f->f3&32) || *(long*)oa>=0){
-		if(f->out < f->eout)
-			*f->out++ = '#';
-	}
-	else{					/* emit -#1234 */
-		*(long*)oa = -*(long*)oa;
-		if(f->out < f->eout-1) {
-			*f->out++ = '-';
-			*f->out++ = '#';
-		}
-	}
-	numbconv(oa, f);
-	return sizeof(long);
+	f->f3 |= 1<<2;
+	return numbconv(arg, f);
 }
 
 charpos(void)
@@ -169,10 +156,13 @@ dprint(char *fmt, ...)
 {
 	char buf[4096], *out;
 	int n;
+	va_list arg;
 
 	if(mkfault)
 		return -1;
-	out = doprint(buf, buf+sizeof buf, fmt, (&fmt+1));
+	va_start(arg, fmt);
+	out = doprint(buf, buf+sizeof buf, fmt, arg);
+	va_end(arg);
 	n = Bwrite(&stdout, buf, (long)(out-buf));
 	return n;
 }

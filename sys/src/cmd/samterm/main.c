@@ -1,6 +1,10 @@
 #include <u.h>
 #include <libc.h>
-#include <libg.h>
+#include <draw.h>
+#include <thread.h>
+#include <cursor.h>
+#include <mouse.h>
+#include <keyboard.h>
 #include <frame.h>
 #include "flayer.h"
 #include "samterm.h"
@@ -9,8 +13,6 @@ Text	cmd;
 Rune	*scratch;
 long	nscralloc;
 Cursor	*cursor;
-extern Bitmap	screen;
-Mouse	mouse;
 Flayer	*which = 0;
 Flayer	*work = 0;
 long	snarflen;
@@ -18,11 +20,12 @@ long	typestart = -1;
 long	typeend = -1;
 long	typeesc = -1;
 long	modified = 0;		/* strange lookahead for menus */
-char	lock = 1;
+char	hostlock = 1;
 char	hasunlocked = 0;
+int	maxtab = 8;
 
 void
-main(int argc, char *argv[])
+threadmain(int argc, char *argv[])
 {
 	int i, got, scr;
 	Text *t;
@@ -34,12 +37,12 @@ main(int argc, char *argv[])
 	initio();
 	scratch = alloc(100*RUNESIZE);
 	nscralloc = 100;
-	r = screen.r;
+	r = screen->r;
 	r.max.y = r.min.y+Dy(r)/5;
-	flstart(screen.clipr);
+	flstart(screen->clipr);
 	rinit(&cmd.rasp);
 	flnew(&cmd.l[0], gettext, 1, &cmd);
-	flinit(&cmd.l[0], r, font);
+	flinit(&cmd.l[0], r, font, cmdcols);
 	cmd.nwin = 1;
 	which = &cmd.l[0];
 	cmd.tag = Untagged;
@@ -48,32 +51,32 @@ main(int argc, char *argv[])
 
 	got = 0;
 	for(;;got = waitforio()){
-		if(hasunlocked && RESHAPED())
-			reshape();
-		if(got&RHost)
+		if(hasunlocked && RESIZED())
+			resize();
+		if(got&(1<<RHost))
 			rcv();
-		if(got&RExtern){
+		if(got&(1<<RPlumb)){
 			for(i=0; cmd.l[i].textfn==0; i++)
 				;
 			current(&cmd.l[i]);
 			flsetselect(which, cmd.rasp.nrunes, cmd.rasp.nrunes);
-			type(which, RExtern);
+			type(which, RPlumb);
 		}
-		if(got&RKeyboard)
+		if(got&(1<<RKeyboard))
 			if(which)
 				type(which, RKeyboard);
 			else
 				kbdblock();
-		if(got&RMouse){
-			if(lock==2 || !ptinrect(mouse.xy, screen.r)){
+		if(got&(1<<RMouse)){
+			if(hostlock==2 || !ptinrect(mousep->xy, screen->r)){
 				mouseunblock();
 				continue;
 			}
-			nwhich = flwhich(mouse.xy);
-			scr = which && ptinrect(mouse.xy, which->scroll);
-			if(mouse.buttons)
+			nwhich = flwhich(mousep->xy);
+			scr = which && ptinrect(mousep->xy, which->scroll);
+			if(mousep->buttons)
 				flushtyping(1);
-			if(mouse.buttons&1){
+			if(mousep->buttons&1){
 				if(nwhich){
 					if(nwhich!=which)
 						current(nwhich);
@@ -88,12 +91,12 @@ main(int argc, char *argv[])
 							outcmd();
 					}
 				}
-			}else if((mouse.buttons&2) && which){
+			}else if((mousep->buttons&2) && which){
 				if(scr)
 					scroll(which, 2);
 				else
 					menu2hit();
-			}else if((mouse.buttons&4)){
+			}else if((mousep->buttons&4)){
 				if(scr)
 					scroll(which, 3);
 				else
@@ -106,10 +109,10 @@ main(int argc, char *argv[])
 
 
 void
-reshape(void){
+resize(void){
 	int i;
 
-	flreshape(screen.clipr);
+	flresize(screen->clipr);
 	for(i = 0; i<nname; i++)
 		if(text[i])
 			hcheck(text[i]->tag);
@@ -185,7 +188,7 @@ duplicate(Flayer *l, Rectangle r, Font *f, int close)
 
 	if(nl){
 		flnew(nl, gettext, l->user0, (char *)t);
-		flinit(nl, r, f);
+		flinit(nl, r, f, l->f.cols);
 		nl->origin = l->origin;
 		rp = (*l->textfn)(l, l->f.nchars, &n);
 		flinsert(nl, rp, rp+n, l->origin);
@@ -199,14 +202,14 @@ duplicate(Flayer *l, Rectangle r, Font *f, int close)
 		current(nl);
 		hcheck(t->tag);
 	}
-	cursorswitch(cursor);
+	setcursor(mousectl, cursor);
 }
 
 void
 buttons(int updown)
 {
-	while(((mouse.buttons&7)!=0) != updown)
-		frgetmouse();
+	while(((mousep->buttons&7)!=0) != updown)
+		getmouse();
 }
 
 int
@@ -215,11 +218,11 @@ getr(Rectangle *rp)
 	Point p;
 	Rectangle r;
 
-	*rp = getrect(3, &mouse);
+	*rp = getrect(3, mousectl);
 	if(rp->max.x && rp->max.x-rp->min.x<=5 && rp->max.y-rp->min.y<=5){
 		p = rp->min;
 		r = cmd.l[cmd.front].entire;
-		*rp = screen.r;
+		*rp = screen->r;
 		if(cmd.nwin==1){
 			if (p.y <= r.min.y)
 				rp->max.y = r.min.y;
@@ -231,7 +234,7 @@ getr(Rectangle *rp)
 				rp->min.x = r.max.x;
 		}
 	}
-	return rectclip(rp, screen.r) &&
+	return rectclip(rp, screen->r) &&
 	   rp->max.x-rp->min.x>100 && rp->max.y-rp->min.y>40;
 }
 
@@ -374,7 +377,7 @@ onethird(Flayer *l, long a)
 	if(!t->lock && (a<l->origin || l->origin+l->f.nchars<a)){
 		if(a > t->rasp.nrunes)
 			a = t->rasp.nrunes;
-		s = inset(l->scroll, 1);
+		s = insetrect(l->scroll, 1);
 		lines = ((s.max.y-s.min.y)/l->f.font->height+1)/3;
 		if (lines < 2)
 			lines = 2;
@@ -410,7 +413,8 @@ flushtyping(int clearesc)
 	typeend = -1;
 }
 
-#define	SCROLLKEY	0x80
+#define	SCROLLKEY	Kdown
+#define	BACKSCROLLKEY	Kup
 #define	ESC		0x1B
 
 void
@@ -420,14 +424,14 @@ type(Flayer *l, int res)	/* what a bloody mess this is */
 	Rune buf[100];
 	Rune *p = buf;
 	int c, backspacing;
-	long a;
+	long a, a0;
 	int scrollkey;
 
 	scrollkey = 0;
 	if(res == RKeyboard)
-		scrollkey = qpeekc()==SCROLLKEY;	/* ICK */
+		scrollkey = (qpeekc()==SCROLLKEY || qpeekc()==BACKSCROLLKEY);	/* ICK */
 
-	if(lock || t->lock){
+	if(hostlock || t->lock){
 		kbdblock();
 		return;
 	}
@@ -440,7 +444,7 @@ type(Flayer *l, int res)	/* what a bloody mess this is */
 	backspacing = 0;
 	while((c = kbdchar())>0){
 		if(res == RKeyboard){
-			if(c==SCROLLKEY || c==ESC)
+			if(c==SCROLLKEY || c==BACKSCROLLKEY || c==ESC)
 				break;
 			/* backspace, ctrl-u, ctrl-w, del */
 			if(c=='\b' || c==0x15 || c==0x17 || c==0x7F){
@@ -472,7 +476,13 @@ type(Flayer *l, int res)	/* what a bloody mess this is */
 		flushtyping(0);
 		center(l, l->origin+l->f.nchars+1);
 		/* backspacing immediately after outcmd(): sorry */
-	}else if(backspacing && !lock){
+	}else if(c == BACKSCROLLKEY){
+		flushtyping(0);
+		a0 = l->origin-l->f.nchars;
+		if(a0 < 0)
+			a0 = 0;
+		center(l, a0);
+	}else if(backspacing && !hostlock){
 		if(l->f.p0>0 && a>0){
 			switch(c){
 			case '\b':
@@ -533,6 +543,12 @@ outcmd(void){
 
 void
 panic(char *s)
+{
+	panic1(display, s);
+}
+
+void
+panic1(Display*, char *s)
 {
 	fprint(2, "samterm:panic: ");
 	perror(s);

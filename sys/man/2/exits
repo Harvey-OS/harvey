@@ -17,18 +17,6 @@ int	atexit(void(*)(void))
 .PP
 .B
 void	atexitdont(void(*)(void))
-.PP
-.B
-/* Alef only */
-.PP
-.B
-void	_exits(byte *msg)
-.PP
-.B
-void	exits(byte *msg)
-.PP
-.B
-void	terminate(byte *msg)
 .fi
 .SH DESCRIPTION
 .I Exits
@@ -86,50 +74,6 @@ returns 0 if that limit has been reached.
 .PP
 .I Atexitdont
 cancels a previous registration of an exit function.
-.SH Alef
-In Alef, the system call
-.I _exits
-is the same, but its use is discouraged because the run-time system
-needs to maintain consistency;
-.I terminate
-and
-.I exits
-are the recommended routines.
-.I Terminate
-is called automatically when a
-.B task
-or
-.B proc
-returns from its main function; it may also be called explicitly.
-In either case, it frees resources
-private to the task (which may be the implicit
-main task within the
-.BR proc )
-and terminates that task.  If that
-.B task
-is the last one in the
-.BR proc ,
-resources private to the
-.B proc
-are then freed.  If that
-.B proc
-is the last one in the program, it calls
-.IR exits .
-.I Exits
-should only be called in the last
-.B proc
-of a program; it calls any
-.I atexit
-functions (registered by any
-.BR proc )
-and then calls
-.IR _exits .
-.PP
-In Alef,
-.I atexit
-and
-.I atexitdont
-behave the same as in C.
 .SH SOURCE
 .B /sys/src/libc/port/atexit.c
 .SH "SEE ALSO"

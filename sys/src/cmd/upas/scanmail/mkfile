@@ -1,0 +1,20 @@
+</$objtype/mkfile
+
+TARG=scanmail\
+	testscan
+
+OFILES=
+
+HFILES=	../common/common.h\
+	../common/sys.h\
+	../libString/String.h\
+
+LIB=../common/libcommon.a$O\
+	../libString/libString.a$O\
+
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkmany
+CFLAGS=$CFLAGS -I../common
+
+scanmail.$O:	scanmail.c
+	$CC $CFLAGS -D'SPOOL="/mail"' scanmail.c

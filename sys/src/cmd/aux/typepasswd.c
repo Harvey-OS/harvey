@@ -18,7 +18,7 @@ main(int argc, char *argv[])
 		fprint(2, "usage: typepasswd\n");
 		exits("usage");
 	}
-	if(stat("#b/bitblt", statbuf) < 0){
+	if(stat("#i/draw", statbuf) < 0){
 		fprint(2, "typepasswd: must be run on a terminal\n");
 		exits("run typepasswd on a terminal");
 	}
@@ -95,11 +95,14 @@ readln(char *prompt, char *line, int len)
 void
 error(char *fmt, ...)
 {
+	va_list arg;
 	char buf[8192], *s;
 
 	s = buf;
 	s += sprint(s, "%s: ", argv0);
-	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, &fmt + 1);
+	va_start(arg, fmt);
+	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
+	va_end(arg);
 	*s++ = '\n';
 	write(2, buf, s - buf);
 	exits(buf);

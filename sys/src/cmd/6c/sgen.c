@@ -4,7 +4,7 @@ void
 codgen(Node *n, Node *nn)
 {
 	Prog *sp;
-	Node *n1, *n2, nod;
+	Node *n1, nod, nod1;
 
 	cursafe = 0;
 	curarg = 0;
@@ -13,31 +13,34 @@ codgen(Node *n, Node *nn)
 	/*
 	 * isolate name
 	 */
-	for(n2 = nn;; n2 = n2->left) {
-		if(n2 == Z) {
+	for(n1 = nn;; n1 = n1->left) {
+		if(n1 == Z) {
 			diag(nn, "cant find function name");
 			return;
 		}
-		if(n2->op == ONAME)
+		if(n1->op == ONAME)
 			break;
 	}
 	nearln = nn->lineno;
-	gpseudo(ATEXT, n2->sym, nodconst(stkoff));
+	gpseudo(ATEXT, n1->sym, nodconst(stkoff));
 
 	/*
 	 * isolate first argument
 	 */
 	if(REGARG) {
-		n1 = nn;
-		if(n1 != Z)
-			n1 = n1->right;
-		if(n1 != Z && n1->op == OLIST)
-			n1 = n1->left;
-		if(n1 != Z && n1->op == OPROTO)
-			n1 = n1->left;
-		if(n1 != Z && typelp[n1->type->etype]) {
-			nodreg(&nod, n1, REGARG);
-			gmove(&nod, n1);
+		if(typesu[thisfn->link->etype]) {
+			nod1 = *nodret->left;
+			nodreg(&nod, &nod1, REGARG);
+			gopcode(OAS, &nod, Z, &nod1);
+		} else
+		if(firstarg && typechlp[firstargtype->etype]) {
+			nod1 = *nodret->left;
+			nod1.sym = firstarg;
+			nod1.type = firstargtype;
+			nod1.xoffset = align(0, firstargtype, Aarg1);
+			nod1.etype = firstargtype->etype;
+			nodreg(&nod, &nod1, REGARG);
+			gopcode(OAS, &nod, Z, &nod1);
 		}
 	}
 
@@ -46,7 +49,7 @@ codgen(Node *n, Node *nn)
 	gen(n);
 	if(!retok)
 		if(thisfn->link->etype != TVOID)
-			warn(Z, "no return at end of function: %s", n2->sym->name);
+			warn(Z, "no return at end of function: %s", n1->sym->name);
 	noretval(3);
 	if(thisfn && thisfn->link && typefd[thisfn->link->etype])
 		diag(n, "no floating");
@@ -64,16 +67,18 @@ gen(Node *n)
 	Prog *sp, *spc, *spb;
 	Case *cn;
 	long sbc, scc;
+	int o;
 
 loop:
 	if(n == Z)
 		return;
+	o = n->op;
 	nearln = n->lineno;
 	if(debug['G'])
-		if(n->op != OLIST)
+		if(o != OLIST)
 			print("%L %O\n", nearln, n->op);
 	retok = 0;
-	switch(n->op) {
+	switch(o) {
 
 	default:
 		complex(n);
@@ -226,12 +231,12 @@ loop:
 		spb = p;
 
 		patch(spc, pc);
-		if(n->op == OWHILE)
+		if(o == OWHILE)
 			patch(sp, pc);
 		bcomplex(l);		/* test */
 		patch(p, breakpc);
 
-		if(n->op == ODWHILE)
+		if(o == ODWHILE)
 			patch(sp, pc);
 		gen(n->right);		/* body */
 		gbranch(OGOTO);
@@ -308,30 +313,30 @@ loop:
 		break;
 
 	case OSET:
-		break;
-
 	case OUSED:
-		n = n->left;
-		for(;;) {
-			if(n->op == OLIST) {
-				l = n->right;
-				n = n->left;
-				complex(l);
-				if(l->type != T && !typesu[l->type->etype]) {
-					regalloc(&nod, l, Z);
-					cgen(l, &nod);
-					regfree(&nod);
-				}
-			} else {
-				complex(n);
-				if(n->type != T && !typesu[n->type->etype]) {
-					regalloc(&nod, n, Z);
-					cgen(n, &nod);
-					regfree(&nod);
-				}
-				break;
-			}
-		}
+		usedset(n->left, o);
+		break;
+	}
+}
+
+void
+usedset(Node *n, int o)
+{
+	if(n->op == OLIST) {
+		usedset(n->left, o);
+		usedset(n->right, o);
+		return;
+	}
+	complex(n);
+	switch(n->op) {
+	case OADDR:	/* volatile */
+		gins(ANOP, n, Z);
+		break;
+	case ONAME:
+		if(o == OSET)
+			gins(ANOP, Z, n);
+		else
+			gins(ANOP, n, Z);
 		break;
 	}
 }

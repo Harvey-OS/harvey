@@ -151,3 +151,42 @@ draw(Biobufhdr *Bp) {
 		break;
 	}
 }
+
+#ifdef NOTYET
+void
+beginpath(Biobufhdr *Bp, int copy) {
+
+/*
+ * Called from devcntrl() whenever an "x X BeginPath" command is read. It's used
+ * to mark the start of a sequence of drawing commands that should be grouped
+ * together and treated as a single path. By default the drawing procedures in
+ * *drawfile treat each drawing command as a separate object, and usually start
+ * with a newpath (just as a precaution) and end with a stroke. The newpath and
+ * stroke isolate individual drawing commands and make it impossible to deal with
+ * composite objects. "x X BeginPath" can be used to mark the start of drawing
+ * commands that should be grouped together and treated as a single object, and
+ * part of what's done here ensures that the PostScript drawing commands defined
+ * in *drawfile skip the newpath and stroke, until after the next "x X DrawPath"
+ * command. At that point the path that's been built up can be manipulated in
+ * various ways (eg. filled and/or stroked with a different line width).
+ *
+ * Color selection is one of the options that's available in parsebuf(),
+ * so if we get here we add *colorfile to the output file before doing
+ * anything important.
+ *
+ */
+
+	if (inpath == FALSE) {
+		endstring();
+		getdraw();
+		getcolor();
+		Bprint(Bstdout, "gsave\n");
+		Bprint(Bstdout, "newpath\n");
+		Bprint(Bstdout, "%d %d m\n", hpos, vpos);
+		Bprint(Bstdout, "/inpath true def\n");
+		if ( copy == TRUE )
+			fprintf(tf, "%s", buf);
+		inpath = TRUE;
+	}
+}
+#endif

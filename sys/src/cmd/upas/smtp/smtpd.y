@@ -27,34 +27,32 @@ YYSTYPE anonymous(void);
 %%
 
 conversation	: cmd
-		| cmd conversation
+		| conversation cmd
 		;
 cmd		: error
-		| 'e' 'h' 'l' 'o' SPACE domain CRLF
-			{ syntaxerr(); }
-		| 'h' 'e' 'l' 'o' SPACE domain CRLF
+		| 'h' 'e' 'l' 'o' spaces sdomain CRLF
 			{ hello($6.s); }
-		| 'm' 'a' 'i' 'l' SPACE 'f' 'r' 'o' 'm' ':' spath CRLF
+		| 'm' 'a' 'i' 'l' spaces 'f' 'r' 'o' 'm' ':' spath CRLF
 			{ sender($11.s); }
-		| 'r' 'c' 'p' 't' SPACE 't' 'o' ':' spath CRLF
+		| 'r' 'c' 'p' 't' spaces 't' 'o' ':' spath CRLF
 			{ receiver($9.s); }
 		| 'd' 'a' 't' 'a' CRLF
 			{ data(); }
 		| 'r' 's' 'e' 't' CRLF
 			{ reset(); }
-		| 's' 'e' 'n' 'd' SPACE 'f' 'r' 'o' 'm' ':' spath CRLF
+		| 's' 'e' 'n' 'd' spaces 'f' 'r' 'o' 'm' ':' spath CRLF
 			{ sender($11.s); }
-		| 's' 'o' 'm' 'l' SPACE 'f' 'r' 'o' 'm'  ':' spath CRLF
+		| 's' 'o' 'm' 'l' spaces 'f' 'r' 'o' 'm'  ':' spath CRLF
 			{ sender($11.s); }
-		| 's' 'a' 'm' 'l' SPACE 'f' 'r' 'o' 'm' ':' spath CRLF
+		| 's' 'a' 'm' 'l' spaces 'f' 'r' 'o' 'm' ':' spath CRLF
 			{ sender($11.s); }
-		| 'v' 'r' 'f' 'y' SPACE string CRLF
+		| 'v' 'r' 'f' 'y' spaces string CRLF
 			{ verify($6.s); }
-		| 'e' 'x' 'p' 'n' SPACE string CRLF
+		| 'e' 'x' 'p' 'n' spaces string CRLF
 			{ verify($6.s); }
 		| 'h' 'e' 'l' 'p' CRLF
 			{ help(0); }
-		| 'h' 'e' 'l' 'p' SPACE string CRLF
+		| 'h' 'e' 'l' 'p' spaces string CRLF
 			{ help($6.s); }
 		| 'n' 'o' 'o' 'p' CRLF
 			{ noop(); }
@@ -62,55 +60,68 @@ cmd		: error
 			{ quit(); }
 		| 't' 'u' 'r' 'n' CRLF
 			{ turn(); }
+		| 'e' 'h' 'l' 'o' spaces strings CRLF
+			{ reply("502 ehlo not implemented\r\n"); }
+		| CRLF
+			{ reply("501 illegal command or bad syntax\r\n"); }
 		;
-path		: '<' '>'		={ $$ = anonymous(); }
-		| '<' mailbox '>'	={ $$ = $2; }
-		| '<' a-d-l ':' mailbox '>'	={ $$ = cat(&$2, bang, &$4, 0, 0 ,0, 0); }
+path		: '<' '>'			={ $$ = anonymous(); }
+		| '<' mailbox '>'		={ $$ = $2; }
+		| '<' a_d_l ':' mailbox '>'	={ $$ = cat(&$2, bang, &$4, 0, 0 ,0, 0); }
 		;
 spath		: path			={ $$ = $1; }
-		| SPACE path		={ $$ = $2; }
+		| spaces path		={ $$ = $2; }
 		;
-a-d-l		: at-domain		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
-		| at-domain ',' a-d-l	={ $$ = cat(&$1, bang, &$3, 0, 0, 0, 0); }
+a_d_l		: at_domain		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
+		| at_domain ',' a_d_l	={ $$ = cat(&$1, bang, &$3, 0, 0, 0, 0); }
 		;
-at-domain	: '@' domain		={ $$ = cat(&$2, 0, 0, 0, 0 ,0, 0); }
+at_domain	: '@' domain		={ $$ = cat(&$2, 0, 0, 0, 0 ,0, 0); }
+		;
+sdomain		: domain		={ $$ = $1; }
+		| domain spaces		={ $$ = $1; }
 		;
 domain		: element		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
+		| element '.'		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		| element '.' domain	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
 		;
 element		: name			={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		| '#' number		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
+		| '[' ']'		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
 		| '[' dotnum ']'	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
 		;
-mailbox		: local-part		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
-		| local-part '@' domain	={ $$ = cat(&$3, bang, &$1, 0, 0 ,0, 0); }
+mailbox		: local_part		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
+		| local_part '@' domain	={ $$ = cat(&$3, bang, &$1, 0, 0 ,0, 0); }
 		;
-local-part	: dot-string		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
-		| quoted-string		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
+local_part	: dot_string		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
+		| quoted_string		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		;
-name		: let-dig			={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
-		| let-dig ld-str		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
-		| let-dig ldh-str ld-str	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
+name		: let_dig			={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
+		| let_dig ld_str		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
+		| let_dig ldh_str ld_str	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
 		;
-ld-str		: let-dig
-		| let-dig ld-str	={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
+ld_str		: let_dig
+		| let_dig ld_str		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
 		;
-ldh-str		: '-'
-		| ld-str '-'		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
-		| ldh-str ld-str '-'	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
+ldh_str		: hunder
+		| ld_str hunder		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
+		| ldh_str ld_str hunder	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
 		;
-let-dig		: a
+let_dig		: a
 		| d
 		;
-dot-string	: string		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
-		| string '.' dot-string	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
+dot_string	: string			={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
+		| string '.' dot_string		={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
 		;
 
 string		: char
-		| string char		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
+		| string char	={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
 		;
 
-quoted-string	: '"' qtext '"'		={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
+strings		: string
+		| strings spaces string
+		;
+
+quoted_string	: '"' qtext '"'	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
 		;
 qtext		: '\\' x		={ $$ = cat(&$2, 0, 0, 0, 0 ,0, 0); }
 		| qtext '\\' x		={ $$ = cat(&$1, &$3, 0, 0, 0 ,0, 0); }
@@ -122,10 +133,15 @@ char		: c
 		;
 dotnum		: snum '.' snum '.' snum '.' snum ={ $$ = cat(&$1, &$2, &$3, &$4, &$5, &$6, &$7); }
 		;
-number		: d			={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
-		| number d		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
+number		: d		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
+		| number d	={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
 		;
 snum		: number		={ if(atoi(s_to_c($1.s)) > 255) print("bad snum\n"); } 
+		;
+spaces		: SPACE		={ $$ = $1; }
+		| SPACE	spaces	={ $$ = $1; }
+		;
+hunder		: '-' | '_'
 		;
 special1	: CNTRL
 		| '(' | ')' | ',' | '.'
@@ -133,10 +149,10 @@ special1	: CNTRL
 		;
 special		: special1 | '\\' | '"'
 		;
-notspecial	: '!' | '#' | '$' | '%' | ' &' | '\''
+notspecial	: '!' | '#' | '$' | '%' | '&' | '\''
 		| '*' | '+' | '-' | '/'
 		| '=' | '?'
-		| '[' | ']' | '^' | '_' | '`' | '{' | '} ' | '~'
+		| '[' | ']' | '^' | '_' | '`' | '{' | '|' | '}' | '~'
 		;
 
 a		: 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i'
@@ -274,7 +290,7 @@ cat(YYSTYPE *y1, YYSTYPE *y2, YYSTYPE *y3, YYSTYPE *y4, YYSTYPE *y5, YYSTYPE *y6
 void
 yyerror(char *x)
 {
-	print("501 %s\r\n", x);
+	USED(x);
 }
 
 /*
@@ -285,6 +301,6 @@ anonymous(void)
 {
 	YYSTYPE rv;
 
-	rv.s = s_copy("pOsTmAsTeR");
+	rv.s = s_copy("/dev/null");
 	return rv;
 }

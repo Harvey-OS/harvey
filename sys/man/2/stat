@@ -99,19 +99,15 @@ and
 .B DIRLEN
 are defined in
 .BR <libc.h> .
-The
+For historical reasons,
+the
 .B Length
-structure is defined in
-.BR </$objtype/u.h> .
-.B Length
-is an unnamed structure (see
-.IR 2c (1)),
-which means that its fields are directly
-accessible; if the length is known to fit in a
-.BR long ,
-then use
-.B length
-as a field name to retrieve it.
+structure, defined in
+.BR </$objtype/u.h> ,
+is a structure with a single
+.B vlong
+element,
+.BR length .
 If the file resides on permanent storage and is not a directory,
 the length returned by
 .I stat

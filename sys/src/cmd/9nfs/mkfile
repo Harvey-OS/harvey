@@ -1,0 +1,36 @@
+</$objtype/mkfile
+CFLAGS=-Fw
+
+TARG=nfsserver\
+	portmapper\
+	pcnfsd\
+
+HFILES=rpc.h\
+	nfs.h\
+	dat.h\
+	fns.h\
+
+LIB=lib/lib.a$O
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkmany
+
+$O.nfsserver:	nfsfile.$O
+$O.portmapper:	portmap.$O
+$O.pcnfsd: 	nfsserver.$O
+portmapper.$O:	main.c
+nfsserver.$O:		main.c
+
+nametest: $O.nametest
+	cp $O.nametest $target
+
+mport: $O.mport
+	cp $O.mport $target
+
+$LIB:
+	cd lib
+	mk install
+
+clean nuke:V:
+	@{ cd lib; mk $target }
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].* $TARG mport nametest pcnfsd

@@ -17,7 +17,7 @@ access(char *name, int mode)
 		ORDWR
 	};
 
-	if(mode == 0){
+	if(mode == AEXIST){
 		if(stat(name, db) >= 0)
 			return 0;
 		return -1;

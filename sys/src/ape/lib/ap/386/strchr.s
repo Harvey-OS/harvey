@@ -1,29 +1,38 @@
-	TEXT	strchr(SB),$0
+	TEXT	strchr(SB), $0
+
+	MOVL	s+0(FP), DI
+	MOVB	c+4(FP), AX
+	CMPB	AX, $0
+	JEQ	l2	/**/
+
 /*
- * look for null
+ * char is not null
  */
-	MOVL	p+0(FP), DI
+l1:
+	MOVB	(DI), BX
+	CMPB	BX, $0
+	JEQ	ret0
+	ADDL	$1, DI
+	CMPB	AX, BX
+	JNE	l1
+
+	MOVL	DI, AX
+	SUBL	$1, AX
+	RET
+
+/*
+ * char is null
+ */
+l2:
 	MOVL	$-1, CX
-	MOVL	$0, AX
 	CLD
 
 	REPN;	SCASB
 
-/*
- * look for real char
- */
-	MOVL	DI, CX
-	MOVL	p+0(FP), DI
-	SUBL	DI, CX
-	MOVBLZX	c+4(FP), AX
-
-	REPN;	SCASB
-
-	JEQ	found
-	MOVL	$0, AX
-	RET
-
-found:
 	MOVL	DI, AX
 	SUBL	$1, AX
+	RET
+
+ret0:
+	MOVL	$0, AX
 	RET

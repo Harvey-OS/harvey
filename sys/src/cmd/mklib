@@ -1,4 +1,3 @@
-CFLAGS=-w
 AFLAGS=
 YFLAGS=-d
 
@@ -10,7 +9,7 @@ default:V:	$LIB
 all:V:	$LIB
 
 $LIB:	$LIBOBJ
-	ar vu $LIB $OFILES
+	ar vu $LIB $newmember
 
 %.$O:	$HFILES		# don't combine with following %.$O rules
 
@@ -19,12 +18,6 @@ $LIB:	$LIBOBJ
 
 %.$O:	%.s
 	$AS $AFLAGS $stem.s
-
-(.*)\.[vk8]'$':R:	\1.l
-	$ALEF $CFLAGS $stem1.l
-
-(.*)\.[2z]'$':RQ:	\1.l
-	;
 
 y.tab.h y.tab.c:	$YFILES
 	yacc $YFLAGS $prereq

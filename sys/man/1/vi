@@ -1,6 +1,6 @@
 .TH VI 1
 .SH NAME
-vi, ki, xi \- instruction simulators
+0i, 5i, 9i, ki, vi, xi \- instruction simulators
 .SH SYNOPSIS
 .B vi
 [
@@ -8,6 +8,30 @@ vi, ki, xi \- instruction simulators
 ]
 .br
 .B vi
+.I pid
+.br
+.B 0i
+[
+.I textfile
+]
+.br
+.B 0i
+.I pid
+.br
+.B 5i
+[
+.I textfile
+]
+.br
+.B 5i
+.I pid
+.br
+.B 9i
+[
+.I textfile
+]
+.br
+.B 9i
 .I pid
 .br
 .B ki
@@ -37,12 +61,15 @@ execute about two hundred times
 slower than normal\(embut faster than
 single stepping under
 .IR db .
-.I Ki
+.IR 0i ,
+.IR 5i ,
+.IR 9i ,
+.IR ki,
 and
 .I xi
 are similar to
 .I vi
-but interpret SPARC and ATT3210 binaries.
+but interpret little-endian MIPS, ARM 7500, AMD2900, SPARC, and ATT3210 binaries.
 The following discussion refers to
 .I vi
 but applies to the others

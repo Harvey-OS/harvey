@@ -3,4 +3,4 @@ if(~ $#* 0){
 	echo usage: Acid pid >[2=1]
 	exit usage
 }
-win /acme/acid/$cputype/Acid acid -l acme $*
+win acid -l acme $*

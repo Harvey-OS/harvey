@@ -1,0 +1,26 @@
+</$objtype/mkfile
+
+TARG=	fs\
+	biff\
+
+LIB=../common/libcommon.a$O\
+	../libString/libString.a$O\
+
+HFILES= ../common/common.h\
+	dat.h
+
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkmany
+CFLAGS=$CFLAGS -I../common
+
+$O.fs:	mbox.$O fs.$O
+
+safeinstallall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS safeinstall
+
+safeinstall:V:
+	mv $BIN/fs $BIN/_fs
+	mk install
+
+

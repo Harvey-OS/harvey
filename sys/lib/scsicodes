@@ -1,0 +1,487 @@
+# hget http://www.t10.org/lists/asc-num.htm |
+#   grep '^[0-9]' |tr -d '' |tr A-Z a-z |
+#   sed 's/(..)\/(..)  ..............  (.*)/\1\2 \3/' > scsicodes
+# (and then put this header back)
+0000 no additional sense information
+0001 filemark detected
+0002 end-of-partition/medium detected
+0003 setmark detected
+0004 beginning-of-partition/medium detected
+0005 end-of-data detected
+0006 i/o process terminated
+0011 audio play operation in progress
+0012 audio play operation paused
+0013 audio play operation successfully completed
+0014 audio play operation stopped due to error
+0015 no current audio status to return
+0016 operation in progress
+0017 cleaning requested
+0100 no index/sector signal
+0200 no seek complete
+0300 peripheral device write fault
+0301 no write current
+0302 excessive write errors
+0400 logical unit not ready, cause not reportable
+0401 logical unit is in process of becoming ready
+0402 logical unit not ready, initializing cmd. required
+0403 logical unit not ready, manual intervention required
+0404 logical unit not ready, format in progress
+0405 logical unit not ready, rebuild in progress
+0406 logical unit not ready, recalculation in progress
+0407 logical unit not ready, operation in progress
+0408 logical unit not ready, long write in progress
+0409 logical unit not ready, self-test in progress
+0410 auxiliary memory code 2 (99-148) [proposed]
+0500 logical unit does not respond to selection
+0600 no reference position found
+0700 multiple peripheral devices selected
+0800 logical unit communication failure
+0801 logical unit communication time-out
+0802 logical unit communication parity error
+0803 logical unit communication crc error (ultra-dma/32)
+0804 unreachable copy target
+0900 track following error
+0901 tracking servo failure
+0902 focus servo failure
+0903 spindle servo failure
+0904 head select fault
+0a00 error log overflow
+0b00 warning
+0b01 warning - specified temperature exceeded
+0b02 warning - enclosure degraded
+0c00 write error
+0c01 write error - recovered with auto reallocation
+0c02 write error - auto reallocation failed
+0c03 write error - recommend reassignment
+0c04 compression check miscompare error
+0c05 data expansion occurred during compression
+0c06 block not compressible
+0c07 write error - recovery needed
+0c08 write error - recovery failed
+0c09 write error - loss of streaming
+0c0a write error - padding blocks added
+0c0b auxiliary memory code 4 (99-148) [proposed]
+0d/00
+0e/00
+0f/00
+1000 id crc or ecc error
+1100 unrecovered read error
+1101 read retries exhausted
+1102 error too long to correct
+1103 multiple read errors
+1104 unrecovered read error - auto reallocate failed
+1105 l-ec uncorrectable error
+1106 circ unrecovered error
+1107 data re-synchronization error
+1108 incomplete block read
+1109 no gap found
+110a miscorrected error
+110b unrecovered read error - recommend reassignment
+110c unrecovered read error - recommend rewrite the data
+110d de-compression crc error
+110e cannot decompress using declared algorithm
+110f error reading upc/ean number
+1110 error reading isrc number
+1111 read error - loss of streaming
+1112 auxiliary memory code 3 (99-148) [proposed]
+1200 address mark not found for id field
+1300 address mark not found for data field
+1400 recorded entity not found
+1401 record not found
+1402 filemark or setmark not found
+1403 end-of-data not found
+1404 block sequence error
+1405 record not found - recommend reassignment
+1406 record not found - data auto-reallocated
+1500 random positioning error
+1501 mechanical positioning error
+1502 positioning error detected by read of medium
+1600 data synchronization mark error
+1601 data sync error - data rewritten
+1602 data sync error - recommend rewrite
+1603 data sync error - data auto-reallocated
+1604 data sync error - recommend reassignment
+1700 recovered data with no error correction applied
+1701 recovered data with retries
+1702 recovered data with positive head offset
+1703 recovered data with negative head offset
+1704 recovered data with retries and/or circ applied
+1705 recovered data using previous sector id
+1706 recovered data without ecc - data auto-reallocated
+1707 recovered data without ecc - recommend reassignment
+1708 recovered data without ecc - recommend rewrite
+1709 recovered data without ecc - data rewritten
+1800 recovered data with error correction applied
+1801 recovered data with error corr. & retries applied
+1802 recovered data - data auto-reallocated
+1803 recovered data with circ
+1804 recovered data with l-ec
+1805 recovered data - recommend reassignment
+1806 recovered data - recommend rewrite
+1807 recovered data with ecc - data rewritten
+1900 defect list error
+1901 defect list not available
+1902 defect list error in primary list
+1903 defect list error in grown list
+1a00 parameter list length error
+1b00 synchronous data transfer error
+1c00 defect list not found
+1c01 primary defect list not found
+1c02 grown defect list not found
+1d00 miscompare during verify operation
+1e00 recovered id with ecc correction
+1f00 partial defect list transfer
+2000 invalid command operation code
+2001 access controls code 1 (99-314) [proposed]
+2002 access controls code 2 (99-314) [proposed]
+2003 access controls code 3 (99-314) [proposed]
+2100 logical block address out of range
+2101 invalid element address
+2200 illegal function (use 20 00, 24 00, or 26 00)
+23/00
+2400 invalid field in cdb
+2401 cdb decryption error
+2500 logical unit not supported
+2600 invalid field in parameter list
+2601 parameter not supported
+2602 parameter value invalid
+2603 threshold parameters not supported
+2604 invalid release of persistent reservation
+2605 data decryption error
+2606 too many target descriptors
+2607 unsupported target descriptor type code
+2608 too many segment descriptors
+2609 unsupported segment descriptor type code
+260a unexpected inexact segment
+260b inline data length exceeded
+260c invalid operation for copy source or destination
+260d copy segment granularity violation
+2700 write protected
+2701 hardware write protected
+2702 logical unit software write protected
+2703 associated write protect
+2704 persistent write protect
+2705 permanent write protect
+2800 not ready to ready change, medium may have changed
+2801 import or export element accessed
+2900 power on, reset, or bus device reset occurred
+2901 power on occurred
+2902 scsi bus reset occurred
+2903 bus device reset function occurred
+2904 device internal reset
+2905 transceiver mode changed to single-ended
+2906 transceiver mode changed to lvd
+2a00 parameters changed
+2a01 mode parameters changed
+2a02 log parameters changed
+2a03 reservations preempted
+2a04 reservations released
+2a05 registrations preempted
+2b00 copy cannot execute since host cannot disconnect
+2c00 command sequence error
+2c01 too many windows specified
+2c02 invalid combination of windows specified
+2c03 current program area is not empty
+2c04 current program area is empty
+2c05 illegal power condition request
+2d00 overwrite error on update in place
+2e00 error detected by third party temporary initiator
+2e01 third party device failure
+2e02 copy target device not reachable
+2e03 incorrect copy target device type
+2e04 copy target device data underrun
+2e05 copy target device data overrun
+2f00 commands cleared by another initiator
+3000 incompatible medium installed
+3001 cannot read medium - unknown format
+3002 cannot read medium - incompatible format
+3003 cleaning cartridge installed
+3004 cannot write medium - unknown format
+3005 cannot write medium - incompatible format
+3006 cannot format medium - incompatible medium
+3007 cleaning failure
+3008 cannot write - application code mismatch
+3009 current session not fixated for append
+3100 medium format corrupted
+3101 format command failed
+3200 no defect spare location available
+3201 defect list update failure
+3300 tape length error
+3400 enclosure failure
+3500 enclosure services failure
+3501 unsupported enclosure function
+3502 enclosure services unavailable
+3503 enclosure services transfer failure
+3504 enclosure services transfer refused
+3600 ribbon, ink, or toner failure
+3700 rounded parameter
+3800 event status notification
+3802 esn - power management class event
+3804 esn - media class event
+3806 esn - device busy class event
+3900 saving parameters not supported
+3a00 medium not present
+3a01 medium not present - tray closed
+3a02 medium not present - tray open
+3a03 medium not present - loadable
+3a04 medium not present - medium auxiliary memory accessible
+3b00 sequential positioning error
+3b01 tape position error at beginning-of-medium
+3b02 tape position error at end-of-medium
+3b03 tape or electronic vertical forms unit not ready
+3b04 slew failure
+3b05 paper jam
+3b06 failed to sense top-of-form
+3b07 failed to sense bottom-of-form
+3b08 reposition error
+3b09 read past end of medium
+3b0a read past beginning of medium
+3b0b position past end of medium
+3b0c position past beginning of medium
+3b0d medium destination element full
+3b0e medium source element empty
+3b0f end of medium reached
+3b11 medium magazine not accessible
+3b12 medium magazine removed
+3b13 medium magazine inserted
+3b14 medium magazine locked
+3b15 medium magazine unlocked
+3b16 mechanical positioning or changer error
+3c/00
+3d00 invalid bits in identify message
+3e00 logical unit has not self-configured yet
+3e01 logical unit failure
+3e02 timeout on logical unit
+3e03 logical unit failed self-test
+3e04 logical unit unable to update self-test log
+3f00 target operating conditions have changed
+3f01 microcode has been changed
+3f02 changed operating definition
+3f03 inquiry data has changed
+3f04 component device attached
+3f05 device identifier changed
+3f06 redundancy group created or modified
+3f07 redundancy group deleted
+3f08 spare created or modified
+3f09 spare deleted
+3f0a volume set created or modified
+3f0b volume set deleted
+3f0c volume set deassigned
+3f0d volume set reassigned
+3f0e reported luns data has changed
+3f0f echo buffer overwritten
+3f10 medium loadable
+3f11 medium auxiliary memory accessible
+4000 ram failure (should use 40 nn)
+40nn diagnostic failure on component nn (80h-ffh)
+4100 data path failure (should use 40 nn)
+4200 power-on or self-test failure (should use 40 nn)
+4300 message error
+4400 internal target failure
+4500 select or reselect failure
+4600 unsuccessful soft reset
+4700 scsi parity error
+4701 data phase crc error detected
+4702 scsi parity error detected during st data phase
+4703 information unit crc error detected
+4704 asynchronous information protection error detected
+4800 initiator detected error message received
+4900 invalid message error
+4a00 command phase error
+4b00 data phase error
+4c00 logical unit failed self-configuration
+4dnn tagged overlapped commands (nn = queue tag)
+4e00 overlapped commands attempted
+4f/00
+5000 write append error
+5001 write append position error
+5002 position error related to timing
+5100 erase failure
+5200 cartridge fault
+5300 media load or eject failed
+5301 unload tape failure
+5302 medium removal prevented
+5400 scsi to host system interface failure
+5500 system resource failure
+5501 system buffer full
+5502 insufficient reservation resources
+5503 insufficient resources
+5504 insufficient registration resources
+5505 access controls code 4 (99-314) [proposed]
+5506 auxiliary memory code 1 (99-148) [proposed]
+56/00
+5700 unable to recover table-of-contents
+5800 generation does not exist
+5900 updated block read
+5a00 operator request or state change input
+5a01 operator medium removal request
+5a02 operator selected write protect
+5a03 operator selected write permit
+5b00 log exception
+5b01 threshold condition met
+5b02 log counter at maximum
+5b03 log list codes exhausted
+5c00 rpl status change
+5c01 spindles synchronized
+5c02 spindles not synchronized
+5d00 failure prediction threshold exceeded
+5d01 media failure prediction threshold exceeded
+5d02 logical unit failure prediction threshold exceeded
+5d10 hardware impending failure general hard drive failure
+5d11 hardware impending failure drive error rate too high
+5d12 hardware impending failure data error rate too high
+5d13 hardware impending failure seek error rate too high
+5d14 hardware impending failure too many block reassigns
+5d15 hardware impending failure access times too high
+5d16 hardware impending failure start unit times too high
+5d17 hardware impending failure channel parametrics
+5d18 hardware impending failure controller detected
+5d19 hardware impending failure throughput performance
+5d1a hardware impending failure seek time performance
+5d1b hardware impending failure spin-up retry count
+5d1c hardware impending failure drive calibration retry count
+5d20 controller impending failure general hard drive failure
+5d21 controller impending failure drive error rate too high
+5d22 controller impending failure data error rate too high
+5d23 controller impending failure seek error rate too high
+5d24 controller impending failure too many block reassigns
+5d25 controller impending failure access times too high
+5d26 controller impending failure start unit times too high
+5d27 controller impending failure channel parametrics
+5d28 controller impending failure controller detected
+5d29 controller impending failure throughput performance
+5d2a controller impending failure seek time performance
+5d2b controller impending failure spin-up retry count
+5d2c controller impending failure drive calibration retry count
+5d30 data channel impending failure general hard drive failure
+5d31 data channel impending failure drive error rate too high
+5d32 data channel impending failure data error rate too high
+5d33 data channel impending failure seek error rate too high
+5d34 data channel impending failure too many block reassigns
+5d35 data channel impending failure access times too high
+5d36 data channel impending failure start unit times too high
+5d37 data channel impending failure channel parametrics
+5d38 data channel impending failure controller detected
+5d39 data channel impending failure throughput performance
+5d3a data channel impending failure seek time performance
+5d3b data channel impending failure spin-up retry count
+5d3c data channel impending failure drive calibration retry count
+5d40 servo impending failure general hard drive failure
+5d41 servo impending failure drive error rate too high
+5d42 servo impending failure data error rate too high
+5d43 servo impending failure seek error rate too high
+5d44 servo impending failure too many block reassigns
+5d45 servo impending failure access times too high
+5d46 servo impending failure start unit times too high
+5d47 servo impending failure channel parametrics
+5d48 servo impending failure controller detected
+5d49 servo impending failure throughput performance
+5d4a servo impending failure seek time performance
+5d4b servo impending failure spin-up retry count
+5d4c servo impending failure drive calibration retry count
+5d50 spindle impending failure general hard drive failure
+5d51 spindle impending failure drive error rate too high
+5d52 spindle impending failure data error rate too high
+5d53 spindle impending failure seek error rate too high
+5d54 spindle impending failure too many block reassigns
+5d55 spindle impending failure access times too high
+5d56 spindle impending failure start unit times too high
+5d57 spindle impending failure channel parametrics
+5d58 spindle impending failure controller detected
+5d59 spindle impending failure throughput performance
+5d5a spindle impending failure seek time performance
+5d5b spindle impending failure spin-up retry count
+5d5c spindle impending failure drive calibration retry count
+5d60 firmware impending failure general hard drive failure
+5d61 firmware impending failure drive error rate too high
+5d62 firmware impending failure data error rate too high
+5d63 firmware impending failure seek error rate too high
+5d64 firmware impending failure too many block reassigns
+5d65 firmware impending failure access times too high
+5d66 firmware impending failure start unit times too high
+5d67 firmware impending failure channel parametrics
+5d68 firmware impending failure controller detected
+5d69 firmware impending failure throughput performance
+5d6a firmware impending failure seek time performance
+5d6b firmware impending failure spin-up retry count
+5d6c firmware impending failure drive calibration retry count
+5dff failure prediction threshold exceeded (false)
+5e00 low power condition on
+5e01 idle condition activated by timer
+5e02 standby condition activated by timer
+5e03 idle condition activated by command
+5e04 standby condition activated by command
+5e41 power state change to active
+5e42 power state change to idle
+5e43 power state change to standby
+5e45 power state change to sleep
+5e47 power state change to device control
+5f/00
+6000 lamp failure
+6100 video acquisition error
+6101 unable to acquire video
+6102 out of focus
+6200 scan head positioning error
+6300 end of user area encountered on this track
+6301 packet does not fit in available space
+6400 illegal mode for this track
+6401 invalid packet size
+6500 voltage fault
+6600 automatic document feeder cover up
+6601 automatic document feeder lift up
+6602 document jam in automatic document feeder
+6603 document miss feed automatic in document feeder
+6700 configuration failure
+6701 configuration of incapable logical units failed
+6702 add logical unit failed
+6703 modification of logical unit failed
+6704 exchange of logical unit failed
+6705 remove of logical unit failed
+6706 attachment of logical unit failed
+6707 creation of logical unit failed
+6708 assign failure occurred
+6709 multiply assigned logical unit
+6800 logical unit not configured
+6900 data loss on logical unit
+6901 multiple logical unit failures
+6902 parity/data mismatch
+6a00 informational, refer to log
+6b00 state change has occurred
+6b01 redundancy level got better
+6b02 redundancy level got worse
+6c00 rebuild failure occurred
+6d00 recalculate failure occurred
+6e00 command to logical unit failed
+6f00 copy protection key exchange failure - authentication failure
+6f01 copy protection key exchange failure - key not present
+6f02 copy protection key exchange failure - key not established
+6f03 read of scrambled sector without authentication
+6f04 media region code is mismatched to logical unit region
+6f05 drive region must be permanent/region reset count error
+70nn decompression exception short algorithm id of nn
+7100 decompression exception long algorithm id
+7200 session fixation error
+7201 session fixation error writing lead-in
+7202 session fixation error writing lead-out
+7203 session fixation error - incomplete track in session
+7204 empty or partially written reserved track
+7205 no more track reservations allowed
+7300 cd control error
+7301 power calibration area almost full
+7302 power calibration area is full
+7303 power calibration area error
+7304 program memory area update failure
+7305 program memory area is full
+7306 rma/pma is full
+74/00
+75/00
+76/00
+77/00
+78/00
+79/00
+7a/00
+7b/00
+7c/00
+7d/00
+7e/00
+7f/00

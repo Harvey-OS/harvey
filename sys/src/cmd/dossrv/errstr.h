@@ -7,4 +7,5 @@ char *errmsg[] = {
 	[Eperm]		"permission denied",
 	[Enofilsys]	"no file system device specified",
 	[Eauth]		"authentication failed",
+	[Econtig]	"out of contiguous disk space",
 };

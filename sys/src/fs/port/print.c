@@ -223,7 +223,7 @@ numbconv(Op *op, int base)
 		if(v <= 0)
 			break;
 	}
-sout:
+
 	if(f)
 		b[--i] = '-';
 	strconv(b+i, op, op->f1, -1);
@@ -257,18 +257,16 @@ dconv(Op *op)
 }
 
 static	int
-hconv(Op *op)
+hconv(Op*)
 {
 
-	USED(op);
 	return -FSHORT;
 }
 
 static	int
-lconv(Op *op)
+lconv(Op*)
 {
 
-	USED(op);
 	return -FLONG;
 }
 
@@ -288,10 +286,9 @@ sconv(Op *op)
 }
 
 static	int
-uconv(Op *op)
+uconv(Op*)
 {
 
-	USED(op);
 	return -FUNSIGN;
 }
 

@@ -48,22 +48,9 @@ a binary which is compiled into
 The command line passed depends
 on the information passed from boot ROM
 to kernel.
-On the MIPS Magnum and SGI Power Series
-the command line passed to
-.I boot
-is the same as that given to the ROM monitor.
-.PP
-On AT&T Gnots the command line is
-.IP
-.B /68020/9gnot
-.IB method ! server
-.PP
-On the Nextstation , no information is passed from
-the boot ROM or program.  The command line is
-.IP
-.EX
-.B /68020/9nextstation
-.EE
+Machines that boot directly from ROM (that is, most machines other than PCs)
+pass the boot line given to the ROM directly to
+.IR boot .
 .PP
 On the PC, each line in the DOS file
 .B plan9.ini
@@ -73,13 +60,24 @@ is passed to the boot program as an environment
 variable with the same name and value.
 The command line is
 .IP
-.B /386/9pc
+.B /386/9dos
 .IB method ! server
 .PP
+(The first argument is ignored by
+.IR boot .)
 .I Boot
-must determine the file server to use
-and a method with which to connect to it.
-It must also set a user name to be used
+must determine the file
+.I server
+to use
+and a
+.I method
+with which to connect to it.
+Typically this will name a file server on the network,
+or state that the root file system is on local disk and name the partition.
+The complete list of methods is given below.
+.PP
+.I Boot
+must also set a user name to be used
 as the owner of devices and all console
 processes and an encryption key to be used
 when challenged.
@@ -87,10 +85,10 @@ when challenged.
 will prompt for these.
 .PP
 Method and address are prompted for first.
-The prompt lists all valid methods, with the default in brackets.
+The prompt lists all valid methods, with the default in brackets, for example:
 .IP
 .EX
-root is from (il, tcp, hs, local)[il]:
+root is from (il, local!#S/sdC0/fs)[il]:
 .EE
 .PP
 A newline picks the default.
@@ -149,12 +147,10 @@ Connect to file system now, type ctrl-d when done.
 (Use the view or down arrow key to send a break)
 .EE
 .PP
-The user can now type at a modem or a Datakit
-.B "destination please:"
-interface to set up the connection to a TSM8 card.
-At Murray Hill, a user would type
-.B nj/astro/plan85
-at this point.
+The user can now type at the modem to
+dial the number.  What is typed depends on
+the modem and is beyond this discussion.
+.PP
 When the user types a control-D,
 .I boot
 stops simulating a terminal and starts the file
@@ -184,7 +180,10 @@ option is given it is also passed as an option to
 If the kernel has been built with the cache file system,
 .IR cfs (4),
 the local disk partition
-.B /dev/[sh]d[01]cache
+.BI /dev/sd XX /cache
+(where
+.B XX
+is a unit specifier)
 exists, and the root file system is from a remote server,
 then the kernel will insert a user level cache
 process between the remote server and the local namespace
@@ -200,7 +199,7 @@ The user owning devices and console processes on CPU servers
 and that user's domain and encryption key are
 read from NVRAM on all machines except PC's.
 PC's keep the information in the disk partition
-.BR /dev/[sh]d[01]nvram .
+.BI /dev/sd XX /nvram\f1.
 If a
 .B -k
 option is given or if no stored information is found
@@ -210,7 +209,7 @@ will prompt for all three items and store them.
 .EX
 password: 
 authid: bootes
-authdom: research.att.com
+authdom: research.bell-labs.com
 .EE
 .PP
 The key is used for mutual authentication of the server and its clients.
@@ -220,17 +219,13 @@ Once connected,
 .I boot
 behaves as on the terminal except for
 .IR exec (2)'ing
-.B /$objtype/init -c\f1.
+.B /$objtype/init
+.BR -c .
 .SS Booting Methods
 .PP
 The methods available to any system depend on what was
 compiled into the kernel.
 The complete list of booting methods are listed below.
-.TP 8
-.B cyc
-connect via a point-to-point fiber link using Cyclone boards.
-If specified, the address must be the number
-of the Cyclone board to be used, default 0.
 .TP 8
 .B il
 connect via Ethernet using the IL protocol.
@@ -239,21 +234,6 @@ connect via Ethernet using the IL protocol.
 connect via Ethernet using the TCP protocol.
 This method is used only if the initial file server
 is on a Unix system.
-.TP 8
-.B hs
-connect via Datakit using the high speed Datakit
-card.
-.TP 8
-.B incon
-connect via Datakit using the Incon interface.
-.TP 8
-.B 9600
-connect via Datakit using the serial interface
-at 9600 baud.
-.TP 8
-.B 19200
-connect via Datakit using the serial interface
-at 19200 baud.
 .TP 8
 .B local
 connect to the local file system.
@@ -268,22 +248,11 @@ If no address is specified,
 a file server address will be found from another
 system on the network using the BOOTP protocol and
 the Plan 9 vendor-specific fields.
-For the Datakit methods,
-.BR hs ,
-.BR 9600 ,
-.BR 19200 ,
-and
-.BR incon ,
-the address must be specified and must
-be a relative path name to the file server.
-If no address is specified, the address
-.B Nfs
-is used.
 .SH FILES
 .B #s/boot
 .SH SOURCE
 .B /sys/src/9/boot
 .SH "SEE ALSO"
 .IR root (3),
-.IR bootp (8),
+.IR dhcpd (8),
 .IR init (8)

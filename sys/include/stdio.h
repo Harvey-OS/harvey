@@ -50,9 +50,11 @@ typedef long fpos_t;
 #define	FOPEN_MAX	100		/* max files open */
 #define	FILENAME_MAX	BUFSIZ		/* silly filename length */
 #define	L_tmpnam	20		/* sizeof "/tmp/abcdefghij9999 */
+#ifndef SEEK_SET			/* also defined in unistd.h */
 #define	SEEK_CUR	1
 #define	SEEK_END	2
 #define	SEEK_SET	0
+#endif
 #define	TMP_MAX		64		/* very hard to set correctly */
 #define	stderr	(&_IO_stream[2])
 #define	stdin	(&_IO_stream[0])

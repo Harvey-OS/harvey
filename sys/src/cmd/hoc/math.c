@@ -59,6 +59,8 @@ Pow(double x, double y)
 double
 integer(double x)
 {
+	if(x<-2147483648.0 || x>2147483647.0)
+		execerror("argument out of domain", 0);
 	return (double)(long)x;
 }
 

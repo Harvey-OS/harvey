@@ -6,7 +6,6 @@
 
 #define MIN(a, b)	((a) < (b) ? (a): (b))
 
-int bus;
 Biobuf bin, bout;
 static char rwbuf[MaxIOsize];
 static int verbose = 1;
@@ -60,7 +59,7 @@ cmdrblimits(ScsiReq *rp, int argc, char *argv[])
 	USED(argc, argv);
 	if((n = SRrblimits(rp, l)) == -1)
 		return -1;
-	Bprint(&bout, " %2.2ux %2.2ux %2.2ux %2.2ux %2.2ux %2.2ux\n",
+	Bprint(&bout, " %2.2uX %2.2uX %2.2uX %2.2uX %2.2uX %2.2uX\n",
 		l[0], l[1], l[2], l[3], l[4], l[5]);
 	return n;
 }
@@ -84,6 +83,7 @@ mkfile(char *file, int omode, int *pid)
 		return -1;
 	if((*pid = fork()) == -1){
 		close(fd[0]);
+		close(fd[1]);
 		return -1;
 	}
 	if(*pid == 0){
@@ -146,7 +146,7 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 		}
 		break;
 	}
-	print("bsize=%d\n", rp->lbsize);
+	print("bsize=%lud\n", rp->lbsize);
 	total = 0;
 	while(nbytes){
 		n = MIN(nbytes, iosize);
@@ -158,7 +158,7 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 		if(write(fd, rwbuf, n) != n){
 			if(total == 0)
 				total = -1;
-			if(rp->status == Status_OK)
+			if(rp->status == STok)
 				rp->status = Status_SW;
 			break;
 		}
@@ -212,7 +212,7 @@ cmdwrite(ScsiReq *rp, int argc, char *argv[])
 		if(SRwrite(rp, rwbuf, n) != n){
 			if(total == 0)
 				total = -1;
-			if(rp->status == Status_OK)
+			if(rp->status == STok)
 				rp->status = Status_SW;
 			break;
 		}
@@ -306,8 +306,7 @@ cmdspace(ScsiReq *rp, int argc, char *argv[])
 		if(option == '-')
 			break;
 	}
-	if(argc || ((howmany = strtol(argv[0], &p, 0)) == 0 && p == argv[0])){
-		USED(howmany);
+	if(argc && ((howmany = strtol(argv[0], &p, 0)) == 0 && p == argv[0])){
 		rp->status = Status_BADARG;
 		return -1;
 	}
@@ -325,20 +324,20 @@ cmdinquiry(ScsiReq *rp, int argc, char *argv[])
 	if((status = SRinquiry(rp)) != -1){
 		n = rp->inquiry[4]+4;
 		for(i = 0; i < MIN(8, n); i++)
-			Bprint(&bout, " %2.2ux", rp->inquiry[i]);
+			Bprint(&bout, " %2.2uX", rp->inquiry[i]);
 		p = &rp->inquiry[8];
 		n = MIN(n, sizeof(rp->inquiry)-8);
 		while(n && (*p == ' ' || *p == '\t' || *p == '\n')){
 			n--;
 			p++;
 		}
-		Bprint(&bout, "\t%.*s\n", n, p);
+		Bprint(&bout, "\t%.*s\n", n, (char*)p);
 	}
 	return status;
 }
 
 static long
-cmdmodeselect(ScsiReq *rp, int argc, char *argv[])
+cmdmodeselect6(ScsiReq *rp, int argc, char *argv[])
 {
 	uchar list[MaxDirData];
 	long nbytes, ul;
@@ -351,15 +350,39 @@ cmdmodeselect(ScsiReq *rp, int argc, char *argv[])
 			return -1;
 		}
 		list[nbytes] = ul;
+
 	}
-	return SRmodeselect(rp, list, nbytes);
+	if(!(rp->flags & Finqok) && SRinquiry(rp) == -1)
+		Bprint(&bout, "warning: couldn't determine whether SCSI-1/SCSI-2 mode");
+	return SRmodeselect6(rp, list, nbytes);
 }
 
 static long
-cmdmodesense(ScsiReq *rp, int argc, char *argv[])
+cmdmodeselect10(ScsiReq *rp, int argc, char *argv[])
+{
+	uchar list[MaxDirData];
+	long nbytes, ul;
+	char *p;
+
+	memset(list, 0, sizeof(list));
+	for(nbytes = 0; argc; argc--, argv++, nbytes++){
+		if((ul = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		list[nbytes] = ul;
+
+	}
+	if(!(rp->flags & Finqok) && SRinquiry(rp) == -1)
+		Bprint(&bout, "warning: couldn't determine whether SCSI-1/SCSI-2 mode");
+	return SRmodeselect10(rp, list, nbytes);
+}
+
+static long
+cmdmodesense6(ScsiReq *rp, int argc, char *argv[])
 {
 	uchar list[MaxDirData], *lp, page;
-	long i, nbytes, status;
+	long i, n, nbytes, status;
 	char *p;
 
 	nbytes = sizeof(list);
@@ -387,33 +410,139 @@ cmdmodesense(ScsiReq *rp, int argc, char *argv[])
 		page = 0x3F;
 		break;
 	}
-	if((status = SRmodesense(rp, page, list, nbytes)) == -1)
+	if((status = SRmodesense6(rp, page, list, nbytes)) == -1)
 		return -1;
 	lp = list;
-	nbytes = list[0]-1;
+	nbytes = list[0];
+	Bprint(&bout, " Header\n   ");
 	for(i = 0; i < 4; i++){				/* header */
-		Bprint(&bout, " %2.2ux", *lp);
+		Bprint(&bout, " %2.2uX", *lp);
 		lp++;
 	}
-	nbytes -= 4;
 	Bputc(&bout, '\n');
-	for(i = 0; i < 8; i++){				/* block descriptor */
-		Bprint(&bout, " %2.2ux", *lp);
-		lp++;
+
+	if(list[3]){					/* block descriptors */
+		for(n = 0; n < list[3]/8; n++){
+			Bprint(&bout, " Block %ld\n   ", n);
+			for(i = 0; i < 8; i++)
+				Bprint(&bout, " %2.2uX", lp[i]);
+			Bprint(&bout, "    (density %2.2uX", lp[0]);
+			Bprint(&bout, " blocks %d", (lp[1]<<16)|(lp[2]<<8)|lp[3]);
+			Bprint(&bout, " length %d)", (lp[5]<<16)|(lp[6]<<8)|lp[7]);
+			lp += 8;
+			nbytes -= 8;
+			Bputc(&bout, '\n');
+		}
 	}
-	nbytes -= 8;
-	Bputc(&bout, '\n');
-	while(nbytes > 0){
+
+	while(nbytes > 0){				/* pages */
 		i = *(lp+1);
 		nbytes -= i+2;
-		Bprint(&bout, " %2.2ux %2.2ux", *lp, *(lp+1));
+		Bprint(&bout, " Page %2.2uX %d\n   ", *lp & 0x3F, *(lp+1));
 		lp += 2;
-		while(i--){
-			Bprint(&bout, " %2.2ux", *lp);
+		for(n = 0; n < i; n++){
+			if(n && ((n & 0x0F) == 0))
+				Bprint(&bout, "\n   ");
+			Bprint(&bout, " %2.2uX", *lp);
 			lp++;
+		}
+		if(n && (n & 0x0F))
+			Bputc(&bout, '\n');
+	}
+	return status;
+}
+
+static long
+cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
+{
+	uchar *list, *lp, page;
+	long blen, i, n, nbytes, status;
+	char *p;
+
+	nbytes = MaxDirData;
+	switch(argc){
+
+	default:
+		rp->status = Status_BADARG;
+		return -1;
+
+	case 2:
+		if((nbytes = strtoul(argv[1], &p, 0)) == 0 && p == argv[1]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		/*FALLTHROUGH*/
+
+	case 1:
+		if((page = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		break;
+
+	case 0:
+		page = 0x3F;
+		break;
+	}
+	list = malloc(nbytes);
+	if(list == 0){
+		rp->status = STnomem;
+		return -1;
+	}
+	if((status = SRmodesense10(rp, page, list, nbytes)) == -1)
+		return -1;
+	lp = list;
+	nbytes = ((list[0]<<8)|list[1]);
+	Bprint(&bout, " Header\n   ");
+	for(i = 0; i < 8; i++){				/* header */
+		Bprint(&bout, " %2.2uX", *lp);
+		lp++;
+	}
+	Bputc(&bout, '\n');
+
+	blen = (list[6]<<8)|list[7];
+	if(blen){					/* block descriptors */
+		for(n = 0; n < blen/8; n++){
+			Bprint(&bout, " Block %ld\n   ", n);
+			for(i = 0; i < 8; i++)
+				Bprint(&bout, " %2.2uX", lp[i]);
+			Bprint(&bout, "    (density %2.2uX", lp[0]);
+			Bprint(&bout, " blocks %d", (lp[1]<<16)|(lp[2]<<8)|lp[3]);
+			Bprint(&bout, " length %d)", (lp[5]<<16)|(lp[6]<<8)|lp[7]);
+			lp += 8;
+			nbytes -= 8;
+			Bputc(&bout, '\n');
+		}
+	}
+
+	/*
+	 * Special for ATA drives, page 0 is the drive info in 16-bit
+	 * chunks, little-endian, 256 in total. No decoding for now.
+	 */
+	if(page == 0){
+		for(n = 0; n < nbytes; n += 2){
+			if(n && ((n & 0x1F) == 0))
+				Bprint(&bout, "\n");
+			Bprint(&bout, " %4.4uX", (*(lp+1)<<8)|*lp);
+			lp += 2;
 		}
 		Bputc(&bout, '\n');
 	}
+	else while(nbytes > 0){				/* pages */
+		i = *(lp+1);
+		nbytes -= i+2;
+		Bprint(&bout, " Page %2.2uX %d\n   ", *lp & 0x3F, *(lp+1));
+		lp += 2;
+		for(n = 0; n < i; n++){
+			if(n && ((n & 0x0F) == 0))
+				Bprint(&bout, "\n   ");
+			Bprint(&bout, " %2.2uX", *lp);
+			lp++;
+		}
+		if(n && (n & 0x0F))
+			Bputc(&bout, '\n');
+	}
+	free(list);
 	return status;
 }
 
@@ -448,34 +577,33 @@ cmdeject(ScsiReq *rp, int argc, char *argv[])
 }
 
 static long
+cmdingest(ScsiReq *rp, int argc, char *argv[])
+{
+	return start(rp, argc, argv, 3);
+}
+
+static long
 cmdcapacity(ScsiReq *rp, int argc, char *argv[])
 {
-	uchar d[6];
+	uchar d[8];
 	long n;
 
 	USED(argc, argv);
 	if((n = SRrcapacity(rp, d)) == -1)
 		return -1;
-	Bprint(&bout, " %ld %ld\n", d[0]<<24|d[1]<<16|d[2]<<8|d[3],
-		 d[4]<<24|d[5]<<16|d[6]<<8|d[7]);
+	Bprint(&bout, " %ud %ud\n",
+		d[0]<<24|d[1]<<16|d[2]<<8|d[3],
+		d[4]<<24|d[5]<<16|d[6]<<8|d[7]);
 	return n;
 }
 
 static long
-cmdflushcache(ScsiReq *rp, int argc, char *argv[])
+cmdblank(ScsiReq *rp, int argc, char *argv[])
 {
-	USED(argc, argv);
-	return SRflushcache(rp);
-}
-
-static long
-cmdrdiscinfo(ScsiReq *rp, int argc, char *argv[])
-{
-	uchar d[MaxDirData], ses, track, *p;
+	uchar type, track;
 	char *sp;
-	long n, nbytes;
 
-	ses = track = 0;
+	type = track = 0;
 	switch(argc){
 
 	default:
@@ -483,7 +611,11 @@ cmdrdiscinfo(ScsiReq *rp, int argc, char *argv[])
 		return -1;
 
 	case 2:
-		if((ses = strtoul(argv[1], &sp, 0)) == 0 && sp == argv[1]){
+		if((type = strtoul(argv[1], &sp, 0)) == 0 && sp == argv[1]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		if(type < 0 || type > 6){
 			rp->status = Status_BADARG;
 			return -1;
 		}
@@ -499,35 +631,515 @@ cmdrdiscinfo(ScsiReq *rp, int argc, char *argv[])
 	case 0:
 		break;
 	}
-	if((nbytes = SRrdiscinfo(rp, d, ses, track)) == -1)
+	return SRblank(rp, type, track);
+}
+
+static long
+cmdsynccache(ScsiReq *rp, int argc, char *argv[])
+{
+	USED(argc, argv);
+	return SRsynccache(rp);
+}
+
+static long
+cmdrtoc(ScsiReq *rp, int argc, char *argv[])
+{
+	uchar d[100*8+4], format, track, *p;
+	char *sp;
+	long n, nbytes;
+	int tdl;
+
+	format = track = 0;
+	switch(argc){
+
+	default:
+		rp->status = Status_BADARG;
 		return -1;
-	if(ses == 0){
-		Bprint(&bout, "\ttoc/pma data length: 0x%ux\n", (d[0]<<8)|d[1]);
+
+	case 2:
+		if((format = strtoul(argv[1], &sp, 0)) == 0 && sp == argv[1]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		if(format < 0 || format > 4){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		/*FALLTHROUGH*/
+
+	case 1:
+		if((track = strtoul(argv[0], &sp, 0)) == 0 && sp == argv[0]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		/*FALLTHROUGH*/
+
+	case 0:
+		break;
+	}
+	if((nbytes = SRTOC(rp, d, sizeof(d), format, track)) == -1){
+		if(rp->status == STok)
+			Bprint(&bout, "\t(probably empty)\n");
+		return -1;
+	}
+	tdl = (d[0]<<8)|d[1];
+	switch(format){
+
+	case 0:
+		Bprint(&bout, "\ttoc/pma data length: 0x%uX\n", tdl);
 		Bprint(&bout, "\tfirst track number: %d\n", d[2]);
 		Bprint(&bout, "\tlast track number: %d\n", d[3]);
-		for(p = &d[4], n = nbytes-4; n; n -= 8, p += 8){
-			Bprint(&bout, "\ttrack number: 0x%2.2ux\n", p[2]);
-			Bprint(&bout, "\t\tcontrol: 0x%2.2ux\n", p[1] & 0x0F);
-			Bprint(&bout, "\t\tblock address: 0x%lux\n",
+		for(p = &d[4], n = tdl-2; n; n -= 8, p += 8){
+			Bprint(&bout, "\ttrack number: 0x%2.2uX\n", p[2]);
+			Bprint(&bout, "\t\tcontrol: 0x%2.2uX\n", p[1] & 0x0F);
+			Bprint(&bout, "\t\tblock address: 0x%uX\n",
 				(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
 		}
-	}
-	else{
-		Bprint(&bout, "\tsessions data length: 0x%ux\n", (d[0]<<8)|d[1]);
+		break;
+
+	case 1:
+		Bprint(&bout, "\tsessions data length: 0x%uX\n", tdl);
 		Bprint(&bout, "\tnumber of finished sessions: %d\n", d[2]);
 		Bprint(&bout, "\tunfinished session number: %d\n", d[3]);
-		for(p = &d[4], n = nbytes-4; n; n -= 8, p += 8){
-			Bprint(&bout, "\tsession number: 0x%2.2ux\n", p[0]);
-			Bprint(&bout, "\t\tfirst track number in session: 0x%2.2ux\n",
+		for(p = &d[4], n = tdl-2; n; n -= 8, p += 8){
+			Bprint(&bout, "\tsession number: 0x%2.2uX\n", p[0]);
+			Bprint(&bout, "\t\tfirst track number in session: 0x%2.2uX\n",
 				p[2]);
-			Bprint(&bout, "\t\tlogical start address: 0x%lux\n",
+			Bprint(&bout, "\t\tlogical start address: 0x%uX\n",
 				(p[5]<<16)|(p[6]<<8)|p[7]);
 		}
+		break;
+
+	case 2:
+		Bprint(&bout, "\tfull TOC data length: 0x%uX\n", tdl);
+		Bprint(&bout, "\tnumber of finished sessions: %d\n", d[2]);
+		Bprint(&bout, "\tunfinished session number: %d\n", d[3]);
+		for(p = &d[4], n = tdl-2; n > 0; n -= 11, p += 11){
+			Bprint(&bout, "\tsession number: 0x%2.2uX\n", p[0]);
+			Bprint(&bout, "\t\tcontrol: 0x%2.2uX\n", p[1] & 0x0F);
+			Bprint(&bout, "\t\tADR: 0x%2.2uX\n", (p[1]>>4) & 0x0F);
+			Bprint(&bout, "\t\tTNO: 0x%2.2uX\n", p[2]);
+			Bprint(&bout, "\t\tPOINT: 0x%2.2uX\n", p[3]);
+			Bprint(&bout, "\t\tMin: 0x%2.2uX\n", p[4]);
+			Bprint(&bout, "\t\tSec: 0x%2.2uX\n", p[5]);
+			Bprint(&bout, "\t\tFrame: 0x%2.2uX\n", p[6]);
+			Bprint(&bout, "\t\tZero: 0x%2.2uX\n", p[7]);
+			Bprint(&bout, "\t\tPMIN: 0x%2.2uX\n", p[8]);
+			Bprint(&bout, "\t\tPSEC: 0x%2.2uX\n", p[9]);
+			Bprint(&bout, "\t\tPFRAME: 0x%2.2uX\n", p[10]);
+		}
+		break;
+	case 3:
+		Bprint(&bout, "\tPMA data length: 0x%uX\n", tdl);
+		for(p = &d[4], n = tdl-2; n > 0; n -= 11, p += 11){
+			Bprint(&bout, "\t\tcontrol: 0x%2.2uX\n", p[1] & 0x0F);
+			Bprint(&bout, "\t\tADR: 0x%2.2uX\n", (p[1]>>4) & 0x0F);
+			Bprint(&bout, "\t\tTNO: 0x%2.2uX\n", p[2]);
+			Bprint(&bout, "\t\tPOINT: 0x%2.2uX\n", p[3]);
+			Bprint(&bout, "\t\tMin: 0x%2.2uX\n", p[4]);
+			Bprint(&bout, "\t\tSec: 0x%2.2uX\n", p[5]);
+			Bprint(&bout, "\t\tFrame: 0x%2.2uX\n", p[6]);
+			Bprint(&bout, "\t\tZero: 0x%2.2uX\n", p[7]);
+			Bprint(&bout, "\t\tPMIN: 0x%2.2uX\n", p[8]);
+			Bprint(&bout, "\t\tPSEC: 0x%2.2uX\n", p[9]);
+			Bprint(&bout, "\t\tPFRAME: 0x%2.2uX\n", p[10]);
+		}
+		break;
+
+	case 4:
+		Bprint(&bout, "\tATIP data length: 0x%uX\n", tdl);
+		break;
+
 	}
-	for(n = 0; n < nbytes; n++)
-		Bprint(&bout, " %2.2ux", d[n]);
-	Bprint(&bout, "\n");
+	for(n = 0; n < nbytes; n++){
+		if(n && ((n & 0x0F) == 0))
+			Bprint(&bout, "\n");
+		Bprint(&bout, " %2.2uX", d[n]);
+	}
+	if(n && (n & 0x0F))
+		Bputc(&bout, '\n');
 	return nbytes;
+}
+
+static long
+cmdrdiscinfo(ScsiReq *rp, int argc, char*[])
+{
+	uchar d[MaxDirData];
+	int dl;
+	long n, nbytes;
+
+	switch(argc){
+
+	default:
+		rp->status = Status_BADARG;
+		return -1;
+
+	case 0:
+		break;
+	}
+	if((nbytes = SRrdiscinfo(rp, d, sizeof(d))) == -1)
+		return -1;
+
+	dl = (d[0]<<8)|d[1];
+	Bprint(&bout, "\tdata length: 0x%uX\n", dl);
+	Bprint(&bout, "\tinfo[2] 0x%2.2uX\n", d[2]);
+	switch(d[2] & 0x03){
+
+	case 0:
+		Bprint(&bout, "\t\tEmpty\n");
+		break;
+
+	case 1:
+		Bprint(&bout, "\t\tIncomplete disc (Appendable)\n");
+		break;
+
+	case 2:
+		Bprint(&bout, "\t\tComplete (CD-ROM or last session is closed and has no next session pointer)\n");
+		break;
+
+	case 3:
+		Bprint(&bout, "\t\tReserved\n");
+		break;
+	}
+	switch((d[2]>>2) & 0x03){
+
+	case 0:
+		Bprint(&bout, "\t\tEmpty Session\n");
+		break;
+
+	case 1:
+		Bprint(&bout, "\t\tIncomplete Session\n");
+		break;
+
+	case 2:
+		Bprint(&bout, "\t\tReserved\n");
+		break;
+
+	case 3:
+		Bprint(&bout, "\t\tComplete Session (only possible when disc Status is Complete)\n");
+		break;
+	}
+	if(d[2] & 0x10)
+		Bprint(&bout, "\t\tErasable\n");
+	Bprint(&bout, "\tNumber of First Track on Disc %ud\n", d[3]);
+	Bprint(&bout, "\tNumber of Sessions %ud\n", d[4]);
+	Bprint(&bout, "\tFirst Track Number in Last Session %ud\n", d[5]);
+	Bprint(&bout, "\tLast Track Number in Last Session %ud\n", d[6]);
+	Bprint(&bout, "\tinfo[7] 0x%2.2uX\n", d[7]);
+	if(d[7] & 0x20)
+		Bprint(&bout, "\t\tUnrestricted Use Disc\n");
+	if(d[7] & 0x40)
+		Bprint(&bout, "\t\tDisc Bar Code Valid\n");
+	if(d[7] & 0x80)
+		Bprint(&bout, "\t\tDisc ID Valid\n");
+	Bprint(&bout, "\tinfo[8] 0x%2.2uX\n", d[8]);
+	switch(d[8]){
+
+	case 0x00:
+		Bprint(&bout, "\t\tCD-DA or CD-ROM Disc\n");
+		break;
+
+	case 0x10:
+		Bprint(&bout, "\t\tCD-I Disc\n");
+		break;
+
+	case 0x20:
+		Bprint(&bout, "\t\tCD-ROM XA Disc\n");
+		break;
+
+	case 0xFF:
+		Bprint(&bout, "\t\tUndefined\n");
+		break;
+
+	default:
+		Bprint(&bout, "\t\tReserved\n");
+		break;
+	}
+	Bprint(&bout, "\tLast Session lead-in Start Time M/S/F: 0x%2.2uX/0x%2.2uX/0x%2.2uX\n",
+		d[17], d[18], d[19]);
+	Bprint(&bout, "\tLast Possible Start Time for Start of lead-out M/S/F: 0x%2.2uX/0x%2.2uX/0x%2.2uX\n",
+		d[21], d[22], d[23]);
+
+	for(n = 0; n < nbytes; n++){
+		if(n && ((n & 0x0F) == 0))
+			Bprint(&bout, "\n");
+		Bprint(&bout, " %2.2uX", d[n]);
+	}
+	if(n && (n & 0x0F))
+		Bputc(&bout, '\n');
+
+	return nbytes;
+}
+
+static long
+cmdrtrackinfo(ScsiReq *rp, int argc, char *argv[])
+{
+	uchar d[MaxDirData], track;
+	char *sp;
+	long n, nbytes;
+	int dl;
+
+	track = 0;
+	switch(argc){
+
+	default:
+		rp->status = Status_BADARG;
+		return -1;
+
+	case 1:
+		if((track = strtoul(argv[0], &sp, 0)) == 0 && sp == argv[0]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		/*FALLTHROUGH*/
+
+	case 0:
+		break;
+	}
+	if((nbytes = SRrtrackinfo(rp, d, sizeof(d), track)) == -1)
+		return -1;
+
+	dl = (d[0]<<8)|d[1];
+	Bprint(&bout, "\tdata length: 0x%uX\n", dl);
+	Bprint(&bout, "\Track Number %d\n", d[2]);
+	Bprint(&bout, "\Session Number %d\n", d[3]);
+	Bprint(&bout, "\tinfo[4] 0x%2.2uX\n", d[5]);
+	Bprint(&bout, "\t\tTrack Mode 0x%2.2uX: ", d[5] & 0x0F);
+	switch(d[5] & 0x0F){
+	case 0x00:
+	case 0x02:
+		Bprint(&bout, "2 audio channels without pre-emphasis\n");
+		break;
+	case 0x01:
+	case 0x03:
+		Bprint(&bout, "2 audio channels with pre-emphasis of 50/15µs\n");
+		break;
+	case 0x08:
+	case 0x0A:
+		Bprint(&bout, "audio channels without pre-emphasis (reserved in CD-R/RW)\n");
+		break;
+	case 0x09:
+	case 0x0B:
+		Bprint(&bout, "audio channels with pre-emphasis of 50/15µs (reserved in CD-R/RW)\n");
+		break;
+	case 0x04:
+	case 0x06:
+		Bprint(&bout, "Data track, recorded uninterrupted\n");
+		break;
+	case 0x05:
+	case 0x07:
+		Bprint(&bout, "Data track, recorded incremental\n");
+		break;
+	default:
+		Bprint(&bout, "(mode unknown)\n");
+		break;
+	}
+	if(d[5] & 0x10)
+		Bprint(&bout, "\t\tCopy\n");
+	if(d[5] & 0x20)
+		Bprint(&bout, "\t\tDamage\n");
+	Bprint(&bout, "\tinfo[6] 0x%2.2uX\n", d[6]);
+	Bprint(&bout, "\t\tData Mode 0x%2.2uX: ", d[6] & 0x0F);
+	switch(d[6] & 0x0F){
+	case 0x01:
+		Bprint(&bout, "Mode 1 (ISO/IEC 10149)\n");
+		break;
+	case 0x02:
+		Bprint(&bout, "Mode 2 (ISO/IEC 10149 or CD-ROM XA)\n");
+		break;
+	case 0x0F:
+		Bprint(&bout, "Data Block Type unknown (no track descriptor block)\n");
+		break;
+	default:
+		Bprint(&bout, "(Reserved)\n");
+		break;
+	}
+	if(d[6] & 0x10)
+		Bprint(&bout, "\t\tFP\n");
+	if(d[6] & 0x20)
+		Bprint(&bout, "\t\tPacket\n");
+	if(d[6] & 0x40)
+		Bprint(&bout, "\t\tBlank\n");
+	if(d[6] & 0x80)
+		Bprint(&bout, "\t\tRT\n");
+	Bprint(&bout, "\tTrack Start Address 0x%8.8uX\n",
+		(d[8]<<24)|(d[9]<<16)|(d[10]<<8)|d[11]);
+	if(d[7] & 0x01)
+		Bprint(&bout, "\tNext Writeable Address 0x%8.8uX\n",
+			(d[12]<<24)|(d[13]<<16)|(d[14]<<8)|d[15]);
+	Bprint(&bout, "\tFree Blocks 0x%8.8uX\n",
+		(d[16]<<24)|(d[17]<<16)|(d[18]<<8)|d[19]);
+	if((d[6] & 0x30) == 0x30)
+		Bprint(&bout, "\tFixed Packet Size 0x%8.8uX\n",
+			(d[20]<<24)|(d[21]<<16)|(d[22]<<8)|d[23]);
+	Bprint(&bout, "\tTrack Size 0x%8.8uX\n",
+		(d[24]<<24)|(d[25]<<16)|(d[26]<<8)|d[27]);
+
+	for(n = 0; n < nbytes; n++){
+		if(n && ((n & 0x0F) == 0))
+			Bprint(&bout, "\n");
+		Bprint(&bout, " %2.2uX", d[n]);
+	}
+	if(n && (n & 0x0F))
+		Bputc(&bout, '\n');
+
+	return nbytes;
+}
+
+static long
+cmdcdpause(ScsiReq *rp, int argc, char *argv[])
+{
+	USED(argc, argv);
+	return SRcdpause(rp, 0);
+}
+
+static long
+cmdcdresume(ScsiReq *rp, int argc, char *argv[])
+{
+	USED(argc, argv);
+	return SRcdpause(rp, 1);
+}
+
+static long
+cmdcdstop(ScsiReq *rp, int argc, char *argv[])
+{
+	USED(argc, argv);
+	return SRcdstop(rp);
+}
+
+static long
+cmdcdplay(ScsiReq *rp, int argc, char *argv[])
+{
+	long length, start;
+	char *sp;
+	int raw;
+
+	raw = 0;
+	start = 0;
+	if(argc && strcmp("-r", argv[0]) == 0){
+		raw = 1;
+		argc--, argv++;
+	}
+
+	length = 0xFFFFFFFF;
+	switch(argc){
+
+	default:
+		rp->status = Status_BADARG;
+		return -1;
+
+	case 2:
+		if(!raw || ((length = strtol(argv[1], &sp, 0)) == 0 && sp == argv[1])){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		/*FALLTHROUGH*/
+
+	case 1:
+		if((start = strtol(argv[0], &sp, 0)) == 0 && sp == argv[0]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		/*FALLTHROUGH*/
+
+	case 0:
+		break;
+	}
+
+	return SRcdplay(rp, raw, start, length);
+}
+
+static long
+cmdcdload(ScsiReq *rp, int argc, char *argv[])
+{
+	char *p;
+	ulong slot;
+
+	slot = 0;
+	if(argc && (slot = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
+		rp->status = Status_BADARG;
+		return -1;
+	}
+	return SRcdload(rp, 1, slot);
+}
+
+static long
+cmdcdunload(ScsiReq *rp, int argc, char *argv[])
+{
+	char *p;
+	ulong slot;
+
+	slot = 0;
+	if(argc && (slot = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
+		rp->status = Status_BADARG;
+		return -1;
+	}
+	return SRcdload(rp, 0, slot);
+}
+
+static long
+cmdcdstatus(ScsiReq *rp, int argc, char *argv[])
+{
+	uchar *list, *lp;
+	long nbytes, status;
+	int i, slots;
+
+	USED(argc, argv);
+
+	nbytes = 4096;
+	list = malloc(nbytes);
+	if(list == 0){
+		rp->status = STnomem;
+		return -1;
+	}
+	status = SRcdstatus(rp, list, nbytes);
+	if(status == -1){
+		free(list);
+		return -1;
+	}
+
+	lp = list;
+	Bprint(&bout, " Header\n   ");
+	for(i = 0; i < 8; i++){				/* header */
+		Bprint(&bout, " %2.2uX", *lp);
+		lp++;
+	}
+	Bputc(&bout, '\n');
+
+	slots = ((list[6]<<8)|list[7])/4;
+	Bprint(&bout, " Slots\n   ");
+	while(slots--){
+		Bprint(&bout, " %2.2uX %2.2uX %2.2uX %2.2uX\n   ",
+			*lp, *(lp+1), *(lp+2), *(lp+3));
+		lp += 4;
+	}
+
+	free(list);
+	return status;
+}
+
+static long
+cmdgetconf(ScsiReq *rp, int argc, char *argv[])
+{
+	uchar *list;
+	long nbytes, status;
+
+	USED(argc, argv);
+
+	nbytes = 4096;
+	list = malloc(nbytes);
+	if(list == 0){
+		rp->status = STnomem;
+		return -1;
+	}
+	status = SRgetconf(rp, list, nbytes);
+	if(status == -1){
+		free(list);
+		return -1;
+	}
+	/* to be done... */
+	free(list);
+	return status;
 }
 
 static long
@@ -570,7 +1182,7 @@ cmdfwaddr(ScsiReq *rp, int argc, char *argv[])
 	}
 	if((n = SRfwaddr(rp, track, mode, npa, d)) == -1)
 		return -1;
-	Bprint(&bout, "%ud %ld\n", d[0], (d[1]<<24)|(d[2]<<16)|(d[3]<<8)|d[4]);
+	Bprint(&bout, "%ud %ud\n", d[0], (d[1]<<24)|(d[2]<<16)|(d[3]<<8)|d[4]);
 	return n;
 }
 
@@ -602,17 +1214,17 @@ cmdtrackinfo(ScsiReq *rp, int argc, char *argv[])
 	}
 	if((n = SRtinfo(rp, track, d)) == -1)
 		return -1;
-	Bprint(&bout, "buffer length: 0x%ux\n", d[0]);
-	Bprint(&bout, "number of tracks: 0x%ux\n", d[1]);
+	Bprint(&bout, "buffer length: 0x%uX\n", d[0]);
+	Bprint(&bout, "number of tracks: 0x%uX\n", d[1]);
 	ul = (d[2]<<24)|(d[3]<<16)|(d[4]<<8)|d[5];
-	Bprint(&bout, "start address: 0x%lux\n", ul);
+	Bprint(&bout, "start address: 0x%luX\n", ul);
 	ul = (d[6]<<24)|(d[7]<<16)|(d[8]<<8)|d[9];
-	Bprint(&bout, "track length: 0x%lux\n", ul);
-	Bprint(&bout, "track mode: 0x%ux\n", d[0x0A] & 0x0F);
-	Bprint(&bout, "track status: 0x%ux\n", (d[0x0A]>>4) & 0x0F);
-	Bprint(&bout, "data mode: 0x%ux\n", d[0x0B] & 0x0F);
+	Bprint(&bout, "track length: 0x%luX\n", ul);
+	Bprint(&bout, "track mode: 0x%uX\n", d[0x0A] & 0x0F);
+	Bprint(&bout, "track status: 0x%uX\n", (d[0x0A]>>4) & 0x0F);
+	Bprint(&bout, "data mode: 0x%uX\n", d[0x0B] & 0x0F);
 	ul = (d[0x0C]<<24)|(d[0x0D]<<16)|(d[0x0E]<<8)|d[0x0F];
-	Bprint(&bout, "free blocks: 0x%lux\n", ul);
+	Bprint(&bout, "free blocks: 0x%luX\n", ul);
 	return n;
 }
 
@@ -668,8 +1280,8 @@ cmdwtrack(ScsiReq *rp, int argc, char *argv[])
 		return -1;
 	}
 	if((x = SRwtrack(rp, rwbuf, n, track, mode)) != n){
-		fprint(2, "wtrack: write incomplete: asked %d, did %d\n", n, x);
-		if(rp->status == Status_OK)
+		fprint(2, "wtrack: write incomplete: asked %ld, did %ld\n", n, x);
+		if(rp->status == STok)
 			rp->status = Status_SW;
 		close(fd);
 		return -1;
@@ -682,8 +1294,8 @@ cmdwtrack(ScsiReq *rp, int argc, char *argv[])
 			break;
 		}
 		if((x = SRwrite(rp, rwbuf, n)) != n){
-			fprint(2, "write: write incomplete: asked %d, did %d\n", n, x);
-			if(rp->status == Status_OK)
+			fprint(2, "write: write incomplete: asked %ld, did %ld\n", n, x);
+			if(rp->status == STok)
 				rp->status = Status_SW;
 			break;
 		}
@@ -727,6 +1339,130 @@ cmdfixation(ScsiReq *rp, int argc, char *argv[])
 }
 
 static long
+cmdeinit(ScsiReq *rp, int argc, char *argv[])
+{
+	USED(argc, argv);
+	return SReinitialise(rp);
+}
+
+static long
+cmdmmove(ScsiReq *rp, int argc, char *argv[])
+{
+	int transport, source, destination, invert;
+	char *p;
+
+	invert = 0;
+
+	switch(argc){
+
+	default:
+		rp->status = Status_BADARG;
+		return -1;
+
+	case 4:
+		if((invert = strtoul(argv[3], &p, 0)) == 0 && p == argv[3]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		/*FALLTHROUGH*/
+
+	case 3:
+		if((transport = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		if((source = strtoul(argv[1], &p, 0)) == 0 && p == argv[1]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		if((destination = strtoul(argv[2], &p, 0)) == 0 && p == argv[2]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		break;
+	}
+
+	return SRmmove(rp, transport, source, destination, invert);
+}
+
+static long
+cmdestatus(ScsiReq *rp, int argc, char *argv[])
+{
+	uchar *list, *lp, type;
+	long d, i, n, nbytes, status;
+	char *p;
+
+	type = 0;
+	nbytes = 4096;
+
+	switch(argc){
+
+	default:
+		rp->status = Status_BADARG;
+		return -1;
+
+	case 2:
+		if((nbytes = strtoul(argv[1], &p, 0)) == 0 && p == argv[1]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		/*FALLTHROUGH*/
+
+	case 1:
+		if((type = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
+			rp->status = Status_BADARG;
+			return -1;
+		}
+		break;
+
+	case 0:
+		break;
+	}
+
+	list = malloc(nbytes);
+	if(list == 0){
+		rp->status = STnomem;
+		return -1;
+	}
+	status = SRestatus(rp, type, list, nbytes);
+	if(status == -1){
+		free(list);
+		return -1;
+	}
+
+	lp = list;
+	nbytes = ((lp[5]<<16)|(lp[6]<<8)|lp[7])-8;
+	Bprint(&bout, " Header\n   ");
+	for(i = 0; i < 8; i++){				/* header */
+		Bprint(&bout, " %2.2uX", *lp);
+		lp++;
+	}
+	Bputc(&bout, '\n');
+
+	while(nbytes > 0){				/* pages */
+		i = ((lp[5]<<16)|(lp[6]<<8)|lp[7]);
+		nbytes -= i+8;
+		Bprint(&bout, " Type");
+		for(n = 0; n < 8; n++)			/* header */
+			Bprint(&bout, " %2.2uX", lp[n]);
+		Bprint(&bout, "\n   ");
+		d = (lp[2]<<8)|lp[3];
+		lp += 8;
+		for(n = 0; n < i; n++){
+			if(n && (n % d) == 0)
+				Bprint(&bout, "\n   ");
+			Bprint(&bout, " %2.2uX", *lp);
+			lp++;
+		}
+		if(n && (n % d))
+			Bputc(&bout, '\n');
+	}
+
+	free(list);
+	return status;
+}
+
+static long
 cmdhelp(ScsiReq *rp, int argc, char *argv[])
 {
 	ScsiCmd *cp;
@@ -744,31 +1480,62 @@ cmdhelp(ScsiReq *rp, int argc, char *argv[])
 	return 0;
 }
 
+static int atatable[4] = {
+	'C', 'D', 'E', 'F',
+};
+static int scsitable[16] = {
+	'0', '1', '2', '3', '4', '5', '6', '7',
+	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 
+};
+static int unittable[16] = {
+	'0', '1', '2', '3', '4', '5', '6', '7',
+	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 
+};
+
 static long
 cmdprobe(ScsiReq *rp, int argc, char *argv[])
 {
+	char buf[32];
 	ScsiReq scsireq;
-	uchar id;
+	char *ctlr, *unit;
 	
 	USED(argc, argv);
-	rp->status = Status_OK;
+	rp->status = STok;
 	scsireq.flags = 0;
-	for(id = 0; id < CtlrID; id++){
-		if(SRopenraw(&scsireq, id) == -1)
-			return -1;
-		SRreqsense(&scsireq);
-		switch(scsireq.status){
 
-		default:
-			break;
-
-		case Status_OK:
-		case Status_SD:
-			Bprint(&bout, "%d: ", id);
-			cmdinquiry(&scsireq, 0, 0);
-			break;
-		}	
-		SRclose(&scsireq);
+	for(ctlr="CDEF0123456789abcdef"; *ctlr; ctlr++) {
+		/*
+		 * I can guess how many units you have.
+		 */
+		if(*ctlr >= 'C' && *ctlr <= 'F')
+			unit = "01";
+		else if((*ctlr >= '0' && *ctlr <= '9')
+		     || (*ctlr >= 'a' && *ctlr <= 'f'))
+			unit = "0123456789abcdef";
+		else
+			unit = "012345678";
+			
+		for(; *unit; unit++){
+			sprint(buf, "/dev/sd%c%c", *ctlr, *unit);
+			if(SRopenraw(&scsireq, buf) == -1)
+				/*
+				return -1;
+				 */
+				continue;
+			SRreqsense(&scsireq);
+			switch(scsireq.status){
+	
+			default:
+				break;
+	
+			case STok:
+			case Status_SD:
+				Bprint(&bout, "%s: ", buf);
+				cmdinquiry(&scsireq, 0, 0);
+				break;
+			}	
+			SRclose(&scsireq);
+		}
 	}
 	return 0;
 }
@@ -783,8 +1550,7 @@ cmdclose(ScsiReq *rp, int argc, char *argv[])
 static long
 cmdopen(ScsiReq *rp, int argc, char *argv[])
 {
-	char *p;
-	int id, raw;
+	int raw;
 	long status;
 
 	raw = 0;
@@ -792,16 +1558,17 @@ cmdopen(ScsiReq *rp, int argc, char *argv[])
 		raw = 1;
 		argc--, argv++;
 	}
-	if(argc != 1 || ((id = strtoul(argv[0], &p, 0)) == 0 && p == argv[0])){
+	if(argc != 1){
 		rp->status = Status_BADARG;
 		return -1;
 	}
 	if(raw == 0){
-		if((status = SRopen(rp, id)) != -1 && verbose)
-			Bprint(&bout, "block size: %ld\n", rp->lbsize);
+		if((status = SRopen(rp, argv[0])) != -1 && verbose)
+			Bprint(&bout, "%sblock size: %ld\n",
+				rp->flags&Fbfixed? "fixed ": "", rp->lbsize);
 	}
 	else {
-		status = SRopenraw(rp, id);
+		status = SRopenraw(rp, argv[0]);
 		rp->lbsize = 512;
 	}
 	return status;
@@ -844,51 +1611,104 @@ static ScsiCmd scsicmd[] = {
 	{ "inquiry",	cmdinquiry,	1,		/*[0x12]*/
 	  "inquiry",
 	},
-	{ "modeselect",	cmdmodeselect,	1,		/*[0x15] */
+	{ "modeselect6",cmdmodeselect6,	1,		/*[0x15] */
+	  "modeselect6 bytes...",
+	},
+	{ "modeselect",	cmdmodeselect10, 1,		/*[0x55] */
 	  "modeselect bytes...",
 	},
-	{ "modesense",	cmdmodesense,	1,		/*[0x1A]*/
+	{ "modesense6",	cmdmodesense6,	1,		/*[0x1A]*/
+	  "modesense6 [page [nbytes]]",
+	},
+	{ "modesense",	cmdmodesense10, 1,		/*[0x5A]*/
 	  "modesense [page [nbytes]]",
 	},
 	{ "start",	cmdstart,	1,		/*[0x1B]*/
 	  "start [code]",
 	},
 	{ "stop",	cmdstop,	1,		/*[0x1B]*/
-	  "stop [code]",
+	  "stop",
 	},
 	{ "eject",	cmdeject,	1,		/*[0x1B]*/
-	  "eject [code]",
+	  "eject",
+	},
+	{ "ingest",	cmdingest,	1,		/*[0x1B]*/
+	  "ingest",
 	},
 	{ "capacity",	cmdcapacity,	1,		/*[0x25]*/
 	  "capacity",
 	},
 
-	{ "flushcache",	cmdflushcache,	1,		/*[0x35]*/
-	  "flushcache",
+	{ "blank",	cmdblank,	1,		/*[0xA1]*/
+	  "blank [track/LBA [type]]",
 	},
-	{ "rdiscinfo",	cmdrdiscinfo,	1,		/*[0x43]*/
-	  "rdiscinfo [track/session-number [ses]]",
+//	{ "synccache",	cmdsynccache,	1,		/*[0x35]*/
+//	  "synccache",
+//	},
+	{ "rtoc",	cmdrtoc,	1,		/*[0x43]*/
+	  "rtoc [track/session-number [format]]",
 	},
-	{ "fwaddr",	cmdfwaddr,	1,		/*[0xE2]*/
-	  "fwaddr [track [mode [npa]]]",
+	{ "rdiscinfo",	cmdrdiscinfo,	1,		/*[0x51]*/
+	  "rdiscinfo",
 	},
-	{ "treserve",	cmdtreserve,	1,		/*[0xE4]*/
-	  "treserve nbytes",
+	{ "rtrackinfo",	cmdrtrackinfo,	1,		/*[0x52]*/
+	  "rtrackinfo [track]",
 	},
-	{ "trackinfo",	cmdtrackinfo,	1,		/*[0xE5]*/
-	  "trackinfo [track]",
+
+	{ "cdpause",	cmdcdpause,	1,		/*[0x4B]*/
+	  "cdpause",
 	},
-	{ "wtrack",	cmdwtrack,	1,		/*[0xE6]*/
-	  "wtrack [|]file [nbytes [track [mode]]]",
+	{ "cdresume",	cmdcdresume,	1,		/*[0x4B]*/
+	  "cdresume",
 	},
-	{ "load",	cmdload,	1,		/*[0xE7]*/
-	  "load",
+	{ "cdstop",	cmdcdstop,	1,		/*[0x4E]*/
+	  "cdstop",
 	},
-	{ "unload",	cmdunload,	1,		/*[0xE7]*/
-	  "unload",
+	{ "cdplay",	cmdcdplay,	1,		/*[0xA5]*/
+	  "cdplay [track-number] or [-r [LBA [length]]]",
 	},
-	{ "fixation",	cmdfixation,	1,		/*[0xE9]*/
-	  "fixation [toc-type]",
+	{ "cdload",	cmdcdload,	1,		/*[0xA6*/
+	  "cdload [slot]",
+	},
+	{ "cdunload",	cmdcdunload,	1,		/*[0xA6]*/
+	  "cdunload [slot]",
+	},
+	{ "cdstatus",	cmdcdstatus,	1,		/*[0xBD]*/
+	  "cdstatus",
+	},
+//	{ "getconf",	cmdgetconf,	1,		/*[0x46]*/
+//	  "getconf",
+//	},
+
+//	{ "fwaddr",	cmdfwaddr,	1,		/*[0xE2]*/
+//	  "fwaddr [track [mode [npa]]]",
+//	},
+//	{ "treserve",	cmdtreserve,	1,		/*[0xE4]*/
+//	  "treserve nbytes",
+//	},
+//	{ "trackinfo",	cmdtrackinfo,	1,		/*[0xE5]*/
+//	  "trackinfo [track]",
+//	},
+//	{ "wtrack",	cmdwtrack,	1,		/*[0xE6]*/
+//	  "wtrack [|]file [nbytes [track [mode]]]",
+//	},
+//	{ "load",	cmdload,	1,		/*[0xE7]*/
+//	  "load",
+//	},
+//	{ "unload",	cmdunload,	1,		/*[0xE7]*/
+//	  "unload",
+//	},
+//	{ "fixation",	cmdfixation,	1,		/*[0xE9]*/
+//	  "fixation [toc-type]",
+//	},
+	{ "einit",	cmdeinit,	1,		/*[0x07]*/
+	  "einit",
+	},
+	{ "estatus",	cmdestatus,	1,		/*[0xB8]*/
+	  "estatus",
+	},
+	{ "mmove",	cmdmmove,	1,		/*[0xA5]*/
+	  "mmove transport source destination [invert]",
 	},
 
 	{ "help",	cmdhelp,	0,
@@ -901,7 +1721,7 @@ static ScsiCmd scsicmd[] = {
 	  "close",
 	},
 	{ "open",	cmdopen,	0,
-	  "open target-id",
+	  "open [-r] sddev",
 	},
 	{ 0, 0 },
 };
@@ -978,24 +1798,44 @@ parse(char *s, char *fields[], int nfields)
 static void
 usage(void)
 {
-	fprint(2, "%s: usage: %s [-b bus] [-q] [scsi-id]\n", argv0, argv0);
+	fprint(2, "%s: usage: %s [-q] [/dev/sdXX]\n", argv0, argv0);
 	exits("usage");
 }
+
+static struct {
+	int	status;
+	char*	description;
+} description[] = {
+	STnomem,	"buffer allocation failed",
+	STtimeout,	"bus timeout",
+	STharderr,	"controller error of some kind",
+	STok,		"good",
+	STcheck,	"check condition",
+	STcondmet,	"condition met/good",
+	STbusy,		"busy ",
+	STintok,	"intermediate/good",
+	STintcondmet,	"intermediate/condition met/good",
+	STresconf,	"reservation conflict",
+	STterminated,	"command terminated",
+	STqfull,	"queue full",
+
+	Status_SD,	"sense-data available",
+	Status_SW,	"internal software error",
+	Status_BADARG,	"bad argument to request",
+
+	0, 0,
+};
 
 void
 main(int argc, char *argv[])
 {
 	ScsiReq target;
-	char *ap, *av[50];
-	int ac;
+	char *ap, *av[256];
+	int ac, i;
 	ScsiCmd *cp;
 	long status;
 
 	ARGBEGIN {
-	case 'b':
-		bus = atoi(ARGF());
-		break;
-
 	case 'q':
 		verbose = 0;
 		break;
@@ -1010,12 +1850,14 @@ main(int argc, char *argv[])
 	}
 
 	memset(&target, 0, sizeof(target));
-	if(argc && cmdopen(&target, argc, argv) == -1)
+	if(argc && cmdopen(&target, argc, argv) == -1) {
+		fprint(2, "open failed\n");
 		usage();
+	}
 	Bflush(&bout);
 
 	while(ap = Brdline(&bin, '\n')){
-		ap[BLINELEN(&bin)-1] = 0;
+		ap[Blinelen(&bin)-1] = 0;
 		switch(ac = parse(ap, av, nelem(av))){
 
 		default:
@@ -1036,39 +1878,13 @@ main(int argc, char *argv[])
 					Bprint(&bout, "ok %ld\n", status);
 				break;
 			}
-			switch(target.status){
-
-			case Status_OK:
-				if(verbose)
-					Bprint(&bout, "ok %ld\n", status);
-				break;
-
-			case Status_SD:
-				makesense(&target);
-				break;
-
-			case Status_NX:
-				Bprint(&bout, "select timeout\n");
-				break;
-
-			case Status_HW:
-				Bprint(&bout, "hardware error\n");
-				break;
-
-			case Status_SW:
-				Bprint(&bout, "software error\n");
-				break;
-
-			case Status_BADARG:
-				Bprint(&bout, "bad argument\n");
-				break;
-
-			case Status_RO:
-				Bprint(&bout, "device is read-only\n");
-				break;
-
-			default:
-				Bprint(&bout, "status %ld #%2.2ux\n", status, target.status);
+			for(i = 0; description[i].description; i++){
+				if(target.status != description[i].status)
+					continue;
+				if(target.status == Status_SD)
+					makesense(&target);
+				else
+					Bprint(&bout, "%s\n", description[i].description);
 				break;
 			}
 			break;
@@ -1084,4 +1900,3 @@ main(int argc, char *argv[])
 	}
 	exits(0);
 }
-

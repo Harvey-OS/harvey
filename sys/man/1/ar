@@ -16,6 +16,7 @@ ar \- archive and library maintainer
 maintains groups of files
 combined into a single archive file,
 .IR afile .
+try this out
 The main use of
 .I ar
 is to create and update library files for the loaders
@@ -72,7 +73,7 @@ Quick.  Append
 .I files 
 to the end of the archive without checking for duplicates.
 Avoids quadratic behavior in
-.LR "for (i in *.o) ar r lib.a $i" .
+.LR "for (i in *.v) ar r lib.a $i" .
 .TP
 .B t
 List a table of contents of the archive.
@@ -160,7 +161,7 @@ explicitly moved or deleted.
 .SH EXAMPLE
 .TP
 .L
-ar cr lib.a *.o
+ar cr lib.a *.v
 Replace the contents of library
 .L lib.a
 with the object files in the current directory.

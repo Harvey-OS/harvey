@@ -66,10 +66,6 @@
 /inch {72 mul} bind def
 /min {2 copy gt {exch} if pop} bind def
 
-/show {{//show} 0 get exec} bind def	% so later references don't bind
-/widthshow {{//widthshow} 0 get exec} bind def
-/stringwidth {{//stringwidth} 0 get exec} bind def
-
 /setup {
 	counttomark 2 idiv {def} repeat pop
 
@@ -628,7 +624,7 @@ mark
 (sam) 3247 1230 w
 10 /LucidaSans-Italic f
 (Rob Pike) 2674 1470 w
-(rob@plan9.att.com) 2415 1590 w
+(rob@plan9.bell-labs.com) 2266 1590 w
 (ABSTRACT) 2626 2030 w
 10 /LucidaTypewriter f
 (Sam) 1080 2326 w
@@ -2016,7 +2012,16 @@ w 0 ne {gsave bbox boxpath 1 setgray fill grestore} if
 end
 gsave
 %ps_include: inclusion begin
+ %!PS-Adobe-2.0
+ %%Version: 3.3.2
+ %%DocumentFonts: (atend)
+ %%Pages: (atend)
+ %%EndComments
+ %%EndProlog
+ %%BeginSetup
 mark
+ %%Patch from lp
+ %%EndPatch from lp
 
 /picstr 98 string def
 23 241 translate
@@ -3746,6 +3751,7 @@ ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ffff
 showpage
+ %%BoundingBox: 23 241 587.48 550.60
 %ps_include: inclusion end
 grestore
 PS-include-dict-dw begin
@@ -7502,6 +7508,7 @@ w 0 ne {gsave bbox boxpath 1 setgray fill grestore} if
 end
 gsave
 %ps_include: inclusion begin
+ %!PS
 /picstr 79 string def
 80 322 translate
 451.44 146.88 scale
@@ -8122,6 +8129,7 @@ ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffff
 showpage
+ %%BoundingBox: 80 322 531.44 468.88
 %ps_include: inclusion end
 grestore
 PS-include-dict-dw begin
@@ -8745,7 +8753,16 @@ w 0 ne {gsave bbox boxpath 1 setgray fill grestore} if
 end
 gsave
 %ps_include: inclusion begin
+ %!PS-Adobe-2.0
+ %%Version: 3.3.2
+ %%DocumentFonts: (atend)
+ %%Pages: (atend)
+ %%EndComments
+ %%EndProlog
+ %%BeginSetup
 mark
+ %%Patch from lp
+ %%EndPatch from lp
 
 /picstr 23 string def
 239 297 translate
@@ -9029,6 +9046,7 @@ ffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffff
 showpage
+ %%BoundingBox: 239 297 371.48 494.28
 %ps_include: inclusion end
 grestore
 PS-include-dict-dw begin
@@ -9597,6 +9615,7 @@ w 0 ne {gsave bbox boxpath 1 setgray fill grestore} if
 end
 gsave
 %ps_include: inclusion begin
+ %!PS
 /picstr 13 string def
 268 352 translate
  74.16  86.40 scale
@@ -9725,6 +9744,7 @@ ffffffffffffffffffffffffff
 ffffffffffffffffffffffffff
 ffffffffffffffffffffffffff
 showpage
+ %%BoundingBox: 268 352 342.16 438.40
 %ps_include: inclusion end
 grestore
 PS-include-dict-dw begin
@@ -14331,55 +14351,53 @@ mark
 (the) 4660 2712 w
 (sys\255) 4853 2712 w
 (tem) 720 2832 w
-(used) 942 2832 w
-(in) 1210 2832 w
-(the) 1337 2832 w
-(Computing) 1528 2832 w
-(Sciences) 2102 2832 w
-(Research) 2548 2832 w
-(Center) 3019 2832 w
-(at) 3376 2832 w
-(AT&T) 3504 2832 w
-(Bell) 3805 2832 w
-(Laboratories,) 4013 2832 w
-(where) 4684 2832 w
-(I) 5011 2832 w
-(work.) 720 2952 w
-(Its) 1058 2952 w
-(relevant) 1212 2952 w
-(aspects) 1637 2952 w
-(are) 2038 2952 w
-(discussed) 2227 2952 w
-(in) 2741 2952 w
-(the) 2869 2952 w
-(Blit) 3061 2952 w
-(paper.) 3251 2952 w
+(used) 955 2832 w
+(in) 1236 2832 w
+(the) 1376 2832 w
+(Computing) 1580 2832 w
+(Sciences) 2167 2832 w
+(Research) 2626 2832 w
+(Center) 3110 2832 w
+(at) 3480 2832 w
+(AT&T) 3621 2832 w
+(Bell) 3935 2832 w
+(Laboratories) 4156 2832 w
+([now) 4807 2832 w
+(Lucent) 720 2952 w
+(Technologies,) 1079 2952 w
+(Bell) 1792 2952 w
+(Labs],) 2002 2952 w
+(where) 2327 2952 w
+(I) 2657 2952 w
+(work.) 2724 2952 w
+(Its) 3063 2952 w
+(relevant) 3218 2952 w
+(aspects) 3645 2952 w
+(are) 4048 2952 w
+(discussed) 4239 2952 w
+(in) 4755 2952 w
+(the) 4885 2952 w
+(Blit) 720 3072 w
+(paper.) 914 3072 w
 6 /LucidaSansUnicode00 f
-(1) 3561 2902 w
+(1) 1224 3022 w
 10 /LucidaSansUnicode00 f
-(\)) 3599 2952 w
-(The) 3669 2952 w
-(implementation) 3888 2952 w
-(of) 4688 2952 w
+(\)) 1262 3072 w
+(The) 1336 3072 w
+(implementation) 1558 3072 w
+(of) 2361 3072 w
 10 /LucidaTypewriter f
-(sam) 4824 2952 w
+(sam) 2500 3072 w
 10 /LucidaSansUnicode00 f
-(for) 720 3072 w
-(the) 897 3072 w
-(SUN) 1090 3072 w
-(computer) 1325 3072 w
-(runs) 1827 3072 w
-(both) 2081 3072 w
-(processes) 2342 3072 w
-(on) 2861 3072 w
-(the) 3022 3072 w
-(same) 3215 3072 w
-(machine) 3508 3072 w
-(and) 3954 3072 w
-(connects) 4172 3072 w
-(them) 4640 3072 w
-(by) 4925 3072 w
-(a pipe.) 720 3192 w
+(for) 2757 3072 w
+(the) 2937 3072 w
+(SUN) 3133 3072 w
+(computer) 3371 3072 w
+(runs) 3876 3072 w
+(both) 4133 3072 w
+(processes) 4396 3072 w
+(on) 4917 3072 w
+(the same machine and connects them by a pipe.) 720 3192 w
 (The) 970 3348 w
 (low) 1193 3348 w
 (bandwidth) 1402 3348 w

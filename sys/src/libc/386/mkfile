@@ -7,8 +7,8 @@ OFILES=\
 	main9p.$O\
 	argv0.$O\
 	frexp.$O\
+	getcallerpc.$O\
 	getfcr.$O\
-	getfsp.$O\
 	memccpy.$O\
 	memchr.$O\
 	memcmp.$O\
@@ -23,6 +23,7 @@ OFILES=\
 	strcpy.$O\
 	strlen.$O\
 	sqrt.$O\
+	tas.$O\
 	vlrt.$O\
 	vlop.$O\
 

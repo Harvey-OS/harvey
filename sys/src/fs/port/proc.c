@@ -73,10 +73,10 @@ cmd_cpu(int argc, char *argv[])
 		if(argc > 1)
 			continue;
 	found:
-		print("	%2d %.3s %9s %F\n",
+		print("	%2d %.3s %9s%7F%7F%7F\n",
 			p->pid, text,
 			statename[p->state],
-			(Filta){&p->time, 1});
+			p->time+0, p->time+1, p->time+2);
 		prflush();
 	}
 }
@@ -346,7 +346,7 @@ dotrace(int n)
 				print("pid %d wants %.10s\n",
 					p->pid, q->name);
 			else
-				print("pid %d wants %lux\n",
+				print("pid %d wants %p\n",
 					p->pid, q);
 		}
 		f = 0;
@@ -361,7 +361,7 @@ dotrace(int n)
 				if(q->name)
 					print(" %.10s", q->name);
 				else
-					print(" %lux", q);
+					print(" %p", q);
 			}
 		}
 		if(f)

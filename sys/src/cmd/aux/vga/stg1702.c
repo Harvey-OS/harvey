@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
@@ -75,20 +76,16 @@ indexrw(uchar index)
 }
 
 static void
-options(Vga *vga, Ctlr *ctlr)
+options(Vga*, Ctlr* ctlr)
 {
-	USED(vga);
-	verbose("%s->options\n", ctlr->name);
-
 	ctlr->flag |= Hpclk2x8|Foptions;
 }
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
 	ulong pclk;
 
-	verbose("%s->init\n", ctlr->name);
 	/*
 	 * Part comes in -135MHz speed-grade.
 	 * In 8-bit mode the max. PCLK is 110MHz. In 2x8-bit mode
@@ -107,18 +104,18 @@ init(Vga *vga, Ctlr *ctlr)
 	 * take it from the mode.
 	 * Check it's within range.
 	 */
-	if(vga->f == 0)
-		vga->f = vga->mode->frequency;
-	if(vga->f < 16000000 || vga->f > pclk)
-		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f);
+	if(vga->f[0] == 0)
+		vga->f[0] = vga->mode->frequency;
+	if(vga->f[0] < 16000000 || vga->f[0] > pclk)
+		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f[0]);
 
 	/*
 	 * Determine whether to use 2x8-bit mode or not.
 	 * If yes and the clock has already been initialised,
 	 * initialise it again.
 	 */
-	if(vga->ctlr && (vga->ctlr->flag & Hpclk2x8) && vga->mode->z == 8 && vga->f >= 110000000){
-		vga->f /= 2;
+	if(vga->ctlr && (vga->ctlr->flag & Hpclk2x8) && vga->mode->z == 8 && vga->f[0] >= 110000000){
+		vga->f[0] /= 2;
 		resyncinit(vga, ctlr, Upclk2x8, 0);
 	}
 
@@ -126,11 +123,9 @@ init(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
 	uchar command, mode, pipeline;
-
-	verbose("%s->load\n", ctlr->name);
 
 	command = 0x00;
 	mode = 0x00;
@@ -139,9 +134,9 @@ load(Vga *vga, Ctlr *ctlr)
 		command = 0x08;
 		mode = 0x05;
 		pipeline = 0x02;
-		if(vga->f < 16000000)
+		if(vga->f[0] < 16000000)
 			pipeline = 0x00;
-		else if(vga->f < 32000000)
+		else if(vga->f[0] < 32000000)
 			pipeline = 0x01;
 	}
 
@@ -156,11 +151,9 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga*, Ctlr* ctlr)
 {
 	int i;
-
-	USED(vga);
 
 	printitem(ctlr->name, "command");
 	printreg(commandr());

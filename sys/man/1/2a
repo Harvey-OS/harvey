@@ -1,6 +1,6 @@
 .TH 2A 1 
 .SH NAME
-2a, 6a, 8a, ka, va, xa \- assemblers
+0a, 1a, 2a, 4a, 5a, 6a, 7a, 8a, 9a, ka, qa, va, xa \- assemblers
 .SH SYNOPSIS
 .B 2a
 [
@@ -10,55 +10,16 @@
 .I name ...
 ]
 .br
-.B 6a
-[
-.I option ...
-]
-[
-.I name ...
-]
-.br
-.B 8a
-[
-.I option ...
-]
-[
-.I name ...
-]
-.br
-.B ka
-[
-.I option ...
-]
-[
-.I name ...
-]
-.br
-.B va
-[
-.I option ...
-]
-[
-.I name ...
-]
-.br
-.B xa
-[
-.I option ...
-]
-[
-.I name ...
-]
-.br
+etc.
 .SH DESCRIPTION
-.IR 2a ,
-.IR 6a ,
-.IR 8a ,
-.IR ka ,
-.IR va ,
-and
-.IR xa
-assemble the named files into MC68020, i960, i386, SPARC, MIPS, and ATT3210 object files.
+These programs
+assemble the named files into object files
+for the corresponding architectures; see
+.IR 2c (1)
+for the correspondence between an architecture and the character
+.RB ( 0 ,
+.RB 1 ,
+etc.) that specifies it.
 The assemblers handle the most common C preprocessor directives and the associated
 command-line options
 .BR -D

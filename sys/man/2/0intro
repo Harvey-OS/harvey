@@ -11,29 +11,27 @@ intro \- introduction to library functions
 .PP
 .B #include <bio.h>
 .PP
+.B #include <draw.h>
+.PP
 .B #include <fcall.h>
 .PP
 .B #include <frame.h>
-.PP
-.B #include <layer.h>
-.PP
-.B #include <libg.h>
 .PP
 .B #include <mach.h>
 .PP
 .B #include <ndb.h>
 .PP
-.B #include <panel.h>
-.PP
 .B #include <regexp.h>
 .PP
 .B #include <stdio.h>
+.PP
+.B #include <thread.h>
 .fi
 .SH DESCRIPTION
 This section describes functions
 in various libraries.
 For the most part, each library is defined by a single C include
-file, listed above, and a single archive file containing
+file, such as those listed above, and a single archive file containing
 the library proper.  The name of the archive is
 .BI /$objtype/lib/lib x .a \f1,
 where
@@ -42,11 +40,11 @@ is the base of the include file name, stripped of a leading
 .B lib
 if present.
 For example,
-.B <libg.h>
+.B <draw.h>
 defines the contents of library
-.BR /$objtype/lib/libg.a ,
+.BR /$objtype/lib/libdraw.a ,
 which may be abbreviated when named to the loader as
-.BR -lg .
+.BR -ldraw .
 In practice, each include file contains a
 .B #pragma
 that directs the loader to pick up the associated archive
@@ -69,10 +67,9 @@ which must be preceded by
 an include of
 .BR <u.h> .
 The graphics library,
-.IR libg ,
-the graphics library.
+.IR draw ,
 is defined by
-.BR <libg.h> ,
+.BR <draw.h> ,
 which needs
 .B <libc.h>
 and
@@ -118,21 +115,22 @@ plus macros that define the layout of
 definitions of the bits in the floating-point control register
 as used by
 .IR getfcr (2);
+the macros
+.B va_arg
+and friends for accessing arguments of variadic functions (identical to the
+macros defined in
+.B <stdarg.h>
+in ANSI C);
 and
 .IR Length ,
-a union giving different views of the 64-bit length of a file, declared something like
+for historical reasons a union,
+representing the 64-bit length of a file, declared something like
 .IP
 .EX
-.ta 6n +\w'struct 'u +\w'long 'u +\w'hlength;   'u
+.ta 6n +6n +6n
 typedef union
 {
-	char	clength[8];
-	vlong	vlength;
-	struct
-	{
-		long	hlength;	/* high order */
-		long	length;	/* low order */
-	};
+	vlong	length;
 } Length;
 .EE
 .SS "Name space
@@ -149,7 +147,9 @@ consist of a number of
 .IR "path elements"
 with the slashes corresponding to directories.
 A path element must contain only printable
-characters (those outside ASCII and Latin-1 control space)
+characters (those outside
+.SM ASCII
+and Latin-1 control space)
 that occupy no more than
 .B NAMELEN-1
 bytes.
@@ -210,8 +210,9 @@ notably
 .IR read (2)
 and
 .IR write .
-File descriptors range from 0 to 99 in the current system.
 The system allocates the numbers by selecting the lowest unused descriptor.
+They are allocated dynamically; there is no visible limit to the number of file
+descriptors a process may have open.
 They may be reassigned using
 .IR dup (2).
 File descriptors are indices into a
@@ -290,6 +291,33 @@ and
 .I fwstat
 alter them.
 .PP
+The operating system kernel records the file name used to access each open file or directory.
+If the file is opened by a local name (one that does not begin
+.B /
+or
+.BR # ),
+the system makes the stored name absolute by prefixing
+the string associated with the current directory.
+Similar lexical adjustments are made for path names containing
+.B .
+(dot) or
+.B ..
+(dot-dot).
+By this process, the system maintains a record of the route by which each file was accessed.
+Although there is a possibility for error\(emthe name is not maintained after the file is opened,
+so removals and renamings can confound it\(emthis simple method usually
+permits the system to return, via the
+.IR fd2path (2)
+system call and related calls such as
+.IR getwd (2),
+a valid name that may be used to find a file again.
+This is also the source of the names reported in the name space listing of
+.IR ns (1)
+or
+.B /dev/ns
+(see
+.IR proc (3)).
+.PP
 .IR Pipe (2)
 creates a connected pair of file descriptors,
 useful for bidirectional local communication.
@@ -361,60 +389,50 @@ A process uses
 to register the function to be called (the
 .IR "notification handler" )
 when such events occur.
-.SS Alef
+.SS Multithreading
+By calling
+.I rfork
+with the
+.B RFMEM
+bit set, a program may create several independently executing processes sharing the same
+memory (except for the stack segment, which is unique to each process).
+Where possible according to the ANSI C standard,
+the main C library works properly in multiprocess programs;
+.IR malloc ,
+.IR print ,
+and the other routines use locks (see
+.IR lock (2))
+to synchronize access to their data structures.
+The graphics library defined in
+.B <draw.h>
+is also multi-process capable; details are in
+.IR graphics (2).
+In general, though, multiprocess programs should use some form of synchronization
+to protect shared data.
 .PP
-Most of the functions in this section are available in the same form from Alef, with
-.B byte
-substituted for
-.B char
-and
-.B uchar
-and
-.B int
-for
-.BR long ,
-and with adjustment for Alef having only one floating-point type, called
-.BR float ,
-holding double-precision values.
-The main
-exceptions are that the long-valued functions such as
-.B strtoul
-have their final
-.B l
-changed to an
-.B i
-to reflect the different type structure of the language; that the Bio
-library has a different organization (see
-.IR Bio (2)
-for details);
-and for various reasons some things are missing, notably
-.B ctype
-and the Stdio, IP, Layer, Lock, Mach, Ndb, and Panel libraries.
-Also, there is no
-.BR <u.h> ;
-instead
-.B <alef.h>
-replaces both it and
-.BR <libc.h> .
-The machine-dependent definitions in Alef, which are only needed for
-.IR getfcr (2)
-and relatives, are in
-.BR <arch.h> .
+The thread library, defined in
+.BR <thread.h> ,
+provides support for multiprocess programs.
+It includes a data structure called a
+.B Channel
+that can be used to send messages between processes,
+and coroutine-like
+.IR threads ,
+which enable multiple threads of control within a single process.
+The threads within a process are scheduled by the library, but there is
+no pre-emptive scheduling within a process; thread switching occurs
+only at communication or synchronization points.
 .PP
-Within this manual, only explicit differences in the Alef libraries are documented,
-the Alef functions are not all indexed, and the substitutions for
-.B <libc.h>
-as well as
-.BR char ,
-.BR uchar ,
-etc.
-are assumed.
-The sources to the Alef libraries all live under
-.BR /sys/src/alef/lib .
-.PP
-NOTE:
-.I
-Because the languages have different calling conventions, Alef programs cannot be linked with C libraries.
+Most programs using the thread library
+comprise multiple processes
+communicating over channels, and within some processes,
+multiple threads.  Since Plan 9 I/O calls may block, a system
+call may block all the threads in a process.
+Therefore, a program that shouldn't block unexpectedly will use a process
+to serve the I/O request, passing the result to the main processes
+over a channel when the request completes.
+For an example of this design, see
+.IR mouse (2).
 .SH SEE ALSO
 .IR nm (1), 
 .IR 2l (1), 
@@ -441,3 +459,7 @@ mechanism to report errors.
 Functions that may affect the value of the error string are said to ``set
 .IR errstr '';
 it is understood that the error string is altered only if an error occurs.
+.SH BUGS
+The limitation of path elements to 27 bytes
+.RB ( NAMELEN-1 )
+is a liability in the networked world.

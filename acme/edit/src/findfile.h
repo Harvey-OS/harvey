@@ -1,38 +1,39 @@
-aggr File
+typedef struct File File;
+struct File
 {
 	int	id;
 	int	seq;
 	int	ok;
 	int	q0, q1;
-	byte	*name;
-	byte	*addr;
+	char	*name;
+	char	*addr;
 };
 
-byte	*indexfile = "/mnt/acme/index";
+char	*indexfile = "/mnt/acme/index";
 
 void
-error(byte *s)
+error(char *s)
 {
 	fprint(2, "%s: %s\n", prog, s);
 	exits(s);
 }
 
 void
-errors(byte *s, byte *t)
+errors(char *s, char *t)
 {
 	fprint(2, "%s: %s %s\n", prog, s, t);
 	exits(s);
 }
 
 void
-rerror(byte *s)
+rerror(char *s)
 {
 	fprint(2, "%s: %s: %r\n", prog, s);
 	exits(s);
 }
 
 int
-nrunes(byte *s, int nb)
+nrunes(char *s, int nb)
 {
 	int i, n;
 	Rune r;
@@ -45,17 +46,17 @@ nrunes(byte *s, int nb)
 
 Biobuf	*index;
 
-(int, File*)
-findfile(byte *pat)
+File*
+findfile(char *pat, int *np)
 {
-	byte *line, *blank, blankc, *colon, colonc;
-	int n;
+	char *line, *s, *blank, blankc, *colon, colonc;
+	int m, n;
 	File *f, *t;
 
 	if(index == nil)
 		index = Bopen(indexfile, OREAD);
 	else
-		index->seek(0, 0);
+		Bseek(index, 0, 0);
 	if(index == nil)
 		rerror(indexfile);
 	for(colon=pat; *colon && *colon!=':'; colon++)
@@ -64,10 +65,16 @@ findfile(byte *pat)
 	*colon = 0;
 	n = 0;
 	f = nil;
-	while((line=index->rdline('\n')) != nil){
-		if(index->linelen() < 5*12)
+	line = nil;
+	while((s=Brdline(index, '\n')) != nil){
+		m = Blinelen(index);
+		if(m < 5*12)
 			rerror("bad index file format");
-		line[index->linelen()-1] = 0;
+		free(line);
+		line = malloc(m+1);
+		memmove(line, s, m);
+		if(line[m-1] == '\n')
+			line[m-1] = '\0';
 		for(blank=line+5*12; *blank && *blank!=' '; blank++)
 			;
 		blankc = *blank;
@@ -103,7 +110,9 @@ findfile(byte *pat)
 		*blank = blankc;
 	}
 	*colon = colonc;
-	return (n, f);
+	*np = n;
+	free(line);
+	return f;
 }
 
 int

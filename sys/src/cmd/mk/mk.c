@@ -14,7 +14,7 @@ mk(char *target)
 	node = graph(target);
 	if(DEBUG(D_GRAPH)){
 		dumpn("new target\n", node);
-		Bflush(&stdout);
+		Bflush(&bout);
 	}
 	clrmade(node);
 	while(node->flags&NOTMADE){
@@ -23,7 +23,7 @@ mk(char *target)
 		else {
 			if(waitup(1, (int *)0) > 0){
 				if(node->flags&(NOTMADE|BEINGMADE)){
-					assert("must be run errors", runerrs);
+					assert(/*must be run errors*/ runerrs);
 					break;	/* nothing more waiting */
 				}
 			}
@@ -33,9 +33,9 @@ mk(char *target)
 		waitup(-1, (int *)0);
 	while(jobs)
 		waitup(-2, (int *)0);
-	assert("target didn't get done", runerrs || (node->flags&MADE));
+	assert(/*target didnt get done*/ runerrs || (node->flags&MADE));
 	if(did == 0)
-		Bprint(&stdout, "mk: '%s' is up to date\n", node->name);
+		Bprint(&bout, "mk: '%s' is up to date\n", node->name);
 }
 
 void
@@ -44,7 +44,8 @@ clrmade(Node *n)
 	Arc *a;
 
 	n->flags &= ~(CANPRETEND|PRETENDING);
-	n->flags |= CANPRETEND;
+	if(strchr(n->name, '(') ==0 || n->time)
+		n->flags |= CANPRETEND;
 	MADESET(n, NOTMADE);
 	for(a = n->prereqs; a; a = a->next)
 		if(a->n)
@@ -132,8 +133,8 @@ work(Node *node, Node *p, Arc *parc)
 	/*
 		can we pretend to be made?
 	*/
-	if((iflag == 0) && (node->time == 0) && (node->flags&(PRETENDING|CANPRETEND)) &&
-			p && ra->n && !outofdate(p, ra, 0)){
+	if((iflag == 0) && (node->time == 0) && (node->flags&(PRETENDING|CANPRETEND))
+			&& p && ra->n && !outofdate(p, ra, 0)){
 		node->flags &= ~CANPRETEND;
 		MADESET(node, MADE);
 		if(explain && ((node->flags&PRETENDING) == 0))
@@ -148,7 +149,7 @@ work(Node *node, Node *p, Arc *parc)
 	for(a = node->prereqs; a; a = a->next)
 		if(a->n && (a->n->flags&PRETENDING)){
 			if(explain)
-				Bprint(&stdout, "unpretending %s because of %s because of %s\n",
+				Bprint(&bout, "unpretending %s because of %s because of %s\n",
 				a->n->name, node->name, ra->n? ra->n->name : "rule with no prerequisites");
 
 			unpretend(a->n);
@@ -183,28 +184,17 @@ update(int fake, Node *node)
 }
 
 static
-pcmp(char *prog, char *n1, char *n2)
+pcmp(char *prog, char *p, char *q)
 {
 	char buf[3*NAMEBLOCK];
 	int pid;
 
-	pid = fork();
-	if(pid < 0){
-		fprint(2, "mk: ");
-		perror("pcmp fork");
-		Exit();
-	}
-	Bflush(&stdout);
-	if(pid == 0){
-		sprint(buf, "%s '%s' '%s'", prog, n1, n2);
-		execl(shell, shellname, "-Ic", buf, (char *)0);
-		perror("exec shell");
-		_exits("shell exec error");
-	} else {
-		while(waitup(-3, &pid) >= 0)
-			;
-		return(pid? 2:1);
-	}
+	Bflush(&bout);
+	sprint(buf, "%s '%s' '%s'\n", prog, p, q);
+	pid = pipecmd(buf, 0, 0);
+	while(waitup(-3, &pid) >= 0)
+		;
+	return(pid? 2:1);
 }
 
 int
@@ -217,17 +207,20 @@ outofdate(Node *node, Arc *arc, int eval)
 	str = 0;
 	if(arc->prog){
 		sprint(buf, "%s%c%s", node->name, 0377, arc->n->name);
-		if(!(sym = symlook(buf, S_OUTOFDATE, (char *)0)) || eval){
-			if(!sym)
+		sym = symlook(buf, S_OUTOFDATE, 0);
+		if(sym == 0 || eval){
+			if(sym == 0)
 				str = strdup(buf);
 			ret = pcmp(arc->prog, node->name, arc->n->name);
 			if(sym)
-				sym->value = (char *)ret;
+				sym->value = (void *)ret;
 			else
-				symlook(str, S_OUTOFDATE, (char *)ret);
+				symlook(str, S_OUTOFDATE, (void *)ret);
 		} else
 			ret = (int)sym->value;
 		return(ret-1);
-	} else
+	} else if(strchr(arc->n->name, '(') && arc->n->time == 0)  /* missing archive member */
+		return 1;
+	else
 		return node->time < arc->n->time;
 }

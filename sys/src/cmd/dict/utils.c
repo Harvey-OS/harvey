@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <stdarg.h>
 #include "dict.h"
 
 Dict dicts[] = {
@@ -307,7 +306,7 @@ err(char *fmt, ...)
 	va_list v;
 
 	va_start(v, fmt);
-	doprint(buf, &buf[1000], fmt, v);
+	doprint(buf, buf+sizeof(buf), fmt, v);
 	va_end(v);
 	fprint(2, "%s: %s\n", argv0, buf);
 }
@@ -347,7 +346,7 @@ outchar(int c)
 		c ='\n';
 		linelen = 0;
 	}
-	BPUTC(bout, c);
+	Bputc(bout, c);
 }
 
 void
@@ -366,7 +365,7 @@ outprint(char *fmt, ...)
 	va_list v;
 
 	va_start(v, fmt);
-	doprint(buf, &buf[1000], fmt, v);
+	doprint(buf, buf+sizeof(buf), fmt, v);
 	va_end(v);
 	outchars(buf);
 }

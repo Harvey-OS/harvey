@@ -1,0 +1,853 @@
+<html>
+<head>
+<title>History of Ghostscript versions 6.n</title>
+<!-- $Id: History6.htm,v 1.3 2000/03/18 04:17:09 lpd Exp $ -->
+<!--
+	WARNING: do not use Pete Kaiser's emacs function "gs-toc" alone to
+	re-create the table of contents here, because it will replace the
+	hand-edited TOC subheads with a separate subhead for each H2 in
+	the body of the file.  Or if you do, first look at the original
+	TOC to see how to edit it for visual conciseness.
+-->
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<table width="100%" border="0">
+<tr><th align="center" bgcolor="#CCCC00"><font size=6>History of Ghostscript versions 6.n</font>
+</table>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<h2>Table of contents</h2>
+
+<blockquote><ul>
+<li><a href="#Version6.01">Version 6.01 (2000-03-17)</a>
+<ul>
+<li><a href="#6.01_Incompatible_changes">Incompatible changes</a>,
+    <a href="#6.01 Documentation">Documentation</a>,
+    <a href="#6.01 Procedures">Procedures</a>,
+    <a href="#6.01 Utilities">Utilities</a>,
+    <a href="#6.01 Drivers">Drivers</a>,
+    <a href="#6.01 PDF writer">PDF writer</a>,
+    <a href="#6.01 Interpreter (PDF)">Interpreter (PDF)</a>,
+    <a href="#6.01 Interpreter">Interpreter</a>,
+    <a href="#6.01 Streams">Streams</a>,
+    <a href="#6.01 Library">Library</a>
+</ul>
+<li><a href="#Version6.0">Version 6.0 (2000-02-03)</a>
+<ul>
+<li><a href="#6.0_Documentation">Documentation</a>,
+    <a href="#6.0_Procedures">Procedures</a>,
+    <a href="#6.0_Utilities">Utilities</a>,
+    <a href="#6.0_Drivers">Drivers</a>,
+    <a href="#6.0_Platforms">Platforms</a>,
+    <a href="#6.0_Fonts">Fonts</a>,
+    <a href="#6.0_PDF_writer">PDF writer</a>,
+    <a href="#6.0_Interpreter_PDF">Interpreter (PDF)</a>,
+    <a href="#6.0_Interpreter">Interpreter</a>,
+    <a href="#6.0_Streams">Streams</a>,
+    <a href="#6.0_Library">Library</a>
+</ul>
+</ul></blockquote>
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>
+This document is a record of changes in Ghostscript releases numbered 6.n.
+For earlier versions, see the the history documents:
+
+<blockquote>
+<a href="History5.htm">History of Ghostscript versions 5.n</a><br>
+<a href="History4.htm">History of Ghostscript versions 4.n</a><br>
+<a href="History3.htm">History of Ghostscript versions 3.n</a><br>
+<a href="History2.htm">History of Ghostscript versions 2.n</a><br>
+<a href="History1.htm">History of Ghostscript versions 1.n</a>
+</blockquote>
+
+<p>For other information, see the <a href="Readme.htm">Ghostscript
+overview</a>.
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<pre>
+Within each release, news appears in the following order: Incompatible
+changes, Documentation, Procedures, Utilities, Drivers, Platforms, Fonts,
+PDF writer (included under Drivers through fileset 5.88), Interpreter,
+Streams (included under Interpreter through release 2.9.9), Library.
+Changes marked with a * were made available as patches to a previous
+release.
+
+<hr>
+
+<h1><a name="Version6.01"></a>Version 6.01 (2000-03-17)</h1>
+
+This is a bug-fix release for 6.0.
+
+This release fixes the following reported bugs: #101555, #101813, #101816,
+#101818, #101827, #101830, #101871, #101853, #101906, #101949, #101950,
+#102003, #102004, #102038, #102081, #102936.
+
+<h2><a name="6.01_Incompatible_changes"></a>Incompatible changes</h2>
+
+(Platforms)
+	- OpenVMS using VAX C is no longer supported.  (OpenVMS with DEC C
+and gcc are still supported.)
+(Drivers)
+	- The third argument of psdf_set_color is changed from const char *
+to const psdf_set_color_commands_t *.
+(Interpreter)
+	- The non-standard feature of writing dictionaries in binary object
+output is now disabled by default, but can now be enabled dynamically.
+(Library)
+	- The definition of TRANSPARENCY_PER_H_P is moved from gdevmrop.h to
+gsropt.h.
+	- The handling of the source opaque, texture transparent case of
+RasterOp when TRANSPARENCY_PER_H_P is defined is changed slightly.
+
+
+<h2><a name="6.01 Documentation"></a>Documentation</h2><pre>
+
+Fixes problems:
+	- Fixes a typo. (man/ps2pdf.1 [1.2]: 2000/03/10 03:11:06 lpd)
+	- When converting PostScript to PDF, selecting /Bicubic as an image
+DownsampleType caused an error instead of defaulting to /Average.
+(doc/Ps2pdf.htm [1.2]: 2000/03/10 04:16:09 lpd)
+	- The gs###src.zip and gs###lib.zip files weren't mentioned as being
+included in distributions; News.htm and Changes.htm weren't mentioned at
+all. (doc/Release.htm [1.5]: 2000/03/15 07:23:52 lpd)
+	- Fixes a problem producing too much black in the output; also adds
+support for 5 new printers (H-P Color DeskJet 690, H-P DesignJet 750, and
+Epson Stylus Color 200). Note that this is user-contributed code.
+(doc/Devices.htm [1.2]: 2000/03/16 02:01:36 lpd)
+
+In ansi2knr, adds user-contributed support for concatenated string literals
+and character constants, and fixes for a couple of minor bugs.
+(man/ansi2knr.1 [1.2]: 2000/03/10 03:16:17 lpd)
+
+Removes an inappropriate copying notice. (doc/Hershey.htm [1.2]: 2000/03/10
+07:03:57 lpd)
+
+Clarifies when xdpyinfo and xwininfo are needed. Adds privacy options for
+problem reports. (doc/Bug-form.htm [1.2]: 2000/03/10 07:06:08 lpd)
+
+Adds a new eps2eps utility analogous to ps2ps. (man/eps2eps.1 [1.1],
+man/ps2ps.1 [1.2]: 2000/03/10 07:51:55 lpd)
+
+Updates the documentation on making RPMs, which is no longer supported.
+(doc/Install.htm [1.2], doc/Make.htm [1.2]: 2000/03/10 07:58:00 lpd)
+
+Adds a recommendation to use gcc on SGI platforms. (doc/Make.htm [1.3]:
+2000/03/10 07:59:53 lpd)
+
+Updates documentation regarding Unix systems that do/don't use libpthread.
+(doc/Make.htm [1.4]: 2000/03/10 08:01:35 lpd)
+
+Removes support for VAX C, which DEC stopped supporting 9 (!) years ago.
+(doc/Make.htm [1.5], doc/Use.htm [1.2]: 2000/03/10 08:02:59 lpd)
+
+Updates the documentation for building Aladdin releases to reflect revised
+procedures for the Windows executable, and a few other minor changes.
+(doc/Release.htm [1.2]: 2000/03/10 15:55:39 lpd)
+
+Adds the ability to compile on OS/2 with XFree86. (doc/Install.htm [1.3],
+doc/Make.htm [1.6]: 2000/03/10 19:50:49 lpd)
+
+Moves all history for versions 5.n into History5.htm; creates History6.htm
+for versions 6.n; redefines News.htm as containing only news for the current
+release; adds (a link to) Changes.htm for the mechanically generated change
+log. (doc/History5.htm [1.2], doc/History6.htm [1.1], doc/News.htm [1.2],
+doc/README [1.2], doc/Readme.htm [1.2]: 2000/03/14 06:14:43 lpd)
+
+Partially updates the release procedure documentation to reflect the use of
+SourceForge and CVS. (doc/Release.htm [1.3]: 2000/03/14 06:39:23 lpd)
+
+Adds a change log generated mechanically from the CVS logs. Future releases
+may omit this file (doc/Changes.htm) from their change log.
+(doc/Changes.htm [1.1], doc/News.htm [1.3]: 2000/03/14 06:48:44 lpd)
+
+Revises the release procedures to reflect use of SourceForge, and to
+separate out the procedures for building Windows executables.
+(doc/Release.htm [1.4]: 2000/03/15 02:24:58 lpd)
+
+Adds information on uninstalling Ghostscript on Windows.
+(doc/Install.htm [1.4]: 2000/03/15 07:29:53 lpd)
+
+Adds the ability to set the ProcessColorModel of the pdfwrite device to
+/DeviceGray, /DeviceRGB, or /DeviceCMYK. This affects the color space used
+for fill, stroke, text, and imagemask, and for images that (for whatever
+reason) can't be written in their specified color space. Note that this is a
+short-term fix: pdfwrite should output colors in the color space in which
+they were specified. However, a proper fix will require more significant
+architectural changes. (doc/News.htm [1.4]: 2000/03/16 01:21:23 lpd)
+
+Adds a reference to a third-party Fontmap for the Computer Modern fonts.
+(doc/Fonts.htm [1.2]: 2000/03/16 04:05:07 lpd)
+
+Adds documentation and a makefile entry for Matthew Gelhaus' cdj880 driver.
+The code will eventually be included in gdevcd8.c, but it is not yet mature
+enough. (doc/Devices.htm [1.3]: 2000/03/16 08:09:42 lpd)
+
+Updates the version number reference in the troff header.
+(man/ps2pdf.1 [1.3], man/ps2ps.1 [1.3]: 2000/03/17 00:47:08 lpd)
+
+Removes the attempted documentation on building Windows executable
+distributions: it was never correct, and Aladdin will no longer be creating
+such distributions. Also reorganizes the document slightly and brings the
+rest of it fully into line with reality. (doc/Release.htm [1.6]: 2000/03/17
+04:40:47 lpd)
+
+Adds information on building with the Intel C/C++ optimizing compiler
+(requires the Microsoft Visual C++ environment), and fixes a typo in the
+link to ftp.cdrom.com. (doc/Make.htm [1.7]: 2000/03/17 17:42:59 lpd)
+
+Checks in the first wrap-up for the 6.01 release. (doc/Changes.htm [1.2],
+doc/History6.htm [1.2], doc/News.htm [1.5]: 2000/03/18 04:13:40 lpd)
+
+</pre><h2><a name="6.01 Procedures"></a>Procedures</h2><pre>
+
+Fixes problems:
+	- The terminating $ on the $Id: line in gsmalloc.c was missing, and
+dwuninst.rc lacked a $Id: line. (dwuninst.rc [1.2]: 2000/03/10 03:44:33 lpd)
+	- The %ram% IODevice was defined, but should not be (it represents a
+RAM-based file system, which Ghostscript does not provide). Fix: The type of
+the %null% IODevice was /FileSystem rather than /Special. (int.mak [1.2]:
+2000/03/10 07:02:07 lpd)
+	- The dependency list for coslwxl omitted a $(DD).
+(contrib.mak [1.2]: 2000/03/10 07:30:54 lpd)
+	- The makefile still referred to a long-gone driver for the DEC
+LA70. (contrib.mak [1.3]: 2000/03/10 07:32:43 lpd)
+	- The Unix install process tried to make links without deleting them
+first. (unixinst.mak [1.2]: 2000/03/10 07:49:21 lpd)
+	- The Watcom compiler switches didn't force enums to occupy a full
+int, leading to execution errors because the code casts (enum *) pointers to
+(int *). (wccommon.mak [1.2]: 2000/03/10 08:15:31 lpd)
+	- The Windows zip archive didn't include font metrics files. (This
+change only fixes the build procedure: it doesn't actually update the
+currently released zip archive.) (winint.mak [1.2]: 2000/03/10 08:17:06 lpd)
+	- the "all architectures" build and test script hadn't been updated
+to use different STDLIBS values depending on where the platform provides the
+pthreads library. (all-arch.mak [1.2]: 2000/03/10 15:40:43 lpd)
+	- The documentation for building with pthreads on FreeBSD hadn't
+been updated. (unix-gcc.mak [1.2], unixansi.mak [1.2], unixtrad.mak [1.2]:
+2000/03/10 15:44:01 lpd)
+	- gsmalloc.c didn't include the prototype for gs_exit(), which it
+calls. (lib.mak [1.2]: 2000/03/10 15:53:08 lpd)
+
+Because of rampant confusion, disagreement, and lack of standardization,
+removes the RPM-related spec and patch files. (gs-fonts.rps [1.2],
+gs.rps [1.2], rpm-conf.dif [1.2]: 2000/03/10 03:22:04 lpd)
+
+Increases the stack size for the PC platforms, since a user had reported
+that the OS/2 stack size was too small. (dw32c.def [1.2],
+dwmain32.def [1.2], gsos2.def [1.2]: 2000/03/10 03:33:21 lpd)
+
+Updates the Brother HL7xx drivers with a new user-contributed version, plus
+a couple of minor fixes. (contrib.mak [1.4]: 2000/03/10 07:33:44 lpd)
+
+Adds a new eps2eps utility analogous to ps2ps. (unixinst.mak [1.3]:
+2000/03/10 07:51:55 lpd)
+
+Removes support for VAX C, which DEC stopped supporting 9 (!) years ago.
+(openvms.mak [1.2], openvms.mmk [1.2]: 2000/03/10 08:02:59 lpd)
+
+Updates all makefiles to the current libpng version, 1.0.5.
+(bcwin32.mak [1.2], dvx-gcc.mak [1.2], msvc32.mak [1.2], msvclib.mak [1.2],
+os2.mak [1.2], ugcclib.mak [1.2], unix-gcc.mak [1.3], unixansi.mak [1.3],
+unixtrad.mak [1.3], watc.mak [1.2], watclib.mak [1.2], watcw32.mak [1.2]:
+2000/03/10 15:48:58 lpd)
+
+Updates the version # to 6.01, and the version date. (version.mak [1.2]:
+2000/03/10 17:18:29 lpd)
+
+Adds the ability to compile on OS/2 with XFree86. (os2.mak [1.3]: 2000/03/10
+19:50:49 lpd)
+
+Moves all history for versions 5.n into History5.htm; creates History6.htm
+for versions 6.n; redefines News.htm as containing only news for the current
+release; adds (a link to) Changes.htm for the mechanically generated change
+log. (unixinst.mak [1.4], version.mak [1.3]: 2000/03/14 06:14:44 lpd)
+
+Adds entries for ibm-rs6000-aix-4.3, sgi-mips-irix6.5-64bit, and
+sun-sparc-solaris-64bit. (all-arch.mak [1.3]: 2000/03/15 18:38:29 lpd)
+
+Adds the ability to set the ProcessColorModel of the pdfwrite device to
+/DeviceGray, /DeviceRGB, or /DeviceCMYK. This affects the color space used
+for fill, stroke, text, and imagemask, and for images that (for whatever
+reason) can't be written in their specified color space. Note that this is a
+short-term fix: pdfwrite should output colors in the color space in which
+they were specified. However, a proper fix will require more significant
+architectural changes. (version.mak [1.4]: 2000/03/16 01:21:24 lpd)
+
+Adds documentation and a makefile entry for Matthew Gelhaus' cdj880 driver.
+The code will eventually be included in gdevcd8.c, but it is not yet mature
+enough. (contrib.mak [1.5]: 2000/03/16 08:09:42 lpd)
+
+Adds a missing dependency of gdevpdft.o on gxfont42.h. (devs.mak [1.2]:
+2000/03/17 02:59:26 lpd)
+
+Adds a disclaimer of responsibility for the makefile section for creating
+distribution archives, which Aladdin is no longer maintaining.
+(winint.mak [1.3]: 2000/03/17 03:01:58 lpd)
+
+Checks in the first wrap-up for the 6.01 release. (unix-gcc.mak [1.4],
+version.mak [1.5]: 2000/03/18 04:13:40 lpd)
+
+</pre><h2><a name="6.01 Utilities"></a>Utilities</h2><pre>
+
+Fixes problems:
+	- The loader for the stochastic halftone incorrectly assumed that
+the resource file left the resource on the stack, causing a stackunderflow
+error. (lib/stocht.ps [1.2]: 2000/03/10 03:34:44 lpd)
+	- The ps2pdf*.bat scripts didn't set PS2PDFSW to the empty string if
+there were no arguments, causing the same file to be processed again.
+(lib/ps2pdf12.bat [1.2], lib/ps2pdf13.bat [1.2]: 2000/03/10 07:40:00 lpd)
+	- Fixes a typo in the fix for putting stdout in binary mode.
+(gp_ntfs.c [1.3]: 2000/03/18 01:15:16 lpd)
+	- For printer devices, a non-null definition for OutputFile was
+required even on platforms that had a default printer (as implemented by
+gp_open_printer for that platform). (gp_os9.c [1.2], gp_unix.c [1.2],
+gp_vms.c [1.2]: 2000/03/18 01:45:16 lpd)
+
+In ansi2knr, adds user-contributed support for concatenated string literals
+and character constants, and fixes for a couple of minor bugs.
+(ansi2knr.c [1.2]: 2000/03/10 03:16:17 lpd)
+
+Updates the pf2afm.ps utility with a revised version from its authors.
+(lib/pf2afm.ps [1.2]: 2000/03/10 03:35:37 lpd)
+
+Adds a new eps2eps utility analogous to ps2ps. (lib/eps2eps [1.1],
+lib/eps2eps.bat [1.1]: 2000/03/10 07:51:55 lpd)
+
+Removes a temporary file that was included in the fileset by mistake.
+(lib/history [1.2]: 2000/03/10 08:18:36 lpd)
+
+Changes the ps2pdf MS Windows / MS-DOS scripts to use temporary files to
+avoid the absurdly low limits on the length of a command line and the total
+size of environment variable definitions. (lib/ps2pdf.bat [1.2],
+lib/ps2pdf12.bat [1.3], lib/ps2pdf13.bat [1.3], lib/ps2pdfwr.bat [1.2],
+lib/ps2pdfxx.bat [1.1]: 2000/03/14 20:20:20 lpd)
+
+On Windows, puts stdout into binary mode as well as stdin, to allow piping
+printer output through stdout (not a good idea, but it should be supported
+as well as on other platforms). (gp_ntfs.c [1.2]: 2000/03/17 06:22:59 lpd)
+
+</pre><h2><a name="6.01 Drivers"></a>Drivers</h2><pre>
+
+Fixes problems:
+	- When converting PostScript to PDF, selecting /Bicubic as an image
+DownsampleType caused an error instead of defaulting to /Average.
+(gdevpsdf.h [1.2], gdevpsdi.c [1.2], gdevpsdp.c [1.2]: 2000/03/10 04:16:09
+lpd)
+	- The mswinpr2 driver didn't handle setting BitsPerPixel to the same
+value when the device was already open, possibly causing an error on restore
+or grestore. (gdevwpr2.c [1.2]: 2000/03/10 04:26:07 lpd)
+	- When operating in buffered mode (MaxBitmap > 0), the X driver
+sometimes failed to copy all of the updated area to the screen.
+(gdevx.c [1.2], gdevx.h [1.2], gdevxini.c [1.2], gdevxxf.c [1.2]: 2000/03/10
+06:56:27 lpd)
+	- The [e]pswrite driver produced invalid output if the input file
+didn't end with a showpage. Also cleans up some formatting and removes a
+redundant test. (gdevps.c [1.2]: 2000/03/10 07:44:27 lpd)
+	- Fixes a problem producing too much black in the output; also adds
+support for 5 new printers (H-P Color DeskJet 690, H-P DesignJet 750, and
+Epson Stylus Color 200). Note that this is user-contributed code.
+(gdevupd.c [1.2], lib/bjc610a0.upp [1.2], lib/bjc610a1.upp [1.2],
+lib/bjc610a2.upp [1.2], lib/bjc610a3.upp [1.2], lib/bjc610a4.upp [1.2],
+lib/bjc610a5.upp [1.2], lib/bjc610a6.upp [1.2], lib/bjc610a7.upp [1.2],
+lib/bjc610a8.upp [1.2], lib/bjc610b1.upp [1.2], lib/bjc610b2.upp [1.2],
+lib/bjc610b3.upp [1.2], lib/bjc610b4.upp [1.2], lib/bjc610b6.upp [1.2],
+lib/bjc610b7.upp [1.2], lib/bjc610b8.upp [1.2], lib/cdj550.upp [1.2],
+lib/cdj690.upp [1.1], lib/cdj690ec.upp [1.1], lib/dnj750c.upp [1.1],
+lib/dnj750m.upp [1.1], lib/ras32.upp [1.2], lib/stc.upp [1.2],
+lib/stc1520h.upp [1.2], lib/stc2.upp [1.2], lib/stc200_h.upp [1.1],
+lib/stc2_h.upp [1.2], lib/stc2s_h.upp [1.2], lib/stc500p.upp [1.2],
+lib/stc500ph.upp [1.2], lib/stc600ih.upp [1.2], lib/stc600p.upp [1.2],
+lib/stc600pl.upp [1.2], lib/stc800ih.upp [1.2], lib/stc800p.upp [1.2],
+lib/stc800pl.upp [1.2], lib/stc_h.upp [1.2], lib/stc_l.upp [1.2],
+lib/stcany.upp [1.2]: 2000/03/16 02:01:36 lpd)
+	- The X driver's algorithm for deciding when to update the screen
+was changed several times between 5.50 and 6.0, and one of the more recent
+changes caused it to copy many more pixels to the screen than necessary if
+the file was making marks on the page in widely separated places.
+(gdevx.c [1.3]: 2000/03/17 07:35:43 lpd)
+	- In the X driver, the full-page buffer controlled by -dMaxBitmap=
+wasn't allocated with a stable allocator, possibly leading to memory access
+errors if save/restore were used. (gdevxini.c [1.3]: 2000/03/18 04:11:59
+lpd)
+
+Updates the Brother HL7xx drivers with a new user-contributed version, plus
+a couple of minor fixes. (gdevhl7x.c [1.2]: 2000/03/10 07:33:44 lpd)
+
+Enhances the [e]pswrite driver to handle Indexed color spaces over Device
+color spaces, only with the standard Decode. (gdevps.c [1.3]: 2000/03/10
+07:45:50 lpd)
+
+Adds the ability to set the ProcessColorModel of the pdfwrite device to
+/DeviceGray, /DeviceRGB, or /DeviceCMYK. This affects the color space used
+for fill, stroke, text, and imagemask, and for images that (for whatever
+reason) can't be written in their specified color space. Note that this is a
+short-term fix: pdfwrite should output colors in the color space in which
+they were specified. However, a proper fix will require more significant
+architectural changes. (gdevpsdf.c [1.2], gdevpsdf.h [1.3]: 2000/03/16
+01:21:24 lpd)
+
+Adds two more user-contributed 'uniprint' printer parameter sets: Epson
+Stylus Color 640, and a generic Epson Stylus Color in high resolution mode
+(720x720 dpi). (lib/stc640p.upp [1.1], lib/stcany_h.upp [1.1]: 2000/03/16
+02:03:40 lpd)
+
+</pre><h2><a name="6.01 PDF writer"></a>PDF writer</h2><pre>
+
+Fixes problems:
+	- In-line images emitted an extra 'q' (gsave), causing the CTM to
+become incorrect, entries to pile up on the dictionary stack, and an
+invalidrestore error to occur at the end of the page. (gdevpdfi.c [1.2]:
+2000/03/10 03:47:37 lpd)
+	- The change in 5.99 to work around Acrobat Reader's 32K limit on
+user space coordinates caused all 0-width rectangles to disappear, which had
+major effects on some files. (gdevpdfd.c [1.2]: 2000/03/10 03:48:10 lpd)
+	- Incrementally downloaded TrueType fonts produced truncated Widths
+tables in the output. We have patched this with a ******HACK****** that
+causes such fonts to be converted to bitmaps: the correct fix (to delay
+determining the range of valid characters until the font is written) is too
+large a change to make in a bug fix release. (gdevpdft.c [1.2]: 2000/03/10
+03:48:48 lpd)
+
+Adds the ability to set the ProcessColorModel of the pdfwrite device to
+/DeviceGray, /DeviceRGB, or /DeviceCMYK. This affects the color space used
+for fill, stroke, text, and imagemask, and for images that (for whatever
+reason) can't be written in their specified color space. Note that this is a
+short-term fix: pdfwrite should output colors in the color space in which
+they were specified. However, a proper fix will require more significant
+architectural changes. (gdevpdf.c [1.2], gdevpdfd.c [1.3], gdevpdfi.c [1.3],
+gdevpdfp.c [1.2], gdevpdft.c [1.3], gdevpdfu.c [1.2], gdevpdfx.h [1.2]:
+2000/03/16 01:21:24 lpd)
+
+</pre><h2><a name="6.01 Interpreter (PDF)"></a>Interpreter (PDF)</h2><pre>
+
+Fixes problems:
+	- When interpreting a PDF file, the Install page device procedure
+got more and more deeply nested after every page, eventually causing an
+execstackoverflow. (lib/pdf_main.ps [1.2]: 2000/03/10 03:56:11 lpd)
+	- When interpreting a PDF file, text drawing operators didn't reset
+the text position, so strings could get displayed on top of each other. (bug
+introduced by a fix in 5.98) (lib/pdf_ops.ps [1.2]: 2000/03/10 03:57:03 lpd)
+	- When interpreting a PDF file, substituted small-cap fonts were
+created with incorrect scaling. (lib/pdf_font.ps [1.2]: 2000/03/10 03:57:50
+lpd)
+
+Cleans up some formatting. (lib/pdf_base.ps [1.2]: 2000/03/10 03:58:14 lpd)
+
+</pre><h2><a name="6.01 Interpreter"></a>Interpreter</h2><pre>
+
+Fixes problems:
+	- There were extraneous 'def' commands that caused definitions to be
+made in the wrong dictionary. (lib/gs_ttf.ps [1.2]: 2000/03/10 03:31:39 lpd)
+	- If an error occurred while loading a font, it wouldn't produce an
+error message. (This is a 'fix' of a 'fix' of a 'fix': it might well break
+something else.) (lib/gs_type1.ps [1.2]: 2000/03/10 03:37:14 lpd)
+	- When reading the strings of a binary object sequence, having to
+get more data from a procedure-based stream sometimes caused a syntaxerror.
+Fix: If the reserved (0) field in binary objects or binary object sequences
+was not 0, no syntaxerror occurred. (iscanbin.c [1.2]: 2000/03/10 03:38:50
+lpd)
+	- The code for handling execstackoverflow errors didn't cut back the
+stack correctly, possibly causing invalid memory accesses if an incorrect
+attempt was made to run a cleanup procedure. (interp.c [1.2]: 2000/03/10
+04:04:38 lpd)
+	- Writing of dictionaries in binary object output, a non-standard
+extension, was enabled by default, and also had to be enabled at startup
+time if it was ever going to be used. Fix: Binary error messages caused an
+error if the command wasn't of a type that printobject could handle. We now
+do what the Adobe implementations appear to do in this case, namely, convert
+the object with cvs. (lib/gs_btokn.ps [1.2]: 2000/03/10 04:27:31 lpd)
+	- CloseSource and CloseTarget were effectively ignored for Flate and
+LZW filters with a Predictor, and for the DCT filters. (ifilter.h [1.2],
+zfdctd.c [1.2], zfdcte.c [1.2], zfdecode.c [1.2], zfilter.c [1.2],
+zfilter2.c [1.2]: 2000/03/10 04:32:51 lpd)
+	- findlibfile didn't handle %iodevice% prefixes correctly.
+(zfile.c [1.2]: 2000/03/10 04:35:08 lpd)
+	- fileposition didn't give an error for filters or non-seekable
+streams. (zfileio.c [1.2]: 2000/03/10 04:35:53 lpd)
+	- Images with input from a file or filter demanded 1 byte of data
+too many, sometimes causing the last line of the image to be dropped. (bug
+probably introduced in 6.0) (zimage.c [1.2]: 2000/03/10 04:37:02 lpd)
+	- The check for a show within a cshow procedure for a CID font was
+wrong. Fix: Character widths in CIDFontType 0 fonts were ignored (!). Adds a
+.glyphwidth operator to support correct handling of character widths for CID
+fonts. Adds a glyphwidth procedure to the library, like glyphshow and
+glyphpath, in order to support correct handling of widths for CID fonts.
+(ichar.h [1.2], lib/gs_cidfn.ps [1.2], zchar.c [1.2], zcharx.c [1.2]:
+2000/03/10 04:41:47 lpd)
+	- resourcestatus for fonts was broken. (lib/gs_res.ps [1.2]:
+2000/03/10 04:54:15 lpd)
+	- Fixes incorrect documentation of several procedures.
+(lib/gs_fonts.ps [1.2]: 2000/03/10 07:00:28 lpd)
+	- The %ram% IODevice was defined, but should not be (it represents a
+RAM-based file system, which Ghostscript does not provide). Fix: The type of
+the %null% IODevice was /FileSystem rather than /Special. (ziodev2.c [1.2]:
+2000/03/10 07:02:07 lpd)
+	- Directly-loaded TrueType fonts (including embedded TrueType fonts
+in PDF files) could get confused with each other in the cache, because their
+XUIDs were based on the font checksum field, which some fonts don't have set
+correctly. (lib/gs_ttf.ps [1.3]: 2000/03/16 07:38:07 lpd)
+
+Adds a new example file, a 3-D synthetic image. (examples/doretree.ps [1.1]:
+2000/03/10 04:00:45 lpd)
+
+Adds implementations of the devforall, devstatus, and diskonline
+compatibility operators. (lib/gs_statd.ps [1.2]: 2000/03/10 04:01:55 lpd)
+
+Some Adobe CIDFonts include a line /Setup /cid_Setup load def that
+apparently is intended only to prevent the fonts from being loaded by a
+standard PostScript interpreter (as opposed to ATM or a special font
+loader), since cid_Setup is not defined anywhere and Setup is never
+referenced; this change adds a dummy definition of cid_Setup to work around
+this. (lib/gs_cidfn.ps [1.3]: 2000/03/10 04:53:25 lpd)
+
+Updates the version # to 6.01, and the version date. (lib/gs_init.ps [1.2]:
+2000/03/10 17:18:29 lpd)
+
+Changes the default undercolor removal and black generation functions back
+from f(k) = k to f(k) = 0. This fixes some, but not all, of the reported
+problems with color inkjet output in 6.0. (lib/gs_init.ps [1.3]: 2000/03/10
+18:47:31 lpd)
+
+On Windows, puts stdout into binary mode as well as stdin, to allow piping
+printer output through stdout (not a good idea, but it should be supported
+as well as on other platforms). (dwmainc.cpp [1.2]: 2000/03/17 06:22:59 lpd)
+
+</pre><h2><a name="6.01 Streams"></a>Streams</h2><pre>
+
+Changes the sbuf_min_left macro to a procedure for readability and in
+preparation for later revision. (stream.c [1.2], stream.h [1.2]: 2000/03/10
+03:40:13 lpd)
+
+</pre><h2><a name="6.01 Library"></a>Library</h2><pre>
+
+Fixes problems:
+	- (%os%) currentdevparams didn't return (fixed) values for
+InitializeAction, Mounted, Removable, Searchable, SearchOrder, and
+Writeable, or (meaningful) values for BlockSize, Free, and LogicalSize.
+Currently, the latter values are dummies. (gsiodev.c [1.2]: 2000/03/10
+03:43:06 lpd)
+	- The terminating $ on the $Id: line in gsmalloc.c was missing, and
+dwuninst.rc lacked a $Id: line. (gsmalloc.c [1.2]: 2000/03/10 03:44:33 lpd)
+	- RasterOps with source transparency = 0, texture transparency = 1
+didn't match the (very peculiar) H-P specification even if
+TRANSPARENCY_PER_H_P was defined. (gdevdrop.c [1.2], gdevmrop.h [1.2],
+gsropt.h [1.2]: 2000/03/10 04:06:15 lpd)
+	- The prototype for gs_exit() was not included even though gs_exit()
+was called. Fix: A cast discarded const unnecessarily. (gsalloc.c [1.2]:
+2000/03/10 04:08:23 lpd)
+	- The type of the %pipe% IODevice was /FileSystem, whereas it should
+be /Special. (gdevpipe.c [1.2]: 2000/03/10 04:13:57 lpd)
+	- An incorrectly formatted procedure couldn't be converted correctly
+by ansi2knr. (gxidata.c [1.2]: 2000/03/10 04:30:58 lpd)
+	- The check for a show within a cshow procedure for a CID font was
+wrong. Fix: Character widths in CIDFontType 0 fonts were ignored (!). Adds a
+.glyphwidth operator to support correct handling of character widths for CID
+fonts. Adds a glyphwidth procedure to the library, like glyphshow and
+glyphpath, in order to support correct handling of widths for CID fonts.
+(gschar.c [1.2], gschar.h [1.2], gstext.c [1.2], gstext.h [1.2]: 2000/03/10
+04:41:47 lpd)
+	- The description of the value returned by code_map_decode_next in
+*pchr was incorrect. (documentation bug only) (gsfcmap.c [1.2]: 2000/03/10
+07:03:09 lpd)
+	- Fixes a problem producing too much black in the output; also adds
+support for 5 new printers (H-P Color DeskJet 690, H-P DesignJet 750, and
+Epson Stylus Color 200). Note that this is user-contributed code.
+(gsargs.h [1.2]: 2000/03/16 02:01:36 lpd)
+	- The code for Axial shadings incorrectly assumed that if the
+shading axis was horizontal or vertical in user space, it was also
+horizontal or vertical in device space: this caused incorrect results when
+the CTM wasn't orthogonal. (gxshade1.c [1.2]: 2000/03/17 08:17:55 lpd)
+	- For printer devices, a non-null definition for OutputFile was
+required even on platforms that had a default printer (as implemented by
+gp_open_printer for that platform). (gp.h [1.2], gsdevice.c [1.2]:
+2000/03/18 01:45:16 lpd)
+
+Clears the glyf and loca offsets in TrueType fonts that lack these tables,
+so that clients who care can tell whether the font is being downloaded
+incrementally. (gstype42.c [1.2]: 2000/03/10 03:45:29 lpd)
+
+Changes a few macro definitions to work around over-zealous compiler
+warnings. (gstype1.c [1.2], gstype2.c [1.2], gxtype1.h [1.2]: 2000/03/10
+04:29:37 lpd)
+
+Changes the default undercolor removal and black generation functions back
+from f(k) = k to f(k) = 0. This fixes some, but not all, of the reported
+problems with color inkjet output in 6.0. (gxdcconv.c [1.2]: 2000/03/10
+18:47:31 lpd)
+
+<hr>
+
+<h1><a name="Version6.0"></a>Version 6.0 (2000-02-03)</h1>
+
+This is the first public release since 5.50.  See <a href="Current.htm">the
+release summary</a> for information about new capabilities and known
+problems.
+
+<h2><a name="6.0_Documentation"></a>Documentation</h2>
+
+Documents the fact that the plane_depths of a gx_image_enum structure may
+vary, and that planes_wanted procedure of a gx_image_enum must return false
+if the depths *or* widths can change.  (gxiparam.h)
+
+Documents the fact that a wanted plane's wanted status, width, or depth can
+only be changed by a call of plane_data that provides data for that plane.
+(gxiparam.h)
+
+Documents the change in the handling of the pthreads library.
+(doc/Make.htm)
+
+Documents the fact that setting parameters for the DCTEncode filter in
+ps2pdf causes a crash.  (doc/Ps2pdf.htm)
+
+Documents another bug in the MIPSpro 7.x / IRIX 6.5.x compilers, with
+isave.c.  (doc/Make.htm)
+
+Corrects Russell Lang's e-mail address.  (doc/New-user.htm)
+
+Documents the new image operator test file and the pdfeof file.
+(doc/Psfiles.htm)
+
+Documents the 'w' argument for image_render procedures.  (gxiclass.h)
+
+Adds a little more checking to the release process.  (doc/Release.htm)
+
+Documents the return values from the font build_char procedure.  (gxfont.h)
+
+Documents the fact that the free 'zip' program is needed to build the
+self-extracting Windows executable, as well as WinZipSE.  (doc/Make.htm,
+msvc32.mak, winint.mak)
+
+Adds references to several new free fonts.  (doc/Fonts.htm)
+
+Documents an important invariant for streams.  (stream.h)
+
+Adds a reference for user-supported Watcom / GNU make makefiles.
+(doc/Make.htm, doc/New-user.htm)
+
+Documents the dependence of gs_ttf.ps on some of the gs_*_e.ps files.
+(lib/gs_ttf.ps)
+
+Documents how to make self-extracting Windows executables.
+(doc/Release.htm)
+
+Adds a number of new user-contributed man pages.  (unixinst.mak, man/gslp.1,
+man/wftopfa.1, man/printafm.1, man/pfbtopfa.1, man/font2c.1, man/dvipdf.1,
+man/ps2pdfwr.1, man/gsnd.1, man/pf2afm.1, man/ps2pdf.1)
+
+<h2><a name="6.0_Procedures"></a>Procedures</h2>
+
+Fixes problems:
+	- Building on BSDI didn't work.  The simplest way to fix this was to
+change the linking of the pthreads library on Unix platforms to be included
+in STDLIBS rather than the "sync" implementation. (fix contributed by a
+user) (lib.mak, unix-gcc.mak, unixansi.mak, unixtrad.mak)
+	- Once again, some runtime files weren't installed.  (unixinst.mak)
+	- Building the self-extracting executable didn't work.  (winint.mak)
+
+Updates the user-contributed all-architectures makefile.  (all-arch.mak)
+
+<h2><a name="6.0_Utilities"></a>Utilities</h2>
+
+Fixes problems:
+	- A needed #include was missing.  (geninit.c)
+	- There were signed/unsigned char mismatches.  (genht.c, geninit.c)
+	- The MacOS compiler imposes a 32K limit on the size of a stack
+frame: we changed the code to use malloc/free.  (geninit.c)
+
+Removes an unnecessary variable.  (echogs.c)
+
+Adds a file that attempts to test the image operators exhaustively.
+(lib/image-qa.ps, unixinst.mak)
+
+Enhances the prfont.ps utility to print CIDFonts.  (lib/prfont.ps)
+
+Adds a utility file that patches the PDF interpreter to allow garbage after
+the %%EOF (or the %%EOF to be missing completely).  (lib/pdfeof.ps)
+
+<h2><a name="6.0_Drivers"></a>Drivers</h2>
+
+Fixes problems:
+	- The X driver compared too many bits of color value, leading to
+unnecessary halftoning.  (bug introduced by a fix in 5.99) (gdevxcmp.c)
+	- Output from the pswrite driver got a dictfull error on Level 1
+printers.  (gdevps.c)
+	- Anti-aliasing had stopped working on MS Windows and OS/2. (bug
+probably introduced in 5.65) (gdevmswn.c, gdevpm.c)
+
+<h2><a name="6.0_Platforms"></a>Platforms</h2>
+
+Adds a conditional definition of PTHREAD_CREATE_DETACHED for old versions of
+the pthreads library.  (gp_psync.c)
+
+Updates the Microsoft Visual C++ library makefile for VC++ 6.  (msvclib.mak)
+
+Updates some copyright dates.  (winint.mak, dwsetup.rc)
+
+<h2><a name="6.0_Fonts"></a>Fonts</h2>
+
+Updates the URW fonts to include the expanded Adobe character set, including
+many Eastern European accented characters.  (doc/New-user.htm)
+
+Removes a 'readonly' that inconvenienced the authors of ttf2pf.
+(lib/gs_ttf.ps)
+
+<h2><a name="6.0_PDF_writer"></a>PDF writer</h2>
+
+Fixes problems:
+	- The Dest key was deleted from GoTo and GoToR link annotation
+pdfmarks.  (gdevpdfm.c)
+	- {name} references were substituted even in stream data for the
+/PUT pdfmark.  (gdevpdfm.c)
+	- The revision number was sometimes printed incorrectly if its
+fraction part was zero.  (gdevpdf.c)
+	- Embedded Multiple Master font instances weren't identified as
+MMType1 rather than Type1.  (gdevpdff.h, gdevpdff.c, gdevpdft.c, gdevpdfw.c)
+	- The test against MaxSubsetPct was incorrect when the percentages
+were equal.  (gdevpdfw.c)
+	- Font registrations weren't removed when the device was closed.
+(gdevpdff.h, gdevpdfx.h, gdevpdff.c, gdevpdfw.c)
+	- Multiple /OBJ pdfmarks with the same name caused an error.  For
+Distiller compatibility, we now allow this if the type is the same, even
+though the pdfmark specification doesn't say anything about this being
+legal.  (gdevpdfm.c)
+
+Removes an unnecessary variable.  (gdevpdff.c, gdevpdfr.c)
+
+Disables embedding Multiple Master font instances, since Acrobat Reader
+doesn't accept what appear to be correct output and we don't have time
+before the release to track down the problem.  (gdevpdft.c)
+
+<h2><a name="6.0_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+
+Factors some code to allow patching the PDF reader to allow garbage after
+the %%EOF (or the %%EOF to be missing completely).  (lib/pdf_main.ps)
+
+<h2><a name="6.0_Interpreter"></a>Interpreter</h2>
+
+Fixes problems:
+	- Type 1 fonts with non-standard OtherSubrs had stopped working.
+(bug introduced since 5.60) (zchar1.c)
+	- usecmap didn't work.  (lib/gs_cmap.ps)
+	- The glyph_info procedure for Type 1 fonts didn't take Metrics[2]
+or CDevProc into account.  (zchar1.c, zfont1.c)
+	- The multiple-data-source case of images was broken. (bug
+introduced in 5.99) (zimage.c)
+	- If a page device Install procedure caused an error, things could
+be left in an inconsistent state.  (lib/gs_setpd.ps)
+	- Using a DeviceN color space could access uninitialized data in a
+color value.  (zcsdevn.c)
+	- DeviceN images with procedure data sources were broken.
+(zimage.c)
+	- Images with a procedure data source could terminate prematurely if
+their processing was interrupted.  (zimage.c)
+	- The garbage collector only marked half the name table sub-tables,
+and attempted to mark an equal number of invalid pointers, leading to
+invalid accesses or memory corruption.  (iname.c)
+
+Removes an unused variable.  (zmisc.c)
+
+<h2><a name="6.0_Streams"></a>Streams</h2>
+
+Fixes problems:
+	- sgets didn't reset the cursor pointers, so sgets into a client
+buffer followed by sseek (for some kinds of streams, including files) could
+get confused.  (stream.c)
+
+<h2><a name="6.0_Library"></a>Library</h2>
+
+Fixes problems:
+	- A 'const' qualifier was omitted, leading to a type mismatch.
+(gxclrast.c)
+	- The revision number was sometimes printed incorrectly if its
+fraction part was zero.  (gsmisc.c)
+	- gs_image_next returned the wrong value in *pused if it incremented
+the plane number.  (bug introduced in 5.99) (gsimage.c)
+	- Only the last of the data_x and raster values in the local
+'planes' array in gs_image_next_planes were initialized.  (bug introduced in
+5.99) (gsimage.c)
+	- The multiple-data-source case of images was broken. (bug
+introduced in 5.99) (gsimage.h, gsimage.c)
+	- ImageType 3 images with unequal scaling for the mask and data
+didn't work.  (We thought they once did, but it appears they never have.)
+(gximage3.c)
+	- Images with 12-bit samples treated a Decode entry of [1 0] the
+same as [0 1].  (Other, general Decode entries worked correctly.)
+(gxipixel.c)
+	- ImageType 3 images didn't work if processing was ever interrupted
+for remapping a color.  (gximage3.c)
+	- Images in DeviceN color spaces with 12-bit samples didn't work.
+(gxi12bit.c, gxidata.c)
+	- Images in DeviceN color spaces could fail to render properly
+because the interruption of rendering left a half-built entry in an internal
+cache.  (gxi12bit.c, gxicolor.c)
+	- Images with non-idempotent RasterOps in 1-component DeviceN color
+spaces didn't render properly, because the same pixel was rendered multiple
+times after a color remapping interruption.  (gximono.c)
+	- The fast case of masked images caused a crash if invoked without
+an imager state.  (gximono.c)
+	- Flushing buffered image data could cause coordinate bookkeeping
+to get out of sync.  (gxidata.c)
+	- ImageType 3, InterleaveType 2 images sometimes failed to render
+the last row.  (gximage3.c)
+	- The fix in 5.88 for resizing large objects had a bug itself.
+(gsalloc.c)
+	- Whan banding, if a client supplied more data than necessary for an
+image, the client was told (incorrectly) that all of the data was used.
+(fix from Artifex) (gxclimag.c)
+	- Null patterns caused a crash. (bug probably introduced by changes
+to support PatternType 2) (gspcolor.c)
+	- On hand-initialized memory devices where line_ptrs[0] != base,
+monobit RasterOps could cause invalid or stray memory accesses.  (gdevmr1.c)
+
+Removes an unnecessary variable.  (gdevppla.c, gsfont.c)
+
+Adds the ability to call a specified procedure when unregistering
+notification, needed for removing PDF font registrations.  (gsnotify.h,
+gsnotify.c)
+
+Updates the copyright year.  (gscdef.c)
+
+</pre>
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+<hr>
+
+<font size=2>
+
+<p>Copyright &copy; 2000 Aladdin Enterprises.  All rights reserved.
+
+<p>This file is part of Aladdin Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+Aladdin Ghostscript.
+
+<p>
+Ghostscript version 6.01, 17 March 2000
+
+</font>
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

@@ -1,12 +1,12 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
-	verbose("%s->init\n", ctlr->name);
 	ctlr->flag |= Finit;
 
 	/*

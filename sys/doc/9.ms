@@ -14,6 +14,13 @@ USA
 .SH
 Motivation
 .PP
+.FS
+Appeared in a slightly different form in
+.I
+Computing Systems,
+.R
+Vol 8 #3, Summer 1995, pp. 221-254.
+.FE
 By the mid 1980's, the trend in computing was
 away from large centralized time-shared computers towards
 networks of smaller, personal machines,
@@ -137,7 +144,7 @@ The unusual properties of Plan 9 stem from the consistent, aggressive
 application of these principles.
 .PP
 A large Plan 9 installation has a number of computers networked
-together, each providing to a particular class of service.
+together, each providing a particular class of service.
 Shared multiprocessor servers provide computing cycles;
 other large machines offer file storage.
 These machines are located in an air-conditioned machine

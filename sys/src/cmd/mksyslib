@@ -1,4 +1,3 @@
-CFLAGS=-w
 AFLAGS=
 
 all:V:	$LIB
@@ -17,12 +16,6 @@ $LIB:V:	$OFILES			# force archive even when not needed
 %.$O:	%.s
 	$AS $AFLAGS $stem.s
 
-(.*)\.[vk8]'$':R:	\1.l
-	$ALEF $CFLAGS $stem1.l
-
-(.*)\.[2z]'$':RQ:	\1.l
-	;
-
 install:V: $LIB
 
 installall:V:
@@ -35,7 +28,13 @@ installall:V:
 	for(objtype in $CPUS) mk $stem
 
 clean:V:
-	rm -f *.[$OS] [$OS].out
+	rm -f *.[$OS] [$OS].out $CLEANFILES
+
+%.clean:V:
+	rm -f $stem.[$OS] [$OS].$stem $stem.acid $stem
 
 nuke:V:
-	rm -f *.[$OS] [$OS].out
+	rm -f *.[$OS] [$OS].out $CLEANFILES
+
+%.acid: %.$O $HFILES
+	$CC $CFLAGS -a $stem.c >$target

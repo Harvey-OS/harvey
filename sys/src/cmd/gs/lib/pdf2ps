@@ -1,0 +1,21 @@
+#!/bin/sh
+# $Id: pdf2ps,v 1.1 2000/03/09 08:40:40 lpd Exp $
+# Convert PDF to PostScript.
+
+OPTIONS=""
+while true
+do
+	case "$1" in
+	-*) OPTIONS="$OPTIONS $1" ;;
+	*)  break ;;
+	esac
+	shift
+done
+
+if [ $# -ne 2 ]; then
+	echo "Usage: `basename $0` [-dASCII85EncodePages=false] [-dLanguageLevel=n] input.pdf output.ps" 1>&2
+	exit 1
+fi
+
+# Doing an initial 'save' helps keep fonts from being flushed between pages.
+exec gs -q -dNOPAUSE -dBATCH -sDEVICE=pswrite -sOutputFile=$2 $OPTIONS -c save pop -f $1

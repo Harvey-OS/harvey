@@ -7,6 +7,10 @@
 
 #include "ip.h"
 
+uchar broadcast[Eaddrlen] = {
+	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+};
+
 static ushort tftpport = 5000;
 static int Id = 1;
 static Netaddr myaddr;
@@ -132,6 +136,13 @@ ip_csum(uchar *addr)
 	return (sum^0xffff);
 }
 
+void
+printea(uchar *ea)
+{
+	print("%2ux%2ux%2ux%2ux%2ux%2ux",
+		ea[0], ea[1], ea[2], ea[3], ea[4], ea[5]);
+}
+
 static void
 udpsend(int ctlrno, Netaddr *a, void *data, int dlen)
 {
@@ -139,7 +150,6 @@ udpsend(int ctlrno, Netaddr *a, void *data, int dlen)
 	Etherhdr *ip;
 	Etherpkt pkt;
 	int len, ptcllen;
-
 
 	uh = (Udphdr*)&pkt;
 
@@ -169,7 +179,7 @@ udpsend(int ctlrno, Netaddr *a, void *data, int dlen)
 	 * IP portion
 	 */
 	ip = (Etherhdr*)&pkt;
-	len = sizeof(Udphdr)+dlen;
+	len = UDP_EHSIZE+UDP_HDRSIZE+dlen;		/* non-descriptive names */
 	ip->vihl = IP_VER|IP_HLEN;
 	ip->tos = 0;
 	ip->ttl = 255;
@@ -187,6 +197,9 @@ udpsend(int ctlrno, Netaddr *a, void *data, int dlen)
 	hnputs(ip->type, ET_IP);
 	memmove(ip->d, a->ea, sizeof(ip->d));
 
+if(debug) {
+	print("udpsend ");
+}
 	ethertxpkt(ctlrno, &pkt, len, Timeout);
 }
 
@@ -207,31 +220,39 @@ nak(int ctlrno, Netaddr *a, int code, char *msg, int report)
 		print("\ntftp: error(%d): %s\n", code, msg);
 }
 
-static void
-dumpbytes(uchar *p, int n)
-{
-	while(n-- > 0)
-		print("%2.2ux ", *p++);
-	print("\n");
-}
-
 static int
 udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 {
 	int n, len;
 	ushort csm;
 	Udphdr *h;
-	ulong addr;
+	ulong addr, timo;
 	Etherpkt pkt;
+	static int rxactive;
 
-	for(;;) {
-		n = etherrxpkt(ctlrno, &pkt, Timeout);
+	if(rxactive == 0)
+		timo = 1000;
+	else
+		timo = Timeout;
+	timo += TK2MS(m->ticks);
+	while(timo > TK2MS(m->ticks)){
+		n = etherrxpkt(ctlrno, &pkt, timo-TK2MS(m->ticks));
 		if(n <= 0)
-			return 0;
+			continue;
 
 		h = (Udphdr*)&pkt;
-		if(nhgets(h->type) != ET_IP)
+if(debug) {
+	print("udprecv ");
+	printea(h->s);
+	print(" to ");
+	printea(h->d);
+	print("...\n");
+}
+
+		if(nhgets(h->type) != ET_IP) {
+if(debug) print("not ip...");
 			continue;
+		}
 
 		if(ip_csum(&h->vihl)) {
 			print("ip chksum error\n");
@@ -242,8 +263,12 @@ udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 			continue;
 		}
 
-		if(h->udpproto != IP_UDPPROTO)
+		if(h->udpproto != IP_UDPPROTO) {
+if(debug) print("not udp...");
 			continue;
+		}
+
+if(debug) print("okay udp...");
 
 		h->ttl = 0;
 		len = nhgets(h->udplen);
@@ -253,17 +278,20 @@ udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 			csm = ptcl_csum(&h->ttl, len+UDP_PHDRSIZE);
 			if(csm != 0) {
 				print("udp chksum error csum #%4lux len %d\n", csm, n);
-				dumpbytes((uchar*)&pkt, n < 64 ? n : 64);
 				break;
 			}
 		}
 
-		if(a->port != 0 && nhgets(h->udpsport) != a->port)
+		if(a->port != 0 && nhgets(h->udpsport) != a->port) {
+if(debug) print("udpport %ux %ux\n", nhgets(h->udpsport), a->port);
 			continue;
+		}
 
 		addr = nhgetl(h->udpsrc);
-		if(a->ip != Bcastip && addr != a->ip)
+		if(a->ip != Bcastip && addr != a->ip) {
+if(debug) print("bad ip\n");
 			continue;
+		}
 
 		len -= UDP_HDRSIZE-UDP_PHDRSIZE;
 		if(len > dlen) {
@@ -276,6 +304,7 @@ udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 		a->port = nhgets(h->udpsport);
 		memmove(a->ea, pkt.s, sizeof(a->ea));
 
+		rxactive = 1;
 		return len;
 	}
 
@@ -287,7 +316,7 @@ static int tftpblockno;
 static int
 tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 {
-	int i, len, rlen;
+	int i, len, rlen, oport;
 	char buf[Segsize+2];
 
 	buf[0] = 0;
@@ -295,7 +324,9 @@ tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 	len = sprint(buf+2, "%s", name) + 2;
 	len += sprint(buf+len+1, "octet") + 2;
 
+	oport = a->port;
 	for(i = 0; i < 5; i++){
+		a->port = oport;
 		udpsend(ctlrno, a, buf, len);
 		a->port = 0;
 		if((rlen = udprecv(ctlrno, a, tftp, sizeof(Tftp))) < sizeof(tftp->header))
@@ -327,53 +358,50 @@ tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 static int
 tftpread(int ctlrno, Netaddr *a, Tftp *tftp, int dlen)
 {
-	int blockno, len;
 	uchar buf[4];
-
-	buf[0] = 0;
-	buf[1] = Tftp_ACK;
-	buf[2] = tftpblockno>>8;
-	buf[3] = tftpblockno;
-	tftpblockno++;
+	int try, blockno, len;
 
 	dlen += sizeof(tftp->header);
 
-buggery:
-	udpsend(ctlrno, a, buf, sizeof(buf));
+	for(try = 0; try < 10; try++) {
+		buf[0] = 0;
+		buf[1] = Tftp_ACK;
+		buf[2] = tftpblockno>>8;
+		buf[3] = tftpblockno;
 
-	if((len = udprecv(ctlrno, a, tftp, dlen)) != dlen){
-		print("tftpread: %d != %d\n", len, dlen);
-		nak(ctlrno, a, 2, "short read", 0);
+		udpsend(ctlrno, a, buf, sizeof(buf));
+		len = udprecv(ctlrno, a, tftp, dlen);
+		if(len <= sizeof(tftp->header))
+			continue;
+		blockno = (tftp->header[2]<<8)|tftp->header[3];
+		if(blockno <= tftpblockno)
+			continue;
+
+		if(blockno == tftpblockno+1) {
+			tftpblockno++;
+			if(len < dlen) {	/* last packet; send final ack */
+				tftpblockno++;
+				buf[0] = 0;
+				buf[1] = Tftp_ACK;
+				buf[2] = tftpblockno>>8;
+				buf[3] = tftpblockno;
+				udpsend(ctlrno, a, buf, sizeof(buf));
+			}
+			return len-sizeof(tftp->header);
+		}
+		print("tftpread: block error: %d, expected %d\n",
+			blockno, tftpblockno+1);
 	}
 
-	blockno = (tftp->header[2]<<8)|tftp->header[3];
-	if(blockno != tftpblockno){
-		print("tftpread: block error: %d, expected %d\n", blockno, tftpblockno);
-
-		if(blockno == tftpblockno-1)
-			goto buggery;
-		nak(ctlrno, a, 1, "block error", 0);
-
-		return -1;
-	}
-
-	return len-sizeof(tftp->header);
-}
-
-static void
-tftpclose(int ctlrno, Netaddr *a, uchar code, char *msg)
-{
-	nak(ctlrno, a, code, msg, 0);
+	return -1;
 }
 
 int
-bootp(int ctlrno, char *file)
+bootp(int ctlrno, char *file, Boot *b)
 {
 	Bootp req, rep;
-	int i, dlen, segsize, text, data, bss, total;
-	uchar *ea, *addr, *p;
-	ulong entry;
-	Exec *exec;
+	int i, dlen;
+	uchar *ea;
 	char name[128], *filename, *sysname;
 
 	if((ea = etheraddr(ctlrno)) == 0){
@@ -385,11 +413,9 @@ bootp(int ctlrno, char *file)
 	sysname = 0;
 	if(file && *file){
 		strcpy(name, file);
-		if(filename = strchr(name, ':')){
-			if(filename != name && *(filename-1) != '\\'){
-				sysname = name;
-				*filename++ = 0;
-			}
+		if(filename = strchr(name, '!')){
+			sysname = name;
+			*filename++ = 0;
 		}
 		else
 			filename = name;
@@ -401,15 +427,19 @@ bootp(int ctlrno, char *file)
 	req.htype = 1;			/* ethernet */
 	req.hlen = Eaddrlen;		/* ethernet */
 	memmove(req.chaddr, ea, Eaddrlen);
+	if(filename != nil)
+		strncpy(req.file, filename, sizeof(req.file));
+	if(sysname != nil)
+		strncpy(req.sname, sysname, sizeof(req.sname));
 
 	myaddr.ip = 0;
 	myaddr.port = BPportsrc;
-	memmove(myaddr.ea, ea, sizeof(myaddr.ea));
+	memmove(myaddr.ea, ea, Eaddrlen);
 
 	for(i = 0; i < 10; i++) {
 		server.ip = Bcastip;
 		server.port = BPportdst;
-		memset(server.ea, 0xFF, sizeof(server.ea));
+		memmove(server.ea, broadcast, sizeof(server.ea));
 		udpsend(ctlrno, &server, &req, sizeof(req));
 		if(udprecv(ctlrno, &server, &rep, sizeof(rep)) <= 0)
 			continue;
@@ -427,63 +457,33 @@ bootp(int ctlrno, char *file)
 
 	if(filename == 0 || *filename == 0)
 		filename = rep.file;
+
 	if(rep.sname[0] != '\0')
-		print("%s:%s\n", rep.sname, filename);
+		 print("%s ", rep.sname);
+	print("(%d.%d.%d.%d!%d): %s\n",
+		rep.siaddr[0],
+		rep.siaddr[1],
+		rep.siaddr[2],
+		rep.siaddr[3],
+		server.port,
+		filename);
 
 	myaddr.ip = nhgetl(rep.yiaddr);
 	myaddr.port = tftpport++;
+	server.ip = nhgetl(rep.siaddr);
 	server.port = TFTPport;
 
 	if((dlen = tftpopen(ctlrno, &server, filename, &tftpb)) < 0)
 		return -1;
 
-	exec = (Exec*)(tftpb.data);
-	if(dlen < sizeof(Exec) || GLLONG(exec->magic) != I_MAGIC){
-		nak(ctlrno, &server, 0, "bad magic number", 1);
-		return -1;
-	}
-	text = GLLONG(exec->text);
-	data = GLLONG(exec->data);
-	bss = GLLONG(exec->bss);
-	total = text+data+bss;
-	entry = GLLONG(exec->entry);
-	print("%d", text);
+	while(bootpass(b, tftpb.data, dlen) == MORE)
+		if((dlen = tftpread(ctlrno, &server, &tftpb, sizeof(tftpb.data))) < sizeof(tftpb.data))
+			break;
 
-	addr = (uchar*)PADDR(entry);
-	p = tftpb.data+sizeof(Exec);
-	dlen -= sizeof(Exec);
-	segsize = text;
-	for(;;){
-		if(dlen == 0){
-			if((dlen = tftpread(ctlrno, &server, &tftpb, sizeof(tftpb.data))) < 0)
-				return -1;
-			p = tftpb.data;
-		}
-		if(segsize <= dlen)
-			i = segsize;
-		else
-			i = dlen;
-		memmove(addr, p, i);
-
-		addr += i;
-		p += i;
-		segsize -= i;
-		dlen -= i;
-
-		if(segsize <= 0){
-			if(data == 0)
-				break;
-			print("+%d", data);
-			segsize = data;
-			data = 0;
-			addr = (uchar*)PGROUND((ulong)addr);
-		}
-	}
-	tftpclose(ctlrno, &server, 3, "ok");
-	print("+%d=%d\n", bss, total);
-	print("entry: 0x%lux\n", entry);
-
-	(*(void(*)(void))(PADDR(entry)))();
-	
-	return 0;
+	if(0 < dlen && dlen < sizeof(tftpb.data))	/* got to end of file */
+		bootpass(b, tftpb.data, dlen);
+	else
+		nak(ctlrno, &server, 3, "ok", 0);	/* tftpclose to abort transfer */
+	bootpass(b, nil, 0);	/* boot if possible */
+	return -1;
 }

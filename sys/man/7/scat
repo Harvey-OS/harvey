@@ -160,12 +160,23 @@ is zero,
 collects all objects in the patches that cover the current set.
 .TP
 .BI plot " option"
-Expand and plot the set on the screen.
-The only option is
-.B nogrid
-to suppress the lines of declination and right ascension.
+Expand and plot the set in a new window on the screen.
 Symbols for NGC objects are as in Sky Atlas 2000.0.
 Abell clusters are plotted as a triangle of ellipses.
+The option
+.B nogrid
+suppresses the lines of declination and right ascension.
+The default size is 512×512; options
+.B dx
+.I n
+and
+.BR dy
+.I n
+set the
+.I x
+and
+.I y
+extent.
 .TP
 .B "plate \f1[[\f2ra dec\f1] \f2rasize\f1 [\f2decsize\f1]]"
 Display the section of the Digitized Sky Survey (plate scale
@@ -187,21 +198,22 @@ before running
 .IR scat .
 .TP
 .BI gamma " value"
-Set the gamma for converting plates to bitmaps.  Default is \-1.0.
+Set the gamma for converting plates to images.  Default is \-1.0.
 Negative values display white stars, positive black.
-The images look best on displays with ldepth 3.
+The images look best on displays with depth 8 or greater.
 .I Scat
 does not change the hardware color map, which
 should be set externally to a grey scale; try the command
-.B fb/getmap gamma
+.B getmap gamma
 (see
-.IR getmap (9.1)).
+.IR getmap (9.1))
+on an 8-bit color-mapped display.
 .PD
 .SH EXAMPLES
-Plot the NGC objects and naked-eye stars in Orion.
+Plot the Messier objects and naked-eye stars in Orion.
 .EX
 	ori
-	keep ngc <6
+	keep m <6
 	plot nogrid
 .EE
 .PP
@@ -229,5 +241,5 @@ the three-letter abbreviations of the constellation names.
 .PP
 The data was provided by the Astronomical Data Center at the NASA Goddard
 Space Flight Center, except for NGC2000.0, which is Copyright © 1988, Sky
-Publishing Corporation, used by permission.  The Digitized Sky Survey, 102
+Publishing Corporation, used (but not distributed) by permission.  The Digitized Sky Survey, 102
 CD-ROMs, is not distributed with the system.

@@ -11,7 +11,7 @@ extern	void	yyerror(char *);
 
 extern	char	errbuf[200];
 #define	ERROR	sprintf(errbuf,
-#define	FATAL	), yyerror(errbuf), /*exit(1)*/abort()
+#define	FATAL	), yyerror(errbuf), exit(1)
 #define	WARNING	), yyerror(errbuf)
 
 #define	DEFAULT	0
@@ -24,6 +24,7 @@ extern	char	errbuf[200];
 #define	DOTBIT	16	/* line styles */
 #define	DASHBIT	32
 #define	FILLBIT	64	/* gray-fill on boxes, etc. */
+#define NOEDGEBIT 128	/* no edge on filled object */
 
 #define	CENTER	01	/* text attributes */
 #define	LJUST	02
@@ -146,7 +147,7 @@ extern	int	ntext1;
 extern	double	curx, cury;
 extern	int	hvmode;
 extern	int	codegen;
-extern	int	PEseen;
+extern	char	*PEstring;
 
 char	*tostring(char *);
 char	*grow(char *, char *, int, int);
@@ -190,7 +191,8 @@ void	makeiattr(int, int);
 void	makevattr(char *);
 void	makefattr(int type, int sub, double f);
 void	maketattr(int, char *);
-void	makeoattr(int, obj*);
+void	makeoattr(int, obj *);
+void	makeattr(int type, int sub, YYSTYPE val);
 void	printexpr(double);
 void	printpos(obj *);
 void	exprsave(double);

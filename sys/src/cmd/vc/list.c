@@ -1,9 +1,9 @@
+#define EXTERN
 #include "gc.h"
 
 void
 listinit(void)
 {
-
 	fmtinstall('A', Aconv);
 	fmtinstall('P', Pconv);
 	fmtinstall('S', Sconv);
@@ -13,13 +13,40 @@ listinit(void)
 }
 
 int
-Pconv(void *o, Fconv *fp)
+Bconv(va_list *arg, Fconv *fp)
+{
+	char str[STRINGSZ], ss[STRINGSZ], *s;
+	Bits bits;
+	int i;
+
+	str[0] = 0;
+	bits = va_arg(*arg, Bits);
+	while(bany(&bits)) {
+		i = bnum(bits);
+		if(str[0])
+			strcat(str, " ");
+		if(var[i].sym == S) {
+			sprint(ss, "$%ld", var[i].offset);
+			s = ss;
+		} else
+			s = var[i].sym->name;
+		if(strlen(str) + strlen(s) + 1 >= STRINGSZ)
+			break;
+		strcat(str, s);
+		bits.b[i/32] &= ~(1L << (i%32));
+	}
+	strconv(str, fp);
+	return 0;
+}
+
+int
+Pconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Prog *p;
 	int a;
 
-	p = *(Prog**)o;
+	p = va_arg(*arg, Prog*);
 	a = p->as;
 	if(a == ADATA)
 		sprint(str, "	%A	%D/%d,%D", a, &p->from, p->reg, &p->to);
@@ -32,30 +59,30 @@ Pconv(void *o, Fconv *fp)
 	else
 		sprint(str, "	%A	%D,F%d,%D", a, &p->from, p->reg, &p->to);
 	strconv(str, fp);
-	return sizeof(p);
+	return 0;
 }
 
 int
-Aconv(void *o, Fconv *fp)
+Aconv(va_list *arg, Fconv *fp)
 {
 	char *s;
 	int a;
 
-	a = *(int*)o;
+	a = va_arg(*arg, int);
 	s = "???";
 	if(a >= AXXX && a < ALAST)
 		s = anames[a];
 	strconv(s, fp);
-	return sizeof(a);
+	return 0;
 }
 
 int
-Dconv(void *o, Fconv *fp)
+Dconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
 
-	a = *(Adr**)o;
+	a = va_arg(*arg, Adr*);
 	switch(a->type) {
 
 	default:
@@ -101,15 +128,15 @@ Dconv(void *o, Fconv *fp)
 		break;
 
 	case D_LO:
-		sprint(str, "LO", a->reg);
+		sprint(str, "LO");
 		if(a->name != D_NONE || a->sym != S)
-			sprint(str, "%N(LO)(REG)", a, a->reg);
+			sprint(str, "%N(LO)(REG)", a);
 		break;
 
 	case D_HI:
-		sprint(str, "HI", a->reg);
+		sprint(str, "HI");
 		if(a->name != D_NONE || a->sym != S)
-			sprint(str, "%N(HI)(REG)", a, a->reg);
+			sprint(str, "%N(HI)(REG)", a);
 		break;
 
 	case D_BRANCH:
@@ -125,16 +152,16 @@ Dconv(void *o, Fconv *fp)
 		break;
 	}
 	strconv(str, fp);
-	return sizeof(a);
+	return 0;
 }
 
 int
-Sconv(void *o, Fconv *fp)
+Sconv(va_list *arg, Fconv *fp)
 {
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
-	a = *(char**)o;
+	a = va_arg(*arg, char*);
 	p = str;
 	for(i=0; i<NSNAME; i++) {
 		c = a[i] & 0xff;
@@ -173,17 +200,17 @@ Sconv(void *o, Fconv *fp)
 	}
 	*p = 0;
 	strconv(str, fp);
-	return sizeof(a);
+	return 0;
 }
 
 int
-Nconv(void *o, Fconv *fp)
+Nconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
 	Sym *s;
 
-	a = *(Adr**)o;
+	a = va_arg(*arg, Adr*);
 	s = a->sym;
 	if(s == S) {
 		sprint(str, "%ld", a->offset);
@@ -216,5 +243,5 @@ Nconv(void *o, Fconv *fp)
 	}
 out:
 	strconv(str, fp);
-	return sizeof(a);
+	return 0;
 }

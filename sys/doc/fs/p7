@@ -30,8 +30,8 @@ copy,
 then the process will sleep ten seconds
 before looking again.
 .PP
-The Sony WORM jukebox consists of
-50 disks divided into 100 sides
+The HP WORM jukebox consists of
+238 disks divided into 476 sides
 or platters.
 Platter 0 is the
 .I A
@@ -39,29 +39,10 @@ side of disk 0.
 Platter 1 is the
 .I A
 side of the disk 1.
-Platter 50 is the
+Platter 238 is the
 .I B
 side of disk 0.
-On Bootes,
+On Emelie,
 the main file system is configured
-on both sides of the first 45 disks,
-platters 0-44 and 50-94.
-Slots 46-49 are available for mounting
-blank disks for making backup copies of platters.
-To back up the logical 57th platter in the file system, which is physical platter 62,
-insert the blank platter in the input
-carrier and type
-.P1
-    wormingest 49
-    wormcp 62 49
-.P2
-To have the backup disk have the
-correct platters on its two sides,
-the blank platter inserted should be the
-.I B
-side up of the disk containing the
-backup of logical (and physical) platter 12.
-When the copy is done, type
-.P1
-    wormeject 49
-.P2
+on both sides of the first 237 disks,
+platters 0-236 and 238-474.

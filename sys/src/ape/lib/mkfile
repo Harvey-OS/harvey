@@ -1,6 +1,6 @@
 </$objtype/mkfile
 
-DIRS=9 ap g bsd l regexp v
+DIRS=9 ap bsd l net regexp v
 
 none:V:
 	echo mk all, install, installall, clean, or nuke

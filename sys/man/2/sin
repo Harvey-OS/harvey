@@ -60,5 +60,5 @@ The value of
 .I tan
 for arguments greater than about
 .if t 2\u\s-231\s+2\d
-.if n 2^-31
+.if n 2^31
 is garbage.

@@ -3,7 +3,9 @@
 mkfs, mkext \- archive or update a file system
 .SH SYNOPSIS
 .B disk/mkfs
-.RB [ -aprv ]
+.RB [ -aprvx ]
+.RB [ -d
+.IR root ]
 .RB [ -n
 .IR name ]
 .RB [ -s
@@ -20,6 +22,7 @@ mkfs, mkext \- archive or update a file system
 .RB [ -u ]
 .RB [ -h ]
 .RB [ -v ]
+.RB [ -x ]
 .I file ...
 .SH DESCRIPTION
 .I Mkfs
@@ -32,42 +35,21 @@ to a
 file system (see
 .IR kfs (4)).
 The kfs service is mounted on
-.BR /n/kfs ,
+.I root
+(default
+.BR /n/kfs ),
 and
 .B /adm/users
 is copied to
-.BR /n/kfs/adm/users .
+.IB root /adm/users\f1.
 The
 .I proto
-files are read,
+files are read
+(see
+.IR proto (2)
+for their format)
 and any files specified in them that are out of date are copied to
 .BR /n/kfs .
-.PP
-Each line of the
-.I proto
-file specifies a file to copy.
-Indentation is significant,
-with each level of indentation corresponding to a level in the file tree.
-Fields within a line are separated by white space.
-The first field is the last path element in the destination file tree.
-The second field specifies the permissions.
-The third field is the owner of the file,
-and the fourth is the group owning the file.
-The fifth field is the name of the file from which to copy;
-this file is read from the current name space,
-not the source file tree.
-All fields except the first are optional.
-.PP
-Names beginning with a
-.L $
-are expanded as environment variables.
-If the first file specified in a directory is
-.LR * ,
-all of the files in that directory are copied.
-If the first file is
-.LR + ,
-all of the files are copied, and all subdirectories
-are recursively copied.
 .PP
 .I Mkfs
 copies only those files that are out of date.
@@ -94,6 +76,18 @@ file system, write an archive file to standard output, suitable for
 All files in
 .IR proto ,
 not just those out of date, are archived.
+.TP
+.B x
+For use with
+.BR -a ,
+this option writes a list of file names, dates, and sizes to standard output
+rather than producing an archive file.
+.TP
+.BI "d " root
+Copy files into the tree rooted at
+.I root 
+(default
+.BR /n/kfs ).
 .TP
 .BI "n " name
 Use
@@ -137,7 +131,7 @@ option of
 The
 .B -d
 option specifies a directory (default
-.BR /n/kfs )
+.BR / )
 to serve as the root of the unpacked file system.
 The
 .B -u
@@ -175,13 +169,6 @@ srv il!newfs
 mount -c /srv/il!newfs /n/newfs
 disk/mkext -u -d /n/newfs < arch
 .EE
-.SH FILES
-.TP
-.B /lib/proto
-directory of prototype files.
-.TP
-.B /lib/proto/portproto
-generic prototype file.
 .SH SOURCE
 .B /sys/src/cmd/disk/mkfs.c
 .br
@@ -189,5 +176,4 @@ generic prototype file.
 .SH "SEE ALSO"
 .IR prep (8),
 .IR kfscmd (8),
-.IR wren (3) ,
-.IR pip (8)
+.IR sd (3)

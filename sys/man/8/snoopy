@@ -1,21 +1,34 @@
 .TH SNOOPY 8
 .SH NAME
-snoopy \- spy on Ethernet packets
+sniffer, snoopy \- spy on Ethernet packets
 .SH SYNOPSIS
 .B snoopy
 [
-.B -abceiltup9
-] [
-.B -np
+.B -abcdeEgilnoprsStux9
 ] [
 .B -N
 .I count
+] [
+.B -F
+.I filter
+] [
+device
+]
+.br
+.B sniffer
+[
+.B -p
+] [
+.B -F
+.I filter
+] [
+device
 ]
 .SH DESCRIPTION
+.PP
 .I Snoopy
-displays the header and first 20 data bytes of packets received from
+displays the header and data bytes of packets received from
 the local Ethernet.
-The packets displayed depend on the options chosen.
 The following options each select packets from a
 particular protocol.
 If more than one flag is given, packets from all those
@@ -33,11 +46,23 @@ ICMP
 .B e
 all Ethernet packets
 .TP
+.B E
+ESP
+.TP
+.B g
+GRE
+.TP
 .B i
 IP
 .TP
 .B l
 IL
+.TP
+.B o
+OSPF
+.TP
+.B r
+RUDP, a Plan 9 reliable datagram protocol
 .TP
 .B t
 TCP
@@ -45,35 +70,69 @@ TCP
 .B u
 UDP
 .PP
-By default all addresses are translated into system names.
-The option
+The following options control output format.
+.TP
 .B n
-suppresses this.
-.PP
-.I Snoopy
-runs in promiscuous mode by default, displaying all packets
-it can capture from the Ethernet.
-The option
-.B p
-causes only packets sent to or from the system
-.I snoopy
-is running on to be displayed.
-.PP
-Option
+do not translate addresses into names
+.TP
+.B x
+display the body of the message in hex instead of UTF
+.TP
 .B 9
-causes the data of TCP and IL messages to be interpreted and displayed as
-9P messages.  The
+display the body as a 9p message
+.TP
 .B N
-option sets the
+limit the number of bytes of the body to display to
 .I count
 (default 20)
-of the number of bytes to dump in hexadecimal from each packet.
+.PP
+Finally, some options control data flow and packet filtering.
+.TP
+.B s
+read only the first 64 bytes of each packet, i.e., 
+open ether type \-2 instead of \-1.
+.TP
+.B S
+read packets from standard input, often a pipe from 
+.I sniffer
+or a file containing a dump from a previous invocation of
+.IR sniffer .
+.TP
+.B d
+write the packets to
+.B /tmp/snoopydump
+in the same format as
+.IR sniffer .
+.TP
+.B F
+filter out all packets whose source or destination does not match
+.IR filter ,
+which may be an IP address, an ethernet address, or
+a TCP or UDP port.
+.TP
+.B p
+don't turn on promiscuous mode
+.PP
+.IR Sniffer 
+reads packets off the local Ethernet and writes them, preceded
+by a 2 byte big endian length and a 4 byte big endian millisecond time, to
+standard output.  The output can be saved to a file or 
+piped into 
+.IR snoopy .
+The
+.B \-p
+and
+.B \-F
+options are the same as for
+.IR snoopy .
 .SH FILES
 .TP
 .B /net/ether
 Ethernet device
 .SH SOURCE
 .B /sys/src/cmd/ip/snoopy.c
+.br
+.B /sys/src/cmd/ip/sniffer.c
 .SH BUGS
 .PP
 The CPU servers do not take well to running in promiscuous mode.

@@ -1,5 +1,6 @@
 # root
-mount -a #s/boot /
+mount -aC #s/boot /root $rootspec
+bind -a $rootdir /
 
 # kernel devices
 bind #c /dev
@@ -13,12 +14,19 @@ bind /$cputype/bin /bin
 bind -a /rc/bin /bin
 
 # networks
-mount -b /srv/cs /net
-bind -b #l /net
-bind -b #Iudp /net
-bind -b #Itcp /net
-bind -b #Iil /net
+bind -a #l /net
+bind -a #I /net
+mount -a /srv/cs /net
 mount -a /srv/dns /net
+mount -a /srv/net /net
+bind -a #D /net
+
+# mail has to be uncached
+mount -c #s/boot /n/termrc.tmp
+bind -c /n/termrc.tmp/mail /mail
+
+bind -c /usr/$user/tmp /tmp
+cd /usr/$user
 
 # local fs
 mount -c /srv/kfs /n/kfs

@@ -5,27 +5,33 @@
 	Node*	node;
 	Sym*	sym;
 	Type*	type;
-	struct {
+	struct
+	{
 		Type*	t;
 		char	c;
 	} tycl;
-	struct {
+	struct
+	{
 		Type*	t1;
 		Type*	t2;
 	} tyty;
+	struct
+	{
+		char*	s;
+		long	l;
+	} sval;
 	long	lval;
 	double	dval;
 	vlong	vval;
-	char*	sval;
-	ushort*	rval;
 }
 %type	<sym>	ltag
-%type	<lval>	tname tnlist
-%type	<type>	tlist sbody complex
-%type	<tycl>	types
+%type	<lval>	gctname cname gname tname
+%type	<lval>	gctnlist zgnlist tnlist
+%type	<type>	tlist etlist sbody complex
+%type	<tycl>	types etypes
 %type	<node>	zarglist arglist zcexpr
 %type	<node>	name block stmnt cexpr expr xuexpr pexpr
-%type	<node>	zelist elist adecl slist uexpr
+%type	<node>	zelist elist adecl slist uexpr string lstring
 %type	<node>	xdecor xdecor2 labels label ulstmnt
 %type	<node>	adlist edecor tag qual qlist
 %type	<node>	abdecor abdecor1 abdecor2 abdecor3
@@ -50,13 +56,12 @@
 %token	<sym>	LNAME LCTYPE LSTYPE
 %token	<dval>	LFCONST LDCONST
 %token	<vval>	LCONST LLCONST LUCONST LULCONST LVLCONST LUVLCONST
-%token	<sval>	LSTRING
-%token	<rval>	LLSTRING
+%token	<sval>	LSTRING LLSTRING
 %token		LAUTO LBREAK LCASE LCHAR LCONTINUE LDEFAULT LDO
 %token		LDOUBLE LELSE LEXTERN LFLOAT LFOR LGOTO
 %token	LIF LINT LLONG LREGISTER LRETURN LSHORT LSIZEOF LUSED
 %token	LSTATIC LSTRUCT LSWITCH LTYPEDEF LUNION LUNSIGNED LWHILE
-%token	LVOID LENUM LSIGNED LCONSTNT LVOLATILE LSET
+%token	LVOID LENUM LSIGNED LCONSTNT LVOLATILE LSET LSIGNOF
 %%
 prog:
 |	prog xdecl
@@ -90,7 +95,11 @@ xdecl:
 	}
 	block
 	{
-		revertdcl();
+		Node *n;
+
+		n = revertdcl();
+		if(n)
+			$6 = new(OLIST, n, $6);
 		if(!debug['a'])
 			codgen($6, $2);
 	}
@@ -102,7 +111,7 @@ xdlist:
 	}
 |	xdecor
 	{
-		$1 = dodecl(xdecl, lastclass, lasttype, $1);	/* dirty use of $1 */
+		$1 = dodecl(xdecl, lastclass, lasttype, $1);
 	}
 	'=' init
 	{
@@ -112,9 +121,10 @@ xdlist:
 
 xdecor:
 	xdecor2
-|	'*' garbage xdecor
+|	'*' zgnlist xdecor
 	{
 		$$ = new(OIND, $3, Z);
+		$$->garb = simpleg($2);
 	}
 
 xdecor2:
@@ -203,12 +213,12 @@ pdlist:
  * structure element declarator
  */
 edecl:
-	tlist
+	etlist
 	{
 		lasttype = $1;
 	}
 	zedlist ';'
-|	edecl tlist
+|	edecl etlist
 	{
 		lasttype = $2;
 	}
@@ -216,6 +226,7 @@ edecl:
 
 zedlist:					/* extension */
 	{
+		lastfield = 0;
 		edecl(CXXX, lasttype, S);
 	}
 |	edlist
@@ -252,13 +263,15 @@ abdecor:
 |	abdecor1
 
 abdecor1:
-	'*' garbage
+	'*' zgnlist
 	{
 		$$ = new(OIND, (Z), Z);
+		$$->garb = simpleg($2);
 	}
-|	'*' garbage abdecor1
+|	'*' zgnlist abdecor1
 	{
 		$$ = new(OIND, $3, Z);
+		$$->garb = simpleg($2);
 	}
 |	abdecor2
 
@@ -413,8 +426,11 @@ ulstmnt:
 	}
 	block
 	{
-		revertdcl();
-		$$ = $2;
+		$$ = revertdcl();
+		if($$)
+			$$ = new(OLIST, $$, $2);
+		else
+			$$ = $2;
 	}
 |	LIF '(' cexpr ')' stmnt
 	{
@@ -445,12 +461,12 @@ ulstmnt:
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->vconst = 0;
-		$$->type = tint;
+		$$->type = types[TINT];
 		$3 = new(OSUB, $$, $3);
 
 		$$ = new(OCONST, Z, Z);
 		$$->vconst = 0;
-		$$->type = tint;
+		$$->type = types[TINT];
 		$3 = new(OSUB, $$, $3);
 
 		$$ = new(OSWITCH, $3, $5);
@@ -654,19 +670,19 @@ uexpr:
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->vconst = 0;
-		$$->type = tint;
+		$$->type = types[TINT];
 		$2 = new(OSUB, $$, $2);
 
 		$$ = new(OCONST, Z, Z);
 		$$->vconst = 0;
-		$$->type = tint;
+		$$->type = types[TINT];
 		$$ = new(OSUB, $$, $2);
 	}
 |	'-' xuexpr
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->vconst = 0;
-		$$->type = tint;
+		$$->type = types[TINT];
 		$$ = new(OSUB, $$, $2);
 	}
 |	'!' xuexpr
@@ -677,7 +693,7 @@ uexpr:
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->vconst = -1;
-		$$->type = tint;
+		$$->type = types[TINT];
 		$$ = new(OXOR, $$, $2);
 	}
 |	LPP xuexpr
@@ -692,6 +708,10 @@ uexpr:
 	{
 		$$ = new(OSIZE, $2, Z);
 	}
+|	LSIGNOF uexpr
+	{
+		$$ = new(OSIGN, $2, Z);
+	}
 
 pexpr:
 	'(' cexpr ')'
@@ -704,12 +724,18 @@ pexpr:
 		dodecl(NODECL, CXXX, $3, $4);
 		$$->type = lastdcl;
 	}
+|	LSIGNOF '(' tlist abdecor ')'
+	{
+		$$ = new(OSIGN, Z, Z);
+		dodecl(NODECL, CXXX, $3, $4);
+		$$->type = lastdcl;
+	}
 |	pexpr '(' zelist ')'
 	{
 		$$ = new(OFUNC, $1, Z);
 		if($1->op == ONAME)
 		if($1->type == T)
-			dodecl(xdecl, CXXX, tint, $$);
+			dodecl(xdecl, CXXX, types[TINT], $$);
 		$$->right = invert($3);
 	}
 |	pexpr '[' cexpr ']'
@@ -738,7 +764,7 @@ pexpr:
 |	LCONST
 	{
 		$$ = new(OCONST, Z, Z);
-		$$->type = tint;
+		$$->type = types[TINT];
 		$$->vconst = $1;
 	}
 |	LLCONST
@@ -750,7 +776,7 @@ pexpr:
 |	LUCONST
 	{
 		$$ = new(OCONST, Z, Z);
-		$$->type = tuint;
+		$$->type = types[TUINT];
 		$$->vconst = $1;
 	}
 |	LULCONST
@@ -783,25 +809,63 @@ pexpr:
 		$$->type = types[TUVLONG];
 		$$->vconst = $1;
 	}
-|	LSTRING
+|	string
+|	lstring
+
+string:
+	LSTRING
 	{
 		$$ = new(OSTRING, Z, Z);
-		$$->cstring = $1;
-		$$->sym = symstring;
 		$$->type = typ(TARRAY, types[TCHAR]);
+		$$->type->width = $1.l + 1;
+		$$->cstring = $1.s;
+		$$->sym = symstring;
 		$$->etype = TARRAY;
-		$$->type->width = lnstring;
 		$$->class = CSTATIC;
 	}
-|	LLSTRING
+|	string LSTRING
+	{
+		char *s;
+		int n;
+
+		n = $1->type->width - 1;
+		s = alloc(n+$2.l+MAXALIGN);
+
+		memcpy(s, $1->cstring, n);
+		memcpy(s+n, $2.s, $2.l);
+		s[n+$2.l] = 0;
+
+		$$ = $1;
+		$$->type->width += $2.l;
+		$$->cstring = s;
+	}
+
+lstring:
+	LLSTRING
 	{
 		$$ = new(OLSTRING, Z, Z);
-		$$->rstring = $1;
-		$$->sym = symstring;
 		$$->type = typ(TARRAY, types[TUSHORT]);
+		$$->type->width = $1.l + sizeof(ushort);
+		$$->rstring = (ushort*)$1.s;
+		$$->sym = symstring;
 		$$->etype = TARRAY;
-		$$->type->width = lnstring;
 		$$->class = CSTATIC;
+	}
+|	lstring LLSTRING
+	{
+		char *s;
+		int n;
+
+		n = $1->type->width - sizeof(ushort);
+		s = alloc(n+$2.l+MAXALIGN);
+
+		memcpy(s, $1->rstring, n);
+		memcpy(s+n, $2.s, $2.l);
+		*(ushort*)(s+n+$2.l) = 0;
+
+		$$ = $1;
+		$$->type->width += $2.l;
+		$$->rstring = (ushort*)s;
 	}
 
 zelist:
@@ -837,9 +901,21 @@ sbody:
 zctlist:
 	{
 		lastclass = CXXX;
-		lasttype = tint;
+		lasttype = types[TINT];
 	}
 |	ctlist
+
+etypes:
+	complex
+	{
+		$$.t = $1;
+		$$.c = CXXX;
+	}
+|	tnlist
+	{
+		$$.t = simplet($1);
+		$$.c = simplec($1);
+	}
 
 types:
 	complex
@@ -847,31 +923,43 @@ types:
 		$$.t = $1;
 		$$.c = CXXX;
 	}
-|	complex tnlist
+|	complex gctnlist
 	{
 		$$.t = $1;
 		$$.c = simplec($2);
-		if($2 & ~BCLASS)
+		if($2 & ~BCLASS & ~BGARB)
 			diag(Z, "illegal combination of types 1: %Q/%T", $2, $1);
 	}
-|	tnlist
+|	gctnlist
 	{
 		$$.t = simplet($1);
 		$$.c = simplec($1);
+		$$.t = garbt($$.t, $1);
 	}
-|	tnlist complex
+|	gctnlist complex
 	{
 		$$.t = $2;
 		$$.c = simplec($1);
-		if($1 & ~BCLASS)
-			diag(Z, "illegal combination of types 1: %Q/%T", $1, $2);
+		$$.t = garbt($$.t, $1);
+		if($1 & ~BCLASS & ~BGARB)
+			diag(Z, "illegal combination of types 2: %Q/%T", $1, $2);
 	}
-|	tnlist complex tnlist
+|	gctnlist complex gctnlist
 	{
 		$$.t = $2;
 		$$.c = simplec($1|$3);
-		if(($1|$3) & ~BCLASS)
-			diag(Z, "illegal combination of types 1: %Q/%T", $1|$3, $2);
+		$$.t = garbt($$.t, $1|$3);
+		if(($1|$3) & ~BCLASS & ~BGARB || $3 & BCLASS)
+			diag(Z, "illegal combination of types 3: %Q/%T/%Q", $1, $2, $3);
+	}
+
+etlist:
+	zgnlist etypes
+	{
+		$$ = $2.t;
+		if($2.c != CXXX)
+			diag(Z, "illegal combination of class 4: %s", cnames[$2.c]);
+		$$ = garbt($$, $1);
 	}
 
 tlist:
@@ -879,7 +967,7 @@ tlist:
 	{
 		$$ = $1.t;
 		if($1.c != CXXX)
-			diag(Z, "illegal combination of class 3: %s", cnames[$1.c]);
+			diag(Z, "illegal combination of class 4: %s", cnames[$1.c]);
 	}
 
 ctlist:
@@ -945,7 +1033,7 @@ complex:
 		dotag($2, TENUM, 0);
 		$$ = $2->suetag;
 		if($$->link == T)
-			$$->link = tint;
+			$$->link = types[TINT];
 		$$ = $$->link;
 	}
 |	LENUM ltag
@@ -964,7 +1052,7 @@ complex:
 			diag(Z, "redeclare tag: %s", $2->name);
 		if(en.tenum == T) {
 			diag(Z, "enum type ambiguous: %s", $2->name);
-			en.tenum = tint;
+			en.tenum = types[TINT];
 		}
 		$$->link = en.tenum;
 		$$ = en.tenum;
@@ -991,14 +1079,29 @@ tnlist:
 	tname
 |	tnlist tname
 	{
-		$$ = $1 | $2;
-		if($1 & $2)
-			if(($1 & $2) == BLONG)
-				$$ |= BVLONG;		/* long long => vlong */
-			else
-				diag(Z, "once is enough: %Q", $1 & $2);
+		$$ = typebitor($1, $2);
 	}
 
+gctnlist:
+	gctname
+|	gctnlist gctname
+	{
+		$$ = typebitor($1, $2);
+	}
+
+zgnlist:
+	{
+		$$ = 0;
+	}
+|	zgnlist gname
+	{
+		$$ = typebitor($1, $2);
+	}
+
+gctname:
+	tname
+|	gname
+|	cname
 
 enum:
 	LNAME
@@ -1012,8 +1115,8 @@ enum:
 |	enum ','
 |	enum ',' enum
 
-tname:
-	LCHAR { $$ = BCHAR; }	/* type words */
+tname:	/* type words */
+	LCHAR { $$ = BCHAR; }
 |	LSHORT { $$ = BSHORT; }
 |	LINT { $$ = BINT; }
 |	LLONG { $$ = BLONG; }
@@ -1023,18 +1126,16 @@ tname:
 |	LDOUBLE { $$ = BDOUBLE; }
 |	LVOID { $$ = BVOID; }
 
-|	LAUTO { $$ = BAUTO; }	/* class words */
+cname:	/* class words */
+	LAUTO { $$ = BAUTO; }
 |	LSTATIC { $$ = BSTATIC; }
 |	LEXTERN { $$ = BEXTERN; }
 |	LTYPEDEF { $$ = BTYPEDEF; }
 |	LREGISTER { $$ = BREGISTER; }
 
-|	LCONSTNT { $$ = 0; }	/* noise words */
-|	LVOLATILE { $$ = 0; }
-
-garbage:
-|	garbage LCONSTNT
-|	garbage LVOLATILE
+gname:
+	LCONSTNT { $$ = BCONSTNT; }
+|	LVOLATILE { $$ = BVOLATILE; }
 
 name:
 	LNAME

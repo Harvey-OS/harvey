@@ -12,4 +12,4 @@ BIN=/$objtype/bin
 </sys/src/cmd/mkone
 
 $O.pout: $OFILES
-	$LD -o $O.pout -p $Obj
+	$LD -o $O.pout -p $OFILES

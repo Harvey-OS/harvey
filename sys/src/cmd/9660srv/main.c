@@ -37,6 +37,8 @@ int	nerr_lab;
 char	err_msg[ERRLEN];
 
 int	chatty;
+int	nojoliet;
+int	noplan9;
 
 void
 main(int argc, char **argv)
@@ -54,6 +56,12 @@ main(int argc, char **argv)
 		break;
 	case 's':
 		stdio = 1;
+		break;
+	case '9':
+		noplan9 = 1;
+		break;
+	case 'J':
+		nojoliet = 1;
 		break;
 	default:
 		usage();
@@ -460,23 +468,25 @@ showdir(int fd, Dir *s)
 	strcpy(m_time, ctime(s->mtime));
 	if(p=strchr(m_time, '\n'))	/* assign = */
 		*p = 0;
-	fprint(fd, "name=\"%s\" qid=(0x%8.8ux,%d) type=%d dev=%d \
-mode=0x%8.8ux=0%uo atime=%s mtime=%s length=%d uid=\"%s\" gid=\"%s\"...",
+	fprint(fd, "name=\"%s\" qid=(0x%8.8lux,%lud) type=%d dev=%d \
+mode=0x%8.8lux=0%luo atime=%s mtime=%s length=%lld uid=\"%s\" gid=\"%s\"...",
 		s->name, s->qid.path, s->qid.vers, s->type, s->dev,
 		s->mode, s->mode,
 		a_time, m_time, s->length, s->uid, s->gid);
 }
 
 #define	SIZE	1024
-#define	DOTDOT	(&fmt+1)
 
 void
 chat(char *fmt, ...)
 {
+	va_list arg;
 	char buf[SIZE], *out;
 
 	if(chatty){
-		out = doprint(buf, buf+SIZE, fmt, DOTDOT);
+		va_start(arg, fmt);
+		out = doprint(buf, buf+SIZE, fmt, arg);
+		va_end(arg);
 		write(2, buf, out-buf);
 	}
 }
@@ -484,10 +494,13 @@ chat(char *fmt, ...)
 void
 panic(int rflag, char *fmt, ...)
 {
+	va_list arg;
 	char buf[SIZE]; int n;
 
 	n = sprint(buf, "%s %d: ", argv0, getpid());
-	doprint(buf+n, buf+SIZE, fmt, DOTDOT);
+	va_start(arg, fmt);
+	doprint(buf+n, buf+SIZE, fmt, arg);
+	va_end(arg);
 	fprint(2, (rflag ? "%s: %r\n" : "%s\n"), buf);
 	if(chatty){
 		fprint(2, "abort\n");

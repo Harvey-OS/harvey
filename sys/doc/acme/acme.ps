@@ -66,10 +66,6 @@
 /inch {72 mul} bind def
 /min {2 copy gt {exch} if pop} bind def
 
-/show {{//show} 0 get exec} bind def	% so later references don't bind
-/widthshow {{//widthshow} 0 get exec} bind def
-/stringwidth {{//stringwidth} 0 get exec} bind def
-
 /setup {
 	counttomark 2 idiv {def} repeat pop
 
@@ -237,6 +233,7 @@
 %%EndProlog
 %%BeginSetup
 mark
+/magnification .9 def
 %
 % Encoding vector and redefinition of findfont for the ISO Latin1 standard.
 % The 18 characters missing from ROM based fonts on older printers are noted
@@ -551,7 +548,7 @@ mark
 (for Programmers) 3075 1220 w
 10 /LucidaSans-Italic f
 (Rob Pike) 2670 1427 w
-(rob@plan9.att.com) 2411 1547 w
+(rob@plan9.bell-labs.com) 2262 1547 w
 10 /LucidaSansUnicode00 f
 (ABSTRACT) 2626 2118 w
 (A) 1080 2368 w
@@ -1027,6 +1024,13 @@ w 0 ne {gsave bbox boxpath 1 setgray fill grestore} if
 end
 gsave
 %ps_include: inclusion begin
+ %!PS-Adobe-2.0
+ %%Version: 3.3.2
+ %%DocumentFonts: (atend)
+ %%Pages: (atend)
+ %%EndComments
+ %%EndProlog
+ %%BeginSetup
 mark
 /picstr 116 string def
 -28 145 translate
@@ -3820,6 +3824,7 @@ fffffffffffffffffffffffffffffffffffffffe
 0000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000
 showpage
+ %%BoundingBox: -28 145 640.16 646.12
 %ps_include: inclusion end
 grestore
 PS-include-dict-dw begin
@@ -3830,7 +3835,6 @@ context end restore
 %ps_include: end
 /saveobj save def
 mark
-10 /LucidaSansUnicode00 f
 9 /LucidaSansUnicode00 f
 (Figure) 720 4730 w
 (1.) 1027 4730 w
@@ -4183,6 +4187,13 @@ w 0 ne {gsave bbox boxpath 1 setgray fill grestore} if
 end
 gsave
 %ps_include: inclusion begin
+ %!PS-Adobe-2.0
+ %%Version: 3.3.2
+ %%DocumentFonts: (atend)
+ %%Pages: (atend)
+ %%EndComments
+ %%EndProlog
+ %%BeginSetup
 mark
 /picstr 73 string def
 95 261 translate
@@ -5314,6 +5325,7 @@ f000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000
 000000000000000001
 showpage
+ %%BoundingBox: 95 261 515.48 530.28
 %ps_include: inclusion end
 grestore
 PS-include-dict-dw begin
@@ -5324,7 +5336,6 @@ context end restore
 %ps_include: end
 /saveobj save def
 mark
-10 /LucidaSansUnicode00 f
 9 /LucidaSansUnicode00 f
 (Figure) 720 3290 w
 (2.) 1028 3290 w

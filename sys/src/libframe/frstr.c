@@ -1,23 +1,21 @@
 #include <u.h>
 #include <libc.h>
-#include <libg.h>
+#include <draw.h>
+#include <thread.h>
+#include <mouse.h>
 #include <frame.h>
-
-/*
- * The code here and elsewhere requires that strings not be gcalloc()ed
- */
 
 #define	CHUNK	16
 #define	ROUNDUP(n)	((n+CHUNK)&~(CHUNK-1))
 
 uchar *
-_frallocstr(unsigned n)
+_frallocstr(Frame *f, unsigned n)
 {
 	uchar *p;
 
 	p = malloc(ROUNDUP(n));
 	if(p == 0)
-		berror("out of memory");
+		drawerror(f->display, "out of memory");
 	return p;
 }
 
@@ -29,10 +27,10 @@ _frinsure(Frame *f, int bn, unsigned n)
 
 	b = &f->box[bn];
 	if(b->nrune < 0)
-		berror("_frinsure");
+		drawerror(f->display, "_frinsure");
 	if(ROUNDUP(b->nrune) > n)	/* > guarantees room for terminal NUL */
 		return;
-	p = _frallocstr(n);
+	p = _frallocstr(f, n);
 	b = &f->box[bn];
 	memmove(p, b->ptr, NBYTE(b)+1);
 	free(b->ptr);

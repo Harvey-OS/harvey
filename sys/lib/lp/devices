@@ -1,4 +1,4 @@
-# Here is a sample printer devices file where all the printers have
+# Here is a sample printer devices file where some of the printers have
 # been commented out.
 #
 # device_name	loc		dest_host		phys_dev_name		speed	class				def_proc	spooler		stat		kill		daemon		sched
@@ -25,7 +25,7 @@
 # peacock		2C-501	cetus			peacock				-		post2+300dpi+nohead+color	generic		generic		generic		generic		appletalk	FIFO
 #
 # Any PostScript printer connected to the LPT1 port on my 486 pc running Plan 9 as a terminal.
-# pcclone		-			-			/dev/lpt1data		-		post+nohead			generic		pcclone		-			-			-			-
+pcclone		-			-			/dev/lpt1data		-		post+nohead			generic		pcclone		-			-			-			-
 #
 # QMS-410 connected to the serial port of an NCD terminal.
 # math34		2T-102	rice			tcp!math34!87		9600	post+600dpi			generic		generic		generic		generic		tcppost		FIFO
@@ -37,18 +37,21 @@
 # psu		2C-501		cetus			psu					-		post+1200dpi		generic		generic		xante		generic		lpddaemon	FIFO
 #
 # sends the output to the standard output of the lp command.
-# stdout	-			-				-					-		post+nohead			generic		nospool		-			-			-			-
+stdout	-			-				-					-		post+nohead			generic		nospool		-			-			-			-
 #
 # sends the output to the standard output of the lp command.
 # used for generating output suitable for 100 dpi.
-# 100dpi	-			-				-					-		post+100dpi+nohead	generic		nospool		-			-			-			-
+100dpi	-			-				-					-		post+100dpi+nohead	generic		nospool		-			-			-			-
 #
 # same as above for generating output suitable for 300 dpi.
-# 300dpi	-			-				-					-		post+300dpi+nohead	generic		nospool		-			-			-			-
+300dpi	-			-				-					-		post+300dpi+nohead	generic		nospool		-			-			-			-
 #
 # same as above for generating output suitable for 600 dpi.
 #
-# 600dpi	-			-				-					-		post+600dpi+nohead	generic		nospool		-			-			-			-
+600dpi	-			-				-					-		post+600dpi+nohead	generic		nospool		-			-			-			-
 #
 # same as above for generating output suitable for Linotronics phototypesetter.
-# 1270dpi	-			-				-					-		post+lino+nohead	generic		nospool		-			-			-			-
+1270dpi	-			-				-					-		post+lino+nohead	generic		nospool		-			-			-			-
+
+# 600dpi postscript printer named vogon via BSD LPD printer queue on alice
+vogon printer-room	alice	vogon - post+600dpi		generic		lpdspool	lpd		-			-		FIFO

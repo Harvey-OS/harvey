@@ -15,7 +15,7 @@ span(void)
 		if(p->as == ATEXT)
 			curtext = p;
 		n = 0;
-		if((q = p->cond) != P)
+		if((q = p->pcond) != P)
 			if(q->back != 2)
 				n = 1;
 		p->back = n;
@@ -52,7 +52,7 @@ start:
 			curtext = p;
 		o = &optab[p->as];
 		p->pc = c;
-		m = msize[o->optype];
+		m = mmsize[o->optype];
 		if(m == 0) {
 			if(p->as == AWORD)
 				m = 2;
@@ -65,8 +65,8 @@ start:
 		if(p->from.type != D_NONE)
 			m += andsize(p, &p->from);
 		if(p->to.type == D_BRANCH) {
-			if(p->cond == P)
-				p->cond = p;
+			if(p->pcond == P)
+				p->pcond = p;
 			c += m;
 			if(m == 2)
 				m |= 0100;
@@ -93,7 +93,7 @@ loop:
 		if(p->as == ATEXT)
 			curtext = p;
 		if((m = p->mark) & 0100) {
-			q = p->cond;
+			q = p->pcond;
 			v = q->pc - 2;
 			if(p->back)
 				v -= c;
@@ -134,7 +134,7 @@ loop:
 	if(debug['v'])
 		Bprint(&bso, "etext = %lux\n", c);
 	Bflush(&bso);
-	for(p = textp; p != P; p = p->cond)
+	for(p = textp; p != P; p = p->pcond)
 		p->from.sym->value = p->pc;
 	textsize = c - INITTEXT;
 }
@@ -362,7 +362,7 @@ asmsym(void)
 				continue;
 			}
 
-	for(p=textp; p!=P; p=p->cond) {
+	for(p=textp; p!=P; p=p->pcond) {
 		s = p->from.sym;
 		if(s->type != STEXT)
 			continue;
@@ -370,20 +370,20 @@ asmsym(void)
 		/* filenames first */
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_FILE)
-				putsymb(a->sym, 'z', a->offset);
+				putsymb(a->asym, 'z', a->aoffset);
 			else
 			if(a->type == D_FILE1)
-				putsymb(a->sym, 'Z', a->offset);
+				putsymb(a->asym, 'Z', a->aoffset);
 
 		putsymb(s, 'T', s->value);
 
 		/* auto and param after */
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_AUTO)
-				putsymb(a->sym, 'a', -a->offset);
+				putsymb(a->asym, 'a', -a->aoffset);
 			else
 			if(a->type == D_PARAM)
-				putsymb(a->sym, 'p', a->offset);
+				putsymb(a->asym, 'p', a->aoffset);
 	}
 	if(debug['v'] || debug['n'])
 		Bprint(&bso, "symsize = %lud\n", symsize);

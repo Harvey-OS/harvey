@@ -4,7 +4,10 @@ import \- import a name space from a remote system
 .SH SYNOPSIS
 .B import
 [
-.I option ...
+.B -abcC
+]
+[
+.B -f
 ]
 .I system
 .I file
@@ -46,20 +49,30 @@ allows options exactly as in
 and
 .IR bind (1)
 to control the construction of union directories.
-.SH EXAMPLE
-To allow a Datakit-only machine to access an Ethernet using TCP:
-.IP
-.EX
-import -a kremvax /net
-con tcp!ucbvax
-.EE
 .PP
-or
+The
+.B -f
+option causes
+.I import
+to push the
+.I fcall
+line discipline on its network connection.  This option is intended for networks that do not
+preserve read/write boundaries.
+.SH EXAMPLE
+Assume a machine
+.B kremvax
+that has IP interfaces for the company intranet and the global
+internet mounted on
+.I /net
+and
+.I /net.alt
+respectively.
+Any machine inside the company can get telnet out to the global
+internet using:
 .IP
 .EX
-import -a kremvax /net
-echo 'add tcp' > /net/cs
-con ucbvax
+import -a kremvax /net.alt
+telnet /net.alt/tcp!ucbvax
 .EE
 .SH SOURCE
 .B /sys/src/cmd/import.c

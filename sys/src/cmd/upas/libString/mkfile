@@ -5,6 +5,7 @@ OFILES=	s_alloc.$O\
 	s_append.$O\
 	s_array.$O\
 	s_copy.$O\
+	s_error.$O\
 	s_getline.$O\
 	s_grow.$O\
 	s_nappend.$O\
@@ -12,6 +13,8 @@ OFILES=	s_alloc.$O\
 	s_read.$O\
 	s_read_line.$O\
 	s_tolower.$O\
+	s_memappend.$O\
+	s_reset.$O\
 
 
 </sys/src/cmd/mklib

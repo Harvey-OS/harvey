@@ -5,7 +5,7 @@
 #define	NLUN		2
 #define	NSHLV		50
 #define	NPLAT		(NSHLV*2)
-#define	FIXEDSIZE	546000
+#define	FIXEDSIZE	DSIZE
 #define	TWORM		MINUTE(2)
 #define	THYSTER		SECOND(2)
 
@@ -48,6 +48,7 @@ static	void	waitworm(void);
 static	void	prshit(void);
 static	int	ascsiio(int, uchar*, int, void*, int);
 static	void	cmd_wormcp(int, char*[]);
+static	void	cmd_wormreset(int, char*[]);
 static	void	cmd_wormeject(int, char*[]);
 static	void	cmd_wormingest(int, char*[]);
 static	void	cmd_wormoffline(int, char*[]);
@@ -82,6 +83,7 @@ loop:
 		shelves();
 
 		cmd_install("wormcp", "funit tunit [nblock] -- worm to worm copy", cmd_wormcp);
+		cmd_install("wormreset", "funit tunit [nblock] -- worm to worm copy", cmd_wormreset);
 		cmd_install("wormeject", "unit -- shelf to outside", cmd_wormeject);
 		cmd_install("wormingest", "unit -- outside to shelf", cmd_wormingest);
 		cmd_install("wormoffline", "unit -- disable lun", cmd_wormoffline);
@@ -372,6 +374,7 @@ wormiocmd(Device d, int io, long b, void *c)
 		return 0x071;
 	}
 
+	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = 0x28;		/* extended read */
 	if(io != SCSIread)
 		cmd[0] = 0x2a;	/* extended write */
@@ -637,6 +640,7 @@ bad:
 	panic("cant fix worm shelves");
 }
 
+static
 void
 prshit(void)
 {
@@ -1082,6 +1086,15 @@ cmd_wormcp(int argc, char *argv[])
 		wcp.nblock = number(argv[4], wcp.nblock, 10);
 
 	wcp.active = 1;
+}
+
+static
+void
+cmd_wormreset(int argc, char *argv[])
+{
+	qlock(&w);
+	shelves();
+	qunlock(&w);
 }
 
 /*

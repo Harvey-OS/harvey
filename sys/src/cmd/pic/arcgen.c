@@ -17,9 +17,9 @@ obj *arcgen(int type)	/* handles circular and (eventually) elliptical arcs */
 	static int dctry[2][4] ={ 1, 0, -1, 0, -1, 0, 1, 0 };
 	static int nexthv[2][4] ={ U_DIR, L_DIR, D_DIR, R_DIR, D_DIR, R_DIR, U_DIR, L_DIR };
 	double dx2, dy2, ht, phi, r, d;
-	int i, head, to, at, cw, invis, ddtype;
+	int i, head, to, at, cw, invis, ddtype, battr;
 	obj *p, *ppos;
-	double fromx, fromy, tox, toy;
+	double fromx, fromy, tox, toy, fillval = 0;
 	Attr *ap;
 
 	prevrad = getfval("arcrad");
@@ -27,7 +27,7 @@ obj *arcgen(int type)	/* handles circular and (eventually) elliptical arcs */
 	prevw = getfval("arrowwid");
 	fromx = curx;
 	fromy = cury;
-	head = to = at = cw = invis = ddtype = 0;
+	head = to = at = cw = invis = ddtype = battr = 0;
 	for (i = 0; i < nattr; i++) {
 		ap = &attr[i];
 		switch (ap->a_type) {
@@ -84,6 +84,13 @@ obj *arcgen(int type)	/* handles circular and (eventually) elliptical arcs */
 		case LEFT:
 			hvmode = L_DIR;
 			break;
+		case FILL:
+			battr |= FILLBIT;
+			if (ap->a_sub == DEFAULT)
+				fillval = getfval("fillval");
+			else
+				fillval = ap->a_val.f;
+			break;
 		}
 	}
 	if (!at && !to) {	/* the defaults are mostly OK */
@@ -138,7 +145,8 @@ obj *arcgen(int type)	/* handles circular and (eventually) elliptical arcs */
 	p->o_val[4] = prevw;
 	p->o_val[5] = prevh;
 	p->o_val[6] = prevrad;
-	p->o_attr = head | (cw ? CW_ARC : 0) | invis | ddtype;
+	p->o_attr = head | (cw ? CW_ARC : 0) | invis | ddtype | battr;
+	p->o_fillval = fillval;
 	if (head)
 		p->o_nhead = getfval("arrowhead");
 	dprintf("arc rad %g at %g %g from %g %g to %g %g head %g %g\n",

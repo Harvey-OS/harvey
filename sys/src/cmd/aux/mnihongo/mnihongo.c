@@ -42,13 +42,13 @@ x ...\n	device control functions:
 
 #include <u.h>
 #include <libc.h>
-#include <libg.h>
+#include <draw.h>
 #include <bio.h>
 
-#define	hmot(n)		hpos += n
-#define	hgoto(n)	hpos = n
-#define	vmot(n)		vgoto(vpos + n)
-#define	vgoto(n)	vpos = n
+#define hmot(n)	hpos += n
+#define hgoto(n)	hpos = n
+#define vmot(n)	vgoto(vpos + n)
+#define vgoto(n)	vpos = n
 
 #define	putchar(x)	Bprint(&bout, "%C", x)
 
@@ -64,13 +64,17 @@ void	Bgetint(Biobuf *bp, int *n);
 
 Biobuf bin, bout;
 
-main()
+void
+main(void)
 {
 	int c, n;
 	char str[100], *args[10];
 	int jfont, curfont;
 
-	binit(0, 0, 0);
+	if(initdraw(0, fontfile, 0) < 0){
+		fprint(2, "mnihongo: can't initialize display: %r\n");
+		exits("open");
+	}
 	Binit(&bin, 0, OREAD);
 	Binit(&bout, 1, OWRITE);
 
@@ -95,12 +99,16 @@ main()
 			putchar(Bgetc(&bin));	/* char itself */
 			break;
 		case 'c':	/* single character */
-			if(jfont == curfont){
+			c = Bgetrune(&bin);
+			if(c==' ')	/* why does this happen? it's troff - bwk */
+				break;
+			else if(jfont == curfont){
+				Bungetrune(&bin);
 				Bgetstr(&bin, str);
 				kanji(str);
 			}else{
 				putchar('c');
-				putchar(Bgetrune(&bin));
+				putchar(c);
 			}
 			break;
 		case 'C':
@@ -163,13 +171,11 @@ main()
 			Bprint(&bout, "%c%s", c, str);
 			break;
 		default:
-			fprint(2, "unknown input character %o %c\n", c, c);
-			return 1;
+			fprint(2, "mnihongo: unknown input character %o %c\n", c, c);
+			exits("error");
 		}
 	}
 }
-
-Font	*f = 0;
 
 int kanji(char *s)	/* very special pleading */
 {			/* dump as kanji char if looks like one */
@@ -177,8 +183,6 @@ int kanji(char *s)	/* very special pleading */
 	char hex[500];
 	int size = 10, ht, wid;
 
-	if (f == 0)
-		f = rdfontfile(fontfile, 0);
 	chartorune(&r, s);
 	pschar(s, hex, &wid, &ht);
 	Bprint(&bout, "x X PS save %d %d m\n", hpos, vpos);
@@ -193,27 +197,29 @@ int kanji(char *s)	/* very special pleading */
 char *pschar(char *s, char *hex, int *wid, int *ht)
 {
 	Point chpt, spt;
-	Bitmap *b;
+	Image *b;
 	uchar rowdata[100];
 	char *hp = hex;
 	int y, i;
 
-	chpt = strsize(f, s);		/* bounding box of char */
+	chpt = stringsize(font, s);		/* bounding box of char */
 	*wid = ((chpt.x+7) / 8) * 8;
 	*ht = chpt.y;
-	b = balloc(Rpt(Pt(0,0), chpt), 0);	/* place to put it */
-	spt = string(b, Pt(0,0), f, s, S);	/* put it there */
+	/* postscript is backwards to video, so draw white (ones) on black (zeros) */
+	b = allocimage(display, Rpt(ZP, chpt), GREY1, 0, DBlack);	/* place to put it */
+	spt = string(b, Pt(0,0), display->white, ZP, font, s);	/* put it there */
 /* Bprint(&bout, "chpt %P, spt %P, wid,ht %d,%d\n", chpt, spt, *wid, *ht);
 /* Bflush(&bout); */
 	for (y = 0; y < chpt.y; y++) {	/* read bits a row at a time */
-		rdbitmap(b, y, y+1, rowdata);
+		memset(rowdata, 0, sizeof rowdata);
+		unloadimage(b, Rect(0, y, chpt.x, y+1), rowdata, sizeof rowdata);
 		for (i = 0; i < spt.x; i += 8) {	/* 8 == byte */
 			sprint(hp, "%2.2x", rowdata[i/8]);
 			hp += 2;
 		}
 	}
 	*hp = 0;
-	bfree(b);
+	freeimage(b);
 	return hex;
 }
 

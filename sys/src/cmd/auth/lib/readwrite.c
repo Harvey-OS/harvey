@@ -46,6 +46,21 @@ findkey(char *db, char *user, char *key)
 }
 
 char*
+findsecret(char *db, char *user, char *secret)
+{
+	int n;
+	char filename[3*NAMELEN];
+
+	sprint(filename, "%s/%s/secret", db, user);
+	n = readfile(filename, secret, SECRETLEN-1);
+	secret[n]=0;
+	if(n <= 0)
+		return 0;
+	else
+		return secret;
+}
+
+char*
 setkey(char *db, char *user, char *key)
 {
 	int n;
@@ -57,4 +72,18 @@ setkey(char *db, char *user, char *key)
 		return 0;
 	else
 		return key;
+}
+
+char*
+setsecret(char *db, char *user, char *secret)
+{
+	int n;
+	char filename[3*NAMELEN];
+
+	sprint(filename, "%s/%s/secret", db, user);
+	n = writefile(filename, secret, strlen(secret));
+	if(n != strlen(secret))
+		return 0;
+	else
+		return secret;
 }

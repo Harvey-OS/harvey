@@ -6,6 +6,10 @@ hoc \- interactive floating point language
 [
 .I file ...
 ]
+[
+.B -e
+.I expression
+]
 .SH DESCRIPTION
 .I Hoc
 interprets a simple language for floating point arithmetic,
@@ -23,6 +27,11 @@ is
 .L -
 .I hoc
 interprets the standard input.
+The
+.B -e
+option allows input to
+.I hoc
+to be specified on the command line, to be treated as if it appeared in a file.
 .PP
 .I Hoc
 input consists of
@@ -95,7 +104,7 @@ the statement
 .B print
 prints a list of expressions that may include
 string constants such as
-.BR \&\&\&"hello\en" .
+\fL"hello\en"\f1.\fP
 .PP
 Control flow statements are
 .BR if - else ,
@@ -112,17 +121,12 @@ and
 .BR proc ;
 .B return
 is used to return with a value from a function.
-Within a function or procedure,
-arguments are referred to as
-.BR $1 ,
-.BR $2 ,
-etc.; all other variables are global.
 .SH EXAMPLES
 .EX
-func gcd() {
-	temp = abs($1) % abs($2)
-	if(temp == 0) return abs($2)
-	return gcd($2, temp)
+func gcd(a, b) {
+	temp = abs(a) % abs(b)
+	if(temp == 0) return abs(b)
+	return gcd(b, temp)
 }
 for(i=1; i<12; i++) print gcd(i,12)
 .EE

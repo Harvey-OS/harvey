@@ -72,3 +72,12 @@ csqrt(double c1, double c2, double *e1, double *e2)
 		*e1 = c2/(2* *e2);
 	}
 }
+
+
+void cpow(double c1, double c2, double *d1, double *d2, double pwr)
+{
+	double theta = pwr*atan2(c2,c1);
+	double r = pow(hypot(c1,c2), pwr);
+	*d1 = r*cos(theta);
+	*d2 = r*sin(theta);
+}

@@ -106,11 +106,13 @@ in a line is significant.
 .SH EXAMPLES
 .TP
 .L
-sort /adm/users | join -t: -a 1 -e "" - bdays
-Add birthdays to password information, leaving unknown
+sort -t: +1 /adm/users | join -t: -1 2 -a 1 -e "" - bdays
+Add birthdays to the
+.B /adm/users
+file, leaving unknown
 birthdays empty.
 The layout of 
-.F /adm/users
+.B /adm/users
 is given in
 .IR users (6);
 .B bdays

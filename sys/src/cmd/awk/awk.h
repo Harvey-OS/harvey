@@ -1,15 +1,14 @@
 /*
-Copyright (c) 1989 AT&T
+Copyright (c) Lucent Technologies 1997
 	All Rights Reserved
 
-THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T.
-
-The copyright notice above does not evidence any
-actual or intended publication of such source code.
 */
 
 typedef double	Awkfloat;
-typedef	/*unsigned*/ char uchar;
+
+/* unsigned char is more trouble than it's worth */
+
+typedef	unsigned char uschar;
 
 #define	xfree(a)	{ if ((a) != NULL) { free((char *) a); a = NULL; } }
 
@@ -21,57 +20,52 @@ typedef	/*unsigned*/ char uchar;
 #	define	dprintf(x)
 #endif
 
-extern	char	errbuf[200];
-#define	ERROR	sprintf(errbuf,
-#define	FATAL	), error(1, errbuf)
-#define	WARNING	), error(0, errbuf)
-#define	SYNTAX	), yyerror(errbuf)
+extern	char	errbuf[];
 
 extern int	compile_time;	/* 1 if compiling, 0 if running */
+extern int	safe;		/* 0 => unsafe, 1 => safe */
 
-#define	RECSIZE	(3 * 1024)	/* sets limit on records, fields, etc., etc. */
-extern int	recsize;	/* variable version */
+#define	RECSIZE	(8 * 1024)	/* sets limit on records, fields, etc., etc. */
+extern int	recsize;	/* size of current record, orig RECSIZE */
 
-extern uchar	**FS;
-extern uchar	**RS;
-extern uchar	**ORS;
-extern uchar	**OFS;
-extern uchar	**OFMT;
+extern char	**FS;
+extern char	**RS;
+extern char	**ORS;
+extern char	**OFS;
+extern char	**OFMT;
 extern Awkfloat *NR;
 extern Awkfloat *FNR;
 extern Awkfloat *NF;
-extern uchar	**FILENAME;
-extern uchar	**SUBSEP;
+extern char	**FILENAME;
+extern char	**SUBSEP;
 extern Awkfloat *RSTART;
 extern Awkfloat *RLENGTH;
 
-extern uchar	*record;	/* points to $0 */
+extern char	*record;	/* points to $0 */
 extern int	lineno;		/* line number in awk program */
 extern int	errorflag;	/* 1 if error has occurred */
 extern int	donefld;	/* 1 if record broken into fields */
 extern int	donerec;	/* 1 if record is valid (no fld has changed */
+extern char	inputFS[];	/* FS at time of input, for field splitting */
 
 extern int	dbg;
 
-#define	CBUFLEN	400
-extern uchar	cbuf[CBUFLEN];	/* miscellaneous character collection */
-
-extern	uchar	*patbeg;	/* beginning of pattern matched */
+extern	char	*patbeg;	/* beginning of pattern matched */
 extern	int	patlen;		/* length of pattern matched.  set in b.c */
 
 /* Cell:  all information about a variable or constant */
 
 typedef struct Cell {
-	uchar	ctype;		/* OCELL, OBOOL, OJUMP, etc. */
-	uchar	csub;		/* CCON, CTEMP, CFLD, etc. */
-	uchar	*nval;		/* name, for variables only */
-	uchar	*sval;		/* string value */
+	uschar	ctype;		/* OCELL, OBOOL, OJUMP, etc. */
+	uschar	csub;		/* CCON, CTEMP, CFLD, etc. */
+	char	*nval;		/* name, for variables only */
+	char	*sval;		/* string value */
 	Awkfloat fval;		/* value as number */
-	unsigned tval;		/* type info: STR|NUM|ARR|FCN|FLD|CON|DONTFREE */
+	int	 tval;		/* type info: STR|NUM|ARR|FCN|FLD|CON|DONTFREE */
 	struct Cell *cnext;	/* ptr to next if chained */
 } Cell;
 
-typedef struct {		/* symbol table array */
+typedef struct Array {		/* symbol table array */
 	int	nelem;		/* elements in table right now */
 	int	size;		/* size of tab */
 	Cell	**tab;		/* hash table pointers */
@@ -80,7 +74,6 @@ typedef struct {		/* symbol table array */
 #define	NSYMTAB	50	/* initial size of a symbol table */
 extern Array	*symtab;
 
-extern Cell	*recloc;	/* location of input record */
 extern Cell	*nrloc;		/* NR */
 extern Cell	*fnrloc;	/* FNR */
 extern Cell	*nfloc;		/* NF */
@@ -113,7 +106,7 @@ extern Cell	*rlengthloc;	/* RLENGTH */
 #define	FTOUPPER 12
 #define	FTOLOWER 13
 #define	FFLUSH	14
-#define	FUTF		15
+#define	FUTF	15
 
 /* Node:  parse tree is made of nodes, with Cell's at bottom */
 
@@ -122,7 +115,7 @@ typedef struct Node {
 	struct	Node *nnext;
 	int	lineno;
 	int	nobj;
-	struct Node *narg[1];	/* variable: actual size set by calling malloc */
+	struct	Node *narg[1];	/* variable: actual size set by calling malloc */
 } Node;
 
 #define	NIL	((Node *) 0)
@@ -144,6 +137,7 @@ extern Node	*nullnode;
 #define CNAME	3 
 #define CVAR	2
 #define CFLD	1
+#define	CUNK	0
 
 /* bool subtypes */
 #define BTRUE	11
@@ -155,12 +149,12 @@ extern Node	*nullnode;
 #define	JBREAK	23
 #define	JCONT	24
 #define	JRET	25
+#define	JNEXTFILE	26
 
 /* node types */
 #define NVALUE	1
 #define NSTAT	2
 #define NEXPR	3
-#define	NFIELD	4
 
 
 extern	int	pairstack[], paircnt;
@@ -173,14 +167,18 @@ extern	int	pairstack[], paircnt;
 #define	isbreak(n)	((n)->csub == JBREAK)
 #define	iscont(n)	((n)->csub == JCONT)
 #define	isnext(n)	((n)->csub == JNEXT)
+#define	isnextfile(n)	((n)->csub == JNEXTFILE)
 #define	isret(n)	((n)->csub == JRET)
+#define isrec(n)	((n)->tval & REC)
+#define isfld(n)	((n)->tval & FLD)
 #define isstr(n)	((n)->tval & STR)
 #define isnum(n)	((n)->tval & NUM)
 #define isarr(n)	((n)->tval & ARR)
-#define isfunc(n)	((n)->tval & FCN)
+#define isfcn(n)	((n)->tval & FCN)
 #define istrue(n)	((n)->csub == BTRUE)
 #define istemp(n)	((n)->csub == CTEMP)
 #define	isargument(n)	((n)->nobj == ARG)
-#define freeable(p)	(!((p)->tval & DONTFREE))
+/* #define freeable(p)	(!((p)->tval & DONTFREE)) */
+#define freeable(p)	( ((p)->tval & (STR|DONTFREE)) == STR )
 
 #include "proto.h"

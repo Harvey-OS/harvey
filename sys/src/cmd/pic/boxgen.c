@@ -41,6 +41,9 @@ obj *boxgen(void)
 		case INVIS:
 			battr |= INVIS;
 			break;
+		case NOEDGE:
+			battr |= NOEDGEBIT;
+			break;
 		case DOT:
 		case DASH:
 			battr |= ap->a_type==DOT ? DOTBIT : DASHBIT;

@@ -14,7 +14,7 @@ int	setjmp(jmp_buf env)
 void	longjmp(jmp_buf env, int val)
 .PP
 .B
-void	notejmp(void *uregs, jump_buf env, int val)
+void	notejmp(void *uregs, jmp_buf env, int val)
 .SH DESCRIPTION
 These routines are useful for dealing with errors
 and interrupts encountered in

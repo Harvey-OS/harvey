@@ -13,5 +13,11 @@ OBJ=\
 fs.ps:D:	$OBJ
 	{echo $FONTS; cat $OBJ } | troff -ms | lp -dstdout >fs.ps
 
+fs.bs:D:	$OBJ
+	../prfile fs $OBJ
+
 fs.trout:D:	$OBJ
 	{echo $FONTS; cat $OBJ } | troff -ms >fs.trout
+
+fs.html:D:
+	{echo $FONTS; cat $OBJ } | ms2html >fs.html

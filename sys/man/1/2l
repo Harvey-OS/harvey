@@ -1,6 +1,6 @@
 .TH 2L 1 
 .SH NAME
-2l, 6l, 8l, kl, vl, xl \- loaders
+0l, 1l, 2l, 4l, 5l, 6l, 7l, 8l, 9l, kl, ql, vl, xl \- loaders
 .SH SYNOPSIS
 .B 2l
 [
@@ -10,57 +10,17 @@
 .I file ...
 ]
 .br
-.B 6l
-[
-.I option ...
-]
-[
-.I file ...
-]
-.br
-.B 8l
-[
-.I option ...
-]
-[
-.I file ...
-]
-.br
-.B kl
-[
-.I option ...
-]
-[
-.I file ...
-]
-.br
-.B vl
-[
-.I option ...
-]
-[
-.I file ...
-]
-.br
-.B xl
-[
-.I option ...
-]
-[
-.I file ...
-]
+etc.
 .SH DESCRIPTION
-.IR 2l ,
-.IR 6l ,
-.IR 8l ,
-.IR kl ,
-.IR vl ,
-and
-.IR xl
+These commands
 load the named
 .I files
-into MC68020, i960, i386, SPARC, MIPS,
-and ATT3210 executable files.
+into executable files for the corresponding architectures; see
+.IR 2c (1)
+for the correspondence between an architecture and the character
+.RB ( 0 ,
+.RB 1 ,
+etc.) that specifies it.
 The files should be object files or libraries (archives of object files)
 for the appropriate architecture.
 Also, a name like
@@ -72,13 +32,9 @@ in
 where
 .I objtype
 is one of
-.BR 68020 ,
-.BR 960 ,
-.BR 386 ,
-.BR sparc ,
-.BR mips ,
-or
-.BR 3210 .
+.BR 68000 ,
+etc. as listed in
+.IR 2c (1).
 The libraries must have tables of contents
 (see
 .IR ar (1)).
@@ -228,7 +184,6 @@ etc.
 .SH "SEE ALSO"
 .IR 2c (1),
 .IR 2a (1),
-.IR alef (1),
 .IR ar (1),
 .IR nm (1),
 .IR db (1),

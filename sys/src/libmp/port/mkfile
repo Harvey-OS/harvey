@@ -1,0 +1,39 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libmp.a
+ALLOFILES=\
+	mpaux.$O\
+	mpconv.$O\
+	strtomp.$O\
+	mptobe.$O\
+	mptole.$O\
+	betomp.$O\
+	letomp.$O\
+	mpadd.$O\
+	mpsub.$O\
+	mpcmp.$O\
+	mpmul.$O\
+	mpleft.$O\
+	mpright.$O\
+	mpvecadd.$O\
+	mpvecsub.$O\
+	mpvecdigmuladd.$O\
+	mpveccmp.$O\
+	mpdigdiv.$O\
+	mpdiv.$O\
+	mpexp.$O\
+	mpmod.$O\
+	mpextendedgcd.$O\
+	mpinvert.$O\
+	mprand.$O\
+	crt.$O\
+
+# cull things in the per-machine directories from this list
+OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
+
+HFILES=\
+	/$objtype/include/u.h\
+	/sys/include/mp.h\
+	dat.h\
+
+</sys/src/cmd/mksyslib

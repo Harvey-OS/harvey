@@ -5,7 +5,7 @@ intro \- introduction to Plan 9
 Plan 9 is a distributed computing environment assembled from
 separate machines acting as terminals,
 CPU servers, and file servers.
-A user works at a terminal, running a window system on a bitmapped display.
+A user works at a terminal, running a window system on a raster display.
 Some windows are connected to CPU servers; the intent is that heavy computing
 should be done in those windows but it is also possible to compute on the terminal.
 A separate file server provides file storage for terminals and
@@ -13,7 +13,7 @@ CPU servers alike.
 .SS Name Spaces
 In Plan 9, almost all objects look like files.
 The object retrieved by a given name is determined by a mapping called the
-.I name space.
+.IR name space .
 A quick tour of the standard name space is in
 .IR namespace (4).
 Every program running in Plan 9 belongs to a
@@ -107,11 +107,14 @@ for details, but some important aspects of the initial name space are:
 The environment variable
 .B $cputype
 is set to the name of the kernel's CPU's architecture: one of
-.BR 68020 ,
+.BR alpha ,
 .BR mips ,
 .BR sparc ,
-or
-.BR 386 .
+.B power
+(Power PC),
+.BR 386
+(386, 486, Pentium, ...)
+etc.
 The environment variable
 .B $objtype
 is initially the same as
@@ -119,8 +122,16 @@ is initially the same as
 .IP \(bu
 The environment variable
 .B $terminal
-is set to the model of the machine running the kernel: e.g.,
-.BR "mips magnum 3000" .
+is set to a description of the machine running the kernel,
+such as
+.BR "generic pc" .
+Sometimes the middle word of
+.B $terminal
+encodes the file from which the kernel is booted;
+e.g.
+.B "alpha apc axp
+is bootstrapped from
+.BR /alpha/bapc .
 .IP \(bu
 The environment variable
 .B $service
@@ -157,16 +168,20 @@ after moving to the user's home directory.
 Here is a typical profile:
 .IP
 .EX
-bind -c $home/tmp /tmp
 bind -a $home/bin/rc /bin
 bind -a $home/bin/$cputype /bin
+bind -c $home/tmp /tmp
 font = /lib/font/bit/pelm/euro.9.font
+upas/fs
 switch($service){
 case terminal
+	plumber
 	prompt=('term% ' '	')
-	exec 8½ -f $font
+	exec rio -f $font
 case cpu
-	bind -b /mnt/term/mnt/8½ /dev
+	bind /mnt/term/dev/cons /dev/cons
+	bind /mnt/term/dev/consctl /dev/consctl
+	bind -a /mnt/term/mnt/wsys /dev
 	prompt=('cpu% ' '	')
 	news
 case con
@@ -188,11 +203,13 @@ directories with
 to be searched after the standard
 .B bin
 directories.
+The next starts the mail file system; see
+.IR mail (1).
 Then different things happen, depending on the
 .B $service
 environment variable,
 such as running the window system
-.IR 8½ (1)
+.IR rio (1)
 on a terminal.
 .PP
 To do heavy work such as compiling, the
@@ -214,7 +231,7 @@ The root of the terminal's name space is accessible through
 so the
 .I bind
 is a way of making the window system's graphics interface (see
-.IR bit (3))
+.IR draw (3))
 available to programs running on the CPU server.
 The
 .IR news (1)
@@ -228,9 +245,7 @@ such as through
 (see
 .IR con (1)).
 .SS Using Plan 9
-The user commands of Plan 9 are reminiscent of those in Research Unix, version 10;
-the window system is a lot like
-.IR mux .
+The user commands of Plan 9 are reminiscent of those in Research Unix, version 10.
 There are a number of differences, however.
 .PP
 The standard shell is
@@ -256,9 +271,13 @@ or
 .IR kill (1))
 cleans up broken processes.
 .PP
-The standard editor is
+The standard editor is one of
+.IR acme (1)
+or
 .IR sam (1).
-There is a variant that permits running the file-manipulating part of
+There is a variant of
+.I sam
+that permits running the file-manipulating part of
 .I sam
 on a non-Plan-9 system:
 .IP
@@ -266,14 +285,20 @@ on a non-Plan-9 system:
 sam -r tcp!kremvax
 .EE
 .PP
+For historical reasons,
+.I sam
+uses a tab stop setting of 8 spaces, while the other editors and window systems use 4 spaces.
+These defaults can be overridden by setting the value of the environment variable
+.B $tabstop
+to the desired number of spaces per tab.
+.PP
 Machine names may be prefixed by the network name,
 here
 .BR tcp ;
-others include
-.B dk
-for Datakit and
 .B il
-for the Plan 9 Internet protocol.
+for the Plan 9 Internet protocol and
+.B net
+for the system default.
 .PP
 Login connections and remote execution on non-Plan-9 machines are usually
 done by saying, for example,
@@ -306,16 +331,8 @@ sets things up so that the root of
 file tree is visible locally in
 .BR /n/kremvax .
 .PP
-.I Seemail
-gives graphical notification of arriving mail
-(see
-.IR mail (1));
-if your mail arrives elsewhere, use
-.IR vismon :
-.IP
-.EX
-vismon tcp!kremvax
-.EE
+.IR Faces (1)
+gives graphical notification of arriving mail.
 .PP
 The Plan 9 file server has an integrated backup facility.
 The command
@@ -330,15 +347,15 @@ a tree containing the daily backups on the file server.
 The dump tree has years as top level file names, and month-day
 as next level file names.
 For example,
-.B /n/dump/1990/0120
+.B /n/dump/2000/0120
 is the root of the file system as it appeared at dump time on
-January 20, 1990.
+January 20, 2000.
 If more than one dump is taken on the same day, dumps after
 the first have an extra digit.
-To recover the version of this file as it was on June 15, 1991,
+To recover the version of this file as it was on June 15, 1999,
 .IP
 .EX
-cp /n/dump/1991/0615/sys/man/man1/Intro.1 .
+cp /n/dump/1999/0615/sys/man/1/0intro .
 .EE
 .PP
 or use
@@ -361,8 +378,6 @@ Section (6) for file formats.
 Section (7) for databases and database access programs.
 .br
 Section (8) for things related to administering Plan 9.
-.br
-Section (9) for raster image software.
 .br
 .B /sys/doc
 for copies of papers referenced in this manual.

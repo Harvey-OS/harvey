@@ -2,6 +2,10 @@
 #include "send.h"
 
 Biobuf	bin;
+int rmail, tflg;
+char *subjectarg;
+
+char *findbody(char*);
 
 void
 main(int argc, char *argv[])
@@ -13,14 +17,19 @@ main(int argc, char *argv[])
 	char file[MAXPATHLEN];
 	Biobuf *fp;
 	char *rcvr, *cp;
-	Lock *l;
+	Mlock *l;
 	String *tmp;
 	int i;
-	int fromonly = 1;
+	int header, body;
 
+	header = body = 0;
 	ARGBEGIN {
+	case 'h':
+		header = 1;
+		break;
 	case 'b':
-		fromonly = 0;
+		header = 1;
+		body = 1;
 		break;
 	} ARGEND
 
@@ -29,7 +38,7 @@ main(int argc, char *argv[])
 		fprint(2, "usage: filter rcvr mailfile [regexp mailfile ...]\n");
 		exits("usage");
 	}
-	mp = m_read(&bin, 1);
+	mp = m_read(&bin, 1, 0);
 
 	/* get rid of local system name */
 	cp = strchr(s_to_c(mp->sender), '!');
@@ -38,9 +47,10 @@ main(int argc, char *argv[])
 		mp->sender = s_copy(cp);
 	}
 
-	dp = d_new(0);
+	dp = d_new(s_copy(argv[0]));
 	strcpy(file, argv[1]);
-	for(i = 2; i < argc-1; i += 2){
+	cp = findbody(s_to_c(mp->body));
+	for(i = 2; i < argc; i += 2){
 		p = regcomp(argv[i]);
 		if(p == 0)
 			continue;
@@ -48,9 +58,11 @@ main(int argc, char *argv[])
 			regsub(argv[i+1], file, match, 10);
 			break;
 		}
-		if(fromonly)
+		if(header == 0 && body == 0)
 			continue;
 		if(regexec(p, s_to_c(mp->body), match, 10)){
+			if(body == 0 && match[0].sp >= cp)
+				continue;
 			regsub(argv[i+1], file, match, 10);
 			break;
 		}
@@ -60,7 +72,7 @@ main(int argc, char *argv[])
 	 *  always lock the normal mail file to avoid too many lock files
 	 *  lying about.  This isn't right but it's what the majority prefers.
 	 */
-	l = lock(argv[1]);
+	l = syslock(argv[1]);
 	if(l == 0){
 		fprint(2, "can't lock mail file %s\n", argv[1]);
 		exit(1);
@@ -69,13 +81,13 @@ main(int argc, char *argv[])
 	/*
 	 *  open the destination mail file
 	 */
-	fp = sysopen(file, "cal", MBOXMODE);
+	fp = sysopen(file, "ca", MBOXMODE);
 	if (fp == 0){
 		tmp = s_append(0, file);
 		s_append(tmp, ".tmp");
 		fp = sysopen(s_to_c(tmp), "cal", MBOXMODE);
 		if(fp == 0){
-			unlock(l);
+			sysunlock(l);
 			fprint(2, "can't open mail file %s\n", file);
 			exit(1);
 		}
@@ -86,16 +98,30 @@ main(int argc, char *argv[])
 	|| Bprint(fp, "\n") < 0
 	|| Bflush(fp) < 0){
 		sysclose(fp);
-		unlock(l);
+		sysunlock(l);
 		fprint(2, "can't write mail file %s\n", file);
 		exit(1);
 	}
 	sysclose(fp);
 
-	unlock(l);
+	sysunlock(l);
 	rcvr = argv[0];
 	if(cp = strrchr(rcvr, '!'))
 		rcvr = cp+1;
 	logdelivery(dp, rcvr, mp);
 	exit(0);
+}
+
+char*
+findbody(char *p)
+{
+	if(*p == '\n')
+		return p;
+
+	while(*p){
+		if(*p == '\n' && *(p+1) == '\n')
+			return p+1;
+		p++;
+	}
+	return p;
 }

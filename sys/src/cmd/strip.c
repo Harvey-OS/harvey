@@ -3,7 +3,7 @@
 #include <a.out.h>
 
 int	strip(char*);
-
+int	stripfilt(int, int);
 void
 main(int argc, char *argv[])
 {
@@ -11,6 +11,13 @@ main(int argc, char *argv[])
 	int rv;
 
 	rv = 0;
+
+	if(argc == 1) {
+		if(stripfilt(0, 1))
+			exits("error");
+		exits(0);
+	}
+
 	for(i = 1; i < argc; i++)
 		rv |= strip(argv[i]);
 	if(rv)
@@ -30,6 +37,58 @@ ben(long xen)
 	u.xen = xen;
 	return (u.uch[0] << 24) | (u.uch[1] << 16) | (u.uch[2] << 8) | (u.uch[3] << 0);
 }
+
+int
+stripfilt(int in, int out)
+{
+	Exec exec;
+	int i, j, n, m, len;
+	char buf[8192];
+
+	/*
+	 * read header
+	 */
+
+	if(readn(in, &exec, sizeof(Exec)) != sizeof(Exec)) {
+		fprint(2, "strip: short read\n");
+		return 1;
+	}
+	i = ben(exec.magic);
+	for (j = 8; j < 24; j++)
+		if (i == _MAGIC(j))
+			break;
+	if (j >= 24) {
+		fprint(2, "strip: not a recognizable binary\n");
+		return 1;
+	}
+
+	len = ben(exec.data) + ben(exec.text);
+
+	/*
+	 *  copy exec, text and data
+	 */
+	exec.syms = 0;
+	exec.spsz = 0;
+	exec.pcsz = 0;
+	write(out, &exec, sizeof(exec));
+	
+	for(n=0; n<len; n+=m) {
+		m = len - n;
+		if(m > sizeof(buf))
+			m = sizeof(buf);
+		if((m = read(in, buf, m)) < 0) {
+			fprint(2, "strip: premature eof: %r\n");
+			return 1;
+		}
+		if(write(out, buf, m) != m) {
+			fprint(2, "strip: write error; %r\n");
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 
 int
 strip(char *file)

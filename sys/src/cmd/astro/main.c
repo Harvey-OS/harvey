@@ -12,18 +12,20 @@ main(int argc, char *argv[])
 	pipi = 2*pi;
 	radian = pi/180;
 	radsec = radian/3600;
+	converge = 1.0e-14;
 
 	fmtinstall('R', Rconv);
 	fmtinstall('D', Dconv);
 
-	args(argc, argv);
 	init();
+	per = PER;
 	deld = PER/NPTS;
+	args(argc, argv);
 
 loop:
 	d = day;
 	pdate(d);
-	if(flags['p']) {
+	if(flags['p'] || flags['e']) {
 		print(" ");
 		ptime(d);
 	}
@@ -41,19 +43,23 @@ loop:
 				output(objlst[j]->name, &objlst[j]->point[i]);
 			}
 		}
-
-		if(flags['p']) {
-			if(flags['e']) {
-				d = dist(&osun.point[0], &omoon.point[0]);
-				print(" dist = %.4f\n", d);
-			}
-			break;
+		if(flags['e']) {
+			d = dist(&eobj1->point[i], &eobj2->point[i]);
+			print("dist %s to %s = %.4f\n", eobj1->name, eobj2->name, d);
 		}
+//		if(flags['p']) {
+//			pdate(d);
+//			print(" ");
+//			ptime(d);
+//			print("\n");
+//		}
+		if(flags['p'] || flags['e'])
+			break;
 		d += deld;
 	}
-	if(!(flags['p']))
+	if(!(flags['p'] || flags['e']))
 		search();
-	day += PER;
+	day += per;
 	nperiods -= 1;
 	if(nperiods > 0)
 		goto loop;
@@ -65,36 +71,70 @@ args(int argc, char *argv[])
 {
 	char *p;
 	long t;
-	int f;
+	int f, i;
+	Obj2 *q;
 
 	memset(flags, 0, sizeof(flags));
 	ARGBEGIN {
 	default:
-		fprint(2, "unknown option '%c'\n", ARGC());
-		break;
+		fprint(2, "astro [-adeklmopst] [-c nperiod] [-C tperiod]\n");
+		exits(0);
 
 	case 'c':
 		nperiods = 1;
 		p = ARGF();
 		if(p)
 			nperiods = atol(p);
+		flags['c']++;
 		break;
-	case 'd':
-	case 'l':
+	case 'C':
+		p = ARGF();
+		if(p)
+			per = atof(p);
+		break;
 	case 'e':
+		eobj1 = nil;
+		eobj2 = nil;
+		p = ARGF();
+		if(p) {
+			for(i=0; q=objlst[i]; i++) {
+				if(strcmp(q->name, p) == 0)
+					eobj1 = q;
+				if(strcmp(q->name1, p) == 0)
+					eobj1 = q;
+			}
+			p = ARGF();
+			if(p) {
+				for(i=0; q=objlst[i]; i++) {
+					if(strcmp(q->name, p) == 0)
+						eobj2 = q;
+					if(strcmp(q->name1, p) == 0)
+						eobj2 = q;
+				}
+			}
+		}
+		if(eobj1 && eobj2) {
+			flags['e']++;
+			break;
+		}
+		fprint(2, "cant recognize eclipse objects\n");
+		exits("eflag");
+
+	case 'a':
+	case 'd':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'o':
 	case 'p':
 	case 's':
-	case 'a':
 	case 't':
-	case 'o':
-	case 'k':
-	case 'm':
 		flags[ARGC()]++;
 		break;
 	} ARGEND
 	if(argc);
 	if(*argv){
-		fprint(2, "usage: astro [-dlepsatokm] [-c nday]\n");
+		fprint(2, "usage: astro [-dlpsatokm] [-c nday] [-e obj1 obj2]\n");
 		exits("usage");
 	}
 

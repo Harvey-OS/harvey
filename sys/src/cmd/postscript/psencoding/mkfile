@@ -1,10 +1,8 @@
 </$objtype/mkfile
 
-SYSTEM=plan9
-VERSION=3.3.1
+<../config
 
-POSTLIB=/sys/lib/postscript/prologues
-POSTBIN=/sys/lib/postscript/bin
+POSTBIN=$ROOT/rc/bin/postscript
 
 all:V:	psencoding
 

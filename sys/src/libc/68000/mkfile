@@ -1,0 +1,34 @@
+objtype=68000
+</68000/mkfile
+
+LIB=/$objtype/lib/libc.a
+OFILES=\
+	main9.$O\
+	main9p.$O\
+	argv0.$O\
+	doprint.$O\
+	frexp.$O\
+	getfcr.$O\
+	memccpy.$O\
+	memchr.$O\
+	memcmp.$O\
+	memmove.$O\
+	muldiv.$O\
+	nan.$O\
+	notejmp.$O\
+	scale.$O\
+	setjmp.$O\
+	strcat.$O\
+	strchr.$O\
+	strcmp.$O\
+	strcpy.$O\
+	strlen.$O\
+	sqrt.$O\
+	vlrt.$O\
+
+HFILES=/sys/include/libc.h
+
+</sys/src/cmd/mksyslib
+
+installall:V:
+	mk install

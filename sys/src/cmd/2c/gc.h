@@ -1,19 +1,20 @@
 #include	"../cc/cc.h"
 #include	"../2c/2.out.h"
+/*
+ * 2c/68020
+ * Motorola 68020
+ */
 
-#define	TINT		TLONG
-#define	TFIELD		TLONG
 #define	SZ_CHAR		1
 #define	SZ_SHORT	2
+#define	SZ_INT		4
 #define	SZ_LONG		4
-#define	SZ_VLONG	8
 #define	SZ_IND		4
 #define	SZ_FLOAT	4
+#define	SZ_VLONG	8
 #define	SZ_DOUBLE	8
-#define	SU_ALLIGN	SZ_SHORT
-#define	SU_PAD		SZ_LONG
 
-#define	ALLOP	90
+#define	ALLOP	91
 #define	NRGN	300
 #define	FNX	100
 #define	INDEXED	9
@@ -28,12 +29,18 @@ typedef	struct	Txt	Txt;
 typedef	struct	Cases	Case;
 typedef	struct	Reg	Reg;
 typedef	struct	Rgn	Rgn;
-typedef	struct	Bits	Bits;
 typedef	struct	Var	Var;
 typedef	struct	Multab	Multab;
 typedef	struct	C1	C1;
+typedef	struct	Index	Index;
 
-struct
+struct Index
+{
+	int	o0;
+	int	o1;
+};
+
+EXTERN	struct
 {
 	Node*	regtree;
 	Node*	basetree;
@@ -42,16 +49,12 @@ struct
 
 struct	Adr
 {
-	union
-	{
-		struct
-		{
-			long	displace;
-			long	offset;
-		};
-		char	sval[NSNAME];
-		double	dval;
-	};
+	long	displace;
+	long	offset;
+
+	char	sval[NSNAME];
+	double	dval;
+
 	Sym*	sym;
 	short	type;
 	short	index;
@@ -87,13 +90,6 @@ struct	Cases
 };
 #define	C	((Case*)0)
 
-#define	BITS	5
-#define	NVAR	(BITS*sizeof(ulong)*8)
-struct	Bits
-{
-	ulong	b[BITS];
-};
-
 struct	Var
 {
 	long	offset;
@@ -105,6 +101,8 @@ struct	Var
 struct	Reg
 {
 	long	pc;
+	long	rpo;		/* reverse post ordering */
+
 	Bits	set;
 	Bits	use1;
 	Bits	use2;
@@ -119,11 +117,9 @@ struct	Reg
 	ulong	regu;
 	long	loop;		/* could be shorter */
 
-	union
-	{
-		Reg*	log5;
-		int	active;
-	};
+	Reg*	log5;
+	long	active;
+
 	Reg*	p1;
 	Reg*	p2;
 	Reg*	p2link;
@@ -155,15 +151,6 @@ struct	C1
 	long	label;
 };
 
-enum
-{
-	OTST = OEND+1,
-	OINDEX,
-	OFAS,
-
-	OXEND
-};
-
 #define	BLOAD(r)	band(bnot(r->refbehind), r->refahead)
 #define	BSTORE(r)	band(bnot(r->calbehind), r->calahead)
 #define	LOAD(r)		(~r->refbehind.b[z] & r->refahead.b[z])
@@ -178,62 +165,62 @@ enum
 #define	CINF	1000
 #define	LOOP	3
 
-Bits	externs;
-Bits	params;
-Bits	addrs;
-Bits	zbits;
-ulong	regbits;
+EXTERN	Bits	externs;
+EXTERN	Bits	params;
+EXTERN	Bits	addrs;
+EXTERN	ulong	regbits;
 
 #define	B_INDIR	(1<<0)
 #define	B_ADDR	(1<<1)
-int	mvbits;
-int	changer;
-int	changea;
+EXTERN	int	mvbits;
+EXTERN	int	changer;
+EXTERN	int	changea;
 
-Txt	txt[NTYPE][NTYPE];
-short	opxt[ALLOP][NTYPE];
-Txt*	txtp;
-int	multabsize;
+EXTERN	Txt	txt[NTYPE][NTYPE];
+EXTERN	short	opxt[ALLOP][NTYPE];
+EXTERN	Txt*	txtp;
+EXTERN	int	multabsize;
 
-Reg*	firstr;
-Reg*	lastr;
-Reg	zreg;
-Reg*	freer;
+EXTERN	Reg*	firstr;
+EXTERN	Reg*	lastr;
+EXTERN	Reg	zreg;
+EXTERN	Reg*	freer;
 
-long	argoff;
-long	breakpc;
-Case*	cases;
-long	continpc;
-Prog*	firstp;
-Reg*	firstr;
-int	inargs;
-Prog*	lastp;
-int	retok;
-long	mnstring;
-Node*	nodrat;
-Node*	nodret;
-long	nrathole;
-long	nstatic;
-int	nregion;
-long	nstring;
-int	nvar;
-Prog*	p;
-long	pc;
-Rgn	region[NRGN];
-Rgn*	rgp;
-char	string[NSNAME];
-Sym*	symrathole;
-Sym*	symstatic;
-Var	var[NVAR];
-Prog	zprog;
+EXTERN	long	argoff;
+EXTERN	long	breakpc;
+EXTERN	Case*	cases;
+EXTERN	long	continpc;
+EXTERN	Prog*	firstp;
+EXTERN	Reg*	firstr;
+EXTERN	int	inargs;
+EXTERN	Prog*	lastp;
+EXTERN	int	retok;
+EXTERN	long	mnstring;
+EXTERN	Node*	nodrat;
+EXTERN	Node*	nodret;
+EXTERN	long	nrathole;
+EXTERN	long	nstatic;
+EXTERN	int	nregion;
+EXTERN	long	nstring;
+EXTERN	int	nvar;
+EXTERN	Prog*	p;
+EXTERN	long	pc;
+EXTERN	Rgn	region[NRGN];
+EXTERN	Rgn*	rgp;
+EXTERN	char	string[NSNAME];
+EXTERN	Sym*	symrathole;
+EXTERN	Sym*	symstatic;
+EXTERN	Var	var[NVAR];
+EXTERN	Prog	zprog;
 
-uchar	regused[NREG];
-uchar	aregused[NREG];
-uchar	fregused[NREG];
-uchar	regbase[I_MASK];
-long	exregoffset;
-long	exaregoffset;
-long	exfregoffset;
+EXTERN	uchar	regused[NREG];
+EXTERN	uchar	aregused[NREG];
+EXTERN	uchar	fregused[NREG];
+EXTERN	uchar	regbase[I_MASK];
+EXTERN	long	exregoffset;
+EXTERN	long	exaregoffset;
+EXTERN	long	exfregoffset;
+
 extern	char*	anames[];
 extern	Multab	multab[];
 
@@ -245,13 +232,13 @@ void	sugen(Node*, int, Node*, long);
 
 
 void	listinit(void);
-int	Bconv(void*, Fconv*);
-int	Pconv(void*, Fconv*);
-int	Aconv(void*, Fconv*);
-int	Xconv(void*, Fconv*);
-int	Dconv(void*, Fconv*);
-int	Rconv(void*, Fconv*);
-int	Sconv(void*, Fconv*);
+int	Bconv(va_list*, Fconv*);
+int	Pconv(va_list*, Fconv*);
+int	Aconv(va_list*, Fconv*);
+int	Xconv(va_list*, Fconv*);
+int	Dconv(va_list*, Fconv*);
+int	Rconv(va_list*, Fconv*);
+int	Sconv(va_list*, Fconv*);
 
 void	peep(void);
 void	excise(Reg*);
@@ -285,12 +272,12 @@ int	BtoA(ulong);
 int	BtoF(ulong);
 
 Reg*	rega(void);
-int	rcmp(void*, void*);
+int	rcmp(const void*, const void*);
 void	regopt(Prog*);
 void	addmove(Reg*, int, int, int);
 Bits	mkvar(Adr*, int);
 void	prop(Reg*, Bits, Bits);
-int	loopit(Reg*);
+void	loopit(Reg*, long);
 void	synch(Reg*, Bits);
 ulong	allreg(ulong, Rgn*);
 void	paint1(Reg*, int);
@@ -300,10 +287,11 @@ void	addreg(Adr*, int);
 
 void	codgen(Node*, Node*);
 void	gen(Node*);
+void	usedset(Node*, int);
 void	noretval(int);
 Node*	nodconst(long);
 
-int	swcmp(void*, void*);
+int	swcmp(const void*, const void*);
 void	doswit(int, Node*);
 void	swit1(C1*, int, long, int, Node*);
 void	cas(void);
@@ -315,7 +303,6 @@ void	setsp(void);
 void	adjsp(long);
 int	simplv(Node*);
 int	eval(Node*, int);
-int	vlog(Node*);
 void	outcode(void);
 void	ieeedtod(Ieee*, double);
 int	nodalloc(Type*, int, Node*);
@@ -350,19 +337,17 @@ void	indx(Node*);
 void	bcomplex(Node*);
 
 /*
- * bits.c
- */
-Bits	bor(Bits, Bits);
-Bits	band(Bits, Bits);
-Bits	bnot(Bits);
-int	bany(Bits*);
-int	bnum(Bits);
-Bits	blsh(unsigned);
-int	beq(Bits, Bits);
-
-/*
  * com64
  */
 int	com64(Node*);
 void	com64init(void);
 void	bool64(Node*);
+
+#pragma	varargck	type	"A"	int
+#pragma	varargck	type	"B"	Bits
+#pragma	varargck	type	"D"	Adr*
+#pragma	varargck	type	"N"	Adr*
+#pragma	varargck	type	"P"	Prog*
+#pragma	varargck	type	"S"	char*
+#pragma	varargck	type	"R"	int
+#pragma	varargck	type	"X"	Index

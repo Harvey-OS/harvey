@@ -14,17 +14,21 @@ defn acidinit()			// Called after all the init modules are loaded
 
 	srcfiles = {};			// list of loaded files
 	srctext = {};			// the text of the files
-	linkreg = PC;
+}
+
+defn linkreg(addr)
+{
+	return 0;
 }
 
 defn stk()				// trace
 {
-	_stk(*PC, *SP, *linkreg, 0);
+	_stk(*PC, *SP, 0, 0);
 }
 
 defn lstk()				// trace with locals
 {
-	_stk(*PC, *SP, *linkreg, 1);
+	_stk(*PC, *SP, 0, 1);
 }
 
 defn gpr()		// print general(hah hah!) purpose registers

@@ -866,13 +866,13 @@ REFERENCES
 ..
 .ds s \s-2
 .de MH
-AT&T Bell Laboratories, 600 Mountain Avenue, Murray Hill, New Jersey 07974, U. S. A.
+Bell Labs, 600 Mountain Avenue, Murray Hill, New Jersey 07974, U. S. A.
 ..
 .de HO
-Bell Laboratories, Holmdel, New Jersey 07733, U. S. A.
+Bell Labs, Holmdel, New Jersey 07733, U. S. A.
 ..
 .de WH
-Bell Laboratories, Whippany, New Jersey 07981, U. S. A.
+Bell Labs, Whippany, New Jersey 07981, U. S. A.
 ..
 .ds n \s+2
 .\" REFER macros .... citations

@@ -1,0 +1,7 @@
+Fontmap: /sys/lib/postscript/font/fontmap Fontmap.GS
+	{
+		cat /sys/lib/postscript/font/fontmap | awk '
+			$0 ~ /^%/ {print; next}
+			NF == 2 {printf("%s (/sys/lib/postscript/font/%s) ;\n", $1, $2);}'
+		cat Fontmap.GS
+	} >Fontmap

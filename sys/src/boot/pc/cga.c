@@ -1,42 +1,33 @@
-#include	"u.h"
-#include	"lib.h"
-#include	"mem.h"
-#include	"dat.h"
-#include	"fns.h"
+#include "u.h"
+#include "lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
 
-#define	WIDTH	160
-#define	HEIGHT	24
-#define SCREEN	((char *)(0xB8000|KZERO))
-#define ATTR	0x02
+enum {
+	Width		= 160,
+	Height		= 25,
 
-static int inited;
+	Attr		= 7,		/* white on black */
+};
+
+#define CGASCREENBASE	((uchar*)KADDR(0xB8000))
+
 static int pos;
+static int screeninitdone;
 
 static uchar
-cgaregr(uchar index)
+cgaregr(int index)
 {
-	outb(0x03D4, index);
-	return inb(0x03D4+1);
+	outb(0x3D4, index);
+	return inb(0x3D4+1) & 0xFF;
 }
 
 static void
-cgaregw(uchar index, uchar data)
+cgaregw(int index, int data)
 {
-	outb(0x03D4, index);
-	outb(0x03D4+1, data);
-}
-
-static void
-clearline(int lineno)
-{
-	char *p;
-	int i;
-
-	p = &SCREEN[WIDTH*lineno];
-	for(i = 0; i < WIDTH; i += 2){
-		*p++ = 0x00;
-		*p++ = ATTR;
-	}
+	outb(0x3D4, index);
+	outb(0x3D4+1, data);
 }
 
 static void
@@ -44,57 +35,57 @@ movecursor(void)
 {
 	cgaregw(0x0E, (pos/2>>8) & 0xFF);
 	cgaregw(0x0F, pos/2 & 0xFF);
-}
-
-void
-cgainit(void)
-{
-	int i;
-
-	for(i = pos/WIDTH; i < HEIGHT; i++)
-		clearline(i);
-	movecursor();
-	inited = 1;
+	CGASCREENBASE[pos+1] = Attr;
 }
 
 static void
-cgaputc(int c)
+cgascreenputc(int c)
 {
 	int i;
 
 	if(c == '\n'){
-		if(inited == 0){
-			for(i = (pos % WIDTH); i < WIDTH; i += 2)
-				cgaputc(' ');
-		}
-		else{
-			pos = pos/WIDTH;
-			pos = (pos+1)*WIDTH;
-		}
-	} else if(c == '\t'){
-		i = 4 - ((pos/2)&3);
+		pos = pos/Width;
+		pos = (pos+1)*Width;
+	}
+	else if(c == '\t'){
+		i = 8 - ((pos/2)&7);
 		while(i-->0)
-			cgaputc(' ');
-	} else if(c == '\b'){
+			cgascreenputc(' ');
+	}
+	else if(c == '\b'){
 		if(pos >= 2)
 			pos -= 2;
-		cgaputc(' ');
+		cgascreenputc(' ');
 		pos -= 2;
-	} else {
-		SCREEN[pos++] = c;
-		SCREEN[pos++] = ATTR;
 	}
-	if(pos >= WIDTH*HEIGHT){
-		memmove(SCREEN, &SCREEN[WIDTH], WIDTH*(HEIGHT-1));
-		clearline(HEIGHT-1);
-		pos = WIDTH*(HEIGHT-1);
+	else{
+		CGASCREENBASE[pos++] = c;
+		CGASCREENBASE[pos++] = Attr;
+	}
+	if(pos >= Width*Height){
+		memmove(CGASCREENBASE, &CGASCREENBASE[Width], Width*(Height-1));
+		memset(&CGASCREENBASE[Width*(Height-1)], 0, Width);
+		pos = Width*(Height-1);
 	}
 	movecursor();
 }
 
-void
-cgaputs(IOQ*, char *s, int n)
+static void
+screeninit(void)
 {
+	if(screeninitdone == 0){
+		pos = cgaregr(0x0E)<<8;
+		pos |= cgaregr(0x0F);
+		pos *= 2;
+		screeninitdone = 1;
+	}
+}
+
+void
+cgascreenputs(char* s, int n)
+{
+	if(screeninitdone == 0)
+		screeninit();
 	while(n-- > 0)
-		cgaputc(*s++);
+		cgascreenputc(*s++);
 }

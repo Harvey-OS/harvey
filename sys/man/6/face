@@ -10,26 +10,29 @@ the corresponding image files:
 .B 48x48x1
 (48 by 48 pixels, one bit per pixel);
 .B 48x48x2
-(48 by 48 pixels, two bits per pixel);
+(48 by 48 pixels, two (grey) bits per pixel);
+.B 48x48x4
+(48 by 48 pixels, four (grey) bits per pixel);
+.B 48x48x8
+(48 by 48 pixels, eight (color-mapped) bits per pixel);
 .B 512x512x8
-(512 by 512 pixels, eight bits per pixel);
+(512 by 512 pixels, eight (color-mapped) bits per pixel);
 .B 512x512x24
 (512 by 512 pixels, twenty-four bits per pixel (3 times 8 bits
 per color)).
-The large files serve no special purpose; they are stored either
-as bitmaps
+The large files serve no special purpose; they are stored
+as images
 (see
-.IR bitmap (6))
-or as picture files
-(see
-.IR picfile (9.6).
+.IR image (6)).
 The small files are the `icons'  displayed by
+.B faces
+and
 .B seemail
 (see
-.IR mail (1));
-their format is special.
+.IR faces (1));
+for depths less than 4, their format is special.
 .PP
-Icons are stored as text, one line of the file to one scan line
+One- and two-bit deep icons are stored as text, one line of the file to one scan line
 of display.
 Each line is divided into 8-bit, 16-bit, or 32-bit big-endian words,
 stored as a list of comma-separated hexadecimal C constants,
@@ -82,7 +85,7 @@ microsoft.com/bill b/bill.1
 If multiple entries exist for a user in the various
 .B .dict
 files,
-.I seemail
+.I faces
 chooses the highest pixel size less than or equal to that of the
 display on which it is running.
 .PP
@@ -96,10 +99,10 @@ files.  The machine name may be a regular expression,
 so for example the entry
 .IP
 .EX
-\&.*research\.att\.com    astro
+\&.*research\e.bell-labs\e.com    astro
 .EE
 .PP
-maps any of the machines in AT&T Research into the
+maps any of the machines in Bell Labs Research into the
 shorthand name
 .BR astro ,
 which then appears as a domain name in the
@@ -108,4 +111,4 @@ files.
 .SH "SEE ALSO"
 .IR mail (1),
 .IR tweak (1),
-.IR bitmap (6)
+.IR image (6)

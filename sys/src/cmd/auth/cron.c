@@ -26,6 +26,7 @@ struct Job{
 };
 
 struct User{
+	Qid	lastqid;			/* of last read /cron/user/cron */
 	char	name[NAMELEN];		/* who ... */
 	Job	*jobs;			/* wants to execute these jobs */
 };
@@ -55,6 +56,7 @@ int	myauth(int, char*);
 void	createuser(void);
 int	mkcmd(char*, char*, int);
 void	printjobs(void);
+int	qidcmp(Qid, Qid);
 
 void
 main(int argc, char *argv[])
@@ -158,10 +160,7 @@ readalljobs(void)
 	Dir d[64], db;
 	char file[3*NAMELEN];
 	int i, n, fd;
-	ulong now;
-	static ulong lasttime;
 
-	now = time(0);
 	fd = open("/cron", OREAD);
 	if(fd < 0)
 		error("can't open /cron\n");
@@ -178,13 +177,12 @@ readalljobs(void)
 			sprint(file, "/cron/%s/cron", d[i].name);
 			if(dirstat(file, &db) < 0)
 				continue;
-			if(lasttime < db.mtime){
+			if(qidcmp(u->lastqid, d[i].qid) != 0){
 				freejobs(u->jobs);
 				u->jobs = readjobs(file, u);
 			}
 		}
 	}
-	lasttime = now;
 	close(fd);
 }
 
@@ -197,12 +195,15 @@ readjobs(char *file, User *user)
 {
 	Biobuf *b;
 	Job *j, *jobs;
+	Dir d;
 	int line;
 
 	b = Bopen(file, OREAD);
 	if(!b)
-		return 0;
-	jobs = 0;
+		return nil;
+	jobs = nil;
+	dirstat(file, &d);
+	user->lastqid = d.qid;
 	for(line = 1; savec = Brdline(b, '\n'); line++){
 		savec[Blinelen(b) - 1] = '\0';
 		while(*savec == ' ' || *savec == '\t')
@@ -263,19 +264,23 @@ newuser(char *name)
 		maxuser += 32;
 		users = erealloc(users, maxuser * sizeof *users);
 	}
+	memset(&users[nuser], 0, sizeof(users[nuser]));
 	strcpy(users[nuser].name, name);
 	users[nuser].jobs = 0;
+	users[nuser].lastqid = (Qid) {-1, -1};
 	return &users[nuser++];
 }
 
 void
 freejobs(Job *j)
 {
-	Job *fj;
+	Job *next;
 
-	for(fj = j; fj; fj = j){
-		j = j->next;
-		free(fj);
+	for(; j; j = next){
+		next = j->next;
+		if(j->cmd != nil)
+			free(j->cmd);
+		free(j);
 	}
 }
 
@@ -423,7 +428,7 @@ void
 rexec(User *user, Job *j)
 {
 	char buf[8*1024], key[DESKEYLEN], err[ERRLEN];
-	int fd;
+	int n, fd;
 
 	switch(rfork(RFPROC|RFNOWAIT|RFNAMEG|RFENVG|RFFDG)){
 	case 0:
@@ -454,18 +459,22 @@ rexec(User *user, Job *j)
 			syslog(0, AUTHLOG, "%s: dangerous host %s", user->name, j->host);
 			syslog(0, CRONLOG, "%s: dangerous host %s", user->name, j->host);
 		}
-		syslog(0, CRONLOG, "%s: can't call '%s'", user->name, j->host);
+		syslog(0, CRONLOG, "%s: can't call %s: %r", user->name, j->host);
 		_exits(0);
 	}
+syslog(0, CRONLOG, "%s: called %s on %s", user->name, j->cmd, j->host);
 	if(myauth(fd, user->name) < 0){
 		errstr(err);
 		syslog(0, CRONLOG, "%s: can't auth %s on %s: %s", user->name, j->cmd, j->host, err);
 		_exits(0);
 	}
+syslog(0, CRONLOG, "%s: authenticated %s on %s", user->name, j->cmd, j->host);
 	write(fd, buf, strlen(buf)+1);
 	write(fd, buf, 0);
-	while(read(fd, buf, sizeof buf) > 0)
-		;
+	while((n = read(fd, buf, sizeof(buf)-1)) > 0){
+		buf[n] = 0;
+		syslog(0, CRONLOG, "%s: %s\n", j->cmd, buf);
+	}
 	_exits(0);
 }
 
@@ -474,7 +483,7 @@ emalloc(ulong n)
 {
 	void *p;
 
-	if(p = malloc(n))
+	if(p = mallocz(n, 1))
 		return p;
 	error("out of memory");
 	return 0;
@@ -551,4 +560,11 @@ myauth(int fd, char *user)
 		return -1;
 	}
 	return 0;
+}
+
+int
+qidcmp(Qid a, Qid b)
+{
+	/* might be useful to know if a > b, but not for cron */
+	return(a.path != b.path || a.vers != b.vers);
 }

@@ -82,7 +82,7 @@ is satisfied by cached data.
 Otherwise, the file server is queried for any missing data.
 .SH FILES
 .TP
-.B /dev/hd0cache
+.B /dev/sdC0/cache
 Default file used for storing cached data.
 .SH SOURCE
 .B /sys/src/cmd/cfs

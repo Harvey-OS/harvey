@@ -12,7 +12,7 @@
 
 enum
 {
-	Nfid=		1024,
+	Nfid=		10240,
 };
 
 
@@ -23,8 +23,9 @@ typedef struct P9fs P9fs;
 struct Mfile
 {
 	Qid	qid;
-	short	oldfid;
-	char	needclone;
+	Mfile	*dp;		/* someone needing a clone from us */
+	Mfile	*nextdp;	/* next dependent */
+	Mfile	*parent;	/* fid we need a clone from */
 	char	busy;
 };
 
@@ -75,7 +76,7 @@ void	cachesetup(int, char*);
 int	doclone(Mfile*);
 void	doclwalk(Mfile*, char*);
 
-#define PREFACE(m) if(doclone(m) < 0) return
+#define PREFACE(m) if(preface(m) < 0) return
 
 char *mname[]={
 	[Tnop]		"Tnop",
@@ -131,8 +132,8 @@ main(int argc, char *argv[])
 
 	std = 0;
 	format = 0;
-	part = "/dev/hd0cache";
-	server = "dk!bootes";
+	part = "/dev/sdC0/cache";
+	server = "il!emelie";
 	mtpt = "/tmp";
 
 	ARGBEGIN{
@@ -160,6 +161,9 @@ main(int argc, char *argv[])
 	}ARGEND
 	if(argc && *argv)
 		mtpt = *argv;
+
+	if(debug)
+		fmtinstall('F', fcallconv);
 
 	cachesetup(format, part);
 
@@ -212,7 +216,7 @@ mountinit(char *server, char *mountpoint)
 	/*
 	 *  grab a channel and call up the file server
 	 */
-	s.fd[0] = s.fd[1] = dial(netmkaddr(server, 0, 0), 0, 0, 0);
+	s.fd[0] = s.fd[1] = dial(netmkaddr(server, 0, "9fs"), 0, 0, 0);
 	if(s.fd[0] < 0)
 		error("opening data");
 
@@ -310,8 +314,25 @@ rattach(Mfile *mf)
 	if(delegate() == 0){
 		mf->qid = s.rhdr.qid;
 		mf->busy = 1;
-		mf->needclone = 0;
+		mf->parent = 0;
+		mf->dp = 0;
+		mf->nextdp = 0;
 	}
+}
+
+void
+removedep(Mfile *dep)
+{
+	Mfile **l;
+
+	for(l = &dep->parent->dp; *l; l = &(*l)->nextdp){
+		if(*l == dep){
+			*l = dep->nextdp;
+			break;
+		}
+	}
+	dep->nextdp = 0;
+	dep->parent = 0;
 }
 
 /*
@@ -322,22 +343,72 @@ doclone(Mfile *mf)
 {
 	Mfile *omf;
 
-	if(!mf->busy)
-		error("bad fid");
-	if(!mf->needclone)
-		return 0;
-	omf = &mfile[mf->oldfid];
-	if(!omf->busy)
-		error("bad old fid");
+	if(!mf->busy){
+		DPRINT(2, "doclone fid %ld\n", mf-mfile);
+		sendreply("delayed clone failure");
+		return -1;
+	}
 
-	s.thdr.type = Tclone;
-	s.thdr.fid = mf->oldfid;
-	s.thdr.newfid = mf - mfile;
-	mf->needclone = 0;
-	if(askserver() == 0)
-		return 0;
-	sendreply(s.rhdr.ename);
-	return -1;
+	/* clone this file if it needs it */
+	if(mf->parent){
+		/* recurse */
+		omf = mf->parent;
+		if(!omf->busy){
+			DPRINT(2, "doclone fid %ld\n", omf-mfile);
+			sendreply("delayed clone failure2");
+			return -1;
+		}
+
+		if(omf->parent){
+			DPRINT(2, "doclone recursing\n");
+			if(doclone(omf) < 0)
+				return -1;
+		}
+
+		removedep(mf);
+
+		s.thdr.type = Tclone;
+		s.thdr.fid = omf - mfile;
+		s.thdr.newfid = mf - mfile;
+		
+		if(askserver() == 0)
+			return 0;
+		sendreply(s.rhdr.ename);
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ *  clone any files that depend on this one
+ */
+void
+fixdepend(Mfile *mf)
+{
+	Mfile *dep, *next;
+
+	/* clone any files that depend on this one */
+	for(dep = mf->dp; dep; dep = next){
+		next = dep->nextdp;
+		if(dep->parent != mf){
+			DPRINT(2, "bad dep %ld -> %ld\n", mf-mfile, dep-mfile);
+			error("bad dependent");
+		}
+		doclone(dep);
+	}
+}
+
+int
+preface(Mfile *mf)
+{
+	/* clone this fid from parent if need be */
+	if(doclone(mf) < 0)
+		return -1;
+
+	/* clone any children that depend on this fid */
+	fixdepend(mf);
+	return 0;
 }
 
 /*
@@ -348,16 +419,17 @@ rclone(Mfile *mf)
 {
 	Mfile *nmf;
 
-	PREFACE(mf);
 	if(c.thdr.newfid<0 || Nfid<=c.thdr.newfid)
 		error("clone nfid out of range");
+	PREFACE(mf);
 	nmf = &mfile[c.thdr.newfid];
 	if(nmf->busy)
 		error("clone to used channel");
 	nmf = &mfile[c.thdr.newfid];
 	nmf->qid = mf->qid;
-	nmf->needclone = 1;
-	nmf->oldfid = mf - mfile;
+	nmf->parent = mf;
+	nmf->nextdp = mf->dp;
+	mf->dp = nmf;
 	nmf->busy = 1;
 	sendreply(0);
 }
@@ -370,7 +442,7 @@ void
 doclwalk(Mfile *mf, char *name)
 {
 	s.thdr.type = Tclwalk;
-	s.thdr.fid = mf->oldfid;
+	s.thdr.fid = mf->parent - mfile;
 	s.thdr.newfid = mf - mfile;
 	memmove(s.thdr.name, name, sizeof s.thdr.name);
 	if(askserver() == 0){
@@ -379,24 +451,31 @@ doclwalk(Mfile *mf, char *name)
 			 *  this is really a short form of
 			 *	Terror "directory entry not found"
 			 */
-			mf->busy = 0;
 			sendreply("directory entry not found");
+			removedep(mf);
+			mf->busy = 0;	/* this is an implicit clunk in fs/port/fs.c */
 			return;
 		}
 		mf->qid = s.rhdr.qid;
 		c.rhdr.qid = s.rhdr.qid;
-		mf->needclone = 0;
+		removedep(mf);
 		sendreply(0);
 	} else {
-		mf->busy = 0;
 		sendreply(s.rhdr.ename);
+		removedep(mf);
+		mf->busy = 0;	/* this is an implicit clunk in fs/port/fs.c */
 	}
 }
 
 void
 rwalk(Mfile *mf)
 {
-	if(mf->needclone){
+	if(mf->dp){
+		/* can't clwalk if we have any dependents */
+		doclone(mf);
+		fixdepend(mf);
+	}
+	if(mf->parent){
 		doclwalk(mf, c.thdr.name);
 		return;
 	}
@@ -407,6 +486,7 @@ rwalk(Mfile *mf)
 void
 rclwalk(Mfile *mf)
 {
+	PREFACE(mf);
 	if(delegate() == 0)
 		mf->qid = s.rhdr.qid;
 }
@@ -417,10 +497,8 @@ ropen(Mfile *mf)
 	PREFACE(mf);
 	if(delegate() == 0){
 		mf->qid = s.rhdr.qid;
-		if(c.thdr.mode & OTRUNC){
-			mf->qid.vers++;
+		if(c.thdr.mode & OTRUNC)
 			iget(&ic, mf->qid);
-		}
 	}
 }
 
@@ -441,8 +519,8 @@ rclunk(Mfile *mf)
 		sendreply(0);
 		return;
 	}
+	PREFACE(mf);
 	mf->busy = 0;
-	mf->needclone = 0;
 	delegate();
 }
 
@@ -551,7 +629,7 @@ rwstat(Mfile *mf)
 void
 error(char *s)
 {
-	fprint(2, "cfs: %s: ", s);
+	fprint(2, "cfs: %s", s);
 	perror("");
 	exits(s);
 }
@@ -559,12 +637,7 @@ error(char *s)
 void
 warning(char *s)
 {
-	char buf[ERRLEN];
-
-	errstr(buf);
-	fprint(2, "cfs: %s: %s\n", s, buf);
-	if(strstr(buf, "illegal network address"))
-		exits("death");
+	fprint(2, "cfs: %s: %r\n", s);
 }
 
 /*
@@ -616,9 +689,7 @@ askserver(void)
 void
 sendmsg(P9fs *p, Fcall *f)
 {
-	DPRINT(2, "->%s: %d %s on %d\n", p->name, f->type,
-		mname[f->type]? mname[f->type] : "mystery",
-		f->fid);
+	DPRINT(2, "->%s: %F\n", p->name, f);
 
 	p->len = convS2M(f, datasnd);
 	if(write9p(p->fd[1], datasnd, p->len)!=p->len)
@@ -640,12 +711,15 @@ void
 rcvmsg(P9fs *p, Fcall *f)
 {
 	int olen;
+	char buf[128];
 
 	olen = p->len;
 retry:
 	p->len = read9p(p->fd[0], datarcv, sizeof(datarcv));
-	if(p->len <= 0)
-		error("rcvmsg");
+	if(p->len <= 0){
+		sprint(buf, "read9p(%d)->%ld: %r", p->fd[0], p->len);
+		error(buf);
+	}
 	if(p->len==2 && datarcv[0]=='O' && datarcv[1]=='K')
 		goto retry;
 	if(convM2S(datarcv, f, p->len) == 0)
@@ -658,7 +732,5 @@ retry:
 		dump((uchar*)datarcv, p->len);
 		error("rcvmsg fid out of range");
 	}
-	DPRINT(2, "<-%s: %d %s on %d\n", p->name, f->type,
-		mname[f->type]? mname[f->type] : "mystery",
-		f->fid);
+	DPRINT(2, "<-%s: %F\n", p->name, f);
 }

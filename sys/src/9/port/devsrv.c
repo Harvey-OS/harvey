@@ -5,7 +5,6 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-#include	"devtab.h"
 
 typedef struct Srv Srv;
 struct Srv
@@ -20,15 +19,18 @@ struct Srv
 
 static QLock	srvlk;
 static Srv	*srv;
-static int	path;
+static int	qidpath;
 
-int
-srvgen(Chan *c, Dirtab *tab, int ntab, int s, Dir *dp)
+static int
+srvgen(Chan *c, Dirtab*, int, int s, Dir *dp)
 {
 	Srv *sp;
 
-	USED(tab);
-	USED(ntab);
+	if(s == DEVDOTDOT){
+		devdir(c, c->qid, "#s", 0, eve, 0555, dp);
+		return 1;
+	}
+
 	qlock(&srvlk);
 	for(sp = srv; sp && s; sp = sp->link)
 		s--;
@@ -42,47 +44,63 @@ srvgen(Chan *c, Dirtab *tab, int ntab, int s, Dir *dp)
 	return 1;
 }
 
-void
+static void
 srvinit(void)
 {
-	path = 1;
+	qidpath = 1;
 }
 
-void
-srvreset(void)
-{
-}
-
-Chan*
+static Chan*
 srvattach(char *spec)
 {
 	return devattach('s', spec);
 }
 
-Chan*
-srvclone(Chan *c, Chan *nc)
-{
-	return devclone(c, nc);
-}
-
-int
+static int
 srvwalk(Chan *c, char *name)
 {
 	return devwalk(c, name, 0, 0, srvgen);
 }
 
-void
+static void
 srvstat(Chan *c, char *db)
 {
 	devstat(c, db, 0, 0, srvgen);
 }
 
-Chan*
+static Srv*
+srvlookup(char *name, ulong qidpath)
+{
+	Srv *sp;
+	for(sp = srv; sp; sp = sp->link)
+		if(sp->path == qidpath || (name && strcmp(sp->name, name) == 0))
+			return sp;
+	return nil;
+}
+
+char*
+srvname(Chan *c)
+{
+	Srv *sp;
+	char *s;
+
+	for(sp = srv; sp; sp = sp->link)
+		if(sp->chan == c){
+			s = smalloc(3+strlen(sp->name)+1);
+			sprint(s, "#s/%s", sp->name);
+			return s;
+		}
+	return nil;
+}
+
+static Chan*
 srvopen(Chan *c, int omode)
 {
 	Srv *sp;
 
 	if(c->qid.path == CHDIR){
+		if(omode & ORCLOSE)
+			error(Eperm);
 		if(omode != OREAD)
 			error(Eisdir);
 		c->mode = omode;
@@ -96,32 +114,32 @@ srvopen(Chan *c, int omode)
 		nexterror();
 	}
 
-	for(sp = srv; sp; sp = sp->link)
-		if(sp->path == c->qid.path)
-			break;
-
+	sp = srvlookup(nil, c->qid.path);
 	if(sp == 0 || sp->chan == 0)
 		error(Eshutdown);
 
 	if(omode&OTRUNC)
-		error(Eperm);
-	if(omode!=sp->chan->mode && sp->chan->mode!=ORDWR)
+		error("srv file already exists");
+	if(openmode(omode)!=sp->chan->mode && sp->chan->mode!=ORDWR)
 		error(Eperm);
 
-	close(c);
+	cclose(c);
 	incref(sp->chan);
 	qunlock(&srvlk);
 	poperror();
 	return sp->chan;
 }
 
-void
+static void
 srvcreate(Chan *c, char *name, int omode, ulong perm)
 {
 	Srv *sp;
 
-	if(omode != OWRITE)
+	if(openmode(omode) != OWRITE)
 		error(Eperm);
+
+	if(omode & OCEXEC)	/* can't happen */
+		panic("someone broke namec");
 
 	sp = malloc(sizeof(Srv));
 	if(sp == 0)
@@ -132,7 +150,10 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 		qunlock(&srvlk);
 		nexterror();
 	}
-	sp->path = path++;
+	if(srvlookup(name, -1))
+		error(Eexist);
+
+	sp->path = qidpath++;
 	sp->link = srv;
 	c->qid.path = sp->path;
 	srv = sp;
@@ -140,14 +161,14 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 	poperror();
 
 	strncpy(sp->name, name, NAMELEN);
-	strncpy(sp->owner, u->p->user, NAMELEN);
+	strncpy(sp->owner, up->user, NAMELEN);
 	sp->perm = perm&0777;
 
 	c->flag |= COPEN;
 	c->mode = OWRITE;
 }
 
-void
+static void
 srvremove(Chan *c)
 {
 	Srv *sp, **l;
@@ -178,66 +199,114 @@ srvremove(Chan *c)
 	poperror();
 
 	if(sp->chan)
-		close(sp->chan);
+		cclose(sp->chan);
 	free(sp);
 }
 
-void
+static void
 srvwstat(Chan *c, char *dp)
 {
-	USED(c, dp);
-	error(Egreg);
+	Dir d;
+	Srv *sp;
+
+	if(c->qid.path & CHDIR)
+		error(Eperm);
+
+	qlock(&srvlk);
+	if(waserror()){
+		qunlock(&srvlk);
+		nexterror();
+	}
+
+	sp = srvlookup(nil, c->qid.path);
+	if(sp == 0)
+		error(Enonexist);
+
+	if(strcmp(sp->owner, up->user) && !iseve())
+		error(Eperm);
+
+	convM2D(dp, &d);
+	d.mode &= 0777;
+	sp->perm = d.mode;
+
+	qunlock(&srvlk);
+	poperror();
 }
 
-void
+static void
 srvclose(Chan *c)
 {
-	USED(c);
+	/*
+	 * errors from srvremove will be caught by cclose and ignored.
+	 * in theory we need to override any changes in removability
+	 * since open, but since all that's checked is the owner,
+	 * which is immutable, all is well.
+	 */
+	if(c->flag & CRCLOSE)
+		srvremove(c);
 }
 
-long
-srvread(Chan *c, void *va, long n, ulong offset)
+static long
+srvread(Chan *c, void *va, long n, vlong)
 {
-	USED(offset);
 	isdir(c);
 	return devdirread(c, va, n, 0, 0, srvgen);
 }
 
-long
-srvwrite(Chan *c, void *va, long n, ulong offset)
+static long
+srvwrite(Chan *c, void *va, long n, vlong)
 {
 	Srv *sp;
 	Chan *c1;
 	int fd;
 	char buf[32];
 
-	USED(offset);
 	if(n >= sizeof buf)
 		error(Egreg);
 	memmove(buf, va, n);	/* so we can NUL-terminate */
 	buf[n] = 0;
 	fd = strtoul(buf, 0, 0);
 
-	c1 = fdtochan(fd, -1, 0, 1);	/* error check only */
+	c1 = fdtochan(fd, -1, 0, 1);	/* error check and inc ref */
 
 	qlock(&srvlk);
 	if(waserror()) {
 		qunlock(&srvlk);
-		close(c1);
+		cclose(c1);
 		nexterror();
 	}
-	for(sp = srv; sp; sp = sp->link)
-		if(sp->path == c->qid.path)
-			break;
-
+	if(c1->flag & (CCEXEC|CRCLOSE))
+		error("posted fd has remove-on-close or close-on-exec");
+	sp = srvlookup(nil, c->qid.path);
 	if(sp == 0)
 		error(Enonexist);
 
 	if(sp->chan)
-		panic("srvwrite");
+		error(Ebadusefd);
 
 	sp->chan = c1;
 	qunlock(&srvlk);
 	poperror();
 	return n;
 }
+
+Dev srvdevtab = {
+	's',
+	"srv",
+
+	devreset,
+	srvinit,
+	srvattach,
+	devclone,
+	srvwalk,
+	srvstat,
+	srvopen,
+	srvcreate,
+	srvclose,
+	srvread,
+	devbread,
+	srvwrite,
+	devbwrite,
+	srvremove,
+	srvwstat,
+};

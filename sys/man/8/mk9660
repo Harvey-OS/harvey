@@ -1,0 +1,153 @@
+.TH MK9660 8
+.SH NAME
+mk9660 \- create an ISO-9660 CD image
+.SH SYNOPSIS
+.B disk/mk9660
+[
+.B -D
+]
+[
+.B -9cj
+]
+[
+.BR - [ abn ]
+.I file
+]
+[
+.B -s
+src
+]
+[
+.B -v
+volume
+]
+.I proto
+.SH DESCRIPTION
+.I Mk9660
+writes to standard output
+an ISO-9660 CD image containing the
+files named in
+.I proto
+from the file tree
+.I src
+(default
+.BR / ).
+The
+.I proto
+file is formatted as described in
+.IR mkfs (8).
+.PP
+The created CD image will be in ISO-9660
+format, but by default the file names will
+be stored in UTF-8 with no imposed length 
+or character restrictions.
+The
+.B -c
+flag causes
+.I 9660srv
+to only use file names in ``8.3'' form
+that use digits, letters, and underscore.
+File names that do not conform are changed
+to 
+.BI D nnnnnn
+(for directories)
+or
+.BI F nnnnnn
+(for files);
+a key file
+.B _CONFORM.MAP
+is created in the root
+directory to ease the reverse process.
+.PP
+If the
+.B -9
+flag is given, the system use fields at the end of
+each directory entry will be populated with
+Plan directory information (owner, group, mode,
+full name); this is interpreted by
+.IR 9660srv .
+.PP
+If the
+.B -j
+flag is given, the usual directory tree is written,
+but an additional tree in Microsoft Joliet format is
+alos added.
+This second tree can contain long Unicode file names,
+and can be read by
+.I 9660srv
+as well as most versions of Windows
+and many Unix clones.
+The characters
+.BR * ,
+.BR : ,
+.BR ; ,
+.BR ? ,
+and
+.B \e
+are allowed in Plan 9 file names but not in Joliet file names;
+non-conforming file names are translated
+and a 
+.B _CONFORM.MAP
+file written
+as in the case of the
+.B -c
+option.
+.PP
+Any or all of 
+.BR -c ,
+.BR -9 ,
+and
+.B -j
+may be present.
+.PP
+The
+.BR -a ,
+.BR -b ,
+and
+.BR -n
+flags cause the
+.IR abstract ,
+.IR biblio ,
+and
+.I notice
+files (which must named by
+.I proto
+as well)
+to be marked as the CD
+abstract, bibliographic data, and copyright notice.
+.PP
+The
+.B -v
+flag sets the volume title;
+if unspecified,
+.I proto
+is used.
+.PP
+The
+.B -D
+flag creates immense amounts of debugging output
+on standard error.
+.SH EXAMPLES
+.PP
+Create an image of the Plan 9 source tree, 
+including a conformant ISO-9660 directory tree,
+Plan 9 extensions in the system use fields, and
+a Joliet directory tree.
+.IP
+.EX
+disk/mk9660 -9cj -s /n/bootes -n notice plan9proto >cdimage
+.EE
+.SH SOURCE
+.B /sys/src/cmd/disk/mk9660.c
+.SH "SEE ALSO"
+.I 9660srv
+(in
+.IR dossrv (4)),
+.IR cdfs (4),
+.IR mkfs (8)
+.SH BUGS
+Joliet file systems created by
+.I mk9660
+are legible under 
+.I 9660srv
+but not under Windows.

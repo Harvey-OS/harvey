@@ -24,7 +24,7 @@ struct cmdtab cmdtab[]={
 	'r',	0,	0,	0,	0,	aDot,	0,	wordx,	e_cmd,
 	's',	0,	1,	0,	0,	aDot,	1,	0,	s_cmd,
 	't',	0,	0,	1,	0,	aDot,	0,	0,	m_cmd,
-	'u',	0,	0,	0,	0,	aNo,	1,	0,	u_cmd,
+	'u',	0,	0,	0,	0,	aNo,	2,	0,	u_cmd,
 	'v',	0,	1,	0,	'p',	aDot,	0,	0,	g_cmd,
 	'w',	0,	0,	0,	0,	aAll,	0,	wordx,	w_cmd,
 	'x',	0,	1,	0,	'p',	aDot,	0,	0,	x_cmd,
@@ -150,17 +150,22 @@ ungetch(void)
 }
 
 Posn
-getnum(void)
+getnum(int signok)
 {
 	Posn n=0;
-	int c;
+	int c, sign;
 
+	sign = 1;
+	if(signok>1 && nextc()=='-'){
+		sign = -1;
+		getch();
+	}
 	if((c=nextc())<'0' || '9'<c)	/* no number defaults to 1 */
-		return 1;
+		return sign;
 	while('0'<=(c=getch()) && c<='9')
 		n = n*10 + (c-'0');
 	ungetch();
-	return n;
+	return sign*n;
 }
 
 int
@@ -180,15 +185,14 @@ termcommand(void)
 {
 	Posn p;
 
-	Fgetcset(cmd, cmdpt);
-	for(p=cmdpt; p<cmd->nrunes; p++){
+	for(p=cmdpt; p<cmd->nc; p++){
 		if(terminp >= &termline[BLOCKSIZE]){
-			cmdpt = cmd->nrunes;
+			cmdpt = cmd->nc;
 			error(Etoolong);
 		}
-		*terminp++ = Fgetc(cmd);
+		*terminp++ = filereadc(cmd, p);
 	}
-	cmdpt = cmd->nrunes;
+	cmdpt = cmd->nc;
 }
 
 void
@@ -199,7 +203,7 @@ cmdloop(void)
 	int loaded;
 
 	for(;;){
-		if(!downloaded && curfile && curfile->state==Unread)
+		if(!downloaded && curfile && curfile->unread)
 			load(curfile);
 		if((cmdp = parsecmd(0))==0){
 			if(downloaded){
@@ -209,15 +213,18 @@ cmdloop(void)
 			break;
 		}
 		ocurfile = curfile;
-		loaded = curfile && curfile->state!=Unread;
+		loaded = curfile && !curfile->unread;
 		if(cmdexec(curfile, cmdp) == 0)
 			break;
 		freecmd();
 		cmdupdate();
 		update();
 		if(downloaded && curfile &&
-		    (ocurfile!=curfile || (!loaded && curfile->state!=Unread)))
+		    (ocurfile!=curfile || (!loaded && !curfile->unread)))
 			outTs(Hcurrent, curfile->tag);
+			/* don't allow type ahead on files that aren't bound */
+		if(downloaded && curfile && curfile->rasp == 0)
+			terminp = termoutp;
 	}
 }
 
@@ -407,7 +414,7 @@ parsecmd(int nest)
 		if(ct->defaddr==aNo && cmd.addr)
 			error(Enoaddr);
 		if(ct->count)
-			cmd.num = getnum();
+			cmd.num = getnum(ct->count);
 		if(ct->regexp){
 			/* x without pattern -> .*\n, indicated by cmd.re==0 */
 			/* X without pattern is all files */
@@ -513,11 +520,11 @@ simpleaddr(void)
 	switch(skipbl()){
 	case '#':
 		addr.type = getch();
-		addr.num = getnum();
+		addr.num = getnum(1);
 		break;
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9': 
-		addr.num = getnum();
+		addr.num = getnum(1);
 		addr.type='l';
 		break;
 	case '/': case '?': case '"':

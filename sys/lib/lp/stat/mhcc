@@ -1,0 +1,3 @@
+#!/bin/rc
+
+{sleep 5;echo prtq;sleep 5} | telnet mhserva >[2]/dev/null | tr -d '\015' | sed '1,9d'

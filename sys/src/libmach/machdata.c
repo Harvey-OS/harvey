@@ -109,37 +109,39 @@ fpformat(Map *map, Reglist *rp, char *buf, int n, int modif)
 	switch(rp->rformat)
 	{
 	case 'X':
-		if (get4(map, rp->raddr, &r) < 0)
+		if (get4(map, rp->roffs, &r) < 0)
 			return -1;
-		snprint(buf, n, "%lux", r+rp->rdelta);
+		snprint(buf, n, "%lux", r);
 		break;
 	case 'F':	/* first reg of double reg pair */
 		if (modif == 'F')
-		if (((rp+1)->rflags&RFLT) && (rp+1)->rformat == 'f') {
-			if (get1(map, rp->raddr, (uchar *)reg, 8) < 0)
+		if ((rp->rformat=='F') || (((rp+1)->rflags&RFLT) && (rp+1)->rformat == 'f')) {
+			if (get1(map, rp->roffs, (uchar *)reg, 8) < 0)
 				return -1;
 			machdata->dftos(buf, n, reg);
+			if (rp->rformat == 'F')
+				return 1;
 			return 2;
 		}	
 			/* treat it like 'f' */
-		if (get1(map, rp->raddr, (uchar *)reg, 4) < 0)
+		if (get1(map, rp->roffs, (uchar *)reg, 4) < 0)
 			return -1;
 		machdata->sftos(buf, n, reg);
 		break;
 	case 'f':	/* 32 bit float */
-		if (get1(map, rp->raddr, (uchar *)reg, 4) < 0)
+		if (get1(map, rp->roffs, (uchar *)reg, 4) < 0)
 			return -1;
 		machdata->sftos(buf, n, reg);
 		break;
 	case '3':	/* little endian ieee 80 with hole in bytes 8&9 */
-		if (get1(map, rp->raddr, (uchar *)reg, 10) < 0)
+		if (get1(map, rp->roffs, (uchar *)reg, 10) < 0)
 			return -1;
 		memmove(reg+10, reg+8, 2);	/* open hole */
 		memset(reg+8, 0, 2);		/* fill it */
 		leieee80ftos(buf, n, reg);
 		break;
 	case '8':	/* big-endian ieee 80 */
-		if (get1(map, rp->raddr, (uchar *)reg, 10) < 0)
+		if (get1(map, rp->roffs, (uchar *)reg, 10) < 0)
 			return -1;
 		beieee80ftos(buf, n, reg);
 		break;

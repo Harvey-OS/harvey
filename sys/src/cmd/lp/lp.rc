@@ -8,16 +8,23 @@ rfork en	# so that environment and name space are not polluted
 
 ifs=' 	
 '		# set ifs in case it is munged in user's environment
-
-LPLIB=/sys/lib/lp			# lp scripts directories and configuration file are here
+SCRATCH=/n/bootesother
+LPSCRATCH=$SCRATCH/lp
+LPLIB=/sys/lib/lp		# lp scripts directories and configuration file are here
 LPBIN=/$cputype/bin/aux		# lp specific binaries are here
-LPSPOOL=$LPLIB/queue		# lp queues, prob, log
-LPLOGDIR=/sys/lib/lp/log	# lp logs
+LPSPOOL=$LPLIB/queue		# lp queues
+LPLOGDIR=$LPLIB/log		# lp logs
 
-if (! test -r /srv/bootes) srv -m bootes
-if (! mount -c /srv/bootes /n/bootesother other || ! bind -a /n/bootesother/lp /sys/lib/lp) {
-	echo 'could not properly setup LPSPOOL' >[1=2]
-	exit 'LPSPOOL setup'
+if (! test -d /n/bootesother/lp) {
+	if (! test -r /srv/bootes) srv -m bootes
+	if (! mount -c /srv/bootes $SCRATCH other) {
+		echo 'cannot mount '$SCRATCH' filesystem' >[1=2]
+		exit 'LP mount'
+	}
+}
+if (! bind -a $LPSCRATCH $LPLIB) {
+	echo 'cannot bind '$LPSCRATCH' onto '$LPLIB >[1=2]
+	exit 'LP bind'
 }
 
 # develop /bin from scratch
@@ -191,5 +198,9 @@ if (~ $QONLY '') {
 		bind -b $LPLIB/daemon /bin
 		$DAEMON $* >>$LPLOG >[2=1] &
 	}
+}
+# clean up empty log files
+if (! test -s $LPLOG) {
+	rm $LPLOG
 }
 exit ''

@@ -161,15 +161,17 @@ and
 .IR Regerror ,
 called whenever an error is detected in
 .IR regcomp ,
-.IR regexec ,
-or
-.IR regsub ,
 writes the string
 .I msg
 on the standard error file and exits.
 .I Regerror
 can be replaced to perform
 special error processing.
+If the user supplied
+.I regerror
+returns rather than exits,
+.I regcomp
+will return 0. 
 .PP
 .I Rregexec
 and

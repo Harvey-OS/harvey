@@ -10,6 +10,7 @@ main(int argc, char *argv[])
 {
 	char *spec;
 	ulong flag = 0;
+	int qflag = 0;
 	int fd;
 
 	ARGBEGIN{
@@ -21,6 +22,12 @@ main(int argc, char *argv[])
 		break;
 	case 'c':
 		flag |= MCREATE;
+		break;
+	case 'C':
+		flag |= MCACHE;
+		break;
+	case 'q':
+		qflag = 1;
 		break;
 	default:
 		usage();
@@ -39,13 +46,17 @@ main(int argc, char *argv[])
 
 	fd = open(argv[0], ORDWR);
 	if(fd < 0){
+		if(qflag)
+			exits(0);
 		fprint(2, "%s: can't open %s: %r\n", argv0, argv[0]);
 		exits("open");
 	}
 
 	notify(catch);
 	if(amount(fd, argv[1], flag, spec) < 0){
-		fprint(2, "%s: mount %s %s: %r\n", argv0, argv[0], argv[1]);
+		if(qflag)
+			exits(0);
+		fprint(2, "%s: mount %s: %r\n", argv0, argv[1]);
 		exits("mount");
 	}
 	exits(0);
@@ -62,6 +73,6 @@ catch(void *x, char *m)
 void
 usage(void)
 {
-	fprint(2, "usage: mount [-b|-a|-c|-bc|-ac] [-s server] /srv/service dir [spec]\n");
+	fprint(2, "usage: mount [-a|-b] [-c] [-r] /srv/service dir [spec]\n");
 	exits("usage");
 }

@@ -4,7 +4,7 @@ The Organization of Networks in Plan 9
 Dave Presotto
 Phil Winterbottom
 .sp
-presotto,philw@plan9.att.com
+presotto,philw@plan9.bell-labs.com
 .AB
 .FS
 Originally appeared in
@@ -744,7 +744,7 @@ specifies a domain name, an IP address, an Ethernet address,
 a Datakit address, a boot file, and supported protocols.
 .P1
 sys = helix
-	dom=helix.research.att.com
+	dom=helix.research.bell-labs.com
 	bootf=/mips/9power
 	ip=135.104.9.31 ether=0800690222f0
 	dk=nj/astro/helix
@@ -761,7 +761,7 @@ on the network.
 Each subnetwork specifies its default IP gateway.
 .P1
 ipnet=mh-astro-net ip=135.104.0.0 ipmask=255.255.255.0
-	fs=bootes.research.att.com
+	fs=bootes.research.bell-labs.com
 	auth=1127auth
 ipnet=unix-room ip=135.104.117.0
 	ipgw=135.104.117.1
@@ -927,7 +927,7 @@ in the network portion of the destination
 allows CS to pick a network/protocol in common
 with the destination for which the requested service is valid.
 For example, assume the system
-.CW research.att.com
+.CW research.bell-labs.com
 has the Datakit address
 .CW nj/astro/research
 and IP addresses
@@ -936,7 +936,7 @@ and
 .CW 129.11.4.1 .
 The call
 .P1
-fd = dial("net!research.att.com!login", 0, 0, 0, 0);
+fd = dial("net!research.bell-labs.com!login", 0, 0, 0, 0);
 .P2
 tries in succession to connect to
 .CW nj/astro/research!login
@@ -951,7 +951,7 @@ accepts addresses instead of symbolic names.
 For example, the destinations
 .CW tcp!135.104.117.5!513
 and
-.CW tcp!research.att.com!login
+.CW tcp!research.bell-labs.com!login
 are equivalent
 references to the same machine.
 .NH 2

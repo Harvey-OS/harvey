@@ -6,7 +6,7 @@
 #define BIGN (BUFSIZ/2)
 
 long fwrite(const void *p, long recl, long nrec, FILE *f){
-	char *s, *es;
+	char *s;
 	int n, d;
 
 	s=(char *)p;

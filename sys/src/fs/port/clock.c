@@ -44,7 +44,7 @@ alarm(int ms, void (*f)(Alarm*, void*), void *arg)
 	if(ms < 0)
 		ms = 0;
 	a = newalarm();
-	a->dt = ms/MS2HZ;
+	a->dt = MS2TK(ms);
 	a->f = f;
 	a->arg = arg;
 	s = splhi();
@@ -109,21 +109,25 @@ static
 struct
 {
 	int	nfilter;
-	Filter*	filters[100];
+	Filter*	filters[1000];
 	int	time;
+	int	index;
 	int	cons;
 } f;
 
 void
-dofilter(Filter *ft)
+dofilter(Filter *ft, int c1, int c2, int c3)
 {
 	int i;
 
 	i = f.nfilter;
-	if(i >= sizeof(f.filters)/sizeof(f.filters[0])) {
+	if(i >= nelem(f.filters)) {
 		print("dofilter: too many filters\n");
 		return;
 	}
+	ft->c1 = c1;
+	ft->c2 = c2;
+	ft->c3 = c3;
 	f.filters[i] = ft;
 	f.nfilter = i+1;
 }
@@ -159,26 +163,46 @@ checkalarms(void)
 }
 
 void
+processfilt(int n)
+{
+	int i;
+	Filter *ft;
+	ulong c0, c1;
+
+	n += f.index;
+	if(n > f.nfilter)
+		n = f.nfilter;
+
+	for(i=f.index; i<n; i++) {
+		ft = f.filters[i];
+		c0 = ft->count;
+		c1 = c0 - ft->oldcount;
+		ft->oldcount = c0;
+		if(ft->c2)
+			ft->filter = famd(ft->filter, c1, ft->c1, ft->c2);
+	}
+	f.index = n;
+}
+
+void
 clock(ulong n, ulong pc)
 {
 	int i;
 	Alarm *a;
 	void (*fn)(Alarm*, void*);
 	User *p;
-	Filter *ft;
-	ulong c0, c1;
 
 	clockreload(n);
 	m->ticks++;
 
 	if(cons.profile) {
-		cons.profbuf[0] += MS2HZ;
+		cons.profbuf[0] += TK2MS(1);
 		if(cons.minpc<=pc && pc<cons.maxpc){
 			pc -= cons.minpc;
 			pc >>= LRES;
-			cons.profbuf[pc] += MS2HZ;
+			cons.profbuf[pc] += TK2MS(1);
 		} else
-			cons.profbuf[1] += MS2HZ;
+			cons.profbuf[1] += TK2MS(1);
 	}
 
 	lights(Lreal, (m->ticks>>6)&1);
@@ -190,29 +214,29 @@ clock(ulong n, ulong pc)
 		p = m->proc;
 		if(p == 0)
 			p = m->intrp;
-		if(p)
-			p->time.count += MS2HZ;
+		if(p) {
+			p->time[0].count += TK2MS(1);
+			p->time[1].count += TK2MS(1);
+			p->time[2].count += TK2MS(1);
+		}
 		for(i=1; i<conf.nmach; i++){
 			if(active.machs & (1<<i)){
 				p = MACHP(i)->proc;
-				if(p && p != m->intrp)
-					p->time.count += MS2HZ;
+				if(p && p != m->intrp) {
+					p->time[0].count += TK2MS(1);
+					p->time[1].count += TK2MS(1);
+					p->time[2].count += TK2MS(1);
+				}
 			}
 		}
 		m->intrp = 0;
 
-		f.time += MS2HZ;
+		f.time += TK2MS(1);
+		processfilt(TK2SEC(f.nfilter));
 		while(f.time >= 1000) {
 			f.time -= 1000;
-			for(i=0; i<f.nfilter; i++) {
-				ft = f.filters[i];
-				c0 = ft->count;
-				c1 = c0 - ft->oldcount;
-				ft->oldcount = c0;
-				ft->filter[0] = famd(ft->filter[0], c1, 59, 60);
-				ft->filter[1] = famd(ft->filter[1], c1, 599, 600);
-				ft->filter[2] = famd(ft->filter[2], c1, 5999, 6000);
-			}
+			processfilt(f.nfilter-f.index);
+			f.index = 0;
 		}
 	}
 

@@ -7,24 +7,17 @@ all:V:
 	mk 9src.all
 
 lib.%:V:
-	flag e -
-	if (! test -e lib/.mk.$objtype){
-		flag e +
-		@{
-			cd lib
-			mk $stem
-		}
-	}
-	touch lib/.mk.$objtype
+	cd lib
+	mk $stem
 
 lib.clean:V:
-	rm -f lib/.mk.*
 	cd lib
+	rm -f .mk.$objtype
 	mk clean
 
 lib.nuke:V:
-	rm -f lib/.mk.*
 	cd lib
+	rm -f .mk.$objtype
 	mk nuke
 
 cmd.%:V:

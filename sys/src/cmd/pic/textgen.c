@@ -4,14 +4,14 @@
 
 obj *textgen(void)
 {
-	int i, sub, nstr, at, with, hset;
+	int i, sub, nstr, at, with, hset, invis;
 	double xwith, ywith, h, w, x0, y0, x1, y1;
 	obj *p, *ppos;
 	static double prevh = 0;
 	static double prevw = 0;
 	Attr *ap;
 
-	at = with = nstr = hset = 0;
+	at = with = nstr = hset = invis = 0;
 	h = getfval("textht");
 	w = getfval("textwid");
 	for (i = 0; i < nattr; i++) {
@@ -26,6 +26,9 @@ obj *textgen(void)
 			break;
 		case WITH:
 			with = ap->a_val.i;
+			break;
+		case INVIS:
+			invis = INVIS;
 			break;
 		case AT:
 			ppos = ap->a_val.o;
@@ -79,6 +82,7 @@ obj *textgen(void)
 	extreme(x1, y1);
 	dprintf("Text h %g w %g at %g,%g\n", h, w, curx, cury);
 	p = makenode(TEXT, 2);
+	p->o_attr = invis;
 	p->o_val[0] = w;
 	p->o_val[1] = h;
 	if (isright(hvmode))

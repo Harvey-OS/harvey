@@ -11,7 +11,7 @@ Biobuf	stdout;
 static char *tmp[] = {"/tmp/diff1", "/tmp/diff2"};
 static int whichtmp;
 static char *progname;
-static char usage[] = "diff [ -efbwr ] file1 ... file2\n";
+static char usage[] = "diff [ -efmnbwr ] file1 ... file2\n";
 
 static void
 rmtmpfiles(void)
@@ -39,13 +39,17 @@ done(int status)
 }
 
 void
-panic(int status, char *format, ...)
+panic(int status, char *fmt, ...)
 {
+	va_list arg;
 	char buf[1024], *out;
 
 	Bflush(&stdout);
-	out = doprint(buf, buf+sizeof(buf), "%s: ", &progname);
-	out = doprint(out, buf+sizeof(buf), format, ((long*)&format)+1);
+
+	out = buf+snprint(buf, sizeof(buf), "%s: ", progname);
+	va_start(arg, fmt);
+	out = doprint(out, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	write(2, buf, out-buf);
 	if (status)
 		done(status);
@@ -177,6 +181,7 @@ main(int argc, char *argv[])
 
 			case 'e':
 			case 'f':
+			case 'n':
 				mode = *p;
 				break;
 
@@ -190,6 +195,10 @@ main(int argc, char *argv[])
 
 			case 'r':
 				rflag = 1;
+				break;
+
+			case 'm':
+				mflag = 1;	
 				break;
 
 			case 'h':

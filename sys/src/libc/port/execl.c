@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 
+int
 execl(char *f, ...)
 {
 

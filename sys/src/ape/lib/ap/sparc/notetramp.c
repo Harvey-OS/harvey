@@ -1,6 +1,7 @@
 #include "../plan9/lib.h"
 #include "../plan9/sys9.h"
 #include <signal.h>
+#include <setjmp.h>
 
 /* A stack to hold pcs when signals nest */
 #define MAXSIGSTACK 20
@@ -10,6 +11,7 @@ static struct Pcstack {
 	void (*hdlr)(int, char*, Ureg*);
 	unsigned long restorepc;
 	unsigned long restorenpc;
+	Ureg *u;
 } pcstack[MAXSIGSTACK];
 static int nstack = 0;
 
@@ -27,6 +29,7 @@ _notetramp(int sig, void (*hdlr)(int, char*, Ureg*), Ureg *u)
 	p->restorenpc = u->npc;
 	p->sig = sig;
 	p->hdlr = hdlr;
+	p->u = u;
 	nstack++;
 	u->pc = (unsigned long) notecont;
 	u->npc = u->pc+4;
@@ -45,5 +48,34 @@ notecont(Ureg *u, char *s)
 	u->npc = p->restorenpc;
 	nstack--;
 	(*f)(p->sig, s, u);
+	_NOTED(3);	/* NRSTR */
+}
+
+int	__noterestore(void);
+
+#define JMPBUFPC 1
+#define JMPBUFSP 0
+#define	JMPBUFDPC (-8)
+
+extern sigset_t	_psigblocked;
+
+void
+siglongjmp(sigjmp_buf j, int ret)
+{
+	struct Ureg *u;
+
+	if(j[0])
+		_psigblocked = j[1];
+	if(nstack == 0 || pcstack[nstack-1].u->sp > j[2+JMPBUFSP])
+		longjmp(j+2, ret);
+	u = pcstack[nstack-1].u;
+	nstack--;
+	u->r8 = ret;
+	if(ret == 0)
+		u->r8 = 1;
+	u->r9 = j[JMPBUFPC] - JMPBUFDPC;
+	u->pc = (unsigned long)__noterestore;
+	u->npc = (unsigned long)__noterestore + 4;
+	u->sp = j[JMPBUFSP];
 	_NOTED(3);	/* NRSTR */
 }

@@ -5,7 +5,13 @@
 #endif
 #pragma lib "/$M/lib/ape/libap.a"
 
-#define _POSIX_VERSION	199009L
+#define _POSIX_VERSION	199309L
+#define _POSIX_ASYNC_IO -1
+#define _POSIX_CHOWN_RESTRICTED 1
+#define _POSIX_NO_TRUNC 1
+#define _POSIX_PRIO_IO -1
+#define _POSIX_SYNC_IO -1
+#define _POSIX_VDISABLE -1
 
 #ifndef _SIZE_T
 #define _SIZE_T
@@ -32,9 +38,11 @@ typedef long ssize_t;
 #define	F_TEST		3	/* test a region for a previous lock */
 
 /* lseek */
+#ifndef SEEK_SET		/* also defined in stdio.h */
 #define	SEEK_SET	0
 #define	SEEK_CUR	1
 #define	SEEK_END	2
+#endif
 
 /* sysconf argument */
 #define	_SC_ARG_MAX		1	/* max chars in args to exec */
@@ -124,7 +132,7 @@ extern int dup(int);
 extern int dup2(int, int);
 extern int close(int);
 extern ssize_t read(int, void *, size_t);
-extern ssize_t write(int, void *, size_t);
+extern ssize_t write(int, const void *, size_t);
 #ifdef __TYPES_H
 extern off_t lseek(int, off_t, int);
 #endif

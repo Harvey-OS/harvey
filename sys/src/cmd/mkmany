@@ -1,5 +1,4 @@
 PROGS=${TARG:%=$O.%}
-CFLAGS=-w
 LDFLAGS=
 YFLAGS=-d
 
@@ -15,12 +14,6 @@ $O.%:	%.$O $OFILES $LIB
 
 %.$O:	%.c
 	$CC $CFLAGS $stem.c
-
-(.*)\.[vk8]'$':R:	\1.l
-	$ALEF $CFLAGS $stem1.l
-
-(.*)\.[2z]'$':RQ:	\1.l
-	;
 
 %.$O:	%.s
 	$AS $AFLAGS $stem.s
@@ -45,8 +38,30 @@ installall:V:
 	for(objtype in $CPUS)
 		mk $MKFLAGS install
 
+%.safeinstall:V:
+	test -e $BIN/$stem && mv $BIN/$stem $BIN/_$stem
+	mk $stem.install
+
+%.safeinstallall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS $stem.safeinstall
+
+safeinstall:V:
+	for(i in $TARG)
+		mk $MKFLAGS $i.safeinstall
+
+safeinstallall:V:
+	for (objtype in $CPUS)
+		mk safeinstall
+
 nuke:V:
-	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].* *.acid $TARG
 
 clean:V:
-	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].* $TARG
+
+%.clean:V:
+	rm -f $stem.[$OS] [$OS].$stem $stem.acid $stem
+
+%.acid: %.$O $HFILES
+	$CC $CFLAGS -a $stem.c >$target

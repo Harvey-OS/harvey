@@ -4,17 +4,23 @@ cachechars, agefont, loadchar, Subfont, Fontchar, Font  \- font utilities
 .SH SYNOPSIS
 .B #include <u.h>
 .br
-.B #include <libc.h>
+.B #include <draw.h>
 .br
-.B #include <libg.h>
+.B #include <draw.h>
 .PP
 .ta \w'\fLCacheinfo 'u
 .PP
 .B
-int  cachechars(Font *f, char **s, ushort *c, int n, int *widp)
+int  cachechars(Font *f, char **s, Rune **r, ushort *c, int max,
 .PP
 .B
-int  loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noclr)
+	   int *widp, char **sfname)
+.PP
+.B
+int  loadchar(Font *f, Rune r, Cacheinfo *c, int h,
+.PP
+.B
+	   int noclr, char **sfname)
 .PP
 .B
 void agefont(Font *f)
@@ -23,20 +29,20 @@ A
 .I Font
 may contain too many characters to hold in memory
 simultaneously.
-The graphics library and bitblt device (see
-.IR bit (3))
+The graphics library and draw device (see
+.IR draw (3))
 cooperate to solve this problem by maintaining a cache of recently used
 character images.
 The details of this cooperation need not be known by most programs:
-.I binit
+.I initdraw
 and its associated
 .I font
 variable,
-.IR rdfontfile ,
-.IR charwidth ,
+.IR openfont ,
+.IR stringwidth ,
 .IR string ,
 and
-.I ffree
+.I freefont
 are sufficient for most purposes.
 The routines described below are used internally by the graphics library
 to maintain the font cache.
@@ -44,7 +50,7 @@ to maintain the font cache.
 A
 .B Subfont
 is a set of images for a contiguous range of characters, stored as a single
-bitmap
+image
 with the characters
 placed side-by-side on a common baseline.
 It is described by the following data structures.
@@ -53,7 +59,7 @@ It is described by the following data structures.
 .ta 6n +\w'Fontchar 'u +\w'bottom;   'u
 typedef
 struct Fontchar {
-	ushort	x;	/* left edge of bits */
+	int	x;	/* left edge of bits */
 	uchar	top;	/* first non-zero scan-line */
 	uchar	bottom;	/* last non-zero scan-line */
 	char	left;	/* offset of baseline */
@@ -62,15 +68,16 @@ struct Fontchar {
 
 typedef
 struct Subfont {
+	char	*name;
 	short	n;	/* number of chars in subfont */
-	uchar	height;	/* height of bitmap */
-	char	ascent;	/* top of bitmap to baseline */
+	uchar	height;	/* height of image */
+	char	ascent;	/* top of image to baseline */
 	Fontchar	*info;	/* n+1 Fontchars */
-	int	id;	/* id as known in /dev/bitblt */
+	Image	*bits;	/* of font */
 } Subfont;
 .EE
 .PP
-The bitmap fills the rectangle
+The image fills the rectangle
 \fL(0, 0, \fIw\fP, height)\fR,
 where
 .I w
@@ -88,7 +95,7 @@ is
 When a character is displayed at
 .B Point
 .B p
-in a bitmap,
+in an image,
 the character rectangle is placed at
 .BI (p.x+ i ->left,
 .B p.y)
@@ -97,7 +104,7 @@ and the next character of the string is displayed at
 .BR p.y) .
 The baseline of the characters is
 .L ascent
-rows down from the top of the subfont bitmap.
+rows down from the top of the subfont image.
 The
 .L info
 array has
@@ -109,7 +116,7 @@ can be calculated.
 Thus the width,
 .IR w ,
 of the
-.B Bitmap
+.B Image
 associated with a
 .B Subfont
 .B s
@@ -131,16 +138,17 @@ struct Cachefont {
 	Rune	min;	/* value of 0th char in subfont */
 	Rune	max;	/* value+1 of last char in subfont */
 	int	offset;	/* posn in subfont of char at min */
-	int	abs;	/* name has been made absolute */
-	char	*name;
+	char	*name;	/* stored in font */
+	char	*subfontname;	/* to access subfont */
 } Cachefont;
 
 typedef
 struct Cacheinfo {
+	ushort	x;	/* left edge of bits */
+	uchar	width;	/* width of baseline */
+	schar	left;	/* offset of baseline */
 	Rune	value;	/* of char at this slot in cache */
 	ushort	age;
-	ulong	xright;	/* right edge of bits */
-	Fontchar;
 } Cacheinfo;
 
 typedef
@@ -153,11 +161,10 @@ struct Cachesubf {
 typedef
 struct Font {
 	char	*name;
-	uchar	height;	/* max ht of bitmap;interline space*/
-	char	ascent;	/* top of bitmap to baseline */
-	char	width;	/* widest so far; used in caching */	
-	char	ldepth;	/* of images */
-	short	id;	/* of font */
+	Display	*display;
+	short	height;	/* max ht of image;interline space*/
+	short	ascent;	/* top of image to baseline */
+	short	width;	/* widest so far; used in caching */
 	short	nsub;	/* number of subfonts */
 	ulong	age;	/* increasing counter; for LRU */
 	int	ncache;	/* size of cache */
@@ -165,6 +172,7 @@ struct Font {
 	Cacheinfo	*cache;
 	Cachesubf	*subf;
 	Cachefont	**sub;	/* as read from file */
+	Image	*cacheimage;
 } Font;
 .EE
 .PP
@@ -174,9 +182,6 @@ and
 .LR ascent
 fields of Font are described in
 .IR graphics (2).
-.L Ldepth
-is that of the cache, set by the argument to
-.IR rdfontfile .
 .L Sub
 contains
 .L nsub
@@ -224,6 +229,9 @@ cache indices to draw.
 .I Cachechars
 guarantees the images for the characters pointed to by
 .I *s
+or
+.I *r
+(one of these must be nil in each call)
 are in the cache of
 .IR f .
 It calls
@@ -248,12 +256,14 @@ to the total width of the characters processed.
 .I Cachechars
 may return before the end of the string if it cannot
 proceed without destroying active data in the caches.
+If it needs to load a new subfont, it will fill
+.B *sfname
+with the name of the subfont it needs and return \-1.
 It can return zero if it is unable to make progress because
-it is unable to resize the caches.
+it cannot resize the caches.
 .PP
 .I Loadchar
 loads a character image into the character cache.
-First, if necessary, it loads the subfont containing the character.
 Then it tells the graphics server to copy the character 
 into position
 .I h
@@ -269,7 +279,10 @@ is set, in which case it just returns \-1.
 If the character does not exist in the font at all,
 .I loadfont
 returns 0; if it is unable to load the character
-without destroying cached information, it returns \-1.
+without destroying cached information, it returns \-1,
+updating
+.B *sfname
+as described above.
 It returns 1 to indicate success.
 .PP
 The
@@ -283,17 +296,17 @@ is increased every time the font is used
 does this).
 A character or subfont
 .L age
-is set to the font age.
+is set to the font age at each use.
 Thus, characters or subfonts with small ages are the best candidates
 for replacement when the cache is full.
 .SH SOURCE
-.B /sys/src/libg
+.B /sys/src/libdraw
 .SH SEE ALSO
 .IR graphics (2),
-.IR balloc (2),
-.IR bitblt (2),
-.IR subfalloc (2),
-.IR bitmap (6),
+.IR allocimage (2),
+.IR draw (2),
+.IR subfont (2),
+.IR image (6),
 .IR font (6)
 .SH DIAGNOSTICS
 All of the functions use the graphics error function (see

@@ -5,7 +5,7 @@ extern	jmp_buf	mainloop;
 
 char	errfile[64];
 String	plan9cmd;	/* null terminated */
-Buffer	*plan9buf;
+Buffer	plan9buf;
 void	checkerrs(void);
 
 int
@@ -21,16 +21,14 @@ plan9(File *f, int type, String *s, int nest)
 		error(Enocmd);
 	else if(s->s[0])
 		Strduplstr(&plan9cmd, s);
-	if(downloaded)
+	if(downloaded){
 		samerr(errfile);
-	else
-		strcpy(errfile, "/dev/tty");
+		remove(errfile);
+	}
 	if(type!='!' && pipe(pipe1)==-1)
 		error(Epipe);
 	if(type=='|')
-		snarf(f, addr.r.p1, addr.r.p2, plan9buf, 1);
-	if(downloaded)
-		remove(errfile);
+		snarf(f, addr.r.p1, addr.r.p2, &plan9buf, 1);
 	if((pid=fork()) == 0){
 		if(downloaded){	/* also put nasty fd's into errfile */
 			fd = create(errfile, 1, 0666L);
@@ -67,11 +65,11 @@ plan9(File *f, int type, String *s, int nest)
 				io = pipe2[1];
 				if(retcode=!setjmp(mainloop)){	/* assignment = */
 					char *c;
-					for(l = 0; l<plan9buf->nrunes; l+=m){
-						m = plan9buf->nrunes-l;
+					for(l = 0; l<plan9buf.nc; l+=m){
+						m = plan9buf.nc-l;
 						if(m>BLOCKSIZE-1)
 							m = BLOCKSIZE-1;
-						Bread(plan9buf, genbuf, m, l);
+						bufread(&plan9buf, l, genbuf, m);
 						genbuf[m] = 0;
 						c = Strtoc(tmprstr(genbuf, m+1));
 						Write(pipe2[1], c, strlen(c));
@@ -101,12 +99,12 @@ plan9(File *f, int type, String *s, int nest)
 		int nulls;
 		if(downloaded && addr.r.p1 != addr.r.p2)
 			outTl(Hsnarflen, addr.r.p2-addr.r.p1);
-		snarf(f, addr.r.p1, addr.r.p2, snarfbuf, 0);
-		Fdelete(f, addr.r.p1, addr.r.p2);
+		snarf(f, addr.r.p1, addr.r.p2, &snarfbuf, 0);
+		logdelete(f, addr.r.p1, addr.r.p2);
 		close(pipe1[1]);
 		io = pipe1[0];
 		f->tdot.p1 = -1;
-		f->ndot.r.p2 = addr.r.p2+readio(f, &nulls, 0);
+		f->ndot.r.p2 = addr.r.p2+readio(f, &nulls, 0, FALSE);
 		f->ndot.r.p1 = addr.r.p2;
 		closeio((Posn)-1);
 	}else if(type=='>'){

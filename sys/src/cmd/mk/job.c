@@ -1,7 +1,7 @@
 #include	"mk.h"
 
 Job *
-newjob(Rule *r, Node *nlist, char *stem, Resub *match, Word *pre, Word *npre, Word *tar, Word *atar)
+newjob(Rule *r, Node *nlist, char *stem, char **match, Word *pre, Word *npre, Word *tar, Word *atar)
 {
 	register Job *j;
 
@@ -15,7 +15,6 @@ newjob(Rule *r, Node *nlist, char *stem, Resub *match, Word *pre, Word *npre, Wo
 	j->t = tar;
 	j->at = atar;
 	j->nproc = -1;
-	j->fd = -1;
 	j->next = 0;
 	return(j);
 }
@@ -23,12 +22,12 @@ newjob(Rule *r, Node *nlist, char *stem, Resub *match, Word *pre, Word *npre, Wo
 void
 dumpj(char *s, Job *j, int all)
 {
-	Bprint(&stdout, "%s\n", s);
+	Bprint(&bout, "%s\n", s);
 	while(j){
-		Bprint(&stdout, "job@%ld: r=%ld n=%ld stem='%s' nproc=%d\n",
+		Bprint(&bout, "job@%p: r=%p n=%p stem='%s' nproc=%d\n",
 			j, j->r, j->n, j->stem, j->nproc);
-		Bprint(&stdout, "\ttarget='%s' alltarget='%s' prereq='%s' nprereq='%s'\n",
-			wtos(j->t), wtos(j->at), wtos(j->p), wtos(j->np));
+		Bprint(&bout, "\ttarget='%s' alltarget='%s' prereq='%s' nprereq='%s'\n",
+			wtos(j->t, ' '), wtos(j->at, ' '), wtos(j->p, ' '), wtos(j->np, ' '));
 		j = all? j->next : 0;
 	}
 }

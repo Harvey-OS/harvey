@@ -85,7 +85,7 @@ and the permissions, owner, and group remain unchanged.
 The created file is a directory if the
 .B CHDIR
 bit is set in
-.IR omode .
+.IR perm .
 It is an exclusive-use file if the
 .B CHEXCL
 bit is set.

@@ -106,6 +106,7 @@ putstrn(char *str, int n)
  * get character to print at interrupt time
  * always called splhi from proc 0
  */
+int
 conschar(void)
 {
 	uchar *p;
@@ -139,11 +140,8 @@ kbdchar(int c)
 	uchar *p;
 	uchar ch;
 
-	if(c == ('T' - '@')) {			/* ^t */
-		for(s=0; s<=conf.nproc; s++)
-			dotrace(0);
-		return;
-	}
+	if(c == ('T' - '@'))			/* ^t */
+		dotrace(0);
 	s = splhi();
 	lock(&readq);
 	if(readq.reading)
@@ -209,10 +207,9 @@ rawchar(int seconds)
 }
 
 int
-reading(void *a)
+reading(void*)
 {
 
-	USED(a);
 	return readq.reading;
 }
 
@@ -292,8 +289,13 @@ panic(char *fmt, ...)
 void
 prflush(void)
 {
+	int i;
+
 	if(predawn)
 		return;
-	while(printq.printing)
+	for(i=0; i<50; i++) {
+		if(!printq.printing)
+			break;
 		delay(100);
+	}
 }

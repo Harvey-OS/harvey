@@ -1,248 +1,456 @@
 .TH MAIL 1
 .SH NAME
-mail, edmail, sendmail, seemail, aliasmail, smtp, smtpd, to, vwhois, vismon \-  mail commands
+mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, fs, biff \-  mail commands
 .SH SYNOPSIS
 .B mail
 [
 .I arg ...
 ]
 .PP
-.B upas/edmail
+.B upas/marshal
 [
-.B -cmpre
+.B -t
+.I mime-type
 ]
 [
-.B -[fF]
-.I mfile
+.B -[aA]
+.I attachment
 ]
-.PP
-.B upas/sendmail
 [
-.B -xr#
+.B -s
+.I subject
 ]
-.I person ...
-.PP
-.B upas/to
 [
-.B -x#
-]
-.PP
-.B seemail
-[
-.B -as
-] [
-.B -u
-.I user
-] [
-.B -f
-.I file
-] [
 .B -r
-.I reminders
-]
-.PP
-.B upas/aliasmail
-.I name ...
-.PP
-.B smtp
-[
-.B -fdu
 ]
 [
-.BI -h host
+.B -x
 ]
 [
-.BI -g gateway
+.B -#
 ]
 [
-.I .domain
+.B -n
 ]
-.I "address sender rcpt-list"
-.PP
-.B smtpd
 [
-.B -d
+.I mailaddr ...
 ]
 .PP
-.B vwhois
-.I people ...
+.B upas/send
+[
+.B -b
+]
+[
+.B -i
+]
+[
+.B -r
+]
+[
+.B -x
+]
+[
+.B -#
+]
+[
+.B -n
+]
+[
+.I mailaddr ...
+]
 .PP
-.B vismon
-.I system
+.B upas/nedmail
+[
+.B -c [dir]
+]
+[
+.B -r
+]
+[
+.B -f
+.I mailfile
+]
+[
+.B -s
+.I mailfile
+]
+.PP
+.B upas/fs
+[
+.B -f
+.I mailbox
+]
+[
+.B -b
+]
+[
+.B -p
+]
+.PP
+.B upas/biff
+.PP
+.B upas/pop3
 .SH DESCRIPTION
 .SS Mail
-Mail invokes
-.I edmail
-.B -m
-when no 
-.I persons
-appear on the command line.
-It invokes
-.I sendmail
+Mail is a shell script that invokes
+.I upas/nedmail
+when no  recipients appear on the command line and
+.I upas/marshal
 otherwise.
-.SS "Mailbox Editing"
-.I Edmail
+All command line options are passed through.
+.SS "Sending mail
+.I Marshal
+builds a mail message from standard input and passes it to
+.I send
+for transmission or delivery.
+It adds to the beginning of the message any headers in the file
+.BI /mail/box/ username /headers\f1.
+This allows the addition of personal headers like
+.B From:
+lines with a full name or a different
+return address.
+The message format is both RFC 822 and
+MIME conformant, so
+.I marshal
+adds any required headers not already in the message.
+Command line options direct marshal to add a subject line
+and append attachments.  The arguments to
+.I marshal
+are the addresses of the recipients.
+.PP
+When running in a
+.IR rio (1)
+window,
+.I marshal
+automatically puts the window into hold mode (see
+.IR rio (1));
+this means that the message can be edited freely,
+because nothing will be sent to
+.I marshal
+until the ESC key is hit to exit hold mode.
+.PP
+The options are:
+.TF "-a file"
+.TP
+.BI -a file
+directs
+.I marshal
+to append 
+.I file
+as a mime attachment.
+Unless explicitly specified by the
+.B -t
+option, the type of the attachment is determined
+by running the
+.IR file (1)
+command.
+.TP
+.BI -A file
+is like
+.B -a
+but the message disposition is marked as
+.I inline
+directing any mail reader to display the attachment
+(if it can) when the mail message is read.
+.TP
+.BI -t type
+sets the content type for the attachments from
+all subsequent
+.B -a
+and
+.B -A
+options.
+.TP
+.BI -s subject
+adds a
+.B Subject:
+header line to the message if one does not
+already exist.
+.TP
+.B -#xnr
+are all passed as command line options to the
+.I send
+that
+.I marshal
+invokes.
+.PD
+.PP
+.I Send
+reads a message from standard input and disposes of it in one
+of four ways:
+.IP \(bu 3
+If
+.I mailaddr
+refers to a local mailbox, it appends it to the
+recipient's mailbox.
+.IP \(bu
+If
+.I mailaddr
+is remote, it queues the mail for remote delivery.
+.IP \(bu
+If the
+.B -r
+option is given and the mail is undeliverable, it
+returns the mail to the sender.
+.IP \(bu
+if the
+.B -r
+option is not given and the mail is undeliverable, it
+appends the mail to
+.BI /mail/box/ username /dead.letter
+and prints a message to standard error.
+.PP
+The file
+.B /mail/lib/rewrite
+determines exactly how to deliver or queue the mail.
+The decision is based purely on the recipient address.
+.PP
+The options are:
+.TF -b
+.TP
+.B -b
+suppresses the addition of the
+.B To:
+line.
+.TP
+.B -i
+let the message input be terminated by a line
+containing only a period, for
+compatibility with
+old mailers.
+.TP
+.B -x
+do not send mail, but instead report
+the full mail address of the recipient.
+.TP
+.B -#
+do not send mail, but instead report
+what command would be used to send the mail.
+.TP
+.B -r
+input is via a pipe from another program.
+Expect a From
+line at the start of the message to provide the
+name of the sender and timestamp.  This implies
+the
+.B -b
+option.
+.SS "Reading mail"
+.I Nedmail
 edits a mailbox.
 The default mailbox is
 .BI /mail/box/ username /mbox\f1.
 The
 .B -f
-and
-.B -F
-command line options and the
-.B s
-and
-.B S
-editing commands specify an alternate mailbox.
+command line option specifies an alternate mailbox.
 Unrooted path names are interpreted relative to
-.BI /mail/box/ username
-for
-.B -f
-and
-.B s
-and relative to the current directory for
-.B -F
-and
-.BR S .
+.BI /mail/box/ username.
 If the
-.I mfile
+.I mailfile
 argument is omitted, the name defaults to
 .BR stored .
 .PP
-The options for
-.I edmail
-are:
-.TF "-F mfile"
+The options are:
+.TF "-f mailfile"
 .TP
-.B -c
-Create a mailbox.
-.PD 0
+.BI -c " dir
+Create a mailbox.  If
+.I dir
+is specified, the new mailbox is created in
+.BI /mail/box/ username / dir /mbox\f1.
+Otherwise, the default mailbox is created.
 .TP
 .B -r
-Reverse: print mail in first-in, first-out order.
+Reverse: show messages in first-in, first-out order; the default is last-in, first-out.
 .TP
-.B -p
-Print all the mail messages without prompting for commands.
-.TP
-.B -m
-Use a manual style of interface, that is, print no messages unless directed to.
-.TP
-.BI -f " mfile"
+.BI -f " mailfile"
 Read messages from the specified file (see above) instead of the default mailbox.
 .TP
-.BI -F " mfile"
-same as
-.B -f
-with different starting point for relative paths (see above).
-.TP
-.B -e
-Check silently if there is anything in the mailbox;
-return zero (true) if so, non-zero otherwise.
+.BI -s " mailfile"
+Read a single message file
+.IR mailfile ,
+as produced by
+.IR fs ,
+and treat it as an entire mailbox.
+This is provided for
+use in plumbing rules; see
+.IR faces (1).
 .PD
 .PP
-.I Edmail
-prints messages one at a time,
-prompting between messages.
-After printing a prompt
-.I edmail
-reads a line from the standard input
-to direct disposition of the message.
+.I Nedmail
+starts by reading the mail box, printing out the number
+of messages, and then prompting for commands from standard input.
 Commands, as in
 .IR ed (1),
 are of the form
 .RI `[ range ]
 .I command
 .RI [ arguments ]'.
-The command is applied to each message in the (optional) range
-addressed by message number and/or regular expressions
-in the style of
-.IR ed (1).
-A regular expression in slashes searches among header
-(postmark) lines; an expression in percent signs searches on
-message content.
-.TP 1.1i
+The command is applied to each message in the (optional) range.
+.PP
+The address range can be:
+.TP 1.4i
 .I address
 to indicate a single message header
-.PD0
+.PD 0
 .TP
 .IB address , address
 to indicate a range of contiguous message headers
 .TP
 .BI g/ expression /
-to indicate all message headers matching the regular
+to indicate all messages whose headers match the regular
+.IR expression .
+.TP
+.BI g% expression %
+to indicate all messages whose contents match the regular
 .IR expression .
 .PD
 .PP
-The commands are:
+The addresses can be:
+.TP 1.4i
+.I number
+to indicate a particular message
 .PD 0
+.TP
+.IB address . number
+to indicate a subpart of a particular message
+.TP
+.BI / expression /
+to indicate the next message whose header matches
+.I expression
+.TP
+.BI % expression %
+to indicate the next message whose contents match
+expression
+.TP
+.I "empty or .
+to indicate the current message
+.TP
+.BI - address
+to indicate backwards search or movement
+.PD
+.PP
+Since messages in MIME are hierarchical
+structures, in
+.I nedmail
+all the subparts are individually addressable.
+For example if message 2 contains 3 attachments,
+the attachments are numbered 2.1, 2.2, and 2.3.
+.PP
+The commands are:
 .TP 1.1i
+.BI a " args
+Reply to all addresses in the
+.BR To: ,
+.BR From: ,
+and
+.BR Cc:
+header lines.
+.I Marshal
+is used to format the reply and any arguments the
+user specifies are added to the command line to
+.I marshal
+before the recipient.
+The possibility of making a fool of yourself is very
+high with this command.
+.PD 0
+.TP
+.BI A " args
+Like 
+.B a
+but with the message
+appended to the reply.
+.TP
 .B b
 Print the headers for the next ten messages.
 .TP
 .B d
 Mark message to be deleted upon exiting
-.IR edmail .
+.IR nedmail .
+.TP
+.B f
+Append the message to the file 
+.BI /mail/box/ username / sendername
+where
+.I sendername
+is the account name of the sender.
 .TP
 .B h
 Print the disposition, size in characters, and header line of the message.
 .TP
+.B help
+Print a summary of the commands.
+.TP
 .BI m " person ...
-Mail the message to the named
+Forward the message as a mime attachment to the named
 .IR persons .
 .TP
 .BI M " person ...
-Same as
-.BI m
-except that lines typed
-on the terminal (terminated by
-.BR EOT )
-are prefixed to the message.
+Like
+.B m
+but allow the user to type in text to be included
+with the forwarded message.
 .TP
 .B p
 Print message.	An interrupt stops the printing.
 .TP
-.B r
+.BI r " args
 Reply to the sender of the message.
+.I Marshal
+is used to format the reply.
+If and optional
+.I Args
+are specified, they are added to the command line to
+.I marshal
+before the recipient's address.
 .TP
-.B R
+.B R " args 
+Like
+.B r
+but with the original message included as an attachment.
+.TP
+.B rf
+Like
+.B r
+but append the message and the reply to the file 
+.BI /mail/box/ username / sendername
+where
+.I sendername
+is the account name of the sender.
+.TP
+.B Rf
 Like 
-.L r
-but with the message
-appended to the reply.
+.B R
+but append the message and the reply to the file 
+.BI /mail/box/ username / sendername
+where
+.I sendername
+is the account name of the sender.
 .TP
 .BI s " mfile"
-(Save) Append the message to the specified mailbox (see above).
-.TP
-.BI S " mfile"
-Same as
-.B s
-with different starting point for relative paths (see above).
+Append the message to the specified mailbox.
+If
+.I mfile
+doesn't start with a `/', it is interpreted relative to the directory in which the mailbox resides.
 .TP
 .B q
 Put undeleted mail back in the mailbox and stop.
 .TP
 EOT (control-D)
 Same as 
-.LR q .
+.BR q .
 .TP
 .BI w " file
 Same as
 .B s
-with the mail header line(s) stripped.
-.TP
-.BI W " file
-Same as
-.B w
-with different starting point for relative paths (see above).
+with the mail header line(s) stripped.  This can be used to
+save binary mail bodies.
 .TP
 .B u
 Remove mark for deletion.
 .TP
 .B x
 Exit, without changing the mailbox file.
-.TP
-.B ?
-Print a command summary.
 .TP
 .BI | command
 Run the
@@ -256,93 +464,36 @@ Escape to the shell to do
 .B \&=
 Print the number of the current message.
 .PD
-.ne 5
-.SS "Sending Mail
 .PP
-.I Sendmail
-takes the standard input up to an end-of-file
-and adds it to each
-.I person's
-mailbox.
-When running in an
-.IR 8½ (1)
-window,
-.I sendmail
-automatically puts the window into Hold mode (see
-.IR 8½ (1));
-this means that the message can be edited freely,
-because nothing will be sent to
-.I sendmail
-until the ESC key is hit to exit Hold mode.
-With option
-.BR -# ,
-.I sendmail
-does not send mail, but instead reports
-what command would be used to send the mail.
-With option
-.BR -x ,
-.I sendmail
-does not send mail, but instead reports
-the full mail address of the recipient.
-Option
-.B -r
-tells sendmail that its input is via a pipe from
-another program.
-It won't turn on Hold mode and will expect a From
-line at the start of the message to provide the
-name of the sender and timestamp.
+Here's an example of a mail session that looks at a summary
+of the mail messages, saves away an html file added as an
+attachment to a message and then deletes the message:
+.LP
+.EX
+% mail
+7 messages
+: ,h
+1        mul  4410	Jul 22 12:30  noone@madeup.net  "Add Up To 2
+1.1      txt  1413 
+1.2      html  1966 
+2        txt   504	Jul 22 11:43  jmk
+3        mul   784	Jul 20 09:05  presotto
+3.1      txt   136 
+3.2      txt   323	Jul 12 16:16  presotto
+4        txt   822	Jul 11 09:23  xxx@yyy.net  "You don't call, you don
+5        txt   193	 Jul 6 16:55  presotto
+6        txt   529	 May 7 19:42  jmk
+7        txt   798	 Sep 2 13:55  howard
+: 1.2w /tmp/northwest.html
+!saved in /tmp/northwest.html
+1.2: d
+1: q
+!1 message deleted
+% 
+.EE
 .PP
-The message is automatically postmarked with the
-sender's name and date.
-Lines that look like postmarks are
-prefixed with 
-.LR > .
-.PP
-.I Person
-is a user name on the local system,
-a name for which there is an
-.IR alias ,
-or a network mail address.
-.PP
-.I To
-is a preprocessor for
-.IR sendmail .
-It takes a mail message as standard input,
-looks through it for
-.BR To: ,
-.BR Cc: ,
-and
-.B Bcc:
-header lines, and calls sendmail with the addresses
-in those header lines as destinations.
-The
-.B Bcc:
-header lines are removed before passing the message to
-.IR sendmail .
-.SS "Addressing Conventions"
-The local convention for converting addresses
-is given by rewrite rules in
-.BR /mail/lib/rewrite ;
-see
-.IR rewrite (6).
-The conventions generally used are:
-.IP \-
-A
-.I person
-containing no
-.L !
-or 
-.L @
-is considered a local user or local alias.
-It is passed as an argument to
-.I aliasmail
-which returns either the expanded alias or 
-.BI local! person
-if there is no alias of that name.
-.IP \-
-A canonical network mail address has the form
-.IB machine ! ... ! name\f1,
-with one or more machines mentioned.
+Notice that the delete of message 1.2 deleted the entire message and
+not just the attachment.
 .SS "Aliasmail"
 .I Aliasmail 
 expands mail aliases, its arguments, according to alias files.
@@ -362,6 +513,13 @@ Then the system alias files, listed one per line in
 are checked in order.
 If the name is not found, the expansion is taken to be
 .BI local! name\f1.
+Under the
+.B -f
+option,
+alias files listed in
+.B /mail/lib/fromfiles
+are consulted instead,
+and the domain part only of the expansion is printed.
 .SS Mailboxes
 Incoming mail for a user
 .I username
@@ -378,7 +536,7 @@ The mailbox must have append-only and exclusive-access mode
 A user must create his or her own mailbox using the
 .B -c
 option of
-.IR edmail .
+.IR nedmail .
 Mailboxes are created writable (append-only) but not readable by others.
 .SS Forwarding
 If the file
@@ -395,61 +553,239 @@ it will be run for each incoming message for the user.
 The message will be piped to it rather
 than appended to his/her mail box.
 The file is run as user
-.BR none .
-.SS Misc
+.B none
+with arguments of the resolved address of
+.I username
+(e.g.
+.BR local!presotto )
+and his/her mail box name.
+.SS "Mime File system
+.PP
+.I Fs
+is a user level file system that reads mailboxes and presents them as a file
+system.
+A user normally starts
+.I fs
+in his/her profile after starting
+.IR plumber (4)
+and before starting
+a window system, such as
+.IR rio (1)
+or
+.IR acme (1).
+The file system is used by
+.I nedmail
+and
+.IR acme (1)'s
+mail reader to parse messages.
+.I Fs
+also generates plumbing messages used by
+.IR biff
+and
+.IR faces (1)
+to provide mail announcements.
+.PP
+The mailbox itself becomes a directory under
+.BR /mail/fs .
+Each message in the mailbox becomes a numbered directory in the
+mailbox directory, and each attachment becomes a numbered directory
+in the message directory.  Since an attachment may itself be a mail message,
+this structure can recurse ad nauseam.
+.PP
+Each message and attachment directory contains the files:
+.TP 1.4i
+.B body
+.PD 0
+the message minus the RFC822 style headers
+.TP
+.B cc
+the address(es) from the CC: header
+.TP
+.B date
+the date in the message, or if none, the time of delivery
+.TP
+.B digest
+an SHA1 digest of the message contents
+.TP
+.B disposition
+.B inline
+or
+.B file
+.TP
+.B filename
+a name to use to file an attachment
+.TP
+.B from
+the from address in the From: header, or if none,
+the address on the envelope.
+.TP
+.B header
+the RFC822 headers
+.TP
+.B info
+described below, essentially a summary of the header info
+.TP
+.B inreplyto
+contents of the
+.B in-reply-to:
+header
+.TP
+.B mimeheader
+the mime headers
+.TP
+.B raw
+the undecoded MIME message
+.TP
+.B rawbody
+the undecoded message body
+.TP
+.B rawheader
+the undecoded message header
+.TP
+.B replyto
+the address to send any replies to.
+.TP
+.B subject
+the contents of the subject line
+.TP
+.B to
+the address(es) from the To: line.
+.TP
+.B type
+the MIME content type
+.TP
+.B unixheader
+the envelope header from the mailbox
+.PD
 .PP
 The
-.I seemail
-command notifies when a new message
-arrives in your mailbox.
-It reads a log
-.IR file ,
-default
-.BR /sys/log/mail ,
-of incoming messages.
-It runs continuously where it is invoked, displaying the
-names and icons of senders of new messages.
-The
-.B -a
-flag causes it to initialize by displaying all the faces in the log;
-.B -s
-causes it to overwrite multiple appearances of the same face rather
-than repeatedly displaying it.
-The
-.B -u
-option displays incoming mail for the specified user instead of yourself.
+.B info
+file contains the following information, one item per line.  Lists
+of addresses are single space separated.
+.IP
+.TP 2i
+.I "sender address
+.PD 0
+.TP
+.I "recipient addresses
+.TP
+.I "cc addresses
+.TP
+.I "reply address
+.TP
+.I "envelope date
+.TP
+.I "subject
+.TP
+.I "MIME content type
+.TP
+.I "MIME disposition
+.TP
+.I filename
+.TP
+.I "SHA1 digest
+.TP
+.I "bcc addresses
+.TP
+.I "in-reply-to: contents
+.TP
+.I "RFC822 date
+.TP
+.I "message senders
+.TP
+.I "message id
+.TP
+.I "number of lines in body
+.PD
 .PP
-.IR Seemail 's
-.B -r
-option causes it to announce appointments described in the file
-.IR reminders .
-Each line of the appointment file contains the
-month, day, hour, minute and room (any string of non-spaces)
-of an appointment, in a format compatible with
-.IR calendar (1).
-The hour is 24-hour time.  The fields
-may be separated by white space, commas, slashes or colons,
-and the room may be followed by arbitrary text.
-On the day of each appointment,
-.I seemail
-displays a clock-face icon with the appointment's room and time,
-once at midnight (or when the program starts), then an hour before,
-then 15 minutes before, then 1 minute
-before, then at the appointment time.  At the same time, it displays
-the room and any following text on a line below the
-clock time at the top of its window.
+Deleting message directories causes the message to be removed from
+the mailbox.
 .PP
-.I Vwhois
-just displays in the
-.I seemail
-window
-the icons of
-.IR people .
-.I Vismon
-is a version of
-.I seemail
-that connects to a remote Unix (not Plan 9)
-system to look for mail arriving there.
+The mailbox is reread and the structure updated
+whenever the mailbox changes.  Message directories are
+not renumbered.
+.PP
+The file
+.B /mail/fs/ctl
+is used to direct
+.I fs
+to open/close new mailboxes or to delete groups of messages atomically.
+The messages that can be written to this file are:
+.TP 2i
+.PD 0
+.B "open \fImboxname path\fP
+opens a new mailbox.
+.I path
+is the file to open, and
+.I mboxname
+is the name that appears under
+.BR /mail/fs .
+.TP
+.B "close \fImboxname\fP
+close
+.IR mboxname .
+The close takes affect only after all files open under
+.BI /mail/fs/ mboxname
+have been closed.
+.TP
+.B "delete \fImboxname number ...\fP
+Delete the messages with the given numbers from
+.IR mboxname.
+.PD
+.PP
+The options are:
+.TF "-f file
+.TP
+.BI -f file
+use
+.I file
+as the mailbox instead of the default,
+.BI /mail/box/ username /mbox.
+.PD 0
+.TP
+.B -b
+stands for biffing.  Each time new mail
+is received, a message is printed to standard
+output containing the sender address, subject,
+and number of bytes.  It is intended for
+people telnetting in who want mail announcements.
+.TP
+.B -p
+turn off plumbing.  Unless this is specified,
+.I fs
+sends a message to the plumb port,
+.BR seemail ,
+from source
+.B mailfs
+for each message received or deleted.
+The message contains the attributes
+.IR sender = "<contents of from file>" ,
+.IR filetype =mail,
+.IR mailtype = "deleted or new" ,
+and
+.IR length = "<message length in bytes> .
+The contents of the message is the full path
+name of the directory representing the message.
+.PD
+.PP
+.I Fs
+will exit once all references to its directory
+have disappeared.
+.SS "Mail Announcements
+.PP
+.I Biff
+is the textual equivalent of
+.IR faces (1).
+It listens to plumbing messages from
+.I fs
+and for each new message prints to standard output a line
+containing the sender address, subject,
+and number of bytes.
+It exists for people without graphics capability or with screens too small to
+dedicate the space
+.IR faces (1)
+requires.  It forks to place itself in the background.
+.SS "Remote delivery
 .PP
 .I Smtp
 sends the mail message from standard input
@@ -463,16 +799,18 @@ system name from the environment variable
 .I sysname
 and the user
 .IR sender .
+The
+.B -h
+option uses
+.I host
+as the local system name;
+it may be fully-qualified or not.
 If
 .I .domain
 is given, it is appended to the end of the system name.
-The 
-.B -u
-option sends the mail in the standard Unix format instead
-of RFC822 format.
 The
 .B -f
-flag just prints out the converted message rather than
+option just prints out the converted message rather than
 sending it to the destination.
 The
 .B -g
@@ -485,12 +823,58 @@ option turns on debugging output to standard error.
 .I Smtpd
 receives a message using the Simple Mail Transfer Protocol.
 Standard input and output are the protocol connection.
-The
+.PP
+The options are:
+.TP 1.1i
 .B -d
-option turns on debugging output to standard error.
+turns on debugging output to standard error.
+.TP
+.B -r
+turns on forward DNS validation of non-trusted sender address.
+.TP
+.B -f
+prevents relaying from non-trusted networks.
+.TP
+.B "-n \fItcp-directory\fP"
+specifies the name of the network directory assigned to the incoming connection.
+This is used to determine the peer IP address.  If this flag is not
+specified, the peer address is determined using standard input.
+.TP
+.B "-h \fIdomain\fP"
+specifies the receiving domain.  If this flag is not specified, the
+receiving domain is inferred from the host name.
+.TP
+.B -s
+causes copies of blocked messages to be saved in a sub-directory of
+.BR /mail/queue.dump .
+.TP
+.B "-k \fIIP address\fP"
+causes connections from the host at
+.I "IP address"
+to be dropped at program startup.  Multiple addresses
+can be specified with several
+.B -k
+options.  This option should be used carefully;
+it is intended to lessen the effects of denial of
+service attacks or broken mailers which continually
+connect.  The connections are not logged and the
+remote system is not notified via the protocol.
+.PP
 .I Smtpd
 is normally run by a network listener such as
 .IR listen (8).
+Most of the command line options are more conveniently
+specified in the smtpd configuration file stored in
+.BR /mail/lib/smtpd.conf .
+.SS "Mail server
+.I Pop3
+is a rudimentary POP3 server that uses APOP for authentication.
+It predates
+.I upas/fs
+and does not use it.  It will soon be replaced by one that uses
+.IR upas/fs .
+See also the IMAP4 server described in
+.IR ipserv (8).
 .SH FILES
 .TF /mail/box/*/dead.letter
 .TP
@@ -539,15 +923,45 @@ directories of icons for
 source for commands in
 .B /bin/upas
 .TP
-.B /sys/src/cmd/seemail
-.TP
-.B /rc/bin/vismon
+.B /sys/src/cmd/faces
 .TP
 .B /rc/bin/vwhois
 .SH "SEE ALSO"
 .IR face (6),
 .IR rewrite (6)
+.IR ipserv (8)
 .SH BUGS
-.I Edmail
+.I Nedmail
 truncates
 long headers for searching.
+.sp
+.br
+.I Biff
+and 
+the
+.B \-b
+option of
+.I fs
+perform the same function but in slightly
+different environments.
+The duality is confusing.
+The 
+.B \-b
+option exists because starting both
+.I fs
+and
+.I biff
+in a Telnet session results in a number
+of processes that don't die when the
+session is terminated; the
+.IR plumber (4)
+is held open by
+.I fs
+and
+.I biff
+still having it mounted, while
+.I fs
+is held open by
+.I biff
+which is blocked waiting for plumbing
+input.

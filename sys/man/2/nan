@@ -11,7 +11,7 @@ NaN, Inf, isNaN, isInf \- not-a-number and infinity functions
 double	NaN(void)
 .PP
 .B
-long	Inf(int)
+double	Inf(int)
 .PP
 .B
 int	isNaN(double)

@@ -16,6 +16,13 @@ struct Dospart
 	uchar len[4];		/* length in sectors */
 };
 
+#define FAT12	0x01
+#define FAT16	0x04
+#define FATHUGE	0x06
+#define FAT32	0x0b
+#define DMDDO	0x54
+#define PLAN9	0x39
+
 struct Dosboot{
 	uchar	magic[3];
 	uchar	version[8];
@@ -31,12 +38,21 @@ struct Dosboot{
 	uchar	nheads[2];
 	uchar	nhidden[4];
 	uchar	bigvolsize[4];
+/* fat 32 */
+	uchar	bigfatsize[4];
+	uchar	extflags[2];
+	uchar	fsversion[2];
+	uchar	rootdirstartclust[4];
+	uchar	fsinfosect[2];
+	uchar	backupbootsect[2];
+/* ???
 	uchar	driveno;
 	uchar	reserved0;
 	uchar	bootsig;
 	uchar	volid[4];
 	uchar	label[11];
 	uchar	reserved1[8];
+*/
 };
 
 struct Dosfile{
@@ -53,8 +69,8 @@ struct Dosfile{
 
 struct Dos{
 	int	dev;				/* device id */
-	long	(*read)(int, void*, long);	/* read routine */
-	long	(*seek)(int, long);		/* seek routine */
+	long	(*read)(Dos*, void*, long);	/* read routine */
+	long	(*seek)(Dos*, long);		/* seek routine */
 
 	int	start;		/* start of file system */
 	int	sectsize;	/* in bytes */
@@ -70,6 +86,7 @@ struct Dos{
 	int	fatbits;	/* 12 or 16 */
 	long	fataddr;	/* sector number */
 	long	rootaddr;
+	long	rootclust;
 	long	dataaddr;
 	long	freeptr;
 
@@ -80,9 +97,14 @@ struct Dosdir{
 	uchar	name[8];
 	uchar	ext[3];
 	uchar	attr;
-	uchar	reserved[10];
-	uchar	time[2];
-	uchar	date[2];
+	uchar	lowercase;
+	uchar	hundredth;
+	uchar	ctime[2];
+	uchar	cdate[2];
+	uchar	adate[2];
+	uchar	highstart[2];
+	uchar	mtime[2];
+	uchar	mdate[2];
 	uchar	start[2];
 	uchar	length[4];
 };
@@ -96,10 +118,10 @@ struct Dosdir{
 
 extern int chatty;
 
-extern int dosboot(Dos*, char*);
-extern int dosinit(Dos*);
+extern int dosboot(Dos*, char*, Boot*);
+extern int	dosinit(Dos*);
 extern long dosread(Dosfile*, void*, long);
 extern int dosstat(Dos*, char*, Dosfile*);
 extern int doswalk(Dosfile*, char*);
 
-extern int plan9ini(Dos*);
+extern int dotini(Dos*);

@@ -209,7 +209,7 @@ state.
 .PP
 The dump takes a few minutes to walk the tree
 and mark the blocks.
-It then takes hours to write the marked blocks
+It can take hours to write the marked blocks
 to the WORM.
 If a marked block is rewritten before the old
 copy has been written to the WORM,

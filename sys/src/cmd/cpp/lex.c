@@ -56,7 +56,7 @@ struct	fsm {
 /*const*/ struct fsm fsm[] = {
 	/* start state */
 	START,	{ C_XX },	ACT(UNCLASS,S_SELF),
-	START,	{ ' ', '\t', '\v' },	WS1,
+	START,	{ ' ', '\t', '\v', '\r' },	WS1,
 	START,	{ C_NUM },	NUM1,
 	START,	{ '.' },	NUM3,
 	START,	{ C_ALPH },	ID1,
@@ -162,6 +162,7 @@ struct	fsm {
 	COM3,	{ '\n' },	S_COMNL,
 	COM3,	{ '*' },	COM3,
 	COM3,	{ '/' },	S_COMMENT,
+	COM3,	{ EOFC },	S_EOFCOM,
 
 	/* // comment */
 	COM4,	{ C_XX },	COM4,
@@ -170,7 +171,7 @@ struct	fsm {
 
 	/* saw white space, eat it up */
 	WS1,	{ C_XX },	S_WS,
-	WS1,	{ ' ', '\t', '\v' },	WS1,
+	WS1,	{ ' ', '\t', '\v', '\r'},	WS1,
 
 	/* saw -, check --, -=, -> */
 	MINUS1,	{ C_XX },	ACT(MINUS, S_SELFB),
@@ -444,6 +445,11 @@ gettokens(Tokenrow *trp, int reset)
 				state = COM2;
 				ip += runelen;
 				runelen = 1;
+ 				if (ip >= s->inb+(7*INS/8)) { /* very long comment */
+					memmove(tp->t, ip, 4+s->inl-ip);
+					s->inl -= ip-tp->t;
+					ip = tp->t+1;
+				}
 				continue;
 
 			case S_EOFCOM:
@@ -524,8 +530,12 @@ fillbuf(Source *s)
 {
 	int n;
 
+	if ((char *)s->inl+INS/8 > (char *)s->inb+INS)
+		error(FATAL, "Input buffer overflow");
 	if (s->fd<0 || (n=read(s->fd, (char *)s->inl, INS/8)) <= 0)
 		n = 0;
+	if ((*s->inp&0xff) == EOB) /* sentinel character appears in input */
+		*s->inp = EOFC;
 	s->inl += n;
 	s->inl[0] = s->inl[1]= s->inl[2]= s->inl[3] = EOB;
 	if (n==0) {
@@ -561,9 +571,13 @@ setsource(char *name, int fd, char *str)
 		strncpy((char *)s->inp, str, len);
 	} else {
 		Dir d;
+		int junk;
 		if (dirfstat(fd, &d) < 0)
 			d.length = 0;
-		s->inb = domalloc((d.length<INS? INS: d.length)+4);
+		junk = d.length;
+		if (junk<INS)
+			junk = INS;
+		s->inb = domalloc((junk)+4);
 		s->inp = s->inb;
 		len = 0;
 	}

@@ -14,7 +14,7 @@ from the
 .I files
 or standard input,
 drawing the results in a newly created
-.IR 8½ (1)
+.IR rio (1)
 window.
 Plot persists until a newline is typed in the window.
 Various options may be interspersed with the
@@ -57,5 +57,5 @@ middle of the screen.
 .SH SOURCE
 .B /sys/src/cmd/plot
 .SH "SEE ALSO"
-.IR 8½ (1),
+.IR rio (1),
 .IR plot (6)

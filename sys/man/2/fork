@@ -33,8 +33,12 @@ the set of environment variables
 the note group
 (the set of processes that receive notes written to a member's
 .B notepg
-file; see
+file;
+see
 .IR proc (3)),
+the set of rendezvous tags
+(see
+.IR rendezvous (2)); 
 and open files.
 .I Flags
 is the logical OR of some subset of
@@ -55,9 +59,6 @@ for the parent to collect.
 .B RFNAMEG
 If set, the new process inherits a copy of the parent's name space;
 otherwise the new process shares the parent's name space.
-The tag space for
-.IR rendezvous (2)
-is considered part of the name space.
 Is mutually exclusive with
 .BR RFCNAMEG .
 .TP
@@ -66,6 +67,12 @@ If set, the new process starts with a clean name space. A new
 name space must be built from a mount of an open file descriptor.
 Is mutually exclusive with
 .BR RFNAMEG .
+.TP
+.B RFNOMNT
+If set, subsequent mounts into the new namespace and dereferencing
+of pathnames starting with
+.B #
+are disallowed.
 .TP
 .B RFENVG
 If set, the environment variables are copied;
@@ -102,11 +109,22 @@ If set, the new process starts with a clean file descriptor table.
 Is mutually exclusive with
 .BR RFFDG .
 .TP
+.B RFREND
+If set, the process will be unable to
+.IR rendezvous (2)
+with any of its ancestors; its children will, however, be able to
+.B rendezvous
+with it.  In effect,
+.B RFREND
+makes the process the first in a group of processes that share a space for
+.B rendezvous
+tags.
+.TP
 .B RFMEM
 If set, the kernel will mark segments of type
-.B data 
+.B data
 and
-.B bss 
+.B bss
 as shared. The child
 will then inherit all the shared segments the parent process owns. Other segment
 types will be unaffected.  Subsequent forks by the parent will then
@@ -136,7 +154,7 @@ will sleep, if necessary, until required process resources are available.
 .PP
 .I Fork
 is just a call of
-.BR rfork(RFFDG|RFPROC) .
+.BR rfork(RFFDG|RFREND|RFPROC) .
 .SH SOURCE
 .B /sys/src/libc/9syscall
 .br

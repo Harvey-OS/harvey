@@ -118,7 +118,7 @@ convS2M(Fcall *f, char *ap)
 	case Rattach:
 		SHORT(fid);
 		LONG(qid.path);
-		LONG(qid.version);
+		LONG(qid.vers);
 		STRING(rauth, sizeof(f->rauth));
 		break;
 
@@ -130,19 +130,19 @@ convS2M(Fcall *f, char *ap)
 	case Rclwalk:
 		SHORT(fid);
 		LONG(qid.path);
-		LONG(qid.version);
+		LONG(qid.vers);
 		break;
 
 	case Ropen:
 		SHORT(fid);
 		LONG(qid.path);
-		LONG(qid.version);
+		LONG(qid.vers);
 		break;
 
 	case Rcreate:
 		SHORT(fid);
 		LONG(qid.path);
-		LONG(qid.version);
+		LONG(qid.vers);
 		break;
 
 	case Rread:
@@ -216,7 +216,7 @@ convD2M(Dentry *f, char *ap)
 	p += NAMELEN;
 
 	LONG(qid.path);
-	LONG(qid.version);
+	LONG(qid.vers);
 	{
 		q = f->mode & 0x0fff;
 		if(f->mode & DDIR)
@@ -360,7 +360,7 @@ convM2S(char *ap, Fcall *f, int n)
 	case Rattach:
 		SHORT(fid);
 		LONG(qid.path);
-		LONG(qid.version);
+		LONG(qid.vers);
 		STRING(rauth, sizeof(f->rauth));
 		break;
 
@@ -372,19 +372,19 @@ convM2S(char *ap, Fcall *f, int n)
 	case Rclwalk:
 		SHORT(fid);
 		LONG(qid.path);
-		LONG(qid.version);
+		LONG(qid.vers);
 		break;
 
 	case Ropen:
 		SHORT(fid);
 		LONG(qid.path);
-		LONG(qid.version);
+		LONG(qid.vers);
 		break;
 
 	case Rcreate:
 		SHORT(fid);
 		LONG(qid.path);
-		LONG(qid.version);
+		LONG(qid.vers);
 		break;
 
 	case Rread:
@@ -439,7 +439,7 @@ convM2D(char *ap, Dentry *f)
 	f->gid = strtouid(str);
 
 	LONG(qid.path);
-	LONG(qid.version);
+	LONG(qid.vers);
 	{
 		LONG(atime);
 		f->mode = (f->atime & 0x0fff) | DALLOC;

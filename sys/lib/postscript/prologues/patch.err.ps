@@ -53,7 +53,8 @@
 /OLDhandleerror errordict /handleerror get def
 end %$brkpage
 errordict/handleerror
- {systemdict begin $error begin $brkpage begin newerror
+ {<< /PageSize [612 792] /ImagingBBox null >> setpagedevice
+   systemdict begin $error begin $brkpage begin newerror
    {/newerror false store 
     vmstatus pop pop 0 ne{grestoreall}if initgraphics courier setfont
     lmargin 720 moveto(ERROR: )prnt errorname prnt

@@ -26,15 +26,26 @@ struct Rarp
 uchar	myip[4];
 uchar	myether[6];
 char	rlog[] = "ipboot";
-char	*device = "ether";
+char	*device = "ether0";
 int	debug;
 Ndb	*db;
+
+char*	lookup(char*, char*, char*, char*);
 
 void
 error(char *s)
 {
 	syslog(1, rlog, "error %s: %r", s);
 	exits(s);
+}
+
+char net[2*NAMELEN];
+
+void
+usage(void)
+{
+	fprint(2, "usage: %s [-e device] [-x netmtpt] [-f ndb-file] [-d]\n", argv0);
+	exits("usage");
 }
 
 void
@@ -45,16 +56,34 @@ main(int argc, char *argv[])
 	long n;
 	Rarp *rp;
 	char ebuf[Ndbvlen];
-	Arpentry entry;
+	char ipbuf[Ndbvlen];
+	char file[2*NAMELEN];
 	int arp;
-	Ipinfo info;
+	char *p, *ndbfile;
 
+	ndbfile = nil;
+	setnetmtpt(net, sizeof(net), nil);
 	ARGBEGIN{
 	case 'e':
-		device = ARGF();
+		p = ARGF();
+		if(p == nil)
+			usage();
+		device = p;
 		break;
 	case 'd':
 		debug = 1;
+		break;
+	case 'f':
+		p = ARGF();
+		if(p == nil)
+			usage();
+		ndbfile = p;
+		break;
+	case 'x':
+		p = ARGF();
+		if(p == nil)
+			usage();
+		setnetmtpt(net, sizeof(net), p);
 		break;
 	}ARGEND
 	USED(argc, argv);
@@ -62,7 +91,7 @@ main(int argc, char *argv[])
 	fmtinstall('E', eipconv);
 	fmtinstall('I', eipconv);
 
-	db = ndbopen(0);
+	db = ndbopen(ndbfile);
 	if(db == 0)
 		error("can't open the database");
 
@@ -70,15 +99,16 @@ main(int argc, char *argv[])
 	if(edata < 0)
 		error("can't open ethernet");
 
-	if(myipaddr(myip, "/net/udp") < 0)
+	snprint(file, sizeof(file), "%s/udp", net);
+	if(myipaddr(myip, file) < 0)
 		error("can't get my ip address");
-	sprint(ebuf, "/net/%s", device);
+	sprint(ebuf, "%s/%s", net, device);
 	if(myetheraddr(myether, ebuf) < 0)
 		error("can't get my ether address");
 
-	if((arp = open("/net/arp/data", ORDWR)) < 0)
-		if((arp = open("#a/arp/data", ORDWR)) < 0)
-			fprint(2, "rarpd: can't open /net/arp/data\n");
+	snprint(file, sizeof(file), "%s/arp", net);
+	if((arp = open(file, ORDWR)) < 0)
+		fprint(2, "rarpd: can't open %s\n", file);
 
 	switch(rfork(RFNOTEG|RFPROC|RFFDG)) {
 	case -1:
@@ -94,7 +124,7 @@ main(int argc, char *argv[])
 		if(n <= 0)
 			error("reading");
 		if(n < sizeof(Rarp)){
-			syslog(debug, rlog, "bad packet size %d", n);
+			syslog(debug, rlog, "bad packet size %ld", n);
 			continue;
 		}
 		rp = (Rarp*)buf;
@@ -109,10 +139,11 @@ main(int argc, char *argv[])
 				 rp->sha, rp->spa, rp->tha, rp->tpa);
 
 		sprint(ebuf, "%E", rp->tha);
-		if(ipinfo(db, ebuf , 0, 0, &info) < 0){
+		if(lookup("ether", ebuf, "ip", ipbuf) == nil){
 			syslog(debug, rlog, "client lookup failed: %s", ebuf);
 			continue;
 		}
+		v4parseip(rp->tpa, ipbuf);
 
 		memmove(rp->sha, myether, sizeof(rp->sha));
 		memmove(rp->spa, myip, sizeof(rp->spa));
@@ -120,7 +151,6 @@ main(int argc, char *argv[])
 		rp->op[0] = 0;
 		rp->op[1] = 4;
 		memmove(rp->edst, rp->esrc, sizeof(rp->edst));
-		memmove(rp->tpa, info.ipaddr, sizeof(rp->tpa));
 
 		if(debug)
 			syslog(debug, rlog, "send se %E si %I te %E ti %I",
@@ -131,9 +161,31 @@ main(int argc, char *argv[])
 
 		if(arp < 0)
 			continue;
-		memmove(entry.etaddr, rp->esrc, sizeof(entry.etaddr));
-		memmove(entry.ipaddr, rp->tpa, sizeof(entry.ipaddr));
-		if(write(arp, &entry, sizeof(entry)) < 0)
-			perror("write arp entry");
+		if(fprint(arp, "add %E %I", rp->esrc, rp->tpa) < 0)
+			fprint(2, "can't write arp entry\n");
 	}
+}
+
+char*
+lookup(char *sattr, char *sval, char *tattr, char *tval)
+{
+	static Ndb *db;
+	char *attrs[1];
+	Ndbtuple *t;
+
+	if(db == nil)
+		db = ndbopen(0);
+	if(db == nil)
+		return nil;
+
+	if(sattr == nil)
+		sattr = ipattr(sval);
+
+	attrs[0] = tattr;
+	t = ndbipinfo(db, sattr, sval, attrs, 1);
+	if(t == nil)
+		return nil;
+	strcpy(tval, t->val);
+	ndbfree(t);
+	return tval;
 }

@@ -14,31 +14,30 @@ defn acidinit()			// Called after all the init modules are loaded
 
 	srcfiles = {};		// list of loaded files
 	srctext = {};		// the text of the files
-	linkreg = R15;
 }
 
 defn stk()			// trace
 {
-	_stk(*PC, *R1, *linkreg, 0);
+	_stk(*PC, *R1, linkreg(0), 0);
 }
 
 defn lstk()			// trace with locals
 {
-	_stk(*PC, *R1, *linkreg, 1);
+	_stk(*PC, *R1, linkreg(0), 1);
 }
 
 defn gpr()			// print general purpose registers
 {
-	print("R1\t", *R1, " R2\t", *R2, " R3\t", *R3, "\n");
-	print("R4\t", *R4, " R5\t", *R5, " R6\t", *R6, "\n");
-	print("R7\t", *R7, " R8\t", *R8, " R9\t", *R9, "\n");
-	print("R10\t", *R10, " R11\t", *R11, " R12\t", *R12, "\n");
-	print("R13\t", *R13, " R14\t", *R14, " R15\t", *R15, "\n");
-	print("R16\t", *R16, " R17\t", *R17, " R18\t", *R18, "\n");
-	print("R19\t", *R19, " R20\t", *R20, " R21\t", *R21, "\n");
-	print("R22\t", *R22, " R23\t", *R23, " R24\t", *R24, "\n");
-	print("R25\t", *R25, " R26\t", *R26, " R27\t", *R27, "\n");
-	print("R28\t", *R28, " R29\t", *R29, " R30\t", *R30, "\n");
+	print("R1\t", *R1, "R2\t", *R2, "R3\t", *R3, "\n");
+	print("R4\t", *R4, "R5\t", *R5, "R6\t", *R6, "\n");
+	print("R7\t", *R7, "R8\t", *R8, "R9\t", *R9, "\n");
+	print("R10\t", *R10, "R11\t", *R11, "R12\t", *R12, "\n");
+	print("R13\t", *R13, "R14\t", *R14, "R15\t", *R15, "\n");
+	print("R16\t", *R16, "R17\t", *R17, "R18\t", *R18, "\n");
+	print("R19\t", *R19, "R20\t", *R20, "R21\t", *R21, "\n");
+	print("R22\t", *R22, "R23\t", *R23, "R24\t", *R24, "\n");
+	print("R25\t", *R25, "R26\t", *R26, "R27\t", *R27, "\n");
+	print("R28\t", *R28, "R29\t", *R29, "R30\t", *R30, "\n");
 	print("R31\t", *R31, "\n");
 }
 
@@ -58,7 +57,7 @@ defn spr()				// print special processor registers
 	pfl(link);
 
 	cause = *TBR;
-	print("Y\t", *Y, "\tCAUSE\t", *Y, " ", cause, " ", reason(cause), "\n");
+	print("Y\t", *Y, "\tCAUSE\t", *Y, cause, " ", reason(cause), "\n");
 }
 
 defn Fpr()
@@ -209,5 +208,11 @@ Ureg(addr) {
 	print("	pc	", addr.pc, "\n");
 	print("	pad	", addr.pad, "\n");
 };
+
+defn linkreg(addr)
+{
+	complex Ureg addr;
+	return addr.r15\X;
+}
 
 print("/sys/lib/acid/sparc");

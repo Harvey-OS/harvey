@@ -133,7 +133,9 @@ Big 5 (HKU version)
 Unicode Standard 1.0
 .TP
 .B tis
-Thai character set plus ASCII (TIS 620-1986)
+Thai character set plus
+.SM ASCII
+(TIS 620-1986)
 .TP
 .B msdos
 IBM PC: CP 437

@@ -7,7 +7,7 @@ seek \- change file offset
 .B #include <libc.h>
 .PP
 .B
-long seek(int fd, long n, int type)
+vlong seek(int fd, vlong n, int type)
 .SH DESCRIPTION
 .I Seek
 sets the offset for the file

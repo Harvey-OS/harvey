@@ -14,7 +14,7 @@ void	pass(int);
 char	*service;
 char	*cmd;
 char	cpu[NAMELEN];
-char	sysname[NAMELEN];
+char	systemname[NAMELEN];
 int	manual;
 int	iscpu;
 
@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 	setenv("#e/service", service);
 	cpenv("/adm/timezone/local", "#e/timezone");
 	readenv("#c/user", user, sizeof user);
-	readenv("#c/sysname", sysname, sizeof sysname);
+	readenv("#c/sysname", systemname, sizeof systemname);
 
 	newns(user, 0);
 
@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 			if(consctl<0 || key<0 || write(consctl, "rawon", 5) != 5)
 				print("init: can't check password; insecure\n");
 			else{
-				pass(key);
+				/*pass(key);*/
 				write(consctl, "rawoff", 6);
 			}
 			close(consctl);
@@ -85,8 +85,8 @@ pass(int fd)
 	int i;
 
 	for(;;){
-		readenv("#c/sysname", sysname, sizeof sysname);
-		print("\n%s password:", sysname);
+		readenv("#c/systemname", systemname, sizeof systemname);
+		print("\n%s password:", systemname);
 		for(i=0; i<sizeof typed; i++){
 			if(read(0, typed+i, 1) != 1){
 				print("init: can't read password; insecure\n");
@@ -123,6 +123,7 @@ fexec(void (*execfn)(void))
 
 	switch(pid=fork()){
 	case 0:
+		rfork(RFNOTEG);
 		(*execfn)();
 		print("init: exec error: %r\n");
 		exits("exec");

@@ -10,8 +10,6 @@
 
 %.$O:	$HFILES
 
-dk1.$O dk2.$O dk3.$O:	../port/dk.h
-
 fcall.$O:	../port/fcall.c
 	$CC -w ../port/fcall.c
 

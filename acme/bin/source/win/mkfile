@@ -1,0 +1,19 @@
+</$objtype/mkfile
+CPUS=mips 386
+
+TARG=win
+OFILES=\
+	main.$O\
+	pipe.$O\
+	util.$O\
+	win.$O
+
+HFILES=dat.h
+
+BIN=/acme/bin/$objtype
+</sys/src/cmd/mkone
+
+
+syms:V:
+	8c -a main.c	>syms
+	8c -aa util.c win.c 	>>syms

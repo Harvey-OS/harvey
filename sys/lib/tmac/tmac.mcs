@@ -1,5 +1,4 @@
-'''\"	@(#)dcs:csmacros	1.35	11/20/87	
-'''\"				cover sheet macro version 112087
+'''\"	@(#)dcs:csmacros	2.3	5/2/89	
 '''\" registers
 '''\"	a - abstract continuation flag - 0 (no), >0 (yes - number of overflow pages)
 '''\"	b - mercury selections counter
@@ -26,7 +25,7 @@
 '''\"	x - mark scratch position
 '''\"	y - mark scratch position
 '''\"	z - mark scratch position
-'''\"	ra - release to AT&T flag - 0 (no decision), 1 (yes), 2 (no)
+'''\"	ra - release to Lucent flag - 0 (no decision), 1 (yes), 2 (no)
 '''\"	an - length abstract footnote diversion
 '''\"	fn - length footnote diversion
 '''\"	as - "in abstract" flag - 0 (no), 1 (yes)
@@ -37,9 +36,10 @@
 '''\"	lp - lines per page (nroff - xerox)
 '''\"	tp - total pages (decimal)
 '''\"	tc - total pages (in small roman)
-'''\"	qq - total pages in document
 '''\"	np - page number this page (decimal)
 '''\"	nc - page number this page (in small roman)
+'''\"	lt - vertical size of title diversion (in lines)
+'''\"	lo - vertical size of copy overflow trap (in lines)
 '''\"	la - vertical size of abstract diversion
 '''\"	a1 - vertical size of page 1 portion of abstract
 '''\"	a2 - vertical size of overflow page portion of abstract
@@ -52,6 +52,8 @@
 '''\"	vs - initial vertical spacing (.v)
 '''\"	tv - temp vertical spacing (only in S macro)
 '''\"	b1, b2 - scratch calculations
+'''\"	g1, g2, g3, g4, g5 - complete copy overflow - additional diversion lengths
+'''\"	i1, i2, i3, i4, i5 - cover sheet only overflow - additional diversionlengths
 '''\"	m1 - mark scratch position
 '''\"	:b, :c, :d, :e - scratch (lists only)
 '''\"	:h - SA macro only
@@ -60,13 +62,16 @@
 '''\"	fc - filing case flag
 '''\"	wp - work project number flag
 '''\"	en - entity flag - 1 (BL), 2 (IS), 3 (TI), 4 (CH)
-'''\"	lg - AT&T logo flag - 0 (not defined), 1 (defined)
+'''\"	lg - Lucent logo flag - 0 (not defined), 1 (defined)
+'''\"	oa - organizational approval name counter
+'''\"	aa - ship to itds
 '''\" strings
 '''\"	a) - mercury info
 '''\"	b) - mercury info
 '''\"	c) - mercury info
 '''\"	e) - equation label
 '''\"	k) - keywords
+'''\"	m) - Mailing Label/DRAFT
 '''\"	n) - first document number
 '''\"	o) - proprietary classification heading
 '''\"	p) - proprietary string 1
@@ -89,8 +94,12 @@
 '''\"	r( - responsible person
 '''\"	s( - S software string
 '''\"	t( - memo type ("for Technical Memorandum", etc.)
+'''\"	u( - organizational approval 1-3 sig
+'''\"	v( - organizational approval 4-6 sig
+'''\"	w( - organizational approval 7-9 sig
+'''\"	x( - organizational approval 10-12 sig
 '''\"	Tm - trademark
-'''\"	lG - AT&T logo
+'''\"	lG - Lucent logo
 '''\"	10 - used in equations
 '''\"	ve - csmacros version
 '''\"	e1,e2,e3,e4 - entity info
@@ -99,10 +108,10 @@
 '''\"	aV - author info section
 '''\"	cA - complete copy addressee primary
 '''\"	cO - complete copy addressee overflow
-'''\"	cZ - complete copy addressee lost overflow
+'''\"	cU, cV, cW, cX, cY, cZ - complete copy addressee overflow (previously lost)
 '''\"	dA - cover sheet addressee primary
 '''\"	dO - cover sheet addressee overflow
-'''\"	dZ - cover sheet addressee lost overflow
+'''\"	dU, dV, dW, dX, dY, dZ - cover sheet only addressee overflow (previously lost)
 '''\"	dM - document number info
 '''\"	dS - display
 '''\"	eQ - equation
@@ -113,7 +122,7 @@
 '''\"	fN - footnote
 '''\"
 '''\" macros to collect information
-'''\"	aC - AT&T company
+'''\"	aC - Lucent company
 '''\"	tS - timestamp
 '''\"	TL - title
 '''\"	AU - author
@@ -124,6 +133,7 @@
 '''\"	OK - keyword info
 '''\"	MT - document type
 '''\"	dN - document number info
+'''\"	oA - organization approval name
 '''\"	eD - earlier document number
 '''\"	fC - filing case
 '''\"	fD - full date
@@ -133,16 +143,19 @@
 '''\"	Mc - mercury codes (one argument version)
 '''\"	PM - proprietary marking
 '''\"	gS - government security
-'''\"	rA - release to AT&T employees (superceded by fA)
-'''\"	fA - future AT&T distribution (supercedes rA)
+'''\"	rA - release to Lucent employees (superceded by fA)
+'''\"	fA - future Lucent distribution (supercedes rA)
 '''\"	sF - software-related
 '''\"	cC - complete copy addressee list start
 '''\"	cD - complete copy overflow
 '''\"	cS - cover sheet only addressee list start
 '''\"	cT - cover sheet only overflow
-'''\"	zZ - complete copy lost overflow
-'''\"	wW - cover sheet lost overflow
+'''\"	zZ - complete copy overflow (previously lost)
+'''\"	fF - complete copy overflow (aux)
+'''\"	wW - cover sheet overflow (previously lost)
+'''\"	gG - cover sheet only overflow (aux)
 '''\"	cE - addressee list end
+'''\"	eE - addressee list end (aux)
 '''\" macros to help format document
 '''\"	B  - change to bold font
 '''\"	I  - change to italic font
@@ -170,24 +183,16 @@
 '''\"	tH - title heading
 '''\"	cH - continuation header
 '''\"	dH - distribution list headers
+'''\"	oH - overflow distribution list headers
 '''\"	eP - eject distribution continuation page
 '''\"	cP - continuation page
+'''\"	dP - continuation page (aux)
 '''\"	tP - compute pages and diversion lengths
 '''\"	t1 -     "               "
 '''\"	dL - compute basic distribution length
 '''\"	CS - output cover sheet
 '''\" initialization
 '''\"
-.ie '\*(.T'qms' \{\
-.fp 1 R
-.fp 2 I
-.fp 3 B
-.fp 4 S \}
-.el \{\
-.fp 1 H
-.fp 2 HI
-.fp 3 HB
-.fp 4 HX \}
 '''\"	registers
 .nr a 0 1
 .nr b 0 1
@@ -195,8 +200,18 @@
 .nr d 0
 .nr e 0
 .nr g 0
+.nr g1 0
+.nr g2 0
+.nr g3 0
+.nr g4 0
+.nr g5 0
 .nr h 6
 .nr i 0
+.nr i1 0
+.nr i2 0
+.nr i3 0
+.nr i4 0
+.nr i5 0
 .nr j 0
 .nr k 0
 .nr m 0
@@ -243,8 +258,10 @@
 .nr en 1
 .nr lg 0
 .nr ra 0
+.nr oa 0 1
 '''\"	initialize lines per page
 .nr lp 66
+.if n .nr lp 65
 '''\" initialize device register
 .nr dv 0
 .if '\*(.T'aps' .nr dv 1
@@ -256,6 +273,22 @@
 .if '\*(.T'i300' .nr dv 4
 .if '\*(.T'qms' .nr dv 5
 .if '\*(.T'post' .nr dv 6
+'''\"	initialize font positions
+.ie \n(dv=3 \{\
+.fp 1 R
+.fp 2 I
+.fp 3 B
+.fp 4 I \}
+.el .ie \n(dv=5 \{\
+.fp 1 R
+.fp 2 I
+.fp 3 B
+.fp 4 S \}
+.el \{\
+.fp 1 H
+.fp 2 HI
+.fp 3 HB
+.fp 4 HX \}
 '''\"	initialize units per vertical space
 .if t .nr l 120
 .if \n(dv=2 .nr l 40
@@ -273,22 +306,46 @@
 .di
 .di cO
 .di
+.di cU
+.di
+.di cV
+.di
+.di cW
+.di
+.di cX
+.di
+.di cY
+.di
+.di cZ
+.di
 .di dA
 .di
 .di dO
+.di
+.di dU
+.di
+.di dV
+.di
+.di dW
+.di
+.di dX
+.di
+.di dY
+.di
+.di dZ
 .di
 .di fB
 .di
 .di wO
 .di
-'''\" initialize AT&T logo
+'''\" initialize Lucent logo
 '''\" eventually substitute LH for Lb (DWB 2)
 .ie \n(dv=5 .ds lG \s10\f(ATx\fP\f\\nv\fP\s0
-.el .ds lG \s36\(Lb\s0
+.el .ds lG \s36\(LH\s0
 '''\" initialize entity strings
-.ds e1 "AT&T-BL
-.ds e2 "AT&T
-.ds e3 "AT&T BELL LABORATORIES
+.ds e1 "LUCENT-BL
+.ds e2 "LUCENT
+.ds e3 "LUCENT BELL LABORATORIES
 .ds e4 "Department Head
 '''\" initialize trademark symbol string
 .if t .ds Tm \v'-0.5m'\s-4TM\s+4\v'0.5m'
@@ -300,7 +357,7 @@
 '''\"	initialize earlier document number string
 .ds e( 0
 '''\"	initialize csmacro version string
-.ds ve MCS (11/20/87)
+.ds ve MCS (04/30/89)
 '''\"	initialize point size, vertical space & indent
 .nr ps 10
 .ps \\n(ps
@@ -310,7 +367,7 @@
 '''\"
 '''\" macros to collect information
 '''\"
-.de aC				\" macro for AT&T company (entity)
+.de aC				\" macro for Lucent company (entity)
 .					\" set en=1 if BL (default)
 .					\" set en=2 if IS
 .					\" set en=3 if TI
@@ -320,27 +377,27 @@
 .if '\\$1'TI' .nr en 3
 .if '\\$1'CH' .nr en 4
 .if \\n(en=1 \{\
-.ds e1 "AT&T-BL
-.ds e2 "AT&T
-.ds e3 "AT&T BELL LABORATORIES
+.ds e1 "LUCENT-BL
+.ds e2 "LUCENT
+.ds e3 "LUCENT BELL LABORATORIES
 .ds e4 "Department Head
 .br\}
 .if \\n(en=2 \{\
-.ds e1 "AT&T-IS
-.ds e2 "AT&T
-.ds e3 "AT&T INFORMATION SYSTEMS
+.ds e1 "LUCENT-IS
+.ds e2 "LUCENT
+.ds e3 "LUCENT INFORMATION SYSTEMS
 .ds e4 "Department Head
 .br\}
 .if \\n(en=3 \{\
-.ds e1 "AT&T Technologies, Inc.
-.ds e2 "AT&T
-.ds e3 "AT&T TECHNOLOGIES, INC.
+.ds e1 "Lucent Technologies, Inc.
+.ds e2 "Lucent
+.ds e3 "LUCENT TECHNOLOGIES, INC.
 .ds e4 "Manager
 .br\}
 .if \\n(en=4 \{\
-.ds e1 "AT&T
-.ds e2 "AT&T
-.ds e3 "        AT&T
+.ds e1 "Lucent
+.ds e2 "Lucent
+.ds e3 "        Lucent
 .ds e4 "Department Head
 .br \}
 .rm aC
@@ -358,18 +415,25 @@
 .ab	\}
 .br
 .fi
-.ie !'\\n(.F'<standard input>' \{\
-.	sy /usr/lib/tmac/timestamp \\n(.F>/tmp/tp\\n($$
-.	so /tmp/tp\\n($$
-.	sy rm /tmp/tp\\n($$
-.	br \}			\" don't remove br - gets around troff bug
-.ie '\\$1'' \{\
-.	ie '\\n(.F'<standard input>' .tm Coversheet not sent to library - input is standard in
-.	el .ie '\\n(.F'-' .tm Coversheet not sent to library - input is standard input
+.nr aa 1		\" set default to send cover to ITDS
+.ie !'\\n(.F'stdin' \{\
+.	ie !'\\n(.F'-' \{\
+.		sy /usr/lib/tmac/timestamp \\n(.F>/tmp/tp\\n($$
+.		so /tmp/tp\\n($$
+.		sy /bin/rm /tmp/tp\\n($$
+.		br \}			\" don't remove br - gets around troff bug
 .	el \{\
-.	nr aa 1
-.	ds x( "Mailing Label \} \}
-.el .ds x( \\s+2DRAFT\\s-2
+.		nr aa 0
+.		tm Coversheet not sent to library. input is '-' \} \}
+.el \{\
+.	nr aa 0
+.	tm Coversheet not sent to library. input is 'stdin' \}
+.ie '\\$1'' \{\
+.	ds m) "Mailing Label \}
+.el \{
+.	nr aa 0
+.	tm Coversheet not sent to library. DRAFT document
+.	ds m) \\s+2DRAFT\\s-2 \} \}
 .ll 6.0i
 '''\"					diversion for title
 .di tI
@@ -382,6 +446,7 @@
 .br
 '''\"					end title diversion on first author
 .di
+.nr lt (\\n(dn)/(\\nl)
 .nr o \\n(dn
 .ll
 .nf \}
@@ -463,6 +528,7 @@
 .if n __________
 .if t \l'1i'
 .br
+.nf
 .aN
 .rm aN
 .br
@@ -498,15 +564,15 @@
 .if '\\$1'1' \{\
 .nr m 1
 .ds t) TM
-.ds t( "for Technical Memorandum \}
+.ds t( "for Technical Memorandum\}
 .if '\\$1'2' \{\
 .nr m 2
 .ds t) IM
-.ds t( "for Internal Memorandum \}
+.ds t( "for Internal Memorandum\}
 .if '\\$1'3' \{\
 .nr m 3
 .ds t) TC
-.ds t( "for Technical Correspondence \}
+.ds t( "for Technical Correspondence\}
 .rm MT
 ..
 .de dN				\" macro for document number info
@@ -522,6 +588,21 @@
 .if \\nn=1 .ds n) \\$1\\*(t)\\*(s( \}
 .br
 .da
+..
+.de oA					\" macro for organizational approval names(s)
+.nr oa \\n+(oa
+.if \\n(oa=1 .ds u(	\\$1
+.if \\n(oa=2 .as u(	\\$1
+.if \\n(oa=3 .as u(	\\$1
+.if \\n(oa=4 .ds v(	\\$1
+.if \\n(oa=5 .as v(	\\$1
+.if \\n(oa=6 .as v(	\\$1
+.if \\n(oa=7 .ds w(	\\$1
+.if \\n(oa=8 .as w(	\\$1
+.if \\n(oa=9 .as w(	\\$1
+.if \\n(oa=10 .ds x(	\\$1
+.if \\n(oa=11 .as x(	\\$1
+.if \\n(oa=12 .as x(	\\$1
 ..
 .de fC					\" macro for filing case info
 .ta 3.5i
@@ -573,8 +654,12 @@
 .el .ie '\\$1'PHY' .ds c) "	PHY - Physics
 .el .ie '\\$1'phy' .ds c) "	PHY - Physics
 .el .ie '\\$1'STD' .ds c) "	STD - Standards
-.el .if '\\$1'std' .ds c) "	STD - Standards
-.ie '\\*(c)'' .tm ERROR: \\$1 - unknown mercury selection
+.el .ie '\\$1'std' .ds c) "	STD - Standards
+.el .ie '\\$1'PRP' .ds c) "	PRP - Product Realization Process
+.el .ie '\\$1'prp' .ds c) "	PRP - Product Realization Process
+.el .ie '\\$1'QLT' .ds c) "	QLT - Quality
+.el .if '\\$1'qlt' .ds c) "	QLT - Quality
+.ie '\\*(c)'' .tm WARNING: \\$1 - unknown mercury selection
 .el \{\
 .nr b \\n+b
 .if t .as a) \\*(c)
@@ -692,12 +777,12 @@
 .nr r 1
 .rm gS
 ..
-.de rA				\" macros for release to AT&T employees
+.de rA				\" macros for release to Lucent employees
 .					\" superceded by .fA macro 072087
 .nr ra 1
 .rm rA
 ..
-.de fA				\" macro for future AT&T distribution
+.de fA				\" macro for future Lucent distribution
 .					\" arg 1 = 'y' or 'Y' or 'n' or 'N'
 .if '\\$1'y' .nr ra 1
 .if '\\$1'Y' .nr ra 1
@@ -722,18 +807,18 @@
 .if \\nu<=3 .nr e \\ne+3
 .if \\nu<=6 .nr e \\ne+3
 .if \\nu<=9 .nr e \\ne+3
-.if \\nn<=3 .nr e \\ne+2
-.if \\nn<=6 .nr e \\ne+2
-.if \\nn<=9 .nr e \\ne+2
+.if (((\\n(oa>0)&(\\n(oa<=3)):((\\nn<=3)&(\\n(oa=0))) .nr e \\ne+3
+.if (((\\n(oa>0)&(\\n(oa<=6)):((\\nn<=6)&(\\n(oa=0))) .nr e \\ne+3
+.if (((\\n(oa>0)&(\\n(oa<=9)):((\\nn<=9)&(\\n(oa=0))) .nr e \\ne+3
 '''\"						nroff: if p=2, 1 extra line under Org Approval
 .if n .if \\np=2 .nr e \\ne-1
-'''\"						Future AT&T Distribution handling
+'''\"						Future Lucent Distribution handling
 .if ((\\n(ra<2)&(\\np=2)) \{\
 .nr ra 2
-.tm WARNING: Future AT&T Distribution by ITDS - PROPRIETARY (RESTRICTED) document     MAY NOT BE RELEASED without appropriate approval for each request;                coversheet has been modified accordingly\}
+.tm WARNING: Future Lucent Distribution by ITDS - PROPRIETARY (RESTRICTED) document     MAY NOT BE RELEASED without appropriate approval for each request;                coversheet has been modified accordingly\}
 .if \\n(ra=0 \{\
-.tm WARNING: Future AT&T Distribution by ITDS: missing or invalid .fA macro;          indicate desired action by checking yes or no box on page 2 of coversheet;        next time include .fA macro with y or n argument \}
-'''\"						at least 3 lines for Future AT&T Distribution section (more for nroff negative and ra=0)
+.tm WARNING: Future Lucent Distribution by ITDS: missing or invalid .fA macro;          indicate desired action by checking yes or no box on page 2 of coversheet;        next time include .fA macro with y or n argument \}
+'''\"						at least 3 lines for Future Lucent Distribution section (more for nroff negative and ra=0)
 '''\"					\" next 2 lines for yes/no boxes; remove when .fA macro becomes mandatory
 .if t .if \\n(ra=0 .nr e \\ne-4
 .if n .if \\n(ra=0 .nr e \\ne-5
@@ -741,8 +826,8 @@
 .if t .if \\n(ra=2 .nr e \\ne-3
 .if n .if \\n(ra=2 .nr e \\ne-4
 '''\" increment number on next two lines to drop text lower on page 2
-.if t .nr e \\ne+27
-.if n .nr e \\ne+24 
+.if t .nr e \\ne+23
+.if n .nr e \\ne+21 
 .if n \{\
 '''\"					if page 2 text changes, change values in next 3 lines
 .if \\ne<4 \{\
@@ -772,14 +857,30 @@
 .br
 .da
 .da cO
-.ie \\n(ar>0 .dt \\n(arv zZ
-.el .dt 55 zZ
+.nr lo 56-\\n(lt
+.dt \\n(lo zZ
 ..
-.de zZ
+.de zZ			\" macro for handling previously lost complete copy address overflow
+.				\" provide 5 additional continuation pages (6 in all - approx 350 names)
+.ie "\\n(.z"cO" .fF "g" "cU"
+.el .ie "\\n(.z"cU" .fF "g1" "cV"
+.el .ie "\\n(.z"cV" .fF "g2" "cW"
+.el .ie "\\n(.z"cW" .fF "g3" "cX"
+.el .ie "\\n(.z"cX" .fF "g4" "cY"
+.el .if "\\n(.z"cY" .fF "g5" "cZ"
+..
+.de fF			\" aux macro for handling previously lost complete copy address overflow
+.ta 2.0i
 .br
 .da
-.ie \\n(dn>0 .nr g (\\n(dn)/\\nl+4
-.da cZ
+.ie \\n(dn>0 \{\
+.nr \\$1 (\\n(dn)/\\nl+4
+.da \\$2
+.nr lo 56-\\n(lt
+.dt \\n(lo zZ \}
+.el \{\
+.nr \\$1 0
+.da cZ \}
 ..
 .de cS				\" macro for handling cover sheet only addresses
 .dL
@@ -797,42 +898,63 @@
 .br
 .da
 .da dO
-.ie \\n(ar>0 .dt \\n(arv wW
-.el .dt 55 wW
+.nr lo 56-\\n(lt
+.dt \\n(lo wW
 ..
-.de wW
+.de wW			\" macro for handling previously lost cover sheet only address overflow
+.				\" provide 5 additional continuation pages (6 in all - approx 350 names)
+.ie "\\n(.z"dO" .gG "i" "dU"
+.el .ie "\\n(.z"dU" .gG "i1" "dV"
+.el .ie "\\n(.z"dV" .gG "i2" "dW"
+.el .ie "\\n(.z"dW" .gG "i3" "dX"
+.el .ie "\\n(.z"dX" .gG "i4" "dY"
+.el .if "\\n(.z"dY" .gG "i5" "dZ"
+..
+.de gG			\" aux macro for handling previously lost cover sheet only address overflow
+.ta 2.0i
 .br
 .da
-.ie \\n(dn>0 .nr i (\\n(dn)/\\nl+4
-.da dZ
+.ie \\n(dn>0 \{\
+.nr \\$1 (\\n(dn)/\\nl+4
+.da \\$2
+.nr lo 56-\\n(lt
+.dt \\n(lo wW \}
+.el \{\
+.nr \\$1 0
+.da dZ \}
 ..
 .de cE				\" macro for ending all distribution diversions
 .br
-.if "\\n(.z"cA" \{\
-.nr g 0
-.rm cD \}
-.if "\\n(.z"cO" \{\
-.nr g -1
-.rm cD \}
-.if "\\n(.z"cZ" \{\
-.nr g -2
-.rm cD \}
-.if "\\n(.z"dA" \{\
-.nr i 0
-.rm cT \}
-.if "\\n(.z"dO" \{\
-.nr i -1
-.rm cT \}
-.if "\\n(.z"dZ" \{\
-.nr i -2
-.rm cT \}
+.ie "\\n(.z"cA" \{\
 .da
-.if \\ng=-1 \{\
-.ie \\n(dn>0 .nr g (\\n(dn)/\\nl+4
-.el .nr g 0 \}
-.if \\ni=-1 \{\
-.ie \\n(dn>0 .nr i (\\n(dn)/\\nl+4
-.el .nr i 0 \}
+.rm cD \}
+.el .ie "\\n(.z"cO" .eE "g" "cD"
+.el .ie "\\n(.z"cU" .eE "g1" "cD"
+.el .ie "\\n(.z"cV" .eE "g2" "cD"
+.el .ie "\\n(.z"cW" .eE "g3" "cD"
+.el .ie "\\n(.z"cX" .eE "g4" "cD"
+.el .ie "\\n(.z"cY" .eE "g5" "cD"
+.el .ie "\\n(.z"cZ" \{\
+.da
+.rm cD \}
+.el .ie "\\n(.z"dA" \{\
+.da
+.rm cT \}
+.el .ie "\\n(.z"dO" .eE "i" "cT"
+.el .ie "\\n(.z"dU" .eE "i1" "cT"
+.el .ie "\\n(.z"dV" .eE "i2" "cT"
+.el .ie "\\n(.z"dW" .eE "i3" "cT"
+.el .ie "\\n(.z"dX" .eE "i4" "cT"
+.el .ie "\\n(.z"dY" .eE "i5" "cT"
+.el .if "\\n(.z"dZ" \{\
+.da
+.rm cT \}
+..
+.de eE			\" aux macro for ending all distribution diversions
+.da
+.ie \\n(dn>0 .nr \\$1 (\\n(dn)/\\nl+4
+.el .nr \\$1 0
+.rm \\$2
 ..
 '''\"
 '''\" macros to help format document
@@ -942,7 +1064,7 @@
 ..
 .de SA				\" macro for right-adjustment
 .if \\n(.$ \{\
-.if \\$1-1 .tm ERROR: SA: bad arg:\\$1
+.if \\$1-1 .tm WARNING: SA: bad arg:\\$1
 .nr :h 0\\$1 \}
 'na
 .if \\n(:h 'ad
@@ -1036,7 +1158,7 @@
 .if \\n(ls>0 \{\
 .tm VL: lists may not be nested
 .LE \}
-.ie \\n(.$<1 .tm ERROR: VL: text-indent not defined
+.ie \\n(.$<1 .tm WARNING: VL: text-indent not defined
 .el \{\
 .nr in \\n(.i
 .nr :b \\n(.iu+0\\$1n
@@ -1095,8 +1217,12 @@
 .if \\n(.$>0 .sP \}
 ..
 .de hD				\" header macro
-'''\"				   page offset 0.6i
-.po 0.6i
+'''\" page offset 0.6i for XEROX & DASI; 0.25i for all other devices
+'''\" cut marks for APS only
+.po 0.25i
+.if \\n(dv=3 .po 0.6i
+.if n .po 0.6i
+.if \\n(dv=1 .tl '\(rn''\(rn'
 .if t 'sp|0.2i
 .if n 'sp|1
 ..
@@ -1123,7 +1249,7 @@
 'bp
 .rn xX aT
 .if n .wh -2 aT
-.if t .wh -0.35i aT
+.if t .wh -0.55i aT
 .cH
 .tH
 .if t 'sp 0.05i
@@ -1159,7 +1285,7 @@ Abstract (continued)
 .mk t
 .ft 3
 Title:
-.ft
+.ft 1
 'sp|\\ntu
 .in 0.7i
 .tI
@@ -1179,8 +1305,7 @@ Title:
 .nf
 .in 0
 .ft 3
-.if t .ta 4.80i
-.if n .ta 3.75i
+.ta 7.5iR
 .nr tc \\n(tp
 .nr nc \\n(np
 	\\*(n)\f2 (page \\n(nc of \\n(tc)
@@ -1195,6 +1320,12 @@ Title:
 .if t .sp 0.05i
 .ft 1
 .ta 0.5i 1.0i
+..
+.de oH			\" macro for final overflow distribution list headers
+.				\" called from cP
+.if \\$1>4 .if \\$2>4 .dH "Complete Copy (continued)" "Cover Sheet Only (continued)"
+.if \\$1>4 .if !\\$2>4 .dH "Complete Copy (continued)" ""
+.if !\\$1>4 .if \\$2>4 .dH "" "Cover Sheet Only (continued)"
 ..
 .de eP				\" macro for ejecting distribution continuation page
 .					\" called from cP
@@ -1224,10 +1355,7 @@ Title:
 .if \\ng>4 .if \\ni>4 .dH "Complete Copy" "Cover Sheet Only"
 .if \\ng>4 .if !\\ni>4 .dH "Complete Copy" ""
 .if !\\ng>4 .if \\ni>4 .dH "" "Cover Sheet Only" \}
-.el \{\
-.if \\ng>4 .if \\ni>4 .dH "Complete Copy (continued)" "Cover Sheet Only (continued)"
-.if \\ng>4 .if !\\ni>4 .dH "Complete Copy (continued)" ""
-.if !\\ng>4 .if \\ni>4 .dH "" "Cover Sheet Only (continued)" \}
+.el .oH \\ng \\ni
 .mk z
 .nr q \\n(.t/\\nl
 '''\"					put out complete copy list overflow
@@ -1235,19 +1363,73 @@ Title:
 .cO
 .in 0
 .rm cO
+.if !\\n(g1=0 \{\
+.ft 2
+.ti 1.25i
+(continued)
+.ft 1 \}
 .mk x
 .sp|\\nzu
 .in 4.0i
 '''\"					put out cover sheet list overflow
 .dO
 .rm dO
+.if !\\n(i1=0 \{\
+.ft 2
+.ti 5.00i
+(continued)
+.ft 1 \}
 .mk y
+.if ((\\n(g1>0):(\\n(i1>0)) .dP "\\n(g1" "\\n(i1" "cU" "\\n(g2" "dU" "\\n(i2"
+.if ((\\n(g2>0):(\\n(i2>0)) .dP "\\n(g2" "\\n(i2" "cV" "\\n(g3" "dV" "\\n(i3"
+.if ((\\n(g3>0):(\\n(i3>0)) .dP "\\n(g3" "\\n(i3" "cW" "\\n(g4" "dW" "\\n(i4"
+.if ((\\n(g4>0):(\\n(i4>0)) .dP "\\n(g4" "\\n(i4" "cX" "\\n(g5" "dX" "\\n(i5"
+.if ((\\n(g5>0):(\\n(i5>0)) \{\
+.eP
+.oH \\n(g5 \\n(i5
+.mk z
+.in 0.2i
+.cY
+.in 0
+.rm cY
+.mk x
+.sp|\\nzu
+.in 4.0i
+.dY
+.rm dY
+.mk y \}
 .in 0
 .if \\nx-\\ny .sp|\\nxu
 .tK \}
 ..
+.de dP					\" macro to handle one continuation page
+.eP
+.oH \\$1 \\$2
+.mk z
+.in 0.2i
+.\\$3
+.in 0
+.rm \\$3
+.if !\\$4=0 \{\
+.ft 2
+.ti 1.25i
+(continued)
+.ft 1 \}
+.mk x
+.sp|\\nzu
+.in 4.0i
+.\\$5
+.rm \\$5
+.if !\\$6=0 \{\
+.ft 2
+.ti 5.00i
+(continued)
+.ft 1 \}
+.mk y
+..
 .de tP					\" macro to compute total pages and diversion lengths
 '''\"					calculate vert. units needed to handle cc overflow (if any)
+'''\"					called from CS macro
 .ie \\ng>4 .nr v (\\ng)*\\nl
 .el .nr v 0
 '''\"					also for cs overflow (if any)
@@ -1269,10 +1451,15 @@ Title:
 .					\" a2 - available continuation page space
 .						\" m1 is mark after thick line following title/date
 .						\" 2v are lines for Abstract (continued) and one blank line
-.if t .nr a2 11.0i-\\n(m1-2v
-.if n .nr a2 \\n(lpv-\\n(m1-2v
+.if t .nr a2 11.0i-\\n(m1-3v
+.if n .nr a2 \\n(lpv-\\n(m1-3v
 .t1 \}
 .el .if \\nc>0 .nr tp \\n(tp+1
+.if ((\\n(g1>4):(\\n(i1>4)) .nr tp \\n(tp+1
+.if ((\\n(g2>4):(\\n(i2>4)) .nr tp \\n(tp+1
+.if ((\\n(g3>4):(\\n(i3>4)) .nr tp \\n(tp+1
+.if ((\\n(g4>4):(\\n(i4>4)) .nr tp \\n(tp+1
+.if ((\\n(g5>4):(\\n(i5>4)) .nr tp \\n(tp+1
 ..
 .de t1
 .ie \\n(ar>\\n(a2 \{\
@@ -1294,7 +1481,7 @@ Title:
 .if \\nm=0 \{\
 .tm ERROR: memorandum type undefined or unknown
 .ab	\}
-.if \\nm=1 .if \\nb=0 \{\
+.if ((\\nm=1)&(\\np=1)) .if \\nb=0 \{\
 .tm ERROR: must have at least one mercury classification with technical memorandum
 .ab \}
 .if \\nn=0 \{\
@@ -1328,11 +1515,8 @@ Title:
 .nf
 .ps 16
 .ft 3
-.if t .ta 4.85i
-.if \\n(dv=2 .ta 4.5i
-.if n .ta 5.35i
 .					\" put out page 1 heading
-'''\"					if AT&T logo not defined, put out AT&T string
+'''\"					if Lucent logo not defined, put out Lucent string
 '''\"					   also put out memorandum type
 .ie ((\\n(dv=5)) \{\
 .ie '\f(AT'' .nr lg 0
@@ -1341,46 +1525,23 @@ Title:
 .ie '\*(lG'' .nr lg 0
 .el .nr lg 1 \}
 .ie ((\\n(lg=0)) \{\
+.ta 7.5iR
 \\*(e2	Document Cover Sheet
 .wh 0 hD
 .if t .sp 0.1i
-.if t .ti 4.65i
-.if \\n(dv=2 \{\
-.if \\nm=1 .ti 3.95i
-.if \\nm=2 .ti 4.20i
-.if \\nm=3 .ti 3.55i \}
-.if n .ti 5.15i
-\\*(t( \}
+	\\*(t(\}
 .el \{\
+.ta 7.5iR
 	Document Cover Sheet
 .wh 0 hD
 .if t .sp 0.1i
-.ie \\n(dv=2 \{\
-.if \\nm=1 .ta 0.25i 3.95i
-.if \\nm=2 .ta 0.25i 4.20i
-.if \\nm=3 .ta 0.25 3.55i \}
-.el .ie \\n(dv=3 \{\
-.if \\nm=1 .ta 0.25i 4.60i
-.if \\nm=2 .ta 0.25i 4.70i
-.if \\nm=3 .ta 0.25 4.50i \}
-.el .ie \\n(dv=4 \{\
-.if \\nm=1 .ta 0.25i 4.625i
-.if \\nm=2 .ta 0.25i 4.70i
-.if \\nm=3 .ta 0.25 4.50i \}
-.el .ie \\n(dv=5 \{\
+.if \\n(dv=5 \{\
 .ft P
 .nr v \n(.f
-.ft P
-.if \\nm=1 .ta 0.25i 3.22i
-.if \\nm=2 .ta 0.25i 3.41i
-.if \\nm=3 .ta 0.25i 3.10i \}
-.el .ie \\n(dv=6 \{\
-.if \\nm=1 .ta 0.25i 4.625i
-.if \\nm=2 .ta 0.25i 4.725i
-.if \\nm=3 .ta 0.25i 4.475i \}
-.el .ta 0.25i 4.55i
-	\\*(lG	\\*(t( \}
-.ft
+.ft P \}
+.ta 0.25i 7.5iR
+	\\*(lG	\\*(t(\}
+.ft 1
 .ps 10
 .tH
 .if t .sp 0.05i
@@ -1397,7 +1558,7 @@ Title:
 .if t 				\\*(e3)
 .if n				     \\*(e3)
 .br \}
-.ft
+.ft 1
 '''\"					output author info
 .aV
 .if !'\\*(r('0' \{\
@@ -1430,7 +1591,7 @@ Title:
 .if n .ta 1.0i 3.4i 5.0i
 	Document No\\*(v).	Filing Case No\\*(w).	Time Charge (or Case) No\\*(x).
 .br \}
-.ft
+.ft 1
 .if t .sp 0.05i
 .mk t
 '''\"					output document number
@@ -1455,7 +1616,7 @@ Title:
 .if \\nk>0 \{\
 .ft 3
 Keywords:
-.ft
+.ft 1
 .if t .sp 0.05i
 .in 0.2i
 .fi
@@ -1467,7 +1628,7 @@ Keywords:
 .if \\nb>0 \{\
 .ft 3
 MERCURY Announcement Bulletin Sections
-.ft
+.ft 1
 .if t \{\
 .sp 0.05i
 .ta 0.6i 3.1i 5.6i
@@ -1508,12 +1669,17 @@ Abstract
 .ps 8
 .if t .vs 10p
 .nr z 0
-.ie !'\\$3'' .nr z \\$3
-.el \{\
+.if '\\$1'' .nr z 1
+.if !'\\$2'' .nr z 1
+.if !'\\$3'' .nr z 1
+.if !'\\$4'' .nr z 1
+.if !'\\$5'' .nr z 1
+.if !'\\$6'' .nr z 1
+.if \\nz=1 \{\
+.tm WARNING: provide total document page count in first argument of .CS macro;       all other arguments ignored; do NOT include coversheet pages in this count. \}
+.nr z 0
 .if !'\\$1'' .nr z \\nz+\\$1
-.if !'\\$2'' .nr z \\nz+\\$2
-.nr z \\nz+\\n(tp\}
-.nr qq \\nz
+.nr z \\nz+\\n(tp
 .tm Total Pages = \\nz
 .ie '\*(.T'X97.tim10p'\{\
 Total Pages (including document cover sheet):  \\s+2\\nz\\s-2
@@ -1529,6 +1695,7 @@ Supersedes or amends document number \\*(e(. \}
 .if t .vs
 .if \\n(fn>0 \{\
 .br
+.nf
 .fN
 .rm fN
 .br \}
@@ -1537,7 +1704,7 @@ Supersedes or amends document number \\*(e(. \}
 .if n .sp 4
 '''\"					output proprietary notice if it exists
 .if \\np=1 \{\
-.ds o) AT&T \- PROPRIETARY
+.ds o) LUCENT \- PROPRIETARY
 .ds p) "Use pursuant to Company Instructions
 .ds q)
 .ds r)
@@ -1545,19 +1712,19 @@ Supersedes or amends document number \\*(e(. \}
 .if n .ti 14
 .if t .ti 1.65i
 \\*(o)
-.ft
+.ft 1
 .if n .ti 5
 .if t .ti 1.25i
 \\*(p) \}
 .if \\np=2 \{\
-.ds o) AT&T \- PROPRIETARY (RESTRICTED)
+.ds o) LUCENT \- PROPRIETARY (RESTRICTED)
 .ds p) "Solely for authorized persons having a need to know
 .ds q) "pursuant to Company Instructions
 .ft 2
 .if n .ti 10
 .if t .ti 1.25i
 \\*(o)
-.ft
+.ft 1
 .if n .ti 0
 .if t .ti 0.875i
 \\*(p)
@@ -1566,7 +1733,7 @@ Supersedes or amends document number \\*(e(. \}
 \\*(q) \}
 '''\"					output csmacros version
 .sp |\\nzu+11v
-.ta 5.35i
+.ta 7.5iR
 \\s8\\*(ve\\s0
 '''\"					put out timestamp (if non-empty) and company identifier
 .ie !'\\*(s)'0' \{\
@@ -1576,13 +1743,13 @@ Supersedes or amends document number \\*(e(. \}
 .sp1
 .ft 3
 .ti 5.25i
-Mailing Label
-.ft
+\\*(m)
+.ft 1
 .sp|\\nxu
 .in 0.2i
 .nf
 '''\"					abstract
-.if !\\n(la=\\n(a1 \{\
+.if \\n(la>\\n(a1 \{\
 .if n .wh -1 yY
 .if t .wh -0.25i yY \}
 .pl \\nyu
@@ -1590,11 +1757,11 @@ Mailing Label
 '''\"					output the abstract
 .aS
 .rm aS
-.if \\n(la=\\n(a1 .sp-1
+.if !\\n(la>\\n(a1 .sp-1
 .rn aT xX
 .if t .wh -0.25i fO
 .if n .wh -1 fO
-'''\"					output continuation page
+'''\"					output continuation pages
 .cP
 'bp
 .ft 1
@@ -1602,9 +1769,7 @@ Mailing Label
 .wh 0 hD
 .nf
 .ft 3
-.if n .ta 3.75i
-.if t .ta 5.00i
-.if \n(dv=2 .ta 4.5i
+.ta 7.5iR
 .nr tc \\n(tp
 Initial Distribution Specifications	\\*(n)\f2 (page ii of \\n(tc)\f3
 .ft 1
@@ -1629,7 +1794,7 @@ Initial Distribution Specifications	\\*(n)\f2 (page ii of \\n(tc)\f3
 .rm dA
 .if !\\ni=0 \{\
 .ft 2
-.ti 4.75i
+.ti 5.00i
 (continued)
 .ft 1 \}
 .in 0
@@ -1643,19 +1808,19 @@ Initial Distribution Specifications	\\*(n)\f2 (page ii of \\n(tc)\f3
 .ft 1
 .if t .sp -0.05i
 .tK \}
-\f3Future AT&T Distribution by ITDS\f1
+\f3Future Lucent Distribution by ITDS\f1
 .if \\n(ra>0 \{\
 .ti 0.5i
 .if t .sp 0.05i
 .ie \\n(ra=2 \{\
-.if t \f3DO NOT RELEASE\f1 to any AT&T employee without appropriate approval for each request.
+.if t \f3DO NOT RELEASE\f1 to any Lucent employee without appropriate approval for each request.
 .if n \{\
-\f3DO NOT RELEASE\f1 to any AT&T employee without appropriate approval
+\f3DO NOT RELEASE\f1 to any Lucent employee without appropriate approval
 .br
 .ti 1.0i
 for each request.\}\}
 .el \{\
-\f3RELEASE\f1 to any AT&T employee (excluding contract employees).
+\f3RELEASE\f1 to any Lucent employee (excluding contract employees).
 .br \}\}
 '''\"					next 41 lines for yes/no boxes; remove when .fA macro becomes mandatory
 .if \\n(ra=0 \{\
@@ -1665,13 +1830,13 @@ for each request.\}\}
 .bE
 .sp|\\nzu
 .ti 0.25i
-Yes, \f3RELEASE\f1 to any AT&T employee (excluding
+Yes, \f3RELEASE\f1 to any Lucent employee (excluding
 .sp|\\nzu
 .ti 4.1i
 .bE
 .sp|\\nzu
 .ti 4.25i
-No, \f3DO NOT RELEASE\f1 to any AT&T employee
+No, \f3DO NOT RELEASE\f1 to any Lucent employee
 .mk z
 .ti 0.35i
 contract employees).
@@ -1684,13 +1849,13 @@ without obtaining appropriate approval.\}
 .bE
 .sp|\\nzu
 .ti 0.4i
-Yes, \f3RELEASE\f1 to any AT&T employee
+Yes, \f3RELEASE\f1 to any Lucent employee
 .sp|\\nzu
 .ti 4.1i
 .bE
 .sp|\\nzu
 .ti 4.4i
-No, \f3DO NOT RELEASE\f1 to any AT&T
+No, \f3DO NOT RELEASE\f1 to any Lucent
 .mk z
 .ti 0.5i
 (except contract employees).
@@ -1743,15 +1908,27 @@ Author Signature\\*(u)
 .sp 1
 .ta 2.625i 5.25i
 \l'2.25i'	\l'2.25i'	\l'2.25i'
-.if \\nn>3 \{\
+.ta 0.25i 2.875i 5.5i
+\\*(u(
+.if ((\\n(oa>3):((\\nn>3)&(\\n(oa=0))) \{\
 .sp1
-\l'2.25i'	\l'2.25i'	\l'2.25i' \}
-.if \\nn>6 \{\
+.ta 2.625i 5.25i
+\l'2.25i'	\l'2.25i'	\l'2.25i'
+.ta 0.25i 2.875i 5.5i
+\\*(v( \}
+.if ((\\n(oa>6):((\\nn>6)&(\\n(oa=0))) \{\
 .sp 1
-\l'2.25i'	\l'2.25i'	\l'2.25i' \}
-.if \\nn>9 \{\
+.ta 2.625i 5.25i
+\l'2.25i'	\l'2.25i'	\l'2.25i'
+.ta 0.25i 2.875i 5.5i
+\\*(w( \}
+.if ((\\n(oa>9):((\\nn>9)&(\\n(oa=0))) \{\
 .sp 1
-\l'2.25i'	\l'2.25i'	\l'2.25i' \}
+.ta 2.625i 5.25i
+\l'2.25i'	\l'2.25i'	\l'2.25i'
+.ta 0.25i 2.875i 5.5i
+\\*(x( \}
+.if t .sp -0.1i
 .tK
 '''\"					recipient section always output
 .ft 3
@@ -1763,30 +1940,31 @@ For Use by Recipient of Cover Sheet:
 .sp1
 .mk z
   Computing network users may order copies via the \f2library -1\f1 command;
-   for information, type \f2man library\f1 after the UNIX prompt.
+   for information, type \f2man library\f1 after the UNIX\(rg system prompt.
 .sp1
 .rn fo xx
   Otherwise:
-   Enter PAN if AT&T-BL (or SS# if non-AT&T-BL). \l'1.5i'
+   Enter PAN if Lucent-BL (or SS# if non-Lucent-BL). \l'1.5i'
    Return this sheet to any ITDS location. 
 .sp|\\nzu
 .in 4.0i
 Internal Technical Document Service
 .sp1
-.ta 1i 2i 3i
+.ta 0.9i 1.8i 2.7i
 ( ) AK 2H-28	( ) IH 7M-103	( ) DR 2F-19	( ) NW-ITDS
 ( ) ALC 1B-102	( ) MV 3L-19	( ) INH 1C-114	( ) PR 5-2120
-( ) CB 30-2011	( ) WH 3E-204	( ) IW 2Z-156
-( ) HO 4F-112		( ) MT 3B-117
+( ) CB 1L-220	( ) WH 3E-204	( ) IW 2Z-156
+( ) HO 4F-112		( ) MT 2C-131
 .br \}
 .if n \{\
   Computing network users may order copies via the \f2library -1\f1 command;
-  for information, type \f2man library\f1 after the UNIX prompt. Otherwise: 
+  for information, type \f2man library\f1 after the UNIX system prompt. 
+  Otherwise:
 .sp1
-.rn fo xx
-1 Enter PAN if AT&T-BL (or SS# if
 .mk z
-  non-AT&T-BL).
+.rn fo xx
+1 Enter PAN if Lucent-BL (or SS# if
+  non-Lucent-BL).
                \l'2.0i'
 2 Return this sheet to any
   ITDS location. 
@@ -1796,23 +1974,27 @@ Internal Technical Document Service
 .sp1
 .ta 1.75i
 .if \\n(en=1 \{\
-( ) AK 2H-28	( ) IH 7L-101
+( ) AK 2H-28	( ) IH 7M-103
 ( ) ALC 1B-102	( ) MV 3L-19
-( ) CB 30-2011	( ) WH 3E-204
+( ) CB 1L-220	( ) WH 3E-204
 ( ) HO 4F-112 \}
 .if \\n(en=2 \{\
 ( ) DR 2F-19
 ( ) INH 1C-114
 ( ) IW 2Z-156
-( ) MT 3B-117 \}
+( ) MT 2C-131 \}
 .if \\n(en=3 \{\
 ( ) NW-ITDS \}
 .if \\n(en=4 \{\
 ( ) PR5-2120 \}
 .br \}
-.in
-.ps
-.vs
+.if \\n(aa \{\
+.	sy pwd >/tmp/sx\\n($$
+.	sy sed "s/^/cd /" /tmp/sx\\n($$ >/tmp/sc\\n($$
+.	sy echo "/usr/lib/tmac/sendcover" \\n(.F \\n(qq >>/tmp/sc\\n($$
+.	sy echo "rm" /tmp/sx\\n($$ /tmp/sc\\n($$>>/tmp/sc\\n($$
+.	sy sh /tmp/sc\\n($$&
+.	br \}
 .rr a b c e g h i j k
 .rr l m n o p q r s t
 .rr u v w x y z
@@ -1820,10 +2002,13 @@ Internal Technical Document Service
 .rr tp np la a1 a2 ar fi
 .rr in si ps ts vs tv b1 b2 m1
 .rr :b :c :d :e ls dt fc wp
+.rr g1 g2 g3 g4 g5 i1 i2 i3 i4 i5
 .rm a) b) c) e) k) n) o) p) q)
 .rm r) s) t) u) v) w) x) y) z)
 .rm a( b( m( n( o( p( s( t(
 .rm tc nc Tm 10 ve
 .rm hD fO aT tK bE bX tH cH
 .rm dH eP cP tP t1 CS tI tS cE
+.rm cZ dZ eE fF gG oH dP
 ..
+'''\"	end of csmacros

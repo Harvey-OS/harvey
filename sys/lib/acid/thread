@@ -1,0 +1,189 @@
+include("/sys/src/libthread/syms");
+
+defn labstk(l)
+{
+	if objtype == "386" then
+		_stk(longjmp, *l, linkreg(0), 0);
+	else
+		_stk(*(l+4), *l, linkreg(0), 0);
+}
+
+defn lablstk(l)
+{
+	if objtype == "386" then
+		_stk(longjmp, *l, linkreg(0), 1);
+	else
+		_stk(*(l+4), *l, linkreg(0), 1);
+}
+
+defn thread(T){
+	complex Thread T;
+	local A, yes, i, P;
+
+	P = (Proc)T.proc;
+	if T.cmdname != 0 then{
+		print("	", *(T.cmdname\s), ":\n");
+	}
+	print("	", T\X, "	 ", T.id);
+	if T.state == Running then{
+		print("		Running   ");
+	} else if T.state == Runnable then{
+		print("		Runnable  ");
+	} else if T.state == Rendezvous then{
+		if T.call == Callalt then{
+			print("		alt(");
+			A = (Alt)T.alt;
+			i = 0;
+			yes = 0;
+			while A.op != 0 do{
+				if A.op != 3 then{
+					if yes then print(", ");
+					print(i\D);
+					if A.op == 1 then print("S");
+					if A.op == 2 then print("R");
+					if A.op == 3 then print("-");
+					else print("/channel(", A.c\X, ")");
+					yes = 1;
+				}
+				i = i + 1;
+				A = (Alt)(A + sizeofAlt);
+			}
+			print(")");
+		} else if T.call == Callsnd then{
+			A = (Alt)T.alt;
+			print("		send(Channel(", A.c\X, "))");
+		} else if T.call == Callrcv then{
+			A = (Alt)T.alt;
+			print("		recv(Channel(", A.c\X, "))");
+		}
+	} else {
+		print("		Bad State: ", T.state\X);
+	}
+	if T.exiting == 1 then{
+		print(" (Exiting)");
+	}
+	print("\n");
+}
+
+defn pthreads(P){
+	complex Proc P;
+	local T, Tq;
+
+	mainpid = pid;
+	setproc(P.pid);
+	Tq = (Tqueue)P.threads;
+	T = (Thread)Tq.$head;
+	while T != 0 do{
+		thread(T);
+		T = T.nextt;
+	}
+	setproc(mainpid);
+}
+
+defn threads(){
+	local P;
+
+	P = (Proc)pq.$head;
+	while P != 0 do{
+		if P != (Proc)pq.$head then print("\n");
+		lproc(P);
+		P = P.next;
+	}
+}
+
+defn stacks(){
+	local P;
+
+	P = (Proc)pq.$head;
+	while P != 0 do{
+		print("=========================================================\n");
+		proc(P);
+		threadstks(P);
+		P = P.next;
+	}
+}
+
+defn lproc(P){
+	proc(P);
+	pthreads(P);
+}
+
+defn threadstks(P){
+	complex Proc P;
+	local T, Tq;
+
+	mainpid = pid;
+	setproc(P.pid);
+	Tq = (Tqueue)P.threads;
+	T = (Thread)Tq.$head;
+	while T != 0 do{
+		print("=============================\n");
+		thread(T);
+		print("\n");
+		threadstk(T);
+		T = T.nextt;
+	}
+	setproc(mainpid);
+}
+
+defn proc(P){
+	complex Proc P;
+
+	print("Proc *p=", P\X, ", p->pid=", P.pid\D);
+	if P.blocked then{
+		print(", p->state=Rendez, p->tag=", P\X);
+	}else{
+		print(", p->state=Running");
+	}
+	print("\n");
+}
+
+defn procs(){
+	local P;
+
+	P = (Proc)pq.$head;
+	while P != 0 do{
+		proc(P);
+		P = P.next;
+	}
+}
+
+defn threadlstk(T){
+	complex Thread T;
+	local P, mainpid;
+
+	P = (Proc)T.proc;
+	mainpid = pid;
+	setproc(P.pid);
+
+	if T.state == Running then{
+		lstk();
+	} else {
+		lablstk(T.env);
+	}
+	setproc(mainpid);
+}
+
+defn threadstk(T){
+	complex Thread T;
+	local P, mainpid;
+
+	P = (Proc)T.proc;
+	mainpid = pid;
+	setproc(P.pid);
+
+	if T.state == Running then{
+		stk();
+	} else {
+		labstk(T.env);
+	}
+	setproc(mainpid);
+}
+
+defn channel(C) {
+	complex Channel C;
+
+	Channel(C);
+}
+
+print("/sys/lib/acid/thread");

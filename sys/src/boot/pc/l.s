@@ -1,5 +1,8 @@
 #include "mem.h"
 
+#define NoScreenBlank	1
+/*#define ResetDiscs	1*/
+
 #define OP16	BYTE	$0x66
 
 /*
@@ -77,21 +80,25 @@ TEXT origin(SB), $0
 	MOVW	CS, AX
 	MOVW	AX, DS
 
+#ifdef NoScreenBlank
 	/*
 	 * Get the current video mode. If it isn't mode 3,
 	 * set text mode 3.
+	 * Well, no. Windows95 won't co-operate here so we have
+	 * to explicitly set mode 3.
 	 */
 	XORL	AX, AX
 	MOVB	$0x0F, AH
 	INT	$0x10			/* get current video mode in AL */
 	CMPB	AL, $03
 	JEQ	_BIOSputs
+#endif /* NoScreenBlank */
 	XORL	AX, AX
 	MOVB	$0x03, AL
 	INT	$0x10			/* set video mode in AL */
 
 _BIOSputs:
-	MOVW	$hello(SB), SI
+	MOVW	$_hello(SB), SI
 	XORL	BX, BX
 _BIOSputsloop:
 	LODSB
@@ -104,10 +111,20 @@ _BIOSputsloop:
 
 _BIOSputsret:
 
+#ifdef ResetDiscs
+	XORL	AX, AX			/* reset disc system */
+	XORL	DX, DX
+	MOVB	$0x80, DL
+	INT	$0x13
+#endif /* ResetDiscs */
+
+#ifdef DOTCOM
 /*
  *	relocate everything to a half meg and jump there
  *	- looks weird because it is being assembled by a 32 bit
  *	  assembler for a 16 bit world
+ *
+ *	only b.com does this - not 9load
  */
 	MOVL	$0,BX
 	INCL	BX
@@ -132,11 +149,11 @@ TEXT _start8000(SB), $0
 
 	/*
 	 * If we are already in protected mode, have to get back
-	 * to real mode before trying any priveleged operations
+	 * to real mode before trying any privileged operations
 	 * (like going into protected mode...).
 	 * Try to reset with a restart vector.
 	 */
-	MFCR(rCR0, rAX)		/* are we in protected mode? */
+	MFCR(rCR0, rAX)			/* are we in protected mode? */
 	ANDI(0x0001, rAX)
 	JEQ	_real
 
@@ -159,6 +176,7 @@ TEXT _start8000(SB), $0
 	OUTb(0x71, 0x0A)
 
 	FARJUMP(0xFFFF, 0x0000)		/* reset */
+#endif /* DOTCOM */
 
 _real:
 
@@ -206,9 +224,17 @@ flush:
 	 LONG	$mode32bit-KZERO(SB)
 	 WORD	$SELECTOR(2, SELGDT, 0)
 
+/*
+ * When we load 9load from DOS, the bootstrap jumps
+ * to the instruction right after `JUMP', which gets
+ * us into mode32bit.
+ *
+ * The name is so we are not optimized away.
+ */
+TEXT jumplabel(SB), $0
+	BYTE $'J'; BYTE $'U'; BYTE $'M'; BYTE $'P'
+
 TEXT	mode32bit(SB),$0
-
-
 	/*
 	 * Clear BSS
 	 */
@@ -220,6 +246,7 @@ TEXT	mode32bit(SB),$0
 	LEAL	end-KZERO(SB),CX
 	SUBL	DI,CX
 	SHRL	$2,CX
+	CLD
 	REP
 	MOVSL
 
@@ -657,42 +684,62 @@ TEXT	idle(SB),$0
 	RET
 
 /*
- *  return cpu type (586 == pentium or better)
+ * Try to determine the CPU type which requires fiddling with EFLAGS.
+ * If the Id bit can be toggled then the CPUID instruciton can be used
+ * to determine CPU identity and features. First have to check if it's
+ * a 386 (Ac bit can't be set). If it's not a 386 and the Id bit can't be
+ * toggled then it's an older 486 of some kind.
+ *
+ *	cpuid(id[], &ax, &dx);
  */
-TEXT	x86(SB),$0
+#define CPUID		BYTE $0x0F; BYTE $0xA2	/* CPUID, argument in AX */
+TEXT cpuid(SB), $0
+	MOVL	$0x240000, AX
+	PUSHL	AX
+	POPFL					/* set Id|Ac */
 
 	PUSHFL
-	MOVL	0(SP),AX
-	XORL	$0x240000,AX
+	POPL	BX				/* retrieve value */
+
+	MOVL	$0, AX
 	PUSHL	AX
-	POPFL
+	POPFL					/* clear Id|Ac, EFLAGS initialised */
+
 	PUSHFL
-	MOVL	0(SP),AX
-	XORL	4(SP),AX
-	MOVL	AX, BX
-	ANDL	$0x40000,BX	/* on 386 we can't change this bit */
-	JZ	is386
-	ANDL	$0x200000,AX	/* if we can't change this, there's no CPUID */
-	JZ	is486
-	MOVL	$1,AX
-	/* CPUID */
-	 BYTE $0x0F
-	 BYTE $0xA2
-	SHLL	$20,AX
-	SHRL	$28,AX
-	CMPL	AX, $4
-	JEQ	is486
-	MOVL	$586,AX
-	JMP	done
-is486:
-	MOVL	$486,AX
-	JMP	done
-is386:
-	MOVL	$386,AX
-done:
-	POPL	BX
-	POPFL
+	POPL	AX				/* retrieve value */
+	XORL	BX, AX
+	TESTL	$0x040000, AX			/* Ac */
+	JZ	_cpu386				/* can't set this bit on 386 */
+	TESTL	$0x200000, AX			/* Id */
+	JZ	_cpu486				/* can't toggle this bit on some 486 */
+
+	MOVL	$0, AX
+	CPUID
+	MOVL	id+0(FP), BP
+	MOVL	BX, 0(BP)			/* "Genu" "Auth" "Cyri" */
+	MOVL	DX, 4(BP)			/* "ineI" "enti" "xIns" */
+	MOVL	CX, 8(BP)			/* "ntel" "cAMD" "tead" */
+
+	MOVL	$1, AX
+	CPUID
+	JMP	_cpuid
+
+_cpu486:
+	MOVL	$0x400, AX
+	MOVL	$0, DX
+	JMP	_cpuid
+
+_cpu386:
+	MOVL	$0x300, AX
+	MOVL	$0, DX
+
+_cpuid:
+	MOVL	ax+4(FP), BP
+	MOVL	AX, 0(BP)
+	MOVL	dx+8(FP), BP
+	MOVL	DX, 0(BP)
 	RET
+
 
 /*
  *  basic timing loop to determine CPU frequency
@@ -705,35 +752,13 @@ aaml1:
 	LOOP	aaml1
 	RET
 
-/*
- * The DP8390 ethernet chip needs some time between
- * successive chip selects, so we force a jump into
- * the instruction stream to break the pipeline.
- */
-TEXT dp8390inb(SB), $0
-	MOVL	p+0(FP),DX
-	XORL	AX,AX				/* CF = 0 */
-	INB
-
-	JCC	_dp8390inb0			/* always true */
-	MOVL	AX,AX
-
-_dp8390inb0:
-	RET
-
-TEXT dp8390outb(SB), $0
-	MOVL	p+0(FP),DX
-	MOVL	b+4(FP),AX
-	OUTB
-
-	CLC					/* CF = 0 */
-	JCC	_dp8390outb0			/* always true */
-	MOVL	AX,AX
-
-_dp8390outb0:
-	RET
-
-GLOBL hello(SB), $0x18
-	DATA hello+0x00(SB)/8, $"Plan 9 f"
-	DATA hello+0x08(SB)/8, $"rom Bell"
-	DATA hello+0x10(SB)/8, $" Labs\r\n\z"
+TEXT _hello(SB), $0
+	BYTE $'P'; BYTE $'l'; BYTE $'a'; BYTE $'n';
+	BYTE $' '; BYTE $'9'; BYTE $' '; BYTE $'f';
+	BYTE $'r'; BYTE $'o'; BYTE $'m'; BYTE $' ';
+	BYTE $'B'; BYTE $'e'; BYTE $'l'; BYTE $'l';
+	BYTE $' '; BYTE $'L'; BYTE $'a'; BYTE $'b';
+	BYTE $'s'; 
+	BYTE $'\r';
+	BYTE $'\n';
+	BYTE $'\z';

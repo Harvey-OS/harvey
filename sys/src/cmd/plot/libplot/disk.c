@@ -1,5 +1,5 @@
 #include "mplot.h"
-void disk(double xc, double yc, double r){
+void plotdisc(double xc, double yc, double r){
 	Point p;
 	int rad;
 	p.x=SCX(xc);
@@ -8,5 +8,5 @@ void disk(double xc, double yc, double r){
 		rad=SCR(-r);
 	else
 		rad=SCR(r);
-	disc(&screen, p, rad, e1->foregr, S);
+	fillellipse(screen, p, rad, rad, getcolor(e1->foregr), ZP);
 }

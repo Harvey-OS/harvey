@@ -1,7 +1,6 @@
 .TH CTIME 2
 .SH NAME
-ctime, localtime, gmtime, asctime, timezone \- convert date and time to
-.SM ASCII
+ctime, localtime, gmtime, asctime, tm2sec, timezone \- convert date and time
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -19,6 +18,9 @@ Tm*	gmtime(long clock)
 .PP
 .B
 char*	asctime(Tm *tm)
+.PP
+.B
+long	tm2sec(Tm *tm)
 .PP
 .B
 /env/timezone
@@ -67,8 +69,20 @@ struct {
 	int	wday;	/* day of week (0..6, Sunday = 0) */
 	int	yday;	/* day of year (0..365) */
 	char	zone[4];	/* time zone name */
+	int	tzoff;	/* time zone delta from GMT */
 } Tm;
 .EE
+.PP
+.I Tm2sec
+converts a broken-down time to
+seconds since the start of the epoch.
+It ignores
+.BR wday ,
+and assumes the local time zone
+if
+.B zone
+is not
+.BR GMT .
 .PP
 When local time is first requested,
 the program consults the

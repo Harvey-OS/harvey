@@ -5,8 +5,6 @@
 #include	"fns.h"
 #include	"io.h"
 
-#include	<libg.h>
-
 enum {
 	Data=		0x60,	/* data port */
 
@@ -101,126 +99,126 @@ struct latin
 	uchar	l;
 	char	c[2];
 }latintab[] = {
-	'¡',	"!!",	/* spanish initial ! */
-	'¢',	"c|",	/* cent */
-	'¢',	"c$",	/* cent */
-	'£',	"l$",	/* pound sterling */
-	'¤',	"g$",	/* general currency */
-	'¥',	"y$",	/* yen */
-	'¥',	"j$",	/* yen */
-	'¦',	"||",	/* broken vertical bar */
-	'§',	"SS",	/* section symbol */
-	'¨',	"\"\"",	/* dieresis */
-	'©',	"cr",	/* copyright */
-	'©',	"cO",	/* copyright */
-	'ª',	"sa",	/* super a, feminine ordinal */
-	'«',	"<<",	/* left angle quotation */
-	'¬',	"no",	/* not sign, hooked overbar */
-	'­',	"--",	/* soft hyphen */
-	'®',	"rg",	/* registered trademark */
-	'¯',	"__",	/* macron */
-	'°',	"s0",	/* degree (sup o) */
-	'±',	"+-",	/* plus-minus */
-	'²',	"s2",	/* sup 2 */
-	'³',	"s3",	/* sup 3 */
-	'´',	"''",	/* grave accent */
-	'µ',	"mu",	/* mu */
-	'¶',	"pg",	/* paragraph (pilcrow) */
-	'·',	"..",	/* centered . */
-	'¸',	",,",	/* cedilla */
-	'¹',	"s1",	/* sup 1 */
-	'º',	"so",	/* sup o */
-	'»',	">>",	/* right angle quotation */
-	'¼',	"14",	/* 1/4 */
-	'½',	"12",	/* 1/2 */
-	'¾',	"34",	/* 3/4 */
-	'¿',	"??",	/* spanish initial ? */
-	'À',	"A`",	/* A grave */
-	'Á',	"A'",	/* A acute */
-	'Â',	"A^",	/* A circumflex */
-	'Ã',	"A~",	/* A tilde */
-	'Ä',	"A\"",	/* A dieresis */
-	'Ä',	"A:",	/* A dieresis */
-	'Å',	"Ao",	/* A circle */
-	'Å',	"AO",	/* A circle */
-	'Æ',	"Ae",	/* AE ligature */
-	'Æ',	"AE",	/* AE ligature */
-	'Ç',	"C,",	/* C cedilla */
-	'È',	"E`",	/* E grave */
-	'É',	"E'",	/* E acute */
-	'Ê',	"E^",	/* E circumflex */
-	'Ë',	"E\"",	/* E dieresis */
-	'Ë',	"E:",	/* E dieresis */
-	'Ì',	"I`",	/* I grave */
-	'Í',	"I'",	/* I acute */
-	'Î',	"I^",	/* I circumflex */
-	'Ï',	"I\"",	/* I dieresis */
-	'Ï',	"I:",	/* I dieresis */
-	'Ð',	"D-",	/* Eth */
-	'Ñ',	"N~",	/* N tilde */
-	'Ò',	"O`",	/* O grave */
-	'Ó',	"O'",	/* O acute */
-	'Ô',	"O^",	/* O circumflex */
-	'Õ',	"O~",	/* O tilde */
-	'Ö',	"O\"",	/* O dieresis */
-	'Ö',	"O:",	/* O dieresis */
-	'Ö',	"OE",	/* O dieresis */
-	'Ö',	"Oe",	/* O dieresis */
-	'×',	"xx",	/* times sign */
-	'Ø',	"O/",	/* O slash */
-	'Ù',	"U`",	/* U grave */
-	'Ú',	"U'",	/* U acute */
-	'Û',	"U^",	/* U circumflex */
-	'Ü',	"U\"",	/* U dieresis */
-	'Ü',	"U:",	/* U dieresis */
-	'Ü',	"UE",	/* U dieresis */
-	'Ü',	"Ue",	/* U dieresis */
-	'Ý',	"Y'",	/* Y acute */
-	'Þ',	"P|",	/* Thorn */
-	'Þ',	"Th",	/* Thorn */
-	'Þ',	"TH",	/* Thorn */
-	'ß',	"ss",	/* sharp s */
-	'à',	"a`",	/* a grave */
-	'á',	"a'",	/* a acute */
-	'â',	"a^",	/* a circumflex */
-	'ã',	"a~",	/* a tilde */
-	'ä',	"a\"",	/* a dieresis */
-	'ä',	"a:",	/* a dieresis */
-	'å',	"ao",	/* a circle */
-	'æ',	"ae",	/* ae ligature */
-	'ç',	"c,",	/* c cedilla */
-	'è',	"e`",	/* e grave */
-	'é',	"e'",	/* e acute */
-	'ê',	"e^",	/* e circumflex */
-	'ë',	"e\"",	/* e dieresis */
-	'ë',	"e:",	/* e dieresis */
-	'ì',	"i`",	/* i grave */
-	'í',	"i'",	/* i acute */
-	'î',	"i^",	/* i circumflex */
-	'ï',	"i\"",	/* i dieresis */
-	'ï',	"i:",	/* i dieresis */
-	'ð',	"d-",	/* eth */
-	'ñ',	"n~",	/* n tilde */
-	'ò',	"o`",	/* o grave */
-	'ó',	"o'",	/* o acute */
-	'ô',	"o^",	/* o circumflex */
-	'õ',	"o~",	/* o tilde */
-	'ö',	"o\"",	/* o dieresis */
-	'ö',	"o:",	/* o dieresis */
-	'ö',	"oe",	/* o dieresis */
-	'÷',	"-:",	/* divide sign */
-	'ø',	"o/",	/* o slash */
-	'ù',	"u`",	/* u grave */
-	'ú',	"u'",	/* u acute */
-	'û',	"u^",	/* u circumflex */
-	'ü',	"u\"",	/* u dieresis */
-	'ü',	"u:",	/* u dieresis */
-	'ü',	"ue",	/* u dieresis */
-	'ý',	"y'",	/* y acute */
-	'þ',	"th",	/* thorn */
-	'þ',	"p|",	/* thorn */
-	'ÿ',	"y\"",	/* y dieresis */
-	'ÿ',	"y:",	/* y dieresis */
+	L'¡',	"!!",	/* spanish initial ! */
+	L'¢',	"c|",	/* cent */
+	L'¢',	"c$",	/* cent */
+	L'£',	"l$",	/* pound sterling */
+	L'¤',	"g$",	/* general currency */
+	L'¥',	"y$",	/* yen */
+	L'¥',	"j$",	/* yen */
+	L'¦',	"||",	/* broken vertical bar */
+	L'§',	"SS",	/* section symbol */
+	L'¨',	"\"\"",	/* dieresis */
+	L'©',	"cr",	/* copyright */
+	L'©',	"cO",	/* copyright */
+	L'ª',	"sa",	/* super a, feminine ordinal */
+	L'«',	"<<",	/* left angle quotation */
+	L'¬',	"no",	/* not sign, hooked overbar */
+	L'­',	"--",	/* soft hyphen */
+	L'®',	"rg",	/* registered trademark */
+	L'¯',	"__",	/* macron */
+	L'°',	"s0",	/* degree (sup o) */
+	L'±',	"+-",	/* plus-minus */
+	L'²',	"s2",	/* sup 2 */
+	L'³',	"s3",	/* sup 3 */
+	L'´',	"''",	/* grave accent */
+	L'µ',	"mu",	/* mu */
+	L'¶',	"pg",	/* paragraph (pilcrow) */
+	L'·',	"..",	/* centered . */
+	L'¸',	",,",	/* cedilla */
+	L'¹',	"s1",	/* sup 1 */
+	L'º',	"so",	/* sup o */
+	L'»',	">>",	/* right angle quotation */
+	L'¼',	"14",	/* 1/4 */
+	L'½',	"12",	/* 1/2 */
+	L'¾',	"34",	/* 3/4 */
+	L'¿',	"??",	/* spanish initial ? */
+	L'À',	"A`",	/* A grave */
+	L'Á',	"A'",	/* A acute */
+	L'Â',	"A^",	/* A circumflex */
+	L'Ã',	"A~",	/* A tilde */
+	L'Ä',	"A\"",	/* A dieresis */
+	L'Ä',	"A:",	/* A dieresis */
+	L'Å',	"Ao",	/* A circle */
+	L'Å',	"AO",	/* A circle */
+	L'Æ',	"Ae",	/* AE ligature */
+	L'Æ',	"AE",	/* AE ligature */
+	L'Ç',	"C,",	/* C cedilla */
+	L'È',	"E`",	/* E grave */
+	L'É',	"E'",	/* E acute */
+	L'Ê',	"E^",	/* E circumflex */
+	L'Ë',	"E\"",	/* E dieresis */
+	L'Ë',	"E:",	/* E dieresis */
+	L'Ì',	"I`",	/* I grave */
+	L'Í',	"I'",	/* I acute */
+	L'Î',	"I^",	/* I circumflex */
+	L'Ï',	"I\"",	/* I dieresis */
+	L'Ï',	"I:",	/* I dieresis */
+	L'Ð',	"D-",	/* Eth */
+	L'Ñ',	"N~",	/* N tilde */
+	L'Ò',	"O`",	/* O grave */
+	L'Ó',	"O'",	/* O acute */
+	L'Ô',	"O^",	/* O circumflex */
+	L'Õ',	"O~",	/* O tilde */
+	L'Ö',	"O\"",	/* O dieresis */
+	L'Ö',	"O:",	/* O dieresis */
+	L'Ö',	"OE",	/* O dieresis */
+	L'Ö',	"Oe",	/* O dieresis */
+	L'×',	"xx",	/* times sign */
+	L'Ø',	"O/",	/* O slash */
+	L'Ù',	"U`",	/* U grave */
+	L'Ú',	"U'",	/* U acute */
+	L'Û',	"U^",	/* U circumflex */
+	L'Ü',	"U\"",	/* U dieresis */
+	L'Ü',	"U:",	/* U dieresis */
+	L'Ü',	"UE",	/* U dieresis */
+	L'Ü',	"Ue",	/* U dieresis */
+	L'Ý',	"Y'",	/* Y acute */
+	L'Þ',	"P|",	/* Thorn */
+	L'Þ',	"Th",	/* Thorn */
+	L'Þ',	"TH",	/* Thorn */
+	L'ß',	"ss",	/* sharp s */
+	L'à',	"a`",	/* a grave */
+	L'á',	"a'",	/* a acute */
+	L'â',	"a^",	/* a circumflex */
+	L'ã',	"a~",	/* a tilde */
+	L'ä',	"a\"",	/* a dieresis */
+	L'ä',	"a:",	/* a dieresis */
+	L'å',	"ao",	/* a circle */
+	L'æ',	"ae",	/* ae ligature */
+	L'ç',	"c,",	/* c cedilla */
+	L'è',	"e`",	/* e grave */
+	L'é',	"e'",	/* e acute */
+	L'ê',	"e^",	/* e circumflex */
+	L'ë',	"e\"",	/* e dieresis */
+	L'ë',	"e:",	/* e dieresis */
+	L'ì',	"i`",	/* i grave */
+	L'í',	"i'",	/* i acute */
+	L'î',	"i^",	/* i circumflex */
+	L'ï',	"i\"",	/* i dieresis */
+	L'ï',	"i:",	/* i dieresis */
+	L'ð',	"d-",	/* eth */
+	L'ñ',	"n~",	/* n tilde */
+	L'ò',	"o`",	/* o grave */
+	L'ó',	"o'",	/* o acute */
+	L'ô',	"o^",	/* o circumflex */
+	L'õ',	"o~",	/* o tilde */
+	L'ö',	"o\"",	/* o dieresis */
+	L'ö',	"o:",	/* o dieresis */
+	L'ö',	"oe",	/* o dieresis */
+	L'÷',	"-:",	/* divide sign */
+	L'ø',	"o/",	/* o slash */
+	L'ù',	"u`",	/* u grave */
+	L'ú',	"u'",	/* u acute */
+	L'û',	"u^",	/* u circumflex */
+	L'ü',	"u\"",	/* u dieresis */
+	L'ü',	"u:",	/* u dieresis */
+	L'ü',	"ue",	/* u dieresis */
+	L'ý',	"y'",	/* y acute */
+	L'þ',	"th",	/* thorn */
+	L'þ',	"p|",	/* thorn */
+	L'ÿ',	"y\"",	/* y dieresis */
+	L'ÿ',	"y:",	/* y dieresis */
 	0,	0,
 };
 
@@ -299,10 +297,12 @@ i8042a20(void)
 void
 i8042reset(void)
 {
-	ushort *s = (ushort*)(KZERO|0x472);
 	int i, x;
+#ifdef notdef
+	ushort *s = (ushort*)(KZERO|0x472);
 
 	*s = 0x1234;		/* BIOS warm-boot flag */
+#endif /* notdef */
 
 	outready();
 	outb(Cmd, 0xFE);	/* pulse reset line (means resend on AT&T machines) */
@@ -325,15 +325,12 @@ i8042reset(void)
 /*
  *  keyboard interrupt
  */
-int
-kbdintr0(void)
+static void
+kbdintr(Ureg*, void*)
 {
 	int s, c;
 	static int esc1, esc2;
-	static int shift;
-	static int caps;
-	static int ctl;
-	static int num;
+	static int alt, caps, ctl, num, shift;
 	static int lstate, k1, k2;
 	int keyup;
 
@@ -342,7 +339,7 @@ kbdintr0(void)
 	 */
 	s = inb(Status);
 	if(!(s&Inready))
-		return -1;
+		return;
 
 	/*
 	 *  get the character
@@ -350,32 +347,37 @@ kbdintr0(void)
 	c = inb(Data);
 
 	/*
+	 *  if it's the aux port...
+	 */
+	if(s & Minready)
+		return;
+
+	/*
 	 *  e0's is the first of a 2 character sequence
 	 */
 	if(c == 0xe0){
 		esc1 = 1;
-		return 0;
+		return;
 	} else if(c == 0xe1){
 		esc2 = 2;
-		return 0;
+		return;
 	}
 
 	keyup = c&0x80;
 	c &= 0x7f;
 	if(c > sizeof kbtab){
-		print("unknown key %ux\n", c|keyup);
-		kbdchar(k1);
-		return 0;
+		c |= keyup;
+		if(c != 0xFF)	/* these come fairly often: CAPSLOCK U Y */
+			print("unknown key %ux\n", c);
+		return;
 	}
 
 	if(esc1){
 		c = kbtabesc1[c];
 		esc1 = 0;
-		kbdchar(c);
-		return 0;
 	} else if(esc2){
 		esc2--;
-		return 0;
+		return;
 	} else if(shift)
 		c = kbtabshift[c];
 	else
@@ -389,6 +391,9 @@ kbdintr0(void)
 	 */
 	if(keyup){
 		switch(c){
+		case Latin:
+			alt = 0;
+			break;
 		case Shift:
 			shift = 0;
 			break;
@@ -396,20 +401,23 @@ kbdintr0(void)
 			ctl = 0;
 			break;
 		}
-		return 0;
+		return;
 	}
 
 	/*
  	 *  normal character
 	 */
 	if(!(c & Spec)){
-		if(ctl)
+		if(ctl){
+			if(alt && c == Del)
+				panic("Ctrl-Alt-Del");
 			c &= 0x1f;
+		}
 		switch(lstate){
 		case 1:
 			k1 = c;
 			lstate = 2;
-			return 0;
+			return;
 		case 2:
 			k2 = c;
 			lstate = 0;
@@ -426,31 +434,26 @@ kbdintr0(void)
 		switch(c){
 		case Caps:
 			caps ^= 1;
-			return 0;
+			return;
 		case Num:
 			num ^= 1;
-			return 0;
+			return;
 		case Shift:
 			shift = 1;
-			return 0;
+			return;
 		case Latin:
+			alt = 1;
 			lstate = 1;
-			return 0;
+			return;
 		case Ctrl:
 			ctl = 1;
-			return 0;
+			return;
 		}
 	}
 	kbdchar(c);
-	return 0;
 }
 
-static void
-kbdintr(Ureg*, void*)
-{
-	while(kbdintr0() == 0)
-		;
-}
+static char *initfailed = "kbd init failed\n";
 
 void
 kbdinit(void)
@@ -474,13 +477,13 @@ kbdinit(void)
 	ccc &= ~Ckbddis;
 	ccc |= Csf | Ckbdint | Cscs1;
 	if(outready() < 0)
-		print("kbd init failed\n");
+		print(initfailed);
 	outb(Cmd, 0x60);
 	if(outready() < 0)
-		print("kbd init failed\n");
+		print(initfailed);
 	outb(Data, ccc);
 	if(outready() < 0)
-		print("kbd init failed\n");
+		print(initfailed);
 
-	setvec(Kbdvec, kbdintr, 0);
+	setvec(VectorKBD, kbdintr, 0);
 }

@@ -57,9 +57,9 @@ Binits(Biobufhdr *bp, int f, int mode, uchar *p, int size)
 	p += Bungetsize;	/* make room for Bungets */
 	size -= Bungetsize;
 
-	switch(mode) {
+	switch(mode&~(OCEXEC|ORCLOSE|OTRUNC)) {
 	default:
-		fprint(2, "Bopen: unknown mode %d\n", mode);
+		fprint(2, "Binits: unknown mode %d\n", mode);
 		return Beof;
 
 	case OREAD:
@@ -99,7 +99,7 @@ Bopen(char *name, int mode)
 	Biobuf *bp;
 	int f;
 
-	switch(mode) {
+	switch(mode&~(OCEXEC|ORCLOSE|OTRUNC)) {
 	default:
 		fprint(2, "Bopen: unknown mode %d\n", mode);
 		return 0;

@@ -21,11 +21,9 @@ _ndbparsetuple(char *cp, Ndbtuple **tp)
 	if(*cp == '#' || *cp == '\n')
 		return 0;
 
-	/* we keep our own free list to reduce mallocs */
-	t = malloc(sizeof(Ndbtuple));
-	if(t == 0)
-		return 0;
-	memset(t, 0, sizeof(*t));
+	t = mallocz(sizeof(Ndbtuple), 1);
+	if(t == nil)
+		return nil;
 	*tp = t;
 
 	/* parse attribute */
@@ -49,6 +47,8 @@ _ndbparsetuple(char *cp, Ndbtuple **tp)
 			len = cp - p;
 			if(*cp == '"')
 				cp++;
+		} else if(*cp == '#'){
+			len = 0;
 		} else {
 			p = cp;
 			while(!ISWHITE(*cp) && *cp != '\n')

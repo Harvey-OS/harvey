@@ -1,0 +1,839 @@
+.TH 9P 2
+.SH NAME
+Fid, File, Req, Srv, Tree,
+fcreate, fremove, fwalk, mktree,
+fdirread, srv, postmountsrv, _lib9p_emalloc, _lib9p_erealloc, _lib9p_estrdup \- 9P file server functions
+.SH SYNOPSIS
+.PP
+.ft L
+.nf
+#include <u.h>
+#include <libc.h>
+#include <auth.h>
+#include <fcall.h>
+#include <thread.h>
+#include <9p.h>
+.fi
+.PP
+.ft L
+.nf
+.ta \w'\fL    'u +\w'\fLulong 'u
+typedef struct Fid
+{
+	ulong	fid;
+	char	omode;	/* -1 if not open */
+	char	uid[NAMELEN];
+	Qid	qid;
+	File	*file;
+	Ref	ref;
+	void	*aux;
+	\fR...\fP
+} Fid;
+.fi
+.PP
+.ft L
+.nf
+.ta \w'\fL    'u +\w'\fLulong 'u
+typedef struct Req
+{
+	ulong	tag;
+	Ref	ref;
+	void	*aux;
+	\fR...\fP
+} Req;
+.fi
+.PP
+.ft L
+.nf
+.ta \w'\fL    'u+\w'\fLFile 'u
+typedef struct File
+{
+	Dir;
+	File	*parent;
+	Ref	ref;
+	void	*aux;
+	\fR...\fP
+} File;
+.fi
+.PP
+.ft L
+.nf
+typedef struct Tree
+{
+	File	*root;
+	void	(*rmaux)(File *file);
+	\fR...\fP
+} Tree;
+.PP
+.nf
+.ft L
+.ta \w'\fLFile* 'u
+Tree*	mktree(char *uid, char *gid, ulong perm)
+File*	fcreate(File *dir, char *name, char *uid, char *gid, ulong perm)
+int	fremove(File *file)
+void	fclose(File *file)
+File*	fwalk(File *file, char *name)
+char*	fdirread(File *dir, char *buf, long *n, vlong off)
+.fi
+.PP
+.nf
+.ft L
+.ta \w'\fL    'u +\w'\fLTree 'u
+typedef struct Srv {
+	Tree	*tree;
+	void	(*session)(Req *req, char *id, char *dom, char *chal);
+	void	(*attach)(Req *req, Fid *fid, char *spec, Qid *qid);
+	void	(*clone) (Req *req, Fid *old, Fid *new);
+	void	(*walk)  (Req *req, Fid *fid, char *name, Qid *qid);
+	void	(*open)  (Req *req, Fid *fid, int omode, Qid *qid);
+	void	(*create)(Req *req, Fid *fid, char *name, int omode,
+		             ulong perm, Qid *qid);
+	void	(*remove)(Req *req, Fid *fid);
+	void	(*read)  (Req *req, Fid *fid, void *buf,
+		             long *count, vlong offset);
+	void	(*write) (Req *req, Fid *fid, void *buf,
+		             long *count, vlong offset);
+	void	(*stat)  (Req *req, Fid *fid, Dir *d);
+	void	(*wstat) (Req *req, Fid *fid, Dir *d);
+	void	(*flush) (Req *req, Req *oldreq);
+	void	(*clunkaux)(Fid *fid);
+} Srv;
+.fi
+.PP
+.nf
+.ft L
+.ta \w'\fLFile* 'u
+void	srv(Srv *s, int fd)
+void	postmountsrv(Srv *s, char *srvname, char *mtpt, int flag)
+void	threadpostmountsrv(Srv *s, char *srvname, char *mtpt, int flag)
+void	respond(Req *req, char *error)
+.fi
+.PP
+.nf
+.ft L
+.ta \w'\fLFile* 'u
+void*	_lib9p_emalloc(ulong sz)
+void*	_lib9p_erealloc(void *ptr, ulong newsz)
+char*	_lib9p_estrdup(char *str)
+.fi
+.PP
+.ta \w'\fLFidpool* 'u
+.ft L
+.nf
+Intmap*	allocmap(void (*inc)(void*))
+void	freemap(Intmap *map)
+void*	lookupkey(Intmap *map, ulong key)
+void*	insertkey(Intmap *map, ulong key, void *val)
+void*	lookupkey(Intmap *map, ulong key)
+int	caninsertkey(Intmap *map, ulong key, void *val)
+void*	deletekey(Intmap *map, ulong key)
+.fi
+.PP
+.ta \w'\fLFidpool* 'u
+.nf
+.ft L
+Fidpool*	allocfidpool(void)
+void	freefidpool(Fidpool *p)
+Fid*	allocfid(Fidpool *p, ulong f)
+void	freefid(Fid *f)
+void	closefid(Fid *f)
+Fid*	lookupfid(Fidpool *p, ulong f)
+.fi
+.PP
+.ta \w'\fLFidpool* 'u
+.nf
+.ft L
+Reqpool*	allocreqpool(void)
+void	freereqpool(Reqpool *p)
+Req*	allocreq(Reqpool *p, ulong tag)
+void	freereq(Req *r)
+Req*	lookupreq(Reqpool *p, ulong tag)
+.fi
+.SH DESCRIPTION
+These routines provide a library for writing 
+9P file servers.
+.PP
+.B Fid
+data structures are allocated one-to-one
+with active fids in the served 9P connection.
+They are analogous to
+.B Chan
+structures in the Plan 9 kernel.
+The 
+.B fid
+element is the integer fid used in the 9P connection.
+.B Omode
+is the mode under which the fid was opened, or 
+.B -1 
+if this fid has not been opened yet.
+Note that in addition to the values 
+.BR OREAD ,
+.BR OWRITE ,
+and
+.BR ORDWR ,
+.B omode
+can contain the various flags permissible in
+an open call.
+To ignore the flags, use
+.BR omode&OMASK .
+.B Omode
+should not be changed by the client.
+.B Uid
+contains the name of the user who has authenticated
+in order to obtain this fid.
+.B Qid
+is set to the last 
+qid returned by
+an
+.BR attach ,
+.BR walk ,
+or
+.B open
+function
+.RI  ( q.v. ).
+The
+.B file
+element is explained below.
+The
+.B aux
+element belongs to the client, and
+may be used to store a
+.RB per- Fid
+data pointer.
+.PP
+.B Req
+data structures are allocated one-to-one
+with outstanding 9P requests.
+They contain the tag of the request
+as well as 
+an
+.B aux
+element that may be used by the client
+to store a 
+.BR per- Req
+data pointer (often useful for multithreaded servers).
+.PP
+The
+.B File
+and
+.B Tree
+structures provide an in-memory file hierarchy
+that can be used to handle stat, walk, and open requests.
+If being used, the library will keep the
+.BR Fid 's
+.B file
+element pointing at the appropriate 
+.B File
+structure 
+as it is walked over the tree.
+As with the other structures,
+the
+.B aux
+element may be used by the client
+to store a
+.RB per- File
+data pointer.
+.PP
+The 
+.BR Fid ,
+.BR File ,
+and
+.B Req
+structures are garbage collected by reference counting,
+so that (for example) clunking a fid will not
+free it while another request using that fid is still pending.
+.PP
+When creating a new reference by copying a pointer, the count should
+be incremented with
+.IR incref .
+When a
+.B Fid
+is collected, the 
+.B clunkaux
+function of the
+.B Srv
+structure (described below) is called
+to collect the pointer stored in 
+.BR aux .
+Similarly, when a 
+.B File
+is collected, the
+.B rmaux
+function in the
+.B Tree
+structure is called to claim the
+.B aux
+pointer.
+No such function is called when
+collecting a 
+.B Req
+structure: the
+.B aux
+pointer should be removed before
+calling
+.I respond
+(described below).
+To destroy a reference to a 
+.BR Fid ,
+.BR File ,
+or
+.BR Req ,
+call
+.IR closefid ,
+.IR fclose ,
+or
+.IR closereq ,
+respectively.
+.PP
+.I Mktree
+creates a new file tree whose root has
+owner
+.BR uid ,
+group
+.BR gid ,
+and
+permissions
+.BR perm .
+It returns a reference to that file.
+.I Fcreate
+creates and returns a reference to a new file called
+.B name
+in the directory
+.BR dir .
+The file is owned by
+user
+.BR uid ,
+group
+.BR gid ,
+and
+has permissions
+.BR perm .
+If a file of the same name already exists
+in the directory, 
+.B fcreate
+returns zero.
+Otherwise it returns a pointer to the newly
+created
+.B File
+structure.
+.I Fremove
+removes 
+.B file
+from its directory.
+If
+.B file
+is itself a directory 
+that is not empty or is the root, 
+it is not removed, and
+.I fremove
+returns \-1.
+Otherwise 
+.I fremove
+returns zero.
+If removing the file from its directory
+causes the reference count to go to zero,
+the file is collected and
+.B rmaux
+is called.
+.I Fwalk
+returns a new reference to the
+.B File
+named
+.B name
+in the directory
+.BR dir .
+If no such file exists, it returns zero.
+It does not decrement 
+.BR dir 's
+reference count.
+.I Fdirread
+fills
+.B buf
+with at most
+.B n
+bytes of 
+entries from the
+directory 
+.B dir
+beginning at offset
+.BR offset .
+Note that the use of file trees is not required;
+it is provided as a convenience.
+.PP
+To start a file server, one must fill in a 
+.B Srv
+structure with pointers to the functions satisfying
+9P requests.
+As explained below, in almost all cases,
+using a nil function pointer results in 
+sensible default behavior.
+If the
+.B tree
+pointer is non-zero, that file tree is used as described below.
+Calling
+.B srv
+with such a structure
+and a file descriptor
+causes it to serve 9P on that
+file descriptor.  It does not return
+until the 9P conversation terminates.
+In contrast,
+.B postmountsrv
+forks off a 9P server and returns.
+Before returning, if 
+.B srvname
+is not zero, the service
+is posted in
+.B /srv/srvname
+(see 
+.IR srv (3)).
+If 
+.B mtpt 
+is not zero, the service
+is mounted at
+.B mtpt
+with mount flag
+.BR flag .
+.I Threadpostmountsrv
+is similar but intended for use in 
+programs that use the 
+.IR thread (2)
+library for process creation.
+.PP
+The functions registered in the
+.B Srv
+structure must conform to the following
+requirements.
+The first argument of each function
+is a pointer to a 
+.B Req
+that provides context to the
+library for responding to the request.
+If a function is provided, 
+it
+.I must
+arrange for
+.I respond
+to be called when the request is satisfied.
+The first argument to
+.I respond
+should
+be the 
+.B Req
+pointer; the
+second is an error string.
+If the request was satisfied successfully, the
+error string should be a nil pointer.
+Note that it is permissible for a function to return
+without calling
+.IR respond ,
+as long as it has arranged for
+.IR respond
+to be called at some point in the future,
+perhaps by another proc sharing its address space, but
+see
+the discussion of
+.B flush
+below.
+Once 
+.I respond
+has been called, the function's pointer arguments must not
+be dereferenced, as they may point at freed memory.
+.PP
+If the library detects an error in a request (e.g.,
+an attempt to reuse an extant fid, an open of an
+already open fid, a read from a fid opened for write),
+it will reply with an error
+without consulting any of the registered functions.
+.PP
+The
+.B session
+function should fill  
+.BR id ,
+.BR dom ,
+and
+.B chal 
+with the authentication id and domain of the server,
+and a challenge, as described in
+.IR attach (5).
+Before calling
+.BR session ,
+the library zeros these fields.
+Leaving any or all of them zero is permissible.
+.B Session
+may be nil, indicating no authentication information.
+.PP
+The
+.B attach
+function should check authentication information
+if desired, and fill in 
+.B qid
+with the qid of the file system root.
+.B Attach
+may be nil only if file trees are being used,
+in which case the qid will be filled in from
+the tree, and no authentication will be done.
+.PP
+When a fid is cloned, the library simply
+copies the
+.B aux
+pointer from the old
+.B Fid
+to create the new one.
+If further processing is desired,
+a non-nil
+.B clone
+function will be called after this copying 
+has been done.
+A typical use of this function might be to
+increment a reference count in the structure
+pointed at by
+.BR aux .
+.PP
+When not nil, the
+.B clunk
+function is called whenever a fid is clunked.
+Typically it takes care of freeing up the resource
+pointed at by
+.BR aux .
+Note that as per
+.IR clunk (5),
+the 
+.B Fid
+will be freed regardless of whether
+.B respond
+is called with an error, so 
+the 
+.B clunk
+function should 
+.I always
+perform the necessary cleanup of
+.BR aux .
+.PP
+If file trees are being used, 
+the 9P server will react to a walk message by
+attempting to walk the 
+.BR Fid 's
+.BR file .
+If this fails, a ``file not found'' error is sent back.
+Otherwise the
+.BR Fid 's
+.B file
+and
+.B qid 
+elements are updated.
+If file trees are in use, the
+.B walk
+function is never called.
+If file trees are not in use, 
+a 
+.B walk
+function
+.I must
+be provided.
+.PP
+Clwalk messages are translated by the library into
+a clone followed (when successful) by a walk; the
+library's client need not worry about them.
+.PP
+If file trees are being used, the file metadata will
+be consulted on open, create, and remove to see if the requester
+has the appropriate permissions.  If not, an error
+will be sent back without calling a registered function.
+.PP
+If file trees are not in use or the user has the appropriate
+permissions, 
+.B open
+is called with the fid being opened,
+the open mode, and a pointer to a qid to be filled in.
+The qid defaults to the one stored in the
+.B fid 
+structure.
+If file trees are not in use, an
+.B open
+function
+.I must
+be provided.
+.PP
+The
+.B create
+function is passed the
+.B fid 
+for the current directory, as well as the
+name, mode, and permissions for the file to
+be created.
+It must fill in the 
+.B qid 
+on success, and must allocate the new 
+.B File
+with
+.I fcreate
+when file trees are in use.
+Note that the 
+.B create
+function must allow
+for the possibility of
+.I fcreate
+returning nil.
+If
+.B create 
+is nil, a ``creation disallowed'' error
+will be sent instead.
+.PP
+The
+.B remove
+function is called on a request to 
+remove the file associated with a 
+.BR Fid .
+If using file trees, 
+.B remove
+must call
+.I fremove
+itself.
+If
+.B remove
+is nil, a
+``remove disallowed'' error
+will be sent instead.
+The library correctly detects 9P requests on 
+removed files (via other fid references), and returns
+appropriate errors.
+.PP
+The
+.B read
+function must be provided;
+it fills
+.B buf
+with at most
+.B *n
+bytes of data from offset
+.B offset
+of the file.
+It also sets
+.B *n 
+to the number of bytes being returned.
+If using file trees, the library will handle reads of
+directories:
+.B read
+will only be called for requests on files.
+.PP
+The
+.B write
+function is similar, but need not be provided:
+a ``write disallowed'' message will be sent if 
+.B write
+is nil.
+Otherwise, 
+.B write
+should attempt to write the 
+.B *n
+bytes of
+.B buf
+to offset
+.B offset
+of the file,
+leaving in
+.B *n
+the number of bytes actually written.
+.PP
+The 
+.B stat
+function should fill in 
+.B dir
+with the stat info for 
+.BR fid .
+If using file trees, 
+.B dir
+will be initialized with the stat info
+from the tree, and 
+.B stat 
+itself may be nil.
+.PP
+The
+.B wstat 
+function takes a fid and a
+new
+.B Dir
+structure for it,
+as well as a bitmask specifying which fields to update.
+Other fields in the 
+.B Dir
+structure should be ignored.
+If using file trees and
+.B wstat
+is successful, the corresponding file's 
+.B Dir
+structure will be updated.
+It is permissible for 
+.B wstat
+to be nil, in which case all wstats will fail
+with the error message ``wstat disallowed''.
+.PP
+The 
+.B flush
+function is called to cancel the outstanding request
+.BR oldreq .
+In single-threaded servers, it is safe to not supply
+such a function.
+In multithreaded servers, the client must guarantee
+that once
+.B respond
+has been called for
+.BR req ,
+.B respond
+will 
+.I not
+be called for
+.BR oldreq .
+.PP
+The actual 9P service loop provided by
+.I srv
+(and indirectly by
+.I postmountsrv
+and
+.IR threadpostmountsrv )
+is a single thread of execution.
+If it is expected that some requests might block,
+arranging for alternate processes is suggested.
+.SS Implementation
+.PP
+The rest of the text of this manual page describes the structures
+used to implement the library.
+This is useful for some applications, but most users need not
+concern themselves with it.
+.PP
+The library uses internally the functions
+.BR _lib9p_emalloc ,
+.BR _lib9p_erealloc ,
+and
+.BR _lib9p_estrdup ,
+which are like 
+.BR malloc ,
+.BR realloc ,
+and
+.BR strdup ,
+but call
+.IR abort (2)
+rather than returning zero on error.
+If alternate behavior is desired, one can
+link against replacements for all three.
+.PP
+An
+.B Intmap
+is a arbitrary mapping from 
+integers to pointers.
+.I Allocmap
+creates a new one,
+and
+.I freemap
+destroys it.
+New entries are added to the map by calling
+.BR insertkey ,
+which will return the previous value associated
+with the given 
+.BR id ,
+or zero if there was no previous value.
+Before inserting the value, the
+.B inc
+function used when creating the map
+is called with the new value; typically this
+increments a reference count to reflect the creation
+of the new reference held by the map.
+.I Caninsertkey
+is similar, but only inserts the entry if no
+entry for
+.B id
+already exists.
+It returns 1 if the entry was inserted,
+and 0 otherwise.
+.I Lookupkey
+returns the pointer associated with
+.BR id ,
+or zero if there is no such pointer.
+As with the insertion routines,
+.B inc
+is called on the pointer before it is returned.
+The reference count must be incremented by
+these routines rather than their callers to avoid
+the entry being deleted between function return
+and reference increment.
+.I Deletekey
+removes the entry for
+.B id
+from the map, returning the associated pointer, if any.
+.PP
+.BR Intmap s
+are used to implement
+.BR Fidpool s
+and
+.BR Reqpool s,
+which are allocation pools for
+.BR Fid s
+and
+.BR Req s.
+.I Allocfidpool 
+creates a new fid pool, and
+.I freefidpool
+destroys one.
+.I Allocfid
+returns a reference to a new
+.B Fid
+structure with identifier 
+.BR f .
+If a structure with that identifier has
+already been allocated,
+.I allocfid
+returns zero.
+.I Closefid
+destroys a reference to a 
+.B Fid
+but leaves it allocated.
+.I Freefid
+deallocates a 
+.B Fid
+and destroys the passed reference.
+When the reference count goes to zero, 
+.B clunkaux
+will be called on that particular
+.B Fid
+structure.
+.I Lookupfid
+returns a reference to the
+.B Fid 
+structure identified with
+.BR f ,
+or zero if there is no such structure.
+.PP
+.IR Allocreqpool ,
+.IR freereqpool ,
+.IR allocreq ,
+.IR closereq ,
+.IR freereq ,
+and
+.IR lookupreq
+behave similarly, manipulating request pools.
+.SH EXAMPLES
+The file servers
+.IR archfs (4),
+.IR cdfs (4),
+.IR snap (4),
+and 
+.I aux/olefs
+(see
+.IR doc2txt (1))
+are examples of simple single-threaded file servers
+written using this library.
+Unlike the others,
+.I cdfs 
+does not use the
+.B File
+interface but instead creates its
+directory entries on the fly.
+.SH SOURCE
+.B /sys/src/lib9p
+.SH SEE ALSO
+.IR srv (3),
+.IR intro (5)
+.SH BUGS
+The library is new and not particularly well exercised; send bug reports to
+.BR rsc@plan9.bell-labs.com .

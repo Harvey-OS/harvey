@@ -1,0 +1,949 @@
+<html>
+<head>
+<title>Aladdin's C coding guidelines</title>
+<!-- $Id: C-style.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
+<!-- Originally: c-style.txt -->
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<table width="100%" border="0">
+<tr><th align="center" bgcolor="#CCCC00"><font size=6>
+Aladdin's C coding guidelines
+</font>
+</table>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<h2>Table of contents</h2>
+
+<blockquote><ul>
+<li><a href="#Summary">Summary of the coding guidelines</a>
+<ul>
+<li><a href="#Summary_preprocessor">Preprocessor</a>
+<li><a href="#Summary_types">Types and scopes</a>
+<li><a href="#Summary_formatting">Formatting</a>
+<li><a href="#Summary_miscellany">Miscellany</a>
+</ul>
+<li><a href="#Introduction">Introduction</a>
+<li><a href="#C_features">Use of C language features</a>
+<ul>
+<li><a href="#Preprocessor">Preprocessor</a>
+<ul>
+<li><a href="#Conditionals">Conditionals</a>
+<li><a href="#Macros">Macros</a>
+</ul>
+<li><a href="#Types_declarations">Types and declarations</a>
+<ul>
+<li><a href="#Pointers_structures">Pointers and structures</a>
+<li><a href="#Scalars">Scalars</a>
+</ul>
+<li><a href="#Static_extern_scoping"><b><tt>static</tt></b> and <b><tt>extern</tt></b> scoping</a>
+<li><a href="#Other">Miscellany</a>
+</ul>
+<li><a href="#File_structuring_naming">File structuring and naming</a>
+<ul>
+<li><a href="#All_files">All files</a>
+<li><a href="#Makefiles">Makefiles</a>
+<li><a href="#C_code_generally">C code in general</a>
+<ul>
+<li><a href="#Headers">Headers (<b><tt>.h</tt></b> files)</a>
+<li><a href="#Executable_code">Executable code (<b><tt>.c</tt></b> files)</a>
+</ul>
+</ul>
+<li><a href="#Formatting">Formatting</a>
+<ul>
+<li><a href="#Indentation">Indentation</a>
+<li><a href="#Spaces">Spaces</a>
+<li><a href="#Parentheses">Parentheses</a>
+</ul>
+<li><a href="#Naming">Naming</a>
+<ul>
+<li><a href="#General_naming">General rules</a>
+<li><a href="#Conventional_names">Names used by convention</a>
+<ul>
+<li><a href="#code"><b><tt>code</tt></b></a>
+<li><a href="#status"><b><tt>status</tt></b></a>
+</ul>
+</ul>
+<li><a href="#Miscellany">Miscellany</a>
+<ul>
+<li><a href="#Single_use_procedures">Single-use procedures</a>
+<li><a href="#Local_variables">Local variables</a>
+<li><a href="#Error_handling">Error handling</a>
+<li><a href="#Compiler_warnings">Compiler warnings</a>
+</ul>
+</ul></blockquote>
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>
+For other information, see the <a href="Readme.htm">Ghostscript
+overview</a>.
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<h1><a name="Summary"></a>Summary of the coding guidelines</h1>
+
+<h2><a name="Summary_preprocessor"></a>Preprocessor</h2>
+
+<ul>
+<li>Use preprocessor conditionals that test for individual platforms or
+compilers, if necessary, only in header files named xxx<b><tt>_.h</tt></b>.
+
+<li>Don't define a macro if you can do it with a procedure.
+
+<li>Use
+
+<blockquote><b><tt>
+gx_device_fubar&nbsp;*&nbsp;const&nbsp;fdev&nbsp;=&nbsp;(gx_device_fubar&nbsp;*)dev;
+</tt></b></blockquote>
+
+<p>
+rather than
+
+<blockquote><b><tt>
+#define&nbsp;fdev&nbsp;((gx_device_fubar&nbsp;*)dev)
+</tt></b></blockquote>
+
+<li>Put <b><tt>()</tt></b> around the body of expression-macro definitions,
+and around each use of an argument.
+
+<li>Make all variables referenced in a macro body arguments of the macro.
+</ul>
+
+<h2><a name="Summary_types"></a>Types and scopes</h2>
+
+<ul>
+
+<li>Use <b><tt>const</tt></b> for pointer referents (that is,
+<b><tt>const&nbsp;T&nbsp;*</tt></b>) wherever possible.
+
+<li>Use unions or (less preferably) casts in preference to
+<b><tt>void&nbsp;*</tt></b>.
+
+<li>Don't use anonymous structures or unions.
+
+<li>Don't declare procedure parameters of type <b><tt>float</tt></b>,
+<b><tt>short</tt></b>, or <b><tt>char</tt></b>.
+
+<li>Never explicitly cast <b><tt>float</tt></b> to <b><tt>double</tt></b>.
+
+<li>Use "<b><tt>private</tt></b>" instead of "<b><tt>static</tt></b>" at
+the top level of a file.
+
+<li>Don't create any new non-<b><tt>const</tt></b> static variables.
+
+<li>Put externs in <b><tt>.h</tt></b> files, not <b><tt>.c</tt></b> files.
+</ul>
+
+<h2><a name="Summary_formatting"></a>Formatting</h2>
+
+<ul>
+
+<li><b><tt>gsindent</tt></b> (GNU <b><tt>indent</tt></b> + fixup script)
+will do 98% of the job for you.
+
+<li>Put indentation points every 4 spaces, with 8 spaces = 1 tab stop.
+
+<li>"<b><tt>{</tt></b>" should always be the last non-blank character on
+its line (except for comments); "<b><tt>}</tt></b>" should always be the
+first non-blank on its line.
+
+<li>Use spaces after comma ("<b><tt>,</tt></b>") and semicolon
+("<b><tt>;</tt></b>"), around binary operators, and on both sides of the
+parentheses for <b><tt>if</tt></b>, <b><tt>for</tt></b>, and
+<b><tt>while</tt></b>, and nowhere else.
+
+<li>Use parentheses only when mixing <b><tt>&amp;&amp;</tt></b> and
+<b><tt>||</tt></b>, when mixing <b><tt>&amp;</tt></b>, <b><tt>|</tt></b>
+and shifts with each other or other operators, and around
+"<b><tt>?&nbsp;:</tt></b>" expressions.
+</ul>
+
+<h2><a name="Summary_miscellany"></a>Miscellany</h2>
+
+<ul>
+
+<li>Use <b><tt>#include</tt></b> statements in the order
+<ol>
+<li><b><tt>*_.h</tt></b>
+<li><b><tt>gs*.h</tt></b>
+<li><b><tt>gx*.h</tt></b>
+<li><b><tt>s*.h</tt></b>
+<li><b><tt>i*.h</tt></b>
+</ol>
+
+<li>In names use full words rather than contractions, and don't run words
+together.
+
+<li>Don't assign new values to procedure parameters.
+
+<li>Initialize local variables when they are declared.
+</ul>
+
+<hr>
+
+<h1><a name="Introduction"></a>Introduction</h1>
+
+<p>
+The many rules that Ghostscript's code follows almost everywhere are meant
+to produce code that is easy to read.  It's important to observe them as
+much as possible in order to maintain a consistent style, but if you find a
+rule getting in your way or producing ugly-looking results once in a while,
+it's OK to break it.
+
+<hr>
+
+<h1><a name="C_features"></a>Use of C language features</h1>
+
+<h2><a name="Preprocessor"></a>Preprocessor</h2>
+
+<h3><a name="Conditionals"></a>Conditionals</h3>
+
+<p>
+Using preprocessor conditionals can easily lead to unreadable code, since
+the eye really wants to read linearly rather than having to parse the
+conditionals just to figure out what code is relevant.  It's OK to use
+conditionals that have small scope and that don't change the structure or
+logic of the program (typically, they select between different sets of
+values depending on some configuration parameter), but where possible, break
+up source modules rather than use conditionals that affect the structure or
+logic.
+
+<p>
+In <b><tt>.c</tt></b> files don't use preprocessor conditionals that test
+for individual platforms or compilers.  Use them only in header files named
+xxx<b><tt>_.h</tt></b>.
+
+<h3><a name="Macros"></a>Macros</h3>
+
+<p>
+Ghostscript code uses macros heavily to effectively extend the rather
+weak abstraction capabilities of the C language, specifically in the area of
+memory management and garbage collection: in order to read Ghostscript code
+effectively, you simply have to learn some of these macros as though they
+were part of the language.  The current code also uses macros heavily for
+other purposes, but we are trying to phase these out as rapidly as possible,
+because they make the code harder to read and debug, and to use the
+rules that follow consistently in new code.
+
+<p>
+Define macros in the smallest scope you can manage (procedure, file, or
+<b><tt>.h</tt></b> file), and <b><tt>#undef</tt></b> them at the end of
+that scope: that way, someone reading the code can see the definitions
+easily when reading the uses.  If that isn't appropriate, define them in as
+large a scope as possible, so that they effectively become part of the
+language.  This places an additional burden on the reader, but it can be
+amortized over reading larger amounts of code.
+
+<p>
+Try hard to use procedures instead of macros.  Use "<b><tt>inline</tt></b>"
+if you really think the extra speed is needed, but only within a
+<b><tt>.c</tt></b> file: don't put inline procedures in <b><tt>.h</tt></b>
+files, because most compilers don't honor "<b><tt>inline</tt></b>" and
+you'll wind up with a copy of the procedure in every <b><tt>.c</tt></b>
+file that includes the <b><tt>.h</tt></b> file.
+
+<p>
+Don't use macros to define shorthands for casted pointers.  For instance,
+avoid
+
+<blockquote><b><tt>
+#define fdev ((gx_device_fubar *)dev)
+</tt></b></blockquote>
+
+<p>
+and instead use
+
+<blockquote><b><tt>
+gx_device_fubar * const fdev = (gx_device_fubar *)dev;
+</tt></b></blockquote>
+
+<p>
+The use of <b><tt>const</tt></b> alerts the reader that this is effectively
+a synonym.
+
+<p>
+If you define a macro that looks like a procedure, make sure it will work
+wherever a procedure will work.  In particular, put parentheses around every
+use of an argument within the macro body, so that the macro will parse
+correctly if some of the arguments are expressions, and put parentheses
+around the entire macro body.  (This is still subject to the problem that an
+argument may be evaluated more than once, but there is no way around this in
+C, since C doesn't provide for local variables within expressions.)
+
+<p>
+If a macro generates anything larger than a single expression (that is, one
+or more statements), surround it with <b><tt>BEGIN</tt></b> and
+<b><tt>END</tt></b>.  These work around the fact that simple statements and
+compound statements in C can't be substituted for each other syntactically.
+
+<p>
+If you define macros for special loop control structures, make their uses
+look somewhat like ordinary loops, for instance:
+
+<blockquote>
+<b><tt>BEGIN_RECT(xx, yy) {</tt></b><br>
+&nbsp;&nbsp;... body indented one position ...<br>
+<b><tt>} END_RECT(xx, yy);</tt></b>
+</blockquote>
+
+<p>
+If at all possible, don't use free variables in macros -- that is, variables
+that aren't apparent as arguments of the macro.  If you must use free
+variables, list them all in a comment at the point where the macro is
+defined.
+
+<p>
+Preferably <b><tt>CAPITALIZE</tt></b> macro names.
+
+<h2><a name="Types_declarations"></a>Types and declarations</h2>
+
+<h3><a name="Pointers_structures"></a>Pointers and structures</h3>
+
+<p>
+Use <b><tt>const</tt></b> for pointer referents (that is,
+<b><tt>const&nbsp;T&nbsp;*</tt></b>) wherever possible and appropriate.
+Don't bother using it for anything else, except as described above for
+casted pointers.
+
+<p>
+If you find yourself wanting to use <b><tt>void&nbsp;*</tt></b>, try to
+find an alternative using unions or (in the case of super- and subclasses)
+casts, unless you're writing something like a memory manager that really
+treats memory as opaque.
+
+<p>
+Don't use anonymous structures if you can possibly avoid it, except perhaps
+as components of other structures.  Ideally, use the
+"<b><tt>struct</tt></b>" keyword only for declaring named structure types,
+like this:
+
+<blockquote>
+<b><tt>typedef struct xxx_yyy_s {</tt></b><br>
+&nbsp;&nbsp;&nbsp;... members ...<br>
+<b><tt>} xxx_yyy_t;</tt></b>
+</blockquote>
+
+<p>
+Many older structure names don't have <b><tt>_t</tt></b> on the end, but it
+should be used in all new code.  (The <b><tt>_s</tt></b> name is needed
+only to satisfy some debuggers.  No code should use it.)
+
+<p>
+If a procedure parameter is itself a procedure, do list its
+parameter types rather than just using <b><tt>()</tt></b>.  For example,
+
+<blockquote><b><tt>
+int foo(P1(int (*callback)(P2(int, int))));
+</tt></b></blockquote>
+
+<p>
+rather than just
+
+<blockquote><b><tt>
+int foo(P1(int (*callback)()));
+</tt></b></blockquote>
+
+<h3><a name="Scalars"></a>Scalars</h3>
+
+<p>
+Don't declare parameters as being of type <b><tt>float</tt></b>,
+<b><tt>short</tt></b>, or <b><tt>char</tt></b>.  If you do this and forget
+to include the prototype at a call site, ANSI compilers will generate
+incompatible calling sequences.  Use <b><tt>floatp</tt></b> (a synonym for
+<b><tt>double</tt></b>, mnemonic for "float parameter") instead of
+<b><tt>float</tt></b>, and use <b><tt>int</tt></b> or <b><tt>uint</tt></b>
+instead of <b><tt>short</tt></b> or <b><tt>char</tt></b>.
+
+<p>
+ANSI compilers in their default mode do all floating point computations in
+double precision, so never cast a <b><tt>float</tt></b> to a
+<b><tt>double</tt></b> explicitly.
+
+<p>
+
+Unless there's a good reason for doing otherwise, return
+<b><tt>floatp</tt></b> (<b><tt>double</tt></b>) rather than
+<b><tt>float</tt></b> values.  Floating point hardware often does everything
+in double precision internally and has to do extra work to convert between
+double and single precision.
+
+<h2><a name="Static_extern_scoping"></a>Static and extern scoping</h2>
+
+<p>
+Use "<b><tt>private</tt></b>" instead of "<b><tt>static</tt></b>" for
+constructs (procedures and variables) declared at the outermost scope of a
+file.  This allows making such constructs either visible or invisible to
+profilers with a single changed <b><tt>#define</tt></b>.
+
+<p>
+Don't create any new non-<b><tt>const</tt></b> static variables (whether
+exported or local to a file): they are incompatible with reentrancy, and
+we're in the process of eliminating all of them.
+
+<p>
+Avoid <b><tt>static const</tt></b> data, but don't knock yourself out over
+it, especially if it's local to a file.
+
+<p>
+Avoid <b><tt>extern</tt></b> in <b><tt>.c</tt></b> files: put it in header
+files.
+
+<h2><a name="Other"></a>Miscellany</h2>
+
+<p>
+The most important descriptive comments are ones in header files that
+describe structures, including invariants; but every procedure or structure
+declaration, or group of other declarations, should have a comment.  Don't
+spend a lot of time commenting executable code unless something unusual or
+subtle is going on.
+
+<p>
+In older code, calling a variable or parameter procedure always used
+explicit indirection, for instance, <b><tt>(*ptr-&gt;func)(...)</tt></b>
+rather than <b><tt>ptr-&gt;func(...)</tt></b>.  Since all current compilers
+accept the latter form, use it in new code.
+
+<p>
+Don't write expressions that depend on order of evaluation, unless the order
+is created explicitly by use of <b><tt>||</tt></b>,
+<b><tt>&amp;&amp;</tt></b>, <b><tt>?:</tt></b>, <b><tt>,</tt></b>, or
+function nesting (the arguments of a function must be evaluated before the
+function is called).  In particular, don't assume that the arguments of a
+function will be evaluated left-to-right, or that the left side of an
+assignment will be evaluated before the right.
+
+<hr>
+
+<h1><a name="File_structuring"></a>File structuring</h1>
+
+<h2><a name="All_files"></a>All files</h2>
+
+<p>
+Keep file names within the "8.3" format for portability
+(the "long file name" facilities of MS Windows are a hack that sometimes
+doesn't work properly with code written by parties other than Microsoft):
+<ul>
+<li>Use only letters, digits, dash, and underscore in file names.
+<li>Don't assume upper and lower case letters are distinct.
+<li>Put no more than 8 characters before the ".", if any.
+<li>If there is a ".", put between 1 and 3 characters after the ".".
+</ul>
+
+<p>
+For files other than documentation files, use only lower case letters
+in the names; for HTML documentation files, capitalize the first letter.
+
+<p>
+Every code file should start with comments containing
+
+<ol>
+<li>a copyright notice,
+<li>the name of the file in the form of an RCS Id:
+
+<blockquote><b><tt>
+/*Id$: filename.ext $*/
+</tt></b></blockquote>
+
+<p>
+(using the comment convention appropriate to the language of the file), and
+
+<li>a summary, no more than one line, of what the file contains.
+</ol>
+
+<p>
+If you create a file by copying the beginning of another file, be sure to
+update the copyright year and change the file name.
+
+<h2><a name="Makefiles"></a>Makefiles</h2>
+
+<p>
+Use the extension <b><tt>.mak</tt></b> for makefiles.
+
+<p>
+For each
+
+<blockquote><b><tt>
+#include "xxx.h"
+</tt></b></blockquote>
+
+<p>
+make sure there is a dependency on <b><tt>$(xxx_h)</tt></b> in the
+makefile.  If xxx ends with a "<b><tt>_</tt></b>", this rule still holds,
+so that if you code
+
+<blockquote><b><tt>
+#include "math_.h"
+</tt></b></blockquote>
+
+<p>
+the makefile must contain a dependency on "<b><tt>$(math__h)</tt></b>"
+(note the two underscores "<b><tt>__</tt></b>").
+
+<p>
+List the dependencies bottom-to-top, like the <b><tt>#include</tt></b>
+statements themselves; within each level, list them alphabetically.  Do
+this also with <b><tt>#include</tt></b> statements themselves whenever
+possible (but sometimes there are inter-header dependencies that require
+bending this rule).
+
+<p>
+For compatibility with the build utilities on OpenVMS, always put a space
+before the colon that separates the target(s) of a rule from the dependents.
+
+<h2><a name="C_code_generally"></a>C code in general</h2>
+
+<p>
+List <b><tt>#include</tt></b> statements from "bottom" to "top", that is,
+in the following order:
+
+<blockquote><ol>
+<li>System includes (<b><tt>"xxx_.h"</tt></b>)
+<li><b><tt>gs*.h</tt></b>
+<li><b><tt>gx*.h</tt></b> (yes, <b><tt>gs</tt></b> and <b><tt>gx</tt></b>
+are in the wrong order.)
+<li><b><tt>s*.h</tt></b>
+<li><b><tt>i*.h</tt></b> (or other interpreter headers that don't start
+with "<b><tt>i</tt></b>")
+</ol></blockquote>
+
+<h3><a name="Headers"></a>Headers (<b><tt>.h</tt></b> files)</h3>
+
+<p>
+In header files, always use the following at the beginning of a header file
+to prevent double inclusion:
+
+<blockquote>
+{{ Copyright notice etc. }}<br><br>
+
+<b><tt>#ifndef </tt></b>&lt;filename&gt;<b><tt>_INCLUDED</tt></b><br>
+<b><tt>#define </tt></b>&lt;filename&gt;<b><tt>_INCLUDED</tt></b><br><br>
+
+{{ The contents of the file }}<br><br>
+
+<b><tt>#endif /* </tt></b>&lt;filename&gt;<b><tt>_INCLUDED */</tt></b>
+</blockquote>
+
+<p>
+The header file is the first place that a reader goes for
+information about procedures, structures, constants, etc., so ensure that
+every procedure and structure has a comment that says what it does.  Divide
+procedures into meaningful groups set off by some distinguished form of
+comment.
+
+<h3><a name="Executable_code"></a>Executable code (<b><tt>.c</tt></b> files)</h3>
+
+<p>
+After the initial comments, arrange C files in the following order:
+
+<blockquote><ol>
+<li><b><tt>#include</tt></b> statements
+<li>Exported data declarations
+<li>Explicit externs (if necessary)
+<li>Forward declarations of procedures
+<li>Private data declarations
+<li>Exported procedures
+<li>Private procedures
+</ol></blockquote>
+
+<p>
+Be flexible about the order of the declarations if necessary to improve
+readability.  Many older files don't follow this order, often without good
+reason.
+
+<hr>
+
+<h1><a name="Formatting"></a>Formatting</h1>
+
+<h2><a name="Indentation"></a>Indentation</h2>
+
+<p>
+We've formatted all of our code using the GNU <b><tt>indent</tt></b> program.
+
+<blockquote><b><tt>
+indent&nbsp;-bad&nbsp;-nbap&nbsp;-nsob&nbsp;-br&nbsp;-ce&nbsp;-cli4&nbsp;-npcs&nbsp;-ncs&nbsp;\<br>
+&nbsp;&nbsp;&nbsp;-i4&nbsp;-di0&nbsp;-psl&nbsp;-lp&nbsp;-lps&nbsp;somefile.c
+</tt></b></blockquote>
+
+<p>
+does a 98% accurate job of producing our preferred style.  Unfortunately,
+there are bugs in all versions of GNU <b><tt>indent</tt></b>, requiring
+both pre- and post-processing of the code.  The <b><tt>gsindent</tt></b>
+script in the Ghostscript fileset contains the necessary workarounds.
+
+<p>
+Put indentation points every 4 spaces, with 8 spaces = 1 tab stop.
+
+<p>
+Indent in-line blocks thus:
+
+<blockquote>
+<b><tt>{</tt></b><br>
+&nbsp;&nbsp;&nbsp;... declarations ...<br>
+&nbsp;&nbsp;&nbsp;{{ blank line if any declarations above }}<br>
+&nbsp;&nbsp;&nbsp;... statements ...<br>
+<b><tt>}</tt></b>
+</blockquote>
+
+<p>
+Similarly, indent procedures thus:
+
+<blockquote>
+return_type<br>
+proc_name(... arguments ...)<br>
+<b><tt>{</tt></b><br>
+&nbsp;&nbsp;&nbsp;... declarations ...<br>
+&nbsp;&nbsp;&nbsp;{{ blank line if any declarations above }}<br>
+&nbsp;&nbsp;&nbsp;... statements ...<br>
+<b><tt>}</tt></b>
+</blockquote>
+
+<p>
+If a control construct (<b><tt>if</tt></b>, <b><tt>do</tt></b>,
+<b><tt>while</tt></b>, or <b><tt>for</tt></b>) has a one-line body, use
+this:
+
+<blockquote>
+... control construct ...<br>
+&nbsp;&nbsp;&nbsp;... subordinate simple statement ...
+</blockquote>
+
+<p>
+If it has a multi-line body, use this:
+
+<blockquote>
+... control construct ... <b><tt>{</tt></b><br>
+&nbsp;&nbsp;&nbsp;... subordinate code ...<br>
+<b><tt>}</tt></b>
+</blockquote>
+
+<p>
+If the subordinate code has declarations, see blocks above.
+
+<p>
+For if-else statements, do this:
+
+<blockquote>
+<b><tt>if (</tt></b> ...<b><tt> ) {</tt></b><br>
+&nbsp;&nbsp;&nbsp;... subordinate code ...<br>
+<b><tt>} else if (</tt></b> ...<b><tt> ) {</tt></b><br>
+&nbsp;&nbsp;&nbsp;... subordinate code ...<br>
+<b><tt>} else {</tt></b><br>
+&nbsp;&nbsp;&nbsp;... subordinate code ...<br>
+<b><tt>}</tt></b>
+</blockquote>
+
+<p>
+When there are more than two alternatives, as in the example above, use the
+above ("parallel") syntax rather than the following ("nested") syntax:
+
+<blockquote>
+<b><tt>if (</tt></b> ...<b><tt> ) {</tt></b><br>
+&nbsp;&nbsp;&nbsp;... subordinate code ...<br>
+<b><tt>} else {</tt></b><br>
+<b><tt>&nbsp;&nbsp;&nbsp;if (</tt></b> ...<b><tt> ) {</tt></b><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... subordinate code ...<br>
+<b><tt>&nbsp;&nbsp;&nbsp;} else {</tt></b><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... subordinate code ...<br>
+<b><tt>&nbsp;&nbsp;&nbsp;}</tt></b><br>
+<b><tt>}</tt></b>
+</blockquote>
+
+<p>
+Similarly, for do-while statements, do this:
+
+<blockquote>
+<b><tt>do {</tt></b><br>
+&nbsp;&nbsp;&nbsp;... body ...<br>
+<b><tt>} while (</tt></b> ... condition ... <b><tt>);</tt></b>
+</blockquote>
+
+<h2><a name="Spaces"></a>Spaces</h2>
+
+<p>
+Do put a space:
+<ul>
+<li>after every comma and semicolon, unless it ends a line;
+<li>around every binary operator, although you can omit the spaces around
+the innermost operator in a nested expression if you like;
+<li>on both sides of the parentheses of an <b><tt>if</tt></b>, <b><tt>for</tt></b>, or <b><tt>while</tt></b>.
+</ul>
+
+<p>
+Don't put a space:
+<ul>
+<li>at the end of a line;
+<li>before a comma or semicolon;
+<li>after unary prefix operators;
+<li>before the parenthesis of a macro or procedure call.
+</ul>
+
+<h2><a name="Parentheses"></a>Parentheses</h2>
+
+<p>
+Parentheses are important in only a few places:
+
+<ul>
+<li>Around the inner subexpressions in expressions that mix
+<b><tt>&amp;&amp;</tt></b> and <b><tt>||</tt></b>, even if they are not
+required by precedence, for example
+
+<blockquote><b><tt>
+(xx &amp;&amp; yy) || zz
+</tt></b></blockquote>
+
+<li>Similarly around inner subexpressions in expressions that mix
+<b><tt>&amp;</tt></b>, <b><tt>|</tt></b>, or shifts, especially if mixing
+these with other operators, for instance
+
+<blockquote><b><tt>
+(x &lt;&lt; 3) | (y &gt;&gt; 5)
+</tt></b></blockquote>
+
+<li>In macro definitions around every use of an argument that logically
+could be an expression, for example
+
+<blockquote><b><tt>
+((x) * (x) + (y) * (y))
+</tt></b></blockquote>
+
+</ul>
+
+<p>
+Anywhere else, given the choice, use fewer parentheses.
+
+<p>
+For stylistic consistency with the existing Ghostscript code, put
+parentheses around conditional expressions even if they aren't
+syntactically required, unless you really dislike doing this.  Note that
+the parentheses should go around the entire expression, not the condition.
+For instance, instead of
+
+<blockquote><b><tt>
+hpgl_add_point_to_path(pgls, arccoord_x, arccoord_y,<br>
+&nbsp;&nbsp;&nbsp;(pgls-&gt;g.pen_down) ? gs_lineto : gs_moveto);
+</tt></b></blockquote>
+
+<p>
+use
+
+<blockquote><b><tt>
+hpgl_add_point_to_path(pgls, arccoord_x, arccoord_y,<br>
+&nbsp;&nbsp;&nbsp;(pgls-&gt;g.pen_down ? gs_lineto : gs_moveto));
+</tt></b></blockquote>
+
+<hr>
+
+<h1><a name="Naming"></a>Naming</h1>
+
+<h2><a name="General_naming"></a>General rules</h2>
+
+<p>
+Use fully spelled-out English words in names, rather than contractions.
+This is most important for procedure and macro names, global variables and
+constants, values of <b><tt>#define</tt></b> and <b><tt>enum</tt></b>,
+<b><tt>struct</tt></b> and other <b><tt>typedef</tt></b> names, and
+structure member names, and for argument and variable names which have
+uninformative types like <b><tt>int</tt></b>.  It's not very important for
+arguments or local variables of distinctive types, or for local index or
+count variables.
+
+<p>
+Avoid names that run English words together:
+"<b><tt>hpgl_compute_arc_center</tt></b>" is better than
+"<b><tt>hpgl_compute_arccenter</tt></b>".  However, for terms drawn from
+some predefined source, like the names of PostScript operators, use a term
+in its well-known form (for instance, <b><tt>gs_setlinewidth</tt></b>
+rather than <b><tt>gs_set_line_width</tt></b>).
+
+<p>
+Procedures, variables, and structures visible outside a single
+<b><tt>.c</tt></b> file should generally have prefixes that indicate what
+subsystem they belong to (in the case of Ghostscript, <b><tt>gs_</tt></b>
+or <b><tt>gx_</tt></b>).  This rule isn't followed very consistently.
+
+<h2><a name="Conventional_names"></a>Names used by convention</h2>
+
+<p>
+The Ghostscript code uses certain names consistently for certain kinds of
+values.  Some of the commonest and least obvious are these two:
+
+<h3><a name="code"></a><b><tt>code</tt></b></h3>
+
+<blockquote>
+A value to be returned from a procedure:
+
+<table cellpadding=0 cellspacing=0>
+<tr valign=top>	<td align=right>&lt; 0
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;
+	<td>An error code defined in <b><tt>gserrors.h</tt></b> (or <b><tt>errors.h</tt></b>)
+<tr valign=top>	<td align=right>0
+	<td>&nbsp;
+	<td>Normal return
+<tr valign=top>	<td align=right>&gt; 0
+	<td>&nbsp;
+	<td>A non-standard but successful return (which must be documented, preferably with the procedure's prototype)
+</table>
+
+</blockquote>
+
+<h3><a name="status"></a><b><tt>status</tt></b></h3>
+
+<blockquote>
+A value returned from a stream procedure:
+
+<table cellpadding=0 cellspacing=0>
+<tr valign=top>	<td align=right>&lt; 0
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;
+	<td>An exceptional condition as defined in <b><tt>scommon.h</tt></b>
+<tr valign=top>	<td align=right>0
+	<td>&nbsp;
+	<td>Normal return (or, from the "<b><tt>process</tt></b>" procedure, means that more input is needed)
+<tr valign=top>	<td align=right>1
+	<td>&nbsp;
+	<td>More output space is needed (from the "<b><tt>process</tt></b>" procedure)
+</table>
+</blockquote>
+
+<hr>
+
+<h1><a name="Miscellany"></a>Miscellany</h1>
+
+<h2><a name="Single_use_procedures"></a>Single-use procedures</h2>
+
+<p>
+In general, don't create procedures that are private and only called from
+one place.  However, if a compound statement (especially an arm of a
+conditional) is too long for the eye easily to match its enclosing braces
+"<b><tt>{...}</tt></b>" -- that is, longer than 10 or 15 lines -- and it
+doesn't use or set a lot of state held in outer local variables, it may be
+more readable if you put it in a procedure.
+
+<h2><a name="Local_variables"></a>Local variables</h2>
+
+<p>
+Don't assign new values to procedure parameters.  It makes debugging very
+confusing when the parameter values printed for a procedure are not the
+ones actually supplied by the caller.  Instead use a separate local
+variable initialized to the value of the parameter.
+
+<p>
+If a local variable is only assigned a value once, assign it that value at
+its declaration, if possible.  For example,
+
+<blockquote>
+<b><tt>int x = </tt></b>some expression <b><tt>;</tt></b>
+</blockquote>
+
+<p>
+rather than
+
+<blockquote>
+<b><tt>int x;</tt></b><br>
+...<br>
+<b><tt>x = </tt></b> some expression <b><tt>;</tt></b>
+</blockquote>
+
+<p>
+Use a local pointer variable like this to "narrow" pointer types:
+
+<blockquote>
+<b><tt>int</tt></b><br>
+someproc(... <b><tt>gx_device *dev</tt></b> ...)<br>
+<b><tt>{<br>
+&nbsp;&nbsp;&nbsp;gx_device_printer *const pdev = (gx_device_printer *)dev;</tt></b><br>
+&nbsp;&nbsp;&nbsp;...<br>
+<b><tt>}</tt></b>
+</blockquote>
+
+<h2><a name="Error_handling"></a>Error handling</h2>
+
+<p>
+Every caller should check for error returns and, in general, propagate them
+to <b>its</b> callers.  By convention, nearly every procedure returns an
+<b><tt>int</tt></b> to indicate the outcome of the call:
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr valign=top>	<td align=right>&lt; 0
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;
+	<td>Error return
+<tr valign=top>	<td align=right>0
+	<td>&nbsp;
+	<td>Normal return
+<tr valign=top>	<td align=right>&gt; 0
+	<td>&nbsp;
+	<td>Non-error return other than the normal case
+</table></blockquote>
+
+<p>
+See the file <b><tt>gserrors.h</tt></b> for
+the error return codes used by the graphics library,
+most of which correspond directly to PostScript error conditions.
+
+<h2><a name="Compiler_warnings"></a>Compiler warnings</h2>
+
+<p>
+The following section refers to the warnings produced by <b><tt>gcc</tt></b>:
+your compiler may produce different ones.
+
+<p>
+It's OK if compilation produces the following warnings:
+
+<ul>
+<li><b><tt>&lt;name&gt; might be used uninitialized in this function</tt></b>
+<li><b><tt>cast discards `const' from pointer target type</tt></b>
+</ul>
+
+<p>
+The first of these often occurs because the compiler isn't aware of control
+flow restrictions that guarantee the variable will be initialized before
+use: if it occurs in new code, check the code carefully, but don't worry
+about the message.  The second is often unavoidable in code that initializes
+or frees a structure that is otherwise <b><tt>const</tt></b> during its
+lifetime.
+<p>
+
+Do work hard to eliminate all warnings other than these,
+since they often indicate the possible presence of coding errors.
+In particular, get rid of warnings about parameter passing or
+initialization that discards <b><tt>const</tt></b>,
+by using explicit casts.
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+<hr>
+
+<font size=2>
+
+<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+
+<p>This file is part of Aladdin Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+Aladdin Ghostscript.
+
+<p>
+Ghostscript version 6.0, 3 February 2000
+
+</font>
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

@@ -1,5 +1,7 @@
 '''\"					coversheet to match version 8/06/87
 '''\"						from comp center 1.30 7/20/87
+'''\"					1/22/97 spacing change in addresses;
+'''\"						email on separate line - mdm
 '''\" registers
 '''\"	a - abstract continuation flag - 0 (no), >0 (yes)
 '''\"	b - mercury selections counter
@@ -54,7 +56,7 @@
 '''\" initialization
 '''\"
 '''\"		get ms if not loaded
-.if !\n(PS .so /sys/lib/tmac/tmac.s
+.if !\n(PS .so /usr/lib/tmac/tmac.s
 .	\" to foil ms
 .if !'\*(d)'' \{\
 .	tm You're trying to load the coversheet macros twice - havoc will result
@@ -170,7 +172,7 @@
 .ds y!
 .ds z!
 '''			\" initialize proprietary notice
-.ds o) "AT&T \(em PROPRIETARY
+.ds o) "Lucent Technologies \(em PROPRIETARY
 .ds p) "Use pursuant to Company Instructions
 .ds q)
 .ds r)
@@ -178,7 +180,7 @@
 .ds MT \v'-0.5m'\s-4TM\s+4\v'0.5m'
 .ds s) 0
 '''			\"initialize csmacro version string
-.ds ve MCSL (07/20/89)
+.ds ve MCSL (07/12/90)
 ....in 0
 '''\"
 '''			\" macros to collect information
@@ -192,18 +194,7 @@
 .br
 .nr aa 0
 .nr TV 1
-.ie !'\\n(.F'<standard input>' \{\
-.	sy timestamp \\n(.F>/tmp/tp\\n($$
-.	so /tmp/tp\\n($$
-.	sy rm /tmp/tp\\n($$
-.	br \}			\" don't remove br - gets around troff bug
-.ie '\\$1'' \{\
-.	ie '\\n(.F'<standard input>' .tm Coversheet not sent to library - input is standard in
-.	el .ie '\\n(.F'-' .tm Coversheet not sent to library - input is standard input
-.	el \{\
-.	nr aa 1
-.	ds x( "Mailing Label \} \}
-.el .ds x( \\s+2DRAFT\\s-2
+.ds x( "Mailing Label \}
 .in 0
 .fi
 .ll 4.25i
@@ -226,30 +217,41 @@
 .	nf
 .	ds d! \\$3
 .	nr m2 \\$3/10 \}
-.ta 0.3i 2.75i 4.0i 5.4i
-.ie !'\\$6'' .ds r) (\\$6)
-.el .ds r)
+.ta 0.3i 3.i 4i 5.5i
 .br
 .ds D\\nu \\$2 \\$3
 .ds \\nuL \\$5, x\\$4
 '''\"					append to author list ZI = mm(aV)
 .da ZI
-	\\$1 \\*(r)	\\$2 \\$5	\\$4	\\$7
+	\\$1	\\$2 \\$5	\\$4	\\$7
 .br
 .da
+.if !'\\$6'' \{\
+.da ZI
+	(\\$6)
+.br
+.da \}
 '''\"					end append; info for signature lines
-.AA \\nu "\\$1" \\$3 \\$2
+.AA \\nu "\\$1" \\$3 \\$2 "\\$4" \\$5 \\$6
 .ta 0.5i 1.0i 1.5i 2.0i 2.5i
 ..
 .de AA
-.ft 3
+.\"ft 3
+.di M\\$1
+\\$2
+.di
 .di A\\$1
 \\$2
+.if !'\\$3'' Org. \\$3
+.if !'\\$4'' \\$4 \\$6
+.if !'\\$5'' \\$5
+.if !'\\$7'' \\$7
+.sp .05i
 .br
 .di
 .ft
 .sy echo \\$2 >/tmp/tt\\n($$
-.sy sed -f /sys/lib/tmac/name.sed /tmp/tt\\n($$ >/tmp/tx\\n($$
+.sy sed -f /usr/lib/tmac/name.sed /tmp/tt\\n($$ >/tmp/tx\\n($$
 .so /tmp/tx\\n($$
 .sy rm /tmp/tx\\n($$ /tmp/tt\\n($$
 .if \\$1<2 .ds T1 \\*(T1-gre
@@ -347,7 +349,7 @@
 .ie \\ns=1 .ds s( S
 .el .ds s(
 .ie \\n(wp=0 \{\
-.	ie '\\$5'' .ds CX 311403-0101
+.	ie '\\$5'' .ds CX 000000-0000
 .	el .ds CX \\$5
 .	ds X1 \\*(CX
 .	nr wp \\n(wp+1 \}
@@ -359,7 +361,7 @@
 .		if \\n(wp=3 .ds X4 \\*(CX
 .		if \\n(wp=4 .ds X5 \\*(CX
 .		nr wp \\n(wp+1
-.		ds x) s\} \}
+.		ds x) s\}\}
 .if !'\\$4'' \{\
 .	ie !\\n(fc=0 \{\
 .		if \\n(fc=1 .ds F2 \\$4
@@ -384,8 +386,16 @@
 .	el ie \\nn<7 .as y! \\l'2.25i'	
 .	el .as z! \\l'2.25i'	
 .	nr n \\n+n \}
+.if !'\\$6'' \{\
+.	ie !\\n(a!=0 \{\
+.		if \\n(a!=1 .as Z1 "	\\$6
+.		if \\n(a!=2 .as Z1 \\$6
+.		nr a! \\n(a!+1 \}
+.	el \{\
+.		ds Z1 "	\\$6
+.		nr a! \\n(a!+1 \} \}
 .el .ds NN
-.ta 0.8i 3.5i 5.75i
+.ta 0.8i 3.5i 5.55i
 .br
 .da ZN				\" ZN = mm(dM fC wO)
 	\\*(NN	\\$4	\\*(CX
@@ -429,7 +439,7 @@
 .		nr b \\n+b \} \}
 .if \\nb=3 .rn b) a)
 ..
-.de RL				\" at&t distribution ok RL = mm(rA or fA)
+.de RL				\" lucent distribution ok RL = mm(rA or fA)
 .if '\\$1'n' .nr ra 2
 .rm RL
 ..
@@ -441,7 +451,7 @@
 .if '\\$1'BP' .nr p 1
 .if '\\$1'BR' \{\
 .	nr p 2
-.	ds o) "AT&T \(em PROPRIETARY (RESTRICTED)
+.	ds o) "Lucent Technologies \(em PROPRIETARY (RESTRICTED)
 .	ds p) "Solely for authorized persons having a need to know
 .	ds q) "     pursuant to Company Instructions \}
 .if '\\$1'0' .nr p 0
@@ -473,7 +483,9 @@
 .br
 .ie \\ne>0 \{\
 .	da ZC				\" ZC = mm(cA)
-.	if '\\$1'y' .so /sys/lib/tmac/complet.1127
+.	ds y( \\$1
+.	ie '\\$1'y' .so /usr/lib/tmac/complet.1127
+.	el .if  !'\\$1'' .so /usr/lib/tmac/complet.\\*(y(
 .	dt \\ne OC \}
 .el .da ZC
 ..
@@ -498,7 +510,9 @@
 .br
 .ie \\nh>0 \{\
 .	da ZS				\" ZS = mm(dA)
-.	if '\\$1'y' .so /sys/lib/tmac/cover.1127
+.	ds y( \\$1
+.	ie '\\$1'y' .so /usr/lib/tmac/cover.1127
+.	el .if !'\\$1'' .so /usr/lib/tmac/cover.\\*(y(
 .	dt \\nh OV \}
 .el .da ZD
 ..
@@ -513,7 +527,7 @@
 .de WW
 .br
 .da
-.ie \\n(dn>0 .nr i (\\n(dn)/\\nl+4
+.if \\n(dn>0 .nr i (\\n(dn)/\\nl+4	\" was ie with no el
 .da DZ
 ..
 .de CE				\" ending all distribution diversions CE = mm(cE)
@@ -548,7 +562,7 @@
 '''\" macros to help format document
 '''\"
 .de HD
-.po .25i
+.po .5i	\"was .25
 .if "\\*(.T"aps" .tl '--''--'
 .sp|0.2i
 ..
@@ -742,12 +756,8 @@ Title:
 	Document Cover Sheet
 .wh 0 HD
 .sp 0.1i
-.ta 0.25i 4.55i
-.ds AZ \f(HBA\h'-.2m'T\h'-.15m'\s-3&\s0\h'-.15m'T\fP
-.ie !'\*(Lb'' \{\
-	\s36\(Lb\s0	\\*(t( \}
-'''\"					put out memorandum type
-.el \t\s36\(L1\s0\v'-.8'\\*(AZ\v'.8'\t\\*(t(
+.ta 0.15i 4.55i
+	\s36\(FA\s0	\\*(t( 
 .ft
 .ps 10
 .HX
@@ -755,14 +765,14 @@ Title:
 .ft 3
 .ie \\nu>1 .ds u) s
 .el .ds u)
-.ta 0.5i 2.75i 4.0i 4.7i
-	Author\\*(u) (Computer Address)	Location	Ext.	Company (if other than AT&T-BL)
+.ta 0.5i 3.0i 3.95i 5.25i
+	Author\\*(u) (Computer Address)	Location	Phone Number	Company (if other than BL)
 .ft
 '''\"					output author info
 .ZI
 .if !'\\*(r('' \{\
 .	ta 0.3i 2.6i
-	\\*(r(	(Responsible AT&T-BL Person) \}
+	\\*(r(	(Responsible BL Person) \}
 .TK
 .sp 0.05i
 .ft 3
@@ -845,9 +855,9 @@ Supersedes or amends document number \\*(e(. \}
 .ta 5.35i
 \\s8\\*(ve\\s0
 .ie !'\\*(s)'' \{\
-\s8Timestamp: \\*(s)\s0	AT&T BELL LABORATORIES \}
+\s8Timestamp: \\*(s)\s0	BELL LABORATORIES \}
 .el \{\
-	AT&T BELL LABORATORIES \}
+	BELL LABORATORIES \}
 .sp|\\nzu
 .sp 1
 .ft 3
@@ -914,13 +924,13 @@ Initial Distribution Specifications	\\*(N1\f2 (page ii of \\n(tc)\f3
 .	ft 1
 .	sp -0.05i
 .	TK \}
-\f3Future AT&T Distribution by ITDS\f1
+\f3Future Lucent Technologies Distribution by ITDS\f1
 .ti 0.5i
 .sp 0.05i
 .ie \\n(ra=2 \{\
-\f3DO NOT RELEASE\f1 to any AT&T employee without appropriate approval for each request. \}
+\f3DO NOT RELEASE\f1 to any Lucent Technologies employee without appropriate approval for each request. \}
 .el \{\
-\f3RELEASE\f1 to any AT&T employee (excluding contract employees). \}
+\f3RELEASE\f1 to any Lucent Technologies employee (excluding contract employees). \}
 .TK
 '''\"					put out author signature section
 .ft 3
@@ -953,12 +963,16 @@ Author Signature\\*(u)
 .sp 1
 .ta 2.635i 5.25i
 \\*(x!
+.	ta 0.25i 2.875i 5.5i
+\\*(Z1
 .if \\nn>3 \{\
 .	sp .1i
+.ta 2.635i 5.25i
 \\*(y! \}
 .if \\nn>6 \{\
 .	sp .1i
 \\*(z! \}
+.sp -0.1i
 .TK
 '''\"					recipient section always output
 .ft 3
@@ -966,19 +980,19 @@ For Use by Recipient of Cover Sheet:
 .ft 1
 .ps -3
 .vs -4
-.sp1
+.sp.05i
 .mk z
  Computing network users may order copies via the \f2library \-k\f1 command;
   for information, type \f2man library\f1 after the UNIX prompt.
-.sp1
+'''.sp1
 .rn fo xx
  Otherwise:
-  Enter PAN if AT&T-BL (or SS# if non-AT&T-BL). \l'1.5i'
+  Enter PAN if BL (or SS# if non-BL). \l'1.5i'
   Return this sheet to any ITDS location.
 .sp|\\nzu
 .in 4i
 Internal Technical Document Service
-.sp1
+'''.sp1
 .ta 1i 2i 3i
 ( ) AK 2H-28	( ) IH 7M-103	( ) DR 2F-19	( ) NW-ITDS
 ( ) ALC 1B-102	( ) MV 1L-19	( ) INH 1C-114	( ) PR 5-2120
@@ -987,13 +1001,6 @@ Internal Technical Document Service
 .in
 .ps
 .vs
-.if \\n(aa \{\
-.	sy pwd >/tmp/sx\\n($$
-.	sy sed 's/^/cd /' /tmp/sx\\n($$ >/tmp/sc\\n($$
-.	sy echo /sys/lib/tmac/sendcover \\n(.F \\n(qq >>/tmp/sc\\n($$
-.	sy echo rm /tmp/sx\\n($$ /tmp/sc\\n($$>>/tmp/sc\\n($$
-.	sy rc /tmp/sc\\n($$&
-.	br \}
 .SR
 ..
 .	\"IZ - initialization
@@ -1049,8 +1056,9 @@ Internal Technical Document Service
 .nr MG \\n(wp
 .nr NA \\nu
 .if '\\n(ST'1' \{\
-.so /sys/lib/tmac/tmac.rscover
-. \" a line for troff to eat /lib/tmac
+'''.so /usr/lib/tmac/tmac.rscover XXX
+.so \*(.P/lib/tmac/tmac.rscover
+. \" a line for troff to eat
 .S1 \}
 .ll 6i
 .nr LL 6i

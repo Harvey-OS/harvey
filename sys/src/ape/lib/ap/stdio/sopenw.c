@@ -2,7 +2,8 @@
  * pANS stdio -- sopenw
  */
 #include "iolib.h"
-FILE *sopenw(void){
+
+FILE *_IO_sopenw(void){
 	FILE *f;
 	for(f=_IO_stream;f!=&_IO_stream[FOPEN_MAX];f++) if(f->state==CLOSED) break;
 	if(f==&_IO_stream[FOPEN_MAX]) return NULL;

@@ -1,5 +1,5 @@
 </$objtype/mkfile
-CPUS=mips sparc 386
+BIN=/$objtype/bin
 
 TARG=acme
 OFILES=acme.$O\
@@ -23,16 +23,9 @@ OFILES=acme.$O\
 HFILES=dat.h\
 	fns.h\
 
-BIN=/$objtype/bin
-
 </sys/src/cmd/mkone
 
+$O.out:	/$objtype/lib/libframe.a /$objtype/lib/libdraw.a /$objtype/lib/libthread.a
 syms:V:
-	val -a acme.l	>syms
-	val -aa ????.l 	>>syms
-
-2.out:Q:	$OFILES $LIB
-	echo 'no alef compiler for 68020'
-
-/68020/bin/$TARG:Q:	2.out
-	;
+	vc -a acme.c	>syms
+	for(i in ????.c) vc -aa $i >> syms

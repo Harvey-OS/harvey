@@ -1,36 +1,33 @@
 typedef struct Conf	Conf;
-typedef	struct FController	FController;
-typedef	struct FDrive		FDrive;
 typedef struct FPsave	FPsave;
-typedef struct FType		FType;
 typedef struct ISAConf	ISAConf;
 typedef struct Label	Label;
 typedef struct Lock	Lock;
 typedef struct MMU	MMU;
 typedef struct Mach	Mach;
+typedef struct Notsave	Notsave;
 typedef struct PCArch	PCArch;
+typedef struct Pcidev	Pcidev;
 typedef struct PCMmap	PCMmap;
 typedef struct Page	Page;
 typedef struct PMMU	PMMU;
+typedef struct Proc	Proc;
 typedef struct Segdesc	Segdesc;
 typedef struct Ureg	Ureg;
-typedef struct User	User;
-
-#define	MACHP(n)	(n==0? &mach0 : *(Mach**)0)
-
-extern	Mach	mach0;
-extern  void	(*kprofp)(ulong);
+typedef struct Vctl	Vctl;
 
 /*
  *  parameters for sysproc.c
  */
-#define AOUT_MAGIC	I_MAGIC
+#define AOUT_MAGIC	(I_MAGIC)
 
 struct Lock
 {
 	ulong	key;
-	ulong	pc;
 	ulong	sr;
+	ulong	pc;
+	Proc	*p;
+	ushort	isilock;
 };
 
 struct Label
@@ -74,61 +71,53 @@ struct Conf
 	ulong	monitor;	/* has monitor? */
 	ulong	npage0;		/* total physical pages of memory */
 	ulong	npage1;		/* total physical pages of memory */
-	ulong	topofmem;	/* highest physical address + 1 */
 	ulong	npage;		/* total physical pages of memory */
 	ulong	upages;		/* user page pool */
 	ulong	nimage;		/* number of page cache image headers */
 	ulong	nswap;		/* number of swap pages */
+	int	nswppo;		/* max # of pageouts per segment pass */
 	ulong	base0;		/* base of bank 0 */
 	ulong	base1;		/* base of bank 1 */
 	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
-	ulong	nfloppy;	/* number of floppy drives */
-	ulong	nhard;		/* number of hard drives */
-	ulong	ldepth;		/* screen depth */
-	ulong	maxx;		/* screen width */
-	ulong	maxy;		/* screen length */
+	ulong	ialloc;		/* max interrupt time allocation in bytes */
+	ulong	pipeqsize;	/* size in bytes of pipe queues */
 };
 
 /*
  *  MMU stuff in proc
  */
-#define MAXMMU	4
-#define MAXSMMU	1
+#define NCOLOR 1
 struct PMMU
 {
-	Page	*mmutop;	/* 1st level table */
-	Page	*mmufree;	/* unused page table pages */
-	Page	*mmuused;	/* used page table pages */
+	Page*	mmupdb;			/* page directory base */
+	Page*	mmufree;		/* unused page table pages */
+	Page*	mmuused;		/* used page table pages */
+};
+
+/*
+ *  things saved in the Proc structure during a notify
+ */
+struct Notsave
+{
+	ulong	svflags;
+	ulong	svcs;
+	ulong	svss;
 };
 
 #include "../port/portdat.h"
 
-/*
- *  machine dependent definitions not used by ../port/dat.h
- */
-
-/*
- *  task state segment.  Plan 9 ignores all the task switching goo and just
- *  uses the tss for esp0 and ss0 on gate's into the kernel, interrupts,
- *  and exceptions.  The rest is completely ignored.
- *
- *  We use one tss per CPU because we'll need to in Brazil.
- *  
- */
-typedef struct Tss	Tss;
-struct Tss
-{
-	ulong	backlink;	/* unused */
-	ulong	sp0;		/* pl0 stack pointer */
-	ulong	ss0;		/* pl0 stack selector */
-	ulong	sp1;		/* pl1 stack pointer */
-	ulong	ss1;		/* pl1 stack selector */
-	ulong	sp2;		/* pl2 stack pointer */
-	ulong	ss2;		/* pl2 stack selector */
-	ulong	cr3;		/* page table descriptor */
-	ulong	eip;		/* instruction pointer */
-	ulong	eflags;		/* processor flags */
-	ulong	eax;		/* general (hah?) registers */
+typedef struct {
+	ulong	link;			/* link (old TSS selector) */
+	ulong	esp0;			/* privilege level 0 stack pointer */
+	ulong	ss0;			/* privilege level 0 stack selector */
+	ulong	esp1;			/* privilege level 1 stack pointer */
+	ulong	ss1;			/* privilege level 1 stack selector */
+	ulong	esp2;			/* privilege level 2 stack pointer */
+	ulong	ss2;			/* privilege level 2 stack selector */
+	ulong	cr3;			/* page directory base register */
+	ulong	eip;			/* instruction pointer */
+	ulong	eflags;			/* flags register */
+	ulong	eax;			/* general registers */
 	ulong 	ecx;
 	ulong	edx;
 	ulong	ebx;
@@ -136,19 +125,16 @@ struct Tss
 	ulong	ebp;
 	ulong	esi;
 	ulong	edi;
-	ulong	es;		/* segment selectors */
+	ulong	es;			/* segment selectors */
 	ulong	cs;
 	ulong	ss;
 	ulong	ds;
 	ulong	fs;
 	ulong	gs;
-	ulong	ldt;		/* local descriptor table */
-	ulong	iomap;		/* io map base */
-};
+	ulong	ldt;			/* selector for task's LDT */
+	ulong	iomap;			/* I/O map base address + T-bit */
+} Tss;
 
-/*
- *  segment descriptor/gate
- */
 struct Segdesc
 {
 	ulong	d0;
@@ -157,17 +143,25 @@ struct Segdesc
 
 struct Mach
 {
-	/* OFFSETS OF THE FOLLOWING KNOWN BY l.s */
 	int	machno;			/* physical id of processor */
 	ulong	splpc;			/* pc of last caller to splhi */
 
-	/* ordering from here on irrelevant */
-	int	mmask;			/* 1<<m->machno */
+	ulong*	pdb;			/* page directory base for this processor (va) */
+	Tss*	tss;			/* tss for this processor */
+	Segdesc	gdt[6];			/* gdt for this processor */
+
+	Proc*	proc;			/* current process on this processor */
+	Proc*	externup;		/* extern register Proc *up */
+
+	Page*	pdbpool;
+	int	pdbcnt;
+
 	ulong	ticks;			/* of the clock since boot time */
-	Proc	*proc;			/* current process on this processor */
 	Label	sched;			/* scheduler wakeup */
 	Lock	alarmlock;		/* access to alarm list */
-	void	*alarm;			/* alarms bound to this clock */
+	void*	alarm;			/* alarms bound to this clock */
+
+	ulong	fairness;		/* for runproc */
 
 	int	tlbfault;
 	int	tlbpurge;
@@ -176,9 +170,26 @@ struct Mach
 	int	syscall;
 	int	load;
 	int	intr;
+	vlong	fastclock;		/* last sampled value */
+	vlong	intrts;			/* time stamp of last interrupt */
+	int	flushmmu;		/* make current proc flush it's mmu state */
 
-	Tss	tss;
-	Segdesc	gdt[N386SEG];
+	ulong	spuriousintr;
+	int	lastintr;
+
+	int	loopconst;
+
+	int	cpumhz;
+	int	cpuhz;
+	int	cpuidax;
+	int	cpuiddx;
+	char	cpuidid[16];
+	char*	cpuidtype;
+
+	vlong	mtrrcap;
+	vlong	mtrrdef;
+	vlong	mtrrfix[11];
+	vlong	mtrrvar[32];		/* 256 max. */
 
 	int	stack[1];
 };
@@ -191,41 +202,12 @@ typedef void		KMap;
 #define	kmap(p)		(KMap*)((p)->pa|KZERO)
 #define	kunmap(k)
 
-#define	NERR	15
-#define	NNOTE	5
-struct User
-{
-	Proc	*p;
-	FPsave	fpsave;			/* address of this is known by vdb */
-	int	scallnr;		/* sys call number - known by db */
-	Sargs	s;			/* address of this is known by db */
-	int	nerrlab;
-	Label	errlab[NERR];
-	char	error[ERRLEN];
-	char	elem[NAMELEN];		/* last name element from namec */
-	Chan	*slash;
-	Chan	*dot;
-	/*
-	 * Rest of structure controlled by devproc.c and friends.
-	 * lock(&p->debug) to modify.
-	 */
-	Note	note[NNOTE];
-	short	nnote;
-	short	notified;		/* sysnoted is due */
-	Note	lastnote;
-	int	(*notify)(void*, char*);
-	void	*ureg;
-	void	*dbgreg;		/* User registers for debugging in proc */
-	ulong	svcs;		/* cs before a notify */
-	ulong	svss;		/* ss before a notify */
-	ulong	svflags;		/* flags before a notify */
-};
-
 struct
 {
 	Lock;
-	short	machs;
-	short	exiting;
+	int	machs;			/* bitmap of active CPUs */
+	int	exiting;		/* shutdown */
+	int	ispanic;		/* shutdown in response to a panic */
 }active;
 
 /*
@@ -233,161 +215,49 @@ struct
  */
 struct PCArch
 {
-	char	*id;
+	char*	id;
+	int	(*ident)(void);		/* this should be in the model */
 	void	(*reset)(void);		/* this should be in the model */
-	int	(*cpuspeed)(int);	/* 0 = low, 1 = high */
-	void	(*buzz)(int, int);	/* make a noise */
-	void	(*lights)(int);		/* turn lights or icons on/off */
 	int	(*serialpower)(int);	/* 1 == on, 0 == off */
 	int	(*modempower)(int);	/* 1 == on, 0 == off */
-	int	(*extvga)(int);		/* 1 == external, 0 == internal */
-	int	(*snooze)(ulong, int);
+
+	void	(*intrinit)(void);
+	int	(*intrenable)(Vctl*);
+
+	void	(*clockenable)(void);
+	uvlong	(*fastclock)(uvlong*);
 };
 
-extern Mach	*m;
-extern User	*u;
-
-ulong boottime;
-
-extern int	flipD[];	/* for flipping bitblt destination polarity */
-
-#define BOOTLINE ((char *)0x80000100) /*  bootline passed by boot program */
-
-extern PCArch *arch;			/* PC architecture */
+/*
+ *  a parsed plan9.ini line
+ */
+#define ISAOPTLEN	16
+#define NISAOPT		8
 
 struct ISAConf {
 	char	type[NAMELEN];
 	ulong	port;
 	ulong	irq;
-	int	dma;
+	ulong	dma;
 	ulong	mem;
 	ulong	size;
-	uchar	ea[6];
-	uchar	bus;
+	ulong	freq;
+
+	int	nopt;
+	char	opt[NISAOPT][ISAOPTLEN];
 };
+
+extern PCArch	*arch;			/* PC architecture */
 
 /*
- *  maps between ISA memory space and PCMCIA card memory space
+ * Each processor sees its own Mach structure at address MACHADDR.
+ * However, the Mach structures must also be available via the per-processor
+ * MMU information array machp, mainly for disambiguation and access to
+ * the clock which is only maintained by the bootstrap processor (0).
  */
-struct PCMmap
-{
-	ulong	ca;		/* card address */
-	ulong	cea;		/* card end address */
-	ulong	isa;		/* ISA address */
-	int	len;		/* length of the ISA area */
-	int	attr;		/* attribute memory */
-	int	ref;
-};
+Mach* machp[MAXMACH];
+	
+#define	MACHP(n)	(machp[n])
 
-/*
- *  a floppy drive
- */
-struct FDrive
-{
-	FType	*t;		/* floppy type */
-	int	dt;		/* drive type */
-	int	dev;
-
-	ulong	lasttouched;	/* time last touched */
-	int	cyl;		/* current arm position */
-	int	confused;	/* needs to be recalibrated */
-	int	vers;
-
-	int	tcyl;		/* target cylinder */
-	int	thead;		/* target head */
-	int	tsec;		/* target sector */
-	long	len;		/* size of xfer */
-
-	uchar	*cache;	/* track cache */
-	int	ccyl;
-	int	chead;
-
-	Rendez	r;		/* waiting here for motor to spin up */
-};
-
-/*
- *  controller for 4 floppys
- */
-struct FController
-{
-	QLock;			/* exclusive access to the contoller */
-
-	FDrive	*d;		/* the floppy drives */
-	FDrive	*selected;
-	int	rate;		/* current rate selected */
-	uchar	cmd[14];	/* command */
-	int	ncmd;		  /* # command bytes */
-	uchar	stat[14];	/* command status */
-	int	nstat;		  /* # status bytes */
-	int	confused;	/* controler needs to be reset */
-	Rendez	r;		/* wait here for command termination */
-	int	motor;		/* bit mask of spinning disks */
-	Rendez	kr;		/* for motor watcher */
-};
-
-/*
- *  floppy types (all MFM encoding)
- */
-struct FType
-{
-	char	*name;
-	int	dt;		/* compatible drive type */
-	int	bytes;		/* bytes/sector */
-	int	sectors;	/* sectors/track */
-	int	heads;		/* number of heads */
-	int	steps;		/* steps per cylinder */
-	int	tracks;		/* tracks/disk */
-	int	gpl;		/* intersector gap length for read/write */	
-	int	fgpl;		/* intersector gap length for format */
-	int	rate;		/* rate code */
-
-	/*
-	 *  these depend on previous entries and are set filled in
-	 *  by floppyinit
-	 */
-	int	bcode;		/* coded version of bytes for the controller */
-	long	cap;		/* drive capacity in bytes */
-	long	tsize;		/* track size in bytes */
-};
-/* bits in the registers */
-enum
-{
-	/* status registers a & b */
-	Psra=		0x3f0,
-	Psrb=		0x3f1,
-
-	/* digital output register */
-	Pdor=		0x3f2,
-	Fintena=	0x8,	/* enable floppy interrupt */
-	Fena=		0x4,	/* 0 == reset controller */
-
-	/* main status register */
-	Pmsr=		0x3f4,
-	Fready=		0x80,	/* ready to be touched */
-	Ffrom=		0x40,	/* data from controller */
-	Ffloppybusy=	0x10,	/* operation not over */
-
-	/* data register */
-	Pfdata=		0x3f5,
-	Frecal=		0x07,	/* recalibrate cmd */
-	Fseek=		0x0f,	/* seek cmd */
-	Fsense=		0x08,	/* sense cmd */
-	Fread=		0x66,	/* read cmd */
-	Freadid=	0x4a,	/* read track id */
-	Fspec=		0x03,	/* set hold times */
-	Fwrite=		0x45,	/* write cmd */
-	Fformat=	0x4d,	/* format cmd */
-	Fmulti=		0x80,	/* or'd with Fread or Fwrite for multi-head */
-	Fdumpreg=	0x0e,	/* dump internal registers */
-
-	/* digital input register */
-	Pdir=		0x3F7,	/* disk changed port (read only) */
-	Pdsr=		0x3F7,	/* data rate select port (write only) */
-	Fchange=	0x80,	/* disk has changed */
-
-	/* status 0 byte */
-	Drivemask=	3<<0,
-	Seekend=	1<<5,
-	Codemask=	(3<<6)|(3<<3),
-};
-
+extern Mach	*m;
+#define up	(((Mach*)MACHADDR)->externup)

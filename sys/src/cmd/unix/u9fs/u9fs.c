@@ -32,9 +32,11 @@ struct passwd *getpwent(void);
 #	include <sys/socket.h>
 #	include <netinet/in.h>
 #	include <netdb.h>
+#	include <arpa/inet.h>
 #	undef sendmsg
 	char	bsdhost[256];
 	void	remotehostname(void);
+	char	ipaddr[20];
 #endif
 
 typedef struct File	File;
@@ -52,7 +54,6 @@ struct Fd{
 struct Rfile{
 	int		busy;
 	int		uid;
-	int		gid;
 	int		rclose;
 	File		*file;
 	Fd		*fd;
@@ -71,6 +72,9 @@ struct Pass{
 	int		gid;
 	char		*name;
 	Pass		*next;
+	Pass		*nnext;
+	int		nmem;
+	gid_t		*mem;
 };
 
 char	data[2][MAXMSG+MAXFDATA];
@@ -84,30 +88,37 @@ int	nrfilealloc;
 jmp_buf	loopjmp;
 Pass*	uid[256];
 Pass*	gid[256];
+Pass*	uidname[256];
+Pass*	gidname[256];
+int	curuid;
 int	devallowed;
 int	connected;
+int	readonly;
+int	myuid;
+char	*onlyuser;
 
 void	io(void);
 void	error(char*);
 char	*mfmt(Fcall*);
-void	sendmsg(char*);
+void	sendmsg(const char*);
 int	okfid(int);
 Rfile*	rfilefid(void);
 File*	newfile(void);
 void*	erealloc(void*, unsigned);
 char*	estrdup(char*);
-char*	dostat(File*, char*);
+const char*	dostat(File*, char*);
 char*	bldpath(char*, char*, char*);
 Ulong	qid(struct stat*);
 Ulong	vers(struct stat*);
-void	errjmp(char*);
+void	errjmp(const char*);
 int	omode(int);
 char*	id2name(Pass**, int);
+Pass*	id2pass(Pass**, int);
 Pass*	name2pass(Pass**, char*);
 void	getpwdf(void);
 void	getgrpf(void);
-void	perm(Rfile*, int, struct stat*);
-void	parentwrperm(Rfile*);
+int	hash(char*);
+void	setupuser(int);
 
 void	rsession(void);
 void	rattach(void);
@@ -140,19 +151,57 @@ char	Euid[] =	"can't set uid";
 char	Egid[] =	"can't set gid";
 char	Eowner[] =	"not owner";
 
+void
+usage(void)
+{
+	fprintf(stderr, "u9fs [-r] [-u user uid]\n");
+	exit(1);
+}
+
 int
 main(int argc, char *argv[])
 {
+	char *s;
+	int onlyuid;
+
+#	ifdef LOG
 	freopen(LOG, "a", stderr);
+#	endif
+
 	setbuf(stderr, (void*)0);
 	DBG(fprintf(stderr, "u9fs\nkill %d\n", getpid()));
-	if(argc > 1)
-		if(chroot(argv[1]) == -1)
-			error("chroot failed");
+
+	onlyuid = -1;
+	ARGBEGIN{
+	case 'r':
+		readonly++;
+		break;
+	case 'u':
+		onlyuser = ARGF();
+		if(onlyuser == 0)
+			usage();
+		s = ARGF();
+		if(s == 0)
+			usage();
+		onlyuid = atoi(s);
+		break;
+	default:
+		usage();
+		break;
+	}ARGEND
+
+	if(argc)
+		usage();
 
 #	ifdef SOCKETS
-	remotehostname();
+	if(!onlyuser)
+		remotehostname();
 #	endif
+
+	setreuid(0, 0);
+	myuid = geteuid();
+	if(onlyuser && myuid != onlyuid)
+		error("invalid uid");
 
 	io();
 	return 0;
@@ -188,7 +237,11 @@ io(void)
 			}
 		}
 		m = read(0, datap+ndata, (MAXMSG+MAXFDATA)-ndata);
-		if(m <= 0)
+		if(m == 0){
+			fprintf(stderr, "u9fs: eof\n");
+			exit(1);
+		}
+		if(m < 0)
 			error("read");
 		ndata += m;
 	}
@@ -257,10 +310,8 @@ void
 rattach(void)
 {
 	Rfile *rf;
-	char *err;
 	Pass *p;
 
-	err = 0;
 	if(file0 == 0){
 		file0 = newfile();
 		file0->ref++;		/* one extra to hold it up */	
@@ -283,13 +334,14 @@ rattach(void)
 	rf = &rfile[rhdr.fid];
 	if(rf->busy)
 		errjmp(Efidactive);
-	p = name2pass(uid, rhdr.uname);
+	p = name2pass(uidname, rhdr.uname);
 	if(p == 0)
 		errjmp(Eunknown);
-	if(p->id == 0)
+	if(p->id == 0 || (uid_t)p->id == (uid_t)-1
+	|| myuid && p->id != myuid)
 		errjmp(Eperm);
 #	ifdef SOCKETS
-	if(ruserok(bsdhost, 0, rhdr.uname, rhdr.uname) < 0)
+	if(!myuid && ruserok(bsdhost, 0, rhdr.uname, rhdr.uname) < 0)
 		errjmp(Eperm);
 #	endif
 	/* mark busy & inc ref cnt only after committed to succeed */
@@ -298,7 +350,6 @@ rattach(void)
 	file0->ref++;
 	rf->rclose = 0;
 	rf->uid = p->id;
-	rf->gid = p->gid;
 	thdr.qid = file0->qid;
 	connected = 1;
 }
@@ -322,7 +373,6 @@ rclone(void)
 	f->ref++;
 	nrf->fd = rf->fd;
 	nrf->uid = rf->uid;
-	nrf->gid = rf->gid;
 	nrf->rclose = rf->rclose;
 	if(nrf->fd){
 		if(nrf->fd->ref == 0)
@@ -334,7 +384,7 @@ rclone(void)
 void
 rwalk(void)
 {
-	char *err;
+	const char *err;
 	Rfile *rf;
 	File *of, *f;
 
@@ -342,13 +392,13 @@ rwalk(void)
 	if(rf->fd)
 		errjmp(Eopen);
 	of = rf->file;
-	perm(rf, 1, 0);
 	f = newfile();
 	f->path = estrdup(of->path);
 	err = dostat(f, rhdr.name);
 	if(err){
-		f->ref = 0;
 		free(f->path);
+		free(f->name);
+		free(f);
 		errjmp(err);
 	}
 	if(of->ref <= 0)
@@ -381,20 +431,12 @@ ropen(void)
 	trunc = m & 16;	/* OTRUNC */
 	switch(m){
 	case 0:
-		perm(rf, 4, 0);
-		break;
 	case 1:
 	case 1|16:
-		perm(rf, 2, 0);
-		break;
 	case 2:	
 	case 0|16:
 	case 2|16:
-		perm(rf, 4, 0);
-		perm(rf, 2, 0);
-		break;
 	case 3:
-		perm(rf, 1, 0);
 		break;
 	default:
 		errjmp(Emode);
@@ -411,6 +453,7 @@ ropen(void)
 		fd = 0;
 	}else{
 		if(trunc){
+			if(readonly) errjmp("trunc disallowed");
 			fd = creat(f->path, 0666);
 			if(fd >= 0)
 				if(m != 1){
@@ -437,18 +480,19 @@ rcreate(void)
 {
 	Rfile *rf;
 	File *f, *of;
-	char *path, *err;
-	int fd;
-	int m;
+	char *path;
+	const char *err;
+	int fd, m;
 	char name[NAMELEN];
 
+	if(readonly) errjmp("write disallowed");
 	rf = rfilefid();
 	if(rf->fd)
 		errjmp(Eopen);
-	perm(rf, 2, 0);
 	path = bldpath(rf->file->path, rhdr.name, name);
 	m = omode(rhdr.mode&3);
 	errno = 0;
+	/* plan 9 group sematics: always inherit from directory */
 	if(rhdr.perm & CHDIR){
 		if(m){
 			free(path);
@@ -461,10 +505,8 @@ rcreate(void)
 		}
 		fd = open(path, 0);
 		free(path);
-		if(fd >= 0){
-			fchmod(fd, rhdr.perm&0777);
-			fchown(fd, rf->uid, rf->gid);
-		}
+		if(fd >= 0)
+			fchmod(fd, S_ISGID|(rhdr.perm&rf->file->stbuf.st_mode&0777));
 	}else{
 		fd = creat(path, 0666);
 		if(fd >= 0){
@@ -472,8 +514,7 @@ rcreate(void)
 				close(fd);
 				fd = open(path, m);
 			}
-			fchmod(fd, rhdr.perm&0777);
-			fchown(fd, rf->uid, rf->gid);
+			fchmod(fd, rhdr.perm&rf->file->stbuf.st_mode&0777);
 		}
 		free(path);
 		if(fd < 0)
@@ -569,8 +610,8 @@ rread(void)
 			d.mode = (d.qid.path&CHDIR)|(stbuf.st_mode&0777);
 			d.atime = stbuf.st_atime;
 			d.mtime = stbuf.st_mtime;
-			d.len.l.hlength = 0;
-			d.len.l.length = stbuf.st_size;
+			d.len.hlength = 0;
+			d.len.length = stbuf.st_size;
 			convD2M(&d, rdata+n);
 			n += DIRLEN;
 		}
@@ -596,6 +637,7 @@ rwrite(void)
 	Rfile *rf;
 	int n;
 
+	if(readonly) errjmp("write disallowed");
 	rf = rfilefid();
 	if(rf->fd == 0)
 		errjmp(Enotopen);
@@ -631,8 +673,8 @@ rstat(void)
 	d.mode = (f->qid.path&CHDIR)|(f->stbuf.st_mode&0777);
 	d.atime = f->stbuf.st_atime;
 	d.mtime = f->stbuf.st_mtime;
-	d.len.l.hlength = 0;
-	d.len.l.length = f->stbuf.st_size;
+	d.len.hlength = 0;
+	d.len.length = f->stbuf.st_size;
 	convD2M(&d, thdr.stat);
 }
 
@@ -643,25 +685,19 @@ rwstat(void)
 	File *f;
 	Dir d;
 	Pass *p;
-	char *path, *dir, name[NAMELEN];
+	char *path, *dir, name[NAMELEN], *e;
 
+	if(readonly) errjmp("write disallowed");
 	rf = rfilefid();
 	f = rf->file;
 	errjmp(dostat(f, 0));
 	convM2D(rhdr.stat, &d);
 	errno = 0;
-	if(rf->uid != f->stbuf.st_uid)
-		errjmp(Eowner);
 	if(strcmp(d.name, f->name) != 0){
-		parentwrperm(rf);
 		dir = bldpath(f->path, "..", name);
 		path = erealloc(0, strlen(dir)+1+strlen(d.name)+1);
 		sprintf(path, "%s/%s", dir, d.name);
-		if(link(f->path, path) < 0){
-			free(path);
-			errjmp(sys_errlist[errno]);
-		}
-		if(unlink(f->path) < 0){
+		if(rename(f->path, path) < 0){
 			free(path);
 			errjmp(sys_errlist[errno]);
 		}
@@ -671,14 +707,16 @@ rwstat(void)
 		f->name = estrdup(d.name);
 	}
 	if((d.mode&0777) != (f->stbuf.st_mode&0777)){
-		if(chmod(f->path, d.mode&0777) < 0)
+		f->stbuf.st_mode = (f->stbuf.st_mode&~0777) | (d.mode&0777);
+		if(chmod(f->path, f->stbuf.st_mode) < 0)
 			errjmp(sys_errlist[errno]);
-		f->stbuf.st_mode &= ~0777;
-		f->stbuf.st_mode |= d.mode&0777;
 	}
-	p = name2pass(gid, d.gid);
-	if(p == 0)
+	p = name2pass(gidname, d.gid);
+	if(p == 0){
+		if(strtol(d.gid, &e, 10) == f->stbuf.st_gid && *e == 0)
+			return;
 		errjmp(Eunknown);
+	}
 	if(p->id != f->stbuf.st_gid){
 		if(chown(f->path, f->stbuf.st_uid, p->id) < 0)
 			errjmp(sys_errlist[errno]);
@@ -690,7 +728,7 @@ void
 rclunk(int rm)
 {
 	int ret;
-	char *err;
+	const char *err;
 	Rfile *rf;
 	File *f;
 	Fd *fd;
@@ -699,7 +737,6 @@ rclunk(int rm)
 	rf = rfilefid();
 	f = rf->file;
 	if(rm){
-		parentwrperm(rf);
 		if(f->qid.path & CHDIR)
 			ret = rmdir(f->path);
 		else
@@ -766,6 +803,8 @@ bldpath(char *a, char *elem, char *name)
 				}
 				p++;
 			}
+			if(strlen(p) >= NAMELEN)
+				error("bldpath: name too long");
 			strcpy(name, p);
 		}
 	}else{
@@ -773,14 +812,14 @@ bldpath(char *a, char *elem, char *name)
 			a = "";
 		path = erealloc(0, strlen(a)+1+strlen(elem)+1);
 		sprintf(path, "%s/%s", a, elem);
+		if(strlen(elem) >= NAMELEN)
+			error("bldpath: name too long");
 		strcpy(name, elem);
 	}
-	if(strlen(name) >= NAMELEN)
-		error("bldpath: name too long");
 	return path;
 }
 
-char*
+const char*
 dostat(File *f, char *elem)
 {
 	char *path;
@@ -822,7 +861,7 @@ omode(int m)
 }
 
 void
-sendmsg(char *err)
+sendmsg(const char *err)
 {
 	int n;
 
@@ -837,7 +876,6 @@ sendmsg(char *err)
 	if(write(1, tdata, n) != n)
 		error("write error");
 }
-
 
 int
 okfid(int fid)
@@ -869,44 +907,8 @@ rfilefid(void)
 		errjmp(Ebadfid);
 	if(rf->file->ref <= 0)
 		error("ref count");
+	setupuser(rf->uid);
 	return rf;
-}
-
-void
-perm(Rfile *rf, int mask, struct stat *st)
-{
-	if(st == 0)
-		st = &rf->file->stbuf;
-	/* plan 9 access semantics; simpler and more sensible */
-	if(rf->uid == st->st_uid)
-		if((st->st_mode>>6) & mask)
-			return;
-	if(rf->gid == st->st_gid)
-		if((st->st_mode>>3) & mask)
-			return;
-	if((st->st_mode>>0) & mask)
-		return;
-	errjmp(Eperm);
-}
-
-void
-parentwrperm(Rfile *rf)
-{
-	Rfile trf;
-	struct stat st;
-	char *dirp, dir[512];
-
-	dirp = bldpath(rf->file->path, "..", dir);
-	if(strlen(dirp) < sizeof dir){	/* ugly: avoid leaving dirp allocated */
-		strcpy(dir, dirp);
-		free(dirp);
-		dirp = dir;
-	}
-	if(stat(dirp, &st) < 0)
-		errjmp(Eperm);
-	trf.uid = rf->uid;
-	trf.gid = rf->gid;
-	perm(&trf, 2, &st);
 }
 
 File*
@@ -926,7 +928,7 @@ newfile(void)
 Ulong
 vers(struct stat *st)
 {
-	return st->st_mtime;
+	return st->st_mtime ^ (st->st_size<<8);
 }
 
 Ulong
@@ -958,14 +960,27 @@ qid(struct stat *st)
 Pass*
 name2pass(Pass **pw, char *name)
 {
-	int i;
 	Pass *p;
 
-	for(i=0; i<256; i++)
-		for(p = pw[i]; p; p = p->next)
-			if(strcmp(name, p->name) == 0)
-				return p;
+	for(p = pw[hash(name)]; p; p = p->nnext)
+		if(strcmp(name, p->name) == 0)
+			return p;
 	return 0;
+}
+
+Pass*
+id2pass(Pass **pw, int id)
+{
+	int i;
+	Pass *p, *pp;
+
+	pp = 0;
+	/* use last on list == first in file */
+	i = (id&0xFF) ^ ((id>>8)&0xFF);
+	for(p = pw[i]; p; p = p->next)
+		if(p->id == id)
+			pp = p;
+	return pp;
 }
 
 char*
@@ -974,7 +989,7 @@ id2name(Pass **pw, int id)
 	int i;
 	Pass *p;
 	char *s;
-	static char buf[8];
+	static char buf[40];
 
 	s = 0;
 	/* use last on list == first in file */
@@ -997,6 +1012,7 @@ freepass(Pass **pass)
 	for(i=0; i<256; i++){
 		for(p = pass[i]; p; p = np){
 			np = p->next;
+			free(p->mem);
 			free(p);
 		}
 		pass[i] = 0; 
@@ -1004,20 +1020,73 @@ freepass(Pass **pass)
 }
 
 void
+setupuser(int u)
+{
+	Pass *p;
+
+	if(curuid == u || myuid != 0)
+		return;
+
+	p = id2pass(uid, u);
+	if(p == 0 || p->id == 0 || (uid_t)p->id == (uid_t)-1)
+		errjmp(Eunknown);
+
+	if(setreuid(0, 0) < 0)
+		error("can't revert to root");
+
+	/*
+	 * this error message is just a likely guess
+	 */
+	if(setgroups(p->nmem, p->mem) < 0)
+		errjmp("member of too many groups");
+
+	if(setgid(p->gid) < 0
+	|| setreuid(0, p->id) < 0)
+		errjmp(Eunknown);
+}
+
+void
 getpwdf(void)
 {
-	static mtime;
+	static int mtime;
 	struct stat stbuf;
 	struct passwd *pw;
 	int i;
 	Pass *p;
+
+	if(onlyuser){
+		i = (myuid&0xFF) ^ ((myuid>>8)&0xFF);
+		if(uid[i])
+			return;
+		p = erealloc(0, sizeof(Pass));
+		uid[i] = p;
+		p->name = strdup(onlyuser);
+		uidname[hash(p->name)] = p;
+		p->id = myuid;
+		p->gid = 60001;
+		p->next = 0;
+		p->nnext = 0;
+		p->nmem = 0;
+		p->mem = 0;
+		curuid = p->id;
+		return;
+	}
+
+	curuid = -1;
+	if(myuid == 0 && setreuid(0, 0) < 0)
+		error("can't revert to root");
 
 	if(stat("/etc/passwd", &stbuf) < 0)
 		error("can't read /etc/passwd");
 	if(stbuf.st_mtime <= mtime)
 		return;
 	freepass(uid);
-	while(pw = getpwent()){
+	for(i=0; i<256; i++)
+		uidname[i] = 0;
+	for(;;) {
+		pw = getpwent();
+		if(!pw)
+			break;
 		i = pw->pw_uid;
 		i = (i&0xFF) ^ ((i>>8)&0xFF);
 		p = erealloc(0, sizeof(Pass));
@@ -1026,26 +1095,52 @@ getpwdf(void)
 		p->id = pw->pw_uid;
 		p->gid = pw->pw_gid;
 		p->name = estrdup(pw->pw_name);
+		p->nmem = 1;
+		p->mem = erealloc(0, sizeof(p->mem[0]));
+		p->mem[0] = p->gid;
+		i = hash(p->name);
+		p->nnext = uidname[i];
+		uidname[i] = p;
 	}
 	setpwent();
 	endpwent();
 }
 
+int
+ismem(Pass *u, int gid)
+{
+	int i;
+
+	if(u->gid == gid)
+		return 1;
+	for(i = 0; i < u->nmem; i++)
+		if(u->mem[i] == gid)
+			return 1;
+	return 0;
+}
+
 void
 getgrpf(void)
 {
-	static mtime;
+	static int mtime;
 	struct stat stbuf;
 	struct group *pw;
-	int i;
-	Pass *p;
+	int i, m;
+	Pass *p, *u;
 
-	if(stat("/etc/group", &stbuf) < 0)
-		error("can't read /etc/group");
-	if(stbuf.st_mtime <= mtime)
+	if(onlyuser)
+		return;
+
+	if(stat("/etc/group", &stbuf) < 0
+	|| stbuf.st_mtime <= mtime)
 		return;
 	freepass(gid);
-	while(pw = getgrent()){
+	for(i=0; i<256; i++)
+		gidname[i] = 0;
+	for(;;) {
+		pw = getgrent();
+		if(!pw)
+			break;
 		i = pw->gr_gid;
 		i = (i&0xFF) ^ ((i>>8)&0xFF);
 		p = erealloc(0, sizeof(Pass));
@@ -1054,9 +1149,41 @@ getgrpf(void)
 		p->id = pw->gr_gid;
 		p->gid = 0;
 		p->name = estrdup(pw->gr_name);
+		i = hash(p->name);
+		p->nnext = gidname[i];
+		gidname[i] = p;
+
+		for(m=0; pw->gr_mem[m]; m++)
+			;
+		p->nmem = m;
+		p->mem = 0;
+		if(m != 0)
+			p->mem = erealloc(0, m*sizeof(p->mem[0]));
+		for(m = 0; m<p->nmem; m++){
+			u = name2pass(uidname, pw->gr_mem[m]);
+			p->mem[m] = -1;
+			if(u){
+				p->mem[m] = u->id;
+				if(!ismem(u, p->id)){
+					u->mem = erealloc(u->mem, (u->nmem+1)*sizeof(u->mem[0]));
+					u->mem[u->nmem++] = p->id;
+				}
+			}
+		}
 	}
 	setgrent();
 	endgrent();
+}
+
+int
+hash(char *s)
+{
+	int h;
+
+	h = 0;
+	for(; *s; s++)
+		h = (h << 1) ^ *s;
+	return h & 255;
 }
 
 void
@@ -1068,7 +1195,7 @@ error(char *s)
 }
 
 void
-errjmp(char *s)
+errjmp(const char *s)
 {
 	if(s == 0)
 		return;
@@ -1107,15 +1234,17 @@ remotehostname(void)
 	int on = 1;
 
 	len = sizeof sock;
-	if(getpeername(0, &sock, &len) < 0)
+	if(getpeername(0, (struct sockaddr*)&sock, &len) < 0)
 		error("getpeername");
 	hp = gethostbyaddr((char *)&sock.sin_addr, sizeof (struct in_addr),
 		sock.sin_family);
 	if(hp == 0)
 		error("gethostbyaddr");
-	strcpy(bsdhost, hp->h_name);
+	strncpy(bsdhost, hp->h_name, sizeof(bsdhost)-1);
+	bsdhost[sizeof(bsdhost)-1] = '\0';
 	fprintf(stderr, "bsdhost %s on %d\n", bsdhost, getpid());
+	strcpy(ipaddr, inet_ntoa(sock.sin_addr));
 
-	setsockopt(0, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
+	setsockopt(0, SOL_SOCKET, SO_KEEPALIVE, (char*)&on, sizeof(on));
 }
 #endif

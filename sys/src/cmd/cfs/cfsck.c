@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 {
 	char *part;
 
-	part = "/dev/hd0cache";
+	part = "/dev/sdC0/cache";
 
 	ARGBEGIN{
 	case 'd':

@@ -57,6 +57,10 @@ fileget(Node *node)
 	fp->atime = now++;
 	fp->inuse = 1;
 	fp->fd = -1;
+	if(fp->mem){
+		free(fp->mem);
+		fp->mem = nil;
+	}
 	return fp;
 }
 
@@ -82,7 +86,7 @@ filefree(Node *node)
 	fp->fd = -1;
 	if(fp->mem){
 		free(fp->mem);
-		fp->mem = 0;
+		fp->mem = nil;
 	}
 	fp->len = 0;
 	fp->inuse = 0;
@@ -144,7 +148,11 @@ uncachedir(Node *parent, Node *child)
 	if(parent == 0 || parent == child)
 		return;
 	for(sp = parent->children; sp; sp = sp->sibs)
-		if(sp != child && sp->fp && sp->fp->dirty == 0 && sp->fp->fd >= 0){
+		if(sp->opens == 0)
+		if(sp != child)
+		if(sp->fp != nil)
+		if(sp->fp->dirty == 0)
+		if(sp->fp->fd >= 0){
 			filefree(sp);
 			UNCACHED(sp);
 		}
@@ -182,9 +190,9 @@ filewrite(Node *node, char *a, long off, int n)
 
 	fp = fileget(node);
 
-	if(fp->mem == 0){
+	if(fp->mem == nil){
 		fp->mem = malloc(Chunk);
-		if(fp->mem == 0)
+		if(fp->mem == nil)
 			return seterr("out of memory");
 	}
 
@@ -214,6 +222,8 @@ filewrite(Node *node, char *a, long off, int n)
 
 	if(off > fp->len)
 		fp->len = off;
+	if(off > node->d.length)
+		node->d.length = off;
 	return sofar;
 }
 

@@ -1,4 +1,6 @@
 // runtime library definitions
+if objtype=="mips2" then objtype="mips";
+
 include("/sys/src/alef/lib/"+objtype+"/acid");
 
 defn
@@ -62,7 +64,7 @@ tdb()
 		print("unlocked\n");
 
 	if ta.ctask then {
-		print("current task ", ta.ctask\X, "\n");
+		print("current task ", ta.ctask, "\n");
 		Task(ta.ctask);
 	}
 	else
@@ -134,9 +136,9 @@ srcpath = {
 defn labstk(l)
 {
 	if objtype == "386" then
-		_stk(ALEF_switch, *l, *linkreg, 0);
+		_stk(ALEF_switch, *l, linkreg(0), 0);
 	else
-		_stk(*(l+4), *l, *linkreg, 0);
+		_stk(*(l+4), *l, linkreg(0), 0);
 }
 
 print("/sys/lib/acid/alef");

@@ -163,6 +163,18 @@ subprop(Reg *r0)
 		case AMULL:
 		case AMULW:
 
+		case AROLB:
+		case AROLL:
+		case AROLW:
+		case ARORB:
+		case ARORL:
+		case ARORW:
+		case ASALB:
+		case ASALL:
+		case ASALW:
+		case ASARB:
+		case ASARL:
+		case ASARW:
 		case ASHLB:
 		case ASHLL:
 		case ASHLW:

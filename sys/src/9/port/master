@@ -1,49 +1,39 @@
 	root	/
 	audio	A
-	boot	B
-	ctech	C
-	cyc	C
-	dr	D
-	hard	H
-	hifi	H
+	bridge	B
+	sac	C
+	ssl	D
+	sdp	E
+	tinyfs	F
+	astar	G
 	ip	I
-	isdn	J
-	conc	K
 	lpt	L
 	mnt	M
-	iproute	P
-	icmp	Q
+	arch	P
 	cdrom	R
-	scsi	S
+	sd	S
+	lm78	T
 	kprof	T
-	pri	T
-	voice	V
-	alacron	X
-	arp	a
-	bit	b
+	usb	U
+	lml	V
+	intrts	Z
 	cons	c
 	dup	d
 	env	e
 	floppy	f
-	hs386	h
-	hsvme	h
-	incon	i
-	dk	k
+	draw	i
 	ether	l
 	lance	l
 	midi	m
-	nonet	n
+	mouse	m
 	proc	p
 	rtc	r
-	mux	s
 	srv	s
+	ns16552	t
+	z8530	t
 	duart	t
-	scc	t
-	uart	t
-	wren	w
-	port	x
+	vga	v
 	pcmcia	y
-	zduart	z
+	i82365	y
+	mntstats	z
 	pipe	|
-	reboot	↑
-	mpx	μ

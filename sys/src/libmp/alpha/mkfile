@@ -1,0 +1,9 @@
+objtype=alpha
+</alpha/mkfile
+
+LIB=/$objtype/lib/libmp.a
+OFILES=\
+
+HFILES=/$objtype/include/mp.h ../port/dat.h
+
+</sys/src/cmd/mksyslib

@@ -36,7 +36,7 @@ enum
 	NNONTERM	= 300,
 	TEMPSIZE	= 2000,
 	CNAMSZ		= 5000,
-	LSETSIZE	= 600,
+	LSETSIZE	= 2400,
 	WSETSIZE	= 350,
 
 	NAMESIZE	= 50,
@@ -579,9 +579,9 @@ summary(void)
 		Bprint(foutput, "%d shift/reduce, %d reduce/reduce conflicts reported\n",
 			zzsrconf, zzrrconf);
 		Bprint(foutput, "%d/%d working sets used\n",
-			zzcwp-wsets, WSETSIZE);
+			(int)(zzcwp-wsets), WSETSIZE);
 		Bprint(foutput, "memory: states,etc. %d/%d, parser %d/%d\n",
-			zzmemsz-mem0, MEMSIZE, memp-amem, ACTSIZE);
+			(int)(zzmemsz-mem0), MEMSIZE, (int)(memp-amem), ACTSIZE);
 		Bprint(foutput, "%d/%d distinct lookahead sets\n", nlset, LSETSIZE);
 		Bprint(foutput, "%d extra closures\n", zzclose - 2*nstate);
 		Bprint(foutput, "%d shift entries, %d exceptions\n", zzacent, zzexcp);
@@ -598,10 +598,14 @@ summary(void)
 			print("%d reduce/reduce", zzrrconf);
 		print("\n");
 	}
-	if(ftemp != 0)
+	if(ftemp != 0) {
 		Bterm(ftemp);
-	if(fdefine != 0)
+		ftemp = 0;
+	}
+	if(fdefine != 0) {
 		Bterm(fdefine);
+		fdefine = 0;
+	}
 }
 
 /*
@@ -929,7 +933,7 @@ void
 stagen(void)
 {
 
-	int c, i, j;
+	int c, i, j, more;
 	Wset *p, *q;
 
 	/* initialize */
@@ -953,49 +957,51 @@ stagen(void)
 	aryfil(amem, ACTSIZE, 0);
 
 	/* now, the main state generation loop */
-more:
-	SLOOP(i) {
-		if(tystate[i] != MUSTDO)
-			continue;
-		tystate[i] = DONE;
-		aryfil(temp1, nnonter+1, 0);
-		/* take state i, close it, and do gotos */
-		closure(i);
-		/* generate goto's */
-		WSLOOP(wsets, p) {
-			if(p->flag)
+	for(more=1; more;) {
+		more = 0;
+		SLOOP(i) {
+			if(tystate[i] != MUSTDO)
 				continue;
-			p->flag = 1;
-			c = *(p->pitem);
-			if(c <= 1) {
-				if(pstate[i+1]-pstate[i] <= p-wsets)
-					tystate[i] = MUSTLOOKAHEAD;
-				continue;
-			}
-			/* do a goto on c */
-			WSLOOP(p, q)
-				/* this item contributes to the goto */
-				if(c == *(q->pitem)) {
-					putitem(q->pitem+1, &q->ws);
-					q->flag = 1;
+			tystate[i] = DONE;
+			aryfil(temp1, nnonter+1, 0);
+			/* take state i, close it, and do gotos */
+			closure(i);
+			/* generate goto's */
+			WSLOOP(wsets, p) {
+				if(p->flag)
+					continue;
+				p->flag = 1;
+				c = *(p->pitem);
+				if(c <= 1) {
+					if(pstate[i+1]-pstate[i] <= p-wsets)
+						tystate[i] = MUSTLOOKAHEAD;
+					continue;
 				}
-			if(c < NTBASE)
-				state(c);	/* register new state */
-			else
-				temp1[c-NTBASE] = state(c);
+				/* do a goto on c */
+				WSLOOP(p, q)
+					/* this item contributes to the goto */
+					if(c == *(q->pitem)) {
+						putitem(q->pitem+1, &q->ws);
+						q->flag = 1;
+					}
+				if(c < NTBASE)
+					state(c);	/* register new state */
+				else
+					temp1[c-NTBASE] = state(c);
+			}
+			if(gsdebug && foutput != 0) {
+				Bprint(foutput, "%d: ", i);
+				NTLOOP(j)
+					if(temp1[j])
+						Bprint(foutput, "%s %d, ",
+						nontrst[j].name, temp1[j]);
+				Bprint(foutput, "\n");
+			}
+			indgo[i] = apack(&temp1[1], nnonter-1) - 1;
+			/* do some more */
+			more = 1;
 		}
-		if(gsdebug && foutput != 0) {
-			Bprint(foutput, "%d: ", i);
-			NTLOOP(j)
-				if(temp1[j])
-					Bprint(foutput, "%s %d, ", nontrst[j].name, temp1[j]);
-			Bprint(foutput, "\n");
-		}
-		indgo[i] = apack(&temp1[1], nnonter-1) - 1;
-		/* we have done one goto; do some more */
-		goto more;
 	}
-	/* no more to do... stop */
 }
 
 /*
@@ -1163,7 +1169,7 @@ setup(int argc, char *argv[])
 	long c, t;
 	int i, j, lev, ty, ytab, *p;
 	int vflag, dflag, stem;
-	char actnm[8], *stemc;
+	char actnm[8], *stemc, *s, dirbuf[128];
 
 	ytab = 0;
 	vflag = 0;
@@ -1207,6 +1213,15 @@ setup(int argc, char *argv[])
 	if(argc < 1)
 		error("no input file");
 	infile = argv[0];
+	if(infile[0] != '/' && getwd(dirbuf, sizeof dirbuf)!=nil){
+		i = strlen(infile)+1+strlen(dirbuf)+1;
+		s = malloc(i);
+		if(s != nil){
+			snprint(s, i, "%s/%s", dirbuf, infile);
+			cleanname(s);
+			infile = s;
+		}
+	}
 	finput = Bopen(infile, OREAD);
 	if(finput == 0)
 		error("cannot open '%s'", argv[0]);
@@ -2228,7 +2243,7 @@ apack(int *p, int n)
 
 		/* we have found an acceptable k */
 		if(pkdebug && foutput != 0)
-			Bprint(foutput, "off = %d, k = %d\n", off, rr-amem);
+			Bprint(foutput, "off = %d, k = %d\n", off, (int)(rr-amem));
 		for(qq = rr, pp = p; pp <= q; pp++, qq++)
 			if(*pp) {
 				if(qq > r)
@@ -2296,6 +2311,8 @@ go2out(void)
 			}
 
 		/* now, the default */
+		if(best == -1)
+			best = 0;
 		zzgoent++;
 		Bprint(ftemp, "%d\n", best);
 	}
@@ -2581,15 +2598,16 @@ hideprod(void)
 		print("%d rules never reduced\n", j);
 }
 
-
 void
 callopt(void)
 {
 	int i, *p, j, k, *q;
 
 	/* read the arrays from tempfile and set parameters */
-	if((finput=Bopen(tempname, OREAD)) == 0)
+	finput = Bopen(tempname, OREAD);
+	if(finput == 0)
 		error("optimizer cannot open tempfile");
+
 	pgo[0] = 0;
 	temp1[0] = 0;
 	nstate = 0;
@@ -2685,7 +2703,7 @@ callopt(void)
 	/* print amem array */
 	if(adb > 2 )
 		for(p = amem; p <= maxa; p += 10) {
-			Bprint(ftable, "%4d  ", p-amem);
+			Bprint(ftable, "%4d  ", (int)(p-amem));
 			for(i = 0; i < 10; ++i)
 				Bprint(ftable, "%4d  ", p[i]);
 			Bprint(ftable, "\n");
@@ -2847,8 +2865,8 @@ osummary(void)
 			i++;
 
 	Bprint(foutput, "Optimizer space used: input %d/%d, output %d/%d\n",
-		pmem-mem0+1, MEMSIZE, maxa-amem+1, ACTSIZE);
-	Bprint(foutput, "%d table entries, %d zero\n", (maxa-amem)+1, i);
+		(int)(pmem-mem0+1), MEMSIZE, (int)(maxa-amem+1), ACTSIZE);
+	Bprint(foutput, "%d table entries, %d zero\n", (int)(maxa-amem+1), i);
 	Bprint(foutput, "maximum spread: %d, maximum offset: %d\n", maxspr, maxoff);
 }
 
@@ -2859,7 +2877,7 @@ osummary(void)
 void
 aoutput(void)
 {
-	Bprint(ftable, "#define\tYYLAST\t%d\n", maxa-amem+1);
+	Bprint(ftable, "#define\tYYLAST\t%d\n", (int)(maxa-amem+1));
 	arout("yyact", amem, (maxa-amem)+1);
 	arout("yypact", indgo, nstate);
 	arout("yypgo", pgo, nnonter+1);
@@ -2891,21 +2909,25 @@ arout(char *s, int *v, int n)
 int
 gtnm(void)
 {
-	int s, val, c;
+	int sign, val, c;
 
-	s = 1;
+	sign = 0;
 	val = 0;
 	while((c=Bgetrune(finput)) != Beof) {
-		if(isdigit(c))
+		if(isdigit(c)) {
 			val = val*10 + c-'0';
-		else
-			if(c == '-')
-				s = -1;
-			else
-				break;
+			continue;
+		}
+		if(c == '-') {
+			sign = 1;
+			continue;
+		}
+		break;
 	}
-	*pmem++ = s*val;
-	if(pmem > &mem0[MEMSIZE])
+	if(sign)
+		val = -val;
+	*pmem++ = val;
+	if(pmem >= &mem0[MEMSIZE])
 		error("out of space");
 	return c;
 }

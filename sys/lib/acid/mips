@@ -14,18 +14,16 @@ defn acidinit()			// Called after all the init modules are loaded
 
 	srcfiles = {};		// list of loaded files
 	srctext = {};		// the text of the files
-
-	linkreg = R31;
 }
 
 defn stk()			// trace
 {
-	_stk(*PC, *SP, *linkreg, 0);
+	_stk(*PC, *SP, linkreg(0), 0);
 }
 
 defn lstk()			// trace with locals
 {
-	_stk(*PC, *SP, *linkreg, 1);
+	_stk(*PC, *SP, linkreg(0), 1);
 }
 
 defn gpr()			// print general purpose registers
@@ -84,13 +82,11 @@ defn spr()				// print special processor registers
 	pfl(pc);
 
 	link = *R31;
-	print("SP\t", *SP);
-	print("\tLINK\t", link, " ", fmt(link, 'a'), " ");
+	print("SP\t", *SP, "\tLINK\t", link, " ", fmt(link, 'a'), " ");
 	pfl(link);
 
 	cause = *CAUSE;
-	print("STATUS\t", *STATUS, "\t");
-	print("CAUSE\t", cause, " ", reason(cause), "\n");
+	print("STATUS\t", *STATUS, "\tCAUSE\t", cause, " ", reason(cause), "\n");
 	print("TLBVIR\t", *TLBVIRT, "\tBADVADR\t", *BADVADDR, "\n");
 
 	print("HI\t", *HI, "\tLO\t", *LO, "\n");
@@ -126,47 +122,47 @@ defn pstop(pid)
 sizeofUreg = 152;
 aggr Ureg
 {
-	'U' 0 status;
-	'U' 4 pc;
+	'X' 0 status;
+	'X' 4 pc;
 	{
-	'U' 8 sp;
-	'U' 8 usp;
+	'X' 8 sp;
+	'X' 8 usp;
 	};
-	'U' 12 cause;
-	'U' 16 badvaddr;
-	'U' 20 tlbvirt;
-	'U' 24 hi;
-	'U' 28 lo;
-	'U' 32 r31;
-	'U' 36 r30;
-	'U' 40 r28;
-	'U' 44 r27;
-	'U' 48 r26;
-	'U' 52 r25;
-	'U' 56 r24;
-	'U' 60 r23;
-	'U' 64 r22;
-	'U' 68 r21;
-	'U' 72 r20;
-	'U' 76 r19;
-	'U' 80 r18;
-	'U' 84 r17;
-	'U' 88 r16;
-	'U' 92 r15;
-	'U' 96 r14;
-	'U' 100 r13;
-	'U' 104 r12;
-	'U' 108 r11;
-	'U' 112 r10;
-	'U' 116 r9;
-	'U' 120 r8;
-	'U' 124 r7;
-	'U' 128 r6;
-	'U' 132 r5;
-	'U' 136 r4;
-	'U' 140 r3;
-	'U' 144 r2;
-	'U' 148 r1;
+	'X' 12 cause;
+	'X' 16 badvaddr;
+	'X' 20 tlbvirt;
+	'X' 24 hi;
+	'X' 28 lo;
+	'X' 32 r31;
+	'X' 36 r30;
+	'X' 40 r28;
+	'X' 44 r27;
+	'X' 48 r26;
+	'X' 52 r25;
+	'X' 56 r24;
+	'X' 60 r23;
+	'X' 64 r22;
+	'X' 68 r21;
+	'X' 72 r20;
+	'X' 76 r19;
+	'X' 80 r18;
+	'X' 84 r17;
+	'X' 88 r16;
+	'X' 92 r15;
+	'X' 96 r14;
+	'X' 100 r13;
+	'X' 104 r12;
+	'X' 108 r11;
+	'X' 112 r10;
+	'X' 116 r9;
+	'X' 120 r8;
+	'X' 124 r7;
+	'X' 128 r6;
+	'X' 132 r5;
+	'X' 136 r4;
+	'X' 140 r3;
+	'X' 144 r2;
+	'X' 148 r1;
 };
 
 defn
@@ -211,5 +207,11 @@ Ureg(addr) {
 	print("	r2	", addr.r2, "\n");
 	print("	r1	", addr.r1, "\n");
 };
+
+defn linkreg(addr)
+{
+	complex Ureg addr;
+	return addr.r31\X;
+}
 
 print("/sys/lib/acid/mips");

@@ -3,6 +3,13 @@
 iostats \- file system to measure I/O
 .SH SYNOPSIS
 .B iostats
+[
+.B -d
+]
+[
+.B -f
+.I dbfile
+]
 .I cmd
 [
 .I args...
@@ -40,6 +47,14 @@ time and the amount of data involved with each 9P
 message type.
 The final section gives an I/O summary for each file used
 by the program in terms of opens, reads and writes.
+.PP
+If the
+.B -d
+flag is present, a debugging log including all traffic
+is written to
+.I dbfile
+(default
+.BR iostats.out ).
 .SH SOURCE
 .B /sys/src/cmd/iostats
 .SH BUGS

@@ -8,7 +8,6 @@ struct Service
 	char	serv[NAMELEN];		/* name of the service */
 	char	remote[3*NAMELEN];	/* address of remote system */
 	char	prog[5*NAMELEN+1];	/* program to execute */
-	char	trusted;		/* true if service in trusted dir */
 };
 
 typedef struct Announce	Announce;
@@ -16,51 +15,47 @@ struct Announce
 {
 	Announce	*next;
 	char	*a;
+	int	announced;
 };
 
 int	readstr(char*, char*, char*, int);
-void	netchown(int, char*);
-void	dolisten(char*, char*, int);
+void	protochown(int, char*);
+void	dolisten(char*, char*, int, char*);
 void	newcall(int, char*, char*, Service*);
-int 	findserv(char*, char*, Service*);
+int 	findserv(char*, char*, Service*, char*);
 int	getserv(char*, char*, Service*);
 void	error(char*);
-void	mkannouncements(char*t, char*);
+void	scandir(char*, char*, char*);
+void	becomenone(void);
+void	listendir(char*, char*, int);
 
 char	listenlog[] = "listen";
 
 int	quiet;
 char	*cpu;
-char	*net;
-char	*trustdir;
-char	*servdir;
+char	*proto;
 Announce *announcements;
 #define SEC 1000
+
+char *namespace;
 
 void
 main(int argc, char *argv[])
 {
 	Service *s;
-	int ctl, try;
-	char *name;
-	Announce *a;
-	char dir[40];
+	char *protodir;
+	char *trustdir;
+	char *servdir;
 
-	/*
- 	 * insulate ourselves from later
-	 * changing of console environment variables
-	 * erase privileged crypt state
-	 */
-	if(rfork(RFENVG|RFNAMEG|RFNOTEG) < 0)
-		error("can't make new pgrp");
-
+	servdir = 0;
+	trustdir = 0;
+	proto = "il";
+	quiet = 0;
+	argv0 = argv[0];
 	cpu = getenv("cputype");
 	if(cpu == 0)
 		error("can't get cputype");
-	argv0 = argv[0];
-	net = "dk";
-	name = getenv("sysname");
-	quiet = 0;
+
 	ARGBEGIN{
 	case 'd':
 		servdir = ARGF();
@@ -71,9 +66,13 @@ main(int argc, char *argv[])
 	case 't':
 		trustdir = ARGF();
 		break;
+	case 'n':
+		namespace = ARGF();
+		break;
 	default:
-		error("usage: listen [-d servdir] [-t trustdir] [net [name]]");
-	}ARGEND
+		error("usage: listen [-d servdir] [-t trustdir] [proto]");
+	}ARGEND;
+
 	if(!servdir && !trustdir)
 		servdir = "/bin/service";
 
@@ -83,42 +82,113 @@ main(int argc, char *argv[])
 		error("trusted service directory too long");
 
 	switch(argc){
-	case 2:
-		name = argv[1];
-		/* fall through */
 	case 1:
-		net = argv[0];
+		proto = argv[0];
 		break;
 	case 0:
 		break;
 	default:
-		error("usage: listen [-d servdir] [net [name]]");
+		error("usage: listen [-d servdir] [-t trustdir] [proto]");
 	}
 
-	mkannouncements(net, name);
-	for(a = announcements; a; a = a->next){
-		switch(rfork(RFFDG|RFPROC|RFMEM)){
-		default:
-			continue;
-		case 0:
-			break;
-		}
-		for(;;){
-			ctl = -1;
-			for(try = 0; try < 5; try++){
-				if(try || strcmp(net, "dk") == 0)
-					sleep(10*SEC);
-				ctl = announce(a->a, dir);
-				if(ctl >= 0)
-					break;
+	syslog(0, listenlog, "started");
+
+	protodir = proto;
+	proto = strrchr(proto, '/');
+	if(proto == 0)
+		proto = protodir;
+	else
+		proto++;
+	listendir(protodir, servdir, 0);
+	listendir(protodir, trustdir, 1);
+
+	/* command returns */
+	exits(0);
+}
+
+static void
+dingdong(void*, char *msg)
+{
+	if(strstr(msg, "alarm") != nil)
+		noted(NCONT);
+	noted(NDFLT);
+}
+
+void
+listendir(char *protodir, char *srvdir, int trusted)
+{
+	int ctl, pid, start;
+	Announce *a;
+	char dir[40];
+
+	if (srvdir == 0)
+		return;
+
+	/*
+ 	 * insulate ourselves from later
+	 * changing of console environment variables
+	 * erase privileged crypt state
+	 */
+	switch(rfork(RFNOTEG|RFPROC|RFFDG|RFNOWAIT|RFENVG|RFNAMEG)) {
+	case -1:
+		error("fork");
+	case 0:
+		break;
+	default:
+		return;
+	}
+
+	if (!trusted)
+		becomenone();
+
+	notify(dingdong);
+
+	pid = getpid();
+	for(;;){
+		/*
+		 * loop through announcements and process trusted services in
+		 * invoker's ns and untrusted in none's.
+		 */
+		scandir(proto, protodir, srvdir);
+		for(a = announcements; a; a = a->next){
+			if(a->announced > 0)
+				continue;
+
+			sleep((pid*10)%200);
+
+			/* a process per service */
+			switch(pid = rfork(RFFDG|RFPROC)){
+			case -1:
+				syslog(1, listenlog, "couldn't fork for %s", a->a);
+				break;
+			case 0:
+				for(;;){
+					ctl = announce(a->a, dir);
+					if(ctl < 0) {
+						syslog(1, listenlog, "giving up on %s: %r", a->a);
+						exits("ctl");
+					}
+					dolisten(proto, dir, ctl, srvdir);
+					close(ctl);
+				}
+				break;
+			default:
+				a->announced = pid;
+				break;
 			}
-			if(ctl < 0) {
-				syslog(1, listenlog, "giving up on %s", a->a);
-				exits("ctl");
-			}
-			dolisten(net, dir, ctl);
-			close(ctl);
 		}
+
+		/* pick up any children that gave up and sleep for at least 60 seconds */
+		start = time(0);
+		alarm(60*1000);
+		while((pid = wait(0)) > 0)
+			for(a = announcements; a; a = a->next)
+				if(a->announced == pid)
+					a->announced = 0;
+		alarm(0);
+		start = 60 - (time(0)-start);
+		if(start > 0)
+			sleep(start*1000);
 	}
 	exits(0);
 }
@@ -132,8 +202,11 @@ addannounce(char *fmt, ...)
 	int n;
 	Announce *a, **l;
 	char str[128];
+	va_list arg;
 
-	n = doprint(str, str+sizeof(str), fmt, &fmt+1) - str;
+	va_start(arg, fmt);
+	n = doprint(str, str+sizeof(str), fmt, arg) - str;
+	va_end(arg);
 	str[n] = 0;
 
 	/* look for duplicate */
@@ -145,16 +218,17 @@ addannounce(char *fmt, ...)
 	}
 
 	/* accept it */
-	a = malloc(sizeof(*a) + strlen(str) + 1);
+	a = mallocz(sizeof(*a) + strlen(str) + 1, 1);
 	if(a == 0)
 		return;
 	a->a = ((char*)a)+sizeof(*a);
 	strcpy(a->a, str);
+	a->announced = 0;
 	*l = a;
 }
 
 void
-scandir(char *net, char *dname)
+scandir(char *proto, char *protodir, char *dname)
 {
 	int fd, i, n, nlen;
 	Dir db[32];
@@ -163,36 +237,19 @@ scandir(char *net, char *dname)
 	if(fd < 0)
 		return;
 
-	nlen = strlen(net);
+	nlen = strlen(proto);
 	while((n=dirread(fd, db, sizeof db)) > 0){
 		n /= sizeof(Dir);
 		for(i=0; i<n; i++){
 			if(db[i].qid.path&CHDIR)
 				continue;
-			if(strncmp(db[i].name, net, nlen) != 0)
+			if(strncmp(db[i].name, proto, nlen) != 0)
 				continue;
-			addannounce("%s!*!%s", net, db[i].name+nlen);
+			addannounce("%s!*!%s", protodir, db[i].name+nlen);
 		}
 	}
-}
 
-/*
- *  We announce once per listened for port.  We could just listen for
- *  '*' and avoid this, but then users could listen for the individual
- *  ports and steal them from us.
- */
-void
-mkannouncements(char *net, char *name)
-{
-	if(strcmp(net, "dk") == 0){
-		addannounce("%s!%s", net, name);
-		return;
-	}
-	if(trustdir)
-		scandir(net, trustdir);
-	if(servdir)
-		scandir(net, servdir);
-	addannounce("%s!*!*", net);
+	close(fd);
 }
 
 void
@@ -204,12 +261,12 @@ becomenone(void)
 	if(fd < 0 || write(fd, "none", strlen("none")) < 0)
 		error("can't become none");
 	close(fd);
-	if(newns("none", 0) < 0)
+	if(newns("none", namespace) < 0)
 		error("can't build namespace");
 }
 
 void
-dolisten(char *net, char *dir, int ctl)
+dolisten(char *proto, char *dir, int ctl, char *srvdir)
 {
 	Service s;
 	char ndir[40];
@@ -227,7 +284,7 @@ dolisten(char *net, char *dir, int ctl)
 		}
 
 		/*
-		 *  start a process for the service
+		 *  start a subprocess for the connection
 		 */
 		switch(rfork(RFFDG|RFPROC|RFNOWAIT|RFENVG|RFNAMEG|RFNOTEG)){
 		case -1:
@@ -239,10 +296,10 @@ dolisten(char *net, char *dir, int ctl)
 			 *  see if we know the service requested
 			 */
 			memset(&s, 0, sizeof s);
-			if(!findserv(net, ndir, &s)){
+			if(!findserv(proto, ndir, &s, srvdir)){
 				if(!quiet)
 					syslog(1, listenlog, "%s: unknown service '%s' from '%s': %r",
-						net, s.serv, s.remote);
+						proto, s.serv, s.remote);
 				reject(ctl, ndir, "connection refused");
 				exits(0);
 			}
@@ -251,9 +308,10 @@ dolisten(char *net, char *dir, int ctl)
 				syslog(1, listenlog, "can't open %s/data: %r", ndir);
 				exits(0);
 			}
+			fprint(nctl, "keepalive");
 			close(ctl);
 			close(nctl);
-			newcall(data, net, ndir, &s);
+			newcall(data, proto, ndir, &s);
 			exits(0);
 		default:
 			close(nctl);
@@ -263,27 +321,18 @@ dolisten(char *net, char *dir, int ctl)
 }
 
 /*
- * look in the two service dirctories for the service
+ * look in the service directory for the service
  */
 int 
-findserv(char *net, char *dir, Service *s)
+findserv(char *proto, char *dir, Service *s, char *srvdir)
 {
 	char dbuf[DIRLEN];
 
-	if(!getserv(net, dir, s))
+	if(!getserv(proto, dir, s))
 		return 0;
-	if(servdir){
-		s->trusted = 0;
-		sprint(s->prog, "%s/%s", servdir, s->serv);
-		if(stat(s->prog, dbuf) >= 0)
-			return 1;
-	}
-	if(trustdir){
-		s->trusted = 1;
-		sprint(s->prog, "%s/%s", trustdir, s->serv);
-		if(stat(s->prog, dbuf) >= 0)
-			return 1;
-	}
+	sprint(s->prog, "%s/%s", srvdir, s->serv);
+	if(stat(s->prog, dbuf) >= 0)
+		return 1;
 	return 0;
 }
 
@@ -291,7 +340,7 @@ findserv(char *net, char *dir, Service *s)
  *  get the service name out of the local address
  */
 int
-getserv(char *net, char *dir, Service *s)
+getserv(char *proto, char *dir, Service *s)
 {
 	char addr[128], *serv, *p;
 	long n;
@@ -315,20 +364,49 @@ getserv(char *net, char *dir, Service *s)
 	 * disallow service names like
 	 * ../../usr/user/bin/rc/su
 	 */
-	if(strlen(serv) +strlen(net) >= NAMELEN || utfrune(serv, L'/') || *serv == '.')
+	if(strlen(serv) +strlen(proto) >= NAMELEN || utfrune(serv, L'/') || *serv == '.')
 		return 0;
-	sprint(s->serv, "%s%s", net, serv);
+	sprint(s->serv, "%s%s", proto, serv);
 
 	return 1;
 }
 
+char *
+remoteaddr(char *dir)
+{
+	char buf[128], *p;
+	int n, fd;
+
+	snprint(buf, sizeof buf, "%s/remote", dir);
+	fd = open(buf, OREAD);
+	if(fd < 0)
+		return strdup("");
+	n = read(fd, buf, sizeof(buf));
+	close(fd);
+	if(n > 0){
+		buf[n] = 0;
+		p = strchr(buf, '!');
+		if(p)
+			*p = 0;
+		return strdup(buf);
+	}
+	return strdup("");
+}
+
 void
-newcall(int fd, char *net, char *dir, Service *s)
+newcall(int fd, char *proto, char *dir, Service *s)
 {
 	char data[4*NAMELEN];
+	char *p;
 
-	if(!quiet)
-		syslog(0, listenlog, "%s call for %s on chan %s", net, s->serv, dir);
+	if(!quiet){
+		if(dir != nil){
+			p = remoteaddr(dir);
+			syslog(0, listenlog, "%s call for %s on chan %s (%s)", proto, s->serv, dir, p);
+			free(p);
+		} else
+			syslog(0, listenlog, "%s call for %s on chan %s", proto, s->serv, dir);
+	}
 
 	sprint(data, "%s/data", dir);
 	bind(data, "/dev/cons", MREPL);
@@ -342,16 +420,14 @@ newcall(int fd, char *net, char *dir, Service *s)
 	 */
 	for(fd=3; fd<20; fd++)
 		close(fd);
-	if(!s->trusted)
-		becomenone();
-	execl(s->prog, s->prog, s->serv, net, dir, 0);
+	execl(s->prog, s->prog, s->serv, proto, dir, 0);
 	error(s->prog);
 }
 
 void
 error(char *s)
 {
-	syslog(1, listenlog, "%s: %s: %r", net, s);
+	syslog(1, listenlog, "%s: %s: %r", proto, s);
 	exits(0);
 }
 
@@ -381,7 +457,7 @@ readstr(char *dir, char *info, char *s, int len)
 }
 
 void
-netchown(int fd, char *user)
+protochown(int fd, char *user)
 {
 	Dir d;
 

@@ -19,52 +19,66 @@ struct Dict
 	} x[Ndict];
 	int n;			/* size of dictionary */
 	uchar *start;		/* start of packed message */
-	char buf[1024];		/* buffer for unpacked names */
+	char buf[4*1024];	/* buffer for unpacked names */
 	char *ep;		/* first free char in buf */
 };
 
-#define NAME(x)		p = pname(m, p, ep, x, dp)
-#define STRING(x)	p = pstring(m, p, ep, x)
-#define USHORT(x)	p = pushort(m, p, ep, x)
-#define ULONG(x)	p = pulong(m, p, ep, x)
-#define ADDR(x)		p = paddr(m, p, ep, x)
+#define NAME(x)		p = pname(p, ep, x, dp)
+#define STRING(x)	p = pstring(p, ep, x)
+#define BYTES(x, n)	p = pbytes(p, ep, x, n)
+#define USHORT(x)	p = pushort(p, ep, x)
+#define UCHAR(x)	p = puchar(p, ep, x)
+#define ULONG(x)	p = pulong(p, ep, x)
+#define ADDR(x)		p = paddr(p, ep, x)
 
 static uchar*
-pstring(DNSmsg *m, uchar *p, uchar *ep, char *np)
+pstring(uchar *p, uchar *ep, char *np)
 {
 	int n;
 
 	n = strlen(np);
 	if(n >= Strlen)			/* DNS maximum length string */
 		n = Strlen - 1;
-	if(ep - p <= n){		/* see if it fits in the buffer */
-		m->flags |= Ftrunc;
-		return ep;
-	}
+	if(ep - p < n+1)		/* see if it fits in the buffer */
+		return ep+1;
 	*p++ = n;
 	memcpy(p, np, n);
 	return p + n;
 }
 
 static uchar*
-pushort(DNSmsg *m, uchar *p, uchar *ep, int val)
+pbytes(uchar *p, uchar *ep, uchar *np, int n)
 {
-	if(ep - p < 2){
-		m->flags |= Ftrunc;
-		return ep;
-	}
+	if(ep - p < n)
+		return ep+1;
+	memcpy(p, np, n);
+	return p + n;
+}
+
+static uchar*
+puchar(uchar *p, uchar *ep, int val)
+{
+	if(ep - p < 1)
+		return ep+1;
+	*p++ = val;
+	return p;
+}
+
+static uchar*
+pushort(uchar *p, uchar *ep, int val)
+{
+	if(ep - p < 2)
+		return ep+1;
 	*p++ = val>>8;
 	*p++ = val;
 	return p;
 }
 
 static uchar*
-pulong(DNSmsg *m, uchar *p, uchar *ep, int val)
+pulong(uchar *p, uchar *ep, int val)
 {
-	if(ep - p < 4){
-		m->flags |= Ftrunc;
-		return ep;
-	}
+	if(ep - p < 4)
+		return ep+1;
 	*p++ = val>>24;
 	*p++ = val>>16;
 	*p++ = val>>8;
@@ -73,38 +87,35 @@ pulong(DNSmsg *m, uchar *p, uchar *ep, int val)
 }
 
 static uchar*
-paddr(DNSmsg *m, uchar *p, uchar *ep, char *name)
+paddr(uchar *p, uchar *ep, char *name)
 {
-	if(ep - p < 4){
-		m->flags |= Ftrunc;
-		return ep;
-	}
-	parseip(p, name);
+	uchar ip[IPaddrlen];
+
+	if(ep - p < 4)
+		return ep+1;
+	parseip(ip, name);
+	v6tov4(p, ip);
 	return p + 4;
 
 }
 
 static uchar*
-pname(DNSmsg *m, uchar *p, uchar *ep, char *np, Dict *dp)
+pname(uchar *p, uchar *ep, char *np, Dict *dp)
 {
 	char *cp;
 	int i;
 	char *last;		/* last component packed */
 
-	if(strlen(np) >= Domlen){	/* make sure we don't exceed DNS limits */
-		m->flags |= Ftrunc;
-		return ep;
-	}
+	if(strlen(np) >= Domlen)	/* make sure we don't exceed DNS limits */
+		return ep+1;
 
 	last = 0;
 	while(*np){
 		/* look through every component in the dictionary for a match */
 		for(i = 0; i < dp->n; i++){
 			if(strcmp(np, dp->x[i].name) == 0){
-				if(ep - p < 2){
-					m->flags |= Ftrunc;
-					return ep;
-				}
+				if(ep - p < 2)
+					return ep+1;
 				*p++ = (dp->x[i].offset>>8) | 0xc0;
 				*p++ = dp->x[i].offset;
 				return p;
@@ -142,33 +153,47 @@ pname(DNSmsg *m, uchar *p, uchar *ep, char *np, Dict *dp)
 			i = cp - np;
 			cp++;		/* point past '.' */
 		}
-		if(ep-p < i+1){
-			m->flags |= Ftrunc;
-			return ep;
-		}
+		if(ep-p < i+1)
+			return ep+1;
 		*p++ = i;		/* count of chars in label */
 		memcpy(p, np, i);
 		np = cp;
 		p += i;
 	}
+
+	if(p >= ep)
+		return ep+1;
 	*p++ = 0;	/* add top level domain */
 
 	return p;
 }
 
 static uchar*
-convRR2M(DNSmsg *m, RR *rp, uchar *p, uchar *ep, Dict *dp)
+convRR2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
 {
 	uchar *lp, *data;
-	int len;
+	int len, ttl;
 
 	NAME(rp->owner->name);
 	USHORT(rp->type);
 	USHORT(rp->owner->class);
-	ULONG(rp->ttl);
+
+	/* egregious overuse of ttl (it's absolute time in the cache) */
+	if(rp->db)
+		ttl = rp->ttl;
+	else
+		ttl = rp->ttl - now;
+	if(ttl < 0)
+		ttl = 0;
+	ULONG(ttl);
+
 	lp = p;			/* leave room for the rdata length */
 	p += 2;
 	data = p;
+
+	if(data >= ep)
+		return p+1;
+
 	switch(rp->type){
 	case Thinfo:
 		STRING(rp->cpu->name);
@@ -208,9 +233,37 @@ convRR2M(DNSmsg *m, RR *rp, uchar *p, uchar *ep, Dict *dp)
 		ULONG(rp->soa->expire);
 		ULONG(rp->soa->minttl);
 		break;
+	case Ttxt:
+		STRING(rp->txt->name);
+		break;
+	case Trp:
+		NAME(rp->rmb->name);
+		NAME(rp->txt->name);
+		break;
+	case Tkey:
+		USHORT(rp->key->flags);
+		UCHAR(rp->key->proto);
+		UCHAR(rp->key->alg);
+		BYTES(rp->key->data, rp->key->dlen);
+		break;
+	case Tsig:
+		USHORT(rp->sig->type);
+		UCHAR(rp->sig->alg);
+		UCHAR(rp->sig->labels);
+		ULONG(rp->sig->ttl);
+		ULONG(rp->sig->exp);
+		ULONG(rp->sig->incep);
+		USHORT(rp->sig->tag);
+		NAME(rp->sig->signer->name);
+		BYTES(rp->sig->data, rp->sig->dlen);
+		break;
+	case Tcert:
+		USHORT(rp->cert->type);
+		USHORT(rp->cert->tag);
+		UCHAR(rp->cert->alg);
+		BYTES(rp->cert->data, rp->cert->dlen);
+		break;
 	}
-	if(m->flags & Ftrunc)
-		return ep+1;
 
 	/* stuff in the rdata section length */
 	len = p - data;
@@ -221,33 +274,27 @@ convRR2M(DNSmsg *m, RR *rp, uchar *p, uchar *ep, Dict *dp)
 }
 
 static uchar*
-convQ2M(DNSmsg *m, RR *rp, uchar *p, uchar *ep, Dict *dp)
+convQ2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
 {
 	NAME(rp->owner->name);
 	USHORT(rp->type);
 	USHORT(rp->owner->class);
-	if(m->flags & Ftrunc)
-		return 0;
 	return p;
 }
 
 static uchar*
-rrloop(DNSmsg *m, RR *rp, long *countp, uchar *p, uchar *ep, Dict *dp, int quest)
+rrloop(RR *rp, int *countp, uchar *p, uchar *ep, Dict *dp, int quest)
 {
 	uchar *np;
 
-	if(p > ep)
-		return p;
 	*countp = 0;
-	for(; rp; rp = rp->next){
+	for(; rp && p < ep; rp = rp->next){
 		if(quest)
-			np = convQ2M(m, rp, p, ep, dp);
+			np = convQ2M(rp, p, ep, dp);
 		else
-			np = convRR2M(m, rp, p, ep, dp);
-		if(np == 0){
-			p = ep+1;
+			np = convRR2M(rp, p, ep, dp);
+		if(np > ep)
 			break;
-		}
 		p = np;
 		(*countp)++;
 	}
@@ -267,14 +314,15 @@ convDNS2M(DNSmsg *m, uchar *buf, int len)
 	d.start = buf;
 	d.ep = d.buf;
 	memset(buf, 0, len);
+	m->qdcount = m->ancount = m->nscount = m->arcount = 0;
 
 	/* first pack in the RR's so we can get real counts */
 	p = buf + 12;
 	ep = buf + len;
-	p = rrloop(m, m->qd, &m->qdcount, p, ep, &d, 1);
-	p = rrloop(m, m->an, &m->ancount, p, ep, &d, 0);
-	p = rrloop(m, m->ns, &m->nscount, p, ep, &d, 0);
-	p = rrloop(m, m->ar, &m->arcount, p, ep, &d, 0);
+	p = rrloop(m->qd, &m->qdcount, p, ep, &d, 1);
+	p = rrloop(m->an, &m->ancount, p, ep, &d, 0);
+	p = rrloop(m->ns, &m->nscount, p, ep, &d, 0);
+	p = rrloop(m->ar, &m->arcount, p, ep, &d, 0);
 	if(p > ep)
 		return -1;
 

@@ -1,0 +1,8 @@
+#!/bin/rc
+9fs nslocum
+9fs alice
+Kill portmapper|rc
+Kill nfsserver|rc
+rm -f /srv/nfsserver.chat /srv/portmapper.chat
+aux/nfsserver -a il!emelie -c /lib/ndb/nfs >>[2] /sys/log/nfsserver
+aux/portmapper >>[2] /sys/log/portmapper

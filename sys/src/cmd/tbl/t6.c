@@ -41,7 +41,7 @@ maktab(void)			/* define the tab stops of the table */
 							    S1, S2);
 						doubled[icol] = 1;
 						Bprint(&tabout, ".if \\n(%c->\\n(%d .nr %d \\n(%c-\n",
-						    s, S2, S2, s);
+						    (int)s, S2, S2, (int)s);
 					}
 				case 'n':
 					if (table[ilin][icol].rcol != 0) {
@@ -210,7 +210,7 @@ wide(char *s, char *fn, char *size)
 			putsize("0");
 		Bprint(&tabout, "%c", F1);
 	} else
-		Bprint(&tabout, "\\n(%c-", s);
+		Bprint(&tabout, "\\n(%c-", (int)s);
 }
 
 

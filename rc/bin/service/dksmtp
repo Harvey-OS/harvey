@@ -1,5 +1,0 @@
-#!/bin/rc
-#smtp serv net incalldir user
-
-user=`{cat /dev/user}
-exec upas/smtpd

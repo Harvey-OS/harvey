@@ -12,15 +12,8 @@ HFILES=\
 
 YFILES=a.y
 
-LIB=../cc/cc.a$O
-
 BIN=/$objtype/bin
 < /sys/src/cmd/mkone
 YFLAGS=-D1 -d
 
-lex.$O:	../cc/macbody ../cc/lexbody
-
-$LIB:
-	cd ../cc
-	mk install
-	mk clean
+lex.$O:	../cc/macbody ../cc/lexbody ../cc/compat

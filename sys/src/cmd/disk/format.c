@@ -1,8 +1,10 @@
 #include <u.h>
 #include <libc.h>
+#include <ctype.h>
+#include <disk.h>
 
 /*
- *  floppy types (all MFM encoding)
+ *  disk types (all MFM encoding)
  */
 typedef struct Type	Type;
 struct Type
@@ -17,16 +19,18 @@ struct Type
 };
 Type floppytype[] =
 {
- { "3½HD",	512, 18, 2, 80,	0xf0, 1, },
- { "3½DD",	512,  9, 2, 80,	0xf9, 2, },
- { "5¼HD",	512, 15, 2, 80,	0xf9, 1, },
- { "5¼DD",	512,  9, 2, 40,	0xfd, 2, },
+ { "3½HD",	512, 18,  2, 80, 0xf0, 1, },
+ { "3½DD",	512,  9,  2, 80, 0xf9, 2, },
+ { "5¼HD",	512, 15,  2, 80, 0xf9, 1, },
+ { "5¼DD",	512,  9,  2, 40, 0xfd, 2, },
+ { "hard",		512,  0,  0, 0, 0xf8, 4, },
 };
+
 #define NTYPES (sizeof(floppytype)/sizeof(Type))
 
 typedef struct Dosboot	Dosboot;
 struct Dosboot{
-	uchar	magic[3];	/* really an xx86 JMP instruction */
+	uchar	magic[3];	/* really an x86 JMP instruction */
 	uchar	version[8];
 	uchar	sectsize[2];
 	uchar	clustsize;
@@ -49,6 +53,8 @@ struct Dosboot{
 };
 #define	PUTSHORT(p, v) { (p)[1] = (v)>>8; (p)[0] = (v); }
 #define	PUTLONG(p, v) { PUTSHORT((p), (v)); PUTSHORT((p)+2, (v)>>16); }
+#define	GETSHORT(p)	(((p)[1]<<8)|(p)[0])
+#define	GETLONG(p)	(((ulong)GETSHORT(p+2)<<16)|(ulong)GETSHORT(p))
 
 typedef struct Dosdir	Dosdir;
 struct Dosdir
@@ -73,6 +79,7 @@ struct Dosdir
 /*
  *  the boot program for the boot sector.
  */
+int nbootprog = 188;	/* no. of bytes of boot program, including the first 0x3E */
 uchar bootprog[512] =
 {
 [0x000]	0xEB, 0x3C, 0x90, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -105,16 +112,22 @@ int fatsecs;
 int fatlast;	/* last cluster allocated */
 int clusters;
 int fatsecs;
-int volsecs;
+vlong volsecs;
 uchar *root;	/* first block of root */
 int rootsecs;
 int rootfiles;
 int rootnext;
+int nresrv = 1;
+int chatty;
+vlong length;
 Type *t;
 int fflag;
-char file[64];	/* output file name */
-char *bootfile;
+int hflag;
+int xflag;
+char *file;
+char *pbs;
 char *type;
+char *bootfile;
 
 enum
 {
@@ -122,15 +135,15 @@ enum
 	Eof = 2,	/* end of file */
 };
 
-
-void	dosfs(int, char*, int, char*[]);
+void	dosfs(int, int, Disk*, char*, int, char*[], int);
 ulong	clustalloc(int);
 void	addrname(uchar*, Dir*, ulong);
+void sanitycheck(Disk*);
 
 void
 usage(void)
 {
-	fprint(2, "usage: format [-b bfile] [-c csize] [-df] [-l label] [-t type] file [args ...]\n");
+	fprint(2, "usage: disk/format [-df] [-b bootblock] [-c csize] [-l label] [-r nresrv] [-t type] disk [files ...]\n");
 	exits("usage");
 }
 
@@ -139,11 +152,14 @@ fatal(char *fmt, ...)
 {
 	int n;
 	char err[128];
+	va_list arg;
 
-	n = doprint(err, err+sizeof(err), fmt, &fmt+1) - err;
+	va_start(arg, fmt);
+	n = doprint(err, err+sizeof(err), fmt, arg) - err;
+	va_end(arg);
 	err[n] = 0;
 	fprint(2, "format: %s\n", err);
-	if(fflag && file[0])
+	if(fflag && file)
 		remove(file);
 	exits(err);
 }
@@ -151,25 +167,25 @@ fatal(char *fmt, ...)
 void
 main(int argc, char **argv)
 {
-	int n, dos;
-	int cfd;
+	int n, dos, writepbs;
+	int fd;
 	char buf[512];
 	char label[11];
 	char *a;
+	Disk *disk;
 
 	dos = 0;
-	type = 0;
+	type = nil;
 	clustersize = 0;
+	writepbs = 0;
 	memmove(label, "CYLINDRICAL", sizeof(label));
 	ARGBEGIN {
-	case 'b':
-		bootfile = ARGF();
+	case 'c':
+		clustersize = atoi(ARGF());
 		break;
 	case 'd':
 		dos = 1;
-		break;
-	case 'c':
-		clustersize = atoi(ARGF());
+		writepbs = 1;
 		break;
 	case 'f':
 		fflag = 1;
@@ -183,8 +199,21 @@ main(int argc, char **argv)
 		while(n < sizeof(label))
 			label[n++] = ' ';
 		break;
+	case 'b':
+		pbs = ARGF();
+		writepbs = 1;
+		break;
+	case 'r':
+		nresrv = atoi(ARGF());
+		break;
 	case 't':
 		type = ARGF();
+		break;
+	case 'v':
+		chatty++;
+		break;
+	case 'x':
+		xflag = 1;
 		break;
 	default:
 		usage();
@@ -193,172 +222,348 @@ main(int argc, char **argv)
 	if(argc < 1)
 		usage();
 
-	dev = argv[0];
-	cfd = -1;
-	if(fflag == 0){
-		n = strlen(argv[0]);
-		if(n > 4 && strcmp(argv[0]+n-4, "disk") == 0)
-			*(argv[0]+n-4) = 0;
-		else if(n > 3 && strcmp(argv[0]+n-3, "ctl") == 0)
-			*(argv[0]+n-3) = 0;
+	disk = opendisk(argv[0], 0, 0);
+	if(disk == nil) {
+		if(fflag) {
+			if((fd = create(argv[0], ORDWR, 0666)) >= 0) {
+				file = argv[0];
+				close(fd);
+				disk = opendisk(argv[0], 0, 0);
+			}
+		}
+	}
+	if(disk == nil)
+		fatal("opendisk: %r");
 
-		sprint(buf, "%sctl", dev);
-		cfd = open(buf, ORDWR);
-		if(cfd < 0)
-			fatal("opening %s: %r", buf);
-		print("Formatting floppy %s\n", dev);
-		if(type)
-			sprint(buf, "format %s", type);
-		else
-			strcpy(buf, "format");
-		if(write(cfd, buf, strlen(buf)) < 0)
-			fatal("formatting tracks: %r");
+	if(disk->type == Tfile)
+		fflag = 1;
+
+	if(type == nil) {
+		switch(disk->type){
+		case Tfile:
+			type = "3½HD";
+			break;
+		case Tfloppy:
+			seek(disk->ctlfd, 0, 0);
+			n = read(disk->ctlfd, buf, 10);
+			if(n <= 0 || n >= 10)
+				fatal("reading floppy type");
+			buf[n] = 0;
+			type = estrdup(buf);
+			break;
+		case Tsd:
+			type = "hard";
+			break;
+		default:
+			type = "unknown";
+			break;
+		}
 	}
 
-	if(dos)
-		dosfs(cfd, label, argc-1, argv+1);
-	if(cfd >= 0)
-		close(cfd);
+	if(!fflag && disk->type == Tfloppy)
+		if(fprint(disk->ctlfd, "format %s", type) < 0)
+			fatal("formatting floppy as %s: %r", type);
+
+	if(disk->type != Tfloppy)
+		sanitycheck(disk);
+
+	/* check that everything will succeed */
+	dosfs(dos, writepbs, disk, label, argc-1, argv+1, 0);
+
+	/* commit */
+	dosfs(dos, writepbs, disk, label, argc-1, argv+1, 1);
+
 	exits(0);
 }
 
+/*
+ * Look for a partition table on sector 1, as would be the
+ * case if we were erroneously formatting 9fat without -r 2.
+ * If it's there and nresrv is not big enough, complain and exit.
+ * I've blown away my partition table too many times.
+ */
 void
-dosfs(int cfd, char *label, int argc, char *argv[])
+sanitycheck(Disk *disk)
+{
+	char buf[512];
+	int bad;
+
+	if(xflag)
+		return;
+
+	bad = 0;
+	if(nresrv < 2 && seek(disk->fd, disk->secsize, 0) == disk->secsize
+	&& read(disk->fd, buf, sizeof(buf)) >= 5 && strncmp(buf, "part ", 5) == 0) {
+		fprint(2, 
+			"there's a plan9 partition on the disk\n"
+			"and you didn't specify -r 2 (or greater).\n"
+			"either specify -r 2 or -x to disable this check.\n");
+		bad = 1;
+	}
+
+	if(disk->type == Tsd && disk->offset == 0LL) {
+		fprint(2,
+			"you're attempting to format your disk (/dev/sdXX/data)\n"
+			"rather than a partition like /dev/sdXX/9fat;\n"
+			"this is likely a mistake.  specify -x to disable this check.\n");
+		bad = 1;
+	}
+
+	if(bad)
+		exits("failed disk sanity check");
+}
+
+/*
+ * Return the BIOS drive number for the disk.
+ * 0x80 is the first fixed disk, 0x81 the next, etc.
+ * We map sdC0=0x80, sdC1=0x81, sdD0=0x82, sdD1=0x83
+ */
+int
+getdriveno(Disk *disk)
+{
+	char buf[3*NAMELEN], *p;
+
+	if(disk->type != Tsd)
+		return 0x80;	/* first hard disk */
+
+	if(fd2path(disk->fd, buf, sizeof(buf)) < 0)
+		return 0x80;
+
+	/*
+	 * The name is of the format #SsdC0/foo 
+	 * or /dev/sdC0/foo.
+	 * So that we can just look for /sdC0, turn 
+	 * #SsdC0/foo into #/sdC0/foo.
+	 */
+	if(buf[0] == '#' && buf[1] == 'S')
+		buf[1] = '/';
+
+	for(p=buf; *p; p++)
+		if(p[0] == 's' && p[1] == 'd' && (p[2]=='C' || p[2]=='D') && (p[3]=='0' || p[3]=='1'))
+			return 0x80 + (p[2]-'C')*2 + (p[3]-'0');
+		
+	return 0x80;
+}
+
+void
+dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc, char *argv[], int commit)
 {
 	char r[16];
 	Dosboot *b;
-	uchar *buf;
+	uchar *buf, *pbsbuf, *p;
 	Dir d;
-	int n, fd, sysfd;
-	ulong length, x;
-	uchar *p;
+	int npbs, n, sysfd;
+	ulong x;
+	vlong length;
+	vlong secsize;
 
-	print("Initialising MS-DOS file system\n");
+	if(dofat == 0 && dopbs == 0)
+		return;
+
+	for(t = floppytype; t < &floppytype[NTYPES]; t++)
+		if(strcmp(type, t->name) == 0)
+			break;
+	if(t == &floppytype[NTYPES])
+		fatal("unknown floppy type %s", type);
+
+	if(t->sectors == 0 && strcmp(type, "hard") == 0) {
+		t->sectors = disk->s;
+		t->heads = disk->h;
+		t->tracks = disk->c;
+	}
+
+	if(t->sectors == 0 && dofat)
+		fatal("cannot format fat with type %s: geometry unknown\n", type);
 
 	if(fflag){
-		sprint(file, "%s", dev);
-		if((fd = create(dev, ORDWR, 0666)) < 0)
-			fatal("create %s: %r", file);
-		t = floppytype;
-		if(type){
-			for(t = floppytype; t < &floppytype[NTYPES]; t++)
-				if(strcmp(type, t->name) == 0)
-					break;
-			if(t == &floppytype[NTYPES])
-				fatal("unknown floppy type %s", type);
-		}
-		length = t->bytes*t->sectors*t->heads*t->tracks;
+		disk->size = t->bytes*t->sectors*t->heads*t->tracks;
+		disk->secsize = t->bytes;
+		disk->secs = disk->size / disk->secsize;
 	}
-	else{
-		sprint(file, "%sdisk", dev);
-		fd = open(file, ORDWR);
-		if(fd < 0)
-			fatal("open %s: %r", file);
-		if(dirfstat(fd, &d) < 0)
-			fatal("stat %s: %r", file);
-		length = d.length;
-	
-		t = 0;
-		seek(cfd, 0, 0);
-		n = read(cfd, file, sizeof(file)-1);
-		if(n < 0)
-			fatal("reading floppy type");
-		else {
-			file[n] = 0;
-			for(t = floppytype; t < &floppytype[NTYPES]; t++)
-				if(strcmp(file, t->name) == 0)
-					break;
-			if(t == &floppytype[NTYPES])
-				fatal("unknown floppy type %s", file);
-		}
-	}
-	print("floppy type %s, %d tracks, %d heads, %d sectors/track, %d bytes/sec\n",
-		t->name, t->tracks, t->heads, t->sectors, t->bytes);
 
-	if(clustersize == 0)
-		clustersize = t->cluster;
-	clusters = length/(t->bytes*clustersize);
-	if(clusters < 4087)
-		fatbits = 12;
-	else
-		fatbits = 16;
-	volsecs = length/t->bytes;
-	fatsecs = (fatbits*clusters + 8*t->bytes - 1)/(8*t->bytes);
-	rootsecs = volsecs/200;
-	rootfiles = rootsecs * (t->bytes/sizeof(Dosdir));
-	buf = malloc(t->bytes);
+	secsize = disk->secsize;
+	length = disk->size;
+
+	buf = malloc(secsize);
 	if(buf == 0)
 		fatal("out of memory");
 
 	/*
-	 *  write bootstrap & parameter block
+	 * Make disk full size if a file.
 	 */
-	if(bootfile){
-		if((sysfd = open(bootfile, OREAD)) < 0)
-			fatal("open %s: %r", bootfile);
-		if(read(sysfd, buf, t->bytes) < 0)
-			fatal("read %s: %r", bootfile);
-		close(sysfd);
+	if(fflag){
+		if(dirfstat(disk->wfd, &d) < 0)
+			fatal("fstat disk: %r");
+		if(commit && d.length < disk->size) {
+			if(seek(disk->wfd, disk->size-1, 0) < 0)
+				fatal("seek to 9: %r");
+			if(write(disk->wfd, "9", 1) < 0)
+				fatal("writing 9: @%lld %r", seek(disk->wfd, 0LL, 1));
+		}
 	}
-	else
-		memmove(buf, bootprog, sizeof(bootprog));
+
+	/*
+	 * Start with initial sector from disk
+	 */
+	if(seek(disk->fd, 0, 0) < 0)
+		fatal("seek to boot sector: %r\n");
+	if(commit && read(disk->fd, buf, secsize) != secsize)
+		fatal("reading boot sector: %r");
+
+	if(dofat)
+		memset(buf, 0, sizeof(Dosboot));
+
+	/*
+	 * Jump instruction and OEM name.
+	 */
 	b = (Dosboot*)buf;
 	b->magic[0] = 0xEB;
 	b->magic[1] = 0x3C;
 	b->magic[2] = 0x90;
 	memmove(b->version, "Plan9.00", sizeof(b->version));
-	PUTSHORT(b->sectsize, t->bytes);
-	b->clustsize = clustersize;
-	PUTSHORT(b->nresrv, 1);
-	b->nfats = 2;
-	PUTSHORT(b->rootsize, rootfiles);
-	if(volsecs < (1<<16)){
-		PUTSHORT(b->volsize, volsecs);
+	
+	/*
+	 * Add bootstrapping code; assume it starts 
+	 * at 0x3E (the destination of the jump we just
+	 * wrote to b->magic).
+	 */
+	if(dopbs) {
+		pbsbuf = malloc(secsize);
+		if(pbsbuf == 0)
+			fatal("out of memory");
+
+		if(pbs){
+			if((sysfd = open(pbs, OREAD)) < 0)
+				fatal("open %s: %r", pbs);
+			if((npbs = read(sysfd, pbsbuf, secsize)) < 0)
+				fatal("read %s: %r", pbs);
+
+			if(npbs > secsize-2)
+				fatal("boot block too large");
+
+			close(sysfd);
+		}
+		else {
+			memmove(pbsbuf, bootprog, sizeof(bootprog));
+			npbs = nbootprog;
+		}
+		if(npbs <= 0x3E)
+			fprint(2, "warning: pbs too small\n");
+		else
+			memmove(buf+0x3E, pbsbuf+0x3E, npbs-0x3E);
+
+		free(pbsbuf);
 	}
-	PUTLONG(b->bigvolsize, volsecs);
-	b->mediadesc = t->media;
-	PUTSHORT(b->fatsize, fatsecs);
-	PUTSHORT(b->trksize, t->sectors);
-	PUTSHORT(b->nheads, t->heads);
-	PUTLONG(b->nhidden, 0);
-	b->driveno = 0;
-	b->bootsig = 0x29;
-	x = time(0);
-	PUTLONG(b->volid, x);
-	memmove(b->label, label, sizeof(b->label));
-	sprint(r, "FAT%d    ", fatbits);
-	memmove(b->type, r, sizeof(b->type));
-	buf[t->bytes-2] = 0x55;
-	buf[t->bytes-1] = 0xAA;
-	if(seek(fd, 0, 0) < 0)
-		fatal("seek to boot sector: %r\n");
-	if(write(fd, buf, t->bytes) != t->bytes)
-		fatal("writing boot sector: %r");
+
+	/*
+	 * Add FAT BIOS parameter block.
+	 */
+	if(dofat) {
+		if(commit) {
+			print("Initialising FAT file system\n");
+			print("type %s, %d tracks, %d heads, %d sectors/track, %lld bytes/sec\n",
+				t->name, t->tracks, t->heads, t->sectors, secsize);
+		}
+
+		if(clustersize == 0)
+			clustersize = t->cluster;
+		clusters = length/(secsize*clustersize);
+		if(clusters < 4087)
+			fatbits = 12;
+		else if(clusters < 65527)	/* no idea if this is right -rsc */
+			fatbits = 16;
+		else
+			fatal("disk too big; implement fat32");
+	
+		volsecs = length/secsize;
+		fatsecs = (fatbits*clusters + 8*secsize - 1)/(8*secsize);
+		rootsecs = volsecs/200;
+		rootfiles = rootsecs * (secsize/sizeof(Dosdir));
+		if(rootfiles > 512){
+			rootfiles = 512;
+			rootsecs = rootfiles/(secsize/sizeof(Dosdir));
+		}
+
+		PUTSHORT(b->sectsize, secsize);
+		b->clustsize = clustersize;
+		PUTSHORT(b->nresrv, nresrv);
+		b->nfats = 2;
+		PUTSHORT(b->rootsize, rootfiles);
+		if(volsecs < (1<<16))
+			PUTSHORT(b->volsize, volsecs);
+		b->mediadesc = t->media;
+		PUTSHORT(b->fatsize, fatsecs);
+		PUTSHORT(b->trksize, t->sectors);
+		PUTSHORT(b->nheads, t->heads);
+		PUTLONG(b->nhidden, disk->offset);
+		PUTLONG(b->bigvolsize, volsecs);
+	
+		/*
+		 * Extended BIOS Parameter Block.
+		 */
+		if(t->media == 0xF8)
+			b->driveno = getdriveno(disk);
+		else
+			b->driveno = 0;
+if(chatty) print("driveno = %ux\n", b->driveno);
+	
+		b->bootsig = 0x29;
+		x = disk->offset + b->nfats*fatsecs + nresrv;
+		PUTLONG(b->volid, x);
+if(chatty) print("volid = %lux %lux\n", x, GETLONG(b->volid));
+		memmove(b->label, label, sizeof(b->label));
+		sprint(r, "FAT%d    ", fatbits);
+		memmove(b->type, r, sizeof(b->type));
+	}
+
+	buf[secsize-2] = 0x55;
+	buf[secsize-1] = 0xAA;
+
+	if(commit) {
+		if(seek(disk->wfd, 0, 0) < 0)
+			fatal("seek to boot sector: %r\n");
+		if(write(disk->wfd, buf, secsize) != secsize)
+			fatal("writing boot sector: %r");
+	}
+
 	free(buf);
+
+	/*
+	 * If we were only called to write the PBS, leave now.
+	 */
+	if(dofat == 0)
+		return;
 
 	/*
 	 *  allocate an in memory fat
 	 */
-	fat = malloc(fatsecs*t->bytes);
+	if(seek(disk->wfd, nresrv*secsize, 0) < 0)
+		fatal("seek to fat: %r\n");
+if(chatty) print("fat @%lluX\n", seek(disk->wfd, 0, 1));
+	fat = malloc(fatsecs*secsize);
 	if(fat == 0)
 		fatal("out of memory");
-	memset(fat, 0, fatsecs*t->bytes);
+	memset(fat, 0, fatsecs*secsize);
 	fat[0] = t->media;
 	fat[1] = 0xff;
 	fat[2] = 0xff;
 	if(fatbits == 16)
 		fat[3] = 0xff;
 	fatlast = 1;
-	seek(fd, 2*fatsecs*t->bytes, 1);	/* 2 fats */
+	if(seek(disk->wfd, 2*fatsecs*secsize, 1) < 0)	/* 2 fats */
+		fatal("seek to root: %r");
+if(chatty) print("root @%lluX\n", seek(disk->wfd, 0LL, 1));
 
 	/*
 	 *  allocate an in memory root
 	 */
-	root = malloc(rootsecs*t->bytes);
+	root = malloc(rootsecs*secsize);
 	if(root == 0)
 		fatal("out of memory");
-	memset(root, 0, rootsecs*t->bytes);
-	seek(fd, rootsecs*t->bytes, 1);		/* rootsecs */
+	memset(root, 0, rootsecs*secsize);
+	if(seek(disk->wfd, rootsecs*secsize, 1) < 0)	/* rootsecs */
+		fatal("seek to files: %r");
+if(chatty) print("files @%lluX\n", seek(disk->wfd, 0LL, 1));
 
 	/*
 	 * Now positioned at the Files Area.
@@ -366,7 +571,7 @@ dosfs(int cfd, char *label, int argc, char *argv[])
 	 * them and write out.
 	 */
 	for(p = root; argc > 0; argc--, argv++, p += sizeof(Dosdir)){
-		if(p >= (root+(rootsecs*t->bytes)))
+		if(p >= (root+(rootsecs*secsize)))
 			fatal("too many files in root");
 		/*
 		 * Open the file and get its length.
@@ -375,7 +580,10 @@ dosfs(int cfd, char *label, int argc, char *argv[])
 			fatal("open %s: %r", *argv);
 		if(dirfstat(sysfd, &d) < 0)
 			fatal("stat %s: %r", *argv);
-		print("Adding file %s, length %ld\n", *argv, d.length);
+		if(d.length > 0xFFFFFFFF)
+			fatal("file %s too big\n", *argv, d.length);
+		if(commit)
+			print("Adding file %s, length %lld\n", *argv, d.length);
 
 		length = d.length;
 		if(length){
@@ -385,16 +593,17 @@ dosfs(int cfd, char *label, int argc, char *argv[])
 			 *
 			 * Read the file and write it out to the Files Area.
 			 */
-			length += t->bytes*clustersize - 1;
-			length /= t->bytes*clustersize;
-			length *= t->bytes*clustersize;
+			length += secsize*clustersize - 1;
+			length /= secsize*clustersize;
+			length *= secsize*clustersize;
 			if((buf = malloc(length)) == 0)
 				fatal("out of memory");
 	
 			if(read(sysfd, buf, d.length) < 0)
 				fatal("read %s: %r", *argv);
 			memset(buf+d.length, 0, length-d.length);
-			if(write(fd, buf, length) < 0)
+if(chatty) print("%s @%lluX\n", d.name, seek(disk->wfd, 0LL, 1));
+			if(commit && write(disk->wfd, buf, length) < 0)
 				fatal("write %s: %r", *argv);
 			free(buf);
 
@@ -407,7 +616,7 @@ dosfs(int cfd, char *label, int argc, char *argv[])
 			 * the cluster allocation.
 			 * Save the starting cluster.
 			 */
-			length /= t->bytes*clustersize;
+			length /= secsize*clustersize;
 			x = clustalloc(Sof);
 			for(n = 0; n < length-1; n++)
 				clustalloc(0);
@@ -425,18 +634,19 @@ dosfs(int cfd, char *label, int argc, char *argv[])
 	/*
 	 *  write the fats and root
 	 */
-	seek(fd, t->bytes, 0);
-	if(write(fd, fat, fatsecs*t->bytes) < 0)
-		fatal("writing fat #1: %r");
-	if(write(fd, fat, fatsecs*t->bytes) < 0)
-		fatal("writing fat #2: %r");
-	if(write(fd, root, rootsecs*t->bytes) < 0)
-		fatal("writing root: %r");
-
-	if(fflag){
-		seek(fd, t->bytes*t->sectors*t->heads*t->tracks-1, 0);
-		write(fd, "9", 1);
+	if(commit) {
+		if(seek(disk->wfd, nresrv*secsize, 0) < 0)
+			fatal("seek to fat #1: %r");
+		if(write(disk->wfd, fat, fatsecs*secsize) < 0)
+			fatal("writing fat #1: %r");
+		if(write(disk->wfd, fat, fatsecs*secsize) < 0)
+			fatal("writing fat #2: %r");
+		if(write(disk->wfd, root, rootsecs*secsize) < 0)
+			fatal("writing root: %r");
 	}
+
+	free(fat);
+	free(root);
 }
 
 /*
@@ -514,7 +724,10 @@ addrname(uchar *entry, Dir *dir, ulong start)
 
 	d = (Dosdir*)entry;
 	putname(dir->name, d);
-	d->attr = DRONLY;
+	if(strcmp(dir->name, "9load") == 0)
+		d->attr = DSYSTEM;
+	else
+		d->attr = 0;
 	puttime(d);
 	d->start[0] = start;
 	d->start[1] = start>>8;

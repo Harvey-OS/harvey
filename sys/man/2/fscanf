@@ -5,16 +5,16 @@ fscanf, scanf, sscanf, vfscanf \- scan formatted input
 .B "#include <stdio.h>"
 .PP
 .B
-int fscanf(FILE *f, char *format, ...);
+int fscanf(FILE *f, char *format, ...)
 .PP
 .B
-int scanf(char *format, ... );
+int scanf(char *format, ... )
 .PP
 .B
-int sscanf(char *s, char *format, ...);
+int sscanf(char *s, char *format, ...)
 .PP
 .B
-int vfscanf(FILE *stream, char *format, char *args);
+int vfscanf(FILE *stream, char *format, char *args)
 .SH DESCRIPTION
 .I Fscanf
 reads from the named input stream

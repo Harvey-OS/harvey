@@ -1,8 +1,6 @@
 #include <u.h>
 #include <libc.h>
 
-#define	nil	((void*)0)
-
 enum
 {
 	ERR,
@@ -50,24 +48,39 @@ enum
 };
 
 void
-error(char *s, ...)
+error(char *fmt, ...)
 {
 	char buf[256];
+	va_list arg;
 
-	if(s){
-		doprint(buf, buf+sizeof buf+1, s, &s+1);
+	if(fmt){
+		va_start(arg, fmt);
+		doprint(buf, buf+sizeof buf, fmt, arg);
+		va_end(arg);
 		fprint(2, "g3: %s\n", buf);
 	}
-	exits(s);
+	exits(fmt);
 }
 
 void
 main(int argc, char **argv)
 {
-	int y, fd, n;
+	int y, fd, n, m;
 	char *t;
-	char *file, err[ERRLEN];
+	char *file, err[ERRLEN], tbuf[5*12+1];
+	int gray=0;
+	int yscale=1;
 
+	if(argc > 1 && strcmp(argv[1], "-g") == 0) {
+		/* do simulated 2bit gray to compress x */
+		gray++;
+		argv++, argc--;
+	}
+	if(argc > 1 && strcmp(argv[1], "-y") == 0) {
+		/* double each scan line to double the y resolution */
+		yscale=2;
+		argv++, argc--;
+	}
 	if(argc > 2){
 		fprint(2, "usage: g3out file\n");
 		exits("usage");
@@ -75,10 +88,10 @@ main(int argc, char **argv)
 
 	initwbtab();
 	buf = malloc(1024*1024);
-	t = malloc(5*12+ (Dots/8)*Lines);
+	t = malloc((Dots/8)*Lines);
 	if(buf==nil || t==nil)
 		error("malloc failed: %r\n");
-	pixels = (uchar*)t+(5*12);
+	pixels = (uchar*)t;
 
 	file = "<stdin>";
 	fd = 0;
@@ -91,10 +104,25 @@ main(int argc, char **argv)
 	y = readfile(fd, file, err);
 	if(y < 0)
 		error(err);
-	sprint(t, "%11d %11d %11d %11d %11d ", 0, 0, 0, Dots, y);
-	n = 5*12+(Dots/8)*y;
-	if(write(1, t, n) != n)
-		error("write error");
+	sprint(tbuf, "%11d %11d %11d %11d %11d ", gray, 0, 0, Dots/(gray+1), y*yscale);
+	write(1, tbuf, 5*12);
+	n = (Dots/8)*y*yscale;
+	/* write in pieces; brazil pipes work badly with huge counts */
+	while(n > 0){
+		if(yscale > 1)	/* write one scan line */
+			m = Dots/8;
+		else{	/* write lots */
+			m = n;
+			if(m > 8192)
+				m = 8192;
+		}
+		for(y=0; y<yscale; y++){
+			if(write(1, t, m) != m)
+				error("write error");
+			n -= m;
+		}
+		t += m;
+	}
 	if(err[0])
 		error(err);
 	error(nil);
@@ -148,8 +176,7 @@ readfile(int f, char *file, char *err)
 
 	err[0] = 0;
 	memset(pixels, 0, (Dots/8) * Lines);
-	nbytes = read(f, buf, 1024*1024);
-	close(f);
+	nbytes = readn(f, buf, 1024*1024);
 	if(nbytes==1024*1024 || nbytes<=100){
     bad:
 		sprint(err, "g3: file improper size or format: %s", file);
@@ -161,6 +188,17 @@ readfile(int f, char *file, char *err)
 		nbytes -= 0xf3;
 		rev = bitrev;
 		memmove(hdr, defhdr, sizeof defhdr);
+	}else if(bytes[0] == 0 && strcmp((char*)bytes+1, "PC Research, Inc") == 0){	/* digifax format */
+		memmove(hdr, defhdr, sizeof defhdr);
+		if(bytes[45] == 0x40 && bytes[29] == 1)	/* high resolution */
+			hdr[Hvres] = 1;
+		else
+			hdr[Hvres] = 0;
+		/* hdr[26] | (hdr[27]<<8) is page number */
+
+		bytes += 64;
+		nbytes -= 64;
+		rev = bitnonrev;
 	}else{
 		while(nbytes > 2){
 			if(bytes[0]=='\n'){
@@ -210,8 +248,8 @@ readfile(int f, char *file, char *err)
 	}
 	if(hdr[Hvres] == 1)
 		y /= 2;
-	if(y < 100)
-		goto bad;
+//	if(y < 100)
+//		goto bad;
 	return y;
 }
 

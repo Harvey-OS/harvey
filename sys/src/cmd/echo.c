@@ -21,6 +21,7 @@ main(int argc, char *argv[])
 		exits("no memory");
 
 	p = buf;
+	p[0] = 0;	/* in case there are no arguments to echo -n */
 	for(i = 1+nflag; i < argc; i++)
 		p += sprint(p, i == argc-1 ? "%s":"%s ", argv[i]);
 		

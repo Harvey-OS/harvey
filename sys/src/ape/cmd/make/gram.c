@@ -1,8 +1,8 @@
 
-#line	1	"gram.y"
+#line	1	"/sys/src/ape/cmd/make/gram.y"
 #include "defs.h"
 
-#line	5	"gram.y"
+#line	5	"/sys/src/ape/cmd/make/gram.y"
 typedef union 
 	{
 	struct shblock *yshblock;
@@ -16,7 +16,7 @@ extern	int	yyerrflag;
 YYSTYPE	yylval;
 YYSTYPE	yyval;
 
-#line	20	"gram.y"
+#line	20	"/sys/src/ape/cmd/make/gram.y"
 struct depblock *pp;
 static struct shblock *prevshp;
 
@@ -48,7 +48,7 @@ static int ninclude = 0;
 #define YYEOFCODE 1
 #define YYERRCODE 2
 
-#line	149	"gram.y"
+#line	149	"/sys/src/ape/cmd/make/gram.y"
 
 
 static char *zznextc;	/* null if need another line;
@@ -261,7 +261,7 @@ endloop:
 	if((c = text[0]) == '\t')
 		return retsh(text) ;
 	
-	if(isalpha(c) || isdigit(c) || c==' ' || c=='.')
+	if(isalpha(c) || isdigit(c) || c==' ' || c=='.'|| c=='_')
 		for(p=text+1; *p!='\0'; )
 			if(*p == ':')
 				break;
@@ -412,16 +412,14 @@ long	yytok3[] =
 #include	"y.debug"
 #else
 #define	yydebug		0
+char*	yytoknames[1];		/* for debugging */
+char*	yystates[1];		/* for debugging */
 #endif
 
 /*	parser for yacc output	*/
 
 int	yynerrs = 0;		/* number of errors */
 int	yyerrflag = 0;		/* error recovery flag */
-
-char*	yytoknames[1];		/* for debugging */
-char*	yystates[1];		/* for debugging */
-long	yychar;				/* for debugging */
 
 extern	int	fprint(int, char*, ...);
 extern	int	sprint(char*, char*, ...);
@@ -502,6 +500,7 @@ yyparse(void)
 	int yyj, yym, yystate, yyn, yyg;
 	YYSTYPE save1, save2;
 	int save3, save4;
+	long yychar;
 
 	save1 = yylval;
 	save2 = yyval;
@@ -619,7 +618,7 @@ yyerrlab:
 		case 3:  /* no shift yet; clobber input char */
 			if(yydebug >= YYEOFCODE)
 				printf("error recovery discards %s\n", yytokname(yychar));
-			if(yychar == 0)
+			if(yychar == YYEOFCODE)
 				goto ret1;
 			yychar = -1;
 			goto yynewstate;   /* try again in the same state */
@@ -645,7 +644,7 @@ yyerrlab:
 	switch(yym) {
 		
 case 5:
-#line	48	"gram.y"
+#line	48	"/sys/src/ape/cmd/make/gram.y"
  {
 	    while( --nlefts >= 0)
 		{
@@ -701,27 +700,27 @@ case 5:
 		}
 	} break;
 case 7:
-#line	105	"gram.y"
+#line	105	"/sys/src/ape/cmd/make/gram.y"
  { lefts[0] = yypt[-0].yyv.ynameblock; nlefts = 1; } break;
 case 8:
-#line	106	"gram.y"
+#line	106	"/sys/src/ape/cmd/make/gram.y"
  { lefts[nlefts++] = yypt[-0].yyv.ynameblock;
 	    	if(nlefts>=NLEFTS) fatal("Too many lefts"); } break;
 case 9:
-#line	111	"gram.y"
+#line	111	"/sys/src/ape/cmd/make/gram.y"
 {
-		char junk[10];
-		sprintf(junk, "%d", yylineno);
+		char junk[100];
+		sprintf(junk, "%s:%d", filestack[ninclude-1].fname, yylineno);
 		fatal1("Must be a separator on rules line %s", junk);
 		} break;
 case 11:
-#line	119	"gram.y"
+#line	119	"/sys/src/ape/cmd/make/gram.y"
  { prevdep = 0;  yyval.ydepblock = 0; allnowait = NO; } break;
 case 12:
-#line	120	"gram.y"
+#line	120	"/sys/src/ape/cmd/make/gram.y"
  { prevdep = 0; yyval.ydepblock = 0; allnowait = YES; } break;
 case 13:
-#line	121	"gram.y"
+#line	121	"/sys/src/ape/cmd/make/gram.y"
  {
 			  pp = ALLOC(depblock);
 			  pp->nxtdepblock = NULL;
@@ -732,25 +731,25 @@ case 13:
 			  prevdep = pp;
 			  } break;
 case 14:
-#line	130	"gram.y"
+#line	130	"/sys/src/ape/cmd/make/gram.y"
  { if(prevdep) prevdep->nowait = YES; } break;
 case 16:
-#line	134	"gram.y"
+#line	134	"/sys/src/ape/cmd/make/gram.y"
  { sepc = ALLDEPS; } break;
 case 17:
-#line	135	"gram.y"
+#line	135	"/sys/src/ape/cmd/make/gram.y"
  { sepc = SOMEDEPS; } break;
 case 18:
-#line	138	"gram.y"
+#line	138	"/sys/src/ape/cmd/make/gram.y"
  {yyval.yshblock = 0; } break;
 case 19:
-#line	139	"gram.y"
+#line	139	"/sys/src/ape/cmd/make/gram.y"
  { yyval.yshblock = yypt[-0].yyv.yshblock; } break;
 case 20:
-#line	142	"gram.y"
+#line	142	"/sys/src/ape/cmd/make/gram.y"
  { yyval.yshblock = yypt[-0].yyv.yshblock;  prevshp = yypt[-0].yyv.yshblock; } break;
 case 21:
-#line	143	"gram.y"
+#line	143	"/sys/src/ape/cmd/make/gram.y"
  { yyval.yshblock = yypt[-1].yyv.yshblock;
 			prevshp->nxtshblock = yypt[-0].yyv.yshblock;
 			prevshp = yypt[-0].yyv.yshblock;

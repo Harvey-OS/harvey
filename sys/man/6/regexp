@@ -123,6 +123,7 @@ a match to the remainder of the regular expression.
 .SH "SEE ALSO"
 .IR awk (1),
 .IR ed (1),
+.IR grep (1),
 .IR sam (1), 
 .IR sed (1),
 .IR regexp (2)

@@ -1,19 +1,19 @@
 #include	"../cc/cc.h"
 #include	"../vc/v.out.h"
 
-#define	TINT		TLONG
-#define	TFIELD		TLONG
+/*
+ * vc/mips
+ * Mips 3000
+ */
 #define	SZ_CHAR		1
 #define	SZ_SHORT	2
+#define	SZ_INT		4
 #define	SZ_LONG		4
-#define	SZ_VLONG	8
 #define	SZ_IND		4
 #define	SZ_FLOAT	4
+#define	SZ_VLONG	8
 #define	SZ_DOUBLE	8
-#define	SU_ALLIGN	SZ_LONG
-#define	SU_PAD		SZ_LONG
 #define	FNX		100
-#define	INLINE		(5*SZ_LONG)
 
 typedef	struct	Adr	Adr;
 typedef	struct	Prog	Prog;
@@ -21,21 +21,17 @@ typedef	struct	Case	Case;
 typedef	struct	C1	C1;
 typedef	struct	Multab	Multab;
 typedef	struct	Hintab	Hintab;
-typedef	struct	Bits	Bits;
 typedef	struct	Var	Var;
 typedef	struct	Reg	Reg;
 typedef	struct	Rgn	Rgn;
 
-
 struct	Adr
 {
-	union
-	{
-		long	offset;
-		double	dval;
-		char	sval[NSNAME];
-		Ieee	ieee;
-	};
+	long	offset;
+	double	dval;
+	char	sval[NSNAME];
+	Ieee	ieee;
+
 	Sym*	sym;
 	char	type;
 	char	reg;
@@ -83,13 +79,6 @@ struct	Hintab
 	char	hint[10];
 };
 
-#define	BITS	6
-#define	NVAR	(BITS*sizeof(ulong)*8)
-struct	Bits
-{
-	ulong	b[BITS];
-};
-
 struct	Var
 {
 	long	offset;
@@ -101,6 +90,7 @@ struct	Var
 struct	Reg
 {
 	long	pc;
+	long	rpo;		/* reverse post ordering */
 
 	Bits	set;
 	Bits	use1;
@@ -116,10 +106,9 @@ struct	Reg
 	long	regu;
 	long	loop;		/* could be shorter */
 
-	union	{
-		Reg*	log5;
-		int	active;
-	};
+	Reg*	log5;
+	long	active;
+
 	Reg*	p1;
 	Reg*	p2;
 	Reg*	p2link;
@@ -139,35 +128,35 @@ struct	Rgn
 	short	regno;
 };
 
-long	breakpc;
-Case*	cases;
-Node	constnode;
-Node	fconstnode;
-long	continpc;
-long	curarg;
-long	cursafe;
-Prog*	firstp;
-Prog*	lastp;
-long	maxargsafe;
-int	mnstring;
-Multab	multab[20];
-int	retok;
-int	hintabsize;
-Node*	nodrat;
-Node*	nodret;
-Node*	nodsafe;
-long	nrathole;
-long	nstring;
-Prog*	p;
-long	pc;
-Node	regnode;
-char	string[NSNAME];
-Sym*	symrathole;
-Node	znode;
-Prog	zprog;
-char	reg[NREG+NREG];
-long	exregoffset;
-long	exfregoffset;
+EXTERN	long	breakpc;
+EXTERN	Case*	cases;
+EXTERN	Node	constnode;
+EXTERN	Node	fconstnode;
+EXTERN	long	continpc;
+EXTERN	long	curarg;
+EXTERN	long	cursafe;
+EXTERN	Prog*	firstp;
+EXTERN	Prog*	lastp;
+EXTERN	long	maxargsafe;
+EXTERN	int	mnstring;
+EXTERN	Multab	multab[20];
+EXTERN	int	retok;
+EXTERN	int	hintabsize;
+EXTERN	Node*	nodrat;
+EXTERN	Node*	nodret;
+EXTERN	Node*	nodsafe;
+EXTERN	long	nrathole;
+EXTERN	long	nstring;
+EXTERN	Prog*	p;
+EXTERN	long	pc;
+EXTERN	Node	regnode;
+EXTERN	char	string[NSNAME];
+EXTERN	Sym*	symrathole;
+EXTERN	Node	znode;
+EXTERN	Prog	zprog;
+EXTERN	int	reg[NREG+NREG];
+EXTERN	long	exregoffset;
+EXTERN	long	exfregoffset;
 
 #define	BLOAD(r)	band(bnot(r->refbehind), r->refahead)
 #define	BSTORE(r)	band(bnot(r->calbehind), r->calahead)
@@ -181,27 +170,26 @@ long	exfregoffset;
 #define	CINF	1000
 #define	LOOP	3
 
-Rgn	region[NRGN];
-Rgn*	rgp;
-int	nregion;
-int	nvar;
+EXTERN	Rgn	region[NRGN];
+EXTERN	Rgn*	rgp;
+EXTERN	int	nregion;
+EXTERN	int	nvar;
 
-Bits	externs;
-Bits	params;
-Bits	consts;
-Bits	addrs;
-Bits	zbits;
+EXTERN	Bits	externs;
+EXTERN	Bits	params;
+EXTERN	Bits	consts;
+EXTERN	Bits	addrs;
 
-long	regbits;
-long	exregbits;
+EXTERN	long	regbits;
+EXTERN	long	exregbits;
 
-int	change;
+EXTERN	int	change;
 
-Reg*	firstr;
-Reg*	lastr;
-Reg	zreg;
-Reg*	freer;
-Var	var[NVAR];
+EXTERN	Reg*	firstr;
+EXTERN	Reg*	lastr;
+EXTERN	Reg	zreg;
+EXTERN	Reg*	freer;
+EXTERN	Var	var[NVAR];
 
 extern	char*	anames[];
 extern	Hintab	hintab[];
@@ -214,6 +202,7 @@ void	gen(Node*);
 void	noretval(int);
 void	xcom(Node*);
 void	bcomplex(Node*);
+void	usedset(Node*, int);
 
 /*
  * cgen.c
@@ -262,14 +251,13 @@ void	gpseudo(int, Sym*, Node*);
 /*
  * swt.c
  */
-int	swcmp(void*, void*);
+int	swcmp(const void*, const void*);
 void	doswit(Node*);
 void	swit1(C1*, int, long, Node*, Node*);
 void	cas(void);
 void	bitload(Node*, Node*, Node*, Node*, Node*);
 void	bitstore(Node*, Node*, Node*, Node*, Node*);
 long	outstring(char*, long);
-int	vlog(Node*);
 int	mulcon(Node*, Node*);
 Multab*	mulcon0(long);
 void	nullwarn(Node*, Node*);
@@ -282,23 +270,23 @@ void	ieeedtod(Ieee*, double);
  * list
  */
 void	listinit(void);
-int	Pconv(void*, Fconv*);
-int	Aconv(void*, Fconv*);
-int	Dconv(void*, Fconv*);
-int	Sconv(void*, Fconv*);
-int	Nconv(void*, Fconv*);
-int	Bconv(void*, Fconv*);
+int	Pconv(va_list*, Fconv*);
+int	Aconv(va_list*, Fconv*);
+int	Dconv(va_list*, Fconv*);
+int	Sconv(va_list*, Fconv*);
+int	Nconv(va_list*, Fconv*);
+int	Bconv(va_list*, Fconv*);
 
 /*
  * reg.c
  */
 Reg*	rega(void);
-int	rcmp(void*, void*);
+int	rcmp(const void*, const void*);
 void	regopt(Prog*);
 void	addmove(Reg*, int, int, int);
 Bits	mkvar(Adr*, int);
 void	prop(Reg*, Bits, Bits);
-int	loopit(Reg*);
+void	loopit(Reg*, long);
 void	synch(Reg*, Bits);
 ulong	allreg(ulong, Rgn*);
 void	paint1(Reg*, int);
@@ -332,13 +320,9 @@ long	FtoB(int);
 int	BtoR(long);
 int	BtoF(long);
 
-/*
- * bits.c
- */
-Bits	bor(Bits, Bits);
-Bits	band(Bits, Bits);
-Bits	bnot(Bits);
-int	bany(Bits*);
-int	bnum(Bits);
-Bits	blsh(unsigned);
-int	beq(Bits, Bits);
+#pragma	varargck	type	"A"	int
+#pragma	varargck	type	"B"	Bits
+#pragma	varargck	type	"D"	Adr*
+#pragma	varargck	type	"N"	Adr*
+#pragma	varargck	type	"P"	Prog*
+#pragma	varargck	type	"S"	char*

@@ -7,13 +7,13 @@ spin \- verification tool for concurrent systems
 .BI -n N
 ]
 [
-.B -plgrsmv
+.B -cplgrsmv
 ]
 [
 .B -iat
 ]
 [
-.B -DV
+.B -V
 ]
 [
 .I file
@@ -23,7 +23,7 @@ spin \- verification tool for concurrent systems
 is a tool for analyzing the logical consistency of
 concurrent systems, specifically communication protocols.
 The system is specified in a guarded command language called
-.SM PROMELA2\c
+.SM PROMELA\c
 \&.
 The language, described in the references,
 allows for the dynamic creation of processes,
@@ -33,7 +33,7 @@ The tool has fast algorithms for analyzing arbitrary
 liveness and safety conditions.
 .PP
 Given a model system specified in
-.SM PROMELA2\c
+.SM PROMELA\c
 ,
 .I spin
 can perform interactive, guided, or random simulations
@@ -59,6 +59,10 @@ is used to set the level of information reported
 about the simulation run.
 Every line of output normally contains a reference to the source
 line in the specification that caused it.
+.TP
+.B c
+Show message send and receive operations in tabular form, but
+no other information about the execution.
 .TP
 .B p
 Show at each time step which process changed state and what source
@@ -111,9 +115,9 @@ the verifier with a bit state space:
 .IP
 This collapses the state space to 1 bit per system state,
 with minimal side-effects.
-Partial order reduction rules take effect during the
-verification if the compiler directive
-.B -DREDUCE
+Partial order reduction rules normally take effect during the
+verification unless the compiler directive
+.B -DNOREDUCE
 is used.
 .IP
 The compiled verifiers have their own sets of options,
@@ -131,9 +135,6 @@ option.
 In combination with the options
 .BR pglrsv ,
 different views of the error sequence are then be obtained.
-.TP
-.B D
-Perform a static dataflow analysis.
 .TP
 .B V
 Print the version number and exit.

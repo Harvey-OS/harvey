@@ -8,8 +8,6 @@
 #define	IDIGIT	30
 #define	MAXCON	30
 
-static	int	convcount  = { 10 };
-
 #define	FLONG	(1<<0)
 #define	FSHORT	(1<<1)
 #define	FUNSIGN	(1<<2)
@@ -34,6 +32,7 @@ static	int	oconv(Op*);
 static	int	sconv(Op*);
 static	int	uconv(Op*);
 static	int	xconv(Op*);
+static	int	Xconv(Op*);
 static	int	percent(Op*);
 
 static
@@ -42,7 +41,7 @@ int	(*fmtconv[MAXCON])(Op*) =
 	noconv,
 	cconv, dconv, hconv, lconv,
 	oconv, sconv, uconv, xconv,
-	percent,
+	Xconv, percent,
 };
 static
 char	fmtindex[128] =
@@ -55,8 +54,12 @@ char	fmtindex[128] =
 	['s'] 6,
 	['u'] 7,
 	['x'] 8,
-	['%'] 9,
+	['X'] 9,
+	['%'] 10,
 };
+
+static	int	convcount  = { 11 };
+static	int	ucase;
 
 static void
 PUT(Op *o, int c)
@@ -227,8 +230,11 @@ numbconv(Op *op, int base)
 	for(i = IDIGIT-2;; i--) {
 		n = (ulong)v % base;
 		n += '0';
-		if(n > '9')
+		if(n > '9'){
 			n += 'a' - ('9'+1);
+			if(ucase)
+				n += 'A'-'a';
+		}
 		b[i] = n;
 		if(i < 2)
 			break;
@@ -238,7 +244,6 @@ numbconv(Op *op, int base)
 		if(v <= 0)
 			break;
 	}
-sout:
 	if(f)
 		b[--i] = '-';
 	strconv(b+i, op, op->f1, -1);
@@ -305,6 +310,17 @@ static	int
 xconv(Op *op)
 {
 	return numbconv(op, 16);
+}
+
+static	int
+Xconv(Op *op)
+{
+	int r;
+
+	ucase = 1;
+	r = numbconv(op, 16);
+	ucase = 0;
+	return r;
 }
 
 static	int

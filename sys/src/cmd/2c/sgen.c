@@ -78,7 +78,7 @@ loop:
 			break;
 		}
 		doinc(l, PRE);
-		if(typesu[n->type->etype] || typev[n->type->etype]) {
+		if(typesuv[n->type->etype]) {
 			sugen(l, D_TREE, nodret, n->type->width);
 			doinc(l, POST);
 			noretval(3);
@@ -294,31 +294,29 @@ loop:
 
 	case OSET:
 	case OUSED:
-		n = n->left;
-		for(;;) {
-			if(n->op == OLIST) {
-				l = n->right;
-				n = n->left;
-				complex(l);
-				if(l->op == ONAME) {
-					if(o == OSET)
-						gopcode(OTST, tint, D_NONE, Z, D_TREE, l);
-					else
-						gopcode(OTST, tint, D_TREE, l, D_NONE, Z);
-					p->as = ANOP;
-				}
-			} else {
-				complex(n);
-				if(n->op == ONAME) {
-					if(o == OSET)
-						gopcode(OTST, tint, D_NONE, Z, D_TREE, n);
-					else
-						gopcode(OTST, tint, D_TREE, n, D_NONE, Z);
-					p->as = ANOP;
-				}
-				break;
-			}
-		}
+		usedset(n->left, o);
+		break;
+	}
+}
+
+void
+usedset(Node *n, int o)
+{
+	if(n->op == OLIST) {
+		usedset(n->left, o);
+		usedset(n->right, o);
+		return;
+	}
+	complex(n);
+	switch(n->op) {
+	case OADDR:	/* volatile */
+//		gins(ANOP, n, Z);
+		break;
+	case ONAME:
+//		if(o == OSET)
+//			gins(ANOP, Z, n);
+//		else
+//			gins(ANOP, n, Z);
 		break;
 	}
 }
@@ -328,11 +326,11 @@ noretval(int n)
 {
 
 	if(n & 1) {
-		gopcode(OTST, tint, D_NONE, Z, regret(types[TLONG]), Z);
+		gopcode(OTST, types[TINT], D_NONE, Z, regret(types[TLONG]), Z);
 		p->as = ANOP;
 	}
 	if(n & 2) {
-		gopcode(OTST, tint, D_NONE, Z, regret(types[TDOUBLE]), Z);
+		gopcode(OTST, types[TINT], D_NONE, Z, regret(types[TDOUBLE]), Z);
 		p->as = ANOP;
 	}
 }

@@ -54,12 +54,14 @@ Version 3.3.2   5/15/92
     HK in devpost and devLatin1, even though fonts aren't generally available.
     Also copy H to HM during an install of devpost and devLatin1 tables.
 
- 6: LH and LV are horizontal and vertical AT&T logos from Matthijs Melchior
-    with slight adjustments to the scaling of "AT&T". Also adjusted LV so globe
-    sits on the baseline.
+ 6: LH is a horizontally arranged color Lucent logo with text which replaces the AT&T logo.
+    LV is a vertically arranged monochrome AT&T logo with text.
+    FA is a horizontally arranged monochrome Lucent logo with text (low res.).
+	L1 is a monochrome AT&T logo, no text.
+	LA is a monochrome AT&T text.
 
  7: Included L1 and LA outlines in devpost and devLatin1. Adjusted LA scaling
-    so size of "AT&T" matches what's in LH and LV. Original PostScript came
+    so size of "AT&T" matches what's in LV. Original PostScript came
     from Matthijs Melchior.
 
  8: Included the "symmetric clippath" version of roundpage.ps as Nroundpage.ps

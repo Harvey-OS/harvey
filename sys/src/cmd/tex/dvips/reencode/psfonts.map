@@ -1,6 +1,0 @@
-rptmr0 Times-Roman
-rptmr1 Times-Roman "ExtendedTeXEncoding ReEncodeFont" <extex.enc
-rptmr2 Times-Roman "ExtendedTeXEncoding ReEncodeFont" <extex.enc
-rptmr3 Times-Roman
-rptmr9 Times-Roman " FunkyEncoding ReEncodeFont " <funky.enc
-rcccc Times-Roman "DCEncoding ReEncodeFont" <DC.enc

@@ -4,10 +4,13 @@
 #include	<fcall.h>
 
 #define	CHAR(x)		*p++ = f->x
-#define	SHORT(x)	p[0] = f->x; p[1] = f->x>>8; p += 2
-#define	LONG(x)		p[0] = f->x; p[1] = f->x>>8; p[2] = f->x>>16; p[3] = f->x>>24; p += 4
-#define	VLONG(x)	p[0] = f->x; p[1] = f->x>>8; p[2] = f->x>>16; p[3] = f->x>>24;\
-				p[4] = 0; p[5] = 0; p[6] = 0; p[7] = 0; p += 8
+#define	SHORT(x)	p[0]=f->x; p[1]=f->x>>8; p += 2
+#define	LONG(x)		p[0]=f->x; p[1]=f->x>>8; p[2]=f->x>>16; p[3]=f->x>>24; p += 4
+#define	VLONG(x)	p[0]=f->x;	p[1]=f->x>>8;\
+			p[2]=f->x>>16;	p[3]=f->x>>24;\
+			p[4]=f->x>>32;	p[5]=f->x>>40;\
+			p[6]=f->x>>48;	p[7]=f->x>>56;\
+			p += 8
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 int

@@ -1,0 +1,8 @@
+#!/bin/rc
+
+test -d /mail/fs/mbox || {
+	if(test -d /mnt/term/mail/fs/mbox) bind /mnt/term/mail/fs /mail/fs
+	if not upas/fs
+}
+
+/acme/mail/$objtype/Mail $*

@@ -1,0 +1,45 @@
+.TH PUSHSSL 2
+.SH NAME
+pushssl \- attach SSL version 2 encryption to a communication channel
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+int pushssl(int fd, char *alg, char *secin, char *secout, int *cfd)
+.SH DESCRIPTION
+.I Pushssl
+opens an
+.IR ssl (3)
+device, connects it to the communications channel
+.IR fd ,
+and starts up encryption and message authentication as specified
+in
+.IR alg .
+The algorithms are separated by a space and either can be first.
+See
+.IR ssl (3)
+for the possible algorithms.
+.I Secin
+and
+.I secout
+contain the encryption keys for the two directions.
+If either is nil, the other is used in both directions.
+If
+.I cfd
+is non-nil, the SSL control channel is opened and its fd
+returned.
+.PP
+.I Pushssl
+returns a file descriptor for the SSL data channel.  Anything written to this
+descriptor will get encrypted and authenticated and then written to the
+file descriptor,
+.IR fd .
+.SH SOURCE
+.B /sys/src/libc/9sys
+.SH "SEE ALSO"
+.IR dial (2),
+.IR ssl (3),
+.SH DIAGNOSTICS
+return \-1 on failure.

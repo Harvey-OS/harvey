@@ -3,80 +3,85 @@
 #include	<bio.h>
 #include	<regexp.h>
 
-extern Biobuf stdout;
+extern Biobuf bout;
 
 typedef struct Bufblock
 {
 	struct Bufblock *next;
-	char *start;
-	char *end;
-	char *current;
+	char 		*start;
+	char 		*end;
+	char 		*current;
 } Bufblock;
 
 typedef struct Word
 {
-	char *s;
-	struct Word *next;
+	char 		*s;
+	struct Word 	*next;
 } Word;
 
 typedef struct Envy
 {
-	char *name;
-	Word *values;
+	char 		*name;
+	Word 		*values;
 } Envy;
+
+extern Envy *envy;
 
 typedef struct Rule
 {
-	char *target;		/* one target */
-	Word *tail;		/* constituents of targets */
-	char *recipe;		/* do it ! */
-	short attr;		/* attributes */
-	short line;		/* source line */
-	char *file;		/* source file */
-	Word *alltargets;	/* all the targets */
-	int rule;		/* rule number */
-	Reprog *pat;		/* reg exp goo */
-	char *prog;		/* to use in out of date */
-	struct Rule *chain;	/* hashed per target */
-	struct Rule *next;
+	char 		*target;	/* one target */
+	Word 		*tail;		/* constituents of targets */
+	char 		*recipe;	/* do it ! */
+	short 		attr;		/* attributes */
+	short 		line;		/* source line */
+	char 		*file;		/* source file */
+	Word 		*alltargets;	/* all the targets */
+	int 		rule;		/* rule number */
+	Reprog		*pat;		/* reg exp goo */
+	char		*prog;		/* to use in out of date */
+	struct Rule	*chain;		/* hashed per target */
+	struct Rule	*next;
 } Rule;
+
 extern Rule *rules, *metarules, *patrule;
 
+/*	Rule.attr	*/
 #define		META		0x0001
-#define		SEQ		0x0002
+#define		UNUSED		0x0002
 #define		UPD		0x0004
-#define		RED		0x0008
-#define		QUIET		0x0010
-#define		VIR		0x0020
-#define		REGEXP		0x0040
-#define		NOREC		0x0080
-#define		DEL		0x0100
-#define		NOVIRT		0x0200
+#define		QUIET		0x0008
+#define		VIR		0x0010
+#define		REGEXP		0x0020
+#define		NOREC		0x0040
+#define		DEL		0x0080
+#define		NOVIRT		0x0100
 
 #define		NREGEXP		10
 
 typedef struct Arc
 {
-	short flag;
-	struct Node *n;
-	Rule *r;
-	char *stem;
-	char *prog;
-	Resub match[NREGEXP];
-	struct Arc *next;
+	short		flag;
+	struct Node	*n;
+	Rule		*r;
+	char		*stem;
+	char		*prog;
+	char		*match[NREGEXP];
+	struct Arc	*next;
 } Arc;
 
+	/* Arc.flag */
 #define		TOGO		1
 
 typedef struct Node
 {
-	char *name;
-	long time;
-	unsigned short flags;
-	Arc *prereqs;
-	struct Node *next;	/* list for a rule */
+	char		*name;
+	long		time;
+	unsigned short	flags;
+	Arc		*prereqs;
+	struct Node	*next;		/* list for a rule */
 } Node;
 
+	/* Node.flags */
 #define		VIRTUAL		0x0001
 #define		CYCLE		0x0002
 #define		READY		0x0004
@@ -94,26 +99,25 @@ typedef struct Node
 
 typedef struct Job
 {
-	Rule *r;		/* master rule for job */
-	Node *n;		/* list of node targets */
-	char *stem;
-	Resub *match;
-	Word *p;		/* prerequistes */
-	Word *np;		/* new prerequistes */
-	Word *t;		/* targets */
-	Word *at;		/* all targets */
-	int nproc;		/* slot number */
-	int fd;			/* if redirecting */
-	struct Job *next;
+	Rule		*r;	/* master rule for job */
+	Node		*n;	/* list of node targets */
+	char		*stem;
+	char		**match;
+	Word		*p;	/* prerequistes */
+	Word		*np;	/* new prerequistes */
+	Word		*t;	/* targets */
+	Word		*at;	/* all targets */
+	int		nproc;	/* slot number */
+	struct Job	*next;
 } Job;
 extern Job *jobs;
 
 typedef struct Symtab
 {
-	short space;
-	char *name;
-	char *value;
-	struct Symtab *next;
+	short		space;
+	char		*name;
+	void		*value;
+	struct Symtab	*next;
 } Symtab;
 
 enum {
@@ -130,25 +134,28 @@ enum {
 	S_MAKEFILE,	/* target -> node */
 	S_MAKEVAR,	/* dumpable mk variable */
 	S_EXPORTED,	/* var -> current exported value */
-	S_BULKED,	/* we have bulked this dir */
 	S_WESET,	/* variable; we set in the mkfile */
+	S_INTERNAL,	/* an internal mk variable (e.g., stem, target) */
 };
 
-extern int debug;
-extern int nflag, tflag, iflag, kflag, aflag, mflag;
-extern int inline;
-extern char *infile;
-extern int nproclimit;
-extern int nreps;
-extern char *explain;
-extern char shell[], shellname[];
+extern	int	debug;
+extern	int	nflag, tflag, iflag, kflag, aflag, mflag;
+extern	int	mkinline;
+extern	char	*infile;
+extern	int	nreps;
+extern	char	*explain;
+extern	char	*termchars;
+extern	char 	*shell;
+extern	char 	*shellname;
+extern	char 	*shflags;
+extern	int	IWS;
 
-#define	SYNERR(l)	(fprint(2, "mk: %s:%d: syntax error; ", infile, (l>=0)?l:inline))
-#define	RERR(r)	(fprint(2, "mk: %s:%d: rule error; ", (r)->file, (r)->line))
+#define	SYNERR(l)	(fprint(2, "mk: %s:%d: syntax error; ", infile, ((l)>=0)?(l):mkinline))
+#define	RERR(r)		(fprint(2, "mk: %s:%d: rule error; ", (r)->file, (r)->line))
 #define	NAMEBLOCK	1000
 #define	BIGBLOCK	20000
 
-#define	SEP(c)	(((c)==' ')||((c)=='\t')||((c)=='\n'))
+#define	SEP(c)		(((c)==' ')||((c)=='\t')||((c)=='\n'))
 #define WORDCHR(r)	((r) > ' ' && !utfrune("!\"#$%&'()*+,-./:;<=>?@[\\]^`{|}~", (r)))
 
 #define	DEBUG(x)	(debug&(x))
@@ -156,11 +163,8 @@ extern char shell[], shellname[];
 #define		D_GRAPH		0x02
 #define		D_EXEC		0x04
 
-#define	COUNT	long			/* size of count arguments */
 #define	LSEEK(f,o,p)	seek(f,o,p)
-#define	SHELL		"/bin/rc"
 
 #define	PERCENT(ch)	(((ch) == '%') || ((ch) == '&'))
-#define	QUOTE(ch)	((ch) == '\'')
 
 #include	"fns.h"

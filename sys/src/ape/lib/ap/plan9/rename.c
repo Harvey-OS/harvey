@@ -60,7 +60,7 @@ rename(const char *from, const char *to)
 			_syserrno();
 			n = -1;
 		}
-		while(n>=0 && (n = _READ(ffd, buf, 8192) > 0))
+		while(n>=0 && (n = _READ(ffd, buf, 8192)) > 0)
 			if(_WRITE(tfd, buf, n) != n){
 				_syserrno();
 				n = -1;
@@ -69,7 +69,12 @@ rename(const char *from, const char *to)
 		_CLOSE(tfd);
 		if(n>0)
 			n = 0;
-		
+		if(n == 0) {
+			if(_REMOVE(from) < 0){
+				_syserrno();
+				return -1;
+			}
+		}
 	}
 	return n;
 }

@@ -1,0 +1,3 @@
+#!/bin/rc
+x=`{read|sed 's///'}
+echo $x:USERID:none

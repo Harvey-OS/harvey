@@ -25,10 +25,10 @@ OFILES=aitoff.$O\
 	lagrange.$O\
 	lambert.$O\
 	laue.$O\
+	lune.$O\
 	mercator.$O\
 	mollweide.$O\
 	newyorker.$O\
-	ortelius.$O\
 	orthographic.$O\
 	perspective.$O\
 	polyconic.$O\
@@ -38,14 +38,12 @@ OFILES=aitoff.$O\
 	tetra.$O\
 	trapezoidal.$O\
 	twocirc.$O\
-	wreath.$O\
 	zcoord.$O\
 
 HFILES=../map.h\
-	../iplot.h\
 
 </sys/src/cmd/mklib
-CFLAGS=-I..
+CFLAGS=$CFLAGS -I..
 
 nuke:V:
 	mk clean

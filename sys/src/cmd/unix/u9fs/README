@@ -1,3 +1,6 @@
+This version of u9fs uses setreuid, setgid, and setgroups to masquerade
+as the attached user.
+
 This program serves Unix files to Plan 9 machines.  It is to be run on a
 Unix machine with its standard input, output, and error connected to a
 network connection.  It runs as root and multiplexes access to multiple

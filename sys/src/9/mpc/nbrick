@@ -1,0 +1,42 @@
+dev
+	root
+	cons
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	pcmcia
+	ether	netif
+	ip		dial ip ipaux iproute arp nullmedium pktmedium kio netlog inferno nullmedium pktmedium ptclbsum
+	bridge
+	uart
+	sac	unsac
+	tinyfs
+
+link
+	etherscc
+	ethermedium
+	ether589	etherelnk3
+	etherelnk3
+
+misc
+#	archgeneric
+	netif
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	esp
+
+port
+	int cpuserver = 1;
+
+boot cpu
+boot rootdir /root/usr/seanq/mbxroot
+	sac
+	il

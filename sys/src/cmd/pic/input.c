@@ -437,19 +437,19 @@ void	eprint(void);
 void yyerror(char *s)
 {
 	extern char *cmdname;
+	int ern = errno;	/* cause some libraries clobber it */
 
 	if (synerr)
 		return;
 	fflush(stdout);
 	fprintf(stderr, "%s: %s", cmdname, s);
-	if (errno > 0)
-		perror("?");
-	if (curfile)
-		fprintf(stderr, " near line %d, file %s",
-			curfile->lineno, curfile->fname);
-	fprintf(stderr, "\n");
-	if (curfile->fin)
-		eprint();
+	if (ern > 0) {
+		errno = ern;
+		perror("???");
+	}
+	fprintf(stderr, " near %s:%d\n",
+		curfile->fname, curfile->lineno+1);
+	eprint();
 	synerr = 1;
 	errno = 0;
 }
@@ -574,7 +574,7 @@ char	shellbuf[1000], *shellp;
 
 void shell_init(void)	/* set up to interpret a shell command */
 {
-	sprintf(shellbuf, "sh -c '");
+	sprintf(shellbuf, "rc -c '");
 	shellp = shellbuf + strlen(shellbuf);
 }
 

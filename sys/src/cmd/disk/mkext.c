@@ -60,7 +60,7 @@ main(int argc, char **argv)
 			fprint(2, "done\n");
 			exits(0);
 		}
-		if(getfields(p, fields, NFLDS) != NFLDS){
+		if(getfields(p, fields, NFLDS, 0, " \t") != NFLDS){
 			warn("too few fields in file header");
 			continue;
 		}
@@ -79,7 +79,7 @@ main(int argc, char **argv)
 			mkdirs(name, namep);
 		}
 		if(hflag){
-			Bprint(&bout, "%s %luo %s %s %lud %d\n",
+			Bprint(&bout, "%s %luo %s %s %lud %lud\n",
 				name, mode, uid, gid, mtime, bytes);
 			if(bytes)
 				seekpast(bytes);
@@ -187,7 +187,7 @@ extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, ulong bytes)
 	ulong n, tot;
 
 	if(vflag)
-		print("x %s %d bytes\n", name, bytes);
+		print("x %s %lud bytes\n", name, bytes);
 
 	b = Bopen(name, OWRITE);
 	if(!b){
@@ -256,9 +256,12 @@ void
 error(char *fmt, ...)
 {
 	char buf[1024];
+	va_list arg;
 
 	sprint(buf, "%s: ", argv0);
-	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, (&fmt+1));
+	va_start(arg, fmt);
+	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	fprint(2, "%s\n", buf);
 	exits(0);
 }
@@ -267,9 +270,12 @@ void
 warn(char *fmt, ...)
 {
 	char buf[1024];
+	va_list arg;
 
 	sprint(buf, "%s: ", argv0);
-	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, (&fmt+1));
+	va_start(arg, fmt);
+	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	fprint(2, "%s\n", buf);
 }
 
@@ -277,4 +283,5 @@ void
 usage(void)
 {
 	fprint(2, "usage: mkext [-h] [-u] [-v] [-d dest-fs] [file ...]\n");
+	exits("usage");
 }

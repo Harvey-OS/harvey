@@ -1,31 +1,72 @@
 /***** spin: pangen3.c *****/
 
-/* Copyright (c) 1991,1995 by AT&T Corporation.  All Rights Reserved.     */
-/* This software is for educational purposes only.                        */
+/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* All Rights Reserved.  This software is for educational purposes only.  */
 /* Permission is given to distribute this code provided that this intro-  */
 /* ductory message is not removed and no monies are exchanged.            */
 /* No guarantee is expressed or implied by the distribution of this code. */
 /* Software written by Gerard J. Holzmann as part of the book:            */
 /* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
 /* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.att.com          */
+/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
 
 #include "spin.h"
-#include <ctype.h>
+#ifdef PC
+#include "y_tab.h"
+#else
 #include "y.tab.h"
+#endif
 
 extern FILE	*th;
+extern int	claimnr, eventmapnr;
 
 typedef struct SRC {
-	short ln, st;
+	short ln, st;	/* linenr, statenr */
+	Symbol *fn;	/* filename */
 	struct SRC *nxt;
 } SRC;
 
-SRC	*frst = (SRC *) 0;
-SRC	*skip = (SRC *) 0;
-int	col;
+static int	col;
+static Symbol	*lastfnm;
+static Symbol	lastdef;
+static int	lastfrom;
+static SRC	*frst = (SRC *) 0;
+static SRC	*skip = (SRC *) 0;
 
-extern	int claimnr;
+extern void	sr_mesg(FILE *, int, int);
+
+static void
+putnr(int n)
+{
+	if (col++ == 8)
+	{	fprintf(th, "\n\t");
+		col = 1;
+	}
+	fprintf(th, "%3d, ", n);
+}
+
+static void
+putfnm(int j, Symbol *s)
+{
+	if (lastfnm && lastfnm == s && j != -1)
+		return;
+
+	if (lastfnm)
+		fprintf(th, "{ %s, %d, %d },\n\t",
+			lastfnm->name,
+			lastfrom,
+			j-1);
+	lastfnm = s;
+	lastfrom = j;
+}
+
+static void
+putfnm_flush(int j)
+{
+	fprintf(th, "{ %s, %d, %d }\n",
+			lastfnm->name,
+			lastfrom, j);
+}
 
 void
 putskip(int m)	/* states that need not be reached */
@@ -55,23 +96,31 @@ unskip(int m)	/* a state that needs to be reached after all */
 }
 
 void
-putsrc(int n, int m)	/* match states to source lines */
+putsrc(Element *e)	/* match states to source lines */
 {	SRC *tmp;
+	int n, m;
+
+	if (!e || !e->n) return;
+
+	n = e->n->ln;
+	m = e->seqno;
 
 	for (tmp = frst; tmp; tmp = tmp->nxt)
 		if (tmp->st == m)
-		{	if (tmp->ln != n)
-			printf("putsrc mismatch %d - %d\n", n, tmp->ln);
+		{	if (tmp->ln != n || tmp->fn != e->n->fn)
+			printf("putsrc mismatch %d - %d, file %s\n", n,
+				tmp->ln, tmp->fn);
 			return;
 		}
 	tmp = (SRC *) emalloc(sizeof(SRC));
 	tmp->ln = (short) n;
 	tmp->st = (short) m;
+	tmp->fn = e->n->fn;
 	tmp->nxt = frst;
 	frst = tmp;
 }
 
-void
+static void
 dumpskip(int n, int m)
 {	SRC *tmp, *lst;
 	int j;
@@ -94,6 +143,8 @@ dumpskip(int n, int m)
 	fprintf(th, "};\n");
 	if (m == claimnr)
 		fprintf(th, "#define reached_claim	reached%d\n", m);
+	if (m == eventmapnr)
+		fprintf(th, "#define reached_event	reached%d\n", m);
 
 	skip = (SRC *) 0;
 }
@@ -109,10 +160,12 @@ dumpsrc(int n, int m)
 		for (tmp = frst; tmp; lst = tmp, tmp = tmp->nxt)
 			if (tmp->st == j)
 			{	putnr(tmp->ln);
+#if 0
 				if (lst)
 					lst->nxt = tmp->nxt;
 				else
 					frst = tmp->nxt;
+#endif
 				break;
 			}
 		if (!tmp)
@@ -120,21 +173,33 @@ dumpsrc(int n, int m)
 	}
 	fprintf(th, "};\n");
 
+	lastfnm = (Symbol *) 0;
+	lastdef.name = "\"-\"";
+	fprintf(th, "S_F_MAP src_file%d [] = {\n\t", m);
+	for (j = 0, col = 0; j <= n; j++)
+	{	lst = (SRC *) 0;
+		for (tmp = frst; tmp; lst = tmp, tmp = tmp->nxt)
+			if (tmp->st == j)
+			{	putfnm(j, tmp->fn);
+				if (lst)
+					lst->nxt = tmp->nxt;
+				else
+					frst = tmp->nxt;
+				break;
+			}
+		if (!tmp)
+			putfnm(j, &lastdef);
+	}
+	putfnm_flush(j);
+	fprintf(th, "};\n");
+
 	if (m == claimnr)
 		fprintf(th, "#define src_claim	src_ln%d\n", m);
+	if (m == eventmapnr)
+		fprintf(th, "#define src_event	src_ln%d\n", m);
 
 	frst = (SRC *) 0;
 	dumpskip(n, m);
-}
-
-void
-putnr(int n)
-{
-	if (col++ == 8)
-	{	fprintf(th, "\n\t");
-		col = 1;
-	}
-	fprintf(th, "%3d, ", n);
 }
 
 #define Cat0(x)   	comwork(fd,now->lft,m); fprintf(fd, x); \
@@ -143,7 +208,7 @@ putnr(int n)
 #define Cat2(x,y)  	fprintf(fd,x); comwork(fd,y,m)
 #define Cat3(x,y,z)	fprintf(fd,x); comwork(fd,y,m); fprintf(fd,z)
 
-int
+static int
 symbolic(FILE *fd, Lextok *tv)
 {	Lextok *n; extern Lextok *Mtype;
 	int cnt = 1;
@@ -157,14 +222,14 @@ symbolic(FILE *fd, Lextok *tv)
 	return 0;
 }
 
-void
+static void
 comwork(FILE *fd, Lextok *now, int m)
 {	Lextok *v;
-	int i, j; extern int Mpars;
+	int i, j;
 
 	if (!now) { fprintf(fd, "0"); return; }
 	switch (now->ntyp) {
-	case CONST:	fprintf(fd, "%d", now->val); break;
+	case CONST:	sr_mesg(fd, now->val, now->ismtyp); break;
 	case '!':	Cat3("!(", now->lft, ")"); break;
 	case UMIN:	Cat3("-(", now->lft, ")"); break;
 	case '~':	Cat3("~(", now->lft, ")"); break;
@@ -175,6 +240,7 @@ comwork(FILE *fd, Lextok *now, int m)
 	case '+':	Cat1("+");  break;
 	case '%':	Cat1("%%"); break;
 	case '&':	Cat1("&");  break;
+	case '^':	Cat1("^");  break;
 	case '|':	Cat1("|");  break;
 	case LE:	Cat1("<="); break;
 	case GE:	Cat1(">="); break;
@@ -190,7 +256,7 @@ comwork(FILE *fd, Lextok *now, int m)
 	case RUN:	fprintf(fd, "run %s(", now->sym->name);
 			for (v = now->lft; v; v = v->rgt)
 				if (v == now->lft)
-				{	Cat2("", v->lft);
+				{	comwork(fd, v->lft, m);
 				} else
 				{	Cat2(",", v->lft);
 				}
@@ -215,12 +281,20 @@ comwork(FILE *fd, Lextok *now, int m)
 					comwork(fd,v->lft,m);
 			}
 			break;
-	case 'r':	putname(fd, "", now->lft, m, now->val?"??":"?");
+	case 'r':	putname(fd, "", now->lft, m, "?");
+			switch (now->val) {
+			case 0: break;
+			case 1: fprintf(fd, "?");  break;
+			case 2: fprintf(fd, "<");  break;
+			case 3: fprintf(fd, "?<"); break;
+			}
 			for (v = now->rgt, i=0; v; v = v->rgt, i++)
 			{	if (v != now->rgt) fprintf(fd,",");
 				if (!symbolic(fd, v->lft))
 					comwork(fd,v->lft,m);
 			}
+			if (now->val >= 2)
+				fprintf(fd, ">");
 			break;
 	case 'R':	putname(fd, "", now->lft, m,  now->val?"??[":"?[");
 			for (v = now->rgt, i=0; v; v = v->rgt, i++)
@@ -232,6 +306,13 @@ comwork(FILE *fd, Lextok *now, int m)
 			break;
 
 	case ENABLED:	Cat3("enabled(", now->lft, ")");
+			break;
+
+	case EVAL:	Cat3("eval(", now->lft, ")");
+			break;
+
+	case NONPROGRESS:
+			fprintf(fd, "np_");
 			break;
 
 	case PC_VAL:	Cat3("pc_value(", now->lft, ")");
@@ -259,7 +340,11 @@ comwork(FILE *fd, Lextok *now, int m)
 					if (c == '\"') buf[j] = '\'';
 					if (c == '\0') break;
 				}
-				fprintf(fd, "printf(%s", buf);
+				if (now->ntyp == PRINT)
+					fprintf(fd, "printf");
+				else
+					fprintf(fd, "annotate");
+				fprintf(fd, "(%s", buf);
 			}
 			for (v = now->lft; v; v = v->rgt)
 			{	Cat2(",", v->lft);
@@ -275,7 +360,7 @@ comwork(FILE *fd, Lextok *now, int m)
 	case ASSERT:	Cat3("assert(", now->lft, ")");
 			break;
 	case   '.':	fprintf(fd, ".(goto)"); break;
-	case  GOTO:	fprintf(fd, "goto"); break;
+	case  GOTO:	fprintf(fd, "goto %s", now->sym->name); break;
 	case BREAK:	fprintf(fd, "break"); break;
 	case  ELSE:	fprintf(fd, "else"); break;
 	case   '@':	fprintf(fd, "-end-"); break;
@@ -297,7 +382,7 @@ comwork(FILE *fd, Lextok *now, int m)
 
 void
 comment(FILE *fd, Lextok *now, int m)
-{	extern int terse, nocast;
+{	extern short terse, nocast;
 
 	terse=nocast=1;
 	comwork(fd, now, m);

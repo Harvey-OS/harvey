@@ -147,6 +147,19 @@ the
 .I create
 fails.
 .PP
+Finally, the
+.B MCACHE
+flag, valid for
+.I mount
+only, turns on caching for files made available by the mount.
+By default, file contents are always retrieved from the server.
+With caching enabled, the kernel may instead use a local cache to satisfy
+.IR read (5)
+requests for files accessible through this mount point.
+The currency of cached data for a file is verified at each
+.IR open (5)
+of the file from this client machine.
+.PP
 With
 .IR mount ,
 the file descriptor

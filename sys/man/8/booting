@@ -8,7 +8,7 @@ This manual page collects the incantations required to bootstrap Plan 9 machines
 Some of the information here is specific to the installation at Bell Labs;
 some is generic.
 .PP
-If a CPU server is up, BOOTP and TFTP will run from there;
+If a CPU server is up, BOOTP/DHCP and TFTP will run from there;
 if not, the necessary files and services must be available on a separate machine,
 such as a Unix system, to use these protocols for bootstrapping.
 .PP
@@ -16,200 +16,95 @@ Be sure to read
 .IR boot (8)
 to understand what happens after the kernel is loaded.
 .SS Terminals
-To bootstrap a terminal or a CPU server, a file server must be running.
+To bootstrap a diskless terminal or a CPU server, a file server must be running.
+PCs can boot from a floppy disk or any FAT16 partition.
 On all the terminals, typing two control-T's followed by a lower-case
 .B r
 reboots the machine;
 other methods of rebooting are mentioned for some machines.
-.SS Gnot
-The boot ROM prints
-.IP
-.EX
-server[default==incon!nj/astro/Nfs!/68020/9gnot]
-.EE
-.PP
-Typing a newline bootstraps the default system.
-The components of the
-.B server
-string are defaulted from the right, for example, to bootstrap
-.B /sys/src/9/gnot/9gnot
-type just that file name;
-to bootstrap from a different file server, say kremvax, type
-.IP
-.EX
-kremvax!/68020/9gnot
-.EE
-.PP
-The bootstrap devices available are
-.BR incon ,
-.BR 9600 ,
-.BR 19200
-and
-.BR scsi ;
-with
-.B scsi
-the server name (here
-.BR nj/astro/Nfs )
-becomes a unit number, usually
-.BR 0 ,
-and the file name is a boot partition to use.
-For example,
-.IP
-.EX
-scsi!0!boot
-.EE
-.PP
-says to boot from SCSI disk
-.B 0
-the kernel in disk partition
-.BR /dev/hd0boot . 
-.PP
-If running with a local cache file system,
-one normally bootstraps using the SCSI disk.
-However, if the local kernel has been destroyed or is hopelessly
-out of date, bootstrap using the serial line.
-To do this, use the boot string
-.IP
-.EX
-9600!nj/astro/Nfs!/68020/9gnotdisk
-.EE
-.PP
-to bootstrap from the serial line at 9600 baud or
-.IP
-.EX
-19200!nj/astro/Nfs!/68020/9gnotdisk
-.EE
-.PP
-for a 19200 baud connection.
-.SS Nextstation
-First make sure the
-.IR ndb (8)
-entry (or the corresponding Unix BOOTP
-configuration information) looks something like this:
-.IP
-.EX
-ip=135.104.9.120 ether=00000f00acf7 sys=jobs
-	dom=jobs.research.att.com
-	bootf=/68020/9nextstation
-	proto=il
-.EE
-.PP
-When powered on and left alone, a Nextstation will download
-.BR /68020/9nextstation
-using the BOOTP and TFTP protocols.
-(Actually, first it loads
-.B /lib/tftpd/boot
-and uses that to download the operating system.
-That file is not shipped as part
-of the distribution.
-Copy it from
-.B /usr/template/client/tftpboot/boot
-on the vendor-supplied file system.)
-It then prompts for the user name and password and asks for the Ethernet
-protocol to use; request the default.
-.PP
-While the system is downloading, it displays an Ethernet symbol;
-at this time, holding the left
-.B Command
-key down and typing the
-.B ~
-key aborts the download and transfers control to a ROM-resident
-monitor.
-The monitor will use the Ethernet to boot an alternate kernel
-given the command, e.g.,
-.IP
-.EX
-ben /sys/src/9/next/9nextstation
-.EE
-.PP
-or
-.IP
-.EX
-ben kgbvax:/sys/src/9/next/9nextstation
-.EE
-.PP
-to force the download to come from system
-.BR kgbvax .
-.PP
-If running with a local cache file system, bootstrap from
-the disk.
-While the system is downloading, it displays a symbol of a spinning
-disk.
-The processor first loads a program,
-.B Disclabel
+.SS PCs
+To boot a PC, it is necessary to get
+.B /386/9load
+loaded into memory.
+There are many ways to do this.  A Plan 9 boot floppy prepared by
+.B format
 (see
-.IR home (8))
-from the kernel partition
-.B /dev/hd1label
-and then the real kernel from
-.BR /dev/hd1boot .
+.IR prep (8))
+will load
+.B 9load
+when the PC is reset or powered on.
+Other methods are described in 
+.IR 9load (8).
+.B 9load
+then locates and loads a Plan 9 kernel, using configuration information
+from the file
+.B plan9.ini
+stored in the
+.B 9fat
+configuration partition or on a DOS file system.
+See 
+.IR 9load (8)
+for details.
 .PP
-See Next's documentation for other details, in particular how to
-initialize a new machine to boot from Ethernet instead of disk.
-.PP
-To turn the power off, hold down the left
-.B Command
-and
-.B Alternate
-keys and press the power key.
-To reboot, hold down the left
-.B Command
-and
-.B Alternate
-and press the
-.L *
-key in the upper right corner of the keypad.
-.SS Sun Sparcstation 2, 10, or 20
-The Sparcstations all behave similarly.
-First make sure the
-.IR ndb (8)
-entry (or corresponding information on a Unix BOOTP server)
-is correct.
-If you are running a Plan 9
-.B tftpd
-(see
-.IR bootp (8)),
-it will download the file specified by the
-.B bootf
-parameter for the machine in
-.BR /lib/ndb ;
-.B /sparc/9ss
-runs on the Sparcstation 2,
-.B /sparc/9ss10
-on the Sparcstation 10.
-.PP
-If you are not using Plan 9
-.BR tftpd ,
-you will have to copy or link
-.B /sparc/9ss
-or
-.B /sparc/9ss10
-to the appropriate file
-on the downloading system;
-the file name requested will be of the form
-.IB IPaddr .SUN mm
-where
-.I IPaddr
-is the 8-digit hexadecimal IP address of the machine requesting the kernel and
-.B mm
-is an architecture identifier.
-.PP
-To bootstrap,
-type
+Once the kernel is booted, it behaves like the others.
+See
+.IR boot (8)
+for details.
+.SS Alpha PCs
+Alpha PCs must be booted via TFTP using the SRM console.
+If the system has ARC firmware instead, SRM may be downloaded from
 .IP
 .EX
-boot net
+http://www.compaq.com/
 .EE
 .PP
-to the power-on monitor to load the kernel.
-There is no way to specify an alternate file to download.
-Once running, the operating system asks the same questions as on the Nextstation.
-.SS MIPS Magnum
-The Magnum ROM monitor can boot from the Ethernet or from a local disk.
+You must configure the SRM firmware to load the file
+.BR /alpha/bootalphapc .
+The following commands may be used (replace
+.B ewa0
+with the name of your ethernet device, if different):
+.IP
+.EX
+set boot_reset ON
+set boot_file /alpha/bootalphapc
+set bootdev_def ewa0
+set ewa0_inet_init bootp
+set ewa0_protocols BOOTP
+.EE
+.PP
+This secondary bootstrap program will first load the file
+.BR /alpha/conf/ <IP-address>
+(substituting the IP address of the system as obtained via bootp).
+This file is expected to be in
+.IR plan9.ini (8)
+format (the file
+.B /alpha/conf/10.0.0.2
+may be used as a template).
+It then loads the kernel via tftp, using the value of
+.B bootfile
+to tell it which file to load; this should be
+.B /alpha/9apc
+for terminals.
+.SS CPU Servers
+The Plan 9 CPU servers are multi-user, so they do not request a user name
+when booting.
+On the CPU servers, typing a control-P on the console reboots the machine.
+.SS PC CPU Server
+Proceed as for the PC terminal, but load
+.B /386/9pccpu
+or
+.BR /386/9pccpudisk .
+.SS Alpha PC CPU Server
+Proceed as for the Alpha PC terminal, but use
+.B /alpha/9apccpu
+as the value of
+.BR bootfile .
+.SS SGI Challenge multiprocessor CPU Server
+The Challenge ROM monitor can boot from the Ethernet.
 To boot from the Ethernet, type
 .IP
 .EX
-.B bootp()/mips/9magnum
+.B bootp()/mips/9ch
 .EE
 .PP
 or use the ROM command
@@ -230,7 +125,7 @@ are passed to
 If you are running a Plan 9
 .SM BOOTP
 server (see
-.IR bootp (8)),
+.IR dhcpd (8)),
 the file name can be omitted and the
 file specified by the
 .B bootf
@@ -238,199 +133,9 @@ parameter for the machine in
 .BR /lib/ndb
 will be downloaded by default.
 .PP
-To boot Plan 9 from disk it is first necessary to install the boot program, kept in
-.BR /sys/src/boot/magnum/partboot .
-This should be written into the first partition on the disk, which must be exactly 32K;
-the second partition should be at least a megabyte and will hold the kernel to boot.
-Boot Plan 9 over the Ethernet and follow these instructions.
-Use
-.IR prep (8)
-to establish a partition table that looks something like this:
-.IP
-.EX
-plan9 partitions
-partboot 0 64
-boot 64 2112
-.EE
-.PP
-Run these commands to put the necessary files on the disk:
-.IP
-.EX
-bind -a '#w' /dev
-cp /sys/src/boot/magnum/partboot /dev/sd0partboot
-cp /mips/9magnum /dev/sd0boot
-.EE
-.PP
-The kernel, here
-.BR /mips/9magnum ,
-may be any Magnum kernel.  The
-.IR rc (1)
-script
-.B magnum/home
-(see
-.IR home (8))
-automates this whole procedure for stand-alone home Magnums.
-.PP
-Once the disk is established, type to the Magnum boot ROM
-.IP
-.EX
-dksd(0,0)b
-.EE
-.PP
-to load the Plan 9 bootstrap program
-or use the ROM command
-.B setenv
-to set the variable
-.B bootfile
-to that same string and type
-.BR boot .
-The bootstrap program will then
-prompt for the partition to boot from.
-If nothing is typed within 15 seconds, a kernel will
-be booted from the hard disk partition
-.BR /dev/sd0boot .
-Any arguments after
-.B dksd(0,0)b
-are passed to
-.IR boot (8).
-.PP
-By
-.B /mips/9magnumboot
-installing as the kernel on disk,
-it is possible to bootstrap another kernel using networks or devices unknown to the regular ROM.
-In other words, use
-.B partboot
-to load a more sophisticated bootstrapping kernel, and boot again using that.  For example,
-typing
-.IP
-.EX
-dksd(0,0)b il /mips/9magnum
-.EE
-.PP
-to such a system will bootstrap over the Ethernet using IL.
-.PP
-Once running, the operating system asks the same questions as on the Nextstation.
-.SS PCs
-To boot a PC, it is necessary to get
-.B b
-loaded into memory
-(see
-.IR b.com (8)).
-There are two ways to do this.  A Plan 9 boot floppy prepared by
-.B format
-(see
-.IR prep (8))
-will start
-.B b
-when the PC is reset or powered on.
-Without such a floppy, boot DOS normally and type
-.B b
-to the DOS prompt.
-.PP
-From DOS, it is possible to give
-.B b
-an argument to specify the booting method.
-Otherwise,
-.B b
-will prompt for the method.
-.PP
-To boot the file
-.B /386/9pc
-from Ethernet using
-BOOTP
-and
-.BR tftpd ,
-use the method
-.B e!0
-or to DOS type
-.IP
-.EX
-b e!0
-.EE
-.PP
-The DOS file
-.B plan9.ini
-(see
-.IR plan9.ini (8))
-must specify an Ethernet interface card
-for this to work.
-.PP
-To boot from the Plan 9 IDE hard disk partition
-.BR hd0boot ,
-type
-.IP
-.EX
-b h!0!boot
-.EE
-.PP
-To boot from a DOS filesystem the kernel
-.BR 9pc ,
-type
-.IP
-.EX
-b hd!0!9pc
-.EE
-.PP
-To boot from a DOS filesystem on a floppy, type
-.IP
-.EX
-b fd!0!9pc
-.EE
-.PP
-The boot program
-.B b
-will also read the file
-.B plan9.ini
-from the DOS file system on any floppy or hard disk and pass it to the kernel.
-.B Plan9.ini
-specifies PC configuration information.
-See
-.IR b.com (8)
-and
-.IR plan9.ini (8)
-for details.
-.PP
-Once the kernel is booted, it behaves like the others.
-See
-.IR boot (8)
-for details.
-.SS CPU Servers
-The Plan 9 CPU servers are multi-user, so they do not request a user name
-when booting.
-On the CPU servers, typing a control-P on the console reboots the machine.
-.SS SGI Power Series CPU Server
-Enter the ROM monitor by typing an ESC at the system startup menu, then select option 5.
-The monitor will print a
-.B >> 
-prompt.
-Then type
-.B bootp()/mips/9powerboot
-to load the Plan 9 bootstrap program.
-The bootstrap program takes two optional
-arguments, which may be typed on the same command line:
-the method with which to attach to a file server (as in
-.IR boot (8))
-and a kernel file to boot.
-The default method is
-.B cyc
-and the default kernel file is
-.BR /mips/9power .
-.PP
-The bootstrap program reads a configuration
-description from a file identified by the IP address of the machine, e.g.
-.BR /mips/conf/123.101.89.77 .
-.B 9powerboot
-then loads the kernel and passes it
-the configuration information.
-.SS Sun Sparcstation CPU Server
-Proceed as for the Sparcstation running as a terminal but load
-.B /sparc/9sscpu
-on Sparcstation 2's and
-.B /sparc/9ss10cpu
-on Sparcstation 10's.
-.SS Mips Magnum CPU Server
-Booting is the same as for the Magnum running as a terminal but the file to load is
-.BR /mips/9magnumcpu .
+Once the kernel is loaded,
+it prompts for the Ethernet
+protocol to use to reach the root file server; request the default.
 .PP
 .SS File servers
 The CPU servers and terminals run essentially the same program, but
@@ -438,46 +143,16 @@ the Plan 9 file servers run a distinct system.
 The file servers accept only the commands described in
 .IR fs (8)
 on their consoles.
-.SS SGI Power Series File Server
-Get to the
-.B >>
-prompt as described for the CPU servers.
-Then boot the system over the Ethernet like a Magnum (sic), loading
-.BR /mips/9powerfs .
-The system will come up automatically.
-On machines with WORM jukeboxes,
-several minutes will be spent initializing the jukebox; the machine
-will chat happily while this is going on.
-The first time the system is booted, it will be necessary to establish the NVRAM
-and configuration information; see
-.IR fsconfig (8).
-.SS Mips 6280 File Server
-In response to the ROM's
-.B >>>
-prompt, type
-.IP
-.EX
-bootp(,egl)servername:96280fs
-.EE
-.SS Sparc Sparcstation File Server
-Proceed as for the Sparcstation running as a terminal, but load
-.BR /sparc/9ssfs .
-There is support for the Sparcstation 2 only.
-.SS Mips Magnum File Server
-Proceed as for the Magnum running as a terminal, but load
-.BR /mips/9magnumfs .
+.SS PC File Server
+Boot the PC file server like a regular PC, loading the appropriate file system kernel.
 .SH "SEE ALSO"
-.IR b.com (8),
+.IR 9load (8),
 .IR boot (8),
 .IR fs (8),
 .IR init (8),
 .IR plan9.ini (8)
 .SH SOURCE
 Sources for the various boot programs are under
-.BR /sys/src/boot ,
-except that
-.B /mips/9powerboot
-is a version of the SGI kernel made in
-.BR /sys/src/9/power .
+.BR /sys/src/boot .
 .SH BUGS
 The file server should be able to boot from its own disk.

@@ -1,0 +1,25 @@
+WIN=x11
+OS=linux
+
+CC=gcc
+CFLAGS=-g -c -DLINUX
+BIN=/home/rsc/bin/Linux
+TARG=drawterm
+O=o
+LD=gcc
+LDFLAGS=-g -o drawterm -static
+
+DEVIP=devip-unix
+DEVFS=devunixfs
+OSFILES=md-iprint.$O
+LIBS=-lm -L/usr/X11R6/lib -lX11
+
+ml-%.$O:	./libmemlayer/%.c
+	$CC $CFLAGS -o ml-$stem.o ./libmemlayer/$stem.c
+
+md-%.$O:	./libmemdraw/%.c
+	$CC $CFLAGS -o md-$stem.o ./libmemdraw/$stem.c
+
+d-%.$O:	./libdraw/%.c
+	$CC $CFLAGS -o d-$stem.o ./libdraw/$stem.c
+

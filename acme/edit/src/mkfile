@@ -1,44 +1,32 @@
 </$objtype/mkfile
-CPUS=mips sparc 386
+CPUS=mips 386
+
 BIN=../$objtype
 
-TARG=aa\
-	cc\
-	ee\
-	gg\
-	ii\
-	pp\
-	xx\
-	pipe\
+$O.%:	findfile.h input.h
 
-HFILES=input.h\
-	findfile.h\
+$O.%:	%.c
+	$O^c -w $stem.c && $O^l -o $O.$stem $stem.$O
 
-</sys/src/cmd/mkmany
+all:V:	$O.aa $O.cc $O.ee $O.gg $O.ii $O.pp $O.xx $O.pipe
 
-$BIN/a $BIN/aa:	$O.aa
-	if (! ~ $objtype 68020) cp $prereq $BIN/a
-	if not echo $status > /dev/null		# required to absorb bad status
-$BIN/c $BIN/cc:	$O.cc
-	if (! ~ $objtype 68020) cp $prereq $BIN/c
-	if not echo $status > /dev/null
-$BIN/e $BIN/ee:	$O.ee
-	if (! ~ $objtype 68020) cp $prereq $BIN/e
-	if not echo $status > /dev/null
-$BIN/g $BIN/gg:	$O.gg
-	if (! ~ $objtype 68020) cp $prereq $BIN/g
-	if not echo $status > /dev/null
-$BIN/i $BIN/ii:	$O.ii
-	if (! ~ $objtype 68020) cp $prereq $BIN/i
-	if not echo $status > /dev/null
-$BIN/p $BIN/pp:	$O.pp
-	if (! ~ $objtype 68020) cp $prereq $BIN/p
-	if not echo $status > /dev/null
-$BIN/x $BIN/xx:	$O.xx
-	if (! ~ $objtype 68020) cp $prereq $BIN/x
-	if not echo $status > /dev/null
+install:V:	a.install c.install e.install g.install i.install p.install x.install pipe.install
 
-../68020/pipe:Q:	2.pipe
-	;
-2.aa 2.cc 2.ee 2.gg 2.ii 2.pp 2.xx 2.pipe:Q:
-	echo 'no alef compiler for 68020'
+installall:V:
+	for(objtype in $CPUS)
+		mk install
+
+%.install:	$O.%%
+	cp $O.$stem$stem ../$objtype/$stem
+	rm $O.$stem$stem $stem$stem.$O
+
+pipe.install:	$O.pipe
+	cp $O.pipe ../$objtype/pipe
+	rm $O.pipe pipe.$O
+
+%.installall:V:
+	for(objtype in $CPUS)
+		mk $stem.install
+
+nuke clean:V:
+	rm -f [$OS].* *.[$OS]

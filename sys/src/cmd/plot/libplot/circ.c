@@ -8,5 +8,5 @@ void circ(double xc, double yc, double r){
 		rad=SCR(-r);
 	else
 		rad=SCR(r);
-	circle(&screen, p, rad, e1->foregr, S);
+	ellipse(screen, p, rad, rad, 0, getcolor(e1->foregr), ZP);
 }

@@ -40,8 +40,11 @@ char *typestr[] =
 };
 
 int
-cmp(char **a, char **b)
+cmp(void *va, void *vb)
 {
+	char **a = va;
+	char **b = vb;
+
 	return strcmp(*a, *b);
 }
 
@@ -200,10 +203,10 @@ pcode(Node *n, int d)
 		Bprint(bout, "%.*sif ", d, tabs);
 		pexpr(l);
 		d++;
-		Bprint(bout, " then\n", d, tabs);
+		Bprint(bout, " then\n");
 		if(r && r->op == OELSE) {
 			slist(r->left, d);
-			Bprint(bout, "%.*selse\n", d-1, tabs, d, tabs);
+			Bprint(bout, "%.*selse\n", d-1, tabs);
 			slist(r->right, d);
 		}
 		else
@@ -213,7 +216,7 @@ pcode(Node *n, int d)
 		Bprint(bout, "%.*swhile ", d, tabs);
 		pexpr(l);
 		d++;
-		Bprint(bout, " do\n", d, tabs);
+		Bprint(bout, " do\n");
 		slist(r, d);
 		break;
 	case ORET:
@@ -249,7 +252,7 @@ pexpr(Node *n)
 	case OCONST:
 		switch(n->type) {
 		case TINT:
-			Bprint(bout, "%d", n->ival);
+			Bprint(bout, "%d", (int)n->ival);
 			break;
 		case TFLOAT:
 			Bprint(bout, "%g", n->fval);
@@ -379,14 +382,14 @@ pexpr(Node *n)
 		break;
 	case OFMT:
 		pexpr(l);
-		Bprint(bout, "\\%c", r->ival);
+		Bprint(bout, "\\%c", (int)r->ival);
 		break;
 	case OEVAL:
 		Bprint(bout, "eval ");
 		pexpr(l);
 		break;
 	case OWHAT:
-		Bprint(bout, "whatis", n->sym->name);
+		Bprint(bout, "whatis");
 		if(n->sym)
 			Bprint(bout, " %s", n->sym->name);
 		break;

@@ -1,11 +1,27 @@
 #include	"all.h"
 
+struct {
+	Lock	flock;
+	File*	ffree;		/* free file structures */
+	Lock	wlock;
+	Wpath*	wfree;
+} suballoc;
+
+enum{
+	Finc=	128,	/* allocation chunksize for files */
+	Fmax=	10000,	/* maximum file structures to be allocated */
+	
+	Winc=	8*128,	/* allocation chunksize for wpath */
+	Wmax=	8*10000,	/* maximum wpath structures to be allocated */
+};
+
+
 Filsys*
 fsstr(char *p)
 {
 	Filsys *fs;
 
-	for(fs=filsys; fs->name; fs++)
+	for(fs=filesys; fs->name; fs++)
 		if(strcmp(fs->name, p) == 0)
 			return fs;
 	return 0;
@@ -85,42 +101,61 @@ out:
 	return f;
 }
 
+void
+sublockinit(void)
+{
+	lock(&suballoc.flock);
+	lock(&suballoc.wlock);
+	conf.nfile = 0;
+	conf.nwpath = 0;
+	unlock(&suballoc.flock);
+	unlock(&suballoc.wlock);
+}	
+
 /*
  * always called with cp->flock locked
  */
 File*
 newfp(Chan *cp)
 {
-	static first;
-	File *f;
-	int start, i;
+	File *f, *e;
 
-	i = first;
-	start = i;
-	do {
-		f = &files[i];
-		i++;
-		if(i >= conf.nfile)
-			i = 0;
-		if(f->cp)
-			continue;
-		lock(&newfplock);
-		if(f->cp) {
-			unlock(&newfplock);
-			continue;
-		}
+retry:
+	lock(&suballoc.flock);
+	f = suballoc.ffree;
+	if(f != nil){
+		suballoc.ffree = f->list;
+		unlock(&suballoc.flock);
+		f->list = 0;
 		f->cp = cp;
 		f->next = cp->flist;
 		f->wpath = 0;
 		f->tlock = 0;
 		cp->flist = f;
-		first = i;
-		unlock(&newfplock);
 		return f;
-	} while(i != start);
+	}
+	unlock(&suballoc.flock);
 
-	print("%d: out of files\n", cp->chan);
-	return 0;
+	if(conf.nfile > Fmax){
+		print("%d: out of files\n", cp->chan);
+		return 0;
+	}
+
+	/*
+	 *  create a few new files
+	 */
+	f = malloc(Finc*sizeof(*f));
+	memset(f, 0, Finc*sizeof(*f));
+	lock(&suballoc.flock);
+	for(e = f+Finc; f < e; f++){
+		qlock(f);
+		qunlock(f);
+		f->list = suballoc.ffree;
+		suballoc.ffree = f;
+	}
+	conf.nfile += Finc;
+	unlock(&suballoc.flock);
+	goto retry;
 }
 
 void
@@ -140,9 +175,98 @@ freefp(File *fp)
 		else
 			cp->flist = f->next;
 		f->cp = 0;
+		lock(&suballoc.flock);
+		f->list = suballoc.ffree;
+		suballoc.ffree = f;
+		unlock(&suballoc.flock);
 		break;
 	}
 	unlock(&cp->flock);
+}
+
+Wpath*
+newwp(void)
+{
+	Wpath *w, *e;
+
+retry:
+	lock(&suballoc.wlock);
+	w = suballoc.wfree;
+	if(w != nil){
+		suballoc.wfree = w->list;
+		unlock(&suballoc.wlock);
+		memset(w, 0, sizeof(*w));
+		w->refs = 1;
+		w->up = 0;
+		return w;
+	}
+	unlock(&suballoc.wlock);
+
+	if(conf.nwpath > Wmax){
+		print("out of wpaths\n");
+		return 0;
+	}
+
+	/*
+	 *  create a few new wpaths
+	 */
+	w = malloc(Winc*sizeof(*w));
+	memset(w, 0, Winc*sizeof(*w));
+	lock(&suballoc.wlock);
+	for(e = w+Winc; w < e; w++){
+		w->list = suballoc.wfree;
+		suballoc.wfree = w;
+	}
+	conf.nwpath += Winc;
+	unlock(&suballoc.wlock);
+	goto retry;
+}
+
+/*
+ *  increment the references for the whole path
+ */
+Wpath*
+getwp(Wpath *w)
+{
+	Wpath *nw;
+
+	lock(&suballoc.wlock);
+	for(nw = w; nw; nw=nw->up)
+		nw->refs++;
+	unlock(&suballoc.wlock);
+	return w;
+}
+
+/*
+ *  decrement the reference for each element of the path
+ */
+void
+freewp(Wpath *w)
+{
+	lock(&suballoc.wlock);
+	for(; w; w=w->up){
+		w->refs--;
+		if(w->refs == 0){
+			w->list = suballoc.wfree;
+			suballoc.wfree = w;
+		}
+	}
+	unlock(&suballoc.wlock);
+}
+
+/*
+ *  decrement the reference for just this element
+ */
+void
+putwp(Wpath *w)
+{
+	lock(&suballoc.wlock);
+	w->refs--;
+	if(w->refs == 0){
+		w->list = suballoc.wfree;
+		suballoc.wfree = w;
+	}
+	unlock(&suballoc.wlock);
 }
 
 int
@@ -177,7 +301,7 @@ tlocked(Iobuf *p, Dentry *d)
 	long qpath, tim;
 	Device dev;
 
-	tim = toytime();
+	tim = time(0);
 	qpath = d->qid.path;
 	dev = p->dev;
 	t1 = 0;
@@ -201,51 +325,6 @@ tlocked(Iobuf *p, Dentry *d)
 	return t1;
 }
 
-Wpath*
-newwp(void)
-{
-	static int si = 0;
-	int i;
-	Wpath *w, *sw, *ew;
-
-	i = si + 1;
-	if(i < 0 || i >= conf.nwpath)
-		i = 0;
-	si = i;
-	sw = &wpaths[i];
-	ew = &wpaths[conf.nwpath];
-	for(w=sw;;) {
-		w++;
-		if(w >= ew)
-			w = &wpaths[0];
-		if(w == sw) {
-			print("out of wpaths\n");
-			return 0;
-		}
-		if(w->refs)
-			continue;
-		lock(&wpathlock);
-		if(w->refs) {
-			unlock(&wpathlock);
-			continue;
-		}
-		w->refs = 1;
-		w->up = 0;
-		unlock(&wpathlock);
-		return w;
-	}
-
-}
-
-void
-freewp(Wpath *w)
-{
-	lock(&wpathlock);
-	for(; w; w=w->up)
-		w->refs--;
-	unlock(&wpathlock);
-}
-
 Qid
 newqid(Device dev)
 {
@@ -259,7 +338,7 @@ newqid(Device dev)
 	sb = (Superb*)p->iobuf;
 	sb->qidgen++;
 	qid.path = sb->qidgen;
-	qid.version = 0;
+	qid.vers = 0;
 	putbuf(p);
 	return qid;
 }
@@ -409,57 +488,68 @@ addfree(Device dev, long addr, Superb *sb)
 }
 
 int
-Cconv(Op *o)
+Cconv(va_list *arg, Fconv *f1)
 {
 	Chan *cp;
 	char s[20];
 
-	cp = *(Chan**)o->argp;
+	cp = va_arg(*arg, Chan*);
 	sprint(s, "C%d.%.3d", cp->type, cp->chan);
-	strconv(s, o, o->f1, o->f2);
+	strconv(s, f1);
 	return sizeof(cp);
 }
 
 int
-Dconv(Op *o)
+Dconv(va_list *arg, Fconv *f1)
 {
 	Device d;
 	char s[20];
 
-	d = *(Device*)o->argp;
+	d = va_arg(*arg, Device);
 	sprint(s, "D%d.%d.%d.%d", d.type, d.ctrl, d.unit, d.part);
-	strconv(s, o, o->f1, o->f2);
+	strconv(s, f1);
 	return sizeof(d);
 }
 
 int
-Fconv(Op *o)
+FFconv(va_list *arg, Fconv *f1)
 {
 	Filta a;
 	char s[30];
 
-	a = *(Filta*)o->argp;
+	a = va_arg(*arg, Filta);
 
 	sprint(s, "%6lud %6lud %6lud",
 		fdf(a.f->filter[0], a.scale*60),
 		fdf(a.f->filter[1], a.scale*600),
 		fdf(a.f->filter[2], a.scale*6000));
-	strconv(s, o, o->f1, o->f2);
+	strconv(s, f1);
 	return sizeof(Filta);
 }
 
 int
-Gconv(Op *o)
+Gconv(va_list *arg, Fconv *f1)
 {
 	int t;
 	char s[20];
 
-	t = *(int*)o->argp;
+	t = va_arg(*arg, int);
 	strcpy(s, "<badtag>");
 	if(t >= 0 && t < MAXTAG)
 		sprint(s, "%s", tagnames[t]);
-	strconv(s, o, o->f1, o->f2);
+	strconv(s, f1);
 	return sizeof(t);
+}
+
+int
+errconv(va_list*, Fconv *f1)
+{
+	char buf[64];
+
+	buf[0] = 0;
+	errstr(buf);
+	strconv(buf, f1);
+	return 0;
 }
 
 void
@@ -468,11 +558,12 @@ formatinit(void)
 
 	fmtinstall('C', Cconv);	/* print channels */
 	fmtinstall('D', Dconv);	/* print devices */
-	fmtinstall('F', Fconv);	/* print filters */
+	fmtinstall('F', FFconv);	/* print filters */
 	fmtinstall('G', Gconv);	/* print tags */
 	fmtinstall('T', Tconv);	/* print times */
+	fmtinstall('A', fcallconv);	/* print fcall stuff */
+	fmtinstall('r', errconv);	/* print fcall stuff */
 }
-
 int
 devcmp(Device d1, Device d2)
 {
@@ -503,7 +594,7 @@ rootream(Device dev, long addr)
 		((DREAD|DWRITE|DEXEC) << 3) |
 		((DREAD|DWRITE|DEXEC) << 0);
 	d->qid = QID(QPROOT|QPDIR,0);
-	d->atime = time();
+	d->atime = time(0);
 	d->mtime = d->atime;
 	putbuf(p);
 }

@@ -1,3 +1,4 @@
+
 /*
  * exportfs - Export a plan 9 name space across a network
  */
@@ -7,6 +8,9 @@
 #include <fcall.h>
 #define Extern
 #include "exportfs.h"
+
+#define	QIDMODE	(CHDIR|CHAPPEND|CHEXCL|CHMOUNT)
+ulong newqid = ~QIDMODE;
 
 void (*fcalls[])(Fsrpc*) =
 {
@@ -27,7 +31,16 @@ void (*fcalls[])(Fsrpc*) =
 	[Tclwalk]	Xclwalk,
 };
 
-int nonone;
+/* accounting and debugging counters */
+int	filecnt;
+int	freecnt;
+int	qidcnt;
+int	qfreecnt;
+int	ncollision;
+
+int	fflag;
+int	netfd;
+int	filter(int);
 
 void
 usage(void)
@@ -43,24 +56,20 @@ main(int argc, char **argv)
 	Fsrpc *r;
 	int n, srv;
 	char *dbfile;
-	char *ctlfile;
 	char user[NAMELEN];
 
 	dbfile = "/tmp/exportdb";
-	ctlfile = 0;
 	srv = 0;
 
 	ARGBEGIN{
 	case 'a':
+	//	fprint(2, "srvauth\n");
 		if(srvauth(0, user) < 0)
 			fatal("srvauth");
+	//	fprint(2, "newns\n");
 		if(newns(user, 0) < 0)
 			fatal("newns");
 		putenv("service", "exportfs");
-		break;
-
-	case 'c':
-		ctlfile = ARGF();
 		break;
 
 	case 'd':
@@ -69,6 +78,10 @@ main(int argc, char **argv)
 
 	case 'f':
 		dbfile = ARGF();
+		break;
+
+	case 'F':
+		fflag++;
 		break;
 
 	case 's':
@@ -82,21 +95,20 @@ main(int argc, char **argv)
 
 	if(dbg) {
 		n = create(dbfile, OWRITE|OTRUNC, 0666);
-		dup(n, 2);
+		dup(n, DFD);
 		close(n);
 	}
 
-	DEBUG(2, "exportfs: started\n");
+	DEBUG(DFD, "exportfs: started\n");
 
 	rfork(RFNOTEG);
 
-	Workq = malloc(sizeof(Fsrpc)*Nr_workbufs);
-	fhash = malloc(sizeof(Fid*)*FHASHSIZE);
+	Workq = mallocz(sizeof(Fsrpc)*Nr_workbufs, 1);
+	fhash = mallocz(sizeof(Fid*)*FHASHSIZE, 1);
 
 	if(Workq == 0 || fhash == 0)
 		fatal("no initial memory");
 
-	memset(Workq, 0, sizeof(Fsrpc)*Nr_workbufs);
 
 	fmtinstall('F', fcallconv);
 
@@ -106,7 +118,7 @@ main(int argc, char **argv)
  	 */
 	if(srv) {
 		chdir("/");
-		DEBUG(2, "invoked as server for /");
+		DEBUG(DFD, "invoked as server for /");
 	}
 	else {
 		buf[0] = 0;
@@ -114,7 +126,7 @@ main(int argc, char **argv)
 		if(n < 0) {
 			errstr(buf);
 			fprint(0, "read(0): %s", buf);
-			DEBUG(2, "read(0): %s", buf);
+			DEBUG(DFD, "read(0): %s", buf);
 			exits(buf);
 		}
 		buf[n] = 0;
@@ -122,25 +134,25 @@ main(int argc, char **argv)
 			char ebuf[128];
 			errstr(ebuf);
 			fprint(0, "chdir(%d:\"%s\"): %s", n, buf, ebuf);
-			DEBUG(2, "chdir(%d:\"%s\"): %s", n, buf, ebuf);
+			DEBUG(DFD, "chdir(%d:\"%s\"): %s", n, buf, ebuf);
 			exits(ebuf);
 		}
 	}
 
-	/*
-	 * take ownership of the network connection and
-	 * push the fcall line discipline
-	 */
-	if(ctlfile)
-		pushfcall(ctlfile);
-
-	DEBUG(2, "initing root\n");
+	DEBUG(DFD, "initing root\n");
 	initroot();
 
-	DEBUG(2, "exportfs: %s\n", buf);
+	DEBUG(DFD, "exportfs: %s\n", buf);
 
 	if(srv == 0 && write(0, "OK", 2) != 2)
 		fatal("open ack write");
+
+	/*
+	 * push the fcall line discipline
+	 */
+	netfd = 0;
+	if(fflag)
+		netfd = filter(netfd);
 
 	/*
 	 * Start serving file requests from the network
@@ -151,7 +163,7 @@ main(int argc, char **argv)
 			fatal("Out of service buffers");
 
 		do
-			n = read9p(0, r->buf, sizeof(r->buf));
+			n = read9p(netfd, r->buf, sizeof(r->buf));
 		while(n == 0);
 
 		if(n < 0)
@@ -161,7 +173,7 @@ main(int argc, char **argv)
 		if(convM2S(r->buf, &r->work, n) == 0)
 			fatal("format error");
 
-		DEBUG(2, "%F\n", &r->work, &r->work);
+		DEBUG(DFD, "%F\n", &r->work);
 		(fcalls[r->work.type])(r);
 	}
 }
@@ -181,10 +193,10 @@ reply(Fcall *r, Fcall *t, char *err)
 	else 
 		t->type = r->type + 1;
 
-	DEBUG(2, "\t%F\n", t);
+	DEBUG(DFD, "\t%F\n", t);
 
 	n = convS2M(t, data);
-	if(write9p(0, data, n)!=n)
+	if(write9p(netfd, data, n)!=n)
 		fatal("mount write");
 }
 
@@ -216,6 +228,8 @@ freefid(int nr)
 				unmount(0, buf);
 				psmap[f->mid] = 0;
 			}
+			freefile(f->f);
+			f->f = nil;
 			*l = f->next;
 			f->next = fidfree;
 			fidfree = f;
@@ -239,7 +253,7 @@ newfid(int nr)
 			return 0;
 
 	if(fidfree == 0) {
-		fidfree = malloc(sizeof(Fid) * Fidchunk);
+		fidfree = mallocz(sizeof(Fid) * Fidchunk, 1);
 		if(fidfree == 0)
 			fatal("out of memory");
 
@@ -267,38 +281,61 @@ Fsrpc *
 getsbuf(void)
 {
 	static int ap;
-	int look;
+	int look, rounds;
 	Fsrpc *wb;
 
-	for(look = 0; look < Nr_workbufs; look++) {
-		if(++ap == Nr_workbufs)
-			ap = 0;
-		if(Workq[ap].busy == 0)
-			break;
+	for(rounds = 0; rounds < 10; rounds++) {
+		for(look = 0; look < Nr_workbufs; look++) {
+			if(++ap == Nr_workbufs)
+				ap = 0;
+			if(Workq[ap].busy == 0)
+				break;
+		}
+
+		if(look == Nr_workbufs){
+			sleep(10 * rounds);
+			continue;
+		}
+
+		wb = &Workq[ap];
+		wb->pid = 0;
+		wb->canint = 0;
+		wb->flushtag = NOTAG;
+		wb->busy = 1;
+
+		return wb;
 	}
-
-	if(look == Nr_workbufs)
-		fatal("No more work buffers");
-
-	wb = &Workq[ap];
-	wb->pid = 0;
-	wb->canint = 0;
-	wb->flushtag = NOTAG;
-	wb->busy = 1;
-
-	return wb;
+	fatal("No more work buffers");
+	return nil;
 }
 
-char *
-strcatalloc(char *p, char *n)
+void
+freefile(File *f)
 {
-	char *v;
+	File *parent, *child;
 
-	v = realloc(p, strlen(p)+strlen(n)+1);
-	if(v == 0)
-		fatal("no memory");
-	strcat(v, n);
-	return v;
+Loop:
+	f->ref--;
+	if(f->ref > 0)
+		return;
+	freecnt++;
+	if(f->ref < 0) abort();
+	DEBUG(DFD, "free %s\n", f->name);
+	/* delete from parent */
+	parent = f->parent;
+	if(parent->child == f)
+		parent->child = f->childlist;
+	else{
+		for(child=parent->child; child->childlist!=f; child=child->childlist)
+			if(child->childlist == nil)
+				fatal("bad child list");
+		child->childlist = f->childlist;
+	}
+	freeqid(f->qidt);
+	free(f);
+	f = parent;
+	if(f != nil)
+		goto Loop;
 }
 
 File *
@@ -306,32 +343,40 @@ file(File *parent, char *name)
 {
 	Dir dir;
 	char buf[128];
-	File *f, *new;
+	File *f;
 
-	DEBUG(2, "\tfile: 0x%x %s name %s\n", parent, parent->name, name);
-
-	for(f = parent->child; f; f = f->childlist)
-		if(strcmp(name, f->name) == 0)
-			return f;
+	DEBUG(DFD, "\tfile: 0x%p %s name %s\n", parent, parent->name, name);
 
 	makepath(buf, parent, name);
 	if(dirstat(buf, &dir) < 0)
-		return 0;
+		return nil;
+
+	for(f = parent->child; f; f = f->childlist)
+		if(strcmp(name, f->name) == 0)
+			break;
+
+	if(f == nil){
+		f = mallocz(sizeof(File), 1);
+		if(f == 0)
+			fatal("no memory");
+		strcpy(f->name, name);
+
+		f->parent = parent;
+		f->childlist = parent->child;
+		parent->child = f;
+		parent->ref++;
+		f->ref = 0;
+		filecnt++;
+	}
+	f->ref++;
+	f->qid.vers = dir.qid.vers;
+	f->qidt = uniqueqid(&dir);
+	f->qid.path = f->qidt->uniqpath;
+
+	f->inval = 0;
 	
-	new = malloc(sizeof(File));
-	if(new == 0)
-		fatal("no memory");
 
-	memset(new, 0, sizeof(File));
-	strcpy(new->name, name);
-	new->qid.vers = dir.qid.vers;
-	new->qid.path = (dir.qid.path&CHDIR)|++qid;
-
-	new->parent = parent;
-	new->childlist = parent->child;
-	parent->child = new;
-
-	return new;
+	return f;
 }
 
 void
@@ -339,29 +384,31 @@ initroot(void)
 {
 	Dir dir;
 
-	root = malloc(sizeof(File));
+	root = mallocz(sizeof(File), 1);
 	if(root == 0)
 		fatal("no memory");
 
-	memset(root, 0, sizeof(File));
 	strcpy(root->name, ".");
 	if(dirstat(root->name, &dir) < 0)
 		fatal("root stat");
 
+	root->ref = 1;
 	root->qid.vers = dir.qid.vers;
-	root->qid.path = (dir.qid.path&CHDIR)|++qid;
+	root->qidt = uniqueqid(&dir);
+	root->qid.path = root->qidt->uniqpath;
 
-	psmpt = malloc(sizeof(File));
+	psmpt = mallocz(sizeof(File), 1);
 	if(psmpt == 0)
 		fatal("no memory");
 
-	memset(psmpt, 0, sizeof(File));
 	strcpy(psmpt->name, "/");
 	if(dirstat(psmpt->name, &dir) < 0)
 		return;
 
+	psmpt->ref = 1;
 	psmpt->qid.vers = dir.qid.vers;
-	psmpt->qid.path = (dir.qid.path&CHDIR)|++qid;
+	psmpt->qidt = uniqueqid(&dir);
+	psmpt->qid.path = psmpt->qidt->uniqpath;
 
 	psmpt = file(psmpt, "mnt");
 	if(psmpt == 0)
@@ -389,6 +436,103 @@ makepath(char *s, File *p, char *name)
 	*s = '\0';
 }
 
+int
+qidhash(ulong path)
+{
+	int h, n;
+
+	h = 0;
+	for(n=0; n<32; n+=Nqidbits){
+		h ^= path;
+		path >>= Nqidbits;
+	}
+	return h & (Nqidtab-1);
+}
+
+void
+freeqid(Qidtab *q)
+{
+	ulong h;
+	Qidtab *l;
+
+	q->ref--;
+	if(q->ref > 0)
+		return;
+	qfreecnt++;
+	h = qidhash(q->path);
+	if(qidtab[h] == q)
+		qidtab[h] = q->next;
+	else{
+		for(l=qidtab[h]; l->next!=q; l=l->next)
+			if(l->next == nil)
+				fatal("bad qid list");
+		l->next = q->next;
+	}
+	free(q);
+}
+
+Qidtab*
+qidlookup(Dir *d)
+{
+	ulong h;
+	Qidtab *q;
+
+	h = qidhash(d->qid.path);
+	for(q=qidtab[h]; q!=nil; q=q->next)
+		if(q->type==d->type && q->dev==d->dev && q->path==d->qid.path)
+			return q;
+	return nil;
+}
+
+int
+qidexists(ulong path)
+{
+	int h;
+	Qidtab *q;
+
+	for(h=0; h<Nqidtab; h++)
+		for(q=qidtab[h]; q!=nil; q=q->next)
+			if(q->uniqpath == path)
+				return 1;
+	return 0;
+}
+
+Qidtab*
+uniqueqid(Dir *d)
+{
+	ulong h, path;
+	Qidtab *q;
+
+	q = qidlookup(d);
+	if(q != nil){
+		q->ref++;
+		return q;
+	}
+	path = d->qid.path;
+	while(qidexists(path)){
+		/* collision: find a new one */
+		ncollision++;
+		DEBUG(DFD, "collision on %s\n", d->name);
+		path = newqid--;
+		if(newqid == 0)
+			newqid = ~QIDMODE;
+		path |= d->qid.path & (CHDIR|CHAPPEND|CHEXCL|CHMOUNT);
+	}
+	q = mallocz(sizeof(Qidtab), 1);
+	if(q == nil)
+		fatal("no memory for qid table");
+	qidcnt++;
+	q->ref = 1;
+	q->type = d->type;
+	q->dev = d->dev;
+	q->path = d->qid.path;
+	q->uniqpath = path;
+	h = qidhash(d->qid.path);
+	q->next = qidtab[h];
+	qidtab[h] = q;
+	return q;
+}
+
 void
 fatal(char *s)
 {
@@ -401,35 +545,33 @@ fatal(char *s)
 	for(m = Proclist; m; m = m->next)
 		postnote(PNPROC, m->pid, "kill");
 
-	DEBUG(2, "%s\n", buf);
+	DEBUG(DFD, "%s\n", buf);
 	exits(buf);
 }
 
-char pushmsg[] = "push fcall";
-
-void
-pushfcall(char *ctl)
+/* Network on fd1, mount driver on fd0 */
+int
+filter(int fd)
 {
-	int cfd;
-	Dir dir;
+	int p[2];
 
-	if(dirfstat(0, &dir) < 0){
-		fprint(2, "dirfstat(0) failed: %r\n");
-		return;
+	if(pipe(p) < 0)
+		fatal("pipe");
+
+	switch(rfork(RFNOWAIT|RFPROC|RFFDG)) {
+	case -1:
+		fatal("rfork record module");
+	case 0:
+		dup(fd, 1);
+		close(fd);
+		dup(p[0], 0);
+		close(p[0]);
+		close(p[1]);
+		execl("/bin/aux/fcall", "fcall", 0);
+		fatal("exec record module");
+	default:
+		close(fd);
+		close(p[0]);
 	}
-	memmove(dir.uid, getuser(), NAMELEN);
-	if(dirfwstat(1, &dir) < 0){
-		fprint(2, "dirfwstat(1) failed: %r\n");
-		return;
-	}
-	cfd = open(ctl, ORDWR);
-	if(cfd < 0){
-		fprint(2, "open(%s0) failed: %r\n", ctl);
-		return;
-	}
-	if(write(cfd, pushmsg, strlen(pushmsg)) < 0){
-		fprint(2, "%s failed: %r\n", pushmsg);
-		return;
-	}
-	close(cfd);
+	return p[1];	
 }

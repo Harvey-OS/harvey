@@ -207,10 +207,10 @@ asmsym(void)
 		/* filenames first */
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_FILE)
-				putsymb(a->sym->name, 'z', a->offset, 0);
+				putsymb(a->asym->name, 'z', a->aoffset, 0);
 			else
 			if(a->type == D_FILE1)
-				putsymb(a->sym->name, 'Z', a->offset, 0);
+				putsymb(a->asym->name, 'Z', a->aoffset, 0);
 
 		if(s->type == STEXT)
 			putsymb(s->name, 'T', s->value, s->version);
@@ -221,10 +221,10 @@ asmsym(void)
 		putsymb(".frame", 'm', p->to.offset+4, 0);
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_AUTO)
-				putsymb(a->sym->name, 'a', -a->offset, 0);
+				putsymb(a->asym->name, 'a', -a->aoffset, 0);
 			else
 			if(a->type == D_PARAM)
-				putsymb(a->sym->name, 'p', a->offset, 0);
+				putsymb(a->asym->name, 'p', a->aoffset, 0);
 	}
 	if(debug['v'] || debug['n'])
 		Bprint(&bso, "symsize = %lud\n", symsize);

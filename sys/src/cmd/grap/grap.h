@@ -64,11 +64,11 @@ typedef struct {
 } Point;
 
 typedef struct attr {	/* e.g., DASH 1.1 or "..." rjust size *.5 */
-	long	type;
+	int	type;
 	double	fval;
 	char	*sval;
-	short	just;	/* justification, for STRING type */
-	short	op;	/* optional operator, ditto */
+	int	just;	/* justification, for STRING type */
+	int	op;	/* optional operator, ditto */
 	struct attr *next;
 } Attr;
 
@@ -78,10 +78,10 @@ typedef struct obj {	/* a name and its properties */
 	double	fval;	/* if a numeric variable */
 	Point	pt;	/* usually for max and min */
 	Point	pt1;
-	long	type;	/* NAME, DEFNAME, ... */
-	short	first;	/* 1 after 1st item seen */
-	short	coord;	/* 1 if coord system specified for this name */
-	short	log;	/* x, y, or z (= x+y) */
+	int	type;	/* NAME, DEFNAME, ... */
+	int	first;	/* 1 after 1st item seen */
+	int	coord;	/* 1 if coord system specified for this name */
+	int	log;	/* x, y, or z (= x+y) */
 	Attr	*attr;	/* DASH, etc., for now */
 	struct obj *next;
 } Obj;

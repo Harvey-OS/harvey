@@ -16,6 +16,7 @@ extern	void	*memchr(void*, int, long);
  */
 extern	char	*strcat(char*, char*);
 extern	char	*strchr(char*, char);
+extern	char	*strrchr(char*, char);
 extern	int	strcmp(char*, char*);
 extern	char	*strcpy(char*, char*);
 extern	char	*strncat(char*, char*, long);
@@ -26,10 +27,10 @@ extern	int	atoi(char*);
 
 enum
 {
-	UTFmax		= 3,		/* maximum bytes per rune */
-	Runesync	= 0x80,		/* cannot represent part of a UTF sequence (<) */
-	Runeself	= 0x80,		/* rune and UTF sequences are the same (<) */
-	Runeerror	= 0x80,		/* decoding error in UTF */
+	UTFmax		= 3,	/* maximum bytes per rune */
+	Runesync	= 0x80,	/* cannot represent part of a UTF sequence */
+	Runeself	= 0x80,	/* rune and UTF sequences are the same (<) */
+	Runeerror	= 0x80,	/* decoding error in UTF */
 };
 
 /*
@@ -39,6 +40,7 @@ extern	int	runetochar(char*, Rune*);
 extern	int	chartorune(Rune*, char*);
 extern	char*	utfrune(char*, long);
 extern	int	utflen(char*);
+extern	int	runelen(long);
 
 extern	int	abs(int);
 
@@ -56,9 +58,9 @@ struct
 	int	chr;
 } Fconv;
 extern	void	strconv(char*, Fconv*);
-extern	int	numbconv(void*, Fconv*);
-extern	char	*doprint(char*, char*, char*, void*);
-extern	int	fmtinstall(int, int (*)(void*, Fconv*));
+extern	int	numbconv(va_list*, Fconv*);
+extern	char	*doprint(char*, char*, char*, va_list);
+extern	int	fmtinstall(int, int (*)(va_list*, Fconv*));
 extern	int	sprint(char*, char*, ...);
 extern	int	snprint(char*, int, char*, ...);
 extern	int	print(char*, ...);
@@ -66,21 +68,27 @@ extern	int	print(char*, ...);
 /*
  * one-of-a-kind
  */
+extern	char*	cleanname(char*);
+extern	ulong	getcallerpc(void*);
 extern	long	strtol(char*, char**, int);
 extern	ulong	strtoul(char*, char**, int);
+extern	vlong	strtoll(char*, char**, int);
+extern	uvlong	strtoull(char*, char**, int);
 extern	char	etext[];
 extern	char	edata[];
 extern	char	end[];
+extern	int	getfields(char*, char**, int, int, char*);
+
 /*
  * Syscall data structures
  */
-
 #define	MORDER	0x0003	/* mask for bits defining order of mounting */
 #define	MREPL	0x0000	/* mount replaces object */
 #define	MBEFORE	0x0001	/* mount goes before others in union directory */
 #define	MAFTER	0x0002	/* mount goes after others in union directory */
 #define	MCREATE	0x0004	/* permit creation in mounted directory */
-#define	MMASK	0x0007	/* all bits on */
+#define	MCACHE	0x0010	/* cache some data */
+#define	MMASK	0x001F	/* all bits on */
 
 #define	OREAD	0	/* open for read */
 #define	OWRITE	1	/* write */

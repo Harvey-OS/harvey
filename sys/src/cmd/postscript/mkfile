@@ -1,14 +1,6 @@
 </$objtype/mkfile
 
-MAKE=mk
-
-SYSTEM=plan9
-VERSION=3.3.1
-
-POSTBIN=$ROOT/$objtype/bin/aux
-DKHOST=FALSE
-DKSTREAMS=FALSE
-ROUNDPAGE=TRUE
+<config
 
 #
 # $(TARGETS) is the default list of things built by make.
@@ -35,7 +27,6 @@ TARGETS=common\
 	tr2post
 
 # UNIX remnants
-#	dpost.norm\
 #	trofftable\
 #	picpack\
 #	postbgi\
@@ -46,15 +37,14 @@ TARGETS=common\
 
 default:V:	all
 
-all installall install clean nuke:VQ:
-	flag e -	# ignore error of directory not existing! (td bug)
-	if (! test -d $POSTBIN) mkdir $POSTBIN
+$TARGETS:V:
+	cd $target
+	mk all
+
+&:VQ:
+	test -d $POSTBIN || mkdir $POSTBIN
 	for (i in $TARGETS) @{
 		echo ---- Making $target in $i ----;
 		cd $i;
 		mk $target
 	}
-
-$TARGETS:V:
-	cd $target
-	mk all

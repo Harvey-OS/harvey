@@ -22,15 +22,17 @@
 .ll 7.0i
 .vs 12p
 .nf
-.if t \h'7n'\s24\(L1\s12\f3  AT&T Bell Laboratories        \s16\f1Cover Sheet for Technical Memorandum
-.if n AT&T Bell Laboratories        Cover Sheet for Technical Memorandum
+.if t \{
+.if \\n(ZZ<1 \h'7n'\s24\(FA\s12\f3  Bell Laboratories             \s16\f1Cover Sheet for Technical Memorandum
+.if \\n(ZZ>=1 \h'7n'\s24\(FA\s12\f3  Bell Laboratories             \s16\f1Cover Sheet for Technical Memorandum\}
+.if n Bell Laboratories             Cover Sheet for Technical Memorandum
 .if t .sp .5v
 .if n .sp
 .if t \s6\l'7i'
 .fi
 .ps 9
 .ft 2
-.if \\n(.$<=6 The information contained herein is for the use of employees of AT&T Bell Laboratories and is not for publication.  (See GEI 13.9-3)\p
+.if \\n(.$<=6 The information contained herein is for the use of employees of Bell Laboratories and is not for publication.  (See GEI 13.9-3)\p
 .if \\n(.$>6 Warning: studying this document may cause drowsiness.  Do not read before driving or operating machinery.  (See GEI 13.9-3)\p
 .ft 1
 .nf
@@ -216,19 +218,21 @@ Pages Text   \\*(K1	Other   \\*(K2	Total   \\*(K3
 .	\"S1 - tm style 
 .de S1
 .br
-.if t .ta 4.75i
-.if n .ta 46
+.if t .ta 4.25i
+.if n .ta 43
 .ll 80
 .ps 36
 .br
-.if t .vs .35i
-.if t \t\(L1
+.if t .vs .15i
+.if t \{
+.if \\n(ZZ<1 \t\s36\(FA\s0
+.if \\n(ZZ>=1 \t\s36\(FA\s0\}
 .br
 .if n .sp 24p
-.ps 12
+\s11\l'7i'\s0
+.ps 10
 .br
-.ft 3
-\tAT&T Bell Laboratories
+.if \\n(IM=1 \f(HBBell Laboratories\fP
 .ft 1
 .nr SJ \\n(.j
 .na
@@ -239,12 +243,12 @@ Pages Text   \\*(K1	Other   \\*(K2	Total   \\*(K3
 .mk
 .ll
 .ll 4.0i
-Subject:
+\fHsubject:\fP
 .ft 3
 .br
 .rt
 .if n .in +9
-.if t .in +\w'Subject: 'u
+.if t .in +\w'\fHsubject:\fP 'u
 .ps
 .nf
 .hy 0
@@ -253,24 +257,24 @@ Subject:
 .ft 1
 .fi
 .in 0
-.if \\n(MC>0 \\s8Case- \\*(CA\\s10
-.if \\n(MG>0 --\s8 File- \\*(CC\\s10
+.if !\\(IM .if \\n(MC>0 \\s8Case- \\*(CA\\s10
+.if !\\(IM .if \\n(MG>0 --\s8 File- \\*(CC\\s10
 .br
 .rt
 .if n .ll 70
 .if t .ll 6.5i
-.if t .in 5.10i
+.if t .in 4.25i+6n
 .if n .in 52
 .ps 8
 .ti -6n
 .ta 6n
-date:\t\\s\\n(PS\\f3\\*(DY
+\fHdate:\fP\t\\s\\n(PS\\f3\\*(DY
 .sp
 .ft 1
 .ps 8
 .mk
 .ti -6n
-from:
+\fHfrom:\fP
 .ps
 .br
 .rt

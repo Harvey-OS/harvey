@@ -1,43 +1,36 @@
 #!/bin/rc
 echo -n cpu > /env/service
 date > /env/boottime
-echo -n plan9 > /env/site
 
-# cs sets /dev/sysname
+# replace FILESERVER with the name of your file server
+# here we start with kfs, your local disk file system
+fileserver=kfs
+# replace FACEDOM with the local domain to be used in the faces database
+facedom=FACEDOM
+
+# mount mail uncached
+mount -c /srv/boot /n/termrc.tmp
+bind -c /n/termrc.tmp/mail /mail
+unmount /n/termrc.tmp
+
+# name translation, cs sets /dev/sysname
 ndb/cs
+ndb/dns -r
 
 # parallelism for mk
-NPROC=`{wc -l /dev/sysstat | sed 's/^ *//;s/ .*//'}
-# configure the swap channel
-# mount -c /srv/boot /n/bootesother other; swap /n/bootesother/swap
+NPROC=`{wc -l /dev/sysstat}
+NPROC=`{echo $NPROC|sed 's/ .*//'}
 
-sysname=`{cat /dev/sysname}
-prompt=($sysname^'% ' '	')
-switch($sysname){
-case p9auth	# PC as cpu server and auth server
-	auth/keyfs -m/mnt/keys /adm/keys
-	ip/ipconfig -b
-	ip/rarpd & 	# only needed if you have suns to boot
-	ip/tftpd & ip/bootp
-	ndb/dns
-	aux/listen -q -t /bin/service.auth -d /bin/service il
-	aux/listen -q -t /bin/service.auth -d /bin/service tcp
-case kremvax	# cpu server; modify to suit
-	echo warning: using default cpurc configuration for $sysname
-	ip/ipconfig -b
-	ip/rarpd & 	# only needed if you have suns to boot
-	ip/tftpd & ip/bootp
-	aux/listen il
-	aux/listen tcp
-case *	# unrecognized name
-	echo warning: using default cpurc configuration for $sysname
-	ip/ipconfig -b
-	ip/rarpd & 	# only needed if you have suns to boot
-	ip/tftpd & ip/bootp
-	aux/listen il
-	aux/listen tcp
-}
-date >> /$cputype/log/$sysname
-echo -n 'add tcp il udp' > /net/cs
+prompt=($sysname^'# ' '	')
 
-echo swap not enabled, look at /rc/bin/cpurc
+# keep clock synchronized (replace NTP with your favorite ntp server)
+#aux/timesync -nl -d /sys/log/timesync.d NTP
+
+# uncomment the following for booting other systems
+#ip/dhcp
+#ip/tftpd
+
+# services available to networks (remove -t /rc/bin/service.auth
+# if this isn't an auth server)
+aux/listen -q -d /rc/bin/service -t /rc/bin/service.auth il
+aux/listen -q -d /rc/bin/service -t /rc/bin/service.auth tcp

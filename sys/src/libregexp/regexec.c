@@ -78,18 +78,15 @@ regexec1(Reprog *progp,	/* program to run */
 
 		/* Add first instruction to current list */
 		if(match == 0)
-			_renewemptythread(tl, progp->startinst, s);
+			_renewemptythread(tl, progp->startinst, ms, s);
 
 		/* Execute machine until current list is empty */
 		for(tlp=tl; tlp->inst; tlp++){	/* assignment = */
-			if(s == j->eol)
-				break;
-
 			for(inst = tlp->inst; ; inst = inst->next){
 				switch(inst->type){
 				case RUNE:	/* regular character */
 					if(inst->r == r){
-						if(_renewthread(nl, inst->next, &tlp->se)==nle)
+						if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
 							return -1;
 					}
 					break;
@@ -101,11 +98,11 @@ regexec1(Reprog *progp,	/* program to run */
 					continue;
 				case ANY:
 					if(r != '\n')
-						if(_renewthread(nl, inst->next, &tlp->se)==nle)
+						if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
 							return -1;
 					break;
 				case ANYNL:
-					if(_renewthread(nl, inst->next, &tlp->se)==nle)
+					if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
 							return -1;
 					break;
 				case BOL:
@@ -113,14 +110,14 @@ regexec1(Reprog *progp,	/* program to run */
 						continue;
 					break;
 				case EOL:
-					if(r == 0 || r == '\n')
+					if(s == j->eol || r == 0 || r == '\n')
 						continue;
 					break;
 				case CCLASS:
 					ep = inst->cp->end;
 					for(rp = inst->cp->spans; rp < ep; rp += 2)
 						if(r >= rp[0] && r <= rp[1]){
-							if(_renewthread(nl, inst->next, &tlp->se)==nle)
+							if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
 								return -1;
 							break;
 						}
@@ -131,12 +128,12 @@ regexec1(Reprog *progp,	/* program to run */
 						if(r >= rp[0] && r <= rp[1])
 							break;
 					if(rp == ep)
-						if(_renewthread(nl, inst->next, &tlp->se)==nle)
+						if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
 							return -1;
 					break;
 				case OR:
 					/* evaluate right choice later */
-					if(_renewthread(tlp, inst->right, &tlp->se) == tle)
+					if(_renewthread(tlp, inst->right, ms, &tlp->se) == tle)
 						return -1;
 					/* efficiency: advance and re-evaluate */
 					continue;
@@ -150,6 +147,8 @@ regexec1(Reprog *progp,	/* program to run */
 				break;
 			}
 		}
+		if(s == j->eol)
+			break;
 		checkstart = j->starttype && nl->inst==0;
 		s += n;
 	}while(r);
@@ -164,15 +163,27 @@ regexec2(Reprog *progp,	/* program to run */
 	Reljunk *j
 )
 {
-	Relist relist0[BIGLISTSIZE], relist1[BIGLISTSIZE];
+	int rv;
+	Relist *relist0, *relist1;
 
 	/* mark space */
+	relist0 = malloc(BIGLISTSIZE*sizeof(Relist));
+	if(relist0 == nil)
+		return -1;
+	relist1 = malloc(BIGLISTSIZE*sizeof(Relist));
+	if(relist1 == nil){
+		free(relist1);
+		return -1;
+	}
 	j->relist[0] = relist0;
 	j->relist[1] = relist1;
-	j->reliste[0] = relist0 + nelem(relist0) - 2;
-	j->reliste[1] = relist1 + nelem(relist1) - 2;
+	j->reliste[0] = relist0 + BIGLISTSIZE - 2;
+	j->reliste[1] = relist1 + BIGLISTSIZE - 2;
 
-	return regexec1(progp, bol, mp, ms, j);
+	rv = regexec1(progp, bol, mp, ms, j);
+	free(relist0);
+	free(relist1);
+	return rv;
 }
 
 extern int

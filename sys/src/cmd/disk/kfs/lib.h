@@ -1,3 +1,6 @@
+#pragma	lib	"libc.a"
+#pragma	src	"/sys/src/libc"
+
 /*
  * functions (possibly) linked in, complete, from libc.
  */
@@ -56,7 +59,6 @@ extern	int	print(char*, ...);
 /*
  * one-of-a-kind
  */
-#define DESKEYLEN	7
 extern	long	strtol(char*, char**, int);
 extern	ulong	strtoul(char*, char**, int);
 extern	long	atol(char*);
@@ -99,9 +101,11 @@ enum
 	RFNOWAIT	= (1<<6),
 	RFCNAMEG	= (1<<10),
 	RFCENVG		= (1<<11),
-	RFCFDG		= (1<<12)
+	RFCFDG		= (1<<12),
+	RFREND		= (1<<13)
 };
 
+extern	void	errstr(char*);
 extern	void	abort(void);
 extern	long	alarm(ulong);
 extern	int	close(int);
@@ -124,6 +128,52 @@ extern	int	noted(int);
 extern	int	getpid(void);
 extern	int	fstat(int, char*);
 extern	char*	getenv(char*);
+
+/*
+ *  synchronization
+ */
+typedef struct
+{
+	int	val;
+} Lock;
+
+extern	void	lock(Lock*);
+extern	void	unlock(Lock*);
+extern	int	canlock(Lock*);
+
+typedef struct QLp QLp;
+struct QLp
+{
+	int	inuse;
+	QLp	*next;
+	char	state;
+};
+
+typedef struct
+{
+	Lock;
+	int	locked;
+	QLp	*head;
+	QLp 	*tail;
+} QLock;
+
+extern	void	qlock(QLock*);
+extern	void	qunlock(QLock*);
+extern	int	canqlock(QLock*);
+
+typedef struct
+{
+	Lock;
+	int	readers;	/* number of readers */
+	int	writer;		/* number of writers */
+	QLp	*head;		/* list of waiting processes */
+	QLp	*tail;
+} RWLock;
+
+extern	void	rlock(RWLock*);
+extern	void	runlock(RWLock*);
+extern	void	wlock(RWLock*);
+extern	void	wunlock(RWLock*);
 
 /*
  * argument processing

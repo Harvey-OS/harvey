@@ -21,6 +21,7 @@ OFILES=\
 	strcmp.$O\
 	strcpy.$O\
 	sqrt.$O\
+	tas.$O\
 	vlrt.$O\
 	vlop.$O\
 

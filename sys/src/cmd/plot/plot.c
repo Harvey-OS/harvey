@@ -2,7 +2,8 @@
 #include <libc.h>
 #include <bio.h>
 #include "plot.h"
-#include <libg.h>
+#include <draw.h>
+#include <event.h>
 
 void	define(char*);
 void	call(char*);
@@ -123,6 +124,17 @@ double x[NX];			/* numeric arguments */
 int cnt[NPTS];			/* control-polygon vertex counts */
 double *pts[NPTS];		/* control-polygon vertex pointers */
 
+void eresized(int new){
+	if(new && getwindow(display, Refnone) < 0){
+		fprint(2, "Can't reattach to window: %r\n");
+		exits("resize");
+	}
+}
+char *items[]={
+	"exit",
+	0
+};
+Menu menu={items};
 void
 main(int arc, char *arv[]){
 	char *ap;
@@ -131,6 +143,7 @@ main(int arc, char *arv[]){
 	int i;
 	int dflag;
 	char *oflag;
+	Mouse m;
 	bp = 0;
 	fd = dup(0, -1);		/* because openpl will close 0! */
 	dflag=0;
@@ -139,7 +152,6 @@ main(int arc, char *arv[]){
 	case 'd': dflag=1; break;
 	case 'o': oflag=arv[i]+2; break;
 	case 's': fd=server(); break;
-	case 'W': setwindow(arv[i]+2); break;
 	}
 	openpl(oflag);
 	if(dflag) doublebuffer();
@@ -179,8 +191,10 @@ main(int arc, char *arv[]){
 		process(bp);
 	}
 	closepl();
-	read(0, "x", 1);
-	exits(0);
+	for(;;){
+		m=emouse();
+		if(m.buttons&4 && emenuhit(3, &m, &menu)==0) exits(0);
+	}
 }
 int isalpha(int c)
 {
@@ -365,7 +379,6 @@ polyarg(void){
 		case '5': case '6': case '7': case '8': case '9':
 			fsp->peekc=c;
 			if(!numstring()){
-			BadNumber:
 				fprint(2, "line %d: expected number\n", fsp->lineno);
 				exits("bad input");
 			}
@@ -452,7 +465,7 @@ process(Biobuf *fd){
 		case COLOR:	strarg();   color(argstr); pplots=0; break;
 		case CSPLINE:	polyarg();  splin(4, cnt, pts); break;
 		case DEFINE:	strarg();   define(argstr); pplots=0; break;
-		case DISK:	numargs(3); disk(x[0], x[1], x[2]); break;
+		case DISK:	numargs(3); plotdisc(x[0], x[1], x[2]); break;
 		case DSPLINE:	polyarg();  splin(3, cnt, pts); break;
 		case ERASE:	strarg();   erase(); pplots=0; break;
 		case FILL:	polyarg();  fill(cnt, pts); break;
@@ -461,7 +474,7 @@ process(Biobuf *fd){
 		case GRADE:	numargs(1); grade(x[0]); break;
 		case IDLE:	strarg();   idle(); pplots=0; break;
 		case INCLUDE:	strarg();   include(argstr); pplots=0; break;
-		case LINE:	numargs(4); line(x[0], x[1], x[2], x[3]); break;
+		case LINE:	numargs(4); plotline(x[0], x[1], x[2], x[3]); break;
 		case LSPLINE:	polyarg();  splin(2, cnt, pts); break;
 		case MOVE:	numargs(2); move(x[0], x[1]); break;
 		case OPENPL:	strarg();   openpl(argstr); pplots=0; break;
@@ -469,7 +482,7 @@ process(Biobuf *fd){
 		case PAUSE:	strarg();   ppause(); pplots=0; break;
 		case PEN:	strarg();   pen(argstr); pplots=0; break;
 		case POINT:	numargs(2); dpoint(x[0], x[1]); break;
-		case POLY:	polyarg();  poly(cnt, pts); break;
+		case POLY:	polyarg();  plotpoly(cnt, pts); break;
 		case RANGE:	numargs(4); range(x[0], x[1], x[2], x[3]); break;
 		case RESTORE:	strarg();   restore(); pplots=0; break;
 		case RMOVE:	numargs(2); rmove(x[0], x[1]); break;
@@ -480,7 +493,7 @@ process(Biobuf *fd){
 		case TEXT:	strarg();   text(argstr); pplots=0; break;
 		case VEC:	numargs(2); vec(x[0], x[1]); break;
 		default:
-			fprint(2, "plot: missing case %d\n", pplots-plots);
+			fprint(2, "plot: missing case %ld\n", pplots-plots);
 			exits("internal error");
 		}
 	}

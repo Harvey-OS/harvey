@@ -147,13 +147,21 @@ Reverse left and right
 (good for star charts and inside-out views).
 .ns
 .TP
-.B  -s
-Save the screen, don't erase before drawing.
-Output made under
-.B -s
-must be appended to output of another
-.I map
-command.
+.B -v
+Verso.
+Switch to a normally suppressed sheet of the map, such as the
+back side of the earth in orthographic projection.
+.TP
+.B  -s1
+.br
+.ns
+.TP
+.B -s2
+Superpose; outputs for a
+.B -s1
+map (no closing) and a
+.B -s2
+map (no opening) may be concatenated.
 .TP
 .BI -g " dlat dlon res"
 Grid spacings are
@@ -202,6 +210,8 @@ where the nominal plotting area is
 .RI \-1≤ x ≤1,
 .RI \-1≤ y ≤1.
 Missing arguments are taken to be 0.
+.BR -x
+Allow the map to extend outside the nominal plotting area.
 .TP
 .BR -m " [ \fIfile\fP ... ]"
 Use
@@ -354,6 +364,12 @@ meridians, true scale on
 .TP
 .B mollweide
 (homalographic) equal-area, hemisphere is a circle
+.br
+.B gilbert()
+sphere conformally mapped on hemisphere and viewed orthographically
+.TP
+.B gilbert
+globe mapped conformally on hemisphere, viewed orthographically
 .PD
 .PP
 Azimuthal projections centered on the North Pole.
@@ -388,7 +404,11 @@ conformal, projected from opposite pole
 .IR radius " = tan(2\(mu" colatitude ),
 used in X-ray crystallography
 .TP
-.BI fisheye " r"
+.BI fisheye " n"
+stereographic seen from just inside medium with refractive index
+.I n
+.TP
+.BI newyorker " r"
 .IR radius " = log(" colatitude / r ):
 .I New Yorker
 map from viewing pedestal of radius
@@ -476,10 +496,6 @@ meridians as in
 .IR globular ,
 circular arc parallels resemble 
 .I mercator
-.TP
-.B gilbert
-sphere mapped conformally to hemisphere and
-viewed orthographically, horizontal parallels
 .PD
 .PP
 Doubly periodic conformal projections.
@@ -525,6 +541,13 @@ and
 .I lat1
 on Prime Meridian
 .PD
+.br
+.B lune(lat,angle)
+conformal, polar cap above latitude
+.I lat
+maps to convex lune with given
+.I angle
+at 90\(deE and 90\(deW
 .PP
 Retroazimuthal projections.
 At every point the angle between vertical and a straight line to
@@ -564,7 +587,7 @@ the invisible part of the world:
 A circular border can be forced by adding option
 .LR "-w 77.33" .
 (Latitude 77.33° falls just inside a polar cap of
-opening angle arccos(1.025) = 12.6804°.)
+opening angle arccos(1/1.025) = 12.6804°.)
 .TP
 .L
 map mercator -o 49.25 -106 180
@@ -648,3 +671,6 @@ curved textured lines, these lines are likely to
 appear solid.
 The west-longitude-positive convention
 betrays Yankee chauvinism.
+.I Gilbert
+should be a map from sphere to sphere, independent of
+the mapping from sphere to plane.

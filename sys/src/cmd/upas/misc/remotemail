@@ -4,4 +4,4 @@ sender=$1
 shift
 addr=$1
 shift
-/bin/upas/smtp -g research.att.com $addr $sender $*
+/bin/upas/smtp -g research.research.bell-labs.com $addr $sender $*

@@ -3,12 +3,14 @@
  */
 
 #define DEBUG		if(!dbg);else fprint
+#define DFD		9
 #define fidhash(s)	fhash[s%FHASHSIZE]
 
 typedef struct Fsrpc Fsrpc;
 typedef struct Fid Fid;
 typedef struct File File;
 typedef struct Proc Proc;
+typedef struct Qidtab Qidtab;
 
 struct Fsrpc
 {
@@ -35,7 +37,10 @@ struct Fid
 struct File
 {
 	char	name[NAMELEN];
+	int	ref;
 	Qid	qid;
+	Qidtab	*qidt;
+	int	inval;
 	File	*parent;
 	File	*child;
 	File	*childlist;
@@ -48,6 +53,16 @@ struct Proc
 	Proc	*next;
 };
 
+struct Qidtab
+{
+	int	ref;
+	int	type;
+	int	dev;
+	ulong	path;
+	ulong	uniqpath;
+	Qidtab	*next;
+};
+
 enum
 {
 	MAXPROC		= 16,
@@ -56,6 +71,8 @@ enum
 	Nr_workbufs 	= 16,
 	Fidchunk	= 1000,
 	Npsmpt		= 32,
+	Nqidbits		= 5,
+	Nqidtab		= (1<<Nqidbits),
 };
 
 enum
@@ -76,9 +93,9 @@ Extern File	*root;
 Extern File	*psmpt;
 Extern Fid	**fhash;
 Extern Fid	*fidfree;
-Extern int	qid;
 Extern Proc	*Proclist;
 Extern char	psmap[Npsmpt];
+Extern Qidtab	*qidtab[Nqidtab];
 
 /* File system protocol service procedures */
 void Xattach(Fsrpc*);
@@ -105,6 +122,7 @@ void	initroot(void);
 void	fatal(char*);
 void	makepath(char*, File*, char*);
 File	*file(File*, char*);
+void	freefile(File*);
 void	slaveopen(Fsrpc*);
 void	slaveread(Fsrpc*);
 void	slavewrite(Fsrpc*);
@@ -114,3 +132,5 @@ void	fileseek(Fid*, ulong);
 void	noteproc(int, char*);
 void	flushaction(void*, char*);
 void	pushfcall(char*);
+Qidtab* uniqueqid(Dir*);
+void	freeqid(Qidtab*);

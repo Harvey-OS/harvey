@@ -16,7 +16,7 @@ double	cputime(void)
 If
 .I t
 is non-null,
-times
+.I times
 fills it in
 with the number of milliseconds spent in user code, system calls,
 child processes in user code, and child processes in system calls.

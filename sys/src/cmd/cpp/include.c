@@ -2,16 +2,14 @@
 #include <libc.h>
 #include "cpp.h"
 
-Includelist	includelist[NINCLUDE] = {
-	{ 0, 1, "/usr/include" },
-};
+Includelist	includelist[NINCLUDE];
 
 char	*objname;
 
 void
 doinclude(Tokenrow *trp)
 {
-	char fname[256], iname[256];
+	char fname[256], iname[256], *p;
 	Includelist *ip;
 	int angled, len, fd, i;
 
@@ -29,7 +27,7 @@ doinclude(Tokenrow *trp)
 			len = sizeof(fname) - 1;
 		strncpy(fname, (char*)trp->tp->t+1, len);
 		angled = 0;
-	} else {
+	} else if (trp->tp->type==LT) {
 		len = 0;
 		trp->tp++;
 		while (trp->tp->type!=GT) {
@@ -40,7 +38,8 @@ doinclude(Tokenrow *trp)
 			trp->tp++;
 		}
 		angled = 1;
-	}
+	} else
+		goto syntax;
 	trp->tp += 2;
 	if (trp->tp < trp->lp || len==0)
 		goto syntax;
@@ -59,6 +58,16 @@ doinclude(Tokenrow *trp)
 		strcat(iname, fname);
 		if ((fd = open(iname, 0)) >= 0)
 			break;
+	}
+	if(fd < 0) {
+		strcpy(iname, cursource->filename);
+		p = strrchr(iname, '/');
+		if(p != NULL) {
+			*p = '\0';
+			strcat(iname, "/");
+			strcat(iname, fname);
+			fd = open(iname, 0);
+		}
 	}
 	if ( Mflag>1 || !angled&&Mflag==1 ) {
 		write(1,objname,strlen(objname));
@@ -89,6 +98,9 @@ genline(void)
 	static Token ta = { UNCLASS, NULL, 0, 0 };
 	static Tokenrow tr = { &ta, &ta, &ta+1, 1 };
 	uchar *p;
+
+	if(nolineinfo)
+		return;
 
 	ta.t = p = (uchar*)outp;
 	strcpy((char*)p, "#line ");

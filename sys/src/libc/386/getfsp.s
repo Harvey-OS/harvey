@@ -1,7 +1,0 @@
-TEXT	getfsp(SB), $0
-	WAIT
-	FSTSW	AX
-	SARL	$11, AX
-	NEGL	AX
-	ANDL	$7, AX
-	RET

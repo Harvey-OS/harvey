@@ -8,7 +8,7 @@ Fonts and subfonts are described in
 .IR cachechars (2).
 .PP
 External fonts are described by a plain text file that can be read using
-.IR rdfontfile .
+.IR openfont .
 The format of the file is a header followed by any number of
 subfont range specifications.
 The header contains two numbers: the height and the ascent, both in pixels.
@@ -19,7 +19,9 @@ A subfont range specification contains two or three numbers and a file name.
 The numbers are the inclusive range of characters covered by the subfont,
 with an optional starting position within the subfont,
 and the file name names an external file suitable for
-.IR rdsubfontfile .
+.I readsubfont
+(see
+.IR graphics (2)).
 The minimum number of a covered range is mapped to the specified starting position
 (default zero) of the
 corresponding subfont.
@@ -30,15 +32,15 @@ Each numeric field may be C-format decimal, octal, or hexadecimal.
 .PP
 External subfonts are represented in a more rigid format
 that can be read and written using
-.I rdsubfontfile
+.I readsubfont
 and
-.I wrsubfontfile
+.I writesubfont
 (see
-.IR subfalloc (2)).
-The format for subfont files is: a bitmap containing character images,
+.IR subfont (2)).
+The format for subfont files is: an image containing character glyphs,
 followed by a subfont header, followed by character information.
-The bitmap has the format for external bitmap files described in
-.IR bitmap (6).
+The image has the format for external image files described in
+.IR image (6).
 The subfont header has 3
 decimal strings:
 .BR n ,
@@ -63,14 +65,14 @@ The
 .B x
 field of the last
 .B Fontchar
-is used to calculate the bitmap width
+is used to calculate the image width
 of the previous character; the other fields in the last
 .B Fontchar
 are irrelevant.
 .PP
 Note that the convention of using the character with value zero (NUL) to represent
 characters of zero width (see
-.IR bitblt (2))
+.IR draw (2))
 means that fonts should have, as their zeroth character,
 one with non-zero width.
 .SH FILES
@@ -80,6 +82,6 @@ one with non-zero width.
 font directories
 .SH "SEE ALSO"
 .IR graphics (2),
-.IR bitblt (2),
+.IR draw (2),
 .IR cachechars (2),
-.IR subfalloc (2)
+.IR subfont (2)

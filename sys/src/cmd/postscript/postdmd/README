@@ -1,0 +1,22 @@
+
+DMD bitmap to PostScript translator. Much of the code came from abm,
+which was written by Guy Riddle.
+
+By default 6 byte patterns are used to encode the output bitmap. Use
+the -b option to change the pattern size. Bitmaps are unpacked one
+scanline at a time and re-encoded in a format that looks like,
+
+	bytes patterns count
+
+where bytes and count are decimal integers and patterns is a series
+of hex digits. Bytes is the number of bytes represented by the hex
+pattern, and count is the number of additional times the pattern
+should be repeated. For example,
+
+	2 FFFF 4
+	5 FFFFFFFFFF 1
+       10 FFFFFFFFFFFFFFFFFFFF 0
+
+all represent 10 consecutive bytes of ones. Scanlines are terminated
+by a 0 on a line by itself.
+

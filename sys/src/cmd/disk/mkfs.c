@@ -95,11 +95,19 @@ main(int argc, char **argv)
 	fskind = Kfs;
 	ARGBEGIN{
 	case 'a':
+		if(fskind != Kfs) {
+			fprint(2, "cannot use -a with -d\n");
+			usage();
+		}
 		fskind = Archive;
 		newroot = "";
 		Binits(&bout, 1, OWRITE, boutbuf, sizeof boutbuf);
 		break;
 	case 'd':
+		if(fskind != Kfs) {
+			fprint(2, "cannot use -d with -a\n");
+			usage();
+		}
 		fskind = Fs;
 		newroot = ARGF();
 		break;
@@ -261,10 +269,10 @@ copyfile(File *f, Dir *d, int permonly)
 	ulong mode;
 
 	if(xflag){
-		Bprint(&bout, "%s\t%ld\t%d\n", f->new, d->mtime, d->length);
+		Bprint(&bout, "%s\t%ld\t%lld\n", f->new, d->mtime, d->length);
 		return (d->mode & CHDIR) != 0;
 	}
-	if(verb)
+	if(verb && (fskind == Archive || ream))
 		fprint(2, "%s\n", f->new);
 	memmove(d->name, f->elem, NAMELEN);
 	if(d->type != 'M'){
@@ -290,12 +298,18 @@ copyfile(File *f, Dir *d, int permonly)
 			d->mode = f->mode;
 	}
 	if(!uptodate(d, newfile)){
+		if(verb && (fskind != Archive && ream == 0))
+			fprint(2, "%s\n", f->new);
 		if(d->mode & CHDIR)
 			mkdir(d);
 		else
 			copy(d);
-	}else if(modes && dirwstat(newfile, d) < 0)
-		warn("can't set modes for %s: %r", f->new);
+	}else if(modes){
+		if(verb && (fskind != Archive && ream == 0))
+			fprint(2, "%s\n", f->new);
+		if(dirwstat(newfile, d) < 0)
+			warn("can't set modes for %s: %r", f->new);
+	}
 	return (d->mode & CHDIR) != 0;
 }
 
@@ -402,7 +416,7 @@ mkdir(Dir *d)
 void
 arch(Dir *d)
 {
-	Bprint(&bout, "%s %luo %s %s %lud %d\n",
+	Bprint(&bout, "%s %luo %s %s %lud %lld\n",
 		newfile, d->mode, d->uid, d->gid, d->mtime, d->length);
 }
 
@@ -735,9 +749,12 @@ void
 error(char *fmt, ...)
 {
 	char buf[1024];
+	va_list arg;
 
-	sprint(buf, "%s: %s: %d: ", prog, proto, lineno);
-	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, (&fmt+1));
+	sprint(buf, "%s: %s:%d: ", prog, proto, lineno);
+	va_start(arg, fmt);
+	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	fprint(2, "%s\n", buf);
 	kfscmd("disallow");
 	kfscmd("sync");
@@ -748,9 +765,12 @@ void
 warn(char *fmt, ...)
 {
 	char buf[1024];
+	va_list arg;
 
-	sprint(buf, "%s: %s: %d: ", prog, proto, lineno);
-	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, (&fmt+1));
+	sprint(buf, "%s: %s:%d: ", prog, proto, lineno);
+	va_start(arg, fmt);
+	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	fprint(2, "%s\n", buf);
 }
 
@@ -758,14 +778,14 @@ void
 printfile(File *f)
 {
 	if(f->old)
-		fprint(2, "%s from %s %s %s %o\n", f->new, f->old, f->uid, f->gid, f->mode);
+		fprint(2, "%s from %s %s %s %lo\n", f->new, f->old, f->uid, f->gid, f->mode);
 	else
-		fprint(2, "%s %s %s %o\n", f->new, f->uid, f->gid, f->mode);
+		fprint(2, "%s %s %s %lo\n", f->new, f->uid, f->gid, f->mode);
 }
 
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-aprv] [-z n] [-n kfsname] [-u userfile] [-s src-fs] proto ...\n", prog);
+	fprint(2, "usage: %s [-aprvx] [-d root] [-n name] [-s source] [-u users] [-z n] proto ...\n", prog);
 	exits("usage");
 }

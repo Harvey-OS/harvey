@@ -1,6 +1,6 @@
 .TH READ 2
 .SH NAME
-read, readn, write \- read or write file
+read, readn, write, read9p, write9p \- read or write file
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -14,6 +14,12 @@ long readn(int fd, void *buf, long nbytes)
 .PP
 .B
 long write(int fd, void *buf, long nbytes)
+.PP
+.B
+long read9p(int fd, void *buf, long nbytes)
+.PP
+.B
+long write9p(int fd, void *buf, long nbytes)
 .SH DESCRIPTION
 .I Read
 reads
@@ -30,7 +36,7 @@ that all
 bytes will be read; for example
 if the file refers to the console, at most one line
 will be returned.
-In any event the number of characters read is returned.
+In any event the number of bytes read is returned.
 A return value of
 0 is conventionally interpreted as end of file.
 .PP
@@ -54,6 +60,23 @@ The offset is advanced by the number of bytes written.
 The number of characters actually written is returned.
 It should be regarded as an error
 if this is not the same as requested.
+.PP
+.I Read9p
+and
+.I write9p
+are like read and write and are used when reading/writing
+.B 9P
+messages to/from a remote file, for example
+.BR /mnt/term/srv/boot .
+9P limits the size of the data in a read or write
+message, normally 8192 bytes.
+When encapsulating a 9P write request or read reply inside another 9P
+message that limit must be relaxed to make room for the extra header.
+.I Read9p
+and
+.I write9p
+are kludges to allow that relaxation.  Using these calls, one
+can encapsulate 9P messages up to 8 levels deep.
 .SH SOURCE
 .B /sys/src/libc/9syscall
 .br

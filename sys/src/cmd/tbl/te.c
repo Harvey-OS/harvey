@@ -4,7 +4,7 @@
 void
 error(char *s)
 {
-	fprint(2, "\n%s: line %d: %s\n", ifile, iline, s);
+	fprint(2, "\n%s:%d: %s\n", ifile, iline, s);
 	fprint(2, "tbl quits\n");
 	exits(s);
 }

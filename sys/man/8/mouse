@@ -3,6 +3,15 @@
 aux/mouse \- configure a mouse to a port
 .SH SYNOPSIS
 .B aux/mouse
+[
+.B -b
+.I baud
+] [
+.B -d
+.I type
+] [
+.B -n
+]
 .I port
 .SH DESCRIPTION
 .B Mouse
@@ -17,6 +26,27 @@ or
 .BR 1 )
 or the string
 .BR ps2 .
+.PP
+The option
+.B -d
+provides a default mouse type should
+.B mouse
+fail to determine it.  The
+types are:
+.IP C
+Logitech type C mouse
+.IP W
+Logitech type W mouse
+.IP M
+Microsoft compatible mouse
+.PP
+The
+.B -n
+flag queries the mouse and reports its type but does not set the device type.
+.PP
+The
+.B -b
+flag sets the baud rate for communication; it is effectual only for serial mice.
 .SH SOURCE
 .B /sys/src/cmd/aux/mouse.c
 .SH SEE ALSO

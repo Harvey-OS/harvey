@@ -29,6 +29,7 @@ extern int	date;
 
 Node*	anonymous(Node*);
 Node*	address(Node*);
+int	badfieldname(Node*);
 Node*	bang(Node*, Node*);
 Node*	colon(Node*, Node*);
 int	cistrcmp(char*, char*);
@@ -43,3 +44,4 @@ int	yylex(void);
 String*	yywhite(void);
 Node*	whiten(Node*);
 void	yycleanup(void);
+int	mxdial(char*, char*, char*);

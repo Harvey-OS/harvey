@@ -198,9 +198,14 @@ Bessel function
 All function arguments are passed by value.
 .PD
 .PP
-The value of an expression at the top level is printed
-unless the main operator is an assignment.
-Text in quotes, which may include newlines, is also printed.
+The value of an expression or variable is printed
+using the
+.B print
+command.
+Text in quotes, which may include newlines, is printed;
+here, the
+.B print
+command is not required.
 Either semicolons or newlines may separate statements.
 Assignment to
 .B scale

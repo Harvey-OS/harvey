@@ -58,25 +58,84 @@ to redefine its ordering.
 Within tuples, pairs on the same line bind tighter than
 pairs on different lines.
 .PP
-The program
+Programs search the database directly using the routines in
+.IR ndb (2)
+or indirectly using
 .B ndb/cs
+and
+.B ndb/dns
 (see
-.IR ndb (8))
-and the library routine
-.B ipinfo
-(see
-.IR ndb (2))
-perform searches for information relative to a particular host.
-.BR Ndb/cs
-resolves meta-addresses of the form
-.BI $ attribute
-by returning the
-.I value
-from the
-.IB attribute = value
-most closely related to the resolving host.
-The attribute-value pair comes from the tuple for the system, its subnet, or its network
-with the system tuple having precedence, subnet next, and network last.
+.IR ndb (8)).
+Both
+.B ndb/cs
+and the routine
+.I ndbipinfo
+impose structure on the otherwise flat database by using
+knowledge specific to the network.
+The internet is made up of networks which can be subnetted
+multiple times.  A network must have an
+.B ipnet
+attribute and is uniquely identified by the values of it's
+.B ip
+and
+.B ipmask
+attributes.  If the
+.B ipmask
+is missing, the relevant Class A, B or C one is used.
+The network is subnetted if one or more
+.BR ipsubmask 's
+are specified.
+A search for an attribute associated with a network or host starts
+at the top-level Class A, B, or C network and works it's way down to the
+specific entry.  The attribute/value chosen is the one lowest down in the
+search, i.e, closest to the host.
+For example, consider at the following entries:
+.IP
+.EX
+ipnet=murray-hill ip=135.104.0.0 ipmask=255.255.0.0
+	ipsubmask=255.255.255.0
+	dns=135.104.10.1
+	ntp=ntp.cs.bell-labs.com
+ipnet=plan9 ip=135.104.9.0 ipmask=255.255.255.0
+	ntp=oncore.cs.bell-labs.com
+	smtp=smtp1.cs.bell-labs.com
+ip=135.104.9.6 sys=anna dom=anna.cs.bell-labs.com
+	smtp=smtp2.cs.bell-labs.com
+.EE
+.LP
+Here
+.B anna
+is on the subnet
+.B plan9
+which is in turn on the class B net
+.BR murray-hill .
+If one were to search for
+.BR anna 's
+.B NTP
+and
+.B SMTP
+servers, one would get
+.B oncore.cs.bell-labs.com
+and
+.B smtp2.cs.bell-labs.com
+respectively.
+.PP
+.I Ndb/cs
+can be made to perform such network aware
+searches by using metanames in the dialstring.
+A metaname is a
+.I $
+followed by an attribute name.
+.I Ndb/cs
+looks up the attribute relative to the system it is running
+on.  Thus, with the above example, if a program called
+.IP
+.EX
+	dial("tcp!$smtp!smtp", 0, 0, 0);
+.EE
+.LP
+the dial would connect to the SMTP port of
+.BR smtp2.cs.bell-labs.com .
 .PP
 A number of attributes are meaningful to programs and thus
 reserved.
@@ -95,9 +154,6 @@ Internet address
 .B ether
 Ethernet address
 .TP
-.B dk 
-Datakit address
-.TP
 .B bootf
 file to download for initial bootstrap
 .TP
@@ -106,6 +162,9 @@ Internet network name
 .TP
 .B ipmask
 Internet network mask
+.TP
+.B ipsubmask
+Internet network mask of this network's subnets
 .TP
 .B ipgw
 Internet gateway
@@ -140,11 +199,36 @@ is needed by
 .I cs
 (see
 .IR ndb (8))
-in tuples for hosts that support the IL protocol.
+in tuples for hosts that support the IL protocol
 .TP
-.B 9P
-parameters for the 9P file protocol, in particular whether the server authenticates
-.RB ( 9P=auth ).
+.B dnsdomain
+a domain name that
+.I ndb/dns
+adds onto any unrooted names when doing a search
+There may be multiple
+.B dnsdomain
+pairs.
+.TP
+.B dns
+a DNS server to use (for DNS and DHCP)
+.TP
+.B ntp
+an NTP server to use (for DHCP)
+.TP
+.B smtp
+an SMTP server to use (for DHCP)
+.TP
+.B time
+a time server to use (for DHCP)
+.TP
+.B wins
+a Windows name server (for DHCP)
+.TP
+.B mx
+mail exchanger (for DNS and DHCP)
+.TP
+.B soa
+start of area (for DNS)
 .sp
 .PP
 The file
@@ -158,10 +242,9 @@ A tuple for the CPU server, spindle.
 .LP
 .EX
 sys = spindle
-	dom=spindle.research.att.com
+	dom=spindle.research.bell-labs.com
 	bootf=/mips/9powerboot
 	ip=135.104.117.32 ether=080069020677
-	dk=nj/astro/spindle
 	proto=il
 .EE
 .LP
@@ -171,9 +254,9 @@ and its subnets.
 .LP
 .EX
 ipnet=mh-astro-net ip=135.104.0.0 ipmask=255.255.255.0
-	fs=bootes.research.att.com
-	ipgw=r70.research.att.com
-	auth=p9auth.research.att.com
+	fs=bootes.research.bell-labs.com
+	ipgw=r70.research.bell-labs.com
+	auth=p9auth.research.bell-labs.com
 ipnet=unix-room ip=135.104.117.0
 	ipgw=135.104.117.1
 ipnet=third-floor ip=135.104.51.0
@@ -192,13 +275,10 @@ tcp=9fs	port=564
 .TP
 .B /lib/ndb/local
 first database file searched
-.TP
-.B /lib/ndb/global
-second database file searched
 .SH "SEE ALSO"
 .IR dial (2),
 .IR ndb (2),
 .IR ndb (8),
-.IR bootp (8),
+.IR dhcpd (8),
 .IR ipconfig (8),
 .IR con (1)

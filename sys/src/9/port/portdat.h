@@ -1,52 +1,47 @@
 typedef struct Alarms	Alarms;
 typedef struct Block	Block;
-typedef struct Blist	Blist;
 typedef struct Chan	Chan;
+typedef struct Cmdbuf	Cmdbuf;
+typedef struct Cname	Cname;
+typedef struct Crypt	Crypt;
 typedef struct Dev	Dev;
 typedef struct Dirtab	Dirtab;
 typedef struct Egrp	Egrp;
 typedef struct Evalue	Evalue;
-typedef struct Etherpkt	Etherpkt;
 typedef struct Fgrp	Fgrp;
 typedef struct Image	Image;
-typedef struct IOQ	IOQ;
-typedef struct KIOQ	KIOQ;
 typedef struct List	List;
+typedef struct Log	Log;
+typedef struct Logflag	Logflag;
+typedef struct Mntcache Mntcache;
 typedef struct Mount	Mount;
+typedef struct Mntrpc	Mntrpc;
+typedef struct Mntwalk	Mntwalk;
 typedef struct Mnt	Mnt;
 typedef struct Mhead	Mhead;
-typedef struct Netinf	Netinf;
-typedef struct Netprot	Netprot;
-typedef struct Network	Network;
 typedef struct Note	Note;
 typedef struct Page	Page;
 typedef struct Palloc	Palloc;
-typedef struct Parallax	Parallax;
 typedef struct Pgrps	Pgrps;
 typedef struct Pgrp	Pgrp;
 typedef struct Physseg	Physseg;
 typedef struct Proc	Proc;
 typedef struct Pte	Pte;
-typedef struct Qinfo	Qinfo;
+typedef struct Pthash	Pthash;
 typedef struct QLock	QLock;
 typedef struct Queue	Queue;
 typedef struct Ref	Ref;
 typedef struct Rendez	Rendez;
+typedef struct Rgrp	Rgrp;
 typedef struct RWlock	RWlock;
 typedef struct Sargs	Sargs;
-typedef struct Session	Session;
-typedef struct Scsi	Scsi;
-typedef struct Scsibuf	Scsibuf;
-typedef struct Scsidata	Scsidata;
 typedef struct Segment	Segment;
-typedef struct Stream	Stream;
+typedef struct Session	Session;
 typedef struct Talarm	Talarm;
+typedef struct Target	Target;
 typedef struct Waitq	Waitq;
 typedef int    Devgen(Chan*, Dirtab*, int, int, Dir*);
-typedef	void   Streamput(Queue*, Block*);
-typedef	void   Streamopen(Queue*, Stream*);
-typedef	void   Streamclose(Queue*);
-typedef	void   Streamreset(void);
+
 
 #include <auth.h>
 #include <fcall.h>
@@ -59,7 +54,6 @@ struct Ref
 
 struct Rendez
 {
-	Lock;
 	Proc	*p;
 };
 
@@ -73,10 +67,13 @@ struct QLock
 
 struct RWlock
 {
-	Lock;				/* Lock modify lock */
-	QLock	x;			/* Mutual exclusion lock */
-	QLock	k;			/* Lock for waiting writers held for readers */
-	int	readers;		/* Count of readers in lock */
+	Lock	use;
+	Proc	*head;		/* list of waiting processes */
+	Proc	*tail;
+	ulong	wpc;		/* pc of writer */
+	Proc	*wproc;		/* writing proc */
+	int	readers;	/* number of readers */
+	int	writer;		/* number of writers */
 };
 
 struct Talarm
@@ -91,45 +88,14 @@ struct Alarms
 	Proc	*head;
 };
 
-#define MAXSYSARG	5		/* for mount(fd, mpt, flag, arg, srv) */
+#define MAXSYSARG	5	/* for mount(fd, mpt, flag, arg, srv) */
 struct Sargs
 {
 	ulong	args[MAXSYSARG];
 };
 
-/* Block.flags */
-#define S_DELIM 0x80
-#define S_CLASS 0x07
-
-/* Block.type */
-#define M_DATA 0
-#define M_CTL 1
-#define M_HANGUP 2
-
-struct Block
-{
-	Block	*next;
-	Block	*list;			/* chain of block lists */
-	uchar	*rptr;			/* first unconsumed byte */
-	uchar	*wptr;			/* first empty byte */
-	uchar	*lim;			/* 1 past the end of the buffer */
-	uchar	*base;			/* start of the buffer */
-	uchar	flags;
-	uchar	type;
-	ulong	pc;			/* pc of caller */
-};
-
-struct Blist
-{
-	Lock;
-	Block	*first;			/* first data block */
-	Block	*last;			/* last data block */
-	long	len;			/* length of list in bytes */
-	int	nb;			/* number of blocks in list */
-};
-
 /*
- * Access types in namec
+ * Access types in namec & channel flags
  */
 enum
 {
@@ -138,46 +104,79 @@ enum
 	Aopen,				/* for i/o */
 	Amount,				/* to be mounted upon */
 	Acreate,			/* file is to be created */
+
+	COPEN	= 0x0001,		/* for i/o */
+	CMSG	= 0x0002,		/* the message channel for a mount */
+	CCREATE	= 0x0004,		/* permits creation if c->mnt */
+	CCEXEC	= 0x0008,		/* close on exec */
+	CFREE	= 0x0010,		/* not in use */
+	CRCLOSE	= 0x0020,		/* remove on close */
+	CCACHE	= 0x0080,		/* client cache */
 };
 
-/*
- *  Chan.flags
- */
-#define	COPEN	1			/* for i/o */
-#define	CMSG	2			/* is the message channel for a mount */
-#define	CCREATE	4			/* permits creation if c->mnt */
-#define	CCEXEC	8			/* close on exec */
-#define	CFREE	16			/* not in use */
-#define	CRCLOSE	32			/* remove on close */
+enum
+{
+	BINTR	=	(1<<0),
+	BFREE	=	(1<<1),
+};
+
+struct Block
+{
+	Block*	next;
+	Block*	list;
+	uchar*	rp;			/* first unconsumed byte */
+	uchar*	wp;			/* first empty byte */
+	uchar*	lim;			/* 1 past the end of the buffer */
+	uchar*	base;			/* start of the buffer */
+	void	(*free)(Block*);
+	ulong	flag;
+};
+#define BLEN(s)	((s)->wp - (s)->rp)
+#define BALLOC(s) ((s)->lim - (s)->base)
 
 struct Chan
 {
 	Ref;
-	union{
-		Chan	*next;		/* allocation */
-		ulong	offset;		/* in file */
-	};
+	Chan*	next;			/* allocation */
+	Chan*	link;
+	vlong	offset;			/* in file */
 	ushort	type;
 	ulong	dev;
 	ushort	mode;			/* read/write */
 	ushort	flag;
 	Qid	qid;
-	Mount	*mnt;			/* mount point that derived Chan */
-	ulong	mountid;
 	int	fid;			/* for devmnt */
-	Stream	*stream;		/* for stream channels */
+	Mhead*	mh;			/* mount point that derived Chan */
+	Mhead*	xmh;			/* Last mount point crossed */
+	int	uri;			/* union read index */
+	ulong	mountid;
+	Mntcache *mcp;			/* Mount cache pointer */
 	union {
-		void	*aux;
+		void*	aux;
 		Qid	pgrpid;		/* for #p/notepg */
-		Mnt	*mntptr;	/* for devmnt */
+		Mnt*	mntptr;		/* for devmnt */
+		ulong	mid;		/* for ns in devproc */
+		char	tag[4];		/* for iproute */
 	};
-	Chan	*mchan;			/* channel to mounted server */
+	Chan*	mchan;			/* channel to mounted server */
 	Qid	mqid;			/* qid of root of mount point */
-	Session	*session;
+	Session*session;
+	Cname	*name;
+};
+
+struct Cname
+{
+	Ref;
+	int	alen;			/* allocated length */
+	int	len;			/* strlen(s) */
+	char	*s;
 };
 
 struct Dev
 {
+	int	dc;
+	char*	name;
+
 	void	(*reset)(void);
 	void	(*init)(void);
 	Chan*	(*attach)(char*);
@@ -187,8 +186,10 @@ struct Dev
 	Chan*	(*open)(Chan*, int);
 	void	(*create)(Chan*, char*, int, ulong);
 	void	(*close)(Chan*);
-	long	(*read)(Chan*, void*, long, ulong);
-	long	(*write)(Chan*, void*, long, ulong);
+	long	(*read)(Chan*, void*, long, vlong);
+	Block*	(*bread)(Chan*, long, ulong);
+	long	(*write)(Chan*, void*, long, vlong);
+	long	(*bwrite)(Chan*, Block*, ulong);
 	void	(*remove)(Chan*);
 	void	(*wstat)(Chan*, char*);
 };
@@ -197,122 +198,58 @@ struct Dirtab
 {
 	char	name[NAMELEN];
 	Qid	qid;
-	long	length;
+	Length;
 	long	perm;
 };
 
-/*
- *  Ethernet packet buffers.
- */
-struct Etherpkt
-{
-	uchar	d[6];
-	uchar	s[6];
-	uchar	type[2];
-	uchar	data[1500];
-	uchar	crc[4];
-};
-
 enum
 {
-	ETHERMINTU =	64,		/* minimum transmit size */
-	ETHERMAXTU =	1514,		/* maximum transmit size */
-	ETHERHDRSIZE =	14,		/* size of an ethernet header */
+	NSMAX	=	1000,
+	NSLOG	=	7,
+	NSCACHE	=	(1<<NSLOG),
 };
 
-/* SCSI devices. */
-enum
+struct Mntwalk				/* state for /proc/#/ns */
 {
-	ScsiTestunit	= 0x00,
-	ScsiExtsens	= 0x03,
-	ScsiInquiry	= 0x12,
-	ScsiModesense	= 0x1a,
-	ScsiStartunit	= 0x1B,
-	ScsiStopunit	= 0x1B,
-	ScsiGetcap	= 0x25,
-	ScsiRead	= 0x08,
-	ScsiWrite	= 0x0a,
-	ScsiExtread	= 0x28,
-	ScsiExtwrite	= 0x2a,
-
-	/* data direction */
-	ScsiIn		= 1,
-	ScsiOut		= 0,
-};
-
-struct Scsibuf
-{
-	void*		virt;
-	void*		phys;
-	Scsibuf*	next;
-};
-
-struct Scsidata
-{
-	uchar*		base;
-	uchar*		lim;
-	uchar*		ptr;
-};
-
-struct Scsi
-{
-	QLock;
-	int		bus;
-	ulong		pid;
-	ushort		target;
-	ushort		lun;
-	ushort		rflag;
-	ushort		status;
-	Scsidata 	cmd;
-	Scsidata 	data;
-	Scsibuf*	b;
-	uchar*		save;
-	uchar		cmdblk[16];
-};
-
-/* character based IO (mouse, keyboard, console screen) */
-#define NQ	4096
-struct IOQ
-{
-	Lock;
-	uchar	buf[NQ];
-	uchar	*in;
-	uchar	*out;
-	int	state;
-	Rendez	r;
-	union{
-		void	(*puts)(IOQ*, void*, int);	/* output */
-		int	(*putc)(IOQ*, int);		/* input */
-	};
-	union{
-		int	(*gets)(IOQ*, void*, int);	/* input */
-		int	(*getc)(IOQ*);			/* output */
-	};
-	void	*ptr;
-};
-
-struct KIOQ
-{
-	QLock;
-	IOQ;
-	int	repeat;
-	int	c;
-	int	count;
+	int		cddone;
+	ulong	id;
+	Mhead*	mh;
+	Mount*	cm;
 };
 
 struct Mount
 {
 	ulong	mountid;
-	Mount	*next;
-	Mhead	*head;
-	Chan	*to;			/* channel replacing underlying channel */
+	Mount*	next;
+	Mhead*	head;
+	Mount*	copy;
+	Mount*	order;
+	Chan*	to;			/* channel replacing channel */
+	int	flag;
+	char	spec[NAMELEN];
 };
 
 struct Mhead
 {
-	Chan	*from;			/* channel mounted upon */
-	Mount	*mount;			/* what's mounted upon it */
-	Mhead	*hash;			/* Hash chain */
+	Ref;
+	RWlock	lock;
+	Chan*	from;			/* channel mounted upon */
+	Mount*	mount;			/* what's mounted upon it */
+	Mhead*	hash;			/* Hash chain */
+};
+
+struct Mnt
+{
+	Ref;			/* Count of attached channels */
+	Chan	*c;		/* Channel to file service */
+	Proc	*rip;		/* Reader in progress */
+	Mntrpc	*queue;		/* Queue of pending requests on this channel */
+	ulong	id;		/* Multiplexer id for channel check */
+	Mnt	*list;		/* Free list */
+	int	flags;		/* cache */
+	int	blocksize;	/* read/write block size */
+	char	*partial;	/* Outstanding read data */
+	int	npart;		/* Sizeof remains */
 };
 
 enum
@@ -330,11 +267,13 @@ struct Note
 
 enum
 {
-	PG_NOFLUSH	= 0,		/* Fields for cache control of pages */
-	PG_TXTFLUSH	= 1,
-	PG_DATFLUSH	= 2,
-	PG_MOD		= 0x01,		/* Simulated modified and referenced bits */
-	PG_REF		= 0x02,
+	PG_NOFLUSH	= 0,
+	PG_TXTFLUSH	= 1,		/* flush dcache and invalidate icache */
+	PG_DATFLUSH	= 2,		/* flush both i & d caches (UNUSED) */
+	PG_NEWCOL	= 3,		/* page has been recolored */
+
+	PG_MOD		= 0x01,		/* software modified bit */
+	PG_REF		= 0x02,		/* software referenced bit */
 };
 
 struct Page
@@ -345,6 +284,7 @@ struct Page
 	ulong	daddr;			/* Disc address on swap */
 	ushort	ref;			/* Reference count */
 	char	modref;			/* Simulated modify/reference bits */
+	char	color;			/* Cache coloring */
 	char	cachectl[MAXMACH];	/* Cache flushing control for putmmu */
 	Image	*image;			/* Associated text or swap image */
 	Page	*next;			/* Lru free list */
@@ -355,27 +295,29 @@ struct Page
 struct Swapalloc
 {
 	Lock;				/* Free map lock */
-	int	free;			/* Number of currently free swap pages */
-	uchar	*swmap;			/* Base of swap map in memory */
-	uchar	*alloc;			/* Round robin allocator */
-	uchar	*last;			/* Speed swap allocation */
-	uchar	*top;			/* Top of swap map */
+	int	free;			/* currently free swap pages */
+	uchar*	swmap;			/* Base of swap map in memory */
+	uchar*	alloc;			/* Round robin allocator */
+	uchar*	last;			/* Speed swap allocation */
+	uchar*	top;			/* Top of swap map */
 	Rendez	r;			/* Pager kproc idle sleep */
-	ulong	highwater;		/* Threshold beyond which we must page */
-	ulong	headroom;		/* Space pager keeps free under highwater */
+	Rendez	pause;
+	ulong	highwater;		/* Pager start threshold */
+	ulong	headroom;		/* Space pager frees under highwater */
 }swapalloc;
 
 struct Image
 {
 	Ref;
-	Chan	*c;			/* Channel associated with running image */
-	Qid 	qid;			/* Qid for page cache coherence checks */
+	Chan	*c;			/* channel to text file */
+	Qid 	qid;			/* Qid for page cache coherence */
 	Qid	mqid;
 	Chan	*mchan;
 	ushort	type;			/* Device type of owning channel */
 	Segment *s;			/* TEXT segment for image if running */
 	Image	*hash;			/* Qid hash chains */
 	Image	*next;			/* Free list */
+	int	notext;			/* no file associated */
 };
 
 struct Pte
@@ -397,8 +339,9 @@ enum
 	SG_SHARED	= 04,
 	SG_PHYSICAL	= 05,
 	SG_SHDATA	= 06,
+	SG_MAP		= 07,
 
-	SG_RONLY	= 040,		/* Segment is read only */
+	SG_RONLY	= 0040,		/* Segment is read only */
 	SG_CEXEC	= 0100,		/* Detach at exec */
 };
 
@@ -424,24 +367,26 @@ struct Segment
 	Ref;
 	QLock	lk;
 	ushort	steal;		/* Page stealer lock */
-	Segment	*next;		/* free list pointers */
 	ushort	type;		/* segment type */
 	ulong	base;		/* virtual base */
 	ulong	top;		/* virtual top */
 	ulong	size;		/* size in pages */
 	ulong	fstart;		/* start address in file for demand load */
 	ulong	flen;		/* length of segment in file */
-	int	flushme;	/* maintain consistent icache for this segment */
+	int	flushme;	/* maintain icache for this segment */
 	Image	*image;		/* text in file attached to this segment */
 	Physseg *pseg;
-	Pte	*map[SEGMAPSIZE];	/* segment pte map */
+	ulong*	profile;	/* Tick profile area */
+	Pte	**map;
+	int	mapsize;
+	Pte	*ssegmap[SSEGMAPSIZE];
 };
 
 enum
 {
 	RENDHASH =	32,		/* Hash to lookup rendezvous tags */
 	MNTHASH	=	32,		/* Hash to walk mount table */
-	NFD =		100,		/* Number of per process file descriptors */
+	NFD =		100,		/* per process file descriptors */
 	PGHLOG  =	9,
 	PGHSIZE	=	1<<PGHLOG,	/* Page hash for image lookup */
 };
@@ -451,11 +396,17 @@ enum
 struct Pgrp
 {
 	Ref;				/* also used as a lock when mounting */
-	Pgrp	*next;			/* free list */
+	int	noattach;
 	ulong	pgrpid;
 	QLock	debug;			/* single access via devproc.c */
-	RWlock	ns;			/* Namespace many read/one write lock */
+	RWlock	ns;			/* Namespace n read/one write lock */
+	QLock	nsh;
 	Mhead	*mnthash[MNTHASH];
+};
+
+struct Rgrp
+{
+	Ref;
 	Proc	*rendhash[RENDHASH];	/* Rendezvous tag hash */
 };
 
@@ -464,7 +415,8 @@ struct Egrp
 	Ref;
 	QLock;
 	Evalue	*entries;
-	ulong	path;
+	ulong	path;	/* qid.path of next Evalue to be allocated */
+	ulong	vers;	/* of Egrp */
 };
 
 struct Evalue
@@ -472,15 +424,21 @@ struct Evalue
 	char	*name;
 	char	*value;
 	int	len;
-	ulong	path;
 	Evalue	*link;
+	Qid	qid;
 };
 
 struct Fgrp
 {
 	Ref;
-	Chan	*fd[NFD];
+	Chan	**fd;
+	int	nfd;			/* number allocated */
 	int	maxfd;			/* highest fd in use */
+};
+
+enum
+{
+	DELTAFD	= 20		/* incremental increase in Fgrp.fd's */
 };
 
 struct Palloc
@@ -496,8 +454,7 @@ struct Palloc
 	Lock	hashlock;
 	Rendez	r;			/* Sleep for free mem */
 	QLock	pwait;			/* Queue of procs waiting for memory */
-	int	wanted;			/* Do the wakeup at free */
-	ulong	cmembase;		/* Key memory protected from read by devproc */
+	ulong	cmembase;		/* Key memory */
 	ulong	cmemtop;
 };
 
@@ -518,7 +475,9 @@ enum
 	RFNOWAIT	= (1<<6),
 	RFCNAMEG	= (1<<10),
 	RFCENVG		= (1<<11),
-	RFCFDG		= (1<<12)
+	RFCFDG		= (1<<12),
+	RFREND		= (1<<13),
+	RFNOMNT		= (1<<14),
 };
 
 /*
@@ -526,7 +485,7 @@ enum
  */
 enum
 {
-	SSEG, TSEG, DSEG, BSEG, ESEG, LSEG, SEG1, SEG2, NSEG
+	SSEG, TSEG, DSEG, BSEG, ESEG, LSEG, SEG1, SEG2, SEG3, SEG4, NSEG
 };
 
 enum
@@ -537,6 +496,8 @@ enum
 	Scheding,
 	Running,
 	Queueing,
+	QueueingR,
+	QueueingW,
 	Wakeme,
 	Broken,
 	Stopped,
@@ -545,6 +506,7 @@ enum
 	Proc_stopme = 1, 	/* devproc requests */
 	Proc_exitme,
 	Proc_traceme,
+	Proc_exitbig,
 
 	TUser = 0, 		/* Proc.time */
 	TSys,
@@ -553,7 +515,11 @@ enum
 	TCSys,
 	TCReal,
 
+	NERR = 15,
+	NNOTE = 5,
+
 	Nrq		= 20,	/* number of scheduler priority levels */
+	PriLock		= 0,	/* priority for processes waiting on a lock */
 	PriNormal	= 10,	/* base priority for normal processes */
 	PriKproc	= 13,	/* base priority for kernel processes */
 	PriRoot		= 13,	/* base priority for root processes */
@@ -561,63 +527,85 @@ enum
 
 struct Proc
 {
-	Label	sched;
-	Mach	*mach;			/* machine running this proc */
+	Label	sched;		/* known to l.s */
+	char	*kstack;	/* known to l.s */
+	Mach	*mach;		/* machine running this proc */
 	char	text[NAMELEN];
 	char	user[NAMELEN];
-	Proc	*rnext;			/* next process in run queue */
-	Proc	*qnext;			/* next process on queue for a QLock */
-	QLock	*qlock;			/* address of qlock being queued for DEBUG */
-	ulong	qlockpc;		/* pc of last call to qlock */
+	Proc	*rnext;		/* next process in run queue */
+	Proc	*qnext;		/* next process on queue for a QLock */
+	QLock	*qlock;		/* addrof qlock being queued for DEBUG */
 	int	state;
-	char	*psstate;		/* What /proc/#/status reports */
-	Page	*upage;			/* page from palloc */
+	char	*psstate;	/* What /proc/#/status reports */
 	Segment	*seg[NSEG];
+	QLock	seglock;	/* locked whenever seg[] changes */
 	ulong	pid;
-	ulong	noteid;			/* Equivalent of note group */
+	ulong	noteid;		/* Equivalent of note group */
 
-	Lock	exl;			/* Lock count and waitq */
-	Waitq	*waitq;			/* Exited processes wait children */
-	int	nchild;			/* Number of living children */
-	int	nwait;			/* Number of uncollected wait records */
+	Lock	exl;		/* Lock count and waitq */
+	Waitq	*waitq;		/* Exited processes wait children */
+	int	nchild;		/* Number of living children */
+	int	nwait;		/* Number of uncollected wait records */
 	QLock	qwaitr;
-	Rendez	waitr;			/* Place to hang out in wait */
+	Rendez	waitr;		/* Place to hang out in wait */
 	Proc	*parent;
 
-	Pgrp	*pgrp;			/* Process group for notes and namespace */
-	Egrp 	*egrp;			/* Environment group */
-	Fgrp	*fgrp;			/* File descriptor group */
+	Pgrp	*pgrp;		/* Process group for namespace */
+	Egrp 	*egrp;		/* Environment group */
+	Fgrp	*fgrp;		/* File descriptor group */
+	Rgrp	*rgrp;		/* Rendez group */
 
 	ulong	parentpid;
-	ulong	time[6];		/* User, Sys, Real; child U, S, R */
+	ulong	time[6];	/* User, Sys, Real; child U, S, R */
 	short	insyscall;
 	int	fpstate;
 
-	QLock	debug;			/* to access debugging elements of User */
-	Proc	*pdbg;			/* the debugging process */
-	ulong	procmode;		/* proc device file mode */
-	int	hang;			/* hang at next exec for debug */
-	int	procctl;		/* Control for /proc debugging */
-	ulong	pc;			/* DEBUG only */
+	QLock	debug;		/* to access debugging elements of User */
+	Proc	*pdbg;		/* the debugging process */
+	ulong	procmode;	/* proc device file mode */
+	int	hang;		/* hang at next exec for debug */
+	int	procctl;	/* Control for /proc debugging */
+	ulong	pc;		/* DEBUG only */
 
-	Rendez	*r;			/* rendezvous point slept on */
-	Rendez	sleep;			/* place for syssleep/debug */
-	int	notepending;		/* note issued but not acted on */
-	int	kp;			/* true if a kernel process */
-	Proc	*palarm;		/* Next alarm time */
-	ulong	alarm;			/* Time of call */
-	int 	hasspin;		/* I hold a spin lock */
-	int	newtlb;			/* Pager has touched my tables so I must flush */
+	Lock	rlock;		/* sync sleep/wakeup with postnote */
+	Rendez	*r;		/* rendezvous point slept on */
+	Rendez	sleep;		/* place for syssleep/debug */
+	int	notepending;	/* note issued but not acted on */
+	int	kp;		/* true if a kernel process */
+	Proc	*palarm;	/* Next alarm time */
+	ulong	alarm;		/* Time of call */
+	int	newtlb;		/* Pager has changed my pte's, I must flush */
 
-	ulong	rendtag;		/* Tag for rendezvous */ 
-	ulong	rendval;		/* Value for rendezvous */
-	Proc	*rendhash;		/* Hash list for tag values */
+	ulong	rendtag;	/* Tag for rendezvous */
+	ulong	rendval;	/* Value for rendezvous */
+	Proc	*rendhash;	/* Hash list for tag values */
 
 	ulong	twhen;
 	Rendez	*trend;
 	Proc	*tlink;
 	int	(*tfn)(void*);
+	void	(*kpfun)(void*);
+	void	*kparg;
 
+	FPsave	fpsave;		/* address of this is known by db */
+	int	scallnr;	/* sys call number - known by db */
+	Sargs	s;		/* address of this is known by db */
+	int	nerrlab;
+	Label	errlab[NERR];
+	char	error[ERRLEN];
+	char	elem[NAMELEN];	/* last name element from namec */
+	Chan	*slash;
+	Chan	*dot;
+
+	Note	note[NNOTE];
+	short	nnote;
+	short	notified;	/* sysnoted is due */
+	Note	lastnote;
+	int	(*notify)(void*, char*);
+
+	int	lockwait;	/* waiting for lock to be released */
+
+	Mach	*wired;
 	Mach	*mp;		/* machine this process last ran on */
 	ulong	priority;	/* priority level */
 	ulong	basepri;	/* base priority level */
@@ -625,138 +613,19 @@ struct Proc
 	ulong	art;		/* avg # ticks used since last blocked */
 	ulong	movetime;	/* last time process switched processors */
 	ulong	readytime;	/* time process went ready */
+	int	preempted;	/* true if this process hasn't finished the interrupt
+				 *  that last preempted it
+				 */
+	ulong	qpc;		/* pc calling last blocking qlock */
+
+	void	*ureg;		/* User registers for notes */
+	void	*dbgreg;	/* User registers for devproc */
+	Notsave;
 
 	/*
 	 *  machine specific MMU
 	 */
 	PMMU;
-};
-
-/*
- *  operations available to a queue
- */
-struct Qinfo
-{
-	Streamput	*iput;		/* input routine */
-	Streamput	*oput;		/* output routine */
-	Streamopen	*open;
-	Streamclose	*close;
-	char		*name;
-	Streamreset	*reset;		/* initialization */
-	char		nodelim;	/* True if stream does not preserve delimiters */
-	Qinfo		*next;
-};
-
-/* Queue.flag */
-enum
-{
-	QHUNGUP	=	0x1,	/* stream has been hung up */
-	QINUSE =	0x2,	/* allocation check */
-	QHIWAT =	0x4,	/* queue has gone past the high water mark */	
-	QDEBUG =	0x8,
-};
-
-struct Queue
-{
-	Blist;
-	int	flag;
-	Qinfo	*info;			/* line discipline definition */
-	Queue	*other;			/* opposite direction, same line discipline */
-	Queue	*next;			/* next queue in the stream */
-	void	(*put)(Queue*, Block*);
-	QLock	rlock;			/* mutex for processes sleeping at r */
-	Rendez	r;			/* standard place to wait for flow control */
-	Rendez	*rp;			/* where flow control wakeups go to */
-	void	*ptr;			/* private info for the queue */
-};
-
-struct Stream
-{
-	QLock;				/* structure lock */
-	Stream	*next;
-	short	inuse;			/* number of processes in stream */
-	short	opens;			/* number of processes with stream open */
-	ushort	hread;			/* number of reads after hangup */
-	ushort	type;			/* correlation with Chan */
-	ushort	dev;			/* ... */
-	ulong	id;			/* ... */
-	QLock	rdlock;			/* read lock */
-	Queue	*procq;			/* write queue at process end */
-	Queue	*devq;			/* read queue at device end */
-	Block	*err;			/* error message from down stream */
-	int	flushmsg;		/* flush up till the next delimiter */
-};
-
-/*
- *  useful stream macros
- */
-#define	RD(q)		((q)->other < (q) ? (q->other) : q)
-#define	WR(q)		((q)->other > (q) ? (q->other) : q)
-#define STREAMTYPE(x)	((x)&0x1f)
-#define STREAMID(x)	(((x)&~CHDIR)>>5)
-#define STREAMQID(i,t)	(((i)<<5)|(t))
-#define PUTTHIS(q,b)	(*(q)->put)((q), b)
-#define PUTNEXT(q,b)	(*(q)->next->put)((q)->next, b)
-#define BLEN(b)		((b)->wptr - (b)->rptr)
-#define QFULL(q)	((q)->flag & QHIWAT)
-#define FLOWCTL(q,b)	{ if(QFULL(q->next)) flowctl(q,b); else PUTNEXT(q,b);}
-
-/*
- *  stream file qid's & high water mark
- */
-enum
-{
-	Shighqid	= STREAMQID(1,0) - 1,
-	Sdataqid	= Shighqid,
-	Sctlqid		= Sdataqid-1,
-	Slowqid		= Sctlqid,
-	Streamhi	= (32*1024),	/* byte count high water mark */
-	Streambhi	= 128,		/* block count high water mark */
-};
-
-/*
- *  a multiplexed network
- */
-struct Netprot
-{
-	int	id;
-	Netprot	*next;		/* linked list of protections */
-	ulong	mode;
-	char	owner[NAMELEN];
-};
-
-struct Netinf
-{
-	char	*name;
-	void	(*fill)(Chan*, char*, int);
-};
-
-struct Network
-{
-	Lock;
-	char	*name;
-	int	nconv;			/* max # of conversations */
-	Qinfo	*devp;			/* device end line disc */
-	Qinfo	*protop;		/* protocol line disc */
-	int	(*listen)(Chan*);
-	int	(*clone)(Chan*);
-	int	ninfo;
-	Netinf	info[5];
-	Netprot	*prot;			/* linked list of protections */
-};
-
-/*
- *  Parallax for pen pointers
- */
-struct Parallax
-{
-	int	xoff;
-	int	xnum;
-	int	xdenom;
-
-	int	yoff;
-	int	ynum;
-	int	ydenom;
 };
 
 enum
@@ -765,31 +634,27 @@ enum
 	MAXCRYPT = 	127,
 	NUMSIZE	=	12,		/* size of formatted number */
 	MB =		(1024*1024),
+	READSTR =	1000,		/* temporary buffer size for device reads */
 };
 
 extern	Conf	conf;
 extern	char*	conffile;
 extern	int	cpuserver;
-extern	Rune*	devchar;
-extern	Dev	devtab[];
+extern	Dev*	devtab[];
 extern  char	eve[];
 extern	char	hostdomain[];
-extern	int	hwcurs;
 extern	uchar	initcode[];
 extern	FPsave	initfp;
-extern  KIOQ	kbdq;
-extern  IOQ	lineq;
-extern  IOQ	mouseq;
+extern  Queue*	kbdq;
 extern  Ref	noteidalloc;
 extern	int	nrdy;
-extern  IOQ	printq;
+extern	Palloc	palloc;
+extern  Queue	*printq;
 extern	char*	statename[];
 extern  Image	swapimage;
 extern	char	sysname[NAMELEN];
+extern	Pthash	syspt;
 extern	Talarm	talarm;
-extern	Palloc 	palloc;
-extern	int	cpuserver;
-extern	Physseg physseg[];
 
 enum
 {
@@ -813,18 +678,79 @@ enum
 
 	RXschal	= 0,
 	RXstick	= 1,
+
+	AUTHLEN	= 8,
+};
+
+enum
+{
+	LRESPROF	= 3,
 };
 
 /*
- *  mouse types
+ *  action log
  */
-enum
-{
-	Mouseother=	0,
-	Mouseserial=	1,
-	MousePS2=	2,
-	Mousekurta=	3,
+struct Log {
+	Lock;
+	int	opens;
+	char*	buf;
+	char	*end;
+	char	*rptr;
+	int	len;
+
+	int	logmask;	/* mask of things to debug */
+
+	QLock	readq;
+	Rendez	readr;
 };
-extern int mouseshifted;
-extern int mousetype;
-extern int mouseswap;
+
+struct Logflag {
+	char*	name;
+	int	mask;
+};
+
+struct Cmdbuf
+{
+	char	buf[256];
+	char	*f[16];
+	int	nf;
+};
+
+extern int nsyscall;
+
+#define DEVDOTDOT -1
+
+#pragma	varargck	argpos	print	1
+#pragma	varargck	argpos	snprint	3
+#pragma	varargck	argpos	sprint	2
+#pragma	varargck	argpos	fprint	2
+
+#pragma	varargck	type	"lld"	vlong
+#pragma	varargck	type	"llx"	vlong
+#pragma	varargck	type	"lld"	uvlong
+#pragma	varargck	type	"llx"	uvlong
+#pragma	varargck	type	"lx"	void*
+#pragma	varargck	type	"ld"	long
+#pragma	varargck	type	"lx"	long
+#pragma	varargck	type	"ld"	ulong
+#pragma	varargck	type	"lx"	ulong
+#pragma	varargck	type	"d"	int
+#pragma	varargck	type	"x"	int
+#pragma	varargck	type	"c"	int
+#pragma	varargck	type	"C"	int
+#pragma	varargck	type	"d"	uint
+#pragma	varargck	type	"x"	uint
+#pragma	varargck	type	"c"	uint
+#pragma	varargck	type	"C"	uint
+#pragma	varargck	type	"f"	double
+#pragma	varargck	type	"e"	double
+#pragma	varargck	type	"g"	double
+#pragma	varargck	type	"s"	char*
+#pragma	varargck	type	"S"	Rune*
+#pragma	varargck	type	"r"	void
+#pragma	varargck	type	"%"	void
+#pragma	varargck	type	"I"	uchar*
+#pragma	varargck	type	"V"	uchar*
+#pragma	varargck	type	"E"	uchar*
+#pragma	varargck	type	"M"	uchar*
+#pragma	varargck	type	"p"	void*

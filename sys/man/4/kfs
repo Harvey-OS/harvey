@@ -15,6 +15,9 @@ kfs \- disk file system
 .B -n
 .I name
 ] [
+.B -p
+.I perm
+] [
 .B -s
 ]
 .SH DESCRIPTION
@@ -25,7 +28,7 @@ and offers
 9P (see
 .IR intro (5))
 access to it.
-.B Kfs
+.I Kfs
 begins by
 checking the file system for consistency,
 rebuilding the free list, and placing a file descriptor in
@@ -33,7 +36,7 @@ rebuilding the free list, and placing a file descriptor in
 where
 .I name
 is the service name (default
-.IR kfs ).
+.BR kfs ).
 If the file system is inconsistent,
 the user is asked for permission to ream
 .RI ( q.v. )
@@ -64,12 +67,20 @@ Use
 .I file
 as the disk.
 The default is 
-.BR /dev/sd0fs .
+.BR /dev/sdC0/fs .
 .TP
 .BI "n " name
 Use
 .RI kfs. name
 as the name of the service.
+.TP
+.BI "p " perm
+Use
+.I perm
+as the initial permissions for the
+command channel
+.BI /srv/ service .cmd\fR;
+the default is 660.
 .TP
 .B r
 Ream the file system, erasing all of the old data
@@ -92,9 +103,9 @@ and mount it on
 .EE
 .PP
 .SH FILES
-.TF /dev/sd0fs
+.TF /dev/sdC0/fs
 .TP
-.B /dev/sd0fs
+.B /dev/sdC0/fs
 Default file holding blocks.
 .SH SOURCE
 .B /sys/src/cmd/disk/kfs
@@ -102,4 +113,4 @@ Default file holding blocks.
 .IR kfscmd (8),
 .IR mkfs (8),
 .IR prep (8),
-.IR wren (3)
+.IR sd (3)

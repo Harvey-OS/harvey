@@ -13,13 +13,24 @@ static char *buf;
 
 static
 copy(Biobufhdr *fin, Biobufhdr *fout, Section *s) {
-
+	int cond;
 	if (s->end <= s->start)
 		return;
 	Bseek(fin, s->start, 0);
-	while (Bseek(fin, 0L, 1) < s->end && (buf=Brdline(fin, '\n')) != NULL)
-		if (buf[0] != '%')
-			Bwrite(fout, buf, Blinelen(fin));
+	while (Bseek(fin, 0L, 1) < s->end && (buf=Brdline(fin, '\n')) != NULL){
+		/*
+		 * We have to be careful here, because % can legitimately appear
+		 * in Ascii85 encodings, and must not be elided.
+		 * The goal here is to make any DSC comments impotent without
+		 * actually changing the behavior of the Postscript.
+		 * Since stripping ``comments'' breaks Ascii85, we can instead just
+		 * indent comments a space, which turns DSC comments into non-DSC comments
+		 * and has no effect on binary encodings, which are whitespace-blind.
+		 */
+		if(buf[0] == '%')
+			Bputc(fout, ' ');
+		Bwrite(fout, buf, Blinelen(fin));
+	}
 }
 
 /*

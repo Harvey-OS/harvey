@@ -1,0 +1,119 @@
+.TH GZIP 1
+.SH NAME
+gzip, gunzip, zip, unzip \- compress and expand data
+.SH SYNOPSIS
+.B gzip
+.RB [ -cvD[1-9] ]
+.IR [ file
+.BR ... ]
+.PP
+.B gunzip
+.RB [ -ctTvD ]
+.IR [ file
+.BR ... ]
+.PP
+.B zip
+.RB [ -vD[1-9] ]
+.RB [ -f
+.IR zipfile ]
+.I file
+.RB [ ... ]
+.PP
+.B unzip
+.RB [ -cistTvD ]
+.RB [ -f
+.IR zipfile ]
+.IR [ file
+.BR ... ]
+.SH DESCRIPTION
+.PP
+.I Gzip
+encodes files with a hybrid Lempel-Ziv 1977 and Huffman compression algorithm
+known as
+.BR deflate .
+Most of the time, the resulting file is smaller,
+and will never be much bigger.
+Output files are named by taking the last path element of each file argument
+and appending
+.BR .gz ;
+if the resulting name ends with
+.BR .tar.gz ,
+it is converted to
+.B .tgz
+instead.
+.I Gunzip
+reverses the process.
+Its output files are named by taking the last path element of each file argument,
+converting
+.B .tgz
+to
+.BR .tar.gz ,
+and stripping any
+.BR .gz ;
+the resulting name must be different than the original name.
+.PP
+.I Zip
+encodes the named files and places the results into the archive
+.IR zipfile ,
+or the standard output if no file is given.
+.I Unzip
+extracts files from an archive created by
+.IR zip .
+If no files are named as arguments, all of files in the archive are extracted.
+A directory's name implies all recursively contained files and subdirectories.
+.PP
+None of these programs removes the original files.
+If the process fails, the faulty output files are removed.
+.PP
+The options are:
+.TP 1i
+.B -c
+Write to standard output rather than creating an output file.
+.TP
+.B -i
+Convert all archive file names to lower case.
+.TP
+.B -s
+Streaming mode.  Looks at the file data adjacent to each compressed file
+rather than seeking in the central file directory.
+This is the mode used by
+.I unzip
+if no
+.I zipfile
+is specified.
+If given,
+.B -T
+is ignored.
+.TP
+.B -t
+List matching files in the archive rather than extracting them.
+.TP
+.B -T
+Set the output time to that specified in the archive.
+.TP
+.BR -1 " .. " -9
+Sets the compression level.  -1 is tuned for speed, -9 for minimal output size.
+The best compromise is -6, the default.
+.TP
+.B -v
+Produce more descriptive output.
+With
+.BR -t ,
+adds the uncompressed size in bytes and the modification time to the output.
+Without
+.BR -t ,
+prints the names of files on standard error as they are compressed or decompressed.
+.TP
+.B -D
+Produce debugging output.
+.SH SOURCE
+.B /sys/src/cmd/gzip
+.SH SEE ALSO
+.IR tar (1),
+.IR compress (1)
+.SH BUGS
+.I Unzip
+can only extract files which are uncompressed or compressed
+with the
+.B deflate
+compression scheme.  Recent zip files fall into this category.

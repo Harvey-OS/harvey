@@ -17,7 +17,7 @@ syminit(void)
 }
 
 Symtab *
-symlook(char *sym, int space, char *install)
+symlook(char *sym, int space, void *install)
 {
 	long h;
 	char *p;
@@ -32,7 +32,7 @@ symlook(char *sym, int space, char *install)
 		if((s->space == space) && (strcmp(s->name, sym) == 0))
 			return(s);
 	if(install == 0)
-		return((Symtab *)0);
+		return(0);
 	s = (Symtab *)Malloc(sizeof(Symtab));
 	s->space = space;
 	s->name = sym;
@@ -91,5 +91,5 @@ symstat(void)
 		l[n]++;
 	}
 	for(n = 0; n < 1000; n++)
-		if(l[n]) Bprint(&stdout, "%ld of length %d\n", l[n], n);
+		if(l[n]) Bprint(&bout, "%d of length %d\n", l[n], n);
 }

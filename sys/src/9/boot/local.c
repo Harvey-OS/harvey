@@ -5,11 +5,6 @@
 static char diskname[2*NAMELEN];
 static char *disk;
 
-/*
- *  This is complete black magic to guess what physical disk the file
- *  system is on.  The reason for all the variation is because the
- *  info comes in totally different forms from each type of system.
- */
 void
 configlocal(Method *mp)
 {
@@ -62,22 +57,26 @@ int
 connectlocal(void)
 {
 	int p[2];
+	Dir dir;
 	char d[DIRLEN];
 	char partition[2*NAMELEN];
+	char *dev;
 	char *args[16], **argp;
-	char *dfl;
 
-	dfl = "/fs";
+	if(stat("/kfs", d) < 0)
+		return -1;
 
-	sprint(partition, "%sfs", disk);
-	if(stat(partition, d) < 0){
-		strcpy(partition, disk);
-		if(stat(partition, d) < 0) {
+	dev = disk ? disk : bootdisk;
+	sprint(partition, "%sfs", dev);
+	if(dirstat(partition, &dir) < 0){
+		strcpy(partition, dev);
+		if(dirstat(partition, &dir) < 0)
 			return -1;
-		}
 	}
+	if(dir.mode & CHDIR)
+		return -1;
 
-	print("fs...");
+	print("kfs...");
 	if(bind("#c", "/dev", MREPL) < 0)
 		fatal("bind #c");
 	if(bind("#p", "/proc", MREPL) < 0)
@@ -93,13 +92,13 @@ connectlocal(void)
 		close(p[0]);
 		close(p[1]);
 		argp = args;
-		*argp++ = "fs";
+		*argp++ = "kfs";
 		*argp++ = "-f";
 		*argp++ = partition;
 		*argp++ = "-s";
 		*argp = 0;
-		exec(dfl, args);
-		fatal("can't exec fs");
+		exec("/kfs", args);
+		fatal("can't exec kfs");
 	default:
 		break;
 	}

@@ -80,7 +80,7 @@ or the root directory of the service
 available in
 .I servename
 after a
-.I mount.
+.IR mount .
 Either both
 .I old
 and
@@ -120,6 +120,24 @@ This can be used in addition to any of the above to permit
 creation in a union directory.
 When a new file is created in a union directory,
 it is placed in the first element of the union that permits creation.
+.TP
+.B -C
+(Only in
+.IR mount .)
+By default, file contents are always retrieved from the server.
+With this option, the kernel may instead use a local cache to satisfy
+.IR read (5)
+requests for files accessible through this mount point.
+The currency of cached data for a file is verified at each
+.IR open (5)
+of the file from this client machine.
+.TP
+.B -q
+Exit silently if the
+.B bind
+or
+.B mount
+operation fails.
 .PD
 .PP
 The

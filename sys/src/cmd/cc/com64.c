@@ -37,6 +37,9 @@ Node*	nodlsv;
 
 Node*	nodf2v;
 Node*	nodd2v;
+Node*	nodp2v;
+Node*	nodsi2v;
+Node*	nodui2v;
 Node*	nodsl2v;
 Node*	nodul2v;
 Node*	nodsh2v;
@@ -46,6 +49,8 @@ Node*	noduc2v;
 
 Node*	nodv2f;
 Node*	nodv2d;
+Node*	nodv2ui;
+Node*	nodv2si;
 Node*	nodv2ul;
 Node*	nodv2sl;
 Node*	nodv2uh;
@@ -59,6 +64,22 @@ Node*	nodvmm;
 Node*	nodmmv;
 
 Node*	nodvasop;
+
+char	etconv[NTYPE];	/* for _vasop */
+Init	initetconv[] =
+{
+	TCHAR,		1,	0,
+	TUCHAR,		2,	0,
+	TSHORT,		3,	0,
+	TUSHORT,	4,	0,
+	TLONG,		5,	0,
+	TULONG,		6,	0,
+	TVLONG,		7,	0,
+	TUVLONG,	8,	0,
+	TINT,		9,	0,
+	TUINT,		10,	0,
+	-1,		0,	0,
+};
 
 Node*
 fvn(char *name, int type)
@@ -80,6 +101,8 @@ fvn(char *name, int type)
 void
 com64init(void)
 {
+	Init *p;
+
 	nodaddv = fvn("_addv", TVLONG);
 	nodsubv = fvn("_subv", TVLONG);
 	nodmulv = fvn("_mulv", TVLONG);
@@ -110,6 +133,9 @@ com64init(void)
 
 	nodf2v = fvn("_f2v", TVLONG);
 	nodd2v = fvn("_d2v", TVLONG);
+	nodp2v = fvn("_p2v", TVLONG);
+	nodsi2v = fvn("_si2v", TVLONG);
+	nodui2v = fvn("_ui2v", TVLONG);
 	nodsl2v = fvn("_sl2v", TVLONG);
 	nodul2v = fvn("_ul2v", TVLONG);
 	nodsh2v = fvn("_sh2v", TVLONG);
@@ -121,6 +147,8 @@ com64init(void)
 	nodv2d = fvn("_v2d", TDOUBLE);
 	nodv2sl = fvn("_v2sl", TLONG);
 	nodv2ul = fvn("_v2ul", TULONG);
+	nodv2si = fvn("_v2si", TINT);
+	nodv2ui = fvn("_v2ui", TUINT);
 	nodv2sh = fvn("_v2sh", TSHORT);
 	nodv2uh = fvn("_v2ul", TUSHORT);
 	nodv2sc = fvn("_v2sc", TCHAR);
@@ -132,17 +160,31 @@ com64init(void)
 	nodmmv = fvn("_mmv", TVLONG);
 
 	nodvasop = fvn("_vasop", TVLONG);
+
+	for(p = initetconv; p->code >= 0; p++)
+		etconv[p->code] = p->value;
 }
 
 int
 com64(Node *n)
 {
 	Node *l, *r, *a, *t;
+	int lv, rv;
+
+	if(n->type == 0)
+		return 0;
 
 	l = n->left;
 	r = n->right;
 
-	if(l && l->type && typev[l->type->etype] && n->type) {
+	lv = 0;
+	if(l && l->type && typev[l->type->etype])
+		lv = 1;
+	rv = 0;
+	if(r && r->type && typev[r->type->etype])
+		rv = 1;
+
+	if(lv) {
 		switch(n->op) {
 		case OEQ:
 			a = nodeqv;
@@ -177,11 +219,13 @@ com64(Node *n)
 
 		case OANDAND:
 		case OOROR:
-			r = new(OFUNC, nodtestv, r);
-			n->right = r;
-			r->complex = FNX;
-			r->op = OFUNC;
-			r->type = types[TLONG];
+			if(rv) {
+				r = new(OFUNC, nodtestv, r);
+				n->right = r;
+				r->complex = FNX;
+				r->op = OFUNC;
+				r->type = types[TLONG];
+			}
 
 		case OCOND:
 		case ONOT:
@@ -195,10 +239,23 @@ com64(Node *n)
 		}
 	}
 
-	if(n->type && typev[n->type->etype]) {
+	if(rv) {
+		switch(n->op) {
+		case OANDAND:
+		case OOROR:
+			r = new(OFUNC, nodtestv, r);
+			n->right = r;
+			r->complex = FNX;
+			r->op = OFUNC;
+			r->type = types[TLONG];
+			return 1;
+		}
+	}
+
+	if(typev[n->type->etype]) {
 		switch(n->op) {
 		default:
-			diag(n, "unknown vlong fn2");
+			diag(n, "unknown vlong %O", n->op);
 		case OFUNC:
 			n->complex = FNX;
 		case ORETURN:
@@ -277,6 +334,12 @@ com64(Node *n)
 			case TUSHORT:
 				a = noduh2v;
 				goto setfnxl;
+			case TINT:
+				a = nodsi2v;
+				goto setfnx;
+			case TUINT:
+				a = nodui2v;
+				goto setfnx;
 			case TLONG:
 				a = nodsl2v;
 				goto setfnx;
@@ -288,6 +351,9 @@ com64(Node *n)
 				goto setfnx;
 			case TDOUBLE:
 				a = nodd2v;
+				goto setfnx;
+			case TIND:
+				a = nodp2v;
 				goto setfnx;
 			}
 			diag(n, "unknown %T->vlong cast", l->type);
@@ -335,7 +401,7 @@ com64(Node *n)
 		}
 	}
 
-	if(n->type && typefd[n->type->etype] && l && l->op == OFUNC) {
+	if(typefd[n->type->etype] && l && l->op == OFUNC) {
 		switch(n->op) {
 		case OASADD:
 		case OASSUB:
@@ -372,6 +438,12 @@ com64(Node *n)
 			case TULONG:
 				a = nodv2ul;
 				goto setfnx;
+			case TINT:
+				a = nodv2si;
+				goto setfnx;
+			case TUINT:
+				a = nodv2ui;
+				goto setfnx;
 			case TSHORT:
 				a = nodv2sh;
 				goto setfnx;
@@ -383,6 +455,9 @@ com64(Node *n)
 				goto setfnx;
 			case TUCHAR:
 				a = nodv2uc;
+				goto setfnx;
+			case TIND:	// small pun here
+				a = nodv2ul;
 				goto setfnx;
 			}
 			diag(n, "unknown vlong->%T cast", n->type);
@@ -435,7 +510,7 @@ setasop:
 	}
 
 	t = new(OCONST, 0, 0);
-	t->vconst = l->type->etype;
+	t->vconst = etconv[l->type->etype];
 	t->type = types[TLONG];
 	t->addable = 20;
 	r = new(OLIST, t, r);
@@ -499,68 +574,23 @@ convftov(double d)
 }
 
 double
-convftox(double d, int f)
+convftox(double d, int et)
 {
 
-	switch(f) {
-	default:
-		diag(Z, "bad type in castftox");
-
-	case TDOUBLE:
-	case TFLOAT:	/* BOTCH */
-		break;
-	}
+	if(!typefd[et])
+		diag(Z, "bad type in castftox %s", tnames[et]);
 	return d;
 }
 
 vlong
-convvtox(vlong c, int f)
+convvtox(vlong c, int et)
 {
+	int n;
 
-	switch(f) {
-	default:
-		diag(Z, "bad type in convvtox");
-		break;
-	case TCHAR:
-		c &= MASK(8);
-		if(c & SIGN(8))
-			c |= ~MASK(8);
-		break;
-
-	case TUCHAR:
-		c &= MASK(8);
-		break;
-
-	case TSHORT:
-		c &= MASK(16);
-		if(c & SIGN(16))
-			c |= ~MASK(16);
-		break;
-
-	case TUSHORT:
-		c &= MASK(16);
-		break;
-
-	case TLONG:
-	case TIND:
-		c &= MASK(32);
-		if(c & SIGN(32))
-			c |= ~MASK(32);
-		break;
-
-	case TULONG:
-		c &= MASK(32);
-		break;
-
-	case TVLONG:
-		c &= MASK(64);
-		break;
-
-	case TUVLONG:
-		c &= MASK(64);
-		if(c & SIGN(64))
-			c |= ~MASK(64);
-		break;
-	}
+	n = 8 * ewidth[et];
+	c &= MASK(n);
+	if(!typeu[et])
+		if(c & SIGN(n))
+			c |= ~MASK(n);
 	return c;
 }

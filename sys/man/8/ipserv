@@ -1,0 +1,243 @@
+.TH IPSERV 8
+.SH NAME
+telnetd, rlogind, rexexec, ftpd, imap4d \- Internet remote access daemons
+.SH SYNOPSIS
+.PP
+.B ip/telnetd
+.RB [ -adnpt ]
+.RB [ -u
+.IR user ]
+.PP
+.B ip/rlogind
+.PP
+.B ip/rexexec
+.RB [ -a ]
+.PP
+.B ip/ftpd
+.RB [ -adp ]
+.RB [ -n
+.IR namepace-file ]
+.PP
+.B ip/imap4d
+.RB [ -ap ]
+.RB [ -d
+.IR smtpdomain ]
+.RB [ -s
+.IR servername ]
+.PP
+.SH DESCRIPTION
+These programs support remote access across the Internet.  All expect the
+network connection to be standard input, output, and error.  They are normally
+started from scripts in
+.B /rc/bin/service
+(see
+.IR listen (8)).
+.PP
+.I Telnetd
+allows login from a remote client.
+There are three types of login:
+.TF anonymous
+.TP
+.I normal
+Normal users log in by encrypting and returning a
+challenge printed by
+.IR telnetd .
+The user can use either the
+.IR netkey
+program
+(see
+.IR passwd (1))
+or a  SecureNet handheld authenticator to encrypt the challenge.
+.B /lib/namespace
+defines the namespace.
+.TP
+.I noworld
+Users in group
+.B noworld
+in
+.BR /adm/users 
+authenticate with a password in the clear.
+.B /lib/namespace.noworld
+defines the namespace.
+.TP
+.I anonymous
+User
+.B none
+requires no authentication.
+.B /lib/namespace 
+defines the namespace.
+.PD
+.PP
+The options are:
+.TP
+.B a
+allow anonymous login by
+.B none
+.TP
+.B d
+print debugging to standard error
+.TP
+.B p
+don't originate any telnet control codes
+.TP
+.B n
+turn on local character echoing and imply the
+.B p
+option
+.TP
+.B t
+trusted, that is, don't authenticate
+.TP
+.B u
+use
+.I user
+as the local account name
+.PD
+.PP
+.I Rlogind
+logs in using the BSD remote login protocol.
+.I Rlogind
+execs
+.I telnetd
+.B -nu
+after completing its initial handshake.
+.PP
+.I Rexexec
+executes a command locally for a remote client.  It uses the
+standard Plan 9 authentication (see
+.IR auth (6)).
+Its only option:
+.TP
+.BR a
+allow anonymous access by
+.BR none .
+.PD
+.PP
+.I Ftpd
+runs the Internet file transfer protocol.  Users may transfer
+files in either direction between the local and
+remote machines.
+As for
+.IR telnetd ,
+there are three types of login:
+.TF anonymous
+.TP
+.I normal
+Normal users authenticate
+via the same challenge/response as for
+.IR telnetd .
+.BI /usr/ username /lib/namespace.ftp
+or, if that file does not exist,
+.B /lib/namespace
+defines the namespace.
+.TP
+.I noworld
+Users in group
+.B noworld
+in
+.B /adm/users
+login using a password in the clear.
+.B /lib/namespace.noworld
+defines the namespace.
+.TP
+.I anonymous
+Users
+.B anonymous
+and
+.B none
+require no authentication.
+The argument to the
+.B \-n
+option (default
+.IR /lib/namespace.ftp )
+defines the namespace.
+Anonymous users may only store files in the subtree
+below
+.BR /incoming .
+.PD
+.PP
+The options are:
+.TP
+.B a
+allow anonymous access
+.TP
+.B n
+the namespace for anonymous users (default
+.BR /lib/namespace.ftp )
+.TP
+.B d
+write debugging output to standard error
+.PP
+.I Imap4d
+provides access to a user's mailboxes via the IMAP4rev1 protocol.
+Only files rooted in
+.BI /mail/box/ username /
+are accessible.
+The list of subscribed mailboxes is contained in
+.BI /mail/box/ username /imap.subscribed ,
+and initially contains only
+.BR INBOX ,
+IMAP's name for the user's mailbox.
+A shadow file,
+.IB mailbox .imp ,
+is created for each mailbox examined.
+.PP
+The options are:
+.TP
+.B a
+Assume the user is already authenticated.
+By default, the user must authenticate using
+CRAM-MD5 or
+.IR securenet (8)
+challenge/response authentication.
+.TP
+.B p
+Allow login authentication.  This option
+should only be enabled for servers using
+an encrypted connection, such as SSL,
+and when enabled, all non-encrypted connections should be disallowed.
+.I Imap4d
+does not enforce this policy.
+.TP
+.B s
+The server's name.
+If none is provided,
+.B cs
+(see
+.IR ndb (8))
+is queried or
+.B /env/sysname
+is used.
+.TP
+.B d
+The local mail domain.
+Defaults to the server
+.B /env/site
+in the mail server's domain.
+.SH FILES
+.B /lib/namepace
+.br
+.BI /usr/ username /lib/namespace.ftp
+.br
+.B /lib/namespace.world
+.br
+.B /lib/namespace.ftp
+.br
+.BI /mail/box/ username / mailbox
+.br
+.BI /mail/box/ username / mailbox .imp
+.br
+.BI /mail/box/ username /imap.subscribed
+.SH SOURCE
+.B /sys/src/cmd/ip/telnetd.c
+.br
+.B /sys/src/cmd/ip/rlogind.c
+.br
+.B /sys/src/cmd/ip/rexexec.c
+.br
+.B /sys/src/cmd/ip/ftpd.c
+.br
+.B /sys/src/cmd/ip/imap4d/
+.br
+.SH "SEE ALSO"
+.IR ftpfs (4)

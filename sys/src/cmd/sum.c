@@ -8,7 +8,7 @@ char		*sumfile(char*, Sumfn*);
 void
 usage(void)
 {
-	fprint(2, "Usage: %s [-ir5] [files]\n", argv0);
+	fprint(2, "Usage: %s [-r5] [files]\n", argv0);
 	exits("usage");
 }
 
@@ -86,7 +86,7 @@ sum5(ulong sum, void *buf, int n)
 
 	if(buf == 0){
 		sum = ((sum>>16)+sum) & 0xFFFF;
-		print("%.5ud%6ld", sum, (n+(VBSIZE-1))/VBSIZE);
+		print("%.5lud%6d", sum, (n+(VBSIZE-1))/VBSIZE);
 		return 0;
 	}
 	for(s=buf, send=s+n; s<send; s++)
@@ -103,7 +103,7 @@ sumr(ulong sum, void *buf, int n)
 
 	if(buf == 0){
 		sum &= 0xFFFF;
-		print("%.5ud%6ld", sum, (n+(RBSIZE-1))/RBSIZE);
+		print("%.5lud%6d", sum, (n+(RBSIZE-1))/RBSIZE);
 		return 0;
 	}
 	for(s=buf, send=s+n; s<send; s++)
@@ -130,7 +130,7 @@ sum32(ulong lcrc, void *buf, int n)
 		x[2] = (n>>8)^0xCC;
 		x[3] = (n)^0x55;
 		crc = sum32(lcrc, x, 4);
-		print("%.8lux %6ld", crc, n);
+		print("%.8lux %6d", crc, n);
 		return 0;
 	}
 	while(n-- > 0)

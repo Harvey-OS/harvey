@@ -33,7 +33,7 @@ Eject the floppy, if possible.
 Reset the drive.
 .TP
 .BI format " type
-(Not on the Nextstation) Format the floppy.  The
+Format the floppy.  The
 .I type
 sets the density and
 type of disk to be formatted; see
@@ -51,4 +51,4 @@ file returns a string describing the form factor of the disk, one of
 or
 .BR 5¼HD .
 .SH SOURCE
-.B /sys/src/9/port/devfloppy.c
+.B /sys/src/9/*/devfloppy.c

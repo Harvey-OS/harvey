@@ -2,3 +2,9 @@
 
 8½.ps:D:	8½.ms fig1.ps
 	{echo $FONTS; cat 8½.ms} | tbl | troff -ms -mpictures -mnihongo | lp -dstdout >8½.ps
+
+8½.bs:D:	8½.ms fig1.ps
+	../prfile 8½
+
+8½.html:D:
+	{echo $FONTS; cat 8½.ms} | tbl | ms2html >8½.html

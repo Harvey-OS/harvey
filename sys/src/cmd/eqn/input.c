@@ -236,8 +236,8 @@ void error(int die, char *s)
 	if (errno > 0)
 		perror("???");
 	if (curfile->fin)
-		fprintf(stderr, " near line %d, file %s",
-			curfile->lineno, curfile->fname);
+		fprintf(stderr, " near %s:%d",
+			curfile->fname, curfile->lineno+1);
 	fprintf(stderr, "\n");
 	eprint();
 	synerr = 1;

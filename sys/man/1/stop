@@ -22,7 +22,7 @@ and owned by the current user to be started again.
 Use the
 .B send
 command of
-.IR 8½ (1),
+.IR rio (1),
 or pipe into
 .IR rc (1)
 to execute the commands.

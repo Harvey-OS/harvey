@@ -28,7 +28,6 @@ int pointsize = 10;
 double xoffset = .25;
 double yoffset = .25;
 char *passthrough = 0;
-double tabstop = .5;
 static int pplistmaxsize=0;
 
 unsigned char *pplist=0;	/* bitmap list for storing pages to print */
@@ -106,7 +105,7 @@ struct strtab charcode[256] = {
 	{4, "\\374"}, {4, "\\375"}, {4, "\\376"}, {4, "\\377"}
 };
 
-#define FONTABSIZE 27
+#define FONTABSIZE 0x27
 
 struct strtab fontname[FONTABSIZE] = {
 	{19, "LucidaSansUnicode00", 0},
@@ -115,6 +114,18 @@ struct strtab fontname[FONTABSIZE] = {
 	{19, "LucidaSansUnicode03", 0},
 	{19, "LucidaSansUnicode04", 0},
 	{19, "LucidaSansUnicode05", 0},
+	{0, "", 0},
+	{0, "", 0},
+	{0, "", 0},
+	{0, "", 0},
+	{0, "", 0},
+	{0, "", 0},
+	{0, "", 0},
+	{0, "", 0},
+	{0, "", 0},
+	{0, "", 0},
+	{0, "", 0},
+	{0, "", 0},
 	{0, "", 0},
 	{0, "", 0},
 	{0, "", 0},
@@ -169,6 +180,9 @@ cat(char *filename) {
 
 void
 prologues(void) {
+	char *ts;
+	int tabstop;
+
 	Bprint(Bstdout, "%s", CONFORMING);
 	Bprint(Bstdout, "%s %s\n", VERSION, PROGRAMVERSION);
 	Bprint(Bstdout, "%s %s\n", DOCUMENTFONTS, ATEND);
@@ -183,9 +197,17 @@ prologues(void) {
 	if (DOROUND)
 		cat(ROUNDPAGE);
 
+	tabstop = 0;
+	ts = getenv("tabstop");
+	if(ts != nil)
+		tabstop = strtol(ts, nil, 0);
+	if(tabstop == 0)
+		tabstop = 8;
 	Bprint(Bstdout, "/f {findfont pointsize scalefont setfont} bind def\n");
-	Bprint(Bstdout, "/tabstop %g def\n", tabstop);
-	Bprint(Bstdout, "/tabwidth /Courier f (nnnnnnnn) stringwidth pop def\n");
+	Bprint(Bstdout, "/tabwidth /Courier f (");
+	while(tabstop--)
+		Bputc(Bstdout, 'n');
+	Bprint(Bstdout, ") stringwidth pop def\n");
 	Bprint(Bstdout, "/tab {tabwidth 0 ne {currentpoint 3 1 roll exch tabwidth mul add tabwidth\n");
 	Bprint(Bstdout, "\tdiv truncate tabwidth mul exch moveto} if} bind def\n");
 	Bprint(Bstdout, "/spacewidth /%s f ( ) stringwidth pop def\n", fontname[0].str);
@@ -496,9 +518,6 @@ main(int argc, char *argv[]) {
 			break;
 		case 's':			/* point size */
 			pointsize = atoi(ARGF());
-			break;
-		case 't':			/* tabstop */
-			tabstop = atof(ARGF());
 			break;
 		case 'x':			/* shift things horizontally */
 			xoffset = atof(ARGF());

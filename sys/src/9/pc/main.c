@@ -6,24 +6,22 @@
 #include	"io.h"
 #include	"ureg.h"
 #include	"init.h"
-#include	<ctype.h>
+#include	"pool.h"
 
+Mach *m;
 
-uchar *sp;	/* stack pointer for /boot */
+static  uchar *sp;	/* stack pointer for /boot */
 
-extern PCArch nsx20, generic, ncr3170;
-
-PCArch *arch;
-PCArch *knownarch[] =
-{
-	&nsx20,
-	&ncr3170,
-	&generic,
-};
-
-/* where b.com leaves configuration info */
-#define BOOTARGS	((char*)(KZERO|1024))
-#define	BOOTARGSLEN	1024
+/*
+ * Where configuration info is left for the loaded programme.
+ * This will turn into a structure as more is done by the boot loader
+ * (e.g. why parse the .ini file twice?).
+ * There are 1024 bytes available at CONFADDR.
+ */
+#define BOOTLINE	((char*)CONFADDR)
+#define BOOTLINELEN	64
+#define BOOTARGS	((char*)(CONFADDR+BOOTLINELEN))
+#define	BOOTARGSLEN	(1024-BOOTLINELEN)
 #define	MAXCONF		32
 
 char bootdisk[NAMELEN];
@@ -31,69 +29,162 @@ char *confname[MAXCONF];
 char *confval[MAXCONF];
 int nconf;
 
-/* memory map */
-#define MAXMEG 64
-char mmap[MAXMEG+2];
+extern void ns16552install(void);	/* botch: config */
+
+static int isoldbcom;
+
+static int
+getcfields(char* lp, char** fields, int n, char* sep)
+{
+	int i;
+
+	for(i = 0; lp && *lp && i < n; i++){
+		while(*lp && strchr(sep, *lp) != 0)
+			*lp++ = 0;
+		if(*lp == 0)
+			break;
+		fields[i] = lp;
+		while(*lp && strchr(sep, *lp) == 0){
+			if(*lp == '\\' && *(lp+1) == '\n')
+				*lp++ = ' ';
+			lp++;
+		}
+	}
+
+	return i;
+}
+
+static void
+options(void)
+{
+	uchar *bda;
+	long i, n;
+	char *cp, *line[MAXCONF], *p, *q;
+
+	if(strncmp(BOOTARGS, "ZORT 0\r\n", 8)){
+		isoldbcom = 1;
+
+		memmove(BOOTARGS, KADDR(1024), BOOTARGSLEN);
+		memmove(BOOTLINE, KADDR(0x100), BOOTLINELEN);
+
+		bda = KADDR(0x400);
+		bda[0x13] = 639;
+		bda[0x14] = 639>>8;
+	}
+
+	/*
+	 *  parse configuration args from dos file plan9.ini
+	 */
+	cp = BOOTARGS;	/* where b.com leaves its config */
+	cp[BOOTARGSLEN-1] = 0;
+
+	/*
+	 * Strip out '\r', change '\t' -> ' '.
+	 */
+	p = cp;
+	for(q = cp; *q; q++){
+		if(*q == '\r')
+			continue;
+		if(*q == '\t')
+			*q = ' ';
+		*p++ = *q;
+	}
+	*p = 0;
+
+	n = getcfields(cp, line, MAXCONF, "\n");
+	for(i = 0; i < n; i++){
+		if(*line[i] == '#')
+			continue;
+		cp = strchr(line[i], '=');
+		if(cp == 0)
+			continue;
+		*cp++ = 0;
+		if(cp - line[i] >= NAMELEN+1)
+			*(line[i]+NAMELEN-1) = 0;
+		confname[nconf] = line[i];
+		confval[nconf] = cp;
+		nconf++;
+	}
+}
 
 void
 main(void)
 {
-	ident();
-	i8042a20();		/* enable address lines 20 and up */
+	outb(0x3F2, 0x00);			/* botch: turn off the floppy motor */
+
+	/*
+	 * There is a little leeway here in the ordering but care must be
+	 * taken with dependencies:
+	 *	function		dependencies
+	 *	========		============
+	 *	machinit		depends on: m->machno, m->pdb
+	 *	cpuidentify		depends on: m
+	 *	confinit		calls: meminit
+	 *	meminit			depends on: cpuidentify (needs to know processor
+	 *				  type for caching, etc.)
+	 *	archinit		depends on: meminit (MP config table may be at the
+	 *				  top of system physical memory);
+	 *				conf.nmach (not critical, mpinit will check);
+	 *	arch->intrinit		depends on: trapinit
+	 */
+	conf.nmach = 1;
+	MACHP(0) = (Mach*)CPU0MACH;
+	m->pdb = (ulong*)CPU0PDB;
 	machinit();
-	active.exiting = 0;
+	ioinit();
 	active.machs = 1;
-	confinit();
-	xinit();
-	dmainit();
+	active.exiting = 0;
+	options();
 	screeninit();
-	printinit();
-	mmuinit();
-	pageinit();
+	cpuidentify();
+	confinit();
+	archinit();
+	xinit();
 	trapinit();
+	printinit();
+	cpuidprint();
+	if(isoldbcom)
+		print("    ****OLD B.COM - UPGRADE****\n");
+	mmuinit();
+	if(arch->intrinit)
+		arch->intrinit();
+	ns16552install();			/* botch: config */
 	mathinit();
-	clockinit();
-	printcpufreq();
-	faultinit();
 	kbdinit();
+	if(arch->clockenable)
+		arch->clockenable();
 	procinit0();
 	initseg();
-	streaminit();
+	links();
+conf.monitor = 1;
 	chandevreset();
+	pageinit();
 	swapinit();
 	userinit();
 	schedinit();
 }
 
-/*
- *  This tries to capture architecture dependencies since things
- *  like power management/reseting/mouse are outside the hardware
- *  model.
- */
-void
-ident(void)
-{
-	char *id = (char*)(ROMBIOS + 0xFF40);
-	PCArch **p;
-
-	for(p = knownarch; *p != &generic; p++)
-		if(strncmp((*p)->id, id, strlen((*p)->id)) == 0)
-			break;
-	arch = *p;
-}
-
 void
 machinit(void)
 {
-	int n;
+	int machno;
+	ulong *pdb;
 
-	n = m->machno;
+	machno = m->machno;
+	pdb = m->pdb;
 	memset(m, 0, sizeof(Mach));
-	m->machno = n;
-	m->mmask = 1<<m->machno;
+	m->machno = machno;
+	m->pdb = pdb;
 }
 
-ulong garbage;
+void
+ksetterm(char *f)
+{
+	char buf[2*NAMELEN];
+
+	sprint(buf, f, conffile);
+	ksetenv("terminal", buf);
+}
 
 void
 init0(void)
@@ -101,10 +192,7 @@ init0(void)
 	int i;
 	char tstr[32];
 
-	u->nerrlab = 0;
-	m->proc = u->p;
-	u->p->state = Running;
-	u->p->mach = m;
+	up->nerrlab = 0;
 
 	spllo();
 
@@ -112,10 +200,11 @@ init0(void)
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
-	u->slash = (*devtab[0].attach)(0);
-	u->dot = clone(u->slash, 0);
+	up->slash = namec("#/", Atodir, 0, 0);
+	cnameclose(up->slash->name);
+	up->slash->name = newcname("/");
+	up->dot = cclone(up->slash, 0);
 
-	kproc("alarm", alarmkproc, 0);
 	chandevinit();
 
 	if(!waserror()){
@@ -123,11 +212,16 @@ init0(void)
 		strcat(tstr, " %s");
 		ksetterm(tstr);
 		ksetenv("cputype", "386");
+		if(cpuserver)
+			ksetenv("service", "cpu");
+		else
+			ksetenv("service", "terminal");
 		for(i = 0; i < nconf; i++)
-			if(confname[i])
+			if(confname[i] && confname[i][0] != '*')
 				ksetenv(confname[i], confval[i]);
 		poperror();
 	}
+	kproc("alarm", alarmkproc, 0);
 	touser(sp);
 }
 
@@ -136,7 +230,6 @@ userinit(void)
 {
 	Proc *p;
 	Segment *s;
-	User *up;
 	KMap *k;
 	Page *pg;
 
@@ -144,8 +237,8 @@ userinit(void)
 	p->pgrp = newpgrp();
 	p->egrp = smalloc(sizeof(Egrp));
 	p->egrp->ref = 1;
-	p->fgrp = smalloc(sizeof(Fgrp));
-	p->fgrp->ref = 1;
+	p->fgrp = dupfgrp(nil);
+	p->rgrp = newrgrp();
 	p->procmode = 0640;
 
 	strcpy(p->text, "*init*");
@@ -160,21 +253,12 @@ userinit(void)
 	 *	4 bytes for gotolabel's return PC
 	 */
 	p->sched.pc = (ulong)init0;
-	p->sched.sp = USERADDR + BY2PG - 4;
-	p->upage = newpage(1, 0, USERADDR|(p->pid&0xFFFF));
-
-	/*
-	 * User
-	 */
-	k = kmap(p->upage);
-	up = (User*)VA(k);
-	up->p = p;
-	kunmap(k);
+	p->sched.sp = (ulong)p->kstack+KSTACK-(1+MAXSYSARG)*BY2WD;
 
 	/*
 	 * User Stack
 	 */
-	s = newseg(SG_STACK, USTKTOP-BY2PG, 1);
+	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKSIZE/BY2PG);
 	p->seg[SSEG] = s;
 	pg = newpage(1, 0, USTKTOP-BY2PG);
 	segpage(s, pg);
@@ -186,8 +270,11 @@ userinit(void)
 	 * Text
 	 */
 	s = newseg(SG_TEXT, UTZERO, 1);
+	s->flushme++;
 	p->seg[TSEG] = s;
-	segpage(s, newpage(1, 0, UTZERO));
+	pg = newpage(1, 0, UTZERO);
+	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
+	segpage(s, pg);
 	k = kmap(s->map[0]->pages[0]);
 	memmove((ulong*)VA(k), initcode, sizeof initcode);
 	kunmap(k);
@@ -218,38 +305,17 @@ bootargs(ulong base)
 	sp = (uchar*)base + BY2PG - MAXSYSARG*BY2WD;
 
 	ac = 0;
-	av[ac++] = pusharg("/386/9pc");
-	cp[64] = 0;
+	av[ac++] = pusharg("/386/9dos");
+	cp[BOOTLINELEN-1] = 0;
 	buf[0] = 0;
-
-	/*
-	 *  decode the b.com bootline and convert to
-	 *  a disk device name to pass to the boot
-	 */
-	if(strncmp(cp, "fd!", 3) == 0){
-		sprint(buf, "local!#f/fd%ddisk", atoi(cp+3));
+	if(strncmp(cp, "fd", 2) == 0){
+		sprint(buf, "local!#f/fd%lddisk", strtol(cp+2, 0, 0));
 		av[ac++] = pusharg(buf);
-	} else if(strncmp(cp, "h!", 2) == 0){
-		sprint(buf, "local!#H/hd%dfs", atoi(cp+2));
+	} else if(strncmp(cp, "sd", 2) == 0){
+		sprint(buf, "local!#S/sd%c%c/fs", *(cp+2), *(cp+3));
 		av[ac++] = pusharg(buf);
-	} else if(strncmp(cp, "hd!", 3) == 0){
-		sprint(buf, "local!#H/hd%ddisk", atoi(cp+3));
-		av[ac++] = pusharg(buf);
-	} else if(strncmp(cp, "s!", 2) == 0){
-		sprint(buf, "local!#w%d/sd%dfs", atoi(cp+2), atoi(cp+2));
-		av[ac++] = pusharg(buf);
-	} else if(strncmp(cp, "sd!", 3) == 0){
-		sprint(buf, "local!#w%d/sd%ddisk", atoi(cp+3), atoi(cp+3));
-		av[ac++] = pusharg(buf);
-	} else if(getconf("bootdisk") == 0){
-		if(conf.nhard){
-			sprint(buf, "local!#H/hd0disk");
-			av[ac++] = pusharg(buf);
-		} else{
-			sprint(buf, "local!#w/sd0disk");
-			av[ac++] = pusharg(buf);
-		}
-	}
+	} else if(strncmp(cp, "ether", 5) == 0)
+		av[ac++] = pusharg("-n");
 	if(buf[0]){
 		cp = strchr(buf, '!');
 		if(cp){
@@ -288,173 +354,100 @@ getconf(char *name)
 	int i;
 
 	for(i = 0; i < nconf; i++)
-		if(strcmp(confname[i], name) == 0)
+		if(cistrcmp(confname[i], name) == 0)
 			return confval[i];
 	return 0;
 }
 
-/*
- *  look for unused address space in 0xC8000 to 1 meg
- */
-void
-romscan(void)
-{
-	uchar *p;
-
-	p = (uchar*)(KZERO+0xC8000);
-	while(p < (uchar*)(KZERO+0xE0000)){
-		p[0] = 0x55;
-		p[1] = 0xAA;
-		p[2] = 4;
-		if(p[0] != 0x55 || p[1] != 0xAA){
-			putisa(PADDR(p), 2048);
-			p += 2048;
-			continue;
-		}
-		p += p[2]*512;
-	}
-
-	p = (uchar*)(KZERO+0xE0000);
-	if(p[0] != 0x55 || p[1] != 0xAA)
-		putisa(PADDR(p), 64*1024);
-}
-
-
 void
 confinit(void)
 {
-	long x, i, j, n;
-	int pcnt;
-	ulong ktop;
-	char *cp;
-	char *line[MAXCONF];
+	char *p;
+	int userpcnt;
+	ulong kpages, maxmem;
 
-	pcnt = 0;
+	if(p = getconf("*maxmem"))
+		maxmem = strtoul(p, 0, 0);
+	else
+		maxmem = 0;
+	if(p = getconf("*kernelpercent"))
+		userpcnt = 100 - strtol(p, 0, 0);
+	else
+		userpcnt = 0;
 
-	/*
-	 *  parse configuration args from dos file p9rc
-	 */
-	cp = BOOTARGS;	/* where b.com leaves plan9.ini */
-	cp[BOOTARGSLEN-1] = 0;
-	n = getfields(cp, line, MAXCONF, "\n");
-	for(j = 0; j < n; j++){
-		cp = strchr(line[j], '\r');
-		if(cp)
-			*cp = 0;
-		cp = strchr(line[j], '=');
-		if(cp == 0)
-			continue;
-		*cp++ = 0;
-		if(cp - line[j] >= NAMELEN+1)
-			*(line[j]+NAMELEN-1) = 0;
-		confname[nconf] = line[j];
-		confval[nconf] = cp;
-		if(strcmp(confname[nconf], "kernelpercent") == 0)
-			pcnt = 100 - atoi(confval[nconf]);
-		nconf++;
-	}
-	/*
-	 *  size memory above 1 meg. Kernel sits at 1 meg.  We
-	 *  only recognize MB size chunks.
-	 */
-	memset(mmap, ' ', sizeof(mmap));
-	x = 0x12345678;
-	for(i = 1; i <= MAXMEG; i++){
-		/*
-		 *  write the first & last word in a megabyte of memory
-		 */
-		*mapaddr(KZERO|(i*MB)) = x;
-		*mapaddr(KZERO|((i+1)*MB-BY2WD)) = x;
-
-		/*
-		 *  write the first and last word in all previous megs to
-		 *  handle address wrap around
-		 */
-		for(j = 1; j < i; j++){
-			*mapaddr(KZERO|(j*MB)) = ~x;
-			*mapaddr(KZERO|((j+1)*MB-BY2WD)) = ~x;
-		}
-
-		/*
-		 *  check for correct value
-		 */
-		if(*mapaddr(KZERO|(i*MB)) == x && *mapaddr(KZERO|((i+1)*MB-BY2WD)) == x){
-			mmap[i] = 'x';
-			/*
-			 *  zero memory to set ECC but skip over the kernel
-			 */
-			if(i != 1)
-				for(j = 0; j < MB/BY2PG; j += BY2PG)
-					memset(mapaddr(KZERO|(i*MB+j)), 0, BY2PG);
-		}
-		x += 0x3141526;
-	}
-	/*
-	 *  bank0 usually goes from the end of kernel bss to the end of memory
-	 */
-	ktop = PGROUND((ulong)end);
-	ktop = PADDR(ktop);
-	conf.base0 = ktop;
-	for(i = 1; mmap[i] == 'x'; i++)
-		;
-	conf.npage0 = (i*MB - ktop)/BY2PG;
-	conf.topofmem = i*MB;
-
-	/*
-	 *  bank1 usually goes from the end of BOOTARGS to 640k
-	 */
-	conf.base1 = (ulong)(BOOTARGS+BOOTARGSLEN);
-	conf.base1 = PGROUND(conf.base1);
-	conf.base1 = PADDR(conf.base1);
-	conf.npage1 = (640*1024-conf.base1)/BY2PG;
-
-	/*
-	 *  if there is a hole in memory (due to a shadow BIOS) make the
-	 *  memory after the hole be bank 1. The memory from 0 to 640k
-	 *  is lost.
-	 */
-	for(; i <= MAXMEG; i++)
-		if(mmap[i] == 'x'){
-			conf.base1 = i*MB;
-			for(j = i+1; mmap[j] == 'x'; j++)
-				;
-			conf.npage1 = (j - i)*MB/BY2PG;
-			conf.topofmem = j*MB;
-			break;
-		}
-
-	/*
- 	 *  add address space holes holes under 16 meg to available
-	 *  isa space.
-	 */
-	romscan();
-	if(conf.topofmem < 16*MB)
-		putisa(conf.topofmem, 16*MB - conf.topofmem);
+	meminit(maxmem);
 
 	conf.npage = conf.npage0 + conf.npage1;
-	conf.ldepth = 0;
-	if(pcnt < 10)
-		pcnt = 70;
-	conf.upages = (conf.npage*pcnt)/100;
 
-	conf.nproc = 30 + ((conf.npage*BY2PG)/MB)*8;
-	conf.monitor = 1;
+	conf.nproc = 100 + ((conf.npage*BY2PG)/MB)*5;
+	if(cpuserver)
+		conf.nproc *= 3;
+	if(conf.nproc > 2000)
+		conf.nproc = 2000;
+	conf.nimage = 200;
 	conf.nswap = conf.nproc*80;
-	conf.nimage = 50;
-	switch(x86()){
-	case 3:
-		conf.copymode = 1;	/* copy on reference */
-		break;
-	default:
-		conf.copymode = 0;	/* copy on write */
-		break;
+	conf.nswppo = 4096;
+
+	if(cpuserver) {
+		if(userpcnt < 10)
+			userpcnt = 70;
+		kpages = conf.npage - (conf.npage*userpcnt)/100;
+
+		/*
+		 * Hack for the big boys. Only good while physmem < 4GB.
+		 * Give the kernel a max. of 16MB + enough to allocate the
+		 * page pool.
+		 * This is an overestimate as conf.upages < conf.npages.
+		 * The patch of nimage is a band-aid, scanning the whole
+		 * page list in imagereclaim just takes too long.
+		 */
+		if(kpages > (16*MB + conf.npage*sizeof(Page))/BY2PG){
+			kpages = (16*MB + conf.npage*sizeof(Page))/BY2PG;
+			conf.nimage = 2000;
+			kpages += (conf.nproc*KSTACK)/BY2PG;
+		}
+	} else {
+		if(userpcnt < 10) {
+			if(conf.npage*BY2PG < 16*MB)
+				userpcnt = 40;
+			else
+				userpcnt = 60;
+		}
+		kpages = conf.npage - (conf.npage*userpcnt)/100;
+
+		/*
+		 * Make sure terminals with low memory get at least
+		 * 4MB on the first Image chunk allocation.
+		 */
+		if(conf.npage*BY2PG < 16*MB)
+			imagmem->minarena = 4*1024*1024;
 	}
-	conf.nfloppy = 2;
-	conf.nhard = 2;
-	conf.nmach = 1;
+	conf.upages = conf.npage - kpages;
+	conf.ialloc = (kpages/2)*BY2PG;
+
+	/*
+	 * Guess how much is taken by the large permanent
+	 * datastructures. Mntcache and Mntrpc are not accounted for
+	 * (probably ~300KB).
+	 */
+	kpages *= BY2PG;
+	kpages -= conf.upages*sizeof(Page)
+		+ conf.nproc*sizeof(Proc)
+		+ conf.nimage*sizeof(Image)
+		+ conf.nswap
+		+ conf.nswppo*sizeof(Page);
+	mainmem->maxsize = kpages;
+	if(!cpuserver){
+		/*
+		 * give terminals lots of image memory, too; the dynamic
+		 * allocation will balance the load properly, hopefully.
+		 * be careful with 32-bit overflow.
+		 */
+		imagmem->maxsize = kpages;
+	}
 }
 
-char *mathmsg[] =
+static char* mathmsg[] =
 {
 	"invalid",
 	"denormalized",
@@ -466,64 +459,79 @@ char *mathmsg[] =
 	"error",
 };
 
+static void
+mathnote(void)
+{
+	int i;
+	ulong status;
+	char *msg, note[ERRLEN];
+
+	status = up->fpsave.status;
+
+	/*
+	 * Some attention should probably be paid here to the
+	 * exception masks and error summary.
+	 */
+	msg = "unknown";
+	for(i = 0; i < 8; i++){
+		if(!((1<<i) & status))
+			continue;
+		msg = mathmsg[i];
+		break;
+	}
+	sprint(note, "sys: fp: %s fppc=0x%lux", msg, up->fpsave.pc);
+	postnote(up, 1, note, NDebug);
+}
+
 /*
  *  math coprocessor error
  */
-void
-matherror(Ureg *ur, void *a)
+static void
+matherror(Ureg *ur, void*)
 {
-	ulong status;
-	int i;
-	char *msg;
-	char note[ERRLEN];
-
-	USED(a);
-
 	/*
 	 *  a write cycle to port 0xF0 clears the interrupt latch attached
 	 *  to the error# line from the 387
 	 */
-	outb(0xF0, 0xFF);
+	if(!(m->cpuiddx & 0x01))
+		outb(0xF0, 0xFF);
 
 	/*
 	 *  save floating point state to check out error
 	 */
-	fpenv(&u->fpsave);
-	status = u->fpsave.status;
+	fpenv(&up->fpsave);
+	mathnote();
 
-	msg = 0;
-	for(i = 0; i < 8; i++)
-		if((1<<i) & status){
-			msg = mathmsg[i];
-			sprint(note, "sys: fp: %s fppc=0x%lux", msg, u->fpsave.pc);
-			postnote(u->p, 1, note, NDebug);
-			break;
-		}
-	if(msg == 0){
-		sprint(note, "sys: fp: unknown fppc=0x%lux", u->fpsave.pc);
-		postnote(u->p, 1, note, NDebug);
-	}
 	if(ur->pc & KZERO)
-		panic("fp: status %lux fppc=0x%lux pc=0x%lux", status,
-			u->fpsave.pc, ur->pc);
+		panic("fp: status %lux fppc=0x%lux pc=0x%lux",
+			up->fpsave.status, up->fpsave.pc, ur->pc);
 }
 
 /*
  *  math coprocessor emulation fault
  */
-void
-mathemu(Ureg *ur, void *a)
+static void
+mathemu(Ureg*, void*)
 {
-	USED(ur, a);
-
-	switch(u->p->fpstate){
+	switch(up->fpstate){
 	case FPinit:
 		fpinit();
-		u->p->fpstate = FPactive;
+		up->fpstate = FPactive;
 		break;
 	case FPinactive:
-		fprestore(&u->fpsave);
-		u->p->fpstate = FPactive;
+		/*
+		 * Before restoring the state, check for any pending
+		 * exceptions, there's no way to restore the state without
+		 * generating an unmasked exception.
+		 * More attention should probably be paid here to the
+		 * exception masks and error summary.
+		 */
+		if((up->fpsave.status & ~up->fpsave.control) & 0x07F){
+			mathnote();
+			break;
+		}
+		fprestore(&up->fpsave);
+		up->fpstate = FPactive;
 		break;
 	case FPactive:
 		panic("math emu", 0);
@@ -534,22 +542,20 @@ mathemu(Ureg *ur, void *a)
 /*
  *  math coprocessor segment overrun
  */
-void
-mathover(Ureg *ur, void *a)
+static void
+mathover(Ureg*, void*)
 {
-	USED(ur, a);
-
-print("sys: fp: math overrun pc 0x%lux pid %d\n", ur->pc, u->p->pid);
 	pexit("math overrun", 0);
 }
 
 void
 mathinit(void)
 {
-	setvec(Matherr1vec, matherror, 0);
-	setvec(Matherr2vec, matherror, 0);
-	setvec(Mathemuvec, mathemu, 0);
-	setvec(Mathovervec, mathover, 0);
+	trapenable(VectorCERR, matherror, 0, "matherror");
+	if(X86FAMILY(m->cpuidax) == 3)
+		intrenable(IrqIRQ13, matherror, 0, BUSUNKNOWN, "matherror");
+	trapenable(VectorCNA, mathemu, 0, "mathemu");
+	trapenable(VectorCSO, mathover, 0, "mathover");
 }
 
 /*
@@ -571,151 +577,85 @@ procsave(Proc *p)
 	if(p->fpstate == FPactive){
 		if(p->state == Moribund)
 			fpoff();
-		else
-			fpsave(&u->fpsave);
+		else{
+			/*
+			 * Fpsave() stores without handling pending
+			 * unmasked exeptions. Postnote() can't be called
+			 * here as sleep() already has up->rlock, so
+			 * the handling of pending exceptions is delayed
+			 * until the process runs again and generates an
+			 * emulation fault to activate the FPU.
+			 */
+			fpsave(&up->fpsave);
+		}
 		p->fpstate = FPinactive;
 	}
+
+	/*
+	 * Switch to the prototype page tables for this processor.
+	 * While this processor is in the scheduler, the process could run
+	 * on another processor and exit, returning the page tables to
+	 * the free list where they could be reallocated and overwritten.
+	 * When this processor eventually has to get an entry from the
+	 * trashed page tables it will crash.
+	 */
+	mmuflushtlb(PADDR(m->pdb));
 }
 
-/*
- *  Restore what procsave() saves
- */
-void
-procrestore(Proc *p)
-{
-	USED(p);
-}
-
-
-/*
- *  the following functions all are slightly different from
- *  PC to PC.
- */
-
-/*
- *  reset the i387 chip
- */
 void
 exit(int ispanic)
 {
-	u = 0;
-	wipekeys();
-	print("exiting\n");
-	if(ispanic){
+	int ms, once;
+
+	lock(&active);
+	if(ispanic)
+		active.ispanic = ispanic;
+	else if(m->machno == 0 && (active.machs & (1<<m->machno)) == 0)
+		active.ispanic = 0;
+	once = active.machs & (1<<m->machno);
+	active.machs &= ~(1<<m->machno);
+	active.exiting = 1;
+	unlock(&active);
+
+	if(once)
+		print("cpu%d: exiting\n", m->machno);
+	spllo();
+	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
+		delay(TK2MS(2));
+		if(active.machs == 0 && consactive() == 0)
+			break;
+	}
+
+	if(active.ispanic && m->machno == 0){
 		if(cpuserver)
 			delay(10000);
 		else
 			for(;;);
 	}
-
-	(*arch->reset)();
-}
-
-/*
- *  set cpu speed
- *	0 == low speed
- *	1 == high speed
- */
-int
-cpuspeed(int speed)
-{
-	if(arch->cpuspeed)
-		return (*arch->cpuspeed)(speed);
 	else
-		return 0;
-}
+		delay(1000);
 
-/*
- *  f == frequency (Hz)
- *  d == duration (ms)
- */
-void
-buzz(int f, int d)
-{
-	if(arch->buzz)
-		(*arch->buzz)(f, d);
-}
-
-/*
- *  each bit in val stands for a light
- */
-void
-lights(int val)
-{
-	if(arch->lights)
-		(*arch->lights)(val);
-}
-
-/*
- *  power to serial port
- *	onoff == 1 means on
- *	onoff == 0 means off
- */
-int
-serial(int onoff)
-{
-	if(arch->serialpower)
-		return (*arch->serialpower)(onoff);
-	else
-		return 0;
-}
-
-/*
- *  power to modem
- *	onoff == 1 means on
- *	onoff == 0 means off
- */
-int
-modem(int onoff)
-{
-	if(arch->modempower)
-		return (*arch->modempower)(onoff);
-	else
-		return 0;
-}
-
-int
-parseether(uchar *to, char *from)
-{
-	char nip[4];
-	char *p;
-	int i;
-
-	p = from;
-	while(*p == ' ')
-		++p;
-	for(i = 0; i < 6; i++){
-		if(*p == 0)
-			return -1;
-		nip[0] = *p++;
-		if(*p == 0)
-			return -1;
-		nip[1] = *p++;
-		nip[2] = 0;
-		to[i] = strtoul(nip, 0, 16);
-		if(*p == ':')
-			p++;
-	}
-	return 0;
+	arch->reset();
 }
 
 int
 isaconfig(char *class, int ctlrno, ISAConf *isa)
 {
-	char cc[NAMELEN], *p, *q;
+	char cc[NAMELEN], *p, *q, *r;
 	int n;
 
 	sprint(cc, "%s%d", class, ctlrno);
 	for(n = 0; n < nconf; n++){
-		if(strncmp(confname[n], cc, NAMELEN))
+		if(cistrncmp(confname[n], cc, NAMELEN))
 			continue;
+		isa->nopt = 0;
 		p = confval[n];
 		while(*p){
 			while(*p == ' ' || *p == '\t')
 				p++;
 			if(*p == '\0')
 				break;
-			if(strncmp(p, "type=", 5) == 0){
+			if(cistrncmp(p, "type=", 5) == 0){
 				p += 5;
 				for(q = isa->type; q < &isa->type[NAMELEN-1]; q++){
 					if(*p == '\0' || *p == ' ' || *p == '\t')
@@ -724,19 +664,27 @@ isaconfig(char *class, int ctlrno, ISAConf *isa)
 				}
 				*q = '\0';
 			}
-			else if(strncmp(p, "port=", 5) == 0)
+			else if(cistrncmp(p, "port=", 5) == 0)
 				isa->port = strtoul(p+5, &p, 0);
-			else if(strncmp(p, "irq=", 4) == 0)
+			else if(cistrncmp(p, "irq=", 4) == 0)
 				isa->irq = strtoul(p+4, &p, 0);
-			else if(strncmp(p, "mem=", 4) == 0)
-				isa->mem = strtoul(p+4, &p, 0);
-			else if(strncmp(p, "size=", 5) == 0)
-				isa->size = strtoul(p+5, &p, 0);
-			else if(strncmp(p, "dma=", 4) == 0)
+			else if(cistrncmp(p, "dma=", 4) == 0)
 				isa->dma = strtoul(p+4, &p, 0);
-			else if(strncmp(p, "ea=", 3) == 0){
-				if(parseether(isa->ea, p+3) == -1)
-					memset(isa->ea, 0, 6);
+			else if(cistrncmp(p, "mem=", 4) == 0)
+				isa->mem = strtoul(p+4, &p, 0);
+			else if(cistrncmp(p, "size=", 5) == 0)
+				isa->size = strtoul(p+5, &p, 0);
+			else if(cistrncmp(p, "freq=", 5) == 0)
+				isa->freq = strtoul(p+5, &p, 0);
+			else if(isa->nopt < NISAOPT){
+				r = isa->opt[isa->nopt];
+				while(*p && *p != ' ' && *p != '\t'){
+					*r++ = *p++;
+					if(r-isa->opt[isa->nopt] >= ISAOPTLEN-1)
+						break;
+				}
+				*r = '\0';
+				isa->nopt++;
 			}
 			while(*p && *p != ' ' && *p != '\t')
 				p++;
@@ -746,58 +694,23 @@ isaconfig(char *class, int ctlrno, ISAConf *isa)
 	return 0;
 }
 
-static void
-pcfloppyintr(Ureg *ur, void *a)
-{
-	USED(a);
-
-	floppyintr(ur);
-}
-
-void
-floppysetup0(FController *fl)
-{
-	USED(fl);
-}
-
-void
-floppysetup1(FController *fl)
-{
-	uchar equip;
-
-	/*
-	 *  read nvram for types of floppies 0 & 1
-	 */
-	equip = nvramread(0x10);
-	if(conf.nfloppy > 0){
-		fl->d[0].dt = (equip >> 4) & 0xf;
-		floppysetdef(&fl->d[0]);
-	}
-	if(conf.nfloppy > 1){
-		fl->d[1].dt = equip & 0xf;
-		floppysetdef(&fl->d[1]);
-	}
-
-	setvec(Floppyvec, pcfloppyintr, 0);
-}
-
 /*
- *  eject disk ( unknown on safari )
- */
-void
-floppyeject(FDrive *dp)
+int
+iprint(char *fmt, ...)
 {
-	floppyon(dp);
-	dp->vers++;
-	floppyoff(dp);
-}
+	char buf[PRINTSIZE];
+	int n;
+	va_list arg;
 
-int 
-floppyexec(char *a, long b, int c)
-{
-	USED(a, b, c);
-	return b;
+	va_start(arg, fmt);
+	n = doprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	va_end(arg);
+
+	screenputs(buf, n);
+
+	return n;
 }
+*/
 
 int
 cistrcmp(char *a, char *b)
@@ -818,5 +731,30 @@ cistrcmp(char *a, char *b)
 		if(bc == 0)
 			break;
 	}
+	return 0;
+}
+
+int
+cistrncmp(char *a, char *b, int n)
+{
+	unsigned ac, bc;
+
+	while(n > 0){
+		ac = *a++;
+		bc = *b++;
+		n--;
+
+		if(ac >= 'A' && ac <= 'Z')
+			ac = 'a' + (ac - 'A');
+		if(bc >= 'A' && bc <= 'Z')
+			bc = 'a' + (bc - 'A');
+
+		ac -= bc;
+		if(ac)
+			return ac;
+		if(bc == 0)
+			break;
+	}
+
 	return 0;
 }

@@ -291,22 +291,22 @@ pfmt(char fmt, int mem, ulong val)
 		Bprint(bioout, "bad modifier\n");
 		return 0;
 	case 'o':
-		c = Bprint(bioout, "%-4o ", mem ? (ushort)getmem_2(dot) : val);
+		c = Bprint(bioout, "%-4lo ", mem ? (ushort)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
 	case 'O':
-		c = Bprint(bioout, "%-8o ", mem ? getmem_4(dot) : val);
+		c = Bprint(bioout, "%-8lo ", mem ? getmem_4(dot) : val);
 		inc = 4;
 		break;
 
 	case 'q':
-		c = Bprint(bioout, "%-4o ", mem ? (short)getmem_2(dot) : val);
+		c = Bprint(bioout, "%-4lo ", mem ? (short)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
 	case 'Q':
-		c = Bprint(bioout, "%-8o ", mem ? (long)getmem_4(dot) : val);
+		c = Bprint(bioout, "%-8lo ", mem ? (long)getmem_4(dot) : val);
 		inc = 4;
 		break;
 
@@ -342,12 +342,12 @@ pfmt(char fmt, int mem, ulong val)
 		break;
 
 	case 'b':
-		c = Bprint(bioout, "%-3d ", mem ? getmem_b(dot) : val);
+		c = Bprint(bioout, "%-3d ", (int)(mem ? getmem_b(dot) : val));
 		inc = 1;
 		break;
 
 	case 'c':
-		c = Bprint(bioout, "%c ", mem ? getmem_b(dot) : val);
+		c = Bprint(bioout, "%c ", (int)(mem ? getmem_b(dot) : val));
 		inc = 1;
 		break;
 
@@ -380,7 +380,7 @@ pfmt(char fmt, int mem, ulong val)
 			if(isprint(*p))
 				c += Bprint(bioout, "%c", *p);
 			else
-				c += Bprint(bioout, "\\x%.2lux", *p);
+				c += Bprint(bioout, "\\x%.2ux", *p);
 		inc = 0;
 		break;
 

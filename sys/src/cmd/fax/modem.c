@@ -54,6 +54,7 @@ int
 rawmchar(Modem *m, char *p)
 {
 	Dir d;
+	int n;
 
 	if(m->icount == 0)
 		m->iptr = m->ibuf;
@@ -70,12 +71,13 @@ rawmchar(Modem *m, char *p)
 		verbose("rawmchar: dirfstat: %r");
 		return seterror(m, Esys);
 	}
-	if(d.length == 0)
+	n = d.length;
+	if(n == 0)
 		return Enoresponse;
 
-	if(d.length > sizeof(m->ibuf))
-		d.length = sizeof(m->ibuf);
-	if((m->icount = read(m->fd, m->ibuf, d.length)) <= 0){
+	if(n > sizeof(m->ibuf)-1)
+		n = sizeof(m->ibuf)-1;
+	if((m->icount = read(m->fd, m->ibuf, n)) <= 0){
 		verbose("rawmchar: read: %r");
 		m->icount = 0;
 		return seterror(m, Esys);
@@ -89,10 +91,10 @@ rawmchar(Modem *m, char *p)
 int
 getmchar(Modem *m, char *buf, long timeout)
 {
-	int r;
+	int r, t;
 
 	timeout += time(0);
-	while(time(0) <= timeout){
+	while((t = time(0)) <= timeout){
 		switch(r = rawmchar(m, buf)){
 
 		case Eok:
@@ -106,6 +108,7 @@ getmchar(Modem *m, char *buf, long timeout)
 			return r;
 		}
 	}
+	verbose("getmchar: time %ud, timeout %ud", t, timeout);
 
 	return seterror(m, Enoresponse);
 }
@@ -118,23 +121,35 @@ putmchar(Modem *m, char *p)
 	return Eok;
 }
 
+/*
+ *  lines terminate with cr-lf
+ */
 static int
 getmline(Modem *m, char *buf, int len, long timeout)
 {
-	int r;
+	int r, t;
 	char *e = buf+len-1;
+	char last = 0;
 
 	timeout += time(0);
-	while(time(0) <= timeout){
+	while((t = time(0)) <= timeout){
 		switch(r = rawmchar(m, buf)){
 
 		case Eok:
-			if(*buf == '\n')
+			/* ignore ^s ^q which are used for flow */
+			if(*buf == '\021' || *buf == '\023')
 				continue;
-			if(*buf == '\r'){
-				*buf = 0;
-				return Eok;
+			if(*buf == '\n'){
+				/* ignore nl if its not with a cr */
+				if(last == '\r'){
+					*buf = 0;
+					return Eok;
+				}
+				continue;
 			}
+			last = *buf;
+			if(*buf == '\r')
+				continue;
 			buf++;
 			if(buf == e){
 				*buf = 0;
@@ -150,6 +165,7 @@ getmline(Modem *m, char *buf, int len, long timeout)
 			return r;
 		}
 	}
+	verbose("getmline: time %ud, timeout %ud", t, timeout);
 
 	return seterror(m, Enoresponse);
 }

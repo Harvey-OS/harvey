@@ -1,33 +1,10 @@
 #include	"mk.h"
 
 void
-setvar(char *name, char *value)
+setvar(char *name, void *value)
 {
 	symlook(name, S_VAR, value)->value = value;
-	symlook(name, S_MAKEVAR, "");
-}
-
-static Envy *nextv;
-
-static void
-vcopy(Symtab *s)
-{
-	char **p;
-	extern char *myenv[];
-
-	if(symlook(s->name, S_NOEXPORT, (char *)0))
-		return;
-	for(p = myenv; *p; p++)
-		if(strcmp(*p, s->name) == 0)
-			return;
-	envinsert(s->name, (Word *) s->value);
-}
-
-void
-vardump(void)
-{
-	symtraverse(S_VAR, vcopy);
-	envinsert(0, 0);
+	symlook(name, S_MAKEVAR, (void*)"");
 }
 
 static void
@@ -35,16 +12,16 @@ print1(Symtab *s)
 {
 	Word *w;
 
-	Bprint(&stdout, "\t%s=", s->name);
+	Bprint(&bout, "\t%s=", s->name);
 	for (w = (Word *) s->value; w; w = w->next)
-		Bprint(&stdout, "'%s'", w->s);
-	Bprint(&stdout, "\n");
+		Bprint(&bout, "'%s'", w->s);
+	Bprint(&bout, "\n");
 }
 
 void
 dumpv(char *s)
 {
-	Bprint(&stdout, "%s:\n", s);
+	Bprint(&bout, "%s:\n", s);
 	symtraverse(S_VAR, print1);
 }
 

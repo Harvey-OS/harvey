@@ -41,8 +41,6 @@ telco, faxreceive, faxsend, fax, telcofax, telcodata \- telephone dialer network
 is a file server that provides a network interface to
 Hayes telephone dialers.
 The interface is the same as that provided by
-.IR dk (3)
-and
 .IR ip (3)
 and can be used by any program that makes network connections using
 .IR dial (2).
@@ -116,7 +114,8 @@ Multitech's 28800 baud modem
 .TP
 .B ATT14400
 the 14400 baud modem in Safaris
-.IP VOCAL
+.TP
+.B VOCAL
 the 14400 baud Vocal modem
 .PD
 .PP
@@ -126,7 +125,7 @@ Hayes command subset.
 .I Faxreceive
 is normally started by
 .BR /rc/bin/service/telcofax .
-It inputs and spools a CCITT Group 3 (G3) encoded fax, and then starts the
+It inputs and spools a CCITT Group 3 (G3) encoded FAX, and then starts the
 script
 .BR /sys/lib/fax/receiverc ,
 passing it four arguments: the spool file name,
@@ -157,12 +156,12 @@ transmits a FAX to
 .I Page1
 and all arguments that follow
 are names of files containing G3 encoded
-fax images, one per page.
+FAX images, one per page.
 .PP
 .I Fax
 is a shell script that queues
 PostScript, G3, or text files to be transmitted to a
-fax machine.
+FAX machine.
 A standard cover sheet, derived from
 .BR /sys/lib/fax/h.ps ,
 is sent before the message.
@@ -184,22 +183,12 @@ telco /dev/eia1
 con -l telco!18005551212
 .EE
 .PP
-Since
-.I cu
-(see
-.IR con (1))
-knows about telco, this is equivalent:
-.IP
-.EX
-cu 18005551212
-.EE
-.PP
 The connection will be made at the highest
 negotiable baud rate.  To use the
 best negotiable compression scheme as well:
 .IP
 .EX
-cu 18005551212!compress
+con -l telco!18005551212!compress
 .EE
 .SH FILES
 .B /mail/faxqueue/*
@@ -223,7 +212,6 @@ cu 18005551212!compress
 .B /sys/src/cmd/fax/*
 .SH "SEE ALSO"
 .IR con (1),
-.IR dk (3),
 .IR ip (3)
 .SH BUGS
 .PP

@@ -1,10 +1,14 @@
 .TH CON 1
 .SH NAME
-con, telnet, cu, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
+con, telnet, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
 .SH SYNOPSIS
 .B con
 [
-.B -dCrvs
+.B -CdnrRvs
+]
+[
+.B -b
+.I baud
 ]
 [
 .B -l
@@ -29,7 +33,11 @@ con, telnet, cu, rx, xms, xmr \- remote login, execution, and XMODEM file transf
 .PP
 .B rx
 [
-.B -n
+.B -e
+]
+[
+.B -l
+.I remuser
 ]
 .RI [ net !] machine
 [
@@ -51,6 +59,14 @@ as that on the local system.
 Standard input and output go to the local machine.
 .PP
 Options are:
+.TP
+.B -b
+sets the baud rate of a dial-up connection to
+.IR baud .
+.TP
+.B -n
+if the input is a file or pipe, do not hang up the connection when EOF is received,
+but instead wait for the remote end to hang up.
 .TP
 .B -l
 with an argument causes
@@ -82,9 +98,17 @@ suppresses printing of any carriage return followed by a new line.
 This is useful since carriage return is a printable character in
 Plan 9.
 .TP
+.B -R
+translates newlines to carriage returns and
+.IR vice versa .
+.TP
 .B -s
 strips received characters to 7 bits to forestall
-misinterpretation of ASCII with parity as UTF.
+misinterpretation of
+.SM ASCII
+with parity as
+.SM UTF\c
+\&.
 .PP
 The
 .RB control\- \e
@@ -119,28 +143,14 @@ over the connections using programs such as
 is similar to con, but uses the
 .I telnet
 protocol to communicate with the remote machine.
-If standard input is a file or a pipe, the
-.B -n
-option causes
-.I telnet
-not to hang up the connection when it receives EOF on its standard input;
-instead it waits for the remote end to hang up.
 It shares
 .I con's
 .BR -C ,
 .BR -d ,
+.BR -n ,
 and
 .BR -r
 options.
-.PP
-.I Cu
-is a shell script that uses
-.IR telco (4)
-and
-.I con
-to connect to a machine via a modem.
-If the machine is equipped with a local modem, it is used.
-Otherwise, the call is placed through Datakit.
 .PP
 .I Rx
 executes one shell command
@@ -151,6 +161,16 @@ If the target is a Plan 9 machine,
 .B $service
 there will be
 .BR rx .
+The
+.B \-e
+option causes a zero length message to be written to the
+connection when standard input is closed.
+The
+.B \-l
+option causes
+.I remuser
+to be used on the remote machine if the remote
+is a BSD machine.
 .PP
 Network addresses for both
 .I con
@@ -203,8 +223,6 @@ and
 .B /sys/src/cmd/ip
 for
 .IR telnet .
-.TP
-.B /rc/bin/cu
 .SH BUGS
 Under
 .IR rx ,

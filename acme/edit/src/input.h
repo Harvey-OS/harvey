@@ -1,10 +1,10 @@
-	bin.init(0, OREAD);
+	Binit(&bin, 0, OREAD);
 	seq = 0;
 	nf = 0;
 	f = nil;
-	while((s=bin.rdline('\n')) != nil){
-		s[bin.linelen()-1] = 0;
-		(n, tf) = findfile(s);
+	while((s=Brdline(&bin, '\n')) != nil){
+		s[Blinelen(&bin)-1] = 0;
+		tf = findfile(s, &n);
 		if(n == 0)
 			errors("no files match input", s);
 		for(i=0; i<n; i++)
@@ -52,11 +52,11 @@
 		}
 	Hard:
 		id = tf->id;
-		sprint(buf, "/mnt/8½/%d/addr", id);
+		sprint(buf, "/mnt/wsys/%d/addr", id);
 		afd = open(buf, ORDWR);
 		if(afd < 0)
 			rerror(buf);
-		sprint(buf, "/mnt/8½/%d/ctl", id);
+		sprint(buf, "/mnt/wsys/%d/ctl", id);
 		cfd = open(buf, ORDWR);
 		if(cfd < 0)
 			rerror(buf);

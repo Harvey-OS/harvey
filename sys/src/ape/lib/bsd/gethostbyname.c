@@ -95,6 +95,7 @@ gethostbyname(char *name)
 				nptr[nn++] = p;
 		} else if(strcmp(bp, "ip") == 0){
 			x = inet_addr(p);
+			x = ntohl(x);
 			if(na < Nname){
 				addr[na][0] = x>>24;
 				addr[na][1] = x>>16;

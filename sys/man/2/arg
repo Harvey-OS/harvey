@@ -13,18 +13,6 @@ ARGBEGIN, ARGEND, ARGC, ARGF, arginit, argopt \- process option letters from arg
 .B } ARGEND
 .PP
 .B extern char *argv0;
-.PP
-.B
-/* Alef only */
-.PP
-.B
-Arg  *arginit(int argc, byte **argv);
-.PP
-.B
-Rune argopt(Arg *arg);
-.PP
-.B
-byte *argf(Arg *arg);
 .SH DESCRIPTION
 These macros assume the names
 .I argc
@@ -47,10 +35,12 @@ before an argument
 or before an argument that doesn't begin with
 .BR - .
 .PP
-.I ARGC()
-returns the current option character.
+The function macro
+.I ARGC
+returns the current option character, as an integer.
 .PP
-.I ARGF()
+The function macro
+.I ARGF
 returns the current option argument:
 a pointer to the rest of the option string if not empty,
 or the next argument in
@@ -73,22 +63,7 @@ After
 points at a zero-terminated list of the remaining
 .I argc
 arguments.
-.SS Alef
-The Alef argument processing routines are unrelated.
-Instead, an
-.B aggr
-called
-.B Arg
-is initialized by a call to
-.IR arginit .
-Successive calls to
-.I argopt
-return successive option characters, or zero at the end of the options.
-After a call to
-.IR argopt ,
-.I argf
-will return any argument string associated with the option.
-.SH EXAMPLES
+.SH EXAMPLE
 This C program can take option
 .B b
 and option
@@ -118,43 +93,16 @@ main(int argc, char *argv[])
 	while(*argv)
 		print(" '%s'", *argv++);
 	print("\en");
-	exits(0);
+	exits(nil);
 }
 .EE
 .PP
-Here is the output for the run
+Here is the output from running the command
 .B
 prog -bffile1 -r -f file2 arg1 arg2
 .IP
 .B
 prog -b -f(file1) badflag('r') -f(file2) 2 args: 'arg1' 'arg2'
 .PP
-This Alef program accepts options
-.B b
-and, with an attached file name,
-.BR f .
-.IP
-.EX
-#include <alef.h>
-void
-main(int argc, byte **argv)
-{
-	int a, ac, bflag;
-	byte *file;
-	Arg *arg;
-
-	arg = arginit(argc, argv);
-	while(ac = argopt(arg)) switch(ac){
-	case 'b':
-		bflag = 1;
-		break;
-	case 'f':
-		file = argf(arg);
-		break;
-	}
-	for(a=0; a<arg->ac; a++)
-		print("argument %s\en", arg->av[a]);
-}
-.EE
 .SH SOURCE
 .B /sys/include/libc.h

@@ -148,7 +148,7 @@ send(uchar *buf, int len)
 			if(isprint(c))
 				fprint(2, "%c", c);
 			else
-				fprint(2, " \0%o", c);
+				fprint(2, " \\0%o", c);
 		}
 		c = c & 0x7f;
 		if(n == 1 && c == Ack)

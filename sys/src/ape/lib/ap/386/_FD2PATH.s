@@ -1,0 +1,4 @@
+TEXT _FD2PATH(SB), 1, $0
+MOVL $23, AX
+INT $64
+RET

@@ -9,16 +9,14 @@
 #include	"y.debug"
 #else
 #define	yydebug		0
+char*	yytoknames[1];		/* for debugging */
+char*	yystates[1];		/* for debugging */
 #endif
 
 /*	parser for yacc output	*/
 
 int	yynerrs = 0;		/* number of errors */
 int	yyerrflag = 0;		/* error recovery flag */
-
-char*	yytoknames[1];		/* for debugging */
-char*	yystates[1];		/* for debugging */
-long	yychar;				/* for debugging */
 
 extern	int	fprint(int, char*, ...);
 extern	int	sprint(char*, char*, ...);
@@ -99,6 +97,7 @@ yyparse(void)
 	int yyj, yym, yystate, yyn, yyg;
 	YYSTYPE save1, save2;
 	int save3, save4;
+	long yychar;
 
 	save1 = yylval;
 	save2 = yyval;
@@ -216,7 +215,7 @@ yyerrlab:
 		case 3:  /* no shift yet; clobber input char */
 			if(yydebug >= YYEOFCODE)
 				printf("error recovery discards %s\n", yytokname(yychar));
-			if(yychar == 0)
+			if(yychar == YYEOFCODE)
 				goto ret1;
 			yychar = -1;
 			goto yynewstate;   /* try again in the same state */

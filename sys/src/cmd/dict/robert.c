@@ -222,7 +222,7 @@ citation(int addr, int cmd)
 		cb = Bouvrir(cfile);
 	Bseek(cb, addr, 0);
 	cit.start = Brdline(cb, 0xc8);
-	cit.end = cit.start + BLINELEN(cb) - 1;
+	cit.end = cit.start + Blinelen(cb) - 1;
 	cit.doff = addr;
 	*cit.end = 0;
 	robertprintentry(&cit, 0, cmd);
@@ -242,7 +242,7 @@ robertprintkey(void)
 
 	db = Bouvrir(kfile);
 	while(l = Brdline(db, '\n'))	/* assign = */
-		Bwrite(bout, l, BLINELEN(db));
+		Bwrite(bout, l, Blinelen(db));
 	Bterm(db);
 }
 
@@ -257,7 +257,7 @@ robertflexentry(Entry e, int cmd)
 	pe = (uchar *)e.end;
 	while(p < pe){
 		if(cmd == 'r'){
-			BPUTC(bout, *p++);
+			Bputc(bout, *p++);
 			continue;
 		}
 		c = *p++;
@@ -277,7 +277,7 @@ robertflexentry(Entry e, int cmd)
 			continue;
 		}
 		if(r < Runeself)
-			BPUTC(bout, r);
+			Bputc(bout, r);
 		else
 			Bputrune(bout, r);
 	}
@@ -291,7 +291,7 @@ robertnextflex(long fromoff)
 
 	if(Bseek(bdict, fromoff, 0) < 0)
 		return -1;
-	while((c = BGETC(bdict)) >= 0){
+	while((c = Bgetc(bdict)) >= 0){
 		if(c == '$')
 			return Boffset(bdict);
 	}

@@ -1,47 +1,71 @@
-#include <u.h>
-#include <libc.h>
-#include <ctype.h>
-#include <bio.h>
+#include	<u.h>
+#include	<libc.h>
+#include	<ctype.h>
+#include	<bio.h>
 
-/* tail command, posix plus v10 option -r.
-   the simple command tail -c, legal in v10, is illegal */
+/*
+ * tail command, posix plus v10 option -r.
+ * the simple command tail -c, legal in v10, is illegal
+ */
 
-long count;
-int anycount;
-int follow;
-int file = 0;
-Biobuf bout;
-enum { BEG, END } origin = END;
-enum { CHARS, LINES } units = LINES;
-enum { FWD, REV } dir = FWD;
+long	count;
+int	anycount;
+int	follow;
+int	file	= 0;
+char*	umsg	= "usage: tail [-n N] [-c N] [-f] [-r] [+-N[bc][fr]] [file]";
 
-extern void copy(void), keep(void), skip(void);
-extern void usage(void), reverse(void);
-extern void trunc(Dir*, Dir*);
-extern void suffix(char*), fatal(char*);
-extern long tseek(long, int);
-extern long tread(char*, long);
-extern void twrite(char*, long);
-extern int getnumber(char*);
-#define jump(o,p) tseek(o,p), copy()
+Biobuf	bout;
+enum
+{
+	BEG,
+	END
+} origin = END;
+enum
+{
+	CHARS,
+	LINES
+} units = LINES;
+enum
+{
+	FWD,
+	REV
+} dir = FWD;
+
+extern	void	copy(void);
+extern	void	fatal(char*);
+extern	int	getnumber(char*);
+extern	void	keep(void);
+extern	void	reverse(void);
+extern	void	skip(void);
+extern	void	suffix(char*);
+extern	long	tread(char*, long);
+extern	void	trunc(Dir*, Dir*);
+extern	long	tseek(long, int);
+extern	void	twrite(char*, long);
+extern	void	usage(void);
+
+#define JUMP(o,p) tseek(o,p), copy()
 
 void
 main(int argc, char **argv)
 {
 	int seekable, c;
+
 	Binit(&bout, 1, OWRITE);
-	for(; argc>1&&((c=*argv[1])=='-'||c=='+'); argc--,argv++ ) {
+	for(; argc > 1 && ((c=*argv[1])=='-'||c=='+'); argc--,argv++ ) {
 		if(getnumber(argv[1])) {
 			suffix(argv[1]);
 			continue;
-		} else if(c == '-')
+		} else
+		if(c == '-')
 			switch(argv[1][1]) {
 			case 'c':
 				units = CHARS;
 			case 'n':
 				if(getnumber(argv[1]+2))
 					continue;
-				else if(argc>2&&getnumber(argv[2])) {
+				else
+				if(argc > 2 && getnumber(argv[2])) {
 					argc--, argv++;
 					continue;
 				} else
@@ -71,15 +95,20 @@ main(int argc, char **argv)
 
 	if(!seekable && origin==END)
 		keep();
-	else if(!seekable && origin==BEG)
+	else
+	if(!seekable && origin==BEG)
 		skip();
-	else if(units==CHARS && origin==END)
-		jump(-count, 2);
-	else if(units==CHARS && origin==BEG)
-		jump(count, 0);
-	else if(units==LINES && origin==END)
+	else
+	if(units==CHARS && origin==END)
+		JUMP(-count, 2);
+	else
+	if(units==CHARS && origin==BEG)
+		JUMP(count, 0);
+	else
+	if(units==LINES && origin==END)
 		reverse();
-	else if(units==LINES && origin==BEG)
+	else
+	if(units==LINES && origin==BEG)
 		skip();
 	if(follow && seekable)
 		for(;;) {
@@ -107,7 +136,7 @@ suffix(char *s)
 		s++;
 	switch(*s) {
 	case 'b':
-		if((count*=1024) < 0)
+		if((count *= 1024) < 0)
 			fatal("too big");
 	case 'c':
 		units = CHARS;
@@ -127,8 +156,11 @@ suffix(char *s)
 	usage();
 }
 
+/*
+ * read past head of the file to find tail
+ */
 void
-skip(void)	/* read past head of the file to find tail */
+skip(void)
 {
 	int i;
 	long n;
@@ -164,26 +196,33 @@ copy(void)
 	}
 }
 
+/*
+ * read whole file, keeping the tail
+ *	complexity is length(file)*length(tail).
+ *	could be linear.
+ */
 void
-keep(void)	/* read whole file, keeping the tail */
-{	/* complexity=length(file)*length(tail).  could be linear */
+keep(void)
+{
 	int len = 0;
 	long bufsiz = 0;
 	char *buf = 0;
 	int j, k, n;
+
 	for(n=1; n;) {
 		if(len+Bsize > bufsiz) {
 			bufsiz += 2*Bsize;
 			if(!(buf = realloc(buf, bufsiz+1)))
 				fatal("out of space");
 		}
-		for( ; n && len<bufsiz; len+=n)
+		for(; n && len<bufsiz; len+=n)
 			n = tread(buf+len, bufsiz-len);
 		if(count >= len)
 			continue;
 		if(units == CHARS)
 			j = len - count;
-		else /*units == LINES*/ {
+		else {
+			/* units == LINES */
 			j = buf[len-1]=='\n'? len-1: len;
 			for(k=0; j>0; j--)
 				if(buf[j-1] == '\n')
@@ -207,8 +246,11 @@ keep(void)	/* read whole file, keeping the tail */
 		twrite(buf, len);
 }
 
+/*
+ * count backward and print tail of file
+ */
 void
-reverse(void)	/* count backward and print tail of file */
+reverse(void)
 {
 	int first;
 	long len = 0;
@@ -216,6 +258,7 @@ reverse(void)	/* count backward and print tail of file */
 	long bufsiz = 0;
 	char *buf = 0;
 	long pos = tseek(0L, 2);
+
 	for(first=1; pos>0 && count>0; first=0) {
 		n = pos>Bsize? Bsize: (int)pos;
 		pos -= n;
@@ -242,7 +285,8 @@ reverse(void)	/* count backward and print tail of file */
 	if(dir == FWD) {
 		tseek(n==0? 0 : pos+n+1, 0);
 		copy();
-	} else if(count > 0)
+	} else
+	if(count > 0)
 		twrite(buf, len);
 }
 
@@ -283,8 +327,9 @@ getnumber(char *s)
 	if(anycount++)
 		fatal("excess option");
 	count = atol(s);
-	if(count < 0 ||		/* overflow */
-	   (int)count != count)	/* protect int args (read, fwrite) */
+
+	/* check range of count */
+	if(count < 0 ||	(int)count != count)
 		fatal("too big");
 	return 1;
 }	
@@ -299,10 +344,9 @@ fatal(char *s)
 	exits(s);
 }
 
-char *u = "usage: tail [-n N] [-c N] [-f] [-r] [+-N[bc][fr]] [file]\n";
 void
 usage(void)
 {
-	write(2, u, strlen(u));
+	fprint(2, "%s\n", umsg);
 	exits("usage");
 }

@@ -13,14 +13,14 @@ static int	nlm;
 static char*	mtype;
 
 static	int attachfiles(char*, int);
-int	xconv(void*, Fconv*);
+int	xconv(va_list*, Fconv*);
 int	isnumeric(char*);
 void	die(void);
 
 void
 usage(void)
 {
-	fprint(2, "usage: acid [-l module] [-m machine] [-wq] [pid] [file]\n");
+	fprint(2, "usage: acid [-l module] [-m machine] [-qrw] [-k] [pid] [file]\n");
 	exits("usage");
 }
 
@@ -28,23 +28,23 @@ void
 main(int argc, char *argv[])
 {
 	Dir db;
+	Lsym *l;
+	Node *n;
 	char buf[128], *s;
 	int pid, i;
 
 	argv0 = argv[0];
 	pid = 0;
-	mtype = 0;
-	aout = "v.out";
+	aout = "8.out";
+	quiet = 1;
 
+	mtype = 0;
 	ARGBEGIN{
-	case 'w':
-		wtflag = 1;
-		break;
-	case 'q':
-		quiet++;
-		break;
 	case 'm':
 		mtype = ARGF();
+		break;
+	case 'w':
+		wtflag = 1;
 		break;
 	case 'l':
 		s = ARGF();
@@ -52,21 +52,44 @@ main(int argc, char *argv[])
 			usage();
 		lm[nlm++] = s;
 		break;
+	case 'k':
+		kernel++;
+		break;
+	case 'q':
+		quiet = 0;
+		break;
+	case 'r':
+		pid = 1;
+		remote++;
+		kernel++;
+		break;
 	default:
 		usage();
 	}ARGEND
 
 	if(argc > 0) {
+		if(remote)
+			aout = argv[0];
+		else
 		if(isnumeric(argv[0])) {
 			pid = atoi(argv[0]);
 			sprint(prog, "/proc/%d/text", pid);
 			aout = prog;
 			if(argc > 1)
 				aout = argv[1];
+			else if(kernel)
+				aout = system();
 		}
-		else
+		else {
+			if(kernel) {
+				fprint(2, "acid: -k requires a pid\n");
+				usage();
+			}
 			aout = argv[0];
-	}
+		}
+	} else
+	if(remote)
+		aout = "/mips/bcarrera";
 
 	fmtinstall('x', xconv);
 	fmtinstall('L', Lconv);
@@ -94,8 +117,17 @@ main(int argc, char *argv[])
 			loadmodule(buf);
 		}
 	}
+
 	userinit();
 	varsym();
+
+	l = look("acidmap");
+	if(l && l->proc) {
+		n = an(ONAME, ZN, ZN);
+		n->sym = l;
+		n = an(OCALL, n, ZN);
+		execute(n);
+	}
 
 	interactive = 1;
 	initialising = 0;
@@ -134,6 +166,7 @@ attachfiles(char *aout, int pid)
 			text = open(aout, ORDWR);
 		else
 			text = open(aout, OREAD);
+
 		if(text < 0)
 			error("%s: can't open %s: %r\n", argv0, aout);
 		readtext(aout);
@@ -154,7 +187,7 @@ die(void)
 	s = look("proclist");
 	if(s && s->v->type == TLIST) {
 		for(f = s->v->l; f; f = f->next)
-			Bprint(bout, "echo kill > /proc/%d/ctl\n", f->ival);
+			Bprint(bout, "echo kill > /proc/%d/ctl\n", (int)f->ival);
 	}
 	exits(0);
 }
@@ -214,15 +247,15 @@ readtext(char *s)
 	extern Machdata mipsmach;
 
 	if(mtype != 0){
-		symmap = newmap(0, text, 1);
+		symmap = newmap(0, 1);
 		if(symmap == 0)
 			print("%s: (error) loadmap: cannot make symbol map\n", argv0);
 		if(dirfstat(text, &d) < 0)
 			d.length = 1<<24;
-		setmap(symmap, 0, d.length, 0, "binary");
+		setmap(symmap, text, 0, d.length, 0, "binary");
 		return;
 	}
-	
+
 	machdata = &mipsmach;
 
 	if(!crackhdr(text, &fhdr)) {
@@ -311,22 +344,28 @@ void
 fatal(char *fmt, ...)
 {
 	char buf[128];
+	va_list arg;
 
-	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
+	va_start(arg, fmt);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	fprint(2, "%s: %L (fatal problem) %s\n", argv0, buf);
 	exits(buf);
 }
 
 void
-yyerror(char *a, ...)
+yyerror(char *fmt, ...)
 {
 	char buf[128];
+	va_list arg;
 
-	if(strcmp(a, "syntax error") == 0) {
+	if(strcmp(fmt, "syntax error") == 0) {
 		yyerror("syntax error, near symbol '%s'", symbol);
 		return;
 	}
-	doprint(buf, buf+sizeof(buf), a, &(&a)[1]);
+	va_start(arg, fmt);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	print("%L: %s\n", buf);
 }
 
@@ -447,16 +486,18 @@ checkqid(int f1, int pid)
 	Dir d1, d2;
 	char buf[128];
 
+	if(kernel)
+		return;
+
 	if(dirfstat(f1, &d1) < 0)
-		fatal("checkqid: dirfstat: %r");
+		fatal("checkqid: (qid not checked) dirfstat: %r");
 
 	sprint(buf, "/proc/%d/text", pid);
 	fd = open(buf, OREAD);
 	if(fd < 0 || dirfstat(fd, &d2) < 0)
-		fatal("checkqid: dirstat %s: %r", buf);
+		fatal("checkqid: (qid not checked) dirstat %s: %r", buf);
 
 	close(fd);
-
 
 	if(memcmp(&d1.qid, &d2.qid, sizeof(d2.qid)))
 		print("warning: image does not match text\n");
@@ -474,6 +515,32 @@ catcher(void *junk, char *s)
 	noted(NDFLT);
 }
 
+char*
+system(void)
+{
+	char *cpu, *p, *q;
+	static char kernel[128];
+
+	cpu = getenv("cputype");
+	if(cpu == 0) {
+		cpu = "mips";
+		print("$cputype not set; assuming %s\n", cpu);
+	}
+	p = getenv("terminal");
+	if(p == 0 || (p=strchr(p, ' ')) == 0 || p[1] == ' ' || p[1] == 0) {
+		p = "9power";
+		print("missing or bad $terminal; assuming %s\n", p);
+	}
+	else{
+		p++;
+		q = strchr(p, ' ');
+		if(q)
+			*q = 0;
+		sprint(kernel, "/%s/9%s", cpu, p);
+	}
+	return kernel;
+}
+
 int
 isnumeric(char *s)
 {
@@ -486,19 +553,8 @@ isnumeric(char *s)
 }
 
 int
-xconv(void *oa, Fconv *f)
+xconv(va_list *arg, Fconv *f)
 {
-
-	/* if !unsigned and negative, emit '-' */
-	if(!(f->f3&32) && *(long*)oa < 0){
-		if(f->out < f->eout)
-			*f->out++ = '-';
-		*(long*)oa = -*(long*)oa;
-	}
-	if(f->out < f->eout-1) {
-		*f->out++ = '0';
-		*f->out++ = 'x';
-	}
-	numbconv(oa, f);
-	return sizeof(long);
+	f->f3 |= 1<<2;
+	return numbconv(arg, f);
 }

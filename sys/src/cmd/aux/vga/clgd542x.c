@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
@@ -7,7 +8,6 @@
  * Cirrus Logic True Color VGA Family - CL-GD542X.
  * Also works for Alpine VGA Family - CL-GD543X.
  * Just the basics. BUGS:
- *   no hwgc support;
  *   the added capabilities of the 543X aren't used.
  */
 
@@ -25,12 +25,20 @@ static Gd542x family[] = {
 	{ 0x9C,  86000000, },		/* CL-GD5429 */
 
 	{ 0xA0,  86000000, },		/* CL-GD5430 */
-	{ 0xA8, 110000000, },		/* CL-GD5434 */
+
+/*
+ * This was 110MHz, but empirically doesn't
+ * work higher than 90. 
+ */
+	{ 0xA8, 90000000, },		/* CL-GD5434 */
+
+	{ 0xAC, 135000000, },		/* CL-GD5436 */
+	{ 0xB8, 135000000, },		/* CL-GD5446 */
 	{ 0x00, },
 };
 
 static Gd542x*
-identify(Vga *vga)
+identify(Vga* vga, Ctlr* ctlr)
 {
 	Gd542x *gd542x;
 	uchar id;
@@ -41,24 +49,20 @@ identify(Vga *vga)
 			return gd542x;
 	}
 
-	error("cannot identify CL-GD542X chip - 0x%2.2X\n", vga->crt[0x27]);
+	error("%s: unknown chip id - 0x%2.2X\n", ctlr->name, vga->crt[0x27]);
 	return 0;
 }
 
 static void
-unlock(void)
-{
-	vgaxo(Seqx, 0x06, 0x12);
-}
-
-static void
-snarf(Vga *vga, Ctlr *ctlr)
+snarf(Vga* vga, Ctlr* ctlr)
 {
 	int i;
+	Gd542x *gd542x;
 
-	verbose("%s->snarf\n", ctlr->name);
-
-	unlock();
+	/*
+	 * Unlock extended registers.
+	 */
+	vgaxo(Seqx, 0x06, 0x12);
 
 	/*
 	 * Save all the registers, even though we'll only
@@ -83,39 +87,74 @@ snarf(Vga *vga, Ctlr *ctlr)
 		vgai(Pixmask);
 	vga->crt[0x28] = vgai(Pixmask);
 
-	/*
-	 * Memory size. The BIOS leaves this in Seq0A, bits 4 and 3.
-	 * See Technical Reference Manual Appendix E1, Section 1.3.2.
-	 */
-	switch((vga->sequencer[0x0A]>>3) & 0x03){
+	i = 0;
+	switch(vga->crt[0x27] & ~0x03){
 
-	case 0:
-		vga->vmb = 256*1024;
+	case 0x88:				/* CL-GD5420 */
+	case 0x8C:				/* CL-GD5422 */
+	case 0x94:				/* CL-GD5424 */
+	case 0x80:				/* CL-GD5425 */
+	case 0x90:				/* CL-GD5426 */
+	case 0x98:				/* CL-GD5427 */
+	case 0x9C:				/* CL-GD5429 */
+		/*
+		 * The BIOS leaves the memory size in Seq0A, bits 4 and 3.
+		 * See Technical Reference Manual Appendix E1, Section 1.3.2.
+		 *
+		 * The storage area for the 64x64 cursors is the last 16Kb of
+		 * display memory.
+		 */
+		i = (vga->sequencer[0x0A]>>3) & 0x03;
 		break;
 
-	case 1:
-		vga->vmb = 512*1024;
+	case 0xA0:				/* CL-GD5430 */
+	case 0xA8:				/* CL-GD5434 */
+	case 0xAC:				/* CL-GD5436 */
+	case 0xB8:				/* CL-GD5446 */
+		/*
+		 * Attempt to intuit the memory size from the DRAM control
+		 * register. Minimum is 512KB.
+		 * If DRAM bank switching is on then there's double.
+		 */
+		i = (vga->sequencer[0x0F]>>3) & 0x03;
+		if(vga->sequencer[0x0F] & 0x80)
+			i++;
+
+		/*
+		 * If it's a PCI card, can do linear.
+		 * Most of the Cirrus chips can do linear addressing with
+		 * all the different buses, but it can get messy. It's easy
+		 * to cut PCI on the CLGD543x chips out of the pack.
+		 */
+		if(((vga->sequencer[0x17]>>3) & 0x07) == 0x04)
+			ctlr->flag |= Hlinear;
 		break;
 
-	case 2:
-		vga->vmb = 1024*1024;
-		break;
-
-	case 3:
-		vga->vmb = 2048*1024;
+	default:				/* uh, ah dunno */
 		break;
 	}
 
+	if(vga->linear && (ctlr->flag & Hlinear)){
+		vga->vmz = 16*1024*1024;
+		vga->vma = 16*1024*1024;
+		ctlr->flag |= Ulinear;
+	}
+	else
+		vga->vmz = (256<<i)*1024;
+
+	gd542x = identify(vga, ctlr);
+	if(vga->f[1] == 0 || vga->f[1] > gd542x->vclk)
+		vga->f[1] = gd542x->vclk;
 	ctlr->flag |= Fsnarf;
 }
 
-static void
-clock(Vga *vga, Ctlr *ctlr)
+void
+clgd54xxclock(Vga* vga, Ctlr* ctlr)
 {
 	int f;
 	ulong d, dmin, fmin, n, nmin, p;
 
-	verbose("%s->init->clock\n", ctlr->name);
+	trace("%s->init->clgd54xxclock\n", ctlr->name);
 
 	/*
 	 * Athough the Technical Reference Manual says only a handful
@@ -129,20 +168,20 @@ clock(Vga *vga, Ctlr *ctlr)
 	 *
 	 * Look for values of n and d and p that give
 	 * the least error for
-	 *	vclk = (Frequency*n)/(d*(1+p));
+	 *	vclk = (RefFreq*n)/(d*(1+p));
 	 *
 	 * There's nothing like brute force and ignorance.
 	 */
-	fmin = vga->f;
+	fmin = vga->f[0];
 	nmin = 69;
 	dmin = 24;
-	if(vga->f >= 40000000)
+	if(vga->f[0] >= 40000000)
 		p = 0;
 	else
 		p = 1;
 	for(n = 1; n < 128; n++){
 		for(d = 1; d < 32; d++){
-			f = vga->f - (Frequency*n)/(d*(1+p));
+			f = vga->f[0] - (RefFreq*n)/(d*(1+p));
 			if(f < 0)
 				f = -f;
 			if(f <= fmin){
@@ -153,42 +192,44 @@ clock(Vga *vga, Ctlr *ctlr)
 		}
 	}
 
-	vga->f = (Frequency*nmin)/(dmin*(1+p));
-	vga->d = dmin;
-	vga->n = nmin;
-	vga->p = p;
+	vga->f[0] = (RefFreq*nmin)/(dmin*(1+p));
+	vga->d[0] = dmin;
+	vga->n[0] = nmin;
+	vga->p[0] = p;
 }
 
 void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
 	Gd542x *gd542x;
 	ushort x;
 
-	verbose("%s->init\n", ctlr->name);
-
 	mode = vga->mode;
-	gd542x = identify(vga);
+	gd542x = identify(vga, ctlr);
 
-	if(vga->f == 0)
-		vga->f = vga->mode->frequency;
-	if(vga->f > gd542x->vclk)
-		error("%s: pclk %d too high\n", ctlr->name, vga->f);
+	if(vga->f[0] == 0)
+		vga->f[0] = vga->mode->frequency;
+	if(vga->f[0] > gd542x->vclk)
+		error("%s: pclk %lud too high (> %lud)\n",
+			ctlr->name, vga->f[0], gd542x->vclk);
+
+	if(mode->z > 8)
+		error("%s: depth %d not supported\n", ctlr->name, mode->z);
 
 	/*
 	 * VCLK3
 	 */
-	clock(vga, ctlr);
+	clgd54xxclock(vga, ctlr);
 	vga->misc |= 0x0C;
-	vga->sequencer[0x0E] = vga->n;
-	vga->sequencer[0x1E] = (vga->d<<1)|vga->p;
+	vga->sequencer[0x0E] = vga->n[0];
+	vga->sequencer[0x1E] = (vga->d[0]<<1)|vga->p[0];
 
 	vga->sequencer[0x07] = 0x00;
 	if(mode->z == 8)
 		vga->sequencer[0x07] |= 0x01;
 
-	if(vga->f >= 42000000)
+	if(vga->f[0] >= 42000000)
 		vga->sequencer[0x0F] |= 0x20;
 	else
 		vga->sequencer[0x0F] &= ~0x20;
@@ -213,6 +254,8 @@ init(Vga *vga, Ctlr *ctlr)
 		vga->crt[0x1B] |= 0x10;
 
 	vga->graphics[0x0B] = 0x00;
+	if(vga->vmz > 1024*1024)
+		vga->graphics[0x0B] |= 0x20;
 
 	if(mode->interlace == 'v'){
 		vga->crt[0x19] = vga->crt[0x00]/2;
@@ -221,12 +264,12 @@ init(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
-	verbose("%s->load\n", ctlr->name);
-
 	vgaxo(Seqx, 0x0E, vga->sequencer[0x0E]);
 	vgaxo(Seqx, 0x1E, vga->sequencer[0x1E]);
+	if(ctlr->flag & Ulinear)
+		vga->sequencer[0x07] |= 0xE0;
 	vgaxo(Seqx, 0x07, vga->sequencer[0x07]);
 	vgaxo(Seqx, 0x0F, vga->sequencer[0x0F]);
 	vgaxo(Seqx, 0x16, vga->sequencer[0x16]);
@@ -240,7 +283,7 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 	char *name;
@@ -271,4 +314,13 @@ Ctlr clgd542x = {
 	init,				/* init */
 	load,				/* load */
 	dump,				/* dump */
+};
+
+Ctlr clgd542xhwgc = {
+	"clgd542xhwgc",			/* name */
+	0,				/* snarf */
+	0,				/* options */
+	0,				/* init */
+	0,				/* load */
+	0,				/* dump */
 };

@@ -14,7 +14,7 @@ OFILES=tcs.$O\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-CFLAGS= -DPLAN9 -w
+CFLAGS= -DPLAN9 $CFLAGS
 
 tcs.$O utf.$O:		hdr.h
 tcs.$O:			jis.h
@@ -24,3 +24,10 @@ tcs.$O gb.$O:		gb.h
 tcs.$O:			cyrillic.h
 tcs.$O:			conv.h
 conv%.$O:		conv.h
+conv_ksc.$O:		ksc.h
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG

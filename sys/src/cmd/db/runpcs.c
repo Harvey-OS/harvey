@@ -29,6 +29,8 @@ runpcs(int runmode, int keepnote)
 	dot = rget(cormap, mach->pc);
 	flush();
 	while (--loopcnt >= 0) {
+		if(loopcnt != 0)
+			printpc();
 		if (runmode == SINGLE) {
 			bkpt = scanbkpt(dot);
 			if (bkpt) {

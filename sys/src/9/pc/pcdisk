@@ -1,58 +1,86 @@
 dev
-	root	/
-	cons	c
-	env	e
-	mnt	M
-	bit	b
-	uart	t
-	pipe	|
-	floppy	f
-	ata	H
-	srv	s
-	dup	d
-	proc	p
-	rtc	r
-	dk	k
-	lpt	L
-	ether	l
-	ip	I	tcpinput tcpoutput tcptimer tcpif stil
-	arp	a
-	iproute	P
-	vga	v
-	audio	A
-	scsi	S	scsi adaptec ultrastor
-	wren	w
-	cdrom	R
-	i82365	y
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	bridge
+
+	ether		netif
+	ip		arp dial inferno ip ipaux iproute kio netlog nullmedium pktmedium ptclbsum386
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+
+	sd
+	floppy		dma
+
+	audio		dma
+	i82365
+	lpt
+	ns16552
+
 
 link
-	stfcall
-	stip
-	stasync
-	sturp
-	ether509
-	ether589
-	ether8003	ether8390
-	ether4100	ether8390
 	ether2000	ether8390
-	vgaclgd542x
-	vgaet4000
-	vgamach32
-	vgas3
-	vgabt485
-	vgatvp3020
+	ether2114x	pci
+	ether589	etherelnk3
+	ether79c970	pci
+	ether8003	ether8390
+	ether82557	pci
+	etherec2t	ether8390
+	etherelnk3	pci
+	ethermedium
+	pcmciamodem
 
 misc
+	archmp		mp apic
+
 	cfs.root
 	kfs.root
+	ppp.root
+	ipconfig.root
+
+	sdata		pci sdscsi
+	sd53c8xx	pci sdscsi
+	sdmylex		pci sdscsi
+
+	vgaark2000pv	+cur
+	vgabt485	=cur
+	vgaclgd542x	+cur
+	vgaclgd546x	+cur
+	vgact65545	+cur
+	vgacyber938x	+cur
+	vgahiqvideo	+cur
+	vgamach64xx	+cur
+	vgamga2164w	+cur
+	vganeomagic	+cur
+	vgargb524	=cur
+	vgas3		+cur
+	vgat2r4		+cur
+	vgatvp3020	=cur
+	vgatvp3026	=cur
+
+ip
+	il
+	tcp
+	udp
+	rudp
+	ipifc
+	icmp
+	gre
+	ipmux
 
 port
 	int cpuserver = 0;
-	void consdebug(void){}
-	int incondev = 0;
 
-boot boot #H/hd0
-	local
-	9600
-	19200
+boot boot #S/sdC0/
 	il
+	local

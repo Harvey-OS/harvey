@@ -1,7 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <libg.h>
+#include <draw.h>
+#include <event.h>
 #include "sky.h"
 #include "strings.c"
 
@@ -50,16 +51,14 @@ long	nreca;
 long	norec;
 long	noreca;
 
-Bitmap	*lightgrey;
-static	uchar lightgreybits[] = {
-	0x11, 0x11, 0x44, 0x44, 0x11, 0x11, 0x44, 0x44,
-	0x11, 0x11, 0x44, 0x44, 0x11, 0x11, 0x44, 0x44,
-	0x11, 0x11, 0x44, 0x44, 0x11, 0x11, 0x44, 0x44,
-	0x11, 0x11, 0x44, 0x44, 0x11, 0x11, 0x44, 0x44,
-};
-
 Biobuf	bin;
 Biobuf	bout;
+
+Image	*grey;
+Image	*green;
+Image	*lightblue;
+Image	*lightgrey;
+Image	*stipple;
 
 main(int argc, char *argv[])
 {
@@ -70,9 +69,14 @@ main(int argc, char *argv[])
 	if(argc != 1)
 		dir = argv[1];
 	while(line = Brdline(&bin, '\n')){
-		line[BLINELEN(&bin)-1] = 0;
+		line[Blinelen(&bin)-1] = 0;
 		lookup(line, 1);
 		Bflush(&bout);
+	}
+	if(display != nil){
+		closedisplay(display);
+		/* automatic refresh of rio window is triggered by mouse */
+		close(open("/dev/mouse", OREAD));
 	}
 	return 0;
 }
@@ -299,17 +303,24 @@ constelopen(void)
 	}
 }
 
-void
+int
 plotopen(void)
 {
-	static int init;
-
-	if(init)
-		return;
-	init = 1;
-	binit(0, 0, "scat");
-	lightgrey = balloc(Rect(0, 0, 16, 16), 0);
-	wrbitmap(lightgrey, 0, 16, lightgreybits);
+	if(display != nil)
+		return 1;
+	display = initdisplay(nil, nil, drawerror);
+	if(display == nil){
+		fprint(2, "initdisplay failed: %r\n");
+		return -1;
+	}
+	grey = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0x777777FF);
+	lightgrey = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0xAAAAAAFF);
+	green = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0x00AA00FF);
+	lightblue = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0x009EEEFF);
+	stipple = allocimage(display, Rect(0, 0, 2, 2), CMAP8, 1, DWhite);
+	draw(stipple, Rect(0, 0, 1, 1), display->black, nil, ZP);
+	draw(stipple, Rect(1, 1, 2, 2), display->black, nil, ZP);
+	return 1;
 }
 
 void
@@ -323,6 +334,7 @@ lowercase(char *s)
 int
 loadngc(long index)
 {
+	static int failed;
 	long j;
 
 	ngcopen();
@@ -331,7 +343,20 @@ loadngc(long index)
 	cur->type = NGC;
 	cur->index = index;
 	seek(ngcdb, j, 0);
-	Eread(ngcdb, "ngc", &cur->ngc, sizeof(NGCrec));
+	/* special case: NGC data may not be available */
+	if(read(ngcdb, &cur->ngc, sizeof(NGCrec)) != sizeof(NGCrec)){
+		if(!failed){
+			fprint(2, "scat: NGC database not available\n");
+			failed++;
+		}
+		cur->type = NONGC;
+		cur->ngc.ngc = 0;
+		cur->ngc.ra = 0;
+		cur->ngc.dec = 0;
+		cur->ngc.diam = 0;
+		cur->ngc.mag = 0;
+		return 0;
+	}
 	cur->ngc.ngc = Short(&cur->ngc.ngc);
 	cur->ngc.ra = Long(&cur->ngc.ra);
 	cur->ngc.dec = Long(&cur->ngc.dec);
@@ -440,6 +465,9 @@ flatten(void)
 			fprint(2, "bad type %d in flatten\n", or->type);
 			break;
 
+		case NONGC:
+			break;
+
 		case Abell:
 		case NGC:
 		case SAO:
@@ -448,8 +476,8 @@ flatten(void)
 			break;
 
 		case NGCN:
-			loadngc(or->index);
-			notflat = 1;
+			if(loadngc(or->index))
+				notflat = 1;
 			break;
 
 		case NamedSAO:
@@ -458,8 +486,8 @@ flatten(void)
 			break;
 
 		case NamedNGC:
-			loadngc(or->index);
-			notflat = 1;
+			if(loadngc(or->index))
+				notflat = 1;
 			break;
 
 		case NamedAbell:
@@ -831,12 +859,34 @@ plot(char *flags)
 	Record *r;
 	Rectangle rect, r1;
 	int folded;
-	int nogrid = 0;
+	int dx, dy, nogrid;
+	Image *scr;
 
+	nogrid = 0;
+	dx = 512;
+	dy = 512;
 	for(;;){
 		if(t = alpha(flags, "nogrid")){
 			nogrid = 1;
 			flags = t;
+			continue;
+		}
+		if(t = alpha(flags, "dx")){
+			dx = strtol(t, &t, 0);
+			if(dx < 100){
+				fprint(2, "dx %d too small (min 100) in plot\n", dx);
+				return;
+			}
+			flags = skipbl(t);
+			continue;
+		}
+		if(t = alpha(flags, "dy")){
+			dy = strtol(t, &t, 0);
+			if(dy < 100){
+				fprint(2, "dy %d too small (min 100) in plot\n", dy);
+				return;
+			}
+			flags = skipbl(t);
 			continue;
 		}
 		if(*flags){
@@ -889,7 +939,7 @@ plot(char *flags)
 	}
 	if(folded){
 		if(ramax-ramin > 270*c){
-			fprint(2, "ra range too wide %d°\n", (ramax-ramin)/c);
+			fprint(2, "ra range too wide %ld°\n", (ramax-ramin)/c);
 			return;
 		}
 	}else if(ramax-ramin > 270*c){
@@ -900,19 +950,24 @@ plot(char *flags)
 		fprint(2, "plot too small\n");
 		return;
 	}
-	flatten();
-	plotopen();
-	screen.r = bscreenrect(0);
-	rect = screen.r;
+	if(plotopen() < 0)
+		return;
+	scr = allocimage(display, Rect(0, 0, dx, dy), display->chan, 0, DBlack);
+	if(scr == nil){
+		fprint(2, "can't allocate image: %r\n");
+		return;
+	}
+	rect = scr->r;
 	rect.min.x += 16;
-	bitblt(&screen, rect.min, &screen, rect, 0xF);
-	rect = inset(rect, 20);
+	rect = insetrect(rect, 20);
 	setmap(ramin, ramax, decmin, decmax, rect);
 	if(!nogrid){
 		for(x=ramin; x<=ramax; x+=c)
-			segment(&screen, map(x, decmin), map(x, decmax), ~0, 0);
+			line(scr, map(x, decmin), map(x, decmax),
+				Endsquare, Endsquare, 0, grey, ZP);
 		for(y=decmin; y<=decmax; y+=c)
-			segment(&screen, map(ramin, y), map(ramax, y), ~0, 0);
+			line(scr, map(ramin, y), map(ramax, y),
+				Endsquare, Endsquare, 0, grey, ZP);
 	}
 	for(i=0,r=rec; i<nrec; i++,r++){
 		dec = r->ngc.dec;
@@ -931,58 +986,70 @@ plot(char *flags)
 				continue;
 			m = dsize(m);
 			if(m < 3)
-				disc(&screen, map(ra, dec), m, ~0, 0);
+				fillellipse(scr, map(ra, dec), m, m, display->white, ZP);
 			else{
-				disc(&screen, map(ra, dec), m+1, ~0, 0xF);
-				disc(&screen, map(ra, dec), m, ~0, 0);
+				ellipse(scr, map(ra, dec), m+1, m+1, 0, display->black, ZP);
+				fillellipse(scr, map(ra, dec), m, m, display->white, ZP);
 			}
 			continue;
 		}
 		if(r->type == Abell){
-			ellipse(&screen, add(map(ra, dec), Pt(-3, 2)), 2, 1, ~0, 0);
-			ellipse(&screen, add(map(ra, dec), Pt(3, 2)), 2, 1, ~0, 0);
-			ellipse(&screen, add(map(ra, dec), Pt(0, -2)), 1, 2, ~0, 0);
+			ellipse(scr, addpt(map(ra, dec), Pt(-3, 2)), 2, 1, 0, lightgrey, ZP);
+			ellipse(scr, addpt(map(ra, dec), Pt(3, 2)), 2, 1, 0, lightgrey, ZP);
+			ellipse(scr, addpt(map(ra, dec), Pt(0, -2)), 1, 2, 0, lightgrey, ZP);
 			continue;
 		}
 		switch(r->ngc.type){
 		case Galaxy:
-			ellipse(&screen, map(ra, dec), 4, 3, ~0, 0);
+			ellipse(scr, map(ra, dec), 4, 3, 0, lightblue, ZP);
 			break;
 
 		case PlanetaryN:
 			p = map(ra, dec);
-			circle(&screen, p, 3, ~0, 0);
-			segment(&screen, Pt(p.x, p.y+4), Pt(p.x, p.y+7), ~0, 0);
-			segment(&screen, Pt(p.x, p.y-4), Pt(p.x, p.y-7), ~0, 0);
-			segment(&screen, Pt(p.x+4, p.y), Pt(p.x+7, p.y), ~0, 0);
-			segment(&screen, Pt(p.x-4, p.y), Pt(p.x-7, p.y), ~0, 0);
+			ellipse(scr, p, 3, 3, 0, green, ZP);
+			line(scr, Pt(p.x, p.y+4), Pt(p.x, p.y+7),
+				Endsquare, Endsquare, 0, green, ZP);
+			line(scr, Pt(p.x, p.y-4), Pt(p.x, p.y-7),
+				Endsquare, Endsquare, 0, green, ZP);
+			line(scr, Pt(p.x+4, p.y), Pt(p.x+7, p.y),
+				Endsquare, Endsquare, 0, green, ZP);
+			line(scr, Pt(p.x-4, p.y), Pt(p.x-7, p.y),
+				Endsquare, Endsquare, 0, green, ZP);
 			break;
 
 		case OpenCl:
-		case NebularCl:
 		case DiffuseN:
+		case NebularCl:
 			p = map(ra, dec);
 			r1.min = Pt(p.x-4, p.y-4);
 			r1.max = Pt(p.x+4, p.y+4);
 			if(r->ngc.type != DiffuseN)
-				texture(&screen, r1, lightgrey, D&~S);
+				draw(scr, r1, lightgrey, stipple, ZP);
 			if(r->ngc.type != OpenCl){
-				bitblt(&screen, r1.min, &screen, r1, F&~D);
-				r1 = inset(r1, -1);
-				bitblt(&screen, r1.min, &screen, r1, F&~D);
+				line(scr, Pt(p.x-4, p.y-4), Pt(p.x+4, p.y-4),
+					Endsquare, Endsquare, 0, green, ZP);
+				line(scr, Pt(p.x-4, p.y+4), Pt(p.x+4, p.y+4),
+					Endsquare, Endsquare, 0, green, ZP);
+				line(scr, Pt(p.x-4, p.y-4), Pt(p.x-4, p.y+4),
+					Endsquare, Endsquare, 0, green, ZP);
+				line(scr, Pt(p.x+4, p.y-4), Pt(p.x+4, p.y+4),
+					Endsquare, Endsquare, 0, green, ZP);
 			}
 			break;
 
 		case GlobularCl:
 			p = map(ra, dec);
-			circle(&screen, p, 4, ~0, 0);
-			segment(&screen, Pt(p.x-3, p.y), Pt(p.x+4, p.y), ~0, 0);
-			segment(&screen, Pt(p.x, p.y-3), Pt(p.x, p.y+4), ~0, 0);
+			ellipse(scr, p, 4, 4, 0, lightgrey, ZP);
+			line(scr, Pt(p.x-3, p.y), Pt(p.x+4, p.y),
+				Endsquare, Endsquare, 0, lightgrey, ZP);
+			line(scr, Pt(p.x, p.y-3), Pt(p.x, p.y+4),
+				Endsquare, Endsquare, 0, lightgrey, ZP);
 			break;
 
 		}
 	}
-	bflush();
+	flushimage(display, 1);
+	displayimage(scr);
 }
 
 void
@@ -1131,7 +1198,7 @@ pplate(char *flags)
 		return;
 	Bprint(&bout, "plate %s locn %d %d %d %d\n", pic->name, pic->minx, pic->miny, pic->maxx, pic->maxy);
 	Bflush(&bout);
-	display(pic);
+	displaypic(pic);
 }
 
 void
@@ -1434,7 +1501,7 @@ lookup(char *s, int doreset)
 		for(i=0; i<nrec; i++)
 			prrec(rec+i);
 	else
-		Bprint(&bout, "%d items\n", nrec);
+		Bprint(&bout, "%ld items\n", nrec);
 	return;
 
     NotFound:
@@ -1550,7 +1617,6 @@ parsename(char *s)
 			parsed[2] = i;
 			return 1;
 		}
-    Return:
 	return 0;
 }
 
@@ -1702,9 +1768,9 @@ prrec(Record *r)
 			default:	/* NGC */
 				nn = (key>>16)&0xFFFF;
 				if(nn > NNGC)
-					Bprint(&bout, " IC%ld", nn-NNGC);
+					Bprint(&bout, " IC%d", nn-NNGC);
 				else
-					Bprint(&bout, " NGC%ld", nn);
+					Bprint(&bout, " NGC%d", nn);
 				Bprint(&bout, "(%s)", ngcstring(key&0x3F));
 				break;
 			}
@@ -1714,9 +1780,9 @@ prrec(Record *r)
 
 	case NGCN:
 		if(r->index <= NNGC)
-			Bprint(&bout, "NGC%d\n", r->index);
+			Bprint(&bout, "NGC%ld\n", r->index);
 		else
-			Bprint(&bout, "IC%d\n", r->index-NNGC);
+			Bprint(&bout, "IC%ld\n", r->index-NNGC);
 		break;
 
 	case NamedSAO:

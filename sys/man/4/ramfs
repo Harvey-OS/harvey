@@ -9,8 +9,8 @@ ramfs  \- memory file system
 [
 .B -s
 ]
-.B -m
 [
+.B -m
 .I mountpoint
 ]
 .SH DESCRIPTION

@@ -7,15 +7,26 @@ scuzz \- SCSI target control
 .B -q
 ]
 [
-.I target-id
+[
+.B -r
+]
+.I sddev
 ]
 .SH DESCRIPTION
 .I Scuzz
 is an interactive program for exercising
 raw SCSI devices.
-It reads commands from standard input and applies them to a SCSI target.
+Its intended purpose is to investigate and manipulate
+odd devices without the effort of writing a special driver,
+such as shuffling the media around on an optical jukebox.
+It reads commands from standard input and applies them to a SCSI target
+(other devices accessed through the
+.IR sd (3)
+interface,
+such as ATA(PI) devices,
+may also work).
 If
-.I target-id
+.I sddev
 is given on the command line, an
 .B open
 (see below)
@@ -42,8 +53,8 @@ or for all commands if no argument is given.
 .B Probe
 attempts an
 .B inquiry
-command on all SCSI target ids,
-and prints the result preceded by the id of those
+command on all SCSI units,
+and prints the result preceded by the name of those
 targets which respond.
 .LP
 The
@@ -52,10 +63,13 @@ and
 .B probe
 commands may be given at any time.
 .TP
-.BI open " target-id
+.BI open\ [ -r ] sddev
 .B Open
 must be given before any of the remaining commands will be accepted.
 Internally,
+unless the
+.B -r
+option is given,
 .B open
 issues
 .B ready
@@ -63,23 +77,24 @@ then
 .BR inquiry ,
 followed by a device class-specific command to determine the
 logical block size of the target.
+.I Sddev
+is an
+.IR sd (3)
+device directory like
+.IR /dev/sdC0 .
 .TP
 .B close
 .B Close
 need only be given if another target is to be opened in the current
 session.
 .LP
-The remaining commands are in two groups,
-generic SCSI commands,
-and those specific to the Philips CDD521 Compact Disc Recorder
-.RB ( flushcache
-onwards).
+The remaining commands are in rough groups,
+intended for specific classes of device.
 With the exception of the
 .BR read ,
 .BR write ,
-.BR space ,
 and
-.B wtrack
+.B space
 commands,
 all arguments are in the style of ANSI-C integer constants.
 .TP
@@ -93,7 +108,7 @@ commands.
 .TP
 .B rezero
 Rezero
-Unit requests that a disc be brought to a known state,
+Unit requests that a disk be brought to a known state,
 usually by seeking to track zero.
 .TP
 .B rewind
@@ -112,7 +127,7 @@ in response to a check-condition status and prints the result.
 .TP
 .B format
 Format
-Unit performs a ``low level'' format of a disc.
+Unit performs a ``low level'' format of a disk.
 .TP
 .B rblimits
 Read Block Limits
@@ -133,15 +148,11 @@ A missing
 causes the entire input file to be transferred.
 .IP
 The first argument to the
-.BR read ,
-.BR write ,
+.BR read
 and
-.B wtrack
-(q.v.)
+.BR write
 commands specifies a source
-.RB ( write
-and
-.BR wtrack )
+.RB ( write )
 or destination
 .RB ( read )
 for the I/O.
@@ -154,7 +165,7 @@ The argument may be quoted in the style of
 .TP
 .BI seek " offset whence
 .B Seek
-requests the target to seek to a position on a disc,
+requests the target to seek to a position on a disk,
 arguments being in the style of
 .IR seek (2);
 .I whence
@@ -177,7 +188,7 @@ commands all manipulate the internal offset.
 Write Filemarks
 writes one (default) or more filemarks on a tape.
 .TP
-.BI space\ [-b]\ [-f]\ [[--] howmany ]
+.BI space\ [ -b ]\ [ -f ]\ [[ "--\fP]\fIhowmany\fP]"
 .B Space
 positions a tape forwards or backwards.
 The arguments
@@ -205,15 +216,21 @@ is issued to determine the device type of a particular target,
 and to determine some basic information about the implemented options and
 the product name.
 .TP
-.BI modeselect " bytes...
+.BI modeselect bytes...
+.TP
+.BI modeselect6 bytes...
 Mode
 Select
 is issued to set variable parameters in the target.
 .I Bytes
 given as arguments comprise all the data for the target;
 see an appropriate manual for the format.
+The default is the 10-byte form of the command;
+modeselect6 is the 6-byte version.
 .TP
-.BI modesense\ [ page \ [ nbytes ]]
+.BI modesense\ [ page [ nbytes ]]
+.TP
+.BI modesense6\ [ page [ nbytes ]]
 Mode
 Sense
 reports variable and fixed parameters from the target.
@@ -223,16 +240,21 @@ is given,
 all pages are returned.
 .I Nbytes
 specifies how many bytes should be returned.
+The default is the 10-byte form of the command;
+modesense6 is the 6-byte version.
 .TP
-.BI start " code
+.BI start\ [ code ]
 .TP
-.BI stop " code
+.BI stop\ [ code ]
 .TP
-.BI eject " code
+.BI eject\ [ code ]
+.TP
+.BI ingest\ [ code ]
 .BR Start ,
 .BR stop ,
+.BR eject ,
 and
-.B eject
+.B ingest
 are synonyms for Start/Stop Unit with different default values of
 .IR code .
 Start/Stop Unit is typically used to spin up and spin down a rotating
@@ -244,76 +266,88 @@ is 0 to stop,
 .TP
 .B capacity
 Read Capacity reports the number of blocks and the block
-size of a disc.
+size of a disk.
 .LP
-The remaining commands are specific to the CDD521 Compact Disc Recorder.
-A brief description of each is given; see the manual for details of arguments.
+The following commands are specific to CD and CD-R/RW devices.
+A brief description of each is given; see the SCSI-3
+Multimedia Commands (MMC) Specification for details of arguments
+and interpretation of the results.
 .TP
-.B flushcache
-The Flush Cache command forces data in the cache memory
-of the CDD521 to be written to the physical medium.
+.BI blank\ [ track/LBA [ type ]]
+Erase a CD-RW disk.
+Type identifies the method and coverage of the blanking.
 .TP
-.BI rdiscinfo\ [ track/session-number [ ses ]]
+.BI rtoc\ [ track/session-number [ ses ]]
 The Read TOC/PMA command transfers data from one of the tables of contents
 (TOC or PMA) on the CD medium.
 .TP
-.BI fwaddr\ [ track [ mode [ npa\fP]]]
-The First Writable Address command reports the next logical writable address
-for the next
-.B write
-command.
+.B rdiscinfo
+(Note the spelling.)
+Provides information about disks, including incomplete CD-R/RW.
 .TP
-.BI treserve " nbytes
-The Reserve Track command reserves one track on the disc.
-Tracks can only be reserved in successive order.
+.BI rtrackinfo\ [ track ]
+Provides information about a track, regardless of its status.
 .TP
-.BI trackinfo " track
-Read Track Info reports the starting
-address, the length of a given track on the disc
-and the number of free blocks in that track.
+.B cdpause
 .TP
-.B "wtrack \f2file\fP [\f2nbytes\fP [\f2track\fP [\f2mode\fP]]]
-Write Track sets up for track-writing if 
-.I nbytes
-is 0 (default), or
-writes a complete track.
-See
-.B write
-above.
+.B cdresume
+Pause/resume playback.
 .TP
-.B load
+.B cdstop
+Stop playback.
 .TP
-.B "unload
-Load
-and
-Unload
-open or close the tray.
+.BI cdplay\ [ track-number ]\ or\ [ -r [ "LBA\fP[\fIlength\fP]]]"
+Play audio.
+With no arguments, starts at the beginning of the medium.
+If a track number is given, the table of contents is read
+to find the playback start point.
+If the
+.B -r
+option is given, block addressing is used to find the
+playback start point.
 .TP
-.BI fixation\ [ toc-type ]
-.I Fixation
-writes table of contents (TOC) and LEADOUT information to the disc to
-complete a session.
+.BI cdload\ [ slot ]
+.TP
+.BI cdunload\ [ slot ]
+Load/unload a disk from a changer.
+.TP
+.B cdstatus
+Read the mechanism status.
+.LP
+The following commands are specific to Media Changer devices.
+A brief description of each is given; see the SCSI-3
+Medium Changer Commands (SMC) Specification for details of arguments.
+.TP
+.B einit
+Initialize element status.
+.TP
+.BI estatus type [ length ]
+Report the status of the internal elements.
+Type 0 reports all element types.
+.TP
+.BI mmove transport\ source\ destination [ invert ]
+Move medium.
 .SH FILES
-.TF #S/scsi-target-id/data
+.TF /dev/sdXX/raw
 .TP
-.B #S/\fIscsi-target-id\fP/cmd
-raw SCSI interface for command and status.
-.TP
-.B #S/\fIscsi-target-id\fP/data
-raw SCSI interface for I/O.
+.B /dev/\fIsdXX\fP/raw
+raw SCSI interface for command, I/O, and status.
 .SH SOURCE
 .B /sys/src/cmd/scuzz
 .SH "SEE ALSO"
-.IR scsi (3)
+.IR sd (3)
 .br
 .IR "Small Computer System Interface - 2 (X3T9.2/86-109)" ,
 Global Engineering Documents
 .br
-.IR "SCSI Command Set CDD521/10" ,
-Philips IMS
-.br
 .IR "SCSI Bench Reference" ,
 ENDL Publications
+.br
+.IR "SCSI-3 Multimedia Commands (MMC) Specification" ,
+www.t10.org
+.br
+.IR "SCSI-3 Medium Changer Commands (SMC) Specification" ,
+www.t10.org
 .SH BUGS
 Only a limited subset of SCSI commands has been implemented (as needed).
 .LP
@@ -322,3 +356,15 @@ Only one target can be open at a time.
 LUNs other than 0 are not supported.
 .LP
 No way to force 6- or 10- byte commands.
+.LP
+Should be recoded to use
+.IR scsi (2)
+in order to get more complete sense code descriptions.
+.LP
+.I Scuzz
+betrays its origins by spelling
+.B rdiscinfo
+with a
+.B c
+even though the devices it manpulates are spelled with a
+.BR k .

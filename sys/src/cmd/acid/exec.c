@@ -11,6 +11,7 @@ error(char *fmt, ...)
 {
 	int i;
 	char buf[2048];
+	va_list arg;
 
 	/* Unstack io channels */
 	if(iop != 0) {
@@ -26,7 +27,9 @@ error(char *fmt, ...)
 	if(silent)
 		silent = 0;
 	else {
-		doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
+		va_start(arg, fmt);
+		doprint(buf, buf+sizeof(buf), fmt, arg);
+		va_end(arg);
 		fprint(2, "%L: (error) %s\n", buf);
 	}
 	while(popio())
@@ -203,6 +206,7 @@ indir(Map *m, ulong addr, char fmt, Node *r)
 {
 	int i;
 	long ival;
+	vlong vval;
 	int ret;
 	uchar cval;
 	ushort sval;
@@ -242,12 +246,21 @@ indir(Map *m, ulong addr, char fmt, Node *r)
 	case 'U':
 	case 'O':
 	case 'Q':
-	case 'Y':
 		r->type = TINT;
 		ret = get4(m, addr, &ival);
 		if (ret < 0)
 			error("indir: %r");
 		r->ival = ival;
+		break;
+	case 'V':
+	case 'W':
+	case 'Y':
+	case 'Z':
+		r->type = TINT;
+		ret = get8(m, addr, &vval);
+		if (ret < 0)
+			error("indir: %r");
+		r->ival = vval;
 		break;
 	case 's':
 		r->type = TSTRING;
@@ -384,8 +397,13 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 	case 'D':
 	case 'U':
 	case 'O':
-	case 'Y':
 		ret = put4(m, aes.ival, res.ival);
+		break;
+	case 'V':
+	case 'W':
+	case 'Y':
+	case 'Z':
+		ret = put8(m, aes.ival, res.ival);
 		break;
 	case 's':
 	case 'R':

@@ -146,7 +146,7 @@ usmsg(char *flagarg)
 					if (*s==']') depth--;
 					else if (*s=='[') depth++;
 				print(" ");
-				print("%.*s", s-t, t);
+				print("%.*s", (int)(s-t), t);
 			}
 			else
 				while(count--) print(" arg");

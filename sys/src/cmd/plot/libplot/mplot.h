@@ -1,7 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <stdio.h>
-#include <libg.h>
+#include <draw.h>
+#include <event.h>
 #define SCX(A) ((((A) - e1->xmin)*e1->scalex  + e1->left)+.5)
 #define SCY(A) ((((A) - e1->ymin)*e1->scaley + e1->bottom)+.5)
 #define	SCR(A) ((A)*e1->scalex+.5)
@@ -24,18 +25,7 @@ struct seg {
 	int x, y, X, Y;
 	char stat;
 };
-/*
- * Color values -- these only work with ldepth=3 & standard plan 9 color map
- */
-#define	RGB(r,g,b) (255&~(((r)<<5)|((g)<<2)|((b)>>1)))
-#define ZERO	RGB(0,0,0)	/* really should be ~0, but bcolor uses neg for error */
-#define RED	RGB(7,0,0)
-#define GREEN	RGB(0,7,0)
-#define YELLOW	RGB(7,7,0)
-#define BLUE	RGB(0,0,7)
-#define MAGENTA	RGB(7,0,7)
-#define CYAN	RGB(0,7,7)
-#define WHITE	RGB(7,7,7)
+
 /*
  * display parameters
  */
@@ -54,3 +44,4 @@ void m_swapbuf(void);
 void m_dblbuf(void);
 int bcolor(char *);
 void sscpy(struct penvir *, struct penvir *);
+Image *getcolor(int);

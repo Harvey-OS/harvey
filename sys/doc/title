@@ -15,12 +15,16 @@ Volume 2
 .sp |6i
 .ft I
 .ce
-Second Edition
-.sp |9.25i-1
+Third Edition
+.ce
+2000
+.sp |9i-1
 .ce
 Computing Science Research Center
 .ce
-AT&T Bell Laboratories
+Bell Laboratories
+.ce
+Lucent Technologies
 .ce
 Murray Hill, New Jersey
 .bp
@@ -32,9 +36,8 @@ Murray Hill, New Jersey
 .ps 8
 .sp |1i
 .nf
-Copyright © 1995 AT&T Corp. All Rights Reserved.
+Copyright © 2000 Lucent Technologies Inc.  All Rights Reserved.
 Portions Copyright © 1988, 1995 Aladdin Enterprises. All Rights Reserved.
-Portions Copyright © 1995 Sky Publishing Corporation. All Rights Reserved.
 .sp 3
 .ps 10
 Cover Design: Gerard J. Holzmann

@@ -27,6 +27,15 @@
 /*
  * Fundamental addresses
  */
+#define IDTADDR		0x80000800		/* idt */
+#define APBOOTSTRAP	0x80001000		/* AP bootstrap code */
+#define CONFADDR	0x80001200		/* info passed from boot loader */
+#define CPU0PDB		0x80002000		/* bootstrap processor PDB */
+#define CPU0PTE		0x80003000		/* bootstrap processor PTE's for 0-4MB */
+#define MACHADDR	0x80004000		/* as seen by current processor */
+#define CPU0MACH	0x80005000		/* Mach for bootstrap processor */
+#define	MACHSIZE	(BY2PG*8)	/* stack size */
+
 
 /*
  *  Address spaces
@@ -36,8 +45,6 @@
 #define	KZERO		0x80000000		/* base of kernel address space */
 #define	KTZERO		KZERO			/* first address in kernel text */
 #define ROMBIOS		(KZERO|0xF0000)
-
-#define	MACHSIZE	4096
 
 /*
  *  known 80386 segments (in GDT) and their selectors

@@ -1,907 +1,805 @@
 #include "mem.h"
 
-#define OP16	BYTE	$0x66
-#define NOP	XCHGL	AX,AX
+#define PADDR(a)	((a) & ~KZERO)
+#define KADDR(a)	(KZERO|(a))
 
 /*
- *	about to walk all over ms/dos - turn off interrupts
+ * Some machine instructions not handled by 8[al].
  */
-TEXT	origin(SB),$0
+#define OP16		BYTE $0x66
+#define	DELAY		BYTE $0xEB; BYTE $0x00	/* JMP .+2 */
+#define CPUID		BYTE $0x0F; BYTE $0xA2	/* CPUID, argument in AX */
+#define WRMSR		BYTE $0x0F; BYTE $0x30	/* WRMSR, argument in AX/DX (lo/hi) */
+#define RDMSR		BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
+#define WBINVD		BYTE $0x0F; BYTE $0x09
 
+/*
+ * Macros for calculating offsets within the page directory base
+ * and page tables. Note that these are assembler-specific hence
+ * the '<<2'.
+ */
+#define PDO(a)		(((((a))>>22) & 0x03FF)<<2)
+#define PTO(a)		(((((a))>>12) & 0x03FF)<<2)
+
+/*
+ * Entered here from the bootstrap programme possibly via a jump to 0x00100020, so
+ * need to make another jump to set the correct virtual address.
+ * In protected mode with paging turned on, the first 4MB of physical memory mapped
+ * to KZERO and up.
+ */
+TEXT _start0x00100020(SB),$0
 	CLI
-
-#ifdef BOOT
-/*
- *	This part of l.s is used only in the boot kernel.
- *	It assumes that we are in real address mode, i.e.,
- *	that we look like an 8086.
- */
-/*
- *	relocate everything to a half meg and jump there
- *	- looks wierd because it is being assembled by a 32 bit
- *	  assembler for a 16 bit world
- */
-	MOVL	$0,BX
-	INCL	BX
-	SHLL	$15,BX
-	MOVL	BX,CX
-	MOVW	BX,ES
-	MOVL	$0,SI
-	MOVL	SI,DI
-	CLD; REP; MOVSL
-/*	JMPFAR	0X8000:$lowcore(SB) /**/
-	 BYTE	$0xEA
-	 WORD	$lowcore(SB)
-	 WORD	$0X8000
-
-TEXT	lowcore(SB),$0
-
-/*
- *	now that we're in low core, update the DS
- */
-
-	MOVW	BX,DS
-
-/*
- * 	goto protected mode
- */
-/*	MOVL	tgdtptr(SB),GDTR /**/
-	 BYTE	$0x0f
-	 BYTE	$0x01
-	 BYTE	$0x16
-	 WORD	$tgdtptr(SB)
-	MOVL	CR0,AX
-	ORL	$1,AX
-	MOVL	AX,CR0
-
-/*
- *	clear prefetch queue (weird code to avoid optimizations)
- */
-	CLC
-	JCC	flush
-	MOVL	AX,AX
-flush:
-
-/*
- *	set all segs
- */
-/*	MOVW	$SELECTOR(1, SELGDT, 0),AX	/**/
-	 BYTE	$0xc7
-	 BYTE	$0xc0
-	 WORD	$SELECTOR(1, SELGDT, 0)
-	MOVW	AX,DS
-	MOVW	AX,SS
-	MOVW	AX,ES
-	MOVW	AX,FS
-	MOVW	AX,GS
-
-/*	JMPFAR	SELECTOR(2, SELGDT, 0):$mode32bit(SB) /**/
-	 BYTE	$0x66
-	 BYTE	$0xEA
-	 LONG	$mode32bit-KZERO(SB)
-	 WORD	$SELECTOR(2, SELGDT, 0)
-
-TEXT	mode32bit(SB),$0
-
-#endif BOOT
-
-	/*
-	 * Clear BSS
-	 */
-	LEAL	edata-KZERO(SB),SI
-	MOVL	SI,DI
-	ADDL	$4,DI
-	MOVL	$0,AX
-	MOVL	AX,(SI)
-	LEAL	end-KZERO(SB),CX
-	SUBL	DI,CX
-	SHRL	$2,CX
-	CLD; REP; MOVSL
-
-	/*
-	 *  make a bottom level page table page that maps the first
-	 *  16 meg of physical memory
-	 */
-	LEAL	tpt-KZERO(SB),AX	/* get phys addr of temporary page table */
-	ADDL	$(BY2PG-1),AX		/* must be page alligned */
-	ANDL	$(~(BY2PG-1)),AX	/* ... */
-	MOVL	$(1024),CX		/* pte's per page */
-	MOVL	$((((1024)-1)<<PGSHIFT)|PTEVALID|PTEKERNEL|PTEWRITE),BX
-setpte:
-	MOVL	BX,-4(AX)(CX*4)
-	SUBL	$(1<<PGSHIFT),BX
-	LOOP	setpte
-
-	/*
-	 *  make a top level page table page that maps the first
-	 *  16 meg of memory to 0 thru 16meg and to KZERO thru KZERO+16meg
-	 */
-	MOVL	AX,BX
-	ADDL	$(BY2PG),AX
-	ADDL	$(PTEVALID|PTEKERNEL|PTEWRITE),BX
-	MOVL	BX,0(AX)
-	MOVL	BX,((((KZERO>>1)&0x7FFFFFFF)>>(2*PGSHIFT-1-4))+0)(AX)
-
-	/*
-	 *  point processor to top level page & turn on paging & make
-	 *  supervisor obey the R/W bit in the page map
-	 */
-	MOVL	AX,CR3
-	MOVL	CR0,AX
-	ORL	$0X80010000,AX
-	ANDL	$~(0x40000000|0x20000000|0x8|0x2),AX	/* CD=0, NW=0, TS=0, MP=0 */
-	MOVL	AX,CR0
-
-	/*
-	 *  use a jump to an absolute location to get the PC into
-	 *  KZERO.
-	 */
-	LEAL	tokzero(SB),AX
+	MOVL	$_start0x80100020(SB), AX
 	JMP*	AX
 
-TEXT	tokzero(SB),$0
+/*
+ * First check if the bootstrap programme left the first 4MB nicely mapped, otherwise
+ * make the basic page tables for processor 0. Four pages are needed for the basic set:
+ * a page directory, a page table for mapping the first 4MB of physical memory, and
+ * virtual and physical pages for mapping the Mach structure.
+ * The remaining PTEs will be allocated later when memory is sized.
+ */
+TEXT _start0x80100020(SB), $0
+	MOVL	CR3, AX				/* check the page directory base */
+	CMPL	AX, $PADDR(CPU0PDB)
+	JEQ	_clearbss
 
-	/*
-	 *  stack and mach
-	 */
-	MOVL	$mach0(SB),SP
-	MOVL	SP,m(SB)
-	MOVL	$0,0(SP)
-	ADDL	$(MACHSIZE-4),SP	/* start stack under machine struct */
-	MOVL	$0, u(SB)
+	MOVL	$CPU0PDB, DI			/* clear 4 pages for the tables etc. */
+	XORL	AX, AX
+	MOVL	$(4*BY2PG), CX
+	SHRL	$2, CX
 
-	/*
-	 *  clear flags
-	 */
-	MOVL	$0,AX
+	CLD
+	REP;	STOSL
+
+	MOVL	$CPU0PDB, AX
+	ADDL	$PDO(KZERO), AX			/* page directory offset for KZERO */
+	MOVL	$PADDR(CPU0PTE), (AX)		/* PTE's for 0x80000000 */
+	MOVL	$(PTEWRITE|PTEVALID), BX	/* page permissions */
+	ORL	BX, (AX)
+
+	MOVL	$CPU0PTE, AX			/* first page of page table */
+	MOVL	$1024, CX			/* 1024 pages in 4MB */
+_setpte:
+	MOVL	BX, (AX)
+	ADDL	$(1<<PGSHIFT), BX
+	ADDL	$4, AX
+	LOOP	_setpte
+
+	MOVL	$CPU0PTE, AX
+	ADDL	$PTO(MACHADDR), AX		/* page table entry offset for MACHADDR */
+	MOVL	$PADDR(CPU0MACH), (AX)		/* PTE for Mach */
+	MOVL	$(PTEWRITE|PTEVALID), BX	/* page permissions */
+	ORL	BX, (AX)
+
+/*
+ * Now ready to use the new map. Make sure the processor options are what is wanted.
+ * It is necessary on some processors to follow mode switching with a JMP instruction
+ * to clear the prefetch queues.
+ * There's a little mystery here - the Pentium Pro appears to need an identity
+ * mmu map for the switch to virtual mode. The manual doesn't say this is necessary
+ * and it isn't required on the Pentium.
+ * To this end double map KZERO at virtual 0 and undo the mapping once virtual
+ * nirvana has been attained.
+ */
+	MOVL	$PADDR(CPU0PDB), CX		/* load address of page directory */
+	MOVL	CX, BX
+	MOVL	(PDO(KZERO))(BX), DX		/* double-map KZERO at 0 */
+	MOVL	DX, (PDO(0))(BX)
+	MOVL	CX, CR3
+	DELAY					/* JMP .+2 */
+
+	MOVL	CR0, DX
+	ORL	$0x80010000, DX			/* PG|WP */
+	ANDL	$~0x6000000A, DX		/* ~(CD|NW|TS|MP) */
+
+	MOVL	$_startpg(SB), AX
+	MOVL	DX, CR0				/* turn on paging */
+	JMP*	AX
+
+/*
+ * Basic machine environment set, can clear BSS and create a stack.
+ * The stack starts at the top of the page containing the Mach structure.
+ * The x86 architecture forces the use of the same virtual address for
+ * each processor's Mach structure, so the global Mach pointer 'm' can
+ * be initialised here.
+ */
+TEXT _startpg(SB), $0
+	MOVL	CX, AX				/* physical address of PDB */
+	ORL	$KZERO, AX
+	MOVL	$0, (PDO(0))(AX)		/* undo double-map of KZERO at 0 */
+	MOVL	CX, CR3				/* load and flush the mmu */
+
+_clearbss:
+	MOVL	$edata(SB), DI
+	XORL	AX, AX
+	MOVL	$end(SB), CX
+	SUBL	DI, CX				/* end-edata bytes */
+	SHRL	$2, CX				/* end-edata doublewords */
+
+	CLD
+	REP;	STOSL				/* clear BSS */
+
+	MOVL	$MACHADDR, SP
+	MOVL	SP, m(SB)			/* initialise global Mach pointer */
+	MOVL	$0, 0(SP)			/* initialise m->machno */
+
+	ADDL	$(MACHSIZE-4), SP		/* initialise stack */
+
+/*
+ * Need to do one final thing to ensure a clean machine environment,
+ * clear the EFLAGS register, which can only be done once there is a stack.
+ */
+	MOVL	$0, AX
 	PUSHL	AX
 	POPFL
 
 	CALL	main(SB)
 
-loop:
-	JMP	loop
-
-GLOBL	mach0+0(SB), $MACHSIZE
-GLOBL	u(SB), $4
-GLOBL	m(SB), $4
-GLOBL	tpt(SB), $(BY2PG*3)
+/*
+ * Park a processor. Should never fall through a return from main to here,
+ * should only be called by application processors when shutting down.
+ */
+TEXT idle(SB), $0
+_idle:
+	STI
+	HLT
+	JMP	_idle
 
 /*
- *  gdt to get us to 32-bit/segmented/unpaged mode
+ * Port I/O.
+ *	in[bsl]		input a byte|short|long
+ *	ins[bsl]	input a string of bytes|shorts|longs
+ *	out[bsl]	output a byte|short|long
+ *	outs[bsl]	output a string of bytes|shorts|longs
  */
-TEXT	tgdt(SB),$0
-
-	/* null descriptor */
-	LONG	$0
-	LONG	$0
-
-	/* data segment descriptor for 4 gigabytes (PL 0) */
-	LONG	$(0xFFFF)
-	LONG	$(SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(0)|SEGDATA|SEGW)
-
-	/* exec segment descriptor for 4 gigabytes (PL 0) */
-	LONG	$(0xFFFF)
-	LONG	$(SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(0)|SEGEXEC|SEGR)
-
-/*
- *  pointer to initial gdt
- */
-TEXT	tgdtptr(SB),$0
-
-	WORD	$(3*8)
-	LONG	$tgdt-KZERO(SB)
-
-/*
- *  input a byte
- */
-TEXT	inb(SB),$0
-
-	MOVL	p+0(FP),DX
-	XORL	AX,AX
+TEXT inb(SB), $0
+	MOVL	port+0(FP), DX
+	XORL	AX, AX
 	INB
 	RET
 
-/*
- *  input a string of bytes from a port
- */
-TEXT	insb(SB),$0
-
-	MOVL	p+0(FP),DX
-	MOVL	a+4(FP),DI
-	MOVL	c+8(FP),CX
-	CLD; REP; INSB
+TEXT insb(SB), $0
+	MOVL	port+0(FP), DX
+	MOVL	address+4(FP), DI
+	MOVL	count+8(FP), CX
+	CLD
+	REP;	INSB
 	RET
 
-/*
- *  output a byte
- */
-TEXT	outb(SB),$0
-
-	MOVL	p+0(FP),DX
-	MOVL	b+4(FP),AX
-	OUTB
-	RET
-
-/*
- *  output a string of bytes to a port
- */
-TEXT	outsb(SB),$0
-
-	MOVL	p+0(FP),DX
-	MOVL	a+4(FP),SI
-	MOVL	c+8(FP),CX
-	CLD; REP; OUTSB
-	RET
-
-/*
- * input a short from a port
- */
-TEXT	ins(SB), $0
-
-	MOVL	p+0(FP), DX
+TEXT ins(SB), $0
+	MOVL	port+0(FP), DX
 	XORL	AX, AX
-	OP16; INL
+	OP16;	INL
 	RET
 
-/*
- *  input a string of shorts from a port
- */
-TEXT	inss(SB),$0
-
-	MOVL	p+0(FP),DX
-	MOVL	a+4(FP),DI
-	MOVL	c+8(FP),CX
-	CLD; REP; OP16; INSL
+TEXT inss(SB), $0
+	MOVL	port+0(FP), DX
+	MOVL	address+4(FP), DI
+	MOVL	count+8(FP), CX
+	CLD
+	REP;	OP16; INSL
 	RET
 
-/*
- * input a long from a port
- */
-TEXT	inl(SB), $0
-
-	MOVL	p+0(FP), DX
-	XORL	AX, AX
+TEXT inl(SB), $0
+	MOVL	port+0(FP), DX
 	INL
 	RET
 
-/*
- *  input a string of longs from a port
- */
-TEXT	insl(SB),$0
-
-	MOVL	p+0(FP),DX
-	MOVL	a+4(FP),DI
-	MOVL	c+8(FP),CX
-	CLD; REP; INSL
+TEXT insl(SB), $0
+	MOVL	port+0(FP), DX
+	MOVL	address+4(FP), DI
+	MOVL	count+8(FP), CX
+	CLD
+	REP;	INSL
 	RET
 
-/*
- * output a short to a port
- */
-TEXT	outs(SB), $0
-	MOVL	p+0(FP), DX
-	MOVL	s+4(FP), AX
-	OP16; OUTL
+TEXT outb(SB), $0
+	MOVL	port+0(FP), DX
+	MOVL	byte+4(FP), AX
+	OUTB
 	RET
 
-/*
- *  output a string of shorts to a port
- */
-TEXT	outss(SB),$0
-
-	MOVL	p+0(FP),DX
-	MOVL	a+4(FP),SI
-	MOVL	c+8(FP),CX
-	CLD; REP; OP16; OUTSL
+TEXT outsb(SB),$0
+	MOVL	port+0(FP), DX
+	MOVL	address+4(FP), SI
+	MOVL	count+8(FP), CX
+	CLD
+	REP;	OUTSB
 	RET
 
-/*
- * output a long to a port
- */
-TEXT	outl(SB), $0
-	MOVL	p+0(FP), DX
-	MOVL	s+4(FP), AX
+TEXT outs(SB), $0
+	MOVL	port+0(FP), DX
+	MOVL	short+4(FP), AX
+	OP16;	OUTL
+	RET
+
+TEXT outss(SB), $0
+	MOVL	port+0(FP), DX
+	MOVL	address+4(FP), SI
+	MOVL	count+8(FP), CX
+	CLD
+	REP;	OP16; OUTSL
+	RET
+
+TEXT outl(SB), $0
+	MOVL	port+0(FP), DX
+	MOVL	long+4(FP), AX
 	OUTL
 	RET
 
-/*
- *  output a string of longs to a port
- */
-TEXT	outsl(SB),$0
-
-	MOVL	p+0(FP),DX
-	MOVL	a+4(FP),SI
-	MOVL	c+8(FP),CX
-	CLD; REP; OUTSL
+TEXT outsl(SB), $0
+	MOVL	port+0(FP), DX
+	MOVL	address+4(FP), SI
+	MOVL	count+8(FP), CX
+	CLD
+	REP;	OUTSL
 	RET
 
 /*
- *  test and set
+ * Read/write various system registers.
+ * CR4 and the 'model specific registers' should only be read/written
+ * after it has been determined the processor supports them
  */
-TEXT	tas(SB),$0
-	MOVL	$0xdeadead,AX
-	MOVL	l+0(FP),BX
-	XCHGL	AX,(BX)
+TEXT lgdt(SB), $0				/* GDTR - global descriptor table */
+	MOVL	gdtptr+0(FP), AX
+	MOVL	(AX), GDTR
 	RET
 
-/*
- *  exchange 2 32-bit words, this is an interlocked (LOCK#) instruction
- */
-TEXT	ilputl(SB),$0
-	MOVL	v+4(FP),AX
-	MOVL	a+0(FP),BX
-	XCHGL	AX,(BX)
+TEXT lidt(SB), $0				/* IDTR - interrupt descriptor table */
+	MOVL	idtptr+0(FP), AX
+	MOVL	(AX), IDTR
 	RET
 
-/*
- *  routines to load/read various system registers
- */
-GLOBL	idtptr(SB),$6
-TEXT	putidt(SB),$0		/* interrupt descriptor table */
-	MOVL	t+0(FP),AX
-	MOVL	AX,idtptr+2(SB)
-	MOVL	l+4(FP),AX
-	MOVW	AX,idtptr(SB)
-	MOVL	idtptr(SB),IDTR
+TEXT ltr(SB), $0				/* TR - task register */
+	MOVL	tptr+0(FP), AX
+	MOVW	AX, TASK
 	RET
 
-GLOBL	gdtptr(SB),$6
-TEXT	putgdt(SB),$0		/* global descriptor table */
-	MOVL	t+0(FP),AX
-	MOVL	AX,gdtptr+2(SB)
-	MOVL	l+4(FP),AX
-	MOVW	AX,gdtptr(SB)
-	MOVL	gdtptr(SB),GDTR
+TEXT getcr0(SB), $0				/* CR0 - processor control */
+	MOVL	CR0, AX
 	RET
 
-TEXT	putcr3(SB),$0		/* top level page table pointer */
-	MOVL	t+0(FP),AX
-	MOVL	AX,CR3
+TEXT getcr2(SB), $0				/* CR2 - page fault linear address */
+	MOVL	CR2, AX
 	RET
 
-TEXT	puttr(SB),$0		/* task register */
-	MOVL	t+0(FP),AX
-	MOVW	AX,TASK
+TEXT getcr3(SB), $0				/* CR3 - page directory base */
+	MOVL	CR3, AX
 	RET
 
-TEXT	getcr0(SB),$0		/* coprocessor bits */
-	MOVL	CR0,AX
+TEXT putcr3(SB), $0
+	MOVL	cr3+0(FP), AX
+	MOVL	AX, CR3
 	RET
 
-TEXT	getcr2(SB),$0		/* fault address */
-	MOVL	CR2,AX
+TEXT getcr4(SB), $0				/* CR4 - extensions */
+	MOVL	CR4, AX
 	RET
 
-#define	FPOFF\
-	WAIT;\
-	MOVL	CR0,AX;\
-	ORL	$0x24,AX	/* EM=1, NE=1 */;\
-	MOVL	AX,CR0
+TEXT putcr4(SB), $0
+	MOVL	cr4+0(FP), AX
+	MOVL	AX, CR4
+	RET
 
-#define	FPON\
-	MOVL	CR0,AX;\
-	ANDL	$~0x4,AX	/* EM=0 */;\
-	MOVL	AX,CR0
+TEXT rdmsr(SB), $0				/* model-specific register */
+	MOVL	index+0(FP), CX
+	RDMSR
+	MOVL	vlong+4(FP), CX			/* &vlong */
+	MOVL	AX, (CX)			/* lo */
+	MOVL	DX, 4(CX)			/* hi */
+	RET
 	
-TEXT	fpoff(SB),$0		/* turn off floating point */
+TEXT wrmsr(SB), $0
+	MOVL	index+0(FP), CX
+	MOVL	lo+4(FP), AX
+	MOVL	hi+8(FP), DX
+	WRMSR
+	RET
+
+TEXT wbinvd(SB), $0
+	WBINVD
+	RET
+
+/*
+ * Try to determine the CPU type which requires fiddling with EFLAGS.
+ * If the Id bit can be toggled then the CPUID instruciton can be used
+ * to determine CPU identity and features. First have to check if it's
+ * a 386 (Ac bit can't be set). If it's not a 386 and the Id bit can't be
+ * toggled then it's an older 486 of some kind.
+ *
+ *	cpuid(id[], &ax, &dx);
+ */
+TEXT cpuid(SB), $0
+	MOVL	$0x240000, AX
+	PUSHL	AX
+	POPFL					/* set Id|Ac */
+
+	PUSHFL
+	POPL	BX				/* retrieve value */
+
+	MOVL	$0, AX
+	PUSHL	AX
+	POPFL					/* clear Id|Ac, EFLAGS initialised */
+
+	PUSHFL
+	POPL	AX				/* retrieve value */
+	XORL	BX, AX
+	TESTL	$0x040000, AX			/* Ac */
+	JZ	_cpu386				/* can't set this bit on 386 */
+	TESTL	$0x200000, AX			/* Id */
+	JZ	_cpu486				/* can't toggle this bit on some 486 */
+
+	MOVL	$0, AX
+	CPUID
+	MOVL	id+0(FP), BP
+	MOVL	BX, 0(BP)			/* "Genu" "Auth" "Cyri" */
+	MOVL	DX, 4(BP)			/* "ineI" "enti" "xIns" */
+	MOVL	CX, 8(BP)			/* "ntel" "cAMD" "tead" */
+
+	MOVL	$1, AX
+	CPUID
+	JMP	_cpuid
+
+_cpu486:
+	MOVL	$0x400, AX
+	MOVL	$0, DX
+	JMP	_cpuid
+
+_cpu386:
+	MOVL	$0x300, AX
+	MOVL	$0, DX
+
+_cpuid:
+	MOVL	ax+4(FP), BP
+	MOVL	AX, 0(BP)
+	MOVL	dx+8(FP), BP
+	MOVL	DX, 0(BP)
+	RET
+
+/*
+ * Basic timing loop to determine CPU frequency.
+ */
+TEXT aamloop(SB), $0
+	MOVL	count+0(FP), CX
+_aamloop:
+	AAM
+	LOOP	_aamloop
+	RET
+
+/*
+ * Floating point.
+ */
+#define	FPOFF								;\
+	WAIT								;\
+	MOVL	CR0, AX							;\
+	ANDL	$~0x4, AX			/* EM=0 */		;\
+	ORL	$0x28, AX			/* NE=1, TS=1 */	;\
+	MOVL	AX, CR0
+
+#define	FPON								;\
+	MOVL	CR0, AX							;\
+	ANDL	$~0xC, AX			/* EM=0, TS=0 */	;\
+	MOVL	AX, CR0
+	
+TEXT fpoff(SB), $0				/* disable */
 	FPOFF
 	RET
 
-TEXT	fpinit(SB),$0		/* turn on & init the floating point */
+TEXT fpinit(SB), $0				/* enable and init */
 	FPON
 	FINIT
 	WAIT
 	PUSHW	$0x033E
-	FLDCW	0(SP)		/* ignore underflow/precision, signal others */
+	FLDCW	0(SP)				/* ignore underflow/precision, signal others */
 	POPW	AX
 	WAIT
 	RET
 
-TEXT	fpsave(SB),$0		/* save floating point state and turn off */
-	MOVL	p+0(FP),AX
-	WAIT
-	FSAVE	0(AX)
+TEXT fpsave(SB), $0				/* save state and disable */
+	MOVL	p+0(FP), AX
+	FSAVE	0(AX)				/* no WAIT */
 	FPOFF
 	RET
 
-TEXT	fprestore(SB),$0	/* turn on floating point and restore regs */
+TEXT fprestore(SB), $0				/* enable and restore state */
 	FPON
-	MOVL	p+0(FP),AX
+	MOVL	p+0(FP), AX
 	FRSTOR	0(AX)
 	WAIT
 	RET
 
-TEXT	fpstatus(SB),$0		/* get floating point status */
+TEXT fpstatus(SB), $0				/* get floating point status */
 	FSTSW	AX
 	RET
 
-TEXT	fpenv(SB),$0		/* save floating point environment without waiting */
-	MOVL	p+0(FP),AX
+TEXT fpenv(SB), $0				/* save state without waiting */
+	MOVL	p+0(FP), AX
 	FSTENV	0(AX)
 	RET
 
 /*
- *  special traps
  */
-TEXT	intr0(SB),$0
-	PUSHL	$0
-	PUSHL	$0
-	JMP	intrcommon
-TEXT	intr1(SB),$0
-	PUSHL	$0
-	PUSHL	$1
-	JMP	intrcommon
-TEXT	intr2(SB),$0
-	PUSHL	$0
-	PUSHL	$2
-	JMP	intrcommon
-TEXT	intr3(SB),$0
-	PUSHL	$0
-	PUSHL	$3
-	JMP	intrcommon
-TEXT	intr4(SB),$0
-	PUSHL	$0
-	PUSHL	$4
-	JMP	intrcommon
-TEXT	intr5(SB),$0
-	PUSHL	$0
-	PUSHL	$5
-	JMP	intrcommon
-TEXT	intr6(SB),$0
-	PUSHL	$0
-	PUSHL	$6
-	JMP	intrcommon
-TEXT	intr7(SB),$0
-	PUSHL	$0
-	PUSHL	$7
-	JMP	intrcommon
-TEXT	intr8(SB),$0
-	PUSHL	$8
-	JMP	intrscommon
-TEXT	intr9(SB),$0
-	PUSHL	$0
-	PUSHL	$9
-	JMP	intrcommon
-TEXT	intr10(SB),$0
-	PUSHL	$10
-	JMP	intrscommon
-TEXT	intr11(SB),$0
-	PUSHL	$11
-	JMP	intrscommon
-TEXT	intr12(SB),$0
-	PUSHL	$12
-	JMP	intrscommon
-TEXT	intr13(SB),$0
-	PUSHL	$13
-	JMP	intrscommon
-TEXT	intr14(SB),$0
-	PUSHL	$14
-	JMP	intrscommon
-TEXT	intr15(SB),$0
-	PUSHL	$0
-	PUSHL	$15
-	JMP	intrcommon
-TEXT	intr16(SB),$0
-	PUSHL	$0
-	PUSHL	$16
-	JMP	intrcommon
-TEXT	intr24(SB),$0
-	PUSHL	$0
-	PUSHL	$24
-	JMP	intrcommon
-TEXT	intr25(SB),$0
-	PUSHL	$0
-	PUSHL	$25
-	JMP	intrcommon
-TEXT	intr26(SB),$0
-	PUSHL	$0
-	PUSHL	$26
-	JMP	intrcommon
-TEXT	intr27(SB),$0
-	PUSHL	$0
-	PUSHL	$27
-	JMP	intrcommon
-TEXT	intr28(SB),$0
-	PUSHL	$0
-	PUSHL	$28
-	JMP	intrcommon
-TEXT	intr29(SB),$0
-	PUSHL	$0
-	PUSHL	$29
-	JMP	intrcommon
-TEXT	intr30(SB),$0
-	PUSHL	$0
-	PUSHL	$30
-	JMP	intrcommon
-TEXT	intr31(SB),$0
-	PUSHL	$0
-	PUSHL	$31
-	JMP	intrcommon
-TEXT	intr32(SB),$0
-	PUSHL	$0
-	PUSHL	$32
-	JMP	intrcommon
-TEXT	intr33(SB),$0
-	PUSHL	$0
-	PUSHL	$33
-	JMP	intrcommon
-TEXT	intr34(SB),$0
-	PUSHL	$0
-	PUSHL	$34
-	JMP	intrcommon
-TEXT	intr35(SB),$0
-	PUSHL	$0
-	PUSHL	$35
-	JMP	intrcommon
-TEXT	intr36(SB),$0
-	PUSHL	$0
-	PUSHL	$36
-	JMP	intrcommon
-TEXT	intr37(SB),$0
-	PUSHL	$0
-	PUSHL	$37
-	JMP	intrcommon
-TEXT	intr38(SB),$0
-	PUSHL	$0
-	PUSHL	$38
-	JMP	intrcommon
-TEXT	intr39(SB),$0
-	PUSHL	$0
-	PUSHL	$39
-	JMP	intrcommon
-TEXT	intr64(SB),$0
-	PUSHL	$0
-	PUSHL	$64
-	JMP	intrcommon
-TEXT	intrbad(SB),$0
-	PUSHL	$0
-	PUSHL	$0x1ff
-	JMP	intrcommon
+TEXT splhi(SB), $0
+	MOVL	$(MACHADDR+0x04), AX 		/* save PC in m->splpc */
+	MOVL	(SP), BX
+	MOVL	BX, (AX)
 
-intrcommon:
-	PUSHL	DS
-	PUSHL	ES
-	PUSHL	FS
-	PUSHL	GS
-	PUSHAL
-	MOVL	$(KDSEL),AX
-	MOVW	AX,DS
-	MOVW	AX,ES
-	LEAL	0(SP),AX
-	PUSHL	AX
-	CALL	trap(SB)
-	POPL	AX
-	POPAL
-	NOP
-	POPL	GS
-	POPL	FS
-	POPL	ES
-	POPL	DS
-	NOP
-	ADDL	$8,SP	/* error code and trap type */
-	IRETL
-
-intrscommon:
-	PUSHL	DS
-	PUSHL	ES
-	PUSHL	FS
-	PUSHL	GS
-	PUSHAL
-	MOVL	$(KDSEL),AX
-	MOVW	AX,DS
-	MOVW	AX,ES
-	LEAL	0(SP),AX
-	PUSHL	AX
-	CALL	trap(SB)
-	POPL	AX
-	POPAL
-	NOP
-	POPL	GS
-	POPL	FS
-	POPL	ES
-	POPL	DS
-	NOP
-	ADDL	$8,SP	/* error code and trap type */
-	IRETL
-
-/*
- *  interrupt level is interrupts on or off
- */
-TEXT	spllo(SB),$0
-	PUSHFL
-	POPL	AX
-	STI
-	RET
-
-TEXT	splhi(SB),$0
 	PUSHFL
 	POPL	AX
 	CLI
 	RET
 
-TEXT	splx(SB),$0
-	MOVL	s+0(FP),AX
+TEXT spllo(SB), $0
+	PUSHFL
+	POPL	AX
+	STI
+	RET
+
+TEXT splx(SB), $0
+	MOVL	$(MACHADDR+0x04), AX 		/* save PC in m->splpc */
+	MOVL	(SP), BX
+	MOVL	BX, (AX)
+
+TEXT splxpc(SB), $0				/* for iunlock */
+	MOVL	s+0(FP), AX
 	PUSHL	AX
 	POPFL
 	RET
 
-/*
- *  do nothing whatsoever till interrupt happens
- */
-TEXT	idle(SB),$0
-	HLT
+TEXT spldone(SB), $0
 	RET
+
+TEXT islo(SB), $0
+	PUSHFL
+	POPL	AX
+	ANDL	$0x200, AX			/* interrupt enable flag */
+	RET
+
+/*
+ * Test-And-Set
+ */
+TEXT tas(SB), $0
+	MOVL	$0xDEADDEAD, AX
+	MOVL	lock+0(FP), BX
+	XCHGL	AX, (BX)			/* lock->key */
+	RET
+
+TEXT wbflush(SB), $0
+	CPUID
+	RET
+
+TEXT xchgw(SB), $0
+	MOVL	v+4(FP), AX
+	MOVL	p+0(FP), BX
+	XCHGW	AX, (BX)
+	RET
+
+/*
+TEXT xchgl(SB), $0
+	MOVL	v+4(FP), AX
+	MOVL	p+0(FP), BX
+	XCHGL	AX, (BX)
+	RET
+ */
 
 /*
  *  label consists of a stack pointer and a PC
  */
-TEXT	gotolabel(SB),$0
-	MOVL	l+0(FP),AX
-	MOVL	0(AX),SP	/* restore sp */
-	MOVL	4(AX),AX	/* put return pc on the stack */
-	MOVL	AX,0(SP)
-	MOVL	$1,AX		/* return 1 */
+TEXT gotolabel(SB), $0
+	MOVL	label+0(FP), AX
+	MOVL	0(AX), SP			/* restore sp */
+	MOVL	4(AX), AX			/* put return pc on the stack */
+	MOVL	AX, 0(SP)
+	MOVL	$1, AX				/* return 1 */
 	RET
 
-TEXT	setlabel(SB),$0
-	MOVL	l+0(FP),AX
-	MOVL	SP,0(AX)	/* store sp */
-	MOVL	0(SP),BX	/* store return pc */
-	MOVL	BX,4(AX)
-	MOVL	$0,AX		/* return 0 */
+TEXT setlabel(SB), $0
+	MOVL	label+0(FP), AX
+	MOVL	SP, 0(AX)			/* store sp */
+	MOVL	0(SP), BX			/* store return pc */
+	MOVL	BX, 4(AX)
+	MOVL	$0, AX				/* return 0 */
 	RET
 
 /*
- *  Used to get to the first process.
- *  Set up an interrupt return frame and IRET to user level.
+ * Interrupt/exception handling.
+ * Each entry in the vector table calls either _strayintr or _strayintrx depending
+ * on whether an error code has been automatically pushed onto the stack
+ * (_strayintrx) or not, in which case a dummy entry must be pushed before retrieving
+ * the trap type from the vector table entry and placing it on the stack as part
+ * of the Ureg structure.
+ * The size of each entry in the vector table (6 bytes) is known in trapinit().
  */
-TEXT	touser(SB),$0
-	PUSHL	$(UDSEL)		/* old ss */
-	MOVL	sp+0(FP),AX		/* old sp */
-	PUSHL	AX
-	PUSHFL				/* old flags */
-	PUSHL	$(UESEL)		/* old cs */
-	PUSHL	$(UTZERO+32)		/* old pc */
-	MOVL	$(UDSEL),AX
-	MOVW	AX,DS
-	MOVW	AX,ES
-	MOVW	AX,GS
-	MOVW	AX,FS
+TEXT _strayintr(SB), $0
+	PUSHL	AX			/* save AX */
+	MOVL	4(SP), AX		/* return PC from vectortable(SB) */
+	JMP	intrcommon
+
+TEXT _strayintrx(SB), $0
+	XCHGL	AX, (SP)		/* swap AX with vectortable CALL PC */
+intrcommon:
+	PUSHL	DS			/* save DS */
+	PUSHL	$(KDSEL)
+	POPL	DS			/* fix up DS */
+	MOVBLZX	(AX), AX		/* trap type -> AX */
+	XCHGL	AX, 4(SP)		/* exchange trap type with saved AX */
+
+	PUSHL	ES			/* save ES */
+	PUSHL	$(KDSEL)
+	POPL	ES			/* fix up ES */
+
+	PUSHL	FS			/* save the rest of the Ureg struct */
+	PUSHL	GS
+	PUSHAL
+
+	PUSHL	SP			/* Ureg* argument to trap */
+	CALL	trap(SB)
+
+TEXT forkret(SB), $0
+	POPL	AX
+	POPAL
+	POPL	GS
+	POPL	FS
+	POPL	ES
+	POPL	DS
+	ADDL	$8, SP				/* pop error code and trap type */
 	IRETL
 
-/*
- *  set configuration register
- */
-TEXT	config(SB),$0
-	MOVL	l+0(FP),AX
-	MOVL	$0x3F3,DX
-	OUTB
-	OUTB
-	RET
-
-/*
- *  copy bitmap changes to screen memory for ldepth 0 screen.
- *  reverse the bits since the screen is big-endian
- *  and the bitmaps are little.
- */
-TEXT	l0update(SB),$0
-	MOVL	len+8(FP),CX
-	SHRL	$1,CX
-	MOVL	from+4(FP),SI
-	MOVL	to+0(FP),DI
-	XORL	AX,AX
-l00:
-	MOVW	-2(SI)(CX*2),DX
-	MOVB	DH,AL
-	MOVB	revtab0(SB)(AX*1),BX
-	SHLL	$8,BX
-	MOVB	DL,AL
-	ORB	revtab0(SB)(AX*1),BX
-	MOVW	BX,-2(DI)(CX*2)
-	LOOP	l00
-	RET
-
-#define SRX	0x3C4		/* index to sequence registers */
-#define	SR	0x3C5		/* sequence registers */
-#define Smmask	0x02		/*  map mask */
-
-/*
- *  same as l0update but for ldepth 1 (2 bit plane) screens
- */
-TEXT	l1update(SB),$0
-	XORL	AX,AX
-	MOVL	from+4(FP),SI
-	MOVL	to+0(FP),DI
-	MOVL	len+8(FP),CX
-	MOVB	$(Smmask),AL
-	MOVW	$(SRX),DX
-	OUTB
-l10:
-	MOVL	-4(SI)(CX*2),DX
-	MOVB	DL,AL
-	MOVL	l1revsep(SB)(AX*4),BX
-	SHLL	$4,BX
-	RORL	$8,DX
-	MOVB	DL,AL
-	ORL	l1revsep(SB)(AX*4),BX
-	RORL	$12,BX
-	RORL	$8,DX
-	MOVB	DL,AL
-	ORL	l1revsep(SB)(AX*4),BX
-	SHLL	$4,BX
-	RORL	$8,DX
-	MOVB	DL,AL
-	ORL	l1revsep(SB)(AX*4),BX
-	ROLL	$8,BX
-	MOVW	$(SR),DX
-	MOVB	$0x5,AL			/* write lo order bits to bit planes 1 & 3 */
-	OUTB
-	MOVW	BX,-2(DI)(CX*1)
-	SHRL	$16,BX			/* write hi order bits to bit planes 0 & 2 */
-	MOVB	$0xA,AL
-	OUTB
-	MOVW	BX,-2(DI)(CX*1)
-	LOOP	l10
-	RET
-
-/*
- *  same as l0update but for ldepth 2 (4 bit plane) screens
- */
-TEXT	l2update(SB),$0
-	XORL	AX,AX
-	MOVL	from+4(FP),SI
-	MOVL	to+0(FP),DI
-	MOVL	len+8(FP),CX
-	MOVB	$(Smmask),AL
-	MOVW	$(SRX),DX
-	OUTB
-l20:
-	MOVL	-4(SI)(CX*4),DX
-	MOVB	DL,AL
-	MOVL	l2revsep(SB)(AX*4),BX
-	SHLL	$2,BX
-	SHRL	$8,DX
-	MOVB	DL,AL
-	ORL	l2revsep(SB)(AX*4),BX
-	SHLL	$2,BX
-	SHRL	$8,DX
-	MOVB	DL,AL
-	ORL	l2revsep(SB)(AX*4),BX
-	SHLL	$2,BX
-	SHRL	$8,DX
-	MOVB	DL,AL
-	ORL	l2revsep(SB)(AX*4),BX
-	MOVW	$(SR),DX
-	MOVB	$0x1,AL			/* plane 3 */
-	OUTB
-	MOVB	BX,-1(DI)(CX*1)
-	MOVB	$0x2,AL			/* plane 2 */
-	OUTB
-	SHRL	$8,BX
-	MOVB	BX,-1(DI)(CX*1)
-	MOVB	$0x4,AL			/* plane 1 */
-	OUTB
-	SHRL	$8,BX
-	MOVB	BX,-1(DI)(CX*1)
-	MOVB	$0x8,AL			/* plane 0*/
-	OUTB
-	SHRL	$8,BX
-	MOVB	BX,-1(DI)(CX*1)
-	LOOP	l20
-	RET
-
-/*
- * The DP8390 ethernet chip needs some time between
- * successive chip selects, so we force a jump into
- * the instruction stream to break the pipeline.
- */
-TEXT dp8390inb(SB), $0
-	MOVL	p+0(FP),DX
-	XORL	AX,AX				/* CF = 0 */
-	INB
-
-	JCC	_dp8390inb0			/* always true */
-	MOVL	AX,AX
-
-_dp8390inb0:
-	RET
-
-TEXT dp8390outb(SB), $0
-	MOVL	p+0(FP),DX
-	MOVL	b+4(FP),AX
-	OUTB
-
-	CLC					/* CF = 0 */
-	JCC	_dp8390outb0			/* always true */
-	MOVL	AX,AX
-
-_dp8390outb0:
-	RET
-
-/*
- * dsp outb string called from devdsp.c
- */
-	TEXT	dspoutb+0(SB), $0
-
-	MOVL	a+4(FP), BX
-	MOVL	n+8(FP), CX
-
-	MOVL	base+0(FP), DX
-	ADDL	$2, DX			/* Pcontrol */
-
-	MOVL	c2+12(FP), DI
-	MOVL	c3+16(FP), SI
-
-dsploop:
-	MOVL	DI, AX			/* normal */
-	OUTB
-
-	SUBL	$1, CX
-	CMPL	CX, $0
-	JLT	dspout
-
-	SUBL	$2, DX			/* Pdata */
-	MOVB	(BX), AX
-	ADDL	$1, BX
-	OUTB
-
-	ADDL	$2, DX			/* Pcontrol */
-	MOVL	SI, AX			/* strobe */
-	OUTB
-
-	JMP	dsploop
-
-dspout:
-	RET
-
-
-/*
- *  return cpu type (586 == pentium or better)
- */
-TEXT	x86cpuid(SB),$0
-
-	PUSHFL
-	MOVL	0(SP),AX
-	XORL	$0x240000,AX
-	PUSHL	AX
-	POPFL
-	PUSHFL
-	MOVL	0(SP),AX
-	XORL	4(SP),AX
-	MOVL	AX, BX
-	ANDL	$0x40000,BX	/* on 386 we can't change this bit */
-	JZ	is386
-	ANDL	$0x200000,AX	/* if we can't change this, there's no CPUID */
-	JZ	is486
-	MOVL	$1,AX
-	/* CPUID */
-	 BYTE $0x0F
-	 BYTE $0xA2
-	JMP	done
-is486:
-	MOVL	$(4<<8),AX
-	MOVL	$0,DX
-	JMP	done
-is386:
-	MOVL	$(3<<8),AX
-	MOVL	$0,DX
-done:
-	MOVL	a+0(FP),CX
-	MOVL	AX,0(CX)
-	MOVL	d+4(FP),CX
-	MOVL	DX,0(CX)
-	POPFL
-	POPL	BX
-	RET
-
-/*
- *  basic timing loop to determine CPU frequency
- */
-TEXT	aamloop(SB),$0
-
-	MOVL	c+0(FP),CX
-aaml1:
-	AAM
-	LOOP	aaml1
-	RET
+TEXT vectortable(SB), $0
+	CALL _strayintr(SB); BYTE $0x00		/* divide error */
+	CALL _strayintr(SB); BYTE $0x01		/* debug exception */
+	CALL _strayintr(SB); BYTE $0x02		/* NMI interrupt */
+	CALL _strayintr(SB); BYTE $0x03		/* breakpoint */
+	CALL _strayintr(SB); BYTE $0x04		/* overflow */
+	CALL _strayintr(SB); BYTE $0x05		/* bound */
+	CALL _strayintr(SB); BYTE $0x06		/* invalid opcode */
+	CALL _strayintr(SB); BYTE $0x07		/* no coprocessor available */
+	CALL _strayintrx(SB); BYTE $0x08	/* double fault */
+	CALL _strayintr(SB); BYTE $0x09		/* coprocessor segment overflow */
+	CALL _strayintrx(SB); BYTE $0x0A	/* invalid TSS */
+	CALL _strayintrx(SB); BYTE $0x0B	/* segment not available */
+	CALL _strayintrx(SB); BYTE $0x0C	/* stack exception */
+	CALL _strayintrx(SB); BYTE $0x0D	/* general protection error */
+	CALL _strayintrx(SB); BYTE $0x0E	/* page fault */
+	CALL _strayintr(SB); BYTE $0x0F		/*  */
+	CALL _strayintr(SB); BYTE $0x10		/* coprocessor error */
+	CALL _strayintrx(SB); BYTE $0x11	/* alignment check */
+	CALL _strayintr(SB); BYTE $0x12		/* machine check */
+	CALL _strayintr(SB); BYTE $0x13
+	CALL _strayintr(SB); BYTE $0x14
+	CALL _strayintr(SB); BYTE $0x15
+	CALL _strayintr(SB); BYTE $0x16
+	CALL _strayintr(SB); BYTE $0x17
+	CALL _strayintr(SB); BYTE $0x18
+	CALL _strayintr(SB); BYTE $0x19
+	CALL _strayintr(SB); BYTE $0x1A
+	CALL _strayintr(SB); BYTE $0x1B
+	CALL _strayintr(SB); BYTE $0x1C
+	CALL _strayintr(SB); BYTE $0x1D
+	CALL _strayintr(SB); BYTE $0x1E
+	CALL _strayintr(SB); BYTE $0x1F
+	CALL _strayintr(SB); BYTE $0x20		/* VectorLAPIC */
+	CALL _strayintr(SB); BYTE $0x21
+	CALL _strayintr(SB); BYTE $0x22
+	CALL _strayintr(SB); BYTE $0x23
+	CALL _strayintr(SB); BYTE $0x24
+	CALL _strayintr(SB); BYTE $0x25
+	CALL _strayintr(SB); BYTE $0x26
+	CALL _strayintr(SB); BYTE $0x27
+	CALL _strayintr(SB); BYTE $0x28
+	CALL _strayintr(SB); BYTE $0x29
+	CALL _strayintr(SB); BYTE $0x2A
+	CALL _strayintr(SB); BYTE $0x2B
+	CALL _strayintr(SB); BYTE $0x2C
+	CALL _strayintr(SB); BYTE $0x2D
+	CALL _strayintr(SB); BYTE $0x2E
+	CALL _strayintr(SB); BYTE $0x2F
+	CALL _strayintr(SB); BYTE $0x30
+	CALL _strayintr(SB); BYTE $0x31
+	CALL _strayintr(SB); BYTE $0x32
+	CALL _strayintr(SB); BYTE $0x33
+	CALL _strayintr(SB); BYTE $0x34
+	CALL _strayintr(SB); BYTE $0x35
+	CALL _strayintr(SB); BYTE $0x36
+	CALL _strayintr(SB); BYTE $0x37
+	CALL _strayintr(SB); BYTE $0x38
+	CALL _strayintr(SB); BYTE $0x39
+	CALL _strayintr(SB); BYTE $0x3A
+	CALL _strayintr(SB); BYTE $0x3B
+	CALL _strayintr(SB); BYTE $0x3C
+	CALL _strayintr(SB); BYTE $0x3D
+	CALL _strayintr(SB); BYTE $0x3E
+	CALL _strayintr(SB); BYTE $0x3F
+	CALL _syscallintr(SB); BYTE $0x40	/* VectorSYSCALL */
+	CALL _strayintr(SB); BYTE $0x41
+	CALL _strayintr(SB); BYTE $0x42
+	CALL _strayintr(SB); BYTE $0x43
+	CALL _strayintr(SB); BYTE $0x44
+	CALL _strayintr(SB); BYTE $0x45
+	CALL _strayintr(SB); BYTE $0x46
+	CALL _strayintr(SB); BYTE $0x47
+	CALL _strayintr(SB); BYTE $0x48
+	CALL _strayintr(SB); BYTE $0x49
+	CALL _strayintr(SB); BYTE $0x4A
+	CALL _strayintr(SB); BYTE $0x4B
+	CALL _strayintr(SB); BYTE $0x4C
+	CALL _strayintr(SB); BYTE $0x4D
+	CALL _strayintr(SB); BYTE $0x4E
+	CALL _strayintr(SB); BYTE $0x4F
+	CALL _strayintr(SB); BYTE $0x50
+	CALL _strayintr(SB); BYTE $0x51
+	CALL _strayintr(SB); BYTE $0x52
+	CALL _strayintr(SB); BYTE $0x53
+	CALL _strayintr(SB); BYTE $0x54
+	CALL _strayintr(SB); BYTE $0x55
+	CALL _strayintr(SB); BYTE $0x56
+	CALL _strayintr(SB); BYTE $0x57
+	CALL _strayintr(SB); BYTE $0x58
+	CALL _strayintr(SB); BYTE $0x59
+	CALL _strayintr(SB); BYTE $0x5A
+	CALL _strayintr(SB); BYTE $0x5B
+	CALL _strayintr(SB); BYTE $0x5C
+	CALL _strayintr(SB); BYTE $0x5D
+	CALL _strayintr(SB); BYTE $0x5E
+	CALL _strayintr(SB); BYTE $0x5F
+	CALL _strayintr(SB); BYTE $0x60
+	CALL _strayintr(SB); BYTE $0x61
+	CALL _strayintr(SB); BYTE $0x62
+	CALL _strayintr(SB); BYTE $0x63
+	CALL _strayintr(SB); BYTE $0x64
+	CALL _strayintr(SB); BYTE $0x65
+	CALL _strayintr(SB); BYTE $0x66
+	CALL _strayintr(SB); BYTE $0x67
+	CALL _strayintr(SB); BYTE $0x68
+	CALL _strayintr(SB); BYTE $0x69
+	CALL _strayintr(SB); BYTE $0x6A
+	CALL _strayintr(SB); BYTE $0x6B
+	CALL _strayintr(SB); BYTE $0x6C
+	CALL _strayintr(SB); BYTE $0x6D
+	CALL _strayintr(SB); BYTE $0x6E
+	CALL _strayintr(SB); BYTE $0x6F
+	CALL _strayintr(SB); BYTE $0x70
+	CALL _strayintr(SB); BYTE $0x71
+	CALL _strayintr(SB); BYTE $0x72
+	CALL _strayintr(SB); BYTE $0x73
+	CALL _strayintr(SB); BYTE $0x74
+	CALL _strayintr(SB); BYTE $0x75
+	CALL _strayintr(SB); BYTE $0x76
+	CALL _strayintr(SB); BYTE $0x77
+	CALL _strayintr(SB); BYTE $0x78
+	CALL _strayintr(SB); BYTE $0x79
+	CALL _strayintr(SB); BYTE $0x7A
+	CALL _strayintr(SB); BYTE $0x7B
+	CALL _strayintr(SB); BYTE $0x7C
+	CALL _strayintr(SB); BYTE $0x7D
+	CALL _strayintr(SB); BYTE $0x7E
+	CALL _strayintr(SB); BYTE $0x7F
+	CALL _strayintr(SB); BYTE $0x80		/* Vector[A]PIC */
+	CALL _strayintr(SB); BYTE $0x81
+	CALL _strayintr(SB); BYTE $0x82
+	CALL _strayintr(SB); BYTE $0x83
+	CALL _strayintr(SB); BYTE $0x84
+	CALL _strayintr(SB); BYTE $0x85
+	CALL _strayintr(SB); BYTE $0x86
+	CALL _strayintr(SB); BYTE $0x87
+	CALL _strayintr(SB); BYTE $0x88
+	CALL _strayintr(SB); BYTE $0x89
+	CALL _strayintr(SB); BYTE $0x8A
+	CALL _strayintr(SB); BYTE $0x8B
+	CALL _strayintr(SB); BYTE $0x8C
+	CALL _strayintr(SB); BYTE $0x8D
+	CALL _strayintr(SB); BYTE $0x8E
+	CALL _strayintr(SB); BYTE $0x8F
+	CALL _strayintr(SB); BYTE $0x90
+	CALL _strayintr(SB); BYTE $0x91
+	CALL _strayintr(SB); BYTE $0x92
+	CALL _strayintr(SB); BYTE $0x93
+	CALL _strayintr(SB); BYTE $0x94
+	CALL _strayintr(SB); BYTE $0x95
+	CALL _strayintr(SB); BYTE $0x96
+	CALL _strayintr(SB); BYTE $0x97
+	CALL _strayintr(SB); BYTE $0x98
+	CALL _strayintr(SB); BYTE $0x99
+	CALL _strayintr(SB); BYTE $0x9A
+	CALL _strayintr(SB); BYTE $0x9B
+	CALL _strayintr(SB); BYTE $0x9C
+	CALL _strayintr(SB); BYTE $0x9D
+	CALL _strayintr(SB); BYTE $0x9E
+	CALL _strayintr(SB); BYTE $0x9F
+	CALL _strayintr(SB); BYTE $0xA0
+	CALL _strayintr(SB); BYTE $0xA1
+	CALL _strayintr(SB); BYTE $0xA2
+	CALL _strayintr(SB); BYTE $0xA3
+	CALL _strayintr(SB); BYTE $0xA4
+	CALL _strayintr(SB); BYTE $0xA5
+	CALL _strayintr(SB); BYTE $0xA6
+	CALL _strayintr(SB); BYTE $0xA7
+	CALL _strayintr(SB); BYTE $0xA8
+	CALL _strayintr(SB); BYTE $0xA9
+	CALL _strayintr(SB); BYTE $0xAA
+	CALL _strayintr(SB); BYTE $0xAB
+	CALL _strayintr(SB); BYTE $0xAC
+	CALL _strayintr(SB); BYTE $0xAD
+	CALL _strayintr(SB); BYTE $0xAE
+	CALL _strayintr(SB); BYTE $0xAF
+	CALL _strayintr(SB); BYTE $0xB0
+	CALL _strayintr(SB); BYTE $0xB1
+	CALL _strayintr(SB); BYTE $0xB2
+	CALL _strayintr(SB); BYTE $0xB3
+	CALL _strayintr(SB); BYTE $0xB4
+	CALL _strayintr(SB); BYTE $0xB5
+	CALL _strayintr(SB); BYTE $0xB6
+	CALL _strayintr(SB); BYTE $0xB7
+	CALL _strayintr(SB); BYTE $0xB8
+	CALL _strayintr(SB); BYTE $0xB9
+	CALL _strayintr(SB); BYTE $0xBA
+	CALL _strayintr(SB); BYTE $0xBB
+	CALL _strayintr(SB); BYTE $0xBC
+	CALL _strayintr(SB); BYTE $0xBD
+	CALL _strayintr(SB); BYTE $0xBE
+	CALL _strayintr(SB); BYTE $0xBF
+	CALL _strayintr(SB); BYTE $0xC0
+	CALL _strayintr(SB); BYTE $0xC1
+	CALL _strayintr(SB); BYTE $0xC2
+	CALL _strayintr(SB); BYTE $0xC3
+	CALL _strayintr(SB); BYTE $0xC4
+	CALL _strayintr(SB); BYTE $0xC5
+	CALL _strayintr(SB); BYTE $0xC6
+	CALL _strayintr(SB); BYTE $0xC7
+	CALL _strayintr(SB); BYTE $0xC8
+	CALL _strayintr(SB); BYTE $0xC9
+	CALL _strayintr(SB); BYTE $0xCA
+	CALL _strayintr(SB); BYTE $0xCB
+	CALL _strayintr(SB); BYTE $0xCC
+	CALL _strayintr(SB); BYTE $0xCD
+	CALL _strayintr(SB); BYTE $0xCE
+	CALL _strayintr(SB); BYTE $0xCF
+	CALL _strayintr(SB); BYTE $0xD0
+	CALL _strayintr(SB); BYTE $0xD1
+	CALL _strayintr(SB); BYTE $0xD2
+	CALL _strayintr(SB); BYTE $0xD3
+	CALL _strayintr(SB); BYTE $0xD4
+	CALL _strayintr(SB); BYTE $0xD5
+	CALL _strayintr(SB); BYTE $0xD6
+	CALL _strayintr(SB); BYTE $0xD7
+	CALL _strayintr(SB); BYTE $0xD8
+	CALL _strayintr(SB); BYTE $0xD9
+	CALL _strayintr(SB); BYTE $0xDA
+	CALL _strayintr(SB); BYTE $0xDB
+	CALL _strayintr(SB); BYTE $0xDC
+	CALL _strayintr(SB); BYTE $0xDD
+	CALL _strayintr(SB); BYTE $0xDE
+	CALL _strayintr(SB); BYTE $0xDF
+	CALL _strayintr(SB); BYTE $0xE0
+	CALL _strayintr(SB); BYTE $0xE1
+	CALL _strayintr(SB); BYTE $0xE2
+	CALL _strayintr(SB); BYTE $0xE3
+	CALL _strayintr(SB); BYTE $0xE4
+	CALL _strayintr(SB); BYTE $0xE5
+	CALL _strayintr(SB); BYTE $0xE6
+	CALL _strayintr(SB); BYTE $0xE7
+	CALL _strayintr(SB); BYTE $0xE8
+	CALL _strayintr(SB); BYTE $0xE9
+	CALL _strayintr(SB); BYTE $0xEA
+	CALL _strayintr(SB); BYTE $0xEB
+	CALL _strayintr(SB); BYTE $0xEC
+	CALL _strayintr(SB); BYTE $0xED
+	CALL _strayintr(SB); BYTE $0xEE
+	CALL _strayintr(SB); BYTE $0xEF
+	CALL _strayintr(SB); BYTE $0xF0
+	CALL _strayintr(SB); BYTE $0xF1
+	CALL _strayintr(SB); BYTE $0xF2
+	CALL _strayintr(SB); BYTE $0xF3
+	CALL _strayintr(SB); BYTE $0xF4
+	CALL _strayintr(SB); BYTE $0xF5
+	CALL _strayintr(SB); BYTE $0xF6
+	CALL _strayintr(SB); BYTE $0xF7
+	CALL _strayintr(SB); BYTE $0xF8
+	CALL _strayintr(SB); BYTE $0xF9
+	CALL _strayintr(SB); BYTE $0xFA
+	CALL _strayintr(SB); BYTE $0xFB
+	CALL _strayintr(SB); BYTE $0xFC
+	CALL _strayintr(SB); BYTE $0xFD
+	CALL _strayintr(SB); BYTE $0xFE
+	CALL _strayintr(SB); BYTE $0xFF

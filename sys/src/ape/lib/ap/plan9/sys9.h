@@ -46,24 +46,26 @@ struct Waitmsg
 #define	RFREND	(1<<13)
 
 extern	int	_ALARM(unsigned long);
-extern	int	_BIND(char*, char*, int);
-extern	int	_CHDIR(char*);
+extern	int	_BIND(const char*, const char*, int);
+extern	int	_CHDIR(const char*);
 extern	int	_CLOSE(int);
 extern	int	_CREATE(char*, int, unsigned long);
 extern	int	_DUP(int, int);
 extern	int	_ERRSTR(char*);
 extern	int	_EXEC(char*, char*[]);
 extern	void	_EXITS(char *);
+extern	int	_FD2PATH(int, char*, int);
 extern	int	_FSESSION(int, char*);
 extern	int	_FSTAT(int, char*);
 extern	int	_FWSTAT(int, char*);
-extern	int	_MOUNT(int, char*, int, char*);
+extern	int	_MOUNT(int, const char*, int, const char*);
 extern	int	_NOTED(int);
 extern	int	_NOTIFY(int(*)(void*, char*));
-extern	int	_OPEN(char*, int);
+extern	int	_OPEN(const char*, int);
+extern	long	_OSEEK(int, long, int);
 extern	int	_PIPE(int*);
 extern	long	_READ(int, void*, long);
-extern	int	_REMOVE(char*);
+extern	int	_REMOVE(const char*);
 extern	int	_RENDEZVOUS(unsigned long, unsigned long);
 extern	int	_RFORK(int);
 extern	int	_SEGATTACH(int, char*, void*, unsigned long);
@@ -71,12 +73,12 @@ extern	int	_SEGBRK(void*, void*);
 extern	int	_SEGDETACH(void*);
 extern	int	_SEGFLUSH(void*, unsigned long);
 extern	int	_SEGFREE(void*, unsigned long);
-extern	long	_SEEK(int, long, int);
+extern	long long	_SEEK(int, long long, int);
 extern	int	_SLEEP(long);
-extern	int	_STAT(char*, char*);
+extern	int	_STAT(const char*, char*);
 extern	int	_WAIT(Waitmsg*);
-extern	long	_WRITE(int, void*, long);
-extern	int	_WSTAT(char*, char*);
+extern	long	_WRITE(int, const void*, long);
+extern	int	_WSTAT(const char*, char*);
 
 extern	int	__open(char *, int, ...);
 extern	int	__access(char *, int);

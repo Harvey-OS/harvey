@@ -16,7 +16,7 @@ struct Bootp
 	uchar	hops;		/* hops */
 	uchar	xid[4];		/* a random number */
 	uchar	secs[2];	/* elapsed snce client started booting */
-	uchar	pad[2];
+	uchar	flag[2];
 	uchar	ciaddr[4];	/* client IP address (client tells server) */
 	uchar	yiaddr[4];	/* client IP address (server tells client) */
 	uchar	siaddr[4];	/* server IP address */

@@ -2,7 +2,7 @@
 .SH NAME
 newuser \- adding a new user
 .SH SYNOPSIS
-.B rc /sys/lib/newuser
+.B /sys/lib/newuser
 .SH DESCRIPTION
 To establish a new user on Plan 9,
 add the user's name to
@@ -37,15 +37,20 @@ Once the terminal is running
 type
 .IP
 .EX
-rc /sys/lib/newuser
+/sys/lib/newuser
 .EE
 .PP
 to build the necessary directories in
 .B /usr/$user
 and create a reasonable initial profile in
-.BR /usr/$user/lib/profile .
+.BR /usr/$user/lib/profile
+and
+plumbing rules in
+.BR /usr/$user/lib/plumbing
+(see
+.IR plumber (4)).
 The script then runs the profile which, as its last step, brings up
-.IR 8½ (1).
+.IR rio (1).
 At this point the user's environment is established and running.
 (There is no need to reboot.)
 It may be prudent at this point to run
@@ -61,18 +66,35 @@ looks like this:
 .EX
 bind -a $home/bin/rc /bin
 bind -a $home/bin/$cputype /bin
+bind -c tmp /tmp
 font = /lib/font/bit/pelm/euro.9.font
 switch($service){
 case terminal
+	plumber
+	upas/fs
+	echo -n accelerated > '#m/mousectl'
+	echo -n 'res 3' > '#m/mousectl'
 	prompt=('term% ' '	')
 	fn term%{ $* }
-	exec 8½
+	exec rio
 case cpu
-	bind -b /mnt/term/mnt/8½ /dev
+	if (test -e /mnt/term/mnt/wsys) {
+		# rio already running
+		bind -a /mnt/term/mnt/wsys /dev
+		echo -n $sysname > /dev/label
+	}
+	bind /mnt/term/dev/cons /dev/cons
+	bind /mnt/term/dev/consctl /dev/consctl
+	bind -a /mnt/term/dev /dev
 	prompt=('cpu% ' '	')
-	echo -n $sysname > /dev/label
 	fn cpu%{ $* }
+	upas/fs
 	news
+	if (! test -e /mnt/term/mnt/wsys) {
+		# cpu call from drawterm
+		font=/lib/font/bit/pelm/latin1.8.font
+		exec rio
+	}
 case con
 	prompt=('cpu% ' '	')
 	news
@@ -90,7 +112,7 @@ option of
 to create a mailbox.
 .SH "SEE ALSO"
 .IR passwd (1),
-.IR 8½ (1),
+.IR rio (1),
 .IR namespace (4),
 .IR users (6),
 .IR auth (8),

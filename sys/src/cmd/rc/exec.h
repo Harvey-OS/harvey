@@ -10,7 +10,7 @@ extern void Xtrue(void), Xword(void), Xwrite(void), Xpipefd(void), Xcase(void);
 extern void Xlocal(void), Xunlocal(void), Xassign(void), Xsimple(void), Xpopm(void);
 extern void Xrdcmds(void), Xwastrue(void), Xif(void), Xifnot(void), Xpipewait(void);
 extern void Xdelhere(void), Xpopredir(void), Xsub(void), Xeflag(void), Xsettrue();
-extern void Xerror(char*), Xperror(char*);
+extern void Xerror(char*);
 /*
  * word lists are in correct order,
  * i.e. word0->word1->word2->word3->0

@@ -1,5 +1,7 @@
 #!/bin/rc
 
+rfork e
+
 . /sys/man/fonts
 
 cmd=n
@@ -40,6 +42,7 @@ while(~ $d 0) {
 		case -t ; cmd=t ; shift
 		case -n ; cmd=n ; shift
 		case -p ; cmd=p ; shift
+		case -P ; cmd=P ; shift
 		case * ; d=1
 	}
 }
@@ -82,6 +85,9 @@ for(i in $fils) {
 
 		case p
 			roff t $i | proof
+
+		case P
+			roff t $i | page
 
 		case n
 			roff n $i | uniq

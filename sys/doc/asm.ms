@@ -5,12 +5,12 @@
 A Manual for the Plan 9 assembler
 .AU
 Rob Pike
-rob@plan9.att.com
+rob@plan9.bell-labs.com
 .SH
 Machines
 .PP
 There is an assembler for each of the MIPS, SPARC, Intel 386,
-Intel 960, AT&T DSP3210, and Motorola 68020.
+Intel 960, AMD 29000, Motorola 68020 and 68000, Motorola Power PC, DEC Alpha, and Acorn ARM.
 The 68020 assembler,
 .CW 2a ,
 is the oldest and in many ways the prototype.
@@ -203,7 +203,9 @@ Here, for completeness, follows a table of all the 68020 addressing modes,
 since that machine has the richest set.
 In the table,
 .CW o
-is an offset, which if zero may be elided.
+is an offset, which if zero may be elided, and
+.CW d
+is a displacement, which is a constant between -128 and 127 inclusive.
 Many of the modes listed have the same name;
 scrutiny of the format will show what default is being applied.
 For instance, indexed mode with no address register supplied operates
@@ -280,9 +282,17 @@ as if it were an instruction:
 .P2
 places the long 12345 (base 10)
 in the instruction stream.
-(On all machines except the 68020, the only such operator is
+(On most machines,
+the only such operator is
 .CW WORD
-and it lays down 32-bit quantities.)
+and it lays down 32-bit quantities.
+The 386 has all three:
+.CW LONG ,
+.CW WORD ,
+and
+.CW BYTE .
+The 960 has only one,
+.CW LONG .)
 .PP
 Placing information in the data section is more painful.
 The pseudo-instruction
@@ -325,7 +335,7 @@ Two pseudo-instructions,
 .CW DYNT
 and
 .CW INIT ,
-allow the Alef compilers to build dynamic type information during the load
+allow the (obsolete) Alef compilers to build dynamic type information during the load
 phase.
 The
 .CW DYNT
@@ -368,7 +378,8 @@ which takes as arguments the name of the procedure (including the ubiquitous
 .CW (SB) )
 and the number of bytes of automatic storage to pre-allocate on the stack,
 which will usually be zero when writing assembly language programs.
-On the MIPS and SPARC, the special value -4 instructs the loader to generate no PC save
+On machines with a link register, such as the MIPS and SPARC,
+the special value -4 instructs the loader to generate no PC save
 and restore instructions, even if the function is not a leaf.
 Here is a complete procedure that returns the sum
 of its two arguments:
@@ -398,7 +409,7 @@ should not be profiled.
 Setting the 2 bit allows multiple definitions of the same
 .CW TEXT
 symbol in a program; the loader will place only one such function in the image.
-It is emitted only by the Alef compilers.
+It was emitted only by the Alef compilers.
 .PP
 Subroutines to be called from C should place their result in
 .CW R0 ,
@@ -460,6 +471,13 @@ notation, not Motorola's) see the file
 Despite its name, this file contains an enumeration of the
 instructions that appear in the intermediate files generated
 by the compiler, which correspond exactly to lines of assembly language.
+.PP
+The MC68000 assembler,
+.CW 1a ,
+is essentially the same, honoring the appropriate subset of the instructions
+and addressing modes.
+The definitions of these are, nonetheless, part of
+.CW 2.out.h .
 .SH
 Laying down instructions
 .PP
@@ -876,79 +894,435 @@ Segment override prefixes in
 .CW MOD/RM
 fields are not supported.
 .SH
-3210
+Alpha
 .PP
-Opcode names for integer instructions follow the conventions used for the MIPS,
-with an appended
-.CW H
-indicating a 16-bit operation.
-The unusual instructions are
-.CW ADDCR ,
-.CW ADDN ,
-.CW BIT ,
-.CW CALL ,
-.CW DBRA ,
-.CW IRET ,
-.CW ROL ,
-.CW ROR ,
-.CW SUBR ,
-.CW SFTRST ,
+On the Alpha, all registers are 64 bits.  The architecture handles 32-bit values
+by giving them a canonical format (sign extension in the case of integer registers).
+Registers are numbered
+.CW R0
+through
+.CW R31 .
+.CW R0
+holds the return value from subroutines, and also the first parameter.
+.CW R30
+is the stack pointer,
+.CW R29
+is the static base,
+.CW R26
+is the link register, and
+.CW R27
 and
-.CW WAITI .
-The condition to test is specified as the first parameter to conditional opcodes.
+.CW R28
+are linker temporaries.
 .PP
-The basic floating arithmetic opcodes are
-.CW FMUL ,
-.CW FADD ,
-.CW FSUB ,
-.CW FMADD ,
+Floating point registers are numbered
+.CW F0
+to
+.CW F31 .
+.CW F28
+contains
+.CW 0.5 ,
+.CW F29
+contains
+.CW 1.0 ,
 and
-.CW FMSUB .
-A
+.CW F30
+contains
+.CW 2.0 .
+.CW F31
+is always
+.CW 0.0
+on the Alpha.
+.PP
+The extension character for
+.CW MOV
+follows DEC's notation:
+.CW B
+for byte (8 bits),
+.CW W
+for word (16 bits),
+.CW L
+for long (32 bits),
+and
+.CW Q
+for quadword (64 bits).
+Byte and ``word'' loads and stores may be made unsigned
+by appending a
+.CW U .
+.CW S
+and
 .CW T
-suffix specifies the tap versions of the instructions,
-while a
-.CW N
-suffix negates the accumulator argument.
-The parameters are in the reverse order from the 3210 manual.
-An
-.CW FDIV
-pseudo-op is provided.
-Conversions are specified as moves; the remaining floating instructions are
-.CW FIEEE ,
-.CW FDSP ,
-.CW FROUND ,
-.CW FSEED ,
-.CW FIFEQ ,
-.CW FIFEQ ,
-.CW FIFGT ,
-and
-.CW FIFLT .
+refer to IEEE floating point single precision (32 bits) and double precision (64 bits), respectively.
+.SH
+Power PC
 .PP
-.CW DO
-instructions take as a second parameter the number of instructions in the loop
-or a label that points to a
-.CW DOEND
-instruction.
-.CW DOEND
-instructions have one parameter, a label pointing to the corresponding
-.CW DO
-instruction.
-All instructions between the
-.CW DO
+The Power PC follows the Plan 9 model set by the MIPS and SPARC,
+not the elaborate ABIs.
+The 32-bit instructions of the 60x and 8xx PowerPC architectures are supported;
+there is no support for the older POWER instructions.
+Registers are
+.CW R0
+through
+.CW R31 .
+.CW R0
+is initialized to zero; this is done by C start up code
+and assumed by the compiler and loader.
+.CW R1
+is the stack pointer.
+.CW R2
+is the static base register, with value the address of
+.CW setSB(SB) .
+.CW R3
+is the return register and also the register holding the first
+argument to a C function, with space reserved at
+.CW 0(FP)
+as on the MIPS.
+.CW R31
+is the loader temporary.
+The external registers in Plan 9's C are allocated from
+.CW R30
+down.
+.PP
+Floating point registers are called
+.CW F0
+through
+.CW F31 .
+By convention, several registers are initialized
+to specific values; this is done by the operating system.
+.CW F27
+must be initialized to the value
+.CW 0x4330000080000000
+(used by float-to-int conversion),
+.CW F28
+to the value 0.0,
+.CW F29
+to 0.5,
+.CW F30
+to 1.0, and
+.CW F31
+to 2.0.
+.PP
+As on the MIPS and SPARC, the assembler accepts arbitrary literals
+as operands to
+.CW MOVW ,
+and also to
+.CW ADD
+and others where `immediate' variants exist,
+and the loader generates sequences
+of
+.CW addi ,
+.CW addis ,
+.CW oris ,
+etc. as required.
+The register indirect addressing modes use the same syntax as the SPARC,
+including double indexing when allowed.
+.PP
+The instruction names are generally derived from the Motorola ones,
+subject to slight transformation:
+the
+.CW . ' `
+marking the setting of condition codes is replaced by
+.CW CC ,
+and when the letter
+.CW o ' `
+represents `OE=1' it is replaced by
+.CW V .
+Thus
+.CW add ,
+.CW addo.
 and
-.CW DOEND
-instructions are in the loop.
-.CW DOLOCK
-instructions have the same syntax as
-.CW DO
+.CW subfzeo.
+become
+.CW ADD ,
+.CW ADDVCC
+and
+.CW SUBFZEVCC .
+As well as the three-operand conditional branch instruction
+.CW BC ,
+the assembler provides pseudo-instructions for the common cases:
+.CW BEQ ,
+.CW BNE ,
+.CW BGT ,
+.CW BGE ,
+.CW BLT ,
+.CW BLE ,
+.CW BVC ,
+and
+.CW BVS .
+The unconditional branch instruction is
+.CW BR .
+Indirect branches use
+.CW "(CTR)"
+or
+.CW "(LR)"
+as target.
+.PP
+Load or store operations are replaced by
+.CW MOV
+variants in the usual way:
+.CW MOVW
+(move word),
+.CW MOVH
+(move halfword with sign extension), and
+.CW MOVB
+(move byte with sign extension, a pseudo-instruction),
+with unsigned variants
+.CW MOVHZ
+and
+.CW MOVBZ ,
+and byte-reversing
+.CW MOVWBR
+and
+.CW MOVHBR .
+`Load or store with update' versions are
+.CW MOVWU ,
+.CW MOVHU ,
+and
+.CW MOVBZU .
+Load or store multiple is
+.CW MOVMW .
+The exceptions are the string instructions, which are
+.CW LSW
+and
+.CW STSW ,
+and the reservation instructions
+.CW lwarx
+and
+.CW stwcx. ,
+which are
+.CW LWAR
+and
+.CW STWCCC ,
+all with operands in the usual data-flow order.
+Floating-point load or store instructions are
+.CW FMOVD ,
+.CW FMOVDU ,
+.CW FMOVS ,
+and
+.CW FMOVSU .
+The register to register move instructions
+.CW fmr
+and
+.CW fmr.
+are written
+.CW FMOVD
+and
+.CW FMOVDCC .
+.PP
+The assembler knows the commonly used special purpose registers:
+.CW CR ,
+.CW CTR ,
+.CW DEC ,
+.CW LR ,
+.CW MSR ,
+and
+.CW XER .
+The rest, which are often architecture-dependent, are referenced as
+.CW SPR(n) . 
+The segment registers of the 60x series are similarly
+.CW SEG(n) ,
+but
+.I n
+can also be a register name, as in
+.CW SEG(R3) .
+Moves between special purpose registers and general purpose ones,
+when allowed by the architecture,
+are written as
+.CW MOVW ,
+replacing
+.CW mfcr ,
+.CW mtcr ,
+.CW mfmsr ,
+.CW mtmsr ,
+.CW mtspr ,
+.CW mfspr ,
+.CW mftb ,
+and many others.
+.PP
+The fields of the condition register
+.CW CR
+are referenced as
+.CW CR(0)
+through
+.CW CR(7) .
+They are used by the
+.CW MOVFL
+(move field) pseudo-instruction,
+which produces
+.CW mcrf
+or
+.CW mtcrf .
+For example:
+.P1
+	MOVFL	CR(3), CR(0)
+	MOVFL	R3, CR(1)
+	MOVFL	R3, $7, CR
+.P2
+They are also accepted in
+the conditional branch instruction, for example
+.P1
+	BEQ	CR(7), label
+.P2
+Fields of the
+.CW FPSCR
+are accessed using
+.CW MOVFL
+in a similar way:
+.P1
+	MOVFL	FPSCR, F0
+	MOVFL	F0, FPSCR
+	MOVFL	F0, $7, FPSCR
+	MOVFL	$0, FPSCR(3)
+.P2
+producing
+.CW mffs ,
+.CW mtfsf
+or
+.CW mtfsfi ,
+as appropriate.
+.SH
+ARM
+.PP
+The assembler provides access to
+.CW R0
+through
+.CW R14
+and the
+.CW PC .
+The stack pointer is
+.CW R13 ,
+the link register is
+.CW R14 ,
+and the static base register is
+.CW R12 .
+.CW R0
+is the return register and also the register holding
+the first argument to a subroutine.
+The assembler supports the
+.CW CPSR
+and
+.CW SPSR
+registers.
+It also knows about coprocessor registers
+.CW C0
+through
+.CW C15 .
+Floating registers are
+.CW F0
+through
+.CW F7 ,
+.CW FPSR
+and
+.CW FPCR .
+.PP
+As with the other architectures, loads and stores are called
+.CW MOV ,
+e.g.
+.CW MOVW
+for load word or store word, and
+.CW MOVM
+for
+load or store multiple,
+depending on the operands.
+.PP
+Addressing modes are supported by suffixes to the instructions:
+.CW .IA
+(increment after),
+.CW .IB
+(increment before),
+.CW .DA
+(decrement after), and
+.CW .DB
+(decrement before).
+These can only be used with the
+.CW MOV
 instructions.
-.CW BMOVW
-is a block move instruction macro.
+The move multiple instruction,
+.CW MOVM ,
+defines a range of registers using brackets, e.g.
+.CW [R0-R12] .
+The special
+.CW MOVM
+addressing mode bits
+.CW W ,
+.CW U ,
+and
+.CW P
+are written in the same manner, for example,
+.CW MOVM.DB.W .
+A
+.CW .S
+suffix allows a
+.CW MOVM
+instruction to access user
+.CW R13
+and
+.CW R14
+when in another processor mode.
+Shifts and rotates in addressing modes are supported by binary operators
+.CW <<
+(logical left shift),
+.CW >>
+(logical right shift),
+.CW ->
+(arithmetic right shift), and
+.CW @>
+(rotate right); for example
+.CW "R7>>R2" or
+.CW "R2@>2" .
+The assembler does not support indexing by a shifted expression;
+only names can be doubly indexed.
 .PP
-Instructions are scheduled like MIPS instructions.
-Floating point instructions are scheduled.
+Any instruction can be followed by a suffix that makes the instruction conditional:
+.CW .EQ ,
+.CW .NE ,
+and so on, as in the ARM manual, with synonyms
+.CW .HS
+(for
+.CW .CS )
+and
+.CW .LO
+(for
+.CW .CC ), for example
+.CW ADD.NE .
+Arithmetic
+and logical instructions
+can have a
+.CW .S
+suffix, as ARM allows, to set condition codes.
 .PP
-The condition codes are capitalized versions of the standard 3210 names,
-with the exception that an F is prefixed for floating point and an O is used
-for overflows.
+The syntax of the
+.CW MCR
+and
+.CW MRC
+coprocessor instructions is largely as in the manual, with the usual adjustments.
+The assembler directly supports only the ARM floating-point coprocessor
+operations used by the compiler:
+.CW CMP ,
+.CW ADD ,
+.CW SUB ,
+.CW MUL ,
+and
+.CW DIV ,
+all with
+.CW F
+or
+.CW D
+suffix selecting single or double precision.
+Floating-point load or store become
+.CW MOVF
+and
+.CW MOVD .
+Conversion instructions are also specified by moves:
+.CW MOVWD ,
+.CW MOVWF ,
+.CW MOVDW ,
+.CW MOVWD ,
+.CW MOVFD ,
+and
+.CW MOVDF .
+.SH
+AMD 29000
+.PP
+For details about this assembly language, which was built for the AMD 29240,
+look at the sources or examine compiler output.

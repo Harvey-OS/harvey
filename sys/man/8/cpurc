@@ -29,7 +29,7 @@ and
 .B $terminal
 these scripts start appropriate network processes and
 administrative daemons and enable swapping.
-.B Cpurc
+.I Cpurc
 sets
 .B /env/boottime
 to the time
@@ -48,6 +48,5 @@ to reflect the configuration of their systems.
 .SH "SEE ALSO"
 .IR srv (4),
 .IR namespace (6),
-.IR dkconfig (8),
 .IR init (8),
 .IR listen (8)

@@ -1,6 +1,6 @@
 .TH MALLOC 2
 .SH NAME
-malloc, free, realloc, calloc \- memory allocator
+malloc, mallocz, free, realloc, calloc, msize, setmalloctag, setrealloctag, getmalloctag, getrealloctag, malloctopoolblock \- memory allocator
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -8,16 +8,35 @@ malloc, free, realloc, calloc \- memory allocator
 .PP
 .ta \w'\fLvoid* 'u
 .B
-void*	malloc(long size)
+void*	malloc(ulong size)
+.PP
+.B
+void*	mallocz(ulong size, int clr)
 .PP
 .B
 void	free(void *ptr)
 .PP
 .B
-void*	realloc(void *ptr, long size)
+void*	realloc(void *ptr, ulong size)
 .PP
 .B
-void*	calloc(long nelem, long elsize)
+void*	calloc(ulong nelem, ulong elsize)
+.PP
+.B
+ulong	msize(void *ptr)
+.PP
+.B
+void	setmalloctag(void *ptr, ulong tag)
+.PP
+.B
+ulong	getmalloctag(void *ptr, ulong tag)
+.PP
+.B
+void	setrealloctag(void *ptr, ulong tag)
+.PP
+.B
+ulong	getrealloctag(void *ptr, ulong tag)
+.PP
 .SH DESCRIPTION
 .I Malloc
 and
@@ -31,6 +50,10 @@ The block is suitably aligned for storage of any type of object.
 No two active pointers from
 .I malloc
 will have the same value.
+Incompatibly with ANSI C,
+the call
+.B malloc(0)
+returns a valid pointer rather than null.
 .PP
 The argument to
 .I free
@@ -38,6 +61,15 @@ is a pointer to a block previously allocated by
 .IR malloc ;
 this space is made available for further allocation.
 It is legal to free a null pointer; the effect is a no-op.
+The contents of the space returned by
+.I malloc
+are undefined.
+.I Mallocz
+behaves as 
+.IR malloc ,
+except that if 
+.I clr
+is non-zero, the memory returned will be zeroed.
 .PP
 .I Realloc
 changes the size of the block pointed to by
@@ -49,9 +81,14 @@ block.
 The contents will be unchanged up to the
 lesser of the new and old sizes.
 The call
-.B "realloc(0, size)
+.B "realloc(0,\ size)
 means the same as
 .LR malloc(size) .
+Further,
+the call
+.B "realloc(ptr,\ 0)
+means the same as
+.LR free(ptr) .
 .PP
 .I Calloc
 allocates space for
@@ -62,30 +99,50 @@ elements of size
 The space is initialized to zeros.
 .I Free
 frees such a block.
-.SS Alef
-Except for
-.IR calloc ,
-these routines are available from Alef; they use the same arena as
-.BR alloc .
-.I Malloc
+.PP
+When a block is allocated, sometimes there is some extra unused space at the end.
+.I Msize
+grows the block to encompass this unused space and returns the new number
+of bytes that may be used.
+.PP
+The memory allocator maintains two word-sized fields
+associated with each block, the ``malloc tag'' and the ``realloc tag''.
+By convention, the malloc tag is the PC that allocated the block,
+and the realloc tag the PC that last reallocated the block.
+These may be set or examined with 
+.IR setmalloctag ,
+.IR getmalloctag ,
+.IR setrealloctag ,
 and
-.I realloc
-execute a
-.B check
-when they fail, rather than return
-.BR nil .
-Memory returned by
+.IR getrealloctag .
+When allocating blocks directly with
 .I malloc
-is cleared.
-.I Realloc
-does not guarantee new memory is cleared unless
-.I ptr
-is
-.BR nil .
+and
+.IR realloc ,
+these tags will be set properly.
+If a custom allocator wrapper is used,
+the allocator wrapper can set the tags
+itself (usually by passing the result of
+.IR getcallerpc (2) 
+to 
+.IR setmalloctag )
+to provide more useful information about
+the source of allocation.
+.PP
+.I Malloctopoolblock
+takes the address of a block returned by
+.I malloc
+and returns the address of the corresponding
+block allocated by the
+.IR pool (2)
+routines.
 .SH SOURCE
 .B /sys/src/libc/port/malloc.c
 .SH SEE ALSO
-.IR brk (2)
+.IR brk (2),
+.IR debugmalloc (2),
+.IR getcallerpc (2),
+.IR pool (2)
 .SH DIAGNOSTICS
 .I Malloc, realloc
 and
@@ -93,6 +150,12 @@ and
 return 0 if there is no available memory.
 .I Errstr
 is likely to be set.
+If the allocated blocks have no malloc or realloc tags,
+.I getmalloctag
+and
+.I getrealloctag
+return
+.BR ~0 .
 .SH BUGS
 The different specification of
 .I calloc

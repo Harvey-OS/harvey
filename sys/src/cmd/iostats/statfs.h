@@ -7,7 +7,6 @@
 #define DEBUG		if(!dbg);else fprint
 #define MAXPROC		16
 #define DIRCHUNK	(50*DIRLEN)
-#define MAXRPC		128
 #define FHASHSIZE	64
 #define fidhash(s)	fhash[s%FHASHSIZE]
 
@@ -78,6 +77,7 @@ struct File
 {
 	char	name[NAMELEN];
 	Qid	qid;
+	int	inval;
 	File	*parent;
 	File	*child;
 	File	*childlist;

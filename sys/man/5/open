@@ -97,10 +97,10 @@ the group of the file is the same as
 .IR dir ,
 and the permissions are the value of
 .ce
-.B "(perm&(~0777|0111)) | (dir.perm&perm&0666)"
+.B "perm & (~0666 | (dir.perm & 0666))"
 if a regular file is being created and
 .ce
-.B "(perm&~0777) | (dir.perm&perm&0777)"
+.B "perm & (~0777 | (dir.perm & 0777))"
 if a directory is being created.
 This means, for example, that if the
 .B create

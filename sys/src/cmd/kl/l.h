@@ -3,6 +3,10 @@
 #include	<bio.h>
 #include	"../kc/k.out.h"
 
+#ifndef	EXTERN
+#define	EXTERN	extern
+#endif
+
 typedef	struct	Adr	Adr;
 typedef	struct	Sym	Sym;
 typedef	struct	Autom	Auto;
@@ -17,17 +21,28 @@ struct	Adr
 {
 	union
 	{
-		long	offset;
-		char	sval[NSNAME];
-		Ieee	ieee;
-	};
-	Sym	*sym;
-	Auto	*autom;
+		long	u0offset;
+		char	u0sval[NSNAME];
+		Ieee	u0ieee;
+	} u0;
+	union
+	{
+		Auto*	u1autom;
+		Sym*	u1sym;
+	} u1;
 	char	type;
 	char	reg;
 	char	name;
 	char	class;
 };
+
+#define	offset	u0.u0offset
+#define	sval	u0.u0sval
+#define	ieee	u0.u0ieee
+
+#define	autom	u1.u1autom
+#define	sym	u1.u1sym
+
 struct	Prog
 {
 	Adr	from;
@@ -39,7 +54,7 @@ struct	Prog
 	long	regused;
 	short	line;
 	short	mark;
-	short	optab;		/* could be uchar */
+	uchar	optab;
 	uchar	as;
 	char	reg;
 };
@@ -55,9 +70,9 @@ struct	Sym
 };
 struct	Autom
 {
-	Sym	*sym;
+	Sym	*asym;
 	Auto	*link;
-	long	offset;
+	long	aoffset;
 	short	type;
 };
 struct	Optab
@@ -70,7 +85,7 @@ struct	Optab
 	char	size;
 	char	param;
 };
-struct
+EXTERN	struct
 {
 	Optab*	start;
 	Optab*	stop;
@@ -161,79 +176,88 @@ enum
 	C_NCLASS
 };
 
-union
+EXTERN union
 {
 	struct
 	{
-		uchar	cbuf[MAXIO];			/* output buffer */
-		uchar	xbuf[MAXIO];			/* input buffer */
-	};
+		uchar	obuf[MAXIO];			/* output buffer */
+		uchar	ibuf[MAXIO];			/* input buffer */
+	} u;
 	char	dbuf[1];
 } buf;
 
-long	HEADR;			/* length of header */
-int	HEADTYPE;		/* type of header */
-long	INITDAT;		/* data location */
-long	INITRND;		/* data round above text location */
-long	INITTEXT;		/* text location */
-char*	INITENTRY;		/* entry point */
-long	autosize;
-Biobuf	bso;
-long	bsssize;
-int	cbc;
-uchar*	cbp;
-int	cout;
-Auto*	curauto;
-Auto*	curhist;
-Prog*	curp;
-Prog*	curtext;
-Prog*	datap;
-Prog*	prog_mul;
-Prog*	prog_div;
-Prog*	prog_divl;
-Prog*	prog_mod;
-Prog*	prog_modl;
-long	datsize;
-char	debug[128];
-Prog*	firstp;
-char	fnuxi8[8];
-Sym*	hash[NHASH];
-Sym*	histfrog[MAXHIST];
-int	histfrogp;
-int	histgen;
-char*	library[50];
-int	libraryp;
-char*	hunk;
-char	inuxi1[1];
-char	inuxi2[2];
-char	inuxi4[4];
-Prog*	lastp;
-long	lcsize;
-char	literal[32];
-int	nerrors;
-long	nhunk;
-char*	noname;
-long	offset;
-char*	outfile;
-long	pc;
-long	symsize;
-long	staticgen;
-Prog*	textp;
-long	textsize;
-long	tothunk;
-char	xcmp[C_NCLASS][C_NCLASS];
-int	version;
-Prog	zprg;
-int	dtype;
+#define	cbuf	u.obuf
+#define	xbuf	u.ibuf
+
+EXTERN	long	HEADR;			/* length of header */
+EXTERN	int	HEADTYPE;		/* type of header */
+EXTERN	long	INITDAT;		/* data location */
+EXTERN	long	INITRND;		/* data round above text location */
+EXTERN	long	INITTEXT;		/* text location */
+EXTERN	char*	INITENTRY;		/* entry point */
+EXTERN	long	autosize;
+EXTERN	Biobuf	bso;
+EXTERN	long	bsssize;
+EXTERN	int	cbc;
+EXTERN	uchar*	cbp;
+EXTERN	int	cout;
+EXTERN	Auto*	curauto;
+EXTERN	Auto*	curhist;
+EXTERN	Prog*	curp;
+EXTERN	Prog*	curtext;
+EXTERN	Prog*	datap;
+EXTERN	Prog*	prog_mul;
+EXTERN	Prog*	prog_div;
+EXTERN	Prog*	prog_divl;
+EXTERN	Prog*	prog_mod;
+EXTERN	Prog*	prog_modl;
+EXTERN	long	datsize;
+EXTERN	char	debug[128];
+EXTERN	Prog*	firstp;
+EXTERN	char	fnuxi8[8];
+EXTERN	Sym*	hash[NHASH];
+EXTERN	Sym*	histfrog[MAXHIST];
+EXTERN	int	histfrogp;
+EXTERN	int	histgen;
+EXTERN	char*	library[50];
+EXTERN	int	libraryp;
+EXTERN	char*	hunk;
+EXTERN	char	inuxi1[1];
+EXTERN	char	inuxi2[2];
+EXTERN	char	inuxi4[4];
+EXTERN	Prog*	lastp;
+EXTERN	long	lcsize;
+EXTERN	char	literal[32];
+EXTERN	int	nerrors;
+EXTERN	long	nhunk;
+EXTERN	char*	noname;
+EXTERN	long	instoffset;
+EXTERN	char*	outfile;
+EXTERN	long	pc;
+EXTERN	long	symsize;
+EXTERN	long	staticgen;
+EXTERN	Prog*	textp;
+EXTERN	long	textsize;
+EXTERN	long	tothunk;
+EXTERN	char	xcmp[C_NCLASS][C_NCLASS];
+EXTERN	int	version;
+EXTERN	Prog	zprg;
+EXTERN	int	dtype;
 
 extern	Optab	optab[];
 extern	char*	anames[];
 
-int	Aconv(void*, Fconv*);
-int	Dconv(void*, Fconv*);
-int	Nconv(void*, Fconv*);
-int	Pconv(void*, Fconv*);
-int	Sconv(void*, Fconv*);
+#pragma	varargck	type	"A"	int
+#pragma	varargck	type	"D"	Adr*
+#pragma	varargck	type	"N"	Adr*
+#pragma	varargck	type	"P"	Prog*
+#pragma	varargck	type	"S"	char*
+
+int	Aconv(va_list*, Fconv*);
+int	Dconv(va_list*, Fconv*);
+int	Nconv(va_list*, Fconv*);
+int	Pconv(va_list*, Fconv*);
+int	Sconv(va_list*, Fconv*);
 int	aclass(Adr*);
 void	addhist(long, int);
 void	histtoauto(void);
@@ -271,12 +295,13 @@ void	initmuldiv(void);
 Sym*	lookup(char*, int);
 void	lput(long);
 void	mkfwd(void);
+void*	mysbrk(ulong);
 void	names(void);
 void	nocache(Prog*);
 void	noops(void);
 void	nuxiinit(void);
 void	objfile(char*);
-int	ocmp(void*, void*);
+int	ocmp(const void*, const void*);
 long	opcode(int);
 Optab*	oplook(Prog*);
 void	patch(void);

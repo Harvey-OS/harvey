@@ -1,8 +1,4 @@
 %{
-#include <u.h>
-#include <libc.h>
-#include <bio.h>
-#include "../vc/v.out.h"
 #include "a.h"
 %}
 %union
@@ -398,6 +394,12 @@ ximm:	'$' con
 
 nireg:
 	ireg
+|	con ireg
+	{
+		if($1 != 0)
+			yyerror("offset must be zero");
+		$$ = $2;
+	}
 |	name
 	{
 		$$ = $1;

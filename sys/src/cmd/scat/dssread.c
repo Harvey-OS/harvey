@@ -7,14 +7,14 @@ static	void	dodecode(Biobuf*, Pix*, int, int, uchar*);
 static	long	getlong(uchar*);
 int	debug;
 
-Image*
+Img*
 dssread(char *file)
 {
 	int nx, ny, scale, sumall;
 	Pix  *p, *pend;
 	uchar buf[21];
 	Biobuf *bp;
-	Image *ip;
+	Img *ip;
 
 	if(debug)
 		print("reading %s\n", file);
@@ -33,7 +33,7 @@ dssread(char *file)
 	if(debug)
 		fprint(2, "%s: nx=%d, ny=%d, scale=%d, sumall=%d, nbitplanes=%d,%d,%d\n",
 			file, nx, ny, scale, sumall, buf[18], buf[19], buf[20]);
-	ip = malloc(sizeof(Image) + (nx*ny-1)*sizeof(int));
+	ip = malloc(sizeof(Img) + (nx*ny-1)*sizeof(int));
 	if(ip == 0){
 		Bterm(bp);
 		werrstr("no memory");

@@ -64,11 +64,11 @@ isum(void)
 					continue;
 				pct = Percent(i->count, total);
 				if(pct != 0)
-					Bprint(bioout, "%-8lud %3d%% %s\n",
+					Bprint(bioout, "%-8ud %3d%% %s\n",
 						i->count, Percent(i->count,
 						total), i->name);
 				else
-					Bprint(bioout, "%-8lud      %s\n",
+					Bprint(bioout, "%-8ud      %s\n",
 						i->count, i->name);
 
 
@@ -104,50 +104,50 @@ isum(void)
 		}
 	}
 
-	Bprint(bioout, "\n%-8lud      Memory cycles\n", loads+stores+total);	
-	Bprint(bioout, "%-8lud %3d%% Instruction cycles\n",
+	Bprint(bioout, "\n%-8ud      Memory cycles\n", loads+stores+total);	
+	Bprint(bioout, "%-8ud %3d%% Instruction cycles\n",
 			total, Percent(total, loads+stores+total));
-	Bprint(bioout, "%-8lud %3d%% Data cycles\n\n",
+	Bprint(bioout, "%-8ud %3d%% Data cycles\n\n",
 			loads+stores, Percent(loads+stores, loads+stores+total));	
 
-	Bprint(bioout, "%-8lud %3d%% Stores\n", stores, Percent(stores, total));
-	Bprint(bioout, "%-8lud %3d%% Loads\n", loads, Percent(loads, total));
+	Bprint(bioout, "%-8ud %3d%% Stores\n", stores, Percent(stores, total));
+	Bprint(bioout, "%-8ud %3d%% Loads\n", loads, Percent(loads, total));
 
 	/* Delay slots for loads/stores */
 	ldsunused = nopcount-(branch-useddelay);
 	ldsused = loads-ldsunused;
 	ltotal = ldsused + ldsunused;
-	Bprint(bioout, "   %-8lud %3d%% Delay slots\n",
+	Bprint(bioout, "   %-8ud %3d%% Delay slots\n",
 			ldsused, Percent(ldsused, ltotal));
 
-	Bprint(bioout, "   %-8lud %3d%% Unused delay slots\n", 
+	Bprint(bioout, "   %-8ud %3d%% Unused delay slots\n", 
 			ldsunused, Percent(ldsunused, ltotal));
 
-	Bprint(bioout, "%-8lud %3d%% Arithmetic\n",
+	Bprint(bioout, "%-8ud %3d%% Arithmetic\n",
 			arith, Percent(arith, total));
 
-	Bprint(bioout, "%-8lud %3d%% Floating point\n",
+	Bprint(bioout, "%-8ud %3d%% Floating point\n",
 			realarith, Percent(realarith, total));
 
-	Bprint(bioout, "%-8lud %3d%% Mips special register load/stores\n",
+	Bprint(bioout, "%-8ud %3d%% Mips special register load/stores\n",
 			mipreg, Percent(mipreg, total));
 
-	Bprint(bioout, "%-8lud %3d%% System calls\n",
+	Bprint(bioout, "%-8ud %3d%% System calls\n",
 			syscall, Percent(syscall, total));
 
-	Bprint(bioout, "%-8lud %3d%% Branches\n",
+	Bprint(bioout, "%-8ud %3d%% Branches\n",
 			branch, Percent(branch, total));
 
-	Bprint(bioout, "   %-8lud %3d%% Branches taken\n",
+	Bprint(bioout, "   %-8ud %3d%% Branches taken\n",
 			taken, Percent(taken, branch));
 
-	Bprint(bioout, "   %-8lud %3d%% Delay slots\n",
+	Bprint(bioout, "   %-8ud %3d%% Delay slots\n",
 			useddelay, Percent(useddelay, branch));
 
-	Bprint(bioout, "   %-8lud %3d%% Unused delay slots\n", 
+	Bprint(bioout, "   %-8ud %3d%% Unused delay slots\n", 
 			branch-useddelay, Percent(branch-useddelay, branch));
 
-	Bprint(bioout, "%-8lud %3d%% Program total delay slots\n",
+	Bprint(bioout, "%-8ud %3d%% Program total delay slots\n",
 			nopcount, Percent(nopcount, total));
 }
 
@@ -192,8 +192,12 @@ struct Prof
 Prof	prof[5000];
 
 int
-profcmp(Prof *a, Prof *b)
+profcmp(void *va, void *vb)
 {
+	Prof *a, *b;
+
+	a = va;
+	b = vb;
 	return b->count - a->count;
 }
 
@@ -233,7 +237,7 @@ iprofile(void)
 		if(prof[b].count == 0)
 			continue;
 
-		Bprint(bioout, "%8d %3ld.%d %-15s ",
+		Bprint(bioout, "%8ld %3ld.%ld %-15s ",
 			prof[b].count,
 			100*prof[b].count/total,
 			(1000*prof[b].count/total)%10,

@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <ip.h>
 #include "dns.h"
 
 typedef struct Scan	Scan;
@@ -15,13 +16,30 @@ struct Scan
 #define STRING(x)	(x = gstr(sp))
 #define USHORT(x)	(x = gshort(sp))
 #define ULONG(x)	(x = glong(sp))
+#define UCHAR(x)	(x = gchar(sp))
 #define ADDR(x)		(x = gaddr(sp))
+#define BYTES(x, y)	(y = gbytes(sp, &x, len - (sp->p - data)))
 
 static char *toolong = "too long";
 
 /*
  *  get a ushort/ulong
  */
+static ushort
+gchar(Scan *sp)
+{
+	ushort x;
+
+	if(sp->err)
+		return 0;
+	if(sp->ep - sp->p < 1){
+		sp->err = toolong;
+		return 0;
+	}
+	x = sp->p[0];
+	sp->p += 1;
+	return x;
+}
 static ushort
 gshort(Scan *sp)
 {
@@ -67,7 +85,7 @@ gaddr(Scan *sp)
 		sp->err = toolong;
 		return 0;
 	}
-	snprint(addr, sizeof(addr), "%I", sp->p);
+	snprint(addr, sizeof(addr), "%V", sp->p);
 	sp->p += 4;
 
 	return dnlookup(addr, Cin, 1);
@@ -99,6 +117,30 @@ gstr(Scan *sp)
 	sp->p += n;
 
 	return dnlookup(sym, Csym, 1);
+}
+
+/*
+ *  get a sequence of bytes
+ */
+static int
+gbytes(Scan *sp, uchar **p, int n)
+{
+	if(sp->err)
+		return 0;
+	if(sp->p+n > sp->ep){
+		sp->err = toolong;
+		return 0;
+	}
+	*p = malloc(n);
+	if(*p == nil){
+		sp->err = "memory";
+		return 0;
+	}
+
+	memmove(*p, sp->p, n);
+	sp->p += n;
+
+	return n;
 }
 
 /*
@@ -178,6 +220,7 @@ convM2RR(Scan *sp)
 	int len;
 	char dname[Domlen+1];
 
+retry:
 	NAME(dname);
 	USHORT(type);
 	USHORT(class);
@@ -187,9 +230,21 @@ convM2RR(Scan *sp)
 	rp->type = type;
 
 	ULONG(rp->ttl);
+	rp->ttl += now;
 	USHORT(len);
 	data = sp->p;
+
+	if(sp->err){
+		rrfree(rp);
+		return 0;
+	}
+
 	switch(type){
+	default:
+		/* unknown type, just ignore it */
+		sp->p = data + len;
+		rrfree(rp);
+		goto retry;
 	case Thinfo:
 		STRING(rp->cpu);
 		STRING(rp->os);
@@ -227,6 +282,38 @@ convM2RR(Scan *sp)
 		ULONG(rp->soa->retry);
 		ULONG(rp->soa->expire);
 		ULONG(rp->soa->minttl);
+		break;
+	case Ttxt:
+		STRING(rp->txt);
+		if(sp->p - data != len)
+			sp->p = data + len;
+		break;
+	case Trp:
+		rp->rmb = dnlookup(NAME(dname), Cin, 1);
+		rp->txt = dnlookup(NAME(dname), Cin, 1);
+		break;
+	case Tkey:
+		USHORT(rp->key->flags);
+		UCHAR(rp->key->proto);
+		UCHAR(rp->key->alg);
+		BYTES(rp->key->data, rp->key->dlen);
+		break;
+	case Tsig:
+		USHORT(rp->sig->type);
+		UCHAR(rp->sig->alg);
+		UCHAR(rp->sig->labels);
+		ULONG(rp->sig->ttl);
+		ULONG(rp->sig->exp);
+		ULONG(rp->sig->incep);
+		USHORT(rp->sig->tag);
+		rp->sig->signer = dnlookup(NAME(dname), Cin, 1);
+		BYTES(rp->sig->data, rp->sig->dlen);
+		break;
+	case Tcert:
+		USHORT(rp->cert->type);
+		USHORT(rp->cert->tag);
+		UCHAR(rp->cert->alg);
+		BYTES(rp->cert->data, rp->cert->dlen);
 		break;
 	}
 	if(sp->p - data != len)
@@ -290,6 +377,7 @@ convM2DNS(uchar *buf, int len, DNSmsg *m)
 {
 	Scan scan;
 	Scan *sp;
+	char *err;
 
 	scan.base = buf;
 	scan.p = buf;
@@ -306,6 +394,7 @@ convM2DNS(uchar *buf, int len, DNSmsg *m)
 	m->qd = rrloop(sp, m->qdcount, 1);
 	m->an = rrloop(sp, m->ancount, 0);
 	m->ns = rrloop(sp, m->nscount, 0);
+	err = scan.err;				/* live with bad ar's */
 	m->ar = rrloop(sp, m->arcount, 0);
-	return scan.err;
+	return err;
 }

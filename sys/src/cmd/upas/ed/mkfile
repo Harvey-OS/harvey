@@ -1,21 +1,35 @@
 </$objtype/mkfile
 
-TARG=edmail
-OFILES=message.$O\
-	edmail.$O\
-	cmds.$O\
+TARG=	edmail\
+	pop3\
+
+OFILES=	message.$O\
 	../smtp/rfc822.tab.$O\
+
+EDOFILES=	edmail.$O\
+		cmds.$O\
+
+POP3OFILES=	pop3.$O\
+		plan9pop3auth.$O\
 
 LIB=../common/libcommon.a$O\
 	../libString/libString.a$O\
 
+HFILES=../ed/print.h\
+	../common/common.h\
+	../common/sys.h\
+	../smtp/y.tab.h\
+
 BIN=/$objtype/bin/upas
-</sys/src/cmd/mkone
-CFLAGS=-w -I../common
+</sys/src/cmd/mkmany
+CFLAGS=$CFLAGS -I../common
 
-%.$O:	../common/common.h ../common/sys.h
+$O.edmail:	$EDOFILES
 
-../smtp/rfc822.tab.$O:
-	cd ../smtp
-	mk rfc822.tab.$O
-	cd ../ed
+$O.pop3:	$POP3OFILES
+
+../smtp/y.tab.h ../smtp/rfc822.tab.$O:
+	@{
+		cd ../smtp
+		mk rfc822.tab.$O
+	}

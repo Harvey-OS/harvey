@@ -1,0 +1,225 @@
+#include "all.h"
+#include "mem.h"
+#include "ureg.h"
+#include "io.h"
+
+/*
+ *  8253 timer
+ */
+enum
+{
+	T0cntr	= 0x40,		/* counter ports */
+	T1cntr	= 0x41,		/* ... */
+	T2cntr	= 0x42,		/* ... */
+	Tmode	= 0x43,		/* mode port */
+
+	/* commands */
+	Latch0	= 0x00,		/* latch counter 0's value */
+	Load0	= 0x30,		/* load counter 0 with 2 bytes */
+
+	/* modes */
+	Square	= 0x36,		/* periodic square wave */
+	Trigger	= 0x30,		/* interrupt on terminal count */
+
+	Freq	= 1193182,	/* Real clock frequency */
+};
+
+static int cpufreq	= 66000000;
+static int cpumhz	= 66;
+static int loopconst	= 100;
+/*static*/ int cpuidax, cpuiddx;
+
+static void
+clockintr(Ureg *ur, void *v)
+{
+	USED(v);
+	clock(0, ur->pc);
+}
+
+#define STEPPING(x)	((x)&0xf)
+#define MODEL(x)	(((x)>>4)&0xf)
+#define FAMILY(x)	(((x)>>8)&0xf)
+
+enum
+{
+	/* flags */
+	CpuidFPU	= 0x001,	/* on-chip floating point unit */
+	CpuidMCE	= 0x080,	/* machine check exception */
+	CpuidCX8	= 0x100,	/* CMPXCHG8B instruction */
+};
+
+typedef struct
+{
+	int family;
+	int model;
+	int aalcycles;
+	char *name;
+} X86type;
+
+X86type x86type[] =
+{
+	{ 4,	0,	22,	"486DX", },	/* known chips */
+	{ 4,	1,	22,	"486DX50", },
+	{ 4,	2,	22,	"486SX", },
+	{ 4,	3,	22,	"486DX2", },
+	{ 4,	4,	22,	"486SL", },
+	{ 4,	5,	22,	"486SX2", },
+	{ 4,	7,	22,	"DX2WB", },	/* P24D */
+	{ 4,	8,	22,	"DX4", },	/* P24C */
+	{ 4,	9,	22,	"DX4WB", },	/* P24CT */
+	{ 5,	0,	23,	"P5", },
+	{ 5,	1,	23,	"P5", },
+	{ 5,	2,	23,	"P54C", },
+	{ 5,	3,	23,	"P24T", },
+	{ 5,	4,	23,	"P55C MMX", },
+	{ 5,	7,	23,	"P54C VRT", },
+	{ 6,	1,	16,	"PentiumPro", },/* determined by trial and error */
+	{ 6,	3,	16,	"PentiumII", },
+	{ 6,	5,	16,	"PentiumII/Xeon", },
+
+	{ 3,	-1,	32,	"386", },	/* family defaults */
+	{ 4,	-1,	22,	"486", },
+	{ 5,	-1,	23,	"P5", },
+	{ 6,	-1,	16,	"P6", },
+
+	{ -1,	-1,	23,	"unknown", },	/* total default */
+};
+
+static X86type	*cputype;
+
+/*
+ *  delay for l milliseconds more or less.  delayloop is set by
+ *  clockinit() to match the actual CPU speed.
+ */
+void
+delay(int l)
+{
+	l *= loopconst;
+	if(l <= 0)
+		l = 1;
+	aamloop(l);
+}
+
+/*
+ *  microsecond delay
+ */
+void
+microdelay(int l)
+{
+	l *= loopconst;
+	l /= 1000;
+	if(l <= 0)
+		l = 1;
+	aamloop(l);
+}
+
+void
+printcpufreq(void)
+{
+	print("CPU is a %d MHz %s (cpuid: AX 0x%4.4ux DX 0x%4.4ux)\n",
+		cpumhz, cputype->name, cpuidax, cpuiddx);
+}
+
+void
+clockinit(void)
+{
+	int x, y;	/* change in counter */
+	int family, model, loops, incr;
+	X86type *t;
+
+	/*
+	 *  set vector for clock interrupts
+	 */
+	setvec(Clockvec, clockintr, 0);
+
+	/*
+	 *  figure out what we are
+	 */
+	x86cpuid(&cpuidax, &cpuiddx);
+	family = FAMILY(cpuidax);
+	model = MODEL(cpuidax);
+	for(t = x86type; t->name; t++)
+		if((t->family == family && t->model == model)
+		|| (t->family == family && t->model == -1)
+		|| (t->family == -1))
+			break;
+	cputype = t;
+
+	/*
+	 *  set clock for 1/HZ seconds
+	 */
+	outb(Tmode, Load0|Square);
+	outb(T0cntr, (Freq/HZ));	/* low byte */
+	outb(T0cntr, (Freq/HZ)>>8);	/* high byte */
+
+	/*
+	 * Introduce a little delay to make sure the count is
+	 * latched and the timer is counting down; with a fast
+	 * enough processor this may not be the case.
+	 * The i8254 (which this probably is) has a read-back
+	 * command which can be used to make sure the counting
+	 * register has been written into the counting element.
+	 */
+	x = (Freq/HZ);
+	for(loops = 0; loops < 100000 && x >= (Freq/HZ); loops++){
+		outb(Tmode, Latch0);
+		x = inb(T0cntr);
+		x |= inb(T0cntr)<<8;
+	}
+
+	/* find biggest loop that doesn't wrap */
+	incr = 16000000/(t->aalcycles*HZ*2);
+	x = 2000;
+	for(loops = incr; loops < 64*1024; loops += incr) {
+	
+		/*
+		 *  measure time for the loop
+		 *
+		 *			MOVL	loops,CX
+		 *	aaml1:	 	AAM
+		 *			LOOP	aaml1
+		 *
+		 *  the time for the loop should be independent of external
+		 *  cache and memory system since it fits in the execution
+		 *  prefetch buffer.
+		 *
+		 */
+		outb(Tmode, Latch0);
+		x = inb(T0cntr);
+		x |= inb(T0cntr)<<8;
+		aamloop(loops);
+		outb(Tmode, Latch0);
+		y = inb(T0cntr);
+		y |= inb(T0cntr)<<8;
+		x -= y;
+	
+		if(x < 0)
+			x += Freq/HZ;
+
+		if(x > Freq/(3*HZ))
+			break;
+	}
+
+	/*
+	 *  counter  goes at twice the frequency, once per transition,
+	 *  i.e., twice per square wave
+	 */
+	x >>= 1;
+
+	/*
+ 	 *  figure out clock frequency and a loop multiplier for delay().
+	 */
+	cpufreq = loops*((t->aalcycles*Freq)/x);
+	loopconst = (cpufreq/1000)/t->aalcycles;	/* AAM+LOOP's for 1 ms */
+
+	/*
+	 *  add in possible .2% error and convert to MHz
+	 */
+	cpumhz = (cpufreq + cpufreq/500)/1000000;
+}
+
+void
+clockreload(ulong n)
+{
+	USED(n);
+}

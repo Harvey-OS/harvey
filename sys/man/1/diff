@@ -4,7 +4,7 @@ diff \- differential file comparator
 .SH SYNOPSIS
 .B diff
 [
-.B -efbwr
+.B -efmnbwr
 ] file1 ... file2
 .SH DESCRIPTION
 .I Diff
@@ -28,6 +28,17 @@ The
 option causes
 .I diff
 to process similarly named subdirectories recursively.
+When processing more than one file, 
+.I diff
+prefixes file differences with a single line
+listing the two differing files, in the form of
+a 
+.I diff
+command line.
+The
+.B -m
+flag causes this behavior even when processing single files.
+.PP
 The normal output contains lines of these forms:
 .IP "" 5
 .I n1
@@ -82,6 +93,16 @@ The
 option causes all white-space to be removed from input lines
 before applying the difference algorithm.
 .PP
+The
+.B -n
+option prefixes each range with 
+.IB file : \fR
+and inserts a space around the 
+.BR a ,
+.BR c ,
+and
+.B d
+verbs.
 The
 .B -e
 option produces a script of

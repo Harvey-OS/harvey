@@ -13,7 +13,7 @@ main(int argc, char *argv[])
 		++argv;
 		dflag = 1;
 	}
-	if(argc < 2){
+	if(argc < 2 || argc > 3){
 		fprint(2, "usage: basename [-d] string [suffix]\n");
 		exits("usage");
 	}

@@ -1,15 +1,15 @@
-/* these includes are needed for plan 9 ape */
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-
+#include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
 #include <errno.h>
 #include <time.h>
 #include <string.h>
+#include <stdarg.h>
 
 /* for Plan 9 */
 #ifdef PLAN9
@@ -51,12 +51,11 @@ struct jobinfo {
 
 #define LNBFSZ	4096
 char lnbuf[LNBFSZ];
-int readline();
 
 #define	RDSIZE 512
 char jobbuf[RDSIZE];
 
-int datafd[400], cntrlfd;
+int datafd[400], cntrlfd = -1;
 
 int dbgstate = 0;
 char *dbgstrings[] = {
@@ -79,17 +78,17 @@ error(char *s1, ...)
 	int argno = 0;
 
 	if((fp=fopen(LPDAEMONLOG, "a"))==NULL) {
-fprintf(stderr, "fopen of %s failed\n", LPDAEMONLOG);
+		fprintf(stderr, "cannot open %s in append mode\n", LPDAEMONLOG);
 		return;
 	}
-	
 	time(&thetime);
 	chartime = ctime(&thetime);
-	fprintf(fp, "%.15s ", &(chartime[4]));
+	fprintf(fp, "%.15s [%5.5d] ", &(chartime[4]), getpid());
 	va_start(ap, s1);
 	while((args[argno++] = va_arg(ap, char*)) && argno<8);
 	va_end(ap);
 	fprintf(fp, s1, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+	fflush(fp);
 	fclose(fp);
 	return;
 }
@@ -134,7 +133,7 @@ int
 tempfile(void)
 {
 	static tindx = 0;
-	char tmpf[20];
+	char tmpf[sizeof(TMPDIR)+64];
 	int crtfd, tmpfd;
 
 	sprintf(tmpf, "%s/lp%d.%d", TMPDIR, getpid(), tindx++);
@@ -166,6 +165,9 @@ readfile(int outfd, int bsize)
 		alarm(60);
 		if((rv=read(0, jobbuf, MIN(bsize,RDSIZE))) < 0) {
 			error("error reading input, %d unread\n", bsize);
+			exit(4);
+		} else if (rv == 0) {
+			error("connection closed prematurely\n");
 			exit(4);
 		} else if((write(outfd, jobbuf, rv)) != rv) {
 			error("error writing temp file, %d unread\n", bsize);
@@ -205,10 +207,13 @@ readline(int inpfd)
 	int i, rv;
 
 	ap = lnbuf;
+	lnbuf[0] = '\0';
 	i = 0;
+	alarm(60);
 	do {
 		rv = read(inpfd, ap, 1);
 	} while (rv==1 && ++i && *ap != '\n' && ap++ && (i < LNBFSZ - 2));
+	alarm(0);
 	if (i != 0 && *ap != '\n') {
 		*++ap = '\n';
 		i++;
@@ -233,7 +238,9 @@ getfiles(void)
 	for(;;) {
 		ap = lnbuf;
 		if ((rv=readline(0)) < 0) NAK();
-		if (rv <= 0) return(filecnt);
+		if (rv <= 0) {
+			return(filecnt);
+		}
 		switch(*ap++) {
 		case '\1':		/* cleanup - data sent was bad (whatever that means) */
 			break;
@@ -271,6 +278,7 @@ getjobinfo(int fd)
 	int rv;
 	static struct jobinfo info;
 
+	if (fd < 0) error("getjobinfo: bad file descriptor\n");
 	if (lseek(fd, 0L, 0) < 0) {
 		error("error seeking in temp file\n");
 		exit(7);
@@ -420,8 +428,8 @@ main()
 			}
 			*cp = '\0';
 			cp += saveflg;
-		} while (*bp!='\n');
-		if (readline(0) == 0) exit(7);
+		} while (*bp!='\n' && *bp!='\0');
+		if (readline(0) < 0) exit(7);
 		datafd[0] = tempfile();
 		if(readfile(datafd[0], atoi(lnbuf)) < 0) {
 			error("readfile failed\n");

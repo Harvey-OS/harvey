@@ -1,44 +1,56 @@
 dev
-	root	/
-	cons	c
-	env	e
-	mnt	M
-	bit	b
-	uart	t
-	pipe	|
-	floppy	f
-	ata	H
-	srv	s
-	dup	d
-	proc	p
-	rtc	r
-	dk	k
-	lpt	L
-	ether	l
-	ip	I	tcpinput tcpoutput tcptimer tcpif stil
-	arp	a
-	iproute	P
-	vga	v
-	i82365	y
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	mntstats
+	srv
+	dup
+	rtc
+	ssl
+
+	ether		netif
+	ip		arp dial inferno ip ipaux iproute kio netlog nullmedium pktmedium ptclbsum386
+
+	sd
+	floppy		dma
+
+	lpt
+	ns16552
 
 link
-	stfcall
-	stip
-	sturp
-	streboot
-	ether509
+	ether2000	ether8390
+	ether2114x	pci
+	ether79c970	pci
 	ether8003	ether8390
-	vgaet4000
-	vgas3
-	vgabt485
-	vgatvp3020
+	ether82557	pci
+	etherelnk3	pci
+	ethermedium
+
+misc
+	archmp		mp apic
+
+	ipconfig.root
+
+	sdata		pci sdscsi
+	sd53c8xx	pci sdscsi
+	sdmylex		pci sdscsi
+
+ip
+	il
+	tcp
+	udp
+	rudp
+	ipifc
+	icmp
+	gre
+	ipmux
 
 port
 	int cpuserver = 1;
-	long cfslen = 0; ulong cfscode[1];
-	long fslen = 0; ulong fscode[1];
-	void consdebug(void){}
 
 boot cpu
 	il
-	incon

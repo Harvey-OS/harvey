@@ -16,12 +16,26 @@ notestk(addr)
 
 	print("Note pc:", pc, " sp:", sp, " ", fmt(pc, 'a'), " ");
 	pfl(pc);
-	_stk(pc, sp, *(addr+32), 1);
+	_stk(pc, sp, linkreg(addr), 1);
+}
+
+defn
+notelstk(addr)
+{
+	local pc, sp;
+	complex Ureg addr;
+
+	pc = addr.pc\X;
+	sp = addr.sp\X;
+
+	print("Note pc:", pc, " sp:", sp, " ", fmt(pc, 'a'), " ");
+	pfl(pc);
+	_stk(pc, sp, linkreg(addr), 1);
 }
 
 defn labstk(l)				// trace from a label
 {
-	_stk(*(l+4), *l, *linkreg, 0);
+	_stk(*(l+4), *l, linkreg(0), 0);
 }
 
 defn params(param)
@@ -150,13 +164,13 @@ defn Bsrc(addr)
 	lst = srcpath;
 	file = pcfile(addr);
 	if file[0] == '/' && access(file) then {
-		rc("B "+itoa(-pcline(addr))+" "+file);
+		rc("B "+file+":"+itoa(pcline(addr)));
 		return {};
 	}
 	while head lst do {
 		name = head lst+file;
 		if access(name) then {
-			rc("B "+itoa(-pcline(addr))+" "+name);
+			rc("B "+name+":"+itoa(pcline(addr)));
 			return {};
 		}
 		lst = tail lst;
@@ -343,13 +357,30 @@ defn win()
 {
 	local npid, estr;
 
-	if access("/env/8½srv") == 0 then
-		error("set $8½srv");
-
 	bplist = {};
 	notes = {};
 
 	estr = "/sys/lib/acid/window '0 0 600 400' "+textfile;
+	if progargs != "" then
+		estr = estr+" "+progargs;
+
+	npid = rc(estr);
+	npid = atoi(npid);
+	if npid == 0 then
+		error("win failed to create process");
+
+	setproc(npid);
+	stopped(npid);
+}
+
+defn win2()
+{
+	local npid, estr;
+
+	bplist = {};
+	notes = {};
+
+	estr = "/sys/lib/acid/transcript '0 0 600 400' '100 100 700 500' "+textfile;
 	if progargs != "" then
 		estr = estr+" "+progargs;
 
@@ -466,6 +497,23 @@ defn symbols(pattern)
 		if regexp(pattern, s[0]) then
 			print(s[0], "\t", s[1], "\t", s[2], "\n");
 		l = tail l;
+	}
+}
+
+defn spsrch(len)
+{
+	local addr, a, s, e;
+
+	addr = *SP;
+	s = origin & 0x7fffffff;
+	e = etext & 0x7fffffff;
+	loop 1, len do {
+		a = *addr++;
+		c = a & 0x7fffffff;
+		if c > s && c < e then {
+			print("src(", a, ")\n");
+			pfl(a);
+		}			
 	}
 }
 

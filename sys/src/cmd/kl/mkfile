@@ -11,6 +11,7 @@ OFILES=\
 	pass.$O\
 	span.$O\
 	enam.$O\
+	compat.$O\
 
 HFILES=\
 	l.h\

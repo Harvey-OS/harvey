@@ -1,84 +1,74 @@
-#!/bin/rc
+#!/bin/rc -x
 
-# default cpu server and site name for mail; edit this to suit
-cpu=kremvax
-site=kremlin
-NPROC=1
+# replace FILESERVER with the name of your file server
+# here we start with kfs, your local disk file system
+fileserver=kfs
+# replace CPU with the name of your cpu server
+cpu=CPU
+# replace FACEDOM with the local domain to be used in the faces database
+facedom=FACEDOM
 
 # cs sets sysname
-/bin/ndb/cs
+ndb/cs
 sysname=`{cat /dev/sysname}
 
+# mount mail uncached
+mount -c /srv/boot /n/termrc.tmp
+bind -c /n/termrc.tmp/mail /mail
+unmount /n/termrc.tmp
+
+# start ethernet if any; ignore errors
+ip/ipconfig >/dev/null >[2=1]
+
+ndb/dns -r
+aux/timesync -rL
+
 switch($terminal){
-case next*
-	switch($terminal){
-	case *next*disk*
-		# non-disk Next's hang on this
-		/bin/bind -a '#w1' /dev >/dev/null >[2=1]
-	}
-	/bin/bind -a '#t' /dev >/dev/null >[2=1]
-	/bin/bind -a '#f' /dev >/dev/null >[2=1]
-	aux/mouse 1
-	if(test -e /net/tcp/clone) ip/ipconfig
+case carrera*
+	bind -a '#t' /dev
 case *' ss'*
 	/bin/bind -a '#w' /dev >/dev/null >[2=1]
 	/bin/bind -a '#t' /dev >/dev/null >[2=1]
-	ip/ipconfig
-	/bin/echo 'add il tcp udp' > /net/cs
 case *' magnum'*
-	/bin/bind -a '#w' /dev >/dev/null >[2=1]
+	/bin/bind -a '#m' /dev >/dev/null >[2=1]
 	/bin/bind -a '#t' /dev >/dev/null >[2=1]
-	aux/mouse 0
-	ip/ipconfig
-	/bin/echo 'add il tcp udp' > /net/cs
-case *' chm'*
-	/bin/bind -a '#t' /dev >/dev/null >[2=1]
-	ip/ipconfig
-	/bin/echo 'add il tcp udp' > /net/cs
+	aux/mouse -dC 0
 case *' indigo'*
 	/bin/bind -a '#L' /dev >/dev/null >[2=1]
 	/bin/bind -a '#w1' /dev >/dev/null >[2=1]
 	/bin/bind -a '#t' /dev >/dev/null >[2=1]
 	/bin/bind -a '#A' /dev >/dev/null >[2=1]
-	ip/ipconfig
-	/bin/echo 'add il tcp udp' > /net/cs
-case NCR* 'AT&TNSX'* generic*
-	/bin/bind -a '#H' /dev >/dev/null >[2=1]
-	/bin/bind -a '#w' /dev >/dev/null >[2=1]
-	/bin/bind -a '#f' /dev >/dev/null >[2=1]
-	/bin/bind -a '#t' /dev >/dev/null >[2=1]
-	switch($mouseport){
-	case ps2 0 1
-		if(! ~ $monitor '') aux/vga -l $vgasize
-		aux/mouse $mouseport
-	case *
-		echo -n 'Mouse port is (ps2, 0 (DOS''s COM1), 1 (DOS''s COM2)):'
-		mouseport=`{read}
+case NCR* 'AT&TNSX'* generic* _MP_* 'alpha apc'*
+	for(i in f t m L S)
+		/bin/bind -a '#'^$i /dev >/dev/null >[2=1]
+	for(disk in /dev/sd??) {
+		disk/fdisk -p $disk/data >$disk/ctl >[2]/dev/null
+		for(part in $disk/plan9*)
+			if(test -f $part)
+				disk/prep -p $part >$disk/ctl >[2]/dev/null
+	}
+	if(test -f /dev/mousectl){
 		switch($mouseport){
-		case ps2 0 1
-			if(~ $monitor '') monitor=vga
-			aux/vga -l $vgasize
+		case ps2 0 1 2
 			aux/mouse $mouseport
-		case *
-			echo Cannot recognize mouse type "$"mouseport"
+
+			# parse vgasize into fields
+			vgasize=`{echo $vgasize}
+
+			if(! ~ $monitor '' && ! ~ `{cat /dev/user} none){
+				aux/vga -l $vgasize
+				# turn off hardware acceleration until you know it's ok.
+				echo -n 'hwaccel off' >'#v/vgactl' >[2]/dev/null
+			}
 		}
 	}
-	/bin/dossrv
-	if(test -e /net/ether/clone) ip/ipconfig
-	if(test -e /dev/hd0disk){
-		swap /dev/hd0swap  > /dev/null >[2=1]
-		/bin/mount -c /srv/dos /n/c: /dev/hd0disk > /dev/null >[2=1]
+	if(test -f /dev/sd*/swap){
+		x=(`{echo /dev/sd*/swap})
+		swap $x(1) >/dev/null >[2=1]
 	}
-	if not if(test -e /dev/sd0disk){
-		swap /dev/sd0swap > /dev/null >[2=1]
-		/bin/mount -c /srv/dos /n/c: /dev/sd0disk > /dev/null >[2=1]
+	if(test -f /dev/sd*/dos*){
+		dossrv
+		c:
 	}
-case *' gnot'*
-	switch($terminal){
-	case *disk*
-		# non-disk gnot's hang on this
-		/bin/bind -a '#w' /dev >/dev/null >[2=1]
-		swap /dev/sd0swap  > /dev/null >[2=1]
-	}
-	/bin/bind -a '#t' /dev >/dev/null >[2=1]
 }
+

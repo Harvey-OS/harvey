@@ -39,7 +39,7 @@ enum
 
 extern	int	errstr(char*);
 extern	int	bind(char*, char*, int);
-extern	int	mount(int, char*, int, char*, char*);
+extern	int	mount(int, char*, int, char*);
 extern	int	unmount(char*, char*);
 extern	int	rfork(int);
 extern	int	segattach(int, char*, void*, unsigned long);

@@ -10,7 +10,7 @@ typedef long Syscall(ulong*);
 
 sed 's/#define[ 	]*([A-Z0-9_][A-Z0-9_]*).*/SYS\1/; s/SYSSYSR1/SYSR1/' /sys/src/libc/9syscall/sys.h |
 	tr A-Z a-z |
-	sed 's/.*/Syscall &;/g'
+	sed 's/.*/Syscall &;/'
 
 cat <<'!'
 Syscall	sysdeath;
@@ -44,4 +44,6 @@ sam -d /sys/src/libc/9syscall/sys.h >[2] /dev/null <<'!'
 
 cat <<'!'
 };
+
+int nsyscall = (sizeof systab/sizeof systab[0]);
 !

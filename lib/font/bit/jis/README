@@ -1,7 +1,6 @@
-	All the subfonts in this directory are either based on 
-	characters in the X distribution from MIT or are copyrighted
-	by William Sun.
-	- Rob Pike, AT&T Bell Laboratories
+	All the subfonts in this directory are based on characters in the X
+	distribution from MIT.
+	- Rob Pike, Bell Laboratories
 
  /*
  * © 1989 Massachusetts Institute of Technology
@@ -24,8 +23,3 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-
-Some characters come from chinese fonts copyrighted by william sun
-(cs.anu.edu.au!william).
-They are not in the public domain but can be freely used and distributed
-for non-commercial purposes.

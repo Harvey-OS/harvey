@@ -4,10 +4,25 @@ vga \- configure a VGA card
 .SH SYNOPSIS
 .B aux/vga
 [
-.B -cdilmpv
+.B -BcdilpvV
+]
+[
+.B -b
+.I bios-string
+]
+[
+.B -m
+.I monitor
+]
+[
+.B -x
+.I file
 ]
 [
 .I mode
+[
+.I size
+]
 ]
 .SH DESCRIPTION
 .B Aux/vga
@@ -31,23 +46,34 @@ the display via the devices provided by
 .IR vga (3).
 The options are:
 .TP
-.B  -c
-force the use of the software cursor even if the VGA card is capable of using
-a hardware graphics cursor.
+.BI -b " bios-string"
+use the VGA database entry corresponding to
+.I bios-string
+(e.g. 
+\fL0xC0045="Stealth 64 DRAM Vers. 2.02"\fR)
+rather than looking for identifying strings in the BIOS
+memory.
 .TP
-.B  -d
+.B -B
+dump the BIOS memory (in hex) to standard output and exit.
+.TP
+.B -c
+disable the use of the hardware graphics cursor.
+(Since there is no software cursor, this disables the cursor entirely.)
+.TP
+.B -d
 include the color palette in whatever actions are performed,
 usually printing the contents.
 .TP
-.B  -i
+.B -i
 when used with
 .B -p
 display the register values that will be loaded.
 .TP
-.B  -l
+.B -l
 load the desired mode.
 .TP
-.BI  -m monitor
+.BI -m " monitor"
 override the
 .B /env/monitor
 value.
@@ -55,7 +81,7 @@ value.
 is usually set by including it in the
 .B plan9.ini
 file read by the PC boot program
-.IR b.com (8).
+.IR 9load (8).
 .TP
 .B -p
 print the current or expected register values at appropriate points depending on
@@ -63,6 +89,15 @@ other options.
 .TP
 .B -v
 print a trace of the functions called.
+.TP
+.B -V
+print a verbose trace of the functions called.
+.TP
+.B -x " file"
+use 
+.I file
+as the VGA database rather than
+.BR /lib/vgadb .
 .PP
 .I Mode
 is of the form
@@ -87,6 +122,16 @@ and
 A trailing
 .L i
 indicates interlaced operation.
+The default mode is
+.BR 640x480x8 .
+.I Size
+is of the form
+.I X x Y
+and configures the display to have a virtual
+screen of the given size.
+The physical screen will pan to follow the mouse.
+This is useful on displays with small screens,
+such as laptops, but can be confusing.
 .SH EXAMPLES
 Change the display resolution:
 .IP
@@ -101,7 +146,7 @@ command to a file to prevent confusion caused by using the VGA
 controller while trying to dump its state:
 .IP
 .EX
-aux/vga -p>/tmp/x
+aux/vga -p >/tmp/x
 .EE
 .PP
 Force the VGA controller to a known state:
@@ -114,7 +159,7 @@ Print the current VGA controller state and what would be loaded
 into it for a new resolution, but don't do the load:
 .IP
 .EX
-aux/vga -ip 1376x1024x8>/tmp/x
+aux/vga -ip 1376x1024x8 >/tmp/x
 .EE
 .PP
 .SH FILES
@@ -131,7 +176,7 @@ VGA configuration file.
 .SH SEE ALSO
 .IR vga (3),
 .IR vgadb (6),
-.IR b.com (8)
+.IR 9load (8)
 .SH BUGS
 .B Aux/vga
 makes every effort possible to verify that the mode it is about

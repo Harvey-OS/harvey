@@ -1,7 +1,5 @@
 #include	"all.h"
 
-Device	devnone	= {Devnone,0,0,0};
-
 void
 (*p9call[MAXSYSCALL])(Chan*, Fcall*, Fcall*) =
 {

@@ -224,7 +224,7 @@ setmode(int fd, Termios *t)
 	int n, i;
 	char buf[256];
 
-	n = sprint(buf, "IOW %4.4lux %4.4lux %4.4lux %4.4lux ",
+	n = sprint(buf, "IOW %4.4ux %4.4ux %4.4ux %4.4ux ",
 		t->iflag, t->oflag, t->cflag, t->lflag);
 	for(i = 0; i < NCCS; i++)
 		n += sprint(buf+n, "%2.2ux ", t->cc[i]);

@@ -6,8 +6,15 @@ Dave Presotto
 Ken Thompson
 Gerard Holzmann
 .sp
-rob,presotto,ken,gerard@plan9.att.com
+rob,presotto,ken,gerard@plan9.bell-labs.com
 .AB
+.FS
+Appeared in a slightly different form in
+.I
+Proceedings of the Spring 1991 EurOpen Conference,
+.R
+Tromsø, Norway, 1991, pp. 161-166.
+.FE
 The problem of enabling a `sleeping' process on a shared-memory multiprocessor
 is a difficult one, especially if the process is to be awakened by an interrupt-time
 event.  We present here the code

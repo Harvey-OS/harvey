@@ -1,0 +1,14 @@
+objtype=386
+</386/mkfile
+
+LIB=/$objtype/lib/libmp.a
+OFILES=\
+	mpvecadd.$O\
+	mpvecdigmuladd.$O\
+	mpvecdigmulsub.$O\
+	mpvecsub.$O\
+	mpdigdiv.$O\
+
+HFILES=/$objtype/include/u.h /sys/include/mp.h ../port/dat.h
+
+</sys/src/cmd/mksyslib

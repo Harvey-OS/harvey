@@ -66,10 +66,6 @@
 /inch {72 mul} bind def
 /min {2 copy gt {exch} if pop} bind def
 
-/show {{//show} 0 get exec} bind def	% so later references don't bind
-/widthshow {{//widthshow} 0 get exec} bind def
-/stringwidth {{//stringwidth} 0 get exec} bind def
-
 /setup {
 	counttomark 2 idiv {def} repeat pop
 
@@ -628,7 +624,7 @@ mark
 10 /LucidaSans-Italic f
 (Dave Presotto) 2544 1470 w
 (Phil Winterbottom) 2443 1590 w
-(presotto,philw@plan9.att.com) 2152 1830 w
+(presotto,philw@plan9.bell-labs.com) 2003 1830 w
 (ABSTRACT) 2626 2270 w
 10 /LucidaSansUnicode00 f
 (To) 1330 2530 w

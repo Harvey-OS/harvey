@@ -4,6 +4,7 @@ enum
 	Qacme,
 	Qcons,
 	Qconsctl,
+	Qdraw,
 	Qindex,
 	Qlabel,
 	Qnew,
@@ -13,6 +14,8 @@ enum
 	QWctl,
 	QWdata,
 	QWevent,
+	QWrdsel,
+	QWwrsel,
 	QWtag,
 	QMAX,
 };
@@ -25,23 +28,40 @@ enum
 	Infinity = 		0x7FFFFFFF,	/* huge value for regexp address */
 };
 
-typedef	adt	Column;
-typedef	adt	Row;
-typedef	adt	Text;
-typedef	adt	Window;
-typedef	adt	Xfid;
-typedef	adt	Reffont;
-typedef	aggr	Dirlist;
-typedef	aggr	Range;
-typedef	aggr	Mntdir;
+typedef	struct	Block Block;
+typedef	struct	Buffer Buffer;
+typedef	struct	Command Command;
+typedef	struct	Column Column;
+typedef	struct	Dirlist Dirlist;
+typedef	struct	Dirtab Dirtab;
+typedef	struct	Disk Disk;
+typedef	struct	Expand Expand;
+typedef	struct	Fid Fid;
+typedef	struct	File File;
+typedef	struct	Mntdir Mntdir;
+typedef	struct	Range Range;
+typedef	struct	Rangeset Rangeset;
+typedef	struct	Reffont Reffont;
+typedef	struct	Row Row;
+typedef	struct	Runestr Runestr;
+typedef	struct	Text Text;
+typedef	struct	Timer Timer;
+typedef	struct	Window Window;
+typedef	struct	Xfid Xfid;
 
-aggr Range
+struct Runestr
+{
+	Rune	*r;
+	int	nr;
+};
+
+struct Range
 {
 	int	q0;
 	int	q1;
 };
 
-aggr Block
+struct Block
 {
 	uint		addr;	/* disk address in bytes */
 	union
@@ -51,73 +71,70 @@ aggr Block
 	};
 };
 
-adt Disk
+struct Disk
 {
-		int		fd;
-		uint	addr;	/* length of temp file */
-		Block	*free[Maxblock/Blockincr+1];
-
-		Disk*	init();
-		Block*	new(*Disk, uint);
-		void	release(*Disk, Block*);
-		void	read(*Disk, Block*, Rune*, uint);
-		void	write(*Disk, Block**, Rune*, uint);
+	int		fd;
+	uint		addr;	/* length of temp file */
+	Block	*free[Maxblock/Blockincr+1];
 };
 
-adt Buffer
+Disk*	diskinit(void);
+Block*	disknewblock(Disk*, uint);
+void		diskrelease(Disk*, Block*);
+void		diskread(Disk*, Block*, Rune*, uint);
+void		diskwrite(Disk*, Block**, Rune*, uint);
+
+struct Buffer
 {
-extern	uint	nc;
-		Rune	*c;		/* cache */
-		uint	cnc;	/* bytes in cache */
-		uint	cmax;	/* size of allocated cache */
-		uint	cq;		/* position of cache */
-		int		cdirty;	/* cache needs to be written */
-		uint	cbi;	/* index of cache Block */
-		Block	**bl;	/* array of blocks */
-		uint	nbl;	/* number of blocks */
-
-		void	insert(*Buffer, uint, Rune*, uint);
-		void	delete(*Buffer, uint, uint);
-		uint	load(*Buffer, uint, int, int*);
-		void	read(*Buffer, uint, Rune*, uint);
-		void	close(*Buffer);
-		void	reset(*Buffer);
-intern	void	sizecache(*Buffer, uint);
-intern	void	flush(*Buffer);
-intern	void	setcache(*Buffer, uint);
-intern	void	addblock(*Buffer, uint, uint);
-intern	void	delblock(*Buffer, uint);
+	uint	nc;
+	Rune	*c;			/* cache */
+	uint	cnc;			/* bytes in cache */
+	uint	cmax;		/* size of allocated cache */
+	uint	cq;			/* position of cache */
+	int		cdirty;	/* cache needs to be written */
+	uint	cbi;			/* index of cache Block */
+	Block	**bl;		/* array of blocks */
+	uint	nbl;			/* number of blocks */
 };
+void		bufinsert(Buffer*, uint, Rune*, uint);
+void		bufdelete(Buffer*, uint, uint);
+uint		bufload(Buffer*, uint, int, int*);
+void		bufread(Buffer*, uint, Rune*, uint);
+void		bufclose(Buffer*);
+void		bufreset(Buffer*);
 
-adt File
+struct File
 {
-extern	Buffer;			/* the data */
-extern	Buffer	delta;	/* transcript of changes */
-extern	Buffer	epsilon;/* inversion of delta for redo */
-extern	Rune		*name;	/* name of associated file */
-extern	int		nname;	/* size of name */
-	
-extern	int		seq;	/* if seq==0, File acts like Buffer */
-extern	int		mod;
-extern	Text		*curtext;	/* most recently used associated text */
-extern	Text		**text;	/* list of associated texts */
-extern	int		ntext;
-extern	int		dumpid;	/* used in dumping zeroxed windows */
+	Buffer;			/* the data */
+	Buffer	delta;	/* transcript of changes */
+	Buffer	epsilon;	/* inversion of delta for redo */
+	Rune		*name;	/* name of associated file */
+	int		nname;	/* size of name */
+	uint		qidpath;	/* of file when read */
+	uint		mtime;	/* of file when read */
+	int		dev;		/* of file when read */
+	int		unread;	/* file has not been read from disk */
 
-		File*	addtext(*File, Text*);
-		void	deltext(*File, Text*);
-		void	insert(*File, uint, Rune*, uint);
-		void	delete(*File, uint, uint);
-		uint	load(*File, uint, int, int*);
-		void	setname(*File, Rune*, int);
-		(uint, uint)	undo(*File, int, uint, uint);
-		void	mark(*File);
-		void	reset(*File);
-intern	void	close(*File);
-intern	void	undelete(*File, Buffer*, uint, uint);
-intern	void	uninsert(*File, Buffer*, uint, uint);
-intern	void	unsetname(*File, Buffer*);
+	int		seq;		/* if seq==0, File acts like Buffer */
+	int		mod;
+	Text		*curtext;	/* most recently used associated text */
+	Text		**text;	/* list of associated texts */
+	int		ntext;
+	int		dumpid;	/* used in dumping zeroxed windows */
 };
+File*		fileaddtext(File*, Text*);
+void		fileclose(File*);
+void		filedelete(File*, uint, uint);
+void		filedeltext(File*, Text*);
+void		fileinsert(File*, uint, Rune*, uint);
+uint		fileload(File*, uint, int, int*);
+void		filemark(File*);
+void		filereset(File*);
+void		filesetname(File*, Rune*, int);
+void		fileundelete(File*, Buffer*, uint, uint);
+void		fileuninsert(File*, Buffer*, uint, uint);
+void		fileunsetname(File*, Buffer*);
+void		fileundo(File*, int, uint*, uint*);
 
 enum	/* Text.what */
 {
@@ -127,185 +144,193 @@ enum	/* Text.what */
 	Body,
 };
 
-adt Text
+struct Text
 {
-extern	File		*file;
-extern	Frame;
-extern	Reffont	*reffont;
-extern	uint	org;
-extern	uint	q0;
-extern	uint	q1;
-extern	int	what;
-extern	Window	*w;
-extern	Rectangle scrollr;
-extern	Rectangle lastsr;
-extern	Rectangle all;
-extern	Row		*row;
-extern	Column	*col;
+	File		*file;
+	Frame;
+	Reffont	*reffont;
+	uint	org;
+	uint	q0;
+	uint	q1;
+	int	what;
+	int	tabstop;
+	Window	*w;
+	Rectangle scrollr;
+	Rectangle lastsr;
+	Rectangle all;
+	Row		*row;
+	Column	*col;
 
-extern	uint	eq0;	/* start of typing for ESC */
-		uint	cq0;	/* cache position */
-extern	int		ncache;	/* storage for insert */
-		int		ncachealloc;
-		Rune	*cache;
-		int	nofill;
-
-		void	init(*Text, File*, Rectangle, Reffont*);
-		void	redraw(*Text, Rectangle, Font*, Bitmap*, int);
-		void	insert(*Text, uint, Rune*, uint, int);
-		(uint, int)	bsinsert(*Text, uint, Rune*, uint, int);
-		void	delete(*Text, uint, uint, int);
-		uint	load(*Text, uint, byte*);
-		void	type(*Text, Rune);
-		void	select(*Text);
-		(int, Text*)	select2(*Text, uint*, uint*);
-		int	select3(*Text, uint*, uint*);
-		void	setselect(*Text, uint, uint);
-		void	show(*Text, uint, uint);
-		void	fill(*Text);
-		void	commit(*Text, int);
-		void	scroll(*Text, int);
-		void	setorigin(*Text, uint, int);
-		void	scrdraw(*Text);
-		Rune	readc(*Text, uint);
-		void	reset(*Text);
-		int	reshape(*Text, Rectangle);
-		void	close(*Text);
-		void	framescroll(*Text, int);
-intern	int	select23(*Text, uint*, uint*, Bitmap*, int);
-intern	uint	backnl(*Text, uint, uint);
-intern	int	bswidth(*Text, Rune);
-intern	void	doubleclick(*Text, uint*, uint*);
-intern	int	clickmatch(*Text, int, int, int, uint*);
-intern	void	columnate(*Text, Dirlist**, int);
+	uint	eq0;	/* start of typing for ESC */
+	uint	cq0;	/* cache position */
+	int		ncache;	/* storage for insert */
+	int		ncachealloc;
+	Rune	*cache;
+	int	nofill;
 };
 
-adt Window
+uint		textbacknl(Text*, uint, uint);
+uint		textbsinsert(Text*, uint, Rune*, uint, int, int*);
+int		textbswidth(Text*, Rune);
+int		textclickmatch(Text*, int, int, int, uint*);
+void		textclose(Text*);
+void		textcolumnate(Text*, Dirlist**, int);
+void		textcommit(Text*, int);
+void		textdelete(Text*, uint, uint, int);
+void		textdoubleclick(Text*, uint*, uint*);
+void		textfill(Text*);
+void		textframescroll(Text*, int);
+void		textinit(Text*, File*, Rectangle, Reffont*, Image**);
+void		textinsert(Text*, uint, Rune*, uint, int);
+uint		textload(Text*, uint, char*, int);
+Rune		textreadc(Text*, uint);
+void		textredraw(Text*, Rectangle, Font*, Image*, int);
+void		textreset(Text*);
+int		textresize(Text*, Rectangle);
+void		textscrdraw(Text*);
+void		textscroll(Text*, int);
+void		textselect(Text*);
+int		textselect2(Text*, uint*, uint*, Text**);
+int		textselect23(Text*, uint*, uint*, Image*, int);
+int		textselect3(Text*, uint*, uint*);
+void		textsetorigin(Text*, uint, int);
+void		textsetselect(Text*, uint, uint);
+void		textshow(Text*, uint, uint);
+void		texttype(Text*, Rune);
+
+struct Window
 {
 		QLock;
 		Ref;
-extern	Text		tag;
-extern	Text		body;
-extern	Rectangle	r;
-extern	byte		isdir;
-extern	byte		isscratch;
-extern	byte		filemenu;
-extern	byte		dirty;
-extern	int		id;
-extern	Range	addr;
-extern	Range	limit;
-extern	byte		nopen[QMAX];
-extern	byte		nomark;
-extern	byte		noscroll;
-extern	Column	*col;
-extern	Xfid		*eventx;
-extern	byte		*events;
-extern	int		nevents;
-extern	int		owner;
-extern	int		maxlines;
-extern	Dirlist	**dlp;
-extern	int		ndl;
-extern	int		putseq;
-extern	int		nincl;
-extern	Rune		**incl;
-extern	Reffont	*reffont;
-extern	QLock	ctllock;
-extern	uint		ctlfid;
-extern	byte		*dumpstr;
-extern	byte		*dumpdir;
-extern	int		dumpid;
-
-		void	init(*Window, Window*, Rectangle);
-		void	lock(*Window, int);
-		void	lock1(*Window, int);
-		void	unlock(*Window);
-		void	type(*Window, Text*, Rune);
-		void	undo(*Window, int);
-		void	setname(*Window, Rune*, int);
-		void	settag(*Window);
-		void	settag1(*Window);
-		void	commit(*Window, Text*);
-		int	reshape(*Window, Rectangle, int);
-		void	close(*Window);
-		void	delete(*Window);
-		int	clean(*Window, int);
-		void	dirfree(*Window);
-		void	event(*Window, byte*, ...);
-		void	mousebut(*Window);
-		void	addincl(*Window, Rune*, int);
-		void	cleartag(*Window);
-		void	ctlprint(*Window, byte*);
+	Text		tag;
+	Text		body;
+	Rectangle	r;
+	uchar	isdir;
+	uchar	isscratch;
+	uchar	filemenu;
+	uchar	dirty;
+	int		id;
+	Range	addr;
+	Range	limit;
+	uchar	nopen[QMAX];
+	uchar	nomark;
+	uchar	noscroll;
+	Range	wrselrange;
+	int		rdselfd;
+	Column	*col;
+	Xfid		*eventx;
+	char		*events;
+	int		nevents;
+	int		owner;
+	int		maxlines;
+	Dirlist	**dlp;
+	int		ndl;
+	int		putseq;
+	int		nincl;
+	Rune		**incl;
+	Reffont	*reffont;
+	QLock	ctllock;
+	uint		ctlfid;
+	char		*dumpstr;
+	char		*dumpdir;
+	int		dumpid;
+	int		utflastqid;
+	int		utflastboff;
+	int		utflastq;
 };
 
-adt Column
+void	wininit(Window*, Window*, Rectangle);
+void	winlock(Window*, int);
+void	winlock1(Window*, int);
+void	winunlock(Window*);
+void	wintype(Window*, Text*, Rune);
+void	winundo(Window*, int);
+void	winsetname(Window*, Rune*, int);
+void	winsettag(Window*);
+void	winsettag1(Window*);
+void	wincommit(Window*, Text*);
+int	winresize(Window*, Rectangle, int);
+void	winclose(Window*);
+void	windelete(Window*);
+int	winclean(Window*, int);
+void	windirfree(Window*);
+void	winevent(Window*, char*, ...);
+void	winmousebut(Window*);
+void	winaddincl(Window*, Rune*, int);
+void	wincleartag(Window*);
+void	winctlprint(Window*, char*);
+
+struct Column
 {
-extern	Rectangle r;
-extern	Text	tag;
-extern	Row		*row;
-extern	Window	**w;
-extern	int		nw;
-		int		safe;
-
-		void	init(*Column, Rectangle);
-		Window*	add(*Column, Window*, Window*, int);
-		void	close(*Column, Window*, int);
-		void	closeall(*Column);
-		void	reshape(*Column, Rectangle);
-		Text*	which(*Column, Point);
-		void	dragwin(*Column, Window*, int);
-		void	grow(*Column, Window*, int);
-		int	clean(*Column);
-		void	sort(*Column);
-		void	mousebut(*Column);
+	Rectangle r;
+	Text	tag;
+	Row		*row;
+	Window	**w;
+	int		nw;
+	int		safe;
 };
 
-adt Row
+void		colinit(Column*, Rectangle);
+Window*	coladd(Column*, Window*, Window*, int);
+void		colclose(Column*, Window*, int);
+void		colcloseall(Column*);
+void		colresize(Column*, Rectangle);
+Text*	colwhich(Column*, Point);
+void		coldragwin(Column*, Window*, int);
+void		colgrow(Column*, Window*, int);
+int		colclean(Column*);
+void		colsort(Column*);
+void		colmousebut(Column*);
+
+struct Row
 {
-		QLock;
-extern	Rectangle r;
-extern	Text	tag;
-extern	Column	**col;
-extern	int		ncol;
+	QLock;
+	Rectangle r;
+	Text	tag;
+	Column	**col;
+	int		ncol;
 
-		void	init(*Row, Rectangle);
-		Column*	add(*Row, Column *c, int);
-		void	close(*Row, Column*, int);
-		Text*	which(*Row, Point);
-		Column*	whichcol(*Row, Point);
-		void	reshape(*Row, Rectangle);
-		Text*	type(*Row, Rune, Point);
-		void	dragcol(*Row, Column*, int but);
-		int		clean(*Row);
-		void		dump(*Row, byte*);
-		void		load(*Row, byte*, int);
 };
 
-aggr Timer
+void		rowinit(Row*, Rectangle);
+Column*	rowadd(Row*, Column *c, int);
+void		rowclose(Row*, Column*, int);
+Text*	rowwhich(Row*, Point);
+Column*	rowwhichcol(Row*, Point);
+void		rowresize(Row*, Rectangle);
+Text*	rowtype(Row*, Rune, Point);
+void		rowdragcol(Row*, Column*, int but);
+int		rowclean(Row*);
+void		rowdump(Row*, char*);
+void		rowload(Row*, char*, int);
+
+struct Timer
 {
 	int		dt;
-	chan(int)	c;
+	int		cancel;
+	Channel	*c;	/* chan(int) */
 	Timer	*next;
 };
 
-aggr Command
+struct Command
 {
 	int		pid;
 	Rune		*name;
 	int		nname;
-	byte		*text;
-	byte		**av;
+	char		*text;
+	char		**av;
 	Mntdir	*md;
 	Command	*next;
 };
 
-aggr Dirtab
+struct Dirtab
 {
-	byte	*name;
+	char	*name;
 	uint	qid;
 	uint	perm;
 };
 
-aggr Mntdir
+struct Mntdir
 {
 	int		id;
 	int		ref;
@@ -316,9 +341,9 @@ aggr Mntdir
 	Rune		**incl;
 };
 
-aggr Fid
+struct Fid
 {
-	uint		fid;
+	int		fid;
 	int		busy;
 	int		open;
 	Qid		qid;
@@ -327,66 +352,70 @@ aggr Fid
 	Fid		*next;
 	Mntdir	*mntdir;
 	int		nrpart;
-	byte		rpart[UTFmax];
+	uchar	rpart[UTFmax];
 };
 
-adt Xfid
+
+struct Xfid
 {
-		uint	tid;
-extern	Fcall;
-extern	Xfid	*next;
-extern	chan(void(*)(Xfid*))	c;
-extern	Fid	*f;
-extern	byte	*buf;
-		int	flushed;
+	void		*arg;	/* args to xfidinit */
+	Fcall;
+	Xfid	*next;
+	Channel	*c;		/* chan(void(*)(Xfid*)) */
+	Fid	*f;
+	char	*buf;
+	int	flushed;
 
-		void		ctl(*Xfid);
-		void		flush(*Xfid);
-		void		walk(*Xfid);
-		void		open(*Xfid);
-		void		close(*Xfid);
-		void		read(*Xfid);
-		void		write(*Xfid);
-
-		void		ctlwrite(*Xfid, Window*);
-		void		eventread(*Xfid, Window*);
-		void		eventwrite(*Xfid, Window*);
-		void		indexread(*Xfid);
-		void		utfread(*Xfid, Text*, uint, uint);
-		int		runeread(*Xfid, Text*, uint, uint);
 };
 
-adt
-Reffont
+void		xfidctl(void *);
+void		xfidflush(Xfid*);
+void		xfidwalk(Xfid*);
+void		xfidopen(Xfid*);
+void		xfidclose(Xfid*);
+void		xfidread(Xfid*);
+void		xfidwrite(Xfid*);
+void		xfidctlwrite(Xfid*, Window*);
+void		xfideventread(Xfid*, Window*);
+void		xfideventwrite(Xfid*, Window*);
+void		xfidindexread(Xfid*);
+void		xfidutfread(Xfid*, Text*, uint, int);
+int		xfidruneread(Xfid*, Text*, uint, uint);
+
+struct Reffont
 {
-		Ref;
-extern	Font		*f;
+	Ref;
+	Font		*f;
 
-		Reffont*	get(int, int, int, byte*);
-		void		close(*Reffont);
 };
+Reffont	*rfget(int, int, int, char*);
+void		rfclose(Reffont*);
 
-aggr Rangeset
+struct Rangeset
 {
 	Range	r[NRange];
 };
 
-aggr Dirlist
+struct Dirlist
 {
 	Rune	*r;
 	int		nr;
 	int		wid;
 };
 
-aggr Expand
+struct Expand
 {
 	uint	q0;
 	uint	q1;
 	Rune	*name;
 	int	nname;
-	byte	*bname;
+	char	*bname;
 	int	jump;
-	Text	*at;
+	union{
+		Text	*at;
+		Rune	*ar;
+	};
+	int	(*agetc)(void*, uint);
 	int	a0;
 	int	a1;
 };
@@ -401,7 +430,6 @@ enum
 	Scrollgap = 4,	/* gap right of scroll bar */
 	Margin = 4,	/* margin around text */
 	Border = 2,	/* line between rows, cols, windows */
-	Maxtab = 4,	/* size of a tab, in units of the '0' character */
 };
 
 #define	QID(w,q)	((w<<8)|(q))
@@ -424,14 +452,20 @@ enum
 };
 
 uint		seq;
+uint		maxtab;	/* size of a tab, in units of the '0' character */
 
-Mouse		mouse;
-Bitmap		*darkgrey;
-Bitmap		*lightgrey;
+Display		*display;
+Image		*screen;
+Font			*font;
+Mouse		*mouse;
+Mousectl		*mousectl;
+Keyboardctl	*keyboardctl;
 Reffont		reffont;
-Bitmap		*modbutton;
-Bitmap		*colbutton;
-Bitmap		*button;
+Image		*modbutton;
+Image		*colbutton;
+Image		*button;
+Image		*but2col;
+Image		*but3col;
 Cursor		boxcursor;
 Row			row;
 int			timerpid;
@@ -440,23 +474,34 @@ Text			*seltext;
 Text			*argtext;
 Text			*mousetext;	/* global because Text.close needs to clear it */
 Text			*typetext;		/* global because Text.close needs to clear it */
-Text			*barttext;		/* shared between mousetask and keyboardtask */
+Text			*barttext;		/* shared between mousetask and keyboardthread */
 int			bartflag;
+Window		*activewin;
 Column		*activecol;
+Buffer		snarfbuf;
 Rectangle		nullrect;
 int			fsyspid;
-byte			*cputype;
-byte			*objtype;
-byte			*home;
-byte			*fontnames[2];
+char			*cputype;
+char			*objtype;
+char			*home;
+char			*fontnames[2];
+char			acmeerrorfile[128];
+Image		*tagcols[NCOL];
+Image		*textcols[NCOL];
+int			plumbsendfd;
+int			plumbeditfd;
+char			wdir[];
 
-chan(Rune)[10]	ckeyboard;
-chan(Mouse)		cmouse;
-chan(Waitmsg)	cwait;
-chan(Command*)	ccommand;
-chan(Rune*)	ckill;
-chan(Xfid*)	cxfidalloc;
-chan(Xfid*)	cxfidfree;
-chan(int)		*mouseexit0;
-chan(int)		*mouseexit1;
-chan(byte*)	cerr;
+Channel	*ckeyboard;	/* chan(Rune)[10] */
+Channel	*cplumb;		/* chan(Plumbmsg*) */
+Channel	*cwait;		/* chan(Waitmsg) */
+Channel	*ccommand;	/* chan(Command*) */
+Channel	*ckill;		/* chan(Rune*) */
+Channel	*cxfidalloc;	/* chan(Xfid*) */
+Channel	*cxfidfree;	/* chan(Xfid*) */
+Channel	*mouseexit0;	/* chan(int) */
+Channel	*mouseexit1;	/* chan(int) */
+Channel	*cexit;		/* chan(int) */
+Channel	*cerr;		/* chan(char*) */
+
+#define	STACK	8192

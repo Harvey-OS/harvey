@@ -6,20 +6,16 @@
 #include "/386/include/ureg.h"
 #include <mach.h>
 
-#define	MINREG	0
-#define	MAXREG	0
-
-#define USIZE		0x1000
-#define USER_REG(x)	(USIZE-((19)*4)+(ulong)(x))
-#define FP_CTL(x)	(0x0000+4+4*(x))
-#define FP_REG(x)	(0x0000+4+7*4+10*(x))
-#define	SCALLOFF	(0x0000+4+108)
-
-#define	REGOFF(x)	(USER_REG(&((struct Ureg *) 0)->x))
+#define	REGOFF(x)	(ulong)(&((struct Ureg *) 0)->x)
 
 #define PC		REGOFF(pc)
 #define SP		REGOFF(sp)
 #define	AX		REGOFF(ax)
+
+#define	REGSIZE		sizeof(struct Ureg)
+#define FP_CTL(x)	(REGSIZE+4*(x))
+#define FP_REG(x)	(FP_CTL(7)+10*(x))
+#define	FPREGSIZE	(6*4+8*10)
 
 Reglist i386reglist[] = {
 	{"DI",		REGOFF(di),	RINT, 'X'},
@@ -64,23 +60,17 @@ Mach mi386 =
 	"386",
 	MI386,		/* machine type */
 	i386reglist,	/* register list */
-	MINREG,		/* minimum register */
-	MAXREG,		/* maximum register */
-	"PC",
-	"SP",
+	REGSIZE,	/* size of registers in bytes */
+	FPREGSIZE,	/* size of fp registers in bytes */
+	"PC",		/* name of PC */
+	"SP",		/* name of SP */
 	0,		/* link register */
-	AX,		/* return reg */
+	"setSB",	/* static base register name (bogus anyways) */
+	0,		/* static base register value */
 	0x1000,		/* page size */
 	0x80100000,	/* kernel base */
 	0,		/* kernel text mask */
-	0,		/* offset of ksp in /proc/proc */
-	4,		/* correction to ksp value */
-	4,		/* offset of kpc in /proc/proc */
-	0,		/* correction to kpc value */
-	SCALLOFF,	/* offset in ublk to sys call # */
 	1,		/* quantization of pc */
-	"setSB",	/* static base register name (bogus anyways) */
-	0,		/* value */
 	4,		/* szaddr */
 	4,		/* szreg */
 	4,		/* szfloat */

@@ -1,37 +1,42 @@
 /* Parameters derived from machine and compiler architecture */
 
-	/* ---------------- Scalar alignments ---------------- */
+	 /* ---------------- Scalar alignments ---------------- */
 
-#define arch_align_short_mod 2
-#define arch_align_int_mod 4
-#define arch_align_long_mod 4
-#define arch_align_ptr_mod 4
-#define arch_align_float_mod 4
-#define arch_align_double_mod 4
-#define arch_align_ref_mod 4
+#define ARCH_ALIGN_SHORT_MOD 2
+#define ARCH_ALIGN_INT_MOD 4
+#define ARCH_ALIGN_LONG_MOD 4
+#define ARCH_ALIGN_PTR_MOD 4
+#define ARCH_ALIGN_FLOAT_MOD 4
+#define ARCH_ALIGN_DOUBLE_MOD 4
 
-	/* ---------------- Scalar sizes ---------------- */
+	 /* ---------------- Scalar sizes ---------------- */
 
-#define arch_log2_sizeof_short 1
-#define arch_log2_sizeof_int 2
-#define arch_log2_sizeof_long 2
-#define arch_sizeof_ds_ptr 4
-#define arch_sizeof_ptr 4
-#define arch_sizeof_float 4
-#define arch_sizeof_double 8
-#define arch_sizeof_ref 8
+#define ARCH_LOG2_SIZEOF_SHORT 1
+#define ARCH_LOG2_SIZEOF_INT 2
+#define ARCH_LOG2_SIZEOF_LONG 2
+#define ARCH_SIZEOF_PTR 4
+#define ARCH_SIZEOF_FLOAT 4
+#define ARCH_SIZEOF_DOUBLE 8
+#define ARCH_FLOAT_MANTISSA_BITS 24
+#define ARCH_DOUBLE_MANTISSA_BITS 53
 
-	/* ---------------- Unsigned max values ---------------- */
+	 /* ---------------- Unsigned max values ---------------- */
 
-#define arch_max_uchar ((unsigned char)0xff + (unsigned char)0)
-#define arch_max_ushort ((unsigned short)0xffff + (unsigned short)0)
-#define arch_max_uint ((unsigned int)0xffffffff + (unsigned int)0)
-#define arch_max_ulong ((unsigned long)0xffffffffL + (unsigned long)0)
+#define ARCH_MAX_UCHAR ((unsigned char)0xff + (unsigned char)0)
+#define ARCH_MAX_USHORT ((unsigned short)0xffff + (unsigned short)0)
+#define ARCH_MAX_UINT ((unsigned int)~0 + (unsigned int)0)
+#define ARCH_MAX_ULONG ((unsigned long)~0L + (unsigned long)0)
 
-	/* ---------------- Miscellaneous ---------------- */
+	 /* ---------------- Cache sizes ---------------- */
 
-#define arch_is_big_endian 0
-#define arch_ptrs_are_signed 0
-#define arch_floats_are_IEEE 1
-#define arch_arith_rshift 2
-#define arch_can_shift_full_long 0
+#define ARCH_CACHE1_SIZE 16384
+#define ARCH_CACHE2_SIZE 524288
+
+	 /* ---------------- Miscellaneous ---------------- */
+
+#define ARCH_IS_BIG_ENDIAN 0
+#define ARCH_PTRS_ARE_SIGNED 0
+#define ARCH_FLOATS_ARE_IEEE 1
+#define ARCH_ARITH_RSHIFT 2
+#define ARCH_CAN_SHIFT_FULL_LONG 0
+#define ARCH_DIV_NEG_POS_TRUNCATES 1

@@ -1,0 +1,151 @@
+adm
+	timeconst
+	timezone
+		*
+	users
+fd
+lib
+	namespace
+	font
+		bit
+			courier
+				+
+			lucida
+				+
+			lucidasans
+				+
+			lucm
+				+
+			misc
+				+
+			pelm
+				+
+			times
+				+
+	ndb
+		local
+		common
+	units
+	vgadb
+rc
+	+
+mail
+	fs
+$cputype
+	init
+	bin
+		*
+		aux
+			*
+		disk
+			*
+		games
+			*
+		ndb
+			*
+		ip
+			*
+		upas
+			*
+	include
+		*
+	lib
+		*
+	mkfile
+acme
+	acid
+		*
+		$cputype
+			*
+	bin
+		*
+	edit
+		*
+		$cputype
+			*
+	mail
+		*
+		$cputype
+			*
+mnt
+	acme
+	apeselect
+	cd
+	cons
+		cons
+		consctl
+	consoles
+	doc
+	exportfs
+		*
+	lp
+	plumb
+	rdb
+	term
+	wsys
+n
+	9fat
+	a:
+	c:
+	d:
+	boot
+	bootes
+	bootesother
+	dump
+	emelie
+	emelieother
+	ftp
+	kfs
+	sid
+	tapefs
+	termrc.tmp
+net
+proc
+srv
+sys
+	include
+		*
+	lib
+		acid
+			*
+		newuser
+		plumb
+			*
+		samsave
+		ssh
+		texmf
+			tex
+				generic
+					hyphen
+						hyphen.tex
+		tmac
+			+
+		troff
+			font
+				devpost
+					+
+				devutf
+					+
+			term
+				tab.dumb
+				tab.utf
+	man
+		fonts
+		1
+			*
+		2
+			*
+		3
+			*
+		4
+			*
+		5
+			*
+		6
+			*
+		7
+			*
+		8
+			*
+tmp
+usr

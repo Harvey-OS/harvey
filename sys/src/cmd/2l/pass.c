@@ -103,7 +103,7 @@ brchain(Prog *p)
 	for(i=0; i<20; i++) {
 		if(p == P || p->as != ABRA)
 			return p;
-		p = p->cond;
+		p = p->pcond;
 	}
 	return P;
 }
@@ -162,7 +162,7 @@ loop:
 	if(p->as == ATEXT)
 		curtext = p;
 	if(p->as == ABRA)
-	if((q = p->cond) != P) {
+	if((q = p->pcond) != P) {
 		p->mark = 1;
 		p = q;
 		if(p->mark == 0)
@@ -182,7 +182,7 @@ loop:
 			}
 			if(a == ABRA || a == ARTS || a == ARTE)
 				break;
-			if(q->cond == P || q->cond->mark)
+			if(q->pcond == P || q->pcond->mark)
 				continue;
 			if(a == ABSR || a == ABCASE || a == ADBF)
 				continue;
@@ -196,11 +196,11 @@ loop:
 				q->mark = 1;
 				lastp->link = q;
 				lastp = q;
-				if(q->as != a || q->cond == P || q->cond->mark)
+				if(q->as != a || q->pcond == P || q->pcond->mark)
 					continue;
 				q->as = relinv(q->as);
-				p = q->cond;
-				q->cond = q->link;
+				p = q->pcond;
+				q->pcond = q->link;
 				q->link = p;
 				xfol(q->link);
 				p = q->link;
@@ -214,7 +214,7 @@ loop:
 		q->line = p->line;
 		q->to.type = D_BRANCH;
 		q->to.offset = p->pc;
-		q->cond = p;
+		q->pcond = p;
 		p = q;
 	}
 	p->mark = 1;
@@ -223,19 +223,19 @@ loop:
 	a = p->as;
 	if(a == ARTS || a == ABRA || a == ARTE)
 		return;
-	if(p->cond != P)
+	if(p->pcond != P)
 	if(a != ABSR) {
 		q = brchain(p->link);
 		if(q != P && q->mark)
 		if(a != ABCASE && a != ADBF) {
 			p->as = relinv(a);
-			p->link = p->cond;
-			p->cond = q;
+			p->link = p->pcond;
+			p->pcond = q;
 		}
 		xfol(p->link);
-		q = brchain(p->cond);
+		q = brchain(p->pcond);
 		if(q->mark) {
-			p->cond = q;
+			p->pcond = q;
 			return;
 		}
 		p = q;
@@ -322,18 +322,18 @@ patch(void)
 			diag("branch out of range in %s\n%P\n", TNAME, p);
 			p->to.type = D_NONE;
 		}
-		p->cond = q;
+		p->pcond = q;
 	}
 
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT)
 			curtext = p;
 		p->mark = 0;	/* initialization for follow */
-		if(p->cond != P) {
-			p->cond = brloop(p->cond);
-			if(p->cond != P)
+		if(p->pcond != P) {
+			p->pcond = brloop(p->pcond);
+			if(p->pcond != P)
 			if(p->to.type == D_BRANCH)
-				p->to.offset = p->cond->pc;
+				p->to.offset = p->pcond->pc;
 		}
 	}
 }
@@ -379,11 +379,11 @@ brloop(Prog *p)
 	Prog *q;
 
 	c = 0;
-	for(q = p; q != P; q = q->cond) {
+	for(q = p; q != P; q = q->pcond) {
 		if(q->as != ABRA)
 			break;
 		c++;
-		if(c >= 100)
+		if(c >= 5000)
 			return P;
 	}
 	return q;
@@ -414,7 +414,7 @@ dostkoff(void)
 			p->stkoff = 0;
 			continue;
 		}
-		for(q = p; q != P; q = q->cond) {
+		for(q = p; q != P; q = q->pcond) {
 			if(q->as == ATEXT)
 				break;
 			if(q->stkoff >= 0)
@@ -432,7 +432,7 @@ dostkoff(void)
 			s += p->from.offset;
 		if(p->as == APEA)
 			s += 4;
-		for(q = p->link; q != P; q = q->cond) {
+		for(q = p->link; q != P; q = q->pcond) {
 			if(q->as == ATEXT) {
 				q = P;
 				break;

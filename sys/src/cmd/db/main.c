@@ -72,12 +72,12 @@ main(int argc, char **argv)
 			if(kflag){
 				cpu = getenv("cputype");
 				if(cpu == 0){
-					cpu = "mips";
+					cpu = "386";
 					dprint("$cputype not set; assuming %s\n", cpu);
 				}
 				p = getenv("terminal");
 				if(p==0 || (p=strchr(p, ' '))==0 || p[1]==' ' || p[1]==0){
-					strcpy(b1, "/mips/9power");
+					strcpy(b1, "/386/9pc");
 					dprint("missing or bad $terminal; assuming %s\n", b1);
 				}else{
 					p++;
@@ -98,7 +98,7 @@ main(int argc, char **argv)
 		exits("usage");
 	}
 	if (!symfil)
-		symfil = "v.out";
+		symfil = "8.out";
 	xargc = argc;
 	notify(fault);
 	setsym();

@@ -1,0 +1,32 @@
+bind -a $home/bin/rc /bin
+bind -a $home/bin/$cputype /bin
+bind -c tmp /tmp
+font = /lib/font/bit/pelm/euro.9.font
+upas/fs
+switch($service){
+case terminal
+	plumber
+	echo -n accelerated > '#m/mousectl'
+	echo -n 'res 3' > '#m/mousectl'
+	prompt=('term% ' '	')
+	fn term%{ $* }
+	exec rio -i riostart
+case cpu
+	if (test -e /mnt/term/mnt/wsys) { # rio already running
+		bind -a /mnt/term/mnt/wsys /dev
+		echo -n $sysname > /dev/label
+	}
+	bind /mnt/term/dev/cons /dev/cons
+	bind /mnt/term/dev/consctl /dev/consctl
+	bind -a /mnt/term/dev /dev
+	prompt=('cpu% ' '	')
+	fn cpu%{ $* }
+	news
+	if (! test -e /mnt/term/mnt/wsys) {	# cpu call from drawterm
+		font=/lib/font/bit/pelm/latin1.8.font
+		exec rio
+	}
+case con
+	prompt=('cpu% ' '	')
+	news
+}

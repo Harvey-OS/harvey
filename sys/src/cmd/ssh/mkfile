@@ -1,0 +1,12 @@
+</$objtype/mkfile
+
+HFILES=include/ssh.h
+
+all:V:
+	@{ cd cmd; mk all}
+	@{ cd aux; mk all}
+
+%:V:
+	@{ cd cmd; mk $stem}
+	@{ cd aux; mk $stem}
+

@@ -10,15 +10,9 @@ s_copy(char *cp)
 	String *sp;
 	int len;
 
-	sp = s_alloc();
 	len = strlen(cp)+1;
-	sp->base = malloc(len);
-	if (sp->base == 0) {
-		perror("String:");
-		exits("malloc");
-	}
-	sp->end = sp->base + len;	/* point past end of allocation */
+	sp = s_newalloc(len);
 	strcpy(sp->base, cp);
-	sp->ptr = sp->end - 1;		/* point to 0 terminator */
+	sp->ptr = sp->base + len - 1;		/* point to 0 terminator */
 	return sp;
 }

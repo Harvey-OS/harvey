@@ -1,5 +1,5 @@
 #include "mplot.h"
-void poly(int num[], double *ff[]){
+void plotpoly(int num[], double *ff[]){
 	double *xp, *yp, **fp;
 	int i, *n;
 	n = num;

@@ -1,5 +1,4 @@
-#include	<u.h>
-#include	<libc.h>
+#include	"cc.h"
 
 enum
 {
@@ -281,7 +280,6 @@ mpatov(char *s, vlong *v)
 {
 	vlong n, nn;
 	int c;
-
 	n = 0;
 	c = *s;
 	if(c == '0')

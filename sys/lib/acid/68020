@@ -14,17 +14,21 @@ defn acidinit()			// Called after all the init modules are loaded
 
 	srcfiles = {};			// list of loaded files
 	srctext = {};			// the text of the files
-	linkreg = main;
+}
+
+defn linkreg(addr)
+{
+	return 0;
 }
 
 defn stk()				// trace
 {
-	_stk(*PC, *A7, *linkreg, 0);
+	_stk(*PC, *A7, 0, 0);
 }
 
 defn lstk()				// trace with locals
 {
-	_stk(*PC, *A7, *linkreg, 1);
+	_stk(*PC, *A7, 0, 1);
 }
 
 defn gpr()				// print general purpose registers
@@ -46,7 +50,7 @@ defn spr()				// print special processor registers
 	print("SP\t", *A7, " MAGIC\t", *MAGIC, "\n");
 
 	cause = *VO;
-	print("SR\t", *SR, " VO ", cause, " ", reason(cause), "\n");
+	print("SR\t", *SR, "VO ", cause, " ", reason(cause), "\n");
 }
 
 defn regs()				// print all registers

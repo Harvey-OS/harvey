@@ -17,7 +17,7 @@
  */
 #include <u.h>
 #include <libc.h>
-#include <libg.h>
+#include <draw.h>
 #include <geometry.h>
 void qtom(Matrix m, Quaternion q){
 #ifndef new
@@ -58,7 +58,11 @@ Quaternion mtoq(Matrix mat){
 #ifndef new
 #define	EPS	1.387778780781445675529539585113525e-17	/* 2^-56 */
 	double t;
-	Quaternion q=(Quaternion){0.,0.,0.,1.};
+	Quaternion q;
+	q.r=0.;
+	q.i=0.;
+	q.j=0.;
+	q.k=1.;
 	if((t=.25*(1+mat[0][0]+mat[1][1]+mat[2][2]))>EPS){
 		q.r=sqrt(t);
 		t=4*q.r;
@@ -141,33 +145,55 @@ Quaternion mtoq(Matrix mat){
 #endif
 }
 Quaternion qadd(Quaternion q, Quaternion r){
-	return (Quaternion){q.r+r.r, q.i+r.i, q.j+r.j, q.k+r.k};
+	q.r+=r.r;
+	q.i+=r.i;
+	q.j+=r.j;
+	q.k+=r.k;
+	return q;
 }
 Quaternion qsub(Quaternion q, Quaternion r){
-	return (Quaternion){q.r-r.r, q.i-r.i, q.j-r.j, q.k-r.k};
+	q.r-=r.r;
+	q.i-=r.i;
+	q.j-=r.j;
+	q.k-=r.k;
+	return q;
 }
 Quaternion qneg(Quaternion q){
-	return (Quaternion){-q.r, -q.i, -q.j, -q.k};
+	q.r=-q.r;
+	q.i=-q.i;
+	q.j=-q.j;
+	q.k=-q.k;
+	return q;
 }
 Quaternion qmul(Quaternion q, Quaternion r){
-	return (Quaternion){q.r*r.r-q.i*r.i-q.j*r.j-q.k*r.k,
-			   q.r*r.i+r.r*q.i+q.j*r.k-q.k*r.j,
-			   q.r*r.j+r.r*q.j+q.k*r.i-q.i*r.k,
-			   q.r*r.k+r.r*q.k+q.i*r.j-q.j*r.i};
+	Quaternion s;
+	s.r=q.r*r.r-q.i*r.i-q.j*r.j-q.k*r.k;
+	s.i=q.r*r.i+r.r*q.i+q.j*r.k-q.k*r.j;
+	s.j=q.r*r.j+r.r*q.j+q.k*r.i-q.i*r.k;
+	s.k=q.r*r.k+r.r*q.k+q.i*r.j-q.j*r.i;
+	return s;
 }
 Quaternion qdiv(Quaternion q, Quaternion r){
 	return qmul(q, qinv(r));
 }
 Quaternion qunit(Quaternion q){
 	double l=qlen(q);
-	return (Quaternion){q.r/l, q.i/l, q.j/l, q.k/l};
+	q.r/=l;
+	q.i/=l;
+	q.j/=l;
+	q.k/=l;
+	return q;
 }
 /*
  * Bug?: takes no action on divide check
  */
 Quaternion qinv(Quaternion q){
 	double l=q.r*q.r+q.i*q.i+q.j*q.j+q.k*q.k;
-	return (Quaternion){q.r/l, -q.i/l, -q.j/l, -q.k/l};
+	q.r/=l;
+	q.i=-q.i/l;
+	q.j=-q.j/l;
+	q.k=-q.k/l;
+	return q;
 }
 double qlen(Quaternion p){
 	return sqrt(p.r*p.r+p.i*p.i+p.j*p.j+p.k*p.k);
@@ -180,7 +206,11 @@ Quaternion slerp(Quaternion q, Quaternion r, double a){
 	if(s==0) return ang<PI/2?q:r;
 	u=sin((1-a)*ang)/s;
 	v=sin(a*ang)/s;
-	return (Quaternion){u*q.r+v*r.r, u*q.i+v*r.i, u*q.j+v*r.j, u*q.k+v*r.k};
+	q.r=u*q.r+v*r.r;
+	q.i=u*q.i+v*r.i;
+	q.j=u*q.j+v*r.j;
+	q.k=u*q.k+v*r.k;
+	return q;
 }
 /*
  * Only works if qlen(q)==qlen(r)==1
@@ -189,12 +219,24 @@ Quaternion qmid(Quaternion q, Quaternion r){
 	double l;
 	q=qadd(q, r);
 	l=qlen(q);
-	if(l<1e-12) return (Quaternion){r.i,-r.r,r.k,-r.j};
-	return (Quaternion){q.r/l, q.i/l, q.j/l, q.k/l};
+	if(l<1e-12){
+		q.r=r.i;
+		q.i=-r.r;
+		q.j=r.k;
+		q.k=-r.j;
+	}
+	else{
+		q.r/=l;
+		q.i/=l;
+		q.j/=l;
+		q.k/=l;
+	}
+	return q;
 }
 /*
  * Only works if qlen(q)==1
  */
+static Quaternion qident={1,0,0,0};
 Quaternion qsqrt(Quaternion q){
-	return qmid(q, (Quaternion){1,0,0,0});
+	return qmid(q, qident);
 }

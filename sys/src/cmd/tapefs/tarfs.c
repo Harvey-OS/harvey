@@ -44,7 +44,7 @@ populate(char *name)
 	replete = 1;
 	for (blkno = 0;;) {
 		seek(tapefile, TBLOCK*blkno, 0);
-		if (read(tapefile, (char *)&dblock.dbuf, sizeof(dblock.dbuf))<sizeof(dblock.dbuf))
+		if (read(tapefile, dblock.dummy, sizeof(dblock.dummy))<sizeof(dblock.dummy))
 			break;
 		if (dblock.dbuf.name[0]=='\0')
 			break;
@@ -129,6 +129,6 @@ checksum()
 		*cp = ' ';
 	i = 0;
 	for (cp = dblock.dummy; cp < &dblock.dummy[TBLOCK]; cp++)
-		i += *cp;
+		i += *cp&0xff;
 	return(i);
 }

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "pic.h"
 extern int dbg;
 
@@ -40,7 +41,7 @@ void	cont(double, double);
 
 void openpl(char *s)	/* initialize device; s is residue of .PS invocation line */
 {
-	double maxdelt, maxw, maxh, ratio = 1;
+	double maxw, maxh, ratio = 1;
 	double odeltx = deltx, odelty = delty;
 
 	hpos = vpos = 0;
@@ -101,15 +102,13 @@ double ysc(double y)	/* convert y from external to internal form, scaling only *
 	return (y) * yscale;
 }
 
-void closepl(int type)	/* clean up after finished */
+void closepl(char *PEline)	/* clean up after finished */
 {
 	movehv(0.0, 0.0);	/* get back to where we started */
-	if (type == 'F')
-		printf(".PF\n");
-	else {
+	if (strchr(PEline, 'F') == NULL) {
 		printf(".sp 1+%.3fi\n", yconv(ymin));
-		printf(".PE\n");
 	}
+	printf("%s\n", PEline);
 	printf(".if \\n(00 .fi\n");
 }
 
@@ -250,17 +249,24 @@ void arrow(double x0, double y0, double x1, double y1, double w, double h,
 	}
 }
 
-void fillstart(double v)	/* this works only for postscript, obviously */
-{
+double lastgray = 0;
+
+void fillstart(double v)	/* this works only for postscript, obviously. */
+{				/* uses drechsler's dpost conventions... */
 	hvflush();
 	printf("\\X'BeginObject %g setgray'\n", v);
+	lastgray = v;
 	flyback();
 }
 
-void fillend(void)
+void fillend(int vis, int fill)
 {
 	hvflush();
-	printf("\\X'EndObject gsave eofill grestore 0 setgray stroke'\n");
+	printf("\\X'EndObject gsave eofill grestore %g setgray %s'\n",
+		!vis ? lastgray : 0.0,
+		vis ? "stroke" : "");
+	/* for dashed: [50] 0 setdash just before stroke. */
+	lastgray = 0;
 	flyback();
 }
 
@@ -303,18 +309,10 @@ void spline(double x, double y, double n, ofloat *p, int dashed, double ddval)
 	double dx, dy;
 	double xerr, yerr;
 
-	if (dashed && ddval)
-		printf(".nr 99 %.3fi\n", ddval);
 	move(x, y);
 	hvflush();
 	xerr = yerr = 0.0;
-	if (dashed) {
-		if (ddval)
-			printf("\\X'Pd \\n(99'\\D'q 0 0");
-		else
-			printf("\\X'Pd'\\D'q 0 0");
-	} else
-		printf("\\D'~");
+	printf("\\D'~");
 	for (i = 0; i < 2 * n; i += 2) {
 		dx = xsc(xerr += p[i]);
 		xerr -= dx/xscale;
@@ -322,10 +320,7 @@ void spline(double x, double y, double n, ofloat *p, int dashed, double ddval)
 		yerr -= dy/yscale;
 		printf(" %.3fi %.3fi", dx, -dy);	/* WATCH SIGN */
 	}
-	if (dashed)
-		printf(" 0 0'\\X'Ps'\n");
-	else
-		printf("'\n");
+	printf("'\n");
 	flyback();
 }
 

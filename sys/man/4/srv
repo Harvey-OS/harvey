@@ -1,10 +1,10 @@
 .TH SRV 4 
 .SH NAME
-srv, 9fs, dk232, dkmodem  \- start network file service
+srv, 9fs \- start network file service
 .SH SYNOPSIS
 .B srv
 [
-.B -m
+.B -abcCmqr
 ]
 .RI [ net !] system\c
 .RI [! service ]
@@ -17,12 +17,6 @@ srv, 9fs, dk232, dkmodem  \- start network file service
 .B 9fs
 .RI [ net !] system
 .RI [ mountpoint ]
-.PP
-.B dk232
-.RI [ server ]
-.PP
-.B dkmodem
-.RI [ telno ]
 .SH DESCRIPTION
 .I Srv
 dials the given machine and initializes the connection to serve the
@@ -52,6 +46,19 @@ to mount the service on
 or onto
 .I mtpt
 if it is given.
+Option
+.B q
+suppresses complaints if the
+B /srv
+file already exists.
+The 
+.BR a ,
+.BR b ,
+.BR c ,
+and
+.B C 
+flags are used to control the mount flag as in
+.IR bind (1).
 .PP
 The specified
 .I service
@@ -98,19 +105,6 @@ to make the dump file system available on
 is an
 .IR rc (1)
 script; examine it to see what local conventions apply.
-.PP
-.I Dk232
-configures a serial line as a Datakit device and connects to a file server
-(default
-.BR bootes )
-using
-.BR 9fs .
-.PP
-.I Dkmodem
-dials a file server at telephone number
-.B telno
-and configures the line as a Datakit device using
-.BR 9fs .
 .SH EXAMPLES
 To see kremvax's and deepthought's files in
 .B /n/kremvax
@@ -136,12 +130,8 @@ and
 .br
 .B /rc/bin/9fs
 .br
-.B /rc/bin/dk232
-.br
-.B /rc/bin/dkmodem
 .SH "SEE ALSO"
 .IR bind (1),
 .IR dial (2),
 .IR srv (3),
-.IR ftpfs (4),
-.IR dkconfig (8)
+.IR ftpfs (4)

@@ -1,0 +1,383 @@
+%    Copyright (C) 1996, 1997 Geoffrey Keating. 
+% This file may be freely distributed with or without modifications,
+% so long as proper attribution is given and copyright notices are
+% not removed.
+
+% pdf_sec.ps (version 1.0.3)
+% Implementation of security hooks for PDF reader.
+
+% This file contains the procedures that have to take encryption into
+% account when reading a PDF file. It replaces the stub version of this
+% file that is shipped with GhostScript. It requires GhostScript version 4.02
+% or later.
+
+/.setlanguagelevel where { pop 2 .setlanguagelevel } if
+.currentglobal true .setglobal
+/pdfdict where { pop } { /pdfdict 100 dict def } ifelse
+pdfdict begin
+
+% Older ghostscript versions do not have .pdftoken, so we use 'token' instead.
+/.pdftoken where { pop } { /.pdftoken /token load def } ifelse
+
+% An implementation of an algorithm compatible with the RSA Data Security 
+% Inc. RC4 stream encryption algorithm.
+
+% <string> rc4setkey <dict>
+/rc4setkey
+{
+  6 dict begin
+    /k exch def
+    /a 256 string def
+    0 1 255 { a exch dup put } for
+    /l k length def
+    /j 0 def
+    0 1 255
+    {
+      /i exch def
+      /j a i get k i l mod get add j add 255 and def
+      a i a j get a j a i get put put
+    } for
+    3 dict dup begin
+      /a a def
+      /x 0 def
+      /y 0 def
+    end
+  end
+} bind def
+
+% <rc4key> <string> rc4 <string> <rc4key>
+/rc4
+{
+  1 index begin
+    dup dup length 1 sub 0 exch 1 exch
+    {
+      /x x 1 add 255 and def
+      /y a x get y add 255 and def
+      a x a y get a y a x get put put
+% stack: string string index
+      2 copy get
+      a dup x get a y get add 255 and get
+      xor put dup
+    } for
+    pop
+  end
+} bind def
+
+% take a stream and rc4 decrypt it.
+% <stream> <key> rc4decodefilter <stream>
+/rc4decodefilter {
+  currentglobal exch true setglobal
+  dup length string copy rc4setkey
+  exch setglobal
+  exch 512 string
+   % stack: <key> <stream> <string>
+  { readstring pop rc4 exch pop } aload pop
+   8 array astore cvx 0 () /SubFileDecode filter 
+} bind def
+
+% MD5 derived from RFC 1321, "The MD5 Message-Digest Algorithm",
+% R. Rivest, MIT, RSADSI; implemented in PostScript by Geoffrey Keating.
+
+% We construct the MD5 transform by a sort of inline expansion.
+% this takes up quite a bit of memory (around 17k), but gives a
+% factor-of-two speed increase.
+% This also allows us to take advantage of interpreters with 64-bit
+% wide integers.
+% This will not run on interpreters with 16-bit wide integers, if such
+% things exist.
+20 dict begin
+
+/T [
+16#d76aa478 16#e8c7b756 16#242070db 16#c1bdceee
+16#f57c0faf 16#4787c62a 16#a8304613 16#fd469501
+16#698098d8 16#8b44f7af 16#ffff5bb1 16#895cd7be
+16#6b901122 16#fd987193 16#a679438e 16#49b40821
+16#f61e2562 16#c040b340 16#265e5a51 16#e9b6c7aa
+16#d62f105d 16#02441453 16#d8a1e681 16#e7d3fbc8
+16#21e1cde6 16#c33707d6 16#f4d50d87 16#455a14ed
+16#a9e3e905 16#fcefa3f8 16#676f02d9 16#8d2a4c8a
+16#fffa3942 16#8771f681 16#6d9d6122 16#fde5380c
+16#a4beea44 16#4bdecfa9 16#f6bb4b60 16#bebfbc70
+16#289b7ec6 16#eaa127fa 16#d4ef3085 16#04881d05
+16#d9d4d039 16#e6db99e5 16#1fa27cf8 16#c4ac5665
+16#f4292244 16#432aff97 16#ab9423a7 16#fc93a039
+16#655b59c3 16#8f0ccc92 16#ffeff47d 16#85845dd1
+16#6fa87e4f 16#fe2ce6e0 16#a3014314 16#4e0811a1
+16#f7537e82 16#bd3af235 16#2ad7d2bb 16#eb86d391
+] def
+/F [
+{ c d /xor b /and d /xor } { b c /xor d /and c /xor }
+{ b c /xor d /xor } { d /not b /or c /xor }
+] def
+/R [
+16#0007 16#010c 16#0211 16#0316 16#0407 16#050c 16#0611 16#0716
+16#0807 16#090c 16#0a11 16#0b16 16#0c07 16#0d0c 16#0e11 16#0f16
+16#0105 16#0609 16#0b0e 16#0014 16#0505 16#0a09 16#0f0e 16#0414
+16#0905 16#0e09 16#030e 16#0814 16#0d05 16#0209 16#070e 16#0c14
+16#0504 16#080b 16#0b10 16#0e17 16#0104 16#040b 16#0710 16#0a17
+16#0d04 16#000b 16#0310 16#0617 16#0904 16#0c0b 16#0f10 16#0217
+16#0006 16#070a 16#0e0f 16#0515 16#0c06 16#030a 16#0a0f 16#0115
+16#0806 16#0f0a 16#060f 16#0d15 16#0406 16#0b0a 16#020f 16#0915
+] def
+
+/W 1 31 bitshift 0 gt def
+/A W { /add } { /md5add } ifelse def
+/t W { 1744 } { 1616 } ifelse array def
+/C 0 def
+
+0 1 63 {
+  /i exch def
+  /r R i get def
+  /a/b/c/d 4 i 3 and roll [ /d/c/b/a ] { exch def } forall
+
+  t C [
+    a F i -4 bitshift get exec 
+    a A /x r -8 bitshift /get A T i get A
+    W { 1 32 bitshift 1 sub /and } if
+    /dup r 31 and /bitshift /exch r 31 and 32 sub /bitshift /or
+    b A
+    /def
+  ] dup length C add /C exch def putinterval
+} for
+
+1 1 C 1 sub {
+  dup 1 sub t exch get /def cvx eq
+    {pop}
+    {t exch 2 copy get cvx put}
+  ifelse
+} for
+
+% If we could put t into a _packed_ array, its memory requirements
+% would go from about 13k to about 4k. Unfortunately, we'd need around
+% 1600 stack positions, around 3 times what we can expect to have 
+% available---and if that kind of memory is available, we don't really
+% need to pack t. Sigh.
+
+% In fact, it's worse than that. You can't even determine what t will 
+% be and write it in directly (something like
+% { /a c d xor b and d xor a md5add x 0 get md5add -680876936 md5add dup 7 
+%   bitshift exch -25 bitshift or b md5add def /d b c xor a ...
+% ) because the scanner uses the operand stack to accumulate procedures.
+% So the only way to have md5transform as a single procedure is the above 
+% trick.
+
+W /md5transform t end cvx bind def
+
+% Unfortunately, PostScript & its imitators convert large
+% integers to floating-point. Worse, the fp representation probably
+% won't have 32 significant bits.
+% This procedure accounts for about 35% of the total time on 32-bit 
+% machines.
+not {
+  /md5add {
+    2 copy xor 0 lt
+      % if one is positive and one is negative, can't overflow
+      { add }
+      % if both are positive or negative
+      { 16#80000000 xor add 16#80000000 xor }
+      % same as subtracting (or adding) 2^31 and then subtracting (or 
+      % adding) it back.
+    ifelse
+  } bind def
+} {
+  /md5add {
+    add 16#0FFFFFFFF and
+  } bind def
+} ifelse
+
+/md5 {
+  20 dict begin
+
+  % initialise a,b,c,d,x
+  /a 16#67452301 def
+  /b 16#efcdab89 def
+  /c 16#98badcfe def
+  /d 16#10325476 def
+  /x 16 array def
+
+  % parameters
+  /origs exch def
+  /oslen origs length def
+
+  % pad string to multiple of 512 bits
+  /s oslen 72 add 64 idiv 64 mul dup /slen exch def string def
+  s 0 origs putinterval
+  s oslen 16#80 put
+  s slen 8 sub oslen 31 and 3 bitshift put
+  s slen 7 sub oslen -5 bitshift 255 and put
+  s slen 6 sub oslen -13 bitshift 255 and put
+
+  0 64 slen 64 sub {
+    dup 1 exch 63 add { s exch get } for
+    15 -1 0 { x exch 6 2 roll 3 { 8 bitshift or } repeat put } for
+    a b c d
+    md5transform
+    d md5add /d exch def
+    c md5add /c exch def
+    b md5add /b exch def
+    a md5add /a exch def
+  } for
+  
+  16 string
+  [ [ a b c d ] { 3 { dup -8 bitshift } repeat } forall ]
+  0 1 15 {
+    3 copy dup 3 1 roll get 255 and put pop
+  } for
+  pop
+
+  end
+} bind def
+
+% Pad a key out to 32 bytes.
+/pdf_pad_key		% <key> pdf_pad_key <padded key>
+ { dup length 32 gt { 0 32 getinterval } if
+   <28bf4e5e4e758a41 64004e56fffa0108
+    2e2e00b6d0683e80 2f0ca9fe6453697a>
+   0 32 3 index length sub getinterval
+   concatstrings
+ } bind def
+
+% Try a user key for a PDF file.
+/pdf_try_key		% <key> pdf_try_key <filekey> true
+			% <key> pdf_try_key false
+ { Trailer /Encrypt oget
+   dup /O oget exch
+   /P oget 4 string exch
+	 2 copy 255 and 0 exch put
+	 2 copy -8 bitshift 255 and 1 exch put
+	 2 copy -16 bitshift 255 and 2 exch put
+	 2 copy -24 bitshift 255 and 3 exch put pop
+   Trailer /ID oget 0 oget
+   3 { concatstrings } repeat
+   md5 0 5 getinterval
+   dup
+   Trailer /Encrypt oget /U oget dup length string copy exch
+   rc4setkey exch rc4 exch pop
+   <28bf4e5e4e758a41 64004e56fffa0108
+    2e2e00b6d0683e80 2f0ca9fe6453697a> eq
+   dup not { exch pop } if
+ } bind def
+
+% Process the encryption information in the Trailer.
+/pdf_process_Encrypt
+ { Trailer /Encrypt oget
+   /Filter oget /Standard eq not
+    { (****This file uses an unknown security handler.\n) print flush
+	/pdf_process_Encrypt cvx /undefined signalerror
+    }
+   if
+   () pdf_pad_key pdf_try_key
+    { /FileKey exch def } 
+    { /PDFPassword where
+       { PDFPassword pdf_pad_key pdf_try_key 
+	  { true }
+	  { PDFPassword pdf_pad_key md5 0 5 getinterval rc4setkey
+	    Trailer /Encrypt oget /O oget dup length string copy
+	       rc4 exch pop
+	    pdf_try_key
+	  }
+	 ifelse
+	  { /FileKey exch def }
+	  { (****Password did not work.\n) print flush
+	    /pdf_process_Encrypt cvx /invalidfileaccess signalerror
+	  }
+	 ifelse
+       }
+       { (****This file has a user password set.\n) print flush
+	 /pdf_process_Encrypt cvx /invalidfileaccess signalerror
+       }
+      ifelse
+    }
+   ifelse
+   Trailer /Encrypt oget /P oget 4 and 0 eq #? and
+    { (****This owner of this file has requested you do not print it.\n)
+	print flush
+      /pdf_process_Encrypt cvx /invalidfileaccess signalerror
+    }
+   if
+ } bind def
+
+% Calculate the key used to decrypt an object (to pass to .decpdfrun or
+% put into a stream dictionary).
+/computeobjkey	% <object#> <generation#> computeobjkey <keystring>
+{
+  exch
+  10 string
+  dup 0 FileKey putinterval
+  exch
+		% stack:  gen# string obj#
+    2 copy 255 and 5 exch put
+    2 copy -8 bitshift 255 and 6 exch put
+    2 copy -16 bitshift 255 and 7 exch put
+  pop exch
+    2 copy 255 and 8 exch put
+    2 copy -8 bitshift 255 and 9 exch put
+  pop md5 0 10 getinterval
+} bind def
+
+% As .pdfrun, but decrypt strings with key <key>.
+/.decpdfrun			% <file> <keystring> <opdict> .decpdfrun -
+ {	% Construct a procedure with the file, opdict and key bound into it.
+   2 index cvlit mark mark 5 2 roll
+    { .pdftoken not { (%%EOF) cvn cvx } if
+      dup xcheck
+       { DEBUG { dup == flush } if
+	 3 -1 roll pop
+	 2 copy .knownget
+	  { exch pop exch pop exec }
+	  { (%stderr) (w) file
+	    dup (****************Unknown operator: ) writestring
+	    dup 3 -1 roll .writecvs dup (\n) writestring flushfile
+	    pop
+	  }
+	 ifelse
+       }
+       { exch pop DEBUG { dup ==only ( ) print flush } if
+	 dup type /stringtype eq
+	  { exch rc4setkey exch rc4 }
+	 if
+	 exch pop
+       }
+      ifelse
+    }
+   aload pop .packtomark cvx
+   /loop cvx 2 packedarray cvx
+    { stopped /PDFsource } aload pop
+   PDFsource
+    { store { stop } if } aload pop .packtomark cvx 
+   /PDFsource 3 -1 roll store exec
+ } bind def
+
+% Run the code to resolve an object reference.
+/pdf_run_resolve
+ { /FileKey where
+    { pop
+      2 copy computeobjkey dup 4 1 roll
+      PDFfile exch resolveopdict .decpdfrun
+      dup dup dup 5 2 roll
+	% stack: object object key object object
+      xcheck exch type /dicttype eq and
+       { /StreamKey exch put }
+       { pop pop }
+      ifelse
+    }
+    { PDFfile resolveopdict .pdfrun }
+   ifelse
+ } bind def
+
+% Prefix a decryption filter to a stream if needed.
+% Stack: readdata? dict parms file/string filternames
+% (both before and after).
+/pdf_decrypt_stream
+ { 3 index /StreamKey known
+   {
+      exch 
+	% Stack: readdata? dict parms filternames file/string
+      3 index /Length oget () /SubFileDecode filter
+      3 index /StreamKey get rc4decodefilter
+      exch
+   } if
+ } bind def
+
+end			% pdfdict
+.setglobal

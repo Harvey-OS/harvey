@@ -3,9 +3,6 @@
 
 extern int debug;
 
-/* configuration */
-#define RULEBiobuf "lib/rewrite"
-
 /* 
  *	Routines for dealing with the rewrite rules.
  */
@@ -27,7 +24,7 @@ static rule *rulep;
 static rule *rlastp;
 
 /* predeclared */
-static String *substitute(String *, Resub *, char *);
+static String *substitute(String *, Resub *, message *);
 static rule *findrule(String *, int);
 
 
@@ -45,7 +42,7 @@ rule_parse(String *line, char *system, int *backl)
 	token = s_parse(line, 0);
 	if(token == 0)
 		return(token);
-	if (strchr(s_to_c(token), '\\')==0)
+	if(strchr(s_to_c(token), '\\')==0)
 		return(token);
 	expanded = s_new();
 	for(cp = s_to_c(token); *cp; cp++) {
@@ -83,32 +80,29 @@ getrule(String *line, String *type, char *system)
 	if(re == 0)
 		return 0;
 	rp = (rule *)malloc(sizeof(rule));
-	if (rp == 0) {
+	if(rp == 0) {
 		perror("getrules:");
 		exit(1);
 	}
 	rp->next = 0;
 	s_tolower(re);
 	rp->matchre = s_new();
-	if(*s_to_c(re)!='^')
-		s_append(rp->matchre, "^");
 	s_append(rp->matchre, s_to_c(re));
-	s_append(rp->matchre, "$");
 	USE(s_restart(rp->matchre));
 	s_free(re);
 	s_parse(line, s_restart(type));
 	rp->repl1 = rule_parse(line, system, &backl);
 	rp->repl2 = rule_parse(line, system, &backl);
 	rp->program = 0;
-	if (strcmp(s_to_c(type), "|") == 0)
+	if(strcmp(s_to_c(type), "|") == 0)
 		rp->type = d_pipe;
-	else if (strcmp(s_to_c(type), ">>") == 0)
+	else if(strcmp(s_to_c(type), ">>") == 0)
 		rp->type = d_cat;
-	else if (strcmp(s_to_c(type), "alias") == 0)
+	else if(strcmp(s_to_c(type), "alias") == 0)
 		rp->type = d_alias;
-	else if (strcmp(s_to_c(type), "translate") == 0)
+	else if(strcmp(s_to_c(type), "translate") == 0)
 		rp->type = d_translate;
-	else if (strcmp(s_to_c(type), "auth") == 0)
+	else if(strcmp(s_to_c(type), "auth") == 0)
 		rp->type = d_auth;
 	else {
 		s_free(rp->matchre);
@@ -118,7 +112,7 @@ getrule(String *line, String *type, char *system)
 		fprint(2,"illegal rewrite rule: %s\n", s_to_c(line));
 		return 0;
 	}
-	if (rulep == 0)
+	if(rulep == 0)
 		rulep = rlastp = rp;
 	else
 		rlastp = rlastp->next = rp;
@@ -137,9 +131,9 @@ getrules(void)
 	String	*type;
 	String	*file;
 
-	file = abspath(RULEBiobuf, MAILROOT, (String *)0);
+	file = abspath("rewrite", UPASLIB, (String *)0);
 	rfp = sysopen(s_to_c(file), "r", 0);
-	if (rfp == 0) {
+	if(rfp == 0) {
 		rulep = 0;
 		return -1;
 	}
@@ -163,31 +157,33 @@ findrule(String *addrp, int authorized)
 	rule *rp;
 	static rule defaultrule;
 
-	if (rulep == 0)
+	if(rulep == 0)
 		return &defaultrule;
 	for (rp = rulep; rp != 0; rp = rp->next) {
-		if (rp->type==d_auth && authorized)
+		if(rp->type==d_auth && authorized)
 			continue;
-		if (rp->program == 0)
+		if(rp->program == 0)
 			rp->program = regcomp(rp->matchre->base);
-		if (rp->program == 0)
+		if(rp->program == 0)
 			continue;
 		memset(rp->subexp, 0, sizeof(rp->subexp));
 		if(debug)
 			print("trying %s\n", rp->matchre->base);
-		if (regexec(rp->program, s_to_c(addrp), rp->subexp, NSUBEXP))
+		if(regexec(rp->program, s_to_c(addrp), rp->subexp, NSUBEXP))
+		if(s_to_c(addrp) == rp->subexp[0].sp)
+		if((s_to_c(addrp) + strlen(s_to_c(addrp))) == rp->subexp[0].ep)
 			return rp;
 	}
 	return 0;
 }
 
 /*  Transforms the address into a command.
- *  Returns:	-1 if address not matched by reules
- *		 0 if address matched and ok to forward
- *		 1 if address matched and not ok to forward
+ *  Returns:	-1 ifaddress not matched by reules
+ *		 0 ifaddress matched and ok to forward
+ *		 1 ifaddress matched and not ok to forward
  */
 extern int
-rewrite(dest *dp, char *s)
+rewrite(dest *dp, message *mp)
 {
 	rule *rp;		/* rewriting rule */
 	String *lower;		/* lower case version of destination */
@@ -195,14 +191,16 @@ rewrite(dest *dp, char *s)
 	/*
 	 *  Rewrite the address.  Matching is case insensitive.
 	 */
-	lower = s_clone(s_restart(dp->addr));
+	lower = s_clone(dp->addr);
 	s_tolower(s_restart(lower));
 	rp = findrule(lower, dp->authorized);
-	if (rp == 0)
+	if(rp == 0){
+		s_free(lower);
 		return -1;
+	}
 	strcpy(s_to_c(lower), s_to_c(dp->addr));
-	dp->repl1 = substitute(rp->repl1, rp->subexp, s);
-	dp->repl2 = substitute(rp->repl2, rp->subexp, s);
+	dp->repl1 = substitute(rp->repl1, rp->subexp, mp);
+	dp->repl2 = substitute(rp->repl2, rp->subexp, mp);
 	dp->status = rp->type;
 	if(debug){
 		print("\t->");
@@ -212,18 +210,19 @@ rewrite(dest *dp, char *s)
 			print("%s", s_to_c(dp->repl2));
 		print("\n");
 	}
+	s_free(lower);
 	return 0;
 }
 
 static String *
-substitute(String *source, Resub *subexp, char *s)
+substitute(String *source, Resub *subexp, message *mp)
 {
-	register char *sp;
-	register char *ssp;
-	register String *stp;
-	register int i;
+	int i;
+	char *s;
+	char *sp;
+	String *stp;
 	
-	if (source == 0)
+	if(source == 0)
 		return 0;
 	sp = s_to_c(source);
 
@@ -232,16 +231,16 @@ substitute(String *source, Resub *subexp, char *s)
 
 	/* do the substitution */
 	while (*sp != '\0') {
-		if (*sp == '\\') {
+		if(*sp == '\\') {
 			switch (*++sp) {
 			case '0': case '1': case '2': case '3': case '4':
 			case '5': case '6': case '7': case '8': case '9':
 				i = *sp-'0';
-				if (subexp[i].sp != 0)
-					for (ssp = subexp[i].sp;
-					     ssp < subexp[i].ep;
-					     ssp++)
-						s_putc(stp, *ssp);
+				if(subexp[i].sp != 0)
+					for (s = subexp[i].sp;
+					     s < subexp[i].ep;
+					     s++)
+						s_putc(stp, *s);
 				break;
 			case '\\':
 				s_putc(stp, '\\');
@@ -250,18 +249,26 @@ substitute(String *source, Resub *subexp, char *s)
 				sp--;
 				break;
 			case 's':
-				for(ssp = s; *ssp; ssp++)
-					s_putc(stp, *ssp);
+				for(s = s_to_c(mp->replyaddr); *s; s++)
+					s_putc(stp, *s);
+				break;
+			case 'p':
+				if(mp->bulk)
+					s = "bulk";
+				else
+					s = "normal";
+				for(;*s; s++)
+					s_putc(stp, *s);
 				break;
 			default:
 				s_putc(stp, *sp);
 				break;
 			}
-		} else if (*sp == '&') {				
-			if (subexp[0].sp != 0)
-				for (ssp = subexp[0].sp;
-				     ssp < subexp[0].ep; ssp++)
-					s_putc(stp, *ssp);
+		} else if(*sp == '&') {				
+			if(subexp[0].sp != 0)
+				for (s = subexp[0].sp;
+				     s < subexp[0].ep; s++)
+					s_putc(stp, *s);
 		} else
 			s_putc(stp, *sp);
 		sp++;

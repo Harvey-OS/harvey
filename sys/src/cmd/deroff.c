@@ -64,11 +64,10 @@ int	intable	= NO;
 int	eqnflag	= 0;
 
 #define	MAX_ASCII	0X80
-#define	CHARCLASS(c)	((c) >= MAX_ASCII ? EXTENDED : chars[(c)])
 
 char	chars[MAX_ASCII];	/* SPECIAL, PUNCT, APOS, DIGIT, or LETTER */
 
-Rune	line[4096];
+Rune	line[30000];
 Rune*	lp;
 
 long	c;
@@ -90,6 +89,7 @@ Biobuf	bout;
 long	skeqn(void);
 Biobuf*	opn(char *p);
 int	eof(void);
+int	charclass(int);
 void	getfname(void);
 void	fatal(char *s, char *p);
 void	usage(void);
@@ -342,8 +342,8 @@ putmac(Rune *rp, int vconst)
 			;
 		if(*rp == '\"')
 			rp++;
-		if(t > rp+vconst && CHARCLASS(*rp) == LETTER
-				&& CHARCLASS(rp[1]) == LETTER) {
+		if(t > rp+vconst && charclass(*rp) == LETTER
+				&& charclass(rp[1]) == LETTER) {
 			while(rp < t)
 				if(*rp == '\"')
 					rp++;
@@ -352,7 +352,7 @@ putmac(Rune *rp, int vconst)
 			last = t[-1];
 			found++;
 		} else
-		if(found && CHARCLASS(*rp) == PUNCT && rp[1] == '\0')
+		if(found && charclass(*rp) == PUNCT && rp[1] == '\0')
 			Bputrune(&bout, *rp++);
 		else {
 			last = t[-1];
@@ -360,7 +360,7 @@ putmac(Rune *rp, int vconst)
 		}
 	}
 	Bputc(&bout, '\n');
-	if(msflag && CHARCLASS(last) == PUNCT)
+	if(msflag && charclass(last) == PUNCT)
 		Bprint(&bout, " %C\n", last);
 }
 
@@ -378,11 +378,11 @@ putwords(void)
 		/*
 		 * skip initial specials ampersands and apostrophes
 		 */
-		while((i = CHARCLASS(*p1)) != EXTENDED && i < DIGIT)
+		while((i = charclass(*p1)) != EXTENDED && i < DIGIT)
 			if(*p1++ == '\0')
 				return;
 		nlet = 0;
-		for(p = p1; (i = CHARCLASS(*p)) != SPECIAL; p++)
+		for(p = p1; (i = charclass(*p)) != SPECIAL; p++)
 			if(i == LETTER)
 				nlet++;
 		/*
@@ -393,7 +393,7 @@ putwords(void)
 			 * delete trailing ampersands and apostrophes
 			 */
 			while(*--p == '\'' || *p == '&'
-					   || CHARCLASS(*p) == PUNCT)
+					   || charclass(*p) == PUNCT)
 				;
 			while(p1 <= p)
 				Bputrune(&bout, *p1++);
@@ -408,7 +408,6 @@ comline(void)
 {
 	long c1, c2;
 
-com:
 	while(C==' ' || c=='\t')
 		;
 comx:
@@ -859,7 +858,7 @@ refer(int c1)
 			else {
 				while(C != '\n')
 					c2 = c;
-				if(CHARCLASS(c2) == PUNCT)
+				if(charclass(c2) == PUNCT)
 					Bprint(&bout, " %C",c2);
 				return;
 			}
@@ -915,4 +914,16 @@ inpic(void)
 			p1 = line;
 		}
 	}
+}
+
+int
+charclass(int c)
+{
+	if(c < MAX_ASCII)
+		return chars[c];
+	switch(c){
+	case 0x2013: case 0x2014:	/* en dash, em dash */
+		return SPECIAL;
+	}
+	return EXTENDED;
 }

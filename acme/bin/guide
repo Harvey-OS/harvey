@@ -1,5 +1,3 @@
 win
-new command ...
 aspell file
 adiff file1 file2
-adict -d oed

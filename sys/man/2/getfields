@@ -1,6 +1,6 @@
 .TH GETFIELDS 2
 .SH NAME
-getfields, getmfields, setfields, tokenize \- break a string into fields
+getfields, tokenize \- break a string into fields
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -8,79 +8,64 @@ getfields, getmfields, setfields, tokenize \- break a string into fields
 .PP
 .ta \w'\fLchar* \fP'u
 .B
-int	getfields(char *str, char **ptrs, int nptrs)
+int	getfields(char *str, char **args, int maxargs, int multiflag,
+.br
+.B
+	    char *delims)
 .PP
 .B
-int	getmfields(char *str, char **ptrs, int nptrs)
-.PP
-.B
-char*	setfields(char *fielddelim)
-.PP
-.B
-int	tokenize(char *str, char **args, int max)
+int	tokenize(char *str, char **args, int maxargs)
 .SH DESCRIPTION
 .I Getfields
-breaks the null-terminated string
+breaks the null-terminated
+.SM UTF
+string
 .I str
 into at most
-.I nptrs
+.I maxargs
 null-terminated fields and places pointers to the start of these fields in the array
-.IR ptrs .
-It returns the number of fields
-and terminates the list of pointers with a zero pointer.
-It overwrites some of the bytes in
-.IR str .
-If there are
-.I nptr
-or more fields, the list will not end with zero
-and the last `field' will extend to the end of the
-input string and may contain delimiters.
+.IR args .
+Some of the bytes in
+.I str
+are overwritten.
+If there are more than
+.I maxargs
+fields,
+only the first
+.I maxargs
+fields will be set.
+.I Delims
+is a
+.SM UTF
+string defining a set of delimiters.
 .PP
-A field is defined as a maximal sequence of characters not in a set
-of field delimiters.
-Adjacent fields are separated by exactly one delimiter.
-No field follows a delimiter at the end of string.
-Thus a string of just two delimiter characters
-contains two empty fields,
-and a nonempty string with no delimiters contains
-one field.
+If
+.I multiflag
+is zero,
+adjacent fields are separated by exactly one delimiter.
+A string containing
+.I n
+delimiter characters
+contains
+.IR n +1
+fields.
+If the
+.I multiflag
+argument is not zero,
+a field is a non-empty string of non-delimiters.
 .PP
-.I Getmfields
+Getfields
+return the number of tokens processed.
+.PP
+.I Tokenize
 is the same as
 .I getfields
-except that fields are separated by maximal strings of
-field delimiters rather than just one.
-.PP
-.I Setfields
-makes the field delimiters (space and tab by default)
-be the characters of the string
-.I fielddelim
-and returns a pointer to a string of the previous delimiters.
-.PP
-.I Tokenize
-breaks null-terminated string
-.B str
-into tokens by replacing every blank or newline with a null byte.
-Pointers to successive non-empty tokens are placed in
-.BR args .
-Processing stops after
-.B max
-tokens are processed.
-.I Tokenize
-returns the number of tokens processed.
-.I Tokenize
-does
-.I not
-terminate
-.B args
-with a null pointer.
-.SS Alef
-Of these routines, only
-.I tokenize
-is in Alef.
+with
+.I multiflag
+non-zero and
+.I delims
+\f5"\et\er\en "\fP.
 .SH SOURCE
-.B /sys/src/libc/port/getfields.c
-.br
 .B /sys/src/libc/port/tokenize.c
 .SH SEE ALSO
 .I strtok

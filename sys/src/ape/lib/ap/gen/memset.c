@@ -1,5 +1,4 @@
-#include	<u.h>
-#include	<libc.h>
+#include <string.h>
 
 void*
 memset(void *ap, int c, size_t n)

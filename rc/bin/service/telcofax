@@ -1,2 +1,4 @@
 #!/bin/rc
-/bin/aux/faxreceive
+9fs emelie
+bind -c /n/emelie/mail/faxqueue /mail/faxqueue
+exec /bin/aux/faxreceive

@@ -5,130 +5,182 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-#include	"devtab.h"
+#include	"netif.h"
 
 typedef struct Pipe	Pipe;
 struct Pipe
 {
-	Ref;
 	QLock;
 	Pipe	*next;
+	int	ref;
 	ulong	path;
+	Queue	*q[2];
+	int	qref[2];
 };
 
 struct
 {
 	Lock;
-	Pipe	*pipe;
 	ulong	path;
 } pipealloc;
 
-static Pipe *getpipe(ulong);
-static void pipeiput(Queue*, Block*);
-static void pipeoput(Queue*, Block*);
-static void pipestclose(Queue *);
-
-Qinfo pipeinfo =
+enum
 {
-	pipeiput,
-	pipeoput,
-	0,
-	pipestclose,
-	"pipe"
+	Qdir,
+	Qdata0,
+	Qdata1,
 };
 
 Dirtab pipedir[] =
 {
-	"data",		{Sdataqid},	0,			0600,
-	"ctl",		{Sctlqid},	0,			0600,
-	"data1",	{Sdataqid},	0,			0600,
-	"ctl1",		{Sctlqid},	0,			0600,
+	"data",		{Qdata0},	0,			0600,
+	"data1",	{Qdata1},	0,			0600,
 };
-#define NPIPEDIR 4
+#define NPIPEDIR 2
 
-void
+static void
 pipeinit(void)
 {
-}
-
-void
-pipereset(void)
-{
+	if(conf.pipeqsize == 0){
+		if(conf.nmach > 1)
+			conf.pipeqsize = 256*1024;
+		else
+			conf.pipeqsize = 32*1024;
+	}
 }
 
 /*
  *  create a pipe, no streams are created until an open
  */
-Chan*
+static Chan*
 pipeattach(char *spec)
 {
 	Pipe *p;
 	Chan *c;
 
 	c = devattach('|', spec);
-	p = smalloc(sizeof(Pipe));
+	p = malloc(sizeof(Pipe));
+	if(p == 0)
+		exhausted("memory");
 	p->ref = 1;
+
+	p->q[0] = qopen(conf.pipeqsize, 0, 0, 0);
+	if(p->q[0] == 0){
+		free(p);
+		exhausted("memory");
+	}
+	p->q[1] = qopen(conf.pipeqsize, 0, 0, 0);
+	if(p->q[1] == 0){
+		free(p->q[0]);
+		free(p);
+		exhausted("memory");
+	}
 
 	lock(&pipealloc);
 	p->path = ++pipealloc.path;
-	p->next = pipealloc.pipe;
-	pipealloc.pipe = p;
 	unlock(&pipealloc);
 
-	c->qid = (Qid){CHDIR|STREAMQID(2*p->path, 0), 0};
+	c->qid = (Qid){CHDIR|NETQID(2*p->path, Qdir), 0};
+	c->aux = p;
 	c->dev = 0;
 	return c;
 }
 
-Chan*
+static Chan*
 pipeclone(Chan *c, Chan *nc)
 {
 	Pipe *p;
 
-	p = getpipe(STREAMID(c->qid.path)/2);
+	p = c->aux;
 	nc = devclone(c, nc);
-	if(incref(p) <= 1)
-		panic("pipeclone");
+	qlock(p);
+	p->ref++;
+	if(c->flag & COPEN){
+		switch(NETTYPE(c->qid.path)){
+		case Qdata0:
+			p->qref[0]++;
+			break;
+		case Qdata1:
+			p->qref[1]++;
+			break;
+		}
+	}
+	qunlock(p);
 	return nc;
 }
 
-int
+static int
 pipegen(Chan *c, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	int id;
+	int len;
+	Pipe *p;
 
-	id = STREAMID(c->qid.path);
+	if(i == DEVDOTDOT){
+		devdir(c, c->qid, "#|", 0, eve, CHDIR|0555, dp);
+		return 1;
+	}
+
+	id = NETID(c->qid.path);
 	if(i > 1)
 		id++;
 	if(tab==0 || i>=ntab)
 		return -1;
 	tab += i;
-	devdir(c, (Qid){STREAMQID(id, tab->qid.path),0}, tab->name, tab->length, eve, tab->perm, dp);
+	p = c->aux;
+	switch(tab->qid.path){
+	case Qdata0:
+		len = qlen(p->q[0]);
+		break;
+	case Qdata1:
+		len = qlen(p->q[1]);
+		break;
+	default:
+		len = tab->length;
+		break;
+	}
+	devdir(c, (Qid){NETQID(id, tab->qid.path),0}, tab->name, len, eve, tab->perm, dp);
 	return 1;
 }
 
 
-int
+static int
 pipewalk(Chan *c, char *name)
 {
 	return devwalk(c, name, pipedir, NPIPEDIR, pipegen);
 }
 
-void
+static void
 pipestat(Chan *c, char *db)
 {
-	streamstat(c, db, "pipe", 0666);
+	Pipe *p;
+	Dir dir;
+
+	p = c->aux;
+
+	switch(NETTYPE(c->qid.path)){
+	case Qdir:
+		devdir(c, c->qid, ".", 2*DIRLEN, eve, CHDIR|0555, &dir);
+		break;
+	case Qdata0:
+		devdir(c, c->qid, "data", qlen(p->q[0]), eve, 0660, &dir);
+		break;
+	case Qdata1:
+		devdir(c, c->qid, "data1", qlen(p->q[1]), eve, 0660, &dir);
+		break;
+	default:
+		panic("pipestat");
+	}
+	convD2M(&dir, db);
 }
 
 /*
  *  if the stream doesn't exist, create it
  */
-Chan *
+static Chan*
 pipeopen(Chan *c, int omode)
 {
 	Pipe *p;
-	int other;
-	Stream *local, *remote;
 
 	if(c->qid.path & CHDIR){
 		if(omode != OREAD)
@@ -139,36 +191,17 @@ pipeopen(Chan *c, int omode)
 		return c;
 	}
 
-	p = getpipe(STREAMID(c->qid.path)/2);
-	if(waserror()){
-		qunlock(p);
-		nexterror();
-	}
+	p = c->aux;
 	qlock(p);
-	streamopen(c, &pipeinfo);
-	local = c->stream;
-	if(local->devq->ptr == 0){
-		/*
-		 *  first open, create the other end also
-		 */
-		other = STREAMID(c->qid.path)^1;
-		remote = streamnew(c->type, c->dev, other, &pipeinfo,1);
-
-		/*
-		 *  connect the device ends of both streams
-		 */
-		local->devq->ptr = remote;
-		remote->devq->ptr = local;
-		local->devq->other->next = remote->devq;
-		remote->devq->other->next = local->devq;
-	} else if(local->opens == 1){
-		/*
-		 *  keep other side around till last close of this side
-		 */
-		streamenter(local->devq->ptr);
+	switch(NETTYPE(c->qid.path)){
+	case Qdata0:
+		p->qref[0]++;
+		break;
+	case Qdata1:
+		p->qref[1]++;
+		break;
 	}
 	qunlock(p);
-	poperror();
 
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
@@ -176,156 +209,181 @@ pipeopen(Chan *c, int omode)
 	return c;
 }
 
-void
-pipecreate(Chan *c, char *name, int omode, ulong perm)
-{
-	USED(c, name, omode, perm);
-	error(Egreg);
-}
-
-void
-piperemove(Chan *c)
-{
-	USED(c);
-	error(Egreg);
-}
-
-void
-pipewstat(Chan *c, char *db)
-{
-	USED(c, db);
-	error(Eperm);
-}
-
-void
+static void
 pipeclose(Chan *c)
 {
-	Pipe *p, *f, **l;
-	Stream *remote;
+	Pipe *p;
 
-	p = getpipe(STREAMID(c->qid.path)/2);
+	p = c->aux;
+	qlock(p);
 
-	/*
-	 *  take care of local and remote streams
-	 */
-	if(c->stream){
-		qlock(p);
-		remote = c->stream->devq->ptr;
-		if(streamclose(c) == 0){
-			if(remote)
-				streamexit(remote);
-		}
-		qunlock(p);
-	}
-
-	/*
-	 *  free the structure
-	 */
-	if(decref(p) == 0){
-		lock(&pipealloc);
-		l = &pipealloc.pipe;
-		for(f = *l; f; f = f->next) {
-			if(f == p) {
-				*l = p->next;
-				break;
+	if(c->flag & COPEN){
+		/*
+		 *  closing either side hangs up the stream
+		 */
+		switch(NETTYPE(c->qid.path)){
+		case Qdata0:
+			p->qref[0]--;
+			if(p->qref[0] == 0){
+				qhangup(p->q[1], 0);
+				qclose(p->q[0]);
 			}
-			l = &f->next;
+			break;
+		case Qdata1:
+			p->qref[1]--;
+			if(p->qref[1] == 0){
+				qhangup(p->q[0], 0);
+				qclose(p->q[1]);
+			}
+			break;
 		}
-		unlock(&pipealloc);
-		free(p);
 	}
+
+
+	/*
+	 *  if both sides are closed, they are reusable
+	 */
+	if(p->qref[0] == 0 && p->qref[1] == 0){
+		qreopen(p->q[0]);
+		qreopen(p->q[1]);
+	}
+
+	/*
+	 *  free the structure on last close
+	 */
+	p->ref--;
+	if(p->ref == 0){
+		qunlock(p);
+		free(p->q[0]);
+		free(p->q[1]);
+		free(p);
+	} else
+		qunlock(p);
 }
 
-long
-piperead(Chan *c, void *va, long n, ulong offset)
+static long
+piperead(Chan *c, void *va, long n, vlong)
 {
-	USED(offset);
-	if(c->qid.path & CHDIR)
-		return devdirread(c, va, n, pipedir, NPIPEDIR, pipegen);
+	Pipe *p;
 
-	return streamread(c, va, n);
+	p = c->aux;
+
+	switch(NETTYPE(c->qid.path)){
+	case Qdir:
+		return devdirread(c, va, n, pipedir, NPIPEDIR, pipegen);
+	case Qdata0:
+		return qread(p->q[0], va, n);
+	case Qdata1:
+		return qread(p->q[1], va, n);
+	default:
+		panic("piperead");
+	}
+	return -1;	/* not reached */
+}
+
+static Block*
+pipebread(Chan *c, long n, ulong offset)
+{
+	Pipe *p;
+
+	p = c->aux;
+
+	switch(NETTYPE(c->qid.path)){
+	case Qdata0:
+		return qbread(p->q[0], n);
+	case Qdata1:
+		return qbread(p->q[1], n);
+	}
+
+	return devbread(c, n, offset);
 }
 
 /*
  *  a write to a closed pipe causes a note to be sent to
  *  the process.
  */
-long
-pipewrite(Chan *c, void *va, long n, ulong offset)
+static long
+pipewrite(Chan *c, void *va, long n, vlong)
 {
-	USED(offset);
+	Pipe *p;
 
-	/* avoid notes when pipe is a mounted stream */
-	if(c->flag & CMSG)
-		return streamwrite(c, va, n, 0);
-
+	if(!islo())
+		print("pipewrite hi %lux\n", getcallerpc(&c));
 	if(waserror()) {
-		postnote(u->p, 1, "sys: write on closed pipe", NUser);
-		error(Ehungup);
+		/* avoid notes when pipe is a mounted queue */
+		if((c->flag & CMSG) == 0)
+			postnote(up, 1, "sys: write on closed pipe", NUser);
+		nexterror();
 	}
-	n = streamwrite(c, va, n, 0);
+
+	p = c->aux;
+
+	switch(NETTYPE(c->qid.path)){
+	case Qdata0:
+		n = qwrite(p->q[1], va, n);
+		break;
+
+	case Qdata1:
+		n = qwrite(p->q[0], va, n);
+		break;
+
+	default:
+		panic("pipewrite");
+	}
+
 	poperror();
 	return n;
 }
 
-/*
- *  send a block upstream to the process.
- *  sleep until there's room upstream.
- */
-static void
-pipeiput(Queue *q, Block *bp)
+static long
+pipebwrite(Chan *c, Block *bp, ulong)
 {
-	FLOWCTL(q, bp);
-}
-
-/*
- *  send the block to the other side
- */
-static void
-pipeoput(Queue *q, Block *bp)
-{
-	PUTNEXT(q, bp);
-}
-
-/*
- *  send a hangup and disconnect the streams
- */
-static void
-pipestclose(Queue *q)
-{
-	Block *bp;
-
-	/*
-	 *  point to the bit-bucket and let any in-progress
-	 *  write's finish.
-	 */
-	q->put = nullput;
-	wakeup(&q->r);
-
-	/*
-	 *  send a hangup
-	 */
-	q = q->other;
-	if(q->next == 0)
-		return;
-	bp = allocb(0);
-	bp->type = M_HANGUP;
-	PUTNEXT(q, bp);
-}
-
-Pipe*
-getpipe(ulong path)
-{
+	long n;
 	Pipe *p;
 
-	lock(&pipealloc);
-	for(p = pipealloc.pipe; p; p = p->next) {
-		if(path == p->path) {
-			unlock(&pipealloc);
-			return p;
-		}
+	if(waserror()) {
+		/* avoid notes when pipe is a mounted queue */
+		if((c->flag & CMSG) == 0)
+			postnote(up, 1, "sys: write on closed pipe", NUser);
+		nexterror();
 	}
-	unlock(&pipealloc);
-	panic("getpipe");
-	return 0;		/* not reached */
+
+	p = c->aux;
+	switch(NETTYPE(c->qid.path)){
+	case Qdata0:
+		n = qbwrite(p->q[1], bp);
+		break;
+
+	case Qdata1:
+		n = qbwrite(p->q[0], bp);
+		break;
+
+	default:
+		n = 0;
+		panic("pipebwrite");
+	}
+
+	poperror();
+	return n;
 }
+
+Dev pipedevtab = {
+	'|',
+	"pipe",
+
+	devreset,
+	pipeinit,
+	pipeattach,
+	pipeclone,
+	pipewalk,
+	pipestat,
+	pipeopen,
+	devcreate,
+	pipeclose,
+	piperead,
+	pipebread,
+	pipewrite,
+	pipebwrite,
+	devremove,
+	devwstat,
+};

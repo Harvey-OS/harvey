@@ -1,12 +1,16 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
 int cflag;					/* do not use hwgc */
 int dflag;					/* do the palette */
 
-Ctlr *ctlrs[] = {
+Ctlr* ctlrs[] = {
+	&ark2000pv,				/* ctlr */
+	&ark2000pvhwgc,				/* hwgc */
+	&att20c490,				/* ramdac */
 	&att20c491,				/* ramdac */
 	&att20c492,				/* ramdac */
 	&att21c498,				/* ramdac */
@@ -14,16 +18,36 @@ Ctlr *ctlrs[] = {
 	&bt485hwgc,				/* hwgc */
 	&ch9294,				/* clock */
 	&clgd542x,				/* ctlr */
+	&clgd542xhwgc,				/* hwgc */
+	&clgd546x,				/* ctlr */
+	&clgd546xhwgc,				/* hwgc */
+	&ct65540,				/* ctlr */
+	&ct65545,				/* ctlr */
+	&ct65545hwgc,				/* hwgc */
+	&cyber938x,				/* ctlr */
+	&cyber938xhwgc,				/* hwgc */
 	&et4000,				/* ctlr */
 	&et4000hwgc,				/* hwgc */
 	&generic,				/* ctlr */
+	&hiqvideo,				/* ctlr */
+	&hiqvideohwgc,				/* hwgc */
 	&ibm8514,				/* ctlr */
 	&icd2061a,				/* clock */
 	&ics2494,				/* clock */
 	&ics2494a,				/* clock */
+	&ics534x,				/* gendac */
 	&mach32,				/* ctlr */
 	&mach64,				/* ctlr */
+	&mach64xx,				/* ctlr */
+	&mach64xxhwgc,				/* hwgc */
+	&mga2164w,				/* ctlr */
+	&mga2164whwgc,				/* hwgc */
+	&neomagic,				/* ctlr */
+	&neomagichwgc,				/* hwgc */
 	&palette,				/* ctlr */
+	&rgb524,				/* ramdac */
+	&rgb524hwgc,				/* hwgc */
+	&rgb524mn,				/* ramdac */
 	&s3801,					/* ctlr */
 	&s3805,					/* ctlr */
 	&s3928,					/* ctlr */
@@ -31,11 +55,21 @@ Ctlr *ctlrs[] = {
 	&s3hwgc,				/* hwgc */
 	&sc15025,				/* ramdac */
 	&stg1702,				/* ramdac */
+	&t2r4,					/* ctlr */
+	&t2r4hwgc,				/* hwgc */
+	&trio64,				/* ctlr */
 	&tvp3020,				/* ramdac */
 	&tvp3020hwgc,				/* hwgc */
 	&tvp3025,				/* ramdac */
 	&tvp3025clock,				/* clock */
+	&tvp3026,				/* ramdac */
+	&tvp3026clock,				/* clock */
+	&tvp3026hwgc,				/* hwgc */
+	&virge,					/* ctlr */
 	&vision864,				/* ctlr */
+	&vision964,				/* ctlr */
+	&vision968,				/* ctlr */
+	&w30c516,				/* ctlr */
 	0,
 };
 

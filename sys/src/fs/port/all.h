@@ -4,7 +4,6 @@
 #include	"fns.h"
 
 #define	CHAT(cp)	((cons.flags&chatflag)||(cp&&(((Chan*)cp)->flags&chatflag)))
-#define	DEV(a,b,c,d)	(Device){a,b,c,d}
 #define	QID(a,b)	(Qid){a,b}
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
@@ -46,27 +45,32 @@ char*	errstr[MAXERR];
 void	(*p9call[MAXSYSCALL])(Chan*, Fcall*, Fcall*);
 Chan*	chans;
 RWlock	mainlock;
-long	mktime;
-long	boottime;
+ulong	mktime;
+ulong	boottime;
 Queue*	serveq;
 Queue*	raheadq;
 Rabuf*	rabuffree;
 QLock	reflock;
 Lock	rabuflock;
 Tlock	tlocks[NTLOCK];
-Device	devnone;
-long	startsb;
+Device*	devnone;
+Startsb	startsb[5];
 int	predawn;		/* set in early boot, causes polling ttyout */
 int	mballocs[MAXCAT];
 Filsys	filsys[10];		/* named file systems -- from config block */
 char	service[50];		/* my name -- from config block */
-uchar	sysip[Pasize];		/* my ip -- from config block */
-uchar	defmask[Pasize];	/* ip mask -- from config block */
-uchar	defgwip[Pasize];	/* gateway ip -- from config block */
-uchar 	authip[Pasize];		/* ip address of server -- from config block */
+uchar 	authip[Pasize];		/* ip address of server - from config block */
+struct
+{
+	uchar	sysip[Pasize];	/* my ip - from config block */
+	uchar	defmask[Pasize];/* ip mask - from config block */
+	uchar	defgwip[Pasize];/* gateway ip - from config block */
+} ipaddr[10];
+int	aindex;
+
 char	srvkey[DESKEYLEN];
-ulong	dkflag;
 ulong	roflag;
+ulong	errorflag;
 ulong	chatflag;
 ulong	attachflag;
 int	noattach;
@@ -75,7 +79,6 @@ int	echo;
 int	wstatallow;		/* set to circumvent wstat permissions */
 int	writeallow;		/* set to circumvent write permissions */
 int	duallow;		/* single user to allow du */
-Device	cwdevs[1000];		/* structures for pseudo devices */
 
 int	noauth;			/* Debug */
 Queue*	authreply;		/* Auth replys */

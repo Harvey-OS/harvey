@@ -2,8 +2,8 @@
 
 LIB=/$objtype/lib/libc.a
 ALLOFILES=\
+	_assert.$O\
 	abs.$O\
-	announce.$O\
 	asin.$O\
 	atan.$O\
 	atan2.$O\
@@ -11,20 +11,23 @@ ALLOFILES=\
 	atnotify.$O\
 	atof.$O\
 	atol.$O\
+	atoll.$O\
 	charstod.$O\
+	cleanname.$O\
 	crypt.$O\
 	ctype.$O\
-	dial.$O\
 	doprint.$O\
 	execl.$O\
 	exp.$O\
 	fabs.$O\
+	fastrand.$O\
 	floor.$O\
 	fmod.$O\
-	getfields.$O\
+	getcallerpc.$O\
 	getuser.$O\
 	hangup.$O\
 	hypot.$O\
+	lock.$O\
 	log.$O\
 	malloc.$O\
 	memccpy.$O\
@@ -36,6 +39,7 @@ ALLOFILES=\
 	netcrypt.$O\
 	netmkaddr.$O\
 	perror.$O\
+	pool.$O\
 	pow.$O\
 	pow10.$O\
 	print.$O\
@@ -44,6 +48,7 @@ ALLOFILES=\
 	rand.$O\
 	readn.$O\
 	rune.$O\
+	runetype.$O\
 	sin.$O\
 	sinh.$O\
 	sqrt.$O\
@@ -64,7 +69,9 @@ ALLOFILES=\
 	strtod.$O\
 	strtok.$O\
 	strtol.$O\
+	strtoll.$O\
 	strtoul.$O\
+	strtoull.$O\
 	tan.$O\
 	tanh.$O\
 	tokenize.$O\
@@ -81,5 +88,3 @@ HFILES=/sys/include/libc.h
 
 </sys/src/cmd/mksyslib
 
-crypt.$O:	crypt.$O.save
-	cp crypt.$O.save crypt.$O

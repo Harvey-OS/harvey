@@ -77,7 +77,7 @@ struct Fcall {
 			char	mode;	/* Tcreate, Topen */
 		};
 		struct {
-			long	offset;	/* Tread, Twrite */
+			vlong	offset;	/* Tread, Twrite */
 			long	count;	/* Tread, Twrite, Rread */
 			char	*data;	/* Twrite, Rread */
 		};
@@ -165,6 +165,9 @@ in a read or write message.
 Thus messages are guaranteed to be shorter than
 .B MAXMSG+MAXFDATA
 bytes long.
+The constant
+.B MAXRPC
+is set to this sum.
 .PP
 Another structure is
 .BR Dir ,
@@ -243,9 +246,6 @@ has been installed with format letter
 sets
 .IR errstr .
 .SH BUGS
-The offset and directory length fields have 8 bytes in the protocol,
-but these routines assume they fit into a long.
-.PP
 .I ConvS2M
 should check for counts exceeding
 .BR MAXFMSG .

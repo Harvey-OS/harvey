@@ -60,7 +60,7 @@ struct
 {
 	Handler	*ivec[256];
 	Handler	h[Maxhandler];
-	int	free;
+	int	nextfree;
 } halloc;
 
 void
@@ -75,9 +75,9 @@ setvec(int v, void (*r)(Ureg*, void*), void *arg)
 {
 	Handler *h;
 
-	if(halloc.free >= Maxhandler)
+	if(halloc.nextfree >= Maxhandler)
 		panic("out of interrupt handlers");
-	h = &halloc.h[halloc.free++];
+	h = &halloc.h[halloc.nextfree++];
 	h->next = halloc.ivec[v];
 	h->r = r;
 	h->arg = arg;
@@ -86,10 +86,10 @@ setvec(int v, void (*r)(Ureg*, void*), void *arg)
 	/*
 	 *  enable corresponding interrupt in 8259
 	 */
-	if((v&~0x7) == Int0vec){
+	if((v&~0x7) == VectorPIC){
 		int0mask &= ~(1<<(v&7));
 		outb(Int0aux, int0mask);
-	} else if((v&~0x7) == Int1vec){
+	} else if((v&~0x7) == VectorPIC+8){
 		int1mask &= ~(1<<(v&7));
 		outb(Int1aux, int1mask);
 	}
@@ -157,34 +157,34 @@ trapinit(void)
 
 	/*
 	 *  Set up the first 8259 interrupt processor.
-	 *  Make 8259 interrupts start at CPU vector Int0vec.
+	 *  Make 8259 interrupts start at CPU vector VectorPIC.
 	 *  Set the 8259 as master with edge triggered
 	 *  input with fully nested interrupts.
 	 */
 	outb(Int0ctl, Icw1|0x01);	/* ICW1 - edge triggered, master,
 					   ICW4 will be sent */
-	outb(Int0aux, Int0vec);		/* ICW2 - interrupt vector offset */
+	outb(Int0aux, VectorPIC);		/* ICW2 - interrupt vector offset */
 	outb(Int0aux, 0x04);		/* ICW3 - have slave on level 2 */
 	outb(Int0aux, 0x01);		/* ICW4 - 8086 mode, not buffered */
 
 	/*
 	 *  Set up the second 8259 interrupt processor.
-	 *  Make 8259 interrupts start at CPU vector Int0vec.
+	 *  Make 8259 interrupts start at CPU vector VectorPIC+8.
 	 *  Set the 8259 as master with edge triggered
 	 *  input with fully nested interrupts.
 	 */
 	outb(Int1ctl, Icw1|0x01);	/* ICW1 - edge triggered, master,
 					   ICW4 will be sent */
-	outb(Int1aux, Int1vec);		/* ICW2 - interrupt vector offset */
+	outb(Int1aux, VectorPIC+8);		/* ICW2 - interrupt vector offset */
 	outb(Int1aux, 0x02);		/* ICW3 - I am a slave on level 2 */
 	outb(Int1aux, 0x01);		/* ICW4 - 8086 mode, not buffered */
+	outb(Int1aux, int1mask);
 
 	/*
 	 *  pass #2 8259 interrupts to #1
 	 */
 	int0mask &= ~0x04;
 	outb(Int0aux, int0mask);
-	outb(Int1aux, int1mask);
 
 	/*
 	 * Set Ocw3 to return the ISR when ctl read.
@@ -230,18 +230,18 @@ trap(Ureg *ur)
 	 */
 	c = v&~0x7;
 	isr = 0;
-	if(c==Int0vec || c==Int1vec){
+	if(c==VectorPIC || c==VectorPIC+8){
 		isr = inb(Int0ctl);
 		outb(Int0ctl, EOI);
-		if(c == Int1vec){
+		if(c == VectorPIC+8){
 			isr |= inb(Int1ctl)<<8;
 			outb(Int1ctl, EOI);
 		}
 	}
 
 	if(v>=256 || (h = halloc.ivec[v]) == 0){
-		if(v >= Int0vec && v < Int0vec+16){
-			v -= Int0vec;
+		if(v >= VectorPIC && v < VectorPIC+16){
+			v -= VectorPIC;
 			/*
 			 * Check for a default IRQ7. This can happen when
 			 * the IRQ input goes away before the acknowledge.
@@ -264,7 +264,7 @@ trap(Ureg *ur)
 		default:
 			print("exception/interrupt %d\n", v);
 			dumpregs(ur);
-			spllo();
+			//spllo();
 			print("^P to reset\n");
 			for(;;);
 		}

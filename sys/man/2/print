@@ -1,6 +1,6 @@
 .TH PRINT 2
 .SH NAME
-print, fprint, sprint, snprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint \- print formatted output
+print, fprint, sprint, snprint, seprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint \- print formatted output
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -20,7 +20,10 @@ int	sprint(char *s, char *format, ...)
 int	snprint(char *s, int len, char *format, ...)
 .PP
 .B
-int	fmtinstall(int c, int (*f)(void*, Fconv*))
+char*	seprint(char *s, char *e, char *format, ...)
+.PP
+.B
+int	fmtinstall(int c, int (*f)(va_list*, Fconv*))
 .PP
 .B
 void	strconv(char *s, Fconv *fp)
@@ -29,13 +32,13 @@ void	strconv(char *s, Fconv *fp)
 void	Strconv(Rune *s, Fconv *fp)
 .PP
 .B
-int	numbconv(void *o, Fconv *fp)
+int	numbconv(va_list *arg, Fconv *fp)
 .PP
 .B
-int	fltconv(double f, Fconv *fp)
+int	fltconv(va_list *arg, Fconv *fp)
 .PP
 .B
-char*	doprint(char *s, char *es, char *format, void *argp)
+char*	doprint(char *s, char *es, char *format, va_list arg)
 .PP
 .B
 extern int printcol;
@@ -62,13 +65,23 @@ in the case of
 .IR sprint ),
 or
 a negative value if an output error was encountered.
+.PP
 .I Snprint
 is like
-.I sprint
+.IR sprint ,
 but will not place more than
 .I len
 bytes in
 .IR s .
+Its result is always NUL-terminated and holds the maximal
+number of complete UTF-8 characters that can fit.
+.I Seprint
+is like
+.IR snprint ,
+except that the end is indicated by a pointer
+.I e
+rather than a count and the return value points to the terminating NUL of the
+resulting string.
 .PP
 Each of these functions
 converts, formats, and prints its
@@ -295,20 +308,14 @@ verb takes no arguments; it copies the error string returned by a call to
 .I Fmtinstall
 is used to install custom verbs and flags labeled by character
 .IR c ,
-must have value less than 512.
+which must have value less than 512.
 .I Fn
 should be declared as
 .IP
 .EX
-int	fn(void *o, Fconv *fp)
+int	fn(va_list *arg, Fconv *fp)
 .EE
 .PP
-.I Fn
-is passed a pointer
-.I o
-to whatever argument appears next in
-the list to
-.IR print .
 .IB Fp ->chr
 is the flag or verb character to cause
 .I fn
@@ -344,13 +351,18 @@ The standard flags values are: 1
 and
 64
 .RB ( ll ).
+.I Fn
+is passed a pointer
+.I arg
+to the argument list.
 If
 .IB fp ->chr
 is a verb,
 .I fn
-should return the size of the argument in bytes so
-.I print
-can skip over it.
+should use 
+.BR va_arg
+to fetch its argument from the list,
+then format it, and return zero.
 If
 .IB fp ->chr
 is a flag,
@@ -366,9 +378,10 @@ is left up to the conversion routine.
 .I Fmtinstall
 returns 0 if the installation succeeds, \-1 if it fails.
 .PP
-.I Sprint
+.IR Sprint ,
+.IR snprint ,
 and
-.I snprint
+.I seprint
 are re-entrant; they may be called to
 help prepare output in custom conversion routines.
 .PP
@@ -402,15 +415,11 @@ indicates the position of the next output character.
 Tabs, backspaces and carriage returns are interpreted appropriately.
 .PP
 .I Numbconv
-is used to implement the integer verbs;
-its arguments are like those of the function argument to
+and
+.I fltconv
+are used to implement the integer and floating verbs.
+Their arguments are like those of the function argument to
 .IR fmtinstall .
-.I Fltconv
-is used to implement the floating verbs.
-Its arguments are like those of the function argument to
-.IR fmtinstall ,
-except that the first argument is the double itself rather than
-a pointer to it.
 Both
 .I numbconv
 and
@@ -420,16 +429,15 @@ use
 to put their results into the current print buffer.
 .PP
 One of
-.IR strconv ,
-.IR Strconv ,
+.IR strconv 
 or
-.I numbconv
+.I Strconv
 must be called to produce output; no other routine puts characters
 in the output buffer.
 .PP
 .I Doprint
-formats the arguments starting at
-.I argp
+formats the argument list arg
+.I arg
 into the buffer starting at
 .IR s ,
 but it writes no characters after the address
@@ -437,14 +445,6 @@ but it writes no characters after the address
 It returns a pointer to the NUL
 terminating the
 formatted string.
-.SH Alef
-In Alef,
-.B Fconv
-is called
-.B Printspec
-and the arguments to
-.I strconv
-are swapped.
 .SH EXAMPLES
 This function prints an error message with a variable
 number of arguments and then quits.
@@ -454,9 +454,12 @@ number of arguments and then quits.
 void fatal(char *msg, ...)
 {
 	char buf[1024], *out;
+	va_list arg;
 
 	out = doprint(buf, buf+sizeof(buf), "Fatal error: ");
-	out = doprint(out, buf+sizeof(buf), msg, (&msg+1));
+	va_start(arg, msg);
+	out = doprint(out, buf+sizeof(buf), msg, arg);
+	va_end(arg);
 	write(2, buf, out-buf);
 	exits("fatal error");
 }
@@ -471,15 +474,15 @@ struct {
 } Complex;
 
 int
-Xconv(void *v, Fconv *fp)
+Xconv(va_list *arg, Fconv *fp)
 {
 	char str[50];
-	Complex *o;
+	Complex c;
 
-	o = v;
-	sprint(str, "(%g,%g)", o->r, o->i);
+	c = va_arg(*arg, Complex);
+	sprint(str, "(%g,%g)", c.r, c.i);
 	strconv(str, fp);
-	return(sizeof(Complex));
+	return 0;
 }
 
 main(...)
@@ -513,11 +516,6 @@ flag doesn't work
 .IP
 .B u
 is a flag here instead of a verb
-.IP
-.B X
-conversion doesn't use upper case
-.B A-F
-for digits ten to fifteen
 .IP
 there are no
 .B 0

@@ -14,4 +14,4 @@ struct	ar_hdr
 	char	size[10];
 	char	fmag[2];
 };
-#define	SAR_HDR	60
+#define	SAR_HDR	(SARNAME+44)

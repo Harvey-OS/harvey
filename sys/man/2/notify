@@ -20,7 +20,8 @@ or writing on a closed pipe, a
 .I note
 is posted to communicate the exception.
 A note may also be posted by a
-.IR write (see
+.I write
+(see
 .IR read (2))
 to the process's
 .BI /proc/ n /note
@@ -84,7 +85,7 @@ is undefined and probably erroneous.
 Until the program calls
 .IR noted ,
 any further externally-generated notes
-(e.g.
+(e.g.,
 .B hangup
 or
 .BR alarm )
@@ -226,13 +227,6 @@ The types and syntax of the
 and
 .I fptrap
 portions of the notes are machine-dependent.
-.SS Alef
-Because the run-time system does not protect itself,
-Alef programs require extreme care to recover from notes.
-Notes are, however, useful for shutting down multi-process programs cleanly.
-There is no
-.I atnotify
-in Alef.
 .SH SOURCE
 .B /sys/src/libc/9syscall
 .br

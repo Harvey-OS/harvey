@@ -21,10 +21,12 @@ up_bind(dest *destp, message *mp, int checkforward)
 	 *	- forwarding rights
 	 *	- addressing loops
 	 *	- illegal characters
+	 *	- characters that need escaping
 	 */
 	for (dp = d_rm(&list[0]); dp != 0; dp = d_rm(&list[0])) {
 		if (!checkforward)
 			dp->authorized = 1;
+		dp->addr = escapespecial(dp->addr);
 		if (forward_loop(s_to_c(dp->addr), thissys)) {
 			dp->status = d_eloop;
 			d_same_insert(&bound, dp);
@@ -48,7 +50,7 @@ up_bind(dest *destp, message *mp, int checkforward)
 		for (dp = d_rm(&list[li]); dp != 0; dp = d_rm(&list[li])){
 			dest *newlist;
 
-			rewrite(dp, s_to_c(mp->replyaddr));
+			rewrite(dp, mp);
 			if(debug)
 				fprint(2, "%s -> %s\n", s_to_c(dp->addr),
 					dp->repl1 ? s_to_c(dp->repl1):"");

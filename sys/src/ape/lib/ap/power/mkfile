@@ -1,0 +1,24 @@
+BUILTINS=
+NPROC=1
+SYSH=/sys/src/libc/9syscall/sys.h
+
+all:V:
+	SYS=`{sed 's/#define.([A-Z0-9_]*).*/\1/' $SYSH}
+	for(I in $SYS) {
+		n=`{sed -n '/[ 	]'$I'[ 	]/s/.*	//p' $SYSH}
+		echo TEXT _$I'(SB)', 1, '$0' > _$I.s
+		echo MOVW R3, '0(FP)' >> _$I.s
+		echo MOVW '$'$n, R3 >> _$I.s
+		echo SYSCALL >> _$I.s
+		if(~ $I SEEK) {
+			echo 'CMP R3,$-1
+			BNE 4(PC)
+			MOVW a+0(FP),R8
+			MOVW R3,0(R8)
+			MOVW R3,4(R8)' >> _$I.s
+		}
+		echo RETURN >> _$I.s
+	}
+
+clean:V:
+	rm -f _*.s

@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/lib9p.a
+OFILES=\
+	fid.$O\
+	file.$O\
+	intmap.$O\
+	req.$O\
+	srv.$O\
+	uid.$O\
+	util.$O\
+
+HFILES=/sys/include/9p.h
+
+</sys/src/cmd/mksyslib

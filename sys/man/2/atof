@@ -1,6 +1,6 @@
 .TH ATOF 2
 .SH NAME
-atof, atoi, atol, charstod, strtod, strtol, strtoul \- convert text to numbers
+atof, atoi, atol, atoll, charstod, strtod, strtol, strtoll, strtoul, strtoull \- convert text to numbers
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -18,6 +18,9 @@ int	atoi(char *nptr)
 long	atol(char *nptr)
 .PP
 .B
+vlong	atoll(char *nptr)
+.PP
+.B
 double	charstod(int (*f)(void *), void *a)
 .PP
 .B
@@ -27,35 +30,31 @@ double	strtod(char *nptr, char **rptr)
 long	strtol(char *nptr, char **rptr, int base)
 .PP
 .B
+vlong	strtoll(char *nptr, char **rptr, int base)
+.PP
+.B
 ulong	strtoul(char *nptr, char **rptr, int base)
 .PP
 .B
-/* Alef only */
-.PP
-.B
-int	strtoi(byte *nptr, byte **rptr, int base)
-.PP
-.B
-uint	strtoui(byte *nptr, byte **rptr, int base)
-.PP
-.B
-float	strtof(byte *nptr, byte **rptr);
+vlong	strtoull(char *nptr, char **rptr, int base)
 .fi
 .SH DESCRIPTION
 .IR Atof ,
 .IR atoi ,
+.IR atol ,
 and
-.I atol
+.I atoll
 convert a string pointed to by
 .I nptr
-to floating, integer, and long integer
+to floating, integer, long integer, and long long integer
+.RB ( vlong )
 representation respectively.
 The first unrecognized character ends the string.
 Leading C escapes are understood, as in
 .I strtol
 with
 .I base
-zero.
+zero (described below).
 .PP
 .I Atof
 recognizes an optional string of tabs and spaces,
@@ -77,8 +76,10 @@ decimal digits.
 .PP
 .IR Strtod ,
 .IR strtol ,
+.IR strtoll ,
+.IR strtoul ,
 and
-.I strtoul
+.I strtoull
 behave similarly to 
 .I atof
 and
@@ -90,9 +91,11 @@ is not zero, set
 to point to the input character
 immediately after the string converted.
 .PP
-.I Strtol
+.IR Strtol ,
+.IR strtoll ,
+.IR strtoul ,
 and
-.I strtoul
+.IR strtoull
 interpret the digit string in the specified
 .IR base ,
 from 2 to 36,
@@ -111,12 +114,14 @@ or
 .LR 0X ,
 otherwise decimal.
 .I Strtoul
-does not recognize signs.
+and
+.I strtoull
+do not recognize signs.
 .PP
 .I Charstod
-interprets floating point numbers like
+interprets floating point numbers in the manner of
 .IR atof ,
-but it gets successive characters by calling
+but gets successive characters by calling
 .BR (*\fIf\fP)(a) .
 The last call to
 .I f
@@ -125,27 +130,6 @@ is not a legal continuation of a number.
 Therefore, it may be necessary to back up the input stream one character
 after calling
 .IR charstod .
-.SS Alef
-The routines
-.I strtol
-and
-.I strtoul
-are renamed
-.I strtoi
-and
-.I strtoui
-and return type
-.B int
-and
-.BR uint .
-There is no
-.I charstod
-or
-.IR atof .
-Instead,
-.I strtof
-is like a floating-point base 10
-.IR strtoi .
 .SH SOURCE
 .B /sys/src/libc/port
 .SH SEE ALSO

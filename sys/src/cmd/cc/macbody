@@ -1,3 +1,22 @@
+
+long
+getnsn(void)
+{
+	long n;
+	int c;
+
+	c = getnsc();
+	if(c < '0' || c > '9')
+		return -1;
+	n = 0;
+	while(c >= '0' && c <= '9') {
+		n = n*10 + c-'0';
+		c = getc();
+	}
+	unget(c);
+	return n;
+}
+
 Sym*
 getsym(void)
 {
@@ -34,6 +53,11 @@ getcom(void)
 		if(c != '/')
 			break;
 		c = getc();
+		if(c == '/') {
+			while(c != '\n')
+				c = getc();
+			break;
+		}
 		if(c != '*')
 			break;
 		c = getc();
@@ -200,12 +224,12 @@ macdef(void)
 					break;
 			if(i >= n) {
 				i = strlen(symb);
-				ALLOCN(base, len, i);
+				base = allocn(base, len, i);
 				memcpy(base+len, symb, i);
 				len += i;
 				continue;
 			}
-			ALLOCN(base, len, 2);
+			base = allocn(base, len, 2);
 			base[len++] = '#';
 			base[len++] = 'a' + i;
 			continue;
@@ -213,7 +237,7 @@ macdef(void)
 		if(c == '/') {
 			c = getc();
 			if(c != '*') {
-				ALLOCN(base, len, 1);
+				base = allocn(base, len, 1);
 				base[len++] = '/';
 				continue;
 			}
@@ -240,7 +264,7 @@ macdef(void)
 				c = getc();
 				continue;
 			}
-			ALLOCN(base, len, 1);
+			base = allocn(base, len, 1);
 			base[len++] = '\\';
 			continue;
 		}
@@ -248,10 +272,10 @@ macdef(void)
 			break;
 		if(c == '#')
 		if(n > 0) {
-			ALLOCN(base, len, 1);
+			base = allocn(base, len, 1);
 			base[len++] = c;
 		}
-		ALLOCN(base, len, 1);
+		base = allocn(base, len, 1);
 		base[len++] = c;
 		c = ((--fi.c < 0)? filbuf(): (*fi.p++ & 0xff));
 		if(c == '\n')
@@ -262,7 +286,7 @@ macdef(void)
 		}
 	}
 	do {
-		ALLOCN(base, len, 1);
+		base = allocn(base, len, 1);
 		base[len++] = 0;
 	} while(len & 3);
 
@@ -474,14 +498,11 @@ maclin(void)
 	int c;
 	long n;
 
-	c = getnsc();
-	if(c < '0' || c > '9')
+	n = getnsn();
+	c = getc();
+	if(n < 0)
 		goto bad;
-	n = 0;
-	while(c >= '0' && c <= '9') {
-		n = n*10 + c-'0';
-		c = getc();
-	}
+
 	for(;;) {
 		if(c == ' ' || c == '\t') {
 			c = getc();
@@ -517,7 +538,6 @@ nn:
 	memcpy(hunk, symb, c);
 	nhunk -= c;
 	hunk += c;
-
 	linehist(cp, n);
 	return;
 
@@ -592,12 +612,27 @@ macprag(void)
 	Hist *h;
 
 	s = getsym();
-	if(s == S || strcmp(s->name, "lib") != 0) {
-		while(getnsc() != '\n')
-			;
+
+	if(s && strcmp(s->name, "lib") == 0)
+		goto praglib;
+	if(s && strcmp(s->name, "hjdicks") == 0) {
+		praghjdicks();
+		return;
+	}
+	if(s && strcmp(s->name, "fpround") == 0) {
+		pragfpround();
+		return;
+	}
+	if(s && strcmp(s->name, "varargck") == 0) {
+		pragvararg();
 		return;
 	}
 
+	while(getnsc() != '\n')
+		;
+	return;
+
+praglib:
 	c0 = getnsc();
 	if(c0 != '"') {
 		c = c0;
@@ -631,7 +666,7 @@ macprag(void)
 	nhunk -= c;
 	hunk += c;
 
-	ALLOC(h, Hist);
+	h = alloc(sizeof(Hist));
 	h->name = hp;
 	h->line = lineno;
 	h->offset = -1;
@@ -682,14 +717,14 @@ linehist(char *f, int offset)
 	if(debug['f'])
 		if(f) {
 			if(offset)
-				print("%4d: %s (#line %d)\n", lineno, f, offset);
+				print("%4ld: %s (#line %d)\n", lineno, f, offset);
 			else
-				print("%4d: %s\n", lineno, f);
+				print("%4ld: %s\n", lineno, f);
 		} else
-			print("%4d: <pop>\n", lineno);
+			print("%4ld: <pop>\n", lineno);
 	newflag = 0;
 
-	ALLOC(h, Hist);
+	h = alloc(sizeof(Hist));
 	h->name = f;
 	h->line = lineno;
 	h->offset = offset;
@@ -712,7 +747,7 @@ gethunk(void)
 	nh = NHUNK;
 	if(thunk >= 10L*NHUNK)
 		nh = 10L*NHUNK;
-	h = (char*)sbrk(nh);
+	h = (char*)mysbrk(nh);
 	if(h == (char*)-1) {
 		yyerror("out of memory");
 		errorexit();

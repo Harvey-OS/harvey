@@ -9,7 +9,7 @@ bugs:
 
 enum
 {
-	Nline	= 100000,		/* max number of lines saved in memory */
+	Nline	= 100000,		/* default max number of lines saved in memory */
 	Nmerge	= 10,			/* max number of temporary files merged */
 	Nfield	= 20,			/* max number of argument fields */
 
@@ -92,6 +92,7 @@ struct args
 	long	nline;			/* number of lines in this temp file */
 	long	lineno;			/* overall ordinal for -s option */
 	int	ntemp;
+	long	mline;			/* max lines per file */
 } args;
 
 extern	int	latinmap[];
@@ -203,7 +204,6 @@ dofile(Biobuf *b)
 				break;
 			n = kcmp(ol->key, l->key);
 			if(n > 0 || (n == 0 && args.uflag)) {
-				/* no output shall be produced
 				fprint(2, "sort: -c file not in sort\n"); /**/
 				done("order");
 			}
@@ -215,7 +215,7 @@ dofile(Biobuf *b)
 	}
 
 	if(args.linep == 0) {
-		args.linep = malloc(Nline * sizeof(args.linep));
+		args.linep = malloc(args.mline * sizeof(args.linep));
 		if(args.linep == 0)
 			nomem();
 	}
@@ -223,7 +223,7 @@ dofile(Biobuf *b)
 		l = newline(b);
 		if(l == 0)
 			break;
-		if(args.nline >= Nline)
+		if(args.nline >= args.mline)
 			tempout();
 		args.linep[args.nline] = l;
 		args.nline++;
@@ -232,17 +232,16 @@ dofile(Biobuf *b)
 }
 
 void
-notifyf(void *a, char *s)
+notifyf(void*, char *s)
 {
 
-	USED(a);
 	if(strcmp(s, "interrupt") == 0)
 		done(0);
 	if(strcmp(s, "hangup") == 0)
 		done(0);
 	if(strcmp(s, "kill") == 0)
 		done(0);
-	if(strcmp(s, "sys: write on closed pipe") == 0)
+	if(strncmp(s, "sys: write on closed pipe", 25) == 0)
 		done(0);
 	fprint(2, "sort: note: %s\n", s);
 	abort();
@@ -353,18 +352,28 @@ nomem(void)
 char*
 tempfile(int n)
 {
-	static char file[20];
-	static int pid;
+	static char file[100];
+	static uint pid;
 	char *dir;
 
 	dir = "/tmp";
 	if(args.tname)
 		dir = args.tname;
-	if(pid == 0)
-		pid = getpid() % 1000;
-	if(pid == 0)
-		pid = 1;
-	sprint(file, "%s/sort.%.3d.%.3d", dir, pid, n);
+	if(strlen(dir) >= nelem(file)-20) {
+		fprint(2, "temp file directory name is too long: %s\n", dir);
+		done("tdir");
+	}
+
+	if(pid == 0) {
+		pid = getpid();
+		if(pid == 0) {
+			pid = time(0);
+			if(pid == 0)
+				pid = 1;
+		}
+	}
+
+	sprint(file, "%s/sort.%.4d.%.4d", dir, pid%10000, n);
 	return file;
 }
 
@@ -442,6 +451,7 @@ mergefiles(int t, int n, Biobuf *b)
 			l = m->line;
 			if(args.uflag && ok && kcmp(ok, l->key) == 0) {
 				free(l->key);
+				free(l);
 			} else {
 				lineout(b, l);
 				if(ok)
@@ -653,6 +663,8 @@ printargs(void)
 		fprint(2, " -u");
 	if(args.ofile)
 		fprint(2, " -o %s", args.ofile);
+	if(args.mline != Nline)
+		fprint(2, " -l %ld", args.mline);
 	fprint(2, "\n");
 }
 
@@ -683,6 +695,7 @@ doargs(int argc, char *argv[])
 	Field *f;
 
 	hadplus = 0;
+	args.mline = Nline;
 	for(i=1; i<argc; i++) {
 		s = argv[i];
 		c = *s++;
@@ -780,6 +793,17 @@ doargs(int argc, char *argv[])
 				break;
 			case 'v':	/* debugging noise */
 				args.vflag = 1;
+				break;
+			case 'l':
+				if(*s == 0) {
+					i++;
+					if(i < argc) {
+						args.mline = atol(argv[i]);
+						argv[i] = 0;
+					}
+				} else
+					args.mline = atol(s);
+				s = strchr(s, 0);
 				break;
 
 			case 'M':	/* month */
@@ -1305,12 +1329,11 @@ dokey_dfi(Key *k, uchar *lp, uchar *lpe, Field *f)
 }
 
 void
-dokey_r(Key *k, uchar *lp, uchar *lpe, Field *f)
+dokey_r(Key *k, uchar *lp, uchar *lpe, Field*)
 {
 	int cl, n;
 	uchar *kp;
 
-	USED(f);
 	n = lpe - lp;
 	if(n < 0)
 		n = 0;
@@ -1335,12 +1358,11 @@ dokey_r(Key *k, uchar *lp, uchar *lpe, Field *f)
 }
 
 void
-dokey_(Key *k, uchar *lp, uchar *lpe, Field *f)
+dokey_(Key *k, uchar *lp, uchar *lpe, Field*)
 {
 	int n, cl;
 	uchar *kp;
 
-	USED(f);
 	n = lpe - lp;
 	if(n < 0)
 		n = 0;
@@ -1408,7 +1430,7 @@ buildkey(Line *l)
 	k->klen = cl;
 
 	if(args.vflag) {
-		fprint(2, "%.*s", l->llen, l->line);
+		fprint(2, "%.*s", l->llen, (char*)l->line);
 		for(i=0; i<k->klen; i++) {
 			fprint(2, " %.2x", k->key[i]);
 			if(k->key[i] == 0x00 || k->key[i] == 0xff)

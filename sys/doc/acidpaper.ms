@@ -2,7 +2,7 @@
 Acid: A Debugger Built From A Language
 .AU
 Phil Winterbottom
-philw@plan9.att.com
+philw@plan9.bell-labs.com
 .AB
 .FS
 Originally appeared in

@@ -1,0 +1,6 @@
+# to update: cp /usr/glenda/lib/plumbing /mnt/plumb/rules
+
+editor = acme
+
+include basic
+

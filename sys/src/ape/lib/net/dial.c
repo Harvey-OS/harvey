@@ -35,16 +35,12 @@ call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 	sprintf(data, "%.*s/%.*s/data", 2*NAMELEN+1, clone, NAMELEN, name);
 
 	/* set local side (port number, for example) if we need to */
-	if(local){
-		sprintf(name, "announce %s", 2*NAMELEN, local);
-		if(write(cfd, name, strlen(name)) < 0){
-			close(cfd);
-			return -1;
-		}
-	}
+	if(local)
+		sprintf(name, "connect %.*s %.*s", 2*NAMELEN, dest, NAMELEN, local);
+	else
+		sprintf(name, "connect %.*s", 2*NAMELEN, dest);
 
 	/* connect */
-	sprintf(name, "connect %.*s", 2*NAMELEN, dest);
 	if(write(cfd, name, strlen(name)) < 0){
 		close(cfd);
 		return -1;

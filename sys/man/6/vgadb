@@ -54,6 +54,21 @@ If a match cannot be found, the first few bytes of the BIOS
 are printed to help identify the card and create a controller
 entry.
 .TP
+.IB nnnnn - mmmmm
+A range of the VGA BIOS area.
+The value is a string as above, but the entire range
+is searched for that string.
+The string must begin at or after
+.I nnnnn
+and not contain any characters at or after
+.IR mmmmm .
+For example,
+.B 0xC0000-0xC0200="MACH64LP"
+identifies a Mach 64 controller with the
+string 
+.B MACH64LP
+occurring anywhere in the first 512 bytes of BIOS memory.
+.TP
 .B ctlr
 VGA controller chip type.
 This must match one of the VGA controller types
@@ -64,16 +79,30 @@ known to
 and internally to
 .BR aux/vga .
 Currently,
+.BR ark2000pv ,
 .BR clgd542x ,
+.BR ct65540 ,
+.BR ct65545 ,
+.BR cyber938x ,
 .BR et4000 ,
+.BR hiqvideo ,
+.BR ibm8514 ,
 .BR mach32 ,
 .BR mach64 ,
+.BR mach64xx ,
+.BR mga2164w ,
+.BR neomagic ,
 .BR s3801 ,
 .BR s3805 ,
 .BR s3928 ,
+.BR t2r4 ,
+.BR trio64 ,
+.BR virge ,
 .BR vision864 ,
+.BR vision964 ,
+.BR vision968 ,
 and
-.B vision964
+.B w30c516
 are recognized.
 .TP
 .B ramdac
@@ -82,14 +111,18 @@ This must match one of the types
 known internally to
 .BR aux/vga .
 Currently
+.BR att20c490 ,
 .BR att20c491 ,
 .BR att20c492 ,
 .BR att21c498 ,
 .BR bt485 ,
+.BR rgb524mn ,
+.BR sc15025 ,
 .BR stg1702 ,
 .BR tvp3020 ,
+.BR tvp3025 ,
 and
-.B tvp3025
+.B tvp3026
 are recognized.
 .TP
 .B clock
@@ -98,12 +131,14 @@ This must match one of the types
 known internally to
 .BR aux/vga .
 Currently
+.BR ch9294 ,
 .BR icd2061a ,
 .BR ics2494 ,
 .BR ics2494a ,
 .BR s3clock ,
+.BR tvp3025clock ,
 and
-.B tvp3025clock
+.B tvp3026clock
 are recognized.
 .TP
 .B hwgc
@@ -114,12 +149,42 @@ known to
 and internally to
 .BR aux/vga .
 Currently
+.BR ark200pvhwgc ,
 .BR bt485hwgc ,
+.BR clgd542xhwgc ,
+.BR clgd546xhwgc ,
+.BR ct65545hwgc ,
+.BR cyber938xhwgc ,
+.BR hiqvideohwgc ,
+.BR mach64xxhwgc ,
+.BR mga2164whwgc ,
+.BR neomagichwgc ,
+.BR rgb524hwgc ,
 .BR s3hwgc ,
-.BR et4000hwgc ,
+.BR t2r4hwgc ,
+.BR tvp3020hwgc ,
 and
-.B tvp3020hwgc
+.B tvp3026hwgc
 are recognized.
+.TP
+.B membw
+Memory bandwidth in megabytes per second.
+.I Vga
+chooses the highest refresh rate possible within the constraints
+of the monitor (explained below) and the
+card's memory bandwidth.
+.TP
+.B linear
+Whether the card supports a large (>64kb) linear memory
+window.  The value is either
+.B 1
+or
+.B 0
+(equivalent to unspecified).
+The current kernel graphics subsystem
+requires a linear window; entries without
+.B linear=1
+are of historic value only.
 .TP
 .B link
 This must match one of the types
@@ -136,7 +201,7 @@ handles generic VGA functions and should almost always be included.
 The type
 .B Ibm8514
 handles basic graphics accelerator initialization on controllers
-such as the S3 family of GUI chips.
+such as the early S3 family of GUI chips.
 .PD
 .PP
 The
@@ -180,13 +245,12 @@ The entries in the second part of
 .B /lib/vgadb
 have as attribute the name of a monitor type
 and the value is conventionally a resolution in the form
-.IB X x Y x Z\f1,
+.IB X x Y\f1,
 where
-.IR X ,
-.IR Y ,
+.I X
 and
-.I Z
-are numbers representing width, height, and depth in pixels.
+.I Y
+are numbers representing width and height in pixels.
 The monitor type (i.e. entry)
 .B include
 has special properties, described below and shown in the examples.
@@ -201,6 +265,13 @@ the video dot-clock frequency in MHz required for this resolution.
 The value 25.175 is known internally to
 .IR vga (8)
 as the baseline VGA clock rate.
+.B defaultclock
+the default video dot-clock frequency in MHz used
+for this resolution when no
+memory bandwidth is specified for the card
+or when
+.I vga
+cannot determine the maximum clock frequency of the card.
 .TP
 .B shb
 start horizontal blanking, in character clocks.
@@ -222,7 +293,10 @@ vertical total, in character clocks.
 .TP
 .B hsync
 horizontal sync polarity.
-Value must be '\(pl' or '\(mi'.
+Value must be
+.B +
+or
+.BR - .
 .TP
 .B vsync
 vertical sync polarity.
@@ -279,13 +353,14 @@ for details.
 .SH EXAMPLES
 Basic
 .B ctlr
-entry for a laptop which is only capable of a 640x480x1 resolution:
+entry for a laptop with a Chips and Technology 65550 
+controller:
 .EX
-
-ctlr						# AT&T Safari NSX20
-	0xE0030="PhoenixVIEW(tm) VGA-Compatible BIOS Version"
-	ctlr=vga
-
+ctlr                        # NEC Versa 6030X/6200MX
+    0xC0090="CHIPS 65550 PCI & VL Accelerated VGA BIOS"	
+    link=vga
+    ctlr=hiqvideo linear=1
+    hwgc=hiqvideohwgc
 .EE
 A more complex entry. Note the extensions on the
 .BR clock ,
@@ -298,14 +373,12 @@ the
 .B ET4000
 chip.
 .EX
-
 ctlr						# Hercules Dynamite Power
-	0xC0076="Tseng Laboratories, Inc. 03/04/94 V8.00N"
-	link=vga
-	clock=ics2494a-324
-	ctlr=et4000-w32p
-	ramdac=stg1702-135
-
+    0xC0076="Tseng Laboratories, Inc. 03/04/94 V8.00N"
+    link=vga
+    clock=ics2494a-324
+    ctlr=et4000-w32p
+    ramdac=stg1702-135
 .EE
 Monitor entry for type
 .B vga
@@ -313,35 +386,25 @@ Monitor entry for type
 .IR vga (8))
 and resolution 640x480x[18].
 .EX
-
 include = 640x480@60Hz				# 60Hz, 31.5KHz
-	clock=25.175
-	shb=664 ehb=760 ht=800
-	vrs=491 vre=493 vt=525
+    clock=25.175
+    shb=664 ehb=760 ht=800
+    vrs=491 vre=493 vt=525
 
-vga = 640x480x1					# 60Hz, 31.5KHz
-	include=640x480@60Hz
-vga = 640x480x8					# 60Hz, 31.5KHz
-	include=640x480@60Hz
-
+vga = 640x480					# 60Hz, 31.5KHz
+    include=640x480@60Hz
 .EE
 Entries for multisync monitors with video bandwidth up to 65MHz.
 .EX
-
 #
 # Multisync monitors with video bandwidth up to 65MHz.
 #
-multisync65 = 1024x768x1				# 60Hz, 48.4KHz
-	include=1024x768@60Hz
-multisync65 = 1024x768x8				# 60Hz, 48.4KHz
-	include=1024x768@60Hz
-multisync65 = 1024x768x1i			# 87Hz, 35.5KHz (interlaced)
-	include=1024x768i@87Hz
-multisync65 = 1024x768x8i			# 87Hz, 35.5KHz (interlaced)
-	include=1024x768i@87Hz
+multisync65 = 1024x768        # 60Hz, 48.4KHz
+    include=1024x768@60Hz
+multisync65 = 1024x768i       # 87Hz, 35.5KHz (interlaced)
+    include=1024x768i@87Hz
 multisync65
-	alias=vga
-
+    alias=vga
 .EE
 Note how this builds on the existing
 .B vga
@@ -353,7 +416,7 @@ entries.
 .IR ndb (2),
 .IR vga (3),
 .IR ndb (6),
-.IR b.com (8),
+.IR 9load (8),
 .IR vga (8)
 .br
 Richard E. Ferraro,
@@ -361,12 +424,9 @@ Richard E. Ferraro,
 Programming Guide to the EGA, VGA and Super VGA Cards,
 Third Edition
 .SH BUGS
-The
-.B mach32
-and
-.B mach64
-controllers are programmed only in VGA mode, not accelerated mode,
-so are limited to a maximum resolution of 1024×768×8.
+The database should provide a way
+to use the PCI bus
+as well as BIOS memory to identify cards.
 .SH "ADDING A NEW MONITOR"
 Adding a new monitor is usually fairly straightforward, as most modern monitors
 are multisync and the only interesting parameter is the
@@ -375,7 +435,6 @@ Once the timing parameters are worked out for a particular maximum
 video bandwidth as in the example above, an entry for a new monitor
 with that limit is simply
 .EX
-
 #
 # Sony CPD-1304
 # Horizontal timing:
@@ -385,7 +444,6 @@ with that limit is simply
 #
 cpd-1304
 	alias=multisync65
-
 .EE
 Even this is not necessary, as the monitor type could simply be
 given as
@@ -393,14 +451,27 @@ given as
 .SH "ADDING A NEW VGA CONTROLLER"
 While the use of this database formalizes the steps needed to
 program a VGA controller,
-unless you are very lucky and all the important components on
+unless you are lucky and all the important components on
 a new VGA controller card are interconnected in the same way as an
 existing entry, adding a new entry requires adding new internal
 types to
 .IR vga (8).
+Fortunately, the unit of variety 
+has, for the most part, shifted from
+individual components to entire
+video chipsets.
+Thus in lucky cases all that is necessary
+is the addition of another
+.B 0xNNNNN=
+line to the entry for the controller.
+This is particularly true in the case
+of the ATI Mach 64 and the S3 Virge.
 .PP
-At a minimum you will need the data sheets for the VGA controller
-chip, the RAMDAC and the clock generator.
+If you need to actually add support
+for a controller with a different chipset,
+you will need the data sheets for the VGA controller
+as well as any RAMDAC or clock generator
+(these are commonly integrated into the controller).
 You will also need to know how these components interact.
 For example, a common combination is an S3 86C928 VGA chip with
 an ICD2061A clock generator. The ICD2061A is usually loaded by clocking
@@ -408,3 +479,8 @@ a serial bit-stream out of one of the 86C928 registers.
 Similarly, the RAMDAC may have an internal clock-doubler and/or
 pixel-multiplexing modes, in which case both the clock generator and
 VGA chip must be programmed accordingly.
+Hardware acceleration for rectangle fills
+and block copies is provided in the kernel;
+writing code to handle this is necessary
+to achieve reasonable performance at high
+pixel depths.

@@ -594,13 +594,10 @@ stats(Ctlr *ctl)
 
 static
 void
-cmd_statj(int argc, char *argv[])
+cmd_statj(int, char *[])
 {
 	Ctlr *ctl;
 	int i;
-
-	USED(argc);
-	USED(argv);
 
 	for(i=0; i<MaxJag; i++) {
 		ctl = &ctlr[i];

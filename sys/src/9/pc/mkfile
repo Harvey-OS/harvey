@@ -1,70 +1,113 @@
 CONF=pc
-CONFLIST=pc pcdisk dos pccpu pccpudisk
+CONFLIST=pc pcdisk pccpu pccpudisk
 
 objtype=386
 </$objtype/mkfile
-CFLAGS=-w
+p=9
 
-DEV=`{rc ../port/mkdevlist $CONF}
-LINK=`{rc ../port/mklinklist $CONF}
-MISC=`{rc ../port/mkmisclist $CONF}
+DEVS=`{rc ../port/mkdevlist $CONF}
 
-OBJ=\
-	l.$O\
+PORT=\
 	alarm.$O\
 	alloc.$O\
+	allocb.$O\
 	auth.$O\
-	bbmalloc.$O\
+	cache.$O\
 	chan.$O\
-	clock.$O\
 	dev.$O\
-	dma.$O\
-	kbd.$O\
 	fault.$O\
-	fault386.$O\
 	latin1.$O\
-	taslock.$O\
-	main.$O\
-	mmu.$O\
-	net.$O\
+	log.$O\
 	page.$O\
-	segment.$O\
-	swap.$O\
+	parse.$O\
 	pgrp.$O\
 	print.$O\
 	proc.$O\
+	qio.$O\
 	qlock.$O\
-	queue.$O\
+	segment.$O\
+	swap.$O\
 	sysfile.$O\
 	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	plan9l.$O\
+	cga.$O\
+	clock.$O\
+	i8253.$O\
+	i8259.$O\
+	kbd.$O\
+	main.$O\
+	memory.$O\
+	mmu.$O\
+	rdb.$O\
 	trap.$O\
-	$DEV\
-	stream.$O\
+	$DEVS\
+	$PORT\
 	boot$CONF.root.$O\
-	$MISC $LINK\
-	archgeneric.$O archnsx20.$O archncr3170.$O\
 
-default:V: 9$CONF
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libauth.a\
+	/$objtype/lib/libc.a\
+	/$objtype/lib/libsec.a\
 
-9$CONF:	$OBJ $CONF.c /386/lib/libgnot.a
+ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
+VGA=`{echo devvga.c screen.c vga*.c | sed 's/\.c/.'$O'/g'}
+
+$p$CONF:	$CONF.c $OBJ $LIB
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
-	$LD -o $target -T0x80100020 -l $OBJ $CONF.$O -lgnot -lg -lauth -lc
-	size 9$CONF
+	$LD -o $target -T0x80100020 -l $OBJ $CONF.$O $LIB
+	size $target
 
-vga.$O:		screen.h vga.h
-devvga.$O:	vga.h
-clock.$O fault386.$O main.$O:	/$objtype/include/ureg.h
+$p$CONF.gz: $p$CONF
+	strip < $p$CONF | gzip -9 > $p$CONF.gz
+
+install:V: $p$CONF $p$CONF.gz
+	cp $p$CONF $p$CONF.gz /$objtype/
+	import dinar / /n/dinar && cp $p$CONF $p$CONF.gz /n/dinar/$objtype/
+
+<../boot/bootmkfile
+<../port/portmkfile
+
+clock.$O devether.$O main.$O trap.$O:	/$objtype/include/ureg.h
+
+$ETHER: 			etherif.h ../port/netif.h
+ether8003.$O ether8390.$O:	ether8390.h
+$VGA mouse.$O:			screen.h
+devfloppy.$O: 			floppy.h
+archmp.$O mp.$O:		apbootstrap.h
+apic.$O archmp.$O mp.$O:	mp.h
+sd53c8xx.$O:			sd53c8xx.i
+
+sd53c8xx.i:	sd53c8xx.n
+	aux/na $prereq > $target
+
+dossrv.root.s:	/$objtype/bin/dossrv
+	cp $prereq dossrv.out
+	../port/mkroot dossrv kfs
 
 init.h:	initcode /sys/src/libc/9syscall/sys.h
 	$AS initcode
-	$LD -l -s -R4 -o init.out -s initcode.$O
+	$LD -l -s -R4 -o init.out initcode.$O
 	{echo 'uchar initcode[]={'
 	 xd -r -1x init.out |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
 
-<../port/portmkfile
+apbootstrap.h:	apbootstrap.s mem.h
+	$AS $prereq
+	$LD -o apbootstrap.out -T0x80001000 -R4 -l -s apbootstrap.$O
+	{echo 'uchar apbootstrap[]={'
+	 xd -r -1x apbootstrap.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > $target
 
-dossrv.root.s:	/$objtype/bin/dossrv
-	cp $prereq dossrv.out
-	../port/mkroot dossrv fs
+acid:V:
+	8c -a -w -I. ../port/qio.c>acid

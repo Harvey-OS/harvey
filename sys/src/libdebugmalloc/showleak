@@ -1,0 +1,20 @@
+#!/bin/rc
+
+# usage: showleak leakfile [8.out]
+
+switch($#*){
+case 2
+	leakfile=$1
+	objfile=$2
+case 1
+	leakfile=$1
+	objfile=/dev/null
+case *
+	echo 'usage: showleak leakfile [8.out]' >[1=2]
+	exit usage
+}
+
+awk -f /sys/src/libdebugmalloc/leaks.awk $leakfile | {if(test -x $objfile) nm $objfile; cat} | 
+	awk -f /sys/src/libdebugmalloc/symproc.awk |sort | uniq -c | sort -nr |
+	awk -f /sys/src/libdebugmalloc/summary.awk | sed 's/0x0+([0-9a-fA-F])/0x\1/g'
+

@@ -19,18 +19,21 @@ getpass(char *file)
 	up = emalloc(1*sizeof(Idmap));
 	maxid = 1;
 	nid = 0;
-	setfields(":\n");
 	while ((cp = Brdline(bp, '\n'))) {
-		getfields(cp, line, 3);
+		int nf;
+		cp[Blinelen(bp)-1] = 0;
+		nf = getfields(cp, line, 3, 0, ":\n");
+		if (nf<3) {
+			fprint(2, "bad format in %s\n", file);
+			break;
+		}
 		if (nid>=maxid) {
 			maxid *= 2;
 			up = (Idmap *)erealloc(up, maxid*sizeof(Idmap));
 		}
-		if (line[0] && line[2]) {
-			up[nid].id = atoi(line[2]);
-			up[nid].name = strdup(line[0]);
-			nid++;
-		}
+		up[nid].id = atoi(line[2]);
+		up[nid].name = strdup(line[0]);
+		nid++;
 	}		
 	Bterm(bp);
 	up[nid].name = 0;
@@ -57,10 +60,11 @@ poppath(Fileinf fi, int new)
 {
 	char *suffix;
 	Ram *dir, *ent;
+	Fileinf f;
+
 	if (*fi.name=='\0')
 		return 0;
 	if (suffix=strrchr(fi.name, '/')){
-		Fileinf f;
 		*suffix = 0;
 		suffix++;
 		if (*suffix=='\0'){
@@ -96,7 +100,7 @@ poppath(Fileinf fi, int new)
 			ent->group = mapid(gidmap, fi.gid);
 		}
 	} else {
-		strncpy(fi.name, suffix, NAMELEN);
+		fi.name = suffix;
 		ent = popfile(dir, fi);
 	}
 	return ent;
@@ -106,7 +110,6 @@ Ram *
 popfile(Ram *dir, Fileinf fi)
 {
 	Ram *ent = (Ram *)emalloc(sizeof(Ram));
-
 	if (*fi.name=='\0')
 		return 0;
 	ent->busy = 1;

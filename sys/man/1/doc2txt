@@ -1,0 +1,53 @@
+.TH DOC2TXT 1
+.SH NAME
+doc2txt, olefs, mswordstrings \- extract printable strings from Microsoft Word documents
+.SH SYNOPSIS
+.B doc2txt
+[
+.I file.doc
+]
+.br
+.B aux/olefs
+[
+.B -m
+.I mtpt
+]
+.I file.doc
+.br
+.B aux/mswordstrings 
+.I /mnt/doc/WordDocument
+.SH DESCRIPTION
+.I Doc2txt
+is a shell script that uses 
+.I olefs
+and
+.I mswordstrings
+to extract the printable text from the body of a Microsoft Word document.
+.PP
+Microsoft Office documents are stored in OLE (Object Linking and Embedding)
+format, which is a scaled down version of Microsoft's FAT file system.
+.I Olefs
+presents the contents of an Office document as a file system
+on
+.IR mtpt ,
+which defaults to
+.BR /mnt/doc .
+.I Mswordstrings
+parses the 
+.I WordDocument
+file inside an Office document, extracting
+the text stream.
+.SH SOURCE
+.B /sys/src/cmd/aux/mswordstrings.c
+.br
+.B /sys/src/cmd/aux/olefs.c
+.br
+.B /rc/bin/doc2txt
+.SH SEE ALSO
+.IR strings (1)
+.br
+``Microsoft Word 97 Binary File Format'',
+available on line at Microsoft's developer home page.
+.br
+``LAOLA Binary Structures'', 
+.IR snake.cs.tu-berlin.de:8081/~schwartz/pmh .

@@ -1,0 +1,120 @@
+% fontmap.vms - Ghostscript fontmap for VAX/VMS systems with DECwindows/Motif.
+%
+%Uses all the XDPS Outline fonts (Type 1 fonts) provided with Motif (with the 
+%exception of Courier which already comes with GhostScript in Type 1 form).
+%
+%XDPS on VAX/VMS does not have Bookman, Palatino and ZapfChancery fonts, so
+%we still have to use the dreaded bitmaps for those. Helvetica-Narrow is also
+%missing. But then you get the LubalinGraph and Souvenir fonts which are just
+%beautiful!
+%
+%Note: this file omits the Hershey fonts (Hershey ?? YOU MUST BE JOKING)
+%      but retains the Cyrillic and Kana fonts.
+
+/AvantGarde-Book
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]AVANTGARDE-BOOK.XDPS$OUTLINE) ;
+/AvantGarde-BookOblique
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]AVANTGARDE-BOOKOBLIQUE.XDPS$OUTLINE) ;
+/AvantGarde-Demi
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]AVANTGARDE-DEMI.XDPS$OUTLINE) ;
+/AvantGarde-DemiOblique
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]AVANTGARDE-DEMIOBLIQUE.XDPS$OUTLINE) ;
+/Helvetica-Bold
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]HELVETICA-BOLD.XDPS$OUTLINE) ;
+/Helvetica-BoldOblique
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]HELVETICA-BOLDOBLIQUE.XDPS$OUTLINE) ;
+/Helvetica-Oblique
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]HELVETICA-OBLIQUE.XDPS$OUTLINE) ;
+/Helvetica
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]HELVETICA.XDPS$OUTLINE) ;
+/LubalinGraph-Book
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]LUBALINGRAPH-BOOK.XDPS$OUTLINE) ;
+/LubalinGraph-BookOblique
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]LUBALINGRAPH-BOOKOBLIQUE.XDPS$OUTLINE) ;
+/LubalinGraph-Demi
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]LUBALINGRAPH-DEMI.XDPS$OUTLINE) ;
+/LubalinGraph-DemiOblique
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]LUBALINGRAPH-DEMIOBLIQUE.XDPS$OUTLINE) ;
+/NewCenturySchlbk-Roman
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]NEWCENTURYSCHLBK-ROMAN.XDPS$OUTLINE) ;
+/NewCenturySchlbk-Italic
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]NEWCENTURYSCHLBK-ITALIC.XDPS$OUTLINE) ;
+/NewCenturySchlbk-Bold
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]NEWCENTURYSCHLBK-BOLD.XDPS$OUTLINE) ;
+/NewCenturySchlbk-BoldItalic
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]NEWCENTURYSCHLBK-BOLDITALIC.XDPS$OUTLINE) ;
+/Souvenir-Light
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]SOUVENIR-LIGHT.XDPS$OUTLINE) ;
+/Souvenir-LightItalic
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]SOUVENIR-LIGHTITALIC.XDPS$OUTLINE) ;
+/Souvenir-Demi
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]SOUVENIR-DEMI.XDPS$OUTLINE) ;
+/Souvenir-DemiItalic
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]SOUVENIR-DEMIITALIC.XDPS$OUTLINE) ;
+%If you want the Apple symbol (SIC!) then remove the comment (%)
+%in front of character 240 in the following file (he he he)
+/Symbol
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]SYMBOL.XDPS$OUTLINE) ;
+/Times-Roman
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]TIMES-ROMAN.XDPS$OUTLINE) ;
+/Times-Italic
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]TIMES-ITALIC.XDPS$OUTLINE) ;
+/Times-Bold
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]TIMES-BOLD.XDPS$OUTLINE) ;
+/Times-BoldItalic
+    (SYS$COMMON:[SYSFONT.XDPS.OUTLINE]TIMES-BOLDITALIC.XDPS$OUTLINE) ;
+
+% Fonts converted from bitmaps (Not in the XDPS set)
+/Bookman-Light			(pbkl.gsf)	;
+/Bookman-LightItalic		(pbkli.gsf)	;
+/Bookman-Demi			(pbkd.gsf)	;
+/Bookman-DemiItalic		(pbkdi.gsf)	;
+/Palatino-Roman			(pplr.gsf)	;
+/Palatino-Italic		(pplri.gsf)	;
+/Palatino-Bold			(pplb.gsf)	;
+/Palatino-BoldItalic		(pplbi.gsf)	;
+/ZapfChancery			(zcr.gsf)	;
+/ZapfChancery-Oblique		(zcro.gsf)	;
+/ZapfChancery-Bold		(zcb.gsf)	;
+%MediumItalic font to Oblique aliasing
+/ZapfChancery-MediumItalic	/ZapfChancery-Oblique	;
+/ZapfDingbats			(pzdr.gsf)	;
+
+% BITSTREAM CHARTER is a registered trademark of Bitstream Inc.
+/CharterBT-Roman		(bchr.pfa)	;
+/CharterBT-Italic		(bchri.pfa)	;
+/CharterBT-Bold			(bchb.pfa)	;
+/CharterBT-BoldItalic		(bchbi.pfa)	;
+%Charter to CharterBT aliasing
+/Charter-Roman			/CharterBT-Roman	;
+/Charter-Italic			/CharterBT-Italic	;
+/Charter-Bold			/CharterBT-Bold		;
+/Charter-BoldItalic		/CharterBT-BoldItalic	;
+
+% IBM Courier - Copyright (c) IBM Corporation 1990, 1991
+/Courier		(ncrr.pfa)	;
+/Courier-Italic		(ncrri.pfa)	;
+/Courier-Bold		(ncrb.pfa)	;
+/Courier-BoldItalic	(ncrbi.pfa)	;
+%Oblique to Italic aliasing
+/Courier-Oblique		/Courier-Italic		;
+/Courier-BoldOblique		/Courier-BoldItalic	;
+
+% Utopia is a registered trademark of Adobe Systems Incorporated
+/Utopia-Regular		(putr.gsf)	;
+/Utopia-Italic		(putri.gsf)	;
+/Utopia-Bold		(putb.gsf)	;
+/Utopia-BoldItalic	(putbi.gsf)	;
+
+% Shareware fonts.  These have no copyright, and are of unknown quality.
+/Shareware-Cyrillic-Regular	(fcyr.gsf)	;
+/Shareware-Cyrillic-Italic	(fcyri.gsf)	;
+% Aliases
+/Cyrillic			/Cyrillic-Regular	;
+/Cyrillic-Regular		/Shareware-Cyrillic-Regular	;
+/Cyrillic-Italic		/Shareware-Cyrillic-Italic	;
+
+% Copyrighted shareware fonts.
+% See FONTMAP.GS for the full copyright statement.
+/Calligraphic-Hiragana		(fhirw.gsf)	;
+/Calligraphic-Katakana		(fkarw.gsf)	;

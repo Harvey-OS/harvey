@@ -1,0 +1,5 @@
+This is drawterm, enough of a Plan 9 kernel to provide
+an environment under which ``cpu'' can run, so that you
+can access Plan 9 from Windows and various flavors
+of Unix.  See the manual page for more information.
+

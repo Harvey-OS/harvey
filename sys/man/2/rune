@@ -1,6 +1,6 @@
 .TH RUNE 2
 .SH NAME
-runetochar, chartorune, runelen, fullrune, utflen, utfrune, utfrrune, utfutf \- rune/UTF conversion
+runetochar, chartorune, runelen, runenlen, fullrune, utflen, utfrune, utfrrune, utfutf \- rune/UTF conversion
 .SH SYNOPSIS
 .ta \w'\fLchar*xx'u
 .B #include <u.h>
@@ -15,6 +15,9 @@ int	chartorune(Rune *r, char *s)
 .PP
 .B
 int	runelen(long r)
+.PP
+.B
+int	runenlen(long r, int n)
 .PP
 .B
 int	fullrune(char *s, int n)
@@ -70,6 +73,9 @@ required to convert
 .I r
 into
 .SM UTF.
+.I Runenlen
+is the same, but takes an integer rune count instead of marking
+termination with a null rune.
 .PP
 .I Fullrune
 returns 1 if the string

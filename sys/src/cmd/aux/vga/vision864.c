@@ -1,39 +1,37 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
 /*
- * S3 Vision964 GUI Accelerator.
+ * S3 Vision864 GUI Accelerator.
  * Pretty much the same as the 86C80[15].
  * First pass, needs tuning.
  */
 static void
-snarf(Vga *vga, Ctlr *ctlr)
+snarf(Vga* vga, Ctlr* ctlr)
 {
-	verbose("%s->snarf\n", ctlr->name);
-
-	(*s3generic.snarf)(vga, ctlr);
+	s3generic.snarf(vga, ctlr);
 }
 
 static void
-options(Vga *vga, Ctlr *ctlr)
+options(Vga*, Ctlr* ctlr)
 {
-	USED(vga);
-	verbose("%s->options\n", ctlr->name);
-	
-	ctlr->flag |= Hpclk2x8|Henhanced|Foptions;
+	ctlr->flag |= Hlinear|Hpclk2x8|Henhanced|Foptions;
 }
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
 	ulong x;
+	char *val;
 
-	verbose("%s->init\n", ctlr->name);
-
-	(*s3generic.init)(vga, ctlr);
+	s3generic.init(vga, ctlr);
 	vga->crt[0x3B] = vga->crt[0]-5;
+
+	if(vga->mode->z > 8)
+		error("depth %d not supported\n", vga->mode->z);
 
 	/*
 	 * VL-bus crap.
@@ -61,30 +59,38 @@ init(Vga *vga, Ctlr *ctlr)
 	else
 		vga->crt[0x54] = 0x40;
 
-
 	vga->crt[0x67] &= ~0xF0;
 	if(ctlr->flag & Upclk2x8)
 		vga->crt[0x67] |= 0x10;
+
+	vga->crt[0x69] = 0x00;
+	vga->crt[0x6A] = 0x00;
 
 	/*
 	 * Blank adjust.
 	 * This may not be correct for all monitors.
 	 */
-	vga->crt[0x6D] = 2;
+	vga->crt[0x6D] = 0x00;
+	if(val = dbattr(vga->attr, "delaybl"))
+		vga->crt[0x6D] |= strtoul(val, 0, 0) & 0x07;
+	else
+		vga->crt[0x6D] |= 2;
+	if(val = dbattr(vga->attr, "delaysc"))
+		vga->crt[0x6D] |= (strtoul(val, 0, 0) & 0x07)<<4;
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
 	ushort advfunc;
 
-	verbose("%s->load\n", ctlr->name);
-
-	(*s3generic.load)(vga, ctlr);
+	s3generic.load(vga, ctlr);
 	vgaxo(Crtx, 0x60, vga->crt[0x60]);
 	vgaxo(Crtx, 0x61, vga->crt[0x61]);
 	vgaxo(Crtx, 0x62, vga->crt[0x62]);
 	vgaxo(Crtx, 0x67, vga->crt[0x67]);
+	vgaxo(Crtx, 0x69, vga->crt[0x69]);
+	vgaxo(Crtx, 0x6A, vga->crt[0x6A]);
 	vgaxo(Crtx, 0x6D, vga->crt[0x6D]);
 
 	advfunc = 0x0000;
@@ -98,9 +104,9 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
-	(*s3generic.dump)(vga, ctlr);
+	s3generic.dump(vga, ctlr);
 }
 
 Ctlr vision864 = {

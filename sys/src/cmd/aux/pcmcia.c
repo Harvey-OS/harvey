@@ -28,9 +28,12 @@ int hex;
 void
 fatal(char *fmt, ...)
 {
+	va_list arg;
 	char buf[3*ERRLEN];
 
-	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
+	va_start(arg, fmt);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	fprint(2, "pcmcia: %s\n", buf);
 	exits(buf);
 }
@@ -211,7 +214,7 @@ tdevice(int ttype, int len)
 			ttname = "device";
 		else
 			ttname = "attr device";
-		print("%s %d bytes of %dns %s\n", ttname, bytes, ns, tname);
+		print("%s %ld bytes of %ldns %s\n", ttname, bytes, ns, tname);
 	}
 }
 
@@ -322,7 +325,7 @@ volt(char *name)
 			microv += exp*(c&0x7f);
 		}
 	}
-	print(" V%s %duV", name, microv);
+	print(" V%s %lduV", name, microv);
 }
 
 void
@@ -341,11 +344,11 @@ amps(char *name)
 			amps = 0;
 	}
 	if(amps >= 1000000)
-		print(" I%s %dmA", name, amps/100000);
+		print(" I%s %ldmA", name, amps/100000);
 	else if(amps >= 1000)
-		print(" I%s %duA", name, amps/100);
+		print(" I%s %lduA", name, amps/100);
 	else
-		print(" I%s %dnA", name, amps*10);
+		print(" I%s %ldnA", name, amps*10);
 }
 
 void
@@ -383,7 +386,7 @@ ttiming(char *name, int scale)
 		return;
 	scaled = (mantissa[(unscaled>>3)&0xf]*exponent[unscaled&7])/10;
 	scaled = scaled * vexp[scale];
-	print("\t%s %dns\n", name, scaled);
+	print("\t%s %ldns\n", name, scaled);
 }
 
 void

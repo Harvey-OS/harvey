@@ -16,48 +16,11 @@ shprint(char *s, Envy *env, Bufblock *buf)
 			s = vexpand(s, env, buf);
 		else {
 			rinsert(buf, r);
-			s += n;	
-			if (QUOTE(r))		/* copy quoted string */
-				s = shquote(s, r, buf);
-			else if (r == '`')	/* copy backquoted string */
-				s = shbquote(s, buf);
+			s += n;
+			s = copyq(s, r, buf);	/*handle quoted strings*/
 		}
 	}
 	insert(buf, 0);
-}
-/*
- *	skip quoted string; s points to char after opening quote
- */
-static char *
-shquote(char *s, Rune q, Bufblock *buf)
-{
-	Rune r;
-
-	while (*s) {
-		s += chartorune(&r, s);
-		rinsert(buf, r);
-		if (r == q)
-			break;
-	}
-	return s;
-}
-/*
- *	skip backquoted string; s points to char after opening backquote
- */
-static char *
-shbquote(char *s, Bufblock *buf)
-{
-	Rune r;
-
-	while (*s) {
-		s += chartorune(&r, s);
-		rinsert(buf, r);
-		if (QUOTE(r))
-			s = shquote(s, r, buf);	/* skip quoted string */
-		else if (r == '}')
-			break;
-	}
-	return s;
 }
 
 static char *
@@ -65,11 +28,12 @@ mygetenv(char *name, Envy *env)
 {
 	if (!env)
 		return 0;
-	if (!symlook(name, S_WESET, 0))
+	if (symlook(name, S_WESET, 0) == 0 && symlook(name, S_INTERNAL, 0) == 0)
 		return 0;
+		/* only resolve internal variables and variables we've set */
 	for(; env->name; env++){
 		if (strcmp(env->name, name) == 0)
-			return wtos(env->values);
+			return wtos(env->values, ' ');
 	}
 	return 0;
 }
@@ -79,7 +43,7 @@ vexpand(char *w, Envy *env, Bufblock *buf)
 {
 	char *s, carry, *p, *q;
 
-	assert("vexpand no $", *w == '$');
+	assert(/*vexpand no $*/ *w == '$');
 	p = w+1;	/* skip dollar sign */
 	if(*p == '{') {
 		p++;
@@ -110,8 +74,7 @@ front(char *s)
 	char *flds[512];
 
 	q = strdup(s);
-	setfields(" \t\n");
-	i = getfields(q, flds, 512);
+	i = getfields(q, flds, 512, 0, " \t\n");
 	if(i > 5){
 		flds[4] = flds[i-1];
 		flds[3] = "...";

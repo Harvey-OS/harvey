@@ -82,6 +82,8 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 		result = 0;
 	}
 
+	mlo = 0;	/* silence compiler */
+
 	if(word0(d) & Sign_bit){
 		/* set sign for everything, including 0's and NaNs */
 		*sign = 1;
@@ -132,7 +134,9 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 			if(!Sudden_Underflow)
 				denorm = 1;
 		}
+		USED(denorm);
 	}
+
 	/* log(x)	~=~ log(1.5) + (x-1.5)/1.5
 	 * log10(x)	 =  log(x) / log(10)
 	 *		~=~ log(1.5)/log(10) + (x-1.5)/(1.5*log(10))
@@ -206,7 +210,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 				i = 1;
 	}
 	j = sizeof(unsigned long);
-	for(result_k = 0; sizeof(Bigint) - sizeof(unsigned long) + j <= i; j <<= 1)
+	for(result_k = 0; sizeof(Bigint) - sizeof(unsigned long) + j < i; j <<= 1)
 		result_k++;
 	result = Balloc(result_k);
 	s = s0 = (char *)result;
@@ -400,6 +404,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 
 	/* Check for special case that d is a normalized power of 2. */
 
+	spec_case = 0;
 	if(mode == 0) {
 		if(!word1(d) && !(word0(d) & Bndry_mask)
 		 && !Sudden_Underflow && word0(d) & Exp_mask){
@@ -407,8 +412,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 			b2 += Log2P;
 			s2 += Log2P;
 			spec_case = 1;
-		}else
-			spec_case = 0;
+		}
 	}
 
 	/* Arrange for convenient computation of quotients:

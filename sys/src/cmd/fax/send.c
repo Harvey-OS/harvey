@@ -36,7 +36,7 @@ main(int argc, char *argv[])
 		usage();
 	verbose("send: %s %s...", argv[0], argv[1]);
 
-	addr = netmkaddr(*argv, "telco", "fax!19200");
+	addr = netmkaddr(*argv, "telco", "fax!9600");
 	fd = dial(addr, 0, 0, &cfd);
 	if(fd < 0){
 		fprint(2, "faxsend: can't dial %s: %r\n", addr);
@@ -44,9 +44,7 @@ main(int argc, char *argv[])
 	}
 	initmodem(m, fd, cfd, 0, 0);
 	argc--; argv++;
-	xonoff(m, 1);
 	r = faxsend(m, argc, argv);
-	xonoff(m, 0);
 	if(r != Eok){
 		fprint(2, "faxsend: %s\n", m->error);
 		syslog(0, "fax", "failed %s %s: %s", argv[0], argv[1], m->error); 

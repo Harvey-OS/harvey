@@ -1,0 +1,97 @@
+.TH STATS 8
+.SH NAME
+stats \- display graphs of system activity
+.SH SYNOPSIS
+.B stats
+[
+.BI - option
+]
+[
+.I machine
+\&...
+]
+.SH DESCRIPTION
+.I Stats
+displays a rolling graph of various statistics collected by the operating
+system and updated once per second.
+The statistics may be from a remote
+.I machine
+or multiple
+.IR machines ,
+whose graphs will appear in adjacent columns.
+The columns are labeled by the machine names and the number
+of processors on the machine if it is a multiprocessor.
+.PP
+The right mouse button presents a menu to enable and disable the display
+of various statistics; by default,
+.I stats
+begins by showing the load average on the executing machine.
+The
+.I options
+choose the initial set to display:
+.TF [t]tlbpurge
+.TP
+.B "c context
+number of process context switches per second.
+.TP
+.B 
+.B "e ether
+total number of packets sent and received per second.
+.TP
+.B 
+.B "E etherin,out
+number of packets sent and received per second, displayed as separate graphs.
+.TP
+.B "f fault
+number of page faults per second.
+.TP
+.B "i intr
+number of interrupts per second.
+.TP
+.B "l load
+(default) system load average.
+The load is computed as a running average of
+the number of processes ready to run, multiplied by 1000.
+.TP
+.B "m mem 
+total pages of active memory.
+The graph displays the fraction
+of the machine's total memory in use.
+.TP
+.B 
+.B "n etherin,out,err
+number of packets sent and received per second, and total number of errors, displayed as separate graphs.
+.TP
+.B "p tlbpurge
+number of translation lookaside buffer flushes per second.
+.TP
+.B "s syscall
+number of system calls per second.
+.TP
+.B "t tlbmiss
+number of translation lookaside buffer misses per second.
+.TP
+.B "w swap
+number of valid pages on the swap device.
+The swap is displayed as a
+fraction of the number of swap pages configured by the machine.
+.PP
+The graphs are plotted with time on the horizontal axis.
+The vertical axes range from 0 to 1000 times the number of processors on the machine.
+The only exceptions are
+memory
+and swap space,
+which display fractions of the total available, and the Ethernet error count,
+which goes from 0 to 10.
+If the value of the parameter is too large for the visible range, its value is shown
+in decimal in the upper left corner of the graph.
+.SH FILES
+.B /net/ether0/0/stats
+.br
+.B #c/swap
+.br
+.B #c/sysstat
+.SH SOURCE
+.B /sys/src/cmd/stats.c
+.SH BUGS
+Some machines do not have TLB hardware.

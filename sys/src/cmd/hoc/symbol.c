@@ -41,3 +41,15 @@ emalloc(unsigned n)	/* check return from malloc */
 		execerror("out of memory", (char *) 0);
 	return p;
 }
+
+Formal*
+formallist(Symbol *formal, Formal *list)	/* add formal to list */
+{
+	Formal *f;
+
+	f = emalloc(sizeof(Formal));
+	f->sym = formal;
+	f->save = 0;
+	f->next = list;
+	return f;
+}

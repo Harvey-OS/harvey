@@ -66,10 +66,6 @@
 /inch {72 mul} bind def
 /min {2 copy gt {exch} if pop} bind def
 
-/show {{//show} 0 get exec} bind def	% so later references don't bind
-/widthshow {{//widthshow} 0 get exec} bind def
-/stringwidth {{//stringwidth} 0 get exec} bind def
-
 /setup {
 	counttomark 2 idiv {def} repeat pop
 
@@ -606,7 +602,7 @@ mark
 10 /LucidaSans-Italic f
 (Rob Pike) 2674 2070 w
 (Ken Thompson) 2523 2190 w
-(rob,ken@plan9.att.com) 2313 2430 w
+(rob,ken@plan9.bell-labs.com) 2164 2430 w
 (ABSTRACT) 2626 2870 w
 10 /LucidaSansUnicode00 f
 (Plan) 1330 3130 w

@@ -53,9 +53,10 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 	 * sets `dotinc' and moves `dot'
 	 * returns address of next format item
 	 */
-	int	w;
+	vlong	v;
+	long	w;
 	ulong	savdot;
-	char	*fp, *p;
+	char	*fp;
 	char	c, modifier;
 	int	i;
 	ushort sh, *sp;
@@ -158,6 +159,21 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			else if (c == 'Q')
 				dprint("%-#16lo", w);
 			break;
+		case 'Z':
+		case 'V':
+		case 'Y':
+			if (literal)
+				v = dot;
+			else if (get8(map, dot, &v) < 0)
+				error("%r");
+			dotinc = 8;
+			if (c == 'Y')
+				dprint("%-20llux", v);
+			else if (c == 'V')
+				dprint("%-20lld", v);
+			else if (c == 'Z')
+				dprint("%-20llud", v);
+			break;
 		case 'B':
 		case 'b':
 		case 'c':
@@ -255,16 +271,6 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			dot=savdot;
 			break;
 
-		case 'Y':
-			if (literal)
-				w = (long) dot;
-			else if (get4(map, dot, &w) < 0)
-				error("%r");
-			p = ctime(w);
-			p[strlen(p)-1] = 0;	/* stomp on newline */
-			dprint("%-25s", p);
-			dotinc = 4;
-			break;
 
 		case 'I':
 		case 'i':
@@ -287,7 +293,11 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			break;
 
 		case 'f':
-			if (get1(map, dot, (uchar*)buf, mach->szfloat) < 0)
+			/* BUG: 'f' and 'F' assume szdouble is sizeof(vlong) in the literal case */
+			if (literal) {
+				v = machdata->swav((ulong)dot);
+				memmove(buf, &v, mach->szfloat);
+			}else if (get1(map, dot, (uchar*)buf, mach->szfloat) < 0)
 				error("%r");
 			machdata->sftos(buf, sizeof(buf), (void*) buf);
 			dprint("%s\n", buf);
@@ -295,7 +305,11 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			break;
 
 		case 'F':
-			if (get1(map, dot, (uchar*)buf, mach->szdouble) < 0)
+			/* BUG: 'f' and 'F' assume szdouble is sizeof(vlong) in the literal case */
+			if (literal) {
+				v = machdata->swav(dot);
+				memmove(buf, &v, mach->szdouble);
+			}else if (get1(map, dot, (uchar*)buf, mach->szdouble) < 0)
 				error("%r");
 			machdata->dftos(buf, sizeof(buf), (void*) buf);
 			dprint("%s\n", buf);
@@ -338,7 +352,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 		default:
 			error("bad modifier");
 		}
-		if (map->fd >= 0)
+		if (map->seg[0].fd >= 0)
 			dot=inkdot(dotinc);
 		fcount--;
 		endline();

@@ -65,7 +65,7 @@ e(void) {
 	int p1;
 
 	p1 = e1();
-	if (EQ(nxtarg(1), "-o")) return(p1 | e());
+	if (EQ(nxtarg(1), "-o")) return(p1 || e());
 	ap--;
 	return(p1);
 }
@@ -75,7 +75,7 @@ e1(void) {
 	int p1;
 
 	p1 = e2();
-	if (EQ(nxtarg(1), "-a")) return (p1 & e1());
+	if (EQ(nxtarg(1), "-a")) return (p1 && e1());
 	ap--;
 	return(p1);
 }
@@ -83,7 +83,7 @@ e1(void) {
 int
 e2(void) {
 	if (EQ(nxtarg(0), "!"))
-		return(!e3());
+		return(!e2());
 	ap--;
 	return(e3());
 }

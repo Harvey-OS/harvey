@@ -2,26 +2,15 @@
 #include <libc.h>
 #include "String.h"
 
-
 #define STRLEN 128
-#define STRALLOC 128
-
-/* buffer pool for allocating String structures */
-typedef struct Stralloc{
-	String s[STRALLOC];
-	int o;
-} Stralloc;
-static Stralloc *freep=0;
-
-/* pool of freed Strings */
-static String *freed=0;
 
 extern void
 s_free(String *sp)
 {
-	if (sp != 0) {
-		sp->ptr = (char *)freed;
-		freed = sp;
+	if (sp != nil) {
+		if(sp->base != nil)
+			free(sp->base);
+		free(sp);
 	}
 }
 
@@ -29,15 +18,36 @@ s_free(String *sp)
 extern String *
 s_alloc(void)
 {
-	if (freep==0 || freep->o >= STRALLOC) {
-		freep = (Stralloc *)malloc(sizeof(Stralloc));
-		if (freep==0) {
-			perror("allocating String");
-			exits("malloc");
-		}
-		freep->o = 0;
+	String *s;
+
+	s = mallocz(sizeof *s, 1);
+	return s;
+}
+
+/* create a new `short' String */
+extern String *
+s_newalloc(int len)
+{
+	String *sp;
+
+	sp = s_alloc();
+	if(sp == nil){
+		s_error("String (malloc)", "malloc");
+		/* should never return */
+		exits("malloc");
 	}
-	return &(freep->s[freep->o++]);
+	if(len < STRLEN)
+		len = STRLEN;
+	sp->base = sp->ptr = malloc(len);
+	if (sp->base == nil) {
+		free(sp);
+		s_error("String (malloc)", "malloc");
+		/* should never return */
+		exits("malloc");
+	}
+	sp->end = sp->base + len;
+	s_terminate(sp);
+	return sp;
 }
 
 /* create a new `short' String */
@@ -46,30 +56,20 @@ s_new(void)
 {
 	String *sp;
 
-	if (freed!=0) {
-		sp = freed;
-		freed = (String *)(freed->ptr);
-		sp->ptr = sp->base;
-		return sp;
-	}
 	sp = s_alloc();
+	if(sp == nil){
+		s_error("String (malloc)", "malloc");
+		/* should never return */
+		exits("malloc");
+	}
 	sp->base = sp->ptr = malloc(STRLEN);
-	if (sp->base == 0) {
-		perror("allocating String");
+	if (sp->base == nil) {
+		free(sp);
+		s_error("String (malloc)", "malloc");
+		/* should never return */
 		exits("malloc");
 	}
 	sp->end = sp->base + STRLEN;
 	s_terminate(sp);
 	return sp;
-}
-
-extern int
-s_isfree(String *sp)
-{
-	String *s;
-
-	for(s = freed; s; s = (String *)(s->ptr))
-		if(s == sp)
-			return 1;
-	return 0;
 }

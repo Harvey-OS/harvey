@@ -103,6 +103,7 @@ after selecting
 press the mouse button again and hold it down while moving
 the page to the desired location.  The page will be redisplayed
 in its entirety when the button is released.
+Mouse button 1 also pans, without the need for selecting from a menu.
 .PP
 The
 .BR m ,
@@ -126,7 +127,8 @@ into screen fonts and character numbers
 .B /sys/src/cmd/proof
 .SH SEE ALSO
 .IR lp (1), 
-.IR gs (1)
+.IR gs (1),
+.IR page (1)
 .br
 J. F. Ossanna and B. W. Kernighan,
 ``Troff User's Manual''

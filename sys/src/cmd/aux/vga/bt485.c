@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
@@ -43,7 +44,7 @@ bt485io(uchar reg)
 	uchar crt55, cr0;
 
 	if(reg >= Nreg && (reg & 0x0F) != Status)
-		error("bad bt485i reg - 0x%X\n", reg);
+		error("%s: bad reg - 0x%X\n", bt485.name, reg);
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
 	if((reg & 0x0F) == Status){
@@ -97,21 +98,17 @@ bt485o(uchar reg, uchar data)
 }
 
 static void
-options(Vga *vga, Ctlr *ctlr)
+options(Vga*, Ctlr* ctlr)
 {
-	USED(vga);
-	verbose("%s->options\n", ctlr->name);
-
-	ctlr->flag |= Hclk2|Hextsid|Henhanced|Foptions;
+	ctlr->flag |= Hsid32|Hclk2|Hextsid|Henhanced|Foptions;
 }
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
 	ulong grade;
 	char *p;
 
-	verbose("%s->init\n", ctlr->name);
 	/*
 	 * Work out the part speed-grade from name.  Name can have,
 	 * e.g. '-135' on the end  for 135MHz part.
@@ -125,16 +122,16 @@ init(Vga *vga, Ctlr *ctlr)
 	 * take it from the mode.
 	 * Check it's within range.
 	 */
-	if(vga->f == 0)
-		vga->f = vga->mode->frequency;
-	if(vga->f > grade)
-		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f);
+	if(vga->f[0] == 0)
+		vga->f[0] = vga->mode->frequency;
+	if(vga->f[0] > grade)
+		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f[0]);
 
 	/*
 	 * Determine whether to use clock-doubler or not.
 	 */
-	if((ctlr->flag & Uclk2) == 0 && vga->f > 67500000){
-		vga->f /= 2;
+	if((ctlr->flag & Uclk2) == 0 && vga->f[0] > 67500000){
+		vga->f[0] /= 2;
 		resyncinit(vga, ctlr, Uclk2, 0);
 	}
 
@@ -142,12 +139,10 @@ init(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga*, Ctlr* ctlr)
 {
 	uchar x;
 
-	USED(vga);
-	verbose("%s->load\n", ctlr->name);
 	/*
 	 * Put the chip to sleep before (possibly) changing the clock-source
 	 * to ensure the integrity of the palette.
@@ -213,11 +208,9 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga*, Ctlr* ctlr)
 {
 	int i;
-
-	USED(vga);
 
 	printitem(ctlr->name, "direct");
 	for(i = 0; i < 0x10; i++)

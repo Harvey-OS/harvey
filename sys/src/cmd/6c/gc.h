@@ -1,34 +1,33 @@
 #include	"../cc/cc.h"
 #include	"../6c/6.out.h"
 
-#define	TINT		TLONG
-#define	TFIELD		TLONG
+/*
+ * 6c/960
+ * Intel 960
+ */
 #define	SZ_CHAR		1
 #define	SZ_SHORT	2
+#define	SZ_INT		4
 #define	SZ_LONG		4
-#define	SZ_VLONG	8
 #define	SZ_IND		4
 #define	SZ_FLOAT	4
+#define	SZ_VLONG	8
 #define	SZ_DOUBLE	8
-#define	SU_ALLIGN	SZ_LONG
-#define	SU_PAD		SZ_LONG
 #define	FNX		100
-#define	INLINE		(5*SZ_LONG)
 
 typedef	struct	Adr	Adr;
 typedef	struct	Prog	Prog;
 typedef	struct	Case	Case;
 typedef	struct	C1	C1;
-typedef	struct	Bits	Bits;
 typedef	struct	Var	Var;
 typedef	struct	Reg	Reg;
 typedef	struct	Rgn	Rgn;
+typedef	struct	Index	Index;
 
-enum
+struct Index
 {
-	OINDEX = OEND+1,
-
-	OXEND
+	int	i0;
+	int	i1;
 };
 
 struct
@@ -62,7 +61,7 @@ struct	Prog
 	Adr	to;
 	Prog*	link;
 	long	lineno;
-	ushort	as;
+	short	as;
 	uchar	type;
 	uchar	offset;
 };
@@ -83,13 +82,6 @@ struct	C1
 	long	label;
 };
 
-#define	BITS	5
-#define	NVAR	(BITS*sizeof(ulong)*8)
-struct	Bits
-{
-	ulong	b[BITS];
-};
-
 struct	Var
 {
 	long	offset;
@@ -101,6 +93,7 @@ struct	Var
 struct	Reg
 {
 	long	pc;
+	long	rpo;		/* reverse post ordering */
 
 	Bits	set;
 	Bits	use1;
@@ -116,9 +109,10 @@ struct	Reg
 	long	regu;
 	long	loop;		/* could be shorter */
 
-	union	{
+	union
+	{
 		Reg*	log5;
-		int	active;
+		long	active;
 	};
 	Reg*	p1;
 	Reg*	p2;
@@ -188,7 +182,6 @@ Bits	externs;
 Bits	params;
 Bits	consts;
 Bits	addrs;
-Bits	zbits;
 
 long	regbits;
 long	exregbits;
@@ -210,6 +203,7 @@ extern	char*	anames[];
 void	codgen(Node*, Node*);
 void	gen(Node*);
 void	noretval(int);
+void	usedset(Node*, int);
 void	xcom(Node*);
 void	indx(Node*);
 void	bcomplex(Node*);
@@ -266,7 +260,6 @@ void	cas(void);
 void	bitload(Node*, Node*, Node*, Node*, Node*);
 void	bitstore(Node*, Node*, Node*, Node*, Node*);
 long	outstring(char*, long);
-int	vlog(Node*);
 void	nullwarn(Node*, Node*);
 void	sextern(Sym*, Node*, long, long);
 void	gextern(Sym*, Node*, long, long);
@@ -277,13 +270,13 @@ void	ieeedtod(Ieee*, double);
  * list
  */
 void	listinit(void);
-int	Pconv(void*, Fconv*);
-int	Aconv(void*, Fconv*);
-int	Dconv(void*, Fconv*);
-int	Zconv(void*, Fconv*);
-int	Rconv(void*, Fconv*);
-int	Xconv(void*, Fconv*);
-int	Bconv(void*, Fconv*);
+int	Pconv(va_list*, Fconv*);
+int	Aconv(va_list*, Fconv*);
+int	Dconv(va_list*, Fconv*);
+int	Zconv(va_list*, Fconv*);
+int	Rconv(va_list*, Fconv*);
+int	Xconv(va_list*, Fconv*);
+int	Bconv(va_list*, Fconv*);
 
 /*
  * reg.c
@@ -294,7 +287,7 @@ void	regopt(Prog*);
 void	addmove(Reg*, int, int, int);
 Bits	mkvar(Reg*, Adr*);
 void	prop(Reg*, Bits, Bits);
-int	loopit(Reg*);
+void	loopit(Reg*, long);
 void	synch(Reg*, Bits);
 ulong	allreg(ulong, Rgn*);
 void	paint1(Reg*, int);
@@ -326,16 +319,14 @@ long	FtoB(int);
 int	BtoR(long);
 int	BtoF(long);
 
-/*
- * bits.c
- */
-Bits	bor(Bits, Bits);
-Bits	band(Bits, Bits);
-Bits	bnot(Bits);
-int	bany(Bits*);
-int	bnum(Bits);
-Bits	blsh(unsigned);
-int	beq(Bits, Bits);
-
 #define	D_HI	D_NONE
 #define	D_LO	D_NONE
+
+#pragma	varargck	type	"A"	int
+#pragma	varargck	type	"B"	Bits
+#pragma	varargck	type	"D"	Adr*
+#pragma	varargck	type	"N"	Adr*
+#pragma	varargck	type	"P"	Prog*
+#pragma	varargck	type	"R"	int
+#pragma	varargck	type	"Z"	char*
+#pragma	varargck	type	"X"	Index

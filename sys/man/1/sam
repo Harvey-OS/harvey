@@ -512,7 +512,7 @@ If
 .I sam
 is
 .I downloaded
-(using the mouse and bitmap display, i.e. not using option
+(using the mouse and raster display, i.e. not using option
 .BR -d ),
 .B !
 sets standard input to
@@ -666,7 +666,7 @@ insertion composed of the several insertions in the order applied.
 What follows refers to behavior of
 .I sam
 when downloaded, that is, when
-operating as a display editor on a bitmap display.
+operating as a display editor on a raster display.
 This is the default
 behavior; invoking
 .I sam
@@ -686,7 +686,7 @@ There is usually a `current window',
 marked with a dark border, to which typed text and editing
 commands apply.
 Text may be typed and edited as in
-.IR 8½ (1);
+.IR rio (1);
 also the escape key (ESC) selects (sets dot to) text typed
 since the last mouse button hit.
 .PP
@@ -694,13 +694,13 @@ The button 3 menu controls window operations.
 The top of the menu
 provides the following operators, each of which uses one or
 more
-.IR 8½ -like
+.IR rio -like
 cursors to prompt for selection of a window or sweeping
 of a rectangle.
 `Sweeping' a null rectangle gets a large window, disjoint
 from the command window or the whole screen, depending on
 where the null rectangle is.
-.TF reshape
+.TF resize
 .TP 
 .B new
 Create a new, empty file.
@@ -708,9 +708,9 @@ Create a new, empty file.
 .B zerox
 Create a copy of an existing window.
 .TP
-.B reshape
+.B resize
 As in
-.IR 8½ .
+.IR rio .
 .TP
 .B close
 Delete the window.
@@ -753,7 +753,7 @@ starts, is an ordinary window except that text typed to it
 is interpreted as commands for the editor rather than passive text,
 and text printed by editor commands appears in it.
 The behavior is like
-.IR 8½ ,
+.IR rio ,
 with an `output point' that separates commands being typed from
 previous output.
 Commands typed in the command window apply to the
@@ -761,7 +761,7 @@ current open file\(emthe file in the most recently
 current window.
 .SS Manipulating text
 Button 1 changes selection, much like
-.IR 8½ .
+.IR rio .
 Pointing to a non-current window with button 1 makes it current;
 within the current window, button 1 selects text, thus setting dot.
 Double-clicking selects text to the boundaries of words, lines,
@@ -779,15 +779,24 @@ Replace the text in dot by the contents of the snarf buffer.
 .B snarf
 Save the text in dot in the snarf buffer.
 .TP
+.B plumb
+Send the text in the selection as a plumb
+message.  If the selection is empty,
+the white-space-delimited block of text is sent as a plumb message
+with a
+.B click
+attribute defining where the selection lies (see
+.IR plumb (6)).
+.TP
 .B look
 Search forward for the next occurrence of the literal text in dot.
 If dot is the null string, the text in the snarf buffer is
 used.
 The snarf buffer is unaffected.
 .TP
-.B <8½>
+.B <rio>
 Exchange snarf buffers with
-.IR 8½ .
+.IR rio .
 .TP
 .BI / regexp
 Search forward for the next match of the last regular expression
@@ -801,23 +810,29 @@ Saves the sent text in the snarf buffer.
 (Command window only.) 
 .PD
 .SS External communication
-On invocation
+.I Sam
+listens to the
+.B edit
+plumb port.
+If plumbing is not active,
+on invocation
 .I sam
 creates a named pipe
 .BI /srv/sam. user
 which acts as an additional source of commands.  Characters written to
 the named pipe are treated as if they had been typed in the command window.
-This is usually used to issue
-.B B
-commands from the shell.
 .PP
 .I B
 is a shell-level command that causes an instance of
 .I sam
 running on the same terminal to load the named
 .IR files .
-The option allows a line number to be specified for
-the initial position to display in the last named file.
+.I B
+uses either plumbing or the named pipe, whichever service is available.
+If plumbing is not enabled,
+the option allows a line number to be specified for
+the initial position to display in the last named file
+(plumbing provides a more general mechanism for this ability).
 .SS Abnormal termination
 If
 .I sam
@@ -858,7 +873,7 @@ source for the separate terminal part
 .IR ed (1),
 .IR sed (1),
 .IR grep (1),
-.IR 8½ (1),
+.IR rio (1),
 .IR regexp (6).
 .PP
 Rob Pike,

@@ -8,6 +8,7 @@ static char *pbmsg = "AS protocol botch";
 int
 _asrdresp(int fd, char *buf, int len)
 {
+	int n;
 	char error[ERRLEN];
 
 	if(read(fd, buf, 1) != 1){
@@ -15,6 +16,7 @@ _asrdresp(int fd, char *buf, int len)
 		return -1;
 	}
 
+	n = len;
 	switch(buf[0]){
 	case AuthOK:
 		if(_asreadn(fd, buf, len) < 0){
@@ -28,11 +30,28 @@ _asrdresp(int fd, char *buf, int len)
 			return -1;
 		}
 		error[ERRLEN-1] = 0;
-		werrstr(error);
+		werrstr("remote: %s", error);
 		return -1;
+	case AuthOKvar:
+		if(_asreadn(fd, error, 5) < 0){
+			werrstr(pbmsg);
+			return -1;
+		}
+		error[5] = 0;
+		n = atoi(error);
+		if(n <= 0 || n > len){
+			werrstr(pbmsg);
+			return -1;
+		}
+		memset(buf, 0, len);
+		if(_asreadn(fd, buf, n) < 0){
+			werrstr(pbmsg);
+			return -1;
+		}
+		break;
 	default:
 		werrstr(pbmsg);
 		return -1;
 	}
-	return 0;
+	return n;
 }

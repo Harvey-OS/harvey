@@ -66,8 +66,8 @@ void
 statistics(void)
 {
 	fprint(errorf,"%d/%d nodes(%%e), %d/%d positions(%%p), %d/%d (%%n), %ld transitions\n",
-		tptr, treesize, nxtpos-positions, maxpos, stnum+1, nstates, rcount);
-	fprint(errorf, ", %d/%d packed char classes(%%k)", pcptr-pchar, pchlen);
+		tptr, treesize, (int)(nxtpos-positions), maxpos, stnum+1, nstates, rcount);
+	fprint(errorf, ", %d/%d packed char classes(%%k)", (int)(pcptr-pchar), pchlen);
 	fprint(errorf,", %d/%d packed transitions(%%a)",nptr, ntrans);
 	fprint(errorf, ", %d/%d output slots(%%o)", yytop, outsize);
 	fprint(errorf,"\n");

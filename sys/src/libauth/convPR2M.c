@@ -18,6 +18,8 @@ convPR2M(Passwordreq *f, char *ap, char *key)
 	CHAR(num);
 	STRING(old, NAMELEN);
 	STRING(new, NAMELEN);
+	CHAR(changesecret);
+	STRING(secret, SECRETLEN);
 	n = p - (uchar*)ap;
 	if(key)
 		encrypt(key, ap, n);

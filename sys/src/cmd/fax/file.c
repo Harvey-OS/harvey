@@ -23,7 +23,7 @@ createfaxfile(Modem *m, char *spool)
 		return seterror(m, Esys);
 
 	fprint(m->pagefd, "TYPE=ccitt-g31\n");
-	fprint(m->pagefd, "WINDOW=0 0 %d -1\n", wd[m->fdcs[2]]);
+	fprint(m->pagefd, "WINDOW=0 0 %ld -1\n", wd[m->fdcs[2]]);
 	if(m->valid & Vftsi)
 		fprint(m->pagefd, "FTSI=%s\n", m->ftsi);
 	fprint(m->pagefd, "FDCS=%lud,%lud,%lud,%lud,%lud,%lud,%lud,%lud\n",
@@ -78,9 +78,9 @@ picopen(Modem *m)
 	 * The first page should have WINDOW.
 	 */
 	while(p = Brdline(m->bp, '\n')){
-		if(BLINELEN(m->bp) == 1)
+		if(Blinelen(m->bp) == 1)
 			break;
-		p[BLINELEN(m->bp)-1] = 0;
+		p[Blinelen(m->bp)-1] = 0;
 
 		verbose("openfaxfile: %s", p);
 		if(strcmp("TYPE=ccitt-g31", p) == 0)

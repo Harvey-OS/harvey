@@ -42,8 +42,18 @@ struct message {
 	String	*date;
 	String	*body;
 	String	*tmp;		/* name of temp file */
+	String	*to;
 	int	size;
 	int	fd;		/* if >= 0, the file the message is stored in*/
+	char	haveto;
+	char	havefrom;
+	char	havedate;
+	char	havemime;
+	char	havesubject;
+	char	bulk;		/* if Precedence: Bulk in header */
+	char	rfc822headers;
+	int	received;	/* number of received lines */
+	char	*boundary;	/* bondary marker for attachments */
 };
 
 /*
@@ -54,7 +64,9 @@ extern int onatty;
 extern char *thissys, *altthissys;
 extern int xflg;
 extern int nflg;
+extern int tflg;
 extern int debug;
+extern int nosummary;
 
 /*
  *  exported procedures
@@ -69,22 +81,24 @@ extern dest	*d_rm(dest**);
 extern void	d_insert(dest**, dest*);
 extern dest	*d_rm_same(dest**);
 extern void	d_same_insert(dest**, dest*);
+extern String	*d_to(dest*);
 extern dest	*s_to_dest(String*, dest*);
 extern void	gateway(message*);
 extern dest	*expand_local(dest*);
 extern void	logdelivery(dest*, char*, message*);
 extern void	loglist(dest*, message*, char*);
 extern void	logrefusal(dest*, message*, char*);
-extern void	default_from(message*);
+extern int	default_from(message*);
 extern message	*m_new(void);
 extern void	m_free(message*);
-extern message	*m_read(Biobuf*, int);
+extern message	*m_read(Biobuf*, int, int);
 extern int	m_get(message*, long, char**);
 extern int	m_print(message*, Biobuf*, char*, int);
 extern int	m_bprint(message*, Biobuf*);
 extern String	*rule_parse(String*, char*, int*);
 extern int	getrules(void);
-extern int	rewrite(dest*, char*);
+extern int	rewrite(dest*, message*);
 extern void	dumprules(void);
 extern void	regerror(char*);
 extern dest	*translate(dest*);
+extern char*	skipequiv(char*);

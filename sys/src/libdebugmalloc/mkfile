@@ -1,0 +1,8 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libdebugmalloc.a
+OFILES=\
+	malloc.$O\
+	$objtype'stack'.$O\
+
+</sys/src/cmd/mksyslib

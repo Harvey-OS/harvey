@@ -9,17 +9,18 @@ obj *linegen(int type)
 	static double prevdy = 0;
 	static double prevw = HT10;
 	static double prevh = HT5;
-	int i, j, some, head, ddtype, invis, chop;
+	int i, j, some, head, ddtype, invis, chop, battr, with;
 	double ddval, chop1, chop2, x0, y0, x1, y1;
+	double fillval = 0;
 	double theta;
-	double defx, defy;
+	double defx, defy, xwith, ywith;
 	obj *p, *ppos;
 	static int xtab[] = { 1, 0, -1, 0 };	/* R=0, U=1, L=2, D=3 */
 	static int ytab[] = { 0, 1, 0, -1 };
 	double dx[500], dy[500];
 	int ndxy;
 	double nx, ny;
-	Attr *ap;
+	Attr *ap, *chop_ap[4];
 
 	nx = curx;
 	ny = cury;
@@ -27,9 +28,9 @@ obj *linegen(int type)
 	defy = getfval("lineht");
 	prevh = getfval("arrowht");
 	prevw = getfval("arrowwid");
-	dx[0] = dy[0] = ndxy = some = head = invis = 0;
+	dx[0] = dy[0] = ndxy = some = head = invis = battr = with = 0;
 	chop = chop1 = chop2 = 0;
-	ddtype = ddval = 0;
+	ddtype = ddval = xwith = ywith = 0;
 	for (i = 0; i < nattr; i++) {
 		ap = &attr[i];
 		switch (ap->a_type) {
@@ -42,11 +43,8 @@ obj *linegen(int type)
 		case INVIS:
 			invis = INVIS;
 			break;
-		case CHOP:
-			if (chop++ == 0)
-				chop1 = chop2 = ap->a_val.f;
-			else
-				chop2 = ap->a_val.f;
+		case NOEDGE:
+			battr |= NOEDGEBIT;
 			break;
 		case DOT:
 		case DASH:
@@ -125,7 +123,38 @@ obj *linegen(int type)
 			nx = curx = ppos->o_x;
 			ny = cury = ppos->o_y;
 			break;
+		case WITH:
+			with = ap->a_val.i;
+			break;
+		case CHOP:
+			if (ap->a_sub != PLACENAME) {
+				if( chop == 0)
+					chop1 = chop2 = ap->a_val.f;
+				else
+					chop2 = ap->a_val.f;
+			}
+			chop_ap[chop++] = ap;
+			break;
+		case FILL:
+			battr |= FILLBIT;
+			if (ap->a_sub == DEFAULT)
+				fillval = getfval("fillval");
+			else
+				fillval = ap->a_val.f;
+			break;
 		}
+	}
+	if (with) {	/* this doesn't work at all */
+		switch (with) {
+		case CENTER:
+			xwith = (dx[1] - dx[0]) / 2; ywith = (dy[1] - dy[0]) / 2; break;
+		}
+		for (i = 0; i < ndxy; i++) {
+			dx[i] -= xwith;
+			dy[i] -= ywith;
+		}
+		curx += xwith;
+		cury += ywith;
 	}
 	if (some) {
 		nx += dx[ndxy];
@@ -175,7 +204,8 @@ obj *linegen(int type)
 		if (head == 0)
 			head = HEAD2;	/* default arrow head */
 	}
-	p->o_attr = head | invis | ddtype;
+	p->o_attr = head | invis | ddtype | battr;
+	p->o_fillval = fillval;
 	p->o_val[4] = ndxy;
 	nx = p->o_x;
 	ny = p->o_y;

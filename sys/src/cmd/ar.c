@@ -46,6 +46,14 @@ typedef	struct Arfile		/* Temp file control block - one per tempfile */
 	Arsymref *sym;		/* head of defined symbol chain */
 } Arfile;
 
+typedef struct Hashchain
+{
+	char	*name;
+	struct Hashchain *next;
+} Hashchain;
+
+#define	NHASH	1024
+
 /*
  *	macro to portably read/write archive header.
  *	'cmd' is read/write/Bread/Bwrite, etc.
@@ -76,6 +84,8 @@ int	vflag;
 Arfile *astart, *amiddle, *aend;	/* Temp file control block pointers */
 int	allobj = 1;			/* set when all members are object files of the same type */
 int	symdefsize;			/* size of symdef file */
+int	dupfound;			/* flag for duplicate symbol */
+Hashchain	*hash[NHASH];		/* hash table of text symbols */
 	
 #define	ARNAMESIZE	sizeof(astart->tail->hdr.name)
 
@@ -94,9 +104,10 @@ void	arread(Biobuf*, Armember*, int);
 void	arstream(int, Arfile*);
 int	arwrite(int, Armember*);
 int	bamatch(char*, char*);
+int	duplicate(char*);
 Armember *getdir(Biobuf*);
 int	getspace(void);
-void	install(char*, Arfile*, Arfile*, Arfile*);
+void	install(char*, Arfile*, Arfile*, Arfile*, int);
 void	longt(Armember*);
 int	match(int, char**);
 void	mesg(int, char*);
@@ -111,6 +122,7 @@ void	scanobj(Biobuf*, Arfile*, int);
 void	select(int*, long);
 void	setcom(void(*)(char*, int, char**));
 void	skip(Biobuf*, long);
+int	symcomp(void*, void*);
 void	trim(char*, char*, int);
 void	usage(void);
 void	wrerr(void);
@@ -129,7 +141,6 @@ void
 main(int argc, char *argv[])
 {
 	char *cp;
-
 
 	Binit(&bout, 1, OWRITE);
 	if(argc < 3)
@@ -267,10 +278,7 @@ rcmd(char *arname, int count, char **files)
 		armove(bfile, ap, bp);
 		Bterm(bfile);
 	}
-	if(fd < 0) {
-		if(!cflag)
-			fprint(2, "ar: creating %s\n", arname);
-	} else
+	if(fd >= 0)
 		close(fd);
 		/* copy in remaining files named on command line */
 	for (i = 0; i < count; i++) {
@@ -293,7 +301,10 @@ rcmd(char *arname, int count, char **files)
 			Bterm(bfile);
 		}
 	}
-	install(arname, astart, 0, aend);
+	if(fd < 0 && !cflag)
+		install(arname, astart, 0, aend, 1);	/* issue 'creating' msg */
+	else
+		install(arname, astart, 0, aend, 0);
 }
 
 void
@@ -323,7 +334,7 @@ dcmd(char *arname, int count, char **files)
 		}
 	}
 	close(fd);
-	install(arname, astart, 0, 0);
+	install(arname, astart, 0, 0, 0);
 }
 
 void
@@ -435,7 +446,7 @@ mcmd(char *arname, int count, char **files)
 	close(fd);
 	if (poname[0] && aend == 0)
 		fprint(2, "ar: %s not found - files moved to end.\n", poname);
-	install(arname, astart, amiddle, aend);
+	install(arname, astart, amiddle, aend, 0);
 }
 void
 tcmd(char *arname, int count, char **files)
@@ -505,20 +516,22 @@ qcmd(char *arname, int count, char **files)
 /*
  *	extract the symbol references from an object file
  */
-
 void
 scanobj(Biobuf *b, Arfile *ap, int size)
 {
 	int obj;
 	long offset;
+	Dir d;
 	static int lastobj = -1;
 
 	if (!allobj)			/* non-object file encountered */
 		return;
-	offset = BOFFSET(b);
+	offset = Boffset(b);
 	obj = objtype(b, 0);
 	if (obj < 0) {			/* not an object file */
 		allobj = 0;
+		if (dirfstat(Bfildes(b), &d) >= 0 && d.length == 0)
+			fprint(2, "ar: zero length file %s\n", file);
 		Bseek(b, offset, 0);
 		return;
 	}
@@ -557,11 +570,45 @@ objsym(Sym *s, void *p)
 	n = strlen(s->name);
 	as->name = armalloc(n+1);
 	strcpy(as->name, s->name);
+	if(s->type == 'T' && duplicate(as->name)) {
+		dupfound = 1;
+		fprint(2, "duplicate text symbol: %s\n", as->name);
+		free(as->name);
+		free(as);
+		return;
+	}
 	as->type = s->type;
 	symdefsize += 4+(n+1)+1;
 	as->len = n;
 	as->next = ap->sym;
 	ap->sym = as;
+}
+
+/*
+ *	Check the symbol table for duplicate text symbols
+ */
+int
+duplicate(char *name)
+{
+	Hashchain *p;
+	char *cp;
+	int h;
+
+	h = 0;
+	for(cp = name; *cp; h += *cp++)
+		h *= 1119;
+	if(h < 0)
+		h = ~h;
+	h %= NHASH;
+
+	for(p = hash[h]; p; p = p->next)
+		if(strcmp(p->name, name) == 0)
+			return 1;
+	p = (Hashchain*) armalloc(sizeof(Hashchain));
+	p->next = hash[h];
+	p->name = name;
+	hash[h] = p;
+	return 0;
 }
 
 /*
@@ -648,7 +695,7 @@ getdir(Biobuf *b)
 		return 0;
 	}
 	if(strncmp(bp->hdr.fmag, ARFMAG, sizeof(bp->hdr.fmag)))
-		phaseerr(BOFFSET(b));
+		phaseerr(Boffset(b));
 	strncpy(name, bp->hdr.name, sizeof(bp->hdr.name));
 	cp = name+sizeof(name)-1;
 	while(*--cp==' ')
@@ -680,10 +727,9 @@ armove(Biobuf *b, Arfile *ap, Armember *bp)
 	sprint(bp->hdr.uid, "%-6d", 0);
 	sprint(bp->hdr.gid, "%-6d", 0);
 	sprint(bp->hdr.mode, "%-8lo", d.mode);
-	sprint(bp->hdr.size, "%-10ld", d.length);
+	sprint(bp->hdr.size, "%-10lld", d.length);
 	strncpy(bp->hdr.fmag, ARFMAG, 2);
 	bp->size = d.length;
-	bp->date = d.mtime;
 	arread(b, bp, bp->size);
 	if (d.length&0x01)
 		d.length++;
@@ -723,14 +769,24 @@ skip(Biobuf *bp, long len)
  *	Stream the three temp files to an archive
  */
 void
-install(char *arname, Arfile *astart, Arfile *amiddle, Arfile *aend)
+install(char *arname, Arfile *astart, Arfile *amiddle, Arfile *aend, int createflag)
 {
 	int fd;
 
+	if(allobj && dupfound) {
+		fprint(2, "%s not changed\n", arname);
+		return;
+	}
 	/* leave note group behind when copying back; i.e. sidestep interrupts */
 	rfork(RFNOTEG);
+
+	if(createflag)
+		fprint(2, "ar: creating %s\n", arname);
 	fd = arcreate(arname);
-	rl(fd);
+
+	if(allobj)
+		rl(fd);
+
 	if (astart) {
 		arstream(fd, astart);
 		arfree(astart);
@@ -745,6 +801,7 @@ install(char *arname, Arfile *astart, Arfile *amiddle, Arfile *aend)
 	}
 	close(fd);
 }
+
 void
 rl(int fd)
 {
@@ -753,9 +810,6 @@ rl(int fd)
 	char *cp;
 	struct ar_hdr a;
 	long len;
-
-	if (!allobj)
-		return;
 
 	Binit(&b, fd, OWRITE);
 	Bseek(&b,seek(fd,0,1), 0);
@@ -766,7 +820,7 @@ rl(int fd)
 	sprint(a.date, "%-12ld", time(0));
 	sprint(a.uid, "%-6d", 0);
 	sprint(a.gid, "%-6d", 0);
-	sprint(a.mode, "%-8lo", 0644);
+	sprint(a.mode, "%-8lo", 0644L);
 	sprint(a.size, "%-10ld", len);
 	strncpy(a.fmag, ARFMAG, 2);
 	strcpy(a.name, symdef);
@@ -776,7 +830,7 @@ rl(int fd)
 	if(HEADER_IO(Bwrite, &b, a))
 			wrerr();
 
-	len += BOFFSET(&b);
+	len += Boffset(&b);
 	if (astart) {
 		wrsym(&b, len, astart->sym);
 		len += astart->size;
@@ -915,7 +969,7 @@ longt(Armember *bp)
 	char *cp;
 
 	pmode(strtoul(bp->hdr.mode, 0, 8));
-	Bprint(&bout, "%3d/%1d", atol(bp->hdr.uid), atol(bp->hdr.gid));
+	Bprint(&bout, "%3ld/%1ld", atol(bp->hdr.uid), atol(bp->hdr.gid));
 	Bprint(&bout, "%7ld", bp->size);
 	cp = ctime(bp->date);
 	Bprint(&bout, " %-12.12s %-4.4s ", cp+4, cp+24);

@@ -2,7 +2,7 @@
 #define	N	10000
 
 static void*
-memccpy(void *a1, void *a2, int c, ulong n)
+memccpy(void *a1, void *a2, int c, unsigned long n)
 {
 	char *s1, *s2;
 

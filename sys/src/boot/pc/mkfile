@@ -1,49 +1,62 @@
 objtype=386
 </$objtype/mkfile
+BIN=/386
 
-TARGET=b.com
-OBJ=\
-	l.$O\
-	8250.$O\
+TARG=\
+	9load\
+	ld.com\
+	mbr\
+	pbs\
+	pbslba\
+
+
+CORE=\
 	alarm.$O\
-	bootp.$O\
 	cga.$O\
 	clock.$O\
 	console.$O\
-	conf.$O\
 	dosboot.$O\
 	donprint.$O\
+	devfloppy.$O\
+	dma.$O\
+	ilock.$O\
+	kbd.$O\
+	queue.$O\
+	trap.$O\
+
+LOAD=\
+	8250.$O\
+	boot.$O\
+	bootp.$O\
+	conf.$O\
+	devi82365.$O\
+	devsd.$O\
 	ether.$O\
+	ether2114x.$O\
+	ether589.$O\
+	ether82557.$O\
+	etherelnk3.$O\
 	ether2000.$O\
-	ether3210.$O\
-	ether509.$O\
 	ether8003.$O\
 	ether8390.$O\
-	floppy.$O\
-	hard.$O\
-	kbd.$O\
-	main.$O\
-	plan9boot.$O\
-	queue.$O\
-	scsi.$O\
-	scsi14f.$O\
-	scsi1542.$O\
-	trap.$O\
+	etherec2t.$O\
+	inflate.$O\
+	load.$O\
+	memory.$O\
+	part.$O\
+	pci.$O\
+	sdata.$O\
+	sdscsi.$O\
+	load.$O\
 
-IOBJ=\
-	l.$O\
-	8250.$O\
-	alarm.$O\
-	cga.$O\
-	clock.$O\
-	console.$O\
-	dosboot.$O\
-	donprint.$O\
-	floppy.$O\
-	kbd.$O\
-	install.$O\
-	queue.$O\
-	trap.$O\
+BCOM=\
+	bcom.$O\
+	bootld.$O\
+	devsd.$O\
+	part.$O\
+	pci.$O\
+	sdata.$O\
+	sdscsi.$O\
 
 HFILES=\
 	lib.h\
@@ -54,22 +67,26 @@ HFILES=\
 
 CFLAGS=-w -I.
 
-all:V:	bb $TARGET
+all:V:	$TARG
 
-bb:	bb.$O
-	$LD -o $target -H3 -T0x7C00 -l $prereq
+9load:	l.$O $CORE $LOAD
+	$LD -o $target -H3 -T0x80010000 -l $prereq -lc
+	ls -l $target
 
-$TARGET:	$OBJ
+9loaddebug:	l.$O $CORE $LOAD
+	$LD -o $target -T0x00010000 -l $prereq -lc
+	ls -l $target
+
+ld.com:	ld.$O $CORE $BCOM
 	$LD -o $target -H3 -T0x80080100 -l $prereq -lc
 	ls -l $target
 
-install.com:	$IOBJ
-	$LD -o $target -H3 -T0x80080100 -l $prereq -lc
+lddebug:	ld.$O $CORE $BCOM
+	$LD -o $target -T0x80080100 -l $prereq -lc
 	ls -l $target
 
-installall:V:	install
-install:V:	bb $TARGET
-	cp $TARGET /386
+ld.$O:	l.s
+	$AS -DDOTCOM -o ld.$O l.s
 
 %.$O:	%.s
 	$AS $stem.s
@@ -81,9 +98,31 @@ install:V:	bb $TARGET
 
 clock.$O floppy.$O trap.$O:	ureg.h
 conf.$O dosboot.$O main.$O:	dosfs.h
-ether.$O ether2000.$O ether509.$O ether8003.$O ether8390.$O:	ether.h
+ether.$O etherelnk3.$O:	etherif.h
+devsd.$O part.$O sdata.$O sdscsi.$O: sd.h
 bootp.$O:	ip.h
 
+mbr:	mbr.$O
+	$LD -o $target -H3 -T0x0600 -l $prereq
+	ls -l $target
+
+pbs:	pbs.$O
+	$LD -o $target -H3 -T0x7C00 -l $prereq
+	ls -l $target
+
+pbslba:	pbslba.$O
+	$LD -o $target -H3 -T0x7C00 -l $prereq
+	ls -l $target
+
 clean:
-	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARGET
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG 9loaddebug lddebug
+
+install:V:
+	for (i in $TARG)
+		mk $MKFLAGS $i.install
+
+%.install:V:	$BIN/%
+
+$BIN/%:	%
+	cp $stem $BIN/$stem
 

@@ -1,45 +1,45 @@
 #include "map.h"
 
-		/* p0;p1 evaluated to shut off "not used" diags */
-static proj Yaitoff(double p0,double p1){p0;p1;return aitoff();}
+static proj Yaitoff(double,double){return aitoff();}
 static proj Yalbers(double p0,double p1){return albers(p0,p1);}
-static proj Yazequalarea(double p0,double p1){p0;p1;return azequalarea();}
-static proj Yazequidistant(double p0,double p1){p0;p1;return azequidistant();}
-static proj Ybicentric(double p0,double p1){p1;return bicentric(p0);}
-static proj Ybonne(double p0,double p1){p1;return bonne(p0);}
-static proj Yconic(double p0,double p1){p1;return conic(p0);}
-static proj Ycylequalarea(double p0,double p1){p1;return cylequalarea(p0);}
-static proj Ycylindrical(double p0,double p1){p0;p1;return cylindrical();}
-static proj Yelliptic(double p0,double p1){p1;return elliptic(p0);}
-static proj Yfisheye(double p0,double p1){p1;return fisheye(p0);}
-static proj Ygall(double p0,double p1){p1;return gall(p0);}
-static proj Ygilbert(double p0,double p1){p0;p1;return gilbert();}
-static proj Yglobular(double p0,double p1){p0;p1;return globular();}
-static proj Ygnomonic(double p0,double p1){p0;p1;return gnomonic();}
-static proj Yguyou(double p0,double p1){p0;p1;return guyou();}
+static proj Yazequalarea(double, double){return azequalarea();}
+static proj Yazequidistant(double, double){return azequidistant();}
+static proj Ybicentric(double p0,double){return bicentric(p0);}
+static proj Ybonne(double p0,double){return bonne(p0);}
+static proj Yconic(double p0,double){return conic(p0);}
+static proj Ycylequalarea(double p0,double){return cylequalarea(p0);}
+static proj Ycylindrical(double, double){return cylindrical();}
+static proj Yelliptic(double p0,double){return elliptic(p0);}
+static proj Yfisheye(double p0,double){return fisheye(p0);}
+static proj Ygall(double p0,double){return gall(p0);}
+static proj Ygilbert(double, double){return gilbert();}
+static proj Yglobular(double, double){return globular();}
+static proj Ygnomonic(double, double){return gnomonic();}
+static proj Yguyou(double, double){return guyou();}
 static proj Yharrison(double p0,double p1){return harrison(p0,p1);}
-static proj Yhex(double p0,double p1){p0;p1;return hex();}
-static proj Yhoming(double p0,double p1){p1;return homing(p0);}
-static proj Ylagrange(double p0,double p1){p0;p1;return lagrange();}
+static proj Yhex(double, double){return hex();}
+static proj Yhoming(double p0,double){return homing(p0);}
+static proj Ylagrange(double, double){return lagrange();}
 static proj Ylambert(double p0,double p1){return lambert(p0,p1);}
-static proj Ylaue(double p0,double p1){p0;p1;return laue();}
-static proj Ymecca(double p0,double p1){p1;return mecca(p0);}
-static proj Ymercator(double p0,double p1){p0;p1;return mercator();}
-static proj Ymollweide(double p0,double p1){p0;p1;return mollweide();}
-static proj Ynewyorker(double p0,double p1){p1;return newyorker(p0);}
-static proj Yorthographic(double p0,double p1){p0;p1;return orthographic();}
-static proj Yperspective(double p0,double p1){p1;return perspective(p0);}
-static proj Ypolyconic(double p0,double p1){p0;p1;return polyconic();}
-static proj Yrectangular(double p0,double p1){p1;return rectangular(p0);}
+static proj Ylaue(double, double){return laue();}
+static proj Ylune(double p0,double p1){return lune(p0,p1);}
+static proj Ymecca(double p0, double){return mecca(p0);}
+static proj Ymercator(double, double){return mercator();}
+static proj Ymollweide(double, double){return mollweide();}
+static proj Ynewyorker(double p0,double){return newyorker(p0);}
+static proj Yorthographic(double, double){return orthographic();}
+static proj Yperspective(double p0,double){return perspective(p0);}
+static proj Ypolyconic(double, double){return polyconic();}
+static proj Yrectangular(double p0,double){return rectangular(p0);}
 static proj Ysimpleconic(double p0,double p1){return simpleconic(p0,p1);}
-static proj Ysinusoidal(double p0,double p1){p0;p1;return sinusoidal();}
+static proj Ysinusoidal(double, double){return sinusoidal();}
 static proj Ysp_albers(double p0,double p1){return sp_albers(p0,p1);}
-static proj Ysp_mercator(double p0,double p1){p0;p1;return sp_mercator();}
-static proj Ysquare(double p0,double p1){p0;p1;return square();}
-static proj Ystereographic(double p0,double p1){p0;p1;return stereographic();}
-static proj Ytetra(double p0,double p1){p0;p1;return tetra();}
+static proj Ysp_mercator(double, double){return sp_mercator();}
+static proj Ysquare(double, double){return square();}
+static proj Ystereographic(double, double){return stereographic();}
+static proj Ytetra(double, double){return tetra();}
 static proj Ytrapezoidal(double p0,double p1){return trapezoidal(p0,p1);}
-static proj Yvandergrinten(double p0,double p1){p0;p1;return vandergrinten();}
+static proj Yvandergrinten(double,double){return vandergrinten();}
 
 struct index index[] = {
 	{"aitoff", Yaitoff, 0, picut, 0, 0, 0},
@@ -64,6 +64,7 @@ struct index index[] = {
 	{"lagrange", Ylagrange,0,picut,0, 0, 0},
 	{"lambert", Ylambert, 2, picut, 0, 0, 0},
 	{"laue", Ylaue, 0, nocut, 0, 0, 0},
+	{"lune", Ylune, 2, nocut, 0, 0, 0},
 	{"mecca", Ymecca, 1, picut, 3, 0, mlimb},
 	{"mercator", Ymercator, 0, picut, 3, 0, 0},
 	{"mollweide", Ymollweide, 0, picut, 0, 0, 0},

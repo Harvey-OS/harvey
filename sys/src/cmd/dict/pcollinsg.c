@@ -106,7 +106,7 @@ static Nassoc overtab[] = {
 	{L'~',	LTIL},
 };
 
-static uchar *reach(void*, int);
+static uchar *reach(uchar*, int);
 
 static Entry	curentry;
 static char	tag[Taglen];
@@ -199,7 +199,7 @@ pcollgnextoff(long fromoff)
 
 	if(Bseek(bdict, fromoff, 0) < 0)
 		return -1;
-	while((c = BGETC(bdict)) >= 0){
+	while((c = Bgetc(bdict)) >= 0){
 		if(c == '\r')
 			defoff = Boffset(bdict);
 		switch(state){

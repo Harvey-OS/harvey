@@ -30,6 +30,11 @@ extern	char*	utfrune(char*, long);
 extern	char*	utfrrune(char*, long);
 
 /*
+ *  math
+ */
+extern	int	abs(int);
+
+/*
  * print routines
  */
 
@@ -53,6 +58,34 @@ extern	char*	donprint(char*, char*, char*, void*);
 extern	int	fmtinstall(char, int(*)(Op*));
 extern	int	sprint(char*, char*, ...);
 extern	int	print(char*, ...);
+
+#pragma	varargck	argpos	print	1
+#pragma	varargck	argpos	sprint	2
+
+#pragma	varargck	type	"lld"	vlong
+#pragma	varargck	type	"llx"	vlong
+#pragma	varargck	type	"lld"	uvlong
+#pragma	varargck	type	"llx"	uvlong
+#pragma	varargck	type	"ld"	long
+#pragma	varargck	type	"lx"	long
+#pragma	varargck	type	"ld"	ulong
+#pragma	varargck	type	"lx"	ulong
+#pragma	varargck	type	"d"	int
+#pragma	varargck	type	"x"	int
+#pragma	varargck	type	"c"	int
+#pragma	varargck	type	"C"	int
+#pragma	varargck	type	"d"	uint
+#pragma	varargck	type	"x"	uint
+#pragma	varargck	type	"c"	uint
+#pragma	varargck	type	"C"	uint
+#pragma	varargck	type	"f"	double
+#pragma	varargck	type	"e"	double
+#pragma	varargck	type	"g"	double
+#pragma	varargck	type	"s"	char*
+#pragma	varargck	type	"S"	Rune*
+#pragma	varargck	type	"r"	void
+#pragma	varargck	type	"%"	void
+#pragma	varargck	type	"p"	void*
 
 /*
  * one-of-a-kind

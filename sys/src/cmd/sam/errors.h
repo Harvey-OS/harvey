@@ -5,6 +5,7 @@ typedef enum Err{
 	Emenu,
 	Emodified,
 	Eio,
+	Ewseq,
 	/* error_c */
 	Eunk,
 	Emissop,
@@ -46,6 +47,8 @@ typedef enum Err{
 	Esubexp,
 	Etmpovfl,
 	Eappend,
+	Ecantplumb,
+	Ebufload,
 }Err;
 typedef enum Warn{
 	/* warn_s */

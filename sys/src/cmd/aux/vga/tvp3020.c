@@ -1,24 +1,21 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
 /*
- * Tvp302[05] Viewpoint Video Interface Palette.
+ * Tvp302[056] Viewpoint Video Interface Palette.
  * Assumes hooked up to an S3 86C928 or S3 Vision964.
  */
 enum {
-	AddrW		= 0x00,		/* Palette address register - write mode */
-	Palette		= 0x01,		/* Color palette holding register */
-	Pmask		= 0x02,		/* Pixel read mask */
-	AddrR		= 0x03,		/* Palette address register - read mode */
-
 	Index		= 0x06,		/* Index register */
 	Data		= 0x07,		/* Data register */
 
 	Id		= 0x3F,		/* ID Register */
 	Tvp3020		= 0x20,
 	Tvp3025		= 0x25,
+	Tvp3026		= 0x26,
 };
 
 /*
@@ -73,16 +70,17 @@ checkindex(uchar index, uchar access)
 		break;
 
 	case Tvp3025:
+	case Tvp3026:
 		access = access<<4;
 		break;
 
 	default:
-		print("unknown tvp302x Id - 0x%2.2X\n", id);
+		Bprint(&stdout, "%s: unknown chip id - 0x%2.2X\n", tvp3020.name, id);
 		break;
 	}
 
 	if(index > sizeof(indexreg) || (indexreg[index] & access) == 0)
-		error("bad tvp302x index - 0x%2.2X\n", index);
+		error("%s: bad register index - 0x%2.2X\n", tvp3020.name, index);
 
 	return id;
 }
@@ -148,21 +146,17 @@ tvp3020xo(uchar index, uchar data)
 }
 
 static void
-options(Vga *vga, Ctlr *ctlr)
+options(Vga*, Ctlr* ctlr)
 {
-	USED(vga);
-	verbose("%s->options\n", ctlr->name);
-
 	ctlr->flag |= Hclk2|Hextsid|Hpvram|Henhanced|Foptions;
 }
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
 	ulong grade;
 	char *p;
 
-	verbose("%s->init\n", ctlr->name);
 	/*
 	 * Work out the part speed-grade from name. Name can have,
 	 * e.g. '-135' on the end  for 135MHz part.
@@ -176,16 +170,16 @@ init(Vga *vga, Ctlr *ctlr)
 	 * take it from the mode.
 	 * Check it's within range.
 	 */
-	if(vga->f == 0)
-		vga->f = vga->mode->frequency;
-	if(vga->f > grade)
-		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f);
+	if(vga->f[0] == 0)
+		vga->f[0] = vga->mode->frequency;
+	if(vga->f[0] > grade)
+		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f[0]);
 
 	/*
 	 * Determine whether to use clock-doubler or not.
 	 */
-	if(vga->f > 85000000){
-		vga->f /= 2;
+	if(vga->f[0] > 85000000){
+		vga->f[0] /= 2;
 		resyncinit(vga, ctlr, Uclk2, 0);
 	}
 
@@ -193,11 +187,10 @@ init(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
 	uchar x;
 
-	verbose("%s->load\n", ctlr->name);
 	/*
 	 * Input Clock Selection:
 	 *	VGA		CLK0
@@ -278,15 +271,13 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga*, Ctlr* ctlr)
 {
 	uchar access;
 	int i;
 
-	USED(vga);
-
 	access = 0x01;
-	if(checkindex(0x00, 0x01) == Tvp3025)
+	if(checkindex(0x00, 0x01) != Tvp3020)
 		access <<= 4;
 
 	printitem(ctlr->name, "direct");

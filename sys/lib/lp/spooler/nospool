@@ -1,14 +1,30 @@
 #!/bin/rc
 if (! ~ $DEBUG '') flag x +
-if (~ $OUTDEV -) OUTDEV=/fd/1
-if (~ $#* 0) {
-	@{bind -b $LPLIB/process /bin; $LPPROC} > $OUTDEV
-	if (! ~ $LPDEST stdout) echo -n `{ascii -t 4} > $OUTDEV
+if (~ $OUTDEV -) {
+	if (~ $#* 0) {
+		@{bind -b $LPLIB/process /bin; $LPPROC}
+		if (! ~ $LPDEST stdout) echo -n `{ascii -t 4}
+	}
+	if not {
+		if (! ~ $DEBUG '') echo input files $*
+		for (i in $*) {
+			@{bind -b $LPLIB/process /bin; $LPPROC} < $i
+			if (! ~ $LPDEST stdout) echo -n `{ascii -t 4}
+		}
+	}
 }
 if not {
-	for (i in $*) {
-		@{bind -b $LPLIB/process /bin; $LPPROC} < $i > $OUTDEV
+	if (~ $#* 0) {
+		@{bind -b $LPLIB/process /bin; $LPPROC} > $OUTDEV
 		if (! ~ $LPDEST stdout) echo -n `{ascii -t 4} > $OUTDEV
+	}
+	if not {
+		if (! ~ $DEBUG '') echo input files $*
+		for (i in $*) {
+			echo processing $i >[1=2]
+			@{bind -b $LPLIB/process /bin; $LPPROC} < $i > $OUTDEV
+			if (! ~ $LPDEST stdout) echo -n `{ascii -t 4} > $OUTDEV
+		}
 	}
 }
 exit ''

@@ -5,25 +5,19 @@
 #include "fns.h"
 #include "../port/error.h"
 
-#include <libg.h>
-#include <gnot.h>
+#define	Image	IMAGE
+#include <draw.h>
+#include <memdraw.h>
+#include <cursor.h>
 #include "screen.h"
-#include "vga.h"
-
-extern Cursor curcursor;
 
 /*
  * TVP3020 Viewpoint Video Interface Pallette.
  * Assumes hooked up to an S3 86C928.
  */
 enum {
-	AddrW		= 0x00,		/* Palette address register - write mode */
-	Palette		= 0x01,		/* Color palette holding register */
-	Pmask		= 0x02,		/* Pixel read mask */
-	AddrR		= 0x03,		/* Palette address register - read mode */
-
-	Index		= 0x06,		/* Index register */
-	Data		= 0x07,		/* Data register */
+	Index		= 0x06,				/* Index register */
+	Data		= 0x07,				/* Data register */
 };
 
 /*
@@ -57,27 +51,62 @@ tvp3020xo(uchar index, uchar data)
 }
 
 static void
-load(Cursor *c)
+tvp3020disable(VGAscr*)
+{
+	uchar r;
+
+	/*
+	 * Disable 
+	 *	cursor;
+	 *	cursor control enable for Bt485 DAC (!);
+	 *	the hardware cursor external operation mode.
+	 */
+	tvp3020xo(0x06, 0x10);				/* Cursor Control Register */
+
+	r = vgaxi(Crtx, 0x45) & ~0x20;
+	vgaxo(Crtx, 0x45, r);
+
+	r = vgaxi(Crtx, 0x55) & ~0x20;
+	vgaxo(Crtx, 0x55, r);
+}
+
+static void
+tvp3020enable(VGAscr*)
+{
+	uchar r;
+
+	/*
+	 * Make sure cursor is off by initialising the cursor
+	 * control to defaults + X-Windows cursor mode.
+	 */
+	tvp3020xo(0x06, 0x10);				/* Cursor Control Register */
+
+	/*
+	 * Overscan colour,
+	 * cursor colour 1 (white),
+	 * cursor colour 2 (black).
+	 */
+	tvp3020xo(0x20, Pwhite); tvp3020xo(0x21, Pwhite); tvp3020xo(0x22, Pwhite);
+	tvp3020xo(0x23, Pwhite); tvp3020xo(0x24, Pwhite); tvp3020xo(0x25, Pwhite);
+	tvp3020xo(0x26, Pblack); tvp3020xo(0x27, Pblack); tvp3020xo(0x28, Pblack);
+
+	/*
+	 * Finally, enable
+	 *	the hardware cursor external operation mode;
+	 *	cursor control enable for Bt485 DAC (!).
+	 */
+	r = vgaxi(Crtx, 0x55)|0x20;
+	vgaxo(Crtx, 0x55, r);
+
+	r = vgaxi(Crtx, 0x45)|0x20;
+	vgaxo(Crtx, 0x45, r);
+}
+
+static void
+tvp3020load(VGAscr*, Cursor* curs)
 {
 	uchar p, p0, p1;
 	int x, y;
-	uchar clr[2*16], set[2*16];
-
-	/*
-	 * Lock the DAC registers so we can update the
-	 * cursor bitmap if necessary.
-	 * If it's the same as the last cursor we loaded,
-	 * just make sure it's enabled.
-	 */
-	lock(&palettelock);
-#ifdef notdef
-	if(memcmp(c, &curcursor, sizeof(Cursor)) == 0){
-		tvp3020xo(0x06, 0x40|0x10);		/* Cursor Control Register */
-		unlock(&palettelock);
-		return;
-	}
-	memmove(&curcursor, c, sizeof(Cursor));
-#endif /* notdef */
 
 	/*
 	 * Make sure cursor is off by initialising the cursor
@@ -105,15 +134,11 @@ load(Cursor *c)
 	 *	 1  1	cursor colour 2
 	 * Put the cursor into the top-left of the 64x64 array.
 	 */
-	memmove(clr, c->clr, sizeof(clr));
-	pixreverse(clr, sizeof(clr), 0);
-	memmove(set, c->set, sizeof(set));
-	pixreverse(set, sizeof(set), 0);
 	for(y = 0; y < 64; y++){
 		for(x = 0; x < 64/8; x++){
 			if(x < 16/8 && y < 16){
-				p0 = clr[x+y*2];
-				p1 = set[x+y*2];
+				p0 = curs->clr[x+y*2];
+				p1 = curs->set[x+y*2];
 
 				p = 0x00;
 				if(p1 & 0x10)
@@ -161,102 +186,31 @@ load(Cursor *c)
 	}
 
 	/*
-	 * Initialise the cursor hot-point
+	 * Initialise the cursor hotpoint
 	 * and enable the cursor.
 	 */
-	tvp3020xo(0x04, -c->offset.x);			/* Sprite Origin X */
-	tvp3020xo(0x05, -c->offset.y);			/* Sprite Origin Y */
+	tvp3020xo(0x04, -curs->offset.x);		/* Sprite Origin X */
+	tvp3020xo(0x05, -curs->offset.y);		/* Sprite Origin Y */
 
 	tvp3020xo(0x06, 0x40|0x10);			/* Cursor Control Register */
-
-	unlock(&palettelock);
-}
-
-static void
-enable(void)
-{
-	uchar r;
-
-	lock(&palettelock);
-
-	/*
-	 * Make sure cursor is off by initialising the cursor
-	 * control to defaults + X-Windows cursor mode.
-	 */
-	tvp3020xo(0x06, 0x10);				/* Cursor Control Register */
-
-	/*
-	 * Overscan colour,
-	 * cursor colour 1 (white),
-	 * cursor colour 2 (black).
-	 */
-	tvp3020xo(0x20, 0x00); tvp3020xo(0x21, 0x00); tvp3020xo(0x22, 0x00);
-	tvp3020xo(0x23, 0x00); tvp3020xo(0x24, 0x00); tvp3020xo(0x25, 0x00);
-	tvp3020xo(0x26, 0xFF); tvp3020xo(0x27, 0xFF); tvp3020xo(0x28, 0xFF);
-
-	unlock(&palettelock);
-
-	/*
-	 * Finally, enable
-	 *	the hardware cursor external operation mode;
-	 *	cursor control enable for Bt485 DAC (!).
-	 */
-	r = vgaxi(Crtx, 0x55)|0x20;
-	vgaxo(Crtx, 0x55, r);
-
-	r = vgaxi(Crtx, 0x45)|0x20;
-	vgaxo(Crtx, 0x45, r);
 }
 
 static int
-move(Point p)
+tvp3020move(VGAscr*, Point p)
 {
-	if(canlock(&palettelock) == 0)
-		return 1;
-
 	tvp3020xo(0x00, p.x & 0xFF);			/* Cursor Position X LSB */
 	tvp3020xo(0x01, (p.x>>8) & 0x0F);		/* Cursor Position X MSB */
 	tvp3020xo(0x02, p.y & 0xFF);			/* Cursor Position Y LSB */
 	tvp3020xo(0x03, (p.y>>8) & 0x0F);		/* Cursor Position Y MSB */
 
-	unlock(&palettelock);
 	return 0;
 }
 
-static void
-disable(void)
-{
-	uchar r;
-
-	/*
-	 * Disable 
-	 *	cursor;
-	 *	cursor control enable for Bt485 DAC (!);
-	 *	the hardware cursor external operation mode.
-	 */
-	lock(&palettelock);
-	tvp3020xo(0x06, 0x10);				/* Cursor Control Register */
-	unlock(&palettelock);
-
-	r = vgaxi(Crtx, 0x45) & ~0x20;
-	vgaxo(Crtx, 0x45, r);
-
-	r = vgaxi(Crtx, 0x55) & ~0x20;
-	vgaxo(Crtx, 0x55, r);
-}
-
-static Hwgc tvp3020hwgc = {
+VGAcur vgatvp3020cur = {
 	"tvp3020hwgc",
-	enable,
-	load,
-	move,
-	disable,
 
-	0,
+	tvp3020enable,
+	tvp3020disable,
+	tvp3020load,
+	tvp3020move,
 };
-
-void
-vgatvp3020link(void)
-{
-	addhwgclink(&tvp3020hwgc);
-}

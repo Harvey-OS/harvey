@@ -72,15 +72,10 @@ inclusive.  For example,
 .B (w<1-4>)
 is the concatenation of SCSI targets 1 through 4.
 .TP
-.BI r n1 . n2 . n3
-A SCSI WORM disk on unit
-.IR n1 ,
-target
-.IR n2 ,
-and partition
-.IR n3 .
-The values are as in
-.BR w .
+.BI l n1 . n2 . n3
+The same as
+.BR w ,
+but leaving a single block at the beginning for a label.
 .TP
 .BI ( device... )
 A pseudo-device formed from the concatenation of the
@@ -106,6 +101,15 @@ of the size of the device.
 Parenthesize
 .I device
 if it contains periods.
+.TP
+.BR j (\f2device1\ device2\f1...)\f2device3
+.I Device1
+is the SCSI juke box interface.
+The
+.IR device2 s
+are the SCSI drives in the jukebox and
+.I device3
+represents the demountable platters in the juke box.
 .TP
 .BI f device
 A pseudo-WORM disk: blocks on

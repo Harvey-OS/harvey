@@ -3,9 +3,9 @@
 TARG=sam
 OFILES=sam.$O\
 	address.$O\
-	buffer.$O\
+	buff.$O\
 	cmd.$O\
-	disc.$O\
+	disk.$O\
 	error.$O\
 	file.$O\
 	io.$O\
@@ -19,6 +19,7 @@ OFILES=sam.$O\
 	shell.$O\
 	string.$O\
 	sys.$O\
+	util.$O\
 	xec.$O\
 
 HFILES=sam.h\
@@ -29,3 +30,11 @@ BIN=/$objtype/bin
 </sys/src/cmd/mkone
 
 address.$O cmd.$O parse.$O xec.$O unix.$O:	parse.h
+
+safeinstall: $O.out
+	mv $BIN/$TARG $BIN/o$TARG
+	cp $prereq $BIN/$TARG
+
+safeinstallall:V:
+	for (objtype in $CPUS)
+		mk safeinstall

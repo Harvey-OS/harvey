@@ -1,0 +1,13 @@
+objtype=mips
+</mips/mkfile
+
+LIB=/$objtype/lib/libmp.a
+OFILES=	mpvecadd.$O\
+	mpvecsub.$O\
+	mpvecdigmuladd.$O\
+	mpvecdigmulsub.$O\
+	mpdigdiv.$O\
+
+HFILES=/$objtype/include/u.h /sys/include/mp.h ../port/dat.h
+
+</sys/src/cmd/mksyslib

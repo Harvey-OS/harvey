@@ -25,7 +25,7 @@ block of data on a device:
 .P1
     enum
     {
-        RBUFSIZE = 6*1024
+        RBUFSIZE = 16*1024
     };
 
     typedef
@@ -119,7 +119,7 @@ and can point at another
 .CW (BUFSIZE/sizeof(long))\u\s-2\&2\s+2\d
 blocks of data.
 The maximum addressable size of a file is
-therefore 14,448,414,656 bytes.
+therefore 275 Gbytes.
 There is a tighter restriction of
 2\u\s-2\&32\s+2\d
 bytes because the length of a file is maintained in
@@ -128,15 +128,12 @@ Even so,
 sloppy use of long arithmetic restricts the length to
 2\u\s-2\&31\s+2\d
 bytes.
-These numbers are based on Bootes
-which has a block size of 6K and
+These numbers are based on Emelie
+which has a block size of 16K and
 .CW sizeof(long)
 is 4.
 It would be different if the size of a block
 changed.
-The block size should be 3258 or larger in order to
-allow addressing as large as
-2\u\s-2\&31\s+2\d.
 .PP
 The declarations of the indirect and double indirect blocks
 are as follows.
@@ -167,7 +164,7 @@ A directory is a file that consists of a list of
 directory entries.
 To make access easier,
 a directory entry cannot cross blocks.
-In Bootes there are 88 directory entries per block.
+In Emelie there are 233 directory entries per block.
 .PP
 The device on which the blocks reside is implicit
 and ultimately comes from the 9P

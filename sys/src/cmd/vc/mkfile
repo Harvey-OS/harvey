@@ -10,7 +10,6 @@ OFILES=\
 	sgen.$O\
 	swt.$O\
 	txt.$O\
-	bits.$O\
 	mul.$O\
 
 HFILES=\

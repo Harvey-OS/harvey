@@ -27,9 +27,9 @@ typedef char flag;	/* represent a few bit flag */
 #define NLEFTS	512
 #define NCHARS	500
 #define NINTS	250
-#define INMAX	5000
-#define OUTMAX	5000
-#define QBUFMAX	5000
+#define INMAX	20000
+#define OUTMAX	20000
+#define QBUFMAX	20000
 #define MAXDIR	10
 #define MAXPROC	100
 #define MAXINCLUDE	17

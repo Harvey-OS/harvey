@@ -4,9 +4,9 @@
 
 int	eof;		/* send an eof if true */
 char	*note = "die: yankee dog";
+char	*ruser;
 
 void	rex(int, char*);
-void	dkexec(int, char*, char*);
 void	tcpexec(int, char*, char*);
 int	call(char *, char*, char*, char**);
 char	*buildargs(char*[]);
@@ -31,6 +31,9 @@ main(int argc, char *argv[])
 	case 'e':
 		eof = 0;
 		break;
+	case 'l':
+		ruser = ARGF();
+		break;
 	default:
 		usage();
 	}ARGEND
@@ -44,16 +47,11 @@ main(int argc, char *argv[])
 	fd = call(0, host, "rexexec", &addr);
 	if(fd >= 0)
 		rex(fd, args);
-	fd = call(0, host, "exec", &addr);
-	if(fd >= 0)
-		dkexec(fd, addr, args);
 
 	/* specific attempts */
 	fd = call("tcp", host, "shell", &addr);
-		tcpexec(fd, addr, args);
-	fd = call("dk", host, "exec", &addr);	
 	if(fd >= 0)
-		dkexec(fd, addr, args);
+		tcpexec(fd, addr, args);
 
 	error("can't dial", host);
 	exits(0);
@@ -88,39 +86,19 @@ rex(int fd, char *cmd)
 }
 
 void
-dkexec(int fd, char *addr, char *cmd)
-{
-	char buf[4096];
-	int kid, n;
-
-	if(read(fd, buf, 1)!=1 || *buf!='O'
-	|| read(fd, buf, 1)!=1 || *buf!='K'){
-		close(fd);
-		error("can't authenticate to", addr);
-	}
-
-	write(fd, cmd, strlen(cmd)+1);
-	kid = send(fd);
-	while((n=read(fd, buf, sizeof buf))>0)
-		if(write(1, buf, n)!=n)
-			error("write error", 0);
-	sleep(250);
-	postnote(PNPROC, kid, note);/**/
-	exits(0);
-}
-
-void
 tcpexec(int fd, char *addr, char *cmd)
 {
 	char *u, buf[4096];
 	int kid, n;
+	char *r;
 
 	/*
 	 *  do the ucb authentication and send command
 	 */
 	u = getuser();
+	r = ruser ? ruser : u;
 	if(write(fd, "", 1)<0 || write(fd, u, strlen(u)+1)<0
-	|| write(fd, u, strlen(u)+1)<0 || write(fd, cmd, strlen(cmd)+1)<0){
+	|| write(fd, r, strlen(r)+1)<0 || write(fd, cmd, strlen(cmd)+1)<0){
 		close(fd);
 		error("can't authenticate to", addr);
 	}

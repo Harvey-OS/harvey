@@ -32,6 +32,13 @@ void (*fcalls[])(Fsrpc*) =
 int p[2];
 
 void
+usage(void)
+{
+	fprint(2, "usage: iostats [-d] [-f debugfile] cmds [args ...]\n");
+	exits("usage");
+}
+
+void
 main(int argc, char **argv)
 {
 	Fsrpc *r;
@@ -41,9 +48,9 @@ main(int argc, char **argv)
 	Fid *fid;
 	ulong ttime;
 	char *dbfile, *s;
-	char c, buf[128], err[ERRLEN];
+	char buf[128];
 	float brpsec, bwpsec, bppsec;
-	int type, cpid, fspid, n, f;
+	int type, cpid, fspid, n;
 
 	dbfile = DEBUGFILE;
 
@@ -55,13 +62,11 @@ main(int argc, char **argv)
 		dbfile = ARGF();
 		break;
 	default:
-	usage:
-		fprint(2, "usage: iostats [-d] [-f debugfile] cmds [args ...]\n");
-		exits("usage");
+		usage();
 	}ARGEND
 
 	if(argc == 0)
-		goto usage;
+		usage();
 
 	if(dbg) {
 		close(2);
@@ -84,6 +89,7 @@ main(int argc, char **argv)
 			fatal("mount /");
 
 		bind("#c/pid", "/dev/pid", MREPL);
+		bind("#e", "/env", MREPL|MCREATE);
 		close(0);
 		close(1);
 		close(2);
@@ -117,7 +123,7 @@ main(int argc, char **argv)
 	malloc(Dsegpad);
 	Workq = malloc(sizeof(Fsrpc)*Nr_workbufs);
 	stats = malloc(sizeof(Stats));
-	fhash = malloc(sizeof(Fid*)*FHASHSIZE);
+	fhash = mallocz(sizeof(Fid*)*FHASHSIZE, 1);
 
 	if(Workq == 0 || fhash == 0 || stats == 0)
 		fatal("no initial memory");
@@ -175,7 +181,7 @@ main(int argc, char **argv)
 		if(r->work.fid < 0)
 			fatal("fid out of range");
 
-		DEBUG(2, "%F\n", &r->work, &r->work);
+		DEBUG(2, "%F\n", &r->work);
 
 		type = r->work.type;
 		rpc = &stats->rpc[type];
@@ -204,10 +210,10 @@ main(int argc, char **argv)
 
 	bppsec = (float)stats->nproto / ((ttime/1000.0)+.000001);
 
-	fprint(2, "\nread      %d bytes, %g Kb/sec\n", stats->totread, brpsec/1024.0);
-	fprint(2, "write     %d bytes, %g Kb/sec\n", stats->totwrite, bwpsec/1024.0);
-	fprint(2, "protocol  %d bytes, %g Kb/sec\n", stats->nproto, bppsec/1024.0);
-	fprint(2, "rpc       %d count\n\n", stats->nrpc);
+	fprint(2, "\nread      %lud bytes, %g Kb/sec\n", stats->totread, brpsec/1024.0);
+	fprint(2, "write     %lud bytes, %g Kb/sec\n", stats->totwrite, bwpsec/1024.0);
+	fprint(2, "protocol  %lud bytes, %g Kb/sec\n", stats->nproto, bppsec/1024.0);
+	fprint(2, "rpc       %lud count\n\n", stats->nrpc);
 
 	fprint(2, "%-10s %5s %5s %5s %5s %5s          in      out\n", 
 	      "Message", "Count", "Low", "High", "Time", "Averg");
@@ -216,7 +222,7 @@ main(int argc, char **argv)
 		rpc = &stats->rpc[n];
 		if(rpc->count == 0)
 			continue;
-		fprint(2, "%-10s %5d %5d %5d %5d %5d ms %8d %8d bytes\n", 
+		fprint(2, "%-10s %5lud %5lud %5lud %5lud %5lud ms %8lud %8lud bytes\n", 
 			rpc->name, 
 			rpc->count,
 			rpc->loms,
@@ -250,7 +256,7 @@ main(int argc, char **argv)
 		else
 			s = "/.";
 
-		fprint(2, "%5d %8d %8d %8d %8d %s\n", fr->opens, fr->nread, fr->bread,
+		fprint(2, "%5lud %8lud %8lud %8lud %8lud %s\n", fr->opens, fr->nread, fr->bread,
 							fr->nwrite, fr->bwrite, s);
 	}
 
@@ -324,7 +330,7 @@ newfid(int nr)
 			return 0;
 
 	if(fidfree == 0) {
-		fidfree = malloc(sizeof(Fid) * Fidchunk);
+		fidfree = mallocz(sizeof(Fid) * Fidchunk, 1);
 		if(fidfree == 0)
 			fatal("out of memory");
 
@@ -395,16 +401,22 @@ file(File *parent, char *name)
 	File *f, *new;
 	Dir dir;
 
-	DEBUG(2, "\tfile: 0x%x %s name %s\n", parent, parent->name, name);
+	DEBUG(2, "\tfile: 0x%p %s name %s\n", parent, parent->name, name);
 
 	for(f = parent->child; f; f = f->childlist)
 		if(strcmp(name, f->name) == 0)
-			return f;
+			break;
 
+	if(f != nil && !f->inval)
+		return f;
 	makepath(buf, parent, name);
 	if(dirstat(buf, &dir) < 0)
 		return 0;
-	
+	if(f != nil){
+		f->inval = 0;
+		return f;
+	}
+
 	new = malloc(sizeof(File));
 	if(new == 0)
 		fatal("no memory");
@@ -462,7 +474,6 @@ makepath(char *s, File *p, char *name)
 void
 fatal(char *s)
 {
-	char buf[128], err[ERRLEN];
 	Proc *m;
 
 	fprint(2, "iostats: %s: %r\n", s);
@@ -504,26 +515,13 @@ catcher(void *a, char *msg)
 ulong
 msec(void)
 {
-	char b[20];
-	int n;
-	static int f = -1;
-
-	if(f < 0)
-		f = open("#c/msec", OREAD|OCEXEC);
-	if(f >= 0) {
-		do {
-			seek(f, 0, 0);
-			n = read(f, b, sizeof(b));
-		}while(n != 12 && n >= 0);
-		b[n] = 0;
-	}
-	return atol(b);
+	return nsec()/1000000;
 }
 
 void
 fidreport(Fid *f)
 {
-	char *p, path[128], buf[1024];
+	char *p, path[128];
 	Frec *fr;
 
 	p = path;

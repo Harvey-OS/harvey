@@ -9,34 +9,55 @@
 #include <libc.h>
 #include <bio.h>
 #include <auth.h>
+#include <fcall.h>
 
 void	remoteside(void);
 void	fatal(int, char*, ...);
-void	noteproc(char*);
+void	lclnoteproc(int);
+void	rmtnoteproc(void);
 void	catcher(void*, char*);
-void	remotenote(void);
 void	usage(void);
 void	writestr(int, char*, char*, int);
 int	readstr(int, char*, int);
 char	*rexcall(int*, char*, char*);
+int	filter(int);
 
 int 	notechan;
 char	system[32];
 int	cflag;
 int	hflag;
+int	fflag;
 int	dbg;
-char 	notebuf[ERRLEN];
 
 char	*srvname = "cpu";
-char	*notesrv = "cpunote";
 char	*exportfs = "/bin/exportfs";
+
+/* authentication mechanisms */
+static int	netkeyauth(int);
+static int	netkeysrvauth(int, char*);
+
+typedef struct AuthMethod AuthMethod;
+struct AuthMethod {
+	char	*name;			/* name of method */
+	int	(*cf)(int);		/* client side authentication */
+	int	(*sf)(int, char*);	/* server side authentication */
+} authmethod[] =
+{
+	{ "p9",		auth,		srvauth},
+	{ "netkey",	netkeyauth,	netkeysrvauth},
+	{ nil,	nil}
+};
+AuthMethod *am = authmethod;	/* default is p9 */
+
+int setam(char*);
 
 void
 usage(void)
 {
-	fprint(2, "usage: cpu [-h system] [-c cmd args ...]\n");
+	fprint(2, "usage: cpu [-h system] [-a authmethod] [-c cmd args ...]\n");
 	exits("usage");
 }
+int fdd;
 
 void
 main(int argc, char **argv)
@@ -45,14 +66,21 @@ main(int argc, char **argv)
 	int data;
 
 	ARGBEGIN{
+	case 'a':
+		p = ARGF();
+		if(p==0)
+			usage();
+		if(setam(p) < 0)
+			fatal(0, "unknown auth method %s\n", p);
+		break;
 	case 'd':
 		dbg++;
 		break;
+	case 'f':
+		fflag++;
+		break;
 	case 'R':				/* From listen */
 		remoteside();
-		break;
-	case 'N':
-		remotenote();
 		break;
 	case 'h':
 		hflag++;
@@ -94,9 +122,8 @@ main(int argc, char **argv)
 	else
 		writestr(data, dat, "dir", 0);
 
-	if(readstr(data, buf, sizeof(buf)) < 0)
-		fatal(1, "bad pid");
-	noteproc(buf);
+	/* start up a process to pass along notes */
+	lclnoteproc(data);
 
 	/* Wait for the other end to execute and start our file service
 	 * of /mnt/term */
@@ -106,6 +133,9 @@ main(int argc, char **argv)
 		print("remote cpu: %s", buf);
 		exits(buf);
 	}
+
+	if(fflag)
+		data = filter(data);
 
 	/* Begin serving the gnot namespace */
 	close(0);
@@ -122,8 +152,11 @@ void
 fatal(int syserr, char *fmt, ...)
 {
 	char buf[ERRLEN];
+	va_list arg;
 
-	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
+	va_start(arg, fmt);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	if(syserr)
 		fprint(2, "cpu: %s: %r\n", buf);
 	else
@@ -131,6 +164,7 @@ fatal(int syserr, char *fmt, ...)
 	exits(buf);
 }
 
+char *negstr = "negotiating authentication method";
 
 /* Invoked with stdin, stdout and stderr connected to the network connection */
 void
@@ -139,7 +173,17 @@ remoteside(void)
 	char user[NAMELEN], home[128], buf[128], xdir[128], cmd[128];
 	int i, n, fd, badchdir, gotcmd;
 
-	if(srvauth(0, user) < 0)
+	/* negotiate authentication mechanism */
+	n = readstr(0, cmd, sizeof(cmd));
+	if(n < 0)
+		fatal(1, "authenticating");
+	if(setam(cmd) < 0){
+		writestr(1, "unsupported auth method", nil, 0);
+		fatal(1, "bad auth method %s", cmd);
+	} else
+		writestr(1, "", "", 1);
+
+	if((*am->sf)(0, user) < 0)
 		fatal(1, "srvauth");
 	if(newns(user, 0) < 0)
 		fatal(1, "newns");
@@ -160,6 +204,7 @@ remoteside(void)
 			fatal(1, "dir");
 	}
 
+
 	/* Establish the new process at the current working directory of the
 	 * gnot */
 	badchdir = 0;
@@ -170,9 +215,6 @@ remoteside(void)
 		chdir(home);
 	}
 
-	sprint(buf, "%d", getpid());
-	writestr(1, buf, "pid", 0);
-
 	/* Start the gnot serving its namespace */
 	writestr(1, "FS", "FS", 0);
 	writestr(1, "/", "exportfs dir", 0);
@@ -182,9 +224,16 @@ remoteside(void)
 		exits("remote tree");
 
 	fd = dup(1, -1);
-	if(amount(fd, "/mnt/term", MREPL, "") < 0)
+
+	/* push fcall and note proc */
+	if(fflag)
+		fd = filter(fd);
+	if(amount(fd, "/mnt/term", MCREATE|MREPL, "") < 0)
 		exits("mount failed");
 	close(fd);
+
+	/* the remote noteproc uses the mount so it must follow it */
+	rmtnoteproc();
 
 	for(i = 0; i < 3; i++)
 		close(i);
@@ -207,85 +256,33 @@ remoteside(void)
 	fatal(1, "exec shell");
 }
 
-void
-noteproc(char *pid)
-{
-	char cmd[NAMELEN], syserr[ERRLEN], *err;
-	int notepid, n;
-	Waitmsg w;
-
-	notepid = fork();
-	if(notepid < 0)
-		fatal(1, "forking noteproc");
-	if(notepid == 0)
-		return;
-
-	if(err = rexcall(&notechan, system, notesrv))
-		fprint(2, "cpu: can't dial for notify: %s: %r\n", err);
-	else{
-		sprint(cmd, "%s", pid);
-		writestr(notechan, cmd, "notepid", 0);
-	}
-
-	notify(catcher);
-
-	for(;;) {
-		n = wait(&w);
-		if(n < 0) {
-			writestr(notechan, notebuf, "catcher", 1);
-			errstr(syserr);
-			if(strcmp(syserr, "interrupted") != 0){
-				fprint(2, "cpu: wait: %s\n", syserr);
-				exits("waiterr");
-			}
-		}
-		if(n == notepid)
-			break;
-	}
-	exits(w.msg);
-}
-
-void
-catcher(void *a, char *text)
-{
-	if(a);
-	strcpy(notebuf, text);
-	noted(NCONT);
-}
-
-void
-remotenote(void)
-{
-	int pid, e;
-	char buf[128];
-
-	if(srvauth(0, buf) < 0)
-		exits("srvauth");
-	if(readstr(0, buf, sizeof(buf)) < 0)
-		fatal(1, "read pid");
-	pid = atoi(buf);
-	e = 0;
-	while(e == 0) {
-		if(readstr(0, buf, sizeof(buf)) < 0) {
-			strcpy(buf, "hangup");
-			e = 1;
-		}
-		if(postnote(PNGROUP, pid, buf) < 0)
-			e = 1;
-	}
-	exits("remotenote");
-}
-
 char*
 rexcall(int *fd, char *host, char *service)
 {
 	char *na;
+	char dir[4*NAMELEN];
+	char err[ERRLEN];
+	int n;
 
 	na = netmkaddr(host, 0, service);
-	if((*fd = dial(na, 0, 0, 0)) < 0)
+	if((*fd = dial(na, 0, dir, 0)) < 0)
 		return "can't dial";
-	if(auth(*fd) < 0)
+
+	/* negotiate authentication mechanism */
+	writestr(*fd, am->name, negstr, 0);
+	n = readstr(*fd, err, ERRLEN);
+	if(n < 0)
+		return negstr;
+	if(*err){
+		werrstr(err);
+		return negstr;
+	}
+
+	/* authenticate */
+	if((*am->cf)(*fd) < 0)
 		return "can't authenticate";
+	if(strstr(dir, "tcp"))
+		fflag = 1;
 	return 0;
 }
 
@@ -315,4 +312,560 @@ readstr(int fd, char *str, int len)
 		len--;
 	}
 	return -1;
+}
+
+static int
+readln(char *buf, int n)
+{
+	char *p = buf;
+
+	n--;
+	while(n > 0){
+		if(read(0, p, 1) != 1)
+			break;
+		if(*p == '\n' || *p == '\r'){
+			*p = 0;
+			return p-buf;
+		}
+		p++;
+	}
+	*p = 0;
+	return p-buf;
+}
+
+static int
+netkeyauth(int fd)
+{
+	char chall[NAMELEN];
+	char resp[NAMELEN];
+
+	strcpy(chall, getuser());
+	print("user[%s]: ", chall);
+	if(readln(resp, sizeof(resp)) < 0)
+		return -1;
+	if(*resp != 0)
+		strcpy(chall, resp);
+	writestr(fd, chall, "challenge/response", 1);
+
+	for(;;){
+		if(readstr(fd, chall, sizeof chall) < 0)
+			break;
+		if(*chall == 0)
+			return 0;
+		print("challenge: %s\nresponse: ", chall);
+		if(readln(resp, sizeof(resp)) < 0)
+			break;
+		writestr(fd, resp, "challenge/response", 1);
+	}
+	return -1;
+}
+
+static int
+netkeysrvauth(int fd, char *user)
+{
+	char response[NAMELEN];
+	Chalstate ch;
+	int tries;
+
+	if(readstr(fd, user, NAMELEN) < 0)
+		return -1;
+
+	for(tries = 0; tries < 10; tries++){
+		if(getchal(&ch, user) < 0)
+			return -1;
+		writestr(fd, ch.chal, "challenge", 1);
+		if(readstr(fd, response, sizeof response) < 0)
+			return -1;
+		if(chalreply(&ch, response) >= 0)
+			break;
+	}
+	if(tries >= 10)
+		return -1;
+	writestr(fd, "", "challenge", 1);
+	return 0;
+}
+
+/* Network on fd1, mount driver on fd0 */
+int
+filter(int fd)
+{
+	int p[2];
+
+	if(pipe(p) < 0)
+		fatal(1, "pipe");
+
+	switch(rfork(RFNOWAIT|RFPROC|RFFDG)) {
+	case -1:
+		fatal(1, "rfork record module");
+	case 0:
+		dup(fd, 1);
+		close(fd);
+		dup(p[0], 0);
+		close(p[0]);
+		close(p[1]);
+		execl("/bin/aux/fcall", "fcall", 0);
+		fatal(1, "exec record module");
+	default:
+		close(fd);
+		close(p[0]);
+	}
+	return p[1];	
+}
+
+int
+setam(char *name)
+{
+	for(am = authmethod; am->name != nil; am++)
+		if(strcmp(am->name, name) == 0)
+			return 0;
+	am = authmethod;
+	return -1;
+}
+
+char *rmtnotefile = "/mnt/term/dev/cpunote";
+
+/*
+ *  loop reading /mnt/term/dev/note looking for notes.
+ *  The child returns to start the shell.
+ */
+void
+rmtnoteproc(void)
+{
+	int n, fd, pid, notepid;
+	char buf[256];
+	Waitmsg w;
+
+	/* new proc returns to start shell */
+	pid = rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG|RFMEM);
+	switch(pid){
+	case -1:
+		syslog(0, "cpu", "cpu -R: can't start noteproc: %r");
+		return;
+	case 0:
+		return;
+	}
+
+	/* new proc reads notes from other side and posts them to shell */
+	switch(notepid = rfork(RFPROC|RFFDG|RFMEM)){
+	case -1:
+		syslog(0, "cpu", "cpu -R: can't start wait proc: %r");
+		_exits(0);
+	case 0:
+		fd = open(rmtnotefile, OREAD);
+		if(fd < 0){
+			syslog(0, "cpu", "cpu -R: can't open %s", rmtnotefile);
+			_exits(0);
+		}
+	
+		for(;;){
+			n = read(fd, buf, sizeof(buf)-1);
+			if(n <= 0){
+				postnote(PNGROUP, pid, "hangup");
+				_exits(0);
+			}
+			buf[n] = 0;
+			postnote(PNGROUP, pid, buf);
+		}
+		break;
+	}
+
+	/* original proc waits for shell proc to die and kills note proc */
+	for(;;){
+		n = wait(&w);
+		if(n < 0 || n == pid)
+			break;
+	}
+	postnote(PNPROC, notepid, "kill");
+	_exits(0);
+}
+
+enum
+{
+	Qdir,
+	Qcpunote,
+
+	Nfid = 32,
+};
+
+struct {
+	char	*name;
+	Qid	qid;
+	ulong	perm;
+} fstab[] =
+{
+	[Qdir]		{ ".",		{CHDIR|Qdir, 0},	CHDIR|0555	},
+	[Qcpunote]	{ "cpunote",	{Qcpunote, 0},		0444		},
+};
+
+typedef struct Note Note;
+struct Note
+{
+	Note *next;
+	char msg[ERRLEN];
+};
+
+typedef struct Request Request;
+struct Request
+{
+	Request *next;
+	Fcall f;
+};
+
+typedef struct Fid Fid;
+struct Fid
+{
+	int	fid;
+	int	file;
+};
+Fid fids[Nfid];
+
+struct {
+	Lock;
+	Note *nfirst, *nlast;
+	Request *rfirst, *rlast;
+} nfs;
+
+int
+fsreply(int fd, Fcall *f)
+{
+	char buf[ERRLEN+MAXMSG];
+	int n;
+
+	if(f->type == Rerror)
+		f->count = strlen(f->data);
+	if(dbg)
+		fprint(2, "<-%F\n", f);
+	n = convS2M(f, buf);
+	if(n > 0){
+		if(write(fd, buf, n) != n){
+			close(fd);
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/* match a note read request with a note, reply to the request */
+int
+kick(int fd)
+{
+	Request *rp;
+	Note *np;
+	int rv;
+
+	for(;;){
+		lock(&nfs);
+		rp = nfs.rfirst;
+		np = nfs.nfirst;
+		if(rp == nil || np == nil){
+			unlock(&nfs);
+			break;
+		}
+		nfs.rfirst = rp->next;
+		nfs.nfirst = np->next;
+		unlock(&nfs);
+
+		rp->f.type = Rread;
+		rp->f.count = strlen(np->msg);
+		rp->f.data = np->msg;
+		rv = fsreply(fd, &rp->f);
+		free(rp);
+		free(np);
+		if(rv < 0)
+			return -1;
+	}
+	return 0;
+}
+
+void
+flushreq(int tag)
+{
+	Request **l, *rp;
+
+	lock(&nfs);
+	for(l = &nfs.rfirst; *l != nil; l = &(*l)->next){
+		rp = *l;
+		if(rp->f.tag == tag){
+			*l = rp->next;
+			unlock(&nfs);
+			free(rp);
+			return;
+		}
+	}
+	unlock(&nfs);
+}
+
+Fid*
+getfid(int fid)
+{
+	int i, freefid;
+
+	freefid = -1;
+	for(i = 0; i < Nfid; i++){
+		if(freefid < 0 && fids[i].file < 0)
+			freefid = i;
+		if(fids[i].fid == fid)
+			return &fids[i];
+	}
+	if(freefid >= 0){
+		fids[freefid].fid = fid;
+		return &fids[freefid];
+	}
+	return nil;
+}
+
+int
+fsstat(int fd, Fid *fid, Fcall *f)
+{
+	Dir d;
+
+	memset(&d, 0, sizeof(d));
+	strcpy(d.name, fstab[fid->file].name);
+	d.qid = fstab[fid->file].qid;
+	d.mode = fstab[fid->file].perm;
+	d.atime = d.mtime = time(0);
+	convD2M(&d, f->stat);
+	return fsreply(fd, f);
+}
+
+int
+fsread(int fd, Fid *fid, Fcall *f)
+{
+	Dir d;
+	char buf[DIRLEN];
+	Request *rp;
+
+	switch(fid->file){
+	default:
+		return -1;
+	case Qdir:
+		if(f->offset == 0 && f->count == DIRLEN){
+			memset(&d, 0, sizeof(d));
+			d.qid = fstab[Qcpunote].qid;
+			d.mode = fstab[Qcpunote].perm;
+			d.atime = d.mtime = time(0);
+			convD2M(&d, buf);
+			f->data = buf;
+			f->count = 0;
+		} else
+			f->count = 0;
+		return fsreply(fd, f);
+	case Qcpunote:
+		rp = mallocz(sizeof(*rp), 1);
+		if(rp == nil)
+			return -1;
+		rp->f = *f;
+		lock(&nfs);
+		if(nfs.rfirst == nil)
+			nfs.rfirst = rp;
+		else
+			nfs.rlast->next = rp;
+		nfs.rlast = rp;
+		unlock(&nfs);
+		return kick(fd);;
+	}
+}
+
+char *Eperm = "permission denied";
+char *Enofile = "out of files";
+char *Enotexist = "file does not exist";
+char *Enotdir = "not a directory";
+
+void
+notefs(int fd)
+{
+	char buf[MAXFDATA+MAXMSG];
+	int n;
+	Fcall f;
+	Fid *fid, *nfid;
+	int doreply;
+
+	rfork(RFNOTEG);
+	fmtinstall('F', fcallconv);
+
+	for(n = 0; n < Nfid; n++)
+		fids[n].file = -1;
+
+	for(;;){
+		n = read9p(fd, buf, sizeof(buf));
+		if(n <= 0)
+			break;
+		if(convM2S(buf, &f, n) < 0)
+			break;
+		if(dbg)
+			fprint(2, "->%F\n", &f);
+		doreply = 1;
+		fid = getfid(f.fid);
+		if(fid == nil){
+nofids:
+			f.type = Rerror;
+			f.data = Enofile;
+			fsreply(fd, &f);
+			continue;
+		}
+		switch(f.type++){
+		default:
+			f.type = Rerror;
+			f.data = "unknown type";
+			break;
+		case Tflush:
+			flushreq(f.oldtag);
+			break;
+		case Tsession:
+			memset(f.authid, 0, sizeof(f.authid));
+			memset(f.authdom, 0, sizeof(f.authdom));
+			memset(f.chal, 0, sizeof(f.chal));
+			break;
+		case Tnop:
+			break;
+		case Tattach:
+			f.qid = fstab[Qdir].qid;
+			fid->file = Qdir;
+			break;
+		case Tclone:
+			nfid = getfid(f.newfid);
+			if(nfid == nil)
+				goto nofids;
+			nfid->file = fid->file;
+			break;
+		case Tclwalk:
+			nfid = getfid(f.newfid);
+			if(nfid == nil)
+				goto nofids;
+			nfid->file = fid->file;
+			fid = nfid;
+			/* fall through */
+		case Twalk:
+			if(fid->file != Qdir){
+				f.type = Rerror;
+				f.data = Enotdir;
+			} else if(strcmp(f.name, "cpunote") == 0){
+				fid->file = Qcpunote;
+				f.qid = fstab[Qcpunote].qid;
+			} else {
+				f.type = Rerror;
+				f.data = Enotexist;
+			}
+			break;
+		case Topen:
+			if(f.mode != OREAD){
+				f.type = Rerror;
+				f.data = Eperm;
+			}
+			break;
+		case Tcreate:
+			f.type = Rerror;
+			f.data = Eperm;
+			break;
+		case Tread:
+			if(fsread(fd, fid, &f) < 0)
+				goto err;
+			doreply = 0;
+			break;
+		case Twrite:
+			f.type = Rerror;
+			f.data = Eperm;
+			break;
+		case Tclunk:
+			fid->file = -1;
+			break;
+		case Tremove:
+			f.type = Rerror;
+			f.data = Eperm;
+			break;
+		case Tstat:
+			if(fsstat(fd, fid, &f) < 0)
+				goto err;
+			doreply = 0;
+			break;
+		case Twstat:
+			f.type = Rerror;
+			f.data = Eperm;
+			break;
+		}
+		if(doreply)
+			if(fsreply(fd, &f) < 0)
+				break;
+	}
+err:
+	close(fd);
+}
+
+char 	notebuf[ERRLEN];
+
+void
+catcher(void*, char *text)
+{
+	strncpy(notebuf, text, ERRLEN);
+	notebuf[ERRLEN-1] = 0;
+	noted(NCONT);
+}
+
+/*
+ *  mount in /dev a note file for the remote side to read.
+ */
+void
+lclnoteproc(int netfd)
+{
+	int exportfspid, n;
+	Waitmsg w;
+	Note *np;
+	int pfd[2];
+
+	if(pipe(pfd) < 0){
+		fprint(2, "cpu: can't start note proc: %r\n");
+		return;
+	}
+
+	/* new proc mounts and returns to start exportfs */
+	switch(exportfspid = rfork(RFPROC|RFNAMEG|RFFDG|RFMEM)){
+	case -1:
+		fprint(2, "cpu: can't start note proc: %r\n");
+		return;
+	case 0:
+		close(pfd[0]);
+		amount(pfd[1], "/dev", MBEFORE, "");
+		close(pfd[1]);
+		return;
+	}
+
+	close(netfd);
+	close(pfd[1]);
+
+	/* new proc listens for note file system rpc's */
+	switch(rfork(RFPROC|RFNAMEG|RFMEM)){
+	case -1:
+		fprint(2, "cpu: can't start note proc: %r\n");
+		_exits(0);
+	case 0:
+		notefs(pfd[0]);
+		_exits(0);
+	}
+
+	/* original proc waits for notes */
+	notify(catcher);
+	for(;;) {
+		*notebuf = 0;
+		n = wait(&w);
+		if(n < 0) {
+			if(*notebuf == 0)
+				break;
+			np = mallocz(sizeof(Note), 1);
+			if(np != nil){
+				strcpy(np->msg, notebuf);
+				lock(&nfs);
+				if(nfs.nfirst == nil)
+					nfs.nfirst = np;
+				else
+					nfs.nlast->next = np;
+				nfs.nlast = np;
+				unlock(&nfs);
+				kick(pfd[0]);
+			}
+			unlock(&nfs);
+		} else if(n == exportfspid)
+			break;
+	}
+	
+	exits(w.msg);
 }

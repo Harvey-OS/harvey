@@ -9,15 +9,14 @@ OFILES=\
 	readwrite.$O\
 	readarg.$O\
 	readln.$O\
-	readn.$O\
 	getauthkey.$O\
 	log.$O\
 	error.$O\
-	tm2sec.$O\
 	fs.$O\
 	rdbio.$O\
 	querybio.$O\
 	wrbio.$O\
+	getexpiration.$O\
 
 
 HFILES=/sys/include/auth.h

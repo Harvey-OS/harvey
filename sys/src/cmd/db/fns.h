@@ -1,5 +1,5 @@
 void		acommand(int);
-void		attachproc(void);
+void		attachprocess(void);
 void		bkput(BKPT*, int);
 void		bpwait(void);
 int		charpos(void);
@@ -24,8 +24,10 @@ void		errors(char*, char*);
 void		execbkpt(BKPT*, int);
 char*		exform(int, int, char*, Map*, int, int);
 int		expr(int);
+/*
 void		fixregs(Map*);
 void		adjustreg(char*, ulong, long);
+*/
 void		flush(void);
 void		flushbuf(void);
 char*		getfname(void);
@@ -33,7 +35,7 @@ void		getformat(char*);
 int		getnum(int (*)(void));
 void		grab(void);
 void		iclose(int, int);
-ulong		inkdot(long);
+ADDR		inkdot(long);
 int		isfileref(void);
 int		item(int);
 void		killpcs(void);
@@ -66,9 +68,9 @@ void		redirout(char*);
 void		readfname(char *);
 void		reread(void);
 char*		regname(int);
-ulong		rget(Map*, char*);
+vlong		rget(Map*, char*);
 Reglist*	rname(char*);
-void		rput(Map*, char*, ulong);
+void		rput(Map*, char*, vlong);
 int		runpcs(int, int);
 void		runrun(int);
 void		runstep(ulong, int);

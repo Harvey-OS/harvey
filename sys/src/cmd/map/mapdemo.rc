@@ -10,28 +10,33 @@ fn demo {proj=$1;	shift;
 		echo 'm -8192 -8192'
 		echo t $proj - $label
 		MAP=world MAPDIR=/lib/map map $proj $* -s -d 5
-	} | plot
+	} 
+	sleep 5
 }
 
 rfork en
-type='Equatorial projections are centered on long. 0, parallels are straight lines'
+{
+type='Equatorial projections centered on long. 0. Parallels are straight lines.'
 
 demo mercator 'equally spaced straight meridians, conformal, straight compass courses'
 demo sinusoidal 'equally spaced parallels, equal-area, same as bonne(0)'
 demo cylequalarea 'equally spaced straight meridians, equal-area, true scale on Eq' 0
+demo cylindrical 'central projection on tangent cylinder'
 demo rectangular 'equally spaced parallels, equally spaced straight meridians, true scale on Eq' 0
 demo gall 'parallels spaced stereographically on prime meridian, equally spaced straight meridians, true scale on Eq' 0
 demo mollweide '(homalographic) equal-area, hemisphere is a circle'
+demo gilbert 'globe mapped conformally on hemisphere, viewed orthographically'
 
 type='Azimuthal: centered on the North Pole, Parallels are concentric circles, Meridians are equally spaced radial lines'
 
 demo azequidistant 'equally spaced parallels, true distances from pole'
 demo azequalarea 'equal area'
+demo gnomonic 'central projecton on tangent plane, straight great circles'
 demo perspective 'viewed along earth''s axis 2 earth radii from center of earth' 2
 demo orthographic 'viewed from infinity'
 demo stereographic 'conformal, projected from opposite pole'
 demo laue 'radius = tan(2\(mu colatitude ), used in xray crystallography'
-demo fisheye 'Fisheye map with index of refraction on 0.5' 0.5 -o 40.75 74
+demo fisheye 'fisheye view of stereographic map, index of refraction 2' 2 -o 40.75 74
 demo newyorker 'New Yorker map from viewing pedestal of radius .5' .5 -o 40.75 74
 
 type='Polar conic projections symmetric about the Prime Meridian. Parallels are segments of concentric circles.'
@@ -48,9 +53,8 @@ demo polyconic 'parallels developed from tangent cones, equally spaced along Pri
 demo aitoff 'equal-area projection of globe onto 2-to-1 ellipse, based on azequalarea'
 demo lagrange 'conformal, maps whole sphere into a circle'
 demo bicentric 'points plotted at true azimuth from two centers on the equator at longitudes +-40, great circles are straight lines' 40
-sleep 3
 demo elliptic 'points are plotted at true distance from two centers on the equator at longitudes +-40' 40
-demo globular 'hemisphere is circle'
+demo globular 'hemisphere is circle, circular meridians and parallels'
 demo vandergrinten 'sphere is circle, meridians as in globular, circular arc parallels resemble mercator'
 
 type='Doubly periodic conformal projections.'
@@ -61,18 +65,19 @@ demo tetra 'map on tetrahedron with edge tangent to Prime Meridian at S Pole, un
 demo hex 'world is hexagon centered on N Pole, N and S hemispheres are equilateral
 triangles'
 
+type='Retroazimuthal projections. Directions to center are true.'
+
+demo mecca 'equally spaced vertical meridians' 21.4 -o 90 -39.8
+demo homing 'distances to Mecca are true' 21.4 -o 90 -39.8
+
 type='Miscellaneous projections.'
 
 demo harrison 'oblique perspective from above the North Pole, 2 earth radii from the earth, looking along the Date Line 40 degrees off vertical' 2 40
-sleep 3
 demo trapezoidal 'equally spaced parallels, straight meridians equally spaced along parallels, true scale at 20 and 50 on Prime Meridian' 20 50
-
-type='Retroazimuthal projections.'
-
-demo mecca 'equally spaced vertical meridians' 21.4 -o 90 -39.8
-demo homing 'distances to ''Mecca'' are true' 21.4 -o 90 -39.8
+demo lune 'conformal, polar cap above Eq is 60-degree lune' 0 60
 
 type='Maps based on the spheroid'
 
 demo sp_mercator 'equally spaced straight meridians, conformal'
 demo sp_albers 'equal-area, true scale on 20 and 50' 20 50
+} | plot

@@ -1,6 +1,5 @@
 .TH ED 1
-.ds . (\|\fL.\fP\|)
-.ds .. (\|\fL.,.\fP\|)
+.ds Dt (\|\fL.,.\fP\|)
 .ds 1$ (\|\fL1,$\fP\|)
 .SH NAME
 ed \- text editor
@@ -293,7 +292,7 @@ Address
 is legal for this command; text is placed
 at the beginning of the buffer.
 .TP
-.RB \*(.. \|b [ +- ][\fIpagesize\fP][ pln\fR]
+.RB \*(Dt \|b [ +- ][\fIpagesize\fP][ pln\fR]
 Browse.
 Print a `page', normally 20 lines.
 The optional 
@@ -317,7 +316,7 @@ Pagesize and format are remembered between
 commands.
 Dot is left at the last line displayed.
 .TP
-.RB \*(.. \|c
+.RB \*(Dt \|c
 .br
 .ns
 .TP
@@ -332,7 +331,7 @@ text to replace these lines.
 Dot is left at the last line input; if there were none,
 it is left at the line preceding the deleted lines.
 .TP
-.RB \*(.. \|d
+.RB \*(Dt \|d
 Delete the addressed lines from the buffer.
 Dot is set to the line following the last line deleted, or to
 the last line of the buffer if the deleted lines had no successor.
@@ -378,7 +377,7 @@ the currently remembered file name is first changed to
 Global.
 First mark every line which matches
 the given
-.I regular expression\f1.
+.IR regular expression .
 Then for every such line, execute the
 .I command list
 with dot initially set to that line.
@@ -435,7 +434,7 @@ The address form
 then addresses this line.
 .ne 2.5
 .TP
-.RB \*(.. \|l
+.RB \*(Dt \|l
 List.
 Print the addressed lines in an unambiguous way:
 a tab is printed as
@@ -459,14 +458,14 @@ may be appended, like
 .LR p ,
 to any non-I/O command.
 .TP
-.RB \*(.. \|m\fIa
+.RB \*(Dt \|m\fIa
 Move.
 Reposition the addressed lines after the line
 addressed by
 .IR a .
 Dot is left at the last moved line.
 .TP
-.RB \*(.. \|n
+.RB \*(Dt \|n
 Number.
 Perform
 .LR p ,
@@ -477,7 +476,7 @@ may be appended, like
 .LR p ,
 to any non-I/O command.
 .TP
-.RB \*(.. \|p
+.RB \*(Dt \|p
 Print the addressed lines.
 Dot is left at the last line printed.
 A
@@ -485,7 +484,7 @@ A
 appended to any non-I/O command causes the then current line
 to be printed after the command is executed.
 .TP
-.RB \*(.. \|P
+.RB \*(Dt \|P
 This command is a synonym for
 .LR p .
 .TP
@@ -519,12 +518,12 @@ If the read is successful, the number of characters
 read is printed.
 Dot is left at the last line read from the file.
 .TP
-.RB \*(.. \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP/
+.RB \*(Dt \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP/
 .PD 0
 .TP
-.RB \*(.. \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP/g
+.RB \*(Dt \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP/g
 .TP
-.RB \*(.. \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP
+.RB \*(Dt \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP
 .PD
 Substitute.
 Search each addressed
@@ -587,14 +586,14 @@ or newline may be included in a replacement
 by prefixing it with
 .LR \e .
 .TP
-.RB \*(.. \|t\|\fIa
+.RB \*(Dt \|t\|\fIa
 Transfer.
 Copy the addressed lines 
 after the line addressed by
 .IR a .
 Dot is left at the last line of the copy.
 .TP
-.RB \*(.. \|u
+.RB \*(Dt \|u
 Undo.
 Restore the preceding contents
 of the first addressed line (sic), which must be the last line
@@ -684,5 +683,3 @@ for inaccessible file;
 for temporary file overflow;
 .L ?
 for errors in commands or other overflows.
-.rm .
-.rm ..

@@ -14,16 +14,24 @@ Given a file descriptor,
 referring to an open file,
 .I dup
 returns a new file descriptor referring to the same file.
+.PP
 If
 .I newfd
-is in the range of legal file descriptors
-.I dup
-will use that for the new file descriptor
-(closing any old file associated with
-.IR newfd);
-if
-.I newfd
 is \-1 the system chooses the lowest available file descriptor.
+Otherwise,
+.I dup
+will use
+.I newfd
+for the new file descriptor
+(closing any old file associated with
+.IR newfd ).
+File descriptors are allocated dynamically,
+so to prevent unwarranted growth of the file descriptor table,
+.I dup
+requires that
+.I newfd
+be no greater than 20 more than the highest file descriptor ever used by
+the program.
 .SH SOURCE
 .B /sys/src/libc/9syscall
 .SH SEE ALSO

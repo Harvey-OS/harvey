@@ -1,0 +1,31 @@
+</$objtype/mkfile
+
+TARG=1l
+OFILES=\
+	asm.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	list.$O\
+	enam.$O\
+	compat.$O\
+
+HFILES=\
+	l.h\
+	../2c/2.out.h\
+
+go:V:	$O.out
+	$O.out -H2 *.1
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+enam.$O:	../2c/enam.c
+	$CC $CFLAGS ../2c/enam.c
+
+%.1:	%.s
+	1a $stem.s
+
+%.1:	%.c
+	1c -w $stem.c

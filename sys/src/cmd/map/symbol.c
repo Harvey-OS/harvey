@@ -1,4 +1,5 @@
 #include "map.h"
+#include "iplot.h"
 
 #define NSYMBOL 20
 
@@ -79,13 +80,12 @@ getsymbol(FILE *sf, int n)
 		case 'v':
 			if(fscanf(sf,"%lf %lf",&x,&y)!=2)
 				break;
-			sp->x = x*halfwidth/halfrange;
-			sp->y = y*halfwidth/halfrange;
-			sp->flag = POINT;
+			sp[i].x = x*halfwidth/halfrange;
+			sp[i].y = y*halfwidth/halfrange;
+			sp[i].flag = POINT;
 			i++;
-			symbol[n] = (struct symb*)realloc(symbol[n],
+			sp = symbol[n] = (struct symb*)realloc(symbol[n],
 					(i+1)*sizeof(struct symb));
-			sp++;
 			continue;
 		}
 		break;

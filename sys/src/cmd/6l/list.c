@@ -15,12 +15,12 @@ listinit(void)
 static	Prog	*bigP;
 
 int
-Pconv(void *o, Fconv *fp)
+Pconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Prog *p;
 
-	p = *(Prog**)o;
+	p = va_arg(*arg, Prog*);
 	bigP = p;
 	if(p->as == ADATA)
 		sprint(str, "(%ld)	%A	%D/%d,%D",
@@ -29,7 +29,7 @@ Pconv(void *o, Fconv *fp)
 	if(p->type != D_NONE) {
 		if(p->type >= D_R0 && p->type < D_R0+32)
 			sprint(str, "(%ld)	%A	%D,%R,%D",
-				p->line, p->as, &p->from, p->type, &p->to);
+				p->line, p->as, &p->from, (int)p->type, &p->to);
 		else
 		if(p->type == D_CONST)
 			sprint(str, "(%ld)	%A	%D,$%d,%D",
@@ -42,39 +42,42 @@ Pconv(void *o, Fconv *fp)
 			p->line, p->as, &p->from, &p->to);
 	strconv(str, fp);
 	bigP = P;
-	return sizeof(Prog*);
+	return 0;
 }
 
 int
-Aconv(void *o, Fconv *fp)
+Aconv(va_list *arg, Fconv *fp)
 {
-
-	strconv(anames[*(int*)o], fp);
-	return sizeof(int);
-}
-
-int
-Xconv(void *o, Fconv *fp)
-{
-	char str[20];
 	int i;
 
-	str[0] = 0;
-	i = ((int*)o)[0];
-	if(i != D_NONE)
-		sprint(str, "(%R*%d)", i, ((int*)o)[1]);
-	strconv(str, fp);
-	return sizeof(int[2]);
+	i = va_arg(*arg, int);
+	strconv(anames[i], fp);
+	return 0;
 }
 
 int
-Dconv(void *o, Fconv *fp)
+Xconv(va_list *arg, Fconv *fp)
+{
+	char str[20];
+	int i0, i1;
+
+	str[0] = 0;
+	i0 = va_arg(*arg, int);
+	i1 = va_arg(*arg, int);
+	if(i0 != D_NONE)
+		sprint(str, "(%R*%d)", i0, i1);
+	strconv(str, fp);
+	return 0;
+}
+
+int
+Dconv(va_list *arg, Fconv *fp)
 {
 	char str[40], s[20];
 	Adr *a;
 	int i;
 
-	a = *(Adr**)o;
+	a = va_arg(*arg, Adr*);
 	i = a->type;
 	if(i >= D_INDIR) {
 		if(a->offset)
@@ -151,16 +154,16 @@ brk:
 	}
 conv:
 	strconv(str, fp);
-	return sizeof(Adr*);
+	return 0;
 }
 
 int
-Rconv(void *o, Fconv *fp)
+Rconv(va_list *arg, Fconv *fp)
 {
 	char str[20];
 	int r;
 
-	r = *(int*)o;
+	r = va_arg(*arg, int);
 	if(r >= D_R0 && r < D_R0+32)
 		sprint(str, "R%d", r);
 	else
@@ -170,16 +173,16 @@ Rconv(void *o, Fconv *fp)
 		sprint(str, "gok(%d)", r);
 
 	strconv(str, fp);
-	return sizeof(int);
+	return 0;
 }
 
 int
-Sconv(void *o, Fconv *fp)
+Sconv(va_list *arg, Fconv *fp)
 {
 	int i, c;
 	char str[30], *p, *a;
 
-	a = *(char**)o;
+	a = va_arg(*arg, char*);
 	p = str;
 	for(i=0; i<sizeof(double); i++) {
 		c = a[i] & 0xff;
@@ -216,18 +219,21 @@ Sconv(void *o, Fconv *fp)
 	}
 	*p = 0;
 	strconv(str, fp);
-	return sizeof(char*);
+	return 0;
 }
 
 void
-diag(char *a, ...)
+diag(char *fmt, ...)
 {
 	char buf[STRINGSZ], *tn;
+	va_list arg;
 
 	tn = "??none??";
 	if(curtext != P && curtext->from.sym != S)
 		tn = curtext->from.sym->name;
-	doprint(buf, buf+sizeof(buf), a, &(&a)[1]);	/* ugly */
+	va_start(arg, fmt);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	print("%s: %s\n", tn, buf);
 
 	nerrors++;

@@ -19,7 +19,7 @@ main(int argc, char *argv[])
 	char *p;
 	char err[ERRLEN];
 
-	if(argc < 2){
+	if(argc < 3){
 		fprint(2, "usage: chmod 0777 file ... or chmod [who]op[rwxal] file ...\n");
 		exits("usage");
 	}

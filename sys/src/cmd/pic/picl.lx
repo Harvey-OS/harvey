@@ -24,6 +24,10 @@ void	undefine(char *s);
 void	shell_init(void), shell_exec(void), shell_text(char *);
 void	endfor(void);
 
+int	yyback(int *, int);
+int	yylook(void);
+int	yywrap(void);
+
 #define	CADD	cbuf[clen++]=yytext[0]; \
 		if (clen>=CBUFLEN-1) { ERROR "string too long", cbuf WARNING; BEGIN A; }
 #define	CBUFLEN	500
@@ -56,11 +60,11 @@ WS	[ \t]
 <A>";"		{ return(ST); }
 <A>"}"		{ BEGIN sc; return(ST); }
 <A>"]"		{ BEGIN br; return(ST); }
+<A>"{"{WS}*(#.*)?\n+	{ return(yylval.i = yytext[0]); }
 
 <A>^".PS".*	{ if (curfile == infile) ERROR ".PS found inside .PS/.PE" WARNING; }
-<A>^"."P[EF].*	{ if (curfile == infile) {
-			yylval.i = yytext[2];
-			PEseen = 1;
+<A>^".PE".*	{ if (curfile == infile) {
+			yylval.p = PEstring = tostring(yytext);
 			return(EOF);
 		  }
 		}
@@ -128,6 +132,7 @@ WS	[ \t]
 <A>clockwise	{ yylval.i = CW; return(ATTR); }
 <A>ccw		{ yylval.i = CCW; return(ATTR); }
 <A>invis(ible)?	{ yylval.i = INVIS; return(ATTR); }
+<A>noedge	{ yylval.i = INVIS; return ATTR; }
 <A>fill		{ yylval.i = FILL; return ATTR; }
 <A>solid	;
 <A>dot(ted)?	return(yylval.i = DOT);

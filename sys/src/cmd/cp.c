@@ -3,6 +3,7 @@
 
 #define	DEFB	(8*1024)
 
+int	xflag;
 void	copy(char *from, char *to, int todir);
 void	copy1(int fdf, int fdt, char *from, char *to);
 
@@ -12,21 +13,31 @@ main(int argc, char *argv[])
 	Dir dirb;
 	int todir, i;
 
-	if(argc<3){
-		fprint(2, "usage:\tcp fromfile tofile\n");
-		fprint(2, "\tcp fromfile ... todir\n");
-		exits("usage");
-	}
+	ARGBEGIN {
+	case 'x':
+		xflag++;
+		break;
+	default:
+		goto usage;
+	} ARGEND
+
 	todir=0;
+	if(argc < 2)
+		goto usage;
 	if(dirstat(argv[argc-1], &dirb)==0 && (dirb.mode&CHDIR))
 		todir=1;
-	if(argc>3 && !todir){
+	if(argc>2 && !todir){
 		fprint(2, "cp: %s not a directory\n", argv[argc-1]);
 		exits("bad usage");
 	}
-	for(i=1; i<argc-1; i++)
+	for(i=0; i<argc-1; i++)
 		copy(argv[i], argv[argc-1], todir);
 	exits(0);
+
+usage:
+	fprint(2, "usage:\tcp [-x] fromfile tofile\n");
+	fprint(2, "\tcp [-x] fromfile ... todir\n");
+	exits("usage");
 }
 
 void
@@ -35,6 +46,7 @@ copy(char *from, char *to, int todir)
 	Dir dirb, dirt;
 	char name[256];
 	int fdf, fdt;
+	char *cp;
 
 	if(todir){
 		char *s, *elem;
@@ -49,31 +61,81 @@ copy(char *from, char *to, int todir)
 		fprint(2,"cp: can't stat %s: %r\n", from);
 		return;
 	}
-	if(dirb.mode&CHDIR){
-		fprint(2, "cp: %s is a directory\n", from);
-		return;
-	}
-	dirb.mode &= 0777;
-	if(dirstat(to, &dirt)==0)
-	if(dirb.qid.path==dirt.qid.path && dirb.qid.vers==dirt.qid.vers)
-	if(dirb.dev==dirt.dev && dirb.type==dirt.type){
-		fprint(2, "cp: %s and %s are the same file\n", from, to);
-		return;
-	}
-	fdf=open(from, OREAD);
-	if(fdf<0){
-		fprint(2, "cp: can't open %s: %r\n", from);
-		return;
-	}
-	fdt=create(to, OWRITE, dirb.mode);
-	if(fdt<0){
-		fprint(2, "cp: can't create %s: %r\n", to);
+	if(xflag) {
+		if(dirstat(to, &dirt)==0)
+		if(dirb.qid.path==dirt.qid.path && dirb.qid.vers==dirt.qid.vers)
+		if(dirb.dev==dirt.dev && dirb.type==dirt.type){
+			fprint(2, "cp: %s and %s are the same file\n", from, to);
+			return;
+		}
+		fdf=open(from, OREAD);
+		if(fdf<0){
+			fprint(2, "cp: can't open %s: %r\n", from);
+			return;
+		}
+		if(dirb.mode&CHDIR) {
+			fdt=create(to, OREAD, dirb.mode);
+			if(fdt<0)
+				fprint(2, "cp: can't mkdir %s: %r\n", to);
+		} else {
+			remove(to);
+			fdt=create(to, OWRITE, dirb.mode);
+			if(fdt<0){
+				fprint(2, "cp: can't create %s: %r\n", to);
+				close(fdf);
+				return;
+			}
+			copy1(fdf, fdt, from, to);
+		}
 		close(fdf);
-		return;
+		close(fdt);
+		cleanname(to);
+		cp = strrchr(to, '/');
+		if(cp)
+			cp++;
+		else
+			cp = to;
+		strncpy(dirb.name, cp, sizeof(dirb.name));
+		if(dirwstat(to, &dirb)==-1){
+			dirstat(to, &dirt);
+			strncpy(dirb.uid, dirt.uid, sizeof(dirb.uid));
+			if(dirwstat(to, &dirb)==0)
+				fprint(2, "cp: can't wstat uid %s: %r\n", to);
+			else{
+				strncpy(dirb.gid, dirt.gid, sizeof(dirb.gid));
+				if(dirwstat(to, &dirb)==0)
+					fprint(2, "cp: can't wstat uid or gid %s: %r\n", to);
+				else
+					fprint(2, "cp: can't wstat %s: %r\n", to);
+			}
+		}
+	} else {
+		if(dirb.mode&CHDIR){
+			fprint(2, "cp: %s is a directory\n", from);
+			return;
+		}
+		dirb.mode &= 0777;
+		if(dirstat(to, &dirt)==0)
+		if(dirb.qid.path==dirt.qid.path && dirb.qid.vers==dirt.qid.vers)
+		if(dirb.dev==dirt.dev && dirb.type==dirt.type){
+			fprint(2, "cp: %s and %s are the same file\n", from, to);
+			return;
+		}
+		fdf=open(from, OREAD);
+		if(fdf<0){
+			fprint(2, "cp: can't open %s: %r\n", from);
+			return;
+		}
+		fdt=create(to, OWRITE, dirb.mode);
+		if(fdt<0){
+			fprint(2, "cp: can't create %s: %r\n", to);
+			close(fdf);
+			return;
+		}
+		copy1(fdf, fdt, from, to);
+		close(fdf);
+		close(fdt);
 	}
-	copy1(fdf, fdt, from, to);
-	close(fdf);
-	close(fdt);
 }
 
 void

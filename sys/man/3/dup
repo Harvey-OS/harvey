@@ -26,7 +26,8 @@ of file
 .I n
 results in a file descriptor identical to
 what would be returned from a system call
-.IB dup ( n ", -1)."
+.IB dup ( n ,
+.BR -1) .
 Note that the result is no longer a file in the
 .I dup
 device.

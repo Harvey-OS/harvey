@@ -9,7 +9,7 @@ getsafe(char *field, int len, uchar *sum, char *file)
 	char buf[64];
 
 	if(nvcsum(field, len) != *sum){
-		if(readfile(file, buf, sizeof(buf)) < 0){
+		if(file && readfile(file, buf, sizeof(buf)) < 0){
 			memset(field, 0, len);
 			return -1;
 		}
@@ -35,14 +35,33 @@ outin(char *prompt, char *buf, int len)
 }
 
 void
-main(void)
+main(int argc, char **argv)
 {
-	int fd;
+	int fd, safeoff;
+	char *p;
 	Nvrsafe safe;
 
-	fd = open("#r/nvram", ORDWR);
+	p = getenv("cputype");
+	if(p == 0)
+		p = "mips";
+
+	if(argc > 1){
+		fd = open(argv[1], ORDWR);
+		safeoff = 0;
+	} else if(strcmp(p, "sparc") == 0){
+		fd = open("#r/nvram", ORDWR);
+		safeoff = 1024+850;
+	} else if(strcmp(p, "386") == 0){
+		fd = open("#S/sdC0/nvram", ORDWR);
+		if(fd < 0)
+			fd = open("#S/sd00/nvram", ORDWR);
+		safeoff = 0x0;
+	} else {
+		fd = open("#r/nvram", ORDWR);
+		safeoff = 1024+900;
+	}
 	if(fd < 0
-	|| seek(fd, 1024+900, 0) < 0
+	|| seek(fd, safeoff, 0) < 0
 	|| read(fd, &safe, sizeof safe) != sizeof safe){
 		memset(&safe, 0, sizeof(safe));
 		fprint(2, "wrkey: can't read nvram: %r\n\n");
@@ -50,19 +69,23 @@ main(void)
 
 	if(getsafe(safe.machkey, DESKEYLEN, &safe.machsum, "#c/key") < 0)
 		fprint(2, "wrkey: bad nvram key\n");
+	if(getsafe(safe.config, CONFIGLEN, &safe.configsum, 0) < 0)
+		fprint(2, "wrkey: bad config\n");
 	if(getsafe(safe.authid, NAMELEN, &safe.authidsum, "#c/hostowner") < 0)
 		fprint(2, "wrkey: bad authentication id\n");
 	if(getsafe(safe.authdom, DOMLEN, &safe.authdomsum, "#c/hostdomain") < 0)
 		fprint(2, "wrkey: bad authentication domain\n");
 
-	getpass(safe.machkey, 1);
+	getpass(safe.machkey, nil, 1);
+	outin("config", safe.config, sizeof(safe.config));
 	outin("authid", safe.authid, sizeof(safe.authid));
 	outin("authdom", safe.authdom, sizeof(safe.authdom));
 
+	safe.configsum = nvcsum(safe.config, CONFIGLEN);
 	safe.machsum = nvcsum(safe.machkey, DESKEYLEN);
 	safe.authidsum = nvcsum(safe.authid, sizeof(safe.authid));
 	safe.authdomsum = nvcsum(safe.authdom, sizeof(safe.authdom));
-	if(seek(fd, 1024+900, 0) < 0
+	if(seek(fd, safeoff, 0) < 0
 	|| write(fd, &safe, sizeof safe) != sizeof safe)
 		fprint(2, "wrkey: can't write nvram: %r\n");
 	close(fd);

@@ -1,7 +1,7 @@
 .\" runoff as:
 .\" eqn file | tbl | troff -ms
 .\"
-.ds P \\s-1PROMELA2\\s0
+.ds P \\s-1PROMELA\\s0
 .ds V \\s-1SPIN\\s0
 .ds C pcc
 .\" .tr -\(hy
@@ -12,22 +12,22 @@ delim $#
 Using \*V
 .AU
 Gerard J. Holzmann
-gerard@plan9.att.com
+gerard@plan9.bell-labs.com
 .AB
-\*V can be used for proving or disproving properties
+\*V can be used for proving or disproving logical properties
 of concurrent systems.
 To render the proofs, a concurrent system is first
 modeled in a formal specification language called \*P.
 The language allows one to specify the behaviors
-of asynchronously executing concurrent
+of asynchronously executing
 processes that may interact through synchronous
 or asynchronous message passing, or through direct
 access to shared variables.
 .LP
 System models specified in this way can be verified
-for both safety and liveness properties, including
-all properties that can be specified in linear time
-temporal logic.
+for both safety and liveness properties. The specification
+of general properties in linear time temporal logic is
+also supported.
 .LP
 The first part of this manual
 discusses the basic features of the specification language \*P.
@@ -36,9 +36,7 @@ The second part describes the verifier \*V.
 .NH 1
 The Language \*P
 .LP
-\s-1PROMELA\s0 is short for Protocol Meta Language [Ho91].
-\*P is an extended version of this language, accepted by
-the current version of the verifier \*V.
+\*P is short for Protocol Meta Language [Ho91].
 \*P is a \f2modeling\f1 language, not a programming language.
 A formal model differs in two essential ways from an implementation.
 First, a model is meant to be an abstraction of a design
@@ -48,9 +46,10 @@ Second, a formal model must contain things that are typically not part
 of an implementation, such as worst-case assumptions about
 the behavior of the environment that may interact with the
 system being studied, and a formal statement of relevant correctness
-properties.
+properties. It is possible to mechanically extract abstract models
+from implementation level code, as discussed, for instance in [HS99].
 .LP
-A verification is often performed in a series of steps,
+Verification with \*V is often performed in a series of steps,
 with the construction of increasingly detailed models.
 Each model can be verified under different types of
 assumptions about the environment and for different
@@ -67,6 +66,11 @@ Section 1.3 explains how correctness properties are specified.
 Section 1.4 concludes the first part with a discussion of
 special predefined variables and functions that can be used to
 express some correctness properties.
+.LP
+Up to date manual pages for \*V can always be found online at:
+.CW
+http://cm.bell-labs.com/cm/cs/what/spin/Man/
+.R
 .NH 2
 Basics
 .LP
@@ -391,7 +395,7 @@ typedef Msg {
 
 Msg foo;
 .P2
-introduces two user-defined data types, the first named
+introduces two user-defined data types, the first named
 .CW Field
 and the second named
 .CW Msg .
@@ -1185,7 +1189,7 @@ a
 statement is always executable and has no other
 effect than to change the control-flow point
 of the process that executes it.
-.LP
+.LP
 As a final example, consider the following implementation of
 a Dijkstra semaphore, which is implemented with the help of
 a synchronous channel.
@@ -1591,8 +1595,6 @@ formulae.
 Every \*P expression is automatically also a valid LTL formula.
 An LTL formula can also contain the unary temporal operators □
 (pronounced always), ◊ (pronounced eventually), and
-.CW O
-(pronounced next), and
 two binary temporal operators
 .CW U
 (pronounced weak until) and
@@ -1628,15 +1630,6 @@ and
 .CW pUq
 holds for the remainder of the sequence after
 .CW s0 .
-That is
-.P1
-pUq = q || (p && O (pUq))
-.P2
-where
-.CW O
-refers to the `next state,' i.e., the state that
-immediately follows the one for which the original
-formula is being evaluated.
 .LP
 Informally,
 .CW pUq
@@ -1676,13 +1669,13 @@ is true eventually leads to a system state in which property
 is true,''
 we can write the LTL formula:
 .P1
-□ (P => ◊ Q)
+□ (P -> ◊ Q)
 .P2
 where the logical implication symbol
-.CW =>
+.CW ->
 is defined in the usual way as
 .P1
-P => Q means !P || (P && Q)
+P => Q means !P || Q
 .P2
 .SH
 Mapping LTL Formulae onto Never Claims
@@ -1694,6 +1687,16 @@ automaton, known as a Büchi automaton.
 In the syntax of \*P this automaton is called a
 .CW never
 claim.
+If you don't care too much about the details of
+.CW never
+claims, you can skip the remainder of this section and
+simple remember that \*V can convert any LTL formula
+automatically into the proper never claim syntax with
+the command:
+.P1
+spin -f "...formula..."
+.P2
+Here are the details.
 The syntax of a never claim is:
 .P1
 never {
@@ -1834,9 +1837,10 @@ of the system (the first half of the state pair).
 .SH
 Examples
 .LP
-To translate an LTL formula to a
+To manually translate an LTL formula into a
 .CW never
-claim, we must carefully consider whether the
+claim (e.g. foregoing the builtin translation that \*V
+offers), we must carefully consider whether the
 formula expresses a positive or a negative property.
 A positive property expresses a good behavior that we
 would like our system to have.
@@ -1852,7 +1856,7 @@ that in the
 .CW never
 claim.
 .LP
-Suppose that the LTL formula □
+Suppose that the LTL formula ◊□
 .CW p ,
 with
 .CW p
@@ -1860,12 +1864,12 @@ a \*P expression, expresses a negative claim
 (i.e., it is considered a correctness violation if
 there exists any execution sequence in which
 .CW p
-can remain true infinitely long).
+can eventually remain true infinitely long).
 This can be written in a
 .CW never
 claim as:
 .P1
-never {	/* []p */
+never {	/* <>[]p */
 	do
 	:: skip	/* after an arbitrarily long prefix */
 	:: p -> break	/* p becomes true */
@@ -1882,7 +1886,7 @@ of our correctness requirement, and no more.
 .LP
 If the LTL formula expressed a positive property, we first
 have to invert it to the corresponding negative property
-.CW !□p
+.CW ◊!p
 and translate that into a
 .CW never
 claim.
@@ -1890,7 +1894,7 @@ The requirement now says that it is a violation if
 .CW p
 does not hold infinitely long.
 .P1
-never {	/* ![]p = <>!p*/
+never {	/* <>!p*/
 	do
 	:: skip
 	:: !p -> break
@@ -1902,22 +1906,23 @@ closing terminating brace.
 Since the first violation of the property suffices to disprove
 it, we could also have written:
 .P1
-never {	/* ![]p = <>!p*/
+never {	/* <>!p*/
 	do
 	:: p
 	:: !p -> break
 	od
 }
 .P2
-or, if we abandon the correspondence with LTL and
-Büchi automata for a moment, even more tersely as:
+or, if we abandon the connection with LTL for a moment,
+even more tersely as:
 .P1
 never { do :: assert(p) od }
 .P2
 Suppose we wish to express that it is a violation of our
 correctness requirements if there exists any execution in
 the system where
-.CW "□ (p => ◊ q)" .
+.CW "□ (p -> ◊ q)"
+is violated (i.e., the negation of this formula is satisfied).
 The following
 .CW never
 claim expresses that property:
@@ -1946,7 +1951,7 @@ is false.
 The above formalization checks for all occurrences, anywhere in a trace.
 .LP
 Finally, consider a formalization of the LTL property
-.CW "□ (p => (q U r))" .
+.CW "□ (p -> (q U r))" .
 The corresponding claim is:
 .P1
 never {
@@ -2066,7 +2071,7 @@ of that proctype.
 .NH 1
 Verifications with \*V
 .LP
-The easiest way to use \*V is probably on an X-terminal
+The easiest way to use \*V is probably on a Windows terminal
 with the Tcl/Tk implementation of \s-1XSPIN\s0.
 All functionality of \*V, however, is accessible from
 any plain ASCII terminal, and there is something to be
@@ -2153,28 +2158,6 @@ the other correctness requirements can be checked in this way.
 .NH 2
 Generating the Verifier
 .LP
-When done debugging, first remove all
-.CW printf
-statements from the model (or comment
-them out) and use \*V option
-.CW -a
-to produce a verifier.
-An easy way to comment out the
-.CW printf
-statements, when no parameters are used, is to add the definition:
-.P1
-#define Printf(x)	skip
-.P2
-at the top of the specification, and to change the \f(CWP\f1 in \f(CWPrintf\f1
-into a lower-case \f(CWp\f1 to turn off printing (e.g., before performing
-a verification) without changing anything else.
-Nothing bad will happen if the
-.CW printf
-statements are not removed, other than that the verifier will
-indeed execute all these statements during the
-verification runs in its search for correctness violations.
-To save your screen, you will want to avoid this sooner or later.
-.LP
 A model-specific verifier is generated as follows:
 .P1
 spin -a spec
@@ -2195,19 +2178,22 @@ of proof if it can be completed).
 Compile as follows.
 .P1
 \*C -o pan pan.c		# standard exhaustive search
-\*C -DREDUCE -o pan pan.c	# use partial order reduction
 .P2
 If you know a memory bound that you want to restrict the run to
 (e.g., to avoid paging), find the nearest power of 2 (e.g., 23
 for the bound $2 sup 23# bytes) and compile as follows.
 .P1
-\*C '-DMEMCNT=23' -DREDUCE -o pan pan.c
+\*C '-DMEMCNT=23' -o pan pan.c
+.P2
+or equivalently in terms of MegaBytes:
+.P1
+\*C '-DMEMLIM=8' -o pan pan.c
 .P2
 If the verifier runs out of memory before completing its task,
 you can decide to increase the bound or to switch to a frugal
 supertrace verification.  In the latter case, compile as follows.
 .P1
-\*C -DBITSTATE -DREDUCE -o pan pan.c
+\*C -DBITSTATE -o pan pan.c
 .P2
 .NH 2
 Performing the Verification
@@ -2302,7 +2288,9 @@ violations or for liveness violations.
 pan -l	# search for non-progress cycles
 pan -a	# search for acceptance cycles
 .P2
-If you don't use either of these two options, the default types of
+(In the first case, though, you must compile pan.c with -DNP as an
+additional directive. If you forget, the executable will remind you.)
+If you don't use either of the above two options, the default types of
 correctness properties are checked (assertion violations,
 completeness, race conditions, etc.).
 Note that the use of a
@@ -2318,8 +2306,8 @@ Adding option
 restricts the search for liveness properties further under
 a standard \f2weak fairness\f1 constraint:
 .P1
-pan -f -l	# search for fair non-progress cycles
-pan -f -a	# search for fair acceptance cycles
+pan -f -l	# search for weakly fair non-progress cycles
+pan -f -a	# search for weakly fair acceptance cycles
 .P2
 With this constraint, each process is required to appear
 infinitely often in the infinite trace that constitutes
@@ -2360,9 +2348,14 @@ To inspect the trail, and determine the cause of the error,
 you must use the guided simulation option.
 For instance:
 .P1
+spin -t -c spec
+.P2
+gives you a summary of message exchanges in the trail, or
+.P1
 spin -t -p spec
 .P2
-with as many extra or different options as you need to pin down the error:
+gives a printout of every single step executed.
+Add as many extra or different options as you need to pin down the error:
 .P1
 spin -t -r -s -l -g spec
 .P2
@@ -2375,7 +2368,7 @@ and repeat the verification until you are content that you have found what
 you were looking for.
 .sp
 If you are not interested in the first error reported,
-use option
+use pan option
 .CW -c
 to report on specific others:
 .P1
@@ -2407,11 +2400,9 @@ in the model.
 .NH 2
 Exploiting Partial Order Reductions
 .LP
-If the verifier is compiled with the directive
-.CW -DREDUCE
-an optimization of the search algorithm is done
+The search algorithm used by \*V is optimized
 according to the rules of a partial order theory explained in [HoPe94].
-The effect of the reduction can be increased if the verifier
+The effect of the reduction, however, can be increased considerably if the verifier
 has extra information about the access of processes to global
 message channels.
 For this purpose, there are two keywords in the language that
@@ -2444,7 +2435,8 @@ There are two special functions that can be used to poll the
 size of a channel in a safe way that is compatible with the
 reduction strategy.
 .LP
-.CW Nfull(qname)
+The expression
+.CW nfull(qname)
 returns true if channel
 .CW qname
 is not full, and
@@ -2515,3 +2507,12 @@ FORTE94, Berne, Switzerland. October 1994.
 [Ho95]
 G.J. Holzmann, ``An Analysis of Bitstate Hashing,''
 technical report 2/95, available from author.
+.LP
+[HS99]
+G.J. Holzmann, ``Software model checking: extracting
+verification models from source code,''
+.I
+Proc. Formal Methods in Software Engineering and Distributed
+Systems,
+.R
+PSTV/FORTE99, Beijng, China, Oct. 1999, Kluwer,pp. 481-497.

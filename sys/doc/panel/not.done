@@ -1,4 +1,0 @@
-void plplacelabel(Panel *, int);
-
-Scroll plgetscroll(Panel *);
-void plsetscroll(Panel *, Scroll);

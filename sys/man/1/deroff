@@ -87,6 +87,8 @@ does for
 files.
 .SH SOURCE
 .B /sys/src/cmd/deroff.c
+.br
+.B /sys/src/cmd/tex/local/delatex.c
 .SH "SEE ALSO"
 .IR troff (1), 
 .IR tex (1),

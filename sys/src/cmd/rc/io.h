@@ -1,6 +1,4 @@
 #define	EOF	(-1)
-#define	pchr(b, c) ((b)->bufp==(b)->ebuf?fullbuf((b), (c)):(*(b)->bufp++=(c)))
-#define	rchr(b) ((b)->bufp==(b)->ebuf?emptybuf(b):(*(b)->bufp++&0xff))
 #define	NBUF	512
 typedef struct io io;
 struct io{
@@ -10,6 +8,8 @@ struct io{
 io *err;
 io *openfd(int), *openstr(void), *opencore(char *, int);
 int emptybuf(io*);
+void pchr(io*, int);
+int rchr(io*);
 void closeio(io*);
 void flush(io*);
 int fullbuf(io*, int);

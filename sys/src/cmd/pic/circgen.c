@@ -6,7 +6,6 @@ obj *circgen(int type)
 {
 	static double rad[2] = { HT2, WID2 };
 	static double rad2[2] = { HT2, HT2 };
-	static double x0, y0, x1, y1, x2, y2;
 	int i, at, t, with, battr;
 	double xwith, ywith;
 	double r, r2, ddval, fillval;
@@ -53,6 +52,9 @@ obj *circgen(int type)
 			break;
 		case INVIS:
 			battr |= INVIS;
+			break;
+		case NOEDGE:
+			battr |= NOEDGEBIT;
 			break;
 		case DOT:
 		case DASH:

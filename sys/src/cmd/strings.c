@@ -48,7 +48,7 @@ stringit(char *str)
 	}
 
 	start = 0;
-	posn = BOFFSET(fin);
+	posn = Boffset(fin);
 	while((c = Bgetrune(fin)) >= 0) {
 		if(isprint(c)) {
 			if(start == 0)
@@ -56,24 +56,24 @@ stringit(char *str)
 			buf[cnt++] = c;
 			if(cnt == BUFSIZE-1) {
 				buf[cnt] = 0;
-				Bprint(&fout, "%8d: %S ...\n", start, buf);
+				Bprint(&fout, "%8ld: %S ...\n", start, buf);
 				start = 0;
 				cnt = 0;
 			}
 		} else {
 			 if(cnt >= MINSPAN) {
 				buf[cnt] = 0;
-				Bprint(&fout, "%8d: %S\n", start, buf);
+				Bprint(&fout, "%8ld: %S\n", start, buf);
 			}
 			start = 0;
 			cnt = 0;
 		}	
-		posn = BOFFSET(fin);
+		posn = Boffset(fin);
 	}
 
 	if(cnt >= MINSPAN){
 		buf[cnt] = 0;
-		Bprint(&fout, "%8d: %S\n", start, buf);
+		Bprint(&fout, "%8ld: %S\n", start, buf);
 	}
 	Bterm(fin);
 }

@@ -30,9 +30,6 @@ fs, exsort \- file server maintenance
 .B cwcmd
 .I subcommand
 .PP
-.B cycl
-.I subcommand
-.PP
 .B date
 .RB [[ +- ]
 .IR seconds ]
@@ -50,7 +47,15 @@ fs, exsort \- file server maintenance
 .I channel
 ]
 .PP
+.B fstat
+[
+.I files
+]
+.PP
 .B halt
+.PP
+.B hangup
+.I channel
 .PP
 .B newuser
 .I name
@@ -86,18 +91,10 @@ fs, exsort \- file server maintenance
 .B users
 .RI [ file ]
 .PP
-.B vcache
-.PP
 .B version
 .PP
 .B who
 .RI [ user ...]
-.PP
-.B wormcp
-[
-.I funit
-.I tunit
-.RI [ nblock ]]
 .PP
 .B wormeject
 [
@@ -105,16 +102,6 @@ fs, exsort \- file server maintenance
 ]
 .PP
 .B wormingest
-[
-.I tunit
-]
-.PP
-.B wormoffline
-[
-.I tunit
-]
-.PP
-.B wormonline
 [
 .I tunit
 ]
@@ -354,12 +341,6 @@ the units are megabytes.
 Clears the accounting records for
 .BR acct .
 .PP
-.I Cycl
-controls the Cyclone fiber link to the main CPU server.
-The one subcommand is
-.BR reboot ,
-which reinitializes the Cyclone board and connection.
-.PP
 .I Date
 prints the current date.  It may be adjusted
 using
@@ -386,6 +367,12 @@ service resumes when the copy to WORM starts.
 .I Files
 prints for every connection the number of allocated fids.
 .PP
+.I Fstat
+prints the current status of each named
+.IR file ,
+including uid, gid, wuid (uid of the last user to modify the file),
+size, qid, and disk addresses.
+.PP
 .I Flag
 toggles flags, initially all off:
 .TF attachxx
@@ -398,9 +385,6 @@ Report as connections are made to the file server.
 .TP
 .B chat
 (Very noisy.)  Print all 9P messages to and from the server.
-.TP
-.B dkit
-Report Datakit activity.
 .TP
 .B route
 Report received RIP packets.
@@ -420,6 +404,13 @@ the flag is altered only on that connection.
 does a
 .B sync
 and halts the machine, returning to the boot ROM.
+.PP
+.I Hangup
+clunks all the fids on the named
+.IR channel ,
+which has the same format as in the output of the
+.I who
+command.
 .PP
 .I Newuser
 requires a
@@ -513,7 +504,8 @@ removes
 .PP
 .I Route
 maintains an IP routing table.  The
-.I subcommands are:
+.I subcommands
+are:
 .TF "add dest gate mask"
 .TP
 .B add \f2dest gate \fP[\f2mask\fP]
@@ -549,8 +541,6 @@ SCSI targets;
 Eagle Ethernet controller;
 .BR j ,
 Jaguar SCSI/VME disk controller;
-.BR k ,
-Datakit;
 .BR l ,
 LANCE Ethernet controller;
 .BR w ,
@@ -625,10 +615,6 @@ table looks like this:
 10005:bootes:bootes:
 .EE
 .PP
-.I Vcache
-displays statistics about the virtual buffer cache on machines with mapped
-caches such as the Sparcstation 2.
-.PP
 .I Version
 reports when the file server was last compiled and last rebooted.
 .PP
@@ -640,28 +626,6 @@ If
 .I users
 are given the output selects connections owned by those users.
 .PP
-.I Wormcp
-copies from WORM disk
-.I funit
-to WORM disk
-.I tunit
-.I nblock
-native blocks (default the whole disk).
-If
-.I tunit
-is written,
-.I wormcp
-guarantees the written data is equal to the data on
-.I funit
-and stops if not.
-.I Wormcp
-does a binary search to find the lowest unwritten block on
-.I tunit
-at which to start the copy.
-With no arguments,
-.I wormcp
-stops a running copy.
-.PP
 .I Wormeject
 moves the WORM disk in slot
 .I tunit
@@ -671,20 +635,6 @@ to the output shelf.
 moves the WORM disk from the input shelf to
 slot
 .IR tunit .
-.PP
-.I Wormoffline
-will take the designated
-WORM controller out of service.
-This is done in software by
-ignoring that logical unit when
-changing platters.
-Note that the controller will
-be restored on a reboot.
-.PP
-.I Wormonline
-will restore the designated
-.I unit
-to service.
 .PP
 When the file server boots, it prints the message
 .IP

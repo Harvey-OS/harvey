@@ -42,10 +42,10 @@ Turn permission checking off (to simplify administration).
 Turn permission checking on.
 .TP
 .B halt
-write all changed blocks and stop the file system.
+Write all changed blocks and stop the file system.
 .TP
 .B help
-print the list of commands.
+Print the list of commands.
 .TP
 .BI "rename " "file name"
 Change the name of
@@ -97,6 +97,12 @@ Report statistics about the performance of the file system.
 Re-initialize authentication information by reading
 .BR /adm/users .
 .TP
+.BI cfs " filsys
+Change the `console' to the named file system (default is the main system).
+.TP
+.B chat
+Toggle tracing of 9P messages.
+.TP
 .B check [PRdfprtw]
 Check the file system.
 The options are
@@ -136,4 +142,4 @@ write all of the blocks that are touched.
 .IR kfs (4),
 .IR mkfs (8),
 .IR prep (8),
-.IR wren (3)
+.IR sd (3)

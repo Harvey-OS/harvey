@@ -73,7 +73,9 @@ option sets the default variable-pitch (fixed-pitch)
 font; the default is
 .B /lib/font/bit/lucidasans/euro.8.font
 .RB ( \&.../lucm/unicode.9.font ).
-Tab intervals are set to the width of 4 numeral zeros in the variable-pitch font.
+Tab intervals are set to the width of 4 (or the value of
+.BR $tabstop )
+numeral zeros in the appropriate font.
 .PP
 .SS Windows
 .I Acme
@@ -85,7 +87,7 @@ The body typically contains an image of a file, as in
 .IR sam (1),
 or the output of a
 program, as in an
-.IR 8½ (1)
+.IR rio (1)
 window.
 The tag contains a number of
 blank-separated words, followed by a vertical bar character, followed by anything.
@@ -104,7 +106,7 @@ Each window has a scroll bar to the left of the body.
 The scroll bar behaves much as in
 .IR sam (1)
 or
-.IR 8½ (1)
+.IR rio (1)
 except that scrolling occurs when the button is pressed, rather than released,
 and continues
 as long as the mouse button is held down in the scroll bar.
@@ -143,7 +145,7 @@ pre-loads them with useful commands.
 Also, the tag across the top maintains a list of executing long-running commands.
 .SS Typing
 The behavior of typed text is similar to that in
-.IR 8½ (1)
+.IR rio (1)
 except that the characters are delivered to the tag or body under the mouse; there is no
 `click to type'.
 (The experimental option
@@ -153,7 +155,7 @@ The usual backspacing conventions apply.
 As in
 .IR sam (1)
 but not
-.IR 8½ ,
+.IR rio ,
 the ESC key selects the text typed since the last mouse action,
 a feature particularly useful when executing commands.
 A side effect is that typing ESC with text already selected is identical
@@ -215,7 +217,7 @@ These error windows are created when needed.
 Mouse button 1 selects text just as in
 .IR sam (1)
 or
-.IR 8½ (1) ,
+.IR rio (1) ,
 including the usual double-clicking conventions.
 .SS "Mouse button 2
 By an
@@ -302,11 +304,7 @@ with button 3,
 searches in directories
 .B /$objtype/include
 and
-.B /sys/include
-and, for
-.IR alef (1)
-programs,
-.BR /sys/include/alef .
+.BR /sys/include .
 .B Incl
 adds its arguments to a supplementary list of include directories, analogous to
 the
@@ -318,6 +316,9 @@ is most usefully applied to a directory containing relevant source.
 With no arguments,
 .I Incl
 prints the supplementary list.
+This command is largely superseded by plumbing
+(see
+.IR plumb (6)).
 .TP
 .B Kill
 Send a
@@ -385,6 +386,11 @@ Place selected text in snarf buffer.
 .B Sort
 Arrange the windows in the column from top to bottom in lexicographical
 order based on their names.
+.TP
+.B Tab
+Set the width of tab stops for this window to the value of the argument, in units of widths of the zero
+character.
+With no arguments, it prints the current value.
 .TP
 .B Undo
 Undo last textual change or set of changes.
@@ -537,7 +543,7 @@ window and runs a
 (default
 .BR /bin/rc )
 in it, turning the window into something analogous to an
-.IR 8½ (1)
+.IR rio (1)
 window.
 Executing text in a
 .I win
@@ -626,7 +632,7 @@ MIPS-specific binaries for applications
 .SH SOURCE
 .B /sys/src/cmd/acme
 .br
-.B /acme/bin/src/win.l
+.B /acme/bin/source/win
 .br
 .B /sys/src/cmd/awd.c
 .SH SEE ALSO
@@ -636,15 +642,6 @@ Rob Pike,
 .I
 Acme: A User Interface for Programmers.
 .SH BUGS
-Because of a bug in
-.IR 8½ (1),
-when returning to the
-.I acme
-window after working in another,
-.I acme
-may not know the correct mouse position
-until a button is clicked.
-.PP
 With the
 .B -l
 option or

@@ -28,17 +28,18 @@ typedef int sig_atomic_t;
 #define	SIGTERM	11	/* software termination signal from kill */
 #define	SIGUSR1	12	/* user defined signal 1 */
 #define	SIGUSR2	13	/* user defined signal 2 */
+#define	SIGBUS	14	/* bus error */
 
 /* The following symbols must be defined, but the signals needn't be supported */
-#define SIGCHLD	14	/* child process terminated or stopped */
-#define SIGCONT 15	/* continue if stopped */
-#define SIGSTOP 16	/* stop */
-#define SIGTSTP	17	/* interactive stop */
-#define SIGTTIN	18	/* read from ctl tty by member of background */
-#define SIGTTOU	19	/* write to ctl tty by member of background */
+#define SIGCHLD	15	/* child process terminated or stopped */
+#define SIGCONT 16	/* continue if stopped */
+#define SIGSTOP 17	/* stop */
+#define SIGTSTP	18	/* interactive stop */
+#define SIGTTIN	19	/* read from ctl tty by member of background */
+#define SIGTTOU	20	/* write to ctl tty by member of background */
 
 #ifdef _BSD_EXTENSION
-#define NSIG 20
+#define NSIG 21
 #endif
 
 #ifdef __cplusplus

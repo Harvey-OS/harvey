@@ -5,7 +5,7 @@ pOsTmAsTeR	alias		postmaster
 [^!@]+		translate	"/bin/upas/aliasmail '&'"
 local!(.*)	>>		/mail/box/\1/mbox
 \l!(.*)		alias		\1
-(helix|helix.att.com)!(.*)	alias		\2
+(helix|helix.bell-labs.com)!(.*)	alias		\2
 
 # we can be just as complicated as BSD sendmail...
 # convert source domain address to a chain a@b@c@d...

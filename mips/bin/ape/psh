@@ -4,4 +4,4 @@ rfork en
 bind -b /rc/bin/ape /bin
 bind -b /$cputype/bin/ape /bin
 bind -a /$cputype/bin/pub /bin
-exec /bin/sh
+exec /bin/sh $*

@@ -1,28 +1,38 @@
 /***** spin: pangen4.c *****/
 
-/* Copyright (c) 1991,1995 by AT&T Corporation.  All Rights Reserved.     */
-/* This software is for educational purposes only.                        */
+/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* All Rights Reserved.  This software is for educational purposes only.  */
 /* Permission is given to distribute this code provided that this intro-  */
 /* ductory message is not removed and no monies are exchanged.            */
 /* No guarantee is expressed or implied by the distribution of this code. */
 /* Software written by Gerard J. Holzmann as part of the book:            */
 /* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
 /* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.att.com          */
+/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
 
 #include "spin.h"
+#ifdef PC
+#include "y_tab.h"
+#else
 #include "y.tab.h"
+#endif
 
 extern FILE	*tc, *tb;
+extern ProcList	*cur_proc;
 extern Queue	*qtab;
 extern Symbol	*Fname;
-extern int	lineno, nocast;
+extern int	lineno, m_loss, Pid, eventmapnr, verbose, multi_oval;
+extern short	terse, nocast, has_provided, has_sorted;
+extern short	evalindex, withprocname, _isok;
 extern char	*R13[], *R14[], *R15[];
+
+static void	check_proc(Lextok *, int);
+extern int	dolocal(FILE *, char *, int, int, char *, char *);
 
 void
 undostmnt(Lextok *now, int m)
 {	Lextok *v;
-	int i, j; extern int m_loss;
+	int i, j;
 
 	if (!now)
 	{	fprintf(tb, "0");
@@ -41,64 +51,144 @@ undostmnt(Lextok *now, int m)
 	case TIMEOUT:	case LEN:	case NAME:
 	case FULL:	case EMPTY:	case 'R':
 	case NFULL:	case NEMPTY:	case ENABLED:
-	case '?':	case PC_VAL:
+	case '?':	case PC_VAL:	case '^':
+	case NONPROGRESS:
 			putstmnt(tb, now, m);
 			break;
-	case RUN:	fprintf(tb, "delproc(0, now._nr_pr-1)");
-			break;
-	case 's':	if (m_loss)
-			{	fprintf(tb, "if (m == 2) m = unsend");
-				putname(tb, "(", now->lft, m, ")");
-			} else
-			{	fprintf(tb, "m = unsend");
-				putname(tb, "(", now->lft, m, ")");
-			}
-			break;
-	case 'r':	for (v = now->rgt, i=j=0; v; v = v->rgt, i++)
-				if (v->lft->ntyp != CONST)
-					j++;
-			fprintf(tb, ";\n");
-			if (j == 0)
-			{	fprintf(tb, "\t\tif (q_flds");
-				putname(tb, "[((Q0 *)qptr(", now->lft, m, "-1))->_t]");
-				fprintf(tb, " != %d)\n", i);
-			} else
-				fprintf(tb, "\t\tif (1)\n");
-			fprintf(tb, "#if defined(FULLSTACK) && defined(NOCOMP)\n");
-			fprintf(tb, "\t\t	sv_restor(!(t->atom&2));\n");
-			fprintf(tb, "#else\n");
-			fprintf(tb, "\t\t	sv_restor(0);\n");
-			fprintf(tb, "#endif\n\t\t");
-			if (j == 0)
-			{	fprintf(tb, "else {\n\t\t");
-				for (v = now->rgt, i = 0; v; v = v->rgt, i++)
-				{	fprintf(tb, "\tunrecv");
-					putname(tb, "(", now->lft, m, ", 0, ");
-					fprintf(tb, "%d, ", i);
-					undostmnt(v->lft, m);
-					fprintf(tb, ", %d);\n\t\t", (i==0)?1:0);
+
+	case RUN:
+		fprintf(tb, "delproc(0, now._nr_pr-1)");
+		break;
+
+	case 's':
+		if (Pid == eventmapnr) break;
+
+		if (m_loss)
+		{	fprintf(tb, "if (m == 2) m = unsend");
+			putname(tb, "(", now->lft, m, ")");
+		} else
+		{	fprintf(tb, "m = unsend");
+			putname(tb, "(", now->lft, m, ")");
+		}
+		break;
+
+	case 'r':
+		if (Pid == eventmapnr) break;
+
+		for (v = now->rgt, i=j=0; v; v = v->rgt, i++)
+			if (v->lft->ntyp != CONST
+			&&  v->lft->ntyp != EVAL)
+				j++;
+		if (j == 0 && now->val >= 2)
+			break;	/* poll without side-effect */
+
+		{	int ii = 0, jj;
+
+			for (v = now->rgt; v; v = v->rgt)
+				if ((v->lft->ntyp != CONST
+				&&   v->lft->ntyp != EVAL))
+					ii++;	/* nr of things bupped */
+			if (now->val == 1)
+			{	ii++;
+				jj = multi_oval - ii - 1;
+				fprintf(tb, "XX = trpt->bup.oval");
+				if (multi_oval > 0)
+				{	fprintf(tb, "s[%d]", jj);
+					jj++;
 				}
-				fprintf(tb, "}\n\t\t");
+				fprintf(tb, ";\n\t\t");
+			} else
+			{	fprintf(tb, "XX = 1;\n\t\t");
+				jj = multi_oval - ii - 1;
 			}
-			break;
-	case '@':	fprintf(tb, "p_restor(II)");
-			break;
-	case ASGN:	nocast=1; putstmnt(tb,now->lft,m);
-			nocast=0; fprintf(tb, " = trpt->oval");
-			check_proc(now->rgt, m);
-			break;
-	case 'c':	check_proc(now->lft, m);
-			break;
+
+			if (now->val < 2)	/* not for channel poll */
+			for (v = now->rgt, i = 0; v; v = v->rgt, i++)
+			{	switch(v->lft->ntyp) {
+				case CONST:
+				case EVAL:
+					fprintf(tb, "unrecv");
+					putname(tb, "(", now->lft, m, ", XX-1, ");
+					fprintf(tb, "%d, ", i);
+					if (v->lft->ntyp == EVAL)
+						undostmnt(v->lft->lft, m);
+					else
+						undostmnt(v->lft, m);
+					fprintf(tb, ", %d);\n\t\t", (i==0)?1:0);
+					break;
+				default:
+					fprintf(tb, "unrecv");
+					putname(tb, "(", now->lft, m, ", XX-1, ");
+					fprintf(tb, "%d, ", i);
+					if (v->lft->sym
+					&& !strcmp(v->lft->sym->name, "_"))
+					{	fprintf(tb, "trpt->bup.oval");
+						if (multi_oval > 0)
+							fprintf(tb, "s[%d]", jj);
+					} else
+						putstmnt(tb, v->lft, m);
+
+					fprintf(tb, ", %d);\n\t\t", (i==0)?1:0);
+					if (multi_oval > 0)
+						jj++;
+					break;
+			}	}
+
+			jj = multi_oval - ii - 1;
+			for (v = now->rgt, i = 0; v; v = v->rgt, i++)
+			{	switch(v->lft->ntyp) {
+				case CONST:
+				case EVAL:
+					break;
+				default:
+					if (!v->lft->sym
+					||  strcmp(v->lft->sym->name, "_") != 0)
+					{	nocast=1; putstmnt(tb,v->lft,m);
+						nocast=0; fprintf(tb, " = trpt->bup.oval");
+						if (multi_oval > 0)
+							fprintf(tb, "s[%d]", jj);
+						fprintf(tb, ";\n\t\t");
+					}
+					if (multi_oval > 0)
+						jj++;
+					break;
+			}	}
+			multi_oval -= ii;
+		}
+		break;
+
+	case '@':
+		fprintf(tb, "p_restor(II);\n\t\t");
+		break;
+
+	case ASGN:
+		nocast=1; putstmnt(tb,now->lft,m);
+		nocast=0; fprintf(tb, " = trpt->bup.oval");
+		if (multi_oval > 0)
+		{	multi_oval--;
+			fprintf(tb, "s[%d]", multi_oval-1);
+		}
+		check_proc(now->rgt, m);
+		break;
+
+	case 'c':
+		check_proc(now->lft, m);
+		break;
+
 	case '.':
 	case GOTO:
 	case ELSE:
-	case BREAK:	break;
+	case BREAK:
+		break;
+
 	case ASSERT:
-	case PRINT:	check_proc(now, m);
-			break;
-	default:	printf("spin: bad node type %d (.b)\n",
-							now->ntyp);
-			exit(1);
+	case PRINT:
+		check_proc(now, m);
+		break;
+
+	default:
+		printf("spin: bad node type %d (.b)\n", now->ntyp);
+		alldone(1);
 	}
 }
 
@@ -128,7 +218,7 @@ any_oper(Lextok *now, int oper)
 	return (any_oper(now->lft, oper) || any_oper(now->rgt, oper));
 }
 
-void
+static void
 check_proc(Lextok *now, int m)
 {
 	if (!now)
@@ -143,18 +233,18 @@ check_proc(Lextok *now, int m)
 
 void
 genunio(void)
-{	char *buf1;
-	Queue *q; int i; extern int has_sorted;
+{	char buf1[256];
+	Queue *q; int i;
 
-	buf1 = (char *) emalloc(128);
 	ntimes(tc, 0, 1, R13);
 	for (q = qtab; q; q = q->nxt)
 	{	fprintf(tc, "\tcase %d:\n", q->qid);
 
 	if (has_sorted)
 	{	sprintf(buf1, "((Q%d *)z)->contents", q->qid);
-		fprintf(tc, "\t\tj = trpt->oval;\n");
-		fprintf(tc, "\t\tfor (k = j; k < ((Q%d *)z)->Qlen; k++)\n", q->qid);
+		fprintf(tc, "\t\tj = trpt->bup.oval;\n");
+		fprintf(tc, "\t\tfor (k = j; k < ((Q%d *)z)->Qlen; k++)\n",
+			q->qid);
 		fprintf(tc, "\t\t{\n");
 		for (i = 0; i < q->nflds; i++)
 		fprintf(tc, "\t\t\t%s[k].fld%d = %s[k+1].fld%d;\n",
@@ -169,10 +259,11 @@ genunio(void)
 		if (q->nslots==0)
 		{	/* check if rendezvous succeeded, 1 level down */
 			fprintf(tc, "\t\tm = (trpt+1)->o_m;\n");
-			fprintf(tc, "\t\tif (m) trpt->o_pm |= 1;\n");
+			fprintf(tc, "\t\tif (m) (trpt-1)->o_pm |= 1;\n");
 			fprintf(tc, "\t\tUnBlock;\n");
 		} else
 			fprintf(tc, "\t\tm = trpt->o_m;\n");
+
 		fprintf(tc, "\t\tbreak;\n");
 	}
 	ntimes(tc, 0, 1, R14);
@@ -213,4 +304,40 @@ genunio(void)
 		fprintf(tc, "\t\tbreak;\n");
 	}
 	ntimes(tc, 0, 1, R15);
+}
+
+int
+proper_enabler(Lextok *n)
+{
+	if (!n) return 1;
+	switch (n->ntyp) {
+	case NEMPTY:	case FULL:
+	case NFULL:	case EMPTY:
+	case LEN:	case 'R':
+	case NAME:
+		has_provided = 1;
+		if (strcmp(n->sym->name, "_pid") == 0)
+			return 1;
+		return (!(n->sym->context));
+
+	case CONST:	case TIMEOUT:
+		has_provided = 1;
+		return 1;
+
+	case ENABLED:	case PC_VAL:
+		return proper_enabler(n->lft);
+
+	case '!': case UMIN: case '~':
+		return proper_enabler(n->lft);
+
+	case '/': case '*': case '-': case '+':
+	case '%': case LT:  case GT: case '&': case '^':
+	case '|': case LE:  case GE:  case NE: case '?':
+	case EQ:  case OR:  case AND: case LSHIFT:
+	case RSHIFT: case 'c':
+		return proper_enabler(n->lft) && proper_enabler(n->rgt);
+	default:
+		break;
+	}
+	return 0;
 }

@@ -12,8 +12,8 @@
 	char*	cp = { cary };
 	char	string[1000];
 	char*	str = { string };
-	int	crs = '0';
-	int	rcrs = '0';	/* reset crs */
+	int	crs = 128;
+	int	rcrs = 128;	/* reset crs */
 	int	bindx = 0;
 	int	lev = 0;
 	int	ln;
@@ -34,22 +34,23 @@
 	int	ifile;
 	char**	sargv;
 
-	char	funtab[52] =
+	char	*funtab[] =
 	{
-		1,0,2,0,3,0,4,0,5,0,
-		6,0,7,0,8,0,9,0,10,0,
-		013,0,014,0,015,0,016,0,017,0,
-		020,0,021,0,022,0,023,0,024,0,
-		025,0,026,0,027,0,030,0,031,0,
-		032,0
+		"<1>","<2>","<3>","<4>","<5>",
+		"<6>","<7>","<8>","<9>","<10>",
+		"<11>","<12>","<13>","<14>","<15>",
+		"<16>","<17>","<18>","<19>","<20>",
+		"<21>","<22>","<23>","<24>","<25>",
+		"<26>"
 	};
-	char	atab[52] =
+	char	*atab[] =
 	{
-		0241,0,0242,0,0243,0,0244,0,0245,0,
-		0246,0,0247,0,0250,0,0251,0,0252,0,0253,0,
-		0254,0,0255,0,0256,0,0257,0,0260,0,
-		0261,0,0262,0,0263,0,0264,0,0265,0,0266,0,
-		0267,0,0270,0,0271,0,0272,0
+		"<221>","<222>","<223>","<224>","<225>",
+		"<226>","<227>","<228>","<229>","<230>",
+		"<231>","<232>","<233>","<234>","<235>",
+		"<236>","<237>","<238>","<239>","<240>",
+		"<241>","<242>","<243>","<244>","<245>",
+		"<246>"
 	};
 	char*	letr[26] =
 	{
@@ -61,6 +62,8 @@
 	int	bspace[bsp_max];
 	int*	bsp_nxt = { bspace };
 	int	bdebug = 0;
+	int	lflag;
+	int	cflag;
 
 	int*	bundle(int, ...);
 	void	conout(int*, char*);
@@ -75,6 +78,10 @@
 	void	tp(char*);
 	void	yyerror(char*, ...);
 	int	yyparse(void);
+
+	typedef	void*	pointer;
+	#pragma	varargck	type	"lx"	pointer
+
 %}
 %union
 {
@@ -105,11 +112,11 @@ start:
 |	stuff
 
 stuff:
-	pstat tail =
+	pstat tail
 	{
 		output($1);
 	}
-|	def dargs ')' '{' dlist slist '}' =
+|	def dargs ')' '{' dlist slist '}'
 	{
 		ttp = bundle(6, pre, $6, post , "0", numb[lev], "Q");
 		conout(ttp, (char*)$1);
@@ -125,99 +132,101 @@ dlist:
 stat:
 	stat1
 |	nase
-
-pstat:
-	stat1
-|	nase =
-	{
-		bundle(2, $1, "ps.");
-	}
-
-stat1:
-	=
-	{
-		bundle(1, "");
-	}
-|	ase =
 	{
 		bundle(2, $1, "s.");
 	}
-|	SCALE '=' e =
+
+pstat:
+	stat1
+	{
+		bundle(2, $1, "0");
+	}
+|	nase
+
+stat1:
+	{
+		bundle(1, "");
+	}
+|	ase
+	{
+		bundle(2, $1, "s.");
+	}
+|	SCALE '=' e
 	{
 		bundle(2, $3, "k");
 	}
-|	SCALE EQOP e =
+|	SCALE EQOP e
 	{
 		bundle(4, "K", $3, $2, "k");
 	}
-|	BASE '=' e =
+|	BASE '=' e
 	{
 		bundle(2, $3, "i");
 	}
-|	BASE EQOP e =
+|	BASE EQOP e
 	{
 		bundle(4, "I", $3, $2, "i");
 	}
-|	OBASE '=' e =
+|	OBASE '=' e
 	{
 		bundle(2, $3, "o");
 	}
-|	OBASE EQOP e =
+|	OBASE EQOP e
 	{
 		bundle(4, "O", $3, $2, "o");
 	}
-|	QSTR =
+|	QSTR
 	{
 		bundle(3, "[", $1, "]P");
 	}
-|	_BREAK =
+|	_BREAK
 	{
 		bundle(2, numb[lev-bstack[bindx-1]], "Q");
 	}
-|	_PRINT e =
+|	_PRINT e
 	{
 		bundle(2, $2, "ps.");
 	}
-|	_RETURN e =
+|	_RETURN e
 	{
 		bundle(4, $2, post, numb[lev], "Q");
 	}
-|	_RETURN =
+|	_RETURN
 	{
 		bundle(4, "0", post, numb[lev], "Q");
 	}
-|	'{' slist '}' =
+|	'{' slist '}'
 	{
 		$$ = $2;
 	}
-|	FFF =
+|	FFF
 	{
 		bundle(1, "fY");
 	}
-|	_IF crs BLEV '(' re ')' stat =
+|	_IF crs BLEV '(' re ')' stat
 	{
 		conout($7, $2);
 		bundle(3, $5, $2, " ");
 	}
-|	_WHILE crs '(' re ')' stat BLEV =
+|	_WHILE crs '(' re ')' stat BLEV
 	{
 		bundle(3, $6, $4, $2);
 		conout($$, $2);
 		bundle(3, $4, $2, " ");
 	}
-|	fprefix crs re ';' e ')' stat BLEV =
+|	fprefix crs re ';' e ')' stat BLEV
 	{
 		bundle(5, $7, $5, "s.", $3, $2);
 		conout($$, $2);
 		bundle(5, $1, "s.", $3, $2, " ");
 	}
-|	'~' LETTER '=' e =
+|	'~' LETTER '=' e
 	{
 		bundle(3, $4, "S", $2);
 	}
 
 fprefix:
-	_FOR '(' e ';' =
+	_FOR '(' e ';'
 	{
 		$$ = $3;
 	}
@@ -230,243 +239,243 @@ BLEV:
 
 slist:
 	stat
-|	slist tail stat =
+|	slist tail stat
 	{
 		bundle(2, $1, $3);
 	}
 
 tail:
-	'\n' =
+	'\n'
 	{
 		ln++;
 	}
 |	';'
 
 re:
-	e EQ e =
+	e EQ e
 	{
 		$$ = bundle(3, $1, $3, "=");
 	}
-|	e '<' e =
+|	e '<' e
 	{
 		bundle(3, $1, $3, ">");
 	}
-|	e '>' e =
+|	e '>' e
 	{
 		bundle(3, $1, $3, "<");
 	}
-|	e NE e =
+|	e NE e
 	{
 		bundle(3, $1, $3, "!=");
 	}
-|	e GE e =
+|	e GE e
 	{
 		bundle(3, $1, $3, "!>");
 	}
-|	e LE e =
+|	e LE e
 	{
 		bundle(3, $1, $3, "!<");
 	}
-|	e =
+|	e
 	{
 		bundle(2, $1, " 0!=");
 	}
 
 nase:
-	'(' e ')' =
+	'(' e ')'
 	{
 		$$ = $2;
 	}
-|	cons =
+|	cons
 	{
 		bundle(3, " ", $1, " ");
 	}
-|	DOT cons =
+|	DOT cons
 	{
 		bundle(3, " .", $2, " ");
 	}
-|	cons DOT cons =
+|	cons DOT cons
 	{
 		bundle(5, " ", $1, ".", $3, " ");
 	}
-|	cons DOT =
+|	cons DOT
 	{
 		bundle(4, " ", $1, ".", " ");
 	}
-|	DOT =
+|	DOT
 	{
 		$<cptr>$ = "l.";
 	}
-|	LETTER '[' e ']' =
+|	LETTER '[' e ']'
 	{
 		bundle(3, $3, ";", geta($1));
 	}
-|	LETTER INCR =
+|	LETTER INCR
 	{
 		bundle(4, "l", $1, "d1+s", $1);
 	}
-|	INCR LETTER =
+|	INCR LETTER
 	{
 		bundle(4, "l", $2, "1+ds", $2);
 	}
-|	DECR LETTER =
+|	DECR LETTER
 	{
 		bundle(4, "l", $2, "1-ds", $2);
 	}
-|	LETTER DECR =
+|	LETTER DECR
 	{
 		bundle(4, "l", $1, "d1-s", $1);
 	}
-|	LETTER '[' e ']' INCR =
+|	LETTER '[' e ']' INCR
 	{
 		bundle(7, $3, ";", geta($1), "d1+" ,$3, ":" ,geta($1));
 	}
-|	INCR LETTER '[' e ']' =
+|	INCR LETTER '[' e ']'
 	{
 		bundle(7, $4, ";", geta($2), "1+d", $4, ":", geta($2));
 	}
-|	LETTER '[' e ']' DECR =
+|	LETTER '[' e ']' DECR
 	{
 		bundle(7, $3, ";", geta($1), "d1-", $3, ":", geta($1));
 	}
-|	DECR LETTER '[' e ']' =
+|	DECR LETTER '[' e ']'
 	{
 		bundle(7, $4, ";", geta($2), "1-d", $4, ":" ,geta($2));
 	}
-|	SCALE INCR =
+|	SCALE INCR
 	{
 		bundle(1, "Kd1+k");
 	}
-|	INCR SCALE =
+|	INCR SCALE
 	{
 		bundle(1, "K1+dk");
 	}
-|	SCALE DECR =
+|	SCALE DECR
 	{
 		bundle(1, "Kd1-k");
 	}
-|	DECR SCALE =
+|	DECR SCALE
 	{
 		bundle(1, "K1-dk");
 	}
-|	BASE INCR =
+|	BASE INCR
 	{
 		bundle(1, "Id1+i");
 	}
-|	INCR BASE =
+|	INCR BASE
 	{
 		bundle(1, "I1+di");
 	}
-|	BASE DECR =
+|	BASE DECR
 	{
 		bundle(1, "Id1-i");
 	}
-|	DECR BASE =
+|	DECR BASE
 	{
 		bundle(1, "I1-di");
 	}
-|	OBASE INCR =
+|	OBASE INCR
 	{
 		bundle(1, "Od1+o");
 	}
-|	INCR OBASE =
+|	INCR OBASE
 	{
 		bundle(1, "O1+do");
 	}
-|	OBASE DECR =
+|	OBASE DECR
 	{
 		bundle(1, "Od1-o");
 	}
-|	DECR OBASE =
+|	DECR OBASE
 	{
 		bundle(1, "O1-do");
 	}
-|	LETTER '(' cargs ')' =
+|	LETTER '(' cargs ')'
 	{
 		bundle(4, $3, "l", getf($1), "x");
 	}
-|	LETTER '(' ')' =
+|	LETTER '(' ')'
 	{
 		bundle(3, "l", getf($1), "x");
 	}
 |	LETTER = {
 		bundle(2, "l", $1);
 	}
-|	LENGTH '(' e ')' =
+|	LENGTH '(' e ')'
 	{
 		bundle(2, $3, "Z");
 	}
-|	SCALE '(' e ')' =
+|	SCALE '(' e ')'
 	{
 		bundle(2, $3, "X");
 	}
-|	'?' =
+|	'?'
 	{
 		bundle(1, "?");
 	}
-|	SQRT '(' e ')' =
+|	SQRT '(' e ')'
 	{
 		bundle(2, $3, "v");
 	}
-|	'~' LETTER =
+|	'~' LETTER
 	{
 		bundle(2, "L", $2);
 	}
-|	SCALE =
+|	SCALE
 	{
 		bundle(1, "K");
 	}
-|	BASE =
+|	BASE
 	{
 		bundle(1, "I");
 	}
-|	OBASE =
+|	OBASE
 	{
 		bundle(1, "O");
 	}
-|	'-' e =
+|	'-' e
 	{
 		bundle(3, " 0", $2, "-");
 	}
-|	e '+' e =
+|	e '+' e
 	{
 		bundle(3, $1, $3, "+");
 	}
-|	e '-' e =
+|	e '-' e
 	{
 		bundle(3, $1, $3, "-");
 	}
-|	e '*' e =
+|	e '*' e
 	{
 		bundle(3, $1, $3, "*");
 	}
-|	e '/' e =
+|	e '/' e
 	{
 		bundle(3, $1, $3, "/");
 	}
-|	e '%' e =
+|	e '%' e
 	{
 		bundle(3, $1, $3, "%%");
 	}
-|	e '^' e =
+|	e '^' e
 	{
 		bundle(3, $1, $3, "^");
 	}
 
 ase:
-	LETTER '=' e =
+	LETTER '=' e
 	{
 		bundle(3, $3, "ds", $1);
 	}
-|	LETTER '[' e ']' '=' e =
+|	LETTER '[' e ']' '=' e
 	{
 		bundle(5, $6, "d", $3, ":", geta($1));
 	}
-|	LETTER EQOP e =
+|	LETTER EQOP e
 	{
 		bundle(6, "l", $1, $3, $2, "ds", $1);
 	}
-|	LETTER '[' e ']' EQOP e =
+|	LETTER '[' e ']' EQOP e
 	{
 		bundle(9, $3, ";", geta($1), $6, $5, "d", $3, ":", geta($1));
 	}
@@ -477,36 +486,36 @@ e:
 
 cargs:
 	eora
-|	cargs ',' eora =
+|	cargs ',' eora
 	{
 		bundle(2, $1, $3);
 	}
 
 eora:
 	e
-|	LETTER '[' ']' =
+|	LETTER '[' ']'
 	{
 		bundle(2, "l", geta($1));
 	}
 
 cons:
-	constant =
+	constant
 	{
 		*cp++ = 0;
 	}
 
 constant:
-	'_' =
+	'_'
 	{
 		$<cptr>$ = cp;
 		*cp++ = '_';
 	}
-|	DIGIT =
+|	DIGIT
 	{
 		$<cptr>$ = cp;
 		*cp++ = $1;
 	}
-|	constant DIGIT =
+|	constant DIGIT
 	{
 		*cp++ = $2;
 	}
@@ -515,13 +524,13 @@ crs:
 	=
 	{
 		$$ = cp;
-		*cp++ = crs++;
+		*cp++ = '<';
+		*cp++ = crs/100+'0';
+		*cp++ = (crs%100)/10+'0';
+		*cp++ = crs%10+'0';
+		*cp++ = '>';
 		*cp++ = '\0';
-		if(crs == '[')
-			crs += 3;
-		if(crs == 'a')
-			crs = '{';
-		if(crs >= 0241) {
+		if(crs++ >= 220) {
 			yyerror("program too big");
 			getout();
 		}
@@ -529,7 +538,7 @@ crs:
 	}
 
 def:
-	_DEFINE LETTER '(' =
+	_DEFINE LETTER '('
 	{
 		$$ = getf($2);
 		pre = (int*)"";
@@ -540,31 +549,31 @@ def:
 	}
 
 dargs:
-|	lora =
+|	lora
 	{
 		pp((char*)$1);
 	}
-|	dargs ',' lora =
+|	dargs ',' lora
 	{
 		pp((char*)$3);
 	}
 
 dlets:
-	lora =
+	lora
 	{
 		tp((char*)$1);
 	}
-|	dlets ',' lora =
+|	dlets ',' lora
 	{
 		tp((char*)$3);
 	}
 
 lora:
-	LETTER =
+	LETTER
 	{
 		$<cptr>$=$1;
 	}
-|	LETTER '[' ']' =
+|	LETTER '[' ']'
 	{
 		$$ = geta($1);
 	}
@@ -799,7 +808,7 @@ bundle(int a, ...)
 	i = *p++;
 	q = bsp_nxt;
 	if(bdebug)
-		fprint(2, "bundle %d elements at %o\n", i, q);
+		fprint(2, "bundle %d elements at %lx\n", i, q);
 	while(i-- > 0) {
 		if(bsp_nxt >= &bspace[bsp_max])
 			yyerror("bundling space exceeded");
@@ -814,7 +823,7 @@ void
 routput(int *p)
 {
 	if(bdebug)
-		fprint(2, "routput(%o)\n", p);
+		fprint(2, "routput(%lx)\n", p);
 	if(p >= &bspace[0] && p < &bspace[bsp_max]) {
 		/* part of a bundle */
 		while(*p != 0)
@@ -905,13 +914,13 @@ getout(void)
 int*
 getf(char *p)
 {
-	return (int*)&funtab[2*(*p - 0141)];
+	return (int*)funtab[*p - 'a'];
 }
 
 int*
 geta(char *p)
 {
-	return (int*)&atab[2*(*p - 0141)];
+	return (int*)atab[*p - 'a'];
 }
 
 void
@@ -919,17 +928,34 @@ main(int argc, char **argv)
 {
 	int p[2];
 
-	if(argc > 1 && *argv[1] == '-') {
-		if((argv[1][1] == 'd') || (argv[1][1] == 'c')) {
-			yyinit(argc-1, argv+1);
-			for(;;)
-				yyparse();
-		}
-		if(argv[1][1] != 'l') {
-			fprint(2, "Usage: bc [-l] [file ...]\n");
+	while(argc > 1 && *argv[1] == '-') {
+		switch(argv[1][1]) {
+		case 'd':
+			bdebug++;
+			break;
+		case 'c':
+			cflag++;
+			break;
+		case 'l':
+			lflag++;
+			break;
+		default:
+			fprint(2, "Usage: bc [-l] [-c] [file ...]\n");
 			exits("usage");
 		}
+		argc--;
+		argv++;
+	}
+	if(lflag) {
+		argv--;
+		argc++;
 		argv[1] = "/sys/lib/bclib";
+	}
+	if(cflag) {
+		yyinit(argc, argv);
+		for(;;)
+			yyparse();
+		exits(0);
 	}
 	pipe(p);
 	if(fork() == 0) {

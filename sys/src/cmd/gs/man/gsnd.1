@@ -1,0 +1,21 @@
+.\" $Id: gsnd.1,v 1.1 2000/03/09 08:40:40 lpd Exp $
+.TH GSND 1 "3 February 2000" 6.0 Ghostscript \" -*- nroff -*-
+.SH NAME
+gsnd \- Run ghostscript (PostScript and PDF engine) without display
+.SH SYNOPSIS
+\fBgsnd\fR [ \fIoptions\fR ] [ \fIfiles\fR ] ...
+.SH DESCRIPTION
+This script simply invokes
+.BR gs (1)
+with the
+.B -NODISPLAY
+flag, followed by any other arguments from the command-line.
+.SH SEE ALSO
+gs(1)
+.SH VERSION
+This document was last revised for Ghostscript version 6.0.
+.SH AUTHOR
+L. Peter Deutsch <ghost@aladdin.com> is the principal author of Ghostscript.
+Russell J. Lang <rjl@aladdin.com> is the author of most of the MS Windows
+code in Ghostscript.
+This manpage by George Ferguson.

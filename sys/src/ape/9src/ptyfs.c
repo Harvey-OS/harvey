@@ -8,7 +8,6 @@
 #include <fcall.h>
 #include <tty.h>
 
-#define nil	((void*)0)
 #define DBG	if(0)print
 
 typedef struct Fid Fid;
@@ -138,7 +137,7 @@ Fid*	newfid(int);
 Fid*	lookfid(int);
 int	delfid(Fcall*);
 void	fatal(char*, ...);
-int	fcallconv(void *, Fconv*);
+int	fcallconv(va_list*, Fconv*);
 void	slavew(Tty*, Fcall*);
 void	slaver(Tty*, Fcall*);
 void	mastrd(Tty*, Fcall*);
@@ -424,7 +423,6 @@ statgen(Qid *q, char *buf)
 	strcpy(dir.gid, "none");
 	dir.qid = *q;
 	dir.length = 0;
-	dir.hlength = 0;
 	dir.atime = time(nil);
 	dir.mtime = dir.atime;
 	memset(dir.name, 0, NAMELEN);
@@ -674,8 +672,11 @@ void
 fatal(char *fmt, ...)
 {
 	char buf[128];
+	va_list arg;
 
-	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
+	va_start(arg, fmt);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	fprint(2, "ptyfs: (fatal problem) %s\n", buf);
 	exits(buf);
 }
@@ -1208,7 +1209,7 @@ rioc(Tty *t, Fcall *f)
 	int n, i;
 	char buf[256];
 
-	n = sprint(buf, "IOR %4.4lux %4.4lux %4.4lux %4.4lux ",
+	n = sprint(buf, "IOR %4.4ux %4.4ux %4.4ux %4.4ux ",
 		t->t.iflag, t->t.oflag, t->t.cflag, t->t.lflag);
 	for(i = 0; i < NCCS; i++)
 		n += sprint(buf+n, "%2.2ux ", t->t.cc[i]);

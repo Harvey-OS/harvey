@@ -1,0 +1,29 @@
+#
+#	sample smtpd configuration options for external gateway system
+#	this file, /mail/lib/smtpd.conf.ext, is bound on /mail/lib/smtpd.conf
+#	by /rc/bin/service.alt/tcp25 before smtpd is started on an
+#	external port 25 connection.
+#
+
+#
+#	replace YOURDOM and YOUROTHERDOM with the names of your domain
+#	replace 10.0.0.0 with the IP address range of your networks
+
+
+defaultdomain		YOURDOM.com
+norelay			on	#turn off relaying
+verifysenderdom		on	#dns verification of sender domain
+saveblockedmsg		on	#save blocked messages
+
+#
+#	networks that are allowed to relay through us
+#	our internal networks.
+#
+ournets		10.0.0.0/16		#your networks
+
+#
+#	domains that we will accept mail for
+#	these must match the rewrite rules
+#
+
+ourdomains	*.YOURDOM.com, *.YOUROTHERDOM.com

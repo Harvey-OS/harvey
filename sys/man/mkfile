@@ -5,10 +5,12 @@ LIB=/sys/lib/man
 default:V: check
 
 indices:V:
-	for (i in [0-9]){
+	for (i in [0-8]){
 		$LIB/secindex $i > $i/INDEX
+		$LIB/mkhtmlindex $i > $i/INDEX.html
 	}
 	mk lookindex
+	$LIB/mksearchindex > searchindex	# index for man2html searches
 
 permind:V:
 	rm -f /sys/lib/man/permind/toc
@@ -33,25 +35,24 @@ permind:V:
 				}
 			builtin cd ..
 		}
-		# section 9 is in a special order
-		builtin cd 9
-		cat 0intro
-		cat `{grep -l '^\.TH.*\.1' *}
-		cat `{grep -l '^\.TH.*\.2' *}
-		cat `{grep -l '^\.TH.*\.6' *}
-		builtin cd ..
 	} | troff -$MAN > /dev/null >[2] /sys/lib/man/permind/toc
 	builtin cd $LIB/permind
 	rm -f out
 	mk out > /dev/null >[2] /dev/null
 
-check:V: checksource
-	awk -f $LIB/checkman.awk [0-9]/* | sed '/\/(cda|av|midi|pub|weather|service\.9net|isdn)(\/|\))/d'
+old-check:V: checksource
+	awk -f $LIB/checkman.awk [0-8]/* | sed '/\/(cda|av|midi|pub|weather|service\.9net|isdn)(\/|\))/d'
+
+punccheck:
+	grep -n '^\.[IB][^PRIB].+[.;,:]$' [0-9]/* | grep -v '\.\.\.'
+
+check:V: indices checksource
+	awk -f $LIB/checkman.awk [0-8]/*
 
 checksource:QV:
 	sam -d >[2]/dev/null <<'!'
 	f input
-	< cat [0-9]/[0-9a-z]*
+	< cat [0-8]/[0-9a-z]*
 	B output
 	b input
 	,x/^\.SH SOURCE/ .,/^\.SH/ x g/^\.B/t "output
@@ -71,6 +72,8 @@ print.out:V: permind
 	{
 		{echo -n $FONTS; cat $LIB/title} | troff
 		{echo -n $FONTS; cat $LIB/trademarks} | troff -ms
+		{echo -n $FONTS; echo ' '} | troff
+		{echo -n $FONTS; cat $LIB/preface3} | troff -ms
 		{echo -n $FONTS; echo ' '} | troff
 		{echo -n $FONTS; cat $LIB/preface} | troff -ms
 		{echo -n $FONTS; echo ' '} | troff
@@ -92,12 +95,6 @@ print.out:V: permind
 					}
 				builtin cd ..
 			}
-			# section 9 is in a special order
-			builtin cd 9
-			cat `{grep -l '^\.TH.*\.1' *}
-			cat `{grep -l '^\.TH.*\.2' *}
-			cat `{grep -l '^\.TH.*\.6' *}
-			builtin cd ..
 		} | troff -$MAN
 		{echo -n $FONTS; echo ' '} | troff
 		{echo -n $FONTS; echo ' '} | troff

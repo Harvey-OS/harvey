@@ -3,6 +3,10 @@
 #include	<bio.h>
 #include	"../vc/v.out.h"
 
+#ifndef	EXTERN
+#define	EXTERN	extern
+#endif
+
 typedef	struct	Adr	Adr;
 typedef	struct	Sym	Sym;
 typedef	struct	Autom	Auto;
@@ -20,29 +24,37 @@ struct	Adr
 {
 	union
 	{
-		long	offset;
-		char*	sval;
-		Ieee*	ieee;
-	};
+		long	u0offset;
+		char*	u0sval;
+		Ieee*	u0ieee;
+	} u0;
 	union
 	{
-		Auto*	autom;
-		Sym*	sym;
-	};
+		Auto*	u1autom;
+		Sym*	u1sym;
+	} u1;
 	char	type;
 	char	reg;
 	char	name;
 	char	class;
 };
+
+#define	offset	u0.u0offset
+#define	sval	u0.u0sval
+#define	ieee	u0.u0ieee
+
+#define	autom	u1.u1autom
+#define	sym	u1.u1sym
+
 struct	Prog
 {
 	Adr	from;
 	Adr	to;
 	union
 	{
-		long	regused;
-		Prog*	forwd;
-	};
+		long	u0regused;
+		Prog*	u0forwd;
+	} u0;
 	Prog*	cond;
 	Prog*	link;
 	long	pc;
@@ -52,6 +64,9 @@ struct	Prog
 	char	as;
 	char	reg;
 };
+#define	regused	u0.u0regused
+#define	forwd	u0.u0forwd
+
 struct	Sym
 {
 	char	*name;
@@ -64,9 +79,9 @@ struct	Sym
 };
 struct	Autom
 {
-	Sym*	sym;
+	Sym*	asym;
 	Auto*	link;
-	long	offset;
+	long	aoffset;
 	short	type;
 };
 struct	Optab
@@ -153,70 +168,74 @@ enum
 	MAXHIST		= 20,				/* limit of path elements for history symbols */
 };
 
-union
+EXTERN union
 {
 	struct
 	{
-		uchar	cbuf[MAXIO];			/* output buffer */
-		uchar	xbuf[MAXIO];			/* input buffer */
-	};
+		uchar	obuf[MAXIO];			/* output buffer */
+		uchar	ibuf[MAXIO];			/* input buffer */
+	} u;
 	char	dbuf[1];
 } buf;
 
-long	HEADR;			/* length of header */
-int	HEADTYPE;		/* type of header */
-long	INITDAT;		/* data location */
-long	INITRND;		/* data round above text location */
-long	INITTEXT;		/* text location */
-char*	INITENTRY;		/* entry point */
-long	autosize;
-Biobuf	bso;
-long	bsssize;
-int	cbc;
-uchar*	cbp;
-int	cout;
-Auto*	curauto;
-Auto*	curhist;
-Prog*	curp;
-Prog*	curtext;
-Prog*	datap;
-long	datsize;
-char	debug[128];
-Prog*	etextp;
-Prog*	firstp;
-char	fnuxi8[8];
-char*	noname;
-Sym*	hash[NHASH];
-Sym*	histfrog[MAXHIST];
-int	histfrogp;
-int	histgen;
-char*	library[50];
-int	libraryp;
-char*	hunk;
-char	inuxi1[1];
-char	inuxi2[2];
-char	inuxi4[4];
-Prog*	lastp;
-long	lcsize;
-char	literal[32];
-int	nerrors;
-long	nhunk;
-long	offset;
-Opcross	opcross[8];
-Oprang	oprange[ALAST];
-char*	outfile;
-long	pc;
-uchar	repop[ALAST];
-long	symsize;
-Prog*	textp;
-long	textsize;
-long	thunk;
-int	version;
-char	xcmp[32][32];
-Prog	zprg;
-int	dtype;
+#define	cbuf	u.obuf
+#define	xbuf	u.ibuf
 
-struct
+EXTERN	long	HEADR;			/* length of header */
+EXTERN	int	HEADTYPE;		/* type of header */
+EXTERN	long	INITDAT;		/* data location */
+EXTERN	long	INITRND;		/* data round above text location */
+EXTERN	long	INITTEXT;		/* text location */
+EXTERN	char*	INITENTRY;		/* entry point */
+EXTERN	long	autosize;
+EXTERN	Biobuf	bso;
+EXTERN	long	bsssize;
+EXTERN	int	cbc;
+EXTERN	uchar*	cbp;
+EXTERN	int	cout;
+EXTERN	Auto*	curauto;
+EXTERN	Auto*	curhist;
+EXTERN	Prog*	curp;
+EXTERN	Prog*	curtext;
+EXTERN	Prog*	datap;
+EXTERN	long	datsize;
+EXTERN	char	debug[128];
+EXTERN	Prog*	etextp;
+EXTERN	Prog*	firstp;
+EXTERN	char	fnuxi8[8];
+EXTERN	char*	noname;
+EXTERN	Sym*	hash[NHASH];
+EXTERN	Sym*	histfrog[MAXHIST];
+EXTERN	int	histfrogp;
+EXTERN	int	histgen;
+EXTERN	char*	library[50];
+EXTERN	int	libraryp;
+EXTERN	int	xrefresolv;
+EXTERN	char*	hunk;
+EXTERN	char	inuxi1[1];
+EXTERN	char	inuxi2[2];
+EXTERN	char	inuxi4[4];
+EXTERN	Prog*	lastp;
+EXTERN	long	lcsize;
+EXTERN	char	literal[32];
+EXTERN	int	nerrors;
+EXTERN	long	nhunk;
+EXTERN	long	instoffset;
+EXTERN	Opcross	opcross[10];
+EXTERN	Oprang	oprange[ALAST];
+EXTERN	char*	outfile;
+EXTERN	long	pc;
+EXTERN	uchar	repop[ALAST];
+EXTERN	long	symsize;
+EXTERN	Prog*	textp;
+EXTERN	long	textsize;
+EXTERN	long	thunk;
+EXTERN	int	version;
+EXTERN	char	xcmp[32][32];
+EXTERN	Prog	zprg;
+EXTERN	int	dtype;
+
+EXTERN	struct
 {
 	Count	branch;
 	Count	fcmp;
@@ -229,11 +248,17 @@ struct
 extern	char*	anames[];
 extern	Optab	optab[];
 
-int	Aconv(void*, Fconv*);
-int	Dconv(void*, Fconv*);
-int	Nconv(void*, Fconv*);
-int	Pconv(void*, Fconv*);
-int	Sconv(void*, Fconv*);
+#pragma	varargck	type	"A"	int
+#pragma	varargck	type	"D"	Adr*
+#pragma	varargck	type	"N"	Adr*
+#pragma	varargck	type	"P"	Prog*
+#pragma	varargck	type	"S"	char*
+
+int	Aconv(va_list*, Fconv*);
+int	Dconv(va_list*, Fconv*);
+int	Nconv(va_list*, Fconv*);
+int	Pconv(va_list*, Fconv*);
+int	Sconv(va_list*, Fconv*);
 int	aclass(Adr*);
 void	addhist(long, int);
 void	addnop(Prog*);
@@ -267,17 +292,18 @@ double	ieeedtod(Ieee*);
 long	ieeedtof(Ieee*);
 int	isnop(Prog*);
 void	ldobj(int, long, char*);
-void	loadlib(int, int);
+void	loadlib(void);
 void	listinit(void);
 Sym*	lookup(char*, int);
 void	lput(long);
 void	mkfwd(void);
+void*	mysbrk(ulong);
 void	names(void);
 void	nocache(Prog*);
 void	noops(void);
 void	nuxiinit(void);
 void	objfile(char*);
-int	ocmp(void*, void*);
+int	ocmp(const void*, const void*);
 long	opirr(int);
 Optab*	oplook(Prog*);
 long	oprrr(int);

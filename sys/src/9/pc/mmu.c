@@ -5,406 +5,406 @@
 #include	"fns.h"
 #include	"io.h"
 
-/*
- *  segment descriptor initializers
- */
-#define	DATASEGM(p) (Segdesc){	0xFFFF,\
-				SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(p)|SEGDATA|SEGW }
-#define	EXECSEGM(p) (Segdesc){	0xFFFF,\
-				SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(p)|SEGEXEC|SEGR }
-#define CALLGATE(s,o,p) (Segdesc){	((o)&0xFFFF)|((s)<<16),\
-					(o)&0xFFFF0000|SEGP|SEGPL(p)|SEGCG }
-#define	D16SEGM(p) (Segdesc){	0xFFFF,\
-				(0x0<<16)|SEGP|SEGPL(p)|SEGDATA|SEGW }
-#define	E16SEGM(p) (Segdesc){	0xFFFF,\
-				(0x0<<16)|SEGP|SEGPL(p)|SEGEXEC|SEGR }
-#define	TSSSEGM(b,p) (Segdesc){	((b)<<16)|sizeof(Tss),\
-				((b)&0xFF000000)|(((b)>>16)&0xFF)|SEGTSS|SEGPL(p)|SEGP }
+#define	DATASEGM(p) 	{ 0xFFFF, SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(p)|SEGDATA|SEGW }
+#define	EXECSEGM(p) 	{ 0xFFFF, SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(p)|SEGEXEC|SEGR }
+#define	TSSSEGM(b,p)	{ ((b)<<16)|sizeof(Tss),\
+			  ((b)&0xFF000000)|(((b)>>16)&0xFF)|SEGTSS|SEGPL(p)|SEGP }
 
-static Page	ktoppg;		/* prototype top level page table
-				 * containing kernel mappings  */
-static ulong	*kpt;		/* 2nd level page tables for kernel mem */
-static ulong	*upt;		/* 2nd level page table for struct User */
-
-#define ROUNDUP(s,v)	(((s)+(v-1))&~(v-1))
-/*
- *  offset of virtual address into
- *  top level page table
- */
-#define TOPOFF(v)	(((ulong)(v))>>(2*PGSHIFT-2))
-
-/*
- *  offset of virtual address into
- *  bottom level page table
- */
-#define BTMOFF(v)	((((ulong)(v))>>(PGSHIFT))&(WD2PG-1))
-
-#define MAXUMEG 64	/* maximum memory per user process in megabytes */
-#define ONEMEG (1024*1024)
-
-enum {
-	Nisa=	256,
+Segdesc gdt[6] =
+{
+[NULLSEG]	{ 0, 0},		/* null descriptor */
+[KDSEG]		DATASEGM(0),		/* kernel data/stack */
+[KESEG]		EXECSEGM(0),		/* kernel code */
+[UDSEG]		DATASEGM(3),		/* user data/stack */
+[UESEG]		EXECSEGM(3),		/* user code */
+[TSSSEG]	TSSSEGM(0,0),		/* tss segment */
 };
-struct
+
+#define PDX(va)		((((ulong)(va))>>22) & 0x03FF)
+#define PTX(va)		((((ulong)(va))>>12) & 0x03FF)
+
+static void
+taskswitch(ulong pdb, ulong stack)
 {
-	Lock;
-	ulong s[Nisa];
-	ulong e[Nisa];
-} isaalloc;
+	Tss *tss;
 
-/*
- *  setup mmu for a cpu assuming we've already created the kernel
- *  page tables.
- */
-void
-setupmmu(void)
-{
-	ulong x;
-
-	/*
-	 *  set up the global descriptor table. we make the tss entry here
-	 *  since it requires arithmetic on an address and hence cannot
-	 *  be a compile or link time constant.
-	 */
-	x = (ulong)&m->tss;
-	m->gdt[NULLSEG] = (Segdesc){0, 0};
-	m->gdt[TSSSEG] = TSSSEGM(x, 0);
-	m->gdt[KDSEG] = DATASEGM(0);		/* kernel data/stack */
-	m->gdt[KESEG] = EXECSEGM(0);		/* kernel code */
-	m->gdt[UDSEG] = DATASEGM(3);		/* user data/stack */
-	m->gdt[UESEG] = EXECSEGM(3);		/* user code */
-	putgdt(m->gdt, sizeof(m->gdt));
-
-	/*
-	 *  point to kernel page table
-	 */
-	putcr3(ktoppg.pa);
-
-	/*
-	 *  set up the task segment
-	 */
-	memset(&m->tss, 0, sizeof(m->tss));
-	m->tss.sp0 = USERADDR+BY2PG;
-	m->tss.ss0 = KDSEL;
-	m->tss.cr3 = ktoppg.pa;
-	puttr(TSSSEL);
+	tss = m->tss;
+	tss->ss0 = KDSEL;
+	tss->esp0 = stack;
+	tss->ss1 = KDSEL;
+	tss->esp1 = stack;
+	tss->ss2 = KDSEL;
+	tss->esp2 = stack;
+	tss->cr3 = pdb;
+	putcr3(pdb);
 }
 
-/*
- *  Create a prototype page map that maps all of memory into
- *  kernel (KZERO) space.  This is the default map.  It is used
- *  whenever the processor not running a process or whenever running
- *  a process which does not yet have its own map.
- */
 void
 mmuinit(void)
 {
-	int i, nkpt, npage, nbytes;
-	ulong x;
-	ulong y;
-	ulong *top;
+	ulong x, *p;
+	ushort ptr[3];
 
-	/*
-	 *  set up system page tables.
-	 *  map all of physical memory to start at KZERO.
-	 *  leave a map entry for a user area.
-	 */
+	m->tss = malloc(sizeof(Tss));
+	memset(m->tss, 0, sizeof(Tss));
 
-	/*  allocate top level table */
-	top = xspanalloc(BY2PG, BY2PG, 0);
-	ktoppg.va = (ulong)top;
-	ktoppg.pa = ktoppg.va & ~KZERO;
+	memmove(m->gdt, gdt, sizeof(m->gdt));
+	x = (ulong)m->tss;
+	m->gdt[TSSSEG].d0 = (x<<16)|sizeof(Tss);
+	m->gdt[TSSSEG].d1 = (x&0xFF000000)|((x>>16)&0xFF)|SEGTSS|SEGPL(0)|SEGP;
 
-	/*  map all memory to KZERO */
-	npage = 128*MB/BY2PG;
-	nbytes = PGROUND(npage*BY2WD);		/* words of page map */
-	nkpt = nbytes/BY2PG;			/* pages of page map */
-	kpt = xspanalloc(nbytes, BY2PG, 0);
-	for(i = 0; i < npage; i++)
-		kpt[i] = (0+i*BY2PG) | PTEVALID | PTEKERNEL | PTEWRITE;
-	x = TOPOFF(KZERO);
-	y = ((ulong)kpt)&~KZERO;
-	for(i = 0; i < nkpt; i++)
-		top[x+i] = (y+i*BY2PG) | PTEVALID | PTEKERNEL | PTEWRITE;
+	ptr[0] = sizeof(m->gdt);
+	x = (ulong)m->gdt;
+	ptr[1] = x & 0xFFFF;
+	ptr[2] = (x>>16) & 0xFFFF;
+	lgdt(ptr);
 
-	/*  page table for u-> */
-	upt = xspanalloc(BY2PG, BY2PG, 0);
-	x = TOPOFF(USERADDR);
-	y = ((ulong)upt)&~KZERO;
-	top[x] = y | PTEVALID | PTEKERNEL | PTEWRITE;
+	ptr[0] = sizeof(Segdesc)*256;
+	x = IDTADDR;
+	ptr[1] = x & 0xFFFF;
+	ptr[2] = (x>>16) & 0xFFFF;
+	lidt(ptr);
 
-	setupmmu();
+	/* make kernel text unwritable */
+	for(x = KTZERO; x < (ulong)etext; x += BY2PG){
+		p = mmuwalk(m->pdb, x, 2, 0);
+		if(p == nil)
+			panic("mmuinit");
+		*p &= ~PTEWRITE;
+	}
+
+	taskswitch(PADDR(m->pdb),  (ulong)m + BY2PG);
+	ltr(TSSSEL);
 }
 
-/*
- *  Mark the mmu and tlb as inconsistent and call mapstack to fix it up.
- */
 void
 flushmmu(void)
 {
 	int s;
 
 	s = splhi();
-	if(u){
-		u->p->newtlb = 1;
-		mapstack(u->p);
-	} else
-		putcr3(ktoppg.pa);
+	up->newtlb = 1;
+	mmuswitch(up);
 	splx(s);
 }
 
-/*
- *  Switch to a process's memory map.  If the process doesn't
- *  have a map yet, just use the prototype one that contains
- *  mappings for only the kernel and the User struct.
- */
-void
-mapstack(Proc *p)
+static void
+mmuptefree(Proc* proc)
 {
-	Page *pg;
-	ulong *top;
+	ulong *pdb;
+	Page **last, *page;
 
-	if(p->upage->va != (USERADDR|(p->pid&0xFFFF)) && p->pid != 0)
-		panic("mapstack %d 0x%lux 0x%lux", p->pid, p->upage->pa, p->upage->va);
-
-	if(p->newtlb){
-		/*
-		 *  newtlb set means that they are inconsistent
-		 *  with the segment.c data structures.
-		 *
-		 *  bin the current second level page tables and
-		 *  the pointers to them in the top level page.
-		 *  pg->daddr is used by putmmu to save the offset into
-		 *  the top level page.
-		 */
-		if(p->mmutop && p->mmuused){
-			top = (ulong*)p->mmutop->va;
-			for(pg = p->mmuused; pg->next; pg = pg->next)
-				ilputl(&top[pg->daddr], 0);
-			ilputl(&top[pg->daddr], 0);
-			pg->next = p->mmufree;
-			p->mmufree = p->mmuused;
-			p->mmuused = 0;
+	if(proc->mmupdb && proc->mmuused){
+		pdb = (ulong*)proc->mmupdb->va;
+		last = &proc->mmuused;
+		for(page = *last; page; page = page->next){
+			pdb[page->daddr] = 0;
+			last = &page->next;
 		}
-		p->newtlb = 0;
+		*last = proc->mmufree;
+		proc->mmufree = proc->mmuused;
+		proc->mmuused = 0;
+	}
+}
+
+void
+mmuswitch(Proc* proc)
+{
+	ulong *pdb;
+
+	if(proc->newtlb){
+		mmuptefree(proc);
+		proc->newtlb = 0;
 	}
 
-	/* map in u area */
-	upt[0] = PPN(p->upage->pa) | PTEVALID | PTEKERNEL | PTEWRITE;
-
-	/* tell processor about new page table (flushes cached entries) */
-	if(p->mmutop)
-		pg = p->mmutop;
+	if(proc->mmupdb){
+		pdb = (ulong*)proc->mmupdb->va;
+		pdb[PDX(MACHADDR)] = m->pdb[PDX(MACHADDR)];
+		taskswitch(proc->mmupdb->pa, (ulong)(proc->kstack+KSTACK));
+	}
 	else
-		pg = &ktoppg;
-	putcr3(pg->pa);
-
-	u = (User*)USERADDR;
+		taskswitch(PADDR(m->pdb), (ulong)(proc->kstack+KSTACK));
 }
 
-/*
- *  give all page table pages back to the free pool.  This is called in sched()
- *  with palloc locked.
- */
 void
-mmurelease(Proc *p)
+mmurelease(Proc* proc)
 {
-	Page *pg;
-	Page *next;
+	Page *page, *next;
 
-	/* point 386 to protoype page map */
-	putcr3(ktoppg.pa);
+	/*
+	 * Release any pages allocated for a page directory base or page-tables
+	 * for this process:
+	 *   switch to the prototype pdb for this processor (m->pdb);
+	 *   call mmuptefree() to place all pages used for page-tables (proc->mmuused)
+	 *   onto the process' free list (proc->mmufree). This has the side-effect of
+	 *   cleaning any user entries in the pdb (proc->mmupdb);
+	 *   if there's a pdb put it in the cache of pre-initialised pdb's
+	 *   for this processor (m->pdbpool) or on the process' free list;
+	 *   finally, place any pages freed back into the free pool (palloc).
+	 * This routine is only called from sched() with palloc locked.
+	 */
+	taskswitch(PADDR(m->pdb), (ulong)m + BY2PG);
+	mmuptefree(proc);
 
-	/* give away page table pages */
-	for(pg = p->mmufree; pg; pg = next){
-		next = pg->next;
-		simpleputpage(pg);
+	if(proc->mmupdb){
+		if(m->pdbcnt > 10){
+			proc->mmupdb->next = proc->mmufree;
+			proc->mmufree = proc->mmupdb;
+		}
+		else{
+			proc->mmupdb->next = m->pdbpool;
+			m->pdbpool = proc->mmupdb;
+			m->pdbcnt++;
+		}
+		proc->mmupdb = 0;
 	}
-	p->mmufree = 0;
-	for(pg = p->mmuused; pg; pg = next){
-		next = pg->next;
-		simpleputpage(pg);
+
+	for(page = proc->mmufree; page; page = next){
+		next = page->next;
+		if(--page->ref)
+			panic("mmurelease: page->ref %d\n", page->ref);
+		pagechainhead(page);
 	}
-	p->mmuused = 0;
-	if(p->mmutop)
-		simpleputpage(p->mmutop);
-	p->mmutop = 0;
+	if(proc->mmufree && palloc.r.p)
+		wakeup(&palloc.r);
+	proc->mmufree = 0;
 }
 
-/*
- *  Add an entry into the mmu.
- */
-void
-putmmu(ulong va, ulong pa, Page *pg)
+static Page*
+mmupdballoc(void)
 {
-	int topoff;
-	ulong *top;
-	ulong *pt;
-	Proc *p;
+	int s;
+	Page *page;
+
+	s = splhi();
+	if(m->pdbpool == 0){
+		spllo();
+		page = newpage(0, 0, 0);
+		page->va = VA(kmap(page));
+		memmove((void*)page->va, m->pdb, BY2PG);
+	}
+	else{
+		page = m->pdbpool;
+		m->pdbpool = page->next;
+		m->pdbcnt--;
+	}
+	splx(s);
+	return page;
+}
+
+void
+putmmu(ulong va, ulong pa, Page*)
+{
+	int pdbx;
+	Page *page;
+	ulong *pdb, *pte;
 	int s;
 
-	if(u==0)
-		panic("putmmu");
-	p = u->p;
+	if(up->mmupdb == 0)
+		up->mmupdb = mmupdballoc();
+	pdb = (ulong*)up->mmupdb->va;
+	pdbx = PDX(va);
 
-	/*
-	 *  create a top level page if we don't already have one.
-	 *  copy the kernel top level page into it for kernel mappings.
-	 */
-	if(p->mmutop == 0){
-		pg = newpage(0, 0, 0);
-		pg->va = VA(kmap(pg));
-		memmove((void*)pg->va, (void*)ktoppg.va, BY2PG);
-		p->mmutop = pg;
-	}
-	top = (ulong*)p->mmutop->va;
-	topoff = TOPOFF(va);
-
-	/*
-	 *  if bottom level page table missing, allocate one 
-	 *  and point the top level page at it.
-	 */
-	s = splhi();
-	if(PPN(top[topoff]) == 0){
-		if(p->mmufree == 0){
-			spllo();
-			pg = newpage(1, 0, 0);
-			pg->va = VA(kmap(pg));
-			splhi();
-		} else {
-			pg = p->mmufree;
-			p->mmufree = pg->next;
-			memset((void*)pg->va, 0, BY2PG);
+	if(PPN(pdb[pdbx]) == 0){
+		if(up->mmufree == 0){
+			page = newpage(1, 0, 0);
+			page->va = VA(kmap(page));
 		}
-		ilputl(&top[topoff], PPN(pg->pa) | PTEVALID | PTEUSER | PTEWRITE);
-		pg->daddr = topoff;
-		pg->next = p->mmuused;
-		p->mmuused = pg;
+		else {
+			page = up->mmufree;
+			up->mmufree = page->next;
+			memset((void*)page->va, 0, BY2PG);
+		}
+		pdb[pdbx] = PPN(page->pa)|PTEUSER|PTEWRITE|PTEVALID;
+		page->daddr = pdbx;
+		page->next = up->mmuused;
+		up->mmuused = page;
 	}
 
-	/*
-	 *  put in new mmu entry
-	 */
-	pt = (ulong*)(PPN(top[topoff])|KZERO);
-	ilputl(&pt[BTMOFF(va)], pa | PTEUSER);
+	pte = KADDR(PPN(pdb[pdbx]));
+	pte[PTX(va)] = pa|PTEUSER;
 
-	/* flush cached mmu entries */
-	putcr3(p->mmutop->pa);
+	s = splhi();
+	pdb[PDX(MACHADDR)] = m->pdb[PDX(MACHADDR)];
+	mmuflushtlb(up->mmupdb->pa);
 	splx(s);
 }
 
-void
-invalidateu(void)
+ulong*
+mmuwalk(ulong* pdb, ulong va, int level, int create)
 {
-	/* unmap u area */
-	upt[0] = 0;
+	ulong pa, *table;
 
-	/* flush cached mmu entries */
-	putcr3(ktoppg.pa);
-}
+	/*
+	 * Walk the page-table pointed to by pdb and return a pointer
+	 * to the entry for virtual address va at the requested level.
+	 * If the entry is invalid and create isn't requested then bail
+	 * out early. Otherwise, for the 2nd level walk, allocate a new
+	 * page-table page and register it in the 1st level.
+	 */
+	table = &pdb[PDX(va)];
+	if(!(*table & PTEVALID) && create == 0)
+		return 0;
 
-/*
- *  used to map a page into 16 meg - BY2PG for confinit(). tpt is the temporary
- *  page table set up by l.s.
- */
-long*
-mapaddr(ulong addr)
-{
-	ulong base;
-	ulong off;
-	static ulong *pte, top;
-	extern ulong tpt[];
+	switch(level){
 
-	if(pte == 0){
-		top = (((ulong)tpt)+(BY2PG-1))&~(BY2PG-1);
-		pte = (ulong*)top;
-		top &= ~KZERO;
-		top += BY2PG;
-		pte += (4*1024*1024-BY2PG)>>PGSHIFT;
-	}
+	default:
+		return 0;
 
-	base = off = addr;
-	base &= ~(KZERO|(BY2PG-1));
-	off &= BY2PG-1;
+	case 1:
+		return table;
 
-	*pte = base|PTEVALID|PTEKERNEL|PTEWRITE; /**/
-	putcr3((ulong)top);
-
-	return (long*)(KZERO | 4*1024*1024-BY2PG | off);
-}
-
-/*
- *  make isa address space available
- */
-void
-putisa(ulong addr, int len)
-{
-	ulong e;
-	int i, hole;
-
-	addr &= ~KZERO;
-
-	e = addr + len;
-	lock(&isaalloc);
-	hole = -1;
-	for(i = 0; i < Nisa; i++){
-		if(isaalloc.s[i] == e){
-			isaalloc.s[i] = addr;
-			break;
+	case 2:
+		if(*table & PTESIZE)
+			panic("mmuwalk2: va %uX entry %uX\n", va, *table);
+		if(!(*table & PTEVALID)){
+			pa = PADDR(xspanalloc(BY2PG, BY2PG, 0));
+			*table = pa|PTEWRITE|PTEVALID;
 		}
-		if(isaalloc.e[i] == addr){
-			isaalloc.e[i] = e;
-			break;
-		}
-		if(isaalloc.s[i] == 0)
-			hole = i;
+		table = KADDR(PPN(*table));
+
+		return &table[PTX(va)];
 	}
-	if(i >= Nisa && hole >= 0){
-		isaalloc.s[hole] = addr;
-		isaalloc.e[hole] = e;
-	}
-	unlock(&isaalloc);
 }
 
-/*
- *  allocate some address space (already mapped into the kernel)
- *  for ISA bus memory.
- */
-ulong
-getisa(ulong addr, int len, int align)
-{
-	int i;
-	long os, s, e;
+static Lock mmukmaplock;
 
-	lock(&isaalloc);
-	os = s = e = 0;
-	for(i = 0; i < Nisa; i++){
-		s = os = isaalloc.s[i];
-		if(s == 0)
-			continue;
-		e = isaalloc.e[i];
-		if(addr && addr >= s && addr < e)
-			break;
-		if(align > 0)
-			s = ((s + align - 1)/align)*align;
-		if(e - s >= len)
-			break;
-	}
-	if(i >= Nisa){
-		unlock(&isaalloc);
+int
+mmukmapsync(ulong va)
+{
+	Mach *mach0;
+	ulong entry, *pte;
+
+	mach0 = MACHP(0);
+
+	lock(&mmukmaplock);
+
+	if((pte = mmuwalk(mach0->pdb, va, 1, 0)) == nil){
+		unlock(&mmukmaplock);
 		return 0;
 	}
+	if(!(*pte & PTESIZE) && mmuwalk(mach0->pdb, va, 2, 0) == nil){
+		unlock(&mmukmaplock);
+		return 0;
+	}
+	entry = *pte;
 
-	/* remove */
-	isaalloc.s[i] = 0;
-	unlock(&isaalloc);
+	if(!(m->pdb[PDX(va)] & PTEVALID))
+		m->pdb[PDX(va)] = entry;
 
-	/* give back edges */
-	if(s != os)
-		putisa(os, s - os);
-	os = s + len;
-	if(os != e)
-		putisa(os, e - os);
+	if(up && up->mmupdb){
+		((ulong*)up->mmupdb->va)[PDX(va)] = entry;
+		mmuflushtlb(up->mmupdb->pa);
+	}
+	else
+		mmuflushtlb(PADDR(m->pdb));
 
-	return KZERO|s;
+	unlock(&mmukmaplock);
+
+	return 1;
+}
+
+ulong
+mmukmap(ulong pa, ulong va, int size)
+{
+	Mach *mach0;
+	ulong ova, pae, *table, pgsz, *pte, x;
+	int pse, sync;
+
+	mach0 = MACHP(0);
+	if((mach0->cpuiddx & 0x08) && (getcr4() & 0x10))
+		pse = 1;
+	else
+		pse = 0;
+	sync = 0;
+
+	pa = PPN(pa);
+	if(va == 0)
+		va = (ulong)KADDR(pa);
+	else
+		va = PPN(va);
+	ova = va;
+
+	pae = pa + size;
+	lock(&mmukmaplock);
+	while(pa < pae){
+		table = &mach0->pdb[PDX(va)];
+		/*
+		 * Possibly already mapped.
+		 */
+		if(*table & PTEVALID){
+			if(*table & PTESIZE){
+				/*
+				 * Big page. Does it fit within?
+				 * If it does, adjust pgsz so the correct end can be
+				 * returned and get out.
+				 * If not, adjust pgsz up to the next 4MB boundary
+				 * and continue.
+				 */
+				x = PPN(*table);
+				if(x != pa)
+					panic("mmukmap1: pa %uX  entry %uX\n",
+						pa, *table);
+				x += 4*MB;
+				if(pae <= x){
+					pa = pae;
+					break;
+				}
+				pgsz = x - pa;
+				pa += pgsz;
+				va += pgsz;
+
+				continue;
+			}
+			else{
+				/*
+				 * Little page. Walk to the entry.
+				 * If the entry is valid, set pgsz and continue.
+				 * If not, make it so, set pgsz, sync and continue.
+				 */
+				pte = mmuwalk(mach0->pdb, va, 2, 0);
+				if(pte && *pte & PTEVALID){
+					x = PPN(*pte);
+					if(x != pa)
+						panic("mmukmap2: pa %uX entry %uX\n",
+							pa, *pte);
+					pgsz = BY2PG;
+					pa += pgsz;
+					va += pgsz;
+					sync++;
+
+					continue;
+				}
+			}
+		}
+
+		/*
+		 * Not mapped. Check if it can be mapped using a big page -
+		 * starts on a 4MB boundary, size >= 4MB and processor can do it.
+		 * If not a big page, walk the walk, talk the talk.
+		 * Sync is set.
+		 */
+		if(pse && (pa % (4*MB)) == 0 && (pae >= pa+4*MB)){
+			*table = pa|PTESIZE|PTEWRITE|PTEUNCACHED|PTEVALID;
+			pgsz = 4*MB;
+		}
+		else{
+			pte = mmuwalk(mach0->pdb, va, 2, 1);
+			*pte = pa|PTEWRITE|PTEUNCACHED|PTEVALID;
+			pgsz = BY2PG;
+		}
+		pa += pgsz;
+		va += pgsz;
+		sync++;
+	}
+	unlock(&mmukmaplock);
+
+	/*
+	 * If something was added
+	 * then need to sync up.
+	 */
+	if(sync)
+		mmukmapsync(ova);
+
+	return pa;
 }

@@ -1,6 +1,6 @@
 .TH PROF 1
 .SH NAME
-prof, kprof \- display profiling data
+prof, tprof, kprof \- display profiling data
 .SH SYNOPSIS
 .B prof
 [
@@ -12,6 +12,9 @@ prof, kprof \- display profiling data
 [
 .I profile
 ]
+.PP
+.B tprof
+.I pid
 .PP
 .B kprof
 .I kernel
@@ -25,7 +28,9 @@ option of
 or other loader.
 The symbol table in the
 named program file
-.RL ( v.out
+.RL ( 2.out
+etc., according to
+.BR $objtype ,
 by default)
 is read and correlated with the
 profile file
@@ -76,6 +81,35 @@ may be controlled by setting the environment variable
 before running
 .IR program .
 If the buffer fills, subsequent function calls may not be recorded.
+.PP
+.I Tprof
+is similar to
+.IR prof ,
+but is intended for profiling multiprocess programs.
+It uses the
+.BI /proc/ pid /profile
+file to collect instruction frequency counts for the text image associated with the process,
+for all processes that share that text.
+It must be run while the program is still active, since the data is stored with the running program.
+To enable
+.I tprof
+profiling for a given process,
+.EX
+    echo profile > /proc/\f2pid\f1/profile
+.EE
+and then, after the program has run for a while, execute
+.EX
+    tprof \f2pid\f1
+.EE
+Since the data collected for
+.I tprof
+is based on interrupt-time sampling of the program counter,
+.I tprof
+has no
+.B -d
+or
+.B -r
+options.
 .PP
 .I Kprof
 is similar to

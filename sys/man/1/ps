@@ -3,6 +3,9 @@
 ps, psu \- process status
 .SH SYNOPSIS
 .B ps
+[
+.B -p
+]
 .PP
 .B psu
 [
@@ -75,6 +78,12 @@ performing the named system call.
 waiting for more of a critical
 .IR resource .
 .PD
+.PP
+With the
+.B -p
+flag,
+.I ps
+also prints, after the system time, the baseline and current priorities of each process.
 .SH FILES
 .TF /proc/*/status
 .TP
@@ -84,7 +93,8 @@ waiting for more of a critical
 .br
 .B /rc/bin/psu
 .SH "SEE ALSO"
-.IR kill (1), 
+.IR acid (1),
 .IR db (1),
-.IR ps (1),
+.IR kill (1), 
+.IR ns (1),
 .IR proc (3)

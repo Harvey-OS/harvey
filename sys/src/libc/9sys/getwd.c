@@ -1,155 +1,67 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
-#include <fcall.h>
 
-#define DBG(s)
-#define MAXDEPTH	100
+static char *nsgetwd(char*, int);
 
-static void namedev(Dir*);
-static int  samefile(Dir*, Dir*);
-static int  crossedmnt(char*);
-
-char *
-getwd(char *s , int size) 
+char*
+getwd(char *buf, int nbuf)
 {
-	Dir *p, db[MAXDEPTH], root;
-	int depth, l;
-	char *x, *v;
+	int n, fd;
 
-	x = s;
-	if(dirstat("/", &root) < 0) {
-		strcpy(s, "stat of / failed");
-		return 0;
-	}
-
-	for(depth = 0; depth < MAXDEPTH; depth++) {
-		p = &db[depth];
-		if(dirstat(".", p) < 0) {
-			strcpy(s, "stat of . failed");
-			return 0;
-		}
-
-		DBG(print("stat: %s %lux\n", p->name, p->qid);)
-
-		if(samefile(p, &root)) {
-			depth--;
-			break;
-		}
-
-		if(depth > 1 && samefile(p, &db[depth-1])) {
-			p->name[0] = '#';
-			p->name[1] = p->type;
-			p->name[2] = '\0';
-			break;
-		}
-
-		if(crossedmnt(p->name))
-			namedev(p);
-
-		if(chdir("..") < 0) {
-			strcpy(s, "chdir .. failed");
-			return 0;
-		}
-	}
-
-	while(depth >= 0) {
-		v = db[depth--].name;
-		if(v[0] == '.' && v[1] == '\0')
-			continue;
-		if(v[0] != '#')
-			*x++ = '/';
-		l = strlen(v);
-		size -= l+1;
-		if(size <= 0) {
-			strcpy(s, "buffer too small");
-			return 0;
-		}
-		strcpy(x, v);
-		x += l;
-	}
-	if(x == s){
-		*x++ = '/';
-		*x = 0;
-	}
-	DBG(print("chdir %s\n", s);)
-	if(chdir(s) < 0) {
-		strcpy(s, "failed to return to .");
-		return 0;
-	}
-	return s;
-}
-
-/*
- * In cases where we have no valid name from the stat we must search .. for an
- * entry which leads back to our current depth. This happens in three ways:
- * when crossing a mount point or when we are in a dev which uses devgen in the
- * kernel to fill in the stat buffer or when we are at slash of a mounted file system
- */
-static void
-namedev(Dir *p)
-{
-	Dir dirb, tdirb;
-	char buf[DIRLEN*50], sd[NAMELEN*2];
-	int fd, n;
-	char *t, *e;
-
-	fd = open("..", OREAD);
+	fd = open(".", OREAD);
 	if(fd < 0)
-		return;
-
-	for(;;) {
-		n = read(fd, buf, sizeof(buf));
-		if(n <= 0)
-			return;
-		e = &buf[n];
-
-		for(t = buf; t < e; t += DIRLEN) {
-			convM2D(t, &dirb);
-			if((dirb.qid.path&CHDIR) == 0)
-				continue;
-			sprint(sd, "../%s/.", dirb.name);
-			if(dirstat(sd, &tdirb) < 0)
-				continue;
-
-			if(samefile(&tdirb, p) == 0)
-				continue;
-			close(fd);
-			DBG(print("%s->%s\n", p->name, dirb.name);)
-			strcpy(p->name, dirb.name);
-			return;
-		}
-	}
+		return nsgetwd(buf, nbuf);
+	n = fd2path(fd, buf, nbuf);
 	close(fd);
-}
-
-static int
-samefile(Dir *a, Dir *b)
-{
-	if(a->type != b->type)
-		return 0;
-	if(a->dev != b->dev)
-		return 0;
-	if(a->qid.path != b->qid.path)
-		return 0;
-	return 1;
+	if(n < 0)
+		return nsgetwd(buf, nbuf);
+	return buf;
 }
 
 /*
- * returns true if we must establish a child which derives the current directory name
- * after stat has failed to account for devices and the mount table
+ * Attempt to read the current directory from the
+ * proc file system.  Only used when fd2path can't be.
  */
-int
-crossedmnt(char *elem)
+static char*
+nsgetwd(char *buf, int nbuf)
 {
-	char junk[DIRLEN];
+	char s[3+12+3+1];
+	int lastn, n, fd;
+	char *ibuf;
 
-	if((elem[0] == '.' || elem[0] == '/') && elem[1] == '\0')
-		return 1;
+	if(nbuf < 1)
+		return nil;
 
-	sprint(junk, "../%s", elem);
-	if(stat(junk, junk) < 0)
-		return 1;
+	ibuf = malloc(3+nbuf+1);
+	if(ibuf == nil)
+		return nil;
 
-	return 0;
+	sprint(s, "#p/%d/ns", getpid());
+	if((fd = open(s, OREAD)) < 0)
+		return nil;
+
+	/*
+	 * The ns file yields one line per read, so
+	 * to find the ``cd '' line we just wait for the last one.
+	 */
+	lastn = 0;
+	while((n = read(fd, ibuf, 3+nbuf+1)) > 0)
+		lastn = n;
+	close(fd);
+
+	if(lastn < 3 || strncmp(ibuf, "cd ", 3) != 0)
+		return nil;
+
+	n = lastn - 3;
+	if(n > nbuf-1)
+		n = nbuf-1;
+		
+	memmove(buf, ibuf+3, n);
+	free(ibuf);
+
+	/* null terminate, remove trailing \n if present */
+	buf[n] = 0;
+	if(n > 0 && buf[n-1] == '\n')
+		buf[n-1] = 0;
+	return buf;
 }

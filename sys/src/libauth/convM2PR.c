@@ -21,5 +21,8 @@ convM2PR(char *ap, Passwordreq *f, char *key)
 	f->old[NAMELEN-1] = 0;
 	STRING(new, NAMELEN);
 	f->new[NAMELEN-1] = 0;
+	CHAR(changesecret);
+	STRING(secret, SECRETLEN);
+	f->secret[SECRETLEN-1] = 0;
 	USED(p);
 }

@@ -5,7 +5,6 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-#include	"devtab.h"
 
 #define	LRES	3		/* log of PC resolution */
 #define	SZ	4		/* sizeof of count cell; well known as 4 */
@@ -23,29 +22,44 @@ enum{
 	Kprofdirqid,
 	Kprofdataqid,
 	Kprofctlqid,
-	Nkproftab=Kprofctlqid,
-	Kprofmaxqid,
 };
-Dirtab kproftab[Nkproftab]={
+Dirtab kproftab[]={
 	"kpdata",	{Kprofdataqid},		0,	0600,
 	"kpctl",	{Kprofctlqid},		0,	0600,
 };
 
-void kproftimer(ulong);
-
-void
-kprofreset(void)
+static void
+_kproftimer(ulong pc)
 {
+	extern void spldone(void);
+
+	if(kprof.time == 0)
+		return;
+	/*
+	 *  if the pc is coming out of spllo or splx,
+	 *  use the pc saved when we went splhi.
+	 */
+	if(pc>=(ulong)spllo && pc<=(ulong)spldone)
+		pc = m->splpc;
+
+	kprof.buf[0] += TK2MS(1);
+	if(kprof.minpc<=pc && pc<kprof.maxpc){
+		pc -= kprof.minpc;
+		pc >>= LRES;
+		kprof.buf[pc] += TK2MS(1);
+	}else
+		kprof.buf[1] += TK2MS(1);
 }
 
-void
+static void
 kprofinit(void)
 {
 	if(SZ != sizeof kprof.buf[0])
 		panic("kprof size");
+	kproftimer = _kproftimer;
 }
 
-Chan *
+static Chan*
 kprofattach(char *spec)
 {
 	ulong n;
@@ -63,25 +77,20 @@ kprofattach(char *spec)
 	kproftab[0].length = n;
 	return devattach('T', spec);
 }
-Chan *
-kprofclone(Chan *c, Chan *nc)
-{
-	return devclone(c, nc);
-}
 
-int
+static int
 kprofwalk(Chan *c, char *name)
 {
-	return devwalk(c, name, kproftab, (long)Nkproftab, devgen);
+	return devwalk(c, name, kproftab, nelem(kproftab), devgen);
 }
 
-void
+static void
 kprofstat(Chan *c, char *db)
 {
-	devstat(c, db, kproftab, (long)Nkproftab, devgen);
+	devstat(c, db, kproftab, nelem(kproftab), devgen);
 }
 
-Chan *
+static Chan*
 kprofopen(Chan *c, int omode)
 {
 	if(c->qid.path == CHDIR){
@@ -94,54 +103,33 @@ kprofopen(Chan *c, int omode)
 	return c;
 }
 
-void
-kprofcreate(Chan *c, char *name, int omode, ulong perm)
+static void
+kprofclose(Chan*)
 {
-	USED(c, name, omode, perm);
-	error(Eperm);
 }
 
-void
-kprofremove(Chan *c)
+static long
+kprofread(Chan *c, void *va, long n, vlong off)
 {
-	USED(c);
-	error(Eperm);
-}
-
-void
-kprofwstat(Chan *c, char *dp)
-{
-	USED(c, dp);
-	error(Eperm);
-}
-
-void
-kprofclose(Chan *c)
-{
-	USED(c);
-}
-
-long
-kprofread(Chan *c, void *va, long n, ulong offset)
-{
-	ulong tabend;
+	ulong end;
 	ulong w, *bp;
 	uchar *a, *ea;
+	ulong offset = off;
 
 	switch(c->qid.path & ~CHDIR){
 	case Kprofdirqid:
-		return devdirread(c, va, n, kproftab, Nkproftab, devgen);
+		return devdirread(c, va, n, kproftab, nelem(kproftab), devgen);
 
 	case Kprofdataqid:
-		tabend = kprof.nbuf*SZ;
+		end = kprof.nbuf*SZ;
 		if(offset & (SZ-1))
 			error(Ebadarg);
-		if(offset >= tabend){
+		if(offset >= end){
 			n = 0;
 			break;
 		}
-		if(offset+n > tabend)
-			n = tabend-offset;
+		if(offset+n > end)
+			n = end-offset;
 		n &= ~(SZ-1);
 		a = va;
 		ea = a + n;
@@ -162,11 +150,9 @@ kprofread(Chan *c, void *va, long n, ulong offset)
 	return n;
 }
 
-long
-kprofwrite(Chan *c, char *a, long n, ulong offset)
+static long
+kprofwrite(Chan *c, void *a, long n, vlong)
 {
-	USED(offset);
-
 	switch((int)(c->qid.path&~CHDIR)){
 	case Kprofctlqid:
 		if(strncmp(a, "startclr", 8) == 0){
@@ -176,8 +162,6 @@ kprofwrite(Chan *c, char *a, long n, ulong offset)
 			kprof.time = 1;
 		else if(strncmp(a, "stop", 4) == 0)
 			kprof.time = 0;
-		else
-			error(Ebadctl);
 		break;
 	default:
 		error(Ebadusefd);
@@ -185,25 +169,23 @@ kprofwrite(Chan *c, char *a, long n, ulong offset)
 	return n;
 }
 
-void
-kproftimer(ulong pc)
-{
-	extern void spldone(void);
+Dev kprofdevtab = {
+	'T',
+	"kprof",
 
-	if(kprof.time == 0)
-		return;
-	/*
-	 *  if the pc is coming out of spllo or splx,
-	 *  use the pc saved when we went splhi.
-	 */
-	if(pc>=(ulong)splx && pc<=(ulong)spldone)
-		pc = m->splpc;
-
-	kprof.buf[0] += TK2MS(1);
-	if(kprof.minpc<=pc && pc<kprof.maxpc){
-		pc -= kprof.minpc;
-		pc >>= LRES;
-		kprof.buf[pc] += TK2MS(1);
-	}else
-		kprof.buf[1] += TK2MS(1);
-}
+	devreset,
+	kprofinit,
+	kprofattach,
+	devclone,
+	kprofwalk,
+	kprofstat,
+	kprofopen,
+	devcreate,
+	kprofclose,
+	kprofread,
+	devbread,
+	kprofwrite,
+	devbwrite,
+	devremove,
+	devwstat,
+};

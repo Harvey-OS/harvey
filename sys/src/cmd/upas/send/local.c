@@ -2,11 +2,11 @@
 #include "send.h"
 
 static void
-mboxfile(dest *dp, String *path, char *file)
+mboxfile(dest *dp, String *user, String *path, char *file)
 {
 	char *cp;
 
-	mboxpath(s_to_c(dp->repl1), s_to_c(dp->addr), path, 0);
+	mboxpath(s_to_c(user), s_to_c(dp->addr), path, 0);
 	cp = strrchr(s_to_c(path), '/');
 	if(cp)
 		path->ptr = cp+1;
@@ -22,23 +22,31 @@ extern dest*
 expand_local(dest *dp)
 {
 	Biobuf *fp;
-	String *file = s_new();
-	String *line = s_new();
+	String *file, *line, *s;
 	dest *rv;
 	int forwardok;
+	char *user;
 
 	/* short circuit obvious security problems */
 	if(strstr(s_to_c(dp->addr), "/../")){
 		dp->status = d_unknown;
-		s_free(line);
-		s_free(file);
 		return 0;
 	}
 
+	/* isolate user's name if part of a path */
+	user = strrchr(s_to_c(dp->addr), '!');
+	if(user)
+		user++;
+	else
+		user = s_to_c(dp->addr);
+
+	/* if no replacement string, plug in user's name */
 	if(dp->repl1 == 0){
 		dp->repl1 = s_new();
-		mboxpath("mbox", s_to_c(dp->addr), dp->repl1, 0);
+		mboxname(user, dp->repl1);
 	}
+
+	s = unescapespecial(s_clone(dp->repl1));
 
 	/*
 	 *  if this is the descendant of a `forward' file, don't
@@ -50,13 +58,15 @@ expand_local(dest *dp)
 			forwardok = 0;
 			break;
 		}
+	file = s_new();
 	if(forwardok){
 		/*
 		 *  look for `forward' file for forwarding address(es)
 		 */
-		mboxfile(dp, file, "forward");
-		fp = sysopen(s_to_c(file), "lr", 0);
+		mboxfile(dp, s, file, "forward");
+		fp = sysopen(s_to_c(file), "r", 0);
 		if (fp != 0) {
+			line = s_new();
 			s_read_line(fp, line);
 			sysclose(fp);
 			if(debug)
@@ -65,37 +75,47 @@ expand_local(dest *dp)
 			s_free(line);
 			if(rv){
 				s_free(file);
+				s_free(s);
 				return rv;
 			}
 		}
 	}
 
 	/*
-	 *  look for a 'pipe' file
+	 *  look for a 'pipe' file.  This won't work if there are
+	 *  special characters in the account name since the file
+	 *  name passes through a shell.  tdb.
 	 */
-	mboxfile(dp, s_reset(file), "pipeto");
+	mboxfile(dp, dp->repl1, s_reset(file), "pipeto");
 	if(sysexist(s_to_c(file))){
 		if(debug)
 			fprint(2, "found a pipeto file\n");
 		dp->status = d_pipeto;
-		s_append(file, " ");
-		s_append(file, s_to_c(dp->addr));
-		s_append(file, " ");
-		s_append(file, s_to_c(dp->repl1));
+		line = s_new();
+		s_append(line, "upasname='");
+		s_append(line, user);
+		s_append(line, "' ");
+		s_append(line, s_to_c(file));
+		s_append(line, " ");
+		s_append(line, s_to_c(dp->addr));
+		s_append(line, " ");
+		s_append(line, s_to_c(dp->repl1));
 		s_free(dp->repl1);
-		dp->repl1 = file;
+		dp->repl1 = line;
+		s_free(file);
+		s_free(s);
 		return dp;
 	}
 
 	/*
 	 *  see if the mailbox directory exists
 	 */
-	mboxfile(dp, s_reset(file), ".");
+	mboxfile(dp, s, s_reset(file), ".");
 	if(sysexist(s_to_c(file)))
 		dp->status = d_cat;
 	else
 		dp->status = d_unknown;
-	s_free(line);
 	s_free(file);
+	s_free(s);
 	return 0;
 }

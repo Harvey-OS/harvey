@@ -136,8 +136,14 @@ listen(fd, backlog)
 			return -1;
 		}
 		lip = (struct sockaddr_in*)&r->addr;
-		if(lip->sin_port >= 0)
-			sprintf(msg, "announce %d", lip->sin_port);
+		if(lip->sin_port >= 0) {
+			if(write(cfd, "bind 0", 6) < 0) {
+				errno = EGREG;
+				close(cfd);
+				return -1;
+			}
+			sprintf(msg, "announce %d", ntohs(lip->sin_port));
+		}
 		else
 			sprintf(msg, "announce *");
 		n = write(cfd, msg, strlen(msg));

@@ -1,14 +1,14 @@
-ed ../8c/8.out.h <<!
+ed - ../8c/8.out.h <<'!'
 v/^	A/d
-g/^	A/s//	"/
+,s/^	A/	"/
 g/ .*$/s///
-g/,.*$/s//",/
-$ a
-};
-.
+,s/,*$/",/
 1i
-char	*anames[] =
+char*	anames[] =
 {
+.
+$a
+};
 .
 w enam.c
 Q

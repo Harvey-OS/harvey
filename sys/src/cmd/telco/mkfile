@@ -2,7 +2,6 @@
 
 TARG=telco
 OFILES=telco.$O\
-	malloc.$O\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone

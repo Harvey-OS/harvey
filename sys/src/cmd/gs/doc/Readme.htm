@@ -1,0 +1,581 @@
+<html>
+<head>
+<title>Overview of Ghostscript</title>
+<!-- $Id: Readme.htm,v 1.2 2000/03/14 06:14:44 lpd Exp $ -->
+<!-- Originally: README -->
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<table width="100%" border="0">
+<tr><th align="center" bgcolor="#CCCC00"><font size=6>
+Overview of Ghostscript
+</font>
+</table>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>
+If this is your first contact with Ghostscript, before continuing here you
+should read the <a href="New-user.htm">documentation for new users</a>,
+where you'll find
+
+<ul>
+<li><a href="New-user.htm#Overview">what Ghostscript does</a> (PostScript
+and PDF previewing, conversion, and printing);
+
+<li>its <a href="New-user.htm#Find_Ghostscript">licensing terms</a> (free
+for ordinary use);
+
+<li>what <a href="New-user.htm#Platforms">platforms it runs on</a> (every
+platform you're likely to be interested in);
+
+<li>where to find some <a href="New-user.htm#Ancillary_programs">useful
+programs</a> that enhance Ghostscript (like user-friendly previewers for
+Unix, VMS, MS Windows, DOS, and Macintosh); and
+
+<li>what to do <a href="New-user.htm#Need_help">if you need help</a>.
+</ul>
+
+<p>
+The rest of this document is a roadmap to the Ghostscript documentation.
+After looking through it, if you want to install Ghostscript and not only
+use it, we recommend you read <a href="Install.htm">how to install
+Ghostscript</a>, and <a href="Make.htm">how to compile Ghostscript</a> from
+source code (which is necessary before installing it on Unix and VMS
+systems).
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<h2>Table of contents</h2>
+
+<blockquote><ul>
+<li><a href="#Theme_roadmap">Document roadmap by theme</a>
+<ul>
+<li><a href="#New_users">What should I read if I'm a new user?</a>
+<ul>
+<li><a href="#Two_Ghostscripts">Aladdin Ghostscript and GNU Ghostscript</a>
+<li><a href="#Before_building">Before building Ghostscript</a>
+</ul>
+<li><a href="#Not_a_new_user">What should I read if I'm not a new user?</a>
+<li><a href="#Developer">What if I'm a developer?</a>
+<li><a href="#Writer">What if I'm writing documentation?</a>
+</ul>
+<li><a href="#Web_presence">Presence on the World Wide Web</a>
+<ul>
+<li><a href="#Web_home_page">Ghostscript's home page</a>
+<li><a href="#Aladdin_home_page">Aladdin's home page</a>
+<li><a href="#Adobe_documentation">Adobe PostScript and PDF reference documentation</a>
+<li><a href="#Web_other">Other material on the WWW</a>
+</ul>
+<li><a href="#Ordered_roadmap">Which document contains what?</a>
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><td valign=top>
+<a href="#Bug-form">Bug-form.htm</a><br>
+<a href="#C-style">C-style.htm</a><br>
+<a href="#Commprod">Commprod.htm</a><br>
+<a href="#Copying">Copying.htm</a><br>
+<a href="#Current">Current.htm</a><br>
+<a href="#DLL">DLL.htm</a><br>
+<a href="#Devices">Devices.htm</a><br>
+<a href="#Drivers">Drivers.htm</a><br>
+<a href="#Fonts">Fonts.htm</a><br>
+<a href="#Helpers">Helpers.htm</a>
+<td>&nbsp;&nbsp;&nbsp;<td valign=top>
+<a href="#Hershey">Hershey.htm</a><br>
+<a href="#History">History*.htm</a><br>
+<a href="#Htmstyle">Htmstyle.htm</a><br>
+<a href="#Humor">Humor.htm</a><br>
+<a href="#Install">Install.htm</a><br>
+<a href="#Language">Language.htm</a><br>
+<a href="#Lib">Lib.htm</a><br>
+<a href="#Make">Make.htm</a><br>
+<a href="#New-user">New-user.htm</a><br>
+<a href="#News">News.htm</a>
+<td>&nbsp;&nbsp;&nbsp;<td valign=top>
+<a href="#Ps2pdf">Ps2pdf.htm</a><br>
+<a href="#Psfiles">Psfiles.htm</a><br>
+<a href="#Public">Public.htm</a><br>
+<a href="#Readme">Readme.htm</a><br>
+<a href="#Release">Release.htm</a><br>
+<a href="#Source">Source.htm</a><br>
+<a href="#Tester">Tester.htm</a><br>
+<a href="#Unix-lpr">Unix-lpr.htm</a><br>
+<a href="#Use">Use.htm</a><br>
+<a href="#Xfonts">Xfonts.htm</a>
+</table></blockquote>
+</ul></blockquote>
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<h1><a name="Theme_roadmap"></a>Document roadmap by theme</h1>
+
+<h2><a name="New_users"></a>What should I read if I'm a new user?</h2>
+
+<p>
+A new user of Ghostscript should begin by reading the material
+<a href="New-user.htm">specifically for new users</a>, then as many of
+these documents as seem useful:
+
+<ul>
+<li>how to <a href="Install.htm">install Ghostscript</a>
+
+<li>how to <a href="Use.htm">use Ghostscript</a>; some of this information
+information also found in <b><tt>gs.1</tt></b>, the Unix
+"man" page for Ghostscript.
+
+<li>the catalogs at the beginning of <b><tt>devs.mak</tt></b> and
+<b><tt>contrib.mak</tt></b>, which list all the devices for which
+Ghostscript is able to produce output (although if you got Ghostscript in
+binary form, it will only include some of these devices)
+
+<li>detailed information about <a href="Devices.htm">some specific
+devices</a> that Ghostscript knows about
+
+<li>more detailed information about how to use Ghostscript under
+<a href="Unix-lpr.htm">Unix with <b><tt>lpr</tt></b></a> as a
+filter for non-PostScript printers
+
+<li>a <a href="Bug-form.htm">problem-reporting form</a> -- but remember
+that Ghostscript comes with <b>NO WARRANTY</b> and <b>NO
+SUPPORT</b>
+</ul>
+
+<h3><a name="Two_Ghostscripts"></a>Aladdin Ghostscript and GNU Ghostscript</h3>
+
+<p>
+Aladdin Ghostscript and GNU Ghostscript are
+<a href="New-user.htm#Find_Ghostscript">different releases</a>.  If you
+have Aladdin Ghostscript, not the GNU Ghostscript releases distributed by
+the <a href="http://www.gnu.org">Free Software Foundation</a>, you should
+read (or at least skim through):
+
+<ul>
+<li>additional information about <a href="Public.htm">Aladdin Ghostscript
+releases</a> that is not relevant to GNU Ghostscript releases.
+</ul>
+
+<p>
+If you run into any questions, or if you are going to be using Ghostscript
+extensively, you should at least skim, and probably eventually read:
+
+<ul>
+<li> about the <a href="Fonts.htm">fonts distributed with
+Ghostscript</a>, including how to add or replace fonts
+
+<li> a description of <a href="Language.htm">the Ghostscript language</a>,
+and its differences from the documented PostScript language
+
+<li> about the <a href="Psfiles.htm"><b><tt>.ps</tt></b> files distributed with
+Ghostscript</a> (other than fonts)
+</ul>
+
+<h3><a name="Before_building"></a>Before building Ghostscript</h3>
+
+<p>
+If you are going to compile Ghostscript, rather than just use an executable
+you got from somewhere, you should read:
+
+<ul>
+<li> <a href="Make.htm">how to build Ghostscript</a> and
+<a href="Install.htm">install it</a>
+</ul>
+
+<hr>
+
+<h2><a name="Not_a_new_user"></a>What should I read if I'm not a new user?</h2>
+
+<p>
+If you have already used Ghostscript, when you receive a new release you
+should begin by reading this file, then
+
+<ul>
+<li> <a href="News.htm">News.htm</a>, for changes and new features in the
+current release;
+
+<li> <a href="Current.htm">Current.htm</a>, for known problems in the
+current release;
+
+<li> if you wish, History#.htm (currently <a
+href="History6.htm">History6.htm</a>), for changes in other releases.
+</ul>
+
+<hr>
+
+<h2><a name="Developer"></a>What if I'm a developer?</h2>
+
+<p>
+If you are going to write a new driver for Ghostscript, you should read
+
+<ul>
+<li> the <a href="Source.htm">guide to the Ghostscript source code</a>
+
+<li> the interface between Ghostscript and <a href="Drivers.htm">device
+drivers</a>
+
+<li> about the <a href="Xfonts.htm">external font interface</a> between
+Ghostscript and platform-supplied fonts (but read about
+<a href="Drivers.htm">drivers in general</a> first)
+</ul>
+
+<p>
+If you are considering distributing Ghostscript (either Aladdin or GNU
+versions) in conjunction with a commercial product, you should read the
+<a href="Public.htm">license</a> carefully, and you should also read
+
+<ul>
+<li> additional clarification of the circumstances under which Ghostscript
+can be distributed <a href="Commprod.htm">with a commercial product</a>
+</ul>
+
+<p>
+If you intend to use Ghostscript in the form of a dynamic link library
+(DLL) under OS/2 or Microsoft Windows, read
+
+<ul>
+<li> documentation on <a href="DLL.htm">Ghostscript as a DLL</a>
+</ul>
+
+<p>
+If you want to use Ghostscript as part of another program -- as a callable
+PostScript language interpreter -- and not as a DLL or as a self-contained
+executable application, you should begin by reading
+
+<ul>
+<li> the source file <b><tt>imain.h</tt></b>, the documented
+API for Ghostscript <em>not</em> as a DLL
+</ul>
+
+<p>
+or if you are going to use only the Ghostscript graphics library,
+
+<ul>
+<li> about the structure of the <a href="Lib.htm">Ghostscript library</a>
+and its interfaces
+</ul>
+
+<hr>
+
+<h2><a name="Writer"></a>What if I'm writing documentation?</h2>
+
+<p>
+If you are editing or adding to Ghostscript's existing documentation in
+HTML format, or writing a new document, you should read
+
+<ul>
+<li> the <a href="Htmstyle.htm">coding and style guidelines</a> for
+Ghostscript's HTML-based documentation.
+</ul>
+
+<hr>
+
+<h1><a name="Web_presence"></a>Presence on the World Wide Web</h1>
+
+<h2><a name="Web_home_page"></a>Ghostscript's home page</h2>
+
+<p>
+Ghostscript has a home page on the World Wide Web with helpful information
+such as the FAQ (Frequently Asked Questions) and a list of known problems
+and workarounds for the current Aladdin Ghostscript release (in the
+"Obtaining" file for that release):
+
+<blockquote>
+<a href="http://www.cs.wisc.edu/~ghost/">http://www.cs.wisc.edu/~ghost/</a>
+</blockquote>
+
+<h2><a name="Aladdin_home_page"></a>Aladdin's home page</h2>
+
+<p>
+More material about Ghostscript can be found on Aladdin Enterprises' World
+Wide Web site at
+
+<blockquote>
+<a href="http://www.ghostscript.com/">http://www.ghostscript.com/</a>
+</blockquote>
+
+<h2><a name="Adobe_documentation"></a>Adobe PostScript and PDF reference documentation</h2>
+
+<p>
+Adobe makes a wealth of relevant <a
+href="http://partners.adobe.com/asn/developer/technotes.html">technical
+documentation</a> available on its Web site, including the <a
+href="http://partners.adobe.com/asn/developer/PDFS/TN/PLRM.pdf">PostScript
+Language Reference Manual (Third Edition)</a>, the <a
+href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/pdfspec.pdf">PDF
+1.3 specification</a>, and the <a
+href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/pdfmark.pdf">pdfmark</a>
+and <a
+href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/distparm.pdf">distiller
+parameters</a> documentation.
+
+<h2><a name="Web_other"></a>Other material on the WWW</h2>
+
+<p>
+Much other material about Ghostscript is available on the World Wide Web,
+both as web pages and as archived Usenet and mailing list discussions.  Use
+the well-known search engines to find such material.
+
+<p>
+There is a good manual for Ghostscript available in PDF form,
+in English and German (and soon in Japanese), at:
+
+<blockquote>
+<a href="http://www.pdflib.com">http://www.pdflib.com/gsmanual</a>
+</blockquote>
+
+<hr>
+
+<h1><a name="Ordered_roadmap"></a>Which document contains what?</h1>
+
+<p> Here is the list in alphabetic order of Ghostscript documentation,
+with explanations of the contents.
+
+<dl>
+<dt><a name="Bug-form"></a><a href="Bug-form.htm"><b>Bug-form.htm</b></a>
+<dd> A form to fill out and send to Aladdin to
+<a href="New-user.htm#Reporting_bugs">report a bug</a> in Aladdin
+Ghostscript -- but remember that Ghostscript comes with <b>NO
+WARRANTY</b> and <b>NO SUPPORT</b>. Please read the
+<a href="New-user.htm#Reporting_bugs">guidelines</a> before reporting a
+bug.
+</dl>
+
+<dl>
+<dt><a name="C-style"></a><a href="C-style.htm"><b>C-style.htm</b></a>
+<dd> Aladdin's guidelines and style for C coding, which you should follow
+if, for example, you <a href="#Drivers">write a new driver</a> or add or
+change something in Ghostscript. For developers.
+</dl>
+
+<dl>
+<dt><a name="Commprod"></a><a href="Commprod.htm"><b>Commprod.htm</b></a>
+<dd> The conditions under which Ghostscript may be distributed in a
+commercial context.  See also the <a href="#Public">Aladdin Free Public
+License</a>.
+</dl>
+
+<dl>
+<dt><a name="Copying"></a><a href="Copying.htm"><b>Copying.htm</b></a>
+<dd> A reminder that Aladdin Ghostscript is governed <b>NOT</b> by
+the <a href="http://www.gnu.org/">Free Software Foundation's</a> GNU
+<a href="http://www.gnu.org/copyleft/gpl.html">General Public License</a>
+but by the <a href="#Public">Aladdin Free Public License</a>.
+</dl>
+
+<dl>
+<dt><a name="Current"></a><a href="Current.htm"><b>Current.htm</b></a>
+<dd> Information specifically about the current release of Ghostscript.
+See also the <a href="#News">latest news</a> of changes.
+</dl>
+
+<dl>
+<dt><a name="DLL"></a><a href="DLL.htm"><b>DLL.htm</b></a>
+<dd> On OS/2, MS Windows-16 and MS Windows-32 platforms, Ghostscript is
+compiled as a dynamic link library (DLL).  This describes how to use it.
+For developers.
+</dl>
+
+<dl>
+<dt><a name="Devices"></a><a href="Devices.htm"><b>Devices.htm</b></a>
+<dd> Detailed information about some specific devices for which Ghostscript
+can produce output. Run "<b><tt>gs&nbsp;-h</tt></b>" to see which
+devices a particular version of Ghostscript is built to use.
+</dl>
+
+<dl>
+<dt><a name="Drivers"></a><a href="Drivers.htm"><b>Drivers.htm</b></a>
+<dd> Describes the interface between Ghostscript and device drivers.  If
+you do this, you should also read and use the <a href="#C-style">C style
+and coding guidelines</a>. Necessary to develop a new driver. For
+developers.
+</dl>
+
+<dl>
+<dt><a name="Fonts"></a><a href="Fonts.htm"><b>Fonts.htm</b></a> <dd> All
+about fonts freely available for Ghostscript, and how to add and use new
+fonts.  Also describes how to use Ghostscript fonts as X Windows fonts. For
+both users and developers.
+</dl>
+
+<dl>
+<dt><a name="Helpers"></a><a href="Helpers.htm"><b>Helpers.htm</b></a>
+<dd> A note of thanks to people who have helped in the development of
+Ghostscript.
+</dl>
+
+<dl>
+<dt><a name="Hershey"></a><a href="Hershey.htm"><b>Hershey.htm</b></a>
+<dd> Part 1 of the five-part original Usenet distribution of the free
+Hershey fonts, giving the terms of use and describing their encoding.
+</dl>
+
+<dl>
+<dt><a name="History"></a><b>History*.htm</b>
+<dd> The history of changes in all Ghostscript releases:
+<blockquote>
+<a href="History6.htm">History6.htm</a> for Ghostscript versions 6.n<br>
+<a href="History5.htm">History5.htm</a> for Ghostscript versions 5.n<br>
+<a href="History4.htm">History4.htm</a> for Ghostscript versions 4.n<br>
+<a href="History3.htm">History3.htm</a> for Ghostscript versions 3.n<br>
+<a href="History2.htm">History2.htm</a> for Ghostscript versions 2.n<br>
+<a href="History1.htm">History1.htm</a> for Ghostscript versions 1.n
+</blockquote>
+</dl>
+
+<dl>
+<dt><a name="Htmstyle"></a><a href="Htmstyle.htm"><b>Htmstyle.htm</b></a>
+<dd> The guidelines and style for HTML coding of Ghostscript's
+documentation, which you should follow if, for example, you change existing
+HTML documentation or write new documents. For writers and editors.
+
+</dl>
+
+<dl>
+<dt><a name="Humor"></a><a href="Humor.htm"><b>Humor.htm</b></a>
+<dd> Another Ghostscript interpreter.
+</dl>
+
+<dl>
+<dt><a name="Install"></a><a href="Install.htm"><b>Install.htm</b></a>
+<dd> How to install Ghostscript.  See also <a href="#Make">how to build
+it</a>.
+</dl>
+
+<dl>
+<dt><a name="Language"></a><a href="Language.htm"><b>Language.htm</b></a>
+<dd> The relationship between the Ghostscript interpreter and the
+PostScript language as defined by Adobe.
+</dl>
+
+<dl>
+<dt><a name="Lib"></a><a href="Lib.htm"><b>Lib.htm</b></a>
+<dd> A description of the Ghostscript library, a set of procedures to
+implement the graphics and filtering capabilities that are primitive
+operations in the PostScript language and in Adobe Portable Document Format
+(PDF). For developers.
+</dl>
+
+<dl>
+<dt><a name="Make"></a><a href="Make.htm"><b>Make.htm</b></a>
+<dd> How to build Ghostscript executables from the source code.  See also
+<a href="#Install">how to install it</a>. It's not necessary to be a highly
+experienced developer to build or install Ghostscript, but some experience
+is needed.
+</dl>
+
+<dl>
+<dt><a name="New-user"></a><a href="New-user.htm"><b>New-user.htm</b></a>
+<dd> Essential information for new users of Ghostscript.
+</dl>
+
+<dl>
+<dt><a name="News"></a><a href="News.htm"><b>News.htm</b></a>
+<dd> Changes in the latest releases of Ghostscript.  Changes in older
+releases are described in the history files
+"<b><tt>History*.htm</tt></b>", which are usually installed
+in the documentation directory. Run "<b><tt>gs&nbsp;-h</tt></b>"
+to see where that is.
+</dl>
+
+<dl>
+<dt><a name="Ps2pdf"></a><a href="Ps2pdf.htm"><b>Ps2pdf.htm</b></a>
+<dd> Detailed information on how to use Ghostscript through
+<tt><b>ps2pdf</b></tt> to convert PostScript to Adobe
+Portable Document Format (PDF).
+</dl>
+
+<dl>
+<dt><a name="Psfiles"></a><a href="Psfiles.htm"><b>Psfiles.htm</b></a>
+<dd> A description of the PostScript files (other than font files)
+distributed with Ghostscript, including initialization routines, utility
+programs, and sample printable files.
+</dl>
+
+<dl>
+<dt><a name="Public"></a><a href="Public.htm"><b>Public.htm</b></a>
+<dd> The Aladdin Free Public License, which states the conditions for using
+and redistributing Aladdin Ghostscript.
+</dl>
+
+<dl>
+<dt><a name="Readme"></a><b>Readme.htm</b>
+<dd> This document.
+</dl>
+
+<dl>
+<dt><a name="Release"></a><a href="Release.htm"><b>Release.htm</b></a>
+<dd> A description of how to prepare and test a Ghostscript release.  Of
+interest only to developers who want to create new Ghostscript versions for
+distribution.
+</dl>
+
+<dl>
+<dt><a name="Source"></a><a href="Source.htm"><b>Source.htm</b></a>
+<dd> A guide to the Ghostscript source code, for development and debugging.
+</dl>
+
+<dl>
+<dt><a name="Tester"></a><a href="Tester.htm"><b>Tester.htm</b></a>
+<dd> A short questionnaire to fill out if you would like to be notified of
+new tester / beta releases.
+</dl>
+
+<dl>
+<dt><a name="Unix-lpr"></a><a href="Unix-lpr.htm"><b>Unix-lpr.htm</b></a>
+<dd> How to set up Ghostscript as a Unix <tt><b>lpr</b></tt>
+filter.
+</dl>
+
+<dl>
+<dt><a name="Use"></a><a href="Use.htm"><b>Use.htm</b></a>
+<dd> Detailed instructions on how to use Ghostscript, including such
+matters as designating an output device; choosing a default paper size;
+how Ghostscript finds files, including font files; how it uses environment
+variables; notes on specific platforms, including the X Window System; and
+command-line options.
+</dl>
+
+<dl>
+<dt><a name="Xfonts"></a><a href="Xfonts.htm"><b>Xfonts.htm</b></a>
+<dd> Ghostscript's external font interface to a host platform's
+font-rendering mechanism, for developers.
+</dl>
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+<hr>
+
+<font size=2>
+
+<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+
+<p>This file is part of Aladdin Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+Aladdin Ghostscript.
+
+<p>
+Ghostscript version 6.0, 3 February 2000
+
+</font>
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

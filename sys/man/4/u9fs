@@ -3,9 +3,10 @@
 u9fs \- serve 9P from Unix
 .SH SYNOPSIS
 .B u9fs
-[
-.I directory
-]
+.RB [ -r ]
+.RB [ -u
+.I onlyuser
+.IR onlyuid ]
 .SH DESCRIPTION
 .I U9fs
 is
@@ -18,20 +19,29 @@ It is to be invoked on a
 Unix machine by
 .B inetd
 with its standard input, output, and error connected to a
-network connection, typically TCP on an Ethernet.  It runs as user
+network connection, typically TCP on an Ethernet.
+It typically runs as user
 .B root
-and multiplexes access to multiple Plan 9
-clients over the single wire.
-It simulates Unix permissions itself by assuming
-Plan 9 uids match Unix login names.
+and multiplexes access to multiple Plan 9 clients over the single wire.
+It assumes Plan 9 uids match Unix login names,
+and changes to the corresponding Unix effective uid when processing requests.
 .PP
-If a
-.I directory
-is specified
-.I u9fs
-first does a Unix
-.B chroot
-system call to that directory.
+When run as a user other than root,
+only attaches from that user are allow.
+With the
+.B -u
+option,
+u9fs must be run as
+.IR onlyuid ,
+and does not look in
+.B /etc/passwd
+or
+.B /etc/group
+to translate login names to uids.
+.PP
+The
+.B -r
+option disallows any writes to the files system.
 .PP
 Plan 9 calls this service
 .B 9fs

@@ -2,7 +2,7 @@
 
 defn coverage()
 {
-	local lmap, lp, e, pc, n;
+	local lmap, lp, e, pc, n, l;
 
 	new();
 
@@ -14,10 +14,18 @@ defn coverage()
 	while e < etext-4 do {
 		l = follow(e);
 		if tail l != {} then {
-			plant(l[0]);
-			plant(l[1]);
+			if match(l[0], bblock) < 0 then
+				bblock = append bblock, l[0];
+			if match(l[1], bblock) < 0 then
+				bblock = append bblock, l[1];
 		}
 		e++;
+	}
+
+	l = bblock;
+	while l != {} do {
+		*fmt(head l, bpfmt) = bpinst;
+		l = tail l;
 	}
 
 	while 1 do {
@@ -33,14 +41,6 @@ defn coverage()
 			pstop(pid);
 			return {};
 		}
-	}
-}
-
-defn plant(addr)
-{
-	if match(addr, bblock) < 0 then {
-		*fmt(addr, bpfmt) = bpinst;
-		bblock = append bblock, addr;
 	}
 }
 

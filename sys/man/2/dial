@@ -1,6 +1,6 @@
 .TH DIAL 2
 .SH NAME
-dial, hangup, announce, listen, accept, reject, netmkaddr \- make and break network connections
+dial, hangup, announce, listen, accept, reject, netmkaddr, setnetmtpt \- make and break network connections
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -26,6 +26,9 @@ int   reject(int ctl, char *dir, char *cause)
 .PP
 .B
 char* netmkaddr(char *addr, char *defnet, char *defservice)
+.PP
+.B
+void  setnetmtpt(char *to, int tolen, char *from)
 .SH DESCRIPTION
 For these routines,
 .I addr
@@ -74,8 +77,6 @@ The
 .B ctl
 file in the line directory can be used to send commands to the line.
 See
-.IR dk (3)
-and
 .IR ip (3)
 for messages that can be written to the
 .B ctl
@@ -138,6 +139,11 @@ Like
 returns an open
 .B ctl
 file.
+The 
+.I netaddr
+used in announce may be a local address or an asterisk,
+to indicate all local addresses, e.g.
+.BR tcp!*!echo .
 The
 .I listen
 routine takes as its first argument the
@@ -168,6 +174,41 @@ makes an address suitable for dialing or announcing.
 It takes an address along with a default network and service to use
 if they are not specified in the address.
 It returns a pointer to static data holding the actual address to use.
+.PP
+.I Setnetmtpt
+copies the name of the network mount point into
+the buffer
+.IR to ,
+whose length is
+.IR tolen .
+It exists to merge two pre-existing conventions for specifying
+the mount point.
+Commands that take a network mount point as a parameter
+(such as
+.BR dns ,
+.BR cs
+(see
+.IR ndb (8)),
+and
+.IR ipconfig (8))
+should now call
+.IR setnetmtpt .
+If
+.I from
+is
+.BR nil ,
+the mount point is set to the default,
+.BR /net .
+If
+.I from
+points to a string starting with a slash,
+the mount point is that path.
+Otherwise, the mount point is the string pointed to by
+.I from
+appended to the string
+.BR /net .
+The last form is obsolete and is should be avoided.
+It exists only to aid in conversion.
 .SH EXAMPLES
 Make a call and return an open file descriptor to
 use for communications:
@@ -190,7 +231,7 @@ int dialauth(char *service)
 .PP
 Announce as
 .B kremvax
-on Datakit and
+on TCP/IP and
 loop forever receiving calls and echoing back
 to the caller anything sent:
 .IP
@@ -203,8 +244,8 @@ bekremvax(void)
 	int n;
 	char buf[256];
 
-	afd = announce("dk!kremvax", adir);
-	if(afd < 0)
+	acfd = announce("tcp!*!7", adir);
+	if(acfd < 0)
 		return -1;
 	for(;;){
 		/* listen for a call */
@@ -238,9 +279,7 @@ bekremvax(void)
 .B /sys/src/libc/port
 .SH "SEE ALSO"
 .IR auth (2),
-.IR dk (3),
 .IR ip (3),
-.IR stream (3),
 .IR ndb (8)
 .SH DIAGNOSTICS
 .IR Dial ,

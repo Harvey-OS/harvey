@@ -4,7 +4,7 @@ The IL protocol
 Dave Presotto
 Phil Winterbottom
 .sp
-presotto,philw@plan9.att.com
+presotto,philw@plan9.bell-labs.com
 .AB
 To transport the remote procedure call messages of the Plan 9 file system
 protocol 9P, we have implemented a new network protocol, called IL.

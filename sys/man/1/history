@@ -1,0 +1,79 @@
+.TH HISTORY 1
+.SH NAME
+history \- print file names from the dump
+.SH SYNOPSIS
+.B history
+[
+.B -vDu
+] [
+.B -d
+.I dumpfilesystem
+] [
+.B -s
+.I yymmdd
+]
+.I files ...
+.SH DESCRIPTION
+.I History
+prints the names, dates, and sizes of all versions of the named
+.IR files ,
+looking backwards in time,
+stored in the dump file system.
+For example,
+.IP
+.EX
+history /adm/users
+.EE
+.PP
+produces
+.IP
+.EX
+Jan  5 18:24:05 EST 1998 /adm/users 6945
+Dec 19 10:16:06 EST 1997 /n/dump/1998/0105/adm/users 6945
+Dec 16 11:37:12 EST 1997 /n/dump/1997/1219/adm/users 6926
+Dec  3 15:46:00 EST 1997 /n/dump/1997/1216/adm/users 6910
+	...
+.EE
+.PP
+The
+.B -v
+option enables verbose debugging printout.
+.PP
+The 
+.B -D
+option causes
+.IR diff (1)
+to be run for each adjacent pair of files, while
+.B -b
+runs
+.IR diff
+.BR -b .
+.PP
+The
+.B -u
+option causes times to be printed in GMT (UT) rather than local time.
+.PP
+The
+.B -d
+option selects some other dump filesystem such as
+.IR /n/bootesdump .
+.PP
+Finally, the
+.B -s
+option
+sets the starting (most recent) date for the output.
+.SH EXAMPLES
+.PP
+Check how often a user has been logged in.
+.IP
+.EX
+history /usr/ches/tmp
+.EE
+.SH FILES
+.B /n/dump
+.SH SOURCE
+.B /sys/src/cmd/history.c
+.SH SEE ALSO
+.IR fs (4)
+.br
+.IR yesterday (1)

@@ -118,13 +118,27 @@ Strcmp(String *a, String *b)
 	return i;
 }
 
+int
+Strispre(String *a, String *b)
+{
+	int i;
+
+	for(i=0; i<a->n && i<b->n; i++){
+		if(a->s[i] - b->s[i]){	/* assign = */
+			if(a->s[i] == 0)
+				return 1;
+			return 0;
+		}
+	}
+	return i == a->n;
+}
+
 char*
 Strtoc(String *s)
 {
 	int i;
 	char *c, *d;
 	Rune *r;
-
 	c = emalloc(s->n*UTFmax + 1);  /* worst case UTFmax bytes per rune, plus NUL */
 	d = c;
 	r = s->s;

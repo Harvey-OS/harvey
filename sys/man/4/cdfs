@@ -1,0 +1,135 @@
+.TH CDFS 4
+.SH NAME
+cdfs \- CD reader and writer file system
+.SH SYNOPSIS
+.B cdfs 
+[
+.B -d
+.I sddev
+]
+[
+.B -m
+.I mtpt
+]
+.SH DESCRIPTION
+.I Cdfs
+serves a one and a half level directory
+mounted at 
+.I mtpt
+(default
+.BR /mnt/cd )
+that provides access to the tracks
+on CDs placed in the CD reader or writer
+named by
+.I sddev
+(default
+.BR /dev/sdD0 ,
+see
+.IR sd (3)).
+.PP
+The top level directory contains one file
+per CD track.
+The files are named
+.IR cNNN ,
+where
+.I c
+is a type character
+.RB ( a
+for audio tracks
+and
+.B d
+for data tracks)
+and
+.I NNN
+is the track number.
+.PP
+If the device is capable of writing CDs
+and contains a writable CD, the top level
+directory also contains two empty
+directories
+.B wa
+and
+.BR wd .
+Files created in these directories
+appear in the top level directory
+as new audio or data tracks, regardless of name.
+.PP
+At any time, any number of tracks
+may be open for reading or a single track
+may be open for writing.
+Writing a CD track is a real-time operation:
+the CD writer must be kept saturated with
+new data to avoid buffer underruns.
+To ensure this, copying from a file system
+stored on local disk is recommended.
+.PP
+To fixate a CD (close a writable CD by writing
+its permanent table of contents), simply
+remove the 
+.B wa
+or
+.B wd
+directory.
+The directory removed selects whether
+the CD is fixated as an audio or data CD;
+since each track carries its own type information,
+very few readers care which fixation type was used.
+.PP
+The top level directory
+also contains a 
+.B ctl
+file, into which control messages
+may be echoed.
+The current control messages are:
+.TF "\fLquickblank "
+.TP
+.B blank
+Blank the entire rewritable CD in the drive.
+.TP
+.B quickblank
+Blank only the table of contents on the rewritable
+CD in the drive.
+.TP
+.B eject
+Eject the CD in the drive.
+.TP
+.B ingest
+Ingest a CD into the drive.
+.PP
+Only MMC-compliant CD readers and writers
+are supported, but it would be easy to add
+support for early CD writers if desired.
+.SH EXAMPLE
+Copy the audio tracks from a CD:
+.IP
+.EX
+cdfs -d /dev/sd05
+mkdir /tmp/songs
+cp /mnt/cd/a* /tmp/songs
+.EE
+.PP
+Copy the tracks onto a blank CD inserted in the drive,
+and then fixate the disk as an audio CD.
+.IP
+.EX
+cp /tmp/songs /mnt/cd/wa
+rm /mnt/cd/wa
+.EE
+.PP
+Cut your own 9660 CD-ROM, without
+spooling the CD image to a temporary file.
+.IP
+.EX
+disk/mk9660 -9cj -n notice cdproto >/mnt/cd/wd/foo
+rm /mnt/cd/wd
+.EE
+.SH SOURCE
+.B /sys/src/cmd/cdfs
+.SH SEE ALSO
+.IR sd (3),
+.I 9660srv
+(in
+.IR dossrv (4)),
+.IR mk9660 (8)
+.SH BUGS
+There should be support for DVDs.

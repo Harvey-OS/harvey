@@ -1,78 +1,235 @@
 #
-# This Plan 9 mkfile is for easy building.  To configure, use ape/sh and make
-# to create a new gconfig.h, remove all the .o's, and run mk normally.
-# use make -f plan9.mak
+# This Plan 9 mkfile is for ``easy'' building.
+# It worked for Ghostscript 5.70 - 5.91
 #
+# This mkfile consists of two parts: the first part builds the gs executable,
+# the second unpacks the gs distribution and sets configuration parameters.
+#
+# Place this mkfile in the root directory of the gs distribution (the gsX.XX dir)
+# Edit the drivers list below, and mk fake-make to let gs configure
+# itself.  Fake-make doesn't actually build very much.
+#
+# Then you can run mk normally.
+#
+# Be sure to have the jpeg, libpng, and zlib subdirectories before starting.
+# Note that the jpeg source directory has been renamed to jpeg rather
+# than jpeg-6a, in deference to the extraordinarily stubborn makefiles.
+#
+# Each time you change the drivers list you must rerun mk fake-make
+# before building.
+#
+# If you want to try out a new GS distribution, you should be able
+# to mk try-X.XX, test it out, and then do mk install-X.XX, where X.XX
+# is the version number (e.g. 5.70).  If outside BL, you may have to edit the
+# scripts to remove some local dependencies (e.g. calling outside and the
+# cpu call to thresher, alpha to make mips.h, alpha.h).
+#
+
 </$objtype/mkfile
+CPUS=386 mips
+
 BIN=/$objtype/bin
 
 TARG=gs
+OFILES=\
+	obj/gs.$O\
+	`{sed 's#^./obj/(.*)\.o .*#obj/\1.$O#' src/ld.tr >[2] /dev/null | sort}
 
-GEN = gconfig.$O gp_nofb.$O gp_unifn.$O gp_unifs.$O gp_unix.$O \
-	ialloc.$O ibnum.$O idebug.$O idict.$O idparam.$O igc.$O igcref.$O \
-	igcstr.$O iinit.$O iname.$O interp.$O iparam.$O isave.$O iscan.$O \
-	iscanbin.$O iscannum.$O iscantab.$O istack.$O iutil.$O iutil2.$O  \
-	sbcp.$O sbhc.$O sbits.$O sbwbs.$O scfd.$O scfdtab.$O scfe.$O \
-	scfetab.$O scftab.$O sdctc.$O sdctd.$O sdcte.$O seexec.$O sfile.$O \
-	sfilter1.$O sfilter2.$O shc.$O shcgen.$O sjpegc.$O sjpegd.$O \
-	sjpege.$O sjpegerr.$O slzwd.$O slzwe.$O sstring.$O stream.$O 
+# The first driver is the default.
+DRIVERS=\
+	inferno\
+	bj10e\
+	bjc600\
+	bjc800\
+	cdj1600\
+	cdj670\
+	cdj850\
+	cdj890\
+	dfaxlow\
+	epswrite\
+	jpeg\
+	jpeggray\
+	laserjet\
+	ljet2p\
+	ljet3\
+	ljet3d\
+	ljet4\
+	pbm\
+	pbmraw\
+	pdfwrite\
+	pgm\
+	pgmraw\
+	plan9bm\
+	pnm\
+	pnmraw\
+	ppm\
+	ppmraw\
+	pswrite\
+	tiffg32d\
+	tiffg3\
+	tiffg4\
 
-GS = gs.$O gsbitops.$O gschar.$O gschar0.$O gscie.$O gscolor.$O \
-	gscolor1.$O gscolor2.$O gscoord.$O gscsepr.$O gsdevice.$O \
-	gsdparam.$O gsdps1.$O gsfont.$O gsfont0.$O gsht.$O gsht1.$O \
-	gshtscr.$O gsimage.$O gsimage1.$O gsimage2.$O gsimage3.$O \
-	gsimpath.$O gsiodev.$O gsiscale.$O gsline.$O gsmain.$O \
-	gsmatrix.$O gsmemory.$O gsmisc.$O gspaint.$O gspath.$O \
-	gspath2.$O gspcolor.$O gsstate.$O gstype1.$O gsutil.$O gswppm.$O
+HFILES=$objtype.h\
+	arch.h\
 
-GDEV = gdevabuf.$O gdevdfax.$O gdevm1.$O gdevm16.$O gdevm2.$O \
-	gdevm24.$O gdevm32.$O gdevm4.$O gdevm8.$O gdevmem.$O \
-	gdevmpla.$O gdevpbm.$O gdevpipe.$O gdevprn.$O gdevtfax.$O 
-
-GX = gxacpath.$O gxccache.$O gxccman.$O gxcht.$O gxclip2.$O \
-	gxclist.$O gxclread.$O gxcmap.$O gxcpath.$O gxdcconv.$O \
-	gxdither.$O gxdraw.$O gxfill.$O gxhint1.$O gxhint2.$O gxhint3.$O \
-	gxht.$O gxpath.$O gxpath2.$O gxpcmap.$O gxpcopy.$O gxstroke.$O
-
-JPEG = jcapi.$O jccoefct.$O jccolor.$O jcdctmgr.$O jchuff.$O jcmainct.$O \
-	jcmarker.$O jcmaster.$O jcomapi.$O jcparam.$O jcprepct.$O \
-	jcsample.$O jdapi.$O jdcoefct.$O jdcolor.$O jddctmgr.$O jdhuff.$O \
-	jdmainct.$O jdmarker.$O jdmaster.$O jdpostct.$O jdsample.$O \
-	jfdctint.$O jidctint.$O jmemmgr.$O jutils.$O
-
-
-Z = zarith.$O zarray.$O zbseq.$O zchar.$O zchar1.$O zchar2.$O zcie.$O \
-	zcolor.$O zcolor1.$O zcolor2.$O zcontrol.$O zcsindex.$O zcssepr.$O \
-	zdevice.$O zdevice2.$O zdict.$O zdps1.$O zfbcp.$O zfdctc.$O \
-	zfdctd.$O zfdcte.$O zfdecode.$O zfile.$O zfileio.$O zfilter.$O \
-	zfilter2.$O zfname.$O zfont.$O zfont0.$O zfont1.$O zfont2.$O \
-	zfproc.$O zgeneric.$O zgstate.$O zht.$O zht1.$O zht2.$O zimage2.$O \
-	ziodev.$O ziodev2.$O zmath.$O zmatrix.$O zmisc.$O zmisc1.$O \
-	zmisc2.$O zpacked.$O zpaint.$O zpath.$O zpath2.$O zpcolor.$O \
-	zrelbit.$O zstack.$O zstring.$O zsysvm.$O ztoken.$O ztype.$O \
-	zupath.$O zvmem.$O zvmem2.$O
-
-HFILES = $objtype.h
-OFILES = $GEN $GDEV $GS $GX $JPEG $Z
+# enforce some startup conditions
+x=`{mkdir obj >[2]/dev/null; mv jpeg/jmorecfg.h jpeg/jmorecfg.h.save >[2] /dev/null}
 
 </sys/src/cmd/mkone
 
-%.$O:	jpeg-5/%.c
-	cp jpeg-5/$stem.c .; $CC $CFLAGS $stem.c; rm -f $stem.c
-
-#use genarch to build $objtype.h.  genarch must run on same cpu type.
-genarch:	genarch.c
-	if(! ~ $objtype $cputype) {echo can''''t build $objtype on $cputype; exit false}
-	rfork e
-	objtype=$cputype
-	pcc -o genarch genarch.c
-
-$objtype.h:	genarch
-	genarch $objtype.h
-	rm -f genarch
-
-gconfig.$O:	gconfig.c gconfig.h
-	pcc -c -DPlan9 '-DGS_INIT="gs_init.ps"' gconfig.c
-
 CC=pcc
-CFLAGS=-c -DPlan9 -D_POSIX_SOURCE -D_BSD_EXTENSION -Ijpeg-5 -DT$objtype
+CFLAGS=-c -DPlan9 -D_POSIX_SOURCE -D_BSD_EXTENSION\
+	-I. -Isrc -Ijpeg -Izlib -DT$objtype '-DGS_INIT="gs_init.ps"'
+
+# stripping the binary (-s) reduces it from 8MB to 1.5MB
+LDFLAGS=-s
+
+obj/gconfig.$O obj/gconf.$O obj/gscdef.$O\
+ obj/gscdefs.$O obj/iconf.$O obj/iconfig.$O: src/gconfig.h
+
+obj/%.$O:	jpeg/%.c
+	$CC $CFLAGS jpeg/$stem.c; mv $stem.$O obj
+
+obj/%.$O:	zlib/%.c
+	$CC $CFLAGS zlib/$stem.c; mv $stem.$O obj
+
+obj/%.$O:	src/%.c
+	$CC $CFLAGS src/$stem.c; mv $stem.$O obj
+
+#if possible, use genarch to build $objtype.h; it must run on same cpu type.
+#if not, try to use a default header for the target architecture.
+$objtype.h:	$O.genarch
+	if(~ $objtype $cputype) {
+		$O.genarch $target
+		rm -f $O.genarch
+	}
+	if not {
+		if (test -r default.$objtype.h)
+			cp default.$objtype.h $target
+		if not {
+			echo 'no default header file for target architecture'
+			echo 'run mk on the target architecture to build one'
+			exit false
+		}
+	}
+
+$O.genarch:U:	src/genarch.c
+	if(~ $objtype $cputype) {
+		rfork e
+		objtype=$cputype
+		pcc -B -o $O.genarch src/genarch.c
+	}
+	if not
+		status=''
+
+libinstall:V:
+	cp lib/* /sys/lib/ghostscript
+
+nuke clean:V:
+	rm -f *.[$OS] obj/* [$OS].out y.tab.? y.debug y.output $TARG
+
+#################################################################################
+
+fake-make:V: src/plan9.mak src/plan9-aux.mak fakecc
+	cp jpeg/jmorecfg.h.save jpeg/jmorecfg.h
+	ape/psh -c 'CC=fakecc make -f src/plan9.mak'
+	rm -f jpeg/jmorecfg.h
+	cp obj/*.c obj/*.h obj/ld.tr src
+	rm -f src/arch.h
+	rm -f obj/*
+	rm -f fakecc
+
+real-make:V: src/plan9.mak src/plan9-aux.mak
+	ape/psh -c 'CC=cc make -f src/plan9.mak'
+
+fakecc:V:
+	echo '#!/bin/rc
+		if(~ ./obj/genconf $* || ~ ./obj/genarch $* || ~ ./obj/echogs $*) cc $*
+		status='''' ' >$target
+	chmod +x $target
+
+src/plan9.mak:	src/unixansi.mak
+	devlist='$(DD)'^$DRIVERS^'.dev'
+	devlist=$"devlist
+	sed 's#^GS_LIB_DEFAULT=.*#GS_LIB_DEFAULT=/sys/lib/ghostscript:/sys/lib/ghostscript/font:/sys/lib/postscript/font#
+		s#^XCFLAGS=.*#XCFLAGS=-D_BSD_EXTENSION -DPlan9#
+		s#^CFLAGS_STANDARD=.*#CFLAGS_STANDARD=#
+		s#^include \$\(.*\)/(.*)#include src/\1#
+		s#unix-aux.mak#plan9-aux.mak#
+		s#gsdatadir *=.*#gsdatadir=/sys/src/cmd/gs#
+		s#DEVICE_DEVS=.*#DEVICE_DEVS='$devlist'#
+		s#(DEVICE_DEVS[0-9]+)=.*#\1=#' $prereq >$target
+
+src/plan9-aux.mak:	src/unix-aux.mak
+	sed 's#^INCLUDE=.*#INCLUDE=/sys/include/ape#' $prereq >$target
+
+try-%:V:	gs%/$O.out
+	bind gs$stem/$O.out /bin/gs
+	bind -b gs$stem/lib /sys/lib/ghostscript
+	echo 'give it a whirl'
+
+gs([0-9]+\.[0-9]+)/$O.out:R:	gs\1/src
+	@{ cd gs$stem1
+	for(i in jpeg zlib libpng)
+		bind -c ../$i $i
+	if(! test -f src/ld.tr)
+		mk fake-make
+	cp ../arch.h .
+	mk $O.out
+	for(i in jpeg zlib libpng)
+		unmount $i || status=''
+	}
+
+gs%/src:	ghostscript-%.tar.gz
+	rm -rf gs$stem
+	pub/gzip -d < ghostscript-$stem.tar.gz | tar x
+	chmod g+w gs$stem/* gs$stem/*/*
+	# local drivers
+	cp src/gdevifno.c gs$stem/src/gdevifno.c
+	# local conventions
+	ed gs$stem/lib/gs_init.ps <fixSAFER.ed
+	mkdir gs$stem/^(jpeg obj zlib libpng)
+	echo '<../mkfile' >gs$stem/mkfile
+	cp default.*.h gs$stem
+	@{cd gs$stem; mk startover}
+
+ghostscript-%.tar.gz:
+	outside
+	uget -o $target http://download.sourceforge.net/ghostscript/$target
+#	ftpfs -a $user^'@' ftp.cs.wisc.edu
+#	cp /n/ftp/ghost/aladdin/*/ghostscript-$stem.tar.gz .
+
+startover:V:
+	rm -rf obj/*
+	rm -f src/ld.tr
+	rm -f src/plan9.mak src/plan9-aux.mak
+
+install-%:V:
+	unmount /bin/gs || status=''
+	unmount /sys/lib/ghostscript || status=''
+	mk installsrc-$stem
+	cpu -h thresher -c 'mk mips.h' || status=''
+	cpu -h alpha -c 'mk alpha.h' || status=''
+	mk all
+	mk installall
+	for(i in lib/*.ps)
+		if(! cmp $i /sys/lib/ghostscript/^`{basename $i} >/dev/null)
+			cp $i /sys/lib/ghostscript
+	cp /sys/lib/ghostscript/pdf_sec-ps.bak /sys/lib/ghostscript/pdf_sec.ps
+
+installsrc-%:V:	gs%/$O.out
+	pwd=`{pwd}
+	# don't accidentally do this from gsX.XX
+	if(! ~ $pwd */gs)
+		echo 'i don''t think you meant to do that' && exit oops
+	if(! cmp src/version.mak gs$stem/src/version.mak) {
+		rm -rf doc examples lib man obj src
+		@{cd gs$stem; tar c doc examples lib man src} | tar xT
+		mk clean
+	}
+	status=''
+
+clean-%:V:
+	for (i in gs$stem/*)
+		unmount $i >[2]/dev/null || status=''
+	rm -rf gs$stem ghostscript-$stem.tar.gz

@@ -182,8 +182,8 @@ void inline(void)
 	printf("\\*(%d\n", ds);
 	printf(".lf %d\n", curfile->lineno+1);
 	if (curfile->lineno > n+3)
-		fprintf(stderr, "eqn warning: multi-line %c...%c, lines %d-%d, file %s\n",
-			lefteq, righteq, n, curfile->lineno, curfile->fname); 
+		fprintf(stderr, "eqn warning: multi-line %c...%c, file %s:%d,%d\n",
+			lefteq, righteq, curfile->fname, n, curfile->lineno); 
 	sfree(ds);
 	if (sz1) sfree(sz1);
 }

@@ -9,7 +9,7 @@ rega(void)
 
 	r = freer;
 	if(r == R) {
-		ALLOC(r, Reg);
+		r = alloc(sizeof(*r));
 	} else
 		freer = r->link;
 
@@ -18,13 +18,13 @@ rega(void)
 }
 
 int
-rcmp(void *a1, void *a2)
+rcmp(const void *a1, const void *a2)
 {
 	Rgn *p1, *p2;
 	int c1, c2;
 
-	p1 = a1;
-	p2 = a2;
+	p1 = (Rgn*)a1;
+	p2 = (Rgn*)a2;
 	c1 = p2->cost;
 	c2 = p1->cost;
 	if(c1 -= c2)
@@ -38,7 +38,7 @@ regopt(Prog *p)
 	Reg *r, *r1, *r2;
 	Prog *p1;
 	int i, z;
-	long initpc, val;
+	long initpc, val, npc;
 	ulong vreg;
 	Bits bit;
 	struct
@@ -288,6 +288,7 @@ regopt(Prog *p)
 	if(firstr == R)
 		return;
 	initpc = pc - val;
+	npc = val;
 
 	/*
 	 * pass 2
@@ -336,11 +337,11 @@ regopt(Prog *p)
 	for(r = firstr; r != R; r = r->link)
 		r->active = 0;
 	change = 0;
-	loopit(firstr);
+	loopit(firstr, npc);
 	if(debug['R'] && debug['v']) {
 		print("\nlooping structure:\n");
 		for(r = firstr; r != R; r = r->link) {
-			print("%d:%P", r->loop, r->prog);
+			print("%ld:%P", r->loop, r->prog);
 			for(z=0; z<BITS; z++)
 				bit.b[z] = r->use1.b[z] |
 					   r->use2.b[z] |
@@ -570,7 +571,7 @@ addmove(Reg *r, int bn, int rn, int f)
 	Adr *a;
 	Var *v;
 
-	ALLOC(p1,Prog);
+	p1 = alloc(sizeof(*p1));
 	*p1 = zprog;
 	p = r->prog;
 
@@ -674,7 +675,8 @@ mkvar(Reg *r, Adr *a)
 		v++;
 	}
 	if(nvar >= NVAR) {
-		warn(Z, "variable not optimized: %s", s->name);
+		if(debug['w'] > 1 && s)
+			warn(Z, "variable not optimized: %s", s->name);
 		goto none;
 	}
 	i = nvar;
@@ -760,37 +762,140 @@ prop(Reg *r, Bits ref, Bits cal)
 			prop(r2, r->refbehind, r->calbehind);
 }
 
-int
-loopit(Reg *r)
+/*
+ * find looping structure
+ *
+ * 1) find reverse postordering
+ * 2) find approximate dominators,
+ *	the actual dominators if the flow graph is reducible
+ *	otherwise, dominators plus some other non-dominators.
+ *	See Matthew S. Hecht and Jeffrey D. Ullman,
+ *	"Analysis of a Simple Algorithm for Global Data Flow Problems",
+ *	Conf.  Record of ACM Symp. on Principles of Prog. Langs, Boston, Massachusetts,
+ *	Oct. 1-3, 1973, pp.  207-217.
+ * 3) find all nodes with a predecessor dominated by the current node.
+ *	such a node is a loop head.
+ *	recursively, all preds with a greater rpo number are in the loop
+ */
+long
+postorder(Reg *r, Reg **rpo2r, long n)
 {
 	Reg *r1;
-	int l, m;
 
-	l = 0;
-	r->active = 1;
-	r->loop = 0;
-	if(r1 = r->s1)
-	switch(r1->active) {
-	case 0:
-		l += loopit(r1);
-		break;
-	case 1:
-		l += LOOP;
-		r1->loop += LOOP;
+	r->rpo = 1;
+	r1 = r->s1;
+	if(r1 && !r1->rpo)
+		n = postorder(r1, rpo2r, n);
+	r1 = r->s2;
+	if(r1 && !r1->rpo)
+		n = postorder(r1, rpo2r, n);
+	rpo2r[n] = r;
+	n++;
+	return n;
+}
+
+long
+rpolca(long *idom, long rpo1, long rpo2)
+{
+	long t;
+
+	if(rpo1 == -1)
+		return rpo2;
+	while(rpo1 != rpo2){
+		if(rpo1 > rpo2){
+			t = rpo2;
+			rpo2 = rpo1;
+			rpo1 = t;
+		}
+		while(rpo1 < rpo2){
+			t = idom[rpo2];
+			if(t >= rpo2)
+				sysfatal("bad idom");
+			rpo2 = t;
+		}
 	}
-	if(r1 = r->s2)
-	switch(r1->active) {
-	case 0:
-		l += loopit(r1);
-		break;
-	case 1:
-		l += LOOP;
-		r1->loop += LOOP;
+	return rpo1;
+}
+
+int
+doms(long *idom, long r, long s)
+{
+	while(s > r)
+		s = idom[s];
+	return s == r;
+}
+
+int
+loophead(long *idom, Reg *r)
+{
+	long src;
+
+	src = r->rpo;
+	if(r->p1 != R && doms(idom, src, r->p1->rpo))
+		return 1;
+	for(r = r->p2; r != R; r = r->p2link)
+		if(doms(idom, src, r->rpo))
+			return 1;
+	return 0;
+}
+
+void
+loopmark(Reg **rpo2r, long head, Reg *r)
+{
+	if(r->rpo < head || r->active == head)
+		return;
+	r->active = head;
+	r->loop += LOOP;
+	if(r->p1 != R)
+		loopmark(rpo2r, head, r->p1);
+	for(r = r->p2; r != R; r = r->p2link)
+		loopmark(rpo2r, head, r);
+}
+
+void
+loopit(Reg *r, long nr)
+{
+	Reg *r1, **rpo2r;
+	long i, d, me, *idom;
+
+	rpo2r = malloc(nr * sizeof(Reg*));
+	idom = malloc(nr * sizeof(long));
+	if(rpo2r == nil)
+		sysfatal("out of memory");
+	d = postorder(r, rpo2r, 0);
+	if(d > nr)
+		sysfatal("too many reg nodes");
+	nr = d;
+	for(i = 0; i < nr / 2; i++){
+		r1 = rpo2r[i];
+		rpo2r[i] = rpo2r[nr - 1 - i];
+		rpo2r[nr - 1 - i] = r1;
 	}
-	r->active = 2;
-	m = r->loop;
-	r->loop = l + 1;
-	return l - m;
+	for(i = 0; i < nr; i++)
+		rpo2r[i]->rpo = i;
+
+	idom[0] = 0;
+	for(i = 0; i < nr; i++){
+		r1 = rpo2r[i];
+		me = r1->rpo;
+		d = -1;
+		if(r1->p1 != R && r1->p1->rpo < me)
+			d = r1->p1->rpo;
+		for(r1 = r1->p2; r1 != nil; r1 = r1->p2link)
+			if(r1->rpo < me)
+				d = rpolca(idom, d, r1->rpo);
+		idom[i] = d;
+	}
+
+	for(i = 0; i < nr; i++){
+		r1 = rpo2r[i];
+		r1->loop++;
+		if(r1->p2 != R && loophead(idom, r1))
+			loopmark(rpo2r, i, r1);
+	}
+
+	free(rpo2r);
+	free(idom);
 }
 
 void
@@ -837,6 +942,8 @@ allreg(ulong b, Rgn *r)
 	case TUCHAR:
 	case TSHORT:
 	case TUSHORT:
+	case TINT:
+	case TUINT:
 	case TLONG:
 	case TULONG:
 	case TIND:
@@ -848,7 +955,6 @@ allreg(ulong b, Rgn *r)
 		}
 		break;
 
-	case TVLONG:
 	case TDOUBLE:
 	case TFLOAT:
 		break;
@@ -884,7 +990,7 @@ paint1(Reg *r, int bn)
 	if(LOAD(r) & ~(r->set.b[z]&~(r->use1.b[z]|r->use2.b[z])) & bb) {
 		change -= CLOAD * r->loop;
 		if(debug['R'] && debug['v'])
-			print("%d%P%|ld %B $%d\n", r->loop,
+			print("%ld%P%|ld %B $%d\n", r->loop,
 				r->prog, COL1, blsh(bn), change);
 	}
 	for(;;) {
@@ -897,7 +1003,7 @@ paint1(Reg *r, int bn)
 				if(BtoR(bb) != D_F0)
 					change = -CINF;
 			if(debug['R'] && debug['v'])
-				print("%d%P%|u1 %B $%d\n", r->loop,
+				print("%ld%P%|u1 %B $%d\n", r->loop,
 					p, COL1, blsh(bn), change);
 		}
 
@@ -907,7 +1013,7 @@ paint1(Reg *r, int bn)
 				if(BtoR(bb) != D_F0)
 					change = -CINF;
 			if(debug['R'] && debug['v'])
-				print("%d%P%|u2 %B $%d\n", r->loop,
+				print("%ld%P%|u2 %B $%d\n", r->loop,
 					p, COL1, blsh(bn), change);
 		}
 
@@ -917,7 +1023,7 @@ paint1(Reg *r, int bn)
 				if(BtoR(bb) != D_F0)
 					change = -CINF;
 			if(debug['R'] && debug['v'])
-				print("%d%P%|st %B $%d\n", r->loop,
+				print("%ld%P%|st %B $%d\n", r->loop,
 					p, COL1, blsh(bn), change);
 		}
 
@@ -1124,7 +1230,7 @@ long
 RtoB(int r)
 {
 
-	switch(r < D_AX || r > D_DI || r == D_SP)
+	if(r < D_AX || r > D_DI)
 		return 0;
 	return 1L << (r-D_AX);
 }

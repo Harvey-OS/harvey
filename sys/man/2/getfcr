@@ -17,25 +17,6 @@ ulong getfsr(void)
 .PP
 .B
 void setfsr(ulong fsr)
-.PP
-.B
-/* Alef only */
-.PP
-.B #include <arch.h>
-.br
-.B #include <alef.h>
-.PP
-.B
-uint getfcr()
-.PP
-.B
-void setfcr(uint fcr)
-.PP
-.B
-uint getfsr()
-.PP
-.B
-void setfsr(uint fsr)
 .SH DESCRIPTION
 These routines provide a fairly portable interface to control the
 rounding and exception characteristics of IEEE 754 floating point units.
@@ -61,9 +42,11 @@ contains bits that, when set, enable exceptions:
 .B FPOVFL
 (enable overflow exceptions),
 .B FPUNFL
-(enable underflow exceptions), and
+(enable underflow exceptions),
 .B FPZDIV
-(enable zero divide exceptions).
+(enable zero divide exceptions), and
+.B FPINVAL
+(enable invalid operation exceptions).
 Rounding is controlled by installing in
 .BR fcr ,
 under mask
@@ -95,8 +78,9 @@ holds the accrued exception bits
 .BR FPAINEX ,
 .BR FPAOVFL ,
 .BR FPAUNFL ,
-and
 .BR FPAZDIV ,
+and
+.BR FPAINVAL ,
 corresponding to the
 .B fsr
 bits without the
@@ -117,11 +101,6 @@ to provide what the hardware does most efficiently.
 Use these routines
 if you need guaranteed behavior.
 Also, gradual underflow is not available on some machines.
-.SS Alef
-The specification for these routines is the same in Alef, except that
-these functions (and only these functions) need the machine-dependent
-include file
-.BR /$objtype/include/alef/arch.h .
 .SH EXAMPLE
 To enable overflow traps and make sure registers are rounded
 to double precision (for example on the MC68020, where the

@@ -39,7 +39,3 @@ in the PCMCIA driver.
 .IR plan9.ini (8)
 .SH BUGS
 There is no driver for the Databook PCMCIA interface chip.
-.br
-The PCMCIA section of the system is new and less reliable than
-other pieces of the system.
-Also, its coverage of devices is spotty.

@@ -140,6 +140,19 @@ enum	as
 	ADYNT,
 	AINIT,
 
+	ABCASE,
+	ACASE,
+
+	ATRUNCFV,
+	ATRUNCDV,
+	ATRUNCFW,
+	ATRUNCDW,
+	AMOVWU,
+	AMOVFV,
+	AMOVDV,
+	AMOVVF,
+	AMOVVD,
+
 	ALAST,
 };
 
@@ -150,6 +163,10 @@ enum	as
 /* type */
 #define	D_BRANCH (D_NONE+1)
 #define	D_OREG	(D_NONE+2)
+#define	D_EXTERN (D_NONE+3)	/* name */
+#define	D_STATIC (D_NONE+4)	/* name */
+#define	D_AUTO	(D_NONE+5)	/* name */
+#define	D_PARAM	(D_NONE+6)	/* name */
 #define	D_CONST	(D_NONE+7)
 #define	D_FCONST (D_NONE+8)
 #define	D_SCONST (D_NONE+9)
@@ -162,12 +179,7 @@ enum	as
 #define	D_FILE	(D_NONE+16)
 #define	D_OCONST (D_NONE+17)
 #define	D_FILE1	(D_NONE+18)
-
-/* name */
-#define	D_EXTERN (D_NONE+3)
-#define	D_STATIC (D_NONE+4)
-#define	D_AUTO	(D_NONE+5)
-#define	D_PARAM	(D_NONE+6)
+#define	D_VCONST (D_NONE+19)
 
 /*
  * this is the ranlib header

@@ -1,28 +1,45 @@
-objtype=386
 < /$objtype/mkfile
-CPUS=386
 BIN=/$objtype/bin/aux
+
+#
+# For systems based on the Plan 9 Distribution CD set
+#	DIST=dist
+#
+DIST=
 
 TARG=vga
 
 OFILES=\
+	ark2000pv.$O\
 	att20c49x.$O\
 	att21c498.$O\
 	bt485.$O\
 	ch9294.$O\
 	clgd542x.$O\
+	clgd546x.$O\
+	ct65540.$O\
+	cyber938x.$O\
 	data.$O\
 	db.$O\
+	error$DIST.$O\
 	et4000.$O\
 	et4000hwgc.$O\
+	hiqvideo.$O\
 	ibm8514.$O\
 	icd2061a.$O\
 	ics2494.$O\
+	ics534x.$O\
 	io.$O\
 	mach32.$O\
 	mach64.$O\
+	mach64xx.$O\
 	main.$O\
+	mga2164w.$O\
+	neomagic.$O\
 	palette.$O\
+	pci.$O\
+	rgb524.$O\
+	rgb524mn.$O\
 	s3801.$O\
 	s3928.$O\
 	s3clock.$O\
@@ -30,12 +47,25 @@ OFILES=\
 	s3hwgc.$O\
 	sc15025.$O\
 	stg1702.$O\
+	t2r4.$O\
+	trio64.$O\
 	tvp3020.$O\
 	tvp3025.$O\
 	tvp3025clock.$O\
+	tvp3026.$O\
+	tvp3026clock.$O\
 	vga.$O\
+	virge.$O\
 	vision864.$O\
+	vision964.$O\
+	vision968.$O\
+	w30c516.$O\
 
 HFILES=vga.h
 
 </sys/src/cmd/mkone
+
+pci.$O:	pci.h
+
+adjust:	adjust.$O error$DIST.$O io.$O vga.$O palette.$O
+	$LD -o $target $prereq

@@ -1,6 +1,9 @@
 #include "common.h"
 #include "send.h"
 
+#include "../smtp/smtp.h"
+#include "../smtp/y.tab.h"
+
 /* global to this file */
 static Reprog *rfprog;
 static Reprog *fprog;
@@ -8,17 +11,24 @@ static Reprog *fprog;
 #define VMLIMIT (64*1024)
 #define MSGLIMIT (128*1024*1024)
 
-extern void
+int received;	/* from rfc822.y */
+
+extern int
 default_from(message *mp)
 {
-	char *cp;
+	char *cp, *lp;
 
 	cp = getenv("upasname");
-	if(cp)
+	lp = getlog();
+	if(lp == nil)
+		return -1;
+
+	if(cp && *cp)
 		s_append(mp->sender, cp);
 	else
-		s_append(mp->sender, getlog());
+		s_append(mp->sender, lp);
 	s_append(mp->date, thedate());
+	return 0;
 }
 
 extern message *
@@ -31,6 +41,7 @@ m_new(void)
 		perror("message:");
 		exit(1);
 	}
+	memset(mp, 0, sizeof(*mp));
 	mp->sender = s_new();
 	mp->replyaddr = s_new();
 	mp->date = s_new();
@@ -45,7 +56,7 @@ m_free(message *mp)
 {
 	if(mp->fd >= 0){
 		close(mp->fd);
-		remove(s_to_c(mp->tmp));
+		sysremove(s_to_c(mp->tmp));
 		s_free(mp->tmp);
 	}
 	s_free(mp->sender);
@@ -65,12 +76,12 @@ m_read_to_file(Biobuf *fp, message *mp)
 
 	file = s_new();
 	/*
-	 *  create and unlink temp file
+	 *  create temp file to be remove on close
 	 */
-	abspath("tmp/mtXXXXXX", MAILROOT, file);
+	abspath("mtXXXXXX", UPASTMP, file);
 	mktemp(s_to_c(file));
-	if((fd = syscreate(s_to_c(file), 0600))<0){
-		s_free(mp->tmp);
+	if((fd = syscreate(s_to_c(file), ORDWR|ORCLOSE, 0600))<0){
+		s_free(file);
 		return -1;
 	}
 	mp->tmp = file;
@@ -94,15 +105,89 @@ m_read_to_file(Biobuf *fp, message *mp)
 	return 0;
 }
 
+/* fix 822 addresses */
+static void
+rfc822cruft(message *mp)
+{
+	Field *f;
+	Node *p;
+	String *body, *s;
+	char *cp;
+
+	/*
+	 *  parse headers in in-core part
+	 */
+	yyinit(s_to_c(mp->body));
+	mp->rfc822headers = 0;
+	yyparse();
+	mp->rfc822headers = 1;
+	mp->received = received;
+
+	/*
+	 *  remove equivalent systems in all addresses
+	 */
+	body = s_new();
+	cp = s_to_c(mp->body);
+	for(f = firstfield; f; f = f->next){
+		if(f->node->c == MIMEVERSION)
+			mp->havemime = 1;
+		if(f->node->c == FROM)
+			mp->havefrom = 1;
+		if(f->node->c == TO)
+			mp->haveto = 1;
+		if(f->node->c == DATE)
+			mp->havedate = 1;
+		if(f->node->c == SUBJECT)
+			mp->havesubject = 1;
+		if(f->node->c == PRECEDENCE && f->node->next && f->node->next->next){
+			s = f->node->next->next->s;
+			if(s && (strcmp(s_to_c(s), "bulk") == 0
+				|| strcmp(s_to_c(s), "Bulk") == 0))
+					mp->bulk = 1;
+		}
+		for(p = f->node; p; p = p->next){
+			if(p->s){
+				if(p->addr){
+					cp = skipequiv(s_to_c(p->s));
+					s_append(body, cp);
+				} else 
+					s_append(body, s_to_c(p->s));
+			}else{
+				s_putc(body, p->c);
+				s_terminate(body);
+			}
+			if(p->white)
+				s_append(body, s_to_c(p->white));
+			cp = p->end+1;
+		}
+		s_append(body, "\n");
+	}
+
+	if(*s_to_c(body) == 0){
+		s_free(body);
+		return;
+	}
+
+	if(*cp != '\n')
+		s_append(body, "\n");
+	s_memappend(body, cp, s_len(mp->body) - (cp - s_to_c(mp->body)));
+	s_terminate(body);
+
+	firstfield = 0;
+	mp->size += s_len(body) - s_len(mp->body);
+	s_free(mp->body);
+	mp->body = body;
+}
+
 /* read in a message, interpret the 'From' header */
 extern message *
-m_read(Biobuf *fp, int rmail)
+m_read(Biobuf *fp, int rmail, int interactive)
 {
 	message *mp;
 	Resub subexp[10];
+	char *line;
 	int first;
 	int n;
-
 
 	mp = m_new();
 
@@ -138,27 +223,49 @@ m_read(Biobuf *fp, int rmail)
 			first = 0;
 		}
 		s_append(mp->sender, s_to_c(sender));
+
 		s_free(sender);
 	}
-	if (*s_to_c(mp->sender)=='\0')
+	if(*s_to_c(mp->sender)=='\0')
 		default_from(mp);
 
-	/*
-	 *  read up to VMLIMIT bytes (more or less) into main memory.
-	 *  if message is longer put the rest in a tmp file.
-	 */
-	mp->size = mp->body->ptr - mp->body->base;
-	n = s_read(fp, mp->body, VMLIMIT);
-	if(n < 0){
-		perror("m_read");
-		exit(1);
-	}
-	mp->size += n;
-	if(n == VMLIMIT){
-		if(m_read_to_file(fp, mp) < 0){
+	/* if sender address is unreturnable, treat message as bulk mail */
+	if(!returnable(s_to_c(mp->sender)))
+		mp->bulk = 1;
+
+	/* get body */
+	if(interactive && !rmail){
+		/* user typing on terminal: terminator == '.' or EOF */
+		for(;;) {
+			line = s_read_line(fp, mp->body);
+			if (line == 0)
+				break;
+			if (strcmp(".\n", line)==0) {
+				mp->body->ptr -= 2;
+				*mp->body->ptr = '\0';
+				break;
+			}
+		}
+		mp->size = mp->body->ptr - mp->body->base;
+	} else {
+		/*
+		 *  read up to VMLIMIT bytes (more or less) into main memory.
+		 *  if message is longer put the rest in a tmp file.
+		 */
+		mp->size = mp->body->ptr - mp->body->base;
+		n = s_read(fp, mp->body, VMLIMIT);
+		if(n < 0){
 			perror("m_read");
 			exit(1);
 		}
+		mp->size += n;
+		if(n == VMLIMIT){
+			if(m_read_to_file(fp, mp) < 0){
+				perror("m_read");
+				exit(1);
+			}
+		}
+
 	}
 
 	/*
@@ -166,6 +273,8 @@ m_read(Biobuf *fp, int rmail)
 	 */
 	if (!rmail && mp->size == 0)
 		return 0;
+
+	rfc822cruft(mp);
 
 	return mp;
 }
@@ -185,7 +294,7 @@ m_get(message *mp, long offset, char **pp)
 	/*
 	 *  are we in the virtual memory portion?
 	 */
-	if(offset < mp->body->ptr - mp->body->base){
+	if(offset < s_len(mp->body)){
 		*pp = mp->body->base + offset;
 		return mp->body->ptr - mp->body->base - offset;
 	}
@@ -193,7 +302,7 @@ m_get(message *mp, long offset, char **pp)
 	/*
 	 *  read it from the temp file
 	 */
-	offset -= mp->body->ptr - mp->body->base;
+	offset -= s_len(mp->body);
 	if(mp->fd < 0)
 		return -1;
 	if(seek(mp->fd, offset, 0)<0)
@@ -260,16 +369,122 @@ m_escape(message *mp, Biobuf *fp)
 	return 0;
 }
 
+static int
+printfrom(message *mp, Biobuf *fp)
+{
+	String *s;
+	int rv;
+
+	if(!returnable(s_to_c(mp->sender)))
+		return Bprint(fp, "From: Postmaster\n");
+
+	s = username(mp->sender);
+	if(s) {
+		s_append(s, " <");
+		s_append(s, s_to_c(mp->sender));
+		s_append(s, ">");
+	} else {
+		s = s_copy(s_to_c(mp->sender));
+	}
+	s = unescapespecial(s);
+	rv = Bprint(fp, "From: %s\n", s_to_c(s));
+	s_free(s);
+	return rv;
+}
+
+static char *
+rewritezone(char *z)
+{
+	int mindiff;
+	char s;
+	Tm *tm;
+	static char x[7];
+
+	tm = localtime(time(0));
+	mindiff = tm->tzoff/60;
+
+	/* if not in my timezone, don't change anything */
+	if(strcmp(tm->zone, z) != 0)
+		return z;
+
+	if(mindiff < 0){
+		s = '-';
+		mindiff = -mindiff;
+	} else
+		s = '+';
+
+	sprint(x, "%c%.2d%.2d", s, mindiff/60, mindiff%60);
+	return x;
+}
+
+int
+isutf8(String *s)
+{
+	char *p;
+	
+	for(p = s_to_c(s);  *p; p++)
+		if(*p&0x80)
+			return 1;
+	return 0;
+}
+
+void
+printutf8mime(Biobuf *b)
+{
+	Bprint(b, "MIME-Version: 1.0\n");
+	Bprint(b, "Content-Type: text/plain; charset=\"UTF-8\"\n");
+	Bprint(b, "Content-Transfer-Encoding: 8bit\n");
+}
+
 /* output a message */
 extern int
 m_print(message *mp, Biobuf *fp, char *remote, int mbox)
 {
+	String *date, *sender;
+	char *f[6];
+	int n;
+
+	sender = unescapespecial(s_clone(mp->sender));
+
 	if (remote != 0){
-		if(print_remote_header(fp,s_to_c(mp->sender),s_to_c(mp->date),remote) < 0)
+		if(print_remote_header(fp,s_to_c(sender),s_to_c(mp->date),remote) < 0){
+			s_free(sender);
 			return -1;
+		}
 	} else {
-		if(print_header(fp, s_to_c(mp->sender), s_to_c(mp->date)) < 0)
+		if(print_header(fp, s_to_c(sender), s_to_c(mp->date)) < 0){
+			s_free(sender);
 			return -1;
+		}
+	}
+	s_free(sender);
+	if(!rmail && !mp->havedate){
+		/* add a date: line Date: Sun, 19 Apr 1998 12:27:52 -0400 */
+		date = s_copy(s_to_c(mp->date));
+		n = getfields(s_to_c(date), f, 6, 1, " \t");
+		if(n == 6)
+			Bprint(fp, "Date: %s, %s %s %s %s %s\n", f[0], f[2], f[1],
+			 f[5], f[3], rewritezone(f[4]));
+	}
+	if(!rmail && !mp->havemime && isutf8(mp->body))
+		printutf8mime(fp);
+	if(mp->to){
+		/* add the to: line */
+		if (Bprint(fp, "%s\n", s_to_c(mp->to)) < 0)
+			return -1;
+		/* add the from: line */
+		if (!mp->havefrom && printfrom(mp, fp) < 0)
+			return -1;
+		if(!mp->rfc822headers && *s_to_c(mp->body) != '\n')
+			if (Bprint(fp, "\n") < 0)
+				return -1;
+	} else if(!rmail){
+		/* add the from: line */
+		if (!mp->havefrom && printfrom(mp, fp) < 0)
+			return -1;
+		if(!mp->rfc822headers && *s_to_c(mp->body) != '\n')
+			if (Bprint(fp, "\n") < 0)
+				return -1;
 	}
 
 	if (!mbox)

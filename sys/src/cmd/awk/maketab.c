@@ -1,12 +1,26 @@
-/*
-Copyright (c) 1989 AT&T
-	All Rights Reserved
+/****************************************************************
+Copyright (C) Lucent Technologies 1997
+All Rights Reserved
 
-THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T.
+Permission to use, copy, modify, and distribute this software and
+its documentation for any purpose and without fee is hereby
+granted, provided that the above copyright notice appear in all
+copies and that both that the copyright notice and this
+permission notice and warranty disclaimer appear in supporting
+documentation, and that the name Lucent Technologies or any of
+its entities not be used in advertising or publicity pertaining
+to distribution of the software without specific, written prior
+permission.
 
-The copyright notice above does not evidence any
-actual or intended publication of such source code.
-*/
+LUCENT DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+IN NO EVENT SHALL LUCENT OR ANY OF ITS ENTITIES BE LIABLE FOR ANY
+SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
+****************************************************************/
 
 /*
  * this program makes the table to link function names
@@ -41,7 +55,7 @@ struct xx
 	{ SUB, "sub", "sub" },
 	{ GSUB, "gsub", "gsub" },
 	{ INDEX, "sindex", "sindex" },
-	{ SPRINTF, "asprintf", "sprintf " },
+	{ SPRINTF, "awksprintf", "sprintf " },
 	{ ADD, "arith", " + " },
 	{ MINUS, "arith", " - " },
 	{ MULT, "arith", " * " },
@@ -60,10 +74,10 @@ struct xx
 	{ NOTMATCH, "matchop", " !~ " },
 	{ MATCHFCN, "matchop", "matchop" },
 	{ INTEST, "intest", "intest" },
-	{ PRINTF, "aprintf", "printf" },
+	{ PRINTF, "awkprintf", "printf" },
 	{ PRINT, "printstat", "print" },
 	{ CLOSE, "closefile", "closefile" },
-	{ DELETE, "adelete", "adelete" },
+	{ DELETE, "awkdelete", "awkdelete" },
 	{ SPLIT, "split", "split" },
 	{ ASSIGN, "assign", " = " },
 	{ ADDEQ, "assign", " += " },
@@ -79,6 +93,7 @@ struct xx
 	{ DO, "dostat", "do" },
 	{ IN, "instat", "instat" },
 	{ NEXT, "jump", "next" },
+	{ NEXTFILE, "jump", "nextfile" },
 	{ EXIT, "jump", "exit" },
 	{ BREAK, "jump", "break" },
 	{ CONTINUE, "jump", "continue" },
@@ -95,7 +110,7 @@ struct xx
 char *table[SIZE];
 char *names[SIZE];
 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	struct xx *p;
 	int i, n, tok;
@@ -113,11 +128,11 @@ main(int argc, char *argv[])
 		fprintf(stderr, "maketab can't open y.tab.h!\n");
 		exit(1);
 	}
-	printf("static uchar *printname[%d] = {\n", SIZE);
+	printf("static char *printname[%d] = {\n", SIZE);
 	i = 0;
 	while (fgets(buf, sizeof buf, fp) != NULL) {
 		n = sscanf(buf, "%1c %s %s %d", &c, def, name, &tok);
-		if (c != '#' || n != 4 && strcmp(def,"define") != 0)	/* not a valid #define */
+		if (c != '#' || (n != 4 && strcmp(def,"define") != 0))	/* not a valid #define */
 			continue;
 		if (tok < FIRSTTOKEN || tok > LASTTOKEN) {
 			fprintf(stderr, "maketab funny token %d %s\n", tok, buf);
@@ -125,7 +140,7 @@ main(int argc, char *argv[])
 		}
 		names[tok-FIRSTTOKEN] = (char *) malloc(strlen(name)+1);
 		strcpy(names[tok-FIRSTTOKEN], name);
-		printf("\t(uchar *) \"%s\",\t/* %d */\n", name, tok);
+		printf("\t(char *) \"%s\",\t/* %d */\n", name, tok);
 		i++;
 	}
 	printf("};\n\n");
@@ -140,9 +155,9 @@ main(int argc, char *argv[])
 			printf("\t%s,\t/* %s */\n", table[i], names[i]);
 	printf("};\n\n");
 
-	printf("uchar *tokname(int n)\n");	/* print a tokname() function */
+	printf("char *tokname(int n)\n");	/* print a tokname() function */
 	printf("{\n");
-	printf("	static uchar buf[100];\n\n");
+	printf("	static char buf[100];\n\n");
 	printf("	if (n < FIRSTTOKEN || n > LASTTOKEN) {\n");
 	printf("		sprintf(buf, \"token %%d\", n);\n");
 	printf("		return buf;\n");

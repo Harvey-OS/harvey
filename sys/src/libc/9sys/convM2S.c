@@ -7,8 +7,10 @@
 #define	SHORT(x)	f->x = (p[0] | (p[1]<<8)); p += 2
 #define	LONG(x)		f->x = (p[0] | (p[1]<<8) |\
 				(p[2]<<16) | (p[3]<<24)); p += 4
-#define	VLONG(x)	f->x = (p[0] | (p[1]<<8) |\
-				(p[2]<<16) | (p[3]<<24)); p += 8
+#define	VLONG(x)	f->x = (vlong)(p[0] | (p[1]<<8) |\
+					(p[2]<<16) | (p[3]<<24)) |\
+				((vlong)(p[4] | (p[5]<<8) |\
+					(p[6]<<16) | (p[7]<<24)) << 32); p += 8
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 int

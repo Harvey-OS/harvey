@@ -2,5 +2,5 @@
 for(i){
 	if (test -f /usr/$user/lib/tel)
 		grep -i $i $home/lib/tel
-	grep -i $i /lib/tel || exit ''
+	grep -i $i /lib/tel
 }

@@ -13,7 +13,7 @@ rc, cd, eval, exec, exit, flag, rfork, shift, wait, whatis, ., ~ \- command lang
 .I file
 [
 .I arg ...
-]
+]]
 .SH DESCRIPTION
 .I Rc
 is the Plan 9 shell.
@@ -651,7 +651,7 @@ If none is given, the current value of
 .B $status
 is used.
 .HP
-.BR "rfork " [ nNeEsfF ]
+.BR "rfork " [ nNeEsfFm ]
 .br
 Become a new process group using
 .BI rfork( flags )
@@ -687,10 +687,13 @@ is
 .B f
 is
 .BR RFFDG ;
-and
 .B F
 is
-.BR RFCFDG .
+.BR RFCFDG ;
+and
+.B m
+is
+.BR RFNOMNT .
 .HP
 .BI "shift [" n "]"
 .br
@@ -952,3 +955,5 @@ changes
 .BR $status .
 .br
 Functions that use here documents don't work.
+.br
+Free carets don't get inserted next to keywords.

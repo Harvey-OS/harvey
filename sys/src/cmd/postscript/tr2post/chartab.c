@@ -20,6 +20,8 @@ int curpostfontid = -1;
 int curfontsize = -1;
 int curtrofffontid = -1;
 static int curfontpos = -1;
+static int fontheight = 0;
+static int fontslant = 0;
 
 /* This is troffs mounted font table.  It is an anachronism resulting
  * from the design of the APS typesetter.  fontmnt is the
@@ -81,6 +83,8 @@ setpsfont(int psftid, int fontsize) {
 	endstring();
 	if (pageon()) {
 		Bprint(Bstdout, "%d /%s f\n", fontsize, pfnafontmtab[psftid].str);
+		if ( fontheight != 0 || fontslant != 0 )
+			Bprint(Bstdout, "%d %d changefont\n", fontslant, (fontheight != 0) ? fontheight : fontsize);
 		pfnafontmtab[psftid].used = 1;
 		curpostfontid = psftid;
 		curfontsize = fontsize;
@@ -110,6 +114,7 @@ findpfn(char *fontname, int insflg) {
 		pfnafontmtab[pfnamcnt].str = galloc(0, i+1, "findpfn():pfnafontmtab[].str");
 		strncpy(pfnafontmtab[pfnamcnt].str, fontname, i);
 		pfnafontmtab[pfnamcnt].str[i] = '\0';
+		pfnafontmtab[pfnamcnt].used = 0;
 		return(pfnamcnt++);
 	}
 	return(-1);
@@ -174,12 +179,17 @@ readpsfontdesc(char *fontname, int trindex) {
 			}
 			tp = &(troffontab[trindex]);
 			tp->psfmap = galloc(tp->psfmap, ++(tp->psfmapsize)*sizeof(struct psfent), "readpsfontdesc():psfmap");
-			if (debug) Bprint(Bstderr, "\tpsfentp=0x%x\n", psfentp);
 			psfentp = &(tp->psfmap[tp->psfmapsize-1]);
 			psfentp->start = start;
 			psfentp->end = end;
 			psfentp->offset = offset;
 			psfentp->psftid = pfid;
+			if (debug) {
+				Bprint(Bstderr, "\tpsfmap->start=0x%x\n", start);
+				Bprint(Bstderr, "\tpsfmap->end=0x%x\n", end);
+				Bprint(Bstderr, "\tpsfmap->offset=0x%x\n", offset);
+				Bprint(Bstderr, "\tpsfmap->pfid=0x%x\n", pfid);
+			}
 /*
 			for (i=startchar; i<=endchar; i++) {
 				tp->charent[startfont][i].postfontid = pfid;
@@ -431,4 +441,19 @@ finish(void) {
 
 	Bprint(Bstdout, "%s %d\n", PAGES, pages_printed);
 
+}
+
+/* Set slant to n degrees. Disable slanting if n is 0. */
+void
+t_slant(int n) {
+	fontslant = n;
+	curpostfontid = -1;
+}
+
+/* Set character height to n points. Disabled if n is 0 or the current size. */
+
+void
+t_charht(int n) {
+	fontheight = (n == fontsize) ? 0 : n;
+	curpostfontid = -1;
 }

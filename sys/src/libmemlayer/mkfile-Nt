@@ -1,0 +1,4 @@
+#
+#	System dependent objects for Nt model systems
+#
+SYSFILES=lalloc.$O

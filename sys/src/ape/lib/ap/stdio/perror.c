@@ -4,7 +4,7 @@
 #include "iolib.h"
 void perror(const char *s){
 	extern int errno;
-	if(s!=NULL) fputs(s, stderr), fputs(": ", stderr);
+	if(s!=NULL && *s != '\0') fputs(s, stderr), fputs(": ", stderr);
 	fputs(strerror(errno), stderr);
 	putc('\n', stderr);
 	fflush(stderr);

@@ -77,8 +77,10 @@ fmt(Biobuf *f)
 #define TAB 8
 #define	NWORD	(TAB*32)
 
-Rune word[NWORD+1];
-Rune *wp=word;
+Rune *word;
+int mword;
+int wp;
+
 int col=0;	/* output column number */
 int bol=1;	/* at beginning of output line? */
 int punct=0;	/* last character out was punctuation? */
@@ -101,7 +103,7 @@ outchar(Rune c){
 			flush();
 		case 2:
 			Bputc(&bout, '\n');
-			wp=word;
+			wp=0;
 		}
 		newline=1;
 		break;
@@ -117,7 +119,7 @@ outchar(Rune c){
 		case 2:
 			do {
 				addrune(L' ');
-			} while(c=='\t' && (wp-word)%TAB);
+			} while(c=='\t' && wp%TAB);
 		}
 		break;
 	default:
@@ -129,12 +131,18 @@ outchar(Rune c){
 void
 addrune(Rune c)
 {
-	if(wp==&word[NWORD]) {
-		if(utfrune(" \t",wp[-1]))
-			wp=word;
-		outword();
+	if(wp==mword) {
+		if(mword == 0)
+			mword = 10;
+		else
+			mword *= 2;
+		word = realloc(word, sizeof(Rune)*mword);
+		if(word == nil) {
+			fprint(2, "fmt: out of memory\n");
+			exits("out of memory");
+		}
 	}
-	*wp++=c;
+	word[wp++] = c;
 }
 
 void
@@ -142,9 +150,9 @@ outword(void)
 {
 	int i;
 
-	if(wp==word)
+	if(wp==0)
 		return;
-	if(wp-word+col+(bol?0:punct?2:1)>length){
+	if(wp+col+(bol?0:punct?2:1)>length){
 		Bputc(&bout, '\n');
 		col=0;
 		bol=1;
@@ -167,10 +175,10 @@ outword(void)
 		col++;
 	}
 	puncttest();
-	for (i = 0; word+i < wp; i++)
+	for (i = 0; i < wp; i++)
 		Bputrune(&bout, word[i]);
 	col+=i;
-	wp=word;
+	wp=0;
 }
 /* is the word followed by major punctuation, .?:! */
 /* disregard short things followed by periods; they are probably
@@ -178,15 +186,15 @@ outword(void)
 void
 puncttest(void)
 {
-	Rune *rp;
+	int rp;
 
 	punct = 0;
-	for(rp=wp; --rp>=word; ) {
-		switch(*rp) {
+	for(rp=wp; --rp>=0; ) {
+		switch(word[rp]) {
 		case ')': case '\'': case '"':
 			continue;
 		case '.':
-			if(isupper(*word)&&rp-word<=3)
+			if(isupper(*word)&&rp<=3)
 				return;
 		case '?': case '!': /*case ':':*/
 			punct = 1;

@@ -14,9 +14,9 @@ span(void)
 			curtext = p;
 		n = 0;
 		if(p->to.type == D_BRANCH)
-			if(p->cond == P)
-				p->cond = p;
-		if((q = p->cond) != P)
+			if(p->pcond == P)
+				p->pcond = p;
+		if((q = p->pcond) != P)
 			if(q->back != 2)
 				n = 1;
 		p->back = n;
@@ -96,7 +96,7 @@ loop:
 	if(debug['v'])
 		Bprint(&bso, "etext = %lux\n", c);
 	Bflush(&bso);
-	for(p = textp; p != P; p = p->cond)
+	for(p = textp; p != P; p = p->pcond)
 		p->from.sym->value = p->pc;
 	textsize = c - INITTEXT;
 }
@@ -193,7 +193,7 @@ asmsym(void)
 				continue;
 			}
 
-	for(p=textp; p!=P; p=p->cond) {
+	for(p=textp; p!=P; p=p->pcond) {
 		s = p->from.sym;
 		if(s->type != STEXT)
 			continue;
@@ -201,10 +201,10 @@ asmsym(void)
 		/* filenames first */
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_FILE)
-				putsymb(a->sym->name, 'z', a->offset, 0);
+				putsymb(a->asym->name, 'z', a->aoffset, 0);
 			else
 			if(a->type == D_FILE1)
-				putsymb(a->sym->name, 'Z', a->offset, 0);
+				putsymb(a->asym->name, 'Z', a->aoffset, 0);
 
 		putsymb(s->name, 'T', s->value, s->version);
 
@@ -213,10 +213,10 @@ asmsym(void)
 
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_AUTO)
-				putsymb(a->sym->name, 'a', -a->offset, 0);
+				putsymb(a->asym->name, 'a', -a->aoffset, 0);
 			else
 			if(a->type == D_PARAM)
-				putsymb(a->sym->name, 'p', a->offset, 0);
+				putsymb(a->asym->name, 'p', a->aoffset, 0);
 	}
 	if(debug['v'] || debug['n'])
 		Bprint(&bso, "symsize = %lud\n", symsize);
@@ -716,10 +716,12 @@ uchar	ymovtab[] =
 	AMOVL,	Ycr0,	Yml,	3,	0x0f,0x20,0,0,
 	AMOVL,	Ycr2,	Yml,	3,	0x0f,0x20,2,0,
 	AMOVL,	Ycr3,	Yml,	3,	0x0f,0x20,3,0,
+	AMOVL,	Ycr4,	Yml,	3,	0x0f,0x20,4,0,
 
 	AMOVL,	Yml,	Ycr0,	4,	0x0f,0x22,0,0,
 	AMOVL,	Yml,	Ycr2,	4,	0x0f,0x22,2,0,
 	AMOVL,	Yml,	Ycr3,	4,	0x0f,0x22,3,0,
+	AMOVL,	Yml,	Ycr4,	4,	0x0f,0x22,4,0,
 
 /* mov dr */
 	AMOVL,	Ydr0,	Yml,	3,	0x0f,0x21,0,0,
@@ -980,7 +982,7 @@ found:
 		break;
 
 	case Zbr:
-		q = p->cond;
+		q = p->pcond;
 		if(q) {
 			v = q->pc - p->pc - 2;
 			if(v >= -128 && v <= 127) {
@@ -999,7 +1001,7 @@ found:
 		break;
 
 	case Zcall:
-		q = p->cond;
+		q = p->pcond;
 		if(q) {
 			v = q->pc - p->pc - 5;
 			*andptr++ = op;
@@ -1011,7 +1013,7 @@ found:
 		break;
 
 	case Zjmp:
-		q = p->cond;
+		q = p->pcond;
 		if(q) {
 			v = q->pc - p->pc - 2;
 			if(v >= -128 && v <= 127) {
@@ -1029,7 +1031,7 @@ found:
 		break;
 
 	case Zloop:
-		q = p->cond;
+		q = p->pcond;
 		if(q) {
 			v = q->pc - p->pc - 2;
 			if(v < -128 && v > 127)

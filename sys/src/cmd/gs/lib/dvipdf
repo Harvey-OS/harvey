@@ -1,0 +1,39 @@
+#!/bin/sh
+# $Id: dvipdf,v 1.1 2000/03/09 08:40:39 lpd Exp $
+# Convert DVI to PDF.
+#
+# Please contact Andrew Ford <A.Ford@ford-mason.co.uk> with any questions
+# about this file.
+#
+# Based on ps2pdf
+
+OPTIONS=""
+while true
+do
+	case "$1" in
+	-*) OPTIONS="$OPTIONS $1" ;;
+	*)  break ;;
+	esac
+	shift
+done
+
+if [ $# -lt 1 -o $# -gt 2 ]; then
+	echo "Usage: `basename $0` [options...] input.dvi [output.pdf]" 1>&2
+	exit 1
+fi
+
+infile=$1;
+
+if [ $# -eq 1 ]
+then
+	case "${infile}" in
+	  *.dvi)	base=`basename ${infile} .dvi` ;;
+	  *)		base=`basename ${infile}` ;;
+	esac
+	outfile=${base}.pdf
+else
+	outfile=$2
+fi
+
+# Doing an initial 'save' helps keep fonts from being flushed between pages.
+exec dvips -q -f $infile | gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$outfile $OPTIONS -c save pop -

@@ -1,0 +1,148 @@
+/* Copyright (C) 1999, 2000, Ghostgum Software Pty Ltd.  All rights reserved.
+  
+  This file is part of Aladdin Ghostscript.
+  
+  This program is distributed with NO WARRANTY OF ANY KIND.  No author
+  or distributor accepts any responsibility for the consequences of using it,
+  or for whether it serves any particular purpose or works at all, unless he
+  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public 
+  License (the "License") for full details.
+  
+  Every copy of Aladdin Ghostscript must include a copy of the License, 
+  normally in a plain ASCII text file named PUBLIC.  The License grants you 
+  the right to copy, modify and redistribute Aladdin Ghostscript, but only 
+  under certain conditions described in the License.  Among other things, the 
+  License requires that the copyright notice and this notice be preserved on 
+  all copies.
+*/
+
+
+// $Id: dwsetup.rc,v 1.1 2000/03/09 08:40:40 lpd Exp $
+
+#include <windows.h>
+#include "dwsetup.h"
+
+#ifndef DS_3DLOOK
+#define DS_3DLOOK 0x0004L	/* for Windows 95 look */
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MAIN DIALOG 32, 32, 300, 200
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP /* | WS_VISIBLE */ | WS_CAPTION | WS_SYSMENU 
+CAPTION "Aladdin Ghostscript Setup"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Install",IDC_INSTALL,240,178,50,14
+    ICON            IDR_MAIN,IDC_STATIC,11,17,20,20
+    LTEXT           "This installs",IDC_STATIC,56,6,232,8
+    LTEXT           "Product Name",IDC_PRODUCT_NAME,72,16,216,8
+    LTEXT           "Copyright (C) 1994-1999 Aladdin Enterprises, Menlo Park, California, U.S.A.  All rights reserved. See the file PUBLIC for more details.\n\nRequires 10 - 20 Mbytes disk space.",
+                    IDC_COPYRIGHT,56,30,232,48
+
+    LTEXT           "Install to directory",IDC_STATIC,8,92,56,8
+    CONTROL         "Install Fonts",IDC_INSTALL_FONTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,160,90,85,12
+    EDITTEXT        IDC_TARGET_DIR,8,104,220,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE_DIR,240,103,50,14
+
+    LTEXT           "Add shortcuts to",IDC_STATIC,8,132,52,8
+    CONTROL         "All Users",IDC_ALLUSERS,"Button",
+		    BS_AUTOCHECKBOX | WS_TABSTOP,160,130,44,10
+    EDITTEXT        IDC_TARGET_GROUP,8,144,220,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE_GROUP,240,143,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,8,178,50,14
+    PUSHBUTTON      "Help",IDC_README,124,178,50,14
+END
+
+
+
+IDD_TEXTWIN DIALOG DISCARDABLE  0, 0, 318, 169
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Aladdin Ghostscript setup log"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,261,148,50,14
+    EDITTEXT        IDC_TEXTWIN_MLE,7,7,304,136,ES_MULTILINE | ES_WANTRETURN | 
+                    WS_VSCROLL | WS_HSCROLL
+    PUSHBUTTON      "Copy to Clipboard",IDC_TEXTWIN_COPY,7,148,84,14
+END
+
+IDD_DIRDLG DIALOG DISCARDABLE  0, 0, 273, 140
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Select Folder"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,216,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,216,24,50,14
+    LISTBOX         IDC_FILES,7,7,197,70,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Folder",IDC_FOLDER,7,82,259,12
+    LTEXT           "Destination Folder",IDC_STATIC,7,105,259,12
+    EDITTEXT        IDC_TARGET,7,120,259,12,ES_AUTOHSCROLL
+END
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAIN                ICON    DISCARDABLE     "gstext.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_MAIN, DIALOG
+    BEGIN
+        LEFTMARGIN, 8
+        RIGHTMARGIN, 288
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 192
+    END
+    IDD_TEXTWIN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 311
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+
+    IDD_DIRDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 266
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 133
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_APPNAME             "Aladdin Ghostscript Setup"
+    IDS_TARGET_DIR          "C:\\Aladdin"
+    IDS_TARGET_GROUP        "Aladdin"
+END
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+

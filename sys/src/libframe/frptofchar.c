@@ -1,6 +1,8 @@
 #include <u.h>
 #include <libc.h>
-#include <libg.h>
+#include <draw.h>
+#include <thread.h>
+#include <mouse.h>
 #include <frame.h>
 
 Point
@@ -20,9 +22,9 @@ _frptofcharptb(Frame *f, ulong p, Point pt, int bn)
 						w = 1;
 					else
 						w = chartorune(&r, (char*)s);
-					pt.x += charwidth(f->font, r);
+					pt.x += stringnwidth(f->font, (char*)s, 1);
 					if(r==0 || pt.x>f->r.max.x)
-						berror("frptofchar");
+						drawerror(f->display, "frptofchar");
 				}
 			break;
 		}
@@ -35,7 +37,7 @@ _frptofcharptb(Frame *f, ulong p, Point pt, int bn)
 Point
 frptofchar(Frame *f, ulong p)
 {
-	return _frptofcharptb(f, p, Pt(f->left, f->r.min.y), 0);
+	return _frptofcharptb(f, p, f->r.min, 0);
 }
 
 Point
@@ -46,7 +48,7 @@ _frptofcharnb(Frame *f, ulong p, int nb)	/* doesn't do final _fradvance to next 
 
 	nbox = f->nbox;
 	f->nbox = nb;
-	pt = _frptofcharptb(f, p, Pt(f->left, f->r.min.y), 0);
+	pt = _frptofcharptb(f, p, f->r.min, 0);
 	f->nbox = nbox;
 	return pt;
 }
@@ -74,8 +76,7 @@ frcharofpt(Frame *f, Point pt)
 	Rune r;
 
 	pt = _frgrid(f, pt);
-	qt.x = f->left;
-	qt.y = f->r.min.y;
+	qt = f->r.min;
 	for(b=f->box,bn=0,p=0; bn<f->nbox && qt.y<pt.y; bn++,b++){
 		_frcklinewrap(f, &qt, b);
 		if(qt.y >= pt.y)
@@ -98,9 +99,9 @@ frcharofpt(Frame *f, Point pt)
 					else
 						w = chartorune(&r, (char*)s);
 					if(r == 0)
-						berror("end of string in frcharofpt");
+						drawerror(f->display, "end of string in frcharofpt");
+					qt.x += stringnwidth(f->font, (char*)s, 1);
 					s += w;
-					qt.x += charwidth(f->font, r);
 					if(qt.x > pt.x)
 						break;
 					p++;

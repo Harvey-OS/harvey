@@ -85,12 +85,12 @@ getheader(char *rgn)
 	bin = Bopen(rec, OREAD);
 	if(bin == 0) {
 		dss = 102;
-		sprint(rec, "/n/juke/dss.102/headers/%s.hhh", rgn);
+		sprint(rec, "/n/juke/dss/dss.102/headers/%s.hhh", rgn);
 		bin = Bopen(rec, OREAD);
 	}
 	if(bin == 0) {
 		dss = 61;
-		sprint(rec, "/n/juke/dss.61/headers/%s.hhh", rgn);
+		sprint(rec, "/n/juke/dss/dss.061/headers/%s.hhh", rgn);
 		bin = Bopen(rec, OREAD);
 	}
 	if(bin == 0) {
@@ -100,7 +100,7 @@ getheader(char *rgn)
 	if(debug)
 		print("reading %s\n", rec);
 	if(dss)
-		print("warning: reading %s from jukebox\n, rec");
+		print("warning: reading %s from jukebox\n", rec);
 
 	memset(&hd, 0, sizeof(hd));
 	j = 0;
@@ -176,12 +176,12 @@ getplates(void)
 	bin = Bopen(rec, OREAD);
 	if(bin == 0) {
 		dss = 102;
-		sprint(rec, "/n/juke/dss.102/headers/lo_comp.lis");
+		sprint(rec, "%s/headers/lo_comp.lis", dssmount(dss));
 		bin = Bopen(rec, OREAD);
 	}
 	if(bin == 0) {
 		dss = 61;
-		sprint(rec, "/n/juke/dss.61/headers/lo_comp.lis");
+		sprint(rec, "%s/headers/lo_comp.lis", dssmount(dss));
 		bin = Bopen(rec, OREAD);
 	}
 	if(bin == 0) {
@@ -191,7 +191,7 @@ getplates(void)
 	if(debug)
 		print("reading %s\n", rec);
 	if(dss)
-		print("warning: reading %s from jukebox\n, rec");
+		print("warning: reading %s from jukebox\n", rec);
 	for(nplate=0;;) {
 		if(dss) {
 			if(Bread(bin, rec, 80) != 80)
@@ -234,4 +234,86 @@ getplates(void)
 		fprint(2, "nplate too small %d %d\n", nelem(plate), nplate);
 	if(debug)
 		print("%d plates\n", nplate);
+}
+
+char*
+dssmount(int dskno)
+{
+	char dssname[100];
+	int s1, s2, count;
+	static int sdiskno = -1;
+
+	if(sdiskno == dskno)
+		goto out;
+	count = 0;
+
+loop:
+	unmount(nil, "/n/njuke");
+	unmount(nil, "/n/dss");
+	sprint(dssname, "/n/njuke/juke/dss/dss.%.3d", dskno);
+
+	/*
+	 * start nfs jukebox server
+	 */
+	s1 = open("/srv/il!jukefs", ORDWR);
+	if(s1 < 0) {
+		if(fork() == 0) {
+			execl("/bin/srv", "srv", "-q", "il!jukefs", 0);
+			exits(0);
+		}
+		wait(nil);
+		s1 = open("/srv/il!jukefs", ORDWR);
+		if(s1 < 0) {
+			print("cant start srv il!jukefs\n");
+			goto out;
+		}
+	}
+
+	/*
+	 * mount nfs jukebox server
+	 */
+	if(mount(s1, "/n/njuke", 0, "") < 0) {
+		close(s1);
+		print("\"mount /srv/il!jukefs /n/juke\" failed %r\n");
+		goto out;
+	}
+
+	/*
+	 * run 9660 server
+	 */
+	s2 = open("/srv/9660", ORDWR);
+	if(s2 < 0) {
+		if(fork() == 0) {
+			execl("/bin/9660srv", "9660srv", 0);
+			exits(0);
+		}
+		wait(nil);
+		s2 = open("/srv/9660", ORDWR);
+		if(s2 < 0) {
+			print("cant start 9660srv\n");
+			goto out;
+		}
+	}
+
+	/*
+	 * mount 9660 server
+	 */
+	if(mount(s2, "/n/dss", 0, dssname) < 0) {
+		close(s2);
+		if(count == 0) {
+			// do it again so /n/njuke is in 9660's namespace
+			remove("/srv/9660");
+			remove("/srv/il!jukefs");
+			count = 1;
+			goto loop;
+		}
+		print("\"mount /srv/9660 /n/dss %s\" failed %r\n", dssname);
+		goto out;
+	}
+
+//	print("mount %s\n", dssname);
+	sdiskno = dskno;
+
+out:
+	return "/n/dss";
 }

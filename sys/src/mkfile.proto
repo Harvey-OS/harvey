@@ -1,0 +1,10 @@
+#
+# common mkfile parameters shared by all architectures
+#
+
+OS=v486xq7
+CPUS=mips 386 power alpha
+CFLAGS=-FVw
+LEX=lex
+YACC=yacc
+MK=/bin/mk

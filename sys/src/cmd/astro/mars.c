@@ -28,7 +28,7 @@ mars(void)
 		dele = (anom - enom + ecc * sin(enom)) /
 			(1. - ecc*cos(enom));
 		enom += dele;
-	} while(fabs(dele) > 1.e-8);
+	} while(fabs(dele) > converge);
 	vnom = 2.*atan2(sqrt((1.+ecc)/(1.-ecc))*sin(enom/2.),cos(enom/2.));
 	rad = mrad*(1. - ecc*cos(enom));
 

@@ -3,9 +3,15 @@
 cp, mv  \- copy, move files
 .SH SYNOPSIS
 .B cp
+[
+.B -x
+]
 .I file1 file2
 .br
 .B cp
+[
+.B -x
+]
 .I file ... directory
 .PP
 .B mv
@@ -42,6 +48,12 @@ are preserved if it already
 exists; the mode of
 .I file1
 is used otherwise.
+The
+.B -x
+option sets the mode and modified time of
+.I file2
+from
+.IR file1 .
 .PP
 .I Mv
 moves
@@ -54,9 +66,10 @@ is just renamed;
 otherwise
 .I mv
 behaves like
-.I cp
+.I cp \-x
 followed by
-.IR rm .
+.B rm
+.IR file1 .
 .I Mv
 will rename directories,
 but it refuses to move a directory into another directory.

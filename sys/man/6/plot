@@ -257,17 +257,18 @@ to all coordinates.
 .PD0
 .TP 10
 .BI co " string"
-Draw lines with color
-.IR string .
-Possible colors:
-.BR black ,
+Use color given by first character of
+.IR string ,
+one of
 .BR red ,
+.BR yellow ,
 .BR green ,
 .BR blue ,
-.BR Tblack ,
-.BR Tred ,
-.BR Tgreen ,
-.B Tblue
+.BR cyan ,
+.BR magenta ,
+.BR white ,
+and
+.BR kblack .
 .TP 10
 .BI pe " string"
 Use

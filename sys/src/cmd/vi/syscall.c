@@ -18,8 +18,8 @@ ulong	nofunc;
 #define	ALARM		6
 #define	EXEC		7
 #define	EXITS		8
-#define	FORK		9
-#define	FORKPGRP	10
+#define FSESSION	9
+#define	FAUTH		10
 #define	FSTAT		11
 #define	SEGBRK		12
 #define	MOUNT		13
@@ -28,11 +28,11 @@ ulong	nofunc;
 #define	SEEK		16
 #define	SLEEP		17
 #define	STAT		18
-#define	WAIT		19
+#define	RFORK		19
 #define	WRITE		20
 #define	PIPE		21
 #define	CREATE		22
-#define	RFORK		23
+#define	FD2PATH		23
 #define	BRK_		24
 #define	REMOVE		25
 #define	WSTAT		26
@@ -45,44 +45,50 @@ ulong	nofunc;
 #define SEGFLUSH	33
 #define RENDEZVOUS	34
 #define UNMOUNT		35
+#define	WAIT		36
+#define WRITE9P		37
+#define READ9P		38
 
 char *sysctab[]={
-	[SYSR1]		"Running",
-	[ERRSTR]	"Errstr",
-	[BIND]		"Bind",
-	[CHDIR]		"Chdir",
-	[CLOSE]		"Close",
-	[DUP]		"Dup",
-	[ALARM]		"Alarm",
-	[EXEC]		"Exec",
-	[EXITS]		"Exits",
-	[FORK]		"Fork",
-	[FORKPGRP]	"Forkpgrp",
-	[FSTAT]		"Fstat",
-	[SEGBRK]	"Segbrk",
-	[MOUNT]		"Mount",
-	[OPEN]		"Open",
-	[READ]		"Read",
-	[SEEK]		"Seek",
-	[SLEEP]		"Sleep",
-	[STAT]		"Stat",
-	[WAIT]		"Wait",
-	[WRITE]		"Write",
-	[PIPE]		"Pipe",
-	[CREATE]	"Create",
-	[RFORK]		"Rfork",
-	[BRK_]		"Brk",
-	[REMOVE]	"Remove",
-	[WSTAT]		"Wstat",
-	[FWSTAT]	"Fwstat",
-	[NOTIFY]	"Notify",
-	[NOTED]		"Noted",
-	[SEGATTACH]	"Segattach",
-	[SEGDETACH]	"Segdetach",
-	[SEGFREE]	"Segfree",
-	[SEGFLUSH]	"Segflush",
-	[RENDEZVOUS]	"Rendez",
-	[UNMOUNT]	"Unmount",
+	[SYSR1]		"SYSR1",
+	[ERRSTR]	"ERRSTR",
+	[BIND]		"BIND",
+	[CHDIR]		"CHDIR",
+	[CLOSE]		"CLOSE",
+	[DUP]		"DUP",
+	[ALARM]		"ALARM",
+	[EXEC]		"EXEC",
+	[EXITS]		"EXITS",
+	[FSESSION]	"FSESSION",
+	[FAUTH]		"FAUTH",
+	[FSTAT]		"FSTAT",
+	[SEGBRK]	"SEGBRK",
+	[MOUNT]		"MOUNT",
+	[OPEN]		"OPEN",
+	[READ]		"READ",
+	[SEEK]		"SEEK",
+	[SLEEP]		"SLEEP",
+	[STAT]		"STAT",
+	[RFORK]		"RFORK",
+	[WRITE]		"WRITE",
+	[PIPE]		"PIPE",
+	[CREATE]	"CREATE",
+	[FD2PATH]	"FD2PATH",
+	[BRK_]		"BRK_",
+	[REMOVE]	"REMOVE",
+	[WSTAT]		"WSTAT",
+	[FWSTAT]	"FWSTAT",
+	[NOTIFY]	"NOTIFY",
+	[NOTED]		"NOTED",
+	[SEGATTACH]	"SEGATTACH",
+	[SEGDETACH]	"SEGDETACH",
+	[SEGFREE]	"SEGFREE",
+	[SEGFLUSH]	"SEGFLUSH",
+	[RENDEZVOUS]	"RENDEZVOUS",
+	[UNMOUNT]	"UNMOUNT",
+	[WAIT]		"WAIT",
+	[WRITE9P]	"WRITE9P",
+	[READ9P]	"READ9P",
 };
 
 void sys1(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0); }
@@ -114,7 +120,7 @@ sysbind(void)
 	memio(name, pname, sizeof(name), MemReadstring);
 	memio(old, pold, sizeof(old), MemReadstring);
 	if(sysdbg)
-		itrace("bind(0x%lux='%s', 0x%lux='%s', 0x%lux)", name, old, flags);
+		itrace("bind(0x%lux='%s', 0x%lux='%s', 0x%lux)", name, name, old, old, flags);
 
 	n = bind(name, old, flags);
 	if(n < 0)
@@ -278,6 +284,21 @@ sysseek(void)
 }
 
 void
+sysrfork(void)
+{
+	int flag;
+
+	flag = getmem_w(reg.r[29]+4);
+	if(sysdbg)
+		itrace("rfork(%d)", flag);
+	if(flag & RFPROC) {
+		Bprint(bioout, "rfork: cannot create process, rfork(0x%.8ux)\n", flag);
+		exits(0);
+	}
+	reg.r[1] = rfork(flag);
+}
+
+void
 syssleep(void)
 {
 	ulong len;
@@ -352,6 +373,7 @@ syswrite(void)
 	if(sysdbg)
 		itrace("write(%d, %lux, %d)", fd, a, size);
 
+	Bflush(bioout);
 	buf = memio(0, a, size, MemRead);
 	n = write(fd, buf, size);
 	if(n < 0)
@@ -452,6 +474,20 @@ sysremove(void)
 }
 
 void
+syssegflush(void)
+{
+	int n;
+	ulong va;
+
+	va = getmem_w(reg.r[29]+4);
+	n = getmem_w(reg.r[29]+8);
+	if(sysdbg)
+		itrace("segflush(va=0x%lux, n=%d)\n", va, n);
+
+	reg.r[1] = 0;
+}
+
+void
 sysnotify(void)
 {
 	nofunc = getmem_w(reg.r[29]+4);
@@ -462,14 +498,12 @@ sysnotify(void)
 }
 
 void syswait(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0); }
-void sysrfork(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
 void syswstat(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
 void sysfwstat(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
 void sysnoted(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
 void syssegattach(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
 void syssegdetach(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
 void syssegfree(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
-void syssegflush(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
 void sysrendezvous(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
 void sysunmount(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
 void sysfork(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]); exits(0);}
@@ -489,8 +523,6 @@ void (*systab[])(void)	={
 	[ALARM]		sysalarm,
 	[EXEC]		sysexec,
 	[EXITS]		sysexits,
-	[FORK]		sysfork,
-	[FORKPGRP]	sysforkpgrp,
 	[FSTAT]		sysfstat,
 	[SEGBRK]	syssegbrk,
 	[MOUNT]		sysmount,

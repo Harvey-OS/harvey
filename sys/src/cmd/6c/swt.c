@@ -31,13 +31,7 @@ doswit(Node *n)
 		nc++;
 	}
 
-	i = nc*sizeof(C1);
-	while(nhunk < i)
-		gethunk();
-	iq = (C1*)hunk;
-	nhunk -= i;
-	hunk += i;
-
+	iq = alloc(nc*sizeof(C1));
 	q = iq;
 	for(c = cases; c->link != C; c = c->link) {
 		if(c->def)
@@ -49,7 +43,7 @@ doswit(Node *n)
 	qsort(iq, nc, sizeof(C1), swcmp);
 	if(debug['W'])
 	for(i=0; i<nc; i++)
-		print("case %2d: = %.8lux\n", i, iq[i].val);
+		print("case %2ld: = %.8lux\n", i, iq[i].val);
 	if(def == 0)
 		def = breakpc;
 	for(i=0; i<nc-1; i++)
@@ -100,7 +94,7 @@ cas(void)
 {
 	Case *c;
 
-	ALLOC(c, Case);
+	c = alloc(sizeof(*c));
 	c->link = cases;
 	cases = c;
 }
@@ -212,7 +206,7 @@ outlstring(ushort *s, long n)
 	r = nstring;
 	while(n > 0) {
 		c = *s++;
-		if(endian(0)) {
+		if(align(0, types[TCHAR], Aarg1)) {
 			buf[0] = c>>8;
 			buf[1] = c;
 		} else {
@@ -223,36 +217,6 @@ outlstring(ushort *s, long n)
 		n -= sizeof(ushort);
 	}
 	return r;
-}
-
-int
-vlog(Node *n)
-{
-
-	int s, i;
-	ulong m, v;
-
-	if(n->op != OCONST)
-		goto bad;
-	if(!typechlp[n->type->etype])
-		goto bad;
-
-	v = n->vconst;
-
-	s = 0;
-	m = MASK(64);
-	for(i=32; i; i>>=1) {
-		m >>= i;
-		if(!(v & m)) {
-			v >>= i;
-			s += i;
-		}
-	}
-	if(v == 1)
-		return s;
-
-bad:
-	return -1;
 }
 
 void
@@ -589,38 +553,73 @@ ieeedtod(Ieee *ieee, double native)
 	ieee->l |= (long)(fr*f);
 }
 
-char*	xonames[] =
+long
+align(long i, Type *t, int op)
 {
-	"INDEX",
-	"XEND",
-};
+	long o;
+	Type *v;
+	int w;
 
-char*
-xOconv(int a)
-{
-	if(a <= OEND || a > OXEND)
-		return "**badO**";
-	return xonames[a-OEND-1];
+	o = i;
+	w = 1;
+	switch(op) {
+	default:
+		diag(Z, "unknown align opcode %d", op);
+		break;
+
+	case Asu2:	/* padding at end of a struct */
+		w = SZ_LONG;
+		break;
+
+	case Ael1:	/* initial allign of struct element */
+		for(v=t; v->etype==TARRAY; v=v->link)
+			;
+		w = ewidth[v->etype];
+		if(w <= 0 || w >= SZ_LONG)
+			w = SZ_LONG;
+		break;
+
+	case Ael2:	/* width of a struct element */
+		o += t->width;
+		break;
+
+	case Aarg0:	/* initial passbyptr argument in arg list */
+		if(typesuv[t->etype]) {
+			o = align(o, types[TIND], Aarg1);
+			o = align(o, types[TIND], Aarg2);
+		}
+		break;
+
+	case Aarg1:	/* initial allign of parameter */
+		w = ewidth[t->etype];
+		if(w <= 0 || w >= SZ_LONG) {
+			w = SZ_LONG;
+			break;
+		}
+		w = 1;		/* little endian no adjustment */
+		break;
+
+	case Aarg2:	/* width of a parameter */
+		o += t->width;
+		w = SZ_LONG;
+		break;
+
+	case Aaut3:	/* total allign of automatic */
+		o = align(o, t, Ael1);
+		o = align(o, t, Ael2);
+		break;
+	}
+	o = round(o, w);
+	if(debug['A'])
+		print("align %s %ld %T = %ld\n", bnames[op], i, t, o);
+	return o;
 }
 
-int
-endian(int w)
+long
+maxround(long max, long v)
 {
-
-	USED(w);
-	return 0;
-}
-
-int
-passbypointer(int et)
-{
-
-	return typesuv[et];
-}
-
-int
-argalign(long typewidth, long offset, int offsp)
-{
-	USED(typewidth,offset,offsp);
-	return 0;
+	v += SZ_LONG-1;
+	if(v > max)
+		max = round(v, SZ_LONG);
+	return max;
 }

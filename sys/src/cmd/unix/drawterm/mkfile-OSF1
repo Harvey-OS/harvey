@@ -1,0 +1,25 @@
+WIN=x11
+OS=posix
+
+CC=cc
+CFLAGS=-g -c -DOSF1 -pthread -volatile
+BIN=/home/r/c/rcox/bin
+TARG=drawterm
+O=o
+LD=cc
+LDFLAGS=-g -o drawterm
+
+DEVIP=devip-unix
+DEVFS=devunixfs
+OSFILES=lock-osf1.$O canlock.$O md-iprint.$O
+LIBS=-lm -L/usr/X11R6/lib -lX11 -lpthread -lexc
+
+ml-%.$O:	./libmemlayer/%.c
+	$CC $CFLAGS -o ml-$stem.o ./libmemlayer/$stem.c
+
+md-%.$O:	./libmemdraw/%.c
+	$CC $CFLAGS -o md-$stem.o ./libmemdraw/$stem.c
+
+d-%.$O:	./libdraw/%.c
+	$CC $CFLAGS -o d-$stem.o ./libdraw/$stem.c
+

@@ -270,7 +270,7 @@ sub(Biobuf *bp)
 	}
 	if(p == subneg)
 		return 0;
-	DPRINT(2, "sub %d %d n = %d\n", subneg[0], subneg[1], p - subneg - 1);
+	DPRINT(2, "sub %d %d n = %d\n", subneg[0], subneg[1], (int)(p - subneg - 1));
 	o = findopt(subneg[0]);
 	if(o == 0 || o->sub == 0)
 		return 0;
@@ -343,7 +343,7 @@ fatal(char *fmt, void *a0, void *a1)
 	char buf[128];
 
 	sprint(buf, fmt, a0, a1);
-	fprint(2, "telnet: %s\n", buf);
+	fprint(2, "%s: %s\n", argv0, buf);
 	exits(buf);
 }
 

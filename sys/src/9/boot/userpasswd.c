@@ -4,6 +4,9 @@
 #include <../boot/boot.h>
 
 char	password[NAMELEN];
+#ifdef asdf
+extern	char *sauth;
+#endif asdf
 
 char *homsg = "can't set user name or key; please reboot";
 
@@ -19,7 +22,7 @@ userpasswd(int islocal, Method *mp)
 
 	if(*username == 0 || strcmp(username, "none") == 0){
 		strcpy(username, "none");
-		outin(cpuflag, "user", username, sizeof(username));
+		outin("user", username, sizeof(username));
 	}
 	fd = -1;
 	while(strcmp(username, "none") != 0){
@@ -32,7 +35,7 @@ userpasswd(int islocal, Method *mp)
 		if(msg == 0)
 			break;
 		fprint(2, "?%s\n", msg);
-		outin(cpuflag, "user", username, sizeof(username));
+		outin("user", username, sizeof(username));
 	}
 	if(fd > 0)
 		close(fd);
@@ -44,5 +47,4 @@ userpasswd(int islocal, Method *mp)
 	/* set host's owner (and uid of current process) */
 	if(writefile("#c/hostowner", username, strlen(username)) < 0)
 		fatal(homsg);
-	close(fd);
 }

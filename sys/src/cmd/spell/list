@@ -428,6 +428,8 @@ aerosol	n,na
 aerospace	n
 Aeschylus	pc
 Aesop	pc,nopref
+aesthete	n
+aesthetic	a
 afar	d
 affable	a,va
 affair	n
@@ -2285,7 +2287,7 @@ barefoot	v
 bareheaded	a
 barfly	n
 bargain	n,v,er
-barge	n,v,man
+barge	n,v,er,man
 barhop	v,ms
 baritone	n
 barium	n
@@ -2354,7 +2356,7 @@ baseline	n
 basement	n,va
 baseplate	n
 baserun	vi,er,ms
-bash	n,v,na,nopref
+bash	n,v,er,na,nopref
 bashaw	n
 basic	n,a
 basil	pc
@@ -2363,7 +2365,7 @@ basilica	n
 basilisk	n
 basin	n,v
 basis	pc
-bask	v
+bask	v,er
 basket	n,na
 basketball	n
 basketry	pc
@@ -2442,7 +2444,7 @@ BBC	pc,nopref
 B.C.	d,nopref
 BC	pc,nopref
 be	d
-beach	n,v
+beach	n,v,er
 beachcomb	vi,er
 beachhead	n
 beacon	n,v
@@ -2451,12 +2453,12 @@ beadle	n
 beadwork	n
 beagle	n
 beak	n,ed,er
-beam	n,v,nopref,y
+beam	n,v,er,nopref,y
 bean	n,v
 beanbag	n
 beanie	n
 bear	n,vi,er,va
-beard	n,v
+beard	n,v,er
 Beardsley	n
 bearish	a
 bearskin	n
@@ -2582,7 +2584,7 @@ bel	n
 Bela	pc
 belated	a
 belay	n,v
-belch	n,v
+belch	n,v,er
 beleaguer	v
 Belfast	pc
 belfry	n
@@ -2593,6 +2595,7 @@ belie	n,v,er,nopref
 belief	n
 belies	d
 believe	v,er,va
+believeth	d
 belike	d
 Belinda	n
 belittle	v,er,va
@@ -2621,7 +2624,7 @@ Belorussia	pc
 beloved	n,a
 below	d,nopref
 Belshazzar	pc
-belt	n,v
+belt	n,v,er
 Beltsville	pc
 Beltway	pc
 beluga	n
@@ -2955,7 +2958,7 @@ bistable	va
 bistate	n
 bistro	n
 bit	n,v,er,ms
-bitch	n,v
+bitch	n,v,er
 bite	n,vi,er
 bitt	n,v,er,y
 bitten	d
@@ -3044,15 +3047,16 @@ blemish	n,v
 blench	v
 blend	n,v,er
 Blenheim	pc
-bless	v
+bless	v,er
 blest	d
 Blevins	n
 blew	d
-blight	n,v
+blight	n,v,er
 blimp	n
 blimpish	a
 blind	n,v,a,comp
 blindfold	n,v,a
+blindside	v
 blink	n,v,er
 Blinn	n
 blintz	n
@@ -3141,7 +3145,7 @@ Blum	n
 Blumenthal	n
 blunder	n,v,er
 blunderbuss	n
-blunt	v,a
+blunt	v,a,comp
 blur	n,v,ms,y
 blurb	n
 blurt	n,v
@@ -3196,6 +3200,7 @@ Bogota	pc
 bogus	a
 bogy	n
 Bohemia	pc
+bohemian	n,na
 Bohr	pc
 boil	n,v,er
 Bois	pc
@@ -3260,7 +3265,7 @@ bonny	a
 bonsai	n
 bonus	n
 bonze	n
-boo	n,v,nopref
+boo	n,v,er,nopref
 boob	n,y
 boodle	n
 boogie	n,v
@@ -3482,7 +3487,7 @@ brazier	n
 Brazil	pc
 Brazilian	n
 Brazzaville	pc
-breach	n,v
+breach	n,v,er
 bread	n,v
 breadbasket	n
 breadboard	n
@@ -3581,7 +3586,7 @@ brimstone	n
 Brindisi	pc
 brindle	n,ed
 brine	n,er,y
-bring	vi
+bring	vi,er
 brink	n
 brinkmanship	n
 brioche	n
@@ -3727,7 +3732,7 @@ Buddha	n
 Buddhism	pc
 Buddhist	n,a,na
 buddy	n
-budge	n,v,a
+budge	n,v,er,a,va
 budget	n,v,er
 budgetary	a
 budgeteer	n
@@ -3862,7 +3867,7 @@ burnoose	n
 burnout	n
 Burnside	n
 burnt	d
-burp	n,v
+burp	n,v,er
 burr	n,v,er,y
 burrito	n
 burro	n
@@ -3973,7 +3978,7 @@ cabin	n,v
 cabinet	n,a
 cabinetry	pc
 cabinetwork	n
-cable	n,v
+cable	n,v,er
 cablegram	n
 caboodle	n
 caboose	n
@@ -4017,7 +4022,7 @@ cafeteria	n
 caffeinate	v,va
 caffeine	n
 caftan	n
-cage	n,v,y
+cage	n,v,er,y
 cagey	a
 Cahill	pc
 cahoot	n
@@ -4238,6 +4243,7 @@ cappucino	n
 caprice	n
 capricious	a
 Capricorn	n
+capsicum	pc
 capsize	v
 capstan	n
 capstone	n
@@ -4413,7 +4419,7 @@ casebook	n
 casein	n
 casework	n,er
 Casey	n
-cash	n,v
+cash	n,v,er,va
 cashew	n
 cashier	n,v
 cashmere	n
@@ -4690,7 +4696,7 @@ chaise	n
 chalcedony	n
 chalet	n
 chalice	n
-chalk	n,v,y
+chalk	n,v,er,y
 chalkboard	n
 chalkline	n
 challenge	n,v,er
@@ -4816,7 +4822,7 @@ checkup	n
 cheddar	n
 cheek	n,v,y
 cheekbone	n
-cheer	n,v,na
+cheer	n,v,er,na
 cheerlead	vi,er
 cheery	a,comp
 cheese	n,y
@@ -4881,7 +4887,7 @@ chickadee	n
 chicken	n,v,a
 chicle	n
 chicory	n
-chide	v
+chide	v,er
 chief	n,a
 chiefdom	n
 chieftain	n
@@ -4917,7 +4923,7 @@ chinchilla	n
 chine	n,ed
 Chinese	a
 Ching	n
-chink	n,v
+chink	n,v,er
 chino	n
 chinoiserie	n
 Chinook	n
@@ -4964,7 +4970,7 @@ cholera	n
 choleric	a
 cholesterol	n
 cholinesterase	n
-chomp	v
+chomp	v,er
 chondrite	n,na
 chondrule	n
 choose	vi,er,va,y
@@ -5027,8 +5033,8 @@ chrysanthemum	n
 Chrysler	n
 chub	n,ms,y
 chuck	n,v
-chuckle	n,v
-chuff	n,v,y
+chuckle	n,v,er
+chuff	n,v,er,y
 chug	n,v,ms
 chukker	n
 chum	n,v,ms,y
@@ -5042,7 +5048,7 @@ Churchillian	pc
 churchyard	n
 churl	n
 churlish	a
-churn	n,v
+churn	n,v,er
 chute	n,v,va
 chutney	n
 CIA	pc,nopref
@@ -5055,7 +5061,7 @@ cigarette	n
 cilantro	n
 cilia	pc
 ciliate	n,ed,a
-cinch	n,v
+cinch	n,v,er
 Cincinnati	pc
 cinder	n,nopref,y
 Cinderella	n
@@ -5092,6 +5098,7 @@ circumlocution	n
 circumlocutory	a
 circumnavigate	v,ion
 circumpolar	a
+circumradius	pc
 circumscribe	v
 circumscription	n
 circumspect	a,ion,in
@@ -5382,7 +5389,7 @@ cocoon	n
 cod	n,nopref
 coda	n
 Coddington	n
-coddle	v
+coddle	v,er
 code	n,v,er
 codebreak	v
 codefendant	n
@@ -5444,7 +5451,7 @@ cohost	n,v
 coif	n,v,ms
 coiffeur	n
 coiffure	n,v
-coil	n,v
+coil	n,v,er
 coin	n,v,er
 coinage	n
 coincide	v
@@ -5764,6 +5771,7 @@ condescension	n
 condiment	n
 condition	n,v,er,na
 condo	n
+condole	v
 condolence	n
 condom	n
 condominium	n
@@ -5809,6 +5817,7 @@ confirmatory	a
 confiscable	a
 confiscate	v,a,ion,va
 conflagration	n
+conflate	v,ion
 conflation	n
 conflict	n,v,ion
 confluent	n,a
@@ -6077,6 +6086,7 @@ Cooke	n
 cookery	n
 cookie	n
 cookout	n
+cookware	pc
 cool	n,v,a,comp
 coolant	n
 Cooley	n
@@ -6121,6 +6131,7 @@ copycat	n
 copyreader	n
 copyright	n,v,a,va
 copywriter	n
+coquetry	n
 coquette	n,ed
 coquettish	a
 Cora	n
@@ -6232,6 +6243,7 @@ cosmetic	n,a
 cosmetician	n
 cosmetology	n,na
 cosmic	a,na
+cosmogeny	n
 cosmography	n,er,na
 cosmology	n,na
 cosmonaut	n
@@ -6261,8 +6273,9 @@ cottontail	n
 cottonwood	n
 Cottrell	n
 couch	n,v
+couchant	a
 cougar	n
-cough	n,v
+cough	n,v,er
 could	d
 couldn't	d
 couloir	n
@@ -6363,7 +6376,8 @@ crack	n,v,a,er,va
 crackbrain	n,ed
 crackdown	n
 crackerjack	n,a
-crackle	n,v
+crackle	n,v,er
+crackly	d
 crackpot	n,a
 crackup	n
 cradle	n,v
@@ -6567,9 +6581,10 @@ cruller	n
 crumb	n,v,y
 crumble	n,v,a
 crummy	a,comp
-crump	n,v,a
+crump	n,v,er,a
 crumpet	n
-crumple	n,v
+crumple	n,v,er
+crumply	d
 crunch	n,v,er,y
 crupper	n
 crusade	n,v,er
@@ -6610,16 +6625,17 @@ cubic	n,a
 cubicle	n
 cubicly	d
 cubit	n
+cuboctahedron	n
 cuboid	a
 cuckold	n,v
 cuckoldry	pc
 cuckoo	n,v,a
 cucumber	n
 cud	n,ms,y
-cuddle	n,v
+cuddle	n,v,er
 cuddlesome	a
 cuddly	a,comp
-cue	n,v
+cue	n,v,er
 cuesta	n
 cuff	n,v
 cufflink	n
@@ -6701,7 +6717,7 @@ curricula	pc
 curricular	a
 curriculum	n
 curry	n,v,er
-curse	n,v,nopref
+curse	n,v,er,nopref
 cursive	n,a
 cursor	n,y
 curt	a,comp
@@ -7112,7 +7128,7 @@ deducible	a
 deduct	v,ion
 deductible	a,va
 Dee	pc
-deed	n,v
+deed	n,v,er
 deem	v,er,va
 deep	n,a,comp
 deepen	v
@@ -7208,7 +7224,7 @@ delectate	ion
 delegable	a
 delegacy	n
 delegate	n,v,ion
-delete	v
+delete	v,va
 deleterious	a
 deletion	n
 delft	n
@@ -7328,7 +7344,7 @@ denouement	n
 denounce	v,er,va
 dense	a,comp
 densitometer	n,na
-dent	n,v,na,nopref
+dent	n,v,er,na,va,nopref
 dental	n,a
 dentate	ed,a,ion
 dentistry	n
@@ -7627,6 +7643,7 @@ dictum	n
 did	d
 didactic	n,a,na
 diddle	v,er
+diddly	d
 didn't	d
 Dido	pc
 didst	d
@@ -7727,7 +7744,6 @@ Dionysiac	a
 Dionysian	a
 Dionysus	pc
 Diophantine	pc
-diopter	n
 diorama	n
 dioxide	n
 dioxin	n
@@ -7861,7 +7877,7 @@ disturbance	n
 disulfide	n
 disyllabic	a
 disyllable	n
-ditch	n,v
+ditch	n,v,er
 dither	n,v,y
 ditto	n,v
 ditty	n
@@ -8213,7 +8229,7 @@ Driscoll	n
 drive	n,vi,er,va
 driven	d
 driveway	n
-drizzle	n,v
+drizzle	n,v,er
 drizzly	a,comp
 drogue	n
 droll	n,v,a,comp
@@ -8221,8 +8237,8 @@ drollery	n
 drolly	d
 dromedary	n
 drone	n,v,er
-drool	n,v
-droop	n,v,y
+drool	n,v,er
+droop	n,v,er,y
 drop	n,v,er,nopref,ms
 drophead	n
 dropkick	n,er
@@ -8233,7 +8249,7 @@ drosophila	n
 dross	n
 drought	n
 drove	n,er
-drown	v
+drown	v,er,va
 drowse	n,v,y
 drub	v,er,ms
 drudge	n,v,er
@@ -8485,6 +8501,7 @@ echidna	n
 echinoderm	n
 echo	n,v
 echoes	d
+eclair	n
 eclat	d
 eclectic	n,a,na
 eclipse	n,v
@@ -8528,7 +8545,7 @@ edifice	n
 edify	v,ion
 Edinburgh	pc
 Edison	n
-edit	v
+edit	v,va
 Edith	pc
 edition	n
 editor	n
@@ -9107,6 +9124,7 @@ epigraphy	n,na
 epilepsy	n
 epileptic	n,a,na
 epilogue	n
+epinephrine	n
 epiphany	n
 epiphenomenal	a,na
 epiphenomenon	pc
@@ -9336,6 +9354,7 @@ euclidean	d
 Eugene	pc
 Eugenia	pc
 eugenic	n,a,na
+eukaryote	n
 Euler	pc
 Eulerian	pc
 eulogy	n,na
@@ -9522,6 +9541,7 @@ exodus	n
 exogamous	a
 exogamy	n
 exogenous	a
+exon	n
 exonerate	v,ion
 exorable	a,va,in
 exorbitant	a
@@ -9999,7 +10019,7 @@ fetish	n,na
 fetlock	n
 fetter	n,v
 fettle	n,v
-feud	n,v,na
+feud	n,v,er,na
 feudal	a,na
 feudatory	n,a
 fever	n,v
@@ -10068,8 +10088,8 @@ filamentary	a
 filamentous	a
 filar	a,nopref
 filbert	n
-filch	v
-file	n,v
+filch	v,er
+file	n,v,er,va
 filet	n
 filial	a
 filibuster	n,v,er
@@ -10094,7 +10114,7 @@ finance	n,v
 financial	a
 financier	n,v
 finch	n
-find	n,vi,er
+find	n,vi,er,va
 fine	n,v,a,comp
 finery	n
 finesse	n,v
@@ -10247,6 +10267,7 @@ flatland	n
 flatten	v,er
 flatter	n,v,er
 flattery	n
+flattish	a
 flatulent	a
 flatus	n
 flatware	n
@@ -10389,7 +10410,7 @@ fluoroscopic	a,na
 fluoroscopy	n
 fluorspar	n
 flurry	n,v
-flush	n,v,a
+flush	n,v,er,a,va
 fluster	n,v
 flute	n,v,er,na,y
 flutter	n,v,er
@@ -10456,7 +10477,7 @@ Fontainebleau	pc
 food	n,nopref
 foodstuff	n
 foofaraw	n
-fool	n,v
+fool	n,v,er,va
 foolery	n
 foolhardy	a
 foolish	a
@@ -10739,7 +10760,7 @@ Frau	n
 fraud	n
 fraudulent	a
 fraught	n,v,a
-fray	n,v
+fray	n,v,er
 Frazier	n
 frazzle	n,v
 freak	n,v,a
@@ -10850,7 +10871,7 @@ frontiers	man
 frontispiece	n
 frontlet	n
 frosh	d
-frost	n,v,y
+frost	n,v,er,y
 frostbite	n,v
 frostbitten	d
 froth	n,v,y
@@ -10881,7 +10902,7 @@ FTC	pc,nopref
 Fuchs	n
 fuchsia	n
 fuddle	v
-fudge	n,v
+fudge	n,v,er
 fuel	n,v
 fugacity	n
 fugal	a
@@ -10902,14 +10923,14 @@ fulsome	a
 Fulton	n
 fumarole	n
 fumble	n,v,er
-fume	n,v,nopref,y
+fume	n,v,er,nopref,y
 fumigant	n
 fumigate	v,ion
 fun	n,v,nopref,ms
 function	n,v,na
 functionary	n
 functor	n
-fund	n,v
+fund	n,v,er
 fundable	a
 fundamental	n,a,na
 fundraise	vi,er
@@ -11111,6 +11132,7 @@ garnet	n
 garnish	n,v,va
 garnishee	n,v
 garniture	n
+garotte	n
 garret	n
 Garrett	n
 garrison	n,v
@@ -11128,7 +11150,7 @@ gasbag	n
 Gascony	pc
 gaseous	a
 gases	d
-gash	n,v,a
+gash	n,v,er,a
 gasholder	n
 gashouse	n
 gasify	v,ion
@@ -11175,9 +11197,10 @@ gauze	n,na,y
 gave	d,nopref
 Gavin	n
 gavotte	n,v
-gawk	n,v,y
+gawk	n,v,er,y
 gawkish	a
 gay	n,a,comp,nopref
+gayety	pc
 Gayle	n
 Gaylord	pc
 gaze	n,v,er,nopref
@@ -11315,7 +11338,7 @@ gesticulate	v,ion
 gestural	a
 gesture	n,v
 gesundheit	d
-get	n,vi,er,ms
+get	n,vi,er,va,ms
 getaway	n
 Gethsemane	pc
 Getty	pc
@@ -11437,7 +11460,7 @@ glamorous	a
 glance	n,v
 gland	n,er,nopref
 glandular	a
-glare	n,v,nopref,y
+glare	n,v,er,nopref,y
 Glasgow	pc
 glasnost	pc
 glass	n,v,na,nopref,y
@@ -11450,7 +11473,7 @@ glaucoma	n
 glaucous	a
 glaze	n,v,er
 glazier	n
-gleam	n,v,y
+gleam	n,v,er,y
 glean	v,er,va
 Gleason	n
 glee	n,ed,na
@@ -11523,7 +11546,7 @@ GM	pc,nopref
 GMT	pc,nopref
 gnarl	n,v
 gnarly	a,comp
-gnash	n,v
+gnash	n,v,er
 gnat	n,nopref,ms,y
 gnaw	v,er
 gneiss	n
@@ -11537,7 +11560,7 @@ GNP	n,nopref
 gnu	n,nopref
 go	er
 Goa	pc
-goad	n,v
+goad	n,v,er
 goal	n,v,nopref
 goalie	n
 goalpost	n
@@ -11618,7 +11641,7 @@ googolplex	n
 gooier	d
 gooiest	d
 goon	n,nopref
-goose	n,v
+goose	n,v,er
 gooseberry	n
 gooseflesh	n
 gooseneck	n,ed
@@ -11626,7 +11649,7 @@ GOP	pc,nopref
 gopher	n
 Gordian	pc
 Gordon	n
-gore	n,v,nopref,y
+gore	n,v,er,nopref,y
 Goren	n
 gorge	n,v,er
 gorgeous	a
@@ -11761,7 +11784,7 @@ graybeard	n
 grayish	a
 Grayson	n
 graywacke	n
-graze	n,v
+graze	n,v,er
 grease	n,v,er,y
 great	n,a,comp
 greatcoat	n
@@ -11816,7 +11839,7 @@ grey	n,v,a,comp
 greyhound	n
 greyish	a
 greylag	n
-grid	n,ed
+grid	n,ed,er
 griddle	n
 gridiron	n
 gridlock	n,ed
@@ -11857,7 +11880,7 @@ grog	n,ms,y
 grogshop	n
 groin	n,v
 grommet	n
-groom	n,v
+groom	n,v,er
 groove	n,v,er
 groovy	a
 grope	n,v,er
@@ -12117,7 +12140,7 @@ half	n,a
 halfback	n
 halfhearted	a
 halfpenny	n,a
-halftone	n,a
+halftone	n,v
 halfway	a
 halibut	n
 halide	n
@@ -12163,9 +12186,10 @@ Hampshirite	pc
 Hampton	n
 hamster	n
 hamstring	n,vi
+hamstrung	d
 Han	pc
 Hancock	n
-hand	n,v,na
+hand	n,v,er,na
 handbag	n
 handball	n
 handbill	n
@@ -12197,7 +12221,7 @@ handrail	n
 handsbreadth	n
 handset	n
 handshake	n,vi
-handsome	a
+handsome	a,comp
 handspike	n
 handspring	n
 handstand	n
@@ -12424,7 +12448,7 @@ heal	v,er
 Healey	n
 health	n,na,y
 Healy	n
-heap	n,v
+heap	n,v,er
 hear	vi,er
 heard	d
 hearken	v
@@ -12488,7 +12512,7 @@ hedgerow	n
 hedonism	n
 hedonist	n,na
 heebie	n
-heed	n,v,na
+heed	n,v,er,na
 heel	n,v,er,nopref
 heelpiece	n
 heft	n,v,y
@@ -13207,7 +13231,7 @@ huddle	n,v,er
 Hudson	n
 hue	n
 hued	a
-huff	n,v,y
+huff	n,v,er,y
 Huffman	pc
 hug	n,v,er,va,nopref,ms,y
 huge	a,comp
@@ -13288,7 +13312,7 @@ hurtle	v
 Hurwitz	n
 husband	n,v,er,man
 husbandry	n
-hush	n,v,a
+hush	n,v,er,a,va
 husk	n,v,er,y
 hussar	n
 hussy	n
@@ -14081,6 +14105,7 @@ introit	n
 introject	v,ion
 intromission	n
 intromit	v,ms
+intron	n
 introspect	v,ion
 introversion	n,na,va
 introvert	n,v
@@ -14469,7 +14494,7 @@ jitney	n
 jitter	v
 jitterbug	v,er,ms
 jittery	a,comp
-jive	n,v
+jive	n,v,er
 J&J	pc,nopref
 Jo	pc
 Joan	pc
@@ -14536,7 +14561,7 @@ josh	n,v,er
 Joshua	pc
 Josiah	pc
 joss	n
-jostle	n,v
+jostle	n,v,er
 jot	n,v,ms
 joule	n
 jounce	n,v
@@ -14731,6 +14756,7 @@ keep	n,v,er
 keepsake	n
 keg	n
 kegler	n
+keiretsu	pc
 Keith	n
 Keller	n
 Kelley	n
@@ -14882,7 +14908,7 @@ Kitakyushu	pc
 kitchen	n
 kitchenette	n
 kitchenware	n
-kite	n,v
+kite	n,v,er
 kith	n
 kitsch	n
 kitten	n,v
@@ -14904,6 +14930,7 @@ kleenex	n
 Klein	n
 kleptomania	n,na
 Kline	n
+klutz	n,y
 Klux	pc
 klystron	n
 km	d,nopref
@@ -14926,7 +14953,7 @@ knew	d
 knick	er
 knickerbocker	n
 knickknack	n
-knife	v
+knife	v,er
 knifelike	a
 knight	n,v,a
 Knightsbridge	pc
@@ -14952,7 +14979,7 @@ Knowlton	n
 known	n
 Knox	n
 Knoxville	pc
-knuckle	n,v
+knuckle	n,v,er
 knuckleball	n,v
 knucklebone	n
 Knudsen	n
@@ -15018,6 +15045,7 @@ kumquat	n
 Kurd	n
 Kurdish	a
 Kurt	pc
+kurtosis	d
 kuru	n
 Kuwait	n
 Kuwaiti	n
@@ -15327,7 +15355,7 @@ league	n,v,er
 Leah	n
 leak	n,v,er,y
 leakage	n
-lean	n,v,a
+lean	n,v,er,a
 Leander	pc
 Leanne	n
 leap	n,v,er
@@ -15367,7 +15395,7 @@ lee	n,a
 leeboard	n
 leech	n,v
 leek	n
-leer	n,v,nopref
+leer	n,v,er,nopref
 leery	a
 leeward	n,a
 leeway	n
@@ -15432,6 +15460,7 @@ lenity	n
 Lennox	pc
 Lenny	pc
 lens	n,v
+lensing	n
 lent	pc
 Lenten	a
 lenticular	a
@@ -15504,6 +15533,7 @@ levy	n,v,er,va
 Lew	pc
 lewd	a,comp
 lewis	n
+lexeme	n
 lexical	a
 lexicography	n,er
 lexicon	n
@@ -15741,12 +15771,12 @@ Lizzie	pc
 llama	n
 Lloyd	n
 lo	d,nopref
-load	n,v,er
+load	n,v,er,va
 loaf	n,v,er
 loam	n,y
-loan	n,vi
+loan	n,v,er
 loath	v,a
-loathe	v
+loathe	v,er
 loathsome	a
 loaves	d
 lob	n,v,ms
@@ -17041,7 +17071,7 @@ metropolitan	n,a
 mettle	n,ed
 mettlesome	a
 Metzler	n
-mew	n,v
+mew	n,v,er
 Mexican	n,a
 Mexico	pc
 Meyer	n
@@ -17185,7 +17215,7 @@ minestrone	n
 minesweep	vi
 minesweeper	n
 Ming	pc
-mingle	v
+mingle	v,er
 mini	n
 miniature	n,a,na
 minim	n,a,na
@@ -17293,7 +17323,7 @@ MN	pc,nopref
 mnemonic	n,a
 MO	pc,nopref
 moa	n,nopref
-moan	n,v
+moan	n,v,er
 moat	n,v
 mob	n,v,ms
 Mobil	pc
@@ -17482,7 +17512,7 @@ monument	n,na
 moo	n,v,nopref
 mooch	v,er
 mood	n,nopref,y
-moon	n,v,y
+moon	n,v,er,y
 moonbeam	n
 Mooney	pc
 moonlet	n
@@ -17642,7 +17672,7 @@ mudsling	vi,er
 Mueller	n
 Muenster	pc
 muezzin	n
-muff	n,v
+muff	n,v,er
 muffin	n
 muffle	n,v,er
 mufti	n
@@ -17654,7 +17684,7 @@ mukluk	n
 mulatto	n
 mulattoes	d
 mulberry	n
-mulch	n,v
+mulch	n,v,er
 mulct	n,v
 mule	n
 mulish	a
@@ -19023,7 +19053,6 @@ outpace	v
 outrageous	a
 outrance	n
 outshine	v
-outvote	v
 ouzel	n
 ouzo	n
 ova	pc,nopref
@@ -19394,7 +19423,7 @@ passport	n
 password	n
 past	n,v,y
 pasta	n
-paste	n,v
+paste	n,v,er
 pasteboard	n,a
 pastel	n,a,na
 pasteup	n
@@ -19642,6 +19671,7 @@ pentad	n
 pentagon	n
 pentagonal	a
 pentagram	n
+pentamer	n
 pentameter	n
 pentane	n,nopref
 Pentateuch	pc
@@ -19756,7 +19786,7 @@ permission	n,na,va
 permit	n,v,ms
 permittivity	n
 permutation	n,na
-permute	v
+permute	v,er,va
 pernicious	a
 pernickety	a
 Pernod	pc
@@ -19889,7 +19919,7 @@ pharmacopoeia	n
 pharmacy	n
 pharyngeal	a
 pharynx	n
-phase	n,v
+phase	n,v,er
 phasor	n
 PhD	pc,nopref
 pheasant	n
@@ -20027,7 +20057,7 @@ Pickering	n
 picket	n,v,er
 Pickett	n
 Pickford	n
-pickle	n,v
+pickle	n,v,er
 Pickman	n
 pickoff	d
 pickpocket	n
@@ -20042,7 +20072,8 @@ pictographic	a
 pictorial	n,a
 picture	n,v
 picturesque	a
-piddle	v
+piddle	v,er
+piddly	d
 pidgin	n
 pie	n,ed
 piebald	n,a
@@ -20052,7 +20083,7 @@ piecewise	d
 piecework	n,er
 piedmont	n,a
 pier	n
-pierce	n,v
+pierce	n,v,er
 Pierre	pc
 Pierrot	n
 Pierson	n
@@ -20168,7 +20199,7 @@ piscatory	a
 Pisces	pc
 pisciculture	n
 piscine	a
-piss	n,v,nopref
+piss	n,v,er,nopref
 pissoir	n
 pistachio	n
 pistil	n
@@ -20348,7 +20379,7 @@ pliant	a
 pliers	n
 plight	n,v,er
 plimsoll	n
-plink	n,v
+plink	n,v,er
 plinth	n
 Pliny	pc
 Pliocene	a
@@ -20562,10 +20593,10 @@ Ponzi	n
 pooch	n
 poodle	n
 pooh	v,er
-pool	n,v,nopref
+pool	n,v,er,nopref
 Poole	n
 poolroom	n
-poop	n,v
+poop	n,v,er
 poor	a,comp
 poorhouse	n
 poorish	a
@@ -20912,7 +20943,7 @@ prevent	v,er,ion,va
 preview	n,v,er
 previous	a
 prexy	n
-prey	n,v
+prey	n,v,er
 Priam	pc
 price	n,v,er
 prick	n,v,a,er
@@ -20936,7 +20967,7 @@ primitivism	n
 primo	n
 primogeniture	n
 primordial	a
-primp	v
+primp	v,er
 primrose	n
 primus	n
 prince	n,a
@@ -20950,6 +20981,7 @@ principle	n,ed
 print	n,v,er,va
 printery	n
 printout	n
+prion	n
 prior	n,a,na
 prioress	n
 priori	d
@@ -21047,6 +21079,7 @@ prohibition	n,na,va
 prohibitory	a
 project	n,v,ion,va
 projectile	n,a
+prokaryote	n
 Prokofieff	pc
 prolate	a
 prolegomena	pc
@@ -21300,7 +21333,7 @@ puke	n,v
 pukka	a
 Pulaski	pc
 pulchritude	n
-pule	v
+pule	v,er
 Pulitzer	n
 pull	n,v,er
 pullback	n
@@ -21377,12 +21410,12 @@ puritanic	n
 purl	n,v
 purlieu	n
 purloin	v,er
-purple	n,v,a
+purple	n,v,a,comp
 purplish	a
 purport	n,v
 purpose	n,v,a,na
 purposive	a
-purr	n,v
+purr	n,v,er
 purse	n,v,er,y
 purslane	n
 pursuant	a
@@ -21459,7 +21492,7 @@ Qatar	pc
 QED	pc,nopref
 q's	d,nopref
 qua	d
-quack	n,v,a
+quack	n,v,er,a
 quackery	n
 quad	n,v,ms
 quadrangle	n
@@ -21525,7 +21558,7 @@ quartile	n
 quarto	n
 quartz	n
 quasar	n
-quash	v
+quash	v,er
 quasi	a
 quaternary	n,a
 quatrain	n
@@ -21607,7 +21640,7 @@ quonset	n
 quorum	n
 quota	n
 quotation	n
-quote	n,v,va
+quote	n,v,er,va
 quoth	v
 quotidian	a
 quotient	n
@@ -21650,6 +21683,7 @@ radiograph	n
 radiography	n
 radiolarian	n
 radiology	n,na
+radiosity	n
 radiosonde	n
 radish	n
 radium	n
@@ -21816,7 +21850,7 @@ Raytheon	pc
 raze	v,er
 razor	n
 razorback	n
-razz	n,v
+razz	n,v,er
 razzle	ed
 RBI	n,nopref
 RCA	pc,nopref
@@ -21962,6 +21996,7 @@ refinement	n
 refinery	n
 reflect	v,ion
 reflectance	n
+reflectible	a
 reflectometer	n
 reflexive	n,a,in
 reformatory	n,a
@@ -22111,7 +22146,6 @@ replicate	n,v,a,ion
 reportorial	a
 repository	n,a
 reprehensible	a
-repressable	s
 repressible	a,in
 repression	n,na,va
 repressor	n
@@ -22120,6 +22154,7 @@ reprimand	n,v
 reprisal	n
 reprise	n,v
 reproach	n,v,er,na,va,in
+reprography	n,er
 reptile	n,a
 reptilian	n,a
 republican	n,a,na
@@ -22495,7 +22530,7 @@ Rogers	n
 Roget	pc
 rogue	n,v,a
 roguish	a
-roil	v
+roil	v,er
 roily	a,comp
 roister	v,er
 Roland	n
@@ -22503,8 +22538,10 @@ role	n,nopref
 Rolf	pc
 roll	n,v,er
 rollback	n
+rollerblade	n,v,er
 rollick	n,v
 Rollins	pc
+rollout	n
 roly	d
 romaine	n
 roman	n,a,na
@@ -22662,7 +22699,7 @@ Rudyard	pc
 rue	n,v,na,nopref
 ruff	n,v,a
 ruffian	n,a,na
-ruffle	n,v
+ruffle	n,v,er
 rufous	a
 Rufus	pc
 rug	n,v,er,na,ms
@@ -22982,7 +23019,7 @@ sartorial	a
 sash	n
 sashay	n,v
 Saskatchewan	pc
-sass	v,y
+sass	v,er,y
 sassafras	n
 sassy	a,comp
 sat	d,nopref
@@ -23001,6 +23038,7 @@ satisfaction	n
 satisfactory	a
 satisfy	v
 satrap	n
+satrapy	n
 saturable	a
 saturate	v,a,ion
 Saturday	n
@@ -23155,7 +23193,7 @@ Schofield	n
 scholar	n,a
 scholastic	n,a,na
 scholium	n
-school	n,v,man
+school	n,v,er,man
 schoolbag	n
 schoolbook	n
 schoolboy	n
@@ -23180,7 +23218,7 @@ Schultz	n
 Schulz	n
 Schumacher	n
 Schumann	n
-schuss	n,v
+schuss	n,v,er
 Schuster	pc
 Schuyler	pc
 Schuylkill	pc
@@ -23265,7 +23303,7 @@ scribe	n,v,er,in
 Scribner	n
 scrim	n
 scrimmage	n,v,er
-scrimp	v,y
+scrimp	v,er,y
 scrimshaw	n,v
 scrip	n,nopref
 Scripps	pc
@@ -23287,7 +23325,7 @@ scrub	n,v,er,man,ms,y
 scruff	n,y
 scrum	n
 scrumptious	a
-scrunch	v,y
+scrunch	v,er,y
 scruple	n,v
 scrupulosity	n
 scrupulous	a
@@ -23295,8 +23333,8 @@ scrutable	a,in
 scrutiny	n
 scuba	n
 scud	n,v,ms
-scuff	n,v
-scuffle	n,v
+scuff	n,v,er
+scuffle	n,v,er
 scull	n,v,er
 scullery	n
 scullion	n
@@ -23531,7 +23569,7 @@ septuplet	n
 sepulchral	a
 sequel	n
 sequelae	d
-sequent	a
+sequent	n,a
 sequential	a
 sequester	n,v
 sequestration	n
@@ -23662,8 +23700,8 @@ shalt	d
 sham	n,v,a,er,ms
 shaman	n,na
 shamateur	n,na
-shamble	n,v
-shame	n,v,na
+shamble	n,v,er
+shame	n,v,er,na
 shamefaced	a
 shampoo	n,v,er
 shamrock	n
@@ -23740,7 +23778,7 @@ Shelby	n
 Sheldon	n
 shelf	n,na
 she'll	d
-shell	n,v,a
+shell	n,v,er,a
 shellac	n,v
 shellacked	d
 shellacking	n
@@ -23818,7 +23856,7 @@ Shiva	pc
 shivaree	n,v
 shiver	n,v
 shivery	a
-shoal	n,v,a
+shoal	n,v,a,comp
 shock	n,v,a,er
 Shockley	n
 shod	a
@@ -23831,7 +23869,7 @@ shofar	n
 shogun	n
 shoji	n
 shone	d
-shoo	v
+shoo	v,er
 shoofly	n
 shook	n
 shoot	n,vi,er
@@ -23882,7 +23920,7 @@ Shreveport	pc
 shrew	n,v
 shrewd	a,comp
 shrewish	a
-shriek	n,v
+shriek	n,v,er
 shrieve	v,er
 shrift	n
 shrike	n
@@ -23911,7 +23949,7 @@ Shulman	n
 shun	v,er,ms
 shunpike	n
 shunt	n,v,er
-shush	v
+shush	v,er
 shut	n,vi,er,ms
 shutdown	n
 shutoff	n
@@ -24283,7 +24321,7 @@ sloganeer	n,v
 sloop	n
 slop	n,v,ms,y
 slope	n,v,a,er
-slosh	n,v
+slosh	n,v,er
 slot	n,v,ms
 sloth	n,na
 slouch	n,v,er,y
@@ -24306,7 +24344,7 @@ slump	n,v
 slung	d
 slunk	d
 slur	n,v,ms
-slurp	n,v
+slurp	n,v,er
 slurry	n
 slush	n,y
 slushy	a,comp
@@ -24332,7 +24370,7 @@ smelt	n,v,er
 smidgen	n
 smile	n,v,er
 smirch	n,v
-smirk	n,v,y
+smirk	n,v,er,y
 smite	vi,er
 smith	n
 smithereens	n
@@ -24348,7 +24386,7 @@ smokehouse	n
 smokeproof	a
 smokescreen	n
 smokestack	n
-smooch	n,v,y
+smooch	n,v,er,y
 smooth	n,v,a,comp,y
 smoothbore	n,a
 smorgasbord	n
@@ -24432,7 +24470,7 @@ snuff	n,v,er,y
 snuffbox	n
 snuffle	n,v,er
 snug	n,v,a,comp,ms
-snuggle	n,v
+snuggle	n,v,er
 snuggly	a,comp
 Snyder	n
 so	n,nopref
@@ -24664,11 +24702,11 @@ soya	n
 soybean	n
 S&P	n,nopref
 spa	n
-space	n,v,ion,man
+space	n,v,er,ion,man
 spacecraft	n
 spacesuit	n
 spacious	a
-spackle	v
+spackle	v,er
 spade	n,v,er,na
 spadework	n
 spaghetti	pc
@@ -24788,9 +24826,9 @@ Spiegel	n
 spiel	n,v,er
 spiffy	a,comp
 spigot	n
-spike	n,v,na,y
+spike	n,v,er,na,y
 spikenard	n
-spill	n,v,va
+spill	n,v,er,va
 spillage	n
 spillway	n
 spilt	d
@@ -24833,7 +24871,7 @@ splint	n,v,er
 splintery	a
 split	n,vi,a,er,va,ms
 splotch	n,v,y
-splurge	n,v
+splurge	n,v,er
 splutter	n,v,er,y
 spoil	n,v,er,va
 spoilage	n
@@ -24851,7 +24889,7 @@ sponson	n,nopref
 sponsor	n,v
 spontaneity	n,v,a,ion
 spontaneous	a
-spoof	n,v,va
+spoof	n,v,er,va
 spook	n,v,y
 spool	n,v,er
 spoon	n,v,er,na,y
@@ -24907,7 +24945,7 @@ spur	n,v,ms,y
 spurge	n
 spurious	a
 spurn	n,v,er
-spurt	n,v
+spurt	n,v,er
 sputnik	n
 sputter	n,v,er
 sputum	n
@@ -24918,7 +24956,7 @@ squabble	n,v,er
 squad	n,v,ms
 squadron	n
 squalid	a
-squall	n,v
+squall	n,v,er
 squally	a
 squalor	n
 squamous	a
@@ -24944,7 +24982,7 @@ squiggly	a,comp
 squill	n
 squint	n,v,a,er,y
 squire	n,v,na
-squirm	n,v,y
+squirm	n,v,er,y
 squirt	n,v,er
 squish	n,v,y
 Sri	pc
@@ -25216,7 +25254,7 @@ stirrup	n
 stitch	n,v,er
 stoat	n
 stochastic	a
-stock	n,v,man,y
+stock	n,v,er,man,y
 stockade	n,v
 stockbroker	n
 stockholder	n
@@ -25251,7 +25289,7 @@ stood	d
 stooge	n,v
 stool	n,v
 stoolie	n
-stoop	n,v
+stoop	n,v,er
 stop	n,v,a,er,va,ms
 stopcock	n
 stopgap	n
@@ -25324,7 +25362,7 @@ straw	n,y
 strawberry	n
 strawflower	n
 stray	n,v,a,er
-streak	n,v,y
+streak	n,v,er,y
 stream	n,v,er
 streamlet	n
 streamline	n,v,er
@@ -25341,7 +25379,7 @@ streptomycin	n
 stress	n,v,na
 stretch	n,v,a,er,va
 stretchy	a,comp
-strew	v,va
+strew	v,er,va
 strewn	d
 striate	v,a,ion
 stricken	d
@@ -25470,7 +25508,7 @@ substantial	n,a,in
 substantiate	v,ion
 substantive	n,a,na
 substituent	n,a
-substitute	n,v,a,ion
+substitute	n,v,a,va,ion
 substitutionary	a
 substrate	n
 subsume	v
@@ -25546,7 +25584,7 @@ sulfite	n,na
 sulfonamide	n
 sulfuric	a
 sulfurous	a
-sulk	n,v,y
+sulk	n,v,er,y
 sulky	n,a,comp
 sullen	a,comp
 Sullivan	n
@@ -25803,13 +25841,14 @@ swig	n,v,er,ms
 swill	n,v,er
 swim	n,vi,er,va,ms,y
 swimsuit	n
+swimwear	pc
 swindle	n,v,er
 swine	n
 swineherd	n
 swing	n,v,a,er,y
 swingable	a
 swinish	a
-swipe	n,v
+swipe	n,er,v
 swirl	n,v
 swirly	a,comp
 swish	n,v,a,er,y
@@ -25926,7 +25965,7 @@ tab	n,v,ms
 tabby	n
 tabernacle	n,v
 tablature	n
-table	n,v
+table	n,v,er
 tableau	n
 tableaux	pc
 tablecloth	n
@@ -26362,6 +26401,7 @@ tetrahedra	n
 tetrahedral	a
 tetrahedron	n
 tetralogy	n
+tetramer	n
 tetraploid	n,a
 tetravalent	a
 tetrode	n
@@ -26680,12 +26720,13 @@ tinderbox	n
 tine	n,ed,y
 tinfoil	n
 tinge	n,v
-tingle	n,v
+tingle	n,v,er
+tingly	d
 tinhorn	n
 tinker	n,v,er
 Tinkertoy	n
-tinkle	n,v
-tinkly	a
+tinkle	n,v,er
+tinkly	d
 tinplate	n
 tinsmith	n
 tint	n,v,er
@@ -27122,6 +27163,7 @@ Trevor	pc
 triable	a
 triac	n
 triad	n
+triage	n
 trial	n
 triangle	n
 triangular	a
@@ -27429,7 +27471,7 @@ TWA	pc,nopref
 twaddle	n,v,er
 twain	n
 twang	n,v,y
-tweak	n,v
+tweak	n,v,er
 tweed	n,ed,y
 tween	d
 tweet	n,v,er
@@ -27441,7 +27483,7 @@ twenty	n
 twentyish	a
 twerp	n
 twice	d
-twiddle	n,v
+twiddle	n,v,er
 twig	n,v,ms,y
 twilight	n
 twill	n,v
@@ -28262,7 +28304,7 @@ vortices	d
 vorticity	n
 Voss	n
 votary	n
-vote	n,v,er,nopref
+vote	n,v,er
 votive	a
 vouch	n,v,er
 vouchsafe	v,va
@@ -28626,7 +28668,7 @@ wheat	n
 Wheaties	n
 Wheatstone	pc
 whee	d,nopref
-wheedle	v
+wheedle	v,er
 wheel	n,v,er,man
 wheelbarrow	n,v
 wheelbase	n
@@ -28634,7 +28676,7 @@ wheelchair	n
 wheelhorse	n
 wheelhouse	n
 wheelwright	n
-wheeze	n,v,y
+wheeze	n,v,er,y
 Whelan	n
 whelk	n
 Wheller	n
@@ -29054,7 +29096,7 @@ wraparound	n
 wrapup	d
 wrasse	n
 wrath	n,na,y
-wreak	v,na
+wreak	v,er,na
 wreath	n,y
 wreathe	v
 wreck	n,v,er
@@ -29128,9 +29170,9 @@ x's	d,nopref
 xylem	n
 xylene	n
 xylophone	n,na
-yacht	n,v
+yacht	n,v,er
 yachts	man
-yack	v
+yack	v,er
 yackety	d
 yagi	n
 yah	d
@@ -29160,7 +29202,7 @@ yardmaster	n
 yardstick	n
 Yarmouth	pc
 yarmulke	n
-yarn	n,v
+yarn	n,v,er
 yarrow	n
 Yates	n
 yaw	n,v
@@ -29238,7 +29280,7 @@ yourself	d
 yourselves	d
 youth	n,na
 you've	d
-yowl	n,v
+yowl	n,v,er
 Ypsilanti	pc
 y's	d
 ytterbium	n
@@ -29320,8 +29362,8 @@ Zomba	pc
 zombie	n,a
 zonal	a
 zonate	ed,a,ion
-zone	n,v
-zonk	v
+zone	n,v,er
+zonk	v,er
 zoo	n
 zoogeography	n,na
 zoology	n,na

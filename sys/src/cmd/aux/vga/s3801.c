@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
@@ -7,31 +8,27 @@
  * S3 86C80[15] GUI Accelerator.
  */
 static void
-snarf(Vga *vga, Ctlr *ctlr)
+snarf(Vga* vga, Ctlr* ctlr)
 {
-	verbose("%s->snarf\n", ctlr->name);
-
-	(*s3generic.snarf)(vga, ctlr);
+	s3generic.snarf(vga, ctlr);
 }
 
 static void
-options(Vga *vga, Ctlr *ctlr)
+options(Vga*, Ctlr* ctlr)
 {
-	USED(vga);
-	verbose("%s->options\n", ctlr->name);
-	
 	ctlr->flag |= Henhanced|Foptions;
 }
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
 	ulong x;
 
-	verbose("%s->init\n", ctlr->name);
-
-	(*s3generic.init)(vga, ctlr);
+	s3generic.init(vga, ctlr);
 	vga->crt[0x3B] = vga->crt[0]-5;
+
+	if(vga->mode->z > 8)
+		error("depth %d not supported\n", vga->mode->z);
 
 	/*
 	 * Display memory access control.
@@ -54,13 +51,11 @@ init(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
 	ushort advfunc;
 
-	verbose("%s->load\n", ctlr->name);
-
-	(*s3generic.load)(vga, ctlr);
+	s3generic.load(vga, ctlr);
 	vgaxo(Crtx, 0x60, vga->crt[0x60]);
 	vgaxo(Crtx, 0x61, vga->crt[0x61]);
 	vgaxo(Crtx, 0x62, vga->crt[0x62]);
@@ -76,9 +71,9 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
-	(*s3generic.dump)(vga, ctlr);
+	s3generic.dump(vga, ctlr);
 }
 
 Ctlr s3801 = {

@@ -31,6 +31,8 @@ chaninit(int type, int count)
 		cp->chan = cons.chano;
 		cons.chano++;
 		strncpy(cp->whoname, "<none>", sizeof(cp->whoname));
+		dofilter(&cp->work, C0a, C0b, 1);
+		dofilter(&cp->rate, C0a, C0b, 1000);
 		fileinit(cp);
 		wlock(&cp->reflock);
 		wunlock(&cp->reflock);
@@ -192,31 +194,43 @@ int
 iaccess(File *f, Dentry *d, int m)
 {
 
+	/* uid none gets only other permissions */
+	if(f->uid == 0)
+		goto doother;
+
 	/*
-	 * other is easiest
-	 */
-	if(m & d->mode)
-		return 0;
-	/*
-	 * owner is next
+	 * owner
 	 */
 	if(f->uid == d->uid)
 		if((m<<6) & d->mode)
 			return 0;
 	/*
-	 * group membership is hard
+	 * group membership
 	 */
 	if(ingroup(f->uid, d->gid))
 		if((m<<3) & d->mode)
 			return 0;
+
+doother:
+	/*
+	 * other
+	 */
+	if(m & d->mode) {
+		if((d->mode & DDIR) && (m == DEXEC))
+			return 0;
+		if(!ingroup(f->uid, 9999))
+			return 0;
+	}
+
 	/*
 	 * various forms of superuser
 	 */
 	if(wstatallow)
 		return 0;
 	if(duallow != 0 && duallow == f->uid)
-	if((d->mode & DDIR) && (m == DREAD || m == DEXEC))
+		if((d->mode & DDIR) && (m == DREAD || m == DEXEC))
 			return 0;
+
 	return 1;
 }
 
@@ -225,7 +239,7 @@ tlocked(Iobuf *p, Dentry *d)
 {
 	Tlock *t, *t1;
 	long qpath, tim;
-	Device dev;
+	Device *dev;
 
 	tim = toytime();
 	qpath = d->qid.path;
@@ -234,7 +248,7 @@ tlocked(Iobuf *p, Dentry *d)
 	for(t=tlocks+NTLOCK-1; t>=tlocks; t--) {
 		if(t->qpath == qpath)
 		if(t->time >= tim)
-		if(devcmp(t->dev, dev) == 0)
+		if(t->dev == dev)
 			return 0;		/* its locked */
 		if(!t1 && t->time == 0)
 			t1 = t;			/* take last free lock */
@@ -297,7 +311,7 @@ freewp(Wpath *w)
 }
 
 Qid
-newqid(Device dev)
+newqid(Device *dev)
 {
 	Iobuf *p;
 	Superb *sb;
@@ -315,7 +329,7 @@ newqid(Device dev)
 }
 
 void
-buffree(Device dev, long addr, int d)
+buffree(Device *dev, long addr, int d)
 {
 	Iobuf *p;
 	long a;
@@ -346,7 +360,7 @@ buffree(Device dev, long addr, int d)
 	 * dont put written worm
 	 * blocks into free list
 	 */
-	if(dev.type == Devcw) {
+	if(dev->type == Devcw) {
 		i = cwfree(dev, addr);
 		if(i)
 			return;
@@ -359,7 +373,7 @@ buffree(Device dev, long addr, int d)
 }
 
 long
-bufalloc(Device dev, int tag, long qid, int uid)
+bufalloc(Device *dev, int tag, long qid, int uid)
 {
 	Iobuf *bp, *p;
 	Superb *sb;
@@ -388,7 +402,7 @@ loop:
 		if(a == 0) {
 			sb->tfree = 0;
 			sb->fbuf.nfree = 1;
-			if(dev.type == Devcw) {
+			if(dev->type == Devcw) {
 				n = uid;
 				if(n < 0 || n >= nelem(growacct))
 					n = 0;
@@ -448,7 +462,7 @@ checkname(char *n)
 }
 
 void
-addfree(Device dev, long addr, Superb *sb)
+addfree(Device *dev, long addr, Superb *sb)
 {
 	int n;
 	Iobuf *p;
@@ -457,7 +471,7 @@ addfree(Device dev, long addr, Superb *sb)
 	if(n < 0 || n > FEPERBUF)
 		panic("addfree: bad freelist");
 	if(n >= FEPERBUF) {
-		p = getbuf(dev, addr, Bmod);
+		p = getbuf(dev, addr, Bmod|Bimm);
 		if(p == 0)
 			panic("addfree: getbuf");
 		*(Fbuf*)p->iobuf = sb->fbuf;
@@ -487,11 +501,64 @@ Cconv(Op *o)
 int
 Dconv(Op *o)
 {
-	Device d;
-	char s[20];
+	Device *d;
+	int c, c1;
+	char s[100];
 
-	d = *(Device*)o->argp;
-	sprint(s, "D%d.%d.%d.%d", d.type, d.ctrl, d.unit, d.part);
+	d = *(Device**)o->argp;
+	if(d == 0) {
+		sprint(s, "D***");
+		goto out;
+	}
+	switch(d->type) {
+	default:
+		sprint(s, "D%d", d->type);
+		break;
+	case Devwren:
+		c = 'w';
+		goto d1;
+	case Devworm:
+		c = 'r';
+		goto d1;
+	case Devlworm:
+		c = 'l';
+		goto d1;
+	d1:
+		if(d->wren.ctrl == 0 && d->wren.lun == 0)
+			sprint(s, "%c%d", c, d->wren.targ);
+		else
+			sprint(s, "%c%d.%d.%d", c, d->wren.ctrl, d->wren.targ, d->wren.lun);
+		break;
+	case Devmcat:
+		c = '(';
+		c1 = ')';
+		goto d2;
+	case Devmlev:
+		c = '[';
+		c1 = ']';
+	d2:
+		if(d->cat.first == d->cat.last)
+			sprint(s, "%c%D%c", c, d->cat.first, c1);
+		else
+		if(d->cat.first->link == d->cat.last)
+			sprint(s, "%c%D%D%c", c, d->cat.first, d->cat.last, c1);
+		else
+			sprint(s, "%c%D-%D%c", c, d->cat.first, d->cat.last, c1);
+		break;
+	case Devro:
+		sprint(s, "o%D%D", d->ro.parent->cw.c, d->ro.parent->cw.w);
+		break;
+	case Devcw:
+		sprint(s, "c%D%D", d->cw.c, d->cw.w);
+		break;
+	case Devjuke:
+		sprint(s, "j%D%D", d->j.j, d->j.m);
+		break;
+	case Devpart:
+		sprint(s, "p%ld.%ld", d->part.base, d->part.size);
+		break;
+	}
+out:
 	strconv(s, o, o->f1, o->f2);
 	return sizeof(d);
 }
@@ -499,17 +566,14 @@ Dconv(Op *o)
 int
 Fconv(Op *o)
 {
-	Filta a;
+	Filter* a;
 	char s[30];
 
-	a = *(Filta*)o->argp;
+	a = *(Filter**)o->argp;
 
-	sprint(s, "%6lud %6lud %6lud",
-		fdf(a.f->filter[0], a.scale*60),
-		fdf(a.f->filter[1], a.scale*600),
-		fdf(a.f->filter[2], a.scale*6000));
+	sprint(s, "%lud", fdf(a->filter, a->c3*a->c1));
 	strconv(s, o, o->f1, o->f2);
-	return sizeof(Filta);
+	return sizeof(a);
 }
 
 int
@@ -533,7 +597,7 @@ Econv(Op *o)
 	uchar *p;
 
 	p = *((uchar**)o->argp);
-	sprint(s, "%.2lux%.2lux%.2lux%.2lux%.2lux%.2lux",
+	sprint(s, "%.2ux%.2ux%.2ux%.2ux%.2ux%.2ux",
 		p[0], p[1], p[2], p[3], p[4], p[5]);
 	strconv(s, o, o->f1, o->f2);
 	return sizeof(uchar*);
@@ -590,20 +654,8 @@ nzip(uchar ip[Pasize])
 	return 0;
 }
 
-int
-devcmp(Device d1, Device d2)
-{
-
-	if(d1.type == d2.type)
-	if(d1.ctrl == d2.ctrl)
-	if(d1.unit == d2.unit)
-	if(d1.part == d2.part)
-		return 0;
-	return 1;
-}
-
 void
-rootream(Device dev, long addr)
+rootream(Device *dev, long addr)
 {
 	Iobuf *p;
 	Dentry *d;
@@ -627,7 +679,7 @@ rootream(Device dev, long addr)
 }
 
 void
-superream(Device dev, long addr)
+superream(Device *dev, long addr)
 {
 	Iobuf *p;
 	Superb *s;
@@ -734,6 +786,7 @@ mballoc(int count, Chan *cp, int category)
 	iunlock(&msgalloc);
 	mb->count = count;
 	mb->chan = cp;
+	mb->next = 0;
 	mb->param = 0;
 	mb->category = category;
 	if(1)
@@ -751,7 +804,6 @@ mbfree(Msgbuf *mb)
 
 	ilock(&msgalloc);
 	mballocs[mb->category]--;
-	mb->category = 0;
 	mb->flags |= FREE;
 	if(mb->flags & LARGE) {
 		mb->next = msgalloc.lmsgbuf;
@@ -825,48 +877,50 @@ hexdump(void *a, int n)
 }
 
 void*
-recv(Queue *q, int tim)
+recv(Queue *q, int)
 {
 	User *p;
 	void *a;
 	int i, c;
+	long s;
 
-
-	USED(tim);
 	if(q == 0)
 		panic("recv null q");
-loop:
-	lock(q);
-	c = q->count;
-	if(c > 0) {
-		i = q->loc;
-		a = q->args[i];
-		i++;
-		if(i >= q->size)
-			i = 0;
-		q->loc = i;
-		q->count = c-1;
-		p = q->whead;
-		if(p) {
-			q->whead = p->qnext;
-			if(q->whead == 0)
-				q->wtail = 0;
-			ready(p);
+	for(;;) {
+		lock(q);
+		c = q->count;
+		if(c > 0) {
+			i = q->loc;
+			a = q->args[i];
+			i++;
+			if(i >= q->size)
+				i = 0;
+			q->loc = i;
+			q->count = c-1;
+			p = q->whead;
+			if(p) {
+				q->whead = p->qnext;
+				if(q->whead == 0)
+					q->wtail = 0;
+				ready(p);
+			}
+			unlock(q);
+			return a;
 		}
+		p = q->rtail;
+		if(p == 0)
+			q->rhead = u;
+		else
+			p->qnext = u;
+		q->rtail = u;
+		u->qnext = 0;
+		s = splhi();
+		u->state = Recving;
 		unlock(q);
-		return a;
+		sched();
+		splx(s);
 	}
-	p = q->rtail;
-	if(p == 0)
-		q->rhead = u;
-	else
-		p->qnext = u;
-	q->rtail = u;
-	u->qnext = 0;
-	u->state = Recving;
-	unlock(q);
-	sched();
-	goto loop;
+	return 0;
 }
 
 void
@@ -874,39 +928,42 @@ send(Queue *q, void *a)
 {
 	User *p;
 	int i, c;
+	long s;
 
 	if(q == 0)
 		panic("send null q");
-loop:
-	lock(q);
-	c = q->count;
-	if(c < q->size) {
-		i = q->loc + c;
-		if(i >= q->size)
-			i -= q->size;
-		q->args[i] = a;
-		q->count = c+1;
-		p = q->rhead;
-		if(p) {
-			q->rhead = p->qnext;
-			if(q->rhead == 0)
-				q->rtail = 0;
-			ready(p);
+	for(;;) {
+		lock(q);
+		c = q->count;
+		if(c < q->size) {
+			i = q->loc + c;
+			if(i >= q->size)
+				i -= q->size;
+			q->args[i] = a;
+			q->count = c+1;
+			p = q->rhead;
+			if(p) {
+				q->rhead = p->qnext;
+				if(q->rhead == 0)
+					q->rtail = 0;
+				ready(p);
+			}
+			unlock(q);
+			return;
 		}
+		p = q->wtail;
+		if(p == 0)
+			q->whead = u;
+		else
+			p->qnext = u;
+		q->wtail = u;
+		u->qnext = 0;
+		s = splhi();
+		u->state = Sending;
 		unlock(q);
-		return;
+		sched();
+		splx(s);
 	}
-	p = q->wtail;
-	if(p == 0)
-		q->whead = u;
-	else
-		p->qnext = u;
-	q->wtail = u;
-	u->qnext = 0;
-	u->state = Sending;
-	unlock(q);
-	sched();
-	goto loop;
 }
 
 Queue*
@@ -921,96 +978,112 @@ newqueue(int size)
 	return q;
 }
 
-no(void *a)
+no(void*)
 {
-
-	USED(a);
 	return 0;
 }
 
 int
-devread(Device a, long b, void *c)
+devread(Device *d, long b, void *c)
 {
 
-	switch(a.type)
+loop:
+	switch(d->type)
 	{
 	case Devcw:
-		return cwread(a, b, c);
+		return cwread(d, b, c);
+
+	case Devjuke:
+		d = d->j.m;
+		goto loop;
 
 	case Devro:
-		return roread(a, b, c);
+		return roread(d, b, c);
 
 	case Devwren:
-		return wrenread(a, b, c);
+		return wrenread(d, b, c);
 
 	case Devworm:
-		return wormread(a, b, c);
+	case Devlworm:
+		return wormread(d, b, c);
 
 	case Devfworm:
-		return fwormread(a, b, c);
+		return fwormread(d, b, c);
 
 	case Devmcat:
-		return mcatread(a, b, c);
+		return mcatread(d, b, c);
 
 	case Devmlev:
-		return mlevread(a, b, c);
+		return mlevread(d, b, c);
 
 	case Devpart:
-		return partread(a, b, c);
+		return partread(d, b, c);
 	}
-	panic("illegal device in read: %D %ld", a, b);
+	panic("illegal device in read: %D %ld", d, b);
 	return 1;
 }
 
 int
-devwrite(Device a, long b, void *c)
+devwrite(Device *d, long b, void *c)
 {
 
-	switch(a.type)
+loop:
+	switch(d->type)
 	{
 	case Devcw:
-		return cwwrite(a, b, c);
+		return cwwrite(d, b, c);
+
+	case Devjuke:
+		d = d->j.m;
+		goto loop;
 
 	case Devro:
-		print("write to ro device %D(%ld)\n", a, b);
+		print("write to ro device %D(%ld)\n", d, b);
 		return 1;
 
 	case Devwren:
-		return wrenwrite(a, b, c);
+		return wrenwrite(d, b, c);
 
 	case Devworm:
-		return wormwrite(a, b, c);
+	case Devlworm:
+		return wormwrite(d, b, c);
 
 	case Devfworm:
-		return fwormwrite(a, b, c);
+		return fwormwrite(d, b, c);
 
 	case Devmcat:
-		return mcatwrite(a, b, c);
+		return mcatwrite(d, b, c);
 
 	case Devmlev:
-		return mlevwrite(a, b, c);
+		return mlevwrite(d, b, c);
 
 	case Devpart:
-		return partwrite(a, b, c);
+		return partwrite(d, b, c);
 	}
-	panic("illegal device in write: %D %ld", a, b);
+	panic("illegal device in write: %D %ld", d, b);
 	return 1;
 }
 
 long
-devsize(Device d)
+devsize(Device *d)
 {
 
-	switch(d.type)
+loop:
+	switch(d->type)
 	{
 	case Devcw:
 	case Devro:
 		return cwsize(d);
 
+	case Devjuke:
+		d = d->j.m;
+		goto loop;
+
 	case Devwren:
 		return wrensize(d);
 
 	case Devworm:
+	case Devlworm:
 		return wormsize(d);
 
 	case Devfworm:
@@ -1030,10 +1103,10 @@ devsize(Device d)
 }
 
 long
-superaddr(Device d)
+superaddr(Device *d)
 {
 
-	switch(d.type) {
+	switch(d->type) {
 	default:
 		return SUPER_ADDR;
 
@@ -1044,61 +1117,77 @@ superaddr(Device d)
 }
 
 long
-getraddr(Device d)
+getraddr(Device *d)
 {
 
-	switch(d.type) {
+	switch(d->type) {
 	default:
 		return ROOT_ADDR;
 
 	case Devcw:
-		return cwraddr(d, 0);
-
 	case Devro:
-		return cwraddr(d, 1);
+		return cwraddr(d);
 	}
 }
 
 void
-devream(Device d)
+devream(Device *d, int top)
 {
-	Device wdev;
+	Device *l;
 
-	print("ream: %D\n", d);
-	switch(d.type) {
+	print("	devream: %D %d\n", d, top);
+	switch(d->type) {
 	default:
-	bad:
 		print("ream: unknown dev type %D\n", d);
 		return;
 
 	case Devcw:
-		wdev = WDEV(d);
-		if(wdev.type == Devfworm)
-			fwormream(wdev);
-		wlock(&mainlock);	/* ream cw */
-		cwream(d);
-		wunlock(&mainlock);
+		devream(d->cw.w, 0);
+		devream(d->cw.c, 0);
+		if(top) {
+			wlock(&mainlock);
+			cwream(d);
+			wunlock(&mainlock);
+		}
+		devinit(d);
+		return;
+
+	case Devfworm:
+		devream(d->fw.fw, 0);
+		fwormream(d);
 		break;
 
 	case Devpart:
+		devream(d->part.d, 0);
+		break;
+
 	case Devmlev:
 	case Devmcat:
+		for(l=d->cat.first; l; l=l->link)
+			devream(l, 0);
+		break;
+
+	case Devjuke:
+	case Devworm:
+	case Devlworm:
 	case Devwren:
-		devinit(d);
-		wlock(&mainlock);	/* ream wren */
+		break;
+	}
+	devinit(d);
+	if(top) {
+		wlock(&mainlock);
 		rootream(d, ROOT_ADDR);
 		superream(d, SUPER_ADDR);
 		wunlock(&mainlock);
-		break;
 	}
 }
 
 void
-devrecover(Device d)
+devrecover(Device *d)
 {
 
 	print("recover: %D\n", d);
-	switch(d.type) {
+	switch(d->type) {
 	default:
 		print("recover: unknown dev type %D\n", d);
 		return;
@@ -1112,27 +1201,28 @@ devrecover(Device d)
 }
 
 void
-devinit(Device d)
+devinit(Device *d)
 {
-	Filsys *fs;
 
+	if(d->init)
+		return;
+	d->init = 1;
 	print("	devinit %D\n", d);
-	switch(d.type) {
+	switch(d->type) {
 	default:
 		print("devinit unknown device %D\n", d);
+		return;
+
+	case Devro:
+		cwinit(d->ro.parent);
+		break;
 
 	case Devcw:
 		cwinit(d);
 		break;
 
-	case Devro:
-		for(fs=filsys; fs->name; fs++)
-			if(fs->dev.type == Devcw)
-				d = fs->dev;
-		d.type = Devro;
-		for(fs=filsys; fs->name; fs++)
-			if(fs->dev.type == Devro)
-				fs->dev = d;
+	case Devjuke:
+		jukeinit(d);
 		break;
 
 	case Devwren:
@@ -1140,6 +1230,7 @@ devinit(Device d)
 		break;
 
 	case Devworm:
+	case Devlworm:
 		break;
 
 	case Devfworm:

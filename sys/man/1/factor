@@ -22,11 +22,11 @@ prints
 and its prime factors,
 each repeated the proper number of times.
 The number must be positive and less than
-.if n 2**56
-.if t 2\u\s756\s0\d
+.if n 2**54
+.if t 2\u\s754\s0\d
 (about
-.if n 7.2e16)
-.if t 7.2\(mu10\u\s716\s0\d\|).
+.if n 1.8e16)
+.if t 1.8\(mu10\u\s716\s0\d\|).
 .PP
 If no
 .I number 
@@ -38,18 +38,6 @@ Maximum running time is proportional to
 .if n sqrt(n).
 .if t .I \(sr\o'n\(rn'\f1.
 .PP
-.ig
-.I Lfactor
-reads one number from the standard input and factors it.
-Worst-case running time is proportional to
-.if n .IR n **(1/5);
-.if t .IR n \u\s-21/5\s0\d;
-it beats
-.I factor
-for hard 12-digit problems and is workable to around
-.if n .IR n =10**30.
-.if t .IR n =10\u\s-230\s0\d.
-..
 .PP
 .I Primes
 prints the prime numbers ranging from

@@ -24,3 +24,11 @@ nuke:V:
 
 installall:V:
 	for(objtype in $CPUS) mk $MKFLAGS install
+
+everything:V:
+	rm -f */*.[012456789kvx]
+	for(objtype in 29000 386 68000 68020 alpha arm mips sparc)@{
+		echo $objtype
+		mk $MKFLAGS install
+	}
+	rm -f */*.[012456789kvx]

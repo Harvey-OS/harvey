@@ -5,6 +5,8 @@
 #include	"pic.h"
 #include	"y.tab.h"
 
+char	*version = "version July 5, 1993";
+
 obj	**objlist = 0;		/* store the elements here */
 int	nobjlist = 0;		/* size of objlist array */
 int	nobj	= 0;
@@ -24,7 +26,7 @@ double	cury	= 0;
 int	hvmode	= R_DIR;	/* R => join left to right, D => top to bottom, etc. */
 
 int	codegen	= 0;	/* 1=>output for this picture; 0=>no output */
-int	PEseen	= 0;	/* 1=> PE seen during parsing */
+char	*PEstring;	/* "PS" or "PE" picked up by lexer */
 
 double	deltx	= 6;	/* max x value in output, for scaling */
 double	delty	= 6;	/* max y value in output, for scaling */
@@ -40,9 +42,7 @@ double	ymin	= 30000;
 double	xmax	= -30000;	/* max */
 double	ymax	= -30000;
 
-char	*version = "version May 7, 1990";
-
-void	fpecatch(long);
+void	fpecatch(int);
 void	getdata(void), setdefaults(void);
 void	setfval(char *, double);
 int	getpid(void);
@@ -61,6 +61,9 @@ main(int argc, char *argv[])
 				dbg = 1;
 			fprintf(stderr, "%s\n", version);
 			break;
+		case 'V':
+			fprintf(stderr, "%s\n", version);
+			return 0;
 		}
 		argc--;
 		argv++;
@@ -91,12 +94,12 @@ main(int argc, char *argv[])
 			fclose(curfile->fin);
 			free(curfile->fname);
 		}
-	exit(anyerr);
+	return anyerr;
 }
 
-void fpecatch(long n)
+void fpecatch(int n)
 {
-	ERROR "floating point exception" FATAL;
+	ERROR "floating point exception %d", n FATAL;
 }
 
 char *grow(char *ptr, char *name, int num, int size)	/* make array bigger */
@@ -136,7 +139,7 @@ static struct {
 	"textwid", 0.0, 1,
 	"maxpsht", MAXHT, 0,
 	"maxpswid", MAXWID, 0,
-	"fillval", 0.3, 0,		/* gray value for filling boxes */
+	"fillval", 0.7, 0,		/* gray value for filling boxes */
 	NULL, 0, 0
 };
 
@@ -186,7 +189,7 @@ void getdata(void)
 {
 	char *p, buf[1000], buf1[100];
 	int ln;
-	void reset(void), openpl(char *), closepl(int), print(void);
+	void reset(void), openpl(char *), closepl(char *), print(void);
 	int yyparse(void);
 
 	curfile->lineno = 0;
@@ -213,8 +216,6 @@ void getdata(void)
 			reset();
 			yyparse();
 			anyerr += synerr;
-			/* yylval.i now contains 'E' or 'F' from .PE or .PF */
-
 			deltx = (xmax - xmin) / getfval("scale");
 			delty = (ymax - ymin) / getfval("scale");
 			if (buf[3] == ' ') {	/* next things are wid & ht */
@@ -236,7 +237,8 @@ void getdata(void)
 				openpl(&buf[3]);	/* puts out .PS, with ht & wid stuck in */
 				printlf(curfile->lineno+1, NULL);
 				print();	/* assumes \n at end */
-				closepl(yylval.i);	/* does the .PE/F */
+				closepl(PEstring);	/* does the .PE/F */
+				free(PEstring);
 			}
 			printlf(curfile->lineno+1, NULL);
 			fflush(stdout);
@@ -273,7 +275,7 @@ void reset(void)
 	codegen = synerr = 0;
 	nstack = 0;
 	curx = cury = 0;
-	PEseen = 0;
+	PEstring = 0;
 	hvmode = R_DIR;
 	xmin = ymin = 30000;
 	xmax = ymax = -30000;

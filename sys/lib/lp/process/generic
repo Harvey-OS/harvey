@@ -1,7 +1,7 @@
 #!/bin/rc
 # Tries to determine what type of file you are printing and do the correct
 # thing with it.
-# It currently knows about bitmaps, troff intermediate, and ascii files.
+# It currently knows about images, troff intermediate, and ascii files.
 TMPFILE=/tmp/lp$pid
 fn sigexit { rm -f $TMPFILE; }
 if (! ~ $DEBUG '') flag x +
@@ -35,10 +35,21 @@ case special;
 	case '#b';	$LPLIB/process/p9bitpost < $TMPFILE
 	case *;		echo $FILETYPE file is improper for $LPDEST >[1=2]
 	}
-case plan;	# type is really 'plan 9 bitmap'
+case Compressed plan old;	# type is really 'Compressed image' or 'plan 9 image' 
+				# or 'old plan 9 image'
 	switch ($LPCLASS) {
 	case *post*;	$LPLIB/process/p9bitpost < $TMPFILE
 	}
+case jpeg;
+	switch ($LPCLASS) {
+	case *post*;	$LPLIB/process/jpgpost < $TMPFILE
+	}
+
+case GIF;
+	switch ($LPCLASS) {
+	case *post*;	$LPLIB/process/gifpost < $TMPFILE
+	}
+
 case ccitt-g31;
 	switch ($LPCLASS) {
 	case *post*;	$LPLIB/process/g3post < $TMPFILE
@@ -69,15 +80,25 @@ case postscript;
 	case *mhcc*;		$LPLIB/process/mhcc < $TMPFILE
 	case *;			echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
 	}
+case HPJCL;
+	switch ($LPCLASS) {
+	case *HPJCL*;		$LPLIB/process/noproc < $TMPFILE
+	case *;			echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	}
 case daisy;
 	switch ($LPDEST) {
 	case *;		echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
 	}
-case English short extended alef [Aa]scii assembler c latin rc sh as;
+case English short extended alef limbo [Aa]scii assembler c latin rc sh as;
 	switch ($LPCLASS) {
 	case *post*;	$LPLIB/process/ppost < $TMPFILE
 	case *canon*;	$LPLIB/process/can $* < $TMPFILE
 	case *lino* *mhcc*; echo you want to send text to $LPDEST^'?' >[1=2]
+	case *;		echo Unrecognized class of line printer for $LPDEST >[1=2]
+	}
+case PDF;
+	switch ($LPCLASS) {
+	case *post*;	$LPLIB/process/pdfpost $TMPFILE
 	case *;		echo Unrecognized class of line printer for $LPDEST >[1=2]
 	}
 case empty;
@@ -87,6 +108,7 @@ case cannot;
 case *;
 	echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
 }
+wait
 rv=$status
 rm -f $TMPFILE
 exit $status

@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
@@ -42,10 +43,8 @@ enum {					/* Multifunc Index */
 };
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr*)
 {
-	verbose("%s->load\n", ctlr->name);
-
 	outportw(Pixmask, 0x00);
 	outportw(Subsys, 0x8000|0x1000);
 	outportw(Subsys, 0x4000|0x1000);
@@ -56,7 +55,7 @@ load(Vga *vga, Ctlr *ctlr)
 
 	outportw(Multifunc, ScissorsT|0x000);
 	outportw(Multifunc, ScissorsL|0x000);
-	outportw(Multifunc, ScissorsB|(vga->vmb/vga->mode->x-1));
+	outportw(Multifunc, ScissorsB|(vga->vmz/vga->mode->x-1));
 	outportw(Multifunc, ScissorsR|(vga->mode->x-1));
 
 	outportw(WrtMask, 0xFFFF);
@@ -64,14 +63,12 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga*, Ctlr* ctlr)
 {
-	USED(vga);
-
 	printitem(ctlr->name, "Advfunc");
-	print("%9.4luX\n", inportw(Advfunc));
+	Bprint(&stdout, "%9.4uX\n", inportw(Advfunc));
 	printitem(ctlr->name, "Subsys");
-	print("%9.4luX\n", inportw(Subsys));
+	Bprint(&stdout, "%9.4uX\n", inportw(Subsys));
 }
 
 Ctlr ibm8514 = {

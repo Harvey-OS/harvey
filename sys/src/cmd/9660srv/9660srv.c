@@ -13,20 +13,20 @@ static void	iwalkup(Xfile*);
 static void	iwalk(Xfile*, char*);
 static void	iopen(Xfile*, int);
 static void	icreate(Xfile*, char*, long, int);
-static long	ireaddir(Xfile*, void*, long, long);
-static long	iread(Xfile*, void*, long, long);
-static long	iwrite(Xfile*, void*, long, long);
+static long	ireaddir(Xfile*, char*, long, long);
+static long	iread(Xfile*, char*, long, long);
+static long	iwrite(Xfile*, char*, long, long);
 static void	iclunk(Xfile*);
 static void	iremove(Xfile*);
 static void	istat(Xfile*, Dir*);
 static void	iwstat(Xfile*, Dir*);
 
-static char*	nstr(void*, int);
-static char*	rdate(void*, int);
+static char*	nstr(uchar*, int);
+static char*	rdate(uchar*, int);
 static int	getdrec(Xfile*, void*);
 static int	opendotdot(Xfile*, Xfile*);
 static int	showdrec(int, int, void*);
-static long	gtime(void*);
+static long	gtime(uchar*);
 static long	l16(void*);
 static long	l32(void*);
 static void	newdrec(Xfile*, Drec*);
@@ -47,45 +47,107 @@ iattach(Xfile *root)
 {
 	Xfs *cd = root->xf;
 	Iobuf *p; Voldesc *v; Isofile *fp; Drec *dp;
-	int fmt, blksize;
+	int fmt, blksize, i, haveplan9;
+	Iobuf *dirp;
+	uchar *q;
 
-	p = getbuf(cd->d, VOLDESC);
-	v = (Voldesc*)(p->iobuf);
-	if(memcmp(v->byte, "\01CD001\01", 7) == 0){		/* iso */
-		fmt = 'z';
-		dp = (Drec*)v->z.desc.rootdir;
-		blksize = l16(v->z.desc.blksize);
-		chat("iso, blksize=%d...", blksize);
-	}else if(memcmp(&v->byte[8], "\01CDROM\01", 7) == 0){	/* high sierra */
-		fmt = 'r';
-		dp = (Drec*)v->r.desc.rootdir;
-		blksize = l16(v->r.desc.blksize);
-		chat("high sierra, blksize=%d...", blksize);
-	}else{
+	dirp = nil;
+	blksize = 0;
+	fmt = 0;
+	dp = nil;
+	haveplan9 = 0;
+	for(i=VOLDESC;i<VOLDESC+100; i++){	/* +100 for sanity */
+		p = getbuf(cd->d, i);
+		v = (Voldesc*)(p->iobuf);
+		if(memcmp(v->byte, "\01CD001\01", 7) == 0){		/* iso */
+			if(dirp)
+				putbuf(dirp);
+			dirp = p;
+			fmt = 'z';
+			dp = (Drec*)v->z.desc.rootdir;
+			blksize = l16(v->z.desc.blksize);
+			chat("iso, blksize=%d...", blksize);
+
+			v = (Voldesc*)(dirp->iobuf);
+			haveplan9 = (strncmp((char*)v->z.boot.sysid, "PLAN 9", 6)==0);
+			if(noplan9) {
+				chat("ignoring plan9...");
+				haveplan9 = 0;
+			} else {
+				fmt = '9';
+				chat("plan9 iso...");
+			}
+			continue;
+		}
+
+		if(memcmp(&v->byte[8], "\01CDROM\01", 7) == 0){	/* high sierra */
+			if(dirp)
+				putbuf(dirp);
+			dirp = p;
+			fmt = 'r';
+			dp = (Drec*)v->r.desc.rootdir;
+			blksize = l16(v->r.desc.blksize);
+			chat("high sierra, blksize=%d...", blksize);
+			continue;
+		}
+
+		if(haveplan9==0 && !nojoliet
+		&& memcmp(v->byte, "\02CD001\01", 7) == 0){
+chat("%d %d\n", haveplan9, nojoliet);
+			/*
+			 * The right thing to do is walk the escape sequences looking
+			 * for one of 25 2F 4[035], but Microsoft seems to not honor
+			 * the format, which makes it hard to walk over.
+			 */
+			q = v->z.desc.escapes;
+			if(q[0] == 0x25 && q[1] == 0x2F && (q[2] == 0x40 || q[2] == 0x43 || q[2] == 0x45)){	/* Joliet, it appears */
+				if(dirp)
+					putbuf(dirp);
+				dirp = p;
+				fmt = 'J';
+				dp = (Drec*)v->z.desc.rootdir;
+				if(blksize != l16(v->z.desc.blksize))
+					fprint(2, "warning: suspicious Joliet blocksize\n");
+				chat("joliet...");
+				continue;
+			}
+		}
 		putbuf(p);
+		if(v->byte[0] == 0xFF)
+			break;
+	}
+
+	if(fmt == 0){
+		if(dirp)
+			putbuf(dirp);
 		return -1;
 	}
+	assert(dirp != nil);
+
 	if(chatty)
 		showdrec(2, fmt, dp);
 	if(blksize > Sectorsize){
 		chat("blksize too big...");
-		putbuf(p);
+		putbuf(dirp);
 		return -1;
 	}
 	if(waserror()){
-		putbuf(p);
+		putbuf(dirp);
 		nexterror();
 	}
 	root->len = sizeof(Isofile) - sizeof(Drec) + dp->reclen;
 	root->ptr = fp = ealloc(root->len);
-	root->xf->isplan9 = (strncmp((char*)v->z.boot.sysid, "PLAN 9", 6)==0);
+
+	if(haveplan9)
+		root->xf->isplan9 = 1;
+
 	fp->fmt = fmt;
 	fp->blksize = blksize;
 	fp->offset = 0;
 	fp->doffset = 0;
 	memmove(&fp->d, dp, dp->reclen);
 	root->qid.path = CHDIR|l32(dp->addr);
-	putbuf(p);
+	putbuf(dirp);
 	poperror();
 	return 0;
 }
@@ -126,6 +188,30 @@ iwalkup(Xfile *f)
 	error("can't find addr of ..");
 }
 
+static int
+casestrcmp(int isplan9, char *a, char *b)
+{
+	int ca, cb;
+
+	if(isplan9)
+		return strcmp(a, b);
+	for(;;) {
+		ca = *a++;
+		cb = *b++;
+		if(ca >= 'A' && ca <= 'Z')
+			ca += 'a' - 'A';
+		if(cb >= 'A' && cb <= 'Z')
+			cb += 'a' - 'A';
+		if(ca != cb) {
+			if(ca > cb)
+				return 1;
+			return -1;
+		}
+		if(ca == 0)
+			return 0;
+	}
+}
+
 static void
 iwalk(Xfile *f, char *name)
 {
@@ -154,8 +240,8 @@ iwalk(Xfile *f, char *name)
 	chat("%d \"%s\"...", len, name);
 	ip->offset = 0;
 	while(getdrec(f, d) >= 0) {
-		dvers = rzdir(f->xf->isplan9, &dir, 'z', d);
-		if(strcmp(name, dir.name) != 0)
+		dvers = rzdir(f->xf->isplan9, &dir, ip->fmt, d);
+		if(casestrcmp(f->xf->isplan9, name, dir.name) != 0)
 			continue;
 		newdrec(f, d);
 		f->qid.path = dir.qid.path;
@@ -229,8 +315,8 @@ iread(Xfile *f, char *buf, long offset, long count)
 	if(offset+count > size)
 		count = size - offset;
 	addr = (l32(ip->d.addr)+ip->d.attrlen)*ip->blksize + offset;
-	o = addr % Sectorsize;
-	addr /= Sectorsize;
+	o = (ulong)addr % Sectorsize;
+	addr = (ulong)addr / Sectorsize;
 	/*chat("d.addr=0x%x, addr=0x%x, o=0x%x...", l32(ip->d.addr), addr, o);*/
 	n = Sectorsize - o;
 
@@ -250,7 +336,7 @@ iread(Xfile *f, char *buf, long offset, long count)
 }
 
 static long
-iwrite(Xfile *f, uchar *buf, long offset, long count)
+iwrite(Xfile *f, char *buf, long offset, long count)
 {
 	USED(f, buf, offset, count);
 	error(Eperm);
@@ -292,20 +378,23 @@ static int
 showdrec(int fd, int fmt, void *x)
 {
 	Drec *d = (Drec *)x;
-	int namelen, syslen;
+	int namelen;
+	int syslen;
 
 	if(d->reclen == 0)
 		return 0;
-	fprint(fd, "%d %d %d %d ",
+	fprint(fd, "%d %d %ld %ld ",
 		d->reclen, d->attrlen, l32(d->addr), l32(d->size));
-	fprint(fd, "%s 0x%2.2x %d %d %d ",
+	fprint(fd, "%s 0x%2.2x %d %d %ld ",
 		rdate(d->date, fmt), (fmt=='z' ? d->flags : d->r_flags),
 		d->unitsize, d->gapsize, l16(d->vseqno));
 	fprint(fd, "%d %s", d->namelen, nstr(d->name, d->namelen));
-	namelen = d->namelen + (1-(d->namelen&1));
-	syslen = d->reclen - 33 - namelen;
-	if(syslen != 0)
-		fprint(fd, " %s", nstr(&d->name[namelen], syslen));
+	if(fmt != 'J'){
+		namelen = d->namelen + (1-(d->namelen&1));
+		syslen = d->reclen - 33 - namelen;
+		if(syslen != 0)
+			fprint(fd, " %s", nstr(&d->name[namelen], syslen));
+	}
 	fprint(fd, "\n");
 	return d->reclen + (d->reclen&1);
 }
@@ -342,12 +431,12 @@ getdrec(Xfile *f, void *buf)
 	size = l32(ip->d.size);
 	while(ip->offset<size){
 		addr = (l32(ip->d.addr)+ip->d.attrlen)*ip->blksize + ip->offset;
-		boff = addr % Sectorsize;
+		boff = (ulong)addr % Sectorsize;
 		if(boff > Sectorsize-34){
 			ip->offset += Sectorsize-boff;
 			continue;
 		}
-		p = getbuf(f->xf->d, addr/Sectorsize);
+		p = getbuf(f->xf->d, (ulong)addr/Sectorsize);
 		len = p->iobuf[boff];
 		if(len >= 34)
 			break;
@@ -406,17 +495,18 @@ opendotdot(Xfile *f, Xfile *pf)
 static int
 rzdir(int isplan9, Dir *d, int fmt, Drec *dp)
 {
-	int n, flags, i, nl, vers;
+	int n, flags, i, j, lj, nl, vers;
 	uchar *s;
 	char *p;
+	char buf[NAMELEN+UTFmax+1];
+	uchar *q;
+	Rune r;
 
 	flags = 0;
 	vers = -1;
 	d->qid.path = l32(dp->addr);
 	d->qid.vers = 0;
 	n = dp->namelen;
-	if(n >= NAMELEN)
-		n = NAMELEN-1;
 	memset(d->name, 0, NAMELEN);
 	if(n == 1) {
 		switch(dp->name[0]){
@@ -430,8 +520,22 @@ rzdir(int isplan9, Dir *d, int fmt, Drec *dp)
 			d->name[0] = tolower(dp->name[0]);
 		}
 	} else {
-		for(i=0; i<n; i++)
-			d->name[i] = tolower(dp->name[i]);
+		if(fmt == 'J'){	/* Joliet, 16-bit Unicode */
+			q = (uchar*)dp->name;
+			for(i=j=lj=0; i<n && j<NAMELEN; i+=2){
+				lj = j;
+				r = (q[i]<<8)|q[i+1];
+				j += runetochar(buf+j, &r);
+			}
+			if(j >= NAMELEN)
+				j = lj;
+			memmove(d->name, buf, j);
+		}else{
+			if(n >= NAMELEN)
+				n = NAMELEN-1;
+			for(i=0; i<n; i++)
+				d->name[i] = tolower(dp->name[i]);
+		}
 	}
 
 	if(isplan9 && dp->reclen>34+dp->namelen) {
@@ -471,12 +575,20 @@ rzdir(int isplan9, Dir *d, int fmt, Drec *dp)
 		d->mode = 0444;
 		switch(fmt) {
 		case 'z':
-			strcpy(d->gid, "iso");
+			strcpy(d->gid, "iso9660");
 			flags = dp->flags;
 			break;
 		case 'r':
 			strcpy(d->gid, "sierra");
 			flags = dp->r_flags;
+			break;
+		case 'J':
+			strcpy(d->gid, "joliet");
+			flags = dp->flags;
+			break;
+		case '9':
+			strcpy(d->gid, "plan9");
+			flags = dp->flags;
 			break;
 		}
 		if(flags & 0x02){

@@ -93,10 +93,8 @@ main(int argc, char **argv)
 
 	while(nt = ndbparse(db)){
 		for(t = nt; t; t = t->entry){
-			if(strcmp(t->attr, argv[2]) == 0){
+			if(strcmp(t->attr, argv[2]) == 0)
 				n++;
-				break;
-			}
 		}
 		ndbfree(nt);
 	}
@@ -104,7 +102,7 @@ main(int argc, char **argv)
 	/* allocate an array large enough for worst case */
 	hlen = 2*n+1;
 	n = hlen*NDBPLEN + hlen*2*NDBPLEN;
-	ht = malloc(n);
+	ht = mallocz(n, 1);
 	if(ht == 0){
 		fprint(2, "mkhash: not enough memory\n");
 		exits(syserr());

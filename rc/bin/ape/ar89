@@ -1,5 +1,5 @@
 #!/bin/rc
-ifs='' eval `{aux/getflags cdprtxuv $*}
+ifs='' eval `{getflags cdprtxuv $*}
 
 key=''
 if (~ $#FLAGc 1) key=$key^c
@@ -10,4 +10,4 @@ if (~ $#FLAGt 1) key=$key^t
 if (~ $#FLAGx 1) key=$key^x
 if (~ $#FLAGu 1) key=$key^u
 if (~ $#FLAGv 1) key=$key^v
-exec /$objtype/bin/ar $key $*
+exec /$cputype/bin/ar $key $*

@@ -83,11 +83,11 @@ search(void)
 			t = melong(p);
 			if(t >= 0) {
 				t = rise(p, 0) - rise(&osun, 0);
-				if(t < -6)
-					t += 6;
-				if(t > 6)
-					t -= 6;
-				if(t < 0.)
+				if(t < 0)
+					t += NPTS;
+				if(t > NPTS)
+					t -= NPTS;
+				if(t > NPTS/2)
 				event("Morning elongation of %s", p->name,
 					"", 0, SIGNIF);
 				else
@@ -129,7 +129,7 @@ search(void)
 			if(p == &osun) {
 				if(q != &omerc && q != &ovenus)
 					continue;
-				occult(p, q, 0.);
+				occult(p, q, -1);
 				if(occ.t3 >= 0.) {
 					if(occ.t1 >= 0)
 					event("Transit of %s begins at ", q->name, "",

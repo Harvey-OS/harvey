@@ -1,0 +1,584 @@
+<html>
+<head>
+<title>How to prepare an Aladdin Ghostscript release</title>
+<!-- $Id: Release.htm,v 1.6 2000/03/17 04:40:47 lpd Exp $ -->
+<!-- Originally: make.txt -->
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<table width="100%" border="0">
+<tr><th align="center" bgcolor="#CCCC00"><font size=6>
+How to prepare an Aladdin Ghostscript release
+</font>
+</table>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<h2>Table of contents</h2>
+
+<blockquote><ul>
+<li><a href="#Introduction">Introduction</a>
+<li><a href="#Servers">Servers</a>
+<ul>
+<li><a href="#Development_files">Development sources and bug reports</a>
+<li><a href="#Distributions">Distributions</a>
+</ul>
+<li><a href="#Adding_or_removing_files">Adding or removing files</a>
+<li><a href="#Making_distributions">Making distributions</a>
+<ul>
+<li><a href="#Preparing_source">Preparing the source code</a>
+<li><a href="#Testing">Testing</a>
+<ul>
+<li><a href="#Testing_on_Windows">Testing on Windows</a>
+</ul>
+<li><a href="#Finishing_up">Finishing up</a>
+<ul>
+<li><a href="#Tester_or_beta">Tester or beta distributions</a>
+<li><a href="#Public_releases">Public releases</a>
+<li><a href="#After_releasing">After releasing</a>
+</ul>
+</ul>
+</ul></blockquote>
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>For other information, see the <a href="Readme.htm">Ghostscript
+overview</a> and the instructions on how to <a href="Build.htm">build
+Ghostscript</a>.
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<h1><a name="Introduction"></a>Introduction</h1>
+
+<p>
+This document is a rough set of internal notes that Aladdin Enterprises uses
+to manage the process of making new Ghostscript releases.  As time goes on,
+it will become a more suitable document for others wishing to prepare
+releases for distribution.  Although the <a href="Public.htm">Aladdin Free
+Public License</a> allows anyone to prepare and distribute releases, this
+document is really meant only for developers working closely with Aladdin.
+
+<p>
+This document refers to many script files that are not currently part of the
+Ghostscript distribution.  In the course of time, these scripts will become
+part of the distribution, probably in a new subdirectory.
+
+<p>
+File names below that don't include an explicit subdirectory name are in the
+<b><tt>src</tt></b> subdirectory.
+
+<p>
+If you do plan to make your own distribution, please be aware of some items
+you will want to change.
+
+<ul>
+
+<li>If you make any significant changes, please edit
+<b><tt>gscdef.c</tt></b> to change <b><tt>GS_PRODUCTFAMILY</tt></b> and
+<b><tt>GS_PRODUCT</tt></b> from "Aladdin Ghostscript" to something else, in
+order to avoid confusion with Aladdin's releases.
+
+<li>In the same file, you may also want to edit <b><tt>GS_COPYRIGHT</tt></b>
+to add your own copyright notice (although you must not remove Aladdin's
+notice).
+
+<li>You will almost certainly want to edit <b><tt>version.mak</tt></b> to
+change the revision date, <b><tt>GS_REVISIONDATE</tt></b>.
+
+<li>If you want to change the version number, you must change it in both
+<b><tt>version.mak</tt></b> (<b><tt>GS_VERSION_</tt></b>*) and
+<b><tt>lib/gs_init.ps</tt></b> (the integer on a line by itself near the
+beginning of the file).
+
+</ul>
+
+<h1><a name="Servers"></a>Servers</h1>
+
+<p>
+The Aladdin Ghostscript files are maintained on sites accessible to the
+public.  One specific site hosts the active CVS repository for code, data,
+and documentation, and the bug report data base; several sites offer
+distributions with version numbers, intended for wider distribution.
+
+<h2><a name="Development_files"></a>Development sources and bug reports</h2>
+
+<p>
+The development site for Aladdin Ghostscript is SourceForge (<a
+href="http://sourceforge.net"><tt>http://sourceforge.net</tt></a>).  Please
+read the SourceForge Aladdin Ghostscript home page (<a
+href=http://ghostscript.sourceforge.net><tt>http://ghostscript.sourceforge.net</tt></a>)
+first.  CVS access information is available at <a
+href="http://sourceforge.net/cvs/?group_id=1897"><tt>http://sourceforge.net/cvs/?group_id=1897</tt></a>.
+
+<h2><a name="Distributions"></a>Distributions</h2>
+
+<p>
+Both public and tester releases are available from
+<blockquote><pre>
+<a
+href="http://sourceforge.net/project/filelist.php?group_id=1897">http://sourceforge.net/project/filelist.php?group_id=1897</a>
+</pre></blockquote>
+
+<p>
+Public (tested) releases are distributed from
+<blockquote><pre>
+<a
+href="ftp://ftp.cs.wisc.edu/ghost/aladdin/">ftp://ftp.cs.wisc.edu/ghost/aladdin/</a>
+</pre></blockquote>
+
+<p>
+Tester releases are distributed from
+<blockquote><pre>
+<a href="ftp://ftp.cs.wisc.edu/ghost/aladdin/test/">ftp://ftp.cs.wisc.edu/ghost/aladdin/test/</a>
+<a href="ftp://www.aladdin.com/ghost/aladdin/test/">ftp://www.aladdin.com/ghost/aladdin/test/</a>
+</pre></blockquote>
+
+<h1><a name="Adding_or_removing_files"></a>Adding or removing files</h1>
+
+<p>
+When adding or removing files, don't forget to invoke <b><tt>cvs
+add</tt></b> or <b><tt>cvs rm</tt></b>.
+
+<p>
+When adding or removing files other than .c or .h: If the files are included
+in the fileset (i.e., not just support files), check the install list in
+<b><tt>unixinst.mak</tt></b>.
+
+<p>
+When adding .c files, update the relevant <b><tt>.mak</tt></b> file (usually
+<b><tt>devs.mak</tt></b>, <b><tt>int.mak</tt></b>, or
+<b><tt>lib.mak</tt></b>).
+
+<p>
+When adding operators, update <b><tt>doc/Language.htm</tt></b> if desired.
+
+<p>
+When adding .h files, add a _h definition in the appropriate
+<b><tt>.mak</tt></b> file.
+
+<p>
+When adding or changing fonts, update <b><tt>Fontmap.GS</tt></b>,
+<b><tt>fonts.mak</tt></b>, and possibly the compiled fonts in
+<b><tt>gs.mak</tt></b> and the examples in <b><tt>doc/Fonts.htm</tt></b>.
+
+<p>
+When adding or changing filters, update <b><tt>doc/Language.htm</tt></b>.
+
+<p>
+When adding .ps files, update <b><tt>doc/Psfiles.htm</tt></b>.
+
+<h1><a name="Making_distributions"></a>Making distributions</h1>
+
+<p>
+This document only discusses source distributions.  Source distributions
+currently can only be made on Linux systems (but it probably wouldn't take
+much work to support other Unix systems).  Ghostscript as distributed also
+often includes Windows executables or other packages for the Windows
+environment, but Aladdin does not produce these, and this document does not
+discuss them.  For more information about this topic, please contact <a
+href="mailto:bug-gswin@aladdin.com"><tt>bug-gswin@aladdin.com</tt></a> or <a
+href="mailto:gsview@ghostgum.com.au"><tt>gsview@ghostgum.com.au</tt></a>.
+
+<p>
+To make a source distribution, you will need the following tools:
+<blockquote><pre>
+<b><tt>cvs2hist.py</tt></b> (Python script -- anywhere in the path)
+<b><tt>cvs2hist</tt></b> (link to <b><tt>cvs2hist.py</tt></b>, ibid.)
+<b><tt>../bin/precheck.tcl</tt></b> (Tcl script)
+<b><tt>master/pre</tt></b> (Tcl script)
+<b><tt>master/pre.chk</tt></b> (data file)
+<b><tt>master/gsmake.tcl</tt></b> (Tcl script)
+<b><tt>master/gsmake</tt></b> (link to <b><tt>gsmake.tcl</tt></b>)
+<b><tt>master/makeset.tcl</tt></b> (Tcl script)
+<b><tt>master/makehist</tt></b> (link to <b><tt>makeset.tcl</tt></b>)
+<b><tt>master/makefonts</tt></b> (ibid.)
+<b><tt>master/maketars</tt></b> (ibid.)
+<b><tt>master/makemaster</tt></b> (ibid.)
+<b><tt>master/smoke.ps</tt></b> (PostScript file)
+<b><tt>data/*/*.ps</tt></b> (PostScript files)
+<b><tt>beta.msg</tt></b>
+</pre></blockquote>
+
+<p>
+Make sure the release date and version number are up to date in
+<b><tt>version.mak</tt></b>, <b><tt>lib/gs_init.ps</tt></b>, and
+<b><tt>doc/News.htm</tt></b>.
+
+<h2><a name="Preparing_source"></a>Preparing the source code</h2>
+
+<p>
+Check in <b><tt>gscdef.c</tt></b> that the definition of
+<b><tt>GS_PRODUCT</tt></b> includes the appropriate one of "TESTER RELEASE",
+"BETA RELEASE", or neither.
+
+<p>
+Check for patched configuration parameters, <b><tt>#define TEST</tt></b>s,
+version/date inconsistencies, and mismatches between the working directory
+and the CVS repository by running:
+
+<blockquote><pre>
+master/pre
+</pre></blockquote>
+
+<p>
+This program compares the result of various greps against a check file,
+writing the results of grep on one output file and the differences from the
+check file on another.  See the source code of <b><tt>master/pre</tt></b>
+for the default file names.  The important one is the check file,
+<b><tt>master/pre.chk</tt></b>.  <b><tt>pre</tt></b> also verifies that the
+right information is in the following places:
+<ul>
+<li>version number in <b><tt>man/*.1</tt></b>, <b><tt>doc/*.htm</tt></b>,
+<b><tt>version.mak</tt></b>, <b><tt>doc/gs-vms.hlp</tt></b>,
+<b><tt>lib/gs_init.ps</tt></b>
+<li>revision date in <b><tt>man/*.1</tt></b>, <b><tt>doc/*.htm</tt></b>,
+<b><tt>version.mak</tt></b>, <b><tt>doc/gs-vms.hlp</tt></b>
+<li>copyright year (if necessary) in <b><tt>gscdef.c</tt></b>
+</ul>
+
+<p>
+If necessary, run
+
+<blockquote><pre>
+master/pre update
+</pre></blockquote>
+
+<p>
+to update the version and revision date in the doc files, and then run
+
+<blockquote><pre>
+master/pre
+</pre></blockquote>
+
+<p>
+again.
+
+<p>
+Check the consistency of the source code with the makefiles by
+running:
+
+<blockquote><pre>
+master/gsmake check
+</pre></blockquote>
+
+<p>
+Edit the makefile (presumably <b><tt>unix-gcc.mak</tt></b>) to set
+<blockquote><pre>
+FEATURE_DEVS=$(FEATURE_DEVS_ALL)
+COMPILE_INITS=1
+</pre></blockquote>
+
+<p>
+This will help catch compilation problems.
+
+<p>
+Run
+
+<blockquote><pre>
+rm obj/*
+make -j2 &gt;&amp; t.log
+</pre></blockquote>
+
+<p>
+and look for warnings and errors in the log file.
+
+<p>
+Do a smoke test:
+
+<blockquote><pre>
+bin/gs @b master/smoke.ps
+export TEMP=/gs/tmp
+bin/gs @b -sDEVICE=bitcmyk -sOutputFile=/dev/null -r600 -dMaxBitmap=1000000\
+  master/smoke.ps
+</pre></blockquote>
+
+<p>
+Undo the <b><tt>FEATURE_DEVS</tt></b> and <b><tt>COMPILE_INITS</tt></b>
+edits.
+
+<p>
+Run
+
+<blockquote><pre>
+cvs commit
+</pre></blockquote>
+
+<p>
+to ensure the repository is up to date.
+
+<p>
+Execute
+
+<blockquote><pre>
+cvs2hist -v #.#[#] > doc/Changes.htm
+</pre></blockquote>
+
+<p>
+This consolidates all the CVS logs since the previous release in a readable
+format.
+
+<p>
+Run
+
+<blockquote><pre>
+master/makehist
+</pre></blockquote>
+
+<p>
+This updates <b><tt>doc/History#.htm</tt></b> from
+<b><tt>doc/News.htm</tt></b> and <b><tt>doc/Changes.htm</tt></b>.  Then run
+
+<blockquote><pre>
+cvs commit
+</pre></blockquote>
+
+<p>
+again.
+
+<p>
+Make the source archives with
+
+<blockquote><pre>
+master/maketars
+</pre></blockquote>
+
+<p>
+This creates the files
+
+<blockquote><pre>
+<b><tt>ghostscript-#.##.tar.gz</tt></b> (main archive)
+<b><tt>ghostscript-#.##.tar.bz2</tt></b> (main archive)
+<b><tt>ghostscript-#.##gnu.tar.gz</tt></b> (GPL'ed files)
+</pre></blockquote>
+
+<h2><a name="Testing"></a>Testing</h2>
+
+<p>
+Unpack the main archive in a clean directory.  Prepare for building:
+
+<blockquote><pre>
+ln -s src/unix-gcc.mak makefile;\
+ln -s /gs/jpeg jpeg; ln -s /gs/libpng libpng; ln -s /gs/zlib zlib
+</pre></blockquote>
+
+<p>
+Do a full build and smoke test (in a separate window):
+
+<blockquote><pre>
+unset GS_LIB
+bin/gs -Ilib -I/gs/fonts -dNOPAUSE -dBATCH /gs/master/smoke.ps | tee t
+export TEMP=/gs/tmp
+bin/gs -Ilib -I/gs/fonts -dNOPAUSE -dBATCH -sDEVICE=bitcmyk\
+  -sOutputFile=/dev/null -r600 -dMaxBitmap=1000000 /gs/master/smoke.ps | tee t
+</pre></blockquote>
+
+<p>
+This reads files named
+
+<blockquote><pre>
+<b><tt>/gs/data/ps/*.ps</tt></b>
+<b><tt>/gs/data/psl2/*.ps</tt></b>
+<b><tt>/gs/data/psl3/*.ps</tt></b>
+<b><tt>/gs/data/test/*.ps</tt></b>
+</pre></blockquote>
+
+<p>
+(Edit <b><tt>smoke.ps</tt></b> ad lib to use other test sets.)  Watch for
+crashes, unusual error messages, or anomalous displayed output.  If there
+are any problems, start over from the beginning of the process.
+
+<h2><a name="Testing_on_Windows"></a>Testing on Windows</h2>
+
+<p>
+For Windows testing, you will need, in addition to the files listed
+under <a href="Source_distributions">"Source distributions"</a> above:
+<blockquote><pre>
+<b><tt>master/makewin</tt></b> (link to <b><tt>makeset.tcl</tt></b>)
+</pre></blockquote>
+
+<p>
+The following procedures are very Aladdin-specific; they rely on a large
+number of MS-DOS batch scripts that are not discussed here.
+
+<p>
+Mount the Windows partition on <b><tt>/c</tt></b>, and create the
+<b><tt>/c/work</tt></b> directory if needed.
+
+<p>
+Make the zip archive of all files needed for a Windows build, and copy it to
+the Windows partition:
+
+<blockquote><pre>
+master/makewin
+cp gs###.zip /c/work
+</pre></blockquote>
+
+<p>
+Boot into Windows.  Unpack the archive:
+
+<blockquote><pre>
+cd \work
+unzip -oq gs###.zip
+gs###
+</pre></blockquote>
+
+<p>
+The <b><tt>gs###.bat</tt></b> script creates some necessary directories,
+sets up <b><tt>PATH</tt></b> and <b><tt>GS_LIB</tt></b> for testing, and
+makes the <b><tt>gs#.#[#]</tt></b> directory current.
+
+<p>
+Build with the Borland compiler:
+
+<blockquote><pre>
+config bcwin32
+copy /y /b ..\gs\makefile
+erase obj\*.*
+make > bc.log
+</pre></blockquote>
+
+<p>
+Smoke test the executables (both <b><tt>gswin32</tt></b> and
+<b><tt>gswin32c</tt></b>), as described above for source distributions.
+Then build with the Microsoft compiler:
+
+<blockquote><pre>
+config msvc32
+copy /y /b ..\gs\makefile
+erase obj\*.*
+nmake > msvc.log
+</pre></blockquote>
+
+<p>
+Smoke test these executables too.
+
+<p>
+Building with the Watcom compiler doesn't work, because the
+<b><tt>wmake</tt></b> or <b><tt>wmakel</tt></b> program runs out of memory.
+However, if it did work, this is how to do it:
+
+<blockquote><pre>
+config watcw32
+copy /y /b ..\gs\makefile
+erase obj\*.*
+wmake -u > watc.log
+</pre></blockquote>
+
+<p>
+Boot back into Linux.  If testing in Windows revealed problems, edit the
+source files as necessary, and go back to <a
+href="#Preparing_source">"Preparing the source code."</a>
+
+<h2><a name="Finishing_up"></a>Finishing up</h2>
+
+<p>
+If you are maintaining local master copies, execute
+
+<blockquote><pre>
+master/makemaster
+</pre></blockquote>
+
+<p>
+This creates <b><tt>master/###</tt></b> if necessary, and moves the archives
+to it.
+
+<p>
+Tag the source files with the release number by executing
+
+<blockquote><pre>
+cvs tag gs#_#[#]
+</pre></blockquote
+
+<p>
+Upload and post <b><tt>ghostscript-#.##.tar.*</tt></b> to SourceForge using
+the "File Release" facility in the Aladdin Ghostscript project.
+
+<p>
+If <b><tt>ansi2knr.c</tt></b> has changed, put it on
+<b><tt>ftp://ftp.cs.wisc.edu/ghost/ansi2knr.c</tt></b>.
+
+<p>
+If <b><tt>doc/C-style.htm</tt></b> has changed, put it on
+<b><tt>ftp://ftp.cs.wisc.edu/ghost/aladdin/C-style.htm</tt></b>.
+
+<h3><a name="Tester_or_beta"></a>Tester or beta distributions</h3>
+
+<p>
+Do the steps for distributions in general.
+
+<p>
+Upload <b><tt>ghostscript-#.##.tar.*</tt></b> to
+<b><tt>ftp://ftp.cs.wisc.edu/ghost/aladdin/test</tt></b>.
+
+<p>
+Copy the same files from there to
+<b><tt>ftp://www.aladdin.com/pub/ftp/ghost/aladdin/test</tt></b>.
+
+<p>
+Construct the e-mail announcement by editing <b><tt>beta.msg</tt></b>;
+include the News section for this release.  Mail using:
+<blockquote><pre>
+To: gs-test
+</pre></blockquote>
+
+<h3><a name="Public_releases"></a>Public releases</h3>
+
+<p>
+Update the title (current version #), first heading (previous version #),
+and "new features" and "known problems" lists in
+<b><tt>doc/Current.htm</tt></b>.
+
+<p>
+Do the steps for distributions in general.
+
+<p>
+E-mail the release announcement using:
+<blockquote><pre>
+To: gs-announce
+</pre></blockquote>
+
+<p>
+Edit the Web pages on the Wisconsin server to reflect the new release.
+
+<h3><a name="After_releasing"></a>After releasing</h3>
+
+<p>
+Edit <b><tt>doc/News.htm</tt></b> to remove all content.
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+<hr>
+
+<font size=2>
+
+<p>Copyright &copy; 1999, 2000 Aladdin Enterprises.  All rights reserved.
+
+<p>This file is part of Aladdin Ghostscript.  See the <a
+href="Public.htm">Aladdin Free Public License</a> (the "License") for full
+details of the terms of using, copying, modifying, and redistributing
+Aladdin Ghostscript.
+
+<p>
+Ghostscript version 6.01, 16 March 2000
+
+</font>
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

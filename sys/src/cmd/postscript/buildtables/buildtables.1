@@ -1,0 +1,214 @@
+.ds dF /usr/lib/font
+.ds dQ /usr/lib/postscript
+.TH BUILDTABLES 1 "DWB 3.2"
+.SH NAME
+.B buildtables
+\- build
+.B troff
+tables on a PostScript printer
+.SH SYNOPSIS
+\*(mBbuildtables\f1
+.OP "" options []
+.OP "" "name \(el" []
+.SH DESCRIPTION
+.B buildtables
+builds font width tables or the typesetter description
+file on a PostScript printer.
+No arguments means build a default set of tables;
+usually a superset of the LaserWriter Plus collection.
+The following
+.I options
+are understood:
+.TP 1.0i
+.OP \-b speed
+Transmit data over
+.I line
+at baud rate
+.I speed.
+Recognized baud rates are 1200, 2400, 4800, 9600, and 19200.
+The default
+.I speed
+is 9600 baud.
+.TP 1.0i
+.OP \-l line
+Build the tables on the PostScript printer attached to
+.I line.
+There is no default.
+.TP 1.0i
+.OP \-t name
+Use
+.I name
+as the template for fonts not in the default set.
+Choose
+.MW R
+for proportionally spaced fonts and
+.MW CW
+for fixed width fonts.
+Try
+.MW ZD
+(ZapfDingbats) if the font has a non-standard
+character set.
+The default is
+.MR R .
+.TP 1.0i
+.OP \-C file
+Copy
+.I file
+into each PostScript table program;
+.I file
+must contain legitimate PostScript.
+.TP 1.0i
+.OP \-H hostdir
+Use
+.I hostdir
+as the host-resident font directory.
+A file in
+.I hostdir
+that matches the name of the
+.B troff
+font is assumed to be a host-resident font program and is included
+in the PostScript width table program.
+There is no default.
+.TP 1.0i
+.OP \-S file
+Use
+.I file
+as the shell library file.
+Overrides the choice made with the
+.OP \-T
+option.
+.TP 1.0i
+.OP \-T name
+Set the target device to
+.I name.
+.br
+Device
+.I name
+means
+.ft 2
+.MI \*(dF/dev name /shell.lib
+.ft 1
+is the shell library file.
+There is no default.
+.PP
+If
+.OP \-l
+is omitted output files are the PostScript programs that
+build the tables, rather than the tables themselves.
+One of
+.OP \-T
+or
+.OP \-S
+is required.
+If both are given
+.OP \-S
+wins.
+Although
+.OP \-H
+is the preferred mechanism for including host-resident font files,
+.OP \-C
+makes sense when only one width table is built.
+.PP
+The shell library file defines a collection of functions used to
+build
+.BR troff (1)
+tables.
+The default set of tables is the list of names returned by the
+.MW AllTables
+function.
+Changes to the default list can be made by updating the
+.MW BuiltinTables
+function.
+.PP
+Each
+.B buildtables
+argument
+must be a default table name, or a pair of names enclosed in quotes.
+If the argument is a pair, the first name is the
+.B troff
+font and the second is the full PostScript font name.
+Tables are created in the current directory.
+Each is assigned a name that matches the
+.B troff
+table name.
+.PP
+The PostScript table programs created by
+.BR trofftable (1)
+are written to files that have
+.MW .ps
+appended to the
+.B troff
+table name.
+The
+.MW .ps
+file is deleted after the table is built.
+Options not listed above are passed to
+.B trofftable.
+The PostScript table programs return data to the host computer using
+PostScript's
+.MW print
+operator.
+See
+.BR hardcopy (1)
+if you do not have access to the printer's serial port.
+.SH EXAMPLES
+.PP
+Build the default collection of devpost tables on the printer
+connected to
+.MW /dev/tty00
+(no font name arguments):
+.EX
+buildtables -l/dev/tty00 -Tpost
+.EE
+To do the same and to restrict the tables that are built,
+Add
+.B troff
+font names (or
+.MR DESC )
+to restrict the tables built on the printer connected to
+.MR /dev/tty00 :
+.EX
+buildtables -l/dev/tty00 -Tpost R I B BI DESC S
+.EE
+Enclose the
+.B troff
+and PostScript font names in quotes to
+build the width table for a font not in the default set
+(also on the printer connected to
+.MR /dev/tty00 ):
+.EX
+buildtables -l/dev/tty00 -TLatin1 "GL Garamond-Light"
+.EE
+A font must be available on the printer when the table is built.
+Use
+.OP \-H
+or
+.OP \-C
+to include host-resident fonts.
+.SH WARNINGS
+.PP
+A width table will not build properly if the printer cannot access
+the PostScript font.
+.PP
+The
+.OP \-TLatin1
+option only works on PostScript printers that support the full
+.SM ISO
+Latin-1 character set.
+The error message from older printers will likely indicate a missing
+.MW ISOLatin1Encoding
+array.
+.SH FILES
+.MW \*(dF/dev*/shell.lib
+.br
+.MW \*(dQ/dpost.ps
+.br
+.MW \*(dQ/trofftable.ps
+.br
+.SH SEE ALSO
+.BR dpost (1),
+.BR hardcopy (1),
+.BR postio (1),
+.BR troff (1),
+.BR trofftable (1),
+.BR font (5)

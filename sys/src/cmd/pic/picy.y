@@ -37,7 +37,7 @@ extern	int	yylex(void);
 %token	<f>	NUMBER
 %token	<f>	LOG EXP SIN COS ATAN2 SQRT RAND MIN MAX INT
 %token	<i>	DIR
-%token	<i>	DOT DASH CHOP FILL
+%token	<i>	DOT DASH CHOP FILL NOEDGE
 %token	<o>	ST	/* statement terminator */
 
 %right	<f>	'='
@@ -200,8 +200,10 @@ attr:
 	| DASH			{ makefattr(DASH, DEFAULT, 0.0); }
 	| CHOP expr		{ makefattr(CHOP, !DEFAULT, $2); }
 	| CHOP			{ makefattr(CHOP, DEFAULT, 0.0); }
+	| CHOP PLACENAME	{ makeattr(CHOP, PLACENAME, getvar($2)); }
 	| FILL expr		{ makefattr(FILL, !DEFAULT, $2); }
 	| FILL			{ makefattr(FILL, DEFAULT, 0.0); }
+	| NOEDGE		{ makeiattr(NOEDGE, 0); }
 	| textlist
 	;
 
@@ -293,6 +295,7 @@ expr:
 					ERROR "mod division by 0" WARNING; $3 = 1; }
 				  $$ = (long)$1 % (long)$3; }
 	| '-' expr %prec UMINUS	{ $$ = -$2; }
+	| '+' expr %prec UMINUS	{ $$ = $2; }
 	| '(' expr ')'		{ $$ = $2; }
 	| place DOTX		{ $$ = getcomp($1, $2); }
 	| place DOTY		{ $$ = getcomp($1, $2); }

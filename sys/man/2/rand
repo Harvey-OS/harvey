@@ -1,6 +1,6 @@
 .TH RAND 2
 .SH NAME
-rand, lrand, frand, nrand, lnrand, srand \- random number generator
+rand, lrand, frand, nrand, lnrand, srand, truerand, n_truerand, fastrand \- random number generator
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -24,6 +24,15 @@ long	lnrand(long val)
 .PP
 .B
 void	srand(long seed)
+.PP
+.B
+ulong	truerand(void)
+.PP
+.B
+int	n_truerand(int val)
+.PP
+.B
+ulong	fastrand(void)
 .SH DESCRIPTION
 .I Rand
 returns a uniform pseudo-random
@@ -81,9 +90,32 @@ srand(1)
 .LP
 will initialize the generators to their
 starting state.
-.SS Alef
-There is no
-.I rand
-in Alef.
+.PP
+.I Truerand
+returns a random unsigned long read from
+.BR /dev/random .
+Due to the nature of
+.BR /dev/random ,
+truerand can only return a few hundred bits a
+second.
+.PP
+.I N_truerand
+returns a uniform integer
+.IR x ,
+.RI 0≤ x < val.
+.PP
+.I Fastrand
+is a pseudo random number generator which is seeded
+and periodically scrambled using
+.IR truerand .
+It is approximately 1000 times faster than
+.I truerand
+and is intended for security software that requires a
+larger stream of unguessable data.
 .SH SOURCE
 .B /sys/src/libc/port/rand.c
+.br
+.B /sys/src/libc/9sys/truerand.c
+.SH "SEE ALSO
+.IR cons (3)
+

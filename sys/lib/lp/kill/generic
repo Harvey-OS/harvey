@@ -1,4 +1,5 @@
 #!/bin/rc
+if (! ~ $DEBUG '') flag x +
 
 cd $LPSPOOL
 if (~ $#* 0) KILLARGS=`{sed 1q};
@@ -18,5 +19,11 @@ if (test -d $LPDEST) {
 }
 if (! ~ $THIS_HOST $DEST_HOST) {
 	@{echo -d$LPDEST -k;echo $KILLARGS;sleep 7} | lpsend.rc $DEST_HOST
+}; if not {
+	if (! ~ $KILLCMD '') {
+		for (i in $KILLARGS) {
+			$KILLCMD $i;
+		}
+	}
 }
 exit ''

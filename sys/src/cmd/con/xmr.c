@@ -58,7 +58,7 @@ main(int argc, char **argv)
 			break;
 		bytes += 128;
 	}
-	fprint(2, "xmr: received %d bytes\n", bytes);
+	fprint(2, "xmr: received %ld bytes\n", bytes);
 	exits(0);
 }
 
@@ -141,7 +141,7 @@ receive(int fd, uchar seqno)
 			if(debug){
 				fprint(dfd, "resync %c %d %d %ux %ux\n", buf[0],
 					buf[1], buf[2], sum, buf[131]);
-				fprint(dfd, "%*.*s\n", 128, 128, buf+3);
+				fprint(dfd, "%*.*s\n", 128, 128, (char*)buf+3);
 			}
 			p = memchr(buf+1, Soh, 131);
 			if(p){

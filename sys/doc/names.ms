@@ -10,8 +10,20 @@ Phil Winterbottom
 .MH
 USA
 .AB
+.FS
+Appeared in
+.I
+Operating Systems Review,
+.R
+Vol. 27, #2, April 1993, pp. 72-76
+(reprinted from
+.I
+Proceedings of the 5th ACM SIGOPS European Workshop,
+.R
+Mont Saint-Michel, 1992, Paper nº 34).
+.FE
 Plan 9 is a distributed system built at the Computing Sciences Research
-Center of AT&T Bell Laboratories over the last few years.
+Center of AT&T Bell Laboratories (now Lucent Technologies, Bell Labs) over the last few years.
 Its goal is to provide a production-quality system for software
 development and general computation using heterogeneous hardware
 and minimal software.  A Plan 9 system comprises CPU and file

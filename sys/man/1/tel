@@ -1,10 +1,18 @@
 .TH TEL 1
 .SH NAME
-tel, iwhois \- look in phone book
+tel, pq, iwhois \- look in phone book
 .SH SYNOPSIS
 .B tel
 .I key ...
-.br
+.PP
+.B pq
+.RB [ -f ]
+.I value
+.PP
+.B pq
+.RB [ -f ]
+.IR attribute = value
+.PP
 .B iwhois
 .IR name [ \fL@\f2domain ]
 .SH DESCRIPTION
@@ -24,6 +32,63 @@ name or number.  Customarily, the telephone book contains names,
 userids, home numbers, and office numbers of users.  It also contains
 a directory of area codes and miscellaneous people of general
 interest.
+.PP
+.I Pq
+looks up entries in the Lucent personnel database.
+Each search is against a single attribute.  The
+possible search attributes are:
+.IP tel
+a telephone number. 
+An entry matches if its telephone number ends in the
+digits given in
+.IR value .
+.IP name
+a proper name.
+.I Value
+must contain a family name, optionally prefixed
+with first and middle names or initials separated by '.'s.
+For example, emlin, grace.emlin, g.r.emlin can
+can be used to look up Grace Roosevelt Emlin.
+.IP org
+an organization name.
+.I Value
+can be any prefix string of an organization number.
+For example,
+.B bl011
+looks up everyone in research while
+.B bl011273
+looks up everyone in a single department.
+.IP id
+a post id.
+.I Value
+must exactly match the post id.
+.PP
+The attribute can be explicitly declared, e.g.
+.BR tel=5551212 ,
+or can be inferred from the form of the value using the following criteria:
+.IP 1)
+A
+.I value
+containing a '.' implies a name.
+.IP 2)
+Nothing but digits, '+', and '-' implies a telephone number.
+.IP 3)
+A mix of digits and letters implies an organization.
+.IP 4)
+Anything else implies two searches, first with the attribute
+.B id
+and if that fails, with attribute
+.BR name .
+.PP
+With no flags,
+.I pq
+returns for each match a single line containing
+the employee's name, title, organization, location, room, telephone number,
+and email address.
+With 
+.BR \-f ,
+.I pq
+returns a fuller multiline entry for each match.
 .PP
 .I Iwhois
 looks up names in the Internet NIC's personnel database.

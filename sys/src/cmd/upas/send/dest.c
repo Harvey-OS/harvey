@@ -20,7 +20,7 @@ d_new(String *addr)
 	dp->nsame = 1;
 	dp->nchar = 0;
 	dp->next = dp;
-	dp->addr = addr;
+	dp->addr = escapespecial(addr);
 	dp->parent = 0;
 	dp->repl1 = dp->repl2 = 0;
 	dp->status = d_undefined;
@@ -77,6 +77,7 @@ d_insert(dest **listp, dest *new)
 	head = new->next;
 	new->next = (*listp)->next;
 	(*listp)->next = head;
+	*listp = new;
 	return;
 }
 
@@ -151,6 +152,51 @@ d_same_insert(dest **listp, dest *new)
 	d_insert(listp, new);
 }
 
+/*
+ *  Form a To: if multiple destinations.
+ *  The local! and !local! checks are artificial intelligence,
+ *  there should be a better way.
+ */
+extern String*
+d_to(dest *list)
+{
+	dest *np, *sp;
+	String *s;
+	int i, n;
+	char *cp;
+
+	s = s_new();
+	s_append(s, "To: ");
+	np = list;
+	i = n = 0;
+	do {
+		np = np->next;
+		sp = np;
+		do {
+			sp = sp->same;
+			cp = s_to_c(sp->addr);
+
+			/* hack to get local! out of the names */
+			if(strncmp(cp, "local!", 6) == 0)
+				cp += 6;
+
+			if(n > 40){
+				s_append(s, "\n\t");
+				n = 0;
+			}
+			if(i != 0){
+				s_append(s, ", ");
+				n += 2;
+			}
+			s_append(s, cp);
+			n += strlen(cp);
+			i++;
+		} while(sp != np);
+	} while(np != list);
+
+	return unescapespecial(s);
+}
+
 /* expand a String of destinations into a linked list of destiniations */
 extern dest *
 s_to_dest(String *sp, dest *parent)
@@ -163,6 +209,7 @@ s_to_dest(String *sp, dest *parent)
 		return 0;
 	addr = s_new();
 	while (s_parseq(sp, addr)!=0) {
+		addr = escapespecial(addr);
 		if(shellchars(s_to_c(addr))){
 			while(new = d_rm(&list))
 				d_free(new);

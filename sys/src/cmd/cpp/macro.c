@@ -189,7 +189,7 @@ expand(Tokenrow *trp, Nlist *np)
 	else {
 		ntokc = gatherargs(trp, atr, &narg);
 		if (narg<0) {			/* not actually a call (no '(') */
-			trp->tp += 1;
+			trp->tp++;
 			return;
 		}
 		if (narg != rowlen(np->ap)) {
@@ -234,6 +234,7 @@ gatherargs(Tokenrow *trp, Tokenrow **atr, int *narg)
 	Token *bp, *lp;
 	Tokenrow ttr;
 	int ntokp;
+	int needspace;
 
 	*narg = -1;			/* means that there is no macro call */
 	/* look for the ( */
@@ -258,9 +259,14 @@ gatherargs(Tokenrow *trp, Tokenrow **atr, int *narg)
 	ntokp = ntok;
 	trp->tp++;
 	/* search for the terminating ), possibly extending the row */
+	needspace = 0;
 	while (parens>0) {
 		if (trp->tp >= trp->lp)
 			gettokens(trp, 0);
+		if (needspace) {
+			needspace = 0;
+			makespace(trp);
+		}
 		if (trp->tp->type==END) {
 			trp->lp -= 1;
 			trp->tp -= ntok;
@@ -272,6 +278,7 @@ gatherargs(Tokenrow *trp, Tokenrow **atr, int *narg)
 			adjustrow(trp, -1);
 			trp->tp -= 1;
 			makespace(trp);
+			needspace = 1;
 			continue;
 		}
 		if (trp->tp->type==LP)
@@ -331,6 +338,8 @@ substargs(Nlist *np, Tokenrow *rtr, Tokenrow **atr)
 		}
 		if (rtr->tp->type==NAME
 		 && (argno = lookuparg(np, rtr->tp)) >= 0) {
+			if (rtr->tp < rtr->bp)
+				error(ERROR, "access out of bounds");
 			if ((rtr->tp+1)->type==DSHARP
 			 || rtr->tp!=rtr->bp && (rtr->tp-1)->type==DSHARP)
 				insertrow(rtr, 1, atr[argno]);

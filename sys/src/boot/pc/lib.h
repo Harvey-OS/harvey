@@ -33,6 +33,7 @@ typedef	struct Fconv Fconv;
 
 extern	char*	donprint(char*, char*, char*, void*);
 extern	int	sprint(char*, char*, ...);
+extern 	int	snprint(char*, int, char*, ...);
 extern	int	print(char*, ...);
 
 #define	PRINTSIZE	256
@@ -41,6 +42,8 @@ extern	int	print(char*, ...);
  * one-of-a-kind
  */
 extern	int	atoi(char*);
+extern	void	longjmp(jmp_buf, int);
+extern	int	setjmp(jmp_buf);
 extern	long	strtol(char*, char**, int);
 extern	ulong	strtoul(char*, char**, int);
 extern	long	end;

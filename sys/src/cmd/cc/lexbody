@@ -2,6 +2,63 @@
  * common code for all the assemblers
  */
 
+/*
+ * real allocs
+ */
+void*
+alloc(long n)
+{
+	void *p;
+
+	while((ulong)hunk & MAXALIGN) {
+		hunk++;
+		nhunk--;
+	}
+	while(nhunk < n)
+		gethunk();
+	p = hunk;
+	nhunk -= n;
+	hunk += n;
+	return p;
+}
+
+void*
+allocn(void *p, long on, long n)
+{
+	void *q;
+
+	q = (uchar*)p + on;
+	if(q != hunk || nhunk < n) {
+		while(nhunk < on+n)
+			gethunk();
+		memmove(hunk, p, on);
+		p = hunk;
+		hunk += on;
+		nhunk -= on;
+	}
+	hunk += n;
+	nhunk -= n;
+	return p;
+}
+
+void
+setinclude(char *p)
+{
+	int i;
+
+	if(p == 0)
+		return;
+	for(i=1; i < ninclude; i++)
+		if(strcmp(p, include[i]) == 0)
+			return;
+
+	if(ninclude >= nelem(include)) {
+		yyerror("ninclude too small %d", nelem(include));
+		exits("ninclude");
+	}
+	include[ninclude++] = p;
+}
+
 void
 errorexit(void)
 {
@@ -38,7 +95,7 @@ newio(void)
 			yyerror("macro/io expansion too deep");
 			errorexit();
 		}
-		ALLOC(i, Io);
+		i = alloc(sizeof(*i));
 	} else
 		iofree = i->link;
 	i->c = 0;
@@ -58,7 +115,7 @@ newfile(char *s, int f)
 	if(f < 0)
 		i->f = open(s, 0);
 	if(i->f < 0) {
-		yyerror("%cc: %s: %s", thechar, myerrstr(i->f), s);
+		yyerror("%ca: %r: %s", thechar, s);
 		errorexit();
 	}
 	fi.c = 0;
@@ -95,15 +152,8 @@ lookup(void)
 		if(memcmp(s->name, symb, l) == 0)
 			return s;
 	}
-	ALLOC(s, Sym);
-
-	while(l & 3)
-		l++;
-	while(nhunk < l)
-		gethunk();
-	s->name = hunk;
-	hunk += l;
-	nhunk -= l;
+	s = alloc(sizeof(*s));
+	s->name = alloc(l);
 	memmove(s->name, symb, l);
 
 	s->link = hash[h];
@@ -176,7 +226,7 @@ l1:
 	aloop:
 		*cp++ = c;
 		c = GETC();
-		if(isalpha(c) || isdigit(c) || c == '_')
+		if(isalpha(c) || isdigit(c) || c == '_' || c == '$')
 			goto aloop;
 		*cp = 0;
 		peekc = c;
@@ -324,6 +374,19 @@ l1:
 
 	case '/':
 		c1 = GETC();
+		if(c1 == '/') {
+			for(;;) {
+				c = GETC();
+				if(c == '\n') {
+					lineno++;
+					goto l0;
+				}
+				if(c == EOF) {
+					yyerror("eof in comment");
+					errorexit();
+				}
+			}
+		}
 		if(c1 == '*') {
 			for(;;) {
 				c = GETC();
@@ -495,6 +558,7 @@ void
 yyerror(char *a, ...)
 {
 	char buf[200];
+	va_list arg;
 
 	/*
 	 * hack to intercept message from yaccpar
@@ -504,7 +568,9 @@ yyerror(char *a, ...)
 		return;
 	}
 	prfile(lineno);
-	doprint(buf, buf+sizeof(buf), a, &(&a)[1]);	/* ugly */
+	va_start(arg, a);
+	doprint(buf, buf+sizeof(buf), a, arg);
+	va_end(arg);
 	print("%s\n", buf);
 	nerrors++;
 	if(nerrors > 10) {
@@ -549,7 +615,7 @@ prfile(long l)
 	if(n > HISTSZ)
 		n = HISTSZ;
 	for(i=0; i<n; i++)
-		print("%s:%d ", a[i].name, l-a[i].line+a[i].offset+1);
+		print("%s:%ld ", a[i].name, (long)(l-a[i].line+a[i].offset+1));
 }
 
 void

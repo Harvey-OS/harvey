@@ -15,7 +15,7 @@ struct{
 	0,		0
 };
 
-int
+void
 main(int argc, char *argv[])
 {
 	int i, r;
@@ -34,8 +34,8 @@ main(int argc, char *argv[])
     Usage:
 		fprint(2, "usage: syscall [-o] entry [args; buf==1024 byte buffer]\n");
 		fprint(2, "\tsyscall write 1 hello 5\n");
-		fprint(2, "\tsyscall -o lasterr buf\n");
-		return 1;
+		fprint(2, "\tsyscall -o errstr buf\n");
+		exits("usage");
 	}
 	for(i=1; i<argc; i++)
 		arg[i-1]=parse(argv[i]);
@@ -55,7 +55,6 @@ main(int argc, char *argv[])
 		}
 	fprint(2, "syscall: %s not known\n", argv[0]);
 	exits("unknown");
-	return 0;		/* to keep compiler happy */
 }
 int
 parse(char *s)

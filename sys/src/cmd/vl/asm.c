@@ -328,7 +328,7 @@ asmb(void)
 		lput(INITTEXT-HEADR);		/* paddr */
 		lput(HEADR+textsize);		/* file size */
 		lput(HEADR+textsize);		/* memory size */
-		lput(0x05L);			/* protections = RWX */
+		lput(0x05L);			/* protections = RX */
 		lput(0x10000L);			/* alignment code?? */
 
 		lput(1L);			/* data - type = PT_LOAD */
@@ -431,10 +431,10 @@ asmsym(void)
 		/* filenames first */
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_FILE)
-				putsymb(a->sym->name, 'z', a->offset, 0);
+				putsymb(a->asym->name, 'z', a->aoffset, 0);
 			else
 			if(a->type == D_FILE1)
-				putsymb(a->sym->name, 'Z', a->offset, 0);
+				putsymb(a->asym->name, 'Z', a->aoffset, 0);
 
 		if(s->type == STEXT)
 			putsymb(s->name, 'T', s->value, s->version);
@@ -445,10 +445,10 @@ asmsym(void)
 		putsymb(".frame", 'm', p->to.offset+4, 0);
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_AUTO)
-				putsymb(a->sym->name, 'a', -a->offset, 0);
+				putsymb(a->asym->name, 'a', -a->aoffset, 0);
 			else
 			if(a->type == D_PARAM)
-				putsymb(a->sym->name, 'p', a->offset, 0);
+				putsymb(a->asym->name, 'p', a->aoffset, 0);
 	}
 	if(debug['v'] || debug['n'])
 		Bprint(&bso, "symsize = %lud\n", symsize);
@@ -717,7 +717,7 @@ datblk(long s, long n)
 int
 asmout(Prog *p, Optab *o, int aflag)
 {
-	long o1, o2, o3, o4, o5, v;
+	long o1, o2, o3, o4, o5, o6, o7, v;
 	Prog *ct;
 	int r, a;
 
@@ -726,6 +726,8 @@ asmout(Prog *p, Optab *o, int aflag)
 	o3 = 0;
 	o4 = 0;
 	o5 = 0;
+	o6 = 0;
+	o7 = 0;
 	switch(o->type) {
 	default:
 		diag("unknown type %d\n", o->type);
@@ -794,6 +796,8 @@ asmout(Prog *p, Optab *o, int aflag)
 			v = -4 >> 2;
 		else
 			v = (p->cond->pc - pc-4) >> 2;
+		if(((v << 16) >> 16) != v)
+			diag("short branch too far: %d\n%P\n", v, p);
 		o1 = OP_IRR(opirr(p->as), v, p->from.reg, p->reg);
 		break;
 
@@ -1114,6 +1118,31 @@ asmout(Prog *p, Optab *o, int aflag)
 	case 42:	/* movw fcr,r */
 		o1 = OP_RRR(SP(2,1)|(2<<21), p->to.reg, 0, p->from.reg);/* mfcc1 */
 		break;
+
+	case 45:	/* case r */
+		if(p->link == P)
+			v = p->pc+28;
+		else
+			v = p->link->pc;
+		if(v & (1<<15))
+			o1 = OP_IRR(opirr(ALAST), (v>>16)+1, REGZERO, REGTMP);
+		else
+			o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
+		o2 = OP_SRR(opirr(ASLL), 2, p->from.reg, p->from.reg);
+		o3 = OP_RRR(oprrr(AADD), p->from.reg, REGTMP, REGTMP);
+		o4 = OP_IRR(opirr(AMOVW+ALAST), v, REGTMP, REGTMP);
+		o5 = OP_RRR(oprrr(ANOR), REGZERO, REGZERO, REGZERO);
+		o6 = OP_RRR(oprrr(AJMP), 0, REGTMP, REGZERO);
+		o7 = OP_RRR(oprrr(ANOR), REGZERO, REGZERO, REGZERO);
+		break;
+
+	case 46:	/* bcase $con,lbra */
+		if(p->cond == P)
+			v = p->pc;
+		else
+			v = p->cond->pc;
+		o1 = v;
+		break;
 	}
 	if(aflag)
 		return o1;
@@ -1159,6 +1188,19 @@ asmout(Prog *p, Optab *o, int aflag)
 		LPUT(o3);
 		LPUT(o4);
 		LPUT(o5);
+		break;
+
+	case 28:
+		if(debug['a'])
+			Bprint(&bso, " %.8lux: %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux%P\n",
+				v, o1, o2, o3, o4, o5, o6, o7, p);
+		LPUT(o1);
+		LPUT(o2);
+		LPUT(o3);
+		LPUT(o4);
+		LPUT(o5);
+		LPUT(o6);
+		LPUT(o7);
 		break;
 	}
 	return 0;
@@ -1242,6 +1284,11 @@ oprrr(int a)
 	case ACMPGTD:	return FPD(7,4);
 	case ACMPGEF:	return FPF(7,6);
 	case ACMPGED:	return FPD(7,6);
+
+	case ADIVV:	return OP(3,6);
+	case ADIVVU:	return OP(3,7);
+	case AADDV:	return OP(5,4);
+	case AADDVU:	return OP(5,5);
 	}
 	diag("bad rrr %d\n", a);
 	return 0;
@@ -1310,6 +1357,9 @@ opirr(int a)
 	case ASLLV+ALAST:	return OP(7,4);
 	case ASRLV+ALAST:	return OP(7,6);
 	case ASRAV+ALAST:	return OP(7,7);
+
+	case AADDV:		return SP(3,0);
+	case AADDVU:		return SP(3,1);
 	}
 	diag("bad irr %d\n", a);
 	return 0;

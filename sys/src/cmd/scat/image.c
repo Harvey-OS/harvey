@@ -1,6 +1,5 @@
 #include	<u.h>
 #include	<libc.h>
-#include	<libg.h>
 #include	<bio.h>
 #include	"sky.h"
 
@@ -14,7 +13,7 @@ image(Angle ra, Angle dec, Angle wid, Angle hig)
 	int i, j, sx, sy, x, y;
 	char file[50];
 	Picture *pic;
-	Image* ip;
+	Img* ip;
 	int lowx, lowy, higx, higy;
 	int slowx, slowy, shigx, shigy;
 	Header *h;
@@ -114,8 +113,8 @@ image(Angle ra, Angle dec, Angle wid, Angle hig)
 			free(b);
 			return 0;
 		}
-		sprint(file, "/n/juke/dss.%.2d/%s/%s.%c%c",
-			bp->disk,
+		sprint(file, "%s/%s/%s.%c%c",
+			dssmount(bp->disk),
 			bp->rgn, bp->rgn,
 			rad28[sy],
 			rad28[sx]);

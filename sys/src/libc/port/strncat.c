@@ -2,7 +2,7 @@
 #include <libc.h>
 
 char*
-strncat(char *s1, char *s2, int n)
+strncat(char *s1, char *s2, long n)
 {
 	char *os1;
 

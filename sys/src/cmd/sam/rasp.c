@@ -9,120 +9,170 @@ void	rcut(List*, Posn, Posn);
 int	rterm(List*, Posn);
 void	rgrow(List*, Posn, Posn);
 
+static	Posn	growpos;
+static	Posn	grown;
+static	Posn	shrinkpos;
+static	Posn	shrunk;
+
+/*
+ * rasp routines inform the terminal of changes to the file.
+ *
+ * a rasp is a list of spans within the file, and an indication
+ * of whether the terminal knows about the span.
+ *
+ * optimize by coalescing multiple updates to the same span
+ * if it is not known by the terminal.
+ *
+ * other possible optimizations: flush terminal's rasp by cut everything,
+ * insert everything if rasp gets too large.
+ */
+
+/*
+ * only called for initial load of file
+ */
 void
-toterminal(File *f, int toterm)
+raspload(File *f)
 {
-	Buffer *t = f->transcript;
-	Posn n, p0, p1, p2, delta = 0, deltacmd = 0;
-	Range r;
-	union{
-		union	Hdr g;
-		Rune	buf[8+GROWDATASIZE];
-	}hdr;
-	Posn growpos, grown;
-
-	if(f->rasp == 0)
+	if(f->rasp == nil)
 		return;
-	if(f->marked)
-		p0 = f->markp+sizeof(Mark)/RUNESIZE;
-	else
-		p0 = 0;
+	grown = f->nc;
+	growpos = 0;
+	if(f->nc)
+		rgrow(f->rasp, 0, f->nc);
+	raspdone(f, 1);
+}
+
+void
+raspstart(File *f)
+{
+	if(f->rasp == nil)
+		return;
 	grown = 0;
+	shrunk = 0;
 	noflush = 1;
-	SET(growpos);
-	while(Bread(t, (Rune*)&hdr, sizeof(hdr)/RUNESIZE, p0) > 0){
-		switch(hdr.g.cs.c){
-		default:
-			fprint(2, "char %c %.2ux\n", hdr.g.cs.c, hdr.g.cs.c);
-			panic("unknown in toterminal");
+}
 
-		case 'd':
-			if(grown){
-				outTsll(Hgrow, f->tag, growpos, grown);
-				grown = 0;
-			}
-			p1 = hdr.g.cll.l;
-			p2 = hdr.g.cll.l1;
-			if(p2 <= p1)
-				panic("toterminal delete 0");
-			if(f==cmd && p1<cmdpt){
-				if(p2 <= cmdpt)
-					deltacmd -= (p2-p1);
-				else
-					deltacmd -= cmdpt-p1;
-			}
-			p1 += delta;
-			p2 += delta;
-			p0 += sizeof(struct _cll)/RUNESIZE;
-			if(toterm)
-				outTsll(Hcut, f->tag, p1, p2-p1);
-			rcut(f->rasp, p1, p2);
-			delta -= p2-p1;
-			break;
-
-		case 'f':
-			if(grown){
-				outTsll(Hgrow, f->tag, growpos, grown);
-				grown = 0;
-			}
-			n = hdr.g.cs.s;
-			p0 += sizeof(struct _cs)/RUNESIZE + n;
-			break;
-
-		case 'i':
-			n = hdr.g.csl.s;
-			p1 = hdr.g.csl.l;
-			p0 += sizeof(struct _csl)/RUNESIZE + n;
-			if(n <= 0)
-				panic("toterminal insert 0");
-			if(f==cmd && p1<cmdpt)
-				deltacmd += n;
-			p1 += delta;
-			if(toterm){
-				if(n>GROWDATASIZE || !rterm(f->rasp, p1)){
-					rgrow(f->rasp, p1, n);
-					if(grown && growpos+grown!=p1){
-						outTsll(Hgrow, f->tag, growpos, grown);
-						grown = 0;
-					}
-					if(grown)
-						grown += n;
-					else{
-						growpos = p1;
-						grown = n;
-					}
-				}else{
-					Rune *rp;
-					if(grown){
-						outTsll(Hgrow, f->tag, growpos, grown);
-						grown = 0;
-					}
-					rp = hdr.buf+sizeof(hdr.g.csl)/RUNESIZE;
-					rgrow(f->rasp, p1, n);
-					r = rdata(f->rasp, p1, n);
-					if(r.p1!=p1 || r.p2!=p1+n)
-						panic("rdata in toterminal");
-					outTsllS(Hgrowdata, f->tag, p1, n, tmprstr(rp, n));
-				}
-			}else{
-				rgrow(f->rasp, p1, n);
-				r = rdata(f->rasp, p1, n);
-				if(r.p1!=p1 || r.p2!=p1+n)
-					panic("rdata in toterminal");
-			}
-			delta += n;
-			break;
-		}
-	}
+void
+raspdone(File *f, int toterm)
+{
+	if(f->dot.r.p1 > f->nc)
+		f->dot.r.p1 = f->nc;
+	if(f->dot.r.p2 > f->nc)
+		f->dot.r.p2 = f->nc;
+	if(f->mark.p1 > f->nc)
+		f->mark.p1 = f->nc;
+	if(f->mark.p2 > f->nc)
+		f->mark.p2 = f->nc;
+	if(f->rasp == nil)
+		return;
 	if(grown)
 		outTsll(Hgrow, f->tag, growpos, grown);
+	else if(shrunk)
+		outTsll(Hcut, f->tag, shrinkpos, shrunk);
 	if(toterm)
 		outTs(Hcheck0, f->tag);
 	outflush();
 	noflush = 0;
 	if(f == cmd){
-		cmdpt += deltacmd+cmdptadv;
+		cmdpt += cmdptadv;
 		cmdptadv = 0;
+	}
+}
+
+void
+raspdelete(File *f, uint p1, uint p2, int toterm)
+{
+	long n;
+
+	n = p2 - p1;
+	if(n == 0)
+		return;
+
+	if(p2 <= f->dot.r.p1){
+		f->dot.r.p1 -= n;
+		f->dot.r.p2 -= n;
+	}
+	if(p2 <= f->mark.p1){
+		f->mark.p1 -= n;
+		f->mark.p2 -= n;
+	}
+
+	if(f->rasp == nil)
+		return;
+
+	if(f==cmd && p1<cmdpt){
+		if(p2 <= cmdpt)
+			cmdpt -= n;
+		else
+			cmdpt = p1;
+	}
+	if(toterm){
+		if(grown){
+			outTsll(Hgrow, f->tag, growpos, grown);
+			grown = 0;
+		}else if(shrunk && shrinkpos!=p1 && shrinkpos!=p2){
+			outTsll(Hcut, f->tag, shrinkpos, shrunk);
+			shrunk = 0;
+		}
+		if(!shrunk || shrinkpos==p2)
+			shrinkpos = p1;
+		shrunk += n;
+	}
+	rcut(f->rasp, p1, p2);
+}
+
+void
+raspinsert(File *f, uint p1, Rune *buf, uint n, int toterm)
+{
+	Range r;
+
+	if(n == 0)
+		return;
+
+	if(p1 < f->dot.r.p1){
+		f->dot.r.p1 += n;
+		f->dot.r.p2 += n;
+	}
+	if(p1 < f->mark.p1){
+		f->mark.p1 += n;
+		f->mark.p2 += n;
+	}
+
+
+	if(f->rasp == nil)
+		return;
+	if(f==cmd && p1<cmdpt)
+		cmdpt += n;
+	if(toterm){
+		if(shrunk){
+			outTsll(Hcut, f->tag, shrinkpos, shrunk);
+			shrunk = 0;
+		}
+		if(n>GROWDATASIZE || !rterm(f->rasp, p1)){
+			rgrow(f->rasp, p1, n);
+			if(grown && growpos+grown!=p1 && growpos!=p1){
+				outTsll(Hgrow, f->tag, growpos, grown);
+				grown = 0;
+			}
+			if(!grown)
+				growpos = p1;
+			grown += n;
+		}else{
+			if(grown){
+				outTsll(Hgrow, f->tag, growpos, grown);
+				grown = 0;
+			}
+			rgrow(f->rasp, p1, n);
+			r = rdata(f->rasp, p1, n);
+			if(r.p1!=p1 || r.p2!=p1+n)
+				panic("rdata in toterminal");
+			outTsllS(Hgrowdata, f->tag, p1, n, tmprstr(buf, n));
+		}
+	}else{
+		rgrow(f->rasp, p1, n);
+		r = rdata(f->rasp, p1, n);
+		if(r.p1!=p1 || r.p2!=p1+n)
+			panic("rdata in toterminal");
 	}
 }
 
@@ -143,7 +193,7 @@ rcut(List *r, Posn p1, Posn p2)
 		;
 	if(i == r->nused)
 		panic("rcut 1");
-	if(p<p1){	/* chop this piece */
+	if(p < p1){	/* chop this piece */
 		if(p+L(i) < p2){
 			x = p1-p;
 			p += L(i);
@@ -161,7 +211,7 @@ rcut(List *r, Posn p1, Posn p2)
 		p += L(i);
 		dellist(r, i);
 	}
-	if(p<p2){
+	if(p < p2){
 		if(i == r->nused)
 			panic("rcut 2");
 		x = L(i)-(p2-p);

@@ -34,6 +34,8 @@ cat(int f, char *s)
 			error("cat: write error copying %s: ", s);
 			return;
 		}
+	if(n < 0)
+		error("cat: error reading %s: ", s);
 }
 
 void

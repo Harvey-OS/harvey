@@ -51,7 +51,7 @@ or
 .I dirfstat
 on a pipe (see
 .IR stat (2)).
-.SH
+.PP
 When all the data has been read from a pipe and the writer has closed the pipe or exited,
 .IR read (2)
 will return 0 bytes.  Writes to a pipe with no reader will generate a note

@@ -1,5 +1,6 @@
 #include	<ctype.h>
 
+int
 toupper(int c)
 {
 
@@ -8,6 +9,7 @@ toupper(int c)
 	return _toupper(c);
 }
 
+int
 tolower(int c)
 {
 

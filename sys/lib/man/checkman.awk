@@ -21,6 +21,39 @@ BEGIN {
 	Weight["DIAGNOSTICS"] = 256
 	Weight["SYSTEM CALLS"] = 512
 	Weight["BUGS"] = 1024
+	Omitted["411"] = 1
+	Omitted["Kill"] = 1
+	Omitted["cb"] = 1
+	Omitted["edmail"] = 1
+	Omitted["mousereset"] = 1
+	Omitted["postalias"] = 1
+	Omitted["mksacfs"] = 1
+	Omitted["sacfs"] = 1
+	Omitted["stock"] = 1
+	Omitted["eg"] = 1
+	Omitted["i"] = 1
+	Omitted["netlib_find"] = 1
+	Omitted["uuencode"] = 1
+	Omitted["uudecode"] = 1
+	Omitted["P"] = 1
+	Omitted["charon"] = 1
+	Omitted["tcp17032"] = 1
+	Omitted["tcp17033"] = 1
+	Omitted["tcp666"] = 1
+	Omitted["tcp667"] = 1
+	Omitted["tcp7330"] = 1
+	Omitted["tcp22"] = 1
+	Omitted["tcp79"] = 1
+	Omitted["tcp1723"] = 1
+	Omitted["pump"] = 1
+	Omitted["allmail"] = 1
+
+	Omittedlib["brk_"] = 1
+	Omittedlib["creadimage"] = 1
+	Omittedlib["main"] = 1
+	Omittedlib["opasstokey"] = 1
+	Omittedlib["oseek"] = 1
+	Omittedlib["sysr1"] = 1
 }
 
 FNR==1	{
@@ -32,7 +65,7 @@ FNR==1	{
 			seclen = 2
 		if(seclen == 0)
 			print "FILENAME", FILENAME, "not of form [0-9][0-9]?/*"
-		else if(!(substr(FILENAME, seclen+2, n-seclen-1) ~ /^[A-Z]+$/)){
+		else if(!(substr(FILENAME, seclen+2, n-seclen-1) ~ /^[A-Z]+(.html)?$/)){
 			section = substr(FILENAME, 1, seclen)
 			name = substr(FILENAME, seclen+2, n-seclen-1)
 			if($1 != ".TH" || NF != 3)
@@ -79,7 +112,7 @@ $1 == ".EE" {
 		inex = 0;
 }
 
-$0 ~ /^\..*\([0-9]\)/ {
+$0 ~ /^\.[A-Z].*\([1-9]\)/ {
 		if ($1 == ".IR" && $3 ~ /\([0-9]\)/) {
 			name = $2
 			section = $3
@@ -93,7 +126,7 @@ $0 ~ /^\..*\([0-9]\)/ {
 			name = $3
 			section = "9"
 		} else {
-			print "Possible bad cross-reference format in", FILENAME
+			print "Possible bad cross-reference format in", FILENAME ":" FNR
 			print $0
 			next
 		}
@@ -113,44 +146,59 @@ END {
 	getindex("/sys/man/4")
 	getindex("/sys/man/7")
 	getindex("/sys/man/8")
-	getindex("/sys/man/9")
-	getindex("/sys/man/10")
 	Skipdirs["X11"] = 1
 	Skipdirs["ape"] = 1
 	Skipdirs["aux"] = 1
 	Skipdirs["c++"] = 1
-	Skipdirs["help"] = 1
-	Skipdirs["lbp"] = 1
-	Skipdirs["m"] = 1
-	Skipdirs["scsi"] = 1
-	getbinlist("/mips/bin")
+	Skipdirs["fb"] = 1
+	Skipdirs["odraw"] = 1
+	Skipdirs["pub"] = 1
+	Skipdirs["games"] = 1
+	Skipdirs["lml"] = 1
+	Skipdirs["type1"] = 1
+	Skipdirs["service.alt"] = 1
+	getbinlist("/386/bin")
 	getbinlist("/rc/bin")
 	for (i in List) {
-		if (!(i in Index))
+		if (!(i in Index) && !(i in Omitted))
 			print "Need", i, "(in " List[i] ")"
+	}
+	print ""
+	for (i in List) {
+		if (!(i in Index) && (i in Omitted))
+			print "Omit", i, "(in " List[i] ")"
 	}
 	clearindex()
 	clearlist()
 	print ""
 	print "Checking libraries"
 	getindex("/sys/man/2")
-	getindex9("/sys/man/9")
-	getnmlist("/mips/lib/libauth.a")
-	getnmlist("/mips/lib/libbio.a")
-	getnmlist("/mips/lib/libc.a")
-	getnmlist("/mips/lib/libfb.a")
-	getnmlist("/mips/lib/libframe.a")
-	getnmlist("/mips/lib/libg.a")
-	getnmlist("/mips/lib/libip.a")
-	getnmlist("/mips/lib/liblayer.a")
-	getnmlist("/mips/lib/libmach.a")
-	getnmlist("/mips/lib/libndb.a")
-	getnmlist("/mips/lib/libregexp.a")
-	getnmlist("/mips/lib/libstdio.a")
-	getnmlist("/mips/lib/libpanel.a")
+	getnmlist("/386/lib/libauth.a")
+	getnmlist("/386/lib/libbio.a")
+	getnmlist("/386/lib/libc.a")
+	getnmlist("/386/lib/libdebugmalloc.a")
+	getnmlist("/386/lib/libdraw.a")
+	getnmlist("/386/lib/libframe.a")
+	getnmlist("/386/lib/libgeometry.a")
+	getnmlist("/386/lib/libip.a")
+	getnmlist("/386/lib/libmach.a")
+	getnmlist("/386/lib/libmemdraw.a")
+	getnmlist("/386/lib/libmemlayer.a")
+	getnmlist("/386/lib/libmp.a")
+	getnmlist("/386/lib/libndb.a")
+	getnmlist("/386/lib/libplumb.a")
+	getnmlist("/386/lib/libregexp.a")
+	getnmlist("/386/lib/libsec.a")
+	getnmlist("/386/lib/libstdio.a")
+	getnmlist("/386/lib/libthread.a")
 	for (i in List) {
-		if (!(i in Index))
+		if (!(i in Index) && !(i in Omittedlib))
 			print "Need", i, "(in " List[i] ")"
+	}
+	print ""
+	for (i in List) {
+		if (!(i in Index) && (i in Omittedlib))
+			print "Omit", i, "(in " List[i] ")"
 	}
 }
 
@@ -162,15 +210,6 @@ func getindex(dir,    fname)
 	close(fname)
 }
 
-func getindex9(dir,    fname)
-{
-	fname = dir "/INDEX"
-	while ((getline < fname) > 0)
-		if($2 ~ "(getflags|picopen|getcmap)")
-			Index[$1] = dir
-	close(fname)
-}
-
 func getbinlist(dir,    cmd, subdirs, nsd)
 {
 	cmd = "ls -p -l " dir
@@ -179,7 +218,7 @@ func getbinlist(dir,    cmd, subdirs, nsd)
 		if ($1 ~ /^d/) {
 			if (!($10 in Skipdirs))
 				subdirs[++nsd] = $10
-		} else
+		} else if ($10 !~ "^_")
 			List[$10] = dir
 	}
 	for ( ; nsd > 0 ; nsd--)

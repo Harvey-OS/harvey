@@ -7,19 +7,15 @@ extern	long	nhiob;
 extern	Hiob	*hiob;
 
 Iobuf*
-getbuf(Device dev, long addr, int flag)
+getbuf(Device *d, long addr, int flag)
 {
 	Iobuf *p, *s;
 	Hiob *hp;
 	long h;
 
 	if(DEBUG)
-		print("getbuf %D(%ld) f=%x\n", dev, addr, flag);
-	h = addr +
-		dev.type*1009L +
-		dev.ctrl*10007L +
-		dev.unit*100003L +
-		dev.part*1000003L;
+		print("getbuf %D(%ld) f=%x\n", d, addr, flag);
+	h = addr + (long)d*1009L;
 	if(h < 0)
 		h = ~h;
 	h %= nhiob;
@@ -33,7 +29,7 @@ loop:
  */
 	s = hp->link;
 	for(p=s;;) {
-		if(p->addr == addr && !devcmp(p->dev, dev)) {
+		if(p->addr == addr && p->dev == d) {
 			if(p != s) {
 				p->back->fore = p->fore;
 				p->fore->back = p->back;
@@ -45,12 +41,14 @@ loop:
 			}
 			unlock(hp);
 			qlock(p);
-			if(p->addr != addr || devcmp(p->dev, dev) || iobufmap(p) == 0) {
+			if(p->addr != addr || p->dev != d || iobufmap(p) == 0) {
 				qunlock(p);
 				goto loop;
 			}
 			p->flags |= flag;
-			cons.bhit.count++;
+			cons.bhit[0].count++;
+			cons.bhit[1].count++;
+			cons.bhit[2].count++;
 			return p;
 		}
 		p = p->fore;
@@ -105,21 +103,26 @@ xloop:
 	}
 	hp->link = p;
 	p->addr = addr;
-	p->dev = dev;
+	p->dev = d;
 	p->flags = flag;
 	unlock(hp);
 	if(iobufmap(p)) {
 		if(flag & Bread) {
 			if(!devread(p->dev, p->addr, p->iobuf)) {
-				cons.bread.count++;
+				cons.bread[0].count++;
+				cons.bread[1].count++;
+				cons.bread[2].count++;
 				return p;
 			}
 			iobufunmap(p);
 		} else {
-			cons.binit.count++;
+			cons.binit[0].count++;
+			cons.binit[1].count++;
+			cons.binit[2].count++;
 			return p;
 		}
-	}
+	} else
+		print("iobuf cant map buffer\n");
 	p->flags = 0;
 	p->dev = devnone;
 	p->addr = -1;
@@ -214,17 +217,17 @@ checktag(Iobuf *p, int tag, long qpath)
 	t = (Tag*)(p->iobuf+BUFSIZE);
 	if(t->tag != tag) {
 		if(p->flags & Bmod) {
-			print("	tag = %d; expected %d -- not flushed\n",
-				t->tag, tag);
+			print("	tag = %d/%lux; expected %d -- not flushed\n",
+				t->tag, t->path, tag);
 			return 2;
 		}
-		if(p->dev.type == Devcw)
+		if(p->dev->type == Devcw)
 			cwfree(p->dev, p->addr);
 		p->dev = devnone;
 		p->addr = -1;
 		p->flags = 0;
-		print("	tag = %d; expected %d -- flushed\n",
-			t->tag, tag);
+		print("	tag = %d/%lux; expected %d -- flushed\n",
+			t->tag, t->path, tag);
 		return 2;
 	}
 	if(qpath != QPNONE) {

@@ -23,7 +23,7 @@
 The Text Editor \&\f(CWsam\fP
 .AU
 Rob Pike
-rob@plan9.att.com
+rob@plan9.bell-labs.com
 .AB
 .LP
 .CW Sam
@@ -2260,7 +2260,7 @@ Typically, the connection is an RS-232 link between a Blit
 and a host running
 the Ninth Edition of the UNIX operating system.\u\s-4\&8\s+4\d
 (This is the version of the system used in the Computing Sciences Research
-Center at AT&T Bell Laboratories, where I work.  Its relevant
+Center at AT&T Bell Laboratories [now Lucent Technologies, Bell Labs], where I work.  Its relevant
 aspects are discussed in the Blit paper.\u\s-4\&1\s+4\d)
 The implementation of
 .CW sam

@@ -9,12 +9,13 @@
  */
 #include	<u.h>
 #include	<libc.h>
-#include	<libg.h>
+#include	<draw.h>
 #include	<bio.h>
 
-#define WIDTH			80
-#define WORD_ALLOC_QUANTA	1024
-#define ALLOC_QUANTA		4096
+#define	WIDTH			80
+#define	TAB	4
+#define	WORD_ALLOC_QUANTA	1024
+#define	ALLOC_QUANTA		4096
 
 int linewidth=WIDTH;
 int colonflag=0;
@@ -101,7 +102,7 @@ readbuf(int fd)
 		linesiz++;
 		if(c == '\t') {
 			cbufp[-1] = L' ';
-			while(linesiz%8 != 0) {
+			while(linesiz%TAB != 0) {
 				if(nchars++ >= nalloc)
 					morechars();
 				*cbufp++ = L' ';
@@ -120,7 +121,7 @@ readbuf(int fd)
 					nchars++;
 				columnate();
 				if (nchars)
-					BPUTC(&bout, '\n');
+					Bputc(&bout, '\n');
 				Bprint(&bout, "%S", cbuf+nchars);
 				nchars = 0;
 				cbufp = cbuf;
@@ -180,20 +181,20 @@ columnate(void)
 			col += word[j+1]-word[j]-1;
 			if(j+nlines < nwords){
 				if(tabflag) {
-					int tabcol = (col|07)+1;
+					int tabcol = (col|(TAB-1))+1;
 					while(tabcol <= endcol){
-						BPUTC(&bout, '\t');
+						Bputc(&bout, '\t');
 						col = tabcol;
-						tabcol += 8;
+						tabcol += TAB;
 					}
 				}
 				while(col < endcol){
-					BPUTC(&bout, ' ');
+					Bputc(&bout, ' ');
 					col++;
 				}
 			}
 		}
-		BPUTC(&bout, '\n');
+		Bputc(&bout, '\n');
 	}
 }
 
@@ -206,43 +207,77 @@ morechars(void)
 	cbufp = cbuf+nchars-1;
 }
 
+/*
+ * These routines discover the width of the display.
+ * It takes some work.  If we do the easy calls to the
+ * draw library, the screen flashes due to repainting
+ * when mc exits.
+ */
+
+jmp_buf	drawjmp;
+
+void
+terror(Display*, char*)
+{
+	longjmp(drawjmp, 1);
+}
+
+Image*
+window(void)
+{
+	int n, fd;
+	char buf[128];
+
+	/* under acme, don't want to read whole screen width */
+	if(access("/dev/acme", OREAD) == 0)
+		return nil;
+	display = initdisplay("/dev", "/dev", terror);
+	if(display == nil)
+		return nil;
+	snprint(buf, sizeof buf, "%s/winname", display->windir);
+	fd = open(buf, OREAD);
+	if(fd<0 || (n=read(fd, buf, 64))<=0){
+		return nil;
+	}
+	close(fd);
+	buf[n] = 0;
+	return namedimage(display, buf);
+}
+
 void
 getwidth(void)
 {
-	Rectangle r;
-	char buf[5*12];
-	int fd, width;
+	Image *w;
+	int width, fd, n;
+	char fontname[256];
 
-		/* window stucture:
-			4 bit left edge
-			1 bit gap
-			12 bit scrollbar
-			4 bit gap
-			text
-			4 bit right edge
-		*/
-	fd = open("/dev/window", OREAD);
-	if(fd < 0)
-		fd = open("/dev/screen", OREAD);
+	if(setjmp(drawjmp))
+		return;
+
+	w = window();
+	if(w == nil)
+		return;
+	fd = open("/env/font", OREAD);
 	if(fd < 0)
 		return;
-	if(read(fd, buf, sizeof buf) != sizeof buf){
-		close(fd);
-		return;
-	}
+	n = read(fd, fontname, sizeof(fontname)-1);
 	close(fd);
-	r.min.x = atoi(buf+1*12);
-	r.min.y = atoi(buf+2*12);
-	r.max.x = atoi(buf+3*12);
-	r.max.y = atoi(buf+4*12);
-	fd = open("/dev/bitblt", ORDWR);
-	if(fd < 0)
-		width = 9;
-	else{
-		close(fd);
-		binit(0, 0, 0);
-		width = charwidth(font, ' ');
-		bclose();
-	}
-	linewidth = (r.max.x-r.min.x-(4+1+12+4+4))/width;
+	if(n < 0)
+		return;
+	fontname[n] = 0;
+	if(fontname[0] == 0)
+		return;
+	font = openfont(display, fontname);
+	if(font == nil)
+		return;
+	width = stringwidth(font, " ");
+	/* window stucture:
+		4 bit left edge
+		1 bit gap
+		12 bit scrollbar
+		4 bit gap
+		text
+		4 bit right edge
+	*/
+	linewidth = (Dx(w->r)-(4+1+12+4+4))/width;
 }

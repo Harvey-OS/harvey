@@ -54,7 +54,7 @@ Troff User's Manual
 Joseph F. Ossanna
 Brian W. Kernighan
 .sp
-bwk@research.att.com
+bwk@research.bell-labs.com
 .EQ
 delim @@
 define cw % "\&" font CW %
@@ -3656,5 +3656,5 @@ l l20fCW l l20fCW l l20fCW.
 \(*h	\e(*h	\(rn	\e(rn	\(rf	\e(rf
 \(*i	\e(*i	\(>=	\e(>=	\(lc	\e(lc
 \(*k	\e(*k	\(<=	\e(<=	\(rc	\e(rc
-\(*l	\e(*l	\(==	\e(==
+\(*l	\e(*l	\(==	\e(==	\d\h'-5m'\(LH\u	\e(LH
 .TE

@@ -2,7 +2,7 @@
 How to Use the Plan 9 C Compiler
 .AU
 Rob Pike
-rob@plan9.att.com
+rob@plan9.bell-labs.com
 .SH
 Introduction
 .PP
@@ -60,9 +60,10 @@ It
 supports neither
 .CW #if
 nor
-.CW ##
-and honors a single
-.CW #pragma .
+.CW ## ,
+although it does
+honor a few
+.CW #pragmas .
 The
 .CW #if
 directive was omitted because it greatly complicates the
@@ -87,23 +88,24 @@ the others are placed in a directory appropriate to the machine, such as
 The compiler searches for include files
 first in the machine-dependent directory and then
 in the machine-independent directory.
-At the time of writing there are twenty-two machine-independent include
-files and three (per machine) machine-dependent ones:
-.CW <ureg.h> ,
-.CW <stdarg.h> ,
+At the time of writing there are thirty-one machine-independent include
+files and two (per machine) machine-dependent ones:
+.CW <ureg.h>
 and
 .CW <u.h> .
 The first describes the layout of registers on the system stack,
-for use by the debugger;
-the second, as in ANSI C, defines a portable way to declare variadic
-functions.
-The third defines some
+for use by the debugger.
+The second defines some
 architecture-dependent types such as
 .CW jmp_buf
 for
 .CW setjmp
+and the
+.CW va_arg
 and
-also a set of
+.CW va_list
+macros for handling arguments to variadic functions,
+as well as a set of
 .CW typedef
 abbreviations for
 .CW unsigned
@@ -113,22 +115,34 @@ and so on.
 Here is an excerpt from
 .CW /68020/include/u.h :
 .P1
+#define nil		((void*)0)
 typedef	unsigned short	ushort;
 typedef	unsigned char	uchar;
 typedef unsigned long	ulong;
 typedef unsigned int	uint;
 typedef   signed char	schar;
-typedef	long		vlong;
+typedef	long long       vlong;
 
 typedef long	jmp_buf[2];
 #define	JMPBUFSP	0
 #define	JMPBUFPC	1
 #define	JMPBUFDPC	0
 .P2
+Plan 9 programs use
+.CW nil
+for the name of the zero-valued pointer.
 The type
 .CW vlong
-is the largest integer type available; on some architectures it
+is the largest integer type available; on most architectures it
 is a 64-bit value.
+A couple of other types in
+.CW <u.h>
+are
+.CW u32int ,
+which is guaranteed to have exactly 32 bits (a possibility on all the supported architectures) and
+.CW mpdigit ,
+which is used by the multiprecision math package
+.CW <mp.h> .
 The
 .CW #define
 constants permit an architecture-independent (but compiler-dependent)
@@ -216,7 +230,7 @@ main(int argc, char *argv[])
 In practice, Standard I/O is not used much in Plan 9.  I/O libraries are
 discussed in a later section of this document.
 .PP
-There are libraries for handling regular expressions, bitmap graphics,
+There are libraries for handling regular expressions, raster graphics,
 windows, and so on, and each has an associated include file.
 The manual for each library states which include files are needed.
 The files are not protected against multiple inclusion and themselves
@@ -263,18 +277,26 @@ Process
 .PP
 Each CPU architecture supported by Plan 9 is identified by a single,
 arbitrary, alphanumeric character:
-.CW v
-for MIPS,
 .CW k
 for SPARC,
-.CW x
-for AT&T DSP3210,
+.CW q
+for Motorola Power PC 630 and 640,
+.CW v
+for MIPS,
+.CW 1
+for Motorola 68000,
 .CW 2
 for Motorola 68020 and 68040,
+.CW 5
+for Acorn ARM 7500,
+.CW 6
+for Intel 960,
+.CW 7
+for DEC Alpha,
 .CW 8
 for Intel 386, and
-.CW 6
-for Intel 960.
+.CW 9
+for AMD 29000.
 The character labels the support tools and files for that architecture.
 For instance, for the 68020 the compiler is
 .CW 2c ,
@@ -406,6 +428,7 @@ The configuration process is controlled by an environment variable,
 with value such as
 .CW mips ,
 .CW 68020 ,
+.CW 386 ,
 or
 .CW sparc .
 For each architecture there is a directory in the root,
@@ -522,14 +545,30 @@ that defines a set of macros for the compiler, loader, etc.
 Here is
 .CW /mips/mkfile :
 .P1
+</sys/src/mkfile.proto
+
 CC=vc
-ALEF=val
 LD=vl
 O=v
 AS=va
-OS=2kv86x
-CPUS=mips 68020 sparc 386
-CFLAGS=
+.P2
+The line
+.P1
+</sys/src/mkfile.proto
+.P2
+causes
+.CW mk
+to include the file
+.CW /sys/src/mkfile.proto ,
+which contains general definitions:
+.P1
+#
+# common mkfile parameters shared by all architectures
+#
+
+OS=v486xq7
+CPUS=mips 386 power alpha
+CFLAGS=-FVw
 LEX=lex
 YACC=yacc
 MK=/bin/mk
@@ -540,8 +579,6 @@ is obviously the compiler,
 the assembler, and
 .CW LD
 the loader.
-.CW ALEF
-identifies the Alef compiler, described below.
 .CW O
 is the suffix for the object files and
 .CW CPUS
@@ -716,7 +753,8 @@ Be aware, though, that extra care is needed to handle floating point data.
 Efficiency hounds will argue that this method is unnecessarily slow and clumsy
 when the executing machine has the same byte order (and padding and alignment)
 as the data.
-I/O speed is rarely the bottleneck for an application, however,
+The CPU cost of I/O processing
+is rarely the bottleneck for an application, however,
 and the gain in simplicity of porting and maintaining the code greatly outweighs
 the minor speed loss from handling data in this general way.
 This method is how the Plan 9 compilers, the window system, and even the file
@@ -759,7 +797,7 @@ Its interface is compact and regular, although it lacks a few conveniences.
 The most noticeable is that one must explicitly define buffers for standard
 input and output;
 .CW bio
-does not predefine them.  Here is a program to copy input to output a character
+does not predefine them.  Here is a program to copy input to output a byte
 at a time using
 .CW bio :
 .P1
@@ -1147,6 +1185,18 @@ void	(*func[128])(void) =
 	['/']	slash,
 };
 .P2
+.LP
+A similar syntax allows one to initialize structure elements:
+.P1
+Point p =
+{
+	.y 100,
+	.x 200
+};
+.P2
+These initialization syntaxes were later added to ANSI C, with the addition of an
+equals sign between the index or tag and the value.
+The Plan 9 compiler accepts either form.
 .PP
 Finally, the declaration
 .P1
@@ -1377,91 +1427,20 @@ it is wiser to keep the hand-generated
 .CW acid
 separate from the machine-generated.
 .PP
+To make things simple, the default rules in the system
+.CW mkfiles
+include entries to make
+.CW foo.acid
+from
+.CW foo.c ,
+so one may use
+.CW mk
+to automate the production of
+.CW acid
+definitions for a given C source file.
+.PP
 There is much more to say here.  See
 .CW acid
 manual page, the reference manual, or the paper
 ``Acid: A Debugger Built From A Language'',
 also by Phil Winterbottom.
-.SH
-Alef
-.PP
-With minor substitutions, most of this document applies to Alef.
-The compilers are
-.CW val ,
-.CW kal ,
-and
-.CW 8al ;
-they work with the usual assemblers and loaders.
-There is no Alef compiler for the 68020.
-The directory of machine-independent include files is
-.CW /sys/include/alef ;
-there are no machine-dependent Alef include files.
-The libraries are in
-.CW /$objtype/lib/alef .
-Alef uses
-.CW /bin/cpp ,
-which is a full ANSI C preprocessor.
-Our style of use, however, is the same as in Plan 9 C.
-.PP
-The Alef compilers don't have the
-.CW USED(v)
-and
-.CW SET(v)
-operators; instead say something like
-.P1
-if(v);
-.P2
-for
-.CW USED
-and just set the variable to something benign to silence `used and not set' warnings.
-The compilers also permit leaving unused parameters unnamed.
-.PP
-The compilers support UTF,
-although variable names must be plain alphanumeric.
-UTF
-strings have syntax
-.CW $"string"
-rather than 
-.CW L"string" .
-.PP
-Finally, when debugging, some helpful
-.CW acid
-may be loaded by supplying the flag
-.CW -lalef
-when starting
-.CW acid .
-This code defines
-functions to help analyze the state of the run-time system.
-For example,
-.CW pchan(c)
-reports the state of a channel.
-Because Alef programs are multi-threaded, they have multiple stacks.
-To print the stack trace for a
-.CW proc ,
-do
-.P1
-setproc(pid);
-stk();
-.P2
-where
-.CW pid
-is the Plan 9 process id of the
-.CW proc .
-To print the stack trace for a task is clumsier.
-In the program, get the `task id'
-by calling the run-time function
-.CW ALEF_tid
-in each task and recording it in a global:
-.P1
-taskid = ALEF_tid();
-.P2
-When the program is debugged, the task id
-may be passed to an
-.CW acid
-function to print the stack:
-.P1
-labstk(*taskid);
-.P2
-This is of course best done in the private, program-specific
-.CW acid
-code.

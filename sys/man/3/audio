@@ -1,6 +1,6 @@
 .TH AUDIO 3 
 .SH NAME
-audio \- digital audio input and output
+audio \- SoundBlaster audio controller
 .SH SYNOPSIS
 .nf
 .B bind -a #A /dev
@@ -30,11 +30,11 @@ Reads
 return lines of the form
 .IP
 .I source
-.B in\ left
+.B in left
 .I value 
 .B right
 .I value
-.B out\ left
+.B out left
 .I value
 .B right
 .I value
@@ -58,7 +58,10 @@ and if no attribute is supplied,
 .B audio
 is assumed.
 .PP
-The Sound Blaster 16 (or MCD) is half-duplex and has the following controls.
+The Sound Blaster 16 (or MCD) is half-duplex and accepts the following controls on its
+.B volume
+file,
+in the format shown above for reads.
 .TP
 .B audio out
 Data written to audio.
@@ -91,29 +94,5 @@ Sampling rate for the D/A and A/D converters,
 expressed in Hz.
 Defaults to 44100.
 .PP
-Indigo audio is full-duplex and has the following controls.
-.TP
-.B audio out
-Data written to audio.
-.TP
-.B line in out
-Line-level input.
-.TP
-.B mic in out
-Microphone input.
-.TP
-.B aes in out
-Digital input.
-.PP
-Nextstation audio is output only and has the following controls.
-.TP
-.B audio
-Data written to audio.
-.TP
-.B deemp
-A
-.I value
-of zero turns off the stereo de-emphasis filter,
-any other value turns it on.
 .SH SOURCE
-.B /sys/src/9/*/devaudio.c
+.B /sys/src/9/port/devaudio.c

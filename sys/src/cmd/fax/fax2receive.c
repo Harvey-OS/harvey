@@ -55,7 +55,7 @@ page(Modem *m, char *spool)
 		}
 		buf[count++] = c;
 		if(count >= sizeof(buf)){
-			if(write(m->pagefd, buf, count-1) < 0){
+			if(write(m->pagefd, buf, count) < 0){
 				close(m->pagefd);
 				return seterror(m, Esys);
 			}

@@ -75,7 +75,7 @@ cmd_users(int argc, char *argv[])
 			continue;
 
 		if(strlen(p) > NAMELEN-1) {
-			print("%s: name too long\n");
+			print("%s: name too long\n", p);
 			continue;
 		}
 		strcpy(uid[u].name, p);
@@ -84,7 +84,7 @@ cmd_users(int argc, char *argv[])
 		uid[u].ngrp = 0;
 		u++;
 		if(u >= conf.nuid) {
-			print("conf.nuid too small (%d)\n", conf.nuid);
+			print("conf.nuid too small (%ld)\n", conf.nuid);
 			break;
 		}
 	}
@@ -179,7 +179,7 @@ do_newuser(int argc, char *argv[])
 	int nuid;
 	short *s;
 	Uid *ui, *u2;
-	char *p, *md;
+	char *p, *md, *q;
 	int i, l, n;
 
 
@@ -207,7 +207,18 @@ do_newuser(int argc, char *argv[])
 		if(ui == 0)
 			return;
 		pentry(buf, ui);
-		print("%s", buf);
+		n = strlen(buf);
+		p = buf;
+		while(n > PRINTSIZE-5) {
+			q = p;
+			p += PRINTSIZE-5;
+			n -= PRINTSIZE-5;
+			i = *p;
+			*p = 0;
+			print("%s", q);
+			*p = i;
+		}
+		print("%s\n", p);
 		return;
 
 	case ':':
@@ -216,7 +227,7 @@ do_newuser(int argc, char *argv[])
 		while(uidtop(nuid) != 0)
 			nuid++;
 		if(cons.nuid >= conf.nuid) {
-			print("conf.nuid too small (%d)\n", conf.nuid);
+			print("conf.nuid too small (%ld)\n", conf.nuid);
 			return;
 		}
 
@@ -230,9 +241,7 @@ do_newuser(int argc, char *argv[])
 		}
 		strcpy(ui->name, argv[1]);
 		ui->ngrp = 0;
-
 		qsort(uid, cons.nuid, sizeof(uid[0]), byuid);
-
 		wunlock(&uidgc.uidlock);
 		break;
 
@@ -262,7 +271,7 @@ do_newuser(int argc, char *argv[])
 		if(u2->uid == ui->uid)
 			return;
 		if(cons.ngid+ui->ngrp+1 >= conf.gidspace) {
-			print("conf.gidspace too small (%d)\n", conf.gidspace);
+			print("conf.gidspace too small (%ld)\n", conf.gidspace);
 			return;
 		}
 		for(i = 0; i < ui->ngrp; i++) {
@@ -332,7 +341,7 @@ do_newuser(int argc, char *argv[])
 
 
 	if(walkto("/adm/users") || con_open(FID2, MWRITE|MTRUNC)) {
-		print("can't open /adm/users for write");
+		print("can't open /adm/users for write\n");
 		return;
 	}
 
@@ -445,7 +454,7 @@ strtouid(char *name)
 	rlock(&uidgc.uidlock);
 
 	u = uidpstr(name);
-	id = -1;
+	id = -2;
 	if(u != 0)
 		id = u->uid;
 

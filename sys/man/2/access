@@ -38,6 +38,15 @@ a file may look executable, but
 .IR exec (2)
 will fail unless it is in proper format.
 .PP
+The include file
+.F <libc.h>
+defines
+.BR AEXIST =0,
+.BR AEXEC =1,
+.BR AWRITE =2,
+and
+.BR AREAD =4.
+.PP
 .SH SOURCE
 .B /sys/src/libc/9sys/access.c
 .SH SEE ALSO

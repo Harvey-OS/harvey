@@ -144,8 +144,6 @@ and
 .I _toupper
 are corresponding macros which should only be used when it
 is known that the argument is upper case or lower case, respectively.
-.SS Alef
-These routines are not provided in Alef.
 .SH SOURCE
 .TF /sys/src/libc/port/ctype.c
 .TP
@@ -154,6 +152,9 @@ for the macros.
 .TP
 .B /sys/src/libc/port/ctype.c
 for the tables.
+.SH "SEE ALSO
+.IR isalpharune (2)
 .SH BUGS
 These macros are
-\s-1ASCII\s0-centric.
+.SM ASCII \c
+-centric.

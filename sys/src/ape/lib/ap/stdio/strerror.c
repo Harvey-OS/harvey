@@ -66,8 +66,10 @@ char *sys_errlist[] = {
 	"Too many references",
 	"Timed out",
 	"Host down",
-	"House unreachable",
-	"Unknown error"
+	"Hout unreachable",
+	"Unknown error",
+	"Operation canceled",
+	"Operation in progress"
 };
 #define	_IO_nerr	(sizeof sys_errlist/sizeof sys_errlist[0])
 int sys_nerr = _IO_nerr;

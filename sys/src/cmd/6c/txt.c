@@ -20,16 +20,7 @@ ginit(void)
 	cases = C;
 	firstp = P;
 	lastp = P;
-	tfield = types[TFIELD];
-	if(TINT == TSHORT) {
-		tint = types[TSHORT];
-		tuint = types[TUSHORT];
-		types[TFUNC]->link = tint;
-	}
-	ewidth[TENUM] = ewidth[TINT];
-	types[TENUM]->width = ewidth[TENUM];
-	suround = SU_ALLIGN;
-	supad = SU_PAD;
+	tfield = types[TLONG];
 
 	zprog.link = P;
 	zprog.as = AGOK;
@@ -60,8 +51,8 @@ ginit(void)
 
 	nodsafe = new(ONAME, Z, Z);
 	nodsafe->sym = slookup(".safe");
-	nodsafe->type = tint;
-	nodsafe->etype = tint->etype;
+	nodsafe->type = types[TINT];
+	nodsafe->etype = types[TINT]->etype;
 	nodsafe->class = CAUTO;
 	complex(nodsafe);
 
@@ -137,7 +128,7 @@ void
 nextpc(void)
 {
 
-	ALLOC(p, Prog);
+	p = alloc(sizeof(*p));
 	*p = zprog;
 	p->lineno = nearln;
 	pc++;
@@ -202,7 +193,7 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 			sugen(n, tn2, n->type->width);
 		return;
 	}
-	if(REGARG && curarg == 0 && typelp[n->type->etype]) {
+	if(REGARG && curarg == 0 && typeilp[n->type->etype]) {
 		regaalloc1(tn1, n);
 		if(n->complex >= FNX) {
 			cgen(*fnxp, tn1);
@@ -283,6 +274,8 @@ regalloc(Node *n, Node *tn, Node *o)
 	case TUCHAR:
 	case TSHORT:
 	case TUSHORT:
+	case TINT:
+	case TUINT:
 	case TLONG:
 	case TULONG:
 	case TIND:
@@ -342,13 +335,8 @@ err:
 void
 regsalloc(Node *n, Node *nn)
 {
-	long o;
-
-	o = nn->type->width;
-	o += round(o, tint->width);
-	cursafe += o;
-	if(cursafe+curarg > maxargsafe)
-		maxargsafe = cursafe+curarg;
+	cursafe = align(cursafe, nn->type, Aaut3);
+	maxargsafe = maxround(maxargsafe, cursafe+curarg);
 	*n = *nodsafe;
 	n->xoffset = -(stkoff + cursafe);
 	n->type = nn->type;
@@ -359,30 +347,25 @@ regsalloc(Node *n, Node *nn)
 void
 regaalloc1(Node *n, Node *nn)
 {
-	int r;
-
-	r = REGARG;
-	nodreg(n, nn, r);
-	reg[r]++;
-	curarg += 4;
+	nodreg(n, nn, REGARG);
+	reg[REGARG]++;
+	curarg = align(curarg, nn->type, Aarg1);
+	curarg = align(curarg, nn->type, Aarg2);
+	maxargsafe = maxround(maxargsafe, cursafe+curarg);
 }
 
 void
 regaalloc(Node *n, Node *nn)
 {
-	long o;
-
+	curarg = align(curarg, nn->type, Aarg1);
 	*n = *nn;
 	n->op = OINDREG;
 	n->reg = REGSP;
-	n->xoffset = curarg + 4;
+	n->xoffset = curarg + SZ_LONG;
 	n->complex = 0;
 	n->addable = 20;
-	o = nn->type->width;
-	o += round(o, tint->width);
-	curarg += o;
-	if(cursafe+curarg > maxargsafe)
-		maxargsafe = cursafe+curarg;
+	curarg = align(curarg, nn->type, Aarg2);
+	maxargsafe = maxround(maxargsafe, cursafe+curarg);
 }
 
 void
@@ -543,6 +526,8 @@ gmove(Node *f, Node *t)
 	case TUSHORT:
 		a = AMOVOS;
 		goto ld;
+	case TINT:
+	case TUINT:
 	case TLONG:
 	case TULONG:
 	case TIND:
@@ -585,6 +570,8 @@ gmove(Node *f, Node *t)
 	case TUSHORT:
 		a = AMOVOS;
 		goto st;
+	case TINT:
+	case TUINT:
 	case TLONG:
 	case TULONG:
 	case TIND:
@@ -623,6 +610,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TUCHAR,	TCHAR):
 	case CASE(	TSHORT,	TCHAR):
 	case CASE(	TUSHORT,TCHAR):
+	case CASE(	TINT,	TCHAR):
+	case CASE(	TUINT,	TCHAR):
 	case CASE(	TLONG,	TCHAR):
 	case CASE(	TULONG,	TCHAR):
 	case CASE(	TIND,	TCHAR):
@@ -631,6 +620,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TUCHAR,	TUCHAR):
 	case CASE(	TSHORT,	TUCHAR):
 	case CASE(	TUSHORT,TUCHAR):
+	case CASE(	TINT,	TUCHAR):
+	case CASE(	TUINT,	TUCHAR):
 	case CASE(	TLONG,	TUCHAR):
 	case CASE(	TULONG,	TUCHAR):
 	case CASE(	TIND,	TUCHAR):
@@ -639,6 +630,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TUCHAR,	TSHORT):
 	case CASE(	TSHORT,	TSHORT):
 	case CASE(	TUSHORT,TSHORT):
+	case CASE(	TINT,	TSHORT):
+	case CASE(	TUINT,	TSHORT):
 	case CASE(	TLONG,	TSHORT):
 	case CASE(	TULONG,	TSHORT):
 	case CASE(	TIND,	TSHORT):
@@ -647,14 +640,38 @@ gmove(Node *f, Node *t)
 	case CASE(	TUCHAR,	TUSHORT):
 	case CASE(	TSHORT,	TUSHORT):
 	case CASE(	TUSHORT,TUSHORT):
+	case CASE(	TINT,	TUSHORT):
+	case CASE(	TUINT,	TUSHORT):
 	case CASE(	TLONG,	TUSHORT):
 	case CASE(	TULONG,	TUSHORT):
 	case CASE(	TIND,	TUSHORT):
+
+	case CASE(	TCHAR,	TINT):
+	case CASE(	TUCHAR,	TINT):
+	case CASE(	TSHORT,	TINT):
+	case CASE(	TUSHORT,TINT):
+	case CASE(	TINT,	TINT):
+	case CASE(	TUINT,	TINT):
+	case CASE(	TLONG,	TINT):
+	case CASE(	TULONG,	TINT):
+	case CASE(	TIND,	TINT):
+
+	case CASE(	TCHAR,	TUINT):
+	case CASE(	TUCHAR,	TUINT):
+	case CASE(	TSHORT,	TUINT):
+	case CASE(	TUSHORT,TUINT):
+	case CASE(	TINT,	TUINT):
+	case CASE(	TUINT,	TUINT):
+	case CASE(	TLONG,	TUINT):
+	case CASE(	TULONG,	TUINT):
+	case CASE(	TIND,	TUINT):
 
 	case CASE(	TCHAR,	TLONG):
 	case CASE(	TUCHAR,	TLONG):
 	case CASE(	TSHORT,	TLONG):
 	case CASE(	TUSHORT,TLONG):
+	case CASE(	TINT,	TLONG):
+	case CASE(	TUINT,	TLONG):
 	case CASE(	TLONG,	TLONG):
 	case CASE(	TULONG,	TLONG):
 	case CASE(	TIND,	TLONG):
@@ -663,6 +680,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TUCHAR,	TULONG):
 	case CASE(	TSHORT,	TULONG):
 	case CASE(	TUSHORT,TULONG):
+	case CASE(	TINT,	TULONG):
+	case CASE(	TUINT,	TULONG):
 	case CASE(	TLONG,	TULONG):
 	case CASE(	TULONG,	TULONG):
 	case CASE(	TIND,	TULONG):
@@ -671,6 +690,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TUCHAR,	TIND):
 	case CASE(	TSHORT,	TIND):
 	case CASE(	TUSHORT,TIND):
+	case CASE(	TINT,	TIND):
+	case CASE(	TUINT,	TIND):
 	case CASE(	TLONG,	TIND):
 	case CASE(	TULONG,	TIND):
 	case CASE(	TIND,	TIND):
@@ -684,6 +705,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TFLOAT,	TUCHAR):
 	case CASE(	TFLOAT,	TSHORT):
 	case CASE(	TFLOAT,	TUSHORT):
+	case CASE(	TFLOAT,	TINT):
+	case CASE(	TFLOAT,	TUINT):
 	case CASE(	TFLOAT,	TLONG):
 	case CASE(	TFLOAT,	TULONG):
 	case CASE(	TFLOAT,	TIND):
@@ -692,6 +715,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TDOUBLE,TUCHAR):
 	case CASE(	TDOUBLE,TSHORT):
 	case CASE(	TDOUBLE,TUSHORT):
+	case CASE(	TDOUBLE,TINT):
+	case CASE(	TDOUBLE,TUINT):
 	case CASE(	TDOUBLE,TLONG):
 	case CASE(	TDOUBLE,TULONG):
 	case CASE(	TDOUBLE,TIND):
@@ -700,6 +725,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TVLONG,	TUCHAR):
 	case CASE(	TVLONG,	TSHORT):
 	case CASE(	TVLONG,	TUSHORT):
+	case CASE(	TVLONG,	TINT):
+	case CASE(	TVLONG,	TUINT):
 	case CASE(	TVLONG,	TLONG):
 	case CASE(	TVLONG,	TULONG):
 	case CASE(	TVLONG,	TIND):
@@ -713,6 +740,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TUCHAR,	TFLOAT):
 	case CASE(	TSHORT,	TFLOAT):
 	case CASE(	TUSHORT,TFLOAT):
+	case CASE(	TINT,	TFLOAT):
+	case CASE(	TUINT,	TFLOAT):
 	case CASE(	TLONG,	TFLOAT):
 	case CASE(	TULONG,	TFLOAT):
 	case CASE(	TIND,	TFLOAT):
@@ -721,6 +750,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TUCHAR,	TDOUBLE):
 	case CASE(	TSHORT,	TDOUBLE):
 	case CASE(	TUSHORT,TDOUBLE):
+	case CASE(	TINT,	TDOUBLE):
+	case CASE(	TUINT,	TDOUBLE):
 	case CASE(	TLONG,	TDOUBLE):
 	case CASE(	TULONG,	TDOUBLE):
 	case CASE(	TIND,	TDOUBLE):
@@ -729,6 +760,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TUCHAR,	TVLONG):
 	case CASE(	TSHORT,	TVLONG):
 	case CASE(	TUSHORT,TVLONG):
+	case CASE(	TINT,	TVLONG):
+	case CASE(	TUINT,	TVLONG):
 	case CASE(	TLONG,	TVLONG):
 	case CASE(	TULONG,	TVLONG):
 	case CASE(	TIND,	TVLONG):
@@ -1022,37 +1055,49 @@ exreg(Type *t)
 	return 0;
 }
 
-schar	ewidth[XTYPE] =
+schar	ewidth[NTYPE] =
 {
-	-1,				/* TXXX */
-	SZ_CHAR,	SZ_CHAR,	/* TCHAR	TUCHAR */
-	SZ_SHORT,	SZ_SHORT,	/* TSHORT	TUSHORT */
-	SZ_LONG,	SZ_LONG,	/* TLONG	TULONG */
-	SZ_VLONG,	SZ_VLONG,	/* TVLONG	TUVLONG */
-	SZ_FLOAT,	SZ_DOUBLE,	/* TFLOAT	TDOUBLE */
-	SZ_IND,		0,		/* TIND		TFUNC */
-	-1,		0,		/* TARRAY	TVOID */
-	-1,		-1,		/* TSTRUCT	TUNION */
-	-1				/* TENUM */
+	-1,		/* [TXXX] */
+	SZ_CHAR,	/* [TCHAR] */
+	SZ_CHAR,	/* [TUCHAR] */
+	SZ_SHORT,	/* [TSHORT] */
+	SZ_SHORT,	/* [TUSHORT] */
+	SZ_INT,		/* [TINT] */
+	SZ_INT,		/* [TUINT] */
+	SZ_LONG,	/* [TLONG] */
+	SZ_LONG,	/* [TULONG] */
+	SZ_VLONG,	/* [TVLONG] */
+	SZ_VLONG,	/* [TUVLONG] */
+	SZ_FLOAT,	/* [TFLOAT] */
+	SZ_DOUBLE,	/* [TDOUBLE] */
+	SZ_IND,		/* [TIND] */
+	0,		/* [TFUNC] */
+	-1,		/* [TARRAY] */
+	0,		/* [TVOID] */
+	-1,		/* [TSTRUCT] */
+	-1,		/* [TUNION] */
+	SZ_INT,		/* [TENUM] */
 };
-long	ncast[XTYPE] =
+long	ncast[NTYPE] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BCHAR|BUCHAR,
-	/* TUCHAR */	BCHAR|BUCHAR,
-	/* TSHORT */	BSHORT|BUSHORT,
-	/* TUSHORT */	BSHORT|BUSHORT,
-	/* TLONG */	BLONG|BULONG|BIND,
-	/* TULONG */	BLONG|BULONG|BIND,
-	/* TVLONG */	BVLONG|BUVLONG,
-	/* TUVLONG */	BVLONG|BUVLONG,
-	/* TFLOAT */	BFLOAT,
-	/* TDOUBLE */	BDOUBLE,
-	/* TIND */	BLONG|BULONG|BIND,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	0,
-	/* TSTRUCT */	BSTRUCT,
-	/* TUNION */	BUNION,
-	/* TENUM */	0,
+	0,				/* [TXXX] */
+	BCHAR|BUCHAR,			/* [TCHAR] */
+	BCHAR|BUCHAR,			/* [TUCHAR] */
+	BSHORT|BUSHORT,			/* [TSHORT] */
+	BSHORT|BUSHORT,			/* [TUSHORT] */
+	BINT|BUINT|BLONG|BULONG|BIND,	/* [TINT] */
+	BINT|BUINT|BLONG|BULONG|BIND,	/* [TUINT] */
+	BINT|BUINT|BLONG|BULONG|BIND,	/* [TLONG] */
+	BINT|BUINT|BLONG|BULONG|BIND,	/* [TULONG] */
+	BVLONG|BUVLONG,			/* [TVLONG] */
+	BVLONG|BUVLONG,			/* [TUVLONG] */
+	BFLOAT,				/* [TFLOAT] */
+	BDOUBLE,			/* [TDOUBLE] */
+	BLONG|BULONG|BIND,		/* [TIND] */
+	0,				/* [TFUNC] */
+	0,				/* [TARRAY] */
+	0,				/* [TVOID] */
+	BSTRUCT,			/* [TSTRUCT] */
+	BUNION,				/* [TUNION] */
+	0,				/* [TENUM] */
 };

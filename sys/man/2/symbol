@@ -65,10 +65,10 @@ int  textsym(Symbol *s, int index)
 long file2pc(char *file, ulong line)
 .PP
 .B
-int fileline(char *str, int n, ulong addr)
+int  fileline(char *str, int n, ulong addr)
 .PP
 .B
-int fnbound(long addr, ulong *bounds)
+int  fnbound(long addr, ulong *bounds)
 .SH DESCRIPTION
 These functions provide machine-independent access to the
 symbol table of an executable file or executing process.

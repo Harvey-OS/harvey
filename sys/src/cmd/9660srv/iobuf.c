@@ -18,7 +18,7 @@ getbuf(Xdata *dev, long addr)
 {
 	Iobuf *p, *h, **l, **f;
 
-	l = &hiob[addr%HIOB];
+	l = &hiob[(ulong)addr%HIOB];
 	for(p = *l; p; p = p->next) {
 		if(p->addr == addr && p->dev == dev) {
 			p->busy++;
@@ -33,7 +33,7 @@ getbuf(Xdata *dev, long addr)
 		panic(0, "all buffers busy");
 
 	/* Delete from hash chain */
-	f = &hiob[p->addr%HIOB];
+	f = &hiob[(ulong)p->addr%HIOB];
 	for(h = *f; h; h = h->next) {
 		if(h == p) {
 			*f = p->hash;

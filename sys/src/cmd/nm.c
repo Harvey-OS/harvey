@@ -14,27 +14,27 @@ enum{
 char	*errs;			/* exit status */
 char	*filename;		/* current file */
 char	symname[]="__.SYMDEF";	/* table of contents file name */
-int	multifile,		/* processing multiple files */
-	aflag,
-	gflag,
-	hflag,
-	nflag,
-	sflag,
-	uflag;
+int	multifile;		/* processing multiple files */
+int	aflag;
+int	gflag;
+int	hflag;
+int	nflag;
+int	sflag;
+int	uflag;
 
 Sym	**fnames;		/* file path translation table */
 Sym	**symptr;
 int	nsym;
 Biobuf	bout;
 
-int	cmp(Sym **, Sym **);
-void	error(char*, ...),
-	execsyms(int),
-	psym(Sym*, void*),
-	printsyms(Sym**, long),
-	doar(Biobuf*),
-	dofile(Biobuf*),
-	zenter(Sym*);
+int	cmp(void*, void*);
+void	error(char*, ...);
+void	execsyms(int);
+void	psym(Sym*, void*);
+void	printsyms(Sym**, long);
+void	doar(Biobuf*);
+void	dofile(Biobuf*);
+void	zenter(Sym*);
 
 void
 main(int argc, char *argv[])
@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 		filename = argv[i];
 		bin = Bopen(filename, OREAD);
 		if(bin == 0){
-			error("cannot open %s\n", filename);
+			error("cannot open %s", filename);
 			continue;
 		}
 		if (isar(bin))
@@ -83,10 +83,10 @@ doar(Biobuf *bp)
 	char membername[SARNAME];
 
 	multifile = 1;
-	for (offset = BOFFSET(bp);;offset += size) {
+	for (offset = Boffset(bp);;offset += size) {
 		size = nextar(bp, offset, membername);
 		if (size < 0) {
-			error("phase error on ar header %ld\n", offset);
+			error("phase error on ar header %ld", offset);
 			return;
 		}
 		if (size == 0)
@@ -95,12 +95,12 @@ doar(Biobuf *bp)
 			continue;
 		obj = objtype(bp, 0);
 		if (obj < 0) {
-			error("inconsistent file %s in %s\n",
+			error("inconsistent file %s in %s",
 					membername, filename);
 			return;
 		}
 		if (!readar(bp, obj, offset+size, 1)) {
-			error("invalid symbol reference in file %s\n",
+			error("invalid symbol reference in file %s",
 					membername);
 			return;
 		}
@@ -135,8 +135,12 @@ dofile(Biobuf *bp)
  *	this screws up on 'z' records when aflag == 1
  */
 int
-cmp(Sym **s, Sym **t)
+cmp(void *vs, void *vt)
 {
+	Sym **s, **t;
+
+	s = vs;
+	t = vt;
 	if(nflag)
 		if((*s)->value < (*t)->value)
 			return -1;
@@ -156,7 +160,7 @@ zenter(Sym *s)
 		maxf = (s->value+CHUNK-1) &~ (CHUNK-1);
 		fnames = realloc(fnames, maxf*sizeof(*fnames));
 		if(fnames == 0) {
-			error("out of memory\n", argv0);
+			error("out of memory", argv0);
 			exits("memory");
 		}
 	}
@@ -175,7 +179,7 @@ execsyms(int fd)
 
 	seek(fd, 0, 0);
 	if (crackhdr(fd, &f) == 0) {
-		error("Can't read header for %s\n", filename);
+		error("Can't read header for %s", filename);
 		return;
 	}
 	if (syminit(fd, &f) < 0)
@@ -236,14 +240,14 @@ psym(Sym *s, void* p)
 	}
 	symptr = realloc(symptr, (nsym+1)*sizeof(Sym*));
 	if (symptr == 0) {
-		error("out of memory\n");
+		error("out of memory");
 		exits("memory");
 	}
 	symptr[nsym++] = s;
 }
 
 void
-printsyms(Sym **symptr, int nsym)
+printsyms(Sym **symptr, long nsym)
 {
 	Sym *s;
 	char *cp;
@@ -271,10 +275,13 @@ void
 error(char *fmt, ...)
 {
 	char buf[4096], *s;
+	va_list arg;
 
 	s = buf;
 	s += sprint(s, "%s: ", argv0);
-	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, &fmt + 1);
+	va_start(arg, fmt);
+	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
+	va_end(arg);
 	*s++ = '\n';
 	write(2, buf, s - buf);
 	errs = "errors";

@@ -10,7 +10,10 @@ TARG=basename\
 DIRS=\
 	expr\
 	make\
+#	pax\
+	pdksh\
 	sed\
+#	stc
 
 BIN=$APEBIN
 </sys/src/cmd/mkmany
@@ -42,7 +45,7 @@ $DIRS:V:
 	}
 
 cc.$O: cc.c
-	$O^c -w $prereq
+	mk -f /sys/src/cmd/mkfile cc.$O
 
 $O.cc: cc.$O
-	$O^l -o $target $prereq
+	mk -f /sys/src/cmd/mkfile $O.cc

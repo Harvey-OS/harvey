@@ -21,15 +21,23 @@ enum
 };
 
 int	_is2(char*),		/* in [$OS].c */
+	_is5(char*),
 	_is6(char*),
+	_is7(char*),
 	_is8(char*),
+	_is9(char*),
 	_isk(char*),
+	_isq(char*),
 	_isv(char*),
 	_isx(char*),
 	_read2(Biobuf*, Prog*),
+	_read5(Biobuf*, Prog*),
 	_read6(Biobuf*, Prog*),
+	_read7(Biobuf*, Prog*),
 	_read8(Biobuf*, Prog*),
+	_read9(Biobuf*, Prog*),
 	_readk(Biobuf*, Prog*),
+	_readq(Biobuf*, Prog*),
 	_readv(Biobuf*, Prog*),
 	_readx(Biobuf*, Prog*);
 
@@ -49,8 +57,12 @@ static Obj	obj[] =
 	[ObjSparc]	"sparc .k",	_isk, _readk,
 	[ObjMips]	"mips .v",	_isv, _readv,
 	[Obj386]	"386 .8",	_is8, _read8,
+	[ObjArm]	"arm .5",	_is5, _read5,
+	[ObjPower]	"power .q",	_isq, _readq,
 	[Obj960]	"960 .6",	_is6, _read6,
 	[Obj3210]	"3210 .x",	_isx, _readx,
+	[Obj29000]	"29000 .9",	_is9, _read9,
+	[ObjAlpha]	"alpha .7",	_is7, _read7,
 	[Maxobjtype]	0, 0
 };
 
@@ -77,8 +89,8 @@ objtype(Biobuf *bp, char **name)
 	if(Bread(bp, buf, MAXIS) < MAXIS)
 		return -1;
 	Bseek(bp, -MAXIS, 1);
-	for (i = 0; obj[i].is; i++) {
-		if ((*obj[i].is)(buf)) {
+	for (i = 0; i < Maxobjtype; i++) {
+		if (obj[i].is && (*obj[i].is)(buf)) {
 			if (name)
 				*name = obj[i].name;
 			return i;
@@ -108,7 +120,7 @@ readobj(Biobuf *bp, int objtype)
 {
 	Prog p;
 
-	if (objtype < 0 || objtype >= Maxobjtype)
+	if (objtype < 0 || objtype >= Maxobjtype || obj[objtype].is == 0)
 		return 1;
 	objreset();
 	while ((*obj[objtype].read)(bp, &p))
@@ -122,10 +134,10 @@ readar(Biobuf *bp, int objtype, int end, int doautos)
 {
 	Prog p;
 
-	if (objtype < 0 || objtype >= Maxobjtype)
+	if (objtype < 0 || objtype >= Maxobjtype || obj[objtype].is == 0)
 		return 1;
 	objreset();
-	while ((*obj[objtype].read)(bp, &p) && BOFFSET(bp) < end)
+	while ((*obj[objtype].read)(bp, &p) && Boffset(bp) < end)
 		if (!processprog(&p, doautos))
 			return 0;
 	return 1;

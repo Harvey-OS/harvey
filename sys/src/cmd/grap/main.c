@@ -27,7 +27,7 @@ Obj	*objlist = NULL;	/* all names stored here */
 Point	ptmin	= { NULL, -BIG, -BIG };
 Point	ptmax	= { NULL, BIG, BIG };
 
-char	*version = "version July 20, 1990";
+char	*version = "version Dec 30, 1995";
 
 extern int yyparse(void);
 extern void setdefaults(void);
@@ -146,6 +146,7 @@ void getdata(void)		/* read input */
 		if (*buf == '.' && *(buf+1) == 'G' && *(buf+2) == '1') {
 			setup();
 			fprintf(stdout, ".PS%s", &buf[3]);	/* maps .G1 [w] to .PS w */
+			printf("scale = 1\n");	/* defends against cip users */
 			printf(".lf %d\n", curfile->lineno+1);
 			yyparse();
 			fprintf(stdout, ".PE\n");

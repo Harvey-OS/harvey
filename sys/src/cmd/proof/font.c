@@ -1,10 +1,12 @@
 #include <u.h>
 #include <libc.h>
-#include <libg.h>
+#include <draw.h>
+#include <event.h>
 #include <bio.h>
 #include "proof.h"
 
 char	fname[NFONT][20];		/* font names */
+char lastload[NFONT][20];	/* last file name prefix loaded for this font */
 Font	*fonttab[NFONT][NSIZE];	/* pointers to fonts */
 int	fmap[NFONT];		/* what map to use with this font */
 
@@ -93,7 +95,7 @@ dochar(Rune r[])
 			p.y = vpos/DIV + xyoffset.y + offset.y;
 			p.y -= font->ascent;
 			sprint(buf, "%S", r);
-			string(&screen, p, font, buf, S|D);
+			string(screen, p, display->black, ZP, font, buf);
 			return;
 		}
 	}
@@ -104,7 +106,7 @@ dochar(Rune r[])
 		loadfont(fontno, cursize);
 	p.y -= f->ascent;
 	dprint(2, "putting %S at %d,%d font %d, size %d\n", r, p.x, p.y, fontno, cursize);
-	string(&screen, p, f, s, S|D);
+	string(screen, p, display->black, ZP, f, s);
 }
 
 
@@ -112,7 +114,7 @@ static void
 loadfont(int n, int s)
 {
 	char file[100];
-	int i, t, fd, deep;
+	int i, fd, t, deep;
 	static char *try[3] = {"", "times/R.", "pelm/"};
 	Subfont *f;
 	Font *ff;
@@ -126,18 +128,18 @@ loadfont(int n, int s)
 		for(; i >= MINSIZE; i--){
 			/* if .font file exists, take that */
 			sprint(file, "%s/%s%d.font", libfont, try[t], i);
-			ff = rdfontfile(file, screen.ldepth);
+			ff = openfont(display, file);
 			if(ff != 0){
 				fonttab[n][s] = ff;
 				dprint(2, "using %s for font %d %d\n", file, n, s);
 				return;
 			}
 			/* else look for a subfont file */
-			for (deep = screen.ldepth; deep >= 0; deep--){
-				sprint(file, "%s/%s%d.%d", libfont, try[t], i, 1 /*deep*/);
+			for (deep = log2[screen->depth]; deep >= 0; deep--){
+				sprint(file, "%s/%s%d.%d", libfont, try[t], i, deep);
 				dprint(2, "trying %s for %d\n", file, i);
 				if ((fd = open(file, 0)) >= 0){
-					f = rdsubfontfile(fd, 0);
+					f = readsubfont(display, file, fd, 0);
 					if (f == 0) {
 						fprint(2, "can't rdsubfontfile %s: %r\n", file);
 						exits("rdsubfont");
@@ -167,11 +169,16 @@ loadfontname(int n, char *s)
 
 	if (strcmp(s, fname[n]) == 0)
 		return;
+	if(fname[n] && fname[n][0]){
+		if(lastload[n] && strcmp(lastload[n], fname[n]) == 0)
+			return;
+		strcpy(lastload[n], fname[n]);
+	}
 	fontlookup(n, s);
 	for (i = 0; i < NSIZE; i++)
 		if (f = fonttab[n][i]){
 			if (f != g) {
-				ffree(f);
+				freefont(f);
 				g = f;
 			}
 			fonttab[n][i] = 0;
@@ -248,11 +255,11 @@ buildmap(Biobuf *fp)	/* map goes from char name to value to print via *string() 
 		line[Blinelen(fp)-1] = 0;
 		scanstr((char *) line, (char *) ch, (char **) &p);
 		if (ch[0] == '\0') {
-			fprint(2, "bad map file line '%s'\n", line);
+			fprint(2, "bad map file line '%s'\n", (char*)line);
 			continue;
 		}
 		val = strtol((char *) p, 0, 10);
-dprint(2, "buildmap %s (%x %x) %s %d\n", ch, ch[0], ch[1], p, val);
+dprint(2, "buildmap %s (%x %x) %s %d\n", (char*)ch, ch[0], ch[1], (char*)p, val);
 		chartorune(&r, (char*)ch);
 		if(utflen((char*)ch)==1 && r<QUICK)
 			charmap[curmap].quick[r] = val;

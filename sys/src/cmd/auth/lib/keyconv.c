@@ -7,14 +7,14 @@
  * print a key in des standard form
  */
 int
-keyconv(void *v, Fconv *f)
+keyconv(va_list *arg, Fconv *f)
 {
 	uchar key[8];
 	char buf[32];
 	uchar *k;
 	int i;
 
-	k = *(uchar **)v;
+	k = va_arg(*arg, uchar*);
 	key[0] = 0;
 	for(i = 0; i < 7; i++){
 		key[i] |= k[i] >> i;
@@ -25,5 +25,5 @@ keyconv(void *v, Fconv *f)
 	sprint(buf, "%.3uo %.3uo %.3uo %.3uo %.3uo %.3uo %.3uo %.3uo",
 		key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
 	strconv(buf, f);
-	return sizeof(uchar *);
+	return 0;
 }

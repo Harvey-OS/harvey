@@ -1,0 +1,52 @@
+</$objtype/mkfile
+
+HFILES=\
+	httpd.h\
+	escape.h\
+
+TARG=\
+	httpd\
+	echo\
+	imagemap\
+	man2html\
+	save\
+	netlib_find\
+	P\
+	to\
+
+LIB=libhttpd.a.$O
+LIBOFILES=\
+	can.$O\
+	content.$O\
+	date.$O\
+	hints.$O\
+	hio.$O\
+	init.$O\
+	parse.$O\
+	query.$O\
+	redirect.$O\
+	sendfd.$O\
+
+BIN=/$objtype/bin/ip/httpd
+
+</sys/src/cmd/mkmany
+
+trial: v.netlib_find
+	echo "\n" | v.netlib_find GET HTTP/1.0 xxx 'db=1&pat=Hearing' > /tmp/search
+	sed 17q /tmp/search
+
+$LIB(%.$O):N: %.$O
+$LIB:	${LIBOFILES:%=$LIB(%)}
+	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$LIB'\(([^)]+)\)/\1/gp'}
+	ar vu $LIB $names
+	rm $names
+
+re:N: v.re
+	v.re redirect.urls
+
+none:VQ:
+	echo usage: mk all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
+	echo usage: mk safeinstall, safeinstallall, cmd.safeinstallall, or cmd.safeinstallall
+
+$O.9down: 9down.$O whois.$O classify.$O $LIB
+	$LD -o $target $prereq

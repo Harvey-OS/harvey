@@ -28,12 +28,12 @@ putline(int i, int nl)
 					if (!vspen(s = table[ip][c].col)) 
 						break;
 				if ((int)s > 0 && (int)s < 128)
-					Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", s);
+					Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", (int)s);
 				continue;
 			}
 			if (point(s)) 
 				continue;
-			Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", s);
+			Bprint(&tabout, ".ne \\n(%c|u+\\n(.Vu\n", (int)s);
 			watchout = 1;
 		}
 	if (linestop[nl])
@@ -76,11 +76,11 @@ putline(int i, int nl)
 		if (lf >= 0 && vspen(table[lf][c].col))
 			Bprint(&tabout,
 			   ".if (\\n(%c|+\\n(^%c-1v)>\\n(#- .nr #- +(\\n(%c|+\\n(^%c-\\n(#--1v)\n",
-			    s, 'a' + c, s, 'a' + c);
+			    (int)s, 'a' + c, (int)s, 'a' + c);
 		else
 			Bprint(&tabout,
 			    ".if (\\n(%c|+\\n(#^-1v)>\\n(#- .nr #- +(\\n(%c|+\\n(#^-\\n(#--1v)\n",
-			    s, s);
+			    (int)s, (int)s);
 	}
 	if (allflg && once > 0 )
 		fullwide(i, '-');

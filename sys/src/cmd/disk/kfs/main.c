@@ -1,14 +1,16 @@
 #include	"all.h"
 
 int	sfd;
+int	cmdmode = 0660;
 int	rfd;
 int	chat;
 extern	char *wrenfile;
+extern	int nwren;
 char	*myname;
 int	cmdfd;
 int	writeallow;	/* never on; for compatibility with fs */
 int	wstatallow;
-int	srvfd(char*, int);
+int	srvfd(char*, int, int);
 void	usage(void);
 void	confinit(void);
 Chan	*chaninit(char*);
@@ -28,14 +30,14 @@ main(int argc, char *argv[])
 	/*
 	 * insulate from invokers environment
 	 */
-	rfork(RFNAMEG|RFNOTEG);
+	rfork(RFNAMEG|RFNOTEG|RFREND);
 
 	confinit();
 	sfd = -1;
 	ream = 0;
 	newbufsize = 0;
 	nocheck = 0;
-	wrenfile = "/dev/sd0fs";
+	wrenfile = "/dev/sdC0/fs";
 	buf[0] = '\0';
 	ARGBEGIN{
 	case 'b':
@@ -47,9 +49,15 @@ main(int argc, char *argv[])
 	case 'f':
 		wrenfile = ARGF();
 		break;
+	case 'm':
+		nwren = atol(ARGF());
+		break;
 	case 'n':
 		strncpy(buf, ARGF(), NAMELEN-1);
 		buf[NAMELEN-1] = '\0';
+		break;
+	case 'p':
+		cmdmode = atol(ARGF());
 		break;
 	case 'r':
 		ream = 1;
@@ -67,14 +75,14 @@ main(int argc, char *argv[])
 	default:
 		usage();
 	}ARGEND
-	USED(argc, argv);
+
+	if(argc != 0)
+		usage();
 
 	cmdfd = 2;
 
 	formatinit();
-	lockinit();
-	lock(&newfplock);
-	unlock(&newfplock);
+	sublockinit();
 
 	if(buf[0])
 		sprint(service, "kfs.%s", buf);
@@ -82,13 +90,7 @@ main(int argc, char *argv[])
 		strcpy(service, "kfs");
 	chan = chaninit(service);
 	consinit();
-	files = ialloc(conf.nfile * sizeof(*files));
-	for(i=0; i<conf.nfile; i++) {
-		qlock(&files[i]);
-		qunlock(&files[i]);
-	}
 	tlocks = ialloc(NTLOCK * sizeof *tlocks);
-	wpaths = ialloc(conf.nwpath * sizeof(*wpaths));
 	uid = ialloc(conf.nuid * sizeof(*uid));
 	uidspace = ialloc(conf.uidspace * sizeof(*uidspace));
 	gidspace = ialloc(conf.gidspace * sizeof(*gidspace));
@@ -97,24 +99,23 @@ main(int argc, char *argv[])
 	 * init global locks
 	 */
 	wlock(&mainlock); wunlock(&mainlock);
-	lock(&wpathlock); unlock(&wpathlock);
 
 	/*
 	 * init the file system, ream it if needed, and get the block sizes
 	 */
 	ream = fsinit(ream, newbufsize);
 	iobufinit();
-	for(fs=filsys; fs->name; fs++)
+	for(fs=filesys; fs->name; fs++)
 		if(fs->flags & FREAM){		/* set by fsinit if reamed */
 			ream++;
 			rootream(fs->dev, getraddr(fs->dev));
 			superream(fs->dev, superaddr(fs->dev));
 		}
 
-	boottime = time();
+	boottime = time(nil);
 
 	consserve();
-	fsok = superok(filsys[0].dev, superaddr(filsys[0].dev), 0);
+	fsok = superok(filesys[0].dev, superaddr(filesys[0].dev), 0);
 	if(!nocheck && !ream && !fsok)
 		cmd_exec("check fq");
 
@@ -184,6 +185,9 @@ loop:
 	if(!cp)
 		panic("input channel read error");
 
+	if(chat)
+		print("%A\n", &fi);
+
 	/*
 	 * simple syntax checks.
 	 */
@@ -225,15 +229,17 @@ loop:
 
 	if(fo.err) {
 		if(CHAT(cp))
-			print("	error: %s\n", errstr[fo.err]);
+			print("	error: %s\n", errstring[fo.err]);
 		fo.type = Terror+1;
-		strncpy(fo.ename, errstr[fo.err], sizeof(fo.ename));
+		strncpy(fo.ename, errstring[fo.err], sizeof(fo.ename));
 	}
 
 reply:
+	if(chat)
+		print("%A\n", &fo);
 	n = convS2M(&fo, msgbuf);
 	if(!n) {
-		print("bad S2M conversion\n");
+		print("bad S2M convers\n");
 		print("type=%d count=%d\n", msgbuf[0], n);
 		print(" %.2x %.2x %.2x %.2x\n",
 			msgbuf[1]&0xff, msgbuf[2]&0xff,
@@ -258,13 +264,16 @@ struct
 	Filter*	filters[100];
 }f;
 
+int alarmed;
+
 void
 catchalarm(void *regs, char *msg)
 {
 	USED(regs, msg);
-	if(strcmp(msg, "alarm") == 0)
+	if(strcmp(msg, "alarm") == 0){
+		alarmed = 1;
 		noted(NCONT);
-	else
+	} else
 		noted(NDFLT);
 }
 
@@ -293,16 +302,19 @@ syncproc(void)
 	if(pipe(p) < 0)
 		panic("command pipe");
 	sprint(buf, "#s/%s.cmd", service);
-	srvfd(buf, p[0]);
+	srvfd(buf, cmdmode, p[0]);
 	close(p[0]);
 	cmdfd = p[1];
 	notify(catchalarm);
 
-	t = time();
+	t = time(nil);
 	for(;;){
 		i = syncblock();
+		alarmed = 0;
 		alarm(i ? 1000: 10000);
 		n = read(cmdfd, buf, sizeof buf - 1);
+		if(n <= 0 && !alarmed)
+			sleep(i ? 1000: 10000);
 		alarm(0);
 		if(n > 0){
 			buf[n] = '\0';
@@ -311,7 +323,7 @@ syncproc(void)
 			else
 				fprint(cmdfd, "unknown command");
 		}
-		n = time();
+		n = time(nil);
 		d = n - t;
 		if(d < 0 || d > 5*60)
 			d = 0;
@@ -363,21 +375,11 @@ startproc(void (*f)(void), char *name)
 void
 confinit(void)
 {
-	int mul;
-
 	conf.niobuf = 0;
-	conf.nuid = 300;
+	conf.nuid = 600;
 	conf.nserve = 2;
 	conf.uidspace = conf.nuid*6;
 	conf.gidspace = conf.nuid*3;
-
-	/*
-	 * nfile should be close to conf.nchan for kernel
-	 */
-	mul = 1;
-	conf.nfile = 250*mul;
-	conf.nwpath = conf.nfile*8;
-
 	cons.flags = 0;
 }
 
@@ -395,7 +397,7 @@ chaninit(char *server)
 		sfd = p[0];
 		rfd = p[1];
 	}
-	srvfd(buf, sfd);
+	srvfd(buf, 0666, sfd);
 	close(sfd);
 	cp = ialloc(sizeof *cp);
 	cp->chan = rfd;
@@ -409,15 +411,15 @@ chaninit(char *server)
 }
 
 int
-srvfd(char *s, int sfd)
+srvfd(char *s, int mode, int sfd)
 {
 	int fd;
 	char buf[32];
 
-	fd = create(s, OWRITE, 0666);
+	fd = create(s, OWRITE, mode);
 	if(fd < 0){
 		remove(s);
-		fd = create(s, OWRITE, 0666);
+		fd = create(s, OWRITE, mode);
 		if(fd < 0)
 			panic(s);
 	}
@@ -507,7 +509,7 @@ fsinit(int ream, int newbufsize)
 	Filsys *fs;
 
 	RBUFSIZE = 4 * 1024;
-	for(fs=filsys; fs->name; fs++)
+	for(fs=filesys; fs->name; fs++)
 		(*devcall[fs->dev.type].init)(fs->dev);
 	if(newbufsize == 0)
 		newbufsize = RBUFSIZE;
@@ -523,7 +525,7 @@ fsinit(int ream, int newbufsize)
 
 	BUFSIZE = RBUFSIZE - sizeof(Tag);
 
-	for(fs=filsys; fs->name; fs++)
+	for(fs=filesys; fs->name; fs++)
 		if(ream || (*devcall[fs->dev.type].check)(fs->dev) && askream(fs)){
 			RBUFSIZE = newbufsize;
 			BUFSIZE = RBUFSIZE - sizeof(Tag);

@@ -1,4 +1,4 @@
-char	*anames[] =
+char*	anames[] =
 {
 	"XXX",
 	"AAA",

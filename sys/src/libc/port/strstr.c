@@ -8,15 +8,22 @@
 char*
 strstr(char *s1, char *s2)
 {
-	char *p;
-	int f, n;
+	char *p, *pa, *pb;
+	int c0, c;
 
-	f = s2[0];
-	if(f == 0)
+	c0 = *s2;
+	if(c0 == 0)
 		return s1;
-	n = strlen(s2);
-	for(p=strchr(s1, f); p; p=strchr(p+1, f))
-		if(strncmp(p, s2, n) == 0)
-			return p;
+	s2++;
+	for(p=strchr(s1, c0); p; p=strchr(p+1, c0)) {
+		pa = p;
+		for(pb=s2;; pb++) {
+			c = *pb;
+			if(c == 0)
+				return p;
+			if(c != *++pa)
+				break;
+		}
+	}
 	return 0;
 }

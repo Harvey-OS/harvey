@@ -1,0 +1,17 @@
+LIBRARY		GSDLL32 INITINSTANCE
+DESCRIPTION	'Ghostscript Interpreter DLL'
+DATA		MULTIPLE NONSHARED 
+EXPORTS	
+		DllEntryPoint
+		DllMain
+		gsdll_revision		@1
+		gsdll_init		@2
+		gsdll_execute_begin	@3
+		gsdll_execute_cont	@4
+		gsdll_execute_end	@5
+		gsdll_exit		@6
+		gsdll_lock_device	@7
+		gsdll_copy_dib  	@8
+		gsdll_copy_palette 	@9
+		gsdll_draw		@10
+		gsdll_get_bitmap_row	@11

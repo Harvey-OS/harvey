@@ -2,7 +2,7 @@
 #include <libc.h>
 
 char*
-strncpy(char *s1, char *s2, int n)
+strncpy(char *s1, char *s2, long n)
 {
 	int i;
 	char *os1;

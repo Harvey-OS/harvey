@@ -1,4 +1,3 @@
-CFLAGS=-w
 LDFLAGS=
 YFLAGS=-d
 AFLAGS=
@@ -14,12 +13,6 @@ $O.out:	$OFILES $LIB
 
 %.$O:	%.c
 	$CC $CFLAGS $stem.c
-
-(.*)\.[vk8]'$':R:	\1.l
-	$ALEF $CFLAGS $stem1.l
-
-(.*)\.[2z]'$':RQ:	\1.l
-	;
 
 %.$O:	%.s
 	$AS $AFLAGS $stem.s
@@ -37,7 +30,18 @@ installall:V:
 		mk install
 
 nuke:V:
-	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output *.acid $TARG
 
 clean:V:
 	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
+
+safeinstall: $O.out
+	test -e $BIN/$TARG && mv $BIN/$TARG $BIN/_$TARG
+	cp $prereq $BIN/$TARG
+
+safeinstallall:V:
+	for (objtype in $CPUS)
+		mk safeinstall
+
+%.acid: %.$O $HFILES
+	$CC $CFLAGS -a $stem.c >$target

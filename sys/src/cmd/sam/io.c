@@ -14,7 +14,7 @@ checkqid(File *f)
 		g = file.filepptr[i];
 		if(w == i)
 			continue;
-		if(f->dev==g->dev && f->qid==g->qid)
+		if(f->dev==g->dev && f->qidpath==g->qidpath)
 			warn_SS(Wdupfile, &f->name, &g->name);
 	}
 }
@@ -22,7 +22,6 @@ checkqid(File *f)
 void
 writef(File *f)
 {
-	Rune c;
 	Posn n;
 	char *name;
 	int i, samename, newfile;
@@ -36,10 +35,10 @@ writef(File *f)
 	if(i == -1)
 		newfile++;
 	else if(samename &&
-	        (f->dev!=dev || f->qid!=qid || f->date<mtime)){
+	        (f->dev!=dev || f->qidpath!=qid || f->mtime<mtime)){
 		f->dev = dev;
-		f->qid = qid;
-		f->date = mtime;
+		f->qidpath = qid;
+		f->mtime = mtime;
 		warn_S(Wdate, &genstr);
 		return;
 	}
@@ -52,25 +51,28 @@ writef(File *f)
 	if(statfd(io, 0, 0, 0, &length, &appendonly) > 0 && appendonly && length>0)
 		error(Eappend);
 	n = writeio(f);
-	if(f->name.s[0]==0 || samename)
-		state(f, addr.r.p1==0 && addr.r.p2==f->nrunes? Clean : Dirty);
+	if(f->name.s[0]==0 || samename){
+		if(addr.r.p1==0 && addr.r.p2==f->nc)
+			f->cleanseq = f->seq;
+		state(f, f->cleanseq==f->seq? Clean : Dirty);
+	}
 	if(newfile)
 		dprint("(new file) ");
-	if(addr.r.p2>0 && Fchars(f, &c, addr.r.p2-1, addr.r.p2) && c!='\n')
+	if(addr.r.p2>0 && filereadc(f, addr.r.p2-1)!='\n')
 		warn(Wnotnewline);
+	closeio(n);
 	if(f->name.s[0]==0 || samename){
-		if(statfd(io, &dev, &qid, &mtime, 0, 0) > 0){
+		if(statfile(name, &dev, &qid, &mtime, 0, 0) > 0){
 			f->dev = dev;
-			f->qid = qid;
-			f->date = mtime;
+			f->qidpath = qid;
+			f->mtime = mtime;
 			checkqid(f);
 		}
 	}
-	closeio(n);
 }
 
 Posn
-readio(File *f, int *nulls, int setdate)
+readio(File *f, int *nulls, int setdate, int toterm)
 {
 	int n, b, w;
 	Rune *r;
@@ -82,37 +84,42 @@ readio(File *f, int *nulls, int setdate)
 
 	*nulls = FALSE;
 	b = 0;
-	for(nt = 0; (n = read(io, buf+b, BLOCKSIZE-b))>0; nt+=(r-genbuf)){
-		n += b;
-		b = 0;
-		r = genbuf;
-		s = buf;
-		while(n > 0){
-			if((*r = *(uchar*)s) < Runeself){
-				if(*r)
-					r++;
-				else
-					*nulls = TRUE;
-				--n;
-				s++;
-				continue;
+	if(f->unread){
+		nt = bufload(f, 0, io, nulls);
+		if(toterm)
+			raspload(f);
+	}else
+		for(nt = 0; (n = read(io, buf+b, BLOCKSIZE-b))>0; nt+=(r-genbuf)){
+			n += b;
+			b = 0;
+			r = genbuf;
+			s = buf;
+			while(n > 0){
+				if((*r = *(uchar*)s) < Runeself){
+					if(*r)
+						r++;
+					else
+						*nulls = TRUE;
+					--n;
+					s++;
+					continue;
+				}
+				if(fullrune(s, n)){
+					w = chartorune(r, s);
+					if(*r)
+						r++;
+					else
+						*nulls = TRUE;
+					n -= w;
+					s += w;
+					continue;
+				}
+				b = n;
+				memmove(buf, s, b);
+				break;
 			}
-			if(fullrune(s, n)){
-				w = chartorune(r, s);
-				if(*r)
-					r++;
-				else
-					*nulls = TRUE;
-				n -= w;
-				s += w;
-				continue;
-			}
-			b = n;
-			memmove(buf, s, b);
-			break;
+			loginsert(f, p, genbuf, r-genbuf);
 		}
-		Finsert(f, tmprstr(genbuf, r-genbuf), p);
-	}
 	if(b)
 		*nulls = TRUE;
 	if(*nulls)
@@ -120,8 +127,8 @@ readio(File *f, int *nulls, int setdate)
 	if(setdate){
 		if(statfd(io, &dev, &qid, &mtime, 0, 0) > 0){
 			f->dev = dev;
-			f->qid = qid;
-			f->date = mtime;
+			f->qidpath = qid;
+			f->mtime = mtime;
 			checkqid(f);
 		}
 	}
@@ -140,8 +147,7 @@ writeio(File *f)
 			n = BLOCKSIZE;
 		else
 			n = addr.r.p2-p;
-		if(Fchars(f, genbuf, p, p+n)!=n)
-			panic("writef read");
+		bufread(f, p, genbuf, n);
 		c = Strtoc(tmprstr(genbuf, n));
 		m = strlen(c);
 		if(Write(io, c, m) != m){

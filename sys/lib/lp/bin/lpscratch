@@ -1,0 +1,35 @@
+#!/bin/rc
+
+#
+# set up scratch area that is on disk that is not backed-up
+#
+# file server of scratch file system
+LPLIB=/sys/lib/lp		# lp scripts directories and configuration file are here
+
+if (~ $#fileserver 0)
+	SCRATCHFILESERVER=emelie
+if not
+	SCRATCHFILESERVER=$fileserver
+# scratch file system name
+switch($SCRATCHFILESERVER){
+case kfs
+	SCRATCHFILESYSTEM=''
+case *
+	SCRATCHFILESYSTEM=other
+}
+SCRATCH=/n/^$SCRATCHFILESERVER^$SCRATCHFILESYSTEM
+# lp subdirectory where log, prob, queue and tmp reside
+LPSCRATCH=$SCRATCH/lp
+
+if (! test -d $SCRATCH/lp) {
+	if (! test -r /srv/$SCRATCHFILESERVER) srv $SCRATCHFILESERVER
+	if (! mount -c /srv/$SCRATCHFILESERVER $SCRATCH $SCRATCHFILESYSTEM) {
+		echo 'cannot mount '$SCRATCH' filesystem' >[1=2]
+		exit 'LP mount'
+	}
+}
+if (! bind -a $LPSCRATCH $LPLIB) {
+	echo 'cannot bind '$LPSCRATCH' onto '$LPLIB >[1=2]
+	exit 'LP bind'
+}
+exit ''

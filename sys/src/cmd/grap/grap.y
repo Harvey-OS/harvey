@@ -6,7 +6,9 @@
 #include "grap.h"
 
 #define	RAND_MAX 32767	/* if your rand() returns bigger, change this too */
+
 extern int yylex(void);
+extern int yyparse(void);
 
 %}
 
@@ -44,6 +46,7 @@ extern int yylex(void);
 %type	<i>	side optside numlist comma linetype drawtype
 %type	<ap>	linedesc optdesc stringlist string stringattr sattrlist exprlist
 %type	<i>	frameitem framelist coordlog
+%type	<f>	string_expr
 
 %%
 
@@ -170,7 +173,7 @@ ticklist:
 	;
 tickpoint:
 	  expr			{ savetick($1, (char *) 0); }
-	| expr STRING		{ savetick($1, $2); }
+	| expr string		{ savetick($1, $2->sval); }
 	;
 iterator:
 	  FROM optname expr TO optname expr BY optop expr optstring
@@ -186,7 +189,7 @@ optop:
 	| /* empty */	{ $$ = ' '; }
 	;
 optstring:
-	  STRING
+	  string	{ $$ = $1->sval; }
 	| /* empty */	{ $$ = (char *) 0; }
 	;
 
@@ -277,8 +280,8 @@ plot:
 
 draw:
 	  drawtype optname linedesc		{ drawdesc($1, $2, $3, (char *) 0); }
-	| drawtype optname optdesc STRING	{ drawdesc($1, $2, $3, $4); }
-	| drawtype optname STRING optdesc	{ drawdesc($1, $2, $4, $3); }
+	| drawtype optname optdesc string	{ drawdesc($1, $2, $3, $4->sval); }
+	| drawtype optname string optdesc	{ drawdesc($1, $2, $4, $3->sval); }
 	;
 drawtype:
 	  DRAW
@@ -296,9 +299,9 @@ copylist:
 	| copylist copyattr
 	;
 copyattr:
-	  STRING		{ copyfile($1); }
+	  string		{ copyfile($1->sval); }
 	| THRU DEFNAME		{ copydef($2); }
-	| UNTIL STRING		{ copyuntil($2); }
+	| UNTIL string		{ copyuntil($2->sval); }
 	;
 
 for:
@@ -318,7 +321,12 @@ if:
 	;
 if_expr:
 	  expr
-	| STRING EQ STRING	{ $$ = strcmp($1,$3) == 0; free($1); free($3); }
+	| string_expr
+	| if_expr AND string_expr	{ $$ = $1 && $3; }
+	| if_expr OR string_expr	{ $$ = $1 || $3; }
+	;
+string_expr:
+	  STRING EQ STRING	{ $$ = strcmp($1,$3) == 0; free($1); free($3); }
 	| STRING NE STRING	{ $$ = strcmp($1,$3) != 0; free($1); free($3); }
 	;
 
@@ -338,6 +346,7 @@ optname:
 expr:
 	  NUMBER
 	| assign
+	| '(' string_expr ')'	{ $$ = $2; }
 	| VARNAME		{ $$ = getvar($1); }
 	| expr '+' expr		{ $$ = $1 + $3; }
 	| expr '-' expr		{ $$ = $1 - $3; }

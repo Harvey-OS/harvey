@@ -32,7 +32,7 @@ bytes;
 it must be at least 8 bytes long.
 The bytes are encrypted or decrypted in place.
 .PP
-The DES algorithm encrypts an individual 8 byte block of data.
+The DES algorithm encrypts an individual 8-byte block of data.
 .I Encrypt
 uses the following method to encrypt data longer than 8 bytes.
 The first 8 bytes are encrypted as usual.
@@ -41,7 +41,7 @@ is prefixed to the next 7 unencrypted bytes to make the next 8
 bytes to encrypt.
 This is repeated until fewer than 7 bytes remain unencrypted.
 Any remaining unencrypted bytes are encrypted with enough of the preceding
-encrypted bytes to make a full 8 byte block.
+encrypted bytes to make a full 8-byte block.
 .I Decrypt
 uses the inverse algorithm.
 .PP
@@ -51,7 +51,7 @@ performs the same encryption as a SecureNet Key.
 points to an
 .SM ASCII
 string of decimal digits with numeric value between 0 and 10000.
-These digits are copied into an 8 byte buffer with trailing binary zero fill
+These digits are copied into an 8-byte buffer with trailing binary zero fill
 and encrypted as one DES block.
 The first four bytes are each formatted as two digit
 .SM ASCII
@@ -72,6 +72,5 @@ can fail if it is passed invalid data.
 .SH SEE ALSO
 .IR securenet (8)
 .SH BUGS
-The source is not included in public distributions.
 The implementation is broken in a way that makes
 it unsuitable for anything but authentication.

@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+TARG=nedmail marshal
+
+LIB=../common/libcommon.a$O\
+	 ../libString/libString.a$O\
+
+HFILES=	../common/common.h\
+	../libString/String.h\
+
+
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkmany
+CFLAGS=$CFLAGS -I../common -I../libString
+

@@ -1,37 +1,42 @@
 </$objtype/mkfile
-LIB=../common/libcommon.a$O ../libString/libString.a$O
+
 TARG = smtpd\
 	smtp\
-	to\
 
+LIB=../common/libcommon.a$O\
+	../libString/libString.a$O\
+
+HFILES=../common/common.h\
+	../common/sys.h\
 
 BIN=/$objtype/bin/upas
 </sys/src/cmd/mkmany
-CFLAGS=-w -I../common
+CFLAGS=$CFLAGS -I../common -D'SPOOL="/mail"'
 
-%.$O:	../common/common.h ../common/sys.h
-
-$O.smtpd:	smtpd.tab.$O
+$O.smtpd:	smtpd.tab.$O rmtdns.$O spam.$O
 
 $O.smtp:	rfc822.tab.$O mxdial.$O
 
-$O.to:	rfc822.tab.$O
+smtpd.$O: 	smtpd.h
 
-$O.reply:	rfc822.tab.$O
-
-smtpd.$O: smtpd.h
-
-smtp.$O: smtp.h
-
-to.$O: smtp.h
-
-reply.$O: smtp.h
+smtp.$O to.$O: 	smtp.h
 
 smtpd.tab.c: smtpd.y smtpd.h
-	yacc -o $target $prereq
+	yacc -o $target smtpd.y
 
 rfc822.tab.c: rfc822.y smtp.h
-	yacc -d -o $target $prereq
+	yacc -d -o $target rfc822.y
 
 clean:V:
-	rm -f *.[$OS] [$OS].$TARG smtpd.tab.c rfc822.tab.c y.tab.? y.debug $TARG 
+	rm -f *.[$OS] [$OS].$TARG smtpd.tab.c rfc822.tab.c y.tab.? y.debug $TARG
+
+../common/libcommon.a$O:
+	@{ 	
+		cd ../common
+		mk
+	}
+../libString/libString.a$O:
+	@{ 	
+		cd ../libString
+		mk
+	}

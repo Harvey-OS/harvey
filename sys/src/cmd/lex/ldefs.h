@@ -1,7 +1,6 @@
 # include <u.h>
 # include <libc.h>
 # include <ctype.h>
-# include <stdarg.h>
 # include <bio.h>
 # define PP 1
 

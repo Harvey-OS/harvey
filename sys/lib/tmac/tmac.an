@@ -2,6 +2,9 @@
 .fp 2 I LucidaSansI
 .fp 3 B LucidaSansB
 .fp 5 L LucidaCW
+.if n .uf 4
+.if n .bd 3
+.if n .rm bd
 '''\"	PWB Manual Entry Macros - 1.36 of 11/11/80
 '''\"	Nroff/Troff Version	@(#)1.36
 '''\"  Option -rs1 short (9") pages
@@ -488,8 +491,10 @@
 .if\nm10 .ds ]m November
 .if\nm11 .ds ]m December
 .ifn \{.nr m \nm+1
+.nr yD (\\n(yr%100
+.af yD 01
 .ie\nd .ds ]W (last mod. \nm/\nd/\ny)
-.el.ds ]W (printed \n(mo/\n(dy/\n(yr)
+.el.ds ]W (printed \n(mo/\n(dy/\n(yD)
 ..\}
 .if\n()s .ds ]W
 .if\n()t \{.ie \nd .ds ]W \*(]m \nd, 19\ny

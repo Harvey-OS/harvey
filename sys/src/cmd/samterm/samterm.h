@@ -2,6 +2,7 @@
 
 #define	RUNESIZE	sizeof(Rune)
 #define	MAXFILES	256
+#define	READBUFSIZE 8192
 #define	NL	5
 
 enum{
@@ -12,6 +13,7 @@ enum{
 typedef struct Text	Text;
 typedef struct Section	Section;
 typedef struct Rasp	Rasp;
+typedef struct Readbuf Readbuf;
 
 struct Section
 {
@@ -38,14 +40,20 @@ struct Text
 	Flayer	l[NL];		/* screen storage */
 };
 
+struct Readbuf
+{
+	short	n;					/* # bytes in buf */
+	uchar	data[READBUFSIZE];		/* data bytes */
+};
+
 enum Resource
 {
-	Eextern		= 0x08,
-	Ehost		= 0x04,
-	RHost		= Ehost,
-	RExtern		= Eextern,
-	RKeyboard	= Ekeyboard,
-	RMouse		= Emouse,
+	RHost,
+	RKeyboard,
+	RMouse,
+	RPlumb,
+	RResize,
+	NRes,
 };
 
 extern Text	*text[];
@@ -61,11 +69,20 @@ extern Flayer	*work;
 extern Text	cmd;
 extern Rune	*scratch;
 extern long	nscralloc;
-extern char	lock;
+extern char	hostlock;
 extern char	hasunlocked;
 extern long	snarflen;
-extern Mouse	mouse;
+extern Mousectl* mousectl;
+extern Keyboardctl* keyboardctl;
+extern Mouse*	mousep;
 extern long	modified;
+extern int	maxtab;
+extern Readbuf	hostbuf[2];	/* double buffer; it's synchronous communication */
+extern Readbuf	plumbbuf[2];	/* double buffer; it's synchronous communication */
+extern Channel *plumbc;
+extern Channel *hostc;
+extern int	hversion;
+extern int	plumbfd;
 
 Rune	*gettext(Flayer*, long, ulong*);
 void	*alloc(ulong n);
@@ -77,11 +94,12 @@ void	setlock(void);
 void	outcmd(void);
 void	rinit(Rasp*);
 void	startnewfile(int, Text*);
-void	cursorset(Point);
 void	getmouse(void);
 void	mouseunblock(void);
 void	kbdblock(void);
 void	extstart(void);
+void	hoststart(void);
+int	plumbstart(void);
 int	button(int but);
 int	load(char*, int);
 int	waitforio(void);
@@ -89,7 +107,6 @@ int	rcvchar(void);
 int	getch(void);
 int	kbdchar(void);
 int	qpeekc(void);
-void	mouseexit(void);
 void	cut(Text*, int, int, int);
 void	paste(Text*, int);
 void	snarf(Text*, int);
@@ -101,10 +118,11 @@ void	current(Flayer*);
 void	duplicate(Flayer*, Rectangle, Font*, int);
 void	startfile(Text*);
 void	panic(char*);
+void	panic1(Display*, char*);
 void	closeup(Flayer*);
 void	Strgrow(Rune**, long*, int);
-int	RESHAPED(void);
-void	reshape(void);
+int	RESIZED(void);
+void	resize(void);
 void	rcv(void);
 void	type(Flayer*, int);
 void	menu2hit(void);
@@ -138,8 +156,9 @@ void	Strncpy(Rune*, Rune*, long);
 void	flushtyping(int);
 void	dumperrmsg(int, int, int, int);
 int	screensize(int*,int*);
+void	getmouse(void);
 
-#include "../sam/mesg.h"
+#include "mesg.h"
 
 void	outTs(Tmesg, int);
 void	outT0(Tmesg);

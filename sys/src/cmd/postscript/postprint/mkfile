@@ -1,9 +1,6 @@
 </$objtype/mkfile
 
-SYSTEM=plan9
-VERSION=3.3.1
-
-POSTLIB=/sys/lib/postscript/prologues
+<../config
 
 TARG=postprint
 OFILES=postprint.$O\
@@ -16,7 +13,7 @@ HFILES=postprint.h\
 	$COMMONDIR/gen.h\
 	$COMMONDIR/path.h\
 
-BIN=/$objtype/bin/aux
+BIN=$POSTBIN
 LIB=$COMMONDIR/com.a$O
 
 </sys/src/cmd/mkone

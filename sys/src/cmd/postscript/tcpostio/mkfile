@@ -1,23 +1,16 @@
 </$objtype/mkfile
-CPUS=mips sparc 386
+
+<../config
 
 TARG=tcpostio
 OFILES= tcpostio.$O\
-	utils.$O\
+	dial.$O\
 
-HFILES=tcpostio.h\
-	utils.h\
-
-BIN=/$objtype/bin/aux
+BIN=$POSTBIN
 
 </sys/src/cmd/mkone
-CFLAGS=-w -Dplan9
-
-2.out:Q:	$OFILES $LIB
-	echo 'no alef compiler for 68020'
-
-/68020/bin/$TARG:Q:	2.out
-	;
+CC=pcc
+CFLAGS=-Bw -c -D_BSD_EXTENSION -D_NET_EXTENSION -Dplan9
 
 syms:V:
-	val $CFLAGS -a tcpostio.l > syms
+	vc $CFLAGS -a tcpostio.c > syms

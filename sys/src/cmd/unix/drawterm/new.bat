@@ -1,0 +1,1 @@
+..\ndrawterm\ndrawterm -c olive

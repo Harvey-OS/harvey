@@ -58,20 +58,20 @@ static	long	txtend;			/* end of text segment */
 
 static void	cleansyms(void);
 static int	decodename(Biobuf*, Sym*);
-static short	*encfname(char *);
-static Hist 	*fline(char *, int, long, Hist *);
-static void	fillsym(Sym *, Symbol *);
-static int	findglobal(char *, Symbol *);
-static int	findlocvar(Symbol *, char *, Symbol *);
-static int	findtext(char *, Symbol *);
-static int	hcomp(Hist *, short *);
-static int	hline(File *, short *, ulong *);
-static void	printhist(char *, Hist *, int);
+static short	*encfname(char*);
+static int 	fline(char*, int, long, Hist*, Hist**);
+static void	fillsym(Sym*, Symbol*);
+static int	findglobal(char*, Symbol*);
+static int	findlocvar(Symbol*, char *, Symbol*);
+static int	findtext(char*, Symbol*);
+static int	hcomp(Hist*, short*);
+static int	hline(File*, short*, ulong*);
+static void	printhist(char*, Hist*, int);
 static int	buildtbls(void);
-static int	symcomp(void *, void *);
+static int	symcomp(void*, void*);
 static int	symerrmsg(int, char*);
-static int	txtcomp(void *, void *);
-static int	filecomp(void *, void *);
+static int	txtcomp(void*, void*);
+static int	filecomp(void*, void*);
 
 /*
  *	initialize the symbol tables
@@ -93,10 +93,9 @@ syminit(int fd, Fhdr *fp)
 		/* minimum symbol record size = 4+1+2 bytes */
 	symbols = malloc((fp->symsz/(4+1+2)+1)*sizeof(Sym));
 	if(symbols == 0) {
-		werrstr("can't malloc %d bytes", fp->symsz);
+		werrstr("can't malloc %ld bytes", fp->symsz);
 		return -1;
 	}
-
 	Binit(&b, fd, OREAD);
 	Bseek(&b, fp->symoff, 0);
 	nsym = 0;
@@ -152,11 +151,11 @@ syminit(int fd, Fhdr *fp)
 		}
 	}
 	if (debug)
-		print("NG: %d NT: %d NF: %d\n", nglob, ntxt, fmax);
+		print("NG: %ld NT: %d NF: %d\n", nglob, ntxt, fmax);
 	if (fp->sppcsz) {			/* pc-sp offset table */
 		spoff = (uchar *)malloc(fp->sppcsz);
 		if(spoff == 0) {
-			werrstr("can't malloc %d bytes", fp->sppcsz);
+			werrstr("can't malloc %ld bytes", fp->sppcsz);
 			return -1;
 		}
 		Bseek(&b, fp->sppcoff, 0);
@@ -170,7 +169,7 @@ syminit(int fd, Fhdr *fp)
 	if (fp->lnpcsz) {			/* pc-line number table */
 		pcline = (uchar *)malloc(fp->lnpcsz);
 		if(pcline == 0) {
-			werrstr("can't malloc %d bytes", fp->lnpcsz);
+			werrstr("can't malloc %ld bytes", fp->lnpcsz);
 			return -1;
 		}
 		Bseek(&b, fp->lnpcoff, 0);
@@ -404,7 +403,8 @@ buildtbls(void)
 					hp += nh+1;
 					f++;
 				}
-				else f = files;
+				else
+					f = files;
 				f->hist = hp;
 				f->sym = 0;
 				f->addr = 0;
@@ -441,7 +441,8 @@ buildtbls(void)
 		case 'p':
 		case 'm':		/* Local Vars */
 			if(!tp)
-				print("Warning: Free floating local var");
+				print("Warning: Free floating local var: %s\n",
+					p->name);
 			else {
 				if(debug)
 					print("Local: %s %lux\n", p->name, p->value);
@@ -468,7 +469,7 @@ buildtbls(void)
 		for(j = 0; j < ntxt; j++) {
 			if(f->sym == tp->sym) {
 				if(debug) {
-					print("LINK: %s to", f->sym->name);
+					print("LINK: %s to at %lux", f->sym->name, f->addr);
 					printhist("... ", f->hist, 1);
 				}
 				f->txt = tp++;
@@ -813,7 +814,7 @@ file2pc(char *file, ulong line)
 			break;
 	free(name);
 	if(i >= nfiles) {
-		werrstr("line %d in file %s not found", line, file);
+		werrstr("line %ld in file %s not found", line, file);
 		return -1;
 	}
 	start = fp->addr;		/* first text addr this file */
@@ -826,10 +827,10 @@ file2pc(char *file, ulong line)
 	 * run the state machine to locate the pc closest to that value.
 	 */
 	if(debug)
-		print("find pc for %d - between: %lux and %lux\n", line, start, end);
+		print("find pc for %ld - between: %lux and %lux\n", line, start, end);
 	pc = line2addr(line, start, end);
 	if(pc == -1) {
-		werrstr("line %d not in file %s", line, file);
+		werrstr("line %ld not in file %s", line, file);
 		return -1;
 	}
 	return pc;
@@ -970,7 +971,6 @@ fileline(char *str, int n, ulong dot)
 	*str = 0;
 	if(buildtbls() == 0)
 		return 0;
-
 		/* binary search assumes file list is sorted by addr */
 	bot = 0;
 	top = nfiles;
@@ -982,7 +982,7 @@ fileline(char *str, int n, ulong dot)
 			bot = mid;
 		else {
 			line = pc2line(dot);
-			if(line > 0 && fline(str, n, line, f->hist))
+			if(line > 0 && fline(str, n, line, f->hist, 0) >= 0)
 				return 1;
 			break;
 		}
@@ -995,8 +995,8 @@ fileline(char *str, int n, ulong dot)
  *	number in a source file.  A composite file is the source
  *	file with included files inserted in line.
  */
-static Hist *
-fline(char *str, int n, long line, Hist *base)
+static int
+fline(char *str, int n, long line, Hist *base, Hist **ret)
 {
 	Hist *start;			/* start of current level */
 	Hist *h;			/* current entry */
@@ -1016,15 +1016,16 @@ fline(char *str, int n, long line, Hist *base)
 				if(start == base)
 					start = h++;
 				else {
-					h = fline(str, n, line, start);
-					if(!h)
-						break;
+					k = fline(str, n, line, start, &h);
+					if(k <= 0)
+						return k;
 				}
 			}
 		} else {
-			if(start == base)	/* end of recursion level */
-				return h;
-			else {			/* end of included file */
+			if(start == base && ret) {	/* end of recursion level */
+				*ret = h;
+				return 1;
+			} else {			/* end of included file */
 				delta += h->line-start->line;
 				h++;
 				start = base;
@@ -1032,7 +1033,7 @@ fline(char *str, int n, long line, Hist *base)
 		}
 	}
 	if(!h)
-		return 0;
+		return -1;
 	if(start != base)
 		line = line-start->line+1;
 	else
@@ -1056,7 +1057,7 @@ fline(char *str, int n, long line, Hist *base)
  *			sprint(str+k, ":%ld}", start->line-delta);
  *	}
  ********************/
-	return h;
+	return 0;
 }
 /*
  *	convert an encoded file name to a string.
@@ -1077,7 +1078,12 @@ fileelem(Sym **fp, uchar *cp, char *buf, int n)
 			*bp++ = *c++;
 	}
 	*bp = 0;
-	return bp-buf;
+	i =  bp-buf;
+	if(i > 1) {
+		cleanname(buf);
+		i = strlen(buf);
+	}
+	return i;
 }
 /*
  *	compare the values of two symbol table entries.
@@ -1272,7 +1278,7 @@ line2addr(ulong line, ulong basepc, ulong endpc)
 /*
  *	Print a history stack (debug). if count is 0, prints the whole stack
  */
-void
+static void
 printhist(char *msg, Hist *hp, int count)
 {
 	int i;
@@ -1283,7 +1289,7 @@ printhist(char *msg, Hist *hp, int count)
 	while(hp->name) {
 		if(count && ++i > count)
 			break;
-		print("%s Line: %x (%d)  Offset: %x (%d)  Name: ", msg,
+		print("%s Line: %lx (%ld)  Offset: %lx (%ld)  Name: ", msg,
 			hp->line, hp->line, hp->offset, hp->offset);
 		for(cp = (uchar *)hp->name+1; (*cp<<8)|cp[1]; cp += 2) {
 			if (cp != (uchar *)hp->name+1)

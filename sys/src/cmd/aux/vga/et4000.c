@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
@@ -25,11 +26,9 @@ setkey(void)
 }
 
 static void
-snarf(Vga *vga, Ctlr *ctlr)
+snarf(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-
-	verbose("%s->snarf\n", ctlr->name);
 
 	setkey();
 
@@ -49,32 +48,30 @@ snarf(Vga *vga, Ctlr *ctlr)
 	switch(vga->crt[0x37] & 0x03){
 
 	case 1:
-		vga->vmb = 256*1024;
+		vga->vmz = 256*1024;
 		break;
 
 	case 2:
-		vga->vmb = 512*1024;
+		vga->vmz = 512*1024;
 		break;
 
 	case 3:
-		vga->vmb = 1024*1024;
+		vga->vmz = 1024*1024;
 		break;
 	}
 	if(strncmp(ctlr->name, "et4000-w32", 10) == 0){
 		if(vga->crt[0x32] & 0x80)
-			vga->vmb *= 2;
+			vga->vmz *= 2;
 	}
 	else if(vga->crt[0x37] & 0x80)
-		vga->vmb *= 2;
+		vga->vmz *= 2;
 
 	ctlr->flag |= Fsnarf;
 }
 
 static void
-options(Vga *vga, Ctlr *ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
-	verbose("%s->options\n", ctlr->name);
-
 	/*
 	 * The ET4000 does not need to have the vertical
 	 * timing values divided by 2 for interlace mode.
@@ -85,16 +82,17 @@ options(Vga *vga, Ctlr *ctlr)
 	if(strncmp(ctlr->name, "et4000-w32", 10) == 0)
 		ctlr->flag |= Hpclk2x8;
 	
-	ctlr->flag |= Foptions;
+	ctlr->flag |= Hclkdiv|Foptions;
 }
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
 	ulong x;
 
-	verbose("%s->init\n", ctlr->name);
+	if(vga->mode->z > 8)
+		error("depth %d not supported\n", vga->mode->z);
 
 	if(ctlr->flag & Upclk2x8){
 		mode = vga->mode;
@@ -104,8 +102,8 @@ init(Vga *vga, Ctlr *ctlr)
 	
 		x = (mode->ehb/2)>>3;
 		vga->crt[0x03] = 0x80|(x & 0x1F);
-		vga->crt[0x04] = (mode->shb/2)>>3;
-		vga->crt[0x05] = (x & 0x1F);
+		vga->crt[0x04] = (mode->shs/2)>>3;
+		vga->crt[0x05] = ((mode->ehs/2)>>3) & 0x1F;
 		if(x & 0x20)
 			vga->crt[0x05] |= 0x80;
 	}
@@ -163,21 +161,21 @@ init(Vga *vga, Ctlr *ctlr)
 	/*
 	 * Clock select.
 	 */
-	if(vga->f > 86000000)
-		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f);
+	if(vga->f[0] > 86000000)
+		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f[0]);
 	vga->misc &= ~0x0C;
-	vga->misc |= (vga->i & 0x03)<<2;
-	if(vga->i & 0x04)
+	vga->misc |= (vga->i[0] & 0x03)<<2;
+	if(vga->i[0] & 0x04)
 		vga->crt[0x34] |= 0x02;
 	else
 		vga->crt[0x34] &= ~0x02;
 	vga->crt[0x31] &= ~0xC0;
-	vga->crt[0x31] |= (vga->i & 0x18)<<3;
+	vga->crt[0x31] |= (vga->i[0] & 0x18)<<3;
 
 	vga->sequencer[0x07] &= ~0x41;
-	if(vga->d == 4)
+	if(vga->d[0] == 4)
 		vga->sequencer[0x07] |= 0x01;
-	else if(vga->d == 2)
+	else if(vga->d[0] == 2)
 		vga->sequencer[0x07] |= 0x40;
 
 	vga->attribute[0x10] &= ~0x40;
@@ -191,10 +189,8 @@ init(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
-	verbose("%s->load\n", ctlr->name);
-
 	vgaxo(Crtx, 0x30, vga->crt[0x30]);
 	vgaxo(Crtx, 0x31, vga->crt[0x31]);
 	vgaxo(Crtx, 0x33, vga->crt[0x33]);
@@ -213,7 +209,7 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 	char *name;
@@ -259,24 +255,24 @@ dump(Vga *vga, Ctlr *ctlr)
 	x = (vga->crt[0x01]+1)<<3;
 	printitem(name, "hde");
 	printreg(x);
-	print("%6hud", x);
+	Bprint(&stdout, "%6ud", x);
 
 	shb = ((((vga->crt[0x3F] & 0x04)<<6)|vga->crt[0x02])+1)<<3;
 	printitem(name, "shb");
 	printreg(shb);
-	print("%6hud", shb);
+	Bprint(&stdout, "%6ud", shb);
 
 	x = (((vga->crt[0x05] & 0x80)>>2)|(vga->crt[0x03] & 0x1F))<<3;
 	printitem(name, "ehb");
 	printreg(x);
 	for(i = 0; x < shb; i++)
 		x |= 0x200<<i;
-	print("%6hud", x);
+	Bprint(&stdout, "%6ud", x);
 
 	x = ((((vga->crt[0x3F] & 0x01)<<8)|vga->crt[0x00])+5)<<3;
 	printitem(name, "ht");
 	printreg(x);
-	print("%6hud", x);
+	Bprint(&stdout, "%6ud", x);
 
 	x = vga->crt[0x12];
 	if(vga->crt[0x07] & 0x02)
@@ -288,7 +284,7 @@ dump(Vga *vga, Ctlr *ctlr)
 	x += 1;
 	printitem(name, "vde");
 	printreg(x);
-	print("%6hud", x);
+	Bprint(&stdout, "%6ud", x);
 
 	vrs = vga->crt[0x10];
 	if(vga->crt[0x07] & 0x04)
@@ -299,12 +295,12 @@ dump(Vga *vga, Ctlr *ctlr)
 		vrs |= 0x400;
 	printitem(name, "vrs");
 	printreg(vrs);
-	print("%6hud", vrs);
+	Bprint(&stdout, "%6ud", vrs);
 
 	x = (vrs & ~0x0F)|(vga->crt[0x11] & 0x0F);
 	printitem(name, "vre");
 	printreg(x);
-	print("%6hud", x);
+	Bprint(&stdout, "%6ud", x);
 
 	x = vga->crt[0x06];
 	if(vga->crt[0x07] & 0x01)
@@ -316,7 +312,7 @@ dump(Vga *vga, Ctlr *ctlr)
 	x += 2;
 	printitem(name, "vt");
 	printreg(x);
-	print("%6hud", x);
+	Bprint(&stdout, "%6ud", x);
 
 	printitem(name, "d i");
 	if(vga->sequencer[0x07] & 0x01)
@@ -325,12 +321,12 @@ dump(Vga *vga, Ctlr *ctlr)
 		x = 2;
 	else
 		x = 0;
-	print("%9ld", x);
+	Bprint(&stdout, "%9ud", x);
 	x = (vga->misc & 0x0C)>>2;
 	if(vga->crt[0x34] & 0x02)
 		x |= 0x04;
 	x |= (vga->crt[0x31] & 0xC0)>>3;
-	print("%8ld\n", x);
+	Bprint(&stdout, "%8ud\n", x);
 }
 
 Ctlr et4000 = {

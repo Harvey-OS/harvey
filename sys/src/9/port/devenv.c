@@ -5,33 +5,24 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-#include	"devtab.h"
 
 enum
 {
 	Maxenvsize = 16300,
 };
 
-void
-envreset(void)
-{
-}
-
-void
-envinit(void)
-{
-}
-
-int
-envgen(Chan *c, Dirtab *tab, int ntab, int s, Dir *dp)
+static int
+envgen(Chan *c, Dirtab*, int, int s, Dir *dp)
 {
 	Egrp *eg;
 	Evalue *e;
 
-	USED(tab);
-	USED(ntab);
+	if(s == DEVDOTDOT){
+		devdir(c, c->qid, "#e", 0, eve, 0775, dp);
+		return 1;
+	}
 
-	eg = u->p->egrp;
+	eg = up->egrp;
 	qlock(eg);
 
 	for(e = eg->entries; e && s; e = e->link)
@@ -42,58 +33,61 @@ envgen(Chan *c, Dirtab *tab, int ntab, int s, Dir *dp)
 		return -1;
 	}
 
-	devdir(c, (Qid){e->path, 0}, e->name, e->len, eve, 0666, dp);
+	devdir(c, e->qid, e->name, e->len, eve, 0666, dp);
 	qunlock(eg);
 	return 1;
 }
 
-Chan*
+static Evalue*
+envlookup(Egrp *eg, char *name, ulong qidpath)
+{
+	Evalue *e;
+	for(e = eg->entries; e; e = e->link)
+		if(e->qid.path == qidpath || (name && strcmp(e->name, name) == 0))
+			return e;
+	return nil;
+}
+
+static Chan*
 envattach(char *spec)
 {
 	return devattach('e', spec);
 }
 
-Chan*
-envclone(Chan *c, Chan *nc)
-{
-	return devclone(c, nc);
-}
-
-int
+static int
 envwalk(Chan *c, char *name)
 {
-
 	return devwalk(c, name, 0, 0, envgen);
 }
 
-void
+static void
 envstat(Chan *c, char *db)
 {
+	if(c->qid.path & CHDIR)
+		c->qid.vers = up->egrp->vers;
 	devstat(c, db, 0, 0, envgen);
 }
 
-Chan *
+static Chan*
 envopen(Chan *c, int omode)
 {
 	Egrp *eg;
 	Evalue *e;
-	
-	eg = u->p->egrp;
+
+	eg = up->egrp;
 	if(c->qid.path & CHDIR) {
 		if(omode != OREAD)
 			error(Eperm);
 	}
 	else {
 		qlock(eg);
-		for(e = eg->entries; e; e = e->link)
-			if(e->path == c->qid.path)
-				break;
-
+		e = envlookup(eg, nil, c->qid.path);
 		if(e == 0) {
 			qunlock(eg);
 			error(Enonexist);
 		}
-		if(omode == (OWRITE|OTRUNC) && e->value) {
+		if((omode & OTRUNC) && e->value) {
+			e->qid.vers++;
 			free(e->value);
 			e->value = 0;
 			e->len = 0;
@@ -106,18 +100,17 @@ envopen(Chan *c, int omode)
 	return c;
 }
 
-void
-envcreate(Chan *c, char *name, int omode, ulong perm)
+static void
+envcreate(Chan *c, char *name, int omode, ulong)
 {
 	Egrp *eg;
 	Evalue *e;
 
-	USED(perm);
 	if(c->qid.path != CHDIR)
 		error(Eperm);
 
 	omode = openmode(omode);
-	eg = u->p->egrp;
+	eg = up->egrp;
 
 	qlock(eg);
 	if(waserror()) {
@@ -125,19 +118,20 @@ envcreate(Chan *c, char *name, int omode, ulong perm)
 		nexterror();
 	}
 
-	for(e = eg->entries; e; e = e->link)
-		if(strcmp(e->name, name) == 0)
-			error(Einuse);
+	if(envlookup(eg, name, -1))
+		error(Eexist);
 
 	e = smalloc(sizeof(Evalue));
 	e->name = smalloc(strlen(name)+1);
 	strcpy(e->name, name);
 
-	e->path = ++eg->path;
+	e->qid.path = ++eg->path;
+	e->qid.vers = 0;
+	eg->vers++;
 	e->link = eg->entries;
 	eg->entries = e;
-	c->qid = (Qid){e->path, 0};
-	
+	c->qid = e->qid;
+
 	qunlock(eg);
 	poperror();
 
@@ -146,7 +140,7 @@ envcreate(Chan *c, char *name, int omode, ulong perm)
 	c->flag |= COPEN;
 }
 
-void
+static void
 envremove(Chan *c)
 {
 	Egrp *eg;
@@ -155,12 +149,11 @@ envremove(Chan *c)
 	if(c->qid.path & CHDIR)
 		error(Eperm);
 
-	eg = u->p->egrp;
+	eg = up->egrp;
 	qlock(eg);
-
 	l = &eg->entries;
 	for(e = *l; e; e = e->link) {
-		if(e->path == c->qid.path)
+		if(e->qid.path == c->qid.path)
 			break;
 		l = &e->link;
 	}
@@ -171,6 +164,7 @@ envremove(Chan *c)
 	}
 
 	*l = e->link;
+	eg->vers++;
 	qunlock(eg);
 	free(e->name);
 	if(e->value)
@@ -178,34 +172,31 @@ envremove(Chan *c)
 	free(e);
 }
 
-void
-envwstat(Chan *c, char *db)
+static void
+envclose(Chan *c)
 {
-	USED(c, db);
-	error(Eperm);
+	/*
+	 * close can't fail, so errors from remove will be ignored anyway.
+	 * since permissions aren't checked,
+	 * envremove can't not remove it if its there.
+	 */
+	if(c->flag & CRCLOSE)
+		envremove(c);
 }
 
-void
-envclose(Chan * c)
-{
-	USED(c);
-}
-
-long
-envread(Chan *c, void *a, long n, ulong offset)
+static long
+envread(Chan *c, void *a, long n, vlong off)
 {
 	Egrp *eg;
 	Evalue *e;
+	ulong offset = off;
 
 	if(c->qid.path & CHDIR)
 		return devdirread(c, a, n, 0, 0, envgen);
 
-	eg = u->p->egrp;
+	eg = up->egrp;
 	qlock(eg);
-	for(e = eg->entries; e; e = e->link)
-		if(e->path == c->qid.path)
-			break;
-
+	e = envlookup(eg, nil, c->qid.path);
 	if(e == 0) {
 		qunlock(eg);
 		error(Enonexist);
@@ -221,13 +212,14 @@ envread(Chan *c, void *a, long n, ulong offset)
 	return n;
 }
 
-long
-envwrite(Chan *c, void *a, long n, ulong offset)
+static long
+envwrite(Chan *c, void *a, long n, vlong off)
 {
 	char *s;
 	int vend;
 	Egrp *eg;
 	Evalue *e;
+	ulong offset = off;
 
 	if(n <= 0)
 		return 0;
@@ -236,12 +228,9 @@ envwrite(Chan *c, void *a, long n, ulong offset)
 	if(vend > Maxenvsize)
 		error(Etoobig);
 
-	eg = u->p->egrp;
+	eg = up->egrp;
 	qlock(eg);
-	for(e = eg->entries; e; e = e->link)
-		if(e->path == c->qid.path)
-			break;
-
+	e = envlookup(eg, nil, c->qid.path);
 	if(e == 0) {
 		qunlock(eg);
 		error(Enonexist);
@@ -249,16 +238,40 @@ envwrite(Chan *c, void *a, long n, ulong offset)
 
 	if(vend > e->len) {
 		s = smalloc(offset+n);
-		memmove(s, e->value, e->len);
-		if(e->value)
+		if(e->value){
+			memmove(s, e->value, e->len);
 			free(e->value);
+		}
 		e->value = s;
 		e->len = vend;
 	}
 	memmove(e->value+offset, a, n);
+	e->qid.vers++;
+	eg->vers++;
 	qunlock(eg);
 	return n;
 }
+
+Dev envdevtab = {
+	'e',
+	"env",
+
+	devreset,
+	devinit,
+	envattach,
+	devclone,
+	envwalk,
+	envstat,
+	envopen,
+	envcreate,
+	envclose,
+	envread,
+	devbread,
+	envwrite,
+	devbwrite,
+	envremove,
+	devwstat,
+};
 
 void
 envcpy(Egrp *to, Egrp *from)
@@ -276,7 +289,7 @@ envcpy(Egrp *to, Egrp *from)
 			memmove(ne->value, e->value, e->len);
 			ne->len = e->len;
 		}
-		ne->path = ++to->path;
+		ne->qid.path = ++to->path;
 		*l = ne;
 		l = &ne->link;
 	}
@@ -311,15 +324,6 @@ ksetenv(char *ename, char *eval)
 
 	sprint(buf, "#e/%s", ename);
 	c = namec(buf, Acreate, OWRITE, 0600);
-	(*devtab[c->type].write)(c, eval, strlen(eval), 0);
-	close(c);
-}
-
-void
-ksetterm(char *f)
-{
-	char buf[2*NAMELEN];
-
-	sprint(buf, f, conffile);
-	ksetenv("terminal", buf);
+	devtab[c->type]->write(c, eval, strlen(eval), 0);
+	cclose(c);
 }

@@ -61,7 +61,7 @@ tcgetattr(int fd, struct termios *t)
 			return -1;
 		}
 	}
-	if(_SEEK(fd, -2, 0) != -2) {
+	if(_OSEEK(fd, -2, 0) != -2) {
 		_syserrno();
 		return -1;
 	}
@@ -104,7 +104,7 @@ tcsetattr(int fd, int optactions, const struct termios *t)
 	for(i = 0; i < NCCS; i++)
 		n += sprintf(buf+n, "%2.2x ", t->c_cc[i]);
 
-	if(_SEEK(fd, -2, 0) != -2) {
+	if(_OSEEK(fd, -2, 0) != -2) {
 		_syserrno();
 		return -1;
 	}
@@ -133,7 +133,7 @@ tcsetpgrp(int fd, pid_t pgrpid)
 	}
 	n = sprintf(buf, "IOW note %d", pgrpid);
 
-	if(_SEEK(fd, -2, 0) != -2) {
+	if(_OSEEK(fd, -2, 0) != -2) {
 		_syserrno();
 		return -1;
 	}
@@ -156,7 +156,7 @@ tcgetpgrp(int fd)
 		errno = ENOTTY;
 		return -1;
 	}
-	if(_SEEK(fd, -2, 0) != -2) {
+	if(_OSEEK(fd, -2, 0) != -2) {
 		_syserrno();
 		return -1;
 	}

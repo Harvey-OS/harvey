@@ -168,7 +168,7 @@ as in
 \fL\&.FE\fP	-	yes	End footnote.
 .ti0
 \fL\&.FP\fP \fIx\fR	-	no	Set font positions for a family, e.g.,
-.L .FP palatino
+.L .FP lucidasans
 .ti0
 \fL\&.FS\fP	no	no	Start footnote.
 The note will be moved to the bottom of the page.
@@ -190,7 +190,7 @@ if no argument switch to italic.
 with hanging tag
 .IR x .
 Indentation is
-.I y 
+.I y
 ens (default 5).
 .ti0
 \fL\&.KE\fP	-	yes	End keep.
@@ -207,7 +207,7 @@ float later text back to this page.
 \fL\&.LP\fP	yes	yes	Start left-blocked paragraph.
 .ti0
 \fL\&.LT\fP	no	yes	Start a letter; a non-empty first argument
-produces a full AT&T letterhead, a second argument is a room number,
+produces a full Lucent letterhead, a second argument is a room number,
 a third argument is a telephone number.
 .ti0
 \fL\&.MF\fP	-	-	Print document in BTL format for `Memorandum for File.'  Must be first.

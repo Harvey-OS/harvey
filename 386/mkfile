@@ -1,11 +1,6 @@
+</sys/src/mkfile.proto
+
 CC=8c
-ALEF=8al
 LD=8l
 O=8
 AS=8a
-OS=2kv86x
-CPUS=mips 68020 sparc 386
-CFLAGS=
-LEX=lex
-YACC=yacc
-MK=/bin/mk

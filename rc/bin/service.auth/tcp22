@@ -1,0 +1,3 @@
+#!/bin/rc
+/bin/aux/sshserve -p `{cat $3/remote} >>[2] /sys/log/ssh
+

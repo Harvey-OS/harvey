@@ -3,6 +3,10 @@
 #include	<bio.h>
 #include	"../8c/8.out.h"
 
+#ifndef	EXTERN
+#define	EXTERN	extern
+#endif
+
 #define	P		((Prog*)0)
 #define	S		((Sym*)0)
 #define	TNAME		(curtext?curtext->from.sym->name:noname)
@@ -21,31 +25,36 @@ struct	Adr
 {
 	union
 	{
-		long	offset;
-		char	scon[8];
-		Prog	*cond;	/* not used, but should be D_BRANCH */
-		Ieee	ieee;
-	};
+		long	u0offset;
+		char	u0scon[8];
+		Prog	*u0cond;	/* not used, but should be D_BRANCH */
+		Ieee	u0ieee;
+	} u0;
 	union
 	{
-		Auto*	autom;
-		Sym*	sym;
-	};
+		Auto*	u1autom;
+		Sym*	u1sym;
+	} u1;
 	short	type;
 	char	index;
 	char	scale;
 };
 
+#define	offset	u0.u0offset
+#define	scon	u0.u0scon
+#define	cond	u0.u0cond
+#define	ieee	u0.u0ieee
+
+#define	autom	u1.u1autom
+#define	sym	u1.u1sym
+
 struct	Prog
 {
 	Adr	from;
 	Adr	to;
-	union
-	{
-		Prog	*forwd;
-	};
+	Prog	*forwd;
 	Prog*	link;
-	Prog*	cond;	/* work on this */
+	Prog*	pcond;	/* work on this */
 	long	pc;
 	long	line;
 	uchar	mark;	/* work on these */
@@ -56,9 +65,9 @@ struct	Prog
 };
 struct	Auto
 {
-	Sym*	sym;
+	Sym*	asym;
 	Auto*	link;
-	long	offset;
+	long	aoffset;
 	short	type;
 };
 struct	Sym
@@ -163,85 +172,95 @@ enum
 	Pb		= 0xfe,	/* byte operands */
 };
 
-union
+EXTERN union
 {
 	struct
 	{
-		char	cbuf[MAXIO];			/* output buffer */
-		uchar	xbuf[MAXIO];			/* input buffer */
-	};
+		char	obuf[MAXIO];			/* output buffer */
+		uchar	ibuf[MAXIO];			/* input buffer */
+	} u;
 	char	dbuf[1];
 } buf;
 
-long	HEADR;
-long	HEADTYPE;
-long	INITDAT;
-long	INITRND;
-long	INITTEXT;
-char*	INITENTRY;		/* entry point */
-Biobuf	bso;
-long	bsssize;
-long	casepc;
-int	cbc;
-char*	cbp;
-char*	pcstr;
-int	cout;
-Auto*	curauto;
-Auto*	curhist;
-Prog*	curp;
-Prog*	curtext;
-Prog*	datap;
-Prog*	edatap;
-long	datsize;
-char	debug[128];
-char	literal[32];
-Prog*	etextp;
-Prog*	firstp;
-char	fnuxi8[8];
-char	fnuxi4[4];
-Sym*	hash[NHASH];
-Sym*	histfrog[MAXHIST];
-int	histfrogp;
-int	histgen;
-char*	library[50];
-int	libraryp;
-char*	hunk;
-char	inuxi1[1];
-char	inuxi2[2];
-char	inuxi4[4];
-char	ycover[Ymax*Ymax];
-uchar*	andptr;
-uchar	and[10];
-char	reg[D_NONE];
-Prog*	lastp;
-long	lcsize;
-int	maxop;
-int	nerrors;
-long	nhunk;
-long	nsymbol;
-char*	noname;
-char*	outfile;
-long	pc;
-int	printcol;
-long	spsize;
-Sym*	symlist;
-long	symsize;
-Prog*	textp;
-long	textsize;
-long	thunk;
-int	version;
-Prog	zprg;
-int	dtype;
+#define	cbuf	u.obuf
+#define	xbuf	u.ibuf
+
+#pragma	varargck	type	"A"	uint
+#pragma	varargck	type	"D"	Adr*
+#pragma	varargck	type	"P"	Prog*
+#pragma	varargck	type	"R"	int
+#pragma	varargck	type	"S"	char*
+
+EXTERN	long	HEADR;
+EXTERN	long	HEADTYPE;
+EXTERN	long	INITDAT;
+EXTERN	long	INITRND;
+EXTERN	long	INITTEXT;
+EXTERN	char*	INITENTRY;		/* entry point */
+EXTERN	Biobuf	bso;
+EXTERN	long	bsssize;
+EXTERN	long	casepc;
+EXTERN	int	cbc;
+EXTERN	char*	cbp;
+EXTERN	char*	pcstr;
+EXTERN	int	cout;
+EXTERN	Auto*	curauto;
+EXTERN	Auto*	curhist;
+EXTERN	Prog*	curp;
+EXTERN	Prog*	curtext;
+EXTERN	Prog*	datap;
+EXTERN	Prog*	edatap;
+EXTERN	long	datsize;
+EXTERN	char	debug[128];
+EXTERN	char	literal[32];
+EXTERN	Prog*	etextp;
+EXTERN	Prog*	firstp;
+EXTERN	char	fnuxi8[8];
+EXTERN	char	fnuxi4[4];
+EXTERN	Sym*	hash[NHASH];
+EXTERN	Sym*	histfrog[MAXHIST];
+EXTERN	int	histfrogp;
+EXTERN	int	histgen;
+EXTERN	char*	library[50];
+EXTERN	int	libraryp;
+EXTERN	int	xrefresolv;
+EXTERN	char*	hunk;
+EXTERN	char	inuxi1[1];
+EXTERN	char	inuxi2[2];
+EXTERN	char	inuxi4[4];
+EXTERN	char	ycover[Ymax*Ymax];
+EXTERN	uchar*	andptr;
+EXTERN	uchar	and[30];
+EXTERN	char	reg[D_NONE];
+EXTERN	Prog*	lastp;
+EXTERN	long	lcsize;
+EXTERN	int	maxop;
+EXTERN	int	nerrors;
+EXTERN	long	nhunk;
+EXTERN	long	nsymbol;
+EXTERN	char*	noname;
+EXTERN	char*	outfile;
+EXTERN	long	pc;
+extern	int	printcol;
+EXTERN	long	spsize;
+EXTERN	Sym*	symlist;
+EXTERN	long	symsize;
+EXTERN	Prog*	textp;
+EXTERN	long	textsize;
+EXTERN	long	thunk;
+EXTERN	int	version;
+EXTERN	Prog	zprg;
+EXTERN	int	dtype;
 
 extern	Optab	optab[];
 extern	char*	anames[];
 
-int	Aconv(void*, Fconv*);
-int	Dconv(void*, Fconv*);
-int	Pconv(void*, Fconv*);
-int	Rconv(void*, Fconv*);
-int	Sconv(void*, Fconv*);
-int	Xconv(void*, Fconv*);
+int	Aconv(va_list*, Fconv*);
+int	Dconv(va_list*, Fconv*);
+int	Pconv(va_list*, Fconv*);
+int	Rconv(va_list*, Fconv*);
+int	Sconv(va_list*, Fconv*);
+int	Xconv(va_list*, Fconv*);
 void	addhist(long, int);
 Prog*	appendp(Prog*);
 void	asmb(void);
@@ -249,7 +268,6 @@ void	asmins(Prog*);
 void	asmlc(void);
 void	asmsp(void);
 void	asmsym(void);
-int	atoi(char*);
 long	atolwhex(char*);
 Prog*	brchain(Prog*);
 Prog*	brloop(Prog*);
@@ -273,13 +291,14 @@ void	histtoauto(void);
 double	ieeedtod(Ieee*);
 long	ieeedtof(Ieee*);
 void	ldobj(int, long, char*);
-void	loadlib(int, int);
+void	loadlib(void);
 void	listinit(void);
 Sym*	lookup(char*, int);
 void	lput(long);
 void	lputl(long);
 void	main(int, char*[]);
 void	mkfwd(void);
+void*	mysbrk(ulong);
 void	nuxiinit(void);
 void	objfile(char*);
 int	opsize(Prog*);
@@ -295,3 +314,8 @@ void	xdefine(char*, int, long);
 void	xfol(Prog*);
 int	zaddr(uchar*, Adr*, Sym*[]);
 long	vaddr(Adr*);
+
+#pragma	varargck	type	"D"	Adr*
+#pragma	varargck	type	"P"	Prog*
+#pragma	varargck	type	"R"	int
+#pragma	varargck	type	"A"	int

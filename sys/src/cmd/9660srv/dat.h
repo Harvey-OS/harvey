@@ -40,9 +40,9 @@ struct Xfsub
 	void	(*walk)(Xfile*, char*);
 	void	(*open)(Xfile*, int);
 	void	(*create)(Xfile*, char*, long, int);
-	long	(*readdir)(Xfile*, void*, long, long);
-	long	(*read)(Xfile*, void*, long, long);
-	long	(*write)(Xfile*, void*, long, long);
+	long	(*readdir)(Xfile*, char*, long, long);
+	long	(*read)(Xfile*, char*, long, long);
+	long	(*write)(Xfile*, char*, long, long);
 	void	(*clunk)(Xfile*);
 	void	(*remove)(Xfile*);
 	void	(*stat)(Xfile*, Dir*);
@@ -96,3 +96,6 @@ extern int	chatty;
 extern jmp_buf	err_lab[];
 extern int	nerr_lab;
 extern char	err_msg[];
+
+extern int nojoliet;
+extern int noplan9;

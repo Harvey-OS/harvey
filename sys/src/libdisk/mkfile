@@ -1,0 +1,14 @@
+</$objtype/mkfile
+
+OFILES=\
+	disk.$O\
+	emem.$O\
+	proto.$O\
+	scsi.$O\
+
+HFILES=/sys/include/disk.h
+LIB=/$objtype/lib/libdisk.a
+</sys/src/cmd/mksyslib
+
+$O.test: test.$O $LIB
+	$LD -o $target test.$O $LIB

@@ -1,6 +1,6 @@
 .TH EVENT 2
 .SH NAME
-event, einit, estart, etimer, eread, emouse, ekbd, ecanread, ecanmouse, ecankbd, ereshaped, getrect, menuhit, Event, Mouse, Menu \- graphics events
+event, einit, estart, estartfn, etimer, eread, emouse, ekbd, ecanread, ecanmouse, ecankbd, ereadmouse, eatomouse, eresized, egetrect, edrawgetrect, emenuhit, emoveto, esetcursor, Event, Mouse, Menu \- graphics events
 .SH SYNOPSIS
 .nf
 .PP
@@ -9,7 +9,11 @@ event, einit, estart, etimer, eread, emouse, ekbd, ecanread, ecanmouse, ecankbd,
 .B
 #include	<libc.h>
 .B
-#include	<libg.h>
+#include	<draw.h>
+.B
+#include	<event.h>
+.B
+#include	<cursor.h>
 .ta \w'\fLRectangle 'u
 .PP
 .B
@@ -31,7 +35,18 @@ int	ecanmouse(void)
 int	ecankbd(void)
 .PP
 .B
+int	ereadmouse(Mouse *m)
+.PP
+.B
+int	eatomouse(Mouse *m, char *buf, int n)
+.PP
+.B
 ulong	estart(ulong key, int fd, int n)
+.PP
+.B
+ulong	estartfn(int id, ulong key, int fd, int n,
+.B
+		    int (*fn)(Event*, uchar*, int))
 .PP
 .B
 ulong	etimer(ulong key, int n)
@@ -43,13 +58,27 @@ ulong	eread(ulong keys, Event *e)
 int	ecanread(ulong keys)
 .PP
 .B
-void	ereshaped(Rectangle r)
+void	eresized(int new)
 .PP
 .B
-Rectangle	getrect(int but, Mouse *m)
+Rectangle	egetrect(int but, Mouse *m)
 .PP
 .B
-int	menuhit(int but, Mouse *m, Menu *menu)
+void	edrawgetrect(Rectangle r, int up)
+.PP
+.B
+int	emenuhit(int but, Mouse *m, Menu *menu)
+.PP
+.PP
+.B
+int	emoveto(Point p)
+.PP
+.PP
+.B
+int	esetcursor(Cursor *c)
+.PP
+.B
+extern Mouse    *mouse
 .PP
 .B
 enum{
@@ -60,23 +89,6 @@ enum{
 .B
 };
 .PP
-.B
-/* Alef only */
-.PP
-.B
-adt Menu
-.br
-.B
-{
-.br
-.B
-	/* ... */
-.br
-.B
-	(int, Mouse) hit(*Menu, int but, chan(Mouse), Mouse);
-.br
-.B
-};
 .SH DESCRIPTION
 These routines provide an interface to multiple sources of input.
 To use them,
@@ -91,16 +103,27 @@ and
 bits set,
 the mouse and keyboard events will be enabled;
 in this case,
-.IR binit
+.IR initdraw
 (see
 .IR graphics (2))
 must have already been called.
 The user must provide a function called
-.IR ereshaped
+.IR eresized
 to be called whenever the window in which the process
-is running has been reshaped; the argument will be the
-.B Rectangle
-for the new window shape, including the border.
+is running has been resized; the argument
+.I new
+is a flag specifying whether the program must call
+.I getwindow
+(see
+.IR graphics (2))
+to re-establish a connection to its window.
+After resizing (and perhaps calling
+.IR getwindow ),
+the global variable
+.B screen
+will be updated to point to the new window's
+.B Image
+structure.
 .PP
 As characters are typed on the keyboard, they are read by the
 event mechanism and put in a queue.
@@ -112,7 +135,7 @@ The characters are read in raw mode
 .IR cons (3)),
 so they are available as soon as a complete rune is typed.
 .PP
-When the mouse moves or a mouse button is depressed or released,
+When the mouse moves or a mouse button is pressed or released,
 a new mouse event is queued by the event mechanism.
 .I Emouse
 returns the next mouse event from the queue, blocking until the
@@ -133,12 +156,12 @@ struct Mouse
 .EE
 .PP
 .B Buttons&1
-is set when the left mouse button is depressed,
+is set when the left mouse button is pressed,
 .B buttons&2
-when the middle button is depressed,
+when the middle button is pressed,
 and
 .B buttons&4
-when the right button is depressed.
+when the right button is pressed.
 The current mouse position is always returned in
 .BR xy .
 .B Msec
@@ -150,18 +173,49 @@ and
 return non-zero when there are keyboard or mouse events available
 to be read.
 .PP
+.I Ereadmouse
+reads the next mouse event from the file descriptor connected to the mouse,
+converts the textual data into a
+.B Mouse
+structure by calling
+.I eatomouse
+with the buffer and count from the read call,
+and returns the number of bytes read, or \-1 for an error.
+.PP
 .I Estart
 can be used to register additional file descriptors to scan for input.
 It takes as arguments the file descriptor to register,
 the maximum length of an event message on that descriptor,
 and a key to be used in accessing the event.
 The key must be a power of 2 and must not conflict with any previous keys.
-If a zero key is given, one will be allocated and returned.
+If a zero key is given, a key will be allocated and returned.
+.I Estartfn
+is similar to
+.IR estart ,
+but processes the data received by calling
+.I fn
+before returning the event to the user.
+The function
+.I fn
+is called with the
+.B id
+of the event; it should return
+.B id
+if the event is to be passed to the user,
+.B 0
+if it is to be ignored.
+The variable
+.B Event.v
+can be used by
+.I fn
+to attach an arbitrary data item to the returned
+.B Event
+structure.
 .B
 Ekeyboard
 and
 .B Emouse
-are the mouse and keyboard event keys.
+are the keyboard and mouse event keys.
 .PP
 .I Etimer
 starts a repeating timer with a period of
@@ -172,9 +226,9 @@ Extra timer events are not queued and the timer channel has no associated data.
 .PP
 .I Eread
 waits for the next event specified by the mask
-.B keys
+.I keys
 of event keys submitted to
-.BR estart .
+.IR estart .
 It fills in the appropriate field of the argument
 .B Event
 structure, which looks like:
@@ -185,6 +239,7 @@ struct Event
 	int	kbdc;
 	Mouse	mouse;
 	int	n;
+	void	*v;
 	uchar	data[EMAXMSG];
 };
 .EE
@@ -223,7 +278,7 @@ prompts the user to sweep a rectangle.
 It should be called with
 .I m
 holding the mouse event that triggered the
-.I getrect
+.I egetrect
 (or, if none, a
 .B Mouse
 with
@@ -233,26 +288,36 @@ It changes to the sweep cursor,
 waits for the buttons all to be released,
 and then waits for button number
 .I but
-to be depressed, marking the initial corner.
-If another button is depressed instead,
-.I getrect
+to be pressed, marking the initial corner.
+If another button is pressed instead,
+.I egetrect
 returns a rectangle
 with zero for both corners, after
 waiting for all the buttons to be released.
 Otherwise,
-.I getrect
+.I egetrect
 continually draws the swept rectangle
 until the button is released again, and returns the swept rectangle.
 The mouse structure pointed to by
 .I m
 will contain the final mouse event.
 .PP
-.I Menuhit
+.I Egetrect
+uses successive calls to
+.I edrawgetrect
+to maintain the red rectangle showing the sweep-in-progress.
+The rectangle to be drawn is specified by
+.I rc
+and the
+.I up
+parameter says whether to draw (1) or erase (0) the rectangle.
+.PP
+.I Emenuhit
 displays a menu and returns a selected menu item number.
 It should be called with
 .I m
 holding the mouse event that triggered the
-.IR menuhit ;
+.IR emenuhit ;
 it will call
 .I emouse
 to update it.
@@ -286,32 +351,26 @@ or \-1 for no selection.
 The
 .I m
 argument is filled in with the final mouse event.
-.SS Alef
-Alef has none of the event software, since the language encourages
-a different approach using processes to convert mouse and keyboard
-activity into messages.
-In this vein,
-a function called
-.IR hit ,
-analogous to
-.IR menuhit ,
-exists as a part of the
-.B Menu
-.BR adt ;
-it takes as argument a
-.B chan
-of type
-.BR Mouse
-and a
-.BR Mouse -valued
-argument reflecting the current state.  It returns the selection and the new state
-of the mouse.
+.PP
+.I Emoveto
+moves the mouse cursor to the position
+.B p
+on the screen.
+.PP
+.I Esetcursor
+changes the cursor image to that described by the
+.B Cursor
+.I c
+(see
+.IR mouse (2)).
+If
+.B c
+is nil, it restores the image to the default arrow.
 .SH SOURCE
-.B /sys/src/libg
+.B /sys/src/libdraw
 .SH "SEE ALSO"
-.IR 8½ (1),
+.IR rio (1),
 .IR graphics (2),
+.IR plumb (2),
 .IR cons (3),
-.IR bit (3)
-.SH BUGS
-There should be an official Alef interface to the mouse and keyboard.
+.IR draw (3)

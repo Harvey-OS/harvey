@@ -1,0 +1,467 @@
+%    Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of Aladdin Ghostscript.
+% 
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
+% 
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
+
+% $Id: gs_ll3.ps,v 1.1 2000/03/09 08:40:40 lpd Exp $
+% Initialization file for PostScript LanguageLevel 3 functions.
+% This file must be loaded after gs_lev2.ps and gs_res.ps.
+% These definitions go into ll3dict or various ProcSets.
+% NOTE: the interpreter creates ll3dict.
+
+ll3dict begin
+
+% We need LanguageLevel 2 or higher in order to have setuserparams and
+% defineresource.
+languagelevel dup 2 max .setlanguagelevel
+
+% ------ Idiom recognition ------ %
+
+/IdiomRecognition false .definepsuserparam
+
+% Modify `bind' to apply idiom recognition afterwards.
+/.bindscratch 128 string def
+% Do the right thing if NOBIND or DELAYBIND is in effect.
+% Note also that since this definition of `bind' may get bound in,
+% it has to function properly even at lower language levels,
+% where IdiomRecognition may not be defined.
+/bind load /.bind load ne
+/bind {		% <proc> bind <proc'>
+  //.bind currentuserparams /IdiomRecognition
+  .knownget not { false } if {
+    (*) {
+      /IdiomSet findresource
+      false exch {
+		% Stack: proc false dummykey [template substitute]
+	exch pop dup 1 get exch 0 get
+		% Stack: proc false substitute template
+	3 index .eqproc {
+	  2 index gcheck 1 index gcheck not and {
+	    pop
+	  } {
+	    3 -1 roll pop exch not exit
+	  } ifelse
+	} {
+	  pop
+	} ifelse
+      } forall { exit } if
+    } //.bindscratch /IdiomSet resourceforall
+  } if
+} odef
+{ /.bind /bind load def
+  /bind { } def
+} if
+currentdict /.bindscratch .undef
+
+% ------ HalftoneTypes 6, 10, 16 and HalftoneMode ------ %
+
+% This code depends on an internal HalftoneType 7 with the following keys:
+%	Width, Height, Width2, Height2, TransferFunction:
+%	  as for HalftoneType 16.
+%	Thresholds: a string or bytestring holding the thresholds,
+%	  (Width x Height + Width2 x Height2) x BitsPerSample / 8 bytes,
+%	  as for HalftoneType 16 except that the samples may be either
+%	  8 or 16 bits wide.
+%	BitsPerSample: 8 or 16.
+
+% Note that this HalftoneType never appears in halftone dictionaries given
+% to sethalftone, only as a component in those given to .sethalftone5,
+% so its numeric value can be chosen ad lib as long as it differs from the
+% other values that are legal in component dictionaries for .sethalftone5
+% (currently only 1 and 3).
+
+/.makehalftone7 {	% <dict> <dict> <source> <Width> <Height>
+			%   (<Width2> <Height2> | null) <BPS> .makehalftone7
+			%   <setdict> <dict5> { .sethalftone5 }
+  8 dict begin
+  /HalftoneType 7 def
+  /BitsPerSample exch def
+  dup null eq {
+    pop 0
+  } {
+    /Height2 1 index def /Width2 2 index def mul
+  } ifelse 3 1 roll
+  /Height 1 index def
+  /Width 2 index def
+  mul add BitsPerSample 8 idiv mul .bigstring
+		% Stack: dict dict source str
+  dup type /stringtype eq { readstring } { .readbytestring } ifelse
+  not { /sethalftone load /rangecheck signalerror exit } if
+  readonly /Thresholds exch def
+  /TransferFunction .knownget { /TransferFunction exch def } if
+		% If the original Thresholds was a file, replace it with
+		% a new one.
+  dup /Thresholds get type /filetype eq {
+    dup /Thresholds [ Thresholds ] cvx 0 () .subfiledecode put
+  } if
+  mark /HalftoneType 5 /Default currentdict end .dicttomark
+  { .sethalftone5 }
+} bind def
+
+/.bigstring {	% <size> .bigstring <string|bytestring>
+  dup 65400 gt { .bytestring } { string } ifelse
+} bind def
+
+/.readbytestring {	% <source> <bytestring> .readbytestring
+			%   <bytestring> <filled>
+		% Note that since bytestrings don't implement getinterval,
+		% if filled is false, there is no way to tell how much
+		% was read.
+  true exch 0 1 2 index length 1 sub {
+		% Stack: source true str index
+    3 index read not { pop exch not exch exit } if
+    3 copy put pop pop
+  } for 3 -1 roll pop exch
+} bind def
+
+/.sethalftone6 {	% <dict> <dict> .sethalftone6 <setdict> <dict5>
+			%   { .sethalftone5 }
+			% Keys: Width, Height, Thresholds, T'Function
+  dup /Thresholds get
+  1 index /Width get 2 index /Height get
+  null 8 .makehalftone7
+} bind def
+
+/.sethalftone10 {	% <dict> <dict> .sethalftone10 <setdict> <dict5>
+			%   { .sethalftone5 }
+			% Keys: Xsquare, Ysquare, Thresholds, T'Function
+		% Note that this is the only one of these three HalftoneTypes
+		% that allows either a file or a string for Thresholds.
+  dup /Thresholds get dup type /stringtype eq { 0 () .subfiledecode } if
+  1 index /Xsquare get dup 3 index /Ysquare get dup
+  8 .makehalftone7
+} bind def
+
+/.sethalftone16 {	% <dict> <dict> .sethalftone16 <setdict> <dict5>
+			%   { .sethalftone5 }
+			% Keys: Width, Height, Width2, Height2,
+			%   Thresholds, T'Function
+  dup /Thresholds get
+  1 index /Width get 2 index /Height get
+  3 index /Width2 .knownget {  % 2-rectangle case
+    4 index /Height2 get
+  } {			% 1-rectangle case
+    null
+  } ifelse 16 .makehalftone7
+} bind def
+
+.halftonetypes begin
+  6 /.sethalftone6 load def
+  10 /.sethalftone10 load def
+  16 /.sethalftone16 load def
+end
+
+% Redefine the halftone-setting operators to honor HalftoneMode.
+/setcolorscreen {
+  /HalftoneMode getuserparam 0 eq {
+    //setcolorscreen
+  } {
+    12 { pop } repeat .getdefaulthalftone
+    { //sethalftone }
+    { .setdefaulthalftone }
+    ifelse
+  } ifelse
+} odef
+/setscreen {
+  /HalftoneMode getuserparam 0 eq {
+    //setscreen
+  } {
+    pop pop pop .getdefaulthalftone
+    { //sethalftone }
+    { .setdefaulthalftone }
+    ifelse
+  } ifelse
+} odef
+/sethalftone {
+  /HalftoneMode getuserparam 0 eq {
+    //sethalftone
+  } {
+    pop .getdefaulthalftone
+    { //sethalftone }
+    { .setdefaulthalftone }
+    ifelse
+  } ifelse
+} odef
+
+% ------ ImageTypes 3 and 4 (masked images) ------ %
+
+.imagetypes
+  dup 3 /.image3 load put
+  4 /.image4 load put
+
+% ------ Functions ------ %
+
+% Define the FunctionType resource category.
+/Generic /Category findresource dup maxlength 3 add dict .copydict begin
+  /InstanceType /integertype def
+/FunctionType currentdict end /Category defineresource pop
+
+{0 2 3} { dup /FunctionType defineresource pop } forall
+
+% ------ Smooth shading ------ %
+
+% Define the ShadingType resource category.
+/Generic /Category findresource dup maxlength 3 add dict .copydict begin
+  /InstanceType /integertype def
+/ShadingType currentdict end /Category defineresource pop
+
+systemdict /.shadingtypes mark		% not ll3dict
+  1 /.buildshading1 load
+  2 /.buildshading2 load
+  3 /.buildshading3 load
+  4 /.buildshading4 load
+  5 /.buildshading5 load
+  6 /.buildshading6 load
+  7 /.buildshading7 load
+.dicttomark put
+
+systemdict /.reuseparamdict mark
+  /Intent 2
+  /AsyncRead false
+  /CloseSource true
+.dicttomark readonly put
+/.buildshading {	% <shadingdict> .buildshading <shading>
+	% The current implementation of shadings can't deal with
+	% procedure-based DataSource.
+  dup /DataSource .knownget {
+    dup type /filetype eq {
+      dup .isprocfilter {
+	//.reuseparamdict /ReusableStreamDecode filter
+	.currentglobal 1 index gcheck .setglobal
+		% Stack: shdict rsdfile saveglobal
+	2 index dup length dict copy exch .setglobal
+	dup /DataSource 4 -1 roll put exch pop
+      } {
+	pop
+      } ifelse
+    } {
+      pop
+    } ifelse
+  } if
+	% The .buildshading operators use the current color space
+	% for ColorSpace.
+  dup /ShadingType get //.shadingtypes exch get
+  1 index /ColorSpace get setcolorspace exec
+} bind def
+systemdict /.reuseparamdict undef
+
+/.buildpattern2 {	% <template> <matrix> .buildpattern2
+			%   <template> <pattern>
+	% We want to build the pattern without doing gsave/grestore,
+	% since we want it to load the CIE caches.
+  1 index /Shading get
+  mark currentcolor currentcolorspace
+  counttomark 4 add -3 roll mark 4 1 roll
+	% Stack: -mark- ..color.. cspace -mark- template matrix shadingdict
+  { .buildshading } stopped {
+    cleartomark setcolorspace setcolor pop stop
+  } if
+  .buildshadingpattern
+  3 -1 roll pop counttomark 1 add 2 roll setcolorspace setcolor pop
+} bind def
+
+.patterntypes
+  2 /.buildpattern2 load put
+
+/shfill {		% <shadingdict> shfill -
+	% Currently, .shfill requires that the color space
+	% in the pattern be the current color space.
+  dup gsave { .buildshading .shfill } stopped grestore { stop } if
+  pop
+} odef
+
+% Establish an initial smoothness value that matches Adobe RIPs.
+0.02 setsmoothness
+
+% ------ ReusableStreamDecode filter ------ %
+
+/.reusablestreamdecode {	% <source> <dict> .reusablestreamdecode <file>
+				% <source> .reusablestreamdecode <file>
+		% Collect the filter parameters.
+  dup type /dicttype eq { 2 copy } { dup 0 dict } ifelse
+  dup .rsdparams
+		% Construct the filter pipeline.
+		% The very first filter should use the value of CloseSource
+		% from the RSD dictionary; all the others should have
+		% CloseSource = true.
+		% Stack: source dict filters parms
+  2 index /CloseSource .knownget not { false } if 5 -1 roll
+		% Stack: dict filters parms CloseSource source
+  0 1 5 index length 1 sub {
+    4 index 1 index get
+		% Stack: dict filters parms CloseSource source index filtname
+    4 index null eq {
+      0 dict
+    } {
+      4 index 2 index get dup null eq { pop } if
+    } ifelse
+    3 -1 roll pop exch filter
+    exch pop true exch		% set CloseSource for further filters
+  } for
+		% See if we can create the filter directly.
+		% Stack: dict filters parms CloseSource file
+  null 2 index { .reusablestream } .internalstopped {
+    pop pop
+		% No luck.  Read the entire contents of the stream now.
+    dup type /filetype ne {
+		% Make a stream from a procedure or string data source.
+      0 () .subfiledecode
+    } if
+    10 dict exch {
+		% Stack: dict filters parms CloseSource contdict file
+      dup 1000 string readstring
+      3 index dup length 4 -1 roll put not { exit } if
+    } loop pop
+		% Concatenate the contents into one big string.
+		% Stack: dict filters parms CloseSource contdict
+    0 1 index { length exch pop add } forall
+    .bigstring exch {
+		% Stack: dict filters parms CloseSource string index substring
+      exch 1000 mul exch 2 index 3 1 roll putinterval
+    } forall
+		% Now create the stream on the string.
+    null 2 index .reusablestream
+  } if
+		% We created the stream successfully: clean up.
+  4 { exch pop } repeat
+  1 index type /dicttype eq { exch pop } if exch pop
+} odef
+
+filterdict /ReusableStreamDecode /.reusablestreamdecode load put
+
+% ------ UseCIEColor ------ %
+
+% The library maintains and detects the UseCIEColor device parameter,
+% but it doesn't have access to the resource dictionaries.  We also
+% want color space substitution to work in systems without a PostScript
+% interpreter.  Therefore, we eagerly inform the library of changes in
+% the (effective) ColorSpace category that might affect the operation of
+% UseCIEColor.  We must notice the following events:
+%	1) defineresource and undefineresource of the Default ColorSpaces.
+%	2) restore.
+%	3) Changes in current VM, which cause a different set of resources
+%	to become visible.
+% #1 is rare.  #2 is handled in C code.  If checking the ColorSpace
+% category on #3 turns out to be expensive, we can cache more information
+% about whether these operations actually affect UseCIEColor.
+
+% This operator implements color space substitution in the library:
+%	<index> <bool> .setsubstitutecolorspace -
+% <bool> = true means substitute the current color space for the one given
+% by <index>; <bool> = false means stop substituting.  Substitution is not
+% affected by grestore/setgstate, but it is affected by restore.
+
+% ColorSpace defineresource and undefineresource for the Default keys
+% call .definedefaultcs and .undefinedefaultcs.  See gs_res.ps.
+
+/.useciecolorkeydict mark
+  /UseCIEColor null
+.dicttomark readonly def
+/.definedefaultcs {	% <index> <value> .definedefaultcs -
+  currentcolorspace
+	% Temporarily disable color substitution, in case the substitute
+	% color space is or mentions a color space that is currently
+	%  being substituted.
+  currentdevice //.useciecolorkeydict .getdeviceparams exch pop exch pop
+  mark 5 -2 roll
+	% Stack: cspace UseCIEColor mark index value
+   { setcolorspace true .setsubstitutecolorspace }
+  stopped counttomark 1 add 1 roll cleartomark
+	% Stack: cspace UseCIEColor stopped?
+  3 1 roll
+  currentdevice null true mark /UseCIEColor 6 -1 roll .putdeviceparams pop pop
+  setcolorspace { stop } if
+} bind def
+currentdict /.useciecolorkeydict undef
+
+/.undefinedefaultcs {	% <index> .undefinedefaultcs -
+  false .setsubstitutecolorspace
+} bind def
+
+/.setdefaultcs {	% <index> <value|null> .setdefaultcs -
+  dup null eq { pop .undefinedefaultcs } { .definedefaultcs } ifelse
+} bind def
+
+/.getdefaultcs {	% <key> .getdefaultcs <value|null>
+  .GetInstance { 0 get } { null } ifelse
+} bind def
+
+/.setglobal {		% <bool> .setglobal -
+  dup .currentglobal ne {
+	% We only want to change substitutions for color spaces
+	% whose definitions are actually changing.
+    /ColorSpace /Category findresource begin
+	% If there are no local definitions of the Default keys,
+	% changing VM can't affect the definition of any resource.
+    .LocalDefaults {
+      /DefaultGray .getdefaultcs
+      /DefaultRGB .getdefaultcs
+      /DefaultCMYK .getdefaultcs
+      end
+      3 index .setglobal
+      /ColorSpace /Category findresource begin
+      /DefaultGray .getdefaultcs
+      /DefaultRGB .getdefaultcs
+      /DefaultCMYK .getdefaultcs
+      end
+			% Stack: bool oldgray oldrgb oldcmyk
+			%   newgray newrgb newcmyk
+      dup 4 index ne { 2 exch .setdefaultcs } { pop } ifelse
+      dup 4 index ne { 1 exch .setdefaultcs } { pop } ifelse
+      dup 4 index ne { 0 exch .setdefaultcs } { pop } ifelse
+      pop pop pop pop
+    } {
+      end .setglobal
+    } ifelse
+  } {
+    .setglobal
+  } ifelse
+} .bind odef		% bind in .setglobal
+
+% ------ DeviceN color space ------ %
+
+% This isn't quite right, because the ColorSpaceFamily resource will exist
+% even with languagelevel < 3, but it's close enough.
+
+/.setdevicenspace where {
+  pop colorspacedict /DeviceN {
+    dup 2 get setcolorspace dup .setdevicenspace
+  } bind put
+} if
+
+% ------ Miscellaneous ------ %
+
+% Define additional user and system parameters.
+/HalftoneMode 0 .definepsuserparam
+/MaxSuperScreen 1016 .definepsuserparam
+pssystemparams begin		% read-only, so use .forcedef
+  /MaxDisplayAndSourceList 160000 .forcedef
+end
+
+% Define the IdiomSet resource category.
+{ /IdiomSet } {
+  /Generic /Category findresource dup maxlength 3 add dict .copydict begin
+    /InstanceType /dicttype def
+  currentdict end /Category defineresource pop
+} forall
+
+/languagelevel 3 def
+% When running in LanguageLevel 3 mode, this interpreter is supposed to be
+% compatible with Adobe version 3010.
+/version (3010) readonly def
+
+.setlanguagelevel
+
+end			% ll3dict

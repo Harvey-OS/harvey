@@ -36,7 +36,7 @@ consserve1(void)
 {
 	int i, ch;
 
-	conslock();
+	/*conslock();*/
 
 loop:
 
@@ -62,7 +62,7 @@ loop:
 			goto loop;
 		case 'D' - '@':
 			print("\n");
-			conslock();
+			/*conslock();*/
 			goto loop;
 		}
 	}
@@ -71,8 +71,12 @@ loop:
 
 static
 int
-cmdcmp(Command *a, Command *b)
+cmdcmp(void *va, void *vb)
 {
+	Command *a, *b;
+
+	a = va;
+	b = vb;
 	return strcmp(a->arg0, b->arg0);
 }
 
@@ -140,11 +144,8 @@ cmd_exec(char *arg)
 
 static
 void
-cmd_halt(int argc, char *argv[])
+cmd_halt(int, char *[])
 {
-
-	USED(argc);
-	USED(argv);
 
 	wlock(&mainlock);	/* halt */
 	sync("halt");
@@ -164,7 +165,7 @@ cmd_duallow(int argc, char *argv[])
 
 	uid = strtouid(argv[1]);
 	if(uid < 0)
-		uid = number(argv[1], -1, 10);
+		uid = number(argv[1], -2, 10);
 	if(uid < 0) {
 		print("bad uid %s\n", argv[1]);
 		return;
@@ -212,21 +213,18 @@ cmd_stats(int argc, char *argv[])
 
 static
 void
-cmd_stata(int argc, char *argv[])
+cmd_stata(int, char *[])
 {
 	int i;
 
-	USED(argc);
-	USED(argv);
-
 	print("cons stats\n");
-	print("	work = %F rps\n", (Filta){&cons.work, 1});
-	print("	rate = %F tBps\n", (Filta){&cons.rate, 1000});
-	print("	hits = %F iops\n", (Filta){&cons.bhit, 1});
-	print("	read = %F iops\n", (Filta){&cons.bread, 1});
-	print("	rah  = %F iops\n", (Filta){&cons.brahead, 1});
-	print("	init = %F iops\n", (Filta){&cons.binit, 1});
-	print("	bufs =    %3ld sm %3ld lg %d res\n",
+	print("	work =%7F%7F%7F rps\n", cons.work+0, cons.work+1, cons.work+2);
+	print("	rate =%7F%7F%7F tBps\n", cons.rate+0, cons.rate+1, cons.rate+2);
+	print("	hits =%7F%7F%7F iops\n", cons.bhit+0, cons.bhit+1, cons.bhit+2);
+	print("	read =%7F%7F%7F iops\n", cons.bread+0, cons.bread+1, cons.bread+2);
+	print("	rah  =%7F%7F%7F iops\n", cons.brahead+0, cons.brahead+1, cons.brahead+2);
+	print("	init =%7F%7F%7F iops\n", cons.binit+0, cons.binit+1, cons.binit+2);
+	print("	bufs =    %3ld sm %3ld lg %ld res\n",
 		cons.nsmall, cons.nlarge, cons.nreseq);
 
 	for(i=0; i<nelem(mballocs); i++)
@@ -241,8 +239,12 @@ cmd_stata(int argc, char *argv[])
 
 static
 int
-flagcmp(Flag *a, Flag *b)
+flagcmp(void *va, void *vb)
 {
+	Flag *a, *b;
+
+	a = va;
+	b = vb;
 	return strcmp(a->arg0, b->arg0);
 }
 
@@ -280,10 +282,10 @@ cmd_flag(int argc, char *argv[])
 			print("%.4lux %s %s\n",
 				flag[i].flag, flag[i].arg0, flag[i].help);
 		if(cons.flags)
-			print("flag[*]   = %.4ux\n", cons.flags);
+			print("flag[*]   = %.4lux\n", cons.flags);
 		for(cp = chans; cp; cp = cp->next)
 			if(cp->flags)
-				print("flag[%3d] = %.4ux\n", cp->chan, cp->flags);
+				print("flag[%3d] = %.4lux\n", cp->chan, cp->flags);
 		return;
 	}
 
@@ -308,7 +310,7 @@ cmd_flag(int argc, char *argv[])
 		cons.flags ^= f;
 		if(f == 0)
 			cons.flags = 0;
-		print("flag      = %.8ux\n", cons.flags);
+		print("flag      = %.8lux\n", cons.flags);
 		return;
 	}
 	for(cp = chans; cp; cp = cp->next) {
@@ -316,7 +318,7 @@ cmd_flag(int argc, char *argv[])
 			cp->flags ^= f;
 			if(f == 0)
 				cp->flags = 0;
-			print("flag[%3d] = %.8ux\n", cp->chan, cp->flags);
+			print("flag[%3d] = %.8lux\n", cp->chan, cp->flags);
 			return;
 		}
 	}
@@ -328,6 +330,7 @@ void
 cmd_who(int argc, char *argv[])
 {
 	Chan *cp;
+	ulong t;
 	int i;
 
 	for(cp = chans; cp; cp = cp->next)
@@ -339,22 +342,55 @@ cmd_who(int argc, char *argv[])
 				continue;
 			}
 		brk:
-			print("%3d: %10s %24s %T %.4ux\n",
+			print("%3d: %10s %24s%7F%7F",
 				cp->chan,
 				cp->whoname,
 				cp->whochan,
-				cp->whotime,
-				cp->flags);
+				&cp->work,
+				&cp->rate);
+			switch(cp->type) {
+			case Devil:
+				t = MACHP(0)->ticks * (1000/HZ);
+				print(" (%d,%d)", cp->ilp.alloc, cp->ilp.state);
+				print(" (%ld,%ld,%ld)",
+					cp->ilp.timeout-t, cp->ilp.querytime-t,
+					cp->ilp.lastrecv-t);
+				print(" (%ld,%ld,%ld,%ld)", cp->ilp.rate, cp->ilp.delay,
+					cp->ilp.mdev, cp->ilp.unackedbytes);
+				break;
+			}
+			print("\n");
 			prflush();
 		}
 }
 
 static
 void
-cmd_sync(int argc, char *argv[])
+cmd_hangup(int argc, char *argv[])
 {
-	USED(argc);
-	USED(argv);
+	Chan *cp;
+	int n;
+
+	if(argc < 2) {
+		print("usage: hangup chan number\n");
+		return;
+	}
+	n = number(argv[1], -1, 10);
+	for(cp = chans; cp; cp = cp->next) {
+		if(cp->whotime == 0) {
+			if(cp->chan == n)
+				print("that chan is hung up\n");
+			continue;
+		}
+		if(cp->chan == n)
+			fileinit(cp);
+	}
+}
+
+static
+void
+cmd_sync(int, char *[])
+{
 
 	wlock(&mainlock);	/* sync */
 	sync("command");
@@ -386,11 +422,9 @@ static
 void
 cmd_date(int argc, char *argv[])
 {
-	long t, ct;
+	ulong ct;
+	long t;
 	char *arg;
-
-	USED(argc);
-	USED(argv);
 
 	if(argc <= 1)
 		goto out;
@@ -413,8 +447,24 @@ cmd_date(int argc, char *argv[])
 		ct -= t;
 	}
 	settime(ct);
+	setrtc(ct);
+
 out:
 	prdate();
+}
+
+void
+cmd_fstat(int argc, char *argv[])
+{
+	int i;
+
+	for(i=1; i<argc; i++) {
+		if(walkto(argv[i])) {
+			print("cant stat %s\n", argv[i]);
+			continue;
+		}
+		con_fstat(FID2);
+	}
 }
 
 void
@@ -450,17 +500,17 @@ cmd_create(int argc, char *argv[])
 	strcpy(elem, p);
 
 	uid = strtouid(argv[2]);
-	if(uid < 0)
-		uid = number(argv[2], -1, 10);
-	if(uid < 0) {
+	if(uid < -1)
+		uid = number(argv[2], -2, 10);
+	if(uid < -1) {
 		print("bad uid %s\n", argv[2]);
 		return;
 	}
 
 	gid = strtouid(argv[3]);
-	if(gid < 0)
-		gid = number(argv[3], -1, 10);
-	if(gid < 0) {
+	if(gid < -1)
+		gid = number(argv[3], -2, 10);
+	if(gid < -1) {
 		print("bad gid %s\n", argv[3]);
 		return;
 	}
@@ -495,6 +545,105 @@ cmd_clri(int argc, char *argv[])
 	}
 }
 
+void
+ckblock(Device *d, long a, int typ, long qpath)
+{
+	Iobuf *p;
+
+	if(a) {
+		p = getbuf(d, a, Bread);
+		checktag(p, typ, qpath);
+		if(p)
+			putbuf(p);
+	}
+}
+
+void
+doclean(Iobuf *p, Dentry *d, int n, long a)
+{
+	int i, mod, typ;
+	long qpath;
+
+	mod = 0;
+	qpath = d->qid.path;
+	typ = Tfile;
+	if(d->mode & DDIR)
+		typ = Tdir;
+	for(i=0; i<NDBLOCK; i++) {
+		print("dblock[%d] = %ld\n", i, d->dblock[i]);
+		ckblock(p->dev, d->dblock[i], typ, qpath);
+		if(i == n) {
+			d->dblock[i] = a;
+			mod = 1;
+			print("dblock[%d] modified %ld\n", i, a);
+		}
+	}
+
+	print("iblock[%d] = %ld\n", NDBLOCK, d->iblock);
+	ckblock(p->dev, d->iblock, Tind1, qpath);
+	if(NDBLOCK == n) {
+		d->iblock = a;
+		mod = 1;
+		print("iblock[%d] modified %ld\n", NDBLOCK, a);
+	}
+
+	print("diblock[%d] = %ld\n", NDBLOCK+1, d->diblock);
+	ckblock(p->dev, d->diblock, Tind2, qpath);
+	if(NDBLOCK+1 == n) {
+		d->diblock = a;
+		mod = 1;
+		print("diblock[%d] modified %ld\n", NDBLOCK+1, a);
+	}
+
+	if(mod)
+		p->flags |= Bmod|Bimm;
+}
+
+static
+void
+cmd_clean(int argc, char *argv[])
+{
+	int n;
+	long a;
+	Iobuf *p;
+	Dentry *d;
+	File *f;
+
+	p = 0;
+	f = 0;
+	while(argc > 1) {
+		n = -1;
+		if(argc > 2)
+			n = number(argv[2], -1, 10);
+		a = 0;
+		if(argc > 3)
+			a = number(argv[3], 0, 10);
+		if(walkto(argv[1])) {
+			print("cant remove %s\n", argv[1]);
+			break;
+		}
+		f = filep(cons.chan, FID2, 0);
+		if(!f)
+			break;
+		if(n >= 0 && f->fs->dev->type == Devro) {
+			print("readonly %s\n", argv[1]);
+			break;
+		}
+		p = getbuf(f->fs->dev, f->addr, Bread);
+		d = getdir(p, f->slot);
+		if(!d || !(d->mode & DALLOC)) {
+			print("not alloc %s\n", argv[1]);
+			break;
+		}
+		doclean(p, d, n, a);
+		break;
+	}
+	if(f)
+		qunlock(f);
+	if(p)
+		putbuf(p);
+}
+
 static
 void
 cmd_remove(int argc, char *argv[])
@@ -512,11 +661,8 @@ cmd_remove(int argc, char *argv[])
 
 static
 void
-cmd_version(int argc, char *argv[])
+cmd_version(int, char *[])
 {
-
-	USED(argc);
-	USED(argv);
 
 	print("%s as of %T\n", service, mktime);
 	print("	last boot %T\n", boottime);
@@ -615,13 +761,12 @@ cmd_time(int argc, char *argv[])
 	}
 	cmd_exec(conline);
 	t2 = MACHP(0)->ticks;
-	print("time = %d ms\n", (t2-t1)*MS2HZ);
+	print("time = %ld ms\n", TK2MS(t2-t1));
 }
 
 void
-cmd_noattach(int argc, char *argv[])
+cmd_noattach(int, char *[])
 {
-	USED(argc, argv);
 
 	noattach = !noattach;
 	if(noattach)
@@ -629,12 +774,11 @@ cmd_noattach(int argc, char *argv[])
 }
 
 void
-cmd_files(int argc, char *argv[])
+cmd_files(int, char *[])
 {
 	long i, n;
 	Chan *cp;
 
-	USED(argc, argv);
 	for(cp = chans; cp; cp = cp->next)
 		cp->nfile = 0;
 
@@ -651,7 +795,7 @@ cmd_files(int argc, char *argv[])
 	n = 0;
 	for(cp = chans; cp; cp = cp->next) {
 		if(cp->nfile) {
-			print("%3d: %5ld\n",
+			print("%3d: %5d\n",
 				cp->chan,
 				cp->nfile);
 			prflush();
@@ -666,12 +810,14 @@ void
 installcmds(void)
 {
 	cmd_install("cfs", "[file] -- set current filesystem", cmd_cfs);
+	cmd_install("clean", "file [bno [addr]] -- block print/fix", cmd_clean);
 	cmd_install("check", "[options]", cmd_check);
 	cmd_install("clri", "[file ...] -- purge files/dirs", cmd_clri);
 	cmd_install("create", "path uid gid perm [lad] -- make a file/dir", cmd_create);
 	cmd_install("date", "[[+-]seconds] -- print/set date", cmd_date);
 	cmd_install("duallow", "uid -- duallow", cmd_duallow);
 	cmd_install("flag", "-- print set flags", cmd_flag);
+	cmd_install("fstat", "path -- print info on a file/dir", cmd_fstat);
 	cmd_install("halt", "-- return to boot rom", cmd_halt);
 	cmd_install("help", "", cmd_help);
 	cmd_install("newuser", "username -- add user to /adm/users", cmd_newuser);
@@ -684,12 +830,14 @@ installcmds(void)
 	cmd_install("users", "[file] -- read /adm/users", cmd_users);
 	cmd_install("version", "-- print time of mk and boot", cmd_version);
 	cmd_install("who", "[user ...] -- print attaches", cmd_who);
+	cmd_install("hangup", "chan -- clunk files", cmd_hangup);
 	cmd_install("passwd", "passwd -- set passkey, id, and domain", cmd_passwd);
 	cmd_install("noattach", "toggle noattach flag", cmd_noattach);
 	cmd_install("files", "report on files structure", cmd_files);
 
 	attachflag = flag_install("attach", "-- attach calls");
 	chatflag = flag_install("chat", "-- verbose");
+	errorflag = flag_install("error", "-- on errors");
 }
 
 int

@@ -89,7 +89,7 @@ Inst cop1[] = {
 void
 unimp(ulong inst)
 {
-	print("op %d\n", inst&0x3f);
+	print("op %ld\n", inst&0x3f);
 	Bprint(bioout, "Unimplemented floating point Trap IR %.8lux\n", inst);
 	longjmp(errjmp, 0);
 }

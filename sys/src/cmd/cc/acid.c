@@ -56,28 +56,54 @@ acidfun(Type *t)
 	return 0;
 }
 
-char	acidchar[] =
+char	acidchar[NTYPE];
+Init	acidcinit[] =
 {
-	[TCHAR]		'C',
-	[TUCHAR]	'b',
-	[TSHORT]	'd',
-	[TUSHORT]	'u',
-	[TLONG]		'D',
-	[TULONG]	'U',
-	[TVLONG]	'V',
-	[TUVLONG]	'W',
-	[TFLOAT]	'f',
-	[TDOUBLE]	'F',
-	[TARRAY]	'a',
-	[TIND]		'X',
+	TCHAR,		'C',	0,
+	TUCHAR,		'b',	0,
+	TSHORT,		'd',	0,
+	TUSHORT,	'u',	0,
+	TLONG,		'D',	0,
+	TULONG,		'U',	0,
+	TVLONG,		'V',	0,
+	TUVLONG,	'W',	0,
+	TFLOAT,		'f',	0,
+	TDOUBLE,	'F',	0,
+	TARRAY,		'a',	0,
+	TIND,		'X',	0,
+	-1,		0,	0,
 };
+
+static void
+acidinit(void)
+{
+	Init *p;
+
+	for(p=acidcinit; p->code >= 0; p++)
+		acidchar[p->code] = p->value;
+
+	acidchar[TINT] = acidchar[TLONG];
+	acidchar[TUINT] = acidchar[TULONG];
+	if(types[TINT]->width != types[TLONG]->width) {
+		acidchar[TINT] = acidchar[TSHORT];
+		acidchar[TUINT] = acidchar[TUSHORT];
+		if(types[TINT]->width != types[TSHORT]->width)
+			warn(Z, "acidmember int not long or short");
+	}
+	
+}
 
 void
 acidmember(Type *t, long off, int flag)
 {
 	Sym *s, *s1;
 	Type *l;
+	static int acidcharinit = 0;
 
+	if(acidcharinit == 0) {
+		acidinit();
+		acidcharinit = 1;
+	}
 	s = t->sym;
 	switch(t->etype) {
 	default:
@@ -100,11 +126,14 @@ acidmember(Type *t, long off, int flag)
 				}
 			}
 		} else {
-			Bprint(&outbuf, "\tprint(\"\t%s\t\", addr.%s\\X, \"\\n\");\n",
+			Bprint(&outbuf,
+				"\tprint(\"\t%s\t\", addr.%s\\X, \"\\n\");\n",
 				amap(s->name), amap(s->name));
 			break;
 		}
 
+	case TINT:
+	case TUINT:
 	case TCHAR:
 	case TUCHAR:
 	case TSHORT:
@@ -153,7 +182,7 @@ acidmember(Type *t, long off, int flag)
 			} else {
 				Bprint(&outbuf, "\tprint(\"%s {\\n\");\n",
 					amap(s1->name));
-				Bprint(&outbuf, "\t\t%s(addr+%d);\n",
+				Bprint(&outbuf, "\t\t%s(addr+%ld);\n",
 					amap(s1->name), t->offset+off);
 				Bprint(&outbuf, "\tprint(\"}\\n\");\n");
 			}
@@ -193,7 +222,7 @@ acidtype(Type *t)
 		if(debug['s'])
 			goto asmstr;
 		an = amap(s->name);
-		Bprint(&outbuf, "sizeof%s = %d;\n", an, t->width);
+		Bprint(&outbuf, "sizeof%s = %ld;\n", an, t->width);
 		Bprint(&outbuf, "aggr %s\n{\n", an);
 		for(l = t->link; l != T; l = l->down)
 			acidmember(l, 0, 1);
@@ -239,6 +268,14 @@ acidvar(Sym *s)
 		t = t->link;
 	if(t == T)
 		return;
+	if(t->etype == TENUM) {
+		Bprint(&outbuf, "%s = ", amap(s->name));
+		if(!typefd[t->etype])
+			Bprint(&outbuf, "%lld;\n", s->vconst);
+		else
+			Bprint(&outbuf, "%f\n;", s->fconst);
+		return;
+	}
 	if(!typesu[t->etype])
 		return;
 	s1 = acidsue(t->link);

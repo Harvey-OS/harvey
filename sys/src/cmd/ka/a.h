@@ -1,10 +1,18 @@
-#pragma	lib	"../cc/cc.a$O"
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include "../kc/k.out.h"
+
+#ifndef	EXTERN
+#define	EXTERN	extern
+#endif
 
 typedef	struct	Sym	Sym;
 typedef	struct	Gen	Gen;
 typedef	struct	Io	Io;
 typedef	struct	Hist	Hist;
 
+#define	MAXALIGN	7
 #define	FPCHIP		1
 #define	NSYMB		500
 #define	BUFSIZ		8192
@@ -18,25 +26,6 @@ typedef	struct	Hist	Hist;
 #define	STRINGSZ	200
 #define	NMACRO		10
 
-#define	ALLOC(lhs, type)\
-	while(nhunk < sizeof(type))\
-		gethunk();\
-	lhs = (type*)hunk;\
-	nhunk -= sizeof(type);\
-	hunk += sizeof(type);
-
-#define	ALLOCN(lhs, len, n)\
-	if(lhs+len != hunk || nhunk < n) {\
-		while(nhunk <= len)\
-			gethunk();\
-		memmove(hunk, lhs, len);\
-		lhs = hunk;\
-		hunk += len;\
-		nhunk -= len;\
-	}\
-	hunk += n;\
-	nhunk -= n;
-
 struct	Sym
 {
 	Sym*	link;
@@ -48,7 +37,7 @@ struct	Sym
 };
 #define	S	((Sym*)0)
 
-struct
+EXTERN	struct
 {
 	char*	p;
 	int	c;
@@ -64,7 +53,7 @@ struct	Io
 };
 #define	I	((Io*)0)
 
-struct
+EXTERN	struct
 {
 	Sym*	sym;
 	short	type;
@@ -99,36 +88,38 @@ enum
 	CPREPROC,
 };
 
-char	debug[256];
-Sym*	hash[NHASH];
-char*	Dlist[30];
-int	nDlist;
-Hist*	ehist;
-int	newflag;
-Hist*	hist;
-char*	hunk;
-char*	include[NINCLUDE];
-Io*	iofree;
-Io*	ionext;
-Io*	iostack;
-int	lineno;
-int	nerrors;
-long	nhunk;
-int	ninclude;
-int	nosched;
-Gen	nullgen;
-char*	outfile;
-int	pass;
-char*	pathname;
-long	pc;
-int	peekc;
-int	sym;
-char	symb[NSYMB];
-int	thechar;
-char*	thestring;
-long	thunk;
-Biobuf	obuf;
+EXTERN	char	debug[256];
+EXTERN	Sym*	hash[NHASH];
+EXTERN	char*	Dlist[30];
+EXTERN	int	nDlist;
+EXTERN	Hist*	ehist;
+EXTERN	int	newflag;
+EXTERN	Hist*	hist;
+EXTERN	char*	hunk;
+EXTERN	char*	include[NINCLUDE];
+EXTERN	Io*	iofree;
+EXTERN	Io*	ionext;
+EXTERN	Io*	iostack;
+EXTERN	long	lineno;
+EXTERN	int	nerrors;
+EXTERN	long	nhunk;
+EXTERN	int	ninclude;
+EXTERN	int	nosched;
+EXTERN	Gen	nullgen;
+EXTERN	char*	outfile;
+EXTERN	int	pass;
+EXTERN	char*	pathname;
+EXTERN	long	pc;
+EXTERN	int	peekc;
+EXTERN	int	sym;
+EXTERN	char	symb[NSYMB];
+EXTERN	int	thechar;
+EXTERN	char*	thestring;
+EXTERN	long	thunk;
+EXTERN	Biobuf	obuf;
 
+void*	alloc(long);
+void*	allocn(void*, long, long);
 void	errorexit(void);
 void	pushio(void);
 void	newio(void);
@@ -162,15 +153,30 @@ void	macend(void);
 void	dodefine(char*);
 void	prfile(long);
 void	outhist(void);
-void	linehist(char*, long);
+void	linehist(char*, int);
 void	gethunk(void);
 void	yyerror(char*, ...);
 int	yyparse(void);
+void	setinclude(char*);
+int	assemble(char*);
 
 /*
- *	compat
+ *	system-dependent stuff from ../cc/compat.c
  */
-int	mywait(void*);
+
+enum				/* keep in synch with ../cc/cc.h */
+{
+	Plan9	= 1<<0,
+	Unix	= 1<<1,
+	Windows	= 1<<2,
+};
+int	mywait(int*);
 int	mycreat(char*, int);
-char*	myerrstr(int);
-int	unix(void);
+int	systemtype(int);
+int	pathchar(void);
+char*	mygetwd(char*, int);
+int	myexec(char*, char*[]);
+int	mydup(int, int);
+int	myfork(void);
+int	mypipe(int*);
+void*	mysbrk(ulong);

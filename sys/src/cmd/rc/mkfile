@@ -32,7 +32,6 @@ YFILES=syn.y
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-CFLAGS=
 
 x.tab.h: y.tab.h
 	cmp -s x.tab.h y.tab.h || cp y.tab.h x.tab.h

@@ -87,13 +87,8 @@ isip(char *name)
 	return dot;
 }
 
-enum
-{
-	Ntuple=	64,
-};
-
-char tup[Ntuple][64];
-int ttype[Ntuple];
+char tup[64][64];
+int ttype[64];
 int ntup;
 
 void
@@ -158,11 +153,10 @@ main(void)
 
 	Binit(&in, 0, OREAD);
 	Binit(&out, 1, OWRITE);
-	setfields(" \t");
 	ntup = 0;
 	while(l = Brdline(&in, '\n')){
 		l[Blinelen(&in)-1] = 0;
-		n = getmfields(l, fields, NFIELDS);
+		n = getfields(l, fields, NFIELDS, 1, " \t");
 		same = 0;
 		for(i = 0; i < n; i++){
 			if(iscomment(fields[i])){
@@ -196,7 +190,7 @@ main(void)
 					break;
 				}
 			}
-			if(!match && ntup < Ntuple){
+			if(!match){
 				ttype[ntup] = ftype[i];
 				strcpy(tup[ntup], fields[i]);
 				ntup++;

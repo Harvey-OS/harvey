@@ -32,7 +32,7 @@ Read(int f, void *a, int n)
 
 	if(read(f, (char *)a, n)!=n) {
 		if (lastfile)
-			lastfile->state = Readerr;
+			lastfile->rescuing = 1;
 		errstr(buf);
 		if (downloaded)
 			fprint(2, "read error: %s\n", buf);

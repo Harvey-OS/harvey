@@ -93,12 +93,12 @@ devcntl(Biobufhdr *inp) {
 
 	case 'H':			/* char height */
 		Bgetfield(inp, 'd', &n, 0);
-		/* charhgt(n); */
+		t_charht(n);
 		break;
 
 	case 'S':			/* slant */
 		Bgetfield(inp, 'd', &n, 0);
-		/* t_slant(n); */
+		t_slant(n);
 		break;
 
 	case 'T':			/* device name */

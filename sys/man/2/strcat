@@ -209,13 +209,6 @@ is the null string,
 .I strstr
 returns
 .IR s1 .
-.SS Alef
-The routines
-.IR strcspn ,
-.IR strpbrk ,
-and
-.I strspn
-are not provided in Alef.
 .SH SOURCE
 All these routines have portable C implementations in
 .BR /sys/src/libc/port .
@@ -231,8 +224,12 @@ These routines know nothing about
 Use the routines in
 .IR rune (2)
 as appropriate.
-Note, however, that the definition of UTF guarantees that
+Note, however, that the definition of
+.SM UTF
+guarantees that
 .I strcmp
-compares UTF strings correctly.
+compares
+.SM UTF
+strings correctly.
 .PP
 The outcome of overlapping moves varies among implementations.

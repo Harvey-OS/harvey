@@ -17,7 +17,7 @@ for(x){
 	}
 }
 
-dir = /mnt/8½
+dir = /mnt/wsys
 if(! test -f $dir/cons)
 	dir = /mnt/term/$dir
 id=`{cat $dir/new/ctl}

@@ -15,19 +15,29 @@ cgen(Node *n, Node *nn)
 	}
 	if(n == Z || n->type == T)
 		return;
-	if(typesu[n->type->etype] || typev[n->type->etype]) {
+	if(typesuv[n->type->etype]) {
 		sugen(n, nn, n->type->width);
 		return;
 	}
-	if(n->addable > INDEXED) {
-		if(nn != Z)
-			gmove(n, nn);
-		return;
-	}
-	curs = cursafe;
 	l = n->left;
 	r = n->right;
 	o = n->op;
+	if(n->addable >= INDEXED) {
+		if(nn == Z) {
+			switch(o) {
+			default:
+				nullwarn(Z, Z);
+				break;
+			case OINDEX:
+				nullwarn(l, r);
+				break;
+			}
+			return;
+		}
+		gmove(n, nn);
+		return;
+	}
+	curs = cursafe;
 
 	if(n->complex >= FNX)
 	if(l->complex >= FNX)
@@ -65,9 +75,14 @@ cgen(Node *n, Node *nn)
 			goto bitas;
 		if(l->addable >= INDEXED) {
 			if(nn != Z || r->addable < INDEXED) {
-				regalloc(&nod, r, nn);
+				if(r->complex >= FNX && nn == Z)
+					regret(&nod, r);
+				else
+					regalloc(&nod, r, nn);
 				cgen(r, &nod);
 				gmove(&nod, l);
+				if(nn != Z)
+					gmove(&nod, nn);
 				regfree(&nod);
 			} else
 				gmove(r, l);
@@ -498,11 +513,6 @@ cgen(Node *n, Node *nn)
 		break;
 	}
 	cursafe = curs;
-	return;
-
-bad:
-	cursafe = curs;
-	diag(n, "%O not implemented", o);
 }
 
 void
@@ -877,14 +887,13 @@ sugen(Node *n, Node *nn, long w)
 			nod4 = znode;
 			nod4.op = OCONST;
 			nod4.type = nod2.type;
-			nod4.xoffset = t->offset;
+			nod4.vconst = t->offset;
 
 			ccom(&nod0);
 			acom(&nod0);
 			xcom(&nod0);
 			nod0.addable = 0;
 
-			/* prtree(&nod0, "hand craft"); /* */
 			cgen(&nod0, Z);
 		}
 		break;

@@ -26,7 +26,7 @@ getS(int fd, char *buf, Fcall *f, long *lp)
 			return "read error";
 		m = convM2S(buf, f, n);
 		if(m == 0){
-			fprint(2, "getS: retry bad type, n=%d\n", n);
+			fprint(2, "getS: retry bad type, n=%ld\n", n);
 			for(j=0; j<10; j++)
 				fprint(2, "%.2ux ", buf[j]&0xFF);
 			fprint(2, "\n");

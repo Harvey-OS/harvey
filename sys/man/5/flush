@@ -45,15 +45,21 @@ can never be responded to by an
 .B Rerror
 message.
 .PP
-When the client sends the
+When the client sends a 
 .BR Tflush ,
-it should disregard all messages received with tag
-.I oldtag
-until the corresponding
+it must wait to receive the corresponding
 .B Rflush
-is received, at which point
+before reusing
 .I oldtag
-may be recycled for subsequent messages.
+for subsequent messages.
+If a response to the flushed request is received before the
+.BR Rflush ,
+the transaction is considered to have finished,
+and should be treated as though it had not been flushed.
+If no response is received before the 
+.BR Rflush ,
+the flushed transaction is considered to have been canceled,
+and should be treated as though it had never been sent.
 .PP
 Several exceptional conditions are handled correctly by the above specification:
 sending multiple flushes for a single tag,

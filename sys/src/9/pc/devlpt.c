@@ -10,11 +10,12 @@
 
 /* base addresses */
 static int lptbase[] = {
-	0x3bc,	/* lpt1 */
-	0x378,	/* lpt2 (sic) */
+	0x378,	/* lpt1 */
+	0x3bc,	/* lpt2 */
 	0x278	/* lpt3 (sic) */
 };
-#define NDEV	(sizeof lptbase/sizeof lptbase[0])
+#define NDEV	nelem(lptbase)
+static int lptallocd[NDEV];
 
 /* offsets, and bits in the registers */
 enum
@@ -51,7 +52,6 @@ Dirtab lptdir[]={
 	"pcr",		{Qpcr},		0,		0222,
 	"data",		{Qdata},	0,		0222,
 };
-#define NLPT	(sizeof lptdir/sizeof lptdir[0])
 
 static int
 lptgen(Chan *c, Dirtab *tab, int ntab, int i, Dir *dp)
@@ -59,6 +59,11 @@ lptgen(Chan *c, Dirtab *tab, int ntab, int i, Dir *dp)
 	Qid qid;
 	char name[NAMELEN];
 
+	if(i == DEVDOTDOT){
+		sprint(name, "#L%lud", c->dev+1);
+		devdir(c, (Qid){CHDIR, 0}, name, 0, eve, 0555, dp);
+		return 1;
+	}
 	if(tab==0 || i>=ntab)
 		return -1;
 	tab += i;
@@ -66,107 +71,81 @@ lptgen(Chan *c, Dirtab *tab, int ntab, int i, Dir *dp)
 	if(qid.path < Qdata)
 		qid.path += lptbase[c->dev];
 	qid.vers = c->dev;
-	sprint(name, "lpt%d%s", c->dev+1, tab->name);
+	sprint(name, "lpt%lud%s", c->dev+1, tab->name);
 	devdir(c, qid, name, tab->length, eve, tab->perm, dp);
 	return 1;
 }
 
-void
-lptreset(void)
-{
-}
-
-void
-lptinit(void)
-{}
-
-Chan*
+static Chan*
 lptattach(char *spec)
 {
 	Chan *c;
 	int i  = (spec && *spec) ? strtol(spec, 0, 0) : 1;
+	char name[5];
 	static int set;
 
 	if(!set){
+		outb(lptbase[i-1]+Qpcr, 0);	/* turn off interrupts */
 		set = 1;
-		setvec(Parallelvec, lptintr, 0);
+		intrenable(IrqLPT, lptintr, 0, BUSUNKNOWN, "lpt");
 	}
 	if(i < 1 || i > NDEV)
 		error(Ebadarg);
+	if(lptallocd[i-1] == 0){
+		sprint(name, "lpt%d", i-1);
+		if(ioalloc(lptbase[i-1], 3, 0, name) < 0)
+			error("lpt port space in use");
+		lptallocd[i-1] = 1;
+	}
 	c = devattach('L', spec);
 	c->dev = i-1;
 	return c;
 }
 
-Chan*
-lptclone(Chan *c, Chan *nc)
-{
-	return devclone(c, nc);
-}
-
-int
+static int
 lptwalk(Chan *c, char *name)
 {
-	return devwalk(c, name, lptdir, NLPT, lptgen);
+	return devwalk(c, name, lptdir, nelem(lptdir), lptgen);
 }
 
-void
+static void
 lptstat(Chan *c, char *dp)
 {
-	devstat(c, dp, lptdir, NLPT, lptgen);
+	devstat(c, dp, lptdir, nelem(lptdir), lptgen);
 }
 
-Chan*
+static Chan*
 lptopen(Chan *c, int omode)
 {
-	return devopen(c, omode, lptdir, NLPT, lptgen);
+	return devopen(c, omode, lptdir, nelem(lptdir), lptgen);
 }
 
-void
-lptcreate(Chan *c, char *name, int omode, ulong perm)
+static void
+lptclose(Chan *)
 {
-	USED(c, name, omode, perm);
-	error(Eperm);
 }
 
-void
-lptclose(Chan *c)
+static long
+lptread(Chan *c, void *a, long n, vlong)
 {
-	USED(c);
-}
-
-void
-lptremove(Chan *c)
-{
-	USED(c);
-	error(Eperm);
-}
-
-void
-lptwstat(Chan *c, char *dp)
-{
-	USED(c, dp);
-	error(Eperm);
-}
-
-long
-lptread(Chan *c, void *a, long n)
-{
-	char str[16]; int size;
+	char str[16];
+	int size;
+	ulong o;
 
 	if(c->qid.path == CHDIR)
-		return devdirread(c, a, n, lptdir, NLPT, lptgen);
+		return devdirread(c, a, n, lptdir, nelem(lptdir), lptgen);
 	size = sprint(str, "0x%2.2ux\n", inb(c->qid.path));
-	if(c->offset >= size)
+	o = c->offset;
+	if(o >= size)
 		return 0;
-	if(c->offset+n > size)
+	if(o+n > size)
 		n = size-c->offset;
-	memmove(a, str+c->offset, n);
+	memmove(a, str+o, n);
 	return n;
 }
 
-long
-lptwrite(Chan *c, void *a, long n)
+static long
+lptwrite(Chan *c, void *a, long n, vlong)
 {
 	char str[16], *p;
 	long base, k;
@@ -222,8 +201,28 @@ lptready(void *base)
 }
 
 static void
-lptintr(Ureg *ur, void *a)
+lptintr(Ureg *, void *)
 {
-	USED(ur, a);
 	wakeup(&lptrendez);
 }
+
+Dev lptdevtab = {
+	'L',
+	"lpt",
+
+	devreset,
+	devinit,
+	lptattach,
+	devclone,
+	lptwalk,
+	lptstat,
+	lptopen,
+	devcreate,
+	lptclose,
+	lptread,
+	devbread,
+	lptwrite,
+	devbwrite,
+	devremove,
+	devwstat,
+};

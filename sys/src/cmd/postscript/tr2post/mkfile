@@ -1,7 +1,11 @@
 </$objtype/mkfile
 
+<../config
+
 COMMONDIR=../common
+
 TARG=tr2post
+
 OFILES=tr2post.$O\
 	chartab.$O\
 	Bgetfield.$O\
@@ -21,9 +25,9 @@ HFILES=tr2post.h\
 	$COMMONDIR/path.h\
 	$COMMONDIR/ext.h\
 
-BIN=/$objtype/bin/aux
+BIN=$POSTBIN
 
-< /sys/src/cmd/mkone
+</sys/src/cmd/mkone
 
 CFLAGS=-c -D'PROGRAMVERSION="0.1"' -D'DOROUND=1' -I$COMMONDIR
 

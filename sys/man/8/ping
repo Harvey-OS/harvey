@@ -1,0 +1,131 @@
+.TH PING 8
+.SH NAME
+ping, gping, traceroute \- probe the Internet
+.SH SYNOPSIS
+.B ping
+[
+.B -d
+] [
+.B -i
+.I interval
+] [
+.B -s
+.I size
+] [
+.B -n
+.I count
+]
+.I destination
+.PP
+.B gping
+[
+.B -r
+] [
+.B -l
+] [
+.B -i
+.I interval
+]
+.I destination
+[
+.I destination
+\&... ]
+.PP
+.B traceroute
+[
+.B -dn
+][
+.B -t
+.I tries
+]
+.I dest
+.SH DESCRIPTION
+.I Ping
+sends ICMP echo requests to a system and returns the time
+for a response.  It can be used to determine the network delay
+and whether or not the destination is up.
+.PP
+The options are:
+.TP
+.B n
+requests that a total of
+.I count
+messages be sent, default 32.
+.TP
+.B i
+sets the time between messages
+to be
+.I interval
+milliseconds, default 1000 ms.
+.TP
+.B s
+sets the length of the message to be
+.I size
+bytes, ICMP header included.
+The size cannot be smaller than 32 or
+larger than 8192.  The default is
+64.
+.TP
+.B d
+causes message numbers to be printed
+so that one can see the order with which
+messages are received and which are lost.
+.PP
+.I Gping
+is a
+.I ping
+with a graphical display.  It
+presents separate graphs for each destination
+specified.
+.PP
+The options are:
+.TP
+.B r
+display round trip time in seconds.
+This is the default.
+.TP
+.B l
+display percentage of lost messages.
+A message is considered lost if not
+replied to in 10 seconds.  The percentage
+is an exponentially weighted average.
+.TP
+.B i
+sets the time between messages
+to be
+.I interval
+milliseconds, default 5000 ms.
+.PP
+Graphs can be dropped and added using
+the button 3 menu.  Clicking button 1
+on a datapoint displays the value of the
+datapoint and the time it was recorded.
+.PP
+.I Traceroute
+displays the IP addresses and average round trip times to all
+routers between the machine it is run on and
+.IR dest .
+It does this by sending packets to
+.I dest
+with increasing times to live (TTL) in their headers.
+Each router that a packet expires at replies with an ICMP
+warning message.
+The options are:
+.TP
+.B d
+print debugging to standard error
+.TP
+.B n
+just print out IP numbers, don't try to
+look up the names of the routers.
+.TP
+.B t
+send
+.I tries
+packets at each TTL value (default 1).
+.SH SOURCE
+.B /sys/src/cmd/ip/ping.c
+.br
+.B /sys/src/cmd/ip/gping.c
+.br
+.B /sys/src/cmd/ip/traceroute.c

@@ -22,6 +22,7 @@ int morecode(void){
 	codebuf=(code *)realloc((char *)codebuf, ncode*sizeof codebuf[0]);
 	if(codebuf==0) panic("Can't realloc %d bytes in morecode!",
 				ncode*sizeof codebuf[0]);
+	return 0;
 }
 void stuffdot(int a){
 	if(a<0 || codep<=a) panic("Bad address %d in stuffdot", a);
@@ -190,6 +191,7 @@ void outcode(tree *t, int eflag)
 		outcode(c0, eflag);
 		emitf(Xexit);
 		stuffdot(p);
+		if(eflag) emitf(Xeflag);
 		break;
 	case SWITCH:
 		codeswitch(t, eflag);
@@ -357,7 +359,8 @@ void codeswitch(tree *t, int eflag)
 	int out;		/* jump here to leave switch */
 	int nextcase;	/* patch jump address to next case */
 	tree *tt;
-	if(c1->child[0]->type!=';'
+	if(c1->child[0]==nil
+	|| c1->child[0]->type!=';'
 	|| !iscase(c1->child[0]->child[0])){
 		yyerror("case missing in switch");
 		return;
@@ -384,7 +387,7 @@ void codeswitch(tree *t, int eflag)
 				t=c1;
 			}
 			else{
-				outcode(t, eflag);
+				if(!iscase(t)) outcode(t, eflag);
 				break;
 			}
 		}

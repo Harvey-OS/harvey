@@ -5,7 +5,7 @@ new(int t, Node *l, Node *r)
 {
 	Node *n;
 
-	ALLOC(n, Node);
+	n = alloc(sizeof(*n));
 	n->op = t;
 	n->left = l;
 	n->right = r;
@@ -115,7 +115,7 @@ typ(int et, Type *d)
 {
 	Type *t;
 
-	ALLOC(t, Type);
+	t = alloc(sizeof(*t));
 	t->etype = et;
 	t->link = d;
 	t->down = T;
@@ -124,7 +124,38 @@ typ(int et, Type *d)
 	t->offset = 0;
 	t->shift = 0;
 	t->nbits = 0;
+	t->garb = 0;
 	return t;
+}
+
+Type*
+garbt(Type *t, long b)
+{
+	Type *t1;
+
+	if(b & BGARB) {
+		t1 = typ(TXXX, T);
+		*t1 = *t;
+		t1->garb = simpleg(b);
+		return t1;
+	}
+	return t;
+}
+
+int
+simpleg(long b)
+{
+
+	b &= BGARB;
+	switch(b) {
+	case BCONSTNT:
+		return GCONSTNT;
+	case BVOLATILE:
+		return GVOLATILE;
+	case BVOLATILE|BCONSTNT:
+		return GCONSTNT|GVOLATILE;
+	}
+	return GXXX;
 }
 
 int
@@ -156,7 +187,7 @@ Type*
 simplet(long b)
 {
 
-	b &= ~BCLASS;
+	b &= ~BCLASS & ~BGARB;
 	switch(b) {
 	case BCHAR:
 	case BCHAR|BSIGNED:
@@ -179,11 +210,11 @@ simplet(long b)
 	case BINT:
 	case BINT|BSIGNED:
 	case BSIGNED:
-		return tint;
+		return types[TINT];
 
 	case BUNSIGNED:
 	case BUNSIGNED|BINT:
-		return tuint;
+		return types[TUINT];
 
 	case BLONG:
 	case BLONG|BINT:
@@ -218,13 +249,14 @@ simplet(long b)
 	}
 
 	diag(Z, "illegal combination of types %Q", b);
-	return tint;
+	return types[TINT];
 }
 
 int
 stcompat(Node *n, Type *t1, Type *t2, long ttab[])
 {
-	int i, b;
+	int i;
+	ulong b;
 
 	i = 0;
 	if(t2 != T)
@@ -450,6 +482,37 @@ allfloat(Node *n, int flag)
 }
 
 void
+constas(Node *n, Type *il, Type *ir)
+{
+	Type *l, *r;
+
+	l = il;
+	r = ir;
+
+	if(l == T)
+		return;
+	if(l->garb & GCONSTNT) {
+		warn(n, "assignment to a constant type (%T)", il);
+		return;
+	}
+	if(r == T)
+		return;
+	for(;;) {
+		if(l->etype != TIND || r->etype != TIND)
+			break;
+		l = l->link;
+		r = r->link;
+		if(l == T || r == T)
+			break;
+		if(r->garb & GCONSTNT)
+			if(!(l->garb & GCONSTNT)) {
+				warn(n, "assignment of a constant pointer type (%T)", ir);
+				break;
+			}
+	}
+}
+
+void
 typeext1(Type *st, Node *l)
 {
 	if(st->etype == TFLOAT && allfloat(l, 0))
@@ -542,19 +605,28 @@ nocast(Type *t1, Type *t2)
 int
 nilcast(Type *t1, Type *t2)
 {
-	int i, b;
+	int et1, et2;
 
+	if(t1 == T)
+		return 0;
 	if(t1->nbits)
 		return 0;
-	i = 0;
-	if(t2 != T)
-		i = t2->etype;
-	b = 1<<i;
-	i = 0;
-	if(t1 != T)
-		i = t1->etype;
-	if(b & lcast[i])
+	if(t2 == T)
+		return 0;
+	et1 = t1->etype;
+	et2 = t2->etype;
+	if(et1 == et2)
 		return 1;
+	if(typefd[et1] && typefd[et2]) {
+		if(ewidth[et1] < ewidth[et2])
+			return 1;
+		return 0;
+	}
+	if(typechlp[et1] && typechlp[et2]) {
+		if(ewidth[et1] < ewidth[et2])
+			return 1;
+		return 0;
+	}
 	return 0;
 }
 
@@ -590,7 +662,7 @@ arith(Node *n, int f)
 	} else {
 		/* convert up to at least int */
 		if(f == 1)
-		while(k < tint->etype)
+		while(k < TINT)
 			k += 2;
 		n->type = types[k];
 	}
@@ -617,8 +689,12 @@ arith(Node *n, int f)
 		n->left->type = n->type;
 		if(n->type->etype == TIND) {
 			w = n->type->link->width;
-			if(w < 1)
-				goto bad;
+			if(w < 1) {
+				snap(n->type->link);
+				w = n->type->link->width;
+				if(w < 1)
+					goto bad;
+			}
 			if(w > 1) {
 				n1 = new1(OCONST, Z, Z);
 				n1->vconst = w;
@@ -634,8 +710,12 @@ arith(Node *n, int f)
 		n->right->type = n->type;
 		if(n->type->etype == TIND) {
 			w = n->type->link->width;
-			if(w < 1)
-				goto bad;
+			if(w < 1) {
+				snap(n->type->link);
+				w = n->type->link->width;
+				if(w < 1)
+					goto bad;
+			}
 			if(w != 1) {
 				n1 = new1(OCONST, Z, Z);
 				n1->vconst = w;
@@ -647,7 +727,7 @@ arith(Node *n, int f)
 	}
 	return;
 bad:
-	diag(n, "illegal pointer operation");
+	diag(n, "pointer addition not fully declared: %T", n->type->link);
 }
 
 int
@@ -698,6 +778,7 @@ loop:
 		n = n->right;
 		goto loop;
 
+	case OSIGN:
 	case OSIZE:
 	case OCONST:
 	case OSTRING:
@@ -742,6 +823,8 @@ vconst(Node *n)
 	case TUCHAR:
 	case TSHORT:
 	case TUSHORT:
+	case TINT:
+	case TUINT:
 	case TLONG:
 	case TULONG:
 	case TIND:
@@ -752,6 +835,48 @@ vconst(Node *n)
 	}
 no:
 	return -159;	/* first uninteresting constant */
+}
+
+/*
+ * return log(n) if n is a power of 2 constant
+ */
+int
+vlog(Node *n)
+{
+	int s, i;
+	uvlong m, v;
+
+	if(n->op != OCONST)
+		goto bad;
+	if(typefd[n->type->etype])
+		goto bad;
+
+	v = n->vconst;
+
+	s = 0;
+	m = MASK(8*sizeof(uvlong));
+	for(i=32; i; i>>=1) {
+		m >>= i;
+		if(!(v & m)) {
+			v >>= i;
+			s += i;
+		}
+	}
+	if(v == 1)
+		return s;
+
+bad:
+	return -1;
+}
+
+int
+topbit(ulong v)
+{
+	int i;
+
+	for(i = -1; v; i++)
+		v >>= 1;
+	return i;
 }
 
 /*
@@ -838,12 +963,29 @@ bitno(long b)
 	return 0;
 }
 
+long
+typebitor(long a, long b)
+{
+	long c;
+
+	c = a | b;
+	if(a & b)
+		if((a & b) == BLONG)
+			c |= BVLONG;		/* long long => vlong */
+		else
+			warn(Z, "once is enough: %Q", a & b);
+	return c;
+}
+
 void
-diag(Node *n, char *a, ...)
+diag(Node *n, char *fmt, ...)
 {
 	char buf[STRINGSZ];
+	va_list arg;
 
-	doprint(buf, buf+sizeof(buf), a, &(&a)[1]);	/* ugly */
+	va_start(arg, fmt);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	print("%L %s\n", (n==Z)? nearln: n->lineno, buf);
 
 	if(debug['X'])
@@ -860,13 +1002,16 @@ diag(Node *n, char *a, ...)
 }
 
 void
-warn(Node *n, char *a, ...)
+warn(Node *n, char *fmt, ...)
 {
 	char buf[STRINGSZ];
+	va_list arg;
 
 	if(debug['w']) {
 		print("warning: ");
-		doprint(buf, buf+sizeof(buf), a, &(&a)[1]);	/* ugly */
+		va_start(arg, fmt);
+		doprint(buf, buf+sizeof(buf), fmt, arg);
+		va_end(arg);
 		print("%L %s\n", (n==Z)? nearln: n->lineno, buf);
 
 		if(n != Z)
@@ -876,18 +1021,21 @@ warn(Node *n, char *a, ...)
 }
 
 void
-yyerror(char *a, ...)
+yyerror(char *fmt, ...)
 {
 	char buf[STRINGSZ];
+	va_list arg;
 
 	/*
 	 * hack to intercept message from yaccpar
 	 */
-	if(strcmp(a, "syntax error") == 0) {
+	if(strcmp(fmt, "syntax error") == 0) {
 		yyerror("syntax error, last name: %s", symb);
 		return;
 	}
-	doprint(buf, buf+sizeof(buf), a, &(&a)[1]);	/* ugly */
+	va_start(arg, fmt);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
 	print("%L %s\n", lineno, buf);
 	nerrors++;
 	if(nerrors > 10) {
@@ -896,41 +1044,242 @@ yyerror(char *a, ...)
 	}
 }
 
-char*	tnames[] =
+ulong	thash1	= 0x2edab8c9;
+ulong	thash2	= 0x1dc74fb8;
+ulong	thash3	= 0x1f241331;
+ulong	thash[NALLTYPES];
+Init	thashinit[] =
 {
-	"TXXX",
-	"CHAR","UCHAR","SHORT","USHORT","LONG","ULONG","VLONG","UVLONG","FLOAT","DOUBLE",
-	"IND","FUNC","ARRAY","VOID","STRUCT","UNION","ENUM","FILE","OLD","DOT",
+	TXXX,		0x17527bbd,	0,
+	TCHAR,		0x5cedd32b,	0,
+	TUCHAR,		0x552c4454,	0,
+	TSHORT,		0x63040b4b,	0,
+	TUSHORT,	0x32a45878,	0,
+	TINT,		0x4151d5bd,	0,
+	TUINT,		0x5ae707d6,	0,
+	TLONG,		0x5ef20f47,	0,
+	TULONG,		0x36d8eb8f,	0,
+	TVLONG,		0x6e5e9590,	0,
+	TUVLONG,	0x75910105,	0,
+	TFLOAT,		0x25fd7af1,	0,
+	TDOUBLE,	0x7c40a1b2,	0,
+	TIND,		0x1b832357,	0,
+	TFUNC,		0x6babc9cb,	0,
+	TARRAY,		0x7c50986d,	0,
+	TVOID,		0x44112eff,	0,
+	TSTRUCT,	0x7c2da3bf,	0,
+	TUNION,		0x3eb25e98,	0,
+	TENUM,		0x44b54f61,	0,
+	TFILE,		0x19242ac3,	0,
+	TOLD,		0x22b15988,	0,
+	TDOT,		0x0204f6b3,	0,
+	-1,		0,		0,
 };
-char*	qnames[] =
+
+char*	bnames[NALIGN];
+Init	bnamesinit[] =
 {
-	"Q0",
-	"CHAR","UCHAR","SHORT","USHORT","LONG","ULONG","VLONG","UVLONG","FLOAT","DOUBLE",
-	"Q-IND","UNSIGNED","Q-ARRAY","VOID","SIGNED","INTEGER","Q-ENUM",
-	"AUTO","EXTERN","STATIC","TYPEDEF","REGISTER",
+	Axxx,	0,	"Axxx",
+	Ael1,	0,	"el1",
+	Ael2,	0,	"el2",
+	Asu2,	0,	"su2",
+	Aarg0,	0,	"arg0",
+	Aarg1,	0,	"arg1",
+	Aarg2,	0,	"arg2",
+	Aaut3,	0,	"aut3",
+	-1,	0,	0,
 };
-char*	cnames[] =
+
+char*	tnames[NALLTYPES];
+Init	tnamesinit[] =
 {
-	"CXXX",
-	"AUTO","EXTERN","GLOBL","STATIC","LOCAL","TYPEDEF",
-	"PARAM","SELEM","LABEL","EXREG",
-	"HELP","MACRO","MACARG","LEXICAL","PREPROC","SUETAG",
-	"ENUM",
+	TXXX,		0,	"TXXX",
+	TCHAR,		0,	"CHAR",
+	TUCHAR,		0,	"UCHAR",
+	TSHORT,		0,	"SHORT",
+	TUSHORT,	0,	"USHORT",
+	TINT,		0,	"INT",
+	TUINT,		0,	"UINT",
+	TLONG,		0,	"LONG",
+	TULONG,		0,	"ULONG",
+	TVLONG,		0,	"VLONG",
+	TUVLONG,	0,	"UVLONG",
+	TFLOAT,		0,	"FLOAT",
+	TDOUBLE,	0,	"DOUBLE",
+	TIND,		0,	"IND",
+	TFUNC,		0,	"FUNC",
+	TARRAY,		0,	"ARRAY",
+	TVOID,		0,	"VOID",
+	TSTRUCT,	0,	"STRUCT",
+	TUNION,		0,	"UNION",
+	TENUM,		0,	"ENUM",
+	TFILE,		0,	"FILE",
+	TOLD,		0,	"OLD",
+	TDOT,		0,	"DOT",
+	-1,		0,	0,
 };
-char*	onames[] =
+
+char*	gnames[NGTYPES];
+Init	gnamesinit[] =
 {
-	"OXXX",
-	"ADD","ADDR","AND","ANDAND","ARRAY","AS","ASADD","ASAND",
-	"ASASHL","ASASHR","ASDIV","ASHL","ASHR","ASLDIV","ASLMOD","ASLMUL",
-	"ASLSHR","ASMOD","ASMUL","ASOR","ASSUB","ASXOR","BIT","BREAK",
-	"CASE","CAST","COMMA","COND","CONST","CONTINUE","DIV","DOT",
-	"DOTDOT","DWHILE","ENUM","EQ","FOR","FUNC","GE","GOTO",
-	"GT","HI","HS","IF","IND","INDREG","INIT","LABEL",
-	"LDIV","LE","LIST","LMOD","LMUL","LO","LS","LSHR",
-	"LT","MOD","MUL","NAME","NE","NOT","OR","OROR",
-	"POSTDEC","POSTINC","PREDEC","PREINC","PROTO","REGISTER","RETURN","SET",
-	"SIZE","STRING","LSTRING","STRUCT","SUB","SWITCH","UNION","USED",
-	"WHILE","XOR","NEG","COM","ELEM","END"
+	GXXX,			0,	"GXXX",
+	GCONSTNT,		0,	"CONST",
+	GVOLATILE,		0,	"VOLATILE",
+	GVOLATILE|GCONSTNT,	0,	"CONST-VOLATILE",
+	-1,			0,	0,
+};
+
+char*	qnames[NALLTYPES];
+Init	qnamesinit[] =
+{
+	TXXX,		0,	"TXXX",
+	TCHAR,		0,	"CHAR",
+	TUCHAR,		0,	"UCHAR",
+	TSHORT,		0,	"SHORT",
+	TUSHORT,	0,	"USHORT",
+	TINT,		0,	"INT",
+	TUINT,		0,	"UINT",
+	TLONG,		0,	"LONG",
+	TULONG,		0,	"ULONG",
+	TVLONG,		0,	"VLONG",
+	TUVLONG,	0,	"UVLONG",
+	TFLOAT,		0,	"FLOAT",
+	TDOUBLE,	0,	"DOUBLE",
+	TIND,		0,	"IND",
+	TFUNC,		0,	"FUNC",
+	TARRAY,		0,	"ARRAY",
+	TVOID,		0,	"VOID",
+	TSTRUCT,	0,	"STRUCT",
+	TUNION,		0,	"UNION",
+	TENUM,		0,	"ENUM",
+
+	TAUTO,		0,	"AUTO",
+	TEXTERN,	0,	"EXTERN",
+	TSTATIC,	0,	"STATIC",
+	TTYPEDEF,	0,	"TYPEDEF",
+	TREGISTER,	0,	"REGISTER",
+	TCONSTNT,	0,	"CONSTNT",
+	TVOLATILE,	0,	"VOLATILE",
+	TUNSIGNED,	0,	"UNSIGNED",
+	TSIGNED,	0,	"SIGNED",
+	TDOT,		0,	"DOT",
+	TFILE,		0,	"FILE",
+	TOLD,		0,	"OLD",
+	-1,		0,	0,
+};
+char*	cnames[NCTYPES];
+Init	cnamesinit[] =
+{
+	CXXX,		0,	"CXXX",
+	CAUTO,		0,	"AUTO",
+	CEXTERN,	0,	"EXTERN",
+	CGLOBL,		0,	"GLOBL",
+	CSTATIC,	0,	"STATIC",
+	CLOCAL,		0,	"LOCAL",
+	CTYPEDEF,	0,	"TYPEDEF",
+	CPARAM,		0,	"PARAM",
+	CSELEM,		0,	"SELEM",
+	CLABEL,		0,	"LABEL",
+	CEXREG,		0,	"EXREG",
+	-1,		0,	0,
+};
+
+char*	onames[OEND+1];
+Init	onamesinit[] =
+{
+	OXXX,		0,	"OXXX",
+	OADD,		0,	"ADD",
+	OADDR,		0,	"ADDR",
+	OAND,		0,	"AND",
+	OANDAND,	0,	"ANDAND",
+	OARRAY,		0,	"ARRAY",
+	OAS,		0,	"AS",
+	OASI,		0,	"ASI",
+	OASADD,		0,	"ASADD",
+	OASAND,		0,	"ASAND",
+	OASASHL,	0,	"ASASHL",
+	OASASHR,	0,	"ASASHR",
+	OASDIV,		0,	"ASDIV",
+	OASHL,		0,	"ASHL",
+	OASHR,		0,	"ASHR",
+	OASLDIV,	0,	"ASLDIV",
+	OASLMOD,	0,	"ASLMOD",
+	OASLMUL,	0,	"ASLMUL",
+	OASLSHR,	0,	"ASLSHR",
+	OASMOD,		0,	"ASMOD",
+	OASMUL,		0,	"ASMUL",
+	OASOR,		0,	"ASOR",
+	OASSUB,		0,	"ASSUB",
+	OASXOR,		0,	"ASXOR",
+	OBIT,		0,	"BIT",
+	OBREAK,		0,	"BREAK",
+	OCASE,		0,	"CASE",
+	OCAST,		0,	"CAST",
+	OCOMMA,		0,	"COMMA",
+	OCOND,		0,	"COND",
+	OCONST,		0,	"CONST",
+	OCONTINUE,	0,	"CONTINUE",
+	ODIV,		0,	"DIV",
+	ODOT,		0,	"DOT",
+	ODOTDOT,	0,	"DOTDOT",
+	ODWHILE,	0,	"DWHILE",
+	OENUM,		0,	"ENUM",
+	OEQ,		0,	"EQ",
+	OFOR,		0,	"FOR",
+	OFUNC,		0,	"FUNC",
+	OGE,		0,	"GE",
+	OGOTO,		0,	"GOTO",
+	OGT,		0,	"GT",
+	OHI,		0,	"HI",
+	OHS,		0,	"HS",
+	OIF,		0,	"IF",
+	OIND,		0,	"IND",
+	OINDREG,	0,	"INDREG",
+	OINIT,		0,	"INIT",
+	OLABEL,		0,	"LABEL",
+	OLDIV,		0,	"LDIV",
+	OLE,		0,	"LE",
+	OLIST,		0,	"LIST",
+	OLMOD,		0,	"LMOD",
+	OLMUL,		0,	"LMUL",
+	OLO,		0,	"LO",
+	OLS,		0,	"LS",
+	OLSHR,		0,	"LSHR",
+	OLT,		0,	"LT",
+	OMOD,		0,	"MOD",
+	OMUL,		0,	"MUL",
+	ONAME,		0,	"NAME",
+	ONE,		0,	"NE",
+	ONOT,		0,	"NOT",
+	OOR,		0,	"OR",
+	OOROR,		0,	"OROR",
+	OPOSTDEC,	0,	"POSTDEC",
+	OPOSTINC,	0,	"POSTINC",
+	OPREDEC,	0,	"PREDEC",
+	OPREINC,	0,	"PREINC",
+	OPROTO,		0,	"PROTO",
+	OREGISTER,	0,	"REGISTER",
+	ORETURN,	0,	"RETURN",
+	OSET,		0,	"SET",
+	OSIGN,		0,	"SIGN",
+	OSIZE,		0,	"SIZE",
+	OSTRING,	0,	"STRING",
+	OLSTRING,	0,	"LSTRING",
+	OSTRUCT,	0,	"STRUCT",
+	OSUB,		0,	"SUB",
+	OSWITCH,	0,	"SWITCH",
+	OUNION,		0,	"UNION",
+	OUSED,		0,	"USED",
+	OWHILE,		0,	"WHILE",
+	OXOR,		0,	"XOR",
+	ONEG,		0,	"NEG",
+	OCOM,		0,	"COM",
+	OELEM,		0,	"ELEM",
+	OTST,		0,	"TST",
+	OINDEX,		0,	"INDEX",
+	OFAS,		0,	"FAS",
+	OEND,		0,	"END",
+	-1,		0,	0,
 };
 
 char	comrel[12] =
@@ -946,248 +1295,442 @@ char	logrel[12] =
 	OEQ, ONE, OLS, OLS, OLO, OLO, OHS, OHS, OHI, OHI,
 };
 
-char	typei[XTYPE] =		{ 0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0 };
-char	typeu[XTYPE] =		{ 0,0,1,0,1,0,1,0,1,0,0,1,0,0,0,0,0,0 };
-char	typesuv[XTYPE] =	{ 0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0 };
-char	typelp[XTYPE] =		{ 0,0,0,0,0,1,1,0,0,0,0,1,0,0,0,0,0,0 };
-char	typechl[XTYPE] =	{ 0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0 };
-char	typechlp[XTYPE] =	{ 0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0 };
-char	typechlpfd[XTYPE] =	{ 0,1,1,1,1,1,1,0,0,1,1,1,0,0,0,0,0,0 };
+char	typei[NTYPE];
+int	typeiinit[] =
+{
+	TCHAR, TUCHAR, TSHORT, TUSHORT, TINT, TUINT, TLONG, TULONG, TVLONG, TUVLONG, -1,
+};
+char	typeu[NTYPE];
+int	typeuinit[] =
+{
+	TUCHAR, TUSHORT, TUINT, TULONG, TUVLONG, TIND, -1,
+};
 
-char	typec[XTYPE] =		{ 0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-char	typeh[XTYPE] =		{ 0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-char	typel[XTYPE] =		{ 0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0 };
-char	typev[XTYPE] =		{ 0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0 };
-char	typefd[XTYPE] =		{ 0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0 };
-char	typeaf[XTYPE] =		{ 0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0 };
-char	typesu[XTYPE] =		{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0 };
-/*
-char	typeX[XTYPE] =		{ X,C,C,H,H,L,L,V,V,F,D,P,N,A,V,S,U,E };
- */
+char	typesuv[NTYPE];
+int	typesuvinit[] =
+{
+	TVLONG, TUVLONG, TSTRUCT, TUNION, -1,
+};
 
+char	typeilp[NTYPE];
+int	typeilpinit[] =
+{
+	TINT, TUINT, TLONG, TULONG, TIND, -1
+};
 
-long	tasign[XTYPE] =
+char	typechl[NTYPE];
+int	typechlinit[] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BNUMBER,
-	/* TUCHAR */	BNUMBER,
-	/* TSHORT */	BNUMBER,
-	/* TUSHORT */	BNUMBER,
-	/* TLONG */	BNUMBER,
-	/* TULONG */	BNUMBER,
-	/* TVLONG */	BNUMBER,
-	/* TUVLONG */	BNUMBER,
-	/* TFLOAT */	BNUMBER,
-	/* TDOUBLE */	BNUMBER,
-	/* TIND */	BIND,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	0,
-	/* TSTRUCT */	BSTRUCT,
-	/* TUNION */	BUNION,
-	/* TENUM */	0,
+	TCHAR, TUCHAR, TSHORT, TUSHORT, TINT, TUINT, TLONG, TULONG, -1,
 };
-long	tasadd[XTYPE] =
+
+char	typechlp[NTYPE];
+int	typechlpinit[] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BNUMBER,
-	/* TUCHAR */	BNUMBER,
-	/* TSHORT */	BNUMBER,
-	/* TUSHORT */	BNUMBER,
-	/* TLONG */	BNUMBER,
-	/* TULONG */	BNUMBER,
-	/* TVLONG */	BNUMBER,
-	/* TUVLONG */	BNUMBER,
-	/* TFLOAT */	BNUMBER,
-	/* TDOUBLE */	BNUMBER,
-	/* TIND */	BINTEGER,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	0,
-	/* TSTRUCT */	0,
-	/* TUNION */	0,
-	/* TENUM */	0,
+	TCHAR, TUCHAR, TSHORT, TUSHORT, TINT, TUINT, TLONG, TULONG, TIND, -1,
 };
-long	tcast[XTYPE] =
+
+char	typechlpfd[NTYPE];
+int	typechlpfdinit[] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BNUMBER|BIND|BVOID,
-	/* TUCHAR */	BNUMBER|BIND|BVOID,
-	/* TSHORT */	BNUMBER|BIND|BVOID,
-	/* TUSHORT */	BNUMBER|BIND|BVOID,
-	/* TLONG */	BNUMBER|BIND|BVOID,
-	/* TULONG */	BNUMBER|BIND|BVOID,
-	/* TVLONG */	BNUMBER|BIND|BVOID,
-	/* TUVLONG */	BNUMBER|BIND|BVOID,
-	/* TFLOAT */	BNUMBER|BVOID,
-	/* TDOUBLE */	BNUMBER|BVOID,
-	/* TIND */	BINTEGER|BIND|BVOID,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	BVOID,
-	/* TSTRUCT */	BSTRUCT|BVOID,
-	/* TUNION */	BUNION|BVOID,
-	/* TENUM */	0,
+	TCHAR, TUCHAR, TSHORT, TUSHORT, TINT, TUINT, TLONG, TULONG, TFLOAT, TDOUBLE, TIND, -1,
 };
-long	lcast[XTYPE] =
+
+char	typec[NTYPE];
+int	typecinit[] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BCHAR|BSHORT|BLONG|BUSHORT|BULONG|BVLONG|BIND,
-	/* TUCHAR */	BUCHAR|BUSHORT|BULONG|BSHORT|BLONG|BVLONG|BIND,
-	/* TSHORT */	BSHORT|BLONG|BULONG|BVLONG|BIND,
-	/* TUSHORT */	BUSHORT|BULONG|BLONG|BVLONG|BIND,
-	/* TLONG */	BLONG|BULONG|BVLONG|BIND,
-	/* TULONG */	BULONG|BLONG|BVLONG|BIND,
-	/* TVLONG */	BULONG|BLONG|BVLONG,
-	/* TUVLONG */	BULONG|BLONG|BVLONG,
-	/* TFLOAT */	BFLOAT|BDOUBLE,
-	/* TDOUBLE */	BDOUBLE,
-	/* TIND */	BIND,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	0,
-	/* TSTRUCT */	0,
-	/* TUNION */	0,
-	/* TENUM */	0,
+	TCHAR, TUCHAR, -1
 };
-long	tadd[XTYPE] =
+
+char	typeh[NTYPE];
+int	typehinit[] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BNUMBER|BIND,
-	/* TUCHAR */	BNUMBER|BIND,
-	/* TSHORT */	BNUMBER|BIND,
-	/* TUSHORT */	BNUMBER|BIND,
-	/* TLONG */	BNUMBER|BIND,
-	/* TULONG */	BNUMBER|BIND,
-	/* TVLONG */	BNUMBER|BIND,
-	/* TUVLONG */	BNUMBER|BIND,
-	/* TFLOAT */	BNUMBER,
-	/* TDOUBLE */	BNUMBER,
-	/* TIND */	BINTEGER,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	0,
-	/* TSTRUCT */	0,
-	/* TUNION */	0,
-	/* TENUM */	0,
+	TSHORT, TUSHORT, -1,
 };
-long	tsub[XTYPE] =
+
+char	typeil[NTYPE];
+int	typeilinit[] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BNUMBER,
-	/* TUCHAR */	BNUMBER,
-	/* TSHORT */	BNUMBER,
-	/* TUSHORT */	BNUMBER,
-	/* TLONG */	BNUMBER,
-	/* TULONG */	BNUMBER,
-	/* TVLONG */	BNUMBER,
-	/* TUVLONG */	BNUMBER,
-	/* TFLOAT */	BNUMBER,
-	/* TDOUBLE */	BNUMBER,
-	/* TIND */	BINTEGER|BIND,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	0,
-	/* TSTRUCT */	0,
-	/* TUNION */	0,
-	/* TENUM */	0,
+	TINT, TUINT, TLONG, TULONG, -1,
 };
-long	tmul[XTYPE] =
+
+char	typev[NTYPE];
+int	typevinit[] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BNUMBER,
-	/* TUCHAR */	BNUMBER,
-	/* TSHORT */	BNUMBER,
-	/* TUSHORT */	BNUMBER,
-	/* TLONG */	BNUMBER,
-	/* TULONG */	BNUMBER,
-	/* TVLONG */	BNUMBER,
-	/* TUVLONG */	BNUMBER,
-	/* TFLOAT */	BNUMBER,
-	/* TDOUBLE */	BNUMBER,
-	/* TIND */	0,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	0,
-	/* TSTRUCT */	0,
-	/* TUNION */	0,
-	/* TENUM */	0,
+	TVLONG,	TUVLONG, -1,
 };
-long	tand[XTYPE] =
+
+char	typefd[NTYPE];
+int	typefdinit[] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BINTEGER,
-	/* TUCHAR */	BINTEGER,
-	/* TSHORT */	BINTEGER,
-	/* TUSHORT */	BINTEGER,
-	/* TLONG */	BINTEGER,
-	/* TULONG */	BINTEGER,
-	/* TVLONG */	BINTEGER,
-	/* TUVLONG */	BINTEGER,
-	/* TFLOAT */	0,
-	/* TDOUBLE */	0,
-	/* TIND */	0,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	0,
-	/* TSTRUCT */	0,
-	/* TUNION */	0,
-	/* TENUM */	0,
+	TFLOAT, TDOUBLE, -1,
 };
-long	trel[XTYPE] =
+
+char	typeaf[NTYPE];
+int	typeafinit[] =
 {
-	/* TXXX */	0,
-	/* TCHAR */	BNUMBER,
-	/* TUCHAR */	BNUMBER,
-	/* TSHORT */	BNUMBER,
-	/* TUSHORT */	BNUMBER,
-	/* TLONG */	BNUMBER,
-	/* TULONG */	BNUMBER,
-	/* TVLONG */	BNUMBER,
-	/* TUVLONG */	BNUMBER,
-	/* TFLOAT */	BNUMBER,
-	/* TDOUBLE */	BNUMBER,
-	/* TIND */	BIND,
-	/* TFUNC */	0,
-	/* TARRAY */	0,
-	/* TVOID */	0,
-	/* TSTRUCT */	0,
-	/* TUNION */	0,
-	/* TENUM */	0,
+	TFUNC, TARRAY, -1,
 };
+
+char	typesu[NTYPE];
+int	typesuinit[] =
+{
+	TSTRUCT, TUNION, -1,
+};
+
+long	tasign[NTYPE];
+Init	tasigninit[] =
+{
+	TCHAR,		BNUMBER,	0,
+	TUCHAR,		BNUMBER,	0,
+	TSHORT,		BNUMBER,	0,
+	TUSHORT,	BNUMBER,	0,
+	TINT,		BNUMBER,	0,
+	TUINT,		BNUMBER,	0,
+	TLONG,		BNUMBER,	0,
+	TULONG,		BNUMBER,	0,
+	TVLONG,		BNUMBER,	0,
+	TUVLONG,	BNUMBER,	0,
+	TFLOAT,		BNUMBER,	0,
+	TDOUBLE,	BNUMBER,	0,
+	TIND,		BIND,		0,
+	TSTRUCT,	BSTRUCT,	0,
+	TUNION,		BUNION,		0,
+	-1,		0,		0,
+};
+
+long	tasadd[NTYPE];
+Init	tasaddinit[] =
+{
+	TCHAR,		BNUMBER,	0,
+	TUCHAR,		BNUMBER,	0,
+	TSHORT,		BNUMBER,	0,
+	TUSHORT,	BNUMBER,	0,
+	TINT,		BNUMBER,	0,
+	TUINT,		BNUMBER,	0,
+	TLONG,		BNUMBER,	0,
+	TULONG,		BNUMBER,	0,
+	TVLONG,		BNUMBER,	0,
+	TUVLONG,	BNUMBER,	0,
+	TFLOAT,		BNUMBER,	0,
+	TDOUBLE,	BNUMBER,	0,
+	TIND,		BINTEGER,	0,
+	-1,		0,		0,
+};
+
+long	tcast[NTYPE];
+Init	tcastinit[] =
+{
+	TCHAR,		BNUMBER|BIND|BVOID,	0,
+	TUCHAR,		BNUMBER|BIND|BVOID,	0,
+	TSHORT,		BNUMBER|BIND|BVOID,	0,
+	TUSHORT,	BNUMBER|BIND|BVOID,	0,
+	TINT,		BNUMBER|BIND|BVOID,	0,
+	TUINT,		BNUMBER|BIND|BVOID,	0,
+	TLONG,		BNUMBER|BIND|BVOID,	0,
+	TULONG,		BNUMBER|BIND|BVOID,	0,
+	TVLONG,		BNUMBER|BIND|BVOID,	0,
+	TUVLONG,	BNUMBER|BIND|BVOID,	0,
+	TFLOAT,		BNUMBER|BVOID,		0,
+	TDOUBLE,	BNUMBER|BVOID,		0,
+	TIND,		BINTEGER|BIND|BVOID,	0,
+	TVOID,		BVOID,			0,
+	TSTRUCT,	BSTRUCT|BVOID,		0,
+	TUNION,		BUNION|BVOID,		0,
+	-1,		0,			0,
+};
+
+long	tadd[NTYPE];
+Init	taddinit[] =
+{
+	TCHAR,		BNUMBER|BIND,	0,
+	TUCHAR,		BNUMBER|BIND,	0,
+	TSHORT,		BNUMBER|BIND,	0,
+	TUSHORT,	BNUMBER|BIND,	0,
+	TINT,		BNUMBER|BIND,	0,
+	TUINT,		BNUMBER|BIND,	0,
+	TLONG,		BNUMBER|BIND,	0,
+	TULONG,		BNUMBER|BIND,	0,
+	TVLONG,		BNUMBER|BIND,	0,
+	TUVLONG,	BNUMBER|BIND,	0,
+	TFLOAT,		BNUMBER,	0,
+	TDOUBLE,	BNUMBER,	0,
+	TIND,		BINTEGER,	0,
+	-1,		0,		0,
+};
+
+long	tsub[NTYPE];
+Init	tsubinit[] =
+{
+	TCHAR,		BNUMBER,	0,
+	TUCHAR,		BNUMBER,	0,
+	TSHORT,		BNUMBER,	0,
+	TUSHORT,	BNUMBER,	0,
+	TINT,		BNUMBER,	0,
+	TUINT,		BNUMBER,	0,
+	TLONG,		BNUMBER,	0,
+	TULONG,		BNUMBER,	0,
+	TVLONG,		BNUMBER,	0,
+	TUVLONG,	BNUMBER,	0,
+	TFLOAT,		BNUMBER,	0,
+	TDOUBLE,	BNUMBER,	0,
+	TIND,		BINTEGER|BIND,	0,
+	-1,		0,		0,
+};
+
+long	tmul[NTYPE];
+Init	tmulinit[] =
+{
+	TCHAR,		BNUMBER,	0,
+	TUCHAR,		BNUMBER,	0,
+	TSHORT,		BNUMBER,	0,
+	TUSHORT,	BNUMBER,	0,
+	TINT,		BNUMBER,	0,
+	TUINT,		BNUMBER,	0,
+	TLONG,		BNUMBER,	0,
+	TULONG,		BNUMBER,	0,
+	TVLONG,		BNUMBER,	0,
+	TUVLONG,	BNUMBER,	0,
+	TFLOAT,		BNUMBER,	0,
+	TDOUBLE,	BNUMBER,	0,
+	-1,		0,		0,
+};
+
+long	tand[NTYPE];
+Init	tandinit[] =
+{
+	TCHAR,		BINTEGER,	0,
+	TUCHAR,		BINTEGER,	0,
+	TSHORT,		BINTEGER,	0,
+	TUSHORT,	BINTEGER,	0,
+	TINT,		BNUMBER,	0,
+	TUINT,		BNUMBER,	0,
+	TLONG,		BINTEGER,	0,
+	TULONG,		BINTEGER,	0,
+	TVLONG,		BINTEGER,	0,
+	TUVLONG,	BINTEGER,	0,
+	-1,		0,		0,
+};
+
+long	trel[NTYPE];
+Init	trelinit[] =
+{
+	TCHAR,		BNUMBER,	0,
+	TUCHAR,		BNUMBER,	0,
+	TSHORT,		BNUMBER,	0,
+	TUSHORT,	BNUMBER,	0,
+	TINT,		BNUMBER,	0,
+	TUINT,		BNUMBER,	0,
+	TLONG,		BNUMBER,	0,
+	TULONG,		BNUMBER,	0,
+	TVLONG,		BNUMBER,	0,
+	TUVLONG,	BNUMBER,	0,
+	TFLOAT,		BNUMBER,	0,
+	TDOUBLE,	BNUMBER,	0,
+	TIND,		BIND,		0,
+	-1,		0,		0,
+};
+
 long	tfunct[1] =
 {
-	/* TXXX */	BFUNC,
+	BFUNC,
 };
+
 long	tindir[1] =
 {
-	/* TXXX */	BIND,
+	BIND,
 };
+
 long	tdot[1] =
 {
-	/* TXXX */	BSTRUCT|BUNION,
+	BSTRUCT|BUNION,
 };
+
 long	tnot[1] =
 {
-	/* TXXX */	BNUMBER|BIND,
+	BNUMBER|BIND,
 };
+
 long	targ[1] =
 {
-	/* TXXX */	BNUMBER|BIND|BSTRUCT|BUNION,
+	BNUMBER|BIND|BSTRUCT|BUNION,
 };
 
 char	tab[NTYPE][NTYPE] =
 {
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,
-	0, 2, 2, 4, 4, 6, 6, 7, 8, 9,10,11,
-	0, 3, 4, 3, 4, 5, 6, 7, 8, 9,10,11,
-	0, 4, 4, 4, 4, 6, 6, 7, 8, 9,10,11,
-	0, 5, 6, 5, 6, 5, 6, 7, 8, 9,10,11,
-	0, 6, 6, 6, 6, 6, 6, 7, 8, 9,10,11,
-	0, 7, 8, 7, 8, 7, 8, 7, 8, 9,10,11,
-	0, 8, 8, 8, 8, 8, 8, 8, 8, 9,10,11,
-	0, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,11,
-	0,10,10,10,10,10,10,10,10,10,10,11,
-	0,11,11,11,11,11,11,11,11,11,11,11,
+/*TXXX*/	{ 0,
+		},
+
+/*TCHAR*/	{ 0,	TCHAR, TUCHAR, TSHORT, TUSHORT, TINT, TUINT, TLONG,
+			TULONG, TVLONG, TUVLONG, TFLOAT, TDOUBLE, TIND,
+		},
+/*TUCHAR*/	{ 0,	TUCHAR, TUCHAR, TUSHORT, TUSHORT, TUINT, TUINT, TULONG,
+			TULONG, TUVLONG, TUVLONG, TFLOAT, TDOUBLE, TIND,
+		},
+/*TSHORT*/	{ 0,	TSHORT, TUSHORT, TSHORT, TUSHORT, TINT, TUINT, TLONG,
+			TULONG, TVLONG, TUVLONG, TFLOAT, TDOUBLE, TIND,
+		},
+/*TUSHORT*/	{ 0,	TUSHORT, TUSHORT, TUSHORT, TUSHORT, TUINT, TUINT, TULONG,
+			TULONG, TUVLONG, TUVLONG, TFLOAT, TDOUBLE, TIND,
+		},
+/*TINT*/	{ 0,	TINT, TUINT, TINT, TUINT, TINT, TUINT, TLONG,
+			TULONG, TVLONG, TUVLONG, TFLOAT, TDOUBLE, TIND,
+		},
+/*TUINT*/	{ 0,	TUINT, TUINT, TUINT, TUINT, TUINT, TUINT, TULONG,
+			TULONG, TUVLONG, TUVLONG, TFLOAT, TDOUBLE, TIND,
+		},
+/*TLONG*/	{ 0,	TLONG, TULONG, TLONG, TULONG, TLONG, TULONG, TLONG,
+			TULONG, TVLONG, TUVLONG, TFLOAT, TDOUBLE, TIND,
+		},
+/*TULONG*/	{ 0,	TULONG, TULONG, TULONG, TULONG, TULONG, TULONG, TULONG,
+			TULONG, TUVLONG, TUVLONG, TFLOAT, TDOUBLE, TIND,
+		},
+/*TVLONG*/	{ 0,	TVLONG, TUVLONG, TVLONG, TUVLONG, TVLONG, TUVLONG, TVLONG,
+			TUVLONG, TVLONG, TUVLONG, TFLOAT, TDOUBLE, TIND,
+		},
+/*TUVLONG*/	{ 0,	TUVLONG, TUVLONG, TUVLONG, TUVLONG, TUVLONG, TUVLONG, TUVLONG,
+			TUVLONG, TUVLONG, TUVLONG, TFLOAT, TDOUBLE, TIND,
+		},
+/*TFLOAT*/	{ 0,	TFLOAT, TFLOAT, TFLOAT, TFLOAT, TFLOAT, TFLOAT, TFLOAT,
+			TFLOAT, TFLOAT, TFLOAT, TFLOAT, TDOUBLE, TIND,
+		},
+/*TDOUBLE*/	{ 0,	TDOUBLE, TDOUBLE, TDOUBLE, TDOUBLE, TDOUBLE, TDOUBLE, TDOUBLE,
+			TDOUBLE, TDOUBLE, TDOUBLE, TFLOAT, TDOUBLE, TIND,
+		},
+/*TIND*/	{ 0,	TIND, TIND, TIND, TIND, TIND, TIND, TIND,
+			 TIND, TIND, TIND, TIND, TIND, TIND,
+		},
 };
+
+void
+urk(char *name, int max, int i)
+{
+	if(i >= max) {
+		fprint(2, "bad tinit: %s %d>=%d\n", name, i, max);
+		exits("init");
+	}
+}
+
+void
+tinit(void)
+{
+	int i;
+	Init *p;
+
+	for(p=thashinit; p->code >= 0; p++) {
+		urk("thash", nelem(thash), p->code);
+		thash[p->code] = p->value;
+	}
+	for(p=bnamesinit; p->code >= 0; p++) {
+		urk("bnames", nelem(bnames), p->code);
+		bnames[p->code] = p->s;
+	}
+	for(p=tnamesinit; p->code >= 0; p++) {
+		urk("tnames", nelem(tnames), p->code);
+		tnames[p->code] = p->s;
+	}
+	for(p=gnamesinit; p->code >= 0; p++) {
+		urk("gnames", nelem(gnames), p->code);
+		gnames[p->code] = p->s;
+	}
+	for(p=qnamesinit; p->code >= 0; p++) {
+		urk("qnames", nelem(qnames), p->code);
+		qnames[p->code] = p->s;
+	}
+	for(p=cnamesinit; p->code >= 0; p++) {
+		urk("cnames", nelem(cnames), p->code);
+		cnames[p->code] = p->s;
+	}
+	for(p=onamesinit; p->code >= 0; p++) {
+		urk("onames", nelem(onames), p->code);
+		onames[p->code] = p->s;
+	}
+	for(i=0; typeiinit[i] >= 0; i++) {
+		urk("typei", nelem(typei), typeiinit[i]);
+		typei[typeiinit[i]] = 1;
+	}
+	for(i=0; typeuinit[i] >= 0; i++) {
+		urk("typeu", nelem(typeu), typeuinit[i]);
+		typeu[typeuinit[i]] = 1;
+	}
+	for(i=0; typesuvinit[i] >= 0; i++) {
+		urk("typesuv", nelem(typesuv), typesuvinit[i]);
+		typesuv[typesuvinit[i]] = 1;
+	}
+	for(i=0; typeilpinit[i] >= 0; i++) {
+		urk("typeilp", nelem(typeilp), typeilpinit[i]);
+		typeilp[typeilpinit[i]] = 1;
+	}
+	for(i=0; typechlinit[i] >= 0; i++) {
+		urk("typechl", nelem(typechl), typechlinit[i]);
+		typechl[typechlinit[i]] = 1;
+	}
+	for(i=0; typechlpinit[i] >= 0; i++) {
+		urk("typechlp", nelem(typechlp), typechlpinit[i]);
+		typechlp[typechlpinit[i]] = 1;
+	}
+	for(i=0; typechlpfdinit[i] >= 0; i++) {
+		urk("typechlpfd", nelem(typechlpfd), typechlpfdinit[i]);
+		typechlpfd[typechlpfdinit[i]] = 1;
+	}
+	for(i=0; typecinit[i] >= 0; i++) {
+		urk("typec", nelem(typec), typecinit[i]);
+		typec[typecinit[i]] = 1;
+	}
+	for(i=0; typehinit[i] >= 0; i++) {
+		urk("typeh", nelem(typeh), typehinit[i]);
+		typeh[typehinit[i]] = 1;
+	}
+	for(i=0; typeilinit[i] >= 0; i++) {
+		urk("typeil", nelem(typeil), typeilinit[i]);
+		typeil[typeilinit[i]] = 1;
+	}
+	for(i=0; typevinit[i] >= 0; i++) {
+		urk("typev", nelem(typev), typevinit[i]);
+		typev[typevinit[i]] = 1;
+	}
+	for(i=0; typefdinit[i] >= 0; i++) {
+		urk("typefd", nelem(typefd), typefdinit[i]);
+		typefd[typefdinit[i]] = 1;
+	}
+	for(i=0; typeafinit[i] >= 0; i++) {
+		urk("typeaf", nelem(typeaf), typeafinit[i]);
+		typeaf[typeafinit[i]] = 1;
+	}
+	for(i=0; typesuinit[i] >= 0; i++) {
+		urk("typesu", nelem(typesu), typesuinit[i]);
+		typesu[typesuinit[i]] = 1;
+	}
+	for(p=tasigninit; p->code >= 0; p++) {
+		urk("tasign", nelem(tasign), p->code);
+		tasign[p->code] = p->value;
+	}
+	for(p=tasaddinit; p->code >= 0; p++) {
+		urk("tasadd", nelem(tasadd), p->code);
+		tasadd[p->code] = p->value;
+	}
+	for(p=tcastinit; p->code >= 0; p++) {
+		urk("tcast", nelem(tcast), p->code);
+		tcast[p->code] = p->value;
+	}
+	for(p=taddinit; p->code >= 0; p++) {
+		urk("tadd", nelem(tadd), p->code);
+		tadd[p->code] = p->value;
+	}
+	for(p=tsubinit; p->code >= 0; p++) {
+		urk("tsub", nelem(tsub), p->code);
+		tsub[p->code] = p->value;
+	}
+	for(p=tmulinit; p->code >= 0; p++) {
+		urk("tmul", nelem(tmul), p->code);
+		tmul[p->code] = p->value;
+	}
+	for(p=tandinit; p->code >= 0; p++) {
+		urk("tand", nelem(tand), p->code);
+		tand[p->code] = p->value;
+	}
+	for(p=trelinit; p->code >= 0; p++) {
+		urk("trel", nelem(trel), p->code);
+		trel[p->code] = p->value;
+	}
+}

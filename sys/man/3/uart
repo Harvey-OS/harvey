@@ -1,0 +1,126 @@
+.TH UART 3 
+.SH NAME
+duart, uart \- serial communication control
+.SH SYNOPSIS
+.nf
+.B bind -a #t /dev
+
+.B /dev/eia0
+.B /dev/eia0ctl
+.B /dev/eia1
+.B /dev/eia1ctl
+
+.B bind -a #G /dev
+
+.B /dev/astar0ctl
+.B /dev/astar0mem
+.B /dev/eia000
+.B /dev/eia000ctl
+.B /dev/eia000stat
+.B /dev/eia001
+.B /dev/eia001ctl
+.B /dev/eia001stat
+\&...
+.fi
+
+.SH DESCRIPTION
+.PP
+The serial line devices serve a one-level directory,
+giving access to the serial ports.
+There are several devices serving the same files;
+the particular one used depends on the machine involved.
+.B Eia0
+is the data file.
+It can be read and written to use that port.
+Reads will block until at least one character is available.
+.B Eia0ctl
+is a control file associated with the port.
+.B Eia1
+and
+.B eia1ctl
+are similar, but for a second serial line.
+.PP
+The
+.B ctl
+configures the port.
+It accepts the following commands:
+.TP
+.BI b n
+Set the baud rate to
+.IR n .
+.TP
+.BI d n
+Set DTR if
+.I n
+is non-zero;
+else clear it.
+.TP
+.BI k n
+Send a break lasting
+.I n
+milliseconds.
+.TP
+.BI r n
+Set RTS if
+.I n
+is non-zero;
+else clear it.
+.TP
+.BI m n
+Obey modem CTS signal if
+.I n
+is non-zero;
+else clear it.
+.TP
+.BI p c
+Set parity to odd if
+.I c
+is
+.BR o ,
+to even if
+.I c
+is
+.BR e ;
+else set no parity.
+.TP
+.BI s n
+Set number of stop bits to
+.IR n .
+Legal values are 1 or 2.
+.TP
+.BI l n
+Set number of bits per byte to
+.IR n .
+Legal values are 5, 6, 7, or 8.
+.PP
+The Star Gate Avanstar intelligent serial board has a separate driver.
+The individual data and
+.B ctl
+files behave like regular
+.SM UART
+files, but there are 16 per controller.
+The
+.B stat
+files contain a textual representation of the status of the line, in the format of the
+commands used on the
+.B ctl
+file.
+The
+.B astar0ctl
+and
+.B astar0mem
+files are used by the
+.B aux/astarld
+program to download the controller software for the boards.
+.SH FILES
+.B /sys/lib/astar/*
+download files for the Avanstar
+.PP
+.B /bin/aux/astarld
+download program for the Avanstar
+.SH SOURCE
+.B /sys/src/9/port/devns16552.c
+.br
+.B /sys/src/9/ch/devz8530.c
+.br
+.B /sys/src/9/pc/devastar.c

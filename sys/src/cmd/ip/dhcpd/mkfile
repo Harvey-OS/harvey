@@ -1,0 +1,22 @@
+</$objtype/mkfile
+
+TARG=dhcpd
+OFILES=	dhcpd.$O\
+	db.$O\
+	ndb.$O\
+	ping.$O\
+
+HFILES=dat.h
+
+BIN=/$objtype/bin/ip
+</sys/src/cmd/mkone
+
+$O.out: $OFILES
+	$LD $OFILES
+
+safeinstall: $O.out
+	mv $BIN/$TARG $BIN/o$TARG
+	cp $O.out $BIN/$TARG
+
+$O.testping: testping.$O ping.$O
+	$LD -o $target $prereq

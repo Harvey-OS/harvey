@@ -10,6 +10,17 @@ typedef struct Alarm {
 	void	*arg;
 } Alarm;
 
+typedef struct Block Block;
+struct Block {
+	Block*	next;
+	uchar*	rp;			/* first unconsumed byte */
+	uchar*	wp;			/* first empty byte */
+	uchar*	lim;			/* 1 past the end of the buffer */
+	uchar*	base;			/* start of the buffer */
+	ulong	flag;
+};
+#define BLEN(s)	((s)->wp - (s)->rp)
+
 typedef struct IOQ IOQ;
 typedef struct IOQ {
 	uchar	buf[4096];
@@ -27,7 +38,7 @@ enum {
 	ETHERMAXTU	= 1514,		/* maximum transmit size */
 	ETHERHDRSIZE	= 14,		/* size of an ethernet header */
 
-	MaxEther	= 2,
+	MaxEther	= 4,
 };
 
 typedef struct {
@@ -38,79 +49,9 @@ typedef struct {
 	uchar	crc[4];
 } Etherpkt;
 
-enum {
-	Maxxfer		= 16*1024,	/* maximum transfer size/cmd */
-	Npart		= 8+2,		/* 8 sub partitions, disk, and partition */
-};
-
-typedef struct {
-	ulong	start;
-	ulong	end;
-	char	name[NAMELEN+1];
-} Partition;
-
-typedef struct {
-	int	online;
-	int	npart;		/* number of real partitions */
-	Partition p[Npart];
-	ulong	offset;
-	Partition *current;	/* current partition */
-
-	ulong	cap;		/* total bytes */
-	int	bytes;		/* bytes/sector */
-	int	sectors;	/* sectors/track */
-	int	heads;		/* heads/cyl */
-	long	cyl;		/* cylinders/drive */
-
-	char	lba;		/* true if drive has logical block addressing */
-	char	multi;		/* non-zero if drive does multiple block xfers */
-} Disc;
-
-enum {
-	ScsiTestunit	= 0x00,
-	ScsiExtsens	= 0x03,
-	ScsiInquiry	= 0x12,
-	ScsiModesense	= 0x1a,
-	ScsiStartunit	= 0x1B,
-	ScsiStopunit	= 0x1B,
-	ScsiGetcap	= 0x25,
-	ScsiRead	= 0x08,
-	ScsiWrite	= 0x0a,
-	ScsiExtread	= 0x28,
-	ScsiExtwrite	= 0x2a,
-
-	/* data direction */
-	ScsiIn		= 1,
-	ScsiOut		= 0,
-};
-
-typedef struct Scsibuf Scsibuf;
-typedef struct Scsibuf {
-	void*		virt;
-	void*		phys;
-	Scsibuf*	next;
-};
-
-typedef struct Scsidata {
-	uchar*		base;
-	uchar*		lim;
-	uchar*		ptr;
-} Scsidata;
+extern uchar broadcast[Eaddrlen];
 
 typedef struct Ureg Ureg;
-
-typedef struct Scsi {
-	ulong		pid;
-	ushort		target;
-	ushort		lun;
-	ushort		rflag;
-	ushort		status;
-	Scsidata 	cmd;
-	Scsidata 	data;
-	Scsibuf*	b;
-	uchar*		save;
-	uchar		cmdblk[16];
-} Scsi;
 
 typedef struct Segdesc {
 	ulong	d0;
@@ -140,16 +81,10 @@ struct	Exec
 };
 
 /*
- *  bootline passed by boot program
+ *  a parsed .ini line
  */
-#define BOOTLINE ((char *)0x80000100)
-
-/*
- * Where we leave configuration info.
- */
-#define BOOTARGS	((char*)(KZERO|1024))
-#define	BOOTARGSLEN	1024
-#define	MAXCONF		32
+#define ISAOPTLEN	16
+#define NISAOPT		8
 
 typedef struct  ISAConf {
 	char	type[NAMELEN];
@@ -158,4 +93,95 @@ typedef struct  ISAConf {
 	ulong	mem;
 	ulong	size;
 	uchar	ea[6];
+
+	int	nopt;
+	char	opt[NISAOPT][ISAOPTLEN];
 } ISAConf;
+
+typedef struct Pcidev Pcidev;
+typedef struct PCMmap PCMmap;
+
+#define BOOTLINE	((char*)CONFADDR)
+
+enum {
+	MB =		(1024*1024),
+};
+#define ROUND(s, sz)	(((s)+((sz)-1))&~((sz)-1))
+
+
+typedef struct Type Type;
+typedef struct Medium Medium;
+typedef struct Boot Boot;
+
+enum {					/* type */
+	Tnil		= 0x00,
+
+	Tfloppy		= 0x01,
+	Tsd		= 0x02,
+	Tether		= 0x03,
+
+	Tany		= -1,
+};
+
+enum {					/* name and flag */
+	Fnone		= 0x00,
+
+	Ndos		= 0x00,
+	Fdos		= (1<<Ndos),
+	Nboot		= 0x01,
+	Fboot		= (1<<Nboot),
+	Nbootp		= 0x02,
+	Fbootp		= (1<<Nbootp),
+	NName		= 3,
+
+	Fany		= Fbootp|Fboot|Fdos,
+
+	Fini		= 0x10,
+	Fprobe		= 0x80,
+};
+
+typedef struct Type {
+	int	type;
+	int	flag;
+	int	(*init)(void);
+	void	(*initdev)(int, char*);
+	void* (*getdospart)(int, char*);	/* actually returns Dos* */
+	void	(*addconf)(int);
+	int	(*boot)(int, char*, Boot*);
+
+	int	mask;
+	Medium*	media;
+} Type;
+
+extern void (*etherdetach)(void);
+
+typedef struct Lock {	/* for ilock, iunlock */
+	int locked;
+	int spl;
+} Lock;
+
+enum {	/* returned by bootpass */
+	MORE, ENOUGH, FAIL
+};
+enum {
+	INITKERNEL,
+	READEXEC,
+	READTEXT,
+	READDATA,
+	READGZIP,
+	TRYBOOT,
+	INIT9LOAD,
+	READ9LOAD,
+	FAILED
+};
+
+struct Boot {
+	int state;
+
+	Exec exec;
+	char *bp;	/* base ptr */
+	char *wp;	/* write ptr */
+	char *ep;	/* end ptr */
+};
+
+extern int	debug;

@@ -7,4 +7,3 @@ OFILES=graph.$O\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-CFLAGS=

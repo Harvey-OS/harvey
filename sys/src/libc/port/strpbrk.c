@@ -3,9 +3,10 @@
 #define	N	256
 
 char*
-strpbrk(char *s, char *b)
+strpbrk(char *cs, char *cb)
 {
 	char map[N];
+	uchar *s=(uchar*)cs, *b=(uchar*)cb;
 
 	memset(map, 0, N);
 	for(;;) {
@@ -16,6 +17,6 @@ strpbrk(char *s, char *b)
 	while(map[*s++] == 0)
 		;
 	if(*--s)
-		return s;
+		return (char*)s;
 	return 0;
 }

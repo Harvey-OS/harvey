@@ -6,7 +6,7 @@
 #include "vga.h"
 
 static Ndb*
-dbopen(char *dbname)
+dbopen(char* dbname)
 {
 	Ndb *db;
 
@@ -15,8 +15,36 @@ dbopen(char *dbname)
 	return db;
 }
 
+static void
+addattr(Attr** app, Ndbtuple* t)
+{
+	Attr *attr, *l;
+
+	attr = alloc(sizeof(Attr));
+	attr->attr = alloc(strlen(t->attr)+1);
+	strcpy(attr->attr, t->attr);
+	attr->val = alloc(strlen(t->val)+1);
+	strcpy(attr->val, t->val);
+
+	for(l = *app; l; l = l->next)
+		app = &l->next;
+	*app = attr;
+}
+
+char*
+dbattr(Attr* ap, char* attr)
+{
+	while(ap){
+		if(strcmp(ap->attr, attr) == 0)
+			return ap->val;
+		ap = ap->next;
+	}
+
+	return 0;
+}
+
 static Ctlr*
-addctlr(Vga *vga, char *val)
+addctlr(Vga* vga, char* val)
 {
 	Ctlr **ctlr;
 	char name[NAMELEN+1], *p;
@@ -45,50 +73,80 @@ addctlr(Vga *vga, char *val)
 		return *ctlr;	
 	}
 
-	error("don't know how to programme a \"%s\" ctlr\n", val);
+	error("dbctlr: unknown controller \"%s\" ctlr\n", val);
 	return 0;
 }
 
 int
-dbctlr(char *name, Vga *vga)
+dbctlr(char* name, Vga* vga)
 {
 	Ndb *db;
 	Ndbs s;
 	Ndbtuple *t, *tuple;
-	char bios[128];
-	char *string;
-	long offset;
+	char *bios, *p, *string;
+	long offset, offset1;
 	int len;
 
 	db = dbopen(name);
 
 	for(tuple = ndbsearch(db, &s, "ctlr", ""); tuple; tuple = ndbsnext(&s, "ctlr", "")){
 		for(t = tuple->entry; t; t = t->entry){
-			if((offset = strtoul(t->attr, 0, 0)) == 0)
+			if((offset = strtol(t->attr, 0, 0)) == 0)
 				continue;
 
 			string = t->val;
 			len = strlen(string);
-			readbios(bios, len, offset);
-			if(strncmp(bios, string, len) == 0){
-				for(t = tuple->entry; t; t = t->entry){
-					if(strcmp(t->attr, "ctlr") == 0)
-						vga->ctlr = addctlr(vga, t->val);
-					else if(strcmp(t->attr, "ramdac") == 0)
-						vga->ramdac = addctlr(vga, t->val);
-					else if(strcmp(t->attr, "clock") == 0)
-						vga->clock = addctlr(vga, t->val);
-					else if(strcmp(t->attr, "hwgc") == 0)
-						vga->hwgc = addctlr(vga, t->val);
-					else if(strcmp(t->attr, "link") == 0)
-						addctlr(vga, t->val);
+
+			if(p = strchr(t->attr, '-')) {
+				if((offset1 = strtol(p+1, 0, 0)) < offset+len)
+					continue;
+			} else
+				offset1 = offset+len;
+
+			if(vga->offset) {
+				if(offset > vga->offset || vga->offset+len > offset1)
+					continue;
+				offset = vga->offset;
+				offset1 = offset+len;
+			}
+
+			for(; offset+len<=offset1; offset++) {
+				if(vga->bios)
+					bios = vga->bios;
+				else
+					bios = readbios(len, offset);
+				if(strncmp(bios, string, len) == 0){
+					addattr(&vga->attr, t);
+					for(t = tuple->entry; t; t = t->entry){
+						if(strcmp(t->attr, "ctlr") == 0)
+							vga->ctlr = addctlr(vga, t->val);
+						else if(strcmp(t->attr, "ramdac") == 0)
+							vga->ramdac = addctlr(vga, t->val);
+						else if(strcmp(t->attr, "clock") == 0)
+							vga->clock = addctlr(vga, t->val);
+						else if(strcmp(t->attr, "hwgc") == 0)
+							vga->hwgc = addctlr(vga, t->val);
+						else if(strcmp(t->attr, "link") == 0)
+							addctlr(vga, t->val);
+						else if(strcmp(t->attr, "linear") == 0)
+							vga->linear = strtol(t->val, 0, 0);
+						else if(strcmp(t->attr, "membw") == 0)
+							vga->membw = strtol(t->val, 0, 0)*1000000;
+						else if(strtol(t->attr, 0, 0) == 0)
+							addattr(&vga->attr, t);
+					}
+	
+					if(vga->bios == 0){
+						vga->bios = alloc(len+1);
+						strncpy(vga->bios, bios, len);
+					}
+	
+					ndbfree(tuple);
+					ndbclose(db);
+					return 1;
 				}
-				ndbfree(tuple);
-				ndbclose(db);
-				return 1;
 			}
 		}
-
 		ndbfree(tuple);
 	}
 
@@ -97,36 +155,64 @@ dbctlr(char *name, Vga *vga)
 }
 
 static int
-dbmonitor(Ndb *db, Mode *mode, char *type, char *size)
+dbmonitor(Ndb* db, Mode* mode, char* type, char* size)
 {
 	Ndbs s;
 	Ndbtuple *t, *tuple;
-	char *p, attr[NAMELEN+1], val[NAMELEN+1];
-	int x;
+	char *p, attr[NAMELEN+1], val[NAMELEN+1], buf[2*NAMELEN+1], vbuf[Ndbvlen];
+	int clock, x;
+
+	/*
+	 * Clock rate hack.
+	 * If the size is 'XxYxZ@NMHz' then override the database entry's
+	 * 'clock=' with 'N*1000000'.
+	 */
+	clock = 0;
+	strcpy(buf, size);
+	if(p = strchr(buf, '@')){
+		*p++ = 0;
+		if((clock = strtol(p, &p, 0)) && strcmp(p, "MHz") == 0)
+			clock *= 1000000;
+	}
 
 	memset(mode, 0, sizeof(Mode));
+
+	if((p = strchr(buf, 'x')) && (p = strchr(p+1, 'x'))){
+		*p++ = 0;
+		mode->z = atoi(p);
+	}
+
 	strcpy(attr, type);
-	strcpy(val, size);
-buggery:
-	if((tuple = ndbsearch(db, &s, attr, val)) == 0)
-		return 0;
+	strcpy(val, buf);
+
+	if(t=ndbgetval(db, &s, attr, "", "videobw", vbuf)){
+		ndbfree(t);
+		mode->videobw = atol(vbuf)*1000000UL;
+	}
 
 	if(mode->x == 0 && ((mode->x = strtol(val, &p, 0)) == 0 || *p++ != 'x'))
 		return 0;
-	if(mode->y == 0 && ((mode->y = strtol(p, &p, 0)) == 0 || *p++ != 'x'))
+	if(mode->y == 0 && (mode->y = strtol(p, &p, 0)) == 0)
 		return 0;
-	if(mode->z == 0 && ((mode->z = strtol(p, &p, 0)) == 0))
+buggery:
+	if((tuple = ndbsearch(db, &s, attr, val)) == 0)
 		return 0;
 
 	for(t = tuple->entry; t; t = t->entry){
 		if(strcmp(t->attr, "clock") == 0 && mode->frequency == 0)
 			mode->frequency = strtod(t->val, 0)*1000000;
+		else if(strcmp(t->attr, "defaultclock") == 0 && mode->deffrequency == 0)
+			mode->deffrequency = strtod(t->val, 0)*1000000;
 		else if(strcmp(t->attr, "ht") == 0 && mode->ht == 0)
 			mode->ht = strtol(t->val, 0, 0);
 		else if(strcmp(t->attr, "shb") == 0 && mode->shb == 0)
 			mode->shb = strtol(t->val, 0, 0);
 		else if(strcmp(t->attr, "ehb") == 0 && mode->ehb == 0)
 			mode->ehb = strtol(t->val, 0, 0);
+		else if(strcmp(t->attr, "shs") == 0 && mode->shs == 0)
+			mode->shs = strtol(t->val, 0, 0);
+		else if(strcmp(t->attr, "ehs") == 0 && mode->ehs == 0)
+			mode->ehs = strtol(t->val, 0, 0);
 		else if(strcmp(t->attr, "vt") == 0 && mode->vt == 0)
 			mode->vt = strtol(t->val, 0, 0);
 		else if(strcmp(t->attr, "vrs") == 0 && mode->vrs == 0)
@@ -139,12 +225,17 @@ buggery:
 			mode->vsync = *t->val;
 		else if(strcmp(t->attr, "interlace") == 0)
 			mode->interlace = *t->val;
-		else{
+		else if(strcmp(t->attr, "include") == 0 /*&& strcmp(t->val, val) != 0*/){
 			strcpy(attr, t->attr);
 			strcpy(val, t->val);
 			ndbfree(tuple);
 			goto buggery;
 		}
+		else if(strcmp(t->attr, "include") == 0){
+			print("warning: bailed out of infinite loop in attr %s=%s\n", attr, val);
+		}
+		else
+			addattr(&mode->attr, t);
 	}
 	ndbfree(tuple);
 
@@ -155,22 +246,27 @@ buggery:
 	if((x = strtol(p, &p, 0)) == 0 || x != mode->z)
 		return 0;
 
+	if(clock)
+		mode->frequency = clock;
+
 	return 1;
 }
 
 Mode*
-dbmode(char *name, char *type, char *size)
+dbmode(char* name, char* type, char* size)
 {
 	Ndb *db;
 	Ndbs s;
 	Ndbtuple *t, *tuple;
 	Mode *mode;
 	char attr[NAMELEN+1];
+	ulong videobw;
 
 	db = dbopen(name);
 	mode = alloc(sizeof(Mode));
 	strcpy(attr, type);
 
+	videobw = 0;
 	/*
 	 * Look for the attr=size entry.
 	 */
@@ -180,6 +276,9 @@ dbmode(char *name, char *type, char *size)
 		ndbclose(db);
 		return mode;
 	}
+
+	if(mode->videobw && videobw == 0)	/* we at least found that; save it away */
+		videobw = mode->videobw;
 
 	/*
 	 * Not found. Look for an attr="" entry and then
@@ -196,6 +295,8 @@ buggery:
 				strcpy(mode->size, size);
 				ndbfree(tuple);
 				ndbclose(db);
+				if(videobw)
+					mode->videobw = videobw;
 				return mode;
 			}
 
@@ -216,18 +317,25 @@ buggery:
 }
 
 void
-dbdumpmode(Mode *mode)
+dbdumpmode(Mode* mode)
 {
-	verbose("dbdumpmode\n");
+	Attr *attr;
 
-	print("type=%s, size=%s\n", mode->type, mode->size);
-	print("frequency=%d\n", mode->frequency);
-	print("x=%d (0x%X), y=%d (0x%X), z=%d (0x%X)\n",
+	Bprint(&stdout, "dbdumpmode\n");
+
+	Bprint(&stdout, "type=%s, size=%s\n", mode->type, mode->size);
+	Bprint(&stdout, "frequency=%d\n", mode->frequency);
+	Bprint(&stdout, "x=%d (0x%X), y=%d (0x%X), z=%d (0x%X)\n",
 		mode->x, mode->x, mode->y,  mode->y, mode->z, mode->z);
-	print("ht=%d (0x%X), shb=%d (0x%X), ehb=%d (0x%X)\n",
+	Bprint(&stdout, "ht=%d (0x%X), shb=%d (0x%X), ehb=%d (0x%X)\n",
 		mode->ht, mode->ht, mode->shb, mode->shb, mode->ehb, mode->ehb);
-	print("vt=%d (0x%X), vrs=%d (0x%X), vre=%d (0x%X)\n",
+	Bprint(&stdout, "shs=%d (0x%X), ehs=%d (0x%X)\n",
+		mode->shs, mode->shs, mode->ehs, mode->ehs);
+	Bprint(&stdout, "vt=%d (0x%X), vrs=%d (0x%X), vre=%d (0x%X)\n",
 		mode->vt, mode->vt, mode->vrs, mode->vrs, mode->vre, mode->vre);
-	print("hsync=%d, vsync=%d, interlace=%d\n",
+	Bprint(&stdout, "hsync=%d, vsync=%d, interlace=%d\n",
 		mode->hsync, mode->vsync, mode->interlace);
+
+	for(attr = mode->attr; attr; attr = attr->next)
+		Bprint(&stdout, "mode->attr: %s=%s\n", attr->attr, attr->val);
 }

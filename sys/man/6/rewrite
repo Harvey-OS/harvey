@@ -70,7 +70,7 @@ Pipe the mail through the command formed from concatenating the
 expanded
 .I arg1
 and
-.I arg2.
+.IR arg2 .
 .TP
 .B alias
 Replace the address by the address(es) specified
@@ -113,7 +113,7 @@ network.  For example, with the following
 rewrite rule
 .PP
 .EX
-   ([^!]*\.att\.com)!(.*)  |  "/mail/lib/qmail '\es' 'net!\e1'" "'\e2'"
+   ([^!]*\.bell-labs\.com)!(.*)  |  "/mail/lib/qmail '\es' 'net!\e1'" "'\e2'"
 .EE
 .PP
 if user
@@ -121,13 +121,13 @@ if user
 runs the command
 .PP
 .EX
-   % mail research.att.com!ken research.att.com!rob
+   % mail plan9.bell-labs.com!ken plan9.bell-labs.com!rob
 .EE
 .PP
 there will follow only one execution of the command
 .PP
 .EX
-   /mail/lib/qmail presotto net!research.att.com ken rob
+   /mail/lib/qmail presotto net!plan9.bell-labs.com ken rob
 .EE
 .PP
 Here

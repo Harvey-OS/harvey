@@ -3,7 +3,6 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
 #include	"../port/error.h"
 
 typedef struct Crypt	Crypt;
@@ -19,7 +18,7 @@ typedef struct Session	Session;
 struct Session
 {
 	Lock;
-	QLock	send;
+	Lock	send;
 	Crypt	*cache;			/* cache of tickets */
 	char	cchal[CHALLEN];		/* client challenge */
 	char	schal[CHALLEN];		/* server challenge */
@@ -35,7 +34,7 @@ struct
 	Crypt		*free;
 } cryptalloc;
 
-char	eve[NAMELEN] = "bootes";
+char	eve[NAMELEN];
 char	evekey[DESKEYLEN];
 char	hostdomain[DOMLEN];
 
@@ -45,7 +44,7 @@ char	hostdomain[DOMLEN];
 int
 iseve(void)
 {
-	return strcmp(eve, u->p->user) == 0;
+	return strcmp(eve, up->user) == 0;
 }
 
 /*
@@ -107,7 +106,7 @@ sysfsession(ulong *arg)
 	validaddr(arg[1], TICKREQLEN, 1);
 	c = fdtochan(arg[0], OWRITE, 0, 1);
 	if(waserror()){
-		close(c);
+		cclose(c);
 		nexterror();
 	}
 
@@ -124,69 +123,64 @@ sysfsession(ulong *arg)
 	}
 	unlock(c);
 
-	qlock(&s->send);
-	if(s->valid == 0){
+	/* back off if someone else is doing an fsession */
+	while(!canlock(&s->send))
+		sched();
+
+	if(s->valid == 0 && (c->flag & CMSG) == 0){
+
 		/*
 		 *  Exchange a session message with the server.
-		 */
-		for(i = 0; i < CHALLEN; i++)
-			s->cchal[i] = nrand(256);
-
-		f.tag = NOTAG;
-		f.type = Tsession;
-		memmove(f.chal, s->cchal, CHALLEN);
-		n = convS2M(&f, buf);
-
-		/*
 		 *  If an error occurs reading or writing,
-		 *  this probably is a mount of a mount so turn off
+		 *  assume this is a mount of a mount and turn off
 		 *  authentication.
 		 */
-		if(waserror())
-			goto noauth;
-
-		if((*devtab[c->type].write)(c, buf, n, 0) != n)
-			error(Esession);
-		n = (*devtab[c->type].read)(c, buf, sizeof buf, 0);
-		/* OK is sometimes sent as a Datakit sign-on */
-		if(n == 2 && buf[0] == 'O' && buf[1] == 'K')
-			n = (*devtab[c->type].read)(c, buf, sizeof buf, 0);
-
-		poperror();
-
-		if(convM2S(buf, &f, n) == 0){
-			qunlock(&s->send);
-			error(Esession);
+		if(!waserror()){
+			for(i = 0; i < CHALLEN; i++)
+				s->cchal[i] = nrand(256);
+			f.tag = NOTAG;
+			f.type = Tsession;
+			memmove(f.chal, s->cchal, CHALLEN);
+			n = convS2M(&f, buf);
+			if(devtab[c->type]->write(c, buf, n, 0) != n)
+				error(Emountrpc);
+			n = devtab[c->type]->read(c, buf, sizeof buf, 0);
+			if(n == 2 && buf[0] == 'O' && buf[1] == 'K')
+				n = devtab[c->type]->read(c, buf, sizeof buf, 0);
+			poperror();
+			if(convM2S(buf, &f, n) == 0){
+				unlock(&s->send);
+				error(Emountrpc);
+			}
+			switch(f.type){
+			case Rsession:
+				memmove(s->schal, f.chal, CHALLEN);
+				memmove(s->authid, f.authid, NAMELEN);
+				memmove(s->authdom, f.authdom, DOMLEN);
+				break;
+			case Rerror:
+				unlock(&s->send);
+				error(f.ename);
+			default:
+				unlock(&s->send);
+				error(Emountrpc);
+			}
 		}
-		switch(f.type){
-		case Rsession:
-			memmove(s->schal, f.chal, CHALLEN);
-			memmove(s->authid, f.authid, NAMELEN);
-			memmove(s->authdom, f.authdom, DOMLEN);
-			break;
-		case Rerror:
-			qunlock(&s->send);
-			error(f.ename);
-		default:
-			qunlock(&s->send);
-			error(Esession);
-		}
-noauth:
 		s->valid = 1;
 	}
-	qunlock(&s->send);
+	unlock(&s->send);
 
-	/* 
+	/*
 	 *  If server requires no ticket, or user is "none", or a ticket
 	 *  is already cached, zero the request type
 	 */
 	tr.type = AuthTreq;
-	if(strcmp(u->p->user, "none") == 0 || s->authid[0] == 0)
+	if(strcmp(up->user, "none") == 0 || s->authid[0] == 0)
 		tr.type = 0;
 	else{
 		lock(s);
 		for(cp = s->cache; cp; cp = cp->next)
-			if(strcmp(cp->t.cuid, u->p->user) == 0){
+			if(strcmp(cp->t.cuid, up->user) == 0){
 				tr.type = 0;
 				break;
 			}
@@ -197,11 +191,11 @@ noauth:
 	memmove(tr.chal, s->schal, CHALLEN);
 	memmove(tr.authid, s->authid, NAMELEN);
 	memmove(tr.authdom, s->authdom, DOMLEN);
-	memmove(tr.uid, u->p->user, NAMELEN);
+	memmove(tr.uid, up->user, NAMELEN);
 	memmove(tr.hostid, eve, NAMELEN);
 	convTR2M(&tr, (char*)arg[1]);
 
-	close(c);
+	cclose(c);
 	poperror();
 	return 0;
 }
@@ -221,10 +215,13 @@ sysfauth(ulong *arg)
 	validaddr(arg[1], 2*TICKETLEN, 0);
 	c = fdtochan(arg[0], OWRITE, 0, 1);
 	s = c->session;
-	if(s == 0)
+	if(s == 0){
+		cclose(c);
 		error("fauth must follow fsession");
+	}
 	cp = newcrypt();
 	if(waserror()){
+		cclose(c);
 		freecrypt(cp);
 		nexterror();
 	}
@@ -235,7 +232,7 @@ sysfauth(ulong *arg)
 	convM2T(tbuf, &cp->t, evekey);
 	if(cp->t.num != AuthTc)
 		error("bad AuthTc in ticket");
-	if(strncmp(u->p->user, cp->t.cuid, NAMELEN) != 0)
+	if(strncmp(up->user, cp->t.cuid, NAMELEN) != 0)
 		error("bad uid in ticket");
 	if(memcmp(cp->t.chal, s->schal, CHALLEN) != 0)
 		error("bad chal in ticket");
@@ -245,7 +242,7 @@ sysfauth(ulong *arg)
 	lock(s);
 	l = &s->cache;
 	for(ncp = s->cache; ncp; ncp = *l){
-		if(strcmp(ncp->t.cuid, u->p->user) == 0){
+		if(strcmp(ncp->t.cuid, up->user) == 0){
 			*l = ncp->next;
 			freecrypt(ncp);
 			break;
@@ -255,6 +252,7 @@ sysfauth(ulong *arg)
 	cp->next = s->cache;
 	s->cache = cp;
 	unlock(s);
+	cclose(c);
 	poperror();
 	return 0;
 }
@@ -284,7 +282,7 @@ authrequest(Session *s, Fcall *f)
 	ulong id, dofree;
 
 	/* no authentication if user is "none" or if no ticket required by remote */
-	if(s == 0 || s->authid[0] == 0 || strcmp(u->p->user, "none") == 0){
+	if(s == 0 || s->authid[0] == 0 || strcmp(up->user, "none") == 0){
 		memset(f->ticket, 0, TICKETLEN);
 		memset(f->auth, 0, AUTHENTLEN);
 		return 0;
@@ -294,7 +292,7 @@ authrequest(Session *s, Fcall *f)
 	dofree = 0;
 	lock(s);
 	for(cp = s->cache; cp; cp = cp->next)
-		if(strcmp(cp->t.cuid, u->p->user) == 0)
+		if(strcmp(cp->t.cuid, up->user) == 0)
 			break;
 
 	id = s->cid++;
@@ -308,8 +306,8 @@ authrequest(Session *s, Fcall *f)
 		cp = newcrypt();
 		cp->t.num = AuthTs;
 		memmove(cp->t.chal, s->schal, CHALLEN);
-		memmove(cp->t.cuid, u->p->user, NAMELEN);
-		memmove(cp->t.suid, u->p->user, NAMELEN);
+		memmove(cp->t.cuid, up->user, NAMELEN);
+		memmove(cp->t.suid, up->user, NAMELEN);
 		memmove(cp->t.key, evekey, DESKEYLEN);
 		convT2M(&cp->t, f->ticket, evekey);
 		dofree = 1;
@@ -339,12 +337,12 @@ authreply(Session *s, ulong id, Fcall *f)
 
 	lock(s);
 	for(cp = s->cache; cp; cp = cp->next)
-		if(strcmp(cp->t.cuid, u->p->user) == 0)
+		if(strcmp(cp->t.cuid, up->user) == 0)
 			break;
 	unlock(s);
 
 	/* we're getting around authentication */
-	if(s == 0 || cp == 0 || s->authid[0] == 0 || strcmp(u->p->user, "none") == 0)
+	if(s == 0 || cp == 0 || s->authid[0] == 0 || strcmp(up->user, "none") == 0)
 		return;
 
 	convM2A(f->rauth, &cp->a, cp->t.key);
@@ -355,7 +353,7 @@ authreply(Session *s, ulong id, Fcall *f)
 	if(memcmp(cp->a.chal, s->cchal, sizeof(cp->a.chal))){
 		print("bad returned challenge\n");
 		error("server lies");
-	}	
+	}
 	if(cp->a.id != id){
 		print("bad returned id\n");
 		error("server lies");
@@ -392,7 +390,7 @@ authread(Chan *c, char *a, int n)
 		strcpy(tr.hostid, eve);
 		strcpy(tr.authid, eve);
 		strcpy(tr.authdom, hostdomain);
-		strcpy(tr.uid, u->p->user);
+		strcpy(tr.uid, up->user);
 		for(i = 0; i < CHALLEN; i++)
 			tr.chal[i] = nrand(256);
 		memmove(cp->a.chal, tr.chal, CHALLEN);
@@ -401,7 +399,7 @@ authread(Chan *c, char *a, int n)
 		/*
 		 *  subsequent read returns an authenticator
 		 */
-		if(n != AUTHENTLEN)
+		if(n < AUTHENTLEN)
 			error(Ebadarg);
 		cp = c->aux;
 
@@ -410,6 +408,9 @@ authread(Chan *c, char *a, int n)
 		cp->a.id = 0;
 		convA2M(&cp->a, cp->tbuf, cp->t.key);
 		memmove(a, cp->tbuf, AUTHENTLEN);
+
+		if(n >= AUTHENTLEN + TICKETLEN)
+			convT2M(&cp->t, a+AUTHENTLEN, nil);
 
 		freecrypt(cp);
 		c->aux = 0;
@@ -438,7 +439,7 @@ authwrite(Chan *c, char *a, int n)
 	if(cp->a.num != AuthAc || memcmp(cp->a.chal, cp->t.chal, CHALLEN))
 		error(Eperm);
 
-	memmove(u->p->user, cp->t.suid, NAMELEN);
+	memmove(up->user, cp->t.suid, NAMELEN);
 	return n;
 }
 
@@ -464,7 +465,7 @@ authcheck(Chan *c, char *a, int n)
 	convM2T(cp->tbuf, &cp->t, evekey);
 	if(cp->t.num != AuthTc)
 		error(Ebadarg);
-	if(strcmp(u->p->user, cp->t.cuid))
+	if(strcmp(up->user, cp->t.cuid))
 		error(cp->t.cuid);
 
 	memmove(cp->tbuf, a+TICKETLEN, AUTHENTLEN);
@@ -481,6 +482,24 @@ authcheck(Chan *c, char *a, int n)
 		error(Eperm);
 
 	return n;
+}
+
+/*
+ *  reading authcheck after writing into it yields the
+ *  unencrypted ticket
+ */
+long
+authcheckread(Chan *c, char *a, int n)
+{
+	Crypt *cp;
+
+	cp = c->aux;
+	if(cp == nil)
+		error(Ebadarg);
+	if(n < TICKETLEN)
+		error(Ebadarg);
+	convT2M(&cp->t, a, nil);
+	return sizeof(cp->t);
 }
 
 /*
@@ -502,7 +521,7 @@ authentwrite(Chan *c, char *a, int n)
 
 	memmove(cp->tbuf, a, TICKETLEN);
 	convM2T(cp->tbuf, &cp->t, evekey);
-	if(cp->t.num != AuthTc || strcmp(cp->t.cuid, u->p->user)){
+	if(cp->t.num != AuthTc || strcmp(cp->t.cuid, up->user)){
 		freecrypt(cp);
 		c->aux = 0;
 		error(Ebadarg);
@@ -515,6 +534,11 @@ authentwrite(Chan *c, char *a, int n)
 
 	return n;
 }
+
+/*
+ *  create an authenticator and return it and optionally the
+ *  unencrypted ticket
+ */
 long
 authentread(Chan *c, char *a, int n)
 {
@@ -527,8 +551,9 @@ authentread(Chan *c, char *a, int n)
 	cp->a.num = AuthAc;
 	memmove(cp->a.chal, cp->t.chal, CHALLEN);
 	convA2M(&cp->a, cp->tbuf, cp->t.key);
-	memmove(a, cp->tbuf, AUTHENTLEN);
 
+	if(n >= AUTHENTLEN)
+		memmove(a, cp->tbuf, AUTHENTLEN);
 	return n;
 }
 
@@ -577,8 +602,9 @@ userwrite(char *a, int n)
 		error(Ebadarg);
 	if(strcmp(a, "none") != 0)
 		error(Eperm);
-	memset(u->p->user, 0, NAMELEN);
-	strcpy(u->p->user, "none");
+	memset(up->user, 0, NAMELEN);
+	strcpy(up->user, "none");
+	up->basepri = PriNormal;
 	return n;
 }
 
@@ -600,8 +626,10 @@ hostownerwrite(char *a, int n)
 	strncpy(buf, a, n);
 	if(buf[0] == 0)
 		error(Ebadarg);
+	renameuser(eve, buf);
 	memmove(eve, buf, NAMELEN);
-	memmove(u->p->user, buf, NAMELEN);
+	memmove(up->user, buf, NAMELEN);
+	up->basepri = PriNormal;
 	return n;
 }
 
@@ -620,11 +648,4 @@ hostdomainwrite(char *a, int n)
 		error(Ebadarg);
 	memmove(hostdomain, buf, DOMLEN);
 	return n;
-}
-
-void
-wipekeys(void)
-{
-	memset(evekey, 0, sizeof(evekey));
-	memset((void*)palloc.cmembase, 0, palloc.cmemtop - palloc.cmembase);
 }

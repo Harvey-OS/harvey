@@ -1,14 +1,24 @@
+/order of evaluation
+/ + -
+/ * /
+/ juxtaposition (meaning *)
+/ ¹ ² ³ ^
+/ | (meaning /)
+/ name number ()
+
 /dimensions
 m			#
 kg			#
 sec			#
 coul			#
 candela			#
-dollar			#
+$			#
 radian			#
 bit			#
 erlang			#
 °K			#
+°C			#
+°F			#
 
 /constants
 
@@ -26,6 +36,17 @@ hg			mercury
 h			6.62620e-34 m²kg/sec
 ℏ			h/2 π
 hbar			ℏ
+nonillion		1e30
+octillion		1e27
+septillion		1e24
+sextillion		1e21
+pentillion		1e18
+quadrillion		1e15
+trillion		1e12
+billion			1e9
+million			1e6
+thousand		1e3
+hundred			1e2
 
 /dimensionless
 
@@ -42,6 +63,7 @@ ccs			1|36 erlang
 steradian		radian²
 sphere			4 π steradian
 sr			steradian
+giga		1024 1024 1024
 
 /Time
 
@@ -98,9 +120,8 @@ cm			centimeter
 mm			millimeter
 km			kilometer
 nm			nanometer
+micron			micrometer
 µ			micrometer
-μ			µ
-micron			µ
 Å			decinanometer
 angstrom		Å
 
@@ -185,98 +206,106 @@ cd			candela
 lumen			cd sr
 lux			cd sr/m²
 
-/ Money
-/ May 13 1993 - ap wire
+/ MONEY DATE
+/ Wed May 17 13:18:04 EDT 2000
 
-$			dollar
-argentinapeso		1.0000 $
-australiadollar		.7373 $
-austriaschilling	.0972 $
-belgiumfranc		.0332 $
-brazilreal		1.1905 $
-britainpound		1.5875 $
-canadadollar		.7183 $
-chilepeso		.002424 $
-chinayuan		.1186 $
-colombiapeso		.001171 $
-czechkoruna		.0369 $
-denmarkkrone		.1720 $
-ECU			1.2748 $
-equadorsucre		.000414 $
-egyptpound		.2948 $
-finlandmarkka		.2214 $
-francefranc		.1940 $
-germanymark		.6839 $
-greecedrachma		.004312 $
-netherlandsguilder	.6101 $
-hongkongdollar		.1294 $
-hungaryforint		.0090 $
-indiarupee		.0319 $
-indonesiarupiah		.000451 $
-iranrial		.0142 $
-iraqdinar		2.6504 $
-irelandpunt		1.5910 $
-israelshekel		.3347 $
-italylira		.000615 $
-japanyen		.010309 $
-jordandinar		1.4368 $
-lebanonpound		.000610 $
-malaysianringgit	.3917 $	
-mexicopeso		.175902 $
-newzealanddollar	.6330 $
-norwaykrone		.1550 $
-pakistanrupee		.0329 $
-perusol			.4505 $
-phillippinespeso	.0394 $
-polandzloty		.4115 $
-portugalescudo		.006566 $
-russianruble		.000226 $
-saudiarabiariyal	.2667 $
-singaporedollar		.6885 $
-slovakkoruna		.0330 $
-southafricarand		.2770 $
-southkoreawon		.001268 $
-spainpeseta		.007751 $
-swedenkrona		.1376 $
-switzerlandfranc	.8034 $
-taiwandollar		.0379 $
-thailandbhat		.04011 $
-turkeylira		.000024 $
-uaedirham		.2724 $
-uruguaypeso		.17094 $
-venezuelabolivar	.0059 $
-yugoslaviadinar		.001953 $
+/ MONEY START
+argentpeso		1 | .9998 $
+australiadollar		1 | 1.7310 $
+austriaschilling	1 | 15.092 $
+belgiumfranc		1 | 44.49 $
+brazilreal		1 | 1.8200 $
+britainpound		1 | .6699 $
+canadadollar		1 | 1.4863 $
+chilepeso		1 | 517.85 $
+chinayuan		1 | 8.2777 $
+colombiapeso		1 | 2041.00 $
+czechrepkoruna		1 | 40.53 $
+denmarkkrone		1 | 8.2199 $
+dominicanpeso		1 | 15.90 $
+ecudrsucre		1 | 25000.00 $
+egyptpound		1 | 3.4390 $
+euro			1 | 1.1095 $
+finlandmark		1 | 6.5212 $
+francefranc		1 | 7.2771 $
+germanymark		1 | 2.1698 $
+greecedrachma		1 | 371.08 $
+hongkongdollar		1 | 7.7900 $
+hungaryforint		1 | 284.12 $
+indiarupee		1 | 43.940 $
+indnsiarupiah		1 | 8605.00 $
+irelandpunt		1 | .8638 $
+israelshekel		1 | 4.1483 $
+italylira		1 | 2148.07 $
+japanyen		1 | 109.44 $
+jordandinar		1 | .70998 $
+lebanonpound		1 | 1514.25 $
+malaysiaringgit		1 | 3.7994 $
+mexicopeso		1 | 9.5100 $
+nethrlndsguilder	1 | 2.4306 $
+newzealanddollar	1 | 2.1079 $
+norwaykrone		1 | 9.0100 $
+pakistanrupee		1 | 51.87 $
+perunewsol		1 | 3.503 $
+philpinspeso		1 | 41.54 $
+polandzloty		1 | 4.37 $
+portugalescudo		1 | 219.89 $
+russiaruble		1 | 28.2700 $
+sdr			1 | .7643 $
+saudiarabriyal		1 | 3.7506 $
+singaporedollar		1 | 1.7320 $
+slovakrepkoruna		1 | 47.05 $
+southafricarand		1 | 7.0455 $
+southkoreawon		1 | 1114.50 $
+spainpeseta		1 | 182.00 $
+swedenkrona		1 | 9.0721 $
+switzerlndfranc		1 | 1.7224 $
+taiwandollar		1 | 30.77 $
+thailandbaht		1 | 39.32 $
+turkeylira		1 | 614940 $
+uaedirham		1 | 3.6728 $
+uruguaynewpeso		1 | 11.9450 $
+venezuelabolivar	1 | 679.2500 $
+/ MONEY END
 
-bhat			thailandbhat
+baht			thailandbaht
 bolivar			venezuelabolivar
 brpound			britainpound
+dinar			jordandinar
+dirham			uaedirham
 drachma			greecedrachma
 escudo			portugalescudo
 forint			hungaryforint
 franc			francefranc
-guilder			netherlandsguilder
+guilder			nethrlndsguilder
+krona			swedenkrona
 lira			italylira
 mark			germanymark
-markka			finlandmarkka
 peseta			spainpeseta
 peso			mexicopeso
-£			britainpound
-poundsterling		britainpound
+punt			irelandpunt
 rand			southafricarand
 real			brazilreal
-rial			iranrial
-ringgit			malaysianringgit
-riyal			saudiarabiariyal
-ruble			russianruble
+yuan			chinayuan
+ringgit			malaysiaringgit
+riyal			saudiarabriyal
+ruble			russiaruble
 rupee			indiarupee
-rupiah			indonesiarupiah
+rupiah			indnsiarupiah
 shekel			israelshekel
-sol			perusol
-sucre			equadorsucre
-usdollar		dollar
+sol			perunewsol
+sucre			ecudrsucre
+won			southkoreawon
 yen			japanyen
 zloty			polandzloty
+
+€			euro
+£			britainpound
 ¥			japanyen
+dollar			$
+usdollar		dollar
+sterling		britainpound | pound
+poundsterling		britainpound
 
 /bits
 
@@ -284,6 +313,8 @@ baud			bit/sec
 byte			8 bit
 short			2 byte
 long			4 byte
+vlong			8 bytes
+frame			2352 byte
 
 /Australian liquid measure
 
@@ -302,6 +333,19 @@ longneck		2 tinny
 slab			24 tinny
 sixpack			6 tinny
 nip			brfloz
+
+/wine
+winebottle		750 ml
+balthazar		16 winebottle
+jeroboam		4 winebottle
+magnum			2 winebottle
+mathusalem		8 winebottle
+methuselah		8 winebottle
+nebuchadnezzar	20 winebottle
+rehoboam		6 winebottle
+salmanazar		12 winebottle
+split			0.25 winebottle
+jigger			1.5 floz
 
 /Trivia
 
@@ -363,6 +407,8 @@ cusec			ft³/sec
 dalton			amu
 decade			10 yr
 degK			°K
+degC			°C
+degF			°F
 dipotre			1/m
 displacementton		35 ft³
 doppelzentner		100 kg
@@ -412,7 +458,6 @@ hp			horsepower
 hyl			gm force sec²/m
 hz			1/sec
 imaginarycubicfoot	1.4 ft³
-jeroboam		4|5 gal
 karat			1|24
 kcal			kilocal
 kcalorie		kilocal
@@ -435,7 +480,6 @@ longhundredweight	112 lb
 longquarter		28 lb
 lusec			1e-6 mm hg m³/s
 mach			331.46 m/sec
-magnum			2 qt
 marineleague		3 nmile
 maxwell			1e-8 weber
 metriccarat		200 mg
@@ -486,7 +530,6 @@ quire			25
 rad			100 erg/gm
 ream			500
 registerton		100 ft³
-rehoboam		156 floz
 rhe			10 m²/nt sec
 rontgen			2.58e-4 curie/kg
 rood			1.21e+3 yd

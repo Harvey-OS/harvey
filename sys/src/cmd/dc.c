@@ -2,6 +2,9 @@
 #include <libc.h>
 #include <bio.h>
 
+typedef	void*	pointer;
+#pragma	varargck	type	"lx"	pointer
+
 #define FATAL 0
 #define NFATAL 1
 #define BLK sizeof(Blk)
@@ -10,7 +13,7 @@
 #define STKSZ 100
 #define RDSKSZ 100
 #define TBLSZ 256
-#define ARRAYST 0241
+#define ARRAYST 221
 #define MAXIND 2048
 #define NL 1
 #define NG 2
@@ -46,9 +49,6 @@
 #define error(p)	{Bprint(&bout,p); continue; }
 #define errorrt(p)	{Bprint(&bout,p); return(1); }
 #define LASTFUN 026
-
-#define	signal(a,b)	0
-#define	SIG_IGN		0
 
 typedef	struct	Blk	Blk;
 struct	Blk
@@ -163,13 +163,14 @@ Blk*	dcgetwd(Blk *p);
 void	putwd(Blk *p, Blk *c);
 Blk*	lookwd(Blk *p);
 char*	nalloc(char *p, unsigned nbytes);
+int	getstk(void);
 
 /********debug only**/
 void
 tpr(char *cp, Blk *bp)
 {
 	print("%s-> ", cp);
-	print("beg: %x rd: %x wt: %x last: %x\n", bp->beg, bp->rd,
+	print("beg: %lx rd: %lx wt: %lx last: %lx\n", bp->beg, bp->rd,
 		bp->wt, bp->last);
 	for (cp = bp->beg; cp != bp->wt; cp++) {
 		print("%d", *cp);
@@ -602,7 +603,7 @@ commnds(void)
 			if(stkptr == &stack[0]) {
 				error("save: args\n");
 			}
-			c = readc() & 0377;
+			c = getstk() & 0377;
 			sptr = stable[c];
 			sp = stable[c] = sfree;
 			sfree = sfree->next;
@@ -627,7 +628,7 @@ commnds(void)
 			if(stkptr == &stack[0]) {
 				error("save:args\n");
 			}
-			c = readc() & 0377;
+			c = getstk() & 0377;
 			sptr = stable[c];
 			if(sptr != 0) {
 				p = sptr->val;
@@ -651,7 +652,7 @@ commnds(void)
 			load();
 			continue;
 		case 'L':
-			c = readc() & 0377;
+			c = getstk() & 0377;
 			sptr = stable[c];
 			if(sptr == 0) {
 				error("L?\n");
@@ -688,7 +689,7 @@ commnds(void)
 				error("index too big\n");
 			}
 			release(q);
-			n = readc() & 0377;
+			n = getstk() & 0377;
 			sptr = stable[n];
 			if(sptr == 0) {
 				sptr = stable[n] = sfree;
@@ -733,7 +734,7 @@ commnds(void)
 				error("index too big\n");
 			}
 			release(q);
-			n = readc() & 0377;
+			n = getstk() & 0377;
 			sptr = stable[n];
 			if(sptr != 0){
 				p = sptr->val;
@@ -1167,9 +1168,8 @@ void
 init(int argc, char *argv[])
 {
 	Sym *sp;
+	Dir d;
 
-	if(signal(SIGINT, SIG_IGN) != SIG_IGN)
-		signal(SIGINT,onintr);
 	ARGBEGIN {
 	default:
 		dbg = 1;
@@ -1177,10 +1177,19 @@ init(int argc, char *argv[])
 	} ARGEND
 	ifile = 1;
 	curfile = &bin;
-	if(*argv)
-	if((curfile = Bopen(*argv, OREAD)) == 0) {
-		fprint(2,"dc: can't open file %s\n", *argv);
-		exits("open");
+	if(*argv){
+		if(dirstat(*argv, &d) < 0 ) {
+			fprint(2, "dc: can't open file %s\n", *argv);
+			exits("open");
+		}
+		if(d.mode & CHDIR) {
+			fprint(2, "dc: file %s is a directory\n", *argv);
+			exits("open");
+		}
+		if((curfile = Bopen(*argv, OREAD)) == 0) {
+			fprint(2,"dc: can't open file %s\n", *argv);
+			exits("open");
+		}
 	}
 /*	dummy = malloc(0);  /* prepare for garbage-collection */
 	scalptr = salloc(1);
@@ -1214,21 +1223,6 @@ init(int argc, char *argv[])
 	}
 	sptr->next=0;
 	sfree = &symlst[0];
-}
-
-void
-onintr(void)
-{
-
-	signal(SIGINT, onintr);
-	while(readptr != &readstk[0]) {
-		if(*readptr != 0) {
-			release(*readptr);
-		}
-		readptr--;
-	}
-	curfile = &bin;
-	commnds();
 }
 
 void
@@ -1275,9 +1269,6 @@ readin(void)
 		default:
 			if(c >= 'A' && c <= 'F')
 				c = c - 'A' + 10;
-			else
-			if(c >= 'a' && c <= 'f')
-				c = c-'a'+10;
 			else
 			if(c >= '0' && c <= '9')
 				c -= '0';
@@ -1533,6 +1524,21 @@ dcprint(Blk *hptr)
 		tenot(p,sc);
 		return;
 	}
+	/* sleazy hack to scale top of stack - divide by 1 */
+	pushp(p);
+	sputc(p, sc);
+	p=salloc(0);
+	create(p);
+	sputc(p, 1);
+	sputc(p, 0);
+	pushp(p);
+	if(dscale() != 0)
+		return;
+	p = div(arg1, arg2);
+	release(arg1);
+	release(arg2);
+	sc = savk;
+
 	create(strptr);
 	dig = logten*sc;
 	dout = ((dig/10) + dig) / logo;
@@ -1633,11 +1639,9 @@ tenot(Blk *p, int sc)
 	} else {
 		OUTC('.');
 	}
-	if(sc > (p->rd-p->beg)*2) {
-		while(sc>(p->rd-p->beg)*2) {
-			OUTC('0');
-			sc--;
-		}
+	while(sc>(p->rd-p->beg)*2) {
+		OUTC('0');
+		sc--;
 	}
 	while(sc > 1) {
 		c = sbackc(p);
@@ -1900,7 +1904,6 @@ command(void)
 	char line[100], *sl;
 	int pid, c;
 	Waitmsg retcode;
-	int (*savint)(...);
 
 	switch(c = readc()) {
 	case '<':
@@ -1916,18 +1919,15 @@ command(void)
 			*sl++ = c;
 		*sl = 0;
 		if((pid = fork()) == 0) {
-			execl("/bin/sh","sh","-c",line,0);
+			execl("/bin/rc","rc","-c",line,0);
 			exits("shell");
 		}
-		savint = signal(SIGINT, SIG_IGN);
-		USED(savint);
 		for(;;) {
 			if(wait(&retcode) < 0)
 				break;
 			if(atoi(retcode.pid) == pid)
 				break;
 		}
-		signal(SIGINT,savint);
 		Bprint(&bout,"!\n");
 		return(0);
 	}
@@ -1946,7 +1946,7 @@ cond(char c)
 	if(length(p) == 0) {
 		release(p);
 		if(c == '<' || c == '>' || c == NE) {
-			readc();
+			getstk();
 			return(0);
 		}
 		load();
@@ -1954,7 +1954,7 @@ cond(char c)
 	}
 	if(c == '='){
 		release(p);
-		readc();
+		getstk();
 		return(0);
 	}
 	if(c == NE) {
@@ -1967,7 +1967,7 @@ cond(char c)
 	release(p);
 	if((cc<0 && (c == '<' || c == NG)) ||
 	   (cc >0) && (c == '>' || c == NL)) {
-		readc();
+		getstk();
 		return(0);
 	}
 	load();
@@ -1980,7 +1980,7 @@ load(void)
 	int c;
 	Blk *p, *q, *t, *s;
 
-	c = readc() & 0377;
+	c = getstk() & 0377;
 	sptr = stable[c];
 	if(sptr != 0) {
 		p = sptr->val;
@@ -2124,7 +2124,7 @@ sdump(char *s1, Blk *hptr)
 {
 	char *p;
 
-	Bprint(&bout,"%s %o rd %o wt %o beg %o last %o\n",
+	Bprint(&bout,"%s %lx rd %lx wt %lx beg %lx last %lx\n",
 		s1,hptr,hptr->rd,hptr->wt,hptr->beg,hptr->last);
 	p = hptr->beg;
 	while(p < hptr->wt)
@@ -2276,4 +2276,23 @@ nalloc(char *p, unsigned nbytes)
 	while(nbytes--)
 		*q++ = *p++;
 	return(r);
+}
+
+int
+getstk(void)
+{
+	int n;
+	uchar c;
+
+	c = readc();
+	if(c != '<')
+		return c;
+	n = 0;
+	while(1) {
+		c = readc();
+		if(c == '>')
+			break;
+		n = n*10+c-'0';
+	}
+	return n;
 }

@@ -52,7 +52,7 @@ The further flag
 causes tail to print lines from the end of the file in reverse order;
 .L f
 (follow) causes
-.I tail,
+.IR tail ,
 after printing to the end, to keep watch and
 print further data as it appears.
 .PP

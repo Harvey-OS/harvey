@@ -10,7 +10,6 @@ OFILES=\
 	txt.$O\
 	reg.$O\
 	peep.$O\
-	bits.$O\
 
 HFILES=\
 	gc.h\

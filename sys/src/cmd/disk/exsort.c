@@ -1,10 +1,13 @@
 #include	<u.h>
 #include	<libc.h>
 
-int	ulcmp(ulong*, ulong*);
+int	ulcmp(void*, void*);
 void	swapem(ulong*, long);
 
-#define	Wormsize	546000
+enum
+{
+	Wormsize	= 157933,
+};
 int	wflag;
 
 void
@@ -17,7 +20,7 @@ main(int argc, char *argv[])
 
 	ARGBEGIN {
 	default:
-		print("usage: exsort [-w] [file]\n");
+		print("usage: disk/exsort [-w] [file]\n");
 		exits("usage");
 	case 'w':
 		wflag++;
@@ -102,8 +105,13 @@ main(int argc, char *argv[])
 }
 
 int
-ulcmp(ulong *a, ulong *b)
+ulcmp(void *va, void *vb)
 {
+	ulong *a, *b;
+
+	a = va;
+	b = vb;
+
 	if(*a > *b)
 		return 1;
 	if(*a < *b)

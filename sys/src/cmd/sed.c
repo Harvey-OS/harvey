@@ -908,12 +908,8 @@ execute(void)
 			}
 			command(ipc);
 
-			if(ipc->ad2.type == A_RE && match(ipc->ad2.rp, linebuf))
-				ipc->active = 0;
-
 			if(delflag)
 				break;
-
 			if(jflag) {
 				jflag = 0;
 				if((ipc = ipc->lb1) == 0)
@@ -999,24 +995,31 @@ match(Reprog *pattern, Rune *buf)
 }
 substitute(SedCom *ipc)
 {
-	if(match(ipc->re1, linebuf)) {
-		sflag = 1;
+	int len;
+
+	if(!match(ipc->re1, linebuf))
+		return 0;
+
+	/*
+	 * we have at least one match.  some patterns, e.g. '$' or '^', can
+	 * produce zero-length matches, so during a global substitute we
+	 * must bump to the character after a zero-length match to keep from looping.
+	 */
+	sflag = 1;
+	if(ipc->gfl == 0)		/* single substitution */
 		dosub(ipc->rhs);
-		if(!ipc->gfl)
-			return 1;
-		while (match(ipc->re1, loc2)) {
-			if (loc2-loc1 == 0){	/* NULL R.E. match */
-				if (*loc2++ == 0)
-					break;
-			} else {
-				dosub(ipc->rhs);
-				if(*loc2 == 0)
-					break;
-			}
-		}
-		return 1;
-	}
-	return 0;
+	else
+	do{				/* global substitution */
+		len = loc2-loc1;	/* length of match */
+		dosub(ipc->rhs);	/* dosub moves loc2 */
+		if(*loc2 == 0)		/* end of string */
+			break;
+		if(len == 0)		/* zero-length R.E. match */
+			loc2++;		/* bump over zero-length match */
+		if(*loc2 == 0)		/* end of string */
+			break;
+	} while(match(ipc->re1, loc2));
+	return 1;
 }
 
 void
@@ -1387,6 +1390,7 @@ gline(Rune *addr)
 		}
 		peekc = 0;
 	} while (opendata() > 0);	/* Switch to next stream */
+	f = 0;
 	return 0;
 }
 

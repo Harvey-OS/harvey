@@ -6,7 +6,7 @@
 #define	tabsiz	(sizeof(table)/sizeof(table[0]))
 #define	tsiz8	(tabsiz*8)
 
-double	big = 7.20575940379e16;
+double	big = 9.007199254740992e15;
 
 int	pt[] =
 {

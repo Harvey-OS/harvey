@@ -3,7 +3,7 @@
  */
 #define	ERRREC		64		/* size of a ascii erro message */
 #define	DIRREC		116		/* size of a directory ascii record */
-#define	NAMELEN		28		/* size of names */
+// #define	NAMELEN		28		/* size of names */
 #define	NDBLOCK		6		/* number of direct blocks in Dentry */
 #define	MAXDAT		8192		/* max allowable data message */
 #define	MAXMSG		128		/* max size protocol message sans data */
@@ -14,7 +14,7 @@
 typedef	struct	Fbuf	Fbuf;
 typedef	struct	Super1	Super1;
 typedef	struct	Superb	Superb;
-typedef struct	Qid	Qid;
+// typedef struct	Qid	Qid;
 typedef	struct	Dentry	Dentry;
 typedef	struct	Tag	Tag;
 
@@ -29,19 +29,19 @@ typedef	struct	Hiob	Hiob;
 typedef	struct	Iobuf	Iobuf;
 typedef	struct	P9call	P9call;
 typedef	struct	Tlock	Tlock;
-typedef	struct	Tm	Tm;
+// typedef	struct	Tm	Tm;
 typedef	struct	Uid	Uid;
 typedef	struct	Wpath	Wpath;
 
 /*
  * DONT TOUCH -- data structures stored on disk
  */
-/* DONT TOUCH, this is the disk structure */
-struct	Qid
-{
-	long	path;
-	long	version;
-};
+// /* DONT TOUCH, this is the disk structure */
+// struct	Qid
+// {
+// 	long	path;
+// 	long	vers;
+// };
 
 /* DONT TOUCH, this is the disk structure */
 struct	Dentry
@@ -149,6 +149,7 @@ struct	File
 	Chan*	cp;		/* null means a free slot */
 	Tlock*	tlock;		/* if file is locked */
 	File*	next;		/* in cp->flist */
+	File*	list;		/* in list of free files */
 	Filsys*	fs;
 	long	addr;
 	long	slot;
@@ -163,8 +164,8 @@ struct	File
 
 struct	Filsys
 {
-	char*	name;		/* name of filsys */
-	Device	dev;		/* device that filsys is on */
+	char*	name;		/* name of filesys */
+	Device	dev;		/* device that filesys is on */
 	int	flags;
 		#define	FREAM		(1<<1)	/* mkfs */
 		#define	FRECOVER	(1<<2)	/* install last dump */
@@ -197,19 +198,19 @@ struct	P9call
 	void	(*func)(Chan*, int);
 };
 
-struct	Tm
-{
-	/* see ctime(3) */
-	int	sec;
-	int	min;
-	int	hour;
-	int	mday;
-	int	mon;
-	int	year;
-	int	wday;
-	int	yday;
-	int	isdst;
-};
+// struct	Tm
+// {
+// 	/* see ctime(3) */
+// 	int	sec;
+// 	int	min;
+// 	int	hour;
+// 	int	mday;
+// 	int	mon;
+// 	int	year;
+// 	int	wday;
+// 	int	yday;
+// 	int	isdst;
+// };
 
 struct	Uid
 {
@@ -221,6 +222,7 @@ struct	Uid
 struct	Wpath
 {
 	Wpath	*up;		/* pointer upwards in path */
+	Wpath	*list;		/* link in free chain */
 	long	addr;		/* directory entry addr */
 	long	slot;		/* directory entry slot */
 	short	refs;		/* number of files using this structure */

@@ -1,3 +1,4 @@
+#define EXTERN
 #include "gc.h"
 
 void
@@ -14,59 +15,89 @@ listinit(void)
 }
 
 int
-Pconv(void *o, Fconv *fp)
+Bconv(va_list *arg, Fconv *fp)
+{
+	char str[STRINGSZ], ss[STRINGSZ], *s;
+	Bits bits;
+	int i;
+
+	str[0] = 0;
+	bits = va_arg(*arg, Bits);
+	while(bany(&bits)) {
+		i = bnum(bits);
+		if(str[0])
+			strcat(str, " ");
+		if(var[i].sym == S) {
+			sprint(ss, "$%ld", var[i].offset);
+			s = ss;
+		} else
+			s = var[i].sym->name;
+		if(strlen(str) + strlen(s) + 1 >= STRINGSZ)
+			break;
+		strcat(str, s);
+		bits.b[i/32] &= ~(1L << (i%32));
+	}
+	strconv(str, fp);
+	return 0;
+}
+
+int
+Pconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ], s[20];
 	Prog *p;
 
-	p = *(Prog**)o;
+	p = va_arg(*arg, Prog*);
 	sprint(str, "	%A	%D,%D", p->as, &p->from, &p->to);
 	if(p->from.field) {
 		sprint(s, ",%d,%d", p->to.field, p->from.field);
 		strcat(str, s);
 	}
 	strconv(str, fp);
-	return sizeof(p);
+	return 0;
 }
 
 int
-Aconv(void *o, Fconv *fp)
+Aconv(va_list *arg, Fconv *fp)
 {
+	int r;
 
-	strconv(anames[*(int*)o], fp);
-	return sizeof(int);
+	r = va_arg(*arg, int);
+	strconv(anames[r], fp);
+	return 0;
 }
 
 int
-Xconv(void *ao, Fconv *fp)
+Xconv(va_list *arg, Fconv *fp)
 {
 	char str[20], s[10];
-	int i, *o;
+	Index x;
+	int i;
 
-	o = (int*)ao;
+	x = va_arg(*arg, Index);
 	str[0] = 0;
-	i = o[0] & D_MASK;
+	i = x.o0 & D_MASK;
 	if(i != D_NONE) {
 		sprint(str, "(%R.", i);
-		i = o[1];
+		i = x.o1;
 		sprint(s, "%c*%c)",
 			"WWWWLLLL"[i],
 			"12481248"[i]);
 		strcat(str, s);
 	}
 	strconv(str, fp);
-	return 2*sizeof(int);
+	return 0;
 }
 
 int
-Dconv(void *o, Fconv *fp)
+Dconv(va_list *arg, Fconv *fp)
 {
 	char str[40], s[20];
 	Adr *a;
 	int i, j;
 	long d;
 
-	a = *(Adr**)o;
+	a = va_arg(*arg, Adr*);
 	i = a->index;
 	if(i != D_NONE) {
 		a->index = D_NONE;
@@ -75,25 +106,25 @@ Dconv(void *o, Fconv *fp)
 		a->displace = 0;
 		switch(i & I_MASK) {
 		default:
-			sprint(str, "???%ld(%D%X)", d, a, i, j);
+			sprint(str, "???%ld(%D%X)", d, a, (Index){i, j});
 			break;
 
 		case I_INDEX1:
-			sprint(str, "%D%X", a, i, a->scale);
+			sprint(str, "%D%X", a, (Index){i, a->scale});
 			break;
 
 		case I_INDEX2:
 			if(d)
-				sprint(str, "%ld(%D)%X", d, a, i, j);
+				sprint(str, "%ld(%D)%X", d, a, (Index){i, j});
 			else
-				sprint(str, "(%D)%X", a, i, j);
+				sprint(str, "(%D)%X", a, (Index){i, j});
 			break;
 
 		case I_INDEX3:
 			if(d)
-				sprint(str, "%ld(%D%X)", d, a, i, j);
+				sprint(str, "%ld(%D%X)", d, a, (Index){i, j});
 			else
-				sprint(str, "(%D%X)", a, i, j);
+				sprint(str, "(%D%X)", a, (Index){i, j});
 			break;
 		}
 		a->displace = d;
@@ -186,16 +217,16 @@ Dconv(void *o, Fconv *fp)
 	}
 out:
 	strconv(str, fp);
-	return sizeof(a);
+	return 0;
 }
 
 int
-Rconv(void *o, Fconv *fp)
+Rconv(va_list *arg, Fconv *fp)
 {
 	char str[20];
 	int r;
 
-	r = *(int*)o;
+	r = va_arg(*arg, int);
 	if(r >= D_R0 && r < D_R0+NREG)
 		sprint(str, "R%d", r-D_R0);
 	else
@@ -307,16 +338,16 @@ Rconv(void *o, Fconv *fp)
 		break;
 	}
 	strconv(str, fp);
-	return sizeof(r);
+	return 0;
 }
 
 int
-Sconv(void *o, Fconv *fp)
+Sconv(va_list *arg, Fconv *fp)
 {
 	int i, c;
 	char str[30], *p, *s;
 
-	s = *(char**)o;
+	s = va_arg(*arg, char*);
 	p = str;
 	for(i=0; i<sizeof(double); i++) {
 		c = s[i] & 0xff;
@@ -346,5 +377,5 @@ Sconv(void *o, Fconv *fp)
 	}
 	*p = 0;
 	strconv(str, fp);
-	return sizeof(s);
+	return 0;
 }

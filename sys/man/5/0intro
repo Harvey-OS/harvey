@@ -16,7 +16,7 @@ and to create, remove, read, and write files.
 The prototypical server is a separate machine that stores
 large numbers of user files on permanent media;
 such a machine is called, somewhat confusingly, a
-.I file server\f1.
+.IR file server .
 Another possibility for a server is to synthesize
 files on demand, perhaps based on information on data structures
 inside the kernel; the

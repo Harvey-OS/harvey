@@ -1,1 +1,2 @@
-#!/bin/aux/telnetd
+#!/bin/rc
+exec /bin/ip/telnetd $*

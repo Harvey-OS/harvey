@@ -7,14 +7,14 @@ static void dumpsome(char*, char*, long);
 static void fdirconv(char*, Dir*);
 
 int
-fcallconv(void *v, Fconv *f1)
+fcallconv(va_list *arg, Fconv *f1)
 {
 	Fcall *f;
 	int fid, type, tag, n;
 	char buf[512];
 	Dir d;
 
-	f = *(Fcall **)v;
+	f = va_arg(*arg, Fcall*);
 	type = f->type;
 	fid = f->fid;
 	tag = f->tag;
@@ -77,20 +77,20 @@ fcallconv(void *v, Fconv *f1)
 			tag, fid, f->qid.path, f->qid.vers);
 		break;
 	case Tread:	/* 68 */
-		sprint(buf, "Tread tag %ud fid %d offset %ld count %d",
+		sprint(buf, "Tread tag %ud fid %d offset %lld count %ld",
 			tag, fid, f->offset, f->count);
 		break;
 	case Rread:
-		n = sprint(buf, "Rread tag %ud fid %d count %d ", tag, fid, f->count);
+		n = sprint(buf, "Rread tag %ud fid %d count %ld ", tag, fid, f->count);
 			dumpsome(buf+n, f->data, f->count);
 		break;
 	case Twrite:	/* 70 */
-		n = sprint(buf, "Twrite tag %ud fid %d offset %ld count %d ",
+		n = sprint(buf, "Twrite tag %ud fid %d offset %lld count %ld ",
 			tag, fid, f->offset, f->count);
 		dumpsome(buf+n, f->data, f->count);
 		break;
 	case Rwrite:
-		sprint(buf, "Rwrite tag %ud fid %d count %d", tag, fid, f->count);
+		sprint(buf, "Rwrite tag %ud fid %d count %ld", tag, fid, f->count);
 		break;
 	case Tclunk:	/* 72 */
 		sprint(buf, "Tclunk tag %ud fid %d", tag, fid);
@@ -121,6 +121,14 @@ fcallconv(void *v, Fconv *f1)
 	case Rwstat:
 		sprint(buf, "Rwstat tag %ud fid %d", tag, fid);
 		break;
+	case Tclwalk:	/* 81 */
+		sprint(buf, "Tclwalk tag %ud fid %d newfid %d name %.28s",
+			tag, fid, f->newfid, f->name);
+		break;
+	case Rclwalk:
+		sprint(buf, "Rclwalk tag %ud fid %d qid 0x%lux|0x%lux",
+			tag, fid, f->qid.path, f->qid.vers);
+		break;
 	default:
 		sprint(buf,  "unknown type %d", type);
 	}
@@ -129,11 +137,11 @@ fcallconv(void *v, Fconv *f1)
 }
 
 int
-dirconv(void *v, Fconv *f)
+dirconv(va_list *arg, Fconv *f)
 {
 	char buf[160];
 
-	fdirconv(buf, *(Dir**)v);
+	fdirconv(buf, va_arg(*arg, Dir*));
 	strconv(buf, f);
 	return(sizeof(Dir*));
 }
@@ -141,7 +149,10 @@ dirconv(void *v, Fconv *f)
 static void
 fdirconv(char *buf, Dir *d)
 {
-	sprint(buf, "'%s' '%s' '%s' q %#lux|%#lux m %#luo at %ld mt %ld l %ld t %d d %d",
+	sprint(buf, "'%s' '%s' '%s' "
+		"q %#lux|%#lux m %#luo "
+		"at %ld mt %ld l %lld "
+		"t %d d %d",
 			d->name, d->uid, d->gid,
 			d->qid.path, d->qid.vers, d->mode,
 			d->atime, d->mtime, d->length,
@@ -153,7 +164,7 @@ fdirconv(char *buf, Dir *d)
  * buf to ans, as a string if they are all printable,
  * else as a series of hex bytes
  */
-#define DUMPL 24
+#define DUMPL 64
 
 static void
 dumpsome(char *ans, char *buf, long count)

@@ -1,12 +1,26 @@
-/*
-Copyright (c) 1989 AT&T
-	All Rights Reserved
+/****************************************************************
+Copyright (C) Lucent Technologies 1997
+All Rights Reserved
 
-THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T.
+Permission to use, copy, modify, and distribute this software and
+its documentation for any purpose and without fee is hereby
+granted, provided that the above copyright notice appear in all
+copies and that both that the copyright notice and this
+permission notice and warranty disclaimer appear in supporting
+documentation, and that the name Lucent Technologies or any of
+its entities not be used in advertising or publicity pertaining
+to distribution of the software without specific, written prior
+permission.
 
-The copyright notice above does not evidence any
-actual or intended publication of such source code.
-*/
+LUCENT DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+IN NO EVENT SHALL LUCENT OR ANY OF ITS ENTITIES BE LIABLE FOR ANY
+SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
+****************************************************************/
 
 #define DEBUG
 #include <stdio.h>
@@ -21,7 +35,7 @@ Node *nodealloc(int n)
 
 	x = (Node *) malloc(sizeof(Node) + (n-1)*sizeof(Node *));
 	if (x == NULL)
-		ERROR "out of space in nodealloc" FATAL;
+		FATAL("out of space in nodealloc");
 	x->nnext = NULL;
 	x->lineno = lineno;
 	return(x);
@@ -151,7 +165,7 @@ Node *op4(int a, Node *b, Node *c, Node *d, Node *e)
 	return(x);
 }
 
-Node *valtonode(Cell *a, int b)
+Node *celltonode(Cell *a, int b)
 {
 	Node *x;
 
@@ -164,7 +178,8 @@ Node *valtonode(Cell *a, int b)
 
 Node *rectonode(void)	/* make $0 into a Node */
 {
-	return valtonode(recloc, CFLD);
+	extern Cell *literal0;
+	return op1(INDIRECT, celltonode(literal0, CUNK));
 }
 
 Node *makearr(Node *p)
@@ -173,23 +188,28 @@ Node *makearr(Node *p)
 
 	if (isvalue(p)) {
 		cp = (Cell *) (p->narg[0]);
-		if (isfunc(cp))
-			ERROR "%s is a function, not an array", cp->nval SYNTAX;
+		if (isfcn(cp))
+			SYNTAX( "%s is a function, not an array", cp->nval );
 		else if (!isarr(cp)) {
 			xfree(cp->sval);
-			cp->sval = (uchar *) makesymtab(NSYMTAB);
+			cp->sval = (char *) makesymtab(NSYMTAB);
 			cp->tval = ARR;
 		}
 	}
 	return p;
 }
 
+#define PA2NUM	50	/* max number of pat,pat patterns allowed */
+int	paircnt;		/* number of them in use */
+int	pairstack[PA2NUM];	/* state of each pat,pat */
+
 Node *pa2stat(Node *a, Node *b, Node *c)	/* pat, pat {...} */
 {
 	Node *x;
 
-	x = node4(PASTAT2, a, b, c, (Node *) paircnt);
-	paircnt++;
+	x = node4(PASTAT2, a, b, c, itonp(paircnt));
+	if (paircnt++ >= PA2NUM)
+		SYNTAX( "limited to %d pat,pat statements", PA2NUM );
 	x->ntype = NSTAT;
 	return(x);
 }
@@ -216,11 +236,11 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 	int n;
 
 	if (isarr(v)) {
-		ERROR "`%s' is an array name and a function name", v->nval SYNTAX;
+		SYNTAX( "`%s' is an array name and a function name", v->nval );
 		return;
 	}
 	v->tval = FCN;
-	v->sval = (uchar *) st;
+	v->sval = (char *) st;
 	n = 0;	/* count arguments */
 	for (p = vl; p; p = p->nnext)
 		n++;
@@ -228,7 +248,7 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 	dprintf( ("defining func %s (%d args)\n", v->nval, n) );
 }
 
-isarg(uchar *s)		/* is s in argument list for current function? */
+int isarg(char *s)		/* is s in argument list for current function? */
 {			/* return -1 if not, otherwise arg # */
 	extern Node *arglist;
 	Node *p = arglist;
@@ -238,4 +258,14 @@ isarg(uchar *s)		/* is s in argument list for current function? */
 		if (strcmp(((Cell *)(p->narg[0]))->nval, s) == 0)
 			return n;
 	return -1;
+}
+
+int ptoi(void *p)	/* convert pointer to integer */
+{
+	return (int) (long) p;	/* swearing that p fits, of course */
+}
+
+Node *itonp(int i)	/* and vice versa */
+{
+	return (Node *) (long) i;
 }

@@ -12,6 +12,9 @@ Bbuffered(Biobufhdr *bp)
 
 	case Bwactive:
 		return bp->bsize + bp->ocount;
+
+	case Binactive:
+		return 0;
 	}
 	fprint(2, "Bbuffered: unknown state %d\n", bp->state);
 	return 0;

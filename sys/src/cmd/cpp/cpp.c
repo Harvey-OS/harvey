@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include "cpp.h"
 
 #define	OUTS	16384
@@ -138,8 +137,13 @@ control(Tokenrow *trp)
 			error(ERROR, "Syntax error in #undef");
 			break;
 		}
-		if ((np = lookup(tp, 0)))
+		if ((np = lookup(tp, 0))) {
+			if (np->flag&ISUNCHANGE) {
+				error(ERROR, "#defined token %t can't be undefined", tp);
+				return;
+			}
 			np->flag &= ~ISDEFINED;
+		}
 		break;
 
 	case KPRAGMA:

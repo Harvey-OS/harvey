@@ -22,11 +22,12 @@ int limited;
 char *remuser;
 int verbose;
 int baud;
+int notkbd;
+int nltocr;		/* translate kbd nl to cr  and vice versa */
 
 typedef struct Msg Msg;
 #define MAXMSG (2*8192)
 
-int	dkauth(int);
 int	dodial(char*, char*, char*);
 void	fromkbd(int);
 void	fromnet(int);
@@ -53,16 +54,14 @@ char*	syserr(void);
 void	seterr(char*);
 
 /* protocols */
-void	dcon(char*, char*);
 void	device(char*, char*);
-void	mesgdcon(char*, char*);
 void	rlogin(char*, char*);
 void	simple(char*, char*);
 
 void
 usage(void)
 {
-	punt("usage: con [-drCvs] [-l [user]] [-c cmd] net!host[!service]");
+	punt("usage: con [-drCvsn] [-l [user]] [-c cmd] net!host[!service]");
 }
 
 void
@@ -84,8 +83,14 @@ main(int argc, char *argv[])
 		if(argv[1][0] != '-')
 			remuser = ARGF();
 		break;
+	case 'n':
+		notkbd = 1;
+		break;
 	case 'r':
 		returns = 0;
+		break;
+	case 'R':
+		nltocr = 1;
 		break;
 	case 'C':
 		cooked = 1;
@@ -110,15 +115,13 @@ main(int argc, char *argv[])
 		remuser = 0;
 	} else
 		dest = argv[0];
-	if(*dest == '/')
+	if(*dest == '/' && strchr(dest, '!') == 0)
 		device(dest, cmd);
 	else if(limited){
 		simple(dest, cmd);	/* doesn't return if dialout succeeds */
 		rlogin(dest, cmd);	/* doesn't return if dialout succeeds */
 	} else {
 		rlogin(dest, cmd);	/* doesn't return if dialout succeeds */
-		mesgdcon(dest, cmd);	/* doesn't return if dialout succeeds */
-		dcon(dest, cmd);	/* doesn't return if dialout succeeds */
 		simple(dest, cmd);	/* doesn't return if dialout succeeds */
 	}
 	punt(firsterr);
@@ -153,8 +156,7 @@ simple(char *dest, char *cmd)
 void
 rlogin(char *dest, char *cmd)
 {
-	int net, fd;
-	long n;
+	int net;
 	char buf[2*NAMELEN];
 	char *p;
 	char *localuser;
@@ -171,11 +173,7 @@ rlogin(char *dest, char *cmd)
 	/*
 	 *  do UCB rlogin authentication
 	 */
-	fd = open("/dev/user", OREAD);
-	n = read(fd, buf, sizeof(buf));
-	close(fd);
-	buf[n] = 0;
-	localuser = buf;
+	localuser = getuser();
 	if(remuser == 0){
 		if(limited)
 			remuser = ":";
@@ -209,32 +207,7 @@ rlogin(char *dest, char *cmd)
 
 	if(!cooked)
 		rawon();
-	stdcon(net);
-	exits(0);
-}
-
-/*
- *  dial, do DK authentication, use as a byte stream with remote echo
- *
- *  return if dial failed
- */
-void
-dcon(char *dest, char *cmd)
-{
-	int net;
-
-	net = dodial(dest, 0, "dcon");
-	if(net < 0)
-		return;
-
-	if(dkauth(net) < 0)
-		punt("can't authenticate across datakit");
-
-	if(cmd)
-		dosystem(net, cmd);
-
-	if(!cooked)
-		rawon();
+	nltocr = 1;
 	stdcon(net);
 	exits(0);
 }
@@ -249,8 +222,10 @@ device(char *dest, char *cmd)
 	char cname[3*NAMELEN];
 
 	net = open(dest, ORDWR);
-	if(net < 0)
-		punt(syserr());
+	if(net < 0) {
+		fprint(2, "con: cannot open %s: %r\n", dest);
+		exits("open");
+	}
 	sprint(cname, "%sctl", dest);
 	ctl = open(cname, ORDWR);
 	if(ctl >= 0 && baud > 0)
@@ -323,7 +298,7 @@ rawoff(void)
 /*
  *  control menu
  */
-#define STDHELP	"\t(b)reak, (q)uit, (i)nterrupt, (r)eturns, (.)continue, (!cmd)\n"
+#define STDHELP	"\t(b)reak, (q)uit, (i)nterrupt, toggle printing (r)eturns, (.)continue, (!cmd)\n"
 
 int
 menu(int net)
@@ -411,6 +386,8 @@ stdcon(int net)
 	default:
 		notify(notifyf);
 		fromkbd(net);
+		if(notkbd)
+			for(;;)sleep(0);
 		postnote(PNPROC, netpid, "kill");
 		exits(0);
 	}
@@ -425,7 +402,10 @@ fromkbd(int net)
 {
 	long n;
 	char buf[MAXMSG];
+	char *p, *ep;
+	int eofs;
 
+	eofs = 0;
 	for(;;){
 		n = read(0, buf, sizeof(buf));
 		if(n < 0){
@@ -438,6 +418,11 @@ fromkbd(int net)
 			} else
 				return;
 		}
+		if(n == 0){
+			if(++eofs > 32)
+				return;
+		} else
+			eofs = 0;
 		if(n && memchr(buf, 0x1c, n)){
 			if(menu(net) < 0)
 				return;
@@ -445,6 +430,18 @@ fromkbd(int net)
 			if(cooked && n==0){
 				buf[0] = 0x4;
 				n = 1;
+			}
+			if(nltocr){
+				ep = buf+n;
+				for(p = buf; p < ep; p++)
+					switch(*p){
+					case '\r':
+						*p = '\n';
+						break;
+					case '\n':
+						*p = '\r';
+						break;
+					}
 			}
 			if(iwrite(net, buf, n) != n)
 				return;
@@ -516,49 +513,6 @@ dodial(char *dest, char *net, char *service)
 	return data;
 }
 
-/*
- *  send a note to a process
- */
-/*
- *  datakit authentication
- */
-int
-dkauth(int net)
-{
-	char buf[128];
-	long n;
-	char *p;
-
-	for(;;){
-		if(read(net, buf, 2)!=2)
-			return -1;
-		if(buf[0]=='O' && buf[1]=='K')
-			break;
-		if(buf[0]!='N' || buf[1]!='O')
-			return -1;
-		print("please login: ");
-		n = read(0, buf, sizeof(buf)-1);
-		if(n<=0)
-			exits("login");
-		buf[n-1] = ',';
-		rawon();
-		print("password: ");
-		for(p = &buf[n]; p<&buf[127];p++){
-			if(read(0, p, 1)!=1)
-				return -1;
-			if(*p=='\r' || *p=='\n'){
-				*p++ = 0;
-				break;
-			}
-		}
-		n = p-buf;
-		rawoff();
-		if(write(net, buf, n)!=n)
-			return -1;
-	}
-	return 0;
-}
-
 void
 dosystem(int fd, char *cmd)
 {
@@ -566,7 +520,7 @@ dosystem(int fd, char *cmd)
 
 	p = system(fd, cmd);
 	if(*p){
-		print("con: %s terminated with %s\n", p);
+		print("con: %s terminated with %s\n", cmd, p);
 		exits(p);
 	}
 }
@@ -720,45 +674,6 @@ struct Msg {
 };
 
 /*
- *  connect using the mesgdcon protocol.  infinite ugliness to talk to a V10
- *  system.
- */
-void
-mesgdcon(char *dest, char *cmd)
-{
-	int net;
-	int netpid;
-
-	net = dodial(dest, "dk", "mesgdcon");
-	if(net < 0)
-		return;
-
-	if(dkauth(net) < 0)
-		punt("can't authenticate across datakit");
-
-	if(cmd)
-		dosystem(net, cmd);
-
-	msgfd = net;
-	ttypid = getpid();
-	switch(netpid = rfork(RFMEM|RFPROC)){
-	case -1:
-		perror("con");
-		exits("fork");
-	case 0:
-		notify(notifyf);
-		msgfromnet(net);
-		postnote(PNPROC, ttypid, "kill");
-		exits(0);
-	default:
-		notify(msgnotifyf);
-		msgfromkbd(net);
-		postnote(PNPROC, netpid, "kill");
-		exits(0);
-	}
-}
-
-/*
  *  convert certain interrupts into mesgld messages
  */
 void
@@ -892,7 +807,7 @@ msgfromnet(int net)
 		io = (struct stioctl *)m.b;
 		com = get4byte(io->com);
 		if(debug)
-			fprint(2, "M_IOCTL %d\n", com);
+			fprint(2, "M_IOCTL %lud\n", com);
 		switch(com){
 		case FIOLOOKLD:
 			put4byte(io->data, tty_ld);

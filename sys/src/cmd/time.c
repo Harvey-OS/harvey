@@ -73,10 +73,13 @@ void
 add(char *a, ...)
 {
 	static beenhere=0;
+	va_list arg;
 
 	if(beenhere)
 		strcat(output, " ");
-	doprint(output+strlen(output), output+sizeof(output), a, (&a)+1);
+	va_start(arg, a);
+	doprint(output+strlen(output), output+sizeof(output), a, arg);
+	va_end(arg);
 	beenhere++;
 }
 

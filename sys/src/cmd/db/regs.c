@@ -19,24 +19,30 @@ rname(char *name)
 	return 0;
 }
 
-static ulong
+static vlong
 getreg(Map *map, Reglist *rp)
 {
-
-	long l;
+	vlong v;
+	long w;
 	int ret;
 
-	l = 0;
+	v = 0;
 	ret = 0;
 	switch (rp->rformat)
 	{
 	case 'x':
-		ret = get2(map, rp->raddr, (ushort*) &l);
+		ret = get2(map, rp->roffs, (ushort*) &w);
+		v = w;
 		break;
-	case 'X':
 	case 'f':
+	case 'X':
+		ret = get4(map, rp->roffs, (long*) &w);
+		v = w;
+		break;
 	case 'F':
-		ret = get4(map, rp->raddr, &l);
+	case 'W':
+	case 'Y':
+		ret = get8(map, rp->roffs, &v);
 		break;
 	default:
 		werrstr("can't retrieve register %s", rp->rname);
@@ -46,11 +52,10 @@ getreg(Map *map, Reglist *rp)
 		werrstr("Register %s: %r", rp->rname);
 		error("%r");
 	}
-	l += rp->rdelta;
-	return l;
+	return v;
 }
 
-ulong
+vlong
 rget(Map *map, char *name)
 {
 	Reglist *rp;
@@ -62,7 +67,7 @@ rget(Map *map, char *name)
 }
 
 void
-rput(Map *map, char *name, ulong v)
+rput(Map *map, char *name, vlong v)
 {
 	Reglist *rp;
 	int ret;
@@ -75,12 +80,15 @@ rput(Map *map, char *name, ulong v)
 	switch (rp->rformat)
 	{
 	case 'x':
-		ret = put2(map, rp->raddr, (ushort) v);
+		ret = put2(map, rp->roffs, (ushort) v);
 		break;
 	case 'X':
 	case 'f':
 	case 'F':
-		ret = put4(map, rp->raddr, (long) v);
+		ret = put4(map, rp->roffs, (long) v);
+		break;
+	case 'Y':
+		ret = put8(map, rp->roffs, v);
 		break;
 	default:
 		ret = -1;
@@ -88,34 +96,6 @@ rput(Map *map, char *name, ulong v)
 	if (ret < 0)
 		error("can't write register");
 }
-
-void
-fixregs(Map *map)
-{
-	Reglist *rp;
-	long val;
-
-	if (machdata->ufixup) {
-		if (machdata->ufixup(map, &val) < 0)
-			error("can't fixup register addresses: %r");
-	} else
-		val = 0;
-	for (rp = mach->reglist; rp->rname; rp++)
-		rp->raddr = mach->kbase+rp->roffs-val;
-}
-
-void
-adjustreg(char *name, ulong raddr, long rdelta)
-{
-	Reglist *rp;
-
-	rp = rname(name);
-	if (!rp)
-		error("invalid register name");
-	rp->raddr=raddr;
-	rp->rdelta=rdelta;
-}
-	
 /*
  * print the registers
  */
@@ -132,7 +112,10 @@ printregs(int c)
 			if (rp->rformat == '8' || rp->rformat == '3')
 				continue;
 		}
-		dprint("%-8s %-12lux", rp->rname, getreg(cormap, rp));
+		if(rp->rformat == 'Y')
+			dprint("%-8s %-20llux", rp->rname, getreg(cormap, rp));
+		else
+			dprint("%-8s %-12lux", rp->rname, (ulong)getreg(cormap, rp));
 		if ((i % 3) == 0) {
 			dprint("\n");
 			i = 0;
@@ -140,7 +123,6 @@ printregs(int c)
 	}
 	if (i != 1)
 		dprint("\n");
-	printsyscall();
 	dprint ("%s\n", machdata->excep(cormap, rget));
 	printpc();
 }

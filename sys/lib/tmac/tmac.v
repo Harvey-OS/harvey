@@ -1,8 +1,5 @@
 '\"		Copyright (c) 1984 AT&T
 '\"		  All Rights Reserved
-'\"     THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T
-'\"   The copyright notice above does not evidence any actual
-'\"   or intended publication of such source code.
 '\"#ident	"@(#)macros:vmca.src	1.17"
 .ifn .ds Tm \uTM\d
 .ift .ds Tm \v'-0.5m'\s-8TM\s+8\v'0.5m'
@@ -502,7 +499,7 @@ check for overflow.
 ..
 .ds)F FOIL
 .if\n(.A .ds )F FOIL
-.ds)N AT&T
+.ds)N Bell\ Labs
 .ds)Y \n(mo/\n(dy/\n(yr
 .ds)B \(bu\ \|
 .ds)C \(em\ \|

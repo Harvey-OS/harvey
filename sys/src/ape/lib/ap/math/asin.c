@@ -8,31 +8,32 @@
 #include <math.h>
 #include <errno.h>
 
-static double pio2	= 1.570796326794896619;
+static double pio2	= 1.570796326794896619231e0;
 
 double
 asin(double arg)
 {
-	double sign, temp;
+	double temp;
+	int sign;
 
-	sign = 1;
+	sign = 0;
 	if(arg < 0) {
 		arg = -arg;
-		sign = -1;
+		sign++;
 	}
-
 	if(arg > 1) {
 		errno = EDOM;
 		return 0;
 	}
-
 	temp = sqrt(1 - arg*arg);
 	if(arg > 0.7)
 		temp = pio2 - atan(temp/arg);
 	else
 		temp = atan(arg/temp);
 
-	return sign*temp;
+	if(sign)
+		temp = -temp;
+	return temp;
 }
 
 double

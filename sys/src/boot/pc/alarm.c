@@ -4,7 +4,6 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"io.h"
-#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 #define	MAXALARM	10
 
 Alarm	alarmtab[MAXALARM];

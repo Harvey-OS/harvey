@@ -5,6 +5,17 @@ TEXT	setjmp(SB), 1, $0
 	CLRL	R0
 	RTS
 
+TEXT	sigsetjmp(SB), 1, $0
+	MOVL	b+0(FP), A0
+	MOVW	savemask+4(FP), R1
+	MOVW	R1, (A0)+
+	MOVW	$_psigblocked(SB), R1
+	MOVW	R1, (A0)+
+	MOVL	A7, (A0)+
+	MOVL	(A7), (A0)
+	CLRL	R0
+	RTS
+
 TEXT	longjmp(SB), 1, $0
 	MOVL	b+0(FP), A0
 	MOVL	r+4(FP), R0

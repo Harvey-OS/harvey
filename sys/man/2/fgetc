@@ -206,4 +206,6 @@ It returns the number of items actually written.
 .IR fopen (2),
 .IR bio (2)
 .SH BUGS
-Stdio does not handle UTF or runes; use Bio instead.
+Stdio does not handle
+.SM UTF
+or runes; use Bio instead.

@@ -4,9 +4,6 @@ keyfs, warning \- authentication database files
 .SH SYNOPSIS
 .B auth/keyfs
 [
-.B -d
-]
-[
 .B -p
 ]
 [
@@ -15,9 +12,6 @@ keyfs, warning \- authentication database files
 ]
 [
 .BI -m mntpt
-]
-[
-.BI -k key
 ]
 [
 .I keyfile
@@ -47,8 +41,7 @@ reads and decrypts file
 .I keyfile
 (default
 .BR /adm/keys )
-using the DES key
-.IR key ,
+using the DES key,
 which is by default read from
 .B #r/nvram
 (see
@@ -56,7 +49,7 @@ which is by default read from
 With option
 .BR -p ,
 .I keyfs
-prompts for the password.
+prompts for a password from which the key is derived.
 .I Keyfile
 holds a 41-byte record for each user in the database.
 Each record is encrypted separately
@@ -186,12 +179,6 @@ the account is not disabled,
 but
 .I key
 cannot be read without an error.
-.TP
-.B ishost
-This file exists only if the user is a host (the host status for the user is 1).
-Hosts are the only users able to receive calls.
-Creating it makes the user a host and sets the host status to 1,
-and removing it sets the host status to 0.
 .PD
 .PP
 If the

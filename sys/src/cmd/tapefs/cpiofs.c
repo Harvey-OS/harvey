@@ -41,7 +41,7 @@ int	getoct(char*, int);
 void
 populate(char *name)
 {
-	long offset, isabs, magic, linkflg, namesize, mode;
+	long offset, isabs, magic, namesize, mode;
 	Fileinf f;
 
 	tapefile = open(name, OREAD);
@@ -54,7 +54,7 @@ populate(char *name)
 			break;
 		magic = getoct(dblock.dbuf.magic, sizeof(dblock.dbuf.magic));
 		if (magic != 070707){
-			print("%o\n", magic);
+			print("%lo\n", magic);
 			error("out of phase--get help");
 		}
 		if (dblock.nbuf.name[0]=='\0' || strcmp(dblock.nbuf.name, "TRAILER!!!")==0)
@@ -75,17 +75,9 @@ populate(char *name)
 		f.gid = getoct(dblock.dbuf.gid, sizeof(dblock.dbuf.gid));
 		f.size = getoct(dblock.dbuf.size, sizeof(dblock.dbuf.size));
 		f.mdate = getoct(dblock.dbuf.mtime, sizeof(dblock.dbuf.mtime));
-		linkflg = 0;
 		namesize = getoct(dblock.dbuf.namesize, sizeof(dblock.dbuf.namesize));
 		f.addr = (void*)(offset+sizeof(struct header)+namesize);
 		isabs = dblock.nbuf.name[0]=='/';
-	/*	if (linkflg) {
-			fprint(2, "link %s->%s skipped\n", dblock.dbuf.name,
-			   dblock.dbuf.linkname);
-			f.size = 0;
-			blkno += 1;
-			continue;
-		}*/
 		f.name = &dblock.nbuf.name[isabs];
 		poppath(f, 1);
 		offset += sizeof(struct header)+namesize+f.size;

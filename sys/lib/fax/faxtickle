@@ -1,0 +1,4 @@
+#!/bin/rc
+9fs emelie
+bind -c /n/emelie/mail/faxoutqueue /mail/faxoutqueue
+upas/runq -t3 -a /mail/faxoutqueue /sys/lib/fax/faxtry

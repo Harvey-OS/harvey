@@ -6,13 +6,13 @@ int sprintf(char *buf, const char *fmt, ...){
 	int n;
 	va_list args;
 	char *v;
-	FILE *f=sopenw();
+	FILE *f=_IO_sopenw();
 	if(f==NULL)
 		return 0;
 	setvbuf(f, buf, _IOFBF, 100000);
 	va_start(args, fmt);
 	n=vfprintf(f, fmt, args);
 	va_end(args);
-	sclose(f);
+	_IO_sclose(f);
 	return n;
 }

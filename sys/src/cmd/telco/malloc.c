@@ -31,7 +31,6 @@ static Arena arena;
 static Lock mlock;
 
 #define datoff		((int)((Bucket*)0)->data)
-#define nil		((void*)0)
 
 void*
 malloc(long size)

@@ -16,7 +16,7 @@
  */
 #include <u.h>
 #include <libc.h>
-#include <libg.h>
+#include <draw.h>
 #include <geometry.h>
 Space *pushmat(Space *t){
 	Space *v;
@@ -95,7 +95,7 @@ void ixform(Space *t, Matrix m, Matrix inv){
 }
 /*
  * multiply the top of the matrix stack by a view-pointing transformation
- * with the eyepoint at e, looking at direction point p, with u at the top of the screen.
+ * with the eyepoint at e, looking at point l, with u at the top of the screen.
  * The coordinate system is deemed to be right-handed.
  * The generated transformation transforms this view into a view from
  * the origin, looking in the positive y direction, with the z axis pointing up,

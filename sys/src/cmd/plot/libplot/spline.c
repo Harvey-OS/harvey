@@ -17,7 +17,7 @@ void splin(int mode, int num[], double *ff[]){
 		xpe = xp0 + 2 * (n - 1); 
 		ype = yp0 + 2 * (n - 1);
 		if (n < 3) { 
-			line(*xp, *yp, *(xp + 2), *(yp + 2)); 
+			plotline(*xp, *yp, *(xp + 2), *(yp + 2)); 
 			continue;
 		}
 		if (mode == 4) {	/*closed curve*/
@@ -34,7 +34,7 @@ void splin(int mode, int num[], double *ff[]){
 		}
 		else {	/*open curve with multiple endpoints*/
 			if (mode % 2) /*odd mode makes first point double*/
-				line(*xp0,*yp0,0.5*(*xp0+*(xp0+2)),0.5*(*yp0+*(yp0+2)));
+				plotline(*xp0,*yp0,0.5*(*xp0+*(xp0+2)),0.5*(*yp0+*(yp0+2)));
 		}
 		xp += 2; 
 		yp += 2;
@@ -46,6 +46,6 @@ void splin(int mode, int num[], double *ff[]){
 			parabola(xa, ya, xc, yc, *xp, *yp);
 		}
 		if(mode >= 2 && mode != 4)
-			line(0.5*(*(xpe-2)+*xpe),0.5*(*(ype-2)+*ype),*xpe,*ype);
+			plotline(0.5*(*(xpe-2)+*xpe),0.5*(*(ype-2)+*ype),*xpe,*ype);
 	}
 }

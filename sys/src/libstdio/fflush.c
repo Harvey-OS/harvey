@@ -11,12 +11,14 @@ FILE _IO_stream[]={
 	1,	0,	OPEN,	0,	0,	0,	0,	0,	0,
 	2,	0,	OPEN,	0,	0,	0,	0,	0,	0,
 };
-int fflush(FILE *f){
+
+int _fflush(FILE *f){
 	int error, cnt;
+
 	if(f==NULL){
 		error=0;
 		for(f=_IO_stream;f!=&_IO_stream[FOPEN_MAX];f++)
-			if(f->state==WR && fflush(f)==EOF)
+			if(f->state==WR && _fflush(f)==EOF)
 				error=EOF;
 		return error;
 	}
@@ -37,4 +39,14 @@ int fflush(FILE *f){
 		f->state=RDWR;
 		return 0;
 	}
+}
+
+int fflush(FILE *f)
+{
+	int r;
+
+	qlock(&_stdiolk);
+	r = _fflush(f);
+	qunlock(&_stdiolk);
+	return r;
 }

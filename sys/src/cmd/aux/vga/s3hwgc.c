@@ -1,12 +1,12 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
-	verbose("%s->init\n", ctlr->name);
 	ctlr->flag |= Finit;
 
 	if(cflag)
@@ -14,7 +14,7 @@ init(Vga *vga, Ctlr *ctlr)
 	/*
 	 * Use of the on-chip hwgc requires using enhanced mode.
 	 */
-	if(vga->ctlr == 0 || (vga->ctlr->flag & Henhanced) == 0 || vga->mode->z != 8){
+	if(vga->ctlr == 0 || (vga->ctlr->flag & Henhanced) == 0 || vga->mode->z < 8){
 		cflag = 1;
 		return;
 	}
@@ -22,9 +22,8 @@ init(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
-	verbose("%s->init\n", ctlr->name);
 	ctlr->flag |= Fload;
 
 	if(cflag)
@@ -32,12 +31,21 @@ load(Vga *vga, Ctlr *ctlr)
 	/*
 	 * Use of the on-chip hwgc requires using enhanced mode.
 	 */
-	if(vga->ctlr == 0 || (vga->ctlr->flag & Uenhanced) == 0 || vga->mode->z != 8)
+	if(vga->ctlr == 0 || (vga->ctlr->flag & Uenhanced) == 0 || vga->mode->z < 8)
 		cflag = 1;
 }
 
 Ctlr bt485hwgc = {
 	"bt485hwgc",			/* name */
+	0,				/* snarf */
+	0,				/* options */
+	0,				/* init */
+	0,				/* load */
+	0,				/* dump */
+};
+
+Ctlr rgb524hwgc = {
+	"rgb524hwgc",			/* name */
 	0,				/* snarf */
 	0,				/* options */
 	0,				/* init */
@@ -56,6 +64,15 @@ Ctlr s3hwgc = {
 
 Ctlr tvp3020hwgc = {
 	"tvp3020hwgc",			/* name */
+	0,				/* snarf */
+	0,				/* options */
+	0,				/* init */
+	0,				/* load */
+	0,				/* dump */
+};
+
+Ctlr tvp3026hwgc = {
+	"tvp3026hwgc",			/* name */
 	0,				/* snarf */
 	0,				/* options */
 	0,				/* init */

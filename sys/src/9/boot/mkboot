@@ -63,18 +63,24 @@ cat <<'---'
 ---
 
 awk '
-	BEGIN	{ cpuflag = 0; bootprog = "boot"; bootdisk = "#w/sd0" }
+	BEGIN	{ cpuflag = 0; bootprog = "boot"; bootdisk = "#S/sdC0/"; rootdir = "/root"; }
 	$0 ~ "^boot" && $2=="cpu"\
-		{ cpuflag = 1 }
+		{ cpuflag = 1
+		  if(NF == 4 && $3 == "boot")
+			bootdisk = $4
+		}
+	$0 ~ "^boot" && $2=="rootdir" && NF==3\
+		{ rootdir = $3 }
 	$0 ~ "^boot" && ($2=="bboot" || $2=="romboot" || $2=="dosboot")\
 		{ cpuflag = 1;  bootprog = $2; }
-	$0 ~ "^boot" && NF==3\
+	$0 ~ "^boot" && $2=="boot" && NF==3\
 		{ bootdisk = $3 }
 	END 	{ print "int cpuflag = " cpuflag ";"
 		  if(cpuflag)
 			print "void (*pword)(int, Method*) = key;"
 		  else
 			print "void (*pword)(int, Method*) = userpasswd;"
+		  print "char* rootdir = \"" rootdir "\";"
 		  print "char* bootdisk = \"" bootdisk "\";"
 		  print "extern void " bootprog "(int, char**);"
 		  print "void"

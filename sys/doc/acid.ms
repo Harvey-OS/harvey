@@ -6,7 +6,7 @@
 Acid Manual
 .AU
 Phil Winterbottom
-philw@plan9.att.com
+philw@plan9.bell-labs.com
 .SH
 Introduction
 .PP
@@ -19,7 +19,7 @@ Moreover, it provides an opportunity to write test and
 verification code independently of a program's source code.
 Acid is able to debug multiple
 processes provided they share a common set of symbols, such as the processes in
-an Alef program.
+a threaded program.
 .PP
 Like other language-based solutions, Acid presents a poor user interface but
 provides a powerful debugging tool.
@@ -248,10 +248,16 @@ Print four-byte integer in binary.
 Print two-byte integer in signed decimal.
 .IP \f(CWD\fP
 Print four-byte integer in signed decimal.
+.IP \f(CWY\fP
+Print eight-byte integer in signed decimal.
+.IP \f(CWZ\fP
+Print eight-byte integer in unsigned decimal.
 .IP \f(CWx\fP
 Print two-byte integer in hexadecimal.
 .IP \f(CWX\fP
 Print four-byte integer in hexadecimal.
+.IP \f(CWY\fP
+Print eight-byte integer in hexadecimal.
 .IP \f(CWu\fP
 Print two-byte integer in unsigned decimal.
 .IP \f(CWU\fP
@@ -282,9 +288,6 @@ Print a two-byte integer as a rune.
 .IP \f(CWR\fP
 Print successive two-byte integers as runes
 until a zero rune is reached.
-.IP \f(CWY\fP
-Print a four-byte integer in date format (see
-.CW ctime (2)).
 .IP \f(CWi\fP
 Print as machine instructions.
 .IP \f(CWI\fP
@@ -306,9 +309,7 @@ Acid permits the definition of the layout of memory.
 The usual method is to use the
 .CW -a
 flag of the compilers to produce Acid-language descriptions of data structures (see
-.I 2c (1)
-and
-.I alef\^ (1))
+.I 2c (1))
 although such definitions can be typed interactively.
 The keywords
 .CW complex ,
@@ -375,8 +376,9 @@ defining a segment named
 (usually 
 .CW text ,
 .CW data ,
+.CW regs ,
 or
-.CW ublock )
+.CW fpregs )
 mapping addresses in the range
 .I b
 through
@@ -415,20 +417,21 @@ are mapped by segments called
 .CW text
 and
 .CW data .
-Since a program file does not contain bss, stack, or ublock data,
+Since a program file does not contain bss, stack, or register data,
 these data are
 not mapped by the data segment.
 The text segment is mapped similarly in the memory image of
 a normal (i.e., non-kernel) process.
 However, the segment called 
 .CW *data
-maps memory from the beginning of the program's data space to
-the base of the ublock.
+maps memory from the beginning to the end of the program's data space.
 This region contains the program's static data, the bss, the
 heap and the stack.  A segment
 called
-.CW *ublock
-maps the page containing its registers and process state.
+.CW *regs
+maps the registers;
+.CW *fpregs
+maps the floating point registers.
 .PP
 Sometimes it is useful to define a map with a single segment
 mapping the region from 0 to 0xFFFFFFFF; such a map
@@ -462,7 +465,7 @@ that the text symbol is now named
 Expressions
 .PP
 Operators have the same
-binding and precedence as in C or Alef.
+binding and precedence as in C.
 For operators of equal precedence, expressions are evaluated from left to right. 
 .SH 1
 Boolean expressions
@@ -751,9 +754,7 @@ The compiler options
 and
 .CW -aa
 will generate Acid source code defining such complex types and functions; see
-.I 2c (1)
-and
-.I alef\^ (1).
+.I 2c (1).
 .PP
 A
 .I unary-expression
@@ -1737,28 +1738,28 @@ operator and then modified during debugging sessions.
 .\"
 .\"
 .\"
-.Ip \f(CW{}\fP Bsrc integer "Load sam with source
+.Ip \f(CW{}\fP Bsrc integer "Load editor with source
 .CW Bsrc
 interprets the
 .I integer
 argument as a text address. The text address is used to produce a pathname
-and line number suitable for the external
+and line number suitable for the
 .CW B
 command
-of the text editor
-.I sam (1).
+to send to the text editor
+.I sam (1)
+or
+.I acme (1).
 .CW Bsrc
 builds an
 .I rc (1)
 command to invoke
 .CW B ,
-which either selects an existing source file or loads a new source file into
-.CW sam .
+which either selects an existing source file or loads a new source file into the editor.
 The line of source corresponding to the text address is then selected.
 In the following example
 .CW stopped
-is redefined so that
-.CW sam
+is redefined so that the editor
 follows and displays the source line currently being executed.
 .Ex
 defn stopped(pid) {
@@ -2072,15 +2073,15 @@ R4	0x0000000a R5	0x0000002f R6	0x00000008
 performs a stack trace from a Plan 9
 .I label.
 The kernel,
-C and Alef compilers store continuations in a common format. Since the
+C compilers store continuations in a common format. Since the
 compilers all use caller save conventions a continuation may be saved by
 storing a
 .CW PC
 and
 .CW SP
-pair. This data structure is called a label and is used by the Alef
-runtime, the C function
-.CW longjmp ,
+pair. This data structure is called a label and is used by the
+the C function
+.CW longjmp
 and the kernel to schedule threads and processes.
 .CW labstk
 interprets its

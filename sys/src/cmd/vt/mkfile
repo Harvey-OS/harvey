@@ -1,0 +1,18 @@
+</$objtype/mkfile
+
+#TARG=hp\
+#	vt\
+#	vt220\
+
+TARG=vt
+
+OFILES=\
+	consctl.$O\
+	event.$O\
+	main.$O\
+	vt.$O\
+
+HFILES=cons.h
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

@@ -53,9 +53,9 @@ Machdata i386mach =
 
 	leswab,			/* convert short to local byte order */
 	leswal,			/* convert long to local byte order */
+	leswav,			/* convert vlong to local byte order */
 	i386trace,		/* C traceback */
 	i386frame,		/* frame finder */
-	0,			/* ublock fixup */
 	i386excep,		/* print exception */
 	0,			/* breakpoint fixup */
 	leieeesftos,		/* single precision float printer */
@@ -81,7 +81,7 @@ i386excep(Map *map, Rgetter rget)
 			if (memcmp(buf, machdata->bpinst, machdata->bpsize) == 0)
 				return "breakpoint";
 		}
-		sprint(buf, "exception %d", c);
+		sprint(buf, "exception %ld", c);
 		return buf;
 	} else
 		return excname[c];
@@ -91,16 +91,17 @@ static int
 i386trace(Map *map, ulong pc, ulong sp, ulong link, Tracer trace)
 {
 	int i;
-	Symbol s, f;
 	ulong osp;
+	Symbol s, f;
 
 	USED(link);
 	i = 0;
 	osp = 0;
 	while(findsym(pc, CTEXT, &s)) {
-		if(osp == sp)
+		if (osp == sp)
 			break;
 		osp = sp;
+
 		if(strcmp(STARTSYM, s.name) == 0 || strcmp(PROFSYM, s.name) == 0)
 			break;
 
@@ -119,7 +120,7 @@ i386trace(Map *map, ulong pc, ulong sp, ulong link, Tracer trace)
 		(*trace)(map, pc, sp, &s);
 		sp += mach->szaddr;
 
-		if(++i > 40)
+		if(++i > 1000)
 			break;
 	}
 	return i;
@@ -295,6 +296,20 @@ static Optable optab0F[256]=
 [0x30]	0,0,		"WRMSR",
 [0x31]	0,0,		"RDTSC",
 [0x32]	0,0,		"RDMSR",
+[0x42]	RM,0,		"CMOVC	%e,%r",		/* CF */
+[0x43]	RM,0,		"CMOVNC	%e,%r",		/* ¬ CF */
+[0x44]	RM,0,		"CMOVZ	%e,%r",		/* ZF */
+[0x45]	RM,0,		"CMOVNZ	%e,%r",		/* ¬ ZF */
+[0x46]	RM,0,		"CMOVBE	%e,%r",		/* CF ∨ ZF */
+[0x47]	RM,0,		"CMOVA	%e,%r",		/* ¬CF ∧ ¬ZF */
+[0x48]	RM,0,		"CMOVS	%e,%r",		/* SF */
+[0x49]	RM,0,		"CMOVNS	%e,%r",		/* ¬ SF */
+[0x4A]	RM,0,		"CMOVP	%e,%r",		/* PF */
+[0x4B]	RM,0,		"CMOVNP	%e,%r",		/* ¬ PF */
+[0x4C]	RM,0,		"CMOVLT	%e,%r",		/* LT ≡ OF ≠ SF */
+[0x4D]	RM,0,		"CMOVGE	%e,%r",		/* GE ≡ ZF ∨ SF */
+[0x4E]	RM,0,		"CMOVLE	%e,%r",		/* LE ≡ ZF ∨ LT */
+[0x4F]	RM,0,		"CMOVGT	%e,%r",		/* GT ≡ ¬ZF ∧ GE */
 [0x80]	Iwds,0,		"JOS	%p",
 [0x81]	Iwds,0,		"JOC	%p",
 [0x82]	Iwds,0,		"JCS	%p",
@@ -657,10 +672,10 @@ static Optable optabFF[8] =
 {
 [0x00]	0,0,		"INC%S	%e",
 [0x01]	0,0,		"DEC%S	%e",
-[0x02]	JUMP,0,		"CALL*%S %e",
-[0x03]	JUMP,0,		"CALLF*%S %e",
-[0x04]	JUMP,0,		"JMP*%S	%e",
-[0x05]	JUMP,0,		"JMPF*%S %e",
+[0x02]	JUMP,0,		"CALL*	%e",
+[0x03]	JUMP,0,		"CALLF*	%e",
+[0x04]	JUMP,0,		"JMP*	%e",
+[0x05]	JUMP,0,		"JMPF*	%e",
 [0x06]	0,0,		"PUSHL	%e",
 };
 
@@ -811,8 +826,8 @@ static Optable optable[256] =
 [0x8f]	RM,0,		"POP%S	%e",
 [0x90]	0,0,		"NOP",
 [0x91]	0,0,		"XCHG	%OCX,%OAX",
-[0x92]	0,0,		"XCHG	%OCX,%OAX",
-[0x93]	0,0,		"XCHG	%OCX,%OAX",
+[0x92]	0,0,		"XCHG	%ODX,%OAX",
+[0x93]	0,0,		"XCHG	%OBX,%OAX",
 [0x94]	0,0,		"XCHG	%OSP,%OAX",
 [0x95]	0,0,		"XCHG	%OBP,%OAX",
 [0x96]	0,0,		"XCHG	%OSI,%OAX",
@@ -821,8 +836,9 @@ static Optable optable[256] =
 [0x99]	0,0,		"%x",			/* idiotic CWD or CDQ */
 [0x9a]	PTR,0,		"CALL%S	%d",
 [0x9b]	0,0,		"WAIT",
-[0x9c]	0,0,		"PUSH	FLAGS",
-[0x9d]	0,0,		"POP	FLAGS",
+[0x9c]	0,0,		"PUSHF",
+[0x9d]	0,0,		"POPF",
+[0x9e]	0,0,		"SAHF",
 [0x9f]	0,0,		"LAHF",
 [0xa0]	Awd,0,		"MOVB	%i,AL",
 [0xa1]	Awd,0,		"MOV%S	%i,%OAX",
@@ -1259,8 +1275,6 @@ badop:
 				return 0;
 			break;
 		case PTR:	/* Seg:Displacement addr (ptr16:16 or ptr16:32) */
-			if (igets(map, ip, (ushort*)&ip->seg) < 0)
-				return 0;
 			if (ip->osize == 'L') {
 				if (igetl(map, ip, &ip->disp) < 0)
 					return 0;
@@ -1269,6 +1283,8 @@ badop:
 					return 0;
 				ip->disp = s&0xffff;
 			}
+			if (igets(map, ip, (ushort*)&ip->seg) < 0)
+				return 0;
 			ip->jumptype = PTR;
 			break;
 		case AUX:	/* Multi-byte op code - Auxiliary table */
@@ -1311,7 +1327,11 @@ badop:
 static void
 bprint(Instr *ip, char *fmt, ...)
 {
-	ip->curr = doprint(ip->curr, ip->end, fmt, (&fmt+1));
+	va_list arg;
+
+	va_start(arg, fmt);
+	ip->curr = doprint(ip->curr, ip->end, fmt, arg);
+	va_end(arg);
 }
 
 /*
@@ -1568,8 +1588,8 @@ i386foll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 		return -1;
 
 	n = 0;
-	switch(i.jumptype)
-	{
+
+	switch(i.jumptype) {
 	case RET:		/* RETURN or LEAVE */
 	case Iw:		/* RETURN */
 		if (strcmp(op->proto, "LEAVE") == 0) {
@@ -1588,6 +1608,11 @@ i386foll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 		foll[0] = (i.seg<<4)+i.disp;
 		return 1;
 	case JUMP:		/* JUMP or CALL EA */
+
+		if(i.mod == 3) {
+			foll[0] = (*rget)(map, reg[i.base]);
+			return 1;
+		}
 			/* calculate the effective address */
 		addr = i.disp;
 		if (i.base >= 0) {

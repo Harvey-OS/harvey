@@ -4,24 +4,21 @@
 #include <ctype.h>
 #include "authsrv.h"
 
-
 void	install(char*, char*, char*, long, int);
 int	exists (char*, char*);
-long	getexpiration(char *db, char *u);
-Tm	getdate(char*);
 
 void
 usage(void)
 {
-	fprint(2, "usage: changeuser [-hpn] user\n");
+	fprint(2, "usage: changeuser [-pnm] user\n");
 	exits("usage");
 }
 
 void
 main(int argc, char *argv[])
 {
-	char *u, key[DESKEYLEN], answer[32];
-	int which, i, newkey, newbio;
+	char *u, key[DESKEYLEN], answer[32], p9pass[32];
+	int which, i, newkey, newbio, dosecret;
 	long t;
 	Acctbio a;
 	Fs *f;
@@ -63,9 +60,12 @@ main(int argc, char *argv[])
 				newkey = 0;
 		}
 		if(newkey)
-			getpass(key, 1);
+			getpass(key, p9pass, 1);
+		dosecret = getsecret(newkey, p9pass);
 		t = getexpiration(f->keys, u);
 		install(f->keys, u, key, t, newkey);
+		if(dosecret && setsecret(KEYDB, u, p9pass) == 0)
+			error("error writing Inferno/pop secret");
 		newbio = querybio(f->who, u, &a);
 		if(newbio)
 			wrbio(f->who, &a);
@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 void
 install(char *db, char *u, char *key, long t, int newkey)
 {
-	char buf[KEYDBBUF+NAMELEN+6];
+	char buf[KEYDBBUF+NAMELEN+20];
 	int fd;
 
 	if(!exists(db, u)){
@@ -122,11 +122,11 @@ install(char *db, char *u, char *key, long t, int newkey)
 		close(fd);
 	}
 
-	if(t == 0)
+	if(t == -1)
 		return;
 	sprint(buf, "%s/%s/expire", db, u);
 	fd = open(buf, OWRITE);
-	if(fd < 0 || fprint(fd, "%d", t) < 0)
+	if(fd < 0 || fprint(fd, "%ld", t) < 0)
 		error("can't write expiration time");
 	close(fd);
 }
@@ -137,78 +137,7 @@ exists(char *db, char *u)
 	char buf[KEYDBBUF+NAMELEN+6];
 
 	sprint(buf, "%s/%s/expire", db, u);
-	if(access(buf, OREAD) < 0)
+	if(access(buf, 0) < 0)
 		return 0;
 	return 1;
-}
-
-/*
- * get the date in the format yyyymmdd
- */
-Tm
-getdate(char *d)
-{
-	Tm date;
-	int i;
-
-	date.year = date.mon = date.mday = 0;
-	date.hour = date.min = date.sec = 0;
-	for(i = 0; i < 8; i++)
-		if(!isdigit(d[i]))
-			return date;
-	date.year = (d[0]-'0')*1000 + (d[1]-'0')*100 + (d[2]-'0')*10 + d[3]-'0';
-	date.year -= 1900;
-	d += 4;
-	date.mon = (d[0]-'0')*10 + d[1]-'0';
-	d += 2;
-	date.mday = (d[0]-'0')*10 + d[1]-'0';
-	return date;
-}
-
-long
-getexpiration(char *db, char *u)
-{
-	char buf[32];
-	char prompt[128];
-	char cdate[32];
-	Tm date;
-	ulong secs, now, fd;
-	int n;
-
-	/* read current expiration (if any) */
-	sprint(buf, "%s/%s/expire", db, u);
-	fd = open(buf, OREAD);
-	buf[0] = 0;
-	if(fd >= 0){
-		n = read(fd, buf, sizeof(buf)-1);
-		if(n > 0)
-			buf[n-1] = 0;
-		close(fd);
-	}
-	secs = 0;
-	if(buf[0]){
-		if(strncmp(buf, "never", 5)){
-			secs = atoi(buf);
-			memmove(&date, localtime(secs), sizeof(date));
-			sprint(buf, "%4.4d%2.2d%2.2d", date.year+1900, date.mon, date.mday);
-		} else
-			buf[5] = 0;
-	} else
-		strcpy(buf, "never");
-	sprint(prompt, "Expiration date (YYYYMMDD or never)[return = %s]: ", buf);
-
-	now = time(0);
-	for(;;){
-		readln(prompt, cdate, sizeof cdate, 0);
-		if(*cdate == 0)
-			return secs;
-		if(strcmp(cdate, "never") == 0)
-			return 0;
-		date = getdate(cdate);
-		secs = tm2sec(date);
-		if(secs > now && secs < now + 2*365*24*60*60)
-			break;
-		print("expiration time must fall between now and 2 years from now\n");
-	}
-	return secs;
 }

@@ -76,12 +76,18 @@ a non-Plan 9 system.
 .B g
 Use the next (numeric) argument as the group id for files in
 the output archive.
+.TP
+.B T
+Modifies the behavior of
+.B x
+to set the mode and modified time
+of each file to that specified in the archive.
 .SH EXAMPLES
 .I Tar
 can be used to copy hierarchies thus:
 .IP
 .EX
-{cd fromdir; tar c .} | {cd todir; tar x}
+{cd fromdir && tar c .} | {cd todir && tar xT}
 .EE
 .SH SOURCE
 .B /sys/src/cmd/tar.c

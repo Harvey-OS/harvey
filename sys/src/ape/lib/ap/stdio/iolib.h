@@ -39,3 +39,6 @@
 #define	END	6	/* open, but at eof */
 char *strerror(int errno);
 int _IO_setvbuf(FILE *);
+FILE *_IO_sopenr(const char*);
+FILE *_IO_sopenw(void);
+char *_IO_sclose(FILE *);

@@ -7,10 +7,10 @@ ulong
 strtoul(char *nptr, char **endptr, int base)
 {
 	char *p;
-	ulong n, nn;
+	ulong n, nn, m;
 	int c, ovfl, neg, v, ndig;
 
-	p = (char*)nptr;
+	p = nptr;
 	neg = 0;
 	n = 0;
 	ndig = 0;
@@ -47,20 +47,24 @@ strtoul(char *nptr, char **endptr, int base)
 			base = 10;
 		else{
 			base = 8;
-			if(p[1]=='x' || p[1]=='X'){
-				p += 2;
+			if(p[1]=='x' || p[1]=='X')
 				base = 16;
-			}
 		}
-	}else if(base==16 && *p=='0'){
-		if(p[1]=='x' || p[1]=='X')
-			p += 2;
-	}else if(base<0 || 36<base)
+	}
+ 	if(base<2 || 36<base)
 		goto Return;
-
+	if(base==16 && *p=='0'){
+		if(p[1]=='x' || p[1]=='X')
+			if(('0' <= p[2] && p[2] <= '9')
+			 ||('a' <= p[2] && p[2] <= 'f')
+			 ||('A' <= p[2] && p[2] <= 'F'))
+				p += 2;
+	}
 	/*
 	 * Non-empty sequence of digits
 	 */
+	n = 0;
+	m = ULONG_MAX/base;
 	for(;; p++,ndig++){
 		c = *p;
 		v = base;
@@ -72,6 +76,8 @@ strtoul(char *nptr, char **endptr, int base)
 			v = c - 'A' + 10;
 		if(v >= base)
 			break;
+		if(n > m)
+			ovfl = 1;
 		nn = n*base + v;
 		if(nn < n)
 			ovfl = 1;

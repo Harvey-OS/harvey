@@ -5,23 +5,58 @@
 #include <ndb.h>
 
 void	pip(char*, char*);
-void	pdk(char*, char*);
+void	pipifc(char*, char*);
 void	nstat(char*, void (*)(char*, char*));
 
-Ndb 	*ndb;
 Biobuf	out;
+char	*netroot;
+int	notrans;
 
 void
-main(void)
+usage(void){
+	fprint(2, "usage: %s [-in] [network-dir]\n", argv0);
+	exits("usage");
+}
+
+void
+main(int argc, char *argv[])
 {
-	ndb = ndbopen(0);
+	int justinterfaces = 0;
+
+	ARGBEGIN{
+	case 'n':
+		notrans = 1;
+		break;
+	case 'i':
+		justinterfaces = 1;
+		break;
+	default:
+		usage();
+	}ARGEND;
+
+	netroot = "/net";
+	switch(argc){
+	case 0:
+		break;
+	case 1:
+		netroot = argv[0];
+		break;
+	default:
+		usage();
+	}
 
 	Binit(&out, 1, OWRITE);
 
+	if(justinterfaces){
+		nstat("ipifc", pipifc);
+		exits(0);
+	}
+
 	nstat("tcp", pip);
 	nstat("udp", pip);
+	nstat("rudp", pip);
 	nstat("il", pip);
-	nstat("dk", pdk);
+
 	exits(0);
 }
 
@@ -31,7 +66,7 @@ nstat(char *net, void (*f)(char*, char*))
 	int fdir, i, n, tot;
 	char dir[500*DIRLEN], *mem;
 
-	sprint(dir, "/net/%s", net);
+	sprint(dir, "%s/%s", netroot, net);
 	fdir = open(dir, OREAD);
 	if(fdir < 0)
 		return;
@@ -53,24 +88,45 @@ nstat(char *net, void (*f)(char*, char*))
 	close(fdir);
 }
 
+char*
+getport(char *net, char *p)
+{
+	static char buf[Ndbvlen];
+	Ndbtuple *t;
+
+	if(notrans)
+		return p;
+	t = csgetval(netroot, "port", p, net, buf);
+	if(t)
+		ndbfree(t);
+	if(buf[0] == 0)
+		return p;
+	return buf;
+}
+
 void
-pdk(char *net, char *entry)
+pip(char *net, char *entry)
 {
 	Dir db;
 	int n, fd;
-	char buf[128], *p, *t;
+	char buf[128], *p;
+	Ndbtuple *tp;
+	char dname[Ndbvlen];
 
 	if(strcmp(entry, "clone") == 0)
 		return;
+	if(strcmp(entry, "stats") == 0)
+		return;
 
-	sprint(buf, "/net/%s/%s/ctl", net, entry);
+	sprint(buf, "%s/%s/%s/ctl", netroot, net, entry);
 	if(dirstat(buf, &db) < 0)
 		return;
 
-	sprint(buf, "/net/%s/%s/status", net, entry);
+	sprint(buf, "%s/%s/%s/status", netroot, net, entry);
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		return;
+
 	n = read(fd, buf, sizeof(buf));
 	if(n < 0)
 		return;
@@ -78,111 +134,12 @@ pdk(char *net, char *entry)
 	close(fd);
 
 	p = strchr(buf, ' ');
-	if(p == 0)
-		return;
-	p = strchr(p+1, ' ');
-	if(p == 0)
-		return;
-	t = strchr(p+1, ' ');
-	if(t == 0)
-		return;
-	*t = 0;
-	Bprint(&out, "%-4s %-4s %-10s %-12s ", net, entry, db.uid, p);
+	if(p != 0)
+		*p = 0;
+	
+	Bprint(&out, "%-4s %-4s %-10s %-12s ", net, entry, db.uid, buf);
 
-	sprint(buf, "/net/%s/%s/local", net, entry);
-	fd = open(buf, OREAD);
-	if(fd < 0) {
-		Bprint(&out, "\n");
-		return;
-	}
-	n = read(fd, buf, sizeof(buf));
-	if(n < 0) {
-		Bprint(&out, "\n");
-		return;
-	}
-	buf[n-1] = 0;
-	p = strchr(buf, '!');
-	if(p == 0) {
-		Bprint(&out, "\n");
-		return;
-	}
-	Bprint(&out, "%-10s ", p+1);
-
-	sprint(buf, "/net/%s/%s/remote", net, entry);
-	fd = open(buf, OREAD);
-	if(fd < 0) {
-		Bprint(&out, "\n", buf);
-		return;
-	}
-	n = read(fd, buf, sizeof(buf));
-	if(n < 0) {
-		Bprint(&out, "\n");
-		return;
-	}
-	buf[n-1] = 0;
-	Bprint(&out, "%s\n", buf);
-}
-
-char*
-getport(char *net, char *p)
-{
-	Ndbs s;
-	static Ndbtuple *t;
-	static Ndbtuple *nt;
-
-	t = ndbsearch(ndb, &s, "port", p);
-	while(t){
-		for(nt = t; nt; nt = nt->entry) {
-			if(strcmp(nt->attr, net) == 0)
-				return nt->val;
-		}
-		ndbfree(t);
-		t = ndbsnext(&s, "port", p);
-	}
-	return p;
-}
-
-void
-pip(char *net, char *entry)
-{
-	Dir db;
-	Ipinfo ipi;
-	int n, fd;
-	char buf[128], *p, *t;
-
-	if(strcmp(entry, "clone") == 0)
-		return;
-
-	sprint(buf, "/net/%s/%s/ctl", net, entry);
-	if(dirstat(buf, &db) < 0)
-		return;
-
-	sprint(buf, "/net/%s/%s/status", net, entry);
-	fd = open(buf, OREAD);
-	if(fd < 0)
-		return;
-	n = read(fd, buf, sizeof(buf));
-	if(n < 0)
-		return;
-	buf[n] = 0;
-	close(fd);
-
-	p = " Dgram";
-	if(strcmp(net, "udp") != 0) {
-		p = strchr(buf, ' ');
-		if(p == 0)
-			return;
-		p = strchr(p+1, ' ');
-		if(p == 0)
-			return;
-		t = strchr(p+1, ' ');
-		if(t == 0)
-			return;
-		*t = 0;
-	}
-	Bprint(&out, "%-4s %-4s %-10s %-12s ", net, entry, db.uid, p);
-
-	sprint(buf, "/net/%s/%s/local", net, entry);
+	sprint(buf, "%s/%s/%s/local", netroot, net, entry);
 	fd = open(buf, OREAD);
 	if(fd < 0) {
 		Bprint(&out, "\n");
@@ -203,7 +160,7 @@ pip(char *net, char *entry)
 	*p = '\0';
 	Bprint(&out, "%-10s ", getport(net, p+1));
 
-	sprint(buf, "/net/%s/%s/remote", net, entry);
+	sprint(buf, "%s/%s/%s/remote", netroot, net, entry);
 	fd = open(buf, OREAD);
 	if(fd < 0) {
 		print("\n");
@@ -219,10 +176,57 @@ pip(char *net, char *entry)
 	p = strchr(buf, '!');
 	*p++ = '\0';
 
-	n = ipinfo(ndb, 0, buf, 0, &ipi);
-	if(n < 0) {
+	if(notrans){
 		Bprint(&out, "%-10s %s\n", getport(net, p), buf);
 		return;
 	}
-	Bprint(&out, "%-10s %s\n", getport(net, p), ipi.domain);
+	tp = csgetval(netroot, "ip", buf, "dom", dname);
+	if(tp)
+		ndbfree(tp);
+	if(dname[0] == 0) {
+		Bprint(&out, "%-10s %s\n", getport(net, p), buf);
+		return;
+	}
+	Bprint(&out, "%-10s %s\n", getport(net, p), dname);
+	Bflush(&out);
+}
+
+void
+pipifc(char *net, char *entry)
+{
+	int n, fd;
+	char buf[128], *p;
+	char *f[9];
+
+	if(strcmp(entry, "clone") == 0)
+		return;
+	if(strcmp(entry, "stats") == 0)
+		return;
+
+	sprint(buf, "%s/%s/%s/status", netroot, net, entry);
+	fd = open(buf, OREAD);
+	if(fd < 0)
+		return;
+
+	n = read(fd, buf, sizeof(buf));
+	if(n < 0)
+		return;
+	buf[n] = 0;
+	close(fd);
+
+	n = getfields(buf, f, 9, 1, " \t\n");
+	if(n < 7)
+		return;
+	p = strrchr(f[0], '/');
+	if(p != nil)
+		f[0] = p+1;
+
+	if(n == 9)
+		Bprint(&out, "%-8s %-5s %-16s %-16s %-16s %-10s %-10s %-6s %-6s\n",
+			f[0], f[1], f[2], f[3], f[4],
+			f[5], f[6], f[7], f[8]);
+	else
+		Bprint(&out, "               %-16s %-16s %-16s %-10s %-10s %-6s %-6s\n",
+			f[0], f[1], f[2], f[3], f[4],
+			f[5], f[6]);
 }

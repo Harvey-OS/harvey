@@ -1,10 +1,10 @@
-typedef struct Lock	Lock;
+typedef struct MLock	MLock;
 typedef	struct Iosect	Iosect;
 typedef	struct Iotrack	Iotrack;
 typedef struct Track	Track;
 typedef struct Xfs	Xfs;
 
-struct Lock
+struct MLock
 {
 	char	key;
 };
@@ -13,7 +13,7 @@ struct Iosect
 {
 	Iosect *next;
 	short	flags;
-	Lock	lock;
+	MLock	lock;
 	Iotrack *t;
 	uchar *	iobuf;
 };
@@ -27,7 +27,7 @@ struct Iotrack
 	Iotrack	*prev;
 	Iotrack	*hnext;		/* in hash list */
 	Iotrack	*hprev;
-	Lock	lock;
+	MLock	lock;
 	int	ref;
 	Track	*tp;
 };
@@ -53,7 +53,7 @@ Iosect*	getosect(Xfs*, long);
 Iosect*	getsect(Xfs*, long);
 Iosect*	newsect(void);
 Iotrack*	getiotrack(Xfs*, long);
-int	canlock(Lock*);
+int	canmlock(MLock*);
 int	devcheck(Xfs*);
 int	devread(Xfs*, long, void*, long);
 int	devwrite(Xfs*, long, void*, long);
@@ -61,9 +61,9 @@ int	tread(Iotrack*);
 int	twrite(Iotrack*);
 void	freesect(Iosect*);
 void	iotrack_init(void);
-void	lock(Lock*);
+void	mlock(MLock*);
 void	purgebuf(Xfs*);
 void	purgetrack(Iotrack*);
 void	putsect(Iosect*);
 void	sync(void);
-void	unlock(Lock*);
+void	unmlock(MLock*);

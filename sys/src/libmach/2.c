@@ -9,24 +9,19 @@
 #define	MAXREG	0
 #define	MINREG	0
 
-/*
- * 68020 register offsets relative to beginning of ublock
- */
-#define	USIZE		8192		/* size of the user block */
-#define	UREG(x)		(USIZE-(2+4+2+(8+8+1+1)*4)+(ulong)(x))
-#define	FCTL(x)		(0x0000+4+216+(x)*4)
-#define	FREG(x)		(0x0000+4+216+12+(x)*12)
-#define	SCALLOFF	(0x0000+4+216+108)
-
-#define	REGOFF(x)	(UREG(&((struct Ureg *) 0)->x))
+#define	REGOFF(x)	(ulong)(&((struct Ureg *) 0)->x)
 
 #define	VO	REGOFF(vo)		/* vo, 2 bytes */
 #define	SR	REGOFF(sr)		/* sr, 2 bytes */
-
 #define	R0	REGOFF(r0)
 #define	PC	REGOFF(pc)
 #define	DBMAGIC	REGOFF(magic)
 #define	SP	REGOFF(usp)
+
+#define	REGSIZE		(R0+4)
+#define	FCTL(x)		(REGSIZE+(x)*4)
+#define	FREG(x)		(FCTL(3)+(x)*12)
+#define	FPREGSIZE	(11*12)
 
 /*
  *	68020 register set
@@ -72,23 +67,17 @@ Mach m68020 =
 	"68020",
 	M68020,		/* machine type */
 	m68020reglist,	/* register list */
-	MINREG,		/* minimum register */
-	MAXREG,		/* maximum register */
+	REGSIZE,	/* number of bytes in reg set */
+	FPREGSIZE,	/* number of bytes in fp reg set */
 	"PC",
 	"A7",
 	0,		/* link register */
-	R0,		/* return register */
+	"a6base",	/* static base register name */
+	0,		/* value */
 	0x2000,		/* page size */
 	0x80000000,	/* kernel base */
 	0,		/* kernel text mask */
-	0,		/* offset of ksp in /proc/proc */
-	4,		/* correction to ksp value */
-	4,		/* offset of kpc in /proc/proc */
-	0,		/* correction to kpc value */
-	SCALLOFF,	/* offset in ublk of syscall #*/
 	2,		/* quantization of pc */
-	"a6base",	/* static base register name */
-	0,		/* value */
 	4,		/* szaddr */
 	4,		/* szreg */
 	4,		/* szfloat */

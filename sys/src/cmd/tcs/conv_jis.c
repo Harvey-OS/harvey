@@ -46,7 +46,7 @@ again:
 		}
 		if(c < 0x21){	/* guard against bogus characters in JIS mode */
 			if(squawk)
-				EPR "%s: non-JIS character %02x in %s near byte %d\n", argv0, c, file, input_loc);
+				EPR "%s: non-JIS character %02x in %s near byte %ld\n", argv0, c, file, input_loc);
 			emit(c);
 			return;
 		}
@@ -76,11 +76,6 @@ again:
 				EPR "%s: unexpected EOF in %s\n", argv0, file);
 			c = 0x21 | (lastc&0x80);
 		}
-		if((lastc&0x80) != (c&0x80)){	/* guard against latin1 in jis */
-			emit(lastc);
-			state = state0;
-			goto again;
-		}
 		if(CANS2J(lastc, c)){	/* ms dos sjis */
 			int hi = lastc, lo = c;
 			S2J(hi, lo);			/* convert to 208 */
@@ -97,7 +92,7 @@ again:
 			if(l < 0){
 				l = -l;
 				if(squawk)
-					EPR "%s: ambiguous kuten208 %d (mapped to 0x%x) near byte %ld in %s\n", argv0, n, l, input_loc, file);
+					EPR "%s: ambiguous kuten208 %d (mapped to 0x%lx) near byte %ld in %s\n", argv0, n, l, input_loc, file);
 			}
 			emit(l);
 		}
@@ -163,11 +158,6 @@ again:
 				EPR "%s: unexpected EOF in %s\n", argv0, file);
 			c = 0x21 | (lastc&0x80);
 		}
-		if((lastc&0x80) != (c&0x80)){	/* guard against latin1 in jis */
-			emit(lastc);
-			state = state0;
-			goto again;
-		}
 		if(CANS2J(lastc, c)){	/* ms dos sjis */
 			int hi = lastc, lo = c;
 			S2J(hi, lo);			/* convert to 208 */
@@ -185,14 +175,13 @@ again:
 			nerrors++;
 			if(squawk)
 				EPR "%s: unknown kuten208 %d (from 0x%x,0x%x) near byte %ld in %s\n", argv0, n, lastc, c, input_loc, file);
-	badchar:
 			if(!clean)
 				emit(BADMAP);
 		} else {
 			if(l < 0){
 				l = -l;
 				if(squawk)
-					EPR "%s: ambiguous kuten208 %d (mapped to 0x%x) near byte %ld in %s\n", argv0, n, l, input_loc, file);
+					EPR "%s: ambiguous kuten208 %d (mapped to 0x%lx) near byte %ld in %s\n", argv0, n, l, input_loc, file);
 			}
 			emit(l);
 		}
@@ -211,7 +200,6 @@ ujis(int c, Rune **r, long input_loc)
 	int n;
 	long l;
 
-again:
 	switch(state)
 	{
 	case state0:	/* idle state */
@@ -257,7 +245,7 @@ again:
 			if(l < 0){
 				l = -l;
 				if(squawk)
-					EPR "%s: ambiguous kuten208 %d (mapped to 0x%x) near byte %ld in %s\n", argv0, n, l, input_loc, file);
+					EPR "%s: ambiguous kuten208 %d (mapped to 0x%lx) near byte %ld in %s\n", argv0, n, l, input_loc, file);
 			}
 			emit(l);
 		}
@@ -339,7 +327,7 @@ again:
 			if(l < 0){
 				l = -l;
 				if(squawk)
-					EPR "%s: ambiguous kuten208 %d (mapped to 0x%x) near byte %ld in %s\n", argv0, n, l, input_loc, file);
+					EPR "%s: ambiguous kuten208 %d (mapped to 0x%lx) near byte %ld in %s\n", argv0, n, l, input_loc, file);
 			}
 			emit(l);
 		}
@@ -444,7 +432,7 @@ jisjis_out(Rune *base, int n, long *notused)
 		r = base[i];
 		if(r < 128){
 			if(state == jp2022){
-				*p++ = ESC; *p++ = '('; *p++ = 'H';
+				*p++ = ESC; *p++ = '('; *p++ = 'B';
 				state = ascii;
 			}
 			*p++ = r;

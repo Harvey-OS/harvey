@@ -1,0 +1,9 @@
+func f(x) {
+	return x-x%1
+}
+
+func pixel(dr, dg, db, da, sr, sg, sb, sa, m) {
+	M = 255-f((sa*m)/255)
+	print f((sr*m+dr*M)/255), " ", f((sg*m+dg*M)/255), " ", f((sb*m+db*M)/255),  " ", f((sa*m+da*M)/255), "\n"
+	return 0
+}

@@ -1,7 +1,9 @@
 #pragma	lib	"libc.a"
-#pragma src	"/sys/src/libc"
+#pragma	src	"/sys/src/libc"
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
+#define	offsetof(s, m)	(ulong)(&(((s*)0)->m))
+#define	assert(x)	if(x);else _assert("x")
 
 /*
  * mem routines
@@ -17,7 +19,7 @@ extern	void*	memchr(void*, int, ulong);
  * string routines
  */
 extern	char*	strcat(char*, char*);
-extern	char*	strchr(char*, char);
+extern	char*	strchr(char*, int);
 extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
 extern	char*	strdup(char*);
@@ -25,7 +27,7 @@ extern	char*	strncat(char*, char*, long);
 extern	char*	strncpy(char*, char*, long);
 extern	int	strncmp(char*, char*, long);
 extern	char*	strpbrk(char*, char*);
-extern	char*	strrchr(char*, char);
+extern	char*	strrchr(char*, int);
 extern	char*	strtok(char*, char*);
 extern	long	strlen(char*);
 extern	long	strspn(char*, char*);
@@ -42,28 +44,40 @@ enum
 };
 
 /*
- * new rune routines
+ * rune routines
  */
 extern	int	runetochar(char*, Rune*);
 extern	int	chartorune(Rune*, char*);
 extern	int	runelen(long);
+extern	int	runenlen(Rune*, int);
 extern	int	fullrune(char*, int);
-
-/*
- * rune routines from converted str routines
- */
 extern	int	utflen(char*);
 extern	char*	utfrune(char*, long);
 extern	char*	utfrrune(char*, long);
 extern	char*	utfutf(char*, char*);
+extern	Rune	tolowerrune(Rune);
+extern	Rune	totitlerune(Rune);
+extern	Rune	toupperrune(Rune);
+extern	int	isalpharune(Rune);
+extern	int	islowerrune(Rune);
+extern	int	isspacerune(Rune);
+extern	int	istitlerune(Rune);
+extern	int	isupperrune(Rune);
 
 /*
  * malloc
  */
-extern	void*	malloc(long);
+extern	void*	malloc(ulong);
+extern	void*	mallocz(ulong, int);
 extern	void	free(void*);
-extern	void*	calloc(long, long);
-extern	void*	realloc(void*, long);
+extern	ulong	msize(void*);
+extern	void*	calloc(ulong, ulong);
+extern	void*	realloc(void*, ulong);
+extern	void		setmalloctag(void*, ulong);
+extern	void		setrealloctag(void*, ulong);
+extern	ulong	getmalloctag(void*);
+extern	ulong	getrealloctag(void*);
+extern	void*	malloctopoolblock(void*);
 
 /*
  * print routines
@@ -78,16 +92,50 @@ struct	Fconv
 	int	f3;
 	int	chr;
 };
-extern	char*	doprint(char*, char*, char*, void*);
+extern	char*	doprint(char*, char*, char*, va_list);
 extern	int	print(char*, ...);
+extern	char*	seprint(char*, char*, char*, ...);
 extern	int	snprint(char*, int, char*, ...);
 extern	int	sprint(char*, char*, ...);
 extern	int	fprint(int, char*, ...);
 
-extern	int	fmtinstall(int, int (*)(void*, Fconv*));
-extern	int	numbconv(void*, Fconv*);
+#pragma	varargck	argpos	print	1
+#pragma	varargck	argpos	snprint	3
+#pragma	varargck	argpos	seprint	3
+#pragma	varargck	argpos	sprint	2
+#pragma	varargck	argpos	fprint	2
+
+#pragma	varargck	type	"lld"	vlong
+#pragma	varargck	type	"llx"	vlong
+#pragma	varargck	type	"lld"	uvlong
+#pragma	varargck	type	"llx"	uvlong
+#pragma	varargck	type	"ld"	long
+#pragma	varargck	type	"lx"	long
+#pragma	varargck	type	"ld"	ulong
+#pragma	varargck	type	"lx"	ulong
+#pragma	varargck	type	"d"	int
+#pragma	varargck	type	"x"	int
+#pragma	varargck	type	"c"	int
+#pragma	varargck	type	"C"	int
+#pragma	varargck	type	"d"	uint
+#pragma	varargck	type	"x"	uint
+#pragma	varargck	type	"c"	uint
+#pragma	varargck	type	"C"	uint
+#pragma	varargck	type	"f"	double
+#pragma	varargck	type	"e"	double
+#pragma	varargck	type	"g"	double
+#pragma	varargck	type	"s"	char*
+#pragma	varargck	type	"S"	Rune*
+#pragma	varargck	type	"r"	void
+#pragma	varargck	type	"%"	void
+#pragma	varargck	type	"|"	int
+#pragma	varargck	type	"p"	void*
+
+extern	int	fmtinstall(int, int (*)(va_list*, Fconv*));
+extern	int	numbconv(va_list*, Fconv*);
 extern	void	strconv(char*, Fconv*);
-extern	int	fltconv(void*, Fconv*);
+extern	void	Strconv(Rune*, Fconv*);
+extern	int	fltconv(va_list*, Fconv*);
 /*
  * random number
  */
@@ -97,6 +145,9 @@ extern	int	nrand(int);
 extern	long	lrand(void);
 extern	long	lnrand(long);
 extern	double	frand(void);
+extern	ulong	truerand(void);			/* uses /dev/random */
+extern	int	n_truerand(int);		/* uses /dev/random */
+extern	ulong	fastrand(void);			/* uses /dev/random extended by a prng */
 
 /*
  * math
@@ -151,6 +202,7 @@ struct Tm
 	int	wday;
 	int	yday;
 	char	zone[4];
+	int	tzoff;
 } Tm;
 
 extern	Tm*	gmtime(long);
@@ -159,6 +211,8 @@ extern	char*	asctime(Tm*);
 extern	char*	ctime(long);
 extern	double	cputime(void);
 extern	long	times(long*);
+extern	long	tm2sec(Tm*);
+extern	vlong	nsec(void);
 
 /*
  * one-of-a-kind
@@ -169,6 +223,7 @@ enum
 	PNGROUP		= 2,
 };
 
+extern	void	_assert(char*);
 extern	int	abs(int);
 extern	int	atexit(void(*)(void));
 extern	void	atexitdont(void(*)(void));
@@ -176,14 +231,16 @@ extern	int	atnotify(int(*)(void*, char*), int);
 extern	double	atof(char*);
 extern	int	atoi(char*);
 extern	long	atol(char*);
+extern	vlong atoll(char*);
 extern	double	charstod(int(*)(void*), void*);
+extern	char*	cleanname(char*);
 extern	int	decrypt(void*, void*, int);
 extern	int	encrypt(void*, void*, int);
 extern	void	exits(char*);
 extern	double	frexp(double, int*);
+extern	ulong	getcallerpc(void*);
 extern	char*	getenv(char*);
-extern	int	getfields(char*, char**, int);
-extern	int	getmfields(char*, char**, int);
+extern	int	getfields(char*, char**, int, int, char*);
 extern	char*	getuser(void);
 extern	char*	getwd(char*, int);
 extern	long	labs(long);
@@ -203,11 +260,66 @@ extern	int	setjmp(jmp_buf);
 extern	double	strtod(char*, char**);
 extern	long	strtol(char*, char**, int);
 extern	ulong	strtoul(char*, char**, int);
+extern	vlong	strtoll(char*, char**, int);
+extern	uvlong	strtoull(char*, char**, int);
+extern	void	sysfatal(char*, ...);
+#pragma	varargck	argpos	sysfatal	1
 extern	void	syslog(int, char*, char*, ...);
+#pragma	varargck	argpos	syslog	3
 extern	long	time(long*);
 extern	int	tolower(int);
 extern	int	toupper(int);
 
+/*
+ *  synchronization
+ */
+typedef
+struct Lock {
+	int	val;
+} Lock;
+
+extern int	_tas(int*);
+
+extern	void	lock(Lock*);
+extern	void	unlock(Lock*);
+extern	int	canlock(Lock*);
+
+typedef struct QLp QLp;
+struct QLp
+{
+	int	inuse;
+	QLp	*next;
+	char	state;
+};
+
+typedef
+struct QLock
+{
+	Lock	lock;
+	int	locked;
+	QLp	*head;
+	QLp 	*tail;
+} QLock;
+
+extern	void	qlock(QLock*);
+extern	void	qunlock(QLock*);
+extern	int	canqlock(QLock*);
+extern	void	_qlockinit(ulong (*)(ulong, ulong));	/* called only by the thread library */
+
+typedef
+struct RWLock
+{
+	Lock	lock;
+	int	readers;	/* number of readers */
+	int	writer;		/* number of writers */
+	QLp	*head;		/* list of waiting processes */
+	QLp	*tail;
+} RWLock;
+
+extern	void	rlock(RWLock*);
+extern	void	runlock(RWLock*);
+extern	void	wlock(RWLock*);
+extern	void	wunlock(RWLock*);
 
 /*
  *  network dialing and authentication
@@ -216,10 +328,12 @@ extern	int	toupper(int);
 extern	int	accept(int, char*);
 extern	int	announce(char*, char*);
 extern	int	dial(char*, char*, char*, int*);
+extern	void	setnetmtpt(char*, int, char*);
 extern	int	hangup(int);
 extern	int	listen(char*, char*);
 extern	char*	netmkaddr(char*, char*, char*);
 extern	int	reject(int, char*, char*);
+extern	int	pushssl(int, char*, char*, char*, int*);
 
 /*
  * system calls
@@ -234,6 +348,7 @@ extern	int	reject(int, char*, char*);
 #define	MBEFORE	0x0001	/* mount goes before others in union directory */
 #define	MAFTER	0x0002	/* mount goes after others in union directory */
 #define	MCREATE	0x0004	/* permit creation in mounted directory */
+#define	MCACHE	0x0010	/* cache some data */
 #define	MMASK	0x0007	/* all bits on */
 
 #define	OREAD	0	/* open for read */
@@ -243,6 +358,12 @@ extern	int	reject(int, char*, char*);
 #define	OTRUNC	16	/* or'ed in (except for exec), truncate file first */
 #define	OCEXEC	32	/* or'ed in, close on exec */
 #define	ORCLOSE	64	/* or'ed in, remove on close */
+#define	OEXCL	0x1000	/* or'ed in, exclusive use */
+
+#define	AEXIST	0	/* accessible: exists */
+#define	AEXEC	1	/* execute access */
+#define	AWRITE	2	/* write access */
+#define	AREAD	4	/* read access */
 
 /* Segattch */
 #define	SG_RONLY	0040	/* read only */
@@ -273,7 +394,9 @@ enum
 	RFNOWAIT	= (1<<6),
 	RFCNAMEG	= (1<<10),
 	RFCENVG		= (1<<11),
-	RFCFDG		= (1<<12)
+	RFCFDG		= (1<<12),
+	RFREND		= (1<<13),
+	RFNOMNT		= (1<<14)
 };
 
 typedef
@@ -291,8 +414,8 @@ struct Dir
 	char	gid[NAMELEN];
 	Qid	qid;
 	ulong	mode;
-	int	atime;
-	int	mtime;
+	long	atime;
+	long	mtime;
 	Length;
 	ushort	type;
 	ushort	dev;
@@ -320,7 +443,6 @@ extern	int	dup(int, int);
 extern	int	errstr(char*);
 extern	int	exec(char*, char*[]);
 extern	int	execl(char*, ...);
-extern  int	filsys(int, int, char*);
 extern	int	fork(void);
 extern	int	rfork(int);
 extern	int	fauth(int, char*);
@@ -332,13 +454,15 @@ extern	int	unmount(char*, char*);
 extern	int	noted(int);
 extern	int	notify(void(*)(void*, char*));
 extern	int	open(char*, int);
+extern	int	fd2path(int, char*, int);
 extern	int	pipe(int*);
 extern	long	read(int, void*, long);
 extern	long	readn(int, void*, long);
-#define		read9p read
+extern	long	read9p(int, void*, long);
 extern	int	remove(char*);
 extern	void*	sbrk(ulong);
-extern	long	seek(int, long, int);
+extern	long	oseek(int, long, int);
+extern	vlong	seek(int, vlong, int);
 extern	long	segattach(int, char*, void*, ulong);
 extern	int	segbrk(void*, void*);
 extern	int	segdetach(void*);
@@ -348,9 +472,9 @@ extern	int	sleep(long);
 extern	int	stat(char*, char*);
 extern	int	wait(Waitmsg*);
 extern	long	write(int, void*, long);
-#define		write9p write
+extern	long	write9p(int, void*, long);
 extern	int	wstat(char*, char*);
-extern	int	rendezvous(ulong, ulong);
+extern	ulong	rendezvous(ulong, ulong);
 
 extern	int	dirstat(char*, Dir*);
 extern	int	dirfstat(int, Dir*);
@@ -359,10 +483,12 @@ extern	int	dirfwstat(int, Dir*);
 extern	long	dirread(int, Dir*, long);
 extern	int	getpid(void);
 extern	int	getppid(void);
+extern	char*	sysname(void);
 extern	void	werrstr(char*, ...);
+#pragma	varargck	argpos	werrstr	1
 
 extern char *argv0;
-#define	ARGBEGIN	for((argv0? 0: (argv0=*argv)),argv++,argc--;\
+#define	ARGBEGIN	for((argv0||(argv0=*argv)),argv++,argc--;\
 			    argv[0] && argv[0][0]=='-' && argv[0][1];\
 			    argc--, argv++) {\
 				char *_args, *_argt;\
@@ -378,3 +504,6 @@ extern char *argv0;
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
 #define	ARGC()		_argc
+
+/* this is used by sbrk and brk,  it's a really bad idea to redefine it */
+extern	char	end[];

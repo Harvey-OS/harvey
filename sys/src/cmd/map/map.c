@@ -1,4 +1,5 @@
 #include "map.h"
+#include "iplot.h"
 
 #define NVERT 20	/* max number of vertices in a -v polygon */
 #define HALFWIDTH 8192	/* output scaled to fit in -HALFWIDTH,HALFWIDTH */
@@ -82,6 +83,7 @@ static int s1flag = 0;	/* 1 for option -s1 */
 static int s2flag = 0;	/* 1 for option -s2 */
 static int rflag = 0;	/* 1 for option -r */
 static int kflag = 0;	/* 1 if option -k occurred */
+static int xflag = 0;	/* 1 for option -x */
        int vflag = 1;	/* -1 if option -v occurred */
 static double position[3];	/* option -p */
 static double center[3] = {0., 0., 0.};	/* option -c */
@@ -322,9 +324,12 @@ found:
 				error("-v does not apply here");
 			vflag = -1;
 			break;
+		case 'x':
+			xflag = 1;
+			break;
 		case 'C':
 			if(argc && !option(*argv)) {
-				currcolor = *argv;
+				currcolor = colorcode(*argv);
 				argc--;
 				argv++;
 			}
@@ -441,6 +446,7 @@ found:
 		erase();
 	}
 	range(left,bottom,right,top);
+	comment("grid","");
 	colorx(gridcolor);
 	pen(DOTTED);
 	if(grid[0]>0.)
@@ -451,6 +457,7 @@ found:
 		for(lon=ceil(lolon/grid[1])*grid[1];
 		    lon<=hilon;lon+=grid[1]) 
 			dogrid(lolat,hilat,lon,lon);
+	comment("border","");
 	colorx(bordcolor);
 	pen(SOLID);
 	if(bflag) {
@@ -471,8 +478,9 @@ found:
 		longlines = shortlines;
 	}
 	for(i=0;i<nfile;i++) {
-		pen(file[i].style);
+		comment("mapfile",file[i].name);
 		colorx(file[i].color);
+		pen(file[i].style);
 		getdata(file[i].name);
 	}
 	move(right,bottom);
@@ -677,6 +685,7 @@ satellite(struct file *t)
 		if((ifile=fopen(t->name,"r"))==NULL)
 			filerror("can't find track", t->name);
 	}
+	comment("track",t->name);
 	colorx(t->color);
 	pen(t->style);
 	for(;;) {
@@ -704,8 +713,10 @@ satellite(struct file *t)
 				scale = 1;
 			if(plotpt(&place,conn?conn:-1)) {
 				int r = *lbl=='!'?0:rflag?-1:1;
+				pen(SOLID);
 				if(putsym(&place,sym,scale,r) == 0)
 					text(lbl);
+				pen(t->style);
 			}
 			break;
 		default:
@@ -758,7 +769,7 @@ cpoint(int xi, int yi, int conn)
 {
 	int dx = abs(ox-xi);
 	int dy = abs(oy-yi);
-	if(xi<left||xi>=right || yi<bottom||yi>=top) {
+	if(!xflag && (xi<left||xi>=right || yi<bottom||yi>=top)) {
 		ox = oy = NOPT;
 		return 0;
 	}

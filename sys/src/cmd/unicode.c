@@ -40,7 +40,7 @@ char*
 range(char *argv[])
 {
 	char *q;
-	long min, max;
+	int min, max;
 	int i;
 
 	while(*argv){
@@ -101,7 +101,7 @@ char*
 chars(char *argv[])
 {
 	char *q;
-	long m;
+	int m;
 
 	while(*argv){
 		q = *argv;

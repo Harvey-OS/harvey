@@ -1,35 +1,36 @@
 #include	"all.h"
 
 #define	DEBUG		0
+#define	FDEV(d)		(d->fw.fw)
 
 long
-fwormsize(Device dev)
+fwormsize(Device *d)
 {
-	Device wdev;
+	Device *fdev;
 	long l;
 
-	wdev = CDEV(dev);
-	l = devsize(wdev);
+	fdev = FDEV(d);
+	l = devsize(fdev);
 	l -= l/(BUFSIZE*8) + 1;
 	return l;
 }
 
 void
-fwormream(Device dev)
+fwormream(Device *d)
 {
 	Iobuf *p;
-	Device wdev;
+	Device *fdev;
 	long a, b;
 
 	print("fworm ream\n");
-	devinit(dev);
-	wdev = CDEV(dev);
-	a = fwormsize(dev);
-	b = devsize(wdev);
+	devinit(d);
+	fdev = FDEV(d);
+	a = fwormsize(d);
+	b = devsize(fdev);
 	print("	fwsize = %ld\n", a);
 	print("	bwsize = %ld\n", b-a);
 	for(; a < b; a++) {
-		p = getbuf(wdev, a, Bmod|Bres);
+		p = getbuf(fdev, a, Bmod|Bres);
 		if(!p)
 			panic("fworm: init");
 		memset(p->iobuf, 0, RBUFSIZE);
@@ -39,29 +40,30 @@ fwormream(Device dev)
 }
 
 void
-fworminit(Device dev)
+fworminit(Device *d)
 {
 
 	print("fworm init\n");
-	devinit(CDEV(dev));
+	devinit(FDEV(d));
 }
 
 int
-fwormread(Device dev, long b, void *c)
+fwormread(Device *d, long b, void *c)
 {
 	Iobuf *p;
-	Device wdev;
+	Device *fdev;
 	long l;
 
 	if(DEBUG)
 		print("fworm read  %ld\n", b);
-	wdev = CDEV(dev);
-	l = devsize(wdev);
+	fdev = FDEV(d);
+	l = devsize(fdev);
 	l -= l/(BUFSIZE*8) + 1;
 	if(b >= l)
 		panic("fworm: rbounds %ld\n", b);
 	l += b/(BUFSIZE*8);
-	p = getbuf(wdev, l, Bread|Bres);
+
+	p = getbuf(fdev, l, Bread|Bres);
 	if(!p || checktag(p, Tvirgo, l))
 		panic("fworm: checktag %ld\n", l);
 	l = b % (BUFSIZE*8);
@@ -71,26 +73,26 @@ fwormread(Device dev, long b, void *c)
 		return 1;
 	}
 	putbuf(p);
-	return devread(wdev, b, c);
+	return devread(fdev, b, c);
 }
 
 int
-fwormwrite(Device dev, long b, void *c)
+fwormwrite(Device *d, long b, void *c)
 {
 	Iobuf *p;
-	Device wdev;
+	Device *fdev;
 	long l;
 
 	if(DEBUG)
 		print("fworm write %ld\n", b);
-	wdev = CDEV(dev);
-	l = devsize(wdev);
+	fdev = FDEV(d);
+	l = devsize(fdev);
 	l -= l/(BUFSIZE*8) + 1;
 	if(b >= l)
 		panic("fworm: wbounds %ld\n", b);
 	l += b/(BUFSIZE*8);
-	wdev = CDEV(dev);
-	p = getbuf(wdev, l, Bread|Bmod|Bres);
+
+	p = getbuf(fdev, l, Bread|Bmod|Bres);
 	if(!p || checktag(p, Tvirgo, l))
 		panic("fworm: checktag %ld", l);
 	l = b % (BUFSIZE*8);
@@ -101,5 +103,5 @@ fwormwrite(Device dev, long b, void *c)
 	}
 	p->iobuf[l/8] |= 1<<(l%8);
 	putbuf(p);
-	return devwrite(wdev, b, c);
+	return devwrite(fdev, b, c);
 }

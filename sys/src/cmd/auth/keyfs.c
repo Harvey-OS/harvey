@@ -3,9 +3,11 @@
 #include <auth.h>
 #include <fcall.h>
 #include <bio.h>
+#include <mp.h>
+#include <libsec.h>
 #include "authsrv.h"
 
-char authkey[DESKEYLEN];
+char authkey[8];
 
 typedef struct Fid	Fid;
 typedef struct User	User;
@@ -14,6 +16,7 @@ enum{
 	Qroot,
 	Quser,
 	Qkey,
+	Qsecret,
 	Qlog,
 	Qstatus,
 	Qexpire,
@@ -41,6 +44,7 @@ struct Fid{
 struct User{
 	char	name[NAMELEN];
 	char	key[DESKEYLEN];
+	char	secret[SECRETLEN];
 	ulong	expire;			/* 0 == never */
 	uchar	status;
 	uchar	bad;			/* number of consecutive bad authentication attempts */
@@ -55,6 +59,7 @@ char	*qinfo[Qmax] = {
 	[Qroot]		"keys",
 	[Quser]		".",
 	[Qkey]		"key",
+	[Qsecret]	"secret",
 	[Qlog]		"log",
 	[Qexpire]	"expire",
 	[Qstatus]	"status",
@@ -141,13 +146,15 @@ main(int argc, char *argv[])
 	if(pipe(p) < 0)
 		error("can't make pipe: %r");
 
-	switch(fork()){
+	switch(rfork(RFPROC|RFNAMEG|RFNOTEG|RFNOWAIT|RFENVG|RFFDG)){
 	case 0:
+		close(p[0]);
 		io(p[1], p[1]);
 		exits(0);
 	case -1:
 		error("fork");
 	default:
+		close(p[1]);
 		if(mount(p[0], mntpt, MREPL|MCREATE, "") < 0)
 			error("can't mount: %r");
 		exits(0);
@@ -385,6 +392,18 @@ Read(Fid *f)
 		memmove(thdr.data, f->user->key, n);
 		thdr.count = n;
 		return 0;
+	case Qsecret:
+		if(f->user->status != Sok)
+			return "user disabled";
+		if(f->user->expire != 0 && f->user->expire < time(0))
+			return "user expired";
+		if(off != 0)
+			return 0;
+		if(n > strlen(f->user->secret))
+			n = strlen(f->user->secret);
+		memmove(thdr.data, f->user->secret, n);
+		thdr.count = n;
+		return 0;
 	case Qstatus:
 		if(off != 0){
 			thdr.count = 0;
@@ -424,7 +443,7 @@ Read(Fid *f)
 			thdr.count = 0;
 			return 0;
 		}
-		sprint(data, "%lud\n", f->user->warnings);
+		sprint(data, "%ud\n", f->user->warnings);
 		if(n > strlen(data))
 			n = strlen(data);
 		thdr.count = n;
@@ -451,6 +470,13 @@ Write(Fid *f)
 			return "garbled write data";
 		memmove(f->user->key, data, DESKEYLEN);
 		thdr.count = DESKEYLEN;
+		break;
+	case Qsecret:
+		if(n >= SECRETLEN)
+			return "garbled write data";
+		memmove(f->user->secret, data, n);
+		f->user->secret[n] = 0;
+		thdr.count = n;
 		break;
 	case Qstatus:
 		data[n] = '\0';
@@ -585,7 +611,7 @@ dostat(User *user, ulong qtype, void *p)
 	else
 		d.mode = 0666;
 	d.atime = d.mtime = time(0);
-	d.length = d.hlength = 0;
+	d.length = 0;
 	convD2M(&d, p);
 }
 
@@ -602,72 +628,170 @@ passline(Biobuf *b, void *vbuf)
 }
 
 void
-writeusers(void)
+randombytes(uchar *p, int len)
 {
-	User *u;
-	Biobuf *b;
-	char buf[KEYDBLEN], *p;
-	ulong expire;
-	int i;
+	int i, fd;
 
-	b = Bopen(userkeys, OWRITE);
-	if(!b){
-		fprint(2, "keyfs: can't write keys file\n");
+	fd = open("/dev/random", OREAD);
+	if(fd < 0){
+		fprint(2, "can't open /dev/random, using rand()\n");
+		srand(time(0));
+		for(i = 0; i < len; i++)
+			p[i] = rand();
 		return;
 	}
+	read(fd, p, len);
+	close(fd);
+}
+
+void
+oldCBCencrypt(char *key7, uchar *p, int len)
+{
+	uchar ivec[8];
+	uchar key[8];
+	DESstate s;
+
+	memset(ivec, 0, 8);
+	des56to64((uchar*)key7, key);
+	setupDESstate(&s, key, ivec);
+	desCBCencrypt((uchar*)p, len, &s);
+}
+
+void
+oldCBCdecrypt(char *key7, uchar *p, int len)
+{
+	uchar ivec[8];
+	uchar key[8];
+	DESstate s;
+
+	memset(ivec, 0, 8);
+	des56to64((uchar*)key7, key);
+	setupDESstate(&s, key, ivec);
+	desCBCdecrypt((uchar*)p, len, &s);
+
+}
+
+void
+writeusers(void)
+{
+	int fd, i, nu;
+	User *u;
+	uchar *p, *buf;
+	ulong expire;
+
+	/* count users */
+	nu = 0;
+	for(i = 0; i < Nuser; i++)
+		for(u = users[i]; u; u = u->link)
+			nu++;
+
+	/* pack into buffer */
+	buf = malloc(KEYDBOFF + nu*KEYDBLEN);
+	if(buf == 0){
+		fprint(2, "keyfs: can't write keys file, out of memory\n");
+		return;
+	}
+	p = buf;
+	randombytes(p, KEYDBOFF);
+	p += KEYDBOFF;
 	for(i = 0; i < Nuser; i++)
 		for(u = users[i]; u; u = u->link){
-			strncpy(buf, u->name, NAMELEN);
-			memmove(buf+NAMELEN, u->key, DESKEYLEN);
-			p = buf + NAMELEN + DESKEYLEN;
+			strncpy((char*)p, u->name, NAMELEN);
+			p += NAMELEN;
+			memmove(p, u->key, DESKEYLEN);
+			p += DESKEYLEN;
 			*p++ = u->status;
 			*p++ = u->warnings;
 			expire = u->expire;
 			*p++ = expire;
 			*p++ = expire >> 8;
 			*p++ = expire >> 16;
-			*p = expire >> 24;
-			encrypt(authkey, buf, KEYDBLEN);
-			Bwrite(b, buf, sizeof buf);
+			*p++ = expire >> 24;
+			memmove(p, u->secret, SECRETLEN);
+			p += SECRETLEN;
 		}
-	Bterm(b);
+
+	/* encrypt */
+	oldCBCencrypt(authkey, buf, p - buf);
+
+	/* write file */
+	fd = create(userkeys, OWRITE, 0660);
+	if(fd < 0){
+		free(buf);
+		fprint(2, "keyfs: can't write keys file\n");
+		return;
+	}
+	if(write(fd, buf, p - buf) != (p - buf))
+		fprint(2, "keyfs: can't write keys file\n");
+
+	free(buf);
+	close(fd);
 }
 
 int
 readusers(void)
 {
-	Biobuf *b;
+	int fd, i, n, nu;
+	uchar *p, *buf, *ep;
 	User *u;
-	char buf[KEYDBLEN];
-	uchar *p;
-	int nu;
+	Dir d;
 
-	if(usepass)
-		getpass(authkey, 0);
-	else
+	if(usepass) {
+		if(*authkey == 0)
+			getpass(authkey, nil, 0);
+	} else {
 		if(!getauthkey(authkey))
 			print("keyfs: warning: can't read /dev/key\n");
-
-	nu = 0;
-	b = Bopen(userkeys, OREAD);
-	if(b){
-		while(passline(b, buf)){
-			u = finduser(buf);
-			if(u == 0)
-				u = installuser(buf);
-			memmove(u->key, buf+NAMELEN, DESKEYLEN);
-			p = (uchar*)buf + NAMELEN + DESKEYLEN;
-			u->status = *p++;
-			u->warnings = *p++;
-			if(u->status >= Smax)
-				fprint(2, "keyfs: warning: bad status in key file\n");
-			u->expire = p[0] + (p[1]<<8) + (p[2]<<16) + (p[3]<<24);
-			nu++;
-		}
-		Bterm(b);
 	}
+
+
+	/* read file into an array */
+	fd = open(userkeys, OREAD);
+	if(fd < 0)
+		return 0;
+	if(dirfstat(fd, &d) < 0){
+		close(fd);
+		return 0;
+	}
+	buf = malloc(d.length);
+	if(buf == 0){
+		close(fd);
+		return 0;
+	}
+	n = readn(fd, buf, d.length);
+	close(fd);
+	if(n != d.length){
+		free(buf);
+		return 0;
+	}
+
+	/* decrypt */
+	n -= n % KEYDBLEN;
+	oldCBCdecrypt(authkey, buf, n);
+
+	/* unpack */
+	nu = 0;
+	for(i = KEYDBOFF; i < n; i += KEYDBLEN){
+		ep = buf + i;
+		u = finduser((char*)ep);
+		if(u == 0)
+			u = installuser((char*)ep);
+		memmove(u->key, ep + NAMELEN, DESKEYLEN);
+		p = ep + NAMELEN + DESKEYLEN;
+		u->status = *p++;
+		u->warnings = *p++;
+		if(u->status >= Smax)
+			fprint(2, "keyfs: warning: bad status in key file\n");
+		u->expire = p[0] + (p[1]<<8) + (p[2]<<16) + (p[3]<<24);
+		p += 4;
+		memmove(u->secret, p, SECRETLEN);
+		u->secret[SECRETLEN-1] = 0;
+		nu++;
+	}
+	free(buf);
+
 	print("%d keys read\n", nu);
-	return b != 0;
+	return 1;
 }
 
 User *
@@ -772,7 +896,10 @@ io(int in, int out)
 {
 	char mdata[MAXFDATA + MAXMSG], *err;
 	int n;
-	static long lastwarning;
+	long now, lastwarning;
+
+	/* after restart, let the system settle for 5 mins before warning */
+	lastwarning = time(0) - 24*60*60 + 5*60;
 
 	for(;;){
 		n = read(in, mdata, sizeof mdata);
@@ -802,9 +929,11 @@ io(int in, int out)
 		if(write(out, mdata, n) != n)
 			error("mount write");
 
-		if(warnarg && time(0) - lastwarning > 24*60*60){
+		now = time(0);
+		if(warnarg && (now - lastwarning > 24*60*60)){
+			syslog(0, "auth", "keyfs starting warnings: %lux %lux", now, lastwarning);
 			warning();
-			lastwarning = time(0);
+			lastwarning = now;
 		}
 	}
 }
@@ -838,13 +967,36 @@ emalloc(ulong n)
 void
 warning(void)
 {
+	int i;
 	char buf[64];
 
 	snprint(buf, sizeof buf, "-%s", warnarg);
-	switch(rfork(RFPROC|RFNOTEG|RFNOWAIT|RFNAMEG|RFENVG|RFFDG)){
+	switch(rfork(RFPROC|RFNAMEG|RFNOTEG|RFNOWAIT|RFENVG|RFFDG)){
 	case 0:
+		i = open("/sys/log/auth", OWRITE);
+		if(i >= 0){
+			dup(i, 2);
+			seek(2, 0, 2);
+			close(i);
+		}
 		execl("/bin/auth/warning", "warning", warnarg, 0);
-		fprint(2, "keyfs: can't exec warning\n");
-		exits(0);
+		error("can't exec warning");
 	}
+}
+
+void
+error(char *fmt, ...)
+{
+	char buf[8192], *s;
+	va_list arg;
+
+	s = buf;
+	s += sprint(s, "%s: ", argv0);
+	va_start(arg, fmt);
+	doprint(s, buf + sizeof(buf) - 1 - strlen(buf), fmt, arg);
+	va_end(arg);
+	syslog(0, "auth", "%s", buf);
+	strcat(buf, "\n");
+	write(2, buf, strlen(buf));
+	exits(buf);
 }

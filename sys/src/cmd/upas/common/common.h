@@ -29,6 +29,9 @@ extern char	*basename(char*);
 extern int	delivery_status(String*);
 extern void	append_match(Resub*, String*, int);
 extern int	shellchars(char*);
+extern String*	escapespecial(String*);
+extern String*	unescapespecial(String*);
+extern int	returnable(char*);
 
 /* mailbox types */
 #define MF_NORMAL 0
@@ -54,7 +57,8 @@ typedef struct process{
 extern stream	*instream(void);
 extern stream	*outstream(void);
 extern void	stream_free(stream*);
-extern process	*proc_start(char*, stream*, stream*, stream*, int, int);
+extern process	*noshell_proc_start(char**, stream*, stream*, stream*, int, char*);
+extern process	*proc_start(char*, stream*, stream*, stream*, int, char*);
 extern int	proc_wait(process*);
 extern int	proc_free(process*);
 extern int	proc_kill(process*);

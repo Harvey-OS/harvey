@@ -95,6 +95,10 @@
 .ch FO -\\n(FMu
 .if t .wh -\\n(FMu/2u BT
 .if n .wh -\\n(FMu/2u-1v BT
+. \" no overstriking bold or italic; switch underlining to bold italic
+. \" (sad historical botch, the .uf font must be 2, 3, or 4)
+.if n .uf 4
+.if n .bd 3
 .nr CW 0-1
 .nr GW 0-1
 ..
@@ -150,21 +154,30 @@
 .rs
 .if !"\\$1"" \{\
 .	vs -2p
-.	ta 4.9i 5.45i
+.if "\\$1"LT" .ta 3.9i 4.45i
+.if !"\\$1"LT" .ta 3.9i 4.45i
 .	sp .2i
 .	nf
-	\s36\(LH\s0
+.	if "\\$1"LT" 	\s36\(FA\s0
+.	if !"\\$1"LT" 	\s36\(LH\s0
 .	br
 \s7\l'7i'\s0
+.sp
 .	br
-.	if !"\\$2"" .ds xR ", \\$2
+.	if !"\\$2"" .ds xR "		\\$2
 .	ds xP 908-582-3000
 .	if !"\\$3"" .ds xP \\$3
-\s8\f(HBAT&T Bell Laboratories\fP		\fH600 Mountain Avenue\\*(xR
-.	br
+.	if "\\$1"LT" \s8\f(HBBell Laboratories\fP		\fH600 Mountain Avenue
+.	if !"\\$1"LT" \s8\f(HBBell Laboratories\fP		\fH600 Mountain Avenue
+.	if !"\\$2"" \\*(xR
 		Murray Hill, NJ 07974-0636
-.	br
-		\\*(xP\f1\s0
+		\\*(xP
+.	if !"\\$4"" 		\\$4
+.	if !"\\$5"" 		\\$5
+.	if !"\\$6"" 		\\$6
+.	if !"\\$7"" 		\\$7
+.ft 1
+.ps
 .	sp -.75i
 .	vs
 .	fi \}
@@ -173,7 +186,7 @@
 .	in 4.55i\}
 .if t \{\
 .	sp 1.45i
-.	in 5.15i\}
+.	in 3.5i\}
 .ll 8i
 \\*(DY
 .ll
@@ -216,14 +229,19 @@
 .de FP
 .ds TF \\$1
 .if '\\$1'palatino'\{\
-.	fp 1 PA
-.	fp 2 PI
-.	fp 3 PB
-.	fp 4 PX\}
+.	fp 1 R PA
+.	fp 2 I PI
+.	fp 3 B PB
+.	fp 4 BI PX\}
 .if '\\$1'lucidasans'\{\
 .	fp 1 R LucidaSans
 .	fp 2 I LucidaSansI
 .	fp 3 B LucidaSansB
+.	fp 5 CW LucidaCW\}
+.if '\\$1'syntax'\{\
+.	fp 1 R Syntax
+.	fp 2 I SyntaxI
+.	fp 3 B SyntaxB
 .	fp 5 CW LucidaCW\}
 .if '\\$1'century'\{\
 .	ie '\\*(.T'202'\{\
@@ -636,13 +654,13 @@ Computing Science Technical Report No. \\*(MN
 .in +2u*\\n(.lu/3u
 .sp 4
 .A1
-.if \\n(NA-1 .sp 4
+.if \\n(NA>1 .sp 4
 .A2
-.if \\n(NA-2 .sp 4
+.if \\n(NA>2 .sp 4
 .A3
-.if \\n(NA-3 .sp 4
+.if \\n(NA>3 .sp 4
 .A4
-.if \\n(NA-4 .sp 4
+.if \\n(NA>4 .sp 4
 .A5
 .if \\n(NA>5 .sp 4
 .A6
@@ -860,7 +878,10 @@ Computing Science Technical Report No. \\*(MN
 .if \\n(dw-4 .ds DW Thursday
 .if \\n(dw-5 .ds DW Friday
 .if \\n(dw-6 .ds DW Saturday
-.if "\\*(DY"" .ds DY \\*(MO \\n(dy, 19\\n(yr
+.nr yP (\\n(yr+1900)/100)
+.nr yD (\\n(yr%100
+.af yD 01
+.if "\\*(DY"" .ds DY \\*(MO \\n(dy, \\n(yP\\n(yD
 .if "\\*(CF"" .if n .ds CF "\\*(DY
 ..
 .	\"EM end up macro - process left over keep-release
@@ -1065,11 +1086,11 @@ Computing Science Technical Report No. \\*(MN
 .hy \\n(HY
 ..
 .de MH
-AT&T Bell Laboratories
+Bell Laboratories
 Murray Hill, New Jersey 07974
 ..
 .de PY
-AT&T Bell Laboratories
+Bell Laboratories
 Piscataway, New Jersey 08854
 ..
 .de BT
@@ -1138,7 +1159,7 @@ Piscataway, New Jersey 08854
 .nr 1T 1
 .nr CS 0
 .S\\n(ST
-.rm S0 S1 S2 S3 OD OK TX AX WT CS TM IM MF MR RP I1 I2 I3 I4 I5 E1 E2
+.rm S0 S1 S2 S3 OD OK TX AX WT CS TM IM MF MR RP I1 I2 I3 I4 I5 CB E1 E2
 .de TL
 .ft 3
 .sp
@@ -1457,15 +1478,15 @@ ABSTRACT
 .ev
 ..
 .de HO
-AT&T Bell Laboratories
+Bell Laboratories
 Holmdel, New Jersey 07733
 ..
 .de WH
-AT&T Bell Laboratories
+Bell Laboratories
 Whippany, New Jersey 07981
 ..
 .de IH
-AT&T Bell Laboratories
+Bell Laboratories
 Naperville, Illinois 60540
 ..
 .de UL \" underline argument, don't italicize

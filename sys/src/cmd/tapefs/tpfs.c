@@ -27,7 +27,7 @@ int	tapefile;
 void
 populate(char *name)
 {
-	int i, isabs;
+	int i, isabs, badcksum, goodcksum;
 	struct tp *tpp;
 	Fileinf f;
 
@@ -36,14 +36,18 @@ populate(char *name)
 	if (tapefile<0)
 		error("Can't open argument file");
 	read(tapefile, dir, sizeof dir);
+	badcksum = goodcksum = 0;
 	for (i=0, tpp=&dir[8]; i<496; i++, tpp++) {
 		unsigned char *sp = (unsigned char *)tpp;
 		int j, cksum = 0;
 		for (j=0; j<32; j++, sp+=2)
 			cksum += sp[0] + (sp[1]<<8);
 		cksum &= 0xFFFF;
-		if (cksum!=0)
+		if (cksum!=0) {
+			badcksum++;
 			continue;
+		}
+		goodcksum++;
 		if (tpp->name[0]=='\0')
 			continue;
 		f.addr = (void *)(tpp->taddress[0] + (tpp->taddress[1]<<8));
@@ -57,6 +61,7 @@ populate(char *name)
 		f.name = (char *)tpp->name+isabs;
 		poppath(f, 1);
 	}
+	fprint(2, "%d bad checksums, %d good\n", badcksum, goodcksum);
 }
 
 void

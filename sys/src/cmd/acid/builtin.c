@@ -85,8 +85,10 @@ void
 mkprint(Lsym *s)
 {
 	prnt = malloc(sizeof(Node));
+	memset(prnt, 0, sizeof(Node));
 	prnt->op = OCALL;
 	prnt->left = malloc(sizeof(Node));
+	memset(prnt->left, 0, sizeof(Node));
 	prnt->left->sym = s;
 }
 
@@ -417,7 +419,7 @@ filepc(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TINT;
-	r->fmt = 'X';
+	r->fmt = 'D';
 }
 
 void
@@ -537,7 +539,7 @@ doaccess(Node *r, Node *args)
 	r->op = OCONST;
 	r->type = TINT;
 	r->ival = 0;		
-	if(access(res.string->string, OREAD) == 0)
+	if(access(res.string->string, 4) == 0)
 		r->ival = 1;
 }
 
@@ -606,7 +608,7 @@ getfile(Node *r, Node *args)
 	l = &r->l;
 	for(;;) {
 		p = Brdline(bp, '\n');
-		n = BLINELEN(bp);
+		n = Blinelen(bp);
 		if(p == 0) {
 			if(n == 0)
 				break;
@@ -671,7 +673,7 @@ cvtitoa(Node *r, Node *args)
 	if(res.type != TINT)
 		error("itoa(integer): arg type");
 
-	sprint(buf, "%d", res.ival);
+	sprint(buf, "%d", (int)res.ival);
 	r->op = OCONST;
 	r->type = TSTRING;
 	r->string = strnode(buf);
@@ -862,7 +864,7 @@ regexp(Node *r, Node *args)
 	free(rp);
 }
 
-char vfmt[] = "cCBbsxXdDuUoOaFfiIqQrRYgG";
+char vfmt[] = "aBbcCdDfFgGiIoOqQrRsuUVxXYZ";
 
 void
 fmt(Node *r, Node *args)
@@ -876,7 +878,7 @@ fmt(Node *r, Node *args)
 		error("fmt(obj, fmt): arg count");
 	expr(av[1], &res);
 	if(res.type != TINT || strchr(vfmt, res.ival) == 0)
-		error("fmt(obj, fmt): bad format '%c'", res.ival);
+		error("fmt(obj, fmt): bad format '%c'", (char)res.ival);
 	expr(av[0], r);
 	r->fmt = res.ival;
 }
@@ -885,25 +887,21 @@ void
 patom(char type, Store *res)
 {
 	int i;
-	char *p;
-	extern char *typestr[];
 	char buf[512];
+	extern char *typestr[];
 
 	switch(res->fmt) {
 	case 'c':
-		Bprint(bout, "%c", res->ival);
+		Bprint(bout, "%c", (int)res->ival);
 		break;
 	case 'C':
 		if(res->ival < ' ' || res->ival >= 0x7f)
-			Bprint(bout, "%3d", res->ival&0xff);
+			Bprint(bout, "%3d", (int)res->ival&0xff);
 		else
-			Bprint(bout, "%3c", res->ival);
+			Bprint(bout, "%3c", (int)res->ival);
 		break;
 	case 'r':
-		Bprint(bout, "%C", res->ival);
-		break;
-	case 'b':
-		Bprint(bout, "%3d", res->ival&0xff);
+		Bprint(bout, "%C", (int)res->ival);
 		break;
 	case 'B':
 		memset(buf, '0', 34);
@@ -915,35 +913,50 @@ patom(char type, Store *res)
 		buf[35] = '\0';
 		Bprint(bout, "%s", buf);
 		break;
+	case 'b':
+		Bprint(bout, "%3d", (int)res->ival&0xff);
+		break;
 	case 'X':
-		Bprint(bout, "%.8lux", res->ival);
+		Bprint(bout, "%.8lux", (ulong)res->ival);
 		break;
 	case 'x':
-		Bprint(bout, "%.4lux", res->ival&0xffff);
+		Bprint(bout, "%.4lux", (ulong)res->ival&0xffff);
+		break;
+	case 'W':
+		Bprint(bout, "%.16llux", res->ival);
 		break;
 	case 'D':
-		Bprint(bout, "%d", res->ival);
+		Bprint(bout, "%d", (int)res->ival);
 		break;
 	case 'd':
 		Bprint(bout, "%d", (ushort)res->ival);
 		break;
 	case 'u':
-		Bprint(bout, "%d", res->ival&0xffff);
+		Bprint(bout, "%d", (int)res->ival&0xffff);
 		break;
 	case 'U':
-		Bprint(bout, "%d", (ulong)res->ival);
+		Bprint(bout, "%lud", (ulong)res->ival);
+		break;
+	case 'Z':
+		Bprint(bout, "%llud", res->ival);
+		break;
+	case 'V':
+		Bprint(bout, "%lld", res->ival);
+		break;
+	case 'Y':
+		Bprint(bout, "%.16llux", res->ival);
 		break;
 	case 'o':
-		Bprint(bout, "0%.11uo", res->ival&0xffff);
+		Bprint(bout, "0%.11uo", (int)res->ival&0xffff);
 		break;
 	case 'O':
-		Bprint(bout, "0%.6uo", res->ival);
+		Bprint(bout, "0%.6uo", (int)res->ival);
 		break;
 	case 'q':
 		Bprint(bout, "0%.11o", (short)(res->ival&0xffff));
 		break;
 	case 'Q':
-		Bprint(bout, "0%.6o", res->ival);
+		Bprint(bout, "0%.6o", (int)res->ival);
 		break;
 	case 'f':
 	case 'F':
@@ -964,17 +977,12 @@ patom(char type, Store *res)
 		if(type != TSTRING)
 			Bprint(bout, "*%c<%s>*", res->fmt, typestr[type]);
 		else
-			Bprint(bout, "%S", res->string->string);
+			Bprint(bout, "%S", (Rune*)res->string->string);
 		break;
 	case 'a':
 	case 'A':
 		symoff(buf, sizeof(buf), res->ival, CANY);
 		Bprint(bout, "%s", buf);
-		break;
-	case 'Y':
-		p = ctime(res->ival);
-		p[strlen(p)-1] = '\0';
-		Bprint(bout, "%s", p);
 		break;
 	case 'I':
 	case 'i':

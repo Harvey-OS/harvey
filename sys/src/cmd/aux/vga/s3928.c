@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
@@ -7,36 +8,32 @@
  * S3 86C928 GUI Accelerator.
  */
 static void
-snarf(Vga *vga, Ctlr *ctlr)
+snarf(Vga* vga, Ctlr* ctlr)
 {
-	verbose("%s->snarf\n", ctlr->name);
-
-	(*s3generic.snarf)(vga, ctlr);
+	s3generic.snarf(vga, ctlr);
 }
 
 static void
-options(Vga *vga, Ctlr *ctlr)
+options(Vga*, Ctlr* ctlr)
 {
-	USED(vga);
-	verbose("%s->options\n", ctlr->name);
-	
-	ctlr->flag |= Henhanced|Foptions;
+	ctlr->flag |= Hlinear|Henhanced|Foptions;
 }
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
 	ulong x;
 
-	verbose("%s->init\n", ctlr->name);
-
 	/*
-	 * (*s3generic.init)() will perform the same test.
+	 * s3generic.init() will perform the same test.
 	 * We need to do it here too so that the Crt registers
-	 * will be correct when (*s3generic.init)() calculates
+	 * will be correct when s3generic.init() calculates
 	 * the overflow bits.
 	 */
+	if(vga->mode->z > 8)
+		error("depth %d not supported\n", vga->mode->z);
+
 	mode = vga->mode;
 	if((ctlr->flag & Henhanced) && mode->x >= 1024 && mode->z == 8){
 		resyncinit(vga, ctlr, Uenhanced, 0);
@@ -46,8 +43,8 @@ init(Vga *vga, Ctlr *ctlr)
 	
 		x = (mode->ehb/4)>>3;
 		vga->crt[0x03] = 0x80|(x & 0x1F);
-		vga->crt[0x04] = (mode->shb/4)>>3;
-		vga->crt[0x05] = (x & 0x1F);
+		vga->crt[0x04] = (mode->shs/4)>>3;
+		vga->crt[0x05] = ((mode->ehs/4)>>3) & 0x1F;
 		if(x & 0x20)
 			vga->crt[0x05] |= 0x80;
 
@@ -55,7 +52,7 @@ init(Vga *vga, Ctlr *ctlr)
 		if(mode->z == 1)
 			vga->crt[0x13] /= 8;
 	}
-	(*s3generic.init)(vga, ctlr);
+	s3generic.init(vga, ctlr);
 	vga->crt[0x3B] = (vga->crt[0]+vga->crt[4]+1)/2;
 
 	/*
@@ -88,11 +85,9 @@ init(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
 	ushort advfunc;
-
-	verbose("%s->load\n", ctlr->name);
 
 	(*s3generic.load)(vga, ctlr);
 	vgaxo(Crtx, 0x65, vga->crt[0x65]);
@@ -108,7 +103,7 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	(*s3generic.dump)(vga, ctlr);
 }

@@ -101,7 +101,7 @@ void	fold(Rune *);
 void	foldre(char*, char*);
 Rune	liglookup(Rune, Rune);
 long	lookassoc(Assoc*, int, char*);
-long	looknassoc(Nassoc*, int, int);
+long	looknassoc(Nassoc*, int, long);
 void	outprint(char*, ...);
 void	outrune(long);
 void	outrunes(Rune *);

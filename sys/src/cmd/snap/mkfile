@@ -1,0 +1,15 @@
+</$objtype/mkfile
+BIN=/$objtype/bin
+
+TARG=snap snapfs
+OFILES=\
+	read.$O\
+	take.$O\
+	util.$O\
+	write.$O\
+
+HFILES=snap.h
+
+LIB=/$objtype/lib/lib9p.a
+
+</sys/src/cmd/mkmany

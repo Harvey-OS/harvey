@@ -37,6 +37,24 @@ extern void sadd(char *);
 extern void cadd(int);
 extern int trans(int, char *);
 
+int textc(void)	/* read next UTF rune from psp */
+{
+	wchar_t r;
+	int w;
+
+	w = mbtowc(&r, psp, 3);
+	if(w == 0){
+		psp++;
+		return 0;
+	}
+	if(w < 0){
+		psp += 1;
+		return 0x80;	/* Plan 9-ism */
+	}
+	psp += w;
+	return r;
+}
+
 void text(int t, char *p1)	/* convert text string p1 of type t */
 {
 	int c;
@@ -71,7 +89,7 @@ void text(int t, char *p1)	/* convert text string p1 of type t */
 		lastft = 0;
 		nclass = NONE;	/* get started with no class == no pad */
 		csp = cs;
-		for (psp = p1; (c = *psp++) != '\0'; ) {
+		for (psp = p1; (c = textc()) != '\0'; ) {
 			nextft = ft;
 			pclass = nclass;
 			rf = trans(c, p1);
@@ -94,21 +112,31 @@ void text(int t, char *p1)	/* convert text string p1 of type t */
 	printf(".ds %d \"%s\n", yyval, p);
 }
 
+int isalpharune(int c)
+{
+	return ('a'<=c && c<='z') || ('A'<=c && c<='Z');
+}
+
+int isdigitrune(int c)
+{
+	return ('0'<=c && c<='9');
+}
+
 trans(int c, char *p1)
 {
 	int f;
 
-	if (isalpha(c) && ft == ITAL && c != 'f' && c != 'j') {	/* italic letter */
+	if (isalpharune(c) && ft == ITAL && c != 'f' && c != 'j') {	/* italic letter */
 		shim(pclass, nclass = ILET);
 		cadd(c);
 		return ITAL;
 	}
-	if (isalpha(c) && ft != ITAL) {		/* other letter */
+	if (isalpharune(c) && ft != ITAL) {		/* other letter */
 		shim(pclass, nclass = OLET);
 		cadd(c);
 		return ROM;
 	}
-	if (isdigit(c)) {
+	if (isdigitrune(c)) {
 		shim(pclass, nclass = DIG);
 		roman(c);
 		return ROM;	/* this is the right side font of this object */
@@ -195,8 +223,8 @@ trans(int c, char *p1)
 			cadd(*psp++);
 			cadd(*psp++);
 		} else
-			fprintf(stderr, "eqn warning: unquoted troff command \\%c, line %d, file %s\n",
-				c, curfile->lineno, curfile->fname);
+			fprintf(stderr, "eqn warning: unquoted troff command \\%c, file %s:%d\n",
+				c, curfile->fname, curfile->lineno);
 		return f;
 	case '\'':
 		shim(pclass, nclass);
@@ -259,9 +287,10 @@ void sadd(char *s)		/* add string s to cs */
 		cadd(*s++);
 }
 
-void cadd(int c)		/* add char c to end of cs */
+void cadd(int c)		/* add character c to end of cs */
 {
 	char *p;
+	int w;
 
 	if (lastft != nextft) {
 		if (lastft != 0) {
@@ -283,5 +312,7 @@ void cadd(int c)		/* add char c to end of cs */
 		}
 		lastft = nextft;
 	}
-	*csp++ = c;
+	w = wctomb(csp, c);
+	if(w > 0)	/* ignore bad characters */
+		csp += w;
 }

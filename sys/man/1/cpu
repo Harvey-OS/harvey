@@ -6,8 +6,12 @@ cpu \- connection to cpu server
 [
 .B -h
 .I server
-]
-[
+] [
+.B -f
+] [
+.B -a
+.I auth-method
+] [
 .B -c
 .I cmd args ...
 ]
@@ -31,7 +35,7 @@ command was invoked.
 Normally,
 .I cpu
 is run in an
-.IR 8½ (1)
+.IR rio (1)
 window on a terminal, so
 .IR rc
 output goes to that window, and input comes from the keyboard
@@ -59,6 +63,43 @@ on the server, and then
 .I cpu
 exits.
 .PP
+The -a
+command allows the user to specify the authentication mechanism used
+when connecting to the remote system.  The two possibilities for
+.I auth-method
+are:
+.TF netkey
+.TP
+.B p9
+This is the default.  Authentication is done using the standard Plan 9
+mechanisms, (see
+.IR auth (6)).
+No user interaction is required.
+.TP
+.B netkey
+Authentication is done using challenge/response and a hand held
+authenticator or the
+.I netkey
+program
+(see
+.IR passwd (1)).
+The user must encrypt the challenge and type the encryption
+back to
+.IR cpu .
+This is used if the local host is in a different protection domain than
+the server or if the user wants to log into the server as a different
+user.
+.PD
+.PP
+The
+.B -f
+flag inserts a filter in the data stream to coalesce
+9P packet fragments into full packets.
+It is used on TCP connections, and is set automatically by
+the TCP receive script for incoming CPU calls
+(see
+.IR listen (8)).
+.PP
 The name space is built by running
 .B /usr/$user/lib/profile
 with the root of the invoking name space bound to
@@ -81,8 +122,14 @@ command is mounted on the CPU side on directory
 .B /sys/src/cmd/cpu.c
 .SH SEE ALSO
 .IR rc (1) ,
-.IR 8½ (1)
+.IR rio (1)
 .SH BUGS
 Binds and mounts done after the terminal
 .B lib/profile
 is run are not reflected in the new name space.
+.PP
+When using the
+.B -a
+option to `log in' as another user, be aware that
+resources in the local name space will be made
+available to that user.

@@ -21,7 +21,9 @@ p9fcall(Chan *cp, Fcall *in, Fcall *ou)
 	if(ou->err)
 		if(CHAT(cp))
 			print("	error: %s\n", errstr[ou->err]);
-	cons.work.count++;
+	cons.work[0].count++;
+	cons.work[1].count++;
+	cons.work[2].count++;
 	runlock(&mainlock);
 }
 
@@ -153,7 +155,7 @@ doclri(File *f)
 	err = 0;
 	p = 0;
 	p1 = 0;
-	if(f->fs->dev.type == Devro) {
+	if(f->fs->dev->type == Devro) {
 		err = Eronly;
 		goto out;
 	}
@@ -199,6 +201,48 @@ out:
 }
 
 void
+f_fstat(Chan *cp, Fcall *in, Fcall *ou)
+{
+	File *f;
+	Iobuf *p;
+	Dentry *d;
+	int i;
+
+	if(CHAT(cp)) {
+		print("c_fstat %d\n", cp->chan);
+		print("	fid = %d\n", in->fid);
+	}
+
+	p = 0;
+	f = filep(cp, in->fid, 0);
+	if(!f) {
+		ou->err = Efid;
+		goto out;
+	}
+	p = getbuf(f->fs->dev, f->addr, Bread);
+	d = getdir(p, f->slot);
+	if(d == 0)
+		goto out;
+
+	print("name = %.28s\n", d->name);
+	print("uid = %d; gid = %d; wuid = %d\n", d->uid, d->gid, d->wuid);
+	print("size = %ld; qid = %lux/%lux\n", d->size, d->qid.path, d->qid.version);
+	print("atime = %ld; mtime = %ld\n", d->atime, d->mtime);
+	print("dblock =");
+	for(i=0; i<NDBLOCK; i++)
+		print(" %ld", d->dblock[i]);
+	print("; iblock = %ld; diblock = %ld\n", d->iblock, d->diblock);
+	print("\n");
+
+out:
+	if(p)
+		putbuf(p);
+	ou->fid = in->fid;
+	if(f)
+		qunlock(f);
+}
+
+void
 f_clri(Chan *cp, Fcall *in, Fcall *ou)
 {
 	File *f;
@@ -239,7 +283,34 @@ con_clri(int fid)
 	f_clri(cp, &in, &ou);
 	runlock(&cp->reflock);
 
-	cons.work.count++;
+	cons.work[0].count++;
+	cons.work[1].count++;
+	cons.work[2].count++;
+	runlock(&mainlock);
+	return ou.err;
+}
+
+int
+con_fstat(int fid)
+{
+	Fcall in, ou;
+	Chan *cp;
+
+	in.type = Tstat;
+	in.fid = fid;
+	cp = cons.chan;
+
+	rlock(&mainlock);
+	ou.type = Tstat+1;
+	ou.err = 0;
+
+	rlock(&cp->reflock);
+	f_fstat(cp, &in, &ou);
+	runlock(&cp->reflock);
+
+	cons.work[0].count++;
+	cons.work[1].count++;
+	cons.work[2].count++;
 	runlock(&mainlock);
 	return ou.err;
 }

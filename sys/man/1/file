@@ -4,6 +4,9 @@ file \- determine file type
 .SH SYNOPSIS
 .B file
 [
+.B -m
+]
+[
 .I file
 \&...
 ]
@@ -14,6 +17,19 @@ performs a series of tests on its argument
 in an attempt to classify their contents by language or purpose.
 If no arguments are given, the classification is performed
 on standard input.
+.PP
+If the
+.B -m
+flag is given, 
+.I file
+outputs an
+appropriate MIME
+.B Content-Type
+specification describing the
+.B type
+and
+.B subtype
+of each file.
 .PP
 The file types it looks for include
 directory,
@@ -38,16 +54,17 @@ PostScript,
 output file for various devices,
 GIF,
 FAX,
-.IR picfile (9.6),
 object code,
 C and Alef source,
 assembler source,
 compressed files,
 encrypted file,
 English text,
-Plan 9 bitmap,
-Plan 9 subfont,
-Plan 9 font.
+compressed image,
+image,
+subfont,
+and
+font.
 .PP
 If a file has no apparent format,
 .I file

@@ -19,15 +19,25 @@ cgen(Node *n, Node *nn)
 		sugen(n, nn, n->type->width);
 		return;
 	}
-	if(n->addable >= INDEXED) {
-		if(nn != Z)
-			gmove(n, nn);
-		return;
-	}
-	curs = cursafe;
 	l = n->left;
 	r = n->right;
 	o = n->op;
+	if(n->addable >= INDEXED) {
+		if(nn == Z) {
+			switch(o) {
+			default:
+				nullwarn(Z, Z);
+				break;
+			case OINDEX:
+				nullwarn(l, r);
+				break;
+			}
+			return;
+		}
+		gmove(n, nn);
+		return;
+	}
+	curs = cursafe;
 
 	if(n->complex >= FNX)
 	if(l->complex >= FNX)
@@ -70,9 +80,14 @@ cgen(Node *n, Node *nn)
 			goto bitas;
 		if(l->addable >= INDEXED) {
 			if(nn != Z || r->addable < INDEXED) {
-				regalloc(&nod, r, nn);
+				if(r->complex >= FNX && nn == Z)
+					regret(&nod, r);
+				else
+					regalloc(&nod, r, nn);
 				cgen(r, &nod);
 				gmove(&nod, l);
+				if(nn != Z)
+					gmove(&nod, nn);
 				regfree(&nod);
 			} else
 				gmove(r, l);
@@ -191,7 +206,6 @@ cgen(Node *n, Node *nn)
 	case OASMUL:
 	case OASDIV:
 	case OASMOD:
-	asand:
 		if(typefd[n->type->etype])
 			goto asfop;
 		if(l->complex >= r->complex) {
@@ -451,11 +465,6 @@ cgen(Node *n, Node *nn)
 		break;
 	}
 	cursafe = curs;
-	return;
-
-bad:
-	cursafe = curs;
-	diag(n, "%O not implemented", o);
 }
 
 void

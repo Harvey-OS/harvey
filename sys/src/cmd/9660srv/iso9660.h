@@ -126,6 +126,10 @@ union	Drec
 		uchar	r_pad[24];
 		uchar	r_flags;
 	};
+	struct
+	{
+		uchar	namepad[NAMELEN+1];
+	};
 };
 
 struct	Isofile

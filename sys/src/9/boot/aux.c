@@ -146,28 +146,23 @@ catchint(void *a, char *note)
 }
 
 int
-outin(int timeout, char *prompt, char *def, int len)
+outin(char *prompt, char *def, int len)
 {
 	int n;
 	char buf[256];
 
-	if(timeout) {
-		atnotify(catchint, 1);
+	atnotify(catchint, 1);
+	if(cpuflag)
 		alarm(15*1000);
-		do{
-			print("%s[%s]: ", prompt, *def ? def : "no default");
-			n = read(0, buf, len);
+	do{
+		print("%s[%s]: ", prompt, *def ? def : "no default");
+		n = read(0, buf, len);
+		if(cpuflag)
 			alarm(15*1000);
-		}while(n == 0);
+	}while(n==0);
+	if(cpuflag)
 		alarm(0);
-		atnotify(catchint, 0);
-	}
-	else {
-		do {
-			print("%s[%s]: ", prompt, *def ? def : "no default");
-			n = read(0, buf, len);
-		}while(n == 0);
-	}
+	atnotify(catchint, 0);
 	if(n < 0)
 		return 1;
 	if(n != 1){
@@ -175,33 +170,4 @@ outin(int timeout, char *prompt, char *def, int len)
 		strcpy(def, buf);
 	}
 	return n;
-}
-
-/*
- *  get second word of the terminal environment variable.   If it
- *  ends in "boot", get rid of that part.
- */
-void
-getconffile(char *conffile, char *terminal)
-{
-	char *p, *q;
-	char *s;
-	int n;
-
-	s = conffile;
-	*conffile = 0;
-	p = terminal;
-	if((p = strchr(p, ' ')) == 0 || p[1] == ' ' || p[1] == 0)
-		return;
-	p++;
-	for(q = p; *q && *q != ' '; q++)
-		;
-	while(p < q)
-		*conffile++ = *p++;
-	*conffile = 0;
-
-	/* dump a trailing boot */
-	n = strlen(s);
-	if(n > 4 && strcmp(s + n - 4, "boot") == 0)
-		*(s+n-4) = 0;
 }

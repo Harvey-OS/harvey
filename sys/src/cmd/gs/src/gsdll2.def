@@ -1,0 +1,12 @@
+LIBRARY GSDLL2 INITINSTANCE TERMINSTANCE
+DESCRIPTION	'Ghostscript DLL'
+DATA MULTIPLE NONSHARED
+EXPORTS
+   gsdll_revision	@1
+   gsdll_init		@2
+   gsdll_execute_begin	@3
+   gsdll_execute_cont	@4
+   gsdll_execute_end	@5
+   gsdll_exit		@6
+   gsdll_lock_device	@7
+   gsdll_get_bitmap	@8

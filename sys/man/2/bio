@@ -31,7 +31,7 @@ void*	Brdline(Biobufhdr *bp, int delim)
 int	Blinelen(Biobufhdr *bp)
 .PP
 .B
-long	Boffset(Biobufhdr *bp)
+vlong	Boffset(Biobufhdr *bp)
 .PP
 .B
 int	Bfildes(Biobufhdr *bp)
@@ -52,7 +52,7 @@ int	Bungetc(Biobufhdr *bp)
 int	Bungetrune(Biobufhdr *bp)
 .PP
 .B
-long	Bseek(Biobufhdr *bp, long n, int type)
+vlong	Bseek(Biobufhdr *bp, vlong n, int type)
 .PP
 .B
 int	Bputc(Biobufhdr *bp, int c)
@@ -72,97 +72,6 @@ int	Bflush(Biobufhdr *bp)
 .B
 int	Bbuffered(Biobufhdr *bp)
 .PP
-.B
-/* Alef only */
-.PP
-.B
-adt	Biobufhdr
-.br
-.B
-{
-.br
-.B
-	/* ... */
-.PP
-.B
-	int   buffered(*Biobufhdr);
-.PP
-.B
-	int   term(*Biobufhdr);
-.PP
-.B
-	int   fildes(*Biobufhdr);
-.PP
-.B
-	int   flush(*Biobufhdr);
-.PP
-.B
-	int   getc(*Biobufhdr);
-.PP
-.B
-	int   getrune(*Biobufhdr);
-.PP
-.B
-	int   inits(*Biobufhdr, int, int, byte*, int);
-.PP
-.B
-	int   linelen(*Biobufhdr);
-.PP
-.B
-	int   offset(*Biobufhdr);
-.PP
-.B
-	int   print(*Biobufhdr, byte*, ...);
-.PP
-.B
-	int   putc(*Biobufhdr, int);
-.PP
-.B
-	int   putrune(*Biobufhdr, int);
-.PP
-.B
-	void* rdline(*Biobufhdr, int);
-.PP
-.B
-	int   read(*Biobufhdr, void*, int);
-.PP
-.B
-	int   seek(*Biobufhdr, int, int);
-.PP
-.B
-	int   ungetc(*Biobufhdr);
-.PP
-.B
-	int   ungetrune(*Biobufhdr);
-.PP
-.B
-	int   write(*Biobufhdr, void*, int);
-.br
-.B
-};
-.PP
-.B
-adt	Biobuf
-.br
-.B
-{
-.br
-.B
-	Biobufhdr;
-.PP
-.B
-	/* ... */
-.PP
-.B
-	int   init(*Biobuf, int, int);
-.br
-.B
-};
-.PP
-.B
-Biobuf* Bopen(byte*, int);
-.fi
-.ft
 .SH DESCRIPTION
 These routines implement fast buffered I/O.
 I/O on different file descriptors is independent.
@@ -367,28 +276,6 @@ returns the number of bytes in the buffer.
 When reading, this is the number of bytes still available from the last
 read on the file; when writing, it is the number of bytes ready to be
 written.
-.PP
-The macros
-.IR BGETC ,
-.IR BPUTC ,
-.IR BOFFSET ,
-.IR BFILDES ,
-and
-.I BLINELEN
-are provided as fast versions of
-the corresponding routines.
-.SS Alef
-The Alef implementation has the same semantics but is structured as an
-.B adt
-with functions named the same (except for a leading
-.BR B )
-and taking the buffer pointer as implicit first argument.
-The only exception is
-.IR Bopen ,
-which is the same as in C.
-There is no
-.I getd
-in Alef Bio.
 .SH SOURCE
 .B /sys/src/libbio
 .SH SEE ALSO
@@ -427,11 +314,3 @@ may be overwritten by calls to any other
 .I bio
 routine on the same
 .IR bp.
-.PP
-Alef
-.I Bopen
-should be part of the
-.B adt
-and written
-.BR .Biobuf.open
-but its implementation predates that syntax.

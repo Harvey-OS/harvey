@@ -54,11 +54,11 @@ HFILES=/sys/include/stdio.h\
 	iolib.h\
 
 </sys/src/cmd/mksyslib
+# this code really can't handle any flow-analysis warnings
 CFLAGS=
 
 test:V:	$OFILES
 	ar vu libstdio.a $OFILES
-	$RL libstdio.a
 
 nuke:V:
 	rm -f *.[$OS] [$OS].out libstdio.a

@@ -11,25 +11,38 @@ OFILES=executable.$O\
 	setmach.$O\
 	v.$O\
 	k.$O\
+	q.$O\
 	2.$O\
 	6.$O\
 	8.$O\
 	x.$O\
+	4.$O\
+	9.$O\
+	5.$O\
+	7.$O\
 	vdb.$O\
 	kdb.$O\
+	qdb.$O\
 	2db.$O\
 	6db.$O\
 	8db.$O\
+	9db.$O\
+	5db.$O\
+	7db.$O\
 	vobj.$O\
 	kobj.$O\
 	2obj.$O\
 	6obj.$O\
 	8obj.$O\
 	xobj.$O\
+	9obj.$O\
+	5obj.$O\
+	7obj.$O\
+	qobj.$O\
 	vcodas.$O\
 
 HFILES=/sys/include/mach.h
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=-w -I/sys/src/cmd
+CFLAGS=$CFLAGS -I/sys/src/cmd

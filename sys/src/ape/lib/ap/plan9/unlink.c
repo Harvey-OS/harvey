@@ -37,22 +37,25 @@ unlink(const char *path)
 				sprintf(db2.name, "%.8x", db2.qid.path);
 				convD2M(&db2, cd);
 				if(_FWSTAT(i, cd) < 0)
-					continue;
-				/* reopen remove on close */
-				p = strrchr(path, '/');
-				if(p == 0)
-					fd = _OPEN(db2.name, 64|(f->oflags)); 
+					p = (char*)path;
 				else {
-					*p = '\0';
-					sprintf(newname, "%s/%.8x", path, db2.qid.path);
-					fd = _OPEN(newname, 64|(f->oflags));
+					p = strrchr(path, '/');
+					if(p == 0)
+						p = db2.name; 
+					else {
+						*p = '\0';
+						sprintf(newname, "%s/%.8x", path, db2.qid.path);
+						p = newname;
+					}
 				}
-				if (fd < 0)
+				/* reopen remove on close */
+				fd = _OPEN(p, 64|(f->oflags)); 
+				if(fd < 0)
 					continue;
-				n = _SEEK(i, 0, 1);
-				if (n < 0)
+				n = _OSEEK(i, 0, 1);
+				if(n < 0)
 					n = 0;
-				_SEEK(fd, n, 0);
+				_OSEEK(fd, n, 0);
 				_DUP(fd, i);
 				_CLOSE(fd);
 				return 0;

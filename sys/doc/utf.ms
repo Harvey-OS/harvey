@@ -14,7 +14,7 @@ or
 Rob Pike
 Ken Thompson
 .sp
-rob,ken@plan9.att.com
+rob,ken@plan9.bell-labs.com
 .AB
 .FS
 Originally appeared, in a slightly different form, in

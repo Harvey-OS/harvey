@@ -139,9 +139,9 @@ the default command is
 .BR p .
 Otherwise, the default command is the previous command.
 .SH FILES
-.B /lib/oed/oed2
+.B /lib/dict/oed2
 .br
-.B /lib/oed/oed2index
+.B /lib/dict/oed2index
 .br
 Other files in
 .BR /lib .

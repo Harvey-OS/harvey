@@ -40,34 +40,47 @@ void
 panic(char *fmt, ...)
 {
 	char buf[8192], *s;
+	va_list arg;
+
 
 	s = buf;
 	s += sprint(s, "%s %s %d: ", progname, procname, getpid());
-	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, &fmt + 1);
+	va_start(arg, fmt);
+	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
+	va_end(arg);
 	*s++ = '\n';
 	write(2, buf, s - buf);
 	exits(buf);
 }
 
 #define	SIZE	4096
-#define	DOTDOT	(&fmt+1)
 
 void
 cprint(char *fmt, ...)
 {
 	char buf[SIZE], *out;
+	va_list arg;
 
-	out = doprint(buf, buf+SIZE, fmt, DOTDOT);
+	va_start(arg, fmt);
+	out = doprint(buf, buf+SIZE, fmt, arg);
+	va_end(arg);
 	write(cmdfd, buf, (long)(out-buf));
 }
 
+/*
+ * print goes to fd 2 [sic] because fd 1 might be
+ * otherwise preoccupied when the -s flag is given to kfs.
+ */
 int
 print(char *fmt, ...)
 {
 	char buf[SIZE], *out;
+	va_list arg;
 	int n;
 
-	out = doprint(buf, buf+SIZE, fmt, DOTDOT);
+	va_start(arg, fmt);
+	out = doprint(buf, buf+SIZE, fmt, arg);
+	va_end(arg);
 	n = write(2, buf, (long)(out-buf));
 	return n;
 }
@@ -76,9 +89,12 @@ int
 fprint(int f, char *fmt, ...)
 {
 	char buf[SIZE], *out;
+	va_list arg;
 	int n;
 
-	out = doprint(buf, buf+SIZE, fmt, DOTDOT);
+	va_start(arg, fmt);
+	out = doprint(buf, buf+SIZE, fmt, arg);
+	va_end(arg);
 	n = write(f, buf, (long)(out-buf));
 	return n;
 }
@@ -87,7 +103,11 @@ int
 sprint(char *buf, char *fmt, ...)
 {
 	char *out;
-	out = doprint(buf, buf+SIZE, fmt, DOTDOT);
+	va_list arg;
+
+	va_start(arg, fmt);
+	out = doprint(buf, buf+SIZE, fmt, arg);
+	va_end(arg);
 	return out-buf;
 }
 

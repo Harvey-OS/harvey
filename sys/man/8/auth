@@ -1,6 +1,6 @@
 .TH AUTH 8
 .SH NAME
-changeuser, wrkey, convkeys, printnetkey, status, auth.srv, guard.srv \- maintain authentication databases
+changeuser, wrkey, convkeys, printnetkey, status, auth.srv, guard.srv, login \- maintain authentication databases
 .SH SYNOPSIS
 .B auth/changeuser
 .RB [ -np ]
@@ -21,6 +21,9 @@ changeuser, wrkey, convkeys, printnetkey, status, auth.srv, guard.srv \- maintai
 .B auth/auth.srv
 .PP
 .B auth/guard.srv
+.PP
+.B auth/login
+.I user
 .SH DESCRIPTION
 These administrative commands run only on the authentication server.
 .IR Changeuser
@@ -56,6 +59,12 @@ or the password is too easy to guess
 the
 .I user
 is not installed.
+.I Changeuser
+also asks for an APOP secret.
+This secret is used in the APOP (RFC1939),
+CRAM (RFC2195), and
+Microsoft challenge/response protocols used for
+POP3, IMAP, and VPN access.
 .PP
 Option
 .B -n
@@ -135,14 +144,27 @@ described in
 .I Guard.srv
 is similar.  It is called whenever a foreign (e.g. Unix) system wants
 to do a SecureNet challenge/response authentication.
+.PP
+.I Login
+allows a user to change his authenticated id to
+.IR user .
+.I Login
+sets up a new namespace from
+.B /lib/namespace
+and exec's
+.IR rc (1)
+under the new id.
 .SH FILES
-.TF /adm/netkeys.who
+.TF /sys/lib/httppasswords
 .TP
 .B /adm/keys.who
 List of users in the Plan 9 database.
 .TP
 .B /adm/netkeys.who
 List of users in  the SecureNet database.
+.TP
+.B /sys/lib/httppasswords
+List of realms and passwords for HTTP access.
 .SH SOURCE
 .B /sys/src/cmd/auth
 .SH "SEE ALSO"

@@ -347,6 +347,7 @@ Xremove(Fsrpc *r)
 		return;
 	}
 
+	f->f->inval = 1;
 	if(f->fid >= 0)
 		close(f->fid);
 	freefid(r->work.fid);
@@ -666,7 +667,6 @@ fileseek(Fid *f, ulong offset)
 {
 	char chunk[DIRCHUNK];
 	int n, nbytes, r;
-	ulong to;
 
 	if(f->f->qid.path&CHDIR) {
 		if(offset < f->offset)

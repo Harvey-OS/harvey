@@ -1,0 +1,40 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libmemdraw.a
+OFILES=\
+	alloc.$O\
+	arc.$O\
+	cload.$O\
+	cmap.$O\
+	cread.$O\
+	defont.$O\
+	draw.$O\
+	ellipse.$O\
+	fillpoly.$O\
+	hwdraw.$O\
+	iprint.$O\
+	line.$O\
+	load.$O\
+	poly.$O\
+	read.$O\
+	string.$O\
+	subfont.$O\
+	unload.$O\
+	write.$O\
+
+HFILES=/sys/include/memdraw.h /sys/include/draw.h
+
+</sys/src/cmd/mksyslib
+
+$O.drawtime: drawtime.$O $LIB
+	$LD -o $target $prereq
+
+$O.drawtest: drawtest.$O ndraw.8 $LIB
+	$LD -o $target $prereq
+ 
+$O.arctest: arctest.$O ndraw.$O arc.$O $LIB
+	$LD -o $target $prereq
+
+$O.test: test.$O $LIB
+	$LD -o $target $prereq
+

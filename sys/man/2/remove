@@ -21,7 +21,11 @@ is a directory, it must be empty.
 .B /sys/src/libc/9syscall
 .SH SEE ALSO
 .IR intro (2),
-.IR remove (5)
+.IR remove (5),
+the description of
+.B ORCLOSE
+in
+.IR open (2).
 .SH DIAGNOSTICS
 Sets
 .IR errstr .

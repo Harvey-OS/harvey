@@ -69,6 +69,8 @@ int	ncomp(Rune*, Rune*);
 void
 main(int argc, char *argv[])
 {
+	int n;
+
 	Binit(&bin, 0, OREAD);
 	Binit(&bout, 1, OWRITE);
 	compare = acomp;
@@ -93,10 +95,9 @@ main(int argc, char *argv[])
 		break;
 	default:
 		fprint(2, "%s: bad option %c\n", argv0, ARGC());
-	usage:
 		fprint(2, "usage: %s -[dfinx] [-t c] [string] [file]\n", argv0);
 		exits("usage");
-	}ARGEND
+	} ARGEND
 	if(!iflag){
 		if(argc >= 1) {
 			torune(argv[0], orig);
@@ -129,11 +130,12 @@ main(int argc, char *argv[])
 			if(!locate())
 				continue;
 		}
-		if (!exact || !acomp(word, orig))
+		if (!exact || !acomp(word, key))
 			Bprint(&bout, "%S\n", entry);
 		while(getword(dfile, entry, sizeof(entry)/sizeof(entry[0]))) {
 			rcanon(entry, word);
-			switch((*compare)(key, word)) {
+			n = compare(key, word);
+			switch(n) {
 			case -1:
 				if(exact)
 					break;
@@ -153,20 +155,22 @@ locate(void)
 {
 	long top, bot, mid;
 	long c;
+	int n;
 
 	bot = 0;
 	top = Bseek(dfile, 0L, 2);
 	for(;;) {
 		mid = (top+bot) / 2;
 		Bseek(dfile, mid, 0);
-		do {
+		do
 			c = Bgetrune(dfile);
-			mid++;
-		} while(c>=0 && c!='\n');
+		while(c>=0 && c!='\n');
+		mid = Boffset(dfile);
 		if(!getword(dfile, entry, sizeof(entry)/sizeof(entry[0])))
 			break;
 		rcanon(entry, word);
-		switch((*compare)(key, word)) {
+		n = compare(key, word);
+		switch(n) {
 		case -2:
 		case -1:
 		case 0:
@@ -184,7 +188,8 @@ locate(void)
 	Bseek(dfile, bot, 0);
 	while(getword(dfile, entry, sizeof(entry)/sizeof(entry[0]))) {
 		rcanon(entry, word);
-		switch((*compare)(key, word)) {
+		n = compare(key, word);
+		switch(n) {
 		case -2:
 			return 0;
 		case -1:
@@ -320,8 +325,9 @@ getword(Biobuf *f, Rune *rp, int n)
 {
 	long c;
 
-	while (n-- > 0) {
-		if ((c = Bgetrune(f)) < 0)
+	while(n-- > 0) {
+		c = Bgetrune(f);
+		if(c < 0)
 			return 0;
 		if(c == '\n') {
 			*rp = L'\0';

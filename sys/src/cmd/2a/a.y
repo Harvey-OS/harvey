@@ -1,8 +1,4 @@
 %{
-#include <u.h>
-#include <libc.h>
-#include <bio.h>
-#include "../2c/2.out.h"
 #include "a.h"
 %}
 %union	{

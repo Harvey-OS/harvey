@@ -133,7 +133,7 @@ uartintr(Ureg*, void *arg)
 	up = arg;
 	for(loops = 0; loops < 1024; loops++){
 		s = uartrdreg(up, Istat);
-		switch(s){
+		switch(s & 0x3F){
 		case 6:	/* receiver line status */
 			l = uartrdreg(up, Lstat);
 			if(l & Ferror)
@@ -208,12 +208,12 @@ uartspecial(int port, void (*rx)(int), int (*tx)(void), int baud)
 
 	case 0:
 		up->port = 0x3F8;
-		setvec(Uart0vec, uartintr, up);
+		setvec(VectorUART0, uartintr, up);
 		break;
 
 	case 1:
 		up->port = 0x2F8;
-		setvec(Uart1vec, uartintr, up);
+		setvec(VectorUART1, uartintr, up);
 		break;
 
 	default:
@@ -270,4 +270,14 @@ uartputs(IOQ *q, char *s, int n)
 		up->txbusy = 1;
 	}
 	splx(x);
+}
+
+void
+uartdrain(void)
+{
+	int timeo;
+	Uart *up = &uart[0];
+
+	for(timeo = 0; timeo < 10000000 && up->txbusy; timeo++)
+		;
 }

@@ -11,6 +11,8 @@ typedef struct {
 } msgalloc;
 static msgalloc *freep=0;
 
+extern int interrupted;
+
 /* get a copy of an 822 field */
 String*
 copyfield(message *mp, int x)
@@ -38,14 +40,96 @@ copyfield(message *mp, int x)
 	return 0;
 }
 
+String*
+copyaddr(message *mp, int x)
+{
+	Field *f;
+	Node *np;
+	String *y;
+
+	y = nil;
+
+	for(f = mp->first; f; f = f->next){
+		if(f->node->c == x){
+			for(np = f->node; np; np = np->next){
+				if(np->addr){
+					/*
+					 *  the quotes are a hack and depend on
+					 *  how sendmail is called.
+					 */
+					if(y == nil)
+						y = s_new();
+					else
+						s_append(y, "' '");
+					s_append(y, s_to_c(np->s));
+				}
+			}
+			if(y != nil)
+				return y;
+		}
+	}
+	return 0;
+}
+
+String*
+copyother(message *mp, int x)
+{
+	Field *f;
+	Node *np;
+
+	for(f = mp->first; f; f = f->next){
+		if(f->node->c == x){
+			for(np = f->node; np; np = np->next)
+				return s_append(s_new(), s_to_c(np->s));
+		}
+	}
+	return 0;
+}
+
+/*
+ *  free parse tree and remember all addresses and
+ *  the start of the body
+ */
+void
+freeparsetree(message *mp)
+{
+	Field *f, *fnext;
+	Node *p, *pnext;
+	Addr **l, *a;
+
+	firstfield = lastfield = 0;
+
+	mp->body822 = s_to_c(mp->body);
+	l = &mp->addrs;
+	for(f = mp->first; f; f = fnext){
+		for(p = f->node; p; p = pnext){
+			mp->body822 = p->end+1;
+			if(p->s){
+				if(p->addr){
+					a = malloc(sizeof(Addr));
+					a->next = 0;
+					a->addr = p->s;
+					*l = a;
+					l = &a->next;
+				} else
+					s_free(p->s);
+			}
+			if(p->white)
+				s_free(p->white);
+			pnext = p->next;
+			free(p);
+		}
+		fnext = f->next;
+		free(f);
+	}
+}
+
 /* read in a message, interpret the 'From' header */
 extern message *
 m_get(String *sp)
 {
 	message *mp;
 	register char *cp;
-	Field *f;
-	Node *p;
 
 	if (freep==0 || freep->o >= MSGALLOC) {
 		freep = (msgalloc *)malloc(sizeof(msgalloc));
@@ -98,14 +182,17 @@ m_get(String *sp)
 	/* parse 822 headers */
 	yyinit(s_to_c(mp->body));
 	yyparse();
+
 	mp->first = firstfield;
+
 	mp->subject = copyfield(mp, SUBJECT);
-	firstfield = lastfield = 0;
-	mp->body822 = s_to_c(mp->body);
-	for(f = mp->first; f; f = f->next){
-		for(p = f->node; p; p = p->next)
-			mp->body822 = p->end+1;
-	}
+	mp->reply_to822 = copyaddr(mp, REPLY_TO);
+	mp->from822 = copyaddr(mp, FROM);
+	mp->sender822 = copyaddr(mp, SENDER);
+	mp->date822 = copyother(mp, DATE);
+	mp->mime = copyfield(mp, MIMEVERSION);
+
+	freeparsetree(mp);
 
 	return mp;
 }
@@ -129,6 +216,56 @@ m_store(message *mp, Biobuf *fp)
 
 }
 
+char*
+unixto822date(char *s)
+{
+	char du[32];
+	static char d822[35];
+
+	if(strlen(s) != 28)
+		return du;
+	strcpy(du, s);
+	du[3] = du[7] = du[10] = du[23] = 0;
+	snprint(d822, sizeof(d822), "%s, %s %s %s %s", du, du+8, du+4, du+24, du+11);
+	return d822;
+}
+
+/*
+ *  print the header and up to n lines of the message followed by crnl's
+ */
+extern int
+m_printcrnl(message *mp, Biobuf *fp, int n)
+{
+	char *p, *e;
+	int c;
+	int last;
+
+	last = 0;
+	p = s_to_c(mp->body);
+	e = p + mp->size;
+	if(mp->from822 == 0 && mp->sender822 == 0)
+		Bprint(fp, "From: %s\r\n", s_to_c(mp->sender));
+	if(mp->date822 == 0)
+		Bprint(fp, "Date: %s\r\n", unixto822date(s_to_c(mp->date)));
+	while(p < e){
+		if(p > mp->body822 && n <= 0)
+			break;
+		c = *p;
+		if(c == '\n' && last != '\r')
+			Bputc(fp, '\r');
+		else if(c == '.' && last == '\n')
+			Bputc(fp, '.');
+		last = c;	
+		Bputc(fp, c);
+		if(p > mp->body822 && c == '\n')
+			n--;
+		p++;
+	}
+	if(last != '\n')
+		Bprint(fp, "\r\n");
+	return p - s_to_c(mp->body);
+}
+
 /*
  *  output a message, return 0 if ok -1 otherwise, do it a chunk at a time in
  *  case the user wants to interrupt a long message.
@@ -149,7 +286,8 @@ m_print(message *mp, Biobuf *fp, int nl, int header)
 		size = mp->size - (mp->body822 - s_to_c(mp->body));
 	}
 
-	for(i = 0; i < size; i += n){
+	interrupted = 0;
+	for(i = 0; !interrupted && i < size; i += n){
 		n = size - i;
 		if(n > 256)
 			n = 256;
@@ -197,7 +335,7 @@ rd_mbox(char *file, int reverse, int newmail)
 retry:
 	fp = sysopen(file, "r", 0);
 	if(fp == 0){
-		if(e_nonexistant() && fflg==0){
+		if(e_nonexistent() && fflg==0){
 			tmp = s_copy(file);
 			s_append(tmp, ".tmp");
 			if(sysrename(s_to_c(tmp), file) == 0)
@@ -266,17 +404,17 @@ extern int
 read_mbox(char *file, int reverse)
 {
 	int rv;
-	Lock *l;
+	Mlock *l;
 
 	l = 0;
 	if(!fflg){
-		l = lock(file);
+		l = syslock(file);
 		if(l == 0)
 			return -1;
 	}
 	rv = rd_mbox(file, reverse, 0);
 	if(!fflg)
-		unlock(l);
+		sysunlock(l);
 	return rv;
 }
 
@@ -285,17 +423,17 @@ extern int
 reread_mbox(char *file, int reverse)
 {
 	int rv;
-	Lock *l;
+	Mlock *l;
 
 	l = 0;
 	if(!fflg){
-		l = lock(file);
+		l = syslock(file);
 		if(l == 0)
 			return -1;
 	}
 	rv = rd_mbox(file, reverse, 1);
 	if(!fflg)
-		unlock(l);
+		sysunlock(l);
 	return rv;
 }
 
@@ -306,26 +444,19 @@ rdwr_mbox(char *file, int reverse)
 	Biobuf *fp;
 	message *mp;
 	String *tmp;
-	Lock *l;
+	Mlock *l;
 	int rv;
 	int errcnt;
 	int tries;
-
-	/*
-	 *  if nothing has changed, just return
-	 */
-	for (mp=mlist; mp!=0; mp=mp->next)
-		if(mp->status&DELETED)
-			break;
-	if (mp==0)
-		return 0;
+	int mode;
+	Dir d;
 
 	/*
 	 *  reread mailbox to pick up any changes
 	 */
 	l = 0;
 	if(!fflg){
-		l = lock(file);
+		l = syslock(file);
 		if(l == 0){
 			fprint(2, "mail: can't lock mail file %s\n", file);
 			return -1;
@@ -338,15 +469,33 @@ rdwr_mbox(char *file, int reverse)
 	}
 
 	/*
+	 *  if nothing has changed, just return
+	 */
+	for (mp=mlist; mp!=0; mp=mp->next)
+		if(mp->status&DELETED)
+			break;
+	if (mp==0){
+		if(!fflg)
+			sysunlock(l);
+		return 0;
+	}
+
+	/*
+	 * preserve old files permissions, if possible
+	 */
+	if(dirstat(file, &d) >= 0)
+		mode = d.mode&0777;
+	else
+		mode = MBOXMODE;
+	/*
 	 *  write new messages into a temporary file
 	 */
 	tmp = s_copy(file);
 	s_append(tmp, ".tmp");
 	sysremove(s_to_c(tmp));
-	fp = sysopen(s_to_c(tmp), "alc", MBOXMODE);
+	fp = sysopen(s_to_c(tmp), "alc", mode);
 	if(fp == 0){
 		fprint(2, "mail: error creating %s: %r\n", s_to_c(tmp));
-		sysclose(fp);
 		goto err;
 	}
 	mlist->prev = 0;	/* ignore mzero */
@@ -386,7 +535,7 @@ rdwr_mbox(char *file, int reverse)
 	rv = 0;
 err:
 	if(!fflg)
-		unlock(l);
+		sysunlock(l);
 	return rv;
 }
 
@@ -401,13 +550,14 @@ write_mbox(char *file, int reverse)
 }
 
 /* global to semaphores */
-Lock *readingl;
+Mlock *readingl;
 
 extern void
 V(void)
 {
 	if(readingl)
-		unlock(readingl);
+		sysunlock(readingl);
+	readingl = 0;
 }
 
 /* return name of tty if file is already being read, 0 otherwise */
@@ -417,9 +567,12 @@ P(char *mailfile)
 	String *file;
 
 	file = s_new();
-	mboxpath("reading", getlog(), file, 0);
-	readingl = trylock(s_to_c(file));
+	if(readlock(file) == 0) {
+		s_free(file);
+		return -1;
+	}
 
+	readingl = trylock(s_to_c(file));
 	if (readingl == 0) {
 		if(sysexist(mailfile)){
 			fprint(2,"WARNING: You are already reading mail.\n");
@@ -428,6 +581,7 @@ P(char *mailfile)
 			fprint(2, "Sorry, no (or damaged) mailbox.\n");
 			exit(0);
 		}
+		s_free(file);
 		return -1;
 	}
 	s_free(file);

@@ -14,6 +14,7 @@ Node	*udate;
 int	originator;
 int	destination;
 int	date;
+int	received;
 %}
 
 %term WORD
@@ -34,12 +35,13 @@ int	date;
 %term RESENT_CC
 %term RESENT_BCC
 %term REMOTE
-%term FROM
+%term PRECEDENCE
 %term MIMEVERSION
 %term CONTENTTYPE
 %term MESSAGEID
 %term RECEIVED
 %term MAILER
+%term BADTOKEN
 %start msg
 %%
 
@@ -58,6 +60,8 @@ field		: dates
 		| subject
 		| optional
 		| ignored
+		| received
+		| precedence
 		;
 unixfrom	: FROM route_addr unix_date_time REMOTE FROM word
 			{ freenode($1); freenode($4); freenode($5);
@@ -74,18 +78,30 @@ originator	: REPLY_TO ':' address_list
 			{ newfield(link3($1, $2, $3), 1); }
 		| RESENT_REPLY_TO ':' address_list
 			{ newfield(link3($1, $2, $3), 1); }
+		| RESENT_SENDER ':' mailbox
+			{ newfield(link3($1, $2, $3), 1); }
+		| RESENT_FROM ':' mailbox
+			{ newfield(link3($1, $2, $3), 1); }
 		;
 dates 		: DATE ':' date_time
 			{ newfield(link3($1, $2, $3), 0); }
 		| RESENT_DATE ':' date_time
 			{ newfield(link3($1, $2, $3), 0); }
 		;
-destination	: TO ':' address_list
+destination	: TO ':'
+			{ newfield(link2($1, $2), 0); }
+		| TO ':' address_list
 			{ newfield(link3($1, $2, $3), 0); }
+		| RESENT_TO ':'
+			{ newfield(link2($1, $2), 0); }
 		| RESENT_TO ':' address_list
 			{ newfield(link3($1, $2, $3), 0); }
+		| CC ':'
+			{ newfield(link2($1, $2), 0); }
 		| CC ':' address_list
 			{ newfield(link3($1, $2, $3), 0); }
+		| RESENT_CC ':'
+			{ newfield(link2($1, $2), 0); }
 		| RESENT_CC ':' address_list
 			{ newfield(link3($1, $2, $3), 0); }
 		| BCC ':'
@@ -99,18 +115,45 @@ destination	: TO ':' address_list
 		;
 subject		: SUBJECT ':' things
 			{ newfield(link3($1, $2, $3), 0); }
+		| SUBJECT ':'
+			{ newfield(link2($1, $2), 0); }
+		;
+received	: RECEIVED ':' things
+			{ newfield(link3($1, $2, $3), 0); received++; }
+		| RECEIVED ':'
+			{ newfield(link2($1, $2), 0); received++; }
+		;
+precedence	: PRECEDENCE ':' things
+			{ newfield(link3($1, $2, $3), 0); }
+		| PRECEDENCE ':'
+			{ newfield(link2($1, $2), 0); }
 		;
 ignored		: ignoredhdr ':' things
 			{ newfield(link3($1, $2, $3), 0); }
 		| ignoredhdr ':'
 			{ newfield(link2($1, $2), 0); }
 		;
-ignoredhdr	: MIMEVERSION | CONTENTTYPE | MESSAGEID | RECEIVED | MAILER
+ignoredhdr	: MIMEVERSION | CONTENTTYPE | MESSAGEID | MAILER
 		;
-optional	: other ':' things
-			{ newfield(link3($1, $2, $3), 0); }
-		| other ':'
-			{ newfield(link2($1, $2), 0); }
+optional	: fieldwords ':' things
+			{ /* hack to allow same lex for field names and the rest */
+			 if(badfieldname($1)){
+				freenode($1);
+				freenode($2);
+				freenode($3);
+				return 1;
+			 }
+			 newfield(link3($1, $2, $3), 0);
+			}
+		| fieldwords ':'
+			{ /* hack to allow same lex for field names and the rest */
+			 if(badfieldname($1)){
+				freenode($1);
+				freenode($2);
+				return 1;
+			 }
+			 newfield(link2($1, $2), 0);
+			}
 		;
 address_list	: address
 		| address_list ',' address
@@ -119,8 +162,10 @@ address_list	: address
 address		: mailbox
 		| group
 		;
-group		: phrase local_part ';'
-			{ $$ = link2($1, $2); }
+group		: phrase ':' address_list ';'
+			{ $$ = link2($1, link3($2, $3, $4)); }
+		| phrase ':' ';'
+			{ $$ = link3($1, $2, $3); }
 		;
 mailbox_list	: mailbox
 		| mailbox_list ',' mailbox
@@ -129,6 +174,7 @@ mailbox_list	: mailbox
 mailbox		: route_addr
 		| phrase brak_addr
 			{ $$ = link2($1, $2); }
+		| brak_addr
 		;
 brak_addr	: '<' route_addr '>'
 			{ $$ = link3($1, $2, $3); }
@@ -136,25 +182,24 @@ brak_addr	: '<' route_addr '>'
 			{ $$ = anonymous($2); freenode($1); }
 		;
 route_addr	: route ':' at_addr
-			{ $$ = bang($1, $3); freenode($2); }
+			{ $$ = address(concat($1, concat($2, $3))); }
 		| addr_spec
 		;
 route		: '@' domain
-			{ $$ = $2; freenode($1); }
+			{ $$ = concat($1, $2); }
 		| route ',' '@' domain
-			{ $$ = bang($1, $4); freenode($2); freenode($3); }
+			{ $$ = concat($1, concat($2, concat($3, $4))); }
 		;
 addr_spec	: local_part
 			{ $$ = address($1); }
 		| at_addr
 		;
 at_addr		: local_part '@' domain
-			{ $$ = bang($3, $1); freenode($2);}
+			{ $$ = address(concat($1, concat($2, $3)));}
+		| at_addr '@' domain
+			{ $$ = address(concat($1, concat($2, $3)));}
 		;
 local_part	: word
-		| word ':' word
-			{ $$ = colon($1, $3); }
-		;
 		;
 domain		: word
 		;
@@ -167,7 +212,7 @@ things		: thing
 			{ $$ = link2($1, $2); }
 		;
 thing		: word | '<' | '>' | '@' | ':' | ';' | ','
-		;		
+		;
 date_time	: things
 		;
 unix_date_time	: word word word unix_time word word
@@ -180,9 +225,16 @@ unix_time	: word
 word		: WORD | DATE | RESENT_DATE | RETURN_PATH | FROM | SENDER
 		| REPLY_TO | RESENT_FROM | RESENT_SENDER | RESENT_REPLY_TO
 		| TO | CC | BCC | RESENT_TO | RESENT_CC | RESENT_BCC | REMOTE | SUBJECT
-		| MIMEVERSION | CONTENTTYPE | MESSAGEID | RECEIVED | MAILER
+		| PRECEDENCE | MIMEVERSION | CONTENTTYPE | MESSAGEID | RECEIVED | MAILER
 		;
-other		: WORD | REMOTE
+fieldwords	: fieldword
+		| WORD
+		| fieldwords fieldword
+			{ $$ = link2($1, $2); }
+		| fieldwords word
+			{ $$ = link2($1, $2); }
+		;
+fieldword	: '<' | '>' | '@' | ';' | ','
 		;
 %%
 
@@ -195,6 +247,7 @@ yyinit(char *p)
 	yybuffer = p;
 	yylp = p;
 	firstfield = lastfield = 0;
+	received = 0;
 }
 
 /*
@@ -206,6 +259,7 @@ struct Keyword {
 	int	val;
 };
 
+/* field names that we need to recognize */
 Keyword key[] = {
 	{ "date", DATE },
 	{ "resent-date", RESENT_DATE },
@@ -224,6 +278,7 @@ Keyword key[] = {
 	{ "resent-bcc", RESENT_BCC },
 	{ "remote", REMOTE },
 	{ "subject", SUBJECT },
+	{ "precedence", PRECEDENCE },
 	{ "mime-version", MIMEVERSION },
 	{ "content-type", CONTENTTYPE },
 	{ "message-id", MESSAGEID },
@@ -241,6 +296,7 @@ yylex(void)
 {
 	String *t;
 	int quoting;
+	int escaping;
 	char *start;
 	Keyword *kp;
 	int c, d;
@@ -249,28 +305,27 @@ yylex(void)
 	if(*yylp == 0)
 		return 0;
 
-	quoting = 0;
+	quoting = escaping = 0;
 	start = yylp;
 	yylval = malloc(sizeof(Node));
 	yylval->white = yylval->s = 0;
 	yylval->next = 0;
 	yylval->addr = 0;
 	for(t = 0; *yylp; yylp++){
-		c = *yylp & 0x7f;
-		if(quoting){
+		c = *yylp & 0xff;
+		if(escaping) {
+			escaping = 0;
+		} else if(quoting) {
 			switch(c){
 			case '\\':
-				c = (*++yylp)&0x7f;
-				if(c==0){
-					--yylp;
-					c = '\\';
-				}
+				escaping = 1;
 				break;
 			case '\n':
-				d = (*(yylp+1))&0x7f;
+				d = (*(yylp+1))&0xff;
 				if(d != ' ' && d != '\t'){
 					quoting = 0;
 					yylp--;
+					continue;
 				}
 				break;
 			case '"':
@@ -280,11 +335,7 @@ yylex(void)
 		} else {
 			switch(c){
 			case '\\':
-				c = (*++yylp)&0x7f;
-				if(c==0){
-					--yylp;
-					c = '\\';
-				}
+				escaping = 1;
 				break;
 			case '(':
 			case ' ':
@@ -356,11 +407,14 @@ yywhite(void)
 	String *w;
 	int clevel;
 	int c;
+	int escaping;
 
-	clevel = 0;
+	escaping = clevel = 0;
 	for(w = 0; *yylp; yylp++){
-		c = *yylp & 0x7f;
-		if(clevel){
+		c = *yylp & 0xff;
+		if(escaping){
+			escaping = 0;
+		} else if(clevel) {
 			switch(c){
 			case '\n':
 				/*
@@ -371,11 +425,7 @@ yywhite(void)
 				else
 					goto out;
 			case '\\':
-				c = (*++yylp)&0x7f;
-				if(c==0){
-					--yylp;
-					c = '\\';
-				}
+				escaping = 1;
 				break;
 			case '(':
 				clevel++;
@@ -387,11 +437,7 @@ yywhite(void)
 		} else {
 			switch(c){
 			case '\\':
-				c = (*++yylp)&0x7f;
-				if(c==0){
-					--yylp;
-					c = '\\';
-				}
+				escaping = 1;
 				break;
 			case '(':
 				clevel++;
@@ -464,36 +510,70 @@ colon(Node *p1, Node *p2)
 	if(p1->white){
 		if(p2->white)
 			s_append(p1->white, s_to_c(p2->white));
-	} else
+	} else {
 		p1->white = p2->white;
+		p2->white = 0;
+	}
 
 	s_append(p1->s, ":");
 	if(p2->s)
 		s_append(p1->s, s_to_c(p2->s));
 
+	if(p1->end < p2->end)
+		p1->end = p2->end;
 	freenode(p2);
 	return p1;
 }
 
 /*
- *  make a!b, move all white space after both
+ *  concatenate two fields, move all white space after both
  */
 Node*
-bang(Node *p1, Node *p2)
+concat(Node *p1, Node *p2)
 {
+	char buf[2];
+
 	if(p1->white){
 		if(p2->white)
 			s_append(p1->white, s_to_c(p2->white));
-	} else
+	} else {
 		p1->white = p2->white;
+		p2->white = 0;
+	}
 
-	s_append(p1->s, "!");
+	if(p1->s == nil){
+		buf[0] = p1->c;
+		buf[1] = 0;
+		p1->s = s_new();
+		s_append(p1->s, buf);
+	}
+
 	if(p2->s)
 		s_append(p1->s, s_to_c(p2->s));
+	else {
+		buf[0] = p2->c;
+		buf[1] = 0;
+		s_append(p1->s, buf);
+	}
 
+	if(p1->end < p2->end)
+		p1->end = p2->end;
 	freenode(p2);
-	p1->addr = 1;
 	return p1;
+}
+
+/*
+ *  look for disallowed chars in the field name
+ */
+int
+badfieldname(Node *p)
+{
+	for(; p; p = p->next){
+		/* field name can't contain white space */
+		if(p->white && p->next)
+			return 1;
+	}
+	return 0;
 }
 
 /*

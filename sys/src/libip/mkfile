@@ -7,8 +7,8 @@ OFILES = eipconv.$O\
 	myipaddr.$O\
 	myetheraddr.$O\
 	classmask.$O\
-	equivip.$O\
-
-HFILES=/sys/include/ip.h
+	bo.$O\
+	readipifc.$O\
+	ipaux.$O\
 
 </sys/src/cmd/mksyslib

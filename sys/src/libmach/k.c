@@ -6,19 +6,16 @@
 #include "/sparc/include/ureg.h"
 #include <mach.h>
 
-#define USER_REG(x)	(0x1000-((32+6)*4)+(ulong)(x))
-#define	FP_REG(x)	(0x0000+4+(x))
-#define	SCALLOFF	(0x0000+4+168)
-
-#define	REGOFF(x)	(USER_REG(&((struct Ureg *) 0)->x))
+#define	REGOFF(x)	(ulong)(&((struct Ureg *) 0)->x)
 
 #define R1		REGOFF(r1)
 #define R7		REGOFF(r7)
 #define PC		REGOFF(pc)
 #define	R15		REGOFF(r15)
 
-#define	MAXREG	(3+31+2+1+32)
-#define	MINREG	1
+#define	REGSIZE		sizeof(struct Ureg)
+#define	FP_REG(x)	(REGSIZE+4*(x))
+#define	FPREGSIZE	(33*4)
 
 Reglist sparcreglist[] = {
 	{"Y",		REGOFF(y),	RINT|RRDONLY, 'X'},
@@ -58,39 +55,39 @@ Reglist sparcreglist[] = {
 	{"R31",		REGOFF(r31),	RINT, 'X'},
 	{"NPC",		REGOFF(npc),	RINT, 'X'},
 
-	{"FSR",		FP_REG(0x00),	RINT, 'X'},
-	{"F0",		FP_REG(0x04),	RFLT, 'F'},
-	{"F1",		FP_REG(0x08),	RFLT, 'f'},
-	{"F2",		FP_REG(0x0C),	RFLT, 'F'},
-	{"F3",		FP_REG(0x10),	RFLT, 'f'},
-	{"F4",		FP_REG(0x14),	RFLT, 'F'},
-	{"F5",		FP_REG(0x18),	RFLT, 'f'},
-	{"F6",		FP_REG(0x1C),	RFLT, 'F'},
-	{"F7",		FP_REG(0x20),	RFLT, 'f'},
-	{"F8",		FP_REG(0x24),	RFLT, 'F'},
-	{"F9",		FP_REG(0x28),	RFLT, 'f'},
-	{"F10",		FP_REG(0x2C),	RFLT, 'F'},
-	{"F11",		FP_REG(0x30),	RFLT, 'f'},
-	{"F12",		FP_REG(0x34),	RFLT, 'F'},
-	{"F13",		FP_REG(0x38),	RFLT, 'f'},
-	{"F14",		FP_REG(0x3C),	RFLT, 'F'},
-	{"F15",		FP_REG(0x40),	RFLT, 'f'},
-	{"F16",		FP_REG(0x44),	RFLT, 'F'},
-	{"F17",		FP_REG(0x48),	RFLT, 'f'},
-	{"F18",		FP_REG(0x4C),	RFLT, 'F'},
-	{"F19",		FP_REG(0x50),	RFLT, 'f'},
-	{"F20",		FP_REG(0x54),	RFLT, 'F'},
-	{"F21",		FP_REG(0x58),	RFLT, 'f'},
-	{"F22",		FP_REG(0x5C),	RFLT, 'F'},
-	{"F23",		FP_REG(0x60),	RFLT, 'f'},
-	{"F24",		FP_REG(0x64),	RFLT, 'F'},
-	{"F25",		FP_REG(0x68),	RFLT, 'f'},
-	{"F26",		FP_REG(0x6C),	RFLT, 'F'},
-	{"F27",		FP_REG(0x70),	RFLT, 'f'},
-	{"F28",		FP_REG(0x74),	RFLT, 'F'},
-	{"F29",		FP_REG(0x78),	RFLT, 'f'},
-	{"F30",		FP_REG(0x7C),	RFLT, 'F'},
-	{"F31",		FP_REG(0x80),	RFLT, 'f'},
+	{"FSR",		FP_REG(0),	RINT, 'X'},
+	{"F0",		FP_REG(1),	RFLT, 'F'},
+	{"F1",		FP_REG(2),	RFLT, 'f'},
+	{"F2",		FP_REG(3),	RFLT, 'F'},
+	{"F3",		FP_REG(4),	RFLT, 'f'},
+	{"F4",		FP_REG(5),	RFLT, 'F'},
+	{"F5",		FP_REG(6),	RFLT, 'f'},
+	{"F6",		FP_REG(7),	RFLT, 'F'},
+	{"F7",		FP_REG(8),	RFLT, 'f'},
+	{"F8",		FP_REG(9),	RFLT, 'F'},
+	{"F9",		FP_REG(10),	RFLT, 'f'},
+	{"F10",		FP_REG(11),	RFLT, 'F'},
+	{"F11",		FP_REG(12),	RFLT, 'f'},
+	{"F12",		FP_REG(13),	RFLT, 'F'},
+	{"F13",		FP_REG(14),	RFLT, 'f'},
+	{"F14",		FP_REG(15),	RFLT, 'F'},
+	{"F15",		FP_REG(16),	RFLT, 'f'},
+	{"F16",		FP_REG(17),	RFLT, 'F'},
+	{"F17",		FP_REG(18),	RFLT, 'f'},
+	{"F18",		FP_REG(19),	RFLT, 'F'},
+	{"F19",		FP_REG(20),	RFLT, 'f'},
+	{"F20",		FP_REG(21),	RFLT, 'F'},
+	{"F21",		FP_REG(22),	RFLT, 'f'},
+	{"F22",		FP_REG(23),	RFLT, 'F'},
+	{"F23",		FP_REG(24),	RFLT, 'f'},
+	{"F24",		FP_REG(25),	RFLT, 'F'},
+	{"F25",		FP_REG(26),	RFLT, 'f'},
+	{"F26",		FP_REG(27),	RFLT, 'F'},
+	{"F27",		FP_REG(28),	RFLT, 'f'},
+	{"F28",		FP_REG(29),	RFLT, 'F'},
+	{"F29",		FP_REG(30),	RFLT, 'f'},
+	{"F30",		FP_REG(31),	RFLT, 'F'},
+	{"F31",		FP_REG(32),	RFLT, 'f'},
 	{  0 }
 };
 
@@ -102,23 +99,17 @@ Mach msparc =
 	"sparc",
 	MSPARC,		/* machine type */
 	sparcreglist,	/* register list */
-	MINREG,		/* minimum register */
-	MAXREG,		/* maximum register */
-	"PC",
-	"R1",
-	"R15",
-	R7,		
+	REGSIZE,	/* register set size in bytes */
+	FPREGSIZE,	/* floating point register size in bytes */
+	"PC",		/* name of PC */
+	"R1",		/* name of SP */
+	"R15",		/* name of link register */
+	"setSB",	/* static base register name */
+	0,		/* value */
 	0x1000,		/* page size */
 	0xE0000000,	/* kernel base */
 	0,		/* kernel text mask */
-	0,		/* offset of ksp in /proc/proc */
-	4,		/* correction to ksp value */
-	4,		/* offset of kpc in /proc/proc */
-	0,		/* correction to kpc value */
-	SCALLOFF,	/* offset in ublk of sys call # */
 	4,		/* quantization of pc */
-	"setSB",	/* static base register name */
-	0,		/* value */
 	4,		/* szaddr */
 	4,		/* szreg */
 	4,		/* szfloat */

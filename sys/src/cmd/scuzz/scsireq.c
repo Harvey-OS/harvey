@@ -48,15 +48,14 @@ SRreqsense(ScsiReq *rp)
 	long status;
 
 	if(rp->status == Status_SD){
-		rp->status = Status_OK;
+		rp->status = STok;
 		return 0;
 	}
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRsense;
 	cmd[4] = sizeof(req.sense);
 	memset(&req, 0, sizeof(req));
-	req.cmd.fd = rp->cmd.fd;
-	req.data.fd = rp->data.fd;
+	req.fd = rp->fd;
 	req.cmd.p = cmd;
 	req.cmd.count = sizeof(cmd);
 	req.data.p = rp->sense;
@@ -97,36 +96,51 @@ SRrblimits(ScsiReq *rp, uchar *list)
 	return SRrequest(rp);
 }
 
-static void
+static int
 dirdevrw(ScsiReq *rp, uchar *cmd, long nbytes)
 {
 	long n;
 
-	n = rp->offset;
-	cmd[1] = (n>>16) & 0x0F;
-	cmd[2] = n>>8;
-	cmd[3] = n;
-	cmd[4] = nbytes/rp->lbsize;
-	cmd[5] = 0;
+	n = nbytes/rp->lbsize;
+	if(rp->offset <= 0x1fffff && n <= 256){
+		cmd[1] = rp->offset>>16;
+		cmd[2] = rp->offset>>8;
+		cmd[3] = rp->offset;
+		cmd[4] = n;
+		cmd[5] = 0;
+		return 6;
+	}
+	cmd[0] |= ScmdExtread;
+	cmd[1] = 0;
+	cmd[2] = rp->offset>>24;
+	cmd[3] = rp->offset>>16;
+	cmd[4] = rp->offset>>8;
+	cmd[5] = rp->offset;
+	cmd[6] = 0;
+	cmd[7] = n>>8;
+	cmd[8] = n;
+	cmd[9] = 0;
+	return 10;
 }
 
-static void
+static int
 seqdevrw(ScsiReq *rp, uchar *cmd, long nbytes)
 {
 	long n;
 
-	cmd[1] = 0x00;
+	cmd[1] = rp->flags&Fbfixed? 0x01: 0x00;
 	n = nbytes/rp->lbsize;
 	cmd[2] = n>>16;
 	cmd[3] = n>>8;
 	cmd[4] = n;
 	cmd[5] = 0;
+	return 6;
 }
 
 long
 SRread(ScsiReq *rp, void *buf, long nbytes)
 {
-	uchar cmd[6];
+	uchar cmd[10];
 	long n;
 
 	if((nbytes % rp->lbsize) || nbytes > MaxIOsize){
@@ -135,11 +149,10 @@ SRread(ScsiReq *rp, void *buf, long nbytes)
 	}
 	cmd[0] = ScmdRead;
 	if(rp->flags & Fseqdev)
-		seqdevrw(rp, cmd, nbytes);
+		rp->cmd.count = seqdevrw(rp, cmd, nbytes);
 	else
-		dirdevrw(rp, cmd, nbytes);
+		rp->cmd.count = dirdevrw(rp, cmd, nbytes);
 	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
 	rp->data.p = buf;
 	rp->data.count = nbytes;
 	rp->data.write = 0;
@@ -158,7 +171,7 @@ SRread(ScsiReq *rp, void *buf, long nbytes)
 		else
 			return -1;
 		n = rp->data.count;
-		rp->status = Status_OK;
+		rp->status = STok;
 	}
 	rp->offset += n/rp->lbsize;
 	return n;
@@ -167,7 +180,7 @@ SRread(ScsiReq *rp, void *buf, long nbytes)
 long
 SRwrite(ScsiReq *rp, void *buf, long nbytes)
 {
-	uchar cmd[6];
+	uchar cmd[10];
 	long n;
 
 	if((nbytes % rp->lbsize) || nbytes > MaxIOsize){
@@ -176,11 +189,10 @@ SRwrite(ScsiReq *rp, void *buf, long nbytes)
 	}
 	cmd[0] = ScmdWrite;
 	if(rp->flags & Fseqdev)
-		seqdevrw(rp, cmd, nbytes);
+		rp->cmd.count = seqdevrw(rp, cmd, nbytes);
 	else
-		dirdevrw(rp, cmd, nbytes);
+		rp->cmd.count = dirdevrw(rp, cmd, nbytes);
 	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
 	rp->data.p = buf;
 	rp->data.count = nbytes;
 	rp->data.write = 1;
@@ -206,7 +218,7 @@ SRwrite(ScsiReq *rp, void *buf, long nbytes)
 long
 SRseek(ScsiReq *rp, long offset, int type)
 {
-	uchar cmd[6];
+	uchar cmd[10];
 
 	switch(type){
 
@@ -223,19 +235,33 @@ SRseek(ScsiReq *rp, long offset, int type)
 		rp->status = Status_BADARG;
 		return -1;
 	}
-	cmd[0] = ScmdSeek;
-	cmd[1] = (offset>>16) & 0x0F;
-	cmd[2] = offset>>8;
-	cmd[3] = offset;
-	cmd[4] = 0;
-	cmd[5] = 0;
+	if(offset <= 0x1fffff){
+		cmd[0] = ScmdSeek;
+		cmd[1] = (offset>>16) & 0x1F;
+		cmd[2] = offset>>8;
+		cmd[3] = offset;
+		cmd[4] = 0;
+		cmd[5] = 0;
+		rp->cmd.count = 6;
+	}else{
+		cmd[0] = ScmdExtseek;
+		cmd[1] = 0;
+		cmd[2] = offset>>24;
+		cmd[3] = offset>>16;
+		cmd[4] = offset>>8;
+		cmd[5] = offset;
+		cmd[6] = 0;
+		cmd[7] = 0;
+		cmd[8] = 0;
+		cmd[9] = 0;
+		rp->cmd.count = 10;
+	}
 	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
 	rp->data.p = cmd;
 	rp->data.count = 0;
 	rp->data.write = 1;
 	SRrequest(rp);
-	if(rp->status == Status_OK)
+	if(rp->status == STok)
 		return rp->offset = offset;
 	return -1;
 }
@@ -294,16 +320,23 @@ SRinquiry(ScsiReq *rp)
 	rp->data.p = rp->inquiry;
 	rp->data.count = sizeof(rp->inquiry);
 	rp->data.write = 0;
-	return SRrequest(rp);
+	if(SRrequest(rp) >= 0){
+		rp->flags |= Finqok;
+		return 0;
+	}
+	rp->flags &= ~Finqok;
+	return -1;
 }
 
 long
-SRmodeselect(ScsiReq *rp, uchar *list, long nbytes)
+SRmodeselect6(ScsiReq *rp, uchar *list, long nbytes)
 {
 	uchar cmd[6];
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMselect;
+	cmd[0] = ScmdMselect6;
+	if((rp->flags & Finqok) && (rp->inquiry[2] & 0x07) >= 2)
+		cmd[1] = 0x10;
 	cmd[4] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
@@ -314,14 +347,51 @@ SRmodeselect(ScsiReq *rp, uchar *list, long nbytes)
 }
 
 long
-SRmodesense(ScsiReq *rp, uchar page, uchar *list, long nbytes)
+SRmodeselect10(ScsiReq *rp, uchar *list, long nbytes)
+{
+	uchar cmd[10];
+
+	memset(cmd, 0, sizeof(cmd));
+	if((rp->flags & Finqok) && (rp->inquiry[2] & 0x07) >= 2)
+		cmd[1] = 0x10;
+	cmd[0] = ScmdMselect10;
+	cmd[7] = nbytes>>8;
+	cmd[8] = nbytes;
+	rp->cmd.p = cmd;
+	rp->cmd.count = sizeof(cmd);
+	rp->data.p = list;
+	rp->data.count = nbytes;
+	rp->data.write = 1;
+	return SRrequest(rp);
+}
+
+long
+SRmodesense6(ScsiReq *rp, uchar page, uchar *list, long nbytes)
 {
 	uchar cmd[6];
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMsense;
+	cmd[0] = ScmdMsense6;
 	cmd[2] = page;
 	cmd[4] = nbytes;
+	rp->cmd.p = cmd;
+	rp->cmd.count = sizeof(cmd);
+	rp->data.p = list;
+	rp->data.count = nbytes;
+	rp->data.write = 0;
+	return SRrequest(rp);
+}
+
+long
+SRmodesense10(ScsiReq *rp, uchar page, uchar *list, long nbytes)
+{
+	uchar cmd[10];
+
+	memset(cmd, 0, sizeof(cmd));
+	cmd[0] = ScmdMsense10;
+	cmd[2] = page;
+	cmd[7] = nbytes>>8;
+	cmd[8] = nbytes;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
 	rp->data.p = list;
@@ -361,179 +431,30 @@ SRrcapacity(ScsiReq *rp, uchar *data)
 	return SRrequest(rp);
 }
 
-long
-SRflushcache(ScsiReq *rp)
-{
-	uchar cmd[10];
-
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdFlushcache;
-	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
-	rp->data.p = cmd;
-	rp->data.count = 0;
-	rp->data.write = 1;
-	return SRrequest(rp);
-}
-
-long
-SRrdiscinfo(ScsiReq *rp, void *data, uchar ses, uchar track)
-{
-	uchar cmd[10];
-
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdRdiscinfo;
-	cmd[6] = track;
-	cmd[7] = 0;
-	cmd[8] = MaxDirData;
-	if(ses)
-		cmd[9] = 0x40;
-	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
-	rp->data.p = data;
-	rp->data.count = MaxDirData;
-	rp->data.write = 0;
-	return SRrequest(rp);
-}
-
-long
-SRfwaddr(ScsiReq *rp, uchar track, uchar mode, uchar npa, uchar *data)
-{
-	uchar cmd[10];
-
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdFwaddr;
-	cmd[2] = track;
-	cmd[3] = mode;
-	cmd[7] = npa;
-	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
-	rp->data.p = data;
-	rp->data.count = MaxDirData;
-	rp->data.write = 0;
-	return SRrequest(rp);
-}
-
-long
-SRtreserve(ScsiReq *rp, long nbytes)
-{
-	uchar cmd[10];
-	long n;
-
-	if((nbytes % rp->lbsize)){
-		rp->status = Status_BADARG;
-		return -1;
-	}
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdTreserve;
-	n = nbytes/rp->lbsize;
-	cmd[5] = n>>24;
-	cmd[6] = n>>16;
-	cmd[7] = n>>8;
-	cmd[8] = n;
-	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
-	rp->data.p = cmd;
-	rp->data.count = 0;
-	rp->data.write = 1;
-	return SRrequest(rp);
-}
-
-long
-SRtinfo(ScsiReq *rp, uchar track, uchar *data)
-{
-	uchar cmd[10];
-
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdTinfo;
-	cmd[5] = track;
-	cmd[8] = MaxDirData;
-	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
-	rp->data.p = data;
-	rp->data.count = MaxDirData;
-	rp->data.write = 0;
-	return SRrequest(rp);
-}
-
-long
-SRwtrack(ScsiReq *rp, void *buf, long nbytes, uchar track, uchar mode)
-{
-	uchar cmd[10];
-	long m, n;
-
-	if((nbytes % rp->lbsize) || nbytes > MaxIOsize){
-		rp->status = Status_BADARG;
-		return -1;
-	}
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdTwrite;
-	cmd[5] = track;
-	cmd[6] = mode;
-	n = nbytes/rp->lbsize;
-	cmd[7] = n>>8;
-	cmd[8] = n;
-	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
-	rp->data.p = buf;
-	rp->data.count = nbytes;
-	rp->data.write = 1;
-	m = SRrequest(rp);
-	if(m < 0)
-		return -1;
-	rp->offset += n;
-	return m;
-}
-
-long
-SRmload(ScsiReq *rp, uchar code)
-{
-	uchar cmd[10];
-
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMload;
-	cmd[8] = code;
-	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
-	rp->data.p = cmd;
-	rp->data.count = 0;
-	rp->data.write = 1;
-	return SRrequest(rp);
-}
-
-long
-SRfixation(ScsiReq *rp, uchar type)
-{
-	uchar cmd[10];
-
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdFixation;
-	cmd[8] = type;
-	rp->cmd.p = cmd;
-	rp->cmd.count = sizeof(cmd);
-	rp->data.p = cmd;
-	rp->data.count = 0;
-	rp->data.write = 1;
-	return SRrequest(rp);
-}
-
 static long
-request(ScsiPtr *cmd, ScsiPtr *data, uchar status[4])
+request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
 	long n;
+	char buf[16];
 
-	if(write(cmd->fd, cmd->p, cmd->count) != cmd->count){
+	if(write(fd, cmd->p, cmd->count) != cmd->count){
 		fprint(2, "scsireq: write cmd: %r\n");
+		*status = Status_SW;
 		return -1;
 	}
 	if(data->write)
-		n = write(data->fd, data->p, data->count);
+		n = write(fd, data->p, data->count);
 	else
-		n = read(data->fd, data->p, data->count);
-	if(read(cmd->fd, status, sizeof(status)) != sizeof(status)){
+		n = read(fd, data->p, data->count);
+	if(read(fd, buf, sizeof(buf)) < 0){
 		fprint(2, "scsireq: read status: %r\n");
+		*status = Status_SW;
 		return -1;
 	}
+	buf[sizeof(buf)-1] = '\0';
+	*status = atoi(buf);
+	if(n < 0 && *status != STcheck)
+		fprint(2, "scsireq: status 0x%2.2uX: data transfer: %r\n", *status);
 	return n;
 }
 
@@ -541,31 +462,28 @@ long
 SRrequest(ScsiReq *rp)
 {
 	long n;
-	uchar status[4];
+	int status;
 
 retry:
-	if((n = request(&rp->cmd, &rp->data, status)) == -1){
-		rp->status = Status_SW;
-		return -1;
-	}
-	if(status[2] != 0x60){
-		rp->status = Status_HW;
-		return -1;
-	}
-	switch(rp->status = status[3]){
+	n = request(rp->fd, &rp->cmd, &rp->data, &status);
+	switch(rp->status = status){
 
-	case Status_OK:
+	case STok:
 		rp->data.count = n;
 		break;
 
-	case Status_CC:
+	case STcheck:
 		if(rp->cmd.p[0] != ScmdRsense && SRreqsense(rp) != -1)
 			rp->status = Status_SD;
 		return -1;
 
-	case Status_BUSY:
+	case STbusy:
 		sleep(1000);
 		goto retry;
+
+	default:
+		fprint(2, "status 0x%2.2uX\n", status);
+		return -1;
 	}
 	return n;
 }
@@ -577,8 +495,7 @@ SRclose(ScsiReq *rp)
 		rp->status = Status_BADARG;
 		return -1;
 	}
-	close(rp->cmd.fd);
-	close(rp->data.fd);
+	close(rp->fd);
 	rp->flags = 0;
 	return 0;
 }
@@ -597,20 +514,22 @@ dirdevopen(ScsiReq *rp)
 static int
 seqdevopen(ScsiReq *rp)
 {
-	uchar mode[12], limits[6];
+	uchar mode[16], limits[6];
 
 	if(SRrblimits(rp, limits) == -1)
 		return -1;
 	if(limits[1] || limits[2] != limits[4] || limits[3] != limits[5]){
 		memset(mode, 0, sizeof(mode));
-		mode[2] = 0x10;
-		mode[3] = 8;
-		if(SRmodeselect(rp, mode, sizeof(mode)) == -1)
+		mode[3] = 0x10;
+		mode[7] = 8;
+		if(SRmodeselect10(rp, mode, sizeof(mode)) == -1)
 			return -1;
 		rp->lbsize = 1;
 	}
-	else
+	else{
+		rp->flags |= Fbfixed;
 		rp->lbsize = (limits[4]<<8)|limits[5];
+	}
 	return 0;
 }
 
@@ -622,41 +541,31 @@ wormdevopen(ScsiReq *rp)
 
 	if(SRstart(rp, 1) == -1)
 		return -1;
-	if((status = SRmodesense(rp, 0x3F, list, sizeof(list))) == -1)
+	if((status = SRmodesense10(rp, 0x3F, list, sizeof(list))) == -1)
 		return -1;
-	if(list[3] < 8)
+	if(((list[6]<<8)|list[3]) < 8)
 		rp->lbsize = 2048;
 	else
-		rp->lbsize = (list[10]<<8)|list[11];
+		rp->lbsize = (list[13]<<8)|(list[14]<<8)|list[15];
 	return status;
 }
 
 int
-SRopenraw(ScsiReq *rp, int id)
+SRopenraw(ScsiReq *rp, char *unit)
 {
-	char name[128], data[128];
+	char name[128];
 
-	if((rp->flags & Fopen) || id >= NTargetID || id == CtlrID){
+	if(rp->flags & Fopen){
 		rp->status = Status_BADARG;
 		return -1;
 	}
 	memset(rp, 0, sizeof(*rp));
-	rp->id = id;
-	if(bus) {
-		sprint(name, "#S%d/%d/cmd", bus, id);
-		sprint(data, "#S%d/%d/data", bus, id);
-	}
-	else {
-		sprint(name, "#S/%d/cmd", id);
-		sprint(data, "#S/%d/data", id);
-	}
-	if((rp->cmd.fd = open(name, ORDWR)) == -1){
-		rp->status = Status_NX;
-		return -1;
-	}
-	if((rp->data.fd = open(data, ORDWR)) == -1){
-		close(rp->cmd.fd);
-		rp->status = Status_NX;
+	rp->unit = unit;
+
+	sprint(name, "%s/raw", unit);
+
+	if((rp->fd = open(name, ORDWR)) == -1){
+		rp->status = STtimeout;
 		return -1;
 	}
 	rp->flags = Fopen;
@@ -664,9 +573,9 @@ SRopenraw(ScsiReq *rp, int id)
 }
 
 int
-SRopen(ScsiReq *rp, int id)
+SRopen(ScsiReq *rp, char *unit)
 {
-	if(SRopenraw(rp, id) == -1)
+	if(SRopenraw(rp, unit) == -1)
 		return -1;
 	SRready(rp);
 	if(SRinquiry(rp) >= 0){
@@ -674,11 +583,11 @@ SRopen(ScsiReq *rp, int id)
 
 		default:
 			fprint(2, "unknown device type 0x%.2x\n", rp->inquiry[0]);
-			rp->status = Status_NX;
+			rp->status = Status_SW;
 			break;
 
 		case 0x00:	/* Direct access (disk) */
-		case 0x05:	/* CD-rom */
+		case 0x05:	/* CD-ROM */
 		case 0x07:	/* rewriteable MO */
 			if(dirdevopen(rp) == -1)
 				break;
@@ -698,6 +607,10 @@ SRopen(ScsiReq *rp, int id)
 			rp->flags |= Fwormdev;
 			if(wormdevopen(rp) == -1)
 				break;
+			return 0;
+
+		case 0x08:	/* medium-changer */
+			rp->flags |= Fchanger;
 			return 0;
 		}
 	}

@@ -4,6 +4,7 @@
 LIB=/$objtype/lib/libauth.a
 OFILES=\
 	amount.$O\
+	apopchal.$O\
 	auth.$O\
 	authdial.$O\
 	authenticate.$O\
@@ -16,10 +17,14 @@ OFILES=\
 	convM2TR.$O\
 	convM2PR.$O\
 	getchal.$O\
+	login.$O\
 	passtokey.$O\
+	opasstokey.$O\
 	nvcsum.$O\
 	newns.$O\
 	srvauth.$O\
+	httpauth.$O\
+	noworld.$O\
 	_asreadn.$O\
 	_asgetticket.$O\
 	_asrdfile.$O\
@@ -29,4 +34,3 @@ OFILES=\
 HFILES=/sys/include/auth.h
 
 </sys/src/cmd/mksyslib
-CFLAGS=-w

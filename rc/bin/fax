@@ -19,6 +19,27 @@ case 2
 telno=$1
 shift
 
+switch($telno){
+case [0-9]*
+	;
+case *
+	echo usage: $0 telephone-number recipient [files]
+	exit 0
+}
+
+switch($telno){
+case ???????
+	telno='*9,'^$telno
+case ??????????
+	telno='*9,1'^$telno
+case 1??????????
+	telno='*9,'^$telno
+case 011*
+	telno='*9,'^$telno
+case +*
+	telno=`{echo $telno | sed 's/\+/*9,011/'}
+}
+
 recip=$1
 shift
 
@@ -33,7 +54,7 @@ myname=`{echo $tel | sed 's/ \(.*//'}
 ext=`{echo $tel | sed 's/.*\) [^ ]* [^ ]* ([^ ]*).*/\1/'}
 
 fn sigint{
-	rm -f $tmp.* $header $script $header.* $tmpin $tmpps
+	rm -f $tmp.* $script $header $header.* $tmpin $tmpps
 	exit interrupt
 }
 
@@ -48,43 +69,43 @@ case *
 
 # convert to g3
 switch(`{file $infiles(1)}){
-case *g3*
+case *g3* *fax*
 	g3files=$infiles
 case postscript
-	gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.%.3d' -dNOPAUSE -dQUIET $infiles quit.ps
+	gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.%03d' -dNOPAUSE -dQUIET $infiles quit.ps
 	g3files=($tmp.*)
 case *
-	cat $infiles | lp -dstdout > $tmpps
-	gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.%.3d' -dNOPAUSE -dQUIET $tmpps quit.ps
+	lp -dstdout $infiles > $tmpps
+	gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.%03d' -dNOPAUSE -dQUIET $tmpps quit.ps
 	g3files=($tmp.*)
 }
 
 pages=`{echo $g3files|wc -w}
 
-echo -n 's/ddd/' > $script
+echo -n 's/FAXddd/' > $script
 echo -n `{date}>> $script
 echo />> $script
-echo -n s/FFF/>> $script
+echo -n s/FAXFFF/>> $script
 echo -n $myname >>  $script
 echo />> $script
-echo -n s/EEE/>> $script
+echo -n s/FAXEEE/>> $script
 echo -n $user >>  $script
 echo />> $script
-echo -n s/VVV/>> $script
+echo -n s/FAXVVV/>> $script
 echo -n $ext >>  $script
 echo />> $script
-echo -n s/TTT/>> $script
+echo -n s/FAXTTT/>> $script
 echo -n $recip >>  $script
 echo />> $script
-echo -n s/fff/>> $script
+echo -n s/FAXfff/>> $script
 echo -n $telno >>  $script
 echo />> $script
-echo -n s/ppp/>> $script
+echo -n s/FAXPPP/>> $script
 echo -n $pages >>  $script
 echo />> $script
 sed -f $script /sys/lib/fax/h.ps > $header
 
-gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$header'.%.3d' -dNOPAUSE -dQUIET $header quit.ps
+gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$header'.%03d' -dNOPAUSE -dQUIET $header quit.ps
 
 files=()
 for(i in $header.* $g3files){
@@ -93,10 +114,10 @@ for(i in $header.* $g3files){
 
 switch($view){
 case no
-	qer $files /mail/faxoutqueue fax $user $telno < /dev/null
+	upas/qer $files /mail/faxoutqueue fax $user $telno < /dev/null
 	rx dinar /sys/lib/fax/faxgoose
 case yes
 	page $header.* $g3files
 }
 
-rm -f $tmp.* $header $script $header.* $tmpin $tmpps
+#rm -f $tmp.* $script $header $header.* $tmpin $tmpps

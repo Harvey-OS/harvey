@@ -4,11 +4,11 @@ calendar \- print upcoming events
 .SH SYNOPSIS
 .B calendar
 [
-.I file
+.I file ...
 ]
 .SH DESCRIPTION
 .I Calendar
-reads the named file, default
+reads the named files, default
 .BR /usr/$user/lib/calendar ,
 and writes to standard output any lines
 containing today's or tomorrow's date.

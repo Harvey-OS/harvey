@@ -7,25 +7,29 @@
 
 #define	pghash(daddr)	palloc.hash[(daddr>>PGSHIFT)&(PGHSIZE-1)]
 
-static	Lock pglock;
 struct	Palloc palloc;
 
 void
 pageinit(void)
 {
+	int color;
 	Page *p;
-	ulong np, hw, hr, vmem, pmem;
+	ulong np, vm, pm;
 
 	np = palloc.np0+palloc.np1;
 	palloc.head = xalloc(np*sizeof(Page));
 	if(palloc.head == 0)
 		panic("pageinit");
 
+	color = 0;
 	p = palloc.head;
 	while(palloc.np0 > 0) {
 		p->prev = p-1;
 		p->next = p+1;
 		p->pa = palloc.p0;
+		p->color = color;
+		palloc.freecount++;
+		color = (color+1)%NCOLOR;
 		palloc.p0 += BY2PG;
 		palloc.np0--;
 		p++;
@@ -34,6 +38,9 @@ pageinit(void)
 		p->prev = p-1;
 		p->next = p+1;
 		p->pa = palloc.p1;
+		p->color = color;
+		palloc.freecount++;
+		color = (color+1)%NCOLOR;
 		palloc.p1 += BY2PG;
 		palloc.np1--;
 		p++;
@@ -43,19 +50,69 @@ pageinit(void)
 	palloc.tail->next = 0;
 
 	palloc.user = p - palloc.head;
-	palloc.freecount = palloc.user;
-	pmem = palloc.user*BY2PG/1024;
-	vmem = pmem + (conf.nswap*BY2PG)/1024;
+	pm = palloc.user*BY2PG/1024;
+	vm = pm + (conf.nswap*BY2PG)/1024;
 
 	/* Pageing numbers */
-	swapalloc.highwater = (palloc.freecount*5)/100;
+	swapalloc.highwater = (palloc.user*5)/100;
 	swapalloc.headroom = swapalloc.highwater + (swapalloc.highwater/4);
 
-	hw = swapalloc.highwater*BY2PG;
-	hr = swapalloc.headroom*BY2PG;
+	print("%lud free pages\n", palloc.user);
+	print("%ludK bytes\n", pm);
+	print("%ludK swap\n", vm);
+}
 
-	print("%lud free pages, %dK bytes, swap %dK, highwater %dK, headroom %dK\n", 
-	palloc.user, pmem, vmem, hw/1024, hr/1024);/**/
+static void
+pageunchain(Page *p)
+{
+	if(canlock(&palloc))
+		panic("pageunchain");
+	if(p->prev)
+		p->prev->next = p->next;
+	else
+		palloc.head = p->next;
+	if(p->next)
+		p->next->prev = p->prev;
+	else
+		palloc.tail = p->prev;
+	p->prev = p->next = nil;
+	palloc.freecount--;
+}
+
+void
+pagechaintail(Page *p)
+{
+	if(canlock(&palloc))
+		panic("pagechaintail");
+	if(palloc.tail) {
+		p->prev = palloc.tail;
+		palloc.tail->next = p;
+	}
+	else {
+		palloc.head = p;
+		p->prev = 0;
+	}
+	palloc.tail = p;
+	p->next = 0;
+	palloc.freecount++;
+}
+
+void
+pagechainhead(Page *p)
+{
+	if(canlock(&palloc))
+		panic("pagechainhead");
+	if(palloc.head) {
+		p->next = palloc.head;
+		palloc.head->prev = p;
+	}
+	else {
+		palloc.tail = p;
+		p->next = 0;
+	}
+	palloc.head = p;
+	p->prev = 0;
+	palloc.freecount++;
 }
 
 Page*
@@ -63,14 +120,18 @@ newpage(int clear, Segment **s, ulong va)
 {
 	Page *p;
 	KMap *k;
-	int hw, i, dontalloc;
+	uchar ct;
+	int i, hw, dontalloc, color;
 
-retry:
 	lock(&palloc);
-
+	color = getpgcolor(va);
 	hw = swapalloc.highwater;
-	while((palloc.freecount < hw && u->p->kp == 0) || palloc.freecount == 0) {
-		palloc.wanted++;
+	for(;;) {
+		if(palloc.freecount > hw)
+			break;
+		if(up->kp && palloc.freecount > 0)
+			break;
+
 		unlock(&palloc);
 		dontalloc = 0;
 		if(s && *s) {
@@ -78,9 +139,9 @@ retry:
 			*s = 0;
 			dontalloc = 1;
 		}
-		qlock(&palloc.pwait);			/* Hold memory requesters here */
+		qlock(&palloc.pwait);	/* Hold memory requesters here */
 
-		while(waserror())			/* Ignore interrupts */
+		while(waserror())	/* Ignore interrupts */
 			;
 
 		kickpager();
@@ -91,41 +152,45 @@ retry:
 		qunlock(&palloc.pwait);
 
 		/*
-		 * If called from fault and we lost the segment from underneath
-		 * don't waste time allocating and freeing a page. Fault will call
-		 * newpage again when it has reacquired the segment locks
+		 * If called from fault and we lost the segment from
+		 * underneath don't waste time allocating and freeing
+		 * a page. Fault will call newpage again when it has
+		 * reacquired the segment locks
 		 */
 		if(dontalloc)
 			return 0;
 
 		lock(&palloc);
-		palloc.wanted--;
 	}
 
-	p = palloc.head;
-	if(palloc.head = p->next)		/* = Assign */
-		palloc.head->prev = 0;
-	else
-		palloc.tail = 0;
+	/* First try for our colour */
+	for(p = palloc.head; p; p = p->next)
+		if(p->color == color)
+			break;
 
-	palloc.freecount--;
-	unlock(&palloc);
+	ct = PG_NOFLUSH;
+	if(p == 0) {
+		p = palloc.head;
+		p->color = color;
+		ct = PG_NEWCOL;
+	}
+
+	pageunchain(p);
 
 	lock(p);
-	if(p->ref != 0) {	/* lookpage has priority on steal */
-		unlock(p);
-		goto retry;
-	}
+	if(p->ref != 0)
+		panic("newpage");
+
 	uncachepage(p);
 	p->ref++;
 	p->va = va;
 	p->modref = 0;
 	for(i = 0; i < MAXMACH; i++)
-		p->cachectl[i] = PG_NOFLUSH;
-	mmunewpage(p);
+		p->cachectl[i] = ct;
 	unlock(p);
+	unlock(&palloc);
 
-	if(clear){
+	if(clear) {
 		k = kmap(p);
 		memset((void*)VA(k), 0, BY2PG);
 		kunmap(k);
@@ -135,9 +200,8 @@ retry:
 }
 
 int
-ispages(void *p)
+ispages(void*)
 {
-	USED(p);
 	return palloc.freecount >= swapalloc.highwater;
 }
 
@@ -149,109 +213,114 @@ putpage(Page *p)
 		return;
 	}
 
+	lock(&palloc);
 	lock(p);
-	if(--p->ref == 0) {
-		lock(&palloc);
-		if(p->image && p->image != &swapimage) {
-			if(palloc.tail) {
-				p->prev = palloc.tail;
-				palloc.tail->next = p;
-			}
-			else {
-				palloc.head = p;
-				p->prev = 0;
-			}
-			palloc.tail = p;
-			p->next = 0;
-		}
-		else {
-			if(palloc.head) {
-				p->next = palloc.head;
-				palloc.head->prev = p;
-			}
-			else {
-				palloc.tail = p;
-				p->next = 0;
-			}
-			palloc.head = p;
-			p->prev = 0;
-		}
 
-		palloc.freecount++;	/* Release people waiting for memory */
-		if(palloc.r.p != 0)
-			wakeup(&palloc.r);
+	if(p->ref == 0)
+		panic("putpage");
+
+	if(--p->ref > 0) {
+		unlock(p);
 		unlock(&palloc);
-	}
-	unlock(p);
-}
-
-void
-simpleputpage(Page *pg)			/* Always call with palloc locked */
-{
-	if(pg->ref != 1)
-		panic("simpleputpage");
-	pg->ref = 0;
-	palloc.freecount++;
-	if(palloc.head == 0) {
-		palloc.head = palloc.tail = pg;
-		pg->prev = pg->next = 0;
 		return;
 	}
-	pg->next = palloc.head;
-	palloc.head->prev = pg;
-	pg->prev = 0;
-	palloc.head = pg;
+
+	if(p->image && p->image != &swapimage)
+		pagechaintail(p);
+	else 
+		pagechainhead(p);
+
+	if(palloc.r.p != 0)
+		wakeup(&palloc.r);
+
+	unlock(p);
+	unlock(&palloc);
+}
+
+Page*
+auxpage()
+{
+	Page *p;
+
+	lock(&palloc);
+	p = palloc.head;
+	if(palloc.freecount < swapalloc.highwater) {
+		unlock(&palloc);
+		return 0;
+	}
+	pageunchain(p);
+
+	lock(p);
+	if(p->ref != 0)
+		panic("auxpage");
+	p->ref++;
+	uncachepage(p);
+	unlock(p);
+	unlock(&palloc);
+
+	return p;
 }
 
 void
 duppage(Page *p)				/* Always call with p locked */
 {
 	Page *np;
+	int color;
+	int retries;
 
-	/* No dup for swap pages */
-	if(p->image == &swapimage) {
-		uncachepage(p);	
+	retries = 0;
+retry:
+
+	if(retries++ > 10000)
+		panic("duppage %d", retries);
+
+	/* don't dup pages with no image */
+	if(p->ref == 0 || p->image == nil || p->image->notext)
 		return;
+
+	/*
+	 *  normal lock ordering is to call
+	 *  lock(&palloc) before lock(p).
+	 *  To avoid deadlock, we have to drop
+	 *  our locks and try again.
+	 */
+	if(!canlock(&palloc)){
+		unlock(p);
+		if(up)
+			sched();
+		lock(p);
+		goto retry;
 	}
 
-	lock(&palloc);
 	/* No freelist cache when memory is very low */
 	if(palloc.freecount < swapalloc.highwater) {
 		unlock(&palloc);
-		uncachepage(p);	
+		uncachepage(p);
 		return;
 	}
 
-	np = palloc.head;		/* Allocate a new page from freelist */
-	if(palloc.head = np->next)	/* = Assign */
-		palloc.head->prev = 0;
-	else
-		palloc.tail = 0;
+	color = getpgcolor(p->va);
+	for(np = palloc.head; np; np = np->next)
+		if(np->color == color)
+			break;
 
-	if(palloc.tail) {		/* Link back onto tail to give us lru */
-		np->prev = palloc.tail;
-		palloc.tail->next = np;
-		np->next = 0;
-		palloc.tail = np;
-	}
-	else {
-		palloc.head = palloc.tail = np;
-		np->prev = np->next = 0;
+	/* No page of the correct color */
+	if(np == 0) {
+		unlock(&palloc);
+		uncachepage(p);
+		return;
 	}
 
+	pageunchain(np);
+	pagechaintail(np);
+
+	lock(np);
 	unlock(&palloc);
 
-	lock(np);				/* Cache the new version */
-	if(np->ref != 0) {			/* Stolen by lookpage */
-		uncachepage(p);
-		unlock(np);
-		return;
-	}
-	
+	/* Cache the new version */
 	uncachepage(np);
 	np->va = p->va;
 	np->daddr = p->daddr;
-	mmunewpage(np);
 	copypage(p, np);
 	cachepage(np, p->image);
 	unlock(np);
@@ -290,6 +359,7 @@ uncachepage(Page *p)			/* Always called with a locked page */
 	unlock(&palloc.hashlock);
 	putimage(p->image);
 	p->image = 0;
+	p->daddr = 0;
 }
 
 void
@@ -323,7 +393,14 @@ cachedel(Image *i, ulong daddr)
 	l = &pghash(daddr);
 	for(f = *l; f; f = f->hash) {
 		if(f->image == i && f->daddr == daddr) {
-			*l = f->hash;
+			lock(f);
+			if(f->image == i && f->daddr == daddr){
+				*l = f->hash;
+				putimage(f->image);
+				f->image = 0;
+				f->daddr = 0;
+			}
+			unlock(f);
 			break;
 		}
 		l = &f->hash;
@@ -341,32 +418,23 @@ lookpage(Image *i, ulong daddr)
 		if(f->image == i && f->daddr == daddr) {
 			unlock(&palloc.hashlock);
 
+			lock(&palloc);
 			lock(f);
 			if(f->image != i || f->daddr != daddr) {
 				unlock(f);
+				unlock(&palloc);
 				return 0;
 			}
-
-			lock(&palloc);
-			if(++f->ref == 1) {
-				if(f->prev) 
-					f->prev->next = f->next;
-				else
-					palloc.head = f->next;
-
-				if(f->next)
-					f->next->prev = f->prev;
-				else
-					palloc.tail = f->prev;
-				palloc.freecount--;
-			}
+			if(++f->ref == 1)
+				pageunchain(f);
 			unlock(&palloc);
-
 			unlock(f);
-			return f;	
+
+			return f;
 		}
 	}
 	unlock(&palloc.hashlock);
+
 	return 0;
 }
 
@@ -392,7 +460,7 @@ ptecpy(Pte *old)
 			*dst = *src;
 		}
 
-	return new;		
+	return new;
 }
 
 Pte*
@@ -410,8 +478,8 @@ void
 freepte(Segment *s, Pte *p)
 {
 	int ref;
-	Page *pt, **pg, **ptop;
 	void (*fn)(Page*);
+	Page *pt, **pg, **ptop;
 
 	switch(s->type&SG_TYPE) {
 	case SG_PHYSICAL:
@@ -428,7 +496,7 @@ freepte(Segment *s, Pte *p)
 		}
 		for(pg = p->pages; pg < ptop; pg++) {
 			pt = *pg;
-			if(pt == 0) 
+			if(pt == 0)
 				continue;
 			lock(pt);
 			ref = --pt->ref;

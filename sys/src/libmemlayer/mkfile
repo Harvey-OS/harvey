@@ -1,0 +1,20 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libmemlayer.a
+
+OFILES=\
+	draw.$O\
+	lalloc.$O\
+	layerop.$O\
+	ldelete.$O\
+	lhide.$O\
+	line.$O\
+	load.$O\
+	lorigin.$O\
+	lsetrefresh.$O\
+	ltofront.$O\
+	ltorear.$O\
+
+HFILES=/sys/include/memlayer.h /sys/include/memdraw.h /sys/include/draw.h
+
+</sys/src/cmd/mksyslib

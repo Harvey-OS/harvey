@@ -1,19 +1,19 @@
 #include	"mk.h"
 
 char *infile;
-int inline;
+int mkinline;
 static int rhead(char *, Word **, Word **, int *, char **);
 static char *rbody(Biobuf*);
 extern Word *target1;
 
 void
-parse(char *f, int fd, int varoverride, int ruleoverride)
+parse(char *f, int fd, int varoverride)
 {
 	int hline;
 	char *body;
 	Word *head, *tail;
-	int attr, set;
-	char *prog, *inc;
+	int attr, set, pid;
+	char *prog, *p;
 	int newfd;
 	Biobuf in;
 	Bufblock *buf;
@@ -24,29 +24,51 @@ parse(char *f, int fd, int varoverride, int ruleoverride)
 	}
 	ipush();
 	infile = strdup(f);
-	inline = 1;
+	mkinline = 1;
 	Binit(&in, fd, OREAD);
 	buf = newbuf();
-	inc = 0;
 	while(assline(&in, buf)){
-		hline = inline;
+		hline = mkinline;
 		switch(rhead(buf->start, &head, &tail, &attr, &prog))
 		{
 		case '<':
-			if((tail == 0) || ((inc = wtos(tail)) == 0)){
+			p = wtos(tail, ' ');
+			if(*p == 0){
 				SYNERR(-1);
 				fprint(2, "missing include file name\n");
 				Exit();
 			}
-			if((newfd = open(inc, 0)) < 0){
+			newfd = open(p, OREAD);
+			if(newfd < 0){
 				fprint(2, "warning: skipping missing include file: ");
-				perror(inc);
+				perror(p);
 			} else
-				parse(inc, newfd, 0, 1);
+				parse(p, newfd, 0);
+			break;
+		case '|':
+			p = wtos(tail, ' ');
+			if(*p == 0){
+				SYNERR(-1);
+				fprint(2, "missing include program name\n");
+				Exit();
+			}
+			execinit();
+			pid=pipecmd(p, envy, &newfd);
+			if(newfd < 0){
+				fprint(2, "warning: skipping missing program file: ");
+				perror(p);
+			} else
+				parse(p, newfd, 0);
+			while(waitup(-3, &pid) >= 0)
+				;
+			if(pid != 0){
+				fprint(2, "bad include program status\n");
+				Exit();
+			}
 			break;
 		case ':':
 			body = rbody(&in);
-			addrules(head, tail, body, attr, hline, ruleoverride, prog);
+			addrules(head, tail, body, attr, hline, prog);
 			break;
 		case '=':
 			if(head->next){
@@ -54,25 +76,24 @@ parse(char *f, int fd, int varoverride, int ruleoverride)
 				fprint(2, "multiple vars on left side of assignment\n");
 				Exit();
 			}
-			if(symlook(head->s, S_OVERRIDE, (char *)0)){
+			if(symlook(head->s, S_OVERRIDE, 0)){
 				set = varoverride;
-				symdel(head->s, S_OVERRIDE);
 			} else {
 				set = 1;
 				if(varoverride)
-					symlook(head->s, S_OVERRIDE, "");
+					symlook(head->s, S_OVERRIDE, (void *)"");
 			}
 			if(set){
 /*
 char *cp;
 dumpw("tail", tail);
-cp = wtos(tail); print("assign %s to %s\n", head->s, cp); free(cp);
+cp = wtos(tail, ' '); print("assign %s to %s\n", head->s, cp); free(cp);
 */
-				setvar(head->s, (char *) tail);
-				symlook(head->s, S_WESET, "");
+				setvar(head->s, (void *) tail);
+				symlook(head->s, S_WESET, (void *)"");
 			}
 			if(attr)
-				symlook(head->s, S_NOEXPORT, "");
+				symlook(head->s, S_NOEXPORT, (void *)"");
 			break;
 		default:
 			SYNERR(hline);
@@ -87,15 +108,21 @@ cp = wtos(tail); print("assign %s to %s\n", head->s, cp); free(cp);
 }
 
 void
-addrules(Word *head, Word *tail, char *body, int attr, int hline, int override, char *prog)
+addrules(Word *head, Word *tail, char *body, int attr, int hline, char *prog)
 {
 	Word *w;
 
-	assert("addrules args", head && body);
-	if((target1 == 0) && !(attr&REGEXP))
-		frule(head);
+	assert(/*addrules args*/ head && body);
+		/* tuck away first non-meta rule as default target*/
+	if(target1 == 0 && !(attr&REGEXP)){
+		for(w = head; w; w = w->next)
+			if(charin(w->s, "%&"))
+				break;
+		if(w == 0)
+			target1 = wdup(head);
+	}
 	for(w = head; w; w = w->next)
-		addrule(w->s, tail, body, head, attr, hline, override, prog);
+		addrule(w->s, tail, body, head, attr, hline, prog);
 }
 
 static int
@@ -113,11 +140,14 @@ rhead(char *line, Word **h, Word **t, int *attr, char **prog)
 		return('?');
 	sep = *p;
 	*p++ = 0;
+	if(sep == '<' && *p == '|'){
+		sep = '|';
+		p++;
+	}
 	*attr = 0;
 	*prog = 0;
-/*print("SEP: %c\n", sep);*/
 	if(sep == '='){
-		pp = charin(p, "'= \t");
+		pp = charin(p, termchars);	/* termchars is shell-dependent */
 		if (pp && *pp == '=') {
 			while (p != pp) {
 				n = chartorune(&r, p);
@@ -148,9 +178,6 @@ rhead(char *line, Word **h, Word **t, int *attr, char **prog)
 				SYNERR(-1);
 				fprint(2, "unknown attribute '%c'\n", p[-1]);
 				Exit();
-			case '<':
-				*attr |= RED;
-				break;
 			case 'D':
 				*attr |= DEL;
 				break;
@@ -164,7 +191,7 @@ rhead(char *line, Word **h, Word **t, int *attr, char **prog)
 				*attr |= NOREC;
 				break;
 			case 'P':
-				pp = charin(p, ":");
+				pp = utfrune(p, ':');
 				if (pp == 0 || *pp == 0)
 					goto eos;
 				*pp = 0;
@@ -194,12 +221,10 @@ rhead(char *line, Word **h, Word **t, int *attr, char **prog)
 		}
 	}
 	*h = w = stow(line);
-	if(!*w->s) {
-		if (sep != '<') {
-			SYNERR(inline-1);
-			fprint(2, "no var on left side of assignment/rule\n");
-			Exit();
-		}
+	if(*w->s == 0 && sep != '<' && sep != '|') {
+		SYNERR(mkinline-1);
+		fprint(2, "no var on left side of assignment/rule\n");
+		Exit();
 	}
 	*t = stow(p);
 	return(sep);
@@ -229,7 +254,7 @@ rbody(Biobuf *in)
 			rinsert(buf, r);
 		lastr = r;
 		if (r == '\n')
-			inline++;
+			mkinline++;
 	}
 	insert(buf, 0);
 	p = strdup(buf->start);
@@ -252,7 +277,7 @@ ipush(void)
 
 	me = (struct input *)Malloc(sizeof(*me));
 	me->file = infile;
-	me->line = inline;
+	me->line = mkinline;
 	me->next = 0;
 	if(inputs == 0)
 		inputs = me;
@@ -268,7 +293,7 @@ ipop(void)
 {
 	struct input *in, *me;
 
-	assert("pop input list", inputs != 0);
+	assert(/*pop input list*/ inputs != 0);
 	if(inputs->next == 0){
 		me = inputs;
 		inputs = 0;
@@ -279,6 +304,6 @@ ipop(void)
 		in->next = 0;
 	}
 	infile = me->file;
-	inline = me->line;
+	mkinline = me->line;
 	free((char *)me);
 }

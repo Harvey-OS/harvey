@@ -1,6 +1,6 @@
 .TH LISTEN 8
 .SH NAME
-listen, dkcpu, dkcpunote, dkdiscard, dkecho, dkexportfs, dkrexexec, dkticket, dkwhoami, dksmtp, dkdcon, dklogin, dkguard, il7, il9, il565, il566, il17005, il17006, il17007, il17009, tcp2, tcp7, tcp9, tcp21, tcp23, tcp80, tcp25, tcp513, tcp515, tcp564, tcp565, tcp566, tcp17007, tcp6000 \- listen for calls on a network device
+listen, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il17031, tcp2, tcp7, tcp9, tcp19, tcp21, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp6000, tcp6667, tcp17007, tcp17009, tcp17013 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
 .RB [ -q ]
@@ -18,8 +18,8 @@ announces itself to a network as
 .BR /env/sysname )
 and listens for inbound calls to local services.
 .I Net
-is the network device on which to listen, by default
-.BR /net/dk .
+is the network protocol on which to listen, by default
+.BR /net/il .
 The services available are executable files in
 .I srvdir
 or
@@ -48,25 +48,17 @@ Service names are made by concatenating the name of
 the network with the name of the service or port.
 For example,
 an inbound call on the TCP network for port 565 executes service
-.BR tcp565 ,
-while a call on the Datakit network for service whoami executes service
-.BR dkwhoami .
+.BR tcp565 .
 .PP
 The following services are available in
 .BR /bin/service .
-.TF dkwhoami\ il565\ tcp565
+.TF il17005\ tcp17005
 .TP
-.B "dkcpu il17005"
-server for
-.IR cpu (1)
-command.
+.B il19 tcp19
+.B chargen
+service.
 .TP
-.B "dkcpunote il17006"
-.BI  /proc/ pid /notify
-forwarding for
-.IR cpu (1).
-.TP
-.B dkexportfs il17007 tcp17007
+.B il17007 tcp17007
 serve a piece of the name space using the Plan 9 file system protocol,
 with authentication (typically used by
 .IR cpu (1)).
@@ -75,18 +67,26 @@ with authentication (typically used by
 like 17007, without authentication (used by Unix
 systems to see Plan 9 files).
 .TP
-.B dkrexexec il17009
+.B il17008
+like 17007, but serves the root of the tree, forgoing the negotiation for which subtree to serve.
+.TP
+.B il17009 tcp17009
 remote execution.
 .TP
-.B dkwhoami il565 tcp565
+.B "il17013 tcp17013"
+server for
+.IR cpu (1)
+command.
+.TP
+.B il17031
+server for
+.IR ramfs (4).
+.TP
+.B il565 tcp565
 report the address of the incoming call.
 .TP
 .B tcp21
 FTP daemon
-.TP
-.B tcp80
-HTTP daemon; see
-.IR httpd (8).
 .TP
 .B tcp515
 LP daemon; see
@@ -95,18 +95,12 @@ LP daemon; see
 .B tcp6000
 X-window callback
 .TP
-.B dksmtp tcp25
-mail delivery.
-.TP
-.B dkdcon
-research Unix terminal connection.
-.TP
-.B dklogin
-generic terminal connection.
-.TP
 .B tcp23
 .B telnet
 terminal connection.
+.TP
+.B tcp25
+mail delivery.
 .TP
 .B tcp513
 .B rlogin
@@ -115,27 +109,47 @@ terminal connection.
 .B tcp2
 hold the connection open; sleep for a long time
 .TP
-.B dkecho il7 tcp7
+.B il7 tcp7
 echo any bytes received (bit mirror)
 .TP
-.B dkdiscard il9 tcp9
+.B il9 tcp9
 consume any bytes received (bit bucket)
+.TP
+.B tcp53
+TCP port for DNS.
+.TP
+.B tcp110
+POP3 port.
+.TP
+.B tcp143
+IMAP4rev1 port.
+.TP
+.B tcp993
+Secure IMAP4rev1 port.
+.TP
+.B tcp113
+.B Ident
+port (always reports
+.BR none ).
+.TP
+.B tcp6667
+Inferno (Styx) port.
+.TP
+.B tcp567
+Plan 9 ticket service.
 
 .PP
 The following services are available in
 .BR /bin/service.auth .
-.TF dkwhoami\ il565\ tcp565
+.TF il565\ tcp565
 .TP
-.B dkguard tcp566
+.B tcp566
 check a SecureNet box.
 .TP
-.B dkticket il566
+.B il566
 authentication requests.
 .SH FILES
 .TF /env/sysname
-.TP
-.B /net/dk
-by convention, Datakit device bind point
 .TP
 .B /net/il
 by convention, IL device bind point
@@ -155,7 +169,5 @@ The other commands are
 scripts in
 .BR /rc/bin/service .
 .SH "SEE ALSO"
-.IR dkconfig (8),
 .IR auth (6),
-.IR dk (3),
 .IR dial (2)

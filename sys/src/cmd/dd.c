@@ -14,10 +14,10 @@ char	*ifile;
 char	*ofile;
 char	*ibuf;
 char	*obuf;
-long	skip;
-long	oseekn;
-long	iseekn;
-long	count;
+vlong	skip;
+vlong	oseekn;
+vlong	iseekn;
+vlong	count;
 long	files	= 1;
 long	ibs	= 512;
 long	obs	= 512;
@@ -41,7 +41,7 @@ uchar	atoibm[256];
 
 void	flsh(void);
 int	match(char *s);
-long	number(long big);
+vlong	number(long big);
 void	cnull(int cc);
 void	null(int c);
 void	ascii(int cc);
@@ -183,7 +183,7 @@ main(int argc, char *argv[])
 	}else{
 		obf = dup(1, -1);
 		if(obf < 0) {
-			fprint(2, "dd: can't dup file descriptor: %r\n", ofile);
+			fprint(2, "dd: can't dup file descriptor: %s: %r\n", ofile);
 			exits("dup");
 		}
 	}
@@ -312,11 +312,11 @@ true:
 	return 1;
 }
 
-long
+vlong
 number(long big)
 {
 	char *cs;
-	long n;
+	vlong n;
 
 	cs = string;
 	n = 0;
@@ -345,7 +345,7 @@ number(long big)
 
 	case '\0':
 		if(n>=big || n<0) {
-			fprint(2, "dd: argument %ld out of range\n", n);
+			fprint(2, "dd: argument %lld out of range\n", n);
 			exits("range");
 		}
 		return n;

@@ -4,38 +4,30 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
-#define	DEVTAB
-#include	"devtab.h"
 
 extern ulong	kerndate;
 
 int
 devno(int c, int user)
 {
-	Rune *s;
 	int i;
 
-	s = devchar;
-	i = 0;
-	while(*s){
-		if(c == *s)
+	for(i = 0; devtab[i] != nil; i++) {
+		if(devtab[i]->dc == c)
 			return i;
-		i++;
-		s++;
 	}
+	if(user == 0)
+		panic("devno %C 0x%ux", c, c);
 
-	if(user)
-		return -1;
-	panic("devno %C 0x%ux", c, c);
-	return 0;
+	return -1;
 }
 
 void
-devdir(Chan *c, Qid qid, char *n, long length, char *user, long perm, Dir *db)
+devdir(Chan *c, Qid qid, char *n, vlong length, char *user, long perm, Dir *db)
 {
 	strcpy(db->name, n);
 	db->qid = qid;
-	db->type = devchar[c->type];
+	db->type = devtab[c->type]->dc;
 	db->dev = c->dev;
 	if(qid.path & CHDIR)
 		db->mode = CHDIR|perm;
@@ -45,52 +37,75 @@ devdir(Chan *c, Qid qid, char *n, long length, char *user, long perm, Dir *db)
 		db->mode |= CHMOUNT;
 	db->atime = seconds();
 	db->mtime = kerndate;
-	db->hlength = 0;
 	db->length = length;
 	memmove(db->uid, user, NAMELEN);
 	memmove(db->gid, eve, NAMELEN);
 }
 
+//
+// the zeroth element of the table MUST be the directory itself for ..
+//
 int
 devgen(Chan *c, Dirtab *tab, int ntab, int i, Dir *dp)
 {
-	if(tab==0 || i>=ntab)
+	if(tab==0)
 		return -1;
-	tab += i;
+	if(i!=DEVDOTDOT){
+		if(i>=ntab)
+			return -1;
+		tab += i;
+	}
 	devdir(c, tab->qid, tab->name, tab->length, eve, tab->perm, dp);
 	return 1;
 }
 
-Chan *
+void
+devreset(void)
+{
+}
+
+void
+devinit(void)
+{
+}
+
+Chan*
 devattach(int tc, char *spec)
 {
 	Chan *c;
+	char buf[NAMELEN+4];
 
-	USED(spec);
 	c = newchan();
 	c->qid = (Qid){CHDIR, 0};
 	c->type = devno(tc, 0);
+	sprint(buf, "#%C%s", tc, spec==nil? "" : spec);
+	c->name = newcname(buf);
 	return c;
 }
 
-Chan *
+Chan*
 devclone(Chan *c, Chan *nc)
 {
 	if(c->flag & COPEN)
-		panic("clone of open file type %C\n", devchar[c->type]);
+		panic("clone of open file type %C\n", devtab[c->type]->dc);
+
 	if(nc == 0)
 		nc = newchan();
+
 	nc->type = c->type;
 	nc->dev = c->dev;
 	nc->mode = c->mode;
 	nc->qid = c->qid;
 	nc->offset = c->offset;
 	nc->flag = c->flag;
-	nc->mnt = c->mnt;
+	nc->mh = c->mh;
+	if(c->mh != nil)
+		incref(c->mh);
 	nc->mountid = c->mountid;
 	nc->aux = c->aux;
 	nc->mchan = c->mchan;
 	nc->mqid = c->mqid;
+	nc->mcp = c->mcp;
 	return nc;
 }
 
@@ -103,10 +118,15 @@ devwalk(Chan *c, char *name, Dirtab *tab, int ntab, Devgen *gen)
 	isdir(c);
 	if(name[0]=='.' && name[1]==0)
 		return 1;
-	for(i=0;; i++)
+	if(name[0]=='.' && name[1]=='.' && name[2]==0){
+		(*gen)(c, tab, ntab, DEVDOTDOT, &dir);
+		c->qid = dir.qid;
+		return 1;
+	}
+	for(i=0;; i++) {
 		switch((*gen)(c, tab, ntab, i, &dir)){
 		case -1:
-			strncpy(u->error, Enonexist, NAMELEN);
+			strncpy(up->error, Enonexist, NAMELEN);
 			return 0;
 		case 0:
 			continue;
@@ -117,7 +137,8 @@ devwalk(Chan *c, char *name, Dirtab *tab, int ntab, Devgen *gen)
 			}
 			continue;
 		}
-	return 1;	/* not reached */
+	}
+	return 0;
 }
 
 void
@@ -125,27 +146,33 @@ devstat(Chan *c, char *db, Dirtab *tab, int ntab, Devgen *gen)
 {
 	int i;
 	Dir dir;
+	char *p, *elem;
 
 	for(i=0;; i++)
 		switch((*gen)(c, tab, ntab, i, &dir)){
 		case -1:
-			/*
-			 *  given a channel, we cannot derive the directory name
-			 *  that the channel was generated from since it was lost
-			 *  by namec.
-			 */
 			if(c->qid.path & CHDIR){
-				devdir(c, c->qid, ".", 0L, eve, CHDIR|0775, &dir);
+				if(c->name == nil)
+					elem = "???";
+				else if(strcmp(c->name->s, "/") == 0)
+					elem = "/";
+				else
+					for(elem=p=c->name->s; *p; p++)
+						if(*p == '/')
+							elem = p+1;
+				devdir(c, c->qid, elem, i*DIRLEN, eve, CHDIR|0555, &dir);
 				convD2M(&dir, db);
 				return;
 			}
-			print("%s %s: devstat %C %lux\n", u->p->text, u->p->user,
-							devchar[c->type], c->qid.path);
+			print("%s %s: devstat %C %lux\n",
+				up->text, up->user,
+				devtab[c->type]->dc, c->qid.path);
+
 			error(Enonexist);
 		case 0:
 			break;
 		case 1:
-			if(eqqid(c->qid, dir.qid)){
+			if(c->qid.path == dir.qid.path) {
 				if(c->flag&CMSG)
 					dir.mode |= CHMOUNT;
 				convD2M(&dir, db);
@@ -162,7 +189,7 @@ devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
 	Dir dir;
 
 	k = c->offset/DIRLEN;
-	for(m=0; m<n; k++)
+	for(m=0; m<n; k++) {
 		switch((*gen)(c, tab, ntab, k, &dir)){
 		case -1:
 			return m;
@@ -177,10 +204,12 @@ devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
 			d += DIRLEN;
 			break;
 		}
+	}
+
 	return m;
 }
 
-Chan *
+Chan*
 devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 {
 	int i;
@@ -188,20 +217,21 @@ devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 	ulong t, mode;
 	static int access[] = { 0400, 0200, 0600, 0100 };
 
-	for(i=0;; i++)
+	for(i=0;; i++) {
 		switch((*gen)(c, tab, ntab, i, &dir)){
 		case -1:
 			goto Return;
 		case 0:
 			break;
 		case 1:
-			if(eqqid(c->qid, dir.qid)) {
-				if(strcmp(u->p->user, dir.uid) == 0)	/* User */
+			if(c->qid.path == dir.qid.path) {
+				if(strcmp(up->user, dir.uid) == 0)
 					mode = dir.mode;
-				else if(strcmp(u->p->user, eve) == 0)	/* eve is group */
+				else
+				if(strcmp(up->user, eve) == 0)
 					mode = dir.mode<<3;
 				else
-					mode = dir.mode<<6;		/* Other */
+					mode = dir.mode<<6;
 
 				t = access[omode&3];
 				if((t & mode) == t)
@@ -210,11 +240,58 @@ devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 			}
 			break;
 		}
-    Return:
+	}
+Return:
 	c->offset = 0;
 	if((c->qid.path&CHDIR) && omode!=OREAD)
 		error(Eperm);
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
 	return c;
+}
+
+void
+devcreate(Chan*, char*, int, ulong)
+{
+	error(Eperm);
+}
+
+Block*
+devbread(Chan *c, long n, ulong offset)
+{
+	Block *bp;
+
+	bp = allocb(n);
+	if(bp == 0)
+		error(Enomem);
+	if(waserror()) {
+		freeb(bp);
+		nexterror();
+	}
+	bp->wp += devtab[c->type]->read(c, bp->wp, n, offset);
+	poperror();
+	return bp;
+}
+
+long
+devbwrite(Chan *c, Block *bp, ulong offset)
+{
+	long n;
+
+	n = devtab[c->type]->write(c, bp->rp, BLEN(bp), offset);
+	freeb(bp);
+
+	return n;
+}
+
+void
+devremove(Chan*)
+{
+	error(Eperm);
+}
+
+void
+devwstat(Chan*, char*)
+{
+	error(Eperm);
 }

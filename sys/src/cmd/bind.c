@@ -7,7 +7,7 @@ void
 main(int argc, char *argv[])
 {
 	ulong flag = 0;
-	char buf[ERRLEN];
+	int qflag = 0;
 
 	ARGBEGIN{
 	case 'a':
@@ -19,6 +19,9 @@ main(int argc, char *argv[])
 	case 'c':
 		flag |= MCREATE;
 		break;
+	case 'q':
+		qflag = 1;
+		break;
 	default:
 		usage();
 	}ARGEND
@@ -27,8 +30,15 @@ main(int argc, char *argv[])
 		usage();
 
 	if(bind(argv[0], argv[1], flag) < 0){
-		errstr(buf);
-		fprint(2, "bind %s %s: %s\n", argv[0], argv[1], buf);
+		if(qflag)
+			exits(0);
+		/* try to give a less confusing error than the default */
+		if(access(argv[0], 0) < 0)
+			fprint(2, "bind: %s: %r\n", argv[0]);
+		else if(access(argv[1], 0) < 0)
+			fprint(2, "bind: %s: %r\n", argv[1]);
+		else
+			fprint(2, "bind %s %s: %r\n", argv[0], argv[1]);
 		exits("bind");
 	}
 	exits(0);

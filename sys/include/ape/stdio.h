@@ -117,10 +117,6 @@ extern int feof(FILE *);
 extern int ferror(FILE *);
 extern void perror(const char *);
 extern FILE _IO_stream[FOPEN_MAX];
-extern FILE *sopenr(const char *);
-extern FILE *sopenw(void);
-extern char *sclose(FILE *);
-extern char *rdline(FILE *, char **);
 
 #ifdef _POSIX_SOURCE
 extern int fileno(FILE *);

@@ -9,8 +9,8 @@ extern	void	error(char*);
 #define	CHAR(x)		*p++ = f->x
 #define	SHORT(x)	p[0] = f->x; p[1] = f->x>>8; p += 2
 #define	LONG(x)		p[0] = f->x; p[1] = f->x>>8; p[2] = f->x>>16; p[3] = f->x>>24; p += 4
-#define	VLONG(x)	p[0] = f->x; p[1] = f->x>>8; p[2] = f->x>>16; p[3] = f->x>>24;\
-				p[4] = 0; p[5] = 0; p[6] = 0; p[7] = 0; p += 8
+#define	VLONG(x,y)	p[0] = f->x; p[1] = f->x>>8; p[2] = f->x>>16; p[3] = f->x>>24;\
+				p[4] = f->y; p[5] = f->y>>8; p[6] = f->y>>16; p[7] = f->y>>24; p += 8
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 int
@@ -27,7 +27,7 @@ convD2M(Dir *f, char *ap)
 	LONG(mode);
 	LONG(atime);
 	LONG(mtime);
-	VLONG(len.l.length);
+	VLONG(len.length, len.hlength);
 	SHORT(type);
 	SHORT(dev);
 	return p - (Uchar*)ap;
@@ -40,10 +40,9 @@ convD2M(Dir *f, char *ap)
 #undef	STRING
 #define	CHAR(x)		f->x = *p++
 #define	SHORT(x)	f->x = (p[0] | (p[1]<<8)); p += 2
-#define	LONG(x)		f->x = (p[0] | (p[1]<<8) |\
-				(p[2]<<16) | (p[3]<<24)); p += 4
-#define	VLONG(x)	f->x = (p[0] | (p[1]<<8) |\
-				(p[2]<<16) | (p[3]<<24)); p += 8
+#define	LONG(x)		f->x = (p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24)); p += 4
+#define	VLONG(x,y)	f->x = (p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24)); \
+				f->y = (p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24)); p += 8
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 int
@@ -53,14 +52,17 @@ convM2D(char *ap, Dir *f)
 
 	p = (Uchar*)ap;
 	STRING(name, sizeof(f->name));
+	f->name[sizeof(f->name)-1] = '\0';
 	STRING(uid, sizeof(f->uid));
+	f->uid[sizeof(f->uid)-1] = '\0';
 	STRING(gid, sizeof(f->gid));
+	f->gid[sizeof(f->gid)-1] = '\0';
 	LONG(qid.path);
 	LONG(qid.vers);
 	LONG(mode);
 	LONG(atime);
 	LONG(mtime);
-	VLONG(len.l.length);
+	VLONG(len.length, len.hlength);
 	SHORT(type);
 	SHORT(dev);
 	return p - (Uchar*)ap;
@@ -106,7 +108,9 @@ convM2S(char *ap, Fcall *f, int n)
 	case Tattach:
 		SHORT(fid);
 		STRING(uname, sizeof(f->uname));
+		f->uname[sizeof(f->uname)-1] = '\0';
 		STRING(aname, sizeof(f->aname));
+		f->aname[sizeof(f->aname)-1] = '\0';
 		STRING(ticket, sizeof(f->ticket));
 		STRING(auth, sizeof(f->auth));
 		break;
@@ -119,6 +123,7 @@ convM2S(char *ap, Fcall *f, int n)
 	case Twalk:
 		SHORT(fid);
 		STRING(name, sizeof(f->name));
+		f->name[sizeof(f->name)-1] = '\0';
 		break;
 
 	case Topen:
@@ -129,6 +134,7 @@ convM2S(char *ap, Fcall *f, int n)
 	case Tcreate:
 		SHORT(fid);
 		STRING(name, sizeof(f->name));
+		f->name[sizeof(f->name)-1] = '\0';
 		LONG(perm);
 		CHAR(mode);
 		break;

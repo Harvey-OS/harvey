@@ -7,17 +7,24 @@
 char*
 ipattr(char *name)
 {
-	char *p;
+	char *p, c;
 	int dot = 0;
 	int alpha = 0;
+	int colon = 0;
+	int hex = 0;
 
 	for(p = name; *p; p++){
-		if(isdigit(*p))
-			;
-		else if(isalpha(*p) || *p == '-')
+		c = *p;
+		if(isdigit(c))
+			continue;
+		if(isxdigit(c))
+			hex = 1;
+		else if(isalpha(c) || c == '-')
 			alpha = 1;
-		else if(*p == '.')
+		else if(c == '.')
 			dot = 1;
+		else if(c == ':')
+			colon = 1;
 		else
 			return "sys";
 	}
@@ -29,7 +36,10 @@ ipattr(char *name)
 			return "sys";
 	}
 
-	if(dot)
+	if(colon)
+		return "ip";	/* ip v6 */
+
+	if(dot && !hex)
 		return "ip";
 	else
 		return "sys";

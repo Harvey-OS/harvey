@@ -136,33 +136,94 @@ ifcode(void)
 }
 
 void
-define(Symbol* sp)	/* put func/proc in symbol table */
+define(Symbol* sp, Formal *f)	/* put func/proc in symbol table */
 {
-	sp->u.defn = progbase;	/* start of code */
+	Fndefn *fd;
+	int n;
+
+	fd = emalloc(sizeof(Fndefn));
+	fd->code = progbase;	/* start of code */
 	progbase = progp;	/* next code starts here */
+	fd->formals = f;
+	for(n=0; f; f=f->next)
+		n++;
+	fd->nargs = n;
+	sp->u.defn = fd;
 }
 
 void
 call(void) 		/* call a function */
 {
+	Formal *f;
+	Datum *arg;
+	Saveval *s;
+	int i;
+
 	Symbol *sp = (Symbol *)pc[0]; /* symbol table entry */
 				      /* for function */
-	if (fp++ >= &frame[NFRAME-1])
+	if (fp >= &frame[NFRAME])
 		execerror(sp->name, "call nested too deeply");
+	fp++;
 	fp->sp = sp;
 	fp->nargs = (int)pc[1];
 	fp->retpc = pc + 2;
 	fp->argn = stackp - 1;	/* last argument */
-	execute(sp->u.defn);
+	if(fp->nargs != sp->u.defn->nargs)
+		execerror(sp->name, "called with wrong number of arguments");
+	/* bind formals */
+	f = sp->u.defn->formals;
+	arg = stackp - fp->nargs;
+	while(f){
+		s = emalloc(sizeof(Saveval));
+		s->val = f->sym->u;
+		s->type = f->sym->type;
+		s->next = f->save;
+		f->save = s;
+		f->sym->u.val = arg->val;
+		f->sym->type = VAR;
+		f = f->next;
+		arg++;
+	}
+	for (i = 0; i < fp->nargs; i++)
+		pop();	/* pop arguments; no longer needed */
+	execute(sp->u.defn->code);
 	returning = 0;
+}
+
+void
+restore(Symbol *sp)	/* restore formals associated with symbol */
+{
+	Formal *f;
+	Saveval *s;
+
+	f = sp->u.defn->formals;
+	while(f){
+		s = f->save;
+		if(s == 0)	/* more actuals than formals */
+			break;
+		f->sym->u = s->val;
+		f->sym->type = s->type;
+		f->save = s->next;
+		free(s);
+		f = f->next;
+	}
+}
+
+void
+restoreall(void)	/* restore all variables in case of error */
+{
+	while(fp>=frame && fp->sp){
+		restore(fp->sp);
+		--fp;
+	}
+	fp = frame;
 }
 
 static void
 ret(void) 		/* common return from func or proc */
 {
-	int i;
-	for (i = 0; i < fp->nargs; i++)
-		pop();	/* pop arguments */
+	/* restore formals */
+	restore(fp->sp);
 	pc = (Inst *)fp->retpc;
 	--fp;
 	returning = 1;
@@ -186,82 +247,6 @@ procret(void) 	/* return from a procedure */
 		execerror(fp->sp->name,
 			"(func) returns no value");
 	ret();
-}
-
-double*
-getarg(void) 	/* return pointer to argument */
-{
-	int nargs = (int) *pc++;
-	if (nargs > fp->nargs)
-	    execerror(fp->sp->name, "not enough arguments");
-	return &fp->argn[nargs - fp->nargs].val;
-}
-
-void
-arg(void) 	/* push argument onto stack */
-{
-	Datum d;
-	d.val = *getarg();
-	push(d);
-}
-
-void
-argassign(void) 	/* store top of stack in argument */
-{
-	Datum d;
-	d = pop();
-	push(d);	/* leave value on stack */
-	*getarg() = d.val;
-}
-
-void
-argaddeq(void) 	/* store top of stack in argument */
-{
-	Datum d;
-	d = pop();
-	d.val = *getarg() += d.val;
-	push(d);	/* leave value on stack */
-}
-
-void
-argsubeq(void) 	/* store top of stack in argument */
-{
-	Datum d;
-	d = pop();
-	d.val = *getarg() -= d.val;
-	push(d);	/* leave value on stack */
-}
-
-void
-argmuleq(void) 	/* store top of stack in argument */
-{
-	Datum d;
-	d = pop();
-	d.val = *getarg() *= d.val;
-	push(d);	/* leave value on stack */
-}
-
-void
-argdiveq(void) 	/* store top of stack in argument */
-{
-	Datum d;
-	d = pop();
-	d.val = *getarg() /= d.val;
-	push(d);	/* leave value on stack */
-}
-
-void
-argmodeq(void) 	/* store top of stack in argument */
-{
-	Datum d;
-	double *x;
-	long y;
-	d = pop();
-	/* d.val = *getarg() %= d.val; */
-	x = getarg();
-	y = *x;
-	d.val = *x = y % (long) d.val;
-	push(d);	/* leave value on stack */
 }
 
 void
@@ -320,15 +305,12 @@ void
 mod(void)
 {
 	Datum d1, d2;
-	long x;
 	d2 = pop();
 	if (d2.val == 0.0)
 		execerror("division by zero", (char *)0);
 	d1 = pop();
 	/* d1.val %= d2.val; */
-	x = d1.val;
-	x %= (long) d2.val;
-	d1.val = d2.val = x;
+	d1.val = fmod(d1.val, d2.val);
 	push(d1);
 }
 

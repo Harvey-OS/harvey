@@ -12,7 +12,7 @@
 Rc \(em The Plan 9 Shell
 .AU
 Tom Duff
-td@plan9.att.com
+td@plan9.bell-labs.com
 .AB
 .I Rc
 is a command interpreter for Plan 9 that
@@ -1110,6 +1110,11 @@ that caches its value in variable
 because the genuine
 .CW pwd
 can be quite slow to execute.
+(Recent versions of Plan 9 have very fast implementations of
+.CW pwd ,
+reducing the advantage of the
+.CW pwd
+function.)
 .PP
 Function
 .CW cd

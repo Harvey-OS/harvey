@@ -2,5 +2,8 @@
 
 for(i in $*)
 	grep '^'$i'	' /adm/whois ||
+	grep -i $i /adm/keys.who ||
+	grep -i $i /adm/netkeys.who ||
 	grep -i $i /adm/whois ||
+	grep -i $i /adm/users ||
 	echo who indeed is $i

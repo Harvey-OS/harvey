@@ -1,12 +1,16 @@
 .TH NDB 8
 .SH NAME
-query, mkhash, mkdb, cs, csquery, dns, dnsquery \- network database
+query, mkhash, mkdb, cs, csquery, dns, dnsquery, dnsdebug, mkhosts \- network database
 .SH SYNOPSIS
 .B ndb/query
 .I "attr value"
 [
 .I rattr
 ]
+.br
+.B ndb/ipquery
+.I "attr value"
+.I rattr...
 .br
 .B ndb/mkhash
 .I "file attr"
@@ -17,25 +21,43 @@ query, mkhash, mkdb, cs, csquery, dns, dnsquery \- network database
 ] [
 .B -f
 .I dbfile
+] [
+.B -x
+.I netmtpt
 ]
 .br
 .B ndb/csquery
 .br
 .B ndb/dns
 [
-.B -s
+.B -rs
 ] [
 .B -f
 .I dbfile
+] [
+.B -x
+.I netmtpt
 ]
 .br
 .B ndb/dnsquery
+.br
+.B ndb/dnsdebug
+[
+.B -rx
+]
+[ [
+.BI @ server
+]
+.I domain-name
+[
+.I type
+] ]
 .br
 .B ndb/mkdb
 .SH DESCRIPTION
 The network database holds administrative information used by
 network programs such as
-.IR bootp (8),
+.IR dhcpd (8),
 .IR ipconfig (8),
 .IR con (1),
 etc.
@@ -54,6 +76,20 @@ is specified, the value of the first pair with attribute
 .I rattr
 of all the matched entries is returned.
 .PP
+.I Ndb/ipquery
+uses
+.I ndbipinfo
+(see
+.IR ndb (2))
+to search for the values of the attributes
+.I rattr
+corresponding to the system
+with entries of attribute type
+.I attr
+and
+value
+.IR value .
+.PP
 .I Ndb/mkhash
 creates a hash file for all entries with attribute
 .I attr
@@ -67,11 +103,6 @@ and by the ndb library routines.
 is a server used by
 .IR dial (2)
 to translate network names.
-Option
-.B -f
-supplies the name of the data base file to use,
-default
-.BR /lib/ndb/local .
 It is started at boot time.
 It finds out what networks are configured
 by looking for
@@ -88,9 +119,20 @@ a message of the form:
 also sets the system name in
 .B /dev/sysname
 if it can figure it out.
-Option
+The options are:
+.TP
+.B -f
+supplies the name of the data base file to use,
+default
+.BR /lib/ndb/local .
+.TP
+.B -x
+specifies the mount point of the
+network.
+.TP
 .B -n
 causes cs to do nothing but set the system name.
+.PP
 .I Ndb/csquery
 can be used to query
 .I ndb/cs
@@ -110,11 +152,40 @@ By default
 .I dns
 serves only requests written to
 .BR /net/dns .
-Option
+The options are:
+.TP
+.B -f
+supplies the name of the data base file to use,
+default
+.BR /lib/ndb/local .
+.TP
+.B -x
+specifies the mount point of the
+network.
+.TP
 .B -s
-causes the server to also answer domain requests sent to UDP port 53.
-Name resolution is performed by searching the local database
-and by querying remote servers.
+also answer domain requests sent to UDP port 53.
+.TP
+.B -r
+defer to other servers to resolve queries.
+.PP
+When the
+.B -r
+option is specified, the servers used come from the
+.I dns
+attribute in the database.  For example, to specify a set of dns servers that
+systems on the network
+.IR mh-net :
+.EX
+
+ipnet=mh-net ip=135.104.0.0 ipmask=255.255.0.0
+	dns=ns1.cs.bell-labs.com
+	dns=ns2.cs.bell-labs.com
+dom=ns1.cs.bell-labs.com ip=135.104.1.11
+dom=ns2.cs.bell-labs.com ip=135.104.1.12
+
+.EE
+.PP
 The server for a domain is indicated by a database entry containing
 both a
 .I dom
@@ -125,35 +196,88 @@ For example, the entry for the Internet root is:
 .EX
 
 dom=
-	ns=ns.nic.ddn.mil
-	ns=kava.nisc.sri.com
-	ns=aos.brl.mil
+	ns=A.ROOT-SERVERS.NET
+	ns=B.ROOT-SERVERS.NET
+	ns=C.ROOT-SERVERS.NET
+dom=A.ROOT-SERVERS.NET ip=198.41.0.4
+dom=B.ROOT-SERVERS.NET ip=128.9.0.107
+dom=C.ROOT-SERVERS.NET ip=192.33.4.12
 
 .EE
+The last three lines provide a mapping for the
+server names to their ip addresses.  This is only
+a hint and will be superceded from whatever is learned
+from servers owning the domain.
+.PP
 The root of a domain subtree served by the local database is indicated
 by an entry with an
-.I soa
+.B soa
 attribute.
-For example, the AT&T research domain is:
+For example, the Bell Labs CS research domain is:
 .EX
 
-dom=research.att.com soa
-	mb=ches.research.att.com
-	ns=inet.research.att.com
-	ns=research.research.att.com
+dom=cs.bell-labs.com soa=
+	refresh=3600 ttl=3600
+	ns=plan9.bell-labs.com
+	ns=ns1.cs.bell-labs.com
+	ns=ns2.cs.bell-labs.com
+	mb=presotto@plan9.bell-labs.com
+	mx=mail.research.bell-labs.com pref=20
+	mx=plan9.bell-labs.com pref=10
 
 .EE
 Here, the
-.I mb
+.B mb
 entry is the mail address of the person responsible for the
 domain (default
 .BR postmaster ).
-Wild-carded domain names can also be used.
-For example, to specify a mail forwarder for all AT&T research systems:
+The
+.B mx
+entries list mail exchangers for the domain name and
+.B refresh
+and
+.B ttl
+define the area refresh interval and the minimum TTL for
+records in this domain.
+.PP
+Delegation of a further subtree to another set of nameservers
+is indicated by an
+.B soa=delegated
+attribute.
 .EX
 
-dom=*.research.att.com
-	mx=research.att.com
+dom=bignose.cs.research.bell-labs.com
+	soa=delegated
+	ns=anna.cs.research.bell-labs.com
+	ns=dj.cs.research.bell-labs.com
+
+.EE
+Nameservers within the delegated domain (as in this example)
+must have their IP addresses listed elsewhere in
+.I ndb
+files.
+.PP
+Wild-carded domain names can also be used.
+For example, to specify a mail forwarder for all Bell Labs research systems:
+.EX
+
+dom=*.research.bell-labs.com
+	mx=research.bell-labs.com
+
+.EE
+`Cname' aliases may be established by adding a
+.B cname
+attribute giving the real domain name;
+the name attached to the
+.B dom
+attribute is the alias.
+`Cname' aliases are severely restricted;
+the aliases may have no other attributes than
+.B dom
+and are daily further restricted in their use by new RFCs.
+.EX
+
+cname=anna.cs.research.bell-labs.com dom=www.cs.research.bell-labs.com
 
 .EE
 .I Ndb/dnsquery
@@ -168,20 +292,71 @@ prompts for commands of the form
 where
 .I request-type
 can be
-.IR "ip, mx, ns, cname, ptr..." .
+.BR ip ,
+.BR mx ,
+.BR ns ,
+.BR cname ,
+.BR ptr ....
 In the case of the inverse query type,
-.IR ptr ,
+.BR ptr ,
 .I dnsquery
 will reverse the ip address and tack on the
 .B .in-addr.arpa
 for you.
 .PP
+.I Ndb/dnsdebug
+is like
+.I ndb/dnsquery
+but bypasses the local server.
+It communicates via UDP with the domain name servers
+in the same way that the local resolver would and displays
+all packets received.
+The query can be specified on the command line or
+can be prompted for.
+The queries look like those of
+.I ndb/dnsquery
+with one addition.
+.I Ndb/dnsdebug
+can be directed to query a particular name server by
+the command
+.BI @ name-server\f1.
+From that point on, all queries go to that name server
+rather than being resolved by
+.IR dnsdebug .
+The
+.B @
+command returns query resolution to
+.IR dnsdebug .
+Finally, any command preceded by a
+.BI @ name-server
+sets the nameserver only for that command.
+.PP
+Normally
+.I dnsdebug
+uses the
+.B /net
+interface and the database file
+.BR /lib/ndb/local.
+The
+.B -x
+option directs
+.I dnsdebug
+to use the
+.B /net.alt
+interface and
+.B /lib/ndb/external
+file.
+The
+.B -r
+option is the same as for
+.IR ndb/dns .
+.PP
 .I Ndb/mkdb
 is used in concert with
 .IR awk (1)
 scripts to convert
-uucp systems files, IP host files, and Datakit configuration
-files into database files.
+uucp systems files and IP host files
+into database files.
 It is very specific to the situation at Murray Hill.
 .PP
 When the database files change underfoot,
@@ -195,20 +370,33 @@ whenever the files are modified.
 It may be profitable to control this by a frequent
 .IR cron (8)
 job.
+.PP
+.I Ndb/mkhosts
+generates a BSD style 
+.BR hosts ,
+.BR hosts.txt ,
+and
+.B hosts.equiv
+files from an ndb data base file specified on the
+command line (default
+.BR /lib/ndb/local ).
+For local reasons the files are called
+.BR hosts.1127 ,
+.BR astro.txt ,
+and
+.BR hosts.equiv .
 .SH EXAMPLES
 .EX
 % ndb/query sys helix
-sys=helix dom=helix.research.att.com bootf=/mips/9powerboot
+sys=helix dom=helix.research.bell-labs.com bootf=/mips/9powerboot
 	ip=135.104.117.31 ether=080069020427
-	dk=nj/astro/helix
 	proto=il 
-% ndb/query sys helix ip
-135.104.117.31
 % ndb/dnsquery
-> 9net.research.att.com ip
-9net.research.att.com ip	192.20.225.252
-> 192.20.225.252 ptr
-252.225.20.192.in-addr.arpa ptr	9net.research.att.com
+> plan9.bell-labs.com ip
+plan9.bell-labs.com ip	204.178.31.2
+> 204.178.31.2 ptr
+2.31.178.204.in-addr.arpa ptr	plan9.bell-labs.com
+2.31.178.204.in-addr.arpa ptr	ampl.com
 > 
 .EE
 .SH FILES

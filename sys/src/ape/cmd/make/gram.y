@@ -109,8 +109,8 @@ namelist: NAME	= { lefts[0] = $1; nlefts = 1; }
 
 deplist:
 		{
-		char junk[10];
-		sprintf(junk, "%d", yylineno);
+		char junk[100];
+		sprintf(junk, "%s:%d", filestack[ninclude-1].fname, yylineno);
 		fatal1("Must be a separator on rules line %s", junk);
 		}
 	| dlist
@@ -358,7 +358,7 @@ endloop:
 	if((c = text[0]) == '\t')
 		return retsh(text) ;
 	
-	if(isalpha(c) || isdigit(c) || c==' ' || c=='.')
+	if(isalpha(c) || isdigit(c) || c==' ' || c=='.'|| c=='_')
 		for(p=text+1; *p!='\0'; )
 			if(*p == ':')
 				break;

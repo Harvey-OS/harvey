@@ -172,7 +172,7 @@ For example, a meta-rule to compile a C program using
 might be:
 .IP
 .EX
-%.2:    %.c
+%:    %.c
         2c $stem.c
         2l -o $stem $stem.2
 .EE
@@ -195,6 +195,11 @@ is processed as follows.
 Lines beginning with
 .B <
 followed by a file name are replaced by the contents of the named
+file.
+Lines beginning with
+.B "<|"
+followed by a file name are replaced by the output
+of the execution of the named
 file.
 Blank lines and comments, which run from unquoted
 .B #
@@ -249,8 +254,6 @@ Rules may make use of
 environment variables.
 A legal reference of the form
 .B $OBJ
-or
-.B ${name}
 is expanded as in
 .IR rc (1).
 A reference of the form
@@ -322,7 +325,6 @@ to set
 .BR LD ,
 .BR AS ,
 .BR O ,
-.BR ALEF ,
 .BR YACC ,
 and
 .B MK
@@ -399,6 +401,17 @@ all the targets of this rule.
 .TP
 .B $newprereq
 the prerequisites that caused this rule to execute.
+.TP
+.B $newmember
+the prerequisites that are members of an aggregate
+that caused this rule to execute.
+When the prerequisites of a rule are members of an
+aggregate,
+.B $newprereq
+contains the name of the aggregate and out of date
+members, while
+.B $newmember
+contains only the name of the members.
 .TP
 .B $nproc
 the process slot for this recipe.
@@ -490,13 +503,6 @@ immediately followed by
 and another colon.
 The attributes are:
 .TP
-.B <
-The standard output of the recipe is read by
-.I mk
-as an additional
-.IR mkfile .
-.PD 0
-.TP
 .B D
 If the recipe exits with a non-null status, the target is deleted.
 .TP
@@ -554,10 +560,10 @@ A simple mkfile to compile a program:
 </$objtype/mkfile
 
 prog:	a.$O b.$O c.$O
-	$LD $CFLAGS -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 %.$O:	%.c
-	$CC $stem.c
+	$CC $CFLAGS $stem.c
 .EE
 .PP
 Override flag settings in the mkfile:
@@ -566,20 +572,12 @@ Override flag settings in the mkfile:
 % mk target 'CFLAGS=-S -w'
 .EE
 .PP
-To get the prerequisites for an aggregate:
-.IP
-.EX
-% membername 'libc.a(read.2)' 'libc.a(write.2)'
-read.2 write.2
-.EE
-.PP
 Maintain a library:
 .IP
 .EX
 libc.a(%.$O):N:	%.$O
 libc.a:	libc.a(abs.$O) libc.a(access.$O) libc.a(alarm.$O) ...
-	names=`{membername $newprereq}
-	ar r libc.a $names && rm $names
+	ar r libc.a $newmember
 .EE
 .PP
 String expression variables to derive names from a master list:
@@ -592,7 +590,7 @@ OBJ=${NAMES:%=%.$O}
 Regular expression meta-rules:
 .IP
 .EX
-([^/]*)/(.*)\e.o:R:  \e1/\e2.c
+([^/]*)/(.*)\e.$O:R:  \e1/\e2.c
 	cd $stem1; $CC $CFLAGS $stem2.c
 .EE
 .PP
@@ -608,7 +606,7 @@ rather than
 in order to reflect changes in content, not just modification time.
 .IP
 .EX
-lex.o:	x.tab.h
+lex.$O:	x.tab.h
 x.tab.h:	y.tab.h
 	cmp -s x.tab.h y.tab.h || cp y.tab.h x.tab.h
 y.tab.c y.tab.h:	gram.y

@@ -1,6 +1,6 @@
 </$objtype/mkfile
 
-TARG=mapd
+TARG=mapd 
 LIB=libmap/libmap.a$O
 OFILES=map.$O\
 	symbol.$O\
@@ -11,7 +11,12 @@ HFILES=map.h\
 	iplot.h\
 
 BIN=/$objtype/bin/aux
+
+
 </sys/src/cmd/mkone
+
+$O.out:V:	$OFILES $LIB
+	$LD $LDFLAGS -o $target $prereq
 
 $LIB:V:
 	cd libmap

@@ -1,27 +1,58 @@
 typedef void (*Inst)(void);
 #define	STOP	(Inst) 0
 
-typedef struct Symbol {	/* symbol table entry */
+typedef struct Symbol	Symbol;
+typedef union Datum 	Datum;
+typedef struct Formal	Formal;
+typedef struct Saveval	Saveval;
+typedef struct Fndefn	Fndefn;
+typedef union Symval	Symval;
+
+union Symval { /* value of a symbol */
+	double	val;		/* VAR */
+	double	(*ptr)(double);	/* BLTIN */
+	Fndefn	*defn;		/* FUNCTION, PROCEDURE */
+	char	*str;		/* STRING */
+};
+
+struct Symbol {	/* symbol table entry */
 	char	*name;
 	long	type;
-	union {
-		double	val;		/* VAR */
-		double	(*ptr)(double);	/* BLTIN */
-		Inst	*defn;		/* FUNCTION, PROCEDURE */
-		char	*str;		/* STRING */
-	} u;
+	Symval u;
 	struct Symbol	*next;	/* to link to another */
-} Symbol;
+};
 Symbol	*install(char*, int, double), *lookup(char*);
 
-typedef union Datum {	/* interpreter stack type */
+union Datum {	/* interpreter stack type */
 	double	val;
 	Symbol	*sym;
-} Datum;
+};
+
+struct Saveval {	/* saved value of variable */
+	Symval	val;
+	long		type;
+	Saveval	*next;
+};
+
+struct Formal {	/* formal parameter */
+	Symbol	*sym;
+	Saveval	*save;
+	Formal	*next;
+};
+
+struct Fndefn {	/* formal parameter */
+	Inst	*code;
+	Formal	*formals;
+	int	nargs;
+};
+
+extern	Formal *formallist(Symbol*, Formal*);
 extern	double Fgetd(int);
 extern	int moreinput(void);
+extern	void restore(Symbol*);
+extern	void restoreall(void);
 extern	void execerror(char*, char*);
-extern	void define(Symbol*), verify(Symbol*);
+extern	void define(Symbol*, Formal*), verify(Symbol*);
 extern	Datum pop(void);
 extern	void initcode(void), push(Datum), xpop(void), constpush(void);
 extern	void varpush(void);
@@ -38,8 +69,6 @@ extern	void ifcode(void), whilecode(void), forcode(void);
 extern	void call(void), arg(void), argassign(void);
 extern	void funcret(void), procret(void);
 extern	void preinc(void), predec(void), postinc(void), postdec(void);
-extern	void argaddeq(void), argsubeq(void), argmuleq(void);
-extern	void argdiveq(void), argmodeq(void);
 extern	void execute(Inst*);
 extern	void printtop(void);
 

@@ -2,7 +2,7 @@
 Plan 9 Mkfiles
 .AU
 Bob Flandrena
-bobf@plan9.att.com
+bobf@plan9.bell-labs.com
 .SH
 Introduction
 .LP
@@ -132,7 +132,7 @@ Failing that, it is usually possible to create a new
 mkfile with minimal effort, since the appropriate
 generic mkfile predefines the rules that do all the work.
 In the simplest and most common cases, the new mkfile
-need only set a couple of variables and include the appropriate
+need only define a couple of variables and include the appropriate
 architecture-specific
 and generic mkfiles.
 .SH The Generic Mkfiles
@@ -173,7 +173,7 @@ ri ci li
 rw(1i) cw(0.5i) lw(2i).
 Variable	Default	Meaning
 .sp .5
-\f(CWCFLAGS\fP	\f(CW-w\fP	C compiler flags
+\f(CWCFLAGS\fP	\f(CW-FVw\fP	C compiler flags
 \f(CWLDFLAGS\fP		Loader flags
 \f(CWYFLAGS\fP	\f(CW-d\fP	Yacc flags
 \f(CWAFLAGS\fP		Assembler flags
@@ -188,8 +188,8 @@ center;
 lw(1i) lw(2.5i).
 \f(CWTARG\fP	Name(s) of the executable(s) to be built
 \f(CWLIB\fP	Library name(s)
-\f(CWOFILES\fP	Object files used in build
-\f(CWHFILES\fP	Common header files
+\f(CWOFILES\fP	Object files
+\f(CWHFILES\fP	Header files included by all source files
 \f(CWYFILES\fP	\f(CWYacc\fP input files
 \f(CWBIN\fP	Directory where executables are installed
 .TE
@@ -210,6 +210,10 @@ share the following common structure:
 .sp
 \fIextra rules\fP			# \f1overrides, augmented rules, additional targets\fP
 .P2
+Note that the architecture-dependent mkfiles include file
+.CW /sys/src/mkfile.proto
+for system-wide variables that are common to all architectures.
+.LP
 The variables driving the expansion of the generic mkfile
 may be specified in any order as long as they are defined
 before the inclusion of the generic mkfile.  The value
@@ -270,7 +274,9 @@ directive in an associated header file, including
 all system libraries, are automatically
 searched by the loader.
 .LP
-If no command line target is specified, the
+If
+.CW mk
+is executed without a target, the
 .CW all
 target is built; it
 produces an executable in
@@ -315,37 +321,76 @@ BIN=/$objtype/bin
 </sys/src/cmd/mkone
 .P2
 The more complex mkfile in
-.CW /sys/src/cmd/page
-limits builds to architectures with Alef compilers,
-specifies a special rule to build an
-.I acid (1)
-script to dump data structures, and overrides the rules for
-the architectures lacking an Alef compiler:
+.CW /sys/src/cmd/awk
+overrides compiler and loader variables to
+select the ANSI/POSIX Computing Environment with appropriately
+defined command line variables.  It also overrides
+the default
+.CW yacc
+rule to place the output soure in file
+.CW awkgram.c
+and the
+.CW clean
+and
+.CW nuke
+rules, so it can remove the non-standard intermediate
+files.  Finally, the last three rules build a version of
+.CW maketab
+appropriate for the architecture where the
+.CW mk
+is being
+run and then executes it to create source file
+.CW proctab.c :
 .P1
 </$objtype/mkfile
 
-CPUS=mips sparc 386
+TARG=awk
+OFILES=re.$O\e
+	lex.$O\e
+	main.$O\e
+	parse.$O\e
+	proctab.$O\e
+	tran.$O\e
+	lib.$O\e
+	run.$O\e
+	awkgram.$O\e
 
-TARG=page
-OFILES=page.$O\e
+HFILES=awk.h\e
+	y.tab.h\e
+	proto.h\e
 
-HFILES=\e
-	wtab\e
-	btab\e
+YFILES=awkgram.y
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
+CFLAGS=-c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE \e
+	-D_BSD_EXTENSION -DUTF
+YFLAGS=-S -d -v
+CC=pcc
+LD=pcc
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
-syms:V:
-	val -a page.l	>syms
+y.tab.h awkgram.c:	$YFILES
+	$YACC -o awkgram.c $YFLAGS $prereq
 
-2.out:Q:	$OFILES $LIB
-	echo 'no alef compiler for 68020'
+clean:V:
+	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug\e
+		 y.output $TARG
 
-/68020/bin/$TARG:Q:	2.out
-	;
+nuke:V:
+	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug\e
+		 y.output awkgram.c $TARG
+
+proctab.c:	$cpuobjtype.maketab
+	./$cpuobjtype.maketab >proctab.c
+
+$cpuobjtype.maketab:	y.tab.h maketab.c
+	objtype=$cputype
+	mk maketab.$cputype
+
+maketab.$cputype:V:	y.tab.h maketab.$O
+	$LD -o $O.maketab maketab.$O
 .P2
-This style of mkfile is common for Alef programs.
 .SH
 Mkmany
 .LP
@@ -392,7 +437,7 @@ and
 .CW beta.$O
 and that both programs use the subroutines
 in file
-.I common.\f(CW$O\fP .
+.CW common.$O .
 The
 .CW all
 target builds all executables, leaving each in
@@ -475,7 +520,7 @@ is included.
 The
 .CW clean
 target removes object files and
-.I yacc
+.CW yacc
 intermediate files but does not touch the
 library.  The
 .CW nuke
@@ -613,37 +658,44 @@ of the original rule exactly.  The recipe
 associated with the new rule
 then replaces the recipe of the original rule.
 For example,
-.CW /sys/src/games/plumb/mkfile
-adds a dependency to the
-.CW install
-target, overrides the
-.CW clean
-target with a custom recipe and
-adds two targets to copy bitmap files to a library directory:
+.CW /sys/src/cmd/lex/mkfile
+overrides the default
+.CW installall
+rule to perform the normal loop on all
+architectures and then copy a prototype file
+to the system library directory.
 .P1
 </$objtype/mkfile
 
-TARG=plumb
-OFILES=plumb.$O
-HFILES=
+TARG=lex
+OFILES=lmain.$O\e
+	y.tab.$O\e
+	sub1.$O\e
+	sub2.$O\e
+	header.$O\e
 
+HFILES=ldefs.h\e
+
+YFILES=parser.y\e
+
+BIN=/$objtype/bin
 </sys/src/cmd/mkone
-BIN=/$objtype/bin/games
-CFLAGS=
 
-CFILES=plumb.c
-PLIB=/sys/games/lib/plumb
+installall:V:
+	for(objtype in $CPUS)
+		mk install
+	cp ncform /sys/lib/lex
+.P2
+Another way to perform the same override is to
+add a dependency to the default
+.CW installall
+rule that executes an additional rule to
+install the prototype file:
+.P1
+installall:V:	ncform.install
 
-install:V: pieces
-
-pieces:V:  $PLIB/pieces.1 $PLIB/pieces.2 \e
-	$PLIB/pieces.3 $PLIB/pieces.4
-
-$PLIB/pieces.%:	pieces.%x
-	cp pieces.$stem^x $PLIB/pieces.$stem
-
-clean:V:
-	rm -f plumb.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
+ncform.install:V:
+	cp ncform /sys/lib/lex
 .P2
 .SH
 Special Tricks
@@ -670,9 +722,9 @@ architecture.  When that
 completes, the intermediate is
 executed to generate the source file to
 complete the build for the target architecture.
-An example of this build procedure can be found
-in the
-.CW /sys/src/cmd/awk/mkfile .
+The earlier example of
+.CW /sys/src/cmd/awk/mkfile
+illustrates this technique.
 .LP
 Another awkward situation
 occurs when a directory contains

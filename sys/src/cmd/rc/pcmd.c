@@ -23,7 +23,6 @@ void pcmd(io *f, tree *t)
 	case '^':	pfmt(f, "%t^%t", c0, c1); break;
 	case '`':	pfmt(f, "`%t", c0); break;
 	case ANDAND:	pfmt(f, "%t && %t", c0, c1); break;
-	case ARGLIST:	pfmt(f, "%t %t", c0, c1); break;
 	case BANG:	pfmt(f, "! %t", c0); break;
 	case BRACE:	pfmt(f, "{%t}", c0); break;
 	case COUNT:	pfmt(f, "$#%t", c0); break;
@@ -39,6 +38,14 @@ void pcmd(io *f, tree *t)
 	case SWITCH:	pfmt(f, "switch %t %t", c0, c1); break;
 	case TWIDDLE:	pfmt(f, "~ %t %t", c0, c1); break;
 	case WHILE:	pfmt(f, "while %t%t", c0, c1); break;
+	case ARGLIST:
+		if(c0==0)
+			pfmt(f, "%t", c1);
+		else if(c1==0)
+			pfmt(f, "%t", c0);
+		else
+			pfmt(f, "%t %t", c0, c1);
+		break;
 	case ';':
 		if(c0){
 			if(c1) pfmt(f, "%t%c%t", c0, nl, c1);
@@ -60,9 +67,11 @@ void pcmd(io *f, tree *t)
 		else pdeglob(f, t->str);
 		break;
 	case DUP:
-		pfmt(f, ">[%d=", t->fd0);
-		if(t->rtype==DUPFD) pfmt(f, "%d", t->fd1);
-		pchr(f, ']');
+		if(t->rtype==DUPFD)
+			pfmt(f, ">[%d=%d]", t->fd1, t->fd0); /* yes, fd1, then fd0; read lex.c */
+		else
+			pfmt(f, ">[%d=]", t->fd0);
+		pfmt(f, "%t", c1);
 		break;
 	case PIPEFD:
 	case REDIR:

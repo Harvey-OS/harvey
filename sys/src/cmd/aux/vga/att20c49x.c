@@ -1,22 +1,22 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 
 #include "vga.h"
 
 /*
- * ATT20C49[12] True-Color CMOS RAMDACs.
+ * ATT20C490 and ATT20C49[12] True-Color CMOS RAMDACs.
  */
 enum {
 	Cr0		= 0x00,		/* Control register 0 */
 };
 
 static void
-init(Vga *vga, Ctlr *ctlr)
+init(Vga* vga, Ctlr* ctlr)
 {
 	ulong pclk;
 	char *p;
 
-	verbose("%s->init\n", ctlr->name);
 	/*
 	 * Part comes in -100, -80, -65 and -55MHz speed-grades.
 	 * Work out the part speed-grade from name.  Name can have,
@@ -32,17 +32,15 @@ init(Vga *vga, Ctlr *ctlr)
 	 * Check it's within range.
 	 */
 	if(vga->f == 0)
-		vga->f = vga->mode->frequency;
-	if(vga->f > pclk)
-		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f);
+		vga->f[0] = vga->mode->frequency;
+	if(vga->f[0] > pclk)
+		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f[0]);
 }
 
 static void
-load(Vga *vga, Ctlr *ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
 	uchar mode, x;
-
-	verbose("%s->load\n", ctlr->name);
 
 	/*
 	 * Put the chip to sleep if possible.
@@ -63,13 +61,20 @@ load(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-dump(Vga *vga, Ctlr *ctlr)
+dump(Vga*, Ctlr* ctlr)
 {
-	USED(vga);
-
 	printitem(ctlr->name, "Cr0");
 	printreg(attdaci(Cr0));
 }
+
+Ctlr att20c490 = {
+	"att20c490",			/* name */
+	0,				/* snarf */
+	0,				/* options */
+	init,				/* init */
+	load,				/* load */
+	dump,				/* dump */
+};
 
 Ctlr att20c491 = {
 	"att20c491",			/* name */

@@ -24,6 +24,7 @@ OFILES=\
 	strcpy.$O\
 	strlen.$O\
 	sqrt.$O\
+	tas.$O\
 	vlrt.$O\
 	vlop.$O\
 

@@ -71,6 +71,7 @@ popdir(Ram *r)
 	Fileinf f;
 	char name[VNAMELEN+1];
 
+	cp = 0;
 	for (i=0; i<r->ndata; i+=sizeof(struct v32dir)) {
 		if (i%BLSIZE==0)
 			cp = doread(r, i, BLSIZE);
@@ -112,7 +113,7 @@ doread(Ram *r, long off, long cnt)
 	if (cnt>MAXFDATA)
 		error("count too large");
 	if (off)
-		cnt += BLSIZE-off;
+		cnt += off;
 	i = 0;
 	while (cnt>0) {
 		getblk(r, bno, &buf[i*BLSIZE]);

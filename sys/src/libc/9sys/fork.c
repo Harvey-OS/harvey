@@ -4,5 +4,5 @@
 int
 fork(void)
 {
-	return rfork(RFPROC|RFFDG);
+	return rfork(RFPROC|RFFDG|RFREND);
 }

@@ -21,7 +21,7 @@
 Acme: A User Interface for Programmers
 .AU
 .I "Rob Pike
-.I rob@plan9.att.com
+.I rob@plan9.bell-labs.com
 .SP .22i exactly
 .AB
 .FS

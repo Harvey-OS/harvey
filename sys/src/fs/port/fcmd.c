@@ -159,12 +159,12 @@ chartoip(uchar *pa, char *cp)
 }
 
 void
-getipa(Ifc *ifc)
+getipa(Ifc *ifc, int a)
 {
 
-	memmove(ifc->ipa, sysip, Pasize);
-	memmove(ifc->netgate, defgwip, Pasize);
+	memmove(ifc->ipa, ipaddr[a].sysip, Pasize);
+	memmove(ifc->netgate, ipaddr[a].defgwip, Pasize);
 	ifc->ipaddr = nhgetl(ifc->ipa);
-	ifc->mask = nhgetl(defmask);
+	ifc->mask = nhgetl(ipaddr[a].defmask);
 	ifc->cmask = ipclassmask(ifc->ipa);
 }

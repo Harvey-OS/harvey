@@ -17,8 +17,13 @@ struct	Exec
 #define	J_MAGIC		_MAGIC(12)	/* intel 960 */
 #define	K_MAGIC		_MAGIC(13)	/* sparc */
 #define	V_MAGIC		_MAGIC(16)	/* mips 3000 */
-#define 	X_MAGIC		_MAGIC(17)	/* att dsp 3210 */
-#define 	M_MAGIC		_MAGIC(18)	/* mips 4000 */
+#define	X_MAGIC		_MAGIC(17)	/* att dsp 3210 */
+#define	M_MAGIC		_MAGIC(18)	/* mips 4000 */
+#define	D_MAGIC		_MAGIC(19)	/* amd 29000 */
+#define	E_MAGIC		_MAGIC(20)	/* arm 7-something */
+#define	Q_MAGIC		_MAGIC(21)	/* powerpc */
+#define	N_MAGIC		_MAGIC(22)	/* mips 4000 LE */
+#define	L_MAGIC		_MAGIC(23)	/* dec alpha */
 
 typedef	struct	Sym	Sym;
 struct	Sym

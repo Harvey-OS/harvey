@@ -1,0 +1,5 @@
+# see consolefs(4)
+group=sys
+	uid=glenda
+console=testing dev=/dev/eia0 openondemand=1
+	gid=sys

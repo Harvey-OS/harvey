@@ -4,17 +4,23 @@
 
 void	ps(char*);
 void	error(char*);
-int	cmp(char*, char*);
+int	cmp(void*, void*);
 
 Biobuf	bin;
+int	pflag;
 
 void
 main(int argc, char *argv[])
 {
 	int fd, i, n, tot, none = 1;
-	char dir[500*DIRLEN], *mem;
+	char dir[70*DIRLEN], *mem;
 
-	USED(argc, argv);
+
+	ARGBEGIN {
+	case 'p':
+		pflag++;
+		break;
+	} ARGEND;
 	Binit(&bin, 1, OWRITE);
 	if(chdir("/proc")==-1)
 		error("/proc");
@@ -45,8 +51,10 @@ ps(char *s)
 {
 	int fd;
 	char buf[64];
+	int basepri, pri;
 	long utime, stime, size;
-	char status[2*NAMELEN+12+7*12];
+	char pbuf[8];
+	char status[2*NAMELEN+12+9*12];
 	char *p;
 
 	sprint(buf, "%s/status", s);
@@ -67,11 +75,18 @@ ps(char *s)
 		utime = atol(status+2*NAMELEN+12)/1000;
 		stime = atol(status+2*NAMELEN+12+1*12)/1000;
 		size  = atol(status+2*NAMELEN+12+6*12);
-		Bprint(&bin, "%-8s %6s %4ld:%.2ld %3ld:%.2ld %5ldK %-.8s %s\n",
+		if(pflag){
+			basepri = atol(status+2*NAMELEN+12+7*12);
+			pri = atol(status+2*NAMELEN+12+8*12);
+			sprint(pbuf, " %2d %2d", basepri, pri);
+		} else
+			pbuf[0] = 0;
+		Bprint(&bin, "%-10s %8s %4ld:%.2ld %3ld:%.2ld%s %7ldK %-.8s %s\n",
 				status+NAMELEN,
 				s,
 				utime/60, utime%60,
 				stime/60, stime%60,
+				pbuf,
 				size,
 				status+2*NAMELEN,
 				status);
@@ -89,7 +104,11 @@ error(char *s)
 }
 
 int
-cmp(char *a, char *b)
+cmp(void *va, void *vb)
 {
+	char *a, *b;
+
+	a = va;
+	b = vb;
 	return atoi(a) - atoi(b);
 }

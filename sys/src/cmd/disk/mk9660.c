@@ -1,857 +1,894 @@
-#include	<u.h>
-#include	<libc.h>
-#include	<bio.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include <ctype.h>
+#include <disk.h>
 
-/*
- * write a plan9 ISO 9660 CD-Rom image.
- * input is a mkfs file.
- */
+enum {
+	Fconfmap = (1<<1),			/* this is _conform.map */
+	Fbadname = (1<<2),		/* utfname does not conform */
+	Fabstract = (1<<3),		/* this is the abstract file */
+	Fbiblio = (1<<4),		/* this is the bibliography file */
+	Fnotice = (1<<5),		/* this is the notice file */
 
-
-typedef	struct	Direc	Direc;
-
-enum
-{
-	RSIZE	= 2048,
-	RUNOUT	= 150,
-	MAXSIZE	= 286000-RUNOUT-4,
+	Ndirblock = 16,	/* directory blocks allocated at once */
 
 	DTdot	= 0,
 	DTdotdot,
 	DTiden,
 	DTroot,
+
+	RUNOUT = 150,
 };
 
-struct	Direc
-{
-	char	name[30];	/* name after conversion */
-	char	rname[30];	/* real name in unicode */
-	char	uid[30];	/* uid - put in system dep part */
-	char	gid[30];	/* gid - put in system dep part */
-	long	mode;		/* has CHDIR bit */
-	long	length;		/* length in bytes */
-	long	offset;		/* if file, pointer into input file */
-	long	date;
-
-	char	dup;		/* flag that this name has been seen before */
-	char	level;		/* hier level */
-	char	conf;		/* this is the map file */
-	char	noncon;		/* this file real name doesnt conform */
-	char	abst;		/* this is the abstract file */
-	char	biblio;		/* this is the bibliographic file */
-	char	notice;		/* this is the notice file */
-	int	path;
-	long	blockno;
-	Direc*	first;
-	Direc*	next;
-	Direc*	parent;
-	Direc*	chain;
+/* output buffer */
+typedef struct Imgbuf Imgbuf;
+struct Imgbuf {
+	Biobuf *bio;
+	long offset;
 };
 
-char*	afile;
-char*	bfile;
-Direc*	chain;
-char*	confname;
-int	conform;
-int	extend;
-Biobuf*	ibuf;
-long	lpathloc;
-int	maxlevel;
-long	mpathloc;
-char*	nfile;
-long	now;
-Biobuf*	obuf;
-long	offset;
-char*	ofile;
-int	pass;
-char	path[500];
-long	pathsize;
-char*	proto;
-Direc*	root;
-char	volid[100];
+typedef struct Direc Direc;
+struct Direc {
+	char utfname[NAMELEN];
+	char name[NAMELEN];
+	char uid[NAMELEN];
+	char gid[NAMELEN];
+	char *src;
+	long mode;
+	long length;
+	long mtime;
+	long pathid;
 
-int	Pconv(void*, Fconv*);
-void	bputc(int);
-void	bputdate(long);
-void	bputdate1(long);
-void	bputdir(Direc*, int);
-void	bputn(long, int);
-void	bputnl(long, int);
-void	bputnm(long, int);
-void	bputs(char*, int);
-void	brepeat(int, int);
-void	ckpath(Direc*, int);
-int	consub(char*);
-int	gethdr(void);
-Direc*	lookup(void);
-void	padtoblock(void);
-void	putevol(void);
-void	putprivol(int);
-void	wrpath(void);
+	long blockind;	/* index into block number array */
 
-void
-main(int argc, char *argv[])
-{
-	int n;
-	char *p;
+	uchar flags;
 
-	confname = "_conform.map";
-	ofile = "cd-rom";
-	ARGBEGIN {
-	default:
-		fprint(2, "unknown option: %c\n", ARGC());
-		break;
-	case 'c':
-		conform = 1;
-		break;
-	case 'e':
-		extend = 1;
-		break;
-	case 'a':
-		afile = ARGF();
-		break;
-	case 'b':
-		bfile = ARGF();
-		break;
-	case 'n':
-		nfile = ARGF();
-		break;
-	case 'o':
-		ofile = ARGF();
-		break;
-	} ARGEND
+	Direc *child;		/* if a directory, its entries */
+	int nchild;
 
-	fmtinstall('P', Pconv);
-	now = time(0);
+	Direc *path;	/* next in breadth first linked list */
+	Direc *parent;	/* parent entry */
+};
 
-	if(argc <= 0) {
-		print("usage: mk9660 [-c] [-e] [-[abno] file] protofile\n");
-		exits("usage");
-	}
-	proto = argv[0];
-	print("%s\n", proto);
+#pragma varargck type "P" Direc*
 
-	ibuf = Bopen(proto, OREAD);
-	if(ibuf == 0) {
-		fprint(2, "open %s\n", proto);
-		exits("open");
-	}
+/* plan 9 utf */
+char *abstract;
+char *biblio;
+char *notice;
 
-	p = strrchr(proto, '/');
-	if(p == 0)
-		p = proto-1;
-	strcpy(volid, p+1);
-	for(p=volid; *p; p++)
-		if(*p >= 'a' && *p <= 'z')
-			*p += 'A'-'a';
+/* iso 9660 restricted names */
+char *isoabstract;
+char *isobiblio;
+char *isonotice;
 
-	root = malloc(sizeof(*root));
-	memset(root, 0, sizeof(*root));
-	root->mode = CHDIR | 0755;
-	strcpy(root->uid, "sys");
-	strcpy(root->gid, "sys");
-	root->parent = root;
-	if(conform) {
-		root->first = malloc(sizeof(*root->first));
-		memset(root->first, 0, sizeof(*root->first));
-		root->first->mode = 0444;
-		strcpy(root->first->name, confname);
-		strcpy(root->first->uid, "sys");
-		strcpy(root->first->gid, "sys");
-		root->first->parent = root;
-		root->first->conf = 1;
-		chain = root->first;
-	}
+/* joliet restricted names */
+char *jabstract;
+char *jbiblio;
+char *jnotice;
 
-	for(;;)
-		if(gethdr())
-			break;
+char *proto;
+char *src;
+char *volume;
 
-	pass = 1;	/* allocate the addresses */
-	offset = 0;
-	brepeat(0, 18*RSIZE);
-	ckpath(root, 0);
-	wrpath();
-	padtoblock();
-	n = offset/RSIZE;
-	if(maxlevel > 8)
-		fprint(2, "too many directory levels: %d\n", maxlevel);
-	if(afile)
-		fprint(2, "abstract file not found: %s\n", afile);
-	if(bfile)
-		fprint(2, "bibliographic file not found: %s\n", bfile);
-	if(nfile)
-		fprint(2, "notice file not found: %s\n", nfile);
-	print("size = %d blocks\n", n);
-	if(n > MAXSIZE)
-		print("thats too big!!\n");
+char *confname = "_conform.map";
+int conform;
+int plan9;
+int joliet;
+int found;
 
-	pass = 2;	/* do the writing */
-	obuf = Bopen(ofile, OWRITE);
-	if(obuf == 0) {
-		fprint(2, "create %s\n", ofile);
-		exits("create");
-	}
-	offset = 0;
-	brepeat(0, 16*RSIZE);
-	putprivol(n);
-	padtoblock();
-	putevol();
-	padtoblock();
-	ckpath(root, 0);
-	wrpath();
-	padtoblock();
-	brepeat(0, RUNOUT*RSIZE);
-	padtoblock();
+int nconform;
 
-	Bterm(ibuf);
-	Bterm(obuf);
-	exits(0);
-}
+long *blockno;
+long nblockno;
+ulong now;
+
+int blocksize = 2048;
+
+/* ISO9660 path table */
+long isopathsize;
+long isolpathloc;
+long isompathloc;
+
+/* Joliet path table */
+long jpathsize;
+long jlpathloc;
+long jmpathloc;
+
+/* _conform.map */
+long conformloc;
+long conformsize;
+
+/* bootable images */
+char *bootimage;
+long bootimgloc;
+long bootcatloc;
+
+long volsize;
+long pathid;
+
+int chatty;
+
+Direc root, jroot;
 
 int
-Pconv(void *o, Fconv *f)
+Pconv(va_list *arg, Fconv *f)
 {
 	char path[500];
 	Direc *d;
 
-	d = *(Direc**)o;
+	d = va_arg(*arg, Direc*);
 	if(d->parent == d)
 		strcpy(path, "");
 	else
 		sprint(path, "%P/%s", d->parent, d->name);
 	strconv(path, f);
-	return sizeof(d);
+	return 0;
+}
+
+char*
+strupr(char *p, char *s)
+{
+	char *op;
+
+	op = p;
+	for(; *s; s++)
+		*p++ = toupper(*s);
+	*p = '\0';
+
+	return op;
 }
 
 void
-bputn(long val, int size)
+mkdirec(Direc *direc, Dir *d)
 {
+	memset(direc, 0, sizeof(Direc));
+	strcpy(direc->utfname, d->name);
+	strcpy(direc->uid, d->uid);
+	strcpy(direc->gid, d->gid);
+	direc->mode = d->mode;
+	direc->length = d->length;
+	direc->mtime = d->mtime;
 
-	bputnl(val, size);
-	bputnm(val, size);
+	direc->blockind = nblockno++;
 }
 
-void
-bputs(char *s, int size)
+/*
+ * Binary search a list of directories for the
+ * entry with utfname name.
+ * If no entry is found, return a pointer to
+ * where a new such entry would go.
+ */
+static Direc*
+bsearch(char *name, Direc *d, int n)
 {
-	int n;
-
-	n = size - strlen(s);
-	if(n < 0)
-		s -= n;
-	while(*s)
-		bputc(*s++);
-	if(n > 0)
-		brepeat(' ', n);
-}
-
-void
-bputc(int c)
-{
-	offset++;
-	if(pass == 2)
-		Bputc(obuf, c);
-}
-
-void
-bputnl(long val, int size)
-{
-	switch(size) {
-	default:
-		fprint(2, "bad size in bputnl: %d\n", size);
-		exits("bad size");
-	case 2:
-		bputc(val);
-		bputc(val>>8);
-		break;
-	case 4:
-		bputc(val);
-		bputc(val>>8);
-		bputc(val>>16);
-		bputc(val>>24);
-		break;
+	int i;
+	while(n > 0) {
+		i = strcmp(name, d[n/2].utfname);
+		if(i < 0)
+			n = n/2;
+		else if(i > 0) {
+			d += n/2+1;
+			n -= (n/2+1);
+		} else
+			return &d[n/2];
 	}
+	return d;
 }
 
-void
-bputnm(long val, int size)
-{
-	switch(size) {
-	default:
-		fprint(2, "bad size in bputnm: %d\n", size);
-		exits("bad size");
-	case 2:
-		bputc(val>>8);
-		bputc(val);
-		break;
-	case 4:
-		bputc(val>>24);
-		bputc(val>>16);
-		bputc(val>>8);
-		bputc(val);
-		break;
-	}
-}
-
+/*
+ * Walk to name, starting at d.
+ */
 Direc*
-lookup(void)
+walkdirec(Direc *d, char *name)
 {
-	char *p, *q;
-	Direc *c, *d;
-	char path1[sizeof(path)];
+	char elem[NAMELEN], *p, *nextp;
+	Direc *nd;
 
-	strcpy(path1, path);
-	p = path1;
-	strcat(p, "/");
-	c = root;
+	for(p=name; p && *p; p=nextp) {
+		if(nextp = strchr(p, '/')) {
+			strncpy(elem, p, nextp-p);
+			elem[nextp-p] = '\0';
+			nextp++;
+		} else {
+			nextp = p+strlen(p);
+			strncpy(elem, p, nextp-p);
+			elem[nextp-p] = '\0';
+		}
 
-loop:
-	if(*p == 0)
-		return c;
-	q = utfrune(p, '/');
-	if(q == p) {
+		nd = bsearch(elem, d->child, d->nchild);
+		if(nd >= d->child+d->nchild || strcmp(nd->utfname, elem) != 0)
+			return nil;
+		d = nd;
+	}
+	return d;
+}
+
+/*
+ * Add the file ``name'' with attributes d to the
+ * directory ``root''.  Name may contain multiple
+ * elements; all but the last must exist already.
+ * 
+ * The child lists are kept sorted by utfname.
+ */	
+Direc*
+adddirec(Direc *root, char *name, Dir *d)
+{
+	char *p;
+	Direc *nd;
+	int off;
+
+	if(name[0] == '/')
+		name++;
+	if(p = strrchr(name, '/')) {
+		*p = '\0';
+		root = walkdirec(root, name);
+		if(root == nil) {
+			sysfatal("error in proto file: no entry for /%s but /%s/%s\n", name, name, p+1);
+			return nil;
+		}
+		*p = '/';
 		p++;
-		goto loop;
+	} else
+		p = name;
+
+	nd = bsearch(p, root->child, root->nchild);
+	off = nd - root->child;
+	if(off < root->nchild && strcmp(nd->utfname, p) == 0) {
+		fprint(2, "warning: proto lists %s twice\n", name);
+		return nil;
 	}
 
-	*q++ = 0;
-	for(d=c->first; d; d=d->next)
-		if(strcmp(d->name, p) == 0) {
-			c = d;
-			p = q;
-			goto loop;
+	if(root->nchild%Ndirblock == 0) {
+		root->child = erealloc(root->child, (root->nchild+Ndirblock)*sizeof(Direc));
+		nd = root->child + off;
+	}
+
+	memmove(nd+1, nd, (root->nchild - off)*sizeof(Direc));
+	mkdirec(nd, d);
+	root->nchild++;
+	return nd;
+}
+
+/* 
+ * Copy the tree src into dst.
+ */
+void
+copydirec(Direc *dst, Direc *src)
+{
+	int i, n;
+
+	*dst = *src;
+
+	if((src->mode & CHDIR) == 0)
+		return;
+
+	/* directories get fresh blocks */
+	dst->blockind = nblockno++;
+
+	n = (src->nchild + Ndirblock - 1);
+	n -= n%Ndirblock;
+	dst->child = emalloc(n*sizeof(Direc));
+
+	n = dst->nchild;
+	for(i=0; i<n; i++)
+		copydirec(&dst->child[i], &src->child[i]);
+}
+
+/*
+ * Sort a directory with a given comparison function.
+ * After this is called on a tree, adddirec should not be,
+ * since the entries may no longer be sorted as adddirec expects.
+ */
+void
+dsort(Direc *d, int (*cmp)(void*, void*))
+{
+	int i, n;
+
+	n = d->nchild;
+	qsort(d->child, n, sizeof(d[0]), cmp);
+
+	for(i=0; i<n; i++)
+		dsort(&d->child[i], cmp);
+}
+
+char *strbuf;
+int nstrbuf;
+
+/*
+ * There could be megabytes of
+ * string data, over lots of
+ * little strings; it is worth it
+ * to use a custom strdup here.
+ */
+static char*
+xstrdup(char *s)
+{
+	char *p;
+
+	if(nstrbuf < strlen(s)+1) {
+		strbuf = emalloc(10240);
+		nstrbuf = 10240;
+	}
+	strcpy(strbuf, s);
+	p = strbuf;
+
+	strbuf += strlen(s)+1;
+	nstrbuf -= strlen(s)+1;
+
+	return p;
+}
+
+void
+addfile(char *new, char *old, Dir *d, void *v)
+{
+	Direc *direc;
+
+	if(direc = adddirec((Direc*)v, new, d)) {
+		direc->src = xstrdup(old);
+		if(abstract && strcmp(new, abstract) == 0) {
+			direc->flags |= Fabstract;
+			found |= Fabstract;
 		}
-	d = malloc(sizeof(*d));
-	memset(d, 0, sizeof(*d));
-	strcpy(d->name, p);
-	d->chain = chain;
-	chain = d;
-	d->parent = c;
-	d->next = c->first;
-	c->first = d;
-	c = d;
-	p = q;
-	goto loop;
+		if(biblio && strcmp(new, biblio) == 0) {
+			direc->flags |= Fbiblio;
+			found |= Fbiblio;
+		}
+		if(notice && strcmp(new, notice) == 0) {
+			direc->flags |= Fnotice;
+			found |= Fnotice;
+		}
+	}
+}
+
+static void
+printdirec(Direc *d, int dep)
+{
+	int i;
+	static char *tabs = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+
+	fprint(2, "%.*s%s (%s)\n", dep, tabs, d->name, d->utfname);
+	for(i=0; i<d->nchild; i++)
+		printdirec(&d->child[i], dep+1);
 }
 
 int
-gethdr(void)
+height(Direc *d)
 {
-	int c, i;
-	ulong m;
-	Direc *d;
-	char *p;
+	int i, n, m;
 
-	p = Brdline(ibuf, '\n');
-	if(p == 0)
-		goto bad;
-	*strchr(p, '\n') = 0;
-	if(strcmp(p, "end of archive") == 0)
-		return 1;
-
-	for(i=0;; i++) {
-		c = *p++;
-		if(c == 0)
-			goto bad;
-		if(c == ' ')
-			break;
-		path[i] = c;
-	}
-	path[i] = 0;
-
-	d = lookup();
-	if(d->dup)
-		fprint(2, "%s not unique\n", path);
-	d->dup = 1;
+	if(d == nil)
+		return 0;
 
 	m = 0;
-	for(i=0;; i++) {
-		c = *p++;
-		if(c == ' ')
-			break;
-		if(c < '0' || c > '7')
-			goto bad;
-		m = (m<<3) | (c-'0');
-	}
-	d->mode = m;
+	for(i=0; i<d->nchild; i++)
+		if((n = height(&d->child[i])) > m)
+			m = n;
+	return m+1;
+}
 
-	for(i=0;; i++) {
-		c = *p++;
-		if(c == 0)
-			goto bad;
-		if(c == ' ')
-			break;
-		d->uid[i] = c;
-	}
+/*
+ * Set path pointers to point at next
+ * directory entry in breadth first 
+ * scan of tree.
+ *
+ * Depth first iterative deepening. 
+ * Forgive me, I am weak.
+ */
+static Direc**
+_setpath(Direc *d, Direc **pathp, int ndown)
+{
+	int i;
 
-	for(i=0;; i++) {
-		c = *p++;
-		if(c == 0)
-			goto bad;
-		if(c == ' ')
-			break;
-		d->gid[i] = c;
+	if(ndown == 0) {
+		d->pathid = pathid++;
+		*pathp = d;
+		return &d->path;
 	}
 
-	m = 0;
-	for(i=0;; i++) {
-		c = *p++;
-		if(c == ' ')
-			break;
-		if(c < '0' || c > '9')
-			goto bad;
-		m = (m*10) + (c-'0');
+	for(i=0; i<d->nchild; i++)
+		pathp = _setpath(&d->child[i], pathp, ndown-1);
+	return pathp;
+}
+
+void
+setpath(Direc *d)
+{
+	int i, h;
+	Direc **pathp;
+
+	pathid = 1;
+	d->pathid = pathid++;
+	pathp = &d->path;
+
+	h = height(d);
+if(chatty) fprint(2, "height %d\n", h);
+	for(i=1; i<h; i++)	/* only the root is at 0 */
+		pathp = _setpath(d, pathp, i);
+
+	*pathp = nil;
+}
+
+static void
+printpath(Direc *d)
+{
+	for(; d; d=d->path)
+		fprint(2, "%P %lud\n", d, d->pathid);
+}
+
+/*
+ * Set the parent pointers; we couldn't do
+ * this while we were creating the tree, since the
+ * directory entries were being reallocated.
+ */
+static void
+xsetparents(Direc *d)
+{
+	int i;
+
+	for(i=0; i<d->nchild; i++) {
+		d->child[i].parent = d;
+		xsetparents(&d->child[i]);
 	}
-	d->date = m;	/* not used */
+}
 
-	m = 0;
-	for(i=0;; i++) {
-		c = *p++;
-		if(c == 0)
-			break;
-		if(c < '0' || c > '9')
-			goto bad;
-		m = (m*10) + (c-'0');
-	}
-	d->length = m;
+void
+setparents(Direc *root)
+{
+	root->parent = root;
+	xsetparents(root);
+}
 
-	d->offset = Boffset(ibuf);
-	Bseek(ibuf, d->length+d->offset, 0);
-	return 0;
+/*
+ * Set the names to conform to 8.3
+ * by changing them to numbers.
+ * Plan 9 gets the right names from its
+ * own directory entry; to ``aid'' other systems
+ * we write the _conform.map file later.
+ *
+ * Joliet should take care of most of the
+ * interoperability with other systems now.
+ * This is mainly for old times' sake.
+ */
+void
+convertnames(Direc *d, char* (*cvt)(char*, char*))
+{
+	int i;
+	char new[NAMELEN];
 
-bad:
-	fprint(2, "cant parse archive header\n");
+	if(d->flags & Fbadname) {
+		sprint(new, "F%.6d", nconform++);
+		if(d->mode & CHDIR)
+			new[0] = 'D';
+		cvt(d->name, new);
+	} else
+		cvt(d->name, d->utfname);
+
+	for(i=0; i<d->nchild; i++)
+		convertnames(&d->child[i], cvt);
+}
+
+/*
+ * Turn the Fbadname flag on for any entries
+ * that have non-conforming names.
+ */
+void
+checknames(Direc *d, int (*isbadname)(char*))
+{
+	int i;
+
+	if(d->flags & Fconfmap)
+		return;
+
+	if(d != &root && d != &jroot && isbadname(d->utfname))
+		d->flags |= Fbadname;
+
+	if(strcmp(d->utfname, "_conform.map") == 0)
+		d->flags |= Fbadname;
+
+	for(i=0; i<d->nchild; i++)
+		checknames(&d->child[i], isbadname);
+}
+
+/*
+ * ISO 9660 file names must be uppercase, digits, or underscore
+ * (we'll convert lower to upper that later), have a basename
+ * at most 8 letters, have at most one suffix at most 3 letters.
+ */
+static int 
+is9660frog(char c)
+{
+	if(c >= '0' && c <= '9')
+		return 0;
+	if(c >= 'a' && c <= 'z')
+		return 0;
+	if(c >= 'A' && c <= 'Z')
+		return 0;
+	if(c == '_')
+		return 0;
+
 	return 1;
 }
 
 int
-dcmp(Direc *a, Direc *b)
+isbadiso9660(char *s)
 {
+	char *p, *q;
+	int i;
 
-	return strcmp(a->name, b->name);
-}
+	if(p = strchr(s, '.')) {
+		if(p-s > 8)
+			return 1;
+		for(q=s; q<p; q++)
+			if(is9660frog(*q))
+				return 1;
+		if(strlen(p+1) > 3)
+			return 1;
+		for(q=p+1; *q; q++)
+			if(is9660frog(*q))
+				return 1;
+	} else {
+		if(strlen(s) > 8)
+			return 1;
+		for(q=s; *q; q++)
+			if(is9660frog(*q))
+				return 1;
 
-void
-dirsort(Direc *c)
-{
-	Direc l[1000], *d, *e;
-	int n;
-
-	n = 0;
-	for(d=c->first; d; d=d->next) {
-		if(n >= nelem(l)) {
-			fprint(2, "too many entries in a directory\n");
-			exits("2big");
+		/*
+		 * we rename files of the form [FD]dddddd
+		 * so they don't interfere with us.
+		 */
+		if(strlen(s) == 7 && (s[0] == 'D' || s[0] == 'F')) {
+			for(i=1; i<7; i++)
+				if(s[i] < '0' || s[i] > '9')
+					break;
+			if(i == 7)
+				return 1;
 		}
-		l[n++] = *d;
 	}
-	if(n == 0)
-		return;
-	qsort(l, n, sizeof(l[0]), dcmp);
-	n = 0;
-	for(d=c->first; d; d=d->next) {
-		l[n].chain = d->chain;
-		l[n].next = d->next;
-		*d = l[n++];
-		for(e=d->first; e; e=e->next)
-			e->parent = d;
-	}
-}
-
-int
-consub(char *p)
-{
-	int c;
-
-	c = *p;
-	if(c >= '0' && c <= '9')
-		return 1;
-	if(c >= 'a' && c <= 'z') {
-		*p = c + ('A'-'a');
-		return 1;
-	}
-	if(c == '_')
-		return 1;
 	return 0;
 }
 
-void
-doconf(Direc *c)
-{
-	int n, i;
-	char *s;
-
-	strcpy(c->rname, c->name);	/* real name before conversion */
-	s = strchr(c->name, '.');
-
-	/*
-	 * names without '.'
-	 */
-	if(s == 0) {
-		s = c->name;
-		n = strlen(s);
-
-		/*
-		 * if length is > 8
-		 */
-		if(n > 8)
-			goto redo;
-
-		/*
-		 * if contains any nasty characters
-		 */
-		for(i=0; i<n; i++) {
-			if(consub(s+i))
-				continue;
-			goto redo;
-		}
-
-		/*
-		 * if format is [FD]dddddd
-		 *	(after conversion)
-		 */
-		if(n == 7)
-		if(s[0] == 'D' || s[0] == 'F') {
-			for(i=1; i<n; i++)
-				if(s[i] < '0' || s[i] > '9')
-					break;
-			if(i >= n)
-				goto redo;
-		}
-		return;
-	}
-
-	/*
-	 * names with '.'
-	 * if prefix length is > 8
-	 */
-	n = s - c->name;
-	if(n > 8)
-		goto redo;
-
-	/*
-	 * if prefix contains any nasty characters
-	 */
-	s = c->name;
-	for(i=0; i<n; i++) {
-		if(consub(s+i))
-			continue;
-		goto redo;
-	}
-
-	/*
-	 * if suffix length is > 3
-	 */
-	s += n+1;
-	n = strlen(s);
-	if(n > 3)
-		goto redo;
-
-	/*
-	 * if suffix contains any nasty characters
-	 */
-	for(i=0; i<n; i++) {
-		if(consub(s+i))
-			continue;
-		goto redo;
-	}
-	return;
-
-
-	/*
-	 * convert to [FD]dddddd
-	 */
-redo:
-	sprint(c->name, "F%.6d", conform);
-	if(c->mode & CHDIR)
-		c->name[0] = 'D';
-	conform++;
-	c->noncon = 1;
-}
-
-void
-ckpath(Direc *c, int lev)
+/*
+ * Find the conforming name corresponding to
+ * a UTF name; this must be called before dsort.
+ */
+char*
+findconform(Direc *r, char *p)
 {
 	Direc *d;
-	long n;
 
-	if(pass == 1) {
-		if(c->length && (c->mode & CHDIR)) {
-			fprint(2, "%P:both directory and file\n", c);
-			if(c->first)
-				c->length = 0;
-			else
-				c->mode &= ~CHDIR;
-		}
-		if(c->first && !(c->mode & CHDIR)) {
-			fprint(2, "%P: mod not set to DIR\n", c);
-			c->mode |= CHDIR;
-		}
-		c->level = lev;
-		if(conform)
-			for(d=c->first; d; d=d->next) {
-				if(lev == 0 && d->first == 0) {
-					if(afile && strcmp(d->name, afile) == 0) {
-						d->abst = 1;
-						afile = 0;
-					}
-					if(bfile && strcmp(d->name, bfile) == 0) {
-						d->biblio = 1;
-						bfile = 0;
-					}
-					if(nfile && strcmp(d->name, nfile) == 0) {
-						d->notice = 1;
-						nfile = 0;
-					}
-				}
-				doconf(d);
-			}
-		dirsort(c);
-		if(lev > maxlevel)
-			maxlevel = lev;
+	if(p == nil)
+		return nil;
+
+	d = walkdirec(r, p);
+	if(d == nil){
+		fprint(2, "warning: could not find %s (shouldn't happen)\n", p);
+		return nil;
 	}
 
-	padtoblock();
-	n = offset;
-	if(c->conf)
-		return;
+	return d->name;
+}
 
-	if(pass == 2)
-		if(c->blockno != n/RSIZE)
-			fprint(2, "phase error 1\n");
-	c->blockno = n/RSIZE;
-	if(c->mode & CHDIR) {
-		bputdir(c, DTdot);
-		bputdir(c->parent, DTdotdot);
-		for(d=c->first; d; d=d->next) {
-			if(d->parent != c)
-				print("not parent\n");
-			bputdir(d, DTiden);
-		}
-		padtoblock();
-		if(pass == 2)
-			if(c->length != offset-n)
-				fprint(2, "phase error 2\n");
-		c->length = offset - n;
+/*
+ * ISO9660 name comparison
+ * 
+ * The standard algorithm is as follows:
+ *   Take the filenames without extensions, pad the shorter with 0x20s (spaces),
+ *   and do strcmp.  If they are equal, go on.
+ *   Take the extensions, pad the shorter with 0x20s (spaces),
+ *   and do strcmp.  If they are equal, go on.
+ *   Compare the version numbers.
+ *
+ * Since Plan 9 names are not allowed to contain characters 0x00-0x1F,
+ * the padded comparisons are equivalent to using strcmp directly.
+ * We still need to handle the base and extension differently,
+ * so that .foo sorts before !foo.foo.
+ */
+static int
+isocmp(void *va, void *vb)
+{
+	int i;
+	char s1[NAMELEN], s2[NAMELEN], *b1, *b2, *e1, *e2;
+	Direc *a, *b;
 
-		for(d=c->first; d; d=d->next)
-			ckpath(d, lev+1);
-		return;
-	}
+	a = va;
+	b = vb;
 
-	n = c->length;
-	offset += n;
-	if(pass == 2) {
-		Bseek(ibuf, c->offset, 0);
-		while(n > 0) {
-			Bputc(obuf, Bgetc(ibuf));
-			n--;
-		}
+	b1 = strcpy(s1, a->name);
+	b2 = strcpy(s2, b->name);
+	if(e1 = strchr(b1, '.'))
+		*e1++ = '\0';
+	else
+		e1 = "";
+	if(e2 = strchr(b2, '.'))
+		*e2++ = '\0';
+	else
+		e2 = "";
+
+	if(i = strcmp(b1, b2))
+		return i;
+
+	if(i = strcmp(e1, e2))
+		return i;
+
+	return 0;
+}
+
+Rune*
+strtorune(Rune *r, char *s)
+{
+	Rune *or;
+
+	if(s == nil)
+		return nil;
+
+	or = r;
+	while(*s)
+		s += chartorune(r++, s);
+	*r = L'\0';
+	return or;
+}
+
+Rune*
+runechr(Rune *s, Rune c)
+{
+	for(; *s; s++)
+		if(*s == c)
+			return s;
+	return nil;
+}
+
+int
+runecmp(Rune *s, Rune *t)
+{
+	while(*s && *t && *s == *t)
+		s++, t++;
+	return *s - *t;
+}
+
+/*
+ * Joliet name validity check 
+ * 
+ * Joliet names have length at most 128 (not a problem),
+ * and cannot contain '*', '/', ':', ';', '?', or '\'.
+ */
+int
+isbadjoliet(char *s)
+{
+	Rune r[NAMELEN], *p;
+
+	strtorune(r, s);
+	for(p=r; *p; p++)
+		if(*p==L'*' || *p==L'/' || *p==L':' || *p==';' || *p=='?' || *p=='\\')
+			return 1;
+	return 0;
+}
+
+/*
+ * Joliet name comparison
+ *
+ * The standard algorithm is the ISO9660 algorithm but
+ * on the encoded Runes.  Runes are encoded in big endian
+ * format, so we can just use runecmp.
+ * 
+ * Padding is with zeros, but that still doesn't affect us.
+ */
+static int
+jolietcmp(void *va, void *vb)
+{
+	int i;
+	Rune s1[NAMELEN], s2[NAMELEN], *b1, *b2, *e1, *e2;
+	Direc *a, *b;
+
+	a = va;
+	b = vb;
+
+	b1 = strtorune(s1, a->utfname);
+	b2 = strtorune(s2, b->utfname);
+	if(e1 = runechr(b1, L'.'))
+		*e1++ = '\0';
+	else
+		e1 = L"";
+	if(e2 = runechr(b2, L'.'))
+		*e2++ = '\0';
+	else
+		e2 = L"";
+
+	if(i = runecmp(b1, b2))
+		return i;
+
+	if(i = runecmp(e1, e2))
+		return i;
+
+	return 0;
+}
+
+/*
+ * CD image buffering routines;
+ * b->bio == nil means we are in the first pass
+ * and not actually writing.
+ */
+void
+bputc(Imgbuf *b, int c)
+{
+	b->offset++;
+	if(b->bio)
+		Bputc(b->bio, c);
+}
+
+void
+bputnl(Imgbuf *b, ulong val, int size)
+{
+	switch(size){
+	default:
+		sysfatal("bad size %d in bputnl", size);
+	case 2:
+		bputc(b, val);
+		bputc(b, val>>8);
+		break;
+	case 4:
+		bputc(b, val);
+		bputc(b, val>>8);
+		bputc(b, val>>16);
+		bputc(b, val>>24);
+		break;
 	}
 }
 
 void
-padtoblock(void)
+bputnm(Imgbuf *b, ulong val, int size)
+{
+	switch(size){
+	default:
+		sysfatal("bad size %d in bputnl", size);
+	case 2:
+		bputc(b, val>>8);
+		bputc(b, val);
+		break;
+	case 4:
+		bputc(b, val>>24);
+		bputc(b, val>>16);
+		bputc(b, val>>8);
+		bputc(b, val);
+		break;
+	}
+}
+
+void
+bputn(Imgbuf *b, long val, int size)
+{
+	bputnl(b, val, size);
+	bputnm(b, val, size);
+}
+
+/*
+ * ASCII/UTF string writing
+ */
+void
+brepeat(Imgbuf *b, int c, int n)
+{
+	while(n-- > 0)
+		bputc(b, c);
+}
+
+void
+bputs(Imgbuf *b, char *s, int size)
 {
 	int n;
 
-	n = RSIZE - (offset & (RSIZE-1));
-	if(n != RSIZE)
-		brepeat(0, n);
+	if(s == nil) {
+		brepeat(b, ' ', size);
+		return;
+	}
+
+	n = size - strlen(s);
+	if(n < 0)
+		s -= n;	/* only take suffix of string; n is negative */
+	while(*s)
+		bputc(b, *s++);
+	if(n > 0)
+		brepeat(b, ' ', n);
+}
+
+/* 
+ * Unicode writing as big endian 16-bit Runes
+ */
+static int
+runestrlen(Rune *s)
+{
+	int n;
+
+	for(n=0; *s; s++)
+		n++;
+	return n;
 }
 
 void
-brepeat(int c, int n)
+bputr(Imgbuf *b, Rune r)
+{
+	bputc(b, r>>8);
+	bputc(b, r);
+}
+
+void
+brepeatr(Imgbuf *b, Rune r, int n)
 {
 	int i;
 
-	offset += n;
-	if(pass == 2)
-		for(i=0; i<n; i++)
-			Bputc(obuf, c);
+	for(i=0; i<n; i++)
+		bputr(b, r);
 }
 
 void
-putprivol(int size)
+bputrs(Imgbuf *b, Rune *s, int size)
 {
-	Direc *af, *bf, *nf, *d;
+	int n;
 
-	bputc(1);				/* primary volume descriptor */
-	bputs("CD001", 5);			/* standard identifier */
-	bputc(1);				/* volume descriptor version */
-	bputc(0);				/* unused */
-	bputs("PLAN 9", 32);			/* system identifier */
-	bputs(volid, 32);			/* volume identifier */
-	brepeat(0, 8);				/* unused */
-	bputn(size, 4);				/* volume space size */
-	brepeat(0, 32);				/* unused */
-	bputn(1, 2);				/* volume set size */
-	bputn(1, 2);				/* volume sequence number */
-	bputn(RSIZE, 2);			/* logical block size */
-	bputn(pathsize, 4);			/* path table size */
-	bputnl(lpathloc, 4);			/* location of Lpath */
-	bputnl(0, 4);				/* location of optional Lpath */
-	bputnm(mpathloc, 4);			/* location of Mpath */
-	bputnm(0, 4);				/* location of optional Mpath */
-	bputdir(root, DTroot);			/* root directory */
-	bputs("ANDREW_bob", 128);		/* volume set identifier */
-	bputs("ROB_bob", 128);			/* publisher identifier */
-	bputs("KEN_bob", 128);			/* data preparer identifier */
-	bputs("PHILW_bob", 128);		/* application identifier */
-
-	af = 0;
-	bf = 0;
-	nf = 0;
-	for(d=chain; d; d=d->chain) {
-		if(d->abst)
-			af = d;
-		if(d->biblio)
-			bf = d;
-		if(d->notice)
-			nf = d;
-	}
-	if(nf)					/* copyright file */
-		bputs(nf->name, 37);
-	else
-		bputs("", 37);
-	if(af)					/* abstract file */
-		bputs(af->name, 37);
-	else
-		bputs("", 37);
-	if(bf)					/* biblographic file */
-		bputs(bf->name, 37);
-	else
-		bputs("", 37);
-
-	bputdate1(now);				/* volume creation date */
-	bputdate1(now);				/* volume modification date */
-	bputdate1(0);				/* volume expiration date */
-	bputdate1(0);				/* volume effective date */
-	bputc(1);				/* file structure version */
-}
-
-void
-putevol(void)
-{
-
-	bputc(255);				/* volume descriptor set terminator */
-	bputs("CD001", 5);			/* standard identifier */
-	bputc(1);				/* volume descriptor version */
-}
-
-void
-bputdir(Direc *d, int dot)
-{
-	int f, n, l;
-	long o;
-
-	f = 0;
-	if(d->mode & CHDIR)
-		f |= 2;
-
-	n = 1;
-	if(dot == DTiden)
-		n = strlen(d->name);
-
-	l = 33+n;
-	if(l & 1)
-		l++;
-
-	if(extend && dot == DTiden) {
-		if(d->noncon)
-			l += strlen(d->rname);
-		l += strlen(d->uid);
-		l += strlen(d->gid);
-		l += 3+8;
-		if(l & 1)
-			l++;
+	size /= 2;
+	if(s == nil) {
+		brepeatr(b, L' ', size);
+		return;
 	}
 
-	o = offset;
-	o = RSIZE - (o & (RSIZE-1));
-	if(o < l)
-		padtoblock();
-
-
-	bputc(l);			/* length of directory record */
-	bputc(0);			/* extended attribute record length */
-	bputn(d->blockno, 4);		/* location of extent */
-	bputn(d->length, 4);		/* data length */
-	bputdate(now);			/* recorded date */
-	bputc(f);			/* file flags */
-	bputc(0);			/* file unit size */
-	bputc(0);			/* interleave gap size */
-	bputn(1, 2);			/* volume sequence number */
-	bputc(n);			/* length of file identifier */
-
-	if(dot == DTiden)		/* identifier */
-		bputs(d->name, n);
-	else
-	if(dot == DTdotdot)
-		bputc(1);
-	else
-		bputc(0);
-
-	if(offset & 1)			/* pad */
-		bputc(0);
-
-	/*
-	 * plan 9 extension in system use space on end
-	 * of each dirsctory. contains the real file
-	 * name if the file was not conformal. also
-	 * contains string gid and uid and 32-bit mode.
-	 */
-	if(extend && dot == DTiden) {	/* system use */
-		if(d->noncon) {
-			n = strlen(d->rname);
-			bputc(n);
-			bputs(d->rname, n);
-		} else
-			bputc(0);
-
-		n = strlen(d->uid);
-		bputc(n);
-		bputs(d->uid, n);
-
-		n = strlen(d->gid);
-		bputc(n);
-		bputs(d->gid, n);
-
-		if(offset & 1)
-			bputc(0);
-		bputn(d->mode, 4);
-	}
+	n = size - runestrlen(s);
+	if(n < 0)
+		s -= n;	/* only take suffix of string; n is negative */
+if(chatty) fprint(2, "write %S\n", s);
+	while(*s)
+		bputr(b, *s++);
+	if(n > 0)
+		brepeatr(b, ' ', n);
 }
 
 void
-bputdate(long ust)
+bputrscvt(Imgbuf *b, char *s, int size)
+{
+	Rune r[256];
+
+	strtorune(r, s);
+	bputrs(b, strtorune(r, s), size);
+}
+
+void
+bpadblock(Imgbuf *b)
+{
+	int n;
+
+	n = blocksize - (b->offset % blocksize);
+	if(n != blocksize)
+		brepeat(b, 0, n);
+}
+
+void
+bputdate(Imgbuf *b, long ust)
 {
 	Tm *tm;
 
 	if(ust == 0) {
-		brepeat(0, 7);
+		brepeat(b, 0, 7);
 		return;
 	}
 	tm = gmtime(ust);
-	bputc(tm->year);
-	bputc(tm->mon+1);
-	bputc(tm->mday);
-	bputc(tm->hour);
-	bputc(tm->min);
-	bputc(tm->sec);
-	bputc(0);
+	bputc(b, tm->year);
+	bputc(b, tm->mon+1);
+	bputc(b, tm->mday);
+	bputc(b, tm->hour);
+	bputc(b, tm->min);
+	bputc(b, tm->sec);
+	bputc(b, 0);
 }
 
 void
-bputdate1(long ust)
+bputdate1(Imgbuf *b, long ust)
 {
 	Tm *tm;
 	char str[20];
 
 	if(ust == 0) {
-		brepeat('0', 16);
-		bputc(0);
+		brepeat(b, '0', 16);
+		bputc(b, 0);
 		return;
 	}
 	tm = gmtime(ust);
@@ -862,110 +899,686 @@ bputdate1(long ust)
 		tm->hour,
 		tm->min,
 		tm->sec*100);
-	bputs(str, 16);
-	bputc(0);
+	bputs(b, str, 16);
+	bputc(b, 0);
 }
 
-int
-pathcmp(void *o1, void *o2)
+/*
+ * Write a directory entry.
+ */
+static void
+genputdir(Imgbuf *b, Direc *d, int dot, int joliet)
 {
-	Direc *a, *b;
-	char pn1[500], pn2[500];
+	int f, n, l;
+	long o;
+
+	f = 0;
+	if(d->mode & CHDIR)
+		f |= 2;
+
+	n = 1;
+	if(dot == DTiden) {
+		if(joliet)
+			n = 2*utflen(d->name);
+		else
+			n = strlen(d->name);
+	}
+
+	l = 33+n;
+	if(l & 1)
+		l++;
+
+	if(joliet==0 && plan9 && dot == DTiden) {
+		if(d->flags & Fbadname)
+			l += strlen(d->utfname);
+		l += strlen(d->uid);
+		l += strlen(d->gid);
+		l += 3+8;
+		if(l & 1)
+			l++;
+	}
+
+	if(d->flags & Fconfmap) {
+		d->length = conformsize;
+if(chatty) fprint(2, "conformsize %ld\n", conformsize);
+	}
+
+	o = b->offset;
+	o = blocksize - o % blocksize;
+	if(o < l)
+		bpadblock(b);
+
+	bputc(b, l);			/* length of directory record */
+	bputc(b, 0);			/* extended attribute record length */
+	bputn(b, blockno[d->blockind], 4);		/* location of extent */
+if(chatty) fprint(2, "%s at %ld %s\n", d->src, blockno[d->blockind], joliet ? "joliet" : "iso9660");
+	bputn(b, d->length, 4);		/* data length */
+	bputdate(b, now);			/* recorded date */
+	bputc(b, f);			/* file flags */
+	bputc(b, 0);			/* file unit size */
+	bputc(b, 0);			/* interleave gap size */
+	bputn(b, 1, 2);			/* volume sequence number */
+	bputc(b, n);			/* length of file identifier */
+
+	if(dot == DTiden) {		/* identifier */
+		if(joliet)
+			bputrscvt(b, d->name, n);
+		else
+			bputs(b, d->name, n);
+	}else
+	if(dot == DTdotdot)
+		bputc(b, 1);
+	else
+		bputc(b, 0);
+
+	if(b->offset & 1)			/* pad */
+		bputc(b, 0);
+
+	/*
+	 * plan 9 extension in system use space on end
+	 * of each dirsctory. contains the real file
+	 * name if the file was not conformal. also
+	 * contains string gid and uid and 32-bit mode.
+	 */
+	if(joliet==0 && plan9 && dot == DTiden) {
+		if(d->flags & Fbadname) {
+			n = strlen(d->utfname);
+			bputc(b, n);
+			bputs(b, d->utfname, n);
+		} else
+			bputc(b, 0);
+
+		n = strlen(d->uid);
+		bputc(b, n);
+		bputs(b, d->uid, n);
+
+		n = strlen(d->gid);
+		bputc(b, n);
+		bputs(b, d->gid, n);
+
+		if(b->offset & 1)
+			bputc(b, 0);
+		bputn(b, d->mode, 4);
+	}
+}
+
+void
+bputdir(Imgbuf *b, Direc *d, int dot)
+{
+	genputdir(b, d, dot, 0);
+}
+
+void
+bputjdir(Imgbuf *b, Direc *d, int dot)
+{
+	genputdir(b, d, dot, 1);
+}
+
+/* 
+ * Write the primary volume descriptor.
+ */
+void
+bputprivol(Imgbuf *b)
+{
+	char upvol[33];
+	char *p;
+
+	if(p = strrchr(volume, '/'))
+		p++;
+	else
+		p = volume;
+
+	strncpy(upvol, p, 32);
+	upvol[32] = '\0';
+	strupr(upvol, upvol);
+
+	bputc(b, 1);				/* primary volume descriptor */
+	bputs(b, "CD001", 5);			/* standard identifier */
+	bputc(b, 1);				/* volume descriptor version */
+	bputc(b, 0);				/* unused */
+	bputs(b, "PLAN 9", 32);			/* system identifier */
+	bputs(b, upvol, 32);			/* volume identifier */
+	brepeat(b, 0, 8);				/* unused */
+	bputn(b, volsize, 4);			/* volume space size */
+	brepeat(b, 0, 32);				/* unused */
+	bputn(b, 1, 2);				/* volume set size */
+	bputn(b, 1, 2);				/* volume sequence number */
+	bputn(b, blocksize, 2);			/* logical block size */
+	bputn(b, isopathsize, 4);			/* path table size */
+	bputnl(b, isolpathloc, 4);			/* location of Lpath */
+	bputnl(b, 0, 4);				/* location of optional Lpath */
+	bputnm(b, isompathloc, 4);			/* location of Mpath */
+	bputnm(b, 0, 4);				/* location of optional Mpath */
+	bputdir(b, &root, DTroot);			/* root directory */
+	bputs(b, upvol, 128);		/* volume set identifier */
+	bputs(b, "PLAN9", 128);			/* publisher identifier */
+	bputs(b, "PLAN9", 128);			/* data preparer identifier */
+	bputs(b, "MK9660", 128);		/* application identifier */
+	bputs(b, isonotice, 37);			/* copyright notice */
+	bputs(b, isoabstract, 37);			/* abstract */
+	bputs(b, isobiblio, 37);			/* bibliographic file */
+	bputdate1(b, now);				/* volume creation date */
+	bputdate1(b, now);				/* volume modification date */
+	bputdate1(b, 0);				/* volume expiration date */
+	bputdate1(b, 0);				/* volume effective date */
+	bputc(b, 1);				/* file structure version */
+	bpadblock(b);
+}
+
+/*
+ * Write a Joliet secondary volume descriptor.
+ */
+void
+bputjolvol(Imgbuf *b)
+{
+	bputc(b, 2);				/* secondary volume descriptor */
+	bputs(b, "CD001", 5);			/* standard identifier */
+	bputc(b, 1);				/* volume descriptor version */
+	bputc(b, 0);				/* unused */
+	bputrs(b, L"PLAN 9", 32);			/* system identifier */
+	bputrscvt(b, volume, 32);			/* volume identifier */
+	brepeat(b, 0, 8);				/* unused */
+	bputn(b, volsize, 4);			/* volume space size */
+	bputc(b, 0x25);				/* escape sequences: UCS-2 Level 2 */
+	bputc(b, 0x2F);
+	bputc(b, 0x43);
+	brepeat(b, 0, 29);
+	bputn(b, 1, 2);				/* volume set size */
+	bputn(b, 1, 2);				/* volume sequence number */
+	bputn(b, blocksize, 2);			/* logical block size */
+	bputn(b, jpathsize, 4);			/* path table size */
+	bputnl(b, jlpathloc, 4);			/* location of Lpath */
+	bputnl(b, 0, 4);				/* location of optional Lpath */
+	bputnm(b, jmpathloc, 4);			/* location of Mpath */
+	bputnm(b, 0, 4);				/* location of optional Mpath */
+	bputjdir(b, &jroot, DTroot);			/* root directory */
+	bputrscvt(b, volume, 128);		/* volume set identifier */
+	bputrs(b, L"Plan 9", 128);			/* publisher identifier */
+	bputrs(b, L"Plan 9", 128);			/* data preparer identifier */
+	bputrs(b, L"disk/mk9660", 128);		/* application identifier */
+	bputrscvt(b, notice, 37);			/* copyright notice */
+	bputrscvt(b, abstract, 37);			/* abstract */
+	bputrscvt(b, biblio, 37);			/* bibliographic file */
+	bputdate1(b, now);				/* volume creation date */
+	bputdate1(b, now);				/* volume modification date */
+	bputdate1(b, 0);				/* volume expiration date */
+	bputdate1(b, 0);				/* volume effective date */
+	bputc(b, 1);				/* file structure version */
+	bpadblock(b);
+}
+
+static void
+phaseset(Imgbuf *b, long *new, long m, char *s, char *t)
+{
+	if(b->bio && *new != m)
+		sysfatal("phase error %s %s: %ld %ld", s, t, *new, m);
+if(chatty) fprint(2, "set %s %s = %ld\n", s, t, m);
+	*new = m;
+}
+
+static void
+phaseoff(Imgbuf *b, long *new, char *s)
+{
+	phaseset(b, new, b->offset/blocksize, "disk offset", s);
+}
+
+/*
+ * Write boot validation entry.
+ */
+void
+bputvalidationentry(Imgbuf *b)
+{
+	int sum;
+
+	bputc(b, 1);	/* header id */
+	bputc(b, 0);	/* 0 = 386, 1 = PowerPC, 2 = Mac */
+	brepeat(b, 0, 2);	/* unused */
+	bputs(b, "PLAN9", 24);
+
+	/* little endian sum of buffer */
+	sum = 0x0001	/* header id */
+		+ ('P'|('L'<<8)) + ('A'|('N'<<8)) + '9' + 0xAA55;
+	bputnl(b, 0x10000-(sum&0xFFFF), 2);	/* checksum record */
+	bputnl(b, 0xAA55, 2);
+}
+
+/*
+ * Write single boot entry.
+ * Assume media is 1.44MB floppy image.
+ * Others are possible, including
+ * ``Put image here and just jump to it.''
+ */
+void
+bputbootentry(Imgbuf *b)
+{
+	bputc(b, 0x88);		/* boot indicator; 0x88 = bootable, 0 = not */
+	bputc(b, 2);		/* media emulation : 2 = 1.44MB disk */
+	bputnl(b, 0, 2);		/* load segment: 0 means default 7C0 */
+	bputc(b, 0);		/* fdisk partition type; ignored for floppy */
+	bputc(b, 0);		/* unused */
+	bputnl(b, 2880, 2);	/* no. of virtual/emulated sectors */
+	bputnl(b, bootimgloc, 4);
+	brepeat(b, 0, 20);
+}
+
+/*
+ * Write booting catalog.
+ */
+void
+bputbootcat(Imgbuf *b)
+{
+	phaseoff(b, &bootcatloc, "boot catalog");
+	bputvalidationentry(b);
+	bputbootentry(b);
+}
+
+/*
+ * Write an ``El Torito'' bootable CD descriptor.
+ * Must go into sector 17, as per standard.
+ */
+void
+bputbootvol(Imgbuf *b)
+{
+	assert(b->offset == 17*blocksize);
+
+	bputc(b, 0);
+	bputs(b, "CD001", 5);
+	bputc(b, 1);
+	bputs(b, "EL TORITO SPECIFICATION", 23);
+	brepeat(b, 0, 0x40-23);
+	bputnl(b, bootcatloc, 4);	/* XXX */
+	bpadblock(b);
+}
+
+/*
+ * Write the boot file.
+ */
+void
+bputbootimage(Imgbuf *b)
+{
+	Biobuf *bin;
 	int n;
 
-	a = *(Direc**)o1;
-	b = *(Direc**)o2;
-	n = a->level - b->level;
-	if(n)
-		return n;
-	sprint(pn1, "%P", a);
-	sprint(pn2, "%P", b);
-	return strcmp(pn1, pn2);
+	if((bin = Bopen(bootimage, OREAD)) == nil)
+		sysfatal("cannot open boot image: %r");
+
+	phaseoff(b, &bootimgloc, "boot image");
+	n = 1440*1024;
+	if(b->bio) {
+		while(n-- > 0)
+			bputc(b, Bgetc(bin));
+	} else
+		b->offset += n;
+	Bterm(bin);
+	bpadblock(b);
 }
 
 void
-dopath(Direc *c, int endian)
+bputendvol(Imgbuf *b)
 {
-	int n, i;
+	bputc(b, 255);				/* volume descriptor set terminator */
+	bputs(b, "CD001", 5);			/* standard identifier */
+	bputc(b, 1);				/* volume descriptor version */
+	bpadblock(b);
+}
 
-	n = strlen(c->name);
-	if(n == 0)
+/* 
+ * Write a path entry for the stupid path table.
+ */
+void
+bputpath(Imgbuf *b, Direc *c, int bigendian, int runes)
+{
+	int n;
+	long bno;
+
+	if(runes)
+		n = 2*utflen(c->name);
+	else
+		n = strlen(c->name);
+
+	if(n == 0)	/* root */
 		n = 1;
-	bputc(n);
-	bputc(0);
-	if(endian) {
-		bputnm(c->blockno, 4);
-		bputnm(c->parent->path, 2);
+
+	bputc(b, n);
+	bputc(b, 0);
+	bno = blockno[c->blockind];
+	if(bigendian) {
+		bputnm(b, bno, 4);
+		bputnm(b, c->parent->pathid, 2);
 	} else {
-		bputnl(c->blockno, 4);
-		bputnl(c->parent->path, 2);
+		bputnl(b, bno, 4);
+		bputnl(b, c->parent->pathid, 2);
 	}
-	for(i=0; i<n; i++)
-		bputc(c->name[i]);
+	if(n == 1)
+		bputc(b, 0);
+	else if(runes)
+		bputrscvt(b, c->name, n);
+	else
+		bputs(b, c->name, n);
+
 	if(n & 1)
-		bputc(0);
+		bputc(b, 0);
 }
 
-void
-wrpath(void)
+/*
+ * Write the stupid path table.
+ */
+long
+bputpathtable(Imgbuf *b, Direc *root, int bigendian, int runes)
 {
-	Direc *d, *c;
-	char str[100];
-	Direc *path[1000];
-	int i, np;
+	Direc *d;
 	long n;
 
-	/*
-	 * add file of non-conforming names
-	 */
-	c = 0;
-	if(conform)
-		for(d=chain; d; d=d->chain)
-			if(d->conf) {
-				c = d;
-				break;
-			}
-	if(c) {
-		padtoblock();
-		n = offset;
-		if(pass == 2)
-			if(c->blockno != n/RSIZE)
-				fprint(2, "phase error 3\n");
-		c->blockno = n/RSIZE;
-		for(d=chain; d; d=d->chain)
-			if(d->noncon) {
-				sprint(str, "%s %s\n", d->name, d->rname);
-				bputs(str, strlen(str));
-			}
-		if(pass == 2)
-			if(c->length != offset-n)
-				fprint(2, "phase error 4\n");
-		c->length = offset - n;
+	n = b->offset;
+	for(d=root; d; d=d->path)
+		bputpath(b, d, bigendian, runes);
+	n = b->offset - n;
+	bpadblock(b);
+	return n;
+}
+
+/* 
+ * Write the contents of the _conform.map file.
+ */
+void
+bputconform(Imgbuf *b, Direc *d)
+{
+	int i;
+	char str[100];
+
+	if(d->flags & Fbadname) {
+		sprint(str, "%s %s\n", d->name, d->utfname);
+		bputs(b, str, strlen(str));
 	}
 
-	/*
-	 * do the path crap
-	 */
-	np = 0;
-	for(d=chain; d; d=d->chain)
-		if(d->mode & CHDIR)
-			path[np++] = d;
-	path[np++] = root;
+	for(i=0; i<d->nchild; i++)
+		bputconform(b, &d->child[i]);
+}
 
-	qsort(path, np, sizeof(path[0]), pathcmp);
-	for(i=0; i<np; i++)
-		path[i]->path = i+1;
+/*
+ * Write each non-directory file.
+ */
+void
+bputfiles(Imgbuf *b, Direc *d)
+{
+	int i;
+	long n;
+	Biobuf *bin;
 
-	padtoblock();
-	n = offset;
-	lpathloc = n/RSIZE;
-	for(i=0; i<np; i++)
-		dopath(path[i], 0);
-	pathsize = offset - n;
+	if(d->mode & CHDIR) {
+		for(i=0; i<d->nchild; i++)
+			bputfiles(b, &d->child[i]);
+		return;
+	}
 
-	padtoblock();
-	n = offset;
-	mpathloc = n/RSIZE;
-	for(i=0; i<np; i++)
-		dopath(path[i], 1);
+	if(d->flags & Fconfmap) {
+		blockno[d->blockind] = conformloc;
+		return;
+	}
+
+	phaseoff(b, &blockno[d->blockind], d->src);
+
+	if((bin = Bopen(d->src, OREAD)) == nil)
+		sysfatal("cannot open '%s': %r", d->src);
+	if(b->bio == nil)	/* just checking */
+		b->offset += d->length;
+	else {
+		n = d->length;
+		while(n-- > 0)
+			bputc(b, Bgetc(bin));
+	}
+	Bterm(bin);
+	bpadblock(b);
+}
+
+/*
+ * Write each directory.
+ */
+void
+bputdirs(Imgbuf *b, Direc *d, void (*put)(Imgbuf*, Direc*, int))
+{
+	int i;
+	long n;
+
+	if((d->mode & CHDIR) == 0)
+		return;
+
+	n = b->offset;
+	phaseoff(b, &blockno[d->blockind], d->src);
+if(chatty) fprint(2, "dir %s block %ld\n", d->src, blockno[d->blockind]);
+	(*put)(b, d, DTdot);
+	(*put)(b, d->parent, DTdotdot);
+	for(i=0; i<d->nchild; i++)
+		(*put)(b, &d->child[i], DTiden);
+	phaseset(b, &d->length, b->offset - n, "dir length", d->src);
+	bpadblock(b);
+
+	for(i=0; i<d->nchild; i++)
+		bputdirs(b, &d->child[i], put);
+}
+		
+void
+mk9660(Imgbuf *b)
+{
+	int n;
+
+	b->offset = 0;
+
+	brepeat(b, 0, 16*blocksize);
+
+if(chatty) fprint(2, "%ld primary\n", b->offset);
+	bputprivol(b);
+if(chatty) fprint(2, "%ld joliet\n", b->offset);
+	if(bootimage)
+		bputbootvol(b);
+	if(joliet)
+		bputjolvol(b);
+if(chatty) fprint(2, "%ld end\n", b->offset);
+	bputendvol(b);
+
+	if(bootimage)
+		bputbootimage(b);
+
+	if(conform || joliet) {
+		if(chatty) fprint(2, "%ld _conform.map\n", b->offset);
+		phaseoff(b, &conformloc, "_conform.map");
+		n = b->offset;
+		bputconform(b, &root);
+		bputconform(b, &jroot);
+		phaseset(b, &conformsize, b->offset - n, "size", "_conform.map");
+		bpadblock(b);
+	}
+
+	if(chatty) fprint(2, "%ld directory\n", b->offset);
+	bputdirs(b, &root, bputdir);
+
+	if(joliet) {
+		if(chatty) fprint(2, "%ld joliet directory\n", b->offset);
+		bputdirs(b, &jroot, bputjdir);
+	}
+
+	if(chatty) fprint(2, "%ld files\n", b->offset);
+	bputfiles(b, &root);
+
+	if(chatty) fprint(2, "%ld little path\n", b->offset);
+	phaseoff(b, &isolpathloc, "little path table");
+	isopathsize = bputpathtable(b, &root, 0, 0);
+	
+
+	if(chatty) fprint(2, "%ld big path\n", b->offset);
+	phaseoff(b, &isompathloc, "big path table");
+	bputpathtable(b, &root, 1, 0);
+
+	if(joliet) {
+		if(chatty) fprint(2, "%ld joliet little path\n", b->offset);
+		phaseoff(b, &jlpathloc, "little path table");
+		jpathsize = bputpathtable(b, &jroot, 0, 1);
+
+		if(chatty) fprint(2, "%ld joliet big path\n", b->offset);
+		phaseoff(b, &jmpathloc, "big path table");
+		bputpathtable(b, &jroot, 1, 1);
+	}
+		
+if(chatty) fprint(2, "%ld volume\n", b->offset);
+	phaseoff(b, &volsize, "volume size");
+}
+
+void
+usage(void)
+{
+	fprint(2, "usage: disk/mk9660 [-9cj] [-a abstract] [-b biblio] [-n notice] [-s src] [-v volume] proto\n");
+	exits("usage");
+}
+
+void
+main(int argc, char **argv)
+{
+	Dir d;
+	Direc *direc;
+	Biobuf bout;
+	Imgbuf img;
+	int n;
+
+	ARGBEGIN{
+	case '9':
+		plan9 = 1;
+		break;
+	case 'a':
+		abstract = ARGF();
+		break;
+	case 'B':
+		bootimage = ARGF();
+		break;
+	case 'b':
+		biblio = ARGF();
+		break;
+	case 'c':
+		conform = 1;
+		break;
+	case 'j':
+		joliet = 1;
+		break;
+	case 'k':
+		blocksize = atoi(ARGF());
+		break;
+	case 'n':
+		notice = ARGF();
+		break;
+	case 's':
+		src = ARGF();
+		break;
+	case 'v':
+		volume = ARGF();
+		break;
+	case 'D':
+		chatty++;
+		break;
+	default:
+		usage();
+	}ARGEND
+
+	if(argc != 1)
+		usage();
+
+	now = time(0);
+
+	proto = argv[0];
+	if(volume == nil)
+		volume = proto;
+
+	fmtinstall('P', Pconv);
+
+	if(abstract && strchr(abstract, '/')) {
+		fprint(2, "warning: ignoring abstract (must not contain /)\n");
+		abstract = nil;
+	}
+	if(biblio && strchr(biblio, '/')) {
+		fprint(2, "warning: ignoring bibliographic file (must not contain /)\n");
+		biblio = nil;
+	}
+	if(notice && strchr(notice, '/')) {
+		fprint(2, "warning: ignoring copyright notice (must not contain /)\n");
+		notice = nil;
+	}
+
+	/* create ISO9660/Plan 9 tree in memory */
+	memset(&d, 0, sizeof d);
+	strcpy(d.name, "");
+	strcpy(d.uid, "sys");
+	strcpy(d.gid, "sys");
+	d.mode = CHDIR | 0755;
+	d.mtime = now;
+	mkdirec(&root, &d);
+	root.src = src;
+
+	if(conform || joliet) {
+		strcpy(d.name, "_conform.map");
+		d.mode = 0444;
+		direc = adddirec(&root, "_conform.map", &d);
+		direc->flags |= Fconfmap;
+		direc->src = "<none>";
+	}
+
+	if(rdproto(proto, src, addfile, nil, &root) < 0)
+		sysfatal("rdproto: %r");
+
+	/* create Joliet tree */
+	if(joliet)
+		copydirec(&jroot, &root);
+
+	/* file block number locations */
+	blockno = emalloc(nblockno*sizeof(blockno[0]));
+
+	if(conform && !joliet && (n=height(&root)) > 8)
+		fprint(2, "warning: too many directory levels (%d > 8)\n", n);
+	if(abstract && !(found & Fabstract))
+		fprint(2, "warning: abstract file '%s' not in proto\n", abstract);
+	if(biblio && !(found & Fbiblio))
+		fprint(2, "warning: bibliographic file '%s' not in proto\n", biblio);
+	if(notice && !(found & Fnotice))
+		fprint(2, "warning: notice file '%s' not in proto\n", notice);
+
+	if(conform) {
+		checknames(&root, isbadiso9660);
+		convertnames(&root, strupr);
+	} else
+		convertnames(&root, strcpy);
+
+	isoabstract = findconform(&root, abstract);
+	isobiblio = findconform(&root, biblio);
+	isonotice = findconform(&root, notice);
+
+	dsort(&root, isocmp);
+	setparents(&root);
+	setpath(&root);
+	if(chatty) printdirec(&root, 0);
+	if(chatty) printpath(&root);
+
+	if(joliet) {
+		jabstract = findconform(&jroot, abstract);
+		jbiblio = findconform(&jroot, biblio);
+		jnotice = findconform(&jroot, notice);
+
+		checknames(&jroot, isbadjoliet);
+		convertnames(&jroot, strcpy);
+		dsort(&jroot, jolietcmp);
+		setparents(&jroot);
+		setpath(&jroot);
+		if(chatty) printdirec(&jroot, 0);
+		if(chatty) printpath(&root);
+	}
+
+	/* test pass to allocate blocks and the like */
+	memset(&img, 0, sizeof img);
+	img.bio = nil;
+	mk9660(&img);
+
+	/* actually write the cd image */
+	memset(&img, 0, sizeof img);
+	Binit(&bout, 1, OWRITE);
+	img.bio = &bout;
+	mk9660(&img);
+	brepeat(&img, 0, RUNOUT*blocksize);
+	Bterm(&bout);
+	exits(0);
 }

@@ -15,6 +15,7 @@ enum
 	Incomplete=	3,
 	TempFail=	4,
 	PermFail=	5,
+	Impossible=	6,
 };
 
 Node	*remdir;		/* current directory on remote machine */
@@ -25,17 +26,20 @@ Biobuf	ctlin;			/* input buffer for control connection */
 Biobuf	stdin;			/* input buffer for standard input */
 Biobuf	dbuf;			/* buffer for data connection */
 char	msg[512];		/* buffer for replies */
-char	net[NAMELEN];		/* network for connections */
+char	net[NETPATHLEN];	/* network for connections */
 int	listenfd;		/* fd to listen on for connections */
 char	netdir[NETPATHLEN];
 int	os, defos;
 char	topsdir[64];		/* name of listed directory for TOPS */
 char	remrootpath[256];	/* path on remote side to remote root */
 char	user[NAMELEN];
+int	nopassive;
 
 static void	sendrequest(char*, ...);
 static int	getreply(Biobuf*, char*, int, int);
-static int	data(int, Biobuf**);
+static int	active(int, Biobuf**, char*);
+static int	passive(int, Biobuf**, char*);
+static int	data(int, Biobuf**, char*, ...);
 static int	port(void);
 static void	ascii(void);
 static void	image(void);
@@ -43,6 +47,7 @@ static char*	unixpath(Node*, char*);
 static char*	vmspath(Node*, char*);
 static char*	mvspath(Node*, char*);
 static Node*	vmsdir(char*);
+static int	getpassword(char*, char*);
 
 /*
  *  connect to remote server, default network is "tcp/ip"
@@ -50,6 +55,7 @@ static Node*	vmsdir(char*);
 void
 hello(char *dest)
 {
+	char *p;
 	char dir[NETPATHLEN];
 
 	Binit(&stdin, 0, OREAD);	/* init for later use */
@@ -62,10 +68,11 @@ hello(char *dest)
 	Binit(&ctlin, ctlfd, OREAD);
 
 	/* remember network for the data connections */
-	if(strncmp(dir, "/net/", 5) != 0)
-		fatal("dial is out of date");
-	*strchr(dir+5, '/') = 0;
-	safecpy(net, dir+5, sizeof(net));
+	p = strrchr(dir+1, '/');
+	if(p == 0)
+		fatal("wrong dial(2) linked with ftp");
+	*p = 0;
+	safecpy(net, dir, sizeof(net));
 
 	/* wait for hello from other side */
 	if(getreply(&ctlin, msg, sizeof(msg), 1) != Success)
@@ -76,16 +83,13 @@ hello(char *dest)
  *  login to remote system
  */
 void
-login(void)
+rlogin(void)
 {
 	char *line;
-	int consctl;
+	char pass[128];
 
 	strcpy(user, getuser());
 	for(;;){
-		/*
-		 *  prompt for user
-		 */
 		print("User[default = %s]: ", user);
 		line = Brdline(&stdin, '\n');
 		if(line == 0)
@@ -95,34 +99,20 @@ login(void)
 			strncpy(user, line, sizeof(user));
 			user[sizeof(user)-1] = 0;
 		}
-		consctl = open("/dev/consctl", OWRITE);
-		if(consctl >= 0)
-			write(consctl, "rawon", 5);
 		sendrequest("USER %s", user);
 		switch(getreply(&ctlin, msg, sizeof(msg), 1)){
 		case Success:
-			close(consctl);
 			return;
 		case Incomplete:
 			break;
 		case TempFail:
 		case PermFail:
-			close(consctl);
 			continue;
 		}
 
-		/*
-		 *  prompt for password, don't print it
-		 */
-		print("Password: ");
-		line = Brdline(&stdin, '\n');
-		if(line == 0)
+		if(getpassword(pass, pass+sizeof(pass)) < 0)
 			exits(0);
-		if(consctl >= 0)
-			close(consctl);
-		print("\n");
-		line[Blinelen(&stdin)-1] = 0;
-		sendrequest("PASS %s", line);
+		sendrequest("PASS %s", pass);
 		if(getreply(&ctlin, msg, sizeof(msg), 1) == Success){
 			if(strstr(msg, "Sess#"))
 				defos = MVS;
@@ -191,11 +181,15 @@ preamble(char *mountroot)
 			if(strncmp(msg+4, o->name, strlen(o->name)) == 0)
 				break;
 		os = o->os;
+		if(os == NT)
+			os = Unix;
 		break;
 	default:
 		os = defos;
 		break;
 	}
+	if(os == Unknown)
+		os = defos;
 
 	switch(os){
 	case Unix:
@@ -281,7 +275,7 @@ preamble(char *mountroot)
 				ep = strchr(p, '"');
 				if(ep){
 					*ep = 0;
-					remdir = vmsdir(p);
+					remroot = remdir = vmsdir(p);
 				}
 			}
 		}
@@ -296,7 +290,7 @@ preamble(char *mountroot)
 		image();
 }
 
-void
+static void
 ascii(void)
 {
 	sendrequest("TYPE A");
@@ -308,7 +302,7 @@ ascii(void)
 	}
 }
 
-void
+static void
 image(void)
 {
 	sendrequest("TYPE I");
@@ -332,7 +326,6 @@ cracktime(char *month, char *day, char *yr, char *hms)
 	Tm tm;
 	int i;
 	char *p;
-	static int thisyear;
 
 	/* default time */
 	if(now.year == 0)
@@ -341,7 +334,7 @@ cracktime(char *month, char *day, char *yr, char *hms)
 
 	/* convert ascii month to a number twixt 1 and 12 */
 	if(*month >= '0' && *month <= '9'){
-		tm.mon = atoi(month);
+		tm.mon = atoi(month) - 1;
 		if(tm.mon < 0 || tm.mon > 11)
 			tm.mon = 5;
 	} else {
@@ -357,13 +350,14 @@ cracktime(char *month, char *day, char *yr, char *hms)
 	tm.mday = atoi(day);
 
 	if(hms){
-		tm.hour = atoi(hms);
-		p = strchr(hms, ':');
-		if(p){
+		tm.hour = strtol(hms, &p, 0);
+		if(*p == ':'){
 			tm.min = strtol(p+1, &p, 0);
 			if(*p == ':')
-				tm.sec = atoi(p+1);
+				tm.sec = strtol(p+1, &p, 0);
 		}
+		if(tolower(*p) == 'p')
+			tm.hour += 12;
 	}
 
 	if(yr){
@@ -376,7 +370,7 @@ cracktime(char *month, char *day, char *yr, char *hms)
 	}
 
 	/* convert to epoch seconds */
-	return tm2sec(tm);
+	return tm2sec(&tm);
 }
 
 /*
@@ -456,6 +450,7 @@ shorten(char *from, char *to, int offset)
 {
 	int n, s;
 	char *p;
+	char tmp[512];
 
 	memset(to, 0, NAMELEN);
 
@@ -466,6 +461,26 @@ shorten(char *from, char *to, int offset)
 	if(n < NAMELEN){
 		strcpy(to, from);
 		return;
+	}
+
+	/*
+	 *  quick and stupid hacks
+	 */
+	if(offset == 0){
+		if(strncmp(from, "draft-", 6) == 0){
+			from += 6;
+			n -= 6;
+		}
+		if(strncmp(from+n-4, ".txt", 4) == 0){
+			strncpy(tmp, from, n-4);
+			tmp[n-4] = 0;
+			from = tmp;
+		}
+		n = strlen(from);
+		if(n < NAMELEN){
+			strcpy(to, from);
+			return;
+		}
 	}
 
 	/*
@@ -527,8 +542,7 @@ crackdir(char *p, Dir *dp)
 	static char longname[128];
 	int dn, n;
 
-	setfields(" \t");
-	n = getmfields(p, field, 15);
+	n = getfields(p, field, 15, 1, " \t");
 	if(n > 2 && strcmp(field[n-2], "->") == 0)
 		n -= 2;
 	switch(os){
@@ -557,8 +571,7 @@ crackdir(char *p, Dir *dp)
 			if(strcmp(field[1], "DIR") == 0)
 				dp->mode |= CHDIR;
 			dp->length = atoi(field[0]);
-			setfields("-");
-			dn = getmfields(field[2], dfield, 4);
+			dn = getfields(field[2], dfield, 4, 1, "-");
 			if(dn == 3)
 				dp->atime = cracktime(dfield[0], dfield[1], dfield[2], field[3]);
 			break;
@@ -574,8 +587,7 @@ crackdir(char *p, Dir *dp)
 		dp->mode = 0666;
 		strcpy(dp->uid, "Tops");
 		strcpy(dp->gid, "Tops");
-		setfields("-");
-		dn = getmfields(field[1], dfield, 4);
+		dn = getfields(field[1], dfield, 4, 1, "-");
 		if(dn == 3)
 			dp->atime = cracktime(dfield[1], dfield[0], dfield[2], field[2]);
 		else
@@ -592,8 +604,7 @@ crackdir(char *p, Dir *dp)
 				dp->mode = 0777;
 			strcpy(dp->uid, "VM");
 			strcpy(dp->gid, "VM");
-			setfields("/-");
-			dn = getmfields(field[6], dfield, 4);
+			dn = getfields(field[6], dfield, 4, 1, "/-");
 			if(dn == 3)
 				dp->atime = cracktime(dfield[0], dfield[1], dfield[2], field[7]);
 			else
@@ -629,8 +640,7 @@ crackdir(char *p, Dir *dp)
 			field[4][strlen(field[4])-1] = 0;
 			safecpy(dp->uid, field[4]+1, sizeof(dp->uid));
 			safecpy(dp->gid, field[4]+1, sizeof(dp->gid));
-			setfields("/-");
-			dn = getmfields(field[2], dfield, 4);
+			dn = getfields(field[2], dfield, 4, 1, "/-");
 			if(dn == 3)
 				dp->atime = cracktime(dfield[1], dfield[0], dfield[2], field[3]);
 			else
@@ -700,6 +710,21 @@ crackdir(char *p, Dir *dp)
 			else
 				dp->atime = cracktime(field[6], field[7], field[8], 0);
 			break;
+		case 4:		/* a Windows_NT version */
+			safecpy(longname, field[3], sizeof(longname));
+			strcpy(dp->uid, "NT");
+			strcpy(dp->gid, "NT");
+			if(strcmp("<DIR>", field[2]) == 0){
+				dp->length = 0;
+				dp->mode = CHDIR|0777;
+			} else {
+				dp->mode = 0666;
+				dp->length = atoi(field[2]);
+			}
+			dn = getfields(field[0], dfield, 4, 1, "/-");
+			if(dn == 3)
+				dp->atime = cracktime(dfield[0], dfield[1], dfield[2], field[1]);
+			break;
 		case 1:
 			safecpy(longname, field[0], sizeof(longname));
 			strcpy(dp->uid, "none");
@@ -711,6 +736,8 @@ crackdir(char *p, Dir *dp)
 			return 0;
 		}
 	}
+	if(strcmp(longname, ".") == 0 || strcmp(longname, "..") == 0)
+		return 0;
 	dp->qid.path = dp->mode & CHDIR;
 	dp->mtime = dp->atime;
 	if(ext && (dp->mode & CHDIR) == 0){
@@ -722,6 +749,9 @@ crackdir(char *p, Dir *dp)
 }
 
 /*
+ *  probe files in a directory to see if they are directories
+ */
+/*
  *  read a remote directory
  */
 int
@@ -732,27 +762,27 @@ readdir(Node *node)
 	Node *np;
 	Dir d;
 	long n;
-	int i, tries;
+	int i, tries, x, files;
 	static int uselist;
+	int usenlist;
 
 	if(changedir(node) < 0)
 		return -1;
 
+	usenlist = 0;
 	for(tries = 0; tries < 3; tries++){
-		if(port() < 0)
-			return -1;
-
-		if(usenlst)
-			sendrequest("NLST");
-		else if(os == Unix && !uselist) {
-			sendrequest("LIST -l");
-		} else
-			sendrequest("LIST");
-		switch(data(OREAD, &bp)){
+		if(usenlist || usenlst)
+			x = data(OREAD, &bp, "NLST");
+		else if(os == Unix && !uselist)
+			x = data(OREAD, &bp, "LIST -l");
+		else
+			x = data(OREAD, &bp, "LIST");
+		switch(x){
 		case Extra:
 			break;
-		case TempFail:
+/*		case TempFail:
 			continue;
+*/
 		default:
 			if(os == Unix && uselist == 0){
 				uselist = 1;
@@ -760,6 +790,7 @@ readdir(Node *node)
 			}
 			return seterr(nosuchfile);
 		}
+		files = 0;
 		while(line = Brdline(bp, '\n')){
 			n = Blinelen(bp);
 			if(debug)
@@ -770,6 +801,7 @@ readdir(Node *node)
 	
 			if((longname = crackdir(line, &d)) == 0)
 				continue;
+			files++;
 			np = extendpath(node, longname);
 			d.qid = np->d.qid;
 			d.qid.path |= d.mode & CHDIR;
@@ -785,9 +817,17 @@ readdir(Node *node)
 		for(i = 0; i < NAMELEN-5; i++)
 			if(mkunique(node, i) == 0)
 				break;
-	
+
 		switch(getreply(&ctlin, msg, sizeof(msg), 0)){
 		case Success:
+			if(files == 0 && !usenlst && !usenlist){
+				usenlist = 1;
+				continue;
+			}
+			if(files && usenlist)
+				usenlst = 1;
+			if(usenlst)
+				node->chdirunknown = 1;
 			return 0;
 		case TempFail:
 			break;
@@ -891,16 +931,13 @@ readfile1(Node *node)
 	long off;
 	int n;
 	int tries;
+extern char errstring[ERRLEN];
 
 	if(changedir(node->parent) < 0)
 		return -1;
 
 	for(tries = 0; tries < 4; tries++){
-		if(port() < 0)
-			return -1;
-
-		sendrequest("RETR %s", node->longname);
-		switch(data(OREAD, &bp)){
+		switch(data(OREAD, &bp, "RETR %s", node->longname)){
 		case Extra:
 			break;
 		case TempFail:
@@ -916,7 +953,13 @@ readfile1(Node *node)
 			}
 			off += n;
 		}
-		filewrite(node, buf, off, 0);
+		if(off < 0)
+			return -1;
+
+		/* make sure a file gets created even for a zero length file */
+		if(off == 0)
+			filewrite(node, buf, 0, 0);
+
 		close(Bfildes(bp));
 		switch(getreply(&ctlin, msg, sizeof(msg), 0)){
 		case Success:
@@ -969,11 +1012,7 @@ createfile1(Node *node)
 	if(changedir(node->parent) < 0)
 		return -1;
 
-	if(port() < 0)
-		return -1;
-
-	sendrequest("STOR %s", node->longname);
-	if(data(OWRITE, &bp) != Extra)
+	if(data(OWRITE, &bp, "STOR %s", node->longname) != Extra)
 		return -1;
 	for(off = 0; ; off += n){
 		n = fileread(node, buf, off, sizeof(buf));
@@ -1058,9 +1097,12 @@ quit(void)
 static void
 sendrequest(char *fmt, ...)
 {
+	va_list arg;
 	char buf[8*1024], *s;
 
-	s = doprint(buf, buf + (sizeof(buf)-4) / sizeof(*buf), fmt, &fmt + 1);
+	va_start(arg, fmt);
+	s = doprint(buf, buf + (sizeof(buf)-4) / sizeof(*buf), fmt, arg);
+	va_end(arg);
 	*s++ = '\r';
 	*s++ = '\n';
 	if(write(ctlfd, buf, s - buf) != s - buf)
@@ -1106,6 +1148,10 @@ getreply(Biobuf *bp, char *msg, int len, int printreply)
 		rv = atoi(line);
 		if(rv >= 100 && rv < 600 && (n == 4 || (n > 4 && line[3] == ' ')))
 			return rv/100;
+
+		/* tell user about continuations */
+		if(!debug && !quiet && !printreply)
+			write(2, line, n);
 	}
 
 	fatal("remote side closed connection");
@@ -1121,7 +1167,7 @@ port(void)
 	char buf[256];
 	int n, fd;
 	char *ptr;
-	uchar ipaddr[4];
+	uchar ipaddr[IPaddrlen];
 	int port;
 
 	/* get a channel to listen on, let kernel pick the port number */
@@ -1148,22 +1194,27 @@ port(void)
 	port = atoi(ptr);
 
 	/* tell remote side */
-	sendrequest("PORT %d,%d,%d,%d,%d,%d", ipaddr[0], ipaddr[1], ipaddr[2],
-		ipaddr[3], port>>8, port&0xff);
+	sendrequest("PORT %d,%d,%d,%d,%d,%d", ipaddr[IPv4off+0], ipaddr[IPv4off+1],
+		ipaddr[IPv4off+2], ipaddr[IPv4off+3], port>>8, port&0xff);
 	if(getreply(&ctlin, msg, sizeof(msg), 0) != Success)
 		return seterr(msg);
 	return 0;
 }
 
 /*
- *  wait for a data connection
+ *  have server call back for a data connection
  */
 static int
-data(int mode, Biobuf **bpp)
+active(int mode, Biobuf **bpp, char *cmd)
 {
 	int cfd, dfd, rv;
 	char newdir[NETPATHLEN];
 	char datafile[NETPATHLEN + 6];
+
+	if(port() < 0)
+		return TempFail;
+
+	sendrequest("%s", cmd);
 
 	rv = getreply(&ctlin, msg, sizeof(msg), 0);
 	if(rv != Extra){
@@ -1189,6 +1240,87 @@ data(int mode, Biobuf **bpp)
 }
 
 /*
+ *  call out for a data connection
+ */
+static int
+passive(int mode, Biobuf **bpp, char *cmd)
+{
+	char msg[1024];
+	char *f[6];
+	char *p;
+	int x, fd;
+
+	if(nopassive)
+		return Impossible;
+
+	sendrequest("PASV");
+	if(getreply(&ctlin, msg, sizeof(msg), 0) != Success){
+		nopassive = 1;
+		return Impossible;
+	}
+
+	/* get address and port number from reply, this is AI */
+	p = strchr(msg, '(');
+	if(p == 0){
+		for(p = msg+3; *p; p++)
+			if(isdigit(*p))
+				break;
+	} else
+		p++;
+	if(getfields(p, f, 6, 0, ",") < 6){
+		if(debug)
+			fprint(2, "passive mode protocol botch: %s\n", msg);
+		werrstr("ftp protocol botch");
+		nopassive = 1;
+		return Impossible;
+	}
+	snprint(msg, sizeof(msg), "%s!%s.%s.%s.%s!%d", net,
+		f[0], f[1], f[2], f[3],
+		((atoi(f[4])&0xff)<<8) + (atoi(f[5])&0xff));
+
+	/* open data connection */
+	fd = dial(msg, 0, 0, 0);
+	if(fd < 0){
+		if(debug)
+			fprint(2, "passive mode connect to %s failed: %r\n", msg);
+		nopassive = 1;
+		return TempFail;
+	}
+
+	/* tell remote to send a file */
+	sendrequest("%s", cmd);
+	x = getreply(&ctlin, msg, sizeof(msg), 0);
+	if(x != Extra){
+		close(fd);
+		if(debug)
+			fprint(2, "passive mode retrieve failed: %s\n", msg);
+		werrstr(msg);
+		return x;
+	}
+
+	Binit(&dbuf, fd, mode);
+	*bpp = &dbuf;
+	return Extra;
+}
+
+static int
+data(int mode, Biobuf **bpp, char *fmt, ...)
+{
+	va_list arg;
+	char cmd[8*1024];
+	int x;
+
+	va_start(arg, fmt);
+	doprint(cmd, cmd + (sizeof(cmd)-4) / sizeof(*cmd), fmt, arg);
+	va_end(arg);
+
+	x = passive(mode, bpp, cmd);
+	if(x != Impossible)
+		return x;
+	return active(mode, bpp, cmd);
+}
+
+/*
  *  used for keep alives
  */
 void
@@ -1202,35 +1334,8 @@ nop(void)
  *  turn a vms spec into a path
  */
 static Node*
-vmsdir(char *name)
+vmsextendpath(Node *np, char *name)
 {
-	char *cp;
-	Node *np;
-
-	np = remroot;
-	cp = strchr(name, '[');
-	if(cp)
-		strcpy(cp, cp+1);
-	cp = strchr(name, ']');
-	if(cp)
-		*cp = 0;
-	while(cp = strchr(name, '.')){
-		*cp = 0;
-		np = extendpath(np, name);
-		if(!ISVALID(np)){
-			np->d.qid.path |= CHDIR;
-			np->d.atime = time(0);
-			np->d.mtime = np->d.atime;
-			strcpy(np->d.uid, "who");
-			strcpy(np->d.gid, "cares");
-			np->d.mode = CHDIR|0777;
-			np->d.length = 0;
-			if(changedir(np) >= 0)
-				VALID(np);
-		}
-		name = cp+1;
-	}
-
 	np = extendpath(np, name);
 	if(!ISVALID(np)){
 		np->d.qid.path |= CHDIR;
@@ -1243,7 +1348,43 @@ vmsdir(char *name)
 		if(changedir(np) >= 0)
 			VALID(np);
 	}
+	return np;
+}
+static Node*
+vmsdir(char *name)
+{
+	char *cp;
+	Node *np;
+	char *oname;
 
+	np = remroot;
+	cp = strchr(name, '[');
+	if(cp)
+		strcpy(cp, cp+1);
+	cp = strchr(name, ']');
+	if(cp)
+		*cp = 0;
+	oname = name = strdup(name);
+	if(name == 0)
+		return 0;
+
+	while(cp = strchr(name, '.')){
+		*cp = 0;
+		np = vmsextendpath(np, name);
+		name = cp+1;
+	}
+	np = vmsextendpath(np, name);
+
+	/*
+	 *  walk back to first accessible directory
+	 */
+	for(; np->parent != np; np = np->parent)
+		if(ISVALID(np)){
+			CACHED(np->parent);
+			break;
+		}
+
+	free(oname);
 	return np;
 }
 
@@ -1313,4 +1454,35 @@ mvspath(Node *node, char *path)
 	*p++ = '.';
 	strcpy(p, node->longname);
 	return p + strlen(node->longname);
+}
+
+static int
+getpassword(char *buf, char *e)
+{
+	char *p;
+	int c;
+	int consctl, rv = 0;
+
+	consctl = open("/dev/consctl", OWRITE);
+	if(consctl >= 0)
+		write(consctl, "rawon", 5);
+	print("Password: ");
+	e--;
+	for(p = buf; p <= e; p++){
+		c = Bgetc(&stdin);
+		if(c < 0){
+			rv = -1;
+			goto out;
+		}
+		if(c == '\n' || c == '\r')
+			break;
+		*p = c;
+	}
+	*p = 0;
+	print("\n");
+
+out:
+	if(consctl >= 0)
+		close(consctl);
+	return rv;
 }

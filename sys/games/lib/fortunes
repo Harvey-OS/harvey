@@ -30,7 +30,7 @@ $3,000,000
 2 lacks generality in a way that 1 doesn't.
 23. ...  r-q1
 355/113 -- not the famous irrational number PI, but an incredible simulation.
-4.2BSD is a nightmare about Tenex. - Ian Darwin
+4.2BSD is like a nightmare about Tenex. - Geoff Collyer
 4.2BSD may not be a complete disaster, but it does a good job of emulating one.
 55mph -- It's not a good idea, it's just the law.
 : is not an identifier
@@ -595,7 +595,7 @@ I am Magnus.  You are registered in my memory banks...
 I am a high-pressure guy, and I didn't take this job to conduct a going-out-of-business sale. - A.A. Penzias
 I am free of the wheel of Maya; I am dead to the dance of life.
 I am large; I contain multitudes.
-I am the Supreme Being, you know.  I'm not dim.
+I am the Supreme Being.  I'm not entirely dim.
 I am the beast, I am the Word of the Aeon...I am a hell of a Holy Guru.
 I am the wandering glitch -- catch me if you can.
 I can call spirits from the vasty deep./Why, so can I, or so can any man.
@@ -621,7 +621,7 @@ I have nothing to say and I am saying it and that is poetry as I need it. -Cage
 I have the most perfect confidence in your indiscretion.
 I haven't lost my mind.  I've got it backed up on tape somewhere.
 I hope that there are sour apples in every bushel.
-I kissed my first cigarette on the herpolhode lying in the invariant plane.
+I kissed my first cigarette on the herpolhode lying in the invariable plane.
 I kissed my first cigarette on the stage unless someone intends to fire it.
 I kissed my first lady and smoked my first cigarette on the same day.  I have never had time for tobacco since. -Arturo Toscanini
 I know nothing.  -Ken Thompson
@@ -1346,7 +1346,7 @@ The eyes believe themselves, the ears believe other people.
 The fear of the lord was discovered before vitamins.
 The first piece of luggage out of the chute doesn't belong to anyone, ever.
 The first step in fixing something is getting it to break.
-The first thing we do, let's kill all the lawyers. - Henry V, part II.
+The first thing we do, let's kill all the lawyers. - Henry VI, part II.
 The fit between the world and the human symbols describing it is never perfect.
 The following file systems are due for backup at this time:
 The fruits of impatience are bitter.
@@ -1397,7 +1397,7 @@ The pearl the squirrel the girl hit bit split.
 The planes in Spain fall mainly in the rain.
 The play's the thing/Wherein I'll catch the conscience of the king.
 The plural of spouse is spice.
-The polhode rolls without slipping on the herpolhode lying in the invariant plane.
+The polhode rolls without slipping on the herpolhode lying in the invariable plane.
 The problem with a just economy is, who runs the Bureau of Economic Justice?
 The prudent man does not hold his breath.
 The reason Swedes put little o's over some A's is that ontology recapitulates philology.
@@ -1573,7 +1573,6 @@ Tu aideras a rappeler ta quantite a beaucoup de docteurs amis.
 Turning the other cheek merely ensures two bruised cheeks.
 Two fish in the sky are worth more than a bird in the sea.
 Two heads are better than a bath and a half.
-Two monologues do not make a dialogue.
 Two wrongs don't make a right.  Two Wrights make airplanes.
 U.S. out of OAKLAND!
 UFO's are for real: the Air Force doesn't exist.
@@ -1714,7 +1713,6 @@ Why do they have this marked "Danger, do not touch"?
 Why do we have two eyes?  To watch 3D movies with.
 Why don't we store the blank punch cards on disk, and get rid of all those boxes.
 Why is it called a stream I/O system when the data flows both ways?
-Why isn't there a special name for the tops of your feet?  -Lily Tomlin
 Why polish the corners off a sphere in a roomful of cubes?
 Why worry about tomorrow, when today is so far off?
 Will nobody help the widow's son?
@@ -1895,7 +1893,7 @@ uuxqt cmd (rnews ) status (ucsfcgl!uucp 256)
 values of β will give rise to dom!
 warning: vector size unknown: p[i][j] means *(*(p+i)+j)
 There's no backspace in real life.  - P.J.Weinberger
-When an musk ox goes faster than an amble, he has formed an intention.
+When a musk ox goes faster than an amble, he has formed an intention.
 Verb is a noun.
 Verb is not a verb.
 Verb is not a verb, unless it's verbed.
@@ -3281,7 +3279,7 @@ Mathematics is ... the hot and chaotic work of the devil.  Quayle needn't know t
 51HAren't you glad you don't have to do this anymore?
 Virtual caches are the worst idea since register windows. - Phil Winterbottom
 cetus news: Cannot open /usr/news/
-``Ausserordentlich chaotisch, dissonant, und haesslich.'' -review of premiere of Beethoven's 9th
+``Ausserordentlich chaotisch, dissonant, und häßlich.'' -review of premiere of Beethoven's 9th
 Why is the text on my screen turning umop-apisdn?
 There is no reason for any individual to have a computer in their home. -Ken Olsen, 1977
 coproc proto viol
@@ -3369,7 +3367,7 @@ Everybody gets so much information all day long that they lose their common sens
 A coach is someone who lives and behaves Our Common Bond, and views each coaching interaction as a real measure of truth.
 Free! Free!/A trip/to Mars/for 900/empty jars/Burma Shave
 Standards is an area that is constantly changing.  -Carl Cargill (ed. ACM StandardView)
-This will be sexy: nothing like a good tty driver to turn you on. - Phil WInterbottom
+This will be sexy: nothing like a good tty driver to turn you on. - Phil Winterbottom
 To find out a person's userid, ask him.  --IBM VM/CMS Primer
 Blessed be the optionless, for they shall not eat gnu
 Every old barn can use a little paint. - Tammy Faye Bakker on Primetime Live 11/18/93
@@ -3408,3 +3406,189 @@ Middleware is the implementation of a concept. - Ed Szurkowski
 FOUND IN SUPPOSEDLY EMPTY EQUIPMENT, MATTOON, IL POST OFFICE 61938
 To back up the 57th platter in the file system type 'wormingest 49; wormcp 62 49'.
 /n/a:/100377-15/sun3/4.1.1/sendmail: Ascii & Extended Latin & Cyrillic & Hebrew text
+Not responsible for errors in typo.
+This is AT&T.  Communication is our business, not our mode of working. - Jim Clemans
+How much clearer everything is when you underline! - Ron Hardin
+Improve our mechanisms for sharing BU and "white space" opportunities knowledge and laboratory and center capabilities so as to assure optimal use of contrained resources.
+The Internet grows hyperbolically, but is usually described elliptically. - Dr. Internet
+Microsoft - We put the "backwards" into backwards compatibility.
+Many will urinate with joy in having shared in the hacking of your neck.  - a comment on netnews
+[Acting] was a lot more difficult than modeling.  There's a lot to remember.  -Cindy Crawford
+Everything that can ever be invented has been invented -Charles H. Duell, Commisioner of U.S. Patents, 1899.
+The complex-type shall be a simple-type.  ISO 10206:1991 (Extended Pascal)
+The "do one thing well" philosophy underlying UNIX is best realized in a fully object-oriented environment. - some Linux guy
+Subject: slip:UX:killall: INFO: killing pid 140 <routed>
+There are only two industries that refer to their customers as "users".  - Edward Tufte
+I think you have to really be an engineer to run a technology company. - Bill Gates
+hd2: model oCnnreP repieharsl6	with default 1471 cyl 5 head 17 sec
+I want to make sure everybody who has a job wants a job - George Bush, during his first Presidential campaign
+This is a great day for France! - Richard Nixon, while attending Charles De Gaulle's funeral
+I believe we are on an irreversible trend toward more freedom and democracy. But that could change.  - Dan Quayle
+What a waste it is to lose one's mind-or not to have a mind. How true that is. - Dan Quayle addressing the United Negro College Fund
+The caribou love it. They rub against it and they have babies. There are more caribou in Alaska than you can shake a stick at. - George Bush, on the Alaska pipeline
+I hope I stand for anti-bigotry, anti-Semitism, anti-racism. This is what drives me. - George Bush
+Mondale: George Bush doesn't have the manhood to apologize.  Bush: Well, on the manhood thing, I'll put mine up against his any time.
+#define n_zeroes	_n._n_n._n_zeroes
+To me, boxing is like a ballet, except there's no music, no choreography and the dancers hit each other.
+Consider the daffodil.  And while you're doing that, I'll be over here, looking through your stuff.
+Sorry, the passowrd you asked for is too long.  Please choose a password that is 2147459392 to 8 characters long.
+Television is a medium.  So called because it is neither rare, nor well done. -- Ernie Kovacs
+The last good thing written in C was Franz Schubert's Symphony No. 9.
+This is the best recruiting season we've ever had.  - Ken Thompson, Dec 21, 1995
+Don't anthropomorphize computers - they hate that!
+Press Ctlt-Ds Ctlt-Del a to reboour reboour mach
+cfe: Warning 712: irix.c, line 311: illegal combination of pointer and integer .... ? (   (((long)*arg & 0x1)      ?(*arg = (char *)((long)*arg + 7),(char *)((long)*arg-6-_VA_FP_SAVE_AREA))     :(((long)*arg & 0x2)         ?(*arg = (char *)((long)*arg +10),(char *)((long)*arg-24-_VA_FP_SAVE_AREA))  :(        ((*arg)=(char *)(((unsigned int)(((char *)*arg)+((__builtin_alignof( long))>4?(__builtin_alignof( long)):4)-1)) & -((__builtin_alignof( long))>4?(__builtin_alignof( long)):4)) +               (((unsigned int)(((char *)sizeof( long))+((4)>4?(4):4)-1)) & -((4)>4?(4):4)) ),         (((char *)*arg) - ((((unsigned int)(((char *)sizeof( long))+((4)>4?(4):4)-1)) & -((4)>4?(4):4))  - sizeof( long))) )  )))                                  : (  ((*arg)=(char *)(((unsigned int)(((char *)*arg)+((__builtin_alignof( long))>4?(__builtin_alignof( long)):4)-1)) & -((__builtin_alignof( long))>4?(__builtin_alignof( long)):4)) +               (((unsigned int)(((char *)sizeof( long))+((4)>4?(4):4)-1)) & -((4)>4?(4):4)) ),         (((char *)*arg) - ((((unsigned int)(((char *)sizeof( long))+((4)>4?(4):4)-1)) & -((4)>4?(4):4))  - sizeof( long))) ) )))[-1] );
+Here in Nuremberg, information hiding is much more popular in the organization than it is in the software...
+yes >/dev/kmem		# Shutdown is broken. This'll have to do
+"No one steals our chicks," sneers Duke, "and lives."
+You must engineer for the technology curve and set the intercepts to match the emerging business markets. - Phil Winterbottom
+Wovon man nicht sprechen kann, darüber muß mann schweigen.
+When your hammer is C++, everything begins to look like a thumb. -- Steve Hoflich, compl.lang.c++
+This is SGI Bug #375613.
+If mamma ain't happy, ain't nobody happy.
+error code 4A: Could not free fingers from storage slot after insert
+At Microsoft, quality is job 1.1.
+You are thehttp://counter.digits.com/wc/-d/4/cpluscounter visitor since May 1, 1996
+It's hard to compete with conventional cukes.
+PEALSE CAN YOU ADIVE ME WHAT TO DO :)
+License Error : The license for this product(SPARCompiler C) has expired
+ARMY FOCUSES ON SECOND BASE IN SEX PROBE
+In Pursuit of Software Excellence: If you want to become a leader, follow the leaders.
+Thank you for sending me a copy of your book.  I'll waste no time reading it. - Moses Hadas
+In label expressions, <> expressions are ignored inside .char expressions.
+I have made this letter longer than usual, because I lack the time to make it short.  Blaise Pascal  in: Lettres Provinciales, #4, Dec 14, 1665
+If I had more time, I should have written you a shorter letter.  Mdm. de Staël (1766-1817)
+UNIX geek since 486651600
+Speed is more important than anything else in management. - Henry Schacht
+No proper program contains an indication which as an operator-applied occurrence identifies an operator-defining occurrence which as an indication-applied occurrence identifies an indication-defining occurrence different from the one identified by the given indication as an indication-applied occurrence. - Algol 68 Report
+Cwm fjord bank glyphs vex't quiz.
+Outside of the killings, Washington has one of the lowest crime rates  in the country. -- Mayor Marion Barry, Washington
+Clearspeak also is a euphemism for what advertising people call the "dominant brand" or "masterbrand" approach.  - Bell Labs News, April 1, 1997 (but not April Fool's)
+My favorite thing about the Internet is that you get to go into the private world of real creeps without having to smell them. - Penn Jillette
+Note: gtest.java uses a deprecated API.  Recompile with "-deprecation" for details.
+Malcolm [grandson of Malcolm X] walked into court yesterday afternoon to face charges of juvenile delinquency, mumbling and hiding his head under a red plaid blanket. - N. Y. Times
+Usenet is like letters to the editor, only without an editor.  - Larry Wall
+Who are you going to believe? Me or that lying sheep? -- Jim McKie
+Line 3 of "/usr/add-on/trouble/bin/trouble": syntax error; saw '<'. Undefined: "Main"
+I don't think you can really know how heavy something is until it has fallen on you.  --LeMel Hebert-Williams
+I don't think so, therefore I'm probably not.  --Alan Smithee
+Are you sure you want to send 'Pleonasm' to the recycle bin?
+The days of the digital watch are numbered.  -Tom Stoppard
+^Eds: SUBS 3rd graf, `So what's ...' to remove accent from 'derriere.'
+WELL YOU MISSED IT. I WAS ON THE RADIO AND WAS IN A CONTEST TO WIN FLEETWOOD MAC TICKETS. I WAS MCNICKOLS. I WORE A TUTU AND POURED 2 GAL. OF HERSHY CHOC. OVER MY HEAD. I GOT 2ND A GIRL IN A TEDDY EATING DOG FOOD AND BARKING WON. MALE JUDGES GO FIGURE (IT WAS SEE THROUGH)
+<A HREF="http://images.nytimes.com/RealMedia/ads/click_lx.ads/www.nytimes.com/index.html/0/Left/attbmd011/att4-head.gif/63636232316630323334393032316530" target="_top"><IMG SRC="http://images.nytimes.com/RealMedia/ads/adstream_lx.ads/www.nytimes.com/index.html/0/Left/attbmd011/att4-head.gif/63636232316630323334393032316530" border=0  WIDTH=468 HEIGHT=60 ALT="Just add AT&T" ></A>
+It's a very good idea to compare apples and oranges, that's a big part of what thinking is about. - Penn Jillette
+Your glasses will include miniature video cameras that will give you a stereo vision of your environment. -- Arno Penzias
+Music is the pleasure the human soul experiences from counting without  being aware that it is counting. -Leibnitz
+^Bearded lady, friend killed in possible case of mistaken identity<
+I think I'm getting mellow in my old age. - Phil Winterbottom
+Cu' si marita sta contentu 'nu giornu, cu' ammazza 'u porco sta contentu n'annu
+How can they identify me?  I had a mask on.  - Weird News criminal
+If it has more than three chords, it's Jazz. - Lou Reed
+If there were a god, we'd be able to walk upright without back problems. -Penn Jillette
+Birds are entangled by their feet and men by their tongues.
+No viewpoints are banned.  Except those banned by the law. -- Iranian President Mohammed Khatami
+uopt: Warning: insert_aux__91deque__pt__78_21basic_string__pt__2_c45__default_alloc_template__pt__13_XCiL11XCiL10XCUiL10F103__deque_iterator__pt__79_21basic_string__pt__2_cR21basic_string__pt__2_cP21basic_string__pt__2_cXCUiL10105__deque_iterator__pt__81_ exceeds size threshold; to optimize this procedure, use -Olimit option with value >= 1217.
+"shaneystl.c", line 24: Note: Type "CC -migration" for more on anachronisms.
+The Lucent Real Estate Strategic Intent: "One ignited team, unleashing productivity through bold work place solutions and unforgettable service."
+This program cannot be run in DOS mode.
+Your mouse has moved. Windows NT must be restarted for the change to take effect. Reboot now?
+Millenium parties/with loud music, lights and joy;/then, how cold!
+Stupid programmer,/think ahead next time, when the/power's back.
+Windows 98 is/compliant with minor bugs,/store water!  
+Hire more programmers/for Y2k Bug now -- Oops,/lights are out! 
+Y2k is just/a scam for consultants -- hey/Martial law!
+Two digits lost,/the railroad switch spills coal --/scavengers!
+UX:cancel: WARNING: Request "SPARCprinterII-64" is done. TO FIX: It is too late to do anything with it.
+Alas! The onion you are eating is someone else's waterlily.
+If you give a man a fire, he'll be warm for a day. If you set a man on fire, he'll be warm for the rest of his life.
+We don't write assembly language, we steal it. - brucee
+The Elements of Style is as much as guide to success as it is to grammer. - Reader on amazon.com
+Simon says, ``Don't be so suggestible.''
+The IAU reports that RX Pup has returned to a state of high excitation and has had a mass-ejection event.
+JAVA truly is the great equalizing software. It has reduced all computers to mediocrity and buggyness. - NASA's J-Track web site
+warning: Hit heuristic-fence-post without finding enclosing function for address 0xfa2e470
+You're just a hologram - I outrank you.
+Mechanically Separated Chicken. - Ingredient label
+You have mail.™
+Stare at the thumbnails closely to view larger images.
+This is a ruggedized telephone, it does everything a normal telephone does, but ruggedly. - Al Gore
+All along the untrodden paths of the future, I can see the footprints of an unseen hand. Sir Boyle Roche, MP
+There's really no way to fix this, and still keep Perl pathologically eclectic.
+Welcome to Netscape Quality Feedback Agent - Step 1 of 3
+FOR FASTER SERVICE, PLEASE CALL US WITH YOUR REFILLS 24 HOURS IN ADVANCE
+Anthrax is cool. - Tad Hunt
+(never claims generated from LTL formulae are stutter-closed)
+/text/plain00charsetUTF-80 you stuff by snail,
+War in the Clinton era is just P.R. by other means.  - Michael Hirschorn 
+If I can see a bit further it is because I stand on the shoulders of Hungarians. - Mathematician Paul Winkler
+I don't want any yes-men around me. I want everybody to tell me the truth even if it costs them their jobs. - Sam Goldwyn
+We do not need phones, we have a lot of messenger boys - British Scientist in 1876
+I did write and prove correct a 20-line program in January, but I made the mistake of testing it on our VAX and it had an error, which two weeks of searching didn't uncover, so there went one publication out the window.  - David Gries, 1980
+It's not whether you win or lose; it's where you place the blame.
+ISDN: PPP-Daemon funktioniert nicht mehr
+Hey medalist, don't forget to take out the recycling. -- Bonnie Thompson
+There are three kinds of people - those who can count, and those who can't.
+You buy 'em books and you buy 'em books and they just chew on the covers.
+I wouldn't give your troubles to a monkey on a rock.
+This should only be a momentary outage, of about 10 minutes or so.
+The ignored registers are for future backward-compatible extensions. - IA-64 Application Developer's Architecture Guide
+/lib/shakespeare/sonnets: limbo program
+Does the additional overhead of doing a function call make this act less atomic? -- pip
+A cockroach will live nine days without its head, before it starves to death.
+Are you proposing a solution or just whining? - Dave to Dave
+Nothing says "happy father's day" quite like the flesh-stripped skull of a moderate sized rodent. - Corey Thompson
+You are running the GNOME File Manager as root.  As root, you can damage your system, and the File Manager will not stop you.
+A document with the name `junk.xls' is already open.  You cannot open two documents with the same name, even if the documents are in different folders.  To open the second document, either close the document that's currently open, or rename one of the documents.  - Microsoft Excel
+When your output is negligible, losing a day's work is insignificant. -- presotto to rsc
+Expensive solutions to all kinds of problems are often signs of mediocrity.  - Ingvar Kamprad, founder of IKEA
+Ches is the Dennis Rodman of science.  -Cliff Young
+if your terminal stops booting, I'll be in the unix room.
+! TeX capacity exceeded, sorry [main memory size=263001].
+The system suspend request has been rejected.  To conserve power, shut down the computer.  - NEC Versa LX
+If you don't find it in the index, look very carefully through the entire catalogue.  - Sears & Roebuck catalogue, 1897.
+This program is protected by US and international copyright laws as described in the About box.
+Lucent in Motion is almost in full swing.
+pi + onions = opinions
+If there was [sic] a single standard for the English language it would not be necessary to support redundant spellings.  - OSF1 ls(1) man page
+Set an example for your kids by learning to read and write.
+21st Century Cyborg Returns To Kill Waitress.
+I'm smiling on the outside and beating you senseless on the inside. You creep! -- S.P. Eills
+You will set the register!  To the correct value!
+Anti-Virus Software Users: Some anti-virus software programs may interfere with the download and should be disabled while installing the Microsoft software.
+You gotta think of fear as a tool. - Phil Winterbottom
+His hand was bitten by his own side in an offhand way. - Mark V. Shaney
+The more things change, the more he loves the flag. - Mark V. Shaney
+Don't meddle in the mouth. - Mark V. Shaney
+Will the call be routed on the same switch or will it go out over a truck to another switch?
+I may be a bad woman, but I'm awfully good company. - Fanny Brice
+apmd[105]: On-line: * * * (100% unknown)
+P.P.S. Thanks for helping make BUY.COM the #l online computer retailer. 
+I hope some animal never bores a hole in my head and lays its eggs in my brain, because later you might think you're having a good idea but it's just eggs hatching. - Jack Handey
+I only lie to the ones I don't like, the ones who ask stupid questions.
+The proofs of the associative, commutative, and distributive laws for the integers are exercises in induction which might be called ``Peano playing.''  - An algebra textbook
+The observation could be "a real break-through" in osteoporosis treatment. - Science magazine
+Life is very strange - compared to what? - Penn Jillette
+Your search for difficentralia returned 0 article(s).  If this is too many articles you may want to narrow your search.  - www.nytimes.com
+Sperm bank sued for tossing samples - Headline in Star-Ledger
+Spell check: did you mean unicorde?  - altavista
+The Linux, and in particular the Free Software, movement, if not the mark of technological progress, is the sign of social progress.  - muzzetta@videobank.it, in 9fans.
+I do hope not to live long enough to see the launch of Quantum Windows. --Artur Ekert
+In science, we give our highest award to people that prove us wrong.  -- Michael Goudeau
+Indian Hill is like the Borg. -- Phil Winterbottom
+My sister married a German. He complained he couldn't get a good bagel back home. I said: 'Well, whose fault is that?' - Emo Philips
+--rwxr-xr-x M 9501 geoff geoff 1417216 Dec 30 14:16 .
+log10: SING error  -- borland c/c++ 3.1
+You have the power to write your own fortune.
+.NOTICE;  ;?This comment is definitely out of date
+If at first you don't succeed, sky-diving is not for you.
+boot: nop...cfs...session...no physical memory
+doofus is God-like
+The quantity specified for 3Com Palm Vx is too great.  We only have -1 available.  - some e-commerce site.
+Man-animals cannot fly!
+Software is the stuff that never works, always has to be maintained, and hardware is the other stuff. - Arno Penzias
+Money, sex, storage, and bandwidth -- these are the things where too much is enough. - Arno Penzias
+linux-2.3.99-pre9.tar: limbo program
+    temp &= 0x07FFFBFB; // clear bits 31 and 30
+An error has prevented <%=ServiceName%> from locating the message.
+8.out 723: warning: process exceeds 2100 file descriptors
