@@ -8,6 +8,7 @@
 #include <frame.h>
 #include <fcall.h>
 #include <plumb.h>
+#include <complete.h>
 #include "dat.h"
 #include "fns.h"
 
@@ -441,28 +442,161 @@ interruptproc(void *v)
 	free(notefd);
 }
 
+int
+windfilewidth(Window *w, uint q0, int oneelement)
+{
+	uint q;
+	Rune r;
+
+	q = q0;
+	while(q > 0){
+		r = w->r[q-1];
+		if(r<=' ')
+			break;
+		if(oneelement && r=='/')
+			break;
+		--q;
+	}
+	return q0-q;
+}
+
+void
+showcandidates(Window *w, Completion *c)
+{
+	int i, moveit;
+	Fmt f;
+	Rune *rp;
+	uint nr, qline, q0;
+
+	runefmtstrinit(&f);
+	if(c->nfile > 32)
+		fmtprint(&f, "[%d files]\n", c->nfile);
+	else{
+		fmtprint(&f, "[");
+		for(i=0; i<c->nfile; i++){
+			if(i > 0)
+				fmtprint(&f, " ");
+			fmtprint(&f, "%s", c->filename[i]);
+		}
+		fmtprint(&f, "]\n");
+	}
+	/* place text at beginning of line before host point */
+	qline = w->qh;
+	while(qline>0 && w->r[qline-1] != '\n')
+		qline--;
+
+	rp = runefmtstrflush(&f);
+	nr = runestrlen(rp);
+
+	q0 = w->q0;
+	moveit = q0 == w->qh;
+	winsert(w, rp, runestrlen(rp), qline);
+	if(moveit)
+		w->qh += nr;
+	free(rp);
+	wsetselect(w, q0+nr, q0+nr);
+}
+
+Rune*
+namecomplete(Window *w)
+{
+	int nstr, npath;
+	Rune *rp, *path, *str;
+	Completion *c;
+	char *s, *dir, *root;
+
+	/* control-f: filename completion; works back to white space or / */
+	if(w->q0<w->nr && w->r[w->q0]>' ')	/* must be at end of word */
+		return nil;
+	nstr = windfilewidth(w, w->q0, TRUE);
+	str = runemalloc(nstr);
+	runemove(str, w->r+(w->q0-nstr), nstr);
+	npath = windfilewidth(w, w->q0-nstr, FALSE);
+	path = runemalloc(npath);
+	runemove(path, w->r+(w->q0-nstr-npath), npath);
+	rp = nil;
+
+	/* is path rooted? if not, we need to make it relative to window path */
+	if(npath>0 && path[0]=='/'){
+		dir = malloc(UTFmax*npath+1);
+		sprint(dir, "%.*S", npath, path);
+	}else{
+		if(strcmp(w->dir, "") == 0)
+			root = ".";
+		else
+			root = w->dir;
+		dir = malloc(strlen(root)+1+UTFmax*npath+1);
+		sprint(dir, "%s/%.*S", root, npath, path);
+	}
+	dir = cleanname(dir);
+
+	s = smprint("%.*S", nstr, str);
+	c = complete(dir, s);
+	free(s);
+	if(c == nil)
+		goto Return;
+
+	if(!c->advance)
+		showcandidates(w, c);
+
+	if(c->advance)
+		rp = runesmprint("%s", c->string);
+
+  Return:
+	freecompletion(c);
+	free(dir);
+	free(path);
+	free(str);
+	return rp;
+}
+
 void
 wkeyctl(Window *w, Rune r)
 {
 	uint q0 ,q1;
-	int nb;
+	int nb, nr;
+	Rune *rp;
 	int *notefd;
 
 	if(r == 0)
 		return;
 	if(w->deleted)
 		return;
-	/* silly old compatibility: any of the three ←↓→ arrow keys go down */
-	if(!w->mouseopen && (r==Kdown || r==Kleft || r==Kright)){
-		q0 = w->org+frcharofpt(w, Pt(w->Frame.r.min.x, w->Frame.r.min.y+(w->maxlines/2)*w->font->height));
-		wsetorigin(w, q0, TRUE);
-		return;
-	}
-	if(r==Kup && !w->mouseopen){
-		q0 = wbacknl(w, w->org, w->maxlines/2);
-		wsetorigin(w, q0, TRUE);
-		return;
-	}
+	/* navigation keys work only when mouse is not open */
+	if(!w->mouseopen)
+		switch(r){
+		case Kdown: /* down arrow ↓ scrolls down */
+		case Kpgdown: /* page down scrolls down */
+			q0 = w->org+frcharofpt(w, Pt(w->Frame.r.min.x, w->Frame.r.min.y+(w->maxlines/2)*w->font->height));
+			wsetorigin(w, q0, TRUE);
+			return;
+		case Kup:	/* up arrow ↑ scrolls up */
+		case Kpgup: /* page up scrolls up */
+			q0 = wbacknl(w, w->org, w->maxlines/2);
+			wsetorigin(w, q0, TRUE);
+			return;
+		case Kleft: /* left arrow ← cursors left */
+			if(w->q0 > 0){
+				q0 = w->q0-1;
+				wsetselect(w, q0, q0);
+				wshow(w, q0);
+			}
+			return;
+		case Kright: /* right arrow → cursors right */
+			if(w->q1 < w->nr){
+				q1 = w->q1+1;
+				wsetselect(w, q1, q1);
+				wshow(w, q1);
+			}
+			return;
+		case Khome: /* home goes to beginning of text */
+			wshow(w, 0);
+			return;
+		case Kend: /* end goes to end of text */
+		case 0x05:
+			wshow(w, w->nr);
+			return;
+		}
 	if(w->rawing && (w->q0==w->nr || w->mouseopen)){
 		waddraw(w, &r, 1);
 		return;
@@ -487,6 +621,17 @@ wkeyctl(Window *w, Rune r)
 		notefd = emalloc(sizeof(int));
 		*notefd = w->notefd;
 		proccreate(interruptproc, notefd, 4096);
+		return;
+	case 0x06:	/* ^F: file name completion */
+	case Kins:		/* Insert: file name completion */
+		rp = namecomplete(w);
+		if(rp == nil)
+			return;
+		nr = runestrlen(rp);
+		q0 = w->q0;
+		q0 = winsert(w, rp, nr, q0);
+		wshow(w, q0+nr);
+		free(rp);
 		return;
 	case 0x08:	/* ^H: erase character */
 	case 0x15:	/* ^U: erase line */

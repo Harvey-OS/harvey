@@ -214,6 +214,7 @@ Found:
 	/* found an entry - gen already set */
 	e.psize = psize;
 	e.dsize = dsize;
+	assert(psize && dsize);
 	e.flags = VtEntryActive;
 	if(dir)
 		e.flags |= VtEntryDir;
@@ -491,6 +492,27 @@ sourceGetEntry(Source *r, Entry *e)
 	return 1;
 }
 
+/*
+ * Must be careful with this.  Doesn't record
+ * dependencies, so don't introduce any!
+ */
+int
+sourceSetEntry(Source *r, Entry *e)
+{
+	Block *b;
+	Entry oe;
+
+	assert(sourceIsLocked(r));
+	b = sourceLoad(r, &oe);
+	if(b == nil)
+		return 0;
+	entryPack(e, b->data, r->offset%r->epb);
+	blockDirty(b);
+	blockPut(b);
+
+	return 1;
+}
+
 static Block *
 blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 {
@@ -498,7 +520,7 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 	Cache *c;
 	u32int addr;
 	int type;
-	uchar oscore[VtScoreSize];
+	uchar oscore[VtScoreSize], score[VtScoreSize];
 	Entry oe;
 
 	c = fs->cache;
@@ -511,6 +533,9 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 		type = p->l.type - 1;
 		b = cacheGlobal(c, p->data + index*VtScoreSize, type, e->tag, mode);
 	}
+
+	if(b)
+		b->pc = getcallerpc(&p);
 
 	if(b == nil || mode == OReadOnly)
 		return b;
@@ -535,9 +560,11 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 	if(b == nil)
 		return nil;
 
+	b->pc = getcallerpc(&p);
 	assert(b->l.epoch == fs->ehi);
 
 	blockDirty(b);
+	memmove(score, b->score, VtScoreSize);
 	if(p->l.type == BtDir){
 		memmove(e->score, b->score, VtScoreSize);
 		entryPack(e, p->data, index);
@@ -598,8 +625,8 @@ sourceGrowDepth(Source *r, Block *p, Entry *e, int depth)
 		e->flags |= VtEntryLocal;
 		blockDependency(bb, b, 0, vtZeroScore, nil);
 		blockPut(b);
-		blockDirty(bb);
 		b = bb;
+		blockDirty(b);
 	}
 
 	entryPack(e, p->data, r->offset % r->epb);
@@ -690,8 +717,13 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 	return d == depth;
 }
 
+/*
+ * Normally we return the block at the given number.
+ * If early is set, we stop earlier in the tree.  Setting early
+ * to 1 gives us the block that contains the pointer to bn.
+ */
 Block *
-sourceBlock(Source *r, ulong bn, int mode)
+_sourceBlock(Source *r, ulong bn, int mode, int early, ulong tag)
 {
 	Block *b, *bb;
 	int index[VtPointerDepth+1];
@@ -710,6 +742,21 @@ sourceBlock(Source *r, ulong bn, int mode)
 	b = sourceLoad(r, &e);
 	if(b == nil)
 		return nil;
+	if(r->mode == OReadOnly && (e.flags & VtEntryNoArchive)){
+		blockPut(b);
+		vtSetError(ENotArchived);
+		return nil;
+	}
+
+	if(tag){
+		if(e.tag == 0)
+			e.tag = tag;
+		else if(e.tag != tag){
+			fprint(2, "tag mismatch\n");
+			vtSetError("tag mismatch");
+			goto Err;
+		}
+	}
 
 	np = e.psize/VtScoreSize;
 	memset(index, 0, sizeof(index));
@@ -733,17 +780,29 @@ sourceBlock(Source *r, ulong bn, int mode)
 
 	index[e.depth] = r->offset % r->epb;
 
-	for(i=e.depth; i>=0; i--){
+	for(i=e.depth; i>=early; i--){
 		bb = blockWalk(b, index[i], m, r->fs, &e);
 		if(bb == nil)
 			goto Err;
 		blockPut(b);
 		b = bb;
 	}
+	b->pc = getcallerpc(&r);
 	return b;
 Err:
 	blockPut(b);
 	return nil;
+}
+
+Block*
+sourceBlock(Source *r, ulong bn, int mode)
+{
+	Block *b;
+
+	b = _sourceBlock(r, bn, mode, 0, 0);
+	if(b)
+		b->pc = getcallerpc(&r);
+	return b;
 }
 
 void

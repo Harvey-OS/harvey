@@ -365,6 +365,10 @@ the selected text; for example, typing a BS with a word selected
 places the word in the snarf buffer, removes it from the screen,
 and erases the character before the word.
 .PP
+An ACK character (control-F) or Insert character triggers file name completion
+for the preceding string (see
+.IR complete (2)).
+.PP
 Text may be moved vertically within the window.
 A scroll bar on the left of the window shows in its clear portion what fragment of the
 total output text is visible on the screen, and in its gray part what
@@ -390,6 +394,8 @@ The DEL character sends an
 note to all processes in the window's process group.
 Unlike the other characters, the DEL, VIEW, and up- and down-arrow
 keys do not affect the selected text.
+The left (right) arrow key moves the selection to one character
+before (after) the current selection.
 .PP
 Normally, written output to a window blocks when
 the text reaches the end of the screen;

@@ -6,8 +6,8 @@
 
 enum {
 	NConInit	= 128,
-	NMsgInit	= 20,
-	NMsgProcInit	= 4,
+	NMsgInit	= 384,
+	NMsgProcInit	= 64,
 	NMsizeInit	= 8192+IOHDRSZ,
 };
 

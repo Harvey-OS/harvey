@@ -161,6 +161,7 @@ mkdir(char *name, ulong mode, ulong mtime, char *uid, char *gid)
 			warn("can't make directory %q, mode %luo: %s", name, mode, olderr);
 			return;
 		}
+		free(d);
 	}
 	close(fd);
 

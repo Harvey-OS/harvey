@@ -66,6 +66,13 @@ test:V: all
 #	cp /env/timezone /n/fossil/tmp
 #	cp /lib/words /n/fossil/tmp
 	dircp /sys/src/cmd/aux /n/fossil/tmp
+	chmod +t /n/fossil/tmp/lis
+	echo SHOULD NOT SEE THIS >>/n/fossil/tmp/lis
+	echo snap -a >>/srv/test.fscons
+	sleep 2
+	mount /srv/test.fossil /n/dump main/archive
+	cat /n/dump/*/*/tmp/lis
+
 #	@{cd /n/fossil/tmp && time tar xTf /sys/src/cmd/fossil/test.tar}
 #	unmount /n/fossil
 #	rm /srv/fossil
@@ -77,6 +84,10 @@ $LIB:	${LIBOFILES:%=$LIB(%)}
 	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$LIB'\(([^)]+)\)/\1/gp'}
 	ar vu $LIB $names
 #	rm $names
+
+$O.flfmt: flfmt9660.$O
+
+flfmt%.$O: flfmt9660.h
 
 %.page:V: %.ps
 	page -w $stem.ps

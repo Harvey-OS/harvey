@@ -341,7 +341,7 @@ static int
 send(HConnect *c)
 {
 	Dir *dir;
-	char *w, *p, *masque;
+	char *w, *w2, *p, *masque;
 	int fd, fd1, n, force301, ok;
 
 	if(c->req.search)
@@ -363,6 +363,20 @@ send(HConnect *c)
 	strcpy(w, webroot);
 	strcat(w, masque);
 	strcat(w, c->req.uri);
+
+	/*
+	 *  favicon can be overridden by hostname.ico
+	 */
+	if(strcmp(c->req.uri, "/favicon.ico") == 0){
+		w2 = halloc(c, n+strlen(c->head.host)+2);
+		strcpy(w2, webroot);
+		strcat(w2, masque);
+		strcat(w2, "/");
+		strcat(w2, c->head.host);
+		strcat(w2, ".ico");
+		if(access(w2, AREAD)==0)
+			w = w2;
+	}
 
 	/*
 	 * don't show the contents of .httplogin

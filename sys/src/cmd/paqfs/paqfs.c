@@ -57,12 +57,13 @@ enum
 	Powner =	64,
 };
 
+int	noauth;
 Fid	*fids;
 Fcall	rhdr, thdr;
 int 	blocksize;
 int 	cachesize = 20;
 int	mesgsize = 8*1024 + IOHDRSZ;
-Paq 	*root;
+Paq 	*root, *rootfile;
 Block 	*cache;
 ulong 	cacheage;
 Biobuf	*bin;
@@ -155,6 +156,9 @@ main(int argc, char *argv[])
 		if(p == nil)
 			usage();
 		cachesize = atoi(p);
+		break;
+	case 'a':
+		noauth = 1;
 		break;
 	case 'v':
 		verify = 1;
@@ -417,6 +421,16 @@ readdir(Fid *f)
 		f->offset = 0;
 	off = f->offset;
 
+	if(rootfile && f->paq == root){
+		if(off != 0){
+			rhdr.count = 0;
+			return nil;
+		}
+		n = packDir(rootfile->dir, buf, cnt);
+		rhdr.count = n;
+		return nil;
+	}
+
 	ptr = blockLoad(f->paq->dir->offset, PointerBlock);
 	if(ptr == nil)
 		return Ebadblock;
@@ -462,7 +476,8 @@ rread(Fid *f)
 {
 	PaqDir *pd;
 	uchar *buf;
-	ulong off;
+	vlong off;
+	ulong uoff;
 	int n, cnt, i;
 	Block *ptr, *b;
 
@@ -487,7 +502,7 @@ rread(Fid *f)
 		return Ebadblock;
 
 	i = off/blocksize;
-	off -= i*blocksize;
+	uoff = off-i*blocksize;
 
 	while(cnt > 0) {
 		b = blockLoad(getl(ptr->data + i*4), DataBlock);
@@ -495,14 +510,14 @@ rread(Fid *f)
 			blockFree(ptr);
 			return Ebadblock;
 		}
-		n = blocksize - off;
+		n = blocksize - uoff;
 		if(n > cnt)
 			n = cnt;
-		memmove(buf, b->data + off, n);
+		memmove(buf, b->data + uoff, n);
 		cnt -= n;
 		thdr.count += n;
 		buf += n;
-		off = 0;
+		uoff = 0;
 		i++;
 		blockFree(b);
 	}
@@ -693,6 +708,12 @@ paqWalk(Paq *s, char *name)
 	if(strcmp(name, "..") == 0)
 		return paqCpy(s->up);
 
+	if(rootfile && s == root){
+		if(strcmp(name, rootfile->dir->name) == 0)
+			return paqCpy(rootfile);
+		return nil;
+	}
+
 	ptr = blockLoad(s->dir->offset, PointerBlock);
 	if(ptr == nil)
 		return nil;
@@ -801,9 +822,9 @@ perm(PaqDir *s, char *user, int p)
 
 	if((p*Pother) & perm)
 		return 1;
-	if(strcmp(user, s->gid)==0 && ((p*Pgroup) & perm))
+	if((noauth || strcmp(user, s->gid)==0) && ((p*Pgroup) & perm))
 		return 1;
-	if(strcmp(user, s->uid)==0 && ((p*Powner) & perm))
+	if((noauth || strcmp(user, s->uid)==0) && ((p*Powner) & perm))
 		return 1;
 	return 0;
 }
@@ -830,7 +851,6 @@ init(char *file, int verify)
 		ds = sha1(0, 0, 0, 0);
 	
 	readHeader(&hdr, file, ds);
-
 	blocksize = hdr.blocksize;
 
 	if(verify) {
@@ -872,6 +892,20 @@ init(char *file, int verify)
 	root->ref = 1;
 	root->dir = r;
 	root->up = root;	/* parent of root is root */
+
+	/* craft root directory if root is a normal file */
+	if(!(root->qid.type&QTDIR)){
+		rootfile = root;
+		root = emallocz(sizeof(Paq));
+		root->qid = rootfile->qid;
+		root->qid.type |= QTDIR;
+		root->qid.path++;
+		root->ref = 1;
+		root->dir = emallocz(sizeof(PaqDir));
+		*root->dir = *r;
+		root->dir->mode |= DMDIR|0111;
+		root->up = root;
+	}
 }
 
 int
@@ -881,13 +915,20 @@ blockRead(uchar *data, ulong addr, int type)
 	PaqBlock b;
 	uchar *cdat;
 
-	if(Bseek(bin, addr, 0) != addr)
+	if(Bseek(bin, addr, 0) != addr){
+		fprint(2, "paqfs: seek %lud: %r\n", addr);
 		return 0;
-	if(Bread(bin, buf, BlockSize) != BlockSize)
+	}
+	if(Bread(bin, buf, BlockSize) != BlockSize){
+		fprint(2, "paqfs: read %d at %lud: %r\n", BlockSize, addr);
 		return 0;
+	}
 	getBlock(buf, &b);
-	if(b.magic != BlockMagic || b.size > blocksize || b.type != type)
+	if(b.magic != BlockMagic || b.size > blocksize || b.type != type){
+		fprint(2, "paqfs: bad block: magic %.8lux (want %.8lux) size %d (max %d) type %d (want %d)\n",
+			b.magic, BlockMagic, b.size, blocksize, b.type, type);
 		return 0;
+	}
 
 	switch(b.encoding) {
 	default:
@@ -903,6 +944,7 @@ blockRead(uchar *data, ulong addr, int type)
 			return 0;
 		}
 		if(inflateblock(data, blocksize, cdat, b.size) < 0) {
+			fprint(2, "inflate error: %r\n");
 			free(cdat);
 			return 0;
 		}
@@ -1068,6 +1110,11 @@ getHeader(uchar *p, PaqHeader *h)
 	h->magic = getl(p);
 	h->version = gets(p+4);
 	h->blocksize = gets(p+6);
+	if((h->magic>>16) == BigHeaderMagic){
+		h->magic = HeaderMagic;
+		h->version = gets(p+2);
+		h->blocksize = getl(p+4);
+	}
 	h->time = getl(p+8);
 	memmove(h->label, p+12, sizeof(h->label));
 	h->label[sizeof(h->label)-1] = 0;
@@ -1086,6 +1133,10 @@ getBlock(uchar *p, PaqBlock *b)
 {
 	b->magic = getl(p);
 	b->size = gets(p+4);
+	if((b->magic>>16) == BigBlockMagic){
+		b->magic = BlockMagic;
+		b->size = getl(p+2);
+	}
 	b->type = p[6];
 	b->encoding = p[7];
 	b->adler32 = getl(p+8);

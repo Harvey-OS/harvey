@@ -49,15 +49,8 @@ void
 hwintrinit(void)
 {
 	int i;
-	ushort iar;
 
 	*(ulong*)Ier=0;
-if(0){
-	iar=*(ushort*)Iar;		// reset the stack
-	if(iar != 0xf)
-		panic("saturnintinit: iar not at 0xf (-> %d)\n", iar);
-	intack();
-}
 
 	for(i=0; i<nelem(intprio)/2; i++)
 		((uchar*)Ipri)[i] = (intprio[2*i]<<4)|intprio[2*i+1];
@@ -117,6 +110,7 @@ machinit(void)
 	int rrate;
 	ulong hid;
 	extern char* plan9inistr;
+	ulong l2cr;
 
 	memset(m, 0, sizeof(*m));
 	m->cputype = getpvr()>>16;
@@ -140,17 +134,20 @@ machinit(void)
 		break;
 	}
 
+	if(getpll() == 0x80000000)
+		m->cpuhz = 300000000;
+	else
+		m->cpuhz = 200000000;		/* 750FX? */
+	m->cyclefreq = m->bushz / 4;
+
 	active.machs = 1;
 	active.exiting = 0;
 
 	putmsr(getmsr() | MSR_ME);
 
-	/* disable the l2 cache because it slows down the processor.
-	     the only way (that i know) to get a consistent memory view
-	     with l2 enabled is by enabling write-through operations in 
-	     the bats and ptes.  disabling write-through and only using the
-	     l1 caches improves performance */
-	l2disable();		
+	dcflush((void*)KZERO, 0x2000000);
+	l2cr = getl2cr();
+	putl2cr(l2cr|BIT(10));
 
 	kfpinit();
 
@@ -185,4 +182,9 @@ trapinit(void)
 	icflush(KADDR(0), 0x2000);
 
 	putmsr(getmsr() & ~MSR_IP);
+}
+
+void
+reboot(void*, void*, ulong)
+{
 }

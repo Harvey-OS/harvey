@@ -1,10 +1,11 @@
-</386/mkfile
+</$objtype/mkfile
 
 DIRS=\
 	lib\
 	usbd\
 	audio\
 	mouse\
+	print\
 
 none:VQ:
 	echo mk all, install, installall, clean, or nuke

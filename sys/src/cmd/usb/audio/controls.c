@@ -290,7 +290,7 @@ set1(Nexus *nx, int ctl, int req, int i, int val)
 	}
 	buf[0] = val;
 	buf[1] = val>>8;
-	if(setupreq(d, type, req, ((ctl*i)<<8) | i, id, buf, count) < 0)
+	if(setupreq(d, type, req, (ctl<<8) | i, id, buf, count) < 0)
 		return Undef;
 	return 0;
 }
@@ -452,7 +452,7 @@ get1(Nexus *nx, int ctl, int req, int i)
 	case Resolution_control:
 		return Undef;
 	}
-	if(setupreq(d, type, req, ((ctl*i)<<8) | i, id, buf, count) != count){
+	if(setupreq(d, type, req, (ctl<<8) | i, id, buf, count) != count){
 		return Undef;
 	}
 	switch(count) {

@@ -29,13 +29,17 @@ main(int argc, char *argv[])
 	if(argc == 1){
 		ix = open(index, OREAD);
 		if(ix>=0){
-			oldindex = 1;
 			ixbuf = dirfstat(ix);
 			fbuf = dirfstat(Bfildes(f));
 			if(ixbuf == nil || fbuf == nil){
 				print("Misfortune?\n");
 				exits("misfortune");
 			}
+			if(ixbuf->length == 0){
+				/* someone else is rewriting the index */
+				goto NoIndex;
+			}
+			oldindex = 1;
 			if(fbuf->mtime > ixbuf->mtime){
 				nix = create(index, OWRITE, 0666);
 				if(nix >= 0){
@@ -62,6 +66,7 @@ main(int argc, char *argv[])
 		}else
 			strcpy(choice, "Misfortune!");
 	}else{
+NoIndex:
 		Binit(&g, ix, 1);
 		srand(truerand());
 		for(i=1;;i++){

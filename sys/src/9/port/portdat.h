@@ -57,7 +57,7 @@ typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 struct Ref
 {
-	Lock	l;
+	Lock;
 	long	ref;
 };
 
@@ -153,8 +153,7 @@ struct Block
 
 struct Chan
 {
-	Lock;
-	Ref;
+	Ref;				/* the Lock in this Ref is also Chan's lock */
 	Chan*	next;			/* allocation */
 	Chan*	link;
 	vlong	offset;			/* in fd */
@@ -343,7 +342,6 @@ struct Swapalloc
 
 struct Image
 {
-	Lock;
 	Ref;
 	Chan	*c;			/* channel to text file */
 	Qid 	qid;			/* Qid for page cache coherence */
@@ -398,7 +396,6 @@ struct Physseg
 
 struct Segment
 {
-	Lock;
 	Ref;
 	QLock	lk;
 	ushort	steal;		/* Page stealer lock */
@@ -442,8 +439,7 @@ struct Pgrp
 
 struct Rgrp
 {
-	Lock;
-	Ref;
+	Ref;				/* the Ref's lock is also the Rgrp's lock */
 	Proc	*rendhash[RENDHASH];	/* Rendezvous tag hash */
 };
 
@@ -469,7 +465,6 @@ struct Evalue
 
 struct Fgrp
 {
-	Lock;
 	Ref;
 	Chan	**fd;
 	int	nfd;			/* number allocated */

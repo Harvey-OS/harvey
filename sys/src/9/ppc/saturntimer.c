@@ -49,6 +49,7 @@ timerinit(void)
 	*(ulong*)Timer0_cnt = m->bushz / HZ;
 	*(ulong*)Timer1_load = m->bushz;
 	*(ulong*)Timer1_cnt = m->bushz;
+
 	intrenable(Vectimer0, saturntimerintr, nil, "timer");
 
 	timer_ctl = T0_cen|T0_ie|T1_cen;
@@ -81,8 +82,8 @@ timerset(uvlong next)
 
 	now = fastticks(nil);
 	offset = next - now;
-	if((long)offset<25000)
-		offset = 25000;
+	if((long)offset < 10000)
+		offset = 10000;
 	else if(offset > m->bushz)
 		offset = m->bushz;
 

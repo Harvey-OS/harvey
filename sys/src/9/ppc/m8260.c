@@ -115,9 +115,137 @@ struct {
  *	CS7: E0000000 -> E0FFFFFF (16 M FPGA)
  */
 
-IMM* iomem;
+IMM* iomem = (IMM*)IOMEM;
 
 static Lock cpmlock;
+
+void
+machinit(void)
+{
+	ulong scmr;
+	int pllmf;
+	extern char* plan9inistr;
+
+	memset(m, 0, sizeof(*m));
+	m->cputype = getpvr()>>16;	/* pvr = 0x00810101 for the 8260 */
+	m->imap = (Imap*)INTMEM;
+
+	m->loopconst = 1096;
+
+	/* Make sure Ethernet is disabled (boot code may have buffers allocated anywhere in memory) */
+	iomem->fcc[0].gfmr &= ~(BIT(27)|BIT(26));
+	iomem->fcc[1].gfmr &= ~(BIT(27)|BIT(26));
+	iomem->fcc[2].gfmr &= ~(BIT(27)|BIT(26));
+
+	/* Flashed CS configuration is wrong for DSP2.  It's set to 64 bits, should be 16 */
+	iomem->bank[3].br = 0x04001001;	/* Set 16-bit port */
+
+	/*
+	 * FPGA is capable of doing 64-bit transfers.  To use these, set br to 0xe0000001.
+	 * Currently we use 32-bit transfers, because the 8260 does not easily do 64-bit operations.
+	 */
+	iomem->bank[6].br = 0xe0001801;
+	iomem->bank[6].or = 0xff000816;	/* Was 0xff000856; one wait state */
+
+/*
+ * All systems with rev. A.1 (0K26N) silicon had serious problems when doing
+ * DMA transfers with data cache enabled (usually this shows when  using
+ * one of the FCC's with some traffic on the ethernet).  Allocating FCC buffer
+ * descriptors in main memory instead of DP ram solves this problem.
+ */
+
+	/* Guess at clocks based upon the PLL configuration from the
+	 * power-on reset.
+	 */
+	scmr = iomem->scmr;
+
+	/* The EST8260 is typically run using either 33 or 66 MHz
+	 * external clock.  The configuration byte in the Flash will
+	 * tell us which is configured.  The blast appears to be slightly
+	 * overclocked at 72 MHz (if set to 66 MHz, the uart runs too fast)
+	 */
+
+	m->clkin = CLKIN;
+
+	pllmf = scmr & 0xfff;
+
+	/* This is arithmetic from the 8260 manual, section 9.4.1. */
+
+	/* Collect the bits from the scmr.
+	*/
+	m->vco_out = m->clkin * (pllmf + 1);
+	if (scmr & BIT(19))	/* plldf (division factor is 1 or 2) */
+		m->vco_out >>= 1;
+
+	m->cpmhz = m->vco_out >> 1;	/* cpm hz is half of vco_out */
+	m->brghz = m->vco_out >> (2 * ((iomem->sccr & 0x3) + 1));
+	m->bushz = m->vco_out / (((scmr & 0x00f00000) >> 20) + 1);
+
+	/* Serial init sets BRG clock....I don't know how to compute
+	 * core clock from core configuration, but I think I know the
+	 * mapping....
+	 */
+	switch(scmr >> (31-7)){
+	case 0x0a:
+		m->cpuhz = m->clkin * 2;
+		break;
+	case 0x0b:
+		m->cpuhz = (m->clkin >> 1) * 5;
+		break;
+	default:
+	case 0x0d:
+		m->cpuhz = m->clkin * 3;
+		break;
+	case 0x14:
+		m->cpuhz = (m->clkin >> 1) * 7;
+		break;
+	case 0x1c:
+		m->cpuhz = m->clkin * 4;
+		break;
+	}
+
+	m->cyclefreq = m->bushz / 4;
+
+/*	Expect:
+	intfreq	133		m->cpuhz
+	busfreq	33		m->bushz
+	cpmfreq	99		m->cpmhz
+	brgfreq	49.5		m->brghz
+	vco		198
+*/
+
+	active.machs = 1;
+	active.exiting = 0;
+
+	putmsr(getmsr() | MSR_ME);
+
+	/*
+	 * turn on data cache before instruction cache;
+	 * for some reason which I don't understand,
+	 * you can't turn on both caches at once
+	 */
+	icacheenb();
+	dcacheenb();
+
+	kfpinit();
+
+	/* Plan9.ini location in flash is FLASHMEM+PLAN9INI
+	 * if PLAN9INI == ~0, it's not stored in flash or there is no flash
+	 * if *cp == 0xff, flash memory is not initialized
+	 */
+	if (PLAN9INI == ~0 || *(plan9inistr = (char*)(FLASHMEM+PLAN9INI)) == 0xff){
+		/* No plan9.ini in flash */
+		plan9inistr =
+			"console=0\n"
+			"ether0=type=fcc port=0 ea=00601d051dd8\n"
+			"flash0=mem=0xfe000000\n"
+			"fs=135.104.9.42\n"
+			"auth=135.104.9.7\n"
+			"authdom=cs.bell-labs.com\n"
+			"sys=blast\n"
+			"ntp=135.104.9.52\n";
+	}
+}
 
 void
 fpgareset(void)
@@ -146,21 +274,8 @@ hwintrinit(void)
 
 	iomem->sypcr &= ~2;	/* cause a machine check interrupt on memory timeout */
 
-	/* Flashed CS configuration is wrong for DSP2.  It's set to 64 bits, should be 16 */
-	if (iomem->bank[3].br != 0x04000001)
-		print("We got the wrong guy!\n");
-	else
-		iomem->bank[3].br = 0x04001001;	/* Set 16-bit port */
-
-	/*
-	 * FPGA is capable of doing 64-bit transfers.  To use these, set br to 0xe0000001.
-	 * Currently we use 32-bit transfers, because the 8260 does not easily do 64-bit operations.
-	 */
-	iomem->bank[6].br = 0xe0001801;
-	iomem->bank[6].or = 0xff000816;	/* Was 0xff000856; one wait state */
-
 	/* Initialize fpga reset pin */
-	iomem->port[1].pdir |= Pin4;	/* 1 is an output */
+	iomem->port[1].pdir |= Pin4;		/* 1 is an output */
 	iomem->port[1].ppar &= ~Pin4;
 	iomem->port[1].pdat |= Pin4;		/* force reset signal back to one */
 }
@@ -180,12 +295,14 @@ vectorenable(Vctl *v)
 		print("m8260enable: nonexistent vector %d\n", v->irq);
 		return -1;
 	}
+	ioplock();
 	/* Clear the interrupt before enabling */
 	iomem->sipnr_h |= hi;
 	iomem->sipnr_l |= lo;
 	/* Enable */
 	iomem->simr_h |= hi;
 	iomem->simr_l |= lo;
+	iopunlock();
 	return v->irq;
 }
 
@@ -204,8 +321,10 @@ vectordisable(Vctl *v)
 		print("m8260disable: nonexistent vector %d\n", v->irq);
 		return;
 	}
+	ioplock();
 	iomem->simr_h &= ~hi;
 	iomem->simr_l &= ~lo;
+	iopunlock();
 }
 
 int
@@ -218,8 +337,10 @@ void
 intend(int vno)
 {
 	/* Clear interrupt */
+	ioplock();
 	iomem->sipnr_h |= vec2mask[vno].hi;
 	iomem->sipnr_l |= vec2mask[vno].lo;
+	iopunlock();
 }
 
 int
@@ -496,122 +617,6 @@ ioringinit(Ring* r, int nrdre, int ntdre, int bufsize)
 }
 
 void
-machinit(void)
-{
-	ulong scmr;
-	int pllmf;
-	extern char* plan9inistr;
-
-	memset(m, 0, sizeof(*m));
-	m->cputype = getpvr()>>16;	/* pvr = 0x00810101 for the 8260 */
-	m->imap = (Imap*)INTMEM;
-	iomem = (IMM*)IOMEM;
-	m->flash = (uchar*)FLASHMEM;
-
-	m->loopconst = 1096;
-
-	/* Make sure Ethernet is disabled (boot code may have buffers allocated anywhere in memory) */
-	iomem->fcc[0].gfmr &= ~(BIT(27)|BIT(26));
-	iomem->fcc[1].gfmr &= ~(BIT(27)|BIT(26));
-	iomem->fcc[2].gfmr &= ~(BIT(27)|BIT(26));
-/*
- * All systems with rev. A.1 (0K26N) silicon had serious problems when doing
- * DMA transfers with data cache enabled (usually this shows when  using
- * one of the FCC's with some traffic on the ethernet).  Allocating FCC buffer
- * descriptors in main memory instead of DP ram solves this problem.
- */
-
-	/* Guess at clocks based upon the PLL configuration from the
-	 * power-on reset.
-	 */
-	scmr = iomem->scmr;
-
-	/* The EST8260 is typically run using either 33 or 66 MHz
-	 * external clock.  The configuration byte in the Flash will
-	 * tell us which is configured.  The blast appears to be slightly
-	 * overclocked at 72 MHz (if set to 66 MHz, the uart runs too fast)
-	 */
-
-	m->clkin = CLKIN;
-
-	pllmf = scmr & 0xfff;
-
-	/* This is arithmetic from the 8260 manual, section 9.4.1. */
-
-	/* Collect the bits from the scmr.
-	*/
-	m->vco_out = m->clkin * (pllmf + 1);
-	if (scmr & BIT(19))	/* plldf (division factor is 1 or 2) */
-		m->vco_out >>= 1;
-
-	m->cpmhz = m->vco_out >> 1;	/* cpm hz is half of vco_out */
-	m->brghz = m->vco_out >> (2 * ((iomem->sccr & 0x3) + 1));
-	m->bushz = m->vco_out / (((scmr & 0x00f00000) >> 20) + 1);
-
-	/* Serial init sets BRG clock....I don't know how to compute
-	 * core clock from core configuration, but I think I know the
-	 * mapping....
-	 */
-	switch(scmr >> (31-7)){
-	case 0x0a:
-		m->cpuhz = m->clkin * 2;
-		break;
-	case 0x0b:
-		m->cpuhz = (m->clkin >> 1) * 5;
-		break;
-	default:
-	case 0x0d:
-		m->cpuhz = m->clkin * 3;
-		break;
-	case 0x14:
-		m->cpuhz = (m->clkin >> 1) * 7;
-		break;
-	case 0x1c:
-		m->cpuhz = m->clkin * 4;
-	}
-
-/*	Expect:
-	intfreq	133		m->cpuhz
-	busfreq	33		m->bushz
-	cpmfreq	99		m->cpmhz
-	brgfreq	49.5		m->brghz
-	vco		198
-*/
-
-	active.machs = 1;
-	active.exiting = 0;
-
-	putmsr(getmsr() | MSR_ME);
-
-	/*
-	 * turn on data cache before instruction cache;
-	 * for some reason which I don't understand,
-	 * you can't turn on both caches at once
-	 */
-	icacheenb();
-	dcacheenb();
-
-	kfpinit();
-
-	/* Plan9.ini location in flash is FLASHMEM+PLAN9INI
-	 * if PLAN9INI == ~0, it's not stored in flash or there is no flash
-	 * if *cp == 0xff, flash memory is not initialized
-	 */
-	if (PLAN9INI == ~0 || *(plan9inistr = (char*)(FLASHMEM+PLAN9INI)) == 0xff){
-		/* No plan9.ini in flash */
-		plan9inistr =
-			"console=0\n"
-			"ether0=type=fcc port=0 ea=00601d3d8fc2\n"
-			"flash0=mem=0xfe000000\n"
-			"fs=135.104.9.42\n"
-			"auth=135.104.9.7\n"
-			"authdom=cs.bell-labs.com\n"
-			"sys=pe0\n"
-			"ntp=135.104.9.52\n";
-	}
-}
-
-void
 trapinit(void)
 {
 	int i;
@@ -635,4 +640,19 @@ trapinit(void)
 	icflush(KADDR(0), 0x2000);
 
 	putmsr(getmsr() & ~MSR_IP);
+}
+
+void
+reboot(void*, void*, ulong)
+{
+	ulong *p;
+	int x;
+
+	p = (ulong*)0x90000000;
+	x = splhi();
+	iomem->sypcr |= 0xc0;
+	print("iomem->sypcr = 0x%lux\n", iomem->sypcr);
+	*p = 0;
+	print("still alive\n");
+	splx(x);
 }

@@ -98,9 +98,9 @@ incref(Ref *r)
 {
 	long x;
 
-	lock(&r->l);
+	lock(r);
 	x = ++r->ref;
-	unlock(&r->l);
+	unlock(r);
 	return x;
 }
 
@@ -109,9 +109,9 @@ decref(Ref *r)
 {
 	long x;
 
-	lock(&r->l);
+	lock(r);
 	x = --r->ref;
-	unlock(&r->l);
+	unlock(r);
 	if(x < 0)
 		panic("deccnt pc=0x%lux", getcallerpc(&r));
 

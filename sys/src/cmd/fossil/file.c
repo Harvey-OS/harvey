@@ -355,6 +355,35 @@ fileOpen(Fs *fs, char *path)
 	return _fileOpen(fs, path, 0);
 }
 
+static void
+fileSetTmp(File *f, int istmp)
+{
+	int i;
+	Entry e;
+	Source *r;
+
+	for(i=0; i<2; i++){
+		if(i==0)
+			r = f->source;
+		else
+			r = f->msource;
+		if(r == nil)
+			continue;
+		if(!sourceGetEntry(f->source, &e)){
+			fprint(2, "sourceGetEntry failed (cannot happen): %r\n");
+			continue;
+		}
+		if(istmp)
+			e.flags |= VtEntryNoArchive;
+		else
+			e.flags &= ~VtEntryNoArchive;
+		if(!sourceSetEntry(f->source, &e)){
+			fprint(2, "sourceSetEntry failed (cannot happen): %r\n");
+			continue;
+		}
+	}
+}
+
 File *
 fileCreate(File *f, char *elem, ulong mode, char *uid)
 {
@@ -427,12 +456,22 @@ fileCreate(File *f, char *elem, ulong mode, char *uid)
 	if(ff->boff == NilBlock)
 		goto Err;
 
-	/* committed */
 	sourceUnlock(f->source);
 	sourceUnlock(f->msource);
 
 	ff->source = r;
 	ff->msource = mr;
+
+	if(mode&ModeTemporary){
+		if(!sourceLock2(r, mr, -1))
+			goto Err1;
+		fileSetTmp(ff, 1);
+		sourceUnlock(r);
+		if(mr)
+			sourceUnlock(mr);
+	}
+
+	/* committed */
 
 	/* link in and up parent ref count */
 	ff->next = f->down;
@@ -527,6 +566,87 @@ Err:
 Err1:
 	fileRUnlock(f);
 	return -1;
+}
+
+/* 
+ * Changes the file block bn to be the given block score.
+ * Very sneaky.  Only used by flfmt.
+ */
+int
+fileMapBlock(File *f, ulong bn, uchar score[VtScoreSize], ulong tag)
+{
+	Block *b;
+	Entry e;
+	Source *s;
+
+	if(!fileLock(f))
+		return 0;
+
+	s = nil;
+	if(f->dir.mode & ModeDir){
+		vtSetError(ENotFile);
+		goto Err;
+	}
+
+	if(f->source->mode != OReadWrite){
+		vtSetError(EReadOnly);
+		goto Err;
+	}
+
+	if(!sourceLock(f->source, -1))
+		goto Err;
+
+	s = f->source;
+	b = _sourceBlock(s, bn, OReadWrite, 1, tag);
+	if(b == nil)
+		goto Err;
+
+	if(!sourceGetEntry(s, &e))
+		goto Err;
+	if(b->l.type == BtDir){
+		memmove(e.score, score, VtScoreSize);
+		assert(e.tag == tag || e.tag == 0);
+		e.tag = tag;
+		e.flags |= VtEntryLocal;
+		entryPack(&e, b->data, f->source->offset % f->source->epb);
+	}else
+		memmove(b->data + (bn%(e.psize/VtScoreSize))*VtScoreSize, score, VtScoreSize);
+	blockDirty(b);
+	blockPut(b);
+	sourceUnlock(s);
+	fileUnlock(f);
+	return 1;
+
+Err:
+	if(s)
+		sourceUnlock(s);
+	fileUnlock(f);
+	return 0;
+}
+
+int
+fileSetSize(File *f, uvlong size)
+{
+	int r;
+
+	if(!fileLock(f))
+		return 0;
+	r = 0;
+	if(f->dir.mode & ModeDir){
+		vtSetError(ENotFile);
+		goto Err;
+	}
+	if(f->source->mode != OReadWrite){
+		vtSetError(EReadOnly);
+		goto Err;
+	}
+	if(!sourceLock(f->source, -1))
+		goto Err;
+	r = sourceSetSize(f->source, size);
+	sourceUnlock(f->source);
+Err:
+	fileUnlock(f);
+	return r;
 }
 
 int
@@ -701,21 +821,27 @@ fileSetDir(File *f, DirEntry *dir, char *uid)
 		}
 	}
 
+	if(!sourceLock2(f->source, f->msource, -1))
+		goto Err;
 	if(!fileIsDir(f)){
-		if(!sourceLock(f->source, -1))
-			goto Err;
 		size = sourceGetSize(f->source);
 		if(size != dir->size){
 			if(!sourceSetSize(f->source, dir->size)){
 				sourceUnlock(f->source);
+				if(f->msource)
+					sourceUnlock(f->msource);
 				goto Err;
 			}
 			/* commited to changing it now */
 		}
-		sourceUnlock(f->source);
 	}
-
 	/* commited to changing it now */
+	if((f->dir.mode&ModeTemporary) != (dir->mode&ModeTemporary))
+		fileSetTmp(f, dir->mode&ModeTemporary);
+	sourceUnlock(f->source);
+	if(f->msource)
+		sourceUnlock(f->msource);
+
 	oelem = nil;
 	if(strcmp(f->dir.elem, dir->elem) != 0){
 		oelem = f->dir.elem;
@@ -1660,7 +1786,7 @@ fileGetSources(File *f, Entry *e, Entry *ee, int mark)
 	|| !getEntry(f->msource, ee, mark))
 		return 0;
 	return 1;
-}
+}	
 
 int
 fileWalkSources(File *f)

@@ -466,6 +466,8 @@ getframe(PPP *ppp, int *protop)
 				return b;
 			}
 		} else if(BLEN(b) > 0){
+			if(ppp->ctcp)
+				compress_error(ppp->ctcp);
 			ppp->in.discards++;
 			netlog("ppp: discard len %ld/%ld cksum %ux (%ux %ux %ux %ux)\n",
 				BLEN(b), BLEN(buf), fcs, b->rptr[0],

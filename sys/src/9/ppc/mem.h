@@ -4,8 +4,7 @@
 
 #ifdef ucuconf
 #include "ucu.h"
-#endif
-#ifdef blastconf
+#else
 #include "blast.h"
 #endif
 
@@ -38,7 +37,7 @@
 /*
  * Time
  */
-#define	HZ		100			/* clock frequency */
+#define	HZ		1000			/* clock frequency */
 #define	TK2SEC(t)	((t)/HZ)		/* ticks to seconds */
 
 /*
@@ -50,6 +49,8 @@
 #define SDR1	25
 #define SRR0	26		/* Saved Registers (exception) */
 #define SRR1	27
+#define TBRL	268
+#define TBRU	269		/* Time base Upper/Lower (Reading) */
 #define SPRG0	272		/* Supervisor Private Registers */
 #define SPRG1	273
 #define SPRG2	274
@@ -60,8 +61,6 @@
 #define SPRG7	279
 #define ASR	280		/* Address Space Register */
 #define EAR	282		/* External Access Register (optional) */
-#define TBRU	269		/* Time base Upper/Lower (Reading) */
-#define TBRL	268
 #define TBWU	284		/* Time base Upper/Lower (Writing) */
 #define TBWL	285
 #define PVR	287		/* Processor Version */

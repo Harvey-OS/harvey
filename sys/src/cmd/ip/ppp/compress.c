@@ -453,8 +453,6 @@ tcpuncompress(Tcpc *comp, Block *b, int type)
 	ip->cksum[0] = ip->cksum[1] = 0;
 	hnputs(ip->cksum, ipcsum(b->rptr));
 
-if(*b->rptr != 0x45) syslog(0, LOG, "bad tcpuncompress %2.2ux", *b->rptr);
-
 	return b;
 
 rescue:
@@ -518,4 +516,11 @@ compress_negotiate(Tcpc *tcp, uchar *data)
 		return -1;
 	tcp->compressid = data[1];
 	return 0;
+}
+
+/* called by ppp when there was a bad frame received */
+void
+compress_error(Tcpc *tcp)
+{
+	tcp->err = 1;
 }

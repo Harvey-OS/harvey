@@ -8,6 +8,7 @@
 #include <frame.h>
 #include <fcall.h>
 #include <plumb.h>
+#include <complete.h>
 #include "dat.h"
 #include "fns.h"
 
@@ -524,27 +525,159 @@ textbswidth(Text *t, Rune c)
 	return t->q0-q;
 }
 
+int
+textfilewidth(Text *t, uint q0, int oneelement)
+{
+	uint q;
+	Rune r;
+
+	q = q0;
+	while(q > 0){
+		r = textreadc(t, q-1);
+		if(r <= ' ')
+			break;
+		if(oneelement && r=='/')
+			break;
+		--q;
+	}
+	return q0-q;
+}
+
+Rune*
+textcomplete(Text *t)
+{
+	int i, nstr, npath;
+	uint q;
+	Rune tmp[200];
+	Rune *str, *path;
+	Rune *rp;
+	Completion *c;
+	char *s, *dirs;
+	Runestr dir;
+
+	/* control-f: filename completion; works back to white space or / */
+	if(t->q0<t->file->nc && textreadc(t, t->q0)>' ')	/* must be at end of word */
+		return nil;
+	nstr = textfilewidth(t, t->q0, TRUE);
+	str = runemalloc(nstr);
+	npath = textfilewidth(t, t->q0-nstr, FALSE);
+	path = runemalloc(npath);
+
+	c = nil;
+	rp = nil;
+	dirs = nil;
+
+	q = t->q0-nstr;
+	for(i=0; i<nstr; i++)
+		str[i] = textreadc(t, q++);
+	q = t->q0-nstr-npath;
+	for(i=0; i<npath; i++)
+		path[i] = textreadc(t, q++);
+	/* is path rooted? if not, we need to make it relative to window path */
+	if(npath>0 && path[0]=='/')
+		dir = (Runestr){path, npath};
+	else{
+		dir = dirname(t, nil, 0);
+		if(dir.nr + 1 + npath > nelem(tmp)){
+			free(dir.r);
+			goto Return;
+		}
+		if(dir.nr == 0){
+			dir.nr = 1;
+			dir.r = runestrdup(L".");
+		}
+		runemove(tmp, dir.r, dir.nr);
+		tmp[dir.nr] = '/';
+		runemove(tmp+dir.nr+1, path, npath);
+		free(dir.r);
+		dir.r = tmp;
+		dir.nr += 1+npath;
+		dir = cleanrname(dir);
+	}
+
+	s = smprint("%.*S", nstr, str);
+	dirs = smprint("%.*S", dir.nr, dir.r);
+	c = complete(dirs, s);
+	free(s);
+	if(c == nil){
+		warning(nil, "error attempting completion: %r\n");
+		goto Return;
+	}
+
+	if(!c->advance){
+		warning(nil, "%.*S%s%.*S*\n",
+			dir.nr, dir.r,
+			dir.nr>0 && dir.r[dir.nr-1]!='/' ? "/" : "",
+			nstr, str);
+		for(i=0; i<c->nfile; i++)
+			warning(nil, " %s\n", c->filename[i]);
+	}
+
+	if(c->advance)
+		rp = runesmprint("%s", c->string);
+	else
+		rp = nil;
+  Return:
+	freecompletion(c);
+	free(dirs);
+	free(str);
+	free(path);
+	return rp;
+}
+
 void
 texttype(Text *t, Rune r)
 {
 	uint q0, q1;
 	int nnb, nb, n, i;
+	int nr;
+	Rune *rp;
 	Text *u;
 
 	if(t->what!=Body && r=='\n')
 		return;
+	nr = 1;
+	rp = &r;
 	switch(r){
-	case Kdown:
 	case Kleft:
+		if(t->q0 > 0){
+			textcommit(t, TRUE);
+			textshow(t, t->q0-1, t->q0-1, TRUE);
+		}
+		return;
 	case Kright:
-		n = t->maxlines/2;
+		if(t->q1 < t->file->nc){
+			textcommit(t, TRUE);
+			textshow(t, t->q1+1, t->q1+1, TRUE);
+		}
+		return;
+	case Kdown:
+		n = t->maxlines/3;
+		goto case_Down;
+	case Kpgdown:
+		n = 2*t->maxlines/3;
+	case_Down:
 		q0 = t->org+frcharofpt(t, Pt(t->r.min.x, t->r.min.y+n*t->font->height));
 		textsetorigin(t, q0, FALSE);
 		return;
 	case Kup:
-		n = t->maxlines/2;
+		n = t->maxlines/3;
+		goto case_Up;
+	case Kpgup:
+		n = 2*t->maxlines/3;
+	case_Up:
 		q0 = textbacknl(t, t->org, n);
 		textsetorigin(t, q0, FALSE);
+		return;
+	case Khome:
+		textshow(t, 0, 0, FALSE);
+		return;
+	case Kend:
+		if(t->w)
+			wincommit(t->w, t);
+		else
+			textcommit(t, TRUE);
+		textshow(t, t->file->nc, t->file->nc, FALSE);
 		return;
 	}
 	if(t->what == Body){
@@ -559,6 +692,13 @@ texttype(Text *t, Rune r)
 	}
 	textshow(t, t->q0, t->q0, 1);
 	switch(r){
+	case 0x06:
+	case Kins:
+		rp = textcomplete(t);
+		if(rp == nil)
+			return;
+		nr = runestrlen(rp);
+		break;	/* fall through to normal insertion case */
 	case 0x1B:
 		if(t->eq0 != ~0)
 			textsetselect(t, t->eq0, t->q0);
@@ -621,16 +761,19 @@ texttype(Text *t, Rune r)
 			u->cq0 = t->q0;
 		else if(t->q0 != u->cq0+u->ncache)
 			error("text.type cq1");
-		textinsert(u, t->q0, &r, 1, FALSE);
+		textinsert(u, t->q0, rp, nr, FALSE);
 		if(u != t)
 			textsetselect(u, u->q0, u->q1);
-		if(u->ncache == u->ncachealloc){
-			u->ncachealloc += 10;
+		if(u->ncache+nr > u->ncachealloc){
+			u->ncachealloc += 10 + nr;
 			u->cache = runerealloc(u->cache, u->ncachealloc);
 		}
-		u->cache[u->ncache++] = r;
+		runemove(u->cache+u->ncache, rp, nr);
+		u->ncache += nr;
 	}
-	textsetselect(t, t->q0+1, t->q0+1);
+	if(rp != &r)
+		free(rp);
+	textsetselect(t, t->q0+nr, t->q0+nr);
 	if(r=='\n' && t->w!=nil)
 		wincommit(t->w, t);
 }

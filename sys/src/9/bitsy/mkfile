@@ -123,7 +123,7 @@ paqdisk:V:
 	rm -fr armpaq
 	mkdir armpaq
 	cd armpaq
-	disk/mkfs -a /sys/lib/sysconfig/proto/armpaqproto|disk/mkext -d .
+	disk/mkfs -d . /sys/lib/sysconfig/proto/armpaqproto
 	mkpaqfs -o ../paqdisk
 	cd ..
 	echo load ramdisk
