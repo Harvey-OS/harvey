@@ -12,7 +12,13 @@
 int debug;
 
 enum{  IDATSIZE=1000000,
-	FilterNone =	0,
+	/* filtering algorithms, supposedly increase compression */
+	FilterNone =	0,	/* new[x][y] = buf[x][y] */
+	FilterSub	=	1,	/* new[x][y] = buf[x][y] + new[x-1][y] */ 
+	FilterUp	=	2,	/* new[x][y] = buf[x][y] + new[x][y-1] */ 
+	FilterAvg	=	3,	/* new[x][y] = buf[x][y] + (new[x-1][y]+new[x][y-1])/2 */ 
+	FilterPaeth=	4,	/* new[x][y] = buf[x][y] + paeth(new[x-1][y],new[x][y-1],new[x-1][y-1]) */ 
+	FilterLast	=	5,
 	PropertyBit =	1<<5,
 };
 
@@ -30,6 +36,7 @@ typedef struct ZlibW{
 			// -1 = one-byte pseudo-column for filter spec
 	int row;	// row index of current pixel
 	int ncol, nrow;	// image width, height
+	int filter;	// algorithm for current scanline
 } ZlibW;
 
 static ulong *crctab;
@@ -121,16 +128,72 @@ refill_buffer:
 	return *z->b++;
 }
 
+static uchar 
+paeth(uchar a, uchar b, uchar c)
+{
+	int p, pa, pb, pc;
+	
+	p = (int)a + (int)b - (int)c;
+	pa = abs(p - (int)a);
+	pb = abs(p - (int)b);
+	pc = abs(p - (int)c);
+
+	if(pa <= pb && pa <= pc)
+		return a;
+	else if(pb <= pc)
+		return b;
+	return c;
+}
+
+static void
+unfilter(int alg, uchar *buf, uchar *ebuf, int up)
+{
+	switch(alg){
+	case FilterSub:
+		while (++buf < ebuf)
+			*buf += buf[-1];
+		break;
+	case FilterUp:
+		if (up != 0)
+			do
+				*buf += buf[up];
+			while (++buf < ebuf);
+		break;
+	case FilterAvg:
+		if (up == 0)
+			while (++buf < ebuf)
+				*buf += buf[-1]/2;
+		else{
+			*buf += buf[up]/2;
+			while (++buf < ebuf)
+				*buf += (buf[-1]+buf[up])/2;
+		}
+		break;
+	case FilterPaeth:
+		if (up == 0)
+			while (++buf < ebuf)
+				*buf += buf[-1];
+		else{
+			*buf += paeth(0, buf[up], 0);
+			while (++buf < ebuf)
+				*buf += paeth(buf[-1], buf[up], buf[up-1]);
+		}
+		break;
+	}
+}
+
 static int
 zwrite(void *va, void *vb, int n)
 {
 	ZlibW *z = va;
 	uchar *buf = vb;
-	int i;
+	int i, up;
 	for(i=0; i<n; i++){
 		if(z->col == -1){
-			// skip filter byte
-			buf++;
+			// set filter byte
+			z->filter = *buf++;
+			if (z->filter >= FilterLast)
+				sysfatal("unknown filter algorithm %d for row %d", z->row, z->filter);
 			z->col++;
 			continue;
 		}
@@ -148,6 +211,15 @@ zwrite(void *va, void *vb, int n)
 			z->chan = 0;
 			z->col++;
 			if(z->col == z->ncol){
+				if (z->filter){
+					if(z->row == 0)
+						up = 0;
+					else
+						up = -z->ncol;
+					unfilter(z->filter, z->r - z->col, z->r, up);
+					unfilter(z->filter, z->g - z->col, z->g, up);
+					unfilter(z->filter, z->b - z->col, z->b, up);
+				}
 				z->col = -1;
 				z->row++;
 				if((z->row >= z->nrow) && (i < n-1) )
@@ -180,6 +252,8 @@ readslave(Biobuf *b)
 	h = buf;
 	ncol = get4(h);  h += 4;
 	nrow = get4(h);  h += 4;
+	if(ncol <= 0 || nrow <= 0)
+		sysfatal("impossible image size nrow=%d ncol=%d", nrow, ncol);
 	if(debug)
 		fprint(2, "readpng nrow=%d ncol=%d\n", nrow, ncol);
 	if(*h++ != 8)
