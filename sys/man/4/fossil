@@ -59,6 +59,9 @@ fossil \- archival file server
 [
 .I config
 ]
+.PP
+.B fossil/last
+.I file
 .SH DESCRIPTION
 Fossil
 will become the main file system for Plan 9.
@@ -372,6 +375,11 @@ The Plan 9 kernel boot process runs
 to start a Fossil file server.
 The disk is just a convenient place to store configuration
 information.
+.PP
+.I Last
+prints the vac score that resulted after the most recent archival snapshot 
+of the fossil in
+.I file.
 .SH EXAMPLES
 .PP
 Place the root of the archive file system on

@@ -52,7 +52,6 @@ Let the first letter of the compiler name be
 .IR O =
 .BR 1 ,
 .BR 2 ,
-.BR 4 ,
 .BR 5 ,
 .BR 7 ,
 .BR 8 ,
@@ -156,6 +155,14 @@ Print an assembly language version of the object code
 on standard output as well as generating the
 .RI . O
 file.
+.TP
+.B -T
+Pass type signatures on all external and global entities.
+The signature is based on the C
+.B signof
+operator.
+See
+.IR dynld (2).
 .TP
 .B -V
 By default, the compilers are non-standardly lax about type equality between
@@ -298,6 +305,21 @@ are used, if the
 option is enabled, to type-check calls to
 .B print
 and other such routines.
+.TP
+\-
+A
+.B #pragma
+of the form
+.EX
+    #pragma incomplete type
+.EE
+tells the compiler that
+.B type
+should have its signature calculated as an incomplete type
+even when it is fully defined.
+This allows the type signature mechanism to work in the presence
+of opaque types declared in header files while their full definitions
+are known only to the code which manipulates them.
 .TP
 \-
 The C++ comment

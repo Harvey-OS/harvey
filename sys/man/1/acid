@@ -60,7 +60,7 @@ at startup; see below.
 .BI -m " machine
 Assume instructions are for the given CPU type
 (one of
-.BR 3210 ,
+.BR alpha ,
 .BR 386 ,
 etc., as listed in
 .IR 2c (1),
@@ -107,9 +107,9 @@ When program symbols conflict with
 words, distinguishing 
 .B $
 signs are prefixed.
-Such renamings are reported at startup; option
+Such renamings are reported at startup if the option
 .B -q
-suppresses them.
+is enabled.
 .PP
 Variable types
 .RI ( "integer, float, list, string" )

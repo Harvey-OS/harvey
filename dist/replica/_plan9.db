@@ -4643,13 +4643,13 @@ sys/log/timesync - 10000000666 sys sys 958934040 0
 sys/log/timesync.d - 20000000775 sys sys 947099701 0
 sys/man - 20000000775 sys sys 1012278794 0
 sys/man/1 - 20000000775 sys sys 1018897631 0
-sys/man/1/0intro - 664 sys sys 958249499 9623
-sys/man/1/2a - 664 sys sys 1089299164 1188
-sys/man/1/2c - 664 sys sys 1089299164 7193
-sys/man/1/2l - 664 sys sys 1089903786 3992
+sys/man/1/0intro - 664 sys sys 1101668050 9625
+sys/man/1/2a - 664 sys sys 1101668050 1188
+sys/man/1/2c - 664 sys sys 1101668050 7700
+sys/man/1/2l - 664 sys sys 1101668051 4365
 sys/man/1/INDEX - 664 sys sys 1100579340 3010
 sys/man/1/INDEX.html - 664 sys sys 1089320990 16634
-sys/man/1/acid - 664 sys sys 1082404958 9725
+sys/man/1/acid - 664 sys sys 1101668051 9727
 sys/man/1/acme - 664 sys sys 1019828741 17587
 sys/man/1/ap - 664 sys sys 1068471657 364
 sys/man/1/ar - 664 sys sys 1079397701 3153
@@ -4747,7 +4747,7 @@ sys/man/1/ps - 664 sys sys 1019769758 1642
 sys/man/1/ps2pdf - 664 sys sys 1032632098 1359
 sys/man/1/pwd - 664 sys sys 957920008 930
 sys/man/1/rc - 664 sys sys 1100894083 19898
-sys/man/1/replica - 664 sys sys 1021927495 6619
+sys/man/1/replica - 664 sys sys 1101668051 6647
 sys/man/1/resample - 664 sys sys 1015024740 1083
 sys/man/1/rio - 664 sys sys 1072729053 14321
 sys/man/1/rm - 664 sys sys 944959673 515
@@ -4789,7 +4789,7 @@ sys/man/1/uniq - 664 sys sys 944959674 995
 sys/man/1/units - 664 sys sys 944959673 2049
 sys/man/1/uptime - 664 sys sys 1074733782 380
 sys/man/1/vac - 664 sys sys 1021579977 3227
-sys/man/1/vi - 664 sys sys 1076688637 2980
+sys/man/1/vi - 664 sys sys 1101668051 2904
 sys/man/1/vnc - 664 sys sys 1045501432 4186
 sys/man/1/vt - 664 sys sys 1018386774 2210
 sys/man/1/wc - 664 sys sys 944959675 908
@@ -4993,7 +4993,7 @@ sys/man/4/execnet - 664 sys sys 1019866708 1069
 sys/man/4/exportfs - 664 sys sys 1100524176 4540
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1053127875 14460
-sys/man/4/fossil - 664 sys sys 1087005581 9423
+sys/man/4/fossil - 664 sys sys 1101668322 9564
 sys/man/4/fs - 664 sys sys 1019058716 3387
 sys/man/4/ftpfs - 664 sys sys 1048285446 4327
 sys/man/4/import - 664 sys sys 1034195346 2204
