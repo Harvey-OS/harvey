@@ -154,11 +154,9 @@ cf2subfont(Cachefont *cf, Font *f)
 
 	name = cf->subfontname;
 	if(name == nil){
-		depth = 0;
-		if(f->display){
-			if(f->display->screenimage)
-				depth = f->display->screenimage->depth;
-		}else
+		if(f->display && f->display->screenimage)
+			depth = f->display->screenimage->depth;
+		else
 			depth = 8;
 		name = subfontname(cf->name, f->name, depth);
 		if(name == nil)

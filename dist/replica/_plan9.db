@@ -43,7 +43,7 @@
 386/bin/ascii - 775 sys sys 1104121959 64668
 386/bin/astro - 775 sys sys 1104121959 138803
 386/bin/auth - 20000000775 sys sys 1016920815 0
-386/bin/auth/aescbc - 775 sys sys 1106107674 133292
+386/bin/auth/aescbc - 775 sys sys 1106625920 140626
 386/bin/auth/asn12rsa - 775 sys sys 1104121960 119644
 386/bin/auth/authsrv - 775 sys sys 1104121961 165463
 386/bin/auth/changeuser - 775 sys sys 1104121961 97026
@@ -71,9 +71,9 @@
 386/bin/auth/rsafill - 775 sys sys 1104121968 143416
 386/bin/auth/rsagen - 775 sys sys 1104121969 153041
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
-386/bin/auth/secstore - 775 sys sys 1106107676 189627
-386/bin/auth/secstored - 775 sys sys 1104121970 196626
-386/bin/auth/secuser - 775 sys sys 1104121971 152299
+386/bin/auth/secstore - 775 sys sys 1106625920 195166
+386/bin/auth/secstored - 775 sys sys 1106625920 196858
+386/bin/auth/secuser - 775 sys sys 1106625921 152808
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1104121971 63052
 386/bin/auth/warning - 775 sys sys 1104121971 99559
@@ -11910,7 +11910,7 @@ sys/src/libdraw/ellipse.c - 664 sys sys 1040442971 1936
 sys/src/libdraw/emenuhit.c - 664 sys sys 1014927874 7136
 sys/src/libdraw/event.c - 664 sys sys 1097973929 8983
 sys/src/libdraw/fmt.c - 664 sys sys 1070344369 270
-sys/src/libdraw/font.c - 664 sys sys 1082924457 7594
+sys/src/libdraw/font.c - 664 sys sys 1106665816 7574
 sys/src/libdraw/freesubfont.c - 664 sys sys 984709664 259
 sys/src/libdraw/getdefont.c - 664 sys sys 944961724 1082
 sys/src/libdraw/getrect.c - 664 sys sys 1014927875 3046
@@ -12456,7 +12456,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/auth/aescbc - 775 sys sys 1106625920 140626
-386/bin/auth/secstore - 775 sys sys 1106625920 195166
-386/bin/auth/secstored - 775 sys sys 1106625920 196858
-386/bin/auth/secuser - 775 sys sys 1106625921 152808
