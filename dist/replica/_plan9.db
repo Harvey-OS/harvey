@@ -10380,7 +10380,7 @@ sys/src/cmd/sum.c - 664 sys sys 1014926615 5548
 sys/src/cmd/swap.c - 664 sys sys 1014926662 1141
 sys/src/cmd/syscall - 20000000775 sys sys 944961236 0
 sys/src/cmd/syscall/mkfile - 664 sys sys 1037122264 549
-sys/src/cmd/syscall/syscall.c - 664 sys sys 1036972051 3927
+sys/src/cmd/syscall/syscall.c - 664 sys sys 1091803376 3929
 sys/src/cmd/tail.c - 664 sys sys 1077054929 6004
 sys/src/cmd/tapefs - 20000000775 sys sys 944962012 0
 sys/src/cmd/tapefs/32vfs.c - 664 sys sys 1014926384 3688
@@ -11059,7 +11059,7 @@ sys/src/cmd/vnc/compat.h - 664 sys sys 1047512521 3425
 sys/src/cmd/vnc/dev.c - 664 sys sys 1044880749 5496
 sys/src/cmd/vnc/devcons.c - 664 sys sys 1045758532 6978
 sys/src/cmd/vnc/devdraw.c - 664 sys sys 1044880749 42068
-sys/src/cmd/vnc/devmouse.c - 664 sys sys 1044880749 7384
+sys/src/cmd/vnc/devmouse.c - 664 sys sys 1091816253 7389
 sys/src/cmd/vnc/draw.c - 664 sys sys 1044880749 6974
 sys/src/cmd/vnc/error.h - 664 sys sys 1044880749 2482
 sys/src/cmd/vnc/errstr.h - 664 sys sys 1044880749 2018
@@ -11136,7 +11136,7 @@ sys/src/fs/choline/dat.h - 664 sys sys 1037805081 528
 sys/src/fs/choline/fns.h - 664 sys sys 1037805081 1968
 sys/src/fs/choline/io.h - 664 sys sys 1037805081 6576
 sys/src/fs/choline/mem.h - 664 sys sys 1015110108 2865
-sys/src/fs/choline/mkfile - 664 sys sys 1063854076 1665
+sys/src/fs/choline/mkfile - 664 sys sys 1091803608 1676
 sys/src/fs/dev - 20000000775 sys sys 1015109978 0
 sys/src/fs/dev/cw.c - 664 sys sys 1047663897 42252
 sys/src/fs/dev/fworm.c - 664 sys sys 1015109971 1737
@@ -11151,7 +11151,7 @@ sys/src/fs/emelie/dat.h - 664 sys sys 1037805101 502
 sys/src/fs/emelie/fns.h - 664 sys sys 1037805101 1968
 sys/src/fs/emelie/io.h - 664 sys sys 1037805101 6576
 sys/src/fs/emelie/mem.h - 664 sys sys 1015110098 2865
-sys/src/fs/emelie/mkfile - 664 sys sys 1063854083 1685
+sys/src/fs/emelie/mkfile - 664 sys sys 1091803614 1697
 sys/src/fs/ip - 20000000775 sys sys 1015109990 0
 sys/src/fs/ip/arp.c - 664 sys sys 1015109981 8696
 sys/src/fs/ip/icmp.c - 664 sys sys 1015109981 991
@@ -11196,7 +11196,7 @@ sys/src/fs/pc/nvr.c - 664 sys sys 1015110066 669
 sys/src/fs/pc/pc.c - 664 sys sys 1047663991 7938
 sys/src/fs/pc/pci.c - 664 sys sys 1037805118 11638
 sys/src/fs/pc/script.i - 664 sys sys 1015110072 27323
-sys/src/fs/pc/scsi.c - 664 sys sys 1037805118 8667
+sys/src/fs/pc/scsi.c - 664 sys sys 1091803674 8661
 sys/src/fs/pc/scsibuslogic.c - 664 sys sys 1015110077 28645
 sys/src/fs/pc/scsincr53c8xx.c - 664 sys sys 1037805119 53483
 sys/src/fs/pc/toy.c - 664 sys sys 1015110085 2166
@@ -11218,7 +11218,8 @@ sys/src/fs/port/dentry.c - 664 sys sys 1015110013 3801
 sys/src/fs/port/devcons.c - 664 sys sys 1015110014 4329
 sys/src/fs/port/fcmd.c - 664 sys sys 1015110015 1266
 sys/src/fs/port/iobuf.c - 664 sys sys 1045502864 4845
-sys/src/fs/port/lib.h - 664 sys sys 1015110017 3335
+sys/src/fs/port/lib.h - 664 sys sys 1091803590 3339
+sys/src/fs/port/lrand.c - 664 sys sys 1091803568 1093
 sys/src/fs/port/main.c - 664 sys sys 1047663952 5698
 sys/src/fs/port/mkfile - 664 sys sys 1015110018 189
 sys/src/fs/port/portdat.h - 664 sys sys 1055699797 16701
@@ -11234,14 +11235,14 @@ sys/src/fs/roro/dat.h - 664 sys sys 1037805167 502
 sys/src/fs/roro/fns.h - 664 sys sys 1037805167 1968
 sys/src/fs/roro/io.h - 664 sys sys 1037805168 6576
 sys/src/fs/roro/mem.h - 664 sys sys 1015110092 2865
-sys/src/fs/roro/mkfile - 664 sys sys 1063854090 1639
+sys/src/fs/roro/mkfile - 664 sys sys 1091803629 1650
 sys/src/fs/sony - 20000000775 sys sys 1015110104 0
 sys/src/fs/sony/9sonyfs.c - 664 sys sys 1041361261 2962
 sys/src/fs/sony/dat.h - 664 sys sys 1037805175 490
 sys/src/fs/sony/fns.h - 664 sys sys 1037805175 1968
 sys/src/fs/sony/io.h - 664 sys sys 1037805175 6576
 sys/src/fs/sony/mem.h - 664 sys sys 1015110103 2865
-sys/src/fs/sony/mkfile - 664 sys sys 1037805175 1583
+sys/src/fs/sony/mkfile - 664 sys sys 1091803623 1594
 sys/src/fs/worms - 664 sys sys 1015110031 2806
 sys/src/lib9p - 20000000775 sys sys 1015023311 0
 sys/src/lib9p/_post.c - 664 sys sys 1044836326 1641
@@ -12336,3 +12337,11 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/ar - 775 sys sys 1091848139 105399
+386/bin/db - 775 sys sys 1091848140 299839
+386/bin/vncs - 775 sys sys 1091848141 469227
+386/bin/file - 775 sys sys 1091848140 108361
+386/bin/nm - 775 sys sys 1091848140 113183
+386/bin/syscall - 775 sys sys 1091848141 71497
+386/lib/libmach.a - 664 sys sys 1091848143 651390
+sys/src/fs/port/portdat.h - 664 sys sys 1091849428 16750

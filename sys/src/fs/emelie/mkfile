@@ -38,6 +38,7 @@ PORT=\
 	devcons.$O\
 	fcmd.$O\
 	iobuf.$O\
+	lrand.$O\
 	main.$O\
 	print.$O\
 	proc.$O\
@@ -106,7 +107,7 @@ LIB=\
 	/$objtype/lib/libsec.a\
 
 # -I../pc & -DFS are for compat.h
-CFLAGS=-FVw -I. -I../port -I../pc -DFS
+CFLAGS=-FTVw -I. -I../port -I../pc -DFS
 
 all:V:	$TARG
 

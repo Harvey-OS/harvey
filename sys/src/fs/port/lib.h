@@ -5,17 +5,17 @@
 /*
  * mem routines
  */
-extern	void*	memset(void*, int, long);
-extern	int	memcmp(void*, void*, long);
-extern	void*	memmove(void*, void*, long);
-extern	void*	memchr(void*, int, long);
+extern	void*	memset(void*, int, ulong);
+extern	int	memcmp(void*, void*, ulong);
+extern	void*	memmove(void*, void*, ulong);
+extern	void*	memchr(void*, int, ulong);
 
 /*
  * string routines
  */
 extern	char*	strcat(char*, char*);
-extern	char*	strchr(char*, char);
-extern	char*	strrchr(char*, char);
+extern	char*	strchr(char*, int);
+extern	char*	strrchr(char*, int);
 extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
 extern	char*	strncat(char*, char*, long);
@@ -72,7 +72,7 @@ extern	int	snprint(char*, int, char*, ...);
 extern	int	sprint(char*, char*, ...);
 
 extern	int	fmtinstall(int c, int (*f)(Fmt*));
-extern	int	quotefmtinstall(void);
+extern	void	quotefmtinstall(void);
 extern	int	fmtit(Fmt *f, char *fmt, ...);
 extern	int	fmtstrcpy(Fmt *f, char *s);
 
@@ -112,7 +112,7 @@ extern	char	end[];
 extern	int	decrypt(void*, void*, int);
 extern	int	encrypt(void*, void*, int);
 extern	int	nrand(int);
-extern	void	srand(int);
+extern	void	srand(long);
 
 #define	OREAD	0	/* open for read */
 #define	OWRITE	1	/* write */

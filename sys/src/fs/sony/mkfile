@@ -38,6 +38,7 @@ PORT=\
 	devcons.$O\
 	fcmd.$O\
 	iobuf.$O\
+	lrand.$O\
 	main.$O\
 	print.$O\
 	proc.$O\
