@@ -116,6 +116,7 @@ char	Eisopen[] = 	"file already open for I/O";
 char	Excl[] = 	"exclusive use file already open";
 char	Ename[] = 	"illegal name";
 char	Eversion[] =	"unknown 9P version";
+char	Enotempty[] =	"directory not empty";
 
 int debug;
 int private;
@@ -546,9 +547,23 @@ rwrite(Fid *f)
 	return 0;
 }
 
-void
+static int
+emptydir(Ram *dr)
+{
+	long didx = dr - ram;
+	Ram *r;
+
+	for(r=ram; r<&ram[nram]; r++)
+		if(r->busy && didx==r->parent)
+			return 0;
+	return 1;
+}
+
+char *
 realremove(Ram *r)
 {
+	if(r->qid.type & QTDIR && !emptydir(r))
+		return Enotempty;
 	r->ndata = 0;
 	if(r->data)
 		free(r->data);
@@ -558,19 +573,22 @@ realremove(Ram *r)
 	free(r->name);
 	r->name = nil;
 	r->busy = 0;
+	return nil;
 }
 
 char *
 rclunk(Fid *f)
 {
+	char *e = nil;
+
 	if(f->open)
 		f->ram->open--;
 	if(f->rclose)
-		realremove(f->ram);
+		e = realremove(f->ram);
 	f->busy = 0;
 	f->open = 0;
 	f->ram = 0;
-	return 0;
+	return e;
 }
 
 char *
@@ -587,8 +605,7 @@ rremove(Fid *f)
 	if(r->qid.path == 0 || !perm(f, &ram[r->parent], Pwrite))
 		return Eperm;
 	ram[r->parent].mtime = time(0);
-	realremove(r);
-	return 0;
+	return realremove(r);
 }
 
 char *
