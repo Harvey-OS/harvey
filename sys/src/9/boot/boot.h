@@ -70,7 +70,7 @@ extern int	connectpaq(void);
 extern void	configembed(Method*);
 extern int	connectembed(void);
 
-extern void	configip(void);
+extern void	configip(int, char**, int);
 
 /* hack for passing authentication address */
 extern char	*authaddr;

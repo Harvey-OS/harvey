@@ -86,6 +86,16 @@ The user's profile is run with
 .B $service
 set to
 .BR rx .
+If
+.I host
+is
+set to
+.BR local ,
+.I cron
+will run the command as
+.I user
+on the local machine without using
+.BR rx .
 .PP
 .I Cron
 is not a reliable service.

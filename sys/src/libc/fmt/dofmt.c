@@ -239,18 +239,18 @@ _runefmt(Fmt *f)
 int
 fmtstrcpy(Fmt *f, char *s)
 {
-	int p, i;
+	int i, j;
+	Rune r;
+
 	if(!s)
 		return _fmtcpy(f, "<nil>", 5, 5);
 	/* if precision is specified, make sure we don't wander off the end */
 	if(f->flags & FmtPrec){
-		p = f->prec;
-		for(i = 0; i < p; i++)
-			if(s[i] == 0)
-				break;
-		return _fmtcpy(f, s, utfnlen(s, i), i);	/* BUG?: won't print a partial rune at end */
+		i = 0;
+		for(j=0; j<f->prec && s[i]; j++)
+			i += chartorune(&r, s+i);
+		return _fmtcpy(f, s, j, i);
 	}
-
 	return _fmtcpy(f, s, utflen(s), strlen(s));
 }
 

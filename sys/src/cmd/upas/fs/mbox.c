@@ -291,7 +291,12 @@ parseheaders(Message *m, int justmime, Mailbox *mb, int addfrom)
 	// for pop3 messages, the best we can do is 
 	// use the From: information and the RFC822 date.
 	//
-	if(m->unixdate == nil){
+	if(m->unixdate == nil || strcmp(s_to_c(m->unixdate), "???") == 0
+	|| strcmp(s_to_c(m->unixdate), "Thu Jan 1 00:00:00 GMT 1970") == 0){
+		if(m->unixdate){
+			s_free(m->unixdate);
+			m->unixdate = nil;
+		}
 		// look for the date in the first Received: line.
 		// it's likely to be the right time zone (it's
 	 	// the local system) and in a convenient format.
@@ -329,7 +334,7 @@ parseheaders(Message *m, int justmime, Mailbox *mb, int addfrom)
 	}
 
 	m->unixheader = s_copy("From ");
-	if(m->unixfrom)
+	if(m->unixfrom && strcmp(s_to_c(m->unixfrom), "???") != 0)
 		s_append(m->unixheader, s_to_c(m->unixfrom));
 	else if(m->from822)
 		s_append(m->unixheader, s_to_c(m->from822));
@@ -340,7 +345,7 @@ parseheaders(Message *m, int justmime, Mailbox *mb, int addfrom)
 	if(m->unixdate)
 		s_append(m->unixheader, s_to_c(m->unixdate));
 	else
-		s_append(m->unixheader, "Thu Jan  1 00:00:00 EST 1970");
+		s_append(m->unixheader, "Thu Jan  1 00:00:00 GMT 1970");
 
 	s_append(m->unixheader, "\n");
 }
