@@ -1,7 +1,8 @@
 .TH USB 4
 .SH NAME
 usbmouse,
-usbaudio
+usbaudio,
+usbprinter
 \- Universal Serial Bus user level device drivers
 .SH SYNOPSIS
 .B usb/usbmouse
@@ -29,7 +30,7 @@ usbaudio
 .I n
 ]
 .PP
-.B usbstart
+.B usb/usbprinter
 .SH DESCRIPTION
 These programs implement support for specific USB device classes.
 They should be run after
@@ -37,11 +38,6 @@ They should be run after
 has had a chance to locate the devices in question and provide
 them with device addresses and minimal configuration.
 Dynamic handling of device insertion and removal is currently not supported.
-.PP
-The script
-.B usbstart
-checks whether a USB driver is present, and if so, starts usbd
-followed by the support programs listed below.
 .SS Mice
 .B Usbmouse
 sends mouse events from a USB mouse to
@@ -138,6 +134,10 @@ and read from
 The data format is little endian, samples ordered primarily by time and
 secondarily by channel.  Samples occupy the minimum integral number
 of bytes.  Read and write operations of arbitrary size are allowed.
+.SS Printers
+.B Usbprinter
+is a script that mounts a usb printer on
+.BR /n/lp .
 .SH EXAMPLE
 .LP
 To use a USB mouse and audio device, put the following in your profile

@@ -471,7 +471,7 @@ edfready(Proc *p)
 				DPRINT("%t edfready %lud[%s], release=%t\n",
 					now, p->pid, statename[p->state], e->t);
 			}
-			if(p->state == Running && (e->flags & (Yield|Yieldonblock)) == 0){
+			if(p->state == Running && (e->flags & (Yield|Yieldonblock)) == 0 && (e->flags & Extratime)){
 				/* If we were running, we've overrun our CPU allocation
 				 * or missed the deadline, continue running best-effort at low priority
 				 * Otherwise we were blocked.  If we don't yield on block, we continue

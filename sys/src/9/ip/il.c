@@ -24,7 +24,7 @@ char	*ilstates[] =
 	"Syncer",
 	"Syncee",
 	"Established",
-	"Listening",
+	"Listen",
 	"Closing",
 	"Opening",		/* only for file server */
 };
@@ -256,8 +256,10 @@ ilstate(Conv *c, char *state, int n)
 	Ilcb *ic;
 
 	ic = (Ilcb*)(c->ptcl);
-	return snprint(state, n, "%s del %5.5d Br %5.5d md %5.5d una %5.5lud rex %5.5d rxq %5.5d max %5.5d",
+	return snprint(state, n, "%s qin %d qout %d del %5.5d Br %5.5d md %5.5d una %5.5lud rex %5.5d rxq %5.5d max %5.5d",
 		ilstates[ic->state],
+		c->rq ? qlen(c->rq) : 0,
+		c->wq ? qlen(c->wq) : 0,
 		ic->delay>>LogAGain, ic->rate>>LogAGain, ic->mdev>>LogDGain,
 		ic->unackedbytes, ic->rxtot, ic->rxquery, ic->maxrtt);
 }

@@ -10,6 +10,8 @@ int chatty;
 int doabort;
 int docolon;
 int mk9660;
+int dataoffset;
+int blocksize;
 Conform *map;
 
 static void addprotofile(char *new, char *old, Dir *d, void *a);
@@ -21,7 +23,7 @@ void
 usage(void)
 {
 	if(mk9660)
-		fprint(2, "usage: disk/mk9660 [-D:] [-9cjr] [-b bootfile] [-p proto] [-s src] cdimage\n");
+		fprint(2, "usage: disk/mk9660 [-D:] [-9cjr] [-b bootfile] [-o offset blocksize] [-p proto] [-s src] cdimage\n");
 	else
 		fprint(2, "usage: disk/dump9660 [-D:] [-9cjr] [-m maxsize] [-n now] [-p proto] [-s src] cdimage\n");
 	exits("usage");
@@ -93,6 +95,13 @@ main(int argc, char **argv)
 		break;
 	case 'm':
 		maxsize = strtoul(EARGF(usage()), 0, 0);
+		break;
+	case 'o':
+		dataoffset = atoi(EARGF(usage()));
+		blocksize = atoi(EARGF(usage()));
+		if(blocksize%Blocksize)
+			sysfatal("bad block size %d -- must be multiple of 2048", blocksize);
+		blocksize /= Blocksize;
 		break;
 	case 'p':
 		proto = EARGF(usage());
@@ -185,6 +194,8 @@ main(int argc, char **argv)
  	 * Must be done before creation of the Joliet tree so that
  	 * blocks and lengths are correct.
 	 */
+	if(dataoffset > cd->nextblock*Blocksize)
+		cd->nextblock = (dataoffset+Blocksize-1)/Blocksize;
 	Cwseek(cd, cd->nextblock*Blocksize);
 	writefiles(dump, cd, &iroot);
 

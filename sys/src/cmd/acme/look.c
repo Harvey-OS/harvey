@@ -657,13 +657,16 @@ openfile(Text *t, Expand *e)
 		t->w->dirty = FALSE;
 		winsettag(t->w);
 		textsetselect(&t->w->tag, t->w->tag.file->nc, t->w->tag.file->nc);
-		if(ow != nil)
+		if(ow != nil){
 			for(i=ow->nincl; --i>=0; ){
 				n = runestrlen(ow->incl[i]);
 				rp = runemalloc(n);
 				runemove(rp, ow->incl[i], n);
 				winaddincl(w, rp, n);
 			}
+			w->autoindent = ow->autoindent;
+		}else
+			w->autoindent = globalautoindent;
 	}
 	if(e->a1 == e->a0)
 		eval = FALSE;

@@ -422,3 +422,4 @@ extern Conform *map;
 extern int chatty;
 extern int docolon;
 extern int mk9660;
+extern int blocksize;

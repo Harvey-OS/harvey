@@ -88,6 +88,8 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 
 	start = cd->nextblock;
 	assert(start != 0);
+	if(blocksize && start%blocksize)
+		start += blocksize-start%blocksize;
 
 	Cwseek(cd, start*Blocksize);
 	

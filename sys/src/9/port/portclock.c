@@ -97,7 +97,7 @@ timeradd(Timer *nt)
 	if (nt->tmode == Tabsolute){
 		when = todget(nil);
 		if (nt->tns <= when){
-			if (nt->tns + MS2NS(1) <= when)	/* Give it some slack, small deviations will happen */
+			if (nt->tns + MS2NS(10) <= when)	/* Give it some slack, small deviations will happen */
 				print("timeradd (%lld %lld) %lld too early 0x%lux\n",
 					when, nt->tns, when - nt->tns, getcallerpc(&nt));
 			nt->tns = when;

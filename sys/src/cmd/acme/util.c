@@ -85,12 +85,13 @@ errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
 		runemove(r, incl[i], n);
 		winaddincl(w, r, n);
 	}
+	w->autoindent = globalautoindent;
 	return w;
 }
 
 /* make new window, if necessary; return with it locked */
 Window*
-errorwin(Mntdir *md, int owner, Window *e)
+errorwin(Mntdir *md, int owner)
 {
 	Window *w;
 
@@ -99,51 +100,97 @@ errorwin(Mntdir *md, int owner, Window *e)
 			w = errorwin1(nil, 0, nil, 0);
 		else
 			w = errorwin1(md->dir, md->ndir, md->incl, md->nincl);
-		if(w != e)
-			winlock(w, owner);
+		winlock(w, owner);
 		if(w->col != nil)
 			break;
 		/* window was deleted too fast */
-		if(w != e)
-			winunlock(w);
+		winunlock(w);
 	}
 	return w;
 }
 
-static void
-printwarning(Window *ew, Mntdir *md, Rune *r)
+typedef struct Warning Warning;
+
+struct Warning{
+	Mntdir *md;
+	Buffer buf;
+	Warning *next;
+};
+
+static Warning *warnings;
+
+static
+void
+addwarningtext(Mntdir *md, Rune *r, int nr)
 {
-	int nr, q0, owner;
+	Warning *warn;
+	
+	for(warn = warnings; warn; warn=warn->next){
+		if(warn->md == md){
+			bufinsert(&warn->buf, warn->buf.nc, r, nr);
+			return;
+		}
+	}
+	warn = emalloc(sizeof(Warning));
+	warn->next = warnings;
+	warnings = warn;
+	bufinsert(&warn->buf, 0, r, nr);
+}
+
+/* called while row is locked */
+void
+flushwarnings(void)
+{
+	Warning *warn, *next;
 	Window *w;
 	Text *t;
-
-	if(r == nil)
-		error("runevsmprint failed");
-	nr = runestrlen(r);
+	int owner, nr, q0, n;
+	Rune *r;
 
 	if(row.ncol == 0){	/* really early error */
 		rowinit(&row, screen->clipr);
 		rowadd(&row, nil, -1);
 		rowadd(&row, nil, -1);
 		if(row.ncol == 0)
-			error("initializing columns in warning()");
+			error("initializing columns in flushwarnings()");
 	}
 
-	w = errorwin(md, 'E', ew);
-	t = &w->body;
-	owner = w->owner;
-	if(owner == 0)
-		w->owner = 'E';
-	wincommit(w, t);
-	q0 = textbsinsert(t, t->file->nc, r, nr, TRUE, &nr);
-	textshow(t, q0, q0+nr, 1);
-	winsettag(t->w);
-	textscrdraw(t);
-	w->owner = owner;
-	w->dirty = FALSE;
-	if(ew != w)
+	for(warn=warnings; warn; warn=next) {
+		w = errorwin(warn->md, 'E');
+		t = &w->body;
+		owner = w->owner;
+		if(owner == 0)
+			w->owner = 'E';
+		wincommit(w, t);
+		/*
+		 * Most commands don't generate much output. For instance,
+		 * Edit ,>cat goes through /dev/cons and is already in blocks
+		 * because of the i/o system, but a few can.  Edit ,p will
+		 * put the entire result into a single hunk.  So it's worth doing
+		 * this in blocks (and putting the text in a buffer in the first
+		 * place), to avoid a big memory footprint.
+		 */
+		r = fbufalloc();
+		q0 = t->file->nc;
+		for(n = 0; n < warn->buf.nc; n += nr){
+			nr = warn->buf.nc - n;
+			if(nr > RBUFSIZE)
+				nr = RBUFSIZE;
+			bufread(&warn->buf, n, r, nr);
+			textbsinsert(t, t->file->nc, r, nr, TRUE, &nr);
+		}
+		textshow(t, q0, t->file->nc, 1);
+		free(r);
+		winsettag(t->w);
+		textscrdraw(t);
+		w->owner = owner;
+		w->dirty = FALSE;
 		winunlock(w);
-	free(r);
+		bufclose(&warn->buf);
+		next = warn->next;
+		free(warn);
+	}
+	warnings = nil;
 }
 
 void
@@ -155,23 +202,9 @@ warning(Mntdir *md, char *s, ...)
 	va_start(arg, s);
 	r = runevsmprint(s, arg);
 	va_end(arg);
-	printwarning(nil, md, r);
-}
-
-/*
- * Warningew is like warning but avoids locking the error window
- * if it's already locked by checking that ew!=error window.
- */
-void
-warningew(Window *ew, Mntdir *md, char *s, ...)
-{
-	Rune *r;
-	va_list arg;
-
-	va_start(arg, s);
-	r = runevsmprint(s, arg);
-	va_end(arg);
-	printwarning(ew, md, r);
+	if(r == nil)
+		error("runevsmprint failed");
+	addwarningtext(md, r, runestrlen(r));
 }
 
 int
