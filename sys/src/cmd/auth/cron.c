@@ -106,6 +106,8 @@ main(int argc, char *argv[])
 	for(;;){
 		readalljobs();
 		now = time(0) / 60;
+		if ((now-last) > (60*60*24))		/* don't go mad */
+			last = now-(60*60*24);
 		for(; last <= now; last += 2){
 			tm = *localtime(last*60);
 			t.min = 1 << tm.min/2;

@@ -1,8 +1,6 @@
 #!/bin/rc
-sender=$1
-shift
-addr=$1
-shift
-/bin/upas/qer /mail/queue mail $sender $addr $* || exit 1
-/bin/upas/runq /mail/queue /mail/lib/remotemail</dev/null>/dev/null >[2=1] &
-exit 0
+# qmail sender machine user...
+rfork s
+upas/vf | upas/qer /mail/queue smtp $* || exit 'qer failed'
+upas/runq -n 10 /mail/queue /mail/lib/remotemail </dev/null >/dev/null >[2=1] &
+exit ''
