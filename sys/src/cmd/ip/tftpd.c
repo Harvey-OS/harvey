@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <bio.h>
 #include <ip.h>
 #include <ndb.h>
@@ -44,7 +45,8 @@ enum
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-dr] [-h homedir] [-x netmtpt]\n", argv0);
+	fprint(2, "usage: %s [-dr] [-h homedir] [-s svc] [-x netmtpt]\n",
+		argv0);
 	exits("usage");
 }
 
@@ -54,7 +56,7 @@ main(int argc, char **argv)
 	char buf[64];
 	char adir[64], ldir[64];
 	int cfd, lcfd, dfd;
-	char *p;
+	char *p, *svc = "69";
 
 	setnetmtpt(net, sizeof(net), nil);
 	ARGBEGIN{
@@ -66,6 +68,9 @@ main(int argc, char **argv)
 		break;
 	case 'r':
 		restricted = 1;
+		break;
+	case 's':
+		svc = EARGF(usage());
 		break;
 	case 'x':
 		p = ARGF();
@@ -97,24 +102,27 @@ main(int argc, char **argv)
 			exits(0);
 		}
 
-	syslog(dbg, flog, "started");
-
-	sprint(buf, "%s/udp!*!69", net);
+	snprint(buf, sizeof buf, "%s/udp!*!%s", net, svc);
 	cfd = announce(buf, adir);
+	if (cfd < 0)
+		sysfatal("announcing on %s: %r", buf);
+	syslog(dbg, flog, "tftpd started on %s dir %s", buf, adir);
 	setuser();
 	for(;;) {
 		lcfd = listen(adir, ldir);
 		if(lcfd < 0)
-			sysfatal("listening: %r");
+			sysfatal("listening on %s: %r", adir);
 
 		switch(fork()) {
 		case -1:
 			sysfatal("fork: %r");
 		case 0:
-			dfd = accept(cfd, ldir);
+			dfd = accept(lcfd, ldir);
 			if(dfd < 0)
  				exits(0);
 			remoteaddr(ldir, raddr, sizeof(raddr));
+			syslog(0, flog, "tftp connection from %s dir %s",
+				raddr, ldir);
 			doserve(dfd);
 			exits("done");
 			break;
@@ -148,7 +156,7 @@ doserve(int fd)
 	if(dlen == 0) {
 		nak(fd, 0, "bad tftpmode");
 		close(fd);
-		syslog(dbg, flog, "bad mode %s", raddr);
+		syslog(dbg, flog, "bad mode from %s", raddr);
 		return;
 	}
 
@@ -354,13 +362,14 @@ nak(int fd, int code, char *msg)
 void
 setuser(void)
 {
-	int f;
+	int fd;
 
-	f = open("/dev/user", OWRITE);
-	if(f < 0)
-		return;
-	write(f, "none", sizeof("none"));
-	close(f);
+	fd = open("#c/user", OWRITE);
+	if(fd < 0 || write(fd, "none", strlen("none")) < 0)
+		sysfatal("can't become none: %r");
+	close(fd);
+	if(newns("none", nil) < 0)
+		sysfatal("can't build namespace: %r");
 }
 
 char*

@@ -92,11 +92,11 @@ main(int argc, char **argv)
 
 		switch(rfork(RFFDG|RFPROC|RFNOWAIT|RFENVG|RFNAMEG|RFNOTEG)){
 		case -1:
-			reject(ctl, ndir, "host overloaded");
+			reject(nctl, ndir, "host overloaded");
 			close(nctl);
 			continue;
 		case 0:
-			fd = accept(ctl, ndir);
+			fd = accept(nctl, ndir);
 			if(fd < 0){
 				fprint(2, "accept %s: can't open  %s/data: %r", argv[0], ndir);
 				_exits(0);
