@@ -123,31 +123,15 @@ srvinit(int fd, char *file, char *addr)
 	messagesize = IOHDRSZ+s->f.msize;
 	chat("version spec %s size %d\n", s->f.version, s->f.msize);
 
-/*
-	chat("session...");
-	s->tag = NOTAG-1;
-	srand(starttime);
-	for(i = 0; i < CHALLEN; i++)
-		s->cchal[i] = nrand(256);
-	memmove(s->f.chal, s->cchal, CHALLEN);
-	if(xmesg(s, Tsession)){
-		clog("session failed\n");
+	s->tag = 0;
+
+	chat("authenticate...");
+	if(authhostowner(s) < 0){
+		clog("auth failed %r\n");
 		goto error;
 	}
-	memmove(s->schal, s->f.chal, CHALLEN);
-	memmove(s->authid, s->f.authid, NAMELEN);
-	memmove(s->authdom, s->f.authdom, DOMLEN);
 
-	for(i = 0; i < CHALLEN; i++)
-		if(s->schal[i])
-			break;
-	if(i >= CHALLEN || noauth){
-		chat("no schal...");
-		++s->noauth;
-	}
-*/
-	chat("attach...");
-	s->tag = 0;
+	chat("attach as none...");
 	f = newfid(s);
 	s->f.fid = f - s->fids;
 	s->f.afid = ~0x0UL;
@@ -157,7 +141,6 @@ srvinit(int fd, char *file, char *addr)
 		clog("attach failed\n");
 		goto error;
 	}
-	s->count = 1;
 
 	xp = xfile(&s->f.qid, s, 1);
 	s->root = xp;

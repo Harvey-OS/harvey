@@ -80,6 +80,8 @@ void	links(void);
 void	ltr(ulong);
 void	mach0init(void);
 void	mathinit(void);
+void	mb386(void);
+void	mb586(void);
 void	meminit(void);
 #define mmuflushtlb(pdb) putcr3(pdb)
 void	mmuinit(void);
@@ -145,8 +147,6 @@ void	upafree(ulong, int);
 #define	userureg(ur) (((ur)->cs & 0xFFFF) == UESEL)
 void	vectortable(void);
 void	wrmsr(int, vlong);
-void	wbflush(void);
-void	wbinvd(void);
 int	xchgw(ushort*, int);
 
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))

@@ -3396,7 +3396,7 @@ sys/include/geometry.h - 664 sys sys 1014929063 2632
 sys/include/html.h - 664 sys sys 1017679304 15157
 sys/include/httpd.h - 664 sys sys 1014929064 5726
 sys/include/ip.h - 664 sys sys 1050702405 2908
-sys/include/keyboard.h - 664 sys sys 1014929064 799
+sys/include/keyboard.h - 664 sys sys 1071535972 802
 sys/include/libc.h - 664 sys sys 1067718922 19305
 sys/include/libsec.h - 664 sys sys 1068129557 8966
 sys/include/mach.h - 664 sys sys 1068478049 8194
@@ -3847,7 +3847,7 @@ sys/lib/lp - 20000000775 sys sys 954037460 0
 sys/lib/lp/bin - 20000000775 sys sys 959999531 0
 sys/lib/lp/bin/UNLOCK - 775 sys sys 954037458 25
 sys/lib/lp/bin/kill_xerox-4512 - 775 sys sys 954037458 92
-sys/lib/lp/bin/lpscratch - 775 sys sys 1063856100 908
+sys/lib/lp/bin/lpscratch - 775 sys sys 1071539623 32
 sys/lib/lp/bin/lpsend.rc - 775 sys sys 954037458 361
 sys/lib/lp/bin/true - 775 sys sys 954037458 18
 sys/lib/lp/daemon - 20000000775 sys sys 1015012112 0
@@ -3919,6 +3919,7 @@ sys/lib/lp/stat/xerox - 775 sys sys 954037459 652
 sys/lib/lp/stat/xerox-4512 - 775 sys sys 954037459 655
 sys/lib/lp/stat/xerox-4517 - 775 sys sys 954037460 658
 sys/lib/lp/stat/xerox-N32 - 775 sys sys 954037460 714
+sys/lib/lp/tmp - 20000000777 sys sys 1071536829 0
 sys/lib/man - 20000000775 sys sys 960356011 0
 sys/lib/man/checkman.awk - 664 sys sys 1017679304 6277
 sys/lib/man/colophon - 664 sys sys 956337727 545
@@ -5293,7 +5294,7 @@ sys/src/9/pc/ether83815.c - 664 sys sys 1026847640 23050
 sys/src/9/pc/ether8390.c - 664 sys sys 1071245462 17557
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherec2t.c - 664 sys sys 1020284820 4038
-sys/src/9/pc/etherelnk3.c - 664 sys sys 1063857363 48522
+sys/src/9/pc/etherelnk3.c - 664 sys sys 1071515332 48521
 sys/src/9/pc/etherga620.c - 664 sys sys 1067723192 28788
 sys/src/9/pc/etherga620fw.h - 644 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1045063564 961
@@ -5305,7 +5306,7 @@ sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1071245461 15103
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1026847642 3722
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
-sys/src/9/pc/fns.h - 664 sys sys 1068393346 4299
+sys/src/9/pc/fns.h - 664 sys sys 1071514801 4296
 sys/src/9/pc/hcwAMC.h - 664 sys sys 1026860163 166004
 sys/src/9/pc/i8253.c - 664 sys sys 1071245560 6251
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
@@ -5313,7 +5314,7 @@ sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1067722633 7991
 sys/src/9/pc/kbd.c - 664 sys sys 1039753498 9134
-sys/src/9/pc/l.s - 664 sys sys 1068394843 23295
+sys/src/9/pc/l.s - 664 sys sys 1071514801 23314
 sys/src/9/pc/main.c - 664 sys sys 1067722634 14685
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
@@ -6727,16 +6728,17 @@ sys/src/cmd/9nfs/9auth.c - 664 sys sys 1017337812 1454
 sys/src/cmd/9nfs/9p.c - 664 sys sys 1017337813 3291
 sys/src/cmd/9nfs/all.h - 664 sys sys 1017337813 322
 sys/src/cmd/9nfs/auth.c - 664 sys sys 1017337813 424
+sys/src/cmd/9nfs/authhostowner.c - 664 sys sys 1071498519 4190
 sys/src/cmd/9nfs/chat.c - 664 sys sys 1017337813 2096
-sys/src/cmd/9nfs/dat.h - 664 sys sys 1017337813 4445
-sys/src/cmd/9nfs/fns.h - 664 sys sys 1017337813 1879
+sys/src/cmd/9nfs/dat.h - 664 sys sys 1071498518 4406
+sys/src/cmd/9nfs/fns.h - 664 sys sys 1071498519 1908
 sys/src/cmd/9nfs/listalloc.c - 664 sys sys 1015090372 297
-sys/src/cmd/9nfs/mkfile - 664 sys sys 1050715042 621
+sys/src/cmd/9nfs/mkfile - 664 sys sys 1071498518 640
 sys/src/cmd/9nfs/mport.c - 664 sys sys 1050715069 3779
 sys/src/cmd/9nfs/nametest.c - 664 sys sys 1015090372 1723
 sys/src/cmd/9nfs/nfs.c - 664 sys sys 1017337814 9508
 sys/src/cmd/9nfs/nfs.h - 664 sys sys 1015090372 642
-sys/src/cmd/9nfs/nfsmount.c - 664 sys sys 1034737122 6538
+sys/src/cmd/9nfs/nfsmount.c - 664 sys sys 1071498520 6142
 sys/src/cmd/9nfs/nfsserver.c - 664 sys sys 1040952455 15576
 sys/src/cmd/9nfs/pcnfsd.c - 664 sys sys 1017337815 3964
 sys/src/cmd/9nfs/portmapper.c - 664 sys sys 1040952456 3179
@@ -9449,7 +9451,7 @@ sys/src/cmd/ip/imap4d/nodes.c - 664 sys sys 1015013077 3173
 sys/src/cmd/ip/imap4d/search.c - 664 sys sys 1015013077 4520
 sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
-sys/src/cmd/ip/ipconfig.c - 664 sys sys 1060189236 29311
+sys/src/cmd/ip/ipconfig.c - 664 sys sys 1071498576 34555
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1063897563 1250
 sys/src/cmd/ip/ping.c - 664 sys sys 1061496964 5552
