@@ -94,6 +94,7 @@ nvidiaenable(VGAscr* scr)
 	p = nvidiapci();
 	if(p == nil)
 		return;
+	scr->id = p->did;
 
 	scr->io = upamalloc(p->mem[0].bar & ~0x0F, p->mem[0].size, 0);
 	if(scr->io == 0)
@@ -123,7 +124,7 @@ static void
 nvidiacurload(VGAscr* scr, Cursor* curs)
 {
 	ulong*	p;
-	int		i,j;
+	int	i,j;
 	ushort	c,s;
 	ulong	tmp;
 
@@ -135,8 +136,17 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 	p = KADDR(scr->io + hwCurImage);
 
 	for(i=0; i<16; i++) {
-		c = (curs->clr[2 * i] << 8) | curs->clr[2 * i+1];
-		s = (curs->set[2 * i] << 8) | curs->set[2 * i+1];
+		switch(scr->id){
+		default:
+			c = (curs->clr[2 * i] << 8) | curs->clr[2 * i+1];
+			s = (curs->set[2 * i] << 8) | curs->set[2 * i+1];
+			break;
+		case 0x171:		/* for Geforece4 MX bug, K.Okamoto */
+		case 0x181:
+			c = (curs->clr[2 * i+1] << 8) | curs->clr[2 * i];
+			s = (curs->set[2 * i+1] << 8) | curs->set[2 * i];
+			break;
+		}
 		tmp = 0;
 		for (j=0; j<16; j++){
 			if(s&0x8000)
