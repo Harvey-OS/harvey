@@ -11,6 +11,7 @@ lnfs \- long name file system
 .I srvname
 ]
 .I mountpoint
+.br
 .B unlnfs
 .I mountpoint
 .SH DESCRIPTION
