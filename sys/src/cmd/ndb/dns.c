@@ -731,7 +731,6 @@ rwrite(Job *job, Mfile *mf, Request *req)
 		rrfreelist(neg);
 	}
 	if(rp == 0){
-		
 		switch(status){
 		case Rname:
 			err = "name does not exist";
@@ -744,18 +743,22 @@ rwrite(Job *job, Mfile *mf, Request *req)
 			break;
 		}
 	} else {
-		/* format data to be read later */
-		n = 0;
-		mf->nrr = 0;
-		for(tp = rp; mf->nrr < Maxrrr-1 && n < Maxreply && tp &&
-				tsame(mf->type, tp->type); tp = tp->next){
-			mf->rr[mf->nrr++] = n;
-			if(wantsav)
-				n += snprint(mf->reply+n, Maxreply-n, "%Q", tp);
-			else
-				n += snprint(mf->reply+n, Maxreply-n, "%R", tp);
+		lock(&joblock);
+		if(!job->flushed){
+			/* format data to be read later */
+			n = 0;
+			mf->nrr = 0;
+			for(tp = rp; mf->nrr < Maxrrr-1 && n < Maxreply && tp &&
+					tsame(mf->type, tp->type); tp = tp->next){
+				mf->rr[mf->nrr++] = n;
+				if(wantsav)
+					n += snprint(mf->reply+n, Maxreply-n, "%Q", tp);
+				else
+					n += snprint(mf->reply+n, Maxreply-n, "%R", tp);
+			}
+			mf->rr[mf->nrr] = n;
 		}
-		mf->rr[mf->nrr] = n;
+		unlock(&joblock);
 		rrfreelist(rp);
 	}
 

@@ -14705,3 +14705,9 @@
 1079618508 1 c sys/src/9/pc/kbd.c - 664 sys sys 1079617269 11655
 1079634710 0 c sys/src/9/port/edf.c - 664 sys sys 1079634533 12358
 1079634710 1 c sys/src/9/port/edf.h - 664 sys sys 1079634533 1153
+1079706723 0 c sys/man/8/prep - 664 sys sys 1079705872 13820
+1079748010 0 c sys/src/cmd/ndb/dn.c - 664 sys sys 1079747687 26999
+1079748010 1 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1079747687 15363
+1079748010 2 c sys/src/cmd/ndb/dns.c - 664 sys sys 1079747686 15333
+1079748010 3 c sys/src/cmd/ndb/dns.h - 664 sys sys 1079747686 8980
+1079748010 4 c sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1079747685 8488

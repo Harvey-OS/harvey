@@ -59,6 +59,9 @@ main(int argc, char *argv[])
 		dbfile = "/lib/ndb/external";
 		strcpy(mntpt, "/net.alt");
 		break;
+	case 'f':
+		dbfile = ARGF();
+		break;
 	}ARGEND
 
 	now = time(0);

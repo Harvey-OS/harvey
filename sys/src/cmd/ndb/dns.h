@@ -81,7 +81,7 @@ enum
 	/* reserved time (can't be timed out earlier) */
 	Reserved=	5*Min,
 
-	/* packet header sizes */
+	/* packet sizes */
 	Maxudp=		512,	/* maximum bytes per udp message */
 	Maxudpin=	2048,	/* maximum bytes per udp message */
 
@@ -124,8 +124,8 @@ struct Request
  */
 struct DN
 {
-	int	magic;
 	DN	*next;		/* hash collision list */
+	ulong	magic;
 	char	*name;		/* owner */
 	RR	*rr;		/* resource records off this name */
 	ulong	referenced;	/* time last referenced */
@@ -188,8 +188,8 @@ struct Txt
  */
 struct RR
 {
-	int	magic;
 	RR	*next;
+	ulong	magic;
 	DN	*owner;		/* domain that owns this resource record */
 	uchar	negative;	/* this is a cached negative response */
 	ulong	pc;
