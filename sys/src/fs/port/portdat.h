@@ -570,8 +570,8 @@ struct	Mach
 	uchar	stack[1];
 };
 
-#define	MAXSTACK 4000
-#define	NHAS	100
+#define	MAXSTACK 16000
+#define	NHAS	300
 struct	User
 {
 	Label	sched;
