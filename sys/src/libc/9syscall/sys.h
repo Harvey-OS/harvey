@@ -46,3 +46,4 @@
 #define	AWAIT	47
 #define PREAD	50
 #define PWRITE	51
+#define PASSFD	52

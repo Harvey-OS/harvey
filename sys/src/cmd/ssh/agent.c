@@ -173,8 +173,6 @@ startagent(Conn *c)
 	sendmsg(m);
 
 	m = recvmsg(c, 0);
-	if(m == nil)
-		error(Ehangup);
 	switch(m->type){
 	case SSH_SMSG_SUCCESS:
 		debug(DBG_AUTH, "agent allocated\n");

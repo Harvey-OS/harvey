@@ -245,7 +245,7 @@ fromnet(Conn *c)
 	Msg *m;
 
 	for(;;){
-		m = recvmsg(c, 0);
+		m = recvmsg(c, -1);
 		if(m == nil)
 			break;
 		switch(m->type){

@@ -294,7 +294,7 @@ sshreadproc(void *a)
 
 	c = a;
 	for(;;){
-		m = recvmsg(c, 0);
+		m = recvmsg(c, -1);
 		if(m == nil)
 			sysfatal("eof on ssh connection");
 		sendp(sshmsgchan, m);

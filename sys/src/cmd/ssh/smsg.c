@@ -172,8 +172,6 @@ authsrvuser(Conn *c)
 	while(ai == nil){
 		sendmsg(allocmsg(c, SSH_SMSG_FAILURE, 0));
 		m = recvmsg(c, 0);
-		if(m == nil)
-			badmsg(m, 0);
 		for(i=0; i<c->nokauthsrv; i++)
 			if(c->okauthsrv[i]->firstmsg == m->type){
 				ai = (*c->okauthsrv[i]->fn)(c, m);

@@ -14,8 +14,6 @@ authtisfn(Conn *c)
 	sendmsg(allocmsg(c, SSH_CMSG_AUTH_TIS, 0));
 
 	m = recvmsg(c, 0);
-	if(m == nil)
-		badmsg(m, 0);
 	switch(m->type){
 	default:
 		badmsg(m, SSH_SMSG_AUTH_TIS_CHALLENGE);
@@ -47,8 +45,6 @@ authtisfn(Conn *c)
 	sendmsg(m);
 	
 	m = recvmsg(c, 0);
-	if(m == nil)
-		badmsg(m, 0);
 	switch(m->type){
 	default:
 		badmsg(m, 0);

@@ -1325,3 +1325,9 @@ sys_fwstat(ulong *)
 	error("old fwstat system call - recompile");
 	return -1;
 }
+long
+syspassfd(ulong *)
+{
+	error("passfd unimplemented");
+	return -1;
+}

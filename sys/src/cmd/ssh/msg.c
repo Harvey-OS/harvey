@@ -177,8 +177,17 @@ recvmsg(Conn *c, int type)
 			debug(DBG_PROTO, "remote DEBUG: %s\n", getstring(m));
 		free(m);
 	}
-	if(type && (m==nil || m->type!=type))
-		badmsg(m, type);
+	if(type == 0){
+		/* no checking */
+	}else if(type == -1){
+		/* must not be nil */
+		if(m == nil)
+			error(Ehangup);
+	}else{
+		/* must be given type */
+		if(m==nil || m->type!=type)
+			badmsg(m, type);
+	}
 	setmalloctag(m, getcallerpc(&c));
 	return m;
 }
