@@ -1,0 +1,69 @@
+#!/bin/rc
+
+if(~ $#* 0 1){
+	echo 'usage: patch/create name file... [< description]' >[1=2]
+	exit usage
+}
+
+if(! echo $1 | grep -s '^[a-z_0-9.\-]+$'){
+	echo bad name
+	exit usage
+}
+
+if(! test -d /n/sources/patch){
+	rfork n
+	9fs sources
+}
+
+d=/n/sources/patch/$1
+if(! mkdir $d){
+	echo mkdir $d/$1 failed >[1=2]
+	exit mkdir
+}
+
+chmod o-w $d
+>$d/readme
+>$d/files
+>$d/notes
+shift
+for(i in $*){
+	i=`{cleanname -d `{pwd} $i}
+	if(! test -f $i){
+		echo error: cannot find $i >[1=2]
+		rm -rf $d
+		exit oops
+	}
+	short=`{basename $i}
+	uniq=$short
+	n=0
+	while(test -f $d/$uniq){
+		uniq=$short.$n
+		n=`{echo 1+$n | hoc}
+	}
+	cp $i $d/$uniq
+	if(test -f /n/sources/plan9/$i){
+		if(cmp -s /n/sources/plan9/$i $i)
+			echo warning: new file $i does not differ from sources >[1=2]
+		cp /n/sources/plan9/$i $d/$uniq.orig
+	}
+	if not
+		echo warning: new file $i not on sources >[1=2]
+	echo $i $uniq >>$d/files
+}
+
+if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons){
+	>/dev/consctl {
+		echo holdon
+		cat >$d/readme
+	}
+}
+if not
+	cat >$d/readme
+
+if(! test -s $d/readme){
+	echo 'no description given; aborting' >[1=2]
+	rm -rf $d
+	exit oops
+}
+
+echo $d

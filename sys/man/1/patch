@@ -1,0 +1,113 @@
+.TH PATCH 1
+.SH NAME
+patch \- simple patch creation and tracking system
+.SH SYNOPSIS
+.B patch/create
+.I name
+.I files ...
+[
+.B < 
+.I description
+]
+.PP
+.B patch/list
+[
+.I name ...
+]
+.PP
+.B patch/diff
+.I name
+.PP
+.B patch/apply
+.I name
+.PP
+.B patch/undo
+.I name
+.PP
+.B patch/note
+.I name 
+[
+.B <
+.I note
+]
+.SH DESCRIPTION
+These scripts are a simple patch submission and tracking system
+used to propose additions or changes to Plan 9.
+Each patch has a 
+.I name
+and is stored in
+.BI /n/sources/patch/ name \fR.
+.PP
+.I Patch/create
+creates a new patch consisting of the changes to
+the listed files, reading
+a description of the patch from standard input.
+.PP
+.I Patch/list
+displays information about the named patches,
+or all currently pending patches if none are specified.
+.PP
+.I Patch/diff
+shows a patch as diffs between the original
+source files and the patched source files.
+.PP
+.I Patch/apply
+applies the patch to the current source tree.
+It is intended to be run by the Plan 9 developers 
+with emelie as their root file system.
+If the source has changed since the patch was
+created,
+.I apply
+will report the conflict and not change any files.
+Before changing any files,
+.I patch/apply
+makes backup copies of the current source tree's
+files.  The backups are stored in the patch directory.
+.PP
+.I Patch/undo
+will copy the backups saved by
+.I patch/apply
+back into the source tree.
+It will not restore a backup if the file
+being replaced is not byte-identical to the one
+created by 
+.I patch/apply.
+.SH EXAMPLES
+.PP
+Propose a change to
+.IR pwd ,
+which you have modified locally:
+.EX
+% patch/create pwd-errors /sys/src/cmd/pwd.c
+Fix pwd to print errors to fd 2 rather than 1.
+^D
+% 
+.EE
+.PP
+Then the developers at Bell Labs run
+.EX
+patch/diff pwd-errors
+.EE
+to inspect the change (possibly viewing
+.B /n/sources/patch/pwd-errors/pwd.c
+to see the larger context).
+To make the change, they run
+.EX
+patch/apply pwd-errors
+.EE
+Otherwise they run
+.EX
+% patch/note pwd-errors
+Pwd should definitely print errors to fd 1 because ...
+^D
+% 
+.EE
+to add a note to the 
+.B /n/sources/pwd-errors/notes
+file.
+.SH FILES
+.B /n/sources/patch
+.SH SOURCE
+.B /rc/bin/patch
+.SH SEE ALSO
+.IR diff (1)

@@ -1,0 +1,23 @@
+#!/bin/rc
+
+if(! test -d /n/sources/patch){
+	rfork n
+	9fs sources
+}
+
+cd /n/sources/patch
+if(~ $#* 0)
+	*=(`{ls -t})
+
+for(i in $*){
+	ls -ld $i
+	if(patch/okay $i){
+		cat $i/files | awk '{print "	" $1}'
+		cat $i/readme | sed 's/^/	/;5q'
+		if(test -f $i/notes)
+			cat $i/notes
+	}
+	if not
+		echo '	'bad patch: $status >[2=1]
+}
+
