@@ -225,9 +225,9 @@
 386/bin/fortune - 775 sys sys 1085077045 65146
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
-386/bin/fossil/flchk - 775 sys sys 1091936092 235427
-386/bin/fossil/flfmt - 775 sys sys 1087009455 243794
-386/bin/fossil/fossil - 775 sys sys 1091936093 358242
+386/bin/fossil/flchk - 775 sys sys 1101269451 235428
+386/bin/fossil/flfmt - 775 sys sys 1101269451 243577
+386/bin/fossil/fossil - 775 sys sys 1101269452 358243
 386/bin/fossil/last - 775 sys sys 1087009456 61307
 386/bin/freq - 775 sys sys 1085077056 59766
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -9735,7 +9735,7 @@ sys/src/cmd/mkdir.c - 664 sys sys 1082593106 1026
 sys/src/cmd/mkfile - 664 sys sys 1045534751 2205
 sys/src/cmd/mklib - 664 sys sys 1101213349 618
 sys/src/cmd/mkmany - 664 sys sys 1022112160 1196
-sys/src/cmd/mkone - 664 sys sys 1022112160 792
+sys/src/cmd/mkone - 664 sys sys 1101311048 835
 sys/src/cmd/mkstate.c - 664 sys sys 1014926695 2995
 sys/src/cmd/mksyslib - 664 sys sys 1022112160 660
 sys/src/cmd/mntgen.c - 664 sys sys 1048644521 3365
@@ -12394,6 +12394,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/fossil/flchk - 775 sys sys 1101269451 235428
-386/bin/fossil/flfmt - 775 sys sys 1101269451 243577
-386/bin/fossil/fossil - 775 sys sys 1101269452 358243
