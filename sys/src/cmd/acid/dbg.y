@@ -50,7 +50,10 @@ prog		:
 
 bigstmnt	: stmnt
 		{
+			/* make stmnt a root so it isn't collected! */
+			mkvar("_thiscmd")->proc = $1;
 			execute($1);
+			mkvar("_thiscmd")->proc = nil;
 			gc();
 			if(interactive)
 				Bprint(bout, "acid: ");

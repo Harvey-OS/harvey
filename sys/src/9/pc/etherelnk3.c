@@ -1748,6 +1748,35 @@ eepromdata(Ctlr* ctlr, int offset)
 	return EEPROMDATA(port);
 }
 
+static void
+resetctlr(Ctlr *ctlr)
+{
+	int x, port = ctlr->port;
+
+	txrxreset(port);
+	x = ins(port+ResetOp905B);
+	XCVRDEBUG("905[BC] reset ops 0x%uX\n", x);
+	x &= ~0x4010;
+	if(ctlr->did == 0x5157){
+		x |= 0x0010;			/* Invert LED */
+		outs(port+ResetOp905B, x);
+	}
+	if(ctlr->did == 0x6056){
+		x |= 0x4000;
+		outs(port+ResetOp905B, x);
+
+		COMMAND(port, SelectRegisterWindow, Wsetup);
+		outs(port, 0x0800);
+	}
+}
+
+static void
+shutdown(Ether *ether)
+{
+print("etherelnk3 shutting down\n");
+	resetctlr(ether->ctlr);
+}
+
 int
 etherelnk3reset(Ether* ether)
 {
@@ -1899,21 +1928,7 @@ etherelnk3reset(Ether* ether)
 	case 0x9200:
 	case 0x9201:
 		ctlr->xcvr = xcvrMii;
-		txrxreset(port);
-		x = ins(port+ResetOp905B);
-		XCVRDEBUG("905[BC] reset ops 0x%uX\n", x);
-		x &= ~0x4010;
-		if(ctlr->did == 0x5157){
-			x |= 0x0010;			/* Invert LED */
-			outs(port+ResetOp905B, x);
-		}
-		if(ctlr->did == 0x6056){
-			x |= 0x4000;
-			outs(port+ResetOp905B, x);
-
-			COMMAND(port, SelectRegisterWindow, Wsetup);
-			outs(port, 0x0800);
-		}
+		resetctlr(ctlr);
 		break;
 	}
 	XCVRDEBUG("xcvr selected: %uX, did 0x%uX\n", ctlr->xcvr, ctlr->did);
@@ -2102,6 +2117,7 @@ etherelnk3reset(Ether* ether)
 
 	ether->promiscuous = promiscuous;
 	ether->multicast = multicast;
+	ether->shutdown = shutdown;
 	ether->arg = ether;
 
 	return 0;

@@ -284,6 +284,12 @@ promiscuous(void* arg, int on)
 	iunlock(&ctlr->lock);
 }
 
+/* multicast already on, don't need to do anything */
+static void
+multicast(void*, uchar*, int)
+{
+}
+
 static void
 attach(Ether* ether)
 {
@@ -603,7 +609,7 @@ ctlrinit(Ether* ether)
 	ctlr->mask = Nis|Ais|Fbe|Rwt|Rps|Ru|Ri|Unf|Tjt|Tps|Ti;
 	csr32w(ctlr, 5, ctlr->mask);
 	csr32w(ctlr, 7, ctlr->mask);
-	ctlr->csr6 |= St;
+	ctlr->csr6 |= St|Pm;
 	csr32w(ctlr, 6, ctlr->csr6);
 
 	for(i = 0; i < Eaddrlen/2; i++){
@@ -797,6 +803,15 @@ reread:
 	}
 
 	return data & 0xFFFF;
+}
+
+static void
+shutdown(Ether* ether)
+{
+	Ctlr *ctlr = ether->ctlr;
+
+print("ether2114x shutting down\n");
+	csr32w(ctlr, 0, Swr);
 }
 
 static void
@@ -1798,6 +1813,8 @@ reset(Ether* ether)
 	ether->ifstat = ifstat;
 
 	ether->arg = ether;
+	ether->shutdown = shutdown;
+	ether->multicast = multicast;
 	ether->promiscuous = promiscuous;
 
 	return 0;

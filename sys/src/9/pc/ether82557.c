@@ -930,6 +930,7 @@ i82557pci(void)
 			/*FALLTHROUGH*/
 		case 0x1209:		/* Intel 82559ER */
 		case 0x1229:		/* Intel 8255[789] */
+		case 0x1030:		/* Intel 82559 InBusiness 10/100  */
 			break;
 		}
 
