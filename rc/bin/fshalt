@@ -11,6 +11,8 @@ echo -n syncing...
 for(i in $f){
 	echo -n $i...
 	{
+		echo
+		dial/drain
 		echo fsys all sync
 		if(! dial/expect -t 120 ': ')
 			echo -n 'not synced...' > /dev/cons

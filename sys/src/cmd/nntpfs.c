@@ -541,7 +541,8 @@ nntprefreshall(Netbuf *n)
 	while(p = Nrdline(n)){
 		if(strcmp(p, ".")==0)
 			break;
-		nf = tokenize(p, f, nelem(f));
+
+		nf = getfields(p, f, nelem(f), 1, "\t\r\n ");
 		if(nf != 4){
 			int i;
 			for(i=0; i<nf; i++)

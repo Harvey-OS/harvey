@@ -92,10 +92,6 @@ at expect
 drain expect
 expect expect
 pass expect
-face face
-faces face
-seemail face
-vwhois face
 faces faces
 seemail faces
 vwhois faces
@@ -111,6 +107,9 @@ fmt fmt
 htmlfmt fmt
 fortune fortune
 freq freq
+games games
+mahjongg games
+sokoban games
 grap grap
 graph graph
 grep grep
@@ -180,9 +179,6 @@ tpic pic
 pipefile pipefile
 plot plot
 plumb plumb
-pq pq
-pqgen pq
-pqsrv pq
 pr pr
 kprof prof
 prof prof
@@ -256,6 +252,7 @@ tarfs tapefs
 tpfs tapefs
 v10fs tapefs
 v6fs tapefs
+zipfs tapefs
 tar tar
 tbl tbl
 tcs tcs

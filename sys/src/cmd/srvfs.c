@@ -4,7 +4,7 @@
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-dS] [-e exportfs] [-p perm] srvname path\n", argv0);
+	fprint(2, "usage: %s [-dR] [-p perm] [-P patternfile] [-e exportfs] srvname path\n", argv0);
 	exits("usage");
 }
 
