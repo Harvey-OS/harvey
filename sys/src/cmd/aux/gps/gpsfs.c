@@ -86,6 +86,10 @@ char	raw[Rawbuf];
 vlong	rawin;
 vlong	rawout;
 
+ulong	badlat, goodlat, suspectlat;
+ulong	badlon, goodlon, suspectlon;
+ulong	suspecttime, goodtime;
+
 ulong histo[32];
 
 char *serial = "/dev/eia0";
@@ -105,7 +109,7 @@ Gpsmsg gpsmsg[] = {
 int ttyfd, ctlfd, debug;
 int setrtc;
 int baud = Baud;
-char *baudstr = "b%dd1r1pns1l8i9w5";
+char *baudstr = "b%dd1r1pns1l8i9";
 ulong seconds;
 ulong starttime;
 ulong checksumerrors;
@@ -121,7 +125,7 @@ void	setline(void);
 int	getonechar(vlong*);
 void	getline(char*, int, vlong*);
 void	putline(char*);
-void	gettime(Fix*);
+int	gettime(Fix*);
 int	getzulu(char *, Fix*);
 int	getalt(char*, char*, Fix*);
 int	getsea(char*, char*, Fix*);
@@ -254,8 +258,8 @@ gpstrack(void *)
 
 	setline();
 	fix.messages = 0;
-	fix.lon = 0;
-	fix.lat = 0;
+	fix.lon = 181.0;
+	fix.lat = 91.0;
 	fix.zulu = 0;
 	fix.date = 0;
 	fix.valid = 0;
@@ -277,7 +281,6 @@ gpstrack(void *)
 		if(n == 0)
 			continue;
 		tp = type(t[0]);
-		fix.messages |= 1 << tp;
 		if(tp >= 0 && tp < nelem(gpsmsg) && gpsmsg[tp].tokens && gpsmsg[tp].tokens != n){
 			gpsmsg[tp].errors++;
 			if(debug)
@@ -300,19 +303,22 @@ gpstrack(void *)
 			fprint(2, "(%d tokens)\n", n);
 			break;
 		case GPGGA:
-			fix.localtime = localtime;
-			fix.quality = strtol(t[6], nil, 10);
+			if(getlat(t[2], t[3], &fix))
+				break;
+			if(getlon(t[4], t[5], &fix))
+				break;
 			getzulu(t[1], &fix);
-			getlat(t[2], t[3], &fix);
-			getlon(t[4], t[5], &fix);
+			if(fix.date && gettime(&fix))
+				break;
 			if(isdigit(*t[7]))
 				fix.satellites = strtol(t[7], nil, 10);
 			if(isdigit(*t[8]))
 				fix.hdop = strtod(t[8], nil);
 			getalt(t[9], t[10], &fix);
 			getsea(t[11], t[12], &fix);
-			if(fix.date)
-				gettime(&fix);
+			fix.localtime = localtime;
+			fix.quality = strtol(t[6], nil, 10);
+			fix.messages |= 1 << tp;
 			break;
 		case GPRMC:
 			fix.valid = *t[2];
@@ -321,23 +327,30 @@ gpstrack(void *)
 			getdate(t[9], &fix);
 			getmagvar(t[10], t[11], &fix);
 			if((fix.messages & (1 << GPGGA)) == 0){
+				if(getlat(t[3], t[4], &fix))
+					break;
+				if(getlon(t[5], t[6], &fix))
+					break;
 				fix.localtime = localtime;
 				getzulu(t[1], &fix);
-				getlat(t[3], t[4], &fix);
-				getlon(t[5], t[6], &fix);
 				if(fix.date)
 					gettime(&fix);
 			}
+			fix.messages |= 1 << tp;
 			break;
 		case GPGSA:
 			if(*t[15]) fix.pdop = strtod(t[15], nil);
 			if(*t[16]) fix.hdop = strtod(t[16], nil);
 			if(*t[17]) fix.vdop = strtod(t[17], nil);
+			fix.messages |= 1 << tp;
 			break;
 		case GPGLL:
-			getlat(t[1], t[2], &fix);
-			getlon(t[3], t[4], &fix);
+			if(getlat(t[1], t[2], &fix))
+				break;
+			if(getlon(t[3], t[4], &fix))
+				break;
 			getzulu(t[5], &fix);
+			fix.messages |= 1 << tp;
 			break;
 		case GPGSV:
 			if(n < 8){
@@ -358,6 +371,8 @@ gpstrack(void *)
 				k += 4;
 				i++;
 			} 
+			fix.messages |= 1 << tp;
+			break;
 		case GPVTG:
 			if(n < 8){
 				gpsmsg[tp].errors++;
@@ -371,6 +386,7 @@ gpstrack(void *)
 			getgs(t[6], &fix);
 			if(n > 8)
 				getkmh(t[8], &fix);
+			fix.messages |= 1 << tp;
 			break;
 		default:
 			if(debug && fix.date)
@@ -480,7 +496,13 @@ readstats(Req *r)
 		p = seprint(p, buf + sizeof buf, "[%d]: %ld ",
 			i, histo[i]);
 	}
-	seprint(p, buf + sizeof buf, "\n");
+	p = seprint(p, buf + sizeof buf, "\n");
+	p = seprint(p, buf + sizeof buf, "bad/good/suspect lat: %lud/%lud/%lud\n",
+		badlat, goodlat, suspectlat);
+	p = seprint(p, buf + sizeof buf, "bad/good/suspect lon: %lud/%lud/%lud\n",
+		badlon, goodlon, suspectlon);
+	p = seprint(p, buf + sizeof buf, "good/suspect time: %lud/%lud\n", goodtime, suspecttime);
+	USED(p);
 	readstr(r, buf);
 	return nil;
 }
@@ -561,12 +583,14 @@ rtcset(long t)
 	seek(fd, 0, 0);
 }
 
-void
+int
 gettime(Fix *f){
 	/* Convert zulu time and date to Plan9 time(2) */
 	Tm tm;
 	int zulu;
 	double d;
+	long t;
+	static int count;
 
 	zulu = f->zulu;
 	memset(&tm, 0, sizeof tm );
@@ -577,15 +601,24 @@ gettime(Fix *f){
 	tm.mon = ((f->date/100) % 100) - 1;
 	tm.mday = f->date / 10000;
 	strcpy(tm.zone, "GMT");
-	f->time = tm2sec(&tm);
-	if(starttime == 0) starttime = f->time;
-	f->gpstime = 1000000000LL * f->time + 1000000 * (int)modf(f->zulu, &d);
+	t = tm2sec(&tm);
+	if(f->time && count < 3 && (t - f->time > 10 || t - f->time <= 0)){
+		count++;
+		suspecttime++;
+		return -1;
+	}
+	goodtime++;
+	f->time = t;
+	count = 0;
+	if(starttime == 0) starttime = t;
+	f->gpstime = 1000000000LL * t + 1000000 * (int)modf(f->zulu, &d);
 	if(setrtc){
-		if(setrtc == 1 || (f->time % 300) == 0){
-			rtcset(f->time);
+		if(setrtc == 1 || (t % 300) == 0){
+			rtcset(t);
 			setrtc++;
 		}
 	}
+	return 0;
 }
 
 int
@@ -687,43 +720,71 @@ getsea(char *s1, char *s2, Fix *f){
 int
 getlat(char *s1, char *s2, Fix *f){
 	double lat;
+	static count;
 
-	if(*s1 == 0) return 0;
-	if(isdigit(*s1) && strlen(s1) > 5){
-		lat = strtod(s1+2, nil);
-		lat /= 60.0;
-		lat += 10*(s1[0] - '0') + s1[1] - '0';
-		if(*s2 == 'S'){
-			f->lat = -lat;
-			return 1;
-		}
-		if(*s2 == 'N'){
-			f->lat = lat;
-			return 1;
-		}
-		return 0;
+	if(*s1 == 0 || !isdigit(*s1) || strlen(s1) <= 5){
+		badlat++;
+		return -1;
 	}
+	lat = strtod(s1+2, nil);
+	lat /= 60.0;
+	lat += 10*(s1[0] - '0') + s1[1] - '0';
+	if(lat < 0 || lat > 90.0){
+		badlat++;
+		return -1;
+	}
+	switch(*s2){
+	default:
+		badlat++;
+		return -1;
+	case 'S':
+		lat = -lat;
+	case 'N':
+		break;
+	}
+	if(f->lat <= 90.0 && count < 3 && fabs(f->lat - lat) > 10.0){
+		count++;
+		suspectlat++;
+		return -1;
+	}
+	f->lat = lat;
+	count = 0;
+	goodlat++;
 	return 0;
 }
 
 int
 getlon(char *s1, char *s2, Fix *f){
 	double lon;
+	static count;
 
-	if(*s1 == 0) return 0;
-	if(isdigit(*s1) && strlen(s1) > 5){
-		lon = 100*(s1[0] - '0') + 10*(s1[1] - '0') + s1[2] - '0' +
-			strtod(s1+3, nil)/60.0;
-		if(*s2 == 'W'){
-			f->lon = -lon;
-			return 1;
-		}
-		if(*s2 == 'E'){
-			f->lon = lon;
-			return 1;
-		}
-		return 0;
+	if(*s1 == 0 || ! isdigit(*s1) || strlen(s1) <= 5){
+		badlon++;
+		return -1;
 	}
+	lon = 100*(s1[0] - '0') + 10*(s1[1] - '0') + s1[2] - '0' +
+		strtod(s1+3, nil)/60.0;
+	if(lon < 0 || lon > 180.0){
+		badlon++;
+		return -1;
+	}
+	switch(*s2){
+	default:
+		badlon++;
+		return -1;
+	case 'W':
+		lon = -lon;
+	case 'E':
+		break;
+	}
+	if(f->lon <= 180.0 && count < 3 && fabs(f->lon - lon) > 10.0){
+		count++;
+		suspectlon++;
+		return -1;
+	}
+	f->lon = lon;
+	goodlon++;
+	count = 0;
 	return 0;
 }
 
@@ -811,6 +872,7 @@ getline(char *s, int size, vlong *t){
 	char *p;
 	int n, cs;
 
+tryagain:
 	for(;;){
 		p = s;
 		n = 0;
@@ -846,6 +908,7 @@ getline(char *s, int size, vlong *t){
 					fprint(2, "Checksum error %s, 0x%x, 0x%x\n",
 						s, n, cs);
 				checksumerrors++;
+				goto tryagain;
 			}
 		}
 	}
