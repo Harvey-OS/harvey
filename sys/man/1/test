@@ -102,6 +102,28 @@ The (nonstandard) construct
 meaning the length of
 .IR string ,
 may be used in place of an integer.
+.TP
+.IB f " -older " t
+True if the modify time of file
+.I f
+is before
+,IR t .
+If
+.I t
+is a integer followed by the letters
+.BR y (years),
+.BR M (months),
+.BR d (days),
+.BR h (hours),
+.BR m (minutes),
+or
+.BR s (seconds),
+it represents current time minus the specified time.
+If there is no letter, it represents seconds since
+epoch.
+You can also concatenate mixed units.  For example,
+.B 3d12h
+means three days and twelve hours ago.
 .PD
 .PP
 These primaries may be combined with the

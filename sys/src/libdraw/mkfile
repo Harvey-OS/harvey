@@ -22,6 +22,7 @@ OFILES=\
 	ellipse.$O\
 	emenuhit.$O\
 	event.$O\
+	fmt.$O\
 	font.$O\
 	freesubfont.$O\
 	getdefont.$O\

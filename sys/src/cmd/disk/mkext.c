@@ -15,6 +15,8 @@ void	seekpast(ulong);
 void	error(char*, ...);
 void	warn(char*, ...);
 void	usage(void);
+#pragma varargck argpos warn 1
+#pragma varargck argpos error 1
 
 Biobufhdr bin;
 uchar	binbuf[2*LEN];
@@ -22,6 +24,7 @@ char	linebuf[LEN];
 int	uflag;
 int	hflag;
 int	vflag;
+int	Tflag;
 
 void
 main(int argc, char **argv)
@@ -47,6 +50,10 @@ main(int argc, char **argv)
 		break;
 	case 'u':
 		uflag = 1;
+		Tflag = 1;
+		break;
+	case 'T':
+		Tflag = 1;
 		break;
 	case 'v':
 		vflag = 1;
@@ -168,22 +175,23 @@ mkdir(char *name, ulong mode, ulong mtime, char *uid, char *gid)
 	if(uflag){
 		d->uid = uid;
 		d->gid = gid;
-		d->mtime = mtime;
 	}
+	if(Tflag)
+		d->mtime = mtime;
 	d->mode = mode;
 	if(dirwstat(name, d) < 0)
 		warn("can't set modes for %q: %r", name);
 
-	if(uflag){
+	if(uflag||Tflag){
 		if((d = dirstat(name)) == nil){
 			warn("can't reread modes for %q: %r", name);
 			return;
 		}
-		if(d->mtime != mtime)
+		if(Tflag && d->mtime != mtime)
 			warn("%q: time mismatch %lud %lud\n", name, mtime, d->mtime);
-		if(strcmp(uid, d->uid))
+		if(uflag && strcmp(uid, d->uid))
 			warn("%q: uid mismatch %q %q", name, uid, d->uid);
-		if(strcmp(gid, d->gid))
+		if(uflag && strcmp(gid, d->gid))
 			warn("%q: gid mismatch %q %q", name, gid, d->gid);
 	}
 }
@@ -227,21 +235,22 @@ extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, ulong bytes)
 	if(uflag){
 		d.uid = uid;
 		d.gid = gid;
-		d.mtime = mtime;
 	}
+	if(Tflag)
+		d.mtime = mtime;
 	d.mode = mode;
 	Bflush(b);
 	if(dirfwstat(Bfildes(b), &d) < 0)
 		warn("can't set modes for %q: %r", name);
-	if(uflag){
+	if(uflag||Tflag){
 		if((nd = dirfstat(Bfildes(b))) == nil)
 			warn("can't reread modes for %q: %r", name);
 		else{
-			if(nd->mtime != mtime)
+			if(Tflag && nd->mtime != mtime)
 				warn("%q: time mismatch %lud %lud\n", name, mtime, nd->mtime);
-			if(strcmp(uid, nd->uid))
+			if(uflag && strcmp(uid, nd->uid))
 				warn("%q: uid mismatch %q %q", name, uid, nd->uid);
-			if(strcmp(gid, nd->gid))
+			if(uflag && strcmp(gid, nd->gid))
 				warn("%q: gid mismatch %q %q", name, gid, nd->gid);
 			free(nd);
 		}

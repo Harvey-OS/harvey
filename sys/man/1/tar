@@ -77,8 +77,12 @@ a non-Plan 9 system.
 Use the next (numeric) argument as the group id for files in
 the output archive.
 .TP
-.BR p
-Create files in POSIX ustar format.
+.B p
+Create archive in POSIX ustar format,
+which raises the maximum pathname length from 100 to 256 bytes.
+Ustar archives are recognised automatically by
+.I tar
+when reading archives.
 .TP
 .B R
 When extracting, ignore leading slash on file names,
@@ -94,7 +98,7 @@ of each file to that specified in the archive.
 can be used to copy hierarchies thus:
 .IP
 .EX
-{cd fromdir && tar c .} | {cd todir && tar xT}
+@{cd fromdir && tar cp .} | @{cd todir && tar xT}
 .EE
 .SH SOURCE
 .B /sys/src/cmd/tar.c
@@ -107,7 +111,8 @@ There is no way to ask for any but the last
 occurrence of a file.
 .br
 File path names are limited to
-100 characters.
+100 characters
+(256 when using ustar format).
 .br
 The tar format allows specification of links and symbolic links,
 concepts foreign to Plan 9: they are ignored.
