@@ -24,6 +24,7 @@ ulong	peerip;
 Biobuf	bin;
 
 int	debug;
+int	Dflag;
 int	fflag;
 int	rflag;
 int	sflag;
@@ -45,21 +46,25 @@ String*	mailerpath(char*);
 static int
 catchalarm(void *a, char *msg)
 {
+	int rv = 1;
+
 	USED(a);
 
+	/* log alarms but continue */
 	if(strstr(msg, "alarm")){
 		if(senders.first && rcvers.first)
 			syslog(0, "smtpd", "note: %s->%s: %s\n", s_to_c(senders.first->p),
 				s_to_c(rcvers.first->p), msg);
 		else
 			syslog(0, "smtpd", "note: %s\n", msg);
+		rv = 0;
 	}
-	if(pp){
-		syskillpg(pp->pid);	/* perhaps should wait also?? */
-		proc_free(pp);
-		pp = 0;
-	}
-	return 0;
+
+	/* kill the children if there are any */
+	if(pp)
+		syskillpg(pp->pid);
+
+	return rv;
 }
 
 	/* override string error functions to do something reasonable */
@@ -89,6 +94,9 @@ main(int argc, char **argv)
 
 	netdir = nil;
 	ARGBEGIN{
+	case 'D':
+		Dflag++;
+		break;
 	case 'd':
 		debug++;
 		break;
@@ -259,6 +267,8 @@ hello(String *himp, int extended)
 	if(strchr(him, '.') == 0 && nci != nil && strchr(nci->rsys, '.') != nil)
 		him = nci->rsys;
 
+	if(Dflag)
+		sleep(15*1000);
 	reply("250%c%s you are %s\r\n", extended ? '-' : ' ', dom, him);
 	if (extended) {
 		if(tlscert != nil)
@@ -826,22 +836,22 @@ pipemsg(int *byteswritten)
 	for(f = firstfield; cp != nil && f; f = f->next){
 		for(p = f->node; cp != 0 && p; p = p->next)
 			cp = bprintnode(pp->std[0]->fp, p);
-		Bprint(pp->std[0]->fp, "\n");
+		if(status == 0 && Bprint(pp->std[0]->fp, "\n") < 0)
+			status = 1;
 	}
 	if(cp == nil)
 		status = 1;
 
 	/* write anything we read following the header */
-	if(status == 0)
-		if(Bwrite(pp->std[0]->fp, cp, s_to_c(hdr) + s_len(hdr) - cp) < 0)
-			status = 1;
+	if(status == 0 && Bwrite(pp->std[0]->fp, cp, s_to_c(hdr) + s_len(hdr) - cp) < 0)
+		status = 1;
 	s_free(hdr);
 
 	/*
 	 *  pass rest of message to mailer.  take care of '.'
 	 *  escapes.
 	 */
-	while(status == 0 && sawdot == 0){
+	while(sawdot == 0){
 		n = getcrnl(s_reset(line), &bin);
 
 		/* eof or error ends the message */
@@ -855,25 +865,23 @@ pipemsg(int *byteswritten)
 			break;
 		}
 		nbytes += n;
-		if(Bwrite(pp->std[0]->fp, *cp == '.' ? cp+1 : cp, n) < 0){
+		if(status == 0 && Bwrite(pp->std[0]->fp, *cp == '.' ? cp+1 : cp, n) < 0){
 			status = 1;
-			break;
 		}
 	}
 	s_free(line);
-	pipesigoff();
-
 	if(sawdot == 0){
 		/* message did not terminate normally */
 		syskillpg(pp->pid);
 		status = 1;
 	}
 
-	if(Bflush(pp->std[0]->fp) < 0)
+	if(status == 0 && Bflush(pp->std[0]->fp) < 0)
 		status = 1;
 	stream_free(pp->std[0]);
 	pp->std[0] = 0;
 	*byteswritten = nbytes;
+	pipesigoff();
 	return status;
 }
 
@@ -935,13 +943,20 @@ data(void)
 	 *  if process terminated abnormally, send back error message
 	 */
 	if(status){
-		syslog(0, "smtpd", "++[%s/%s] %s returned %d", him, nci->rsys, s_to_c(cmd), status);
+		int code;
+
+		if(strstr(s_to_c(err), "mail refused")){
+			syslog(0, "smtpd", "++[%s/%s] %s refused %d", him, nci->rsys, s_to_c(cmd), status);
+			code = 554;
+		} else {
+			syslog(0, "smtpd", "++[%s/%s] %s returned %d", him, nci->rsys, s_to_c(cmd), status);
+			code = 450;
+		}
 		for(cp = s_to_c(err); ep = strchr(cp, '\n'); cp = ep){
 			*ep++ = 0;
-			reply("450-%s\r\n", cp);
-			syslog(0, "smtpd", "450-%s", cp);
+			reply("%d-%s\r\n", code, cp);
 		}
-		reply("450 mail process terminated abnormally\r\n");
+		reply("%d mail process terminated abnormally\r\n", code);
 	} else {
 		if(filterstate == BLOCKED)
 			reply("554 we believe this is spam.  we don't accept it.\r\n");
@@ -1074,7 +1089,7 @@ auth(String *mech, String *resp)
 	if (rejectcheck())
 		goto bomb_out;
 
-	syslog(0, "smtpd", "auth(%s, %s) from %s\n", s_to_c(mech),
+ 	syslog(0, "smtpd", "auth(%s, %s) from %s\n", s_to_c(mech),
 		resp==nil?"nil":s_to_c(resp), him);
 
 	if (authenticated) {
