@@ -9763,7 +9763,7 @@ sys/src/cmd/ndb/cs.c - 664 sys sys 1079357413 33069
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1078927860 18090
-sys/src/cmd/ndb/dn.c - 664 sys sys 1079747687 26999
+sys/src/cmd/ndb/dn.c - 664 sys sys 1079918815 26961
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1055701929 2126
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1055701929 3062
 sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1079747687 15363
@@ -10191,7 +10191,7 @@ sys/src/cmd/ql/optab.c - 664 sys sys 944961082 12648
 sys/src/cmd/ql/pass.c - 664 sys sys 1045503973 8914
 sys/src/cmd/ql/sched.c - 664 sys sys 944961082 10778
 sys/src/cmd/ql/span.c - 664 sys sys 1045503974 14051
-sys/src/cmd/ramfs.c - 664 sys sys 1071247349 15377
+sys/src/cmd/ramfs.c - 664 sys sys 1079877660 15377
 sys/src/cmd/ratfs - 20000000775 sys sys 1016943965 0
 sys/src/cmd/ratfs/ctlfiles.c - 664 sys sys 1016943964 6694
 sys/src/cmd/ratfs/main.c - 664 sys sys 1016943964 6516
