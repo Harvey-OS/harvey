@@ -4052,3 +4052,4 @@ There is no interest in a WWW browser.  This fad is clearly not going to have an
 the representation of characters, but not the character set itself, was changed this weekend.  we believe that the representation we are using now will become the one used by unix-like systems everywhere.  - rob's news about utf-8, sep 6 1992
 Linux: the world's best text adventure game.
 MessageSocket::setHostname(): gethostbyname() failed: Success
+/* This variable is here only because of a historical reason.  */

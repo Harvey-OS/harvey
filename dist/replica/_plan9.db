@@ -15,7 +15,7 @@
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1108285260 115096
-386/bin/8c - 775 sys sys 1108285261 358010
+386/bin/8c - 775 sys sys 1108440451 357989
 386/bin/8l - 775 sys sys 1107835553 115728
 386/bin/9660srv - 775 sys sys 1108354539 103973
 386/bin/aan - 775 sys sys 1108354539 130710
@@ -102,7 +102,7 @@
 386/bin/aux/g3p9bit - 775 sys sys 1104121976 67278
 386/bin/aux/getflags - 775 sys sys 1104121977 43817
 386/bin/aux/gpsevermore - 775 sys sys 1107490157 71417
-386/bin/aux/gpsfs - 775 sys sys 1108354546 174347
+386/bin/aux/gpsfs - 775 sys sys 1108440451 175635
 386/bin/aux/grabit - 775 sys sys 1020319063 1244
 386/bin/aux/hardcopy - 775 sys sys 1020319063 1699
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
@@ -3348,7 +3348,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1107880958 252781
+sys/games/lib/fortunes - 664 sys sys 1108487635 252847
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -5066,7 +5066,7 @@ sys/man/6/map - 664 sys sys 944959678 1892
 sys/man/6/mpictures - 664 sys sys 944959678 2899
 sys/man/6/ms - 664 sys sys 958249504 6815
 sys/man/6/namespace - 664 sys sys 1048637182 1576
-sys/man/6/ndb - 664 sys sys 1050078465 6080
+sys/man/6/ndb - 664 sys sys 1108476850 6113
 sys/man/6/plot - 664 sys sys 944959679 6739
 sys/man/6/plumb - 664 sys sys 969499892 10918
 sys/man/6/regexp - 664 sys sys 954089523 2050
@@ -5121,7 +5121,7 @@ sys/man/8/mkpaqfs - 664 sys sys 1018386778 892
 sys/man/8/mksacfs - 664 sys sys 964886843 710
 sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
-sys/man/8/ndb - 664 sys sys 1055706144 9838
+sys/man/8/ndb - 664 sys sys 1108476849 9939
 sys/man/8/newuser - 664 sys sys 954305551 2343
 sys/man/8/nfsserver - 664 sys sys 1017251291 3397
 sys/man/8/pcmcia - 664 sys sys 944959679 408
@@ -9750,7 +9750,7 @@ sys/src/cmd/mk/var.c - 664 sys sys 944961025 539
 sys/src/cmd/mk/varsub.c - 664 sys sys 944961025 4438
 sys/src/cmd/mk/word.c - 664 sys sys 944961025 2595
 sys/src/cmd/mkdir.c - 664 sys sys 1082593106 1026
-sys/src/cmd/mkfile - 664 sys sys 1045534751 2205
+sys/src/cmd/mkfile - 664 sys sys 1108476348 2414
 sys/src/cmd/mklib - 664 sys sys 1101213349 618
 sys/src/cmd/mkmany - 664 sys sys 1022112160 1196
 sys/src/cmd/mkone - 664 sys sys 1101311048 835
@@ -12471,5 +12471,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/8c - 775 sys sys 1108440451 357989
-386/bin/aux/gpsfs - 775 sys sys 1108440451 175635
