@@ -154,7 +154,7 @@ compile(char *file, char **defs, int ndef)
 			p = utfrune(outfile, 0);
 			if(debug['a'] && debug['n'])
 				strcat(p, ".acid");
-			else if(debug['P'] && debug['n'])
+			else if(debug['Z'] && debug['n'])
 				strcat(p, "_pickle.c");
 			else {
 				p[0] = '.';
@@ -174,7 +174,7 @@ compile(char *file, char **defs, int ndef)
 			setinclude("/sys/include");
 		}
 	}
-	if((debug['a'] || debug['P']) && !debug['n']) {
+	if((debug['a'] || debug['Z']) && !debug['n']) {
 		outfile = 0;
 		Binit(&outbuf, 1, OWRITE);
 	} else {
@@ -247,7 +247,7 @@ compile(char *file, char **defs, int ndef)
 			newfile(file, -1);
 	}
 	yyparse();
-	if(!debug['a'] && !debug['P'])
+	if(!debug['a'] && !debug['Z'])
 		gclean();
 	return nerrors;
 }

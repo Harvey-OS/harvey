@@ -597,6 +597,13 @@ gmove(Node *f, Node *t)
 	if(f->op == ONAME || f->op == OINDREG || f->op == OIND) {
 		switch(ft) {
 		default:
+			a = AMOVL;
+			break;
+		case TVLONG:
+		case TUVLONG:
+			/* todo: optimise freg case? */
+			a = AMOVQ;
+#ifdef is_this_right
 			if(typefd[tt]) {
 				/* special case can load mem to Freg */
 				regalloc(&nod, t, t);
@@ -609,12 +616,7 @@ gmove(Node *f, Node *t)
 				regfree(&nod);
 				return;
 			}
-			a = AMOVL;
-			break;
-		case TVLONG:
-		case TUVLONG:
-			/* todo: optimise freg case? */
-			a = AMOVQ;
+#endif is_this_right
 			break;
 		case TFLOAT:
 			a = AMOVS;
