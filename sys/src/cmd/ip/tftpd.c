@@ -107,7 +107,7 @@ main(int argc, char **argv)
 	if (cfd < 0)
 		sysfatal("announcing on %s: %r", buf);
 	syslog(dbg, flog, "tftpd started on %s dir %s", buf, adir);
-	setuser();
+//	setuser();	Moved to doserve [sape]
 	for(;;) {
 		lcfd = listen(adir, ldir);
 		if(lcfd < 0)
@@ -140,6 +140,7 @@ doserve(int fd)
 	char *mode, *p;
 	short op;
 
+	setuser();
 	dlen = read(fd, bigbuf, sizeof(bigbuf));
 	if(dlen < 0)
 		sysfatal("listen read: %r");

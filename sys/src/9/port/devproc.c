@@ -1097,6 +1097,8 @@ procwrite(Chan *c, void *va, long n, vlong off)
 		}
 		t = proctab(0);
 		for(et = t+conf.nproc; t < et; t++) {
+			if(t->state == Dead)
+				continue;
 			if(id == t->noteid) {
 				if(strcmp(p->user, t->user) != 0)
 					error(Eperm);
