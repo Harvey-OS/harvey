@@ -484,7 +484,15 @@ work(void){
 			OUTK;
 			continue;
 		case '/':
-			if ((cc = getch()) != '*'){
+			if ((cc = getch()) == '/') {
+				putch(c,NO);
+				putch(cc,NO);
+				cpp_comment(YES);
+				OUT;
+				lastlook = 0;
+				continue;
+			}
+			else if (cc != '*') {
 				unget(cc);
 				gotop(c);
 				continue;
@@ -736,6 +744,13 @@ getnl(void){
 			ch = getch();
 			gotcmt=1;
 		}
+		else if (ch == '/') {
+			putch('/',NO);
+			putch('/',NO);
+			cpp_comment(NO);
+			ch = getch();
+			gotcmt = 1;
+		}
 		else {
 			if(inswitch)*(++lastplace) = ch;
 			else {
@@ -870,6 +885,28 @@ gotstar:
 		}
 	}
 	return(hitnl);
+}
+int
+cpp_comment(int ok)
+{
+	int ch;
+	int hitnl;
+
+	hitnl = 0;
+	while ((ch = getch()) != -1) {
+		if (ch == '\n') {
+			if (ok && !hitnl)
+				outs(clev->tabs);
+			else
+				outs(0);
+			lbegin = 1;
+			count = 0;
+			hitnl = 1;
+			break;
+		}
+		putch(ch, NO);
+	}
+	return hitnl;
 }
 void
 putspace(char ch, int ok)
