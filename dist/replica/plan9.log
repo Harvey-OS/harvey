@@ -13929,3 +13929,5 @@
 1066849305 0 c 386/bin/fossil/fossil - 775 sys sys 1066848944 345758
 1066849305 1 c sys/src/cmd/fossil/file.c - 664 sys sys 1066848926 28000
 1067005874 0 c sys/games/lib/fortunes - 664 sys sys 1067005891 246404
+1067106682 0 c sys/src/9/port/lib.h - 664 sys sys 1067105741 5736
+1067120173 0 c sys/src/9/bitsy/mkfile - 664 sys sys 1067120164 2454

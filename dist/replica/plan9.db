@@ -5089,7 +5089,7 @@ sys/src/9/bitsy/l.s - 664 sys sys 1055700934 18211
 sys/src/9/bitsy/main.c - 664 sys sys 1039753387 8929
 sys/src/9/bitsy/map - 664 sys sys 1017695515 236
 sys/src/9/bitsy/mem.h - 664 sys sys 1055700932 8049
-sys/src/9/bitsy/mkfile - 664 sys sys 1055825921 2471
+sys/src/9/bitsy/mkfile - 664 sys sys 1067120164 2454
 sys/src/9/bitsy/mmu.c - 664 sys sys 1055700931 11228
 sys/src/9/bitsy/mouse.c - 664 sys sys 1017695516 962
 sys/src/9/bitsy/paqfiles - 20000000775 sys sys 1020011250 0
@@ -5357,7 +5357,7 @@ sys/src/9/port/fault.c - 664 sys sys 1032052807 6557
 sys/src/9/port/initcode.c - 664 sys sys 1055688491 574
 sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
 sys/src/9/port/latin1.h - 664 sys sys 1015278339 3524
-sys/src/9/port/lib.h - 664 sys sys 1014931175 5676
+sys/src/9/port/lib.h - 664 sys sys 1067105741 5736
 sys/src/9/port/log.c - 664 sys sys 1014931175 2860
 sys/src/9/port/master - 664 sys sys 1063856961 516
 sys/src/9/port/master.local - 664 sys sys 1063856961 130
