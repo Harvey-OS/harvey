@@ -151,7 +151,7 @@ i=0;
 	if((i++,fprint(fd, "%s\nD%lud\nA%s (%s)\n", title, version, author, hp->remotesys) < 0)
 	|| (i++,(comment && comment[0] && fprint(fd, "C%s\n", comment) < 0))
 	|| (i++,fprint(fd, "\n") < 0)
-	|| (i++,(text[0] && (n=write(fd, text, strlen(text))) != strlen(text)))){
+	|| (i++,(text[0] && write(fd, text, strlen(text)) != strlen(text)))){
 		syslog(0, LOG, "%s write failed %d %ld fd %d: %r", hp->remotesys, i, strlen(text), fd);
 		hfail(c, HInternal);
 		exits("failed");

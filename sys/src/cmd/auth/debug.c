@@ -285,6 +285,7 @@ authfutz(char *dom, char *user)
 	print("\tticket request using %s@%s key succeeded\n", tr.authid, dom);
 
 Nobootes:;
+	USED(nobootes);
 
 	/* try p9sk1 exchange with local factotum to test that key is right */
 

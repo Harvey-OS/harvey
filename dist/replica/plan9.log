@@ -14965,3 +14965,14 @@
 1083699161 0 c sys/src/cmd/aux/timesync.c - 664 sys sys 1083697436 24772
 1083726166 0 c 386/bin/aux/timesync - 775 sys sys 1083726045 128480
 1083726166 1 c 386/lib/libmp.a - 664 sys sys 1083726045 77700
+1083771174 0 c sys/src/cmd/bitsy/pencal.c - 664 sys sys 1083770967 4604
+1083771174 1 c sys/src/cmd/ip/httpd/wikipost.c - 664 sys sys 1083771074 5913
+1083772975 0 c sys/src/cmd/9nfs/9p.c - 664 sys sys 1083772192 3365
+1083772975 1 c sys/src/cmd/9nfs/server.c - 664 sys sys 1083771826 10980
+1083772975 2 c sys/src/cmd/auth/debug.c - 664 sys sys 1083771270 7356
+1083812583 0 c 386/bin/bitsy/pencal - 775 sys sys 1083812550 115778
+1083812583 1 c 386/bin/auth/debug - 775 sys sys 1083812548 99356
+1083812583 2 c 386/bin/aux/nfsserver - 775 sys sys 1083812549 186660
+1083812583 3 c 386/bin/aux/pcnfsd - 775 sys sys 1083812549 127888
+1083812583 4 c 386/bin/aux/portmapper - 775 sys sys 1083812550 126776
+1083812583 5 c 386/bin/ip/httpd/wikipost - 775 sys sys 1083812550 111306
