@@ -5485,7 +5485,7 @@ sys/src/9/port/devcons.c - 664 sys sys 1084475350 22380
 sys/src/9/port/devdraw.c - 664 sys sys 1091733670 41996
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
-sys/src/9/port/devfs.c - 664 sys sys 1081864735 10779
+sys/src/9/port/devfs.c - 664 sys sys 1105799131 10783
 sys/src/9/port/devkbmap.c - 644 sys sys 1079463756 2774
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1076612248 14573
@@ -9622,7 +9622,7 @@ sys/src/cmd/ki/stats.c - 664 sys sys 1068859845 4536
 sys/src/cmd/ki/symbols.c - 664 sys sys 944961015 1744
 sys/src/cmd/ki/syscall.c - 664 sys sys 1076688578 14057
 sys/src/cmd/kl - 20000000775 sys sys 944961016 0
-sys/src/cmd/kl/asm.c - 664 sys sys 1045503967 26003
+sys/src/cmd/kl/asm.c - 664 sys sys 1105798985 26122
 sys/src/cmd/kl/compat.c - 664 sys sys 947099591 465
 sys/src/cmd/kl/cputime.c - 664 sys sys 944961015 336
 sys/src/cmd/kl/l.h - 664 sys sys 1020311762 5250
@@ -9630,7 +9630,7 @@ sys/src/cmd/kl/list.c - 664 sys sys 1014925965 4502
 sys/src/cmd/kl/mkfile - 664 sys sys 944961015 258
 sys/src/cmd/kl/noop.c - 664 sys sys 1045503968 11140
 sys/src/cmd/kl/obj.c - 664 sys sys 1089299170 21649
-sys/src/cmd/kl/optab.c - 664 sys sys 944961015 7369
+sys/src/cmd/kl/optab.c - 664 sys sys 1105798985 7369
 sys/src/cmd/kl/pass.c - 664 sys sys 1045503969 9348
 sys/src/cmd/kl/sched.c - 664 sys sys 1089299170 10796
 sys/src/cmd/kl/span.c - 664 sys sys 1045503970 10146

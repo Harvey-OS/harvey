@@ -174,8 +174,8 @@ Optab	optab[] =
 	{ AFMOVD,	C_FREG,	C_NONE,	C_FREG,		49, 8, 0 },
 	{ AFCMPD,	C_FREG,	C_NONE,	C_FREG,		50, 4, 0 },
 
-	{ AFABSF,	C_FREG,	C_NONE,	C_FREG,		21, 4, 0 },
-	{ AFMOVF,	C_FREG,	C_NONE,	C_FREG,		21, 4, 0 },
+	{ AFABSF,	C_FREG,	C_NONE,	C_FREG,		57, 4, 0 },
+	{ AFMOVF,	C_FREG,	C_NONE,	C_FREG,		57, 4, 0 },
 	{ AFADDD,	C_FREG,	C_NONE,	C_FREG,		21, 4, 0 },
 	{ AFADDD,	C_FREG,	C_REG,	C_FREG,		21, 4, 0 },
 

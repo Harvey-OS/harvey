@@ -268,7 +268,7 @@ rdconf(void)
 	cclose(*ccp);
 	*ccp = nil;
 	if (strncmp(confstr, Cfgstr, strlen(Cfgstr)) != 0)
-		error("Bad config: should begin with: fsdev\\n");
+		error("Bad config, first line must be: 'fsdev:\\n'");
 	kstrdup(&c, confstr + strlen(Cfgstr));
 	memset(confstr, 0, sizeof(confstr));
 	for (p = c; p != nil && *p != 0; p = e){
