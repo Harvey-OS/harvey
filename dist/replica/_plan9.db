@@ -544,7 +544,7 @@
 386/lib/libmach.a - 664 sys sys 1085077145 735256
 386/lib/libmemdraw.a - 664 sys sys 1085077145 287684
 386/lib/libmemlayer.a - 664 sys sys 1085077145 47360
-386/lib/libmp.a - 664 sys sys 1085077145 80226
+386/lib/libmp.a - 664 sys sys 1085195219 76502
 386/lib/libndb.a - 664 sys sys 1085077146 60772
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1085077146 37440
@@ -12427,4 +12427,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/lib/libmp.a - 664 sys sys 1085195219 76502
