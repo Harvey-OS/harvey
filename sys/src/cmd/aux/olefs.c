@@ -439,8 +439,8 @@ filldir(File *t, Ofile *f, int dnum, int nrecur)
 	if(d.dir == 0xFFFFFFFF) {
 		/* make file */
 		nt = createfile(t, buf, nil, 0444, nil);
-if(nt ==nil)
-fprint(2, "nt nil: create %s: %r\n", buf);
+		if(nt == nil)
+			sysfatal("nt nil: create %s: %r", buf);
 		nt->aux = copydir(&d);
 		nt->length = d.size;
 	} else /* make directory */

@@ -13874,3 +13874,8 @@
 1065916922 5 c sys/src/cmd/disk/kfs/mkfile - 664 sys sys 1065916865 717
 1065916922 6 c sys/src/cmd/disk/kfs/portdat.h - 664 sys sys 1065916866 6171
 1065916922 7 c sys/src/cmd/srv.c - 664 sys sys 1065915862 3964
+1065961902 0 c lib/vgadb - 664 sys sys 1065961653 27832
+1065963704 0 c sys/src/cmd/9nfs/unixnames.c - 664 sys sys 1065963574 6006
+1065963704 1 c sys/src/cmd/aux/olefs.c - 664 sys sys 1065963681 9630
+1065965509 0 c sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1065963776 16849
+1065965509 1 c sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1065963823 59455

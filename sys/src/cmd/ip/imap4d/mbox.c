@@ -203,8 +203,8 @@ readBox(Box *box)
 
 	fd = cdOpen(box->fsDir, ".", OREAD);
 	if(fd < 0){
-//ZZZ
-fprint(2, "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r\n", time(nil), username, box->name, box->fsDir);
+		syslog(0, "mail", "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r\n", time(nil),
+			username, box->name, box->fsDir);
 		mboxGone(box);
 		return -1;
 	}
