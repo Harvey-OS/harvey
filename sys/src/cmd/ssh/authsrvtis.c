@@ -23,8 +23,6 @@ authsrvtisfn(Conn *conn, Msg *m)
 	free(s);
 
 	m = recvmsg(conn, 0);
-	if(m == nil)
-		badmsg(m, SSH_CMSG_AUTH_TIS_RESPONSE);
 	if(m->type != SSH_CMSG_AUTH_TIS_RESPONSE){
 		/*
 		 * apparently you can just give up on

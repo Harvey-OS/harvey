@@ -39,8 +39,6 @@ authrsafn(Conn *c)
 		sendmsg(m);
 		mpfree(mod);
 		m = recvmsg(c, 0);
-		if(m == nil)
-			badmsg(m, 0);
 		switch(m->type){
 		case SSH_SMSG_FAILURE:
 			debug(DBG_AUTH, "\tnot accepted\n", (char*)rpc->arg);
@@ -90,8 +88,6 @@ authrsafn(Conn *c)
 		sendmsg(m);
 
 		m = recvmsg(c, 0);
-		if(m == nil)
-			badmsg(m, 0);
 		switch(m->type){
 		case SSH_SMSG_FAILURE:
 			free(m);

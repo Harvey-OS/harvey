@@ -1259,7 +1259,7 @@ printhtml(Message *m)
 
 	c.an = 3;
 	c.av[1] = "/bin/htmlfmt";
-	c.av[2] = "-cutf-8";
+	c.av[2] = "-l 40 -cutf-8";
 	Bprint(&out, "!%s\n", c.av[1]);
 	Bflush(&out);
 	pipecmd(&c, m);
@@ -1499,8 +1499,14 @@ flushdeleted(Message *cur)
 	for(m = top.child; m != nil; m = m->next)
 		m->id = natural ? m->fileno : i++;
 
-	if(cur == nil)
-		return top.child;
+	// if we're out of messages, go back to first
+	// if no first, return the fake first
+	if(cur == nil){
+		if(top.child)
+			return top.child;
+		else
+			return &top;
+	}
 	return cur;
 }
 

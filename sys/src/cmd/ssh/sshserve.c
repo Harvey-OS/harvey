@@ -115,7 +115,7 @@ fromnet(Conn *c)
 
 	infd = kidpid = -1;
 	for(;;){
-		m = recvmsg(c, 0);
+		m = recvmsg(c, -1);
 		if(m == nil)
 			exits(nil);
 		switch(m->type){
@@ -159,7 +159,7 @@ fromnet(Conn *c)
 InteractiveMode:
 	for(;;){
 		free(m);
-		m = recvmsg(c, 0);
+		m = recvmsg(c, -1);
 		if(m == nil)
 			exits(nil);
 		switch(m->type){
