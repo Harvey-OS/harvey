@@ -12836,3 +12836,5 @@
 1058130077 0 c 386/lib/libregexp.a - 664 sys sys 1058129072 37616
 1058130077 1 c sys/src/libregexp/regexec.c - 664 sys sys 1058129054 4975
 1058130077 2 c sys/src/libregexp/rregexec.c - 664 sys sys 1058129062 4671
+1058223723 0 c lib/face/48x48x4/.dict - 664 sys sys 1058223097 2005
+1058223723 1 a lib/face/48x48x4/p/plan9.1 - 664 sys sys 1058223140 993
