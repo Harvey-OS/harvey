@@ -111,7 +111,7 @@
 386/bin/aux/nfsmount - 775 sys sys 1046368786 231402
 386/bin/aux/nfsserver - 775 sys sys 1045537954 171046
 386/bin/aux/olefs - 775 sys sys 1045537954 144352
-386/bin/aux/p9bitpost - 775 sys sys 1046656928 128070
+386/bin/aux/p9bitpost - 775 sys sys 1047307246 128070
 386/bin/aux/pcmcia - 775 sys sys 1039758543 46790
 386/bin/aux/pcnfsd - 775 sys sys 1045537955 126750
 386/bin/aux/portmap - 775 sys sys 1046368787 140955
@@ -5006,7 +5006,7 @@ sys/src/9/bitsy/sdata.c - 664 sys sys 1037029041 44666
 sys/src/9/bitsy/tar.c - 664 sys sys 1017695521 1375
 sys/src/9/bitsy/trap.c - 664 sys sys 1037029044 18951
 sys/src/9/bitsy/uartsa1110.c - 664 sys sys 1037029045 8530
-sys/src/9/bitsy/wavelan.c - 664 sys sys 1043922422 25684
+sys/src/9/bitsy/wavelan.c - 664 sys sys 1047298972 27107
 sys/src/9/bitsy/wavelan.h - 664 sys sys 1037029076 27
 sys/src/9/boot - 20000000775 sys sys 1018556557 0
 sys/src/9/boot/aux.c - 664 sys sys 1015012529 2520
@@ -5019,7 +5019,6 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1032053196 390
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
-sys/src/9/boot/libboot.a8 - 664 sys sys 1047260766 54718
 sys/src/9/boot/local.c - 664 sys sys 1039763718 2041
 sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843

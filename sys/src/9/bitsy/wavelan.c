@@ -1,5 +1,5 @@
 /*
-	Lucent Wavelan IEEE 802.11 pcmcia. 
+	Lucent Wavelan IEEE 802.11 pcmcia.
 	There is almost no documentation for the card.
 	the driver is done using both the FreeBSD, Linux and
 	original Plan 9 drivers as `documentation'.
@@ -27,6 +27,11 @@
 #include "../port/netif.h"
 #include "etherif.h"
 #include "wavelan.h"
+
+enum
+{
+	MSperTick=	50,	/* ms between ticks of kproc */
+};
 
 /*
  * When we're using a PCI device and memory-mapped I/O, 
@@ -381,7 +386,7 @@ w_enable(Ether* ether)
 
 	ltv_outs(ctlr, WTyp_Prom, (ether->prom?1:0));
 
-	if(ctlr->hascrypt){
+	if(ctlr->hascrypt && ctlr->crypt){
 		ltv_outs(ctlr, WTyp_Crypt, ctlr->crypt);
 		ltv_outs(ctlr, WTyp_TxKey, ctlr->txkey);
 		w_outltv(ctlr, &ctlr->keys);
@@ -528,28 +533,88 @@ w_txdone(Ctlr* ctlr, int sts)
 		ctlr->ntx++;
 }
 
-static int
-w_stats(Ctlr* ctlr)
+/* save the stats info in the ctlr struct */
+static void
+w_stats(Ctlr* ctlr, int len)
 {
-	int i, rc, sp;
-	Wltv ltv;
+	int i, rc;
 	ulong* p = (ulong*)&ctlr->WStats;
 	ulong* pend = (ulong*)&ctlr->end;
+
+	for (i = 0; i < len && p < pend; i++){
+		rc = csr_ins(ctlr, WR_Data1);
+		if(rc > 0xf000)
+			rc = ~rc & 0xffff;
+		p[i] += rc;
+	}
+}
+
+/* send the base station scan info to any readers */
+static void
+w_scaninfo(Ether* ether, Ctlr *ctlr, int len)
+{
+	int i, j;
+	Netfile **ep, *f, **fp;
+	Block *bp;
+	WScan *wsp;
+
+	for (i = 0; i < len ; i++)
+		ctlr->scanbuf[i] = csr_ins(ctlr, WR_Data1);
+
+	len *= 2;
+	i = ether->scan;
+	ep = &ether->f[Ntypes];
+	for(fp = ether->f; fp < ep && i > 0; fp++){
+		f = *fp;
+		if(f == nil || f->scan == 0)
+			continue;
+
+		bp = iallocb(2048);
+		if(bp == nil)
+			break;
+		for(j = 0; j < len/(2*25); j++){
+			wsp = (WScan*)(&ctlr->scanbuf[j*25]);
+			if(wsp->ssid_len > 32)
+				wsp->ssid_len = 32;
+			bp->wp += snprint((char*)bp->wp, 2048,
+				"ssid=%.*s;bssid=%E;signal=%d;noise=%d;chan=%d%s\n",
+				wsp->ssid_len, wsp->ssid, wsp->bssid, wsp->signal,
+				wsp->noise, wsp->chan, (wsp->capinfo&(1<<4))?";wep":"");
+		}
+		qpass(f->in, bp);
+		i--;
+	}
+}
+
+static int
+w_info(Ether *ether, Ctlr* ctlr)
+{
+	int sp;
+	Wltv ltv;
 
 	sp = csr_ins(ctlr, WR_InfoId);
 	ltv.len = ltv.type = 0;
 	w_read(ctlr, sp, 0, &ltv, 4);
-	if(ltv.type == WTyp_Stats){
-		ltv.len--;
-		for (i = 0; i < ltv.len && p < pend; i++){
-			rc = csr_ins(ctlr, WR_Data1);
-			if(rc > 0xf000)
-				rc = ~rc & 0xffff;
-			p[i] += rc;
-		}
+	ltv.len--;
+	switch(ltv.type){
+	case WTyp_Stats:
+		w_stats(ctlr, ltv.len);
+		return 0;
+	case WTyp_Scan:
+		w_scaninfo(ether, ctlr, ltv.len);
 		return 0;
 	}
 	return -1;
+}
+
+/* set scanning interval */
+static void
+w_scanbs(void *a, uint secs)
+{
+	Ether *ether = a;
+	Ctlr* ctlr = (Ctlr*) ether->ctlr;
+
+	ctlr->scanticks = secs*(1000/MSperTick);
 }
 
 static void
@@ -588,7 +653,7 @@ w_intr(Ether *ether)
 	}
 	if(rc & WInfoEv){
 		ctlr->ninfo++;
-		w_stats(ctlr);
+		w_info(ether, ctlr);
 		csr_ack(ctlr, WInfoEv);
 	}
 	if(rc & WTxErrEv){
@@ -614,7 +679,7 @@ w_timer(void* arg)
 
 	ctlr->timerproc = up;
 	for(;;){
-		tsleep(&ctlr->timer, return0, 0, 50);
+		tsleep(&ctlr->timer, return0, 0, MSperTick);
 		ctlr = (Ctlr*)ether->ctlr;
 		if(ctlr == 0)
 			break;
@@ -656,6 +721,10 @@ w_timer(void* arg)
 			if((ctlr->ticks % 120) == 0)
 			if(ctlr->txbusy == 0)
 				w_cmd(ctlr, WCmdEnquire, WTyp_Stats);
+			if(ctlr->scanticks > 0)
+			if((ctlr->ticks % ctlr->scanticks) == 0)
+			if(ctlr->txbusy == 0)
+				w_cmd(ctlr, WCmdEnquire, WTyp_Scan);
 		}
 		iunlock(ctlr);
 	}
@@ -793,7 +862,7 @@ w_ifstat(Ether* ether, void* a, long n, ulong offset)
 	k = ((ctlr->state & Attached) ? "attached" : "not attached");
 	PRINTSTAT("Card %s", k);
 	k = ((ctlr->state & Power) ? "on" : "off");
-	PRINTSTAT("PCardower %s", k);
+	PRINTSTAT(", power %s", k);
 	k = ((ctlr->txbusy)? ", txbusy" : "");
 	PRINTSTAT("%s\n", k);
 
@@ -823,7 +892,7 @@ w_ifstat(Ether* ether, void* a, long n, ulong offset)
 	PRINTSTAT("Channel: %d\n", ltv_ins(ctlr, WTyp_Chan));
 	PRINTSTAT("AP density: %d\n", ltv_ins(ctlr, WTyp_ApDens));
 	PRINTSTAT("Promiscuous mode: %d\n", ltv_ins(ctlr, WTyp_Prom));
-	if(i == 3)
+	if(i == WPTypeAdHoc)
 		PRINTSTAT("SSID name: %s\n", ltv_inname(ctlr, WTyp_NetName));
 	else {
 		Wltv ltv;
@@ -890,11 +959,8 @@ w_option(Ctlr* ctlr, char* buf, long n)
 	Cmdbuf *cb;
 
 	r = 0;
-	print("here\n");
-	cb = parsecmd(buf, n);
-	for (i = 0; i < cb->nf; i++)
-		iprint("cb %s\n", cb->f[i]);
 
+	cb = parsecmd(buf, n);
 	if(cb->nf < 2)
 		r = -1;
 	else if(cistrcmp(cb->f[0], "essid") == 0){
@@ -902,7 +968,7 @@ w_option(Ctlr* ctlr, char* buf, long n)
 			p = "";
 		else
 			p = cb->f[1];
-		if(ctlr->ptype == 3){
+		if(ctlr->ptype == WPTypeAdHoc){
 			memset(ctlr->netname, 0, sizeof(ctlr->netname));
 			strncpy(ctlr->netname, p, WNameLen);
 		}
@@ -1128,11 +1194,12 @@ wavelanreset(Ether* ether, Ctlr *ctlr)
 	ether->power = w_power;
 	ether->promiscuous = w_promiscuous;
 	ether->multicast = w_multicast;
+	ether->scanbs = w_scanbs;
 	ether->arg = ether;
 
-	iprint("#l%d: irq %ld port %lx type %s",
+	DEBUG("#l%d: irq %ld port %lx type %s",
 		ether->ctlrno, ether->intnum, ether->ports[0].port,	ether->type);
-	iprint(" %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX\n",
+	DEBUG(" %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX\n",
 		ether->ea[0], ether->ea[1], ether->ea[2],
 		ether->ea[3], ether->ea[4], ether->ea[5]);
 
@@ -1143,8 +1210,8 @@ char* wavenames[] = {
 	"WaveLAN/IEEE",
 	"TrueMobile 1150",
 	"Instant Wireless ; Network PC CARD",
+	"Instant Wireless Network PC Card",
 	"Avaya Wireless PC Card",
 	"AirLancer MC-11",
 	nil,
 };
-

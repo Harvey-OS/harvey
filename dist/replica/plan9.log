@@ -18563,3 +18563,6 @@
 1047265277 0 d sys/src/9/pc/bootpc_out.root.8 - 664 sys sys 1047261733 0
 1047265277 1 d sys/src/9/pc/devdup.8 - 664 sys sys 1047261703 0
 1047265277 2 d sys/src/9/pc/init.out - 775 sys sys 1047261687 0
+1047299416 0 c sys/src/9/bitsy/wavelan.c - 664 sys sys 1047298972 27107
+1047308424 0 c 386/bin/aux/p9bitpost - 775 sys sys 1047307246 128070
+1047322832 0 d sys/src/9/boot/libboot.a8 - 664 sys sys 1047260766 0
