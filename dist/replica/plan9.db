@@ -5274,7 +5274,7 @@ sys/src/9/boot/settime.c - 664 sys sys 1036813626 2473
 sys/src/9/boot/testboot.c - 664 sys sys 1039763734 496
 sys/src/9/ip - 20000000775 sys sys 1015278450 0
 sys/src/9/ip/arp.c - 664 sys sys 1078928097 10687
-sys/src/9/ip/chandial.c - 664 sys sys 1022588098 2276
+sys/src/9/ip/chandial.c - 664 sys sys 1099020048 2295
 sys/src/9/ip/devip.c - 664 sys sys 1084331653 24164
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
