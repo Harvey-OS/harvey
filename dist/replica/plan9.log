@@ -19318,3 +19318,4 @@
 1052685074 2 d sys/src/cmd/ip/dhcpd/dhcpd.8 - 664 sys sys 1051207140 0
 1052685074 3 d sys/src/cmd/ip/dhcpd/ndb.8 - 664 sys sys 1051207140 0
 1052685074 4 d sys/src/cmd/ip/dhcpd/ping.8 - 664 sys sys 1051207140 0
+1052778692 0 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1052777926 30784
