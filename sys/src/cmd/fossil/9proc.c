@@ -101,7 +101,7 @@ static void
 msgFree(Msg* m)
 {
 	assert(m->rwnext == nil);
-	assert(m->fnext == nil && m->fprev == nil);
+	assert(m->behind == nil && m->before == nil);
 
 	vtLock(mbox.alock);
 	if(mbox.nmsg > mbox.maxmsg){
@@ -167,39 +167,49 @@ msgMunlink(Msg* m)
 }
 
 static void
-msgUnlinkUnlockAndFree(Msg* m)
+msgUnlinkAndFree(Msg* m)
 {
 	/*
-	 * Unlink the message from the flush and message queues,
-	 * unlock the connection message lock and free the message.
+	 * Unlink the message from the flush
+	 * and message lists, and free the message.
 	 * Called with con->mlock locked.
 	 */
-	if(m->fprev != nil)
-		m->fprev->fnext = m->fnext;
-	if(m->fnext != nil)
-		m->fnext->fprev = m->fprev;
-	m->fprev = m->fnext = nil;
+	if(m->behind){
+		m->behind->before = nil;
+		m->behind = nil;
+	}
+	if(m->before){
+		m->before->behind = nil;
+		m->before = nil;
+	}
 
 	msgMunlink(m);
-	vtUnlock(m->con->mlock);
 	msgFree(m);
 }
 
 void
 msgFlush(Msg* m)
 {
-	Msg *old;
 	Con *con;
+	Msg *old;
 
 	con = m->con;
 
-fprint(2, "msgFlush %F\n", &m->t);
+	if(Dflag)
+		fprint(2, "msgFlush %F\n", &m->t);
 
 	/*
+	 * If this Tflush has been flushed, nothing to do.
 	 * Look for the message to be flushed in the
 	 * queue of all messages still on this connection.
+	 * If it's not found must assume Elvis has already
+	 * left the building and reply normally.
 	 */
 	vtLock(con->mlock);
+	if(m->state == MsgF){
+		vtUnlock(con->mlock);
+		return;
+	}
 	for(old = con->mhead; old != nil; old = old->mnext)
 		if(old->t.tag == m->t.oldtag)
 			break;
@@ -210,72 +220,48 @@ fprint(2, "msgFlush %F\n", &m->t);
 		return;
 	}
 
-fprint(2, "\tmsgFlush found %F\n", &old->t);
+	if(Dflag)
+		fprint(2, "\tmsgFlush found %F\n", &old->t);
 
 	/*
 	 * Found it.
-	 *
-	 * Easy case is no 9P processing done yet,
-	 * message is on the read queue.
-	 * Mark the message as flushed and let the read
-	 * process throw it away after after pulling
-	 * it off the read queue.
+	 * There are two cases where the old message can be
+	 * truly flushed and no reply to the original message given.
+	 * The first is when the old message is in MsgR state; no
+	 * processing has been done yet and it is still on the read
+	 * queue. The second is if old is a Tflush, which doesn't
+	 * affect the server state. In both cases, put the old
+	 * message into MsgF state and let MsgProc or MsgWrite
+	 * toss it after pulling it off the appropriate queue.
 	 */
-	if(old->state == MsgR){
+	if(old->state == MsgR || old->t.type == Tflush){
 		old->state = MsgF;
 		if(Dflag)
-			fprint(2, "msgFlush: change %d from MsgR to MsgF\n", m->t.oldtag);
-		vtUnlock(con->mlock);
-		return;
+			fprint(2, "msgFlush: change %d from MsgR to MsgF\n",
+				m->t.oldtag);
 	}
 
 	/*
-	 * Flushing flushes.
-	 * Since they don't affect the server state, flushes
-	 * can be deleted when in Msg9 or MsgW state.
+	 * Link this flush message and the old message
+	 * so we can coalesce multiple flushes (if there are
+	 * multiple Tflush messages for a particular pending
+	 * request, it is only necessary to respond to the last
+	 * one, so any previous can be removed) and to be
+	 * sure flushes wait for their corresponding old
+	 * message to go out first.
 	 */
-	if(old->t.type == Tflush){
-		/*
-		 * For Msg9 state, the old message may
-		 * or may not be on the write queue.
-		 * Mark the message as flushed and let
-		 * the write process throw it away after
-		 * after pulling it off the write queue.
-		 */
-		if(old->state == Msg9){
-			old->state = MsgF;
-			if(Dflag)
-				fprint(2, "msgFlush: change %d from Msg9 to MsgF\n", m->t.oldtag);
-			vtUnlock(con->mlock);
-			return;
-		}
-		assert(old->state == MsgW);
-
-		/*
-		 * A flush in MsgW state implies it is waiting
-		 * for its corresponding old message to be written,
-		 * so it can be deleted right here, right now...
-		 * right here, right now... right here, right now...
-		 * right about now... the funk soul brother.
-		 */
+	if(old->behind){
 		if(Dflag)
-			fprint(2, "msgFlush: delete pending flush %F\n", &old->t);
-		msgUnlinkUnlockAndFree(old);
-		return;
+			fprint(2, "msgFlush: remove %d from %d list\n",
+				old->behind->t.tag, old->t.tag);
+		msgUnlinkAndFree(old->behind);
 	}
+	old->behind = m;
+	m->before = old;
 
-	/*
-	 * Must wait for the old message to be written.
-	 * Add m to old's flush queue.
-	 * Old is the head of its own flush queue.
-	 */
-	m->fprev = old;
-	m->fnext = old->fnext;
-	if(m->fnext)
-		m->fnext->fprev = m;
-	old->fnext = m;
 	if(Dflag)
-		fprint(2, "msgFlush: add %d to %d queue\n", m->t.tag, old->t.tag);
+		fprint(2, "msgFlush: add %d to %d queue\n",
+			m->t.tag, old->t.tag);
 	vtUnlock(con->mlock);
 }
 
@@ -311,37 +297,39 @@ msgProc(void*)
 		e = nil;
 
 		/*
-		 * If the message has been flushed before any
-		 * 9P processing has started, just throw it away.
+		 * If the message has been flushed before
+		 * any 9P processing has started, mark it so
+		 * none will be attempted.
 		 */
 		vtLock(con->mlock);
-		if(m->state == MsgF){
-			msgUnlinkUnlockAndFree(m);
-			continue;
-		}
-		m->state = Msg9;
+		if(m->state == MsgF)
+			e = "flushed";
+		else
+			m->state = Msg9;
 		vtUnlock(con->mlock);
 
-		/*
-		 * explain this
-		 */
-		vtLock(con->lock);
-		if(m->t.type == Tversion){
-			con->version = m;
-			con->state = ConDown;
-			while(con->mhead != m)
-				vtSleep(con->rendez);
-			assert(con->state == ConDown);
-			if(con->version == m){
-				con->version = nil;
-				con->state = ConInit;
+		if(e == nil){
+			/*
+			 * explain this
+			 */
+			vtLock(con->lock);
+			if(m->t.type == Tversion){
+				con->version = m;
+				con->state = ConDown;
+				while(con->mhead != m)
+					vtSleep(con->rendez);
+				assert(con->state == ConDown);
+				if(con->version == m){
+					con->version = nil;
+					con->state = ConInit;
+				}
+				else
+					e = "Tversion aborted";
 			}
-			else
-				e = "Tversion aborted";
+			else if(con->state != ConUp)
+				e = "connection not ready";
+			vtUnlock(con->lock);
 		}
-		else if(con->state != ConUp)
-			e = "connection not ready";
-		vtUnlock(con->lock);
 
 		/*
 		 * Dispatch if not error already.
@@ -355,7 +343,6 @@ msgProc(void*)
 		}
 		else
 			m->r.type = m->t.type+1;
-
 
 		/*
 		 * Put the message (with reply) on the
@@ -447,46 +434,51 @@ static int
 _msgWrite(Msg* m)
 {
 	Con *con;
-	int eof, n;
-
-	con = m->con;
+	int eof, msgw, n;
 
 	/*
-	 * An Rflush with a .fprev implies it is on a flush queue waiting for
-	 * its corresponding 'oldtag' message to go out first, so punt
-	 * until the 'oldtag' message goes out (see below).
+	 * A message with .before set implies it is waiting
+	 * for the .before message to go out first, so punt
+	 * until the .before message goes out (see below).
 	 */
-	if(m->r.type == Rflush && m->fprev != nil){
-		fprint(2, "msgWrite %p: delay r %F\n", con, &m->r);
+	con = m->con;
+	if(m->before != nil){
+		if(Dflag)
+			fprint(2, "msgWrite %p: delay r %F\n", con, &m->r);
 		return 0;
 	}
+	if(m->state == MsgF)
+		msgw = 0;
+	else
+		msgw = 1;
 
 	msgMunlink(m);
 	vtUnlock(con->mlock);
 
-	/*
-	 * TODO: optimise this copy away somehow for
-	 * read, stat, etc.
-	 */
-	assert(n = convS2M(&m->r, con->data, con->msize));
-	if(write(con->fd, con->data, n) != n)
-		eof = 1;
-	else
-		eof = 0;
+	eof = 0;
+	if(msgw){
+		/*
+		 * TODO: optimise this copy away somehow for
+		 * read, stat, etc.
+		 */
+		assert(n = convS2M(&m->r, con->data, con->msize));
+		if(write(con->fd, con->data, n) != n)
+			eof = 1;
+	}
 
 	if(Dflag)
-		fprint(2, "msgWrite %p: r %F\n", con, &m->r);
+		fprint(2, "msgWrite %d: r %F\n", msgw, &m->r);
 
 	/*
-	 * Just wrote a reply. If it has any flushes waiting
+	 * Message written or flushed. If it has anything waiting
 	 * for it to have gone out, recurse down the list writing
 	 * them out too.
 	 */
 	vtLock(con->mlock);
-	if(m->fnext != nil){
-		m->fnext->fprev = nil;
-		eof += _msgWrite(m->fnext);
-		m->fnext = nil;
+	if(m->behind != nil){
+		m->behind->before = nil;
+		eof += _msgWrite(m->behind);
+		m->behind = nil;
 	}
 	msgFree(m);
 
@@ -521,16 +513,13 @@ msgWrite(void* v)
 		vtUnlock(con->wlock);
 
 		/*
-		 * Throw the message away if it's a flushed flush,
-		 * otherwise change its state and try to write it out.
+		 * If the message hasn't been flushed,
+		 * change its state so it will be written
+		 * out.
 		 */
 		vtLock(con->mlock);
-		if(m->state == MsgF){
-			assert(m->t.type == Tflush);
-			msgUnlinkUnlockAndFree(m);
-			continue;
-		}
-		m->state = MsgW;
+		if(m->state != MsgF)
+			m->state = MsgW;
 		eof = _msgWrite(m);
 		vtUnlock(con->mlock);
 

@@ -140,15 +140,16 @@ smcinit(Uart *uart)
 	/* step 0: disable rx/tx */
 	smc->smcmr &= ~3;
 
+	ioplock();
+
 	/* step 1, Using Port D */
-	if (ud->smcno == 0){
-		iomem->port[SMC1PORT].ppar |= SMRXD1|SMTXD1;
-		iomem->port[SMC1PORT].pdir |= SMTXD1;
-		iomem->port[SMC1PORT].pdir &= ~SMRXD1;
-		iomem->port[SMC1PORT].psor &= ~(SMRXD1|SMTXD1);
-	}else{
+	if (ud->smcno != 0)
 		panic("Don't know how to set Port D bits");
-	}
+	iomem->port[SMC1PORT].ppar |= SMRXD1|SMTXD1;
+	iomem->port[SMC1PORT].pdir |= SMTXD1;
+	iomem->port[SMC1PORT].pdir &= ~SMRXD1;
+	iomem->port[SMC1PORT].psor &= ~(SMRXD1|SMTXD1);
+
 	/* step 2: set up brgc1 */
 	iomem->brgc[ud->smcno]  = baudgen(uart->baud) | 0x10000;
 
@@ -643,20 +644,12 @@ dbgputc(int c)
 	BD *tbdf;
 	Imap *imap;
 	char *addr;
-	uchar smcm;
-	SMC *smc;
-	IMM *io;
 
 	/* Should work as long as Imap is mapped at 0xf0000000 (INTMEM) */
 
 	imap = (Imap*)INTMEM;
 	su = (Uartsmc *)(INTMEM | imap->param[0].smcbase);
 	tbdf = (BD *)(INTMEM | su->tbase);
-
-	io = (IMM*)IOMEM;
-	smc = io->smc;
-	smcm = smc->smcm;	/* save interrupt state */
-	smc->smcm = 0;		/* turn interrupts off */
 
 	/* Wait for last character to go.
 	*/
@@ -671,9 +664,6 @@ dbgputc(int c)
 
 	while (tbdf->status & BDReady)
 		;
-
-	smc->smce = ce_Txb;	/* clear xmit events */
-	smc->smcm = smcm;	/* restore interrupts */
 
 	delay(300);
 }

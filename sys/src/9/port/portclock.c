@@ -18,7 +18,7 @@ ulong intrcount[MAXMACH];
 ulong fcallcount[MAXMACH];
 
 static uvlong
-tadd(Timers *tt, Timer *nt, uvlong now)
+tadd(Timers *tt, Timer *nt)
 {
 	Timer *t, **last;
 
@@ -30,13 +30,13 @@ tadd(Timers *tt, Timer *nt, uvlong now)
 		break;
 	case Trelative:
 		assert(nt->tns > 0);
-		nt->twhen = now + ns2fastticks(nt->tns);
+		nt->twhen = fastticks(nil) + ns2fastticks(nt->tns);
 		break;
 	case Tabsolute:
 		nt->twhen = tod2fastticks(nt->tns);
 		break;
 	case Tperiodic:
-		assert(nt->tns > 0);
+		assert(nt->tns >= 100000);	/* At least 100 µs period */
 		if(nt->twhen == 0){
 			/* look for another timer at same frequency for combining */
 			for(t = tt->head; t; t = t->tnext){
@@ -46,9 +46,9 @@ tadd(Timers *tt, Timer *nt, uvlong now)
 			if (t)
 				nt->twhen = t->twhen;
 			else
-				nt->twhen = now + ns2fastticks(nt->tns);
-		}else
-			nt->twhen = now + ns2fastticks(nt->tns);
+				nt->twhen = fastticks(nil);
+		}
+		nt->twhen += ns2fastticks(nt->tns);
 		break;
 	}
 
@@ -84,7 +84,7 @@ timeradd(Timer *nt)
 		timerdel(nt);
 	tt = &timers[m->machno];
 	ilock(tt);
-	when = tadd(tt, nt, fastticks(nil));
+	when = tadd(tt, nt);
 	if(when)
 		timerset(when);
 	iunlock(tt);
@@ -165,6 +165,7 @@ timerintr(Ureg *u, uvlong)
 	callhzclock = 0;
 	tt = &timers[m->machno];
 	now = fastticks(nil);
+	when = 0;
 	ilock(tt);
 	while(t = tt->head){
 		when = t->twhen;
@@ -174,6 +175,11 @@ timerintr(Ureg *u, uvlong)
 			m->splpc = pc;	/* for kernel profiling */
 			if(callhzclock)
 				hzclock(u);
+			else if (up && up->delaysched){
+				spllo();
+				sched();
+				splhi();
+			}
 			return;
 		}
 		tt->head = t->tnext;
@@ -181,16 +187,13 @@ timerintr(Ureg *u, uvlong)
 		t->tt = nil;
 		fcallcount[m->machno]++;
 		iunlock(tt);
-		if(t->tf){
+		if(t->tf)
 			(*t->tf)(u, t);
-			splhi();
-		} else
+		else
 			callhzclock++;
 		ilock(tt);
-		if(t->tmode == Tperiodic){
-			t->twhen += ns2fastticks(t->tns);
-			tadd(tt, t, now);
-		}
+		if(t->tmode == Tperiodic)
+			tadd(tt, t);
 	}
 	iunlock(tt);
 }
@@ -213,7 +216,7 @@ void
 addclock0link(void (*f)(void), int ms)
 {
 	Timer *nt;
-	uvlong ft;
+	uvlong when;
 
 	/* Synchronize to hztimer if ms is 0 */
 	nt = malloc(sizeof(Timer));
@@ -224,10 +227,10 @@ addclock0link(void (*f)(void), int ms)
 	nt->tt = nil;
 	nt->tf = (void (*)(Ureg*, Timer*))f;
 
-	ft = fastticks(nil);
-
 	ilock(&timers[0]);
-	tadd(&timers[0], nt, ft);
+	when = tadd(&timers[0], nt);
+	if(when)
+		timerset(when);
 	iunlock(&timers[0]);
 }
 

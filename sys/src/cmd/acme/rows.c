@@ -375,9 +375,6 @@ rowdump(Row *row, char *file)
 					0, 0,
 					100*(w->r.min.y-c->r.min.y)/Dy(c->r),
 					fontname);
-			}else if(strlen(a) == 0){	/* don't save unnamed windows */
-				free(a);
-				continue;
 			}else if((w->dirty==FALSE && access(a, 0)==0) || w->isdir){
 				dumped = FALSE;
 				t->file->dumpid = w->id;
