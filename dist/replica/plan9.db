@@ -171,7 +171,7 @@
 386/bin/cal - 775 sys sys 1056364226 66698
 386/bin/calendar - 775 sys sys 1056364227 78213
 386/bin/cat - 775 sys sys 1039758550 37944
-386/bin/cb - 775 sys sys 1062860430 75704
+386/bin/cb - 775 sys sys 1063039635 76159
 386/bin/cdfs - 775 sys sys 1056364228 163188
 386/bin/cfs - 775 sys sys 1056364229 129790
 386/bin/chgrp - 775 sys sys 1056364229 58515
@@ -3263,7 +3263,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1060359152 244377
+sys/games/lib/fortunes - 664 sys sys 1063072455 244492
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1055701304 1291
@@ -4497,6 +4497,7 @@ sys/man/1/bundle - 664 sys sys 944959672 986
 sys/man/1/cal - 664 sys sys 944959673 849
 sys/man/1/calendar - 664 sys sys 1032058542 1144
 sys/man/1/cat - 664 sys sys 1022048090 1335
+sys/man/1/cb - 664 sys sys 1063025841 890
 sys/man/1/chgrp - 664 sys sys 944959673 710
 sys/man/1/chmod - 664 sys sys 944959673 1276
 sys/man/1/cleanname - 664 sys sys 944959674 580
@@ -6930,8 +6931,8 @@ sys/src/cmd/cal.c - 664 sys sys 944961619 4206
 sys/src/cmd/calendar.c - 664 sys sys 1034213625 3571
 sys/src/cmd/cat.c - 664 sys sys 1014926693 532
 sys/src/cmd/cb - 20000000775 sys sys 1062860425 0
-sys/src/cmd/cb/cb.c - 664 sys sys 1062860425 17924
-sys/src/cmd/cb/cb.h - 664 sys sys 1062860425 3382
+sys/src/cmd/cb/cb.c - 664 sys sys 1063039630 18439
+sys/src/cmd/cb/cb.h - 664 sys sys 1063023989 3404
 sys/src/cmd/cb/cbtype.c - 664 sys sys 1062860425 674
 sys/src/cmd/cb/cbtype.h - 664 sys sys 1062860425 794
 sys/src/cmd/cb/mkfile - 664 sys sys 1062860425 172

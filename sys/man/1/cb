@@ -1,0 +1,31 @@
+.TH CB 1
+.SH NAME
+.I cb 
+\- C program beautifier
+.SH SYNOPSIS
+\fBcb\fR [\fB-s\fR] [\fB-j\fR] [\fB-l\fR \fIleng\fR] [\fIfile\fR ...]
+.SH DESCRIPTION
+\fBCb\fR reads syntactically correct C programs from
+from its input or the given files, and writes them to its stdout
+with a more visualy pleasing spacing and indentation. \fBCb\fR
+understands no C++ syntax bar newline terminated comments;
+and by default all user new-lines are preserved in the output.
+.PP
+\fBCb\fR accepts the following options.
+.TP 
+.B -s
+Write the code in the style of Kernighan and
+Ritchie found in The C Programming Language.
+.TP
+.B -j
+Put split lines back together.
+.TP 
+.B -l leng
+Split lines that are longer than \fIleng\fR.
+.SH SOURCE
+.B /sys/src/cmd/cb
+.SH NOTES
+The format of structure initializations is unchanged by \fBcb\fR.
+.br
+Punctuation that is hidden in preprocessing directives
+causes indentation errors.
