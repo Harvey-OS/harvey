@@ -43,7 +43,7 @@ enum
 	Maskproto=	(1<<Logproto)-1,
 	Shiftproto=	Logtype + Logconv,
 
-	Nfs=		16,
+	Nfs=		128,
 };
 #define TYPE(x) 	( ((ulong)(x).path) & Masktype )
 #define CONV(x) 	( (((ulong)(x).path) >> Shiftconv) & Maskconv )
@@ -311,7 +311,7 @@ ipattach(char* spec)
 	int dev;
 
 	dev = atoi(spec);
-	if(dev >= 16)
+	if(dev >= Nfs)
 		error("bad specification");
 
 	ipgetfs(dev);
