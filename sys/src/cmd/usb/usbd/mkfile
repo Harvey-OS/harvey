@@ -2,17 +2,22 @@
 
 TARG=usbd
 OFILES=\
-	device.$O\
 	hub.$O\
+	setup.$O\
 	usbd.$O\
 
 HFILES=\
 	dat.h\
 	fns.h\
 	../lib/usb.h\
-	../lib/usbproto.h\
 
 LIB=../lib/usb.a$O
+
+UPDATE=\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	mkfile\
+	/sys/man/3/usb\
 
 BIN=/$objtype/bin/usb
 </sys/src/cmd/mkone

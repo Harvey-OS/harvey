@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include "usbproto.h"
 #include "usb.h"
 
 #include "dat.h"
@@ -9,8 +8,11 @@
 
 #define STACKSIZE 128*1024
 
+static int dontfork;
+
 Ref	busy;
-int	debug, verbose;
+
+int debug;
 
 typedef struct Enum Enum;
 struct Enum
@@ -19,57 +21,21 @@ struct Enum
 	int port;
 };
 
+void (*dprinter[])(Device *, int, ulong, void *b, int n) = {
+	[STRING] pstring,
+	[DEVICE] pdevice,
+	[0x29] phub,
+};
+
 static void
 usage(void)
 {
-	fprint(2, "usage: usbd [-v] [-d]\n");
+	fprint(2, "usage: usbd\n");
 	threadexitsall("usage");
 }
 
 void
-threadmain(int argc, char **argv)
-{
-	int i;
-	Hub *h;
-
-	ARGBEGIN {
-	case 'd':
-		debug++;
-		break;
-	case 'v':
-		verbose = 1;
-		break;
-	} ARGEND
-
-	if(argc)
-		usage();
-
-	rfork(RFNOTEG);
-	if(access("/dev/usb0", 0) < 0 && bind("#U", "/dev", MAFTER) < 0)
-		sysfatal("%s: can't bind #U after /dev: %r\n", argv0);
-
-	usbfmtinit();
-	fmtinstall('H', Hfmt);
-
-	/* don't hold window open */
-	close(0);
-	close(1);
-	if(!debug && !verbose)
-		close(2);
-
-	for(i = 0; (h = roothub(i)) != nil; i++) {
-		incref(&busy);
-		proccreate(roothubproc, h, STACKSIZE);
-	}
-	while(busy.ref)
-		sleep(100);
-	if(verbose)
-		fprint(2, "usbd: enumeration complete\n");
-	threadexits(nil);
-}
-
-void
-roothubproc(void *a)
+work(void *a)
 {
 	int port;
 	Hub *hub;
@@ -91,59 +57,98 @@ roothubproc(void *a)
 		yield();
 		if (busy.ref == 0)
 			sleep(2000);
-		else if(debug > 1)
-			fprint(2, "usbd: busy.ref %ld\n", busy.ref);
 	}
+}
+
+void
+threadmain(int argc, char **argv)
+{
+	int i;
+	Hub *h;
+
+	ARGBEGIN{
+	case 'f':
+		dontfork=1;
+		break;
+	case 'd':
+		debug++;
+		break;
+	case 'v':
+		verbose = 1;
+		break;
+	}ARGEND
+	if (argc)
+		usage();
+	if (access("/dev/usb0", 0) < 0 && bind("#U", "/dev", MAFTER) < 0)
+		sysfatal("%s: can't bind #U after /dev: %r\n", argv0);
+
+	usbfmtinit();
+	fmtinstall('H', Hfmt);
+
+	/* always fork off usb[1-n] */
+	for(i=1; (h = roothub(i)) != nil; i++) {
+		incref(&busy);
+		proccreate(work, h, STACKSIZE);
+	}
+
+	/* usb0 might be handled in this proc */
+	if((h = roothub(0)) != nil){
+		incref(&busy);
+		if (dontfork) {
+			work(h);
+		} else {
+			rfork(RFNOTEG);
+			proccreate(work, h, STACKSIZE);
+			/* don't hold window open */
+			close(0);
+			close(1);
+			if(!debug && !verbose)
+				close(2);
+		}
+	}
+	if (debug)
+		fprint(2, "done\n");
+	while (busy.ref)
+		sleep(100);
+	threadexits(nil);
 }
 
 void
 enumerate(void *v)
 {
+	int i, port;
 	Device *d;
 	Enum *arg;
 	Hub *h, *nh;
-	int i, port, status;
 
 	arg = v;
 	h = arg->hub;
 	port = arg->port;
 	free(arg);
 
-	for(;;) {
-		status = portstatus(h, port);
-		if(status < 0) {
-badstatus:
-			if(debug)
-				fprint(2, "usbd: %H.%d: %r\n", h, port);
-			threadexits(nil);
-		}
-		if((status & (1<<PORT_CONNECTION)) == 0) {
+	for (;;) {
+		if((portstatus(h, port) & (1<<PORT_CONNECTION)) == 0) {
 			decref(&busy);
-			if(verbose)
+			if (verbose)
 				fprint(2, "usbd: %H: port %d empty\n", h, port);
-			for(;;) {
+			do {
 				yield();
-				if(debug > 1)
+				if (debugdebug)
 					fprint(2, "usbd: probing %H.%d\n", h, port);
 				sleep(500);
-				status = portstatus(h, port);
-				if(status < 0)
-					goto badstatus;
-				if((status & (1<<PORT_CONNECTION)) != 0)
-					break;
-			}
+			} while((portstatus(h, port) & (1<<PORT_CONNECTION)) == 0);
 			incref(&busy);
 		}
 		if(verbose)
 			fprint(2, "usbd: %H: port %d attached\n", h, port);
 		d = configure(h, port);
 		if(d == nil) {
-			if(verbose || debug)
-				fprint(2, "usbd: can't configure port %H.%d: %r\n", h, port);
+			if(verbose)
+				fprint(2, "usbd: can't configure port %H.%d\n", h, port);
 			decref(&busy);
 			threadexits("configure");
 		}
-		if(Class(d->csp) == CL_HUB) {
+		if(d->class == Hubclass) {
 			if(debug)
 				fprint(2, "usbd: %H.%d: hub %d attached\n", h, port, d->id);
 			setconfig(d, 1);
@@ -158,7 +163,7 @@ badstatus:
 			/* TO DO: initialise status endpoint */
 			for(i=1; i<=nh->nport; i++)
 				portpower(nh, i, 1);
-			sleep(100+nh->pwrms);
+			sleep(nh->pwrms);
 			for(i=1; i<=nh->nport; i++) {
 				arg = emallocz(sizeof(Enum), 1);
 				arg->hub = nh;
@@ -166,34 +171,27 @@ badstatus:
 				incref(&busy);
 				threadcreate(enumerate, arg, STACKSIZE);
 			}
-			h->port[port-1].hub = nh;
 		}else{
 			if(debug)
 				fprint(2, "usbd: %H.%d: %d: not hub, %s speed\n", h, port, d->id, d->ls?"low":"high");
 			setconfig(d, 1);	/* TO DO */
+//unconscionable kludge (testing camera)
+if(d->class == 10) setup0(d, RH2D|Rinterface, SET_INTERFACE, 10, 0, 0);
 		}
 		decref(&busy);
-		for(;;) {
-			status = portstatus(h, port);
-			if(status < 0) {
-				detach(h, port);
-				goto badstatus;
-			}
-			if((status & (1<<PORT_CONNECTION)) == 0)
-				break;
-			if(debug > 1)
-				fprint(2, "usbd: checking %H.%d\n", h, port);
+		while(portstatus(h, port) & (1<<PORT_CONNECTION)) {
+			if (debugdebug)
+				fprint(2, "checking %H.%d\n", h, port);
 			yield();
-			if(d->state == Detached) {
-				if(verbose)
-					fprint(2, "usbd: %H: port %d detached by parent hub\n", h, port);
+			if (d->state == Detached) {
+				if (verbose)
+					fprint(2, "%H: port %d detached by parent hub\n", h, port);
 				/* parent hub died */
 				threadexits(nil);
 			}
 		}
-		incref(&busy);
 		if(verbose)
-			fprint(2, "usbd: %H: port %d detached\n", h, port);
+			fprint(2, "%H: port %d detached\n", h, port);
 		detach(h, port);
 	}
 	threadexits(nil);
@@ -204,39 +202,28 @@ configure(Hub *h, int port)
 {
 	Port *p;
 	Device *d;
-	int s, maxpkt, ls;
+	int i, s, maxpkt, ls;
 
-	if(portenable(h, port, 1) < 0)
-		return nil;
-	sleep(100);
-	if(portreset(h, port) < 0)
-		return nil;
-	sleep(100);
+	portenable(h, port, 1);
+	sleep(20);
+	portreset(h, port);
+	sleep(20);
 	s = portstatus(h, port);
-	if(s == -1)
-		return nil;
-	if(debug)
+	if (debug)
 		fprint(2, "%H.%d status %#ux\n", h, port, s);
-	if((s & (1<<PORT_CONNECTION)) == 0)
+	if ((s & (1<<PORT_CONNECTION)) == 0)
 		return nil;
-	sleep(100);
-	if((s & (1<<PORT_SUSPEND)) == 0) {
+	if ((s & (1<<PORT_SUSPEND)) == 0) {
 		if (debug)
 			fprint(2, "enabling port %H.%d\n", h, port);
-		if(portenable(h, port, 1) < 0)
-			return nil;
-		sleep(100);
+		portenable(h, port, 1);
 		s = portstatus(h, port);
-		if(s == -1)
-			return nil;
-		sleep(100);
 		if (debug)
 			fprint(2, "%H.%d status now %#ux\n", h, port, s);
 	}
 
 	ls = (s & (1<<PORT_LOW_SPEED)) != 0;
 	devspeed(h->dev0, ls);
-	sleep(100);
 	maxpkt = getmaxpkt(h->dev0);
 	if(maxpkt < 0) {
 Error0:
@@ -246,6 +233,7 @@ Error0:
 	d = opendev(h->ctlrno, -1);
 	d->ls = ls;
 	d->state = Enabled;
+	d->ep[0]->maxpkt = maxpkt;
 	if(fprint(d->ctl, "maxpkt 0 %d", maxpkt) < 0) {
 Error1:
 		closedev(d);
@@ -254,16 +242,18 @@ Error1:
 	if(setaddress(h->dev0, d->id) < 0)
 		goto Error1;
 	d->state = Assigned;
-	sleep(100);
 	devspeed(d, ls);
-	sleep(100);
 	if(describedevice(d) < 0)
 		goto Error1;
-	if(verbose || debug) {
-		loadstrings(d, 1033);
-		dumpdevice(2, d);
-	}
 
+	/* read configurations 0 to n */
+	for(i=0; i<d->nconf; i++) {
+		if(d->config[i] == nil)
+			d->config[i] = mallocz(sizeof(*d->config[i]),1);
+		loadconfig(d, i);
+	}
+	for(i=0; i<16; i++)
+		setdevclass(d, i);
 	p = &h->port[port-1];
 	p->d = d;
 	return d;
@@ -272,25 +262,15 @@ Error1:
 void
 detach(Hub *h, int port)
 {
-	int i;
 	Port *p;
-	Hub *hh;
 	Device *d;
 
 	p = &h->port[port-1];
-	hh = p->hub;
-	if(hh != nil) {
-		for(i = 1; i <= hh->nport; i++)
-			detach(hh, i);
-		freehub(hh);
+	if(p->hub != nil) {
+		freehub(p->hub);
 		p->hub = nil;
 	}
 	d = p->d;
-	if(d == nil || d->state == Detached)
-		return;
-	if(debug || verbose)
-		fprint(2, "usbd: detaching %D from %H.%d\n", d, h, port);
 	d->state = Detached;	/* return i/o error on access */
 	closedev(d);
-	p->d = nil;
 }

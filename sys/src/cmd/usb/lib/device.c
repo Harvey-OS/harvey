@@ -6,10 +6,18 @@
 static int
 readnum(int fd)
 {
-	int n;
 	char buf[20];
+	int n;
 
-	n = read(fd, buf, sizeof buf);
+	for(;;){
+		n = read(fd, buf, sizeof buf);
+		if (n < 0){
+			rerrstr(buf, sizeof buf);
+			if (strcmp(buf, "interrupted") != 0)
+				break;
+		} else
+			break;
+	}
 	buf[sizeof(buf)-1] = 0;
 	return n <= 0? -1: strtol(buf, nil, 0);
 }
@@ -60,15 +68,14 @@ opendev(int ctlrno, int id)
 
 	d->ctlrno = ctlrno;
 	d->id = id;
+	d->ep[0] = newendpt(d, 0, 0);
 	return d;
 }
 
 void
 closedev(Device *d)
 {
-	int i, j;
-	Dconf *conf;
-	Dalt *alt, *nextalt;
+	int i;
 
 	if(d==nil)
 		return;
@@ -78,17 +85,77 @@ closedev(Device *d)
 	close(d->setup);
 	close(d->status);
 
-	for(i = 0; i < d->nconf; i++) {
-		conf = &d->config[i];
-		for(j = 0; j < conf->nif; j++) {
-			for(alt = conf->iface[j].alt; alt != nil; alt = nextalt) {
-				nextalt = alt->next;
-				free(alt->ep);
-				free(alt);
-			}
-		}
-		free(conf->iface);
-	}
-	free(d->config);
+	for(i=0; i<nelem(d->ep); i++)
+		free(d->ep[i]);
 	free(d);
+}
+
+void
+setdevclass(Device *d, int n)
+{
+	Endpt *e;
+
+	if (e = d->ep[n]) {
+		if (verbose) fprint(2, "class %d %d %#6.6lux\n",
+			d->nif, n, e->csp);
+		fprint(d->ctl, "class %d %d %#6.6lux",
+			d->nif, n, e->csp);
+	}
+}
+
+int
+describedevice(Device *d)
+{
+	DDevice *dd;
+	byte buf[1023];
+	int nr = -1;
+
+	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR, (DEVICE<<8)|0, 0, sizeof(buf)) < 0 ||
+	   (nr = setupreply(d->ep[0], buf, sizeof(buf))) < DDEVLEN) {
+		fprint(2, "usb: error reading device descriptor, got %d of %d\n",
+			nr, DDEVLEN);
+		return -1;
+	}
+	/* extract gubbins */
+	pdesc(d, -1, -1, buf, nr);
+	dd = (DDevice*)buf;
+	d->csp = CSP(dd->bDeviceClass, dd->bDeviceSubClass, dd->bDeviceProtocol);
+	d->ep[0]->maxpkt = dd->bMaxPacketSize0;
+	if (dd->bDeviceClass == 9)
+		d->class = Hubclass;
+	else
+		d->class = Otherclass;
+	d->nconf = dd->bNumConfigurations;
+	d->vid = GET2(dd->idVendor);
+	d->did = GET2(dd->idProduct);
+	return 0;
+}
+
+int
+loadconfig(Device *d, int n)
+{
+	byte buf[1023];
+	int nr;
+
+	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR, (CONFIGURATION<<8)|n, 0, sizeof(buf)) < 0 ||
+	   (nr = setupreply(d->ep[0], buf, sizeof(buf))) < 1) {
+		fprint(2, "usb: error reading configuration descriptor\n");
+		return -1;
+	}
+	/* extract gubbins */
+	pdesc(d, n, -1, buf, nr);
+	return 0;
+}
+
+Endpt *
+newendpt(Device *d, int id, ulong csp)
+{
+	Endpt *e;
+
+	e = mallocz(sizeof(*e), 1);
+	e->id = id;
+	e->dev = d;
+	e->csp = csp;
+	e->maxpkt = 32;
+	return e;
 }

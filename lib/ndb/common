@@ -212,6 +212,7 @@ udp=bootp port=67
 udp=domain port=53
 udp=dns port=53
 udp=portmap port=111
+udp=netbios-ns port=137
 udp=ntp port=123
 udp=snmp port=161
 udp=rip port=520

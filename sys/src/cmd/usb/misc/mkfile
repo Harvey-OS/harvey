@@ -1,13 +1,20 @@
 </$objtype/mkfile
 
 TARG=\
+#	readir\
 	usbmouse\
+#	usbprobe\
 
 HFILES=\
 	../lib/usb.h\
-	../lib/usbproto.h\
 
 LIB=../lib/usb.a$O
+
+UPDATE=\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	mkfile\
+	usbprint\
 
 BIN=/$objtype/bin/usb
 </sys/src/cmd/mkmany

@@ -27,4 +27,4 @@ struct Port
 
 #pragma	varargck	type  "H"	Hub*
 
-extern int verbose, debug;
+extern int verbose;
