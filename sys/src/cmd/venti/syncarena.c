@@ -34,7 +34,7 @@ syncArena(Arena *arena, u32int n, int zok, int fix)
 	u8int score[VtScoreSize];
 	u64int uncsize, used, aa;
 	u32int clump, clumps, cclumps, magic;
-	int err, flush, broken;
+	int err, flush, broken, cierr;
 
 	used = arena->used;
 	clumps = arena->clumps;
@@ -62,6 +62,7 @@ syncArena(Arena *arena, u32int n, int zok, int fix)
 		arena->clumps++;
 
 		broken = 0;
+		cierr = 0;
 		lump = loadClump(arena, aa, 0, &cl, score, 0);
 		if(lump == nil){
 			fprint(2, "clump=%d failed to read correctly: %R\n", clump);
@@ -93,14 +94,14 @@ syncArena(Arena *arena, u32int n, int zok, int fix)
 			broken = 1;
 		}else if(!broken && !clumpInfoEq(&ci, &cl.info)){
 			if(clumpInfoEq(&ci, &zci)){
-				err |= SyncCIZero;
+				cierr |= SyncCIZero;
 				if(!zok){
 					fprint(2, "unwritten clump info for clump=%d ", clump);
 					fprint(2, "score=%V type=%d\n",
 						cl.info.score, cl.info.type);
 				}
 			}else{
-				err |= SyncCIErr;
+				cierr |= SyncCIErr;
 				fprint(2, "bad clump info for clump=%d\n", clump);
 				fprint(2, "\texpected score=%V type=%d size=%d uncsize=%d\n",
 					cl.info.score, cl.info.type, cl.info.size, cl.info.uncsize);
@@ -115,8 +116,10 @@ syncArena(Arena *arena, u32int n, int zok, int fix)
 			if(!writeClumpInfo(arena, clump, &ci)){
 				fprint(2, "can't write correct clump directory: %R\n");
 				err |= SyncFixErr;
-			}
+			}else
+				cierr &= ~(SyncCIZero|SyncCIErr);
 		}
+		err |= cierr;
 
 		arena->uncsize += cl.info.uncsize;
 		if(cl.info.size < cl.info.uncsize)

@@ -26,7 +26,7 @@ main(int argc, char *argv[])
 	ldr[0] = "";
 	ldr[1] = "\t";
 	ldr[2] = "\t\t";
-	l = 2;
+	l = 1;
 	ARGBEGIN{
 	case '1':
 		if(!one) {

@@ -16615,3 +16615,8 @@
 1093491055 2 c 386/bin/aux/listen1 - 775 sys sys 1093489557 91380
 1093491055 3 c 386/bin/ip/tftpd - 775 sys sys 1093489558 127405
 1093491055 4 c 386/bin/upas/nedmail - 775 sys sys 1093489559 153913
+1093980627 0 c sys/include/ape/sys/resource.h - 664 sys sys 1093980308 932
+1093980627 1 c sys/include/ape/sys/wait.h - 664 sys sys 1093980308 672
+1093980627 2 c sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1093980308 2378
+1093980627 3 c sys/src/cmd/comm.c - 664 sys sys 1093979717 2140
+1093980627 4 c sys/src/cmd/venti/syncarena.c - 664 sys sys 1093980087 4198

@@ -3378,7 +3378,7 @@ sys/include/ape/sys/ioctl.h - 664 sys sys 969500381 341
 sys/include/ape/sys/limits.h - 664 sys sys 944948759 494
 sys/include/ape/sys/param.h - 664 sys sys 944948759 243
 sys/include/ape/sys/pty.h - 664 sys sys 944948759 274
-sys/include/ape/sys/resource.h - 664 sys sys 944948759 205
+sys/include/ape/sys/resource.h - 664 sys sys 1093980308 932
 sys/include/ape/sys/select.h - 664 sys sys 1014927751 779
 sys/include/ape/sys/socket.h - 664 sys sys 984696196 5783
 sys/include/ape/sys/stat.h - 664 sys sys 1068478179 2177
@@ -3388,7 +3388,7 @@ sys/include/ape/sys/types.h - 664 sys sys 1068478175 993
 sys/include/ape/sys/uio.h - 664 sys sys 944948759 636
 sys/include/ape/sys/un.h - 664 sys sys 944948759 1011
 sys/include/ape/sys/utsname.h - 664 sys sys 944948759 279
-sys/include/ape/sys/wait.h - 664 sys sys 1087406385 610
+sys/include/ape/sys/wait.h - 664 sys sys 1093980308 672
 sys/include/ape/termios.h - 664 sys sys 944948760 2745
 sys/include/ape/time.h - 664 sys sys 944948760 1016
 sys/include/ape/u.h - 664 sys sys 1038237538 399
@@ -6142,7 +6142,7 @@ sys/src/ape/lib/ap/plan9/umask.c - 664 sys sys 1014921985 182
 sys/src/ape/lib/ap/plan9/uname.c - 664 sys sys 1014921985 408
 sys/src/ape/lib/ap/plan9/unlink.c - 664 sys sys 1038237528 1505
 sys/src/ape/lib/ap/plan9/utime.c - 664 sys sys 1046643007 469
-sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1089859817 2162
+sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1093980308 2378
 sys/src/ape/lib/ap/plan9/write.c - 664 sys sys 1038237529 348
 sys/src/ape/lib/ap/posix - 20000000775 sys sys 1014921981 0
 sys/src/ape/lib/ap/posix/getgrent.c - 664 sys sys 1014921981 945
@@ -7233,7 +7233,7 @@ sys/src/cmd/cleanname.c - 664 sys sys 944960760 715
 sys/src/cmd/clock.c - 664 sys sys 1014925410 1881
 sys/src/cmd/cmp.c - 664 sys sys 1072145760 2379
 sys/src/cmd/colors.c - 664 sys sys 951763912 3186
-sys/src/cmd/comm.c - 664 sys sys 944961350 2140
+sys/src/cmd/comm.c - 664 sys sys 1093979717 2140
 sys/src/cmd/con - 20000000775 sys sys 944961996 0
 sys/src/cmd/con/con.c - 664 sys sys 1077839879 15213
 sys/src/cmd/con/hayes.c - 664 sys sys 1014925263 3865
@@ -11006,7 +11006,7 @@ sys/src/cmd/venti/sortientry.c - 664 sys sys 1063854195 7447
 sys/src/cmd/venti/stats.c - 664 sys sys 1019678880 2099
 sys/src/cmd/venti/stdinc.h - 664 sys sys 1019678880 139
 sys/src/cmd/venti/sync.c - 664 sys sys 1036470213 674
-sys/src/cmd/venti/syncarena.c - 664 sys sys 1055707444 4116
+sys/src/cmd/venti/syncarena.c - 664 sys sys 1093980087 4198
 sys/src/cmd/venti/syncindex.c - 664 sys sys 1055707433 983
 sys/src/cmd/venti/syncindex0.c - 664 sys sys 1036470283 3044
 sys/src/cmd/venti/unittoull.c - 664 sys sys 1019678881 398
