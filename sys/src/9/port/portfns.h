@@ -341,6 +341,7 @@ int		uartctl(Uart*, char*);
 int		uartgetc(void);
 void		uartkick(void*);
 void		uartmouse(Uart*, int (*)(Queue*, int), int);
+void		uartsetmouseputc(Uart*, int (*)(Queue*, int));
 void		uartputc(int);
 void		uartputs(char*, int);
 void		uartrecv(Uart*, char);

@@ -609,6 +609,42 @@ m3mouseputc(Queue*, int c)
 }
 
 /*
+ * microsoft intellimouse 3 buttons + scroll
+ * 	byte 0 -	1  L  R Y7 Y6 X7 X6
+ *	byte 1 -	0 X5 X4 X3 X2 X1 X0
+ *	byte 2 -	0 Y5 Y4 Y3 Y2 Y1 Y0
+ *	byte 3 -	0  0  M  %  %  %  %
+ *
+ *	%: 0xf => U , 0x1 => D
+ *
+ *	L: left
+ *	R: right
+ *	U: up
+ *	D: down
+ */
+int
+m5mouseputc(Queue*, int c)
+{
+	static uchar msg[3];
+	static int nb;
+	msg[nb++] = c & 0x7f;
+	if (nb == 4) {
+		schar dx,dy,newbuttons;
+		dx = msg[1] | (msg[0] & 0x3) << 6;
+		dy = msg[2] | (msg[0] & 0xc) << 4;
+		newbuttons = 
+			(msg[0] & 0x10) >> (mouseshifted ? 3 : 2)
+			| (msg[0] & 0x20) >> 5
+			| ( msg[3] == 0x10 ? 0x02 :
+			    msg[3] == 0x0f ? 0x08 :
+			    msg[3] == 0x01 ? 0x10 : 0 );
+		mousetrack(dx, dy, newbuttons, TK2MS(MACHP(0)->ticks));
+		nb = 0;
+	}
+	return 0;
+}
+
+/*
  *  Logitech 5 byte packed binary mouse format, 8 bit bytes
  *
  *  shift & right button is the same as middle button (for 2 button mice)

@@ -4937,6 +4937,7 @@ sys/man/8/ndb - 664 sys sys 1055706144 9838
 sys/man/8/newuser - 664 sys sys 954305551 2343
 sys/man/8/nfsserver - 664 sys sys 1017251291 3397
 sys/man/8/pcmcia - 664 sys sys 944959679 408
+sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1028233565 2789
 sys/man/8/plan9.ini - 664 sys sys 1053576234 20536
 sys/man/8/pop3 - 664 sys sys 1058012143 2444
@@ -5012,7 +5013,7 @@ sys/src/9/alphapc/mouse.c - 664 sys sys 1015012786 25
 sys/src/9/alphapc/pci.c - 664 sys sys 1039753420 7868
 sys/src/9/alphapc/random.c - 664 sys sys 1039753421 26
 sys/src/9/alphapc/screen.c - 664 sys sys 1039753422 26
-sys/src/9/alphapc/screen.h - 664 sys sys 1039794340 3547
+sys/src/9/alphapc/screen.h - 664 sys sys 1060267151 3584
 sys/src/9/alphapc/sd53c8xx.c - 664 sys sys 1015012787 51009
 sys/src/9/alphapc/sdata.c - 664 sys sys 1015012787 25
 sys/src/9/alphapc/sdscsi.c - 664 sys sys 1015012787 26
@@ -5087,7 +5088,7 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1032053196 390
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
-sys/src/9/boot/libboot.a8 - 664 sys sys 1056568081 54780
+sys/src/9/boot/libboot.a8 - 664 sys sys 1060267156 54780
 sys/src/9/boot/local.c - 664 sys sys 1039763718 2041
 sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
@@ -5202,7 +5203,7 @@ sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1015014518 15079
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1026847642 3722
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
-sys/src/9/pc/fns.h - 664 sys sys 1056299506 4215
+sys/src/9/pc/fns.h - 664 sys sys 1060266613 4268
 sys/src/9/pc/hcwAMC.h - 664 sys sys 1026860163 166004
 sys/src/9/pc/i8253.c - 664 sys sys 1055689890 6219
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
@@ -5216,7 +5217,7 @@ sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1032303986 12994
 sys/src/9/pc/mkfile - 664 sys sys 1056336303 3092
 sys/src/9/pc/mmu.c - 664 sys sys 1049509456 10014
-sys/src/9/pc/mouse.c - 664 sys sys 1020369766 6315
+sys/src/9/pc/mouse.c - 664 sys sys 1060266650 6625
 sys/src/9/pc/mp.c - 664 sys sys 1048644112 16928
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
 sys/src/9/pc/pc - 664 sys sys 1055700612 1360
@@ -5239,7 +5240,7 @@ sys/src/9/pc/random.c - 664 sys sys 1036812832 2021
 sys/src/9/pc/reboot.h - 664 sys sys 1015014522 334
 sys/src/9/pc/rebootcode.s - 664 sys sys 1015014522 988
 sys/src/9/pc/screen.c - 664 sys sys 1039753497 7266
-sys/src/9/pc/screen.h - 664 sys sys 1048644129 3760
+sys/src/9/pc/screen.h - 664 sys sys 1060267144 3797
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1055689891 52089
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
@@ -5247,7 +5248,7 @@ sys/src/9/pc/sdata.c - 664 sys sys 1056475678 50230
 sys/src/9/pc/sdmylex.c - 664 sys sys 1015014523 27750
 sys/src/9/pc/sdscsi.c - 664 sys sys 1055689892 7406
 sys/src/9/pc/trap.c - 664 sys sys 1056299507 19012
-sys/src/9/pc/uarti8250.c - 664 sys sys 1056299508 12605
+sys/src/9/pc/uarti8250.c - 664 sys sys 1060266726 12826
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
 sys/src/9/pc/usb.h - 664 sys sys 1015014524 3505
 sys/src/9/pc/usbuhci.c - 664 sys sys 1026847653 30686
@@ -5266,7 +5267,7 @@ sys/src/9/pc/vgamach64xx.c - 664 sys sys 1048644147 29112
 sys/src/9/pc/vgamga2164w.c - 664 sys sys 1015014527 5654
 sys/src/9/pc/vgamga4xx.c - 664 sys sys 1015014527 11122
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1032375144 10693
-sys/src/9/pc/vganvidia.c - 664 sys sys 1055090312 6543
+sys/src/9/pc/vganvidia.c - 664 sys sys 1060269772 6545
 sys/src/9/pc/vgargb524.c - 664 sys sys 1015014527 4235
 sys/src/9/pc/vgas3.c - 664 sys sys 1055689893 12082
 sys/src/9/pc/vgasavage.c - 664 sys sys 1046203931 16194
@@ -5299,7 +5300,7 @@ sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1018721201 14968
 sys/src/9/port/devmnt.c - 664 sys sys 1055688328 21594
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
-sys/src/9/port/devmouse.c - 664 sys sys 1048637374 11460
+sys/src/9/port/devmouse.c - 664 sys sys 1060266767 12196
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
 sys/src/9/port/devpipe.c - 664 sys sys 1032640439 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1055688361 13021
@@ -5313,7 +5314,7 @@ sys/src/9/port/devsrv.c - 664 sys sys 1014931174 5146
 sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1055688453 43764
-sys/src/9/port/devuart.c - 664 sys sys 1055688473 11586
+sys/src/9/port/devuart.c - 664 sys sys 1060267239 11762
 sys/src/9/port/edf.c - 664 sys sys 1055688474 24743
 sys/src/9/port/edf.h - 664 sys sys 1055700516 4469
 sys/src/9/port/error.h - 664 sys sys 1055700517 2630
@@ -5342,7 +5343,7 @@ sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1055688510 3940
 sys/src/9/port/portclock.c - 664 sys sys 1055688512 3829
 sys/src/9/port/portdat.h - 664 sys sys 1055700521 21390
-sys/src/9/port/portfns.h - 664 sys sys 1055700522 10769
+sys/src/9/port/portfns.h - 664 sys sys 1060266745 10822
 sys/src/9/port/portmkfile - 664 sys sys 1055700523 2057
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1055688525 24316
