@@ -356,13 +356,12 @@ buildtbls(void)
 			return 0;
 		}
 	}
-	fmax++;
-	fnames = malloc(fmax*sizeof(*fnames));
+	fnames = malloc((fmax+1)*sizeof(*fnames));
 	if (!fnames) {
 		werrstr("can't malloc file name table");
 		return 0;
 	}
-	memset(fnames, 0, fmax*sizeof(*fnames));
+	memset(fnames, 0, (fmax+1)*sizeof(*fnames));
 	files = malloc(nfiles*sizeof(*files));
 	if(!files) {
 		werrstr("can't malloc file table");

@@ -3,6 +3,8 @@
 #include <fcall.h>
 #include <thread.h>
 #include <9p.h>
+#include <mp.h>
+#include <libsec.h>
 
 static void
 usage(void)
@@ -17,7 +19,7 @@ typedef struct Tab Tab;
 struct Tab
 {
 	char *name;
-	ulong qid;
+	vlong qid;
 	ulong time;
 	int ref;
 };
@@ -25,10 +27,9 @@ struct Tab
 Tab *tab;
 int ntab;
 int mtab;
-ulong qidgen;
 
 static Tab*
-findtab(ulong path)
+findtab(vlong path)
 {
 	int i;
 
@@ -36,6 +37,14 @@ findtab(ulong path)
 		if(tab[i].qid == path)
 			return &tab[i];
 	return nil;
+}
+
+static vlong
+hash(char *name)
+{
+	vlong digest[MD5dlen / sizeof(vlong) + 1];
+	md5((uchar *)name, strlen(name), (uchar *)digest, nil);
+	return digest[0] & ((1ULL<<48)-1);
 }
 
 static void
@@ -83,7 +92,7 @@ static void
 fsstat(Req *r)
 {
 	Tab *t;
-	ulong qid;
+	vlong qid;
 
 	qid = r->fid->qid.path;
 	if(qid == 0)
@@ -103,6 +112,7 @@ fswalk1(Fid *fid, char *name, void*)
 {
 	int i;
 	Tab *t;
+	vlong h;
 
 	if(fid->qid.path != 0){
 		/* nothing in child directory */
@@ -123,6 +133,9 @@ fswalk1(Fid *fid, char *name, void*)
 			fid->qid.path = tab[i].qid;
 			return nil;
 		}
+	h = hash(name);
+	if(findtab(h) != nil)
+		return "hash collision";
 
 	/* create it */
 	if(ntab == mtab){
@@ -132,7 +145,7 @@ fswalk1(Fid *fid, char *name, void*)
 			mtab *= 2;
 		tab = erealloc9p(tab, sizeof(tab[0])*mtab);
 	}
-	tab[ntab].qid = ++qidgen;
+	tab[ntab].qid = h;
 	fid->qid.path = tab[ntab].qid;
 	tab[ntab].name = estrdup9p(name);
 	tab[ntab].time = time(0);
@@ -162,13 +175,13 @@ static void
 fsclunk(Fid *fid)
 {
 	Tab *t;
-	ulong qid;
+	vlong qid;
 
 	qid = fid->qid.path;
 	if(qid == 0)
 		return;
 	if((t = findtab(qid)) == nil){
-		fprint(2, "warning: cannot find %lux\n", qid);
+		fprint(2, "warning: cannot find %llux\n", qid);
 		return;
 	}
 	if(--t->ref == 0){
