@@ -527,7 +527,7 @@
 386/lib/libauthsrv.a - 664 sys sys 1077636970 33806
 386/lib/libbin.a - 664 sys sys 1073851265 2556
 386/lib/libbio.a - 664 sys sys 1073851265 28338
-386/lib/libc.a - 664 sys sys 1084329149 504790
+386/lib/libc.a - 664 sys sys 1084509809 495150
 386/lib/libcomplete.a - 664 sys sys 1076817073 6312
 386/lib/libcontrol.a - 664 sys sys 1073851267 242856
 386/lib/libdisk.a - 664 sys sys 1073851267 43536
@@ -6835,9 +6835,9 @@ sys/src/cmd/acme/fsys.c - 664 sys sys 1079102915 12799
 sys/src/cmd/acme/look.c - 664 sys sys 1077376257 14213
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
-sys/src/cmd/acme/rows.c - 664 sys sys 1068140772 14637
+sys/src/cmd/acme/rows.c - 664 sys sys 1084542482 14664
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
-sys/src/cmd/acme/text.c - 664 sys sys 1081200110 27335
+sys/src/cmd/acme/text.c - 664 sys sys 1084542489 27383
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1079102916 7412
 sys/src/cmd/acme/wind.c - 664 sys sys 1082924470 11115

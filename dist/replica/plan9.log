@@ -15106,3 +15106,6 @@
 1084476697 23 d sys/src/9/port/realtimesub.c - 664 sys sys 1055688540 0
 1084501902 0 c 386/bin/8c - 775 sys sys 1084500899 340960
 1084501902 1 c sys/src/cmd/8c/machcap.c - 664 sys sys 1084500824 944
+1084510904 0 c 386/lib/libc.a - 664 sys sys 1084509809 495150
+1084543307 0 c sys/src/cmd/acme/rows.c - 664 sys sys 1084542482 14664
+1084543307 1 c sys/src/cmd/acme/text.c - 664 sys sys 1084542489 27383

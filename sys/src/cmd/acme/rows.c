@@ -652,12 +652,12 @@ rowload(Row *row, char *file, int initing)
 				break;
 		wincleartag(w);
 		textinsert(&w->tag, w->tag.file->nc, r+n+1, nr-(n+1), TRUE);
-		free(r);
 		if(ndumped >= 0){
 			/* simplest thing is to put it in a file and load that */
 			sprint(buf, "/tmp/d%d.%.4sacme", getpid(), getuser());
 			fd = create(buf, OWRITE|ORCLOSE, 0600);
 			if(fd < 0){
+				free(r);
 				warning(nil, "can't create temp file: %r\n");
 				goto Rescue2;
 			}
@@ -668,6 +668,7 @@ rowload(Row *row, char *file, int initing)
 				if(rune == '\n')
 					line++;
 				if(rune == Beof){
+					free(r);
 					Bterm(bout);
 					free(bout);
 					close(fd);
@@ -689,6 +690,7 @@ rowload(Row *row, char *file, int initing)
 			fontx(&w->body, nil, nil, 0, 0, fontr, nfontr);
 			free(fontr);
 		}
+		free(r);
 		if(q0>w->body.file->nc || q1>w->body.file->nc || q0>q1)
 			q0 = q1 = 0;
 		textshow(&w->body, q0, q1, 1);
