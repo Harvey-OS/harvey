@@ -105,8 +105,8 @@
 386/bin/aux/hardcopy - 775 sys sys 1020319063 1699
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
 386/bin/aux/lines - 775 sys sys 1085076993 58460
-386/bin/aux/listen - 775 sys sys 1085076994 104854
-386/bin/aux/listen1 - 775 sys sys 1085076994 91430
+386/bin/aux/listen - 775 sys sys 1093489557 104845
+386/bin/aux/listen1 - 775 sys sys 1093489557 91380
 386/bin/aux/lpdaemon - 775 sys sys 1089985358 167429
 386/bin/aux/lpdsend - 775 sys sys 1087442507 153635
 386/bin/aux/lpsend - 775 sys sys 1085076994 52497
@@ -238,7 +238,7 @@
 386/bin/fs/tpfs - 775 sys sys 1085077058 90951
 386/bin/fs/v10fs - 775 sys sys 1085077058 92404
 386/bin/fs/v6fs - 775 sys sys 1085077059 92322
-386/bin/ftpfs - 775 sys sys 1089985360 146354
+386/bin/ftpfs - 775 sys sys 1093489558 146386
 386/bin/getmap - 775 sys sys 1085077059 63150
 386/bin/gif - 775 sys sys 1085077060 155975
 386/bin/grap - 775 sys sys 1089985360 279641
@@ -288,7 +288,7 @@
 386/bin/ip/rip - 775 sys sys 1089257535 89203
 386/bin/ip/rlogind - 775 sys sys 1085077073 65396
 386/bin/ip/telnetd - 775 sys sys 1085077073 119896
-386/bin/ip/tftpd - 775 sys sys 1089257536 104155
+386/bin/ip/tftpd - 775 sys sys 1093489558 127405
 386/bin/ip/traceroute - 775 sys sys 1085077074 71477
 386/bin/ip/udpecho - 775 sys sys 1085077074 43131
 386/bin/join - 775 sys sys 1085077074 114267
@@ -437,7 +437,7 @@
 386/bin/upas/mlowner - 775 sys sys 1085077113 90099
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1064598354 75149
-386/bin/upas/nedmail - 775 sys sys 1085627355 153957
+386/bin/upas/nedmail - 775 sys sys 1093489559 153913
 386/bin/upas/pop3 - 775 sys sys 1085077114 259808
 386/bin/upas/qer - 775 sys sys 1085077114 97840
 386/bin/upas/ratfs - 775 sys sys 1089257539 109406
@@ -12337,8 +12337,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/ftpfs - 775 sys sys 1093489558 146386
-386/bin/aux/listen - 775 sys sys 1093489557 104845
-386/bin/aux/listen1 - 775 sys sys 1093489557 91380
-386/bin/ip/tftpd - 775 sys sys 1093489558 127405
-386/bin/upas/nedmail - 775 sys sys 1093489559 153913
