@@ -1319,27 +1319,30 @@ tcphangup(Conv *s)
 	if(waserror())
 		return commonerror();
 	if(s->raddr != 0) {
-		seg.flags = RST | ACK;
-		seg.ack = tcb->rcv.nxt;
-		tcb->rcv.una = 0;
-		seg.seq = tcb->snd.ptr;
-		seg.wnd = 0;
-		seg.urg = 0;
-		seg.mss = 0;
-		seg.ws = 0;
-		switch(s->ipversion) {
-		case V4:
-			tcb->protohdr.tcp4hdr.vihl = IP_VER4;
-			hbp = htontcp4(&seg, nil, &tcb->protohdr.tcp4hdr, tcb);
-			ipoput4(s->p->f, hbp, 0, s->ttl, s->tos);
-			break;
-		case V6:
-			tcb->protohdr.tcp6hdr.vcf[0] = IP_VER6;
-			hbp = htontcp6(&seg, nil, &tcb->protohdr.tcp6hdr, tcb);
-			ipoput6(s->p->f, hbp, 0, s->ttl, s->tos);
-			break;
-		default:
-			panic("tcphangup: version %d", s->ipversion);
+		if(!waserror()){
+			seg.flags = RST | ACK;
+			seg.ack = tcb->rcv.nxt;
+			tcb->rcv.una = 0;
+			seg.seq = tcb->snd.ptr;
+			seg.wnd = 0;
+			seg.urg = 0;
+			seg.mss = 0;
+			seg.ws = 0;
+			switch(s->ipversion) {
+			case V4:
+				tcb->protohdr.tcp4hdr.vihl = IP_VER4;
+				hbp = htontcp4(&seg, nil, &tcb->protohdr.tcp4hdr, tcb);
+				ipoput4(s->p->f, hbp, 0, s->ttl, s->tos);
+				break;
+			case V6:
+				tcb->protohdr.tcp6hdr.vcf[0] = IP_VER6;
+				hbp = htontcp6(&seg, nil, &tcb->protohdr.tcp6hdr, tcb);
+				ipoput6(s->p->f, hbp, 0, s->ttl, s->tos);
+				break;
+			default:
+				panic("tcphangup: version %d", s->ipversion);
+			}
+			poperror();
 		}
 	}
 	localclose(s, nil);
@@ -2408,6 +2411,11 @@ tcpoutput(Conv *s)
 	tpriv = s->p->priv;
 	version = s->ipversion;
 
+	if(waserror()){
+		localclose(s, up->errstr);
+		return;
+	}
+
 	for(msgs = 0; msgs < 100; msgs++) {
 		tcb = (Tcpctl*)s->ptcl;
 	
@@ -2415,7 +2423,7 @@ tcpoutput(Conv *s)
 		case Listen:
 		case Closed:
 		case Finwait2:
-			return;
+			goto out;
 		}
 	
 		/* force an ack when a window has opened up */
@@ -2542,7 +2550,7 @@ tcpoutput(Conv *s)
 			hbp = htontcp4(&seg, bp, &tcb->protohdr.tcp4hdr, tcb);
 			if(hbp == nil) {
 				freeblist(bp);
-				return;
+				goto out;
 			}
 			break;
 		case V6:
@@ -2550,7 +2558,7 @@ tcpoutput(Conv *s)
 			hbp = htontcp6(&seg, bp, &tcb->protohdr.tcp6hdr, tcb);
 			if(hbp == nil) {
 				freeblist(bp);
-				return;
+				goto out;
 			}
 			break;
 		default:
@@ -2596,6 +2604,8 @@ tcpoutput(Conv *s)
 			qlock(s);
 		}
 	}
+out:
+	poperror();
 }
 
 /*

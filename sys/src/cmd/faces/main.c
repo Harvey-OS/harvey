@@ -87,6 +87,7 @@ setdate(void)
 void
 init(void)
 {
+	addmaildir(maildir);
 	mousefd = open("/dev/mouse", OREAD);
 	if(mousefd < 0){
 		fprint(2, "faces: can't open mouse: %r\n");
@@ -670,6 +671,13 @@ startproc(void (*f)(void), int index)
 }
 
 void
+usage(void)
+{
+	fprint(2, "usage: faces [-hi]\n");
+	exits("usage");
+}
+
+void
 main(int argc, char *argv[])
 {
 	ARGBEGIN{
@@ -679,9 +687,11 @@ main(int argc, char *argv[])
 	case 'i':
 		initload++;
 		break;
+	case 'm':
+		addmaildir(EARGF(usage()));
+		break;
 	default:
-		fprint(2, "usage: faces [-hi]\n");
-		exits("usage");
+		usage();
 	}ARGEND
 
 	if(initdraw(nil, nil, "faces") < 0){
