@@ -118,7 +118,7 @@
 386/bin/aux/mkflashfs - 775 sys sys 1056364202 66263
 386/bin/aux/mklatinkbd - 775 sys sys 1056364202 62883
 386/bin/aux/mnihongo - 775 sys sys 1056364203 137116
-386/bin/aux/mouse - 775 sys sys 1039758541 44473
+386/bin/aux/mouse - 775 sys sys 1059312460 44513
 386/bin/aux/ms2 - 775 sys sys 1056364203 84073
 386/bin/aux/mswordstrings - 775 sys sys 1056364204 64290
 386/bin/aux/na - 775 sys sys 1056364204 153457
