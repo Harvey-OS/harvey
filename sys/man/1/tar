@@ -83,7 +83,7 @@ This is the default behavior; the flag exists only for backwards compatibility
 with older versions of tar.
 .TP
 .B P
-Do not use the POSIX ustar format.
+Do not generate the POSIX ustar format.
 .TP
 .B R
 When extracting, ignore leading slash on file names,
