@@ -608,7 +608,7 @@ wpaste(Window *w)
 		waddraw(w, snarf, nsnarf);
 		wsetselect(w, q0, q0);
 	}else{
-		winsert(w, snarf, nsnarf, w->q0);
+		q0 = winsert(w, snarf, nsnarf, w->q0);
 		wsetselect(w, q0, q0+nsnarf);
 	}
 }

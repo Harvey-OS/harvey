@@ -102,6 +102,7 @@ port
 
 boot
 	il
+	tcp
 
 bootdir
 	bootpc.out boot

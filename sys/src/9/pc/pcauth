@@ -55,6 +55,7 @@ port
 
 boot cpu boot #S/sdC0/
 	il
+	tcp
 	local
 
 bootdir

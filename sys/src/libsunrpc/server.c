@@ -89,21 +89,21 @@ sunRpcRequestThread(void *v)
 	while((m = recvp(srv->crequest)) != nil){
 		/* could look up in cache here? */
 
-if(srv->chatty) print("sun msg %p count %d\n", m, m->count);
+if(srv->chatty) fprint(2, "sun msg %p count %d\n", m, m->count);
 		m->srv = srv;
 		p = m->data;
 		ep = p+m->count;
 		if(sunRpcUnpack(p, ep, &p, &m->rpc) < 0){
-			print("in: %.*H unpack failed\n", m->count, m->data);
+			fprint(2, "in: %.*H unpack failed\n", m->count, m->data);
 			sunMsgDrop(m);
 			continue;
 		}
 		if(srv->chatty)
-			print("in: %B\n", &m->rpc);
+			fprint(2, "in: %B\n", &m->rpc);
 
 		if(srv->alwaysReject){
 			if(srv->chatty)
-				print("\trejecting\n");
+				fprint(2, "\trejecting\n");
 			sunMsgReplyError(m, SunAuthTooWeak);
 			continue;
 		}
@@ -128,7 +128,7 @@ if(srv->chatty) print("sun msg %p count %d\n", m, m->count);
 		m->call->rpc = m->rpc;
 
 		if(srv->chatty)
-			print("\t%C\n", m->call);
+			fprint(2, "\t%C\n", m->call);
 
 		m->pg = pg;
 		sendp(c, m);
@@ -160,14 +160,14 @@ sunFindProg(SunSrv *srv, SunMsg *m, SunRpc *rpc, Channel **pc)
 	}
 	if(vhi == -1){
 		if(srv->chatty)
-			print("\tprogram %ud unavailable\n", rpc->prog);
+			fprint(2, "\tprogram %ud unavailable\n", rpc->prog);
 		sunMsgReplyError(m, SunProgUnavail);
 	}else{
 		/* putting these in rpc is a botch */
 		rpc->low = vlo;
 		rpc->high = vhi;
 		if(srv->chatty)
-			print("\tversion %ud unavailable; have %d-%d\n", rpc->vers, vlo, vhi);
+			fprint(2, "\tversion %ud unavailable; have %d-%d\n", rpc->vers, vlo, vhi);
 		sunMsgReplyError(m, SunProgMismatch);
 	}
 	return nil;
@@ -198,7 +198,7 @@ sunMsgReplyError(SunMsg *m, SunStatus error)
 	m->rpc.ndata = 0;
 
 	if(m->srv->chatty)
-		print("out: %B\n", &m->rpc);
+		fprint(2, "out: %B\n", &m->rpc);
 
 	n = sunRpcSize(&m->rpc);
 	bp = emalloc(n);
@@ -235,8 +235,8 @@ sunMsgReply(SunMsg *m, SunCall *c)
 	c->rpc.xid = m->rpc.xid;
 
 	if(m->srv->chatty){
-		print("out: %B\n", &c->rpc);
-		print("\t%C\n", c);
+		fprint(2, "out: %B\n", &c->rpc);
+		fprint(2, "\t%C\n", c);
 	}
 
 	n1 = sunRpcSize(&c->rpc);

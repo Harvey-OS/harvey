@@ -1,19 +1,25 @@
 include("/sys/src/libthread/sched.acid");
 
-defn labstk(l)
+defn labpc(l)
 {
 	if objtype == "386" then
-		_stk(longjmp, *l, linkreg(0), 0);
-	else
-		_stk(*(l+4), *l, linkreg(0), 0);
+		return longjmp;
+	return *(l+4);
+}
+
+defn labsp(l)
+{
+	return *l;
+}
+
+defn labstk(l)
+{
+	_stk(labpc(l), labsp(l), 0, 0);
 }
 
 defn lablstk(l)
 {
-	if objtype == "386" then
-		_stk(longjmp, *l, linkreg(0), 1);
-	else
-		_stk(*(l+4), *l, linkreg(0), 1);
+	_stk(labpc(l), labsp(l), 0, 1);
 }
 
 defn altfmt(A){
@@ -21,18 +27,18 @@ defn altfmt(A){
 	complex Alt A;
 
 	s = "alt(";
-	s = s + "tag(*" + itoa(A.tag\X) + "=" + itoa(*A.tag\X) + ") ";
+	s = s + "tag(*" + itoa(A.tag, "%x") + "=" + itoa(*A.tag, "%x") + ") ";
 	i = 0;
 	yes = 0;
 	while A.op != CHANEND && A.op != CHANNOBLK do{
 		if A.op != CHANNOP then{
-			if yes then s = s + ", ";
-			s = s + itoa(i);
-			s = s + ": ";
+			if yes then s = s + " ";
+			s = s + itoa(i, "%d");
+			s = s + ":";
 			if A.op == CHANSND then s = s + "send";
 			if A.op == CHANRCV then s = s + "recv";
 			s = s + "(channel(";
-			s = s + itoa(A.c);
+			s = s + itoa(A.c, "%x");
 			s = s + "))";
 			yes = 1;
 		}
@@ -40,7 +46,7 @@ defn altfmt(A){
 		A = (Alt)(A + sizeofAlt);
 	}
 	if A.op==CHANNOBLK then{
-		if yes then s = s + ", ";
+		if yes then s = s + " ";
 		s = s + "noblock";
 	}
 	s = s + ")";
@@ -51,48 +57,106 @@ defn alt(A){
 	print(altfmt(A), "\n");
 }
 
-defn thread(T){
+threadignsrc = {
+	"^/sys/src/libc",
+	"^/sys/src/libthread",
+};
+
+defn fnname(a){
+	local sym, s;
+
+	s = symbols;
+	while s do {
+		sym = head s;
+		if sym[2] == a then
+			return sym[0];
+		s = tail s;
+	}
+	return itoa(a, "%x");
+}
+
+defn threadstkline(T){
+	local stk, frame, pc, pc0, file, lastpc0, s, sym, i, stop;
+
+	if T.state == Running then{
+		pc = *PC;
+		stk = strace(*PC, *SP, linkreg(0));
+	}else{
+		pc = labpc(T.sched);
+		stk = strace(labpc(T.sched), labsp(T.sched), 0);
+	}
+	lastpc0 = 0;
+	pc0 = 0;
+	stop = 0;
+	while stk && !stop do {
+		file = pcfile(pc);
+		if !regexp("^/sys/src/libc/", file)
+		&& !regexp("^/sys/src/libthread/", file) then
+			stop = 1;
+		else{
+			lastpc0 = pc0;
+			frame = head stk;
+			stk = tail stk;
+			pc0 = frame[0];
+			pc = frame[1];
+		}
+	}
+	file = pcfile(pc);
+	s = file+":"+itoa(pcline(pc), "%d");
+	if pc0 != 0 then 
+		s = s + " "+fnname(pc0);
+	return s;
+}
+
+defn threadfmt(T){
 	complex Thread T;
-	local A, yes, i, P;
+	local A, yes, i, P, s;
 
 	P = (Proc)T.proc;
-	if T.cmdname != 0 then{
-		print("\t", *(T.cmdname\s), ":\n");
-	}
-	print("\t", T\X, "\t", T.id);
-	if T.state == Running then{
-		print("\t\tRunning   ");
-	} else if T.state == Ready then{
-		print("\t\tReady     ");
-	} else if T.state == Rendezvous then{
-		print("\t\tRendezvous ");
-	}else{
-		print("\t\tBad state ", T.state\X, " ");
-	}
-	if T.chan == Chanalt then{
-		print("\t\t", altfmt(T.alt), "\n");
-	} else if T.chan == Chansend then{
-		A = (Alt)T.alt;
-		print("\t\tsend(Channel(", A.c\X, "))");
-	} else if T.chan == Chanrecv then{
-		A = (Alt)T.alt;
-		print("\t\trecv(Channel(", A.c\X, "))");
-	}
-	if T.moribund == 1 then{
-		print(" (Moribund)");
-	}
-	print("\n");
+	s = "t=(Thread)"+itoa(T, "%-10x")+" ";
+
+	if T.state == Running then
+		s = s + "Running    ";
+	else if T.state == Ready then
+		s = s + "Ready      ";
+	else if T.state == Rendezvous then
+		s = s + "Rendez     ";
+	else
+		s = s + "Bad state "+itoa(T.state, "%x")+" ";
+
+	A = (Alt)T.alt;
+	if 1 then
+		s = s + threadstkline(T);
+	else if T.chan == Chanalt then
+		s = s + altfmt(T.alt);
+	else if T.chan == Chansend then
+		s = s + "send(Channel("+itoa(A.c, "%x")+"))";
+	else if T.chan == Chanrecv then
+		s = s + "recv(Channel("+itoa(A.c, "%x")+"))";
+	else
+		s = s + threadstkline(T);
+
+	if T.moribund == 1 then
+		s = s + " Moribund";
+	if T.cmdname != 0 then
+		s = s + " ["+*(T.cmdname\s)+"]";
+	return s;
+}
+
+defn thread(T){
+	print(threadfmt(T), "\n");
 }
 
 defn pthreads(P){
 	complex Proc P;
-	local T, Tq;
+	local T, Tq, mainpid;
 
 	mainpid = pid;
 	setproc(P.pid);
 	Tq = (Tqueue)P.threads;
 	T = (Thread)Tq.$head;
 	while T != 0 do{
+		print("\t");
 		thread(T);
 		T = T.nextt;
 	}
@@ -111,26 +175,27 @@ defn threads(){
 }
 
 defn stacks(){
-	local P;
+	local P, mainpid;
 
 	mainpid = pid;
 	P = (Proc)_threadpq.$head;
 	while P != 0 do{
-		print("=========================================================\n");
 		proc(P);
-		setproc(P.pid);
-		if P.thread==0 then{
-			print("=== thread scheduler stack\n");
-			stk();
-		}
+	//	setproc(P.pid);
+	//	if P.thread==0 then{
+	//		print("=== thread scheduler stack\n");
+	//		stk();
+	//	}
+	//	print("threadstks(", P\X, ")\n");
 		threadstks(P);
 		P = P.next;
+		print("\n");
 	}
 	setproc(mainpid);
 }
 
 defn stacksizes(){
-	local P, T, Tq, top, sp;
+	local P, T, Tq, top, sp, mainpid;
 
 	mainpid = pid;
 	P = (Proc)_threadpq.$head;
@@ -161,31 +226,41 @@ defn lproc(P){
 
 defn threadstks(P){
 	complex Proc P;
-	local T, Tq;
+	local T, Tq, mainpid, pref, ign;
 
 	mainpid = pid;
+	pref = stkprefix;
+	stkprefix = pref+"\t\t";
+	ign = stkignore;
+	stkignore = {
+		"^/sys/src/libthread/",
+		"^/sys/src/libc/(386|arm|alpha|sparc|power|mips)/"
+	};
 	setproc(P.pid);
 	Tq = (Tqueue)P.threads;
 	T = (Thread)Tq.$head;
 	while T != 0 do{
-		print("=============================\n");
+	//	print("=============================\n");
+	//	print("  thread(", T\X, ")\n");
+		print("\t");
 		thread(T);
-		print("\n");
 		threadstk(T);
 		T = T.nextt;
+		print("\n");
 	}
 	setproc(mainpid);
+	stkprefix = pref;
+	stkignore = ign;
 }
 
 defn proc(P){
 	complex Proc P;
 
-	print("Proc *p=", P\X, ", p->pid=", P.pid\D);
-	if P.thread==0 then{
-		print(", p->state=Sched, p->tag=", P\X);
-	}else{
-		print(", p->state=Running");
-	}
+	print("p=(Proc)", itoa(P, "%-10x"), " pid ", P.pid\D, " ");
+	if P.thread==0 then
+		print(" Sched");
+	else
+		print(" Running");
 	print("\n");
 }
 

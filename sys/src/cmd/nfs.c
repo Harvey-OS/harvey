@@ -338,6 +338,7 @@ nfsWrite(Auth *a, ulong tag, Nfs3Handle *h, uchar *data, u32int count, u64int of
 	tx.count = count;
 	tx.offset = offset;
 	tx.data = data;
+	tx.ndata = count;
 
 	memset(&rx, 0, sizeof rx);
 	nfs3Call(a, &rx.call, Nfs3CallRWrite);
@@ -544,12 +545,13 @@ nfsReadDir(Auth *a, ulong tag, Nfs3Handle *h, u32int count, u64int cookie, uchar
 			readplus = 1;
 			return 0;
 		}
-fprint(2, "readdirplus: %r\n");
 		if(readplus == 0){
 			rerrstr(e, sizeof e);
 			if(strstr(e, "procedure unavailable"))
 				readplus = -1;
 		}
+		if(readplus == 0)
+			fprint(2, "readdirplus: %r\n");
 	}
 	if(readplus == 1)
 		return -1;
