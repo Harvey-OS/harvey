@@ -490,6 +490,17 @@ extern	long	rootread(Chan*, void*, long, ulong);
 extern	long	rootwrite(Chan*, void*, long, ulong);
 extern	void	rootremove(Chan*);
 extern	void	rootwstat(Chan*, char*);
+extern	void	sslinit(void);
+extern	Chan*	sslattach(void*);
+extern	int		sslwalk(Chan*, char*);
+extern	void	sslstat(Chan*, char*);
+extern	Chan*	sslopen(Chan*, int);
+extern	void	sslclose(Chan*);
+extern	long	sslread(Chan*, void*, long, ulong);
+extern	Block*	sslbread(Chan*, long, ulong);
+extern	long	sslwrite(Chan*, void*, long, ulong);
+extern	long	sslbwrite(Chan*, Block*, ulong);
+extern	void	sslwstat(Chan*, char*);
 
 enum {
 	SnarfSize = 64*1024

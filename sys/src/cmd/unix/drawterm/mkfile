@@ -36,6 +36,7 @@ DRAWTERM=\
 	devmouse.$O\
 	devpipe.$O\
 	devroot.$O\
+	devssl.$O\
 	drawterm.$O\
 	dial.$O\
 	dirfstat.$O\
@@ -56,6 +57,7 @@ DRAWTERM=\
 	pow10.$O\
 	print.$O\
 	proc.$O\
+	pushssl.$O\
 	qio.$O\
 	readn.$O\
 	ref.$O\
@@ -122,13 +124,26 @@ LIBDRAW=\
 	d-icossin.$O\
 	d-icossin2.$O\
 
+LIBSEC=\
+	s-des.$O\
+	s-desCBC.$O\
+	s-desECB.$O\
+	s-desmodes.$O\
+	s-md4.$O\
+	s-md5.$O\
+	s-md5block.$O\
+	s-rc4.$O\
+	s-sha1.$O\
+	s-sha1block.$O\
+	s-u64.$O\
+
 XFILES=\
 	md-alloc-x11.$O\
 	md-cload-x11.$O\
 	md-draw-x11.$O\
 	md-load-x11.$O\
 
-OFILES=$DRAWTERM $LIBMEMLAYER $LIBMEMDRAW $LIBDRAW
+OFILES=$DRAWTERM $LIBMEMLAYER $LIBMEMDRAW $LIBDRAW $LIBSEC
 
 all:V: $TARG
 
@@ -141,6 +156,7 @@ $TARG: $OFILES
 $LIBMEMDRAW: $DSRC/libmemdraw/memdraw.h $DSRC/libdraw/draw.h
 $LIBDRAW: $DSRC/libdraw/draw.h
 $LIBMEMLAYER: $DSRC/libmemdraw/memdraw.h $DSRC/libdraw/draw.h $DSRC/libmemlayer/memlayer.h
+$LIBSEC: $DSRC/libsec/libsec.h
 $XFILES: $DSRC/libmemdraw/xmem.h
 
 

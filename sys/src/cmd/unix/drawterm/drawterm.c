@@ -1,8 +1,10 @@
 #include "lib9.h"
 #include "auth.h"
+#include "libsec/libsec.h"
 
 char	*cpuaddr = "plan9cpu";
 char	*authaddr = "plan9auth";
+char	*ealgs = "rc4_256 sha1";
 
 static char *pbmsg = "AS protocol botch";
 static char *ccmsg = "can't connect to AS";
@@ -15,7 +17,7 @@ static void	fdwritestr(int, char*, char*, int);
 static int	fdreadstr(int, char*, int);
 static void	noteproc(char *pid);
 static void	getpasswd(char *p, int len);
-static void	userpasswd(int islocal);
+static void	userpasswd(char *key, int islocal);
 static int	outin(char *prompt, char *def, int len);
 static char	*checkkey(char *name, char *key);
 static int	writefile(char *name, char *buf, int len);
@@ -62,6 +64,11 @@ main(int argc, char *argv[])
 		break;
 	case 'd':
 		depth = atoi(ARGF());
+		break;
+	case 'e':
+		ealgs = ARGF();
+		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
+			ealgs = nil;
 		break;
 	case 'n':
 		setam("netkey");
@@ -141,24 +148,24 @@ cpu(void)
 	int fd;
 	char na[256];
 
-	userpasswd(0);
+	userpasswd(na, 0);
 	
 	netmkaddr(na, cpuaddr, "tcp", "17005");
 	if((fd = dial(na, 0, 0, 0)) < 0) {
 		fatal("can't dial %s: %r", na);
 	}
-	if(auth(fd) < 0)
+	if(auth(fd, 0) < 0)
 		fatal("can't authenticate: %r");
 	return fd;
 }
 
 /* authentication mechanisms */
-static int	netkeyauth(int);
+static int	netkeyauth(int, uchar*);
 
 typedef struct AuthMethod AuthMethod;
 struct AuthMethod {
 	char	*name;			/* name of method */
-	int	(*cf)(int);		/* client side authentication */
+	int	(*cf)(int, uchar*);		/* client side authentication */
 } authmethod[] =
 {
 	{ "p9",		auth},
@@ -177,13 +184,24 @@ setam(char *name)
 	return -1;
 }
 
+static void
+mksecret(char *t, uchar *f)
+{
+	sprint(t, "%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
+		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
+}
+
 char *negstr = "negotiating authentication method";
 int
 nncpu(void)
 {
 	char na[128];
 	char err[ERRLEN];
-	int fd, n;
+	uchar key[16];
+	uchar digest[SHA1dlen];
+	char fromclientsecret[21];
+	char fromserversecret[21];
+	int fd, n, i;
 
 	netmkaddr(na, cpuaddr, "tcp", "17013");
 	if((fd = dial(na, 0, 0, 0)) < 0) {
@@ -191,10 +209,14 @@ nncpu(void)
 	}
 
 	if(am->cf == auth)
-		userpasswd(0);
+		userpasswd(key+4, 0);
 	
 	/* negotiate authentication mechanism */
-	fdwritestr(fd, am->name, negstr, 0);
+	if(ealgs != nil)
+		snprint(na, sizeof(na), "%s %s", am->name, ealgs);
+	else
+		snprint(na, sizeof(na), "%s", am->name);
+	fdwritestr(fd, na, negstr, 0);
 	n = fdreadstr(fd, err, ERRLEN);
 	if(n < 0)
 		fatal(negstr);
@@ -202,8 +224,24 @@ nncpu(void)
 		fatal("%s: %s", negstr, err);
 
 	/* authenticate */
-	if((*am->cf)(fd) < 0)
+	if((*am->cf)(fd, key+4) < 0)
 		fatal("cannot authenticate with %s", am->name);
+	if(ealgs == nil)
+		return fd;
+
+	/* ssl handshake */
+	for(i = 0; i < 4; i++)
+		key[i] = nrand(256);
+	if(write(fd, key, 4) != 4 || readn(fd, key+12, 4) != 4)
+		fatal("cannot exchange random numbers for ssl: %r");
+	/* scramble into two secrets */
+	sha1(key, sizeof(key), digest, nil);
+	mksecret(fromclientsecret, digest);
+	mksecret(fromserversecret, digest+10);
+	/* set up encryption */
+	fd = pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
+	if(fd < 0)
+		fatal("cannot establish ssl connection: %r");
 	return fd;
 }
 
@@ -228,11 +266,12 @@ readln(char *buf, int n)
 }
 
 static int
-netkeyauth(int fd)
+netkeyauth(int fd, uchar *secret)
 {
 	char chall[NAMELEN];
 	char resp[NAMELEN];
 
+	USED(secret);
 	strcpy(chall, getuser());
 	print("user[%s]: ", chall);
 	if(readln(resp, sizeof(resp)) < 0)
@@ -257,7 +296,7 @@ netkeyauth(int fd)
 void
 usage(void)
 {
-	iprint("usage: %s [-o@] [-n] [-m] [-c cpusrv] [-a authsrv] [-r root]\n", argv0);
+	iprint("usage: %s [-o@] [-n] [-m] [-c cpusrv] [-a authsrv] [-e 'crypt hash'] [-r root]\n", argv0);
 	exits(0);
 }
 
@@ -299,7 +338,7 @@ noteproc(char *pid)
 	netmkaddr(na, cpuaddr, "tcp", "17006");
 	if((fd = dial(na, 0, 0, 0)) < 0)
 		fatal("can't dial");
-	if(auth(fd) < 0)
+	if(auth(fd, 0) < 0)
 		fatal("can't authenticate");
 
 	sprint(cmd, "%s", pid);
@@ -335,11 +374,10 @@ char *homsg = "can't set user name or key; please reboot";
  *  get/set user name and password.  verify password with auth server.
  */
 void
-userpasswd(int islocal)
+userpasswd(char *hostkey, int islocal)
 {
 	int fd;
 	char *msg;
-	char hostkey[DESKEYLEN];
 
 	if(*username == 0 || strcmp(username, "none") == 0){
 		strcpy(username, "none");

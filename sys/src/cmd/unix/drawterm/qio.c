@@ -97,7 +97,7 @@ freeblist(Block *b)
 ulong padblockoverhead;
 
 /*
- *  pad a block to the front
+ *  pad a block to the front (or the back if size is negative)
  */
 Block*
 padblock(Block *bp, int size)
@@ -105,22 +105,37 @@ padblock(Block *bp, int size)
 	int n;
 	Block *nbp;
 
-	if(bp->rp - bp->base > size){
-		bp->rp -= size;
-		return bp;
-	}
+	if(size >= 0){
+		if(bp->rp - bp->base >= size){
+			bp->rp -= size;
+			return bp;
+		}
 
-	n = bp->wp - bp->rp;
-	padblockoverhead += n;
-	nbp = allocb(size+n);
-	nbp->rp += size;
-	nbp->wp = nbp->rp;
-	memmove(nbp->wp, bp->rp, n);
-	nbp->wp += n;
-	freeb(bp);
-	nbp->rp -= size;
+		n = BLEN(bp);
+		padblockoverhead += size;
+		nbp = allocb(size+n);
+		nbp->rp += size;
+		nbp->wp = nbp->rp;
+		memmove(nbp->wp, bp->rp, n);
+		nbp->wp += n;
+		freeb(bp);
+		nbp->rp -= size;
+	} else {
+		size = -size;
+
+		if(bp->lim - bp->wp >= size)
+			return bp;
+
+		n = BLEN(bp);
+		padblockoverhead += size;
+		nbp = allocb(size+n);
+		memmove(nbp->wp, bp->rp, n);
+		nbp->wp += n;
+		freeb(bp);
+	}
 	return nbp;
 }
+
 
 /*
  *  return count of bytes in a string of blocks

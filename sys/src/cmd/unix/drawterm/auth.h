@@ -107,7 +107,7 @@ extern	int	passtokey(void*, char*);
 extern	int	authenticate(int, int);
 extern	int	newns(char*, char*);
 extern	int	authdial(void);
-extern	int	auth(int);
+extern	int	auth(int, uchar*);
 extern	int	srvauth(int, char*);
 extern	int	getchal(Chalstate*, char*);
 extern	int	chalreply(Chalstate*, char*);
