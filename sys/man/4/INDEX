@@ -68,7 +68,7 @@ upasfs upasfs
 usb usb
 usbaudio usb
 usbmouse usb
-usbprinter usb
+usbprint usb
 usbd usbd
 vacfs vacfs
 webcookies webcookies
