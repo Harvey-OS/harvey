@@ -5369,7 +5369,7 @@ sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1071245466 14094
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
-sys/src/9/pc/ether8169.c - 664 sys sys 1103641602 22531
+sys/src/9/pc/ether8169.c - 664 sys sys 1105109291 22498
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
 sys/src/9/pc/ether82557.c - 664 sys sys 1098848151 30040
 sys/src/9/pc/ether83815.c - 664 sys sys 1081706477 23479
@@ -5433,7 +5433,7 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1099487462 50970
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
-sys/src/9/pc/trap.c - 664 sys sys 1105030146 20520
+sys/src/9/pc/trap.c - 664 sys sys 1105109602 20537
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
 sys/src/9/pc/usb.h - 664 sys sys 1099760881 3650
@@ -7059,7 +7059,7 @@ sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
 sys/src/cmd/aux/listen.c - 664 sys sys 1093452954 8142
 sys/src/cmd/aux/listen1.c - 664 sys sys 1093452955 2018
-sys/src/cmd/aux/mkfile - 664 sys sys 1084415958 946
+sys/src/cmd/aux/mkfile - 664 sys sys 1105123164 962
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
 sys/src/cmd/aux/mnihongo - 20000000775 sys sys 944960789 0
 sys/src/cmd/aux/mnihongo/README - 664 sys sys 944960789 475
@@ -7068,6 +7068,7 @@ sys/src/cmd/aux/mnihongo/mnihongo.c - 664 sys sys 946759402 6406
 sys/src/cmd/aux/mnihongo/tmac.nihongo - 664 sys sys 944960789 22
 sys/src/cmd/aux/mouse.c - 664 sys sys 1063855425 7049
 sys/src/cmd/aux/ms2.c - 664 sys sys 1015008685 3129
+sys/src/cmd/aux/msexceltables.c - 664 sys sys 1105123098 13134
 sys/src/cmd/aux/mswordstrings.c - 664 sys sys 952201344 5767
 sys/src/cmd/aux/na - 20000000775 sys sys 955036627 0
 sys/src/cmd/aux/na/mkfile - 664 sys sys 955036627 121
@@ -10918,11 +10919,11 @@ sys/src/cmd/upas/send/tryit - 664 sys sys 944961322 584
 sys/src/cmd/upas/smtp - 20000000775 sys sys 988250017 0
 sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1091126808 6470
 sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1067722781 746
-sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1098803923 5150
+sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1105114609 6024
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
-sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1097901337 19565
-sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1064589597 1084
+sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1105114610 20113
+sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1105114610 1111
 sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1102093207 30350
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1061836986 6949
@@ -12431,7 +12432,7 @@ sys/src/libventi/strdup.c - 664 sys sys 1045502096 203
 sys/src/libventi/venti.txt - 664 sys sys 1045502097 4347
 sys/src/libventi/zero.c - 664 sys sys 1045502097 1509
 sys/src/mkfile - 664 sys sys 1073061130 1006
-sys/src/mkfile.proto - 664 sys sys 1104430482 266
+sys/src/mkfile.proto - 664 sys sys 1105121349 265
 tmp - 20000000555 sys sys 953999902 0
 usr - 20000000775 sys sys 953406542 0
 usr/glenda - 20000000775 glenda glenda 953406571 0
@@ -12448,7 +12449,7 @@ usr/glenda/lib/acme.dump.small - 664 glenda glenda 1019273919 828
 usr/glenda/lib/first.window - 775 glenda glenda 1018974192 65
 usr/glenda/lib/newstime - 664 glenda glenda 953406587 0
 usr/glenda/lib/plumbing - 664 glenda glenda 953406587 89
-usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
+usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
