@@ -4,7 +4,6 @@ Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,vlong), long(*)(Chan*,v
 void	archinit(void);
 void	arginit(void);
 void	arith(void);
-void	clearmmucache(void);
 void	clock(Ureg*);
 void	clockinit(void);
 void	clockintrsched(void);
@@ -28,14 +27,10 @@ void	fault0(void);
 void	faultalpha(Ureg*);
 ulong	fcr31(void);
 void	firmware(void);
-#define	flushpage(s)	icflush()
 void	fpenab(int);
 void	fptrap(Ureg*);
 int	getcfields(char*, char**, int, char*);
 char	*getconf(char*);
-ulong	getfcr(void);
-ulong	getstatus(void);
-void	gotopc(ulong);
 int	havetimer(void);
 int	i8042auxcmd(int);
 void	i8042auxenable(void (*)(int, int));
@@ -62,19 +57,13 @@ void	kbdinit(void);
 #define	kmapinval()
 void	*kmapv(uvlong, int);
 int	kprint(char*, ...);
-void	launchinit(void);
-void	launch(int);
 void	links(void);
 void	mb(void);
 void 	memholes(void);
 ulong 	meminit(void);
 void	mmudump(void);
 void	mmuinit(void);
-#define	mmunewpage(x)
 void	mmupark(void);
-void	mntdump(void);
-void	ns16552install(void);
-void	ns16552special(int, int, Queue**, Queue**, int (*)(Queue*, int));
 ulong	pcibarsize(Pcidev*, int);
 int	pcicfgr8(Pcidev*, int);
 int	pcicfgr16(Pcidev*, int);
@@ -116,7 +105,6 @@ void	wrent(int, void*);
 void	wrvptptr(uvlong);
 
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
-#define	kmapperm(x)	kmap(x)
 #define KADDR(a)	((void*)((ulong)(a)|KZERO))
 #define PADDR(a)	((ulong)(a)&~KZERO)
 

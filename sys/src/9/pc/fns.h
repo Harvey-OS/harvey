@@ -2,12 +2,10 @@
 
 void	aamloop(int);
 Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,vlong), long(*)(Chan*,void*,long,vlong));
-void	apicclkenable(void);
 void	archinit(void);
 void	bootargs(ulong);
 int	cistrcmp(char*, char*);
 int	cistrncmp(char*, char*, int);
-#define	clearmmucache()				/* x86 doesn't have one */
 void	clockintr(Ureg*, void*);
 void	(*coherence)(void);
 void	cpuid(char*, int*, int*);
@@ -88,7 +86,6 @@ void	meminit(void);
 void	mmuinit(void);
 ulong	mmukmap(ulong, ulong, int);
 int	mmukmapsync(ulong);
-#define	mmunewpage(x)
 ulong*	mmuwalk(ulong*, ulong, int, int);
 uchar	nvramread(int);
 void	nvramwrite(int, uchar);
@@ -125,7 +122,6 @@ int	(*_pcmspecial)(char *, ISAConf *);
 void	pcmspecialclose(int);
 void	(*_pcmspecialclose)(int);
 void	pcmunmap(int, PCMmap*);
-void	printcpufreq(void);
 void	procrestore(Proc*);
 void	procsave(Proc*);
 void	procsetup(Proc*);
@@ -133,7 +129,6 @@ void	putcr3(ulong);
 void	putcr4(ulong);
 void	rdmsr(int, vlong*);
 void	screeninit(void);
-int	screenprint(char*, ...);			/* debugging */
 void	(*screenputs)(char*, int);
 void	syncclock(void);
 void	touser(void*);
