@@ -306,8 +306,6 @@ vncclose(Vncs *v)
 {
 	Vncs **l;
 
-	v = *vncpriv;
-
 	/* remove self from client list if there */
 	qlock(&clients);
 	for(l=&clients.head; *l; l=&(*l)->next)
