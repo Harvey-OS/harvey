@@ -5,7 +5,6 @@ DIRS=\
 	usbd\
 	audio\
 	mouse\
-	print\
 
 none:VQ:
 	echo mk all, install, installall, clean, or nuke

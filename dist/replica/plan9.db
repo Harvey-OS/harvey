@@ -10892,12 +10892,12 @@ sys/src/cmd/usb/lib/setup.c - 664 sys sys 1018387003 1256
 sys/src/cmd/usb/lib/usb.h - 664 sys sys 1032060786 3367
 sys/src/cmd/usb/lib/usbproto.h - 664 sys sys 1017802021 2813
 sys/src/cmd/usb/lib/util.c - 664 sys sys 1017802020 339
-sys/src/cmd/usb/mkfile - 664 sys sys 1072728986 219
+sys/src/cmd/usb/mkfile - 664 sys sys 1073660279 211
 sys/src/cmd/usb/mouse - 20000000775 sys sys 1017802022 0
 sys/src/cmd/usb/mouse/mkfile - 664 sys sys 1017802022 211
 sys/src/cmd/usb/mouse/usbmouse.c - 664 sys sys 1017802022 3074
 sys/src/cmd/usb/print - 20000000775 sys sys 1073007760 0
-sys/src/cmd/usb/print/mkfile - 664 sys sys 1073007760 197
+sys/src/cmd/usb/print/mkfile - 664 sys sys 1073660166 195
 sys/src/cmd/usb/print/usbprint - 775 sys sys 1073007760 222
 sys/src/cmd/usb/usbd - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/usbd/dat.h - 664 sys sys 1017802021 682
