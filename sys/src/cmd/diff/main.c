@@ -8,7 +8,7 @@
 
 Biobuf	stdout;
 
-static char *tmp[] = {"/tmp/diff1", "/tmp/diff2"};
+static char *tmp[] = {"/tmp/diff1XXXXXXXXXXX", "/tmp/diff2XXXXXXXXXXX"};
 static int whichtmp;
 static char *progname;
 static char usage[] = "diff [ -efmnbwr ] file1 ... file2\n";
@@ -81,7 +81,7 @@ mktmpfile(int input, Dir **sb)
 	char buf[8192];
 
 	atnotify(catch, 1);
-	p = tmp[whichtmp++];
+	p = mktemp(tmp[whichtmp++]);
 	fd = create(p, OWRITE, 0600);
 	if (fd < 0) {
 		panic(mflag ? 0: 2, "cannot create %s: %r\n", p);
