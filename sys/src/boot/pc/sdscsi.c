@@ -69,10 +69,23 @@ scsiverify(SDunit* unit)
 			break;
 		if((r->sense[2] & 0x0F) != 0x02)
 			continue;
-		if(r->sense[12] == 0x3A){
-			status = SDok;
-			break;
+
+		/*
+		 * Unit is 'not ready'.
+		 * If it is in the process of becoming ready or needs
+		 * an initialising command, set status so it will be spun-up
+		 * below.
+		 * If there's no medium, that's OK too, but don't
+		 * try to spin it up.
+		 */
+		if(r->sense[12] == 0x04){
+			if(r->sense[13] == 0x02 || r->sense[13] == 0x01){
+				status = SDok;
+				break;
+			}
 		}
+		if(r->sense[12] == 0x3A)
+			break;
 	}
 
 	if(status == SDok){

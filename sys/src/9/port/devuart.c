@@ -139,6 +139,21 @@ uartsetmouseputc(Uart* p, int (*putc)(Queue*, int))
 	qunlock(p);
 }
 
+static void
+setlength(int i)
+{
+	Uart *p;
+
+	if(i > 0){
+		p = uart[i];
+		if(p && p->opens && p->iq)
+			uartdir[1+3*i].length = qlen(p->iq);
+	} else for(i = 0; i < uartnuart; i++){
+		p = uart[i];
+		if(p && p->opens && p->iq)
+			uartdir[1+3*i].length = qlen(p->iq);
+	}
+}
 
 /*
  *  set up the '#t' directory
@@ -232,6 +247,8 @@ uartwalk(Chan *c, Chan *nc, char **name, int nname)
 static int
 uartstat(Chan *c, uchar *dp, int n)
 {
+	if(NETTYPE(c->qid.path) == Ndataqid)
+		setlength(NETID(c->qid.path));
 	return devstat(c, dp, n, uartdir, uartndir, devgen);
 }
 
@@ -325,6 +342,7 @@ uartread(Chan *c, void *buf, long n, vlong off)
 	ulong offset = off;
 
 	if(c->qid.type & QTDIR){
+		setlength(-1);
 		return devdirread(c, buf, n, uartdir, uartndir, devgen);
 	}
 

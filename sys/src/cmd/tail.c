@@ -362,19 +362,17 @@ usage(void)
 	exits("usage");
 }
 
-/* return true if seeks work and if the file is > 0 length */
+/* return true if seeks work and if the file is > 0 length.
+ * this will eventually bite me in the ass if seeking a file
+ * is not conservative. - presotto
+ */
 static int
 isseekable(int fd)
 {	
-	vlong m, n;
+	vlong m;
 
 	m = seek(fd, 0, 1);
 	if(m < 0)
-		return 0;
-	n = seek(fd, 0, 2);
-	if(n <= 0)
-		return 0;
-	if(seek(fd, m, 0) < 0)
 		return 0;
 	return 1;
 }
