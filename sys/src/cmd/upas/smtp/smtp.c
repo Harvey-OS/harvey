@@ -372,19 +372,19 @@ dotls(char *me)
 static char *
 doauth(char *methods)
 {
-	char *sys, *buf, *base64;
-	UserPasswd *p;
+	char *buf, *base64;
 	int n;
+	DS ds;
+	UserPasswd *p;
 
-	sys = expand_meta(ddomain);
-	//fprint(2, "expand address %s -> %s\n", ddomain, sys);
+	dial_string_parse(ddomain, &ds);
 
 	if(user != nil)
 		p = auth_getuserpasswd(nil,
-	  	  "proto=pass service=smtp server=%q user=%q", sys, user);
+	  	  "proto=pass service=smtp server=%q user=%q", ds.host, user);
 	else
 		p = auth_getuserpasswd(nil,
-	  	  "proto=pass service=smtp server=%q", sys);
+	  	  "proto=pass service=smtp server=%q", ds.host);
 	if (p == nil)
 		return Giveup;
 
