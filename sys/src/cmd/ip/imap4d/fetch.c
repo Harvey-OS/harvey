@@ -106,7 +106,7 @@ fetchMsg(Box *box, Msg *m, int uids, void *vf)
 	 * note: it is allowed to send back the responses one at a time
 	 * rather than all together.  this is exploited to send flags elsewhere.
 	 */
-	Bprint(&bout, "* %lud fetch (", m->seq);
+	Bprint(&bout, "* %lud FETCH (", m->seq);
 	sep = "";
 	if(uids){
 		Bprint(&bout, "uid %lud", m->uid);
@@ -141,11 +141,11 @@ fetchMsg(Box *box, Msg *m, int uids, void *vf)
 			fetchBodyStruct(m, &m->head, 1);
 			break;
 		case FRfc822Size:
-			Bprint(&bout, "%srfc822.size %lud", sep, msgSize(m));
+			Bprint(&bout, "%sRFC822.SIZE %lud", sep, msgSize(m));
 			break;
 		case FRfc822:
 			f->part = FPAll;
-			Bprint(&bout, "%srfc822", sep);
+			Bprint(&bout, "%sRFC822", sep);
 			fetchBody(m, f);
 			break;
 		case FRfc822Head:

@@ -239,7 +239,7 @@
 386/bin/ip/httpd/man2html - 775 sys sys 1039758568 121860
 386/bin/ip/httpd/save - 775 sys sys 1039758568 130924
 386/bin/ip/httpd/wikipost - 775 sys sys 1039758568 111282
-386/bin/ip/imap4d - 775 sys sys 1039758569 232588
+386/bin/ip/imap4d - 775 sys sys 1040366673 232588
 386/bin/ip/ipconfig - 775 sys sys 1039758569 103748
 386/bin/ip/ping - 775 sys sys 1039758569 74005
 386/bin/ip/ppp - 775 sys sys 1039758570 211448
@@ -388,7 +388,7 @@
 386/bin/upas/filter - 775 sys sys 1039758600 145556
 386/bin/upas/fs - 775 sys sys 1039758600 326172
 386/bin/upas/list - 775 sys sys 1039758601 81422
-386/bin/upas/marshal - 775 sys sys 1039758601 126720
+386/bin/upas/marshal - 775 sys sys 1040366675 126814
 386/bin/upas/ml - 775 sys sys 1039758601 118090
 386/bin/upas/mlmgr - 775 sys sys 1039758601 100861
 386/bin/upas/mlowner - 775 sys sys 1039758602 92131
@@ -8828,7 +8828,7 @@ sys/src/cmd/ip/imap4d/copy.c - 664 sys sys 1015013075 4584
 sys/src/cmd/ip/imap4d/csquery.c - 664 sys sys 1015013076 762
 sys/src/cmd/ip/imap4d/date.c - 664 sys sys 1015013076 5654
 sys/src/cmd/ip/imap4d/debug.c - 664 sys sys 1016731557 1962
-sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1016731557 11765
+sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1040309082 11765
 sys/src/cmd/ip/imap4d/fns.h - 664 sys sys 1015013076 4282
 sys/src/cmd/ip/imap4d/folder.c - 664 sys sys 1015013076 5959
 sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1037397426 40318
@@ -10151,7 +10151,7 @@ sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1037468640 1893
 sys/src/cmd/upas/fs/tester.c - 664 sys sys 985037420 1418
 sys/src/cmd/upas/marshal - 20000000775 sys sys 1015009721 0
-sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1038187006 30081
+sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1040307704 30160
 sys/src/cmd/upas/marshal/mkfile - 664 sys sys 1031707318 279
 sys/src/cmd/upas/misc - 20000000775 sys sys 944961318 0
 sys/src/cmd/upas/misc/gone.fishing - 664 sys sys 944961318 313
