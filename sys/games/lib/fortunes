@@ -3870,3 +3870,6 @@ Click on the following link if you don't want to recieve any more email.
 /usr/include/c++/3.2/backward/backward_warning.h:32:2: warning: #warning This file includes at least one deprecated or antiquated header. Please consider using one of the 32 headers found in section 17.4.1.2 of the C++ standard. Examples include substituting the <X> header for the <X.h> header for C++ includes, or <sstream> instead of the deprecated header <strstream.h>. To disable this warning use -Wno-deprecated.
 with venti there's not a simple way to do anything. - rsc
 Quidquid latine dictum sit, altum viditur.
+    static unsigned int minSz = sizeof(uslOBJECT_T);//calculate only the once!
+Can be applied directly on top of Tornado AE1.1 Cumulative Patch3, or on top of Tornado AE1.1 Cumulative Patch3 + patch 82607 + patch 83172. Patch 82607 and patch 83172 can not be applied on top of patch 84031.
+Existence of this file indicates that the Nautilus configuration druid has been presented.  You can manually erase this file to present the druid again.
