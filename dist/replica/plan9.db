@@ -196,7 +196,7 @@
 386/bin/exportfs - 775 sys sys 1039758559 145630
 386/bin/faces - 775 sys sys 1039758559 187144
 386/bin/factor - 775 sys sys 1039758559 60135
-386/bin/file - 775 sys sys 1039758559 117145
+386/bin/file - 775 sys sys 1044560286 117769
 386/bin/fmt - 775 sys sys 1039758560 63811
 386/bin/fortune - 775 sys sys 1039758560 66329
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -6991,7 +6991,7 @@ sys/src/cmd/fax/receive.c - 664 sys sys 944960990 1097
 sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
-sys/src/cmd/file.c - 664 sys sys 1038186733 20196
+sys/src/cmd/file.c - 664 sys sys 1044560289 20196
 sys/src/cmd/fmt.c - 664 sys sys 1025298248 3897
 sys/src/cmd/fortune.c - 664 sys sys 1035832953 1674
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
