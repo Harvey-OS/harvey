@@ -1,0 +1,8 @@
+#!/bin/rc
+clock=`{cat /dev/time}
+xx=`{{echo $clock(3) / $clock(4); echo '_/86400'}|hoc|sed 's/^\./0./g;s/\..*//g'}
+sec=$xx(1)
+days=$xx(2)
+cat /dev/sysname
+echo -n ' up '$days' days, '
+timezone='MDT -21600' date $sec |awk '{print $4}'

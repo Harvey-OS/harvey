@@ -13420,3 +13420,6 @@
 1074580334 0 c 386/bin/auth/authsrv - 775 sys sys 1074579384 164076
 1074580334 1 c 386/bin/auth/guard.srv - 775 sys sys 1074579385 141165
 1074580334 2 c 386/bin/auth/secstored - 775 sys sys 1074579385 195266
+1074731557 0 a rc/bin/uptime - 775 sys sys 1074730712 234
+1074731557 1 c sys/src/cmd/ssh/authsrvtis.c - 664 sys sys 1074731315 928
+1074735156 0 a sys/man/1/uptime - 664 sys sys 1074733782 380
