@@ -15568,3 +15568,4 @@
 1085628677 0 c 386/bin/upas/nedmail - 775 sys sys 1085627355 153957
 1085668245 0 c sys/src/libmp/port/mkfile - 664 sys sys 1085667604 620
 1085715053 0 c 386/lib/libmp.a - 664 sys sys 1085713909 80458
+1085778086 0 c sys/src/9/pc/devarch.c - 664 sys sys 1085777737 18478

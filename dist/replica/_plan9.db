@@ -544,7 +544,7 @@
 386/lib/libmach.a - 664 sys sys 1085077145 735256
 386/lib/libmemdraw.a - 664 sys sys 1085077145 287684
 386/lib/libmemlayer.a - 664 sys sys 1085077145 47360
-386/lib/libmp.a - 664 sys sys 1085583503 76502
+386/lib/libmp.a - 664 sys sys 1085713909 80458
 386/lib/libndb.a - 664 sys sys 1085077146 60772
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1085077146 37440
@@ -5318,7 +5318,7 @@ sys/src/9/pc/archmp.c - 664 sys sys 1084475127 2311
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1084475127 6256
-sys/src/9/pc/devarch.c - 664 sys sys 1075072880 18432
+sys/src/9/pc/devarch.c - 664 sys sys 1085777737 18478
 sys/src/9/pc/devether.c - 664 sys sys 1078928204 10183
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1020284820 19987
@@ -12427,4 +12427,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/lib/libmp.a - 664 sys sys 1085713909 80458
