@@ -4853,7 +4853,7 @@ sys/man/2/hypot - 664 sys sys 944959693 302
 sys/man/2/intmap - 664 sys sys 1015091523 2622
 sys/man/2/ioproc - 664 sys sys 1030549010 3068
 sys/man/2/iounit - 664 sys sys 1015091523 1001
-sys/man/2/ip - 664 sys sys 1015701015 6986
+sys/man/2/ip - 664 sys sys 1089213089 7136
 sys/man/2/isalpharune - 664 sys sys 1015091523 1059
 sys/man/2/keyboard - 664 sys sys 950892860 2065
 sys/man/2/lock - 664 sys sys 1048643958 4692
@@ -11978,7 +11978,7 @@ sys/src/libhttpd/unallowed.c - 664 sys sys 1014930785 980
 sys/src/libhttpd/urlfmt.c - 664 sys sys 1014930785 425
 sys/src/libhttpd/urlunesc.c - 664 sys sys 1014930785 995
 sys/src/libip - 20000000775 sys sys 1016901402 0
-sys/src/libip/bo.c - 664 sys sys 944961727 414
+sys/src/libip/bo.c - 664 sys sys 1089213099 811
 sys/src/libip/classmask.c - 664 sys sys 944961726 622
 sys/src/libip/eipfmt.c - 664 sys sys 1014927942 2194
 sys/src/libip/equivip.c - 664 sys sys 944961726 146
