@@ -23,7 +23,7 @@
 386/bin/9660srv - 775 sys sys 1045537932 105209
 386/bin/aan - 775 sys sys 1045537933 128318
 386/bin/acid - 775 sys sys 1045537934 377954
-386/bin/acme - 775 sys sys 1045546062 416883
+386/bin/acme - 775 sys sys 1045665593 416883
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1038443079 135228
 386/bin/ape/cc - 775 sys sys 1045537935 68930
@@ -105,11 +105,13 @@
 386/bin/aux/ms2 - 775 sys sys 1045537953 84053
 386/bin/aux/mswordstrings - 775 sys sys 1039758542 64268
 386/bin/aux/na - 775 sys sys 1045537953 152774
+386/bin/aux/nfsmount - 775 sys sys 1045665594 231133
 386/bin/aux/nfsserver - 775 sys sys 1045537954 171046
 386/bin/aux/olefs - 775 sys sys 1045537954 144352
 386/bin/aux/p9bitpost - 775 sys sys 1039758543 127979
 386/bin/aux/pcmcia - 775 sys sys 1039758543 46790
 386/bin/aux/pcnfsd - 775 sys sys 1045537955 126750
+386/bin/aux/portmap - 775 sys sys 1045665594 140686
 386/bin/aux/portmapper - 775 sys sys 1045537955 125638
 386/bin/aux/postgif - 775 sys sys 1038443100 177440
 386/bin/aux/postprint - 775 sys sys 1038443101 161939
@@ -200,9 +202,9 @@
 386/bin/fmt - 775 sys sys 1039758560 63811
 386/bin/fortune - 775 sys sys 1045537977 66332
 386/bin/fossil - 20000000775 sys sys 1042005470 0
-386/bin/fossil/flchk - 775 sys sys 1045537978 226819
-386/bin/fossil/flfmt - 775 sys sys 1045537979 225404
-386/bin/fossil/fossil - 775 sys sys 1045537980 329940
+386/bin/fossil/flchk - 775 sys sys 1045665595 226777
+386/bin/fossil/flfmt - 775 sys sys 1045665596 225362
+386/bin/fossil/fossil - 775 sys sys 1045665597 333516
 386/bin/freq - 775 sys sys 1039758560 60443
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1039758560 96155
@@ -294,11 +296,12 @@
 386/bin/netkey - 775 sys sys 1039758579 70753
 386/bin/netstat - 775 sys sys 1045538036 81379
 386/bin/news - 775 sys sys 1045538036 70512
+386/bin/nfs - 775 sys sys 1045665598 315487
 386/bin/nm - 775 sys sys 1045538037 123227
 386/bin/nntpfs - 775 sys sys 1045538038 161729
 386/bin/ns - 775 sys sys 1039758580 63830
 386/bin/p - 775 sys sys 1043589869 63785
-386/bin/page - 775 sys sys 1045606971 215429
+386/bin/page - 775 sys sys 1045665599 215429
 386/bin/paqfs - 775 sys sys 1045538039 108076
 386/bin/passwd - 775 sys sys 1039758581 81058
 386/bin/pbd - 775 sys sys 1038443175 4663
@@ -433,7 +436,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1045538088 105156
 386/bin/venti/wrarena - 775 sys sys 1045538089 178907
 386/bin/venti/write - 775 sys sys 1045538089 100592
-386/bin/vncs - 775 sys sys 1045538091 437972
+386/bin/vncs - 775 sys sys 1045665600 437972
 386/bin/vncv - 775 sys sys 1045538091 266167
 386/bin/vt - 775 sys sys 1045538092 170883
 386/bin/vtdump - 775 sys sys 1045538093 160937
@@ -493,6 +496,7 @@
 386/lib/libscribble.a - 664 sys sys 1045538126 108138
 386/lib/libsec.a - 664 sys sys 1045538128 635686
 386/lib/libstdio.a - 664 sys sys 1045538128 125144
+386/lib/libsunrpc.a - 664 sys sys 1045665602 355292
 386/lib/libthread.a - 664 sys sys 1045538129 71494
 386/lib/libventi.a - 664 sys sys 1045538129 97938
 386/mbr - 775 sys sys 1022125974 407
@@ -11671,7 +11675,7 @@ sys/src/libstdio/vsprintf.c - 664 sys sys 1022112162 246
 sys/src/libsunrpc - 20000000775 sys sys 1045589225 0
 sys/src/libsunrpc/COPYING - 664 sys sys 1045589219 1269
 sys/src/libsunrpc/authunix.c - 664 sys sys 1045589219 1477
-sys/src/libsunrpc/client.c - 664 sys sys 1045589220 8843
+sys/src/libsunrpc/client.c - 664 sys sys 1045674219 8858
 sys/src/libsunrpc/emalloc.c - 664 sys sys 1045589220 397
 sys/src/libsunrpc/error.c - 664 sys sys 1045589221 819
 sys/src/libsunrpc/fd.c - 664 sys sys 1045589221 1734
