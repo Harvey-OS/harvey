@@ -61,7 +61,7 @@
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
 386/bin/auth/factotum - 775 sys sys 1087873350 307151
-386/bin/auth/fgui - 775 sys sys 1085076980 212283
+386/bin/auth/fgui - 775 sys sys 1088823721 216032
 386/bin/auth/guard.srv - 775 sys sys 1085076980 140340
 386/bin/auth/iam - 775 sys sys 1085076981 50791
 386/bin/auth/keyfs - 775 sys sys 1085076981 113215
@@ -164,11 +164,11 @@
 386/bin/bind - 775 sys sys 1085077012 57577
 386/bin/bitsy - 20000000775 sys sys 1018721039 0
 386/bin/bitsy/bitsyload - 775 sys sys 1085077012 61374
-386/bin/bitsy/keyboard - 775 sys sys 1085077013 301712
+386/bin/bitsy/keyboard - 775 sys sys 1088823722 303870
 386/bin/bitsy/light - 775 sys sys 1020319072 242
 386/bin/bitsy/params - 775 sys sys 1085077013 56744
 386/bin/bitsy/pencal - 775 sys sys 1085077014 115252
-386/bin/bitsy/prompter - 775 sys sys 1085077015 283770
+386/bin/bitsy/prompter - 775 sys sys 1088823722 283924
 386/bin/bmp - 775 sys sys 1085077015 155439
 386/bin/bunzip2 - 775 sys sys 1085077016 95409
 386/bin/bzip2 - 775 sys sys 1085077016 111665
@@ -307,7 +307,7 @@
 386/bin/lex - 775 sys sys 1085077076 96662
 386/bin/lnfs - 775 sys sys 1085077076 97466
 386/bin/look - 775 sys sys 1085077077 63516
-386/bin/ls - 775 sys sys 1085077077 80331
+386/bin/ls - 775 sys sys 1088823722 80345
 386/bin/mc - 775 sys sys 1085077077 130848
 386/bin/md5sum - 775 sys sys 1085077077 59233
 386/bin/mk - 775 sys sys 1085077078 141902
@@ -532,7 +532,7 @@
 386/lib/libbio.a - 664 sys sys 1085077139 26078
 386/lib/libc.a - 664 sys sys 1085077140 495150
 386/lib/libcomplete.a - 664 sys sys 1076817073 6312
-386/lib/libcontrol.a - 664 sys sys 1088784892 276608
+386/lib/libcontrol.a - 664 sys sys 1088823723 276608
 386/lib/libdisk.a - 664 sys sys 1085077141 42290
 386/lib/libdraw.a - 664 sys sys 1085077142 372618
 386/lib/libflate.a - 664 sys sys 1085077142 77178
@@ -12432,8 +12432,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/bitsy/keyboard - 775 sys sys 1088823722 303870
-386/bin/bitsy/prompter - 775 sys sys 1088823722 283924
-386/bin/ls - 775 sys sys 1088823722 80345
-386/bin/auth/fgui - 775 sys sys 1088823721 216032
-386/lib/libcontrol.a - 664 sys sys 1088823723 276608
