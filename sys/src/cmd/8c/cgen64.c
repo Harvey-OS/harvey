@@ -2067,13 +2067,13 @@ twoop:
 			break;
 		}
 
-		if(d != Z)
-			goto finished;
-
 		if(c != Z) {
 			gins(AMOVL, c, r);
 			regfree(c);
 		}
+
+		if(d != Z)
+			goto finished;
 
 		switch(lri) {
 		case IMM(0, 0):
