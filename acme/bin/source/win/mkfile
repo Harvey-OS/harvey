@@ -9,6 +9,7 @@ OFILES=\
 	win.$O
 
 HFILES=dat.h
+LIB=/$objtype/lib/lib9p.a
 
 BIN=/acme/bin/$objtype
 </sys/src/cmd/mkone

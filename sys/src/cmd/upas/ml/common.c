@@ -30,17 +30,16 @@ void
 writeaddr(char *file, char *addr, int rem, char *listname)
 {
 	int fd;
-	Dir *d;
+	Dir nd;
 
 	fd = open(file, OWRITE);
 	if(fd < 0){
 		fd = create(file, OWRITE, DMAPPEND|0666);
 		if(fd < 0)
 			sysfatal("creating address list %s: %r", file);
-		d = dirstat(file);
-		d->mode = DMAPPEND|0666;
-		dirwstat(file, d);
-		free(d);
+		nulldir(&nd);
+		nd.mode = DMAPPEND|0666;
+		dirwstat(file, &nd);
 	} else
 		seek(fd, 0, 2);
 	if(rem)

@@ -1532,7 +1532,7 @@ rnfrcmd(char *from)
 int
 rntocmd(char *to)
 {
-	Dir *d;
+	Dir nd;
 	char *fp;
 	char *tp;
 
@@ -1554,15 +1554,10 @@ rntocmd(char *to)
 	if(tp)
 		to = tp+1;
 
-	d = dirstat(filepath);
-	if(d == nil)
-		return reply("550 Can't rename %s: %r\n", filepath);
-	d->name = to;
-	if(dirwstat(filepath, d) < 0){
-		free(d);
+	nulldir(&nd);
+	nd.name = to;
+	if(dirwstat(filepath, &nd) < 0)
 		return reply("550 Can't rename %s to %s: %r\n", filepath, to);
-	}
-	free(d);
 
 	filepath[0] = 0;
 	return reply("250 %s now %s", filepath, to);

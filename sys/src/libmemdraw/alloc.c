@@ -27,6 +27,10 @@ allocmemimaged(Rectangle r, ulong chan, Memdata *md)
 	ulong l;
 	Memimage *i;
 
+	if(Dx(r) <= 0 || Dy(r) <= 0){
+		werrstr("bad rectangle %R", r);
+		return nil;
+	}
 	if((d = chantodepth(chan)) == 0) {
 		werrstr("bad channel descriptor %.8lux", chan);
 		return nil;

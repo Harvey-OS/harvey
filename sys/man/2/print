@@ -395,7 +395,7 @@ void fatal(char *msg, ...)
 	char buf[1024], *out;
 	va_list arg;
 
-	out = vseprint(buf, buf+sizeof(buf), "Fatal error: ");
+	out = seprint(buf, buf+sizeof(buf), "Fatal error: ");
 	va_start(arg, msg);
 	out = vseprint(out, buf+sizeof(buf), msg, arg);
 	va_end(arg);

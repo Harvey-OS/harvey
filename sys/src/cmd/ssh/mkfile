@@ -44,12 +44,6 @@ UPDATE=\
 	${AUTHSRVOFILES:%.$O=%.c}\
 	${CIPHEROFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
-	/386/bin/scp\
-	/386/bin/ssh\
-	/386/bin/sshnet\
-	/386/bin/aux/sshserve\
-	/386/bin/aux/ssh_genkey\
-
 
 </sys/src/cmd/mkmany
 
