@@ -233,7 +233,7 @@
 386/bin/fossil/conf - 775 sys sys 1056364255 1497
 386/bin/fossil/flchk - 775 sys sys 1073888256 235503
 386/bin/fossil/flfmt - 775 sys sys 1073888257 249314
-386/bin/fossil/fossil - 775 sys sys 1073888258 348812
+386/bin/fossil/fossil - 775 sys sys 1077940925 349367
 386/bin/freq - 775 sys sys 1064598145 60197
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1064598146 95907
@@ -542,7 +542,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1077854442 78536
+386/lib/libmp.a - 664 sys sys 1077940925 77700
 386/lib/libndb.a - 664 sys sys 1077636970 54474
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -5407,7 +5407,7 @@ sys/src/9/port/cache.c - 664 sys sys 1055688274 9241
 sys/src/9/port/chan.c - 664 sys sys 1072704672 29140
 sys/src/9/port/cis.c - 664 sys sys 1055688285 8082
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
-sys/src/9/port/dev.c - 664 sys sys 1067722718 8348
+sys/src/9/port/dev.c - 664 sys sys 1077896125 8247
 sys/src/9/port/devaudio.c - 664 sys sys 1067722761 21130
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
 sys/src/9/port/devcap.c - 664 sys sys 1048644215 4113
@@ -7531,17 +7531,17 @@ sys/src/cmd/file.c - 664 sys sys 1071719684 20614
 sys/src/cmd/fmt.c - 664 sys sys 1070032009 4088
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
-sys/src/cmd/fossil/9.h - 664 sys sys 1069683864 4268
+sys/src/cmd/fossil/9.h - 664 sys sys 1077896806 4268
 sys/src/cmd/fossil/9auth.c - 664 sys sys 1061530721 3393
 sys/src/cmd/fossil/9dir.c - 664 sys sys 1072705704 2075
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
 sys/src/cmd/fossil/9fid.c - 664 sys sys 1045600016 5521
 sys/src/cmd/fossil/9fsys.c - 664 sys sys 1068591358 29979
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1042005503 2865
-sys/src/cmd/fossil/9p.c - 664 sys sys 1072705703 21629
+sys/src/cmd/fossil/9p.c - 664 sys sys 1077896346 21766
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
 sys/src/cmd/fossil/9proc.c - 664 sys sys 1072705704 14523
-sys/src/cmd/fossil/9srv.c - 664 sys sys 1066098097 3682
+sys/src/cmd/fossil/9srv.c - 664 sys sys 1077896346 3879
 sys/src/cmd/fossil/9user.c - 664 sys sys 1071179088 17260
 sys/src/cmd/fossil/Ccli.c - 664 sys sys 1042005504 1624
 sys/src/cmd/fossil/Ccmd.c - 664 sys sys 1066098098 7244
@@ -7568,7 +7568,7 @@ sys/src/cmd/fossil/flfmt9660.h - 664 sys sys 1072830621 134
 sys/src/cmd/fossil/flproto - 664 sys sys 1042005508 210
 sys/src/cmd/fossil/fns.h - 664 sys sys 1072705709 3168
 sys/src/cmd/fossil/fossil-acid - 664 sys sys 1042005508 3965
-sys/src/cmd/fossil/fossil.c - 664 sys sys 1072705702 2450
+sys/src/cmd/fossil/fossil.c - 664 sys sys 1077896345 2435
 sys/src/cmd/fossil/fs.c - 664 sys sys 1072705707 21071
 sys/src/cmd/fossil/fs.h - 664 sys sys 1072705709 1489
 sys/src/cmd/fossil/history - 664 sys sys 1055703793 1400

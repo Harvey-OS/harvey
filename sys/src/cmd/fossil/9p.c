@@ -1090,6 +1090,13 @@ rTversion(Msg* m)
 			r->version = "9PEoF";
 			con->msize = r->msize;
 			con->state = ConMoribund;
+
+			/*
+			 * Don't want to attempt to write this
+			 * message as the connection may be already
+			 * closed.
+			 */
+			m->state = MsgF;
 		}
 	}
 	vtUnlock(con->lock);
