@@ -59,7 +59,7 @@ p9anyinit(Proto*, Fsstate *fss)
 	int iscli;
 	State *s;
 
-	if((iscli = isclient(_str_findattr(fss->attr, "role"))) < 0)
+	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
 
 	s = emalloc(sizeof *s);
@@ -96,7 +96,7 @@ static void
 setupfss(Fsstate *fss, State *s, Key *k)
 {
 	fss->attr = setattr(fss->attr, "proto=%q", s->subproto->name);
-	fss->attr = setattr(fss->attr, "dom=%q", _str_findattr(k->attr, "dom"));
+	fss->attr = setattr(fss->attr, "dom=%q", _strfindattr(k->attr, "dom"));
 	s->subfss.attr = fss->attr;
 	s->subfss.phase = Notstarted;
 	s->subfss.sysuser = fss->sysuser;
@@ -162,7 +162,7 @@ p9anyread(Fsstate *fss, void *a, uint *n)
 					s_append(negstr, " ");
 				s_append(negstr, negotiable[i]->name);
 				s_append(negstr, "@");
-				s_append(negstr, _str_findattr(k->attr, "dom"));
+				s_append(negstr, _strfindattr(k->attr, "dom"));
 				closekey(k);
 			}
 			_freeattr(anew);
@@ -274,7 +274,7 @@ p9anywrite(Fsstate *fss, void *va, uint n)
 		 */
 		anew = _delattr(_delattr(_copyattr(fss->attr), "proto"), "role");
 		anewsf = _delattr(_copyattr(anew), "user");
-		user = _str_findattr(anew, "user");
+		user = _strfindattr(anew, "user");
 		k = nil;
 		p = nil;
 		dom = nil;

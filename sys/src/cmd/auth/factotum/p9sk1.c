@@ -70,7 +70,7 @@ p9skinit(Proto *p, Fsstate *fss)
 	Key *k;
 	Attr *attr;
 
-	if((iscli = isclient(_str_findattr(fss->attr, "role"))) < 0)
+	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
 
 	s = emalloc(sizeof *s);
@@ -102,8 +102,8 @@ p9skinit(Proto *p, Fsstate *fss)
 			free(s);
 			return ret;
 		}
-		safecpy(s->tr.authid, _str_findattr(k->attr, "user"), sizeof(s->tr.authid));
-		safecpy(s->tr.authdom, _str_findattr(k->attr, "dom"), sizeof(s->tr.authdom));
+		safecpy(s->tr.authid, _strfindattr(k->attr, "user"), sizeof(s->tr.authid));
+		safecpy(s->tr.authdom, _strfindattr(k->attr, "dom"), sizeof(s->tr.authdom));
 		s->key = k;
 		memrandom(s->tr.chal, sizeof s->tr.chal);
 		switch(s->vers){
@@ -214,7 +214,7 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 
 		attr = _delattr(_delattr(_copyattr(fss->attr), "role"), "user");
 		attr = setattr(attr, "proto=p9sk1");
-		user = _str_findattr(fss->attr, "user");
+		user = _strfindattr(fss->attr, "user");
 		/*
 		 * If our client is the user who started factotum (client==owner), then
 		 * he can use whatever keys we have to speak as whoever he pleases.
@@ -249,7 +249,7 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 
 		/* fill in the rest of the request */
 		s->tr.type = AuthTreq;
-		safecpy(s->tr.hostid, _str_findattr(s->key->attr, "user"), sizeof s->tr.hostid);
+		safecpy(s->tr.hostid, _strfindattr(s->key->attr, "user"), sizeof s->tr.hostid);
 		if(s->speakfor)
 			safecpy(s->tr.uid, fss->sysuser, sizeof s->tr.uid);
 		else
@@ -375,14 +375,14 @@ p9skaddkey(Key *k)
 	char *s;
 
 	k->priv = emalloc(DESKEYLEN);
-	if(s = _str_findattr(k->privattr, "!hex")){
+	if(s = _strfindattr(k->privattr, "!hex")){
 		if(hexparse(s, k->priv, 7) < 0){
 			free(k->priv);
 			k->priv = nil;
 			werrstr("malformed key data");
 			return -1;
 		}
-	}else if(s = _str_findattr(k->privattr, "!password")){
+	}else if(s = _strfindattr(k->privattr, "!password")){
 		passtokey((char*)k->priv, s);
 	}else{
 		werrstr("no key data");
@@ -405,7 +405,7 @@ getastickets(State *s, char *trbuf, char *tbuf)
 	int asfd, rv;
 	char *dom;
 
-	if((dom = _str_findattr(s->key->attr, "dom")) == nil){
+	if((dom = _strfindattr(s->key->attr, "dom")) == nil){
 		werrstr("auth key has no domain");
 		return -1;
 	}

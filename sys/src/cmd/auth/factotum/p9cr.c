@@ -75,7 +75,7 @@ p9crinit(Proto *p, Fsstate *fss)
 	State *s;
 	Attr *attr;
 
-	if((iscli = isclient(_str_findattr(fss->attr, "role"))) < 0)
+	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
 	
 	s = emalloc(sizeof(*s));
@@ -108,7 +108,7 @@ p9crinit(Proto *p, Fsstate *fss)
 			free(s);
 			return ret;
 		}
-		if((user = _str_findattr(fss->attr, "user")) == nil){
+		if((user = _strfindattr(fss->attr, "user")) == nil){
 			free(s);
 			return failure(fss, "no user name specified in start msg");
 		}
@@ -169,7 +169,7 @@ p9response(Fsstate *fss, State *s)
 	ulong chal;
 	char *pw;
 
-	pw = _str_findattr(s->key->privattr, "!password");
+	pw = _strfindattr(s->key->privattr, "!password");
 	if(pw == nil)
 		return failure(fss, "vncresponse cannot happen");
 	passtokey(key, pw);
@@ -212,7 +212,7 @@ vncaddkey(Key *k)
 	char *s;
 
 	k->priv = emalloc(8+1);
-	if(s = _str_findattr(k->privattr, "!password")){
+	if(s = _strfindattr(k->privattr, "!password")){
 		mktab();
 		memset(k->priv, 0, 8+1);
 		strncpy((char*)k->priv, s, 8);
@@ -314,13 +314,13 @@ getchal(State *s, Fsstate *fss)
 	char trbuf[TICKREQLEN];
 	int n;
 
-	safecpy(s->tr.hostid, _str_findattr(s->key->attr, "user"), sizeof(s->tr.hostid));
-	safecpy(s->tr.authdom, _str_findattr(s->key->attr, "dom"), sizeof(s->tr.authdom));
+	safecpy(s->tr.hostid, _strfindattr(s->key->attr, "user"), sizeof(s->tr.hostid));
+	safecpy(s->tr.authdom, _strfindattr(s->key->attr, "dom"), sizeof(s->tr.authdom));
 	s->tr.type = s->astype;
 	convTR2M(&s->tr, trbuf);
 
 	/* get challenge from auth server */
-	s->asfd = _authdial(nil, _str_findattr(s->key->attr, "dom"));
+	s->asfd = _authdial(nil, _strfindattr(s->key->attr, "dom"));
 	if(s->asfd < 0)
 		return failure(fss, Easproto);
 	if(write(s->asfd, trbuf, TICKREQLEN) != TICKREQLEN)

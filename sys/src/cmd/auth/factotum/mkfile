@@ -1,7 +1,6 @@
 </$objtype/mkfile
 
 TARG=factotum\
-	secretpem\
 	fgui\
 
 PROTO=\
@@ -12,6 +11,7 @@ PROTO=\
 	p9sk1.$O\
 	pass.$O\
 	sshrsa.$O\
+	rsa.$O\
 
 FOFILES=\
 	$PROTO\
@@ -32,7 +32,7 @@ UPDATE=\
 	mkfile\
 	$HFILES\
 	${FOFILES:%.$O=%.c}\
-	secretpem.c fgui.c\
+	fgui.c\
 	${TARG:%=/386/bin/auth/%}\
 
 </sys/src/cmd/mkmany

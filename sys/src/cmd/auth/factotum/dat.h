@@ -190,6 +190,8 @@ int		canusekey(Fsstate*, Key*);
 void		closekey(Key*);
 uchar	*convAI2M(AuthInfo*, uchar*, int);
 int		ctlwrite(char*);
+char		*estrappend(char*, char*, ...);
+#pragma varargck argpos estrappend 2
 int		failure(Fsstate*, char*, ...);
 int		findkey(Key**, Fsstate*, int, int, Attr*, char*, ...);
 int		findp9authkey(Key**, Fsstate*);
@@ -203,7 +205,7 @@ char 		*mkcap(char*, char*);
 int 		phaseerror(Fsstate*, char*);
 char		*phasename(Fsstate*, int, char*);
 void 		promptforhostowner(void);
-String	*readcons(char*, char*, int);
+char		*readcons(char*, char*, int);
 int		replacekey(Key*);
 char		*safecpy(char*, char*, int);
 int		secdial(void);
@@ -223,3 +225,4 @@ extern Proto chap, mschap;	/* chap.c */
 extern Proto p9cr, vnc;		/* p9cr.c */
 extern Proto pass;			/* pass.c */
 extern Proto sshrsa;			/* sshrsa.c */
+extern Proto rsa;				/* rsa.c */

@@ -104,8 +104,8 @@ struct Attr
 {
 	int type;
 	Attr *next;
-	String *name;
-	String *val;
+	char *name;
+	char *val;
 };
 
 typedef int AuthGetkey(char*);
@@ -117,7 +117,7 @@ Attr	*_findattr(Attr*, char*);
 void	_freeattr(Attr*);
 Attr	*_mkattr(int, char*, char*, Attr*);
 Attr	*_parseattr(char*);
-char	*_str_findattr(Attr*, char*);
+char	*_strfindattr(Attr*, char*);
 #pragma varargck type "A" Attr*
 
 extern AuthInfo*	fauth_proxy(int, AuthRpc *rpc, AuthGetkey *getkey, char *params);

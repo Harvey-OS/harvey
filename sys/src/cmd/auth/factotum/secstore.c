@@ -570,15 +570,15 @@ secstorefetch(char *password)
 	int rv = -1, fd;
 	char s[Maxmsg+1];
 	SConn *conn;
-	String *pass, *sta;
+	char *pass, *sta;
 
 	sta = nil;
 	conn = nil;
 	if(password != nil && *password)
-		pass = s_copy(password);
+		pass = estrdup(password);
 	else
 		pass = readcons("secstore password", nil, 1);
-	if(pass==nil || s_len(pass)==0){
+	if(pass==nil || strlen(pass)==0){
 		werrstr("cancel");
 		goto Out;
 	}
@@ -586,7 +586,7 @@ secstorefetch(char *password)
 		goto Out;
 	if((conn = newSConn(fd)) == nil)
 		goto Out;
-	if(PAKclient(conn, invoker, s_to_c(pass), nil) < 0){
+	if(PAKclient(conn, invoker, pass, nil) < 0){
 		werrstr("password mistyped?");
 		goto Out;
 	}
@@ -594,15 +594,15 @@ secstorefetch(char *password)
 		goto Out;
 	if(strcmp(s, "STA") == 0){
 		sta = readcons("STA PIN+SecureID", nil, 1);
-		if(sta==nil || s_len(sta)==0){
+		if(sta==nil || strlen(sta)==0){
 			werrstr("cancel");
 			goto Out;
 		}
-		if(s_len(sta) >= sizeof s - 3){
+		if(strlen(sta) >= sizeof s - 3){
 			werrstr("STA response too long");
 			goto Out;
 		}
-		strcpy(s+3, s_to_c(sta));
+		strcpy(s+3, sta);
 		conn->write(conn, (uchar*)s, strlen(s));
 		readstr(conn, s);
 	}
@@ -610,7 +610,7 @@ secstorefetch(char *password)
 		werrstr("%s", s);
 		goto Out;
 	}
-	if(getfile(conn, (uchar*)s_to_c(pass), s_len(pass)) < 0)
+	if(getfile(conn, (uchar*)pass, strlen(pass)) < 0)
 		goto Out;
 	conn->write(conn, (uchar*)"BYE", 3);
 	rv = 0;
@@ -619,9 +619,9 @@ Out:
 	if(conn)
 		conn->free(conn);
 	if(pass)
-		s_free(pass);
+		free(pass);
 	if(sta)
-		s_free(sta);
+		free(sta);
 	return rv;
 }
 

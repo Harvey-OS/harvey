@@ -66,8 +66,8 @@ passread(Fsstate *fss, void *va, uint *n)
 		return phaseerror(fss, "read");
 
 	case HavePass:
-		user = _str_findattr(s->key->attr, "user");
-		pass = _str_findattr(s->key->privattr, "!password");
+		user = _strfindattr(s->key->attr, "user");
+		pass = _strfindattr(s->key->privattr, "!password");
 		if(user==nil || pass==nil)
 			return failure(fss, "passread cannot happen");
 		snprint(buf, sizeof buf, "%q %q", user, pass);

@@ -36,6 +36,7 @@ prototab[] =
 	&p9sk2,
 	&pass,
 	&sshrsa,
+	&rsa,
 	&vnc,
 	nil,
 };
