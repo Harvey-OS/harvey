@@ -63,10 +63,12 @@ errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
 	int i, n;
 
 	r = runemalloc(ndir+8);
-	if(n = ndir)	/* assign = */
+	if(n = ndir){	/* assign = */
 		runemove(r, dir, ndir);
-	runemove(r+n, L"/+Errors", 8);
-	n += 8;
+		r[n++] = L'/';
+	}
+	runemove(r+n, L"+Errors", 7);
+	n += 7;
 	w = lookfile(r, n);
 	if(w == nil){
 		if(row.ncol == 0)
