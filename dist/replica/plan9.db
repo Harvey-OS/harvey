@@ -4624,7 +4624,7 @@ sys/man/1/emacs - 664 sys sys 944959673 199
 sys/man/1/eqn - 664 sys sys 944959675 5655
 sys/man/1/expect - 664 sys sys 1058791094 3023
 sys/man/1/face - 664 sys sys 1062505426 2278
-sys/man/1/faces - 664 sys sys 1045501346 2052
+sys/man/1/faces - 664 sys sys 1072972212 2093
 sys/man/1/factor - 664 sys sys 957920005 1019
 sys/man/1/file - 664 sys sys 1015024739 1578
 sys/man/1/filter - 664 sys sys 1041108741 4403
@@ -5189,7 +5189,7 @@ sys/src/9/boot/boot.c - 664 sys sys 1063857658 5334
 sys/src/9/boot/boot.h - 664 sys sys 1063857659 1785
 sys/src/9/boot/bootauth.c - 664 sys sys 1039763726 1097
 sys/src/9/boot/bootcache.c - 664 sys sys 1063857645 1579
-sys/src/9/boot/bootip.c - 664 sys sys 1063857634 3405
+sys/src/9/boot/bootip.c - 664 sys sys 1072972133 3418
 sys/src/9/boot/bootmkfile - 664 sys sys 1032053196 390
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
@@ -5252,7 +5252,7 @@ sys/src/9/mtx/kbd.c - 664 sys sys 1018721286 8358
 sys/src/9/mtx/l.s - 664 sys sys 1067722599 10730
 sys/src/9/mtx/main.c - 664 sys sys 1018721287 8344
 sys/src/9/mtx/mem.h - 664 sys sys 1026848200 5959
-sys/src/9/mtx/mkfile - 664 sys sys 1071245412 1504
+sys/src/9/mtx/mkfile - 664 sys sys 1072972534 1520
 sys/src/9/mtx/mmu.c - 664 sys sys 1018721287 4388
 sys/src/9/mtx/mtx - 664 sys sys 1056336297 416
 sys/src/9/mtx/mtxcpu - 664 sys sys 1039753442 421
@@ -5315,7 +5315,7 @@ sys/src/9/pc/i8253.c - 664 sys sys 1071245560 6251
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
-sys/src/9/pc/io.h - 664 sys sys 1067722633 7991
+sys/src/9/pc/io.h - 664 sys sys 1072972600 8023
 sys/src/9/pc/kbd.c - 664 sys sys 1071726245 9135
 sys/src/9/pc/l.s - 664 sys sys 1072704796 22700
 sys/src/9/pc/main.c - 664 sys sys 1072704797 14685
@@ -5357,7 +5357,7 @@ sys/src/9/pc/trap.c - 664 sys sys 1072704797 20506
 sys/src/9/pc/uarti8250.c - 664 sys sys 1067722686 13859
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
 sys/src/9/pc/usb.h - 664 sys sys 1063857246 3566
-sys/src/9/pc/usbuhci.c - 664 sys sys 1063857239 30688
+sys/src/9/pc/usbuhci.c - 664 sys sys 1072972271 30738
 sys/src/9/pc/vga.c - 664 sys sys 1039753497 4963
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1071247360 4867
 sys/src/9/pc/vgaark2000pv.c - 664 sys sys 1015014524 3416
@@ -6070,7 +6070,7 @@ sys/src/ape/lib/ap/plan9/link.c - 664 sys sys 1014921984 168
 sys/src/ape/lib/ap/plan9/lseek.c - 664 sys sys 1038237526 358
 sys/src/ape/lib/ap/plan9/malloc.c - 664 sys sys 1014921985 1957
 sys/src/ape/lib/ap/plan9/mkdir.c - 664 sys sys 1014921984 353
-sys/src/ape/lib/ap/plan9/mkfile - 664 sys sys 1070660696 1370
+sys/src/ape/lib/ap/plan9/mkfile - 664 sys sys 1072972153 1385
 sys/src/ape/lib/ap/plan9/nan.c - 664 sys sys 1014921985 614
 sys/src/ape/lib/ap/plan9/open.c - 664 sys sys 1048644335 1088
 sys/src/ape/lib/ap/plan9/opendir.c - 664 sys sys 1014921984 1881
@@ -6791,7 +6791,7 @@ sys/src/cmd/acme/rows.c - 664 sys sys 1068140772 14637
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
 sys/src/cmd/acme/text.c - 664 sys sys 1072729041 26813
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
-sys/src/cmd/acme/util.c - 664 sys sys 1045546057 6435
+sys/src/cmd/acme/util.c - 664 sys sys 1072972297 6436
 sys/src/cmd/acme/wind.c - 664 sys sys 1016833877 11063
 sys/src/cmd/acme/xfid.c - 664 sys sys 1067723165 19180
 sys/src/cmd/ar.c - 664 sys sys 1046643027 23717
@@ -7493,10 +7493,10 @@ sys/src/cmd/ext2srv/xfssrv.c - 664 sys sys 1055687749 1292
 sys/src/cmd/faces - 20000000775 sys sys 952888246 0
 sys/src/cmd/faces/dblook.c - 664 sys sys 944961084 359
 sys/src/cmd/faces/facedb.c - 664 sys sys 1062460263 9927
-sys/src/cmd/faces/faces.h - 664 sys sys 1045419243 1071
-sys/src/cmd/faces/main.c - 664 sys sys 1048644465 13572
+sys/src/cmd/faces/faces.h - 664 sys sys 1072972232 1115
+sys/src/cmd/faces/main.c - 664 sys sys 1072972232 13637
 sys/src/cmd/faces/mkfile - 664 sys sys 1062460262 355
-sys/src/cmd/faces/plumb.c - 664 sys sys 1045505116 7132
+sys/src/cmd/faces/plumb.c - 664 sys sys 1072972233 7054
 sys/src/cmd/faces/util.c - 664 sys sys 1035698250 569
 sys/src/cmd/factor.c - 664 sys sys 944961351 1348
 sys/src/cmd/fax - 20000000775 sys sys 954036333 0
@@ -10896,6 +10896,9 @@ sys/src/cmd/usb/mkfile - 664 sys sys 1072728986 219
 sys/src/cmd/usb/mouse - 20000000775 sys sys 1017802022 0
 sys/src/cmd/usb/mouse/mkfile - 664 sys sys 1017802022 211
 sys/src/cmd/usb/mouse/usbmouse.c - 664 sys sys 1017802022 3074
+sys/src/cmd/usb/print - 20000000775 sys sys 1073007760 0
+sys/src/cmd/usb/print/mkfile - 664 sys sys 1073007760 197
+sys/src/cmd/usb/print/usbprint - 775 sys sys 1073007760 222
 sys/src/cmd/usb/usbd - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/usbd/dat.h - 664 sys sys 1017802021 682
 sys/src/cmd/usb/usbd/device.c - 664 sys sys 1018387004 2955

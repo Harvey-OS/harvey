@@ -797,6 +797,8 @@ epopen(Usbhost *uh, Endpt *e)
 	Ctlr *ctlr;
 
 	ctlr = uh->ctlr;
+	if(e->iso && e->active)
+		error("already open");
 	if(schedendpt(ctlr, e) < 0){
 		if(e->active)
 			error("can't schedule USB endpoint, active");
