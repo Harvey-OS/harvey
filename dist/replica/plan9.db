@@ -3206,7 +3206,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1048813436 239855
+sys/games/lib/fortunes - 664 sys sys 1049903231 240008
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1014929061 1133
@@ -9328,7 +9328,7 @@ sys/src/cmd/ndb/query.c - 664 sys sys 957402054 1133
 sys/src/cmd/ndb/time.c - 664 sys sys 957402055 321
 sys/src/cmd/netstat.c - 664 sys sys 1038237140 3796
 sys/src/cmd/news.c - 664 sys sys 1014926614 3778
-sys/src/cmd/nfs.c - 664 sys sys 1049839711 31035
+sys/src/cmd/nfs.c - 664 sys sys 1049859688 31052
 sys/src/cmd/nm.c - 664 sys sys 1014926696 4908
 sys/src/cmd/nntpfs.c - 664 sys sys 1048644540 18869
 sys/src/cmd/ns.c - 664 sys sys 984717934 3558
