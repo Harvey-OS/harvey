@@ -19,18 +19,25 @@ vfsAlloc(VtSession *z, int bsize, long ncache)
 }
 
 static int
-readScore(int fd, uchar score[VtScoreSize])
+readScore(char* file, uchar score[VtScoreSize])
 {
 	char buf[44];
-	int i, n, c;
+	int fd, i, n, c;
+
+	fd = open(file, OREAD);
+	if(fd < 0) {
+		vtSetError("can't open '%s': %r", file);
+		return 0;
+	}
 
 	n = readn(fd, buf, sizeof(buf));
+	close(fd);
 	if(n < sizeof(buf)) {
-		vtSetError("short read");
+		vtSetError("read '%s': too short", file);
 		return 0;
 	}
 	if(strncmp(buf, "vac:", 4) != 0) {
-		vtSetError("not a vac file");
+		vtSetError("'%s': not a vac file", file);
 		return 0;
 	}
 	memset(score, 0, VtScoreSize);
@@ -42,7 +49,7 @@ readScore(int fd, uchar score[VtScoreSize])
 		else if(buf[i] >= 'A' && buf[i] <= 'F')
 			c = buf[i] - 'A' + 10;
 		else {
-			vtSetError("bad format for venti score");
+			vtSetError("'%s': bad format for venti score", file);
 			return 0;
 		}
 		if((i & 1) == 0)
@@ -57,22 +64,13 @@ VacFS *
 vfsOpen(VtSession *z, char *file, int readOnly, long ncache)
 {
 	VacFS *fs;
-	int n, fd;
+	int n;
 	VtRoot rt;
 	uchar score[VtScoreSize], buf[VtRootSize];
 	VacFile *root;
 
-	fd = open(file, OREAD);
-	if(fd < 0) {
-		vtOSError();
+	if(!readScore(file, score))
 		return nil;
-	}
-
-	if(!readScore(fd, score)) {
-		close(fd);
-		return nil;
-	}
-	close(fd);
 
 	n = vtRead(z, score, VtRootType, buf, VtRootSize);
 	if(n < 0)
