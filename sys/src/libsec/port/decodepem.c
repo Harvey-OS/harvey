@@ -12,6 +12,8 @@ decodepem(char *s, char *type, int *len)
 	char *t, *e, *tt;
 	int n;
 
+	*len = 0;
+
 	/*
 	 * find the correct section of the file, stripping garbage at the beginning and end.
 	 * the data is delimited by -----BEGIN <type>-----\n and -----END <type>-----\n
