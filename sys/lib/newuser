@@ -10,6 +10,7 @@ cd $home
 x='$'
 mkdir bin bin/rc bin/mips bin/386
 mkdir lib tmp
+chmod +t tmp
 mkdir /cron/$user
 chmod 775 /cron/$user
 chgrp $user /cron/$user

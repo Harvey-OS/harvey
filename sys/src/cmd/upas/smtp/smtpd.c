@@ -421,9 +421,6 @@ senderok(char *rcpt)
 	Sender *snd;
 	Ndbtuple *nt, *next, *first;
 
-	/* internal mail is exempt from this checking */
-	if (strcmp(nci->root, "/net") == 0)
-		return 1;
 	rdsenders();
 	for (snd = sendlist; snd != nil; snd = snd->next) {
 		if (strcmp(rcpt, snd->rcpt) != 0)

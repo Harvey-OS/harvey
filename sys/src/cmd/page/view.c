@@ -249,6 +249,7 @@ enum{
 	Empty1,
 	Next,
 	Prev,
+	Zerox,
 	Empty2,
 	Reverse,
 	Del,
@@ -278,6 +279,7 @@ viewer(Document *dd)
  		"",
  		"next",
  		"prev",
+		"zerox",
  		"", 
  		"reverse",
  		"discard",
@@ -523,6 +525,8 @@ viewer(Document *dd)
 					showpage(page, &menu);
 					nxt = 0;
 					break;
+				case Zerox:	/* prev */
+					zerox();
 					break;
 				case Zin:	/* zoom in */
 					{
@@ -1056,3 +1060,24 @@ screenrect(void)
 	return Rect(atoi(buf+12), atoi(buf+24), atoi(buf+36), atoi(buf+48));
 }
 
+void
+zerox(void)
+{
+	int pfd[2];
+
+	pipe(pfd);
+	switch(rfork(RFFDG|RFREND|RFPROC)) {
+		case -1:
+			wexits("cannot fork in zerox: %r");
+		case 0: 
+			dup(pfd[1], 0);
+			close(pfd[0]);
+			execl("/bin/page", "page", "-w", 0);
+			wexits("cannot exec in zerox: %r\n");
+		default:
+			close(pfd[1]);
+			writeimage(pfd[0], im, 0);
+			close(pfd[0]);
+			break;
+	}
+}

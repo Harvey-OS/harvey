@@ -30,7 +30,7 @@ gettimeofday(struct timeval *tp, struct timezone *tzp)
 	vlong t;
 
 	memset(b, 0, sizeof b);
-	f = _OPEN("/dev/time", 0);
+	f = _OPEN("/dev/bintime", 0);
 	if(f >= 0) {
 		_PREAD(f, b, sizeof(b), 0);
 		_CLOSE(f);

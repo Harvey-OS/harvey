@@ -60,6 +60,7 @@ void	setdim(GSInfo*, Rectangle, int, int);
 int	spawnwriter(GSInfo*, Biobuf*);
 Rectangle	screenrect(void);
 void	newwin(void);
+void	zerox(void);
 Rectangle winrect(void);
 void	resize(int, int);
 int	max(int, int);
