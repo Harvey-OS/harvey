@@ -50,6 +50,7 @@ static void	vmspath(Node*, String*);
 static void	mvspath(Node*, String*);
 static Node*	vmsdir(char*);
 static int	getpassword(char*, char*);
+static int	nw_mode(char dirlet, char *s);
 
 /*
  *  connect to remote server, default network is "tcp/ip"
@@ -590,6 +591,17 @@ crackdir(char *p, String **remname)
 		break;
 	case NetWare:
 		switch(n){
+		case 8:		/* New style */
+			s = s_copy(field[7]);
+			d.uid = field[2];
+			d.gid = d.uid;
+			d.mode = nw_mode(field[0][0], field[1]);
+			d.length = atoi(field[3]);
+			if(strchr(field[6], ':'))
+				d.atime = cracktime(field[4], field[5], nil, field[6]);
+			else
+				d.atime = cracktime(field[4], field[5], field[6], nil);
+			break;
 		case 9:
 			s = s_copy(field[8]);
 			d.uid = field[2];
@@ -1380,7 +1392,7 @@ unixpath(Node *node, String *path)
 		return;
 	}
 	unixpath(node->parent, path);
-	if(s_len(path) > 0)
+	if(s_len(path) > 0 && strcmp(s_to_c(path), "/") != 0)
 		s_append(path, "/");
 	s_append(path, s_to_c(node->remname));
 }
@@ -1557,4 +1569,27 @@ dir_change_muid(Dir *d, char *name)
 	}
 	d->muid = name;
 	return reallocdir(d, 1);
+}
+
+static int
+nw_mode(char dirlet, char *s)		/* NetWare file mode mapping */
+{
+	int mode = 0777;
+
+	if(dirlet == 'd')
+		mode |= DMDIR;
+
+	if (strlen(s) >= 10 && s[0] != '[' || s[9] != ']')
+		return(mode);
+
+	if (s[1] == '-')					/* can't read file */
+		mode &= ~0444;
+	if (dirlet == 'd' && s[6] == '-')			/* cannot scan dir */
+		mode &= ~0444;
+	if (s[2] == '-')					/* can't write file */
+		mode &= ~0222;
+	if (dirlet == 'd' && s[7] == '-' && s[3] == '-')	/* cannot create in, or modify dir */
+		mode &= ~0222;
+
+	return(mode);
 }
