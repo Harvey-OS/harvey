@@ -295,7 +295,7 @@ tgetc(void *a, uint n)
 Rune*
 skipbl(Rune *r, int n, int *np)
 {
-	while(n>0 && *r==' ' || *r=='\t' || *r=='\n'){
+	while(n>0 && (*r==' ' || *r=='\t' || *r=='\n')){
 		--n;
 		r++;
 	}
