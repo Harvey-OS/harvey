@@ -5,16 +5,17 @@ replclipr, line, poly, fillpoly, bezier, bezspline, fillbezier, fillbezspline, e
 fillellipse, arc, fillarc, icossin, icossin2, border, string, stringn,
 runestring, runestringn, stringbg, stringnbg, runestringbg,
 runestringnbg, _string, ARROW, drawsetdebug \- graphics functions
-.SH SYNOPSIS
-.nf
-.B #include <u.h>
-.br
-.B #include <libc.h>
-.br
-.B #include <draw.h>
-.br
+.de PB
 .PP
 .ft L
+.nf
+..
+.SH SYNOPSIS
+.PB
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+.PB
 typedef
 struct Image
 {
@@ -28,168 +29,181 @@ struct Image
 	Screen	*screen;	/* 0 if not a window */
 	Image	*next;	/* next in list of windows */
 } Image;
-.ft
-.PP
-.ta \w'\fLPoint 'u
-.PP
-.B
-void draw(Image *dst, Rectangle r,
+.PB
+typedef enum
+{
+	/* Porter-Duff compositing operators */
+	Clear	= 0,
+.sp 0.1
+	SinD	= 8,
+	DinS	= 4,
+	SoutD	= 2,
+	DoutS	= 1,
+.sp 0.1
+	S		= SinD|SoutD,
+	SoverD	= SinD|SoutD|DoutS,
+	SatopD	= SinD|DoutS,
+	SxorD	= SoutD|DoutS,
+.sp 0.1
+	D		= DinS|DoutS,
+	DoverS	= DinS|DoutS|SoutD,
+	DatopS	= DinS|SoutD,
+	DxorS	= DoutS|SoutD,	/* == SxorD */
+.sp 0.1
+	Ncomp = 12,
+} Drawop;
+.PB
+.PD 0
+.ta +\w'\fL      'u +\w'\fL    'u +6n +4n
+void	draw(Image *dst, Rectangle r, Image *src,
+		Image *mask, Point p)
+.PB
+void	drawop(Image *dst, Rectangle r, Image *src,
+		Image *mask, Point p, Drawop op)
+.PB
+void	gendraw(Image *dst, Rectangle r, Image *src, Point sp,
+		Image *mask, Point mp)
+.PB
+void	gendrawop(Image *dst, Rectangle r, Image *src, Point sp,
+		Image *mask, Point mp, Drawop op)
+.PB
+int	drawreplxy(int min, int max, int x)
+.PB
+Point	drawrepl(Rectangle r, Point p)
+.PB
+void	replclipr(Image *i, int repl, Rectangle clipr)
+.PB
+void	line(Image *dst, Point p0, Point p1, int end0, int end1,
+		int radius, Image *src, Point sp)
+.PB
+void	lineop(Image *dst, Point p0, Point p1, int end0, int end1,
+		int radius, Image *src, Point sp, Drawop op)
+.PB
+void	poly(Image *dst, Point *p, int np, int end0, int end1,
+		int radius, Image *src, Point sp)
+.PB
+void	polyop(Image *dst, Point *p, int np, int end0, int end1,
+		int radius, Image *src, Point sp, Drawop op)
+.PB
+void	fillpoly(Image *dst, Point *p, int np, int wind,
+		Image *src, Point sp)
+.PB
+void	fillpolyop(Image *dst, Point *p, int np, int wind,
+		Image *src, Point sp, Drawop op)
+.PB
+int	bezier(Image *dst, Point p0, Point p1, Point p2, Point p3,
+		int end0, int end1, int radius, Image *src, Point sp)
+.PB
+int	bezierop(Image *dst, Point p0, Point p1, Point p2, Point p3,
+		int end0, int end1, int radius, Image *src, Point sp,
+		Drawop op)
+.PB
+int	bezspline(Image *dst, Point *pt, int npt, int end0, int end1,
+		int radius, Image *src, Point sp)
+.PB
+int	bezsplineop(Image *dst, Point *pt, int npt, int end0, int end1,
+		int radius, Image *src, Point sp, Drawop op)
+.PB
+int	bezsplinepts(Point *pt, int npt, Point **pp)
+.PB
+int	fillbezier(Image *dst, Point p0, Point p1, Point p2, Point p3,
+		int w, Image *src, Point sp)
+.PB
+int	fillbezierop(Image *dst, Point p0, Point p1, Point p2, Point p3,
+		int w, Image *src, Point sp, Drawop op)
+.PB
+int	fillbezspline(Image *dst, Point *pt, int npt, int w,
+		Image *src, Point sp)
+.PB
+int	fillbezsplineop(Image *dst, Point *pt, int npt, int w,
+		Image *src, Point sp, Drawop op)
+.PB
+void	ellipse(Image *dst, Point c, int a, int b, int thick,
+		Image *src, Point sp)
+.PB
+void	ellipseop(Image *dst, Point c, int a, int b, int thick,
+		Image *src, Point sp, Drawop op)
+.PB
+void	fillellipse(Image *dst, Point c, int a, int b,
+		Image *src, Point sp)
+.PB
+void	fillellipseop(Image *dst, Point c, int a, int b,
+		Image *src, Point sp, Drawop op)
+.PB
+void	arc(Image *dst, Point c, int a, int b, int thick,
+		Image *src, Point sp, int alpha, int phi)
+.PB
+void	arcop(Image *dst, Point c, int a, int b, int thick,
+		Image *src, Point sp, int alpha, int phi, Drawop op)
+.PB
+void	fillarc(Image *dst, Point c, int a, int b, Image *src,
+		Point sp, int alpha, int phi)
+.PB
+void	fillarcop(Image *dst, Point c, int a, int b, Image *src,
+		Point sp, int alpha, int phi, Drawop op)
+.PB
+int	icossin(int deg, int *cosp, int *sinp)
+.PB
+int	icossin2(int x, int y, int *cosp, int *sinp)
+.PB
+void	border(Image *dst, Rectangle r, int i, Image *color, Point sp)
 .br
-.B
-		   Image *src, Image *mask, Point p)
-.PP
-.B
-void gendraw(Image *dst, Rectangle r,
-.br
-.B
-		   Image *src, Point sp, Image *mask, Point mp)
-.PP
-.B
-int  drawreplxy(int min, int max, int x)
-.PP
-.B
-Point drawrepl(Rectangle r, Point p)
-.PP
-.B
-void replclipr(Image *i, int repl, Rectangle clipr)
-.PP
-.B
-void line(Image *dst, Point p0, Point p1, int end0, int end1,
-.br
-.B
-		   int radius, Image *src, Point sp)
-.PP
-.B
-void poly(Image *dst, Point *p, int np, int end0, int end1,
-.br
-.B
-		   int radius, Image *src, Point sp)
-.PP
-.B
-void fillpoly(Image *dst, Point *p, int np, int wind,
-.br
-.B
-		   Image *src, Point sp)
-.PP
-.B
-int  bezier(Image *dst, Point p0, Point p1, Point p2, Point p3,
-.br
-.B
-		   int end0, int end1, int radius, Image *src, Point sp)
-.PP
-.B
-int  bezspline(Image *dst, Point *pt, int npt, int end0, int end1,
-.br
-.B
-		   int radius, Image *src, Point sp)
-.PP
-.B
-int  fillbezier(Image *dst, Point p0, Point p1, Point p2, Point p3,
-.br
-.B
-		   int w, Image *src, Point sp)
-.PP
-.B
-int  fillbezspline(Image *dst, Point *pt, int npt, int w,
-.br
-.B
-		   Image *src, Point sp)
-.PP
-.B
-void ellipse(Image *dst, Point c, int a, int b, int thick,
-.br
-.B
-		   Image *src, Point sp)
-.PP
-.B
-void fillellipse(Image *dst, Point c, int a, int b,
-.br
-.B
-		   Image *src, Point sp)
-.PP
-.B
-void arc(Image *dst, Point c, int a, int b, int thick,
-.br
-.B
-		   Image *src, Point sp, int alpha, int phi)
-.PP
-.B
-void fillarc(Image *dst, Point c, int a, int b, Image *src,
-.br
-.B
-		   Point sp, int alpha, int phi)
-.PP
-.B
-int  icossin(int deg, int *cosp, int *sinp)
-.PP
-.B
-int  icossin2(int x, int y, int *cosp, int *sinp)
-.PP
-.B
-void border(Image *dst, Rectangle r, int i, Image *color, Point sp)
-.br
-.PP
-.B
-Point string(Image *dst, Point p, Image *src, Point sp,
-.br
-.B
-		   Font *f, char *s)
-.PP
-.B
-Point stringn(Image *dst, Point p, Image *src, Point sp,
-.br
-.B
-		   Font *f, char *s, int len)
-.PP
-.B
-Point runestring(Image *dst, Point p, Image *src, Point sp,
-.br
-.B
-		   Font *f, Rune *r)
-.PP
-.B
-Point runestringn(Image *dst, Point p, Image *src, Point sp,
-.br
-.B
-		   Font *f, Rune *r, int len)
-.PP
-.B
-Point stringbg(Image *dst, Point p, Image *src, Point sp,
-.br
-.B
-		   Font *f, char *s, Image *bg, Point bgp)
-.PP
-.B
-Point stringnbg(Image *dst, Point p, Image *src, Point sp,
-.br
-.B
-		   Font *f, char *s, int len, Image *bg, Point bgp)
-.PP
-.B
-Point runestringbg(Image *dst, Point p, Image *src, Point sp,
-.br
-.B
-		   Font *f, Rune *r, Image *bg, Point bgp)
-.PP
-.B
-Point runestringnbg(Image *dst, Point p, Image *src, Point sp,
-.br
-.B
-		   Font *f, Rune *r, int len, Image *bg, Point bgp)
-.PP
-.B
-Point _string(Image *dst, Point p, Image *src,
-.br
-.B
-		   Point sp, Font *f, char *s, Rune *r, int len,
-.br
-.B
-		   Rectangle clipr, Image *bg, Point bgp)
-.PP
-.B
+.PB
+Point	string(Image *dst, Point p, Image *src, Point sp,
+		Font *f, char *s)
+.PB
+Point	stringop(Image *dst, Point p, Image *src, Point sp,
+		Font *f, char *s, Drawop op)
+.PB
+Point	stringn(Image *dst, Point p, Image *src, Point sp,
+		Font *f, char *s, int len)
+.PB
+Point	stringnop(Image *dst, Point p, Image *src, Point sp,
+		Font *f, char *s, int len, Drawop op)
+.PB
+Point	runestring(Image *dst, Point p, Image *src, Point sp,
+		Font *f, Rune *r)
+.PB
+Point	runestringop(Image *dst, Point p, Image *src, Point sp,
+		Font *f, Rune *r, Drawop op)
+.PB
+Point	runestringn(Image *dst, Point p, Image *src, Point sp,
+		Font *f, Rune *r, int len)
+.PB
+Point	runestringnop(Image *dst, Point p, Image *src, Point sp,
+		Font *f, Rune *r, int len, Drawop op)
+.PB
+Point	stringbg(Image *dst, Point p, Image *src, Point sp,
+		Font *f, char *s, Image *bg, Point bgp)
+.PB
+Point	stringbgop(Image *dst, Point p, Image *src, Point sp,
+		Font *f, char *s, Image *bg, Point bgp, Drawop op)
+.PB
+Point	stringnbg(Image *dst, Point p, Image *src, Point sp,
+		Font *f, char *s, int len, Image *bg, Point bgp)
+.PB
+Point	stringnbgop(Image *dst, Point p, Image *src, Point sp,
+		Font *f, char *s, int len, Image *bg, Point bgp, Drawop op)
+.PB
+Point	runestringbg(Image *dst, Point p, Image *src, Point sp,
+		Font *f, Rune *r, Image *bg, Point bgp)
+.PB
+Point	runestringbgop(Image *dst, Point p, Image *src, Point sp,
+		Font *f, Rune *r, Image *bg, Point bgp, Drawop op)
+.PB
+Point	runestringnbg(Image *dst, Point p, Image *src, Point sp,
+		Font *f, Rune *r, int len, Image *bg, Point bgp)
+.PB
+Point	runestringnbgop(Image *dst, Point p, Image *src, Point sp,
+		Font *f, Rune *r, int len, Image *bg, Point bgp, Drawop op)
+.PB
+Point	_string(Image *dst, Point p, Image *src,
+		Point sp, Font *f, char *s, Rune *r, int len,
+		Rectangle clipr, Image *bg, Point bgp, Drawop op)
+.PB
 void	drawsetdebug(int on)
-.PP
-.ft L
+.PD
+.PB
 enum
 {
 	/* line ends */
@@ -198,10 +212,8 @@ enum
 	Endarrow	= 2,
 	Endmask		= 0x1F
 };
-
+.PB
 #define ARROW(a, b, c) (Endarrow|((a)<<5)|((b)<<14)|((c)<<23))
-.ft P
-.fi
 .SH DESCRIPTION
 The
 .B Image
@@ -291,6 +303,18 @@ the first image requires far less memory.
 The replication flag may be modified dynamically using
 .I replclipr
 .RI ( q.v. ).
+.PP
+Most of the drawing functions come in two forms:
+a basic form, and an extended form that takes an extra
+.B Drawop
+to specify a Porter-Duff compositing operator to use.
+The basic forms assume the operator is
+.BR SoverD ,
+which suffices for the vast majority of applications.
+The extended forms are named by adding an
+.RB - op
+suffix to the basic form.
+Only the basic forms are listed below.
 .TP
 .BI draw( dst\fP,\fP\ r\fP,\fP\ src\fP,\fP\ mask\fP,\fP\ p )
 .I Draw
@@ -382,6 +406,9 @@ in
 .IR mask )
 over
 .IR dst .
+(In the extended form,
+``over'' is replaced by
+.IR op ).
 .RE
 .IP
 The various
@@ -576,6 +603,16 @@ but draws a quadratic B-spline (despite its name) rather than a polygon.
 If the first and last points in
 .I p
 are equal, the spline has periodic end conditions.
+.TP
+\f5bezsplinepts(\f2pt\fP, \f2npt\fP, \f2pp\fP)
+.I Bezsplinepts
+returns in
+.I pp
+a list of points making up the open polygon that
+.I bezspline
+would draw.
+The caller is responsible for freeing
+.IR *pp .
 .TP
 \f5fillbezier(\f2dst\fP, \f2a\fP, \f2b\fP, \f2c\fP, \f2d\fP, \f2wind\fP, \f2src\fP, \f2sp\fP)
 .I Fillbezier

@@ -105,7 +105,7 @@ bezierpts(Plist *l, Point p0, Point p1, Point p2, Point p3)
 }
 
 static void
-bezsplinepts(Plist *l, Point *pt, int npt)
+_bezsplinepts(Plist *l, Point *pt, int npt)
 {
 	Point *p, *ep;
 	Point a, b, c, d;
@@ -145,7 +145,24 @@ bezsplinepts(Plist *l, Point *pt, int npt)
 }
 
 int
+bezsplinepts(Point *pt, int npt, Point **pp)
+{
+	Plist l;
+	l.np = 0;
+	l.p = nil;
+	_bezsplinepts(&l, pt, npt);
+	*pp  = l.p;
+	return l.np;
+}
+
+int
 bezier(Image *dst, Point p0, Point p1, Point p2, Point p3, int end0, int end1, int radius, Image *src, Point sp)
+{
+	return bezierop(dst, p0, p1, p2, p3, end0, end1, radius, src, sp, SoverD);
+}
+
+int
+bezierop(Image *dst, Point p0, Point p1, Point p2, Point p3, int end0, int end1, int radius, Image *src, Point sp, Drawop op)
 {
 	Plist l;
 
@@ -154,7 +171,7 @@ bezier(Image *dst, Point p0, Point p1, Point p2, Point p3, int end0, int end1, i
 	if(l.np == -1)
 		return 0;
 	if(l.np != 0){
-		poly(dst, l.p, l.np, end0, end1, radius, src, sp);
+		polyop(dst, l.p, l.np, end0, end1, radius, src, addpt(subpt(sp, p0), l.p[0]), op);
 		free(l.p);
 	}
 	return 1;
@@ -163,14 +180,20 @@ bezier(Image *dst, Point p0, Point p1, Point p2, Point p3, int end0, int end1, i
 int
 bezspline(Image *dst, Point *pt, int npt, int end0, int end1, int radius, Image *src, Point sp)
 {
+	return bezsplineop(dst, pt, npt, end0, end1, radius, src, sp, SoverD);
+}
+
+int
+bezsplineop(Image *dst, Point *pt, int npt, int end0, int end1, int radius, Image *src, Point sp, Drawop op)
+{
 	Plist l;
 
 	l.np = 0;
-	bezsplinepts(&l, pt, npt);
+	_bezsplinepts(&l, pt, npt);
 	if(l.np==-1)
 		return 0;
 	if(l.np != 0){
-		poly(dst, l.p, l.np, end0, end1, radius, src, sp);
+		polyop(dst, l.p, l.np, end0, end1, radius, src, addpt(subpt(sp, pt[0]), l.p[0]), op);
 		free(l.p);
 	}
 	return 1;
@@ -179,6 +202,12 @@ bezspline(Image *dst, Point *pt, int npt, int end0, int end1, int radius, Image 
 int
 fillbezier(Image *dst, Point p0, Point p1, Point p2, Point p3, int w, Image *src, Point sp)
 {
+	return fillbezierop(dst, p0, p1, p2, p3, w, src, sp, SoverD);
+}
+
+int
+fillbezierop(Image *dst, Point p0, Point p1, Point p2, Point p3, int w, Image *src, Point sp, Drawop op)
+{
 	Plist l;
 
 	l.np = 0;
@@ -186,7 +215,7 @@ fillbezier(Image *dst, Point p0, Point p1, Point p2, Point p3, int w, Image *src
 	if(l.np == -1)
 		return 0;
 	if(l.np != 0){
-		fillpoly(dst, l.p, l.np, w, src, sp);
+		fillpolyop(dst, l.p, l.np, w, src, addpt(subpt(sp, p0), l.p[0]), op);
 		free(l.p);
 	}
 	return 1;
@@ -195,14 +224,20 @@ fillbezier(Image *dst, Point p0, Point p1, Point p2, Point p3, int w, Image *src
 int
 fillbezspline(Image *dst, Point *pt, int npt, int w, Image *src, Point sp)
 {
+	return fillbezsplineop(dst, pt, npt, w, src, sp, SoverD);
+}
+
+int
+fillbezsplineop(Image *dst, Point *pt, int npt, int w, Image *src, Point sp, Drawop op)
+{
 	Plist l;
 
 	l.np = 0;
-	bezsplinepts(&l, pt, npt);
+	_bezsplinepts(&l, pt, npt);
 	if(l.np == -1)
 		return 0;
 	if(l.np > 0){
-		fillpoly(dst, l.p, l.np, w, src, sp);
+		fillpolyop(dst, l.p, l.np, w, src, addpt(subpt(sp, pt[0]), l.p[0]), op);
 		free(l.p);
 	}
 	return 1;

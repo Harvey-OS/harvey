@@ -110,7 +110,7 @@ entryshow(Entry *e)
 	p = entrypoint(e, 0);
 	_string(e->screen, p, e->textcolor->image,
 		ZP, e->font->font, nil, e->text, e->ntext,
-		dr, nil, ZP);
+		dr, nil, ZP, SoverD);
 	if(e->hasfocus){
 		p = entrypoint(e, e->cursor);
 		r.min = p;

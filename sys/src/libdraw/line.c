@@ -5,7 +5,15 @@
 void
 line(Image *dst, Point p0, Point p1, int end0, int end1, int radius, Image *src, Point sp)
 {
+	lineop(dst, p0, p1, end0, end1, radius, src, sp, SoverD);
+}
+
+void
+lineop(Image *dst, Point p0, Point p1, int end0, int end1, int radius, Image *src, Point sp, Drawop op)
+{
 	uchar *a;
+
+	_setdrawop(dst->display, op);
 
 	a = bufimage(dst->display, 1+4+2*4+2*4+4+4+4+4+2*4);
 	if(a == 0){

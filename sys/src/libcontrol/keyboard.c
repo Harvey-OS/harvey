@@ -305,7 +305,7 @@ keydraw(Keyboard *k, int state)
 			q = _ctlalignpoint(r, stringnwidth(f, kp, n), f->height, Acenter);
 			_string(im, q, k->textcolor->image,
 				ZP, f, kp, nil, n, r,
-				nil, ZP);
+				nil, ZP, SoverD);
 			x = r.max.x;
 			if(kp[n+1])
 				draw(im, Rect(x, r.min.y, x+1, r.max.y),

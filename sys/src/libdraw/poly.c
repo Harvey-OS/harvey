@@ -22,7 +22,7 @@ addcoord(uchar *p, int oldx, int newx)
 
 static
 void
-dopoly(int cmd, Image *dst, Point *pp, int np, int end0, int end1, int radius, Image *src, Point *sp)
+dopoly(int cmd, Image *dst, Point *pp, int np, int end0, int end1, int radius, Image *src, Point *sp, Drawop op)
 {
 	uchar *a, *t, *u;
 	int i, ox, oy;
@@ -40,6 +40,9 @@ dopoly(int cmd, Image *dst, Point *pp, int np, int end0, int end1, int radius, I
 		u = addcoord(u, oy, pp[i].y);
 		oy = pp[i].y;
 	}
+
+	_setdrawop(dst->display, op);
+
 	a = bufimage(dst->display, 1+4+2+4+4+4+4+2*4+(u-t));
 	if(a == 0){
 		free(t);
@@ -62,11 +65,23 @@ dopoly(int cmd, Image *dst, Point *pp, int np, int end0, int end1, int radius, I
 void
 poly(Image *dst, Point *p, int np, int end0, int end1, int radius, Image *src, Point sp)
 {
-	dopoly('p', dst, p, np, end0, end1, radius, src, &sp);
+	dopoly('p', dst, p, np, end0, end1, radius, src, &sp, SoverD);
+}
+
+void
+polyop(Image *dst, Point *p, int np, int end0, int end1, int radius, Image *src, Point sp, Drawop op)
+{
+	dopoly('p', dst, p, np, end0, end1, radius, src, &sp, op);
 }
 
 void
 fillpoly(Image *dst, Point *p, int np, int wind, Image *src, Point sp)
 {
-	dopoly('P', dst, p, np, wind, 0, 0, src, &sp);
+	dopoly('P', dst, p, np, wind, 0, 0, src, &sp, SoverD);
+}
+
+void
+fillpolyop(Image *dst, Point *p, int np, int wind, Image *src, Point sp, Drawop op)
+{
+	dopoly('P', dst, p, np, wind, 0, 0, src, &sp, op);
 }

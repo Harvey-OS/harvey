@@ -81,11 +81,9 @@ enum
 
 #define	ARROW(a, b, c)	(Endarrow|((a)<<5)|((b)<<14)|((c)<<23))
 
-/*
- * Porter-Duff operators
- */
-enum
+typedef enum
 {
+	/* Porter-Duff compositing operators */
 	Clear	= 0,
 
 	SinD	= 8,
@@ -104,7 +102,7 @@ enum
 	DxorS	= DoutS|SoutD,	/* == SxorD */
 
 	Ncomp = 12,
-};
+} Drawop;
 
 /*
  * image channel descriptors 
@@ -398,29 +396,52 @@ extern void		icossin2(int, int, int*, int*);
  * Graphics
  */
 extern void	draw(Image*, Rectangle, Image*, Image*, Point);
+extern void	drawop(Image*, Rectangle, Image*, Image*, Point, Drawop);
 extern void	gendraw(Image*, Rectangle, Image*, Point, Image*, Point);
+extern void	gendrawop(Image*, Rectangle, Image*, Point, Image*, Point, Drawop);
 extern void	line(Image*, Point, Point, int, int, int, Image*, Point);
+extern void	lineop(Image*, Point, Point, int, int, int, Image*, Point, Drawop);
 extern void	poly(Image*, Point*, int, int, int, int, Image*, Point);
+extern void	polyop(Image*, Point*, int, int, int, int, Image*, Point, Drawop);
 extern void	fillpoly(Image*, Point*, int, int, Image*, Point);
+extern void	fillpolyop(Image*, Point*, int, int, Image*, Point, Drawop);
 extern Point	string(Image*, Point, Image*, Point, Font*, char*);
+extern Point	stringop(Image*, Point, Image*, Point, Font*, char*, Drawop);
 extern Point	stringn(Image*, Point, Image*, Point, Font*, char*, int);
+extern Point	stringnop(Image*, Point, Image*, Point, Font*, char*, int, Drawop);
 extern Point	runestring(Image*, Point, Image*, Point, Font*, Rune*);
+extern Point	runestringop(Image*, Point, Image*, Point, Font*, Rune*, Drawop);
 extern Point	runestringn(Image*, Point, Image*, Point, Font*, Rune*, int);
+extern Point	runestringnop(Image*, Point, Image*, Point, Font*, Rune*, int, Drawop);
 extern Point	stringbg(Image*, Point, Image*, Point, Font*, char*, Image*, Point);
+extern Point	stringbgop(Image*, Point, Image*, Point, Font*, char*, Image*, Point, Drawop);
 extern Point	stringnbg(Image*, Point, Image*, Point, Font*, char*, int, Image*, Point);
+extern Point	stringnbgop(Image*, Point, Image*, Point, Font*, char*, int, Image*, Point, Drawop);
 extern Point	runestringbg(Image*, Point, Image*, Point, Font*, Rune*, Image*, Point);
+extern Point	runestringbgop(Image*, Point, Image*, Point, Font*, Rune*, Image*, Point, Drawop);
 extern Point	runestringnbg(Image*, Point, Image*, Point, Font*, Rune*, int, Image*, Point);
-extern Point	_string(Image*, Point, Image*, Point, Font*, char*, Rune*, int, Rectangle, Image*, Point);
+extern Point	runestringnbgop(Image*, Point, Image*, Point, Font*, Rune*, int, Image*, Point, Drawop);
+extern Point	_string(Image*, Point, Image*, Point, Font*, char*, Rune*, int, Rectangle, Image*, Point, Drawop);
 extern Point	stringsubfont(Image*, Point, Image*, Subfont*, char*);
 extern int		bezier(Image*, Point, Point, Point, Point, int, int, int, Image*, Point);
+extern int		bezierop(Image*, Point, Point, Point, Point, int, int, int, Image*, Point, Drawop);
 extern int		bezspline(Image*, Point*, int, int, int, int, Image*, Point);
+extern int		bezsplineop(Image*, Point*, int, int, int, int, Image*, Point, Drawop);
+extern int		bezsplinepts(Point*, int, Point**);
 extern int		fillbezier(Image*, Point, Point, Point, Point, int, Image*, Point);
+extern int		fillbezierop(Image*, Point, Point, Point, Point, int, Image*, Point, Drawop);
 extern int		fillbezspline(Image*, Point*, int, int, Image*, Point);
+extern int		fillbezsplineop(Image*, Point*, int, int, Image*, Point, Drawop);
 extern void	ellipse(Image*, Point, int, int, int, Image*, Point);
+extern void	ellipseop(Image*, Point, int, int, int, Image*, Point, Drawop);
 extern void	fillellipse(Image*, Point, int, int, Image*, Point);
+extern void	fillellipseop(Image*, Point, int, int, Image*, Point, Drawop);
 extern void	arc(Image*, Point, int, int, int, Image*, Point, int, int);
+extern void	arcop(Image*, Point, int, int, int, Image*, Point, int, int, Drawop);
 extern void	fillarc(Image*, Point, int, int, Image*, Point, int, int);
+extern void	fillarcop(Image*, Point, int, int, Image*, Point, int, int, Drawop);
 extern void	border(Image*, Rectangle, int, Image*, Point);
+extern void	borderop(Image*, Rectangle, int, Image*, Point, Drawop);
 
 /*
  * Font management
@@ -472,6 +493,7 @@ extern	Image	*screen;
 extern	Screen	*_screen;
 extern	int	_cursorfd;
 extern	int	_drawdebug;	/* set to 1 to see errors from flushimage */
+extern	void	_setdrawop(Display*, Drawop);
 
 #define	BGSHORT(p)		(((p)[0]<<0) | ((p)[1]<<8))
 #define	BGLONG(p)		((BGSHORT(p)<<0) | (BGSHORT(p+2)<<16))

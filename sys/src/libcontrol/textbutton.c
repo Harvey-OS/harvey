@@ -146,7 +146,7 @@ textbuttonshow(Textbutton *t)
 		q = _ctlalignpoint(r, stringwidth(f, t->line[i]), f->height, t->align%3);
 		_string(t->screen, q, im,
 			ZP, f, t->line[i], nil, strlen(t->line[i]),
-			clipr, nil, ZP);
+			clipr, nil, ZP, SoverD);
 		p.y += f->height;
 	}
 	if(t->pressed)
