@@ -10318,7 +10318,7 @@ sys/src/cmd/unix/u9fs/safecpy.c - 664 sys sys 1043768486 212
 sys/src/cmd/unix/u9fs/strecpy.c - 664 sys sys 1015092353 193
 sys/src/cmd/unix/u9fs/sun-inttypes.h - 664 sys sys 1039110816 441
 sys/src/cmd/unix/u9fs/tokenize.c - 664 sys sys 1015092353 602
-sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1043769157 30784
+sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1052777926 30784
 sys/src/cmd/unix/u9fs/u9fs.h - 664 sys sys 1043768488 649
 sys/src/cmd/unix/u9fs/u9fsauth.h - 664 sys sys 1015092354 126
 sys/src/cmd/unix/u9fs/utfrune.c - 664 sys sys 1015092354 387
