@@ -14701,3 +14701,7 @@
 1079576139 12 c dist/replica/plan9.proto - 664 sys sys 1079575451 2566
 1079577098 0 d sys/src/9/ppc/blast.c - 664 sys sys 1059490750 0
 1079578899 0 c sys/include/keyboard.h - 664 sys sys 1079577798 815
+1079618508 0 a sys/lib/kbmap/fi - 664 sys sys 1079617317 369
+1079618508 1 c sys/src/9/pc/kbd.c - 664 sys sys 1079617269 11655
+1079634710 0 c sys/src/9/port/edf.c - 664 sys sys 1079634533 12358
+1079634710 1 c sys/src/9/port/edf.h - 664 sys sys 1079634533 1153
