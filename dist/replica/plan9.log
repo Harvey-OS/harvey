@@ -19300,3 +19300,5 @@
 1051633850 0 c sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1051633710 11590
 1051635657 0 c sys/src/ape/lib/bsd/strcasecmp.c - 664 sys sys 1051635385 343
 1051635657 1 c sys/src/ape/lib/bsd/strncasecmp.c - 664 sys sys 1051635385 385
+1051718467 0 c sys/games/lib/fortunes - 664 sys sys 1051718087 242638
+1051756306 0 c sys/games/lib/fortunes - 664 sys sys 1051756217 242698
