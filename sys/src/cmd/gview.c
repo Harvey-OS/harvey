@@ -1988,14 +1988,16 @@ void main(int argc, char *argv[])
 		exits("initdraw");
 	einit(Emouse|Ekeyboard);
 
-	e = doinput(*argv ? *argv : "-");
-	if (e < 0) {
-		fprintf(stderr,"Cannot read input file %s\n", *argv);
-		exits("no valid input file");
-	} else if (e > 0) {
-		fprintf(stderr,"Bad syntax at line %d in input file\n", e);
-		exits("bad syntax in input");
-	}
+	do {
+		e = doinput(*argv ? *argv : "-");
+		if (e < 0) {
+			fprintf(stderr,"Cannot read input file %s\n", *argv);
+			exits("no valid input file");
+		} else if (e > 0) {
+			fprintf(stderr,"Bad syntax at line %d of file %s\n", e, *argv);
+			exits("bad syntax in input");
+		}
+	} while (*argv && *++argv);
 	init_disp();
 	init_clrtab();
 	set_default_clrs(&univ, 0);
