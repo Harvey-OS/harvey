@@ -133,7 +133,7 @@ struct Config
 /*
  * a Part is the low level interface to files or disks.
  * there are two main types of partitions
- *	arena paritions, which some number of arenas, each in a sub-partition.
+ *	arena partitions, which some number of arenas, each in a sub-partition.
  *	index partition, which only have one subpartition.
  */
 struct Part

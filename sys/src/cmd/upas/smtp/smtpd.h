@@ -59,6 +59,7 @@ void	reset(void);
 int	rmtdns(char*, char*);
 void	sayhi(void);
 void	sender(String*);
+void	starttls(void);
 void	turn(void);
 void	verify(String*);
 int	zzparse(void);

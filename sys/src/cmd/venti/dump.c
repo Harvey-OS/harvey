@@ -21,7 +21,7 @@ printArenaPart(int fd, ArenaPart *ap)
 {
 	int i;
 
-	fprint(fd, "arena parition=%s\n\tversion=%d blockSize=%d arenas=%d\n\tsetBase=%d setSize=%d\n",
+	fprint(fd, "arena partition=%s\n\tversion=%d blockSize=%d arenas=%d\n\tsetBase=%d setSize=%d\n",
 		ap->part->name, ap->version, ap->blockSize, ap->narenas, ap->tabBase, ap->tabSize);
 	for(i = 0; i < ap->narenas; i++)
 		fprint(fd, "\tarena=%s at [%lld,%lld)\n", ap->map[i].name, ap->map[i].start, ap->map[i].stop);
