@@ -637,6 +637,7 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 
 	ob = nil;
 	b = rb;
+/* BUG: explain type++.  i think it is a real bug */
 	for(d=e->depth; d > depth; d--, type++){
 		nb = cacheGlobal(r->fs->cache, b->data, type-1, tag, OReadWrite);
 		if(nb == nil)

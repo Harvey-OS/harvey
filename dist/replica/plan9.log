@@ -18834,3 +18834,8 @@
 1048645915 65 d sys/src/cmd/aux/X509gen.c - 664 sys sys 1037575307 0
 1048645915 66 d sys/src/cmd/ssh/ssh_genkey.c - 664 sys sys 1016466380 0
 1048645915 67 d sys/src/libthread/xincpower.c - 664 sys sys 1014928161 0
+1048690073 0 c sys/src/cmd/fossil/cache.c - 664 sys sys 1048690040 41277
+1048690073 1 c sys/src/cmd/fossil/flfmt.c - 664 sys sys 1048690059 10315
+1048690073 2 c sys/src/cmd/fossil/source.c - 664 sys sys 1048690038 18721
+1048690856 0 c sys/src/cmd/fossil/cache.c - 664 sys sys 1048690487 41275
+1048691677 0 c sys/src/libc/9sys/dial.c - 664 sys sys 1048691618 3606

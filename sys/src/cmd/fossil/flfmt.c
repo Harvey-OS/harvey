@@ -196,7 +196,6 @@ partition(int fd, int bsize, Header *h)
 	h->data = h->label + nlabel;
 	h->end = h->data + ndata;
 
-	assert(h->end == nblock);
 }
 
 static u32int
