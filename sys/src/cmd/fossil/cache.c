@@ -1112,9 +1112,7 @@ blistAlloc(Block *b)
 
 	/* Block has no priors? Just write it. */
 	if(b->prior == nil){
-		diskWrite(c->disk, b);
-		while(b->iostate != BioClean)
-			vtSleep(b->ioready);
+		diskWriteAndWait(c->disk, b);
 		return nil;
 	}
 
@@ -1154,7 +1152,7 @@ blistFree(Cache *c, BList *bl)
 void
 blockFlush(Block *b)
 {
-	int first, nlock;
+	int first;
 	BList *p, **pp;
 	Block *bb;
 	Cache *c;
@@ -1179,24 +1177,7 @@ blockFlush(Block *b)
 		pp = &b->prior;
 	}
 
-	/*
-	 * If b->nlock > 1, the block is aliased within
-	 * a single thread.  That thread is us, and it's
-	 * the block that was passed in (rather than a prior).
-	 * DiskWrite does some funny stuff with VtLock
-	 * and blockPut that basically assumes b->nlock==1.
-	 * We humor diskWrite by temporarily setting
-	 * nlock to 1.  This needs to be revisited.  (TODO)
-	 */
-	nlock = b->nlock;
-	if(nlock > 1){
-		assert(first);
-		b->nlock = 1;
-	}
-	diskWrite(c->disk, b);
-	while(b->iostate != BioClean)
-		vtSleep(b->ioready);
-	b->nlock = nlock;
+	diskWriteAndWait(c->disk, b);
 	if(!first)
 		blockPut(b);
 }
@@ -1557,6 +1538,11 @@ ignblock:
 		continue;
 	}
 
+	/*
+	 * DiskWrite must never be called with a double-locked block.
+	 * This call to diskWrite is okay because blockWrite is only called
+	 * from the cache flush thread, which never double-locks a block.
+	 */
 	diskWrite(c->disk, b);
 	return 1;
 }

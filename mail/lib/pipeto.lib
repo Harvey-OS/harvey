@@ -2,10 +2,9 @@
 rfork en
 bind -c /mail/tmp /tmp
 
-# caller should set KEY and USER
+# caller should set KEY
 
-if(! ~ $#USER 1)
-	USER=`{echo $1 | sed 's/local!//;s/[+\-].*//'}
+USER=`{echo $1 | sed 's/local!//;s/[+\-].*//'}
 if(! ~ $#KEY 1)
 	KEY=plan9
 

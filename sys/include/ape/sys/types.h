@@ -1,6 +1,7 @@
 #ifndef __TYPES_H
 #define __TYPES_H
 
+#pragma lib "/$M/lib/ape/libap.a"
 typedef	unsigned short	ino_t;
 typedef	unsigned short	dev_t;
 typedef	long long		off_t;

@@ -1386,6 +1386,97 @@ plocal(Instr *ip)
 	bprint(ip, "%lux%s", offset, reg);
 }
 
+static int
+isjmp(Instr *ip)
+{
+	switch(ip->jumptype){
+	case Iwds:
+	case Jbs:
+	case JUMP:
+		return 1;
+	default:
+		return 0;
+	}
+}
+
+/*
+ * This is too smart for its own good, but it really is nice
+ * to have accurate translations when debugging, and it
+ * helps us identify which code is different in binaries that
+ * are changed on sources.
+ */
+static int
+issymref(Instr *ip, Symbol *s, long w, long val)
+{
+	Symbol next, tmp;
+	long isstring, size;
+
+	if (isjmp(ip))
+		return 1;
+	if (s->class==CTEXT && w==0)
+		return 1;
+	if (s->class==CDATA) {
+		/* use first bss symbol (or "end") rather than edata */
+		if (s->name[0]=='e' && strcmp(s->name, "edata") == 0){
+			if((globalsym(&tmp, s->index+1) && tmp.value==s->value)
+			|| (globalsym(&tmp, s->index-1) && tmp.value==s->value))
+				*s = tmp;
+		}
+		if (w == 0)
+			return 1;
+		for (next=*s; next.value==s->value; next=tmp)
+			if (!globalsym(&tmp, next.index+1))
+				break;
+		size = next.value - s->value;
+		if (w >= size)
+			return 0;
+		if (w > size-w)
+			w = size-w;
+		/* huge distances are usually wrong except in .string */
+		isstring = (s->name[0]=='.' && strcmp(s->name, ".string") == 0);
+		if (w > 8192 && !isstring)
+			return 0;
+		/* medium distances are tricky - look for constants */
+		/* near powers of two */
+		if ((val&(val-1)) == 0 || (val&(val+1)) == 0)
+			return 0;
+		return 1;
+	}
+	return 0;
+}
+
+static void
+immediate(Instr *ip, long val)
+{
+	Symbol s;
+	long w;
+
+	if (findsym(val, CANY, &s)) {
+		w = val - s.value;
+		if (w < 0)
+			w = -w;
+		if (issymref(ip, &s, w, val)) {
+			if (w)
+				bprint(ip, "%s+%lux(SB)", s.name, w);
+			else
+				bprint(ip, "%s(SB)", s.name);
+			return;
+		}
+/*
+		if (s.class==CDATA && globalsym(&s, s.index+1)) {
+			w = s.value - val;
+			if (w < 0)
+				w = -w;
+			if (w < 4096) {
+				bprint(ip, "%s-%lux(SB)", s.name, w);
+				return;
+			}
+		}
+*/
+	}
+	bprint(ip, "%lux", val);
+}
+
 static void
 pea(Instr *ip)
 {
@@ -1401,33 +1492,13 @@ pea(Instr *ip)
 	if (ip->asize == 'E' && ip->base == SP)
 		plocal(ip);
 	else {
-		bprint(ip,"%lux", ip->disp);
-		if (ip->base >= 0)
+		if (ip->base < 0)
+			immediate(ip, ip->disp);
+		else
 			bprint(ip,"(%s%s)", ANAME(ip), reg[ip->base]);
 	}
 	if (ip->index >= 0)
 		bprint(ip,"(%s%s*%d)", ANAME(ip), reg[ip->index], 1<<ip->ss);
-}
-
-static void
-immediate(Instr *ip, long val)
-{
-	Symbol s;
-	long w;
-
-	if (findsym(val, CANY, &s)) {
-		w = val - s.value;
-		if (w < 0)
-			w = -w;
-		if (w < 4096) {
-			if (w)
-				bprint(ip, "%s+%lux(SB)", s.name, w);
-			else
-				bprint(ip, "%s(SB)", s.name);
-			return;
-		}
-	}
-	bprint(ip, "%lux", val);
 }
 
 static void

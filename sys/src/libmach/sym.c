@@ -524,6 +524,7 @@ findtext(char *name, Symbol *s)
 		if(strcmp(txt[i].sym->name, name) == 0) {
 			fillsym(txt[i].sym, s);
 			s->handle = (void *) &txt[i];
+			s->index = i;
 			return 1;
 		}
 	}
@@ -540,6 +541,7 @@ findglobal(char *name, Symbol *s)
 	for(i = 0; i < nglob; i++) {
 		if(strcmp(globals[i]->name, name) == 0) {
 			fillsym(globals[i], s);
+			s->index = i;
 			return 1;
 		}
 	}
@@ -573,6 +575,7 @@ findlocvar(Symbol *s1, char *name, Symbol *s2)
 			if (strcmp(tp->locals[i]->name, name) == 0) {
 				fillsym(tp->locals[i], s2);
 				s2->handle = (void *)tp;
+				s2->index = tp->n-1 - i;
 				return 1;
 			}
 	}
@@ -591,6 +594,7 @@ textsym(Symbol *s, int index)
 		return 0;
 	fillsym(txt[index].sym, s);
 	s->handle = (void *)&txt[index];
+	s->index = index;
 	return 1;
 }
 /*	
@@ -639,6 +643,7 @@ getauto(Symbol *s1, int off, int type, Symbol *s2)
 		if(p->type == t && p->value == off) {
 			fillsym(p, s2);
 			s2->handle = s1->handle;
+			s2->index = tp->n-1 - i;
 			return 1;
 		}
 	}
@@ -715,6 +720,7 @@ findsym(long w, int type, Symbol *s)
 			if(type == CTEXT || i != ntxt-1) {
 				fillsym(txt[i].sym, s);
 				s->handle = (void *) &txt[i];
+				s->index = i;
 				return 1;
 			}
 		}
@@ -723,6 +729,7 @@ findsym(long w, int type, Symbol *s)
 		i = srchdata(w);
 		if(i >= 0) {
 			fillsym(globals[i], s);
+			s->index = i;
 			return 1;
 		}
 	}
@@ -768,6 +775,7 @@ localsym(Symbol *s, int index)
 	if(tp && tp->locals && index < tp->n) {
 		fillsym(tp->locals[tp->n-index-1], s);	/* reverse */
 		s->handle = (void *)tp;
+		s->index = index;
 		return 1;
 	}
 	return 0;
@@ -785,6 +793,7 @@ globalsym(Symbol *s, int index)
 
 	if(index < nglob) {
 		fillsym(globals[index], s);
+		s->index = index;
 		return 1;
 	}
 	return 0;
@@ -1091,7 +1100,12 @@ fileelem(Sym **fp, uchar *cp, char *buf, int n)
 static int
 symcomp(void *a, void *b)
 {
-	return (*(Sym**)a)->value - (*(Sym**)b)->value;
+	int i;
+
+	i = (*(Sym**)a)->value - (*(Sym**)b)->value;
+	if (i)
+		return i;
+	return strcmp((*(Sym**)a)->name, (*(Sym**)b)->name);
 }
 /*
  *	compare the values of the symbols referenced by two text table entries
@@ -1118,6 +1132,7 @@ fillsym(Sym *sp, Symbol *s)
 	s->type = sp->type;
 	s->value = sp->value;
 	s->name = sp->name;
+	s->index = 0;
 	switch(sp->type) {
 	case 'b':
 	case 'B':
