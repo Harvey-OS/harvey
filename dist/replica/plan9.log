@@ -13267,3 +13267,4 @@
 1106263831 1 c sys/src/cmd/samterm/plan9.c - 664 sys sys 1106263089 4763
 1106263831 2 c sys/src/cmd/samterm/samterm.h - 664 sys sys 1106263089 3750
 1106281836 0 c 386/bin/aux/samterm - 775 sys sys 1106280481 247878
+1106292637 0 c sys/man/2/9p - 664 sys sys 1106291974 15232
