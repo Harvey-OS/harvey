@@ -244,6 +244,6 @@ aux/nfsserver -f /srv/nfs.boot
 .br
 .B /sys/src/cmd/srvfs.c
 .SH SEE ALSO
-.IR aan (1),
+.IR aan (8),
 .IR import (4),
 .IR exportfs (4)

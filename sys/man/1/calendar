@@ -25,6 +25,10 @@ Examples of recognized date formats are
 "11 April",
 and
 "11 Apr".
+A special form may be used to represent weekly and
+monthly events:
+"Every Tuesday"
+"The third Wednesday"
 All comparisons are case insensitive.
 .PP
 If the

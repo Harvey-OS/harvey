@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1104121955 103973
 386/bin/aan - 775 sys sys 1104121955 130710
 386/bin/acid - 775 sys sys 1104121956 355756
-386/bin/acme - 775 sys sys 1104562493 427186
+386/bin/acme - 775 sys sys 1104898008 427257
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1104121958 70291
@@ -220,14 +220,14 @@
 386/bin/ext2srv - 775 sys sys 1104122007 173894
 386/bin/faces - 775 sys sys 1104122008 192577
 386/bin/factor - 775 sys sys 1104122008 61475
-386/bin/file - 775 sys sys 1104122008 112358
+386/bin/file - 775 sys sys 1104898008 112418
 386/bin/fmt - 775 sys sys 1104122009 65301
 386/bin/fortune - 775 sys sys 1104122009 67136
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
 386/bin/fossil/flchk - 775 sys sys 1104122009 237497
 386/bin/fossil/flfmt - 775 sys sys 1104122010 245646
-386/bin/fossil/fossil - 775 sys sys 1104122011 360312
+386/bin/fossil/fossil - 775 sys sys 1104898009 360361
 386/bin/fossil/last - 775 sys sys 1104122011 63298
 386/bin/freq - 775 sys sys 1104122011 61802
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -318,7 +318,7 @@
 386/bin/mtime - 775 sys sys 1104122036 59139
 386/bin/mv - 775 sys sys 1104122036 65521
 386/bin/ndb - 20000000775 sys sys 985743147 0
-386/bin/ndb/cs - 775 sys sys 1104122037 149190
+386/bin/ndb/cs - 775 sys sys 1104898009 149237
 386/bin/ndb/csquery - 775 sys sys 1104122037 61476
 386/bin/ndb/dns - 775 sys sys 1104122037 219930
 386/bin/ndb/dnsdebug - 775 sys sys 1104122038 194546
@@ -459,7 +459,7 @@
 386/bin/upas/vf - 775 sys sys 1104122077 92623
 386/bin/usb - 20000000775 sys sys 1019538890 0
 386/bin/usb/usbaudio - 775 sys sys 1104122078 185463
-386/bin/usb/usbd - 775 sys sys 1104122079 129846
+386/bin/usb/usbd - 775 sys sys 1104898010 129846
 386/bin/usb/usbmouse - 775 sys sys 1104122079 140245
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
 386/bin/vac - 775 sys sys 1104122079 169392
@@ -4661,7 +4661,7 @@ sys/man/1/bind - 664 sys sys 1034195345 3928
 sys/man/1/bitsyload - 664 sys sys 988225301 2883
 sys/man/1/bundle - 664 sys sys 944959672 986
 sys/man/1/cal - 664 sys sys 944959673 849
-sys/man/1/calendar - 664 sys sys 1032058542 1144
+sys/man/1/calendar - 664 sys sys 1104939769 1249
 sys/man/1/cat - 664 sys sys 1022048090 1335
 sys/man/1/cb - 664 sys sys 1063855627 896
 sys/man/1/chgrp - 664 sys sys 944959673 710
@@ -4673,7 +4673,7 @@ sys/man/1/comm - 664 sys sys 944959675 665
 sys/man/1/con - 664 sys sys 1071156278 4318
 sys/man/1/cp - 664 sys sys 1015024738 1390
 sys/man/1/cpp - 664 sys sys 944959674 2105
-sys/man/1/cpu - 664 sys sys 1099501544 3540
+sys/man/1/cpu - 664 sys sys 1104939775 3540
 sys/man/1/crop - 664 sys sys 984709627 2596
 sys/man/1/date - 664 sys sys 969499884 996
 sys/man/1/db - 664 sys sys 1015024738 17862
@@ -4990,7 +4990,7 @@ sys/man/4/cfs - 664 sys sys 1015024813 1758
 sys/man/4/consolefs - 664 sys sys 1069179473 3920
 sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
-sys/man/4/exportfs - 664 sys sys 1100524176 4540
+sys/man/4/exportfs - 664 sys sys 1104939769 4540
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1104430211 14454
 sys/man/4/fossil - 664 sys sys 1101668322 9564
@@ -7212,7 +7212,7 @@ sys/src/cmd/bzip2/lib/randtable.c - 664 sys sys 964847967 5473
 sys/src/cmd/bzip2/lib/unix.h - 664 sys sys 964847967 136
 sys/src/cmd/bzip2/mkfile - 664 sys sys 969510789 881
 sys/src/cmd/cal.c - 664 sys sys 944961619 4206
-sys/src/cmd/calendar.c - 664 sys sys 1034213625 3571
+sys/src/cmd/calendar.c - 664 sys sys 1104939757 4205
 sys/src/cmd/cat.c - 664 sys sys 1014926693 532
 sys/src/cmd/cb - 20000000775 sys sys 1062860425 0
 sys/src/cmd/cb/cb.c - 664 sys sys 1063039630 18439
@@ -7543,7 +7543,7 @@ sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
 sys/src/cmd/fossil/9fid.c - 664 sys sys 1045600016 5521
 sys/src/cmd/fossil/9fsys.c - 664 sys sys 1104858629 33296
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1042005503 2865
-sys/src/cmd/fossil/9p.c - 664 sys sys 1077896346 21766
+sys/src/cmd/fossil/9p.c - 664 sys sys 1104940048 21862
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
 sys/src/cmd/fossil/9proc.c - 664 sys sys 1079034426 14680
 sys/src/cmd/fossil/9srv.c - 664 sys sys 1077896346 3879
@@ -7573,7 +7573,7 @@ sys/src/cmd/fossil/flfmt9660.c - 664 sys sys 1080586883 12314
 sys/src/cmd/fossil/flfmt9660.h - 664 sys sys 1072830621 134
 sys/src/cmd/fossil/flproto - 664 sys sys 1042005508 210
 sys/src/cmd/fossil/fns.h - 664 sys sys 1087005596 3204
-sys/src/cmd/fossil/fossil-acid - 664 sys sys 1042005508 3965
+sys/src/cmd/fossil/fossil-acid - 664 sys sys 1104940044 3991
 sys/src/cmd/fossil/fossil.c - 664 sys sys 1077896345 2435
 sys/src/cmd/fossil/fs.c - 664 sys sys 1101213292 21545
 sys/src/cmd/fossil/fs.h - 664 sys sys 1091904424 1582
@@ -12449,8 +12449,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acme - 775 sys sys 1104898008 427257
-386/bin/usb/usbd - 775 sys sys 1104898010 129846
-386/bin/file - 775 sys sys 1104898008 112418
-386/bin/fossil/fossil - 775 sys sys 1104898009 360361
-386/bin/ndb/cs - 775 sys sys 1104898009 149237
+386/bin/calendar - 775 sys sys 1104984451 79974
+386/bin/fossil/fossil - 775 sys sys 1104984451 360391
