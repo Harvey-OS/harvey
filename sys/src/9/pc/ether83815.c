@@ -850,6 +850,12 @@ scanpci83815(void)
 	}
 }
 
+/* multicast already on, don't need to do anything */
+static void
+multicast(void*, uchar*, int)
+{
+}
+
 static int
 reset(Ether* ether)
 {
@@ -949,6 +955,7 @@ reset(Ether* ether)
 	ether->transmit = transmit;
 	ether->interrupt = interrupt;
 	ether->ifstat = ifstat;
+	ether->multicast = multicast;
 
 	ether->arg = ether;
 	ether->promiscuous = promiscuous;
