@@ -2991,7 +2991,7 @@ rc/bin/dosmnt - 775 sys sys 958526437 285
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1015701359 2390
 rc/bin/fedex - 775 sys sys 1060187356 1244
-rc/bin/fshalt - 775 sys sys 1068425226 1092
+rc/bin/fshalt - 775 sys sys 1076458748 1315
 rc/bin/homespool - 775 sys sys 945617207 339
 rc/bin/ipconf - 20000000775 sys sys 1058791152 0
 rc/bin/ipconf/inside - 775 sys sys 1058790955 427

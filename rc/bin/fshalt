@@ -12,7 +12,7 @@ for(i in $f){
 	echo -n $i...
 	{
 		echo fsys all sync
-		if(! dial/expect -qt 120 ': ')
+		if(! dial/expect -t 120 ': ')
 			echo -n 'not synced...' > /dev/cons
 	} < $i >> $i
 }
@@ -39,27 +39,38 @@ cp /bin/echo /tmp
 cp /bin/disk/kfscmd /tmp
 cp /bin/rc /tmp
 cp /bin/sed /tmp
+cp /bin/ns /tmp
+cp /bin/iostats /tmp
+mkdir /tmp/lib
+cp /rc/lib/rcmain /tmp/lib
+bind /tmp /rc
 bind /tmp /bin
 
-echo
-echo -n halting...
-for(i in $f){
-	echo -n $i...
-	{
-		echo fsys all halt
-		if(! expect -qt 120 ': ')
-			echo -n 'not halted...' > /dev/cons
-	} < $i >> $i
+# put this in a shell function so this rc script doesn't get read
+# when it's no longer accessible
+fn x {
+	echo
+	echo -n halting...
+	for(i in $f){
+		echo -n $i...
+		{
+			echo fsys all halt
+			if(! expect -t 60 ': ')
+				echo -n 'not halted...' > /dev/cons
+		} < $i >> $i
+	}
+	
+	for (i in $k){
+		echo -n $i... 
+		switch($i){
+		case /srv/kfs.cmd
+			kfscmd halt
+		case *
+			kfscmd -n `{echo $i | sed -n 's%/srv/kfs.(.*).cmd%\1%p'} halt
+		}
+	}
+	echo
+	echo done
 }
 
-for (i in $k){
-	echo -n $i... 
-	switch($i){
-	case /srv/kfs.cmd
-		kfscmd halt
-	case *
-		kfscmd -n `{echo $i | sed -n 's%/srv/kfs.(.*).cmd%\1%p'} halt
-	}
-}
-echo
-echo done
+x
