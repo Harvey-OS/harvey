@@ -31,6 +31,7 @@ keyfs keyfs
 warning keyfs
 kfs kfs
 lnfs lnfs
+mntgen mntgen
 namespace namespace
 nntpfs nntpfs
 paqfs paqfs
@@ -45,6 +46,7 @@ snapfs snap
 9fs srv
 srv srv
 srvold9p srv
+srvssh srv
 32vfs tapefs
 cpiofs tapefs
 tapefs tapefs

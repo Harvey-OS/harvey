@@ -39,7 +39,7 @@ int			shortmenu;
 void
 usage(void)
 {
-	fprint(2, "usage: Mail [-sS] [mailboxname [directoryname]]\n");
+	fprint(2, "usage: Mail [-sS] [-o outgoing] [mailboxname [directoryname]]\n");
 	threadexitsall("usage");
 }
 
@@ -93,6 +93,9 @@ threadmain(int argc, char *argv[])
 	case 'S':
 		shortmenu = 2;
 		break;
+	case 'o':
+		outgoing = EARGF(usage());
+		break;
 	default:
 		usage();
 	}ARGEND
@@ -138,7 +141,8 @@ threadmain(int argc, char *argv[])
 		user = "none";
 	if(mailboxdir == nil)
 		mailboxdir = estrstrdup("/mail/box/", user);
-	outgoing = estrstrdup(mailboxdir, "/outgoing");
+	if(outgoing == nil)
+		outgoing = estrstrdup(mailboxdir, "/outgoing");
 
 	s = estrstrdup(maildir, "ctl");
 	mbox.ctlfd = open(s, ORDWR|OCEXEC);

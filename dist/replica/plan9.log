@@ -16873,3 +16873,17 @@
 1041361316 8 c sys/src/fs/sony/9sonyfs.c - 664 sys sys 1041361261 2962
 1041364878 0 c sys/src/libc/9sys/dirfstat.c - 664 sys sys 1041363499 676
 1041364878 1 c sys/src/libc/9sys/dirstat.c - 664 sys sys 1041363499 688
+1041431541 0 c sys/src/9/pc/main.c - 664 sys sys 1041431178 14272
+1041440553 0 c sys/src/libthread/example.c - 664 sys sys 1041440306 1402
+1041444156 0 c 386/lib/libc.a - 664 sys sys 1041443377 496640
+1041444156 1 c sys/src/9/port/devmnt.c - 664 sys sys 1041443399 21588
+1041447759 0 c sys/lib/man/lookman/index - 664 sys sys 1041446757 1380093
+1041447759 1 c sys/man/1/INDEX - 664 sys sys 1041446629 2895
+1041447759 2 c sys/man/2/INDEX - 664 sys sys 1041446630 20120
+1041447759 3 c sys/man/3/INDEX - 664 sys sys 1041446630 369
+1041447759 4 c sys/man/4/INDEX - 664 sys sys 1041446630 953
+1041447759 5 c sys/man/8/INDEX - 664 sys sys 1041446630 2472
+1041474863 0 c acme/mail/src/mesg.c - 664 sys sys 1041474760 26262
+1041481459 0 c acme/mail/src/mail.c - 664 sys sys 1041481453 10994
+1041481459 1 c acme/mail/src/mesg.c - 664 sys sys 1041481453 26236
+1041481703 0 c acme/mail/386/Mail - 775 sys sys 1041481688 175845
