@@ -35,6 +35,8 @@ static struct {
 static char *_argv0;
 #define argv0 _argv0
 
+static char FsysAll[] = "all";
+
 static char EFsysBusy[] = "fsys: '%s' busy";
 static char EFsysExists[] = "fsys: '%s' already exists";
 static char EFsysNoCurrent[] = "fsys: no current fsys";
@@ -417,7 +419,41 @@ fsysSync(Fsys* fsys, int argc, char* argv[])
 		return cliError(usage);
 
 	fsSync(fsys->fs);
+	return 1;
+}
 
+static int
+fsysHalt(Fsys *fsys, int argc, char* argv[])
+{
+	char *usage = "usage: [fsys name] halt";
+
+	ARGBEGIN{
+	default:
+		return cliError(usage);
+	}ARGEND
+	if(argc > 0)
+		return cliError(usage);
+
+	fsHalt(fsys->fs);
+	return 1;
+}
+
+static int
+fsysUnhalt(Fsys *fsys, int argc, char* argv[])
+{
+	char *usage = "usage: [fsys name] unhalt";
+
+	ARGBEGIN{
+	default:
+		return cliError(usage);
+	}ARGEND
+	if(argc > 0)
+		return cliError(usage);
+
+	if(!fsys->fs->halted)
+		return cliError("file system %s not halted", fsys->name);
+
+	fsUnhalt(fsys->fs);
 	return 1;
 }
 
@@ -1276,8 +1312,10 @@ fsysOpen(char* name, int argc, char* argv[])
 	fsys->noperm = noperm;
 	fsys->wstatallow = wstatallow;
 	vtUnlock(fsys->lock);
-
 	fsysPut(fsys);
+
+	if(strcmp(name, "main") == 0)
+		usersFileRead(nil);
 
 	return 1;
 }
@@ -1382,17 +1420,42 @@ static struct {
 	{ "create",	fsysCreate, },
 	{ "df",	fsysDf, },
 	{ "epoch",	fsysEpoch, },
+	{ "halt",	fsysHalt, },
 	{ "label",	fsysLabel, },
 	{ "remove",	fsysRemove, },
 	{ "snap",	fsysSnap, },
 	{ "snaptime",	fsysSnapTime, },
 	{ "stat",	fsysStat, },
 	{ "sync",	fsysSync, },
+	{ "unhalt",	fsysUnhalt, },
 	{ "wstat",	fsysWstat, },
 	{ "vac",	fsysVac, },
 
 	{ nil,		nil, },
 };
+
+static int
+fsysXXX1(Fsys *fsys, int i, int argc, char* argv[])
+{
+	int r;
+
+	vtLock(fsys->lock);
+	if(fsys->fs == nil){
+		vtUnlock(fsys->lock);
+		vtSetError(EFsysNotOpen, fsys->name);
+		return 0;
+	}
+
+	if(fsys->fs->halted && fsyscmd[i].f != fsysUnhalt){
+		vtSetError("file system %s is halted", fsys->name);
+		vtUnlock(fsys->lock);
+		return 0;
+	}
+
+	r = (*fsyscmd[i].f)(fsys, argc, argv);
+	vtUnlock(fsys->lock);
+	return r;
+}
 
 static int
 fsysXXX(char* name, int argc, char* argv[])
@@ -1411,24 +1474,30 @@ fsysXXX(char* name, int argc, char* argv[])
 	}
 
 	/* some commands want the name... */
-	if(fsyscmd[i].f1 != nil)
+	if(fsyscmd[i].f1 != nil){
+		if(strcmp(name, FsysAll) == 0){
+			vtSetError("cannot use fsys %#q with %#q command", FsysAll, argv[0]);
+			return 0;
+		}
 		return (*fsyscmd[i].f1)(name, argc, argv);
-
-	/* ... but most commands want the Fsys */
-	if((fsys = _fsysGet(name)) == nil)
-		return 0;
-
-	vtLock(fsys->lock);
-	if(fsys->fs == nil){
-		vtUnlock(fsys->lock);
-		vtSetError(EFsysNotOpen, name);
-		fsysPut(fsys);
-		return 0;
 	}
 
-	r = (*fsyscmd[i].f)(fsys, argc, argv);
-	vtUnlock(fsys->lock);
-	fsysPut(fsys);
+	/* ... but most commands want the Fsys */
+	if(strcmp(name, FsysAll) == 0){
+		r = 1;
+		vtRLock(sbox.lock);
+		for(fsys = sbox.head; fsys != nil; fsys = fsys->next){
+			fsys->ref++;
+			r = fsysXXX1(fsys, i, argc, argv) && r;
+			fsys->ref--;
+		}
+		vtRUnlock(sbox.lock);
+	}else{
+		if((fsys = _fsysGet(name)) == nil)
+			return 0;
+		r = fsysXXX1(fsys, i, argc, argv);
+		fsysPut(fsys);
+	}
 	return r;
 }
 
@@ -1464,11 +1533,13 @@ cmdFsys(int argc, char* argv[])
 		return 1;
 	}
 	if(argc == 1){
-		if((fsys = fsysGet(argv[0])) == nil)
+		fsys = nil;
+		if(strcmp(argv[0], FsysAll) != 0 && (fsys = fsysGet(argv[0])) == nil)
 			return 0;
-		sbox.curfsys = vtStrDup(fsys->name);
+		sbox.curfsys = vtStrDup(argv[0]);
 		consPrompt(sbox.curfsys);
-		fsysPut(fsys);
+		if(fsys)
+			fsysPut(fsys);
 		return 1;
 	}
 

@@ -15,6 +15,8 @@ void fsClose(Fs*);
 File *fsGetRoot(Fs*);
 int fsSnapshot(Fs*, int);
 int fsSync(Fs*);
+int fsHalt(Fs*);
+int fsUnhalt(Fs*);
 int fsVac(Fs*, char*, uchar[VtScoreSize]);
 int fsRedial(Fs*, char*);
 int fsEpochLow(Fs*, u32int);

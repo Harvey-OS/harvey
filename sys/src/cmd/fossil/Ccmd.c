@@ -309,7 +309,7 @@ cmdDot(int argc, char* argv[])
 	length = dir->length;
 	free(dir);
 
-	r = 0;
+	r = 1;
 	if(length != 0){
 		/*
 		 * Read the whole file in.
@@ -331,14 +331,18 @@ cmdDot(int argc, char* argv[])
 		for(p = s = f; *p != '\0'; p++){
 			if(*p == '\n'){
 				*p = '\0';
-				if((r = cliExec(s)) == 0)
-					break;
+				if(cliExec(s) == 0){
+					r = 0;
+					consPrint("%s: %R\n", s);
+				}
 				s = p+1;
 			}
 		}
 		vtMemFree(f);
 	}
 
+	if(r == 0)
+		vtSetError("errors in . %#q", argv[0]);
 	return r;
 }
 

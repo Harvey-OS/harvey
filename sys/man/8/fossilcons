@@ -42,6 +42,12 @@ con /srv/fscons
 .I nproc
 ]
 .PP
+.B srv
+[
+.B -dp
+]
+.I name
+.PP
 .B uname
 .I name
 [
@@ -65,11 +71,7 @@ con /srv/fscons
 .I file
 ]
 .PP
-.B srv
-[
-.B -dp
-]
-.I name
+.B who
 .sp
 .PP
 .B fsys
@@ -169,11 +171,23 @@ con /srv/fscons
 .B fsys
 .I name
 ]
+.B df
+.PP
+[
+.B fsys
+.I name
+]
 .B epoch
 [
 .B -y
 ]
 .I n
+.PP
+[
+.B fsys
+.I name
+]
+.B halt
 .PP
 [
 .B fsys
@@ -237,6 +251,12 @@ con /srv/fscons
 .B fsys
 .I name
 ]
+.B unhalt
+.PP
+[
+.B fsys
+.I name
+]
 .B vac
 .I dir
 .PP
@@ -273,6 +293,7 @@ treating each line as a command to be executed.
 Blank lines and lines beginning with a 
 .L #
 character are ignored.
+Errors during execution are printed but do not stop the script.
 Note that
 .I file
 is a file in the name space in which
@@ -324,6 +345,16 @@ The
 and
 .B -p
 options set the two variables.
+.PP
+.I Srv
+behaves like listen but uses
+.BI /srv/ name
+rather than a network address.
+With the
+.B -p
+flag, 
+.I srv 
+edits a list of console services rather than 9P services.
 .PP
 .I Uname
 manipulates entries in the user table.
@@ -434,51 +465,57 @@ is printed, in the form
 The end of this manual page gives examples.
 .PP
 .I Users
-reads
-.IR file
-from the file system named
-.B main
-and uses it to initialize the user table.
-With no arguments,
-.I users
-prints the file name of the current user table.
-.PP
+manipulates the user table.
 The user table is a list of lines in the form printed
 by the
 .I uname
 command.
 The
 .B -d
-flag resets the user table to the default:
+flag resets the user table with the default:
 .IP
 .EX
 adm:adm:adm:sys
 none:none::
 noworld:noworld::
 sys:sys::
+.PP
+These users are mandatory and must appear in all user files.
+It is not possible to rename these unames.
 .EE
 .PP
-These users are mandatory and must appear in all user files read.
-It is not possible to rename these unames.
-.PP
+The
+.B -r
+flag reads a user table from the named
+.I file
+in file system
+.BR main .
 The
 .B -w
-flag causes the file
-.I /active/adm/users
-to be written with the current in-memory table.
-The path
-.I /active/adm
-must exist.
+flag writes the table to
+.B /active/adm/users
+on the file system
+.BR main .
+.B /active/adm
+and
+.B /active/adm/users
+will be created if they do not exist.
 .PP
-.I Srv
-behaves like listen but uses
-.BI /srv/ name
-rather than a network address.
-With the
-.B -p
-flag, 
-.I srv 
-edits a list of console services rather than 9P services.
+.I Users
+.B -r
+.B /active/adm/users
+is automatically executed when the file system
+.B main
+is opened.
+.PP
+.I Users
+.B -w
+is automatically executed after each change to the user
+table by the
+.I uname
+command.
+.I Who
+prints a list of users attached to each active connection.
 .SS File system configuration
 .I Fsys
 sets the current file system to
@@ -486,6 +523,20 @@ sets the current file system to
 which must be configured and open (q.v.).
 The current file system name is
 displayed as the file server prompt.
+The special name
+.B all
+stands for all file systems;
+commands applied to
+.B all
+are applied to each file system in turn.
+The commands
+.BR config ,
+.BR open ,
+.BR venti ,
+and
+.B close
+cannot be applied to
+.BR all .
 .PP
 .I Fsys
 takes as an optional argument
@@ -650,6 +701,9 @@ and
 .B -l
 flags set the append-only, directory, and lock bits.
 .PP
+.I Df
+prints the amount of used disk space in the write buffer.
+.PP
 .I Epoch
 sets the low file system epoch.
 Snapshots in the file system are given increasing epoch numbers.
@@ -691,6 +745,11 @@ Note that when there are still snapshots in
 the archiver should take care
 of those snapshots (moving the blocks from disk to Venti)
 if you give it more time.
+.PP
+.I Halt
+suspends file system activity;
+.I unhalt
+resumes activity.
 .PP
 .I Label
 displays and edits the label associated with a block.

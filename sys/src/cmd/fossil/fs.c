@@ -442,6 +442,11 @@ fsSnapshot(Fs *fs, int doarchive)
 
 	dst = nil;
 
+	if(fs->halted){
+		vtSetError("file system is halted");
+		return 0;
+	}
+
 	/*
 	 * Freeze file system activity.
 	 */
@@ -671,7 +676,28 @@ int
 fsSync(Fs *fs)
 {
 	vtLock(fs->elk);
+	fileMetaFlush(fs->file, 1);
 	cacheFlush(fs->cache, 1);
+	vtUnlock(fs->elk);
+	return 1;
+}
+
+int
+fsHalt(Fs *fs)
+{
+	vtLock(fs->elk);
+	fs->halted = 1;
+	fileMetaFlush(fs->file, 1);
+	cacheFlush(fs->cache, 1);
+	return 1;
+}
+
+int
+fsUnhalt(Fs *fs)
+{
+	if(!fs->halted)
+		return 0;
+	fs->halted = 0;
 	vtUnlock(fs->elk);
 	return 1;
 }

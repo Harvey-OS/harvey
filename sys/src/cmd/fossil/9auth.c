@@ -8,16 +8,22 @@ authRead(Fid* afid, void* data, int count)
 	AuthInfo *ai;
 	AuthRpc *rpc;
 
-	if((rpc = afid->rpc) == nil)
+	if((rpc = afid->rpc) == nil){
+		vtSetError("not an auth fid");
 		return -1;
+	}
 
 	switch(auth_rpc(rpc, "read", nil, 0)){
 	default:
+		vtSetError("auth protocol not finished");
 		return -1;
 	case ARdone:
-		if((ai = auth_getinfo(rpc)) == nil)
+		if((ai = auth_getinfo(rpc)) == nil){
+			vtSetError("%r");
 			break;
+		}
 		if(ai->cuid == nil || *ai->cuid == '\0'){
+			vtSetError("auth with no cuid");
 			auth_freeAI(ai);
 			break;
 		}
@@ -27,15 +33,20 @@ authRead(Fid* afid, void* data, int count)
 		if(Dflag)
 			fprint(2, "authRead cuname %s\n", afid->cuname);
 		assert(afid->uid == nil);
-		if((afid->uid = uidByUname(afid->cuname)) == nil)
+		if((afid->uid = uidByUname(afid->cuname)) == nil){
+			vtSetError("unknown user %#q", afid->cuname);
 			break;
+		}
 		return 0;
 	case ARok:
-		if(count < rpc->narg)
+		if(count < rpc->narg){
+			vtSetError("not enough data in auth read");
 			break;
+		}
 		memmove(data, rpc->arg, rpc->narg);
 		return rpc->narg;
 	case ARphase:
+		vtSetError("%r");
 		break;
 	}
 	return -1;
@@ -112,7 +123,7 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 	if(afid->cuname == nil){
 		if(authRead(afid, buf, 0) != 0 || afid->cuname == nil){
 			vtUnlock(afid->alock);
-			consPrint("attach %s as %s: auth protocol not finished\n", fsysGetName(fsys), fid->uname);
+			consPrint("attach %s as %s: %R\n", fsysGetName(fsys), fid->uname);
 			fidPut(afid);
 			return 0;
 		}
