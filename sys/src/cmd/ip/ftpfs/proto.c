@@ -988,7 +988,8 @@ createfile1(Node *node)
 		write(Bfildes(bp), buf, n);
 	}
 	close(Bfildes(bp));
-	getreply(&ctlin, msg, sizeof(msg), 0);
+	if(getreply(&ctlin, msg, sizeof(msg), 0) != Success)
+		return -1;
 	return off;
 }
 
