@@ -7,7 +7,7 @@ assert \- check program invariants
 .B #include <libc.h>
 .PP
 .B
-#define assert if(cond);else _assert("cond")
+#define assert(cond) if(cond);else _assert("cond")
 .PP
 .B
 void _assert(int cond)

@@ -3337,7 +3337,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1101830177 251359
+sys/games/lib/fortunes - 664 sys sys 1102888239 251453
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -4813,7 +4813,7 @@ sys/man/2/aes - 664 sys sys 1032058672 997
 sys/man/2/allocimage - 664 sys sys 1046787977 7304
 sys/man/2/arg - 664 sys sys 1030711189 2154
 sys/man/2/arith3 - 664 sys sys 969499887 4397
-sys/man/2/assert - 664 sys sys 960089153 371
+sys/man/2/assert - 664 sys sys 1102868467 377
 sys/man/2/atof - 664 sys sys 1015091517 2766
 sys/man/2/auth - 664 sys sys 1017423719 7539
 sys/man/2/authsrv - 664 sys sys 1055734550 4145
