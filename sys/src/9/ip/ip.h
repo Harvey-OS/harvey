@@ -652,6 +652,5 @@ extern Chan*	chandial(char*, char*, char*, Chan**);
  *  global to all of the stack
  */
 extern int	debug;
-extern Fs	fs;
 extern void	(*igmpreportfn)(Ipifc*, uchar*);
 
