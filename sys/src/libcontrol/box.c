@@ -59,8 +59,9 @@ boxmouse(Control *c, Mouse *m)
 	Box *b;
 
 	b = (Box*)c;
-	chanprint(b->event, "%q: mouse %P %d %ld", b->name,
-		m->xy, m->buttons, m->msec);
+	if (ptinrect(m->xy,b->rect))
+		chanprint(b->event, "%q: mouse %P %d %ld", b->name,
+			m->xy, m->buttons, m->msec);
 }
 
 static void
