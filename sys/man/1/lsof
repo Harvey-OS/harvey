@@ -1,0 +1,31 @@
+.TH LSOF 1
+.SH NAME
+lsof \- list open files
+.SH SYNOPSIS
+.B lsof
+[
+.B pid ...
+]
+.SH DESCRIPTION
+.I Lsof
+lists the open files for a process or processes.
+.PP
+For each 
+.I pid
+(default all) 
+.I lsof
+prints a line for each file descriptor the process holds
+open. 
+The line contains whitespace delimited fields, 
+the first of which is the process id of the process, 
+and the rest is formatted exactly as it is reported from the file fd described in 
+.IR proc (3).
+.PP
+The process' current working directory is omitted from the output.
+
+..SH FILES
+.TF /proc/*/fd
+.SH SOURCE
+.B /sys/src/cmd/lsof.c
+.SH "SEE ALSO"
+.IR proc (3)

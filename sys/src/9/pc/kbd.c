@@ -41,7 +41,7 @@ enum {
 	Print=		KF|16,
 	Left=		KF|17,
 	Right=		KF|18,
-	End=		'\r',
+	End=		KF|24,
 	Down=		View,
 	Pgdown=		KF|19,
 	Ins=		KF|20,

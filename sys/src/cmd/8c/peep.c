@@ -71,6 +71,44 @@ loop1:
 				}
 			}
 			break;
+		case AADDL:
+		case AADDW:
+			if(p->from.type != D_CONST)
+				break;
+			if(p->from.offset == -1){
+				if(p->as == AADDL)
+					p->as = ADECL;
+				else
+					p->as = ADECW;
+				p->from = zprog.from;
+			}
+			else if(p->from.offset == 1){
+				if(p->as == AADDL)
+					p->as = AINCL;
+				else
+					p->as = AINCW;
+				p->from = zprog.from;
+			}
+			break;
+		case ASUBL:
+		case ASUBW:
+			if(p->from.type != D_CONST)
+				break;
+			if(p->from.offset == -1) {
+				if(p->as == ASUBL)
+					p->as = AINCL;
+				else
+					p->as = AINCW;
+				p->from = zprog.from;
+			}
+			else if(p->from.offset == 1){
+				if(p->as == ASUBL)
+					p->as = ADECL;
+				else
+					p->as = ADECW;
+				p->from = zprog.from;
+			}
+			break;
 		}
 	}
 	if(t)
@@ -426,6 +464,10 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case AANDB:
 	case AANDL:
 	case AANDW:
+	case ADECL:
+	case ADECW:
+	case AINCL:
+	case AINCW:
 	case ASUBB:
 	case ASUBL:
 	case ASUBW:

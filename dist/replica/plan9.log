@@ -13153,3 +13153,9 @@
 1071689381 0 c sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1071689378 16021
 1071692561 0 c sys/src/libdraw/init.c - 664 sys sys 1071692552 9082
 1071720094 0 c sys/src/cmd/file.c - 664 sys sys 1071719684 20614
+1071725494 0 c sys/include/keyboard.h - 664 sys sys 1071725439 790
+1071727295 0 c sys/src/9/pc/kbd.c - 664 sys sys 1071726245 9135
+1071779501 0 c sys/src/cmd/8c/peep.c - 664 sys sys 1071778501 10636
+1071779501 1 c sys/src/cmd/8l/obj.c - 664 sys sys 1071778472 24102
+1071779501 2 c sys/src/cmd/8l/optab.c - 664 sys sys 1071778472 16231
+1071802905 0 a sys/man/1/lsof - 664 sys sys 1071802922 620
