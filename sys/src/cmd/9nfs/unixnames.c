@@ -81,13 +81,13 @@ readunixidmaps(char *file)
 	Unixidmap *m;
 	int i, arc; char *arv[16], buf[256];
 	char *l;
-	long savalarm;
+// 	long savalarm;
 
-	savalarm = alarm(0);
+// 	savalarm = alarm(0);
 	in = Bopen(file, OREAD);
 	if(in == 0){
 		clog("readunixidmaps can't open %s: %r\n", file);
-		alarm(savalarm);
+//		alarm(savalarm);
 		return -1;
 	}
 	for(m=idhead; m; m=m->next)
@@ -166,7 +166,7 @@ readunixidmaps(char *file)
 			uxfree(m->g.ids);
 			m->g.ids = 0;
 		}
-	alarm(savalarm);
+// 	alarm(savalarm);
 	return 0;
 }
 
