@@ -225,12 +225,10 @@ int	needreg(Node*, int);
 /*
  * cgen64.c
  */
-int	notvaddr(Node*, int);
+int	vaddr(Node*, int);
 void	loadpair(Node*, Node*);
 int	cgen64(Node*, Node*);
 void	testv(Node*, int);
-void	reg64save(Renv*);
-void	reg64rest(Renv*);
 
 /*
  * txt.c
@@ -348,6 +346,21 @@ int	cond(int);
 int	com64(Node*);
 void	com64init(void);
 void	bool64(Node*);
+long	lo64v(Node*);
+long	hi64v(Node*);
+Node*	lo64(Node*);
+Node*	hi64(Node*);
+
+/*
+ * div/mul
+ */
+void	sdivgen(Node*, Node*, Node*, Node*);
+void	udivgen(Node*, Node*, Node*, Node*);
+void	sdiv2(long, int, Node*, Node*);
+void	smod2(long, int, Node*, Node*);
+void	mulgen(Type*, Node*, Node*);
+void	genmuladd(Node*, Node*, int, Node*);
+void	shiftit(Type*, Node*, Node*);
 
 #pragma	varargck	type	"A"	int
 #pragma	varargck	type	"B"	Bits
@@ -356,6 +369,6 @@ void	bool64(Node*);
 #pragma	varargck	type	"R"	int
 #pragma	varargck	type	"S"	char*
 
-/* wrecklesly steal a field */
+/* wrecklessly steal a field */
 
 #define	rplink	label

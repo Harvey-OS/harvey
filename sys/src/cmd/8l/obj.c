@@ -19,6 +19,28 @@ char	*thestring 	= "386";
  *	-H4 -Tx -Rx			is fake MS-DOS .EXE
  */
 
+static int
+isobjfile(char *f)
+{
+	int n, v;
+	Biobuf *b;
+	char buf1[5], buf2[SARMAG];
+
+	b = Bopen(f, OREAD);
+	if(b == nil)
+		return 0;
+	n = Bread(b, buf1, 5);
+	if(n == 5 && (buf1[2] == 1 && buf1[3] == '<' || buf1[3] == 1 && buf1[4] == '<'))
+		v = 1;	/* good enough for our purposes */
+	else{
+		Bseek(b, 0, 0);
+		n = Bread(b, buf2, SARMAG);
+		v = n == SARMAG && strncmp(buf2, ARMAG, SARMAG) == 0;
+	}
+	Bterm(b);
+	return v;
+}
+
 void
 main(int argc, char *argv[])
 {
@@ -41,12 +63,6 @@ main(int argc, char *argv[])
 		c = ARGC();
 		if(c >= 0 && c < sizeof(debug))
 			debug[c]++;
-		break;
-	case 'u':
-		debug['r'] = 1;
-		if(undefsp >= nelem(undefs))
-			diag("too many -u options");
-		undefs[undefsp++] = ARGF();
 		break;
 	case 'o': /* output to (next arg) */
 		outfile = ARGF();
@@ -76,17 +92,22 @@ main(int argc, char *argv[])
 		if(a)
 			INITRND = atolwhex(a);
 		break;
+	case 'x':	/* produce export table */
+		doexp = 1;
+		if(argv[1] != nil && argv[1][0] != '-' && !isobjfile(argv[1]))
+			readundefs(ARGF(), SEXPORT);
+		break;
+	case 'u':	/* produce dynamically loadable module */
+		dlm = 1;
+		debug['l']++;
+		if(argv[1] != nil && argv[1][0] != '-' && !isobjfile(argv[1]))
+			readundefs(ARGF(), SIMPORT);
+		break;
 	} ARGEND
 	USED(argc);
 	if(*argv == 0) {
 		diag("usage: 8l [-options] objects");
 		errorexit();
-	}
-	if(!debug['9'] && debug['r']) {
-		if(INITTEXT == -1)
-			INITTEXT = 0;
-		if(INITRND == -1)
-			INITRND = 4;
 	}
 	if(!debug['9'] && !debug['U'] && !debug['B'])
 		debug[DEFAULT] = 1;
@@ -245,17 +266,13 @@ main(int argc, char *argv[])
 
 	if(INITENTRY == 0) {
 		INITENTRY = "_main";
-		if(debug['r'])
-			INITENTRY++;
-		else if(debug['p'])
+		if(debug['p'])
 			INITENTRY = "_mainp";
 		if(!debug['l'])
 			lookup(INITENTRY, 0)->type = SXREF;
 	} else
 		lookup(INITENTRY, 0)->type = SXREF;
 
-	if(debug['r'])
-		readundefs();
 	while(*argv)
 		objfile(*argv++);
 	if(!debug['l'])
@@ -263,7 +280,21 @@ main(int argc, char *argv[])
 	firstp = firstp->link;
 	if(firstp == P)
 		errorexit();
-	reloc = debug['r'];
+	if(doexp || dlm){
+		EXPTAB = "_exporttab";
+		zerosig(EXPTAB);
+		zerosig("etext");
+		zerosig("edata");
+		zerosig("end");
+		if(dlm){
+			import();
+			HEADTYPE = 2;
+			INITTEXT = INITDAT = 0;
+			INITRND = 8;
+			INITENTRY = EXPTAB;
+		}
+		export();
+	}
 	patch();
 	follow();
 	dodata();
@@ -300,7 +331,7 @@ loop:
 	xrefresolv = 0;
 	for(i=0; i<libraryp; i++) {
 		if(debug['v'])
-			Bprint(&bso, "%5.2f autolib: %s\n", cputime(), library[i]);
+			Bprint(&bso, "%5.2f autolib: %s (from %s)\n", cputime(), library[i], libraryobj[i]);
 		objfile(library[i]);
 	}
 	if(xrefresolv)
@@ -683,6 +714,18 @@ ldobj(int f, long c, char *pn)
 	uchar *bloc, *bsize, *stop;
 	int v, o, r, skip;
 	Sym *h[NSYM], *s, *di;
+	ulong sig;
+	static int files;
+	static char **filen;
+	char **nfilen;
+
+	if((files&15) == 0){
+		nfilen = malloc((files+16)*sizeof(char*));
+		memmove(nfilen, filen, files*sizeof(char*));
+		free(filen);
+		filen = nfilen;
+	}
+	filen[files++] = strdup(pn);
 
 	bsize = buf.xbuf;
 	bloc = buf.xbuf;
@@ -715,7 +758,13 @@ loop:
 		errorexit();
 	}
 
-	if(o == ANAME) {
+	if(o == ANAME || o == ASIGNAME) {
+		sig = 0;
+		if(o == ASIGNAME) {
+			sig = bloc[2] | (bloc[3]<<8) | (bloc[4]<<16) | (bloc[5]<<24);
+			bloc += 4;
+			c -= 4;
+		}
 		stop = memchr(&bloc[4], 0, bsize-&bloc[4]);
 		if(stop == 0){
 			bsize = readsome(f, buf.xbuf, bloc, bsize, c);
@@ -739,6 +788,15 @@ loop:
 		s = lookup((char*)bloc, r);
 		c -= &stop[1] - bloc;
 		bloc = stop + 1;
+
+		if(debug['S'] && r == 0)
+			sig = 1729;
+		if(sig != 0){
+			if(s->sig != 0 && s->sig != sig)
+				diag("incompatible type signatures %lux(%s) and %lux(%s) for %s", s->sig, filen[s->file], sig, pn, s->name);
+			s->sig = sig;
+			s->file = files-1;
+		}
 
 		if(debug['W'])
 			print("	ANAME	%s\n", s->name);
@@ -1036,6 +1094,7 @@ lookup(char *symb, int v)
 	s->type = 0;
 	s->version = v;
 	s->value = 0;
+	s->sig = 0;
 	hash[h] = s;
 	nsymbol++;
 	return s;
@@ -1368,34 +1427,66 @@ ieeedtod(Ieee *ieeep)
 }
 
 void
-readundefs(void)
+undefsym(Sym *s)
+{
+	int n;
+
+	n = imports;
+	if(s->value != 0)
+		diag("value != 0 on SXREF");
+	if(n >= 1<<Rindex)
+		diag("import index %d out of range", n);
+	s->value = n<<Roffset;
+	s->type = SUNDEF;
+	imports++;
+}
+
+void
+zerosig(char *sp)
+{
+	Sym *s;
+
+	s = lookup(sp, 0);
+	s->sig = 0;
+}
+
+void
+readundefs(char *f, int t)
 {
 	int i, n;
 	Sym *s;
 	Biobuf *b;
-	char *l, buf[256], *fields[5];
+	char *l, buf[256], *fields[64];
 
-	for(i = 0; i < undefsp; i++) {
-		b = Bopen(undefs[i], OREAD);
-		if(b == nil) {
-			diag("could not open %s: %r", undefs[i]);
+	if(f == nil)
+		return;
+	b = Bopen(f, OREAD);
+	if(b == nil){
+		diag("could not open %s: %r", f);
+		errorexit();
+	}
+	while((l = Brdline(b, '\n')) != nil){
+		n = Blinelen(b);
+		if(n >= sizeof(buf)){
+			diag("%s: line too long", f);
 			errorexit();
 		}
-		while((l = Brdline(b, '\n')) != nil) {
-			n = Blinelen(b);
-			if(n >= sizeof(buf)) {
-				diag("%s: line too long", undefs[i]);
-				errorexit();
-			}
-			strncpy(buf, l, n);
-			n = getfields(buf, fields, nelem(fields), 1, " \t\r\n");
-			if(n == nelem(fields)) {
-				diag("%s: bad format", undefs[i]);
-				errorexit();
-			}
-			s = lookup(fields[0], 0);
-			s->type = SUNDEF;
+		memmove(buf, l, n);
+		buf[n-1] = '\0';
+		n = getfields(buf, fields, nelem(fields), 1, " \t\r\n");
+		if(n == nelem(fields)){
+			diag("%s: bad format", f);
+			errorexit();
 		}
-		Bterm(b);
+		for(i = 0; i < n; i++){
+			s = lookup(fields[i], 0);
+			s->type = SXREF;
+			s->subtype = t;
+			if(t == SIMPORT)
+				nimports++;
+			else
+				nexports++;
+		}
 	}
+	Bterm(b);
 }

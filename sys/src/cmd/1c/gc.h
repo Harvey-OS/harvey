@@ -14,7 +14,7 @@
 #define	SZ_VLONG	8
 #define	SZ_DOUBLE	8
 
-#define	ALLOP	91
+#define	ALLOP	92
 #define	NRGN	300
 #define	FNX	100
 #define	INDEXED	9

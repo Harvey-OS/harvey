@@ -1,3 +1,5 @@
+#!/bin/rc
+
 if(! ~ $#* 1){
 	echo 'usage: patch/note patch-name' >[1=2]
 	exit usage
@@ -19,7 +21,7 @@ if(! patch/okay .){
 	exit badpatch
 }
 
-if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons){
+if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons && ~ `{ls -l /dev/consctl | awk '{print $1}'} *rw*){
 	>/dev/consctl {
 		echo holdon
 		{echo `{date} `{cat /dev/user}

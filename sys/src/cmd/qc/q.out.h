@@ -7,7 +7,7 @@
 
 enum
 {
-	REGZERO		= 0,	/* NOT zero */
+	REGZERO		= 0,	/* set to zero */
 	REGSP		= 1,
 	REGSB		= 2,
 	REGRET		= 3,
@@ -24,13 +24,13 @@ enum
 	FREGZERO	= 28,	/* both float and double */
 	FREGHALF	= 29,	/* double */
 	FREGONE		= 30,	/* double */
-	FREGTWO		= 31,	/* double */
+	FREGTWO		= 31	/* double */
 /*
  * GENERAL:
  *
  * compiler allocates R3 up as temps
- * compiler allocates register variables R7-R28
- * compiler allocates external registers R29 down
+ * compiler allocates register variables R7-R27
+ * compiler allocates external registers R30 down
  *
  * compiler allocates register variables F17-F26
  * compiler allocates external registers F26 down
@@ -278,6 +278,96 @@ enum	as
 	AEND,
 	ADYNT,
 	AINIT,
+	ASIGNAME,
+
+	/* IBM powerpc embedded; not portable */
+	AMACCHW,
+	AMACCHWCC,
+	AMACCHWS,
+	AMACCHWSCC,
+	AMACCHWSU,
+	AMACCHWSUCC,
+	AMACCHWSUV,
+	AMACCHWSUVCC,
+	AMACCHWSV,
+	AMACCHWSVCC,
+	AMACCHWU,
+	AMACCHWUCC,
+	AMACCHWUV,
+	AMACCHWUVCC,
+	AMACCHWV,
+	AMACCHWVCC,
+	AMACHHW,
+	AMACHHWCC,
+	AMACHHWV,
+	AMACHHWVCC,
+	AMACHHWS,
+	AMACHHWSCC,
+	AMACHHWSV,
+	AMACHHWSVCC,
+	AMACHHWSU,
+	AMACHHWSUCC,
+	AMACHHWSUV,
+	AMACHHWSUVCC,
+	AMACHHWU,
+	AMACHHWUCC,
+	AMACHHWUV,
+	AMACHHWUVCC,
+	AMACLHW,
+	AMACLHWCC,
+	AMACLHWS,
+	AMACLHWSCC,
+	AMACLHWSU,
+	AMACLHWSUCC,
+	AMACLHWSUV,
+	AMACLHWSUVCC,
+	AMACLHWSV,
+	AMACLHWSVCC,
+	AMACLHWU,
+	AMACLHWUCC,
+	AMACLHWUV,
+	AMACLHWUVCC,
+	AMACLHWV,
+	AMACLHWVCC,
+	AMULCHW,
+	AMULCHWCC,
+	AMULCHWU,
+	AMULCHWUCC,
+	AMULHHW,
+	AMULHHWCC,
+	AMULHHWU,
+	AMULHHWUCC,
+	AMULLHW,
+	AMULLHWCC,
+	AMULLHWU,
+	AMULLHWUCC,
+	ANMACCHW,
+	ANMACCHWCC,
+	ANMACCHWS,
+	ANMACCHWSCC,
+	ANMACCHWSV,
+	ANMACCHWSVCC,
+	ANMACCHWV,
+	ANMACCHWVCC,
+	ANMACHHW,
+	ANMACHHWCC,
+	ANMACHHWS,
+	ANMACHHWSCC,
+	ANMACHHWSV,
+	ANMACHHWSVCC,
+	ANMACHHWV,
+	ANMACHHWVCC,
+	ANMACLHW,
+	ANMACLHWCC,
+	ANMACLHWS,
+	ANMACLHWSCC,
+	ANMACLHWSV,
+	ANMACLHWSVCC,
+	ANMACLHWV,
+	ANMACLHWVCC,
+
+	ARFCI,
+
 	ALAST
 };
 
@@ -309,11 +399,12 @@ enum
 	D_OPT,	/* branch/trap option */
 	D_FILE,
 	D_FILE1,
+	D_DCR,	/* device control register */
 
 /* reg names iff type is D_SPR */
 	D_XER	= 1,
 	D_LR	= 8,
-	D_CTR	= 9,
+	D_CTR	= 9
 	/* and many supervisor level registers */
 };
 

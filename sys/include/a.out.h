@@ -14,13 +14,13 @@ struct	Exec
 #define	_MAGIC(b)	((((4*b)+0)*b)+7)
 #define	A_MAGIC		_MAGIC(8)	/* 68020 */
 #define	I_MAGIC		_MAGIC(11)	/* intel 386 */
-#define	J_MAGIC		_MAGIC(12)	/* intel 960 */
+#define	J_MAGIC		_MAGIC(12)	/* intel 960 (retired) */
 #define	K_MAGIC		_MAGIC(13)	/* sparc */
-#define	V_MAGIC		_MAGIC(16)	/* mips 3000 */
-#define	X_MAGIC		_MAGIC(17)	/* att dsp 3210 */
-#define	M_MAGIC		_MAGIC(18)	/* mips 4000 */
-#define	D_MAGIC		_MAGIC(19)	/* amd 29000 */
-#define	E_MAGIC		_MAGIC(20)	/* arm 7-something */
+#define	V_MAGIC		_MAGIC(16)	/* mips 3000 BE */
+#define	X_MAGIC		_MAGIC(17)	/* att dsp 3210 (retired) */
+#define	M_MAGIC		_MAGIC(18)	/* mips 4000 BE */
+#define	D_MAGIC		_MAGIC(19)	/* amd 29000 (retired) */
+#define	E_MAGIC		_MAGIC(20)	/* arm */
 #define	Q_MAGIC		_MAGIC(21)	/* powerpc */
 #define	N_MAGIC		_MAGIC(22)	/* mips 4000 LE */
 #define	L_MAGIC		_MAGIC(23)	/* dec alpha */

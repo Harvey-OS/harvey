@@ -12,6 +12,8 @@ PROTOS=\
 	bootp\
 	dhcp\
 	hdlc\
+	rtp\
+	rtcp\
 	tcp\
 	il\
 	icmp\

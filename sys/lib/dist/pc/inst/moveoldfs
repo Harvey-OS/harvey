@@ -4,11 +4,9 @@
 # prereq: mountfs
 
 rootfiles=(\
-	29000\
 	386\
 	68000\
 	68020\
-	960\
 	LICENSE\
 	NOTICE\
 	acme\

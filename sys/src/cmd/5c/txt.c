@@ -170,7 +170,7 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 			nod.left = *fnxp;
 			nod.right = n;
 			nod.type = n->type;
-			cgen(&nod, Z);
+			cgen(&nod, Z, 0);
 			(*fnxp)++;
 		}
 		return;
@@ -187,18 +187,18 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 	if(REGARG >= 0 && curarg == 0 && typechlp[n->type->etype]) {
 		regaalloc1(tn1, n);
 		if(n->complex >= FNX) {
-			cgen(*fnxp, tn1);
+			cgen(*fnxp, tn1, 0);
 			(*fnxp)++;
 		} else
-			cgen(n, tn1);
+			cgen(n, tn1, 0);
 		return;
 	}
 	regalloc(tn1, n, Z);
 	if(n->complex >= FNX) {
-		cgen(*fnxp, tn1);
+		cgen(*fnxp, tn1, 0);
 		(*fnxp)++;
 	} else
-		cgen(n, tn1);
+		cgen(n, tn1, 0);
 	regaalloc(tn2, n);
 	gopcode(OAS, tn1, Z, tn2);
 	regfree(tn1);
@@ -262,7 +262,7 @@ void
 regalloc(Node *n, Node *tn, Node *o)
 {
 	int i, j;
-	static lasti;
+	static int lasti;
 
 	switch(tn->type->etype) {
 	case TCHAR:
@@ -609,10 +609,14 @@ gmove(Node *f, Node *t)
 			a = AMOVW;
 			break;
 		case TUCHAR:
+			a = AMOVBU;
+			break;
 		case TCHAR:
 			a = AMOVB;
 			break;
 		case TUSHORT:
+			a = AMOVHU;
+			break;
 		case TSHORT:
 			a = AMOVH;
 			break;
@@ -830,6 +834,36 @@ gmove(Node *f, Node *t)
 	if(samaddr(f, t))
 		return;
 	gins(a, f, t);
+}
+
+void
+gmover(Node *f, Node *t)
+{
+	int ft, tt, a;
+
+	ft = f->type->etype;
+	tt = t->type->etype;
+	a = AGOK;
+	if(typechlp[ft] && typechlp[tt] && ewidth[ft] >= ewidth[tt]){
+		switch(tt){
+		case TSHORT:
+			a = AMOVH;
+			break;
+		case TUSHORT:
+			a = AMOVHU;
+			break;
+		case TCHAR:
+			a = AMOVB;
+			break;
+		case TUCHAR:
+			a = AMOVBU;
+			break;
+		}
+	}
+	if(a == AGOK)
+		gmove(f, t);
+	else
+		gins(a, f, t);
 }
 
 void
@@ -1098,7 +1132,6 @@ gpseudo(int a, Sym *s, Node *n)
 	p->as = a;
 	p->from.type = D_OREG;
 	p->from.sym = s;
-	p->reg = (profileflg ? 0 : NOPROF);
 	p->from.name = D_EXTERN;
 	p->reg = (profileflg ? 0 : NOPROF);
 	if(s->class == CSTATIC)
@@ -1150,7 +1183,7 @@ exreg(Type *t)
 	long o;
 
 	if(typechlp[t->etype]) {
-		if(exregoffset <= NREG-1)
+		if(exregoffset <= REGEXT-4)
 			return 0;
 		o = exregoffset;
 		exregoffset--;

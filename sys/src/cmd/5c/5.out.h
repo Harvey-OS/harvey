@@ -4,6 +4,7 @@
 
 #define NOPROF		(1<<0)
 #define DUPOK		(1<<1)
+#define	ALLTHUMBS	(1<<2)
 
 #define	REGRET		0
 #define	REGARG		0
@@ -16,6 +17,8 @@
 #define	REGSP		13
 #define	REGLINK		14
 #define	REGPC		15
+
+#define	REGTMPT		7	/* used by the loader for thumb code */
 
 #define	NFREG		8
 #define	FREGRET		0
@@ -132,6 +135,12 @@ enum	as
 	AMULLU,
 	AMULALU,
 
+	ABX,
+	ABXRET,
+	ADWORD,
+
+	ASIGNAME,
+
 	ALAST,
 };
 
@@ -162,7 +171,7 @@ enum	as
 
 #define	D_SHIFT		(D_NONE+19)
 #define	D_FPCR		(D_NONE+20)
-#define D_REGREG	(D_NONE+21)
+#define 	D_REGREG	(D_NONE+21)
 
 /* name */
 #define	D_EXTERN	(D_NONE+3)

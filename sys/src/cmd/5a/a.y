@@ -19,7 +19,7 @@
 %token	<lval>	LTYPE6 LTYPE7 LTYPE8 LTYPE9 LTYPEA
 %token	<lval>	LTYPEB LTYPEC LTYPED LTYPEE LTYPEF
 %token	<lval>	LTYPEG LTYPEH LTYPEI LTYPEJ LTYPEK
-%token	<lval>	LTYPEL LTYPEM LTYPEN
+%token	<lval>	LTYPEL LTYPEM LTYPEN LTYPEBX
 %token	<lval>	LCONST LSP LSB LFP LPC
 %token	<lval>	LTYPEX LR LREG LF LFREG LC LCREG LPSR LFCR
 %token	<lval>	LCOND LS LAT
@@ -103,6 +103,13 @@ inst:
 |	LTYPE4 cond comma nireg
 	{
 		outcode($1, $2, &nullgen, NREG, &$4);
+	}
+/*
+ * BX
+ */
+|	LTYPEBX comma ireg
+	{
+		outcode($1, Always, &nullgen, NREG, &$3);
 	}
 /*
  * BEQ

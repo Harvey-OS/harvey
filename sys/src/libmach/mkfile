@@ -14,28 +14,20 @@ FILES=executable\
 	q\
 	0\
 	2\
-	6\
 	8\
-	x\
-	9\
 	5\
 	7\
 	vdb\
 	kdb\
 	qdb\
 	2db\
-	6db\
 	8db\
-	9db\
 	5db\
 	7db\
 	vobj\
 	kobj\
 	2obj\
-	6obj\
 	8obj\
-	xobj\
-	9obj\
 	5obj\
 	7obj\
 	qobj\

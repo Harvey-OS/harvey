@@ -15,12 +15,12 @@
 #endif /* ucuconf */
 
 /* special instruction definitions */
-#define	BDNZ	BC	16,0,
-#define	BDNE	BC	0,2,
-#define	MTCRF(r,crm)	WORD	$((31<<26)|((r)<<21)|(crm<<12)|(144<<1))
+#define	BDNZ		BC	16, 0,
+#define	BDNE		BC	0, 2,
+#define	MTCRF(r, crm)	WORD	$((31<<26)|((r)<<21)|(crm<<12)|(144<<1))
 
 /* #define	TLBIA	WORD	$((31<<26)|(370<<1)) Not implemented on the 603e */
-#define	TLBSYNC	WORD	$((31<<26)|(566<<1))
+#define	TLBSYNC		WORD	$((31<<26)|(566<<1))
 #define	TLBLI(n)	WORD	$((31<<26)|((n)<<11)|(1010<<1))
 #define	TLBLD(n)	WORD	$((31<<26)|((n)<<11)|(978<<1))
 
@@ -29,7 +29,7 @@
 
 #define	UREGSPACE	(UREGSIZE+8)
 
-	TEXT start(SB), $-4
+TEXT start(SB), $-4
 
 	/*
 	 * setup MSR
@@ -53,27 +53,27 @@
 	ANDN	R3, R2
 
 	/* before this we're not running above KZERO */
-	BL		mmuinit0(SB)
+	BL	mmuinit0(SB)
 	/* after this we are */
 
 #ifdef ucuconf
 	MOVW	$0x2000000, R4		/* size */
 	MOVW	$0, R3			/* base address */
 	RLWNM	$0, R3, $~(CACHELINESZ-1), R5
-	CMP		R4, $0
-	BLE		_dcf1
-	SUB		R5, R3
-	ADD		R3, R4
-	ADD		$(CACHELINESZ-1), R4
+	CMP	R4, $0
+	BLE	_dcf1
+	SUB	R5, R3
+	ADD	R3, R4
+	ADD	$(CACHELINESZ-1), R4
 	SRAW	$CACHELINELOG, R4
 	MOVW	R4, CTR
 _dcf0:	DCBF	(R5)
-	ADD		$CACHELINESZ, R5
+	ADD	$CACHELINESZ, R5
 	BDNZ	_dcf0
 _dcf1:
 	SYNC
 
-	/* BAT0,3 unused, copy of BAT2 */
+	/* BAT0, 3 unused, copy of BAT2 */
 	MOVW	SPR(IBATL(2)), R3
 	MOVW	R3, SPR(IBATL(0))
 	MOVW	SPR(IBATU(2)), R3
@@ -100,14 +100,14 @@ _dcf1:
 
 	/* set up Mach */
 	MOVW	$MACHADDR, R(MACH)
-	ADD		$(MACHSIZE-8), R(MACH), R1	/* set stack */
+	ADD	$(MACHSIZE-8), R(MACH), R1	/* set stack */
 
 	MOVW	R0, R(USER)		/* up-> set to zero */
-	MOVW	R0, 0(R(MACH))	/* machno set to zero */
+	MOVW	R0, 0(R(MACH))		/* machno set to zero */
 
 	BL	main(SB)
 
-	RETURN		/* not reached */
+	RETURN				/* not reached */
 
 /*
  * on return from this function we will be running in virtual mode.
@@ -115,7 +115,7 @@ _dcf1:
  * 1) first 3 BATs are 256M blocks, starting from KZERO->0
  * 2) remaining BAT maps last 256M directly
  */
-TEXT	mmuinit0(SB), $0
+TEXT mmuinit0(SB), $0
 	/* reset all the tlbs */
 	MOVW	$64, R3
 	MOVW	R3, CTR
@@ -124,7 +124,7 @@ TEXT	mmuinit0(SB), $0
 tlbloop:
 	TLBIE	R4
 	SYNC
-	ADD		$BIT(19), R4
+	ADD	$BIT(19), R4
 	BDNZ	tlbloop
 	TLBSYNC
 
@@ -140,8 +140,8 @@ tlbloop:
 	MOVW	R4, SPR(DBATL(0))
 
 	/* KZERO+256M -> 256M, IBAT and DBAT, 256 MB */
-	ADD		$(1<<28), R3
-	ADD		$(1<<28), R4
+	ADD	$(1<<28), R3
+	ADD	$(1<<28), R4
 	MOVW	R3, SPR(IBATU(1))
 	MOVW	R4, SPR(IBATL(1))
 	MOVW	R3, SPR(DBATU(1))
@@ -180,18 +180,18 @@ tlbloop:
 
 	/* enable MMU */
 	MOVW	LR, R3
-	OR		$KZERO, R3
-	MOVW	R3, SPR(SRR0)	/* Stored PC for RFI instruction */
+	OR	$KZERO, R3
+	MOVW	R3, SPR(SRR0)		/* Stored PC for RFI instruction */
 	MOVW	MSR, R4
-	OR		$(MSR_IR|MSR_DR|MSR_RI|MSR_FP), R4
+	OR	$(MSR_IR|MSR_DR|MSR_RI|MSR_FP), R4
 	MOVW	R4, SPR(SRR1)
-	RFI		/* resume in kernel mode in caller */
+	RFI				/* resume in kernel mode in caller */
 
 	RETURN
 
-TEXT	kfpinit(SB), $0
-	MOVFL	$0,FPSCR(7)
-	MOVFL	$0xD,FPSCR(6)	/* VE, OE, ZE */
+TEXT kfpinit(SB), $0
+	MOVFL	$0, FPSCR(7)
+	MOVFL	$0xD, FPSCR(6)		/* VE, OE, ZE */
 	MOVFL	$0, FPSCR(5)
 	MOVFL	$0, FPSCR(3)
 	MOVFL	$0, FPSCR(2)
@@ -200,7 +200,7 @@ TEXT	kfpinit(SB), $0
 
 	FMOVD	$4503601774854144.0, F27
 	FMOVD	$0.5, F29
-	FSUB		F29, F29, F28
+	FSUB	F29, F29, F28
 	FADD	F29, F29, F30
 	FADD	F30, F30, F31
 	FMOVD	F28, F0
@@ -232,9 +232,9 @@ TEXT	kfpinit(SB), $0
 	FMOVD	F28, F26
 	RETURN
 
-TEXT	splhi(SB), $0
+TEXT splhi(SB), $0
 	MOVW	LR, R31
-	MOVW	R31, 4(R(MACH))	/* save PC in m->splpc */
+	MOVW	R31, 4(R(MACH))		/* save PC in m->splpc */
 	MOVW	MSR, R3
 	RLWNM	$0, R3, $~MSR_EE, R4
 	SYNC
@@ -242,12 +242,12 @@ TEXT	splhi(SB), $0
 	MSRSYNC
 	RETURN
 
-TEXT	splx(SB), $0
+TEXT splx(SB), $0
 	/* fall though */
 
-TEXT	splxpc(SB), $0
+TEXT splxpc(SB), $0
 	MOVW	LR, R31
-	MOVW	R31, 4(R(MACH))	/* save PC in m->splpc */
+	MOVW	R31, 4(R(MACH))		/* save PC in m->splpc */
 	MOVW	MSR, R4
 	RLWMI	$0, R3, $MSR_EE, R4
 	SYNC
@@ -255,7 +255,7 @@ TEXT	splxpc(SB), $0
 	MSRSYNC
 	RETURN
 
-TEXT	spllo(SB), $0
+TEXT spllo(SB), $0
 	MOVW	MSR, R3
 	OR	$MSR_EE, R3, R4
 	SYNC
@@ -263,29 +263,29 @@ TEXT	spllo(SB), $0
 	MSRSYNC
 	RETURN
 
-TEXT	spldone(SB), $0
+TEXT spldone(SB), $0
 	RETURN
 
-TEXT	islo(SB), $0
+TEXT islo(SB), $0
 	MOVW	MSR, R3
 	RLWNM	$0, R3, $MSR_EE, R3
 	RETURN
 
-TEXT	setlabel(SB), $-4
+TEXT setlabel(SB), $-4
 	MOVW	LR, R31
 	MOVW	R1, 0(R3)
 	MOVW	R31, 4(R3)
 	MOVW	$0, R3
 	RETURN
 
-TEXT	gotolabel(SB), $-4
+TEXT gotolabel(SB), $-4
 	MOVW	4(R3), R31
 	MOVW	R31, LR
 	MOVW	0(R3), R1
 	MOVW	$1, R3
 	RETURN
 
-TEXT	touser(SB), $-4
+TEXT touser(SB), $-4
 	MOVW	$(UTZERO+32), R5	/* header appears in text */
 	MOVW	$(MSR_EE|MSR_PR|MSR_IR|MSR_DR|MSR_RI), R4
 	MOVW	R4, SPR(SRR1)
@@ -293,95 +293,95 @@ TEXT	touser(SB), $-4
 	MOVW	R5, SPR(SRR0)
 	RFI
 
-TEXT	dczap(SB), $-4	/* dczap(virtaddr, count) */
+TEXT dczap(SB), $-4			/* dczap(virtaddr, count) */
 	MOVW	n+4(FP), R4
 	RLWNM	$0, R3, $~(CACHELINESZ-1), R5
-	CMP		R4, $0
-	BLE		dcz1
-	SUB		R5, R3
-	ADD		R3, R4
-	ADD		$(CACHELINESZ-1), R4
+	CMP	R4, $0
+	BLE	dcz1
+	SUB	R5, R3
+	ADD	R3, R4
+	ADD	$(CACHELINESZ-1), R4
 	SRAW	$CACHELINELOG, R4
 	MOVW	R4, CTR
 dcz0:
 	DCBI	(R5)
-	ADD		$CACHELINESZ, R5
+	ADD	$CACHELINESZ, R5
 	BDNZ	dcz0
 dcz1:
 	SYNC
 	RETURN
 
-TEXT	dcflush(SB), $-4	/* dcflush(virtaddr, count) */
+TEXT dcflush(SB), $-4			/* dcflush(virtaddr, count) */
 	MOVW	n+4(FP), R4
 	RLWNM	$0, R3, $~(CACHELINESZ-1), R5
-	CMP		R4, $0
-	BLE		dcf1
-	SUB		R5, R3
-	ADD		R3, R4
-	ADD		$(CACHELINESZ-1), R4
+	CMP	R4, $0
+	BLE	dcf1
+	SUB	R5, R3
+	ADD	R3, R4
+	ADD	$(CACHELINESZ-1), R4
 	SRAW	$CACHELINELOG, R4
 	MOVW	R4, CTR
 dcf0:	DCBST	(R5)
-	ADD		$CACHELINESZ, R5
+	ADD	$CACHELINESZ, R5
 	BDNZ	dcf0
 dcf1:
 	SYNC
 	RETURN
 
-TEXT	icflush(SB), $-4	/* icflush(virtaddr, count) */
+TEXT icflush(SB), $-4			/* icflush(virtaddr, count) */
 	MOVW	n+4(FP), R4
 	RLWNM	$0, R3, $~(CACHELINESZ-1), R5
-	CMP		R4, $0
-	BLE		icf1
-	SUB		R5, R3
-	ADD		R3, R4
-	ADD		$(CACHELINESZ-1), R4
+	CMP	R4, $0
+	BLE	icf1
+	SUB	R5, R3
+	ADD	R3, R4
+	ADD	$(CACHELINESZ-1), R4
 	SRAW	$CACHELINELOG, R4
 	MOVW	R4, CTR
-icf0:	ICBI		(R5)		/* invalidate the instruction cache */
-	ADD		$CACHELINESZ, R5
+icf0:	ICBI	(R5)			/* invalidate the instruction cache */
+	ADD	$CACHELINESZ, R5
 	BDNZ	icf0
 	ISYNC
 icf1:
 	RETURN
 
-TEXT	tas(SB), $0
+TEXT tas(SB), $0
 	MOVW	R3, R4
-	MOVW	$0xdead,R5
+	MOVW	$0xdead, R5
 tas1:
-	DCBF	(R4)	/* fix for 603x bug */
+	DCBF	(R4)			/* fix for 603x bug */
 	SYNC
 	LWAR	(R4), R3
-	CMP		R3, $0
-	BNE		tas0
+	CMP	R3, $0
+	BNE	tas0
 	STWCCC	R5, (R4)
-	BNE		tas1
+	BNE	tas1
 	EIEIO
 tas0:
 	SYNC
 	RETURN
 
-TEXT	_xinc(SB),$0	/* void _xinc(long *); */
+TEXT _xinc(SB), $0			/* void _xinc(long *); */
 	MOVW	R3, R4
 xincloop:
-	DCBF	(R4)	/* fix for 603x bug */
+	DCBF	(R4)			/* fix for 603x bug */
 	LWAR	(R4), R3
-	ADD		$1, R3
+	ADD	$1, R3
 	STWCCC	R3, (R4)
-	BNE		xincloop
+	BNE	xincloop
 	RETURN
 
-TEXT	_xdec(SB),$0	/* long _xdec(long *); */
+TEXT _xdec(SB), $0			/* long _xdec(long *); */
 	MOVW	R3, R4
 xdecloop:
-	DCBF	(R4)	/* fix for 603x bug */
+	DCBF	(R4)			/* fix for 603x bug */
 	LWAR	(R4), R3
-	ADD		$-1, R3
+	ADD	$-1, R3
 	STWCCC	R3, (R4)
-	BNE		xdecloop
+	BNE	xdecloop
 	RETURN
 
-TEXT	tlbflushall(SB), $0
+TEXT tlbflushall(SB), $0
 	MOVW	$TLBENTRIES, R3
 	MOVW	R3, CTR
 	MOVW	$0, R4
@@ -389,66 +389,66 @@ TEXT	tlbflushall(SB), $0
 tlbflushall0:
 	TLBIE	R4
 	SYNC
-	ADD		$BIT(19), R4
+	ADD	$BIT(19), R4
 	BDNZ	tlbflushall0
 	TLBSYNC
 	RETURN
 
-TEXT	tlbflush(SB), $0
+TEXT tlbflush(SB), $0
 	ISYNC
 	TLBIE	R3
 	SYNC
 	TLBSYNC
 	RETURN
 
-TEXT	gotopc(SB), $0
+TEXT gotopc(SB), $0
 	MOVW	R3, CTR
-	MOVW	LR, R31	/* for trace back */
-	BR		(CTR)
+	MOVW	LR, R31			/* for trace back */
+	BR	(CTR)
 
 /* On an imiss, we get here.  If we can resolve it, we do.
  * Otherwise take the real trap.  The code at the vector is
  *	MOVW	R0, SPR(SAVER0)	No point to this, of course
  *	MOVW	LR, R0
- *	MOVW	R0, SPR(SAVELR) 
- *	BL		imiss(SB)			or dmiss, as the case may be
- *	BL		tlbvec(SB)
+ *	MOVW	R0, SPR(SAVELR)
+ *	BL	imiss(SB)		or dmiss, as the case may be
+ *	BL	tlbvec(SB)
  */
-TEXT	imiss(SB), $-4
+TEXT imiss(SB), $-4
 	/* Statistics */
 	MOVW	$MACHPADDR, R1
 	MOVW	0xc(R1), R3		/* count m->tlbfault */
-	ADD		$1, R3
+	ADD	$1, R3
 	MOVW	R3, 0xc(R1)
 	MOVW	0x10(R1), R3		/* count m->imiss */
-	ADD		$1, R3
+	ADD	$1, R3
 	MOVW	R3, 0x10(R1)
 
 	/* Real work */
-	MOVW	SPR(HASH1), R1	/* (phys) pointer into the hash table */
-	ADD		$BY2PTEG, R1, R2	/* end pointer */
+	MOVW	SPR(HASH1), R1		/* (phys) pointer into the hash table */
+	ADD	$BY2PTEG, R1, R2	/* end pointer */
 	MOVW	SPR(iCMP), R3		/* pattern to look for */
 imiss1:
 	MOVW	(R1), R0
-	CMP		R3, R0
-	BEQ		imiss2			/* found the entry */
-	ADD		$8, R1
-	CMP		R1, R2			/* test end of loop */
-	BNE		imiss1			/* Loop */
+	CMP	R3, R0
+	BEQ	imiss2			/* found the entry */
+	ADD	$8, R1
+	CMP	R1, R2			/* test end of loop */
+	BNE	imiss1			/* Loop */
 	/* Failed to find an entry; take the full trap */
 	MOVW	SPR(SRR1), R1
-	MTCRF(1,0x80)			/* restore CR0 bits (they're auto saved in SRR1) */
+	MTCRF(1, 0x80)			/* restore CR0 bits (they're auto saved in SRR1) */
 	RETURN
 imiss2:
 	/* Found the entry */
-	MOVW	4(R1), R2			/* Phys addr */
+	MOVW	4(R1), R2		/* Phys addr */
 	MOVW	R2, SPR(RPA)
-	MOVW	SPR(IMISS),R3
+	MOVW	SPR(IMISS), R3
 	TLBLI(3)
 
 	/* Restore Registers */
 	MOVW	SPR(SRR1), R1		/* Restore the CR0 field of the CR register from SRR1 */
-	MTCRF(1,0x80)
+	MTCRF(1, 0x80)
 	MOVW	SPR(SAVELR), R0
 	MOVW	R0, LR
 	RFI
@@ -456,39 +456,39 @@ imiss2:
 /* On a data load or store miss, we get here.  If we can resolve it, we do.
  * Otherwise take the real trap
  */
-TEXT	dmiss(SB), $-4
+TEXT dmiss(SB), $-4
 	/* Statistics */
 	MOVW	$MACHPADDR, R1
 	MOVW	0xc(R1), R3		/* count m->tlbfault */
-	ADD		$1, R3
+	ADD	$1, R3
 	MOVW	R3, 0xc(R1)
 	MOVW	0x14(R1), R3		/* count m->dmiss */
-	ADD		$1, R3
+	ADD	$1, R3
 	MOVW	R3, 0x14(R1)
 	/* Real work */
-	MOVW	SPR(HASH1), R1	/* (phys) pointer into the hash table */
-	ADD		$BY2PTEG, R1, R2	/* end pointer */
+	MOVW	SPR(HASH1), R1		/* (phys) pointer into the hash table */
+	ADD	$BY2PTEG, R1, R2	/* end pointer */
 	MOVW	SPR(DCMP), R3		/* pattern to look for */
 dmiss1:
 	MOVW	(R1), R0
-	CMP		R3, R0
-	BEQ		dmiss2			/* found the entry */
-	ADD		$8, R1
-	CMP		R1, R2			/* test end of loop */
-	BNE		dmiss1			/* Loop */
+	CMP	R3, R0
+	BEQ	dmiss2			/* found the entry */
+	ADD	$8, R1
+	CMP	R1, R2			/* test end of loop */
+	BNE	dmiss1			/* Loop */
 	/* Failed to find an entry; take the full trap */
 	MOVW	SPR(SRR1), R1
-	MTCRF(1,0x80)			/* restore CR0 bits (they're auto saved in SRR1) */
+	MTCRF(1, 0x80)			/* restore CR0 bits (they're auto saved in SRR1) */
 	RETURN
 dmiss2:
 	/* Found the entry */
-	MOVW	4(R1), R2			/* Phys addr */
+	MOVW	4(R1), R2		/* Phys addr */
 	MOVW	R2, SPR(RPA)
-	MOVW	SPR(DMISS),R3
+	MOVW	SPR(DMISS), R3
 	TLBLD(3)
 	/* Restore Registers */
 	MOVW	SPR(SRR1), R1		/* Restore the CR0 field of the CR register from SRR1 */
-	MTCRF(1,0x80)
+	MTCRF(1, 0x80)
 	MOVW	SPR(SAVELR), R0
 	MOVW	R0, LR
 	RFI
@@ -502,8 +502,8 @@ dmiss2:
  * coming to tlbvec:
  *	MOVW	R0, SPR(SAVER0)	No point to this, of course
  *	MOVW	LR, R0
- *	MOVW	R0, SPR(SAVELR) 
- *	BL		tlbvec(SB)
+ *	MOVW	R0, SPR(SAVELR)
+ *	BL	tlbvec(SB)
  * SAVER0 can be reused.  We're not interested in the value of TR0
  */
 TEXT tlbvec(SB), $-4
@@ -520,45 +520,45 @@ TEXT tlbvec(SB), $-4
  * traps force memory mapping off.
  * the following code has been executed at the exception
  * vector location
- *	MOVW R0, SPR(SAVER0)
- *	MOVW LR, R0
- *	MOVW R0, SPR(SAVELR) 
+ *	MOVW	R0, SPR(SAVER0)
+ *	MOVW	LR, R0
+ *	MOVW	R0, SPR(SAVELR)
  *	bl	trapvec(SB)
  *
  */
-TEXT	trapvec(SB), $-4
+TEXT trapvec(SB), $-4
 	MOVW	LR, R0
 	MOVW	R1, SPR(SAVER1)
-	MOVW	R0, SPR(SAVEXX)	/* vector */
+	MOVW	R0, SPR(SAVEXX)		/* vector */
 
 	/* did we come from user space */
 	MOVW	SPR(SRR1), R0
 	MOVW	CR, R1
 	MOVW	R0, CR
-	BC		4,17,ktrap
+	BC	4, 17, ktrap
 
 	/* switch to kernel stack */
 	MOVW	R1, CR
 	MOVW	$MACHPADDR, R1		/* PADDR(m->) */
-	MOVW	8(R1), R1				/* m->proc  */
-	RLWNM	$0, R1, $~KZERO, R1		/* PADDR(m->proc) */
-	MOVW	8(R1), R1				/* m->proc->kstack */
-	RLWNM	$0, R1, $~KZERO, R1		/* PADDR(m->proc->kstack) */
-	ADD		$(KSTACK-UREGSIZE), R1	/* make room on stack */
+	MOVW	8(R1), R1		/* m->proc */
+	RLWNM	$0, R1, $~KZERO, R1	/* PADDR(m->proc) */
+	MOVW	8(R1), R1		/* m->proc->kstack */
+	RLWNM	$0, R1, $~KZERO, R1	/* PADDR(m->proc->kstack) */
+	ADD	$(KSTACK-UREGSIZE), R1	/* make room on stack */
 
-	BL		saveureg(SB)
-	BL		trap(SB)
-	BR		restoreureg
+	BL	saveureg(SB)
+	BL	trap(SB)
+	BR	restoreureg
 
 ktrap:
 	MOVW	R1, CR
 	MOVW	SPR(SAVER1), R1
-	RLWNM	$0, R1, $~KZERO, R1		/* set stack pointer */
-	SUB		$UREGSPACE, R1
+	RLWNM	$0, R1, $~KZERO, R1	/* set stack pointer */
+	SUB	$UREGSPACE, R1
 
-	BL		saveureg(SB)			/* addressed relative to PC */
-	BL		trap(SB)
-	BR		restoreureg
+	BL	saveureg(SB)		/* addressed relative to PC */
+	BL	trap(SB)
+	BR	restoreureg
 
 /*
  * enter with stack set and mapped.
@@ -567,14 +567,14 @@ ktrap:
  * R(MACH) has been set, and R0 contains 0.
  *
  */
-TEXT	saveureg(SB), $-4
+TEXT saveureg(SB), $-4
 /*
  * save state
  */
-	MOVMW	R2, 48(R1)				/* save r2 .. r31 in 48(R1) .. 164(R1) */
-	MOVW	$MACHPADDR, R(MACH)		/* PADDR(m->) */
-	MOVW	8(R(MACH)), R(USER)		/* up-> */
-	MOVW	$MACHADDR, R(MACH)		/* m-> */
+	MOVMW	R2, 48(R1)		/* save r2 .. r31 in 48(R1) .. 164(R1) */
+	MOVW	$MACHPADDR, R(MACH)	/* PADDR(m->) */
+	MOVW	8(R(MACH)), R(USER)	/* up-> */
+	MOVW	$MACHADDR, R(MACH)	/* m-> */
 	MOVW	SPR(SAVER1), R4
 	MOVW	R4, 44(R1)
 	MOVW	SPR(SAVER0), R5
@@ -585,15 +585,15 @@ TEXT	saveureg(SB), $-4
 	MOVW	R4, 32(R1)
 	MOVW	CR, R5
 	MOVW	R5, 28(R1)
-	MOVW	SPR(SAVELR), R6			/* LR */
+	MOVW	SPR(SAVELR), R6		/* LR */
 	MOVW	R6, 24(R1)
 	/* pad at 20(R1) */
 	MOVW	SPR(SRR0), R0
-	MOVW	R0, 16(R1)				/* old PC */
+	MOVW	R0, 16(R1)		/* old PC */
 	MOVW	SPR(SRR1), R0
-	MOVW	R0, 12(R1)				/* old status */
+	MOVW	R0, 12(R1)		/* old status */
 	MOVW	SPR(SAVEXX), R0
-	MOVW	R0, 8(R1)					/* cause/vector */
+	MOVW	R0, 8(R1)		/* cause/vector */
 	MOVW	SPR(DCMP), R0
 	MOVW	R0, (160+8)(R1)
 	MOVW	SPR(iCMP), R0
@@ -610,177 +610,177 @@ TEXT	saveureg(SB), $-4
 	MOVW	R0, (184+8)(R1)
 	MOVW	SPR(DSISR), R0
 	MOVW	R0, (188+8)(R1)
-	ADD		$8, R1, R3					/* Ureg* */
-	OR		$KZERO, R3				/* fix ureg */
-	STWCCC	R3, (R1)					/* break any pending reservations */
-	MOVW	$0, R0					/* compiler/linker expect R0 to be zero */
-	MOVW	$setSB(SB), R2				/* SB register */
+	ADD	$8, R1, R3		/* Ureg* */
+	OR	$KZERO, R3		/* fix ureg */
+	STWCCC	R3, (R1)		/* break any pending reservations */
+	MOVW	$0, R0			/* compiler/linker expect R0 to be zero */
+	MOVW	$setSB(SB), R2		/* SB register */
 
 	MOVW	MSR, R5
-	OR		$(MSR_IR|MSR_DR|MSR_FP|MSR_RI), R5	/* enable MMU */
+	OR	$(MSR_IR|MSR_DR|MSR_FP|MSR_RI), R5	/* enable MMU */
 	MOVW	R5, SPR(SRR1)
 	MOVW	LR, R31
-	OR		$KZERO, R31				/* return PC in KSEG0 */
+	OR	$KZERO, R31		/* return PC in KSEG0 */
 	MOVW	R31, SPR(SRR0)
-	OR		$KZERO, R1				/* fix stack pointer */
-	RFI								/* returns to trap handler */
+	OR	$KZERO, R1		/* fix stack pointer */
+	RFI				/* returns to trap handler */
 
 /*
  * restore state from Ureg and return from trap/interrupt
  */
-TEXT	forkret(SB), $0
+TEXT forkret(SB), $0
 	BR	restoreureg
 
 restoreureg:
-	MOVMW	48(R1), R2				/* restore r2 through r31 */
+	MOVMW	48(R1), R2		/* restore r2 through r31 */
 	/* defer R1 */
 	MOVW	40(R1), R0
-	MOVW	R0, SPR(SAVER0)			/* resave saved R0 */
+	MOVW	R0, SPR(SAVER0)		/* resave saved R0 */
 	MOVW	36(R1), R0
 	MOVW	R0, CTR
 	MOVW	32(R1), R0
 	MOVW	R0, XER
 	MOVW	28(R1), R0
-	MOVW	R0, CR					/* Condition register*/
+	MOVW	R0, CR			/* Condition register*/
 	MOVW	24(R1), R0
 	MOVW	R0, LR
 	/* pad, skip */
 	MOVW	16(R1), R0
-	MOVW	R0, SPR(SRR0)				/* old PC */
+	MOVW	R0, SPR(SRR0)		/* old PC */
 	MOVW	12(R1), R0
-	MOVW	R0, SPR(SRR1)				/* old MSR */
+	MOVW	R0, SPR(SRR1)		/* old MSR */
 	/* cause, skip */
-	MOVW	44(R1), R1				/* old SP */
+	MOVW	44(R1), R1		/* old SP */
 	MOVW	SPR(SAVER0), R0
 	RFI
 
-TEXT	getpvr(SB), $0
+TEXT getpvr(SB), $0
 	MOVW	SPR(PVR), R3
 	RETURN
 
-TEXT	getdec(SB), $0
+TEXT getdec(SB), $0
 	MOVW	SPR(DEC), R3
 	RETURN
 
-TEXT	putdec(SB), $0
+TEXT putdec(SB), $0
 	MOVW	R3, SPR(DEC)
 	RETURN
 
-TEXT	getdar(SB), $0
+TEXT getdar(SB), $0
 	MOVW	SPR(DAR), R3
 	RETURN
 
-TEXT	getdsisr(SB), $0
+TEXT getdsisr(SB), $0
 	MOVW	SPR(DSISR), R3
 	RETURN
 
-TEXT	getmsr(SB), $0
+TEXT getmsr(SB), $0
 	MOVW	MSR, R3
 	RETURN
 
-TEXT	putmsr(SB), $0
+TEXT putmsr(SB), $0
 	MOVW	R3, MSR
 	MSRSYNC
 	RETURN
 
-TEXT	putsdr1(SB), $0
+TEXT putsdr1(SB), $0
 	SYNC
 	MOVW	R3, SPR(SDR1)
 	ISYNC
 	RETURN
 
-TEXT	putsr(SB), $0
+TEXT putsr(SB), $0
 	MOVW	4(FP), R4
 	SYNC
 	MOVW	R4, SEG(R3)
 	MSRSYNC
 	RETURN
 
-TEXT	getsr(SB), $0
+TEXT getsr(SB), $0
 	MOVW	SEG(R3), R3
 	RETURN
 
-TEXT	gethid0(SB), $0
+TEXT gethid0(SB), $0
 	MOVW	SPR(HID0), R3
 	RETURN
 
-TEXT	puthid0(SB), $0
+TEXT puthid0(SB), $0
 	SYNC
 	ISYNC
 	MOVW	R3, SPR(HID0)
 	SYNC
 	RETURN
 
-TEXT	gethid1(SB), $0
+TEXT gethid1(SB), $0
 	MOVW	SPR(HID1), R3
 	RETURN
 
-TEXT	gethid2(SB), $0
+TEXT gethid2(SB), $0
 	MOVW	SPR(HID2), R3
 	RETURN
 
-TEXT	puthid2(SB), $0
+TEXT puthid2(SB), $0
 	MOVW	R3, SPR(HID2)
 	RETURN
 
-TEXT	eieio(SB), $0
+TEXT eieio(SB), $0
 	EIEIO
 	RETURN
 
-TEXT	sync(SB), $0
+TEXT sync(SB), $0
 	SYNC
 	RETURN
 
 /* Power PC 603e specials */
-TEXT	getimiss(SB), $0
+TEXT getimiss(SB), $0
 	MOVW	SPR(IMISS), R3
 	RETURN
 
-TEXT	geticmp(SB), $0
+TEXT geticmp(SB), $0
 	MOVW	SPR(iCMP), R3
 	RETURN
 
-TEXT	puticmp(SB), $0
+TEXT puticmp(SB), $0
 	MOVW	R3, SPR(iCMP)
 	RETURN
 
-TEXT	getdmiss(SB), $0
+TEXT getdmiss(SB), $0
 	MOVW	SPR(DMISS), R3
 	RETURN
 
-TEXT	getdcmp(SB), $0
+TEXT getdcmp(SB), $0
 	MOVW	SPR(DCMP), R3
 	RETURN
 
-TEXT	putdcmp(SB), $0
+TEXT putdcmp(SB), $0
 	MOVW	R3, SPR(DCMP)
 	RETURN
 
-TEXT	getsdr1(SB), $0
+TEXT getsdr1(SB), $0
 	MOVW	SPR(SDR1), R3
 	RETURN
 
-TEXT	gethash1(SB), $0
+TEXT gethash1(SB), $0
 	MOVW	SPR(HASH1), R3
 	RETURN
 
-TEXT	puthash1(SB), $0
+TEXT puthash1(SB), $0
 	MOVW	R3, SPR(HASH1)
 	RETURN
 
-TEXT	gethash2(SB), $0
+TEXT gethash2(SB), $0
 	MOVW	SPR(HASH2), R3
 	RETURN
 
-TEXT	puthash2(SB), $0
+TEXT puthash2(SB), $0
 	MOVW	R3, SPR(HASH2)
 	RETURN
 
-TEXT	getrpa(SB), $0
+TEXT getrpa(SB), $0
 	MOVW	SPR(RPA), R3
 	RETURN
 
-TEXT	putrpa(SB), $0
+TEXT putrpa(SB), $0
 	MOVW	R3, SPR(RPA)
 	RETURN
 
@@ -795,15 +795,15 @@ TEXT tlbld(SB), $0
 	ISYNC
 	RETURN
 
-TEXT	getsrr1(SB), $0
+TEXT getsrr1(SB), $0
 	MOVW	SPR(SRR1), R3
 	RETURN
 
-TEXT	putsrr1(SB), $0
+TEXT putsrr1(SB), $0
 	MOVW	R3, SPR(SRR1)
 	RETURN
 
-TEXT	fpsave(SB), $0
+TEXT fpsave(SB), $0
 	FMOVD	F0, (0*8)(R3)
 	FMOVD	F1, (1*8)(R3)
 	FMOVD	F2, (2*8)(R3)
@@ -840,7 +840,7 @@ TEXT	fpsave(SB), $0
 	FMOVD	F0, (32*8)(R3)
 	RETURN
 
-TEXT	fprestore(SB), $0
+TEXT fprestore(SB), $0
 	FMOVD	(32*8)(R3), F0
 	MOVFL	F0, FPSCR
 	FMOVD	(0*8)(R3), F0
@@ -877,162 +877,161 @@ TEXT	fprestore(SB), $0
 	FMOVD	(31*8)(R3), F31
 	RETURN
 
-TEXT	dcacheenb(SB), $0
+TEXT dcacheenb(SB), $0
 	SYNC
-	MOVW	SPR(HID0), R4			/* Get HID0 and clear unwanted bits */
+	MOVW	SPR(HID0), R4		/* Get HID0 and clear unwanted bits */
 	RLWNM	$0, R4, $~(HID_DLOCK), R4
 	MOVW	$(HID_DCFI|HID_DCE), R5
-	OR		R4, R5
+	OR	R4, R5
 	MOVW	$HID_DCE, R3
-	OR		R4, R3
+	OR	R4, R3
 	SYNC
-//	MOVW	R5, SPR(HID0)			/* Cache enable and flash invalidate */
-	MOVW	R3, SPR(HID0)			/* Cache enable */
+//	MOVW	R5, SPR(HID0)		/* Cache enable and flash invalidate */
+	MOVW	R3, SPR(HID0)		/* Cache enable */
 	SYNC
 	RETURN
 
-TEXT	icacheenb(SB), $0
+TEXT icacheenb(SB), $0
 	SYNC
-	MOVW	SPR(HID0), R4			/* Get HID0 and clear unwanted bits */
+	MOVW	SPR(HID0), R4		/* Get HID0 and clear unwanted bits */
 	RLWNM	$0, R4, $~(HID_ILOCK), R4
 	MOVW	$(HID_ICFI|HID_ICE), R5
-	OR		R4, R5
+	OR	R4, R5
 	MOVW	$HID_ICE, R3
-	OR		R4, R3
+	OR	R4, R3
 	SYNC
-	MOVW	R5, SPR(HID0)			/* Cache enable and flash invalidate */
-	MOVW	R3, SPR(HID0)			/* Cache enable */
+	MOVW	R5, SPR(HID0)		/* Cache enable and flash invalidate */
+	MOVW	R3, SPR(HID0)		/* Cache enable */
 	SYNC
 	RETURN
 
 #ifdef ucuconf
-TEXT getpll(SB),$0
-	MOVW	SPR(1009),R3
+TEXT getpll(SB), $0
+	MOVW	SPR(1009), R3
 	ISYNC
 	RETURN
 
-TEXT getl2pm(SB),$0
-	MOVW	SPR(1016),R3
+TEXT getl2pm(SB), $0
+	MOVW	SPR(1016), R3
 	RETURN
 
-TEXT getl2cr(SB),$0
-	MOVW	SPR(1017),R3
+TEXT getl2cr(SB), $0
+	MOVW	SPR(1017), R3
 	RETURN
 
-TEXT putl2cr(SB),$0
-	MOVW	R3,SPR(1017)
+TEXT putl2cr(SB), $0
+	MOVW	R3, SPR(1017)
 	RETURN
 
-TEXT	dcachedis(SB), $0
+TEXT dcachedis(SB), $0
 	SYNC
-/*	MOVW	SPR(HID0), R4			
+/*	MOVW	SPR(HID0), R4
 	RLWNM	$0, R4, $~(HID_DCE), R4
-	MOVW	R4, SPR(HID0)			/* L1 Cache disable */
+	MOVW	R4, SPR(HID0)		/* L1 Cache disable */
 
-	MOVW	SPR(1017), R4			
+	MOVW	SPR(1017), R4
 	RLWNM	$0, R4, $~(0x80000000), R4
-	MOVW	R4, SPR(1017)			/* L2 Cache disable */
-	
+	MOVW	R4, SPR(1017)		/* L2 Cache disable */
+
 	SYNC
 	RETURN
 
-TEXT	l2disable(SB), $0
+TEXT l2disable(SB), $0
 	SYNC
-	MOVW	SPR(1017), R4			
+	MOVW	SPR(1017), R4
 	RLWNM	$0, R4, $~(0x80000000), R4
-	MOVW	R4, SPR(1017)			/* L2 Cache disable */
+	MOVW	R4, SPR(1017)		/* L2 Cache disable */
 	SYNC
 	RETURN
 
-TEXT getbats(SB),$0
-	MOVW	SPR(DBATU(0)),R4
-	MOVW	R4,0(R3)
-	MOVW	SPR(DBATL(0)),R4
-	MOVW	R4,4(R3)
-	MOVW	SPR(IBATU(0)),R4
-	MOVW	R4,8(R3)
-	MOVW	SPR(IBATL(0)),R4
-	MOVW	R4,12(R3)
-	MOVW	SPR(DBATU(1)),R4
-	MOVW	R4,16(R3)
-	MOVW	SPR(DBATL(1)),R4
-	MOVW	R4,20(R3)
-	MOVW	SPR(IBATU(1)),R4
-	MOVW	R4,24(R3)
-	MOVW	SPR(IBATL(1)),R4
-	MOVW	R4,28(R3)
-	MOVW	SPR(DBATU(2)),R4
-	MOVW	R4,32(R3)
-	MOVW	SPR(DBATL(2)),R4
-	MOVW	R4,36(R3)
-	MOVW	SPR(IBATU(2)),R4
-	MOVW	R4,40(R3)
-	MOVW	SPR(IBATL(2)),R4
-	MOVW	R4,44(R3)
-	MOVW	SPR(DBATU(3)),R4
-	MOVW	R4,48(R3)
-	MOVW	SPR(DBATL(3)),R4
-	MOVW	R4,52(R3)
-	MOVW	SPR(IBATU(3)),R4
-	MOVW	R4,56(R3)
-	MOVW	SPR(IBATL(3)),R4
-	MOVW	R4,60(R3)
+TEXT getbats(SB), $0
+	MOVW	SPR(DBATU(0)), R4
+	MOVW	R4, 0(R3)
+	MOVW	SPR(DBATL(0)), R4
+	MOVW	R4, 4(R3)
+	MOVW	SPR(IBATU(0)), R4
+	MOVW	R4, 8(R3)
+	MOVW	SPR(IBATL(0)), R4
+	MOVW	R4, 12(R3)
+	MOVW	SPR(DBATU(1)), R4
+	MOVW	R4, 16(R3)
+	MOVW	SPR(DBATL(1)), R4
+	MOVW	R4, 20(R3)
+	MOVW	SPR(IBATU(1)), R4
+	MOVW	R4, 24(R3)
+	MOVW	SPR(IBATL(1)), R4
+	MOVW	R4, 28(R3)
+	MOVW	SPR(DBATU(2)), R4
+	MOVW	R4, 32(R3)
+	MOVW	SPR(DBATL(2)), R4
+	MOVW	R4, 36(R3)
+	MOVW	SPR(IBATU(2)), R4
+	MOVW	R4, 40(R3)
+	MOVW	SPR(IBATL(2)), R4
+	MOVW	R4, 44(R3)
+	MOVW	SPR(DBATU(3)), R4
+	MOVW	R4, 48(R3)
+	MOVW	SPR(DBATL(3)), R4
+	MOVW	R4, 52(R3)
+	MOVW	SPR(IBATU(3)), R4
+	MOVW	R4, 56(R3)
+	MOVW	SPR(IBATL(3)), R4
+	MOVW	R4, 60(R3)
 	RETURN
 
-TEXT setdbat0(SB),$0
-	MOVW	0(R3),R4
-	MOVW	R4,SPR(DBATU(0))
-	MOVW	4(R3),R4
-	MOVW	R4,SPR(DBATL(0))
+TEXT setdbat0(SB), $0
+	MOVW	0(R3), R4
+	MOVW	R4, SPR(DBATU(0))
+	MOVW	4(R3), R4
+	MOVW	R4, SPR(DBATL(0))
 	RETURN
 #endif /* ucuconf */
 
-TEXT mmudisable(SB),$0
+TEXT mmudisable(SB), $0
 	/* disable MMU */
 	MOVW	LR, R4
 	MOVW	$KZERO, R5
 	ANDN	R5, R4
-	MOVW	R4, SPR(SRR0)			/* Stored PC for RFI instruction */
+	MOVW	R4, SPR(SRR0)		/* Stored PC for RFI instruction */
 
 	MOVW	MSR, R4
 	MOVW	$(MSR_IR|MSR_DR|MSR_RI|MSR_FP), R5
 	ANDN	R5, R4
 	MOVW	R4, SPR(SRR1)
 
-	MOVW	SPR(HID0), R4			/* Get HID0 and clear unwanted bits */
+	MOVW	SPR(HID0), R4		/* Get HID0 and clear unwanted bits */
 	MOVW	$(HID_ICE|HID_DCE), R5
 	ANDN	R5, R4
-	MOVW	R4, SPR(HID0)			/* Cache disable */
-	RFI		/* resume caller with MMU off */
+	MOVW	R4, SPR(HID0)		/* Cache disable */
+	RFI				/* resume caller with MMU off */
 	RETURN
 
-TEXT kreboot(SB),$0
-	BL		mmudisable(SB)
+TEXT kreboot(SB), $0
+	BL	mmudisable(SB)
 	MOVW	R3, LR
 	RETURN
 
-TEXT	mul64fract(SB), $0
+TEXT mul64fract(SB), $0
 	MOVW	a0+8(FP), R9
 	MOVW	a1+4(FP), R10
 	MOVW	b0+16(FP), R4
 	MOVW	b1+12(FP), R5
 
-	MULLW	R10,R5,R13	/* c2 = lo(a1*b1) */
+	MULLW	R10, R5, R13		/* c2 = lo(a1*b1) */
 
-	MULLW	R10,R4,R12	/* c1 = lo(a1*b0) */
-	MULHWU	R10,R4,R7	/* hi(a1*b0) */
-	ADD		R7, R13		/* c2 += hi(a1*b0) */
+	MULLW	R10, R4, R12		/* c1 = lo(a1*b0) */
+	MULHWU	R10, R4, R7		/* hi(a1*b0) */
+	ADD	R7, R13			/* c2 += hi(a1*b0) */
 
-	MULLW	R9,R5,R6	/* lo(a0*b1) */
-	MULHWU	R9,R5,R7	/* hi(a0*b1) */
-	ADDC	R6, R12		/* c1 += lo(a0*b1) */
-	ADDE	R7, R13		/* c2 += hi(a0*b1) + carry */
+	MULLW	R9, R5, R6		/* lo(a0*b1) */
+	MULHWU	R9, R5, R7		/* hi(a0*b1) */
+	ADDC	R6, R12			/* c1 += lo(a0*b1) */
+	ADDE	R7, R13			/* c2 += hi(a0*b1) + carry */
 
-	MULHWU	R9,R4,R7	/* hi(a0*b0) */
-	ADDC	R7, R12		/* c1 += hi(a0*b0) */
-	ADDE	R0,	R13		/* c2 += carry */
+	MULHWU	R9, R4, R7		/* hi(a0*b0) */
+	ADDC	R7, R12			/* c1 += hi(a0*b0) */
+	ADDE	R0, R13			/* c2 += carry */
 
 	MOVW	R12, 4(R3)
 	MOVW	R13, 0(R3)
 	RETURN
-

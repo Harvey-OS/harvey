@@ -808,6 +808,10 @@ mkattach(char *file, char *type, int inline)
 
 	if(file == nil)
 		return nil;
+	if(access(file, 4) == -1){
+		fprint(2, "%s: %s can't read file\n", argv0, file);
+		return nil;
+	}
 	a = emalloc(sizeof(*a));
 	a->path = file;
 	a->next = nil;

@@ -1,3 +1,4 @@
+#define	EXTERN
 #include	"l.h"
 #include	<ar.h>
 
@@ -18,6 +19,28 @@ char	*thestring 	= "power";
  *	-H4 -T0x1000200 -D0x20000e00 -R4	is aix xcoff executable
  *	-H5 -T0x80010000 -t0x10000	ELF, phys = 10000, vaddr = 0x8001...
  */
+
+static int
+isobjfile(char *f)
+{
+	int n, v;
+	Biobuf *b;
+	char buf1[5], buf2[SARMAG];
+
+	b = Bopen(f, OREAD);
+	if(b == nil)
+		return 0;
+	n = Bread(b, buf1, 5);
+	if(n == 5 && (buf1[2] == 1 && buf1[3] == '<' || buf1[3] == 1 && buf1[4] == '<'))
+		v = 1;	/* good enough for our purposes */
+	else{
+		Bseek(b, 0, 0);
+		n = Bread(b, buf2, SARMAG);
+		v = n == SARMAG && strncmp(buf2, ARMAG, SARMAG) == 0;
+	}
+	Bterm(b);
+	return v;
+}
 
 void
 main(int argc, char *argv[])
@@ -71,14 +94,25 @@ main(int argc, char *argv[])
 		if(a)
 			HEADTYPE = atolwhex(a);
 		break;
+	case 'x':	/* produce export table */
+		doexp = 1;
+		if(argv[1] != nil && argv[1][0] != '-' && !isobjfile(argv[1]))
+			readundefs(ARGF(), SEXPORT);
+		break;
+	case 'u':	/* produce dynamically loadable module */
+		dlm = 1;
+		if(argv[1] != nil && argv[1][0] != '-' && !isobjfile(argv[1]))
+			readundefs(ARGF(), SIMPORT);
+		break;
 	} ARGEND
 	USED(argc);
 	if(*argv == 0) {
-		diag("usage: Pl [-options] objects");
+		diag("usage: ql [-options] objects");
 		errorexit();
 	}
 	if(!debug['9'] && !debug['U'] && !debug['B'])
 		debug[DEFAULT] = 1;
+	r0iszero = debug['0'] == 0;
 	if(HEADTYPE == -1) {
 		if(debug['U'])
 			HEADTYPE = 0;
@@ -153,7 +187,7 @@ main(int argc, char *argv[])
 		print("warning: -D0x%lux is ignored because of -R0x%lux\n",
 			INITDAT, INITRND);
 	if(debug['v'])
-		Bprint(&bso, "HEADER = -H0x%d -T0x%lux -D0x%lux -R0x%lux\n",
+		Bprint(&bso, "HEADER = -H0x%x -T0x%lux -D0x%lux -R0x%lux\n",
 			HEADTYPE, INITTEXT, INITDAT, INITRND);
 	Bflush(&bso);
 	zprg.as = AGOK;
@@ -199,6 +233,21 @@ main(int argc, char *argv[])
 	firstp = firstp->link;
 	if(firstp == P)
 		goto out;
+	if(doexp || dlm){
+		EXPTAB = "_exporttab";
+		zerosig(EXPTAB);
+		zerosig("etext");
+		zerosig("edata");
+		zerosig("end");
+		if(dlm){
+			import();
+			HEADTYPE = 2;
+			INITTEXT = INITDAT = 0;
+			INITRND = 8;
+			INITENTRY = EXPTAB;
+		}
+		export();
+	}
 	patch();
 	if(debug['p'])
 		if(debug['1'])
@@ -235,7 +284,7 @@ loop:
 	xrefresolv = 0;
 	for(i=0; i<libraryp; i++) {
 		if(debug['v'])
-			Bprint(&bso, "%5.2f autolib: %s\n", cputime(), library[i]);
+			Bprint(&bso, "%5.2f autolib: %s (from %s)\n", cputime(), library[i], libraryobj[i]);
 		objfile(library[i]);
 	}
 	if(xrefresolv)
@@ -408,6 +457,7 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 		break;
 
 	case D_SPR:
+	case D_DCR:
 	case D_BRANCH:
 	case D_OREG:
 	case D_CONST:
@@ -440,8 +490,8 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 	for(u=curauto; u; u=u->link)
 		if(u->sym == s)
 		if(u->type == i) {
-			if(u->offset > l)
-				u->offset = l;
+			if(u->aoffset > l)
+				u->aoffset = l;
 			goto out;
 		}
 
@@ -450,7 +500,7 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 	u->link = curauto;
 	curauto = u;
 	u->sym = s;
-	u->offset = l;
+	u->aoffset = l;
 	u->type = i;
 out:
 	return c;
@@ -537,7 +587,7 @@ addhist(long line, int type)
 
 	u->sym = s;
 	u->type = type;
-	u->offset = line;
+	u->aoffset = line;
 	u->link = curhist;
 	curhist = u;
 
@@ -633,6 +683,18 @@ ldobj(int f, long c, char *pn)
 	int v, o, r, skip;
 	long ipc;
 	uchar *bloc, *bsize, *stop;
+	ulong sig;
+	static int files;
+	static char **filen;
+	char **nfilen;
+
+	if((files&15) == 0){
+		nfilen = malloc((files+16)*sizeof(char*));
+		memmove(nfilen, filen, files*sizeof(char*));
+		free(filen);
+		filen = nfilen;
+	}
+	filen[files++] = strdup(pn);
 
 	bsize = buf.xbuf;
 	bloc = buf.xbuf;
@@ -662,7 +724,13 @@ loop:
 		print("	probably not a .q file\n");
 		errorexit();
 	}
-	if(o == ANAME) {
+	if(o == ANAME || o == ASIGNAME) {
+		sig = 0;
+		if(o == ASIGNAME) {
+			sig = bloc[1] | (bloc[2]<<8) | (bloc[3]<<16) | (bloc[4]<<24);
+			bloc += 4;
+			c -= 4;
+		}
 		stop = memchr(&bloc[3], 0, bsize-&bloc[3]);
 		if(stop == 0){
 			bsize = readsome(f, buf.xbuf, bloc, bsize, c);
@@ -686,6 +754,13 @@ loop:
 		s = lookup((char*)bloc, r);
 		c -= &stop[1] - bloc;
 		bloc = stop + 1;
+		if(sig != 0){
+			if(s->sig != 0 && s->sig != sig)
+				diag("incompatible type signatures %lux(%s) and %lux(%s) for %s", s->sig, filen[s->file], sig, pn, s->name);
+			s->sig = sig;
+			s->file = files-1;
+		}
+
 
 		if(debug['W'])
 			print("	ANAME	%s\n", s->name);
@@ -1000,6 +1075,7 @@ lookup(char *symb, int v)
 	s->type = 0;
 	s->version = v;
 	s->value = 0;
+	s->sig = 0;
 	hash[h] = s;
 	return s;
 }
@@ -1027,7 +1103,7 @@ gethunk(void)
 {
 	char *h;
 
-	h = sbrk((int)NHUNK);
+	h = mysbrk((int)NHUNK);
 	if(h == (char *)-1) {
 		diag("out of memory");
 		errorexit();
@@ -1266,18 +1342,18 @@ find1(long l, int c)
 }
 
 long
-ieeedtof(Ieee *ieee)
+ieeedtof(Ieee *ieeep)
 {
 	int exp;
 	long v;
 
-	if(ieee->h == 0)
+	if(ieeep->h == 0)
 		return 0;
-	exp = (ieee->h>>20) & ((1L<<11)-1L);
+	exp = (ieeep->h>>20) & ((1L<<11)-1L);
 	exp -= (1L<<10) - 2L;
-	v = (ieee->h & 0xfffffL) << 3;
-	v |= (ieee->l >> 29) & 0x7L;
-	if((ieee->l >> 28) & 1) {
+	v = (ieeep->h & 0xfffffL) << 3;
+	v |= (ieeep->l >> 29) & 0x7L;
+	if((ieeep->l >> 28) & 1) {
 		v++;
 		if(v & 0x800000L) {
 			v = (v & 0x7fffffL) >> 1;
@@ -1287,77 +1363,96 @@ ieeedtof(Ieee *ieee)
 	if(exp <= -126 || exp >= 130)
 		diag("double fp to single fp overflow");
 	v |= ((exp + 126) & 0xffL) << 23;
-	v |= ieee->h & 0x80000000L;
+	v |= ieeep->h & 0x80000000L;
 	return v;
 }
 
 double
-ieeedtod(Ieee *ieee)
+ieeedtod(Ieee *ieeep)
 {
 	Ieee e;
 	double fr;
 	int exp;
 
-	if(ieee->h & (1L<<31)) {
-		e.h = ieee->h & ~(1L<<31);
-		e.l = ieee->l;
+	if(ieeep->h & (1L<<31)) {
+		e.h = ieeep->h & ~(1L<<31);
+		e.l = ieeep->l;
 		return -ieeedtod(&e);
 	}
-	if(ieee->l == 0 && ieee->h == 0)
+	if(ieeep->l == 0 && ieeep->h == 0)
 		return 0;
-	fr = ieee->l & ((1L<<16)-1L);
+	fr = ieeep->l & ((1L<<16)-1L);
 	fr /= 1L<<16;
-	fr += (ieee->l>>16) & ((1L<<16)-1L);
+	fr += (ieeep->l>>16) & ((1L<<16)-1L);
 	fr /= 1L<<16;
-	fr += (ieee->h & (1L<<20)-1L) | (1L<<20);
+	fr += (ieeep->h & (1L<<20)-1L) | (1L<<20);
 	fr /= 1L<<21;
-	exp = (ieee->h>>20) & ((1L<<11)-1L);
+	exp = (ieeep->h>>20) & ((1L<<11)-1L);
 	exp -= (1L<<10) - 2L;
 	return ldexp(fr, exp);
 }
 
-/*
- * fake malloc
- */
-void*
-malloc(ulong n)
+void
+undefsym(Sym *s)
 {
-	void *v;
+	int n;
 
-	n = (n + 7) & ~7;
-	while(nhunk < n)
-		gethunk();
-
-	v = (void*)hunk;
-	nhunk -= n;
-	hunk += n;
-
-	memset(v, 0, n);
-	return v;
+	n = imports;
+	if(s->value != 0)
+		diag("value != 0 on SXREF");
+	if(n >= 1<<Rindex)
+		diag("import index %d out of range", n);
+	s->value = n<<Roffset;
+	s->type = SUNDEF;
+	imports++;
 }
 
 void
-free(void *p)
+zerosig(char *sp)
 {
-	USED(p);
+	Sym *s;
+
+	s = lookup(sp, 0);
+	s->sig = 0;
 }
 
-void*
-calloc(ulong m, ulong n)
+void
+readundefs(char *f, int t)
 {
-	void *p;
+	int i, n;
+	Sym *s;
+	Biobuf *b;
+	char *l, buf[256], *fields[64];
 
-	n *= m;
-	p = malloc(n);
-	memset(p, 0, n);
-	return p;
-}
-
-void*
-realloc(void *p, ulong n)
-{
-	USED(p, n);
-	fprint(2, "realloc called\n");
-	abort();
-	return 0;
+	if(f == nil)
+		return;
+	b = Bopen(f, OREAD);
+	if(b == nil){
+		diag("could not open %s: %r", f);
+		errorexit();
+	}
+	while((l = Brdline(b, '\n')) != nil){
+		n = Blinelen(b);
+		if(n >= sizeof(buf)){
+			diag("%s: line too long", f);
+			errorexit();
+		}
+		memmove(buf, l, n);
+		buf[n-1] = '\0';
+		n = getfields(buf, fields, nelem(fields), 1, " \t\r\n");
+		if(n == nelem(fields)){
+			diag("%s: bad format", f);
+			errorexit();
+		}
+		for(i = 0; i < n; i++){
+			s = lookup(fields[i], 0);
+			s->type = SXREF;
+			s->subtype = t;
+			if(t == SIMPORT)
+				nimports++;
+			else
+				nexports++;
+		}
+	}
+	Bterm(b);
 }

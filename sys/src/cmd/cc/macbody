@@ -273,6 +273,13 @@ macdef(void)
 				c = getc();
 				continue;
 			}
+			else if(c == '\r') {
+				c = getc();
+				if(c == '\n') {
+					c = getc();
+					continue;
+				}
+			}
 			base = allocn(base, len, 1);
 			base[len++] = '\\';
 			continue;
@@ -661,6 +668,10 @@ macprag(void)
 	}
 	if(s && strcmp(s->name, "varargck") == 0) {
 		pragvararg();
+		return;
+	}
+	if(s && strcmp(s->name, "incomplete") == 0) {
+		pragincomplete();
 		return;
 	}
 

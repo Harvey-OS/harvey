@@ -393,6 +393,35 @@ noretval(int n)
 	}
 }
 
+/* welcome to commute */
+static void
+commute(Node *n)
+{
+	Node *l, *r;
+
+	l = n->left;
+	r = n->right;
+	if(r->complex > l->complex) {
+		n->left = r;
+		n->right = l;
+	}
+}
+
+void
+indexshift(Node *n)
+{
+	int g;
+
+	if(!typechlp[n->type->etype])
+		return;
+	simplifyshift(n);
+	if(n->op == OASHL && n->right->op == OCONST){
+		g = vconst(n->right);
+		if(g >= 0 && g < 4)
+			n->addable = 7;
+	}
+}
+
 /*
  *	calculate addressability as follows
  *		NAME ==> 10/11		name+value(SB/SP)
@@ -479,7 +508,7 @@ xcom(Node *n)
 		case 13:
 		case 10:
 		case 11:
-			// l is the base, r is the index
+			/* l is the base, r is the index */
 			if(l->addable != 20)
 				n->addable = 8;
 			break;
@@ -501,7 +530,7 @@ xcom(Node *n)
 		case 1:
 		case 10:
 		case 11:
-			// r is the base, l is the index
+			/* r is the base, l is the index */
 			if(r->addable != 20)
 				n->addable = 8;
 			break;
@@ -551,9 +580,7 @@ xcom(Node *n)
 	case OASHL:
 		xcom(l);
 		xcom(r);
-		g = vconst(r);
-		if(g >= 0 && g < 4)
-			n->addable = 7;
+		indexshift(n);
 		break;
 
 	case OMUL:
@@ -571,11 +598,11 @@ xcom(Node *n)
 		if(g >= 0) {
 			n->op = OASHL;
 			r->vconst = g;
-			if(g < 4)
-				n->addable = 7;
 			r->type = types[TINT];
+			indexshift(n);
 			break;
 		}
+commute(n);
 		break;
 
 	case OASLDIV:
@@ -597,6 +624,7 @@ xcom(Node *n)
 			n->op = OLSHR;
 			r->vconst = g;
 			r->type = types[TINT];
+			indexshift(n);
 			break;
 		}
 		break;
@@ -636,6 +664,7 @@ xcom(Node *n)
 	case OASHR:
 		xcom(l);
 		xcom(r);
+		indexshift(n);
 		break;
 
 	default:

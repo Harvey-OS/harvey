@@ -36,6 +36,11 @@ neomagiclinear(VGAscr* scr, int* size, int* align)
 	aperture = 0;
 	if(p = pcimatch(nil, 0x10C8, 0)){
 		switch(p->did){
+		case 0x0003:		/* MagicGraph 128ZV */
+			aperture = p->mem[0].bar & ~0x0F;
+			*size = p->mem[0].size;
+//print("neomagiclinear0 %lux %d\n", aperture, *size);
+			break;
 		case 0x0004:		/* MagicGraph 128XD */
 		case 0x0005:		/* MagicMedia 256AV */
 		case 0x0006:		/* MagicMedia 256ZX */
@@ -55,6 +60,7 @@ neomagiclinear(VGAscr* scr, int* size, int* align)
 	scr->isupamem = 0;
 
 	aperture = upamalloc(aperture, *size, *align);
+//print("neomagiclinear1 %lux %d\n", aperture, *size);
 	if(aperture == 0){
 		if(wasupamem && upamalloc(oaperture, oapsize, 0)){
 			aperture = oaperture;
@@ -75,6 +81,8 @@ neomagicenable(VGAscr* scr)
 	Pcidev *p;
 	int align, curoff, size, vmsize;
 	ulong aperture;
+	ulong ioaddr;
+	ulong iosize;
 
 	/*
 	 * Only once, can't be disabled for now.
@@ -86,17 +94,29 @@ neomagicenable(VGAscr* scr)
 		return;
 	if(p = pcimatch(nil, 0x10C8, 0)){
 		switch(p->did){
+		case 0x0003:		/* MagicGraph 128VZ */
+			curoff = 0x100;
+			vmsize = 1152*1024;
+			ioaddr = (p->mem[0].bar & ~0x0F) + 0x200000;
+			iosize = 0x200000;
+			break;
 		case 0x0004:		/* MagicGraph 128XD */
 			curoff = 0x100;
 			vmsize = 2048*1024;
+			ioaddr = p->mem[1].bar & ~0x0F;
+			iosize = p->mem[1].size;
 			break;
 		case 0x0005:		/* MagicMedia 256AV */
 			curoff = 0x1000;
 			vmsize = 2560*1024;
+			ioaddr = p->mem[1].bar & ~0x0F;
+			iosize = p->mem[1].size;
 			break;
 		case 0x0006:		/* MagicMedia 256ZX */
 			curoff = 0x1000;
 			vmsize = 4096*1024;
+			ioaddr = p->mem[1].bar & ~0x0F;
+			iosize = p->mem[1].size;
 			break;
 		default:
 			return;
@@ -104,10 +124,10 @@ neomagicenable(VGAscr* scr)
 	}
 	else
 		return;
-	scr->io = upamalloc(p->mem[1].bar & ~0x0F, p->mem[1].size, 0);
+	scr->io = upamalloc(ioaddr, iosize, 0);
 	if(scr->io == 0)
 		return;
-	addvgaseg("neomagicmmio", scr->io, p->mem[1].size);
+	addvgaseg("neomagicmmio", scr->io, iosize);
 	scr->mmio = KADDR(scr->io);
 
 	/*
@@ -308,10 +328,10 @@ enum {
 	NEO_BC1_X_320 =		0x00000400,
 	NEO_BC1_X_640 =		0x00000800,
 	NEO_BC1_X_800 =		0x00000c00,
-	NEO_BC1_X_1024 =		0x00001000,
-	NEO_BC1_X_1152 =		0x00001400,
-	NEO_BC1_X_1280 =		0x00001800,
-	NEO_BC1_X_1600 =		0x00001c00,
+	NEO_BC1_X_1024 =	0x00001000,
+	NEO_BC1_X_1152 =	0x00001400,
+	NEO_BC1_X_1280 =	0x00001800,
+	NEO_BC1_X_1600 =	0x00001c00,
 	NEO_BC1_DST_TRANS =	0x00002000,
 	NEO_BC1_MSTR_BLT =	0x00004000,
 	NEO_BC1_FILTER_Z =	0x00008000,
@@ -320,41 +340,41 @@ enum {
 
 	NEO_BC3_SRC_XY_ADDR =	0x01000000,
 	NEO_BC3_DST_XY_ADDR =	0x02000000,
-	NEO_BC3_CLIP_ON =		0x04000000,
-	NEO_BC3_FIFO_EN =		0x08000000,
+	NEO_BC3_CLIP_ON =	0x04000000,
+	NEO_BC3_FIFO_EN =	0x08000000,
 	NEO_BC3_BLT_ON_ADDR =	0x10000000,
 	NEO_BC3_SKIP_MAPPING =	0x80000000,
 
-	NEO_MODE1_DEPTH8 =			0x0100,
-	NEO_MODE1_DEPTH16 =			0x0200,
-	NEO_MODE1_DEPTH24 =			0x0300,
-	NEO_MODE1_X_320 =			0x0400,
-	NEO_MODE1_X_640 =			0x0800,
-	NEO_MODE1_X_800 =			0x0c00,
-	NEO_MODE1_X_1024 =			0x1000,
-	NEO_MODE1_X_1152 =			0x1400,
-	NEO_MODE1_X_1280 =			0x1800,
-	NEO_MODE1_X_1600 =			0x1c00,
+	NEO_MODE1_DEPTH8 =	0x0100,
+	NEO_MODE1_DEPTH16 =	0x0200,
+	NEO_MODE1_DEPTH24 =	0x0300,
+	NEO_MODE1_X_320 =	0x0400,
+	NEO_MODE1_X_640 =	0x0800,
+	NEO_MODE1_X_800 =	0x0c00,
+	NEO_MODE1_X_1024 =	0x1000,
+	NEO_MODE1_X_1152 =	0x1400,
+	NEO_MODE1_X_1280 =	0x1800,
+	NEO_MODE1_X_1600 =	0x1c00,
 	NEO_MODE1_BLT_ON_ADDR =	0x2000,
 };
 
 /* Raster Operations */
 enum {
-	GXclear =			0x000000,	/* 0x0000 */
+	GXclear =		0x000000,	/* 0x0000 */
 	GXand =			0x080000,	/* 0x1000 */
-	GXandReverse =	0x040000,	/* 0x0100 */
-	GXcopy =			0x0c0000,	/* 0x1100 */
+	GXandReverse =		0x040000,	/* 0x0100 */
+	GXcopy =		0x0c0000,	/* 0x1100 */
 	GXandInvert =		0x020000,	/* 0x0010 */
-	GXnoop =			0x0a0000,	/* 0x1010 */
+	GXnoop =		0x0a0000,	/* 0x1010 */
 	GXxor =			0x060000,	/* 0x0110 */
 	GXor =			0x0e0000,	/* 0x1110 */
 	GXnor =			0x010000,	/* 0x0001 */
-	GXequiv =			0x090000,	/* 0x1001 */
+	GXequiv =		0x090000,	/* 0x1001 */
 	GXinvert =		0x050000,	/* 0x0101 */
 	GXorReverse =		0x0d0000,	/* 0x1101 */
 	GXcopyInvert =		0x030000,	/* 0x0011 */
 	GXorInverted =		0x0b0000,	/* 0x1011 */
-	GXnand =			0x070000,	/* 0x0111 */
+	GXnand =		0x070000,	/* 0x0111 */
 	GXset =			0x0f0000,	/* 0x1111 */
 };
 

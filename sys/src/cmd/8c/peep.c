@@ -7,6 +7,7 @@ needc(Prog *p)
 		switch(p->as) {
 		case AADCL:
 		case ASBBL:
+		case ARCRL:
 			return 1;
 		case AADDL:
 		case ASUBL:
@@ -58,11 +59,12 @@ peep(void)
 		case ADATA:
 		case AGLOBL:
 		case ANAME:
+		case ASIGNAME:
 			p = p->link;
 		}
 	}
 
-	pc = 0;	// speculating it won't kill
+	pc = 0;	/* speculating it won't kill */
 
 loop1:
 	if(debug['b'])
@@ -741,10 +743,10 @@ copysub(Adr *a, Adr *v, Adr *s, int f)
 		t = v->type;
 		if(a->type == t+D_INDIR) {
 			if(s->type == D_BP && a->index != D_NONE)
-				return 1;	// cant use BP-base with index
+				return 1;	/* can't use BP-base with index */
 			if(f)
 				a->type = s->type+D_INDIR;
-			return 0;
+//			return 0;
 		}
 		if(a->index == t) {
 			if(f)

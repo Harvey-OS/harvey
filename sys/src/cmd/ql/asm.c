@@ -1,6 +1,6 @@
 #include	"l.h"
 
-#define	KZERO	0x80000000
+#define	KMASK	0xF0000000
 
 #define	LPUT(c)\
 	{\
@@ -37,6 +37,8 @@ entryvalue(void)
 	s = lookup(a, 0);
 	if(s->type == 0)
 		return INITTEXT;
+	if(dlm && s->type == SDATA)
+		return s->value+INITDAT;
 	if(s->type != STEXT && s->type != SLEAF)
 		diag("entry not text: %s", s->name);
 	return s->value;
@@ -98,6 +100,14 @@ asmb(void)
 		seek(cout, rnd(HEADR+textsize, 4096), 0);
 		break;
 	}
+
+	if(dlm){
+		char buf[8];
+
+		write(cout, buf, INITDAT-textsize);
+		textsize = INITDAT;
+	}
+
 	for(t = 0; t < datsize; t += sizeof(buf)-100) {
 		if(datsize-t > sizeof(buf)-100)
 			datblk(t, sizeof(buf)-100);
@@ -113,6 +123,8 @@ asmb(void)
 		Bflush(&bso);
 		switch(HEADTYPE) {
 		case 0:
+		case 1:
+		case 2:
 		case 5:
 			seek(cout, HEADR+textsize+datsize, 0);
 			break;
@@ -130,9 +142,15 @@ asmb(void)
 		Bflush(&bso);
 		if(!debug['s'])
 			asmlc();
+		if(dlm)
+			asmdyn();
 		if(HEADTYPE == 0 || HEADTYPE == 1)	/* round up file length for boot image */
 			if((symsize+lcsize) & 1)
 				CPUT(0);
+		cflush();
+	}
+	else if(dlm){
+		asmdyn();
 		cflush();
 	}
 
@@ -203,7 +221,10 @@ asmb(void)
 		lput(0);	/* whew! */
 		break;
 	case 2:
-		lput(4*21*21+7);		/* magic */
+		if(dlm)
+			lput(0x80000000 | (4*21*21+7));		/* magic */
+		else
+			lput(4*21*21+7);		/* magic */
 		lput(textsize);			/* sizes */
 		lput(datsize);
 		lput(bsssize);
@@ -276,7 +297,7 @@ asmb(void)
 		strnput("", 9);
 		lput((2L<<16)|20L);			/* type = EXEC; machine = PowerPC */
 		lput(1L);					/* version = CURRENT */
-		lput(entryvalue() & ~KZERO);	/* entry vaddr */
+		lput(entryvalue() & ~KMASK);	/* entry vaddr */
 		lput(52L);					/* offset to first phdr */
 		lput(0L);					/* offset to first shdr */
 		lput(0L);					/* flags = PPC */
@@ -286,7 +307,7 @@ asmb(void)
 
 		lput(1L);					/* text - type = PT_LOAD */
 		lput(HEADR);				/* file offset */
-		lput(INITTEXT & ~KZERO);		/* vaddr */
+		lput(INITTEXT & ~KMASK);		/* vaddr */
 		lput(INITTEXT);				/* paddr */
 		lput(textsize);				/* file size */
 		lput(textsize);				/* memory size */
@@ -295,7 +316,7 @@ asmb(void)
 
 		lput(1L);					/* data - type = PT_LOAD */
 		lput(HEADR+textsize);		/* file offset */
-		lput(INITDAT & ~KZERO);		/* vaddr */
+		lput(INITDAT & ~KMASK);		/* vaddr */
 		lput(INITDAT);				/* paddr */
 		lput(datsize);				/* file size */
 		lput(datsize);				/* memory size */
@@ -324,6 +345,23 @@ strnput(char *s, int n)
 	}
 	for(; n > 0; n--)
 		CPUT(0);
+}
+
+void
+cput(long l)
+{
+	CPUT(l);
+}
+
+void
+wput(long l)
+{
+	cbp[0] = l>>8;
+	cbp[1] = l;
+	cbp += 2;
+	cbc -= 2;
+	if(cbc <= 0)
+		cflush();
 }
 
 void
@@ -385,10 +423,10 @@ asmsym(void)
 		/* filenames first */
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_FILE)
-				putsymb(a->sym->name, 'z', a->offset, 0);
+				putsymb(a->sym->name, 'z', a->aoffset, 0);
 			else
 			if(a->type == D_FILE1)
-				putsymb(a->sym->name, 'Z', a->offset, 0);
+				putsymb(a->sym->name, 'Z', a->aoffset, 0);
 
 		if(s->type == STEXT)
 			putsymb(s->name, 'T', s->value, s->version);
@@ -399,10 +437,10 @@ asmsym(void)
 		putsymb(".frame", 'm', p->to.offset+4, 0);
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_AUTO)
-				putsymb(a->sym->name, 'a', -a->offset, 0);
+				putsymb(a->sym->name, 'a', -a->aoffset, 0);
 			else
 			if(a->type == D_PARAM)
-				putsymb(a->sym->name, 'p', a->offset, 0);
+				putsymb(a->sym->name, 'p', a->aoffset, 0);
 	}
 	if(debug['v'] || debug['n'])
 		Bprint(&bso, "symsize = %lud\n", symsize);
@@ -604,6 +642,10 @@ datblk(long s, long n)
 		case D_CONST:
 			d = p->to.offset;
 			if(p->to.sym) {
+				if(p->to.sym->type == SUNDEF){
+					ckoff(p->to.sym, d);
+					d += p->to.sym->value;
+				}
 				if(p->to.sym->type == STEXT ||
 				   p->to.sym->type == SLEAF)
 					d += p->to.sym->value;
@@ -611,6 +653,8 @@ datblk(long s, long n)
 					d += p->to.sym->value + INITDAT;
 				if(p->to.sym->type == SBSS)
 					d += p->to.sym->value + INITDAT;
+				if(dlm)
+					dynreloc(p->to.sym, l+s+INITDAT, 1, 0, 0);
 			}
 			cast = (char*)&d;
 			switch(c) {

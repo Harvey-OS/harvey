@@ -23,6 +23,7 @@ enum
 	Os,
 	Od,
 	Osd,
+	Osetport,
 };
 
 static Field p_fields[] = 
@@ -34,12 +35,19 @@ static Field p_fields[] =
 	{0}
 };
 
+#define ANYPORT ~0UL
+
 static Mux p_mux[] =
 {
 	{"bootp",	67, },
 	{"ninep",	6346, },	/* tvs */
+	{"rtp",		ANYPORT, },
+	{"rtcp",	ANYPORT, },
 	{0},
 };
+
+/* default next protocol, can be changed by p_filter, reset by p_compile */
+static Proto	*defproto = &dump;
 
 static void
 p_compile(Filter *f)
@@ -57,6 +65,7 @@ p_compile(Filter *f)
 			f->subop = Osd;
 			return;
 		}
+
 	sysfatal("unknown udp field or protocol: %s", f->s);
 }
 
@@ -77,6 +86,10 @@ p_filter(Filter *f, Msg *m)
 	case Od:
 		return NetS(h->dport) == f->ulv;
 	case Osd:
+		if(f->ulv == ANYPORT){
+			defproto = f->pr;
+			return 1;
+		}
 		return NetS(h->sport) == f->ulv || NetS(h->dport) == f->ulv;
 	}
 	return 0;
@@ -97,7 +110,8 @@ p_seprint(Msg *m)
 	/* next protocol */
 	sport = NetS(h->sport);
 	dport = NetS(h->dport);
-	demux(p_mux, sport, dport, m, &dump);
+	demux(p_mux, sport, dport, m, defproto);
+	defproto = &dump;
 
 	m->p = seprint(m->p, m->e, "s=%d d=%d ck=%4.4ux ln=%4d",
 			NetS(h->sport), dport,

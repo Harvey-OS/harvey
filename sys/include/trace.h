@@ -20,5 +20,5 @@ typedef struct Traceevent	Traceevent;
 struct Traceevent {
 	ulong	pid;	
 	ulong	etype;		/* Event type */
-	vlong	time;		/* time stamp (ns)  */
+	vlong	time;		/* time stamp  */
 };

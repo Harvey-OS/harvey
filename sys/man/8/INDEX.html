@@ -12,11 +12,15 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/9load">9load</A>
 -  PC bootstrap program
-<DD><TT> 9load, ld</TT>
+<DD><TT> 9load, ld, 9pxeload</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/9pcon">9pcon</A>
 -  9P to text translator
 <DD><TT> 9pcon</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/aan">aan</A>
+-  always available network
+<DD><TT> aan</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/aliasmail">aliasmail</A>
 -  expand system wide mail aliases
@@ -28,7 +32,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/auth">auth</A>
 -  maintain authentication databases
-<DD><TT> changeuser, wrkey, convkeys, convkeys2, printnetkey, status, auth.srv, guard.srv, login, disable, enable</TT>
+<DD><TT> changeuser, wrkey, convkeys, convkeys2, printnetkey, status, authsrv, guard.srv, login, disable, enable</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/boot">boot</A>
 -  connect to the root file server
@@ -38,17 +42,9 @@
 -  bootstrapping procedures
 <DD><TT> booting</TT>
 </DT>
-<DT><A HREF="/magic/man2html/8/buildindex">buildindex</A>
--  rebuild a Venti index
-<DD><TT> buildindex</TT>
-</DT>
 <DT><A HREF="/magic/man2html/8/checkarenas">checkarenas</A>
 -  check the integrity, and optionally fix, Venti arenas
 <DD><TT> checkarenas</TT>
-</DT>
-<DT><A HREF="/magic/man2html/8/checkindex">checkindex</A>
--  check the integrity and optionally fix a Venti index
-<DD><TT> checkindex</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/cpurc">cpurc</A>
 -  boot script
@@ -60,23 +56,15 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/dhcpd">dhcpd</A>
 -  Internet booting
-<DD><TT> dhcpd, rarpd, tftpd</TT>
+<DD><TT> dhcpd, dhcpleases, rarpd, tftpd</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/drawterm">drawterm</A>
 -  connect to Plan 9 CPU servers from other operating systems
 <DD><TT> drawterm</TT>
 </DT>
-<DT><A HREF="/magic/man2html/8/fmtarenas">fmtarenas</A>
--  format a file into a number of Venti arenas
-<DD><TT> fmtarenas</TT>
-</DT>
-<DT><A HREF="/magic/man2html/8/fmtindex">fmtindex</A>
--  format a Venti index
-<DD><TT> fmtindex</TT>
-</DT>
-<DT><A HREF="/magic/man2html/8/fmtisect">fmtisect</A>
--  format a Venti index section
-<DD><TT> fmtisect</TT>
+<DT><A HREF="/magic/man2html/8/fossilcons">fossilcons</A>
+-  fossil console commands
+<DD><TT> fossilcons</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/fs">fs</A>
 -  file server maintenance
@@ -88,7 +76,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/httpd">httpd</A>
 -  HTTP server
-<DD><TT> httpd, echo, save, imagemap, man2html</TT>
+<DD><TT> httpd, mirror, save, imagemap, man2html, webls</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/init">init</A>
 -  initialize machine upon booting
@@ -154,6 +142,10 @@
 -  identify a PCMCIA card
 <DD><TT> pcmcia</TT>
 </DT>
+<DT><A HREF="/magic/man2html/8/pem">pem</A>
+-  encode files in Privacy Enhanced Mail (PEM) format
+<DD><TT> pemdecode, pemencode</TT>
+</DT>
 <DT><A HREF="/magic/man2html/8/ping">ping</A>
 -  probe the Internet
 <DD><TT> ping, gping, traceroute, hogports</TT>
@@ -178,10 +170,6 @@
 -  queue management for spooled files
 <DD><TT> qer, runq</TT>
 </DT>
-<DT><A HREF="/magic/man2html/8/rdarena">rdarena</A>
--  extract a Venti arena
-<DD><TT> rdarena</TT>
-</DT>
 <DT><A HREF="/magic/man2html/8/reboot">reboot</A>
 -  reboot the system upon loss of remote file server connection
 <DD><TT> reboot</TT>
@@ -189,6 +177,10 @@
 <DT><A HREF="/magic/man2html/8/replica">replica</A>
 -  simple client-server replica management
 <DD><TT> applychanges, applylog, compactdb, updatedb</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/rsa">rsa</A>
+-  generate and format rsa keys
+<DD><TT> rsagen, rsafill, asn12rsa, rsa2pub, rsa2ssh, rsa2x509</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/scanmail">scanmail</A>
 -  spam filters
@@ -211,8 +203,8 @@
 <DD><TT> send</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/smtp">smtp</A>
--  mail transport and servers
-<DD><TT> smtp, smtpd, pop3, imap4d</TT>
+-  mail transport
+<DD><TT> smtp, smtpd</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/snoopy">snoopy</A>
 -  spy on network packets
@@ -221,6 +213,10 @@
 <DT><A HREF="/magic/man2html/8/stats">stats</A>
 -  display graphs of system activity
 <DD><TT> stats</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/stub">stub</A>
+-  provide mount point stubs
+<DD><TT> stub</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/swap">swap</A>
 -  establish a swap file
@@ -234,6 +230,10 @@
 -  TLS server and client
 <DD><TT> tlssrv, tlsclient, tlssrvtunnel, tlsclienttunnel</TT>
 </DT>
+<DT><A HREF="/magic/man2html/8/trampoline">trampoline</A>
+- 
+<DD><TT></TT>
+</DT>
 <DT><A HREF="/magic/man2html/8/udpecho">udpecho</A>
 -  echo UDP packets
 <DD><TT> udpecho</TT>
@@ -245,6 +245,10 @@
 <DT><A HREF="/magic/man2html/8/venti">venti</A>
 -  an archival block storage server
 <DD><TT> venti</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/ventiaux">ventiaux</A>
+-  Venti maintenance and debugging commands
+<DD><TT> buildindex, checkarenas, checkindex, conf, copy, fmtarenas, fmtindex, fmtisect, rdarena, rdarenablocks, read, wrarenablocks, write</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/vga">vga</A>
 -  configure a VGA card

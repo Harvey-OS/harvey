@@ -1,29 +1,36 @@
 #
-#	sample smtpd configuration options for external gateway system
-#	this file, /mail/lib/smtpd.conf.ext, is bound on /mail/lib/smtpd.conf
-#	by /rc/bin/service.alt/tcp25 before smtpd is started on an
-#	external port 25 connection.
+#	smtpd configuration options for external gateway
+#	change verifysenderdom & saveblockedmsg when dirty converted
 #
 
-#
-#	replace YOURDOM and YOUROTHERDOM with the names of your domain
-#	replace 10.0.0.0 with the IP address range of your networks
-
-
-defaultdomain		YOURDOM.com
-norelay			on	#turn off relaying
-verifysenderdom		on	#dns verification of sender domain
-saveblockedmsg		on	#save blocked messages
+defaultdomain		plan9.bell-labs.com
+norelay			on		#turn off relaying
+verifysenderdom		on		#dns verification of sender domain
+saveblockedmsg		on		#save blocked messages
 
 #
 #	networks that are allowed to relay through us
-#	our internal networks.
 #
-ournets		10.0.0.0/16		#your networks
+ournets		135.104.0.0/16		#mh
+ournets		135.180.0.0/16		#ho
+ournets		204.178.16.5/32		#www.bell-labs.com
+ournets		204.178.16.6/32		#dirty.bell-labs.com
+ournets		204.178.16.43/32	#www1.bell-labs.com
+ournets		204.178.16.49/32	#crufty.research.bell-labs.com
+ournets		204.178.31.0/24		#outside plan 9 machines
+
+ournets		64.36.89.66/32		#rsc, sorry
 
 #
 #	domains that we will accept mail for
 #	these must match the rewrite rules
 #
 
-ourdomains	*.YOURDOM.com, *.YOUROTHERDOM.com
+ourdomains	*.lucent.com, *.bell-labs.com
+ourdomains	[204.178.31.2]		#achille
+ourdomains	ampl.com		#dmg
+ourdomains	*.wavelet.org		#wim
+ourdomains	closedmind.org		#presotto
+ourdomains	huygens.org		#sape
+ourdomains	mullender.nl		#sape
+ourdomains	mdgw.com		#mflaster cliff

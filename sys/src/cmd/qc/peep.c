@@ -34,6 +34,7 @@ peep(void)
 		case ADATA:
 		case AGLOBL:
 		case ANAME:
+		case ASIGNAME:
 			p = p->link;
 		}
 	}
@@ -100,6 +101,164 @@ loop1:
 			continue;
 		excise(r1);
 	}
+
+	if(debug['Q'] > 1)
+		return;	/* allow following code improvement to be suppressed */
+
+	/*
+	 * look for OP x,y,R; CMP R, $0 -> OPCC x,y,R
+	 * when OP can set condition codes correctly
+	 */
+	for(r=firstr; r!=R; r=r->link) {
+		p = r->prog;
+		switch(p->as) {
+		case ACMP:
+			if(!regzer(&p->to))
+				continue;
+			r1 = r->s1;
+			if(r1 == R)
+				continue;
+			switch(r1->prog->as) {
+			default:
+				continue;
+			case ABCL:
+			case ABC:
+				/* the conditions can be complex and these are currently little used */
+				continue;
+			case ABEQ:
+			case ABGE:
+			case ABGT:
+			case ABLE:
+			case ABLT:
+			case ABNE:
+			case ABVC:
+			case ABVS:
+				break;
+			}
+			r1 = r;
+			do
+				r1 = uniqp(r1);
+			while (r1 != R && r1->prog->as == ANOP);
+			if(r1 == R)
+				continue;
+			p1 = r1->prog;
+			if(p1->to.type != D_REG || p1->to.reg != p->from.reg)
+				continue;
+			switch(p1->as) {
+			case ASUB:
+			case AADD:
+			case AXOR:
+			case AOR:
+				/* irregular instructions */
+				if(p1->from.type == D_CONST)
+					continue;
+				break;
+			}
+			switch(p1->as) {
+			default:
+				continue;
+			case AMOVW:
+				if(p1->from.type != D_REG)
+					continue;
+				continue;
+			case AANDCC:
+			case AANDNCC:
+			case AORCC:
+			case AORNCC:
+			case AXORCC:
+			case ASUBCC:
+			case AADDCC:
+				t = p1->as;
+				break;
+			/* don't deal with floating point instructions for now */
+/*
+			case AFABS:	t = AFABSCC; break;
+			case AFADD:	t = AFADDCC; break;
+			case AFADDS:	t = AFADDSCC; break;
+			case AFCTIW:	t = AFCTIWCC; break;
+			case AFCTIWZ:	t = AFCTIWZCC; break;
+			case AFDIV:	t = AFDIVCC; break;
+			case AFDIVS:	t = AFDIVSCC; break;
+			case AFMADD:	t = AFMADDCC; break;
+			case AFMADDS:	t = AFMADDSCC; break;
+			case AFMOVD:	t = AFMOVDCC; break;
+			case AFMSUB:	t = AFMSUBCC; break;
+			case AFMSUBS:	t = AFMSUBSCC; break;
+			case AFMUL:	t = AFMULCC; break;
+			case AFMULS:	t = AFMULSCC; break;
+			case AFNABS:	t = AFNABSCC; break;
+			case AFNEG:	t = AFNEGCC; break;
+			case AFNMADD:	t = AFNMADDCC; break;
+			case AFNMADDS:	t = AFNMADDSCC; break;
+			case AFNMSUB:	t = AFNMSUBCC; break;
+			case AFNMSUBS:	t = AFNMSUBSCC; break;
+			case AFRSP:	t = AFRSPCC; break;
+			case AFSUB:	t = AFSUBCC; break;
+			case AFSUBS:	t = AFSUBSCC; break;
+			case ACNTLZW:	t = ACNTLZWCC; break;
+			case AMTFSB0:	t = AMTFSB0CC; break;
+			case AMTFSB1:	t = AMTFSB1CC; break;
+*/
+			case AADD:	t = AADDCC; break;
+			case AADDV:	t = AADDVCC; break;
+			case AADDC:	t = AADDCCC; break;
+			case AADDCV:	t = AADDCVCC; break;
+			case AADDME:	t = AADDMECC; break;
+			case AADDMEV:	t = AADDMEVCC; break;
+			case AADDE:	t = AADDECC; break;
+			case AADDEV:	t = AADDEVCC; break;
+			case AADDZE:	t = AADDZECC; break;
+			case AADDZEV:	t = AADDZEVCC; break;
+			case AAND:	t = AANDCC; break;
+			case AANDN:	t = AANDNCC; break;
+			case ADIVW:	t = ADIVWCC; break;
+			case ADIVWV:	t = ADIVWVCC; break;
+			case ADIVWU:	t = ADIVWUCC; break;
+			case ADIVWUV:	t = ADIVWUVCC; break;
+			case AEQV:	t = AEQVCC; break;
+			case AEXTSB:	t = AEXTSBCC; break;
+			case AEXTSH:	t = AEXTSHCC; break;
+			case AMULHW:	t = AMULHWCC; break;
+			case AMULHWU:	t = AMULHWUCC; break;
+			case AMULLW:	t = AMULLWCC; break;
+			case AMULLWV:	t = AMULLWVCC; break;
+			case ANAND:	t = ANANDCC; break;
+			case ANEG:	t = ANEGCC; break;
+			case ANEGV:	t = ANEGVCC; break;
+			case ANOR:	t = ANORCC; break;
+			case AOR:	t = AORCC; break;
+			case AORN:	t = AORNCC; break;
+			case AREM:	t = AREMCC; break;
+			case AREMV:	t = AREMVCC; break;
+			case AREMU:	t = AREMUCC; break;
+			case AREMUV:	t = AREMUVCC; break;
+			case ARLWMI:	t = ARLWMICC; break;
+			case ARLWNM:	t = ARLWNMCC; break;
+			case ASLW:	t = ASLWCC; break;
+			case ASRAW:	t = ASRAWCC; break;
+			case ASRW:	t = ASRWCC; break;
+			case ASUB:	t = ASUBCC; break;
+			case ASUBV:	t = ASUBVCC; break;
+			case ASUBC:	t = ASUBCCC; break;
+			case ASUBCV:	t = ASUBCVCC; break;
+			case ASUBME:	t = ASUBMECC; break;
+			case ASUBMEV:	t = ASUBMEVCC; break;
+			case ASUBE:	t = ASUBECC; break;
+			case ASUBEV:	t = ASUBEVCC; break;
+			case ASUBZE:	t = ASUBZECC; break;
+			case ASUBZEV:	t = ASUBZEVCC; break;
+			case AXOR:	t = AXORCC; break;
+				break;
+			}
+			if(debug['Q'])
+				print("cmp %P; %P -> ", p1, p);
+			p1->as = t;
+			if(debug['Q'])
+				print("%P\n", p1);
+			excise(r);
+			continue;
+		}
+	}
 }
 
 void
@@ -147,23 +306,20 @@ uniqs(Reg *r)
 }
 
 /*
- * i could load 0 into R0 in main9.s,
- * but suppose a bug smashes it later?
- * ``safety first'' ; this code is commented
- * out while i decide whether to use it.
+ * if the system forces R0 to be zero,
+ * convert references to $0 to references to R0.
  */
 regzer(Adr *a)
 {
-	USED(a);
-/*
-	if(a->type == D_CONST)
-		if(a->sym == S)
-			if(a->offset == 0)
+	if(R0ISZERO) {
+		if(a->type == D_CONST)
+			if(a->sym == S)
+				if(a->offset == 0)
+					return 1;
+		if(a->type == D_REG)
+			if(a->reg == REGZERO)
 				return 1;
-	if(a->type == D_REG)
-		if(a->reg == 0)
-			return 1;
-*/
+	}
 	return 0;
 }
 
@@ -171,9 +327,7 @@ regtyp(Adr *a)
 {
 
 	if(a->type == D_REG) {
-/*
-		if(a->reg != 0)
-*/
+		if(!R0ISZERO || a->reg != REGZERO)
 			return 1;
 		return 0;
 	}
@@ -225,8 +379,15 @@ subprop(Reg *r0)
 		case ASRW:
 		case ASRAW:
 		case AOR:
+		case AORCC:
+		case AORN:
+		case AORNCC:
 		case AAND:
 		case AANDCC:
+		case AANDN:
+		case AANDNCC:
+		case ANAND:
+		case ANANDCC:
 		case ANOR:
 		case ANORCC:
 		case AXOR:
@@ -467,8 +628,15 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case ASRW:
 	case ASRAW:
 	case AOR:
+	case AORCC:
+	case AORN:
+	case AORNCC:
 	case AAND:
 	case AANDCC:
+	case AANDN:
+	case AANDNCC:
+	case ANAND:
+	case ANANDCC:
 	case ANOR:
 	case ANORCC:
 	case AXOR:
@@ -603,8 +771,12 @@ a2type(Prog *p)
 	case ASRAWCC:
 	case AOR:
 	case AORCC:
+	case AORN:
+	case AORNCC:
 	case AAND:
 	case AANDCC:
+	case AANDN:
+	case AANDNCC:
 	case AXOR:
 	case AXORCC:
 	case ANEG:
@@ -619,6 +791,8 @@ a2type(Prog *p)
 	case AREMCC:
 	case AREMU:
 	case AREMUCC:
+	case ANAND:
+	case ANANDCC:
 	case ANOR:
 	case ANORCC:
 		return D_REG;

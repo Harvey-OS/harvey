@@ -170,5 +170,6 @@ char	*anames[] =
 	"END",
 	"DYNT",
 	"INIT",
+	"SIGNAME",
 	"LAST"
 };

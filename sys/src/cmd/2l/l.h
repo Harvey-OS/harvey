@@ -121,7 +121,7 @@ enum
 	STRINGSZ	= 200,
 	MAXIO		= 8192,
 	MAXHIST		= 20,				/* limit of path elements for history symbols */
-	A6OFFSET 	= 32766,
+	A6OFFSET 	= 32766
 };
 
 EXTERN union
@@ -167,6 +167,7 @@ EXTERN	int	histgen;
 EXTERN	char*	library[50];
 EXTERN	char*	libraryobj[50];
 EXTERN	int	libraryp;
+EXTERN	int	xrefresolv;
 EXTERN	char*	hunk;
 EXTERN	char	inuxi1[1];
 EXTERN	char	inuxi2[2];
@@ -209,6 +210,7 @@ int	Dconv(Fmt*);
 int	Pconv(Fmt*);
 int	Rconv(Fmt*);
 int	Sconv(Fmt*);
+int	Xconv(Fmt*);
 void	addhist(long, int);
 int	andsize(Prog*, Adr*);
 Prog*	appendp(Prog*);
@@ -241,7 +243,7 @@ void	histtoauto(void);
 double	ieeedtod(Ieee*);
 long	ieeedtof(Ieee*);
 void	ldobj(int, long, char*);
-void	loadlib(int, int);
+void	loadlib(void);
 void	listinit(void);
 Sym*	lookup(char*, int);
 void	lput(long);

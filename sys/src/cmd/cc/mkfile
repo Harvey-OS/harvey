@@ -10,7 +10,7 @@ OFILES=\
 	pickle.$O\
 	bits.$O\
 	com.$O\
-	con.$O\
+	scon.$O\
 	funct.$O\
 	sub.$O\
 	com64.$O\

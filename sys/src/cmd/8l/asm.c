@@ -18,21 +18,12 @@ entryvalue(void)
 	case STEXT:
 		break;
 	case SDATA:
-		if(reloc)
+		if(dlm)
 			return s->value+INITDAT;
 	default:
 		diag("entry not text: %s", s->name);
 	}
 	return s->value;
-}
-void
-cput(int c)
-{
-	*cbp = c;
-	cbp++;
-	cbc--;
-	if(cbc <= 0)
-		cflush();
 }
 
 void
@@ -40,6 +31,13 @@ wput(ushort w)
 {
 	cput(w);
 	cput(w>>8);
+}
+
+void
+wputb(ushort w)
+{
+	cput(w>>8);
+	cput(w);
 }
 
 void
@@ -77,7 +75,7 @@ asmb(void)
 				Bprint(&bso, "%.2ux", *op1 & 0xff);
 			Bprint(&bso, "\t%P\n", curp);
 		}
-		if(reloc) {
+		if(dlm) {
 			if(p->as == ATEXT)
 				reloca = nil;
 			else if(reloca != nil)
@@ -111,6 +109,14 @@ asmb(void)
 	if(debug['v'])
 		Bprint(&bso, "%5.2f datblk\n", cputime());
 	Bflush(&bso);
+
+	if(dlm){
+		char buf[8];
+
+		write(cout, buf, INITDAT-textsize);
+		textsize = INITDAT;
+	}
+
 	for(v = 0; v < datsize; v += sizeof(buf)-Dbufslop) {
 		if(datsize-v > sizeof(buf)-Dbufslop)
 			datblk(v, sizeof(buf)-Dbufslop);
@@ -151,6 +157,13 @@ asmb(void)
 		Bflush(&bso);
 		if(!debug['s'])
 			asmlc();
+		if(dlm)
+			asmdyn();
+		cflush();
+	}
+	else if(dlm){
+		seek(cout, HEADR+textsize+datsize, 0);
+		asmdyn();
 		cflush();
 	}
 	if(debug['v'])
@@ -251,7 +264,7 @@ asmb(void)
 		break;
 	case 2:	/* plan9 */
 		magic = 4*11*11+7;
-		if(reloc)
+		if(dlm)
 			magic |= 0x80000000;
 		lput(magic);		/* magic */
 		lput(textsize);			/* sizes */
@@ -416,11 +429,13 @@ datblk(long s, long n)
 				if(p->to.index != D_STATIC && p->to.index != D_EXTERN)
 					diag("DADDR type%P", p);
 				if(p->to.sym) {
-					if(reloc)
-						wreloc(p->to.sym, l+s+INITDAT);
+					if(p->to.sym->type == SUNDEF)
+						ckoff(p->to.sym, fl);
 					fl += p->to.sym->value;
 					if(p->to.sym->type != STEXT && p->to.sym->type != SUNDEF)
 						fl += INITDAT;
+					if(dlm)
+						dynreloc(p->to.sym, l+s+INITDAT, 1);
 				}
 			}
 			cast = (char*)&fl;
@@ -445,7 +460,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[inuxi2[j]] & 0xff);
-					Bprint(&bso, "]\t%P\n", curp);
+					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi2[i]];

@@ -1,6 +1,6 @@
 .TH 2C 1 
 .SH NAME
-0c, 1c, 2c, 4c, 5c, 6c, 7c, 8c, 9c, kc, qc, vc, xc \- C compilers
+1c, 2c, 5c, 7c, 8c, kc, qc, vc \- C compilers
 .SH SYNOPSIS
 .B 2c
 [
@@ -16,34 +16,23 @@ These commands compile the named C
 .I files
 into object files for the corresponding architecture.
 Associated with each compiler is a string
-.IR objtype :
+.IR objtype ,
+for example
 .TP 1.5i
-.B "0c spim
-little-endian MIPS 4000 family
-.TP
 .B "1c 68000
 Motorola MC68000
 .TP
 .B "2c 68020
 Motorola MC68020
 .TP
-.B "4c mips2
-big-endian MIPS 4000 family
-.TP
 .B "5c arm
 ARM 7500
-.TP
-.B "6c 960
-Intel i960
 .TP
 .B "7c alpha
 Digital Alpha APX
 .TP
 .B "8c 386
 Intel i386, i486, Pentium, etc.
-.TP
-.B "9c 29000
-AMD 29000 family
 .TP
 .B "kc sparc
 Sun SPARC
@@ -53,9 +42,6 @@ Power PC,
 .TP
 .B "vc mips
 big-endian MIPS 3000 family
-.TP
-.B "xc 3210
-AT&T DSP 3210.
 .PP
 The compilers handle most preprocessing directives themselves; a complete
 preprocessor is available in
@@ -64,20 +50,16 @@ which must be run separately.
 .PP
 Let the first letter of the compiler name be
 .IR O =
-.BR 0 ,
 .BR 1 ,
 .BR 2 ,
 .BR 4 ,
 .BR 5 ,
-.BR 6 ,
 .BR 7 ,
 .BR 8 ,
-.BR 9 ,
 .BR k ,
 .BR q ,
-.BR v ,
 or
-.BR x .
+.BR v .
 The output object files end in
 .RI . O .
 The letter is also the prefix of related programs:
@@ -381,8 +363,10 @@ machine-dependent part
 Rob Pike,
 ``How to Use the Plan 9 C Compiler''
 .SH BUGS
-The i960 compiler has been used only to program one I/O controller
-and is certainly buggy.
+The list of compilers given above is only partial,
+not all architectures are supported on all systems,
+some have been retired and some
+are provided by third parties.
 .PP
 The default preprocessor only handles
 .LR #define ,

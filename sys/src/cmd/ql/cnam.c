@@ -32,5 +32,6 @@ char	*cnames[] =
 	"CTR",
 	"ANY",
 	"GOK",
+	"ADDR",
 	"NCLASS",
 };

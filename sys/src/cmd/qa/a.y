@@ -1,8 +1,4 @@
 %{
-#include <u.h>
-#include <libc.h>
-#include <bio.h>
-#include "../qc/q.out.h"
 #include "a.h"
 %}
 %union
@@ -26,7 +22,7 @@
 %token	<lval>	LREG LFREG LR LCR LF LFPSCR
 %token	<lval>	LLR LCTR LSPR LSPREG LSEG LMSR
 %token	<lval>	LSCHED LXLD LXST LXOP LXMV
-%token	<lval>	LRLWM LMOVMW LMOVEM LMOVFL LMTFSB
+%token	<lval>	LRLWM LMOVMW LMOVEM LMOVFL LMTFSB LMA
 %token	<dval>	LFCONST
 %token	<sval>	LSCONST
 %token	<sym>	LNAME LLAB LVAR
@@ -254,6 +250,13 @@ inst:
 |	LABS rreg
 	{
 		outcode($1, &$2, NREG, &$2);
+	}
+/*
+ * multiply-accumulate
+ */
+|	LMA rreg ',' sreg ',' rreg
+	{
+		outcode($1, &$2, $4, &$6);
 	}
 /*
  * move immediate: macro for cau+or, addi, addis, and other combinations
@@ -691,7 +694,7 @@ psr:
 |	LSPR '(' con ')'
 	{
 		$$ = nullgen;
-		$$.type = D_SPR;
+		$$.type = $1;
 		$$.offset = $3;
 	}
 |	msr

@@ -100,7 +100,7 @@ loop:
 
 	default:
 		complex(n);
-		cgen(n, Z);
+		cgen(n, Z, 0);
 		break;
 
 	case OLIST:
@@ -128,7 +128,7 @@ loop:
 			break;
 		}
 		regret(&nod, n);
-		cgen(l, &nod);
+		cgen(l, &nod, 0);
 		regfree(&nod);
 		if(typefd[n->type->etype])
 			noretval(1);
@@ -223,7 +223,7 @@ loop:
 		patch(sp, pc);
 		regalloc(&nod, l, Z);
 		nod.type = types[TLONG];
-		cgen(l, &nod);
+		cgen(l, &nod, 0);
 		doswit(&nod);
 		regfree(&nod);
 		patch(spb, pc);

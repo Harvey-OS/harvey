@@ -1,7 +1,5 @@
 #include "gc.h"
 
-static	Node	*active;
-
 void
 zeroregm(Node *n)
 {
@@ -10,23 +8,23 @@ zeroregm(Node *n)
 
 /* do we need to load the address of a vlong? */
 int
-notvaddr(Node *n, int a)
+vaddr(Node *n, int a)
 {
 	switch(n->op) {
 	case ONAME:
 		if(a)
-			return 0;
-		return n->class == CEXTERN || n->class == CGLOBL || n->class == CSTATIC;
+			return 1;
+		return !(n->class == CEXTERN || n->class == CGLOBL || n->class == CSTATIC);
 
 	case OCONST:
 	case OREGISTER:
 	case OINDREG:
-		return 0;
+		return 1;
 	}
-	return 1;
+	return 0;
 }
 
-static long
+long
 hi64v(Node *n)
 {
 	if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
@@ -35,7 +33,7 @@ hi64v(Node *n)
 		return (long)((uvlong)n->vconst>>32) & ~0L;
 }
 
-static long
+long
 lo64v(Node *n)
 {
 	if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
@@ -44,13 +42,13 @@ lo64v(Node *n)
 		return (long)(n->vconst) & ~0L;
 }
 
-static Node *
+Node *
 hi64(Node *n)
 {
 	return nodconst(hi64v(n));
 }
 
-static Node *
+Node *
 lo64(Node *n)
 {
 	return nodconst(lo64v(n));
@@ -82,32 +80,63 @@ regpair(Node *n, Node *t)
 	return r;
 }
 
-/* lazy instantiation of register pair */
 static void
-instpair(Node *n)
+evacaxdx(Node *r)
 {
-	if(n->left->reg != D_NONE)
-		return;
-	regalloc(n->left, n->left, Z);
-	regalloc(n->right, n->right, Z);
-	n->rplink = active;
-	active = n;
+	Node nod1, nod2;
+
+	if(r->reg == D_AX || r->reg == D_DX) {
+		reg[D_AX]++;
+		reg[D_DX]++;
+		/*
+		 * this is just an optim that should
+		 * check for spill
+		 */
+		r->type = types[TULONG];
+		regalloc(&nod1, r, Z);
+		nodreg(&nod2, Z, r->reg);
+		gins(AMOVL, &nod2, &nod1);
+		regfree(r);
+		r->reg = nod1.reg;
+		reg[D_AX]--;
+		reg[D_DX]--;
+	}
+}
+
+/* lazy instantiation of register pair */
+static int
+instpair(Node *n, Node *l)
+{
+	int r;
+
+	r = 0;
+	if(n->left->reg == D_NONE) {
+		if(l != Z) {
+			n->left->reg = l->reg;
+			r = 1;
+		}
+		else
+			regalloc(n->left, n->left, Z);
+	}
+	if(n->right->reg == D_NONE)
+		regalloc(n->right, n->right, Z);
+	return r;
+}
+
+static void
+zapreg(Node *n)
+{
+	if(n->reg != D_NONE) {
+		regfree(n);
+		n->reg = D_NONE;
+	}
 }
 
 static void
 freepair(Node *n)
 {
-	Node *p, **l;
-
 	regfree(n->left);
 	regfree(n->right);
-	for(l = &active; (p = *l) != nil; l = &(*l)->rplink) {
-		if(p == n) {
-			*l = n->rplink;
-			return;
-		}
-	}
-	diag(Z, "no good on freepair");
 }
 
 /* n is not OREGPAIR, nn is */
@@ -116,7 +145,7 @@ loadpair(Node *n, Node *nn)
 {
 	Node nod;
 
-	instpair(nn);
+	instpair(nn, Z);
 	if(n->op == OCONST) {
 		gins(AMOVL, lo64(n), nn->left);
 		n->xoffset += SZ_LONG;
@@ -124,7 +153,7 @@ loadpair(Node *n, Node *nn)
 		n->xoffset -= SZ_LONG;
 		return;
 	}
-	if(notvaddr(n, 0)) {
+	if(!vaddr(n, 0)) {
 		/* steal the right register for the laddr */
 		nod = regnode;
 		nod.reg = nn->right->reg;
@@ -145,7 +174,7 @@ storepair(Node *n, Node *nn, int f)
 {
 	Node nod;
 
-	if(notvaddr(nn, 0)) {
+	if(!vaddr(nn, 0)) {
 		reglcgen(&nod, nn, Z);
 		nn = &nod;
 	}
@@ -202,16 +231,13 @@ saveit(Node *n, Node *t, Node *r)
 	Node nod;
 
 	if(saveme(n)) {
-//print(" %R", n->reg);
 		t->reg = n->reg;
 		gins(AMOVL, t, r);
 		r->xoffset += SZ_LONG;
 		if(n->reg == D_AX) {
-//print(" oh bugger: ");
 			regalloc(&nod, n, Z);
 			regfree(n);
 			n->reg = nod.reg;
-//print("(now %R)", n->reg);
 		}
 	}
 }
@@ -224,74 +250,6 @@ restoreit(Node *n, Node *t, Node *r)
 		gins(AMOVL, r, t);
 		r->xoffset += SZ_LONG;
 	}
-}
-
-void
-reg64save(Renv *e)
-{
-	int c;
-	Node *n, *r, nod;
-
-	c = 0;
-	for(n = active; n != nil; n = n->rplink) {
-		c += saveme(n->left);
-		c += saveme(n->right);
-	}
-
-	if(c == 0) {
-		e->safe = -1;
-		return;
-	}
-
-//print("that's %d", c);
-
-	e->safe = cursafe;
-	r = &e->base;
-	cursafe = round(cursafe, SZ_LONG) + c * SZ_LONG;
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
-	*r = *nodsafe;
-	r->xoffset = -(stkoff + cursafe);
-	r->type = types[TLONG];
-	r->etype = types[TLONG]->etype;
-	r->lineno = -1;
-
-	nod = regnode;
-	nod.type = types[TLONG];
-	for(n = active; n != nil; n = n->rplink) {
-		saveit(n->left, &nod, r);
-		saveit(n->right, &nod, r);
-	}
-//print("\n");
-
-	r->xoffset = -(stkoff + cursafe);
-	e->scope = active;
-	active = nil;
-}
-
-void
-reg64rest(Renv *e)
-{
-	Node *n, *r, nod;
-
-	if(e->safe < 0)
-		return;
-
-	if(active != nil) {
-		print("hey reg64rest c'mon\n");
-		abort();
-	}
-
-	n = e->scope;
-	active = n;
-	nod = regnode;
-	nod.type = types[TLONG];
-	r = &e->base;
-	for(; n != nil; n = n->rplink) {
-		restoreit(n->left, &nod, r);
-		restoreit(n->right, &nod, r);
-	}
-
-	cursafe = e->safe;
 }
 
 enum
@@ -308,7 +266,7 @@ whatof(Node *n, int a)
 {
 	if(n->op == OCONST)
 		return WCONST;
-	return notvaddr(n, a) ? WHARD : WADDR;
+	return !vaddr(n, a) ? WHARD : WADDR;
 }
 
 /* can upgrade an extern to addr for AND */
@@ -361,23 +319,57 @@ vfunc(Node *n, Node *nn)
 	return t;
 }
 
-/* try to steal CX */
 static int
-getcx(Node **np, Node *t)
+forcereg(Node *d, int r, int o, Node *t)
+{
+	int a;
+
+	if(d->reg != D_NONE)
+		diag(Z, "force alloc");
+	d->reg = r;
+	a = 0;
+	if(reg[r]) {
+		reg[o]++;
+		regalloc(t, d, Z);
+		a = 1;
+		gins(AMOVL, d, t);
+		reg[o]--;
+	}
+	reg[r]++;
+	return a;
+}
+
+/* try to steal a reg */
+static int
+getreg(Node **np, Node *t, int r)
 {
 	Node *n, *p;
 
 	n = *np;
-	if(n->reg == D_CX) {
+	if(n->reg == r) {
 		p = new(0, Z, Z);
 		regalloc(p, n, Z);
 		gins(AMOVL, n, p);
 		*t = *n;
 		*np = p;
-//print("poach\n");
 		return 1;
 	}
 	return 0;
+}
+
+static Node *
+snarfreg(Node *n, Node *t, int r, Node *d, Node *c)
+{
+	if(n == Z || n->op != OREGPAIR || (!getreg(&n->left, t, r) && !getreg(&n->right, t, r))) {
+		if(nodreg(t, Z, r)) {
+			regalloc(c, d, Z);
+			gins(AMOVL, t, c);
+			reg[r]++;
+			return c;
+		}
+		reg[r]++;
+	}
+	return Z;
 }
 
 enum
@@ -397,6 +389,8 @@ enum
 	Vinsla,
 	Vinsra,
 	Vinsx,
+	Vmul,
+	Vshll,
 	VT,
 	VF,
 	V_l_lo_f,
@@ -454,6 +448,7 @@ enum
 	O_t_rp,
 	O_r0,
 	O_r1,
+	O_Zop,
 
 	O_a0,
 	O_a1,
@@ -537,7 +532,7 @@ static uchar	shll00[][VLEN] =
 static uchar	shllc0[][VLEN] =
 {
 	{Vinsl, ASHLL, O_r, O_l_rp},
-	{Vins, ASHLL, O_r, O_l_lo, Vend},
+	{Vshll, O_r, O_l_lo, Vend},
 };
 
 /* shift left rp, const == 32 */
@@ -550,7 +545,7 @@ static uchar	shllc1[][VLEN] =
 /* shift left rp, const > 32 */
 static uchar	shllc2[][VLEN] =
 {
-	{Vins, ASHLL, O_r, O_l_lo},
+	{Vshll, O_r, O_l_lo},
 	{Vins, AMOVL, O_l_lo, O_l_hi},
 	{Vzero, O_l_lo, Vend},
 };
@@ -566,7 +561,7 @@ static uchar	shllac3[][VLEN] =
 static uchar	shllac4[][VLEN] =
 {
 	{Vins, AMOVL, O_l_lo, O_t_hi},
-	{Vins, ASHLL, O_r, O_t_hi},
+	{Vshll, O_r, O_t_hi},
 	{Vzero, O_t_lo, Vend},
 };
 
@@ -711,7 +706,7 @@ static uchar	asshllclo[][VLEN] =
 	{Vins, AMOVL, O_l_lo, O_r0},
 	{Vins, AMOVL, O_l_hi, O_r1},
 	{Vinsla, ASHLL, O_r, O_r0},
-	{Vins, ASHLL, O_r, O_r0},
+	{Vshll, O_r, O_r0},
 	{Vins, AMOVL, O_r1, O_l_hi},
 	{Vins, AMOVL, O_r0, O_l_lo},
 	{V_f0, V_f1, Vend},
@@ -733,7 +728,7 @@ static uchar	asshllchi[][VLEN] =
 	{V_a0},
 	{Vins, AMOVL, O_l_lo, O_r0},
 	{Vzero, O_l_lo},
-	{Vins, ASHLL, O_r, O_r0},
+	{Vshll, O_r, O_r0},
 	{Vins, AMOVL, O_r0, O_l_hi},
 	{V_f0, Vend},
 };
@@ -763,7 +758,7 @@ static uchar	asdshllclo[][VLEN] =
 	{Vins, AMOVL, O_l_lo, O_t_lo},
 	{Vins, AMOVL, O_l_hi, O_t_hi},
 	{Vinsl, ASHLL, O_r, O_t_rp},
-	{Vins, ASHLL, O_r, O_t_lo},
+	{Vshll, O_r, O_t_lo},
 	{Vins, AMOVL, O_t_hi, O_l_hi},
 	{Vins, AMOVL, O_t_lo, O_l_lo},
 	{Vend},
@@ -784,7 +779,7 @@ static uchar	asdshllchi[][VLEN] =
 {
 	{Vins, AMOVL, O_l_lo, O_t_hi},
 	{Vzero, O_t_lo},
-	{Vins, ASHLL, O_r, O_t_hi},
+	{Vshll, O_r, O_t_hi},
 	{Vins, AMOVL, O_t_lo, O_l_lo},
 	{Vins, AMOVL, O_t_hi, O_l_hi},
 	{Vend},
@@ -1128,6 +1123,59 @@ static uchar	(*SUBtab[])[VLEN] =
 	add0c, subca, addac,
 };
 
+/* mul of const32 */
+static uchar	mulc32[][VLEN] =
+{
+	{V_a0, Vop, ONE, O_l_hi, C00},
+	{V_s0, Vins, AMOVL, O_r_lo, O_r0},
+	{Vins, AMULL, O_r0, O_Zop},
+	{Vgo, V_p0, V_s0},
+	{Vins, AMOVL, O_l_hi, O_r0},
+	{Vmul, O_r_lo, O_r0},
+	{Vins, AMOVL, O_r_lo, O_l_hi},
+	{Vins, AMULL, O_l_hi, O_Zop},
+	{Vins, AADDL, O_r0, O_l_hi},
+	{V_f0, V_p0, Vend},
+};
+
+/* mul of const64 */
+static uchar	mulc64[][VLEN] =
+{
+	{V_a0, Vins, AMOVL, O_r_hi, O_r0},
+	{Vop, OOR, O_l_hi, O_r0},
+	{Vop, ONE, O_r0, C00},
+	{V_s0, Vins, AMOVL, O_r_lo, O_r0},
+	{Vins, AMULL, O_r0, O_Zop},
+	{Vgo, V_p0, V_s0},
+	{Vmul, O_r_lo, O_l_hi},
+	{Vins, AMOVL, O_l_lo, O_r0},
+	{Vmul, O_r_hi, O_r0},
+	{Vins, AADDL, O_l_hi, O_r0},
+	{Vins, AMOVL, O_r_lo, O_l_hi},
+	{Vins, AMULL, O_l_hi, O_Zop},
+	{Vins, AADDL, O_r0, O_l_hi},
+	{V_f0, V_p0, Vend},
+};
+
+/* mul general */
+static uchar	mull[][VLEN] =
+{
+	{V_a0, Vins, AMOVL, O_r_hi, O_r0},
+	{Vop, OOR, O_l_hi, O_r0},
+	{Vop, ONE, O_r0, C00},
+	{V_s0, Vins, AMOVL, O_r_lo, O_r0},
+	{Vins, AMULL, O_r0, O_Zop},
+	{Vgo, V_p0, V_s0},
+	{Vins, AIMULL, O_r_lo, O_l_hi},
+	{Vins, AMOVL, O_l_lo, O_r0},
+	{Vins, AIMULL, O_r_hi, O_r0},
+	{Vins, AADDL, O_l_hi, O_r0},
+	{Vins, AMOVL, O_r_lo, O_l_hi},
+	{Vins, AMULL, O_l_hi, O_Zop},
+	{Vins, AADDL, O_r0, O_l_hi},
+	{V_f0, V_p0, Vend},
+};
+
 /* cast rp l to rp t */
 static uchar	castrp[][VLEN] =
 {
@@ -1287,6 +1335,8 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 				break;
 
 			case Vmv:
+			case Vmul:
+			case Vshll:
 				i += 3;
 				if(i > VLEN) {
 					diag(l, "bad Vop");
@@ -1373,6 +1423,9 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 					case O_r1:
 						ot = &tmps[c[j] - O_r0];
 						break;
+					case O_Zop:
+						ot = Z;
+						break;
 
 					op0:
 						switch(ot->op) {
@@ -1425,8 +1478,14 @@ biggen(Node *l, Node *r, Node *t, int true, uchar code[][VLEN], uchar *a)
 					}
 				}
 				switch(op) {
+				case Vmul:
+					mulgen(tr->type, tl, tr);
+					break;
 				case Vmv:
 					gmove(tl, tr);
+					break;
+				case Vshll:
+					shiftit(tr->type, tl, tr);
 					break;
 				case Vop:
 				case Vopx:
@@ -1589,11 +1648,12 @@ cgen64(Node *n, Node *nn)
 	Type *dt;
 	uchar *args, (*cp)[VLEN], (**optab)[VLEN];
 	int li, ri, lri, dr, si, m, op, sh, cmp, true;
-	Node *c, *d, *l, *r, *t, *s, nod1, nod2, nod3;
+	Node *c, *d, *l, *r, *t, *s, nod1, nod2, nod3, nod4, nod5;
 
 	if(debug['g']) {
 		prtree(nn, "cgen64 lhs");
 		prtree(n, "cgen64");
+		print("AX = %d\n", reg[D_AX]);
 	}
 	cmp = 0;
 	sh = 0;
@@ -1608,7 +1668,7 @@ cgen64(Node *n, Node *nn)
 		break;
 
 	case OCOM:
-		if(notvaddr(n->left, 0) || notvaddr(nn, 0))
+		if(!vaddr(n->left, 0) || !vaddr(nn, 0))
 			d = regpair(nn, n);
 		else
 			return 0;
@@ -1710,6 +1770,7 @@ twoop:
 			r = n->right;
 		else
 			r = vfunc(n->right, nn);
+
 		li = l->op == ONAME || l->op == OINDREG || l->op == OCONST;
 		ri = r->op == ONAME || r->op == OINDREG || r->op == OCONST;
 
@@ -1866,7 +1927,7 @@ twoop:
 				r = &nod2;
 			}
 			d = regpair(nn, n);
-			instpair(d);
+			instpair(d, Z);
 			switch(WW(li, ri)) {
 			case WW(WCONST, WADDR):
 			case WW(WCONST, WHARD):
@@ -1934,27 +1995,13 @@ twoop:
 				sugen(l, t, 8);
 				l = t;
 				t = &nod1;
-				if(!getcx(&l->left, t) && !getcx(&l->right, t)) {
-					if(nodreg(t, r, D_CX)) {
-						c = &nod2;
-						regalloc(c, r, Z);
-						gins(AMOVL, t, c);
-					}
-					reg[D_CX]++;
-				}
+				c = snarfreg(l, t, D_CX, r, &nod2);
 				cgen(r, t);
 				r = t;
 			}
 			else {
 				t = &nod1;
-				if(nn->op != OREGPAIR || (!getcx(&nn->left, t) && !getcx(&nn->right, t))) {
-					if(nodreg(t, Z, D_CX)) {
-						c = &nod2;
-						regalloc(c, r, Z);
-						gins(AMOVL, t, c);
-					}
-					reg[D_CX]++;
-				}
+				c = snarfreg(nn, t, D_CX, r, &nod2);
 				cgen(r, t);
 				r = t;
 				if(dr)
@@ -1985,14 +2032,7 @@ twoop:
 				goto imm00;
 			}
 			t = &nod1;
-			if(nn->op != OREGPAIR || (!getcx(&nn->left, t) && !getcx(&nn->right, t))) {
-				if(nodreg(t, Z, D_CX)) {
-					c = &nod2;
-					regalloc(c, r, Z);
-					gins(AMOVL, t, c);
-				}
-				reg[D_CX]++;
-			}
+			c = snarfreg(nn, t, D_CX, r, &nod2);
 			cgen(r, t);
 			r = t;
 			break;
@@ -2037,13 +2077,13 @@ twoop:
 		case IMM(1, 0):
 			/* left is const */
 			d = regpair(nn, n);
-			instpair(d);
+			instpair(d, Z);
 			biggen(l, r, d, 0, optab[S10], args);
 			regfree(r);
 			break;
 		case IMM(1, 1):
 			d = regpair(nn, n);
-			instpair(d);
+			instpair(d, Z);
 			switch(WW(li, ri)) {
 			case WW(WADDR, WCONST):
 				m = r->vconst & 63;
@@ -2226,6 +2266,120 @@ twoop:
 		}
 		return 1;
 
+	case OASMUL:
+	case OASLMUL:
+		m = 0;
+		goto mulop;
+
+	case OMUL:
+	case OLMUL:
+		m = 1;
+		goto mulop;
+
+	mulop:
+		dr = nn != Z && nn->op == OREGPAIR;
+		l = vfunc(n->left, nn);
+		r = vfunc(n->right, nn);
+		if(r->op != OCONST) {
+			if(l->complex > r->complex) {
+				if(m) {
+					t = l;
+					l = r;
+					r = t;
+				}
+				else if(!vaddr(l, 1)) {
+					reglcgen(&nod5, l, Z);
+					l = &nod5;
+					evacaxdx(l);
+				}
+			}
+			t = regpair(Z, n);
+			sugen(r, t, 8);
+			r = t;
+			evacaxdx(r->left);
+			evacaxdx(r->right);
+			if(l->complex <= r->complex && !m && !vaddr(l, 1)) {
+				reglcgen(&nod5, l, Z);
+				l = &nod5;
+				evacaxdx(l);
+			}
+		}
+		if(dr)
+			t = nn;
+		else
+			t = regpair(Z, n);
+		c = Z;
+		d = Z;
+		if(!nodreg(&nod1, t->left, D_AX)) {
+			if(t->left->reg != D_AX){
+				t->left->reg = D_AX;
+				reg[D_AX]++;
+			}else if(reg[D_AX] == 0)
+				fatal(Z, "vlong mul AX botch");
+		}
+		if(!nodreg(&nod2, t->right, D_DX)) {
+			if(t->right->reg != D_DX){
+				t->right->reg = D_DX;
+				reg[D_DX]++;
+			}else if(reg[D_DX] == 0)
+				fatal(Z, "vlong mul DX botch");
+		}
+		if(m)
+			sugen(l, t, 8);
+		else
+			loadpair(l, t);
+		if(t->left->reg != D_AX) {
+			c = &nod3;
+			regsalloc(c, t->left);
+			gmove(&nod1, c);
+			gmove(t->left, &nod1);
+			zapreg(t->left);
+		}
+		if(t->right->reg != D_DX) {
+			d = &nod4;
+			regsalloc(d, t->right);
+			gmove(&nod2, d);
+			gmove(t->right, &nod2);
+			zapreg(t->right);
+		}
+		if(c != Z || d != Z) {
+			s = regpair(Z, n);
+			s->left = &nod1;
+			s->right = &nod2;
+		}
+		else
+			s = t;
+		if(r->op == OCONST) {
+			if(hi64v(r) == 0)
+				biggen(s, r, Z, 0, mulc32, nil);
+			else
+				biggen(s, r, Z, 0, mulc64, nil);
+		}
+		else
+			biggen(s, r, Z, 0, mull, nil);
+		instpair(t, Z);
+		if(c != Z) {
+			gmove(&nod1, t->left);
+			gmove(&nod3, &nod1);
+		}
+		if(d != Z) {
+			gmove(&nod2, t->right);
+			gmove(&nod4, &nod2);
+		}
+		if(r->op == OREGPAIR)
+			freepair(r);
+		if(!m)
+			storepair(t, l, 0);
+		if(l == &nod5)
+			regfree(l);
+		if(!dr) {
+			if(nn != Z)
+				storepair(t, nn, 1);
+			else
+				freepair(t);
+		}
+		return 1;
+
 	case OASADD:
 		args = ADDargs;
 		goto vasop;
@@ -2248,11 +2402,11 @@ twoop:
 		dr = nn != Z && nn->op == OREGPAIR;
 		m = 0;
 		if(l->complex > r->complex) {
-			if(notvaddr(l, 1)) {
+			if(!vaddr(l, 1)) {
 				reglcgen(&nod1, l, Z);
 				l = &nod1;
 			}
-			if(notvaddr(r, 1) || nn != Z || r->op == OCONST) {
+			if(!vaddr(r, 1) || nn != Z || r->op == OCONST) {
 				if(dr)
 					t = nn;
 				else
@@ -2263,7 +2417,7 @@ twoop:
 			}
 		}
 		else {
-			if(notvaddr(r, 1) || nn != Z || r->op == OCONST) {
+			if(!vaddr(r, 1) || nn != Z || r->op == OCONST) {
 				if(dr)
 					t = nn;
 				else
@@ -2272,7 +2426,7 @@ twoop:
 				r = t;
 				m = 1;
 			}
-			if(notvaddr(l, 1)) {
+			if(!vaddr(l, 1)) {
 				reglcgen(&nod1, l, Z);
 				l = &nod1;
 			}
@@ -2329,7 +2483,7 @@ twoop:
 		else
 			m = SAgen;
 		if(l->complex > r->complex) {
-			if(notvaddr(l, 0)) {
+			if(!vaddr(l, 0)) {
 				reglcgen(&nod1, l, Z);
 				l = &nod1;
 			}
@@ -2341,16 +2495,8 @@ twoop:
 					l->reg = t->reg;
 					t->reg = D_CX;
 				}
-				else if(nn == Z ||
-				   nn->op != OREGPAIR ||
-				   (getcx(&nn->left, t) && !getcx(&nn->right, t))) {
-					if(nodreg(t, r, D_CX)) {
-						c = &nod3;
-						regalloc(c, r, Z);
-						gins(AMOVL, t, c);
-					}
-					reg[D_CX]++;
-				}
+				else
+					c = snarfreg(nn, t, D_CX, r, &nod3);
 				cgen(r, t);
 				r = t;
 			}
@@ -2358,20 +2504,11 @@ twoop:
 		else {
 			if(m == SAgen) {
 				t = &nod2;
-				if(nn == Z ||
-				   nn->op != OREGPAIR ||
-				   (getcx(&nn->left, t) && !getcx(&nn->right, t))) {
-					if(nodreg(t, r, D_CX)) {
-						c = &nod3;
-						regalloc(c, r, Z);
-						gins(AMOVL, t, c);
-					}
-					reg[D_CX]++;
-				}
+				c = snarfreg(nn, t, D_CX, r, &nod3);
 				cgen(r, t);
 				r = t;
 			}
-			if(notvaddr(l, 0)) {
+			if(!vaddr(l, 0)) {
 				reglcgen(&nod1, l, Z);
 				l = &nod1;
 			}
@@ -2380,8 +2517,16 @@ twoop:
 		if(nn != Z) {
 			m += SAdgen - SAgen;
 			d = regpair(nn, n);
-			instpair(d);
+			instpair(d, Z);
 			biggen(l, r, d, 0, optab[m], args);
+			if(l == &nod1) {
+				regfree(&nod1);
+				l = Z;
+			}
+			if(r == &nod2 && c == Z) {
+				regfree(&nod2);
+				r = Z;
+			}
 			if(d != nn)
 				storepair(d, nn, 1);
 		}
@@ -2417,15 +2562,19 @@ twoop:
 
 	vinc:
 		l = n->left;
-		if(notvaddr(l, 1)) {
+		if(!vaddr(l, 1)) {
 			reglcgen(&nod1, l, Z);
 			l = &nod1;
 		}
 		
 		if(nn != Z) {
 			d = regpair(nn, n);
-			instpair(d);
+			instpair(d, Z);
 			biggen(l, Z, d, 0, cp, args);
+			if(l == &nod1) {
+				regfree(&nod1);
+				l = Z;
+			}
 			if(d != nn)
 				storepair(d, nn, 1);
 		}
@@ -2439,11 +2588,11 @@ twoop:
 	case OCAST:
 		l = n->left;
 		if(typev[l->type->etype]) {
-			if(notvaddr(l, 1)) {
+			if(!vaddr(l, 1)) {
 				if(l->complex + 1 > nn->complex) {
 					d = regpair(Z, l);
 					sugen(l, d, 8);
-					if(notvaddr(nn, 1)) {
+					if(!vaddr(nn, 1)) {
 						reglcgen(&nod1, nn, Z);
 						r = &nod1;
 					}
@@ -2451,7 +2600,7 @@ twoop:
 						r = nn;
 				}
 				else {
-					if(notvaddr(nn, 1)) {
+					if(!vaddr(nn, 1)) {
 						reglcgen(&nod1, nn, Z);
 						r = &nod1;
 					}
@@ -2466,7 +2615,7 @@ twoop:
 				freepair(d);
 			}
 			else {
-				if(nn->op != OREGISTER && notvaddr(nn, 1)) {
+				if(nn->op != OREGISTER && !vaddr(nn, 1)) {
 					reglcgen(&nod1, nn, Z);
 					r = &nod1;
 				}
@@ -2487,11 +2636,12 @@ twoop:
 			regalloc(&nod1, l, Z);
 			cgen(l, &nod1);
 			if(nn->op == OREGPAIR) {
-				instpair(nn);
+				m = instpair(nn, &nod1);
 				biggen(&nod1, Z, nn, si == TSIGNED, castrp, nil);
 			}
 			else {
-				if(notvaddr(nn, si != TSIGNED)) {
+				m = 0;
+				if(!vaddr(nn, si != TSIGNED)) {
 					dt = nn->type;
 					nn->type = types[TLONG];
 					reglcgen(&nod2, nn, Z);
@@ -2505,7 +2655,8 @@ twoop:
 				if(nn == &nod2)
 					regfree(&nod2);
 			}
-			regfree(&nod1);
+			if(!m)
+				regfree(&nod1);
 		}
 		return 1;
 

@@ -1,7 +1,7 @@
-#include <ctype.h>
 #define	EXTERN
 #include "a.h"
 #include "y.tab.h"
+#include <ctype.h>
 
 void
 main(int argc, char *argv[])
@@ -35,6 +35,10 @@ main(int argc, char *argv[])
 	case 'I':
 		p = ARGF();
 		setinclude(p);
+		break;
+	case 't':
+		thechar = 't';
+		thestring = "thumb";
 		break;
 	} ARGEND
 	if(*argv == 0) {
@@ -299,13 +303,13 @@ struct
 	"MOVW",		LTYPE3, AMOVW,
 
 	"MOVD",		LTYPE3, AMOVD,
-	"MOVDF",	LTYPE3, AMOVDF,
+	"MOVDF",		LTYPE3, AMOVDF,
 	"MOVDW",	LTYPE3, AMOVDW,
 	"MOVF",		LTYPE3, AMOVF,
-	"MOVFD",	LTYPE3, AMOVFD,
-	"MOVFW",	LTYPE3, AMOVFW,
+	"MOVFD",		LTYPE3, AMOVFD,
+	"MOVFW",		LTYPE3, AMOVFW,
 	"MOVWD",	LTYPE3, AMOVWD,
-	"MOVWF",	LTYPE3, AMOVWF,
+	"MOVWF",		LTYPE3, AMOVWF,
 
 /*
 	"ABSF",		LTYPEI, AABSF,
@@ -335,6 +339,7 @@ struct
 
 	"B",		LTYPE4, AB,
 	"BL",		LTYPE4, ABL,
+	"BX",		LTYPEBX,	ABX,
 
 	"BEQ",		LTYPE5,	ABEQ,
 	"BNE",		LTYPE5,	ABNE,
@@ -520,22 +525,22 @@ zaddr(Gen *a, int s)
 
 static int bcode[] =
 {
-[0]	ABEQ,
-[1]	ABNE,
-[2]	ABCS,
-[3]	ABCC,
-[4]	ABMI,
-[5]	ABPL,
-[6]	ABVS,
-[7]	ABVC,
-[8]	ABHI,
-[9]	ABLS,
-[10]	ABGE,
-[11]	ABLT,
-[12]	ABGT,
-[13]	ABLE,
-[14]	AB,
-[15]	ANOP,
+	ABEQ,
+	ABNE,
+	ABCS,
+	ABCC,
+	ABMI,
+	ABPL,
+	ABVS,
+	ABVC,
+	ABHI,
+	ABLS,
+	ABGE,
+	ABLT,
+	ABGT,
+	ABLE,
+	AB,
+	ANOP,
 };
 
 void
@@ -623,12 +628,17 @@ outhist(void)
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		op = 0;
+		/* on windows skip drive specifier in pathname */
+		if(systemtype(Windows) && p && p[1] == ':'){
+			p += 2;
+			c = *p;
+		}
 		if(p && p[0] != c && h->offset == 0 && pathname){
 			/* on windows skip drive specifier in pathname */
-			if(systemtype(Windows) && pathname[2] == c) {
+			if(systemtype(Windows) && pathname[1] == ':') {
 				op = p;
 				p = pathname+2;
-				*p = '/';
+				c = *p;
 			} else if(pathname[0] == c){
 				op = p;
 				p = pathname;
@@ -638,8 +648,10 @@ outhist(void)
 			q = strchr(p, c);
 			if(q) {
 				n = q-p;
-				if(n == 0)
+				if(n == 0){
 					n = 1;	/* leading "/" */
+					*p = '/';	/* don't emit "\" on windows */
+				}
 				q++;
 			} else {
 				n = strlen(p);

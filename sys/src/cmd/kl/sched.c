@@ -8,7 +8,7 @@ enum
 	E_MEMSP	= 1<<3,	/* uses offset and size */
 	E_MEMSB	= 1<<4,	/* uses offset and size */
 	ANYMEM	= E_MEM|E_MEMSP|E_MEMSB,
-	ALL	= ~0,
+	ALL	= ~0
 };
 
 typedef	struct	Sch	Sch;

@@ -306,6 +306,7 @@ regalloc(Node *n, Node *tn, Node *o)
 			if(reg[i] == 0)
 				goto out;
 		diag(tn, "out of fixed registers");
+abort();
 		goto err;
 
 	case TFLOAT:
@@ -321,6 +322,7 @@ out:
 	if(i)
 		reg[i]++;
 	nodreg(n, tn, i);
+//print("+ %R %d\n", i, reg[i]);
 }
 
 void
@@ -347,6 +349,7 @@ regfree(Node *n)
 	if(reg[i] <= 0)
 		goto err;
 	reg[i]--;
+//print("- %R %d\n", i, reg[i]);
 	return;
 err:
 	diag(n, "error in regfree: %R", i);
@@ -412,6 +415,7 @@ naddr(Node *n, Adr *a)
 	default:
 	bad:
 		diag(n, "bad in naddr: %O %D", n->op, a);
+//prtree(n, "naddr");
 		break;
 
 	case OREGISTER:
@@ -437,7 +441,7 @@ naddr(Node *n, Adr *a)
 
 	case OINDEX:
 		a->type = idx.ptr;
-		if(n->left->op == OADDR)
+		if(n->left->op == OADDR || n->left->op == OCONST)
 			naddr(n->left, a);
 		if(a->type >= D_AX && a->type <= D_DI)
 			a->type += D_INDIR;
@@ -919,9 +923,13 @@ print("botch in doindex\n");
 	regalloc(&nod, &regnode, Z);
 	v = constnode.vconst;
 	cgen(n->right, &nod);
-	idx.reg = nod.reg;
 	idx.ptr = D_NONE;
-	if(n->left->op != OADDR) {
+	if(n->left->op == OCONST)
+		idx.ptr = D_CONST;
+	else if(n->left->op == OREGISTER)
+//	else if(n->left->op == OREGISTER && typeil[n->left->type->etype])
+		idx.ptr = n->left->reg;
+	else if(n->left->op != OADDR) {
 		reg[D_BP]++;	// cant be used as a base
 		regalloc(&nod1, &regnode, Z);
 		cgen(n->left, &nod1);
@@ -929,6 +937,7 @@ print("botch in doindex\n");
 		regfree(&nod1);
 		reg[D_BP]--;
 	}
+	idx.reg = nod.reg;
 	regfree(&nod);
 	constnode.vconst = v;
 }
@@ -1215,6 +1224,8 @@ gopcode(int o, Type *ty, Node *f, Node *t)
 
 	case OASMUL:
 	case OMUL:
+		if(f->op == OREGISTER && t != Z && isreg(t, D_AX) && reg[D_DX] == 0)
+			t = Z;
 		a = AIMULL;
 		break;
 

@@ -5,12 +5,12 @@ OFILES=\
 	cgen.$O\
 	enam.$O\
 	list.$O\
+	mul.$O\
 	peep.$O\
 	reg.$O\
 	sgen.$O\
 	swt.$O\
 	txt.$O\
-	mul.$O\
 
 HFILES=\
 	gc.h\

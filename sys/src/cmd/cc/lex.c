@@ -134,15 +134,15 @@ main(int argc, char *argv[])
 int
 compile(char *file, char **defs, int ndef)
 {
-	char ofile[100], incfile[20];
+	char ofile[400], incfile[20];
 	char *p, *av[100], opt[256];
 	int i, c, fd[2];
 
 	strcpy(ofile, file);
 	p = utfrrune(ofile, pathchar());
 	if(p) {
-		include[0] = ofile;
 		*p++ = 0;
+		include[0] = strdup(ofile);
 	} else
 		p = ofile;
 	if(outfile == 0) {
@@ -278,7 +278,7 @@ void
 newio(void)
 {
 	Io *i;
-	static pushdepth = 0;
+	static int pushdepth = 0;
 
 	i = iofree;
 	if(i == I) {
@@ -371,6 +371,7 @@ syminit(Sym *s)
 	s->suetag = T;
 	s->class = CXXX;
 	s->aused = 0;
+	s->sig = SIGNONE;
 }
 
 #define	EOF	(-1)
@@ -1344,8 +1345,8 @@ Tconv(Fmt *fp)
 		et = t->etype;
 		if(str[0])
 			strcat(str, " ");
-		if(t->garb) {
-			sprint(s, "%s ", gnames[t->garb]);
+		if(t->garb&~GINCOMPLETE) {
+			sprint(s, "%s ", gnames[t->garb&~GINCOMPLETE]);
 			if(strlen(str) + strlen(s) < STRINGSZ)
 				strcat(str, s);
 		}

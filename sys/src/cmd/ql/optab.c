@@ -6,6 +6,10 @@ Optab	optab[] =
 	{ ATEXT,	C_LEXT,	C_REG, C_NONE, 	C_LCON, 	 0, 0, 0 },
 	{ ATEXT,	C_LEXT,	C_NONE, C_LCON, 	C_LCON, 	 0, 0, 0 },
 	{ ATEXT,	C_LEXT,	C_REG, C_LCON, 	C_LCON, 	 0, 0, 0 },
+	{ ATEXT,	C_ADDR,	C_NONE, C_NONE, 	C_LCON, 	 0, 0, 0 },
+	{ ATEXT,	C_ADDR,	C_REG, C_NONE, 	C_LCON, 	 0, 0, 0 },
+	{ ATEXT,	C_ADDR,	C_NONE, C_LCON, 	C_LCON, 	 0, 0, 0 },
+	{ ATEXT,	C_ADDR,	C_REG, C_LCON, 	C_LCON, 	 0, 0, 0 },
 
 	{ AMOVW,	C_REG,	C_NONE, C_NONE, 	C_REG,		 1, 4, 0 },
 	{ AMOVB,	C_REG,	C_NONE, C_NONE, 	C_REG,		12, 4, 0 },
@@ -133,6 +137,9 @@ Optab	optab[] =
 	{ AMOVW,	C_REG,	C_NONE, C_NONE, 	C_LOREG,	35, 8, REGZERO },
 	{ AMOVBZ,	C_REG,	C_NONE, C_NONE, 	C_LOREG,	35, 8, REGZERO },
 	{ AMOVB,	C_REG,	C_NONE, C_NONE, 	C_LOREG,	35, 8, REGZERO },
+	{ AMOVW,	C_REG,	C_NONE, C_NONE, 	C_ADDR,		74, 8, 0 },
+	{ AMOVBZ,	C_REG,	C_NONE, C_NONE, 	C_ADDR,		74, 8, 0 },
+	{ AMOVB,	C_REG,	C_NONE, C_NONE, 	C_ADDR,		74, 8, 0 },
 
 	{ AMOVW,	C_LEXT,	C_NONE, C_NONE, 	C_REG,		36, 8, REGSB },
 	{ AMOVBZ,	C_LEXT,	C_NONE, C_NONE, 	C_REG,		36, 8, REGSB },
@@ -143,6 +150,9 @@ Optab	optab[] =
 	{ AMOVW,	C_LOREG,C_NONE, C_NONE, 	C_REG,		36, 8, REGZERO },
 	{ AMOVBZ,	C_LOREG,C_NONE, C_NONE, 	C_REG,		36, 8, REGZERO },
 	{ AMOVB,	C_LOREG,C_NONE, C_NONE, 	C_REG,		37, 12, REGZERO },
+	{ AMOVW,	C_ADDR,	C_NONE, C_NONE, 	C_REG,		75, 8, 0 },
+	{ AMOVBZ,	C_ADDR,	C_NONE, C_NONE, 	C_REG,		75, 8, 0 },
+	{ AMOVB,	C_ADDR,	C_NONE, C_NONE, 	C_REG,		76, 12, 0 },
 
 	{ AMOVW,	C_SECON,C_NONE, C_NONE, 	C_REG,		 3, 4, REGSB },
 	{ AMOVW,	C_SACON,C_NONE, C_NONE, 	C_REG,		 3, 4, REGSP },
@@ -185,6 +195,7 @@ Optab	optab[] =
 	{ AFMOVD,	C_LEXT,	C_NONE, C_NONE, 	C_FREG,		8, 4, REGSB },
 	{ AFMOVD,	C_LAUTO,C_NONE, C_NONE, 	C_FREG,		8, 4, REGSP },
 	{ AFMOVD,	C_LOREG,C_NONE, C_NONE, 	C_FREG,		8, 4, REGZERO },
+	{ AFMOVD,	C_ADDR,	C_NONE, C_NONE, 	C_FREG,		75, 8, 0 },
 
 	{ AFMOVD,	C_FREG,	C_NONE, C_NONE, 	C_SEXT,		7, 4, REGSB },
 	{ AFMOVD,	C_FREG,	C_NONE, C_NONE, 	C_SAUTO,	7, 4, REGSP },
@@ -193,6 +204,7 @@ Optab	optab[] =
 	{ AFMOVD,	C_FREG,	C_NONE, C_NONE, 	C_LEXT,		7, 4, REGSB },
 	{ AFMOVD,	C_FREG,	C_NONE, C_NONE, 	C_LAUTO,	7, 4, REGSP },
 	{ AFMOVD,	C_FREG,	C_NONE, C_NONE, 	C_LOREG,	7, 4, REGZERO },
+	{ AFMOVD,	C_FREG,	C_NONE, C_NONE, 	C_ADDR,		74, 8, 0 },
 
 	{ ASYNC,		C_NONE,	C_NONE, C_NONE, 	C_NONE,		46, 4, 0 },
 	{ AWORD,	C_LCON,	C_NONE, C_NONE, 	C_NONE,		40, 4, 0 },
@@ -270,5 +282,8 @@ Optab	optab[] =
 	{ ASTSW,	C_REG,	C_NONE, C_LCON, 	C_ZOREG,	41, 4, 0 },
 	{ ALSW,	C_ZOREG, C_NONE, C_NONE,  C_REG,		45, 4, 0 },
 	{ ALSW,	C_ZOREG, C_NONE, C_LCON,  C_REG,		42, 4, 0 },
+
+	{ AMACCHW,	C_REG,	C_REG, C_NONE, 	C_REG,		 2, 4, 0 },	/* op rb,ra,rt */
+
 	{ AXXX,		C_NONE,	C_NONE, C_NONE, 	C_NONE,		 0, 4, 0 },
 };

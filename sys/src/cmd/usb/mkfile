@@ -5,6 +5,7 @@ DIRS=\
 	usbd\
 	audio\
 	mouse\
+	printer\
 
 none:VQ:
 	echo mk all, install, installall, clean, or nuke

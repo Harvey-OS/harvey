@@ -9,6 +9,19 @@ machcap(Node *n)
 		return 1;	/* test */
 
 	switch(n->op) {
+	case OMUL:
+	case OLMUL:
+	case OASMUL:
+	case OASLMUL:
+		if(typechl[n->type->etype])
+			return 1;
+		if(typev[n->type->etype]) {
+//		if(typev[n->type->etype] && n->right->op == OCONST) {
+//			if(hi64v(n->right) == 0)
+				return 1;
+		}
+		break;
+
 	case OCOM:
 	case ONEG:
 	case OADD:
@@ -22,6 +35,7 @@ machcap(Node *n)
 		if(typechlv[n->left->type->etype])
 			return 1;
 		break;
+
 	case OCAST:
 		if(typev[n->type->etype]) {
 			if(typechlp[n->left->type->etype])

@@ -20,9 +20,9 @@ eject dossrv
 execnet execnet
 exportfs exportfs
 srvfs exportfs
+ext2srv ext2srv
 factotum factotum
 fgui factotum
-secretpem factotum
 fossil fossil
 fs fs
 ftpfs ftpfs
@@ -34,6 +34,7 @@ kfs kfs
 lnfs lnfs
 mntgen mntgen
 namespace namespace
+nfs nfs
 nntpfs nntpfs
 paqfs paqfs
 plumber plumber
@@ -67,6 +68,7 @@ upasfs upasfs
 usb usb
 usbaudio usb
 usbmouse usb
+usbprinter usb
 usbd usbd
 vacfs vacfs
 webcookies webcookies

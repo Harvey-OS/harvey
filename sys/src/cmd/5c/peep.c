@@ -36,6 +36,7 @@ peep(void)
 		case ADATA:
 		case AGLOBL:
 		case ANAME:
+		case ASIGNAME:
 			p = p->link;
 		}
 	}
@@ -792,6 +793,8 @@ xtramodes(Reg *r, Adr *a)
 	Adr v;
 
 	p = r->prog;
+	if(debug['h'] && p->as == AMOVB && p->from.type == D_OREG)	/* byte load */
+		return 0;
 	v = *a;
 	v.type = D_REG;
 	r1 = findpre(r, &v);
@@ -1287,6 +1290,7 @@ predicable(Prog *p)
 		|| p->as == AGOK
 		|| p->as == AHISTORY
 		|| p->as == ANAME
+		|| p->as == ASIGNAME
 		|| p->as == ATEXT
 		|| p->as == AWORD
 		|| p->as == ADYNT

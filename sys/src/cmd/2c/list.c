@@ -14,6 +14,16 @@ listinit(void)
 	fmtinstall('B', Bconv);
 }
 
+static Index
+indexv(int i, int j)
+{
+	Index x;
+
+	x.o0 = i;
+	x.o1 = j;
+	return x;
+}
+
 int
 Bconv(Fmt *fp)
 {
@@ -102,25 +112,25 @@ Dconv(Fmt *fp)
 		a->displace = 0;
 		switch(i & I_MASK) {
 		default:
-			sprint(str, "???%ld(%D%X)", d, a, (Index){i, j});
+			sprint(str, "???%ld(%D%X)", d, a, indexv(i, j));
 			break;
 
 		case I_INDEX1:
-			sprint(str, "%D%X", a, (Index){i, a->scale});
+			sprint(str, "%D%X", a, indexv(i, a->scale));
 			break;
 
 		case I_INDEX2:
 			if(d)
-				sprint(str, "%ld(%D)%X", d, a, (Index){i, j});
+				sprint(str, "%ld(%D)%X", d, a, indexv(i, j));
 			else
-				sprint(str, "(%D)%X", a, (Index){i, j});
+				sprint(str, "(%D)%X", a, indexv(i, j));
 			break;
 
 		case I_INDEX3:
 			if(d)
-				sprint(str, "%ld(%D%X)", d, a, (Index){i, j});
+				sprint(str, "%ld(%D%X)", d, a, indexv(i, j));
 			else
-				sprint(str, "(%D%X)", a, (Index){i, j});
+				sprint(str, "(%D%X)", a, indexv(i, j));
 			break;
 		}
 		a->displace = d;

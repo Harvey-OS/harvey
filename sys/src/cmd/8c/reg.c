@@ -78,6 +78,7 @@ regopt(Prog *p)
 		case ADATA:
 		case AGLOBL:
 		case ANAME:
+		case ASIGNAME:
 			continue;
 		}
 		r = rega();
@@ -449,7 +450,7 @@ loop2:
 			nearln = r->prog->lineno;
 			warn(Z, "set and not used: %B", bit);
 			if(debug['R'])
-				print("set an not used: %B\n", bit);
+				print("set and not used: %B\n", bit);
 			excise(r);
 		}
 		for(z=0; z<BITS; z++)
@@ -531,6 +532,7 @@ brk:
 			case ADATA:
 			case AGLOBL:
 			case ANAME:
+			case ASIGNAME:
 				break;
 			}
 		}
@@ -817,7 +819,7 @@ rpolca(long *idom, long rpo1, long rpo2)
 		while(rpo1 < rpo2){
 			t = idom[rpo2];
 			if(t >= rpo2)
-				sysfatal("bad idom");
+				fatal(Z, "bad idom");
 			rpo2 = t;
 		}
 	}
@@ -873,7 +875,7 @@ loopit(Reg *r, long nr)
 
 	d = postorder(r, rpo2r, 0);
 	if(d > nr)
-		sysfatal("too many reg nodes");
+		fatal(Z, "too many reg nodes");
 	nr = d;
 	for(i = 0; i < nr / 2; i++){
 		r1 = rpo2r[i];

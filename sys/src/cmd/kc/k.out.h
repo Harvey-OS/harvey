@@ -21,7 +21,7 @@ enum
 	FREGZERO	= 24,	/* both float and double */
 	FREGHALF	= 26,	/* double */
 	FREGONE		= 28,	/* double */
-	FREGTWO		= 30,	/* double */
+	FREGTWO		= 30	/* double */
 /*
  * GENERAL:
  *
@@ -204,6 +204,7 @@ enum	as
 	AEND,
 	ADYNT,
 	AINIT,
+	ASIGNAME,
 	ALAST
 };
 
@@ -241,7 +242,7 @@ enum
 	D_PSR,
 	D_TBR,
 	D_WIM,
-	D_Y,
+	D_Y
 };
 
 /*
