@@ -13385,3 +13385,5 @@
 1064028667 0 c sys/man/3/uart - 664 sys sys 1064028248 1398
 1064028667 1 c sys/src/9/pc/uarti8250.c - 664 sys sys 1064028221 12826
 1064028667 2 c sys/src/9/port/devuart.c - 664 sys sys 1064028192 11762
+1064260884 0 c mail/lib/pipeto.lib - 664 upas upas 1064260731 3353
+1064268091 0 c mail/lib/pipeto.lib - 664 upas upas 1064267147 3367
