@@ -236,8 +236,9 @@ dorectangle(Vnc *v)
 	Rectangle r, subr, maxr;
 
 	r = vncrdrect(v);
-	if(!rectinrect(r, Rpt(ZP, v->dim))
-	|| r.min.x == r.max.x || r.min.y == r.max.y)
+	if(r.min.x == r.max.x || r.min.y == r.max.y)
+		return;
+	if(!rectinrect(r, Rpt(ZP, v->dim)))
 		sysfatal("bad rectangle from server: %R not in %R", r, Rpt(ZP, v->dim));
 	stride = Dx(r) * pixb;
 	type = vncrdlong(v);
