@@ -136,7 +136,10 @@ is always
 sought first in the directory 
 of the
 .I file
-argument.  If this fails, or the name is enclosed in
+argument.  If this fails,
+the
+.I -O
+flag is given or the name is enclosed in
 .BR <> ,
 it is then sought
 in directories named in 
@@ -146,6 +149,10 @@ then in
 .BR /sys/include ,
 and finally in
 .BR /$objtype/include .
+.TP
+.B -O
+Suppress the automatic searching for include files in
+the directory of the file argument.
 .TP
 .B -N
 Suppress automatic registerization and optimization.
@@ -414,3 +421,7 @@ For a full ANSI preprocessor, use
 the
 .B p
 option.
+.PP
+The default search order for include files
+differs to that of
+.IR cpp (1).

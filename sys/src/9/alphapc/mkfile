@@ -80,6 +80,7 @@ install:V: $p$CONF
 <../boot/bootmkfile
 <../port/portmkfile
 <|../port/mkbootrules $CONF
+<../pc/pcmkfile
 
 init.h:	initcode /sys/src/libc/9syscall/sys.h
 	$AS initcode
@@ -95,20 +96,6 @@ sd53c8xx.$O:	sd53c8xx.i
 
 sd53c8xx.i:	../pc/sd53c8xx.n
 	aux/na $prereq > $target
-
-devfloppy.$O:	../pc/devfloppy.c
-ether2114x.$O:	../pc/ether2114x.c
-mouse.$O:	../pc/mouse.c
-screen.$O:	../pc/screen.c
-sdata.$O:	../pc/sdata.c
-sdscsi.$O:	../pc/sdscsi.c
-uarti8250.$O:	../pc/uarti8250.c
-vga.$O:		../pc/vga.c
-vgargb524.$O:	../pc/vgargb524.c
-vgas3.$O:	../pc/vgas3.c
-vgasavage.$O:	../pc/vgasavage.c
-vgatvp3026.$O:	../pc/vgatvp3026.c
-vgax.$O:	../pc/vgax.c
 
 acid:V:
 	$CC -a -w -I. ../port/qio.c>acid
