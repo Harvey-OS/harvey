@@ -1,0 +1,456 @@
+#include <u.h>
+#include <libc.h>
+
+/*
+ *  floppy types (all MFM encoding)
+ */
+typedef struct Type	Type;
+struct Type
+{
+	char	*name;
+	int	bytes;		/* bytes/sector */
+	int	sectors;	/* sectors/track */
+	int	heads;		/* number of heads */
+	int	tracks;		/* tracks/disk */
+	int	media;		/* media descriptor byte */
+	int	cluster;	/* default cluster size */
+};
+Type floppytype[] =
+{
+ { "3½HD",	512, 18, 2, 80,	0xf0, 1, },
+ { "3½DD",	512,  9, 2, 80,	0xf9, 2, },
+ { "5¼HD",	512, 15, 2, 80,	0xf9, 1, },
+ { "5¼DD",	512,  9, 2, 40,	0xfd, 2, },
+};
+#define NTYPES (sizeof(floppytype)/sizeof(Type))
+
+typedef struct Dosboot	Dosboot;
+struct Dosboot{
+	uchar	magic[3];	/* really an xx86 JMP instruction */
+	uchar	version[8];
+	uchar	sectsize[2];
+	uchar	clustsize;
+	uchar	nresrv[2];
+	uchar	nfats;
+	uchar	rootsize[2];
+	uchar	volsize[2];
+	uchar	mediadesc;
+	uchar	fatsize[2];
+	uchar	trksize[2];
+	uchar	nheads[2];
+	uchar	nhidden[4];
+	uchar	bigvolsize[4];
+	uchar	driveno;
+	uchar	reserved0;
+	uchar	bootsig;
+	uchar	volid[4];
+	uchar	label[11];
+	uchar	reserved1[8];
+};
+#define	PUTSHORT(p, v) { (p)[1] = (v)>>8; (p)[0] = (v); }
+#define	PUTLONG(p, v) { PUTSHORT((p), (v)); PUTSHORT((p)+2, (v)>>16); }
+
+typedef struct Dosdir	Dosdir;
+struct Dosdir
+{
+	uchar	name[8];
+	uchar	ext[3];
+	uchar	attr;
+	uchar	reserved[10];
+	uchar	time[2];
+	uchar	date[2];
+	uchar	start[2];
+	uchar	length[4];
+};
+
+#define	DRONLY	0x01
+#define	DHIDDEN	0x02
+#define	DSYSTEM	0x04
+#define	DVLABEL	0x08
+#define	DDIR	0x10
+#define	DARCH	0x20
+
+/*
+ *  the boot program for the boot sector.  it should probably
+ *  be assembled code, but this is easier.
+ *
+ *  it includes the signiture of the ping-pong virus just to
+ *  drive people crazy.
+ */
+uchar bootprog[512] =
+{
+[0x00]	0xeb, 0x3c, 0x90, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+[0x10]	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+[0x20]	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+[0x30]	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfa, 0x33,
+[0x40]	0xc0, 0x8e, 0xd0, 0xbc, 0x00, 0x7c, 0x16, 0x07,
+	0xbb, 0x78, 0x00, 0x36, 0xc5, 0x37, 0x1e, 0x56,
+[0x50]	0x16, 0x53, 0xbf, 0x3e, 0x7c, 0xb9, 0x0b, 0x00,
+	0xfc, 0xf3, 0xa4, 0x06, 0x1f, 0xc6, 0x45, 0xfe,
+[0x60]	0x0f, 0x8b, 0x0e, 0x18, 0x7c, 0x88, 0x4d, 0xf9,
+	0x89, 0x47, 0x02, 0xc7, 0x07, 0x3e, 0x7c, 0xfb,
+[0x70]	0xcd, 0x13, 0x72, 0x79, 0x33, 0xc0, 0x39, 0x06,
+	0x13, 0x7c, 0x74, 0x08, 0x8b, 0x0e, 0x13, 0x7c,
+[0x80]	0x89, 0x0e, 0x20, 0x7c, 0xa0, 0x10, 0x7c, 0xf7,
+	0x26, 0x16, 0x7c, 0x03, 0x06, 0x1c, 0x7c, 0x13,
+[0x90]	0x16, 0x1e, 0x7c, 0x03, 0x06, 0x0e, 0x7c, 0x83,
+	0xd2, 0x00, 0xa3, 0x50, 0x7c, 0x89, 0x16, 0x52,
+[0xa0]	0x7c, 0xa3, 0x49, 0x7c, 0x89, 0x16, 0x4b, 0x7c,
+	0xb8, 0x20, 0x00, 0xf7, 0x26, 0x11, 0x7c, 0x8b,
+[0xb0]	0x1e, 0x0b, 0x7c, 0x03, 0xc3, 0x48, 0xf7, 0xf3,
+	0x01, 0x06, 0x49, 0x7c, 0x83, 0x16, 0x4b, 0x7c,
+[0xc0]	0x00, 0xbb, 0x00, 0x05, 0x8b, 0x16, 0x52, 0x7c,
+	0xa1, 0x50, 0x7c, 0xe8, 0x92, 0x00, 0x72, 0x1d,
+[0xd0]	0xb0, 0x01, 0xe8, 0xac, 0x00, 0x72, 0x16, 0x8b,
+	0xfb, 0xb9, 0x0b, 0x00, 0xbe, 0xe6, 0x7d, 0xf3,
+[0xe0]	0xa6, 0x75, 0x0a, 0xb8, 0x00, 0x08, 0x50, 0x07,
+	0x90, 0x90, 0x90, 0xeb, 0x18, 0xbe, 0x9e, 0x7d,
+[0xf0]	0xe8, 0x5f, 0x00, 0x33, 0xc0, 0xcd, 0x16, 0x5e,
+	0x1f, 0x8f, 0x04, 0x8f, 0x44, 0x02, 0xcd, 0x19,
+[0x100]	0x58, 0x58, 0x58, 0xeb, 0xe8, 0x8b, 0x47, 0x1a,
+	0x48, 0x48, 0x8a, 0x1e, 0x0d, 0x7c, 0x32, 0xff,
+[0x110]	0xf7, 0xe3, 0x03, 0x06, 0x49, 0x7c, 0x13, 0x16,
+	0x4b, 0x7c, 0xbb, 0x00, 0x00, 0xb9, 0x80, 0x00,
+[0x120]	0x50, 0x52, 0x51, 0xe8, 0x3a, 0x00, 0x72, 0xd8,
+	0xb0, 0x01, 0xe8, 0x54, 0x00, 0x59, 0x5a, 0x58,
+[0x130]	0x72, 0xbb, 0x05, 0x01, 0x00, 0x83, 0xd2, 0x00,
+	0x03, 0x1e, 0x0b, 0x7c, 0xe2, 0xe2, 0xb8, 0x00,
+[0x140]	0x08, 0x50, 0x1f, 0x90, 0x90, 0x90, 0x90, 0x90,
+	0x90, 0x90, 0x90, 0x90, 0x90, 0xea, 0x00, 0x00,
+[0x150]	0x00, 0x08, 0xac, 0x0a, 0xc0, 0x74, 0x29, 0xb4,
+	0x0e, 0xbb, 0x07, 0x00, 0xcd, 0x10, 0xeb, 0xf2,
+[0x160]	0x3b, 0x16, 0x18, 0x7c, 0x73, 0x19, 0xf7, 0x36,
+	0x18, 0x7c, 0xfe, 0xc2, 0x88, 0x16, 0x4f, 0x7c,
+[0x170]	0x33, 0xd2, 0xf7, 0x36, 0x1a, 0x7c, 0x88, 0x16,
+	0x25, 0x7c, 0xa3, 0x4d, 0x7c, 0xf8, 0xc3, 0xf9,
+[0x180]	0xc3, 0xb4, 0x02, 0x8b, 0x16, 0x4d, 0x7c, 0xb1,
+	0x06, 0xd2, 0xe6, 0x0a, 0x36, 0x4f, 0x7c, 0x8b,
+[0x190]	0xca, 0x86, 0xe9, 0x8a, 0x16, 0x24, 0x7c, 0x8a,
+	0x36, 0x25, 0x7c, 0xcd, 0x13, 0xc3, 0x0d, 0x0a,
+[0x1a0]	0x4e, 0x6f, 0x6e, 0x2d, 0x53, 0x79, 0x73, 0x74,
+	0x65, 0x6d, 0x20, 0x64, 0x69, 0x73, 0x6b, 0x20,
+[0x1b0]	0x6f, 0x72, 0x20, 0x64, 0x69, 0x73, 0x6b, 0x20,
+	0x65, 0x72, 0x72, 0x6f, 0x72, 0x0d, 0x0a, 0x52,
+[0x1c0]	0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x20, 0x61,
+	0x6e, 0x64, 0x20, 0x70, 0x72, 0x65, 0x73, 0x73,
+[0x1d0]	0x20, 0x61, 0x6e, 0x79, 0x20, 0x6b, 0x65, 0x79,
+	0x20, 0x77, 0x68, 0x65, 0x6e, 0x20, 0x72, 0x65,
+[0x1e0]	0x61, 0x64, 0x79, 0x0d, 0x0a, 0x00, 'P',  'L',
+	'A',  'N',  '9',  ' ',  ' ',  ' ',  'S',  'Y',
+[0x1f0]	'S',  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x57, 0x13, 0x55, 0xaa,
+};
+
+char *dev;
+int clustersize;
+uchar *fat;	/* the fat */
+int fatbits;
+int fatsecs;
+int fatlast;	/* last cluster allocated */
+int clusters;
+int fatsecs;
+int volsecs;
+uchar *root;	/* first block of root */
+int rootsecs;
+int rootfiles;
+int rootnext;
+Type *t;
+
+enum
+{
+	Sof = 1,	/* start of file */
+	Eof = 2,	/* end of file */
+};
+
+
+void	dosfs(int, int, char*);
+void	dosfile(int, char*, char*, char*);
+ulong	clustalloc(int);
+
+
+void
+usage(void)
+{
+	fprint(2, "usage: format [-d] floppy\n");
+	exits("usage");
+}
+
+void
+fatal(char *fmt, ...)
+{
+	int n;
+	char err[128];
+
+	n = doprint(err, err+sizeof(err), fmt, &fmt+1) - err;
+	err[n] = 0;
+	fprint(2, "format: %s\n", err);
+	exits(err);
+}
+
+void
+main(int argc, char **argv)
+{
+	int n, dos, sys;
+	int cfd;
+	char buf[512];
+	char label[11];
+	char *a;
+	int doformat;
+
+	sys = 0;
+	dos = 0;
+	clustersize = 0;
+	doformat = 1;
+	memmove(label, "NO NAME    ", sizeof(label));
+	ARGBEGIN {
+	case 'd':
+		dos = 1;
+		break;
+	case 'c':
+		clustersize = atoi(ARGF());
+		break;
+	case 'l':
+		a = ARGF();
+		n = strlen(a);
+		if(n > sizeof(label))
+			n = sizeof(label);
+		memmove(label, a, n);
+		break;
+	case 'n':
+		doformat = 0;
+		break;
+	case 's':
+		sys = 1;
+		break;
+	default:
+		usage();
+	} ARGEND
+
+	if(argc < 1)
+		usage();
+	n = strlen(argv[0]);
+	if(n > 4 && strcmp(argv[0]+n-4, "disk") == 0)
+		*(argv[0]+n-4) = 0;
+	else if(n > 4 && strcmp(argv[0]+n-4, "ctl") == 0)
+		*(argv[0]+n-3) = 0;
+	dev = argv[0];
+
+	sprint(buf, "%sctl", dev);
+	cfd = open(buf, ORDWR);
+	if(cfd < 0)
+		fatal("opening %s: %r", buf);
+	if(doformat){
+		print("Formatting floppy %s\n", dev);
+		if(argc > 1)
+			sprint(buf, "format %s", argv[1]);
+		else
+			strcpy(buf, "format");
+		if(write(cfd, buf, strlen(buf)) < 0)
+			fatal("formatting tracks: %r");
+	}
+
+	if(dos)
+		dosfs(cfd, sys, label);
+	close(cfd);
+	exits(0);
+}
+
+void
+dosfs(int cfd, int sys, char *label)
+{
+	char file[64];
+	char r[16];
+	Dosboot *b;
+	uchar *buf;
+	Dir d;
+	int n, fd;
+	ulong x;
+
+	print("Adding DOS file system\n");
+
+	sprint(file, "%sdisk", dev);
+	fd = open(file, ORDWR);
+	if(fd < 0)
+		fatal("opening %s: %r", file);
+	if(dirfstat(fd, &d) < 0)
+		fatal("stating %s: %r", file);
+
+	t = 0;
+	seek(cfd, 0, 0);
+	n = read(cfd, file, sizeof(file)-1);
+	if(n < 0)
+		fatal("reading floppy type");
+	else {
+		file[n] = 0;
+		for(t = floppytype; t < &floppytype[NTYPES]; t++)
+			if(strcmp(file, t->name) == 0)
+				break;
+		if(t == &floppytype[NTYPES])
+			fatal("unknown floppy type %s", file);
+	}
+	print("floppy type %s, %d tracks, %d heads, %d sectors/track, %d bytes/sec\n",
+		t->name, t->tracks, t->heads, t->sectors, t->bytes);
+
+	if(clustersize == 0)
+		clustersize = t->cluster;
+	clusters = d.length/(t->bytes*clustersize);
+	if(clusters < 4087)
+		fatbits = 12;
+	else
+		fatbits = 16;
+	volsecs = d.length/t->bytes;
+	fatsecs = (fatbits*clusters + 8*t->bytes - 1)/(8*t->bytes);
+	rootsecs = volsecs/200;
+	rootfiles = rootsecs * (t->bytes/32);
+	buf = malloc(t->bytes);
+	if(buf == 0)
+		fatal("out of memory");
+
+	/*
+	 *  write bootstrap & parameter block
+	 */
+	memmove(buf, bootprog, sizeof(bootprog));
+	b = (Dosboot*)buf;
+	memmove(b->version, "Plan9   ", sizeof(b->version));
+	PUTSHORT(b->sectsize, t->bytes);
+	b->clustsize = clustersize;
+	PUTSHORT(b->nresrv, 1);
+	b->nfats = 2;
+	PUTSHORT(b->rootsize, rootfiles);
+	if(volsecs < (1<<16)){
+		PUTSHORT(b->volsize, volsecs);
+	}
+	PUTLONG(b->bigvolsize, volsecs);
+	b->mediadesc = t->media;
+	PUTSHORT(b->fatsize, fatsecs);
+	PUTSHORT(b->trksize, t->sectors);
+	PUTSHORT(b->nheads, t->heads);
+	PUTLONG(b->nhidden, 0);
+	b->driveno = 0;
+	b->bootsig = 0x29;
+	x = time(0);
+	PUTLONG(b->volid, x);
+	memmove(b->label, label, sizeof(b->label));
+	sprint(r, "FAT%d    ", fatbits);
+	memmove(b->reserved1, r, sizeof(b->reserved1));
+	if(write(fd, buf, t->bytes) != t->bytes)
+		fatal("writing boot sector: %r");
+	free(buf);
+
+	/*
+	 *  allocate an in memory fat
+	 */
+	fat = malloc(fatsecs*t->bytes);
+	if(fat == 0)
+		fatal("out of memory");
+	fat[0] = t->media;
+	fat[1] = 0xff;
+	fat[2] = 0xff;
+	if(fatbits == 16)
+		fat[3] = 0xff;
+	fatlast = 1;
+	seek(fd, 2*fatsecs*t->bytes, 1);	/* 2 fats */
+
+	/*
+	 *  allocate an in memory root
+	 */
+	root = malloc(rootsecs*t->bytes);
+	if(root == 0)
+		fatal("out of memory");
+	seek(fd, rootsecs*t->bytes, 1);
+
+	/*
+	 *  add system files
+	 */
+	if(sys)
+		dosfile(fd, "/386/b.com", "PLAN9", "SYS");
+
+	/*
+	 *  write the fats and root
+	 */
+	seek(fd, t->bytes, 0);
+	if(write(fd, fat, fatsecs*t->bytes) < 0)
+		fatal("writing fat #1: %r");
+	if(write(fd, fat, fatsecs*t->bytes) < 0)
+		fatal("writing fat #2: %r");
+	if(write(fd, root, rootsecs*t->bytes) < 0)
+		fatal("writing root: %r");
+}
+
+/*
+ *  allocate a cluster
+ */
+ulong
+clustalloc(int flag)
+{
+	ulong o, x;
+
+	if(flag != Sof){
+		x = (flag == Eof) ? 0xffff : (fatlast+1);
+		if(fatbits == 12){
+			x &= 0xfff;
+			o = (3*fatlast)/2;
+			if(fatlast & 1){
+				fat[o] = (fat[o]&0x0f) | (x<<4);
+				fat[o+1] = x>>4;
+			} else {
+				fat[o] = x;
+				fat[o+1] = (fat[0+1]&0xf0) | (x>>8);
+			}
+		} else {
+			o = 2*fatlast;
+			fat[o] = x;
+			fat[o+1] = x>>8;
+		}
+	}
+		
+	if(flag == Eof)
+		return 0;
+	else
+		return ++fatlast;
+}
+
+/*
+ *  copy in a file
+ */
+void
+dosfile(int ffd, char *file, char *name, char *ext)
+{
+	Dosdir *dp;
+	int fd, len, n, start;
+	char *buf;
+
+	fd = open(file, OREAD);
+	if(fd < 0)
+		fatal("can't open %s: %r", file);
+	buf = malloc(clustersize*t->bytes);
+	if(buf == 0)
+		fatal("out of memory");
+	start = fatlast + 1;
+	for(len = 0; ; len += n){
+		n = read(fd, buf, clustersize*t->bytes);
+		if(n < 0)
+			fatal("can't read %s: %r", file);
+		if(n == 0)
+			break;
+		clustalloc(len == 0 ? Sof : 0);
+		if(write(ffd, buf, clustersize*t->bytes) < 0)
+			fatal("writing system file %s %s: %r", name, ext);
+	}
+	clustalloc(Eof);
+	free(buf);
+
+	dp = (void*)root;
+	dp += rootnext++;
+	memmove(dp->name, "        ", 8);
+	memmove(dp->name, name, strlen(name));
+	memmove(dp->ext, "   ", 3);
+	memmove(dp->ext, ext, strlen(ext));
+	dp->attr = DRONLY | DHIDDEN | DSYSTEM;
+	PUTSHORT(dp->start, start);
+	PUTLONG(dp->length, len);
+}

@@ -1,0 +1,92 @@
+// 68020 support
+
+defn acidinit()			// Called after all the init modules are loaded
+{
+	bplist = {};
+	bpfmt = 'x';
+
+	srcpath = {
+		"./",
+		"/sys/src/libc/port/",
+		"/sys/src/libc/9sys/",
+		"/sys/src/libc/68020/"
+	};
+
+	srcfiles = {};			// list of loaded files
+	srctext = {};			// the text of the files
+}
+
+defn stk()				// trace
+{
+	_stk(*PC, *A7, 0);
+}
+
+defn lstk()				// trace with locals
+{
+	_stk(*PC, *A7, 1);
+}
+
+defn gpr()				// print general purpose registers
+{
+	print("R0\t", *R0, "R1\t", *R1, "R2\t", *R2, "R3\t", *R3, "\n");
+	print("R4\t", *R4, "R5\t", *R5, "R6\t", *R6, "R7\t", *R7, "\n");
+	print("A0\t", *A0, "A1\t", *A1, "A2\t", *A2, "A3\t", *A3, "\n");
+	print("A4\t", *A4, "A5\t", *A5, "A6\t", *A6, "A7\t", *A7, "\n");
+}
+
+defn spr()				// print special processor registers
+{
+	local pc;
+	local cause;
+
+	pc = *PC;
+	print("PC\t", pc, fmt(pc, 'a'), "  ");
+	pfl(pc);
+	print("SP\t", *A7, "MAGIC\t", *MAGIC, "\n");
+
+	cause = *VO;
+	print("SR\t", *SR, "VO ", cause, reason(cause), "\n");
+}
+
+defn regs()				// print all registers
+{
+	spr();
+	gpr();
+}
+
+defn next()
+{
+	local lst;
+	local addr;
+
+	lst = follow(*PC);
+	while lst do {
+		addr = head lst;
+		print(fmt(addr, 'a'),"\t", fmt(addr, 'i'), "\n");
+		lst = tail lst;
+	}
+}
+
+defn pstop(pid)
+{
+	local l;
+	local pc;
+
+	pc = *PC;
+
+	print(pid,": ", reason(*VO), "\t");
+	print(fmt(pc, 'a'), "\t", fmt(pc, 'i'), "\n");
+
+	if notes then {
+		if notes[0] != "sys: breakpoint" then {
+			print("Notes pending:\n");
+			l = notes;
+			while l do {
+				print("\t", head l, "\n");
+				l = tail l;
+			}
+		}
+	}
+}
+
+print("/lib/acid/68020");

@@ -1,9 +1,10 @@
 /*
  * 68020 definition
  */
-#include "u.h"
+#include <u.h>
 #include "/68020/include/ureg.h"
-#include "mach.h"
+#include <bio.h>
+#include <mach.h>
 
 #define	MAXREG	0
 #define	MINREG	0
@@ -21,6 +22,7 @@
 #define	VO	REGOFF(vo)		/* vo, 2 bytes */
 #define	SR	REGOFF(sr)		/* sr, 2 bytes */
 
+#define	R0	REGOFF(r0)
 #define	PC	REGOFF(pc)
 #define	DBMAGIC	REGOFF(magic)
 #define	SP	REGOFF(usp)
@@ -29,54 +31,54 @@
  *	68020 register set
  */
 Reglist m68020reglist[] = {
-	{"VO",		VO,		0},
-	{"SR",		SR,		0},
-	{"MAGIC",	DBMAGIC,	0},
-	{"PC",		PC,		0},
-	{"A7",		SP,		0},
-	{"KSP",		REGOFF(sp),	0},
-	{"A6",		REGOFF(a6),	0},
-	{"A5",		REGOFF(a5),	0},
-	{"A4",		REGOFF(a4),	0},
-	{"A3",		REGOFF(a3),	0},
-	{"A2",		REGOFF(a2),	0},
-	{"A1",		REGOFF(a1),	0},
-	{"A0",		REGOFF(a0),	0},
-	{"R7",		REGOFF(r7),	0},
-	{"R6",		REGOFF(r6),	0},
-	{"R5",		REGOFF(r5),	0},
-	{"R4",		REGOFF(r4),	0},
-	{"R3",		REGOFF(r3),	0},
-	{"R2",		REGOFF(r2),	0},
-	{"R1",		REGOFF(r1),	0},
-	{"R0",		REGOFF(r0),	0},
-	{"FPCR",	FREG(0*4),	1},
-	{"FPSR",	FREG(1*4),	1},
-	{"FPIAR",	FREG(2*4),	1},
-	{"F0H",		FREG(3*4),	1},
-	{"F0M",		FREG(4*4),	1},
-	{"F0L",		FREG(5*4),	1},
-	{"F1H",		FREG(6*4),	1},
-	{"F1M",		FREG(7*4),	1},
-	{"F1L",		FREG(8*4),	1},
-	{"F2H",		FREG(9*4),	1},
-	{"F2M",		FREG(10*4),	1},
-	{"F2L",		FREG(11*4),	1},
-	{"F3H",		FREG(12*4),	1},
-	{"F3M",		FREG(13*4),	1},
-	{"F3L",		FREG(14*4),	1},
-	{"F4H",		FREG(15*4),	1},
-	{"F4M",		FREG(16*4),	1},
-	{"F4L",		FREG(17*4),	1},
-	{"F5H",		FREG(18*4),	1},
-	{"F5M",		FREG(19*4),	1},
-	{"F5L",		FREG(20*4),	1},
-	{"F6H",		FREG(21*4),	1},
-	{"F6M",		FREG(22*4),	1},
-	{"F6L",		FREG(23*4),	1},
-	{"F7H",		FREG(24*4),	1},
-	{"F7M",		FREG(25*4),	1},
-	{"F7L",		FREG(26*4),	1},
+	{"VO",		VO,		0,	'x'},
+	{"SR",		SR,		0,	'x'},
+	{"MAGIC",	DBMAGIC,	0,	'X'},
+	{"PC",		PC,		0,	'X'},
+	{"A7",		SP,		0,	'X'},
+	{"KSP",		REGOFF(sp),	0,	'X'},
+	{"A6",		REGOFF(a6),	0,	'X'},
+	{"A5",		REGOFF(a5),	0,	'X'},
+	{"A4",		REGOFF(a4),	0,	'X'},
+	{"A3",		REGOFF(a3),	0,	'X'},
+	{"A2",		REGOFF(a2),	0,	'X'},
+	{"A1",		REGOFF(a1),	0,	'X'},
+	{"A0",		REGOFF(a0),	0,	'X'},
+	{"R7",		REGOFF(r7),	0,	'X'},
+	{"R6",		REGOFF(r6),	0,	'X'},
+	{"R5",		REGOFF(r5),	0,	'X'},
+	{"R4",		REGOFF(r4),	0,	'X'},
+	{"R3",		REGOFF(r3),	0,	'X'},
+	{"R2",		REGOFF(r2),	0,	'X'},
+	{"R1",		REGOFF(r1),	0,	'X'},
+	{"R0",		REGOFF(r0),	0,	'X'},
+	{"FPCR",	FREG(0*4),	1,	'X'},
+	{"FPSR",	FREG(1*4),	1,	'X'},
+	{"FPIAR",	FREG(2*4),	1,	'X'},
+	{"F0H",		FREG(3*4),	1,	'8'},
+	{"F0M",		FREG(4*4),	1,	'8'},
+	{"F0L",		FREG(5*4),	1,	'8'},
+	{"F1H",		FREG(6*4),	1,	'8'},
+	{"F1M",		FREG(7*4),	1,	'8'},
+	{"F1L",		FREG(8*4),	1,	'8'},
+	{"F2H",		FREG(9*4),	1,	'8'},
+	{"F2M",		FREG(10*4),	1,	'8'},
+	{"F2L",		FREG(11*4),	1,	'8'},
+	{"F3H",		FREG(12*4),	1,	'8'},
+	{"F3M",		FREG(13*4),	1,	'8'},
+	{"F3L",		FREG(14*4),	1,	'8'},
+	{"F4H",		FREG(15*4),	1,	'8'},
+	{"F4M",		FREG(16*4),	1,	'8'},
+	{"F4L",		FREG(17*4),	1,	'8'},
+	{"F5H",		FREG(18*4),	1,	'8'},
+	{"F5M",		FREG(19*4),	1,	'8'},
+	{"F5L",		FREG(20*4),	1,	'8'},
+	{"F6H",		FREG(21*4),	1,	'8'},
+	{"F6M",		FREG(22*4),	1,	'8'},
+	{"F6L",		FREG(23*4),	1,	'8'},
+	{"F7H",		FREG(24*4),	1,	'8'},
+	{"F7M",		FREG(25*4),	1,	'8'},
+	{"F7L",		FREG(26*4),	1,	'8'},
 	{0}
 };
 
@@ -89,6 +91,7 @@ Mach m68020 =
 	PC,
 	SP,
 	0,		/* no link */
+	R0,		/* return register */
 	0,		/* first writable register */
 	0x2000,		/* page size */
 	0x80000000,	/* kernel base */

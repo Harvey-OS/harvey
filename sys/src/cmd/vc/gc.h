@@ -219,7 +219,7 @@ void	nextpc(void);
 void	gargs(Node*, Node*, Node*);
 void	garg1(Node*, Node*, Node*, int, Node**);
 Node*	nodconst(long);
-Node*	nodfconst(long);
+Node*	nodfconst(double);
 void	nodreg(Node*, Node*, int);
 void	regret(Node*, Node*);
 void	regalloc(Node*, Node*, Node*);
@@ -263,12 +263,12 @@ void	ieeedtod(Ieee*, double);
  * list
  */
 void	listinit(void);
-int	Pconv(void*, int, int, int, int);
-int	Aconv(void*, int, int, int, int);
-int	Dconv(void*, int, int, int, int);
-int	Sconv(void*, int, int, int, int);
-int	Nconv(void*, int, int, int, int);
-int	Bconv(void*, int, int, int, int);
+int	Pconv(void*, Fconv*);
+int	Aconv(void*, Fconv*);
+int	Dconv(void*, Fconv*);
+int	Sconv(void*, Fconv*);
+int	Nconv(void*, Fconv*);
+int	Bconv(void*, Fconv*);
 
 /*
  * reg.c

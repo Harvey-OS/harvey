@@ -67,7 +67,7 @@ gaddr(Scan *sp)
 		sp->err = toolong;
 		return 0;
 	}
-	sprint(addr, "%I", sp->p);
+	snprint(addr, sizeof(addr), "%I", sp->p);
 	sp->p += 4;
 
 	return dnlookup(addr, Cin, 1);
@@ -270,6 +270,8 @@ rrloop(Scan *sp, int count, int quest)
 	first = 0;
 	for(i = 0; i < count; i++){
 		rp = quest ? convM2Q(sp) : convM2RR(sp);
+		if(rp == 0)
+			break;
 		if(sp->err){
 			rrfree(rp);
 			break;

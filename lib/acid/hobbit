@@ -1,0 +1,175 @@
+// 386 support
+
+defn acidinit()			// Called after all the init modules are loaded
+{
+	bplist = {};
+	bpfmt = 'x';
+
+	srcpath = {
+		"./",
+		"/sys/src/libc/port/",
+		"/sys/src/libc/9sys/",
+		"/sys/src/libc/hobbit/"
+	};
+
+	srcfiles = {};			// list of loaded files
+	srctext = {};			// the text of the files
+}
+
+defn stk()				// trace
+{
+	_stk(*PC, *SP, 0);
+}
+
+defn lstk()				// trace with locals
+{
+	_stk(*PC, *SP, 1);
+}
+
+defn gpr()		// print general purpose registers
+{
+	sp = fmt(*SP, 'X');
+	print("R0\t",  *sp++, "R4\t", *sp++,  "R8\t",  *sp++, "R12\t", *sp++, "\n");
+	print("R16\t", *sp++, "R20\t", *sp++, "R24\t", *sp++, "R28\t", *sp++, "\n");
+	print("R32\t", *sp++, "R36\t", *sp++, "R40\t", *sp++, "R44\t", *sp++, "\n");
+	print("R48\t", *sp++, "R52\t", *sp++, "R56\t", *sp++, "R60\t", *sp++, "\n");
+}
+
+defn spr()				// print special processor registers
+{
+	local pc;
+	local cause;
+
+	pc = *PC;
+	print("PC\t", pc, fmt(pc, 'a'), "  ");
+	pfl(pc);
+	print("SP\t", *SP, "MSP\t", *MSP, "\n");
+	print("PSW\t", *PSW, "FAULT\t", *FAULT, "\n");
+	
+	cause = *CAUSE;
+	print("ID\t", *ID, "CAUSE ", cause, reason(cause), "\n");
+}
+
+defn regs()				// print all registers
+{
+	spr();
+	gpr();
+}
+
+defn next()
+{
+	local lst;
+	local addr;
+
+	lst = follow(*PC);
+	while lst do {
+		addr = head lst;
+		print(fmt(addr, 'a'),"\t", fmt(addr, 'i'), "\n");
+		lst = tail lst;
+	}
+}
+
+defn pstop(pid)
+{
+	local l;
+	local pc;
+
+	pc = *PC;
+
+	print(pid,": ", reason(*CAUSE), "\t");
+	print(fmt(pc, 'a'), "\t", fmt(pc, 'i'), "\n");
+
+	if notes then {
+		if notes[0] != "sys: breakpoint" then {
+			print("Notes pending:\n");
+			l = notes;
+			while l do {
+				print("\t", head l, "\n");
+				l = tail l;
+			}
+		}
+	}
+}
+
+defn step()					// single step the process
+{
+	local lst;
+	local lpl;
+	local addr;
+	local bput;
+
+	lst = follow(*PC);
+
+	lpl = lst;
+	while lpl do {				// place break points
+		*((head lpl)^0x02) = bpinst;
+		lpl = tail lpl;
+	}
+
+	bput = 0;
+	if match(*PC, bplist) >= 0 then {	// Sitting on a breakpoint
+		bput = fmt(*PC^0x02, bpfmt);
+		*bput = @bput;
+	}
+
+	startstop(pid);				// do the step
+
+	while lst do {				// remove the breakpoints
+		addr = fmt((head lst)^0x02, bpfmt);
+		*addr = @addr;
+		lst = tail lst;
+	}
+	if bput != 0 then
+		*bput = bpinst;
+}
+
+defn bpset(addr)				// set a breakpoint
+{
+	if match(addr, bplist) >= 0 then
+		print("breakpoint already set at ", fmt(addr, 'a'), "\n");
+	else {
+		*fmt(addr^0x02, bpfmt) = bpinst;
+		bplist = append bplist, addr;
+	}
+}
+
+defn bpdel(addr)				// delete a breakpoint
+{
+	local n;
+	local pc;
+	local ra;
+	local nbplist;
+
+	n = match(addr, bplist);
+	if n < 0  then
+		print("no breakpoint at ", fmt(addr, 'a'), "\n");
+	else {
+		ra = fmt(addr^0x02, bpfmt);
+		*ra = @ra;
+
+		nbplist = {};			// delete from list
+		while bplist do {
+			pc = head bplist;
+			if pc != addr then
+				nbplist = append nbplist, pc;
+			bplist = tail bplist;
+		}
+		bplist = nbplist;		// delete from memory
+	}
+}
+
+defn cont()					// continue execution
+{
+	local addr;
+
+	addr = fmt(*PC, bpfmt);
+	if match(addr, bplist) >= 0 then {	// Sitting on a breakpoint
+		addr = addr^0x02;
+		*addr = @addr;
+		step();				// Step over
+		*addr = bpinst;
+	}
+	startstop(pid);				// Run
+}
+
+print("/lib/acid/hobbit");

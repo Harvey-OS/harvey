@@ -8,6 +8,7 @@ void f_major(char *, ...);
 static Keymap keys[] = {
 	"name", NULLFN, 1,
 	"type", NULLFN, 2,
+	"comment", NULLFN, 3,
 	0
 };
 void symdel(char *, int);
@@ -20,6 +21,7 @@ f_chip(char *s)
 	int loop;
 	Chip *cc = 0;
 	char *typename = 0;
+	char *comment = 0;
 
 	BLANK(s);
 	if(loop = *s == '{')
@@ -36,6 +38,8 @@ f_chip(char *s)
 				(void)symlook(cc->name, S_CHIP, (void *)cc);
 				if(typename)
 					cc->typename = typename;
+				if(comment)
+					cc->comment = comment;
 			}
 			break;
 		case 2:
@@ -43,6 +47,12 @@ f_chip(char *s)
 				cc->typename = f_strdup(s);
 			else
 				typename = f_strdup(s);
+			break;
+		case 3:
+			if(cc)
+				cc->comment = f_strdup(s);
+			else
+				comment = f_strdup(s);
 			break;
 		default:
 			f_minor("Chip: unknown field: '%s'\n", s);

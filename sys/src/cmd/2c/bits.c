@@ -77,7 +77,7 @@ bnum(Bits a)
 }
 
 Bits
-blsh(int n)
+blsh(unsigned n)
 {
 	Bits c;
 
@@ -88,7 +88,7 @@ blsh(int n)
 
 /*
 int
-bset(Bits a, int n)
+bset(Bits a, unsigned n)
 {
 	int i;
 
@@ -99,13 +99,12 @@ bset(Bits a, int n)
 */
 
 int
-Bconv(void *o, int f1, int f2, int f3, int chr)
+Bconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
 	int i;
 
-	USED(chr);
 	str[0] = 0;
 	bits = *(Bits*)o;
 	while(bany(&bits)) {
@@ -122,6 +121,6 @@ Bconv(void *o, int f1, int f2, int f3, int chr)
 		strcat(str, s);
 		bits.b[i/32] &= ~(1L << (i%32));
 	}
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(bits);
 }

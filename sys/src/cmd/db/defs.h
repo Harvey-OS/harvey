@@ -3,12 +3,12 @@
  * something of a grab-bag
  */
 
-#include "u.h"
-#include "libc.h"
-#include "bio.h"
-#include "ctype.h"
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include <ctype.h>
 
-#include "mach.h"
+#include <mach.h>
 
 typedef long WORD;
 typedef ulong ADDR;

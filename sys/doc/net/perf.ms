@@ -3,7 +3,7 @@ Performance
 .PP
 We've measured both latency and throughput between
 to for a number of different paths.
-Measuerments were made on a two and four
+Measurements were made on a two and four
 CPU SGI Power Series processor.
 The CPU's are 25 MHZ MIPS 3000's.
 The latency is measured as the round trip time

@@ -606,13 +606,6 @@ enum
 	Mbdksrlisten1,
 	Mbdksrlisten2,
 	Mbdkinput,
-/*	Mbnonet1,
-	Mbnonet2,
-	Mbnonet3,	*/
-/*	Mbhotrod1,
-	Mbhotrod2,
-	Mbhotrod3,
-	Mbhotrod4,	*/
 	Mbcycl1,
 	Mbcycl2,
 	Mbcycl3,
@@ -963,9 +956,9 @@ enum
 	Udpproto	= 17,
 	Nqueue		= 20,
 	Nfrag		= 6,		/* max number of non-contig ip fragments */
-	Nrock		= 100,		/* number of partial ip assembly stations */
-	Ne		= 10,
-	Nb		= 211,
+	Nrock		= 20,		/* number of partial ip assembly stations */
+	Nb		= 211,		/* number of arp hash buckets */
+	Ne		= 10,		/* number of entries in each arp hash bucket */
 
 	Ensize		= 14,		/* ether header size */
 	Ipsize		= 20,		/* ip header size -- doesnt include Ensize */

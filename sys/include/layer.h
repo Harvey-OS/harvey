@@ -26,19 +26,21 @@ struct Cover
 	Bitmap	*ground;	/* background texture */
 };
 
-extern void	layerop(void (*)(Layer *, Rectangle, Layer *, void *),
-			Rectangle, Layer *, void *);
-extern Layer	*lalloc(Cover *, Rectangle);
-extern void	 lfree(Layer *);
-extern void	 ltofront(Layer *);
-extern void	 ltoback(Layer *);
-extern void	 lupdate(Layer *, Rectangle, Layer *, void *);
+extern void	layerop(void (*)(Layer*, Rectangle, Layer*, void*),
+			Rectangle, Layer*, void*);
+extern Layer	*lalloc(Cover*, Rectangle);
+extern void	 lfree(Layer*);
+extern void	 ltofront(Layer*);
+extern void	 ltoback(Layer*);
+extern void	 lupdate(Layer*, Rectangle, Layer *, void *);
 extern void	 lcstring(Bitmap*, int, int, uchar*, uchar*, int);
 
 extern void	_bitblt(Bitmap*, Point, Bitmap*, Rectangle, Fcode);
 extern void	_linsertback(Layer*);
 extern void	_linsertfront(Layer*);
 extern void	_ldelete(Layer*);
+extern void	_point(Bitmap*, Point, int, Fcode);
+extern void	_polysegment(Bitmap*, int, Point*, int, Fcode);
 extern Point	_string(Bitmap*, Point, Font*, char*, Fcode);
 extern void	_segment(Bitmap*, Point, Point, int, Fcode);
 extern void	_texture(Bitmap*, Rectangle, Bitmap*, Fcode);

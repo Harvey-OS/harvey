@@ -12,7 +12,7 @@ authorize(dest *dp)
 	String *errstr;
 
 	dp->authorized = 1;
-	pp = proc_start(s_to_c(dp->repl1), (stream *)0, (stream *)0, outstream(), 1);
+	pp = proc_start(s_to_c(dp->repl1), (stream *)0, (stream *)0, outstream(), 1, 0);
 	if (pp == 0)
 		return;
 	errstr = s_new();

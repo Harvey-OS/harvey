@@ -1,4 +1,5 @@
 #include "all.h"
+void	searchtag(Device d, int tag, long a);
 
 #define	DEBUG		0
 #define	RECOVCW		0		/* address of root to be recovered */
@@ -950,6 +951,7 @@ cwrecover(Device dev)
 	wdev = WDEV(dev);
 
 	devinit(wdev);
+
 
 	p = getbuf(devnone, Cwxx1, 0);
 	s = (Superb*)p->iobuf;
@@ -1967,12 +1969,33 @@ convstate(char *name)
 }
 
 void
+searchtag(Device d, int tag, long a)
+{
+	Iobuf *p;
+	Tag *t;
+	int i;
+
+	p = getbuf(devnone, Cwxx2, 0);
+	t = (Tag*)(p->iobuf+BUFSIZE);
+	for(i=0; i<1000; i++) {
+		memset(p->iobuf, 0, RBUFSIZE);
+		if(devread(d, a+i, p->iobuf))
+			continue;
+		if(t->tag != tag)
+			continue;
+		print("tag %d found at %D %ld\n", tag, d, a+i);
+		break;
+	}
+	putbuf(p);
+}
+
+void
 cmd_cwcmd(int argc, char *argv[])
 {
 	Filsys *fs;
 	Device dev;
 	char *arg;
-	long s1, s2, a;
+	long s1, s2, a, b;
 
 	if(argc <= 1) {
 		print("	cwcmd mvstate state1 state2\n");
@@ -1986,6 +2009,7 @@ cmd_cwcmd(int argc, char *argv[])
 		print("	cwcmd resequence\n");
 		print("	cwcmd bktcheck\n");
 		print("	cwcmd allflag\n");
+		print("	cwcmd tag [tagid] [start]\n");
 		return;
 	}
 	arg = argv[1];
@@ -1994,6 +2018,16 @@ cmd_cwcmd(int argc, char *argv[])
 		if(dev.type != Devcw)
 			continue;
 
+		if(strcmp(arg, "tag") == 0) {
+			a = Tsuper;
+			if(argc > 2)
+				a = number(argv[2], 0, 10);
+			b = 0;
+			if(argc > 3)
+				b = number(argv[2], 0, 10);
+			searchtag(WDEV(dev), a, b);
+			continue;
+		}
 		if(strcmp(arg, "mvstate") == 0) {
 			if(argc <= 3)
 				goto bad;

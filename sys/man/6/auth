@@ -60,7 +60,7 @@ message
 (see
 .IR attach (5));
 that ticket guarantees that the user requesting the service is
-the one validated by authentication server.
+the one validated by the authentication server.
 .PP
 In describing the protocols, the following notation is used.
 .PD 0
@@ -258,7 +258,7 @@ authentication protocol.)
 .B chal
 field of the
 .B Rauth
-and extracts the 15-byte long ticket (KS{FSctick,\^ChS,\^KT}).
+and extracts the 15-byte long ticket (KS{FSstick,\^ChS,\^KT}).
 It places that in the
 .B auth
 field of the
@@ -290,7 +290,7 @@ which recognizes the incoming call and
 reads the already-encrypted string KS{RXschal,ChS} from the file
 .B #c/chal
 and transmits it to C.
-.B RXscal
+.B RXschal
 is a single byte identifying the message type.
 .PP
 [2] The client encapsulates the message in a larger message containing

@@ -283,9 +283,10 @@ pipe_mail(dest *dp, message *mp)
 	dest *next, *list=0;
 	String *cmd;
 	process *pp;
-	int status;
+	int status, none;
 	String *errstring=s_new();
 
+	none = dp->status == d_pipeto;
 	/*
 	 *  collect the arguments
 	 */
@@ -322,7 +323,7 @@ pipe_mail(dest *dp, message *mp)
 	/*
 	 *  run the process
 	 */
-	pp = proc_start(s_to_c(cmd), instream(), 0, outstream(), 1);
+	pp = proc_start(s_to_c(cmd), instream(), 0, outstream(), 1, none);
 	if(pp==0 || pp->std[0]==0 || pp->std[2]==0)
 		return refuse(list, mp, "out of processes, pipes, or memory", 0);
 	m_print(mp, pp->std[0]->fp, thissys, 0);

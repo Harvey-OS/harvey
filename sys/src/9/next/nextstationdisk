@@ -10,7 +10,7 @@ dev
 	bit	b
 	ether	l
 	scc	t
-	scsi	S	scsi
+	scsi	S	scsi scsibuf
 	floppy	f
 	wren	w
 	iproute	P
@@ -39,6 +39,7 @@ port
 		extern void trap(void*);
 		trap(ur);
 	}
+	void audiodmaintr(void){}
 boot terminal #w1/hd1
 	9600
 	19200

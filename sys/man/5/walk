@@ -55,3 +55,9 @@ any of the following calls, which evaluate file names:
 .IR open ,
 .IR stat ,
 .IR wstat .
+The file name element
+.B .
+(dot) is interpreted locally and
+is not transmitted in
+.B walk
+messages.

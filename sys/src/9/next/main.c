@@ -61,8 +61,7 @@ machinit(void)
 void
 ioinit(void)
 {
-	sccsetup(SCCADDR, SCCFREQ);
-	sccspecial(1, 0, &mouseq, 1200);	/* scc port 1 is the mouse */
+	sccsetup(SCCADDR, SCCFREQ, 1);
 
 	timerinit();
 }

@@ -16,7 +16,7 @@ dev
 	iproute	P
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
 	rtc	r
-	scsi	S	scsi
+	scsi	S	scsi scsibuf
 	wren	w
 	vid	v
 
@@ -34,6 +34,7 @@ port
 	int cpuserver = 0;
 	void consdebug(void){}
 	void kproftimer(ulong pc){USED(pc);}
+	int islcd;
 
 boot
 	local

@@ -273,6 +273,9 @@ and is certainly buggy.
 Bitfields are not supported in
 .IR zc .
 .PP
+Unsigned integers as large as
+2^31 are not correctly converted to floating.
+.PP
 The preprocessor only handles
 .LR #define ,
 .LR #include ,

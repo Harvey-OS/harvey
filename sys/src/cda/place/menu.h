@@ -17,4 +17,4 @@ typedef struct NMenu
 	short	prevtop;		/* private to menuhit() */
 } NMenu;
 
-NMitem *mhit(NMenu *, int, int);
+NMitem *mhit(NMenu *, int, int, Mouse *);

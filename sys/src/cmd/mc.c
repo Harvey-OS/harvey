@@ -29,7 +29,7 @@ int nwords=0;
 Biobuf	bin;
 Biobuf	bout;
 
-void getwidth(void), readbuf(void), error(char *);
+void getwidth(void), readbuf(int), error(char *);
 void scanwords(void), columnate(void), morechars(void);
 
 void
@@ -37,6 +37,8 @@ main(int argc, char *argv[])
 {
 	int i;
 	int lineset;
+	int ifd;
+
 	lineset = 0;
 	Binit(&bout, 1, OWRITE);
 	while(argc > 1 && argv[1][0] == '-'){
@@ -63,14 +65,15 @@ main(int argc, char *argv[])
 	if(word == 0 || cbuf == 0)
 		error("out of memory");
 	if(argc == 1)
-		readbuf();
+		readbuf(0);
 	else{
 		for(i = 1; i < argc; i++){
-			if(open(*++argv, OREAD) == -1)
-				fprint(2, "mc: can't open %s\n", *argv);
+			if((ifd = open(*++argv, OREAD)) == -1)
+				fprint(2, "mc: can't open %s (%r)\n", *argv);
 			else{
-				readbuf();
-				Bclose(&bin);
+				readbuf(ifd);
+				Bflush(&bin);
+				close(ifd);
 			}
 		}
 	}
@@ -84,13 +87,13 @@ error(char *s)
 	exits(s);
 }
 void
-readbuf(void)
+readbuf(int fd)
 {
 	int lastwascolon = 0;
 	long c;
 	int linesiz = 0;
 
-	Binit(&bin, 0, OREAD);
+	Binit(&bin, fd, OREAD);
 	do{
 		if(nchars++ >= nalloc)
 			morechars();

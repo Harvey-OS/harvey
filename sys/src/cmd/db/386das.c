@@ -504,8 +504,8 @@ Opcode optabg[] = {
 	{ "IMUL", 0, 0, EAX, 0 },
 	{ "DIV", 0, 0, EAX, 0 },
 	{ "IDIV", 0, 0, EAX, 0 },
-[0x18]	{ "INC", 1, I, 0, 0 },
-	{ "DEC", 1, I, 0, 0 },
+[0x18]	{ "INC", 1, E, 0, 0 },
+	{ "DEC", 1, E, 0, 0 },
 	{ "", 0, 0, 0, 0 },		/* no instruction */
 	{ "", 0, 0, 0, 0 },		/* no instruction */
 	{ "", 0, 0, 0, 0 },		/* no instruction */
@@ -1464,7 +1464,7 @@ properand(Instr *i, int and)
 	switch(o->type){
 	case I:
 	case O:
-		if (findsym(o->val, CANY, &s) && s.value-o->val < maxoff)
+		if (findsym(o->val, CANY, &s) && o->val - s.value < maxoff)
 			psymoff(o->val, SEGANY, "(SB)");
 		else
 			dprint("$%lux", o->val);

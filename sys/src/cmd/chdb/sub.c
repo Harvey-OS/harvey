@@ -164,46 +164,47 @@ searchposit(Xor* xp, long lb, long hb, long ng, int inv)
 }
 
 void
-searchre(Reprog *re, long field, long lb, long hb, long ng, int inv)
+searchre(Reprog *re, long afield, long lb, long hb, long ng, int inv)
 {
 	Str *s, tmp;
-	long i;
+	long i, field, j;
 	Game g;
 	char *fld;
-	int f, j;
+	int f;
 
-	if(field == 0)
-		field = (1<<Bywhite) | (1<<Byblack);
+	if(afield == 0)
+		afield = (1<<Bywhite) | (1<<Byblack);
 	ngames = ng;
 	s = &str[lb];
 	for(i=lb; i<hb; i++,s++) {
 		f = 0;
 		decode(&g, s);
-		for(j=Bywhite; j<=Byresult; j++) {
-			if(!(field & (1<<j)))
-				continue;
+		field = afield;
+		while(field) {
+			j = field & ~(field-1);
+			field &= ~j;
 			switch(j) {
 			default:
 				continue;
-			case Bywhite:
+			case 1<<Bywhite:
 				fld = g.white;
 				break;
-			case Byblack:
+			case 1<<Byblack:
 				fld = g.black;
 				break;
-			case Byevent:
+			case 1<<Byevent:
 				fld = g.event;
 				break;
-			case Byopening:
+			case 1<<Byopening:
 				fld = g.opening;
 				break;
-			case Bydate:
+			case 1<<Bydate:
 				fld = g.date;
 				break;
-			case Byfile:
+			case 1<<Byfile:
 				fld = g.file;
 				break;
-			case Byresult:
+			case 1<<Byresult:
 				fld = g.result;
 				break;
 			}
@@ -223,18 +224,18 @@ searchre(Reprog *re, long field, long lb, long hb, long ng, int inv)
 }
 
 void
-searchmark(int mark, long lb, long hb, long ng, int inv)
+searchmark(int ch, long lb, long hb, long ng, int inv)
 {
 	Str *s, tmp;
 	long i;
-	int b;
+	ulong b;
 
-	b = 1 << mark;
+	b = genmark(ch);
 	ngames = ng;
 	s = &str[lb];
 	if(inv) {
 		for(i=lb; i<hb; i++,s++)
-			if(!(s->flag & b)) {
+			if(!(s->mark & b)) {
 				tmp = *s;
 				*s = str[ngames];
 				str[ngames] = tmp;
@@ -242,7 +243,7 @@ searchmark(int mark, long lb, long hb, long ng, int inv)
 			}
 	} else {
 		for(i=lb; i<hb; i++,s++)
-			if(s->flag & b) {
+			if(s->mark & b) {
 				tmp = *s;
 				*s = str[ngames];
 				str[ngames] = tmp;
@@ -351,15 +352,15 @@ setmark(int ch)
 {
 	long i;
 	Str *s;
-	int b;
+	ulong b;
 
-	b = 1<<ch;
+	b = genmark(ch);
 	s = str;
 	for(i=0; i<ngames; i++,s++)
-		s->flag |= b;
+		s->mark |= b;
 	b = ~b;
 	for(; i<tgames; i++,s++)
-		s->flag &= b;
+		s->mark &= b;
 }
 
 long
@@ -537,6 +538,30 @@ xcmp(ulong *a, ulong *b)
 	if(*a > *b)
 		return 1;
 	if(*a < *b)
+		return -1;
+	return 0;
+}
+
+int
+ycmp(ulong *a, ulong *b)
+{
+	ushort* g1, *g2;
+
+	if(*a > *b)
+		return 1;
+	if(*a < *b)
+		return -1;
+	a++; b++;
+	if(*a > *b)
+		return 1;
+	if(*a < *b)
+		return -1;
+	a++; b++;
+	g1 = (*(Str**)a)->gp;
+	g2 = (*(Str**)b)->gp;
+	if(g1 < g2)
+		return 1;
+	if(g1 > g2)
 		return -1;
 	return 0;
 }
@@ -763,8 +788,8 @@ void
 dodupl(void)
 {
 	ulong *posn, *p;
-	long i;
-	int j, b;
+	long i, b;
+	int j, n;
 	Str *s;
 	Game g;
 
@@ -773,24 +798,28 @@ dodupl(void)
 		yyerror("no memory");
 		return;
 	}
-	b = ~(1<<1);
+	b = ~genmark('1');
 	p = posn;
 	s = &str[0];
 	for(i=0; i<tgames; i++,s++) {
-		s->flag &= b;
+		s->mark &= b;
 		decode(&g, s);
 		if(g.nmoves < 10)
-			s->flag |= ~b;
+			s->mark |= ~b;
 		ginit(&initp);
-		for(j=0; j<g.nmoves; j++)
+		n = g.nmoves/2;
+		for(j=0; j<n; j++)
 			move(g.moves[j]);
 		*p++ = posxorw();
-		*p++ = xposxor;
+		n = g.nmoves;
+		for(; j<n; j++)
+			move(g.moves[j]);
+		*p++ = posxorw();
 		*p++ = (ulong)s;
 	}
-	qsort(posn, tgames, 3*sizeof(ulong), xcmp);
+	qsort(posn, tgames, 3*sizeof(ulong), ycmp);
 
-	b = 1<<1;
+	b = genmark('1');
 	p = posn;
 	for(i=1; i<tgames; i++) {
 		if(p[0] == p[0+3])
@@ -798,9 +827,20 @@ dodupl(void)
 			s = (Str*)p[2];
 			decode(&g, s);
 			s->position = g.nmoves;
-			s->flag |= b;
+			s->mark |= b;
 		}
 		p += 3;
 	}
 	free(posn);
+}
+
+ulong
+genmark(int ch)
+{
+
+	if(ch >= '0' && ch <= '9')
+		return 1 << (ch-'0');
+	if(ch >= 'a' && ch <= 'z')
+		return 1 << 10 + (ch-'a');
+	return 0;
 }

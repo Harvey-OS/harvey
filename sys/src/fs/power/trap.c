@@ -77,22 +77,19 @@ void
 intr(Ureg *ur, ulong cause)
 {
 	int i, any;
-	uchar pend, npend, xxx;
+	uchar pend, xxx;
 	long v;
 	ulong ima;
 
 	lights(Lintr, 1);
 
 	cause &= INTR5|INTR4|INTR3|INTR2|INTR1;
-	if(cause & (INTR2|INTR4)) {
-		clock(cause, ur->pc);
-		cause &= ~(INTR2|INTR4);
-	}
 	if(cause & INTR1) {
 		duartintr();
 		cause &= ~INTR1;
 	}
-	if(cause & INTR5) {
+
+	while(cause & INTR5) {
 		any = 0;
 		if(!(*MPBERR1 & (1<<8))) {
 			if(probeflag) {
@@ -122,7 +119,6 @@ intr(Ureg *ur, ulong cause)
 		 *  3. read pending interrupts
 		 */
 		pend = SBCCREG->fintpending;
-		npend = pend;
 
 		/*
 		 *  4. clear pending register
@@ -140,7 +136,6 @@ intr(Ureg *ur, ulong cause)
 		xxx = SBCCREG->fintpending;
 		if(xxx){
 			print("new pend %ux\n", xxx);
-			npend = pend |= xxx;
 			i = SBCCREG->flevel;
 			USED(i);
 		}
@@ -169,9 +164,9 @@ intr(Ureg *ur, ulong cause)
 				if(v & (1<<2))
 					lanceintr(0);
 				if(v & (1<<1))
-					print("SCSI 1 interrupt\n");
+					scsiintr(1);
 				if(v & (1<<0))
-					print("SCSI 0 interrupt\n");
+					scsiintr(0);
 			}
 		}
 
@@ -184,26 +179,25 @@ intr(Ureg *ur, ulong cause)
 				v = INTVECREG->i[i].vec;
 				if(!(v & (1<<12)))
 					clrbuserr(ur, 2);
-				if(vmeintr(v & 0xFF) == 0){ /* No registered handler */
+				/* No registered handler */
+				if(vmeintr(v & 0xFF) == 0) {
 					ima = *IO2CLRMASK;
-					print("VME: unacked int vec=%d imask=0x%lux\n",
+					print("VME: noack vec=%d imask=0x%lux\n",
 						v & 0xff, ima);
 				}
 				any = 1;
 			}
 		}
 		/*
-		 *  if nothing
-		 */
-		if(!any) {
-			USED(npend);
-		}
-
-		/*
 		 *  6. re-enable interrupts
 		 */
 		*IO2SETMASK = 0xff000000;
-		cause &= ~INTR5;
+		if(any == 0)
+			cause &= ~INTR5;
+	}
+	if(cause & (INTR2|INTR4)) {
+		clock(cause, ur->pc);
+		cause &= ~(INTR2|INTR4);
 	}
 	if(cause)
 		print("cause %lux %lux\n", u, cause);

@@ -277,13 +277,13 @@ void	ieeedtod(Ieee*, double);
  * list
  */
 void	listinit(void);
-int	Pconv(void*, int, int, int, int);
-int	Aconv(void*, int, int, int, int);
-int	Dconv(void*, int, int, int, int);
-int	Zconv(void*, int, int, int, int);
-int	Rconv(void*, int, int, int, int);
-int	Xconv(void*, int, int, int, int);
-int	Bconv(void*, int, int, int, int);
+int	Pconv(void*, Fconv*);
+int	Aconv(void*, Fconv*);
+int	Dconv(void*, Fconv*);
+int	Zconv(void*, Fconv*);
+int	Rconv(void*, Fconv*);
+int	Xconv(void*, Fconv*);
+int	Bconv(void*, Fconv*);
 
 /*
  * reg.c
@@ -334,7 +334,7 @@ Bits	band(Bits, Bits);
 Bits	bnot(Bits);
 int	bany(Bits*);
 int	bnum(Bits);
-Bits	blsh(int);
+Bits	blsh(unsigned);
 int	beq(Bits, Bits);
 
 #define	D_HI	D_NONE

@@ -3,52 +3,66 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
+#include	"io.h"
 
-static	char	bbarena[10000];
-static	char	bbused[10];
+/*
+ * Allocate memory for use in kernel bitblts.
+ *
+ * This code will have to be interlocked if we ever get
+ * a multiprocessor with a bitmapped display.
+ */
 
-void*
-bbmalloc(int n)
+/* a 0->3 bitblt can take 800 longs */
+enum {
+	narena=2,	/* put interrupt time stuff in separate arena */
+	nbbarena=4096	/* number of words in an arena */
+};
+
+static ulong	bbarena[narena][nbbarena];
+static ulong	*bbcur[narena] = {&bbarena[0][0], &bbarena[1][0]};
+static ulong	*bblast[narena] = {0, 0};
+
+#define INTENABLED(v)	((v)&(1<<9))
+void *
+bbmalloc(int nbytes)
 {
-	char *a;
-	int s, i;
+	int nw, a;
+	int s;
+	ulong *ans;
 
+	nw = nbytes/sizeof(long);
 	s = splhi();
-	a = memchr(bbused, 0, sizeof(bbused));
-	if(a) {
-		i = a - bbused;
-		a = bbarena + i*n;
-		if(a+n <= bbarena+sizeof(bbarena)) {
-			bbused[i] = 1;
-			splx(s);
-			return a;
-		}
-	}
+	a = INTENABLED(s) ? 0 : 1;
+	if(bbcur[a] + nw > &bbarena[a][nbbarena])
+		ans = bbarena[a];
+	else
+		ans = bbcur[a];
+	bbcur[a] = ans + nw;
 	splx(s);
-	print("too many bbmallocs\n");
-	return bbarena;
+	bblast[a] = ans;
+	return ans;
 }
 
 void
-bbfree(void *va, int n)
+bbfree(void *p, int n)
 {
-	int s, i;
+	int a, s;
 
 	s = splhi();
-	i = ((char*)va - bbarena) /n;
-	if(i >= 0 && i < sizeof(bbused) && bbused[i]){
-		bbused[i] = 0;
-		splx(s);
-		return;
-	}
+	a = INTENABLED(s) ? 0 : 1;
+	if(p == bblast[a])
+		bbcur[a] = (ulong *)(((char *)bblast[a]) + n);
 	splx(s);
-	print("sanity bbfree\n");
+}
+
+void
+bbdflush(void *p, int n)
+{
+	USED(p, n);
 }
 
 int
 bbonstack(void)
 {
-	if(u)
-		return 1;
 	return 0;
 }

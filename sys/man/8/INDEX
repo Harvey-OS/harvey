@@ -70,11 +70,11 @@ il7 listen
 il9 listen
 listen listen
 tcp17007 listen
-tcp17008 listen
 tcp21 listen
 tcp23 listen
 tcp25 listen
 tcp513 listen
+tcp564 listen
 tcp565 listen
 tcp6000 listen
 tcp7 listen
@@ -86,6 +86,8 @@ pump mk9660
 flio mkfs
 mkext mkfs
 mkfs mkfs
+aux/mouse mouse
+mouse mouse
 cs ndb
 csquery ndb
 dns ndb
@@ -99,7 +101,6 @@ disk/prep prep
 prep prep
 qer qer
 runq runq
-safariconfig safariconfig
 scuzz scuzz
 Digital Pathways SecureNet Key securenet
 securenet securenet
@@ -107,3 +108,5 @@ snoopy snoopy
 swap swap
 stats sysmon
 sysmon sysmon
+aux/vga vga
+vga vga

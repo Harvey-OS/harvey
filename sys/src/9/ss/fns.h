@@ -1,5 +1,6 @@
 #include "../port/portfns.h"
 
+void	bootargs(ulong);
 void	cacheinit(void);
 ulong	call(void*, ...);
 void	clearftt(ulong);

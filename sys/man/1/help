@@ -189,7 +189,7 @@ initializes its display and prints the words
 and
 .B Exit
 across the top.
-.CW Exit
+.B Exit
 is naturally the built-in command to quit
 .IR help .
 The program
@@ -197,7 +197,7 @@ The program
 loads
 .I help
 with the tools named in the environment variable
-.CW $helpboot .
+.B $helpboot .
 .SS Support programs
 See
 .IR help (4)

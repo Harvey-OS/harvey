@@ -48,6 +48,12 @@ static	uchar	tsz[4] = { 4, 1, 2, 0 };
 int	wbfault(ulong, int, ushort, int, ulong);
 ulong	normalize(ulong, ulong, ulong);
 
+extern struct{
+	ulong	addr;
+	ulong	baddr;
+	Lock;
+}kmapalloc;
+
 void
 fault68040(Ureg *ur, FFrame *f)
 {
@@ -148,10 +154,12 @@ wbfault(ulong fa, int user, ushort wbs, int wbn, ulong d)
 	s = tsz[(wbs&WBSIZE) >> WBSZSH];
 	if(user || !kernaddr(addr)){
 		if(fault(fa, 0) < 0){
+print("wbfault: %lux, 0\n", fa);
 			return -1;
 		}
 		if(addr != ((fa+s-1)&~(BY2PG-1)))
 			if(fault(fa+s-1, 0) < 0){
+print("wbfault: %lux, %lux\n", fa, fa+s-1);
 				return -1;
 			}
 	}

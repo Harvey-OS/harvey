@@ -15,15 +15,17 @@
  *
  */
 
-#define FASTLIM	0
-#define TABLE	1
-#define FAIL	2
-#define ACCEPT	3
-#define TABLE2	4
-#define EOT	-1
+enum{
+	FASTLIM,
+	TABLE,
+	FAIL,
+	ACCEPT,
+	TABLE2,
+	EOT	= -1,
 
-/* special machine state */
-#define HANG	-1
+	/* special machine state */
+	HANG	= -1,
+};
 
 /*
  * In order for the walker to access the labelled leaves of a pattern,
@@ -39,18 +41,25 @@
  *
  * The table is interpreted by the _getleaves routine in the walker.
  */
-#define	eSTOP	0
-#define	ePOP	-1
-#define eEVAL	-2
-#define eNEXT	-3
-#define ePUSH	-4
+enum{
+	eSTOP		= 0,
+	ePOP		= -1,
+	eEVAL		= -2,
+	eNEXT		= -3,
+	ePUSH		= -4,
 
-/* Tags that indicate the type of a value */
-#define M_BRANCH 010000
-#define M_NODE	0
-#define M_LABEL 01000
-#define MAX_NODE_VALUE 00777
-#define MTAG_SHIFT 9
+	/*
+	 * Tags that indicate the type of a value
+	 * max values for shorts
+	 * CHANGE CAREFULLY!!!
+	 */
+	M_BRANCH	= 0x4000,
+	M_NODE		= 0,
+	M_LABEL		= 0x2000,
+	MAX_NODE_VALUE	= 0x1fff,
+	MTAG_SHIFT	= 9,
+};
+
 #define M_DETAG(x)	((x)&~(M_BRANCH|M_LABEL|M_NODE))
 
 /* predicates to tell whether a value x is of type NODE, BRANCH, or LABEL */

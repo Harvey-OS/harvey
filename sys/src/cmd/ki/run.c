@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <mach.h>
 #include <bio.h>
+#include <mach.h>
 #define Extern extern
 #include "sparc.h"
 
@@ -268,8 +268,10 @@ ilock(int rd)
 }
 
 void
-delay(void)
+delay(ulong npc)
 {
+	ulong opc;
+
 	reg.r[0] = 0;
 	if(reg.ir != NOP)
 		ci->useddelay++;
@@ -287,12 +289,18 @@ delay(void)
 	case 2:
 		ci = &op2[(reg.ir>>19)&0x3f];
 		ci->count++;
+		opc = reg.pc;
+		reg.pc = npc-4;
 		(*ci->func)(reg.ir);
+		reg.pc = opc;
 		break;
 	case 3:
 		ci = &op3[(reg.ir>>19)&0x3f];
 		ci->count++;
+		opc = reg.pc;
+		reg.pc = npc-4;
 		(*ci->func)(reg.ir);
+		reg.pc = opc;
 		break;
 	}
 }
@@ -1228,7 +1236,7 @@ call(ulong ir)
 	ci->taken++;
 	reg.r[15] = reg.pc;
 	reg.ir = ifetch(reg.pc+4);
-	delay();
+	delay(npc);
 
 	if(calltree) {
 		findsym(npc, CTEXT, &s);
@@ -1272,7 +1280,7 @@ jmpl(ulong ir)
 	ci->taken++;
 	reg.r[rd] = reg.pc;
 	reg.ir = ifetch(reg.pc+4);
-	delay();
+	delay(ea);
 	reg.pc = ea-4;
 }
 
@@ -1384,7 +1392,7 @@ bicc(ulong ir)
 		reg.pc += 4;
 		if(anul == 0) {
 			reg.ir = ifetch(reg.pc);
-			delay();
+			delay(reg.pc+4);
 		}
 		else
 			anulled++;
@@ -1398,6 +1406,6 @@ bicc(ulong ir)
 		return;	
 	}
 	reg.ir = ifetch(reg.pc+4);
-	delay();
+	delay(npc);
 	reg.pc = npc-4;
 }

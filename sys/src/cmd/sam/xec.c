@@ -270,8 +270,8 @@ u_cmd(File *f, Cmd *cp)
 	USED(f);
 	USED(cp);
 	n = cp->num;
-	while(n--)
-		undo();
+	while(n-- && undo())
+		;
 	return TRUE;
 }
 

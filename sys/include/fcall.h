@@ -88,8 +88,8 @@ int	convS2M(Fcall*, char*);
 int	convM2D(char*, Dir*);
 int	convD2M(Dir*, char*);
 
-int	fcallconv(void *, int, int, int, int);
-int	dirconv(void *, int, int, int, int);
-int	dirmodeconv(void *, int, int, int, int);
+int	fcallconv(void *, Fconv*);
+int	dirconv(void *, Fconv*);
+int	dirmodeconv(void *, Fconv*);
 
 char*	getS(int, char*, Fcall*, long*);

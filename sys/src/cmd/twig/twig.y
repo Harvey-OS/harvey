@@ -20,8 +20,10 @@ int ntrees = 0;
 int nerrors = 0;
 int fatalerrors = 0;
 int tree_lineno;
-FILE *outfile;
-FILE *symfile;
+Biobuf	*bin;
+Biobuf	*bout;
+Biobuf	*symfile;
+
 Code *epilogue;
 
 SymbolEntry ErrorSymbol;
@@ -63,7 +65,7 @@ decl:	K_NODE assoc_list ';' = { SymbolEnterList ($2, A_NODE); }
 
 	| K_LABEL id_list ';' = { SymbolEnterList ($2, A_LABEL); }
 
-	| K_PROLOGUE CBLOCK ';' = { CodeWrite(outfile, $2); CodeFreeBlock($2); }
+	| K_PROLOGUE CBLOCK ';' = { CodeWrite(bout, $2); CodeFreeBlock($2); }
 
 	| K_COST ID CBLOCK ';'
 		= { $2->sd.ca.code = $3; $2->sd.ca.assoc = NULL;
@@ -322,90 +324,91 @@ CheckIsDefined(SymbolEntry *symp)
 void
 yyerror(char *fmt, ...)
 {
-	va_list va;
+	char buf[4096];
 
-	fprintf(stderr, "line %d: ", yyline);
-	va_start(va, fmt);
-	vfprintf (stderr, fmt, va);
-	va_end(va);
-	if (token_buffer[0]!=0)
-		fprintf(stderr, " at \"%s\"\n", token_buffer);
+	doprint(buf, buf + sizeof buf, fmt, &fmt+1);
+	fprint(2, "line %d: %s", yyline, buf);
+	if (token_buffer[0] != 0)
+		fprint(2, " at \"%s\"\n", token_buffer);
 }
 
 void
 yyerror2 (char *fmt, ...)
 {
-	va_list va;
+	char buf[4096];
 
-	fprintf(stderr, "line %d: ", yyline);
-	va_start(va, fmt);
-	vfprintf (stderr, fmt, va);
-	va_end(va);
-	putchar('\n');
+	doprint(buf, buf + sizeof buf, fmt, &fmt+1);
+	fprint(2, "line %d: %s\n", yyline, buf);
 }
 
-char *cmdnam;
 char *inFileName;
 char *outFileName;
 char prefixFile[100];
-static char usage[] = "usage: mt [ASC] [-d] file";
-#define USAGE	error(1, usage)
 char *prefix_base = "/sys/lib/twig/walker";
 char *suffix = "stdio";
 
 void
-main(int argc, char **argv)
+usage(void)
 {
-	char *cp;
+	fprint(2, "usage: %s [-ACSlswx] file\n", argv0);
+	exits("usage");
+}
 
-	cmdnam = argv[0];
-	argv++;
+void
+main(int argc, char *argv[])
+{
+	Biobuf *prefix;
+	char *cp;
+	int c;
+
 	inFileName = NULL;
 
-	while(--argc > 0) {
-		if (*argv[0]=='-')
-			switch(argv[0][1]) {
-			/* to see what each of these flags mean...
-			 * see common.h */
-			case 'd': {
-				char *cp;
-				for(cp = &argv[0][2]; *cp!='\0'; cp++) 
-					switch(*cp) {
-					case 'l': debug_flag |= DB_LEX; break;
-					case 'm': debug_flag |= DB_MACH; break;
-					case 's': debug_flag |= DB_SYM; break;
-					case 't': debug_flag |= DB_TREE; break;
-					case 'M': debug_flag |= DB_MEM;	break;
-					}
-				}
-				break;
-			case 'D': Dflag++;		break;
-			case 't': tflag++;		break;
-			case 's': sflag++;		break;
-			case 'A': suffix = "ansi";	break;
-			case 'S': suffix = "stdio";	break;
-			case 'C': suffix = "libc";	break;
-			case 'w': suffix = process_suffix(&argv[0][2]); break;
-			case 'l': prefix_base = &argv[0][2]; break;
-			case 'x': line_xref_flag++; break;
-			default:
-				USAGE;
+	ARGBEGIN{
+	/* to see what each of these flags mean...
+	 * see common.h */
+	case 'd': {
+		char *cp;
+		for(cp = ARGF(); *cp!='\0'; cp++) 
+			switch(*cp) {
+			case 'l': debug_flag |= DB_LEX; break;
+			case 'm': debug_flag |= DB_MACH; break;
+			case 's': debug_flag |= DB_SYM; break;
+			case 't': debug_flag |= DB_TREE; break;
+			case 'M': debug_flag |= DB_MEM;	break;
 			}
-		else inFileName = argv[0];
-		argv++;
-	}
-	if(inFileName==NULL)
-		USAGE;
+		}
+		break;
+	case 'D': Dflag++;		break;
+	case 't': tflag++;		break;
+	case 's': sflag++;		break;
+	case 'A': suffix = "ansi";	break;
+	case 'S': suffix = "stdio";	break;
+	case 'C': suffix = "libc";	break;
+	case 'w': suffix = process_suffix(ARGF()); break;
+	case 'l': prefix_base = ARGF(); break;
+	case 'x': line_xref_flag++; break;
+	default:
+		usage();
+	}ARGEND
 
-	fin = fopen(inFileName, "r");	
-	if(fin==NULL)
+	if(argc != 1)
+		usage();
+	inFileName = argv[0];
+
+	bin = Bopen(inFileName, OREAD);	
+	if(!bin)
 		error(1, "can't open %s", inFileName);
-	if((cp=strrchr(inFileName, '.'))!=NULL && strcmp(cp,".mt")==0) {
-		if ((outfile = fopen("walker.c" , "w"))==NULL)
-			error(1, "can't write %s", outFileName);
-		if ((symfile = fopen("symbols.h", "w"))==NULL)
-			error(1, "can't write %s", outFileName);
-	} else error(1, "input file must have suffix .mt");
+	cp = utfrrune(inFileName, L'.');
+	if(!cp || strcmp(cp,".mt") != 0)
+		error(1, "input file must have suffix .mt");
+	bout = Bopen("walker.c", OWRITE);
+	if(!bout)
+		error(1, "can't open walker.c");
+	if(!sflag){
+		symfile = Bopen("symbols.h", OWRITE);
+		if(!symfile)
+			error(1, "can't open symbols.h");
+	}
 
 	ErrorSymbol.attr = A_LABEL;
 	TreeInit();
@@ -414,24 +417,24 @@ main(int argc, char **argv)
 	MachInit();
 	yyparse();
 
-	SymbolDump();
+	if(!sflag)
+		SymbolDump();
 	if(nerrors == 0) {
 		if(!tflag) {
-			FILE *prefix;
-			char c;
- 			sprintf(prefixFile, "%s.%s", prefix_base, suffix);
-			prefix = fopen(prefixFile, "r");
-			assert(prefix!=NULL);
+			sprint(prefixFile, "%s.%s", prefix_base, suffix);
+			prefix = Bopen(prefixFile, OREAD);
+			assert(prefix != NULL);
 			if(Dflag)
-				fputs("#define DEBUG 1\n", outfile);
+				Bprint(bout, "#define DEBUG 1\n");
 			if(line_xref_flag)
-				fputs("#define LINE_XREF 1\n", outfile);
-			fprintf(outfile,"# line 1 \"%s\"\n", prefixFile);
-			while((c=getc(prefix))!=EOF) putc(c, outfile);
+				Bprint(bout, "#define LINE_XREF 1\n");
+			Bprint(bout, "#line 1 \"%s\"\n", prefixFile);
+			while((c = Bgetc(prefix)) != Beof)
+				Bputc(bout, c);
 		}
 		MachineGen();
 		SymbolGenerateWalkerCode();
-		CodeWrite(outfile, epilogue);
+		CodeWrite(bout, epilogue);
 		CodeFreeBlock(epilogue);
 	}
 
@@ -442,7 +445,7 @@ void
 cleanup(int retcode)
 {
 	lexCleanup();
-	if(retcode==0) {
+	if(!retcode) {
 		SymbolFinish();
 	}
 	exits(retcode ? "errors" : 0);
@@ -451,13 +454,10 @@ cleanup(int retcode)
 void
 error(int rc, char *fmt, ...)
 {
-	va_list va;
+	char buf[4096];
 
-	fprintf(stderr, "%s: ", cmdnam);
-	va_start(va, fmt);
-	vfprintf (stderr, fmt, va);
-	va_end(va);
-	putc ('\n', stderr);
+	doprint(buf, buf + sizeof buf, fmt, &fmt+1);
+	fprint(2, "%s: %s\n", argv0, buf);
 	if(rc)
 		exits("errors");
 }
@@ -465,14 +465,10 @@ error(int rc, char *fmt, ...)
 void
 sem_error(char *fmt, ...)
 {
-	va_list va;
+	char buf[4096];
 
-	fprintf (stderr, "line %d: ", yyline);
-	va_start(va, fmt);
-	vfprintf (stderr, fmt, va);
-	va_end(va);
-	putc('\n', stderr);
-fflush(stderr);
+	doprint(buf, buf + sizeof buf, fmt, &fmt+1);
+	fprint(2, "line %d: %s\n", yyline, buf);
 	nerrors++;
 	fatalerrors++;
 }
@@ -480,13 +476,10 @@ fflush(stderr);
 void
 sem_error2(char *fmt, ...)
 {
-	va_list va;
+	char buf[4096];
 
-	va_start(va, fmt);
-	vfprintf (stderr, fmt, va);
-	va_end(va);
-	putc('\n', stderr);
-fflush(stderr);
+	doprint(buf, buf + sizeof buf, fmt, &fmt+1);
+	fprint(2, "%s\n", buf);
 	nerrors++;
 }
 
@@ -494,16 +487,17 @@ static char *
 process_suffix(char *suf)
 {
 	extern int gen_table2;
-	if(strcmp(suf,"exper")==0) {
+
+	if(strcmp(suf,"exper") == 0){
 		/* experimental walker */
 		/* expect this to change alot */
 		gen_table2++;
 	}
-	return(suf);
+	return suf;
 }
 
 void *
-Malloc(unsigned long n)
+Malloc(ulong n)
 {
 	void *p;
 

@@ -4,4 +4,4 @@ sender=$1
 shift
 addr=$1
 shift
-/bin/upas/smtp -u $addr $sender $*
+/bin/upas/smtp -g research -u $addr $sender $*

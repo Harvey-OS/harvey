@@ -64,15 +64,26 @@ extern	void*	realloc(void*, long);
 /*
  * print routines
  */
-extern	void	strconv(char*, int, int, int);
-extern	int	fmtinstall(int, int (*)(void*, int, int, int, int));
+typedef	struct	Fconv	Fconv;
+struct	Fconv
+{
+	char*	out;		/* pointer to next output */
+	char*	eout;		/* pointer to end */
+	int	f1;
+	int	f2;
+	int	f3;
+	int	chr;
+};
 extern	char*	doprint(char*, char*, char*, void*);
-extern	int	numbconv(void*, int, int, int, int);
-extern	int	fltconv(void*, int, int, int, int);
 extern	int	print(char*, ...);
+extern	int	snprint(char*, int, char*, ...);
 extern	int	sprint(char*, char*, ...);
 extern	int	fprint(int, char*, ...);
 
+extern	int	fmtinstall(int, int (*)(void*, Fconv*));
+extern	int	numbconv(void*, Fconv*);
+extern	void	strconv(char*, Fconv*);
+extern	int	fltconv(void*, Fconv*);
 /*
  * random number
  */
@@ -271,8 +282,8 @@ struct Dir
 	int	atime;
 	int	mtime;
 	Length;
-	short	type;
-	short	dev;
+	ushort	type;
+	ushort	dev;
 } Dir;
 
 typedef

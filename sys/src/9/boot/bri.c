@@ -6,12 +6,23 @@ void
 configbri(Method *mp)
 {
 	int devno = 0;
-	int fd, n, chan;
+	int fd, n, chan, i;
 	int pfd[2];
 	char dbuf[8], sbuf[8], rbuf[8];
+	char *argv[16];
 	char buf[128], file[3*NAMELEN];
+	char dialstr[32];
 	char *p;
+	char *dbg, *dkptr;
 
+	if(p = strchr(mp->arg, ';')){	/* assign = */
+		dbg = mp->arg;
+		*p++ = 0;
+		dkptr = p;
+	}else{
+		dbg = 0;
+		dkptr = mp->arg;
+	}
 	fd = connectlocal();
 	if(fd < 0)
 		fatal("no local file system");
@@ -25,11 +36,22 @@ configbri(Method *mp)
 	case -1:
 		fatal("fork");
 	case 0:
+		i = 0;
+		argv[i++] = "briserver";
+		if(dbg){
+			argv[i++] = "-D";
+			argv[i++] = dbg;
+		}
+		argv[i++] = "-d";
+		argv[i++] = dbuf;
 		sprint(dbuf, "%d", devno);
+		argv[i++] = "-s";
+		argv[i++] = sbuf;
 		sprint(sbuf, "%d", pfd[0]);
+		argv[i++] = rbuf;
 		sprint(rbuf, "%d", pfd[1]);
-		execl("/68020/bin/isdn/briserver", "briserver",
-			"-d", dbuf, "-s", sbuf, rbuf, 0);
+		argv[i] = 0;
+		exec("/68020/bin/isdn/briserver", argv);
 		fatal("can't exec briserver");
 	default:
 		break;
@@ -44,9 +66,9 @@ configbri(Method *mp)
 		fd = open(file, ORDWR);
 		if(fd < 0)
 			fatal(file);
-		memset(buf, 0, sizeof(buf));
-		outin("Number please ", buf, sizeof(buf));
-		fprint(fd, "c/0 %s\n", buf);
+		memset(dialstr, 0, sizeof(dialstr));
+		outin("Number please ", dialstr, sizeof(dialstr));
+		fprint(fd, "c/0 %s\n", dialstr);
 		n = read(fd, buf, sizeof buf-1);
 		close(fd);
 		if(n <= 0)
@@ -62,7 +84,23 @@ configbri(Method *mp)
 	chan = strtoul(p, 0, 0);
 	if(chan < 1 || chan > 2)
 		fatal("bad channel from bri server");
+	sprint(file, "#I%d/b1xb2", devno);
+	fd = open(file, OWRITE);
+	if(fd < 0)
+		fatal(file);
+	sendmsg(fd, (chan==2) ? "0" : "1");
+	close(fd);
+	chan = 2;
 
+	switch(fork()){
+	case -1:
+		fatal("fork");
+	case 0:
+		execl("/68020/bin/isdn/dkbrimon", "dkbrimon", dialstr, 0);
+		fatal("can't exec dkbrimon");
+	default:
+		break;
+	}
 	sprint(file, "#H%d/ctl", 2*devno+chan-1);
 	fd = open(file, ORDWR);
 	if(fd < 0)
@@ -70,7 +108,7 @@ configbri(Method *mp)
 	sendmsg(fd, "hdlc on");
 	sendmsg(fd, "recven");
 	sendmsg(fd, "push dkmux");
-	sendmsg(fd, mp->arg);
+	sendmsg(fd, dkptr);
 	close(fd);
 }
 

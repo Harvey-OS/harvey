@@ -1,5 +1,5 @@
 CONF=pc
-CONFLIST=pc pcdisk dos
+CONFLIST=pc pcdisk pcpcm dos nomad bwk
 
 objtype=386
 </$objtype/mkfile
@@ -21,7 +21,6 @@ OBJ=\
 	kbd.$O\
 	fault.$O\
 	fault386.$O\
-	headland.$O\
 	latin1.$O\
 	taslock.$O\
 	main.$O\
@@ -31,12 +30,10 @@ OBJ=\
 	segment.$O\
 	swap.$O\
 	pgrp.$O\
-	pmu.$O\
 	print.$O\
 	proc.$O\
 	qlock.$O\
 	queue.$O\
-	vga.$O\
 	sysfile.$O\
 	sysproc.$O\
 	trap.$O\
@@ -45,11 +42,13 @@ OBJ=\
 	boot$CONF.root.$O\
 	$MISC $STREAM\
 	fcall.$O\
+	archgeneric.$O archnsx20.$O archncr3170.$O\
 
 
 9$CONF:	$OBJ $CONF.c /386/lib/libgnot.a
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
 	$LD -o $target -T0x80001020 -l $OBJ $CONF.$O -lgnot -lg -lc
+	size 9$CONF
 
 install:V: 9$CONF
 	cp 9$CONF /386/9$CONF

@@ -24,7 +24,7 @@ char	hasunlocked = 0;
 void
 main(int argc, char *argv[])
 {
-	int got, scr;
+	int i, got, scr;
 	Text *t;
 	Rectangle r;
 	Flayer *nwhich;
@@ -52,9 +52,16 @@ main(int argc, char *argv[])
 			reshape();
 		if(got&RHost)
 			rcv();
+		if(got&RExtern){
+			for(i=0; cmd.l[i].textfn==0; i++)
+				;
+			current(&cmd.l[i]);
+			flsetselect(which, cmd.rasp.nrunes, cmd.rasp.nrunes);
+			type(which, RExtern);
+		}
 		if(got&RKeyboard)
 			if(which)
-				type(which);
+				type(which, RKeyboard);
 			else
 				kbdblock();
 		if(got&RMouse){
@@ -120,9 +127,9 @@ current(Flayer *nw)
 		flupfront(nw);
 		flborder(nw, 1);
 		buttons(Up);
-		t=(Text *)nw->user1;
+		t = (Text *)nw->user1;
 		t->front = nw-&t->l[0];
-		if(t!=&cmd)
+		if(t != &cmd)
 			work = nw;
 	}
 	which = nw;
@@ -243,15 +250,19 @@ void
 cut(Text *t, int w, int save, int check)
 {
 	long p0, p1;
+	Flayer *l;
 
-	if((p0 = t->l[w].p0)==(p1 = t->l[w].p1))
+	l = &t->l[w];
+	p0 = l->p0;
+	p1 = l->p1;
+	if(p0 == p1)
 		return;
-	if(p0<0)
+	if(p0 < 0)
 		panic("cut");
 	if(save)
 		snarf(t, w);
 	outTsll(Tcut, t->tag, p0, p1);
-	flsetselect(&t->l[w], p0, p0);
+	flsetselect(l, p0, p0);
 	t->lock++;
 	hcut(t->tag, p0, p1-p0);
 	if(check)
@@ -402,14 +413,18 @@ flushtyping(int clearesc)
 #define	ESC		0x1B
 
 void
-type(Flayer *l)	/* what a bloody mess this is */
+type(Flayer *l, int res)	/* what a bloody mess this is */
 {
 	Text *t = (Text *)l->user1;
 	Rune buf[100];
 	Rune *p = buf;
-	int c, backspacing = 0;
+	int c, backspacing;
 	long a;
-	int scrollkey = qpeekc()==SCROLLKEY;	/* ICK */
+	int scrollkey;
+
+	scrollkey = 0;
+	if(res == RKeyboard)
+		scrollkey = qpeekc()==SCROLLKEY;	/* ICK */
 
 	if(lock || t->lock){
 		kbdblock();
@@ -421,23 +436,21 @@ type(Flayer *l)	/* what a bloody mess this is */
 		cut(t, t->front, 1, 1);
 		return;	/* it may now be locked */
 	}
-	c = 0;
-	while(!backspacing && (c = kbdchar())>0 && c!=SCROLLKEY && c!=ESC)
-		switch(c){
-		case '\b':
-		case 0x15:	/* ctrl-u */
-		case 0x17:	/* ctrl-w */
-		case 0x7F:	/* del */
-			backspacing = 1;
-			break;
-
-		default:
-			*p++ = c;
-			if(c == '\n' || p >= buf+sizeof(buf))
-				goto Flush;
-			break;
+	backspacing = 0;
+	while((c = kbdchar())>0){
+		if(res == RKeyboard){
+			if(c==SCROLLKEY || c==ESC)
+				break;
+			/* backspace, ctrl-u, ctrl-w, del */
+			if(c=='\b' || c==0x15 || c==0x17 || c==0x7F){
+				backspacing = 1;
+				break;
+			}
 		}
-  Flush:
+		*p++ = c;
+		if(c == '\n' || p >= buf+sizeof(buf)/sizeof(buf[0]))
+			break;
+	}
 	if(p > buf){
 		if(typestart < 0)
 			typestart = a;
@@ -547,7 +560,7 @@ alloc(ulong n)
 	void *p;
 
 	p = malloc(n);
-	if(p==0)
+	if(p == 0)
 		panic("alloc");
 	memset(p, 0, n);
 	return p;

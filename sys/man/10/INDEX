@@ -7,9 +7,6 @@ cdl cdl
 cdmglob cdmglob
 cdmglob.errors cdmglob
 drawp drawp
-espresso espresso
-espresso espresso_format
-espresso_format espresso_format
 findparts findparts
 ics findparts
 lookup findparts
@@ -24,7 +21,6 @@ fizz fizz
 getparts fizz
 kollmorgen fizz
 list fizz
-mw fizz
 pkgplot fizz
 place fizz
 prance fizz
@@ -41,22 +37,21 @@ graw_format graw_format
 grawp grawp
 ipf ipf
 pga132a ipf
+gview layout
+layout layout
+route layout
 lca2pin lca2pin
 pga132x lca2pin
 LDE lde
 lde lde
 lde lde_format
 lde_format lde_format
-mds mds
 minterm minterm
 getpkgs mkpins
 mkpins mkpins
 mkpkgs mkpins
 mkpos / mkpins
-mds2fizz mw
-mds2icon mw
-mw mw
-mwplt mw
+npart npart
 paddle paddle
 part part
 pga pga

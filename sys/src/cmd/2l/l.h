@@ -178,12 +178,12 @@ extern	Optab	optab[];
 extern	char	msize[];
 extern	char*	anames[];
 
-int	Aconv(void*, int, int, int, int);
-int	Dconv(void*, int, int, int, int);
-int	Pconv(void*, int, int, int, int);
-int	Rconv(void*, int, int, int, int);
-int	Sconv(void*, int, int, int, int);
-int	Xconv(void*, int, int, int, int);
+int	Aconv(void*, Fconv*);
+int	Dconv(void*, Fconv*);
+int	Pconv(void*, Fconv*);
+int	Rconv(void*, Fconv*);
+int	Sconv(void*, Fconv*);
+int	Xconv(void*, Fconv*);
 void	addhist(long, int);
 int	andsize(Prog*, Adr*);
 Prog*	appendp(Prog*);

@@ -1,0 +1,163 @@
+.TH OBJECT 2X
+.SH NAME
+objtype, readobj, objsym, objbase, objreset, isar, nextar, readar \- object file interpretation functions
+.SH SYNOPSIS
+.B #include <bio.h>
+.br
+.B #include <mach.h>
+.PP
+.ta \w'\fLmachines 'u
+.B
+int  objtype(Biobuf *bp)
+.PP
+.B
+int  readobj(Biobuf *bp, int objtype)
+.PP
+.B
+Sym  *objsym(int index)
+.PP
+.B
+Sym  *objbase(long *nsyms)
+.PP
+.B
+void  objreset()
+.PP
+.B
+int isar(Biobuf *bp)
+.PP
+.B
+int nextar(Biobuf *bp, int offset, char *buf)
+.PP
+.B
+int readar(Biobuf *bp, int objtype, int end)
+.SH DESCRIPTION
+These functions provide machine-independent access to object files
+stored in a directory or contained in an archive.
+They are contained in library
+.IR libmach.a ;
+the library is automatically searched by the loader
+when header file
+.I mach.h
+is included in a source file.
+.IR Mach (2)
+and
+.IR symbol (2)
+describe additional library functions
+for interpreting executable files and executing images.
+.PP
+Object files contain no formal symbol table; instead, references
+to symbols must be extracted from the encoded object representation
+and resolved.  The resulting symbol information is added
+to a dummy symbol table where it may be processed by an
+application.  The organization of the internal symbol
+table is identical
+to that produced by the loader and described in
+.IR symbol (2) and
+.IR a.out (6);
+a vector of
+.B Sym
+data structures defining the name, type and relative offset of
+each symbol.
+.PP
+.I Objtype
+reads the header at the current position of the
+file associated with
+.I bp
+(see
+.IR Bio (2))
+and returns a code indicating the target architecture of the file
+or -1 if the type cannot be discerned.
+The file may be a stand-alone object
+file or a member of an archive.  The position of
+the file is rewound to its current
+position following the decoding of the header.
+.PP
+.I Readobj
+constructs a symbol table for the object file associated with
+.IR bp .
+The second argument contains the type code produced by
+function
+.IR objtype .
+The file must be positioned at the start of the object file.
+Multiple invocations of
+.I readobj
+append the symbol definitions for each object file to the
+existing symbol table.
+.I Objreset
+can be used to clear a symbol table.
+.PP
+.I Objsym
+returns the address of the
+.IR i th
+.B Sym
+structure in the symbol table or zero if 
+.I index
+is out of range.
+.PP
+.I Objbase
+returns the address of the first
+.I Sym
+structure in the symbol table.  The number of
+entries in the symbol table is returned in
+.IR nsyms .
+.IR Readobj or readar
+must be invoked prior to
+.IR symbase and symobj
+to build the symbol table.
+.PP
+.I Objreset
+clears the internal symbol table built by
+.I readobj
+or
+.IR readar .
+.PP
+.I Isar
+reads the header at the current point in the file
+associated with
+.I bp
+and returns 1 if it is an archive or zero otherwise.
+The file is left positioned at the end of the archive
+header and at the beginning of the first member of the archive.
+.PP
+.I Nextar
+extracts information describing the archive member stored
+at
+.I offset
+in the file associated with
+.IR bp .
+If the header describing the member can be
+extracted and decoded, the size of the member is
+returned.  Adding this value to
+.I offset
+yields the offset of the beginning of the next member
+in the archive.  On return the input file is positioned
+at the end of the member header immediately before the
+first byte of the archive
+and
+the name of the member is stored in
+.IR buf ,
+a buffer of
+.B NNAME
+characters.
+If there are no more members,
+.I nextar
+returns zero; a negative return indicates a missing
+or malformed header.
+.PP
+.I Readar
+constructs the symbol table of the object file stored
+at the current position in the archive associated with
+.IR bp .
+This function operates exactly as
+.IR readobj ;
+the only difference is the extra argument,
+.IR end ,
+specifying the offset to the beginning of the
+next member in the archive.  Following execution
+the file is positioned at the beginning of the
+member header of the next member.
+.SH "SEE ALSO"
+.IR mach (2),
+.IR symbol (2),
+.IR bio (2),
+.IR a.out (6)

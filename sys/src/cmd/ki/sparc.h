@@ -179,8 +179,8 @@ void		psymoff(ulong, int, char *);
 void		printlocals(Symbol *, ulong);
 ulong		findframe(ulong);
 void		stktrace(int);
-int		Sconv(void*, int, int, int, int);
-void		delay(void);
+int		Sconv(void*, Fconv*);
+void		delay(ulong);
 void		iprofile(void);
 
 /* Globals */

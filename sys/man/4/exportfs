@@ -15,7 +15,7 @@ exportfs \- network file server plumbing
 is a user level file server that allows Plan 9 compute servers,
 rather than file servers,
 to export
-portions of name space across networks.
+portions of a name space across networks.
 The service is started either by the
 .IR cpu (1)
 command or by a network listener process.

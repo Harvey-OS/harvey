@@ -571,6 +571,18 @@ urpctloput(Urp *up, Queue *q, Block *bp)
 
 	switch(bp->type){
 	case M_CTL:
+		if(streamparse("break", bp)){
+			/*
+			 *  send a break as part of the data stream
+			 */
+			urpstat.output++;
+			bp->wptr = bp->lim;
+			bp->rptr = bp->wptr - 1;
+			*bp->rptr = BREAK;
+			putq(q, bp);
+			output(up);
+			return;
+		}
 		if(streamparse("init", bp)){
 			outwin = strtoul((char*)bp->rptr, 0, 0);
 			initoutput(up, outwin);
@@ -826,11 +838,20 @@ sendblock(Urp *up, int bn)
 	m->rptr = m->lim - 1;
 	m->wptr = m->lim;
 	*m->rptr = (bp->flags & S_DELIM) ? BOT : BOTM;
-	nbp = m->next = allocb(0);
+	nbp = allocb(0);
 	nbp->rptr = bp->rptr;
 	nbp->wptr = bp->wptr;
+	nbp->base = bp->base;
+	nbp->lim = bp->lim;
 	nbp->flags |= S_DELIM;
-	PUTNEXT(q, m);
+	if(bp->type == M_CTL){
+		PUTNEXT(q, nbp);
+		m->flags |= S_DELIM;
+		PUTNEXT(q, m);
+	} else {
+		m->next = nbp;
+		PUTNEXT(q, m);
+	}
 
 	/*
 	 *  message 2, the block length and the SEQ

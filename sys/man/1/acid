@@ -1,0 +1,101 @@
+.TH ACID 1
+.SH NAME
+acid \- debugger
+.SH SYNOPSIS
+.B acid
+[
+.I -l loadmodule
+]
+[
+.I -w
+]
+[
+.I pid
+]
+[
+.I textfile
+]
+.SH DESCRIPTION
+Acid is a general purpose source level, symbolic debugger.
+The debugger is built around a simple command language. 
+The command language provides a flexible user interface which allows the debugger
+interface to be customized for a specific application or architecture.
+Moreover, it provides an opportunity to write test and
+verification code independently of a programs source code.
+Acid is able to debug multiple
+processes provided they share a common set of symbols (See ALEF(1)).
+.PP
+The -w option allows the textfile to be modified.
+.PP
+Control-D terminates the program. If there are active processes a diagnostic
+is printed and acid returns to the prompt. A second Control-D will cause
+the debugger to exit and attached processes will be unaffected. To make a clean
+exit, processes should be destroyed using the function
+.I kill .
+.PP
+At startup acid reads a standard set of command functions from a library. Modules are
+automatically loaded from /lib/acid/port, /lib/acid/$objtype
+and $home/lib/acid in that order.
+This provides a standard debugging environment for each of the architectures.
+Definitions in $home/lib/acid may replace any previously defined functions. Language
+specific modules can also be loaded using a command line option. Modules specified
+on the command line are loaded last. If the function acidinit is defined by any
+of the load modules it will be invoked after all modules have been loaded.
+.PP
+Acid introduces the symbols of the program being debugged as variables in the
+language. If a symbol in the program conflicts with a predefined variable or
+reserved word the symbol is renamed. The interpreter prepends
+$ characters to start of the symbol until it is unique. 
+A summary of the renamings is printed at startup.
+.PP
+Acid has an expression syntax much like C. However since the symbol table provides
+addresses the dual of a program variable will be an address in acid. That is the same
+as if all names were preceded by an & in C or ALEF expression.
+To obtain the value of a variable one of the indirection operators must be used.
+.PP
+At the prompt acid is prepared to either store function definitions or evaluate
+expressions.
+The expression syntax is similar to the expression syntax of C and ALEF.
+The result of expression evaluation yields both a value and a format.
+The format of and item may be set using the builtin function fmt. Formats
+are compatible with db(1). The format determines how an item will be printed,
+the stride of an increment or decrement operation and how many bytes are read or
+written by the indirection operators.
+.SH EXAMPLE
+To start to debug ls and set a breakpoint:
+.IP
+.EX
+% acid /bin/ls
+/bin/ls: mips plan 9 executable
+/lib/acid/port
+/lib/acid/mips
+acid: new()
+70094 : system call	_main	ADD	$-14,R29
+acid: bpset(ls)
+acid: cont()
+70094 : breakpoint	ls	ADD	$-16c8,R29
+acid:
+.EE
+.SH FILES
+.B /proc/*/text
+.br
+.B /proc/*/mem
+.br
+.B /proc/*/ctl
+.br
+.B /proc/*/note
+.br
+.B /lib/acid/$objtype
+.br
+.B /lib/acid/port
+.br
+.B $home/lib/acid
+.SH "SEE ALSO"
+.IR 2a (1),
+.IR 2l (1),
+.IR mk (1),
+.IR db (1)
+.br
+.I
+ACID Manual,
+Phil Winterbottom

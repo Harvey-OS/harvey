@@ -345,7 +345,7 @@ mconfinit(void)
 			v = mempres[i];
 			for(j=i+1; j<sparam->memscan && mempres[j]>v; j++)
 				v = mempres[j];
-			npg = ((v+1)-mempres[i])*MB/PGSIZE;
+			npg = (j-i)*MB/BY2PG;
 			if(mconf.npage0 == 0){
 				mconf.base0 = i*MB;
 				mconf.npage0 = npg;

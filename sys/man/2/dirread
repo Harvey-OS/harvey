@@ -13,7 +13,7 @@ the result of a
 .IR stat (2)
 on each file or subdirectory in the directory.
 .I Dirread
-returns the entries decoded into an addressable form.
+decodes the directory entries into a machine-dependent form.
 It reads from
 .IR fd
 and unpacks the data into

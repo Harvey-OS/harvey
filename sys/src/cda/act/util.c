@@ -6,7 +6,7 @@
 #include "y.tab.h"
 
 #define NSYM	5000	/* per file */
-#define NDEP	50	/* per line */
+#define NDEP	200	/* per line */
 Sym symtab[NSYM];
 Sym *dep[NDEP];
 Tree *Root;

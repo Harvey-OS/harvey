@@ -1,0 +1,26 @@
+.TH VGA 8
+.SH NAME
+aux/vga \- setup VGA card
+.SH SYNOPSIS
+.B aux/vga
+.I config
+.SH DESCRIPTION
+.B Vga
+configures VGA cards and the kernel for various display sizes and depths.
+.I Config
+has the values of various standard VGA registers plus special values
+for some super-VGA configurations.
+VGA searches for 
+.I config
+in
+.B /usr/$home/lib/vga
+and
+.BR /lib/vga .
+The config file contains three integers defining the width, height,
+and depth, the various standard VGA registers as C hex constants,
+a chip type in double quotes, and zero or more registers.  
+White space, commas, and C-style comments are ignored.
+.PP
+We currently support Tseng Labs T4000 and generic VGA.
+.SH SEE ALSO
+.IR vga (3)

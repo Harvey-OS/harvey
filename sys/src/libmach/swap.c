@@ -1,4 +1,4 @@
-#include	"u.h"
+#include <u.h>
 
 /*
  * read big-endian short s

@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 			break;
 
 		default:
-			dprint("sam: unknown flag %c\n", argv[1][1]);
+			dprint("sam: unknown flag %c\n", argv[0][1]);
 			exits("usage");
 		}
 		--argc, argv++;
@@ -151,7 +151,7 @@ rescue(void)
 			free(c);
 		}else
 			sprint(buf, "nameless.%d", nblank++);
-		fprint(io, "#!/bin/rc\n/sys/lib/samsave '%s' $* <<'---%s'\n", buf, buf);
+		fprint(io, "#!%s '%s' $* <<'---%s'\n", SAMSAVECMD, buf, buf);
 		addr.r.p1 = 0, addr.r.p2 = f->nrunes;
 		writeio(f);
 		fprint(io, "\n---%s\n", (char *)buf);
@@ -352,7 +352,7 @@ getname(File *f, String *s, int save)
 		Fsetname(f, &genstr);
 		if(Strcmp(&f->name, &genstr)){
 			quitok = f->closeok = FALSE;
-			f->inumber = 0;
+			f->qid = 0;
 			f->date = 0;
 			state(f, Dirty); /* if it's 'e', fix later */
 		}
@@ -397,21 +397,21 @@ undostep(File *f)
 		state(f, mark.s1);
 }
 
-void
+int
 undo(void)
 {
 	File *f;
 	int i;
 	Mod max;
-
 	if((max = curfile->mod)==0)
-		return;
+		return 0;
 	settempfile();
 	for(i = 0; i<tempfile.nused; i++){
 		f = tempfile.filepptr[i];
 		if(f!=cmd && f->mod==max)
 			undostep(f);
 	}
+	return 1;
 }
 
 void
@@ -423,6 +423,8 @@ readcmd(String *s)
 	plan9(flist, '<', s, FALSE);
 	Fupdate(flist, FALSE, FALSE);
 	flist->mod = 0;
+	if (flist->nrunes > BLOCKSIZE)
+		error(Etoolong);
 	Strzero(&genstr);
 	Strinsure(&genstr, flist->nrunes);
 	Fchars(flist, genbuf, (Posn)0, flist->nrunes);

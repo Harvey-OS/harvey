@@ -64,7 +64,7 @@ struct	fsm {
 	START,	{ '"' },	ST2,
 	START,	{ '\'' },	CC1,
 	START,	{ '/' },	COM1,
-	START,	{ EOF },	S_EOF,
+	START,	{ EOFC },	S_EOF,
 	START,	{ '\n' },	S_NL,
 	START,	{ '-' },	MINUS1,
 	START,	{ '+' },	PLUS1,
@@ -126,24 +126,24 @@ struct	fsm {
 	ST2,	{ '"' },	ACT(STRING, S_SELF),
 	ST2,	{ '\\' },	ST3,
 	ST2,	{ '\n' },	S_STNL,
-	ST1,	{ EOF },	S_EOFSTR,
+	ST2,	{ EOFC },	S_EOFSTR,
 
 	/* saw \ in string */
 	ST3,	{ C_XX },	ST2,
 	ST3,	{ '\n' },	S_STNL,
-	ST3,	{ EOF },	S_EOFSTR,
+	ST3,	{ EOFC },	S_EOFSTR,
 
 	/* saw ' beginning character const */
 	CC1,	{ C_XX },	CC1,
 	CC1,	{ '\'' },	ACT(CCON, S_SELF),
 	CC1,	{ '\\' },	CC2,
 	CC1,	{ '\n' },	S_STNL,
-	CC1,	{ EOF },	S_EOFSTR,
+	CC1,	{ EOFC },	S_EOFSTR,
 
 	/* saw \ in ccon */
 	CC2,	{ C_XX },	CC1,
 	CC2,	{ '\n' },	S_STNL,
-	CC2,	{ EOF },	S_EOFSTR,
+	CC2,	{ EOFC },	S_EOFSTR,
 
 	/* saw /, perhaps start of comment */
 	COM1,	{ C_XX },	ACT(SLASH, S_SELFB),
@@ -155,7 +155,7 @@ struct	fsm {
 	COM2,	{ C_XX },	COM2,
 	COM2,	{ '\n' },	S_COMNL,
 	COM2,	{ '*' },	COM3,
-	COM2,	{ EOF },	S_EOFCOM,
+	COM2,	{ EOFC },	S_EOFCOM,
 
 	/* saw the * possibly ending a comment */
 	COM3,	{ C_XX },	COM2,
@@ -166,7 +166,7 @@ struct	fsm {
 	/* // comment */
 	COM4,	{ C_XX },	COM4,
 	COM4,	{ '\n' },	S_NL,
-	COM4,	{ EOF },	S_EOFCOM,
+	COM4,	{ EOFC },	S_EOFCOM,
 
 	/* saw white space, eat it up */
 	WS1,	{ C_XX },	S_WS,
@@ -234,9 +234,9 @@ struct	fsm {
 	-1
 };
 
-/* first index is char+1 (to include EOF), second is state */
+/* first index is char, second is state */
 /* increase #states to power of 2 to encourage use of shift */
-short	bigfsm[257][MAXSTATE];
+short	bigfsm[256][MAXSTATE];
 
 void
 expandlex(void)
@@ -252,21 +252,21 @@ expandlex(void)
 			switch (fp->ch[i]) {
 
 			case C_XX:		/* random characters */
-				for (j=0; j<257; j++)
+				for (j=0; j<256; j++)
 					bigfsm[j][fp->state] = nstate;
 				continue;
 			case C_ALPH:
-				for (j=0; j<=255; j++)
+				for (j=0; j<=256; j++)
 					if ('a'<=j&&j<='z' || 'A'<=j&&j<='Z'
 					  || UTF2(j) || UTF3(j) || j=='_')
-						bigfsm[j+1][fp->state] = nstate;
+						bigfsm[j][fp->state] = nstate;
 				continue;
 			case C_NUM:
 				for (j='0'; j<='9'; j++)
-					bigfsm[j+1][fp->state] = nstate;
+					bigfsm[j][fp->state] = nstate;
 				continue;
 			default:
-				bigfsm[fp->ch[i]+1][fp->state] = nstate;
+				bigfsm[fp->ch[i]][fp->state] = nstate;
 			}
 		}
 	}
@@ -274,11 +274,13 @@ expandlex(void)
 	for (i=0; i<MAXSTATE; i++) {
 		for (j=0; j<0xFF; j++)
 			if (j=='?' || j=='\\' || UTF2(j) || UTF3(j)) {
-				if (bigfsm[j+1][i]>0)
-					bigfsm[j+1][i] = ~bigfsm[j+1][i];
-				bigfsm[j+1][i] &= ~QBSBIT;
+				if (bigfsm[j][i]>0)
+					bigfsm[j][i] = ~bigfsm[j][i];
+				bigfsm[j][i] &= ~QBSBIT;
 			}
-		bigfsm[EOB+1][i] = ~S_EOB;
+		bigfsm[EOB][i] = ~S_EOB;
+		if (bigfsm[EOFC][i]>=0)
+			bigfsm[EOFC][i] = ~S_EOF;
 	}
 }
 
@@ -287,7 +289,7 @@ fixlex(void)
 {
 	/* do C++ comments? */
 	if (Cplusplus==0)
-		bigfsm['/'+1][COM1] = bigfsm['x'+1][COM1];
+		bigfsm['/'][COM1] = bigfsm['x'][COM1];
 }
 
 /*
@@ -340,7 +342,7 @@ gettokens(Tokenrow *trp, int reset)
 		for (;;) {
 			oldstate = state;
 			c = *ip;
-			if ((state = bigfsm[c+1][state]) >= 0) {
+			if ((state = bigfsm[c][state]) >= 0) {
 				ip += runelen;
 				runelen = 1;
 				continue;
@@ -462,6 +464,7 @@ gettokens(Tokenrow *trp, int reset)
 		tp->len = ip - tp->t;
 		tp++;
 	}
+	return 0;
 }
 
 /* have seen ?; handle the trigraph it starts (if any) else 0 */
@@ -521,14 +524,12 @@ fillbuf(Source *s)
 {
 	int n;
 
-	if (s->fd<0)
-		n = 0;
-	else if ((n=read(s->fd, (char *)s->inl, INS/8)) <= 0)
+	if (s->fd<0 || (n=read(s->fd, (char *)s->inl, INS/8)) <= 0)
 		n = 0;
 	s->inl += n;
 	s->inl[0] = s->inl[1]= s->inl[2]= s->inl[3] = EOB;
 	if (n==0) {
-		s->inl[0] = EOF;
+		s->inl[0] = s->inl[1]= s->inl[2]= s->inl[3] = EOFC;
 		return EOF;
 	}
 	return 0;

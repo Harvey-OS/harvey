@@ -1,5 +1,8 @@
 BEGIN {
-	split(FILENAME,x,".")
+	fname = ARGV[1]
+	if (fname == "/fd/0")
+		fname = ARGV[2]
+	split(fname,x,".")
 	name = x[1]
 	ipf = name".ipf"
 	pins = name".pins"
@@ -42,19 +45,33 @@ BEGIN {
 	else if (cell == "TRIBUFF")
 		type[port] = "4"
 }
+/FAM.*a1200/ {family = 1200}
+/FAM.*a1000/ {family = 1000}
 /VAR.*PACK/ {
 	n = split($4,x,"/")
 	split(x[n],y,".")
 	package = toupper(y[1])
 	print ".t	"name"	"package > pins
-	if (package == "LCC68")		# wow, only depends on the package!
-		tt = "nnnvnnnnn nnnnggnnnnnvnnnvn nnnnngnnnnnvnnnnn nnnnngnnnngvnnnnn nnnnngnn"
-	else if (package == "LCC84")
-		tt = "nnnvnnnnnnn nnnnnnggnnnnnvvnnnnnn vnnnnnngnnnnnvnnnnnnn nnnnnnggnnnngvvnnnnnn nnnnnnngnn"
-	else if (package == "PGA132") {
-		pga = 1
-		tt = "gnnnnnnnnnnnn nnnngnnngnnnn nnnngnvngnnnn nnn nvn nnn nngggn nnngnnnn nvvvvvvv nnnnnnng ngggnn nnn nvn ngn nnnngnvngnnnn nnnnnnnngnnnn nnnnnnnnnnnnn"
+	if (family == 1000) {
+		if (package == "LCC68")		# wow, only depends on the package!
+			tt = "nnnvnnnnn nnnnggnnnnnvnnnvn nnnnngnnnnnvnnnnn nnnnngnnnngvnnnnn nnnnngnn"
+		else if (package == "LCC84")
+			tt = "nnnvnnnnnnn nnnnnnggnnnnnvvnnnnnn vnnnnnngnnnnnvnnnnnnn nnnnnnggnnnngvvnnnnnn nnnnnnngnn"
+		else if (package == "PGA132") {
+			pga = 1
+			tt = "gnnnnnnnnnnnn nnnngnnngnnnn nnnngnvngnnnn nnn nvn nnn nngggn nnngnnnn nvvvvvvv nnnnnnng ngggnn nnn nvn ngn nnnngnvngnnnn nnnnnnnngnnnn nnnnnnnnnnnnn"
+		}
 	}
+	else if (family == 1200) {
+		if (package == "LCC84")
+			tt = "nnnnngnnnnn gnnnnnnnnnvvnnnngnnnn nnnnnnnnnnvnnnnngnnnn nnnnnnnnngvvnnnngnnnn nnnnnnnnnv"
+		else if (package == "PGA132") {
+			pga = 1
+			tt = "?nnnnnnnnnnnn nnnngnnngnnnn nnnngnvngnnnn nnn nvn nnn nngggn nnngnnnn nvvvvvvv nnnnnnng ngggnn nnn nvn ngn nnnngnvngnnnn nnnnnnnngnnnn nnnnnnnnnnnnn"
+		}
+	}
+	else
+		print "family non-member"
 	split(tt,x," ")
 	tt = x[1]
 	for (i = 2; x[i] != ""; i++)

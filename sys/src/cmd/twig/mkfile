@@ -27,8 +27,8 @@ WFILES=walker.stdio\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-YFLAGS=-d -S
-CFLAGS=
+YFLAGS=-d
+CFLAGS=-w
 
 default:V:	$WFILES
 
@@ -38,6 +38,7 @@ walker.%: machcomm.h walker.h rawwalker.%
 installall:V:
 	for(objtype in $CPUS)
 		mk install
+	mk $WFILES
 	cp $WFILES /sys/lib/twig
 
 nuke:V:

@@ -14,38 +14,35 @@ listinit(void)
 }
 
 int
-Pconv(void *o, int f1, int f2, int f3, int chr)
+Pconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ], s[20];
 	Prog *p;
 
-	USED(chr);
 	p = *(Prog**)o;
 	sprint(str, "	%A	%D,%D", p->as, &p->from, &p->to);
 	if(p->from.field) {
 		sprint(s, ",%d,%d", p->to.field, p->from.field);
 		strcat(str, s);
 	}
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(p);
 }
 
 int
-Aconv(void *o, int f1, int f2, int f3, int chr)
+Aconv(void *o, Fconv *fp)
 {
 
-	USED(chr);
-	strconv(anames[*(int*)o], f1, f2, f3);
+	strconv(anames[*(int*)o], fp);
 	return sizeof(int);
 }
 
 int
-Xconv(void *ao, int f1, int f2, int f3, int chr)
+Xconv(void *ao, Fconv *fp)
 {
 	char str[20], s[10];
 	int i, *o;
 
-	USED(chr);
 	o = (int*)ao;
 	str[0] = 0;
 	i = o[0] & D_MASK;
@@ -57,19 +54,18 @@ Xconv(void *ao, int f1, int f2, int f3, int chr)
 			"12481248"[i]);
 		strcat(str, s);
 	}
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return 2*sizeof(int);
 }
 
 int
-Dconv(void *o, int f1, int f2, int f3, int chr)
+Dconv(void *o, Fconv *fp)
 {
 	char str[40], s[20];
 	Adr *a;
 	int i, j;
 	long d;
 
-	USED(chr);
 	a = *(Adr**)o;
 	i = a->index;
 	if(i != D_NONE) {
@@ -192,17 +188,16 @@ Dconv(void *o, int f1, int f2, int f3, int chr)
 		strcat(str, s);
 	}
 out:
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(a);
 }
 
 int
-Rconv(void *o, int f1, int f2, int f3, int chr)
+Rconv(void *o, Fconv *fp)
 {
 	char str[20];
 	int r;
 
-	USED(chr);
 	r = *(int*)o;
 	if(r >= D_R0 && r < D_R0+NREG)
 		sprint(str, "R%d", r-D_R0);
@@ -314,17 +309,16 @@ Rconv(void *o, int f1, int f2, int f3, int chr)
 		sprint(str, "SRP");
 		break;
 	}
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(r);
 }
 
 int
-Sconv(void *o, int f1, int f2, int f3, int chr)
+Sconv(void *o, Fconv *fp)
 {
 	int i, c;
 	char str[30], *p, *s;
 
-	USED(chr);
 	s = *(char**)o;
 	p = str;
 	for(i=0; i<sizeof(double); i++) {
@@ -354,6 +348,6 @@ Sconv(void *o, int f1, int f2, int f3, int chr)
 		*p++ = ((c>>0) & 7) + '0';
 	}
 	*p = 0;
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(s);
 }

@@ -1,6 +1,6 @@
 .TH FTPFS 4
 .SH NAME
-ftpfs  \- file transfer protocol (FTP) file system
+ftpfs, ftp  \- file transfer protocol (FTP) file system
 .SH SYNOPSIS
 .B ftpfs
 [

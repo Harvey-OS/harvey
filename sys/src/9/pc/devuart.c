@@ -37,7 +37,7 @@ enum
 	 Rts=	(1<<1),		/*  request to send */
 	 Ri=	(1<<2),		/*  ring */
 	 Inton=	(1<<3),		/*  turn on interrupts */
-	 Loop=	(1<<4),		/*  loop bask */
+	 Loop=	(1<<4),		/*  loop back */
 	Lstat=	5,		/* line status */
 	 Inready=(1<<0),	/*  receive buffer full */
 	 Oerror=(1<<1),		/*  receiver overrun */
@@ -45,6 +45,14 @@ enum
 	 Ferror=(1<<3),		/*  rcv framing error */
 	 Outready=(1<<5),	/*  output buffer full */
 	Mstat=	6,		/* modem status */
+	 Ctsc=	(1<<0),		/*  clear to send changed */
+	 Dsrc=	(1<<1),		/*  data set ready changed */
+	 Rire=	(1<<2),		/*  rising edge of ring indicator */
+	 Dcdc=	(1<<3),		/*  data carrier detect changed */
+	 Cts=	(1<<4),		/*  complement of clear to send line */
+	 Dsr=	(1<<5),		/*  complement of data set ready line */
+	 Ring=	(1<<6),		/*  complement of ring indicator line */
+	 Dcd=	(1<<7),		/*  complement of data carrier detect line */
 	Scratch=7,		/* scratchpad */
 	Dlsb=	0,		/* divisor lsb */
 	Dmsb=	1,		/* divisor msb */
@@ -61,9 +69,10 @@ struct Uart
 	uchar	sticky[8];	/* sticky write register values */
 	int	printing;	/* true if printing */
 	int	enabled;
+	int	cts;
 
 	/* console interface */
-	int	nostream;	/* can't use the stream interface */
+	int	special;	/* can't use the stream interface */
 	IOQ	*iq;		/* input character queue */
 	IOQ	*oq;		/* output character queue */
 
@@ -147,6 +156,76 @@ uartbreak(Uart *up, int ms)
 }
 
 /*
+ *  set bits/char
+ */
+void
+uartbits(Uart *up, int bits)
+{
+	if(bits < 5 || bits > 8)
+		error(Ebadarg);
+	up->sticky[Format] &= ~3;
+	up->sticky[Format] |= bits-5;
+	uartwrreg(up, Format, 0);
+}
+
+/*
+ *  set parity
+ */
+void
+uartparity(Uart *up, int c)
+{
+	switch(c&0xff){
+	case 'e':
+		up->sticky[Format] |= Pena|Peven;
+		break;
+	case 'o':
+		up->sticky[Format] &= ~Peven;
+		up->sticky[Format] |= Pena;
+		break;
+	default:
+		up->sticky[Format] &= ~(Pena|Peven);
+		break;
+	}
+	uartwrreg(up, Format, 0);
+}
+
+/*
+ *  set stop bits
+ */
+void
+uartstop(Uart *up, int n)
+{
+	switch(n){
+	case 1:
+		up->sticky[Format] &= ~Stop2;
+		break;
+	case 2:
+	default:
+		up->sticky[Format] |= Stop2;
+		break;
+	}
+	uartwrreg(up, Format, 0);
+}
+
+/*
+ *  modem flow control on/off (rts/cts)
+ */
+void
+uartmflow(Uart *up, int n)
+{
+	if(n){
+		up->sticky[Iena] |= Imstat;
+		uartwrreg(up, Iena, 0);
+		up->cts = uartrdreg(up, Mstat) & Cts;
+	} else {
+		up->sticky[Iena] &= ~Imstat;
+		uartwrreg(up, Iena, 0);
+		up->cts = 1;
+	}
+}
+
+
+/*
  *  default is 9600 baud, 1 stop bit, 8 bit chars, no interrupts,
  *  transmit and receive enabled, interrupts disabled.
  */
@@ -193,11 +272,13 @@ void
 uartputs(IOQ *cq, char *s, int n)
 {
 	Uart *up = cq->ptr;
-	int ch, x;
+	int ch, x, multiprocessor;
 	int tries;
 
+	multiprocessor = active.machs > 1;
 	x = splhi();
-	lock(cq);
+	if(multiprocessor)
+		lock(cq);
 	puts(cq, s, n);
 	if(up->printing == 0){
 		ch = getc(cq);
@@ -209,7 +290,8 @@ uartputs(IOQ *cq, char *s, int n)
 			outb(up->port + Data, ch);
 		}
 	}
-	unlock(cq);
+	if(multiprocessor)
+		unlock(cq);
 	splx(x);
 }
 
@@ -221,8 +303,9 @@ uartintr(Uart *up)
 {
 	int ch;
 	IOQ *cq;
-	int s, l;
+	int s, l, multiprocessor;
 
+	multiprocessor = active.machs > 1;
 	for(;;){
 		s = uartrdreg(up, Istat);
 		switch(s){
@@ -249,18 +332,42 @@ uartintr(Uart *up)
 			cq = up->oq;
 			if(cq == 0)
 				break;
-			lock(cq);
-			ch = getc(cq);
-			if(ch < 0){
+			if(multiprocessor)
+				lock(cq);
+			if(up->cts == 0)
 				up->printing = 0;
-				wakeup(&cq->r);
-			}else
-				outb(up->port + Data, ch);
-			unlock(cq);
+			else {
+				ch = getc(cq);
+				if(ch < 0){
+					up->printing = 0;
+					wakeup(&cq->r);
+				}else
+					outb(up->port + Data, ch);
+			}
+			if(multiprocessor)
+				unlock(cq);
 			break;
 	
 		case 0:	/* modem status */
-			uartrdreg(up, Mstat);
+			ch = uartrdreg(up, Mstat);
+			if(ch & Ctsc){
+				up->cts = ch & Cts;
+				cq = up->oq;
+				if(cq == 0)
+					break;
+				if(multiprocessor)
+					lock(cq);
+				if(up->cts && up->printing == 0){
+					ch = getc(cq);
+					if(ch >= 0){
+						up->printing = 1;
+						outb(up->port + Data, getc(cq));
+					} else
+						wakeup(&cq->r);
+				}
+				if(multiprocessor)
+					unlock(cq);
+			}
 			break;
 	
 		default:
@@ -338,6 +445,11 @@ uartenable(Uart *up)
 	 */
 	uartdtr(up, 1);
 	uartrts(up, 1);
+
+	/*
+	 *  assume we can send
+	 */
+	up->cts = 1;
 }
 
 /*
@@ -352,6 +464,12 @@ uartdisable(Uart *up)
 	 */
 	up->sticky[Iena] = 0;
 	uartwrreg(up, Iena, 0);
+
+	/*
+	 *  revert to default settings
+	 */
+	up->sticky[Format] = Bits8;
+	uartwrreg(up, Format, 0);
 
 	/*
 	 *  turn off DTR and RTS
@@ -370,11 +488,6 @@ uartdisable(Uart *up)
 		if(modem(0) < 0)
 			print("can't turn off modem speaker\n");
 	}
-
-	/*
-	 *  slow the clock down again
-	 */
-	clockinit();
 }
 
 /*
@@ -386,11 +499,12 @@ uartspecial(int port, IOQ *oq, IOQ *iq, int baud)
 	Uart *up = &uart[port];
 
 	uartsetup();
-	up->nostream = 1;
+	up->special = 1;
 	up->oq = oq;
 	up->iq = iq;
 	uartenable(up);
-	uartsetbaud(up, baud);
+	if(baud)
+		uartsetbaud(up, baud);
 
 	if(iq){
 		/*
@@ -443,6 +557,9 @@ uartstclose(Queue *q)
 {
 	Uart *up = q->ptr;
 
+	if(up->special)
+		return;
+
 	uartdisable(up);
 
 	qlock(up);
@@ -487,9 +604,25 @@ uartoput(Queue *q, Block *bp)
 		case 'k':
 			uartbreak(up, n);
 			break;
+		case 'L':
+		case 'l':
+			uartbits(up, n);
+			break;
+		case 'm':
+		case 'M':
+			uartmflow(up, n);
+			break;
+		case 'P':
+		case 'p':
+			uartparity(up, *(bp->rptr+1));
+			break;
 		case 'R':
 		case 'r':
 			uartrts(up, n);
+			break;
+		case 'S':
+		case 's':
+			uartstop(up, n);
 			break;
 		}
 	}else while((m = BLEN(bp)) > 0){
@@ -577,7 +710,7 @@ uartreset(void)
 
 	uartsetup();
 	for(up = uart; up < &uart[2]; up++){
-		if(up->nostream)
+		if(up->special)
 			continue;
 		up->iq = xalloc(sizeof(IOQ));
 		initq(up->iq);
@@ -644,7 +777,7 @@ uartopen(Chan *c, int omode)
 		break;
 	}
 
-	if(up && up->nostream)
+	if(up && up->special)
 		error(Einuse);
 
 	if((c->qid.path & CHDIR) == 0)

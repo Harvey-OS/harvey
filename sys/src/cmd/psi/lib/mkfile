@@ -15,7 +15,7 @@ OFILES=array.$O class.$O color.$O control.$O cache.$O dict.$O error.$O\
 	In.tbl.$O In.bits.$O Rn.tbl.$O Rn.bits.$O In.tbl.$O In.bits.$O BIn.tbl.$O\
 	BIn.bits.$O CWn.tbl.$O CWn.bits.$O Hn.tbl.$O Hn.bits.$O HIn.tbl.$O\
 	HIn.bits.$O  HBn.tbl.$O HBn.bits.$O HBOn.tbl.$O HBOn.bits.$O Bn.tbl.$O\
-	Bn.bits.$O HBLn.bits.$O HBLn.tbl.$O CCITT.$O jslr.$O outfax.$O runlen.$O\
+	Bn.bits.$O CCITT.$O jslr.$O outfax.$O runlen.$O\
 	wg4.$O wt6.$O mouse.$O jerqcode.$O nbitfile.$O dummy.$O v10code.$O\
 	
 </sys/src/cmd/mklib
@@ -66,7 +66,30 @@ wt6.$O: ../system.h ../g4/wt6.c
 wg4.$O: ../system.h ../njerq.h ../g4/wg4.c
 	$CC $CFLAGS ../g4/wg4.c
 v10code.$O: ../system.h
-
+SSn.bits.$O: SSn.bits.c
+SSn.tbl.$O: SSn.tbl.c
+Rn.tbl.$O: Rn.tbl.c
+Rn.bits.$O: Rn.bits.c
+In.tbl.$O: In.tbl.c
+In.bits.$O: In.bits.c
+Rn.tbl.$O: Rn.tbl.c
+Rn.bits.$O: Rn.bits.c
+In.tbl.$O: In.tbl.c
+In.bits.$O: In.bits.c
+BIn.tbl.$O: BIn.tbl.c
+BIn.bits.$O: BIn.bits.c
+CWn.tbl.$O: CWn.tbl.c
+CWn.bits.$O: CWn.bits.c
+Hn.tbl.$O: Hn.tbl.c
+Hn.bits.$O: Hn.bits.c
+HIn.tbl.$O: HIn.tbl.c
+HIn.bits.$O: HIn.bits.c
+HBn.tbl.$O: HBn.tbl.c
+HBn.bits.$O: HBn.bits.c
+HBOn.tbl.$O: HBOn.tbl.c
+HBOn.bits.$O: HBOn.bits.c
+Bn.tbl.$O: Bn.tbl.c
+Bn.bits.$O: Bn.bits.c
 nuke:V:
 	mk clean
 	rm -f libpsi.a[$OS]

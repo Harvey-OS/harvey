@@ -1,0 +1,51 @@
+					(This is a GB-coding Chinese text file)
+目录 "pub/ygz"
+--------------
+cxterm-11.4.2.tar.Z     中文终端仿真窗口 (用于 X11R4).
+cxterm-11.5.1.tar.Z     中文终端仿真窗口 (用于 X11R5).
+x-fonts			(DIRECTORY) 内含一些 X11 中文字体.
+cxterm-dictionary	(DIRECTORY) 内含一些 cxterm 用的中文输入方法.
+cxterm-platfomrs	(DIRECTORY) 如何在某些系统(DEC, SGI等)上装 cxterm.
+celvis.tar.Z            中文 vi/ex 编辑.
+celvis.zip              中文 vi/ex 编辑, MS-DOS 可执行代码.
+cemacs.tar.Z		ad hoc 中文 GNU emacs (用于 cxterm).
+utils			(DIRECTORY) 内存一些中文处理程序.
+how-to-make             如何 make 软件 cxterm/celvis/fonts.
+zW-hz			(DIRECTORY) 用于读写 ｚＷ／ＨＺ 中文.
+
+目录 "pub/ygz/x-fonts"
+----------------------
+cclib16fs.bdf.Z         X11 中文字体, 「国标」内码, 16x16 仿宋体.
+cclib16st.bdf.Z         X11 中文字体, 「国标」内码, 16x16 宋体.
+hku-ch16.bdf.Z          X11 中文字体, (HKU) "BIG5" 内码, 16x16.
+8x18.bdf                X11 8x16 字体, 在 X11R4 中与 cclib16, hku-ch16 匹配.
+fonts.alias		X11 字体 别名表.
+
+目录 "pub/ygz/cxterm-dictionary"
+--------------------------------
+PY.tit			「国标」, 标准「汉语拼音」输入方法.
+TONEPY.tit		「国标」, 带调「汉语拼音」输入方法.
+SW.tit			「国标」, CCDOS 式首尾输入方法.
+CCDOSPY.tit		「国标」, CCDOS 式简略拼音输入方法.
+CTCPS3.tit		「国标」, 粤语注音 CPS3 方案.
+QJ.tit                  「国标」, 全角 ASCII 输入模式.
+Punct.tit               「国标」, 标点符号输入方式.
+TeleCode.tit		「国标」, （中国大陆电报通信的）电报码.
+WuBi.tit		「国标」, 「五笔字型」输入方法.
+PY-b5.tit               "BIG5", 标准带调「汉语拼音」输入方法.
+ETZY.tit                "BIG5", 「注音」输入方法, 「倚天」键盘模式.
+ZOZY.tit                "BIG5", 「注音」输入方法, 「零壹」键盘模式.
+QJ.tit			"BIG5", 全角 ASCII 输入模式.
+Punct.tit		"BIG5", 标点符号输入方式.
+CangJie.tit		"BIG5", 「仓颉码」输入方式.
+
+目录 "pub/ygz/utils"
+--------------------
+cless.tar.Z		能处理中文的类似 more 的一个 pager 程序.
+ctalk.tar.Z		中文 Unix "talk" (可用于 cxterm)
+et2hku.tar.Z		「香港大学」BIG5 与 「倚天」BIG5 间的内码转换程序.
+
+目录 "pub/ygz/zW-hz"
+--------------------
+hztty-0.99.tar.Z	在 cxterm 上读写 ｚＷ／ＨＺ 中文的程序.
+zwdos21.zip		在 MS-DOS 上读写 ｚＷ／ＨＺ 中文的程序.

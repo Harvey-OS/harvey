@@ -123,13 +123,13 @@ prepare(int i, char *arg)
 
 	bp = Bopen(arg, OREAD);
 	if (!bp) {
-		panic(mflag ? 0: 2, "cannot open %s\n", arg);
+		panic(mflag ? 0: 2, "cannot open %s: %r\n", arg);
 		return 0;
 	}
 	nbytes = Bread(bp, buf, MIN(1024, MAXLINELEN));
 	if (nbytes > 0) {
 		cp = buf;
-		while (cp < buf+nbytes-1) {
+		while (cp < buf+nbytes-UTFmax) {
 			/*
 			 * heuristic for a binary file in the
 			 * brave new UNICODE world

@@ -1,0 +1,40 @@
+type 0 0 0 0
+type 0 0 1 0
+type 0 0 2 0
+type 0 0 3 0
+type 0 0 4 0
+type 0 0 5 0
+type 0 0 6 0
+type 0 0 7 0
+type 0 0 8 0
+type 1 0 9 0
+aborted
+type 1 0 9 0
+aborted
+type 1 0 9 0
+aborted
+type 1 2 20 0
+aborted
+type 1 1 20 1
+aborted
+type 1 0 20 1
+aborted
+type 1 0 20 0
+aborted
+type 1 0 0 0
+aborted
+type 1 1 9816 0
+aborted
+type 1 2 9816 0
+aborted
+type 1 2 9816 0
+aborted
+type 0 2 9816 0
+aborted
+type 0 1 9816 1
+aborted
+type 0 1 9816 1
+aborted
+type 0 0 9816 1
+type 0 0 20 0
+type 0 0 21 0

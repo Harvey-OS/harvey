@@ -70,6 +70,8 @@ Fid	*fids;
 User	*users[Nuser];
 char	*userkeys;
 int	nuser;
+int	nvkey;
+int	cryptfd;
 ulong	uniq = 1;
 Fcall	rhdr,
 	thdr;
@@ -86,6 +88,7 @@ void	io(int, int);
 void	*emalloc(ulong);
 Qid	mkqid(User*, ulong);
 void	dostat(User*, ulong, void*);
+int	dofcrypt(int, char*, char*, int);
 
 char	*Auth(Fid*), *Attach(Fid*), *Nop(Fid*), *Session(Fid*),
 	*Flush(Fid*), *Clone(Fid*), *Walk(Fid*),
@@ -118,9 +121,18 @@ main(int argc, char *argv[])
 	int p[2];
 
 	mntpt = "/mnt/keys";
+	nvkey = 1;
+	cryptfd = -1;
 	ARGBEGIN{
 	case 'k':
 		strncpy(authkey, ARGF(), DESKEYLEN);
+		nvkey = 0;
+		break;
+	case 'd':
+		nvkey = 0;
+		cryptfd = open("/dev/crypt", ORDWR);
+		if(cryptfd < 0)
+			error("can't open /dev/crypt: %r\n");
 		break;
 	case 'm':
 		mntpt = ARGF();
@@ -133,7 +145,7 @@ main(int argc, char *argv[])
 		userkeys = argv[0];
 	readusers();
 	if(pipe(p) < 0)
-		error("can't make pipe");
+		error("can't make pipe: %r");
 	switch(fork()){
 	case 0:
 		io(p[1], p[1]);
@@ -142,7 +154,7 @@ main(int argc, char *argv[])
 		error("fork");
 	default:
 		if(mount(p[0], mntpt, MREPL|MCREATE, "", "") < 0)
-			error("can't mount");
+			error("can't mount: %r");
 		exits(0);
 	}
 }
@@ -581,7 +593,10 @@ passline(Biobuf *b, void *vbuf)
 
 	if(Bread(b, buf, KEYDBLEN) != KEYDBLEN)
 		return 0;
-	decrypt(authkey, buf, KEYDBLEN);
+	if(cryptfd < 0)
+		decrypt(authkey, buf, KEYDBLEN);
+	else
+		dofcrypt(cryptfd, "D", buf, KEYDBLEN);
 	buf[NAMELEN-1] = '\0';
 	return 1;
 }
@@ -612,7 +627,10 @@ writeusers(void)
 			*p++ = expire >> 8;
 			*p++ = expire >> 16;
 			*p = expire >> 24;
-			encrypt(authkey, buf, sizeof buf);
+			if(cryptfd < 0)
+				encrypt(authkey, buf, KEYDBLEN);
+			else
+				dofcrypt(cryptfd, "E", buf, KEYDBLEN);
 			Bwrite(b, buf, sizeof buf);
 		}
 	Bclose(b);
@@ -621,16 +639,17 @@ writeusers(void)
 int
 readusers(void)
 {
-	static int start = 1;
 	Biobuf *b;
 	User *u;
 	char buf[KEYDBLEN];
 	uchar *p;
 	int nu;
 
-	if(start && authkey[0] == '\0')
+	if(nvkey){
+		nvkey = 0;
 		if(!getauthkey(authkey))
 			print("keyfs: warning: bad nvram checksum\n");
+	}
 
 	nu = 0;
 	b = Bopen(userkeys, OREAD);
@@ -793,4 +812,22 @@ emalloc(ulong n)
 		return p;
 	error("out of memory");
 	return 0;		/* not reached */
+}
+
+/*
+ * encrypt/decrypt data using a crypt device
+ */
+int
+dofcrypt(int fd, char *how, char *s, int n)
+{
+	
+	if(write(fd, how, 1) < 1)
+		return -1;
+	seek(fd, 0, 0);
+	if(write(fd, s, n) < n)
+		return -1;
+	seek(fd, 0, 0);
+	if(read(fd, s, n) < n)
+		return -1;
+	return n;
 }

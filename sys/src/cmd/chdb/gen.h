@@ -112,7 +112,7 @@ extern	void	bremove(void);
 extern	int	wattack(int);
 
 extern	void	chessinit(int, int, int);
-extern	int	chessfmt(void*, int, int, int, int);
+extern	int	chessfmt(void*, Fconv*);
 extern	int	chessin(char*);
 extern	int	xalgin(short*, char*);
 extern	int	xdscin(short*, char*);

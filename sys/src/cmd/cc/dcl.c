@@ -465,8 +465,6 @@ init1(Sym *s, Type *t, long o, int exflag)
 		return l;
 
 	case TUNION:
-		return init1(s, t->link, o, exflag);
-
 	case TSTRUCT:
 		/*
 		 * peek ahead to find type of rhs.

@@ -18,4 +18,4 @@ OFILES=	s_alloc.$O\
 
 nuke:V:
 	mk clean
-	rm -f libcommon.a[$OS]
+	rm -f libString.a[$OS]

@@ -163,7 +163,7 @@ verify(String *path)
 	s_append(cmd, s_to_c(path));
 	s_append(cmd, "'");
 
-	pp = proc_start(s_to_c(cmd), (stream *)0, outstream(),  (stream *)0, 1);
+	pp = proc_start(s_to_c(cmd), (stream *)0, outstream(),  (stream *)0, 1, 0);
 	if (pp == 0) {
 		print("450 We're busy right now, try later\r\n");
 		return;
@@ -277,7 +277,7 @@ data(void)
 	/*
 	 *  start mail process
 	 */
-	pp = proc_start(s_to_c(cmd), instream(), 0, outstream(), 1);
+	pp = proc_start(s_to_c(cmd), instream(), 0, outstream(), 1, 0);
 	if(pp == 0) {
 		print("450 We're busy right now, try later\n");
 		return;

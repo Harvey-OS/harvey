@@ -23,30 +23,62 @@ lib
 	ndb
 		local
 	units
+	vga
+		generic
+			640x480x1
+			640x480x2
 rc
 	+
 mail
+mnt
+	8½
+	help
+	term
+	kana
+	kanactl
+n
+	boot
+	bootes
+	bootesother
+	bowell
+	coma
+	dump
+	face
+	fornax
+	spindle
+	tempel
+	kfs
+	c:
+	a:
 $cputype
 	init
 	bin
+		aux
+			mouse
+			netkey
+			samterm
+			kana
+			kwindow
+			vga
+		ndb
+			cs
+			query
+		rc
+		mount
+		bind
 		8½
 		ar
 		ascii
 		astro
 		awk
-		aux
-			netkey
-			samterm
-			kana
-			kwindow
 		basename
 		bc
-		bind
 		cal
 		cat
 		chgrp
 		chmod
 		cmp
+		comm
 		compress
 		con
 		cp
@@ -59,7 +91,9 @@ $cputype
 		deroff
 		diff
 		disk
-			+
+			prep
+			ksync
+			kfscmd
 		dkconfig
 		dossrv
 		du
@@ -89,10 +123,7 @@ $cputype
 		mc
 		mk
 		mkdir
-		mount
 		mv
-		ndb
-			cs
 		nm
 		p
 		pbd
@@ -103,7 +134,6 @@ $cputype
 		ps
 		pwd
 		ramfs
-		rc
 		read
 		rm
 		rx
@@ -141,27 +171,6 @@ $cputype
 	include
 		*
 	mkfile
-mnt
-	8½
-	help
-	term
-	kana
-	kanactl
-n
-	boot
-	bootes
-	bootesother
-	bowell
-	coma
-	dump
-	face
-	fornax
-	pipe
-	spindle
-	tempel
-	kfs
-	c:
-	a:
 sys
 	games
 		+

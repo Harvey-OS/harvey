@@ -28,6 +28,7 @@ void	kbdintr(Ureg*);
 void	meminit(void);
 void	mmuinit(void);
 char	*nextelem(char*, char*);
+uchar	nvramread(int);
 void	outb(int, int);
 void	outss(int, void*, int);
 int	p9boot(int, long (*)(int, long), long (*)(int, void*, int));

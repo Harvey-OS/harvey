@@ -21,13 +21,7 @@ mapstack(Proc *p)
 	tp = p->pidonmach[m->machno];
 	if(tp == 0)
 		tp = newtlbpid(p);
-/*
-	if(p->upage->va != (USERADDR|(p->pid&0xFFFF)) && p->pid != 0)
-		panic("mapstack %d 0x%lux 0x%lux", p->pid, p->upage->pa, p->upage->va);
-*/
-	/*
-	 * don't set m->pidhere[tp] because we're only writing entry 0
-	 */
+
 	tlbvirt = USERADDR | PTEPID(tp);
 	tlbphys = p->upage->pa | PTEWRITE | PTEVALID | PTEGLOBL;
 	puttlbx(0, tlbvirt, tlbphys);
@@ -68,6 +62,7 @@ newtlbpid(Proc *p)
 	}
 	if(h[i])
 		purgetlb(i);
+
 	sp = m->pidproc[i];
 	if(sp && sp->pidonmach[m->machno] == i)
 		sp->pidonmach[m->machno] = 0;
@@ -94,9 +89,7 @@ putmmu(ulong tlbvirt, ulong tlbphys, Page *pg)
 	}
 
 	p = u->p;
-/*	if(p->state != Running)
-		panic("putmmu state %lux %lux %s\n", u, p, statename[p->state]);
-*/
+
 	tp = p->pidonmach[m->machno];
 	if(tp == 0)
 		tp = newtlbpid(p);
@@ -133,7 +126,7 @@ purgetlb(int pid)
 	dead[pid] = 1;
 	/*
 	 * clean out all dead pids from the stlb;
-	 * garbage collect any pids with no entries
+	 * garbage collect pids with no entries
 	 */
 	memset(m->pidhere, 0, sizeof m->pidhere);
 	pidhere = m->pidhere;
@@ -160,9 +153,11 @@ flushmmu(void)
 	int s;
 
 	s = splhi();
-	/* easiest is to forget what pid we had.... */
+	/*
+	 * easiest is to forget what pid we had
+	 * and then get a new one by trying to map our stack
+	 */
 	memset(u->p->pidonmach, 0, sizeof u->p->pidonmach);
-	/* ....then get a new one by trying to map our stack */
 	mapstack(u->p);
 	splx(s);
 }
@@ -184,6 +179,7 @@ putstlb(ulong tlbvirt, ulong tlbphys)
 {
 	Softtlb *entry;
 
+	/* This hash function is also coded into utlbmiss in l.s */
 	entry = &m->stb[((tlbvirt<<1) ^ (tlbvirt>>12)) & (STLBSIZE-1)];
 	entry->phys = tlbphys;
 	entry->virt = tlbvirt;

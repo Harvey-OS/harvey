@@ -3,7 +3,7 @@
 #include "ip.h"
 
 int
-eipconv(void *v, int f1, int f2, int f3, int ch)
+eipconv(void *v, Fconv *f)
 {
 	static char buf[64];
 	static char *efmt = "%.2lux%.2lux%.2lux%.2lux%.2lux%.2lux";
@@ -11,7 +11,7 @@ eipconv(void *v, int f1, int f2, int f3, int ch)
 	uchar *p;
 
 	p = *((uchar**)v);
-	switch(ch) {
+	switch(f->chr) {
 	case 'E':		/* Ethernet address */
 		sprint(buf, efmt, p[0], p[1], p[2], p[3], p[4], p[5]);
 		break;
@@ -21,6 +21,6 @@ eipconv(void *v, int f1, int f2, int f3, int ch)
 	default:
 		strcpy(buf, "BAD");
 	}
-	strconv(buf, f1, f2, f3);
+	strconv(buf, f);
 	return sizeof(uchar*);
 }

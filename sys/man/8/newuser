@@ -82,6 +82,12 @@ case con
 Sites may make changes to
 .B /sys/lib/newuser
 that reflect the properties of the local environment.
+.PP
+Use the
+.B -c
+option of
+.IR mail (1)
+to create a mailbox.
 .SH "SEE ALSO"
 .IR passwd (1),
 .IR 8½ (1),

@@ -49,10 +49,10 @@
 #define	USTKTOP		(TSTKTOP-TSTKSIZ*BY2PG)	/* byte just beyond user stack */
 #define	USTKSIZE	(16*1024*1024 - TSTKSIZ*BY2PG)	/* size of user stack */
 #define ROMBIOS		(KZERO|0xF0000)
+#define	ISAMEMSIZE	(4*MB)			/* mem space reserved for ISA */
 
 #define	MACHSIZE	4096
 
-#define isphys(x) (((ulong)x)&KZERO)
 
 /*
  *  known 80386 segments (in GDT) and their selectors
@@ -100,7 +100,7 @@
  *  virtual MMU
  */
 #define PTEMAPMEM	(1024*1024)	
-#define SEGMAPSIZE	64
+#define SEGMAPSIZE	16
 #define	PTEPERTAB	(PTEMAPMEM/BY2PG)
 #define PPN(x)		((x)&~(BY2PG-1))
 

@@ -8,20 +8,18 @@
 extern void
 logdelivery(dest *list, char *rcvr, message *mp)
 {
-	char buf[2048];
 	dest *parent;
 
 	for(parent=list; parent->parent!=0; parent=parent->parent)
 		;
 	if(parent!=list && strcmp(s_to_c(parent->addr), rcvr)!=0)
-		sprint(buf,"delivered %s From %.256s %.256s (%.256s) %d",
+		syslog(0, "mail", "delivered %s From %.256s %.256s (%.256s) %d",
 			rcvr,
 			s_to_c(mp->sender), s_to_c(mp->date),
 			s_to_c(parent->addr), mp->size);
 	else
-		sprint(buf, "delivered %s From %.256s %.256s %d", rcvr,
+		syslog(0, "mail", "delivered %s From %.256s %.256s %d", rcvr,
 			s_to_c(mp->sender), s_to_c(mp->date), mp->size);
-	syslog(0, "mail", buf);
 }
 
 /* log mail forwarding */
@@ -29,22 +27,20 @@ extern void
 loglist(dest *list, message *mp, char *tag)
 {
 	dest *next;
-	char buf[2048];
 	dest *parent;
 
 	for(next=d_rm(&list); next != 0; next = d_rm(&list)) {
 		for(parent=next; parent->parent!=0; parent=parent->parent)
 			;
 		if(parent!=next)
-			sprint(buf, "%s %.256s From %.256s %.256s (%.256s) %d",
+			syslog(0, "mail", "%s %.256s From %.256s %.256s (%.256s) %d",
 				tag,
 				s_to_c(next->addr), s_to_c(mp->sender),
 				s_to_c(mp->date), s_to_c(parent->addr), mp->size);
 		else
-			sprint(buf, "%s %.256s From %.256s %.256s %d\n", tag,
+			syslog(0, "mail", "%s %.256s From %.256s %.256s %d\n", tag,
 				s_to_c(next->addr), s_to_c(mp->sender),
 				s_to_c(mp->date), mp->size);
-		syslog(0, "mail", buf);
 	}
 }
 
@@ -67,5 +63,5 @@ logrefusal(dest *dp, message *mp, char *msg)
 		}
 	}
 	*cp = 0;
-	syslog(0, "mail", buf);
+	syslog(0, "mail", "%s", buf);
 }

@@ -6,7 +6,7 @@ void	arpstart(void);
 int	authsrv(Chan*, char*, int);
 void	authserver(Chan*);
 void	arginit(void);
-void	cdiag(char*);
+void	cdiag(char*, int);
 int	cnumb(void);
 Device	config(void);
 int	rawchar(int);
@@ -256,7 +256,6 @@ void	wormprobe(void);
 int	dowcp(void);
 int	dowcmp(void);
 void	synccopy(void);
-void	worminit(Device);
 long	wormsearch(Device, int, long, long);
 int	wormread(Device, long, void*);
 long	wormsize(Device);
@@ -274,9 +273,6 @@ int	nhgets(uchar*);
 long	nhgetl(uchar*);
 void	hnputs(uchar*, int);
 void	hnputl(uchar*, long);
-
-int	jaginit(Vmedevice*);
-void	jagintr(Vmedevice*);
 
 int	hsvmeinit(Vmedevice*);
 void	hsvmeintr(Vmedevice*);

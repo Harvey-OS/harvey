@@ -73,9 +73,11 @@ yylex1(void)
 		if(c == 0)
 			break;
 	}
-	c = yytok2[1];	/* unknown char */
+	c = 0;
 
 out:
+	if(c == 0)
+		c = yytok2[1];	/* unknown char */
 	if(yydebug >= 3)
 		fprint(2, "lex %.4lux %s\n", yychar, yytokname(c));
 	return c;
@@ -187,7 +189,7 @@ yydefault:
 		case 3:  /* no shift yet; clobber input char */
 			if(yydebug >= 2)
 				fprint(2, "error recovery discards %s\n", yytokname(yychar));
-			if(yychar == 0)
+			if(yychar == YYEOFCODE)
 				return 1;
 			yychar = -1;
 			goto yynewstate;   /* try again in the same state */

@@ -53,6 +53,8 @@ static char *wmsg[]={
 	"duplicate file name",
 	"no such file",
 	"write might change good version of",
+	/* warn_S */
+	"files might be aliased",
 	/* warn */
 	"null characters elided",
 	"can't run pwd",
@@ -96,11 +98,13 @@ warn(Warn s)
 void
 warn_S(Warn s, String *a)
 {
-	char *c;
+	print_s(wmsg[s], a);
+}
 
-	c = Strtoc(a);
-	dprint("?warning: %s `%s'\n", wmsg[s], c);
-	free(c);
+void
+warn_SS(Warn s, String *a, String *b)
+{
+	print_ss(wmsg[s], a, b);
 }
 
 void

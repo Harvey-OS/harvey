@@ -26,7 +26,7 @@ typedef int sig_atomic_t;
 #define SIGCHLD	14	/* child process terminated or stopped */
 #define SIGCONT 15	/* continue if stopped */
 #define SIGSTOP 16	/* stop */
-#define SIGSTP	17	/* interactive stop */
+#define SIGTSTP	17	/* interactive stop */
 #define SIGTTIN	18	/* read from ctl tty by member of background */
 #define SIGTTOU	19	/* write to ctl tty by member of background */
 

@@ -262,8 +262,9 @@ int
 bitwrite(Window *w, char *buf, int n, int *err)
 {
 	uchar *p;
+	schar *sp;
 	uchar x[32];
-	int m, id, did, sid;
+	int i, m, id, did, sid;
 	long miny, maxy, ws, l, t, nc;
 	long v;
 	ulong q0, q1;
@@ -411,6 +412,55 @@ bitwrite(Window *w, char *buf, int n, int *err)
 				buf += 73;
 			}
 			checkcursor(1);
+			break;
+
+		case 'e':
+			/*
+			 * polysegment
+			 *
+			 *	'e'		1
+			 *	id		2
+			 *	pt		8
+			 *	value		1
+			 *	code		2
+			 *	n		2
+			 *	pts		2*n
+			 */
+			if(m < 16)
+				goto ReturnEbit;
+			p = (uchar*)buf;
+			l = BGSHORT(p+14);
+			if(m < 16+2*l)
+				goto ReturnEbit;
+			did = BGSHORT(p+1);
+			if(did < 0)
+				goto ReturnEbitmap;
+			if(did>0 && (did>=nbmw || bmw[did].w!=w))
+				goto ReturnEbitmap;
+			if(did == 0){
+				Point *q;
+				q = emalloc((l+1)*sizeof(Point));
+				pt1.x = BGLONG(p+3);
+				pt1.y = BGLONG(p+7);
+				q[0] = pt1;
+				sp = (schar*)(p+16);
+				for(i=1; i<=l; i++){
+					pt1.x += sp[0];
+					pt1.y += sp[1];
+					q[i] = pt1;
+					sp += 2;
+				}
+				t = p[11];
+				v = BGSHORT(p+12);
+				polysegment(w->l, l+1, q, t, v);
+				free(q);
+			}else{
+				p = bneed(16+2*l);
+				memmove(p, buf, 16+2*l);
+			}
+			l = 16+2*l;
+			buf += l;
+			m -= l;
 			break;
 
 		case 'f':

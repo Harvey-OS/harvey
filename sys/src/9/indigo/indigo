@@ -1,0 +1,39 @@
+dev
+	root	/
+	cons	c
+	env	e
+	dup	d
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	dk	k
+	scc	t
+	bit	b
+	arp	a
+	iproute	P
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	seq	l	nvram
+	rtc	r
+	scsi	S	scsi scsibuf
+	wren	w
+	lpt	L
+#	cdrom	R
+
+stream
+	urp
+	ip
+	fcall
+	async
+
+port
+	int cpuserver = 0;
+	long cfslen = 0; ulong cfscode[1];
+	long fslen = 0; ulong fscode[1];
+	/*void consdebug(void){}	/**/
+	void kproftimer(ulong pc){ USED(pc); }	/**/
+boot
+	il
+	tcp
+	9600
+	19200

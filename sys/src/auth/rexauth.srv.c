@@ -52,7 +52,7 @@ checkuser(char *req, char *resp)
 		fail(0);
 	}
 	if(req[AUTHLEN+NAMELEN] != RXcchal){
-		syslog(0, AUTHLOG, "user '%s': bad challenge number", user, req[AUTHLEN+NAMELEN]);
+		syslog(0, AUTHLOG, "user '%s': bad challenge number", user);
 		fail(0);
 	}
 

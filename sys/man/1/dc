@@ -24,7 +24,12 @@ The following constructions are recognized:
 number
 The value of the number is pushed on the stack.
 A number is an unbroken string of the digits 
-.BR 0 - 9A - F .
+.BR 0 - 9A - F 
+or
+.BR 0 - 9a - f.
+A hexadecimal number beginning with a lower case
+letter must be preceded by a zero to distinguish it
+from the command associated with the letter.
 It may be preceded by an underscore _ to input a
 negative number.
 Numbers may contain decimal points.

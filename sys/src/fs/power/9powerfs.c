@@ -8,10 +8,6 @@
 Vmedevice vmedevtab[] =
 {
 	{
-		0, 0, 0xA8, 1, VMEA16SUP(void, 0x009000), 0,
-		"jaguar", jaginit, jagintr, 0,
-	}, /**/
-	{
 		0, 0, 0xD0, 5, VMEA24SUP(void, 0xF90000), 0,
 		"hsvme", hsvmeinit, hsvmeintr, 0,
 	}, /**/
@@ -20,8 +16,12 @@ Vmedevice vmedevtab[] =
 		"eagle", eagleinit, eagleintr, 0,
 	}, /**/
 	{
-		0, 0, 0xD2, 5, VMEA24SUP(void, 0x010000), 0,
-		"cyclone", cyclinit, cyclintr, 0,
+		0, 0, 0xD2, 5, 0xc0000000, 0,
+		"cyclone0", cyclinit, cyclintr, 0,
+	}, /**/
+	{
+		0, 0, 0xD4, 5, 0xc0001000, 0,
+		"cyclone1", cyclinit, cyclintr, 0,
 	}, /**/
 	0
 };
@@ -36,6 +36,7 @@ otherinit(void)
 {
 	vmeinit();
 	lanceinit(0);	/**/
+	scsiinit();
 }
 
 void

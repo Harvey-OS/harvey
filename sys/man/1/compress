@@ -1,6 +1,6 @@
 .TH COMPRESS 1
 .SH NAME
-compress \- compress and expand data
+compress, uncompress \- compress and expand data
 .SH SYNOPSIS
 .B compress
 [
@@ -22,6 +22,10 @@ If no files are specified, the standard input is compressed to the
 standard output.
 Compressed files can be restored to their original form using
 .IR "compress \-d" .
+The script,
+.I /rc/bin/uncompress,
+performs the command
+.I "``compress \-d $*''."
 .PP
 The
 .B \-f

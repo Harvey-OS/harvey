@@ -1,0 +1,432 @@
+#
+#  systems
+#
+
+sys = p9auth
+	dom=p9auth.research.att.com
+	bootf=/mips/9magnumcpu
+	ip=135.104.9.34 ether=00006b8244f4
+	dk=nj/astro/p9auth
+	proto=il
+sys = astro1
+	dom=astro1.research.att.com
+	bootf=/mips/9magnum
+	ip=135.104.9.111 ether=00006b81363e
+	proto=il
+sys = astro2
+	dom=astro2.research.att.com
+	bootf=/mips/9magnum ether=00006b824422
+	ip=135.104.52.102
+	proto=il
+sys = astro3
+	dom=astro3.research.att.com
+	bootf=/68020/9nextstation
+	ip=135.104.9.112 ether=00000f00821e
+	proto=il
+sys = boofhead
+	dom=boofhead.research.att.com
+	bootf=/68020/9magnum
+	ip=135.104.52.124 ether=00006b82441e
+	proto=il
+sys = astro5
+	dom=astro5.research.att.com
+	bootf=/68020/9nextstation
+	ip=135.104.9.115 ether=00000f007e0d
+	proto=il
+sys = astro6
+	dom=astro6.research.att.com
+	bootf=/mips/9magnum
+	ip=135.104.9.117 ether=00006b824534
+	proto=il
+sys = astro11
+	dom=astro11.research.att.com
+	bootf=/mips/9magnum ether=00006b8244f8
+	ip=135.104.51.103
+	proto=il
+sys = astro13
+	dom=astro13.research.att.com
+	bootf=/68020/9nextstation
+	ip=135.104.53.117 ether=00000f00acf7
+	proto=il
+sys = astro14
+	dom=astro14.research.att.com
+	bootf=/68020/9nextstation
+	ip=135.104.53.118 ether=00000f00ae64
+	proto=il
+sys = astro17
+	dom=astro17.research.att.com
+	bootf=/mips/9magnum
+	ip=135.104.53.113 ether=00006b824478
+	proto=il
+sys = astro19
+	dom=astro19.research.att.com
+	bootf=/mips/9magnum
+	ip=135.104.9.119 ether=00006b81351c
+	proto=il
+sys = ethel
+	dom=ethel.research.att.com
+	bootf=/386/9safari
+	ip=135.104.9.37 ether=00608c002a5b
+	proto=il
+sys = pager
+	dom=pager.research.att.com
+	bootf=/mips/9magnum
+	ip=135.104.52.117 ether=00006b8241de
+	proto=il
+sys = amoc
+	dom=amoc.cse.ogi.edu
+	ip=129.95.58.2
+	proto=il
+sys = rich9
+	dom=rich9.cse.ogi.edu
+	ip=129.95.40.106 ether=00006b824468
+	ipmask=255.255.255.0
+	ipgw=129.95.40.54
+	bootf=/mips/9magnum
+	proto=il
+	fs=rich9
+	auth=rich9
+sys = scree
+	dom=scree.research.att.com
+	ip=135.104.9.110 ether=08002002dea2
+	bootf=/sparc/9ss
+	proto=il
+sys = talus
+	dom=talus.research.att.com
+	ip=135.104.9.122 ether=080020116136
+	bootf=/sparc/9ssfs
+	proto=il
+sys = fornax
+	dom=fornax.research.att.com
+	bootf=/sys/src/fs/6280/9fsx
+	ip=135.104.9.33 ether=00007701D2ba
+	ipmask=255.255.255.0
+	ipgw=135.104.9.1
+	proto=il flavor=9fs
+	9P=auth
+sys = duff
+	dom=demo.research.att.com
+	bootf=/68020/9nextstation
+	ip=135.104.9.253 ether=00000f00ae9a
+	proto=il
+sys = demo
+	dom=demo.research.att.com
+	bootf=/68020/9nextstationdisk
+	ip=135.104.9.254 ether=00000f00ae9c
+	ip=135.104.9.254 ether=00000f00ae9d
+	proto=il
+sys = numbat
+	dom=numbat.research.att.com
+	bootf=/mips/9magnum
+	ip=135.104.53.14 ether=00006b8244c2
+	proto=il
+sys = wombat
+	dom=wombat.research.att.com
+	bootf=/mips/9magnum
+	ip=135.104.53.114 ether=00006b8244fa
+	proto=il
+sys = helix
+	dom=helix.research.att.com
+	bootf=/mips/9power
+	ip=135.104.9.31 ether=0800690222f0
+	dk=nj/astro/helix
+	proto=il flavor=9cpu
+sys = spindle
+	dom=spindle.research.att.com
+	bootf=/mips/9power
+	ip=135.104.9.32 ether=0800690228c8
+	dk=nj/astro/spindle
+	proto=il flavor=9cpu
+	9P=auth
+sys = dubiago
+	dom=dubiago.research.att.com
+	bootf=/mips/9dubiago
+	ip=135.104.117.18 ether=00006b81363e
+	ipmask=255.255.255.0
+	proto=il flavor=9cpu
+sys = musca
+	dom=musca.research.att.com
+	bootf=/mips/9magnumcpu
+	ip=135.104.9.6 ether=00006b8244f0
+	dk=nj/astro/musca
+	proto=il flavor=9cpu
+sys = 9net
+	dom=9net.research.att.com
+	bootf=/mips/9magnumcpu
+	ip=192.20.225.252 ether=00006b8244de
+	dk=nj/astro/9net
+	proto=il flavor=9cpu
+sys = anand
+	ip=135.104.51.11 ether=00006b812e96
+	bootf=/mips/9magnum
+	proto=il
+sys = bootes
+	dom=bootes.research.att.com
+	ip=135.104.9.30 ether=080069020677
+	ipmask=255.255.255.0
+	ipgw=135.104.9.1
+	dk=nj/astro/bootes
+	proto=il flavor=9fs
+	9P=auth
+sys = chesmagnum
+	dom=magnum.ches.research.att.com
+	ip=135.104.200.100 ether=00006b824582 proto=tcp
+sys = dj
+	dom=dj.research.att.com
+	bootf=/mips/9magnum
+	ip=135.104.52.108 ether=00006b82420c
+	proto=il
+sys = bran
+	dom=bran.research.att.com
+	bootf=/mips/9indigo
+	ip=135.104.52.34 ether=08006906262e
+	proto=il
+sys = ches486
+	dom=ches486.ches.research.att.com
+	ip=135.104.200.10 ether=0000c0e3602c
+	bootf=/386/9pc
+	proto=il
+sys = pc486
+	dom=pc486.research.att.com
+	ip=135.104.117.201 ether=0000c0ca2151
+	bootf=/386/9pc
+	proto=il
+sys = pc386
+	dom=pc386.research.att.com
+	ip=135.104.117.203 ether=00608c001a42
+	bootf=/386/9pc
+	proto=il
+sys = stuck
+	dom=stuck.ih.att.com
+	bootf=/mips/9magnumdisk
+	ip=135.1.152.66
+sys = astro16
+	dom=scree.research.att.com
+	ip=135.104.9.121 ether=08002002c5f2
+	bootf=/sparc/9ss
+	proto=il
+sys = dogfish
+	dom=dogfish.research.att.com
+	bootf=/mips/9magnum
+	ip=135.104.52.31 ether=00006b823fb8
+	proto=il
+sys = hirple
+	dom=hirple.research.att.com
+	bootf=/hobbit/9cpu
+	ip=135.104.117.24 ether=08006a190b00
+	dk=nj/astro/hirple
+	proto=il flavor=9cpu
+sys = crux
+	dom=crux.research.att.com
+	bootf=/hobbit/9cpu
+	ip=192.11.85.96 ether=08006a190b02
+	dk=nj/mercury/hobo
+	proto=il flavor=9cpu
+	ipmask=255.255.255.0
+	ipgw=192.11.85.1
+sys = hobart
+	dom=hobart.research.att.com
+	bootf=/hobbit/9cpu
+	ip=129.95.58.3 ether=08006a190b03
+	dk=nj/mercury/hobo
+	proto=il flavor=9cpu
+	ipmask=255.255.255.0
+	ipgw=129.95.58.253
+sys = hobble
+	dom=hobble.research.att.com
+	bootf=/hobbit/9cpu
+	ip=192.11.85.98 ether=08006a190b04
+	dk=nj/mercury/hobo
+	proto=il flavor=9cpu
+	ipmask=255.255.255.0
+	ipgw=192.11.85.1
+sys = hobnob
+	dom=hobnob.research.att.com
+	bootf=/hobbit/9cpu
+	ip=192.11.85.99 ether=08006a190b05
+	dk=nj/mercury/hobo
+	proto=il flavor=9cpu
+	ipmask=255.255.255.0
+	ipgw=192.11.85.1
+sys = πK
+	dom=pik.research.att.com
+	ip=135.104.89.5
+#
+#  default 1127 authentication servers (p9auth & helix)
+#
+sys=1127auth
+	ip=135.104.9.34 dk=nj/astro/p9auth
+	ip=135.104.9.6 dk=nj/astro/musca
+	proto=il
+
+#
+#  ip networks and subnets
+#
+ipnet=mh-astro-net ip=135.104.0.0 ipmask=255.255.255.0
+	fs=bootes.research.att.com
+	auth=1127auth
+ipnet=unix-room ip=135.104.117.0
+	ipgw=135.104.117.1
+ipnet=third-floor ip=135.104.51.0
+	ipgw=135.104.51.1
+ipnet=fourth-floor ip=135.104.52.0
+	ipgw=135.104.52.1
+ipnet=fifth-floor ip=135.104.53.0
+	ipgw=135.104.53.1
+ipnet=xunet-ring ip=135.104.120.0
+	ipgw=135.104.120.1
+ipnet=ches-home ip=135.104.200.0
+	ipgw=135.104.200.100
+ipnet=inet-inside ip=135.104.69.0
+	ipgw=135.104.69.1
+ipnet=inet-9 ip=135.104.9.0
+	ipgw=135.104.9.1
+
+#
+#  datakit networks
+#
+dk=nj/astro/*
+	fs=bootes
+	auth=1127auth
+dk=nj/phone/*
+	fs=bootes
+	auth=1127auth
+dk=nj/mercury/*
+	fs=bootes
+	auth=1127auth
+
+#
+#  outside ether
+#
+ipnet=mh-inter-net ip=192.20.225.0
+	ipgw=192.20.225.225
+
+#
+#  tcp services
+#
+tcp=cs		port=1
+tcp=echo	port=7
+tcp=discard	port=9
+tcp=systat	port=11
+tcp=daytime	port=13
+tcp=netstat	port=15
+tcp=chargen	port=19
+tcp=ftp-data	port=20
+tcp=ftp		port=21
+tcp=telnet	port=23
+tcp=smtp	port=25
+tcp=time	port=37
+tcp=whois	port=43
+tcp=domain	port=53
+tcp=uucp	port=64
+tcp=rje		port=77
+tcp=finger	port=79
+tcp=link	port=87
+tcp=supdup	port=95
+tcp=hostnames	port=101
+tcp=iso-tsap	port=102
+tcp=x400	port=103
+tcp=x400-snd	port=104
+tcp=csnet-ns	port=105
+tcp=pop-2	port=109
+tcp=sunrpc	port=111
+tcp=uucp-path	port=117
+tcp=nntp	port=119
+tcp=ntp		port=123
+tcp=NeWS	port=144
+tcp=print-srv	port=170
+tcp=fsb		port=400
+tcp=sysmon	port=401
+tcp=proxy	port=402
+tcp=proxyd	port=404
+tcp=rexec	port=512	restricted
+tcp=login	port=513	restricted
+tcp=shell	port=514	restricted
+tcp=printer	port=515
+tcp=courier	port=530
+tcp=cscan	port=531
+tcp=9fs		port=564
+tcp=fmclient	port=729
+tcp=ingreslock	port=1524
+tcp=Xdisplay	port=6000
+tcp=face	port=32000
+tcp=whoami	port=565
+tcp=video	port=17028
+
+#
+#  il services
+#
+il=echo		port=7
+il=discard	port=9
+il=chargen	port=19
+il=whoami	port=565
+il=cpu		port=17005
+il=cpunote	port=17006
+il=exportfs	port=17007
+il=9fs		port=17008
+il=rexexec	port=17009
+il=fsauth	port=17020
+il=rexauth	port=17021
+il=changekey	port=17022
+il=chal		port=17023
+il=check	port=17024
+il=juke		port=17026
+il=video	port=17028
+
+#
+#  udp services
+#
+udp=tftp	port=69
+udp=bootpc	port=68
+udp=bootp	port=67
+udp=dns		port=53
+
+#
+#  consoles
+#
+sys = Cspindle	dk=nj/astro/Cspindle flavor=console
+sys = Rspindle	dk=nj/astro/Rspindle flavor=console
+sys = Chelix	dk=nj/astro/Chelix flavor=console
+sys = Cbootes	dk=nj/astro/Cbootes flavor=console
+sys = Cfornax	dk=nj/astro/Cfornax flavor=console
+sys = Rfornax	dk=nj/astro/Rfornax flavor=console
+sys = Cmusca	dk=nj/astro/Cmusca flavor=console
+sys = C9net	dk=nj/astro/C9net flavor=console
+sys = Cp9auth	dk=nj/astro/Cp9auth flavor=console
+sys = Crobs	dk=nj/astro/Crobs flavor=console
+
+#
+#  external internet domain name servers
+#
+dom=
+	ns=ns.nic.ddn.mil
+	ns=kava.nisc.sri.com
+	ns=aos.brl.mil
+	ns=c.nyser.net
+	ns=terp.umd.edu
+	ns=ns.nasa.gov
+	ns=nic.nordu.net
+dom=research.att.com soa
+	mb=ches.research.att.com
+	ns=inet.research.att.com
+	ns=research.research.att.com
+dom=ns.nic.ddn.mil ip=192.112.36.4
+dom=kava.nisc.sri.com ip=192.33.33.24
+dom=aos.brl.mil ip=192.5.25.82
+dom=c.nyser.net ip=192.33.4.12
+dom=terp.umd.edu ip=128.8.10.90
+dom=ns.nasa.gov ip=128.102.16.10 ip=192.52.195.10
+dom=nic.nordu.net ip=192.36.148.17
+
+#
+#  AT&T internet internet domain name servers
+#
+dom=att.com
+	ns=hodns.ho.att.com
+	ns=ihang.ih.att.com
+	ns=cbfsb.cb.att.com
+	ns=bigfoot.dr.att.com
+	ns=burgundy.cnet.att.com
+	ns=ihack.att.com
+
+

@@ -17,6 +17,7 @@
 #define clkbuf	020
 #define e	00
 #define ck	01
-#define MAXLABELS 2
-#define MAXTREES 239
+#define cl	02
+#define MAXLABELS 3
+#define MAXTREES 254
 #define MAXNDVAL 17

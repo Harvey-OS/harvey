@@ -782,17 +782,26 @@ static long
 cmdopen(ScsiReq *rp, int argc, char *argv[])
 {
 	char *p;
-	int id;
+	int id, raw;
 	long status;
 
+	raw = 0;
+	if(argc && strcmp("-r", argv[0]) == 0){
+		raw = 1;
+		argc--, argv++;
+	}
 	if(argc != 1 || ((id = strtoul(argv[0], &p, 0)) == 0 && p == argv[0])){
 		rp->status = Status_BADARG;
 		return -1;
 	}
-	if((status = SRopen(rp, id)) == -1)
-		return -1;
-	if(verbose)
-		Bprint(&bout, "block size: %ld\n", rp->lbsize);
+	if(raw == 0){
+		if((status = SRopen(rp, id)) != -1 && verbose)
+			Bprint(&bout, "block size: %ld\n", rp->lbsize);
+	}
+	else {
+		status = SRopenraw(rp, id);
+		rp->lbsize = 512;
+	}
 	return status;
 }
 
@@ -809,7 +818,7 @@ static ScsiCmd scsicmd[] = {
 	{ "reqsense",	cmdreqsense,	1,		/*[0x03]*/
 	  "reqsense",
 	},
-	{ "format",	cmdformat,	1,		/*[0x04]*/
+	{ "format",	cmdformat,	0,		/*[0x04]*/
 	  "format",
 	},
 	{ "rblimits",	cmdrblimits,	1,		/*[0x05]*/

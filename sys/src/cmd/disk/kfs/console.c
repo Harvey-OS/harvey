@@ -107,7 +107,7 @@ con_stat(int fid, char *data)
 	in.fid = fid;
 	p9fcall(cons.chan, &in, &ou);
 	if(ou.err == 0)
-		memcpy(data, ou.stat, sizeof ou.stat);
+		memmove(data, ou.stat, sizeof ou.stat);
 	return ou.err;
 }
 
@@ -118,7 +118,7 @@ con_wstat(int fid, char *data)
 
 	in.type = Twstat;
 	in.fid = fid;
-	memcpy(in.stat, data, sizeof in.stat);
+	memmove(in.stat, data, sizeof in.stat);
 	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }

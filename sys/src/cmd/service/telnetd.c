@@ -23,6 +23,7 @@ int nonone;		/* don't allow none logins */
 Biobuf	netib;
 Biobuf	childib;
 
+int	alnum(int);
 int	conssim(void);
 int	fromchild(char*, int);
 int	fromnet(char*, int);
@@ -55,6 +56,7 @@ main(int argc, char *argv[])
 		break;
 	case 't':
 		trusted = 1;
+		strncpy(user, getuser(), NAMELEN-1);
 		break;
 	case 'u':
 		strncpy(user, ARGF(), sizeof(user)-1);
@@ -224,6 +226,7 @@ fromchild(char *bp, int len)
  *	'\r\n's and '\r's get turned into '\n's.
  *	^H erases the last character buffered.
  *	^U kills the whole line buffered.
+ *	^W erases the last word
  *	^D causes a 0-lenght line to be returned.
  *	Intr causes an "interrupt" note to be sent to the children.
  */
@@ -324,6 +327,18 @@ fromnet(char *bp, int len)
 				ECHO('U');
 				ECHO('\r');
 				ECHO('\n');
+			}
+			break;
+
+		case 0x17:	/* ^W */
+			if (opt[Echo].local) {
+				while (--bp >= start && !alnum(*bp))
+					ECHO('\b');
+				while (bp >= start && alnum(*bp)) {
+					ECHO('\b');
+					bp--;
+				}
+				bp++;
 			}
 			break;
 
@@ -493,4 +508,21 @@ conssim(void)
 	}
 	exits(0);
 	return -1;
+}
+
+int
+alnum(int c)
+{
+	/*
+	 * Hard to get absolutely right.  Use what we know about ASCII
+	 * and assume anything above the Latin control characters is
+	 * potentially an alphanumeric.
+	 */
+	if(c <= ' ')
+		return 0;
+	if(0x7F<=c && c<=0xA0)
+		return 0;
+	if(strchr("!\"#$%&'()*+,-./:;<=>?@`[\\]^{|}~", c))
+		return 0;
+	return 1;
 }

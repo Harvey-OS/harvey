@@ -418,7 +418,7 @@ CCRunOP(void)
 void
 ExecCharString(struct dict *font, int code, int charpath, struct object bool)
 {
-	double		xyvec[24], asb;		/* internal stack */
+	double		xyvec[24], asb, xx, yy;		/* internal stack */
 	register	top = 0;
 	struct source	source[10];		/* for Subr returns */
 	int		nsource = 0;
@@ -505,18 +505,22 @@ unlock=1;
 	while ( 1 ) {
 		if ( c >= 0x20 && c <= 0xF6 ){
 			xyvec[top++] = c - 0x8B;
+/*fprintf(stderr,"top1 %d val %f\n",top, xyvec[top-1]);*/
 		}
 		else if ( c >= 0xF7 && c <= 0xFA ){
 			xyvec[top++] = 0x6C + (((c - 0xF7)<<8) | Newchar());
+/*fprintf(stderr,"top2 %d val %f\n",top, xyvec[top-1]);*/
 		}
 		else if ( c >= 0xFB && c <= 0xFE ){
 			xyvec[top++] = -(0x6C + (((c - 0xFB)<<8) | Newchar()));
+/*fprintf(stderr,"top3 %d val %f\n",top, xyvec[top-1]);*/
 
 		}
 		else if ( c == 0xFF ) {
 			for ( i = 0, c = 0; i < 4; i++ )
 				c = (c<<8) | Newchar();
 			xyvec[top++] = c;
+/*fprintf(stderr,"top4 %d val %f\n",top, xyvec[top-1]);*/
 		} else {
 			if ( tdebug )
 				fprintf(stderr, " case %x top %d\n", c, top);
@@ -573,12 +577,21 @@ unlock=1;
 				break;
 
 			    case RRCURVETO:
-				p0.x = xyvec[0] + cp.x;
-				p0.y = xyvec[1] + cp.y;
-				p1.x = p0.x + xyvec[2];
-				p1.y = p0.y + xyvec[3];
-				p2.x = p1.x + xyvec[4];
-				p2.y = p1.y + xyvec[5];
+				xx = xyvec[0];
+				yy = xyvec[1];
+				p0.x = xx + cp.x;
+				p0.y = yy + cp.y;
+				if(top > 2)xx = xyvec[2];
+				if(top > 3)yy = xyvec[3];
+				else yy = 0.;
+				p1.x = p0.x + xx;
+				p1.y = p0.y + yy;
+				if(top > 4)xx = xyvec[4];
+				else xx = 0.;
+				if(top > 5)yy = xyvec[5];
+				else yy = 0.;
+				p2.x = p1.x + xx;
+				p2.y = p1.y + yy;
 				cp = p2;
 				if ( Locktype ) {
 					p2 = LockPoint(p2);
@@ -597,7 +610,7 @@ unlock=1;
 			    case CALLSUBR:
 				if ( nsource >= 10 )
 					pserror("invalidfont", "too many Subr calls");
-				if(tdebug)fprintf(stderr,"  calling %d\n",(int)xyvec[top-1]);
+				if(tdebug)fprintf(stderr,"  calling %d level %d\n",(int)xyvec[top-1],nsource);
 				obj = dictget(Private, n_Subrs);
 				if ( obj.type != OB_ARRAY )
 					pserror("invalidfont", "no Subrs array");
@@ -615,6 +628,7 @@ unlock=1;
 			    case RETURN:
 				if ( nsource-- <= 0 )
 					pserror("invalidfont", "bad Subr return");
+if(tdebug)fprintf(stderr,"returning level %d\n",nsource);
 				CharString = source[nsource].string;
 				Key = source[nsource].code;
 				goto nextc;
@@ -977,13 +991,16 @@ GetMetricInfo(struct dict *font, int code)	/*get metric info from Metrics dict*/
 			break;
 		case OB_ARRAY:
 			nm = Metric.value.v_array.length;
-			if(nm > 4)pserror("invalid font", "bad Metrics entry");
-			if ( nm % 2 == 0 ){
+			if ( nm == 2 ){
 				width.x = ArrayDoubleGet(Metric, 1);
 				if(inseac != 2)sb.x = ArrayDoubleGet(Metric, 0);
-				if ( nm == 4 ){
-					width.y = ArrayDoubleGet(Metric, 3);
-					if(inseac != 2)sb.y = ArrayDoubleGet(Metric, 2);
+			}
+			if ( nm == 4 ){
+				width.x = ArrayDoubleGet(Metric, 2);
+				width.y = ArrayDoubleGet(Metric, 3);
+				if(inseac != 2){
+					sb.x = ArrayDoubleGet(Metric, 0);
+					sb.y = ArrayDoubleGet(Metric, 1);
 				}
 			}
 			else pserror("invalid font", "bad Metrics entry");

@@ -72,7 +72,7 @@ struct Layer {
 };
 
 struct Cover {
-	Layer	*cover;	/* layer on which these are painted */
+	Layer	*layer;	/* layer on which these are painted */
 	Layer	*front;	/* first sublayer */
 	Bitmap	*ground;	/* background texture */
 };

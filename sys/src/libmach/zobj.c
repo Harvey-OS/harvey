@@ -1,5 +1,5 @@
 /*
- * z - print symbols in a .z file
+ * zobj.c - identify and parse a hobbit object file
  */
 #include <u.h>
 #include <libc.h>
@@ -13,8 +13,9 @@ struct Addr
 	char	type;
 	char	sym;
 };
-static Addr addr(void);
+static Addr addr(Biobuf*);
 static char type2char(int);
+static void skip(Biobuf*, int);
 
 int
 _isz(char *s)
@@ -25,58 +26,54 @@ _isz(char *s)
 		&& s[3] == '<';				/* name of file */
 }
 
-
-Prog *
-_readz(Prog *p)
+int
+_readz(Biobuf *bp, Prog *p)
 {
 	int i, as, c;
 	Addr a;
 
-	as = Bgetc(_bin);			/* as */
+	as = Bgetc(bp);			/* as */
 	if(as < 0)
 		return 0;
 	p->kind = aNone;
 	if(as == ANAME){
 		p->kind = aName;
-		p->type = type2char(Bgetc(_bin));		/* type */
-		p->sym = Bgetc(_bin);			/* sym */
-		c = Bgetc(_bin);
+		p->type = type2char(Bgetc(bp));		/* type */
+		p->sym = Bgetc(bp);			/* sym */
+		c = Bgetc(bp);
 		for(i=0; i < NNAME && c > 0; i++){
 			p->id[i] = c;
-			c = Bgetc(_bin);
+			c = Bgetc(bp);
 		}
 		if(i < NNAME)
 			p->id[i] = c;
-		return p;
+		return 1;
 	}
 	if(as == ATEXT)
 		p->kind = aText;
 	else if(as == AGLOBL)
 		p->kind = aData;
-	Bgetc(_bin);		/* lineno(low) */
-	Bgetc(_bin);		/* lineno(high) */
-	Bgetc(_bin);		/* lineno(lowhigh) */
-	Bgetc(_bin);		/* lineno(highhigh) */
-	a = addr();
+	skip(bp, 4);		/* lineno (low, high, lowhigh, highigh) */
+	a = addr(bp);
 	if(a.type != D_STATIC && a.type != D_EXTERN)
 		p->kind = aNone;
 	p->sym = a.sym;
-	a = addr();
+	a = addr(bp);
 	if(a.type != D_CONST)
 		p->kind = aNone;
-	return p;
+	return 1;
 }
 
 static Addr
-addr(void)
+addr(Biobuf *bp)
 {
 	Addr a;
-	int name, n, i;
-	long off = 0;
+	int name;
+	long off;
 
-	a.type = Bgetc(_bin);	/* type */
-	Bgetc(_bin);		/* width */
-	a.sym = Bgetc(_bin);	/* sym */
+	a.type = Bgetc(bp);	/* type */
+	skip(bp, 1);		/* width */
+	a.sym = Bgetc(bp);	/* sym */
 	name = a.type & ~D_INDIR;
 	switch(name){
 	case D_NONE:
@@ -87,26 +84,26 @@ addr(void)
 	case D_REG:
 	case D_EXTERN:
 	case D_STATIC:
+		skip(bp, 4);		/* pitch offsets */
+		break;
 	case D_AUTO:
 	case D_PARAM:
-		off = Bgetc(_bin);
-		off |= Bgetc(_bin) << 8;
-		off |= Bgetc(_bin) << 16;
-		off |= Bgetc(_bin) << 24;
-		off = off<0 ? -off : off;
+		off = Bgetc(bp);
+		off |= Bgetc(bp) << 8;
+		off |= Bgetc(bp) << 16;
+		off |= Bgetc(bp) << 24;
+		if(off < 0)
+			off = -off;
+		if(a.sym)
+			_offset(a.sym, off);
 		break;
 	case D_SCONST:
-		n = Bgetc(_bin);
-		for(i=0; i<n; i++)
-			Bgetc(_bin);
+		skip(bp, Bgetc(bp));	/* get count and skip that many */
 		break;
 	case D_FCONST:
-		for(i=0; i<8; i++)
-			Bgetc(_bin);
+		skip(bp, 8);
 		break;
 	}
-	if(a.sym!=0 && (name==D_PARAM || name==D_AUTO))
-		_offset(a.sym, type2char(name), off);
 	return a;
 }
 
@@ -120,4 +117,11 @@ type2char(int t)
 	case D_PARAM:		return 'p';
 	default:		return UNKNOWN;
 	}
+}
+
+static void
+skip(Biobuf *bp, int n)
+{
+	while (n-- > 0)
+		Bgetc(bp);
 }

@@ -1,44 +1,101 @@
 #include	"l.h"
-
-
 /*
- *	4.170		start
- *	4.103		copy/invert branches
- *	3.903		annul branches
- *	3.865		jmpl/bra delay copy
- *	3.774		load+fcmp
- *	3.476		REGSB double aligned
+ *	astro -d << 1992 7 1
+ *	07.10
+		3598885       Memory cycles
+		3150860   87% Instruction cycles
+		41158      1% Annulled branch cycles
+		448025    12% Data cycles
+		
+		220695     7% Stores
+		227330     7% Loads
+		   441390   Store stall
+		   49702    Load stall
+		619872    19% Arithmetic
+		1650340   52% Floating point
+		6          0% Sparc special register load/stores
+		38         0% System calls
+		391421    12% Branches
+		   320754    81% Branches taken
+		   344689    88% Delay slots
+		   73620     18% Unused delay slots
+		73620      2% Program total delay slots
+ *	09.20
+		3600253       Memory cycles
+		3152228   87% Instruction cycles
+		42512      1% Annulled branch cycles
+		448025    12% Data cycles
+		
+		220695     7% Stores
+		227330     7% Loads
+		   441390   Store stall
+		   51384    Load stall
+		619886    19% Arithmetic
+		1650340   52% Floating point
+		6          0% Sparc special register load/stores
+		38         0% System calls
+		391421    12% Branches
+		   320754    81% Branches taken
+		   343335    87% Delay slots
+		   73634     18% Unused delay slots
+		73634      2% Program total delay slots
+ *	09.24
+		3598885       Memory cycles
+		3150860   87% Instruction cycles
+		41158      1% Annulled branch cycles
+		448025    12% Data cycles
+		
+		220695     7% Stores
+		227330     7% Loads
+		   441390   Store stall
+		   49702    Load stall
+		619872    19% Arithmetic
+		1650340   52% Floating point
+		6          0% Sparc special register load/stores
+		38         0% System calls
+		391421    12% Branches
+		   320754    81% Branches taken
+		   344689    88% Delay slots
+		   73620     18% Unused delay slots
+		73620      2% Program total delay slots
  */
 
 enum
 {
-	E_REG	= 0,
-	E_FREG	= E_REG+32,
-
-	E_CC	= 1,
-	E_FCC,
-	E_MEM,
-	E_PREG,
-
-	A_SET	= 0,
-	A_USE1	= 8,
-	A_USE2	= 16,
-	A_SETCC	= 24,
-	A_USECC	= 28,
+	E_ICC	= 1<<0,
+	E_FCC	= 1<<1,
+	E_MEM	= 1<<2,
+	E_MEMSP	= 1<<3,	/* uses offset and size */
+	E_MEMSB	= 1<<4,	/* uses offset and size */
+	ANYMEM	= E_MEM|E_MEMSP|E_MEMSB,
+	ALL	= ~0,
 };
 
 typedef	struct	Sch	Sch;
+typedef	struct	Dep	Dep;
+
+struct	Dep
+{
+	ulong	ireg;
+	ulong	freg;
+	ulong	cc;
+};
 struct	Sch
 {
 	Prog	p;
-	long	dep;
+	Dep	set;
+	Dep	used;
+	long	offset;
+	char	size;
 	char	nop;
 	char	comp;
 };
 
-long	regused(Prog*);
-int	depend(long, long);
-int	conflict(long, long);
+void	regused(Sch*);
+int	depend(Sch*, Sch*);
+int	conflict(Sch*, Sch*);
+int	offoverlap(Sch*, Sch*);
+void	dumpbits(Sch*, Dep*);
 
 void
 sched(Prog *p0, Prog *pe)
@@ -51,12 +108,16 @@ sched(Prog *p0, Prog *pe)
 	 */
 	s = sch;
 	for(p=p0;; p=p->link) {
-		s->dep = regused(p);
-		s->comp = compound(p);
-		s->nop = 0;
+		memset(s, 0, sizeof(*s));
 		s->p = *p;
-		if(debug['X'])
-			Bprint(&bso, "%.8ux%P\n", s->dep, &s->p);
+		regused(s);
+		if(debug['X']) {
+			Bprint(&bso, "%P\tset", &s->p);
+			dumpbits(s, &s->set);
+			Bprint(&bso, "; used");
+			dumpbits(s, &s->used);
+			Bprint(&bso, "\n");
+		}
 		s++;
 		if(p == pe)
 			break;
@@ -73,7 +134,7 @@ sched(Prog *p0, Prog *pe)
 				if(t->comp || (t->p.mark & FCMP))
 					goto no1;
 				for(u=t+1; u<=s; u++)
-					if(depend(u->dep, t->dep))
+					if(depend(u, t))
 						goto no1;
 				goto out1;
 			no1:;
@@ -101,9 +162,12 @@ sched(Prog *p0, Prog *pe)
 		if(s->p.mark & LOAD) {
 			if(s >= se-1)
 				continue;
-			if(!conflict(s->dep, (s+1)->dep))
+			if(!conflict(s, (s+1)))
 				continue;
-			/* t is the trial instruction to use */
+			/*
+			 * s is load, s+1 is immediate use of result
+			 * t is the trial instruction to insert between s and s+1
+			 */
 			for(t=s-1; t>=sch; t--) {
 				if(t->p.mark & BRANCH)
 					goto no2;
@@ -111,10 +175,10 @@ sched(Prog *p0, Prog *pe)
 					if((s+1)->p.mark & BRANCH)
 						goto no2;
 				if(t->p.mark & LOAD)
-					if(conflict(t->dep, (s+1)->dep))
+					if(conflict(t, (s+1)))
 						goto no2;
 				for(u=t+1; u<=s; u++)
-					if(depend(u->dep, t->dep))
+					if(depend(u, t))
 						goto no2;
 				goto out2;
 			no2:;
@@ -147,7 +211,7 @@ sched(Prog *p0, Prog *pe)
 			/* t is the trial instruction to use */
 			for(t=s-1; t>=sch; t--) {
 				for(u=t+1; u<=s; u++)
-					if(depend(u->dep, t->dep))
+					if(depend(u, t))
 						goto no3;
 				goto out3;
 			no3:;
@@ -185,37 +249,46 @@ sched(Prog *p0, Prog *pe)
 		Bprint(&bso, "\n");
 }
 
-long
-regused(Prog *p)
+void
+regused(Sch *s)
 {
-	long r;
-	int c, ar, ad, ld;
+	int c, ar, ad, ld, sz;
+	ulong m;
+	Prog *p;
 
-	r = 0;
+	p = &s->p;
+	s->comp = compound(p);
+	s->nop = 0;
+
 	ar = 0;		/* dest is really reference */
-	ad = 0;		/* dest is really ardress */
+	ad = 0;		/* source/dest is really address */
 	ld = 0;		/* opcode is load instruction */
+	sz = 20;		/* size of load/store for overlap computation */
 
+/*
+ * flags based on opcode
+ */
 	switch(p->as) {
 	case ATEXT:
 		curtext = p;
 		autosize = p->to.offset + 4;
+		ad = 1;
 		break;
 	case AJMPL:
 		c = p->reg;
 		if(c == NREG)
 			c = REGLINK;
-		r |= (E_REG+c) << A_SET;
+		s->set.ireg |= 1<<c;
 		ar = 1;
+		ad = 1;
 		break;
 	case AJMP:
 		ar = 1;
 		ad = 1;
 		break;
 	case ACMP:
-		r |= E_CC << A_SETCC;
+		s->set.cc |= E_ICC;
 		ar = 1;
-		ad = 1;
 		break;
 	case AFCMPD:
 	case AFCMPED:
@@ -223,7 +296,7 @@ regused(Prog *p)
 	case AFCMPEX:
 	case AFCMPF:
 	case AFCMPX:
-		r |= E_FCC << A_SETCC;
+		s->set.cc |= E_FCC;
 		ar = 1;
 		break;
 	case ABE:
@@ -240,7 +313,7 @@ regused(Prog *p)
 	case ABPOS:
 	case ABVC:
 	case ABVS:
-		r |= E_CC << A_USECC;
+		s->used.cc |= E_ICC;
 		ar = 1;
 		break;
 	case AFBE:
@@ -249,48 +322,65 @@ regused(Prog *p)
 	case AFBLE:
 	case AFBGE:
 	case AFBL:
-		r |= E_FCC << A_USECC;
+		s->used.cc |= E_FCC;
 		ar = 1;
 		break;
-
-	case AFMOVD:
-	case AFMOVF:
-	case AFMOVX:
 	case AMOVB:
 	case AMOVBU:
-	case AMOVD:
+		sz = 1;
+		ld = 1;
+		break;
 	case AMOVH:
 	case AMOVHU:
-	case AMOVW:
+		sz = 2;
 		ld = 1;
+		break;
+	case AFMOVF:
+	case AMOVW:
+		sz = 4;
+		ld = 1;
+		break;
+	case AMOVD:
+	case AFMOVD:
+		sz = 8;
+		ld = 1;
+		break;
+	case AFMOVX:	/* gok */
+		sz = 16;
+		ld = 1;
+		break;
+	case AADDCC:
+	case AADDXCC:
+	case AANDCC:
+	case AANDNCC:
+	case AORCC:
+	case AORNCC:
+	case ASUBCC:
+	case ASUBXCC:
+	case ATADDCC:
+	case ATADDCCTV:
+	case ATSUBCC:
+	case ATSUBCCTV:
+	case AXNORCC:
+	case AXORCC:
+		s->set.cc |= E_ICC;
 		break;
 	case ADIV:
 	case ADIVL:
 	case AMOD:
 	case AMODL:
 	case AMUL:
-
-	case AADDCC:
-	case AADDXCC:
-	case AANDCC:
-	case AANDNCC:
 	case AMULSCC:
-	case AORCC:
-	case AORNCC:
-	case ASUBCC:
-	case ASUBXCC:
-	case ATADDCC:
-	case ATCC:
-	case ATSUBCC:
-	case AXNORCC:
-	case AXORCC:
-
-	case ATADDCCTV:
-	case ATSUBCCTV:
-		r |= E_CC << A_SETCC;
+	case ATAS:
+		s->set.ireg = ALL;
+		s->set.freg = ALL;
+		s->set.cc = ALL;
 		break;
 	}
 
+/*
+ * flags based on 'to' field
+ */
 	c = p->to.class;
 	if(c == 0) {
 		c = aclass(&p->to) + 1;
@@ -313,39 +403,55 @@ regused(Prog *p)
 	case C_FSR:
 	case C_FQ:
 	case C_PREG:
-		r |= E_CC << A_SETCC;
+		s->set.ireg = ALL;
+		s->set.freg = ALL;
+		s->set.cc = ALL;
 		break;
 	case C_ZOREG:
 	case C_SOREG:
 	case C_LOREG:
 	case C_ASI:
-		if(ar) {
-			if(!ad)
-				r |= E_MEM << A_USECC;
-			r |= (E_REG+p->to.reg) << A_USE1;
-		} else
-			r |= (E_MEM << A_SETCC) |
-				((E_REG+p->to.reg) << A_USE1);
+		c = p->to.reg;
+		s->used.ireg |= 1<<c;
+		if(ad)
+			break;
+		s->size = sz;
+		s->offset = regoff(&p->to);
+
+		m = ANYMEM;
+		if(c == REGSB)
+			m = E_MEMSB;
+		if(c == REGSP)
+			m = E_MEMSP;
+
+		if(ar)
+			s->used.cc |= m;
+		else
+			s->set.cc |= m;
 		break;
 	case C_SACON:
 	case C_LACON:
-		r |= (E_REG+REGSP) << A_USE1;
+		s->used.ireg |= REGSP;
 		break;
 	case C_SECON:
 	case C_LECON:
-		r |= (E_REG+REGSB) << A_USE1;
+		s->used.ireg |= REGSB;
 		break;
 	case C_REG:
 		if(ar)
-			r |= (E_REG+p->to.reg) << A_USE1;
+			s->used.ireg |= 1<<p->to.reg;
 		else
-			r |= (E_REG+p->to.reg) << A_SET;
+			s->set.ireg |= 1<<p->to.reg;
 		break;
 	case C_FREG:
-		if(ar)
-			r |= (E_FREG+(p->to.reg&~1)) << A_USE1;
-		else
-			r |= (E_FREG+(p->to.reg&~1)) << A_SET;
+		/* do better -- determine double prec */
+		if(ar) {
+			s->used.freg |= 1<<p->to.reg;
+			s->used.freg |= 1<<(p->to.reg|1);
+		} else {
+			s->set.freg |= 1<<p->to.reg;
+			s->set.freg |= 1<<(p->to.reg|1);
+		}
 		break;
 	case C_SAUTO:
 	case C_LAUTO:
@@ -353,13 +459,16 @@ regused(Prog *p)
 	case C_OSAUTO:
 	case C_ELAUTO:
 	case C_OLAUTO:
-		if(ar) {
-			if(!ad)
-				r |= E_MEM << A_USECC;
-			r |= (E_REG+REGSP) << A_USE1;
-		} else
-			r |= (E_MEM << A_SETCC) |
-				((E_REG+REGSP) << A_USE1);
+		s->used.ireg |= 1<<REGSP;
+		if(ad)
+			break;
+		s->size = sz;
+		s->offset = regoff(&p->to);
+
+		if(ar)
+			s->used.cc |= E_MEMSP;
+		else
+			s->set.cc |= E_MEMSP;
 		break;
 	case C_SEXT:
 	case C_LEXT:
@@ -367,16 +476,22 @@ regused(Prog *p)
 	case C_OSEXT:
 	case C_ELEXT:
 	case C_OLEXT:
-		if(ar) {
-			if(!ad)
-				r |= E_MEM << A_USECC;
-			r |= (E_REG+REGSB) << A_USE1;
-		} else
-			r |= (E_MEM << A_SETCC) |
-				((E_REG+REGSB) << A_USE1);
+		s->used.ireg |= 1<<REGSB;
+		if(ad)
+			break;
+		s->size = sz;
+		s->offset = regoff(&p->to);
+
+		if(ar)
+			s->used.cc |= E_MEMSB;
+		else
+			s->set.cc |= E_MEMSB;
 		break;
 	}
 
+/*
+ * flags based on 'from' field
+ */
 	c = p->from.class;
 	if(c == 0) {
 		c = aclass(&p->from) + 1;
@@ -399,30 +514,46 @@ regused(Prog *p)
 	case C_FSR:
 	case C_FQ:
 	case C_PREG:
-		r |= E_CC << A_SETCC;
+		s->set.ireg = ALL;
+		s->set.freg = ALL;
+		s->set.cc = ALL;
 		break;
 	case C_ZOREG:
 	case C_SOREG:
 	case C_LOREG:
 	case C_ASI:
-		r |= (E_MEM << A_USECC) |
-			((E_REG+p->from.reg) << A_USE2);
+		c = p->from.reg;
+		s->used.ireg |= 1<<c;
 		if(ld)
 			p->mark |= LOAD;
+		if(ad)
+			break;
+		s->size = sz;
+		s->offset = regoff(&p->from);
+
+		m = ANYMEM;
+		if(c == REGSB)
+			m = E_MEMSB;
+		if(c == REGSP)
+			m = E_MEMSP;
+
+		s->used.cc |= m;
 		break;
 	case C_SACON:
 	case C_LACON:
-		r |= (E_REG+REGSP) << A_USE2;
+		s->used.ireg |= 1<<REGSP;
 		break;
 	case C_SECON:
 	case C_LECON:
-		r |= (E_REG+REGSB) << A_USE2;
+		s->used.ireg |= 1<<REGSB;
 		break;
 	case C_REG:
-		r |= (E_REG+p->from.reg) << A_USE2;
+		s->used.ireg |= 1<<p->from.reg;
 		break;
 	case C_FREG:
-		r |= (E_FREG+(p->from.reg&~1)) << A_USE2;
+		/* do better -- determine double prec */
+		s->used.freg |= 1<<p->from.reg;
+		s->used.freg |= 1<<(p->from.reg|1);
 		break;
 	case C_SAUTO:
 	case C_LAUTO:
@@ -430,10 +561,15 @@ regused(Prog *p)
 	case C_ELAUTO:
 	case C_OSAUTO:
 	case C_OLAUTO:
-		r |= (E_MEM << A_USECC) |
-			((E_REG+REGSP) << A_USE2);
+		s->used.ireg |= 1<<REGSP;
 		if(ld)
 			p->mark |= LOAD;
+		if(ad)
+			break;
+		s->size = sz;
+		s->offset = regoff(&p->from);
+
+		s->used.cc |= E_MEMSP;
 		break;
 	case C_SEXT:
 	case C_LEXT:
@@ -441,84 +577,97 @@ regused(Prog *p)
 	case C_ELEXT:
 	case C_OSEXT:
 	case C_OLEXT:
-		r |= (E_MEM << A_USECC) |
-			((E_REG+REGSB) << A_USE2);
+		s->used.ireg |= 1<<REGSB;
 		if(ld)
 			p->mark |= LOAD;
+		if(ad)
+			break;
+		s->size = sz;
+		s->offset = regoff(&p->from);
+
+		s->used.cc |= E_MEMSB;
 		break;
 	}
 	
 	c = p->reg;
 	if(c != NREG) {
-		c += E_REG;
-		if(p->from.type == D_FREG || p->to.type == D_FREG)
-			c += E_FREG-E_REG;
-		if(!(r & (0xff<<A_USE1)))
-			r |= c << A_USE1;
-		else
-		if(!(r & (0xff<<A_USE2)))
-			r |= c << A_USE2;
-		else
-		if(!(r & (0xff<<A_SET)))
-			r |= c << A_SET;	/* case of R1,(R2+R3) */
-		else
-			print("no room %P %x\n", p, r);
+		if(p->from.type == D_FREG || p->to.type == D_FREG) {
+			s->used.freg |= 1<<c;
+			s->used.freg |= 1<<(c|1);
+		} else
+			s->used.ireg |= 1<<c;
+	}
+	s->set.ireg &= ~(1<<0);		/* R0 cant be set */
+}
+
+/*
+ * test to see if 2 instrictions can be
+ * interchanged without changing semantics
+ */
+int
+depend(Sch *sa, Sch *sb)
+{
+	ulong x;
+
+	if(sa->set.ireg & (sb->set.ireg|sb->used.ireg))
+		return 1;
+	if(sb->set.ireg & sa->used.ireg)
+		return 1;
+
+	if(sa->set.freg & (sb->set.freg|sb->used.freg))
+		return 1;
+	if(sb->set.freg & sa->used.freg)
+		return 1;
+
+	x = (sa->set.cc & (sb->set.cc|sb->used.cc)) |
+		(sb->set.cc & sa->used.cc);
+	if(x) {
+		/*
+		 * allow SB and SP to pass each other.
+		 * allow SB to pass SB iff doffsets are ok
+		 * anything else conflicts
+		 */
+		if(x != E_MEMSP && x != E_MEMSB)
+			return 1;
+		x = sa->set.cc | sb->set.cc |
+			sa->used.cc | sb->used.cc;
+		if(x & E_MEM)
+			return 1;
+		if(offoverlap(sa, sb))
+			return 1;
 	}
 
-	return r;
+	return 0; 
 }
 
 int
-depend(long a, long b)
+offoverlap(Sch *sa, Sch *sb)
 {
-	int ra, rb;
 
-	ra = (a >> A_SET) & 0xff;
-	rb = (b >> A_SET) & 0xff;
-
-	if(ra) {
-		if(ra == rb)
+	if(sa->offset < sb->offset) {
+		if(sa->offset+sa->size > sb->offset)
 			return 1;
-		if(ra == ((b>>A_USE1)&0xff))
-			return 1;
-		if(ra == ((b>>A_USE2)&0xff))
-			return 1;
+		return 0;
 	}
-	if(rb) {
-		if(rb == ((a>>A_USE1)&0xff))
-			return 1;
-		if(rb == ((a>>A_USE2)&0xff))
-			return 1;
-	}
-
-	ra = (a >> A_SETCC) & 0xf;
-	rb = (b >> A_SETCC) & 0xf;
-
-	if(ra) {
-		if(ra == rb)
-			return 1;
-		if(ra == ((b>>A_USECC)&0xf))
-			return 1;
-	}
-	if(rb)
-		if(rb == ((a>>A_USECC)&0xf))
-			return 1;
-
+	if(sb->offset+sb->size > sa->offset)
+		return 1;
 	return 0;
 }
 
+/*
+ * test 2 adjacent instructions
+ * and find out if inserted instructions
+ * are desired to prevent stalls.
+ * first instruction is a load instruction.
+ */
 int
-conflict(long a, long b)
+conflict(Sch *sa, Sch *sb)
 {
-	int ra;
 
-	ra = (a >> A_SET) & 0xff;
-	if(ra) {
-		if(ra == ((b>>A_USE1)&0xff))
-			return 1;
-		if(ra == ((b>>A_USE2)&0xff))
-			return 1;
-	}
+	if(sa->set.ireg & sb->used.ireg)
+		return 1;
+	if(sa->set.freg & sb->used.freg)
+		return 1;
 	return 0;
 }
 
@@ -533,4 +682,37 @@ compound(Prog *p)
 	if(p->to.type == D_REG && p->to.reg == REGSB)
 		return 1;
 	return 0;
+}
+
+void
+dumpbits(Sch *s, Dep *d)
+{
+	int i;
+
+	for(i=0; i<32; i++)
+		if(d->ireg & (1<<i))
+			Bprint(&bso, " R%d", i);
+	for(i=0; i<32; i++)
+		if(d->freg & (1<<i))
+			Bprint(&bso, " F%d", i);
+	for(i=0; i<32; i++)
+		switch(d->cc & (1<<i)) {
+		default:
+			break;
+		case E_ICC:
+			Bprint(&bso, " ICC");
+			break;
+		case E_FCC:
+			Bprint(&bso, " FCC");
+			break;
+		case E_MEM:
+			Bprint(&bso, " MEM%d", s->size);
+			break;
+		case E_MEMSB:
+			Bprint(&bso, " SB%d", s->size);
+			break;
+		case E_MEMSP:
+			Bprint(&bso, " SP%d", s->size);
+			break;
+		}
 }

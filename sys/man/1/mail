@@ -330,7 +330,12 @@ If the name is not found, the expansion is taken to be
 Incoming mail for a user
 .I username
 is put in the file
-.BI /mail/box/ username /mbox.
+.BI /mail/box/ username /mbox
+unless either the file
+.BI /mail/box/ username /forward
+or
+.BI /mail/box/ username /pipeto
+exists.
 The mailbox must have append-only and exclusive-access mode
 (see
 .IR chmod (1)).
@@ -339,6 +344,22 @@ A user must create his or her own mailbox using the
 option of
 .IR edmail .
 Mailboxes are created writable (append-only) but not readable by others.
+.SS Forwarding
+If the file
+.BI /mail/box/ username /forward
+exists and is readable by everyone, incoming mail
+will be forwarded to the addresses contained in the first line of the file.
+The file may contain multiple addresses.
+Forwarding loops are caught and resolved by local delivery.
+.SS Filtering
+If the file
+.BI /mail/box/ username /pipeto
+exists and is readable and executable by everyone,
+it will be run for each incoming message for the user.
+The message will be piped to it rather
+than appended to his/her mail box.
+The file is run as user
+.BR none .
 .SS Misc
 .PP
 The
@@ -425,6 +446,12 @@ mail directories
 .TP
 .B /mail/box/*/mbox
 mailbox files
+.TP
+.B /mail/box/*/forward
+forwarding address(es)
+.TP
+.B /mail/box/*/pipeto
+mail filter
 .TP
 .B /mail/box/*/L.reading
 mutual exclusion lock for multiple mbox readers

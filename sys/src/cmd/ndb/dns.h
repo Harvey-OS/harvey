@@ -170,12 +170,13 @@ extern void	rrfree(RR*);
 extern void	rrfreelist(RR*);
 extern RR*	rrlookup(DN*, int);
 extern RR*	rrcat(RR**, RR*, int);
-extern int	rrconv(void*, int, int, int, int);
+extern int	rrconv(void*, Fconv*);
 extern int	rrtype(char*);
 extern char*	rrname(int, char*);
 extern int	cistrcmp(char*, char*);
 
 /* dblookup.c */
+extern void	dbinit(void);
 extern RR*	dblookup(char*, int, int, int);
 extern RR*	dbinaddr(DN*);
 
@@ -183,6 +184,7 @@ extern RR*	dbinaddr(DN*);
 extern char*	walkup(char*);
 extern RR*	dnresolve(char*, int, int, Request*, RR**);
 extern void	fatal(char*, ...);
+extern void	warning(char*, ...);
 extern void	slave(Request*);
 
 /* dnserver.c */

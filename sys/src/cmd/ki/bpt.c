@@ -1,8 +1,8 @@
 #include <u.h>
 #include <libc.h>
-#include <mach.h>
 #include <ctype.h>
 #include <bio.h>
+#include <mach.h>
 #define Extern extern
 #include "sparc.h"
 

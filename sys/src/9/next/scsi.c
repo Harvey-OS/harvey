@@ -127,8 +127,10 @@ scsiexec(Scsi *p, int rflag)
 	debug = scsidebugs[p->target&7];
 	DPRINT("scsi %d.%d cmd=0x%2.2ux ", p->target, p->lun, *(p->cmd.ptr));
 	qlock(&scsilock);
+	qlock(&dmalock);
 
 	if(waserror()){
+		qunlock(&dmalock);
 		qunlock(&scsilock);
 		nexterror();
 	}
@@ -146,7 +148,7 @@ scsiexec(Scsi *p, int rflag)
 	dev->cmd = Dma|Nop;
 	dev->cmd = Flush;		/* clear scsi fifo */
 
-	while (p->cmd.ptr < p->cmd.lim)
+	while(p->cmd.ptr < p->cmd.lim)
 		dev->fifo = *(p->cmd.ptr)++;
 
 	dev->destid = p->target&7;
@@ -168,6 +170,7 @@ scsiexec(Scsi *p, int rflag)
 	DPRINT("S<");
 	sleep(&scsirendez, scsidone, 0);
 	poperror();
+	qunlock(&dmalock);
 	qunlock(&scsilock);
 	debug = 0;
 	return p->status;
@@ -271,6 +274,9 @@ Done:
 void
 crankfifo(int n)
 {
+	if(n <= 0)
+		return;
+
 	n = n>>2;
 	SETCTL(Cpu_dma);
 	while(n--) {

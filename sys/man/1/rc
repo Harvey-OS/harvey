@@ -729,7 +729,7 @@ the definition of any function,
 a call to
 .B builtin
 for any built-in command, or
-the full path name of any binary.
+the completed pathname of any executable file.
 .HP
 .BI ~ " subject pattern ..."
 .br

@@ -42,12 +42,13 @@ int		req(uchar *, int);
 void		rep(uchar *, int);
 Point		bgpt(uchar *);
 Rectangle	bgrect(uchar *);
-int		Aconv(void *, int, int, int, int);
-int		Pconv(void *, int, int, int, int);
-int		Rconv(void *, int, int, int, int);
+int		Aconv(void *, Fconv*);
+int		Pconv(void *, Fconv*);
+int		Rconv(void *, Fconv*);
 void		dumpbmrows(uchar *, int, int, Rectangle);
 void		printfontchars(uchar *, int);
 void		printcmap(uchar *, int);
+void		printoffsets(uchar *, Point pt, int);
 Bitmap		*bmlook(int);
 Fid		*fidlook(int);
 void		srv(void);
@@ -314,6 +315,7 @@ req(uchar *p, int m)
 	ulong ws, l;
 	long miny, maxy, t;
 	Bitmap *bm;
+	Point pt;
 
 	switch(*p) {
 
@@ -350,6 +352,15 @@ req(uchar *p, int m)
 				Bprint(out, "\t%.4x%.4x  %.4x%.4x\n",
 					p[9+i], p[10+i], p[41+i], p[42+i]);
 		}
+		break;
+
+	case 'e':
+		v = BGSHORT(p+14);
+		len = 16 + 2*v;
+		pt = bgpt(p+3);
+		Bprint(out, "[e] polysegment, bitmap=%d, pt=%P, value=%d, code=%A\n    offsets: ",
+			BGSHORT(p+1), pt, p[11], BGSHORT(p+12));
+		printoffsets(p+16, pt, v);
 		break;
 
 	case 'f':
@@ -612,13 +623,12 @@ char *fcnames[] = {
 };
 
 int
-Aconv(void *oa, int f1, int f2, int f3, int c)
+Aconv(void *oa, Fconv *f)
 {
 	int fc;
 
-	USED(c);
 	fc = *(int *)oa;
-	strconv(fcnames[fc & 0xF], f1, f2, f3);
+	strconv(fcnames[fc & 0xF], f);
 	return sizeof(int);
 }
 
@@ -675,6 +685,24 @@ printfontchars(uchar *p, int n)
 			BGSHORT(p), p[2], p[3], p[4], p[5]);
 		p += 6;
 	}
+}
+
+void
+printoffsets(uchar *p, Point pt, int n)
+{
+	int j;
+	Point del;
+
+	for(j = 0; j<=n; j++) {
+		del = Pt(((signed char *)p)[0], ((signed char *)p)[1]);
+		pt = add(del,pt);
+		Bprint(out, "+%P=%P, ", del, pt);
+		p += 2;
+		if(j && (j%4) == 0)
+			Bprint(out, "\n\t");
+	}
+	if((j-1)%4 != 0)
+		Bprint(out, "\n");
 }
 
 Point

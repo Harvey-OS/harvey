@@ -138,12 +138,16 @@ udpport(void)
 
 	/* get a udp port */
 	fd = dial("udp!0.0.0.0!0", 0, 0, &ctl);
-	if(fd < 0)
-		fatal("can't get udp port");
+	if(fd < 0){
+		warning("can't get udp port");
+		return -1;
+	}
 
 	/* turn on header style interface */
-	if(write(ctl, hmsg, strlen(hmsg)) , 0)
-		fatal(hmsg);
+	if(write(ctl, hmsg, strlen(hmsg)) , 0){
+		warning(hmsg);
+		return -1;
+	}
 
 	close(ctl);
 	return fd;
@@ -272,6 +276,8 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp)
 	 *  each cycle send one more message than the previous.
 	 */
 	fd = udpport();
+	if(fd < 0)
+		return 0;
 	notify(ding);
 	for(i = 1;; i++){
 		/* send to i destinations */
@@ -287,7 +293,7 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp)
 			p->nx++;
 			memmove(obuf, p->a, sizeof(p->a));
 			if(write(fd, obuf, len + Udphdrlen) < 0)
-				fatal("sending udp msg %r");
+				warning("sending udp msg %r");
 			p++;
 		}
 		if(j == 0)

@@ -55,7 +55,6 @@ clock(Ureg *ur)
 	MACHP(0)->load = (MACHP(0)->load*19+nrun)/20;
 	checkalarms();
 	kbdclock();
-	mouseclock();
 	sccclock();
 	if((ur->sr&SPL(7))==0 && p && p->state==Running){
 		if(anyready()){

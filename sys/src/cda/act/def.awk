@@ -1,15 +1,26 @@
+BEGIN {prefix = "e:"}
 /^#/ {next}
 /^$/ {next}
+/^:/ {
+	prefix = $2":"
+	next
+}
 {
-	print "e:	"$1
+	print prefix"	"$1
 	if ($2 == "#")
 		print "	{TOPDOWN;}"
 	else if ($2 == "$")
 		print "	{cost.gate += 1000; TOPDOWN;}"
+	else if ($2 == "<")
+		print "	{cost.gate -= 1; TOPDOWN;}"
 	else {
 		print "\t{"
 		if (substr($2,1,1) == "$") {
 			print "\t\tcost.gate += 1000;"
+			$2 = substr($2,2,length($2))
+		}
+		else if (substr($2,1,1) == "<") {
+			print "\t\tcost.gate -= 1;"
 			$2 = substr($2,2,length($2))
 		}
 		if ($2 != "") {

@@ -94,7 +94,7 @@ recvvme(void)
 	COMM->replyp++;
 	if(COMM->replyp >= NRQ)
 		COMM->replyp = 0;
-	irq5(VEC);
+	irq5(COMM->vmevec);
 	b.vmeaddr = 0;
 	return;
 

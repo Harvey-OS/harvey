@@ -93,7 +93,7 @@ Bitmap *initbitmap(char *bits[], Rectangle r);
 #define	muldiv(a, b, c)	((a)*(b)/(c))
 int min(int a, int b){return a<b?a:b;}
 int abs(int a){return a<0?-a:a;}
-void ereshaped(Rectangle r){ exits("reshaped"); }
+void ereshaped(Rectangle r){ USED(r); exits("reshaped"); }
 void main(void){
 	struct obj *o, *p;
 	binit(0,0,0);

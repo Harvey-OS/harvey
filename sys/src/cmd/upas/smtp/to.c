@@ -60,6 +60,7 @@ main(void)
 			for(np = f->node; np; np = np->next)
 				uneaten = np->end;
 			l = &f->next;
+			uneaten++;		/* skip newline */
 			continue;
 		}
 		for(np = f->node; np; np = np->next){
@@ -71,6 +72,7 @@ main(void)
 			*l = f->next;
 		else
 			l = &f->next;
+		uneaten++;		/* skip newline */
 	}
 	av[argc] = 0;
 
@@ -107,6 +109,8 @@ main(void)
 		}
 		Bprint(&bout, "\n");
 	}
+	if (*uneaten != '\n')
+		Bprint(&bout, "\n");
 
 	/*
 	 *  pipe rest of message to command

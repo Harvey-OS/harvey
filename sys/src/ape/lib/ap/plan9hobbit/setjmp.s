@@ -4,14 +4,14 @@
  * #define SP	0
  * #define PC	1
  */
-TEXT setjmp(SB), $0		/* setjmp(env) */
+TEXT setjmp(SB), 1, $0		/* setjmp(env) */
 	MOVA	R0, *env+0(FP)	/* SP */
 	ADD	$4, env+0(FP)
 	MOV	R0, *env+0(FP)	/* PC */
 	MOV	$0, R4
 	RETURN
 
-TEXT longjmp(SB), $16		/* longjmp(env, val) */
+TEXT longjmp(SB), 1, $16		/* longjmp(env, val) */
 	CMPEQ	$0, val+4(FP)
 	AND3	$~15, *env+0(FP)/* R4 = env[SP] & ~0x0F */
 	JMPFY	_valok

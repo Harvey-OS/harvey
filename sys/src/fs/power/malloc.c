@@ -96,7 +96,7 @@ iobufinit(void)
 		p->iobuf = (char*)-1;
 		p++;
 	}
-	print("	mem left = %ld\n", conf.mem - ((ulong)ialloc(0, 0) & 0x0fffffffL));
+	print("	mem left = %ld\n", conf.mem - ((ulong)ialloc(0, 1) & 0x0fffffffL));
 	print("		out of = %ld\n", conf.mem);
 }
 

@@ -105,7 +105,8 @@ dmasetup(int chan, void *va, long len, int isread)
 	 *  allocate a page for the DMA.
 	 */
 	pa = ((ulong)va) & ~KZERO;
-	if(!isphys(va) || (pa&0xFFFF0000)!=((pa+len)&0xFFFF0000)){
+	if((((ulong)va)&0xF0000000) != KZERO
+	|| (pa&0xFFFF0000) != ((pa+len)&0xFFFF0000)){
 		if(xp->pg == 0)
 			xp->pg = newpage(1, 0, 0);
 		if(len > BY2PG)

@@ -33,13 +33,14 @@ main(int argc, char **argv)
 {
 	char buf[128];
 	Fsrpc *r;
-	int n;
+	int n, srv;
 	char *dbfile;
 	char *ctlfile;
 	char *errp, user[NAMELEN];
 
 	dbfile = "/tmp/exportdb";
 	ctlfile = 0;
+	srv = 0;
 
 	ARGBEGIN{
 	case 'a':
@@ -62,6 +63,9 @@ main(int argc, char **argv)
 		dbfile = ARGF();
 		break;
 
+	case 's':
+		srv++;
+		break;
 	}ARGEND
 	USED(argc, argv);
 
@@ -87,11 +91,22 @@ main(int argc, char **argv)
 	 * Get tree to serve from network connection, check we can get there and
 	 * ack the connection
  	 */
-	n = read(0, buf, sizeof(buf));
-	if(n < 0 || chdir(buf) < 0) {
-		errstr(buf);
-		write(0, buf, strlen(buf));
-		exits(buf);
+	if(srv)
+		chdir("/");
+	else {
+		buf[0] = 0;
+		n = read(0, buf, sizeof(buf));
+		if(n < 0) {
+			errstr(buf);
+			fprint(0, "read(0): %s", buf);
+			exits(buf);
+		}
+		if(chdir(buf) < 0) {
+			char ebuf[128];
+			errstr(ebuf);
+			fprint(0, "chdir(%d:\"%s\"): %s", n, buf, ebuf);
+			exits(ebuf);
+		}
 	}
 
 	/*
@@ -105,7 +120,7 @@ main(int argc, char **argv)
 
 	DEBUG(2, "exportfs: %s\n", buf);
 
-	if(write(0, "OK", 2) != 2)
+	if(srv == 0 && write(0, "OK", 2) != 2)
 		fatal("open ack write");
 
 	/*
@@ -340,6 +355,7 @@ fatal(char *s)
 	for(m = Proclist; m; m = m->next)
 		postnote(m->pid, "kill");
 
+	DEBUG(2, "%s\n", buf);
 	exits(buf);
 }
 

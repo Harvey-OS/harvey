@@ -10,14 +10,21 @@ typedef struct Isofile	Isofile;
 typedef union Drec	Drec;
 typedef union Voldesc	Voldesc;
 
-enum {
-	Boot=0, Primary=1, Supplementary=2, Partition=3, Terminator=255
+enum
+{
+	Boot		= 0,
+	Primary		= 1,
+	Supplementary	= 2,
+	Partition	= 3,
+	Terminator	= 255
 };
 
-union Voldesc {			/* volume descriptor */
-	uchar byte[Sectorsize];
+union	Voldesc
+{			/* volume descriptor */
+	uchar	byte[Sectorsize];
 	union {			/* for CD001, the ECMA standard */
-		struct {
+		struct
+		{
 			uchar	type;
 			uchar	stdid[5];
 			uchar	version;
@@ -26,7 +33,8 @@ union Voldesc {			/* volume descriptor */
 			uchar	bootid[32];
 			uchar	data[1977];
 		} boot;
-		struct {
+		struct
+		{
 			uchar	type;
 			uchar	stdid[5];
 			uchar	version;
@@ -62,8 +70,10 @@ union Voldesc {			/* volume descriptor */
 			uchar	unused4[653];
 		} desc;
 	} z;
-	union {			/* for CDROM, the `High Sierra' standard */
-		struct {
+	union
+	{			/* for CDROM, the `High Sierra' standard */
+		struct
+		{
 			Byte8LM	number;
 			uchar	type;
 			uchar	stdid[5];
@@ -94,8 +104,10 @@ union Voldesc {			/* volume descriptor */
 	} r;
 };
 
-union Drec{
-	struct{
+union	Drec
+{
+	struct
+	{
 		uchar	reclen;
 		uchar	attrlen;
 		Byte8LM	addr;
@@ -109,13 +121,15 @@ union Drec{
 		uchar	namelen;
 		uchar	name[1];
 	};
-	struct{
+	struct
+	{
 		uchar	r_pad[24];
 		uchar	r_flags;
 	};
 };
 
-struct Isofile{
+struct	Isofile
+{
 	short	fmt;		/* 'z' if iso, 'r' if high sierra */
 	short	blksize;
 	long	offset;		/* true offset when reading directory */

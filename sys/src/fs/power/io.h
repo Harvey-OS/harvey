@@ -4,7 +4,7 @@
 #define	SYNCBUS(t,x)	((t *)(UNCACHED|0x1E000000|(x)))
 #define VMEA16SUP(t, x)	((t *)(UNCACHED|0x17C10000|(x)))
 #define VMEA24SUP(t, x)	((t *)(UNCACHED|0x13000000|(x)))
-#define VMEA32SUP(t, x)	((t *)(UNCACHED|(0x30000000+(x)))
+#define VMEA32SUP(t, x)	((t *)(UNCACHED|0x30000000|(x)))
 
 #define	SBSEM		SYNCBUS(ulong, 0)
 #define	SBSEMTOP	SYNCBUS(ulong, 0x400000)
@@ -57,6 +57,15 @@ struct SBCC
 #define	WRITEMAP	IO2(ulong, 0xFA0000)
 #define LANCEINDEX	0x1E00			/* index of lancemap */
 
+#define SCSI0ADDR	IO2(uchar, 0xF08007)
+#define SCSI0DATA	IO2(uchar, 0xF08107)
+#define SCSI1ADDR	IO2(uchar, 0xF0C007)
+#define SCSI1DATA	IO2(uchar, 0xF0C107)
+#define SCSI0CNT	IO2(ulong, 0xF54000)
+#define SCSI1CNT	IO2(ulong, 0xF58000)
+#define SCSI0FLS	IO2(uchar, 0xF30001)
+#define SCSI1FLS	IO2(uchar, 0xF34001)
+
 #define IOID		IO2(uchar, 0xFFFFF0)
 #define IO2R1		1	/* IO2 revision level 1 */
 #define IO2R2		2	/* IO2 revision level 2 */
@@ -80,7 +89,7 @@ struct	MODE
  * MP2VME takes a physical MP bus address and returns an address
  * usable by a VME device through A32 space.  VME2MP is its inverse
  */
-#define	MASTER	0x0
+#define	MASTER	0x1
 #define	SLAVE	0x4
 #define	MP2VME(addr)	(((ulong)(addr) & 0x0fffffff) | (SLAVE<<28))
 #define	VME2MP(addr)	(((ulong)(addr) & 0x0fffffff) | KZERO)

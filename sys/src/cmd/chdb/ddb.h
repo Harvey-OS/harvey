@@ -27,7 +27,8 @@ enum
 	End		= -1000,
 	Fileoffset	= 2,
 
-	Byfile		= 0,
+	Byorder		= 0,
+	Byfile,
 	Bywhite,
 	Byblack,
 	Byevent,
@@ -82,7 +83,7 @@ struct	Game
 struct	Str
 {
 	ushort*	gp;
-	ulong	flag;
+	ulong	mark;
 
 	short	position;
 	char	whiteoffset;
@@ -150,6 +151,7 @@ Bitmap*	bitpiece[20];
 char	chars[STRSIZE];
 char	cmd[CMDSIZE];
 int	cmdi;
+long	gsizelist[30];
 Game	curgame;
 Event	ev;
 long	gameno;
@@ -207,6 +209,7 @@ void	funhu(long);
 void	funv(long);
 void	funvd(long);
 void	funvu(long);
+ulong	genmark(int);
 void	getposn(int);
 long	getshort(void);
 Node*	new(int);

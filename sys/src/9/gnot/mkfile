@@ -1,5 +1,5 @@
 CONF=gnot
-CONFLIST=gnot gnotdisk phoneca gnotbri lbp gnotlbpdisk gnotv
+CONFLIST=gnot gnotdisk phoneca gnotbri lbp gnotlbpdisk belle
 
 objtype=68020
 </$objtype/mkfile

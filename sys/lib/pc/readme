@@ -1,0 +1,18 @@
+	The Plan 9 distribution floppy is configured to bring
+	the system up in CGA mode and without the mouse enabled.
+
+	To enable the mouse you will have to run the command aux/mouse
+	which takes one argument specifying the port the mouse is
+	attached to.  The choices are 0, 1, or ps2. For example
+		aux/mouse 0
+	will set up the mouse on port 0.
+
+	The aux/vga command will switch to one of the vga modes.  It's
+	argument is the name of a file specifying the VGA parameters.
+	Look at the files in the directories under /lib/vga.  Unfortunately
+	there is no one configuration that works on all machines.  However
+		aux/vga generic/640x480x1
+	works on most vga card and monitor combinations.
+
+	You may want to edit /rc/bin/termrc to have aux/mouse and aux/vga
+	run whenever you start Plan 9.

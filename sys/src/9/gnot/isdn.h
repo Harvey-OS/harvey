@@ -97,9 +97,11 @@ struct Isdn
 	uchar	venval;
 	uchar *	asr;
 	uchar *	data;
+	int	hangup;		/* hangup pending */
 	uchar	listat;		/* previous line interface status */
 	uchar	tctl;		/* transmitter control */
 	uchar	imask;		/* interrupt mask */
+	uchar	stictl;		/* S/T interface control and b1xb2 bit */
 	uchar	lctl;		/* loopback control */
 	uchar	devaddr;	/* debug access */
 

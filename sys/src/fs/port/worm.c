@@ -44,8 +44,10 @@ static	void	shelves(void);
 static	void	waitworm(void);
 static	void	prshit(void);
 static	int	ascsiio(int, uchar*, int, void*, int);
-static	void	cmd_search(int, char*[]);
+static	void	cmd_wormsearch(int, char*[]);
 static	void	cmd_wormcp(int, char*[]);
+static	void	cmd_wormeject(int, char*[]);
+static	void	cmd_wormingest(int, char*[]);
 static	void	wcpinit(void);
 
 /*
@@ -75,17 +77,24 @@ wormunit(Device d)
 		for(i=0; i<NPLAT; i++, x++)
 			x->status = Sunload;
 
-		cmd_install("search", "[blkno] [nblock] [b/w] -- search blank on worm", cmd_search);
+		cmd_install("wormsearch", "[blkno] [nblock] [b/w] -- search blank on worm",
+			cmd_wormsearch);
 		cmd_install("wormcp", "funit tunit [nblock] -- worm to worm copy", cmd_wormcp);
+		cmd_install("wormeject", "unit -- shelf to outside", cmd_wormeject);
+		cmd_install("wormingest", "unit -- outside to shelf", cmd_wormingest);
 		wcpinit();
 
 		w.shinit = 1;
 	}
-	if(w.jagu.ctrl != d.ctrl || w.jagu.unit != d.unit)
-		panic("worm: two juke box units %D %D", d, w.jagu);
+	if(w.jagu.ctrl != d.ctrl || w.jagu.unit != d.unit) {
+		print("worm: two juke box units %D %D\n", d, w.jagu);
+		goto sbad;
+	}
 	p = d.part;
-	if(p < 0 || p > NPLAT)
-		panic("worminit partition %D", d);
+	if(p < 0 || p > NPLAT) {
+		print("wormunit partition %D\n", d);
+		goto sbad;
+	}
 	v = &w.plat[p];
 
 	/*
@@ -212,7 +221,7 @@ wormunit(Device d)
 
 sbad:
 	qunlock(&w);
-	panic("worm: no capacity %D", d);
+	print("worm: no capacity %D\n", d);
 	prshit();
 	return 0;
 }
@@ -249,24 +258,21 @@ wormprobe(void)
 	}
 }
 
-void
-worminit(Device d)
-{
-
-	USED(d);
-}
-
 long
 wormsize(Device d)
 {
 	Plat *v;
+	long size;
 
 	if(FIXEDSIZE)
 		return FIXEDSIZE;
 
 	v = wormunit(d);
+	if(v == 0)
+		return 0;
+	size = v->max;
 	qunlock(&w);
-	return v->max;
+	return size;
 }
 
 int
@@ -278,6 +284,8 @@ wormiocmd(Device d, int io, long b, void *c)
 	uchar cmd[10];
 
 	v = wormunit(d);
+	if(v == 0)
+		return 0x71;
 	w.active = 1;
 	if(b >= v->max) {
 		qunlock(&w);
@@ -343,6 +351,8 @@ wormsearch(Device d, int io, long b, long c)
 	uchar cmd[10], buf[6];
 
 	v = wormunit(d);
+	if(v == 0)
+		return -1;
 	if(b >= v->max) {
 		print("wormsearch out of range %D(%ld)\n", d, b);
 		goto no;
@@ -611,7 +621,7 @@ getcatworm(void)
 
 static
 void
-cmd_search(int argc, char *argv[])
+cmd_wormsearch(int argc, char *argv[])
 {
 	Device dev;
 	int lb, hb;
@@ -685,6 +695,69 @@ wcpinit(void)
 
 static
 void
+cmd_wormeject(int argc, char *argv[])
+{
+	Plat *v;
+	Device dev;
+	int n, lb;
+
+	dev = getcatworm();
+	if(dev.type != Devmcat) {
+		print("device not mcat\n");
+		return;
+	}
+	if(argc <= 1) {
+		print("usage: wormeject unit\n");
+		return;
+	}
+	n = number(argv[1], -1, 10);
+
+	for(lb = dev.unit; lb < dev.part; lb++)
+		if(cwdevs[lb].part == n) {
+			print("unit device is active %d\n", n);
+			return;
+		}
+	dev = cwdevs[dev.unit];
+	dev.part = n;
+	v = wormunit(dev);
+	if(v)
+		qunlock(&w);
+}
+
+static
+void
+cmd_wormingest(int argc, char *argv[])
+{
+	Plat *v;
+	Device dev;
+	int n, lb;
+
+	dev = getcatworm();
+	if(dev.type != Devmcat) {
+		print("device not mcat\n");
+		return;
+	}
+	if(argc <= 1) {
+		print("usage: wormingest unit\n");
+		return;
+	}
+	n = number(argv[1], -1, 10);
+
+	for(lb = dev.unit; lb < dev.part; lb++)
+		if(cwdevs[lb].part == n) {
+			print("unit device is active %d\n", n);
+			return;
+		}
+
+	dev = cwdevs[dev.unit];
+	dev.part = n;
+	v = wormunit(dev);
+	if(v)
+		qunlock(&w);
+}
+
+static
+void
 cmd_wormcp(int argc, char *argv[])
 {
 	Device fr, to;
@@ -748,15 +821,17 @@ cmd_wormcp(int argc, char *argv[])
 	wcp.fr = fr;
 	wcp.to = to;
 
-	worminit(fr);
 	v = wormunit(fr);
+	if(v == 0)
+		return;
 	wcp.nblock = v->nblock;
 	wcp.block = v->block;
 	wcp.memb = wcp.memc / v->block;
 	qunlock(&w);
 
-	worminit(to);
 	v = wormunit(to);
+	if(v == 0)
+		return;
 	if(wcp.nblock != v->nblock) {
 		print("fr and to have different number of blocks %ld %ld\n",
 			wcp.nblock, v->nblock);
@@ -794,6 +869,8 @@ wbsrch(long lb, long ub)
 
 loop:
 	v = wormunit(wcp.to);
+	if(v == 0)
+		goto stop1;
 
 loop1:
 	mb = (lb + ub) / 2;
@@ -847,6 +924,8 @@ loop1:
 	qunlock(&w);
 
 	v = wormunit(wcp.fr);
+	if(v == 0)
+		goto stop1;
 	cmd[0] = 0x28;	/* read */
 	cmd[1] = v->lun << 5;
 	s = ascsiio(SCSIread, cmd, 10, wcp.memp+wcp.block, wcp.block);
@@ -867,6 +946,7 @@ loop1:
 
 stop:
 	qunlock(&w);
+stop1:
 	wcp.active = 0;
 }
 
@@ -886,6 +966,8 @@ dowcp(void)
 	if(!wcp.active)
 		return 0;
 	v = wormunit(wcp.fr);
+	if(v == 0)
+		return 0;
 	if(w.active) {
 		w.active = 0;
 		qunlock(&w);
@@ -1008,6 +1090,8 @@ rloop:
 	 */
 	qunlock(&w);
 	v = wormunit(wcp.to);
+	if(v == 0)
+		return 0;
 
 	if(cons.flags & roflag)
 		print("write %ld(%ld)\n", wcp.off, n);

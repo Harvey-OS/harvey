@@ -35,7 +35,7 @@ confinit(void)
 	conf.nfile = 30000;
 	conf.nlgmsg = 100;
 	conf.nsmmsg = 500;
-	conf.wcpsize = 170*6*1024 + 500;
+	conf.wcpsize = 1024*1024;
 
 	conf.nwpath = conf.nfile*8;
 	conf.gidspace = conf.nuid*3;
@@ -375,6 +375,6 @@ loop:
 	runlock(&mainlock);
 	alarm(f?1000: 10000, callsc, 0);
 	sleep(&scp, no, 0);
-	pokewcp();
+/*	pokewcp();	*/
 	goto loop;
 }

@@ -7,3 +7,6 @@ TARG=listen\
 
 BIN=/$objtype/bin/aux
 </sys/src/cmd/mkmany
+
+clean:
+	rm -f [$OS].* *.[$OS]

@@ -11,7 +11,14 @@ sort \- sort and/or merge files
 [
 .BI - pos2
 ] ...
+] ...
+[
+.B -k
+.I pos1
+[
+.I ,pos2
 ]
+] ...
 [
 .B -o
 .I output
@@ -33,8 +40,7 @@ If no input files are named, the standard input is sorted.
 .PP
 The default sort key is an entire line.
 Default ordering is
-lexicographic by bytes in machine
-collating sequence.
+lexicographic by runes.
 The ordering is affected globally by the following options,
 one or more of which may appear.
 .TP
@@ -44,27 +50,32 @@ The first three
 non-white space characters
 of the field
 are folded
-to lower case
+to upper case
 and compared
 so that
-.L jan
+.L JAN
 precedes
-.LR feb ,
+.LR FEB ,
 etc.
 Invalid fields
 compare low to
-.LR jan .
+.LR JAN .
 .TP
 .B -b
 Ignore leading white space (spaces and tabs) in field comparisons.
 .TP
 .B -d
-`Phone directory' order: only letters, digits and white space
+`Phone directory' order:
+only letters,
+accented letters,
+digits and white space
 are significant in comparisons.
 .TP
 .B -f
-Fold upper case
-letters onto lower case.
+Fold lower case
+letters onto upper case.
+Accented characters are folded to their
+non-accented upper case form.
 .TP
 .B -i
 Ignore characters outside the
@@ -74,13 +85,10 @@ in non-numeric comparisons.
 .TP
 .B -n
 An initial numeric string,
-consisting of optional white space, optional minus sign,
+consisting of optional white space,
+optional plus or minus sign,
 and zero or more digits with optional decimal point,
 is sorted by arithmetic value.
-Option
-.B -n
-implies option
-.BR -b .
 .TP
 .B -g
 Numbers, like
@@ -139,6 +147,24 @@ flag may be attached independently to
 and
 .IR pos2.
 .PP
+The notation
+.B -k
+.I pos1 [, pos2]
+is the Posix version of fields.
+Of course,
+.I pos1
+and
+.I pos2
+have the same format but different meanings.
+The value of
+.BI \&. m\^
+is base 1 instead of base 0
+and a missing
+.BI \&. n\^
+in
+.I pos2
+is the end of the field.
+.PP
 When there are multiple sort keys, later keys
 are compared only after all earlier keys
 compare equal.
@@ -153,6 +179,11 @@ give no output unless the file is out of sort.
 .TP
 .B -m
 Merge; the input files are already sorted.
+.B -r
+option.
+This option does not work with the
+.B -u
+option.
 .TP
 .B -u
 Suppress all but one in each
@@ -172,19 +203,6 @@ Put temporary files in
 .I dir
 rather than in
 .BR /tmp .
-.TP
-.BI -y mem
-Suggests the use of the specified number of 
-bytes of internal store in hopes of tuning performance;
-0 is appropriate for very small files, a missing
-number for huge ones.
-.TP
-.BI -z recsize
-Provide for abnormally large records;
-useful only with
-.B -c
-and
-.B -m
 .ne 4
 .SH EXAMPLES
 .TP
@@ -210,7 +228,7 @@ grep -n '^' input | sort -t: +1f +0n | sed 's/[0-9]*://'
 A stable sort: input lines that compare equal will 
 come out in their original order.
 .SH FILES
-.B /tmp/stm???
+.BI /tmp/sort. <pid>.<ordinal>
 .SH SEE ALSO
 .IR uniq (1),
 .IR look (1)
@@ -220,14 +238,13 @@ comments and exits with non-null status for various trouble
 conditions and for disorder discovered under option
 .BR -c .
 .SH BUGS
+An external null character can be confused
+with an internally generated end-of-field character.
+The result can make a sub-field not sort
+less than a longer field.
+.PP
 Some of the options, e.g.
-.B -I
+.B -i
 and
 .BR -M ,
 are hopelessly provincial.
-.br
-Option
-.B -g
-compares rounded floating binary values.
-.br
-Syntax needs overhauling.

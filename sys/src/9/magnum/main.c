@@ -45,7 +45,7 @@ main(void)
 	/* pick a console */
 	havekbd = kbdinit();
 	screeninit(consname[0]);
-	sccsetup(SCCADDR, SCCFREQ);
+	sccsetup(SCCADDR, SCCFREQ, 1);
 	switch(consname[0]){
 	case '0':
 		sccspecial(0, &printq, &kbdq, 9600);
@@ -53,13 +53,8 @@ main(void)
 	case '1':
 		sccspecial(1, &printq, &kbdq, 9600);
 		break;
-	case 'm':
-		sccspecial(0, 0, &mouseq, 1200);
-		break;
 	default:
-		if(havekbd)
-			sccspecial(0, 0, &mouseq, 1200);
-		else
+		if(havekbd==0)
 			sccspecial(1, &printq, &kbdq, 9600);
 		break;
 	}

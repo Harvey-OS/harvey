@@ -43,7 +43,7 @@ void
 move(void)
 {
 	Rectangle r;
-	Point p, op;
+	Point op;
 	register Chip *c;
 	extern int errfd;
 

@@ -74,7 +74,7 @@ Destination is printer in 2C465 (tom's office).
 .TP
 .B -p
 Output goes to
-.B /n/bootes/usr/$user/pspool
+.B /usr/$user/pspool
 for proofreading.
 .TP
 .BI -f file
@@ -150,6 +150,7 @@ pixels down (types
 .LR c ,
 .LR d ,
 .LR r ).
+.sp
 .PP
 .B homespool
 initializes the files needed for a private spooler;
@@ -158,15 +159,15 @@ starts such a spooler.  See the
 .B -G
 option.
 .SH FILES
-.TF /n/bootes/usr/$user/pspool
+.TF /usr/$user/pspool
 .TP
 .B /sys/lib/candest 
 name of default printer.
 .TP
-.B /n/bootes/usr/$user/pspool
+.B /usr/$user/pspool
 proofreading spool area.
 .TP
-.B /n/bootes/usr/$user/spool
+.B /usr/$user/spool
 spool area.
 .SH SEE  ALSO
 .IR troff (1).

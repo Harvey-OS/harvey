@@ -135,7 +135,7 @@ checkerrs(void)
 	char *p;
 	long l;
 
-	if(statfile(errfile, 0, 0, &l) > 0 && l != 0){
+	if(statfile(errfile, 0, 0, 0, &l) > 0 && l != 0){
 		if((f=open((char *)errfile, 0)) != -1){
 			if((n=read(f, buf, sizeof buf-1)) > 0){
 				for(nl=0,p=buf; nl<3 && p<&buf[n]; p++)

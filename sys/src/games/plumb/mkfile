@@ -15,8 +15,8 @@ install:V: pieces
 
 pieces:V:  $PLIB/pieces.1 $PLIB/pieces.2 $PLIB/pieces.3 $PLIB/pieces.4
 
-$PLIB/pieces.%:	pieces.%
-	cp pieces.$stem $PLIB/pieces.$stem
+$PLIB/pieces.%:	pieces.%x
+	cp pieces.$stem^x $PLIB/pieces.$stem
 
 clean:V:
 	rm -f plumb.[$OS] [$OS].out y.tab.? y.debug y.output $TARG

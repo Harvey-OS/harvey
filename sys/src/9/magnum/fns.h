@@ -18,7 +18,7 @@ void	faultmips(Ureg*, int, int);
 ulong	fcr31(void);
 void	firmware(int);
 #define	flushpage(s)	icflush((void*)(s), BY2PG)
-int	fptrap(Ureg*, ulong);
+void	fptrap(Ureg*);
 ulong	getcallerpc(void*);
 ulong	getstatus(void);
 void	gettlb(int, ulong*);

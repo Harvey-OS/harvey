@@ -1,230 +1,139 @@
-#include <u.h>
-#include <libc.h>
+/*
+ * qsort --
+ *	qsort interface implemented by faster quicksort
+ */
+#include	<u.h>
+#include	<libc.h>
 
-static	int	(*qscmp)(void*, void*);
-static	void	(*qsexc)(void*, void*);
-static	void	(*qstexc)(void*, void*, void*);
-static	long	qses, nqses, qsesn;
-typedef	struct	{ long x[4]; } xlong;
-
-
-static	void
-qs1(char *a, char *l)
-{
-	char *i, *j;
-	char *lp, *hp;
-	int c;
-	long n;
-
-
-start:
-	if((n=l-a) <= nqses)
-		return;
-	n = qses * (n / (2*qses));
-	hp = lp = a+n;
-	i = a;
-	j = l-qses;
-	for(;;) {
-		if(i < lp) {
-			if((c = (*qscmp)(i, lp)) == 0) {
-				(*qsexc)(i, lp -= qses);
-				continue;
-			}
-			if(c < 0) {
-				i += qses;
-				continue;
-			}
-		}
-
-loop:
-		if(j > hp) {
-			if((c = (*qscmp)(hp, j)) == 0) {
-				(*qsexc)(hp += qses, j);
-				goto loop;
-			}
-			if(c > 0) {
-				if(i == lp) {
-					(*qstexc)(i, hp += qses, j);
-					i = lp += qses;
-					goto loop;
-				}
-				(*qsexc)(i, j);
-				j -= qses;
-				i += qses;
-				continue;
-			}
-			j -= qses;
-			goto loop;
-		}
-
-
-		if(i == lp) {
-			if(lp-a >= l-hp) {
-				qs1(hp+qses, l);
-				l = lp;
-			} else {
-				qs1(a, lp);
-				a = hp+qses;
-			}
-			goto start;
-		}
-
-
-		(*qstexc)(j, lp -= qses, i);
-		j = hp -= qses;
-	}
+#define	swapcode(TYPE, parmi, parmj, n) {\
+	long i = (n) / (int) sizeof(TYPE);\
+	TYPE *pi = (TYPE *) (parmi);\
+	TYPE *pj = (TYPE *) (parmj);\
+	do {\
+		TYPE t = *pi;\
+		*pi++ = *pj;\
+		*pj++ = t;\
+	} while(--i > 0);\
 }
 
-static	void
-qs2(char *a, char *l)
-{
-	char *i, *j;
+#define swap(a, b)\
+{\
+	if(swaptype == 0) {\
+		long t = *(long*)(a);\
+		*(long*)(a) = *(long*)(b);\
+		*(long*)(b) = t;\
+	} else {\
+		if(swaptype <= 1)\
+			swapcode(long, a, b, es)\
+		else\
+			swapcode(char, a, b, es)\
+	}\
+}
 
-	j = a;
+#define	vecswap(a, b, n)\
+{\
+	if(n > 0)\
+		if(swaptype <= 1)\
+			swapcode(long, a, b, n*es)\
+		else\
+			swapcode(char, a, b, n*es)\
+}
+
+static
+char*
+med3func(char *a, char *b, char *c, int (*cmp)(void*, void*))
+{
+	return cmp(a, b) < 0?
+		(cmp(b, c) < 0?
+			b: (cmp(a, c) < 0? c: a)):
+		(cmp(b, c) > 0?
+			b: (cmp(a, c) < 0? a: c));
+}
+
+static
+void
+qsort1(char *a, ulong n, ulong es, int swaptype, int (*cmp)(void*, void*))
+{
+	char *pa, *pb, *pc, *pd, *pl, *pm, *pn;
+	int r, na, nb, nc, nd, d;
 
 loop:
-	i = j;
-	j += qses;
-	if(j >= l)
+	if(n < 7) {	/* Insertion sort on small arrays */
+		for(pm = a + es; pm < a + n*es; pm += es)
+			for(pl = pm; pl > a && cmp(pl-es, pl) > 0; pl -= es)
+				swap(pl, pl-es);
 		return;
-	if((*qscmp)(i, j) <= 0)
+	}
+	pm = a + (n/2) * es;
+	if(n > 7) {
+		pl = a;
+		pn = a + (n-1) * es;
+		if(n > 40) {	/* On big arrays, pseudomedian of 9 */
+			d = (n/8) * es;
+			pl = med3func(pl, pl+d, pl+2*d, cmp);
+			pm = med3func(pm-d, pm, pm+d, cmp);
+			pn = med3func(pn-2*d, pn-d, pn, cmp);
+		}
+		pm = med3func(pl, pm, pn, cmp); /* On medium arrays, median of 3 */
+	}
+	swap(a, pm);	/* On tiny arrays, partition around middle */
+	pa = pb = a + es;
+	pc = pd = pn = a + (n-1)*es;
+	for(;;) {
+		while(pb <= pc && (r = cmp(pb, a)) <= 0) {
+			if(r == 0) {
+				swap(pa, pb); pa += es;
+			}
+			pb += es;
+		}
+		while(pb <= pc && (r = cmp(pc, a)) >= 0) {
+			if(r == 0) {
+				swap(pc, pd);
+				pd -= es;
+			}
+			pc -= es;
+		}
+		if(pb > pc)
+			break;
+		swap(pb, pc);
+		pb += es;
+		pc -= es;
+	}
+	na = (pa - a) / es;
+	nb = (pb - pa) / es;
+	nc = (pd - pc) / es;
+	nd = (pn - pd) / es;
+	if(na < nb) {
+		vecswap(a, a + nb*es, na);
+	} else {
+		vecswap(a, a + na*es, nb);
+	}
+	if(nc < nd) {
+		vecswap(pb, pb + nd*es, nc);
+	} else {
+		vecswap(pb, pb + nc*es, nd);
+	}
+	if(nb > nc) {
+		qsort1(a, nb, es, swaptype, cmp);
+		a += (n-nc)*es;
+		n = nc;
 		goto loop;
-
-bub:
-	(*qsexc)(i, i+qses);
-	if(i <= a)
-		goto loop;
-	i -= qses;
-	if((*qscmp)(i, i+qses) > 0)
-		goto bub;
+	}
+	qsort1(a + (n-nc)*es, nc, es, swaptype, cmp);
+	n = nb;
 	goto loop;
 }
 
-static	void
-qsexc1(void *a, void *b)
-{
-	long n;
-	char t, *i, *j;
-
-	i = a;
-	j = b;
-	n = qsesn;
-	do {
-		t = *i;
-		*i++ = *j;
-		*j++ = t;
-	} while(--n);
-}
-
-static	void
-qsexc4(void *a, void *b)
-{
-	long n;
-	long t, *i, *j;
-
-	i = a;
-	j = b;
-	n = qsesn;
-	do {
-		t = *i;
-		*i++ = *j;
-		*j++ = t;
-	} while(--n);
-}
-
-static	void
-qsexc16(void *a, void *b)
-{
-	long n;
-	xlong t, *i, *j;
-
-	i = a;
-	j = b;
-	n = qsesn;
-	do {
-		t = *i;
-		*i++ = *j;
-		*j++ = t;
-	} while(--n);
-}
-
-static	void
-qstexc1(void *a, void *b, void *c)
-{
-	long n;
-	char t, *i, *j, *k;
-
-	i = a;
-	j = b;
-	k = c;
-	n = qsesn;
-	do {
-		t = *i;
-		*i++ = *k;
-		*k++ = *j;
-		*j++ = t;
-	} while(--n);
-}
-
-static	void
-qstexc4(void *a, void *b, void *c)
-{
-	long n;
-	long t, *i, *j, *k;
-
-	i = a;
-	j = b;
-	k = c;
-	n = qsesn;
-	do {
-		t = *i;
-		*i++ = *k;
-		*k++ = *j;
-		*j++ = t;
-	} while(--n);
-}
-
-static	void
-qstexc16(void *a, void *b, void *c)
-{
-	long n;
-	xlong t, *i, *j, *k;
-
-	i = a;
-	j = b;
-	k = c;
-	n = qsesn;
-	do {
-		t = *i;
-		*i++ = *k;
-		*k++ = *j;
-		*j++ = t;
-	} while(--n);
-}
-
 void
-qsort(void *a, long n, long es, int (*fc)(void*, void*))
+qsort(void *a, long n, long es, int (*cmp)(void*, void*))
 {
-	long l;
+	int swaptype;
 
-	qscmp = fc;
-	qses = es;
-	nqses = 6 * qses;
-	if(qses >= sizeof(xlong) && qses%sizeof(xlong) == 0) {
-		qsexc = qsexc16;
-		qstexc = qstexc16;
-		qsesn = qses/sizeof(xlong);
-	} else
-	if(qses >= sizeof(long) && qses%sizeof(long) == 0) {
-		qsexc = qsexc4;
-		qstexc = qstexc4;
-		qsesn = qses/sizeof(long);
-	} else {
-		qsexc = qsexc1;
-		qstexc = qstexc1;
-		qsesn = qses;
-	}
-	l = n * qses;
-	qs1((char*)a, (char*)a+l);
-	qs2((char*)a, (char*)a+l);
+	swaptype = 1;
+	if((ulong)a % sizeof(long) || (ulong)es % sizeof(long))
+		swaptype = 2;
+	else
+	if(es == sizeof(long))
+		swaptype = 0;
+	qsort1(a, n, es, swaptype, cmp);
 }

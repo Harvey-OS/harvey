@@ -47,6 +47,11 @@ ipreceive(Enpkt *ep, int l, Ifc *ifc)
 		print("ip: en too small\n");
 		return;
 	}
+	if(l > LARGEBUF) {
+		ifc->sumerr++;
+		print("ip: en too large\n");
+		return;
+	}
 
 	memmove(&pkt, p, Ensize+Ipsize);	/* copy pkt to 'real' memory */
 	if(pkt.vihl != (IP_VER|IP_HLEN))

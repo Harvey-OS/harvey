@@ -1,6 +1,6 @@
 .TH PRINT 2
 .SH NAME
-print, fprint, sprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint, donprint \- print formatted output
+print, fprint, sprint, snprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint, donprint \- print formatted output
 .SH SYNOPSIS
 .ta \w'\fLchar* 'u
 .B
@@ -13,19 +13,22 @@ int	fprint(int fd, char *format, ...)
 int	sprint(char *s, char *format, ...)
 .PP
 .B
-int	fmtinstall(char c, int (*f)(void*, int, int, int, int))
+int	snprint(char *s, int len, char *format, ...)
 .PP
 .B
-void	strconv(char *s, int f1, int f2, int f3)
+int	fmtinstall(char c, int (*f)(void*, Fconv*))
 .PP
 .B
-void	Strconv(Rune *s, int f1, int f2, int f3)
+void	strconv(char *s, Fconv *fp)
 .PP
 .B
-int	numbconv(void *o, int f1, int f2, int f3, int chr)
+void	Strconv(Rune *s, Fconv *fp)
 .PP
 .B
-int	fltconv(double f, int f1, int f2, int f3, int chr)
+int	numbconv(void *o, Fconv *fp)
+.PP
+.B
+int	fltconv(double f, Fconv *fp)
 .PP
 .B
 char*	doprint(char *s, char *es, char *format, void *argp)
@@ -49,12 +52,17 @@ in consecutive bytes starting at
 .IR s ;
 it is the user's responsibility to ensure that
 enough storage is available.
-Each function returns the number of characters
+Each function returns the number of bytes
 transmitted (not including the NUL
 in the case of
 .IR sprint ),
 or
 a negative value if an output error was encountered.
+.I Snprint
+is like
+.I sprint
+but is also passed the length of the buffer at
+.IR s .
 .PP
 Each of these functions
 converts, formats, and prints its
@@ -279,7 +287,7 @@ is used to install custom verbs and flags.
 should be declared as
 .IP
 .EX
-int	fn(void *o, int f1, int f2, int f3, int chr)
+int	fn(void *o, Fconv *fp)
 .EE
 .PP
 .I Fn
@@ -288,23 +296,23 @@ is passed a pointer
 to whatever argument appears next in
 the list to
 .IR print .
-.I Chr
+.I Fp->chr
 is the flag or verb character to cause
 .I fn
 to be called; it must have value less than 512.
 In
 .I fn,
-.I f1
+.I fp->f1
 and
-.I f2
+.I fp->f2
 are the decoded flags in the conversion.
 A missing
-.I f1
+.I fp->f1
 is denoted by the value zero.
 A missing
-.I f2
+.I fp->f2
 is denoted by a negative number.
-.I F3
+.I Fp->f3
 is the bitwise OR of all the
 flags seen since the most recent
 .LR % .
@@ -324,27 +332,29 @@ and
 64
 .RB ( ll ).
 If
-.B chr
+.B fp->chr
 is a verb,
 .I fn
 should return the size of the argument in bytes so
 .I print
 can skip over it.
 If
-.I chr
+.I fp->chr
 is a flag,
 .I fn
 should return a negative value:
 the negation of one of the above flag values, or some otherwise unused power of two.
 All interpretation of
-.IR f1 ,
-.IR f2 ,
+.IR fp->f1 ,
+.IR fp->f2 ,
 and
-.I f3
+.I fp->f3
 is left up to the conversion routine.
 .PP
 .I Sprint
-is reentrant; it may be called to
+and
+.I snprint
+are reentrant; they may be called to
 help prepare output in custom conversion routines.
 .PP
 .I Strconv
@@ -354,15 +364,13 @@ formats a
 string.
 .I S
 is the string,
-.I f1
-and
-.I f2
-have the same meaning as above.
+.I fp
+has the same meaning as above.
 The
 .I strconv
 routine interprets the
 .L -
-flag in f3 as left-justification.
+flag in fp->f3 as left-justification.
 .I Strconv
 (with a capital S)
 is like
@@ -437,14 +445,14 @@ struct {
 } Complex;
 
 int
-Xconv(void *v, int f1, int f2, int f3, int chr)
+Xconv(void *v, Fconv *fp)
 {
 	char str[50];
 	Complex *o;
 
 	o = v;
 	sprint(str, "(%g,%g)", o->r, o->i);
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return(sizeof(Complex));
 }
 

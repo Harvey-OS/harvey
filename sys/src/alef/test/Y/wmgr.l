@@ -314,7 +314,7 @@ clntmgr(Window *w, Mesg *m)
 {
 	int x, mx;
 
-	if(mgrstate != 0 || (m->mb&Mouse_r) == 0)
+	if(mgrstate != 0 || (m->mb&(Mouse_r|Mouse_m|Mouse_l)) == 0)
 		return;
 
 	x = w->titler.max.x - (3*20);
@@ -380,7 +380,6 @@ wsearch()
 int
 sweepsmall()
 {
-
 	if(Dx(sweep.on) < 60)
 		return 1;
 	if(Dy(sweep.on) < 60)
@@ -576,7 +575,7 @@ init(Window *w)
 int
 titlebar(Window *w)
 {
-	int i, n, wid;
+	int i, n, wid, fc;
 	Bitmap *cache;
 	Point p1, p2, pf;
 
@@ -603,10 +602,11 @@ titlebar(Window *w)
 	p1 = Pt(cache->r.max.x - 20, cache->r.min.y+i);
 	bitblt(cache, p1, rbox, Rect(0, 0, 16, 16), S);
 	p1.x -= 20;
+
+	fc = ~S;
 	if(w->scrollon)
-		bitblt(cache, p1, sbox, Rect(0, 0, 16, 16), S);
-	else
-		bitblt(cache, p1, sbox, Rect(0, 0, 16, 16), ~S);
+		fc = S;
+	bitblt(cache, p1, sbox, Rect(0, 0, 16, 16), fc);
 		
 	p1.x -= 20;
 	bitblt(cache, p1, hbox, Rect(0, 0, 16, 16), S);

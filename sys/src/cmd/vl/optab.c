@@ -184,5 +184,10 @@ Optab	optab[] =
 	{ AMOVW,	C_REG,	C_NONE,	C_FCREG,	41, 4, 0 },
 	{ AMOVW,	C_FCREG,C_NONE,	C_REG,		42, 4, 0 },
 
+	{ ABREAK,	C_REG,	C_NONE,	C_SEXT,		 7, 4, REGSB },	/* really CACHE instruction */
+	{ ABREAK,	C_REG,	C_NONE,	C_SAUTO,	 7, 4, REGSP },
+	{ ABREAK,	C_REG,	C_NONE,	C_SOREG,	 7, 4, REGZERO },
+	{ ABREAK,	C_NONE,	C_NONE,	C_NONE,		 5, 4, 0 },
+
 	{ AXXX,		C_NONE,	C_NONE,	C_NONE,		 0, 4, 0 },
 };

@@ -8,23 +8,18 @@
 #include	"init.h"
 #include	<ctype.h>
 
-/* configuration parameters */
-enum
-{
-	/* what kind of power management */
-	PMUother=	0,
-	PMUnsx20=	1,
-
-	/* how to reset the processor */
-	Resetother=	0,
-	Reset8042=	1,
-	Resetheadland=	2,
-};
-int pmutype;
-int resettype;
-char machtype[9];
 
 uchar *sp;	/* stack pointer for /boot */
+
+extern PCArch nsx20, generic, ncr3170;
+
+PCArch *arch;
+PCArch *knownarch[] =
+{
+	&nsx20,
+	&ncr3170,
+	&generic,
+};
 
 void
 main(void)
@@ -51,7 +46,6 @@ main(void)
 	streaminit();
 	swapinit();
 	userinit();
-
 	schedinit();
 }
 
@@ -64,21 +58,12 @@ void
 ident(void)
 {
 	char *id = (char*)(ROMBIOS + 0xFF40);
-	int i;
+	PCArch **p;
 
-	for(i = 0; i < 8; i++){
-		if(isprint(id[i]) == 0)
+	for(p = knownarch; *p != &generic; p++)
+		if(strncmp((*p)->id, id, strlen((*p)->id)) == 0)
 			break;
-		machtype[i] = id[i];
-	}
-	if(i == 0)
-		strcpy(machtype, "generic");
-	if(strcmp(machtype, "AT&TNSX") == 0){
-		pmutype = PMUnsx20;
-		resettype = Resetheadland;
-	}else if(strcmp(machtype, "NCRD.0") == 0){
-		resettype = Reset8042;
-	}
+	arch = *p;
 }
 
 void
@@ -117,7 +102,7 @@ init0(void)
 	chandevinit();
 
 	if(!waserror()){
-		strcpy(tstr, machtype);
+		strcpy(tstr, arch->id);
 		strcat(tstr, " %s");
 		ksetterm(tstr);
 		ksetenv("cputype", "386");
@@ -242,11 +227,12 @@ void
 confinit(void)
 {
 	long x, i, j, *l;
+	int pcnt;
 	ulong ktop;
 
 	/*
 	 *  the first 640k is the standard useful memory
-	 *  the next 128K is the display
+	 *  the next 128K is the display, I/O mem, and BIOS
 	 *  the last 256k belongs to the roms and other devices
 	 */
 	conf.npage0 = 640/4;
@@ -256,31 +242,41 @@ confinit(void)
 	 *  size the non-standard memory
 	 */
 	x = 0x12345678;
-	for(i=1; i<16; i++){
+	for(i=2; i<17; i++){
 		/*
 		 *  write the word
 		 */
 		l = (long*)(KZERO|(i*MB));
+		l--;
 		*l = x;
 		/*
 		 *  take care of wraps
 		 */
-		for(j = 0; j < i; j++){
+		for(j = 1; j < i; j++){
 			l = (long*)(KZERO|(j*MB));
-			*l = 0;
+			l--;
+			*l = ~x;
 		}
 		/*
 		 *  check
 		 */
 		l = (long*)(KZERO|(i*MB));
+		l--;
 		if(*l != x)
 			break;
 		x += 0x3141526;
 	}
+	i--;
 	conf.base1 = 1*MB;
-	conf.npage1 = ((i-1)*MB - conf.base1)/BY2PG;
+	conf.npage1 = (i*MB - conf.base1)/BY2PG;
 	conf.npage = conf.npage0 + conf.npage1;
-	conf.upages = (conf.npage*60)/100;
+
+	conf.ldepth = 0;
+	pcnt = (1<<conf.ldepth)-1;		/* Calculate % of memory for page pool */
+	pcnt = 70 - (pcnt*10);
+	conf.upages = (conf.npage*pcnt)/100;
+	if(conf.npage - conf.upages < (2*MB)/BY2PG)
+		conf.upages = conf.npage - (2*MB)/BY2PG;
 
 	ktop = PGROUND((ulong)end);
 	ktop = PADDR(ktop);
@@ -294,12 +290,9 @@ confinit(void)
 	conf.nswap = conf.nproc*80;
 	conf.nimage = 50;
 	conf.copymode = 0;			/* copy on write */
-	conf.ipif = 8;
-	conf.ip = 64;
 	conf.arp = 32;
-	conf.frag = 32;
 	conf.nfloppy = 2;
-	conf.nhard = 1;
+	conf.nhard = 2;
 }
 
 char *mathmsg[] =
@@ -447,15 +440,7 @@ exit(int ispanic)
 	if(ispanic)
 		for(;;);
 
-	switch(resettype){
-	case Resetheadland:
-		headreset();
-	case Reset8042:
-		i8042reset();		/* via keyboard controller */
-	default:
-		print("Reset the machine!\n");
-		for(;;);
-	}
+	(*arch->reset)();
 }
 
 /*
@@ -466,12 +451,10 @@ exit(int ispanic)
 int
 cpuspeed(int speed)
 {
-	switch(pmutype){
-	case PMUnsx20:
-		return pmucpuspeed(speed);
-	default:
+	if(arch->cpuspeed)
+		return (*arch->cpuspeed)(speed);
+	else
 		return 0;
-	}
 }
 
 /*
@@ -481,13 +464,8 @@ cpuspeed(int speed)
 void
 buzz(int f, int d)
 {
-	switch(pmutype){
-	case PMUnsx20:
-		pmubuzz(f, d);
-		break;
-	default:
-		break;
-	}
+	if(arch->buzz)
+		(*arch->buzz)(f, d);
 }
 
 /*
@@ -496,13 +474,8 @@ buzz(int f, int d)
 void
 lights(int val)
 {
-	switch(pmutype){
-	case PMUnsx20:
-		pmulights(val);
-		break;
-	default:
-		break;
-	}
+	if(arch->lights)
+		(*arch->lights)(val);
 }
 
 /*
@@ -513,12 +486,10 @@ lights(int val)
 int
 serial(int onoff)
 {
-	switch(pmutype){
-	case PMUnsx20:
-		return pmuserial(onoff);
-	default:
+	if(arch->serialpower)
+		return (*arch->serialpower)(onoff);
+	else
 		return 0;
-	}
 }
 
 /*
@@ -529,10 +500,8 @@ serial(int onoff)
 int
 modem(int onoff)
 {
-	switch(pmutype){
-	case PMUnsx20:
-		return pmumodem(onoff);
-	default:
+	if(arch->modempower)
+		return (*arch->modempower)(onoff);
+	else
 		return 0;
-	}
 }

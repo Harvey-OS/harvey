@@ -7,22 +7,9 @@
 #include	"io.h"
 #include	"../port/error.h"
 
-/*
- *  vme interrupt routines
- */
 void	(*vmevec[256])(int);
-
 void	noted(Ureg**, ulong);
 void	rfnote(Ureg**);
-
-#define	LSYS	0x01
-#define	LUSER	0x02
-/*
- * CAUSE register
- */
-
-#define	EXCCODE(c)	((c>>2)&0x0F)
-#define	FPEXC		16
 
 char *excname[] =
 {
@@ -42,10 +29,18 @@ char *excname[] =
 	"trap: undefined 13",
 	"trap: undefined 14",
 	"trap: undefined 15",			/* used as sys call for debugger */
-	/* the following is made up */
-	"trap: floating point exception"	/* FPEXC */
+};
+
+char *fpcause[] =
+{
+	"inexact operation",
+	"underflow",
+	"overflow",
+	"division by zero",
+	"invalid operation",
 };
 char	*fpexcname(Ureg*, ulong, char*);
+#define FPEXPMASK	(0x3f<<12)		/* Floating exception bits in fcr31 */
 
 char *regname[]={
 	"STATUS",	"PC",
@@ -69,38 +64,37 @@ char *regname[]={
 	"R2",		"R1",
 };
 
-long	ticks;
-
 void
 trap(Ureg *ur)
 {
 	int ecode;
-	int user, x;
 	ulong fcr31;
-	char buf[2*ERRLEN], buf1[ERRLEN];
+	int user, cop, x, fpchk;
+	char buf[2*ERRLEN], buf1[ERRLEN], *fpexcep;
 
-	SET(fcr31);
-	ecode = EXCCODE(ur->cause);
-	LEDON(ecode);
+m->ur = ur;
+
+	ecode = (ur->cause>>2)&0xf;
 	user = ur->status&KUP;
-	if(u)
+	if(user)
 		u->dbgreg = ur;
+
+	fpchk = 0;
+	if(u && u->p->fpstate == FPactive) {
+		if((ur->status&CU1) == 0)		/* Paranoid */
+			panic("FPactive but no CU1");
+		u->p->fpstate = FPinactive;
+		ur->status &= ~CU1;
+		savefpregs(&u->fpsave);
+		fptrap(ur);
+		fpchk = 1;
+	}
 
 	switch(ecode){
 	case CINT:
-		if(u && u->p->state==Running){
-			if(u->p->fpstate == FPactive) {
-				if(ur->cause & INTR3){	/* FP trap */
-					fcr31 = clrfpintr();
-					if(user && fptrap(ur, fcr31))
-						goto Return;
-					ecode = FPEXC;
-					goto Default;
-				}
-				savefpregs(&u->fpsave);
-				u->p->fpstate = FPinactive;
-				ur->status &= ~CU1;
-			}
+		if(ur->cause&INTR3) {			/* FP trap */
+			clrfpintr();
+			ur->cause &= ~INTR3;
 		}
 		intr(ur);
 		break;
@@ -110,103 +104,89 @@ trap(Ureg *ur)
 	case CTLBS:
 		if(u == 0)
 			panic("fault u==0 pc %lux addr %lux", ur->pc, ur->badvaddr);
-		if(u->p->fpstate == FPactive) {
-			savefpregs(&u->fpsave);
-			u->p->fpstate = FPinactive;
-			ur->status &= ~CU1;
-		}
-		spllo();
+
 		x = u->p->insyscall;
 		u->p->insyscall = 1;
+
+		spllo();
 		faultmips(ur, user, ecode);
 		u->p->insyscall = x;
 		break;
 
 	case CCPU:
-		if(u && u->p && u->p->fpstate == FPinit) {
-			restfpregs(&initfp, u->fpsave.fpstatus);
-			u->p->fpstate = FPactive;
-			ur->status |= CU1;
-			break;
+		cop = (ur->cause>>28)&3;
+		if(user && u && cop == 1) {
+			if(u->p->fpstate == FPinit) {
+				u->p->fpstate = FPinactive;
+				fcr31 = u->fpsave.fpstatus;
+				u->fpsave = initfp;
+				u->fpsave.fpstatus = fcr31;
+				break;
+			}
+			if(u->p->fpstate == FPinactive)
+				break;
 		}
-		if(u && u->p && u->p->fpstate == FPinactive) {
-			restfpregs(&u->fpsave, u->fpsave.fpstatus);
-			u->p->fpstate = FPactive;
-			ur->status |= CU1;
-			break;
-		}
-		goto Default;
+		/* Fallthrough */
 
 	default:
-		if(u && u->p && u->p->fpstate == FPactive){
-			savefpregs(&u->fpsave);
-			u->p->fpstate = FPinactive;
-			ur->status &= ~CU1;
-		}
-	Default:
-		/*
-		 * This isn't good enough; can still deadlock because we may
-		 * hold print's locks in this processor.
-		 */
-		if(user){
+		if(user) {
 			spllo();
-			if(ecode == FPEXC)
-				sprint(buf, "sys: fp: %s", fpexcname(ur, fcr31, buf1));
-			else
-				sprint(buf, "sys: %s", excname[ecode]);
-
+			sprint(buf, "sys: %s", excname[ecode]);
 			postnote(u->p, 1, buf, NDebug);
-		}else{
-			print("%s %s pc=%lux\n", user? "user": "kernel", excname[ecode], ur->pc);
-			if(ecode == FPEXC)
-				print("fp: %s\n", fpexcname(ur, fcr31, buf1));
-			dumpregs(ur);
-			dumpstack();
-			if(m->machno == 0)
-				spllo();
-			exit(1);
+			break;
+		}
+		print("kernel %s pc=%lux\n", excname[ecode], ur->pc);
+		dumpregs(ur);
+		dumpstack();
+		if(m->machno == 0)
+			spllo();
+		exit(1);
+	}
+
+	if(fpchk) {
+		fcr31 = u->fpsave.fpstatus;
+		if((fcr31>>12) & ((fcr31>>7)|0x20) & 0x3f) {
+			spllo();
+			fpexcep	= fpexcname(ur, fcr31, buf1);
+			sprint(buf, "sys: fp: %s", fpexcep);
+			postnote(u->p, 1, buf, NDebug);
 		}
 	}
 
 	splhi();
-    Return:
-	if(user) {
-		notify(ur);
-		if(u->p->fpstate == FPinactive) {
-			restfpregs(&u->fpsave, u->fpsave.fpstatus);
-			u->p->fpstate = FPactive;
-			ur->status |= CU1;
-		}
+	if(!user)
+		return;
+
+	notify(ur);
+	if(u->p->fpstate == FPinactive) {
+		restfpregs(&u->fpsave, u->fpsave.fpstatus&~FPEXPMASK);
+		u->p->fpstate = FPactive;
+		ur->status |= CU1;
 	}
-	LEDOFF(ecode);
 }
 
 void
 intr(Ureg *ur)
 {
-	int i, any;
-	uchar xxx;
-	uchar pend, npend;
 	long v;
+	int i, any;
 	ulong cause;
 	static int bogies;
+	uchar pend, xxx;
 
 	m->intr++;
 	cause = ur->cause&(INTR5|INTR4|INTR3|INTR2|INTR1);
-	if(cause & (INTR2|INTR4)){
-		LEDON(LEDclock);
-		clock(ur);
-		LEDOFF(LEDclock);
-		cause &= ~(INTR2|INTR4);
-	}
+
 	if(cause & INTR1){
 		duartintr();
 		cause &= ~INTR1;
 	}
-	if(cause & INTR5){
+
+	while(cause & INTR5) {
 		any = 0;
 		if(!(*MPBERR1 & (1<<8))){
 			print("MP bus error %lux %lux\n", *MPBERR0, *MPBERR1);
+			print("PC %lux R31 %lux\n", ur->pc, ur->r31);
 			*MPBERR0 = 0;
 			i = *SBEADDR;
 			USED(i);
@@ -229,7 +209,6 @@ intr(Ureg *ur)
 		 *  3. read pending interrupts
 		 */
 		pend = SBCCREG->fintpending;
-		npend = pend;
 
 		/*
 		 *  4. clear pending register
@@ -247,7 +226,6 @@ intr(Ureg *ur)
 		xxx = SBCCREG->fintpending;
 		if(xxx){
 			print("new pend %ux\n", xxx);
-			npend = pend |= xxx;
 			i = SBCCREG->flevel;
 			USED(i);
 		}
@@ -258,8 +236,8 @@ intr(Ureg *ur)
 		if(pend & 1) {
 			v = INTVECREG->i[0].vec;
 			if(!(v & (1<<12))){
-				print("io2 mp bus error %d %lux %lux\n", 0,
-					*MPBERR0, *MPBERR1);
+				print("ioberr %lux %lux\n", *MPBERR0, *MPBERR1);
+				print("PC %lux R31 %lux\n", ur->pc, ur->r31);
 				*MPBERR0 = 0;
 				any = 1;
 			}
@@ -278,9 +256,9 @@ intr(Ureg *ur)
 				if(v & (1<<2))
 					lanceintr();
 				if(v & (1<<1))
-					print("SCSI 1 interrupt\n");
+					scsiintr(1);
 				if(v & (1<<0))
-					print("SCSI 0 interrupt\n");
+					scsiintr(0);
 			}
 		}
 		/*
@@ -301,20 +279,20 @@ intr(Ureg *ur)
 			}
 		}
 		/*
-		 *  if nothing else, what the hell?
-		 */
-		if(!any && bogies++<10){
-			if(0)
-			print("bogus intr lvl 5 pend %lux on %d\n", npend, m->machno);
-			USED(npend);
-			delay(100);
-		}
-		/*
 		 *  6. re-enable interrupts
 		 */
 		*IO2SETMASK = 0xff000000;
-		cause &= ~INTR5;
+		if(any == 0)
+			cause &= ~INTR5;
 	}
+
+	if(cause & (INTR2|INTR4)) {
+		LEDON(LEDclock);
+		clock(ur);
+		LEDOFF(LEDclock);
+		cause &= ~(INTR2|INTR4);
+	}
+
 	if(cause)
 		panic("cause %lux %lux\n", u, cause);
 }
@@ -322,13 +300,6 @@ intr(Ureg *ur)
 char*
 fpexcname(Ureg *ur, ulong fcr31, char *buf)
 {
-	static char *str[]={
-		"inexact operation",
-		"underflow",
-		"overflow",
-		"division by zero",
-		"invalid operation",
-	};
 	int i;
 	char *s;
 	ulong fppc;
@@ -344,10 +315,11 @@ fpexcname(Ureg *ur, ulong fcr31, char *buf)
 		fcr31 &= (fcr31>>5);	/* anded with exceptions */
 		for(i=0; i<5; i++)
 			if(fcr31 & (1<<i))
-				s = str[i];
+				s = fpcause[i];
 	}
 	if(s == 0)
 		return "no floating point exception";
+
 	sprint(buf, "%s fppc=0x%lux", s, fppc);
 	return buf;
 }
@@ -358,14 +330,16 @@ dumpstack(void)
 	ulong l, v;
 	extern ulong etext;
 
-	if(u)
-		for(l=(ulong)&l; l<USERADDR+BY2PG; l+=4){
-			v = *(ulong*)l;
-			if(KTZERO < v && v < (ulong)&etext){
-				print("%lux=%lux\n", l, v);
-				delay(100);
-			}
+	if(u == 0)
+		return;
+
+	for(l=(ulong)&l; l<USERADDR+BY2PG; l+=4){
+		v = *(ulong*)l;
+		if(KTZERO < v && v < (ulong)&etext){
+			print("%lux=%lux\n", l, v);
+			delay(100);
 		}
+	}
 }
 
 void
@@ -378,6 +352,7 @@ dumpregs(Ureg *ur)
 		print("registers for %s %d\n", u->p->text, u->p->pid);
 	else
 		print("registers for kernel\n");
+
 	l = &ur->status;
 	for(i=0; i<sizeof regname/sizeof(char*); i+=2, l+=2){
 		print("%s\t%.8lux\t%s\t%.8lux\n", regname[i], l[0], regname[i+1], l[1]);
@@ -385,14 +360,11 @@ dumpregs(Ureg *ur)
 	}
 }
 
-/*
- * Call user, if necessary, with note
- */
 int
 notify(Ureg *ur)
 {
-	int l, sent;
-	ulong s, sp;
+	int l;
+	ulong sp;
 	Note *n;
 
 	if(u->p->procctl)
@@ -400,56 +372,65 @@ notify(Ureg *ur)
 	if(u->nnote == 0)
 		return 0;
 
-	s = spllo();
+	spllo();
 	qlock(&u->p->debug);
 	u->p->notepending = 0;
 	n = &u->note[0];
-	if(strncmp(n->msg, "sys:", 4) == 0){
+	if(strncmp(n->msg, "sys:", 4) == 0) {
 		l = strlen(n->msg);
 		if(l > ERRLEN-15)	/* " pc=0x12345678\0" */
 			l = ERRLEN-15;
+
 		sprint(n->msg+l, " pc=0x%lux", ur->pc);
 	}
-	if(n->flag!=NUser && (u->notified || u->notify==0)){
+
+	if(n->flag != NUser && (u->notified || u->notify==0)) {
 		if(n->flag == NDebug)
 			pprint("suicide: %s\n", n->msg);
-    Die:
+
 		qunlock(&u->p->debug);
 		pexit(n->msg, n->flag!=NDebug);
 	}
-	sent = 0;
-	if(!u->notified){
-		if(!u->notify)
-			goto Die;
-		sent = 1;
-		u->svstatus = ur->status;
-		sp = ur->usp;
-		sp -= sizeof(Ureg);
-		if(!okaddr((ulong)u->notify, 1, 0)
-		|| !okaddr(sp-ERRLEN-3*BY2WD, sizeof(Ureg)+ERRLEN-3*BY2WD, 0)){
-			pprint("suicide: bad address in notify\n");
-			qunlock(&u->p->debug);
-			pexit("Suicide", 0);
-		}
-		u->ureg = (void*)sp;
-		memmove((Ureg*)sp, ur, sizeof(Ureg));
-		sp -= ERRLEN;
-		memmove((char*)sp, u->note[0].msg, ERRLEN);
-		sp -= 3*BY2WD;
-		*(ulong*)(sp+2*BY2WD) = sp+3*BY2WD;	/* arg 2 is string */
-		u->svr1 = ur->r1;			/* save away r1 */
-		ur->r1 = (ulong)u->ureg;		/* arg 1 is ureg* */
-		*(ulong*)(sp+0*BY2WD) = 0;		/* arg 0 is pc */
-		ur->usp = sp;
-		ur->pc = (ulong)u->notify;
-		u->notified = 1;
-		u->nnote--;
-		memmove(&u->lastnote, &u->note[0], sizeof(Note));
-		memmove(&u->note[0], &u->note[1], u->nnote*sizeof(Note));
+
+	if(u->notified) {
+		qunlock(&u->p->debug);
+		splhi();
+		return 0;
 	}
+		
+	if(!u->notify) {
+		qunlock(&u->p->debug);
+		pexit(n->msg, n->flag!=NDebug);
+	}
+	u->svstatus = ur->status;
+	sp = ur->usp - sizeof(Ureg);
+
+	if(sp&0x3 || !okaddr((ulong)u->notify, BY2WD, 0)
+	|| !okaddr(sp-ERRLEN-3*BY2WD, sizeof(Ureg)+ERRLEN+3*BY2WD, 1)) {
+		pprint("suicide: bad address or sp in notify\n");
+		qunlock(&u->p->debug);
+		pexit("Suicide", 0);
+	}
+
+	u->ureg = (void*)sp;
+	memmove((Ureg*)sp, ur, sizeof(Ureg));
+	sp -= ERRLEN;
+	memmove((char*)sp, u->note[0].msg, ERRLEN);
+	sp -= 3*BY2WD;
+	*(ulong*)(sp+2*BY2WD) = sp+3*BY2WD;	/* arg 2 is string */
+	u->svr1 = ur->r1;			/* save away r1 */
+	ur->r1 = (ulong)u->ureg;		/* arg 1 is ureg* */
+	*(ulong*)(sp+0*BY2WD) = 0;		/* arg 0 is pc */
+	ur->usp = sp;
+	ur->pc = (ulong)u->notify;
+	u->notified = 1;
+	u->nnote--;
+	memmove(&u->lastnote, &u->note[0], sizeof(Note));
+	memmove(&u->note[0], &u->note[1], u->nnote*sizeof(Note));
+
 	qunlock(&u->p->debug);
-	splx(s);
-	return sent;
+	splhi();
+	return 1;
 }
 
 /*
@@ -461,32 +442,30 @@ noted(Ureg **urp, ulong arg0)
 	Ureg *nur;
 
 	nur = u->ureg;
-	if(nur->status!=u->svstatus){
+	if(nur->status != u->svstatus) {
 		pprint("bad noted ureg status %lux\n", nur->status);
-    Die:
 		pexit("Suicide", 0);
 	}
 	qlock(&u->p->debug);
-	if(!u->notified){
+	if(!u->notified) {
 		qunlock(&u->p->debug);
 		pprint("call to noted() when not notified\n");
-		goto Die;
+		pexit("Suicide", 0);
 	}
 	u->notified = 0;
 	memmove(*urp, u->ureg, sizeof(Ureg));
 	(*urp)->r1 = u->svr1;
-	switch(arg0){
+	switch(arg0) {
 	case NCONT:
 		if(!okaddr(nur->pc, 1, 0) || !okaddr(nur->usp, BY2WD, 0)){
 			pprint("suicide: trap in noted\n");
 			qunlock(&u->p->debug);
-			goto Die;
+			pexit("Suicide", 0);
 		}
 		splhi();
 		qunlock(&u->p->debug);
 		rfnote(urp);
 		break;
-		/* never returns */
 
 	default:
 		pprint("unknown noted arg 0x%lux\n", arg0);
@@ -518,25 +497,24 @@ syscall(Ureg *aur)
 	ur = aur;
 	p->pc = ur->pc;
 	u->dbgreg = aur;
-	ur->cause = 15<<2;		/* for debugging: system call is undef 15;
-	/*
-	 * since the system call interface does not
-	 * guarantee anything about registers, we can
-	 * smash them.  but we must save fpstatus.
-	 */
+	ur->cause = 15<<2;		/* for debugging: system call is undef 15; */
+
 	if(p->fpstate == FPactive) {
+		if((ur->status&CU1) == 0)
+			panic("syscall: FPactive but no CU1");
 		u->fpsave.fpstatus = fcr31();
 		p->fpstate = FPinit;
 		ur->status &= ~CU1;
 	}
+
 	spllo();
 
 	if(p->procctl)
 		procctl(p);
 
 	u->scallnr = ur->r1;
-	sp = ur->sp;
 	u->nerrlab = 0;
+	sp = ur->sp;
 	ret = -1;
 	if(!waserror()){
 		if(u->scallnr >= sizeof systab/sizeof systab[0]) {
@@ -566,9 +544,10 @@ syscall(Ureg *aur)
 	p->insyscall = 0;
 	if(u->scallnr == NOTED)				/* ugly hack */
 		noted(&aur, *(ulong*)(sp+BY2WD));	/* doesn't return */
+
 	splhi();
 	if(u->scallnr!=RFORK && (p->procctl || u->nnote)){
-		ur->r1 = ret;				/* load up for noted() */
+		ur->r1 = ret;			/* load up for noted() */
 		if(notify(ur))
 			return ur->r1;
 	}

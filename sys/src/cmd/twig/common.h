@@ -1,20 +1,23 @@
 #include <u.h>
 #include <libc.h>
-#include <stdio.h>
+#include <bio.h>
+
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
 
 #define assert(e) \
-	if(!(e)){fprintf(stderr, "assertion failed\n");fflush(stderr);abort();}else
+	if(!(e)){fprint(2, "assertion failed\n");abort();}else
 
-#define MAXIDSIZE 100
-#define HASHSIZE 1181
-
-/* type definitions */
-typedef char	byte;
+enum{
+	MAXIDSIZE	= 100,
+	HASHSIZE	= 1181,
+};
 
 /* forward and external type defs */
-extern FILE *outfile;
-extern FILE *symfile;
-extern FILE *fin;
+extern Biobuf *bout;
+extern Biobuf *symfile;
+extern Biobuf *bin;
 
 extern int debug_flag;
 #	define	DB_LEX	1	/* print out lexical analyser debugging info */

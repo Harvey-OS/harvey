@@ -144,6 +144,10 @@ It may not be written.
 .TP
 .B snarf
 returns the string currently in the snarf buffer.
+Writing this file sets the contents of the snarf buffer.
+.TP
+.B text
+returns the full contents of the window.
 It may not be written.
 .TP
 .B winid
@@ -182,7 +186,7 @@ mount $8½srv /tmp N$pid' 0 0 128 64'
 echo hi > /tmp/cons
 .EE
 .PP
-Prints the text currently selected in window 123.
+Print the text currently selected in window 123.
 .IP
 .EX
 cat /dev/windows/123/select

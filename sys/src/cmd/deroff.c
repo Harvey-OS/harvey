@@ -70,7 +70,7 @@ int	eqnflag	= 0;
 
 char	chars[MAX_ASCII];	/* SPECIAL, PUNCT, APOS, DIGIT, or LETTER */
 
-Rune	line[512];
+Rune	line[4096];
 Rune*	lp;
 
 long	c;

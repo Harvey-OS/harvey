@@ -1,11 +1,10 @@
-function kut(x){
-	return(int(x/256)*100 + x%256 - 3232)
-}
-BEGIN	{
-		big = 8407;
+NR == 1	{
+		lab1 = $1
+		lab2 = $2
+		big = $3
 		for(i = 0; i <big; i++) c[i] = -1
 	}
-	{
+NR > 1	{
 		i = $1
 		if(i >= big){
 			print "skip", $0 > "/fd/2"
@@ -19,9 +18,9 @@ BEGIN	{
 		c[i] = $2
 	}
 END	{
-		print "#include	\"kuten.h\""
+		print "#include	\"" lab1 ".h\""
 		print
-		print "long tabkuten[KUTENMAX] = {"
+		print "long tabkuten[" lab2 "MAX] = {"
 		for(i = 0; i < big; i++){
 			if(c[i] < 0) printf "    -1,"
 			else printf "0x%04x,", c[i]
@@ -31,6 +30,6 @@ END	{
 		print "};"
 		if(nskip) print nskip, "out of range mappings skipped" > "/fd/2"
 		n = 0
-		for(i in dup){ n++; print "k=" i ":", dup[i] > "jis.dups"; }
-		if(n) print n, "dups on jis.dups" > "/fd/2"
+		for(i in dup){ n++; print "k=" i ":", dup[i] > "table.dups"; }
+		if(n) print n, "dups on table.dups" > "/fd/2"
 	}

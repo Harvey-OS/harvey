@@ -15,6 +15,7 @@ cons \- console, clocks, process/process group ids, user, null, klog, stats, lig
 .B /dev/key
 .B /dev/klog
 .B /dev/lights
+.B /dev/mousectl
 .B /dev/msec
 .B /dev/noise
 .B /dev/null
@@ -116,6 +117,11 @@ Writing a number (as plain text) to the
 .B lights
 device directs any lights that are available to turn on and off.
 The bits of the number are mapped to the lights in a processor-dependent way.
+.PP
+Writing a serial port number (or the string
+.BR ps2
+for the ps2 port on a pc )
+configures that port for mouse input.
 .PP
 Writing two blank- or tab- separated numbers to the
 .B noise

@@ -1,5 +1,5 @@
 #!/bin/rc
-LIB=/n/coma/usr/ucds/lib
+ICSLIB=/n/coma/usr/ucds/lib
 STOCK=(stock stock.stockrm stock.gucci)
 NL='
 '
@@ -11,6 +11,6 @@ case *
 	echo 'part	bin	qty'
 	for (i in $*) {
 		for (f in $STOCK)
-			if (grep  -h  -i $i $LIB/$f) echo '';
+			if (grep  -h  -i $i $ICSLIB/$f) echo '';
 	}
 }

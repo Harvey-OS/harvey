@@ -41,7 +41,8 @@ YYSTYPE	yyval;
 #define	NUMBER	57359
 #define	NAME	57360
 #define	MACPIN	57361
-#define YYERRCODE 57344
+#define YYEOFCODE 1
+#define YYERRCODE 2
 
 #line	131	"par.y"
 
@@ -160,17 +161,16 @@ FILE *devnull;
 FILE *netfile;
 
 int
-binconv(void *o, int f1, int f2, int f3, int chr)
+binconv(void *o, Fconv *fp)
 {
-	ulong m, i=f1;
+	ulong m, i=fp->f1;
 	char buf[50];
 	char *p=&buf[sizeof buf];
-	USED(chr);
 	m = *((ulong *) o);
 	*--p = 0;
 	for (; i > 0; i--, m >>= 1)
 		*--p = m&1 ? '1' : '0';
-	strconv(p, f1, f2, f3);
+	strconv(p, fp);
 	return sizeof(ulong);
 }
 
@@ -407,9 +407,11 @@ yylex1(void)
 		if(c == 0)
 			break;
 	}
-	c = yytok2[1];	/* unknown char */
+	c = 0;
 
 out:
+	if(c == 0)
+		c = yytok2[1];	/* unknown char */
 	if(yydebug >= 3)
 		printf("lex %.4X %s\n", yychar, yytokname(c));
 	return c;
@@ -494,6 +496,7 @@ yydefault:
 				printf("%s", yystatname(yystate));
 				printf("saw %s\n", yytokname(yychar));
 			}
+yyerrlab:
 			yynerrs++;
 
 		case 1:
@@ -519,7 +522,7 @@ yydefault:
 			return 1;
 
 		case 3:  /* no shift yet; clobber input char */
-			if(yydebug >= 2)
+			if(yydebug >= YYEOFCODE)
 				printf("error recovery discards %s\n", yytokname(yychar));
 			if(yychar == 0)
 				return 1;

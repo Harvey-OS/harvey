@@ -350,7 +350,7 @@ wasuser:
 	SUBU	$(UREGADDR-2*BY2WD-USERADDR), SP, R(USER)
 	MOVW	$MPID, R1
 	MOVB	3(R1), R1
-	MOVW	$MACHADDR, R(MACH)		/* locn of mach 0 */
+	MOVW	$MACHADDR, R(MACH)		/* locn of &mach[0] */
 	AND	$7, R1
 	SLL	$PGSHIFT, R1
 	ADDU	R1, R(MACH)			/* add offset for mach # */
@@ -488,10 +488,19 @@ TEXT	rfnote(SB), $0
 	JMP	restore
 	
 TEXT	clrfpintr(SB), $0
+
+	MOVW	M(STATUS), R3
+	OR	$CU1, R3
+	MOVW	R3, M(STATUS)
+	WAIT
+
 	MOVW	FCR31, R1
 	MOVW	R1, R2
 	AND	$~(0x3F<<12), R2
 	MOVW	R2, FCR31
+
+	AND	$~CU1, R3
+	MOVW	R3, M(STATUS)
 	RET
 
 TEXT	savefpregs(SB), $0

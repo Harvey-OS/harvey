@@ -71,7 +71,16 @@ reqsense(Device d)
 	if(status = scsiio(d, SCSIread, cmd, sizeof(cmd), sense, sizeof(sense)))
 		return status;
 
+	/*
+	 * Unit attention. We can handle that.
+	 */
 	if((sense[2] & 0x0F) == 0x00 || (sense[2] & 0x0F) == 0x06)
+		return 0;
+
+	/*
+	 * Recovered error. Why bother telling me.
+	 */
+	if((sense[2] & 0x0F) == 0x01)
 		return 0;
 
 	print("scsi reqsense %D: key #%2.2ux code #%2.2ux #%2.2ux\n",
@@ -313,10 +322,13 @@ retry:
 	u->done = 0;
 	
 	switch(cmd[0]) {
+/* This will be fixed sometime, various people report the intr state
+   machine has problems dealing with some drives.
 	case ScsiRead:
 	case ScsiWrite:
 		u->sel = SelectATN;
 		break;
+*/
 	default:
 		u->sel = Select;
 	}
@@ -356,7 +368,7 @@ retry:
 	qunlock(u);
 	qunlock(c);
 
-	if((u->phase == 0x6002) && reqsense(d) == 0){
+	if((u->phase == 0x6002) && reqsense(d)){
 		print("scsiio: retry I/O on %D\n", d);
 		goto retry;
 	}
@@ -439,6 +451,7 @@ scsiintr(int ctrlno)
 	ulong csr;
 	int status, step, intr;
 	int phase, id, target, tfer;
+uchar msg;
 
 	if(ctrlno >= MaxCtrl)
 		panic("scsiintr: ctrlno = %d\n", ctrlno);
@@ -504,8 +517,11 @@ scsiintr(int ctrlno)
 
 			case SP_msgin:
 				dev->cmd = Transfer;
-				if(getmsg(dev) != Msgdisco) {
+				msg = getmsg(dev);
+				if(msg != Msgdisco) {
+					print("message #%2.2ux\n", msg);
 					scsimoan("not disconnect", status, intr, csr);
+					delay(20000);
 					reset(c, 0);
 					busreset(c);
 					goto buggery;

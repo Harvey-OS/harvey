@@ -44,7 +44,7 @@ enum	Fcode
 	D	=	0xa,
 	DandnotS	=	0x2
 }Fcode;
-Texture ones, zeros, *pgrey[5];
+Texture ones, zeros, *pgrey[17];
 extern Texture grey[];
 void bitblt(Bitmap *, Point, Bitmap *, Rectangle, Fcode);
 Rectangle Rect(int, int, int, int);

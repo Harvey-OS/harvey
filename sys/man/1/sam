@@ -1,7 +1,7 @@
 .TH SAM 1
 .ds a \fR*\ \fP
 .SH NAME
-sam \- screen editor with structural regular expressions 
+sam, B \- screen editor with structural regular expressions 
 .SH SYNOPSIS
 .B sam
 [
@@ -15,6 +15,12 @@ sam \- screen editor with structural regular expressions
 .I machine
 .PP
 .B sam.save
+.PP
+.B B
+[
+.BI -nnnn
+]
+.I file ...
 .SH DESCRIPTION
 .I Sam
 is a multi-file editor.
@@ -769,6 +775,24 @@ dot is the null string, as if it were typed to the command window.
 Saves the sent text in the snarf buffer.
 (Command window only.) 
 .PD
+.SS External communication
+On invocation
+.I sam
+creates a named pipe
+.BI /srv/sam. user
+which acts as an additional source of commands.  Characters written to
+the named pipe are treated as if they had been typed in the command window.
+This is usually used to issue
+.B B
+commands from the shell.
+.PP
+.I B
+is a shell-level command that causes an instance of
+.I sam
+running on the same terminal to load the named
+.I files.
+The option allows a line number to be specified for
+the initial position to display in the last named file.
 .SS Abnormal termination
 If
 .I sam

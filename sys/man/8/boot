@@ -115,11 +115,7 @@ will prompt for one on the console:
 user: 
 .EE
 .PP
-If the
-.I method
-chosen is anything other than
-.B local
-the user will also be prompted for a password to
+The user will also be prompted for a password to
 be used as an encryption key on each
 .IR attach (5):
 .IP

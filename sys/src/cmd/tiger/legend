@@ -54,13 +54,15 @@
  *	a address from, 23
  *	b address to, 23
  *	c cfcc code, 1234
- *	d delta lat/lng, lg
- *	g longitude, 14
+ *	d delta lat/lng, tg
+ *	g longitude, 14 degree*1*10^6
+ *	h longitude, 14 degree*5*10^6
  *	l place name, 01234
  *	m mcd name, 01234
  *	n feature name, 1234
  *	s state name, 0
- *	t latitude, 14
+ *	t latitude, 14 degree*1*10^6
+ *	u latitude, 14 degree*5*10^6
  *	y county name, 023
  *	z zip, 23
  */
@@ -297,3 +299,8 @@ H80	Special Water Feature
 H81	Glacier
 
 X00	Feature Not Yet Classified
+X10	FAA airport
+X11	FAA vor
+X12	FAA ndb
+
+X20	Place Names

@@ -146,7 +146,7 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 	Ndb *db;
 	uchar *p;
 
-/*fprint(2, "%s %s %d %lux\n", s->db->file, attr, s->type, s->ptr);/**/
+/* fprint(2, "%s %s %d %lux\n", s->db->file, attr, s->type, s->ptr);/**/
 
 	db = s->db;
 	if(s->ptr == NDBNAP)

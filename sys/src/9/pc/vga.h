@@ -15,9 +15,15 @@ enum
 	 Cvre=		 0x11,		/*  vertical retrace end */
 	ARW=		0x3C0,		/* attribute registers (writing) */
 	ARR=		0x3C1,		/* attribute registers (reading) */
+	CMRX=		0x3C7,		/* color map read index */
+	CMWX=		0x3C8,		/* color map write index */
+	CM=		0x3C9,		/* color map data reg */
 };
 
 #define SCREENMEM	(0xA0000 | KZERO)
+#define CGASCREEN	((uchar*)(0xB8000 | KZERO))
+#define	CGAWIDTH	160
+#define	CGAHEIGHT	24
 
 extern	void setscreen(int, int, int);
 extern	struct GBitmap	gscreen;

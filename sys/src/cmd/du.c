@@ -34,6 +34,7 @@ main(int argc, char *argv[])
 	else
 	for(i=0; i<argc; i++)
 		print(fmt, du(argv[i], (Dir*)0), argv[i]);
+	exits(0);
 }
 
 long
@@ -94,10 +95,11 @@ seen(Dir *dir)
 {
 	static Dir *cache=0;
 	static int n=0, ncache=0;
+	Dir *dp;
 	int i;
 
-	Dir *dp=cache;
-	for(i=0; i<n; i++)
+	dp=cache;
+	for(i=0; i<n; i++,dp++)
 		if(dir->qid.path==dp->qid.path &&
 		   dir->type==dp->type && dir->dev==dp->dev)
 			return 1;

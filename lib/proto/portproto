@@ -1,6 +1,10 @@
 usr
 adm
-	+
+	timeconst
+	timezone
+		*
+	users
+	whois
 fd
 lib
 	namespace
@@ -16,30 +20,34 @@ lib
 rc
 	+
 mail
-$cputype
-	bin
-		*
-		aux
-			*
-		disk
-			*
-		games
-			*
-		ndb
-			cs
-			query
-		ip
-			*
-	include
-		*
-	init
-	lib
-		*
-	mkfile
 mnt
 	8½
 	help
 	term
+net
+proc
+srv
+tmp
+$cputype
+	init
+	bin
+		*
+		aux
+			*
+		ndb
+			cs
+			query
+		disk
+			*
+		games
+			*
+		ip
+			*
+	include
+		*
+	lib
+		*
+	mkfile
 n
 	boot
 	bootes
@@ -50,9 +58,6 @@ n
 	pipe
 	tempel
 	kfs
-net
-proc
-srv
 sys
 	games
 		+
@@ -68,4 +73,3 @@ sys
 		yaccpars
 	include
 		*
-tmp

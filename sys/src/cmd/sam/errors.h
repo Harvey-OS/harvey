@@ -51,6 +51,8 @@ typedef enum Warn{
 	Wdupname,
 	Wfile,
 	Wdate,
+	/* warn_ss */
+	Wdupfile,
 	/* warn */
 	Wnulls,
 	Wpwd,

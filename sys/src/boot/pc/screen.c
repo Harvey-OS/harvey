@@ -19,7 +19,6 @@ void
 screenputc(int c)
 {
 	int i;
-	static int color;
 
 	if(c == '\n'){
 		pos = pos/WIDTH;
@@ -35,7 +34,7 @@ screenputc(int c)
 		pos -= 2;
 	} else {
 		SCREEN[pos++] = c;
-		SCREEN[pos++] = 0x1d;
+		SCREEN[pos++] = 2;
 	}
 	if(pos >= WIDTH*HEIGHT){
 		memmove(SCREEN, &SCREEN[WIDTH], WIDTH*(HEIGHT-1));

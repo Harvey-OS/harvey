@@ -43,7 +43,7 @@ main(void)
 
 	alloc count, primes;
 
-	task counter(count);
+	proc counter(count);
 	task sieve(count, primes);
 
 	for(c = 0; c < 100; c++)

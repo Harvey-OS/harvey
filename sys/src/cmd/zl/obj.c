@@ -169,6 +169,11 @@ main(int argc, char *argv[])
 	called();
 	dodata();
 	patch();
+	if(debug['p'])
+		if(debug['1'])
+			doprof1();
+		else
+			doprof2();
 	follow();
 	bugs();
 	span();
@@ -897,6 +902,91 @@ gethunk(void)
 		hunk = h;
 	nhunk += NHUNK;
 	tothunk += NHUNK;
+}
+
+void
+doprof1(void)
+{
+}
+
+void
+doprof2(void)
+{
+	Sym *s2, *s4;
+	Prog *p, *q, *ps2, *ps4;
+
+	if(debug['v'])
+		Bprint(&bso, "%5.2f profile 2\n", cputime());
+	Bflush(&bso);
+	s2 = lookup("_profin", 0);
+	s4 = lookup("_profout", 0);
+	ps2 = P;
+	ps4 = P;
+	for(p = firstp; p != P; p = p->link) {
+		if(p->as == ATEXT) {
+			if(p->from.sym == s2) {
+				ps2 = p;
+				p->from.width = W_B;
+			}
+			if(p->from.sym == s4) {
+				ps4 = p;
+				p->from.width = W_B;
+			}
+		}
+	}
+	for(p = firstp; p != P; p = p->link) {
+		if(p->as == ATEXT) {
+			if(p->from.width == W_B) {
+				for(;;) {
+					q = p->link;
+					if(q == P)
+						break;
+					if(q->as == ATEXT)
+						break;
+					p = q;
+				}
+				continue;
+			}
+
+			/*
+			 * CALL	profin
+			 */
+			q = prg();
+			q->line = p->line;
+			q->pc = p->pc;
+			q->link = p->link;
+			p->link = q;
+			p = q;
+			p->as = ACALL;
+			p->to.type = D_BRANCH;
+			p->cond = ps2;
+			p->to.sym = s2;
+
+			continue;
+		}
+		if(p->as == ARETURN) {
+			q = prg();
+			*q = *p;
+
+			/*
+			 * CALL	profout
+			 */
+			p->as = ACALL;
+			p->to.type = D_BRANCH;
+			p->cond = ps4;
+			p->to.sym = s4;
+
+			
+			/*
+			 * RETURN
+			 */
+			q->link = p->link;
+			p->link = q;
+			p = q;
+
+			continue;
+		}
+	}
 }
 
 void

@@ -8,8 +8,8 @@
 #include "y.tab.h"
 #include "mem.h"
 
-#define SAFE	1	/* generates code to do redundant checks */
-#define MAX_UNIQUE 255
+#define SAFE	1			/* generates code to do redundant checks */
+#define MAX_UNIQUE MAX_NODE_VALUE	/* must fit in a short */
 
 typedef struct SymbolList {
 	SymbolEntry *first, *last;
@@ -22,8 +22,9 @@ static void AppendToList(SymbolList *, SymbolEntry *);
  * symbol is [min,max)
  */
 struct ranges {
-	int min,max;
-	int limit;
+	int	min;
+	int	max;
+	int	limit;
 } uniques[] = {
 	{0, 0, MAX_UNIQUE},	/* A_UNDEFINED -- not used */
 	{0, 0, MAX_NODE_VALUE},	/* A_NODE */
@@ -48,13 +49,13 @@ SymbolEntry *hash_table[HASHSIZE];
 SymbolEntry *startSymbol;
 
 static int
-RawHash(register char *s)
+RawHash(char *s)
 {
-	register int sum = 0;
-	register int i = 0;
+	int sum = 0, i = 0;
+
 	while(*s)
 		sum += (++i)*(0377&*s++);
-	return(sum);
+	return sum;
 }
 
 
@@ -122,7 +123,7 @@ SymbolLookup(char *s)
  * symp argument.
  */
 void
-SymbolEnter(SymbolEntry *symp, byte attr)
+SymbolEnter(SymbolEntry *symp, int attr)
 {
 	struct symbol_entry *hp;
 
@@ -139,22 +140,22 @@ SymbolEnter(SymbolEntry *symp, byte attr)
 	if (HAS_UNIQUE(attr)){
 		struct ranges *rp = &uniques[attr];
 		int new_unique;
-		if(symp->unique==-1)
+		if(symp->unique == -1)
 			symp->unique = new_unique = rp->max++;
 		else {
 			new_unique = symp->unique;
-			if(new_unique>=rp->max)
+			if(new_unique >= rp->max)
 				rp->max = new_unique+1;
 			else if(new_unique < rp->min)
 				rp->min = new_unique;
 		}
-		if(new_unique>rp->limit)
-			sem_error("number assigned to %s (%d) out of range",
-				symp->name, new_unique);
-		if(new_unique<0)
+		if(new_unique > rp->limit)
+			sem_error("number assigned to %s(%d) attr %d out of range",
+				symp->name, new_unique, attr);
+		if(new_unique < 0)
 			sem_error("number assigned to %s (%d) is negative",
 				symp->name, new_unique);
-		assert(rp->max>=rp->min);
+		assert(rp->max >= rp->min);
 	}
 	if (HAS_LIST(attr)) {
 		AppendToList(&lists[attr], symp);
@@ -249,19 +250,20 @@ sym_count(SymbolEntry *sp)
 void
 SymbolFinish(void)
 {
-	if(DB_MEM&debug_flag) {
-		extern struct _mem node_mem;
-		int symout = mem_outstanding(&sym_mem);
-		int labout = mem_outstanding(&lab_mem);
-		int nodeout = mem_outstanding(&node_mem);
-		SymbolMap(sym_count);
-		fprintf(stderr,"symbols defined=%d out=%d\n",symcnt, symout);
-		fprintf(stderr,"labdata def=%d out=%d\n",labcnt,labout);
-		fprintf(stderr,"node def=%d out=%d\n",nodecnt,nodeout);
-		assert(symcnt==symout);
-		assert(labcnt==labout);
-		assert(nodecnt==nodeout);
-	}
+	extern struct _mem node_mem;
+	int symout = mem_outstanding(&sym_mem);
+	int labout = mem_outstanding(&lab_mem);
+	int nodeout = mem_outstanding(&node_mem);
+
+	if(!(DB_MEM & debug_flag))
+		return;
+	SymbolMap(sym_count);
+	fprint(2, "symbols defined=%d out=%d\n", symcnt, symout);
+	fprint(2, "labdata def=%d out=%d\n", labcnt, labout);
+	fprint(2, "node def=%d out=%d\n", nodecnt, nodeout);
+	assert(symcnt==symout);
+	assert(labcnt==labout);
+	assert(nodecnt==nodeout);
 }
 
 void
@@ -318,10 +320,8 @@ SymbolEnterTreeIntoLabel(SymbolEntry *symp, struct node *tree, SymbolEntry *cost
 static void
 WriteSymbols(SymbolEntry *sp, int mask)
 {
-	if(sflag)
-		return;
-	for(;sp!=NULL; sp = sp->link)
-		fprintf(symfile, "#define %s\t0%o\n", sp->name, sp->unique|mask);
+	for(; sp; sp = sp->link)
+		Bprint(symfile, "#define %s\t0x%ux\n", sp->name, sp->unique|mask);
 }
 
 void
@@ -330,111 +330,117 @@ SymbolDump(void)
 	WriteSymbols(lists[A_NODE].first, M_NODE);
 	WriteSymbols(lists[A_LABEL].first, 0);
 	WriteSymbols(lists[A_CONST].first, 0);
-	fprintf(symfile, "#define MAXLABELS %d\n", uniques[A_LABEL].max);
-	fprintf(symfile, "#define MAXTREES %d\n", treeIndex);
-	fprintf(symfile, "#define MAXNDVAL %d\n", uniques[A_NODE].max);
+	Bprint(symfile, "#define MAXLABELS %d\n", uniques[A_LABEL].max);
+	Bprint(symfile, "#define MAXTREES %d\n", treeIndex);
+	Bprint(symfile, "#define MAXNDVAL %d\n", uniques[A_NODE].max);
 }
 
 void
 SymbolGenerateWalkerCode(void)
 {
-	register SymbolEntry *pp;
+	SymbolEntry *pp;
 	int i;
 	extern int line_xref_flag;
 	struct treeassoc *tap;
-	register LabelData *lp;
-	register short int *mapTab;
+	LabelData *lp;
+	short int *mapTab;
 
 	/*
 	 * Write out the table of tree index to label correspondence
 	 */
-	mapTab = (short int *) Malloc (treeIndex * sizeof(short int));
-	for(pp=lists[A_LABEL].first; pp!=NULL; pp=pp->link) {
+	mapTab = Malloc(treeIndex * sizeof(short int));
+	for(pp = lists[A_LABEL].first; pp; pp = pp->link) {
 		lp = pp->sd.lp;
-		if(lp==NULL)
+		if(!lp)
 			sem_error2("%s undefined", pp->name);
-		for(;lp!=NULL;lp=lp->next)
+		for(;lp; lp = lp->next)
 			mapTab[lp->treeIndex] = pp->unique;
 	}
 
-	fputs("short int mtMap[] = {\n", outfile);
-	for(i=0, oreset(); i < treeIndex;)
-		oputoct(mapTab[i++]);
-	fputs("};\n", outfile);
+	Bprint(bout, "short mtMap[] = {\n");
+	oreset();
+	for(i = 0; i < treeIndex; i++)
+		oputoct(mapTab[i]);
+	Bprint(bout, "};\n");
 
 	/* generate tree to line index table */
-	if(line_xref_flag) {
-		for(pp=lists[A_LABEL].first; pp!=NULL; pp=pp->link) {
+	if(line_xref_flag){
+		for(pp = lists[A_LABEL].first; pp; pp = pp->link){
 			lp = pp->sd.lp;
-			for(;lp!=NULL;lp=lp->next)
+			for(; lp; lp = lp->next)
 				mapTab[lp->treeIndex] = lp->lineno;
 		}
-		fputs("short mtLine[] = {\n", outfile);
-		for(i=0, oreset(); i<treeIndex;)
-			oputint(mapTab[i++]);
-		fputs("};\n", outfile);
+		Bprint(bout, "short mtLine[] = {\n");
+		oreset();
+		for(i = 0; i<treeIndex; i++)
+			oputint(mapTab[i]);
+		Bprint(bout, "};\n");
 	}
 
 	/*
 	 * Generate path table
 	 */
-	fputs ("short int mtPaths[] = {\n", outfile);
-	for(pp=lists[A_LABEL].first, oreset(); pp!=NULL; pp=pp->link) {
+	Bprint(bout, "short mtPaths[] = {\n");
+	oreset();
+	for(pp = lists[A_LABEL].first; pp; pp = pp->link) {
 		lp = pp->sd.lp;
-		if(lp==NULL){
+		if(!lp){
 			sem_error2("%s undefined", pp->name);
 			continue;
 		}
-		do {
+		while(lp){
 			mapTab[lp->treeIndex] = ointcnt();
-			oputint (lp->tree->nlleaves);
-			SymbolWritePath (lp->tree);
-			oputint (eSTOP);
+			oputint(lp->tree->nlleaves);
+			SymbolWritePath(lp->tree);
+			oputint(eSTOP);
 			lp = lp->next;
-		} while (lp!=NULL);
+		}
 	}
-	fputs(" };\nshort int mtPathStart[] = {\n", outfile);
-	for(i=0, oreset(); i < treeIndex;)
-		oputint (mapTab[i++]);
-	fputs("};\n", outfile);
+	Bprint(bout, " };\nshort int mtPathStart[] = {\n");
+	oreset();
+	for(i = 0; i < treeIndex; i++)
+		oputint(mapTab[i]);
+	Bprint(bout, "};\n");
 
 	/*
 	 * Code to perform the action of the trees
 	 */
-	fputs("NODEPTR\nmtAction (int _t, __match **_ll, skeleton *_s)\n", outfile);
-	fputs("{ NODEPTR root = _s->root;\n", outfile);
-	fputs("switch (_t) {\n", outfile);
-	for (pp=lists[A_ACTION].first; pp!=NULL; pp=pp->link) {
-		if ((tap=pp->sd.ca.assoc)==NULL) {
+	Bprint(bout, "NODEPTR\nmtAction (int _t, __match **_ll, skeleton *_s)\n");
+	Bprint(bout, "{ NODEPTR root = _s->root;\n");
+	Bprint(bout, "switch (_t) {\n");
+	for(pp = lists[A_ACTION].first; pp; pp = pp->link) {
+		tap = pp->sd.ca.assoc;
+		if(!tap) {
 			sem_error2 ("%s not used", pp->name);
 			continue;
 		}
-		for (; tap!=NULL; tap=tap->next)
-			fprintf (outfile, "case %d:", tap->tree);
-		fputs ("{\n", outfile);
-		CodeWrite (outfile, pp->sd.ca.code);
-		fputs("} break;\n", outfile);
+		for(; tap; tap=tap->next)
+			Bprint(bout, "case %d:", tap->tree);
+		Bprint(bout, "{\n");
+		CodeWrite(bout, pp->sd.ca.code);
+		Bprint(bout, "} break;\n");
 	}
-	fputs("} return(_s->root);}\n", outfile);
+	Bprint(bout, "} return(_s->root);}\n");
 
-	fputs ("short\n", outfile);
-	fputs ("mtEvalCost(__match *_m, __match **_ll, skeleton *_s)\n", outfile);
-	fputs ("{ NODEPTR root = _s->root;\n", outfile);
-	fputs ("COST cost; cost = DEFAULT_COST;\n", outfile);
-	fputs ("switch(_m->tree) {\n", outfile);
-	for(pp=lists[A_COST].first; pp!=NULL; pp=pp->link) {
-		if ((tap=pp->sd.ca.assoc)==NULL) {
+	Bprint(bout, "short\n");
+	Bprint(bout, "mtEvalCost(__match *_m, __match **_ll, skeleton *_s)\n");
+	Bprint(bout, "{ NODEPTR root = _s->root;\n");
+	Bprint(bout, "COST cost; cost = DEFAULT_COST;\n");
+	Bprint(bout, "switch(_m->tree) {\n");
+	for(pp = lists[A_COST].first; pp; pp = pp->link) {
+		tap = pp->sd.ca.assoc;
+		if(!tap){
 			sem_error2 ("%s not used", pp->name);
 			continue;
 		}
-		for (; tap!=NULL; tap=tap->next)
-			fprintf (outfile, "case %d:", tap->tree);
-		fputs ("{\n", outfile);
-		CodeWrite (outfile, pp->sd.ca.code);
-		fputs ("} break;\n", outfile);
+		for(; tap; tap = tap->next)
+			Bprint(bout, "case %d:", tap->tree);
+		Bprint(bout, "{\n");
+		CodeWrite (bout, pp->sd.ca.code);
+		Bprint(bout, "} break;\n");
 	}
-	fputs("}\n", outfile);
-	fputs("_m->cost = cost; return(xDEFER);}\n", outfile);
+	Bprint(bout, "}\n");
+	Bprint(bout, "_m->cost = cost; return xDEFER;}\n");
 
 }
 
@@ -442,21 +448,24 @@ void
 SymbolWritePath(Node *root)
 {
 	Node *np;
-	if(root->nlleaves==0)
+
+	if(!root->nlleaves)
 		return;
-	if((root->sym)->attr==A_LABEL) {
-		oputint (eEVAL); oputoct (MV_LABEL((root->sym)->unique));
+	if(root->sym->attr == A_LABEL) {
+		oputint(eEVAL);
+		oputoct(MV_LABEL(root->sym->unique));
 		return;
 	}
-	oputint (ePUSH);
+	oputint(ePUSH);
 	for(np = root->children;;) {
 		if(np->nlleaves > 0)
-			SymbolWritePath (np);
-		if ((np = np->siblings) == NULL)
+			SymbolWritePath(np);
+		np = np->siblings;
+		if(!np)
 			break;
-		oputint (eNEXT);
+		oputint(eNEXT);
 	}
-	oputint (ePOP);
+	oputint(ePOP);
 }
 
 static int gensymndx = 0;
@@ -465,7 +474,8 @@ char *
 SymbolGenUnique(void)
 {
 	static char name[7];
+
 	name[0] = '$';
-	sprintf (&name[1], "%05d", gensymndx++);
-	return (name);
+	sprint(&name[1], "%5d", gensymndx++);
+	return name;
 }

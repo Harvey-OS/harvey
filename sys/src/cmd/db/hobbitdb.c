@@ -6,6 +6,7 @@
 #include "fns.h"
 
 #define STARTSYM	"_main"
+#define PROFSYM		"_mainp"
 #define	FRAMENAME	".frame"
 
 extern	ulong	hobbitfindframe(ulong);
@@ -103,7 +104,7 @@ hobbitfindframe(ulong addr)
 	pc = rget(mach->pc);
 	fp = rget(mach->sp);
 	while (findsym(pc, CTEXT, &s)) {
-		if (strcmp(STARTSYM, s.name) == 0)
+		if (strcmp(STARTSYM, s.name) == 0 || strcmp(PROFSYM, s.name) == 0)
 			break;
 		if (findlocal(&s, FRAMENAME, &f) == 0)
 			break;

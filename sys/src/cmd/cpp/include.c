@@ -6,6 +6,8 @@ Includelist	includelist[NINCLUDE] = {
 	{ 0, 1, "/usr/include" },
 };
 
+char	*objname;
+
 void
 doinclude(Tokenrow *trp)
 {
@@ -58,6 +60,11 @@ doinclude(Tokenrow *trp)
 		if ((fd = open(iname, 0)) >= 0)
 			break;
 	}
+	if ( Mflag>1 || !angled&&Mflag==1 ) {
+		write(1,objname,strlen(objname));
+		write(1,iname,strlen(iname));
+		write(1,"\n",1);
+	}
 	if (fd >= 0) {
 		if (++incdepth > 10)
 			error(FATAL, "#include too deeply nested");
@@ -95,4 +102,17 @@ genline(void)
 	outp = (char*)p;
 	tr.tp = tr.bp;
 	puttokens(&tr);
+}
+
+void
+setobjname(char *f)
+{
+	int n = strlen(f);
+	objname = (char*)domalloc(n+5);
+	strcpy(objname,f);
+	if(objname[n-2]=='.'){
+		strcpy(objname+n-1,"$O: ");
+	}else{
+		strcpy(objname+n,"$O: ");
+	}
 }

@@ -423,14 +423,15 @@ notify(Ureg *ur)
 	if(n->flag!=NUser && (u->notified || u->notify==0)){
 		if(n->flag == NDebug)
 			pprint("suicide: %s\n", n->msg);
-    Die:
 		qunlock(&u->p->debug);
 		pexit(n->msg, n->flag!=NDebug);
 	}
 	sent = 0;
 	if(!u->notified){
-		if(!u->notify)
-			goto Die;
+		if(!u->notify){
+			qunlock(&u->p->debug);
+			pexit(n->msg, n->flag!=NDebug);
+		}
 		sent = 1;
 		u->svcs = ur->cs;
 		u->svss = ur->ss;

@@ -8,11 +8,11 @@ extern int symbol_undefined;
 typedef struct LabelData	LabelData;
 
 struct LabelData {
-	Node *tree;
-	int treeIndex;
-	int lineno;
-	SymbolEntry *label;	/* back pointer */
-	LabelData *next;
+	Node		*tree;
+	int		treeIndex;
+	int		lineno;
+	SymbolEntry	*label;		/* back pointer */
+	LabelData	*next;
 };
 
 struct treeassoc {
@@ -20,24 +20,29 @@ struct treeassoc {
 	struct treeassoc *next;
 };
 
+typedef enum{
+	A_UNDEFINED,
+	A_NODE,
+	A_LABEL,
+	A_COST,
+	A_ACTION,
+	A_CONST,
+
+	A_ERROR	= 10,
+	A_KEYWORD,
+}Attr;
+
+#define MAXCHAINS	A_CONST	
+#define HAS_UNIQUE(x)	(x < MAXCHAINS)
+#define HAS_LIST(x)	(x <= A_CONST)
+
 struct symbol_entry {
-	int hash;
-	char *name;
-	short attr;
-#		define  A_UNDEFINED		0
-#		define	A_NODE			1
-#		define  A_LABEL			2
-#		define	A_COST			3
-#		define	A_ACTION		4
-#						define MAXCHAINS     A_CONST	
-#						define HAS_UNIQUE(x) (x<MAXCHAINS)
-#		define	A_CONST			5
-#						define HAS_LIST(x) (x<=A_CONST)
-#		define	A_ERROR			10
-#		define	A_KEYWORD		11
-	short unique;
-	struct symbol_entry *link;
-	struct symbol_entry *next;
+	int		hash;
+	char		*name;
+	Attr		attr;
+	short		unique;
+	SymbolEntry	*link;
+	SymbolEntry	*next;
 	union {
 		int keyword;
 		int cvalue;	/* a constant's value */
@@ -54,17 +59,17 @@ struct symbol_entry {
 	} sd;
 };
 
-SymbolEntry	*SymbolAllocate(char *);
-void		SymbolFree(SymbolEntry *);
-SymbolEntry	*SymbolLookup(char *);
-void		SymbolEnter(SymbolEntry *, byte);
+SymbolEntry	*SymbolAllocate(char*);
+void		SymbolFree(SymbolEntry*);
+SymbolEntry	*SymbolLookup(char*);
+void		SymbolEnter(SymbolEntry*, int);
 void		SymbolCheckNodeValues(void);
-SymbolEntry	*SymbolEnterKeyword(char *, int);
+SymbolEntry	*SymbolEnterKeyword(char*, int);
 void		SymbolInit(void);
-void		SymbolMap(int (*)(SymbolEntry *));
+void		SymbolMap(int(*)(SymbolEntry*));
 void		SymbolFinish(void);
-void		SymbolEnterList(SymbolEntry *, int);
-LabelData	*SymbolEnterTreeIntoLabel(SymbolEntry *, struct node *, SymbolEntry *, SymbolEntry *, int);
+void		SymbolEnterList(SymbolEntry*, int);
+LabelData	*SymbolEnterTreeIntoLabel(SymbolEntry*, struct node*, SymbolEntry*, SymbolEntry*, int);
 void		SymbolDump(void);
 void		SymbolGenerateWalkerCode(void);
 void		SymbolWritePath(Node *);

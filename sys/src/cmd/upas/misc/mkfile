@@ -1,10 +1,10 @@
 </$objtype/mkfile
-
-TARG=uk2uk
-OFILES=uk2uk.$O
+LIB=../common/libcommon.a$O ../libString/libString.a$O
+TARG = uk2uk\
 
 BIN=/$objtype/bin/upas
-</sys/src/cmd/mkone
+</sys/src/cmd/mkmany
+CFLAGS=-w -I../common
 
 installall:V:
 	for(objtype in $CPUS)

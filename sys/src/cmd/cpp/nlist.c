@@ -7,7 +7,9 @@ extern	int getopt(int, char **, char *);
 extern	char	*optarg;
 extern	int	optind;
 int	verbose;
+int	Mflag;
 int	Cplusplus;
+Nlist	*kwdefined;
 
 #define	NLSIZE	128
 
@@ -31,7 +33,7 @@ struct	kwtab {
 	"error",	KERROR,		ISKW,
 	"pragma",	KPRAGMA,	ISKW,
 	"eval",		KEVAL,		ISKW,
-	"defined",	KDEFINED,	ISKW+ISUNCHANGE,
+	"defined",	KDEFINED,	ISDEFINED+ISUNCHANGE,
 	"__LINE__",	KLINENO,	ISMAC+ISUNCHANGE,
 	"__FILE__",	KFILE,		ISMAC+ISUNCHANGE,
 	"__DATE__",	KDATE,		ISMAC+ISUNCHANGE,
@@ -41,6 +43,7 @@ struct	kwtab {
 };
 
 unsigned long	namebit[077+1];
+Nlist 	*np;
 
 void
 setup(int argc, char **argv)
@@ -53,6 +56,8 @@ setup(int argc, char **argv)
 	Tokenrow tr;
 	char *objtype;
 	static char nbuf[40];
+	static Token deftoken[1] = {{ NAME, 0, 0, 0, 7, (uchar*)"defined" }};
+	static Tokenrow deftr = { deftoken, deftoken, deftoken+1, 1 };
 
 	for (kp=kwtab; kp->kw; kp++) {
 		t.t = (uchar*)kp->kw;
@@ -60,6 +65,12 @@ setup(int argc, char **argv)
 		np = lookup(&t, 1);
 		np->flag = kp->flag;
 		np->val = kp->val;
+		if (np->val == KDEFINED) {
+			kwdefined = np;
+			np->val = NAME;
+			np->vp = &deftr;
+			np->ap = 0;
+		}
 	}
 	/*
 	 * For Plan 9, search /objtype/include, then /sys/include
@@ -101,6 +112,9 @@ setup(int argc, char **argv)
 			doadefine(&tr, ARGC());
 			unsetsource();
 			break;
+		case 'M':
+			Mflag++;
+			break;
 		case 'V':
 			verbose++;
 			break;
@@ -130,6 +144,8 @@ setup(int argc, char **argv)
 			error(FATAL, "Can't open output file %s", argv[1]);
 		dup(fdo, 1);
 	}
+	if (Mflag)
+		setobjname(fp);
 	includelist[NINCLUDE-1].always = 0;
 	includelist[NINCLUDE-1].file = dp;
 	setsource(fp, fd, NULL);

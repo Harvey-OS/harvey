@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 #include <mach.h>
 
 #define	HUGEINT	0x7fffffff
@@ -59,6 +60,7 @@ static void	printhist(char *, Hist *, int);
 static int	buildtbls(void);
 static int	symcomp(void *, void *);
 static int	txtcomp(void *, void *);
+static int	filecomp(void *, void *);
 
 /*
  *	initialize internal symbol tables
@@ -68,7 +70,7 @@ buildtbls(void)
 {
 	
 	Sym *p;
-	int i, na, nh, ng, nt;
+	int i, j, na, nh, ng, nt;
 	File *f;
 	Txtsym *tp;
 	Hist *hp;
@@ -236,9 +238,10 @@ buildtbls(void)
 		/* sort global and text tables into ascending address order */
 	qsort(globals, nglob, sizeof(Sym*), symcomp);
 	qsort(txt, ntxt, sizeof(Txtsym), txtcomp);
+	qsort(files, nfiles, sizeof(File), filecomp);
 	tp = txt;
 	for (i = 0, f = files; i < nfiles; i++, f++) {
-		for (i = 0; i < ntxt; i++) {
+		for (j = 0; j < ntxt; j++) {
 			if (f->sym == tp->sym) {
 				if (debug) {
 					print("LINK: %s to", f->sym->name);
@@ -333,7 +336,7 @@ findlocal(Symbol *s1, char *name, Symbol *s2)
 }
 /*
  *	find the local variable by name within a given function
- *		(internal function - does not parameter validation)
+ *		(internal function - does no parameter validation)
  */
 static int
 findlocvar(Symbol *s1, char *name, Symbol *s2)
@@ -367,7 +370,23 @@ textsym(Symbol *s, int index)
 	s->handle = (void *) &txt[index];
 	return 1;
 }
+/*	
+ *	Get ith file name
+ */
+int
+filesym(int index, char *buf, int n)
+{
+	Hist *hp;
 
+	if (buildtbls() == 0)
+		return 0;
+	if (index >= nfiles)
+		return 0;
+	hp = files[index].hist;
+	if (!hp || !hp->name)
+		return 0;
+	return fileelem(fnames, (uchar*) hp->name, buf, n);
+}
 /*
  *	Lookup name of local variable located at an offset into the frame.
  *	The type selects either a parameter or automatic.
@@ -428,6 +447,8 @@ findsym(long w, int type, Symbol *s)
 			else if (mid != ntxt-1 && val >= txt[mid+1].sym->value)
 				bot = mid;
 			else {
+				if (mid == ntxt-1 && type == CANY)
+					break;
 				fillsym(sp, s);
 				s->handle = (void *) &txt[mid];
 				return 1;
@@ -500,10 +521,11 @@ file2pc(char *file, ulong line)
 	File *fp;
 	int i, n;
 	long pc;
+	ulong start, end;
 	short name[NNAME];
 
 	symerror = 0;
-	if (buildtbls() == 0)
+	if (buildtbls() == 0 || files == 0)
 		return -1;
 	n = encfname(file, name);		/* encode the file name */
 	if (n == 0) {
@@ -514,18 +536,22 @@ file2pc(char *file, ulong line)
 	for (i = 0, fp = files; i < nfiles; i++, fp++)
 		if (hline(fp, name, n, &line))
 			break;
-		/* protect dereference below */
-	if (!fp || !fp->txt || !fp->txt->sym) {
+	if (i >= nfiles) {
 		symerror = "file or line not found";
 		return -1;
 	}
+	start = fp->addr;		/* first text addr this file */
+	if (i+1 < nfiles)
+		end = (fp+1)->addr;	/* first text addr next file */
+	else
+		end = 0;		/* last file in load module */
 	/*
 	 * At this point, line contains the offset into the file.
 	 * run the state machine to locate the pc closest to that value.
 	 */
 	if (debug)
-		print("find pc for %d - base: %lux\n", line, fp->txt->sym->value);
-	pc = line2addr(line,fp->txt->sym->value);
+		print("find pc for %d - between: %lux and %lux\n", line, start, end);
+	pc = line2addr(line, start, end);
 	if (pc == -1) {
 		symerror = "Line not found in specified file";
 		return -1;
@@ -669,9 +695,9 @@ fileline(char *str, int n, ulong dot)
 	if (!found)
 		return 0;
 	line = pc2line(dot);
-	if (line > 0)
-		fline(str, n, line, found->hist);
-	return 1;
+	if (line > 0 && fline(str, n, line, found->hist))
+		return 1;
+	return 0;
 }
 /*
  *	Convert a line number within a composite file to relative line
@@ -711,17 +737,17 @@ fline(char *str, int n, long line, Hist *base)
 			}
 		}
 	}
-	if (h) {
-		if (start != base)
-			line = line-start->line+1;
-		else line = line-delta+1;
-		if (!h->name)
-			strcpy(str, "<eof>");
-		else {
-			k = fileelem(fnames, (uchar*) start->name, str, n);
-			if (k+8 < n)
-				sprint(str+k, ":%ld", line);
-		}
+	if (!h)
+		return 0;
+	if (start != base)
+		line = line-start->line+1;
+	else line = line-delta+1;
+	if (!h->name)
+		strncpy(str, "<eof>", n);
+	else {
+		k = fileelem(fnames, (uchar*) start->name, str, n);
+		if (k+8 < n)
+			sprint(str+k, ":%ld", line);
 	}
 /**********Remove comments if complete trace of include sequence desired
  *	if (start != base) {
@@ -735,7 +761,7 @@ fline(char *str, int n, long line, Hist *base)
  *			sprint(str+k, ":%ld}", start->line-delta);
  *	}
  ********************/
-	return 0;
+	return h;
 }
 /*
  *	compare the values of two symbol table entries.
@@ -752,6 +778,14 @@ static int
 txtcomp(void *a, void *b)
 {
 	return ((Txtsym*)a)->sym->value - ((Txtsym*)b)->sym->value;
+}
+/*
+ *	compare the values of the symbols referenced by two file table entries
+ */
+static int
+filecomp(void *a, void *b)
+{
+	return ((File*)a)->addr - ((File*)b)->addr;
 }
 /*
  * compare symbol name with a string.

@@ -10,7 +10,7 @@ dev
 	bit	b
 	ether	l
 	scc	t
-	scsi	S	scsi
+	scsi	S	scsi scsibuf
 	floppy	f
 	iproute	P
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
@@ -27,6 +27,7 @@ stream
 port
 	int cpuserver = 0;
 	void consdebug(void){}
+	void audiodmaintr(void){}
 	long cfslen = 0; ulong cfscode[1];
 	long fslen = 0; ulong fscode[1];
 	/*

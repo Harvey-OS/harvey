@@ -151,7 +151,7 @@ netstat(Chan *c, char *db, Network *np)
 				convD2M(&dir, db);
 				return;
 			}
-			print("netstat %c %lux\n", devchar[c->type], c->qid.path);
+			print("netstat %C %lux\n", devchar[c->type], c->qid.path);
 			error(Enonexist);
 		case 0:
 			break;

@@ -82,6 +82,7 @@ journal(int out, char *s)
 	fprint(fd, "%s%s\n", out? "out: " : "in:  ", s);
 }
 
+void
 journaln(int out, int n)
 {
 	char buf[32];
@@ -688,7 +689,9 @@ outsend(void)
 	outmsg[2] = outcount>>8;
 	outmsg = outp;
 	if(!noflush){
-		Write(1, outdata, outmsg-outdata);
+		outcount = outmsg-outdata;
+		if (write(1, (char*) outdata, outcount) != outcount)
+			rescue();
 		outmsg = outdata;
 		return;
 	}

@@ -9,7 +9,7 @@ TARG =	mkdb\
 	dnsquery
 
 DNSOBJ = dns.$O dn.$O dnresolve.$O dblookup.$O dnserver.$O\
-	 convM2DNS.$O convDNS2M.$O malloc.$O
+	 convM2DNS.$O convDNS2M.$O malloc.$O lock.$O
 
 BIN=/$objtype/bin/ndb
 </sys/src/cmd/mkmany
@@ -17,5 +17,5 @@ BIN=/$objtype/bin/ndb
 $O.dns: $DNSOBJ
 	$LD -o $target $prereq
 
-$O.cs: cs.$O malloc.$O
+$O.cs: cs.$O malloc.$O lock.$O
 	$LD -o $target $prereq

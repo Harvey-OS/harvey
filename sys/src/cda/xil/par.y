@@ -244,17 +244,16 @@ FILE *devnull;
 FILE *netfile;
 
 int
-binconv(void *o, int f1, int f2, int f3, int chr)
+binconv(void *o, Fconv *fp)
 {
-	ulong m, i=f1;
+	ulong m, i=fp->f1;
 	char buf[50];
 	char *p=&buf[sizeof buf];
-	USED(chr);
 	m = *((ulong *) o);
 	*--p = 0;
 	for (; i > 0; i--, m >>= 1)
 		*--p = m&1 ? '1' : '0';
-	strconv(p, f1, f2, f3);
+	strconv(p, fp);
 	return sizeof(ulong);
 }
 

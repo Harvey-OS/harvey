@@ -57,13 +57,14 @@ connecttcp(void)
 {
 	int fd[2], rv;
 
-	rv = ipdial(fd, "#Itcp/tcp", fsip, 17008);
+	rv = ipdial(fd, "#Itcp/tcp", fsip, 564);
 	if(arpnotefd >= 0){
 		write(arpnotefd, "die", 3);
 		close(arpnotefd);
 	}
 	if(cpuflag)
 		sendmsg(fd[0], "push reboot");
+	sendmsg(fd[0], "push fcall");
 	if(rv >= 0)
 		close(fd[0]);
 	return fd[1];
@@ -136,7 +137,7 @@ ipconfig(Method *mp)
 
 	memset(bcast, 0xff, sizeof(bcast));	/* ether broadcast address */
 
-	/* coinfigure/open ip */
+	/* configure/open ip */
 	myetheraddr(eaddr, "#l/ether");
 /*print("my etheraddr is %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux\n", eaddr[0], eaddr[1],
 eaddr[2], eaddr[3], eaddr[4], eaddr[5]);/**/

@@ -1,0 +1,1819 @@
+
+state 0
+	$accept: .start $end 
+	empty: .    (118)
+	$$3: .    (3)
+
+	$end  reduce 118 (src line 417)
+	.  reduce 3 (src line 66)
+
+	start  goto 1
+	device  goto 2
+	empty  goto 3
+	$$3  goto 4
+
+state 1
+	$accept:  start.$end 
+
+	$end  accept
+	.  error
+
+
+state 2
+	start:  device.start 
+	empty: .    (118)
+	$$3: .    (3)
+
+	$end  reduce 118 (src line 417)
+	.  reduce 3 (src line 66)
+
+	start  goto 5
+	device  goto 2
+	empty  goto 3
+	$$3  goto 4
+
+state 3
+	start:  empty.    (2)
+
+	.  reduce 2 (src line 64)
+
+
+state 4
+	device:  $$3.name $$4 body 
+
+	_ID  shift 9
+	_PART  shift 8
+	.  error
+
+	name  goto 6
+	part  goto 7
+
+state 5
+	start:  device start.    (1)
+
+	.  reduce 1 (src line 63)
+
+
+state 6
+	device:  $$3 name.$$4 body 
+	$$4: .    (4)
+
+	.  reduce 4 (src line 0)
+
+	$$4  goto 10
+
+state 7
+	name:  part.nametail 
+	empty: .    (118)
+
+	=  shift 12
+	.  reduce 118 (src line 417)
+
+	empty  goto 13
+	nametail  goto 11
+
+state 8
+	part:  _PART.    (9)
+
+	.  reduce 9 (src line 76)
+
+
+state 9
+	part:  _ID.    (10)
+
+	.  reduce 10 (src line 78)
+
+
+state 10
+	device:  $$3 name $$4.body 
+
+	{  shift 15
+	.  error
+
+	body  goto 14
+
+state 11
+	name:  part nametail.    (6)
+
+	.  reduce 6 (src line 68)
+
+
+state 12
+	nametail:  =.part nametail 
+
+	_ID  shift 9
+	_PART  shift 8
+	.  error
+
+	part  goto 16
+
+state 13
+	nametail:  empty.    (8)
+
+	.  reduce 8 (src line 73)
+
+
+state 14
+	device:  $$3 name $$4 body.    (5)
+
+	.  reduce 5 (src line 0)
+
+
+state 15
+	body:  {.defs } 
+	empty: .    (118)
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	_ARRAY  shift 27
+	_DECLARE  shift 26
+	_PACKAGE  shift 32
+	_PINS  shift 30
+	_FUSES  shift 28
+	_CLOCKED  shift 37
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  reduce 118 (src line 417)
+
+	empty  goto 19
+	defs  goto 17
+	def  goto 18
+	declare  goto 20
+	array  goto 21
+	fuse  goto 22
+	pins  goto 23
+	macrocell  goto 24
+	package  goto 25
+	number  goto 35
+	expression  goto 29
+	macrotype  goto 31
+
+state 16
+	nametail:  = part.nametail 
+	empty: .    (118)
+
+	=  shift 12
+	.  reduce 118 (src line 417)
+
+	empty  goto 13
+	nametail  goto 41
+
+state 17
+	body:  { defs.} 
+
+	}  shift 42
+	.  error
+
+
+state 18
+	defs:  def.defs 
+	empty: .    (118)
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	_ARRAY  shift 27
+	_DECLARE  shift 26
+	_PACKAGE  shift 32
+	_PINS  shift 30
+	_FUSES  shift 28
+	_CLOCKED  shift 37
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  reduce 118 (src line 417)
+
+	empty  goto 19
+	defs  goto 43
+	def  goto 18
+	declare  goto 20
+	array  goto 21
+	fuse  goto 22
+	pins  goto 23
+	macrocell  goto 24
+	package  goto 25
+	number  goto 35
+	expression  goto 29
+	macrotype  goto 31
+
+state 19
+	defs:  empty.    (13)
+	macrotype:  empty.    (101)
+
+	}  reduce 13 (src line 84)
+	.  reduce 101 (src line 348)
+
+
+state 20
+	def:  declare.    (14)
+
+	.  reduce 14 (src line 86)
+
+
+state 21
+	def:  array.    (15)
+
+	.  reduce 15 (src line 87)
+
+
+state 22
+	def:  fuse.    (16)
+
+	.  reduce 16 (src line 88)
+
+
+state 23
+	def:  pins.    (17)
+
+	.  reduce 17 (src line 89)
+
+
+state 24
+	def:  macrocell.    (18)
+
+	.  reduce 18 (src line 90)
+
+
+state 25
+	def:  package.    (19)
+
+	.  reduce 19 (src line 91)
+
+
+state 26
+	declare:  _DECLARE.{ declarations } 
+
+	{  shift 44
+	.  error
+
+
+state 27
+	array:  _ARRAY.arrayname { elements } 
+
+	_ID  shift 46
+	.  error
+
+	arrayname  goto 45
+
+state 28
+	fuse:  _FUSES.$$63 fusesequence 
+	$$63: .    (63)
+
+	.  reduce 63 (src line 213)
+
+	$$63  goto 47
+
+29: shift/reduce conflict (shift 49(1), red'n 98(0)) on -
+state 29
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+	fuse:  expression.= number 
+	fuse:  expression.    (98)
+
+	+  shift 48
+	-  shift 49
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	=  shift 53
+	.  reduce 98 (src line 324)
+
+
+state 30
+	pins:  _PINS.number 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	.  error
+
+	number  goto 54
+
+state 31
+	macrocell:  macrotype._MACROCELL macro_id { defines } 
+
+	_MACROCELL  shift 55
+	.  error
+
+
+state 32
+	package:  _PACKAGE._STRING 
+
+	_STRING  shift 56
+	.  error
+
+
+state 33
+	expression:  -.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 57
+
+state 34
+	expression:  (.expression ) 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 58
+
+state 35
+	expression:  number.    (92)
+
+	.  reduce 92 (src line 301)
+
+
+state 36
+	expression:  ..    (93)
+
+	.  reduce 93 (src line 303)
+
+
+state 37
+	macrotype:  _CLOCKED.    (100)
+
+	.  reduce 100 (src line 346)
+
+
+state 38
+	number:  _DECIMAL.    (115)
+
+	.  reduce 115 (src line 410)
+
+
+state 39
+	number:  _HEX.    (116)
+
+	.  reduce 116 (src line 412)
+
+
+state 40
+	number:  _OCTAL.    (117)
+
+	.  reduce 117 (src line 414)
+
+
+state 41
+	nametail:  = part nametail.    (7)
+
+	.  reduce 7 (src line 71)
+
+
+state 42
+	body:  { defs }.    (11)
+
+	.  reduce 11 (src line 81)
+
+
+state 43
+	defs:  def defs.    (12)
+
+	.  reduce 12 (src line 83)
+
+
+state 44
+	declare:  _DECLARE {.declarations } 
+
+	_INTERNAL  shift 62
+	_EXTERNAL  shift 63
+	.  error
+
+	declarations  goto 59
+	declaration  goto 60
+	side  goto 61
+
+state 45
+	array:  _ARRAY arrayname.{ elements } 
+
+	{  shift 64
+	.  error
+
+
+state 46
+	arrayname:  _ID.    (47)
+
+	.  reduce 47 (src line 163)
+
+
+state 47
+	fuse:  _FUSES $$63.fusesequence 
+
+	{  shift 66
+	.  error
+
+	fusesequence  goto 65
+
+state 48
+	expression:  expression +.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 67
+
+state 49
+	expression:  expression -.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 68
+
+state 50
+	expression:  expression |.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 69
+
+state 51
+	expression:  expression &.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 70
+
+state 52
+	expression:  expression ^.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 71
+
+state 53
+	fuse:  expression =.number 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	.  error
+
+	number  goto 72
+
+state 54
+	pins:  _PINS number.    (65)
+
+	.  reduce 65 (src line 215)
+
+
+state 55
+	macrocell:  macrotype _MACROCELL.macro_id { defines } 
+
+	_ID  shift 74
+	.  error
+
+	macro_id  goto 73
+
+state 56
+	package:  _PACKAGE _STRING.    (114)
+
+	.  reduce 114 (src line 407)
+
+
+state 57
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+	expression:  - expression.    (90)
+
+	.  reduce 90 (src line 297)
+
+
+state 58
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+	expression:  ( expression.) 
+
+	+  shift 48
+	-  shift 49
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	)  shift 75
+	.  error
+
+
+state 59
+	declare:  _DECLARE { declarations.} 
+
+	}  shift 76
+	.  error
+
+
+state 60
+	declarations:  declaration.declarations 
+	declarations:  declaration.    (22)
+
+	_INTERNAL  shift 62
+	_EXTERNAL  shift 63
+	.  reduce 22 (src line 96)
+
+	declarations  goto 77
+	declaration  goto 60
+	side  goto 61
+
+state 61
+	declaration:  side.{ decl_list } 
+
+	{  shift 78
+	.  error
+
+
+state 62
+	side:  _INTERNAL.    (43)
+
+	.  reduce 43 (src line 149)
+
+
+state 63
+	side:  _EXTERNAL.    (44)
+
+	.  reduce 44 (src line 151)
+
+
+state 64
+	array:  _ARRAY arrayname {.elements } 
+	$$48: .    (48)
+	empty: .    (118)
+
+	}  reduce 118 (src line 417)
+	.  reduce 48 (src line 177)
+
+	empty  goto 81
+	elements  goto 79
+	$$48  goto 80
+
+state 65
+	fuse:  _FUSES $$63 fusesequence.    (64)
+
+	.  reduce 64 (src line 0)
+
+
+state 66
+	fusesequence:  {.fuses } 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	_FUSES  shift 28
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	fuse  goto 83
+	number  goto 35
+	expression  goto 29
+	fuses  goto 82
+
+state 67
+	expression:  expression.+ expression 
+	expression:  expression + expression.    (85)
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	.  reduce 85 (src line 287)
+
+
+state 68
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression - expression.    (86)
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	.  reduce 86 (src line 289)
+
+
+state 69
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression | expression.    (87)
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+
+	^  shift 52
+	.  reduce 87 (src line 291)
+
+
+state 70
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression & expression.    (88)
+	expression:  expression.^ expression 
+
+	^  shift 52
+	.  reduce 88 (src line 293)
+
+
+state 71
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+	expression:  expression ^ expression.    (89)
+
+	.  reduce 89 (src line 295)
+
+
+state 72
+	fuse:  expression = number.    (97)
+
+	.  reduce 97 (src line 313)
+
+
+state 73
+	macrocell:  macrotype _MACROCELL macro_id.{ defines } 
+
+	{  shift 84
+	.  error
+
+
+state 74
+	macro_id:  _ID.    (113)
+
+	.  reduce 113 (src line 405)
+
+
+state 75
+	expression:  ( expression ).    (91)
+
+	.  reduce 91 (src line 299)
+
+
+state 76
+	declare:  _DECLARE { declarations }.    (20)
+
+	.  reduce 20 (src line 93)
+
+
+state 77
+	declarations:  declaration declarations.    (21)
+
+	.  reduce 21 (src line 95)
+
+
+state 78
+	declaration:  side {.decl_list } 
+
+	_INPUTS  shift 99
+	_OUTPUTS  shift 100
+	_SET  shift 89
+	_RESET  shift 90
+	_CLOCK  shift 91
+	_MACROCELL  shift 92
+	_ENABLED  shift 93
+	_ENABLES  shift 94
+	_CLOCKED  shift 95
+	_INVERTED  shift 96
+	_INPUT  shift 97
+	_OUTPUT  shift 98
+	_VCC  shift 101
+	_GND  shift 102
+	.  error
+
+	decl_list  goto 85
+	property_decl  goto 86
+	property_list  goto 87
+	property  goto 88
+
+state 79
+	array:  _ARRAY arrayname { elements.} 
+
+	}  shift 103
+	.  error
+
+
+state 80
+	elements:  $$48.element elements 
+	empty: .    (118)
+
+	_INPUTS  shift 108
+	_OFFSET  shift 112
+	_MACROCELL  shift 110
+	_INVERTED  shift 109
+	.  reduce 118 (src line 417)
+
+	empty  goto 111
+	offset  goto 107
+	element  goto 104
+	input  goto 105
+	invert  goto 106
+
+state 81
+	elements:  empty.    (50)
+
+	.  reduce 50 (src line 178)
+
+
+state 82
+	fusesequence:  { fuses.} 
+
+	}  shift 113
+	.  error
+
+
+state 83
+	fuses:  fuse., fuses 
+	fuses:  fuse.    (96)
+
+	,  shift 114
+	.  reduce 96 (src line 310)
+
+
+state 84
+	macrocell:  macrotype _MACROCELL macro_id {.defines } 
+	empty: .    (118)
+
+	_NOT  shift 118
+	_SET  shift 124
+	_RESET  shift 123
+	_CLOCK  shift 121
+	_CLOCKED  shift 122
+	_ENABLE  shift 120
+	_INVERT  shift 125
+	.  reduce 118 (src line 417)
+
+	empty  goto 117
+	defines  goto 115
+	define  goto 116
+	subfield  goto 119
+
+state 85
+	declaration:  side { decl_list.} 
+
+	}  shift 126
+	.  error
+
+
+state 86
+	decl_list:  property_decl.decl_list 
+	decl_list:  property_decl.    (25)
+
+	_INPUTS  shift 99
+	_OUTPUTS  shift 100
+	_SET  shift 89
+	_RESET  shift 90
+	_CLOCK  shift 91
+	_MACROCELL  shift 92
+	_ENABLED  shift 93
+	_ENABLES  shift 94
+	_CLOCKED  shift 95
+	_INVERTED  shift 96
+	_INPUT  shift 97
+	_OUTPUT  shift 98
+	_VCC  shift 101
+	_GND  shift 102
+	.  reduce 25 (src line 101)
+
+	decl_list  goto 127
+	property_decl  goto 86
+	property_list  goto 87
+	property  goto 88
+
+state 87
+	property_decl:  property_list.pinsequence 
+
+	{  shift 129
+	.  error
+
+	pinsequence  goto 128
+
+state 88
+	property_list:  property.property_list 
+	property_list:  property.    (28)
+
+	_INPUTS  shift 99
+	_OUTPUTS  shift 100
+	_SET  shift 89
+	_RESET  shift 90
+	_CLOCK  shift 91
+	_MACROCELL  shift 92
+	_ENABLED  shift 93
+	_ENABLES  shift 94
+	_CLOCKED  shift 95
+	_INVERTED  shift 96
+	_INPUT  shift 97
+	_OUTPUT  shift 98
+	_VCC  shift 101
+	_GND  shift 102
+	.  reduce 28 (src line 114)
+
+	property_list  goto 130
+	property  goto 88
+
+state 89
+	property:  _SET.    (29)
+
+	.  reduce 29 (src line 117)
+
+
+state 90
+	property:  _RESET.    (30)
+
+	.  reduce 30 (src line 119)
+
+
+state 91
+	property:  _CLOCK.    (31)
+
+	.  reduce 31 (src line 121)
+
+
+state 92
+	property:  _MACROCELL._ID 
+
+	_ID  shift 131
+	.  error
+
+
+state 93
+	property:  _ENABLED.    (33)
+
+	.  reduce 33 (src line 128)
+
+
+state 94
+	property:  _ENABLES.    (34)
+
+	.  reduce 34 (src line 130)
+
+
+state 95
+	property:  _CLOCKED.    (35)
+
+	.  reduce 35 (src line 132)
+
+
+state 96
+	property:  _INVERTED.    (36)
+
+	.  reduce 36 (src line 134)
+
+
+state 97
+	property:  _INPUT.    (37)
+
+	.  reduce 37 (src line 136)
+
+
+state 98
+	property:  _OUTPUT.    (38)
+
+	.  reduce 38 (src line 138)
+
+
+state 99
+	property:  _INPUTS.    (39)
+
+	.  reduce 39 (src line 140)
+
+
+state 100
+	property:  _OUTPUTS.    (40)
+
+	.  reduce 40 (src line 142)
+
+
+state 101
+	property:  _VCC.    (41)
+
+	.  reduce 41 (src line 144)
+
+
+state 102
+	property:  _GND.    (42)
+
+	.  reduce 42 (src line 146)
+
+
+state 103
+	array:  _ARRAY arrayname { elements }.    (46)
+
+	.  reduce 46 (src line 156)
+
+
+state 104
+	elements:  $$48 element.elements 
+	$$48: .    (48)
+	empty: .    (118)
+
+	}  reduce 118 (src line 417)
+	.  reduce 48 (src line 177)
+
+	empty  goto 81
+	elements  goto 132
+	$$48  goto 80
+
+state 105
+	element:  input.buffer linesequence 
+	empty: .    (118)
+
+	_COMPLEMENTPLUS  shift 136
+	_COMPLEMENTMINUS  shift 137
+	.  reduce 118 (src line 417)
+
+	empty  goto 135
+	buffer  goto 133
+	complemented  goto 134
+
+state 106
+	element:  invert.output linesequence 
+
+	_OUTPUTS  shift 139
+	.  error
+
+	output  goto 138
+
+state 107
+	element:  offset.    (53)
+
+	.  reduce 53 (src line 188)
+
+
+state 108
+	input:  _INPUTS.    (54)
+
+	.  reduce 54 (src line 192)
+
+
+state 109
+	invert:  _INVERTED.    (56)
+
+	.  reduce 56 (src line 198)
+
+
+state 110
+	invert:  _MACROCELL.    (57)
+
+	.  reduce 57 (src line 200)
+
+
+state 111
+	invert:  empty.    (58)
+
+	.  reduce 58 (src line 202)
+
+
+state 112
+	offset:  _OFFSET.number 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	.  error
+
+	number  goto 140
+
+state 113
+	fusesequence:  { fuses }.    (94)
+
+	.  reduce 94 (src line 306)
+
+
+state 114
+	fuses:  fuse ,.fuses 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	_FUSES  shift 28
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	fuse  goto 83
+	number  goto 35
+	expression  goto 29
+	fuses  goto 141
+
+state 115
+	macrocell:  macrotype _MACROCELL macro_id { defines.} 
+
+	}  shift 142
+	.  error
+
+
+state 116
+	defines:  define., defines 
+	defines:  define.    (103)
+
+	,  shift 143
+	.  reduce 103 (src line 352)
+
+
+state 117
+	defines:  empty.    (104)
+
+	.  reduce 104 (src line 354)
+
+
+state 118
+	define:  _NOT.subfield 
+
+	_SET  shift 124
+	_RESET  shift 123
+	_CLOCK  shift 121
+	_CLOCKED  shift 122
+	_ENABLE  shift 120
+	_INVERT  shift 125
+	.  error
+
+	subfield  goto 144
+
+state 119
+	define:  subfield.    (106)
+
+	.  reduce 106 (src line 359)
+
+
+state 120
+	subfield:  _ENABLE.: expression 
+
+	:  shift 145
+	.  error
+
+
+state 121
+	subfield:  _CLOCK.: expression 
+
+	:  shift 146
+	.  error
+
+
+state 122
+	subfield:  _CLOCKED.: expression 
+
+	:  shift 147
+	.  error
+
+
+state 123
+	subfield:  _RESET.: expression 
+
+	:  shift 148
+	.  error
+
+
+state 124
+	subfield:  _SET.: expression 
+
+	:  shift 149
+	.  error
+
+
+state 125
+	subfield:  _INVERT.: expression 
+
+	:  shift 150
+	.  error
+
+
+state 126
+	declaration:  side { decl_list }.    (23)
+
+	.  reduce 23 (src line 98)
+
+
+state 127
+	decl_list:  property_decl decl_list.    (24)
+
+	.  reduce 24 (src line 100)
+
+
+state 128
+	property_decl:  property_list pinsequence.    (26)
+
+	.  reduce 26 (src line 103)
+
+
+state 129
+	pinsequence:  {.pinlist } 
+	empty: .    (118)
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  reduce 118 (src line 417)
+
+	empty  goto 153
+	number  goto 35
+	pinlist  goto 151
+	pin  goto 152
+	expression  goto 154
+
+state 130
+	property_list:  property property_list.    (27)
+
+	.  reduce 27 (src line 112)
+
+
+state 131
+	property:  _MACROCELL _ID.    (32)
+
+	.  reduce 32 (src line 123)
+
+
+state 132
+	elements:  $$48 element elements.    (49)
+
+	.  reduce 49 (src line 0)
+
+
+state 133
+	element:  input buffer.linesequence 
+
+	{  shift 156
+	.  error
+
+	linesequence  goto 155
+
+state 134
+	buffer:  complemented.    (59)
+
+	.  reduce 59 (src line 205)
+
+
+state 135
+	buffer:  empty.    (60)
+
+	.  reduce 60 (src line 207)
+
+
+state 136
+	complemented:  _COMPLEMENTPLUS.    (61)
+
+	.  reduce 61 (src line 209)
+
+
+state 137
+	complemented:  _COMPLEMENTMINUS.    (62)
+
+	.  reduce 62 (src line 210)
+
+
+state 138
+	element:  invert output.linesequence 
+
+	{  shift 156
+	.  error
+
+	linesequence  goto 157
+
+state 139
+	output:  _OUTPUTS.    (55)
+
+	.  reduce 55 (src line 195)
+
+
+state 140
+	offset:  _OFFSET number.    (45)
+
+	.  reduce 45 (src line 154)
+
+
+state 141
+	fuses:  fuse , fuses.    (95)
+
+	.  reduce 95 (src line 308)
+
+
+state 142
+	macrocell:  macrotype _MACROCELL macro_id { defines }.    (99)
+
+	.  reduce 99 (src line 335)
+
+
+state 143
+	defines:  define ,.defines 
+	empty: .    (118)
+
+	_NOT  shift 118
+	_SET  shift 124
+	_RESET  shift 123
+	_CLOCK  shift 121
+	_CLOCKED  shift 122
+	_ENABLE  shift 120
+	_INVERT  shift 125
+	.  reduce 118 (src line 417)
+
+	empty  goto 117
+	defines  goto 158
+	define  goto 116
+	subfield  goto 119
+
+state 144
+	define:  _NOT subfield.    (105)
+
+	.  reduce 105 (src line 357)
+
+
+state 145
+	subfield:  _ENABLE :.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 159
+
+state 146
+	subfield:  _CLOCK :.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 160
+
+state 147
+	subfield:  _CLOCKED :.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 161
+
+state 148
+	subfield:  _RESET :.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 162
+
+state 149
+	subfield:  _SET :.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 163
+
+state 150
+	subfield:  _INVERT :.expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 164
+
+state 151
+	pinsequence:  { pinlist.} 
+
+	}  shift 165
+	.  error
+
+
+state 152
+	pinlist:  pin., pinlist 
+	pinlist:  pin.    (68)
+
+	,  shift 166
+	.  reduce 68 (src line 222)
+
+
+state 153
+	pinlist:  empty.    (69)
+
+	.  reduce 69 (src line 223)
+
+
+state 154
+	pin:  expression.    (83)
+	pin:  expression.. . expression 
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+
+	+  shift 48
+	-  shift 49
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	.  shift 167
+	.  reduce 83 (src line 275)
+
+
+state 155
+	element:  input buffer linesequence.    (51)
+
+	.  reduce 51 (src line 180)
+
+
+state 156
+	linesequence:  {.linelist } 
+	empty: .    (118)
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	[  shift 172
+	.  shift 36
+	(  shift 34
+	.  reduce 118 (src line 417)
+
+	empty  goto 170
+	number  goto 35
+	pin  goto 173
+	linelist  goto 168
+	line  goto 169
+	node  goto 171
+	expression  goto 154
+
+state 157
+	element:  invert output linesequence.    (52)
+
+	.  reduce 52 (src line 184)
+
+
+state 158
+	defines:  define , defines.    (102)
+
+	.  reduce 102 (src line 350)
+
+
+state 159
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+	subfield:  _ENABLE : expression.    (107)
+
+	+  shift 48
+	-  shift 49
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	.  reduce 107 (src line 362)
+
+
+state 160
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+	subfield:  _CLOCK : expression.    (108)
+
+	+  shift 48
+	-  shift 49
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	.  reduce 108 (src line 369)
+
+
+state 161
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+	subfield:  _CLOCKED : expression.    (109)
+
+	+  shift 48
+	-  shift 49
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	.  reduce 109 (src line 376)
+
+
+state 162
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+	subfield:  _RESET : expression.    (110)
+
+	+  shift 48
+	-  shift 49
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	.  reduce 110 (src line 383)
+
+
+state 163
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+	subfield:  _SET : expression.    (111)
+
+	+  shift 48
+	-  shift 49
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	.  reduce 111 (src line 390)
+
+
+state 164
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+	subfield:  _INVERT : expression.    (112)
+
+	+  shift 48
+	-  shift 49
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	.  reduce 112 (src line 397)
+
+
+state 165
+	pinsequence:  { pinlist }.    (66)
+
+	.  reduce 66 (src line 218)
+
+
+state 166
+	pinlist:  pin ,.pinlist 
+	empty: .    (118)
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  reduce 118 (src line 417)
+
+	empty  goto 153
+	number  goto 35
+	pinlist  goto 174
+	pin  goto 152
+	expression  goto 154
+
+state 167
+	pin:  expression ... expression 
+
+	.  shift 175
+	.  error
+
+
+state 168
+	linesequence:  { linelist.} 
+
+	}  shift 176
+	.  error
+
+
+state 169
+	linelist:  line., linelist 
+	linelist:  line.    (72)
+
+	,  shift 177
+	.  reduce 72 (src line 229)
+
+
+state 170
+	linelist:  empty.    (73)
+
+	.  reduce 73 (src line 230)
+
+
+state 171
+	line:  node.    (74)
+
+	.  reduce 74 (src line 232)
+
+
+state 172
+	line:  [.eqnodes ] 
+	empty: .    (118)
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  reduce 118 (src line 417)
+
+	empty  goto 180
+	number  goto 35
+	pin  goto 173
+	node  goto 179
+	eqnodes  goto 178
+	expression  goto 154
+
+state 173
+	node:  pin.terms 
+	node:  pin.= number terms 
+	empty: .    (118)
+
+	=  shift 182
+	:  shift 183
+	.  reduce 118 (src line 417)
+
+	empty  goto 184
+	terms  goto 181
+
+state 174
+	pinlist:  pin , pinlist.    (67)
+
+	.  reduce 67 (src line 221)
+
+
+state 175
+	pin:  expression . ..expression 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  error
+
+	number  goto 35
+	expression  goto 185
+
+state 176
+	linesequence:  { linelist }.    (70)
+
+	.  reduce 70 (src line 225)
+
+
+state 177
+	linelist:  line ,.linelist 
+	empty: .    (118)
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	[  shift 172
+	.  shift 36
+	(  shift 34
+	.  reduce 118 (src line 417)
+
+	empty  goto 170
+	number  goto 35
+	pin  goto 173
+	linelist  goto 186
+	line  goto 169
+	node  goto 171
+	expression  goto 154
+
+state 178
+	line:  [ eqnodes.] 
+
+	]  shift 187
+	.  error
+
+
+state 179
+	eqnodes:  node., eqnodes 
+	eqnodes:  node.    (77)
+
+	,  shift 188
+	.  reduce 77 (src line 239)
+
+
+state 180
+	eqnodes:  empty.    (78)
+
+	.  reduce 78 (src line 241)
+
+
+state 181
+	node:  pin terms.    (79)
+
+	.  reduce 79 (src line 243)
+
+
+state 182
+	node:  pin =.number terms 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	.  error
+
+	number  goto 189
+
+state 183
+	terms:  :.number 
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	.  error
+
+	number  goto 190
+
+state 184
+	terms:  empty.    (82)
+
+	.  reduce 82 (src line 272)
+
+
+state 185
+	pin:  expression . . expression.    (84)
+	expression:  expression.+ expression 
+	expression:  expression.- expression 
+	expression:  expression.| expression 
+	expression:  expression.& expression 
+	expression:  expression.^ expression 
+
+	+  shift 48
+	-  shift 49
+	|  shift 50
+	&  shift 51
+	^  shift 52
+	.  reduce 84 (src line 279)
+
+
+state 186
+	linelist:  line , linelist.    (71)
+
+	.  reduce 71 (src line 228)
+
+
+state 187
+	line:  [ eqnodes ].    (75)
+
+	.  reduce 75 (src line 234)
+
+
+state 188
+	eqnodes:  node ,.eqnodes 
+	empty: .    (118)
+
+	_HEX  shift 39
+	_OCTAL  shift 40
+	_DECIMAL  shift 38
+	-  shift 33
+	.  shift 36
+	(  shift 34
+	.  reduce 118 (src line 417)
+
+	empty  goto 180
+	number  goto 35
+	pin  goto 173
+	node  goto 179
+	eqnodes  goto 191
+	expression  goto 154
+
+state 189
+	node:  pin = number.terms 
+	empty: .    (118)
+
+	:  shift 183
+	.  reduce 118 (src line 417)
+
+	empty  goto 184
+	terms  goto 192
+
+state 190
+	terms:  : number.    (81)
+
+	.  reduce 81 (src line 270)
+
+
+state 191
+	eqnodes:  node , eqnodes.    (76)
+
+	.  reduce 76 (src line 237)
+
+
+state 192
+	node:  pin = number terms.    (80)
+
+	.  reduce 80 (src line 256)
+
+
+53/255 terminals, 53/300 nonterminals
+119/600 grammar rules, 193/2000 states
+1 shift/reduce, 0 reduce/reduce conflicts reported
+53/350 working sets used
+memory: states,etc. 1030/20000, parser 197/20000
+64/600 distinct lookahead sets
+73 extra closures
+353 shift entries, 6 exceptions
+116 goto entries
+53 entries saved by goto default
+Optimizer space used: input 887/20000, output 254/20000
+254 table entries, 0 zero
+maximum spread: 53, maximum offset: 189

@@ -6,10 +6,10 @@ cpu=kremvax
 
 # cs sets sysname
 /bin/ndb/cs
-cs = `{cat /dev/sysname}
+sysname = `{cat /dev/sysname}
 
 switch($terminal){
-case *' nextstation'*
+case next*
 	switch($terminal){
 	case *next*disk*
 		# non-disk Next's hang on this
@@ -17,6 +17,7 @@ case *' nextstation'*
 	}
 	/bin/bind -a '#t' /dev >/dev/null >[2=1]
 	/bin/bind -a '#f' /dev >/dev/null >[2=1]
+	aux/mouse -dC 1
 	if(test -e /net/tcp/clone) ip/ipconfig
 case *' ss'*
 	/bin/bind -a '#w' /dev >/dev/null >[2=1]
@@ -26,26 +27,43 @@ case *' ss'*
 case *' magnum'*
 	/bin/bind -a '#w' /dev >/dev/null >[2=1]
 	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+	aux/mouse -dC 0
 	ip/ipconfig
 	/bin/echo 'add il tcp udp' > /net/cs
-case *' safari'*
-	/bin/bind -b '#w' /dev >/dev/null
+case *' indigo'*
+	/bin/bind -a '#L' /dev >/dev/null >[2=1]
+	/bin/bind -a '#w1' /dev >/dev/null >[2=1]
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+	ip/ipconfig
+	/bin/echo 'add il tcp udp' > /net/cs
+case NCR* 'AT&TNSX'* generic*
+	/bin/bind -a '#w' /dev >/dev/null
 	/bin/bind -a '#f' /dev >/dev/null
 	/bin/bind -a '#t' /dev >/dev/null
-	/bin/bind -a '#L' /dev >/dev/null >[2=1]
-	/bin/dossrv dos  >/dev/null
-	/bin/mount -c /srv/dos /n/c: /dev/hd0dos
+	swap /dev/hd0swap > /dev/null >[2=1]
+	vgafile=`{ndb/query sys $sysname vgafile}
+	switch($vgafile){
+	case ''
+		switch($terminal){
+		case *nomad*
+			aux/vga nomad/lcd/640x480x1
+		case NCR* 'AT&TNSX'*
+		 	aux/vga generic/640x480x1
+		}
+	case *
+		aux/vga $vgafile
+	}
+	/bin/dossrv
 	if(test -e /net/tcp/clone) ip/ipconfig
-	echo ps2 > '#v/mouseconf'
-case  *' pc'*
-	/bin/bind -b '#w' /dev >/dev/null
-	/bin/bind -a '#f' /dev >/dev/null
-	/bin/bind -a '#t' /dev >/dev/null
-	/bin/bind -a '#L' /dev >/dev/null >[2=1]
-	/bin/dossrv dos  >/dev/null
-	/bin/mount -c /srv/dos /n/c: /dev/hd0dos
-	if(test -e /net/tcp/clone) ip/ipconfig
-	echo serial0 > '#v/mouseconf'
+	switch($terminal){
+	case *nomad*
+		aux/mouse 0
+	case generic*
+		aux/mouse 1
+	case *
+		aux/mouse ps2
+	}
+	/bin/mount -c /srv/dos /n/c: /dev/hd0disk > /dev/null >[2=1]
 case *' gnot'*
 	switch($terminal){
 	case *disk*

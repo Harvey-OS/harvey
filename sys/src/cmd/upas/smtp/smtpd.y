@@ -16,6 +16,7 @@ extern Biobuf bin;
 YYSTYPE cat(YYSTYPE*, YYSTYPE*, YYSTYPE*, YYSTYPE*, YYSTYPE*, YYSTYPE*, YYSTYPE*);
 int yyparse(void);
 int yylex(void);
+YYSTYPE anonymous(void);
 %}
 
 %term SPACE
@@ -59,7 +60,8 @@ cmd		: error
 		| 't' 'u' 'r' 'n' CRLF
 			{ turn(); }
 		;
-path		: '<' mailbox '>'	={ $$ = $2; }
+path		: '<' '>'		={ $$ = anonymous(); }
+		| '<' mailbox '>'	={ $$ = $2; }
 		| '<' a-d-l ':' mailbox '>'	={ $$ = cat(&$2, bang, &$4, 0, 0 ,0, 0); }
 		;
 a-d-l		: at-domain		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
@@ -114,7 +116,7 @@ char		: c
 		;
 dotnum		: snum '.' snum '.' snum '.' snum ={ $$ = cat(&$1, &$2, &$3, &$4, &$5, &$6, &$7); }
 		;
-number		: d
+number		: d			={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		| number d		={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
 		;
 snum		: number		={ if(atoi(s_to_c($1.s)) > 255) print("bad snum\n"); } 
@@ -261,5 +263,17 @@ cat(YYSTYPE *y1, YYSTYPE *y2, YYSTYPE *y3, YYSTYPE *y4, YYSTYPE *y5, YYSTYPE *y6
 void
 yyerror(char *x)
 {
-	print("501 syntax error\r\n", x);
+	print("501 %s\r\n", x);
+}
+
+/*
+ *  an anonymous user
+ */
+YYSTYPE
+anonymous(void)
+{
+	YYSTYPE rv;
+
+	rv.s = s_copy("pOsTmAsTeR");
+	return rv;
 }

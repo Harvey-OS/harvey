@@ -105,6 +105,7 @@ do_clip(void){
 	if(Graphics.path.first == NULL)return(0);
 	clpath = copypath(Graphics.path.first);
 	clean_path(&clpath);
+	if(clpath.first->next == clpath.last)return(1);
 	if(mdebug)fprintf(stderr,"/Times-Bold findfont 10 scalefont setfont\n/filename(db.ps)def filename run\n");
 	pmove = getslope(&clpath, pstats, pmoves, pinterior, pst, pelement);
 	qmove = getslope(&Graphics.clippath, qstats, qmoves, qinterior, qst, qelement);

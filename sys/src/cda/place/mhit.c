@@ -61,7 +61,7 @@ minit(void)
 
 
 NMitem *
-mhit( NMenu *m, int but, int depth)
+mhit( NMenu *m, int but, int depth, Mouse *ms)
 {
 	register int width, mwidth, i, j, top, newtop, hit, newhit;
 	register int items, lines, length, w, x;
@@ -73,6 +73,7 @@ mhit( NMenu *m, int but, int depth)
 	Bitmap *bhelp = 0;
 	NMitem *(*generator)(int, NMitem *), *mi, *table, *ret = 0;
 	int dohfn;
+	int getmouse;
 
 #define sro sr.min
 #define src sr.max
@@ -132,6 +133,7 @@ mhit( NMenu *m, int but, int depth)
 		bitblt(b, mro, &screen, mr, S);
 	rectf(&screen, mr, F);
 	cursorswitch((Cursor *) 0);
+	mouse = *ms;
 PaintMenu:
 	cursorswitch(&blank);
 	rectf(&screen, inset(mr, 1), 0);
@@ -164,8 +166,8 @@ PaintMenu:
 	savep = mouse.xy;
 	mi = 0;
 	dohfn = 0;
-	for(hit = -1; (mouse.buttons & but); mouse = emouse()){
-		mouse = emouse();
+	for(hit = -1; (mouse.buttons & but);){
+		getmouse = 1;
 		p = mouse.xy;
 		if(depth && ((p.x < mro.x) || ((6 ^ but) & mouse.buttons)))	/* uhh, 5-but?? */
 		{
@@ -230,8 +232,11 @@ PaintMenu:
 		if((newhit != -1) && ptinrect(p, rside))
 		{
 			if(mi->dfn) (*mi->dfn)(mi);
-			if(mi->next && (depth <= MAXDEPTH))
-				ret = mhit(mi->next, but, depth+1), dohfn = 0;
+			if(mi->next && (depth <= MAXDEPTH)){
+				ret = mhit(mi->next, but, depth+1, &mouse);
+				dohfn = 0;
+				getmouse = 0;
+			}
 			if(mi->bfn) (*mi->bfn)(mi);
 		}
 		if(newhit==0 && top>0){
@@ -246,7 +251,10 @@ PaintMenu:
 /*			cursset(p);*/
 /* ->->-> */		goto PaintMenu;
 		}
+		if(getmouse)
+			mouse = emouse();
 	}
+	*ms = mouse;
 	if(bhelp)
 		helpoff(&bhelp);
 	if(b){

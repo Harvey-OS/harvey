@@ -9,10 +9,10 @@ TEXT	_main(SB), 1, $16
 	MOVW	R2, 8(R29)
 	JAL	main(SB)
 loop:
-	MOVW	$_exits<>(SB), R1
+	MOVW	$_exitstr<>(SB), R1
 	MOVW	R1, 4(R29)
 	JAL	exits(SB)
 	JMP	loop
 
-DATA	_exits<>+0(SB)/4, $"main"
-GLOBL	_exits<>+0(SB), $5
+DATA	_exitstr<>+0(SB)/4, $"main"
+GLOBL	_exitstr<>+0(SB), $5

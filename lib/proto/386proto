@@ -24,6 +24,10 @@ lib
 	ndb
 		local
 	units
+	vga
+		generic
+			640x480x1
+			640x480x2
 rc
 	+
 mail
@@ -48,6 +52,7 @@ mail
 		chgrp
 		chmod
 		cmp
+		comm
 		compress
 		con
 		cp
@@ -94,6 +99,7 @@ mail
 		mv
 		ndb
 			cs
+			query
 		nm
 		p
 		pbd

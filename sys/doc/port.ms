@@ -381,19 +381,18 @@ The SGI file server
 .PP
 The system runs on 4D multiprocessors with IO2 or IO3 boards,
 just like the CPU server system.
-It does not support the internal SCSI bus contollers (neither does the CPU
-server code); instead it needs an
-an Interphase V/SCSI 4210 Jaguar dual SCSI disk controller on the VME bus.
-The system does support the internal LANCE Ethernet controller
+The supports the internal LANCE Ethernet controller
 on the IO2 or IO3,
 or you can use an Interphase V/Ethernet 4207 Eagle controller on the VME.
+(The old system did not support the internal SCSI controller;
+it does now; you need no Jaguar.)
 .SH
 The MIPS 6280 file server
 .PP
 This version of the system is pretty much a port of the SGI
 system, so has the same properties.
-We use an Eagle Ethernet controller and a Jaguar disk controller,
-as on the SGI.
+We use an Eagle Ethernet controller and
+an Interphase V/SCSI 4210 Jaguar dual SCSI disk controller on the VME bus.
 There is no support for the internal SMD drive.
 .SH
 The MIPS Magnum file server

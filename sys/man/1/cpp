@@ -35,6 +35,10 @@ The options are:
 Same as in
 .IR 2c (1).
 .TP
+.B -M
+Generate no output except a list of include files.
+Use twice to list files in angle brackets.
+.TP
 .B -N
 Turn off default include directories.  All must be
 specified with

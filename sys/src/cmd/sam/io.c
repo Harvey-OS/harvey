@@ -4,25 +4,42 @@
 #define	NOFILE		128
 
 void
+checkqid(File *f)
+{
+	int i, w;
+	File *g;
+
+	w = whichmenu(f);
+	for(i=1; i<file.nused; i++){
+		g = file.filepptr[i];
+		if(w == i)
+			continue;
+		if(f->dev==g->dev && f->qid==g->qid)
+			warn_SS(Wdupfile, &f->name, &g->name);
+	}
+}
+
+void
 writef(File *f)
 {
 	Rune c;
 	Posn n;
 	char *name;
 	int i, samename, newfile;
-	ulong qid;
+	ulong dev, qid;
 	long mtime;
 
 	newfile = 0;
 	samename = Strcmp(&genstr, &f->name) == 0;
 	name = Strtoc(&f->name);
-	i = statfile(name, &qid, &mtime, 0);
+	i = statfile(name, &dev, &qid, &mtime, 0);
 	free(name);
 	if(i == -1)
 		newfile++;
 	else if(samename &&
-	        (f->inumber!=qid || f->date<mtime)){
-		f->inumber = qid;
+	        (f->dev!=dev || f->qid!=qid || f->date<mtime)){
+		f->dev = dev;
+		f->qid = qid;
 		f->date = mtime;
 		warn_S(Wdate, &genstr);
 		return;
@@ -41,9 +58,11 @@ writef(File *f)
 	if(addr.r.p2>0 && Fchars(f, &c, addr.r.p2-1, addr.r.p2) && c!='\n')
 		warn(Wnotnewline);
 	if(f->name.s[0]==0 || samename){
-		if(statfd(io, &qid, &mtime, 0) > 0){
-			f->inumber = qid;
+		if(statfd(io, &dev, &qid, &mtime, 0) > 0){
+			f->dev = dev;
+			f->qid = qid;
 			f->date = mtime;
+			checkqid(f);
 		}
 	}
 	closeio(n);
@@ -56,7 +75,7 @@ readio(File *f, int *nulls, int setdate)
 	Rune *r;
 	Posn nt;
 	Posn p = addr.r.p2;
-	ulong qid;
+	ulong dev, qid;
 	long mtime;
 	char buf[BLOCKSIZE+1], *s;
 
@@ -98,9 +117,11 @@ readio(File *f, int *nulls, int setdate)
 	if(*nulls)
 		warn(Wnulls);
 	if(setdate){
-		if(statfd(io, &qid, &mtime, 0) > 0){
-			f->inumber = qid;
+		if(statfd(io, &dev, &qid, &mtime, 0) > 0){
+			f->dev = dev;
+			f->qid = qid;
 			f->date = mtime;
+			checkqid(f);
 		}
 	}
 	return nt;

@@ -34,7 +34,7 @@ ereshaped(Rectangle r)
 	scrn.panel.origin.y = scrn.map.origin.y;
 	scrn.panel.corner.x = Drect.corner.x;
 	scrn.panel.corner.y = scrn.map.corner.y;
-	scrn.bname = scrn.panel;
+	scrn.bname.origin = add(scrn.panel.origin, Pt(5,5));
 	scrn.bname.corner = add(scrn.bname.origin, Pt(defont->height*32, defont->height));
 	scrn.coord = scrn.panel;
 	scrn.coord.origin.y = scrn.map.corner.y - defont->height;

@@ -1,0 +1,30 @@
+#!/bin/rc
+
+files=()
+dest=()
+line=''
+
+if(~ $#* 0){
+	echo usage: B file ... >[1=2]
+	exit usage
+}
+
+if(test -f /mnt/term/srv/sam.$user) dest = /mnt/term/srv/sam.$user
+if not if(test -f /srv/sam.$user) dest = /srv/sam.$user
+if not {
+	echo B: can''''t find sam server file >[1=2]
+	exit open
+}
+
+for(i)
+	switch($i){
+	case /*
+		files = ( $files $i )
+	case -*
+		line = `{echo $i | sed 's/.//' }
+	case *
+		files = ( $files `{pwd}^/$i )
+	}
+
+echo B $files >> $dest
+if(! ~ $line '') echo $line >> $dest

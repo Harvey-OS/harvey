@@ -24,12 +24,19 @@ extern	int	strncmp(char*, char*, long);
 extern	long	strlen(char*);
 extern	int	atoi(char*);
 
+enum
+{
+	UTFmax		= 3,		/* maximum bytes per rune */
+	Runesync	= 0x80,		/* cannot represent part of a UTF sequence (<) */
+	Runeself	= 0x80,		/* rune and UTF sequences are the same (<) */
+	Runeerror	= 0x80,		/* decoding error in UTF */
+};
+
 /*
  * rune routines
  */
 extern	int	runetochar(char*, Rune*);
 extern	int	chartorune(Rune*, char*);
-extern	int	countrune(char*);
 extern	char*	utfrune(char*, long);
 extern	int	utflen(char*);
 
@@ -38,25 +45,20 @@ extern	int	abs(int);
 /*
  * print routines
  */
-
-#define	FUNSIGN	4
-#define	FSHORT	2
-#define	FLONG	1
-
-typedef struct Op	Op;
-struct Op
+typedef
+struct
 {
-	char	*p;
-	char	*ep;
-	void	*argp;
+	char*	out;		/* pointer to next output */
+	char*	eout;		/* pointer to end */
 	int	f1;
 	int	f2;
 	int	f3;
-};
-extern	void	strconv(char*, Op*, int, int);
-extern	int	numbconv(Op*, int);
+	int	chr;
+} Fconv;
+extern	void	strconv(char*, Fconv*);
+extern	int	numbconv(void*, Fconv*);
 extern	char	*doprint(char*, char*, char*, void*);
-extern	int	fmtinstall(char, int (*)(Op*));
+extern	int	fmtinstall(int, int (*)(void*, Fconv*));
 extern	int	sprint(char*, char*, ...);
 extern	int	print(char*, ...);
 

@@ -4,7 +4,7 @@ void
 cgen(Node *n, Node *nn)
 {
 	Node *l, *r;
-	Node nod, nod1, nod2;
+	Node nod, nod1, nod2, nod3, nod4;
 	long regs, regc, v;
 	int o;
 	Prog *p1;
@@ -39,6 +39,8 @@ cgen(Node *n, Node *nn)
 		/*
 		 * recursive use of result
 		 */
+		if(l->op == OBIT)
+			goto bitas;
 		if(nn == Z)
 		if(l->addable > INDEXED)
 		if(l->complex < FNX) {
@@ -71,6 +73,38 @@ cgen(Node *n, Node *nn)
 		gopcode(OAS, &nod1, &nod);
 		if(nn != Z)
 			gopcode(OAS, &nod1, nn);
+		break;
+
+	bitas:
+		n = l->left;
+		regalloc(&nod, r);
+		curreg += SZ_LONG;
+		if(l->complex >= r->complex) {
+			regialloc(&nod1, n);
+			lcgen(n, &nod1);
+			regind(&nod1, n);
+			curreg += SZ_IND;
+			cgen(r, &nod);
+		} else {
+			cgen(r, &nod);
+			regialloc(&nod1, n);
+			lcgen(n, &nod1);
+			regind(&nod1, n);
+			curreg += SZ_IND;
+		}
+		regalloc(&nod2, n);
+		curreg += (n->type->width+SZ_LONG-1) & ~(SZ_LONG-1);
+		gopcode(OAS, &nod1, &nod2);
+		bitstore(l, &nod, &nod1, &nod2, nn);
+		break;
+
+	case OBIT:
+		if(nn == Z) {
+			nullwarn(l, Z);
+			break;
+		}
+		bitload(n, &nod, Z, Z);
+		gopcode(OAS, &nod, nn);
 		break;
 
 	case OADD:
@@ -117,7 +151,7 @@ cgen(Node *n, Node *nn)
 		}
 		if(l->complex >= r->complex) {
 			cgen(l, &nod);
-			curreg += l->type->width;
+			curreg += (l->type->width+SZ_LONG) & ~(SZ_LONG-1);
 			gprep(&nod2, r);
 		} else {
 			gprep(&nod2, r);
@@ -144,6 +178,26 @@ cgen(Node *n, Node *nn)
 	case OASAND:
 		if(l->op == OCAST)
 			l = l->left;
+		if(l->op == OBIT)
+			goto asbitop;
+		if(typefdv[n->type->etype] && (typec[l->type->etype] || typeh[l->type->etype])) {
+			regalloc(&nod1, n);
+			cgen(r, &nod1);
+			curreg += SZ_DOUBLE;
+
+			regialloc(&nod, l);
+			lcgen(l, &nod);
+			regind(&nod, l);
+			curreg += SZ_IND;
+
+			regalloc(&nod2, n);
+			cgen(&nod, &nod2);
+			gopcode(o, &nod1, &nod2);
+			gopcode(OAS, &nod2, &nod);
+			if(nn != Z)
+				gopcode(OAS, &nod2, nn);
+			break;
+		}
 		if(l->addable > INDEXED) {
 			gprep(&nod1, r);
 			gopcode(o, &nod1, l);
@@ -180,6 +234,26 @@ cgen(Node *n, Node *nn)
 		}
 		if(nn != Z)
 			gopcode(OAS, &nod, nn);
+		break;
+
+	asbitop:
+		regalloc(&nod4, n);
+		curreg += (n->type->width+SZ_LONG) & ~(SZ_LONG-1);
+		if(l->complex >= r->complex) {
+			bitload(l, &nod, &nod1, &nod2);
+			regalloc(&nod3, r);
+			curreg += (r->type->width+SZ_LONG) & ~(SZ_LONG-1);
+			cgen(r, &nod3);
+		} else {
+			regalloc(&nod3, r);
+			curreg += (r->type->width+SZ_LONG) & ~(SZ_LONG-1);
+			cgen(r, &nod3);
+			bitload(l, &nod, &nod1, &nod2);
+		}
+		gopcode(OAS, &nod, &nod4);
+		gopcode(o, &nod3, &nod4);
+		gopcode(OAS, &nod4, &nod);
+		bitstore(l, &nod, &nod1, &nod2, nn);
 		break;
 
 	case OADDR:
@@ -263,11 +337,14 @@ cgen(Node *n, Node *nn)
 			nullwarn(l, Z);
 			break;
 		}
-		if(nilcast(nn->type, n->type))
-		if(nilcast(nn->type, n->left->type)) {
-			gprep(&nod, n->left);
-			gopcode(OAS, &nod, nn);
-			break;
+		/*
+		 * convert from types l->n->nn
+		 */
+		if(nocast(l->type, n->type)) {
+			if(nocast(n->type, nn->type)) {
+				cgen(l, nn);
+				break;
+			}
 		}
 		regalloc(&nod, n);
 		cgen(l, &nod);
@@ -290,14 +367,17 @@ cgen(Node *n, Node *nn)
 		break;
 
 	case OCOND:
+		doinc(l, PRE);
 		bcgen(l, 1);
 		p1 = p;
+
 		doinc(r->left, PRE);
 		cgen(r->left, nn);
 		doinc(r->left, APOST);
 		gbranch(OGOTO);
 		patch(p1, pc);
 		p1 = p;
+
 		doinc(r->right, PRE);
 		cgen(r->right, nn);
 		doinc(r->right, APOST);
@@ -306,30 +386,55 @@ cgen(Node *n, Node *nn)
 
 	case OPOSTINC:
 	case OPOSTDEC:
+		v = 1;
+		if(l->type->etype == TIND)
+			v = l->type->link->width;
 		if(nn != Z)
-			curreg += SZ_IND;
+			curreg += SZ_DOUBLE;	/* smells */
+		if(l->op == OBIT)
+			goto bitinc;
 		regialloc(&nod, l);
 		lcgen(l, &nod);
 		regind(&nod, l);
 		if(nn != Z)
 			gopcode(OAS, &nod, nn);
-		v = 1;
-		if(l->type->etype == TIND)
-			v = l->type->link->width;
-		gopcode(o, nodconst(v), &nod);
+		if(typefdv[l->type->etype])
+			gopcode(o, nodfconst(v), &nod);
+		else
+			gopcode(o, nodconst(v), &nod);
 		break;
 
 	case OPREINC:
 	case OPREDEC:
-		regialloc(&nod, l);
-		lcgen(l, &nod);
-		regind(&nod, l);
 		v = 1;
 		if(l->type->etype == TIND)
 			v = l->type->link->width;
-		gopcode(o, nodconst(v), &nod);
+		if(nn != Z)
+			curreg += SZ_DOUBLE;	/* smells */
+		if(l->op == OBIT)
+			goto bitinc;
+		regialloc(&nod, l);
+		lcgen(l, &nod);
+		regind(&nod, l);
+		if(typefdv[l->type->etype])
+			gopcode(o, nodfconst(v), &nod);
+		else
+			gopcode(o, nodconst(v), &nod);
 		if(nn != Z)
 			gopcode(OAS, &nod, nn);
+		break;
+
+	bitinc:
+		if(nn != Z && (o == OPOSTINC || o == OPOSTDEC)) {
+			bitload(l, &nod, &nod1, &nod2);
+			gopcode(OAS, &nod, nn);
+			gopcode(o, nodconst(v), &nod);
+			bitstore(l, &nod, &nod1, &nod2, Z);
+			break;
+		}
+		bitload(l, &nod, &nod1, &nod2);
+		gopcode(o, nodconst(v), &nod);
+		bitstore(l, &nod, &nod1, &nod2, nn);
 		break;
 	}
 	cursafe = regs;
@@ -379,14 +484,17 @@ lcgen(Node *n, Node *nn)
 		break;
 
 	case OCOND:
+		doinc(n->left, PRE);
 		bcgen(n->left, 1);
 		p1 = p;
+
 		doinc(n->right->left, PRE);
 		lcgen(n->right->left, nn);
 		doinc(n->right->left, APOST);
 		gbranch(OGOTO);
 		patch(p1, pc);
 		p1 = p;
+
 		doinc(n->right->right, PRE);
 		lcgen(n->right->right, nn);
 		doinc(n->right->right, APOST);
@@ -426,14 +534,14 @@ boolgen(Node *n, int true, Node *nn)
 	default:
 		if(typefdv[n->type->etype]) {
 			regalloc(&nod1, n);
-			gopcode(OAS, nodconst(0L), &nod1);
+			gopcode(OAS, nodconst(0), &nod1);
 			gprep(&nod, n);
 			gopcode(ONE, &nod1, &nod);
 			o = ONE;
 			goto genbool;
 		}
 		gprep(&nod, n);
-		gopcode(ONE, nodconst(0L), &nod);
+		gopcode(ONE, nodconst(0), &nod);
 		o = ONE;
 		goto genbool;
 
@@ -461,14 +569,17 @@ boolgen(Node *n, int true, Node *nn)
 		break;
 
 	case OCOND:
+		doinc(l, PRE);
 		bcgen(l, 1);
 		p1 = p;
+
 		doinc(r->left, PRE);
 		bcgen(r->left, true);
 		p2 = p;
 		gbranch(OGOTO);
 		patch(p1, pc);
 		p1 = p;
+
 		doinc(r->right, PRE);
 		bcgen(r->right, !true);
 		patch(p2, pc);
@@ -694,6 +805,7 @@ sugen(Node *n, Node *nn, long w)
 		break;
 
 	case OCOND:
+		doinc(n->left, PRE);
 		bcgen(n->left, 1);
 		p1 = p;
 		doinc(n->right->left, PRE);
@@ -771,13 +883,13 @@ copy:
 	for(i=SZ_LONG; i<w; i+=SZ_LONG) {
 		if(f & 1) {
 			nod1.op = OREGISTER;
-			gopcode(OADD, nodconst((long)SZ_LONG), &nod1);
+			gopcode(OADD, nodconst(SZ_LONG), &nod1);
 			nod1.op = OINDREG;
 		} else
 			nod1.offset += SZ_LONG;
 		if(f & 2) {
 			nod2.op = OREGISTER;
-			gopcode(OADD, nodconst((long)SZ_LONG), &nod2);
+			gopcode(OADD, nodconst(SZ_LONG), &nod2);
 			nod2.op = OINDREG;
 		} else
 			nod2.offset += SZ_LONG;
@@ -794,12 +906,12 @@ copyloop:
 		gopcode(OAS, &nod1, &nod2);
 
 		nod1.op = OREGISTER;
-		gopcode(OADD, nodconst((long)SZ_LONG), &nod1);
+		gopcode(OADD, nodconst(SZ_LONG), &nod1);
 		nod2.op = OREGISTER;
-		gopcode(OADD, nodconst((long)SZ_LONG), &nod2);
+		gopcode(OADD, nodconst(SZ_LONG), &nod2);
 
-	gopcode(OADD, nodconst(-1L), &nod3);
-	gopcode(OLT, &nod3, nodconst(0L));
+	gopcode(OADD, nodconst(-1), &nod3);
+	gopcode(OLT, &nod3, nodconst(0));
 	gbranch(OEQ);
 	patch(p, pc1);
 

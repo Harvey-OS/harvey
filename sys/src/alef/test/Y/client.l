@@ -51,39 +51,31 @@ event(Window *w, int sel)
 		}
 		clntmouse(w, &m);
 		break;
-	
 	case MsgRefresh:
 		clntref(w, &m);
 		break;
-	
 	case MsgReshape:
 		clntreshape(w);
 		m.type = MsgRefresh;
 		clntref(w, &m);
 		break;
-	
 	case MsgKeybd:
 		clntkey(w, &m);
 		windref(w);
 		break;
-	
 	case MsgIO:
 		qio(w, m.io);
 		break;
-	
 	case MsgClose:
 		clntclose(w);
 		break;
-	
 	case MsgFlush:
 		if(clntflush(w, m.io) == 0)
 			w->out <-= m;
 		break;
-
 	case MsgMenu1:
 		textsel(w, m.sel);
 		break;
-
 	case MsgUnhide:
 		if(w->hidden) {
 			m.sel--;
@@ -599,7 +591,6 @@ clntkey(Window *w, Mesg *m)
 	case View:
 		scroll(w);
 		break;
-
 	case BS:
 		posn = w->sp0;
 		if(posn == 0)
@@ -614,7 +605,6 @@ clntkey(Window *w, Mesg *m)
 		w->sp0--;
 		clntsel(w, w->sp0, w->sp0);
 		break;
-
 	case CtrlU:
 		posn = w->sp0;
 		s = 0;
@@ -634,7 +624,6 @@ clntkey(Window *w, Mesg *m)
 		w->sp0 -= s;
 		clntsel(w, w->sp0, w->sp0);
 		break;
-
 	case CtrlW:
 		posn = w->sp0;
 		s = 0;
@@ -654,11 +643,9 @@ clntkey(Window *w, Mesg *m)
 		w->sp0 -= s;
 		clntsel(w, w->sp0, w->sp0);
 		break;
-
 	case DEL:
 		clntnote(w, "interrupt");
 		break;
-
 	case ESC:
 		w->hold = !w->hold;
 		hold(w);
@@ -748,7 +735,6 @@ windref(Window *w)
 {
 	if(w->scrollb)
 		scrollb(w, w->origin, w->origin+w->frame->nchars, w->wrt);
-
 	refresh(w->cache->r);
 }
 

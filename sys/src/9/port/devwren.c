@@ -275,6 +275,8 @@ wrenpart(int dev)
 	qlock(dp);
 	scsiready(dev);
 	scsisense(dev, buf);
+	scsistartstop(dev, ScsiStartunit);
+	scsisense(dev, buf);
 	if(scsicap(dev, buf))
 		error(Eio);
 	dp->drive = dev;

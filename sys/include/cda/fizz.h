@@ -32,7 +32,7 @@ typedef struct Coord
 {
 	char *chip;
 	short pin;
-	char * pinname;
+	char *pinname;
 } Coord;
 
 typedef struct Pin
@@ -62,15 +62,6 @@ enum Algorithm {
 	RHAND		/* hand routed */
 };
 
-typedef struct Layout
-{
-	Pin *pins;
-	int width;
-	short npins;
-	short ncoords;
-	Coord *coords;
-} Layout;
-
 typedef struct Signal
 {
 	char *name;
@@ -80,13 +71,14 @@ typedef struct Signal
 	char type;
 	char done;		/* for place: set if signal routed and sent */
 	enum Algorithm alg;	/* alg used to route */
-	void  (* prfn)(struct Signal *);	/* reccomended function to print routed signal */
+	void  (*prfn)(struct Signal *);	/* reccomended function to print routed signal */
 	long length;
 	Coord *coords;
 	Coord *routes;
 	Pin *pins;
 	Wire *wires;
-	Layout *layout;
+	int nlayout;
+	Pin *layout;
 	long num;
 	long nam;		/* for place */
 } Signal;
@@ -157,6 +149,7 @@ typedef struct Chip
 {
 	char *name;
 	char *typename;
+	char *comment;
 	Type *type;
 	Point pt;
 	Rectangle r;
@@ -293,7 +286,7 @@ int	fizzplace(void);
 void	fizzplane(Board *b);
 int	fizzprewrap(void);
 void	Free(char *s);
-int	getopt (int argc, char **argv, char * opts);
+int	getopt(int argc, char **argv, char *opts);
 int	layerof(unsigned short);
 char	*lmalloc(long);
 void	netlen(Signal *s);

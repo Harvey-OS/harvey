@@ -207,11 +207,11 @@ Prog	zprg;
 extern	char*	anames[];
 extern	Optab	optab[];
 
-int	Aconv(void*, int, int, int, int);
-int	Dconv(void*, int, int, int, int);
-int	Nconv(void*, int, int, int, int);
-int	Pconv(void*, int, int, int, int);
-int	Sconv(void*, int, int, int, int);
+int	Aconv(void*, Fconv*);
+int	Dconv(void*, Fconv*);
+int	Nconv(void*, Fconv*);
+int	Pconv(void*, Fconv*);
+int	Sconv(void*, Fconv*);
 int	aclass(Adr*);
 void	addhist(long, int);
 void	addnop(Prog*);

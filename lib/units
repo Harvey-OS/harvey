@@ -23,6 +23,8 @@ energy			c2
 force			g
 mercury			1.33322+5 kg/m2-sec2
 hg			mercury
+h			6.62620-34 m2-kg/sec
+hbar			.5 h / pi
 
 / dimensionless
 

@@ -7,7 +7,8 @@ Bflush(Biobufhdr *bp)
 {
 	int n, c;
 
-	if(bp->state == Bwactive) {
+	switch(bp->state) {
+	case Bwactive:
 		n = bp->bsize+bp->ocount;
 		if(n == 0)
 			return 0;
@@ -19,6 +20,14 @@ Bflush(Biobufhdr *bp)
 		}
 		bp->state = Binactive;
 		bp->ocount = 0;
+		break;
+
+	case Bracteof:
+		bp->state = Bractive;
+
+	case Bractive:
+		bp->icount = 0;
+		return 0;
 	}
 	return Beof;
 }

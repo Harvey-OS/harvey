@@ -3,7 +3,7 @@
 #include <bio.h>
 #include <auth.h>
 
-void	error(char*, int);
+void	error(char*);
 
 /*
  * called by listen as rexexec rexexec net dir ...
@@ -15,24 +15,21 @@ main(void)
 	int n;
 
 	if(err = srvauth(user))
-		error(err, 1);
+		error(err);
 	if(err = newns(user, 0))
-		error(err, 1);
+		error(err);
 	n = read(0, buf, sizeof buf - 1);
 	if(n < 0)
-		error("can't read command", 1);
+		error("can't read command");
 	buf[n] = '\0';
 	putenv("service", "rx");
 	execl("/bin/rc", "rc", "-lc", buf, 0);
-	error("can't exec rc", 1);
+	error("can't exec rc");
 }
 
 void
-error(char *msg, int syserr)
+error(char *msg)
 {
-	if(syserr)
-		fprint(2, "rexexec: %s: %r\n", msg);
-	else
-		fprint(2, "rexexec: %s\n", msg);
+	fprint(2, "rexexec: %s: %r\n", msg);
 	exits(msg);
 }

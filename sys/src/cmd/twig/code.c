@@ -11,12 +11,12 @@ CodeGetBlock(void)
 	static Code *blockp = NULL;
 	Code *cp;
 
-	if(cdfreep!=NULL) {
+	if(cdfreep){
 		cp = cdfreep;
 		cdfreep = cdfreep->prev;
-	} else {
-		if(count==0) {
-			blockp = (Code *) Malloc(BLOCKSIZE*sizeof(Code));
+	}else{
+		if(!count){
+			blockp = Malloc(BLOCKSIZE*sizeof(Code));
 			count = BLOCKSIZE;
 		}
 		cp = blockp++;
@@ -24,13 +24,13 @@ CodeGetBlock(void)
 	}
 	cp->prev = NULL;
 	cp->firstFree = cp->segment;
-	return(cp);
+	return cp;
 }
 
 void
 CodeFreeBlock(Code *cd)
 {
-	if (cd!=NULL) {
+	if(cd){
 		cd->prev = cdfreep;
 		cdfreep = cd;
 	}
@@ -44,42 +44,41 @@ CodeStoreChar(Code *cd, char c)
 		ncd->prev = cd;
 		cd = ncd;
 	}
-	*cd->firstFree = c;
-	cd->firstFree++;
-	return(cd);
+	*cd->firstFree++ = c;
+	return cd;
 }
 
 Code *
 CodeStoreString(Code *cd, char *s)
 {
-	while(*s!='\0') cd = CodeStoreChar(cd, *s++);
-	return(cd);
+	while(*s != '\0')
+		cd = CodeStoreChar(cd, *s++);
+	return cd;
 }
 
 Code *
 CodeAppend(Code *cd1, Code *cd2)
 {
-	if(cd2==NULL) return(cd1);
+	if(!cd2)
+		return cd1;
 	cd2->prev = CodeAppend(cd1, cd2->prev);
-	return(cd2);
+	return cd2;
 }
 
 void
-CodeWrite(FILE *f, Code *cd)
+CodeWrite(Biobuf *b, Code *cd)
 {
-	register char *cp;
-
-	if (cd != NULL){
-		CodeWrite(outfile, cd->prev);
-		for(cp=cd->segment; cp < cd->firstFree; cp++)
-			putc(*cp, f);
-	}
+	if(!cd)
+		return;
+	CodeWrite(b, cd->prev);
+	Bwrite(b, cd->segment, cd->firstFree-cd->segment);
 }
 
 Code *
 CodeMarkLine(Code *cd, int lineno)
 {
 	char buf[100];
-	sprintf(buf,"\n# line %d \"%s\"\n", lineno, inFileName);
-	return(CodeStoreString(cd,buf));
+
+	sprint(buf,"\n#line %d \"%s\"\n", lineno, inFileName);
+	return CodeStoreString(cd, buf);
 }

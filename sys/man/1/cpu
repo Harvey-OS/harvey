@@ -8,9 +8,6 @@ cpu \- connection to cpu server
 .I server
 ]
 [
-.B -p
-]
-[
 .B -c
 .I cmd args ...
 ]
@@ -66,9 +63,6 @@ The name space is built by running
 .B /usr/$user/lib/profile
 with the root of the invoking name space bound to
 .BR /mnt/term .
-The
-.B -p
-option prevents the execution of the remote profile.
 The
 .B service
 environment variable is set to

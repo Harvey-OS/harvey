@@ -18,7 +18,7 @@ extern skeleton *_allocskel();
 extern __match *_allocmatch();
 extern __partial *_allocpartial();
 
-#define MPBLOCKSIZ 3000
+#define MPBLOCKSIZ 10000
 __match *_mpblock[MPBLOCKSIZ], **_mpbtop;
 
 /*

@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+TARG=lpdaemon\
+	lpsend\
+	LOCK\
+
+BINDIR=/sys/lib/lp/bin
+BIN=$BINDIR/$objtype
+</sys/src/cmd/mkmany
+
+installall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS install
+	cp lpsend.rc $BINDIR/rc/lpsend.rc
+	cp lp.rc $BINDIR/rc/lp.rc

@@ -117,6 +117,7 @@ enum{
 	Qselect,
 	Qwinds,
 	Qwinid,
+	Qtext,
 	NQid
 };
 
@@ -131,6 +132,7 @@ Dirtab dirtab[]=
 	"window",	{Qwindow},	0600,		1,
 	"label",	{Qlabel},	0600,		1,
 	"select",	{Qselect},	0600,		1,
+	"text",		{Qtext},	0400,		1,
 	"windows",	{Qwinds|CHDIR},	CHDIR|0500,	0,
 	"winid",	{Qwinid},	0400,		0,
 	0,
@@ -601,9 +603,10 @@ rread(Rfile *rf)
 		t = &window[SNARF].text;
 		i = 0;
 		j = t->n;
+
 	retUTF:		/* just unpack from the beginning */
-		n = 0;
 		l = 0;
+		n = 0;
 		for(; i<j; i++){
 			wid = runetochar(tbuf+n, t->s+i);
 			l += wid;
@@ -621,6 +624,12 @@ rread(Rfile *rf)
 		}
 		thdr.data = tbuf;
 		goto send;
+
+	case Qtext:
+		t = &w->text;
+		i = 0;
+		j = t->n;
+		goto retUTF;
 
 	case Qwindow:
 		n = bitwinread(w, rhdr.offset, cnt);

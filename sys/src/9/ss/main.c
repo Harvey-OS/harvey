@@ -19,6 +19,7 @@ char	mempres[256];
 char	fbstr[32];
 ulong	fbslot;
 Label	catch;
+uchar	*sp;
 
 typedef struct Sysparam Sysparam;
 struct Sysparam
@@ -115,9 +116,9 @@ ioinit(void)
 
 	/* tell scc driver its addresses */
 	k = kmappa(KMDUART, PTEIO|PTENOCACHE);
-	sccsetup((void*)(k->va), KMFREQ);
+	sccsetup((void*)(k->va), KMFREQ, 1);
 	k = kmappa(EIADUART, PTEIO|PTENOCACHE);
-	sccsetup((void*)(k->va), EIAFREQ);
+	sccsetup((void*)(k->va), EIAFREQ, 1);
 
 	/* scc port 0 is the keyboard */
 	sccspecial(0, 0, &kbdq, 2400);
@@ -152,7 +153,7 @@ init0(void)
 		poperror();
 	}
 
-	touser(USTKTOP-(1+MAXSYSARG)*BY2WD);
+	touser((long)sp);
 }
 
 FPsave	*initfpp;
@@ -166,6 +167,7 @@ userinit(void)
 	User *up;
 	KMap *k;
 	ulong l;
+	Page *pg;
 
 	p = newproc();
 	p->pgrp = newpgrp();
@@ -207,6 +209,11 @@ userinit(void)
 	 */
 	s = newseg(SG_STACK, USTKTOP-BY2PG, 1);
 	p->seg[SSEG] = s;
+	pg = newpage(1, 0, USTKTOP-BY2PG);
+	segpage(s, pg);
+	k = kmap(pg);
+	bootargs(VA(k));
+	kunmap(k);
 
 	/*
 	 * Text
@@ -219,6 +226,42 @@ userinit(void)
 	kunmap(k);
 
 	ready(p);
+}
+
+uchar *
+pusharg(char *p)
+{
+	int n;
+
+	n = strlen(p)+1;
+	sp -= n;
+	memmove(sp, p, n);
+	return sp;
+}
+
+void
+bootargs(ulong base)
+{
+ 	int i, ac;
+	uchar *av[32];
+	uchar **lsp;
+
+	sp = (uchar*)base + BY2PG - MAXSYSARG*BY2WD;
+
+	ac = 0;
+	av[ac++] = pusharg("/sparc/9ss");
+	av[ac++] = pusharg("-p");
+
+	/* 4 byte word align stack */
+	sp = (uchar*)((ulong)sp & ~3);
+
+	/* build argc, argv on stack */
+	sp -= (ac+1)*sizeof(sp);
+	lsp = (uchar**)sp;
+	for(i = 0; i < ac; i++)
+		*lsp++ = av[i] + ((USTKTOP - BY2PG) - base);
+	*lsp = 0;
+	sp += (USTKTOP - BY2PG) - base - sizeof(sp);
 }
 
 void
@@ -300,7 +343,6 @@ confinit(void)
 	 * keyboard, too.
 	 */
 	switch(idprom[1]){
-	case 0x52:	/* IPC */
 	case 0x54:	/* SLC */
 		conf.monitor = 1;
 		fbslot = 3;
@@ -378,7 +420,7 @@ confinit(void)
 			v = mempres[i];
 			for(j=i+1; j<sparam->memscan && mempres[j]>v; j++)
 				v = mempres[j];
-			npg = ((v+1)-mempres[i])*MB/BY2PG;
+			npg = (j-i)*MB/BY2PG;
 			if(conf.npage0 == 0){
 				conf.base0 = i*MB;
 				conf.npage0 = npg;
@@ -406,9 +448,10 @@ confinit(void)
 		bank[1] = bank[0]-8;
 		bank[0] = 8;
 	}
-
 	conf.npage = conf.npage0+conf.npage1;
-	conf.upages = (conf.npage*70)/100;
+	i = screenbits()-1;		/* Calculate % of memory for page pool */
+	i = 70 - (i*10);
+	conf.upages = (conf.npage*i)/100;
 	if(cpuserver){
 		i = conf.npage-conf.upages;
 		if(i > (12*MB)/BY2PG)
@@ -431,7 +474,7 @@ confinit(void)
 	if(cpuserver)
 		conf.nswap = conf.npage*2;
 	else
-		conf.nswap = 4096;
+		conf.nswap = 16*MB/BY2PG;
 	conf.nimage = 50;
 	conf.copymode = 0;		/* copy on write */
 	conf.ipif = 8;

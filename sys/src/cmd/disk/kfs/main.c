@@ -6,7 +6,8 @@ int	chat;
 extern	char *wrenfile;
 char	*myname;
 int	cmdfd;
-
+int	writeallow;	/* never on; for compatibility with fs */
+int	wstatallow;
 int	srvfd(char*, int);
 void	usage(void);
 void	confinit(void);
@@ -65,7 +66,7 @@ main(int argc, char *argv[])
 	}ARGEND
 	USED(argc, argv);
 
-	cmdfd = 1;
+	cmdfd = 2;
 
 	formatinit();
 	lockinit();

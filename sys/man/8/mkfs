@@ -12,23 +12,20 @@ mkfs, mkext, flio \- archive or update a file system
 .IR users ]
 .RB [ -z
 .IR n ]
-.I proto
-...
+.I proto ...
 .PP
 .B disk/mkext
 .RB [ -d
 .IR name ]
 .RB [ -u ]
 .RB [ -h ]
-.I file
-...
+.I file ...
 .PP
 .B disk/flio
 .RB [ -io ]
 .RB [ -b
 .IR bsize ]
-.I diskfile
-...
+.I diskfile ...
 .SH DESCRIPTION
 .I Mkfs
 copies files from the file tree
@@ -60,7 +57,7 @@ Fields within a line are separated by white space.
 The first field is the last path element in the destination file tree.
 The second field specifies the permissions.
 The third field is the owner of the file,
-and the fourth is the group owing the file.
+and the fourth is the group owning the file.
 The fifth field is the name of the file from which to copy;
 this file is read from the current name space,
 not the source file tree.

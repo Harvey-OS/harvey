@@ -1,0 +1,24 @@
+#!/bin/rc
+
+site=plan9
+cpu=helix
+
+# cs sets sysname
+/bin/ndb/cs
+sysname=`{cat /dev/sysname}
+
+/bin/bind -b '#w' /dev >/dev/null >[2=1]
+/bin/bind -a '#f' /dev >/dev/null >[2=1]
+/bin/bind -a '#t' /dev >/dev/null >[2=1]
+swap /dev/hd0swap > /dev/null >[2=1]
+/bin/dossrv > /dev/null >[2=1]
+/bin/mount -c /srv/dos /n/c: /dev/hd0dos > /dev/null >[2=1]
+if(test -e /net/tcp/clone) ip/ipconfig
+switch($terminal){
+switch($terminal){
+case NCR* 'AT&TNSX'*
+	aux/mouse ps2
+	aux/vga generic/640x480x1
+case *
+	cat /readme
+}

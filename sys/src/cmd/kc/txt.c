@@ -230,9 +230,9 @@ nodconst(long v)
 }
 
 Node*
-nodfconst(long v)
+nodfconst(double d)
 {
-	fconstnode.ud = v;
+	fconstnode.ud = d;
 	return &fconstnode;
 }
 
@@ -550,6 +550,7 @@ gmove(Node *f, Node *t)
 {
 	int ft, tt, a;
 	Node nod;
+	Prog *p1;
 	double d;
 
 	ft = f->type->etype;
@@ -734,7 +735,6 @@ gmove(Node *f, Node *t)
 		case TUSHORT:
 		case TCHAR:
 		case TUCHAR:
-			/*warn(Z, "float to fix");	/**/
 			regalloc(&nod, f, Z);	/* should be type float */
 			a = AFMOVDW;
 			if(ft == TFLOAT)
@@ -831,7 +831,6 @@ gmove(Node *f, Node *t)
 		case TVLONG:
 		case TFLOAT:
 		fxtofl:
-			/*warn(Z, "fix to float");	/**/
 			regalloc(&nod, t, t);	/* should be type float */
 			gins(AMOVW, f, nodrat);
 			gins(AFMOVF, nodrat, &nod);
@@ -842,6 +841,28 @@ gmove(Node *f, Node *t)
 			regfree(&nod);
 			if(nrathole < SZ_LONG)
 				nrathole = SZ_LONG;
+			if(ft == TULONG) {
+				regalloc(&nod, t, Z);
+				if(tt == TFLOAT) {
+					gins(AFCMPF, t, Z);
+					p->to.type = D_FREG;
+					p->to.reg = FREGZERO;
+					gins(AFBGE, Z, Z);
+					p1 = p;
+					gins(AFMOVF, nodfconst(4294967296.), &nod);
+					gins(AFADDF, &nod, t);
+				} else {
+					gins(AFCMPD, t, Z);
+					p->to.type = D_FREG;
+					p->to.reg = FREGZERO;
+					gins(AFBGE, Z, Z);
+					p1 = p;
+					gins(AFMOVD, nodfconst(4294967296.), &nod);
+					gins(AFADDD, &nod, t);
+				}
+				patch(p1, pc);
+				regfree(&nod);
+			}
 			return;
 		case TLONG:
 		case TULONG:

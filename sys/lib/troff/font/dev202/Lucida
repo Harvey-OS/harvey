@@ -1,229 +1,467 @@
-# Lucida (PS1)
+# Lucidaa
 name Lucida
+spacewidth 17
 charset
-a	30	0	1	OCR a
-b	35	2	2	OCR b
-c	29	0	3	OCR c
-d	36	2	4	OCR d
-e	30	0	5	OCR e
-f	22	2	6	OCR f
-g	33	1	7	OCR g
-h	36	2	8	OCR h
-i	18	0	9	OCR i
-j	20	3	10	OCR j
-k	33	2	11	OCR k
-l	18	2	12	OCR l
-m	52	0	13	OCR m
-n	36	0	14	OCR n
-o	34	0	15	OCR o
-p	36	1	16	OCR p
-q	35	1	17	OCR q
-r	24	0	18	OCR r
-s	29	0	19	OCR s
-t	22	2	20	OCR t
-u	36	0	21	OCR u
-v	33	0	22	OCR v
-w	45	0	23	OCR w
-x	31	0	24	OCR x
-y	33	1	25	OCR y
-z	33	0	26	OCR z
-A	39	2	27	OCR A
-B	33	2	28	OCR B
-C	38	2	29	OCR C
-D	42	2	30	OCR D
-E	31	2	31	OCR E
-F	30	2	32	OCR F
-G	40	2	33	OCR G
-H	42	2	34	OCR H
-I	18	2	35	OCR I
-J	23	2	36	OCR J
-K	37	2	37	OCR K
-L	31	2	38	OCR L
-M	47	2	39	OCR M
-N	41	2	40	OCR N
-O	43	2	41	OCR O
-P	31	2	42	OCR P
-Q	43	3	43	OCR Q
-R	37	2	44	OCR R
-S	30	2	45	OCR S
-T	37	2	46	OCR T
-U	39	2	47	OCR U
-V	37	2	48	OCR V
-W	50	2	49	OCR W
-X	35	2	50	OCR X
-Y	36	2	51	OCR Y
-Z	35	2	52	OCR Z
-&	39	2	53	OCR amp
-1	34	2	54	OCR 1
-2	34	2	55	OCR 2
-3	34	2	56	OCR 3
-4	34	2	57	OCR 4
-5	34	2	58	OCR 5
-6	34	2	59	OCR 6
-7	34	2	60	OCR 7
-8	34	2	61	OCR 8
-9	34	2	62	OCR 9
-0	34	2	63	OCR 0
-.	17	0	64	OCR per
-,	17	0	65	OCR com
-:	17	0	66	OCR col
-;	17	0	67	OCR scol
-?	27	2	68	OCR qm
-!	13	2	69	OCR ex
-(	18	3	70	OCR lp
-)	18	3	71	OCR rp
--	19	0	72	OCR hy
-'	13	2	73	OCR sq
-`	13	2	74	OCR bq
-em	54	0	75	OCR em
-en	27	0	76	OCR en
-$	34	2	77	OCR dol
-ct	34	0	78	OCR ct
-%	38	2	79	OCR pc
-/	29	2	80	OCR sl
-sl	2	2	81	OCR ssl
-ps	34	2	82	OCR ps
----	17	0	83	OCR cdot
-[	18	3	84	OCR lsb
-]	18	3	85	OCR rsb
-*	27	2	86	OCR ast
-sc	34	2	87	OCR sc
-dg	34	2	88	OCR dg
-dd	34	2	89	OCR dd
----	18	0	90	OCR ib
-aa	34	2	91	OCR aa
-ga	34	2	92	OCR ga
-^	34	2	93	OCR hat
-..	34	2	94	OCR um
-~	34	2	95	OCR til
-"	21	2	128	OCR qt
-#	34	2	129	OCR nm
-+	34	0	130	OCR pl
-<	34	0	132	OCR lt
-=	34	0	133	OCR eq
->	34	0	134	OCR gt
-@	47	2	135	OCR at
-\	29	2	136	OCR bs
-_	27	1	137	OCR ul
-{	18	3	138	OCR lcb
-|	14	3	139	OCR vb
-}	18	3	140	OCR rcb
-~!	12	2	108	OCR iex
----	34	2	142	OCR yen
----	34	2	143	OCR flo
----	34	2	144	OCR cur
-fm	13	2	145	OCR fm
----	21	2	146	OCR lqt
----	30	2	147	OCR ldg
----	20	0	148	OCR lsg
----	20	0	149	OCR rsg
-fi	36	2	120	OCR fi
-fl	36	2	121	OCR fl
----	34	3	151	OCR par
-bu	34	0	152	OCR bu
----	13	0	153	OCR bsq
----	21	2	154	OCR bqt
----	21	2	155	OCR rqt
----	30	2	156	OCR rdg
----	54	0	157	OCR ell
----	57	2	158	OCR pmil
-~?	27	2	107	OCR iqm
----	34	2	159	OCR ht
----	34	2	160	OCR ti
----	34	2	161	OCR mac
----	34	2	162	OCR brv
-da	34	2	163	OCR da
-ri	34	0	164	OCR ri
-cd	34	1	98	OCR cd
----	34	2	165	OCR hum
----	34	0	166	OCR og
-hc	34	2	96	OCR hc
-AE	50	2	115	OCR AE
----	23	2	167	OCR orf
----	31	2	168	OCR L-sl
-/O	43	2	119	OCR O-sl
-OE	55	2	106	OCR OE
----	23	2	169	OCR orm
-ae	44	0	114	OCR ae
----	18	2	171	OCR l-sl
-/o	34	0	118	OCR o-sl
-oe	49	0	105	OCR oe
-ss	35	3	113	OCR ss
-A-aa	39	2	225	OCR A-aa
-A-ht	39	2	226	OCR A-ht
-A-um	39	2	227	OCR A-um
-A-ga	39	2	228	OCR A-ga
-A-de	39	2	229	OCR A-de
-A-ti	39	2	230	OCR A-ti
-C-cd	38	2	231	OCR C-cd
-E-aa	31	2	232	OCR E-aa
-E-ht	31	2	233	OCR E-ht
-E-um	31	2	234	OCR E-um
-E-ga	31	2	235	OCR E-ga
-I-aa	18	2	236	OCR I-aa
-I-ht	18	2	237	OCR I-ht
-I-um	18	2	238	OCR I-um
-I-ga	18	2	239	OCR I-ga
-O-aa	43	2	240	OCR O-aa
-O-ht	43	2	241	OCR O-ht
-O-um	43	2	242	OCR O-um
-O-ga	43	2	243	OCR O-ga
-O-ti	43	2	244	OCR O-ti
-S-hc	30	2	245	OCR S-hc
-U-aa	39	2	246	OCR U-aa
-U-ht	39	2	247	OCR U-ht
-U-um	39	2	248	OCR U-um
-U-ga	39	2	249	OCR U-ga
-Y-um	36	2	250	OCR Y-um
-Z-hc	35	2	251	OCR Z-hc
-a-aa	30	2	252	OCR a-aa
-a-ht	30	2	253	OCR a-ht
-a-um	30	2	254	OCR a-um
-a-ga	30	2	255	OCR a-ga
-a-de	30	2	256	OCR a-de
-a-ti	30	2	257	OCR a-ti
-c-cd	29	2	258	OCR c-cd
-e-aa	30	2	259	OCR e-aa
-e-ht	30	2	260	OCR e-ht
-e-um	30	2	261	OCR e-um
-e-ga	30	2	262	OCR e-ga
-i-aa	18	2	263	OCR i-aa
-i-ht	18	2	264	OCR i-ht
-i-um	18	2	265	OCR i-um
-i-ga	18	2	266	OCR i-ga
-o-aa	34	2	267	OCR o-aa
-o-ht	34	2	268	OCR o-ht
-o-um	34	2	269	OCR o-um
-o-ga	34	2	270	OCR o-ga
-o-ti	34	2	271	OCR o-ti
-s-hc	29	2	272	OCR s-hc
-u-aa	36	2	273	OCR u-aa
-u-ht	36	2	274	OCR u-ht
-u-um	36	2	275	OCR u-um
-u-ga	36	2	276	OCR u-ga
-y-um	33	2	277	OCR y-um
-z-hc	33	2	278	OCR z-hc
----	42	2	279	OCR OED
----	31	2	281	OCR OTH
----	34	2	282	OCR Oed
----	36	2	283	OCR Oth
----	34	0	186	OCR div
-*m	37	0	187	OCR Gm
-12	47	2	188	OCR f12
-14	47	2	189	OCR f14
-34	47	2	216	OCR f34
----	23	2	190	OCR 1sp
----	23	2	191	OCR 2sp
----	23	2	217	OCR 3sp
-co	48	0	192	OCR co
-rg	34	0	193	OCR rg
-+-	34	0	218	OCR pm
----	14	0	194	OCR bvb
-de	15	2	195	OCR de
-no	34	2	196	OCR not
-mu	34	0	219	OCR mu
-tm	49	0	197	OCR tm
----	41	1	199	OCR N-ti
----	36	3	200	OCR n-ti
----	36	0	220	OCR Y-aa
----	33	1	201	OCR y-aa
+a	30	0	0x0061	a
+à	30	2	0x00E0	a-ga
+`a	"
+a`	"
+á	30	2	0x00E1	a-aa
+'a	"
+a'	"
+â	30	2	0x00E2	a-ht
+^a	"
+a^	"
+ã	30	2	0x00E3	a-ti
+~a	"
+a~	"
+ä	30	2	0x00E4	a-um
+"a	"
+a"	"
+a:	"
+b	35	2	0x0062	b
+c	29	0	0x0063	c
+ç	29	1	0x00E7	c-cd
+,c	"
+c,	"
+d	36	2	0x0064	d
+e	30	0	0x0065	e
+è	30	2	0x00E8	e-ga
+`e	"
+e`	"
+é	30	2	0x00E9	e-aa
+'e	"
+e'	"
+ê	30	2	0x00EA	e-ht
+^e	"
+e^	"
+ë	30	2	0x00EB	e-um
+"e	"
+e"	"
+:e	"
+e:	"
+f	22	2	0x0066	f
+g	32	1	0x0067	g
+h	35	2	0x0068	h
+i	18	0	0x0069	i
+ì	18	2	0x00EC	i-ga
+`i	"
+i`	"
+í	18	0	0x00ED	i-aa
+'i	"
+i'	"
+î	18	0	0x00EE	i-ht
+^i	"
+i^	"
+ï	18	0	0x00EF	i-um
+"i	"
+i"	"
+i:	"
+:i	"
+j	20	1	0x006A	j
+k	33	2	0x006B	k
+l	18	2	0x006C	l
+m	52	0	0x006D	m
+n	35	0	0x006E	n
+o	34	0	0x006F	o
+ò	34	0	0x00F2	o-ga
+`o	"
+o`	"
+ó	34	2	0x00F3	o-aa
+'o	"
+o'	"
+ô	34	0	0x00F4	o-ht
+^o	"
+o^	"
+õ	34	2	0x00F5	o-ti
+~o	"
+o~	"
+ö	34	2	0x00F6	o-um
+"o	"
+o"	"
+:o	"
+o:	"
+p	36	1	0x0070	p
+q	35	1	0x0071	q
+r	24	0	0x0072	r
+s	29	0	0x0073	s
+t	22	2	0x0074	t
+u	35	0	0x0075	u
+ù	35	0	0x00F9	u-ga
+`g	"
+g`	"
+ú	35	0	0x00FA	u-aa
+'g	"
+g'	"
+û	35	2	0x00FB	u-ht
+^u	"
+u^	"
+ü	35	2	0x00FC	u-um
+"u	"
+u"	"
+:u	"
+u:	"
+v	33	0	0x0076	v
+w	45	0	0x0077	w
+x	31	0	0x0078	x
+y	33	1	0x0079	y
+ý	33	3	0x00FD	y-aa
+'y	"
+y'	"
+ÿ	33	1	0x00FF	y-um
+"y	"
+y"	"
+:y	"
+y:	"
+z	33	0	0x007A	z
+A	38	2	0x0041	A
+À	38	2	0x00C0	A-ga
+`A	"
+A`	"
+Á	38	2	0x00C1	A-aa
+'A	"
+A'	"
+Â	38	2	0x00C2	A-ht
+^A	"
+A^	"
+Ã	38	2	0x00C3	A-ti
+~A	"
+A~	"
+Ä	38	2	0x00C4	A-um
+"A	"
+A"	"
+:A	"
+A:	"
+B	33	2	0x0042	B
+C	38	2	0x0043	C
+Ç	38	3	0x00C7	C-cd
+,C	"
+C,	"
+D	42	2	0x0044	D
+E	31	2	0x0045	E
+È	31	2	0x00C8	E-ga
+`E	"
+E`	"
+É	31	2	0x00C9	E-aa
+'E	"
+E'	"
+Ê	31	2	0x00CA	E-ht
+^E	"
+E^	"
+Ë	31	2	0x00CB	E-um
+"E	"
+E"	"
+:E	"
+E:	"
+F	30	2	0x0046	F
+G	40	2	0x0047	G
+H	42	2	0x0048	H
+I	18	2	0x0049	I
+Ì	18	2	0x00CC	I-ga
+`I	"
+I`	"
+Í	18	2	0x00CD	I-aa
+'I	"
+I'	"
+Î	18	2	0x00CE	I-ht
+^I	"
+I^	"
+Ï	18	2	0x00CF	I-um
+"I	"
+I"	"
+:I	"
+I:	"
+J	23	2	0x004A	J
+K	37	2	0x004B	K
+L	31	2	0x004C	L
+M	47	2	0x004D	M
+N	41	2	0x004E	N
+O	43	2	0x004F	O
+Ò	43	2	0x00D2	O-ga
+`O	"
+O`	"
+Ó	43	2	0x00D3	O-aa
+'O	"
+O'	"
+Ô	43	2	0x00D4	O-ht
+^O	"
+O^	"
+Õ	43	2	0x00D5	O-ti
+~O	"
+O~	"
+Ö	43	2	0x00D6	O-um
+"O	"
+O"	"
+:O	"
+O:	"
+P	31	2	0x0050	P
+Q	43	3	0x0051	Q
+R	36	2	0x0052	R
+S	30	2	0x0053	S
+T	37	2	0x0054	T
+U	39	2	0x0055	U
+Ù	39	2	0x00D9	U-ga
+`U	"
+U`	"
+Ú	39	2	0x00DA	U-aa
+'U	"
+U'	"
+Û	39	2	0x00DB	U-ht
+^U	"
+U^	"
+Ü	39	2	0x00DC	U-um
+"U	"
+U"	"
+:U	"
+U:	"
+V	37	2	0x0056	V
+W	50	2	0x0057	W
+X	35	2	0x0058	X
+Y	35	2	0x0059	Y
+Ý	35	2	0x00DD	Y-aa
+'Y	"
+Y'	"
+"Y	35	2	0x0178	Y-um
+Y"	"
+:Y	"
+Y:	"
+Z	35	2	0x005A	Z
+sp	17	0	0x0020	spacewidth
+&	39	0	0x0026	amp
+0	34	2	0x0030	0
+1	34	2	0x0031	1
+2	34	2	0x0032	2
+3	34	2	0x0033	3
+4	34	2	0x0034	4
+5	34	2	0x0035	5
+6	34	2	0x0036	6
+7	34	2	0x0037	7
+8	34	2	0x0038	8
+9	34	2	0x0039	9
+.	17	0	0x002E	per
+,	17	0	0x002C	com
+:	17	0	0x003A	col
+;	17	0	0x003B	sco
+?	27	0	0x003F	qm
+!	13	0	0x0021	ex
+(	18	0	0x0028	lp
+)	18	0	0x0029	rp
+-	19	0	0x002D	hy
+hy	"
+'	13	0	0x2019	sq
+`	13	0	0x2018	bq
+bq	"
+em	54	0	0x2014	em
+en	27	0	0x2013	en
+$	34	2	0x0024	dol
+¢	34	0	0x00A2	ct
+ct	"
+c$	"
+c|	"
+%	38	0	0x0025	pc
+pc	"
+/	29	2	0x002F	sl
+sl	"
+fr	2	2	0x2044	ssl
+£	34	2	0x00A3	lb
+l$	"
+[	18	2	0x005B	lsb
+]	18	2	0x005D	rsb
+*	27	2	0x002A	ast
+§	34	2	0x00A7	sc
+sc	"
+SS	"
+so	"
+dg	34	2	0x2020	dg
+dd	34	2	0x2021	dd
+ii	18	0	0x0131	ib
+´	34	2	0x00B4	aa
+aa	"
+ga	34	2	0x0060	ga
+^	34	2	0x005E	hat
+ht	34	2	0x0302	ht
+¨	34	2	0x00A8	um
+..	"
+~	34	2	0x007E	til
+ti	34	2	0x02DC	ti
+hc	34	2	0x02C7	hc
+ev	34	2	0x02D8	brv
+ri	34	4	0x02DA	ri
+¸	34	1	0x00B8	cd
+cd	"
+dt	34	4	0x02D9	da
+¯	34	2	0x00AF	mac
+__	"
+g<	19	0	0x2039	lsg
+<g	"
+g>	19	0	0x203A	rsg
+>g	"
+«	30	0	0x00AB	ldg
+<<	"
+»	30	0	0x00BB	rdg
+>>	"
+%o	57	2	0x2030	pmil
+oe	49	0	0x0152	oe
+OE	55	2	0x0153	OE
+¿	27	1	0x00BF	iqm
+??	"
+~?	"
+¡	12	1	0x00A1	iex
+!!	"
+~!	"
+sf	34	3	0x0192	sf
+``	21	2	0x201C	lqt
+''	21	2	0x201D	rqt
+,,	21	2	0x201E	bqt
+,b	13	0	0x201A	bsq
+b,	"
+ß	35	2	0x00DF	ss
+ss	"
+æ	44	0	0x00E6	ae
+ae	"
+Æ	50	2	0x00C6	AE
+AE	"
+Ae	"
+å	30	2	0x00E5	a-ri
+oa	"
+Å	38	2	0x00C5	A-ri
+oA	"
+Ao	"
+AO	"
+A*	"
+ø	34	2	0x00F8	o-sl
+/o	"
+o/	"
+Ø	43	2	0x00D8	O-sl
+/O	"
+O/	"
+fi	36	2	0xE800	fi
+fl	36	2	0xE801	fl
+"	21	0	0x0022	qt
+qt	"
+dq	"
+@	47	0	0x0040	at
+at	"
+#	34	0	0x0023	nm
+fm	13	0	0x0027	fm
+<	34	0	0x003C	lt
+>	34	0	0x003E	gt
+=	34	0	0x003D	eq
+eq	"
++	34	0	0x002B	pl
+pl	"
+\	29	2	0x005C	bs
+¤	34	2	0x00A4	cur
+$g	"
+g$	"
+xo	"
+cr	"
+¥	34	2	0x00A5	yen
+$y	"
+y$	"
+$j	"
+j$	"
+Y-	"
+¦	14	0	0x00A6	bvb
+||	"
+©	48	2	0x00A9	co
+co	"
+cO	"
+cr	"
+ª	23	2	0x00AA	orf
+sa	"
+a_	"
+¬	34	0	0x00AC	not
+no	"
+-,	"
+®	34	2	0x00AE	rg
+rg	"
+rO	"
+ro	"
+°	15	0	0x00B0	de
+de	"
+sO	"
+0^	"
+±	34	0	0x00B1	pm
++-	"
+²	23	2	0x00B2	2sp
+s2	"
+2^	"
+³	23	2	0x00B3	3sp
+s3	"
+3^	"
+µ	36	1	0x00B5	mic
+mn	"
+¶	34	2	0x00B6	par
+PP	"
+pp	"
+P!	"
+pg	"
+·	17	0	0x00B7	cdot
+do	"
+.^	"
+¹	23	2	0x00B9	1sp
+s1	"
+1^	"
+º	23	2	0x00BA	orm
+so	"
+o_	"
+¼	47	2	0x00BC	f14
+14	"
+½	47	2	0x00BD	f12
+12	"
+¾	47	2	0x00BE	f34
+34	"
+ð	34	2	0x00F0	Oed
+d-	"
+Ð	42	2	0x00D0	OED
+D-	"
+þ	36	3	0x00FE	Oth
+|p	"
+p|	"
+th	"
+Þ	31	2	0x00DE	OTH
+|P	"
+P|	"
+TH	"
+Th	"
+×	34	0	0x00D7	mu
+mu	"
+xx	"
+di	34	0	0x00F7	di
+-:	"
+:-	"
+_	27	3	0x005F	ul
+∙	34	0	0x2022	bu
+bu	"
+ñ	35	0	0x00F1	n-ti
+~n	"
+n~	"
+Ñ	41	2	0x00D1	N-ti
+~N	"
+N~	"
+{	18	2	0x007B	lcb
+}	18	2	0x007D	rcb
+|	14	3	0x007C	vb
+hu	34	2	0x02DD	hum
+og	34	2	0x02DB	og
+mi	34	0	0x2212	mi
+--	"
+el	54	0	0x2026	eli
+tm	49	0	0x2122	tm
+vs	29	0	0x0161	s-hc
+sv	"
+vS	30	2	0x0160	S-hc
+Sv	"
+vz	33	0	0x017E	z-hc
+zv	"
+vZ	35	2	0x017D	Z-hc
+Zv	"
+l/	18	2	0x0142	l-sl
+/l	"
+l-	"
+-l	"
+L/	31	2	0x0141	L-sl
+/L	"
+L-	"
+-L	"

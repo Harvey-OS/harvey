@@ -1,4 +1,5 @@
 #include "common.h"
+#include <auth.h>
 
 /*
  *  number of predefined fd's
@@ -490,4 +491,25 @@ void
 newprocgroup(void)
 {
 	rfork(RFENVG|RFNAMEG|RFNOTEG);
+}
+
+/*
+ *  become a powerless user
+ */
+void
+becomenone(void)
+{
+	int fd;
+
+	fd = open("#c/user", OWRITE);
+	if(fd < 0 || write(fd, "none", strlen("none")) < 0)
+		fprint(2, "can't become none\n");
+	close(fd);
+	fd = open("#c/key", OWRITE);
+	if(fd >= 0){
+		write(fd, "1234567", 7);
+		close(fd);
+	}
+	if(newns("none", 0))
+		fprint(2, "can't set new namespace\n");
 }

@@ -177,7 +177,7 @@ outrec(void)
 
 	if(rec.nlat >= nelem(rec.lat))
 		goto out;
-	if(rec.nname <= 0 || rec.nname >= nelem(rec.name))
+	if(rec.nname < 0 || rec.nname >= nelem(rec.name))
 		goto out;
 	n = rec.nlat/2;
 	if(n+n != rec.nlat)
@@ -197,8 +197,8 @@ outrec(void)
 	r->loc = l;
 	r->nloc = n;
 	for(i=0; i<n; i++) {
-		l->lat = norm(rec.lat[i+0]/(DEGREE(1e6)), TWOPI);
-		l->lng = norm(rec.lat[i+n]/(DEGREE(1e6)), TWOPI);
+		l->lat = norm(rec.lat[i+0]/(DEGREE(5e6)), TWOPI);
+		l->lng = norm(rec.lat[i+n]/(DEGREE(5e6)), TWOPI);
 		l->sinlat = sin(l->lat);
 		l->coslat = cos(l->lat);
 		l++;
@@ -396,20 +396,35 @@ loop2:
 			rec.name[rec.nname++] = strdict(p+1);
 		goto loop2;
 
+	case 'u':
+	case 'h':
+		if(rec.nlat < nelem(rec.lat))
+			rec.lat[rec.nlat++] = atol(p+1);
+		rec.scale = 1;
+		goto loop2;
 	case 't':
 	case 'g':
 		if(rec.nlat < nelem(rec.lat))
-			rec.lat[rec.nlat++] = atol(p+1);
+			rec.lat[rec.nlat++] = atol(p+1)*5;
+		rec.scale = 0;
 		goto loop2;
 
 	case 'd':
 		if(rec.nlat < nelem(rec.lat) && rec.nlat > 0)
-			rec.lat[rec.nlat++] = atol(p+1) + rec.lat[rec.nlat-1];
+			if(rec.scale)
+				rec.lat[rec.nlat++] = atol(p+1) + rec.lat[rec.nlat-1];
+			else
+				rec.lat[rec.nlat++] = atol(p+1)*5 + rec.lat[rec.nlat-1];
 		goto loop2;
 	}
 
 out:
 	Tclose();
+	if(!init)
+		return;
+
+	rscale = (Nscale-1)/2;
+	normscales();
 
 	maxlat = -1e4;
 	maxlng = -1e4;
@@ -620,17 +635,20 @@ norm:
 				strcat(w.p1.line[j], "; ");
 			strcat(w.p1.line[j], br->names[i]);
 		}
-	} else {
+	} else
+	if(br->nname == 1) {
 		strcat(w.p1.line[0], "; ");
 		strcat(w.p1.line[0], br->name);
-	}
+	} else
+		strcat(w.p1.line[0], "; <no name>");
 	w.loc = *loc;
 }
 
 char*
 convcmd(void)
 {
-	char buf[sizeof(cmd)], *bp;
+	static char buf[sizeof(cmd)];
+	char *bp;
 	int i;
 
 	bp = buf;

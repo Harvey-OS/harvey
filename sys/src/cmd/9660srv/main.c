@@ -44,9 +44,9 @@ main(int argc, char **argv)
 	Xfsub **xs;
 
 	stdio = 0;
-	ARGBEGIN{
+	ARGBEGIN {
 	case 'v':
-		++chatty;
+		chatty = 1;
 		break;
 	case 'f':
 		deffile = ARGF();
@@ -56,9 +56,9 @@ main(int argc, char **argv)
 		break;
 	default:
 		usage();
-	}ARGEND
+	} ARGEND
 
-	switch(argc){
+	switch(argc) {
 	case 0:
 		break;
 	case 1:
@@ -72,10 +72,10 @@ main(int argc, char **argv)
 	for(xs=xsublist; *xs; xs++)
 		(*(*xs)->reset)();
 
-	if(stdio){
+	if(stdio) {
 		pipefd[0] = 0;
 		pipefd[1] = 1;
-	}else{
+	} else {
 		close(0);
 		close(1);
 		open("/dev/null", OREAD);
@@ -172,7 +172,7 @@ nexterror(void)
 	longjmp(err_lab[--nerr_lab], 1);
 }
 
-void *
+void*
 ealloc(long n)
 {
 	void *p;

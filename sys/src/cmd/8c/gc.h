@@ -234,7 +234,7 @@ void	nextpc(void);
 void	gargs(Node*, Node*, Node*);
 void	garg1(Node*, Node*, Node*, int, Node**);
 Node*	nodconst(long);
-Node*	nodfconst(long);
+Node*	nodfconst(double);
 int	nodreg(Node*, Node*, int);
 int	isreg(Node*, int);
 void	regret(Node*, Node*);
@@ -278,13 +278,13 @@ void	ieeedtod(Ieee*, double);
  * list
  */
 void	listinit(void);
-int	Pconv(void*, int, int, int, int);
-int	Aconv(void*, int, int, int, int);
-int	Dconv(void*, int, int, int, int);
-int	Sconv(void*, int, int, int, int);
-int	Rconv(void*, int, int, int, int);
-int	Xconv(void*, int, int, int, int);
-int	Bconv(void*, int, int, int, int);
+int	Pconv(void*, Fconv*);
+int	Aconv(void*, Fconv*);
+int	Dconv(void*, Fconv*);
+int	Sconv(void*, Fconv*);
+int	Rconv(void*, Fconv*);
+int	Xconv(void*, Fconv*);
+int	Bconv(void*, Fconv*);
 
 /*
  * reg.c
@@ -335,7 +335,7 @@ Bits	band(Bits, Bits);
 Bits	bnot(Bits);
 int	bany(Bits*);
 int	bnum(Bits);
-Bits	blsh(int);
+Bits	blsh(unsigned);
 int	beq(Bits, Bits);
 
 #define	D_HI	D_NONE

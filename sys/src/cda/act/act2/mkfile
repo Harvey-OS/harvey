@@ -1,0 +1,64 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=act2
+OFILES=act2.$O\
+	tree.$O\
+	mach.$O\
+	par.$O\
+	util.$O\
+
+HFILES=../dat.h\
+	../y.tab.h\
+	symbols.h\
+
+YFILES=../par.y
+
+CFLAGS=-w -I..
+LDFLAGS=
+YFLAGS=-S -d -v
+
+default:V:	$O.out
+
+all:V:	$O.out
+
+$O.out:	$OFILES $LIB
+	$LD $LDFLAGS -o $target $prereq
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	../%.c
+	$CC $CFLAGS ../$stem.c
+
+act2.$O:	act2.c
+	$CC $CFLAGS act2.c
+
+y.tab.h y.tab.c:	$YFILES
+	$YACC $YFLAGS $prereq
+
+install:V:	$BIN/$TARG
+
+$BIN/$TARG:	$O.out
+	cp $prereq $BIN/$TARG
+
+installall:V:
+	for(objtype in $CPUS)
+		mk install
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG act.c symbols.h act.mt ../par.c ../y.tab.h
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG act2.mt act2.c
+
+../y.tab.h:	y.tab.h
+	mv $prereq $target
+../par.c:	y.tab.c
+	mv $prereq $target
+
+symbols.h act2.c:	act2.mt
+	twig $prereq
+	mv walker.c act2.c
+
+act2.mt:	pro2.mt ../def.awk gates2 comb2
+	awk -f ../def.awk gates2 comb2 | cat pro2.mt /fd/0 > act2.mt

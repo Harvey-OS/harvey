@@ -394,6 +394,9 @@ ilprocess(Chan *cp, Msgbuf *mb)
 
 	case Ilestablished:
 		switch(h->iltype) {
+		default:
+			mbfree(mb);
+			break;
 		case Ilsync:
 			if(id != ilp->start) {
 				ilp->state = Ilclosed;
@@ -462,8 +465,6 @@ ilprocess(Chan *cp, Msgbuf *mb)
 				ilhangup(cp, 0);
 			}
 			Starttimer(ilp);
-			break;
-		default:
 			break;
 		}
 		mbfree(mb);

@@ -23,6 +23,7 @@ Isdn *	isdndevN;
 static void	devinit(int);
 static void	devctl(Isdn*, int, int);
 static void	devlctl(Isdn*, int);
+static void	devb1xb2(Isdn*, int);
 static void	isdnkproc(void*);
 static int	isdnintr(void);
 static int	isdnInfo(Isdn*);
@@ -30,12 +31,13 @@ static int	isdnrecv(Isdn*);
 static int	isdnxmit(Isdn*);
 
 enum {
-	Qdir, Qloop, QInfo, Qstats, Qdev, Qdebug
+	Qdir, Qloop, QInfo, Qb1xb2, Qstats, Qdev, Qdebug
 };
 
 Dirtab isdndir[]={
 	"loop",		{Qloop},	5,	0666,
 	"info",		{QInfo},	1,	0666,
+	"b1xb2",	{Qb1xb2},	1,	0666,
 	"stats",	{Qstats},	0,	0444,
 	"dev",		{Qdev},		0,	0666,
 	"debug",	{Qdebug},	0,	0666,
@@ -115,6 +117,7 @@ isdnopen(Chan *c, int omode)
 	}else switch(STREAMTYPE(c->qid.path)){
 	case Qloop:
 	case QInfo:
+	case Qb1xb2:
 	case Qstats:
 	case Qdev:
 	case Qdebug:
@@ -147,7 +150,8 @@ long
 isdnread(Chan *c, void *buf, long n, ulong offset)
 {
 	Isdn *ip = &isdndev[c->dev];
-	char nbuf[512]; int k;
+	char nbuf[512], *p;
+	int k;
 
 	if(n <= 0)
 		return 0;
@@ -155,39 +159,40 @@ isdnread(Chan *c, void *buf, long n, ulong offset)
 		return devdirread(c, buf, n, isdndir, NISDN, streamgen);
 	}else switch(STREAMTYPE(c->qid.path)){
 	case Qloop:
-		k = sprint(nbuf, "0x%2.2ux ", ip->lctl);
-		goto Readnbuf;
+		sprint(nbuf, "0x%2.2ux ", ip->lctl);
+		return readstr(offset, buf, n, nbuf);
 	case QInfo:
 		if(offset>0)
 			return 0;
 		k = isdnpeek(ip, &unite->listat)&Rss;
 		*(char *)buf = "024L"[k>>2];
 		return 1;
+	case Qb1xb2:
+		if(offset>0)
+			return 0;
+		k = isdnpeek(ip, &unite->stictl)&B1xb2;
+		*(char *)buf = "01"[k != 0];
+		return 1;
 	case Qstats:
-		k = 0;
-		k += sprint(&nbuf[k], "inchars  %10lud\n", ip->inchars);
-		k += sprint(&nbuf[k], "badcrc   %10lud\n", ip->badcrc);
-		k += sprint(&nbuf[k], "abort    %10lud\n", ip->abort);
-		k += sprint(&nbuf[k], "overrun  %10lud\n", ip->overrun);
-		k += sprint(&nbuf[k], "badcount %10lud\n", ip->badcount);
-		k += sprint(&nbuf[k], "overflow %10lud\n", ip->overflow);
-		k += sprint(&nbuf[k], "toolong  %10lud\n", ip->toolong);
-		k += sprint(&nbuf[k], "underrun %10lud\n", ip->underrun);
-		k += sprint(&nbuf[k], "outchars %10lud\n", ip->outchars);
-		goto Readnbuf;
+		p = nbuf;
+		p += sprint(p, "inchars  %10lud\n", ip->inchars);
+		p += sprint(p, "badcrc   %10lud\n", ip->badcrc);
+		p += sprint(p, "abort    %10lud\n", ip->abort);
+		p += sprint(p, "overrun  %10lud\n", ip->overrun);
+		p += sprint(p, "badcount %10lud\n", ip->badcount);
+		p += sprint(p, "overflow %10lud\n", ip->overflow);
+		p += sprint(p, "toolong  %10lud\n", ip->toolong);
+		p += sprint(p, "underrun %10lud\n", ip->underrun);
+		p += sprint(p, "outchars %10lud\n", ip->outchars);
+		USED(p);
+		return readstr(offset, buf, n, nbuf);
 	case Qdev:
 		k = isdnpeek(ip, (void *)ip->devaddr);
-		k = sprint(nbuf, "0x%2.2ux = 0x%2.2ux\n", ip->devaddr, k);
-		goto Readnbuf;
+		sprint(nbuf, "0x%2.2ux = 0x%2.2ux\n", ip->devaddr, k);
+		return readstr(offset, buf, n, nbuf);
 	case Qdebug:
-		k = sprint(nbuf, "%d\n", isdndebug);
-	Readnbuf:
-		if (offset >= k)
-			return 0;
-		if (offset+n > k)
-			n = k - offset;
-		memmove(buf, nbuf+offset, n);
-		return n;
+		sprint(nbuf, "%d\n", isdndebug);
+		return readstr(offset, buf, n, nbuf);
 	}
 	return streamread(c, buf, n);
 }
@@ -222,7 +227,19 @@ isdnwrite(Chan *c, void *buf, long n, ulong offset)
 		default:
 			error(Ebadarg);
 		}
-		return 1;
+		return n;
+	case Qb1xb2:
+		if(offset>0)
+			return 0;
+		switch(*(char *)buf){
+		case '0':
+		case '1':
+			devb1xb2(ip, *(char *)buf - '0');
+			break;
+		default:
+			error(Ebadarg);
+		}
+		return n;
 	case Qdev:
 		if (n>sizeof nbuf)
 			n = sizeof nbuf;
@@ -297,6 +314,7 @@ isdnstopen(Queue *q, Stream *s)
 	}
 	q->ptr = q->other->ptr = ip;
 	ip->rq = q;
+	ip->hangup = 0;
 	rss = (isdnpeek(ip, &unite->listat)&Rss)>>1;
 	if (ip->lctl & Lld)		/* if loopback D, */
 		devctl(ip, Tss, 0);	/* transmit INFO 0 */
@@ -413,6 +431,7 @@ static void
 isdnkproc(void *arg)
 {
 	Isdn *ip = (Isdn *)arg;
+	Block *bp;
 	int i;
 
 	if(waserror()){
@@ -434,14 +453,20 @@ isdnkproc(void *arg)
 	wakeup(&ip->kctlr);
 	for(;;){
 		qlock(ip);
-		if (!ip->rq){
+		if(!ip->rq){
 			qunlock(ip);
 			break;
 		}
-		while (ip->ri != ip->wi){
+		while(ip->ri != ip->wi){
 			FLOWCTL(ip->rq, ip->inb[ip->ri]);
 			ip->inb[ip->ri] = allocb(BSIZE);
 			ip->ri = NEXT(ip->ri);
+		}
+		if(ip->hangup){
+			ip->hangup = 0;
+			bp = allocb(0);
+			bp->type = M_HANGUP;
+			PUTNEXT(ip->rq, bp);
 		}
 		i = 0;
 		while(ip->so != ip->ro){
@@ -497,7 +522,8 @@ devinit(int h)
 	SET(unite->reset, Mres);
 	ip->lctl = 0;		/* no loopback or 1's transmission */
 	SET(unite->lctl, ip->lctl);
-	SET(unite->stictl, Prye); /* S/T interface normal */
+	ip->stictl = Prye;	/* S/T interface normal */
+	SET(unite->stictl, ip->stictl);
 	SET(unite->itl, 0x88);	/* interrupt on 8 rcv/xmit char's */
 	SET(unite->hcr, Tpol|Ipol|Clkmux|B2f|B1f);
 	ip->tctl = Ent;		/* enable transmitter, send INFO 0 */
@@ -555,10 +581,24 @@ devlctl(Isdn *ip, int val)
 	isdnlock(ip);
 	ip->lctl = val;
 	SET(unite->lctl, val);
+	ip->stictl &= ~(Clrmm|Prye);
 	if (val & Lld)
-		SET(unite->stictl, Clrmm);
+		ip->stictl |= Clrmm;
 	else
-		SET(unite->stictl, Prye);
+		ip->stictl |= Prye;
+	SET(unite->stictl, ip->stictl);
+	isdnunlock(ip);
+}
+
+static void
+devb1xb2(Isdn *ip, int val)
+{
+	isdnlock(ip);
+	if(val)
+		ip->stictl |= B1xb2;
+	else
+		ip->stictl &= ~B1xb2;
+	SET(unite->stictl, ip->stictl);
 	isdnunlock(ip);
 }
 
@@ -590,11 +630,12 @@ isdnintr(void)
 static int
 isdnInfo(Isdn *ip)
 {
-	int newstat;
+	int oldstat, newstat;
 
 	newstat = GET(unite->listat);
 	DPRINT("isdnInfo: old=0x%2.2ux, new=0x%2.2ux\n",
 		ip->listat, newstat);
+	oldstat = (ip->listat&Rss)>>1;
 	ip->listat = newstat;
 	if (!ip->rq) {
 		ip->imask &= ~Richgie;
@@ -609,8 +650,14 @@ isdnInfo(Isdn *ip)
 		ip->tctl |= 1;	/* transmit INFO 1 */
 	SET(unite->tctl, ip->tctl);
 	DPRINT("isdnInfo: tctl=0x%2.2ux\n", ip->tctl);
-	if (newstat == 4)
+	if(newstat == 4){
 		wakeup(&ip->ar);
+		return 0;
+	}
+	if(oldstat == 4){
+		ip->hangup = 1;
+		return 1;
+	}
 	return 0;
 }
 

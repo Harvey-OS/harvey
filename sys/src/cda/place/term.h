@@ -178,8 +178,8 @@ void gdrawsig(int );
 void getmydir(void);
 void call_host(char *);
 void but1(void);
-void menu2(void);
-void menu3(void);
+void menu2(Mouse *);
+void menu3(Mouse *);
 void sendnchars(int, char *);
 void iconinit(void);
 /* Rectangle getrect(int); */

@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <mach.h>
 #include <bio.h>
+#include <mach.h>
 #define Extern extern
 #include "sparc.h"
 
@@ -91,7 +91,7 @@ isum(void)
 	Bprint(bioout, "%-8lud %3d%% Instruction cycles\n",
 				total, Percent(total, loads+stores+total));
 	Bprint(bioout, "%-8lud %3d%% Annulled branch cycles\n",
-				anulled, Percent(total, anulled));
+				anulled, Percent(anulled, total));
 
 	Bprint(bioout, "%-8lud %3d%% Data cycles\n\n",
 				loads+stores, Percent(loads+stores, loads+stores+total));	
@@ -165,20 +165,20 @@ iprofile(void)
 {
 	Prof *p, *n;
 	int i, b, e;
-	ulong base, total;
+	ulong total;
+	extern ulong textbase;
 
 	i = 0;
 	p = prof;
 	if(textsym(&p->s, i) == 0)
 		return;
 	i++;
-	base = p->s.value;
 	for(;;) {
 		n = p+1;
 		if(textsym(&n->s, i) == 0)
 			break;
-		b = (p->s.value-base)/PROFGRAN;
-		e = (n->s.value-base)/PROFGRAN;
+		b = (p->s.value-textbase)/PROFGRAN;
+		e = (n->s.value-textbase)/PROFGRAN;
 		while(b < e)
 			p->count += iprof[b++];
 		i++;

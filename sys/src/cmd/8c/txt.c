@@ -231,9 +231,9 @@ nodconst(long v)
 }
 
 Node*
-nodfconst(long v)
+nodfconst(double d)
 {
-	fconstnode.ud = v;
+	fconstnode.ud = d;
 	return &fconstnode;
 }
 
@@ -519,6 +519,7 @@ gmove(Node *f, Node *t)
 {
 	int ft, tt, a;
 	Node nod, nod1;
+	Prog *p1;
 
 	ft = f->type->etype;
 	tt = t->type->etype;
@@ -732,6 +733,25 @@ gmove(Node *f, Node *t)
 		return;
 
 /*
+ * ulong to float
+ */
+	case CASE(	TULONG,	TDOUBLE):
+	case CASE(	TULONG,	TVLONG):
+	case CASE(	TULONG,	TFLOAT):
+		regalloc(&nod, f, f);
+		gmove(f, &nod);
+		regsalloc(&nod1, &regnode);
+		gmove(&nod, &nod1);
+		gins(AFMOVL, &nod1, &fregnode0);
+		gins(ACMPL, &nod, nodconst(0));
+		gins(AJGE, Z, Z);
+		p1 = p;
+		gins(AFADDD, nodfconst(4294967296.), &fregnode0);
+		patch(p1, pc);
+		regfree(&nod);
+		return;
+
+/*
  * fix to float
  */
 	case CASE(	TCHAR,	TFLOAT):
@@ -739,7 +759,6 @@ gmove(Node *f, Node *t)
 	case CASE(	TSHORT,	TFLOAT):
 	case CASE(	TUSHORT,TFLOAT):
 	case CASE(	TLONG,	TFLOAT):
-	case CASE(	TULONG,	TFLOAT):
 	case CASE(	TIND,	TFLOAT):
 
 	case CASE(	TCHAR,	TDOUBLE):
@@ -747,7 +766,6 @@ gmove(Node *f, Node *t)
 	case CASE(	TSHORT,	TDOUBLE):
 	case CASE(	TUSHORT,TDOUBLE):
 	case CASE(	TLONG,	TDOUBLE):
-	case CASE(	TULONG,	TDOUBLE):
 	case CASE(	TIND,	TDOUBLE):
 
 	case CASE(	TCHAR,	TVLONG):
@@ -755,7 +773,6 @@ gmove(Node *f, Node *t)
 	case CASE(	TSHORT,	TVLONG):
 	case CASE(	TUSHORT,TVLONG):
 	case CASE(	TLONG,	TVLONG):
-	case CASE(	TULONG,	TVLONG):
 	case CASE(	TIND,	TVLONG):
 		regsalloc(&nod, &regnode);
 		gmove(f, &nod);

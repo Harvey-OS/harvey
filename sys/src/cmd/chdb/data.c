@@ -7033,6 +7033,7 @@ short*	piece[] =
 
 char*	men3l[] =
 {
+	[Byorder]	"order",
 	[Byfile]	"file",
 	[Bywhite]	"white",
 	[Byblack]	"black",

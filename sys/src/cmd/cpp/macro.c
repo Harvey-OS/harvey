@@ -92,8 +92,8 @@ void
 doadefine(Tokenrow *trp, int type)
 {
 	Nlist *np;
-	static Token onetoken = { NUMBER, 0, 0, 0, 1, (uchar*)"1" };
-	static Tokenrow onetr = { &onetoken, &onetoken, &onetoken+1, 1 };
+	static Token onetoken[1] = {{ NUMBER, 0, 0, 0, 1, (uchar*)"1" }};
+	static Tokenrow onetr = { onetoken, onetoken, onetoken+1, 1 };
 
 	trp->tp = trp->bp;
 	if (type=='U') {
@@ -146,6 +146,18 @@ expandrow(Tokenrow *trp, char *flag)
 			continue;
 		}
 		trp->tp = tp;
+		if (np->val==KDEFINED) {
+			tp->type = DEFINED;
+			if ((tp+1)<trp->lp && (tp+1)->type==NAME)
+				(tp+1)->type = NAME1;
+			else if ((tp+3)<trp->lp && (tp+1)->type==LP
+			 && (tp+2)->type==NAME && (tp+3)->type==RP)
+				(tp+2)->type = NAME1;
+			else
+				error(ERROR, "Incorrect syntax for `defined'");
+			tp++;
+			continue;
+		}
 		if (np->flag&ISMAC)
 			builtin(trp, np->val);
 		else {
@@ -170,6 +182,7 @@ expand(Tokenrow *trp, Nlist *np)
 	Token *tp;
 	Tokenrow *atr[NARG+1];
 	int hs;
+
 	copytokenrow(&ntr, np->vp);		/* copy macro value */
 	if (np->ap==NULL)			/* parameterless */
 		ntokc = 1;
@@ -319,7 +332,7 @@ substargs(Nlist *np, Tokenrow *rtr, Tokenrow **atr)
 		if (rtr->tp->type==NAME
 		 && (argno = lookuparg(np, rtr->tp)) >= 0) {
 			if ((rtr->tp+1)->type==DSHARP
-			 || (rtr->tp-1)->type==DSHARP)
+			 || rtr->tp!=rtr->bp && (rtr->tp-1)->type==DSHARP)
 				insertrow(rtr, 1, atr[argno]);
 			else {
 				copytokenrow(&tatr, atr[argno]);

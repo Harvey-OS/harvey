@@ -17,13 +17,12 @@ chessinit(int chr, int mode, int fmt)
 }
 
 int
-chessfmt(void *o, int f1, int f2, int f3, int chr)
+chessfmt(void *o, Fconv *fp)
 {
 	char str1[50], str2[50], *p1, *p2;
 	Rune r;
 	int c;
 
-	USED(chr);
 	((fmtformat&1)? dscout: algout)(*(int*)o, str1, fmtmode);
 	if(fmtformat&2) {
 		p2 = str2;
@@ -82,10 +81,10 @@ chessfmt(void *o, int f1, int f2, int f3, int chr)
 			break;
 		}
 		*p2 = 0;
-		strconv(str2, f1, f2, f3);
+		strconv(str2, fp);
 		return sizeof(int);
 	}
-	strconv(str1, f1, f2, f3);
+	strconv(str1, fp);
 	return sizeof(int);
 }
 

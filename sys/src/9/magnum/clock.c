@@ -63,6 +63,7 @@ clock(Ureg *ur)
 		dt = *TBREAK - *TCOUNT;
 	}while(dt == 0 || dt > COUNT);
 
+#ifdef asdf
 	/*
 	 *  network light
 	 */
@@ -70,16 +71,17 @@ clock(Ureg *ur)
 		if(netlight == 0){
 			if(m->nettime){
 				netlight = 1;
-				lights(1);/**/
+				lights(1);
 			}
 		} else {
 			if(m->ticks - m->nettime > HZ/3){
-				lights(0);/**/
+				lights(0);
 				netlight = 0;
 				m->nettime = 0;
 			}
 		}
 	}
+#endif asdf
 
 	/*
 	 *  account for time
@@ -94,7 +96,6 @@ clock(Ureg *ur)
 	nrun = (nrdy+nrun)*1000;
 	MACHP(0)->load = (MACHP(0)->load*19+nrun)/20;
 	checkalarms();
-	mouseclock();
 	sccclock();
 	kproftimer(ur->pc);
 	if(u && (ur->status&IEP) && p && p->state==Running){

@@ -101,6 +101,7 @@ struct
 	uchar	type;
 	int	nname;
 	char*	name[30];
+	int	scale;
 	int	nlat;
 	long	lat[20000];	/* list of lat/lng */
 } rec;
@@ -165,3 +166,4 @@ void*	Trdline(void);
 int	Tclose(void);
 void	search(char*);
 char*	convcmd(void);
+void	getplace(char*, Loc*);

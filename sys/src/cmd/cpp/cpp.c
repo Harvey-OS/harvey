@@ -147,7 +147,7 @@ control(Tokenrow *trp)
 	case KIFDEF:
 	case KIFNDEF:
 	case KIF:
-		if (++ifdepth > NIF)
+		if (++ifdepth >= NIF)
 			error(FATAL, "#if too deeply nested");
 		++cursource->ifdepth;
 		ifsatisfied[ifdepth] = 0;

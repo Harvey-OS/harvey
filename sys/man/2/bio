@@ -83,14 +83,33 @@ It calls
 to allocate a buffer.
 .PP
 .I Binit
-initializes a standard size buffer
+initializes a standard size buffer, type
+.I Biobuf,
 with the open file descriptor passed in
 by the user.
 .I Binits
-initializes a non-standard size buffer
+initializes a non-standard size buffer, type
+.I Biobufhdr,
 with the open file descriptor,
 buffer area, and buffer size passed in
 by the user.
+.I Biobuf
+and
+.I Biobufhdr
+are related by the declaration:
+.IP
+.EX
+typedef struct Biobuf Biobuf;
+struct Biobuf
+{
+	Biobufhdr;
+	uchar b[Bungetsize+Bsize];
+};
+.EE
+.PP
+Because of type promotion in our compiler, arguments
+of types pointer to Biobuf and pointer to Biobufhdr
+can be used interchangeably in the following routines.
 .PP
 .I Bopen,
 .I Binit,

@@ -486,10 +486,18 @@ TEXT	rfnote(SB), $0
 	
 
 TEXT	clrfpintr(SB), $0
+	MOVW	M(STATUS), R3
+	OR	$CU1, R3
+	MOVW	R3, M(STATUS)
+	WAIT
+
 	MOVW	FCR31, R1
 	MOVW	R1, R2
 	AND	$~(0x3F<<12), R2
 	MOVW	R2, FCR31
+
+	AND	$~CU1, R3
+	MOVW	R3, M(STATUS)
 	RET
 
 TEXT	getstatus(SB), $0

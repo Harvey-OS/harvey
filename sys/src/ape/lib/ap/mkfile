@@ -4,6 +4,7 @@ APE=/sys/src/ape
 L=/$objtype/lib/ape/libap.a
 #L=libap.a$O
 BUILTINS=
+NREP=2
 CFLAGS=-D_POSIX_SOURCE
 EXTRAOBJS=`{extraobjs}
 
@@ -31,7 +32,7 @@ GEN=U=9_malloc 9_brk G_ctype G_strtol G_strtoul \
 	G_rand G_qsort G_bsearch G_clock G_difftime G_mktime G_mbwc \
 	G_strftime 9_raise
 POSIX=U= 9_access 9_alarm 9_chdir 9_chmod 9_chown 9_close \
-	9_creat 9_ctermid 9_cuserid \
+	9_creat 9_ctermid 9_cuserid 9_dirtostat \
 	9_dup 9_execl 9_execle 9_execlp \
 	9_execv 9_execve 9_execvp 9_fcntl \
 	9_fork 9_fstat 9_getcwd \
@@ -54,7 +55,8 @@ EXTRA=U=9__envsetup 9__buf 9__dirconv 9__errno 9__fcall 9__getpw 9__nap \
 	9${O}__RFORK 9${O}__SEEK 9${O}__SEGATTACH 9${O}__SEGBRK 9${O}__SEGDETACH \
 	9${O}__SEGFLUSH 9${O}__SEGFREE 9${O}__SLEEP 9${O}__STAT 9${O}__UNMOUNT \
 	9${O}__WAIT 9${O}__WRITE 9${O}__WSTAT \
-	9${O}_main9 9${O}_main9p
+	9${O}_main9 9${O}_main9p \
+	9_Xaccess 9_Xchdir 9_Xcreat 9_Xlink 9_Xopen 9_Xstat 9_Xunlink
 # toupper has tolower
 # isalnum has isalpha, iscntrl, isdigit, isgraph, islower, isprint,
 #             ispunct, isspace, isupper, isxdigit
@@ -104,6 +106,13 @@ P_%.$O:	posix/%.c
 
 9_%.$O:	plan9/%.c
 	$CC $CFLAGS -I. -c $prereq && cp $stem.$O $target && rm $stem.$O
+
+plan9/X%.c:D:	plan9/%.c
+	sed 's/^'$"stem'\(/__&/' < $prereq > $target
+
+plan9/Xcreat.c:D:	plan9/creat.c
+	sed 's/^creat\(/__&/
+	s/open\(/__&/' < $prereq > $target
 
 9v_%.$O:	plan9mips/%.s
 	$AS $prereq && cp $stem.$O $target && rm $stem.$O

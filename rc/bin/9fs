@@ -5,5 +5,5 @@ case dump
 case juke
 	srv -m il!dj!juke juke /n/juke
 case *
-	srv -m $1 $*
+	srv -m $*
 }

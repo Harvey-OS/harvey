@@ -232,6 +232,26 @@ xphup(Chan *up)
 }
 
 /*
+ *  like andrew's getmfields but no hidden state
+ */
+int
+getfields(char *lp, char **fields, int n, char sep)
+{
+	int i;
+
+	for(i=0; lp && *lp && i<n; i++){
+		while(*lp == sep)
+			*lp++=0;
+		if(*lp == 0)
+			break;
+		fields[i]=lp;
+		while(*lp && *lp != sep)
+			lp++;
+	}
+	return i;
+}
+
+/*
  *  listen to service (connection) requests
  *	nothing locked
  */
@@ -240,70 +260,117 @@ srlisten(Dk *dk, char *cp, int n)
 {
 	Chan *up;
 	Msgbuf *mb;
-	char *p, *error, *addr, *user, source[100];
-	int i, c, clock, traffic, reason, wins;
+	char *line[12];
+	char *field[8];
+	char dialstr[512];
+	char reply[64];
+	char *p, *error, *user, *addr, *source;
+	int i, c, window, reason, timestamp;
 
+	error = "SR bad format";
+	reason = 7;
+	user = "?";
+	source = "?";
+
+	/*
+	 *  copy string to someplace we can alter
+	 */
+	i = n;
+	if(i >= sizeof(dialstr)-1)
+		i = sizeof(dialstr)-1;
 	if(DEBUG) {
-		i = n;
-		if(i >= sizeof(source)-1)
-			i = sizeof(source)-1;
-		memmove(source, cp, i);
-		source[i] = 0;
-		p = source;
+		memmove(dialstr, cp, i);
+		dialstr[i] = 0;
+		p = dialstr;
 		while(p = strchr(p, '\n'))
 			*p = '\\';
-		print("srlisten: %s\n", source);
+		print("srlisten: %s\n", dialstr);
+	}
+	memmove(dialstr, cp, i);
+	dialstr[i] = 0;
+
+	/*
+	 *  break the dial string into lines
+	 */
+	n = getfields(dialstr, line, 12, '\n');
+
+	/*
+	 * line 0 is `channel.timestamp.traffic[.urpparms.window]'
+	 */
+	window = 0;
+	switch(getfields(line[0], field, 5, '.')){
+	case 5:
+		/*
+		 *  generic way of passing window
+		 */
+		window = number(field[4], 0, 10);
+		if(window > 0 && window <31)
+			window = 1<<window;
+		else
+			window = 0;
+		/*
+		 *  intentional fall through
+		 */
+	case 3:
+		/*
+		 *  1127 way of passing window
+		 */
+		if(window == 0){
+			window = number(field[2], 0, 10);
+			if(W_VALID(window))
+				window = W_VALUE(W_ORIG(window));
+			else
+				window = 0;
+		}
+		break;
+	default:
+		c = 0;
+		timestamp = 0;
+		goto out;
+	}
+	c = number(field[0], 0, 10);
+	timestamp = number(field[1], 0, 10);
+
+	/*
+	 *  Line 1 is `my-dk-name.service[.more-things]'.
+	 */
+	addr = line[1];
+
+	/*
+	 *  the rest is variable length
+	 */
+	switch(n) {
+	case 2:
+		/* no more lines */
+		break;
+	case 3:
+		/* line 2 is `source.user.param1.param2' */
+		getfields(line[2], field, 3, '.');
+		source = field[0];
+		user = field[1];
+		break;
+	case 4:
+		/* line 2 is `user.param1.param2' */
+		getfields(line[2], field, 2, '.');
+		user = field[0];
+		source = line[3];
+		break;
+	default:
+		goto out;
 	}
 
-	p = cp;
-	cp += n;	/* end pointer */
-	error = "bad format";
-	clock = 0;	/* set */
-	reason = 7;
-
-	c = number(p, 0, 10);
-	if(!(p = strchr(p, '.')) || p >= cp)
-		goto out;
-
-	p++;
-	clock = number(p, 0, 10);
-	if(!(p = strchr(p, '.')) || p >= cp)
-		goto out;
-
-	p++;
-	traffic = number(p, 0, 10);
-	if(!(p = strchr(p, '\n')) || p >= cp)
-		goto out;
-
-	p++;
-	addr = p;
-	if(!(p = strchr(p, '\n')) || p >= cp)
-		goto out;
-
-	*p++ = 0;
-	user = p;
-	if(!(p = strchr(p, '\n')) || p >= cp)
-		goto out;
-
-	*p++ = 0;
-	i = cp - p;
-	if(i > sizeof(source)-1)
-		i = sizeof(source)-1;
-	memmove(source, p, i);
-	source[i] = 0;
 	if(c < 0 || c >= NDK) {
 		print("srlisten ctobig: addr=%s c=%d user=%s src=%s\n",
 			addr, c, user, source);
 		error = "SR for non-existant channel";
 		goto out;
 	}
-
-	up = &dk->dkchan[c];
-	DPRINT("C%d: %s/%d, %s, %s\n", up->dkp.cno, addr, c, user, source);
 	if(c <= CKCHAN){
 		error = "SR for dedicated channel";
 		goto out;
 	}
+	up = &dk->dkchan[c];
+	DPRINT("C%d: %s/%d, %s, %s\n", up->dkp.cno, addr, c, user, source);
 
 	dklock(dk, up);
 	if(up->dkp.dkstate != CLOSED) {
@@ -315,11 +382,8 @@ srlisten(Dk *dk, char *cp, int n)
 	error = 0;
 	strncpy(up->whoname, user, sizeof(up->whoname));
 	strncpy(up->whochan, source, sizeof(up->whochan));
-	wins = 0;
-	if(W_VALID(traffic))
-		wins = W_VALUE(W_ORIG(traffic));
 	urprinit(up);
-	urpxinit(up, wins);
+	urpxinit(up, window);
 	up->dkp.dkstate = OPENED;
 
 	/*
@@ -334,12 +398,12 @@ srlisten(Dk *dk, char *cp, int n)
 out:
 	if(error)
 		print("call rejected, %s\n", error);
-	sprint(source, "%d.%d.%d", c, clock, reason);
+	i = sprint(reply, "%d.%d.%d", c, timestamp, reason);
 
 	up = &dk->dkchan[SRCHAN];
 	dklock(dk, up);
-	mb = mballoc(strlen(source), up, Mbdksrlisten2);
-	memmove(mb->data, source, mb->count);
+	mb = mballoc(i, up, Mbdksrlisten2);
+	memmove(mb->data, reply, mb->count);
 	dkqmesg(mb, up);
 	dkunlock(dk, up);
 }

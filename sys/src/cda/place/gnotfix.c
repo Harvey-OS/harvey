@@ -51,18 +51,18 @@ addachar(char * s, int c)
 }
 
 char *
-getline(char *msg,char *buf)
+getline(char *msg, char *buf)
 {
 	Point p;
 	int c;
+
 	if(message[0]) 
 		string(&screen, scrn.bname.min, defont, message, S^D);
 	else if(caption)
 		string(&screen, scrn.bname.min, defont, caption, S^D);
 	p = scrn.bname.min;
-	buf[0] = 0;
 	twostring(p, msg, buf);
-	while ((c  = ekbd() ) != '\n') {
+	while ((c = ekbd()) != '\n') {
 		twostring(p,msg,buf);
 		addachar(buf,c);
 		twostring(p,msg,buf);

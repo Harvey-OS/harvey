@@ -554,7 +554,8 @@ regfree(int g)
 void
 gmove(Type *tf, Type *tt, int gf, Node *f, int gt, Node *t)
 {
-	int g, a;
+	int g, a, b;
+	Prog *p1;
 
 	tindex(tf, tt);
 	if(txtp->preclr) {
@@ -601,7 +602,20 @@ gmove(Type *tf, Type *tt, int gf, Node *f, int gt, Node *t)
 		if(typeu[tf->etype] && typefdv[tt->etype]) {	/* unsign->float */
 			a = regalloc(types[TLONG], D_NONE);
 			gmove(tf, types[TLONG], gf, f, a, t);
-			gmove(types[TLONG], tt, a, t, gt, t);
+			if(tf->etype = TULONG) {
+				b = regalloc(types[TDOUBLE], D_NONE);
+				gmove(types[TLONG], tt, a, t, b, t);
+				gopcode(OTST, types[TLONG], D_NONE, Z, a, t);
+				gbranch(OGE);
+				p1 = p;
+				gopcode(OASADD, types[TDOUBLE],
+					D_CONST, nodconst(100), b, t);
+				p->from.dval = 4294967296.;
+				patch(p1, pc);
+				gmove(types[TDOUBLE], tt, b, t, gt, t);
+				regfree(b);
+			} else
+				gmove(types[TLONG], tt, a, t, gt, t);
 			regfree(a);
 			return;
 		}

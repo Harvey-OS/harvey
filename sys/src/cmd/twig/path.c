@@ -113,10 +113,10 @@ path_build(void)
 	 * If we hit the beginning of the path array, there are
 	 * no more leaves and hence no more paths.
 	 */
-	if (pp < &path[1]) {
+	if(pp < &path[1]) {
 		/* reset path_length */
 		path_length = 0;
-		return(0);
+		return 0;
 	}
 
 	/*
@@ -128,7 +128,7 @@ path_build(void)
 	pp->node = np->siblings;
 	path_length = pp-path+1;
 	path_setup(np);
-	return(1);
+	return 1;
 }
 
 /*
@@ -140,7 +140,7 @@ path_build(void)
  * valid.
  */
 int
-path_getsym(register struct machine_input *mi)
+path_getsym(struct machine_input *mi)
 {
 	if(path_ptr > &path[path_length]) {
 		/*
@@ -148,10 +148,10 @@ path_getsym(register struct machine_input *mi)
 		 * next path.
 		 */
 		if(!path_build())
-			return(EOF);
+			return -1;
 		path_ptr = path;
 	}
-	if (path_ptr == &path[path_length]) {
+	if(path_ptr == &path[path_length]){
 		/*
 		 * Path_ptr just encountered the end of
 		 * the path, return a marker value
@@ -159,30 +159,26 @@ path_getsym(register struct machine_input *mi)
 		 */
 		mi->value = 0;
 		path_ptr++;
-		return(NULL);
-	} else if (path_ptr->tag != P_BRANCH) {
+		return 0;
+	}else if(path_ptr->tag != P_BRANCH){
 		/*
 		 * Translate the right machine input value
 		 */
 		mi->sym = (path_ptr->node)->sym;
-		switch((mi->sym)->attr) {
-
+		switch(mi->sym->attr){
 		case A_NODE:
 			mi->value = MV_NODE((mi->sym)->unique);
 			break;
-
 		case A_LABEL:
 			mi->value = MV_LABEL((mi->sym)->unique);
 			break;
-
 		default:
 			assert(0);
 		}
-	} else {
+	}else
 		mi->value = MV_BRANCH(path_ptr->branch);
-	}
 	path_ptr++;
-	return(1);
+	return 1;
 }
 
 /*
@@ -191,16 +187,17 @@ path_getsym(register struct machine_input *mi)
 void
 prpath(void)
 {
-	register int i;
-	for(i=0; i < path_length; i++) {
-		struct path *pp = &path[i];
-		if (pp->tag==P_NODE) {
-			struct node *np = pp->node;
-			printf("[%s]", (np->sym)->name);
-		} else {
+	int i;
+	struct path *pp;
+
+	for(i = 0; i < path_length; i++) {
+		pp = &path[i];
+		if(pp->tag==P_NODE)
+			print("[%s]", pp->node->sym->name);
+		else{
 			assert (pp->tag == P_BRANCH);
-			printf("%d", pp->branch);
+			print("%d", pp->branch);
 		}
 	}
-	putchar('\n');
+	print("\n");
 }

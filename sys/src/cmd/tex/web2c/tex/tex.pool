@@ -1,0 +1,1036 @@
+11buffer size
+09pool size
+17number of strings
+03???
+13m2d5c2l5x2v5i
+28End of file on the terminal!
+02! 
+42(That makes 100 errors; please try again.)
+02? 
+60Type <return> to proceed, S to scroll future error messages,
+44R to run without stopping, Q to run quietly,
+23I to insert something, 
+20E to edit your file,
+561 or ... or 9 to ignore the next 1 to 9 tokens of input,
+22H for help, X to quit.
+13OK, entering 
+09batchmode
+11nonstopmode
+10scrollmode
+03...
+07insert>
+44I have just deleted some text, as you asked.
+48You can now delete more, or insert, or whatever.
+50Sorry, I don't know how to help in this situation.
+36Maybe you should try asking a human?
+42Sorry, I already gave what help I could...
+59An error might have occurred before I noticed any problems.
+45``If all else fails, read the instructions.''
+02 (
+14Emergency stop
+30TeX capacity exceeded, sorry [
+44If you really absolutely need more capacity,
+35you can ask a wizard to enlarge me.
+19This can't happen (
+59I'm broken. Please show this to someone who can fix can fix
+35I can't go on meeting you like this
+55One of your faux pas seems to have wounded me deeply...
+59in fact, I'm barely conscious. Please fix it and try again.
+12Interruption
+09You rang?
+60Try to insert some instructions for me (e.g.,`I\showlists'),
+43unless you just want to quit by typing `X'.
+16main memory size
+24AVAIL list clobbered at 
+31Double-AVAIL list clobbered at 
+24Doubly free location at 
+12Bad flag at 
+14New busy locs:
+05LINK(
+05INFO(
+02[]
+10CLOBBERED.
+04foul
+03fil
+06 plus 
+07 minus 
+03 []
+26Bad link, display aborted.
+04etc.
+18Unknown node type!
+05unset
+04box(
+02)x
+10, shifted 
+09 columns)
+10, stretch 
+09, shrink 
+11, glue set 
+02- 
+03< -
+05rule(
+06insert
+15, natural size 
+08; split(
+14); float cost 
+04glue
+09nonscript
+05mskip
+02mu
+00
+08leaders 
+04kern
+13 (for accent)
+05mkern
+04math
+02on
+03off
+13, surrounded 
+11 (ligature 
+08penalty 
+13discretionary
+11 replacing 
+04mark
+07vadjust
+08flushing
+07copying
+08vertical
+10horizontal
+12display math
+02no
+17internal vertical
+21restricted horizontal
+05 mode
+18semantic nest size
+04### 
+17 entered at line 
+12 (hyphenmin 
+18 (\output routine)
+25### recent contributions:
+10prevdepth 
+07ignored
+11, prevgraf 
+05 line
+12spacefactor 
+19, current language 
+28this will be denominator of:
+08lineskip
+12baselineskip
+07parskip
+16abovedisplayskip
+16belowdisplayskip
+21abovedisplayshortskip
+21belowdisplayshortskip
+08leftskip
+09rightskip
+07topskip
+12splittopskip
+07tabskip
+09spaceskip
+10xspaceskip
+11parfillskip
+10thinmuskip
+09medmuskip
+11thickmuskip
+25[unknown glue parameter!]
+04skip
+06muskip
+02pt
+06output
+08everypar
+09everymath
+12everydisplay
+09everyhbox
+09everyvbox
+08everyjob
+07everycr
+07errhelp
+04toks
+08parshape
+03box
+04void
+12current font
+08textfont
+10scriptfont
+16scriptscriptfont
+07catcode
+06lccode
+06uccode
+06sfcode
+08mathcode
+12pretolerance
+09tolerance
+11linepenalty
+13hyphenpenalty
+15exhyphenpenalty
+11clubpenalty
+12widowpenalty
+19displaywidowpenalty
+13brokenpenalty
+12binoppenalty
+10relpenalty
+17predisplaypenalty
+18postdisplaypenalty
+16interlinepenalty
+20doublehyphendemerits
+19finalhyphendemerits
+11adjdemerits
+03mag
+15delimiterfactor
+09looseness
+04time
+03day
+05month
+04year
+14showboxbreadth
+12showboxdepth
+08hbadness
+08vbadness
+07pausing
+13tracingonline
+13tracingmacros
+12tracingstats
+17tracingparagraphs
+12tracingpages
+13tracingoutput
+16tracinglostchars
+15tracingcommands
+15tracingrestores
+06uchyph
+13outputpenalty
+13maxdeadcycles
+09hangafter
+15floatingpenalty
+10globaldefs
+03fam
+10escapechar
+17defaulthyphenchar
+15defaultskewchar
+11endlinechar
+11newlinechar
+08language
+13lefthyphenmin
+14righthyphenmin
+14holdinginserts
+17errorcontextlines
+28[unknown integer parameter!]
+05count
+07delcode
+09parindent
+12mathsurround
+13lineskiplimit
+05hsize
+05vsize
+08maxdepth
+13splitmaxdepth
+11boxmaxdepth
+05hfuzz
+05vfuzz
+18delimitershortfall
+18nulldelimiterspace
+11scriptspace
+14predisplaysize
+12displaywidth
+13displayindent
+12overfullrule
+10hangindent
+07hoffset
+07voffset
+16emergencystretch
+26[unknown dimen parameter!]
+05dimen
+06EQUIV(
+12notexpanded:
+09hash size
+06csname
+09endcsname
+11IMPOSSIBLE.
+12NONEXISTENT.
+06accent
+07advance
+15afterassignment
+10aftergroup
+10begingroup
+04char
+09delimiter
+06divide
+08endgroup
+11expandafter
+04font
+09fontdimen
+06halign
+05hrule
+12ignorespaces
+10mathaccent
+08mathchar
+10mathchoice
+08multiply
+07noalign
+10noboundary
+08noexpand
+04omit
+07penalty
+08prevgraf
+07radical
+04read
+05relax
+06setbox
+03the
+06valign
+07vcenter
+05vrule
+09save size
+15grouping levels
+08curlevel
+09retaining
+09restoring
+05SAVE(
+28Incompatible magnification (
+02);
+36 the previous value will be retained
+58I can handle only one magnification ratio per job. So I've
+59reverted to the magnification you used earlier on this run.
+46Illegal magnification has been changed to 1000
+52The magnification ratio must be between 1 and 32768.
+04ETC.
+04BAD.
+02->
+22begin-group character 
+20end-group character 
+21math shift character 
+26macro parameter character 
+22superscript character 
+20subscript character 
+25end of alignment template
+12blank space 
+11the letter 
+14the character 
+23[unknown command code!]
+02: 
+08Runaway 
+10definition
+08argument
+08preamble
+04text
+03<*>
+09<insert> 
+06<read 
+02l.
+11<argument> 
+11<template> 
+16<recently read> 
+19<to be read again> 
+16<inserted text> 
+09<output> 
+11<everypar> 
+12<everymath> 
+15<everydisplay> 
+12<everyhbox> 
+12<everyvbox> 
+11<everyjob> 
+10<everycr> 
+07<mark> 
+08<write> 
+16input stack size
+05write
+48(interwoven alignment preambles are not allowed)
+17text input levels
+03par
+11Incomplete 
+34; all text was ignored after line 
+54A forbidden control sequence occurred in skipped text.
+59This kind of error happens when you say `\if...' and forget
+59the matching `\fi'. I've inserted a `\fi'; this might work.
+53The file ended while I was skipping conditional text.
+10File ended
+32Forbidden control sequence found
+16 while scanning 
+04 of 
+46I suspect you have forgotten a `}', causing me
+41to read past where you wanted me to stop.
+49I'll try to recover; but if the error is serious,
+51you'd better type `E' or `X' now and fix your file.
+03use
+39Text line contains an invalid character
+53A funny symbol that I can't read has just been input.
+48Continue, and I'll forget that it ever happened.
+37(Please type a command or say `\end')
+38*** (job aborted, no legal \end found)
+02=>
+26Undefined control sequence
+47The control sequence at the end of the top line
+52of your error message was never \def'ed. If you have
+55misspelled it (e.g., `\hobx'), type `I' and the correct
+51spelling (e.g., `I\hbox'). Otherwise just continue,
+45and I'll forget about whatever was undefined.
+08Missing 
+09 inserted
+53The control sequence marked <to be read again> should
+42not appear between \csname and \endcsname.
+05input
+08endinput
+07topmark
+09firstmark
+07botmark
+14splitfirstmark
+12splitbotmark
+20parameter stack size
+12Argument of 
+15 has an extra }
+58I've run across a `}' that doesn't seem to match anything.
+52For example, `\def\a#1{...}' and `\a}' would produce
+54this error. If you simply proceed now, the `\par' that
+52I've just inserted will cause me to report a runaway
+54argument that might be the root of the problem. But if
+57your `}' was spurious, just type `2' and it will go away.
+23Paragraph ended before 
+13 was complete
+58I suspect you've forgotten a `}', causing me to apply this
+54control sequence to too much text. How can we recover?
+59My plan is to forget the whole thing and hope for the best.
+07Use of 
+29 doesn't match its definition
+54If you say, e.g., `\def\a1{...}', then you must always
+52put `1' after `\a', since control sequence names are
+52made up of letters only. The macro here has not been
+51followed by the required stuff, so I'm ignoring it.
+02<-
+18Missing { inserted
+52A left brace was mandatory here, so I've put one in.
+55You might want to delete and/or insert some corrections
+48so that I will find a matching right brace soon.
+54(If you're confused by all this, try typing `I}' now.)
+23Incompatible glue units
+52I'm going to assume that 1mu=1pt when they're mixed.
+31Missing number, treated as zero
+47A number should have been here; I inserted `0'.
+54(If you can't figure out why I needed to see a number,
+51look up `weird error' in the index to The TeXbook.)
+11spacefactor
+09prevdepth
+10deadcycles
+15insertpenalties
+02wd
+02ht
+02dp
+11lastpenalty
+08lastkern
+08lastskip
+11inputlineno
+07badness
+09Improper 
+54You can refer to \spacefactor only in horizontal mode;
+54you can refer to \prevdepth only in vertical mode; and
+48neither of these is meaningful inside \write. So
+52I'm forgetting what you said and using zero instead.
+15You can't use `
+08' after 
+17Bad register code
+44A register number must be between 0 and 255.
+27I changed this one to zero.
+18Bad character code
+45A character number must be between 0 and 255.
+10Bad number
+51Since I expected to read a number between 0 and 15,
+13Bad math code
+48A numeric math code must be between 0 and 32767.
+18Bad delimiter code
+56A numeric delimiter code must be between 0 and 2^{27}-1.
+28Improper alphabetic constant
+56A one-character control sequence belongs after a ` mark.
+37So I'm essentially inserting \0 here.
+14Number too big
+54I can only go up to 2147483647='17777777777="7FFFFFFF,
+42so I'm using that number instead of yours.
+04true
+25Illegal unit of measure (
+18replaced by filll)
+35I dddon't go any higher than filll.
+02em
+02ex
+12mu inserted)
+48The unit of measurement in math glue must be mu.
+51To recover gracefully from this error, it's best to
+52delete the erroneous units; e.g., type `2' to delete
+45two letters. (See Chapter 27 of The TeXbook.)
+02in
+02pc
+02cm
+02mm
+02bp
+02dd
+02cc
+02sp
+12pt inserted)
+49Dimensions can be in units of em, ex, in, pt, pc,
+50cm, mm, dd, cc, bp, or sp; but yours is a new one!
+59I'll assume that you meant to say pt, for printer's points.
+19Dimension too large
+50I can't work with sizes bigger than about 19 feet.
+46Continue and I'll use the largest value I can.
+04plus
+05minus
+05width
+06height
+05depth
+06number
+12romannumeral
+06string
+07meaning
+08fontname
+07jobname
+04 at 
+60Where was the left brace? You said something like `\def\a}',
+43which I'm going to interpret as `\def\a{}'.
+32You already have nine parameters
+45I'm going to ignore the # sign you just used.
+41Parameters must be numbered consecutively
+57I've inserted the digit you should have used after the #.
+36Type `1' to delete what you did use.
+42Illegal parameter number in definition of 
+41You meant to type ## instead of #, right?
+56Or maybe a } was forgotten somewhere earlier, and things
+58are all screwed up? I'm going to assume that you meant ##.
+49*** (cannot \read from terminal in nonstop modes)
+18File ended within 
+33This \read has unbalanced braces.
+02if
+05ifcat
+05ifnum
+05ifdim
+05ifodd
+07ifvmode
+07ifhmode
+07ifmmode
+07ifinner
+06ifvoid
+06ifhbox
+06ifvbox
+03ifx
+05ifeof
+06iftrue
+07iffalse
+06ifcase
+02fi
+02or
+04else
+06Extra 
+44I'm ignoring this; it doesn't match any \if.
+06{true}
+07{false}
+23Missing = inserted for 
+48I was expecting to see `<', `=', or `>'. Didn't.
+06{case 
+04.fmt
+15input file name
+19I can't find file `
+23I can't write on file `
+02'.
+04.tex
+20Please type another 
+45*** (job aborted, file error in nonstop mode)
+04.dvi
+20file name for output
+06texput
+04.log
+02**
+20transcript file name
+02  
+08nullfont
+05Font 
+08 scaled 
+36 not loadable: Bad metric (TFM) file
+42 not loadable: Metric (TFM) file not found
+50I wasn't able to read the size data for this font,
+40so I will ignore the font specification.
+48[Wizards can fix TFM files using TFtoPL/PLtoTF.]
+46You might try inserting a different font spec;
+57e.g., type `I\font<same font id>=<substitute font name>'.
+04.tfm
+33 not loaded: Not enough room left
+52I'm afraid I won't be able to make use of this font,
+55because my memory for character-size data is too small.
+51If you're really stuck, ask a wizard to enlarge me.
+58Or maybe try `I\font<same font id>=<name of loaded font>'.
+23Missing font identifier
+42I was looking for a control sequence whose
+42current meaning has been defined by \font.
+10 has only 
+21 fontdimen parameters
+51To increase the number of font parameters, you must
+53use \fontdimen immediately after the \font is loaded.
+11font memory
+31Missing character: There is no 
+09 in font 
+12 TeX output 
+08vlistout
+31Completed box being shipped out
+21Memory usage before: 
+08 after: 
+19; still untouched: 
+31Huge page cannot be shipped out
+50The page just created is more than 18 feet tall or
+58more than 18 feet wide, so I suspect something went wrong.
+35The following box has been deleted:
+19No pages of output.
+18Output written on 
+05 page
+02, 
+08 bytes).
+02to
+06spread
+09Underfull
+05Loose
+16 \hbox (badness 
+38) has occurred while \output is active
+24) in paragraph at lines 
+24) in alignment at lines 
+02--
+19) detected at line 
+16Overfull \hbox (
+11pt too wide
+21Tight \hbox (badness 
+05vpack
+16 \vbox (badness 
+16Overfull \vbox (
+11pt too high
+21Tight \vbox (badness 
+02{}
+12displaystyle
+09textstyle
+11scriptstyle
+17scriptscriptstyle
+14Unknown style!
+07mathord
+06mathop
+07mathbin
+07mathrel
+08mathopen
+09mathclose
+09mathpunct
+09mathinner
+08overline
+09underline
+04left
+05right
+06limits
+08nolimits
+20fraction, thickness 
+09= default
+17, left-delimiter 
+18, right-delimiter 
+25 is undefined (character 
+54Somewhere in the math formula just ended, you used the
+60stated character from an undefined font family. For example,
+58plain TeX doesn't allow \it or \sl in subscripts. Proceed,
+52and I'll try to forget that I needed that character.
+06mlist1
+06mlist2
+06mlist3
+640234000122*4000133**3**344*0400400*000000234000111*1111112341011
+06mlist4
+12 inside $$'s
+53Displays can use special alignments (like \eqalignno)
+57only if nothing but the alignment itself is between $$'s.
+58So I've deleted the formulas that preceded this alignment.
+04span
+02cr
+04crcr
+11endtemplate
+24alignment tab character 
+40Missing # inserted in alignment preamble
+50There should be exactly one # between &'s, when an
+56\halign or \valign is being set up. In this case you had
+47none, so I've put one in; maybe that will work.
+29Only one # is allowed per tab
+49more than one, so I'm ignoring all but the first.
+04endv
+40Extra alignment tab has been changed to 
+52You have given more \span or & marks than there were
+58in the preamble to the \halign or \valign now in progress.
+50So I'll assume that you meant to type \cr instead.
+09256 spans
+06align1
+06align0
+44Infinite glue shrinkage found in a paragraph
+52The paragraph just ended includes some glue that has
+54infinite shrinkability, e.g., `\hskip 0pt minus 1fil'.
+54Such glue doesn't belong there---it allows a paragraph
+59of any length to fit on one line. But it's safe to proceed,
+55since the offensive shrinkability has been made finite.
+05disc1
+05disc2
+02@@
+07: line 
+03 t=
+06 -> @@
+07 via @@
+03 b=
+03 p=
+03 d=
+10@firstpass
+11@secondpass
+14@emergencypass
+09paragraph
+05disc3
+05disc4
+13line breaking
+05HYPH(
+11hyphenation
+16 will be flushed
+48Hyphenation exceptions must contain only letters
+51and hyphens. But continue; I'll forgive and forget.
+12Not a letter
+50Letters in \hyphenation words must have \lccode>0.
+47Proceed; I'll ignore the character I just read.
+20exception dictionary
+18pattern memory ops
+31pattern memory ops per language
+14pattern memory
+13Too late for 
+08patterns
+53All patterns must be given before typesetting begins.
+04Bad 
+17(See Appendix H.)
+09Nonletter
+17Duplicate pattern
+07pruning
+09vertbreak
+48Infinite glue shrinkage found in box being split
+52The box you are \vsplitting contains some infinitely
+57shrinkable glue, e.g., `\vss' or `\vskip 0pt minus 1fil'.
+59Such glue doesn't belong there; but you can safely proceed,
+06vsplit
+09 needs a 
+04vbox
+44The box you are trying to split is an \hbox.
+49I can't split such a box, so I'll leave it alone.
+08pagegoal
+09pagetotal
+11pagestretch
+14pagefilstretch
+15pagefillstretch
+16pagefilllstretch
+10pageshrink
+09pagedepth
+04fill
+05filll
+17### current page:
+28 (held over for next output)
+13total height 
+13 goal height 
+06 adds 
+03, #
+12 might split
+15%% goal height=
+12, max depth=
+38Insertions can only be added to a vbox
+40Tut tut: You're trying to \insert into a
+41\box register that now contains an \hbox.
+47Proceed, and I'll discard its present contents.
+04page
+45Infinite glue shrinkage found on current page
+52The page about to be output contains some infinitely
+03 g=
+03 c=
+38Infinite glue shrinkage inserted from 
+53The correction glue for page breaking with insertions
+52must have finite shrinkability. But you may proceed,
+07% split
+04 to 
+15255 is not void
+53You shouldn't use \box255 except in \output routines.
+14Output loop---
+24 consecutive dead cycles
+57I've concluded that your \output is awry; it never does a
+55\shipout, so I'm shipping \box255 out myself. Next time
+58increase \maxdeadcycles if you want me to be more patient!
+25Unbalanced output routine
+58Your sneaky output routine has problematic {'s and/or }'s.
+41I can't handle that very well; good luck.
+33Output routine didn't use all of 
+43Your \output commands should empty \box255,
+34e.g., by saying `\shipout\box255'.
+43Proceed; I'll discard its present contents.
+18Missing $ inserted
+56I've inserted a begin-math/end-math symbol since I think
+48you left one out. Proceed, with fingers crossed.
+05' in 
+50Sorry, but I'm not programmed to handle this case;
+45I'll just pretend that you didn't ask for it.
+49If you're in the wrong mode, you might be able to
+58return to the right one by typing `I}' or `I$' or `I\par'.
+03end
+04dump
+05hskip
+04hfil
+05hfill
+03hss
+07hfilneg
+05vskip
+04vfil
+05vfill
+03vss
+07vfilneg
+52I've inserted something that you may have forgotten.
+32(See the <inserted text> above.)
+48With luck, this will get me unwedged. But if you
+55really didn't forget anything, try typing `2' now; then
+56my insertion and my current dilemma will both disappear.
+06right.
+58Things are pretty mixed up, but I think the worst is over.
+12Too many }'s
+42You've closed more groups than you opened.
+51Such booboos are generally harmless, so keep going.
+10rightbrace
+22Extra }, or forgotten 
+58I've deleted a group-closing symbol because it seems to be
+59spurious, as in `$x}$'. But perhaps the } is legitimate and
+59you forgot something else, as in `\hbox{$x}'. In such cases
+58the way to recover is to insert both the forgotten and the
+40deleted material, e.g., by typing `I$}'.
+08moveleft
+09moveright
+05raise
+05lower
+04copy
+07lastbox
+04vtop
+04hbox
+07shipout
+07leaders
+08cleaders
+08xleaders
+35Leaders not followed by proper glue
+56You should say `\leaders <box or rule><hskip or vskip>'.
+50I found the <box or rule>, but there's no suitable
+48<hskip or vskip>, so I'm ignoring these leaders.
+34Sorry; this \lastbox will be void.
+58Sorry...I usually can't take things from the current page.
+37This \lastbox will therefore be void.
+21Missing `to' inserted
+48I'm working on `\vsplit<box number> to <dimen>';
+31will look for the <dimen> next.
+31A <box> was supposed to be here
+57I was expecting to see \hbox or \vbox or \copy or \box or
+59something like that. So you might find something missing in
+53your output. But keep trying; you can fix this later.
+06indent
+08noindent
+26' here except with leaders
+52To put a horizontal rule in an hbox or an alignment,
+56you should use \leaders or \hrulefill (see The TeXbook).
+10You can't 
+45I'm changing to \insert0; box 255 is special.
+32Try `I\vskip-\lastskip' instead.
+31Try `I\kern-\lastkern' instead.
+46Perhaps you can make the output routine do it.
+09unpenalty
+06unkern
+06unskip
+06unhbox
+07unhcopy
+06unvbox
+07unvcopy
+34Incompatible list can't be unboxed
+35Sorry, Pandora. (You sneaky devil.)
+58I refuse to unbox an \hbox in vertical mode or vice versa.
+40And I can't open any boxes in math mode.
+13Illegal math 
+54Sorry: The third part of a discretionary break must be
+57empty, in math formulas. I had to delete your third part.
+30Discretionary list is too long
+50Wow---I never thought anybody would tweak me here.
+56You can't seriously need such a huge discretionary list?
+27Improper discretionary list
+54Discretionary lists must contain only boxes and kerns.
+53The following discretionary sublist has been deleted:
+18Missing } inserted
+45I've put in what seems to be necessary to fix
+44the current column of the current alignment.
+43Try to go on, since this might almost work.
+10Misplaced 
+55I can't figure out why you would want to use a tab mark
+50here. If you just want an ampersand, the remedy is
+52simple: Just type `I\&' now. But if some right brace
+52up above has ended a previous alignment prematurely,
+52you're probably due for more error messages, and you
+57might try typing `S' now just to see what is salvageable.
+57or \cr or \span just now. If something like a right brace
+46I expect to see \noalign only after the \cr of
+49an alignment. Proceed, and I'll ignore this case.
+56I expect to see \omit only after tab marks or the \cr of
+53I'm guessing that you meant to end an alignment here.
+50I'm ignoring this, since I wasn't doing a \csname.
+04eqno
+05leqno
+13displaylimits
+42Limit controls must follow a math operator
+57I'm ignoring this misplaced \limits or \nolimits command.
+30Missing delimiter (. inserted)
+52I was expecting to see something like `(' or `\{' or
+55`\}' here. If you typed, e.g., `{' instead of `\{', you
+57should probably delete the `{' by typing `1' now, so that
+52braces don't get unbalanced. Otherwise just proceed.
+54Acceptable delimiters are characters whose \delcode is
+58nonnegative, or you can use `\delimiter <delimiter code>'.
+11Please use 
+25 for accents in math mode
+55I'm changing \accent to \mathaccent here; wish me luck.
+59(Accents are not the same in formulas as they are in text.)
+18Double superscript
+43I treat `x^1^2' essentially like `x^1{}^2'.
+16Double subscript
+43I treat `x_1_2' essentially like `x_1{}_2'.
+05above
+04over
+04atop
+15abovewithdelims
+14overwithdelims
+14atopwithdelims
+35Ambiguous; you need another { and }
+55I'm ignoring this fraction specification, since I don't
+52know whether a construction like `x \over y \over z'
+53means `{x \over y} \over z' or `x \over {y \over z}'.
+49I'm ignoring a \right that had no matching \left.
+47Math formula deleted: Insufficient symbol fonts
+50Sorry, but I can't typeset math unless \textfont 2
+50and \scriptfont 2 and \scriptscriptfont 2 have all
+50the \fontdimen values needed in math symbol fonts.
+50Math formula deleted: Insufficient extension fonts
+50Sorry, but I can't typeset math unless \textfont 3
+50and \scriptfont 3 and \scriptscriptfont 3 have all
+53the \fontdimen values needed in math extension fonts.
+31Display math should end with $$
+59The `$' that I just saw supposedly matches a previous `$$'.
+49So I shall assume that you typed `$$' both times.
+07display
+19Missing $$ inserted
+04long
+05outer
+06global
+03def
+04gdef
+04edef
+04xdef
+06prefix
+29You can't use a prefix with `
+55I'll pretend you didn't say \long or \outer or \global.
+06' or `
+08' with `
+49I'll pretend you didn't say \long or \outer here.
+33Missing control sequence inserted
+52Please don't say `\def cs{...}', say `\def\cs{...}'.
+59I've inserted an inaccessible control sequence so that your
+60definition will be completed without mixing me up too badly.
+53You can recover graciously from this error, if you're
+42careful; see exercise 27.2 in The TeXbook.
+12inaccessible
+03let
+09futurelet
+07chardef
+11mathchardef
+08countdef
+08dimendef
+07skipdef
+09muskipdef
+07toksdef
+44You should have said `\read<number> to \cs'.
+34I'm going to look for the \cs now.
+14Invalid code (
+29), should be in the range 0..
+21), should be at most 
+54I'm going to use 0 instead of that illegal code value.
+02by
+19Arithmetic overflow
+50I can't carry out that multiplication or division,
+33since the result is out of range.
+55I'm forgetting what you said and not changing anything.
+16Bad space factor
+47I allow only values in the range 1..32767 here.
+37I allow only nonnegative values here.
+37Patterns can be loaded only by INITEX
+10hyphenchar
+08skewchar
+04FONT
+02at
+06scaled
+20Improper `at' size (
+21pt), replaced by 10pt
+50I can only handle fonts at positive sizes that are
+56less than 2048pt, so I've changed what you said to 10pt.
+12select font 
+13errorstopmode
+06openin
+07closein
+07message
+10errmessage
+31(That was another \errmessage.)
+50This error message was generated by an \errmessage
+43command, so I can't give any explicit help.
+54Pretend that you're Hercule Poirot: Examine all clues,
+41and deduce the truth by order and method.
+09lowercase
+09uppercase
+04show
+07showbox
+07showthe
+09showlists
+57This isn't an error message; I'm just \showing something.
+46Type `I\show...' to show more (e.g., \show\cs,
+43\showthe\count10, \showbox255, \showlists).
+54And type `I\tracingonline=1\show...' to show boxes and
+57lists on your terminal as well as in the transcript file.
+02> 
+09undefined
+05macro
+10long macro
+11outer macro
+17outer endtemplate
+06> \box
+02OK
+26 (see the transcript file)
+09 (INITEX)
+29You can't dump inside a group
+24`{...\dump}' is a no-no.
+25 strings of total length 
+43 memory locations dumped; current usage is 
+30 multiletter control sequences
+24 words of font info for 
+15 preloaded font
+05\font
+22 hyphenation exception
+27Hyphenation trie of length 
+05 has 
+03 op
+08 out of 
+14 for language 
+09 (format=
+16format file name
+26Beginning to dump on file 
+22Transcript written on 
+02 )
+13end occurred 
+24inside a group at level 
+05when 
+09 on line 
+16 was incomplete)
+52(see the transcript file for additional information)
+35(\dump is performed only by INITEX)
+21debug # (-1 to exit):
+07openout
+08closeout
+07special
+09immediate
+11setlanguage
+20[unknown extension!]
+04ext1
+08whatsit?
+04ext2
+04ext3
+08endwrite
+24Unbalanced write command
+59On this page there's a \write with fewer real {'s than }'s.
+04ext4
+16output file name
+*127541235

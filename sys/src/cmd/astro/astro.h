@@ -178,6 +178,6 @@ extern	double	sunel(double);
 extern	void	venus(void);
 extern	int	vis(double, double, double, double);
 extern	void	comet(void);
-extern	int	Rconv(void*, int, int, int, int);
-extern	int	Dconv(void*, int, int, int, int);
+extern	int	Rconv(void*, Fconv*);
+extern	int	Dconv(void*, Fconv*);
 extern	double	etdate(long, int, double);

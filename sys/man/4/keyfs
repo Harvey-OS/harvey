@@ -4,13 +4,13 @@ keyfs \- authentication database files
 .SH SYNOPSIS
 .B keyfs
 [
+.B -d
+]
+[
 .BI -m mntpt
 ]
 [
 .BI -k key
-]
-[
-.BI -r nsfile
 ]
 [
 .I keyfile
@@ -38,6 +38,11 @@ which is by default read from
 .B #r/nvram
 (see
 .IR rtc (3)).
+With option
+.BR -d ,
+keyfs uses
+.B /dev/crypt
+for decryption.
 .I Keyfile
 holds a 41-byte record for each user in the database.
 Each record is encrypted separately
@@ -66,13 +71,6 @@ at which the account will expire.
 If any changes are made to the database that affect the information stored in
 .IR keyfile ,
 a new version of the file is written.
-If given
-option
-.BR -r ,
-.I keyfs
-rebuilds its name space from
-.I nsfile
-before writing any changes to its database.
 .PP
 There are two authentication databases,
 one for Plan 9 user information,

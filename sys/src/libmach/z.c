@@ -1,9 +1,10 @@
 /*
  * hobbit definition
  */
-#include "u.h"
+#include <u.h>
+#include <bio.h>
 #include "/hobbit/include/ureg.h"
-#include "mach.h"
+#include <mach.h>
 /*
  * Crisp register stuff
  */
@@ -26,14 +27,14 @@
 #define	MINREG	0
 
 struct reglist hobbitreglist[] = {
-	{"PSW",		PSW, 0},
-	{"PC",		PC,  0},
-	{"MSP",		MSP, 0},
-	{"SP",		SP,  0},
-	{"FAULT",	FAULT,  0},
-	{"ID",		ID,  0},
-	{"USER",	USER,  0},
-	{"CAUSE",	CAUSE,  0},
+	{"PSW",		PSW,	0, 'X'},
+	{"PC",		PC,	0, 'X'},
+	{"MSP",		MSP,	0, 'X'},
+	{"SP",		SP,	0, 'X'},
+	{"FAULT",	FAULT,  0, 'X'},
+	{"ID",		ID,	0, 'X'},
+	{"USER",	USER,	0, 'X'},
+	{"CAUSE",	CAUSE,  0, 'X'},
 	{0}
 };
 
@@ -46,6 +47,7 @@ Mach mhobbit =
 	PC,
 	SP,
 	0,			/* no link */
+	0,			/* no return reg */
 	0,			/* first writable register */
 	0x1000,			/* page size */
 	0x80000000,		/* kernel base */

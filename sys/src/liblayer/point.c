@@ -3,8 +3,6 @@
 #include <libg.h>
 #include <layer.h>
 
-void	_point(Bitmap *d, Point p, int v, Fcode f);
-
 void
 point(Bitmap *db, Point pt, int v, Fcode c)
 {

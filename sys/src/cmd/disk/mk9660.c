@@ -3,7 +3,7 @@
 #include	<bio.h>
 
 /*
- * write a plan9 cd-rom image.
+ * write a plan9 ISO 9660 CD-Rom image.
  * input is a mkfs file.
  */
 
@@ -15,6 +15,7 @@ enum
 {
 	RSIZE	= 2048,
 	RUNOUT	= 150,
+	MAXSIZE	= 286000-RUNOUT-4,
 
 	DTdot	= 0,
 	DTdotdot,
@@ -69,7 +70,7 @@ char*	proto;
 Direc*	root;
 char	volid[100];
 
-int	Pconv(void*, int, int, int, int);
+int	Pconv(void*, Fconv*);
 void	bputc(int);
 void	bputdate(long);
 void	bputdate1(long);
@@ -182,7 +183,7 @@ main(int argc, char *argv[])
 	if(nfile)
 		fprint(2, "notice file not found: %s\n", nfile);
 	print("size = %d blocks\n", n);
-	if(n > 0x46596-154)
+	if(n > MAXSIZE)
 		print("thats too big!!\n");
 
 	pass = 2;	/* do the writing */
@@ -208,18 +209,17 @@ main(int argc, char *argv[])
 }
 
 int
-Pconv(void *o, int f1, int f2, int f3, int chr)
+Pconv(void *o, Fconv *f)
 {
 	char path[500];
 	Direc *d;
 
-	USED(chr);
 	d = *(Direc**)o;
 	if(d->parent == d)
 		strcpy(path, "");
 	else
 		sprint(path, "%P/%s", d->parent, d->name);
-	strconv(path, f1, f2, f3);
+	strconv(path, f);
 	return sizeof(d);
 }
 

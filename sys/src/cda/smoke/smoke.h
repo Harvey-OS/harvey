@@ -110,7 +110,8 @@ struct signal
 #define PLUS_PIN 0x8000
 #define MINUS_PIN 0x10000
 #define CURRENT_PIN 0x20000
-#define FULL_PIN 0x3ffff
+#define DIGITAL_PIN 0x40000
+#define FULL_PIN 0x7ffff
 
 /*
  * signal types

@@ -22,15 +22,19 @@ printc(int c)
 
 /* move to next f1-sized tab stop */
 int
-tconv(void *oa, int f1, int f2, int f3, int chr)
+tconv(void *oa, Fconv *f)
 {
-	USED(oa, chr, f3);
-	if(f1 == 0)
-		return 0;
-	f1 = printcol+(f1-printcol%f1);	/* final column */
-	while(printcol < (f1&~7))
-		strconv("\t", 0, f2, 0);
-	strconv("        "+(8-(f1-printcol)), 0, f2, 0);
+	int n;
+	char buf[128];
+
+	USED(oa);
+	n = f->f1 - (printcol%f->f1);
+	if(n != 0) {
+		memset(buf, ' ', n);
+		buf[n] = '\0';
+		f->f1 = 0;
+		strconv(buf, f);
+	}
 	return 0;
 }
 
@@ -38,35 +42,39 @@ int	dascase;
 
 /* convert to lower case from upper, according to dascase */
 int
-Sconv(void *oa, int f1, int f2, int f3, int chr)
+Sconv(void *oa, Fconv *f)
 {
 	char buf[128];
 	char *s, *t;
 
-	USED(chr);
 	if(dascase){
 		for(s=*(char**)oa,t=buf; *t = *s; s++,t++)
 			if('A'<=*t && *t<='Z')
 				*t += 'a'-'A';
-		strconv(buf, f1, f2, f3);
+		strconv(buf, f);
 	}else
-		strconv(*(char**)oa, f1, f2, f3);
+		strconv(*(char**)oa, f);
 	return sizeof(char*);
 }
 
 /* hexadecimal with initial # */
 int
-myxconv(void *oa, int f1, int f2, int f3, int chr)
+myxconv(void *oa, Fconv *f)
 {
+
 	/* if unsigned, emit #1234 */
-	if((f3&32) || *(long*)oa>=0){
-		strconv("#", 1, 1, 0);
-		numbconv(oa, f1, f2, f3, chr);
-	}else{ /* emit -#1234 */
-		*(long*)oa = -*(long*)oa;
-		strconv("-#", 2, 2, 0);
-		numbconv(oa, f1, f2, f3, chr);
+	if((f->f3&32) || *(long*)oa>=0){
+		if(f->out < f->eout)
+			*f->out++ = '#';
 	}
+	else{					/* emit -#1234 */
+		*(long*)oa = -*(long*)oa;
+		if(f->out < f->eout-1) {
+			*f->out++ = '-';
+			*f->out++ = '#';
+		}
+	}
+	numbconv(oa, f);
 	return sizeof(long);
 }
 

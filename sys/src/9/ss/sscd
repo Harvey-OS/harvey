@@ -14,7 +14,7 @@ dev
 	arp	a
 	bit	b
 	iproute	P
-	scsi	S	scsi
+	scsi	S	scsi scsibuf
 	wren	w
 	kprof	T
 	cdrom	R

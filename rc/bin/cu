@@ -1,6 +1,6 @@
 #!/bin/rc
 switch($terminal){
-case *safari
+case NCR* 'AT&TNSX'*
 	con -c 'hayes '$1' /dev/eia1' /dev/eia1
 case *
 	con -l dk!dial.$1

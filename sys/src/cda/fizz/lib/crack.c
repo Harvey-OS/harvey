@@ -19,7 +19,7 @@ static char linebuf[BUFSIZ];
 extern void f_board(char *), f_chip(char *), f_package(char *);
 extern void f_pinholes(char *), f_positions(char *), f_net(char *);
 extern void f_type(char *), f_vsig(char *), f_route(char *);
-extern void f_wires(char *), f_layout(char *);
+extern void f_wires(char *);
 
 static Keymap goo[] = {
 	"Board", f_board, 0,
@@ -32,7 +32,6 @@ static Keymap goo[] = {
 	"Type", f_type, 7,
 	"Wires", f_wires, 8,
 	"Vsig", f_vsig, 9,
-	"Layout", f_layout, 10,
 	0
 };
 

@@ -806,7 +806,7 @@ diag(Node *n, char *a, ...)
 	doprint(buf, buf+sizeof(buf), a, &(&a)[1]);	/* ugly */
 	print("%L %s\n", (n==Z)? nearln: n->lineno, buf);
 
-	if(debug['A'])
+	if(debug['X'])
 		abort();
 	if(n != Z)
 	if(debug['v'])

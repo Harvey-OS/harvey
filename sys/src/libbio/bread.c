@@ -25,7 +25,6 @@ Bread(Biobufhdr *bp, void *ap, long count)
 				bp->state = Bracteof;
 				if(i < 0)
 					bp->state = Binactive;
-				else
 				break;
 			}
 			bp->offset += i;

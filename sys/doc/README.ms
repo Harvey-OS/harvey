@@ -196,7 +196,7 @@ started by it,
 .CW cputype
 will be the type of the cpu server, and the
 .CW ls
-command you run there will be right binary for that cpu.
+command you run there will be the right binary for that cpu.
 .PP
 If you think about it, you can see that this mechanism of
 union directories replaces the search path of conventional

@@ -7,12 +7,12 @@
 #define	NIOBUF		100
 #define	HIOB		(NIOBUF/3)
 
-static Iobuf	*hiob[HIOB];		/* hash buckets */
+static Iobuf*	hiob[HIOB];		/* hash buckets */
 static Iobuf	iobuf[NIOBUF];		/* buffer headers */
-static Iobuf	*iohead;
-static Iobuf	*iotail;
+static Iobuf*	iohead;
+static Iobuf*	iotail;
 
-Iobuf *
+Iobuf*
 getbuf(Xdata *dev, long addr)
 {
 	Iobuf *p, *h, **l, **f;

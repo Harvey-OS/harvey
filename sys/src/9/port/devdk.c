@@ -80,7 +80,6 @@ struct Dkmsg {
 #define W_DESTMAX(x,y)  (W_WINDOW(W_ORIG(x),MIN(W_DEST(x),y),W_TRAF(x)))
 #define W_LIMIT(x,y)  (W_WINDOW(MIN(W_ORIG(x),y),MIN(W_DEST(x),y),W_TRAF(x)))
 #define	W_VALUE(x)	(1<<((x)+4))
-#define WS_2K	7
 
 struct Line {
 	QLock;
@@ -488,7 +487,7 @@ dkoput(Queue *q, Block *bp)
  *	the number of lines in the device (optional)
  *	the word `restart' or `norestart' (optional/default==restart)
  *	the name of the dk (default==dk)
- *	the urp window size (default==WS_2K)
+ *	the urp window size (default==2048)
  *
  *  we can configure only once
  */
@@ -524,7 +523,7 @@ dkmuxconfig(Queue *q, Block *bp)
 	ncsc = 1;
 	restart = 1;
 	lines = 16;
-	window = WS_2K;
+	window = 2048;
 	strcpy(name, "dk");
 
 	/*
@@ -534,6 +533,8 @@ dkmuxconfig(Queue *q, Block *bp)
 	switch(n){
 	case 5:
 		window = strtoul(fields[4], 0, 0);
+		if(window < 16)
+			window = 1<<(window+4);
 	case 4:
 		strncpy(name, fields[3], sizeof(name));
 		name[sizeof(name)-1] = 0;
@@ -947,7 +948,7 @@ static void
 dkcall(int type, Chan *c, char *addr, char *nuser, char *machine)
 {
  	char dialstr[66];
-	int line;
+	int line, win;
 	char dialtone;
 	int t_val, d_val;
 	Dk *dp;
@@ -1031,7 +1032,10 @@ dkcall(int type, Chan *c, char *addr, char *nuser, char *machine)
 		close(csc);
 		nexterror();
 	}
-	dkmesg(csc, t_val, d_val, line, W_WINDOW(dp->urpwindow,dp->urpwindow,2));
+	for(win = 0; ; win++)
+		if(W_VALUE(win) >= dp->urpwindow || win == 15)
+			break;
+	dkmesg(csc, t_val, d_val, line, W_WINDOW(win, win, 2));
 	poperror();
 	close(csc);
 

@@ -25,12 +25,12 @@ void exit(int code)
 #define	MAXCONV	30
 
 static int
-Numbconv(char *o, int f1, int f2, int f3, int b)
+Numbconv(char *o, Fconv *fp, int b)
 {
 	char s[IDIGIT];
 	register long v;
 	register int i, f, n, r;
-	switch(f3 & (FLONG|FSHORT|FUNSIGN)) {
+	switch(fp->f3 & (FLONG|FSHORT|FUNSIGN)) {
 	case FLONG:
 		v = *(long*)o;
 		r = LONG;
@@ -62,7 +62,7 @@ Numbconv(char *o, int f1, int f2, int f3, int b)
 		break;
 	}
 	f = 0;
-	if(!(f3 & FUNSIGN) && v < 0) {
+	if(!(fp->f3 & FUNSIGN) && v < 0) {
 		v = -v;
 		f = 1;
 	}
@@ -74,23 +74,23 @@ Numbconv(char *o, int f1, int f2, int f3, int b)
 			n += 'A' - ('9'+1);
 		s[i] = n;
 		v = (unsigned long)v / b;
-		if(f2 >= 0 && i >= IDIGIT-f2)
+		if(fp->f2 >= 0 && i >= IDIGIT-fp->f2)
 			continue;
 		if(v <= 0)
 			break;
 	}
 	if(f)
 		s[--i] = '-';
-	strconv(s+i, f1, f2, f3);
+	strconv(s+i, fp);
 	return r;
 }
 
 static
 int
-xconv(void *o, int f1, int f2, int f3, int f4)
+xconv(void *o, Fconv *fp)
 {
 	int r;
-	r = Numbconv(o, f1, f2, f3, 16);
+	r = Numbconv(o, fp, 16);
 	return r;
 }
 

@@ -11,6 +11,7 @@ dev
 	iproute	P
 	arp	a
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	scsi	S	scsi scsibuf
 	scc	t
 	boot	B
 	bit	b

@@ -1,5 +1,5 @@
 CONF=magnum
-CONFLIST=magnum magnumdisk magnumcpu magnumboot magnumcd
+CONFLIST=magnum magnumdisk magnumcpu magnumboot magnumcd magnumlcd
 
 objtype=mips
 </$objtype/mkfile
@@ -47,13 +47,15 @@ OBJ=\
 
 def:V: 9$CONF
 
-9magnum 9magnumdisk 9magnumcpu 9magnumcd: $OBJ $CONF.c /$objtype/lib/libgnot.a /$objtype/lib/libg.a
+9magnum 9magnumdisk 9magnumcpu 9magnumcd 9magnumlcd: $OBJ $CONF.c /$objtype/lib/libgnot.a /$objtype/lib/libg.a
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
 	$LD -o $target -l -R4 -H1 -T0x80020000 $OBJ $CONF.$O -lgnot -lg -lc
+	size $target
 
 9magnumboot: $OBJ $CONF.c /$objtype/lib/libgnot.a /$objtype/lib/libg.a
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
 	$LD -o $target -l -R4 -H1 -T0x80200000 $OBJ $CONF.$O -lgnot -lg -lc
+	size $target
 
 <../port/portmkfile
 

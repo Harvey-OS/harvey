@@ -10,7 +10,6 @@ gsubfstrsize(GSubfont *f, char *cs)
 	Fontchar *info;
 	uchar *s;
 	Rune c;
-	Rune r;
 
 	s = (uchar*)cs;
 	l = 0;

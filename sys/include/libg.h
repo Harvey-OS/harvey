@@ -242,6 +242,7 @@ extern void	 subffree(Subfont*);
 extern int	 cachechars(Font*, char**, ushort*, int, int*);
 extern Point	 string(Bitmap*, Point, Font*, char*, Fcode);
 extern void	 segment(Bitmap*, Point, Point, int, Fcode);
+extern void	 polysegment(Bitmap*, int, Point*, int, Fcode);
 extern void	 point(Bitmap*, Point, int, Fcode);
 extern void	 arc(Bitmap*, Point, Point, Point, int, Fcode);
 extern void	 circle(Bitmap*, Point, int, int, Fcode);

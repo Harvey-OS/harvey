@@ -1,5 +1,7 @@
 #include	"u.h"
 #include	"../port/lib.h"
+#include	<libg.h>
+#include	<gnot.h>
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
@@ -7,8 +9,6 @@
 
 #include	"devtab.h"
 
-#include	<libg.h>
-#include	<gnot.h>
 #include	"screen.h"
 
 /*
@@ -106,6 +106,9 @@ extern	GBitmap	gscreen;
 
 Mouseinfo	mouse;
 Cursorinfo	cursor;
+int		mouseshifted;
+int		mousetype;
+int		islittle;
 
 Cursor	arrow =
 {
@@ -156,26 +159,39 @@ GBitmap cursorback =
 };
 
 void	Cursortocursor(Cursor*);
-void	cursoron(int);
-void	cursoroff(int);
 int	mousechanged(void*);
 
 enum{
 	Qdir,
 	Qbitblt,
 	Qmouse,
+	Qmousectl,
 	Qscreen,
 };
 
 Dirtab bitdir[]={
 	"bitblt",	{Qbitblt},	0,			0666,
 	"mouse",	{Qmouse},	0,			0666,
+	"mousectl",	{Qmousectl},	0,			0220,
 	"screen",	{Qscreen},	0,			0444,
 };
 
 #define	NBIT	(sizeof bitdir/sizeof(Dirtab))
 #define	NINFO	8192	/* max chars per subfont; sanity check only */
 #define	HDR	3
+
+void
+lockedupdate(void)
+{
+	qlock(&bit);
+	if(waserror()){
+		qunlock(&bit);
+		return;
+	}
+	screenupdate();
+	qunlock(&bit);
+	poperror();
+}
 
 void
 bitfreeup(void)
@@ -289,6 +305,22 @@ bitreset(void)
 	a->wfree = a->words;
 	a->nbusy = 1;	/* keep 0th arena from being freed */
 	Cursortocursor(&arrow);
+}
+
+/*
+ *  screen bit depth changed, reset backup map for cursor
+ */
+void
+bitdepth(void)
+{
+	cursoroff(1);
+	if(gscreen.ldepth > 3)
+		cursorback.ldepth = 0;
+	else{
+		cursorback.ldepth = gscreen.ldepth;
+		cursorback.width = ((16 << gscreen.ldepth) + 31) >> 5;
+	}
+	cursoron(1);
 }
 
 void
@@ -728,6 +760,8 @@ bitread(Chan *c, void *va, long n, ulong offset)
 			q = (uchar*)gaddr(src, Pt(src->r.min.x, y));
 			q += (src->r.min.x&((sizeof(ulong))*ws-1))/ws;
 			memmove(p, q, l);
+			if(islittle)
+				pixreverse(p, l, src->ldepth);
 			if(bit.rid==0 && flipping)
 				/* is screen, so must be word aligned */
 				for(x=0; x<l; x+=sizeof(ulong),p+=sizeof(ulong))
@@ -746,6 +780,27 @@ bitread(Chan *c, void *va, long n, ulong offset)
 	return n;
 }
 
+Point
+bitstrsize(GFont *f, uchar *p, int l)
+{
+	ushort r;
+	Point s = {0,0};
+	GCacheinfo *c;
+
+	while(l > 0){
+		r = BGSHORT(p);
+		p += 2;
+		l -= 2;
+		if(r >= f->ncache)
+			continue;
+		c = &f->cache[r];
+		if(c->bottom > s.y)
+			s.y = c->bottom;
+		s.x += c->width;
+	}
+	return s;
+}
+
 long
 bitwrite(Chan *c, void *va, long n, ulong offset)
 {
@@ -754,6 +809,7 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 	ulong l, nw, ws, rv, q0, q1;
 	ulong *lp;
 	int off, isoff, i, j, ok;
+ 	ulong *endscreen = gaddr(&gscreen, Pt(0, gscreen.r.max.y));
 	Point pt, pt1, pt2;
 	Rectangle rect;
 	Cursor curs;
@@ -763,6 +819,7 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 	BSubfont *f, *tf, **fp;
 	GFont *ff, **ffp;
 	GCacheinfo *gc;
+	char buf[64];
 
 	if(!conf.monitor)
 		error(Egreg);
@@ -770,6 +827,15 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 
 	if(c->qid.path == CHDIR)
 		error(Eisdir);
+
+	if(c->qid.path == Qmousectl){
+		if(n >= sizeof(buf))
+			n = sizeof(buf)-1;
+		strncpy(buf, va, n);
+		buf[n] = 0;
+		mousectl(buf);
+		return n;
+	}
 
 	if(c->qid.path != Qbitblt)
 		error(Egreg);
@@ -856,6 +922,8 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 				isoff = 1;
 			}
 			gbitblt(dst, pt, src, rect, fc);
+			if(dst->base < endscreen)
+				mbbrect(Rpt(pt, add(pt, sub(rect.max, rect.min))));
 			m -= 31;
 			p += 31;
 			break;
@@ -864,6 +932,9 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 			/*
 			 * cursorswitch
 			 *	'c'		1
+			 * if one more byte, says whether to disable
+			 * because of stupid lcd's (thank you bart)
+			 * else
 			 * nothing more: return to arrow; else
 			 * 	Point		8
 			 *	clr		32
@@ -879,12 +950,28 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 				p += 1;
 				break;
 			}
+			if(m == 2){
+				if(p[1]){	/* make damn sure */
+					cursor.disable = 0;
+					isoff = 1;
+				}else{
+					cursoroff(1);
+					cursor.disable = 1;
+				}
+				m -= 2;
+				p += 2;
+				break;
+			}
 			if(m < 73)
 				error(Ebadblt);
 			curs.offset.x = BGLONG(p+1);
 			curs.offset.y = BGLONG(p+5);
 			memmove(curs.clr, p+9, 2*16);
 			memmove(curs.set, p+41, 2*16);
+			if(islittle){
+				pixreverse(curs.clr, 2*16, 0);
+				pixreverse(curs.set, 2*16, 0);
+			}
 			if(!isoff){
 				cursoroff(1);
 				isoff = 1;
@@ -892,6 +979,57 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 			Cursortocursor(&curs);
 			m -= 73;
 			p += 73;
+			break;
+
+		case 'e':
+			/*
+			 * polysegment
+			 *
+			 *	'e'		1
+			 *	id		2
+			 *	pt		8
+			 *	value		1
+			 *	code		2
+			 *	n		2
+			 *	pts		2*n
+			 */
+			if(m < 16)
+				error(Ebadblt);
+			l = BGSHORT(p+14);
+			if(m < 16+2*l)
+				error(Ebadblt);
+			v = BGSHORT(p+1);
+			if(v<0 || v>=bit.nmap || (dst=bit.map[v])==0)
+				error(Ebadbitmap);
+			off = 0;
+			fc = BGSHORT(p+12) & 0xF;
+			if(v == 0){
+				if(flipping)
+					fc = flipD[fc];
+				off = 1;
+			}
+			pt1.x = BGLONG(p+3);
+			pt1.y = BGLONG(p+7);
+			t = p[11];
+			if(off && !isoff){
+				cursoroff(1);
+				isoff = 1;
+			}
+			p += 16;
+			m -= 16;
+			while(l > 0){
+				pt2.x = pt1.x + (schar)p[0];
+				pt2.y = pt1.y + (schar)p[1];
+				gsegment(dst, pt1, pt2, t, fc);
+				if(dst->base < endscreen){
+					mbbpt(pt1);
+					mbbpt(pt2);
+				}
+				pt1 = pt2;
+				p += 2;
+				m -= 2;
+				l--;
+			}
 			break;
 
 		case 'f':
@@ -1013,12 +1151,12 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 			f = bitmalloc(sizeof(BSubfont));
 			if(f == 0)
 				error(Enomem);
-			bit.subfont[i] = f;
 			f->info = bitmalloc((v+1)*sizeof(Fontchar));
 			if(f->info == 0){
 				free(f);
 				error(Enomem);
 			}
+			bit.subfont[i] = f;
 			f->n = v;
 			f->height = p[3];
 			f->ascent = p[4];
@@ -1089,6 +1227,10 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 				isoff = 1;
 			}
 			gsegment(dst, pt1, pt2, t, fc);
+			if(dst->base < endscreen){
+				mbbpt(pt1);
+				mbbpt(pt2);
+			}
 			m -= 22;
 			p += 22;
 			break;
@@ -1188,6 +1330,8 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 				isoff = 1;
 			}
 			gpoint(dst, pt1, t, fc);
+			if(dst->base < endscreen)
+				mbbpt(pt1);
 			m -= 14;
 			p += 14;
 			break;
@@ -1278,6 +1422,8 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 				isoff = 1;
 			}
 			bitstring(dst, pt, ff, p, l, fc);
+			if(dst->base < endscreen)
+				mbbrect(Rpt(pt, add(pt, bitstrsize(ff, p, l))));
 			m -= l;
 			p += l;
 			break;
@@ -1315,6 +1461,8 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 				isoff = 1;
 			}
 			gtexture(dst, rect, src, fc);
+			if(dst->base < endscreen)
+				mbbrect(rect);
 			m -= 23;
 			p += 23;
 			break;
@@ -1393,6 +1541,8 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 				t = (t/ws)*ws;
 				l = (t+dst->r.max.x+ws-1)/ws;
 			}
+			if(dst->base < endscreen)
+				mbbrect(Rect(dst->r.min.x, miny, dst->r.max.x, maxy));
 			p += 11;
 			m -= 11;
 			if(m < l*(maxy-miny))
@@ -1405,6 +1555,8 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 				oq = (uchar*)gaddr(dst, Pt(dst->r.min.x, y));
 				q = oq + (dst->r.min.x&((sizeof(ulong))*ws-1))/ws;
 				memmove(q, p, l);
+				if(islittle)
+					pixreverse(q, l, dst->ldepth);
 				if(v==0 && flipping){	/* flip bits */
 					/* we know it's all word aligned */
 					lp = (ulong*)oq;
@@ -1414,6 +1566,8 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 				p += l;
 				m -= l;
 			}
+			if(v == 0)
+				hwscreenwrite(miny, maxy);
 			break;
 
 		case 'x':
@@ -1486,7 +1640,7 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 				error(Ebadblt);
 			ok = 1;
 			for(i = 0; i < nw; i++){
-				ok &= setcolor(i, BGLONG(p), BGLONG(p+4), BGLONG(p+8));
+				ok &= setcolor(flipping ? ~i : i, BGLONG(p), BGLONG(p+4), BGLONG(p+8));
 				p += 12;
 				m -= 12;
 			}
@@ -1502,6 +1656,7 @@ bitwrite(Chan *c, void *va, long n, ulong offset)
 	poperror();
 	if(isoff)
 		cursoron(1);
+	screenupdate();
 	qunlock(&bit);
 	return n;
 }
@@ -1842,6 +1997,8 @@ Cursortocursor(Cursor *c)
 void
 cursoron(int dolock)
 {
+	if(cursor.disable)
+		return;
 	if(dolock)
 		lock(&cursor);
 	if(cursor.visible++ == 0){
@@ -1849,10 +2006,11 @@ cursoron(int dolock)
 		cursor.r.max = add(mouse.xy, Pt(16, 16));
 		cursor.r = raddp(cursor.r, cursor.offset);
 		gbitblt(&cursorback, Pt(0, 0), &gscreen, cursor.r, S);
-		gbitblt(&gscreen, add(mouse.xy, cursor.offset),
+		gbitblt(&gscreen, cursor.r.min,
 			&clr, Rect(0, 0, 16, 16), flipping? flipD[D&~S] : D&~S);
-		gbitblt(&gscreen, add(mouse.xy, cursor.offset),
+		gbitblt(&gscreen, cursor.r.min,
 			&set, Rect(0, 0, 16, 16), flipping? flipD[S|D] : S|D);
+		mbbrect(cursor.r);
 	}
 	if(dolock)
 		unlock(&cursor);
@@ -1861,10 +2019,15 @@ cursoron(int dolock)
 void
 cursoroff(int dolock)
 {
+	if(cursor.disable)
+		return;
 	if(dolock)
 		lock(&cursor);
-	if(--cursor.visible == 0)
+	if(--cursor.visible == 0) {
 		gbitblt(&gscreen, cursor.r.min, &cursorback, Rect(0, 0, 16, 16), S);
+		mbbrect(cursor.r);
+		mousescreenupdate();
+	}
 	if(dolock)
 		unlock(&cursor);
 }
@@ -1912,6 +2075,7 @@ mouseupdate(int dolock)
 	cursoroff(0);
 	mouse.xy = Pt(x, y);
 	cursoron(0);
+	mousescreenupdate();
 	mouse.dx = 0;
 	mouse.dy = 0;
 	mouse.clock = 0;
@@ -1925,12 +2089,62 @@ mouseupdate(int dolock)
 	}
 }
 
+/*
+ *  microsoft 3 button, 7 bit bytes
+ *
+ *	byte 0 -	1  L  R Y7 Y6 X7 X6
+ *	byte 1 -	0 X5 X4 X3 X2 X1 X0
+ *	byte 2 -	0 Y5 Y4 Y3 Y2 Y1 Y0
+ *	byte 3 -	0  M  x  x  x  x  x	(optional)
+ *
+ *  shift & right button is the same as middle button (for 2 button mice)
+ */
+int
+m3mouseputc(IOQ *q, int c)
+{
+	static uchar msg[3];
+	static int nb;
+	static int middle;
+	static uchar b[] = { 0, 4, 1, 5, 0, 2, 1, 5 };
+	short x;
+
+	USED(q);
+	/* 
+	 *  check bit 6 for consistency
+	 */
+	if(nb==0){
+		if((c&0x40) == 0){
+			/* an extra byte gets sent for the middle button */
+			middle = (c&0x20) ? 2 : 0;
+			mousebuttons((mouse.buttons & ~2) | middle);
+			return 0;
+		}
+	}
+	msg[nb] = c;
+	if(++nb == 3){
+		nb = 0;
+		mouse.newbuttons = middle | b[(msg[0]>>4)&3 | (mouseshifted ? 4 : 0)];
+		x = (msg[0]&0x3)<<14;
+		mouse.dx = (x>>8) | msg[1];
+		x = (msg[0]&0xc)<<12;
+		mouse.dy = (x>>8) | msg[2];
+		mouse.track = 1;
+		mouseclock();
+	}
+	return 0;
+}
+
+/*
+ *  Logitech 5 byte packed binary mouse format, 8 bit bytes
+ *
+ *  shift & right button is the same as middle button (for 2 button mice)
+ */
 int
 mouseputc(IOQ *q, int c)
 {
 	static short msg[5];
 	static int nb;
-	static uchar b[] = {0, 4, 2, 6, 1, 5, 3, 7};
+	static uchar b[] = {0, 4, 2, 6, 1, 5, 3, 7, 0, 2, 2, 6, 1, 5, 3, 7};
 
 	USED(q);
 	if((c&0xF0) == 0x80)
@@ -1939,7 +2153,7 @@ mouseputc(IOQ *q, int c)
 	if(c & 0x80)
 		msg[nb] |= ~0xFF;	/* sign extend */
 	if(++nb == 5){
-		mouse.newbuttons = b[(msg[0]&7)^7];
+		mouse.newbuttons = b[((msg[0]&7)^7) | (mouseshifted ? 8 : 0)];
 		mouse.dx = msg[1]+msg[3];
 		mouse.dy = -(msg[2]+msg[4]);
 		mouse.track = 1;
@@ -1954,4 +2168,134 @@ mousechanged(void *m)
 {
 	USED(m);
 	return mouse.changed;
+}
+
+/*
+ *  reverse pixels into little endian order
+ */
+uchar revtab0[] = {
+ 0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
+ 0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
+ 0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
+ 0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
+ 0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
+ 0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
+ 0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
+ 0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
+ 0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
+ 0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
+ 0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
+ 0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
+ 0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
+ 0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
+ 0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
+ 0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
+ 0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
+ 0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
+ 0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
+ 0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
+ 0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
+ 0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
+ 0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
+ 0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
+ 0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
+ 0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
+ 0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
+ 0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
+ 0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
+ 0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
+ 0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
+ 0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff,
+};
+uchar revtab1[] = {
+ 0x00, 0x40, 0x80, 0xc0, 0x10, 0x50, 0x90, 0xd0,
+ 0x20, 0x60, 0xa0, 0xe0, 0x30, 0x70, 0xb0, 0xf0,
+ 0x04, 0x44, 0x84, 0xc4, 0x14, 0x54, 0x94, 0xd4,
+ 0x24, 0x64, 0xa4, 0xe4, 0x34, 0x74, 0xb4, 0xf4,
+ 0x08, 0x48, 0x88, 0xc8, 0x18, 0x58, 0x98, 0xd8,
+ 0x28, 0x68, 0xa8, 0xe8, 0x38, 0x78, 0xb8, 0xf8,
+ 0x0c, 0x4c, 0x8c, 0xcc, 0x1c, 0x5c, 0x9c, 0xdc,
+ 0x2c, 0x6c, 0xac, 0xec, 0x3c, 0x7c, 0xbc, 0xfc,
+ 0x01, 0x41, 0x81, 0xc1, 0x11, 0x51, 0x91, 0xd1,
+ 0x21, 0x61, 0xa1, 0xe1, 0x31, 0x71, 0xb1, 0xf1,
+ 0x05, 0x45, 0x85, 0xc5, 0x15, 0x55, 0x95, 0xd5,
+ 0x25, 0x65, 0xa5, 0xe5, 0x35, 0x75, 0xb5, 0xf5,
+ 0x09, 0x49, 0x89, 0xc9, 0x19, 0x59, 0x99, 0xd9,
+ 0x29, 0x69, 0xa9, 0xe9, 0x39, 0x79, 0xb9, 0xf9,
+ 0x0d, 0x4d, 0x8d, 0xcd, 0x1d, 0x5d, 0x9d, 0xdd,
+ 0x2d, 0x6d, 0xad, 0xed, 0x3d, 0x7d, 0xbd, 0xfd,
+ 0x02, 0x42, 0x82, 0xc2, 0x12, 0x52, 0x92, 0xd2,
+ 0x22, 0x62, 0xa2, 0xe2, 0x32, 0x72, 0xb2, 0xf2,
+ 0x06, 0x46, 0x86, 0xc6, 0x16, 0x56, 0x96, 0xd6,
+ 0x26, 0x66, 0xa6, 0xe6, 0x36, 0x76, 0xb6, 0xf6,
+ 0x0a, 0x4a, 0x8a, 0xca, 0x1a, 0x5a, 0x9a, 0xda,
+ 0x2a, 0x6a, 0xaa, 0xea, 0x3a, 0x7a, 0xba, 0xfa,
+ 0x0e, 0x4e, 0x8e, 0xce, 0x1e, 0x5e, 0x9e, 0xde,
+ 0x2e, 0x6e, 0xae, 0xee, 0x3e, 0x7e, 0xbe, 0xfe,
+ 0x03, 0x43, 0x83, 0xc3, 0x13, 0x53, 0x93, 0xd3,
+ 0x23, 0x63, 0xa3, 0xe3, 0x33, 0x73, 0xb3, 0xf3,
+ 0x07, 0x47, 0x87, 0xc7, 0x17, 0x57, 0x97, 0xd7,
+ 0x27, 0x67, 0xa7, 0xe7, 0x37, 0x77, 0xb7, 0xf7,
+ 0x0b, 0x4b, 0x8b, 0xcb, 0x1b, 0x5b, 0x9b, 0xdb,
+ 0x2b, 0x6b, 0xab, 0xeb, 0x3b, 0x7b, 0xbb, 0xfb,
+ 0x0f, 0x4f, 0x8f, 0xcf, 0x1f, 0x5f, 0x9f, 0xdf,
+ 0x2f, 0x6f, 0xaf, 0xef, 0x3f, 0x7f, 0xbf, 0xff,
+};
+uchar revtab2[] = {
+ 0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70,
+ 0x80, 0x90, 0xa0, 0xb0, 0xc0, 0xd0, 0xe0, 0xf0,
+ 0x01, 0x11, 0x21, 0x31, 0x41, 0x51, 0x61, 0x71,
+ 0x81, 0x91, 0xa1, 0xb1, 0xc1, 0xd1, 0xe1, 0xf1,
+ 0x02, 0x12, 0x22, 0x32, 0x42, 0x52, 0x62, 0x72,
+ 0x82, 0x92, 0xa2, 0xb2, 0xc2, 0xd2, 0xe2, 0xf2,
+ 0x03, 0x13, 0x23, 0x33, 0x43, 0x53, 0x63, 0x73,
+ 0x83, 0x93, 0xa3, 0xb3, 0xc3, 0xd3, 0xe3, 0xf3,
+ 0x04, 0x14, 0x24, 0x34, 0x44, 0x54, 0x64, 0x74,
+ 0x84, 0x94, 0xa4, 0xb4, 0xc4, 0xd4, 0xe4, 0xf4,
+ 0x05, 0x15, 0x25, 0x35, 0x45, 0x55, 0x65, 0x75,
+ 0x85, 0x95, 0xa5, 0xb5, 0xc5, 0xd5, 0xe5, 0xf5,
+ 0x06, 0x16, 0x26, 0x36, 0x46, 0x56, 0x66, 0x76,
+ 0x86, 0x96, 0xa6, 0xb6, 0xc6, 0xd6, 0xe6, 0xf6,
+ 0x07, 0x17, 0x27, 0x37, 0x47, 0x57, 0x67, 0x77,
+ 0x87, 0x97, 0xa7, 0xb7, 0xc7, 0xd7, 0xe7, 0xf7,
+ 0x08, 0x18, 0x28, 0x38, 0x48, 0x58, 0x68, 0x78,
+ 0x88, 0x98, 0xa8, 0xb8, 0xc8, 0xd8, 0xe8, 0xf8,
+ 0x09, 0x19, 0x29, 0x39, 0x49, 0x59, 0x69, 0x79,
+ 0x89, 0x99, 0xa9, 0xb9, 0xc9, 0xd9, 0xe9, 0xf9,
+ 0x0a, 0x1a, 0x2a, 0x3a, 0x4a, 0x5a, 0x6a, 0x7a,
+ 0x8a, 0x9a, 0xaa, 0xba, 0xca, 0xda, 0xea, 0xfa,
+ 0x0b, 0x1b, 0x2b, 0x3b, 0x4b, 0x5b, 0x6b, 0x7b,
+ 0x8b, 0x9b, 0xab, 0xbb, 0xcb, 0xdb, 0xeb, 0xfb,
+ 0x0c, 0x1c, 0x2c, 0x3c, 0x4c, 0x5c, 0x6c, 0x7c,
+ 0x8c, 0x9c, 0xac, 0xbc, 0xcc, 0xdc, 0xec, 0xfc,
+ 0x0d, 0x1d, 0x2d, 0x3d, 0x4d, 0x5d, 0x6d, 0x7d,
+ 0x8d, 0x9d, 0xad, 0xbd, 0xcd, 0xdd, 0xed, 0xfd,
+ 0x0e, 0x1e, 0x2e, 0x3e, 0x4e, 0x5e, 0x6e, 0x7e,
+ 0x8e, 0x9e, 0xae, 0xbe, 0xce, 0xde, 0xee, 0xfe,
+ 0x0f, 0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f,
+ 0x8f, 0x9f, 0xaf, 0xbf, 0xcf, 0xdf, 0xef, 0xff,
+};
+
+void
+pixreverse(uchar *p, int len, int ldepth)
+{
+	uchar *e;
+	uchar *tab;
+
+	switch(ldepth){
+	case 0:
+		tab = revtab0;
+		break;
+	case 1:
+		tab = revtab1;
+		break;
+	case 2:
+		tab = revtab2;
+		break;
+	default:
+		return;
+	}
+
+	for(e = p + len; p < e; p++)
+		*p = tab[*p];
 }

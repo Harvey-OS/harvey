@@ -1,0 +1,41 @@
+</$objtype/mkfile
+
+TARG=acid
+OFILES=	main.$O\
+	y.tab.$O\
+	lex.$O\
+	util.$O\
+	exec.$O\
+	expr.$O\
+	list.$O\
+	builtin.$O\
+	access.$O\
+	dbif.$O\
+	proc.$O\
+	dot.$O\
+	print.$O\
+	mips.$O\
+	mipsdas.$O\
+	68020.$O\
+	68020das.$O\
+	sparc.$O\
+	sparcdas.$O\
+	386.$O\
+	386das.$O\
+	hobbit.$O\
+	hobbitdas.$O\
+
+YFILES=dbg.y
+HFILES=acid.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CFLAGS=-w
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+lex.$O:		y.tab.h
+util.$O:	y.tab.h
+builtin.$O:	y.tab.h
+main.$O:	y.tab.h

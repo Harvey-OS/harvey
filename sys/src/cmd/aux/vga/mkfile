@@ -1,0 +1,25 @@
+objtype=386
+BUILTINS=
+</$objtype/mkfile
+
+OFILES=vga.$O
+
+$O.out:	$OFILES
+	$LD $OFILES
+
+%.$O:	%.c
+	$CC $stem.c
+
+vga.$O:	pc/vga.h pc/common.c
+
+%.db$O:
+	$CC -o/dev/null -s$stem draw.c | dbfmt > $stem.db$O
+
+clean:V:
+	rm -f *.[$OS] *.db[$OS] [$OS].out
+
+install:V:	$O.out
+	cp $O.out /$objtype/bin/aux/nvga
+
+installall:V:
+	objtype=386 mk install

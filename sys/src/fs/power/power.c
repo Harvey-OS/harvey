@@ -207,9 +207,28 @@ nbits(ulong x)
 }
 
 void
+tlbinit(void)
+{
+	int i;
+	ulong phys;
+
+	for(i=0; i<NTLB; i++)
+		puttlbx(i, KZERO | PTEPID(i), 0);
+
+	/* Map cyclones */
+	phys = 0x30010000|PTEGLOBL|PTEVALID|PTEWRITE|PTEUNCACHED;
+	for(i=0; i<4; i++) {
+		puttlbx(i, KSEG2|(i*BY2PG), phys);
+		phys += 16*1024*1024;
+	}
+}
+
+void
 launchinit(void)
 {
 	int i;
+
+	tlbinit();
 
 	probeflag = 0;
 	for(i=1; i<conf.nmach; i++)
@@ -229,6 +248,7 @@ online(void)
 	lock(&active);
 	active.machs |= 1<<m->machno;
 	unlock(&active);
+	tlbinit();
 	clockinit();
 	schedinit();
 }

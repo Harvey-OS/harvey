@@ -469,13 +469,12 @@ vaddr(char *bp, Adres *a, int s)
 
 /* Quoted string printer */
 int
-qconv(void *o, int f1, int f2, int f3, int chr)
+qconv(void *o, Fconv *f)
 {
 	char buf[64], *b;
 	char *p;
 	int i;
 
-	USED(chr);
 	p = *((char**)o);
 	b = buf;
 	for(i = 0; i < 8; i++) {
@@ -488,18 +487,17 @@ qconv(void *o, int f1, int f2, int f3, int chr)
 			*b++ = *p++;
 	}
 	*b = '\0';
-	strconv(buf, f1, f2, f3);
+	strconv(buf, f);
 	return sizeof(p);
 }
 
 /* Instruction printer */
 int
-iconv(void *o, int f1, int f2, int f3, int chr)
+iconv(void *o, Fconv *f)
 {
 	Inst *i;
 	char c, buf[128];
 
-	USED(chr);
 	i = *((Inst **)o);
 
 	if(i->op == ADATA)
@@ -519,17 +517,16 @@ iconv(void *o, int f1, int f2, int f3, int chr)
 					&i->src1, c, i->reg, &i->dst);
 	}
 
-	strconv(buf, f1, f2, f3);
+	strconv(buf, f);
 	return sizeof(i);
 }
 
 int
-mconv(void *o, int f1, int f2, int f3, int chr)
+mconv(void *o, Fconv *f)
 {
 	Adres *adr;
 	char buf[128];
 
-	USED(chr);
 	adr = *((Adres **)o);
 
 	switch(adr->class) {
@@ -554,19 +551,18 @@ mconv(void *o, int f1, int f2, int f3, int chr)
 		break;
 	}
 
-	strconv(buf, f1, f2, f3);
+	strconv(buf, f);
 	return sizeof(adr);
 
 }
 
 /* Address syllable printer */
 int
-aconv(void *o, int f1, int f2, int f3, int chr)
+aconv(void *o, Fconv *f)
 {
 	char buf[128];
 	Adres *adr;
 
-	USED(chr);
 	adr = *((Adres **)o);
 	switch(adr->type) {
 	default:
@@ -626,7 +622,7 @@ aconv(void *o, int f1, int f2, int f3, int chr)
 		break;
 	}
 
-	strconv(buf, f1, f2, f3);
+	strconv(buf, f);
 	return sizeof(adr);
 }
 

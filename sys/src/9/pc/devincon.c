@@ -10,13 +10,22 @@
 
 /* Centronix parallel (printer) port */
 
-/* base addresses */
-static int lptbase[] = {
-	0x3bc,	/* lpt1 */
-	0x378,	/* lpt2 (sic) */
-	0x278	/* lpt3 (sic) */
+typedef struct Lptinfo	Lptinfo;
+
+struct Lptinfo
+{
+	int	base;		/* port number */
+	int	ivec;		/* interrupt number */
 };
-#define NDEV	(sizeof lptbase/sizeof lptbase[0])
+
+static Lptinfo lptinfo[] = {
+	0x3bc,	Parallelvec,	/* lpt1 (safari) */
+	0x378,	Parallelvec,	/* lpt1 (`official') */
+	0x278,	Int0vec+5,	/* lpt2 (`official') */
+};
+#define NDEV	(sizeof lptinfo/sizeof lptinfo[0])
+
+extern int	incondev;	/* from config */
 
 /* offsets, and bits in the registers */
 enum
@@ -471,7 +480,7 @@ inconreset(void)
 	 */
 /*	inconset(&incon[0], 3, 15); /**/
 	for(i=0; i<Nincon; i++){
-		incon[i].dev = lptbase[i];
+		incon[i].dev = lptinfo[incondev].base;
 		incon[i].state = Notliving;
 		reset(incon[i].dev);
 		incon[i].ri = incon[i].wi = 0;
@@ -496,7 +505,7 @@ inconattach(char *spec)
 	int i;
 	Chan *c;
 
-	setvec(Parallelvec, inconintr);
+	setvec(lptinfo[incondev].ivec, inconintr);
 	i = strtoul(spec, 0, 0);
 	if(i >= Nincon)
 		error(Ebadarg);
@@ -721,8 +730,7 @@ inconoput(Queue *q, Block *bp)
 	int dev;
 	Incon *ip;
 	ulong end;
-	int chan;
-	int ctl;
+	int status, chan, ctl;
 	int n, size;
 
 	ip = (Incon *)q->ptr;
@@ -764,8 +772,10 @@ inconoput(Queue *q, Block *bp)
 	if(chan<=0)
 		print("bad channel %d\n", chan);
 
-	if(incondebug)
+	if(incondebug){
+		kprint("0x%.2ux ", rdstatus(ip));
 		showpkt("->", chan, ctl, bp, 0);
+	}
 
 	/*
 	 *  make sure there's an incon out there
@@ -785,10 +795,10 @@ inconoput(Queue *q, Block *bp)
 		/*
 		 *  spin till there is room
 		 */
-		for(n=0, end = NOW+1000; rdstatus(ip) & TX_FULL; n++){
+		for(n=0, end = NOW+1000; (status=rdstatus(ip)) & TX_FULL; n++){
 			nop();	/* make sure we don't optimize too much */
 			if(NOW > end){
-				print("incon output stuck 0\n");
+				print("incon output stuck 0 %.2ux\n", status);
 				freemsg(q, bp);
 				qunlock(&ip->xmit);
 				return;
@@ -921,11 +931,11 @@ inconkproc(void *arg)
 		}
 
 		/*
-		 *  send blocks upstream and stage new blocks.  if the block is small
-		 *  (< 64 bytes) copy into a smaller buffer.
+		 *  send blocks upstream and stage new blocks.
 		 */
 		while(ip->ri != ip->wi){
 			bp = ip->inb[ip->ri];
+			bp->flags |= S_DELIM;
 			ip->in += BLEN(bp);
 			PUTNEXT(ip->rq, bp);
 			bp = ip->inb[ip->ri] = allocb(Bsize);

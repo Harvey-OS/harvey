@@ -1,7 +1,9 @@
 </$objtype/mkfile
 
-TARG=sendmail
-OFILES=message.$O\
+TARG=sendmail\
+	filter
+
+SMOBJ=message.$O\
 	main.$O\
 	bind.$O\
 	rewrite.$O\
@@ -12,13 +14,24 @@ OFILES=message.$O\
 	gateway.$O\
 	authorize.$O\
 
+FOBJ=filter.$O\
+	message.$O\
+	dest.$O\
+	log.$O\
+
 HFILES=send.h\
 
 LIB=../common/libcommon.a$O\
 	../libString/libString.a$O\
 
 BIN=/$objtype/bin/upas
-</sys/src/cmd/mkone
+</sys/src/cmd/mkmany
 CFLAGS=-w -I../common
 
 %.$O:	../common/common.h ../common/sys.h
+
+$O.sendmail: $SMOBJ
+	$LD -o $target $prereq $LIB
+
+$O.filter: $FOBJ
+	$LD -o $target $prereq $LIB

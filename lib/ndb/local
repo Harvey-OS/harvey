@@ -50,12 +50,12 @@ tcp=shell	port=514	restricted
 tcp=printer	port=515
 tcp=courier	port=530
 tcp=cscan	port=531
+tcp=9fs		port=564
+tcp=whoami	port=565
 tcp=fmclient	port=729
 tcp=ingreslock	port=1524
 tcp=Xdisplay	port=6000
 tcp=face	port=32000
-tcp=9fs		port=17008
-tcp=whoami	port=17025
 
 #
 #  il services

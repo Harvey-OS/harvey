@@ -439,7 +439,7 @@ addto(Sym *s, int d)
 	s->lstack = ls;
 }
 
-static void
+void
 insertenter(Prog *text, Prog *last)
 {
 	Prog *p;
@@ -476,17 +476,19 @@ bugs(void)
 	 * and give them a minimal stack-frame so the
 	 * unimplemented-instruction sequence doesn't
 	 * clobber the return pc.
+	 * also insert minimal stack if profiling.
 	 */
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT) {
 			if(state == 2)
 				insertenter(text, p);
+			state = 0;
 			if(p->to.offset == 0) {
 				state = 1;
 				text = p;
+				if(debug['p'] && text->from.width != W_B)
+					state = 2;
 			}
-			else
-				state = 0;
 		}
 		if(state == 1 && optab[p->as].type == TFLOT)
 			state = 2;

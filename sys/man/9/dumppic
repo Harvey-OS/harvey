@@ -1,6 +1,6 @@
 .TH DUMPPIC 9.1
 .SH NAME
-dumppic, face2pic, gif2pic, pcx2pic, picopic \- convert other formats to picture files
+dumppic, face2pic, gif2pic, nasa2pic, pcx2pic, picopic, utah2pic \- convert other formats to picture files
 .SH SYNOPSIS
 .B fb/dumppic
 .I input xsize ysize channels
@@ -13,6 +13,9 @@ dumppic, face2pic, gif2pic, pcx2pic, picopic \- convert other formats to picture
 .B fb/gif2pic
 .I file
 .PP
+.B fb/nasa2pic
+.I file
+.PP
 .B fb/pcx2pic
 [
 .B -r
@@ -23,6 +26,9 @@ dumppic, face2pic, gif2pic, pcx2pic, picopic \- convert other formats to picture
 .PP
 .B fb/picopic
 .I red green blue xsize ysize
+.PP
+.B fb/utah2pic
+.I file
 .SH DESCRIPTION
 .I Dumppic
 copies
@@ -61,6 +67,19 @@ dumps in scanline order of size
 reads a CompuServ GIF format picture from
 .I input
 and converts it to
+.IR picfile (9.6)
+format, written on standard output.
+.PP
+.I Nasa2pic
+reads a NASA satellite image and converts it to
+.IR picfile (9.6)
+format, written on standard output.
+It can decipher only images with a single 8-bit channel.
+NASA images typically have copious annotations in their
+headers; these are mostly lost.
+.PP
+.I Utah2pic
+reads a Utah format image and converts it to
 .IR picfile (9.6)
 format, written on standard output.
 .PP

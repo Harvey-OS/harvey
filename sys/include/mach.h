@@ -2,16 +2,19 @@
  *	Per-machine type data
  */
 #include "a.out.h"
-
 #pragma	lib	"libmach.a"
-
 /*
- *	Supported architectures: mips, 68020, i386, sparc, hobbit, i960 (sort of)
+ *	Supported architectures:
+ *		mips,
+ *		68020,
+ *		i386,
+ *		sparc,
+ *		hobbit,
+ *		i960 (limited)
  */
-
 enum
 {
-	MMIPS,		/* machine types */
+	MMIPS,			/* machine types */
 	MSPARC,
 	M68020,
 	MNEXT,
@@ -44,6 +47,14 @@ enum
 	AI8086,			/* oh god */
 	AI960,
 	AHOBBIT,
+				/* object file types */
+	Obj68020   = 0,		/* .2 */
+	ObjSparc   = 1,		/* .k */
+	ObjMips	   = 2,		/* .v */
+	ObjHobbit  = 3,		/* .z */
+	Obj386	   = 4,		/* .8 */
+	Obj960	   = 5,		/* .6 */
+	Maxobjtype = 6,
 
 	SEGNONE = -2,		/* file map segment names */
 	SEGANY	= -1,
@@ -53,33 +64,29 @@ enum
 	SEGREGS = 3,
 	MAXSEGS = 4,
 
-	CNONE = 0,		/* symbol table classes */
-	CAUTO = 1,
+	CNONE  = 0,		/* symbol table classes */
+	CAUTO  = 1,
 	CPARAM = 2,
-	CSTAB = 3,
-	CTEXT = 4,
-	CDATA = 5,
-	CANY = 6,		/* to look for any class */
+	CSTAB  = 3,
+	CTEXT  = 4,
+	CDATA  = 5,
+	CANY   = 6,		/* to look for any class */
 };
-
-
 /*
- * 	Executable file maps
+ * 	Structure to map a segment to a position in a file
  */
-
 typedef	struct map Map;
 
 struct map {
 	int	fd;			/* file descriptor associated with map */
 	struct {			/* per-segment map */
 		char	*name;		/* the segment name */
-		int	inuse;		/* in use/ not in use */
+		int	inuse;		/* in use - not in use */
 		ulong	b;		/* base */
 		ulong	e;		/* end */
 		ulong	f;		/* offset within file */
 	} seg[MAXSEGS];
 };
-
 /*
  *	machine register description
  */
@@ -88,14 +95,14 @@ typedef	struct reglist Reglist;
 struct reglist {
 	char	*rname;			/* register name */
 	short	roffs;			/* offset in u-block */
-	short	rfloat;			/* 0=>integer; 1=>float */
+	char	rfloat;			/* 0=>integer; 1=>float */
+	char	rformat;		/* print format: 'x', 'X', 'f', '8' */
 	ulong	rval;			/* current register value */
 };
-
 /*
  *	data describing generic machine characteristics
- *	defined in 68020.c, mips.c, sparc.c, ...
- *	setup in executable.c
+ *	defined in 2.c, v.c, k.c, 8.c, 6.c, z.c in /sys/src/libmach
+ *	set in executable.c
  */
 typedef	struct	Mach Mach;
 struct Mach{
@@ -106,6 +113,7 @@ struct Mach{
 	ulong	pc;			/* pc offset */
 	ulong	sp;			/* sp offset */
 	ulong	link;			/* link register offset */
+	ulong	retreg;			/* function return register */
 	int	firstwr;		/* first writable register */
 	int	pgsize;			/* page size */
 	ulong	kbase;			/* kernel base address: uarea */
@@ -127,7 +135,7 @@ struct Mach{
 extern	Mach	*mach;			/* Current machine */
 
 /*
- *	Per-machine interpretive data
+ *	Per-machine debugger support
  *
  */
 typedef	struct	machdata Machdata;
@@ -154,9 +162,8 @@ struct	machdata {
 };
 
 extern	Machdata 	*machdata;	/* in machine.c */
-
 /*
- *	idealized a.out header
+ *	Common a.out header describing all architectures
  */
 typedef struct Fhdr
 {
@@ -179,14 +186,13 @@ typedef struct Fhdr
 	long	lnpcsz;		/* size of line number-pc table */
 	long	lnpcoff;	/* size of line number-pc table */
 } Fhdr;
-
 /*
- *	A symbol table entry
+ *	Internal structure describing a symbol table entry
  */
 typedef struct symbol Symbol;
 
-struct symbol {		/* Internal symbol table entry */
-	void 	*handle;		/* used internally - owning fn */
+struct symbol {
+	void 	*handle;		/* used internally - owning func */
 	struct {
 		char	*name;
 		long	value;		/* address or stack offset */
@@ -196,9 +202,7 @@ struct symbol {		/* Internal symbol table entry */
 };
 
 extern	int	asstype;		/* dissembler type - machine.c */
-
 extern	char	*symerror;		/* symbol table error message */
-
 
 ushort		beswab(ushort);
 long		beswal(long);
@@ -206,14 +210,16 @@ int		crackhdr(int fd, Fhdr *fp);
 long		file2pc(char *, ulong);
 int		fileelem(Sym **, uchar *, char *, int);
 int		fileline(char *, int, ulong);
+int		filesym(int, char*, int);
 int		findlocal(Symbol *, char *, Symbol *);
 int		findsym(long, int, Symbol *);
 int		getauto(Symbol *, int, int, Symbol *);
 Sym*		getsym(int);
 int		globalsym(Symbol *, int);
+int		isar(Biobuf*);
 ushort		leswab(ushort);
 long		leswal(long);
-long		line2addr(ulong, ulong);
+long		line2addr(ulong, ulong, ulong);
 Map*		loadmap(Map *, int, Fhdr *);
 int		localsym(Symbol *, int);
 int		lookup(char *, char *, Symbol *);
@@ -221,13 +227,19 @@ void		machbytype(int);
 int		machbyname(char *);
 int		mget(Map *, int, ulong, char*, int);
 int		mput(Map *, int, ulong, char*, int);
+int		nextar(Biobuf*, int, char*);
 Map*		newmap(Map *, int);
+Sym*		objbase(long*);
+void		objreset(void);
+Sym*		objsym(int);
+int		objtype(Biobuf*);
 long		pc2sp(ulong);
 long		pc2line(ulong);
 long		_round(long, long);
+int		readar(Biobuf*, int, int);
+int		readobj(Biobuf*, int);
 int		setmap(Map *, int, ulong, ulong, ulong);
 Sym*		symbase(long *);
 int		syminit(int, Fhdr *);
 int		textsym(Symbol*, int);
 void		unusemap(Map *, int);
-

@@ -12,7 +12,7 @@ int	hangup(int ctl)
 int	announce(char *addr, char *dir)
 .PP
 .B
-int	listen(char *dir, char *dir)
+int	listen(char *dir, char *newdir)
 .PP
 .B
 int	accept(int ctl, char *dir)
@@ -146,7 +146,7 @@ returns an open
 .B ctl
 file for the line the call was received on.
 It sets
-.I dir
+.I newdir
 to the path name of the new line directory.
 .I Accept
 accepts a call received by
@@ -212,7 +212,7 @@ bekremvax(void)
 		/* fork a process to echo */
 		switch(fork()){
 		case -1:
-			perror("forking\n");
+			perror("forking");
 			close(lcfd);
 			break;
 		case 0:

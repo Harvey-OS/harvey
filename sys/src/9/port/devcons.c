@@ -383,9 +383,9 @@ int
 readnum(ulong off, char *buf, ulong n, ulong val, int size)
 {
 	char tmp[64];
-	Op op = (Op){ tmp, tmp+sizeof(tmp), &val, size-1, 0, FUNSIGN|FLONG };
+	Fconv fconv = (Fconv){ tmp, tmp+sizeof(tmp), size-1, 0, 0, 'd' };
 
-	numbconv(&op, 10);
+	numbconv(&val, &fconv);
 	tmp[size-1] = ' ';
 	if(off >= size)
 		return 0;

@@ -11,7 +11,7 @@ dev
 	dup	d
 	bit	b
 	port	x
-	scsi	S	scsi scsisubs
+	scsi	S	scsi scsisubs scsibuf
 	wren	w
 	duart	t
 	isdn	I
@@ -40,4 +40,4 @@ boot
 	19200
 	local
 	incon "config 1 16 restart dk"
-	bri "config 1 16 restart dk"
+	bri "/tmp/brilog;config 1 16 restart dk"

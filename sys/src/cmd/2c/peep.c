@@ -332,7 +332,7 @@ setcc(Prog *p, Prog *rp)
 	return 0;
 
 areg:
-	if(rp->to.type == p->to.type)
+	if((rp->to.type&D_MASK) == p->to.type)
 		return 0;
 	return -1;
 }

@@ -23,7 +23,7 @@ clean:V:
 	for(i in $CONFLIST)
 		rm -f $i.c 9$i boot$i.*
 
-%.$O:	u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h
+%.$O:	u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h devtab.h
 
 fcall.$O: ../port/fcall.c
 	$CC $CFLAGS ../port/fcall.c

@@ -8,6 +8,7 @@ ipconfig, arpd \- Internet configuration
 .IR etherdev ]
 .RB [ -m
 .IR ip-mask ]
+.RB [ ipaddr ]
 .PP
 .B ip/arpd
 .RB [ -pd ]
@@ -36,6 +37,11 @@ use the Ethernet mounted at
 .B m
 set the network mask to
 .I ip-mask
+.LP
+If
+.I ipaddr
+is specified on the command line, use that instead of
+one found int the local database or via the Bootp protocol.
 .PP
 .I Arpd
 performs the Internet Address Resolution Protocol, translating

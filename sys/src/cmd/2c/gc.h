@@ -248,13 +248,13 @@ void	sugen(Node*, int, Node*, long);
 
 
 void	listinit(void);
-int	Bconv(void*, int, int, int, int);
-int	Pconv(void*, int, int, int, int);
-int	Aconv(void*, int, int, int, int);
-int	Xconv(void*, int, int, int, int);
-int	Dconv(void*, int, int, int, int);
-int	Rconv(void*, int, int, int, int);
-int	Sconv(void*, int, int, int, int);
+int	Bconv(void*, Fconv*);
+int	Pconv(void*, Fconv*);
+int	Aconv(void*, Fconv*);
+int	Xconv(void*, Fconv*);
+int	Dconv(void*, Fconv*);
+int	Rconv(void*, Fconv*);
+int	Sconv(void*, Fconv*);
 
 void	peep(void);
 void	excise(Reg*);
@@ -360,5 +360,5 @@ Bits	band(Bits, Bits);
 Bits	bnot(Bits);
 int	bany(Bits*);
 int	bnum(Bits);
-Bits	blsh(int);
+Bits	blsh(unsigned);
 int	beq(Bits, Bits);

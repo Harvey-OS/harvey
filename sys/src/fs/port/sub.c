@@ -1118,7 +1118,6 @@ devinit(Device d)
 		break;
 
 	case Devworm:
-		worminit(d);
 		break;
 
 	case Devfworm:

@@ -1,7 +1,8 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
+#include <mach.h>
 #include "../boot/boot.h"
-#include "mach.h"
 
 typedef struct Net	Net;
 typedef struct Flavor	Flavor;

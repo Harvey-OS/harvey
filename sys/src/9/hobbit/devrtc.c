@@ -30,7 +30,7 @@ static Dirtab rtcdir[] = {
 	"rtc",		{ Qrtc, 0 },	0,	0666,
 	"nvram",	{ Qnvram, 0 },	0,	0666,
 };
-#define	NRTC	(sizeof(rtcdir)/sizeof(rtcdir[0]))
+#define	NRTC		(sizeof(rtcdir)/sizeof(rtcdir[0]))
 
 #define bcd2dec(bcd)	(((((bcd)>>4) & 0x0F) * 10) + ((bcd) & 0x0F))
 #define dec2bcd(dec)	((((dec)/10)<<4)|((dec)%10))
@@ -52,7 +52,7 @@ static int ldmsize[] = {
 /*
  * return the days/month for the given year
  */
-static int *
+static int*
 yrsize(int yr)
 {
 	if((yr % 4) == 0)
@@ -76,7 +76,7 @@ sec2rtc(ulong secs, Rtc *rtc)
 	 */
 	hms = secs % SEC2DAY;
 	day = secs / SEC2DAY;
-	if(hms < 0) {
+	if(hms < 0){
 		hms += SEC2DAY;
 		day -= 1;
 	}
@@ -230,12 +230,14 @@ rtcopen(Chan *c, int omode)
 {
 	omode = openmode(omode);
 	switch(c->qid.path){
+
 	case Qrtc:
-		if(strcmp(u->p->user, eve)!=0 && omode!=OREAD)
+		if(strcmp(u->p->user, eve) && omode != OREAD)
 			error(Eperm);
 		break;
+
 	case Qnvram:
-		if(strcmp(u->p->user, eve)!=0 || !cpuserver)
+		if(strcmp(u->p->user, eve) || cpuserver == 0)
 			error(Eperm);
 	}
 	return devopen(c, omode, rtcdir, NRTC, devgen);

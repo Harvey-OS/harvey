@@ -15,8 +15,12 @@ enum
 	LEDfault=	1<<6,
 	LEDpulse=	1<<7,
 };
+/*
 #define LEDON(x) 	(m->ledval &= ~(x), *LED = m->ledval)
 #define LEDOFF(x) 	(m->ledval |= (x), *LED = m->ledval)
+*/
+#define LEDON(x)
+#define LEDOFF(x)
 
 typedef struct SBCC	SBCC;
 typedef struct Timer	Timer;
@@ -62,6 +66,15 @@ struct SBCC
 #define LANCEID		IO2(ushort, 0xFF0002)
 #define	WRITEMAP	IO2(ulong, 0xFA0000)
 #define LANCEINDEX	0x1E00			/* index of lancemap */
+
+#define SCSI0ADDR	IO2(uchar, 0xF08007)
+#define SCSI0DATA	IO2(uchar, 0xF08107)
+#define SCSI1ADDR	IO2(uchar, 0xF0C007)
+#define SCSI1DATA	IO2(uchar, 0xF0C107)
+#define SCSI0CNT	IO2(ulong, 0xF54000)
+#define SCSI1CNT	IO2(ulong, 0xF58000)
+#define SCSI0FLS	IO2(uchar, 0xF30001)
+#define SCSI1FLS	IO2(uchar, 0xF34001)
 
 #define IOID		IO2(uchar, 0xFFFFF0)
 #define IO2R1		1	/* IO2 revision level 1 */

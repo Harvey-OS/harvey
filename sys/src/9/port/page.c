@@ -5,8 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-#define PGHFUN(x, y)	(((ulong)x^(ulong)y)%PGHSIZE)
-#define	pghash(s)	palloc.hash[PGHFUN(s->image, p->daddr)]
+#define	pghash(daddr)	palloc.hash[(daddr>>PGSHIFT)&(PGHSIZE-1)]
 
 static	Lock pglock;
 struct	Palloc palloc;
@@ -113,7 +112,7 @@ retry:
 	unlock(&palloc);
 
 	lock(p);
-	if(p->ref != 0) {			/* lookpage has priority on steal */
+	if(p->ref != 0) {	/* lookpage has priority on steal */
 		unlock(p);
 		goto retry;
 	}
@@ -177,7 +176,7 @@ putpage(Page *p)
 			p->prev = 0;
 		}
 
-		palloc.freecount++;		/* Release people waiting for memory */
+		palloc.freecount++;	/* Release people waiting for memory */
 		unlock(&palloc);
 	}
 	unlock(p);
@@ -220,13 +219,13 @@ duppage(Page *p)				/* Always call with p locked */
 		return;
 	}
 
-	np = palloc.head;			/* Allocate a new page from freelist */
-	if(palloc.head = np->next)		/* = Assign */
+	np = palloc.head;		/* Allocate a new page from freelist */
+	if(palloc.head = np->next)	/* = Assign */
 		palloc.head->prev = 0;
 	else
 		palloc.tail = 0;
 
-	if(palloc.tail) {			/* Link back onto tail to give us lru */
+	if(palloc.tail) {		/* Link back onto tail to give us lru */
 		np->prev = palloc.tail;
 		palloc.tail->next = np;
 		np->next = 0;
@@ -268,7 +267,7 @@ copypage(Page *f, Page *t)
 }
 
 void
-uncachepage(Page *p)				/* Always called with a locked page */
+uncachepage(Page *p)			/* Always called with a locked page */
 {
 	Page **l, *f;
 
@@ -276,7 +275,7 @@ uncachepage(Page *p)				/* Always called with a locked page */
 		return;
 
 	lock(&palloc.hashlock);
-	l = &pghash(p);
+	l = &pghash(p->daddr);
 	for(f = *l; f; f = f->hash) {
 		if(f == p) {
 			*l = p->hash;
@@ -294,10 +293,18 @@ cachepage(Page *p, Image *i)
 {
 	Page **l;
 
+	/* If this ever happens it should be fixed by calling
+	 * uncachepage instead of panic. I think there is a race
+	 * with pio in which this can happen. Calling uncachepage is
+	 * correct - I just wanted to see if we got here.
+	 */
+	if(p->image)
+		panic("cachepage");
+
 	incref(i);
 	lock(&palloc.hashlock);
 	p->image = i;
-	l = &pghash(p);
+	l = &pghash(p->daddr);
 	p->hash = *l;
 	*l = p;
 	unlock(&palloc.hashlock);
@@ -309,7 +316,7 @@ cachedel(Image *i, ulong daddr)
 	Page *f, **l;
 
 	lock(&palloc.hashlock);
-	l = &palloc.hash[PGHFUN(i, daddr)];
+	l = &pghash(daddr);
 	for(f = *l; f; f = f->hash) {
 		if(f->image == i && f->daddr == daddr) {
 			*l = f->hash;
@@ -326,7 +333,7 @@ lookpage(Image *i, ulong daddr)
 	Page *f;
 
 	lock(&palloc.hashlock);
-	for(f = palloc.hash[PGHFUN(i, daddr)]; f; f = f->hash) {
+	for(f = pghash(daddr); f; f = f->hash) {
 		if(f->image == i && f->daddr == daddr) {
 			unlock(&palloc.hashlock);
 

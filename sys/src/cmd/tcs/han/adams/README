@@ -1,0 +1,81 @@
+This file comes from glenn adams:
+	A while ago, I placed a number of mappings tables from various Asian
+	character sets (CNS, BIG5, JIS, GB, KSC, etc) onto anonymous FTP on
+	METIS.COM [140.186.33.40].  See /pub/csmaps.  These tables have not
+	only the Han character mappings, but the non-Han mappings as well.
+---------------------------------------------------------------------------
+
+File Name:		README
+Description:		Overview of Character Set Mappings to Unicode
+Last Changed:		Fri Oct 16, 1992 at 00:52:33
+Modification History:   09/16/92 Created
+			10/01/92 Add non-Han mappings to BIG5
+			10/16/92 Update/Add KSC5601 mappings after verifying
+			--       against IBM Japan mappings; remove bogus
+			--       CNS11643 mappings.
+
+Character set mappings to Unicode Version 1.0 are available in the following
+files in (UN*X) compressed form:
+
+  big5.Z		- Taiwanese BIG5 Character Set
+  cns11643.Z		- Chinese National Standard 11643 (1986)
+  gb2312.Z		- PRC Chinese Standard 2312 (1980)
+  hproc16.Z		- Hewlett-Packard Series 9000 Taiwanese Character Set
+  ibm5550.Z		- IBM Taiwanese Character Set
+  jis208.Z		- Japanese Industrial Standard 0X208 (1983)
+  ksc5601.Z		- Korean National Standard 5601 (1987)
+
+Notes:
+
+1. The mapping files are compressed using the standard UN*X compress
+   program; they must be transferred by FTP in binary mode.  If you
+   can't uncompress them, send me mail and I can arrange to uncompress
+   them temporarily.
+2. The first column is the source charset, the second column is UNICODE.
+3. All KSC5601 mappings have been cross checked against a similar mapping
+   produced by IBM Japan.  The mappings were verified as identical except
+   for the following:
+
+    # KSC        IBM     METIS
+    0x2124	0x00b7	0x30fb
+    0x2129	0x00ad	0x2013
+    0x212a	0x2015	0x2014
+    0x212b	0x2225	0x2016
+    0x212d	0x223c	0xff5e
+    0x214b	0xffe0	0x00a2
+    0x214c	0xffe1	0x00a3
+    0x214d	0xffe5	0x00a5
+    0x216c	0x226a	0x00ab
+    0x216d	0x226b	0x00bb
+    0x217e	0xffe2	0x00ac
+    0x2226	0xff5e	0x02dc
+    0x2230	0x02d0	0x2236
+    0x2241	0x2299	0x25c9
+    0x235c	0xffe6	0x20a9
+    0x237e	0xffe3	0x203e
+
+4. The IBM5550 map currently contains only the Han character mappings, and not
+   any non-Han character mappings.
+5. CNS11643 separately encodes radicals which are not maintained distinctly
+   in Unicode; these entries have an ASTERISK in the second column.  They
+   could be unified with the non-radical Han characters of the same shape.
+   A small number of other characters have not yet been mapped; these too
+   have an asterisk in the second column.
+6. HPROC16 is used on Hewlett Packard 9000 series in Taiwan; it is
+   essentially a transformed Chinese Telegraph Code, containing both level
+   one and level two CCTC codes.  This mapping is incomplete.  Only those
+   characters which are also present in BIG5 have mappings.  Of the characters
+   mapped, three are duplicates, and are marked with a third column beginning
+   with an '#' character.
+7. The unicode mappings conform to the published volumes; any changes which
+   were caused by the 10646 merger have not yet been reflected in these
+   tables.
+
+If you use these tables, please inform me of any errors or discrepancies you
+encounter.  The process of creating mappings is not always straightforward;
+e.g., in CNS11643, there are some pretty questionable characters with little
+known semantics.  In these cases, I chose the best Unicode character I could
+find at the time.
+
+Glenn Adams
+<glenn@metis.com>

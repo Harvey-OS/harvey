@@ -279,9 +279,8 @@ asyncoput(Queue *q, Block *bp)
 	 *  one control byte
 	 */
 	msg = pullup(bp, 3);
-	if(BLEN(msg) < 3){
+	if(msg == 0){
 		print("asyncoput msglen < 3\n");
-		freeb(bp);
 		return;
 	}
 	chan = msg->rptr[0] | (msg->rptr[1]<<8);

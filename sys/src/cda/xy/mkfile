@@ -1,0 +1,16 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=xydraw\
+	xymash\
+
+</sys/src/cmd/mkmany
+CFLAGS=-DPLAN9
+XYSUBS=xyread.$O xyborder.$O clump.$O sym.$O lex.$O
+
+$O.xydraw: xydraw.$O display.$O $XYSUBS
+$O.xymash: xymash.$O gerber.$O hershey.$O jlbqsort.$O $XYSUBS
+%.$O:	dat.h fns.h
+
+test: $O.xymash
+	$O.xymash -l LG centcon.xy >LG.lgr

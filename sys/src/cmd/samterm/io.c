@@ -13,12 +13,16 @@ int	kbdc;
 int	reshaped;
 uchar	*hostp;
 uchar	*hoststop;
+uchar	*externbase;
+uchar	*externp;
+uchar	*externstop;
 void	panic(char*);
 
 void
 initio(void){
 	einit(Emouse|Ekeyboard);
 	estart(Ehost, 0, 0);
+	extstart();
 }
 
 void
@@ -36,7 +40,7 @@ mouseunblock(void)
 void
 kbdblock(void)
 {		/* ca suffit */
-	block = Ekeyboard;
+	block = Ekeyboard|Eextern;
 }
 
 int
@@ -44,6 +48,18 @@ button(int but)
 {
 	frgetmouse();
 	return mouse.buttons&(1<<(but-1));
+}
+
+void
+externload(Event *e)
+{
+	externbase = malloc(e->n);
+	if(externbase == 0)
+		return;
+	memmove(externbase, e->data, e->n);
+	externp = externbase;
+	externstop = externbase + e->n;
+	got |= Eextern;
 }
 
 int
@@ -60,6 +76,9 @@ waitforio(void)
 		hostp = e.data;
 		hoststop = hostp + e.n;
 		block = 0;
+		break;
+	case Eextern:
+		externload(&e);
 		break;
 	case Ekeyboard:
 		kbdc = e.kbdc;
@@ -107,15 +126,45 @@ getch(void)
 }
 
 int
+externchar(void)
+{
+	Rune r;
+
+    loop:
+	if(got & (Eextern & ~block)){
+		externp += chartorune(&r, (char*)externp);
+		if(externp >= externstop){
+			got &= ~Eextern;
+			free(externbase);
+		}
+		if(r == 0)
+			goto loop;
+		return r;
+	}
+	return -1;
+}
+
+int
 kbdchar(void)
 {
 	int c;
+	static Event e;
 
+	c = externchar();
+	if(c > 0)
+		return c;
 	if(got & Ekeyboard){
 		c = kbdc;
 		kbdc = -1;
 		got &= ~Ekeyboard;
 		return c;
+	}
+	while(ecanread(Eextern)){
+		eread(Eextern, &e);
+		externload(&e);
+		c = externchar();
+		if(c > 0)
+			return c;
 	}
 	if(!ecankbd())
 		return -1;

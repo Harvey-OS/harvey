@@ -6,7 +6,8 @@
 
 enum
 {
-	SystemResetpc	= 0xF0C00048,	/* NB. These addresses are known to the rom ! */
+	/* NB. These addresses are known to the rom ! */
+	SystemResetpc	= 0xF0C00048,	
 	SystemPrcb	= 0xFFFFFF30,
 	Resetreq	= 3<<8,
 };
@@ -22,8 +23,9 @@ main(void)
 	duartinit();
 	
 	memset(COMM, 0, sizeof(Comm));
+	COMM->vmevec = 0xd2;	/* default */
 
-	print("Cyclone VME-fibre.\nversion %d\n", DATE);
+	print("Cyclone VME-fibre.\nversion %d A32 space\n", DATE);
 	print("end=0x%lux com=0x%lux buf=0x%d\n", end, COMM, NBUF);
 
 	for(i=0; i<NBUF; i++) {
@@ -53,7 +55,11 @@ exits(char *s)
 	int i;
 
 	print("exits: %s\n", s);
+
+	i = COMM->vmevec;
 	memset(COMM, 0, sizeof(Comm));
+	COMM->vmevec = i;
+
 	for(i=0; i<NBUF; i++) {
 		b.mesg[i].next = b.freebuflist;
 		b.freebuflist = &b.mesg[i];
@@ -70,7 +76,7 @@ void
 runvme(void)
 {
 	Mesg *m;
-	ulong u, s, p, fu, fu1;
+	ulong u, s, p, fu;
 	long i, c;
 
 loop:
@@ -104,7 +110,7 @@ loop:
 
 	case Ureset:
 		/* vmeUreset */
-		print("v reset u=%.8lux\n", u);
+		print("v reset u=%.8lux VEC %.2lux\n", u, COMM->vmevec);
 
 		memset(COMM->replyq, 0, sizeof(COMM->replyq));
 		COMM->replyp = 0;
@@ -280,7 +286,7 @@ void
 runsql(void)
 {
 	Mesg *m, *om;
-	ulong u, ha, s;
+	ulong u, s;
 	long c, t, n;
 
 	if(FIFOE)
@@ -553,8 +559,6 @@ void
 initvme(void)
 {
 	Vic *v;
-	ulong *p;
-	ulong u;
 
 	print("vic init\n");
 
@@ -562,9 +566,9 @@ initvme(void)
 	v->lbtr   = 0x49;	/* Local bus time */
 	v->ttor   = 0xFE;	/* 512uS bus time out */
 	v->iconf  = 0x44;
-	v->ss0cr0 = 0x32;	/* A32 mode, Supervisor access only */
+	v->ss0cr0 = 0x12;
 	v->ss0cr1 = 0x30;
-	v->ss1cr0 = 0x36;	/* A24 mode, Supervisor access only */
+	v->ss1cr0 = 0x16;
 	v->ss1cr1 = 0x30;
 	v->rcr    = 0x00;
 	v->amsr   = 0x8b;
@@ -583,7 +587,7 @@ void
 initsql(void)
 {
 	Taxi *t;
-	ulong i, r;
+	ulong i;
 
 	t = SQL;
 

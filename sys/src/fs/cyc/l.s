@@ -1,5 +1,3 @@
-#define	Blockvf
-#define	Blockfv
 #define NOP		MOV	R3,R3
 
 TEXT	_main(SB), $-4

@@ -206,7 +206,7 @@ pio(Segment *s, ulong addr, ulong soff, Page **p)
 		poperror();
 		kunmap(k);
 		qlock(&s->lk);
-		if(*p == 0) { 			/* Someone may have got there first */
+		if(*p == 0) { 		/* Someone may have got there first */
 			new->daddr = daddr;
 			cachepage(new, s->image);
 			*p = new;
@@ -214,7 +214,7 @@ pio(Segment *s, ulong addr, ulong soff, Page **p)
 		else 
 			putpage(new);
 	}
-	else {					/* This is paged out */
+	else {				/* This is paged out */
 		c = swapimage.c;
 
 		if(waserror()) {

@@ -104,14 +104,17 @@ main(int argc, char *argv[])
 	/* Clean up */
 	remove("/srv/dns");
 	unmount("/net/dns", "/net");
+	dbinit();
 	dninit();
-	if(serve)
-		dnserver();
 
 	mountinit("#s/dns");
 
 	switch(fork()){
 	case 0:
+		syslog(1, "dns", "started%s%s", serve?" serving":"",
+			debug?" debuging":"");
+		if(serve)
+			dnserver();
 		io();
 		exits(0);
 		break;
@@ -143,7 +146,7 @@ mountinit(char *service)
 		f = create(service, 1, 0666);
 		if(f < 0)
 			fatal(service);
-		sprint(buf, "%d", p[1]);
+		snprint(buf, sizeof(buf), "%d", p[1]);
 		if(write(f, buf, strlen(buf)) != strlen(buf))
 			fatal("write %s", service);
 		close(f);
@@ -218,10 +221,10 @@ io(void)
 	if(rhp->fid<0)
 		fatal("fid out of range");
 	mf = newfid(rhp->fid);
-	if(debug)
+/*	if(debug)
 		fprint(2, "msg: %d %s on %d mf = %lux\n", rhp->type,
 			mname[rhp->type]? mname[rhp->type] : "mystery",
-			rhp->fid, mf);
+			rhp->fid, mf); /**/
 	mf->tag = rhp->tag;
 	switch(rhp->type){
 	default:
@@ -460,7 +463,7 @@ rread(Mfile *mf)
 		n = 0;
 		thp->data = buf;
 		for(rp = mf->rp; rp && rp->type == mf->type ; rp = rp->next){
-			len = sprint(buf, "%R", rp);
+			len = snprint(buf, sizeof(buf), "%R", rp);
 			if(toff + len > off){
 				toff = off - toff;
 				if(cnt > len - toff)
@@ -584,7 +587,7 @@ sendmsg(char *err)
 
 	if(err){
 		thp->type = Rerror;
-		sprint(thp->ename, "dns: %.*s", ERRLEN-5, err);
+		snprint(thp->ename, sizeof(thp->ename), "dns: %s", err);
 	}else{
 		thp->type = rhp->type+1;
 		thp->fid = rhp->fid;
@@ -613,6 +616,17 @@ mygetfields(char *lp, char **fields, int n, char sep)
 			lp++;
 	}
 	return i;
+}
+
+void
+warning(char *fmt, ...)
+{
+	int n;
+	char dnserr[128];
+
+	n = doprint(dnserr, dnserr+sizeof(dnserr), fmt, &fmt+1) - dnserr;
+	dnserr[n] = 0;
+	syslog(1, "dns", dnserr);
 }
 
 void

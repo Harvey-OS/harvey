@@ -26,7 +26,7 @@ tree(Term *exp, int n)
 		return ZERO;
 	if (n == 1)
 		return andtree(exp, nbits(exp->mask));
-	if (!mflag)
+	if (mflag == 0)		/* total wimp out */
 		return ortree(exp, n);
 	/* check for easy factors first */
 	for (i = 0, mask = ONES; i < n; i++) {
@@ -127,7 +127,7 @@ ortree(Term *exp, int n)
 	Term temp;
 	if (n == 1)
 		return andtree(exp, nbits(exp->mask));
-	if (mflag && n == 2)
+	if (mflag > 1 && n == 2)
 		return muxnode(andtree(exp, nbits(exp->mask)),
 			andtree(exp+1, nbits(exp[1].mask)), ONE);
 	if (!kflag)
@@ -162,6 +162,7 @@ ortree(Term *exp, int n)
 			exp[i] = temp;
 			i--;
 		}
+	if (mid > 0)
 	return ornode(tree(exp, mid), tree(exp+mid, n-mid));
 skippit:
 	for (d = 1; mflag && d*4 < n; d *= 4)
@@ -201,6 +202,8 @@ andtree(Term *exp, int n)
 		exp->mask &= ~u;
 		return termid(u, (exp->value&u) ? 0 : 1);
 	}
+	if (mflag > 1 && n == 2)
+		return muxnode(andtree(exp, 1), ZERO, andtree(exp, 1));
 	/* height balance if mflag */
 	for (d = 1; mflag && d*3 < n; d *= 3)
 		;

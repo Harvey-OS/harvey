@@ -133,19 +133,13 @@ char*
 lower(char *s)
 {
 	char *t;
-	int w;
-	Rune r;
 
+		/* we assume the 'A'-'Z' only appear as themselves
+		 * in a utf encoding.
+		 */
 	if(iflag)
-		for(t=s; r=*t; t+=w){
-			if(r < Runeself)
-				w = 1;
-			else
-				w = chartorune(&r, t);
-			r = tolower(r);
-			if(runetochar(t, &r) != w)
-				regerror("rune incomprehensible");
-		}
+		for (t = s; *t; t++)
+			*t = tolower(*t);
 	return s;
 }
 

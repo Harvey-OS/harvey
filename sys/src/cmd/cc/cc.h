@@ -337,12 +337,12 @@ Sym*	slookup(char*);
 void	syminit(Sym*);
 void	unget(int);
 long	yylex(void);
-int	Lconv(void*, int, int, int, int);
-int	Tconv(void*, int, int, int, int);
-int	Fconv(void*, int, int, int, int);
-int	Oconv(void*, int, int, int, int);
-int	Qconv(void*, int, int, int, int);
-int	VBconv(void*, int, int, int, int);
+int	Lconv(void*, Fconv*);
+int	Tconv(void*, Fconv*);
+int	FNconv(void*, Fconv*);
+int	Oconv(void*, Fconv*);
+int	Qconv(void*, Fconv*);
+int	VBconv(void*, Fconv*);
 
 /*
  * mac.c

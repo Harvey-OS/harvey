@@ -149,10 +149,10 @@ main(int argc, char * argv[])
 				but1();
 			}
 			else if (mouse.buttons&2) {
-				menu2();
+				menu2(&mouse);
 			}
 			else if (mouse.buttons&4){
-				menu3();
+				menu3(&mouse);
 			}
 			break;
 		case  Ekeyboard:
@@ -234,7 +234,9 @@ void
 bye(void)
 {
 	char buf[100];
-	getline("ok? :" , buf);
+
+	buf[0] = 0;
+	getline("really exit? ", buf);
 	if(buf[0] == 'y')  {
 		put1(EXIT);
 		exits((char *) 0);

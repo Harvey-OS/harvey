@@ -37,7 +37,7 @@ Dev	devtab[]={
 echo '};'
 ../port/mkextract dev 0 $* | awk '
 	BEGIN{
-		printf "char *devchar=\"" }
+		printf "Rune *devchar=L\"" }
 	{	printf "%s", $2 }
 	END{	printf "\";\n"
 	 }

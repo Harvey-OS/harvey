@@ -5,7 +5,7 @@
 #define	SLONG(q)	p[0] = (q); p[1] = (q)>>8; p[2] = (q)>>16; p[3] = (q)>>24; p += 4
 #define	LONG(x)		SLONG(f->x)
 #define	VLONG(x)	SLONG(f->x); p += 4
-#define	STRING(x,n)	memcpy(p, f->x, n); p += n
+#define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 int
 convS2M(Fcall *f, char *ap)
@@ -252,7 +252,7 @@ convD2M(Dentry *f, char *ap)
 #define	SLONG(q)	q = (p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24)); p += 4
 #define	LONG(x)		SLONG(f->x)
 #define	VLONG(x)	SLONG(f->x); p += 4
-#define	STRING(x,n)	memcpy(f->x, p, n); p += n
+#define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 int
 convM2S(char *ap, Fcall *f, int n)
@@ -440,11 +440,11 @@ convM2D(char *ap, Dentry *f)
 	p = (uchar*)ap;
 	STRING(name, sizeof(f->name));
 
-	memcpy(str, p, NAMELEN);
+	memmove(str, p, NAMELEN);
 	p += NAMELEN;
 	f->uid = strtouid(str);
 
-	memcpy(str, p, NAMELEN);
+	memmove(str, p, NAMELEN);
 	p += NAMELEN;
 	f->gid = strtouid(str);
 

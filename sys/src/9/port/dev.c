@@ -12,15 +12,22 @@ extern ulong	kerndate;
 int
 devno(int c, int user)
 {
-	char *s;
+	Rune *s;
+	int i;
 
-	s = strchr(devchar, c);
-	if(s==0 || c==0){
-		if(user)
-			return -1;
-		panic("devno %c 0x%ux", c, c);
+	s = devchar;
+	i = 0;
+	while(*s){
+		if(c == *s)
+			return i;
+		i++;
+		s++;
 	}
-	return s - devchar;
+
+	if(user)
+		return -1;
+	panic("devno %C 0x%ux", c, c);
+	return 0;
 }
 
 void
@@ -68,7 +75,7 @@ Chan *
 devclone(Chan *c, Chan *nc)
 {
 	if(c->flag & COPEN)
-		panic("clone of open file type %c\n", devchar[c->type]);
+		panic("clone of open file type %C\n", devchar[c->type]);
 	if(nc == 0)
 		nc = newchan();
 	nc->type = c->type;
@@ -130,7 +137,7 @@ devstat(Chan *c, char *db, Dirtab *tab, int ntab, Devgen *gen)
 				convD2M(&dir, db);
 				return;
 			}
-			print("%s %s: devstat %c %lux\n", u->p->text, u->p->user,
+			print("%s %s: devstat %C %lux\n", u->p->text, u->p->user,
 							devchar[c->type], c->qid.path);
 			error(Enonexist);
 		case 0:

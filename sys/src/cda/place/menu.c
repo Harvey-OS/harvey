@@ -19,6 +19,7 @@ sendcs(void)
 	if(b.chips){
 		put1(scmd);
 		if(scmd == IMPROVEN) {
+			buf[0] = 0;
 			getline("times: " , buf);
 			putn(atoi(buf));
 		}
@@ -198,12 +199,12 @@ NMenu m3 = { m3i };
 
 extern Bitmap * cursor;
 void
-domenu(NMenu *mu, int but)
+domenu(NMenu *mu, int but, Mouse *ms)
 {
 	register NMitem *m;
 
 	scmd = 0;
-	if(m = mhit(mu, but, 0)) {
+	if(m = mhit(mu, but, 0, ms)) {
 		if(scmd)
 			sendcs();
 		else if(m->data && (m->data <= MAXFNS))
@@ -212,9 +213,9 @@ domenu(NMenu *mu, int but)
 }
 
 void
-menu3(void)
+menu3(Mouse *m)
 {
-	domenu(&m3, 3);
+	domenu(&m3, 3, m);
 }
 
 extern NMitem *mattrfn(int, NMitem *);
@@ -241,9 +242,9 @@ NMitem m2i[] = {
 NMenu m2 = { m2i };
 
 void
-menu2(void)
+menu2(Mouse *m)
 {
-	domenu(&m2, 2);
+	domenu(&m2, 2, m);
 }
 
 char rfilename[256] = "";
@@ -251,8 +252,9 @@ char rfilename[256] = "";
 void
 rfile(void)
 {
-char buf[200];
-	getline("read file: " , rfilename);
+	char buf[200];
+
+	getline("read files: " , rfilename);
 	if(rfilename[0]) {
 		expand(rfilename);
 		sprint(buf, "reading: %s", rfilename);

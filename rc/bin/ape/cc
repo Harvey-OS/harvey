@@ -133,8 +133,8 @@ while(! ~ $#* 0){
     case *
 	switch(`{echo $1 | sed 's/.*(\..*)$/\1/'}){
 	    case .c
-		b=`{ape/basename $1 .c}
-		d=`{ape/dirname $1}
+		b=`{/$cputype/bin/ape/basename $1 .c}
+		d=`{/$cputype/bin/ape/dirname $1}
 		srcs=($srcs $d/$b)
 		objs=($objs $b.o)
 	    case .o
@@ -167,7 +167,7 @@ for(f in $srcs){
 		rm $f.i
 	}
 	if not{
-		bf=`{ape/basename $f}
+		bf=`{/$cputype/bin/ape/basename $f}
 		if (~ $Sflag 1) {
 			if (~ $vflag 1)
 				echo $CC $ccargs -S $f.i '>' $bf.s
@@ -189,7 +189,7 @@ if(~ $cflag 0){
 		echo $LD -o $oname $ldargs $objs
 	if (! $LD -o $oname $ldargs $objs)
 		exit lderr
-	if(~ $#objs 1)
+	if(~ $#objs 1 && ~ $#srcs 1)
 		rm $objs
 }
 exit ''

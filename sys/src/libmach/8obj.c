@@ -1,5 +1,5 @@
 /*
- * 8 - print symbols in a .8 file
+ * 8obj.c - identify and parse a 386 object file
  */
 #include <u.h>
 #include <libc.h>
@@ -13,8 +13,9 @@ struct Addr
 	char	sym;
 	char	flags;
 };
-static	Addr	addr(void);
+static	Addr	addr(Biobuf*);
 static	char	type2char(int);
+static	void	skip(Biobuf*, int);
 
 int
 _is8(char *t)
@@ -28,84 +29,78 @@ _is8(char *t)
 		&& s[4] == '<';				/* name of file */
 }
 
-Prog*
-_read8(Prog* p)
+int
+_read8(Biobuf *bp, Prog* p)
 {
 	int as, i, c;
 	Addr a;
 
-	as = Bgetc(_bin);		/* as(low) */
+	as = Bgetc(bp);		/* as(low) */
 	if(as < 0)
 		return 0;
-	c = Bgetc(_bin);		/* as(high) */
+	c = Bgetc(bp);		/* as(high) */
 	if(c < 0)
 		return 0;
 	as |= ((c & 0xff) << 8);
 	p->kind = aNone;
 	if(as == ANAME){
 		p->kind = aName;
-		p->type = type2char(Bgetc(_bin));		/* type */
-		p->sym = Bgetc(_bin);			/* sym */
-		c = Bgetc(_bin);
+		p->type = type2char(Bgetc(bp));		/* type */
+		p->sym = Bgetc(bp);			/* sym */
+		c = Bgetc(bp);
 		for(i=0; i<NNAME && c>0; i++){
 			p->id[i] = c;
-			c = Bgetc(_bin);
+			c = Bgetc(bp);
 		}
 		if(i < NNAME)
 			p->id[i] = c;
-		return p;
+		return 1;
 	}
 	if(as == ATEXT)
 		p->kind = aText;
 	if(as == AGLOBL)
 		p->kind = aData;
-	Bgetc(_bin);		/* lineno(4) */
-	Bgetc(_bin);
-	Bgetc(_bin);
-	Bgetc(_bin);
-	a = addr();
-	addr();
+	skip(bp, 4);		/* lineno(4) */
+	a = addr(bp);
+	addr(bp);
 	if(!(a.flags & T_SYM))
 		p->kind = aNone;
 	p->sym = a.sym;
-	return p;
+	return 1;
 }
 
 static Addr
-addr(void)
+addr(Biobuf *bp)
 {
 	Addr a;
-	int t, i;
+	int t;
 	long off;
 
-	t = 0;
-	a.flags = Bgetc(_bin);			/* flags */
-	a.sym = -1;
-	if(a.flags & T_INDEX)
-		for(i=0; i<2; i++)
-			Bgetc(_bin);
 	off = 0;
+	a.sym = -1;
+	a.flags = Bgetc(bp);			/* flags */
+	if(a.flags & T_INDEX)
+		skip(bp, 2);
 	if(a.flags & T_OFFSET){
-		off = Bgetc(_bin);
-		off |= Bgetc(_bin) << 8;
-		off |= Bgetc(_bin) << 16;
-		off |= Bgetc(_bin) << 24;
+		off = Bgetc(bp);
+		off |= Bgetc(bp) << 8;
+		off |= Bgetc(bp) << 16;
+		off |= Bgetc(bp) << 24;
 		if(off < 0)
 			off = -off;
 	}
 	if(a.flags & T_SYM)
-		a.sym = Bgetc(_bin);
+		a.sym = Bgetc(bp);
 	if(a.flags & T_FCONST)
-		for(i=0; i<8; i++)
-			Bgetc(_bin);
+		skip(bp, 8);
 	else
 	if(a.flags & T_SCONST)
-		for(i=0; i<NSNAME; i++)
-			Bgetc(_bin);
-	if(a.flags & T_TYPE)
-		t = Bgetc(_bin);
-	if(a.sym > 0 && (t==D_PARAM || t==D_AUTO))
-		_offset(a.sym, type2char(t), off);
+		skip(bp, NSNAME);
+	if(a.flags & T_TYPE) {
+		t = Bgetc(bp);
+		if(a.sym > 0 && (t==D_PARAM || t==D_AUTO))
+			_offset(a.sym, off);
+	}
 	return a;
 }
 
@@ -119,4 +114,11 @@ type2char(int t)
 	case D_PARAM:		return 'p';
 	default:		return UNKNOWN;
 	}
+}
+
+static void
+skip(Biobuf *bp, int n)
+{
+	while (n-- > 0)
+		Bgetc(bp);
 }

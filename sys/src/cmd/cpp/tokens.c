@@ -262,7 +262,7 @@ peektokens(Tokenrow *trp, char *str)
 	flushout();
 	if (str)
 		fprintf(stderr, "%s ", str);
-	if (tp <trp->bp || tp>trp->lp)
+	if (tp<trp->bp || tp>trp->lp)
 		fprintf(stderr, "(tp offset %d) ", tp-trp->bp);
 	for (tp=trp->bp; tp<trp->lp && tp<trp->bp+32; tp++) {
 		if (tp->type!=NL) {
@@ -299,8 +299,10 @@ puttokens(Tokenrow *trp)
 			tp++;
 			len += tp->wslen+tp->len;
 		}
-		memcpy(wbp, p, len);
-		wbp += len;
+		if (Mflag==0) {
+			memcpy(wbp, p, len);
+			wbp += len;
+		}
 		if (wbp >= &wbuf[OBS]) {
 			write(1, wbuf, OBS);
 			if (wbp > &wbuf[OBS])

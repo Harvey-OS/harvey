@@ -210,6 +210,17 @@ TEXT	inb(SB),$0
 	RET
 
 /*
+ *  input a string of bytes from a port
+ */
+TEXT	insb(SB),$0
+
+	MOVL	p+0(FP),DX
+	MOVL	a+4(FP),DI
+	MOVL	c+8(FP),CX
+	CLD; REP; INSB
+	RET
+
+/*
  *  output a byte
  */
 TEXT	outb(SB),$0
@@ -220,13 +231,24 @@ TEXT	outb(SB),$0
 	RET
 
 /*
+ *  output a string of bytes to a port
+ */
+TEXT	outsb(SB),$0
+
+	MOVL	p+0(FP),DX
+	MOVL	a+4(FP),SI
+	MOVL	c+8(FP),CX
+	CLD; REP; OUTSB
+	RET
+
+/*
  * input a short from a port
  */
 TEXT	ins(SB), $0
 
 	MOVL	p+0(FP), DX
 	XORL	AX, AX
-	INL
+	OP16; INL
 	RET
 
 
@@ -258,7 +280,7 @@ TEXT	insl(SB),$0
 TEXT	outs(SB), $0
 	MOVL	p+0(FP), DX
 	MOVL	s+4(FP), AX
-	OUTL
+	OP16; OUTL
 	RET
 
 /*
@@ -632,4 +654,115 @@ TEXT	config(SB),$0
 	MOVL	$0x3F3,DX
 	OUTB
 	OUTB
+	RET
+
+/*
+ *  copy bitmap changes to screen memory for ldepth 0 screen.
+ *  reverse the bits since the screen is big-endian
+ *  and the bitmaps are little.
+ */
+TEXT	l0update(SB),$0
+	MOVL	len+8(FP),CX
+	SHRL	$1,CX
+	MOVL	from+4(FP),SI
+	MOVL	to+0(FP),DI
+	XORL	AX,AX
+l00:
+	MOVW	-2(SI)(CX*2),DX
+	MOVB	DH,AL
+	MOVB	revtab0(SB)(AX*1),BX
+	SHLL	$8,BX
+	MOVB	DL,AL
+	ORB	revtab0(SB)(AX*1),BX
+	MOVW	BX,-2(DI)(CX*2)
+	LOOP	l00
+	RET
+
+#define SRX	0x3C4		/* index to sequence registers */
+#define	SR	0x3C5		/* sequence registers */
+#define Smmask	0x02		/*  map mask */
+
+/*
+ *  same as l0update but for ldepth 1 (2 bit plane) screens
+ */
+TEXT	l1update(SB),$0
+	XORL	AX,AX
+	MOVL	from+4(FP),SI
+	MOVL	to+0(FP),DI
+	MOVL	len+8(FP),CX
+	MOVB	$(Smmask),AL
+	MOVW	$(SRX),DX
+	OUTB
+l10:
+	MOVL	-4(SI)(CX*2),DX
+	MOVB	DL,AL
+	MOVL	l1revsep(SB)(AX*4),BX
+	SHLL	$4,BX
+	RORL	$8,DX
+	MOVB	DL,AL
+	ORL	l1revsep(SB)(AX*4),BX
+	RORL	$12,BX
+	RORL	$8,DX
+	MOVB	DL,AL
+	ORL	l1revsep(SB)(AX*4),BX
+	SHLL	$4,BX
+	RORL	$8,DX
+	MOVB	DL,AL
+	ORL	l1revsep(SB)(AX*4),BX
+	ROLL	$8,BX
+	MOVW	$(SR),DX
+	MOVB	$0x5,AL			/* write lo order bits to bit planes 1 & 3 */
+	OUTB
+	MOVW	BX,-2(DI)(CX*1)
+	SHRL	$16,BX			/* write hi order bits to bit planes 0 & 2 */
+	MOVB	$0xA,AL
+	OUTB
+	MOVW	BX,-2(DI)(CX*1)
+	LOOP	l10
+	RET
+
+/*
+ *  same as l0update but for ldepth 2 (4 bit plane) screens
+ */
+TEXT	l2update(SB),$0
+	XORL	AX,AX
+	MOVL	from+4(FP),SI
+	MOVL	to+0(FP),DI
+	MOVL	len+8(FP),CX
+	MOVB	$(Smmask),AL
+	MOVW	$(SRX),DX
+	OUTB
+l20:
+	MOVL	-4(SI)(CX*4),DX
+	MOVB	DL,AL
+	MOVL	l2revsep(SB)(AX*4),BX
+	SHLL	$2,BX
+	SHRL	$8,DX
+	MOVB	DL,AL
+	ORL	l2revsep(SB)(AX*4),BX
+	SHLL	$2,BX
+	SHRL	$8,DX
+	MOVB	DL,AL
+	ORL	l2revsep(SB)(AX*4),BX
+	SHLL	$2,BX
+	SHRL	$8,DX
+	MOVB	DL,AL
+	ORL	l2revsep(SB)(AX*4),BX
+	MOVW	$(SR),DX
+	MOVB	$0x1,AL			/* plane 3 */
+	OUTB
+	MOVB	BX,-1(DI)(CX*1)
+	MOVB	$0x2,AL			/* plane 2 */
+	OUTB
+	SHRL	$8,BX
+	MOVB	BX,-1(DI)(CX*1)
+	MOVB	$0x4,AL			/* plane 1 */
+	OUTB
+	SHRL	$8,BX
+	MOVB	BX,-1(DI)(CX*1)
+	MOVB	$0x8,AL			/* plane 0*/
+	OUTB
+	SHRL	$8,BX
+	MOVB	BX,-1(DI)(CX*1)
+	LOOP	l20
 	RET

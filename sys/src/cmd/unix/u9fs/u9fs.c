@@ -373,7 +373,7 @@ ropen(void)
 		errjmp(Emode);
 	}
 	
-	m = omode(m & ~16);
+	m = omode(m & 3);
 	errno = 0;
 	if(f->qid.path & CHDIR){
 		if(rhdr.mode != 0)		/* OREAD */
@@ -419,7 +419,7 @@ rcreate(void)
 		errjmp(Eopen);
 	perm(rf, 2, 0);
 	path = bldpath(rf->file->path, rhdr.name, name);
-	m = omode(rhdr.mode&~16);
+	m = omode(rhdr.mode&3);
 	errno = 0;
 	if(rhdr.perm & CHDIR){
 		if(m){

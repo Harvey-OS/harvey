@@ -28,7 +28,7 @@ int	mflag;
 char	iplog[] = "ip";
 
 #define WRITESTR(fd, X)	if(write(fd, X, sizeof(X)-1) < 0) \
-				{ syslog(1, iplog, "write %s: %r", X); exits(Bad); }
+		{ syslog(1, iplog, "write %s: %r", X); exits(Bad); }
 #define ARPD		"/bin/ip/arpd"
 
 int	lookupip(Ipinfo*);

@@ -20,12 +20,15 @@ static	struct	element	elements[PATH_LIMIT] ;
 static	struct	element	*free_element ;
 static	int		hyp_err ;
 static double PI_180 = M_PI/180.;
+int used=0, rel=0, ct_el=0;
 
 struct	pspoint
 currentpoint(void)
 {
-	if ( Graphics.path.last == NULL )
+	if ( Graphics.path.last == NULL ){
+		return(zeropt);	/*printer tolerates this*/
 		pserror("nocurrentpoint", "currentpoint") ;
+	}
 	return(Graphics.path.last->ppoint) ;
 }
 
@@ -69,6 +72,13 @@ add_element(enum elmtype type, struct pspoint p)
 			if(element->type == PA_MOVETO ||
 				element->type == PA_CLOSEPATH )
 				break ;
+		if(element->ppoint.x == Graphics.path.last->ppoint.x &&
+			element->ppoint.y == Graphics.path.last->ppoint.y){
+			if(Graphics.path.last->type == PA_LINETO){
+				Graphics.path.last->type = PA_CLOSEPATH;
+				return;
+			}
+		}
 		if ( element == NULL )
 			error("add_element nonhamiltonian path") ;
 		p = element->ppoint ;
@@ -367,11 +377,21 @@ pathforallOP(void)
 void
 flattenpathOP(void)
 {
-	struct	element	*element;
+	struct	element	*element, *save;
 
 	for ( element=Graphics.path.first ; element!=NULL ; element=element->next )
-		if ( element->type == PA_CURVETO )
+		if ( element->type == PA_CURVETO ){
 			flattencurve(element) ;
+			/*fixes doug's ragged thin line problem*/
+if(element->next->type == PA_CLOSEPATH &&(element->ppoint.x == element->next->ppoint.x && element->ppoint.y == element->next->ppoint.y)){
+		element->type = PA_CLOSEPATH;
+		if(element->next->next != NULL)
+			save = element->next->next;
+		else save = NULL;
+		rel_elem(element->next);
+		element->next = save;
+		}
+	}
 	if(merganthal && merganthal <3 && current_type == 3)
 		hsbpath(Graphics.path);
 }
@@ -1268,6 +1288,7 @@ ncopypath(struct element *element)
 	register struct element *nelement, *last;
 	if(free_element == NULL)
 		pserror("limitcheck", "ncopy1");
+
 	newpath.first = last = free_element;
 	free_element = last->next;
 	newpath.first->type=element->type;

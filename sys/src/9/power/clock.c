@@ -108,6 +108,8 @@ clock(Ureg *ur)
 			m->load = (m->load*19+nrun)/20;
 		}
 		duartslave();
+		if((active.machs&(1<<m->machno)) == 0)
+			return;
 		if(active.exiting && active.machs&(1<<m->machno)){
 			print("someone's exiting\n");
 			exit(0);

@@ -1,31 +1,21 @@
 #
-#  file server
+#  systems
 #
+
 sys = bootes
 	dom=bootes.research.att.com
 	ip=135.104.9.30 ether=080069020677
 	ipmask=255.255.255.0
 	ipgw=135.104.9.1
-	dk=nj/astro/bootes
 	proto=il flavor=9fs
 	9P=auth
-#
-#  cpu server
-#
-sys = helix
-	dom=helix.research.att.com
-	bootf=/mips/9power
-	ip=135.104.9.31 ether=0800690222f0
-	dk=nj/astro/helix
-	proto=il flavor=9cpu
-#
-# me
-#
 sys = pc486
 	dom=pc486.research.att.com
 	ip=135.104.117.201 ether=0000c0ca2151
 	bootf=/386/9pc
+	vgafile=generic/640x480x1
 	proto=il
+
 #
 #  ip networks and subnets
 #
@@ -44,10 +34,9 @@ ipnet=xunet-ring ip=135.104.120.0
 	ipgw=135.104.120.1
 ipnet=ches-home ip=135.104.200.0
 	ipgw=135.104.200.100
-ipnet=inet-inside ip=135.104.69.0
-	ipgw=135.104.69.1
 ipnet=inet-9 ip=135.104.9.0
 	ipgw=135.104.9.1
+
 #
 #  tcp services
 #
@@ -98,6 +87,7 @@ tcp=ingreslock	port=1524
 tcp=Xdisplay	port=6000
 tcp=face	port=32000
 tcp=whoami	port=565
+tcp=video	port=17028
 
 #
 #  il services
@@ -117,6 +107,7 @@ il=changekey	port=17022
 il=chal		port=17023
 il=check	port=17024
 il=juke		port=17026
+il=video	port=17028
 
 #
 #  udp services

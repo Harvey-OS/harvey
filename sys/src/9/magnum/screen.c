@@ -20,9 +20,18 @@ enum
 	colmaxxvis=	1280,
 	colmaxy=	1024,
 	colrepl=	  16,	/* each scanline is repeated this many times */
+	lcdmaxx=	768,
+	lcdmaxy=	1024,
 };
 
 #define MONOWORDS ((monomaxx*monomaxy)/BI2WD)
+#define LCDLD	1
+#define LCDBI2PIX	(1<<LCDLD)
+#define LCDWORDS ((lcdmaxx*lcdmaxy*LCDBI2PIX)/BI2WD)
+#define LCDLEN	(2+lcdmaxx)
+#define LCDWID	(lcdmaxx*LCDBI2PIX/8)
+
+static Rectangle NULLMBB = {10000, 10000, -10000, -10000};
 
 #define	MINX	8
 
@@ -36,13 +45,17 @@ struct
 }out;
 
 GBitmap	gscreen;
+static Rectangle mbb;
+Rendez	lcdmouse;
 
 enum {
 	Mono = 1,
 	Color = 2,
+	Lcd = 3,
 };
 
 
+int		islcd;			/* might be initialized by conf */
 static int	scr;			/* Mono or Color or Not at all*/
 
 static ulong	rep(ulong, int);
@@ -74,6 +87,110 @@ monodmaon(DMAdev *dev, ulong mono)
 	dev->mode = Enable | Autoreload;
 }
 
+static Scsibuf *lcdbuf;
+static lcddev = 4<<3;
+static ulong swiz13[256];
+
+/*
+ * need a process to do scsi transactions to update mouse on LCD
+ */
+static void
+lcdmousep(void *a)
+{
+	extern void lockedupdate(void);
+	USED(a);
+	for(;;){
+		sleep(&lcdmouse, return0, 0);
+		lockedupdate();
+		mbb = NULLMBB;
+	}
+}
+
+void
+mousescreenupdate(void)
+{
+	if (islcd)
+		wakeup(&lcdmouse);
+}
+
+static void
+lcdscsion(void)
+{
+	ulong x;
+	lcdbuf = scsialloc(LCDLEN);
+	for (x = 0; x < 256; x++)
+		swiz13[x] = (x&0xc0)<<18 | (x&0x30)<<12 | (x&0xc)<<6 | x&3;
+	kproc("lcdmouse", lcdmousep, 0);
+	mbb = NULLMBB;
+}
+
+void
+screenupdate(void)
+{
+	ulong x, y, m;
+	uchar *s, *p;
+	Rectangle r=mbb;
+
+	if(!islcd)
+		return;
+	if(r.max.y <= r.min.y)
+		return;
+	r.min.y &= ~3;
+	if(r.min.y < 0)
+		r.min.y = 0;
+	if(r.max.y > lcdmaxy)
+		r.max.y = lcdmaxy;
+	for (y = r.min.y; y < r.max.y; y += 4) {
+		s = (uchar *) gaddr(&gscreen, Pt(0, y));
+		p = (uchar *) (lcdbuf->virt);
+		p[0] = y >> 8;
+		p[1] = (y >> 2) & 0x3f;
+		p += 2;
+		for (x = 0; x < lcdmaxx; x += 4, s++, p += 4) {
+			m = swiz13[s[0]];
+			m |= swiz13[s[LCDWID]] << 2;
+			m |= swiz13[s[2*LCDWID]] << 4;
+			m |= swiz13[s[3*LCDWID]] << 6;
+			p[0] = m>>24;
+			p[1] = m>>16;
+			p[2] = m>>8;
+			p[3] = m;
+		}
+		scsibwrite(lcddev, lcdbuf, 1, LCDLEN, 0);/**/
+	}
+	mbb = NULLMBB;
+}
+
+void
+mbbrect(Rectangle r)
+{
+	if(!islcd)
+		return;
+	if (r.min.x < mbb.min.x)
+		mbb.min.x = r.min.x;
+	if (r.min.y < mbb.min.y)
+		mbb.min.y = r.min.y;
+	if (r.max.x > mbb.max.x)
+		mbb.max.x = r.max.x;
+	if (r.max.y > mbb.max.y)
+		mbb.max.y = r.max.y;
+}
+
+void
+mbbpt(Point p)
+{
+	if(!islcd)
+		return;
+	if (p.x < mbb.min.x)
+		mbb.min.x = p.x;
+	if (p.y < mbb.min.y)
+		mbb.min.y = p.y;
+	if (p.x >= mbb.max.x)
+		mbb.max.x = p.x+1;
+	if (p.y >= mbb.max.y)
+		mbb.max.y = p.y+1;
+}
+
 void
 screeninit(int use)
 {
@@ -96,6 +213,8 @@ screeninit(int use)
 		scr = iscolor() ? Color : Mono;
 		break;
 	}
+	if(islcd)
+		scr = Lcd;
 
 	if(scr == Mono){
 		mono = (ulong)xspanalloc(MONOWORDS*BY2WD, BY2PG, 512*1024);
@@ -104,6 +223,18 @@ screeninit(int use)
 		gscreen.width = monomaxx/BI2WD;
 		gscreen.ldepth = 0;
 		gscreen.r = Rect(0, 0, monomaxx, monomaxy);
+		monodmaon(dev, mono);
+	}
+	else
+	if(scr == Lcd){
+/*		mono = (ulong)xalloc(LCDWORDS*BY2WD);	/**/
+		mono = (ulong)xspanalloc(LCDWORDS*BY2WD, BY2PG, 512*1024);
+		mono &= ~KZERO;
+		gscreen.base = (ulong*)(UNCACHED|mono);
+		gscreen.width = lcdmaxx*LCDBI2PIX/BI2WD;
+		gscreen.ldepth = LCDLD;
+		gscreen.r = Rect(0, 0, lcdmaxx, lcdmaxy);
+		lcdscsion();
 		monodmaon(dev, mono);
 	}
 	else
@@ -228,7 +359,8 @@ getcolor(ulong p, ulong *pr, ulong *pg, ulong *pb)
 		else
 			ans = ~0;
 		*pr = *pg = *pb = ans;
-	} else {
+	}
+	else {
 		/* not reliable unless done while vertical blanking */
 		while(!(*kr & 0x20))
 			continue;
@@ -311,4 +443,49 @@ rep(ulong v, int n)
 	for(o = 32 - n; o >= 0; o -= n)
 		rv |= (v << o);
 	return rv;
+}
+
+/*
+ *  setup a serial mouse
+ */
+static void
+serialmouse(int port, char *type, int setspeed)
+{
+	if(mousetype)
+		error(Emouseset);
+
+	if(port >= 2 || port < 0)
+		error(Ebadarg);
+
+	/* set up /dev/eia0 as the mouse */
+	sccspecial(port, 0, &mouseq, setspeed ? 1200 : 0);
+	if(type && *type == 'M')
+		mouseq.putc = m3mouseputc;
+	mousetype = Mouseserial;
+}
+
+/*
+ *  set/change mouse configuration
+ */
+void
+mousectl(char *arg)
+{
+	int n;
+	char *field[3];
+
+	n = getfields(arg, field, 3, ' ');
+	if(strncmp(field[0], "serial", 6) == 0){
+		switch(n){
+		case 1:
+			serialmouse(atoi(field[0]+6), 0, 1);
+			break;
+		case 2:
+			serialmouse(atoi(field[1]), 0, 0);
+			break;
+		case 3:
+		default:
+			serialmouse(atoi(field[1]), field[2], 0);
+			break;
+		}
+	}
 }

@@ -228,9 +228,9 @@ nodconst(long v)
 }
 
 Node*
-nodfconst(long v)
+nodfconst(double d)
 {
-	fconstnode.ud = v;
+	fconstnode.ud = d;
 	return &fconstnode;
 }
 
@@ -559,6 +559,7 @@ gmove(Node *f, Node *t)
 {
 	int ft, tt, a;
 	Node nod, nod1, nod2;
+	Prog *p1;
 	double d;
 
 	ft = f->type->etype;
@@ -784,22 +785,40 @@ gmove(Node *f, Node *t)
 			return;
 		}
 		break;
-	case TLONG:
 	case TULONG:
+	case TLONG:
 	case TIND:
 		switch(tt) {
 		case TDOUBLE:
 		case TVLONG:
-			if(ft == TULONG)
-				warn(Z, "convert ulong to double");
 			gins(AMOVW, f, t);
 			gins(AMOVWD, t, t);
+			if(ft == TULONG) {
+				regalloc(&nod, t, Z);
+				gins(ACMPGED, t, Z);
+				p->reg = FREGZERO;
+				gins(ABFPT, Z, Z);
+				p1 = p;
+				gins(AMOVD, nodfconst(4294967296.), &nod);
+				gins(AADDD, &nod, t);
+				patch(p1, pc);
+				regfree(&nod);
+			}
 			return;
 		case TFLOAT:
-			if(ft == TULONG)
-				warn(Z, "convert ulong to double");
 			gins(AMOVW, f, t);
 			gins(AMOVWF, t, t);
+			if(ft == TULONG) {
+				regalloc(&nod, t, Z);
+				gins(ACMPGEF, t, Z);
+				p->reg = FREGZERO;
+				gins(ABFPT, Z, Z);
+				p1 = p;
+				gins(AMOVF, nodfconst(4294967296.), &nod);
+				gins(AADDF, &nod, t);
+				patch(p1, pc);
+				regfree(&nod);
+			}
 			return;
 		case TLONG:
 		case TULONG:

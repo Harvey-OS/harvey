@@ -8,7 +8,7 @@
 extern	void	*memccpy(void*, void*, int, long);
 extern	void	*memset(void*, int, long);
 extern	int	memcmp(void*, void*, long);
-extern	void	*memcpy(void*, void*, long);
+extern	void	*memmove(void*, void*, long);
 extern	void	*memchr(void*, int, long);
 
 /*

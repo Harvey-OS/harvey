@@ -179,7 +179,7 @@ dictstackinit(void)
 	temp = makeint(100);
 	loaddict(Fontinfo.value.v_dict,cname("UnderlineThickness"),&temp);
 	if(!nofontinit)initfont();
- 	stack[0] = systemdict ;
+	stack[0] = systemdict ;
 	stack[1] = userdict ;
 	stacktop = 2 ;
 }

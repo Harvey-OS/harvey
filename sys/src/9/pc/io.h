@@ -14,6 +14,7 @@ enum
 	 Kbdvec=	Int0vec+1,	/*  keyboard interrupts */
 	 Uart1vec=	Int0vec+3,	/*  modem line */
 	 Uart0vec=	Int0vec+4,	/*  serial line */
+	 PCMCIAvec=	Int0vec+5,	/*  PCMCIA card change */
 	 Floppyvec=	Int0vec+6,	/*  floppy interrupts */
 	 Parallelvec=	Int0vec+7,	/*  parallel port interrupts */
 	Int1vec=	Int0vec+8,

@@ -21,7 +21,8 @@
 
 static Ndbtuple *tfree;
 
-#define EATWHITE(x) while(*x != '\n' && isspace(*x))x++
+#define ISWHITE(x) ((x) == ' ' || (x) == '\t')
+#define EATWHITE(x) while(ISWHITE(*(x)))(x)++
 
 /*
  *  parse a single tuple
@@ -42,17 +43,17 @@ parsetuple(char *cp, Ndbtuple **tp)
 	if(tfree){
 		t = tfree;
 		tfree = tfree->entry;
-		memset(t, 0, sizeof(*t));
 	} else {
 		t = malloc(sizeof(Ndbtuple));
 		if(t == 0)
 			return 0;
 	}
+	memset(t, 0, sizeof(*t));
 	*tp = t;
 
 	/* parse attribute */
 	p = cp;
-	while(*cp != '=' && !isspace(*cp))
+	while(*cp != '=' && !ISWHITE(*cp) && *cp != '\n')
 		cp++;
 	len = cp - p;
 	if(len >= Ndbalen)
@@ -69,18 +70,18 @@ parsetuple(char *cp, Ndbtuple **tp)
 			while(*cp != '\n' && *cp != '"')
 				cp++;
 			len = cp - p;
-			cp++;
+			if(*cp == '"')
+				cp++;
 		} else {
 			p = cp;
-			while(!isspace(*cp))
+			while(!ISWHITE(*cp) && *cp != '\n')
 				cp++;
 			len = cp - p;
 		}
 		if(len >= Ndbvlen)
 			len = Ndbvlen;
 		strncpy(t->val, p, len);
-	} else
-		*(t->val) = 0;
+	}
 
 	return cp;
 }
@@ -139,8 +140,10 @@ ndbparse(Ndb *db)
 			if((line = Brdline(db, '\n')) == 0)
 				break;
 			len = Blinelen(db);
+			if(line[len-1] != '\n')
+				break;
 		}
-		if(first && (*line == '\n' || !isspace(*line))){
+		if(first && !ISWHITE(*line)){
 			db->line = line;
 			db->linelen = len;
 			return first;

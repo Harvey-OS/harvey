@@ -31,6 +31,7 @@ TARG=3to1\
 	mcut\
 	median\
 	moto\
+	nasa2pic\
 	nonoise\
 	pcp\
 	pcx2pic\
@@ -47,6 +48,7 @@ TARG=3to1\
 	shadepic\
 	smooth\
 	transpose\
+	utah2pic\
 	xpand\
 
 OFILES=

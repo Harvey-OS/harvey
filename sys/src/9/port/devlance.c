@@ -788,7 +788,6 @@ lanceup(Etherpkt *p, int len)
 			PUTNEXT(e->q, bp);
 			poperror();
 		}
-		qunlock(e);
 	}
 }
 
@@ -800,7 +799,8 @@ isinput(void *arg)
 {
 	Msg *m = arg;
 
-	return l.wedged || l.self.first || ((MPus(m->flags) & LANCEOWNER)==0);
+	return ((MPus(m->flags) & LANCEOWNER)==0) || l.wedged || l.self.first
+		|| l.closeline;
 }
 
 static void

@@ -16,7 +16,7 @@ dev
 	iproute	P
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
 	rtc	r
-	scsi	S	scsi
+	scsi	S	scsi scsibuf
 	wren	w
 
 stream

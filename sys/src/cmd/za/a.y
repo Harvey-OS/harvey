@@ -20,6 +20,7 @@
 %left	'+' '-'
 %left	'*' '/' '%'
 
+%token	<lval>	LTYPED LTYPET
 %token	<lval>	LTYPE1 LTYPE2 LTYPE3 LTYPE4 LTYPE5 LTYPE6 LTYPE7
 %token	<lval>	LCONST LSP LSB LFP LPC LREG LWID LDQWID LR
 %token	<sym>	LNAME LLAB LVAR
@@ -62,17 +63,48 @@ line:
 |	error ';'
 
 inst:
-	LTYPE1 gen ',' gen
+	LTYPED gen '/' con ',' gen
+	{
+		switch($4) {
+		default:
+			print("unknown DATA width: %d\n", $4);
+			$2.width = W_GOK;
+			break;
+		case 1:
+			$2.width = W_B;
+			break;
+		case 2:
+			$2.width = W_H;
+			break;
+		case 4:
+			$2.width = W_W;
+			break;
+		case 8:
+			$2.width = W_D;
+			break;
+		case 12:
+			$2.width = W_E;
+			break;
+		}
+		outcode($1, &$2, &$6);
+	}
+|	LTYPED gen ',' gen
 	{
 		outcode($1, &$2, &$4);
 	}
-|	LTYPE7 gen ',' gen
+|	LTYPET gen ',' con ',' gen
+	{
+		if($4)
+			$2.width = W_B;
+		outcode($1, &$2, &$6);
+	}
+|	LTYPET gen ',' gen
 	{
 		outcode($1, &$2, &$4);
 	}
-|	LTYPE7 gen ',' dqgen
+|	LTYPE1 gen ',' gen
 	{
-		outcode(ADQM, &$2, &$4);
+		outcode($1, &$2, &$4);
 	}
 |	LTYPE2
 	{
@@ -121,6 +153,14 @@ inst:
 |	LTYPE6 ',' gen
 	{
 		outcode($1, &nullgen, &$3);
+	}
+|	LTYPE7 gen ',' gen
+	{
+		outcode($1, &$2, &$4);
+	}
+|	LTYPE7 gen ',' dqgen
+	{
+		outcode(ADQM, &$2, &$4);
 	}
 
 dqgen:

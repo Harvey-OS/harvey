@@ -1,5 +1,18 @@
 #include	"l.h"
 
+long	OFFSET;
+/*
+long	BADOFFSET	=	-1;
+
+		if(OFFSET <= BADOFFSET && OFFSET+4 > BADOFFSET)\
+			abort();\
+		OFFSET += 4;\
+
+		if(OFFSET == BADOFFSET)\
+			abort();\
+		OFFSET++;\
+*/
+
 #define	LPUT(c)\
 	{\
 		cbp[0] = (c)>>24;\
@@ -48,7 +61,8 @@ asmb(void)
 	if(debug['v'])
 		Bprint(&bso, "%5.2f asm\n", cputime());
 	Bflush(&bso);
-	seek(cout, HEADR, 0);
+	OFFSET = HEADR;
+	seek(cout, OFFSET, 0);
 	pc = INITTEXT;
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT) {
@@ -78,11 +92,13 @@ asmb(void)
 	curtext = P;
 	switch(HEADTYPE) {
 	case 0:
-		seek(cout, rnd(HEADR+textsize, 4096), 0);
+		OFFSET = rnd(HEADR+textsize, 4096);
+		seek(cout, OFFSET, 0);
 		break;
 	case 1:
 	case 2:
-		seek(cout, HEADR+textsize, 0);
+		OFFSET = HEADR+textsize;
+		seek(cout, OFFSET, 0);
 		break;
 	}
 	for(t = 0; t < datsize; t += sizeof(buf)-100) {
@@ -100,11 +116,13 @@ asmb(void)
 		Bflush(&bso);
 		switch(HEADTYPE) {
 		case 0:
-			seek(cout, rnd(HEADR+textsize, 4096)+datsize, 0);
+			OFFSET = rnd(HEADR+textsize, 4096)+datsize;
+			seek(cout, OFFSET, 0);
 			break;
 		case 2:
 		case 1:
-			seek(cout, HEADR+textsize+datsize, 0);
+			OFFSET = HEADR+textsize+datsize;
+			seek(cout, OFFSET, 0);
 			break;
 		}
 		if(!debug['s'])
@@ -120,7 +138,8 @@ asmb(void)
 	if(debug['v'])
 		Bprint(&bso, "%5.2f header\n", cputime());
 	Bflush(&bso);
-	seek(cout, 0L, 0);
+	OFFSET = 0;
+	seek(cout, OFFSET, 0);
 	switch(HEADTYPE) {
 	case 0:
 		lput(0x160L<<16);		/* magic and sections */
@@ -1049,6 +1068,8 @@ opirr(int a)
 	case AMOVF:	return SP(7,1);
 	case AMOVWL:	return SP(5,2);
 	case AMOVWR:	return SP(5,6);
+
+	case ABREAK:	return SP(5,7);
 
 	case AMOVWL+AEND:	return SP(4,2);
 	case AMOVWR+AEND:	return SP(4,6);

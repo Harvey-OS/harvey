@@ -35,6 +35,11 @@ convert a string pointed to by
 to floating, integer, and long integer
 representation respectively.
 The first unrecognized character ends the string.
+Leading C escapes are understood, as in
+.I strtol
+with
+.I base
+zero.
 .PP
 .I Atof
 recognizes an optional string of tabs and spaces,

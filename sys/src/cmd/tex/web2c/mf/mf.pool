@@ -1,0 +1,824 @@
+11buffer size
+09pool size
+17number of strings
+03???
+28End of file on the terminal!
+02! 
+42(That makes 100 errors; please try again.)
+02? 
+60Type <return> to proceed, S to scroll future error messages,
+44R to run without stopping, Q to run quietly,
+23I to insert something, 
+20E to edit your file,
+561 or ... or 9 to ignore the next 1 to 9 tokens of input,
+22H for help, X to quit.
+13OK, entering 
+09batchmode
+11nonstopmode
+10scrollmode
+03...
+07insert>
+44I have just deleted some text, as you asked.
+48You can now delete more, or insert, or whatever.
+50Sorry, I don't know how to help in this situation.
+36Maybe you should try asking a human?
+42Sorry, I already gave what help I could...
+59An error might have occurred before I noticed any problems.
+45``If all else fails, read the instructions.''
+00
+14Emergency stop
+35METAFONT capacity exceeded, sorry [
+44If you really absolutely need more capacity,
+35you can ask a wizard to enlarge me.
+19This can't happen (
+59I'm broken. Please show this to someone who can fix can fix
+35I can't go on meeting you like this
+55One of your faux pas seems to have wounded me deeply...
+59in fact, I'm barely conscious. Please fix it and try again.
+12Interruption
+09You rang?
+57Try to insert some instructions for me (e.g.,`I show x'),
+43unless you just want to quit by typing `X'.
+09Missing `
+19' has been inserted
+19Arithmetic overflow
+59Uh, oh. A little while ago one of the quantities that I was
+59computing got too large, so I'm afraid your answers will be
+55somewhat askew. You'll probably have to adopt different
+54tactics next time. But I shall try to carry on anyway.
+15Square root of 
+23 has been replaced by 0
+52Since I don't take square roots of negative numbers,
+52I'm zeroing this one. Proceed, with fingers crossed.
+24Pythagorean subtraction 
+03+-+
+13Logarithm of 
+48Since I don't take logs of non-positive numbers,
+27angle(0,0) is taken as zero
+54The `angle' between two identical points is undefined.
+16main memory size
+24AVAIL list clobbered at 
+31Double-AVAIL list clobbered at 
+24Doubly free location at 
+12Bad flag at 
+14New busy locs:
+05LINK(
+05INFO(
+07vacuous
+07boolean
+15unknown boolean
+06string
+14unknown string
+03pen
+11unknown pen
+10future pen
+04path
+12unknown path
+07picture
+15unknown picture
+09transform
+04pair
+13known numeric
+09dependent
+15proto-dependent
+07numeric
+11independent
+10token list
+10structured
+16unsuffixed macro
+14suffixed macro
+09undefined
+04true
+05false
+11nullpicture
+07nullpen
+07jobname
+10readstring
+09pencircle
+13normaldeviate
+03odd
+05known
+07unknown
+03not
+07decimal
+07reverse
+08makepath
+07makepen
+11totalweight
+03oct
+03hex
+05ASCII
+04char
+06length
+13turningnumber
+05xpart
+05ypart
+06xxpart
+06xypart
+06yxpart
+06yypart
+04sqrt
+04mexp
+04mlog
+04sind
+04cosd
+05floor
+14uniformdeviate
+10charexists
+05angle
+05cycle
+02++
+02or
+03and
+02<=
+02>=
+02<>
+07rotated
+07slanted
+06scaled
+07shifted
+11transformed
+07xscaled
+07yscaled
+07zscaled
+17intersectiontimes
+09substring
+07subpath
+13directiontime
+05point
+10precontrol
+11postcontrol
+09penoffset
+02..
+13tracingtitles
+16tracingequations
+15tracingcapsules
+14tracingchoices
+12tracingspecs
+11tracingpens
+15tracingcommands
+15tracingrestores
+13tracingmacros
+12tracingedges
+13tracingoutput
+12tracingstats
+13tracingonline
+04year
+05month
+03day
+04time
+08charcode
+07charext
+06charwd
+06charht
+06chardp
+06charic
+06chardx
+06chardy
+10designsize
+04hppp
+04vppp
+07xoffset
+07yoffset
+07pausing
+12showstopping
+10fontmaking
+08proofing
+09smoothing
+12autorounding
+11granularity
+06fillin
+12turningcheck
+12warningcheck
+12boundarychar
+09 at line 
+14a bad variable
+02fi
+08endgroup
+06enddef
+06endfor
+13 INACCESSIBLE
+09hash size
+06EQUIV(
+02::
+03||:
+02:=
+05addto
+02at
+07atleast
+10begingroup
+08controls
+04cull
+04curl
+10delimiters
+07display
+08everyjob
+06exitif
+11expandafter
+04from
+08inwindow
+07interim
+03let
+11newinternal
+02of
+10openwindow
+10randomseed
+04save
+10scantokens
+07shipout
+06skipto
+04step
+03str
+07tension
+02to
+05until
+05token
+05 ETC.
+10 CLOBBERED
+11 IMPOSSIBLE
+12 NONEXISTENT
+04 BAD
+02[]
+05(EXPR
+07(SUFFIX
+05(TEXT
+02->
+03>->
+08<expr>->
+19<expr>of<primary>->
+10<suffix>->
+08<text>->
+07(SAVED)
+03var
+02xx
+02xy
+02yx
+02yy
+08%CAPSULE
+05part 
+06struct
+11{restoring 
+04Path
+07{open?}
+10..control?
+03 ..
+06{curl 
+10..tension 
+05 and 
+11..controls 
+02??
+16, before choices
+15, after choices
+23Some number got too big
+46The path that I just computed is out of range.
+53So it will probably look funny. Proceed, for a laugh.
+09path size
+14Edge structure
+04row 
+02 |
+31Scaled picture would be too big
+50I can't yscale the picture as requested---it would
+45make some coordinates too large or too small.
+42Proceed, and I'll omit the transformation.
+50I can't xscale the picture as requested---it would
+15move table size
+13Tracing edges
+09 (weight 
+21(No new edges added.)
+10Cycle spec
+24 % beginning in octant `
+19% entering octant `
+08 & cycle
+03ENE
+03NNE
+03NNW
+03WNW
+03WSW
+03SSW
+03SSE
+03ESE
+14   ..controls 
+11 % segment 
+02 (
+33, before subdivision into octants
+19, after subdivision
+43, after subdivision and double autorounding
+36, after subdivision and autorounding
+18Curve out of range
+56At least one of the coordinates in the path I'm about to
+56digitize was really huge (potentially bigger than 4095).
+40So I've cut it back to the maximum size.
+41The results will probably be pretty wild.
+19rounding table size
+11Pen polygon
+09 .. cycle
+04 .. 
+16 (newly created)
+13Pen too large
+59The cycle you specified has a coordinate of 4095.5 or more.
+55So I've replaced it by the trivial path `(0,0)..cycle'.
+24Pen cycle must be convex
+59The cycle you specified either has consecutive equal points
+54or turns right or turns through more than 360 degrees.
+16pen polygon size
+09@ Octant 
+07 offset
+08), from 
+04 to 
+23@ retrograde line from 
+18@ transition line 
+07, from 
+03dep
+02*4
+20Value is too large (
+53The equation I just processed has given some variable
+54a value of 4096 or more. Continue and I'll try to cope
+47with that big value; but it might be dangerous.
+47(Set warningcheck:=0 to suppress this message.)
+05#### 
+03## 
+15Bad PREVDEP at 
+16Out of order at 
+18Redundant equation
+43I already knew that this equation was true.
+50But perhaps no harm has been done; let's continue.
+23[unknown command code!]
+03<*>
+08<insert>
+12<scantokens>
+02l.
+10<forever> 
+11<argument> 
+16<recently read> 
+19<to be read again> 
+16<inserted text> 
+05<for(
+03)> 
+16input stack size
+17text input levels
+08endinput
+47Incomplete if; all text was ignored after line 
+51A forbidden `outer' token occurred in skipped text.
+58This kind of error happens when you say `if...' and forget
+57the matching `fi'. I've inserted a `fi'; this might work.
+53The file ended while I was skipping conditional text.
+10File ended
+21Forbidden token found
+16 while scanning 
+41I suspect you have forgotten an `enddef',
+52causing me to read past where you wanted me to stop.
+49I'll try to recover; but if the error is serious,
+51you'd better type `E' or `X' now and fix your file.
+27to the end of the statement
+42A previous error seems to have propagated,
+15a text argument
+45It seems that a right delimiter was left out,
+18the definition of 
+14the text of a 
+05 loop
+41I suspect you have forgotten an `endfor',
+08Runaway 
+05text?
+11definition?
+05loop?
+39Text line contains an invalid character
+53A funny symbol that I can't read has just been input.
+48Continue, and I'll forget that it ever happened.
+40Incomplete string token has been flushed
+53Strings should finish on the same line as they began.
+50I've deleted the partial string; you might want to
+48insert another by typing, e.g., `I"new string"'.
+32Enormous number has been reduced
+52I can't handle numbers bigger than about 4095.99998;
+53so I've changed your constant to that maximum amount.
+36(Please type a command or say `end')
+37*** (job aborted, no legal end found)
+02=>
+03def
+06vardef
+10primarydef
+12secondarydef
+11tertiarydef
+03for
+11forsuffixes
+07forever
+05quote
+02#@
+02@#
+31Missing symbolic token inserted
+52Sorry: You can't redefine a number, string, or expr.
+49I've inserted an inaccessible symbol so that your
+60definition will be completed without mixing me up too badly.
+51Sorry: You can't redefine my error-recovery tokens.
+50The next thing in this `def' should have been `=',
+54because I've already looked at the definition heading.
+49But don't worry; I'll pretend that an equals sign
+45was present. Everything from here to `enddef'
+43will be the replacement text of this macro.
+04expr
+06suffix
+04text
+07primary
+09secondary
+08tertiary
+41This variable already starts with a macro
+44After `vardef a' you can't say `vardef a.b'.
+40So I'll have to discard this definition.
+46Missing parameter type; `expr' will be assumed
+52You should've had `expr' or `suffix' or `text' here.
+20parameter stack size
+14Extra `endfor'
+40I'm not currently working on a for loop,
+40so I had better not try to end anything.
+05input
+09Lost loop
+53I'm confused; after exiting from a loop, I still seem
+53to want to repeat it. I'll try to forget the problem.
+22No loop is in progress
+51Why say `exitif' when there's nothing to exit from?
+57After `exitif <boolean exp>' I expect to see a semicolon.
+35I shall pretend that one was there.
+20*** (loop confusion)
+12Not a string
+41I'm going to flush this expression, since
+48scantokens should be followed by a known string.
+03)<-
+22Too many arguments to 
+11  Missing `
+52I'm going to assume that the comma I just read was a
+57right delimiter, and then I'll begin expanding the macro.
+55You might want to delete some tokens before continuing.
+20Missing argument to 
+48That macro has more parameters than you thought.
+54I'll continue by pretending that each missing argument
+23is either zero or null.
+54I've finished reading a macro argument and am about to
+56read another; the arguments weren't delimited correctly.
+51I've gotten to the end of the macro parameter list.
+05 for 
+57I've got the first argument; will look now for the other.
+02if
+04else
+06elseif
+49There should've been a colon after the condition.
+06{true}
+07{false}
+06Extra 
+43I'm ignoring this; it doesn't match any if.
+09Improper 
+38When you say `for x=a step b until c',
+43the initial value `a' and the step size `b'
+55and the final value `c' must have known numeric values.
+57The next thing in this loop should have been `=' or `:='.
+47was present, and I'll look for the values next.
+51The next thing in this loop should have been a `:'.
+41So I'll pretend that a colon was present;
+50everything from here to `endfor' will be iterated.
+07 ENDFOR
+12{loop value=
+13initial value
+09step size
+47I assume you meant to say `until' after `step'.
+48So I'll look for the final value and colon next.
+11final value
+05.base
+15input file name
+19I can't find file `
+23I can't write on file `
+02'.
+03.mf
+20Please type another 
+45*** (job aborted, file error in nonstop mode)
+02: 
+05mfput
+04.log
+02**
+20transcript file name
+02  
+20file name for output
+37File names can't appear within macros
+46Sorry...I've converted what follows to tokens,
+37possibly garbaging the name you gave.
+51Please delete the tokens and insert the name again.
+03exp
+26 (see the transcript file)
+13 (future pen)
+10linearform
+03>> 
+07recycle
+04### 
+03 = 
+09A primary
+30 expression can't begin with `
+58I'm afraid I need some sort of value in order to continue,
+49so I've tentatively inserted `0'. You may want to
+43delete this zero and insert something else;
+50see Chapter 27 of The METAFONTbook for an example.
+39Nonnumeric ypart has been replaced by 0
+48I thought you were giving me a pair `(x,y)'; but
+50after finding a nice xpart `x' I found a ypart `y'
+54that isn't of numeric type. So I've changed y to zero.
+59(The y that I didn't like appears above the error message.)
+22A group begun on line 
+12 never ended
+56I saw a `begingroup' back there that hasn't been matched
+47by `endgroup'. So I've inserted `endgroup' now.
+16Division by zero
+43I'll pretend that you meant to divide by 1.
+44Improper subscript has been replaced by zero
+54A bracketed subscript must have a known numeric value;
+59unfortunately, what I found was the value that appears just
+55above this error message. So I'll try a zero subscript.
+09Variable 
+21 has been obliterated
+54It seems you did a nasty thing---probably by accident,
+46but nevertheless you nearly hornswoggled me...
+50While I was evaluating the right-hand side of this
+51command, something happened, and the left-hand side
+52is no longer a variable! So I won't change anything.
+51While I was evaluating the suffix of this variable,
+55something was redefined, and it's no longer a variable!
+59In order to get back on my feet, I've inserted `0' instead.
+04copy
+47I've scanned an expression of the form `a[b,c',
+41so a right bracket should have come next.
+51I've seen a `[' and a subscript value, in a suffix,
+11A secondary
+10A tertiary
+24Pen path must be a cycle
+39I can't make a pen from the given path.
+02An
+49Undefined coordinates have been replaced by (0,0)
+49I need x and y numbers for this part of the path.
+42The value I found (see above) was no good;
+48so I'll try to keep going by using zero instead.
+45(Chapter 27 of The METAFONTbook explains that
+36you might want to type `I ???' now.)
+45Undefined x coordinate has been replaced by 0
+51I need a `known' x value for this part of the path.
+45Undefined y coordinate has been replaced by 0
+51I need a `known' y value for this part of the path.
+49I've scanned a direction spec for part of a path,
+39so a right brace should have come next.
+36Improper curl has been replaced by 1
+43A curl must be a known, nonnegative number.
+46I've got the x coordinate of a path direction;
+36will look for the y coordinate next.
+45A path join command should end with two dots.
+34Improper tension has been set to 1
+53The expression above should have been a number >=3/4.
+46Paths don't touch; `&' will be changed to `..'
+48When you join paths `p&q', the ending point of p
+49must be exactly equal to the starting point of q.
+53So I'm going to pretend that you said `p..q' instead.
+46Undefined condition will be treated as `false'
+53The expression shown above should have had a definite
+48true-or-false value. I'm changing it to `false'.
+40*** (cannot readstring in nonstop modes)
+12unknown pair
+15unknown numeric
+17Not implemented: 
+59I'm afraid I don't know how to apply that operation to that
+53particular type. Continue, and I'll simply return the
+54argument (shown above) as the result of the operation.
+02)}
+30String contains illegal digits
+55I zeroed out characters that weren't in the range 0..7.
+48I zeroed out characters that weren't hex digits.
+18Number too large (
+57I have trouble with numbers greater than 4095; watch out.
+58combination of types. Continue, and I'll return the second
+52argument (see above) as the result of the operation.
+02{(
+49The quantities shown above have not been equated.
+60Oh dear. I can't decide if the expression above is positive,
+59negative, or zero. So this comparison test won't be `true'.
+41Unknown relation will be considered false
+03)*(
+58You're trying to divide the quantity shown above the error
+55message by zero. I'm going to divide it by one instead.
+32Improper transformation argument
+46The expression shown above has the wrong type,
+39so I can't transform anything using it.
+37Transform components aren't all known
+56I'm unable to apply a partially specified transformation
+42except to a fully known pair or transform.
+31That transformation is too hard
+49I can apply complicated transformations to paths,
+49but I can only do integer operations on pictures.
+16Too far to shift
+49I can't shift the picture as requested---it would
+30A statement can't begin with `
+51I was looking for the beginning of a new statement.
+58If you just proceed without changing anything, I'll ignore
+56everything up to the next `;'. Please insert a semicolon
+58now in front of anything that you don't want me to delete.
+52(See Chapter 27 of The METAFONTbook for an example.)
+28Extra tokens will be flushed
+59I've just read as much of that statement as I could fathom,
+59so a semicolon should have been next. It's very puzzling...
+53but I'll try to get myself back together, by ignoring
+19Isolated expression
+40I couldn't find an `=' or `:=' after the
+50expression that is shown above this error message,
+44so I guess I'll just ignore it and carry on.
+36Improper `:=' will be changed to `='
+54I didn't find a variable name at the left of the `:=',
+50so I'm going to pretend that you said `=' instead.
+03)=(
+19Internal quantity `
+28' must receive a known value
+56I can't set an internal quantity to anything but a known
+54numeric value, so I'll have to ignore this assignment.
+30Equation cannot be performed (
+58I'm sorry, but I don't know how to make such things equal.
+55(See the two expressions just above the error message.)
+34Redundant or inconsistent equation
+56An equation between already-known quantities can't help.
+50But don't worry; continue and I'll just ignore it.
+21Inconsistent equation
+58The equation I just read contradicts what was said before.
+09 (off by 
+48Declared variable conflicts with previous vardef
+56You can't use, e.g., `numeric foo[]' after `vardef foo'.
+51Proceed, and I'll ignore the illegal redeclaration.
+51Illegal suffix of declared variable will be flushed
+50Variables in declarations must consist entirely of
+46names and collective subscripts, e.g., `x[]a'.
+57Are you trying to use a reserved word in a variable name?
+43I'm going to discard the junk I found here,
+51up to the next comma or the end of the declaration.
+49Explicit subscripts like `x15a' aren't permitted.
+16Extra `endgroup'
+44I'm not currently working on a `begingroup',
+03end
+04dump
+46Always say `randomseed:=<numeric expression>'.
+29Unknown value will be ignored
+48Your expression was too random for me to handle,
+43so I won't change the random seed just now.
+13{randomseed:=
+13errorstopmode
+05inner
+05outer
+55I found no right delimiter to match a left one. So I've
+56put one in, behind the scenes; this may fix the problem.
+11The token `
+32' is no longer a right delimiter
+48Strange: This token has lost its former meaning!
+44I'll read it as a right delimiter this time;
+43but watch out, I'll probably miss it later.
+10(%CAPSULE)
+28' isn't an internal quantity
+55Something like `tracingonline' should follow `interim'.
+46You should have said `let symbol = something'.
+55was present. The next token I read will be `something'.
+19number of internals
+09showtoken
+09showstats
+04show
+12showvariable
+16showdependencies
+02> 
+08(outer) 
+03lef
+04righ
+25t delimiter that matches 
+03tag
+08variable
+06macro:
+09'd macro:
+17[repeat the loop]
+13Memory usage 
+17 still untouched)
+13String usage 
+07=macro:
+02OK
+56This isn't an error message; I'm just showing something.
+07contour
+10doublepath
+04also
+07withpen
+10withweight
+08dropping
+07keeping
+13Improper type
+54Next time say `withweight <known numeric expression>';
+55I'll ignore the bad `with' clause and look for another.
+47Next time say `withpen <known pen expression>';
+40Weight must be -3, -2, -1, +1, +2, or +3
+20 is the wrong type (
+45I was looking for a "known" picture variable.
+37So I'll not change anything just now.
+23Not a suitable variable
+61At this point I needed to see the name of a picture variable.
+58(Or perhaps you have indeed presented me with one; I might
+59have missed it, if it wasn't followed by the proper token.)
+16Improper `addto'
+54This expression should have specified a known picture.
+46This expression should have been a known path.
+11Not a cycle
+58That contour should have ended with `..cycle' or `&cycle'.
+37Strange path (turning number is zero)
+43Backwards path (turning number is negative)
+53The path doesn't have a counterclockwise orientation,
+41so I'll probably have trouble drawing it.
+51(See Chapter 27 of The METAFONTbook for more help.)
+17Bad window number
+42It should be the number of an open window.
+21Improper `openwindow'
+52Say `openwindow k from (r0,c0) to (r1,c1) at (x,y)',
+57where all quantities are known and k is between 0 and 15.
+19Bad culling amounts
+44Always cull by known amounts that exclude 0.
+07message
+10errmessage
+07errhelp
+46A message should be a known string expression.
+32(That was another `errmessage'.)
+51This error message was generated by an `errmessage'
+43command, so I can't give any explicit help.
+51Pretend that you're Miss Marple: Examine all clues,
+41and deduce the truth by inspired guesses.
+09Enormous 
+17 has been reduced
+48Font metric dimensions must be less than 2048pt.
+08charlist
+08ligtable
+10extensible
+10headerbyte
+09fontdimen
+35Invalid code has been replaced by 0
+54I was looking for a number between 0 and 255, or for a
+55string of length 1. Didn't find it; will use 0 instead.
+10Character 
+02||
+05code 
+12 is already 
+13in a ligtable
+13in a charlist
+51It's not legal to label a character more than once.
+17Improper location
+43I was looking for a known, positive number.
+50For safety's sake I'll ignore the present command.
+56A colon should follow a headerbyte or fontinfo location.
+21Illegal ligtable step
+38I was looking for `=:' or `kern' here.
+13ligtable size
+02=:
+03=:|
+04=:|>
+03|=:
+04|=:>
+04|=:|
+05|=:|>
+06|=:|>>
+04kern
+15Too far to skip
+57At most 127 lig/kern steps can separate skipto1 from 1::.
+13Improper kern
+51The amount of kern should be a known numeric value.
+39I'm processing `extensible c: t,m,b,r'.
+23Improper font parameter
+06(some 
+41 values had to be adjusted by as much as 
+03pt)
+47(illegal design size has been changed to 128pt)
+04.tfm
+26file name for font metrics
+24Font metrics written on 
+13(local label 
+15:: was missing)
+24(a font metric dimension
+23 font metric dimensions
+21 had to be decreased)
+17 METAFONT output 
+03.gf
+02gf
+19 (just shipped out)
+51(There's unbounded black in character shipped out!)
+07special
+10numspecial
+21Unsuitable expression
+59The expression shown above has the wrong type to be output.
+06title 
+18Output written on 
+10 character
+02, 
+08 bytes).
+08 (INIMF)
+25 strings of total length 
+43 memory locations dumped; current usage is 
+16 symbolic tokens
+07 (base=
+14base file name
+26Beginning to dump on file 
+22Transcript written on 
+02 )
+19(end occurred when 
+09 on line 
+16 was incomplete)
+52(see the transcript file for additional information)
+33(dump is performed only by INIMF)
+21debug # (-1 to exit):
+*426472440

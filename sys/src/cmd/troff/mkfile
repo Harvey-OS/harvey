@@ -25,7 +25,7 @@ HFILES=tdef.h\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-CFLAGS=-c $DIRS
+CFLAGS=-c
 CC=pcc
 
 TMACDIR='"/sys/lib/tmac/tmac."'

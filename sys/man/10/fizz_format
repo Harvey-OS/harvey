@@ -276,6 +276,12 @@ Route{
 		select 8
 		syncff 13
 	}
+	layout{
+		100/2000 A
+		3450/2000 Z
+		3400/2000 A
+		3400/1000
+	}
 }
 .Ce
 This describes the routing for net
@@ -299,6 +305,14 @@ and
 The routing is a list of
 .IR chipname , pinnumber
 pairs.
+The layout is a list of pin positions.
+The layout uses the drill field to specify both the width of the trace
+and as a control.
+The layout is actually a sequence of lists of connected segments; a pin with a drill of
+.B Z
+is the last pin in a particular list.
+The trace width for a list is taken from the drill of the first pin for that list.
+The above example describes a T-shaped layout.
 .Cs
 Positions{
 	select 3200/2300 0 0

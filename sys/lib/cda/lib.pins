@@ -1030,6 +1030,7 @@
 .tp	D[0-7]	2 4 6 8 11 13 15 17
 .tp	Y[0-7]	18 16 14 12 9 7 5 3
 
+.t 74FCT244 = 2966	% 3s octal buffer
 .t 74C244 = 2966	% 3s octal buffer CMOS
 .t 74F244 = 2966	% 3s octal buffer
 .t 74LS244 = 2966	% 3s octal buffer
@@ -3150,6 +3151,13 @@
 .tp DF 10
 .tp PD 11
 .tp U[12] 13 12
+
+.t 8582A D8 4 8 % sig IIC eeprom (256x8, serial I/O)
+.tt iiiG 44aV
+.tp A[012]  1 2 3
+.tp SDA  5
+.tp SCL  6
+.tp RC  7 % external RC
 
 .t	DSP16	LCC84	% 14 Mips fixed point WECo dsp
 .tt	v444 4vg4 4443 333g v333 g333 33gv 3333 3iii iiii viii iiii iii3 3gvi 4444 3444 gii3 gvi3 4444 44vg 4444

@@ -116,7 +116,7 @@ enum	as
 	AWORD,
 	AXOR,
 
-	AEND
+	AEND,
 };
 
 /* type/name */

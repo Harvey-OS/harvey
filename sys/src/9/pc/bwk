@@ -1,0 +1,34 @@
+dev
+	root	/
+	cons	c
+	env	e
+	mnt	M
+	bit	b
+	uart	t
+	pipe	|
+	floppy	f
+	hard	w
+	srv	s
+	dup	d
+	proc	p
+	rtc	r
+	vga	v
+	dk	k
+
+stream
+	urp
+	fcall
+	async
+
+misc
+	dossrv.root
+
+port
+	int cpuserver = 0;
+	void consdebug(void){}
+	long cfslen = 0; ulong cfscode[1];
+
+boot
+	local
+	9600
+	19200

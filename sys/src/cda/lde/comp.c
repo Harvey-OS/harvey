@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "dat.h"
 #include "fns.h"
-#include "y.tab.h"
+#include "gram.h"
 
 #define	NSWIT	150
 #define	NCOMP	10000

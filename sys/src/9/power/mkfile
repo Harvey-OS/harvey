@@ -18,6 +18,7 @@ OBJ=\
 	alloc.$O\
 	chan.$O\
 	clock.$O\
+	debugger.$O\
 	dev.$O\
 	queue.$O\
 	fault.$O\

@@ -53,11 +53,14 @@ Upper case letters compare equal to lower case.
 Numeric comparison with initial string of digits, optional minus sign,
 and optional decimal point.
 .TP
-.BI -t c
-`Tab character'
+.BI -t [c]
+Character
 .I c
 terminates the sort key in the
 .I file.
+By default, tab terminates the key.  If
+.I c
+is missing the entire line comprises the key.
 .PP
 If no
 .I file

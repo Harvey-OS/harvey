@@ -1,7 +1,7 @@
 #!/bin/rc
 #stolen from pcc
 # do not modify /$cputype/bin/c++/?l
-# instead, change the master copy in /sys/src/c++/ld and mk install
+# instead, change the master copy in /sys/src/c++/ld/ldprog and mk installall
 
 rfork
 

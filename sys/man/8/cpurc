@@ -15,17 +15,22 @@ prompt=($sysname^'% ' '	')
 switch($sysname){
 case kremvax	# big multiprocessor
 	NPROC=4
-	bind -b '#l' /net; ip/ipconfig
-	# ip/rarpd & 	# only if you have suns to boot
+	ip/ipconfig
+	ip/rarpd & 	# only needed if you have suns to boot
 	ip/tftpd -d & ip/bootp
 	/mail/lib/mailcron &
 	aux/listen il
 	aux/listen tcp
-case musca 135.104.9.6	# mips magnum as cpu server
+case musca 135.104.9.6	# mips magnum as cpu server and auth server
 	sysname=musca
-	bind -b '#l' /net; ip/ipconfig
-	# ip/rarpd & 	# only if you have suns to boot
+	auth/keyfs -m/mnt/keys /adm/keys
+	auth/keyfs -m/mnt/netkeys /adm/netkeys
+	ip/ipconfig
+	ip/rarpd & 	# only needed if you have suns to boot
 	ip/tftpd -d & ip/bootp
+	ndb/dns -s
+	aux/listen -t /bin/service.auth -d /bin/service dk
+	aux/listen -t /bin/service.auth -d /bin/service il
 	aux/listen tcp
 	aux/listen il
 }

@@ -6,7 +6,7 @@ typedef	struct	Hcmd	Hcmd;
 typedef	struct	Hhdr	Hhdr;
 typedef	struct	Exec	Exec;
 typedef	struct	Out	Out;
-
+typedef struct  Cyclone Cyclone;
 
 enum
 {
@@ -16,6 +16,7 @@ enum
 	NPARAM	= 6,
 	NOUT	= 20,
 	NHASH	= 290,
+	NCYC	= 2,
 };
 
 struct	Hhdr
@@ -41,8 +42,7 @@ struct Out
 	ulong*	ip;
 };
 
-static
-struct
+struct Cyclone
 {
 	Queue*	reply;
 	struct
@@ -65,58 +65,70 @@ struct
 		Filter	rate;
 		Filter	count;
 	};
-} h;
+};
 
-static	int	cyclissue(Hhdr*, Hcmd*, int);
+static Cyclone h[NCYC];
+
+static	int	cyclissue(Cyclone*, Hhdr*, Hcmd*, int);
 static	void	cmd_cycl(int, char*[]);
 static	void	cmd_stats(int, char*[]);
 
 void
 cyclintr(Vmedevice *vp)
 {
+	int i;
+	Cyclone *hp;
 
-	USED(vp);
-	h.cmdwait = 1;
-	wakeup(&h.hrir);
+	hp = h;
+	for(i = 0; i < NCYC; i++) {
+		if(vp == hp->vme) {
+			hp->cmdwait = 1;
+			wakeup(&hp->hrir);
+			break;
+		}
+		hp++;
+	}
 }
 
 int
 cyclinit(Vmedevice *vp)
 {
-	int i, n, bv, bc, c;
-	Msgbuf *m;
-	Chan *cp;
 	Hhdr *hc;
+	Chan *cp;
+	Msgbuf *m;
+	Cyclone *hp;
+	int i, n, bv, bc, c, ncyc;
 
-	print("cyclinit\n");
+	for(ncyc = 0; ncyc < NCYC; ncyc++)
+		if(h[ncyc].vme == 0)
+			break;
 
-	/*
-	 * does the board exist?
-	com = vp->address;
-	if(probe(&com->rom[0], sizeof(com->rom[0]))) {
-		return -1;
-	}
-	 */
+	if(ncyc == NCYC)
+		panic("config more cyclones");
 
-	memset(&h, 0, sizeof(h));
-	h.vme = vp;
-	h.reply = newqueue(10);
+	print("cyclinit: %d\n", ncyc);
+
+	hp = &h[ncyc];
+
+	memset(hp, 0, sizeof(*hp));
+	hp->vme = vp;
+	hp->reply = newqueue(10);
 	cp = chaninit(Devcycl, 1);
-	h.chan = cp;
+	hp->chan = cp;
 	cp->send = serveq;
-	cp->reply = h.reply;
+	cp->reply = hp->reply;
 
 	for(i=0; i<NBUF; i++) {
 		n = LARGEBUF;
 		if(i >= NLBUF)
 			n = SMALLBUF;
-		m = mballoc(n, h.chan, Mbcycl1);
-		hc = &h.buf[i];
+		m = mballoc(n, hp->chan, Mbcycl1);
+		hc = &hp->buf[i];
 		hc->hcmd = ialloc(sizeof(Hcmd), LINESIZE);
 		hc->mb = m;
 		hc->mbsize = n;
-		hc->mbmap = vme2sysmap(h.vme->bus, (ulong)m->data, n);
-		hc->hcmap = vme2sysmap(h.vme->bus, (ulong)hc->hcmd, sizeof(Hcmd));
+		hc->mbmap = vme2sysmap(hp->vme->bus, (ulong)m->data, n);
+		hc->hcmap = vme2sysmap(hp->vme->bus, (ulong)hc->hcmd, sizeof(Hcmd));
 	}
 
 	/*
@@ -124,34 +136,36 @@ cyclinit(Vmedevice *vp)
 	 */
 	bc = NHASH;
 	bv = 0;
-	for(h.vhash=10; h.vhash<=NHASH; h.vhash++) {
-		memset(h.bhash, 0, sizeof(h.bhash));
+	for(hp->vhash=10; hp->vhash<=NHASH; hp->vhash++) {
+		memset(hp->bhash, 0, sizeof(hp->bhash));
 		c = 0;
 		for(i=0; i<NBUF; i++) {
-			hc = &h.buf[i];
-			n = hc->hcmap%h.vhash;
-			if(h.bhash[n])
+			hc = &hp->buf[i];
+			n = hc->hcmap%hp->vhash;
+			if(hp->bhash[n])
 				c++;
-			h.bhash[n] = 1;
+			hp->bhash[n] = 1;
 		}
 		if(c < bc) {
 			bc = c;
-			bv = h.vhash;
+			bv = hp->vhash;
 		}
 	}
 	print("best v = %d %d collisions\n", bv, bc);
-	h.vhash = bv;
-	memset(h.bhash, 0, sizeof(h.bhash));
+	hp->vhash = bv;
+	memset(hp->bhash, 0, sizeof(hp->bhash));
 	for(i=0; i<NBUF; i++) {
-		hc = &h.buf[i];
-		h.bhash[hc->hcmap%h.vhash] = i;
+		hc = &hp->buf[i];
+		hp->bhash[hc->hcmap%hp->vhash] = i;
 	}
 
-	dofilter(&h.count);
-	dofilter(&h.rate);
+	dofilter(&hp->count);
+	dofilter(&hp->rate);
 
-	cmd_install("cycl", "subcommand -- issue cyclone command", cmd_cycl);
-	cmd_install("statc", "-- cyclone stats", cmd_stats);
+	if(ncyc == 0) {
+		cmd_install("cycl", "subcommand -- issue cyclone command", cmd_cycl);
+		cmd_install("statc", "-- cyclone stats", cmd_stats);
+	}
 	return 0;
 }
 
@@ -172,24 +186,27 @@ addsum(void *d, int count)
 void
 cyclou(void)
 {
-	Out *op, *uop;
-	Msgbuf *mb;
 	Hcmd *hc;
 	Comm *com;
+	Msgbuf *mb;
+	Cyclone *hp;
 	int i, count;
+	Out *op, *uop;
+
+	hp = getarg();
 
 	for(i=0; i<NOUT; i++) {
-		op = &h.out[i];
+		op = &hp->out[i];
 		op->mb = 0;
 		op->hc = ialloc(sizeof(Hcmd), LINESIZE);
-		op->hcmap = vme2sysmap(h.vme->bus, (ulong)op->hc, sizeof(Hcmd));
+		op->hcmap = vme2sysmap(hp->vme->bus, (ulong)op->hc, sizeof(Hcmd));
 	}
 
-	print("cyo: start\n");
-	com = h.vme->address;
+	print("cyo%d: start\n", hp-h);
+	com = hp->vme->address;
 
 loop:
-	mb = recv(h.reply, 0);
+	mb = recv(hp->reply, 0);
 	if(!mb) {
 		print("zero message\n");
 		goto loop;
@@ -200,7 +217,7 @@ loop:
 	 * also find spare slot->uop
 	 */
 busy:
-	op = h.out;
+	op = hp->out;
 	uop = 0;
 	for(i=0; i<NOUT; i++, op++) {
 		if(op->mb == 0) {
@@ -211,25 +228,25 @@ busy:
 		if(*op->ip)
 			continue;
 
-		vmeflush(h.vme->bus, op->hcmap, sizeof(Hcmd));
-		vme2sysfree(h.vme->bus, op->mbmap, op->mb->count);
+		vmeflush(hp->vme->bus, op->hcmap, sizeof(Hcmd));
+		vme2sysfree(hp->vme->bus, op->mbmap, op->mb->count);
 		mbfree(op->mb);
 		op->mb = 0;
 		if(uop == 0)
 			uop = op;
 	}
 	if(uop == 0) {
-		if(h.oubusy == 0)
+		if(hp->oubusy == 0)
 			print("ou: busy!\n");
-		h.oubusy++;
-		if(h.oubusy > 1000000)
-			h.oubusy = 0;
+		hp->oubusy++;
+		if(hp->oubusy > 1000000)
+			hp->oubusy = 0;
 		goto busy;
 	}
 
 	count = mb->count;
 	uop->mb = mb;
-	uop->mbmap = vme2sysmap(h.vme->bus, (ulong)mb->data, count);
+	uop->mbmap = vme2sysmap(hp->vme->bus, (ulong)mb->data, count);
 	wbackcache(mb->data, count);
 	invalcache(mb->data, count);
 
@@ -242,7 +259,7 @@ busy:
 	if(SUM)
 		hc->param[3] = addsum(mb->data, count);
 
-	if(h.verb) {
+	if(hp->verb) {
 		print("cyo: cmd=reply u=%.8lux b=%.8lux c=%.8lux\n",
 			hc->param[0], hc->param[1], hc->param[2]);
 		prflush();
@@ -251,18 +268,18 @@ busy:
 	wbackcache(hc, sizeof(*hc));
 	invalcache(hc, sizeof(*hc));
 
-	qlock(&h.issueq);
-	i = h.issuep;
+	qlock(&hp->issueq);
+	i = hp->issuep;
 	uop->ip = &com->reqstq[i];
 
 	i++;
 	if(i >= NRQ)
 		i = 0;
-	h.issuep = i;
-	qunlock(&h.issueq);
+	hp->issuep = i;
+	qunlock(&hp->issueq);
 
-	h.count.count++;
-	h.rate.count += count;
+	hp->count.count++;
+	hp->rate.count += count;
 
 	*uop->ip = uop->hcmap;
 
@@ -275,9 +292,10 @@ busy:
 int
 cycmd(void *v)
 {
+	Cyclone *hp;
 
-	USED(v);
-	return h.cmdwait;
+	hp = (Cyclone*)v;
+	return hp->cmdwait;
 }
 
 void
@@ -290,57 +308,60 @@ cyclin(void)
 	Hhdr *hc;
 	Hcmd *hcmd;
 	Comm* com;
+	Cyclone *hp;
 
-	print("cyi: start\n");
-	userinit(cyclou, 0, "cyo");
-	cp = h.chan;
-	com = h.vme->address;
+	hp = getarg();
+	print("cyi%d: start\n", hp-h);
+	userinit(cyclou, hp, "cyo");
 
+	cp = hp->chan;
+	com = hp->vme->address;
+	
 loop:
-	sleep(&h.hrir, cycmd, 0);
-	h.cmdwait = 0;
+	sleep(&hp->hrir, cycmd, hp);
+	hp->cmdwait = 0;
 
 l1:
 	/*
 	 * look at reply q from cyclone
 	 */
-	u = com->replyq[h.replyp];
+	u = com->replyq[hp->replyp];
 	if(u == 0)
 		goto loop;
-	com->replyq[h.replyp] = 0;
-	h.replyp++;
-	if(h.replyp >= NRQ)
-		h.replyp = 0;
+	com->replyq[hp->replyp] = 0;
+	hp->replyp++;
+	if(hp->replyp >= NRQ)
+		hp->replyp = 0;
 
-	hc = &h.buf[h.bhash[u%h.vhash]];
+	hc = &hp->buf[hp->bhash[u%hp->vhash]];
 	if(hc->hcmap == u)
 		goto found;
 
 	for(i=0; i<NBUF; i++) {
-		hc = &h.buf[i];
+		hc = &hp->buf[i];
 		if(hc->hcmap == u)
 			goto found;
 	}
-	print("hri: spurious %lux\n", u);
+	print("cyi: spurious %lux\n", u);
 	goto l1;
 
 found:
-	vmeflush(h.vme->bus, hc->hcmap, sizeof(Hcmd));
+	vmeflush(hp->vme->bus, hc->hcmap, sizeof(Hcmd));
 	invalcache(hc, sizeof(Hcmd));
 
 	hcmd = hc->hcmd;
 	if(hcmd->cmd != Ubuf) {
-		print("hri: cmd not Ubuf %d\n", hcmd->cmd);
+		print("cyi: cmd not Ubuf %d\n", hcmd->cmd);
 		goto l1;
 	}
 
 	count = hc->mbsize;
 	if(hcmd->param[3] > count) {
-		print("hri: rcount too big %d %lux\n", hcmd->param[3], &hcmd->param[3]);
+		print("cyi: rcount too big %d %lux\n", hcmd->param[3], &hcmd->param[3]);
 		hcmd->param[3] = count;
 	}
 	mb = hc->mb;
-	vme2sysfree(h.vme->bus, hc->mbmap, count);
+	vme2sysfree(hp->vme->bus, hc->mbmap, count);
 	invalcache(mb->data, count);
 
 	mb->param = hcmd->param[0];	/* u */
@@ -348,22 +369,22 @@ found:
 	if(hcmd->param[4]) {
 		s = addsum(mb->data, mb->count);
 		if(s != hcmd->param[4])
-			print("hri: checksum %lux sb %lux\n", s, hcmd->param[4]);
+			print("cyi: checksum %lux sb %lux\n", s, hcmd->param[4]);
 	}
 
-	if(h.verb) {
-		print("cyi: cmd=buf u=%.8lux b=%.8lux c=%.8lux\n",
-			hcmd->param[0], hcmd->param[1], hcmd->param[3]);
+	if(hp->verb) {
+		print("cyi%d: cmd=buf u=%.8lux b=%.8lux c=%.8lux\n",
+			hp-h, hcmd->param[0], hcmd->param[1], hcmd->param[3]);
 		prflush();
 	}
 
 	send(cp->send, mb);
 
-	h.count.count++;
-	h.rate.count += mb->count;
+	hp->count.count++;
+	hp->rate.count += mb->count;
 
 	mb = mballoc(count, cp, Mbcycl2);
-	hc->mbmap = vme2sysmap(h.vme->bus, (ulong)mb->data, count);
+	hc->mbmap = vme2sysmap(hp->vme->bus, (ulong)mb->data, count);
 	hc->mb = mb;
 
 	hcmd->cmd = Ubuf;
@@ -379,47 +400,48 @@ found:
 	wbackcache(hcmd, sizeof(Hcmd));
 	invalcache(hcmd, sizeof(Hcmd));
 
-	qlock(&h.issueq);
-	i = h.issuep;
+	qlock(&hp->issueq);
+	i = hp->issuep;
 	com->reqstq[i] = hc->hcmap;
 	i++;
 	if(i >= NRQ)
 		i = 0;
-	h.issuep = i;
-	qunlock(&h.issueq);
+	hp->issuep = i;
+	qunlock(&hp->issueq);
 
 	goto l1;
 }
 
-void
-cyclstart(void)
+static void
+dostart(Cyclone *hp)
 {
 	int i;
 	Hhdr *hc;
+	Comm *com;
 	Hcmd *hcmd;
 	struct { Hhdr hdr; Hcmd cmd; } cmd;
 
-	if(h.vme == 0) {
-		print("no cyclone configured\n");
-		return;
-	}
+	print("cyclone start: %d\n", hp-h);
 
-	print("cyclone start\n");
 	cmd.cmd.cmd = Ureboot;
-	if(cyclissue(&cmd.hdr, &cmd.cmd, 1))
+	if(cyclissue(hp, &cmd.hdr, &cmd.cmd, 1))
 		print("	reboot didnt issue\n");
 
-	h.issuep = 0;		/* my pointer again */
-	h.replyp = 0;
+	hp->issuep = 0;		/* my pointer again */
+	hp->replyp = 0;
 
-	if(!h.hpactive) {
-		h.hpactive = 1;
-		userinit(cyclin, 0, "cyi");
+	if(!hp->hpactive) {
+		hp->hpactive = 1;
+		userinit(cyclin, hp, "cyi");
 	}
-	fileinit(h.chan);
+	fileinit(hp->chan);
+
+	/* Set up the VME interrupt vector */
+	com = hp->vme->address;
+	com->vmevec = hp->vme->vector;
 
 	for(i=0; i<NBUF; i++) {
-		hc = &h.buf[i];
+		hc = &hp->buf[i];
 		hcmd = hc->hcmd;
 
 		hcmd->cmd = Ubuf;
@@ -431,40 +453,68 @@ cyclstart(void)
 		wbackcache(hc->mb->data, hc->mbsize);
 		invalcache(hc->mb->data, hc->mbsize);
 
-		if(cyclissue(hc, hcmd, 0)) {
-			print("	buf[%d] didnt issue\n", i);
+		if(cyclissue(hp, hc, hcmd, 0)) {
+			print("cyc%d: buf[%d] didnt issue\n", hp-h, i);
 			return;
 		}
 	}
+}
+
+void
+cyclstart(void)
+{
+	int i;
+
+	for(i = 0; i < NCYC; i++)
+		if(h[i].vme)
+			dostart(&h[i]);
 }
 
 static
 void
 cmd_cycl(int argc, char *argv[])
 {
+	int i, c;
+	Cyclone *hp;
 	struct { Hhdr hdr; Hcmd cmd; } cmd;
-	int i;
 
 	if(argc <= 1) {
-		print("cycl reboot -- reboot\n");
-		print("cycl intr -- fake an interrupt\n");
-		print("cycl verbose -- chatty\n");
-		print("cycl ping -- issue Uping\n");
+		print("cycl [unit] reboot -- reboot\n");
+		print("cycl [unit] intr -- fake an interrupt\n");
+		print("cycl [unit] verbose -- chatty\n");
+		print("cycl [unit] ping -- issue Uping\n");
 		return;
 	}
-	for(i=1; i<argc; i++) {
+
+	hp = &h[0];
+	i=1;
+	if(argc >= 2 && argv[1][0] >= '0' && argv[1][0] <= '9') {
+		c = number(argv[1], -1, 10);
+		if(c < 0 || c >= NCYC) {
+			print("bad cyclone\n");
+			return;
+		}
+		hp = &h[c];
+		i++;
+	}
+	if(hp->vme == 0) {
+		print("cyc%d: not active\n", hp-h);
+		return;
+	}
+
+	for(; i<argc; i++) {
 		if(strcmp(argv[i], "reboot") == 0) {
-			cyclstart();
+			dostart(hp);
 			continue;
 		}
 		if(strcmp(argv[i], "intr") == 0) {
-			h.cmdwait = 1;
-			wakeup(&h.hrir);
+			hp->cmdwait = 1;
+			wakeup(&hp->hrir);
 			continue;
 		}
 		if(strcmp(argv[i], "verbose") == 0) {
-			h.verb = !h.verb;
-			if(h.verb)
+			hp->verb = !hp->verb;
+			if(hp->verb)
 				print("chatty\n");
 			else
 				print("quiet\n");
@@ -472,7 +522,7 @@ cmd_cycl(int argc, char *argv[])
 		}
 		if(strcmp(argv[i], "ping") == 0) {
 			cmd.cmd.cmd = Uping;
-			if(cyclissue(&cmd.hdr, &cmd.cmd, 1))
+			if(cyclissue(hp, &cmd.hdr, &cmd.cmd, 1))
 				print("	ping didnt issue\n");
 			continue;
 		}
@@ -482,7 +532,7 @@ cmd_cycl(int argc, char *argv[])
 
 static
 int
-cyclissue(Hhdr *hdr, Hcmd *cmd, int alloc)
+cyclissue(Cyclone *cy, Hhdr *hdr, Hcmd *cmd, int alloc)
 {
 	int i;
 	long t;
@@ -491,21 +541,22 @@ cyclissue(Hhdr *hdr, Hcmd *cmd, int alloc)
 
 	map = hdr->hcmap;
 	if(alloc)
-		map = vme2sysmap(h.vme->bus, (ulong)cmd, sizeof(Hcmd));
+		map = vme2sysmap(cy->vme->bus, (ulong)cmd, sizeof(Hcmd));
 	wbackcache(cmd, sizeof(Hcmd));
 	invalcache(cmd, sizeof(Hcmd));
-	com = h.vme->address;
+	com = cy->vme->address;
 
-	qlock(&h.issueq);
-	i = h.issuep;
+	qlock(&cy->issueq);
+	i = cy->issuep;
 	hp = &com->reqstq[i];
+
 	*hp = map;
 
 	i++;
 	if(i >= NRQ)
 		i = 0;
-	h.issuep = i;
-	qunlock(&h.issueq);
+	cy->issuep = i;
+	qunlock(&cy->issueq);
 
 	t = toytime() + SECOND(5);
 	for(;;) {
@@ -519,9 +570,9 @@ cyclissue(Hhdr *hdr, Hcmd *cmd, int alloc)
 	}
 
 	if(alloc)
-		vme2sysfree(h.vme->bus, map, sizeof(Hcmd));
+		vme2sysfree(cy->vme->bus, map, sizeof(Hcmd));
 	else
-		vmeflush(h.vme->bus, map, sizeof(Hcmd));
+		vmeflush(cy->vme->bus, map, sizeof(Hcmd));
 
 	return m;
 }
@@ -530,19 +581,22 @@ static
 void
 cmd_stats(int argc, char *argv[])
 {
+	int i;
 	Vmedevice *vp;
+	Cyclone *hp;
+	
 
-	USED(argc);
-	USED(argv);
+	USED(argc, argv);
 
 	print("cyclone stats\n");
-	for(;;) {	/* loop for multipls cyclones */
-		vp = h.vme;
-		if(vp == 0)
-			break;
-		print("	%s\n", vp->name);
-		print("		work = %F mps\n", (Filta){&h.count, 1});
-		print("		rate = %F tBps\n", (Filta){&h.rate, 1000});
-		break;
+	hp = h;
+	for(i = 0; i < NCYC; i++) {
+		vp = hp->vme;
+		if(vp) {
+			print("	%s\n", vp->name);
+			print("		work = %F mps\n", (Filta){&hp->count, 1});
+			print("		rate = %F tBps\n", (Filta){&hp->rate, 1000});
+		}
+		hp++;
 	}
 }

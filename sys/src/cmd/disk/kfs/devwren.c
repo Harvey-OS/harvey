@@ -81,7 +81,7 @@ wreninit(Device dev)
 			fprint(2, "kfs: bad buffersize(%d): assuming 1k blocks\n", RBUFSIZE);
 			RBUFSIZE = 1024;
 		}
-		memcpy(buf+256, buf, strlen(WMAGIC)+32);
+		memmove(buf+256, buf, strlen(WMAGIC)+32);
 		seek(fd, 0, 0);
 		write(fd, buf, 512);
 	}else

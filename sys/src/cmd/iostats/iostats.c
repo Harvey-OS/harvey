@@ -534,7 +534,7 @@ fidreport(Fid *f)
 	for(fr = frhead; fr; fr = fr->next) {
 		if(strcmp(fr->op, p) == 0) {
 			fr->nread += f->nread;
-			fr->nwrite += fr->nwrite;
+			fr->nwrite += f->nwrite;
 			fr->bread += f->bread;
 			fr->bwrite += f->bwrite;
 			fr->opens++;

@@ -66,7 +66,7 @@ awk '
 	BEGIN	{ cpuflag = 0; bootprog = "boot"; bootdisk = "#w/hd0" }
 	$0 ~ "^boot" && $2=="cpu"\
 		{ cpuflag = 1 }
-	$0 ~ "^boot" && ($2=="bboot" || $2=="rom" || $2=="dosboot")\
+	$0 ~ "^boot" && ($2=="bboot" || $2=="romboot" || $2=="dosboot")\
 		{ cpuflag = 1;  bootprog = $2; }
 	$0 ~ "^boot" && NF==3\
 		{ bootdisk = $3 }

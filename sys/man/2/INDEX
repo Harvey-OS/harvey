@@ -69,7 +69,6 @@ Bputc bio
 Bputrune bio
 Brdline bio
 Bread bio
-Brestart bio
 Bseek bio
 Bungetc bio
 Bungetrune bio
@@ -85,6 +84,7 @@ clipline bitblt
 disc bitblt
 ellipse bitblt
 point bitblt
+polysegment bitblt
 segment bitblt
 string bitblt
 strsize bitblt
@@ -289,34 +289,18 @@ lcstring layer
 lfree layer
 ltoback layer
 ltofront layer
-beswab machines
-beswal machines
-crackhdr machines machines
-file2pc machines
-fileelem machines
-fileline machines
-findlocal machines
-findsym machines machines
-freemap machines
-getauto
-getsym machines
-globalsym machines
-leswab machines
-leswal machines
-line2addr machines
-loadmap machines
-localsym machines
-lookup machines
-machines machines
-mget machines
-mput machines
-newmap machines
-pc2line machines
-pc2sp machines
-setmap machines
-symbase machines
-syminit machines
-textsym machines
+beswab mach
+beswal mach
+crackhdr mach mach
+freemap mach
+leswab mach
+leswal mach
+loadmap mach
+mach mach
+mget mach
+mput mach
+newmap mach
+setmap mach
 unusemap
 calloc malloc
 free malloc
@@ -352,6 +336,15 @@ ndbsnext ndb
 atnotify notify
 noted notify
 notify notify
+isar object
+nextar object
+objbase object
+object object
+objreset object
+objsym object
+objtype object
+readar object
+readobj object
 close open
 create open
 open open
@@ -367,6 +360,7 @@ fmtinstall print
 fprint print
 numbconv print
 print print
+snprint print
 sprint print
 strconv print
 qsort qsort
@@ -451,6 +445,25 @@ rdsubfontfile subfalloc
 subfalloc subfalloc
 subffree subfalloc
 wrsubfontfile subfalloc
+file2pc symbol
+fileelem symbol
+fileline symbol
+filesym symbol
+findlocal symbol
+findsym symbol
+getauto
+getsym symbol
+globalsym symbol
+line2addr symbol
+localsym symbol
+lookup symbol
+pc2line symbol
+pc2sp symbol
+symbase symbol
+symbol symbol
+symerror symbol
+syminit symbol symbol
+textsym symbol
 time time
 tmpfile tmpfile
 tmpnam tmpfile

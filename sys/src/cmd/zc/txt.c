@@ -45,6 +45,12 @@ ginit(void)
 	constnode.complex = 0;
 	constnode.addable = 20;
 
+	fconstnode.op = OCONST;
+	fconstnode.class = CXXX;
+	fconstnode.complex = 0;
+	fconstnode.addable = 20;
+	fconstnode.type = types[TDOUBLE];
+
 	nodsafe = new(ONAME, Z, Z);
 	nodsafe->sym = slookup(".safe");
 	nodsafe->type = tint;
@@ -174,6 +180,13 @@ nodconst(long v)
 {
 	constnode.offset = v;
 	return &constnode;
+}
+
+Node*
+nodfconst(double d)
+{
+	fconstnode.ud = d;
+	return &fconstnode;
 }
 
 void
@@ -453,8 +466,11 @@ gopcode(int o, Node *f, Node *t)
 	case OASADD:
 	case OADD:
 		a = AADD;
-		if(fp)
+		if(fp) {
 			a = AFADD;
+			if(typec[t->type->etype] || typeh[t->type->etype])
+				diag(f, "illegal opcode");
+		}
 		break;
 	case OPREDEC:
 	case OPOSTDEC:

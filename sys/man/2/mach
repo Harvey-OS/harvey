@@ -1,0 +1,214 @@
+.TH MACH 2X
+.SH NAME
+crackhdr, newmap, setmap, unusemap,
+freemap, loadmap, mget, mput, beswab, beswal, leswab, leswal \- executable file interpretation
+.SH SYNOPSIS
+.B #include <bio.h>
+.br
+.B #include <mach.h>
+.PP
+.ta \w'\fLmachines 'u
+.B
+int  crackhdr(int fd, Fhdr *fp)
+.PP
+.B
+Map  *newmap(Map *map, int fd)
+.PP
+.B
+int  setmap(Map *map, int seg, ulong base, ulong end, ulong foffset)
+.PP
+.B
+void unusemap(Map *map, int seg)
+.PP
+.B
+Map  *loadmap(Map *map, int fd, Fhdr *fp)
+.PP
+.B
+int  mget(Map *map, int seg, ulong addr, char *buf, int size)
+.PP
+.B
+int mput(Map *map, int seg, ulong addr, char *buf, int size)
+.PP
+.B
+ushort beswab(ushort s)
+.PP
+.B
+long beswal(long l)
+.PP
+.B
+ushort leswab(ushort s)
+.PP
+.B
+long leswal(long l)
+.SH DESCRIPTION
+These functions provide machine-independent processing
+of an executable file or executing process image.
+The latter is accessible by opening the device
+.B /proc/\fIpid\fP/text
+as described in
+.IR proc (3).
+The functions are stored in library
+.BR libmach.a ;
+the library is automatically searched by the loader
+when header file
+.I mach.h
+is included in a source file.
+.IR Symbol (2)
+and
+.IR object (2)
+describe additional library functions
+for processing symbol tables and object files.
+.PP
+.I Crackhdr
+loads data structure
+.I fp
+with a machine-independent description of the
+header of the executable file or image associated
+with the open file descriptor
+.IR fd .
+It also sets global variable
+.I mach
+pointing to the
+.B Mach
+data structure containing the machine-dependent parameters
+of the target architecture.
+.PP
+A
+.I Map
+is a data structure used to
+transform an address in the logical address space
+of an executable to an offset in a file or
+executing image.  Each map comprises up to
+four logical
+.BR segments ,
+named
+.BR SEGDATA ,
+.BR SEGTEXT ,
+.BR SEGUBLK ,
+and
+.BR SEGREGS ,
+that map the data, text,
+.LR u-block ,
+and register segments,
+respectively.  The latter two segments are only applicable
+to executing images.  A portion of the physical address space
+may be mapped by multiple segments.  A segment defines 
+the low and high addresses of the logical address space
+and the physical offset into the file
+or executing image to the beginning of the address space.
+.PP
+.I Newmap
+creates a new map or recycles one currently in use.
+If
+.I map
+is zero, a new map is dynamically
+allocated, otherwise it is assumed to
+point to an existing map.
+The map is marked empty and attached to the open file
+descriptor
+.IR fd .
+The address of the map is returned.
+.PP
+.I Setmap
+loads segment 
+.I seg
+of
+.I map
+with the
+segment mapping parameters.
+.I Base
+and
+.I end
+contain the lowest and highest virtual addresses
+mapped by the segment.
+.I Foffset
+contains the offset in the executable
+to the start of the segment.
+.PP
+.I Unusemap
+marks segment
+.I seg
+in map
+.I map
+unused.  Other
+segments in the map remain unaffected.
+.PP
+.I Loadmap
+uses the values in a
+.B Fhdr
+data structure (usually filled by
+.IR crackhdr )
+to initialize the map for an executable file or executing
+image.  If
+.I map
+is zero, a new map is dynamically allocated; otherwise,
+.I map
+is initialized with the appropriate values.  This function
+returns the address of the map if successful,
+zero on failure.
+.PP
+.I Mget
+reads 
+.I size
+bytes into
+.I buf
+from the file associated with
+.IR map .
+The data is read from logical address
+.I addr
+in segment
+.IR seg .
+.I Fput
+is similar except it writes to the executable file or
+executing image associated with
+.IR map .
+Both functions return \-1 if they are unable to calculate
+a physical address, 0 if the read or write operation fails,
+and 1 on success.  The segment is one of
+.BR SEGTEXT ,
+.BR SEGDATA ,
+.BR SEGUBLK ,
+or
+.BR SEGREGS ,
+or the special segment,
+.BR SEGANY .
+If
+.B SEGANY
+is specified, the address translation is performed using
+the text, data, and
+.LR u-block
+maps, in that order.  Accesses to
+.B SEGDATA
+first attempt a translation using the data map then
+the
+.LR u-block
+map.  The read
+or write operation takes place at the address produced
+by the first valid translation.
+.PP
+.I Beswab
+and
+.I beswal
+convert a big-endian
+.B ushort
+and
+.B long
+respectively, to
+the target processor's native representation.
+.I Leswab
+and
+.I leswal
+perform the same conversion for a little-endian
+.B ushort
+and
+.B long
+respectively.
+.PP
+Unless otherwise specified, all functions return 1
+on success, or 0 on error.
+.SH "SEE ALSO"
+.IR symbol (2),
+.IR object (2),
+.IR proc (3),
+.IR a.out (6)
+

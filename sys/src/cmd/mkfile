@@ -6,8 +6,9 @@ YFILES=bc.y
 BIN=/$objtype/bin
 </sys/src/cmd/mkmany
 
-NOTSYS=eqn|lp|map|pic|proof|tbl|tex|troff|weather
-BUGGERED=reduce|postscript|unix|psi
+#NOTSYS=eqn|lp|map|pic|proof|tbl|tex|troff|weather
+NOTSYS=map|tex|weather
+BUGGERED=reduce|postscript|unix|psi|ua|uc|ul
 NOMK=$NOTSYS|$BUGGERED
 
 DIRS=`{ls -l | sed '/^d/!d; s/.* //; /^('$NOMK')$/d'}
@@ -72,9 +73,3 @@ $BIN/pull:	$O.pull
 $BIN/push:	$O.push
 	cp $prereq $BIN/push
 	mv $prereq $BIN/Rpush
-
-nm.$O:	nm.c /sys/src/libmach/obj.h
-	$CC $CFLAGS -I/sys/src/libmach nm.c
-
-rl.$O:	rl.c /sys/src/libmach/obj.h
-	$CC $CFLAGS -I/sys/src/libmach rl.c

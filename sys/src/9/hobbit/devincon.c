@@ -8,6 +8,11 @@
 
 #include	"io.h"
 
+extern char station[NAMELEN];
+static int minmax[2] = {
+	5, 15
+};
+
 typedef struct Incon	Incon;
 typedef struct Device	Device;
 
@@ -20,8 +25,6 @@ typedef struct Device	Device;
 #define wbflush()
 
 enum {
-	Minstation=	6,	/* lowest station # to poll */
-	Maxstation=	6,	/* highest station # to poll */
 	Nincon=		1,	/* number of incons */
 	Nin=		32,	/* Blocks in the input ring */
 	Bsize=		128,	/* size of an input ring block */
@@ -236,7 +239,7 @@ inconpoll(Incon *ip, int station)
 	wbflush();
 	dev->data = NCHAN;
 	wbflush();
-	for (p = "hobocpu"; *p; p++) {
+	for (p = sysname; *p; p++) {
 		dev->data = *p;
 		wbflush();
 	}
@@ -274,7 +277,7 @@ inconrestart(Incon *ip)
 	/*
 	 *  poll for incon station numbers
 	 */
-	for(i = Minstation; i <= Maxstation; i++){
+	for(i = minmax[0]; i <= minmax[1]; i++){
 		inconpoll(ip, i);
 		if(ip->state == Selected)
 			break;
@@ -301,13 +304,14 @@ inconrestart(Incon *ip)
 static void inconintr(int, Ureg*);
 
 static Vector vector[1] = {
-	{ 0x0020, 0, inconintr, "incon0", },
+	{ IRQINCON, 0, inconintr, "incon0", },
 };
 
 void
 inconreset(void)
 {
 	int i;
+	char *p;
 
 	incon[0].dev = INCONADDR;
 	/*
@@ -327,6 +331,17 @@ inconreset(void)
 		incon[i].dev->csr = INCON_STOP;
 		wbflush();
 		incon[i].ri = incon[i].wi = 0;
+	}
+
+	/*
+	 * Set the min/max station numbers to poll.
+	 */
+	if(station[0]){
+		minmax[0] = strtol(station, &p, 0);
+		if(*p == ',')
+			minmax[1] = strtol(p, 0, 0);
+		if(minmax[1] < minmax[0])
+			minmax[1] = minmax[0];
 	}
 
 	setvector(&vector[0]);

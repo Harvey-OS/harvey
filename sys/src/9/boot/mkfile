@@ -20,7 +20,7 @@ OFILES=\
 	local.$O\
 	newkernel.$O\
 	nopsession.$O\
-	rom.$O\
+	romboot.$O\
 	settime.$O\
 	userpasswd.$O\
 

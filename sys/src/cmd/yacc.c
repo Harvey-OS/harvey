@@ -30,11 +30,11 @@ enum
  */
 	ACTSIZE		= 20000,
 	MEMSIZE		= 20000,
-	NSTATES		= 750,
+	NSTATES		= 2000,
 	NTERMS		= 255,
 	NPROD		= 600,
 	NNONTERM	= 300,
-	TEMPSIZE	= 1200,
+	TEMPSIZE	= 2000,
 	CNAMSZ		= 5000,
 	LSETSIZE	= 600,
 	WSETSIZE	= 350,
@@ -1486,7 +1486,8 @@ finact(void)
 {
 
 	Bclose(faction);
-	Bprint(ftable, "#define YYERRCODE %d\n", tokset[2].value);
+	Bprint(ftable, "#define YYEOFCODE %d\n", 1);
+	Bprint(ftable, "#define YYERRCODE %d\n", 2);
 }
 
 /*
@@ -1525,34 +1526,37 @@ defin(int nt, char *s)
 	}
 
 	/* escape sequence */
-	if(s[0] == ' ' && s[1] == '\\' && s[3] == 0) {
-		/* single character escape sequence */
-		switch(s[2]) {
-		case 'n':	val = '\n'; break;
-		case 'r':	val = '\r'; break;
-		case 'b':	val = '\b'; break;
-		case 't':	val = '\t'; break;
-		case 'f':	val = '\f'; break;
-		case '\'':	val = '\''; break;
-		case '"':	val = '"'; break;
-		case '\\':	val = '\\'; break;
-		default:	error("invalid escape");
+	if(s[0] == ' ' && s[1] == '\\') {
+		if(s[3] == 0) {
+			/* single character escape sequence */
+			switch(s[2]) {
+			case 'n':	val = '\n'; break;
+			case 'r':	val = '\r'; break;
+			case 'b':	val = '\b'; break;
+			case 't':	val = '\t'; break;
+			case 'f':	val = '\f'; break;
+			case '\'':	val = '\''; break;
+			case '"':	val = '"'; break;
+			case '\\':	val = '\\'; break;
+			default:	error("invalid escape");
+			}
+			goto out;
 		}
-		goto out;
-	}
 
-	/* \nnn sequence */
-	if(s[2] >= '0' && s[2] <= '7') {
-		if(s[3] < '0' ||
-		   s[3] > '7' ||
-		   s[4]<'0' ||
-		   s[4]>'7' ||
-		   s[5] != 0)
-			error("illegal \\nnn construction");
-		val = 64*s[2] + 8*s[3] + s[4] - 73*'0';
-		if(val == 0)
-			error("'\\000' is illegal");
-		goto out;
+		/* \nnn sequence */
+		if(s[2] >= '0' && s[2] <= '7') {
+			if(s[3] < '0' ||
+			   s[3] > '7' ||
+			   s[4]<'0' ||
+			   s[4]>'7' ||
+			   s[5] != 0)
+				error("illegal \\nnn construction");
+			val = 64*s[2] + 8*s[3] + s[4] - 73*'0';
+			if(val == 0)
+				error("'\\000' is illegal");
+			goto out;
+		}
+		error("unknown escape");
 	}
 	val = extval++;
 

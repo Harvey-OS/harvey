@@ -1,6 +1,6 @@
 .TH GAMES 1
 .SH NAME
-4s, 5s, ana, gnuchess, juggle, mandel, plumb, smiley, life, fsim, clock, catclock, fireworks, swar \- time wasters
+4s, 5s, ana, gnuchess, juggle, mandel, plumb, quiz, smiley, life, fsim, clock, catclock, fireworks, swar, zork \- time wasters
 .SH SYNOPSIS
 .B games/4s
 .br
@@ -30,6 +30,11 @@
 .B games/plumb
 [
 .I level
+]
+.br
+.B games/quiz
+[
+.I category1 category2
 ]
 .br
 .B games/smiley
@@ -96,6 +101,10 @@ and don't waste pipe. The
 .I level
 argument lets you start at a harder level.
 .TP
+.B quiz
+gives associative
+knowledge tests on various subjects.
+.TP
 .B smiley
 A game of historical importance.
 Type space to shoot, comma to move left, and period to go right.
@@ -146,6 +155,9 @@ and
 .BR o .
 AT&T scores whenever either ship shoots itself or otherwise
 causes mayhem.  Hyperspace is occasionally fatal.
+.TP
+.B zork
+The venerable adventure game.
 .SH FILES
 .TF /sys/games/lib/plumb/scores
 .TP
@@ -171,6 +183,10 @@ used by
 .B /sys/games/lib/plumb/*
 miscellaneous files used by
 .I plumb
+.TP
+.B /sys/games/lib/quiz/*
+miscellaneous files used by
+.I quiz
 .TP
 .B /sys/games/lib/life/*
 interesting starting positions

@@ -102,8 +102,8 @@ sysrfork(ulong *arg)
 	n = flag & RFMEM;
 	for(i = 0; i < NSEG; i++)
 		if(parent->seg[i])
-			p->seg[i] = dupseg(parent->seg[i], n);
-
+			p->seg[i] = dupseg(parent->seg, i, n);
+	
 	/* Refs */
 	incref(u->dot);	
 
@@ -123,14 +123,11 @@ sysrfork(ulong *arg)
 
 	/* Process groups */
 	if(flag & (RFNAMEG|RFCNAMEG)) {	
-		if(flag & RFNAMEG) {
-			p->pgrp = newpgrp();
+		p->pgrp = newpgrp();
+		if(flag & RFNAMEG)
 			pgrpcpy(p->pgrp, parent->pgrp);
-		}
-		else {
-			p->pgrp = newpgrp();
+		else
 			*p->pgrp->crypt = *parent->pgrp->crypt;
-		}
 	}
 	else {
 		p->pgrp = parent->pgrp;
@@ -308,6 +305,7 @@ sysexec(ulong *arg)
 		nargs++;
 	}
 	ssize = BY2WD*(nargs+1) + ((nbytes+(BY2WD-1)) & ~(BY2WD-1));
+
 	/*
 	 * 8-byte align SP for those (e.g. sparc) that need it.
 	 * execregs() will subtract another 4 bytes for argc.
@@ -347,7 +345,9 @@ sysexec(ulong *arg)
 	memmove(p->text, elem, NAMELEN);
 
 	/*
-	 * Committed.  Free old memory. Special segments are maintained accross exec
+	 * Committed.
+	 * Free old memory.
+	 * Special segments are maintained accross exec
 	 */
 	for(i = SSEG; i <= BSEG; i++) {
 		putseg(p->seg[i]);
@@ -418,7 +418,8 @@ shargs(char *s, int n, char **ap)
 {
 	int i;
 
-	s += 2, n -= 2;		/* skip #! */
+	s += 2;
+	n -= 2;		/* skip #! */
 	for(i=0; s[i]!='\n'; i++)
 		if(i == n-1)
 			return 0;
@@ -617,6 +618,7 @@ syssegfree(ulong *arg)
 
 	mfreeseg(s, from, pages);
 	qunlock(&s->lk);
+	flushmmu();
 
 	return 0;
 }
@@ -644,7 +646,7 @@ sysrendezvous(ulong *arg)
 			*l = p->rendhash;
 			val = p->rendval;
 			p->rendval = arg[1];
-
+			/* Easy race avoidance */
 			while(p->state != Rendezvous)
 				;
 			ready(p);

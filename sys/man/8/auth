@@ -39,6 +39,7 @@ adduser, changeuser, printnetkey, renameuser, removeuser, enable, disable, expir
 .I user
 .PP
 .B auth/convkeys
+.RB [ -d ]
 .RB [ -k
 .IR key ]
 .I keyfile
@@ -218,6 +219,11 @@ which must be
 .B DESKEYLEN
 bytes long.
 Note that a key is not a password.
+Option
+.B -d
+uses
+.B /dev/crypt
+for decrypting the key file.
 The format of
 .I keyfile
 is described in

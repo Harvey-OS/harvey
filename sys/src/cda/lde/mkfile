@@ -24,8 +24,7 @@ regress:V: v.out
 	cd regress; mk
 
 gram.h:EQ: y.tab.h
-	if(! test -f $target || ! cmp -s $prereq $target)
-		cp $prereq $target
+	cp $prereq $target
 
 y.tab.$O: y.tab.c dat.h fns.h
 	$CC $CFLAGS -DYYMAXDEPTH'='2000 y.tab.c

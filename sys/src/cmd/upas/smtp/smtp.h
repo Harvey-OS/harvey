@@ -20,7 +20,6 @@ struct Field {
 
 extern Field	*firstfield;
 extern Field	*lastfield;
-extern char	*yystart;
 extern Node	*usender;
 extern Node	*usys;
 extern Node	*udate;

@@ -1,0 +1,16 @@
+dup: col 10=42EF: 4FF2 5062 fix: U4FF2 = JEF 42FE
+dup: col 10=46F5: 55E9 55FF fix: U55E9 = JEF 46F4
+dup: col 10=48A5: 5808 5867 fix: U5867 = JEF 48AF
+dup: col 10=4CA9: 5BC0 5E58 fix: U5BC0 = JEF 4AB3
+dup: col 10=4CEB: 5F21 5F30 fix: U5F30 = JEF 4CED
+dup: col 10=50EF: 65D8 662A fix: U662A = JEF 50FE
+dup: col 10=53DD: 68EB 68EC fix: U68EC = JEF 53DE
+dup: col 10=54DD: 6B65 6B72 fix: U6B65 = JEF 54DC
+dup: col 10=56C1: 6E34 6E36 fix: U6E34 = JEF 56C0
+dup: col 10=5DD1: 757C 7A91 fix: U757C = JEF 5AD1
+dup: col 10=52C0: 6713 8101 fix: remove JEF from U8101 (flesh radical, JEF
+6713 is moon radical)
+dup: col 10=64F3: 8A47 8A53 fix: U8A47 = JEF 64F0
+dup: col 10=66A7: 8ABF 8CD9 fix: remove JEF from U8ABF
+dup: col 10=68B6: 9148 9629 fix: U9629 = JEF 68B8
+dup: col 10=6BBF: 9433 9652 fix: U9652 = JEF 68BF

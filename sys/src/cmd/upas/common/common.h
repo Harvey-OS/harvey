@@ -54,7 +54,7 @@ typedef struct process{
 extern stream	*instream(void);
 extern stream	*outstream(void);
 extern void	stream_free(stream*);
-extern process	*proc_start(char*, stream*, stream*, stream*, int);
+extern process	*proc_start(char*, stream*, stream*, stream*, int, int);
 extern int	proc_wait(process*);
 extern int	proc_free(process*);
 extern int	proc_kill(process*);

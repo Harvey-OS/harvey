@@ -1098,7 +1098,7 @@ lookup(char *s, int doreset)
 				return;
 			}
 		*s = 0;
-		j = 0;
+		j = nrec;
 		if(doreset)
 			reset();
 		saoopen();
@@ -1146,8 +1146,9 @@ lookup(char *s, int doreset)
 			s = t+1;
 		}
 		deg = strtol(skipbl(s), &t, 10);
-		if(*(uchar*)t == 0xA0 && *(uchar*)(t+1) == L'°')
-			t += 2;
+		j = strlen("°");
+		if(strncmp(t, "°", j) == 0)
+			t += j;
 		s = skipbl(t);
 		if(*s != 0){
 			if(*s<'0' || '9'<*s)

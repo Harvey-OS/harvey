@@ -11,30 +11,31 @@ oreset(void)
 }
 
 int
-ointcnt(void) {
-	return(intcnt);
+ointcnt(void)
+{
+	return intcnt;
 }
 
 void
 oputint(int i)
 {
-	if(!firstint) putc(',', outfile);
-	else firstint = 0;
-	fprintf(outfile, "%d", i);
+	Bprint(bout, "%d,", i);
 	intonline++;
 	intcnt++;
-	if(intonline >= MAXINTONLINE) {
-		putc('\n', outfile); intonline = 0;
+	if(intonline >= MAXINTONLINE){
+		Bputc(bout, '\n');
+		intonline = 0;
 	}
 }
 
 void
 oputoct(int i)
 {
-	if(!firstint) putc(',', outfile);
-	else firstint = 0;
-	fprintf(outfile, "0%o", i);
+	Bprint(bout, "0x%ux,", i);
 	intonline++;
 	intcnt++;
-	if(intonline >= MAXINTONLINE) { putc('\n', outfile); intonline = 0; }
+	if(intonline >= MAXINTONLINE){
+		Bputc(bout, '\n');
+		intonline = 0;
+	}
 }

@@ -64,8 +64,8 @@ main(void)
 	clockinit();
 	alarminit();
 	kbdinit();
-	spllo();
 	floppys = floppyinit();
+	spllo();
 	hards = hardinit();
 
 	/* if we have an empty floppy drive, try booting from hard disk */
@@ -456,4 +456,16 @@ hd9boot(void)
 		return -1;
 	}
 	return p9boot(atoi(server), hardseek, hardread);
+}
+
+enum {
+	Paddr=		0x70,	/* address port */
+	Pdata=		0x71,	/* data port */
+};
+
+uchar
+nvramread(int offset)
+{
+	outb(Paddr, offset);
+	return inb(Pdata);
 }

@@ -128,7 +128,7 @@ cmd_check(int argc, char *argv[])
 	cwflag = (dev.type == Devcw) | (dev.type == Devro);
 	if(!ronly)
 		wlock(&mainlock);		/* check */
-	calloc = (char*)ialloc(0, 0) + 100000;
+	calloc = (char*)ialloc(0, 1) + 100000;
 	flags = flag;
 
 	sizqbits = ((1<<22) + 7) / 8;		/* botch */

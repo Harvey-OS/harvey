@@ -42,7 +42,6 @@ rdfontfile(char *name, int ldepth)
 		return 0;
 	}
 
-	close(fd);
 	s = buf;
 	fnt = malloc(sizeof(Font));
 	if(fnt == 0)

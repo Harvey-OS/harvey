@@ -15,6 +15,12 @@ enum
 	Domain,
 };
 
+int
+iscomment(char *name)
+{
+	return *name == '#';
+}
+
 /*
  *  is this a fully specified datakit name?
  */
@@ -152,6 +158,10 @@ main(void)
 		n = getmfields(l, fields, 12);
 		same = 0;
 		for(i = 0; i < n; i++){
+			if(iscomment(fields[i])){
+				n = i;
+				break;
+			}
 			if(isdomain(fields[i])){
 				ftype[i] = Domain;
 				for(j = 0; j < ntup; j++)

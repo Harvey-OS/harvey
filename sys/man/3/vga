@@ -1,0 +1,48 @@
+.TH VGA 3 
+.SH NAME
+vga \- vgasize, vgatype, vgaport
+.SH SYNOPSIS
+.nf
+.B bind #v /dev
+
+.B /dev/vgasize
+.B /dev/vgatype
+.B /dev/vgaport
+.fi
+.SH DESCRIPTION
+The vga device allows configuration of a graphics controller
+on a pc.
+.PP
+Writing a string to the file
+.B vgasize
+of the form:
+.IR xmax X ymax X bits ,
+where
+.IR xmax ,
+.IR ymax
+and
+.I bits
+are numbers, tells the kernel the width and
+height of the screen in pixels and the number of
+bits per pixel.
+Reading
+.B vgasize
+returns the current setting.
+.PP
+Writing a string to
+.B vgatype
+tells the kernel what kind of controller is
+being used.
+The possibilities are currently
+.I generic
+and
+.I tseng.
+.PP
+Vgaport provides user level access to the byte port space.
+Reads and writes to offsets in this file perform 386 inb
+and outb operations on ports equal to the offset.
+Offsets below 0x300 are illegal.
+This device is used by the command
+.IR vga (8)
+to configure a VGA controller chip.
+

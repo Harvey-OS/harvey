@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <ndb.h>
 #include <ip.h>
+#include "lock.h"
 
 enum
 {
@@ -17,7 +18,6 @@ enum
 
 typedef struct Mfile	Mfile;
 typedef struct Network	Network;
-
 
 int vers;		/* incremented each clone/attach */
 
@@ -45,6 +45,7 @@ char	user[NAMELEN];
 int	debug;
 jmp_buf	masterjmp;	/* return through here after a slave process has been created */
 int	*isslave;	/* *isslave non-zero means this is a slave process */
+char	*dbfile;
 
 void	rflush(void);
 void	rattach(Mfile *);
@@ -69,8 +70,11 @@ void	netadd(char*);
 int	lookup(Mfile*, char*, char*, char*);
 int	fillreply(Mfile*, int);
 int	mygetfields(char*, char**, int, char);
+int	needproto(Network*, Ndbtuple*);
 Ndbtuple*	lookval(Ndbtuple*, Ndbtuple*, char*, char*);
 Ndbtuple*	reorder(Ndbtuple*, Ndbtuple*);
+
+extern void	paralloc(void);
 
 char *mname[]={
 	[Tnop]		"Tnop",
@@ -91,17 +95,23 @@ char *mname[]={
 			0,
 };
 
+Lock	dblock;		/* mutex on database operations */
+
 void
 main(int argc, char *argv[])
 {
 	Fcall	rhdr;
 	Fcall	thdr;
 
+	paralloc();
 	rhp = &rhdr;
 	thp = &thdr;
 	ARGBEGIN{
 	case 'd':
 		debug = 1;
+		break;
+	case 'f':
+		dbfile = ARGF();
 		break;
 	}ARGEND
 	USED(argc);
@@ -149,7 +159,7 @@ mountinit(char *service)
 		f = create(service, 1, 0666);
 		if(f < 0)
 			error(service);
-		sprint(buf, "%d", p[1]);
+		snprint(buf, sizeof(buf), "%d", p[1]);
 		if(write(f, buf, strlen(buf)) != strlen(buf))
 			error("write #s/cs");
 		close(f);
@@ -217,6 +227,7 @@ io(void)
 	 *  *isslave is a pointer into the call stack to a variable
 	 *  that tells whether or not the current process is a slave.
 	 */
+	lockinit(&dblock);
 	slaveflag = 0;		/* init slave variable */
 	isslave = &slaveflag;
 	setjmp(masterjmp);
@@ -231,16 +242,17 @@ io(void)
 		}
 		if(rhp->fid<0)
 			error("fid out of range");
+		lock(&dblock);
 		mf = newfid(rhp->fid);
-		if(debug)
+/*		if(debug)
 			fprint(2, "msg: %d %s on %d mf = %lux\n", rhp->type,
 				mname[rhp->type]? mname[rhp->type] : "mystery",
-				rhp->fid, mf);
+				rhp->fid, mf);/**/
 	
 	
 		switch(rhp->type){
 		default:
-			error("type");
+			syslog(1, "cs", "unknown request type %d", rhp->type);
 			break;
 		case Tsession:
 			rflush();
@@ -291,6 +303,7 @@ io(void)
 			rwstat(mf);
 			break;
 		}
+		unlock(&dblock);
 		/*
 		 *  slave processes die after replying
 		 */
@@ -579,7 +592,7 @@ sendmsg(char *err)
 
 	if(err){
 		thp->type = Rerror;
-		sprint(thp->ename, "cs: %.*s", ERRLEN-5, err);
+		snprint(thp->ename, sizeof(thp->ename), "cs: %s", err);
 	}else{
 		thp->type = rhp->type+1;
 		thp->fid = rhp->fid;
@@ -593,9 +606,8 @@ sendmsg(char *err)
 void
 error(char *s)
 {
-	fprint(2, "cs: %s: ", s);
-	perror("");
-	exits(s);
+	syslog(1, "cs", "%s: %r", s);
+	_exits(0);
 }
 
 /*
@@ -654,7 +666,7 @@ ipid(void)
 	/* grab ether addr from the device */
 	if(isether == 0){
 		if(myetheraddr(addr, "/net/ether") >= 0){
-			sprint(eaddr, "%E", addr);
+			snprint(eaddr, sizeof(eaddr), "%E", addr);
 			isether = 1;
 		}
 	}
@@ -663,7 +675,7 @@ ipid(void)
 	if(*ipa == 0){
 		if(myipaddr(ipa, "/net/tcp") >= 0){
 			if(*ipa)
-				sprint(ipaddr, "%I", ipa);
+				snprint(ipaddr, sizeof(ipaddr), "%I", ipa);
 		}
 	}
 
@@ -747,7 +759,7 @@ dkid(void)
 	/* try for a datakit network name from a system we've connected to */
 	if(isdknet == 0){
 		for(i = 0; isdknet == 0 && i < 7; i++){
-			sprint(raddr, "/net/dk/%d/remote", i);
+			snprint(raddr, sizeof(raddr), "/net/dk/%d/remote", i);
 			f = open(raddr, OREAD);
 			if(f < 0){
 				isdknet = -1;
@@ -776,7 +788,7 @@ netinit(void)
 
 	/* add the mounted networks to the default list */
 	for(np = network; np->net; np++){
-		sprint(clone, "/net/%s/clone", np->net);
+		snprint(clone, sizeof(clone), "/net/%s/clone", np->net);
 		if(dirstat(clone, &d) < 0)
 			continue;
 		if(netlist)
@@ -791,11 +803,11 @@ netinit(void)
 	fmtinstall('E', eipconv);
 	fmtinstall('I', eipconv);
 
-	db = ndbopen(0);
+	db = ndbopen(dbfile);
 	ipid();
 	dkid();
 
-	if(debug)
+	if(debug)/**/
 		fprint(2, "cs: sysname %s dknet %s eaddr %s ipaddr %s ipa %I\n",
 			sysname, dknet, eaddr, ipaddr, ipa);
 }
@@ -852,7 +864,7 @@ lookup(Mfile *mf, char *net, char *host, char *serv)
 
 	/* open up the standard db files */
 	if(db == 0)
-		db = ndbopen(0);
+		db = ndbopen(dbfile);
 	if(db == 0)
 		error("can't open network database\n");
 
@@ -861,8 +873,12 @@ lookup(Mfile *mf, char *net, char *host, char *serv)
 		 *  go through set of default nets
 		 */
 		for(np = netlist; np; np = np->next){
-			if((*np->lookup)(mf, np, host, serv) == 0)
-				return 0;
+			if((*np->lookup)(mf, np, host, serv) == 0){
+				if(needproto(np, mf->t) == 0)
+					return 0;
+				ndbfree(mf->t);
+				mf->t = 0;
+			}
 		}
 
 		/*
@@ -898,9 +914,12 @@ lookup(Mfile *mf, char *net, char *host, char *serv)
 	/*
 	 *  don't translate host or service
 	 */
-	sprint(mf->reply, "/net/%s/clone %s", net, host);
 	if(serv)
-		sprint(mf->reply + strlen(mf->reply), "!%s", serv);
+		snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s!%s",
+			net, host, serv);
+	else
+		snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s",
+			net, host);
 	return 0;
 }
 
@@ -1062,14 +1081,14 @@ ipattrlookup(char *attr, char *buf)
 	 *  out from the client record.
 	 */
 	maskip(ipa, classmask[CLASS(ipa)], net);
-	sprint(ip, "%I", net);
+	snprint(ip, sizeof(ip), "%I", net);
 	t = ndbsearch(db, &s, "ip", ip);
 	if(t){
 		/* got a net, look for a subnet */
 		if(lookval(t, s.t, "ipmask", ip)){
 			parseip(mask, ip);
 			maskip(ipa, mask, net);
-			sprint(ip, "%I", net);
+			snprint(ip, sizeof(ip), "%I", net);
 			st = ndbsearch(db, &ss, "ip", ip);
 			if(st){
 				lookval(st, ss.t, attr, buf);
@@ -1107,7 +1126,7 @@ iplookup(Mfile *mf, Network *np, char *host, char *serv)
 
 	/* for dial strings with no host */
 	if(strcmp(host, "*")==0){
-		sprint(mf->reply, "/net/%s/clone %s", np->net, ts);
+		snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s", np->net, ts);
 		return 0;
 	}
 
@@ -1130,38 +1149,44 @@ iplookup(Mfile *mf, Network *np, char *host, char *serv)
 	 *  just accept addresses
 	 */
 	if(strcmp(attr, "ip") == 0){
-		sprint(mf->reply, "/net/%s/clone %s", np->net, host);
 		if(serv)
-			sprint(mf->reply+strlen(mf->reply), "!%s", ts);
+			snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s!%s",
+				np->net, host, ts);
+		else
+			snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s",
+				np->net, host);
 		return 0;
 	}
 
 	/*
 	 *  give the domain name server the first opportunity to
-	 *  resolve domain names
+	 *  resolve domain names.  if that fails try the database.
 	 */
 	t = 0;
 	if(strcmp(attr, "dom") == 0)
 		t = dnsiplookup(host, &s, th);
-
-	/*
-	 *  look up the system and return a line for 
-	 *  each ip address
-	 */
 	if(t == 0)
 		t = ndbgetval(db, &s, attr, host, "ip", th);
 	if(t == 0)
 		return -1;
-	if(needproto(np, t) < 0){
-		ndbfree(t);
-		return -1;
-	}
+
+	/*
+	 *  reorder the tuple to have the matched line first and
+	 *  save that in the request structure.
+	 */
 	mf->t = reorder(t, s.t);
 	for(mf->nt = mf->t; strcmp(mf->nt->attr, "ip") != 0; mf->nt = mf->nt->entry)
 		;
-	sprint(mf->reply, "/net/%s/clone %s", np->net, th);
+
+	/*
+	 *  manufacture the first reply
+	 */
 	if(serv)
-		sprint(mf->reply+strlen(mf->reply), "!%s", ts);
+		snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s!%s",
+			np->net, th, ts);
+	else
+		snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s",
+			np->net, th);
 	return 0;
 }
 
@@ -1179,7 +1204,8 @@ iptrans(Mfile *mf, Network *np)
 	if(mf->serv[0] == 0 || ipserv(np, mf->serv, ts) == 0)
 		return -1;
 
-	sprint(mf->reply, "/net/%s/clone %s!%s", np->net, mf->nt->val, ts);
+	snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s!%s",
+		np->net, mf->nt->val, ts);
 	return 0;
 }
 
@@ -1214,7 +1240,7 @@ int
 dklookup(Mfile *mf, Network *np, char *host, char *serv)
 {
 	char *p;
-	int slash = 0;
+	int i, slash = 0;
 	Ndbtuple *t, *nt;
 	Ndbs s;
 	char th[Ndbvlen+1];
@@ -1243,7 +1269,8 @@ dklookup(Mfile *mf, Network *np, char *host, char *serv)
 
 	if(slash){
 		/* don't translate paths, just believe the user */
-		sprint(mf->reply, "/net/%s/clone %s", np->net, host);
+		i = snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s",
+			np->net, host);
 	} else {
 		t = ndbgetval(db, &s, "sys", host, "dk", th);
 		if(t == 0)
@@ -1263,11 +1290,12 @@ dklookup(Mfile *mf, Network *np, char *host, char *serv)
 		for(mf->nt = mf->t; strcmp(mf->nt->attr, "dk") != 0;
 		    mf->nt = mf->nt->entry)
 			;
-		sprint(mf->reply, "/net/%s/clone %s", np->net, th);
+		i = snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s",
+			np->net, th);
 	}
 
 	if(serv)
-		sprint(mf->reply + strlen(mf->reply), "!%s", serv);
+		snprint(mf->reply + i, sizeof(mf->reply) - i, "!%s", serv);
 
 	return 0;
 }
@@ -1281,9 +1309,12 @@ dktrans(Mfile *mf, Network *np)
 	if(strcmp(mf->nt->attr, "dk") != 0)
 		return -1;
 
-	sprint(mf->reply, "/net/%s/clone %s", np->net, mf->nt->val);
 	if(mf->serv[0])
-		sprint(mf->reply + strlen(mf->reply), "!%s", mf->serv);
+		snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s!%s", np->net,
+			mf->nt->val, mf->serv);
+	else
+		snprint(mf->reply, sizeof(mf->reply), "/net/%s/clone %s", np->net,
+			mf->nt->val);
 	return 0;
 }
 
@@ -1401,14 +1432,18 @@ dnsiplookup(char *host, Ndbs *s, char *ht)
 	Ndbtuple *t, *nt, **le, **ll;
 	char *fields[4];
 
+	unlock(&dblock);
+
 	/* save the name before starting a slave */
-	sprint(buf, "%.*s ip", Ndbvlen, host);
+	snprint(buf, sizeof(buf), "%s ip", host);
 
 	slave();
 
 	fd = open("/net/dns", ORDWR);
-	if(fd < 0)
+	if(fd < 0){
+		lock(&dblock);
 		return 0;
+	}
 
 	t = 0;
 	if(write(fd, buf, strlen(buf)) >= 0){
@@ -1434,5 +1469,6 @@ dnsiplookup(char *host, Ndbs *s, char *ht)
 		strcpy(ht, t->val);
 	close(fd);
 	s->t = t;
+	lock(&dblock);
 	return t;
 }

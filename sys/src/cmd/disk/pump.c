@@ -7,15 +7,15 @@ typedef	struct	Rs	Rs;
 
 enum
 {
-	BSIZE	= 48*1024,
-	SLEEP	= 10,
+	BSIZE	= 24*1024,	/* multiple of SECTOR */
+	SLEEP	= 100,
 	SECTOR	= 2048,
 };
 
-int	TARGET	= 1;	/* scsi target of rom writer */
-int	MEMSIZE	= 10;	/* in megabytes */
-int	NPROC	= 3;	/* number of read-ahead processes */
-int	NBUF;		/* (MEMSIZE*1024*1024)/BSIZE/NPROC */
+int	TARGET	= -1;		/* scsi target of rom writer */
+int	MEMSIZE	= 8*1024;	/* in kilobytes */
+int	NPROC	= 3;		/* number of read-ahead processes */
+int	NBUF;			/* (MEMSIZE*1024)/BSIZE/NPROC */
 
 struct	Rs
 {
@@ -28,6 +28,7 @@ struct	Rs
 
 int	scsifc;
 int	scsifd;
+int	filefd;
 int	error;
 Rs	rs[50];
 
@@ -40,7 +41,7 @@ void	scsi(uchar*, int, uchar*, int);
 void
 main(int argc, char *argv[])
 {
-	char *file;
+	char *ifile, *ofile;
 	int i, first;
 	long ob, t, total;
 	uchar cmd[10], cmdwt[10], cmdwr[10];
@@ -48,7 +49,8 @@ main(int argc, char *argv[])
 	Dir dir;
 	Rs *r;
 
-	file = "cd-rom";
+	ifile = "cd-rom";
+	ofile = 0;
 	ARGBEGIN {
 	default:
 		fprint(2, "unknown option: %c\n", ARGC());
@@ -57,20 +59,25 @@ main(int argc, char *argv[])
 		TARGET = atoi(ARGF());
 		break;
 	case 'm':
+		/* in meg if < 100, in kb if >= 100 */
 		MEMSIZE = atoi(ARGF());
+		if(MEMSIZE < 100)
+			MEMSIZE *= 1024;
 		break;
 	case 'n':
 		NPROC = atoi(ARGF());
 		break;
+	case 'o':
+		ofile = ARGF();
+		break;
 	} ARGEND
 	if(argc > 0)
-		file = argv[0];
-
+		ifile = argv[0];
 	if(NPROC >= nelem(rs)) {
 		fprint(2, "too many processes\n");
 		exits("-n");
 	}
-	NBUF = (MEMSIZE*1024*1024)/BSIZE/NPROC;
+	NBUF = (MEMSIZE*1024)/BSIZE/NPROC;
 	for(r=rs; r<rs+NPROC; r++) {
 		r->buf = malloc(NBUF*BSIZE);
 		if(r->buf == 0) {
@@ -82,48 +89,60 @@ main(int argc, char *argv[])
 		r->done = 0;
 	}
 
-	sprint(scsiname, "#S/%d/cmd", TARGET);
-	scsifc = open(scsiname, ORDWR);
-	sprint(scsiname, "#S/%d/data", TARGET);
-	scsifd = open(scsiname, ORDWR);
-	if(scsifc < 0 || scsifd < 0) {
-		fprint(2, "cant open scsi chan %r\n");
-		exits("open");
-	}
-	if(dirstat(file, &dir) < 0) {
-		fprint(2, "cant stat %s %r\n", file);
+	if(dirstat(ifile, &dir) < 0) {
+		fprint(2, "cant stat %s %r\n", ifile);
 		exits("stat");
 	}
 
-	/*
-	 * reserve track
-	 */
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = 0xe4;
-	t = (dir.length + SECTOR - 1) / SECTOR;
-	cmd[5] = t>>24;
-	cmd[6] = t>>16;
-	cmd[7] = t>>8;
-	cmd[8] = t>>0;
-	scsi(cmd, 10, cmd, 0);
 
-	/*
-	 * write track
-	 */
-	memset(cmdwt, 0, sizeof(cmdwt));
-	cmdwt[0] = 0xe6;
-	cmdwt[5] = 1;
-	cmdwt[6] = 1;
-	cmdwt[7] = (BSIZE/SECTOR)>>8;
-	cmdwt[8] = (BSIZE/SECTOR)>>0;
+	if(TARGET >= 0) {
+		sprint(scsiname, "#S/%d/cmd", TARGET);
+		scsifc = open(scsiname, ORDWR);
+		sprint(scsiname, "#S/%d/data", TARGET);
+		scsifd = open(scsiname, ORDWR);
+		if(scsifc < 0 || scsifd < 0) {
+			fprint(2, "cant open scsi chan %r\n");
+			exits("open");
+		}
 
-	/*
-	 * write
-	 */
-	memset(cmdwr, 0, sizeof(cmdwr));
-	cmdwr[0] = 0x2a;
-	cmdwr[7] = (BSIZE/SECTOR)>>8;
-	cmdwr[8] = (BSIZE/SECTOR)>>0;
+		/*
+		 * reserve track
+		 */
+		memset(cmd, 0, sizeof(cmd));
+		cmd[0] = 0xe4;
+		t = (dir.length + SECTOR - 1) / SECTOR;
+		cmd[5] = t>>24;
+		cmd[6] = t>>16;
+		cmd[7] = t>>8;
+		cmd[8] = t>>0;
+		scsi(cmd, 10, cmd, 0);
+
+		/*
+		 * write track
+		 */
+		memset(cmdwt, 0, sizeof(cmdwt));
+		cmdwt[0] = 0xe6;
+		cmdwt[5] = 1;
+		cmdwt[6] = 1;
+		cmdwt[7] = (BSIZE/SECTOR)>>8;
+		cmdwt[8] = (BSIZE/SECTOR)>>0;
+
+		/*
+		 * write
+		 */
+		memset(cmdwr, 0, sizeof(cmdwr));
+		cmdwr[0] = 0x2a;
+		cmdwr[7] = (BSIZE/SECTOR)>>8;
+		cmdwr[8] = (BSIZE/SECTOR)>>0;
+	} else
+	if(ofile) {
+		filefd = create(ofile, OWRITE, 0666);
+		if(filefd < 0) {
+			fprint(2, "cant create %s %r\n", ofile);
+			exits("create");
+		}
+	} else
+		filefd = 1;
 
 	/*
 	 * start all the reading processes
@@ -131,7 +150,7 @@ main(int argc, char *argv[])
 	error = 0;
 	for(i=0; i<NPROC; i++)
 		if(rfork(RFPROC|RFNOWAIT|RFFDG|RFMEM) == 0)
-			reader(file, i);
+			reader(ifile, i);
 
 	/*
 	 * wait until we have full buffers
@@ -157,11 +176,19 @@ main(int argc, char *argv[])
 	for(;;) {
 		checkerror();
 		if(r->nin - r->nout > 0) {
-			if(first) {
-				scsi(cmdwt, 10, r->buf+ob, BSIZE);
-				first = 0;
+			if(TARGET >= 0) {
+				if(first) {
+					scsi(cmdwt, 10, r->buf+ob, BSIZE);
+					first = 0;
+				} else {
+					scsi(cmdwr, 10, r->buf+ob, BSIZE);
+				}
 			} else {
-				scsi(cmdwr, 10, r->buf+ob, BSIZE);
+				i = write(filefd, r->buf+ob, BSIZE);
+				if(i != BSIZE) {
+					fprint(2, "write %d %d\n", r->last, i);
+					exits("write");
+				}
 			}
 			total += BSIZE;
 			r->nout++;
@@ -177,15 +204,23 @@ main(int argc, char *argv[])
 		}
 		if(r->done) {
 			if(r->last) {
-				i = (r->last + SECTOR - 1) / SECTOR;
-				if(first) {
-					cmdwt[7] = i>>8;
-					cmdwt[8] = i>>0;
-					scsi(cmdwt, 10, r->buf+ob, i*SECTOR);
+				if(TARGET >= 0) {
+					i = (r->last + SECTOR - 1) / SECTOR;
+					if(first) {
+						cmdwt[7] = i>>8;
+						cmdwt[8] = i>>0;
+						scsi(cmdwt, 10, r->buf+ob, i*SECTOR);
+					} else {
+						cmdwr[7] = i>>8;
+						cmdwr[8] = i>>0;
+						scsi(cmdwr, 10, r->buf+ob, i*SECTOR);
+					}
 				} else {
-					cmdwr[7] = i>>8;
-					cmdwr[8] = i>>0;
-					scsi(cmdwr, 10, r->buf+ob, i*SECTOR);
+					i = write(filefd, r->buf+ob, r->last);
+					if(i != r->last) {
+						fprint(2, "write %d %d\n", r->last, i);
+						exits("write");
+					}
 				}
 			}
 			total += r->last;
@@ -195,25 +230,29 @@ main(int argc, char *argv[])
 		continue;
 	}
 
-	/*
-	 * flush cache
-	 */
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = 0x35;
-	scsi(cmd, 10, cmd, 0);
+	if(TARGET >= 0) {
+		/*
+		 * flush cache
+		 */
+		memset(cmd, 0, sizeof(cmd));
+		cmd[0] = 0x35;
+		scsi(cmd, 10, cmd, 0);
+	}
 
 	t = time(0)-t;
 	if(t <= 0)
 		t = 1;
 	fprint(2, "rate = %ld (%ld/%ld)\n", total/t, total, t);
 
-	/*
-	 * fixate
-	 */
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = 0xe9;
-	cmd[8] = 1;
-	scsi(cmd, 10, cmd, 0);
+	if(TARGET >= 0) {
+		/*
+		 * fixate
+		 */
+		memset(cmd, 0, sizeof(cmd));
+		cmd[0] = 0xe9;
+		cmd[8] = 1;
+		scsi(cmd, 10, cmd, 0);
+	}
 
 	fprint(2, "done\n");
 

@@ -170,7 +170,6 @@ typedef	ushort	Type;
  * Load and Fetch macros: arg is ignored for this architecture
  */
 
-#define Load_Rd_P	*p++ = MOVE(Rd,AIPOST(As))
 #define Load_Rs_P	*p++ = MOVE(Rs,AIPOST(As))
 #define Load_Rt_P	*p++ = MOVE(Rt,AIPOST(As))
 #define Loadzx_Rt_P	*p++ = MOVE(Rt,AIPOST(As))

@@ -225,7 +225,8 @@ void CheckForCollision(struct signal *signalPointer, struct pin *pinPointer)
 	struct pin **pinArray;
 	pinNumber = pinPointer -> pin_number;
 	pinArray = pinPointer -> instance -> pins;
-	pinCount = pinPointer -> instance -> chip -> pin_definitions -> pin_count;
+	if (pinPointer -> instance -> chip -> pin_definitions)
+	    pinCount = pinPointer -> instance -> chip -> pin_definitions -> pin_count;
 	if (pinArray == (struct pin **) 0) return;
 
 	if (pinNumber <= pinCount)
@@ -395,24 +396,24 @@ int TypePin(unsigned char pinType)
 	case '4': /* 3s output and input */
 		typeVector |= INPUT_PIN | SINK_PIN;
 	case '3': /* 3s output */
-		typeVector |= OUTPUT_PIN | SOURCE_PIN | TRISTATE_PIN;
+		typeVector |= OUTPUT_PIN | SOURCE_PIN | TRISTATE_PIN | DIGITAL_PIN;
 		break;
 	case '6': /* backplane pin */
 		typeVector |= SOURCE_PIN;
 	case '5': /* Open collector output and input */
-		typeVector |= INPUT_PIN ;
+		typeVector |= INPUT_PIN;
 	case '1': /* Open collector output */
-		typeVector |= OC_PIN | OUTPUT_PIN | SINK_PIN;
+		typeVector |= OC_PIN | OUTPUT_PIN | SINK_PIN | DIGITAL_PIN;
 		break;
 	case '2': /* Totem pole output */
-		typeVector |= TOTEM_POLE_PIN | OUTPUT_PIN | SOURCE_PIN;
+		typeVector |= TOTEM_POLE_PIN | OUTPUT_PIN | SOURCE_PIN | DIGITAL_PIN;
 		break;
 	case '0': /* Open collector and pullup */
-		typeVector |= OC_PIN | OUTPUT_PIN | SOURCE_PIN;
+		typeVector |= OC_PIN | OUTPUT_PIN | SOURCE_PIN | DIGITAL_PIN;
 		break;
 	case 'i': /* input */
 	case 'k': /* pulldown input */
-		typeVector |= INPUT_PIN | SINK_PIN;
+		typeVector |= INPUT_PIN | SINK_PIN | DIGITAL_PIN;
 		break;
 	case 'v': /* vcc - .vb 1 */
 	case 'V':
@@ -429,16 +430,16 @@ int TypePin(unsigned char pinType)
 	case '9': /* misc voltage source */
 		typeVector |= POWER_PIN;
 	case 'p': /* pullup */
-		typeVector |= OUTPUT_PIN | SOURCE_PIN | PULLUP_PIN;
+		typeVector |= OUTPUT_PIN | SOURCE_PIN | PULLUP_PIN | DIGITAL_PIN;
 		break;
 	case 'g': /* GND */
 	case 'G':
 		typeVector |= GROUND_PIN;
 	case 'P': /* pulldown */
-		typeVector |= SINK_PIN;
+		typeVector |= SINK_PIN | DIGITAL_PIN;
 		break;
 	case 'j': /* pullup input */
-		typeVector |= INPUT_PIN | SOURCE_PIN | SINK_PIN;
+		typeVector |= INPUT_PIN | SOURCE_PIN | SINK_PIN | DIGITAL_PIN;
 		break;
 	case 'A': /* analog input/output */
 		typeVector |= INPUT_PIN;
@@ -449,15 +450,16 @@ int TypePin(unsigned char pinType)
 		typeVector |= INPUT_PIN | ANALOG_PIN;
 		break;
 	case 'b': /* PAL input/output */
-		typeVector |= INPUT_PIN | OUTPUT_PIN | SOURCE_PIN;
+		typeVector |= INPUT_PIN | OUTPUT_PIN | SOURCE_PIN | DIGITAL_PIN;
 		break;
-	case 'n': /* no connection permitted */
+	case 'B': /* bidirectional */
+		typeVector |= BI_PIN;
 		break;
 	case 's': /* switch */
 		typeVector |= BI_PIN | SOURCE_PIN | SINK_PIN | SWITCH_PIN;
 		break;
 	case 't': /* terminator */
-		typeVector |= BI_PIN | SOURCE_PIN | SINK_PIN | TERMINATOR_PIN;
+		typeVector |= BI_PIN | SOURCE_PIN | SINK_PIN | TERMINATOR_PIN | DIGITAL_PIN;
 		break;
 	case 'r': /* receiver - */
 		typeVector |= SINK_PIN | MINUS_PIN | INPUT_PIN;
@@ -476,6 +478,8 @@ int TypePin(unsigned char pinType)
 		break;
 	case 'J': /* current sink */
 		typeVector |= CURRENT_PIN | SINK_PIN;
+		break;
+	case 'n': /* no connection permitted */
 		break;
 	case '.': /* no type */
 		break;
@@ -616,7 +620,8 @@ void CheckForMixedNets(struct signal *signalPointer)
 	{
 		pinType = pinPointer -> pin_type_vector;
 		if (pinType & ANALOG_PIN) analogCount++;
-		else if (!(pinType & (POWER_PIN | GROUND_PIN))) digitalCount++;
+		else
+		if (pinType & DIGITAL_PIN) digitalCount++;
 	} /* end for */
 	if ((analogCount > 0) && (digitalCount > 0))
 		(void) SignalWarning(signalPointer, FULL_PIN, "mixed analog and digital");

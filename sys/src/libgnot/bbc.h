@@ -146,7 +146,6 @@ enum
 	iloop,		/* arg = pointer to beginning of inner loop */
 	oloop,		/* arg = pointer to beginning of outer loop */
 	rts,
-	load_Rd_P,
 	load_Rs_P,
 	load_Rt_P,
 	load_Ru_P,
@@ -250,7 +249,6 @@ enum
 #define Iloop(lp)	*p++ = iloop; *p++ = ((ulong)(lp))
 #define Oloop(lp)	*p++ = oloop; *p++ = ((ulong)(lp))
 #define Orts		*p++ = rts
-#define Load_Rd_P	*p++ = load_Rd_P
 #define Load_Rs_P	*p++ = load_Rs_P
 #define Load_Rt_P	*p++ = load_Rt_P
 #define Loadzx_Rt_P	*p++ = load_Rt_P
@@ -380,11 +378,10 @@ interpret(Type *pc)
 	long Ri, Ro;
 	uchar *AT;
 	int osiz, sha, shb, tmp;
-void prprog(Type *);
 
 #ifdef TEST
 	ulong *Aslow, *Ashigh, *Adlow, *Adhigh;
-	void prprog(Type *);
+	void prprog(void);
 
 	Rs = lrand();
 	Rd = lrand();
@@ -406,7 +403,6 @@ void prprog(Type *);
 loop:
 #ifdef TEST
 	switch(*pc) {
-	case load_Rd_P:
 	case load_Rs_P:
 	case load_Rt_P:
 	case load_Ru_P:
@@ -427,7 +423,7 @@ loop:
 				print("p %d %d r %d %d %d %d f %d\n",
 					curpt.x, curpt.y, curr.min.x, curr.min.y,
 					curr.max.x, curr.max.y, curf);
-				prprog(0);
+				prprog();
 				exits("fail");
 			}
 			break;
@@ -457,7 +453,7 @@ loop:
 	case store_Rs_D:
 			if(Ad-1 < Adlow || Ad-1 > Adhigh){
 				print("fetch from bad Ad-1 %ux\n", Ad-1);
-				prprog(0);
+				prprog();
 			}
 			break;
 	}
@@ -597,10 +593,6 @@ loop:
 
 	case rts:
 		return;
-
-	case load_Rd_P:
-		Rd = *As++;
-		break;
 
 	case load_Rs_P:
 		Rs = *As++;
@@ -806,10 +798,11 @@ loop:
 
 #ifdef TEST
 void
-prprog(Type *pc)
+prprog(void)
 {
 	int osiz;
-
+	Type *pc;
+	pc = (Type *)mem;
 
 loop:
 	switch(*pc++) {
@@ -929,10 +922,6 @@ loop:
 	case rts:
 		print("return\n");
 		return;
-
-	case load_Rd_P:
-		print("Rd = *As++\n");
-		break;
 
 	case load_Rs_P:
 		print("Rs = *As++\n");

@@ -20,11 +20,22 @@ BEGIN	{
 	{
 		x = dec($1)
 		if(x < 16384) print "warning:" NR ":", $1, " < 0x4000" > "/fd/2"
-		for(i = 2; i <= NF; i++) {
-			if(index($i, "X-")){ nskip++; continue; }
-			printf "%d %d\t\t# k%s 0x%x\n", $i+0, x, $i, x
-			x++
+		col = $5
+		if(col == "*") next
+		if(substr(col, 1, 2) == "I-"){	# buggy data!
+			nskip++
+			next
 		}
+		if(substr(col, 1, 2) == "1-"){
+			nskip++
+			next
+		}
+		if(substr(col, 1, 2) != "0-"){
+			print "warning:" NR ":", $1, " bad type ([01]-) >" substr(col, 1, 2) "<" > "/fd/2"
+			next;
+		}
+		k = 0 + substr(col, 3)
+		printf "%d %d\t\t# k%d 0x%x\n", k, x, k, x
 	}
 END	{
 		if(nskip) print nskip, "JIS 212 chars skipped" > "/fd/2"

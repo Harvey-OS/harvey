@@ -54,10 +54,13 @@ loop:
 			dklock(dk, up);
 			if(up->dkp.dkstate == CLOSED)
 				xpcall(up, service, 1);
+			dkunlock(dk, up);
 
 			/*
 			 *  send a keep alive on the signalling channel
 			 */
+			up = &dk->dkchan[CCCHAN];
+			dklock(dk, up);
 			xpmesg(up, T_ALIVE, D_STILL, 0, 0);
 			dkunlock(dk, up);
 

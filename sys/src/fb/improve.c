@@ -12,6 +12,7 @@ struct box{
 	int map[3];
 	int sum[3];
 }cmap[NMAP];
+int nmap;
 #define	RED	0
 #define	GRN	1
 #define	BLU	2
@@ -23,7 +24,9 @@ main(int argc, char *argv[]){
 	struct box *bp;
 	PICFILE *in;
 	char *inline, cmapbuf[256*3];
-	if((argc=getflags(argc, argv, ""))!=2 && argc!=3) usage("cmap [picture]");
+	if((argc=getflags(argc, argv, "n:1[ncolor]"))!=2 && argc!=3) usage("cmap [picture]");
+	nmap=flag['n']?atoi(flag['n'][0]):NMAP;
+	if(nmap<=0 || NMAP<nmap) usage("cmap [picture]");
 	if(!getcmap(argv[1], (unsigned char *)cmapbuf)){
 		perror(argv[1]);
 		exits("can't get cmap");
@@ -42,7 +45,7 @@ main(int argc, char *argv[]){
 		fprint(2, "%s: not rgb\n", argv[1]);
 		exits("not rgb");
 	}
-	for(bp=cmap,p=cmapbuf;bp!=&cmap[NMAP];bp++,p+=3){
+	for(bp=cmap,p=cmapbuf;bp!=&cmap[nmap];bp++,p+=3){
 		bp->map[0]=p[0]&255;
 		bp->map[1]=p[1]&255;
 		bp->map[2]=p[2]&255;
@@ -58,7 +61,7 @@ main(int argc, char *argv[]){
 			bp->count++;
 		}
 	}
-	for(bp=cmap,p=cmapbuf;bp!=&cmap[NMAP];bp++,p+=3){
+	for(bp=cmap,p=cmapbuf;bp!=&cmap[nmap];bp++,p+=3){
 		if(bp->count){
 			p[0]=bp->sum[0]/bp->count;
 			p[1]=bp->sum[1]/bp->count;
@@ -229,5 +232,5 @@ void buildkd(void){
 		kp->leaf=0;
 	}
 	ekd=kd;
-	makekd(cmap, &cmap[NMAP]);
+	makekd(cmap, &cmap[nmap]);
 }

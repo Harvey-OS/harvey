@@ -14,6 +14,7 @@
 #define LWBITS	3
 #define W2L	4
 #define WMASK	0xFF
+#define BYTEREV
 typedef uchar	*WType;
 
 typedef	uchar	Type;
@@ -144,7 +145,6 @@ typedef	uchar	Type;
 			Addsp(4)
 #define Orts		*p++ = 0xC3
 /* load */
-#define Load_Rd_P	Loadb(As,Ad); Inc(As)
 #define Load_Rs_P	Loadb(As,Rs); Inc(As)
 #define Load_Rt_P	Loadb(As,Rt); Inc(As)
 #define Loadzx_Rt_P	Loadbzx(As,Rt); Inc(As)

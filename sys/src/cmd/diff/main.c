@@ -82,7 +82,7 @@ mktmpfile(int input, Dir *sb)
 	p = tmp[whichtmp++];
 	fd = create(p, OWRITE, 0600);
 	if (fd < 0) {
-		panic(mflag ? 0: 2, "cannot create %s\n", p);
+		panic(mflag ? 0: 2, "cannot create %s: %r\n", p);
 		return 0;
 	}
 	while ((i = read(input, buf, sizeof(buf))) > 0) {
@@ -92,7 +92,7 @@ mktmpfile(int input, Dir *sb)
 	dirfstat(fd, sb);
 	close(fd);
 	if (i < 0) {
-		panic(mflag ? 0: 2, "cannot read/write %s\n", p);
+		panic(mflag ? 0: 2, "cannot read/write %s: %r\n", p);
 		return 0;
 	}
 	return p;
@@ -105,14 +105,14 @@ statfile(char *file, Dir *sb)
 
 	if (dirstat(file, sb) == -1) {
 		if (strcmp(file, "-") || dirfstat(0, sb) == -1) {
-			panic(mflag ? 0: 2, "cannot stat %s\n", file);
+			panic(mflag ? 0: 2, "cannot stat %s: %r\n", file);
 			return 0;
 		}
 		file = mktmpfile(0, sb);
 	}
 	else if (!REGULAR_FILE(*sb) && !DIRECTORY(*sb)) {
 		if ((input = open(file, OREAD)) == -1) {
-			panic(mflag ? 0: 2, "cannot open %s\n", file);
+			panic(mflag ? 0: 2, "cannot open %s: %r\n", file);
 			return 0;
 		}
 		file = mktmpfile(input, sb);

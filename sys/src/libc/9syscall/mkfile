@@ -31,7 +31,7 @@ all install:V:
 			echo TA R0
 			echo RETURN
 		case hobbit
-			echo TEXT $i'(SB)', '$0'
+			echo TEXT $i'(SB)', 1, '$0'
 			echo KCALL '$'$n
 			echo RETURN
 		}} > $i.s

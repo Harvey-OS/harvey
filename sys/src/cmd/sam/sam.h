@@ -39,6 +39,7 @@ enum State
 	Clean =		' ',
 	Dirty =		'\'',
 	Unread =	'-',
+	Readerr =	'~',
 };
 
 struct Range
@@ -142,12 +143,13 @@ struct File
 	List	*rasp;		/* map of what terminal's got */
 	String	name;		/* file name */
 	short	tag;		/* for communicating with terminal */
-	char	state;		/* Clean, Dirty, Unread */
+	char	state;		/* Clean, Dirty, Unread, or Readerr*/
 	char	closeok;	/* ok to close file? */
 	char	marked;		/* file has been Fmarked at least once; once
 				 * set, this will never go off as undo doesn't
 				 * revert to the dawn of time */
-	long	inumber;	/* file from which it was read */
+	long	dev;		/* file system from which it was read */
+	long	qid;		/* file from which it was read */
 	long	date;		/* time stamp of plan9 file */
 	Posn	cp1, cp2;	/* Write-behind cache positions and */
 	String	cache;		/* string */
@@ -208,7 +210,7 @@ void	Ddelete(Disc*, Posn, Posn);
 void	Dinsert(Disc*, Rune*, int, Posn);
 Disc	*Dopen(Discdesc*);
 int	Dread(Disc*, Rune*, int, Posn);
-void	Dreplace(Disc *, Posn, Posn, Rune*, int);
+void	Dreplace(Disc*, Posn, Posn, Rune*, int);
 int	Fbgetcload(File*, Posn);
 int	Fbgetcset(File*, Posn);
 long	Fchars(File*, Rune*, Posn, Posn);
@@ -266,6 +268,8 @@ int	newtmp(int);
 void	notifyf(void*, char*);
 void	panic(char*);
 void	printposn(File*, int);
+void	print_ss(char*, String*, String*);
+void	print_s(char*, String*);
 int	rcv(void);
 Range	rdata(List*, Posn, Posn);
 Posn	readio(File*, int*, int);
@@ -274,15 +278,15 @@ void	resetcmd(void);
 void	resetsys(void);
 void	resetxec(void);
 void	rgrow(List*, Posn, Posn);
-void	samerr(char *);
+void	samerr(char*);
 void	settempfile(void);
 int	skipbl(void);
 void	snarf(File*, Posn, Posn, Buffer*, int);
 void	sortname(File*);
 void	startup(char*, int, char**, char**);
 void	state(File*, int);
-int	statfd(int, ulong *, long *, long *);
-int	statfile(char *, ulong *, long *, long *);
+int	statfd(int, ulong*, ulong*, long*, long*);
+int	statfile(char*, ulong*, ulong*, long*, long*);
 void	Straddc(String*, int);
 void	Strclose(String*);
 int	Strcmp(String*, String*);
@@ -308,11 +312,12 @@ File	*tofile(String*);
 void	toterminal(File*, int);
 void	trytoclose(File*);
 void	trytoquit(void);
-void	undo(void);
+int	undo(void);
 void	update(void);
 int	waitfor(int);
 void	warn(Warn);
 void	warn_s(Warn, char*);
+void	warn_SS(Warn, String*, String*);
 void	warn_S(Warn, String*);
 int	whichmenu(File*);
 void	writef(File*);
@@ -331,6 +336,7 @@ extern char	SH[];
 extern char	SHPATH[];
 extern char	RX[];
 extern char	RXPATH[];
+extern char	SAMSAVECMD[];
 
 extern char	*rsamname;	/* globals */
 extern char	*samterm;
@@ -347,6 +353,7 @@ extern List	file;
 extern List	tempfile;
 extern File	*cmd;
 extern File	*curfile;
+extern File	*lastfile;
 extern Mod	modnum;
 extern Posn	cmdpt;
 extern Posn	cmdptadv;

@@ -1,6 +1,6 @@
 .TH FIZZ 10.1
 .SH NAME
-artwork, check, clip, cvt, draw, drills, getparts, kollmorgen, list, mw, pkgplot, place, prance, ring, signal, saf, wrap \- physical layout programs
+artwork, check, clip, cvt, draw, drills, getparts, kollmorgen, list, pkgplot, place, prance, ring, signal, saf, wrap \- physical layout programs
 .SH SYNOPSIS
 .B cda/artwork
 [
@@ -50,11 +50,6 @@ artwork, check, clip, cvt, draw, drills, getparts, kollmorgen, list, mw, pkgplot
 .PP
 .B cda/list
 .I file ...
-.PP
-.B cda/mw
-[
-.I file ...
-]
 .PP
 .B cda/pkgplot
 [
@@ -349,14 +344,7 @@ Special Terry Wallis switch
 .TP
 .B -s
 Short output
-.sp
 .PP
-.I Mw
-generates the input for the microwire router for the board described by
-.I files
-on standard output.
-Standard input is used if no file arguments are given.
-.sp
 .PP
 .I Pkgplot
 generates a plot of the package(s) in the input. the options are:
@@ -504,6 +492,5 @@ produce a
 file suitable for the buried microvia router
 .SH SEE ALSO
 .IR cdl (10.6),
-.IR mw (10.1),
 .IR fizz_format (10.6),
 .IR saf (10.6)

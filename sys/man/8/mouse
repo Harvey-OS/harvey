@@ -1,0 +1,22 @@
+.TH MOUSE 8
+.SH NAME
+aux/mouse \- configure a mouse to a port
+.SH SYNOPSIS
+.B aux/mouse
+.I port
+.SH DESCRIPTION
+.B Mouse
+queries a mouse on a serial or PS2 port for
+its type and then configures the port and the
+mouse to be used to control the cursor.
+.PP
+.I Port
+can be either a port number (e.g. 
+.B 0
+or
+.BR 1 )
+or the string
+.BR ps2 .
+.B 
+.SH SEE ALSO
+.IR cons (3)

@@ -1,0 +1,3 @@
+#!/bin/rc
+
+aux/nvga -D tseng-sony1304 1024 >d

@@ -1,10 +1,5 @@
 # root
-mount -a #s/boot / #f/fd0disk
-mount -a #s/boot / #f/fd1disk
-mount -a #s/boot / #w/hd0dos
-mount -c #s/boot /n/a: #f/fd0disk
-mount -c #s/boot /n/b: #f/fd1disk
-mount -c #s/boot /n/c: #w/hd0dos
+mount -at #s/boot /
 
 # kernel devices
 bind #c /dev

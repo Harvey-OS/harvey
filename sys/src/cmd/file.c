@@ -1,8 +1,8 @@
-#include "u.h"
-#include "libc.h"
-#include "ctype.h"
-
-#include "mach.h"
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include <ctype.h>
+#include <mach.h>
 
 /*
  * file - determine type of file

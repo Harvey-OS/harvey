@@ -3,7 +3,7 @@
 #include "dns.h"
 #include "ip.h"
 
-static int	udpport(void);
+static int	udpannounce(void);
 static RR*	getipaddr(DN*);
 static void	recurse(DNSmsg*, Request*);
 static void	local(DNSmsg*);
@@ -35,16 +35,18 @@ dnserver(void)
 		return;
 	}
 
-	/* loop on requests */
-	fd = udpport();
+	while((fd = udpannounce()) < 0)
+		sleep(5000);
 	setjmp(req.mret);
 	req.isslave = 0;
+
+	/* loop on requests */
 	for(;;){
 		memset(&repmsg, 0, sizeof(repmsg));
 		len = read(fd, buf, sizeof(buf));
 		err = convM2DNS(&buf[Udphdrlen], len, &reqmsg);
 		if(err){
-			syslog(0, "dns", "server: input error %s from %I", err, buf);
+			syslog(0, "dns", "server: input error: %s from %I", err, buf);
 			continue;
 		}
 		if(reqmsg.qdcount < 1){
@@ -65,7 +67,8 @@ dnserver(void)
 			/* loop through each question */
 			while(reqmsg.qd){
 				if(debug)
-					print("serve %s %s\n", reqmsg.qd->owner->name,
+					syslog(0, "dns", "serve %s %s",
+						reqmsg.qd->owner->name,
 						rrname(reqmsg.qd->type, tname));
 				memset(&repmsg, 0, sizeof(repmsg));
 				repmsg.id = reqmsg.id;
@@ -91,10 +94,7 @@ dnserver(void)
 					hint(&repmsg.ar, tp);
 
 				reply(fd, buf, &repmsg);
-	
-				/*
-				 *  pack and send reply
-				 */
+
 				rrfreelist(repmsg.qd);
 				rrfreelist(repmsg.an);
 				rrfreelist(repmsg.ns);
@@ -105,6 +105,7 @@ dnserver(void)
 		rrfreelist(reqmsg.an);
 		rrfreelist(reqmsg.ns);
 		rrfreelist(reqmsg.ar);
+
 		if(req.isslave)
 			_exits(0);
 	}
@@ -191,6 +192,8 @@ reply(int fd, uchar *buf, DNSmsg *rep)
 	if(len <= 0)
 		fatal("dnserver: converting reply");
 	len += Udphdrlen;
+	if(debug)
+		syslog(0, "dns", "%d byte reply", len);
 	if(write(fd, buf, len) != len)
 		fatal("dnserver: sending reply");
 }
@@ -232,7 +235,7 @@ getipaddr(DN *dp)
 static char *hmsg = "headers";
 
 static int
-udpport(void)
+udpannounce(void)
 {
 	int data, ctl;
 	char dir[64];
@@ -240,9 +243,11 @@ udpport(void)
 
 	/* get a udp port */
 	ctl = announce("udp!*!dns", dir);
-	if(ctl < 0)
-		fatal("can't announce on udp port");
-	sprint(datafile, "%s/data", dir);
+	if(ctl < 0){
+		warning("can't announce on udp port");
+		return -1;
+	}
+	snprint(datafile, sizeof(datafile), "%s/data", dir);
 
 	/* turn on header style interface */
 	if(write(ctl, hmsg, strlen(hmsg)) , 0)
@@ -250,7 +255,8 @@ udpport(void)
 	data = open(datafile, ORDWR);
 	if(data < 0){
 		close(ctl);
-		fatal("can't announce on udp port");
+		warning("can't announce on udp port");
+		return -1;
 	}
 
 	close(ctl);

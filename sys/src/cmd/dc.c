@@ -24,7 +24,7 @@
 #define sfbeg(p)	(((p)->rd==(p)->beg)?1:0)
 #define sungetc(p,c)	*(--(p)->rd)=c
 #define sgetc(p)	(((p)->rd==(p)->wt)?-1:*(p)->rd++)
-#define skipc(p)	{if((p)->rd==(p)->wt)(p)->rd++;}
+#define skipc(p)	{if((p)->rd<(p)->wt)(p)->rd++;}
 #define slookc(p)	(((p)->rd==(p)->wt)?-1:*(p)->rd)
 #define sbackc(p)	(((p)->rd==(p)->beg)?-1:*(--(p)->rd))
 #define backc(p)	{if((p)->rd>(p)->beg) --(p)->rd;}
@@ -164,7 +164,7 @@ void	putwd(Blk *p, Blk *c);
 Blk*	lookwd(Blk *p);
 char*	nalloc(char *p, unsigned nbytes);
 
-/********debug only
+/********debug only**
 void
 tpr(char *cp, Blk *bp)
 {
@@ -178,7 +178,7 @@ tpr(char *cp, Blk *bp)
 	}
 	print("\n");
 }
-***********/
+************/
 
 void
 main(int argc, char *argv[])
@@ -201,7 +201,6 @@ commnds(void)
 	while(1) {
 		Bflush(&bout);
 		if(((c = readc())>='0' && c <= '9') ||
-		    (c>='a' && c <= 'f') ||
 		    (c>='A' && c <='F') || c == '.') {
 			unreadc(c);
 			p = readin();

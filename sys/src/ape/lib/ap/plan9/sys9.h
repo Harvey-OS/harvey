@@ -75,3 +75,11 @@ extern	int	_STAT(char*, char*);
 extern	int	_WAIT(Waitmsg*);
 extern	long	_WRITE(int, void*, long);
 extern	int	_WSTAT(char*, char*);
+
+extern	int	__open(char *, int, ...);
+extern	int	__access(char *, int);
+extern	int	__chdir(char *);
+extern	int	__creat(char *, int);
+extern	int	__link(char *, int);
+extern	int	__stat(char *, struct stat *);
+extern	int	__unlink(char *);

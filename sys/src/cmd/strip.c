@@ -3,8 +3,6 @@
 #include <a.out.h>
 
 int	strip(char*);
-int	rename(char*, char*);
-long	ben(long);
 
 void
 main(int argc, char *argv[])
@@ -36,10 +34,9 @@ ben(long xen)
 int
 strip(char *file)
 {
-	int in, out;
-	Exec exec, bexec;
-	char tmp[NAMELEN];
-	char buf[4*1024];
+	int fd;
+	Exec exec;
+	char *data;
 	Dir d;
 	long n, len;
 
@@ -48,126 +45,95 @@ strip(char *file)
 	 */
 	if(dirstat(file, &d) < 0){
 		perror(file);
-		return -1;
+		return 1;
 	}
 	if((d.qid.path & (CHDIR|CHAPPEND|CHEXCL))
 	|| !(d.mode & (0111))){
 		fprint(2, "%s must be executable\n", file);
-		return -1;
+		return 1;
 	}
-
 	/*
 	 *  read it's header and see if that makes sense
 	 */
-	in = open(file, OREAD);
-	if(in < 0){
+	fd = open(file, OREAD);
+	if(fd < 0){
 		perror(file);
-		return -1;
+		return 1;
 	}
-	n = read(in, &exec, sizeof exec);
-
-	bexec.magic = ben(exec.magic);
-	bexec.text = ben(exec.text);
-	bexec.data = ben(exec.data);
-
-	if(n != sizeof(exec) || (bexec.magic!=V_MAGIC && bexec.magic!=Z_MAGIC
-				&& bexec.magic!=K_MAGIC && bexec.magic!=A_MAGIC
-				 && bexec.magic!=I_MAGIC)){
-		fprint(2, "%s is not a binary I recognize\n", file);
-		close(in);
-		return -1;
+	n = read(fd, &exec, sizeof exec);
+	if (n != sizeof(exec)) {
+		fprint(2, "Unable to read header of %s\n", file);
+		close(fd);
+		return 1;
+	}
+	switch(ben(exec.magic))
+	{
+	case V_MAGIC:
+	case Z_MAGIC:
+	case K_MAGIC:
+	case A_MAGIC:
+	case I_MAGIC:
+			break;
+	default:
+		fprint(2, "%s is not a recognizable binary\n", file);
+		close(fd);
+		return 1;
 	}
 
-	len = bexec.data + bexec.text;
+	len = ben(exec.data) + ben(exec.text);
 	if(len+sizeof(exec) == d.length) {
 		fprint(2, "%s is already stripped\n", file);
-		close(in);
+		close(fd);
 		return 0;
 	}
 	if(len+sizeof(exec) > d.length) {
 		fprint(2, "%s has strange length\n", file);
-		close(in);
-		return -1;
+		close(fd);
+		return 1;
 	}
-
 	/*
-	 *  make a temporary file to build the new binary in
+	 *  allocate a huge buffer, copy the header into it, then
+	 *  read the file.
 	 */
-	strcpy(tmp, "stripXXXXXXXXXXX");
-	mktemp(tmp);
-	out = create(tmp, OWRITE, d.mode);
-	if(out < 0) {
-		perror(tmp);
-		close(in);
-		return -1;
+	data = malloc(len+sizeof(exec));
+	if (!data) {
+		fprint(2, "Malloc failure. %s too big to strip.\n", file);
+		close(fd);
+		return 1;
 	}
-
 	/*
 	 *  copy exec, text and data
 	 */
 	exec.syms = 0;
 	exec.spsz = 0;
 	exec.pcsz = 0;
-	if(write(out, &exec, sizeof(exec)) != sizeof(exec)) {
-		perror(tmp);
-		goto rmtmp;
+	memcpy(data, &exec, sizeof(exec));
+	n = read(fd, data+sizeof(exec), len);
+	if (n != len) {
+		perror(file);
+		close(fd);
+		return 1;
 	}
-	while(len > 0) {
-		n = sizeof(buf);
-		if(n > len)
-			n = len;
-		n = read(in, buf, n);
-		if(n <= 0) {
-			perror(file);
-			goto rmtmp;
-		}
-		if(write(out, buf, n) != n) {
-			perror(tmp);
-			goto rmtmp;
-		}
-		len -= n;
-	}
-	close(in);
-	close(out);
+	close(fd);
 	if(remove(file) < 0) {
 		perror(file);
-		goto rmtmp;
+		free(data);
+		return 1;
 	}
-	if(rename(tmp, file) < 0) {
-		fprint(2, "can't rename %s to %s\n", tmp, file);
-		return -1;
+	fd = create(file, OWRITE, d.mode);
+	if (fd < 0) {
+		perror(file);
+		free(data);
+		return 1;
 	}
+	n = write(fd, data, len+sizeof(exec));
+	if (n != len+sizeof(exec)) {
+		perror(file);
+		close(fd);
+		free(data);
+		return 1;
+	} 
+	close(fd);
+	free(data);
 	return 0;
-
-rmtmp:
-	close(in);
-	close(out);
-	remove(tmp);
-	return -1;
-}
-
-int
-rename(char *from, char *to)
-{
-	Dir d;
-	char *toelem;
-
-	/*
-	 * get last element of to path
-	 */
-	toelem = utfrrune(to, '/');
-	if(toelem)
-		toelem++;
-	else
-		toelem = to;
-
-	/*
-	 *  change the stat buffer to change the name
-	 */
-	if(dirstat(from, &d) < 0) {
-		perror(from);
-		return -1;
-	}
-	strcpy(d.name, toelem);
-	return dirwstat(from, &d);
 }

@@ -23,6 +23,7 @@ OFILES=\
 	menuhit.$O\
 	mkfont.$O\
 	point.$O\
+	polysegment.$O\
 	rdbitmap.$O\
 	rdbitmapfile.$O\
 	rdcolmap.$O\

@@ -1,8 +1,8 @@
-#include	"u.h"
-#include	"libc.h"
-#include	"bootexec.h"
-
-#include	"mach.h"
+#include	<u.h>
+#include	<libc.h>
+#include	<bio.h>
+#include	<bootexec.h>
+#include	<mach.h>
 
 /*
  *	All a.out header types.  The dummy entry allows canonical

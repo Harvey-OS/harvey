@@ -12,41 +12,38 @@ listinit(void)
 }
 
 int
-Pconv(void *o, int f1, int f2, int f3, int chr)
+Pconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Prog *p;
 
-	USED(chr);
 	p = *(Prog**)o;
 	sprint(str, "\t%A\t%D,%D", p->as, &p->from, &p->to);
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(p);
 }
 
 int
-Aconv(void *o, int f1, int f2, int f3, int chr)
+Aconv(void *o, Fconv *fp)
 {
 	int a;
 	char *s;
 
-	USED(chr);
 	a = *(int*)o;
 	s = "???";
 	if(a >= 0 && a <= AEND)
 		s = anames[a];
-	strconv(s, f1, f2, f3);
+	strconv(s, fp);
 	return sizeof(a);
 }
 
 int
-Dconv(void *o, int f1, int f2, int f3, int chr)
+Dconv(void *o, Fconv *fp)
 {
 	char str[40];
 	Adr *a;
 	int i;
 
-	USED(chr);
 	a = *(Adr**)o;
 	i = a->type;
 	if(i & D_INDIR) {
@@ -114,33 +111,31 @@ Dconv(void *o, int f1, int f2, int f3, int chr)
 		break;
 	}
 out:
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(a);
 }
 
 int
-Wconv(void *o, int f1, int f2, int f3, int chr)
+Wconv(void *o, Fconv *fp)
 {
 	char *s;
 	int w;
 
-	USED(chr);
 	w = *(int*)o;
 	s = "???";
 	if(w >= 0 && w <= W_NONE)
 		s = wnames[w];
-	strconv(s, f1, f2, f3);
+	strconv(s, fp);
 	return sizeof(w);
 }
 
 int
-Sconv(void *ao, int f1, int f2, int f3, int chr)
+Sconv(void *ao, Fconv *fp)
 {
 	int i, c;
 	char str[30], *p, **o;
 	Adr *a;
 
-	USED(chr);
 	a = *(Adr**)ao;
 	p = str;
 	for(i=0; i<a->width; i++) {
@@ -173,7 +168,7 @@ Sconv(void *ao, int f1, int f2, int f3, int chr)
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(*o);
 }
 

@@ -1,0 +1,18 @@
+#!/bin/rc
+
+disk/kfscmd allow
+rm -fr /n/kfs/usr/*
+cat > /tmp/person.$1 <<EOF
+usr
+	$1
+		lib
+			+
+		bin
+			mips
+				+
+			rc
+				+
+EOF
+disk/mkfs /tmp/person.$1
+rm /tmp/person.$1
+disk/kfscmd allowoff

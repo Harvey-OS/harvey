@@ -12,3 +12,6 @@ void	vector80(void);
 int	probe(void*, int);
 void	nlights(int);
 void	puttlbx(int, ulong, ulong);
+
+void	scsiintr(int);
+void	scsiinit(void);

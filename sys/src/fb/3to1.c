@@ -10,6 +10,7 @@
 struct box{
 	int map[3];
 }cmap[NMAP];
+int nmap;
 #define	RED	0
 #define	GRN	1
 #define	BLU	2
@@ -27,19 +28,21 @@ main(int argc, char *argv[]){
 	struct box *bp;
 	char inline[4096*8], outline[4096], cmapbuf[256*3];
 	short herror[3];
-	argc=getflags(argc, argv, "e");
+	argc=getflags(argc, argv, "en:1[ncolor]");
 	if(argc!=2 && argc!=3) usage("cmap [picture]");
+	nmap=flag['n']?atoi(flag['n'][0]):NMAP;
+	if(nmap<=0 || NMAP<nmap) usage("cmap [picture]");
 	if(!getcmap(argv[1], (unsigned char *)cmapbuf)){
 		perror(argv[1]);
 		exits("no cmap");
 	}
-	for(bp=cmap,p=cmapbuf;bp!=&cmap[NMAP];bp++,p+=3){
+	for(bp=cmap,p=cmapbuf;bp!=&cmap[nmap];bp++,p+=3){
 		bp->map[0]=p[0]&255;
 		bp->map[1]=p[1]&255;
 		bp->map[2]=p[2]&255;
 	}
 	buildkd();
-	for(bp=cmap,p=cmapbuf;bp!=&cmap[NMAP];bp++,p+=3){
+	for(bp=cmap,p=cmapbuf;bp!=&cmap[nmap];bp++,p+=3){
 		p[0]=bp->map[0];
 		p[1]=bp->map[1];
 		p[2]=bp->map[2];
@@ -240,5 +243,5 @@ void buildkd(void){
 		kp->leaf=0;
 	}
 	ekd=kd;
-	makekd(cmap, &cmap[NMAP]);
+	makekd(cmap, &cmap[nmap]);
 }

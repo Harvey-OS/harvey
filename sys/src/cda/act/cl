@@ -1,0 +1,55 @@
+:	cl
+and(e,e)	#	AND2	Y	A	B
+and(not(e),e)	#	AND2A	Y	A	B
+and(not(e),not(e))	#	AND2B	Y	A	B
+mux(e,e,C1)	#	OR2	Y	B	A
+mux(e,not(e),C1)	#	OR2A	Y	B	A
+mux(not(e),not(e),C1)	#	OR2B	Y	B	A
+and(e,and(e,e))	#	AND3	Y	A	B	C
+and(not(e),and(e,e))	#	AND3A	Y	A	B	C
+and(not(e),and(not(e),e))	#	AND3B	Y	A	B	C
+and(not(e),and(not(e),not(e)))	#	AND3C	Y	A	B	C
+or(e,or(e,e))	#	OR3	Y	C	A	B
+or(e,or(not(e),e))	#	OR3A	Y	C	A	B
+or(e,or(not(e),not(e)))	#	OR3B	Y	C	A	B
+and(and(not(e),and(not(e),e)),e)	#	AND4B	Y	A	B	C	D
+and(and(not(e),and(not(e),not(e))),e)	#	AND4C	Y	A	B	C	D
+or(e,or(e,or(e,e)))	#	OR4	Y	D	A	B	C
+or(e,or(not(e),or(e,e)))	#	OR4A	Y	D	A	B	C
+xor(e,e)	#	XOR	Y	B	A
+xor(e,not(e))	#	XNOR	Y	B	A
+or(e,xor(e,e))	#	XO1	Y	C	B	A
+or(e,xor(e,not(e)))	#	XO1A	Y	C	B	A
+and(e,xor(e,e))	#	XA1	Y	C	B	A
+and(e,xor(e,not(e)))	#	XA1A	Y	C	B	A
+xor(e,and(not(e),e))	#	AX1	Y	C	A	B
+xor(e,mux(e,not(e),C1))	#	AX1A	Y	C	A	B
+xor(e,and(not(e),not(e)))	#	AX1B	Y	C	A	B
+mux(and(e,e),e,C1)	#	AO1	Y	A	B	C
+mux(and(not(e),e),e,C1)	#	AO1A	Y	A	B	C
+mux(and(e,e),not(e),C1)	#	AO1B	Y	A	B	C
+mux(and(not(e),e),not(e),C1)	#	AO1C	Y	A	B	C
+and(not(e),mux(not(e),e,C1))	#	AOI1A	Y	C	B	A
+and(e,mux(not(e),not(e),C1))	#	AOI1B	Y	C	A	B
+or(and(e,e),or(e,e))	#	AO2	Y	A	B	D	C
+or(and(not(e),e),or(e,e))	#	AO2A	Y	A	B	D	C
+and(not(e),and(not(e),mux(not(e),e,C1)))	#	AOI2A	Y	D	C	B	A
+and(not(e),and(e,mux(e,not(e),C1)))	#	AOI2B	Y	D	C	A	B
+mux(and(not(e),and(e,e)),e,C1)	#	AO3	Y	A	B	C	D
+or(and(e,e),and(e,mux(e,e,C1)))	#	MAJ3	Y	A	B	C	A	B
+and(e,mux(e,e,e))	#	AO4A	Y	C	A	B	D
+or(e,mux(e,e,e))	#	AO5A	Y	D	A	B	C
+or(e,and(e,mux(e,e,C1)))	#	AOI3A	Y	A	D	C	B
+and(e,mux(e,e,C1))	#	OA1	Y	C	A	B
+and(e,mux(not(e),e,C1))	#	OA1A	Y	C	A	B
+and(not(e),mux(e,e,C1))	#	OA1B	Y	C	B	A
+and(not(e),mux(e,not(e),C1))	#	OA1C	Y	C	B	A
+and(e,and(e,mux(e,e,C1)))	#	OA3	Y	D	C	B	A
+and(e,and(not(e),mux(e,e,C1)))	#	OA3A	Y	D	C	A	B
+and(e,and(not(e),mux(not(e),e,C1)))	#	OA3B	Y	D	C	A	B
+or(and(e,mux(e,e,C1)),and(e,mux(e,e,C1)))	#	OA2	Y	C	B	A	D	B	A
+or(and(e,mux(e,not(e),C1)),and(e,mux(e,not(e),C1)))	#	OA2A	Y	C	B	A	D	B	A
+and(e,or(not(e),or(e,e)))	#	OA4A	Y	D	C	A	B
+or(e,and(e,mux(e,e,C1)))	#	OA5	Y	A	D	C	B
+mux(and(not(e),not(e)),not(e),C1)	#	OAI1	Y	A	B	C
+mux(and(not(e),and(not(e),not(e))),e,C1)	#	OAI2A	Y	A	B	C	D

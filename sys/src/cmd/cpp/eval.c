@@ -114,22 +114,10 @@ eval(Tokenrow *trp, int kw)
 		np = lookup(trp->tp, 0);
 		return (kw==KIFDEF) == (np && np->flag&ISDEFINED);
 	}
-	/* replace 'defined name',  'defined(name)' to prevent evaluation */
-	for (tp=trp->tp, ntok=tp-trp->bp; tp < trp->lp; tp++) {
-		if (tp->type!=NAME)
-			continue;
-		if ((np=lookup(tp, 0))!=NULL && np->val==KDEFINED) {
-			tp->type = DEFINED;
-			if ((tp+1)<trp->lp && (tp+1)->type==NAME)
-				(tp+1)->type = NAME1;
-			else if ((tp+3)<trp->lp && (tp+1)->type==LP
-			 && (tp+2)->type==NAME && (tp+3)->type==RP)
-				(tp+2)->type = NAME1;
-			else
-				error(ERROR, "Incorrect syntax for `defined'");
-		}
-	}
+	ntok = trp->tp - trp->bp;
+	kwdefined->val = KDEFINED;	/* activate special meaning of defined */
 	expandrow(trp, "<if>");
+	kwdefined->val = NAME;
 	vp = vals;
 	op = ops;
 	*op++ = END;

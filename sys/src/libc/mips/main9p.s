@@ -2,14 +2,6 @@ TEXT	_mainp(SB), 1, $16
 
 	MOVW	$setR30(SB), R30
 	MOVW	R1, _clock(SB)
-/*
-	MOVW	$0,FCR31
-	NOR	R0,R0
-	MOVD	$0.5, F26
-	SUBD	F26, F26, F24
-	ADDD	F26, F26, F28
-	ADDD	F28, F28, F30
-*/
 	JAL	_profmain(SB)
 	MOVW	__prof+4(SB), R1
 	MOVW	R1, __prof+0(SB)

@@ -137,7 +137,7 @@ pipecmd(message *mp, char *cmd, int fromtty, int mailinput)
 		Bflush(&out);
 	}
 
-	p = proc_start(cmd, ins = instream(), 0, 0, 0);
+	p = proc_start(cmd, ins = instream(), 0, 0, 0, 0);
 	if (p == 0) {
 		
 		fprint(2, "?can't exec %s\n", cmd);
@@ -219,7 +219,7 @@ escape(char *cmd)
 	cp = cmd+strlen(cmd)-1;
 	if (*cp=='\n')
 		*cp = '\0';
-	p = proc_start(cmd, 0, 0, 0, 0);
+	p = proc_start(cmd, 0, 0, 0, 0, 0);
 	proc_wait(p);
 	proc_free(p);
 	Bprint(&out, "!\n");

@@ -23,13 +23,14 @@ static struct machine_node *
 get_state(void)
 {
 	struct machine_node *mp = mem_get(&mach_mem);
+
 	assert (mp!=NULL);
 	mp->inp.value = -1;
 	mp->nst = NULL;
 	mp->link = NULL;
 	mp->fail = NULL;
 	mp->match = NULL;
-	return(mp);
+	return mp;
 }
 
 void
@@ -54,7 +55,7 @@ cgotofn(LabelData *tp)
 	int ret;
 	register struct machine_node *s;
 
-	if (machine==NULL) {
+	if(!machine){
 		/* first time thru */
 		machine = get_state();
 	}
@@ -68,10 +69,10 @@ cgotofn(LabelData *tp)
 		ret = path_getsym(&inp);
 
 		/* no more paths */
-		if (ret == EOF)
+		if (ret == -1)
 			break;
 
-		if (ret == NULL) {
+		if (!ret) {
 			/*
 			 * the end of the path.  Add a match to the
 			 * accepting state.
@@ -114,39 +115,38 @@ cgotofn(LabelData *tp)
 void
 machine_print(struct machine_node *mp)
 {
-	register struct machine_node *mp2;
+	struct machine_node *mp2;
 	struct machine_node *fail;
 	struct match *match, *p;
 
-	if (mp==NULL)
+	if(!mp)
 		return;
-	printf("%x %d:", mp, mp->index);
+	print("%lux %d:", mp, mp->index);
 	if((fail = mp->fail))
-		printf("\tfail %x", fail);
-	if((match = mp->match)) {
-		printf("\taccept ");
-		for(p = match; p!=NULL; p = p->next) {
+		print("\tfail %lux", fail);
+	if((match = mp->match)){
+		print("\taccept ");
+		for(p = match; p; p = p->next) {
 			LabelData *tp = p->tree;
-			printf("%s ", (tp->label)->name);
+			print("%s ", (tp->label)->name);
 		}
 	}
-	putchar('\n');
-	for(mp2=mp; mp2!=NULL; mp2 = mp2->link) {
-		if (MI_DEFINED(mp2->inp.value)) {
-			if (MI_BRANCH(mp->inp.value))
-				printf(" %d -> ", mp2->inp.value);
+	print("\n");
+	for(mp2 = mp; mp2; mp2 = mp2->link){
+		if(MI_DEFINED(mp2->inp.value)){
+			if(MI_BRANCH(mp->inp.value))
+				print(" %d -> ", mp2->inp.value);
 			else
-				printf(" [%s] -> ", (mp2->inp.sym)->name);
-			printf("%x", mp2->nst);
+				print(" [%s] -> ", (mp2->inp.sym)->name);
+			print("%lux", mp2->nst);
 		}
 		assert(mp2->fail==fail);
 		assert(mp2->match==match);
 	}
 	if(MI_DEFINED(mp->inp.value))
-		putchar('\n');
-	for (mp2 = mp; mp2!=NULL; mp2=mp2->link) {
+		print("\n");
+	for(mp2 = mp; mp2; mp2 = mp2->link)
 		machine_print(mp2->nst);
-	}
 }
 
 /*
@@ -242,12 +242,12 @@ machine_build(void)
 	cfail();
 	MachineNumber(machine, 0);
 	if(debug_flag&DB_MACH) {
-		fputs("\n-------\n", stderr);
+		fprint(2, "\n-------\n");
 		machine_print(machine);
 	}
 }
 
-#define MAXACCEPTS 300
+#define MAXACCEPTS 500
 struct match *acceptTable[MAXACCEPTS];
 struct match **acceptTableTop = acceptTable;
 static short int *arityTable;
@@ -291,15 +291,15 @@ MachineGen(void)
 	struct match **atp, *ap;
 
 	oreset();
-	fputs("short mtTable[] = {\n", outfile);
+	Bprint(bout, "short mtTable[] = {\n");
 	machineGen2(machine);
-	fputs("};\n", outfile);
+	Bprint(bout, "};\n");
 
-	fputs("short mtAccept[] = {\n", outfile);
+	Bprint(bout, "short mtAccept[] = {\n");
 
 	oreset();
 	for(atp = acceptTable; atp < acceptTableTop; atp++) {
-		for(ap = *atp; ap!=NULL; ap = ap->next) {
+		for(ap = *atp; ap; ap = ap->next) {
 			register LabelData *tree = ap->tree;
 
 			/* if you change any of the code below you must change
@@ -311,7 +311,7 @@ MachineGen(void)
 		}
 		oputint(-1);
 	}
-	fprintf(outfile, "};\nshort mtStart = %d;\n", machine->index);
+	Bprint(bout, "};\nshort mtStart = %d;\n", machine->index);
 }
 
 static void
@@ -320,37 +320,37 @@ machineGen2(struct machine_node *mach)
 	struct machine_node *mp;
 	struct match *ap;
 
-	if (mach==NULL)
+	if(!mach)
 		return;
 
-	for(mp=mach; mp!=0; mp = mp->link)
+	for(mp = mach; mp; mp = mp->link)
 		if(MI_DEFINED(mp->inp.value))
 			machineGen2(mp->nst);
 
 	assert(mach->index == ointcnt());
-	if (mach->match!=NULL) {
+	if(mach->match){
 		if(acceptTableTop >= &acceptTable[MAXACCEPTS])
 			error(1, "out of acceptTable slots");
 		*acceptTableTop++ = mach->match;
 		oputint(ACCEPT);
 		oputint(nextAcceptIndex);
-		for(ap = mach->match; ap!=NULL; ap = ap->next)
+		for(ap = mach->match; ap; ap = ap->next)
 			nextAcceptIndex += 2;
 		nextAcceptIndex++;
 	}
-	if(mach->link!=NULL || mach->nst!=NULL) {
-		if(MI_BRANCH(mach->inp.value)&&gen_table2) {
+	if(mach->link || mach->nst){
+		if(MI_BRANCH(mach->inp.value)&&gen_table2){
 			oputint(TABLE2);
-			for(mp = mach; mp!=NULL; mp = mp->link) {
-				if(mp->nst!=NULL) {
+			for(mp = mach; mp; mp = mp->link){
+				if(mp->nst) {
 					oputoct(mp->inp.value);
 					oputint((mp->nst)->index);
 				}
 			}
-		} else {
+		}else{
 			oputint(TABLE);
-			for(mp = mach; mp!=NULL; mp = mp->link) {
-				if(mp->nst!=NULL) {
+			for(mp = mach; mp; mp = mp->link){
+				if(mp->nst) {
 					oputoct(mp->inp.value);
 					oputint((mp->nst)->index);
 				}
@@ -360,7 +360,7 @@ machineGen2(struct machine_node *mach)
 	}
 
 	/* A failure transition or a -1 terminate every state */
-	if (mach->fail!=NULL) {
+	if(mach->fail){
 		oputint(FAIL);
 		oputint((mach->fail)->index);
 	}

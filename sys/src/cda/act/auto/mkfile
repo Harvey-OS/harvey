@@ -1,7 +1,17 @@
 </$objtype/mkfile
 
-../comb:	comb.a togates
-	togates < comb.a | grep -v buf > $target
+../act/comb:	comb
+	cp $prereq $target
+
+../act2/comb2:	comb2
+	cp $prereq $target
+
+comb:D:	comb.a togates
+	togates comb.a | grep -v buf > $target
+
+comb2:D:	comb2.a noncomb2.a togates
+	togates noncomb2.a | grep -v buf > $target
+	togates -l cl comb2.a | grep -v buf >> $target
 
 %.$O:	%.c
 	$CC $stem.c
@@ -9,11 +19,11 @@
 togates:	togates.$O
 	$LD -o togates $prereq
 
-%.m:	%.e
-	toupper $prereq | LDE > $target
+%.m:	%.e inv.awk
+	toupper $stem.e | LDE -I | awk -f inv.awk > $target
 
-%.a:	%.m
-	act -d -v $prereq > $target
+%.a:D:	%.m
+	act2 -d -v $prereq | sed 's/^not//' > $target
 
 clean:
-	rm togates *.$O *.m
+	rm togates *.$O *.m *.a

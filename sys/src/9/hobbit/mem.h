@@ -39,7 +39,32 @@
 /*
  * Address spaces
  */
-#define KZERO		0x80000000	/* base of kernel address space */
+#define RAMBASE		0x80000000
+#define IOBASE		0xB0000000
+#define PROMBASE	0x00000000
+#define VROMBASE	0xC0000000
+
+#ifdef rom
+
+#define KTEXTBASE	VROMBASE
+#define KDATABASE	(VROMBASE+0x00600000)
+#define KTZERO		(KTEXTBASE)		/* first address in kernel text */
+
+#define KADDR(a)	((void*)(((ulong)(a)-RAMBASE)+KZERO+0x400000))
+#define PADDR(a)	(((ulong)(a)-KZERO-0x400000)+RAMBASE)
+
+#else
+
+#define KTEXTBASE	RAMBASE
+#define KDATABASE	RAMBASE
+#define KTZERO		(KTEXTBASE+0x4000)	/* first address in kernel text */
+
+#define KADDR(a)	((void*)(a))
+#define PADDR(a)	((ulong)(a))
+
+#endif /* rom */
+
+#define KZERO		KTEXTBASE	/* base of kernel address space */
 #define	TSTKTOP		0xFFC00000	/* end of new stack in sysexec */
 #define TSTKSIZ 	10
 
@@ -51,17 +76,11 @@
 /*
  * Fundamental addresses
  */
-#define VBADDR		(KZERO+0x0000)
-#define KSTBADDR	(KZERO+0x1000)
-#define MACHADDR	(KZERO+0x2000)
+#define VBADDR		(KDATABASE+0x0000)
+#define KSTBADDR	(KDATABASE+0x1000)
+#define MACHADDR	(KDATABASE+0x2000)
 #define ISPOFFSET	(0x1000-0x0020)
 #define SPOFFSET	(0x1000-0x0100)
-#define KTZERO		(KZERO+0x4000)	/* first address in kernel text */
 
 #define	USERADDR	0xFFFFE000
 #define UREGADDR	(USERADDR+ISPOFFSET-0x0020)
-
-#define RAMBASE		0x80000000
-#define IOBASE		0xB0000000
-#define PROMBASE	0x00000000
-#define VROMBASE	0xC0000000

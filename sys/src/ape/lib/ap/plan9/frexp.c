@@ -63,10 +63,16 @@ ldexp(double d, int e)
 double
 modf(double d, double *ip)
 {
+	double f;
 	Cheat x;
 	int e;
 
 	if(d < 1) {
+		if(d < 0) {
+			f = modf(-d, ip);
+			*ip = -*ip;
+			return -f;
+		}
 		*ip = 0;
 		return d;
 	}

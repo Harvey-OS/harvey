@@ -99,6 +99,80 @@ cas(void)
 	cases = c;
 }
 
+void
+bitload(Node *b, Node *n1, Node *n2, Node *n3)
+{
+	int sh;
+	long v;
+	Node *l;
+
+	/*
+	 * n1 gets adjusted/masked value
+	 * n2 gets address of cell
+	 * n3 gets contents of cell
+	 */
+	l = b->left;
+	if(n2 != Z) {
+		regalloc(n1, l);
+		curreg += SZ_LONG;
+		regialloc(n2, l);
+		curreg += SZ_LONG;
+		lcgen(l, n2);
+		regind(n2, l);
+		regalloc(n3, l);
+		curreg += SZ_LONG;
+		gopcode(OAS, n2, n3);
+		gopcode(OAS, n3, n1);
+	} else {
+		regalloc(n1, l);
+		curreg += SZ_LONG;
+		cgen(l, n1);
+	}
+	if(b->type->shift == 0 && typeu[b->type->etype]) {
+		v = ~0 + (1L << b->type->nbits);
+		gopcode(OAND, nodconst(v), n1);
+	} else {
+		sh = 32 - b->type->shift - b->type->nbits;
+		if(sh > 0)
+			gopcode(OASHL, nodconst(sh), n1);
+		sh += b->type->shift;
+		if(sh > 0)
+			if(typeu[b->type->etype])
+				gopcode(OLSHR, nodconst(sh), n1);
+			else
+				gopcode(OASHR, nodconst(sh), n1);
+	}
+}
+
+void
+bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
+{
+	long v;
+	Node nod, *l;
+	int sh;
+
+	/*
+	 * n1 has adjusted/masked value
+	 * n2 has address of cell
+	 * n3 has contents of cell
+	 */
+	l = b->left;
+	regalloc(&nod, l);
+	curreg += SZ_IND;
+	v = ~0 + (1L << b->type->nbits);
+	gopcode(OAND, nodconst(v), n1);
+	gopcode(OAS, n1, &nod);
+	if(nn != Z)
+		gopcode(OAS, n1, nn);
+	sh = b->type->shift;
+	if(sh > 0)
+		gopcode(OASHL, nodconst(sh), &nod);
+	v <<= sh;
+	gopcode(OAND, nodconst(~v), n3);
+	gopcode(OOR, n3, &nod);
+	gopcode(OAS, &nod, n2);
+}
+
 long
 outstring(char *s, long n)
 {
@@ -169,7 +243,10 @@ loop:
 			v = 1;
 			if(l->type->etype == TIND)
 				v = l->type->link->width;
-			gopcode(o, nodconst(v), l);
+			if(typefdv[l->type->etype])
+				gopcode(o, nodfconst(v), l);
+			else
+				gopcode(o, nodconst(v), l);
 		}
 		break;
 
@@ -181,7 +258,10 @@ loop:
 			v = 1;
 			if(l->type->etype == TIND)
 				v = l->type->link->width;
-			gopcode(o, nodconst(v), l);
+			if(typefdv[l->type->etype])
+				gopcode(o, nodfconst(v), l);
+			else
+				gopcode(o, nodconst(v), l);
 		}
 		break;
 
@@ -229,9 +309,11 @@ loop:
 		}
 		return;
 
+	case OCOND:
+		return;
+
 	case OANDAND:
 	case OOROR:
-	case OCOND:
 		n = l;
 		goto loop;
 	}

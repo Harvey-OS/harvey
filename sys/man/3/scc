@@ -41,7 +41,7 @@ set the baud rate to
 .BI d n
 set dtr if
 .I n
-is 1;
+is non-zero;
 else clear it.
 .TP
 .BI k n
@@ -52,5 +52,32 @@ milliseconds.
 .BI r n
 set RTS if
 .I n
-is 1;
+is non-zero;
 else clear it.
+.TP
+.BI m n
+obey modem CTS signal
+.I n
+is non-zero;
+else clear it.
+.TP
+.BI p c
+set parity to odd if
+.I c
+is
+.BR o ,
+to even if
+.I c
+is
+.BR e ;
+else set no parity.
+.TP
+.BI s n
+set number of stop bits to
+.IR n .
+Legal values are 1 or 2.
+.TP
+.BI l n
+set number of bits per byte to
+.IR n .
+Legal values are 5, 6, 7, or 8.

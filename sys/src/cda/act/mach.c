@@ -49,16 +49,16 @@ cout(void)
 			ctree(s->exp);
 			print(";\n\t%s.ck = _t;\n",s->name);
 			if (s->rd) {
-				print("\tif (%s.rd)\n\t\t%s.m = 0;\n",s->name,s->name);
 				print("\t%s.rd = ",s->name);
 				ctree(s->rd);
 				print(";\n",s->name);
+				print("\tif (%s.rd)\n\t\t%s.m = 0;\n",s->name,s->name);
 			}
 			if (s->pre) {
-				print("\tif (%s.pre)\n\t\t%s.m = 1;\n",s->name,s->name);
 				print("\t%s.pre = ",s->name);
 				ctree(s->pre);
 				print(";\n",s->name);
+				print("\tif (%s.pre)\n\t\t%s.m = 1;\n",s->name,s->name);
 			}
 			if (s->cke) {
 				print("\t%s.ce = ",s->name);

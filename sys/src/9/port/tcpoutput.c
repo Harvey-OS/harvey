@@ -45,8 +45,12 @@ tcpoutput(Ipconv *s)
 		 * window probes to one
 		 */
 		if(tcb->snd.wnd == 0){
-			if(sent != 0)
-				break;
+			if(sent != 0) {
+				if (tcb->flags&FORCE)
+						tcb->snd.ptr = tcb->snd.una;
+				else
+					break;
+			}
 			usable = 1;
 		}
 		else {
@@ -176,11 +180,10 @@ tcptimeout(void *arg)
 
 	s = (Ipconv *)arg;
 	tcb = &s->tcpctl;
-
 	switch(tcb->state){
 	default:
 		tcb->backoff++;
-		if (tcb->backoff >= MAXBACKOFF) {
+		if (tcb->backoff >= MAXBACKOFF && tcb->snd.wnd > 0) {
 			localclose(s, Etimedout);
 			break;
 		}

@@ -8,10 +8,11 @@ static Xfile*	clean(Xfile*);
 
 #define	FIDMOD	127	/* prime */
 
-static Xdata	*xhead;
-static Xfile	*xfiles[FIDMOD], *freelist;
+static Xdata*	xhead;
+static Xfile*	xfiles[FIDMOD];
+static Xfile*	freelist;
 
-Xdata *
+Xdata*
 getxdata(char *name)
 {
 	int fd;
@@ -43,7 +44,7 @@ getxdata(char *name)
 			continue;
 		if(xf->type != dir.type || xf->fdev != dir.dev)
 			continue;
-		++xf->ref;
+		xf->ref++;
 		chat("incref=%d, \"%s\", dev=%d...", xf->ref, xf->name, xf->dev);
 		close(fd);
 		poperror();
@@ -70,7 +71,7 @@ putxdata(Xdata *d)
 {
 	if(d->ref <= 0)
 		panic(0, "putxdata");
-	--d->ref;
+	d->ref--;
 	chat("decref=%d, \"%s\", dev=%d...", d->ref, d->name, d->dev);
 	if(d->ref == 0){
 		chat("purgebuf...");
@@ -94,7 +95,7 @@ refxfs(Xfs *xf, int delta)
 	}
 }
 
-Xfile *
+Xfile*
 xfile(int fid, int flag)
 {
 	int k = fid%FIDMOD;

@@ -1,16 +1,17 @@
 CONF=cpu
-CONFLIST=cpu
+CONFLIST=cpu term termlocal bart rom
+TYPE=ram
 
 objtype=hobbit
 </$objtype/mkfile
-CFLAGS=-w
+CFLAGS=-w -D$TYPE
+LIBRARY=lib$TYPE.a
 
 DEV=`{rc ../port/mkdevlist $CONF}`
 STREAM=`{rc ../port/mkstreamlist $CONF}`
 MISC=`{rc ../port/mkmisclist $CONF}`
 
 OBJ=\
-	l.$O\
 	trap.$O\
 	alarm.$O\
 	alloc.$O\
@@ -20,9 +21,9 @@ OBJ=\
 	fault.$O\
 	latin1.$O\
 	taslock.$O\
-	main.$O\
 	segment.$O\
 	swap.$O\
+	${TYPE}main.$O\
 	mmu.$O\
 	net.$O\
 	page.$O\
@@ -35,22 +36,47 @@ OBJ=\
 	sysproc.$O\
 	$DEV\
 	$MISC\
-	boot$CONF.root.$O\
 	$STREAM\
 	stream.$O\
-	fcall.$O
+	fcall.$O\
+	fprt0.$O\
+	fpi$objtype.$O\
+	fpi.$O
+
+LIBO=${OBJ:%=$LIBRARY(%)}
 
 def:V: 9$CONF
 
-9cpu:	$OBJ $CONF.c
+9cpu:	raml.$O boot$CONF.root.$O $LIBRARY $CONF.c
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
-	$LD -o $target -l -R4 -H1 -T0x80004000 -E0x80004000 $OBJ $CONF.$O -lc
+	$LD -o $target -l -R4 -H1 -T0x80004000 -E0x80004000 raml.$O $CONF.$O boot$CONF.root.$O $LIBRARY -lc
 	size 9$CONF
+
+9bart 9term 9termlocal:	raml.$O boot$CONF.root.$O $LIBRARY $CONF.c /$objtype/lib/libgnot.a /$objtype/lib/libg.a
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -l -R4 -H1 -T0x80004000 -E0x80004000 raml.$O $CONF.$O boot$CONF.root.$O $LIBRARY -lgnot -lg -lc
+	size 9$CONF
+
+9rom:	roml.$O boot$CONF.root.$O $LIBRARY $CONF.c
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -l -H1 -T0xC0000000 -D0xC0604000 -E0x0 roml.$O $CONF.$O boot$CONF.root.$O $LIBRARY -lc
+	size 9$CONF
+
+$LIBRARY:	$LIBO
+	names=`{membername $newprereq}
+	ar vu $LIBRARY $names
+	$RL $LIBRARY
+	rm -f $names
+
+$LIBRARY(%.$O):N:%.$O
 
 <../port/portmkfile
 
 install:V: 9$CONF
 	cp 9$CONF /$objtype/9$CONF
+
+${TYPE}main.$O:	init.h
+rommain.$O:	rom.h
 
 init.h:	initcode /sys/src/libc/9syscall/sys.h
 	$AS initcode
@@ -74,3 +100,7 @@ fpi.$O:		fpi.h fpi.c
 fpi.out:	fprt0.$O fpihobbit.$O fpi.$O
 	$LD -l -R4 -T0xE0000020 $prereq
 	cp z.out $target
+
+clobber:V:
+	mk clean
+	rm -f [$OS].mkrom 9rom.com

@@ -7,7 +7,7 @@ bsearch(const void* key, const void* base, size_t nmemb, size_t size,
 	long i, low, high;
 	int r;
 
-	for(low=0, high=nmemb; high>low+1; ){
+	for(low=-1, high=nmemb; high>low+1; ){
 		i=(high+low)/2;
 		if((r=(*compar)(key, ((char *)base)+i*size))<0)
 			high=i;

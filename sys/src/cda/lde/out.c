@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "dat.h"
 #include "fns.h"
-#include "y.tab.h"
+#include "gram.h"
 extern int nterm, T[], M[], nlook;
 void
 out(Node *tp)

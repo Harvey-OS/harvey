@@ -3,11 +3,14 @@
 #include <gnot.h>
 #include "tabs.h"
 
-#ifdef T386
-#define swizbytes(a) (((a)<<24)|(((a)&0xFF00)<<8)|(((a)&0xFF0000)>>8)|((a)>>24))
-#else
 #define swizbytes(a) (a)
+#ifdef T386
+#define LENDIAN
 #endif
+#ifdef Thobbit
+#define LENDIAN
+#endif
+
 /*
  * texture - uses bitblt, logarithmically if f doesn't involve D
  * but special case some textures whose rows can be packed in 32 bits
@@ -43,9 +46,15 @@ gtexture(GBitmap *dm, Rectangle r, GBitmap *sm, Fcode f)
 			for(y = 0; y < dp.y; y++) {
 				a = swizbytes(sm->base[y]);	/* we know sm rows fit in a word */
 				if(w < wneed) {
+#ifdef LENDIAN
+					b = a;
+					for(x = w; x < 32; x += w)
+						a |= b << x;
+#else
 					b = a >> (32-w);
-					for(x = w; x < wneed; x += w)
+					for(x = w; x < 32; x += w)
 						a |= b << (32-x-w);
+#endif
 				}
 				if(sld != dld)
 					switch(dld) {
@@ -67,8 +76,13 @@ gtexture(GBitmap *dm, Rectangle r, GBitmap *sm, Fcode f)
 				s[y] = swizbytes(a);
 			}
 			a = (r.min.x<<dld)&31;
+#ifdef LENDIAN
+			lmask = ~0UL << a;
+			rmask = ~0UL >> (32-((r.max.x<<dld))&31);
+#else
 			lmask = ~0UL >> a;
 			rmask = ~0UL << (32-((r.max.x<<dld))&31);
+#endif
 			if(!rmask)
 				rmask = ~0;
 			ps = gaddr(dm, r.min);

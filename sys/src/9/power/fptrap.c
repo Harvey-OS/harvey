@@ -24,32 +24,32 @@ enum	/* op */
 static int	fpunimp(ulong);
 static ulong	branch(Ureg*, ulong);
 
-int
-fptrap(Ureg *ur, ulong fcr31)
+void
+fptrap(Ureg *ur)
 {
 	ulong iw, npc;
 
-	savefpregs(&u->fpsave);
-	u->p->fpstate = FPinactive;	/* will get turned on again in trap() */
-	if((fcr31&(1<<17)) == 0)
-		return 0;
+	if((u->fpsave.fpstatus&(1<<17)) == 0)
+		return;
+
 	if(ur->cause & (1<<31))
 		iw = *(ulong*)(ur->pc+4);
 	else
 		iw = *(ulong*)ur->pc;
-	if(fpunimp(iw)){
-		if(ur->cause & (1<<31)){
-			npc = branch(ur, fcr31);
-			if(npc)
-				ur->pc = npc;
-			else
-				return 0;
-		}else
-			ur->pc += 4;
-		u->fpsave.fpstatus = fcr31 & ~(1<<17);
-		return 1;
+
+	if(fpunimp(iw) == 0)
+		return;
+
+	if(ur->cause & (1<<31)){
+		npc = branch(ur, u->fpsave.fpstatus);
+		if(npc == 0)
+			return;
+		ur->pc = npc;
 	}
-	return 0;
+	else
+		ur->pc += 4;
+
+	u->fpsave.fpstatus = u->fpsave.fpstatus & ~(1<<17);
 }
 
 static void
@@ -58,6 +58,7 @@ unpack(FPsave *f, int fmt, int reg, int *sign, int *exp)
 	*sign = 1;
 	if(f->fpreg[reg] & 0x80000000)
 		*sign = -1;
+
 	switch(fmt){
 	case 0:
 		*exp = ((f->fpreg[reg]>>23)&0xFF) - ((1<<7)-2);
@@ -164,6 +165,8 @@ fpunimp(ulong iw)
 	}
 	if(ed <= -(maxe-4)){	/* guess: underflow */
 		zeroreg(&u->fpsave, fmt, fd, sd);
+		/* Set underflow exception and sticky */
+		u->fpsave.fpstatus |= (1<<3)|(1<<13);
 		return 1;
 	}
 	return 0;

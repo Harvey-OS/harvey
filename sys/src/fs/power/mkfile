@@ -32,7 +32,6 @@ OBJ=\
 	il.$O\
 	iobuf.$O\
 	ip.$O\
-	jaguar.$O\
 	lance.$O\
 	lock.$O\
 	main.$O\
@@ -49,6 +48,7 @@ OBJ=\
 	worm.$O\
 	wren.$O\
 	uidgid.$O\
+	scsi.$O\
 
 HFILES=\
 	../port/all.h\

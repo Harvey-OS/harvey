@@ -1,0 +1,266 @@
+# this file gets turned into twig by def.awk
+# be VERY careful about changing either one
+# each line describes a gate that goes with a pattern
+# pat	match	gate	output	input*
+#	where
+#	pat is a tree involving various bufs, gates, and storage elements
+#		not(e)		<--- args can be "e" or "ck"
+#		and(e,e)
+#		or(e,e)
+#		mux(s,a,b)
+#		ff(d,ck,en,clr,pre)
+#
+#	match field specifies default, high cost, or match conditions
+#		#	default
+#		$	high cost
+#		f0a=f0b[:fia=fib]*	sequence of eq requirements else ABORT
+#
+#	gate is an actel gate name
+#
+#	output is the name of the gate output
+#
+#	inputs are of the form
+#		pin	name of actel gate pin
+#		pin:v	tie this pin to v
+#		#	ignore this arg (used with arg matching)
+#
+
+# i/o
+inbuf(e)	#	INBUF	Y	PAD
+clkbuf(e)	#	CLKBUF	Y	PAD
+outbuf(e)	#	OUTBUF	PAD	D
+bibuf(e,e)	#	BIBUF	PADY	D	E
+tribuf(e,e)	#	TRIBUFF	PAD	D	E
+
+# gated clocks
+not(ck)		$	GNAND2	Y	G	A:VCC
+and(e,ck)	$	GAND2	Y	A	G
+and(ck,e)	$	GAND2	Y	G	A
+mux(not(e),not(ck),C1)	$	GNAND2	Y	A	G
+mux(not(ck),not(e),C1)	$	GNAND2	Y	G	A
+or(e,ck)	$	GOR2	Y	A	G
+or(ck,e)	$	GOR2	Y	G	A
+and(not(e),not(ck))	$	GNOR2	Y	A	G
+and(not(ck),not(e))	$	GNOR2	Y	G	A
+xor(e,ck)	$	GXOR2	Y	A	G
+xor(ck,e)	$	GXOR2	Y	G	A
+#someday..
+mux(ck,mux(e,e,e),mux(e,e,e))	$2.1=3.1	GMX4	Y	G	S0	D0	D1	#	D2	D3
+mux(e,mux(ck,e,e),mux(ck,e,e))	$2.1=3.1	GMX4	Y	S0	G	D0	D2	#	D1	D3
+mux(e,ck,e)	$	GMX4	Y	S0	G	D0:GND	D1	D2:VCC	D3%D1
+mux(e,e,ck)	$	GMX4	Y	S0	D0	D1:GND	D2%D0	D3:VCC
+
+# random shared-input gates
+or(and(e,e),or(and(e,e),and(e,e)))	1.1=2.1.1:1.2=2.2.1:2.1.2=2.2.2	MAJ3	Y	A	B	#	C
+or(and(e,e),or(and(e,e),and(e,e)))	1.1=2.2.2:2.1.1=2.2.1:1.2=2.1.2	MAJ3	Y	B	C	A
+or(and(not(e),and(e,e)),and(e,and(e,e)))	1.1.1=2.1:1.2.1=2.2.1	AO4A	Y	A	C	B	#	#	D
+or(and(not(e),e),or(and(e,e),e))	1.1.1=2.1.1	AO5A	Y	A	B	#	C	D
+
+# different MAJ3 formulation
+or(and(e,e),and(e,mux(e,e,C1)))	1.1=2.2.2:1.2=2.2.1	MAJ3	Y	A	B	C
+or(and(e,e),and(e,mux(e,e,C1)))	1.1=2.2.1:1.2=2.2.2	MAJ3	Y	A	B	C
+
+# suuuure..
+#or(and(not(e),and(not(e),e)),or(and(e,and(not(e),e)),or(and(not(e),and(e,e)),and(e,and(e,e)))))	1.1.1=2.1.1:2.1.1=2.2.1.1.1:2.1.1=2.2.2.1:1.2.1.1=2.1.2.1.1:1.2.1.1=2.2.1.2.1:1.2.1.1=2.2.2.2.1	MX4	Y S0 S1 A # # B # # C # # D
+
+#latches
+lat(e,ck,C1,C0)	#	DL1	Q	D	G
+lat(e,not(ck),C1,C0)	#	DL1B	Q	D	G
+lat(e,ck,e,C0)	#	DLE	Q	D	G	E
+lat(e,ck,not(e),C0)	#	DLEA	Q	D	G	E
+lat(e,not(ck),e,C0)	#	DLEB	Q	D	G	E
+lat(e,not(ck),not(e),C0)	#	DLEC	Q	D	G	E
+lat(e,ck,C1,not(e))	#	DLC	Q	D	G	CLR
+lat(e,not(ck),C1,not(e))	#	DLCA	Q	D	G	CLR
+lat(mux(e,e,e),ck,C1,C0)	#	DLM	Q	S	A	B	G
+lat(mux(e,e,e),not(ck),C1,C0)	#	DLMA	Q	S	A	B	G
+lat(mux(e,e,e),not(ck),not(e),C0)	#	DLME1A	Q	S	A	B	G	E
+
+#flip flops
+dff(e,ck,C1,C0,C0)	#	DF1	Q	D	CLK
+dff(not(e),ck,C1,C0,C0)	#	DF1A	QN	D	CLK
+dff(e,not(ck),C1,C0,C0)	#	DF1B	Q	D	CLK
+dff(not(e),not(ck),C1,C0,C0)	#	DF1C	QN	D	CLK
+dff(e,ck,e,C0,C0)	#	DFE	Q	D	CLK	E
+dff(e,ck,e,C0,e)	#	DFE4	Q	D	CLK	E	PRE
+dff(e,ck,e,not(e),C0)	#	DFE3A	Q	D	CLK	E	CLR
+dff(e,ck,C1,C0,e)	#	DFP1	Q	D	CLK	PRE
+dff(e,ck,C1,e,C0)	#	DFC1	Q	D	CLK	CLR
+dff(not(e),ck,C1,C0,e)	#	DFC1C	QN	D	CLK	CLR
+dff(e,not(ck),C1,e,C0)	#	DFC1A	Q	D	CLK	CLR
+dff(not(e),not(ck),C1,C0,e)	#	DFC1F	QN	D	CLK	CLR
+dff(e,ck,C1,not(e),C0)	#	DFC1B	Q	D	CLK	CLR
+dff(not(e),ck,C1,C0,not(e))	#	DFC1E	QN	D	CLK	CLR
+dff(e,not(ck),C1,not(e),C0)	#	DFC1D	Q	D	CLK	CLR
+dff(not(e),not(ck),C1,C0,not(e))	#	DFC1G	QN	D	CLK	CLR
+dff(e,ck,C1,not(e),e)	#	DFPC	Q	D	CLK	CLR	PRE
+dff(e,not(ck),C1,not(e),e)	#	DFPCA	Q	D	CLK	CLR	PRE
+
+dff(and(e,e),ck,not(e),C0,C0)	#	DFME1A	Q	S	A:GND	B	CLK	E
+dff(and(not(e),e),ck,not(e),C0,C0)	#	DFME1A	Q	S	A	B:GND	CLK	E
+dff(and(e,e),ck,C1,e,C0)	#	DFM3	Q	S	A:GND	B	CLK	CLR
+dff(and(e,e),ck,C1,C0,e)	#	DFM4	Q	S	A:GND	B	CLK	PRE
+dff(and(not(e),e),ck,C1,C0,e)	#	DFM4	Q	S	A	B:GND	CLK	PRE
+dff(or(e,e),ck,C1,C0,e)	#	DFM4	Q	S	A	B:VCC	CLK	PRE
+dff(mux(e,e,e),ck,C1,C0,e)	#	DFM4	Q	S	A	B	CLK	PRE
+dff(mux(e,e,e),ck,C1,not(e),C0)	#	DFMB	Q	S	A	B	CLK	CLR
+dff(mux(e,e,e),ck,C1,e,C0)	#	DFM3	Q	S	A	B	CLK	CLR
+dff(mux(e,e,e),ck,not(e),C0,C0)	#	DFME1A	Q	S	A	B	CLK	E
+dff(mux(e,e,e),ck,C1,C0,C0)	#	DFM	Q	S	A	B	CLK
+
+not(e)	#	INV	Y	A
+buffer(e)	#	BUF	Y	A
+
+#2-input
+and(e,e)	#	AND2	Y	A	B
+and(not(e),e)	#	AND2A	Y	A	B
+and(not(e),not(e))	#	AND2B	Y	A	B
+or(e,e)	#	OR2	Y	A	B
+or(not(e),e)	#	OR2A	Y	A	B
+or(not(e),not(e))	#	OR2B	Y	A	B
+not(and(e,e))	#	NAND2	Y	A	B
+not(and(not(e),e))	#	NAND2A	Y	A	B
+not(and(not(e),not(e)))	#	NAND2B	Y	A	B
+not(or(e,e))	#	NOR2	Y	A	B
+not(or(not(e),e))	#	NOR2A	Y	A	B
+not(or(not(e),not(e)))	#	NOR2B	Y	A	B
+
+#3-input
+and(e,and(e,e))	#	AND3	Y	A	B	C
+and(not(e),and(e,e))	#	AND3A	Y	A	B	C
+and(not(e),and(not(e),e))	#	AND3B	Y	A	B	C
+and(not(e),and(not(e),not(e)))	#	AND3C	Y	A	B	C
+or(e,or(e,e))	#	OR3	Y	A	B	C
+or(not(e),or(e,e))	#	OR3A	Y	A	B	C
+or(not(e),or(not(e),e))	#	OR3B	Y	A	B	C
+#or(not(e),or(not(e),not(e)))	#	or3c	y	a	b	c
+#not(and(e,and(e,e)))	#	nand3	y	a	b	c
+not(and(not(e),and(e,e)))	#	NAND3A	Y	A	B	C
+not(and(not(e),and(not(e),e)))	#	NAND3B	Y	A	B	C
+not(and(not(e),and(not(e),not(e))))	#	NAND3C	Y	A	B	C
+not(or(e,or(e,e)))	#	NOR3	Y	A	B	C
+not(or(not(e),or(e,e)))	#	NOR3A	Y	A	B	C
+not(or(not(e),or(not(e),e)))	#	NOR3B	Y	A	B	C
+not(or(not(e),or(not(e),not(e))))	#	NOR3C	Y	A	B	C
+
+#4-input
+#and(e,and(e,and(e,e)))	#	and4	y	a	b	c	d
+#and(not(e),and(e,and(e,e)))	#	and4a	y	a	b	c	d
+and(not(e),and(not(e),and(e,e)))	#	AND4B	Y	A	B	C	D
+and(not(e),and(not(e),and(not(e),e)))	#	AND4C	Y	A	B	C	D
+#and(not(e),and(not(e),and(not(e),not(e))))	#	and4d	y	a	b	c	d
+or(e,or(e,or(e,e)))	#	OR4	Y	A	B	C	D
+or(not(e),or(e,or(e,e)))	#	OR4A	Y	A	B	C	D
+#or(not(e),or(not(e),or(e,e)))	#	or4b	y	a	b	c	d
+#or(not(e),or(not(e),or(not(e),e)))	#	or4c	y	a	b	c	d
+#or(not(e),or(not(e),or(not(e),not(e))))	#	or4d	y	a	b	c	d
+#not(and(e,and(e,and(e,e))))	#	nand4	y	a	b	c	d
+#not(and(not(e),and(e,and(e,e))))	#	nand4a	y	a	b	c	d
+#not(and(not(e),and(not(e),and(e,e))))	#	nand4b	y	a	b	c	d
+not(and(not(e),and(not(e),and(not(e),e))))	#	NAND4C	Y	A	B	C	D
+not(and(not(e),and(not(e),and(not(e),not(e)))))	#	NAND4D	Y	A	B	C	D
+#not(or(e,or(e,or(e,e))))	#	nor4	y	a	b	c	d
+not(or(not(e),or(e,or(e,e))))	#	NOR4A	Y	A	B	C	D
+not(or(not(e),or(not(e),or(e,e))))	#	NOR4B	Y	A	B	C	D
+#not(or(not(e),or(not(e),or(not(e),e))))	#	nor4c	y	a	b	c	d
+#not(or(not(e),or(not(e),or(not(e),not(e)))))	#	nor4d	y	a	b	c	d
+
+#xor
+xor(e,e)	#	XOR	Y	A	B
+not(xor(e,e))	#	XNOR	Y	A	B
+
+##xor or
+or(xor(e,e),e)	#	XO1	Y	A	B	C
+or(not(xor(e,e)),e)	#	XO1A	Y	A	B	C
+or(e,xor(e,e))	#	XO1	Y	C	A	B
+or(e,not(xor(e,e)))	#	XO1A	Y	C	A	B
+
+##xor and
+and(xor(e,e),e)	#	XA1	Y	A	B	C
+and(e,mux(e,e,not(e)))	2.2=2.3.1	XA1	Y	C	A	B
+and(not(xor(e,e)),e)	#	XA1A	Y	A	B	C
+and(e,xor(e,e))	#	XA1	Y	C	A	B
+and(e,not(xor(e,e)))	#	XA1A	Y	C	A	B
+
+#and xor
+not(xor(and(not(e),e),e))	#	AX1A	Y	A	B	C
+xor(and(not(e),e),e)	#	AX1	Y	A	B	C
+xor(and(not(e),not(e)),e)	#	AX1B	Y	A	B	C
+
+#and or
+or(and(e,e),e)	#	AO1	Y	A	B	C
+or(and(not(e),e),e)	#	AO1A	Y	A	B	C
+or(and(e,e),not(e))	#	AO1B	Y	A	B	C
+or(and(not(e),e),not(e))	#	AO1C	Y	A	B	C
+not(or(and(not(e),e),e))	#	AOI1A	Y	A	B	C
+not(or(and(e,e),not(e)))	#	AOI1B	Y	A	B	C
+or(and(e,e),or(e,e))	#	AO2	Y	A	B	C	D
+or(and(not(e),e),or(e,e))	#	AO2A	Y	A	B	C	D
+not(or(and(not(e),e),or(e,e)))	#	AOI2A	Y	A	B	C	D
+not(or(and(not(e),e),or(not(e),e)))	#	AOI2B	Y	A	B	C	D
+#huh?	#	not(or(and(not(e),and(e,e)),e))	ao3	y	a	b	c	d
+
+#or and
+and(or(e,e),e)	#	OA1	Y	A	B	C
+and(or(not(e),e),e)	#	OA1A	Y	A	B	C
+and(or(e,e),not(e))	#	OA1B	Y	A	B	C
+and(or(not(e),e),not(e))	#	OA1C	Y	A	B	C
+and(or(e,e),and(e,e))	#	OA3	Y	A	B	C	D
+and(e,and(e,or(e,e)))	#	OA3	Y	C	D	A	B
+and(or(e,e),and(not(e),e))	#	OA3A	Y	A	B	C	D
+and(or(not(e),e),and(not(e),e))	#	OA3B	Y	A	B	C	D
+and(or(e,e),or(e,e))	#	OA2	Y	A	B	C	D
+and(or(not(e),e),or(e,e))	#	OA2A	Y	A	B	C	D
+
+# more likely forms
+and(e,or(e,e))	#	OA1	Y	C	A	B
+and(e,or(not(e),e))	#	OA1A	Y	C	A	B
+and(not(e),or(e,e))	#	OA1B	Y	C	A	B
+or(and(e,e),and(e,e))	1.2=2.2	OA1	Y	A	C	B
+or(and(not(e),e),and(e,e))	1.2=2.2	OA1A	Y	A	C	B
+or(and(not(e),e),and(not(e),e))	1.1.1=2.1.1	OA1B	Y	C	A	B
+
+#synthesized muxes
+mux(e,mux(e,e,e),e)	#	MX4	Y	S1	S0	D0	D1	D2	D3%D2
+mux(e,e,mux(e,e,e))	#	MX4	Y	S1	D0	S0	D2	D3	D1%D0
+mux(e,and(e,e),e)	#	MX4	Y	S1	S0	D0:GND	D1	D2	D3%D2
+mux(e,and(e,e),and(e,e))	#	MXT	Y	S1	S0A	D0:GND	D1	S0B	D2:GND	D3
+mux(e,and(not(e),e),and(e,e))	#	MXT	Y	S1	S0A	D0	D1:GND	S0B	D2:GND	D3
+mux(e,and(e,e),and(not(e),e))	#	MXT	Y	S1	S0A	D0:GND	D1	S0B	D2	D3:GND
+mux(e,and(not(e),e),and(not(e),e))	#	MXT	Y	S1	S0A	D0	D1:GND	S0B	D2	D3:GND
+
+#mux
+mux(e,e,e)	#	MX2	Y	S	A	B
+mux(not(e),e,e)	#	MX2	Y	S	B	A
+mux(e,not(e),e)	#	MX2A	Y	S	A	B
+mux(not(e),not(e),e)	#	MX2B	Y	S	B	A
+mux(e,e,not(e))	#	MX2B	Y	S	A	B
+mux(e,e,not(e))	2=3.1	XOR	Y	A	B
+mux(not(e),e,not(e))	#	MX2A	Y	S	B	A
+not(mux(e,e,e))	#	MX2C	Y	S	A	B
+mux(e,not(e),not(e))	#	MX2C	Y	S	A	B
+not(mux(not(e),e,e))	#	MX2C	Y	S	B	A
+mux(not(e),not(e),not(e))	#	MX2C	Y	S	B	A
+mux(e,mux(e,e,e),mux(e,e,e))	#	MXT	Y	S1	S0A	D0	D1	S0B	D2	D3
+mux(e,mux(e,e,e),mux(e,e,e))	2.1=3.1	MX4	Y	S1	S0	D0	D1	#	D2	D3
+mux(e,mux(e,e,not(e)),mux(e,not(e),e))	2.1=3.1:2.2=3.3:2.2=2.3.1:3.2.1=3.3	XOR3	Y	A	B	C
+mux(mux(e,e,e),e,e)	#	MXC1	Y	S	A	B	C	D
+
+mux(e,mux(e,e,e),e)	#	MXT	Y	S1	S0A	D0	D1	S0B	D2:GND	D3:VCC
+#mux(e,mux(e,e,e),not(e))	#	MXT	Y	S1	S0A	A	B	S0B	C:VCC	D:GND
+#mux(e,mux(e,e,e),and(e,e))	#	MXT	Y	S1	S0A	A	B	S0B	C:GND	D
+#mux(e,mux(e,e,e),or(e,e))	#	MXT	Y	S1	S0A	A	B	S0B	C	D:VCC
+
+# 2-input muxes
+or(and(not(e),e),and(e,e))	1.1.1=2.1	MX2	Y	S	A	#	B
+or(and(not(e),e),and(e,e))	1.1.1=2.2	MX2	Y	S	A	B	#
+or(and(not(e),not(e)),and(e,e))	1.1.1=2.1	MX2A	Y	S	A	#	B
+or(and(not(e),e),and(not(e),e))	1.1.1=2.2	MX2B	Y	S	A	B
+
+# xor
+or(and(not(e),e),and(not(e),e))	1.1.1=2.2:1.2=2.1.1	XOR	Y	A	B
+
+# magic and attempted magic
+dff(mux(e,e,e),e,not(e),C0,C0)	#	DFME1A	Q	S	A	B	CLK	E
+and(e,mux(e,e,e))	#	MXC1	Y	D	S	A	B	C:GND
+or(e,mux(e,e,e))	#	MXC1	Y	C	S	A	B	D:VCC

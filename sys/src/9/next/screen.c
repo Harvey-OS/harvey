@@ -173,9 +173,9 @@ kbdmouseintr(void)
 				else
 					b &= ~1;
 				if((d&0x100) == 0)
-					b |= 2;
+					b |= mouseshifted ? 2 : 4;
 				else
-					b &= ~2;
+					b &= ~6;
 				dx = (d>>1) & 0x7F;
 				dy = (d>>9) & 0x7F;
 				if(dx & 0x40)
@@ -184,20 +184,12 @@ kbdmouseintr(void)
 					dy |= ~0x7F;
 				mousedelta(b, 3*-dx, 3*-dy);
 			}else{
-				/* remap left alt to mouse right button */
-				if((d&0x2000) && !(b&4)){	/* left alt */
+				/* alt key + right mouse button == middle mouse button */
+				if((d&0x2000))
 					altcmd |= 1;
-					b |= 4;
-#ifdef ALTMBUTTON
-					mousedelta(b, 0, 0);
-#endif ALTMBUTTON
-				}else if(!(d&0x2000) && (b&4)){
+				else if(!(d&0x2000))
 					altcmd &= ~1;
-					b &= ~4;
-#ifdef ALTMBUTTON
-					mousedelta(b, 0, 0);
-#endif ALTMBUTTON
-				}
+				mouseshifted = altcmd & 1;
 				if((d&0x800))		/* left command */
 					altcmd |= 2;
 				else if(!(d&0x800))
@@ -311,4 +303,49 @@ bigcursor(void)
 	extern Cursor arrow;
 
 	memmove(&arrow, &fatarrow, sizeof(fatarrow));
+}
+
+/*
+ *  setup a serial mouse
+ */
+static void
+serialmouse(int port, char *type, int setspeed)
+{
+	if(mousetype)
+		error(Emouseset);
+
+	if(port >= 2 || port < 0)
+		error(Ebadarg);
+
+	/* set up /dev/eia0 as the mouse */
+	sccspecial(port, 0, &mouseq, setspeed ? 1200 : 0);
+	if(type && *type == 'M')
+		mouseq.putc = m3mouseputc;
+	mousetype = Mouseserial;
+}
+
+/*
+ *  set/change mouse configuration
+ */
+void
+mousectl(char *arg)
+{
+	int n;
+	char *field[3];
+
+	n = getfields(arg, field, 3, ' ');
+	if(strncmp(field[0], "serial", 6) == 0){
+		switch(n){
+		case 1:
+			serialmouse(atoi(field[0]+6), 0, 1);
+			break;
+		case 2:
+			serialmouse(atoi(field[1]), 0, 0);
+			break;
+		case 3:
+		default:
+			serialmouse(atoi(field[1]), field[2], 0);
+			break;
+		}
+	}
 }

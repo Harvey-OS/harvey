@@ -142,7 +142,8 @@ nametype(void)
 	register Chip *c, *lastc;
 	char buf[100];
 	lastc = (Chip *) 0;
-	getline("type name: " , insname);
+	insname[0] = 0;
+	getline("type name: ", insname);
 	if((insname[0] == 0) || (b.chips == 0)) return;
 	for(c = b.chips; !(c->flags&EOLIST); c++) {
 		if((c->flags&(PLACED|WSIDE)) != 
@@ -167,7 +168,8 @@ namesig(void)
 	int n;
 	char buf[100];
 	n = 0;
-	getline("sig name: " , insname);
+	insname[0] = 0;
+	getline("sig name: ", insname);
 	if((insname[0] == 0) || (b.sigs == 0)) return;
 	for(ss = b.sigs; ss->name; ss++)
 		if(match(insname, ss->name+b.chipstr)) {
@@ -188,7 +190,8 @@ namechip(void)
 	register Chip *c, *lastc;
 	char buf[100];
 	lastc = (Chip *) 0;
-	getline("chip name: " , insname);
+	insname[0] = 0;
+	getline("chip name: ", insname);
 	if((insname[0] == 0) || (b.chips == 0)) return;
 	for(c = b.chips; !(c->flags&EOLIST); c++) {
 		if((c->flags&(PLACED|WSIDE)) != 
@@ -211,7 +214,9 @@ nameit(void)
 {
 	register Chip *c;
 	char buf[100];
-	getline("chip name: " , insname);
+
+	insname[0] = 0;
+	getline("chip name: ", insname);
 	if((insname[0] == 0) || (b.chips == 0)) return;
 	for(c = b.chips; !(c->flags&EOLIST); c++) {
 		if(c->flags&PLACED) continue;

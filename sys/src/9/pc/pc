@@ -8,16 +8,17 @@ dev
 	pipe	|
 	floppy	f
 	hard	w
-	dk	k
 	srv	s
 	dup	d
 	proc	p
 	rtc	r
-	ether	l
+	ether	l	ether509 ether8003 ether2000 ether503 ether8390
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
 	arp	a
 	iproute	P
-	config	v
+	vga	v
+	dk	k
+	incon	i	inconsubs
 
 stream
 	ip
@@ -32,9 +33,11 @@ port
 	void consdebug(void){}
 	long cfslen = 0; ulong cfscode[1];
 	long fslen = 0; ulong fscode[1];
+	int incondev = 0;
 
 boot
 	il
 	tcp
 	9600	"#t/eia1"
 	19200	"#t/eia1"
+	incon	"config 1 16 restart dk 256"

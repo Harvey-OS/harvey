@@ -171,7 +171,6 @@ typedef	long	Type;
  * the delay slot
  */
 
-#define Load_Rd_P	*p++ = LW(As,Rd); *p++ = ADDIU(As,As,4)
 #define Load_Rs_P	*p++ = LW(As,Rs); *p++ = ADDIU(As,As,4)
 #define Load_Rt_P	*p++ = LW(As,Rt); *p++ = ADDIU(As,As,4)
 #define Loadzx_Rt_P	*p++ = LW(As,Rt); *p++ = ADDIU(As,As,4)

@@ -458,7 +458,7 @@ maked(long a, int s, long qpath)
 		return 0;
 	d = getdir(p, s);
 	d1 = dalloc(sizeof(Dentry));
-	memcpy(d1, d, sizeof(Dentry));
+	memmove(d1, d, sizeof(Dentry));
 	putbuf(p);
 	return d1;
 }
@@ -479,7 +479,7 @@ modd(long a, int s, Dentry *d1)
 			putbuf(p);
 		return;
 	}
-	memcpy(d, d1, sizeof(Dentry));
+	memmove(d, d1, sizeof(Dentry));
 	p->flags |= Bmod;
 	putbuf(p);
 }

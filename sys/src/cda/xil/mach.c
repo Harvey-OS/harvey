@@ -90,13 +90,12 @@ char *xname[] = {
 };
 
 int
-pinconv(void *o, int f1, int f2, int f3, int ch)
+pinconv(void *o, Fconv *fp)
 {
 	Sym *s;
 	char buf[20];
 	char *p, *q;
 	int c;
-	USED(ch);
 	s = *((Sym **) o);
 	if (s->hard) {
 		for (p = s->pin, q = buf; (c = *p) && !isdigit(c); p++)
@@ -108,25 +107,24 @@ pinconv(void *o, int f1, int f2, int f3, int ch)
 	}
 	else
 		sprint(buf, "%s", s->pin);
-	strconv(buf, f1, f2, f3);
+	strconv(buf, fp);
 	return sizeof(Sym *);
 }
 
 int
-treeconv(void *o, int f1, int f2, int f3, int ch)
+treeconv(void *o, Fconv *fp)
 {
 	Sym *s;
 	Tree *t;
 	char buf[1000], *bp=buf;
 	char prefix[10];
-	USED(ch);
 	t = *((Tree **) o);
 	if (t->op < not) {
 		s = t->id;
 		bp += sprint(bp, "%s", s->name);
 		if (s->pin)
 			sprint(bp, "_%P", s);
-		strconv(buf, f1, f2, f3);
+		strconv(buf, fp);
 		return sizeof(Tree *);
 	}
 	else if (t->op == not && t->left->op == ID) {
@@ -134,7 +132,7 @@ treeconv(void *o, int f1, int f2, int f3, int ch)
 		bp += sprint(bp, "%s,, INV", s->name);
 		if (s->pin)
 			sprint(bp, "_%P", s);
-		strconv(buf, f1, f2, f3);
+		strconv(buf, fp);
 		return sizeof(Tree *);
 	}
 	if (!t->id) {
@@ -163,7 +161,7 @@ treeconv(void *o, int f1, int f2, int f3, int ch)
 	print("%s", buf);
 	if (t->id->name) {
 		sprint(buf, "%s%s", prefix, t->id->name);
-		strconv(buf, f1, f2, f3);
+		strconv(buf, fp);
 	}
 	return sizeof(Tree *);
 }
@@ -217,11 +215,11 @@ outsym(Sym *s)
 		if (s->internal)
 			bp += sprint(bp, "pin, q, o, %s\n", s->name);
 		else if (s->ena) {
-			bp += sprint(bp, "pin, o, o, _%s\n", s->name);
+			bp += sprint(bp, "pin, o, o, %s_%s\n", s->internal ? "" : "p", s->name);
 			bp += sprint(bp, "pin, t, i, %T\n", s->ena);
 		}
 		else
-			bp += sprint(bp, "pin, q, o, _%s\n", s->name);
+			bp += sprint(bp, "pin, q, o, %s_%s\n", s->internal ? "" : "p", s->name);
 		if (s->exp)
 			bp += sprint(bp, "pin, d, i, %T\n", s->exp);
 		bp += sprint(bp, "pin, c, i, %T\n", s->clk);

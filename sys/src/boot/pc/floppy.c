@@ -61,33 +61,70 @@ enum
 #define MOTORBIT(i)	(1<<((i)+4))
 
 /*
- *  floppy types
+ *  types of drive (from PC equipment byte)
+ */
+enum
+{
+	Tnone=		0,
+	T360kb=		1,
+	T1200kb=	2,
+	T720kb=		3,
+	T1440kb=	4,
+};
+
+/*
+ *  floppy types (all MFM encoding)
  */
 struct Type
 {
 	char	*name;
+	int	dt;		/* compatible drive type */
 	int	bytes;		/* bytes/sector */
 	int	sectors;	/* sectors/track */
 	int	heads;		/* number of heads */
 	int	steps;		/* steps per cylinder */
 	int	tracks;		/* tracks/disk */
 	int	gpl;		/* intersector gap length for read/write */	
-	int	fgpl;		/* intersector gap length for format */	
+	int	fgpl;		/* intersector gap length for format */
+	int	rate;		/* rate code */
+
+	/*
+	 *  these depend on previous entries and are set filled in
+	 *  by floppyinit
+	 */
+	int	bcode;		/* coded version of bytes for the controller */
+	long	cap;		/* drive capacity in bytes */
+	long	tsize;		/* track size in bytes */
 };
 Type floppytype[] =
 {
-	"MF2HD",	S512,	18,	2,	1,	80,	0x1B,	0x54,
-	"MF2DD",	S512,	9,	2,	1,	80,	0x1B,	0x54,
-	"F2HD",		S512,	15,	2,	1,	80,	0x2A,	0x50,
-	"F2DD",		S512,	8,	2,	1,	40,	0x2A,	0x50,
-	"F1DD",		S512,	8,	1,	1,	40,	0x2A,	0x50,
+ { "3½HD",	T1440kb, 512, 18, 2, 1, 80, 0x1B, 0x54,	0, },
+ { "3½DD",	T1440kb, 512,  9, 2, 1, 80, 0x1B, 0x54, 2, },
+ { "3½DD",	T720kb,  512,  9, 2, 1, 80, 0x1B, 0x54, 2, },
+ { "5¼HD",	T1200kb, 512, 15, 2, 1, 80, 0x2A, 0x50, 0, },
+ { "5¼DD",	T1200kb, 512,  9, 2, 2, 40, 0x2A, 0x50, 1, },
+ { "5¼DD",	T360kb,  512,  9, 2, 1, 40, 0x2A, 0x50, 2, },
 };
-static int secbytes[] =
+#define NTYPES (sizeof(floppytype)/sizeof(Type))
+
+/*
+ *  bytes per sector encoding for the controller.
+ *  - index for b2c is is (bytes per sector/128).
+ *  - index for c2b is code from b2c
+ */
+static int b2c[] =
+{
+[1]	0,
+[2]	1,
+[4]	2,
+[8]	3,
+};
+static int c2b[] =
 {
 	128,
 	256,
 	512,
-	1024
+	1024,
 };
 
 /*
@@ -100,6 +137,7 @@ struct Drive
 	long	offset;		/* current offset */
 	int	confused;	/* needs to be recalibrated (or worse) */
 	int	dev;
+	int	dt;
 
 	Type	*t;
 
@@ -107,7 +145,7 @@ struct Drive
 	int	thead;		/* target head */
 	int	tsec;		/* target sector */
 	long	len;
-
+	int	maxtries;
 };
 
 /*
@@ -125,6 +163,7 @@ struct Floppy
 	int	confused;
 	int	motor;
 	Drive	*selected;
+	int	rate;
 
 	int 	cdev;
 	uchar	*ccache;		/* cyclinder cache */
@@ -158,19 +197,71 @@ timedsleep(int ms)
 		;
 }
 
+/*
+ *  set floppy drive to its default type
+ */
+static void
+setdef(Drive *dp)
+{
+	Type *t;
+
+	for(t = floppytype; t < &floppytype[NTYPES]; t++)
+		if(dp->dt == t->dt){
+			dp->t = t;
+			break;
+		}
+}
+
 int
 floppyinit(void)
 {
 	Drive *dp;
+	uchar equip;
+	int nfloppy = 0;
+	Type *t;
+
+	setvec(Floppyvec, floppyintr);
 
 	delay(10);
+	outb(Pdor, 0);
+	delay(1);
 	outb(Pdor, Fintena | Fena);
 	delay(10);
+
+	/*
+	 *  init dependent parameters
+	 */
+	for(t = floppytype; t < &floppytype[NTYPES]; t++){
+		t->cap = t->bytes * t->heads * t->sectors * t->tracks;
+		t->bcode = b2c[t->bytes/128];
+		t->tsize = t->bytes * t->sectors;
+	}
+
+	/*
+	 *  init drive parameters
+	 */
 	for(dp = fl.d; dp < &fl.d[Maxfloppy]; dp++){
-		dp->t = &floppytype[0];
 		dp->cyl = -1;
 		dp->dev = dp - fl.d;
+		dp->maxtries = 1;
 	}
+
+	/*
+	 *  read nvram for types of floppies 0 & 1
+	 */
+	equip = nvramread(0x10);
+	if(Maxfloppy > 0){
+		fl.d[0].dt = (equip >> 4) & 0xf;
+		setdef(&fl.d[0]);
+		nfloppy++;
+	}
+	if(Maxfloppy > 1){
+		fl.d[1].dt = equip & 0xf;
+		setdef(&fl.d[1]);
+		nfloppy++;
+	}
+
+	fl.rate = -1;
 	fl.motor = 0;
 	fl.confused = 1;
 	fl.ccyl = -1;
@@ -178,9 +269,8 @@ floppyinit(void)
 	fl.cdev = -1;
 	fl.ccache = (uchar*)ialloc(18*2*512, 1);
 
-	setvec(Floppyvec, floppyintr);
 	alarm(5*1000, floppyalarm, (void *)0);
-	return 1;
+	return nfloppy;
 }
 
 static void
@@ -199,6 +289,12 @@ floppyon(Drive *dp)
 	/* get motor going */
 	if(!alreadyon)
 		timedsleep(750);
+
+	/* set transfer rate */
+	if(fl.rate != dp->t->rate){
+		fl.rate = dp->t->rate;
+		outb(Pdsr, fl.rate);
+	}
 
 	/* get drive to a known cylinder */
 	if(dp->confused)
@@ -324,7 +420,7 @@ floppypos(Drive *dp, long off)
 	int lsec;
 	int cyl;
 
-	lsec = off/secbytes[dp->t->bytes];
+	lsec = off/dp->t->bytes;
 	dp->tcyl = lsec/(dp->t->sectors*dp->t->heads);
 	dp->tsec = (lsec % dp->t->sectors) + 1;
 	dp->thead = (lsec/dp->t->sectors) % dp->t->heads;
@@ -333,11 +429,11 @@ floppypos(Drive *dp, long off)
 	 *  can't read across cylinder boundaries.
 	 *  if so, decrement the bytes to be read.
 	 */
-	lsec = (off+dp->len)/secbytes[dp->t->bytes];
+	lsec = (off+dp->len)/dp->t->bytes;
 	cyl = lsec/(dp->t->sectors*dp->t->heads);
 	if(cyl != dp->tcyl){
-		dp->len -= (lsec % dp->t->sectors)*secbytes[dp->t->bytes];
-		dp->len -= ((lsec/dp->t->sectors) % dp->t->heads)*secbytes[dp->t->bytes]
+		dp->len -= (lsec % dp->t->sectors)*dp->t->bytes;
+		dp->len -= ((lsec/dp->t->sectors) % dp->t->heads)*dp->t->bytes
 				*dp->t->sectors;
 	}
 
@@ -352,8 +448,8 @@ floppywait(char *cmd)
 
 	for(start = m->ticks; TK2SEC(m->ticks - start) < 1 && fl.intr == 0;)
 		;
-	if(TK2SEC(m->ticks - start) >= 3)
-		print("floppy timed out, cmd=%s\n", cmd);
+	if(TK2SEC(m->ticks - start) >= 1)
+		DPRINT("floppy timed out, cmd=%s\n", cmd);
 	fl.intr = 0;
 }
 
@@ -521,7 +617,7 @@ floppyxfer(Drive *dp, int cmd, void *a, long n)
 	|| floppysend(dp->tcyl * dp->t->steps) < 0
 	|| floppysend(dp->thead) < 0
 	|| floppysend(dp->tsec) < 0
-	|| floppysend(dp->t->bytes) < 0
+	|| floppysend(dp->t->bcode) < 0
 	|| floppysend(dp->t->sectors) < 0
 	|| floppysend(dp->t->gpl) < 0
 	|| floppysend(0xFF) < 0){
@@ -550,7 +646,7 @@ floppyxfer(Drive *dp, int cmd, void *a, long n)
 
 	offset = (fl.stat[3]/dp->t->steps) * dp->t->heads + fl.stat[4];
 	offset = offset*dp->t->sectors + fl.stat[5] - 1;
-	offset = offset * secbytes[fl.stat[6]];
+	offset = offset * c2b[fl.stat[6]];
 	if(offset != dp->offset+n){
 		DPRINT("new offset %d instead of %d\n", offset, dp->offset+dp->len);
 		dp->confused = 1;
@@ -581,16 +677,16 @@ floppyread(int dev, void *a, long n)
 	fl.ccyl = -1;
 	fl.cdev = dev;
 	aa = fl.ccache;
-	nn = secbytes[dp->t->bytes]*dp->t->sectors*dp->t->heads;
+	nn = dp->t->bytes*dp->t->sectors*dp->t->heads;
 	dp->offset = dp->tcyl*nn;
 	for(rv = 0; rv < nn; rv += i){
 		i = 0;
-		for(tries = 0; tries < 2; tries++){
+		for(tries = 0; tries < dp->maxtries; tries++){
 			i = floppyxfer(dp, Fread, aa+rv, nn-rv);
 			if(i > 0)
 				break;
 		}
-		if(tries == 2)
+		if(tries == dp->maxtries)
 			break;
 	}
 	if(rv != nn){
@@ -599,8 +695,9 @@ floppyread(int dev, void *a, long n)
 	}
 	fl.ccyl = dp->tcyl;
 out:
-	memmove(a, fl.ccache + secbytes[dp->t->bytes]*(sec-1), n);
+	memmove(a, fl.ccache + dp->t->bytes*(sec-1), n);
 	dp->offset = offset + n;
+	dp->maxtries = 3;
 	return n;
 }
 

@@ -68,7 +68,7 @@ print(char *fmt, ...)
 	int n;
 
 	out = doprint(buf, buf+SIZE, fmt, DOTDOT);
-	n = write(1, buf, (long)(out-buf));
+	n = write(2, buf, (long)(out-buf));
 	return n;
 }
 
@@ -94,5 +94,5 @@ sprint(char *buf, char *fmt, ...)
 void
 perror(char *msg)
 {
-	fprint(2, msg);
+	fprint(2, "%s", msg);
 }

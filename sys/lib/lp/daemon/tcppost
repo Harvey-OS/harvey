@@ -1,0 +1,2 @@
+#!/bin/rc
+generic '/lib/postscript/bin/$cputype/download -f -H/sys/lib/troff/font/devutf/fontlib -mfontmap -plw+ < $LPDEST/$FILE(1) | /lib/postscript/bin/$cputype/tcpostio $OUTDEV >[2] $PRINTLOG' '{cat <{echo -d$LPDEST -pnoproc -M$SCHEDLINE(1) -u$SCHEDLINE(2)} $LPDEST/$FILE(1);sleep 5} | lpsend.rc $DEST_HOST' ''

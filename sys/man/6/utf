@@ -83,7 +83,7 @@ In the inverse mapping,
 any sequence except those described above
 is incorrect and is converted to rune 0080.
 .SH FILES
-.TF /lib/unicode
+.TF "/lib/unicode "
 .TP
 .B /lib/unicode
 table of characters and descriptions, suitable for

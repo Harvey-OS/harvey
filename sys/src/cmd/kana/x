@@ -1,0 +1,1041 @@
+# To unbundle, run this file
+echo event.c
+sed 's/.//' >event.c <<'//GO.SYSIN DD event.c'
+-#include <u.h>
+-#include <libc.h>
+-#include <libg.h>
+-
+-enum{ MAXSLAVE = 32 };
+-
+-typedef struct Slave	Slave;
+-typedef struct Ebuf	Ebuf;
+-
+-struct Slave{
+-	int	pid;
+-	Ebuf	*head;		/* queue of messages for this descriptor */
+-	Ebuf	*tail;
+-};
+-
+-struct Ebuf{
+-	Ebuf	*next;
+-	int	n;		/* number of bytes in buf */
+-	uchar	buf[EMAXMSG];
+-};
+-
+-static	Slave	eslave[MAXSLAVE];
+-static	int	nslave;
+-static	int	Smouse = -1;
+-static	int	Skeyboard = -1;
+-static	int	Stimer = -1;
+-static	int	epipe[2];
+-static	Ebuf	*ebread(Slave*);
+-static	int	eforkslave(ulong);
+-static	void	extract(void);
+-static	void	ekill(void);
+-static	int	enote(void *, char *);
+-int logfid;
+-
+-Mouse
+-emouse(void)
+-{
+-	Mouse m;
+-	Ebuf *eb;
+-	static but[2];
+-	int b;
+-
+-	if(Smouse < 0)
+-		berror("events: mouse not initialzed");
+-	eb = ebread(&eslave[Smouse]);
+-	b = eb->buf[1] & 15;
+-	but[b>>3] = b & 7;
+-	m.buttons = but[0] | but[1];
+-	m.xy.x = BGLONG(eb->buf+2);
+-	m.xy.y = BGLONG(eb->buf+6);
+-	if (b & 8)		/* window relative */
+-		m.xy = add(m.xy, screen.r.min);
+-	if (logfid)
+-		fprint(logfid, "b: %d xy: %d %d\n", m.buttons, m.xy);
+-	free(eb);
+-	return m;
+-}
+-
+-int
+-ekbd(void)
+-{
+-	Ebuf *eb;
+-	int c;
+-
+-	if(Skeyboard < 0)
+-		berror("events: keyboard not initialzed");
+-	eb = ebread(&eslave[Skeyboard]);
+-	c = eb->buf[0] + (eb->buf[1]<<8);
+-	free(eb);
+-	return c;
+-}
+-
+-ulong
+-event(Event *e)
+-{
+-	return eread(~0UL, e);
+-}
+-
+-ulong
+-eread(ulong keys, Event *e)
+-{
+-	Ebuf *eb;
+-	int i;
+-
+-	if(keys) for(;;){
+-		for(i=0; i<nslave; i++)
+-			if((keys & (1<<i)) && eslave[i].head){
+-				if(i == Smouse)
+-					e->mouse = emouse();
+-				else if(i == Skeyboard)
+-					e->kbdc = ekbd();
+-				else if(i == Stimer)
+-					eslave[i].head = 0;
+-				else{
+-					eb = ebread(&eslave[i]);
+-					e->n = eb->n;
+-					memmove(e->data, eb->buf, e->n);
+-					free(eb);
+-				}
+-				return 1<<i;
+-			}
+-		extract();
+-	}
+-	return 0;
+-}
+-
+-int
+-ecanmouse(void)
+-{
+-	if(Smouse < 0)
+-		berror("events: mouse not initialzed");
+-	return ecanread(Emouse);
+-}
+-
+-int
+-ecankbd(void)
+-{
+-	if(Skeyboard < 0)
+-		berror("events: keyboard not initialzed");
+-	return ecanread(Ekeyboard);
+-}
+-
+-int
+-ecanread(ulong keys)
+-{
+-	Dir d;
+-	int i;
+-
+-	for(;;){
+-		for(i=0; i<nslave; i++)
+-			if((keys & (1<<i)) && eslave[i].head)
+-				return 1;
+-		if(dirfstat(epipe[0], &d) < 0)
+-			berror("events: ecanread stat error");
+-		if(d.length == 0)
+-			return 0;
+-		extract();
+-	}
+-	return -1;
+-}
+-
+-ulong
+-estart(ulong key, int fd, int n)
+-{
+-	char buf[EMAXMSG+1];
+-	int i, r;
+-
+-	if(fd < 0)
+-		berror("events: bad file descriptor");
+-	if(n <= 0 || n > EMAXMSG)
+-		n = EMAXMSG;
+-	i = eforkslave(key);
+-	if(i < MAXSLAVE)
+-		return 1<<i;
+-	buf[0] = i - MAXSLAVE;
+-	while((r = read(fd, buf+1, n))>=0)
+-		if(write(epipe[1], buf, r+1)!=r+1)
+-			break;
+-	buf[0] = MAXSLAVE;
+-	write(epipe[1], buf, 1);
+-	_exits(0);
+-	return 0;
+-}
+-
+-ulong
+-etimer(ulong key, int n)
+-{
+-	char t[2];
+-
+-	if(Stimer != -1)
+-		berror("events: timer started twice");
+-	Stimer = eforkslave(key);
+-	if(Stimer < MAXSLAVE)
+-		return 1<<Stimer;
+-	if(n <= 0)
+-		n = 1000;
+-	t[0] = t[1] = Stimer - MAXSLAVE;
+-	do
+-		sleep(n);
+-	while(write(epipe[1], t, 2) == 2);
+-	t[0] = MAXSLAVE;
+-	write(epipe[1], t, 1);
+-	_exits(0);
+-	return 0;
+-}
+-
+-static void
+-ekeyslave(int fd)
+-{
+-	Rune r;
+-	char t[3], k[10];
+-	int kr, kn, w;
+-
+-	if(eforkslave(Ekeyboard) < MAXSLAVE)
+-		return;
+-	kn = 0;
+-	t[0] = Skeyboard;
+-	for(;;){
+-		while(!fullrune(k, kn)){
+-			kr = read(fd, k+kn, sizeof k - kn);
+-			if(kr < 0){
+-				t[0] = MAXSLAVE;
+-				write(epipe[1], t, 1);
+-				_exits(0);
+-			}
+-			kn += kr;
+-		}
+-		w = chartorune(&r, k);
+-		kn -= w;
+-		memmove(k, &k[w], kn);
+-		t[1] = r;
+-		t[2] = r>>8;
+-		write(epipe[1], t, 3);
+-	}
+-}
+-
+-void
+-einit(ulong keys)
+-{
+-	int ctl, fd;
+-
+-	if(pipe(epipe) < 0)
+-		berror("events: einit pipe");
+-	atexit(ekill);
+-	atnotify(enote, 1);
+-	if(keys&Ekeyboard){
+-		fd = open("/dev/cons", OREAD);
+-		ctl = open("/dev/consctl", OWRITE);
+-		if(fd < 0 || ctl < 0)
+-			berror("events: can't open /dev/cons");
+-		write(ctl, "holdoff", 7);
+-		write(ctl, "rawon", 5);
+-		for(Skeyboard=0; Ekeyboard & ~(1<<Skeyboard); Skeyboard++)
+-			;
+-		ekeyslave(fd);
+-		close(ctl);	/* keyboard child holds it open */
+-		close(fd);
+-	}
+-	if(keys&Emouse){
+-		fd = open("/dev/mouse", OREAD);
+-		if(fd < 0)
+-			berror("events: can't open /dev/mouse");
+-		estart(Emouse, fd, 10);
+-		for(Smouse=0; Emouse & ~(1<<Smouse); Smouse++)
+-			;
+-		close(fd);
+-	}
+-}
+-
+-static Ebuf*
+-ebread(Slave *s)
+-{
+-	Ebuf *eb;
+-	Dir d;
+-
+-	for(;;){
+-		if(dirfstat(epipe[0], &d) < 0)
+-			berror("events: eread stat error");
+-		if(s->head && d.length == 0)
+-			break;
+-		extract();
+-	}
+-	eb = s->head;
+-	s->head = s->head->next;
+-	if(s->head == 0)
+-		s->tail = 0;
+-	return eb;
+-}
+-
+-static void
+-extract(void)
+-{
+-	Slave *s;
+-	Ebuf *eb;
+-	int i, n;
+-	uchar ebuf[EMAXMSG+1];
+-
+-	bflush();
+-loop:
+-	if((n=read(epipe[0], ebuf, EMAXMSG+1)) < 0
+-	|| ebuf[0] >= MAXSLAVE)
+-		exits("eof on event pipe");
+-	if(n == 0)
+-		goto loop;
+-	i = ebuf[0];
+-	if(i >= nslave || n <= 1)
+-		berror("events: protocol error");
+-	s = &eslave[i];
+-	if(i == Stimer){
+-		s->head = (Ebuf *)1;
+-		return;
+-	}
+-	if(i == Skeyboard && n != 3)
+-		berror("events: protocol error");
+-	if(i == Smouse){
+-		if(n!=1+10 || ebuf[1]!='m')
+-			berror("events: protocol error");
+-		if(ebuf[2] & 0x80)
+-			ereshaped(bscreenrect(0));
+-		/* squash extraneous mouse events */
+-		if(s->head){
+-			free(s->head);
+-			s->head = s->tail = 0;
+-		}
+-	}
+-	/* try to save space by only alloacting as much buffer as we need */
+-	eb = malloc(sizeof(*eb) - sizeof(eb->buf) + n - 1);
+-	if(eb == 0)
+-		berror("events: protocol error");
+-	eb->n = n - 1;
+-	memmove(eb->buf, &ebuf[1], n - 1);
+-	eb->next = 0;
+-	if(s->head)
+-		s->tail = s->tail->next = eb;
+-	else
+-		s->head = s->tail = eb;
+-}
+-
+-static int
+-eforkslave(ulong key)
+-{
+-	int i;
+-
+-	for(i=0; i<MAXSLAVE; i++)
+-		if((key & ~(1<<i)) == 0 && eslave[i].pid == 0){
+-			if(nslave <= i)
+-				nslave = i + 1;
+-			switch(eslave[i].pid = fork()){
+-			case 0:
+-				atexitdont(bexit);
+-				atnotify(enote, 0);
+-				close(epipe[0]);
+-				return MAXSLAVE+i;
+-			case -1:
+-				fprint(2, "events: fork error\n");
+-				exits("fork");
+-			}
+-			eslave[i].head = eslave[i].tail = 0;
+-			return i;
+-		}
+-	berror("events: bad slave assignment");
+-	return -1;
+-}
+-
+-static int
+-enote(void *v, char *s)
+-{
+-	char buf[32];
+-	int fd, i;
+-
+-	USED(v, s);
+-	for(i=0; i<nslave; i++){
+-		sprint(buf, "/proc/%d/note", eslave[i].pid);
+-		fd = open(buf, OWRITE);
+-		if(fd > 0){
+-			write(fd, "die", 3);
+-			close(fd);
+-		}
+-	}
+-	return 0;
+-}
+-
+-static void
+-ekill(void)
+-{
+-	enote(0, 0);
+-}
+//GO.SYSIN DD event.c
+echo ikana.c
+sed 's/.//' >ikana.c <<'//GO.SYSIN DD ikana.c'
+-#include <u.h>
+-#include <libc.h>
+-#include <libg.h>
+-#include "ikana.h"
+-
+-void changelang(Event *);
+-int natural = 1;		/* not Japanese */
+-extern struct map *table, kata[], hira[], cyril[], greek[];
+-	
+-void
+-main(int argc, char **argv)
+-{
+-
+-	uchar *bp, *ep, buf[32];
+-	struct map *mp;
+-	int nchar, wantmore;
+-	int fd, cfd, kfd, ckey, kkey, rkey;
+-	struct Event e;
+-
+-	USED(argc, argv);
+-	if(bind("#|", "/mnt/kana", MREPL) < 0
+-	|| bind("/mnt/kana/data1", "/dev/cons", MREPL) < 0){
+-		fprint(2, "error simulating cons\n");
+-		exits("/mnt/kana");
+-	}
+-	fd = open("/mnt/kana/data", OWRITE);
+-	if(bind("#|", "/mnt/kanactl", MREPL) < 0) {
+-		fprint(2, "error binding /mnt/kanactl\n");
+-		exits("/mnt/kanactl");
+-	}
+-	cfd = open("/mnt/kanactl/data1", OREAD);
+-	open("/mnt/kanactl/data", OWRITE);	/* just to keep it open */
+-	kfd = 0;
+-	einit(0);
+-	kkey = estart(0, kfd, sizeof(e.data));
+-	ckey = estart(0, cfd, sizeof(e.data));
+-	bp = ep = buf;
+-	wantmore = 0;
+-	for (;;) {
+-		if (bp>=ep || wantmore) {
+-			if (wantmore==0)
+-				bp = ep = buf;
+-			rkey = eread(kkey|ckey, &e);
+-			if (rkey & ckey) {
+-				changelang(&e);
+-				continue;
+-			}
+-			if ((rkey & kkey)==0)
+-				continue;
+-			memmove(ep, e.data, e.n);
+-			ep += e.n;
+-			*ep = '\0';
+-		}
+-		while (bp<ep) {
+-			if (!fullrune((char *)bp, ep-bp)) {
+-				wantmore = 1;
+-				continue;
+-			}
+-			wantmore = 0;
+-			if (natural || *bp<=' ' || *bp>='{') {
+-				Rune r;
+-				int rlen = chartorune(&r, (char *)bp);
+-				write(fd, bp, rlen);
+-				bp += rlen;
+-				continue;
+-			}
+-			mp = match(bp, &nchar, table);
+-			if (mp == 0) {
+-				if (nchar>0) {		/* match, longer possible */
+-					wantmore++;
+-					break;
+-				}
+-				write(fd, bp++, 1);	/* no match, pass through */
+-			} else {
+-				write(fd, mp->kana, strlen(mp->kana));
+-				bp += nchar;
+-			}
+-		}
+-	}
+-}
+-
+-int
+-min(int a, int b)
+-{
+-	return a<b? a: b;
+-}
+-
+-
+-struct map *
+-match(uchar *p, int *nc, struct map *table)
+-{
+-	register struct map *longp = 0, *kp;
+-	static char last;
+-	int longest = 0;
+-
+-	*nc = -1;
+-	/* special pleading for long katakana vowels */
+-	if (table==kata && strchr("aeiou", *p) && *p==last) {
+-		last = 0;
+-		*nc = 1;
+-		return &table[0];
+-	}
+-	for (kp=table; kp->roma; kp++) {
+-		if (*p == *kp->roma) {
+-			int lr = strlen(kp->roma);
+-			int len = min(lr, strlen((char *)p));
+-			if (strncmp(kp->roma, (char *)p, len)==0) {
+-				if (len<lr) {
+-					*nc = 1;
+-					return 0;
+-				}
+-				if (len>longest) {
+-					longest = len;
+-					longp = kp;
+-				}	
+-			}
+-		}
+-	}
+-	if (longp) {
+-		last = longp->roma[longest-1];
+-		*nc = longp->advance;
+-	}
+-	return(longp);
+-}
+-
+-void
+-changelang(Event *e)
+-{
+-	if (strncmp((char *)e->data, "katakana", 8)==0) {
+-		natural = 0;
+-		table = kata;
+-		return;
+-	}
+-
+-	if (strncmp((char *)e->data, "hiragana", 8)==0) {
+-		natural = 0;
+-		table = hira;
+-		return;
+-	}
+-
+-	if (strncmp((char *)e->data, "english", 7)==0) {
+-		natural = 1;
+-		return;
+-	}
+-
+-	if (strncmp((char *)e->data, "russian", 7)==0) {
+-		natural = 0;
+-		table = cyril;
+-		return;
+-	}
+-	if (strncmp((char *)e->data, "greek", 5)==0) {
+-		natural = 0;
+-		table = greek;
+-		return;
+-	}
+-
+-}
+-
+-void ereshaped(Rectangle r)
+-{
+-	USED(r);
+-}
+-
+//GO.SYSIN DD ikana.c
+echo ikana.h
+sed 's/.//' >ikana.h <<'//GO.SYSIN DD ikana.h'
+-struct	map {
+-	char	*roma;
+-	char	*kana;
+-	char	advance;
+-};
+-
+-struct map *match(uchar *p, int *nc, struct map *table);
+//GO.SYSIN DD ikana.h
+echo kwindow.c
+sed 's/.//' >kwindow.c <<'//GO.SYSIN DD kwindow.c'
+-#include <u.h>
+-#include <libc.h>
+-#include <libg.h>
+-
+-char	*items[] = {
+-	"English",
+-	"ひらがな",
+-	"カタカナ",
+-	"русский",
+-	"Ελληνικα ",
+-	0
+-};
+-
+-char *which[] = {
+-	"english",
+-	"hiragana",
+-	"katakana",
+-	"russian",
+-	"greek",
+-};
+-
+-struct Menu menu = { items, 0, 0 };
+-
+-void
+-main(int argc, char **argv)
+-{
+-	int fd, lang;
+-	struct Mouse mouse;
+-
+-	USED(argc, argv);
+-	fd = open("/mnt/kanactl/data", OWRITE);
+-	if (fd<0)
+-		berror("kwindow: can't open /mnt/kanactl/data");
+-	binit(0, 0, 0);
+-	einit(Emouse);
+-	for (;;) {
+-		mouse = emouse();
+-		if (mouse.buttons & 02) {
+-			lang = menuhit(02, &mouse, &menu);
+-			if (lang>=0 && lang<sizeof(which)/sizeof(which[0])) {
+-				write(fd, which[lang], strlen(which[lang]));
+-				fprint(2, "%s\n", items[lang]);
+-			}
+-		}
+-	}
+-}
+-
+-void
+-ereshaped(Rectangle r)
+-{
+-	screen.r = r;
+-}
+//GO.SYSIN DD kwindow.c
+echo maps.c
+sed 's/.//' >maps.c <<'//GO.SYSIN DD maps.c'
+-#include <u.h>
+-#include "ikana.h"
+-
+-struct map kata[] = {
+-	"_",	"ー", 1,		/* long mark, must come first */
+-	"a",	"ア", 1,
+-	"i",	"イ", 1,
+-	"u",	"ウ", 1,
+-	"e",	"エ", 1,
+-	"o",	"オ", 1,
+-	"ka",	"カ", 2,
+-	"ga",	"ガ", 2,
+-	"ki",	"キ", 2,
+-	"kya",	"キャ", 3,
+-	"kyu",	"キュ", 3,
+-	"kyo",	"キョ", 3,
+-	"gi",	"ギ", 2,
+-	"gya",	"ギャ", 3,
+-	"gyu",	"ギュ", 3,
+-	"gyo",	"ギョ", 3,
+-	"ku",	"ク", 2,
+-	"gu",	"グ", 2,
+-	"ke",	"ケ", 2,
+-	"ge",	"ゲ", 2,
+-	"ko",	"コ", 2,
+-	"go",	"ゴ", 2,
+-	"sa",	"サ", 2,
+-	"za",	"ザ", 2,
+-	"si",	"シ", 2,
+-	"shi",	"シ", 3,
+-	"sha",	"シャ", 3,
+-	"shu",	"シュ", 3,
+-	"sho",	"ショ", 3,
+-	"zi",	"ヂ", 2,
+-	"ja",	"ジャ", 2,
+-	"ju",	"ジュ", 2,
+-	"jo",	"ジョ", 2,
+-	"su",	"ス", 2,
+-	"zu",	"ズ", 2,
+-	"se",	"セ", 2,
+-	"ze",	"ゼ", 2,
+-	"so",	"ソ", 2,
+-	"syo",	"ショ", 3,
+-	"zo",	"ゾ", 2,
+-	"ta",	"タ", 2,
+-	"da",	"ダ", 2,
+-	"ti",	"チ", 2,
+-	"chi",	"チ", 3,
+-	"cha",	"チャ", 3,
+-	"chu",	"チュ", 3,
+-	"cho",	"チョ", 3,
+-	"ji",	"ジ", 2,
+-	"tu",	"ツ", 2,
+-	"tsu",	"ツ", 3,
+-	"du",	"ヅ", 2,
+-	"te",	"テ", 2,
+-	"de",	"デ", 2,
+-	"to",	"ト", 2,
+-	"do",	"ド", 2,
+-	"tyu",	"チュ", 3,
+-	"na",	"ナ", 2,
+-	"ni",	"ニ", 2,
+-	"nya",	"ニャ", 3,
+-	"nyu",	"ニュ", 3,
+-	"nyo",	"ニョ", 3,
+-	"nu",	"ヌ", 2,
+-	"ne",	"ネ", 2,
+-	"no",	"ノ", 2,
+-	"ha",	"ハ", 2,
+-	"ba",	"バ", 2,
+-	"va",	"バ", 2,
+-	"pa",	"パ", 2,
+-	"hi",	"ヒ", 2,
+-	"hya",	"ヒャ", 3,
+-	"hyu",	"ヒュ", 3,
+-	"hyo",	"ヒョ", 3,
+-	"bi",	"ビ", 2,
+-	"bya",	"ビャ", 3,
+-	"byu",	"ビュ", 3,
+-	"byo",	"ビョ", 3,
+-	"vi",	"ビ", 2,
+-	"pi",	"ピ", 2,
+-	"pya",	"ピャ", 3,
+-	"pyu",	"ピュ", 3,
+-	"pyo",	"ピョ", 3,
+-	"hu",	"フ", 2,
+-	"fu",	"フ", 2,
+-	"bu",	"ブ", 2,
+-	"vu",	"ブ", 2,
+-	"pu",	"プ", 2,
+-	"he",	"ヘ", 2,
+-	"be",	"ベ", 2,
+-	"ve",	"ベ", 2,
+-	"pe",	"ペ", 2,
+-	"ho",	"ホ", 2,
+-	"bo",	"ボ", 2,
+-	"vo",	"ボ", 2,
+-	"po",	"ポ", 2,
+-	"ma",	"マ", 2,
+-	"mi",	"ミ", 2,
+-	"mya",	"ミャ", 3,
+-	"myu",	"ミュ", 3,
+-	"myo",	"ミョ", 3,
+-	"mu",	"ム", 2,
+-	"me",	"メ", 2,
+-	"mo",	"モ", 2,
+-	"ya",	"ヤ", 2,
+-	"yu",	"ユ", 2,
+-	"yo",	"ヨ", 2,
+-	"ra",	"ラ", 2,
+-	"ri",	"リ", 2,
+-	"rya",	"リャ", 3,
+-	"ryu",	"リュ", 3,
+-	"ryo",	"リョ", 3,
+-	"ru",	"ル", 2,
+-	"re",	"レ", 2,
+-	"ro",	"ロ", 2,
+-	"wa",	"ワ", 2,
+-	"wi",	"ヰ", 2,
+-	"we",	"ヱ", 2,
+-	"wo",	"ヲ", 2,
+-	"n",	"ン", 1,
+-	"v",	"ヴ", 1,
+-	"kk",	"ッ", 1,
+-	"pp",	"ッ", 1,
+-	"tt",	"ッ", 1,
+-	"tch",	"ッ", 1,
+-	"ss",	"ッ", 1,
+-	"mm",	"ン", 1,
+-	"fa",	"ファ", 2,
+-	"fi",	"フィ", 2,
+-	"fe",	"フェ", 2,
+-	"fo",	"フォ", 2,
+-	0
+-};
+-
+-struct map hira[] = {
+-	"a",	"あ", 1,
+-	"i",	"い", 1,
+-	"u",	"う", 1,
+-	"e",	"え", 1,
+-	"o",	"お", 1,
+-	"ka",	"か", 2,
+-	"ga",	"が", 2,
+-	"ki",	"き", 2,
+-	"kya",	"きゃ", 3,
+-	"kyu",	"きゅ", 3,
+-	"kyo",	"きょ", 3,
+-	"gi",	"ぎ", 2,
+-	"gya",	"ぎゃ", 3,
+-	"gyu",	"ぎゅ", 3,
+-	"gyo",	"ぎょ", 3,
+-	"ku",	"く", 2,
+-	"gu",	"ぐ", 2,
+-	"ke",	"け", 2,
+-	"ge",	"げ", 2,
+-	"ko",	"こ", 2,
+-	"go",	"ご", 2,
+-	"sa",	"さ", 2,
+-	"za",	"ざ", 2,
+-	"si",	"し", 2,
+-	"shi",	"し", 3,
+-	"sha",	"しゃ", 3,
+-	"shu",	"しゅ", 3,
+-	"sho",	"しょ", 3,
+-	"zi",	"ぢ", 2,
+-	"ja",	"じゃ", 2,
+-	"ju",	"じゅ", 2,
+-	"jo",	"じょ", 2,
+-	"su",	"す", 2,
+-	"zu",	"ず", 2,
+-	"se",	"せ", 2,
+-	"ze",	"ぜ", 2,
+-	"so",	"そ", 2,
+-	"syo",	"しょ", 3,
+-	"zo",	"ぞ", 2,
+-	"ta",	"た", 2,
+-	"da",	"だ", 2,
+-	"ti",	"ち", 2,
+-	"chi",	"ち", 3,
+-	"cha",	"ちゃ", 3,
+-	"chu",	"ちゅ", 3,
+-	"cho",	"ちょ", 3,
+-	"ji",	"じ", 2,
+-	"tu",	"つ", 2,
+-	"tsu",	"つ", 3,
+-	"du",	"づ", 2,
+-	"te",	"て", 2,
+-	"de",	"で", 2,
+-	"to",	"と", 2,
+-	"do",	"ど", 2,
+-	"tyu",	"ちゅ", 3,
+-	"na",	"な", 2,
+-	"ni",	"に", 2,
+-	"nya",	"にゃ", 3,
+-	"nyu",	"にゅ", 3,
+-	"nyo",	"にょ", 3,
+-	"nu",	"ぬ", 2,
+-	"ne",	"ね", 2,
+-	"no",	"の", 2,
+-	"ha",	"は", 2,
+-	"ba",	"ば", 2,
+-	"va",	"ば", 2,
+-	"pa",	"ぱ", 2,
+-	"hi",	"ひ", 2,
+-	"hya",	"ひゃ", 3,
+-	"hyu",	"ひゅ", 3,
+-	"hyo",	"ひょ", 3,
+-	"bi",	"び", 2,
+-	"bya",	"びゃ", 3,
+-	"byu",	"びゅ", 3,
+-	"byo",	"びょ", 3,
+-	"vi",	"び", 2,
+-	"pi",	"ぴ", 2,
+-	"pya",	"ぴゃ", 3,
+-	"pyu",	"ぴゅ", 3,
+-	"pyo",	"ぴょ", 3,
+-	"hu",	"ふ", 2,
+-	"fu",	"ふ", 2,
+-	"bu",	"ぶ", 2,
+-	"vu",	"ぶ", 2,
+-	"pu",	"ぷ", 2,
+-	"he",	"へ", 2,
+-	"be",	"べ", 2,
+-	"ve",	"べ", 2,
+-	"pe",	"ぺ", 2,
+-	"ho",	"ほ", 2,
+-	"bo",	"ぼ", 2,
+-	"vo",	"ぼ", 2,
+-	"po",	"ぽ", 2,
+-	"ma",	"ま", 2,
+-	"mi",	"み", 2,
+-	"mya",	"みゃ", 3,
+-	"myu",	"みゅ", 3,
+-	"myo",	"みょ", 3,
+-	"mu",	"む", 2,
+-	"me",	"め", 2,
+-	"mo",	"も", 2,
+-	"ya",	"や", 2,
+-	"yu",	"ゆ", 2,
+-	"yo",	"よ", 2,
+-	"ra",	"ら", 2,
+-	"ri",	"り", 2,
+-	"rya",	"りゃ", 3,
+-	"ryu",	"りゅ", 3,
+-	"ryo",	"りょ", 3,
+-	"ru",	"る", 2,
+-	"re",	"れ", 2,
+-	"ro",	"ろ", 2,
+-	"wa",	"わ", 2,
+-	"wi",	"ゐ", 2,
+-	"we",	"ゑ", 2,
+-	"wo",	"を", 2,
+-	"n",	"ん", 1,
+-	"v",	"\x80", 1,
+-	"kk",	"っ", 1,
+-	"pp",	"っ", 1,
+-	"tt",	"っ", 1,
+-	"ss",	"っ", 1,
+-	"mm",	"ん", 1,
+-	0,
+-};
+-
+-struct map cyril[] = {
+-	"YO",	"Ё", 2,
+-	"Yo",	"Ё", 2,
+-	"A",	"А", 1,
+-	"B",	"Б", 1,
+-	"V",	"В", 1,
+-	"G",	"Г", 1,
+-	"D",	"Д", 1,
+-	"Ye",	"Е", 1,
+-	"YE",	"Е", 2,
+-	"E",	"Е", 1,
+-	"Zh",	"Ж", 2,
+-	"ZH",	"Ж", 2,
+-	"Z",	"З", 1,
+-	"I",	"И", 1,
+-	"J",	"Й", 1,
+-	"K",	"К", 1,
+-	"L",	"Л", 1,
+-	"M",	"М", 1,
+-	"N",	"Н", 1,
+-	"O",	"О", 1,
+-	"P",	"П", 1,
+-	"R",	"Р", 1,
+-	"S",	"С", 1,
+-	"T",	"Т", 1,
+-	"U",	"У", 1,
+-	"F",	"Ф", 1,
+-	"Kh",	"Х", 2,
+-	"KH",	"Х", 2,
+-	"X",	"Х", 1,
+-	"Ts",	"Ц", 2,
+-	"TS",	"Ц", 2,
+-	"Ch",	"Ч", 2,
+-	"CH",	"Ч", 2,
+-	"Sh",	"Ш", 2,
+-	"SH",	"Ш", 2,
+-	"Shch",	"Щ", 4,
+-	"SHCH",	"Щ", 4,
+-	"''",	"ъ", 2,
+-	"Y",	"Ы", 1,
+-	"'",	"ь", 1,
+-	"EH",	"Э", 2,
+-	"Eh",	"Э", 2,
+-	"Yu",	"Ю", 2,
+-	"YU",	"Ю", 2,
+-	"Ya",	"Я", 2,
+-	"YA",	"Я", 2,
+-	"a",	"а", 1,
+-	"b",	"б", 1,
+-	"v",	"в", 1,
+-	"g",	"г", 1,
+-	"d",	"д", 1,
+-	"ye",	"е", 2,
+-	"e",	"е", 1,
+-	"zh",	"ж", 2,
+-	"z",	"з", 1,
+-	"i",	"и", 1,
+-	"j",	"й", 1,
+-	"k",	"к", 1,
+-	"l",	"л", 1,
+-	"m",	"м", 1,
+-	"n",	"н", 1,
+-	"o",	"о", 1,
+-	"p",	"п", 1,
+-	"r",	"р", 1,
+-	"s",	"с", 1,
+-	"t",	"т", 1,
+-	"u",	"у", 1,
+-	"f",	"ф", 1,
+-	"kh",	"х", 2,
+-	"x",	"х", 1,
+-	"ts",	"ц", 2,
+-	"ch",	"ч", 2,
+-	"sh",	"ш", 2,
+-	"shch",	"щ", 4,
+-	"''",	"ъ", 2,
+-	"y",	"ы", 1,
+-	"'",	"ь", 1,
+-	"eh",	"э", 2,
+-	"yu",	"ю", 2,
+-	"ya",	"я", 2,
+-	"yo",	"ё", 2,
+-	0,
+-};
+-
+-struct map greek[] = {
+-	"A",	"Α", 1,
+-	"'A",	"Ά", 2,
+-	"B",	"Β", 1,
+-	"G",	"Γ", 1,
+-	"D",	"Δ", 1,
+-	"E",	"Ε", 1,
+-	"'E",	"Έ", 2,
+-	"Z",	"Ζ", 1,
+-	"E!",	"Η", 2,
+-	"'E!",	"Έ", 3,
+-	"TH",	"Θ", 2,
+-	"Th",	"Θ", 2,
+-	"I",	"Ι", 1,
+-	"'I",	"Ί", 2,
+-	"K",	"Κ", 1,
+-	"L",	"Λ", 1,
+-	"M",	"Μ", 1,
+-	"N",	"Ν", 1,
+-	"KS",	"Ξ", 2,
+-	"Ks",	"Ξ", 2,
+-	"O",	"Ο", 1,
+-	"'O",	"Ό", 2,
+-	"P",	"Π", 1,
+-	"R",	"Ρ", 1,
+-	"S",	"Σ", 1,
+-	"T",	"Τ", 1,
+-	"U",	"Υ", 1,
+-	"'U",	"Ύ", 2,
+-	"F",	"Φ", 1,
+-	"CH",	"Χ", 2,
+-	"Ch",	"Χ", 2,
+-	"PS",	"Ψ", 2,
+-	"Ps",	"Ψ", 2,
+-	"O!",	"Ω", 2,
+-	"W",	"Ω", 1,
+-	"'O!",	"Ώ", 3,
+-	"'W",	"Ώ", 2,
+-	"a",	"α", 1,
+-	"'a",	"ά", 2,
+-	"b",	"β", 1,
+-	"v",	"β", 1,
+-	"g",	"γ", 1,
+-	"d",	"δ", 1,
+-	"e",	"ε", 1,
+-	"'e",	"έ", 2,
+-	"z",	"ζ", 1,
+-	"e!",	"η", 2,
+-	"'e!",	"ή", 3,
+-	"ii",	"η", 2,
+-	"'ii",	"ή", 3,
+-	"h",	"η", 1,
+-	"'h",	"ή", 2,
+-	"th",	"θ", 2,
+-	"i",	"ι", 1,
+-	"'i",	"ί", 2,
+-	"k",	"κ", 1,
+-	"l",	"λ", 1,
+-	"m",	"μ", 1,
+-	"n",	"ν", 1,
+-	"ks",	"ξ", 2,
+-	"x",	"ξ", 1,
+-	"o",	"ο", 1,
+-	"'o",	"ό", 2,
+-	"p",	"π", 1,
+-	"r",	"ρ", 1,
+-	"s ",	"ς", 1,
+-	"s.",	"ς", 1,
+-	"s,",	"ς", 1,
+-	"s\n",	"ς", 1,
+-	"s",	"σ", 1,
+-	"t",	"τ", 1,
+-	"u",	"υ", 1,
+-	"'u",	"ΰ", 2,
+-	"y",	"υ", 1,
+-	"'y",	"ΰ", 2,
+-	"f",	"φ", 1,
+-	"ch",	"χ", 2,
+-	"ps",	"ψ", 2,
+-	"o!",	"ω", 2,
+-	"w",	"ω", 1,
+-	"'o!",	"ώ", 3,
+-	"'w",	"ώ", 2,
+-	0
+-};
+-
+-
+-struct map *table = kata;
+//GO.SYSIN DD maps.c

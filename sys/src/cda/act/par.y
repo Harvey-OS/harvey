@@ -204,6 +204,7 @@ yylex(void)
 		switch (fgetc(stdin)) {
 		case 'X':
 		case 'I':
+		case 'x':
 			while ((c = fgetc(stdin)) != '.')
 				if (c == -1)
 					return c;
@@ -230,7 +231,7 @@ int bflag;	/* flush output after every tree */
 int cflag;	/* output c code */
 int dflag;	/* debug, prints input trees */
 int kflag=1;	/* karplus' ITE idea */
-int mflag=1;	/* aggressive mux flag */
+int mflag=1;	/* aggressive mux flag 0:wimp, 1: normal, >1 wacko */
 int nflag;	/* count gates */
 int uflag;	/* uniq, hashes output trees */
 int vflag;	/* verbose, output pin names */
@@ -243,8 +244,7 @@ FILE *critfile;
 void
 main(int argc, char *argv[])
 {
-	int yyparse(void);
-	int i;
+	int i,yyparse(void);
 	char *p,buf[40];
 	
 	terminit();
@@ -273,7 +273,7 @@ main(int argc, char *argv[])
 				levcrit = atoi(argv[++i]);
 				break;
 			case 'm':
-				mflag = 1-mflag;
+				mflag = atoi(argv[++i]);
 				break;
 			case 'n':
 				nflag = 1-nflag;
@@ -290,7 +290,7 @@ main(int argc, char *argv[])
 			}
 		else {
 			if (freopen(argv[i],"r",stdin) == 0)
-				yyerror("can't open %d",argv[i]);
+				yyerror("can't open %s",argv[i]);
 			for (p = argv[i]; *p && *p != '.'; p++)
 				;
 			*p = 0;

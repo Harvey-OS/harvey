@@ -400,8 +400,9 @@ termsub(Biobuf *bp, uchar *sub, int n)
 		term = getenv("TERM");
 		if(term == 0 || *term == 0)
 			term = "p9win";
-		strncpy(p, term, p - buf - 2);
-		p += strlen(term);
+		strncpy(p, term, sizeof(buf) - (p - buf) - 2);
+		buf[sizeof(buf)-2] = 0;
+		p += strlen(p);
 		*p++ = Iac;
 		*p++ = Se;
 		return iwrite(Bfildes(bp), buf, p-buf);

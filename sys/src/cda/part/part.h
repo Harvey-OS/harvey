@@ -263,6 +263,86 @@ Device	dev16l8 = {
 		p16l8
 };
 
+Pin p48n22[] = {
+	PINPUT, 0,	"",	"",	"",	"",	/* 1 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 2 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 3 */
+	VCC,   0,	"",	"",	"",	"",	/* 4 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 5 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 6 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 7 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 8 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 9 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 10 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 11 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 12 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 13 */
+	GND,	0,	"",	"",	"",	"",	/* 14 */
+	GND,	0,	"",	"",	"",	"",	/* 15 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 16 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 17 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 18 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 19 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 20 */
+	VCC,   0,	"",	"",	"",	"",	/* 21 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 22 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 23 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 24 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 25 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 26 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 27 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 28 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 29 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 30 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 31 */
+	GND, 	0,	"",	"",	"",	"",	/* 32 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 33 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 34 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 35 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 36 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 37 */
+	VCC,   0,	"",	"",	"",	"",	/* 38 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 39 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 40 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 41 */
+	PINPUT, 0,	"",	"",	"",	"",	/* 42 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 1,	"",	"",	"",	"",	/* 43 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 1,	"",	"",	"",	"",	/* 44 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 45 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 46 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 47 */
+	GND, 	0,	"",	"",	"",	"",	/* 48 */
+	GND, 	0,	"",	"",	"",	"",	/* 49 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 50 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 51 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 52 */
+	OUTPUT|COMB|INV, 1,	"",	"",	"",	"",	/* 53 */
+	OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 54 */
+	VCC,   0,	"",	"",	"",	"",	/* 55 */
+	OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 56 */
+	OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 57 */
+	OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 58 */
+	OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 59 */
+	OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 60 */
+	OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 61 */
+	OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 62 */
+	OUTPUT|COMB|INV, 1,	"",	"",	"",	"", 	/* 63 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 12,	"",	"",	"",	"", 	/* 64 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 7,	"",	"",	"",	"", 	/* 65 */
+	GND, 0,	"",	"",	"",	"",	/* 66 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 7,	"",	"",	"",	"", 	/* 67 */
+	PINPUT|INPUT|OUTPUT|COMB|INV, 7,	"",	"",	"",	"", 	/* 68 */
+};
+
+Device	dev48n22 = {
+		"PAL48N22",
+		"PLCC68",
+		68,
+		22,
+		48,
+		p48n22
+};
+
 Pin p16r6[] = {
 	CLOCK, 0,	"",	"",	"",	"",	/* 1 */
 	PINPUT, 0,	"",	"",	"",	"",	/* 2 */
@@ -482,6 +562,26 @@ int	npackages;
 
 Hshtab *outputs[NIO];
 int	noutputs;
+
+struct
+{
+	char *name;
+	Device * device;
+} types[] = {
+
+		"22V10",	&dev22v10,
+		"26CV12",	&dev26cv12,
+		"18V10",	&dev18v10,
+		"26V12",	&dev26v12,
+		"16R8",		&dev16r8,
+		"16R6",		&dev16r6,
+		"16R4",		&dev16r4,
+		"20R4",		&dev20r4,
+		"16L8",		&dev16l8,
+		"48N22",	&dev48n22,
+		"20L8",		&dev20l8,
+		(char *) 0,	(Device *) 0
+	};
 
 #define	NIL(type)	((type*)0)
 

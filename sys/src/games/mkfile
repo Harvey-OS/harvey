@@ -20,6 +20,7 @@ DIRS=	gnuchess\
 	plumb\
 	smiley\
 	swar\
+	zork\
 
 4s.$O:	xs.h
 5s.$O:	xs.h

@@ -106,13 +106,13 @@ main(int argc, char **argv)
 	hlen = 2*n+1;
 	n = hlen*NDBPLEN + hlen*2*NDBPLEN;
 	ht = malloc(n);
-	for(p = ht; p < &ht[n]; p += 3)
-		NDBPUTP(NDBNAP, p);
-	nextchain = hlen*NDBPLEN;
 	if(ht == 0){
 		fprint(2, "mkhash: not enough memory\n");
 		exits(syserr());
 	}
+	for(p = ht; p < &ht[n]; p += NDBPLEN)
+		NDBPUTP(NDBNAP, p);
+	nextchain = hlen*NDBPLEN;
 
 	/* create the in core hash table */
 	ndbseek(db, 0, 0);
@@ -127,7 +127,7 @@ main(int argc, char **argv)
 	}
 
 	/* create the hash file */
-	sprint(file, "%s.%s", argv[1], argv[2]);
+	snprint(file, sizeof(file), "%s.%s", argv[1], argv[2]);
 	fd = create(file, ORDWR, 0664);
 	if(fd < 0){
 		fprint(2, "mkhash: can't create %s\n", file);

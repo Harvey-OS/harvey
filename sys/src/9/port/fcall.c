@@ -20,7 +20,7 @@ convS2M(Fcall *f, char *ap)
 	switch(f->type)
 	{
 	default:
-		print("fcall: bad type: %d\n", f->type);
+		print("convS2M: bad type: %d\n", f->type);
 		return 0;
 
 	case Tnop:
@@ -230,7 +230,7 @@ convM2S(char *ap, Fcall *f, int n)
 	switch(f->type)
 	{
 	default:
-		print("fcall: bad type: %d\n", f->type);
+		print("convM2S: bad type: %d\n", f->type);
 		return 0;
 
 	case Tnop:

@@ -550,7 +550,9 @@ register int argc; char **argv;
 #ifndef BSD4_2		/* Short filenames */
 		if ((cp=rindex(ofname,'/')) != NULL)	cp++;
 		else					cp = ofname;
-		if (strlen(cp) > 12) {
+/*** changed 12 to 25;  should be NAMELEN-3, but I don't want to
+					fight the headers.   ehg 5 Nov 92 ***/
+		if (strlen(cp) > 25) {
 		    fprintf(stderr,"%s: filename too long to tack on .Z\n",cp);
 		    continue;
 		}

@@ -65,7 +65,7 @@ e:	not(C1)
 	};
 
 e:	not(not(e))
-	{cost.gate -= 1; TOPDOWN;}
+	{cost.gate -= 2; TOPDOWN;}
 	= {
 		tDO($%1$);
 	};

@@ -1,6 +1,6 @@
 .TH LISTEN 8
 .SH NAME
-listen, dkcpu, dkcpunote, dkdiscard, dkecho, dkexportfs, dkexportfs0, dkrexexec, dkwhoami, dksmtp, dkdcon, dklogin, dkfsauth, dkrexauth, dkchal, dkchangekey, dkcheck, dkguard, il7, il9, il565, il17005, il17006, il17007, il17009, il17020, il17021, il17022, il17023, il17024, tcp7, tcp9, tcp21, tcp23, tcp25, tcp513, tcp565, tcp17007, tcp17008, tcp6000 \- listen for calls on a network device
+listen, dkcpu, dkcpunote, dkdiscard, dkecho, dkexportfs, dkexportfs0, dkrexexec, dkwhoami, dksmtp, dkdcon, dklogin, dkfsauth, dkrexauth, dkchal, dkchangekey, dkcheck, dkguard, il7, il9, il565, il17005, il17006, il17007, il17009, il17020, il17021, il17022, il17023, il17024, tcp7, tcp9, tcp21, tcp23, tcp25, tcp513, tcp564, tcp565, tcp17007, tcp6000 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
 .RB [ -q ]
@@ -73,7 +73,7 @@ serve a piece of the name space using the Plan 9 file system protocol,
 with authentication (typically used by
 .IR cpu (1)).
 .TP
-.B dkexportfs0 il17008 tcp17008
+.B dkexportfs0 il17008 tcp564
 like 17007, without authentication (used by Unix
 systems to see Plan 9 files).
 .TP

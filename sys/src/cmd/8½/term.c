@@ -392,12 +392,10 @@ void
 termpaste(Window *w)
 {
 	termcut(w, 0);
-	textinsert(w, &w->text, snarf->text.s, snarf->text.n, w->q0, 1);
+	textinsert(w, &w->text, snarf->text.s, snarf->text.n, w->q0, 0);
 	if(w->q0 >= w->org)
 		frinsert(&w->f, snarf->text.s, snarf->text.s+snarf->text.n,
 			w->q0-w->org);
-	else
-		w->org += snarf->text.n;
 	if(w->qh > w->q0)
 		w->qh += snarf->text.n;
 	if(w->org > w->q0)
@@ -673,7 +671,7 @@ termkbd(Window *w)
 	}else if(w->kbdc != 0){		/* BUG: old also checked kbdc<font->n */
 		k[0] = w->kbdc;
 		k[1] = 0;
-		textinsert(w, &w->text, k, 1, q0, 1);
+		textinsert(w, &w->text, k, 1, q0, 0);
 		q0 = w->q0;	/* may have changed */
 		if(q0 >= w->org)
 			frinsert(&w->f, k, k+1, q0-w->org);

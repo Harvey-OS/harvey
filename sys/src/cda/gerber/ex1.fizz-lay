@@ -1,0 +1,962 @@
+Board{
+	name channel
+	layer bottom 0
+	plane 0 + analog_route 100 600 6500 4500
+	drillsz {
+		a 22 M
+		b 180 N		% bolts for to-3
+		c 100 O		% pins on to-3
+		A 60 r		% regular trace
+		B 80 r		% ground path width
+		C 150 r		% power traces
+		D 120 r		% output trace
+
+		M 37 r		% pad
+		N 300 r		% pad
+		O 150 r		% pad
+	}
+	xymask logo {
+		5500 1000 PHILW-2
+	}
+}
+
+Pinholes{
+	400/400 7000 5000 10 A
+}
+
+Vsig 1{
+	name V+
+	pins 4 {
+		1	500/2500
+		2	400/4000
+		3	2900/300
+		4	300/1500
+	}
+}
+
+Vsig 2{
+	name V-
+	pins 3 {
+		1	7500/2500
+		2	6000/3000
+		3	5000/500
+	}
+}
+
+Vsig 3{
+	name INPUT
+	pins 1 {
+		1	2100/700
+	}
+}
+
+Vsig 4{
+	name OUTPUT
+	pins 1 {
+		1	4000/2000
+	}
+}
+Positions{
+	tr1 610/1320 1 0
+	tr2 680/2250 1 8
+	tr3 4790/2130 0 0
+	tr4 5240/2470 2 8
+	tr5 1890/2760 2 0
+	tr6 2380/3720 0 0
+	tr7 3840/3720 0 0
+	tr8 920/3720 0 0
+	tr9 5300/3720 0 0
+	rv1 3200/2800 0 0
+	V+ 510/1930 0 0
+	V- 5900/2860 0 0
+	INPUT 2020/1340 0 0
+	GROUND 2020/1820 0 0
+	c1 1480/1140 2 0
+	c2 880/1140 0 0
+	c3 940/2040 0 0
+	c4 3700/2600 0 0
+	c5 4600/2130 1 0
+	c6 4990/2710 0 8
+	c7 2420/2000 3 8
+	c8 2400/1120 1 0
+	c9 2780/1120 3 0
+	d1 1580/2500 0 0
+	r1 1480/1340 2 0
+	r2 880/1500 0 0
+	r3 500/3020 3 0
+	r4 5000/1700 0 0
+	r5 5000/1900 0 0
+	r6 880/1660 0 0
+	r7 900/2240 0 0
+	r8 780/2730 0 0
+	r9 3700/2400 0 0
+	OUTPUT 3140/2340 0 0
+	r10 5300/2100 0 0
+	r11 780/2890 0 0
+	r12 2100/2750 0 0
+	r13 1780/3000 0 0
+	r14 4440/3000 2 0
+	r15 2690/1790 0 8
+	r16 1920/2220 0 0
+	r17 1380/3060 2 0
+	r18 4700/3000 0 0
+	c10 3400/1420 3 0
+	c11 3780/1420 1 0
+	L1 1920/2220 0 8
+}
+Type{
+	name rw4
+	pkg RW4
+	tt AA
+	comment  1/4w resistor
+
+}
+Type{
+	name rw5
+	pkg RW5
+	tt AA
+	comment  1/2w resistor
+
+}
+Type{
+	name lm317t
+	pkg TO220-3
+	tt AAA
+}
+Type{
+	name ds1267
+	pkg DIP14
+	tt AAAAAAgAAAAAAv
+}
+Type{
+	name 1n4007
+	pkg DIODEa
+	tt AA
+}
+Type{
+	name 1n4001
+	pkg DIODEa
+	tt AA
+}
+Type{
+	name 2sc2547e
+	pkg TO92
+	tt AAA
+}
+Type{
+	name cap100uF
+	pkg CAPelectro3
+	tt AA
+}
+Type{
+	name ind0mH
+	pkg Coil
+	tt AA
+}
+Type{
+	name LT1115
+	pkg TO220-5
+	tt AAAAA
+}
+Type{
+	name cap1uFe
+	pkg CAPelectro1
+	tt AA
+}
+Type{
+	name cap100nF
+	pkg CAP2
+	tt AA
+}
+Type{
+	name 2sa872
+	pkg TO92
+	tt AAA
+}
+Type{
+	name 2crelay
+	pkg Relay16
+	tt AAAAAAAAAAAAAAAA
+}
+Type{
+	name cap0.01uF
+	pkg CAP1
+	tt AA
+}
+Type{
+	name 2sk134
+	pkg TO3
+	tt AAA
+}
+Type{
+	name cap1uF
+	pkg CAP3
+	tt AA
+}
+Type{
+	name berg10
+	pkg BERG10
+	tt AAAAAAAAAA
+}
+Type{
+	name berg8
+	pkg BERG8
+	tt AAAAAAAA
+}
+Type{
+	name cap27pF
+	pkg CAPceram
+	tt AA
+}
+Type{
+	name 4crelay
+	pkg Relay28
+	tt AAAAAAAAAAAAAAAA
+}
+Type{
+	name r1w
+	pkg R1W
+	tt AA
+	comment  1w resistor
+
+}
+Type{
+	name LT1010
+	pkg TO220-4
+	tt AAAA
+}
+Type{
+	name ucn-5895a
+	pkg DIP16
+	tt gAAAAAAAAAAAvAvA
+}
+Type{
+	name Mpin
+	pkg Mterminal
+	tt A
+	comment  done
+
+}
+Type{
+	name r3w
+	pkg R3W
+	tt AA
+	comment  3w resistor
+
+}
+Type{
+	name 2sj48
+	pkg TO3
+	tt AAA
+}
+Type{
+	name buf-03
+	pkg TO8
+	tt AAAAAAAA
+}
+Type{
+	name cap2n3
+	pkg CAP1
+	tt AA
+}
+Type{
+	name cap150pF
+	pkg CAPceram
+	tt AA
+}
+Type{
+	name 2sc1085e
+	pkg TO92
+	tt AAA
+}
+Type{
+	name lm555cn
+	pkg DIP8
+	tt Ai2iAa1A
+	comment  timer
+
+}
+Type{
+	name cap47uF
+	pkg CAPelectro2
+	tt AA
+}
+Type{
+	name LM334Z
+	pkg TO92
+	tt AAA
+}
+Type{
+	name cap470uF
+	pkg CAPelectro4
+	tt AA
+}
+Type{
+	name cap6n5
+	pkg CAP1
+	tt AA
+}
+Type{
+	name trim5k
+	pkg Bourns3386F
+	tt AAA
+	comment  done
+
+}
+Type{
+	name cap6n8
+	pkg CAP1
+	tt AA
+}
+Type{
+	name cap47pF
+	pkg CAPceram
+	tt AA
+}
+Type{
+	name trim1k
+	pkg Bourns3386C
+	tt AAA
+	comment  done
+
+}
+Type{
+	name Pin
+	pkg Terminal
+	tt A
+	comment  done
+
+}
+Chip{
+	name tr1
+	type 2sa872
+}
+Chip{
+	name tr2
+	type 2sa872
+}
+Chip{
+	name tr3
+	type 2sc2547e
+}
+Chip{
+	name tr4
+	type 2sc2547e
+}
+Chip{
+	name tr5
+	type 2sc1085e
+}
+Chip{
+	name tr6
+	type 2sk134
+}
+Chip{
+	name tr7
+	type 2sj48
+}
+Chip{
+	name tr8
+	type 2sk134
+}
+Chip{
+	name tr9
+	type 2sj48
+}
+Chip{
+	name rv1
+	type trim1k
+}
+Chip{
+	name V+
+	type Pin
+}
+Chip{
+	name V-
+	type Pin
+}
+Chip{
+	name INPUT
+	type Pin
+}
+Chip{
+	name GROUND
+	type Pin
+}
+Chip{
+	name c1
+	type cap1uFe
+}
+Chip{
+	name c2
+	type cap47pF
+}
+Chip{
+	name c3
+	type cap47uF
+}
+Chip{
+	name c4
+	type cap6n8
+}
+Chip{
+	name c5
+	type cap27pF
+}
+Chip{
+	name c6
+	type cap27pF
+}
+Chip{
+	name c7
+	type cap100nF
+}
+Chip{
+	name c8
+	type cap100nF
+}
+Chip{
+	name c9
+	type cap100uF
+}
+Chip{
+	name d1
+	type 1n4001
+}
+Chip{
+	name r1
+	type rw5
+}
+Chip{
+	name r2
+	type rw5
+}
+Chip{
+	name r3
+	type rw5
+}
+Chip{
+	name r4
+	type rw5
+}
+Chip{
+	name r5
+	type rw5
+}
+Chip{
+	name r6
+	type rw5
+}
+Chip{
+	name r7
+	type r1w
+}
+Chip{
+	name r8
+	type rw5
+}
+Chip{
+	name r9
+	type rw5
+}
+Chip{
+	name OUTPUT
+	type Pin
+}
+Chip{
+	name r10
+	type rw5
+}
+Chip{
+	name r11
+	type rw5
+}
+Chip{
+	name r12
+	type rw5
+}
+Chip{
+	name r13
+	type rw5
+}
+Chip{
+	name r14
+	type rw5
+}
+Chip{
+	name r15
+	type r3w
+}
+Chip{
+	name r16
+	type r1w
+}
+Chip{
+	name r17
+	type rw5
+}
+Chip{
+	name r18
+	type rw5
+}
+Chip{
+	name c10
+	type cap100nF
+}
+Chip{
+	name c11
+	type cap100uF
+}
+Chip{
+	name L1
+	type ind0mH
+}
+Net GND 9{
+	r2 2 R2
+	c2 2 C2
+	r15 2 R2
+	c8 2 C2
+	c9 2 C-
+	c10 1 C1
+	c11 1 C+
+	r6 2 R2
+	GROUND 1 P
+}
+Net V+ 8{
+	V+ 1 P
+	tr8 3 S
+	r3 1 R1
+	r8 1 R1
+	r11 1 R1
+	tr6 3 S
+	c8 1 C1
+	c9 1 C+
+}
+Net V- 8{
+	V- 1 P
+	tr9 3 S
+	r4 2 R2
+	r5 2 R2
+	r10 2 R2
+	tr7 3 S
+	c10 2 C2
+	c11 2 C-
+}
+Net $N0026 2{
+	tr7 1 G
+	r14 2 R2
+}
+Net $N0024 2{
+	r1 1 R1
+	c1 1 C+
+}
+Net $N0022 2{
+	c3 2 C-
+	r6 1 R1
+}
+Net $N0021 2{
+	tr8 1 G
+	r17 2 R2
+}
+Net $N0020 2{
+	tr5 2 C
+	r12 1 R1
+}
+Net $N0019 2{
+	tr5 3 E
+	r11 2 R2
+}
+Net $N0018 2{
+	tr9 1 G
+	r18 2 R2
+}
+Net $N0017 3{
+	L1 2 L2
+	r16 2 R2
+	OUTPUT 1 P
+}
+Net $N0015 5{
+	tr4 3 E
+	rv1 3 R3
+	c6 1 C1
+	r14 1 R1
+	r18 1 R1
+}
+Net $N0014 2{
+	c1 2 C-
+	INPUT 1 P
+}
+Net $N0012 4{
+	r9 2 R2
+	c4 2 C2
+	tr3 2 C
+	c5 2 C2
+}
+Net $N0011 4{
+	d1 2 C
+	r9 1 R1
+	c4 1 C1
+	tr5 1 B
+}
+Net $N0010 3{
+	tr2 1 B
+	c3 1 C+
+	r7 1 R1
+}
+Net $N0009 2{
+	c7 2 C2
+	r15 1 R1
+}
+Net $N0008 4{
+	r1 2 R2
+	r2 1 R1
+	c2 1 C1
+	tr1 1 B
+}
+Net $N0007 2{
+	d1 1 A
+	r8 2 R2
+}
+Net $N0006 2{
+	tr6 1 G
+	r13 2 R2
+}
+Net $N0005 4{
+	tr1 2 C
+	r4 1 R1
+	tr4 1 B
+	c6 2 C2
+}
+Net $N0004 5{
+	rv1 2 R2
+	rv1 1 R1
+	r12 2 R2
+	r13 1 R1
+	r17 1 R1
+}
+Net $N0003 3{
+	tr3 3 E
+	tr4 2 C
+	r10 1 R1
+}
+Net $N0002 8{
+	tr9 2 D
+	tr8 2 D
+	r7 2 R2
+	tr7 2 D
+	tr6 2 D
+	c7 1 C1
+	L1 1 L1
+	r16 1 R1
+}
+Net $N0001 4{
+	tr2 3 E
+	r5 1 R1
+	tr3 1 B
+	c5 1 C1
+}
+Net $N0000 3{
+	tr1 3 E
+	tr2 2 C
+	r3 2 R2
+}
+Package{
+	name	RW4
+	br	-100 -70 500 70
+	pins 1 2{
+		1	0/0	a
+		2	400/0	a
+	}
+}
+Package{
+	name	RW5
+	br	-100 -70 700 70
+	pins 1 2{
+		1	0/0	a
+		2	600/0	a
+	}
+}
+Package{
+	name	R1W
+	br	-100 -100 800 100
+	pins 1 2{
+		1	0/0	a
+		2	700/0	a
+	}
+}
+Package{
+	name	R3W
+	br	-100 -250 1200 250
+	pins 1 2{
+		1	0/0	a
+		2	1100/0	a
+	}
+}
+Package{
+	name	DIODEa
+	br	-100 -100 500 100
+	pins 1 2{
+		1	0/0	a
+		2	400/0	a
+	}
+	xymask goo {
+		50 0 150 0
+		250 25 250 -25
+		350 0 250 0 150 25 150 -25 250 0
+	}
+}
+Package{
+	name	TO92
+	br	-100 -100 400 100
+	pins 1 3{
+		1 0/0 - 3 300/0	a
+	}
+}
+Package{
+	name	TO220-4			% not done
+	br	-100 -100 400 100
+	pins 1 4{
+		1 0/0 - 4 300/0	a
+	}
+}
+Package{
+	name	TO220-5			% not done
+	br	-100 -100 400 100
+	pins 1 5{
+		1 0/0 - 5 300/0	a
+	}
+}
+Package{
+	name	TO3
+	br	0 0 1460 1100
+	pins 1 3{
+		3	230/890 b
+		2	800/770	c
+		1	560/400	c
+	}
+	drills 1 1{
+		1 1240/220 b
+	}
+}
+Package{
+	name	TO8
+	br	-300 -300 300 300
+	pins 1 8{
+		1	0/200		a
+		2	-200/200	a
+		3	-200/0		a
+		4	-200/-200	a
+		5	0/-200		a
+		6	200/-200	a
+		7	200/0		a
+		8	200/200		a
+	}
+	drills 1 1{
+		1 1240/220 b
+	}
+}
+Package{
+	name	Bourns3386C
+	br	-100 -150 300 50
+	pins 1 3{
+		1 0/0 - 3 200/0	a
+	}
+}
+Package{
+	name	Bourns3386F
+	br	-100 -100 475 475
+	pins 1 3{
+		1	290/290	a
+		2	190/90	a
+		3	90/290	a
+	}
+}
+Package{
+	name	Coil
+	br	-100 -50 800 50
+	pins 1 2{
+		1	0/0	a
+		2	700/0	a
+	}
+}
+Package{
+	name	CAPceram
+	br	-100 -70 350 70
+	pins 1 2{
+		1	0/0	a
+		2	250/0	a
+	}
+}
+Package{
+	name	CAP1
+	br	-100 -75 300 75
+	pins 1 2{
+		1	0/0	a
+		2	200/0	a
+	}
+}
+Package{
+	name	CAP2
+	br	-100 -125 400 125
+	pins 1 2{
+		1	0/0	a
+		2	300/0	a
+	}
+}
+Package{
+	name	CAP3
+	br	-100 -200 500 200
+	pins 1 2{
+		1	0/0	a
+		2	400/0	a
+	}
+}
+Package{
+	name	CAPelectro1
+	br	-50 -125 250 125 
+	pins 1 2{
+		1	200/0	a
+		2	0/0	a
+	}
+	xymask goo {
+		200 50 200 100
+		175 75 225 75
+	}
+}
+Package{
+	name	CAPelectro2
+	br	-200 -100 200 300 
+	pins 1 2{
+		1	0/200	a
+		2	0/0	a
+	}
+	xymask goo {
+		160 220 80 220
+		120 260 120 180
+	}
+}
+Package{
+	name	CAPelectro3
+	br	-100 -250 350 250 
+	pins 1 2{
+		1	300/0	a
+		2	0/0	a
+	}
+	xymask goo {
+		270 210 270 130
+		310 170 230 170
+	}
+}
+Package{
+	name	CAPelectro4
+	br	-100 -350 1900 350 
+	pins 1 2{
+		1	1800/0	a
+		2	0/0	a
+	}
+}
+Package{
+	name	Terminal
+	br	0 0 400 400
+	pins 1 1{
+		1	200/200	a
+	}
+}
+Package{
+	name	Mterminal
+	br	0 0 200 200
+	pins 1 1{
+		1	100/100	a
+	}
+}
+Package{
+	name	TO220-3			% not done
+	br	-100 -100 300 100
+	pins 1 3{
+		1 0/0 - 3 200/0	a
+	}
+}
+Package{
+	name	DIP8
+	br	-100 -100 400 400
+	pins 1 8{
+		1 0/300 - 4 0/0	a
+		5 300/0 - 8 300/300	a
+	}
+}
+Package{
+	name	Relay28
+	br	-50 -50 350 1350
+	pins 1 16{
+		8 0/0 a
+		6 0/200 a
+		4 0/400 a
+		2 0/600 a
+		1 0/700 a
+		3 0/900 a
+		5 0/1100 a
+		7 0/1300 a
+		9 300/0 a
+		11 300/200 a
+		13 300/400 a
+		15 300/600 a
+		16 300/700 a
+		14 300/900 a
+		12 300/1100 a
+		10 300/1300 a
+	}
+}
+Package{
+	name	Relay16
+	br	-50 -50 350 750
+	pins 1 16{
+		8 0/0 a
+		6 0/200 a
+		4 0/400 a
+		1 0/700 a
+		9 300/0 a
+		11 300/200 a
+		13 300/400 a
+		16 300/700 a
+		2 0/600 a
+		3 0/500 a
+		5 0/300 a
+		7 0/100 a
+		10 300/100 a
+		12 100/300 a
+		14 300/500 a
+		15 300/600 a
+	}
+}
+Package{
+	name DIP16
+	br -30 0 730 310
+	pins 1 16{
+		1 0/0 - 8 700/0
+		9 700/300 - 16 0/300
+	}
+}
+Package{
+	name DIP14
+	br -90 0 690 310
+	pins 1 14{
+		1 0/0 - 7 600/0
+		8 600/300 - 14 0/300
+	}
+}
+Package{
+	name BERG10
+	br -440 -40 840 600 % large wings
+	pins 1 10{
+		1 0/0 -2 9 400/0 C
+		2 0/100 -2 10 400/100 C
+	}
+}
+Package{
+	name BERG8
+	br -40 -40 340 600
+	pins 1 8{
+		1 0/0 -2 7 300/0 C
+		2 0/100 -2 8 300/100 C
+	}
+}

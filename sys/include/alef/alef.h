@@ -136,6 +136,7 @@ int	dirread(int, Dir*, int);
 int	convM2D(char*, Dir*);
 int	getpid(void);
 char	*getuser(void);
+int	times(int*);
 int	atoi(char*);
 int	time(int*);
 /*
@@ -154,7 +155,7 @@ aggr Printspec
 int	print(char*, ...);
 int	fprint(int, char*, ...);
 int	sprint(char*, char*, ...);
-char	*doprint(char*, char*, char*, void*);
+char*	doprint(char*, char*, char*, void*);
 void	strconv(Printspec *p, char*);
 int	fmtinstall(int, int (*)(Printspec*));
 /*
@@ -204,6 +205,20 @@ float	modf(float, float*);
 void	*malloc(uint);
 void	free(void*);
 void	*realloc(void*, uint);
+/*
+ *  network dialing and authentication
+ */
+#define NETPATHLEN 40
+int	accept(int, char*);
+int	announce(char*, char*);
+int	dial(char*, char*, char*, int*);
+int	hangup(int);
+int	listen(char*, char*);
+char*	netmkaddr(char*, char*, char*);
+int	reject(int, char*, char*);
+
+char*	getenv(char*);
+int	putenv(char*, char*);
 /*
  * new rune routines
  */

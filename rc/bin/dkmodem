@@ -3,7 +3,7 @@ baud=-b2400
 net=dk
 
 switch($terminal){
-case *safari*
+case NCR* 'AT&TNSX'*
 	dev=/dev/eia1
 case *
 	echo "dkmodem: this only works on a safari"

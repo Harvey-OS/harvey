@@ -103,7 +103,7 @@ do_fill(void (*caller)(void))
 {
 	struct	x	x[PATH_LIMIT];
 	struct	element	*p ;
-	double	Fmaxy,Fmaxx, Fminy,Fminx, ry, y, left, right;
+	double	Fmaxy,Fmaxx, Fminy,Fminx, ry, y, left, right, gtrans, g;
 	int		i, nx, winding, start;
 	int tx, ty;
 
@@ -126,9 +126,19 @@ fprintf(stderr,"max %f %f min %f %f\n",Fminx,Fminy,Fmaxx,Fmaxy);
 return;
 }
 /*	gindex = (char)(Graphics.color.brightness*4.999);*/
-	gindex = floor(currentgray()*((double)GRAYLEVELS-1.)/51.2);
+	g=currentgray();
+	if(g == 0.)gindex = 0;
+	else if(g == 1.)gindex = 16;
+	else {
+	gtrans = Graphics.graytab[(int)(currentgray()*(double)(GRAYLEVELS-1.))];
+	gindex = floor(gtrans*((double)GRAYLEVELS-1.)/(256./17.));
+/*	if(gindex == 0)gindex = 1;
+	else if(gindex == 16)gindex = 15;
+fprintf(stderr,"current %f gtrans %f gindex %d\n",currentgray(), gtrans, gindex);*/
+	}
+/*	gindex = floor(currentgray()*((double)GRAYLEVELS-1.)/(256./17.));*/
 	if(gindex < 0)gindex = 0;
-	if(gindex > 4)gindex = 4;
+	if(gindex > 16)gindex = 16;
 	lx1 = -1;
 	Fminy = floor(Fminy);
 	Fmaxy = ceil(Fmaxy) + 1.0;

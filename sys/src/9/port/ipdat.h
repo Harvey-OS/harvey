@@ -240,6 +240,9 @@ struct Tctl
 
 	Block	*sndq;			/* List of data going out */
 	ulong	sndcnt;			/* Amount of data in send queue */
+	Rendez	sndr;			/* process flow control */
+	QLock	sndrlock;
+	int	sndfull;
 
 	Reseq	*reseq;			/* Resequencing queue */
 	Timer	timer;			/* Activity timer */
@@ -422,6 +425,7 @@ enum {
 	/* Protocol port numbers */
 	PORTALLOC	= 5000,			/* First automatic allocated port */
 	PRIVPORTALLOC	= 600,			/* First priveleged port allocated */
+	UNPRIVPORTALLOC	= 1024,			/* First unpriveleged port allocated */
 	PORTMAX		= 30000,		/* Last port to allocte */
 };
 

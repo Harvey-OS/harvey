@@ -66,10 +66,10 @@ _envsetup(void)
 		}
 		memcpy(p, de->d_name, n);
 		p[n] = '=';
-		f = open(name, O_RDONLY);
-		if(f < 0 || read(f, p+n+1, m) != m)
+		f = _OPEN(name, O_RDONLY);
+		if(f < 0 || _READ(f, p+n+1, m) != m)
 			m = 0;
-		close(f);
+		_CLOSE(f);
 		if(p[n+m] == 0)
 			m--;
 		for(i=0; i<m; i++)

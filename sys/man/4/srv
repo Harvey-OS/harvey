@@ -6,6 +6,9 @@ srv, 9fs, dk232, dkmodem  \- start network file service
 [
 .B -m
 ]
+[
+.B -t
+]
 .RI [ net !] system [! service ]
 [
 .I srvname
@@ -14,6 +17,7 @@ srv, 9fs, dk232, dkmodem  \- start network file service
 ] ]
 .PP
 .B 9fs
+.B -t
 .RI [ net !] system
 .RI [ mountpoint ]
 .PP
@@ -51,6 +55,9 @@ to mount the service on
 or onto
 .I mtpt
 if it is given.
+If option
+.B t
+is given, the mount is authenticated.
 .PP
 The specified
 .I service
@@ -87,6 +94,9 @@ characters, only the last element of
 is used in the
 .B /n
 name.
+With option
+.B t
+the mount is authenticated.
 .PP
 .I Dk232
 configures a serial line as a Datakit device and connects to a file server
@@ -116,4 +126,5 @@ The TCP port used for 9P is 564.
 .IR bind (1),
 .IR dial (2),
 .IR srv (3),
+.IR ftpfs (4),
 .IR dkconfig (8)

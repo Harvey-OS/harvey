@@ -21,16 +21,17 @@ YFLAGS=-d -D1
 scanner.c:	$LFILES parser.tab.h
 	$LEX -t $LFILES > $target
 
-parser.tab.h parser.tab.c parser.debug: $YFILES
+y.debug parser.tab.h parser.tab.c parser.debug: $YFILES
 	yacc $YFLAGS -s parser $prereq
+	cp parser.debug y.debug
 
 parser.tab.$O: parser.tab.c y.debug
 	$CC $CFLAGS -DYYDEBUG parser.tab.c
 
-y.debug: parser.debug
-	mv $prereq $target
-
 clean:V:
+	rm -f *.[$OS] [$OS].out y.output $TARG
+
+nuke:V:
 	rm -f *.[$OS] [$OS].out *.tab.? y.debug y.output $TARG parser.* scanner.c
 
 move:

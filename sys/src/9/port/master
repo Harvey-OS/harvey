@@ -4,6 +4,7 @@
 	dr	D
 	ip	I
 	conc	K
+	lpt	L
 	mnt	M
 	iproute	P
 	cdrom	R
@@ -20,6 +21,7 @@
 	dk	k
 	ether	l
 	lance	l
+	midi	m
 	nonet	n
 	proc	p
 	rtc	r
@@ -32,5 +34,6 @@
 	hard	w
 	wren	w
 	port	x
-	zero	z
+	pcmcia	y
+	zduart	z
 	pipe	|

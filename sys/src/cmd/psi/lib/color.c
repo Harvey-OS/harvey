@@ -16,9 +16,11 @@
 void
 setgrayOP(void)
 {
-	int	gray ;
-
-	gray = floor(fraction()*(GRAYLEVELS-1)+0.5) ;
+	int	gray, gin ;
+	double fr;
+	
+	gray = floor((fr=fraction())*(GRAYLEVELS-1)+0.5) ;
+fprintf(stderr,"setgray %f\n",fr);
 	Graphics.color.red = gray ;
 	Graphics.color.green = gray ;
 	Graphics.color.blue = gray ;
@@ -52,9 +54,12 @@ currentgrayOP(void)
 double
 currentgray(void)
 {
-	return( 0.3 * Graphics.color.red/(double)(GRAYLEVELS-1) +
+	double gy;
+	gy= 0.3 * Graphics.color.red/(double)(GRAYLEVELS-1) +
 		0.59 * Graphics.color.green/(double)(GRAYLEVELS-1) +
-		0.11 * Graphics.color.blue/(double)(GRAYLEVELS-1)) ;
+		0.11 * Graphics.color.blue/(double)(GRAYLEVELS-1) ;
+/*	if(gy > .9)gy=.9;*/
+	return(gy);
 }
 
 void
@@ -193,18 +198,28 @@ hsb2rgb(double h, double s, double b)
 
 	return(color) ;
 }
-
+static int junk=1;
 void
 settransferOP(void)
 {
 	int		i ;
-
+if(!junk){
+	junk++;
+	Graphics.color.red = 230 ;
+	Graphics.color.green = 230;
+	Graphics.color.blue = 230 ;
+}
+	
+fprintf(stderr,"settransfer called\n");
+pstackOP();
+fprintf(stderr,"done stack\n");
 	Graphics.transfer = procedure() ;
 	for ( i=0 ; i<GRAYLEVELS ; i++ ){
 		push(makereal(i/(double)(GRAYLEVELS-1))) ;
 		execpush(Graphics.transfer) ;
 		execute() ;
 		Graphics.graytab[i] = fraction() ;
+/*fprintf(stderr,"was %f new %f\n",i/(double)(GRAYLEVELS-1),Graphics.graytab[i]);*/
 	}
 }
 

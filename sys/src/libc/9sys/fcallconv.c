@@ -6,14 +6,13 @@ static void dumpsome(char*, char*, long);
 static void fdirconv(char*, Dir*);
 
 int
-fcallconv(void *v, int f1, int f2, int f3, int ch)
+fcallconv(void *v, Fconv *f1)
 {
 	Fcall *f;
 	int fid, type, tag, n;
 	char buf[512];
 	Dir d;
 
-	USED(ch);
 	f = *(Fcall **)v;
 	type = f->type;
 	fid = f->fid;
@@ -124,18 +123,17 @@ fcallconv(void *v, int f1, int f2, int f3, int ch)
 	default:
 		sprint(buf,  "unknown type %d", type);
 	}
-	strconv(buf, f1, f2, f3);
+	strconv(buf, f1);
 	return(sizeof(Fcall*));
 }
 
 int
-dirconv(void *v, int f1, int f2, int f3, int ch)
+dirconv(void *v, Fconv *f)
 {
 	char buf[160];
 
-	USED(ch);
 	fdirconv(buf, *(Dir**)v);
-	strconv(buf, f1, f2, f3);
+	strconv(buf, f);
 	return(sizeof(Dir*));
 }
 

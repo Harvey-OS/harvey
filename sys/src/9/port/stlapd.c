@@ -202,19 +202,25 @@ lapdopen(Queue *q, Stream *s)
 static void
 mdl_assign(Lapd *lp)
 {
+	char buf[ERRLEN];
+
 	qlock(lp);
-	if (lp->state != NoTEI) {
+	if(lp->state != NoTEI){
 		qunlock(lp);
-		error(Egreg);
+		sprint(buf, "mdl_assign: state=%d", lp->state);
+		kprint("%s\n", buf);
+		error(buf);
 	}
 	lp->state = WaitTEI;
 	assigntei(lp);
 	lp->t200 = T200;
 	qunlock(lp);
 	sleep(lp, pTEIassigned, lp);
-	if (lp->state != TEIassigned){
-		lapdclose(lp->rq);
-		error(Egreg);
+	if(lp->state != TEIassigned){
+		/*lapdclose(lp->rq);*/
+		sprint(buf, "mdl_assign failed: state=%d", lp->state);
+		kprint("%s\n", buf);
+		error(buf);
 	}
 }
 
@@ -243,29 +249,39 @@ assigntei(Lapd *lp)
 static void
 dl_establish(Lapd *lp)
 {
+	char buf[ERRLEN];
+
 	qlock(lp);
-	if (lp->state != TEIassigned) {
+	if(lp->state != TEIassigned){
 		qunlock(lp);
-		error(Egreg);
+		sprint(buf, "dl_establish: state=%d", lp->state);
+		kprint("%s\n", buf);
+		error(buf);
 	}
 	lp->state = WaitEst;
 	sendctl(lp, UCmd, SABME, 0);
 	lp->t200 = T200;
 	qunlock(lp);
 	sleep(lp, pMultiframe, lp);
-	if (lp->state != Multiframe){
-		lapdclose(lp->rq);
-		error(Egreg);
+	if(lp->state != Multiframe){
+		/*lapdclose(lp->rq);*/
+		sprint(buf, "dl_establish failed: state=%d", lp->state);
+		kprint("%s\n", buf);
+		error(buf);
 	}
 }
 
 static void
 dl_release(Lapd *lp)
 {
+	char buf[ERRLEN];
+
 	qlock(lp);
-	if (lp->state != Multiframe) {
+	if(lp->state != Multiframe){
 		qunlock(lp);
-		error(Egreg);
+		sprint(buf, "dl_release: state=%d", lp->state);
+		kprint("%s\n", buf);
+		error(buf);
 	}
 	lp->state = WaitRel;
 	sendctl(lp, UCmd, DISC, 0);
@@ -287,17 +303,16 @@ lapdclose(Queue *q)
 	if(lp == 0)
 		return;
 
-	if (lp->state == Multiframe) {
+	if(lp->state == Multiframe){
 		for(i=0; i<NOBUF && !tEmpty(lp); i++)
 			tsleep(&lp->tr, tEmpty, lp, 2500);	/* drain */
 		dl_release(lp);					/* DISC to NT */
-		for(i=0; i<NOBUF; i++)
-			if(lp->outb[i]){
-				freeb(lp->outb[i]);
-				lp->outb[i] = 0;
-			}
 	}
-
+	for(i=0; i<NOBUF; i++)
+		if(lp->outb[i]){
+			freeb(lp->outb[i]);
+			lp->outb[i] = 0;
+		}
 	lp->flags |= Hungup;			/* tell kernel proc */
 	lp->t200 = NOW;
 	wakeup(&lp->timer);
@@ -560,6 +575,16 @@ mdl_iput(Queue *q, Block *bp)
 			PUTNEXT(lp->wq, b);
 		} else
 			lapderror(lp, Badassign);
+		break;
+	case 6:		/* identity removal */
+		DPRINT("id removal: ai=%d\n", ai);
+		if(lp->state >= TEIassigned && (ai == lp->tei || ai == 127)){
+			Block *b = allocb(0);
+			lp->state = NoTEI;
+			DPRINT("lapd hangup\n");
+			b->type = M_HANGUP;
+			PUTNEXT(lp->rq, b);
+		}
 		break;
 	default:
 		{

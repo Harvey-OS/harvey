@@ -23,6 +23,7 @@ char	SH[] = "rc";
 char	SHPATH[] = "/bin/rc";
 char	RX[] = "rx";
 char	RXPATH[] = "/bin/rx";
+char	SAMSAVECMD[] = "/bin/rc\n/sys/lib/samsave";
 
 void
 dprint(char *z, ...)
@@ -31,6 +32,18 @@ dprint(char *z, ...)
 
 	doprint(buf, &buf[BLOCKSIZE], z, ((long*)&z)+1);
 	termwrite(buf);
+}
+
+void
+print_ss(char *s, String *a, String *b)
+{
+	dprint("?warning: %s: `%.*S' and `%.*S'\n", s, a->n, a->s, b->n, b->s);
+}
+
+void
+print_s(char *s, String *a)
+{
+	dprint("?warning: %s `%.*S'\n", s, a->n, a->s);
 }
 
 char*
@@ -49,12 +62,14 @@ getuser(void)
 }
 
 int
-statfile(char *name, ulong *id, long *time, long *length)
+statfile(char *name, ulong *dev, ulong *id, long *time, long *length)
 {
 	Dir dirb;
 
 	if(dirstat(name, &dirb) == -1)
 		return -1;
+	if(dev)
+		*dev = dirb.type|(dirb.dev<<16);
 	if(id)
 		*id = dirb.qid.path;
 	if(time)
@@ -65,12 +80,14 @@ statfile(char *name, ulong *id, long *time, long *length)
 }
 
 int
-statfd(int fd, ulong *id, long *time, long *length)
+statfd(int fd, ulong *dev, ulong *id, long *time, long *length)
 {
 	Dir dirb;
 
 	if(dirfstat(fd, &dirb) == -1)
 		return -1;
+	if(dev)
+		*dev = dirb.type|(dirb.dev<<16);
 	if(id)
 		*id = dirb.qid.path;
 	if(time)

@@ -8,15 +8,7 @@
 
 #define	DPRINT	if(debug)kprint
 
-#define Nbuf	2
-#define DATASIZE	(32*512)
-#undef DATASIZE
-#define	DATASIZE	(64*1024)
-
-struct{
-	Lock;
-	Scsibuf	*free;
-}scsibufalloc;
+#define DATASIZE	(64*512)
 
 static Scsi	staticcmd;	/* BUG: should be one per scsi device */
 
@@ -83,12 +75,7 @@ scsigen(Chan *c, Dirtab *tab, long ntab, long s, Dir *dp)
 void
 scsireset(void)
 {
-	int i;
-
-	for(i = 0; i < Nbuf; i++)
-		scsifree(scsialloc(DATASIZE));
-	lock(&scsibufalloc);
-	unlock(&scsibufalloc);
+	scsibufreset(DATASIZE);
 	resetscsi();
 }
 
@@ -324,6 +311,9 @@ scsicmd(int dev, int cmdbyte, Scsibuf *b, long size)
 	switch(cmdbyte){
 	case ScsiTestunit:
 		break;
+	case ScsiStartunit:
+		cmd->cmdblk[4] = 1;
+		break;
 	case ScsiModesense:
 		cmd->cmdblk[2] = 1;
 		/* fall through */
@@ -349,6 +339,27 @@ scsiready(int dev)
 	int status;
 
 	cmd = scsicmd(dev, ScsiTestunit, scsibuf(), 0);
+	if(waserror()){
+		scsifree(cmd->b);
+		qunlock(cmd);
+		nexterror();
+	}
+	status = scsiexec(cmd, ScsiOut);
+	poperror();
+	scsifree(cmd->b);
+	qunlock(cmd);
+	if((status&0xff00) != 0x6000)
+		error(Eio);
+	return status&0xff;
+}
+
+int
+scsistartstop(int dev, int cmdbyte)
+{
+	Scsi *cmd;
+	int status;
+
+	cmd = scsicmd(dev, cmdbyte, scsibuf(), 0);
 	if(waserror()){
 		scsifree(cmd->b);
 		qunlock(cmd);
@@ -436,6 +447,7 @@ scsiinquiry(int dev, void *p, int size)
 int
 scsiwp(int dev)
 {
+/* Device specific
 	Scsi *cmd;
 	int r, status;
 
@@ -453,6 +465,9 @@ scsiwp(int dev)
 	if ((status&0xffff) != 0x6000)
 		error(Eio);
 	return r;
+*/
+	USED(dev);
+	return 0;
 }
 
 int
@@ -518,35 +533,4 @@ scsibwrite(int dev, Scsibuf *b, long n, long blocksize, long blockno)
 	poperror();
 	qunlock(cmd);
 	return n;
-}
-
-/*
- * get a scsi io buffer of DATASIZE size
- */
-Scsibuf *
-scsibuf(void)
-{
-	Scsibuf *b;
-
-	for(;;) {
-		lock(&scsibufalloc);
-		b = scsibufalloc.free;
-		if(b != 0) {
-			scsibufalloc.free = b->next;
-			unlock(&scsibufalloc);
-			return b;
-		}
-		unlock(&scsibufalloc);
-		resrcwait(0);
-	}
-	return 0;		/* not reached */
-}
-
-void
-scsifree(Scsibuf *b)
-{
-	lock(&scsibufalloc);
-	b->next = scsibufalloc.free;
-	scsibufalloc.free = b;
-	unlock(&scsibufalloc);
 }

@@ -149,7 +149,6 @@ typedef	long	Type;
  * in the (virtual) delay slot, which will go faster on some versions
  */
 
-#define Load_Rd_P	*p++ = Inst3b(3,Rd,LD,As,1,0); *p++ = Inst3b(2,As,ADD,As,1,4)
 #define Load_Rs_P	*p++ = Inst3b(3,Rs,LD,As,1,0); *p++ = Inst3b(2,As,ADD,As,1,4)
 #define Load_Rt_P	*p++ = Inst3b(3,Rt,LD,As,1,0); *p++ = Inst3b(2,As,ADD,As,1,4)
 #define Loadzx_Rt_P	*p++ = Inst3b(3,Rt,LD,As,1,0); *p++ = Inst3b(2,As,ADD,As,1,4)

@@ -1,21 +1,28 @@
 #include "mem.h"
 
 #define OP16	BYTE	$0x66
-#define BOOT 1
 
-/*
- *	about to walk all over ms/dos - turn off interrupts
- */
 TEXT	origin(SB),$0
 
-	CLI
 
-#ifdef BOOT
 /*
  *	This part of l.s is used only in the boot kernel.
  *	It assumes that we are in real address mode, i.e.,
  *	that we look like an 8086.
  */
+
+/*
+ *	Ask MSDOS to turn on CGA mode
+ */
+	XORL	AX,AX
+	MOVB	$3,AL
+	INT	$0x10
+
+/*
+ *	about to walk all over ms/dos - turn off interrupts
+ */
+	CLI
+
 /*
  *	relocate everything to a half meg and jump there
  *	- looks wierd because it is being assembled by a 32 bit
@@ -83,7 +90,6 @@ flush:
 
 TEXT	mode32bit(SB),$0
 
-#endif BOOT
 
 	/*
 	 * Clear BSS

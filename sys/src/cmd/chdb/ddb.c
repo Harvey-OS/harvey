@@ -21,10 +21,18 @@ main(int argc, char *argv[])
 		exits("mem");
 	}
 	gsize = 0;
-	for(i=1; i<argc; i++)
+	for(i=1; i<argc; i++) {
 		readit(argv[i]);
-	if(i <= 1)
+		if(i <= 26) {
+			gsizelist[i-1] = gsize;
+			gsizelist[i] = 0;
+		}
+	}
+	if(i <= 1) {
 		readit("hist");
+		gsizelist[0] = gsize;
+		gsizelist[1] = 0;
+	}
 
 	/*
 	 * count the number of games
@@ -194,6 +202,18 @@ void
 funhd(long n)
 {
 	setposn(str[gameno].position+n+1);
+}
+
+int
+sortorder(Str *a, Str *b)
+{
+	char *p1, *p2;
+
+	p1 = (char*)a->gp;
+	p2 = (char*)b->gp;
+	if(p1 > p2)
+		return 1;
+	return -1;
 }
 
 int
@@ -536,17 +556,23 @@ out:
 int
 openfile(char *file)
 {
-	int fi;
+	int fi, l;
 
-	sprint(chars, "%s", file);
-	fi = open(chars, OREAD);
-	if(fi < 0) {
+	l = strlen(file);
+	if(l >= 5 && strcmp(file+l-5, "m.out") == 0) {
+		sprint(chars, "%s", file);
+		fi = open(chars, OREAD);
+		if(fi < 0) {
+			sprint(chars, "/lib/chess/%s", file);
+			fi = open(chars, OREAD);
+		}
+	} else {
 		sprint(chars, "%s.m.out", file);
 		fi = open(chars, OREAD);
-	}
-	if(fi < 0) {
-		sprint(chars, "/lib/chess/%s.m.out", file);
-		fi = open(chars, OREAD);
+		if(fi < 0) {
+			sprint(chars, "/lib/chess/%s.m.out", file);
+			fi = open(chars, OREAD);
+		}
 	}
 	if(fi < 0) {
 		print("cant open %s\n", file);
@@ -577,8 +603,10 @@ readit(char *file)
 		tgsize = gsize+n;
 	}
 	m = read(fi, &games[gsize/sizeof(short)], n);
-	if(m != n)
-		print("short read %ld %ld\n", m, n);
+	if(m != n) {
+		fprint(2, "short read %ld %ld\n", m, n);
+		exits("read");
+	}
 	close(fi);
 	gsize += m;
 }
@@ -656,8 +684,9 @@ buildgames(void)
 {
 	Str *s;
 	char *cp;
-	ushort *p, *ep;
-	int n;
+	ushort *p, *ep, *gep;
+	int n, ch;
+	ulong b;
 
 	s = str;
 	ngames = 0;
@@ -695,19 +724,30 @@ buildgames(void)
 	g0[n+1] = 0;	/* shorts worth of moves */
 
 	s->gp = g0;
-	s->flag = 0;
+	s->mark = 0;
 	s->position = 0;
 	s++;
+
+	ch = 0;
+	b = genmark(ch+'a');
+	gep = &games[gsizelist[ch]/sizeof(*games)];
 
 	p = games;
 	ep = &games[gsize/sizeof(*games)];
 	while(p < ep) {
+		if(p >= gep) {
+			ch++;
+			b = genmark(ch+'a');
+			gep = &games[gsizelist[ch]/sizeof(*games)];
+			if(gsizelist[ch] == 0)
+				gep = ep;
+		}
 		ngames++;
 
 		cp = (char*)p;
 
 		s->gp = p;
-		s->flag = 0;
+		s->mark = b;
 		s->whiteoffset = (strchr(cp + Fileoffset, 0) - cp) + 1;
 		s->blackoffset = (strchr(cp + s->whiteoffset, 0) - cp) + 1;
 		s->eventoffset = (strchr(cp + s->blackoffset, 0) - cp) + 1;
@@ -919,6 +959,7 @@ sortit(int think)
 	if(think)
 		cursorswitch(&thinking);
 	qsort(str+1, ngames-1, sizeof(Str),
+		(sortby==Byorder)? sortorder:
 		(sortby==Byfile)? sortfile:
 		(sortby==Bywhite)? sortwhite:
 		(sortby==Byblack)? sortblack:

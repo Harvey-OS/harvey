@@ -118,9 +118,13 @@ extern int	bbonstack(void);
 #include	"bbk.h"
 #else
 #ifdef	T386
-#include	"bb8.h"
+#include	"bb8l.h"
+#else
+#ifdef	Thobbit
+#include	"bbcl.h"
 #else
 #include	"bbc.h"
+#endif
 #endif
 #endif
 #endif
@@ -133,6 +137,9 @@ extern int	bbonstack(void);
  * W2L is the number of words in a long
  * WMASK has bits set for the low order word of a long
  * WType is a pointer to a word
+ * if LENDIAN is defined, then left-to-right in bitmap
+ * means low-order-bit to high-order-bit within a word,
+ * otherwise it is high-order-bit to low-order-bit.
  */
 #ifndef WBITS
 #define WBITS	32
@@ -140,6 +147,23 @@ extern int	bbonstack(void);
 #define	W2L	1
 #define WMASK	~0UL
 typedef ulong	*WType;
+#endif
+/*
+ * scrshl(v,o) shifts a word v by o bits screen-leftward
+ * scrshr(v,o) shifts a word v by o bits screen-rightward
+ * scrpix(v,i,l) gets the value of pixel i within word v when ldepth is l
+ * scrmask(i,l) has ones for pixel i when ldepth is l
+ */
+#ifdef LENDIAN
+#define scrshl(v,o)	((v)>>(o))
+#define scrshr(v,o)	((v)<<(o))
+#define scrpix(v,i,l)	(((v)>>((i)<<(l)))&((1<<(1<<(l)))-1))
+#define scrmask(i,l)	(((1<<(1<<(l)))-1)<<((i)<<(l)))
+#else
+#define scrshl(v,o)	((v)<<(o))
+#define scrshr(v,o)	((v)>>(o))
+#define scrpix(v,i,l)	(((v)>>(32-(((i)+1)<<(l))))&((1<<(1<<(l)))-1))
+#define scrmask(i,l)	(((1<<(1<<(l)))-1)<<(32-(((i)+1)<<l)))
 #endif
 
 void
@@ -313,8 +337,8 @@ gbitblt(GBitmap *dm, Point pt, GBitmap *sm, Rectangle r, Fcode fcode)
 	}
 
 	/* c has original doff (relative to beginning) */
-	lmask = WMASK >> c;
-	rmask = (WMASK << (WBITS - ((c+width) & (WBITS-1))))&WMASK;
+	lmask = scrshr(WMASK,c);
+	rmask = scrshl(WMASK,(WBITS - ((c+width) & (WBITS-1))))&WMASK;
 	if(!rmask)
 		rmask = WMASK;
 	if(sh != 0) {
@@ -1235,12 +1259,14 @@ int	swds, dwds;
 long	ticks;
 int	timeit;
 
-#ifdef T386
+#ifdef BYTEREV
 ulong
 byterev(ulong v)
 {
 	return (v>>24)|((v>>8)&0x0000FF00)|((v<<8)&0x00FF0000)|(v<<24);
 }
+#endif
+#ifdef T386
 long _clock;
 #endif
 
@@ -1395,7 +1421,7 @@ main(int argc, char *argv[])
 	}
 
 	print("sld %d dld %d\n", sld, dld);
-	op = Zero;
+	op = 1/*Zero*/;
 
 	/* bitmaps for 1-bit tests */
 	bd = gballoc(Rect(0,0,32,1), dld);
@@ -1438,12 +1464,12 @@ loop:
 			d = lrand();
 			ps[0] = s;
 			pd[0] = d;
-#ifdef T386
-			spix = (byterev(s) >> (32 - ((f+1)<<sld))) & ((1 << (1<<sld)) - 1);
-			dpix = (byterev(d) >> (32 - ((t+1)<<dld))) & ((1 << (1<<dld)) - 1);
+#ifdef BYTEREV
+			spix = scrpix(byterev(s),f,sld);
+			dpix = scrpix(byterev(d),t,dld);
 #else
-			spix = (s >> (32 - ((f+1)<<sld))) & ((1 << (1<<sld)) - 1);
-			dpix = (d >> (32 - ((t+1)<<dld))) & ((1 << (1<<dld)) - 1);
+			spix = scrpix(s,f,sld);
+			dpix = scrpix(d,t,dld);
 #endif
 			apix = func(op, spix, sld, dpix, dld);
 			gbitblt(bd, Pt(t,0), bs, Rect(f,0,f+1,1), op);
@@ -1451,8 +1477,8 @@ loop:
 				print("bb src %.8lux %.8lux %d %d\n", ps[0], s, f, t);
 				exits("error");
 			}
-			m = ((1 << (1<<dld)) - 1) << (32 - ((t+1)<<dld));
-#ifdef T386
+			m = scrmask(t,dld);
+#ifdef BYTEREV
 			m = byterev(m);
 #endif
 			if((pd[0] & ~m) != (d & ~m)) {
@@ -1463,10 +1489,10 @@ loop:
 					prprog();
 					exits("error");
 			}
-#ifdef T386
-			fpix = (byterev(pd[0]) >> (32 - ((t+1)<<dld))) & ((1 << (1<<dld)) - 1);
-	#else
-			fpix = (pd[0] >> (32 - ((t+1)<<dld))) & ((1 << (1<<dld)) - 1);
+#ifdef BYTEREV
+			fpix = scrpix(byterev(pd[0]),t,dld);
+#else
+			fpix = scrpix(pd[0],t,dld);
 #endif
 			if(apix != fpix) {
 				print("bb dst2 %.8lux %.8lux\n",

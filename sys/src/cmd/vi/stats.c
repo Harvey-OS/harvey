@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <mach.h>
 #include <bio.h>
+#include <mach.h>
 #define Extern extern
 #include "mips.h"
 
@@ -178,7 +178,8 @@ segsum(void)
 	Bprint(bioout, "      Base     End      Resident References\n");
 	for(i = 0; i < Nseg; i++) {
 		s = &memory.seg[i];
-		Bprint(bioout, "%-5s %.8lux %.8lux %-8d %-8d\n", stype[i], s->base, s->end, s->rss*BY2PG, s->refs);
+		Bprint(bioout, "%-5s %.8lux %.8lux %-8d %-8d\n",
+				stype[i], s->base, s->end, s->rss*BY2PG, s->refs);
 	}
 }
 
@@ -201,20 +202,20 @@ iprofile(void)
 {
 	Prof *p, *n;
 	int i, b, e;
-	ulong base, total;
+	ulong total;
+	extern ulong textbase;
 
 	i = 0;
 	p = prof;
 	if(textsym(&p->s, i) == 0)
 		return;
 	i++;
-	base = p->s.value;
 	for(;;) {
 		n = p+1;
 		if(textsym(&n->s, i) == 0)
 			break;
-		b = (p->s.value-base)/PROFGRAN;
-		e = (n->s.value-base)/PROFGRAN;
+		b = (p->s.value-textbase)/PROFGRAN;
+		e = (n->s.value-textbase)/PROFGRAN;
 		while(b < e)
 			p->count += iprof[b++];
 		i++;

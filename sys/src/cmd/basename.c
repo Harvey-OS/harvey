@@ -12,14 +12,13 @@ main(int argc, char *argv[])
 		exits("usage");
 	}
 	pr = utfrrune(argv[1], '/');
-	if(pr == 0){
-		print("%s\n", argv[1]);
-		exits(0);
-	}
-	pr++;
+	if(pr)
+		pr++;
+	else
+		pr = argv[1];
 	if(argc==3){
 		n = strlen(pr)-strlen(argv[2]);
-		if(utfutf(pr+n, argv[2]))
+		if(n >= 0 && !strcmp(pr+n, argv[2]))
 			pr[n] = 0;
 	}
 	print("%s\n", pr);

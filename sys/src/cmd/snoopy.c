@@ -159,8 +159,8 @@ int	sprintpup(void*, char*, int);
 int	sprintarp(void*, char*);
 int	sprintip(void*, char*, int);
 int	sprintx(void*, char*, int);
-int	eaddrconv(void*, int, int, int, int);
-int	ipaddrconv(void*, int, int, int, int);
+int	eaddrconv(void*, Fconv*);
+int	ipaddrconv(void*, Fconv*);
 char*	translate(NS*, char*);
 
 void
@@ -279,13 +279,12 @@ main(int argc, char *argv[])
 }
 
 int
-eaddrconv(void *v, int f1, int f2, int f3, int ch)
+eaddrconv(void *v, Fconv *f)
 {
 	uchar *ea;
 	char buf[32];
 	char *name;
 
-	USED(ch);
 	ea = *(uchar **)v;
 	sprint(buf, "%.2ux%.2ux%.2ux%.2ux%.2ux%.2ux",
 		ea[0], ea[1], ea[2], ea[3], ea[4], ea[5]);
@@ -293,25 +292,24 @@ eaddrconv(void *v, int f1, int f2, int f3, int ch)
 		name = buf;
 	else
 		name = translate(&etns, buf);
-	strconv(name, f1, f2, f3);
+	strconv(name, f);
 	return(sizeof(char*));
 }
 
 int
-ipaddrconv(void *v, int f1, int f2, int f3, int ch)
+ipaddrconv(void *v, Fconv *f)
 {
 	uchar *ip;
 	char buf[32];
 	char *name;
 
-	USED(ch);
 	ip = *(uchar **)v;
 	sprint(buf, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 	if(nflag)
 		name = buf;
 	else
 		name = translate(&ipns, buf);
-	strconv(name, f1, f2, f3);
+	strconv(name, f);
 	return(sizeof(char*));
 }
 

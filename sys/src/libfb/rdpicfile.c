@@ -2,32 +2,28 @@
 #include <libc.h>
 #include <libg.h>
 #include <fb.h>
+#define	NBIT	8		/* bits per uchar, a source of non-portability */
 Bitmap *rdpicfile(PICFILE *f, int ldepth){
 	int wid=PIC_WIDTH(f);
 	int hgt=PIC_HEIGHT(f);
 	int nchan=PIC_NCHAN(f);
 	int w=1<<ldepth;
 	int nval=1<<w;
-	Bitmap *b;
-	int y;
-	char *buf, *p;
-	int lum, value, shift, pv;
-	uchar data[1024], *dp;
-	int *error, *ep, *eerror, cerror;
-	buf=malloc(wid*nchan);
-	if(buf==0) return 0;
-	error=malloc((wid+2)*sizeof(int));
+	Bitmap *b=balloc(Rect(0, 0, wid, hgt), ldepth);
+	char *buf=malloc(wid*nchan);
+	uchar *data=malloc((wid*w+NBIT-1)/NBIT);
+	int *error=malloc((wid+2)*sizeof(int));
+	int *ep, *eerror, cerror, y, lum, value, shift, pv;
+	uchar *dp;
+	char *p;
+	if(buf==0 || error==0 || data==0 || b==0){
+		if(buf) free(buf);
+		if(error) free(error);
+		if(data) free(data);
+		if(b) bfree(b);
+		return 0;
+	}
 	eerror=error+wid+1;
-	if(error==0){
-		free(buf);
-		return 0;
-	}
-	b=balloc(Rect(0, 0, wid, hgt), ldepth);
-	if(b==0){
-		free(buf);
-		free(error);
-		return 0;
-	}
 	switch(nchan){
 	case 3:
 	case 4:
@@ -48,7 +44,7 @@ Bitmap *rdpicfile(PICFILE *f, int ldepth){
 		for(ep=error+1;ep!=eerror;ep++){
 			shift-=w;
 			if(shift<0){
-				shift+=8;
+				shift+=NBIT;
 				*++dp=0;
 			}
 			if(lum)
@@ -69,5 +65,6 @@ Bitmap *rdpicfile(PICFILE *f, int ldepth){
 	}
 	free(buf);
 	free(error);
+	free(data);
 	return b;
 }

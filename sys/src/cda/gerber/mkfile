@@ -1,0 +1,49 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=layout\
+	gview\
+	route\
+	googoo\
+
+</sys/src/cmd/mkmany
+
+rtgraph.$O rtfill.$O:	rtgraph.h
+
+%.$O:	%.c
+	$CC -w $stem.c
+
+$O.layout:	layout.$O rtgraph.$O rtfill.$O gerberfill.$O gerberfont.$O
+$O.route:	route.$O
+$O.gview:	gview.$O gfill.$O
+$O.googoo:	googoo.$O goofill.$O
+
+gview.$O layout.$O:	gerber.h
+
+fontgen:	fontgen.c
+	$CC -w fontgen.c && $LD -o $target fontgen.$O
+
+gfont.h:D:	fontgen gfont.map gfont.dat
+	fontgen gfont.map gfont.dat > gfont.h
+
+gerberfont.$O:	gfont.h
+
+%.install-n:V:	%
+	mk -n $stem
+	echo mv $stem $BIN/$stem
+
+%.installall-n:V:
+	for(objtype in $CPUS) mk -n $stem.install
+
+
+test:V:	ex1.cu.ger ex1.silk.ger $O.gview
+	$O.gview -a ex1.gerber -rg ex1.cu.ger -Rb ex1.silk.ger
+
+ex1.cu.ger:D:	$O.layout ex1.fizz
+	$O.layout -gl ex1.fizz > $target
+ex1.silk.ger:D:	$O.layout ex1.fizz
+	$O.layout -a ex1. -sg ex1.fizz > $target
+
+poot:V:	$O.layout $O.route ex1.fizz-lay
+	$O.route -t ex1.fizz-lay > junk.v
+	$O.layout -q ex1.fizz-lay junk.v

@@ -1,6 +1,5 @@
 void	accessdir(Iobuf*, Dentry*, int);
 void	addfree(Device, long, Superb*);
-int	adminallow(void);
 int	auth(File*, int, Fcall*, Fcall*);
 long	balloc(Device, int, long);
 void	bfree(Device, long, int);

@@ -27,5 +27,5 @@ int	readarg(int, char*, int);
 void	readln(char*, char*, int);
 void	getpass(char*, int);
 int	getauthkey(char*);
-int	keyconv(void *, int, int, int, int);
+int	keyconv(void *, Fconv*);
 long	tm2sec(Tm tm);

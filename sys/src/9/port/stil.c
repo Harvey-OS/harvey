@@ -274,7 +274,7 @@ ilrcvmsg(Ipifc *ifc, Block *bp)
 	Ilhdr *ih;
 	Ilcb *ic;
 	int plen, illen;
-	Ipconv *s, **p, **etab, *new;
+	Ipconv *s, **p, **etab, *new, *spec, *gen;
 	short sp, dp;
 	Ipaddr dst;
 
@@ -315,46 +315,61 @@ ilrcvmsg(Ipifc *ifc, Block *bp)
 	if(ih->iltype != Ilsync)
 		goto drop;
 
-	/* Look for a listener */
-	for(p = ifc->conv; p < etab; p++) {
+	gen = 0;
+	spec = 0;
+	etab = &ifc->conv[Nipconv];
+	for(p = ifc->conv; p < etab && *p; p++) {
 		s = *p;
-		if(s == 0)
-			break;
 		if(s->ilctl.state == Illistening)
 		if(s->pdst == 0)
 		if(s->dst == 0) {
-			if(s->curlog > s->backlog)
-				goto reset;
-
-			new = ipincoming(ifc, s);
-			if(new == 0)
-				goto reset;
-
-			new->newcon = s;
-			new->ifc = s->ifc;
-			new->psrc = sp;
-			new->pdst = dp;
-			new->dst = nhgetl(ih->src);
-
-			ic = &new->ilctl;
-			ic->state = Ilsyncee;
-			initseq += TK2MS(MACHP(0)->ticks);
-			ic->start = initseq & 0xffffff;
-			ic->next = ic->start+1;
-			ic->recvd = 0;
-			ic->rstart = nhgetl(ih->ilid);
-			ic->slowtime = Slowtime;
-			ic->rtt = Iltickms;
-			ic->querytime = Keepalivetime;
-			ic->deathtime = Keepalivetime;
-			ic->window = Defaultwin;
-			ilprocess(new, ih, bp);
-
-			s->curlog++;
-			wakeup(&s->listenr);
-			return;
+			if(s->psrc == sp){
+				spec = s;
+				break;
+			}
+			if(s->psrc == 0)
+				gen = s;
 		}
 	}
+
+	if(spec)
+		s = spec;
+	else if(gen)
+		s = gen;
+	else
+		goto drop;
+
+	if(s->curlog > s->backlog)
+		goto reset;
+
+	new = ipincoming(ifc, s);
+	if(new == 0)
+		goto reset;
+
+	new->newcon = s;
+	new->ifc = s->ifc;
+	new->psrc = sp;
+	new->pdst = dp;
+	new->dst = nhgetl(ih->src);
+
+	ic = &new->ilctl;
+	ic->state = Ilsyncee;
+	initseq += TK2MS(MACHP(0)->ticks);
+	ic->start = initseq & 0xffffff;
+	ic->next = ic->start+1;
+	ic->recvd = 0;
+	ic->rstart = nhgetl(ih->ilid);
+	ic->slowtime = Slowtime;
+	ic->rtt = Iltickms;
+	ic->querytime = Keepalivetime;
+	ic->deathtime = Keepalivetime;
+	ic->window = Defaultwin;
+	ilprocess(new, ih, bp);
+
+	s->curlog++;
+	wakeup(&s->listenr);
+	return;
+
 drop:
 	freeb(bp);
 	return;

@@ -17,6 +17,13 @@ typedef struct {
 } Irq;
 #define IRQADDR		IONAK(Irq, 0x0080)
 
+#define IRQQUART	1		/* 0x0002 */
+#define IRQINCON	5		/* 0x0020 */
+#define IRQSCSIDMA	8		/* 0x0100 */
+#define IRQSONIC	9		/* 0x0200 */
+#define IRQSCSI		10		/* 0x0400 */
+#define NIRQ		16
+
 /*
  * Signetics 68C94
  * Quad Universal Asynchronous Receiver/Transmitter
@@ -121,7 +128,7 @@ typedef struct RTCdev {
 #define RTCADDR		IONAK(RTCdev, 0x3FE0)
 
 /*
- * PCD8584 IIC-bus Controller
+ * PCF8584 IIC-bus Controller
  */
 typedef struct {
 	ulong	data;
@@ -130,11 +137,81 @@ typedef struct {
 #define IICADDR		IOACK(Iic, 0x0080)
 
 /*
+ * Structure of the data held in the PCF8582
+ * EEPROM on the IIC-bus.
+ */
+typedef struct Eeprom {
+	uchar	magic[5];
+	uchar	ea[6];
+	uchar	mask;
+	uchar	clock;
+	uchar	dsp;
+	uchar	pcb;
+	uchar	rev;
+} Eeprom;
+#define EEPROMMAGIC	"A600D92010"
+
+/*
  * WD33C93A SCSI Bus Interface Controller
  */
 typedef struct {
 	ulong	addr;
 	ulong	data;
 } SCSIdev;
-#define SCSIADDR	IONAK(SCSIdev, 0x0100)
+#define SCSIADDR	IONAK(ulong, 0x0100)
+#define SCSIDATA	IONAK(ulong, 0x0104)
 #define SCSIPDMA	IONAK(ulong, 0x0180)
+
+/*
+ * National Semiconductor DP83932
+ * Systems-Oriented Network Interface Controller
+ * (SONIC)
+ */
+typedef struct {
+	ulong	cr;		/* command */
+	ulong	dcr;		/* data configuration */
+	ulong	rcr;		/* receive control */
+	ulong	tcr;		/* transmit control */
+	ulong	imr;		/* interrupt mask */
+	ulong	isr;		/* interrupt status */
+	ulong	utda;		/* upper transmit descriptor address */
+	ulong	ctda;		/* current transmit descriptor address */
+	ulong	pad0x08[5];	/*  */
+	ulong	urda;		/* upper receive descriptor address */
+	ulong	crda;		/* current receive descriptor address */
+	ulong	pad0x0F[4];	/*  */
+	ulong	eobc;		/* end of buffer word count */
+	ulong	urra;		/* upper receive resource address */
+	ulong	rsa;		/* resource start address */
+	ulong	rea;		/* resource end address */
+	ulong	rrp;		/* resource read pointer */
+	ulong	rwp;		/* resource write pointer */
+	ulong	pad0x19[8];	/*  */
+	ulong	cep;		/* CAM entry pointer */
+	ulong	cap2;		/* CAM address port 2 */
+	ulong	cap1;		/* CAM address port 1 */
+	ulong	cap0;		/* CAM address port 0 */
+	ulong	ce;		/* CAM enable */
+	ulong	cdp;		/* CAM descriptor pointer */
+	ulong	cdc;		/* CAM descriptor count */
+	ulong	sr;		/* silicon revision */
+	ulong	wt0;		/* watchdog timer 0 */
+	ulong	wt1;		/* watchdog timer 1 */
+	ulong	rsc;		/* receive sequence counter */
+	ulong	crct;		/* CRC error tally */
+	ulong	faet;		/* FAE tally */
+	ulong	mpt;		/* missed packet tally */
+	ulong	mdt;		/* maximum deferral timer */
+	ulong	pad0x30[15];	/*  */
+	ulong	dcr2;		/* data configuration 2 */
+} Sonic;
+#define SONICADDR	((Sonic*)0xA4400000)
+
+/*
+ * Bart's LCD
+ */
+typedef struct {
+	ulong	ctl;
+	ulong	data;
+} Lcdisp;
+#define LCDADDR		IOACK(Lcdisp, 0x3000)

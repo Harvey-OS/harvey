@@ -1,7 +1,7 @@
 .TH FACTOR 1 
 .CT 1 numbers
 .SH NAME
-factor, qfactor, primes \(mi factor a number, generate large primes
+factor, primes \(mi factor a number, generate large primes
 .SH SYNOPSIS
 .B factor
 [
@@ -52,12 +52,6 @@ for hard 12-digit problems and is workable to around
 .if n .IR n =10**30.
 .if t .IR n =10\u\s-230\s0\d.
 ..
-.I Qfactor
-reads one number from the standard input and factors it.
-It will factor numbers
-up to about 40 digits.
-For large numbers it is much faster than
-.I factor.
 .PP
 .I Primes
 prints the prime numbers ranging from

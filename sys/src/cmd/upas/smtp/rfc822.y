@@ -3,7 +3,6 @@
 #include "smtp.h"
 #include <ctype.h>
 
-char	*yystart;	/* start of line being parsed */
 char	*yylp;		/* next character to be lex'd */
 Node	*root;
 Field	*firstfield;
@@ -90,6 +89,8 @@ destination	: TO ':' address_list
 		;
 optional	: other ':' things
 			{ newfield(link3($1, $2, $3), 0); }
+		| other ':'
+			{ newfield(link2($1, $2), 0); }
 		;
 address_list	: address
 		| address_list ',' address
@@ -165,7 +166,7 @@ other		: WORD | REMOTE
 void
 yyinit(char *p)
 {
-	yystart = yylp = p;
+	yylp = p;
 	firstfield = lastfield = 0;
 }
 
@@ -258,11 +259,7 @@ yylex(void)
 			case ',':
 			case ';':
 				if(yylp == start){
-					if(c == '\n'){
-						yystart = ++yylp;
-					} else {
-						yylp++;
-					}
+					yylp++;
 					yylval->white = yywhite();
 /*					print("lex(c %c)\n", c); /**/
 					yylval->end = yylp;
@@ -281,9 +278,11 @@ yylex(void)
 		s_putc(t, c);
 	}
 out:
-	if(t)
-		s_terminate(t);
 	yylval->white = yywhite();
+	if(t) {
+		s_terminate(t);
+	} else				/* message begins with white-space! */
+		return yylval->c = '\n';
 	yylval->s = t;
 	for(kp = key; kp->val != WORD; kp++)
 		if(cistrcmp(s_to_c(t), kp->rep)==0)
@@ -296,6 +295,8 @@ out:
 void
 yyerror(char *x)
 {
+	USED(x);
+
 	/*fprint(2, "parse err: %s\n", x);/**/
 }
 

@@ -19,10 +19,10 @@ Bitmap	*balloc(Rectangle r, int ldepth)
 void	bfree(Bitmap *b)
 .PP
 .B
-void	rdbitmap(Bitmap *b, int miny, int maxy, uchar *data)
+void	rdbitmap(Bitmap *b, int ymin, int ymax, uchar *data)
 .PP
 .B
-void	wrbitmap(Bitmap *b, int miny, int maxy, uchar *data)
+void	wrbitmap(Bitmap *b, int ymin, int ymax, uchar *data)
 .PP
 .B
 Bitmap	*rdbitmapfile(int fd)

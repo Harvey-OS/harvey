@@ -237,6 +237,17 @@ inst:
 	{
 		outcode($1, &$2, NREG, &nullgen);
 	}
+/*
+ * BREAK -- overloaded with CACHE opcode
+ */
+|	LTYPEJ comma
+	{
+		outcode($1, &nullgen, NREG, &nullgen);
+	}
+|	LTYPEJ vgen ',' vgen
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
 
 comma:
 |	','

@@ -35,18 +35,13 @@ Otherwise, lines, words and bytes
 .RB ( -lwc )
 are reported.
 .SH BUGS
-Three-byte
-.SM UTF
-codes higher than
-.B F7 65 B7
-(the
-.SM UTF
-encoding of
-.BR FFFF )
-are not counted among the illegals.
 Unicode has many blank characters scattered through it,
 but
 .I wc
 looks for only
 .SM ASCII
 space, tab and newline.
+.br
+.I Wc
+should have options to count suboptimal utf codes
+and bytes that cannot occur in any utf code.

@@ -1,0 +1,6 @@
+#!/bin/rc
+echo updating files
+9fs bootes
+disk/kfscmd allow
+disk/mkfs -s /n/bootes /lib/proto/smallproto
+disk/ksync

@@ -30,8 +30,8 @@ testbb:V:
 	rm -f gbitblt.$O
 
 testbbc:V:
-	$CC $CFLAGS -DTEST gbitblt.c
-	$LD gbitblt.$O
+	$CC -w -DTEST gbitblt.c
+	$LD gbitblt.$O tabs.$O
 	rm -f gbitblt.$O
 
 segtest:V:

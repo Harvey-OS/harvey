@@ -611,10 +611,13 @@ if(yydebug) {	fprintf(stderr, "xor: bit %x\n", bit); printmt(mt, mt0);}
 	return(mt0);
 }
 
+int get_mask(Minterm *, Minterm *);
+Minterm * reduce(Minterm*, Minterm*, int, Minterm*);
+
 Minterm*
 and(int flip, Minterm * mt0, Minterm * mt1, Minterm * mt2) 
 {
-	int n;
+	int n, mask;
 	Minterm *m0, *m1, *m2;
 	if(flip == 0) {
 		for(m0 = mt0, m2 = mt2; m0 < mt1; ++m0)
@@ -624,6 +627,11 @@ and(int flip, Minterm * mt0, Minterm * mt1, Minterm * mt2)
 	}
 	else
 		n = min_sort(mt0, mt0, mt2-mt0);
+	if(n > 1000) {
+		mask = get_mask(mt0, mt0+n);
+		mt1 = reduce(mt0, mt0+n, mask, &minterms[NCOMP]);
+		n = mt1-mt0;
+	}
 if(yydebug) {fprintf(stderr, "and: "); printmt(mt0, mt0+n);}
 	return(mt0+n);
 }

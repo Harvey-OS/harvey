@@ -54,3 +54,4 @@ char Enomem[] = "kernel allocate failed";
 char Esfnotcached[] = "subfont not cached";
 char Egreg[] = "it's a thermal problem";
 char Esoverlap[] = "segments overlap";
+char Emouseset[] = "mouse type already set";

@@ -429,7 +429,6 @@ buildop(void)
 			oprange[ANOR] = oprange[r];
 			break;
 		case ASYSCALL:
-			oprange[ABREAK] = oprange[r];
 			oprange[ATLBP] = oprange[r];
 			oprange[ATLBR] = oprange[r];
 			oprange[ATLBWI] = oprange[r];
@@ -457,6 +456,7 @@ buildop(void)
 		case AMOVF:
 			buildrep(6, AMOVF);
 			break;
+		case ABREAK:
 		case AWORD:
 		case ARFE:
 		case AJAL:

@@ -181,7 +181,9 @@ trap(Ureg *ur)
 	}
 
 	if(v>=256 || ivec[v] == 0){
-		panic("bad trap type %d %lux %lux %lux\n", v, ur->pc, int0mask, int1mask);
+		print("bad trap type %d %lux %lux %lux\n", v, ur->pc, int0mask, int1mask);
+		outb(Int1ctl, EOI);
+		outb(Int0ctl, EOI);
 		return;
 	}
 

@@ -270,6 +270,7 @@ docmd(void)
 		return;
 
 	case 'q':
+	case 0x04:
 		exits(0);
 
 	case 'r':	/* read-add */
@@ -277,11 +278,33 @@ docmd(void)
 		cursorswitch(&reading);
 		while(*cmd == ' ')
 			cmd++;
-		rscale = (Nscale-1)/2;
-		normscales();
-		readdict(cmd, &map.here, c=='e');
-		map.loc = map.here;
-		w.loc = map.here;
+		readdict(cmd, &map.loc, c=='e');
+		w.loc = map.loc;
+		sprint(w.p1.line[0], "X99; init");
+		for(i=1; i<Nline; i++)
+			w.p1.line[i][0] = 0;
+		break;
+
+	case 'p':
+		getplace(cmd, &map.loc);
+		w.loc = map.loc;
+		break;
+
+	case 'l':
+		while(*cmd == ' ')
+			cmd++;
+		if(*cmd) {
+			getplace(cmd, &map.loc);
+			w.loc = map.loc;
+		}
+		cursorswitch(&reading);
+		while(*cmd == ' ')
+			cmd++;
+		i = DEGREE(map.loc.lat)*5;
+		n = DEGREE(map.loc.lng)*5;
+		sprint(cmd, "/lib/roads/%.4d/%.4d.%.4d.h", i, i, n);
+		readdict(cmd, &map.loc, 0);
+		w.loc = map.loc;
 		sprint(w.p1.line[0], "X99; init");
 		for(i=1; i<Nline; i++)
 			w.p1.line[i][0] = 0;

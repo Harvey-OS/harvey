@@ -22,8 +22,11 @@ struct Conf {
 	ulong	nimage;		/* number of page cache image headers */
 	ulong 	npagetab;	/* number of pte tables */
 	ulong	nswap;		/* number of swap blocks */
-	int	nlapd;		/* number of dragnet protocol modules */
 	int	copymode;	/* 0 is copy on write, 1 is copy on reference */
+	ulong	ipif;		/* Ip protocol interfaces */
+	ulong	ip;		/* Ip conversations per interface */
+	ulong	arp;		/* Arp table size */
+	ulong	frag;		/* Ip fragment assemble queue size */
 };
 
 /*

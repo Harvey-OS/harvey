@@ -1146,7 +1146,7 @@ cinit(void)
 
 	fmtinstall('O', Oconv);
 	fmtinstall('T', Tconv);
-	fmtinstall('F', Fconv);
+	fmtinstall('F', FNconv);
 	fmtinstall('L', Lconv);
 	fmtinstall('Q', Qconv);
 	fmtinstall('|', VBconv);
@@ -1191,21 +1191,20 @@ pop:
 }
 
 int
-Oconv(void *o, int f1, int f2, int f3, int chr)
+Oconv(void *o, Fconv *fp)
 {
 	int a;
 
-	USED(chr);
 	a = *(int*)o;
 	if(a < OXXX || a > OEND)
-		strconv(xOconv(a), f1, f2, f3);
+		strconv(xOconv(a), fp);
 	else
-		strconv(onames[a], f1, f2, f3);
+		strconv(onames[a], fp);
 	return sizeof(a);
 }
 
 int
-Lconv(void *o, int f1, int f2, int f3, int chr)
+Lconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ], s[STRINGSZ];
 	Hist *h;
@@ -1219,7 +1218,6 @@ Lconv(void *o, int f1, int f2, int f3, int chr)
 	long l, d;
 	int i, n;
 
-	USED(chr);
 	l = *(long*)o;
 	n = 0;
 	for(h = hist; h != H; h = h->link) {
@@ -1253,7 +1251,7 @@ Lconv(void *o, int f1, int f2, int f3, int chr)
 	str[0] = 0;
 	for(i=n-1; i>=0; i--) {
 		if(i != n-1) {
-			if(f3)
+			if(fp->f3)
 				break;
 			strcat(str, " ");
 		}
@@ -1271,18 +1269,17 @@ Lconv(void *o, int f1, int f2, int f3, int chr)
 	}
 	if(n == 0)
 		strcat(str, "<eof>");
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(l);
 }
 
 int
-Tconv(void *o, int f1, int f2, int f3, int chr)
+Tconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ], s[STRINGSZ];
 	Type *t, *t1;
 	int et;
 
-	USED(chr);
 	str[0] = 0;
 	for(t = *(Type**)o; t != T; t = t->link) {
 		et = t->etype;
@@ -1318,33 +1315,31 @@ Tconv(void *o, int f1, int f2, int f3, int chr)
 			break;
 		}
 	}
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(t);
 }
 
 int
-Fconv(void *o, int f1, int f2, int f3, int chr)
+FNconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Node *n;
 
-	USED(chr);
 	n = *(Node**)o;
 	strcpy(str, "<indirect>");
 	if(n != Z && (n->op == ONAME || n->op == ODOT))
 		strcpy(str, n->sym->name);
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(n);
 }
 
 int
-Qconv(void *o, int f1, int f2, int f3, int chr)
+Qconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ], *s;
 	long b;
 	int i;
 
-	USED(chr);
 	str[0] = 0;
 	for(b = *(long*)o; b;) {
 		i = bitno(b);
@@ -1356,18 +1351,17 @@ Qconv(void *o, int f1, int f2, int f3, int chr)
 		strcat(str, s);
 		b &= ~(1L << i);
 	}
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(b);
 }
 
 int
-VBconv(void *o, int f1, int f2, int f3, int chr)
+VBconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ];
 	int i, n, t, pc;
 	extern printcol;
 
-	USED(chr);
 	n = *(int*)o;
 	pc = printcol;
 	i = 0;
@@ -1382,7 +1376,7 @@ VBconv(void *o, int f1, int f2, int f3, int chr)
 		pc++;
 	}
 	str[i] = 0;
-	strconv(str, f1, f2, f3);
+	strconv(str, fp);
 	return sizeof(n);
 }
 

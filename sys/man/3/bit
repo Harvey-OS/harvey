@@ -160,6 +160,29 @@ If only
 is provided \(em that is, if the message is one byte long \(em
 the cursor changes to the default, typically an arrow.
 .HP
+.B e
+.IR id [2]
+.IR pt [8]
+.IR value [1]
+.IR code [2]
+.IR n [2]
+.IR pts [ n *2]
+.br
+Join the
+.IR n +1
+points
+.I pt
+and
+.I pts
+with
+.I n
+segments, exactly as for the
+.I l
+operator.  The
+.I pts
+are specified by pairs of signed bytes
+holding offsets from the previous point in the list.
+.HP
 .B f
 .IR id [2]
 .br
