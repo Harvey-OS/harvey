@@ -13928,3 +13928,4 @@
 1066827680 0 c sys/man/4/exportfs - 664 sys sys 1066826682 4336
 1066849305 0 c 386/bin/fossil/fossil - 775 sys sys 1066848944 345758
 1066849305 1 c sys/src/cmd/fossil/file.c - 664 sys sys 1066848926 28000
+1067005874 0 c sys/games/lib/fortunes - 664 sys sys 1067005891 246404
