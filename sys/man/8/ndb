@@ -200,7 +200,7 @@ When the
 option is specified, the servers used come from the
 .I dns
 attribute in the database.  For example, to specify a set of dns servers that
-systems on the network
+will resolve requests for systems on the network
 .IR mh-net :
 .EX
 
@@ -235,10 +235,11 @@ server names to their ip addresses.  This is only
 a hint and will be superseded from whatever is learned
 from servers owning the domain.
 .PP
-The root of a domain subtree served by the local database is indicated
-by an entry with an
-.B soa
-attribute.
+You can also serve a subtree of the domain name space from the local
+database.  You indicate subtrees that you'ld like to serve by
+adding an
+.B soa=
+attribute to the root entry.
 For example, the Bell Labs CS research domain is:
 .EX
 
@@ -265,6 +266,37 @@ and
 .B ttl
 define the area refresh interval and the minimum TTL for
 records in this domain.
+.PP
+You can also serve reverse lookups (returning the name that
+goes with an IP address) by adding an
+.B soa=
+attribute to the entry defining the root of the reverse space.
+For example, to provide reverse lookup for all addresses in
+starting with 135.104 you must have a record like:
+.EX
+
+dom=104.135.in-addr.arpa soa=
+	refresh=3600 ttl=3600
+	ns=plan9.bell-labs.com
+	ns=ns1.cs.bell-labs.com
+	ns=ns2.cs.bell-labs.com
+.EE
+Notice the form of the reverse address, i.e., it's the bytes of the
+address range you are serving reversed and with
+.B .in-addr.arpa
+appended.  This is a standard form for an IPv4 PTR record name.
+.PP
+If such an entry exists in the database, reverse addresses will
+automaticly be generated from any IP addresses in the database
+that are under this root.  For example
+.EX
+
+dom=ns1.cs.bell-labs.com ip=135.104.1.11
+.EE
+will automaticly create both forward and reverse entries for
+.B ns1.cs.bell-labs.com .
+Unlike other DNS servers, there's no way to generate
+inconsistent forward and reverse entries.
 .PP
 Delegation of a further subtree to another set of name servers
 is indicated by an
