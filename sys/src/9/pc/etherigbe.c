@@ -1,13 +1,17 @@
 /*
- * Intel RS-8254[3456]NN Gigabit Ethernet Controller
- * as found on the Intel PRO/1000 series of adapters.
+ * Intel 8254[340]NN Gigabit Ethernet Controller
+ * as found on the Intel PRO/1000 series of adapters:
+ *	82543GC	Intel PRO/1000 T
+ *	82544EI Intel PRO/1000 XT
+ *	82540EM Intel PRO/1000 MT
  *
  * To Do:
  *	finish autonegotiation code;
  *	integrate fiber stuff back in (this ONLY handles
  *	the CAT5 cards at the moment);
- *	redo the transmit code to use a transmit routine
- *	again, but figure out how to use fewer interupts.
+ *	add checksum-offload;
+ *	add tuning control via ctl file;
+ *	this driver is little-endian specific.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -56,6 +60,7 @@ enum {
 	Rdt		= 0x00002818,	/* Receive Descriptor Tail */
 	Rdtr		= 0x00002820,	/* Receive Descriptor Timer Ring */
 	Rxdctl		= 0x00002828,	/* Receive Descriptor Control */
+	Radv		= 0x0000282C,	/* Receive Interrupt Absolute Delay Timer */
 	Txdmac		= 0x00003000,	/* Transfer DMA Control */
 	Ett		= 0x00003008,	/* Early Transmit Control */
 	Tdfh		= 0x00003410,	/* Transmit data fifo head */
@@ -70,6 +75,7 @@ enum {
 	Tdt		= 0x00003818,	/* Transmit Descriptor Tail */
 	Tidv		= 0x00003820,	/* Transmit Interrupt Delay Value */
 	Txdctl		= 0x00003828,	/* Transmit Descriptor Control */
+	Tadv		= 0x0000382C,	/* Transmit Interrupt Absolute Delay Timer */
 
 	Statistics	= 0x00004000,	/* Start of Statistics Area */
 	Gorcl		= 0x88/4,	/* Good Octets Received Count */
@@ -82,6 +88,7 @@ enum {
 	Mta		= 0x00005200,	/* Multicast Table Array */
 	Ral		= 0x00005400,	/* Receive Address Low */
 	Rah		= 0x00005404,	/* Receive Address High */
+	Manc		= 0x00005820,	/* Management Control */
 };
 
 enum {					/* Ctrl */
@@ -122,6 +129,12 @@ enum {					/* Status */
 	Mtxckok		= 0x00000400,	/* MTX clock is running */
 	Pci66		= 0x00000800,	/* PCI Bus speed indication */
 	Bus64		= 0x00001000,	/* PCI Bus width indication */
+	Pcixmode	= 0x00002000,	/* PCI-X mode */
+	PcixspeedMASK	= 0x0000C000,	/* PCI-X bus speed */
+	PcixspeedSHIFT	= 14,
+	Pcix66		= 0x00000000,	/* 50-66MHz */
+	Pcix100		= 0x00004000,	/* 66-100MHz */
+	Pcix133		= 0x00008000,	/* 100-133MHz */
 };
 
 enum {					/* Ctrl and Status */
@@ -138,6 +151,10 @@ enum {					/* Eecd */
 	Cs		= 0x00000002,	/* Chip Select */
 	Di		= 0x00000004,	/* Data Input to the EEPROM */
 	Do		= 0x00000008,	/* Data Output from the EEPROM */
+	Areq		= 0x00000040,	/* EEPROM Access Request */
+	Agnt		= 0x00000080,	/* EEPROM Access Grant */
+	Eesz256		= 0x00000200,	/* EEPROM is 256 words not 64 */
+	Spi		= 0x00002000,	/* EEPROM is SPI not Microwire */
 };
 
 enum {					/* Ctrlext */
@@ -291,8 +308,9 @@ enum {					/* [RT]xdctl */
 	HthreshSHIFT	= 8,
 	WthreshMASK	= 0x003F0000,	/* Writeback Threshold */
 	WthreshSHIFT	= 16,
-	Gran		= 0x00000000,	/* Granularity */
-	RxGran		= 0x01000000,	/* Granularity */
+	Gran		= 0x01000000,	/* Granularity */
+	LthreshMASK	= 0xFE000000,	/* Low Threshold */
+	LthreshSHIFT	= 25,
 };
 
 enum {					/* Rxcsum */
@@ -302,7 +320,13 @@ enum {					/* Rxcsum */
 	Tuofl		= 0x00000200,	/* TCP/UDP Checksum Off-load Enable */
 };
 
+enum {					/* Manc */
+	Arpen		= 0x00002000,	/* Enable ARP Request Filtering */
+};
+
 enum {					/* Receive Delay Timer Ring */
+	DelayMASK	= 0x0000FFFF,	/* delay timer in 1.024nS increments */
+	DelaySHIFT	= 0,
 	Fpd		= 0x80000000,	/* Flush partial Descriptor Block */
 };
 
@@ -335,22 +359,35 @@ enum {					/* Rd errors */
 	Rxe		= 0x80,		/* RX Data Error */
 };
 
-typedef struct Td {			/* Legacy+Normal Transmit Descriptor */
-	uint	addr[2];
-	uint	control;		/* varies with descriptor type */
-	uint	status;			/* varies with descriptor type */
+typedef struct {			/* Transmit Descriptor */
+	union {
+		uint	addr[2];	/* Data */
+		struct {		/* Context */
+			uchar	ipcss;
+			uchar	ipcso;
+			ushort	ipcse;
+			uchar	tucss;
+			uchar	tucso;
+			ushort	tucse;
+		};
+	};
+	uint	control;
+	uint	status;
 } Td;
 
 enum {					/* Td control */
-	CsoMASK		= 0x00000F00,	/* Checksum Offset */
-	CsoSHIFT	= 16,
-	Teop		= 0x01000000,	/* End of Packet */
-	Ifcs		= 0x02000000,	/* Insert FCS */
-	Ic		= 0x04000000,	/* Insert Checksum (Dext == 0) */
-	Tse		= 0x04000000,	/* TCP Segmentaion Enable (Dext == 1) */
+	LenMASK		= 0x000FFFFF,	/* Data/Packet Length Field */
+	LenSHIFT	= 0,
+	DtypeCD		= 0x00000000,	/* Data Type 'Context Descriptor' */
+	DtypeDD		= 0x00100000,	/* Data Type 'Data Descriptor' */
+	PtypeTCP	= 0x01000000,	/* TCP/UDP Packet Type (CD) */
+	Teop		= 0x01000000,	/* End of Packet (DD) */
+	PtypeIP		= 0x02000000,	/* IP Packet Type (CD) */
+	Ifcs		= 0x02000000,	/* Insert FCS (DD) */
+	Tse		= 0x04000000,	/* TCP Segmentation Enable */
 	Rs		= 0x08000000,	/* Report Status */
 	Rps		= 0x10000000,	/* Report Status Sent */
-	Dext		= 0x20000000,	/* Extension (!legacy) */
+	Dext		= 0x20000000,	/* Descriptor Extension */
 	Vle		= 0x40000000,	/* VLAN Packet Enable */
 	Ide		= 0x80000000,	/* Interrupt Delay Enable */
 };
@@ -360,8 +397,17 @@ enum {					/* Td status */
 	Ec		= 0x00000002,	/* Excess Collisions */
 	Lc		= 0x00000004,	/* Late Collision */
 	Tu		= 0x00000008,	/* Transmit Underrun */
-	CssMASK		= 0x0000FF00,	/* Checksum Start Field */
-	CssSHIFT	= 8,
+	Iixsm		= 0x00000100,	/* Insert IP Checksum */
+	Itxsm		= 0x00000200,	/* Insert TCP/UDP Checksum */
+	HdrlenMASK	= 0x0000FF00,	/* Header Length (Tse) */
+	HdrlenSHIFT	= 8,
+	VlanMASK	= 0x0FFF0000,	/* VLAN Identifier */
+	VlanSHIFT	= 16,
+	Tcfi		= 0x10000000,	/* Canonical Form Indicator */
+	PriMASK		= 0xE0000000,	/* User Priority */
+	PriSHIFT	= 29,
+	MssMASK		= 0xFFFF0000,	/* Maximum Segment Size (Tse) */
+	MssSHIFT	= 16,
 };
 
 enum {
@@ -404,9 +450,11 @@ typedef struct Ctlr {
 	uint	lintr;
 	uint	rsleep;
 	uint	rintr;
-	uint	tsleep;
 	uint	txdw;
 	uint	tintr;
+	uint	ixsm;
+	uint	ipcs;
+	uint	tcpcs;
 
 	uchar	ra[Eaddrlen];		/* receive address */
 	ulong	mta[128];		/* multicast table array */
@@ -418,9 +466,10 @@ typedef struct Ctlr {
 	Block**	rb;			/* receive buffers */
 	int	rdh;			/* receive descriptor head */
 	int	rdt;			/* receive descriptor tail */
+	int	rdtr;			/* receive delay timer ring value */
 
-	Rendez	trendez;
-	int	tim;
+	Lock	tlock;
+	int	tbusy;
 	int	tdfree;
 	Td*	tdba;			/* transmit descriptor base address */
 	Block**	tb;			/* transmit buffers */
@@ -435,11 +484,11 @@ typedef struct Ctlr {
 #define csr32r(c, r)	(*((c)->nic+((r)/4)))
 #define csr32w(c, r, v)	(*((c)->nic+((r)/4)) = (v))
 
-static Ctlr* i82543ctlrhead;
-static Ctlr* i82543ctlrtail;
+static Ctlr* igbectlrhead;
+static Ctlr* igbectlrtail;
 
-static Lock i82543rblock;		/* free receive Blocks */
-static Block* i82543rbpool;
+static Lock igberblock;		/* free receive Blocks */
+static Block* igberbpool;
 
 static char* statistics[Nstatistics] = {
 	"CRC Error",
@@ -507,6 +556,645 @@ static char* statistics[Nstatistics] = {
 	"TCP Segmentation Context Transmitted",
 	"TCP Segmentation Context Fail",
 };
+
+static long
+igbeifstat(Ether* edev, void* a, long n, ulong offset)
+{
+	Ctlr *ctlr;
+	char *p, *s;
+	int i, l, r;
+	uvlong tuvl, ruvl;
+
+	ctlr = edev->ctlr;
+	qlock(&ctlr->slock);
+	p = malloc(2*READSTR);
+	l = 0;
+	for(i = 0; i < Nstatistics; i++){
+		r = csr32r(ctlr, Statistics+i*4);
+		if((s = statistics[i]) == nil)
+			continue;
+		switch(i){
+		case Gorcl:
+		case Gotcl:
+		case Torl:
+		case Totl:
+			ruvl = r;
+			ruvl += ((uvlong)csr32r(ctlr, Statistics+(i+1)*4))<<32;
+			tuvl = ruvl;
+			tuvl += ctlr->statistics[i];
+			tuvl += ((uvlong)ctlr->statistics[i+1])<<32;
+			if(tuvl == 0)
+				continue;
+			ctlr->statistics[i] = tuvl;
+			ctlr->statistics[i+1] = tuvl>>32;
+			l += snprint(p+l, 2*READSTR-l, "%s: %llud %llud\n",
+				s, tuvl, ruvl);
+			i++;
+			break;
+
+		default:
+			ctlr->statistics[i] += r;
+			if(ctlr->statistics[i] == 0)
+				continue;
+			l += snprint(p+l, 2*READSTR-l, "%s: %ud %ud\n",
+				s, ctlr->statistics[i], r);
+			break;
+		}
+	}
+
+	l += snprint(p+l, 2*READSTR-l, "lintr: %ud %ud\n",
+		ctlr->lintr, ctlr->lsleep);
+	l += snprint(p+l, 2*READSTR-l, "rintr: %ud %ud\n",
+		ctlr->rintr, ctlr->rsleep);
+	l += snprint(p+l, 2*READSTR-l, "tintr: %ud %ud\n",
+		ctlr->tintr, ctlr->txdw);
+	l += snprint(p+l, 2*READSTR-l, "ixcs: %ud %ud %ud\n",
+		ctlr->ixsm, ctlr->ipcs, ctlr->tcpcs);
+	l += snprint(p+l, 2*READSTR-l, "rdtr: %ud\n", ctlr->rdtr);
+
+	l += snprint(p+l, 2*READSTR-l, "eeprom:");
+	for(i = 0; i < 0x40; i++){
+		if(i && ((i & 0x07) == 0))
+			l += snprint(p+l, 2*READSTR-l, "\n       ");
+		l += snprint(p+l, 2*READSTR-l, " %4.4uX", ctlr->eeprom[i]);
+	}
+	l += snprint(p+l, 2*READSTR-l, "\n");
+
+	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
+		l += snprint(p+l, 2*READSTR, "phy:   ");
+		for(i = 0; i < NMiiPhyr; i++){
+			if(i && ((i & 0x07) == 0))
+				l += snprint(p+l, 2*READSTR-l, "\n       ");
+			r = miimir(ctlr->mii, i);
+			l += snprint(p+l, 2*READSTR-l, " %4.4uX", r);
+		}
+		snprint(p+l, 2*READSTR-l, "\n");
+	}
+	n = readstr(offset, a, n, p);
+	free(p);
+	qunlock(&ctlr->slock);
+
+	return n;
+}
+
+enum {
+	CMrdtr,
+};
+
+static Cmdtab igbectlmsg[] = {
+	CMrdtr,	"rdtr",	2,
+};
+
+static long
+igbectl(Ether* edev, void* buf, long n)
+{
+	int v;
+	char *p;
+	Ctlr *ctlr;	
+	Cmdbuf *cb;
+	Cmdtab *ct;
+
+	if((ctlr = edev->ctlr) == nil)
+		error(Enonexist);
+	
+	cb = parsecmd(buf, n);
+	if(waserror()){
+		free(cb);
+		nexterror();
+	}
+
+	ct = lookupcmd(cb, igbectlmsg, nelem(igbectlmsg));
+	switch(ct->index){
+	case CMrdtr:
+		v = strtol(cb->f[1], &p, 0);
+		if(v < 0 || p == cb->f[1] || v > 0xFFFF)
+			error(Ebadarg);
+		ctlr->rdtr = v;;
+		csr32w(ctlr, Rdtr, Fpd|v);
+		break;
+	}
+	free(cb);
+	poperror();
+
+	return n;
+}
+
+static void
+igbepromiscuous(void* arg, int on)
+{
+	int rctl;
+	Ctlr *ctlr;
+	Ether *edev;
+
+	edev = arg;
+	ctlr = edev->ctlr;
+
+	rctl = csr32r(ctlr, Rctl);
+	rctl &= ~MoMASK;
+	rctl |= Mo47b36;
+	if(on)
+		rctl |= Upe|Mpe;
+	else
+		rctl &= ~(Upe|Mpe);
+	csr32w(ctlr, Rctl, rctl);
+}
+
+static Block*
+igberballoc(void)
+{
+	Block *bp;
+
+	ilock(&igberblock);
+	if((bp = igberbpool) != nil){
+		igberbpool = bp->next;
+		bp->next = nil;
+	}
+	iunlock(&igberblock);
+
+	return bp;
+}
+
+static void
+igberbfree(Block* bp)
+{
+	bp->rp = bp->lim - Rbsz;
+	bp->wp = bp->rp;
+
+	ilock(&igberblock);
+	bp->next = igberbpool;
+	igberbpool = bp;
+	iunlock(&igberblock);
+}
+
+static void
+igbeim(Ctlr* ctlr, int im)
+{
+	ilock(&ctlr->imlock);
+	ctlr->im |= im;
+	csr32w(ctlr, Ims, ctlr->im);
+	iunlock(&ctlr->imlock);
+}
+
+static int
+igbelim(void* ctlr)
+{
+	return ((Ctlr*)ctlr)->lim != 0;
+}
+
+static void
+igbelproc(void* arg)
+{
+	Ctlr *ctlr;
+	Ether *edev;
+	MiiPhy *phy;
+	int ctrl, r;
+
+	edev = arg;
+	ctlr = edev->ctlr;
+	for(;;){
+		if(ctlr->mii == nil || ctlr->mii->curphy == nil)
+			continue;
+
+		/*
+		 * To do:
+		 *	logic to manage status change,
+		 *	this is incomplete but should work
+		 *	one time to set up the hardware.
+		 *
+		 *	MiiPhy.speed, etc. should be in Mii.
+		 */
+		if(miistatus(ctlr->mii) < 0)
+			//continue;
+			goto enable;
+print("lproc status ok\n");
+
+		phy = ctlr->mii->curphy;
+		ctrl = csr32r(ctlr, Ctrl);
+
+		switch(ctlr->id){
+		case (0x1004<<16)|0x8086:	/* 82543GC */
+		case (0x1008<<16)|0x8086:	/* 82544EI */
+		default:
+			if(!(ctrl & Asde)){
+				ctrl &= ~(SspeedMASK|Ilos|Fd);
+				ctrl |= Frcdplx|Frcspd;
+				if(phy->speed == 1000)
+					ctrl |= Sspeed1000;
+				else if(phy->speed == 100)
+					ctrl |= Sspeed100;
+				if(phy->fd)
+					ctrl |= Fd;
+			}
+			break;
+		case (0x100E<<16)|0x8086:	/* 82540 */
+			break;
+		}
+
+		/*
+		 * Collision Distance.
+		 */
+		r = csr32r(ctlr, Tctl);
+		r &= ~ColdMASK;
+		if(phy->fd)
+			r |= 64<<ColdSHIFT;
+		else
+			r |= 512<<ColdSHIFT;
+		csr32w(ctlr, Tctl, r);
+
+		/*
+		 * Flow control.
+		 */
+		if(phy->rfc)
+			ctrl |= Rfce;
+		if(phy->tfc)
+			ctrl |= Tfce;
+		csr32w(ctlr, Ctrl, ctrl);
+print("ctrl %8.8uX\n", ctrl);
+
+enable:
+		ctlr->lim = 0;
+		igbeim(ctlr, Lsc);
+
+		ctlr->lsleep++;
+		sleep(&ctlr->lrendez, igbelim, ctlr);
+	}
+}
+
+static void
+igbetxinit(Ctlr* ctlr)
+{
+	int i, r;
+	Block *bp;
+
+	csr32w(ctlr, Tctl, (0x0F<<CtSHIFT)|Psp|(66<<ColdSHIFT));
+	switch(ctlr->id){
+	default:
+		r = 6;
+		break;
+	case (0x1004<<16)|0x8086:	/* 82543GC */
+	case (0x1008<<16)|0x8086:	/* 82544EI */
+	case (0x100E<<16)|0x8086:	/* 82440EM */
+		r = 8;
+		break;
+	}
+	csr32w(ctlr, Tipg, (6<<20)|(8<<10)|r);
+	csr32w(ctlr, Ait, 0);
+	csr32w(ctlr, Txdmac, 0);
+
+	csr32w(ctlr, Tdbal, PCIWADDR(ctlr->tdba));
+	csr32w(ctlr, Tdbah, 0);
+	csr32w(ctlr, Tdlen, ctlr->ntd*sizeof(Td));
+	ctlr->tdh = PREV(0, ctlr->ntd);
+	csr32w(ctlr, Tdh, 0);
+	ctlr->tdt = 0;
+	csr32w(ctlr, Tdt, 0);
+
+	for(i = 0; i < ctlr->ntd; i++){
+		if((bp = ctlr->tb[i]) != nil){
+			ctlr->tb[i] = nil;
+			freeb(bp);
+		}
+		memset(&ctlr->tdba[i], 0, sizeof(Td));
+	}
+	ctlr->tdfree = ctlr->ntd;
+
+	csr32w(ctlr, Tidv, 128);
+	r = (4<<WthreshSHIFT)|(4<<HthreshSHIFT)|(8<<PthreshSHIFT);
+
+	switch(ctlr->id){
+	default:
+		break;
+	case (0x100E<<16)|0x8086:
+		r = csr32r(ctlr, Txdctl);
+		r &= ~WthreshMASK;
+		r |= Gran|(4<<WthreshSHIFT);
+
+		csr32w(ctlr, Tadv, 64);
+		break;
+	}
+
+	csr32w(ctlr, Txdctl, r);
+
+	r = csr32r(ctlr, Tctl);
+	r |= Ten;
+	csr32w(ctlr, Tctl, r);
+}
+
+static void
+igbetransmit(Ether* edev)
+{
+	Td *td;
+	Block *bp;
+	Ctlr *ctlr;
+	int tdh, tdt;
+
+	ctlr = edev->ctlr;
+
+	ilock(&ctlr->tlock);
+
+	/*
+	 * Free any completed packets
+	 */
+	tdh = ctlr->tdh;
+	while(NEXT(tdh, ctlr->ntd) != csr32r(ctlr, Tdh)){
+		if((bp = ctlr->tb[tdh]) != nil){
+			ctlr->tb[tdh] = nil;
+			freeb(bp);
+		}
+		memset(&ctlr->tdba[tdh], 0, sizeof(Td));
+		tdh = NEXT(tdh, ctlr->ntd);
+	}
+	ctlr->tdh = tdh;
+
+	/*
+	 * Try to fill the ring back up.
+	 */
+	tdt = ctlr->tdt;
+	while(NEXT(tdt, ctlr->ntd) != tdh){
+		if((bp = qget(edev->oq)) == nil)
+			break;
+		td = &ctlr->tdba[tdt];
+		td->addr[0] = PCIWADDR(bp->rp);
+		td->control = ((BLEN(bp) & LenMASK)<<LenSHIFT);
+		td->control |= Dext|Ifcs|Teop|DtypeDD;
+		ctlr->tb[tdt] = bp;
+		tdt = NEXT(tdt, ctlr->ntd);
+		if(NEXT(tdt, ctlr->ntd) == tdh){
+			td->control |= Rs;
+			ctlr->txdw++;
+			ctlr->tdt = tdt;
+			csr32w(ctlr, Tdt, tdt);
+			igbeim(ctlr, Txdw);
+			break;
+		}
+		ctlr->tdt = tdt;
+		csr32w(ctlr, Tdt, tdt);
+	}
+
+	iunlock(&ctlr->tlock);
+}
+
+static void
+igbereplenish(Ctlr* ctlr)
+{
+	Rd *rd;
+	int rdt;
+	Block *bp;
+
+	rdt = ctlr->rdt;
+	while(NEXT(rdt, ctlr->nrd) != ctlr->rdh){
+		rd = &ctlr->rdba[rdt];
+		if(ctlr->rb[rdt] == nil){
+			bp = igberballoc();
+			if(bp == nil){
+				iprint("no available buffers\n");
+				break;
+			}
+			ctlr->rb[rdt] = bp;
+			rd->addr[0] = PCIWADDR(bp->rp);
+			rd->addr[1] = 0;
+		}
+		coherence();
+		rd->status = 0;
+		rdt = NEXT(rdt, ctlr->nrd);
+		ctlr->rdfree++;
+	}
+	ctlr->rdt = rdt;
+	csr32w(ctlr, Rdt, rdt);
+}
+
+static void
+igberxinit(Ctlr* ctlr)
+{
+	int i;
+	Block *bp;
+
+	csr32w(ctlr, Rctl, Dpf|Bsize2048|Bam|RdtmsHALF);
+
+	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
+	csr32w(ctlr, Rdbah, 0);
+	csr32w(ctlr, Rdlen, ctlr->nrd*sizeof(Rd));
+	ctlr->rdh = 0;
+	csr32w(ctlr, Rdh, 0);
+	ctlr->rdt = 0;
+	csr32w(ctlr, Rdt, 0);
+	ctlr->rdtr = 0;
+	csr32w(ctlr, Rdtr, Fpd|0);
+
+	for(i = 0; i < ctlr->nrd; i++){
+		if((bp = ctlr->rb[i]) != nil){
+			ctlr->rb[i] = nil;
+			freeb(bp);
+		}
+	}
+	igbereplenish(ctlr);
+
+	switch(ctlr->id){
+	case (0x100E<<16)|0x8086:		/* 82540EM */
+		csr32w(ctlr, Radv, 64);
+		break;
+	}
+	csr32w(ctlr, Rxdctl, (8<<WthreshSHIFT)|(8<<HthreshSHIFT)|4);
+
+	/*
+	 * Enable checksum offload.
+	 */
+	csr32w(ctlr, Rxcsum, Tuofl|Ipofl|(ETHERHDRSIZE<<PcssSHIFT));
+}
+
+static int
+igberim(void* ctlr)
+{
+	return ((Ctlr*)ctlr)->rim != 0;
+}
+
+static void
+igberproc(void* arg)
+{
+	Rd *rd;
+	Block *bp;
+	Ctlr *ctlr;
+	int r, rdh;
+	Ether *edev;
+
+	edev = arg;
+	ctlr = edev->ctlr;
+
+	igberxinit(ctlr);
+	r = csr32r(ctlr, Rctl);
+	r |= Ren;
+	csr32w(ctlr, Rctl, r);
+
+	for(;;){
+		ctlr->rim = 0;
+		igbeim(ctlr, Rxt0|Rxo|Rxdmt0|Rxseq);
+		ctlr->rsleep++;
+		sleep(&ctlr->rrendez, igberim, ctlr);
+
+		rdh = ctlr->rdh;
+		for(;;){
+			rd = &ctlr->rdba[rdh];
+	
+			if(!(rd->status & Rdd))
+				break;
+	
+			/*
+			 * Accept eop packets with no errors.
+			 * With no errors and the Ixsm bit set,
+			 * the descriptor status Tpcs and Ipcs bits give
+			 * an indication of whether the checksums were
+			 * calculated and valid.
+			 */
+			if((rd->status & Reop) && rd->errors == 0){
+				bp = ctlr->rb[rdh];
+				ctlr->rb[rdh] = nil;
+				bp->wp += rd->length;
+				bp->next = nil;
+				if(!(rd->status & Ixsm)){
+					ctlr->ixsm++;
+					if(rd->status & Ipcs){
+						/*
+						 * IP checksum calculated
+						 * (and valid as errors == 0).
+						 */
+						ctlr->ipcs++;
+						bp->flag |= Bipck;
+					}
+					if(rd->status & Tcpcs){
+						/*
+						 * TCP/UDP checksum calculated
+						 * (and valid as errors == 0).
+						 */
+						ctlr->tcpcs++;
+						bp->flag |= Btcpck|Budpck;
+					}
+					bp->checksum = rd->checksum;
+					bp->flag |= Bpktck;
+				}
+				etheriq(edev, bp, 1);
+			}
+			else if(ctlr->rb[rdh] != nil){
+				freeb(ctlr->rb[rdh]);
+				ctlr->rb[rdh] = nil;
+			}
+
+			memset(rd, 0, sizeof(Rd));
+			coherence();
+			ctlr->rdfree--;
+			rdh = NEXT(rdh, ctlr->nrd);
+		}
+		ctlr->rdh = rdh;
+	
+		if(ctlr->rdfree < ctlr->nrd/2 || (ctlr->rim & Rxdmt0))
+			igbereplenish(ctlr);
+	}
+}
+
+static void
+igbeattach(Ether* edev)
+{
+	Block *bp;
+	Ctlr *ctlr;
+	char name[KNAMELEN];
+
+	ctlr = edev->ctlr;
+	qlock(&ctlr->alock);
+	if(ctlr->alloc != nil){
+		qunlock(&ctlr->alock);
+		return;
+	}
+
+	ctlr->nrd = ROUND(Nrd, 8);
+	ctlr->ntd = ROUND(Ntd, 8);
+	ctlr->alloc = malloc(ctlr->nrd*sizeof(Rd)+ctlr->ntd*sizeof(Td) + 127);
+	if(ctlr->alloc == nil){
+		qunlock(&ctlr->alock);
+		return;
+	}
+	ctlr->rdba = (Rd*)ROUNDUP((ulong)ctlr->alloc, 128);
+	ctlr->tdba = (Td*)(ctlr->rdba+ctlr->nrd);
+
+	ctlr->rb = malloc(ctlr->nrd*sizeof(Block*));
+	ctlr->tb = malloc(ctlr->ntd*sizeof(Block*));
+
+	if(waserror()){
+		while(ctlr->nrb > 0){
+			bp = igberballoc();
+			bp->free = nil;
+			freeb(bp);
+			ctlr->nrb--;
+		}
+		free(ctlr->tb);
+		ctlr->tb = nil;
+		free(ctlr->rb);
+		ctlr->rb = nil;
+		free(ctlr->alloc);
+		ctlr->alloc = nil;
+		qunlock(&ctlr->alock);
+		nexterror();
+	}
+
+	for(ctlr->nrb = 0; ctlr->nrb < Nrb; ctlr->nrb++){
+		if((bp = allocb(Rbsz)) == nil)
+			break;
+		bp->free = igberbfree;
+		freeb(bp);
+	}
+
+	snprint(name, KNAMELEN, "#l%dlproc", edev->ctlrno);
+	kproc(name, igbelproc, edev);
+
+	snprint(name, KNAMELEN, "#l%drproc", edev->ctlrno);
+	kproc(name, igberproc, edev);
+
+	igbetxinit(ctlr);
+
+	qunlock(&ctlr->alock);
+	poperror();
+}
+
+static void
+igbeinterrupt(Ureg*, void* arg)
+{
+	Ctlr *ctlr;
+	Ether *edev;
+	int icr, im, txdw;
+
+	edev = arg;
+	ctlr = edev->ctlr;
+
+	ilock(&ctlr->imlock);
+	csr32w(ctlr, Imc, ~0);
+	im = ctlr->im;
+	txdw = 0;
+
+	while((icr = csr32r(ctlr, Icr) & ctlr->im) != 0){
+		if(icr & Lsc){
+			im &= ~Lsc;
+			ctlr->lim = icr & Lsc;
+			wakeup(&ctlr->lrendez);
+			ctlr->lintr++;
+		}
+		if(icr & (Rxt0|Rxo|Rxdmt0|Rxseq)){
+			im &= ~(Rxt0|Rxo|Rxdmt0|Rxseq);
+			ctlr->rim = icr & (Rxt0|Rxo|Rxdmt0|Rxseq);
+			wakeup(&ctlr->rrendez);
+			ctlr->rintr++;
+		}
+		if(icr & Txdw){
+			im &= ~Txdw;
+			txdw++;
+			ctlr->tintr++;
+		}
+	}
+
+	ctlr->im = im;
+	csr32w(ctlr, Ims, im);
+	iunlock(&ctlr->imlock);
+
+	if(txdw)
+		igbetransmit(edev);
+}
 
 static int
 i82543mdior(Ctlr* ctlr, int n)
@@ -601,7 +1289,7 @@ i82543miimiw(Mii* mii, int pa, int ra, int data)
 }
 
 static int
-gc82544miimir(Mii* mii, int pa, int ra)
+igbemiimir(Mii* mii, int pa, int ra)
 {
 	Ctlr *ctlr;
 	int mdic, timo;
@@ -623,7 +1311,7 @@ gc82544miimir(Mii* mii, int pa, int ra)
 }
 
 static int
-gc82544miimiw(Mii* mii, int pa, int ra, int data)
+igbemiimiw(Mii* mii, int pa, int ra, int data)
 {
 	Ctlr *ctlr;
 	int mdic, timo;
@@ -644,557 +1332,8 @@ gc82544miimiw(Mii* mii, int pa, int ra, int data)
 	return -1;
 }
 
-static long
-i82543ifstat(Ether* edev, void* a, long n, ulong offset)
-{
-	Ctlr *ctlr;
-	char *p, *s;
-	int i, l, r;
-	uvlong tuvl, ruvl;
-
-	ctlr = edev->ctlr;
-	qlock(&ctlr->slock);
-	p = malloc(2*READSTR);
-	l = 0;
-	for(i = 0; i < Nstatistics; i++){
-		r = csr32r(ctlr, Statistics+i*4);
-		if((s = statistics[i]) == nil)
-			continue;
-		switch(i){
-		case Gorcl:
-		case Gotcl:
-		case Torl:
-		case Totl:
-			ruvl = r;
-			ruvl += ((uvlong)csr32r(ctlr, Statistics+(i+1)*4))<<32;
-			tuvl = ruvl;
-			tuvl += ctlr->statistics[i];
-			tuvl += ((uvlong)ctlr->statistics[i+1])<<32;
-			if(tuvl == 0)
-				continue;
-			ctlr->statistics[i] = tuvl;
-			ctlr->statistics[i+1] = tuvl>>32;
-			l += snprint(p+l, 2*READSTR-l, "%s: %llud %llud\n",
-				s, tuvl, ruvl);
-			i++;
-			break;
-
-		default:
-			ctlr->statistics[i] += r;
-			if(ctlr->statistics[i] == 0)
-				continue;
-			l += snprint(p+l, 2*READSTR-l, "%s: %ud %ud\n",
-				s, ctlr->statistics[i], r);
-			break;
-		}
-	}
-
-	l += snprint(p+l, 2*READSTR-l, "lintr: %ud %ud\n",
-		ctlr->lintr, ctlr->lsleep);
-	l += snprint(p+l, 2*READSTR-l, "rintr: %ud %ud\n",
-		ctlr->rintr, ctlr->rsleep);
-	l += snprint(p+l, 2*READSTR-l, "tintr: %ud %ud %ud\n",
-		ctlr->tintr, ctlr->tsleep, ctlr->txdw);
-
-	l += snprint(p+l, 2*READSTR-l, "eeprom:");
-	for(i = 0; i < 0x40; i++){
-		if(i && ((i & 0x07) == 0))
-			l += snprint(p+l, 2*READSTR-l, "\n       ");
-		l += snprint(p+l, 2*READSTR-l, " %4.4uX", ctlr->eeprom[i]);
-	}
-	l += snprint(p+l, 2*READSTR-l, "\n");
-
-	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
-		l += snprint(p+l, 2*READSTR, "phy:   ");
-		for(i = 0; i < NMiiPhyr; i++){
-			if(i && ((i & 0x07) == 0))
-				l += snprint(p+l, 2*READSTR-l, "\n       ");
-			r = miimir(ctlr->mii, i);
-			l += snprint(p+l, 2*READSTR-l, " %4.4uX", r);
-		}
-		snprint(p+l, 2*READSTR-l, "\n");
-	}
-	n = readstr(offset, a, n, p);
-	free(p);
-	qunlock(&ctlr->slock);
-
-	return n;
-}
-
-static void
-i82543promiscuous(void* arg, int on)
-{
-	int rctl;
-	Ctlr *ctlr;
-	Ether *edev;
-
-	edev = arg;
-	ctlr = edev->ctlr;
-
-	rctl = csr32r(ctlr, Rctl);
-	rctl &= ~MoMASK;
-	rctl |= Mo47b36;
-	if(on)
-		rctl |= Upe|Mpe;
-	else
-		rctl &= ~(Upe|Mpe);
-	csr32w(ctlr, Rctl, rctl);
-}
-
-static Block*
-i82543rballoc(void)
-{
-	Block *bp;
-
-	ilock(&i82543rblock);
-	if((bp = i82543rbpool) != nil){
-		i82543rbpool = bp->next;
-		bp->next = nil;
-	}
-	iunlock(&i82543rblock);
-
-	return bp;
-}
-
-static void
-i82543rbfree(Block* bp)
-{
-	bp->rp = bp->lim - Rbsz;
-	bp->wp = bp->rp;
-
-	ilock(&i82543rblock);
-	bp->next = i82543rbpool;
-	i82543rbpool = bp;
-	iunlock(&i82543rblock);
-}
-
-static void
-i82543im(Ctlr* ctlr, int im)
-{
-	ilock(&ctlr->imlock);
-	ctlr->im |= im;
-	csr32w(ctlr, Ims, ctlr->im);
-	iunlock(&ctlr->imlock);
-}
-
 static int
-i82543lim(void* ctlr)
-{
-	return ((Ctlr*)ctlr)->lim != 0;
-}
-
-static void
-i82543lproc(void* arg)
-{
-	Ctlr *ctlr;
-	Ether *edev;
-	MiiPhy *phy;
-	int ctrl, r;
-
-	edev = arg;
-	ctlr = edev->ctlr;
-	for(;;){
-		if(ctlr->mii == nil || ctlr->mii->curphy == nil)
-			continue;
-
-		/*
-		 * To do:
-		 *	logic to manage status change,
-		 *	this is incomplete but should work
-		 *	one time to set up the hardware.
-		 *
-		 *	MiiPhy.speed, etc. should be in Mii.
-		 */
-		if(miistatus(ctlr->mii) < 0)
-			//continue;
-			goto enable;
-print("lproc status ok\n");
-
-		phy = ctlr->mii->curphy;
-		ctrl = csr32r(ctlr, Ctrl);
-		if(!(ctrl & Asde)){
-			ctrl &= ~(SspeedMASK|Ilos|Fd);
-			ctrl |= Frcdplx|Frcspd;
-			if(phy->speed == 1000)
-				ctrl |= Sspeed1000;
-			else if(phy->speed == 100)
-				ctrl |= Sspeed100;
-			if(phy->fd)
-				ctrl |= Fd;
-		}
-		if(phy->rfc)
-			ctrl |= Rfce;
-		if(phy->tfc)
-			ctrl |= Tfce;
-		csr32w(ctlr, Ctrl, ctrl);
-print("ctrl %8.8uX\n", ctrl);
-
-		r = csr32r(ctlr, Tctl);
-		r &= ~ColdMASK;
-		if(phy->fd)
-			r |= 64<<ColdSHIFT;
-		else
-			r |= 512<<ColdSHIFT;
-		csr32w(ctlr, Tctl, r);
-enable:
-		ctlr->lim = 0;
-		i82543im(ctlr, Lsc);
-
-		ctlr->lsleep++;
-		sleep(&ctlr->lrendez, i82543lim, ctlr);
-	}
-}
-
-static void
-i82543txinit(Ctlr* ctlr)
-{
-	int i, r;
-	Block *bp;
-
-	csr32w(ctlr, Tctl, (0x0F<<CtSHIFT)|Psp|(66<<ColdSHIFT));
-	switch(ctlr->id){
-	default:
-		r = 6;
-		break;
-	case (0x1004<<16)|0x8086:	/* Intel PRO/1000 T */
-	case (0x1008<<16)|0x8086:	/* Intel PRO/1000 XT */
-		r = 8;
-		break;
-	}
-	csr32w(ctlr, Tipg, (6<<20)|(8<<10)|r);
-	csr32w(ctlr, Ait, 0);
-	csr32w(ctlr, Txdmac, 0);
-
-	csr32w(ctlr, Tdbal, PCIWADDR(ctlr->tdba));
-	csr32w(ctlr, Tdbah, 0);
-	csr32w(ctlr, Tdlen, ctlr->ntd*sizeof(Td));
-	ctlr->tdh = PREV(0, ctlr->ntd);
-	csr32w(ctlr, Tdh, 0);
-	ctlr->tdt = 0;
-	csr32w(ctlr, Tdt, 0);
-
-	for(i = 0; i < ctlr->ntd; i++){
-		if((bp = ctlr->tb[i]) != nil){
-			ctlr->tb[i] = nil;
-			freeb(bp);
-		}
-		memset(&ctlr->tdba[i], 0, sizeof(Td));
-	}
-	ctlr->tdfree = ctlr->ntd;
-
-	csr32w(ctlr, Tidv, 128);
-	csr32w(ctlr, Txdctl, (4<<WthreshSHIFT)|(4<<HthreshSHIFT)|8);
-}
-
-static int
-i82543tim(void* ctlr)
-{
-	return ((Ctlr*)ctlr)->tim != 0;
-}
-
-static void
-i82543tproc(void* arg)
-{
-	Td *td;
-	Block *bp;
-	Ctlr *ctlr;
-	Ether *edev;
-	int r, tdh, tdt;
-
-	edev = arg;
-	ctlr = edev->ctlr;
-
-	i82543txinit(ctlr);
-	r = csr32r(ctlr, Tctl);
-	r |= Ten;
-	csr32w(ctlr, Tctl, r);
-
-	if(waserror()){
-		print("%s: exiting\n", up->text);
-		r = csr32r(ctlr, Tctl);
-		r &= ~Ten;
-		csr32w(ctlr, Tctl, r);
-		pexit("disabled", 0);
-	}
-
-	for(;;){
-		/*
-		 * Free any completed packets
-		 */
-		tdh = ctlr->tdh;
-		while(NEXT(tdh, ctlr->ntd) != csr32r(ctlr, Tdh)){
-			td = &ctlr->tdba[tdh];
-			if((bp = ctlr->tb[tdh]) != nil){
-				ctlr->tb[tdh] = nil;
-				freeb(bp);
-			}
-			memset(td, 0, sizeof(Td));
-			tdh = NEXT(tdh, ctlr->ntd);
-		}
-		ctlr->tdh = tdh;
-
-		/*
-		 */
-		tdt = ctlr->tdt;
-		if(NEXT(tdt, ctlr->ntd) == tdh){
-			ctlr->tim = 0;
-			i82543im(ctlr, Txdw);
-			ctlr->tsleep++;
-			sleep(&ctlr->trendez, i82543tim, ctlr);
-			continue;
-		}
-
-		/*
-		 * Try to fill the ring back up.
-		 */
-		while(NEXT(tdt, ctlr->ntd) != tdh){
-			if((bp = qbread(edev->oq, Rbsz)) == nil)
-				break;
-			td = &ctlr->tdba[tdt];
-			td->addr[0] = PCIWADDR(bp->rp);
-			td->control = Ifcs|Teop|BLEN(bp);
-			ctlr->tb[tdt] = bp;
-			tdt = NEXT(tdt, ctlr->ntd);
-			if(NEXT(tdt, ctlr->ntd) == tdh){
-				td->control |= Rs;
-				ctlr->txdw++;
-			}
-
-			if(!qcanread(edev->oq))
-				break;
-		}
-		ctlr->tdt = tdt;
-		csr32w(ctlr, Tdt, tdt);
-	}
-	poperror();
-}
-
-static void
-i82543replenish(Ctlr* ctlr)
-{
-	Rd *rd;
-	int rdt;
-	Block *bp;
-
-	rdt = ctlr->rdt;
-	while(NEXT(rdt, ctlr->nrd) != ctlr->rdh){
-		rd = &ctlr->rdba[rdt];
-		if(ctlr->rb[rdt] == nil){
-			bp = i82543rballoc();
-			if(bp == nil){
-				iprint("no available buffers\n");
-				break;
-			}
-			ctlr->rb[rdt] = bp;
-			rd->addr[0] = PCIWADDR(bp->rp);
-			rd->addr[1] = 0;
-		}
-		coherence();
-		rd->status = 0;
-		rdt = NEXT(rdt, ctlr->nrd);
-		ctlr->rdfree++;
-	}
-	ctlr->rdt = rdt;
-	csr32w(ctlr, Rdt, rdt);
-}
-
-static void
-i82543rxinit(Ctlr* ctlr)
-{
-	int i;
-	Block *bp;
-
-	csr32w(ctlr, Rctl, Dpf|Bsize2048|Bam|RdtmsHALF);
-
-	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
-	csr32w(ctlr, Rdbah, 0);
-	csr32w(ctlr, Rdlen, ctlr->nrd*sizeof(Rd));
-	ctlr->rdh = 0;
-	csr32w(ctlr, Rdh, 0);
-	ctlr->rdt = 0;
-	csr32w(ctlr, Rdt, 0);
-	csr32w(ctlr, Rdtr, Fpd|14);
-
-	for(i = 0; i < ctlr->nrd; i++){
-		if((bp = ctlr->rb[i]) != nil){
-			ctlr->rb[i] = nil;
-			freeb(bp);
-		}
-	}
-	i82543replenish(ctlr);
-
-	csr32w(ctlr, Rxdctl, (8<<WthreshSHIFT)|(8<<HthreshSHIFT)|4);
-}
-
-static int
-i82543rim(void* ctlr)
-{
-	return ((Ctlr*)ctlr)->rim != 0;
-}
-
-static void
-i82543rproc(void* arg)
-{
-	Rd *rd;
-	Block *bp;
-	Ctlr *ctlr;
-	int r, rdh;
-	Ether *edev;
-
-	edev = arg;
-	ctlr = edev->ctlr;
-
-	i82543rxinit(ctlr);
-	r = csr32r(ctlr, Rctl);
-	r |= Ren;
-	csr32w(ctlr, Rctl, r);
-
-	for(;;){
-		ctlr->rim = 0;
-		i82543im(ctlr, Rxt0|Rxo|Rxdmt0|Rxseq);
-		ctlr->rsleep++;
-		sleep(&ctlr->rrendez, i82543rim, ctlr);
-
-		rdh = ctlr->rdh;
-		for(;;){
-			rd = &ctlr->rdba[rdh];
-	
-			if(!(rd->status & Rdd))
-				break;
-	
-			if((rd->status & Reop) && rd->errors == 0){
-				bp = ctlr->rb[rdh];
-				ctlr->rb[rdh] = nil;
-				bp->wp += rd->length;
-				bp->next = nil;
-				etheriq(edev, bp, 1);
-			}
-	
-			if(ctlr->rb[rdh] != nil){
-				/* either non eop packet, or error */
-				freeb(ctlr->rb[rdh]);
-				ctlr->rb[rdh] = nil;
-			}
-
-			memset(rd, 0, sizeof(Rd));
-			coherence();
-			ctlr->rdfree--;
-			rdh = NEXT(rdh, ctlr->nrd);
-		}
-		ctlr->rdh = rdh;
-	
-		if(ctlr->rdfree < ctlr->nrd/2 || (ctlr->rim & Rxdmt0))
-			i82543replenish(ctlr);
-	}
-}
-
-static void
-i82543attach(Ether* edev)
-{
-	Block *bp;
-	Ctlr *ctlr;
-	char name[KNAMELEN];
-
-	ctlr = edev->ctlr;
-	qlock(&ctlr->alock);
-	if(ctlr->alloc != nil){
-		qunlock(&ctlr->alock);
-		return;
-	}
-
-	ctlr->nrd = ROUND(Nrd, 8);
-	ctlr->ntd = ROUND(Ntd, 8);
-	ctlr->alloc = malloc(ctlr->nrd*sizeof(Rd)+ctlr->ntd*sizeof(Td) + 127);
-	if(ctlr->alloc == nil){
-		qunlock(&ctlr->alock);
-		return;
-	}
-	ctlr->rdba = (Rd*)ROUNDUP((ulong)ctlr->alloc, 128);
-	ctlr->tdba = (Td*)(ctlr->rdba+ctlr->nrd);
-
-	ctlr->rb = malloc(ctlr->nrd*sizeof(Block*));
-	ctlr->tb = malloc(ctlr->ntd*sizeof(Block*));
-
-	if(waserror()){
-		while(ctlr->nrb > 0){
-			bp = i82543rballoc();
-			bp->free = nil;
-			freeb(bp);
-			ctlr->nrb--;
-		}
-		free(ctlr->tb);
-		ctlr->tb = nil;
-		free(ctlr->rb);
-		ctlr->rb = nil;
-		free(ctlr->alloc);
-		ctlr->alloc = nil;
-		qunlock(&ctlr->alock);
-		nexterror();
-	}
-
-	for(ctlr->nrb = 0; ctlr->nrb < Nrb; ctlr->nrb++){
-		if((bp = allocb(Rbsz)) == nil)
-			break;
-		bp->free = i82543rbfree;
-		freeb(bp);
-	}
-
-	snprint(name, KNAMELEN, "#l%dlproc", edev->ctlrno);
-	kproc(name, i82543lproc, edev);
-
-	snprint(name, KNAMELEN, "#l%drproc", edev->ctlrno);
-	kproc(name, i82543rproc, edev);
-
-	snprint(name, KNAMELEN, "#l%dtproc", edev->ctlrno);
-	kproc(name, i82543tproc, edev);
-
-	qunlock(&ctlr->alock);
-	poperror();
-}
-
-static void
-i82543interrupt(Ureg*, void* arg)
-{
-	Ctlr *ctlr;
-	Ether *edev;
-	int icr, im;
-
-	edev = arg;
-	ctlr = edev->ctlr;
-
-	ilock(&ctlr->imlock);
-	csr32w(ctlr, Imc, ~0);
-	im = ctlr->im;
-
-	while((icr = csr32r(ctlr, Icr) & ctlr->im) != 0){
-//print("I%x/%8.8uX+", icr, csr32r(ctlr, Status));
-		if(icr & Lsc){
-			im &= ~Lsc;
-			ctlr->lim = icr & Lsc;
-			wakeup(&ctlr->lrendez);
-			ctlr->lintr++;
-		}
-		if(icr & (Rxt0|Rxo|Rxdmt0|Rxseq)){
-			im &= ~(Rxt0|Rxo|Rxdmt0|Rxseq);
-			ctlr->rim = icr & (Rxt0|Rxo|Rxdmt0|Rxseq);
-			wakeup(&ctlr->rrendez);
-			ctlr->rintr++;
-		}
-		if(icr & Txdw){
-			im &= ~Txdw;
-			ctlr->tim = icr & Txdw;
-			wakeup(&ctlr->trendez);
-			ctlr->tintr++;
-		}
-	}
-
-	ctlr->im = im;
-	csr32w(ctlr, Ims, im);
-	iunlock(&ctlr->imlock);
-}
-
-static int
-i82543mii(Ctlr* ctlr)
+igbemii(Ctlr* ctlr)
 {
 	MiiPhy *phy;
 	int ctrl, p, r;
@@ -1210,7 +1349,7 @@ i82543mii(Ctlr* ctlr)
 	ctrl |= Slu;
 
 	switch(ctlr->id){
-	case (0x1004<<16)|0x8086:
+	case (0x1004<<16)|0x8086:		/* 82543GC */
 		ctrl |= Frcdplx|Frcspd;
 		csr32w(ctlr, Ctrl, ctrl);
 
@@ -1237,11 +1376,12 @@ i82543mii(Ctlr* ctlr)
 		ctlr->mii->mir = i82543miimir;
 		ctlr->mii->miw = i82543miimiw;
 		break;
-	case (0x1008<<16)|0x8086:
+	case (0x1008<<16)|0x8086:		/* 82544EI*/
+	case (0x100E<<16)|0x8086:		/* 82540EM */
 		ctrl &= ~(Frcdplx|Frcspd);
 		csr32w(ctlr, Ctrl, ctrl);
-		ctlr->mii->mir = gc82544miimir;
-		ctlr->mii->miw = gc82544miimiw;
+		ctlr->mii->mir = igbemiimir;
+		ctlr->mii->miw = igbemiimiw;
 		break;
 	default:
 		free(ctlr->mii);
@@ -1257,7 +1397,7 @@ i82543mii(Ctlr* ctlr)
 	print("oui %X phyno %d\n", phy->oui, phy->phyno);
 
 	/*
-	 * 82543GC-specific PHY registers not in 802.3:
+	 * 8254X-specific PHY registers not in 802.3:
 	 *	0x10	PHY specific control
 	 *	0x14	extended PHY specific control
 	 * Set appropriate values then reset the PHY to have
@@ -1305,15 +1445,11 @@ at93c46io(Ctlr* ctlr, char* op, int data)
 		case ' ':
 			continue;
 		case ':':			/* start of loop */
-			if(lp != nil){
-				if(p != (lp+1) || loop != 7)
-					return -1;
-				lp = p;
-				loop = 15;
-				continue;
-			}
-			lp = p;
-			loop = 7;
+			loop = strtol(p+1, &lp, 0)-1;
+			lp--;
+			if(p == lp)
+				loop = 7;
+			p = lp;
 			continue;
 		case ';':			/* end of loop */
 			if(lp == nil)
@@ -1370,9 +1506,41 @@ static int
 at93c46r(Ctlr* ctlr)
 {
 	ushort sum;
-	int addr, data;
+	char rop[20];
+	int addr, areq, bits, data, eecd, i;
+
+	eecd = csr32r(ctlr, Eecd);
+	if(eecd & Spi){
+		print("igbe: SPI EEPROM access not implemented\n");
+		return 0;
+	}
+	if(eecd & Eesz256)
+		bits = 8;
+	else
+		bits = 6;
+	snprint(rop, sizeof(rop), "S :%dDCc;", bits+3);
 
 	sum = 0;
+
+	switch(ctlr->id){
+	default:
+		areq = 0;
+		break;
+	case (0x100E<<16)|0x8086:		/* 82540EM */
+		areq = 1;
+		csr32w(ctlr, Eecd, eecd|Areq);
+		for(i = 0; i < 1000; i++){
+			if((eecd = csr32r(ctlr, Eecd)) & Agnt)
+				break;
+			microdelay(5);
+		}
+		if(!(eecd & Agnt)){
+			print("igbe: not granted EEPROM access\n");
+			goto release;
+		}
+		break;
+	}
+
 	for(addr = 0; addr < 0x40; addr++){
 		/*
 		 * Read a word at address 'addr' from the Atmel AT93C46
@@ -1380,20 +1548,27 @@ at93c46r(Ctlr* ctlr)
 		 * controlled by 4 bits in Eecd. See the AT93C46 datasheet
 		 * for protocol details.
 		 */
-		if(at93c46io(ctlr, "S ICc :DCc;", (0x02<<6)|addr) != 0)
-			break;
-		data = at93c46io(ctlr, "::COc;", 0);
+		if(at93c46io(ctlr, rop, (0x06<<bits)|addr) != 0){
+			print("igbe: can't set EEPROM address 0x%2.2X\n", addr);
+			goto release;
+		}
+		data = at93c46io(ctlr, ":16COc;", 0);
 		at93c46io(ctlr, "sic", 0);
 		ctlr->eeprom[addr] = data;
 		sum += data;
 	}
 
+release:
+	if(areq)
+		csr32w(ctlr, Eecd, eecd & ~Areq);
 	return sum;
 }
 
 static void
-i82543detach(Ctlr* ctlr)
+igbedetach(Ctlr* ctlr)
 {
+	int r;
+
 	/*
 	 * Perform a device reset to get the chip back to the
 	 * power-on state, followed by an EEPROM reset to read
@@ -1413,28 +1588,36 @@ i82543detach(Ctlr* ctlr)
 	while(csr32r(ctlr, Ctrlext) & Eerst)
 		;
 
+	switch(ctlr->id){
+	default:
+		break;
+	case (0x100E<<16)|0x8086:		/* 82540EM */
+		r = csr32r(ctlr, Manc);
+		r &= ~Arpen;
+		csr32w(ctlr, Manc, r);
+		break;
+	}
+
 	csr32w(ctlr, Imc, ~0);
 	while(csr32r(ctlr, Icr))
 		;
 }
 
 static int
-i82543reset(Ctlr* ctlr)
+igbereset(Ctlr* ctlr)
 {
 	int ctrl, i, pause, r, swdpio, txcw;
 
-print("B: ctrl %8.8uX ctrlext %8.8uX status %8.8uX txcw %8.8uX\n",
-	csr32r(ctlr, Ctrl),  csr32r(ctlr, Ctrlext),
-	csr32r(ctlr, Status), csr32r(ctlr, Txcw));
-
-	i82543detach(ctlr);
+	igbedetach(ctlr);
 
 	/*
 	 * Read the EEPROM, validate the checksum
 	 * then get the device back to a power-on state.
 	 */
-	if(at93c46r(ctlr) != 0xBABA)
+	if((r = at93c46r(ctlr)) != 0xBABA){
+		print("igbe: bad EEPROM checksum - 0x%4.4uX\n", r);
 		return -1;
+	}
 
 	/*
 	 * Snarf and set up the receive addresses.
@@ -1492,7 +1675,7 @@ print("B: ctrl %8.8uX ctrlext %8.8uX status %8.8uX txcw %8.8uX\n",
 	ctrl |= swdpio<<SwdpiohiSHIFT;
 	csr32w(ctlr, Ctrlext, ctrl);
 
-	if(ctlr->eeprom[Icw2] & 0x08000)
+	if(ctlr->eeprom[Icw2] & 0x0800)
 		txcw |= TxcwAne;
 	pause = (ctlr->eeprom[Icw2] & 0x3000)>>12;
 	txcw |= pause<<TxcwPauseSHIFT;
@@ -1515,11 +1698,6 @@ print("B: ctrl %8.8uX ctrlext %8.8uX status %8.8uX txcw %8.8uX\n",
 	ctlr->txcw = txcw;
 	csr32w(ctlr, Txcw, txcw);
 
-	delay(10);
-
-	if(!(csr32r(ctlr, Status) & Tbimode))
-		i82543mii(ctlr);
-
 	/*
 	 * Flow control - values from the datasheet.
 	 */
@@ -1531,16 +1709,14 @@ print("B: ctrl %8.8uX ctrlext %8.8uX status %8.8uX txcw %8.8uX\n",
 	csr32w(ctlr, Fcrtl, ctlr->fcrtl);
 	csr32w(ctlr, Fcrth, ctlr->fcrth);
 
-print("A: ctrl %8.8uX ctrlext %8.8uX status %8.8uX txcw %8.8uX rxdctl %8.8uX\n",
-	csr32r(ctlr, Ctrl),  csr32r(ctlr, Ctrlext),
-	csr32r(ctlr, Status), csr32r(ctlr, Txcw),
-	csr32r(ctlr, Rxdctl));
+	if(!(csr32r(ctlr, Status) & Tbimode) && igbemii(ctlr) < 0)
+		return -1;
 
 	return 0;
 }
 
 static void
-i82543pci(void)
+igbepci(void)
 {
 	int port, cls;
 	Pcidev *p;
@@ -1552,32 +1728,30 @@ i82543pci(void)
 			continue;
 
 		switch((p->did<<16)|p->vid){
-		case (0x1000<<16)|0x8086:	/* LSI L2A1157 (82542) */
 		default:
 			continue;
-		case (0x1001<<16)|0x8086:	/* Intel PRO/1000 F */
-			break;
-		case (0x1004<<16)|0x8086:	/* Intel PRO/1000 T */
-			break;
-		case (0x1008<<16)|0x8086:	/* Intel PRO/1000 XT */
+		case (0x1004<<16)|0x8086:	/* 82543GC - copper */
+		case (0x1008<<16)|0x8086:	/* 82544EI - copper */
+		case (0x100E<<16)|0x8086:	/* 82540EM - copper */
 			break;
 		}
 
 		port = upamalloc(p->mem[0].bar & ~0x0F, p->mem[0].size, 0);
 		if(port == 0){
-			print("i82543: can't map %8.8luX\n", p->mem[0].bar);
+			print("igbe: can't map %8.8luX\n", p->mem[0].bar);
 			continue;
 		}
 		cls = pcicfgr8(p, PciCLS);
 		switch(cls){
 			default:
-				print("82543: unexpected CLS - %d\n", cls*4);
+				print("igbe: unexpected CLS - %d\n", cls*4);
 				break;
 			case 0x00:
 			case 0xFF:
-				print("82543: unusable CLS\n");
+				print("igbe: unusable CLS\n");
 				continue;
 			case 0x08:
+			case 0x10:
 				break;
 		}
 		ctlr = malloc(sizeof(Ctlr));
@@ -1585,35 +1759,35 @@ i82543pci(void)
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;
 		ctlr->cls = cls*4;
-
 		ctlr->nic = KADDR(ctlr->port);
 
-		if(i82543reset(ctlr)){
+		if(igbereset(ctlr)){
 			free(ctlr);
 			continue;
 		}
+		pcisetbme(p);
 
-		if(i82543ctlrhead != nil)
-			i82543ctlrtail->next = ctlr;
+		if(igbectlrhead != nil)
+			igbectlrtail->next = ctlr;
 		else
-			i82543ctlrhead = ctlr;
-		i82543ctlrtail = ctlr;
+			igbectlrhead = ctlr;
+		igbectlrtail = ctlr;
 	}
 }
 
 static int
-i82543pnp(Ether* edev)
+igbepnp(Ether* edev)
 {
 	Ctlr *ctlr;
 
-	if(i82543ctlrhead == nil)
-		i82543pci();
+	if(igbectlrhead == nil)
+		igbepci();
 
 	/*
 	 * Any adapter matches if no edev->port is supplied,
 	 * otherwise the ports must match.
 	 */
-	for(ctlr = i82543ctlrhead; ctlr != nil; ctlr = ctlr->next){
+	for(ctlr = igbectlrhead; ctlr != nil; ctlr = ctlr->next){
 		if(ctlr->active)
 			continue;
 		if(edev->port == 0 || edev->port == ctlr->port){
@@ -1634,19 +1808,21 @@ i82543pnp(Ether* edev)
 	/*
 	 * Linkage to the generic ethernet driver.
 	 */
-	edev->attach = i82543attach;
-	edev->transmit = nil/*i82543transmit*/;
-	edev->interrupt = i82543interrupt;
-	edev->ifstat = i82543ifstat;
+	edev->attach = igbeattach;
+	edev->transmit = igbetransmit;
+	edev->interrupt = igbeinterrupt;
+	edev->ifstat = igbeifstat;
+	edev->ctl = igbectl;
 
 	edev->arg = edev;
-	edev->promiscuous = i82543promiscuous;
+	edev->promiscuous = igbepromiscuous;
 
 	return 0;
 }
 
 void
-ether82543link(void)
+etherigbelink(void)
 {
-	addethercard("i82543", i82543pnp);
+	addethercard("i82543", igbepnp);
+	addethercard("igbe", igbepnp);
 }

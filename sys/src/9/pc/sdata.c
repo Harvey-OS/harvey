@@ -18,6 +18,7 @@ enum {
 	DbgPROBE	= 0x08,		/* trace device probing */
 	DbgDEBUG	= 0x80,		/* the current problem... */
 	DbgINL		= 0x100,	/* That Inil20+ message we hate */
+	Dbg48BIT	= 0x200,	/* 48-bit LBA */
 };
 #define DEBUG		(DbgDEBUG|DbgSTATE)
 
@@ -25,13 +26,16 @@ enum {					/* I/O ports */
 	Data		= 0,
 	Error		= 1,		/* (read) */
 	Features	= 1,		/* (write) */
-	Count		= 2,		/* sector count */
+	Count		= 2,		/* sector count<7-0>, sector count<15-8> */
 	Ir		= 2,		/* interrupt reason (PACKET) */
-	Sector		= 3,		/* sector number, LBA<7-0> */
-	Cyllo		= 4,		/* cylinder low, LBA<15-8> */
+	Sector		= 3,		/* sector number */
+	Lbalo		= 3,		/* LBA<7-0>, LBA<31-24> */
+	Cyllo		= 4,		/* cylinder low */
 	Bytelo		= 4,		/* byte count low (PACKET) */
-	Cylhi		= 5,		/* cylinder high, LBA<23-16> */
+	Lbamid		= 4,		/* LBA<15-8>, LBA<39-32> */
+	Cylhi		= 5,		/* cylinder high */
 	Bytehi		= 5,		/* byte count hi (PACKET) */
+	Lbahi		= 5,		/* LBA<23-16>, LBA<47-40> */
 	Dh		= 6,		/* Device/Head, LBA<32-14> */
 	Status		= 7,		/* (read) */
 	Command		= 7,		/* (write) */
@@ -57,9 +61,6 @@ enum {					/* Error */
 enum {					/* Features */
 	Dma		= 0x01,		/* data transfer via DMA (PACKET) */
 	Ovl		= 0x02,		/* command overlapped (PACKET) */
-
-	Lba48a	= 0x02,		/* first write of 48-bit LBA */
-	Lba48b	= 0x03,		/* second write of 48-bit LBA */
 };
 
 enum {					/* Interrupt Reason */
@@ -72,7 +73,11 @@ enum {					/* Device/Head */
 	Dev0		= 0xA0,		/* Master */
 	Dev1		= 0xB0,		/* Slave */
 	Lba		= 0x40,		/* LBA mode */
-	Lba48	= 0x100,		/* LBA48 mode (internal use only) */
+};
+
+enum {					/* internal flags */
+	Lba48		= 0x1,		/* LBA48 mode */
+	Lba48always	= 0x2,		/* ... */
 };
 
 enum {					/* Status, Alternate Status */
@@ -91,7 +96,15 @@ enum {					/* Command */
 	Cnop		= 0x00,		/* NOP */
 	Cdr		= 0x08,		/* Device Reset */
 	Crs		= 0x20,		/* Read Sectors */
+	Crs48		= 0x24,		/* Read Sectors Ext */
+	Crd48		= 0x25,		/* Read w/ DMA Ext */
+	Crdq48		= 0x26,		/* Read w/ DMA Queued Ext */
+	Crsm48		= 0x29,		/* Read Multiple Ext */
 	Cws		= 0x30,		/* Write Sectors */
+	Cws48		= 0x34,		/* Write Sectors Ext */
+	Cwd48		= 0x35,		/* Write w/ DMA Ext */
+	Cwdq48		= 0x36,		/* Write w/ DMA Queued Ext */
+	Cwsm48		= 0x39,		/* Write Multiple Ext */
 	Cedd		= 0x90,		/* Execute Device Diagnostics */
 	Cpkt		= 0xA0,		/* Packet */
 	Cidpkt		= 0xA1,		/* Identify Packet Device */
@@ -110,6 +123,7 @@ enum {					/* Command */
 enum {					/* Device Control */
 	Nien		= 0x02,		/* (not) Interrupt Enable */
 	Srst		= 0x04,		/* Software Reset */
+	Hob		= 0x80,		/* High Order Bit [sic] */
 };
 
 enum {					/* PCI Configuration Registers */
@@ -160,8 +174,7 @@ enum {					/* offsets into the identify info. */
 	Icsec		= 56,		/* sectors if (valid&0x01) */
 	Iccap		= 57,		/* capacity if (valid&0x01) */
 	Irwm		= 59,		/* read/write multiple */
-	Ilba0		= 60,		/* LBA size */
-	Ilba1		= 61,		/* LBA size */
+	Ilba		= 60,		/* LBA size */
 	Imwdma		= 63,		/* multiword DMA mode */
 	Iapiomode	= 64,		/* advanced PIO modes supported */
 	Iminmwdma	= 65,		/* min. multiword DMA cycle time */
@@ -179,9 +192,67 @@ enum {					/* offsets into the identify info. */
 	Ierase		= 89,		/* time for security erase */
 	Ieerase		= 90,		/* time for enhanced security erase */
 	Ipower		= 91,		/* current advanced power management */
-	Ilba48		= 100,		/* LBA 48-bit size (64 bits in 100-103) */
+	Ilba48		= 100,		/* 48-bit LBA size (64 bits in 100-103) */
 	Irmsn		= 127,		/* removable status notification */
-	Istatus		= 128,		/* security status */
+	Isecstat	= 128,		/* security status */
+	Icfapwr		= 160,		/* CFA power mode */
+	Imediaserial	= 176,		/* current media serial number */
+	Icksum		= 255,		/* checksum */
+};
+
+enum {					/* bit masks for config identify info */
+	Mpktsz		= 0x0003,	/* packet command size */
+	Mincomplete	= 0x0004,	/* incomplete information */
+	Mdrq		= 0x0060,	/* DRQ type */
+	Mrmdev		= 0x0080,	/* device is removable */
+	Mtype		= 0x1F00,	/* device type */
+	Mproto		= 0x8000,	/* command protocol */
+};
+
+enum {					/* bit masks for capabilities identify info */
+	Mdma		= 0x0100,	/* DMA supported */
+	Mlba		= 0x0200,	/* LBA supported */
+	Mnoiordy	= 0x0400,	/* IORDY may be disabled */
+	Miordy		= 0x0800,	/* IORDY supported */
+	Msoftrst	= 0x1000,	/* needs soft reset when Bsy */
+	Mstdby		= 0x2000,	/* standby supported */
+	Mqueueing	= 0x4000,	/* queueing overlap supported */
+	Midma		= 0x8000,	/* interleaved DMA supported */
+};
+
+enum {					/* bit masks for supported/enabled features */
+	Msmart		= 0x0001,
+	Msecurity	= 0x0002,
+	Mrmmedia	= 0x0004,
+	Mpwrmgmt	= 0x0008,
+	Mpkt		= 0x0010,
+	Mwcache		= 0x0020,
+	Mlookahead	= 0x0040,
+	Mrelirq		= 0x0080,
+	Msvcirq		= 0x0100,
+	Mreset		= 0x0200,
+	Mprotected	= 0x0400,
+	Mwbuf		= 0x1000,
+	Mrbuf		= 0x2000,
+	Mnop		= 0x4000,
+	Mmicrocode	= 0x0001,
+	Mqueued		= 0x0002,
+	Mcfa		= 0x0004,
+	Mapm		= 0x0008,
+	Mnotify		= 0x0010,
+	Mstandby	= 0x0020,
+	Mspinup		= 0x0040,
+	Mmaxsec		= 0x0100,
+	Mautoacoustic	= 0x0200,
+	Maddr48		= 0x0400,
+	Mdevconfov	= 0x0800,
+	Mflush		= 0x1000,
+	Mflush48	= 0x2000,
+	Msmarterror	= 0x0001,
+	Msmartselftest	= 0x0002,
+	Mmserial	= 0x0004,
+	Mmpassthru	= 0x0008,
+	Mlogging	= 0x0020,
 };
 
 typedef struct Ctlr Ctlr;
@@ -255,6 +326,7 @@ typedef struct Drive {
 	int	block;			/* R/W bytes per block */
 	int	status;
 	int	error;
+	int	flags;			/* internal flags */
 } Drive;
 
 static void
@@ -276,7 +348,7 @@ pc87415ienable(Ctlr* ctlr)
 }
 
 static void
-atadumpstate(Drive* drive, uchar* cmd, ulong lba, int count)
+atadumpstate(Drive* drive, uchar* cmd, vlong lba, int count)
 {
 	Prd *prd;
 	Pcidev *p;
@@ -294,7 +366,7 @@ atadumpstate(Drive* drive, uchar* cmd, ulong lba, int count)
 		drive->data, drive->limit, drive->dlen,
 		drive->status, drive->error);
 	if(cmd != nil){
-		print("lba %d -> %lud, count %d -> %d (%d)\n",
+		print("lba %d -> %lld, count %d -> %d (%d)\n",
 			(cmd[2]<<24)|(cmd[3]<<16)|(cmd[4]<<8)|cmd[5], lba,
 			(cmd[7]<<8)|cmd[8], count, drive->count);
 	}
@@ -400,6 +472,7 @@ ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 	return -1;
 }
 
+/*
 static int
 atacsf(Drive* drive, vlong csf, int supported)
 {
@@ -423,6 +496,7 @@ atacsf(Drive* drive, vlong csf, int supported)
 
 	return 0;
 }
+*/
 
 static int
 atadone(void* arg)
@@ -543,7 +617,6 @@ atadrive(int cmdport, int ctlport, int dev)
 	int as, i, pkt;
 	uchar buf[512], *p;
 	ushort iconfig, *sp;
-	vlong sectors;
 
 	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
 	pkt = 1;
@@ -597,28 +670,22 @@ retry:
 			drive->c = drive->info[Iccyl];
 			drive->h = drive->info[Ichead];
 			drive->s = drive->info[Icsec];
-		}
-		else{
+		}else{
 			drive->c = drive->info[Ilcyl];
 			drive->h = drive->info[Ilhead];
 			drive->s = drive->info[Ilsec];
 		}
-		if(drive->info[Icapabilities] & 0x0200){
-			drive->sectors = (drive->info[Ilba1]<<16)
-					 |drive->info[Ilba0];
-			drive->dev |= Lba;
-			print("LBA %llux\n", drive->sectors);
-			if(drive->info[Icapabilities] & 0x0400){
-				sectors = drive->info[Ilba48]
+		if(drive->info[Icapabilities] & Mlba){
+			if(drive->info[Icsfs+1] & Maddr48){
+				drive->sectors = drive->info[Ilba48]
 					| (drive->info[Ilba48+1]<<16)
 					| ((vlong)drive->info[Ilba48+2]<<32);
-				if(sectors){
-					drive->sectors = sectors;
-					drive->dev |= Lba48|Lba;
-					print("LLBA %llux\n", sectors);
-				}
-				
+				drive->flags |= Lba48;
+			}else{
+				drive->sectors = (drive->info[Ilba+1]<<16)
+					 |drive->info[Ilba];
 			}
+			drive->dev |= Lba;
 		}else
 			drive->sectors = drive->c*drive->h*drive->s;
 		atarwmmode(drive, cmdport, ctlport, dev);
@@ -628,11 +695,13 @@ retry:
 	if(DEBUG & DbgCONFIG){
 		print("dev %2.2uX port %uX config %4.4uX capabilities %4.4uX",
 			dev, cmdport,
-			iconfig, drive->info[Icapabilities]);
+			drive->info[Iconfig], drive->info[Icapabilities]);
 		print(" mwdma %4.4uX", drive->info[Imwdma]);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
 		print(" dma %8.8uX rwm %ud\n", drive->dma, drive->rwm);
+		if(drive->flags&Lba48)
+			print("\tLLBA sectors %lld\n", drive->sectors);
 	}
 
 	return drive;
@@ -966,7 +1035,7 @@ ataabort(Drive* drive, int dolock)
 	 */
 	if(dolock)
 		ilock(drive->ctlr);
-	if(atacsf(drive, 0x0000000000004000LL, 0))
+	if(drive->info[Icsfs] & Mnop)
 		atanop(drive, 0);
 	else{
 		atasrst(drive->ctlr->ctlport);
@@ -1173,7 +1242,7 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 		atadmastart(ctlr, drive->write);
 	outb(cmdport+Command, Cpkt);
 
-	if((drive->info[Iconfig] & 0x0060) != 0x0020){
+	if((drive->info[Iconfig] & Mdrq) != 0x0020){
 		microdelay(1);
 		as = ataready(cmdport, ctlport, 0, Bsy, Drq|Chk, 4*1000);
 		if(as < 0)
@@ -1217,15 +1286,27 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 	return r;
 }
 
+static uchar cmd48[256] = {
+	[Crs]	Crs48,
+	[Crd]	Crd48,
+	[Crdq]	Crdq48,
+	[Crsm]	Crsm48,
+	[Cws]	Cws48,
+	[Cwd]	Cwd48,
+	[Cwdq]	Cwdq48,
+	[Cwsm]	Cwsm48,
+};
+
 static int
-atageniostart(Drive* drive, ulong lba)
+atageniostart(Drive* drive, vlong lba)
 {
 	Ctlr *ctlr;
+	uchar cmd;
 	int as, c, cmdport, ctlport, h, len, s, use48;
 
 	use48 = 0;
-	if(lba>>28){
-		if(!(drive->dev & Lba48))
+	if((drive->flags&Lba48always) || (lba>>28) || drive->count > 256){
+		if(!(drive->flags & Lba48))
 			return -1;
 		use48 = 1;
 		c = h = s = 0;
@@ -1267,32 +1348,32 @@ atageniostart(Drive* drive, ulong lba)
 			drive->command = Crs;
 	}
 	drive->limit = drive->data + drive->count*drive->secsize;
-
+	cmd = drive->command;
 	if(use48){
-		outb(cmdport+Features, Lba48a);
-		outb(cmdport+Count, lba);
-		outb(cmdport+Sector, lba>>8);
-		outb(cmdport+Cyllo, lba>>16);
-		outb(cmdport+Cylhi, lba>>24);
-		outb(cmdport+Dh, drive->dev);
+		outb(cmdport+Count, (drive->count>>8) & 0xFF);
+		outb(cmdport+Count, drive->count & 0XFF);
+		outb(cmdport+Lbalo, (lba>>24) & 0xFF);
+		outb(cmdport+Lbalo, lba & 0xFF);
+		outb(cmdport+Lbamid, (lba>>32) & 0xFF);
+		outb(cmdport+Lbamid, (lba>>8) & 0xFF);
+		outb(cmdport+Lbahi, (lba>>40) & 0xFF);
+		outb(cmdport+Lbahi, (lba>>16) & 0xFF);
+		outb(cmdport+Dh, drive->dev|Lba);
+		cmd = cmd48[cmd];
 
-		outb(cmdport+Features, Lba48b);
-		outb(cmdport+Count, drive->count);
-		outb(cmdport+Sector, drive->count>>8);
-		outb(cmdport+Cyllo, 0);	/* lba>>32 if lba were a vlong */
-		outb(cmdport+Cylhi, 0);	/* lba>>40 if lba were a vlong */
-		outb(cmdport+Dh, drive->dev);
+		if(DEBUG & Dbg48BIT)
+			print("using 48-bit commands\n");
 	}else{
 		outb(cmdport+Count, drive->count);
 		outb(cmdport+Sector, s);
-		outb(cmdport+Dh, drive->dev|h);
 		outb(cmdport+Cyllo, c);
 		outb(cmdport+Cylhi, c>>8);
+		outb(cmdport+Dh, drive->dev|h);
 	}
 	ctlr->done = 0;
 	ctlr->curdrive = drive;
 	ctlr->command = drive->command;	/* debugging */
-	outb(cmdport+Command, drive->command);
+	outb(cmdport+Command, cmd);
 
 	switch(drive->command){
 	case Cws:
@@ -1339,8 +1420,8 @@ atagenio(Drive* drive, uchar* cmd, int)
 {
 	uchar *p;
 	Ctlr *ctlr;
-	int count, len;
-	ulong lba;
+	int count, max;
+	vlong lba, len;
 
 	/*
 	 * Map SCSI commands into ATA commands for discs.
@@ -1408,6 +1489,32 @@ atagenio(Drive* drive, uchar* cmd, int)
 		drive->data += 8;
 		return SDok;
 
+	case 0x9E:			/* long read capacity */
+		if((cmd[1] & 0x01) || cmd[2] || cmd[3])
+			return atasetsense(drive, SDcheck, 0x05, 0x24, 0);
+		if(drive->data == nil || drive->dlen < 8)
+			return atasetsense(drive, SDcheck, 0x05, 0x20, 1);
+		/*
+		 * Read capacity returns the LBA of the last sector.
+		 */
+		len = drive->sectors-1;
+		p = drive->data;
+		*p++ = len>>56;
+		*p++ = len>>48;
+		*p++ = len>>40;
+		*p++ = len>>32;
+		*p++ = len>>24;
+		*p++ = len>>16;
+		*p++ = len>>8;
+		*p++ = len;
+		len = drive->secsize;
+		*p++ = len>>24;
+		*p++ = len>>16;
+		*p++ = len>>8;
+		*p = len;
+		drive->data += 8;
+		return SDok;
+
 	case 0x28:			/* read */
 	case 0x2A:			/* write */
 		break;
@@ -1425,8 +1532,9 @@ atagenio(Drive* drive, uchar* cmd, int)
 		count = drive->dlen/drive->secsize;
 	qlock(ctlr);
 	while(count){
-		if(count > 256)
-			drive->count = 256;
+		max = (drive->flags&Lba48) ? 65536 : 256;
+		if(count > max)
+			drive->count = max;
 		else
 			drive->count = count;
 		if(atageniostart(drive, lba)){
@@ -1743,6 +1851,7 @@ atapnp(void)
 			break;
 		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
 		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
+		case (0x4D68<<16)|0x105A:	/* Promise PDC20268 */
 			pi = 0x85;
 			break;
 		case (0x0004<<16)|0x1103:	/* HighPoint HPT-370 */
@@ -1959,10 +2068,13 @@ atarctl(SDunit* unit, char* p, int l)
 	if(drive->rwm)
 		n += snprint(p+n, l-n, " rwm %ud rwmctl %ud",
 			drive->rwm, drive->rwmctl);
+	if(drive->flags&Lba48)
+		n += snprint(p+n, l-n, " lba48always %s",
+			(drive->flags&Lba48always) ? "on" : "off");
 	n += snprint(p+n, l-n, "\n");
-	if(unit->sectors){
-		n += snprint(p+n, l-n, "geometry %ld %ld",
-			unit->sectors, unit->secsize);
+	if(drive->sectors){
+		n += snprint(p+n, l-n, "geometry %lld %d",
+			drive->sectors, drive->secsize);
 		if(drive->pkt == 0)
 			n += snprint(p+n, l-n, " %d %d %d",
 				drive->c, drive->h, drive->s);
@@ -2028,6 +2140,16 @@ atawctl(SDunit* unit, Cmdbuf* cb)
 			break;
 		}
 		if(atastandby(drive, period) != SDok)
+			error(Ebadctl);
+	}
+	else if(strcmp(cb->f[0], "lba48always") == 0){
+		if(cb->nf != 2 || !(drive->flags&Lba48))
+			error(Ebadctl);
+		if(strcmp(cb->f[1], "on") == 0)
+			drive->flags |= Lba48always;
+		else if(strcmp(cb->f[1], "off") == 0)
+			drive->flags &= ~Lba48always;
+		else
 			error(Ebadctl);
 	}
 	else

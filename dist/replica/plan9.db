@@ -5131,7 +5131,6 @@ sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1018386992 14056
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1026847639 17884
-sys/src/9/pc/ether82543.c - 664 sys sys 1039803177 38406
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1032052916 32377
 sys/src/9/pc/ether82557.c - 664 sys sys 1032543589 29722
 sys/src/9/pc/ether83815.c - 664 sys sys 1026847640 23050
@@ -5142,6 +5141,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1026847641 48003
 sys/src/9/pc/etherga620.c - 664 sys sys 1032052917 28786
 sys/src/9/pc/etherga620fw.h - 644 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1045063564 961
+sys/src/9/pc/etherigbe.c - 664 sys sys 1055090142 42055
 sys/src/9/pc/ethermii.c - 664 sys sys 1039803177 4555
 sys/src/9/pc/ethermii.h - 664 sys sys 1039895684 3259
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
@@ -5165,10 +5165,10 @@ sys/src/9/pc/mmu.c - 664 sys sys 1049509456 10014
 sys/src/9/pc/mouse.c - 664 sys sys 1020369766 6315
 sys/src/9/pc/mp.c - 664 sys sys 1048644112 16928
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
-sys/src/9/pc/pc - 664 sys sys 1046359057 1316
+sys/src/9/pc/pc - 664 sys sys 1055090302 1340
 sys/src/9/pc/pcauth - 664 sys sys 1046359058 605
-sys/src/9/pc/pccd - 664 sys sys 1039753495 1278
-sys/src/9/pc/pccpu - 664 sys sys 1048644120 804
+sys/src/9/pc/pccd - 664 sys sys 1055090302 1302
+sys/src/9/pc/pccpu - 664 sys sys 1055090302 803
 sys/src/9/pc/pcdisk - 664 sys sys 1046359059 1374
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1045500133 1386
@@ -5186,7 +5186,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1048644129 3760
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1033134905 51568
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1054088388 46387
+sys/src/9/pc/sdata.c - 664 sys sys 1055087706 49704
 sys/src/9/pc/sdmylex.c - 664 sys sys 1015014523 27750
 sys/src/9/pc/sdscsi.c - 664 sys sys 1015014523 7412
 sys/src/9/pc/trap.c - 664 sys sys 1047261661 18991
@@ -5209,7 +5209,7 @@ sys/src/9/pc/vgamach64xx.c - 664 sys sys 1048644147 29112
 sys/src/9/pc/vgamga2164w.c - 664 sys sys 1015014527 5654
 sys/src/9/pc/vgamga4xx.c - 664 sys sys 1015014527 11122
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1032375144 10693
-sys/src/9/pc/vganvidia.c - 664 sys sys 1048858211 6296
+sys/src/9/pc/vganvidia.c - 664 sys sys 1055090312 6543
 sys/src/9/pc/vgargb524.c - 664 sys sys 1015014527 4235
 sys/src/9/pc/vgas3.c - 664 sys sys 1048640451 12064
 sys/src/9/pc/vgasavage.c - 664 sys sys 1046203931 16194

@@ -45,6 +45,7 @@ link
 	etherec2t	ether8390
 	etherelnk3	pci
 	ether8139	pci
+	etherigbe	pci ethermii
 	ether82543gc	pci
 	etherga620	pci
 	ethersink
