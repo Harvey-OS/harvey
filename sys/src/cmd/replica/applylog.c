@@ -1,10 +1,19 @@
 #include "all.h"
 
+#define	Nwork	16
+
 int localdirstat(char*, Dir*);
 int ismatch(char*);
 void conflict(char*, char*, ...);
 void error(char*, ...);
 int isdir(char*);
+
+void worker(int fdf, int fdt, char *from, char *to);
+vlong	nextoff(void);
+void	failure(void *, char *note);
+
+QLock	lk;
+vlong	off;
 
 int errors;
 int nconf;
@@ -615,32 +624,94 @@ enum { DEFB = 8192 };
 static int
 copy1(int fdf, int fdt, char *from, char *to)
 {
-	char buf[DEFB];
-	long n, n1, rcount;
-	int rv;
-	char err[ERRMAX];
+	int i, n, rv, pid[Nwork];
+	Waitmsg *w;
 
-	/* clear any residual error */
-	err[0] = '\0';
-	errstr(err, ERRMAX);
-	rv = 0;
-	for(rcount=0;; rcount++) {
-		n = read(fdf, buf, DEFB);
-		if(n <= 0)
+	n = 0;
+	off = 0;
+	for(i=0; i<Nwork; i++){
+		switch(pid[n] = rfork(RFPROC|RFMEM)){
+		case 0:
+			notify(failure);
+			worker(fdf, fdt, from, to);
+		case -1:
 			break;
-		n1 = write(fdt, buf, n);
-		if(n1 != n) {
-			fprint(2, "error writing %q: %r\n", to);
-			rv = -1;
+		default:
+			n++;
 			break;
 		}
 	}
-	if(n < 0) {
-		fprint(2, "error reading %q: %r\n", from);
-		rv = -1;
+	if(n == 0){
+		fprint(2, "cp: rfork: %r\n");
+		return -1;
+	}
+
+	rv = 0;
+	while((w = wait()) != nil){
+		if(w->msg[0]){
+			rv = -1;
+			for(i=0; i<n; i++)
+				if(pid[i] > 0)
+					postnote(PNPROC, pid[i], "failure");
+		}
+		free(w);
 	}
 	return rv;
 }
+
+void
+worker(int fdf, int fdt, char *from, char *to)
+{
+	char buf[DEFB], *bp;
+	long len, n;
+	vlong o;
+
+	len = sizeof(buf);
+	bp = buf;
+	o = nextoff();
+
+	while(n = pread(fdf, bp, len, o)){
+		if(n < 0){
+			fprint(2, "reading %s: %r\n", from);
+			_exits("bad");
+		}
+		if(pwrite(fdt, buf, n, o) != n){
+			fprint(2, "writing %s: %r\n", to);
+			_exits("bad");
+		}
+		bp += n;
+		o += n;
+		len -= n;
+		if(len == 0){
+			len = sizeof buf;
+			bp = buf;
+			o = nextoff();
+		}
+	}
+	_exits(nil);
+}
+
+vlong
+nextoff(void)
+{
+	vlong o;
+
+	qlock(&lk);
+	o = off;
+	off += DEFB;
+	qunlock(&lk);
+
+	return o;
+}
+
+void
+failure(void*, char *note)
+{
+	if(strcmp(note, "failure") == 0)
+		_exits(nil);
+	noted(NDFLT);
+}
+
 
 static int
 opentemp(char *template)

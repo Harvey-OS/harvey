@@ -370,7 +370,7 @@
 386/bin/read - 775 sys sys 1104122049 58046
 386/bin/replica - 20000000775 sys sys 1018321168 0
 386/bin/replica/applychanges - 775 sys sys 1104122049 98562
-386/bin/replica/applylog - 775 sys sys 1104122049 99358
+386/bin/replica/applylog - 775 sys sys 1111032635 116663
 386/bin/replica/changes - 775 sys sys 1020319082 42
 386/bin/replica/compactdb - 775 sys sys 1104122050 78491
 386/bin/replica/pull - 775 sys sys 1020319083 39
@@ -3087,7 +3087,7 @@ rc/bin/reboot - 775 sys sys 1020011207 36
 rc/bin/replica - 20000000775 sys sys 1018321122 0
 rc/bin/replica/changes - 775 sys sys 1022177304 276
 rc/bin/replica/defs - 664 sys sys 1103390458 778
-rc/bin/replica/pull - 775 sys sys 1045504036 1445
+rc/bin/replica/pull - 775 sys sys 1110990531 1447
 rc/bin/replica/push - 775 sys sys 1043865725 361
 rc/bin/replica/scan - 775 sys sys 1089299188 472
 rc/bin/replica/setupdirs - 775 sys sys 1109511315 411
@@ -3362,7 +3362,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1110309055 253240
+sys/games/lib/fortunes - 664 sys sys 1111012774 253406
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -3506,7 +3506,7 @@ sys/lib/acid/alpha - 664 sys sys 944955985 4849
 sys/lib/acid/arm - 664 sys sys 984696197 1842
 sys/lib/acid/coverage - 664 sys sys 944955985 1746
 sys/lib/acid/kernel - 664 sys sys 1063858104 4994
-sys/lib/acid/leak - 664 sys sys 1048637057 2185
+sys/lib/acid/leak - 664 sys sys 1110989276 2185
 sys/lib/acid/mips - 664 sys sys 944955985 5472
 sys/lib/acid/network - 664 sys sys 1020313817 2499
 sys/lib/acid/pool - 664 sys sys 1063858105 4898
@@ -3929,6 +3929,9 @@ sys/lib/kbmap/es - 664 sys sys 1079535430 1360
 sys/lib/kbmap/fi - 664 sys sys 1079617317 369
 sys/lib/kbmap/jp - 664 sys sys 1106107712 317
 sys/lib/kbmap/n97 - 664 sys sys 1109430112 561
+sys/lib/kbmap/no - 664 sys sys 1110991440 367
+sys/lib/kbmap/ru - 664 sys sys 1110991440 6380
+sys/lib/kbmap/ua - 664 sys sys 1110991440 6380
 sys/lib/kbmap/uk - 664 sys sys 1079473812 55
 sys/lib/kbmap/us - 664 sys sys 1082221421 6248
 sys/lib/lex - 20000000775 sys sys 945136651 0
@@ -9758,8 +9761,8 @@ sys/src/cmd/mk/word.c - 664 sys sys 944961025 2595
 sys/src/cmd/mkdir.c - 664 sys sys 1082593106 1026
 sys/src/cmd/mkfile - 664 sys sys 1108476348 2414
 sys/src/cmd/mklib - 664 sys sys 1101213349 618
-sys/src/cmd/mkmany - 664 sys sys 1022112160 1196
-sys/src/cmd/mkone - 664 sys sys 1101311048 835
+sys/src/cmd/mkmany - 664 sys sys 1110990445 1283
+sys/src/cmd/mkone - 664 sys sys 1110990445 898
 sys/src/cmd/mkstate.c - 664 sys sys 1014926695 2995
 sys/src/cmd/mksyslib - 664 sys sys 1022112160 660
 sys/src/cmd/mntgen.c - 664 sys sys 1106410349 3630
@@ -10244,7 +10247,7 @@ sys/src/cmd/read.c - 664 sys sys 1022047660 1278
 sys/src/cmd/replica - 20000000775 sys sys 1018321113 0
 sys/src/cmd/replica/all.h - 664 sys sys 1091904421 1265
 sys/src/cmd/replica/applychanges.c - 664 sys sys 1068497831 6123
-sys/src/cmd/replica/applylog.c - 664 sys sys 1053210813 17189
+sys/src/cmd/replica/applylog.c - 664 sys sys 1110990530 18079
 sys/src/cmd/replica/avl.c - 664 sys sys 1068497830 6242
 sys/src/cmd/replica/compactdb.c - 664 sys sys 1018323475 652
 sys/src/cmd/replica/db.c - 664 sys sys 1019340165 2989
@@ -11782,6 +11785,7 @@ sys/src/libc/port/netmkaddr.c - 664 sys sys 1014927400 863
 sys/src/libc/port/nrand.c - 664 sys sys 1035832917 191
 sys/src/libc/port/ntruerand.c - 664 sys sys 1014927400 371
 sys/src/libc/port/perror.c - 664 sys sys 1014927400 199
+sys/src/libc/port/pool.acid - 664 sys sys 1110989242 12026
 sys/src/libc/port/pool.c - 664 sys sys 1102093118 30853
 sys/src/libc/port/pow.c - 664 sys sys 1014927401 965
 sys/src/libc/port/pow10.c - 664 sys sys 1014927401 1946

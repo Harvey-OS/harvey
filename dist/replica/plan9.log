@@ -13924,3 +13924,14 @@
 1110947407 0 c 386/bin/vncs - 775 sys sys 1110946101 470895
 1110947407 1 c 386/bin/aux/gpsfs - 775 sys sys 1110946100 176112
 1110947407 2 c 386/lib/libmemdraw.a - 664 sys sys 1110946101 283198
+1110990615 0 c rc/bin/replica/pull - 775 sys sys 1110990531 1447
+1110990615 1 c sys/lib/acid/leak - 664 sys sys 1110989276 2185
+1110990615 2 c sys/src/cmd/replica/applylog.c - 664 sys sys 1110990530 18079
+1110990615 3 c sys/src/cmd/mkmany - 664 sys sys 1110990445 1283
+1110990615 4 c sys/src/cmd/mkone - 664 sys sys 1110990445 898
+1110990615 5 a sys/src/libc/port/pool.acid - 664 sys sys 1110989242 12026
+1110992415 0 a sys/lib/kbmap/no - 664 sys sys 1110991440 367
+1110992415 1 a sys/lib/kbmap/ru - 664 sys sys 1110991440 6380
+1110992415 2 a sys/lib/kbmap/ua - 664 sys sys 1110991440 6380
+1111014019 0 c sys/games/lib/fortunes - 664 sys sys 1111012774 253406
+1111033824 0 c 386/bin/replica/applylog - 775 sys sys 1111032635 116663

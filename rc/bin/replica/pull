@@ -21,7 +21,7 @@ n=`{ls -l $clientlog >[2]/dev/null |awk '{print $6}'}
 s=`{ls -l $serverlog >[2]/dev/null |awk '{print $6}'}
 if(~ $n 0 || ~ $#n 0 || test $s -lt $n){
 	if(test -e $clientlog) must rm $clientlog
-	must cp $serverlog $clientlog
+	must fcp $serverlog $clientlog
 }
 if not{
 	m=`{echo $n-1024 | hoc}
@@ -34,7 +34,7 @@ if not{
 		must tail +^$n^c $serverlog >>$clientlog
 	case *': differ'
 		must rm $clientlog
-		must cp $serverlog $clientlog
+		must fcp $serverlog $clientlog
 	case ''
 		;
 	case *

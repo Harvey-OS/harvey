@@ -52,3 +52,9 @@ safeinstallall:V:
 
 %.acid: %.$O $HFILES
 	$CC $CFLAGS -a $stem.c >$target
+
+%.man:	$MAN/$stem
+	cp $stem.man $MAN/$stem
+
+man:V:	$TARG.man
+
