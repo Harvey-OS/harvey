@@ -4046,3 +4046,6 @@ This 43 minute video FEATURES the 22 year-old, 6'6" (6'11" in heels) 300+ pound,
 Linux is good if you want to run Apache or compile the kernel.  Every other application is suspect.  - Andrew Hume
 /etc/bash.bashrc:	alias unmount='echo "Error: Try the command: umount" 1>&2; false'
 Book-burning is such an ugly phrase.  I prefer to think of it as "English lit".  - Larry Hollister
+panic: bad rob
+	ulong	when;			/* may underflow in clock(); must be signed */ 
+There is no interest in a WWW browser.  This fad is clearly not going to have any staying power.  - plan.9@research.att.com, Oct 22 1994
