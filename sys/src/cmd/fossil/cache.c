@@ -350,7 +350,7 @@ cacheBumpBlock(Cache *c)
 
 	assert(b->heap == BadHeap);
 	assert(b->ref == 0);
-	assert(b->iostate == BioEmpty || b->iostate == BioLabel || b->iostate == BioClean);
+	assert(b->iostate != BioDirty && b->iostate != BioReading && b->iostate != BioWriting);
 	assert(b->prior == nil);
 	assert(b->uhead == nil);
 
@@ -435,7 +435,6 @@ _cacheLocalLookup(Cache *c, int part, u32int addr, u32int vers,
 			break;
 		case BioVentiError:
 		case BioReadError:
-			blockSetIOState(b, BioEmpty);
 			blockPut(b);
 			vtSetError(EIO);
 			return nil;
@@ -657,6 +656,7 @@ if(0)fprint(2, "cacheGlobal %V %d\n", score, type);
 		if(n < 0 || !vtSha1Check(score, b->data, n)){
 			blockSetIOState(b, BioVentiError);
 			blockPut(b);
+			vtSetError(EIO);
 			return nil;
 		}
 		vtZeroExtend(vtType[type], b->data, n, c->size);
@@ -668,7 +668,6 @@ if(0)fprint(2, "cacheGlobal %V %d\n", score, type);
 	case BioReadError:
 		blockPut(b);
 		vtSetError(EIO);
-		blockSetIOState(b, BioEmpty);
 		return nil;
 	}
 	/* NOT REACHED */
@@ -704,7 +703,6 @@ cacheAllocBlock(Cache *c, int type, u32int tag, u32int epoch, u32int epochLow)
 	for(;;){
 		if(++addr >= fl->end){
 			addr = 0;
-			fprint(2, "cacheAllocBlock wrap %d\n", fl->end);
 			if(++nwrap >= 2){
 				blockPut(b);
 				fl->last = 0;
