@@ -269,29 +269,6 @@ fileOpenSnapshot(Fs *fs, int doarchive)
 		if(dir == nil)
 			return nil;
 
-/*
- * used to do /snapshot/#
- * 
-		for(n=0;; n++){
-			if(n)
-				seprint(s, buf+sizeof(buf), ".%d", n);
-			f = fileWalk(dir, buf);
-			if(f != nil){
-				fileDecRef(f);
-				continue;
-			}
-			f = fileCreate(dir, buf, ModeDir|ModeSnapshot|0555, "adm");
-			break;
-		}
-		dir = fileOpen(fs, "/snapshot");
-		if(dir == nil)
-			return nil;
-		snprint(buf, sizeof(buf), "%d", fs->ehi);
-		f = fileCreate(dir, buf, ModeDir|ModeSnapshot|0555, "adm");
-		fileDecRef(dir);
-		return f;
-*/
-
 		now = *localtime(time(0));
 
 		/* yyyy */

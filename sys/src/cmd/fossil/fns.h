@@ -15,6 +15,7 @@ void sourceUnlock(Source*);
 int sourceLock2(Source*, Source*, int);
 
 Cache* cacheAlloc(Disk*, VtSession*, ulong, int);
+void cacheCountUsed(Cache*, u32int, u32int*, u32int*, u32int*);
 void cacheFree(Cache*);
 Block* cacheLocal(Cache*, int, u32int, int);
 Block* cacheLocalData(Cache*, u32int, int, u32int, int, u32int);

@@ -6,7 +6,7 @@
 
 typedef struct Fsys Fsys;
 
-typedef struct Fsys {
+struct Fsys {
 	VtLock* lock;
 
 	char*	name;
@@ -22,7 +22,7 @@ typedef struct Fsys {
 	int	wstatallow;
 
 	Fsys*	next;
-} Fsys;
+};
 
 static struct {
 	VtLock*	lock;
@@ -687,6 +687,27 @@ fsysBfree(Fsys* fsys, int argc, char* argv[])
 	}
 	vtRUnlock(fs->elk);
 
+	return 1;
+}
+
+static int
+fsysDf(Fsys *fsys, int argc, char* argv[])
+{
+	char *usage = "usage: [fsys name] df";
+	u32int used, tot, bsize;
+	Fs *fs;
+
+	ARGBEGIN{
+	default:
+		return cliError(usage);
+	}ARGEND
+	if(argc != 0)
+		return cliError(usage);
+
+	fs = fsys->fs;
+	cacheCountUsed(fs->cache, fs->elo, &used, &tot, &bsize);
+	consPrint("%lud/%lud blocks used (%,llud/%,llud bytes)\n",
+		used, tot, used*(vlong)bsize, tot*(vlong)bsize);
 	return 1;
 }
 
@@ -1359,6 +1380,7 @@ static struct {
 	{ "clri",	fsysClri, },
 	{ "clrp",	fsysClrp, },
 	{ "create",	fsysCreate, },
+	{ "df",	fsysDf, },
 	{ "epoch",	fsysEpoch, },
 	{ "label",	fsysLabel, },
 	{ "remove",	fsysRemove, },

@@ -34,6 +34,7 @@ Cache *cache;
 int nblocks;
 int bsize;
 int badactive;
+int dumpblocks;	/* write lost blocks into /tmp/lost */
 int fast;		/* don't check that all the venti blocks are there */
 u32int hint;	/* a guess at where chkEpoch might look to find the next root */
 
@@ -53,6 +54,9 @@ main(int argc, char *argv[])
 		usage();
 	case 'c':
 		csize = atoi(ARGF());
+		break;
+	case 'd':
+		dumpblocks = 1;
 		break;
 	case 'f':
 		fast = 1;
@@ -75,9 +79,10 @@ main(int argc, char *argv[])
 	 * Connect to Venti.
 	 */
 	z = vtDial(host, 0);
-	if(z == nil)
-		vtFatal("could not connect to server: %s", vtGetError());
-	if(!vtConnect(z, 0))
+	if(z == nil){
+		if(!fast)
+			vtFatal("could not connect to server: %s", vtGetError());
+	}else if(!vtConnect(z, 0))
 		vtFatal("vtConnect: %s", vtGetError());
 
 	/*
@@ -336,7 +341,10 @@ chkEpoch(u32int epoch)
 static void
 chkFree(void)
 {
+	char buf[64];
+	int fd;
 	u32int a;
+	Block *b;
 	Label l;
 	u32int nfree;
 	u32int nlost;
@@ -358,9 +366,26 @@ chkFree(void)
 			continue;
 		}
 		nlost++;
-		warn("unreachable block: addr %ux type %d tag %ux state %s epoch %ud",
-			a, l.type, l.tag, bsStr(l.state), l.epoch);
+		warn("unreachable block: addr %ux type %d tag %ux state %s epoch %ud close %ud",
+			a, l.type, l.tag, bsStr(l.state), l.epoch, l.epochClose);
 		print("# bfree %#ux\n", a);
+		if(dumpblocks){
+			sprint(buf, "/tmp/lost.%ux", a);
+			if((fd = create(buf, OWRITE, 0666)) < 0){
+				fprint(2, "create %s: %r\n", buf);
+				goto nodump;
+			}
+			if((b = cacheLocal(cache, PartData, a, OReadOnly)) == nil){
+				close(fd);
+				fprint(2, "load block %ux: %R\n", a);
+				goto nodump;
+			}
+			if(write(fd, b->data, bsize) != bsize)
+				fprint(2, "writiting %s: %r\n", buf);
+			close(fd);
+			blockPut(b);
+		}
+	    nodump:
 		setBit(amap, a);
 	}
 	fprint(2, "\tused=%ud free space = %ud(%f%%) lost=%ud\n",

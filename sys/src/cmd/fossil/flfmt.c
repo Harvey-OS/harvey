@@ -12,7 +12,7 @@ static u64int unittoull(char *s);
 static u32int blockAlloc(int type, u32int tag);
 static void blockRead(int part, u32int addr);
 static void blockWrite(int part, u32int addr);
-static void superInit(char *label, u32int root);
+static void superInit(char *label, u32int root, uchar[VtScoreSize]);
 static void rootMetaInit(Entry *e);
 static u32int rootInit(Entry *e);
 static void topLevel(char *name);
@@ -135,7 +135,7 @@ main(int argc, char *argv[])
 		root = rootInit(&e);
 	}
 
-	superInit(label, root);
+	superInit(label, root, vtZeroScore);
 	diskFree(disk);
 
 	if(score == nil)
@@ -337,7 +337,7 @@ blockAlloc(int type, u32int tag)
 }
 
 static void
-superInit(char *label, u32int root)
+superInit(char *label, u32int root, uchar score[VtScoreSize])
 {
 	Super s;
 
@@ -351,7 +351,7 @@ superInit(char *label, u32int root)
 	s.next = NilBlock;
 	s.current = NilBlock;
 	strecpy(s.name, s.name+sizeof(s.name), label);
-	memmove(s.last, vtZeroScore, VtScoreSize);
+	memmove(s.last, score, VtScoreSize);
 
 	superPack(&s, buf);
 	blockWrite(PartSuper, 0);
