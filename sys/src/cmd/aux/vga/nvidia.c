@@ -52,7 +52,13 @@ snarf(Vga* vga, Ctlr* ctlr)
 	if(vga->private == nil){
 		vga->private = alloc(sizeof(Nvidia));
 		nv = vga->private;
-		if((p = pcimatch(0, 0x10DE, 0)) == nil)
+
+		p = nil;
+		while((p = pcimatch(p, 0x10DE, 0)) != nil){
+			if((p->ccru>>8) == 3)
+				break;
+		}
+		if(p == nil)
 			error("%s: not found\n", ctlr->name);
 		if(p->did < 0x20)
 			error("%s: DID %4.4uX unsupported\n", ctlr->name, p->did);
@@ -72,7 +78,8 @@ snarf(Vga* vga, Ctlr* ctlr)
 		vgactlw("type", ctlr->name);
 
 		if((m = segattach(0, "nvidiammio", 0, p->mem[0].size)) == -1)
-			error("%s: can't attach mmio segment\n", ctlr->name);
+			error("%s: segattach nvidiammio, size %d: %r\n",
+				ctlr->name, p->mem[0].size);
 
 		nv->pci = p;
 		nv->mmio = m;

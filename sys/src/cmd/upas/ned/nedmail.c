@@ -123,7 +123,7 @@ struct {
 	{ "u",	0,	ucmd,	"u        remove deletion mark" },
 	{ "w",	1,	wcmd,	"w file   store message contents as file" },
 	{ "x",	0,	xcmd,	"x        exit without flushing deleted messages" },
-	{ "y",	0,	ycmd,	"x        synchronize with mail box" },
+	{ "y",	0,	ycmd,	"y        synchronize with mail box" },
 	{ "=",	1,	eqcmd,	"=        print current message number" },
 	{ "|",	1,	pipecmd, "|cmd     pipe message body to a command" },
 	{ "||",	1,	rpipecmd, "|cmd     pipe raw message to a command" },
@@ -189,6 +189,15 @@ catchnote(void*, char *note)
 		noted(NCONT);
 	}
 	noted(NDFLT);
+}
+
+char *
+plural(int n)
+{
+	if (n == 1)
+		return "";
+
+	return "s";		
 }
 
 void
@@ -270,7 +279,7 @@ main(int argc, char **argv)
 		n = dir2message(&top, reverse);
 		if(n < 0)
 			sysfatal("can't read %s", s_to_c(top.path));
-		Bprint(&out, "%d messages\n", n);
+		Bprint(&out, "%d message%s\n", n, plural(n));
 	}
 
 	notify(catchnote);
@@ -1152,7 +1161,7 @@ messagecount(Message *m)
 	i = 0;
 	for(; m != nil; m = m->next)
 		i++;
-	Bprint(&out, "%d messages\n", i);
+	Bprint(&out, "%d message%s\n", i, plural(i));
 }
 
 Message*
@@ -1433,6 +1442,7 @@ flushdeleted(Message *cur)
 	Message *m, **l;
 	char buf[1024], *p, *e, *msg;
 	int deld, n, fd;
+	int i;
 
 	doflush = 0;
 	deld = 0;
@@ -1481,16 +1491,13 @@ flushdeleted(Message *cur)
 
 	close(fd);
 
-	switch(deld){
-	case 0:
-		break;
-	case 1:
-		Bprint(&out, "!1 message deleted\n");
-		break;
-	default:
-		Bprint(&out, "!%d messages deleted\n", deld);
-		break;
-	}
+	if(deld)
+		Bprint(&out, "!%d message%s deleted\n", deld, plural(deld));
+
+	// renumber
+	i = 1;
+	for(m = top.child; m != nil; m = m->next)
+		m->id = natural ? m->fileno : i++;
 
 	if(cur == nil)
 		return top.child;
@@ -1569,7 +1576,7 @@ icmd(Cmd*, Message *m)
 
 	n = dir2message(&top, reverse);
 	if(n > 0)
-		Bprint(&out, "%d new messages\n", n);
+		Bprint(&out, "%d new message%s\n", n, plural(n));
 	return m;
 }
 
