@@ -19320,3 +19320,4 @@
 1052685074 4 d sys/src/cmd/ip/dhcpd/ping.8 - 664 sys sys 1051207140 0
 1052778692 0 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1052777926 30784
 1052832663 0 c 386/bin/upas/marshal - 775 sys sys 1052831584 128669
+1052917291 0 c 386/lib/libmp.a - 664 sys sys 1052916298 80874
