@@ -3,7 +3,7 @@
 ipconfig, rip \- Internet configuration and routing
 .SH SYNOPSIS
 .B ip/ipconfig
-.RB [ -DGPdnr ]
+.RB [ -NDGPdnpr ]
 .RB [ -b
 .IR baud ]
 .RB [ -c
@@ -85,6 +85,11 @@ The options are:
 .B D
 turn on debugging.
 .TP
+.B N
+look in /lib/ndb for the IP parameters.  This only works if the
+interface is an ethernet.  It uses the ethernet address to find
+a matching entry.
+.TP
 .B G
 use only generic DHCP options.  Without this option,
 .I ipconfig
@@ -95,10 +100,15 @@ interpret as the Plan 9 file server and auth server.
 Replies to these options contain a list of IP addresses for possible
 file servers and auth servers.
 .TP
-.B P
+.B p
 write configuration information to
 .BR /net/ndb ,
 even if other network interfaces are already configured
+.TP
+.B P
+do not write configuration information to
+.BR /net/ndb ,
+even if this is the first network interface to be configured
 .TP
 .B b
 the baud rate to use on a serial line

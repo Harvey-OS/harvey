@@ -54,8 +54,9 @@ fn awk3 {
 # hget 'http://www.fedex.com/cgi-bin/track_it?airbill_list='$1'&kurrent_airbill='$1'&language=english&cntry_code=us&state=0' |
 hget 'http://www.fedex.com/cgi-bin/tracking?action=track&language=english&cntry_code=us&initial=x&mps=y&tracknumbers='$1 |
 	htmlfmt >/tmp/fedex.$pid
-bgrep 'Tracking Number' /tmp/fedex.$pid | awk2
+sed -n '/Tracking number/,/^$/p' /tmp/fedex.$pid | awk2
 echo
-bgrep 'Scan Activity' /tmp/fedex.$pid | awk3
+sed -n '/Reference number/,/^$/p' /tmp/fedex.$pid | awk2
+echo
+sed -n '/Date.time/,/^$/p' /tmp/fedex.$pid | sed 1,4d | fmt -l 4000 | sed 's/ [A-Z][A-Z] /&\n/g'
 rm /tmp/fedex.$pid
-

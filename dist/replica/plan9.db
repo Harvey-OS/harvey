@@ -272,7 +272,7 @@
 386/bin/ip/httpd/save - 775 sys sys 1056364282 131012
 386/bin/ip/httpd/wikipost - 775 sys sys 1056364282 111370
 386/bin/ip/imap4d - 775 sys sys 1056364283 233876
-386/bin/ip/ipconfig - 775 sys sys 1056364284 102995
+386/bin/ip/ipconfig - 775 sys sys 1060189244 128491
 386/bin/ip/ping - 775 sys sys 1057551515 74064
 386/bin/ip/ppp - 775 sys sys 1057795514 216254
 386/bin/ip/pppoe - 775 sys sys 1056364286 75503
@@ -307,7 +307,7 @@
 386/bin/mtime - 775 sys sys 1056364305 57898
 386/bin/mv - 775 sys sys 1056364306 65018
 386/bin/ndb - 20000000775 sys sys 985743147 0
-386/bin/ndb/cs - 775 sys sys 1056364307 143921
+386/bin/ndb/cs - 775 sys sys 1060173545 144252
 386/bin/ndb/csquery - 775 sys sys 1056364307 60158
 386/bin/ndb/dns - 775 sys sys 1056364308 216571
 386/bin/ndb/dnsdebug - 775 sys sys 1056364309 188863
@@ -1328,7 +1328,7 @@ lib/face/48x48x4/x - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/y - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/z - 20000000775 sys sys 944941894 0
 lib/face/48x48x8 - 20000000775 sys sys 944941834 0
-lib/face/48x48x8/.dict - 664 sys sys 1059678094 1849
+lib/face/48x48x8/.dict - 664 sys sys 1060173964 1938
 lib/face/48x48x8/Z - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -1352,6 +1352,7 @@ lib/face/48x48x8/i - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/j - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/k - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/k/karen.1 - 644 sys sys 1057005135 1608
+lib/face/48x48x8/k/kris.1 - 664 sys sys 1060142993 2364
 lib/face/48x48x8/l - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/l/lucent.1 - 664 sys sys 944941833 801
 lib/face/48x48x8/l/lucio.1 - 664 sys sys 1059678230 1069
@@ -1416,6 +1417,7 @@ lib/face/48x48x8/w - 20000000775 sys sys 944941834 0
 lib/face/48x48x8/x - 20000000775 sys sys 944941834 0
 lib/face/48x48x8/y - 20000000775 sys sys 944941834 0
 lib/face/48x48x8/z - 20000000775 sys sys 944941834 0
+lib/face/48x48x8/z/zed.1 - 664 sys sys 1060174022 2364
 lib/face/512x512x24 - 20000000755 sys sys 944941683 0
 lib/face/512x512x24/.dict - 644 sys sys 944941683 0
 lib/face/512x512x8 - 20000000755 sys sys 944941683 0
@@ -2943,7 +2945,7 @@ rc/bin/doctype - 775 sys sys 945617206 1726
 rc/bin/dosmnt - 775 sys sys 958526437 285
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1015701359 2390
-rc/bin/fedex - 775 sys sys 1048862253 1122
+rc/bin/fedex - 775 sys sys 1060187356 1244
 rc/bin/homespool - 775 sys sys 945617207 339
 rc/bin/ipconf - 20000000775 sys sys 1058791152 0
 rc/bin/ipconf/inside - 775 sys sys 1058790955 427
@@ -3036,7 +3038,7 @@ rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1055701355 288
 rc/bin/stop - 775 sys sys 945617209 110
 rc/bin/tel - 775 sys sys 1019854296 136
-rc/bin/termrc - 775 sys sys 1038278927 2637
+rc/bin/termrc - 775 sys sys 1060174264 2606
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
 rc/bin/troff2gif - 775 sys sys 1045504085 178
@@ -4920,7 +4922,7 @@ sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1045501600 8142
 sys/man/8/httpd - 664 sys sys 1037690024 4516
 sys/man/8/init - 664 sys sys 944959679 1430
-sys/man/8/ipconfig - 664 sys sys 1055701180 4766
+sys/man/8/ipconfig - 664 sys sys 1060189415 5050
 sys/man/8/ipserv - 664 sys sys 1026847122 4190
 sys/man/8/kfscmd - 664 sys sys 1022010519 4492
 sys/man/8/listen - 664 sys sys 1045501609 3740
@@ -9169,7 +9171,7 @@ sys/src/cmd/ip/imap4d/nodes.c - 664 sys sys 1015013077 3173
 sys/src/cmd/ip/imap4d/search.c - 664 sys sys 1015013077 4520
 sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1015013077 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
-sys/src/cmd/ip/ipconfig.c - 664 sys sys 1051023520 27439
+sys/src/cmd/ip/ipconfig.c - 664 sys sys 1060189236 29311
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1038443023 1222
 sys/src/cmd/ip/ping.c - 664 sys sys 1056550715 5076
@@ -9428,7 +9430,7 @@ sys/src/cmd/mv.c - 664 sys sys 1014926695 4276
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1021579991 6525
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1050714836 6740
-sys/src/cmd/ndb/cs.c - 664 sys sys 1056171180 32752
+sys/src/cmd/ndb/cs.c - 664 sys sys 1060173544 32903
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1055701929 17465

@@ -1,6 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <ip.h>
+#include <bio.h>
+#include <ndb.h>
 #include "dhcp.h"
 
 int	noconfig;
@@ -9,9 +11,10 @@ int	dodhcp;
 int	nip;
 int	myifc = -1;
 int	plan9 = 1;
-int	beprimary;
+int	beprimary = -1;
 int	nodhcpwatch;
 int	sendhostname;
+int	dondbconfig = 0;
 
 Ipifc	*ifc;
 
@@ -105,6 +108,7 @@ int	parseverb(char*);
 void	doadd(int);
 void	doremove(void);
 void	dounbind(void);
+void	ndbconfig(void);
 
 char optmagic[4] = { 0x63, 0x82, 0x53, 0x63 };
 
@@ -153,9 +157,14 @@ main(int argc, char **argv)
 	case 'G':
 		plan9 = 0;
 		break;
-	case 'P':
+	case 'N':
+		dondbconfig = 1;
+		break;
+	case 'p':
 		beprimary = 1;
 		break;
+	case 'P':
+		beprimary = 0;
 	case 'b':
 		p = ARGF();
 		if(p == nil)
@@ -284,6 +293,23 @@ main(int argc, char **argv)
 	exits(0);
 }
 
+int
+havendb(char *net)
+{
+	Dir *d;
+	char buf[128];
+
+	snprint(buf, sizeof buf, "%s/ndb", net);
+	if((d = dirstat("/net/ndb")) == nil)
+		return 0;
+	if(d->length == 0){
+		free(d);
+		return 0;
+	}
+	free(d);
+	return 1;
+}
+
 void
 doadd(int retry)
 {
@@ -291,7 +317,7 @@ doadd(int retry)
 
 	// get number of preexisting interfaces
 	nip = nipifcs(conf.mpoint);
-	if(nip == 0)
+	if(beprimary == -1 && (nip == 0 || !havendb(conf.mpoint)))
 		beprimary = 1;
 
 	// get ipifc into name space and condition device for ip
@@ -301,8 +327,12 @@ doadd(int retry)
 		binddevice();
 	}
 
-	if(!validip(conf.laddr))
-		dodhcp = 1;
+	if(!validip(conf.laddr)){
+		if(dondbconfig)
+			ndbconfig();
+		else
+			dodhcp = 1;
+	}
 
 	// run dhcp if we need something
 	if(dodhcp){
@@ -334,7 +364,7 @@ doadd(int retry)
 	}
 
 	// leave everything we've learned somewhere other procs can find it
-	if(beprimary){
+	if(beprimary == 1){
 		putndb();
 		tweakservers();
 	}
@@ -527,7 +557,7 @@ ipconfig(void)
 		return -1;
 	}
 
-	if(beprimary && validip(conf.gaddr))
+	if(beprimary==1 && validip(conf.gaddr))
 		adddefroute(conf.mpoint, conf.gaddr);
 
 	return 0;
@@ -557,7 +587,7 @@ ipunconfig(void)
 	ipmove(conf.mask, IPnoaddr);
 
 	// forget configuration info
-	if(beprimary)
+	if(beprimary==1)
 		writendb("", 0, 0);
 }
 
@@ -672,7 +702,7 @@ dhcpwatch(int needconfig)
 			needconfig = 0;
 
 			// leave everything we've learned somewhere other procs can find it
-			if(beprimary){
+			if(beprimary==1){
 				putndb();
 				tweakservers();
 			}
@@ -1433,3 +1463,53 @@ parseverb(char *name)
 	return -1;
 }
 
+// get everything out of ndb
+void
+ndbconfig(void)
+{
+	Ndb *db;
+	Ndbtuple *t, *nt;
+	char etheraddr[32];
+	char *attrs[10];
+	int nattr;
+	int ndns = 0;
+	int nfs = 0;
+	int nauth = 0;
+
+	db = ndbopen(0);
+	if(db == nil)
+		sysfatal("can't open ndb: %r");
+	if(strcmp(conf.type, "ether") != 0 || myetheraddr(conf.hwa, conf.dev) != 0)
+		sysfatal("can't read hardware address");
+	sprint(etheraddr, "%E", conf.hwa);
+	nattr = 0;
+	attrs[nattr++] = "ip";
+	attrs[nattr++] = "ipmask";
+	attrs[nattr++] = "ipgw";
+	attrs[nattr++] = "@dns";
+	attrs[nattr++] = "@ntp";
+	attrs[nattr++] = "@fs";
+	attrs[nattr++] = "@auth";
+	attrs[nattr] = nil;
+	t = ndbipinfo(db, "ether", etheraddr, attrs, nattr);
+	for(nt = t; nt != nil; nt = nt->entry){
+		if(strcmp(nt->attr, "ip") == 0){
+			parseip(conf.laddr, nt->val);
+		} else if(strcmp(nt->attr, "ipmask") == 0){
+			parseipmask(conf.mask, nt->val);
+		} else if(strcmp(nt->attr, "ipgw") == 0){
+			parseip(conf.gaddr, nt->val);
+		} else if(ndns < 2 && strcmp(nt->attr, "dns") == 0){
+			parseip(conf.dns+IPaddrlen*ndns, nt->val);
+		} else if(strcmp(nt->attr, "ntp") == 0){
+			parseip(conf.ntp, nt->val);
+		} else if(nfs < 2 && strcmp(nt->attr, "fs") == 0){
+			parseip(conf.fs+IPaddrlen*nfs, nt->val);
+		} else if(nauth < 2 && strcmp(nt->attr, "auth") == 0){
+			parseip(conf.auth+IPaddrlen*nauth, nt->val);
+		}
+	}
+	ndbfree(t);
+	if(!validip(conf.laddr))
+		sysfatal("address not found in ndb");
+}
