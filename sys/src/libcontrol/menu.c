@@ -128,7 +128,7 @@ menushow(Menu0 *m)
 		q = _ctlalignpoint(r, stringwidth(f, m->line[i]), f->height, m->align%3);
 		_string(m->window, q, c,
 			ZP, f, m->line[i], nil, strlen(m->line[i]),
-			clipr, nil, ZP);
+			clipr, nil, ZP, SoverD);
 		p.y += f->height;
 	}
 //	if(m->pressed)

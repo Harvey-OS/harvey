@@ -127,7 +127,7 @@ drawwin(int i)
 	draw(screen, win[i].r, lightblue, nil, ZP);
 	_string(screen, addpt(win[i].r.min, Pt(2,0)), display->black, ZP,
 		font, win[i].label, nil, strlen(win[i].label), 
-		win[i].r, nil, ZP);
+		win[i].r, nil, ZP, SoverD);
 	border(screen, win[i].r, 1, display->black, ZP);	
 	win[i].dirty = 0;
 }
@@ -218,6 +218,7 @@ click(Mouse m)
 	sprint(buf, "/dev/wsys/%d/wctl", win[i].n);
 	if((fd = open(buf, OWRITE)) < 0)
 		return;
+	write(fd, "unhide\n", 7);
 	write(fd, "top\n", 4);
 	write(fd, "current\n", 8);
 	close(fd);

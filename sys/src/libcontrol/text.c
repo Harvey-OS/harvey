@@ -158,7 +158,7 @@ textshow(Text *t)
 			f->height, t->align);
 		_string(t->screen, p, t->textcolor->image,
 			ZP, f, nil, text, ntext, tr,
-			nil, ZP);
+			nil, ZP, SoverD);
 		r.min.y += f->height;
 	}
 	flushimage(display, 1);

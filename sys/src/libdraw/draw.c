@@ -2,12 +2,28 @@
 #include <libc.h>
 #include <draw.h>
 
-static void
-draw1(Image *dst, Rectangle *r, Image *src, Point *p0, Image *mask, Point *p1)
+void
+_setdrawop(Display *d, Drawop op)
 {
 	uchar *a;
 
-	a = bufimage(dst->display, 1+4+4+4+4*4+2*4+2*4+(dst->display->_isnewdisplay?1:0));
+	if(op != SoverD){
+		a = bufimage(d, 1+1);
+		if(a == 0)
+			return;
+		a[0] = 'O';
+		a[1] = op;
+	}
+}
+		
+static void
+draw1(Image *dst, Rectangle *r, Image *src, Point *p0, Image *mask, Point *p1, Drawop op)
+{
+	uchar *a;
+
+	_setdrawop(dst->display, op);
+
+	a = bufimage(dst->display, 1+4+4+4+4*4+2*4+2*4);
 	if(a == 0)
 		return;
 	if(src == nil)
@@ -26,18 +42,28 @@ draw1(Image *dst, Rectangle *r, Image *src, Point *p0, Image *mask, Point *p1)
 	BPLONG(a+33, p0->y);
 	BPLONG(a+37, p1->x);
 	BPLONG(a+41, p1->y);
-	if(dst->display->_isnewdisplay)
-		a[41] = SoverD;
 }
 
 void
 draw(Image *dst, Rectangle r, Image *src, Image *mask, Point p1)
 {
-	draw1(dst, &r, src, &p1, mask, &p1);
+	draw1(dst, &r, src, &p1, mask, &p1, SoverD);
+}
+
+void
+drawop(Image *dst, Rectangle r, Image *src, Image *mask, Point p1, Drawop op)
+{
+	draw1(dst, &r, src, &p1, mask, &p1, op);
 }
 
 void
 gendraw(Image *dst, Rectangle r, Image *src, Point p0, Image *mask, Point p1)
 {
-	draw1(dst, &r, src, &p0, mask, &p1);
+	draw1(dst, &r, src, &p0, mask, &p1, SoverD);
+}
+
+void
+gendrawop(Image *dst, Rectangle r, Image *src, Point p0, Image *mask, Point p1, Drawop op)
+{
+	draw1(dst, &r, src, &p0, mask, &p1, op);
 }

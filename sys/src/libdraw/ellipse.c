@@ -4,9 +4,11 @@
 
 static
 void
-doellipse(int cmd, Image *dst, Point *c, int xr, int yr, int thick, Image *src, Point *sp, int alpha, int phi)
+doellipse(int cmd, Image *dst, Point *c, int xr, int yr, int thick, Image *src, Point *sp, int alpha, int phi, Drawop op)
 {
 	uchar *a;
+
+	_setdrawop(dst->display, op);
 
 	a = bufimage(dst->display, 1+4+4+2*4+4+4+4+2*4+2*4);
 	if(a == 0){
@@ -30,25 +32,51 @@ doellipse(int cmd, Image *dst, Point *c, int xr, int yr, int thick, Image *src, 
 void
 ellipse(Image *dst, Point c, int a, int b, int thick, Image *src, Point sp)
 {
-	doellipse('e', dst, &c, a, b, thick, src, &sp, 0, 0);
+	doellipse('e', dst, &c, a, b, thick, src, &sp, 0, 0, SoverD);
+}
+
+void
+ellipseop(Image *dst, Point c, int a, int b, int thick, Image *src, Point sp, Drawop op)
+{
+	doellipse('e', dst, &c, a, b, thick, src, &sp, 0, 0, op);
 }
 
 void
 fillellipse(Image *dst, Point c, int a, int b, Image *src, Point sp)
 {
-	doellipse('E', dst, &c, a, b, 0, src, &sp, 0, 0);
+	doellipse('E', dst, &c, a, b, 0, src, &sp, 0, 0, SoverD);
+}
+
+void
+fillellipseop(Image *dst, Point c, int a, int b, Image *src, Point sp, Drawop op)
+{
+	doellipse('E', dst, &c, a, b, 0, src, &sp, 0, 0, op);
 }
 
 void
 arc(Image *dst, Point c, int a, int b, int thick, Image *src, Point sp, int alpha, int phi)
 {
 	alpha |= 1<<31;
-	doellipse('e', dst, &c, a, b, thick, src, &sp, alpha, phi);
+	doellipse('e', dst, &c, a, b, thick, src, &sp, alpha, phi, SoverD);
+}
+
+void
+arcop(Image *dst, Point c, int a, int b, int thick, Image *src, Point sp, int alpha, int phi, Drawop op)
+{
+	alpha |= 1<<31;
+	doellipse('e', dst, &c, a, b, thick, src, &sp, alpha, phi, op);
 }
 
 void
 fillarc(Image *dst, Point c, int a, int b, Image *src, Point sp, int alpha, int phi)
 {
 	alpha |= 1<<31;
-	doellipse('E', dst, &c, a, b, 0, src, &sp, alpha, phi);
+	doellipse('E', dst, &c, a, b, 0, src, &sp, alpha, phi, SoverD);
+}
+
+void
+fillarcop(Image *dst, Point c, int a, int b, Image *src, Point sp, int alpha, int phi, Drawop op)
+{
+	alpha |= 1<<31;
+	doellipse('E', dst, &c, a, b, 0, src, &sp, alpha, phi, op);
 }

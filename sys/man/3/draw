@@ -513,6 +513,15 @@ so that the point
 .I log
 corresponds to the upper left corner of the window.
 .HP
+.B O
+.IR op [1]
+.br
+Set the compositing operator to
+.I op
+for the next draw operation.
+(The default is
+.BR SoverD ).
+.HP
 .B p
 .IR dstid [4]
 .IR n [2]
