@@ -77,12 +77,14 @@ extern	int	fmtinstall(int, int (*)(Fmt*));
 extern	int	quotefmtinstall(void);
 extern	int	fmtprint(Fmt*, char*, ...);
 extern	int	fmtstrcpy(Fmt*, char*);
+extern	int	encodefmt(Fmt*);
 
 #pragma	varargck	argpos	fmtprint	2
 #pragma	varargck	argpos	print		1
 #pragma	varargck	argpos	seprint		3
 #pragma	varargck	argpos	snprint		3
 #pragma	varargck	argpos	sprint		2
+#pragma varargck	type	"H" void*
 
 /*
  * one-of-a-kind
