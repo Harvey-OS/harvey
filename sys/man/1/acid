@@ -50,7 +50,7 @@ Options are
 Allow the textfile to be modified.
 .TP
 .B -q
-Don't print variable renamings at startup.
+Print variable renamings at startup.
 .TP
 .BI -l " library
 Load from 

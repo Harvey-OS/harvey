@@ -14924,3 +14924,4 @@
 1082259095 3 c 386/lib/libmp.a - 664 sys sys 1082257739 81428
 1082327508 0 c sys/src/cmd/vnc/ksym2utf.h - 664 sys sys 1082326667 18402
 1082327508 1 c sys/src/cmd/vnc/utf2ksym.h - 664 sys sys 1082326667 18024
+1082406700 0 c sys/man/1/acid - 664 sys sys 1082404958 9725
