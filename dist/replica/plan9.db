@@ -860,7 +860,7 @@ dist/replica - 20000000775 sys sys 1019277119 0
 dist/replica/cd - 664 sys sys 1019527959 390
 dist/replica/kfs - 664 sys sys 1019527929 237
 dist/replica/network - 775 sys sys 1071079179 996
-dist/replica/plan9.proto - 664 sys sys 1079376335 2533
+dist/replica/plan9.proto - 664 sys sys 1079575451 2566
 env - 20000000775 sys sys 1015094872 0
 fd - 20000000775 sys sys 947958544 0
 lib - 20000000775 sys sys 958504315 0
@@ -3420,7 +3420,7 @@ sys/include/geometry.h - 664 sys sys 1014929063 2632
 sys/include/html.h - 664 sys sys 1017679304 15157
 sys/include/httpd.h - 664 sys sys 1079372798 5747
 sys/include/ip.h - 664 sys sys 1050702405 2908
-sys/include/keyboard.h - 664 sys sys 1071725439 790
+sys/include/keyboard.h - 664 sys sys 1079577798 815
 sys/include/libc.h - 664 sys sys 1072792615 19430
 sys/include/libsec.h - 664 sys sys 1068129557 8966
 sys/include/mach.h - 664 sys sys 1068478049 8194
@@ -3865,6 +3865,12 @@ sys/lib/ghostscript/wrfont.ps - 664 sys sys 1032057362 18255
 sys/lib/ghostscript/zeroline.ps - 664 sys sys 1032057362 2643
 sys/lib/grap.defines - 664 sys sys 944956052 375
 sys/lib/httpd.rewrite - 664 sys sys 954262980 825
+sys/lib/kbmap - 20000000775 sys sys 1079535430 0
+sys/lib/kbmap/ascii - 664 sys sys 1079475826 18944
+sys/lib/kbmap/azerty - 644 sys sys 1079473812 735
+sys/lib/kbmap/bgmap - 664 sys sys 1079475826 561
+sys/lib/kbmap/es - 664 sys sys 1079535430 1360
+sys/lib/kbmap/uk - 664 sys sys 1079473812 55
 sys/lib/lex - 20000000775 sys sys 945136651 0
 sys/lib/lex/ncform - 664 sys sys 945136651 4060
 sys/lib/lp - 20000000775 sys sys 954037460 0
@@ -4632,7 +4638,7 @@ sys/man/1/comm - 664 sys sys 944959675 665
 sys/man/1/con - 664 sys sys 1071156278 4318
 sys/man/1/cp - 664 sys sys 1015024738 1390
 sys/man/1/cpp - 664 sys sys 944959674 2105
-sys/man/1/cpu - 664 sys sys 1040673168 3226
+sys/man/1/cpu - 664 sys sys 1079576028 3328
 sys/man/1/crop - 664 sys sys 984709627 2596
 sys/man/1/date - 664 sys sys 969499884 996
 sys/man/1/db - 664 sys sys 1015024738 17862
@@ -4668,6 +4674,7 @@ sys/man/1/hoc - 664 sys sys 944959676 2357
 sys/man/1/idiff - 664 sys sys 1018386774 927
 sys/man/1/join - 664 sys sys 957920006 2562
 sys/man/1/jpg - 664 sys sys 1074280543 4758
+sys/man/1/kbmap - 664 sys sys 1079545417 841
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
 sys/man/1/leak - 664 sys sys 1017423522 2871
@@ -4789,7 +4796,7 @@ sys/man/2/complete - 664 sys sys 1076276513 2396
 sys/man/2/control - 664 sys sys 1037465511 42782
 sys/man/2/cputime - 664 sys sys 1015091518 713
 sys/man/2/ctime - 664 sys sys 954378853 2547
-sys/man/2/ctype - 664 sys sys 952627456 2599
+sys/man/2/ctype - 664 sys sys 1079535676 2611
 sys/man/2/debugger - 664 sys sys 944959696 8629
 sys/man/2/des - 664 sys sys 1032058673 3517
 sys/man/2/dial - 664 sys sys 1015701029 6523
@@ -5008,7 +5015,7 @@ sys/man/6/color - 664 sys sys 988225304 5181
 sys/man/6/face - 664 sys sys 1062505426 2846
 sys/man/6/font - 664 sys sys 1077594184 2528
 sys/man/6/image - 664 sys sys 988225304 6209
-sys/man/6/keyboard - 664 sys sys 984709638 4467
+sys/man/6/keyboard - 664 sys sys 1079575918 4418
 sys/man/6/man - 664 sys sys 944959678 4961
 sys/man/6/map - 664 sys sys 944959678 1892
 sys/man/6/mpictures - 664 sys sys 944959678 2899
@@ -5044,7 +5051,7 @@ sys/man/8/INDEX.html - 664 sys sys 1026847121 7728
 sys/man/8/aan - 664 sys sys 1045501064 1670
 sys/man/8/aliasmail - 664 sys sys 1055701148 1353
 sys/man/8/apm - 664 sys sys 1017679308 1811
-sys/man/8/auth - 664 sys sys 1035838620 4062
+sys/man/8/auth - 664 sys sys 1079529504 4225
 sys/man/8/boot - 664 sys sys 1063858248 8362
 sys/man/8/booting - 664 sys sys 1015024984 4136
 sys/man/8/checkarenas - 664 sys sys 1019866709 669
@@ -5077,7 +5084,7 @@ sys/man/8/ping - 664 sys sys 1063855805 3309
 sys/man/8/plan9.ini - 664 sys sys 1063855903 20744
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1050361032 4424
-sys/man/8/prep - 664 sys sys 1068820496 13817
+sys/man/8/prep - 664 sys sys 1079576131 13820
 sys/man/8/qer - 664 sys sys 1067723129 4909
 sys/man/8/reboot - 664 sys sys 969499895 414
 sys/man/8/replica - 664 sys sys 1021579979 6239
@@ -5214,7 +5221,7 @@ sys/src/9/bitsy/wavelan.c - 664 sys sys 1064584681 27267
 sys/src/9/bitsy/wavelan.h - 664 sys sys 1037029076 27
 sys/src/9/boot - 20000000775 sys sys 1018556557 0
 sys/src/9/boot/aux.c - 664 sys sys 1063857702 2579
-sys/src/9/boot/boot.c - 664 sys sys 1079463769 5842
+sys/src/9/boot/boot.c - 664 sys sys 1079527281 6005
 sys/src/9/boot/boot.h - 664 sys sys 1063857659 1785
 sys/src/9/boot/bootauth.c - 664 sys sys 1039763726 1097
 sys/src/9/boot/bootcache.c - 664 sys sys 1063857645 1579
@@ -5233,7 +5240,7 @@ sys/src/9/boot/testboot.c - 664 sys sys 1039763734 496
 sys/src/9/ip - 20000000775 sys sys 1015278450 0
 sys/src/9/ip/arp.c - 664 sys sys 1078928097 10687
 sys/src/9/ip/chandial.c - 664 sys sys 1022588098 2276
-sys/src/9/ip/devip.c - 664 sys sys 1077055047 24188
+sys/src/9/ip/devip.c - 664 sys sys 1079538099 24033
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
 sys/src/9/ip/ethermedium.c - 664 sys sys 1066514880 15124
@@ -5244,13 +5251,13 @@ sys/src/9/ip/igmp.c - 664 sys sys 1055700768 5175
 sys/src/9/ip/il.c - 664 sys sys 1077376217 26959
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
 sys/src/9/ip/ip.c - 664 sys sys 1047951326 15285
-sys/src/9/ip/ip.h - 664 sys sys 1063857527 16054
-sys/src/9/ip/ipaux.c - 664 sys sys 1049423191 12798
-sys/src/9/ip/ipifc.c - 664 sys sys 1078928123 37514
+sys/src/9/ip/ip.h - 664 sys sys 1079538100 15922
+sys/src/9/ip/ipaux.c - 664 sys sys 1079538100 12862
+sys/src/9/ip/ipifc.c - 664 sys sys 1079538100 34297
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
 sys/src/9/ip/iproute.c - 664 sys sys 1049423192 14763
 sys/src/9/ip/ipv6.c - 664 sys sys 1047951328 14433
-sys/src/9/ip/ipv6.h - 664 sys sys 1022588099 4304
+sys/src/9/ip/ipv6.h - 664 sys sys 1079538100 4259
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1055701769 1671
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
 sys/src/9/ip/netlog.c - 664 sys sys 1026847568 4003
@@ -5356,13 +5363,13 @@ sys/src/9/pc/mmu.c - 664 sys sys 1049509456 10014
 sys/src/9/pc/mouse.c - 664 sys sys 1065717607 6625
 sys/src/9/pc/mp.c - 664 sys sys 1048644112 16928
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
-sys/src/9/pc/pc - 664 sys sys 1073852088 1360
+sys/src/9/pc/pc - 664 sys sys 1079575705 1367
 sys/src/9/pc/pcauth - 664 sys sys 1073851852 657
 sys/src/9/pc/pccd - 664 sys sys 1055090302 1302
 sys/src/9/pc/pccpu - 664 sys sys 1073852088 802
 sys/src/9/pc/pccpuf - 664 sys sys 1073851852 1315
 sys/src/9/pc/pcdisk - 664 sys sys 1073851851 1427
-sys/src/9/pc/pcf - 664 sys sys 1073851852 1455
+sys/src/9/pc/pcf - 664 sys sys 1079575654 1462
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1067722894 1383
 sys/src/9/pc/pci.c - 664 sys sys 1071245502 24015
@@ -5504,7 +5511,6 @@ sys/src/9/port/unthwack.c - 664 sys sys 1057323394 5249
 sys/src/9/port/xalloc.c - 664 sys sys 1032052814 4030
 sys/src/9/ppc - 20000000775 sys sys 1059490838 0
 sys/src/9/ppc/blast - 664 sys sys 1067722850 659
-sys/src/9/ppc/blast.c - 664 sys sys 1059490750 1422
 sys/src/9/ppc/blast.h - 664 sys sys 1059490750 3109
 sys/src/9/ppc/clock.c - 664 sys sys 1068135488 1032
 sys/src/9/ppc/dat.h - 664 sys sys 1071245549 4727
@@ -7308,7 +7314,7 @@ sys/src/cmd/cpp/mkfile - 664 sys sys 944960879 178
 sys/src/cmd/cpp/nlist.c - 664 sys sys 944960879 4631
 sys/src/cmd/cpp/test.c - 664 sys sys 944960879 47
 sys/src/cmd/cpp/tokens.c - 664 sys sys 944960879 6755
-sys/src/cmd/cpu.c - 664 sys sys 1069024220 20525
+sys/src/cmd/cpu.c - 664 sys sys 1079576041 20608
 sys/src/cmd/crop.c - 664 sys sys 1039753034 4136
 sys/src/cmd/date.c - 664 sys sys 944961351 449
 sys/src/cmd/db - 20000000775 sys sys 988249965 0
@@ -9589,6 +9595,7 @@ sys/src/cmd/ka/l.s - 664 sys sys 944961013 13578
 sys/src/cmd/ka/lex.c - 664 sys sys 1067725162 12759
 sys/src/cmd/ka/mkfile - 664 sys sys 944961013 215
 sys/src/cmd/ka/note - 664 sys sys 944961013 2596
+sys/src/cmd/kbmap.c - 644 sys sys 1079545301 4044
 sys/src/cmd/kc - 20000000775 sys sys 944961014 0
 sys/src/cmd/kc/bits.c - 664 sys sys 944961014 1370
 sys/src/cmd/kc/cgen.c - 664 sys sys 984718308 18202

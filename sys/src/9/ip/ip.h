@@ -607,10 +607,8 @@ extern void	ipifcaddmulti(Conv *c, uchar *ma, uchar *ia);
 extern char*	ipifcrem(Ipifc *ifc, char **argv, int argc);
 extern char*	ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp);
 extern long	ipselftabread(Fs*, char *a, ulong offset, int n);
-extern char*	ipifcaddgate6(Fs *f, Ipifc *ifc, char**argv, int argc);
 extern char*	ipifcaddpref6(Ipifc *ifc, char**argv, int argc);
 extern void	ipsendra6(Fs *f, int on);
-extern long	ipgateread6(Fs *f, char *cp, ulong offset, int n);
 /*
  *  ip.c
  */

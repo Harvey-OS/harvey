@@ -24,10 +24,7 @@ in particular, control-J is a line feed and control-M a carriage return.
 On the PC and some other machines, the key labeled
 .B Caps
 .B Lock
-acts as an additional control key,
-and the key labeled
-.B End
-acts a line feed key.
+acts as an additional control key.
 .PP
 The delete character
 .RB ( 0x7F )

@@ -678,7 +678,7 @@ Initialize the blank hard disk
 disk/mbr -m /386/mbr /dev/sdC0/data
 disk/fdisk -baw /dev/sdC0/data
 disk/prep -bw -a^(9fat fs cache swap) /dev/sdC0/plan9
-disk/format -b /386/pbs -d -r 2 /dev/sdC0/9fat 9load 9pcdisk plan9.ini
+disk/format -b /386/pbslda -d -r 2 /dev/sdC0/9fat 9load 9pcdisk plan9.ini
 .EE
 .PP
 .SH SOURCE

@@ -8,7 +8,7 @@ isalpha, isupper, islower, isdigit, isxdigit, isalnum, isspace, ispunct, isprint
 .br
 .B #include <ctype.h>
 .PP
-.2C
+.if t .2C
 .B isalpha(c)
 .PP
 .B isupper(c)
@@ -42,7 +42,7 @@ isalpha, isupper, islower, isdigit, isxdigit, isalnum, isspace, ispunct, isprint
 .B tolower(c)
 .PP
 .B toascii(c)
-.1C
+.if t .1C
 .SH DESCRIPTION
 These macros classify
 .SM ASCII\c

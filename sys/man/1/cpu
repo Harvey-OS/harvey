@@ -7,6 +7,9 @@ cpu \- connection to cpu server
 .B -h
 .I server
 ] [
+.B -u
+.I user
+] [
 .B -a
 .I auth-method
 ] [
@@ -58,6 +61,12 @@ command was invoked:
 it is the same except for architecture-dependent bindings such as
 .B /bin
 and the use of fast paths to file servers, if available.
+.PP
+If a
+.B -u
+argument is present,
+.I cpu
+uses the argument as the remote user id.
 .PP
 If a
 .B -c

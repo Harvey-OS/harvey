@@ -91,6 +91,8 @@ sys	- sys sys
 			+	- sys sys
 		ghostscript	- sys sys
 			+	- sys sys
+		kbmap	- sys sys
+			+	- sys sys
 		lex	- sys sys
 			+	- sys sys
 		lp	- sys sys

@@ -171,12 +171,12 @@ extern uchar v6glunicast[IPaddrlen];
 extern uchar v6multicast[IPaddrlen];
 extern uchar v6multicastmask[IPaddrlen];
 
-extern int v6linklocalprefix;
-extern int v6sitelocalprefix;
-extern int v6loopbackprefix;
-extern int v6multicastprefix;
-extern int v6solicitednodeprefix;
-extern int v6allnodesNprefix;
-extern int v6allnodesLprefix;
+extern int v6llpreflen;
+extern int v6slpreflen;
+extern int v6lbpreflen;
+extern int v6mcpreflen;
+extern int v6snpreflen;
+extern int v6aNpreflen;
+extern int v6aLpreflen;
 
 extern int ReTransTimer;

@@ -99,7 +99,7 @@ uchar v6linklocalmask[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-int v6linklocalprefix = 8;
+int v6llpreflen = 8;	// link-local prefix length
 uchar v6sitelocal[IPaddrlen] = {
 	0xfe, 0xc0, 0, 0,
 	0, 0, 0, 0,
@@ -112,7 +112,7 @@ uchar v6sitelocalmask[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-int v6sitelocalprefix = 6;
+int v6slpreflen = 6;	// site-local prefix length
 uchar v6glunicast[IPaddrlen] = {
 	0x08, 0, 0, 0,
 	0, 0, 0, 0,
@@ -131,7 +131,7 @@ uchar v6multicastmask[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-int v6multicastprefix = 1;
+int v6mcpreflen = 1;	// multicast prefix length
 uchar v6allnodesN[IPaddrlen] = {
 	0xff, 0x01, 0, 0,
 	0, 0, 0, 0,
@@ -144,7 +144,7 @@ uchar v6allnodesNmask[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-int v6allnodesprefix = 2;
+int v6aNpreflen = 2;	// all nodes (N) prefix
 uchar v6allnodesL[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
@@ -157,7 +157,7 @@ uchar v6allnodesLmask[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-int v6allnodesLprefix = 2;
+int v6aLpreflen = 2;	// all nodes (L) prefix
 uchar v6allroutersN[IPaddrlen] = {
 	0xff, 0x01, 0, 0,
 	0, 0, 0, 0,
@@ -188,7 +188,7 @@ uchar v6solicitednodemask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0x0, 0x0, 0x0
 };
-int v6solicitednodeprefix = 13;
+int v6snpreflen = 13;
 
 
 
@@ -547,13 +547,13 @@ defmask(uchar *ip)
 	else {
 		if(ipcmp(ip, v6loopback) == 0)
 			return IPallbits;
-		else if(memcmp(ip, v6linklocal, v6linklocalprefix) == 0)
+		else if(memcmp(ip, v6linklocal, v6llpreflen) == 0)
 			return v6linklocalmask;
-		else if(memcmp(ip, v6sitelocal, v6sitelocalprefix) == 0)
+		else if(memcmp(ip, v6sitelocal, v6slpreflen) == 0)
 			return v6sitelocalmask;
-		else if(memcmp(ip, v6solicitednode, v6solicitednodeprefix) == 0)
+		else if(memcmp(ip, v6solicitednode, v6snpreflen) == 0)
 			return v6solicitednodemask;
-		else if(memcmp(ip, v6multicast, v6multicastprefix) == 0)
+		else if(memcmp(ip, v6multicast, v6mcpreflen) == 0)
 			return v6multicastmask;
 		return IPallbits;
 	}

@@ -21,6 +21,7 @@ extern	void			closekeyboard(Keyboardctl*);
 
 enum {
 	KF=	0xF000,	/* Rune: beginning of private Unicode space */
+	Spec=	0xF800,
 	/* KF|1, KF|2, ..., KF|0xC is F1, F2, ..., F12 */
 	Khome=	KF|0x0D,
 	Kup=	KF|0x0E,
@@ -28,8 +29,8 @@ enum {
 	Kprint=	KF|0x10,
 	Kleft=	KF|0x11,
 	Kright=	KF|0x12,
-	Kdown=	0x80,
-	Kview=	0x80,
+	Kdown=	Spec|0x00,
+	Kview=	Spec|0x00,
 	Kpgdown=	KF|0x13,
 	Kins=	KF|0x14,
 	Kend=	KF|0x18,
