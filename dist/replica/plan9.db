@@ -27,7 +27,7 @@
 386/bin/9660srv - 775 sys sys 1064598019 104963
 386/bin/aan - 775 sys sys 1064598020 128816
 386/bin/acid - 775 sys sys 1073851203 379815
-386/bin/acme - 775 sys sys 1073851204 422376
+386/bin/acme - 775 sys sys 1076385619 422401
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1071245280 133877
 386/bin/ape/cc - 775 sys sys 1064598025 68790
@@ -251,6 +251,7 @@
 386/bin/grep - 775 sys sys 1064598154 77644
 386/bin/gs - 775 sys sys 1071245334 11134067
 386/bin/gunzip - 775 sys sys 1064598211 79675
+386/bin/gview - 775 sys sys 1076385620 235602
 386/bin/gzip - 775 sys sys 1064598211 83770
 386/bin/hayes - 775 sys sys 1064598212 63307
 386/bin/hget - 775 sys sys 1071245335 222506
@@ -369,7 +370,7 @@
 386/bin/replica/setupdirs - 775 sys sys 1020319083 44
 386/bin/replica/updatedb - 775 sys sys 1068558250 95126
 386/bin/resample - 775 sys sys 1064598294 120124
-386/bin/rio - 775 sys sys 1073851237 311078
+386/bin/rio - 775 sys sys 1076385621 311170
 386/bin/rm - 775 sys sys 1064598298 59786
 386/bin/rtstats - 775 sys sys 1071245345 177818
 386/bin/rx - 775 sys sys 1071245345 80158
@@ -443,7 +444,7 @@
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1064598354 75149
 386/bin/upas/nedmail - 775 sys sys 1075097690 154056
-386/bin/upas/pop3 - 775 sys sys 1073851246 259903
+386/bin/upas/pop3 - 775 sys sys 1076385622 259917
 386/bin/upas/qer - 775 sys sys 1073851247 98840
 386/bin/upas/ratfs - 775 sys sys 1071245366 112106
 386/bin/upas/runq - 775 sys sys 1073851247 111600
@@ -461,8 +462,8 @@
 386/bin/usb/usbaudio - 775 sys sys 1073851250 175810
 386/bin/usb/usbd - 775 sys sys 1064598370 122722
 386/bin/usb/usbmouse - 775 sys sys 1064598371 137915
-386/bin/vac - 775 sys sys 1073851251 171848
-386/bin/vacfs - 775 sys sys 1073851251 178021
+386/bin/vac - 775 sys sys 1076385622 171944
+386/bin/vacfs - 775 sys sys 1076385622 178117
 386/bin/venti - 20000000775 sys sys 947360466 0
 386/bin/venti/buildindex - 775 sys sys 1073851252 161262
 386/bin/venti/checkarenas - 775 sys sys 1073851252 165195
@@ -485,7 +486,7 @@
 386/bin/vncs - 775 sys sys 1064598394 442530
 386/bin/vncv - 775 sys sys 1071245371 271560
 386/bin/vt - 775 sys sys 1071245372 171391
-386/bin/vtdump - 775 sys sys 1073851258 161461
+386/bin/vtdump - 775 sys sys 1076385623 161557
 386/bin/wc - 775 sys sys 1064598399 42148
 386/bin/webcookies - 775 sys sys 1068558171 162995
 386/bin/webfs - 775 sys sys 1068558224 352388
@@ -527,7 +528,7 @@
 386/lib/libbin.a - 664 sys sys 1073851265 2556
 386/lib/libbio.a - 664 sys sys 1073851265 28338
 386/lib/libc.a - 664 sys sys 1073851266 504454
-386/lib/libcomplete.a - 664 sys sys 1073851266 6152
+386/lib/libcomplete.a - 664 sys sys 1076385623 6210
 386/lib/libcontrol.a - 664 sys sys 1073851267 242856
 386/lib/libdisk.a - 664 sys sys 1073851267 43536
 386/lib/libdraw.a - 664 sys sys 1073851268 372528
@@ -4642,6 +4643,7 @@ sys/man/1/grap - 664 sys sys 944959675 6417
 sys/man/1/graph - 664 sys sys 944959673 2858
 sys/man/1/grep - 664 sys sys 969512677 2224
 sys/man/1/gs - 664 sys sys 1032054727 6906
+sys/man/1/gview - 664 sys sys 1076349870 4219
 sys/man/1/gzip - 664 sys sys 969499884 3073
 sys/man/1/hget - 664 sys sys 1067722859 1483
 sys/man/1/history - 664 sys sys 1044909169 1709
@@ -9362,6 +9364,7 @@ sys/src/cmd/gs/zlib/zlib.h - 664 sys sys 1015035350 36326
 sys/src/cmd/gs/zlib/zlib.rc - 644 sys sys 1015035349 879
 sys/src/cmd/gs/zlib/zutil.c - 664 sys sys 1015035350 5015
 sys/src/cmd/gs/zlib/zutil.h - 664 sys sys 1015035350 4945
+sys/src/cmd/gview.c - 664 sys sys 1076349870 50594
 sys/src/cmd/gzip - 20000000775 sys sys 984789976 0
 sys/src/cmd/gzip/gunzip.c - 664 sys sys 1014924864 6039
 sys/src/cmd/gzip/gzip.c - 664 sys sys 1014924864 3646
