@@ -260,7 +260,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		}
 		nv->extra = vgaxi(Crtx, 0x41);
 		nv->cursorconfig = nv->pcrtc[0x0810/4];
-		if (implementation = 0x0110)
+		if (implementation == 0x0110)
 			nv->dither = nv->pramdac[0x0528/4];
 		else if (implementation >= 0x0170)
 			nv->dither = nv->pramdac[0x083C/4];
@@ -427,6 +427,8 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->crt[0x05] &= ~0x80;
 	if (tmp & 0x40)
 		nv->screen = 0x10;
+	else
+		nv->screen = 0x00;
 
 	/* overflow bits */
 
@@ -486,6 +488,7 @@ init(Vga* vga, Ctlr* ctlr)
 	if (vga->crt[0x13] & 0x800)
 		nv->screen |= 0x20;
 
+	nv->horiz = 0x00;
 	if (vga->crt[0x00] & 0x100)
 		nv->horiz = 0x01;
 	if(vga->crt[0x01] & 0x100)
@@ -494,6 +497,16 @@ init(Vga* vga, Ctlr* ctlr)
 		nv->horiz |= 0x04;
 	if(vga->crt[0x04] & 0x100)
 		nv->horiz |= 0x08;
+
+	nv->extra = 0x00;
+	if (vga->crt[0x06] & 0x800)
+		nv->extra |= 0x01;
+	if (vga->crt[0x12] & 0x800)
+		nv->extra |= 0x04;
+	if (vga->crt[0x10] & 0x800)
+		nv->extra |= 0x10;
+	if (vga->crt[0x15] & 0x800)
+		nv->extra |= 0x40;
 
 	nv->interlace = 0xFF;
 	if (nv->twoheads) {
