@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1100269948 208708
-386/9loaddebug - 775 sys sys 1102478836 300021
+386/9loaddebug - 775 sys sys 1102998038 299841
 386/9loadlite - 775 sys sys 1100269949 132260
-386/9loadlitedebug - 775 sys sys 1102171794 194892
+386/9loadlitedebug - 775 sys sys 1102998039 194712
 386/9pc - 775 sys sys 1102825222 1832889
 386/9pc.gz - 664 sys sys 1077049336 635727
 386/9pccpu - 775 sys sys 1102825226 1487882
@@ -3337,7 +3337,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1102888239 251453
+sys/games/lib/fortunes - 664 sys sys 1102994338 251812
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6485,7 +6485,7 @@ sys/src/boot/pc/boot.c - 664 sys sys 1021579983 3353
 sys/src/boot/pc/bootld.c - 664 sys sys 1015007948 1801
 sys/src/boot/pc/bootp.c - 664 sys sys 1094674486 12069
 sys/src/boot/pc/cga.c - 664 sys sys 1015007948 1362
-sys/src/boot/pc/clock.c - 664 sys sys 1100269944 6068
+sys/src/boot/pc/clock.c - 664 sys sys 1102966794 5918
 sys/src/boot/pc/conf.c - 664 sys sys 1094674484 10217
 sys/src/boot/pc/console.c - 664 sys sys 1094674483 3388
 sys/src/boot/pc/dat.h - 664 sys sys 1094674488 3518

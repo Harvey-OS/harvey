@@ -4040,3 +4040,5 @@ Two goldfish are in a tank.  One turns to the other and says, "Do you know how t
 What do software pirates say?  CD-Arrrrrrr!
 Select only drivers expected to compile cleanly. - Linux kernel configuration option
 usage: tar [-][{ruxXtcC}acdefhlm{o|S}pqvwLUBDRV{O|K}fb] [dir] [tapefile] [blocksize] file ...
+/opt/exp/lib/firefox/bin/run-mozilla.sh: line 451: 16207 Segmentation fault      "$prog" ${1+"$@"}
+LoadPlugin: failed to initialize shared library /opt/net/exp/lib/mozilla/bin/plugins/j2re1.4.2/plugin/i386/ns610-gcc32/libjavaplugin_oji.so [/opt/net/exp/lib/mozilla/bin/plugins/j2re1.4.2/plugin/i386/ns610-gcc32/libjavaplugin_oji.so: undefined symbol: _ZdlPv]

@@ -136,10 +136,7 @@ static X86type	*cputype;
 void
 delay(int l)
 {
-	uvlong loops = l * loopconst;
-
-	if (loops != (int)loops)
-		print("delay: int overflow\n");
+	l *= loopconst;
 	if(l <= 0)
 		l = 1;
 	aamloop(l);
@@ -148,10 +145,7 @@ delay(int l)
 void
 microdelay(int l)
 {
-	uvlong loops = l * loopconst;
-
-	if (loops != (int)loops)
-		print("delay: int overflow\n");
+	l *= loopconst;
 	l /= 1000;
 	if(l <= 0)
 		l = 1;
