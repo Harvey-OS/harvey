@@ -440,10 +440,10 @@ enum
 
 struct Routewalk
 {
-	int	n;
 	int	o;
 	int	h;
 	char*	p;
+	char*	e;
 	void*	state;
 	void	(*walk)(Route*, Routewalk*);
 };

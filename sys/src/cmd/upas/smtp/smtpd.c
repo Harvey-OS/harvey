@@ -30,7 +30,7 @@ int	sflag;
 int	authenticate;
 int	authenticated;
 int	passwordinclear;
-int	tlsok;
+char	*tlscert;
 
 List senders;
 List rcvers;
@@ -126,11 +126,15 @@ main(int argc, char **argv)
 	case 'p':
 		passwordinclear = 1;
 		break;
+	case 'c':
+		tlscert = ARGF();
+		break;
 	case 't':
-		tlsok = 1;
+		fprint(2, "%s: the -t option is no longer supported, see -c\n", argv0);
+		tlscert = "/sys/lib/ssl/smtpd-cert.pem";
 		break;
 	default:
-		fprint(2, "usage: smtpd [-dfhrs] [-n net]\n");
+		fprint(2, "usage: smtpd [-dfhrs] [-n net] [-c cert]\n");
 		exits("usage");
 	}ARGEND;
 
@@ -257,7 +261,7 @@ hello(String *himp, int extended)
 
 	reply("250%c%s you are %s\r\n", extended ? '-' : ' ', dom, him);
 	if (extended) {
-		if(tlsok)
+		if(tlscert != nil)
 			reply("250-STARTTLS\r\n");
 		if (passwordinclear)		
 			reply("250 AUTH CRAM-MD5 PLAIN LOGIN\r\n");
@@ -1031,7 +1035,7 @@ starttls(void)
 	TLSconn *conn;
 
 	conn = mallocz(sizeof *conn, 1);
-	cert = readcert("/sys/lib/ssl/smtpd-cert.pem", &certlen);
+	cert = readcert(tlscert, &certlen);
 	if (conn == nil || cert == nil) {
 		if (conn != nil)
 			free(conn);

@@ -617,12 +617,7 @@ routetype(int type, char *p)
 		*p = 'p';
 }
 
-enum
-{
-	Rlinelen=	137,
-};
-
-char *rformat = "%-40.40I %-40.40M %-40.40I %4.4s %4.4s %3s\n";
+char *rformat = "%-15I %-4M %-15I %4.4s %4.4s %3s\n";
 
 void
 convroute(Route *r, uchar *addr, uchar *mask, uchar *gate, char *t, int *nifc)
@@ -658,21 +653,27 @@ convroute(Route *r, uchar *addr, uchar *mask, uchar *gate, char *t, int *nifc)
 static void
 sprintroute(Route *r, Routewalk *rw)
 {
-	int nifc;
+	int nifc, n;
 	char t[5], *iname, ifbuf[5];
 	uchar addr[IPaddrlen], mask[IPaddrlen], gate[IPaddrlen];
+	char *p;
 
-	if(rw->o >= 0) {
-		convroute(r, addr, mask, gate, t, &nifc);
-		iname = "-";
-		if(nifc != -1) {
-			iname = ifbuf;
-			sprint(ifbuf, "%d", nifc);
-		}
-		sprint(rw->p, rformat, addr, mask, gate, t, r->tag, iname);
-		rw->p += Rlinelen;
+	convroute(r, addr, mask, gate, t, &nifc);
+	iname = "-";
+	if(nifc != -1) {
+		iname = ifbuf;
+		sprint(ifbuf, "%d", nifc);
 	}
-	rw->o++;
+	p = seprint(rw->p, rw->e, rformat, addr, mask, gate, t, r->tag, iname);
+	if(rw->o < 0){
+		n = p - rw->p;
+		if(n > -rw->o){
+			memmove(rw->p, rw->p-rw->o, n+rw->o);
+			rw->p = p + rw->o;
+		}
+		rw->o += n;
+	} else
+		rw->p = p;
 }
 
 /*
@@ -683,7 +684,7 @@ rr(Route *r, Routewalk *rw)
 {
 	int h;
 
-	if(rw->n <= rw->o)
+	if(rw->e <= rw->p)
 		return 0;
 	if(r == nil)
 		return 1;
@@ -709,12 +710,12 @@ void
 ipwalkroutes(Fs *f, Routewalk *rw)
 {
 	rlock(&routelock);
-	if(rw->n > rw->o) {
+	if(rw->e > rw->p) {
 		for(rw->h = 0; rw->h < nelem(f->v4root); rw->h++)
 			if(rr(f->v4root[rw->h], rw) == 0)
 				break;
 	}
-	if(rw->n > rw->o) {
+	if(rw->e > rw->p) {
 		for(rw->h = 0; rw->h < nelem(f->v6root); rw->h++)
 			if(rr(f->v6root[rw->h], rw) == 0)
 				break;
@@ -727,20 +728,14 @@ routeread(Fs *f, char *p, ulong offset, int n)
 {
 	Routewalk rw;
 
-	if(offset % Rlinelen)
-		return 0;
-
 	rw.p = p;
-	rw.n = n/Rlinelen;
-	rw.o = -(offset/Rlinelen);
+	rw.e = p+n;
+	rw.o = -offset;
 	rw.walk = sprintroute;
 
 	ipwalkroutes(f, &rw);
 
-	if(rw.o < 0)
-		rw.o = 0;
-
-	return rw.o*Rlinelen;
+	return rw.p - p;
 }
 
 /*
