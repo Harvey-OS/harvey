@@ -215,7 +215,7 @@ expect certificates in ASN.1/DER/PEM format.
 Generate a fresh key and use it to start a TLS-enabled web server:
 .IP
 .EX
-auth/rsagen -t 'service=tls' >key
+auth/rsagen -t 'service=tls owner=*' >key
 auth/rsa2x509 'C=US CN=*.cs.bell-labs.com' key |
 	auth/pemencode CERTIFICATE >cert
 cat key >/mnt/factotum/ctl
