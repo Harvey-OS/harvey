@@ -92,7 +92,7 @@ static int
 apopwrite(Fsstate *fss, void *va, uint n)
 {
 	char *a, *v;
-	int ret;
+	int i, ret;
 	uchar digest[MD5dlen];
 	DigestState *ds;
 	Key *k;
@@ -118,13 +118,15 @@ apopwrite(Fsstate *fss, void *va, uint n)
 		case AuthCram:
 			hmac_md5((uchar*)a, n, (uchar*)v, strlen(v),
 				digest, nil);
+			sprint(s->resp, "%.*H", MD5dlen, digest);
 			break;
 		case AuthApop:
 			ds = md5((uchar*)a, n, nil, nil);
 			md5((uchar*)v, strlen(v), digest, ds);
+			for(i=0; i<MD5dlen; i++)
+				sprint(&s->resp[2*i], "%2.2x", digest[i]);
 			break;
 		}
-		sprint(s->resp, "%.*H", MD5dlen, digest);
 		closekey(k);
 		fss->phase = CHaveResp;
 		return RpcOk;

@@ -23,6 +23,7 @@ mkfs, mkext \- archive or update a file system
 .RB [ -h ]
 .RB [ -v ]
 .RB [ -x ]
+.RB [ -T ]
 .I file ...
 .SH DESCRIPTION
 .I Mkfs
@@ -136,19 +137,6 @@ unpacks archive files made by the
 .B -a
 option of
 .IR mkfs .
-The
-.B -d
-option specifies a directory (default
-.BR / )
-to serve as the root of the unpacked file system.
-The
-.B -u
-option, to be used only when initializing a new
-.IR fs (4)
-file system, sets the owners of the files created to correspond to
-those in the archive and restores the modification times of the files.
-(This is only permitted at the initial load of the files into a file
-system.)
 Each file on the command line is unpacked in one pass through the archive.
 If the file is a directory,
 all files and subdirectories of that directory are also unpacked.
@@ -156,12 +144,27 @@ When a file is unpacked, the entire path is created if it
 does not exist.
 If no files are specified, the entire archive is unpacked;
 in this case, missing intermediate directories are not created.
-The
-.B -v
-option prints the names and sizes of files as they are extracted;
-.B -h
+The options are:
+.TP
+.B d
+specifies a directory (default
+.BR / )
+to serve as the root of the unpacked file system.
+.TP
+.B u
+sets the owners of the files created to correspond to
+those in the archive and restores the modification times of the files.
+.TP
+.B T
+restores only the modification times of the files.
+.TP
+.B v
+prints the names and sizes of files as they are extracted.
+.TP
+.B h
 prints headers for the files on standard output
 instead of unpacking the files.
+.PD
 .SH EXAMPLES
 .PP
 Make an archive to establish a new file system:

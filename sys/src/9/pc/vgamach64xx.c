@@ -105,19 +105,20 @@ enum {
 /*
  * ATI Mach64(CT|ET|G*|V*|L*).
  */
-typedef struct {
+typedef struct Mach64types Mach64types;
+struct Mach64types {
 	ushort 	m64_id;			/* Chip ID */
 	int 		m64_vtgt;		/* Is this a VT or GT chipset? */
 	ulong	m64_ovlclock;		/* Max. overlay clock frequency */
 	int		m64_pro;			/* Is this a PRO? */
-} mach64types;
+};
 
 static ulong mach64refclock;
-static mach64types *mach64type;
+static Mach64types *mach64type;
 static int mach64revb;			/* Revision B or greater? */
 static ulong mach64overlay;		/* Overlay buffer */
 
-static mach64types mach64s[] = {
+static Mach64types mach64s[] = {
 	('C'<<8)|'T',	0,	1350000, /*?*/	0,	/* 4354: CT */
 	('E'<<8)|'T',	0,	1350000, /*?*/	0,	/* 4554: ET */
 	('G'<<8)|'B',	1,	1250000,		1, 	/* 4742: 264GT PRO */
@@ -658,6 +659,7 @@ static void
 waitforfifo(VGAscr *scr, int entries)
 {
 	int x;
+
 	x = 0;
 	while((ior32(scr, FifoStat)&0xFF) > (0x8000>>entries) && x++ < 1000000)
 		;
@@ -669,6 +671,7 @@ static void
 waitforidle(VGAscr *scr)
 {
 	int x;
+
 	waitforfifo(scr, 16);
 	x = 0;
 	while((ior32(scr, GuiStat)&1) && x++ < 1000000)

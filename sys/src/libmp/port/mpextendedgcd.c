@@ -15,6 +15,13 @@ mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 	mpint *u, *A, *B, *C, *D;
 	int g;
 
+	if(a->sign < 0 || b->sign < 0){
+		mpassign(mpzero, v);
+		mpassign(mpzero, y);
+		mpassign(mpzero, x);
+		return;
+	}
+
 	if(a->top == 0){
 		mpassign(b, v);
 		mpassign(mpone, y);
@@ -94,4 +101,6 @@ mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 	mpfree(u);
 	mpfree(a);
 	mpfree(b);
+
+	return;
 }

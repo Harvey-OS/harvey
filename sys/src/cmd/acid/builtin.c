@@ -933,7 +933,7 @@ patom(char type, Store *res)
 		Bprint(bout, "%s", buf);
 		break;
 	case 'b':
-		Bprint(bout, "%#.2x", (int)res->ival&0xff);
+		Bprint(bout, "%.2x", (int)res->ival&0xff);
 		break;
 	case 'X':
 		Bprint(bout, "%.8lux", (ulong)res->ival);

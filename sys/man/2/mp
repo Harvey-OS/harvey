@@ -464,6 +464,13 @@ and
 .I y
 such that
 .BR "a*x + b*y = d" .
+Both
+.I a
+and
+.I b
+are required to be positive.
+If called with negative arguments, it will
+return a gcd of 0.
 .PP
 .I Mpinverse
 computes the multiplicative inverse of

@@ -1821,7 +1821,9 @@ atapnp(void)
 		 * 2) put 0 in the programming interface byte (probably
 		 *    as a consequence of 1) above).
 		 */
-		if(p->ccrb != 0x01 || (p->ccru != 0x01 && p->ccru != 0x80))
+		if(p->ccrb != 0x01)
+			continue;
+		if(p->ccru != 0x01 && p->ccru != 0x04 && p->ccru != 0x80)
 			continue;
 		pi = p->ccrp;
 		ispc87415 = 0;
@@ -1852,6 +1854,7 @@ atapnp(void)
 		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
 		case (0x4D68<<16)|0x105A:	/* Promise PDC20268 */
 		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
+		case (0x3149<<16)|0x1106:	/* VIA 8237 */
 			pi = 0x85;
 			break;
 		case (0x0004<<16)|0x1103:	/* HighPoint HPT-370 */

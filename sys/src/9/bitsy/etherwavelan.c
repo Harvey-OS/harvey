@@ -23,7 +23,7 @@ wavelanpcmciareset(Ether *ether)
 	ctlr->ctlrno = ether->ctlrno;
 
 	if (ether->ports == nil){
-		ether->ports = malloc(sizeof(port_t));
+		ether->ports = malloc(sizeof(Devport));
 		ether->ports[0].port = 0;
 		ether->ports[0].size = 0;
 		ether->nports= 1;

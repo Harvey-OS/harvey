@@ -7,10 +7,17 @@
 #include	"edf.h"
 #include	<trace.h>
 
+int	coopsched = 1;
 int	nrdy;
 Ref	noteidalloc;
 
+void updatecpu(Proc*);
+int reprioritize(Proc*);
+
 long	delayedscheds;	/* statistics */
+long skipscheds;
+long preempts;
+ulong load;
 
 static Ref	pidalloc;
 
@@ -24,8 +31,8 @@ static struct Procalloc
 
 enum
 {
-	Q=(HZ/20)*4,
-	DQ=((HZ-Q)/40)*2,
+	Q=10,
+	DQ=4,
 };
 
 Schedq	runq[Nrq];
@@ -58,6 +65,7 @@ char *statename[] =
 
 static void pidhash(Proc*);
 static void pidunhash(Proc*);
+static void rebalance(void);
 
 /*
  * Always splhi()'ed.
@@ -97,7 +105,8 @@ schedinit(void)		/* never returns */
 			unlock(&procalloc);
 			break;
 		}
-		up->mach = 0;
+		up->mach = nil;
+		updatecpu(up);
 		up = nil;
 	}
 	sched();
@@ -111,6 +120,7 @@ void
 sched(void)
 {
 	int x[1];
+	Proc *p;
 
 	if(m->ilockdepth)
 		panic("ilockdepth %d, last lock 0x%p at 0x%lux, sched called from 0x%lux",
@@ -138,7 +148,14 @@ sched(void)
 		}
 		gotolabel(&m->sched);
 	}
-	up = runproc();
+	p = runproc();
+	if(!p->edf){
+		updatecpu(p);
+		p->priority = reprioritize(p);
+	}
+	if(p != m->readied)
+		m->schedticks = m->ticks + HZ/10;
+	up = p;
 	up->state = Running;
 	up->mach = MACHP(m->machno);
 	m->proc = up;
@@ -164,11 +181,14 @@ anyhigher(void)
 void
 hzsched(void)
 {
-	/* another cycle, another quantum */
-	up->quanta--;
+	/* once a second, rebalance will reprioritize ready procs */
+	if(m->machno == 0)
+		rebalance();
 
-	/* don't bother unless someone is elegible */
-	if(anyhigher() || (!up->fixedpri && anyready())){
+	/* unless preempted, get to run for at least 100ms */
+	if(anyhigher()
+	|| (!up->fixedpri && m->ticks > m->schedticks && anyready())){
+		m->readied = nil;	/* avoid cooperative scheduling */
 		sched();
 		splhi();
 	}
@@ -185,6 +205,7 @@ preempted(void)
 	if(up->preempted == 0)
 	if(anyhigher())
 	if(!active.exiting){
+		m->readied = nil;	/* avoid cooperative scheduling */
 		up->preempted = 1;
 		sched();
 		splhi();
@@ -195,57 +216,122 @@ preempted(void)
 }
 
 /*
- *  ready(p) picks a new priority for a process and sticks it in the
- *  runq for that priority.
+ * Update the cpu time average for this particular process,
+ * which is about to change from up -> not up or vice versa.
+ * p->lastupdate is the last time an updatecpu happened.
  *
- *  - fixed priority processes never move
- *  - a process that uses all its quanta before blocking goes down a
- *    priority level
- *  - a process that uses less than half its quanta before blocking
- *    goes up a priority level
- *  - a process that blocks after using up half or more of it's quanta
- *    stays at the same level
+ * The cpu time average is a decaying average that lasts
+ * about D clock ticks.  D is chosen to be approximately
+ * the cpu time of a cpu-intensive "quick job".  A job has to run
+ * for approximately D clock ticks before we home in on its 
+ * actual cpu usage.  Thus if you manage to get in and get out
+ * quickly, you won't be penalized during your burst.  Once you
+ * start using your share of the cpu for more than about D
+ * clock ticks though, your p->cpu hits 1000 (1.0) and you end up 
+ * below all the other quick jobs.  Interactive tasks, because
+ * they basically always use less than their fair share of cpu,
+ * will be rewarded.
  *
- *  new quanta are assigned each time a process blocks or changes level
+ * If the process has not been running, then we want to
+ * apply the filter
+ *
+ *	cpu = cpu * (D-1)/D
+ *
+ * n times, yielding 
+ * 
+ *	cpu = cpu * ((D-1)/D)^n
+ *
+ * but D is big enough that this is approximately 
+ *
+ * 	cpu = cpu * (D-n)/D
+ *
+ * so we use that instead.
+ * 
+ * If the process has been running, we apply the filter to
+ * 1 - cpu, yielding a similar equation.  Note that cpu is 
+ * stored in fixed point (* 1000).
+ *
+ * Updatecpu must be called before changing up, in order
+ * to maintain accurate cpu usage statistics.  It can be called
+ * at any time to bring the stats for a given proc up-to-date.
  */
 void
-ready(Proc *p)
+updatecpu(Proc *p)
 {
-	int s, pri;
-	Schedq *rq;
-	void (*pt)(Proc*, int, vlong);
+	int n, t, ocpu;
+	enum { D = 30*HZ };
 
-	s = splhi();
-
-	if(edfready(p)){
-		splx(s);
+	if(p->edf)
 		return;
+
+	t = MACHP(0)->ticks;
+	n = t - p->lastupdate;
+	p->lastupdate = t;
+
+	if(n == 0)
+		return;
+	if(n > D)
+		n = D;
+
+	ocpu = p->cpu;
+	if(p != up)
+		p->cpu = (ocpu*(D-n))/D;
+	else{
+		t = 1000 - ocpu;
+		t = (t*(D-n))/D;
+		p->cpu = 1000 - t;
 	}
 
-	pri = p->priority;
+//iprint("pid %d %s for %d cpu %d -> %d\n", p->pid,p==up?"active":"inactive",n, ocpu,p->cpu);
+}
 
-	if(p->fixedpri){
-		pri = p->basepri;
-		p->quanta = HZ;
-	} else if(p->state == Running){
-		if(p->quanta <= 0){
-			/* degrade priority of anyone that used their whole quanta */
-			if(pri > 0)
-				pri--;
-			p->quanta = quanta[pri];
-		}
-	} else {
-		if(p->quanta > quanta[pri]/2){
-			/* blocked before using half its quanta, go up */
-			if(++pri > p->basepri)
-				pri = p->basepri;
-		}
-		p->quanta = quanta[pri];
-	}
+/*
+ * On average, p has used p->cpu of a cpu recently.
+ * Its fair share is conf.nmach/m->load of a cpu.  If it has been getting
+ * too much, penalize it.  If it has been getting not enough, reward it.
+ * I don't think you can get much more than your fair share that 
+ * often, so most of the queues are for using less.  Having a priority
+ * of 3 means you're just right.  Having a higher priority (up to p->basepri) 
+ * means you're not using as much as you could.
+ */
+int
+reprioritize(Proc *p)
+{
+	int fairshare, n, load, ratio;
 
-	rq = &runq[pri];
-	p->priority = pri;
+	load = MACHP(0)->load;
+	if(load == 0)
+		return p->basepri;
+
+	/*
+	 *  fairshare = 1.000 * conf.nproc * 1.000/load,
+	 * except the decimal point is moved three places
+	 * on both load and fairshare.
+	 */
+	fairshare = (conf.nmach*1000*1000)/load;
+	n = p->cpu;
+	if(n == 0)
+		n = 1;
+	ratio = (fairshare+n/2) / n;
+	if(ratio > p->basepri)
+		ratio = p->basepri;
+	if(ratio < 0)
+		panic("reprioritize");
+//iprint("pid %d cpu %d load %d fair %d pri %d\n", p->pid, p->cpu, load, fairshare, ratio);
+	return ratio;
+}
+
+/*
+ * add a process to a scheduling queue
+ */
+void
+queueproc(Schedq *rq, Proc *p)
+{
+	int pri;
+
+	pri = rq - runq;
 	lock(runq);
+	p->priority = pri;
 	p->rnext = 0;
 	if(rq->tail)
 		rq->tail->rnext = p;
@@ -255,17 +341,11 @@ ready(Proc *p)
 	rq->n++;
 	nrdy++;
 	runvec |= 1<<pri;
-	p->readytime = m->ticks;
-	p->state = Ready;
-	pt = proctrace;
-	if(pt)
-		pt(p, SReady, 0);
 	unlock(runq);
-	splx(s);
 }
 
 /*
- *  remove a process from a scheduling queue (called splhi)
+ *  try to remove a process from a scheduling queue (called splhi)
  */
 Proc*
 dequeueproc(Schedq *rq, Proc *tp)
@@ -311,48 +391,91 @@ dequeueproc(Schedq *rq, Proc *tp)
 }
 
 /*
+ *  ready(p) picks a new priority for a process and sticks it in the
+ *  runq for that priority.
+ */
+void
+ready(Proc *p)
+{
+	int s, pri;
+	Schedq *rq;
+	void (*pt)(Proc*, int, vlong);
+
+	s = splhi();
+	if(edfready(p)){
+		splx(s);
+		return;
+	}
+
+	if(up != p)
+		m->readied = p;	/* group scheduling */
+
+	updatecpu(p);
+	pri = reprioritize(p);
+	p->priority = pri;
+	rq = &runq[pri];
+	p->state = Ready;
+	queueproc(rq, p);
+	pt = proctrace;
+	if(pt)
+		pt(p, SReady, 0);
+	splx(s);
+}
+
+/*
  *  yield the processor and drop our priority
  */
 void
 yield(void)
 {
 	if(anyready()){
-		up->quanta = 0;	/* act like you used them all up */
+		/* pretend we just used 10ms */
+		up->lastupdate -= HZ/100;
 		sched();
 	}
 }
 
 /*
- *  move up any process waiting more than its quanta
+ * move up any process waiting more than its quanta
+ * called once per clock tick on processor 0.
+ * we reduce this to once per second via blaancetime.
  */
+ulong balancetime;
+
 static void
 rebalance(void)
 {
+	int pri, npri, t;
 	Schedq *rq;
 	Proc *p;
 
-	for(rq = runq; rq < &runq[Npriq]; rq++){
+	t = m->ticks;
+	if(t - balancetime < HZ)
+		return;
+	balancetime = t;
+
+	for(pri=0, rq=runq; pri<Npriq; pri++, rq++){
+another:
 		p = rq->head;
 		if(p == nil)
 			continue;
 		if(p->mp != MACHP(m->machno))
 			continue;
-		if(p->priority == p->basepri)
+		if(pri == p->basepri)
 			continue;
-
-		/* this comparison is too arbitrary - need a better one */
-		/* presotto */
-		if(m->ticks - p->readytime < quanta[p->priority]/4)
-			continue;
-		splhi();
-		p = dequeueproc(rq, p);
-		spllo();
-		if(p == nil)
-			continue;
-		p->quanta = quanta[p->priority];	/* act like we used none */
-		ready(p);
+		updatecpu(p);
+		npri = reprioritize(p);
+		if(npri != pri){
+			splhi();
+			p = dequeueproc(rq, p);
+			if(p)
+				queueproc(&runq[npri], p);
+			spllo();
+			goto another;
+		}
 	}
 }
+	
 
 /*
  *  pick a process to run
@@ -368,12 +491,15 @@ runproc(void)
 
 	start = perfticks();
 
-	/* 10 is completely arbitrary - it interacts with the comparison in rebalance */
-	/* presotto */
-	if(m->fairness++ == 10){
-		m->fairness = 0;
-		rebalance();
+	/* cooperative scheduling until the clock ticks */
+	if(coopsched && (p=m->readied) && p->mach==0 && p->state==Ready
+	&& runq[Nrq-1].head == nil && runq[Nrq-2].head == nil){
+		skipscheds++;
+		rq = &runq[p->priority];
+		goto found;
 	}
+
+	preempts++;
 
 loop:
 	/*
@@ -506,6 +632,11 @@ newproc(void)
 	p->wired = 0;
 	procpriority(p, PriNormal, 0);
 
+	/* a priori, somewhere below interactive but above the cpu hogs */
+	p->cpu = 1000000/(5*MACHP(0)->load+1);
+	if(p->cpu > 1000)
+		p->cpu = 1000;
+	p->priority = reprioritize(p);
 	p->edf = nil;
 
 	return p;
@@ -555,10 +686,10 @@ procpriority(Proc *p, int pri, int fixed)
 	p->basepri = pri;
 	p->priority = pri;
 	if(fixed){
-		p->quanta = 0xfffff;
+		// p->quanta = 0xfffff;
 		p->fixedpri = 1;
 	} else {
-		p->quanta = quanta[pri];
+		// p->quanta = quanta[pri];
 		p->fixedpri = 0;
 	}
 }
@@ -1414,11 +1545,19 @@ accounttime(void)
 	if(m->machno != 0)
 		return;
 
-	/* calculate decaying load average */
+	/*
+	 * calculate decaying load average.
+	 * if we decay by (n-1)/n then it takes
+	 * n clock ticks to go from load L to .36 L once
+	 * things quiet down.  it takes about 5 n clock
+	 * ticks to go to zero.  so using HZ means this is
+	 * approximately the load over the last second,
+	 * with a tail lasting about 5 seconds.
+	 */
 	n = nrun;
 	nrun = 0;
 	n = (nrdy+n)*1000;
-	m->load = (m->load*19+n)/20;
+	m->load = (m->load*(HZ-1)+n)/HZ;
 }
 
 static void

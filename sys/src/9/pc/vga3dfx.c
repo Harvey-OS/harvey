@@ -12,13 +12,14 @@
 #include <cursor.h>
 #include "screen.h"
 
-typedef struct {
+typedef struct Cursor3dfx Cursor3dfx;
+struct Cursor3dfx {
 	int	vidProcCfg;
 	int	hwCurPatAddr;
 	int	hwCurLoc;
 	int	hwCurC0;
 	int	hwCurC1;
-} Cursor3dfx;
+};
 
 enum {
 	dramInit0	= 0x18,
