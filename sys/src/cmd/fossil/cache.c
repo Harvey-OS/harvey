@@ -443,6 +443,9 @@ _cacheLocalLookup(Cache *c, int part, u32int addr, u32int vers,
 			vtSleep(b->ioready);
 			break;
 		case BioVentiError:
+			blockPut(b);
+			vtSetError(EVentiIO);
+			return nil;
 		case BioReadError:
 			blockPut(b);
 			vtSetError(EIO);
@@ -673,6 +676,9 @@ if(0)fprint(2, "cacheGlobal %V %d\n", score, type);
 	case BioClean:
 		return b;
 	case BioVentiError:
+		blockPut(b);
+		vtSetError(EVentiIO);
+		return nil;
 	case BioReadError:
 		blockPut(b);
 		vtSetError(EIO);

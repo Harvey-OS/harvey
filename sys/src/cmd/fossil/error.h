@@ -30,3 +30,4 @@ extern char ERoot[];
 extern char ESnapOld[];
 extern char ESnapRO[];
 extern char ETooBig[];
+extern char EVentiIO[];

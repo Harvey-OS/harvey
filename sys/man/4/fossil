@@ -357,6 +357,9 @@ reads a new configuration from
 .I config
 (or else from standard input)
 and writes it to the disk.
+Inside the configuration file, the argument
+.L *
+may be used to stand in for the name of the disk holding the configuration.
 The Plan 9 kernel boot process runs
 .RB `` fossil
 .B -f

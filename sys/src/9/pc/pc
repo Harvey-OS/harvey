@@ -50,6 +50,7 @@ link
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
+	etherrhine	pci ethermii
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
@@ -103,8 +104,8 @@ port
 	int cpuserver = 0;
 
 boot
-	il
 	tcp
+	il
 
 bootdir
 	bootpc.out boot
