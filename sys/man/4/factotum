@@ -1,6 +1,6 @@
 .TH FACTOTUM 4
 .SH NAME
-factotum, fgui, secretpem \- authentication agent
+factotum, fgui \- authentication agent
 .SH SYNOPSIS
 .B auth/factotum
 [
@@ -13,10 +13,6 @@ factotum, fgui, secretpem \- authentication agent
 ] [
 .B -m
 .I mtpt
-]
-[
-.B -o
-.I owner
 ]
 .PP
 .B auth/factotum
@@ -215,17 +211,6 @@ and
 .BR \-S .
 This option is typically used by
 the kernel at boot time.
-.TP
-.B \-o
-causes the agent to set the owner to
-.I owner
-(by default, the user invoking
-.IR factotum ).
-This allows
-.I owner
-to use the keys stored in that instance of the factotum,
-and is useful for setting up a factotum to be used by
-.BR none .
 .PD
 .PP
 .I Fgui

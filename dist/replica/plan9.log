@@ -19324,3 +19324,8 @@
 1053021624 0 c sys/src/9/bitsy/Booting101 - 664 sys sys 1053021020 6879
 1053021624 1 c sys/src/9/bitsy/errstr.h - 664 sys sys 1053021020 2137
 1053021624 2 c sys/src/9/bitsy/wavelan.c - 664 sys sys 1053021020 27267
+1053095409 0 c sys/man/8/ventiaux - 664 sys sys 1053095327 9971
+1053102619 0 c sys/man/4/factotum - 664 sys sys 1053100997 14471
+1053108025 0 c sys/src/libauth/auth_proxy.c - 664 sys sys 1053106349 3606
+1053127922 0 c sys/man/2/pushtls - 664 sys sys 1053127877 4496
+1053127922 1 c sys/man/4/factotum - 664 sys sys 1053127875 14460
