@@ -17,6 +17,7 @@
 .bbl		text		plain		-		y # BibTex output
 .bcpio		application	x-bcpio		-		m
 .bib		text		plain		-		y # BibTex input
+.bmp		image		bmp		-		y # bitmapped image
 .c		text		plain		-		y # C program
 .c++		text		plain		-		y # C++ program
 .cacert		application	x-x509-ca-cert	-		y # DER X.509 CA certificate

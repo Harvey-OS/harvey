@@ -60,12 +60,13 @@ enum
 };
 
 Part tab[64];
-
+int fd = -1;
 char *sdname = "sdXX";
 ulong ctlmode = 0666;
 char *inquiry = "aux/disksim hard drive";
 vlong nsect, sectsize, c, h, s;
 ulong time0;
+int rdonly;
 
 char*
 ctlstring(void)
@@ -214,7 +215,7 @@ ctlwrite(Req *r)
 }
 	
 void*
-allocblk(void)
+allocblk(vlong addr)
 {
 	uchar *op;
 	static uchar *p;
@@ -230,6 +231,8 @@ allocblk(void)
 	p += BLKSZ;
 	n -= BLKSZ;
 	memset(op, 0, BLKSZ);
+	if(fd != -1 && addr != -1)
+		pread(fd, op, BLKSZ, addr);
 	return op;
 }
 
@@ -241,8 +244,13 @@ getblock(vlong addr, int alloc)
 	Ind *p1;
 	uchar *p0;
 	uint i0, i1, i2;
+	vlong oaddr;
+
+	if(fd)
+		alloc = 1;
 
 	addr >>= LOGBLKSZ;
+	oaddr = addr<<LOGBLKSZ;
 	i0 = addr & (NPTR-1);
 	addr >>= LOGNPTR;
 	i1 = addr & (NPTR-1);
@@ -254,23 +262,35 @@ getblock(vlong addr, int alloc)
 	if((p2 = trip.dbl[i2]) == 0){
 		if(!alloc)
 			return zero;
-		trip.dbl[i2] = p2 = allocblk();
+		trip.dbl[i2] = p2 = allocblk(-1);
 	}
 
 	if((p1 = p2->ind[i1]) == 0){
 		if(!alloc)
 			return zero;
-		p2->ind[i1] = p1 = allocblk();
+		p2->ind[i1] = p1 = allocblk(-1);
 	}
 
 	if((p0 = p1->blk[i0]) == 0){
 		if(!alloc)
 			return zero;
-		p1->blk[i0] = p0 = allocblk();
+		p1->blk[i0] = p0 = allocblk(oaddr);
 	}
 	return p0;
 }
 
+void
+dirty(vlong addr, uchar *buf)
+{
+	vlong oaddr;
+
+	if(fd == -1 || rdonly)
+		return;
+	oaddr = addr&~((vlong)BLKSZ-1);
+	if(pwrite(fd, buf, BLKSZ, oaddr) != BLKSZ)
+		sysfatal("write: %r");
+}
+	
 int
 rootgen(int off, Dir *d, void*)
 {
@@ -391,6 +411,8 @@ rdwrpart(Req *r)
 		if(n > count)
 			n = count;
 		(*move)(dat, blk+o, n);
+		if(r->ifcall.type == Twrite)
+			dirty(offset, blk);
 		tot += n;
 	}
 	/* full and right fringe blocks */
@@ -399,9 +421,11 @@ rdwrpart(Req *r)
 		if(blk == nil)
 			abort();
 		n = BLKSZ;
-		if(n > count)
-			n = count;
+		if(n > count-tot)
+			n = count-tot;
 		(*move)(dat+tot, blk, n);
+		if(r->ifcall.type == Twrite)
+			dirty(offset+tot, blk);
 		tot += n;
 	}
 	r->ofcall.count = tot;
@@ -582,7 +606,7 @@ char *srvname;
 void
 usage(void)
 {
-	fprint(2, "usage: aux/disksim [-D] [-s srvname] [-m mtpt] [sdXX]\n");
+	fprint(2, "usage: aux/disksim [-D] [-f file] [-s srvname] [-m mtpt] [sdXX]\n");
 	fprint(2, "\tdefault mtpt is /dev\n");
 	exits("usage");
 }
@@ -590,6 +614,9 @@ usage(void)
 void
 main(int argc, char **argv)
 {
+	char *file;
+
+	file = nil;
 	quotefmtinstall();
 	time0 = time(0);
 	if(NPTR != BLKSZ/sizeof(void*))
@@ -598,6 +625,12 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	case 'D':
 		chatty9p++;
+		break;
+	case 'f':
+		file = EARGF(usage());
+		break;
+	case 'r':
+		rdonly = 1;
 		break;
 	case 's':
 		srvname = EARGF(usage());
@@ -613,6 +646,11 @@ main(int argc, char **argv)
 		usage();
 	if(argc == 1)
 		sdname = argv[0];
+
+	if(file){
+		if((fd = open(file, rdonly ? OREAD : ORDWR)) < 0)
+			sysfatal("open %s: %r", file);
+	}
 
 	inquiry = estrdup9p(inquiry);
 	tab[0].name = estrdup9p("data");
