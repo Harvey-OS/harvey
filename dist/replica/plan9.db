@@ -4756,7 +4756,7 @@ sys/man/4/consolefs - 664 sys sys 1022112154 3751
 sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
 sys/man/4/exportfs - 664 sys sys 1018386776 3746
-sys/man/4/factotum - 664 sys sys 1048639180 14728
+sys/man/4/factotum - 664 sys sys 1049038407 14737
 sys/man/4/fossil - 664 sys sys 1048643971 8463
 sys/man/4/fs - 664 sys sys 1019058716 3387
 sys/man/4/ftpfs - 664 sys sys 1048285446 4327

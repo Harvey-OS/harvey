@@ -93,7 +93,7 @@ structure is independent of
 any particular authentication protocol.
 .I Factotum
 supports the following protocols:
-.TF sshrsa
+.TF mschap
 .TP
 .B p9any
 a metaprotocol used to negotiate which actual protocol to use.
@@ -463,7 +463,7 @@ which should contain control file commands.
 An example would be
 .EX
   key dom=x.com proto=p9sk1 user=boyd !hex=26E522ADE2BBB2A229
-  key proto=sshrsa size=1024 ek=3B !dk=...
+  key proto=rsa service=ssh size=1024 ek=3B !dk=...
 .EE
 where the first line sets a password for
 challenge/response authentication, strong against dictionary
