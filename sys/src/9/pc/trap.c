@@ -495,7 +495,12 @@ _dumpstack(Ureg *ureg)
 	extern ulong etext;
 	int x;
 
+	if(getconf("*nodumpstack")){
+		iprint("dumpstack disabled\n");
+		return;
+	}
 	iprint("dumpstack\n");
+
 	x = 0;
 	x += print("ktrace /kernel/path %.8lux %.8lux\n", ureg->pc, ureg->sp);
 	i = 0;
