@@ -18192,3 +18192,4 @@
 1046817090 0 c 386/lib/ape/libap.a - 664 sys sys 1046815884 780316
 1046817090 1 c sys/include/ape/stdio.h - 664 sys sys 1046815898 4863
 1046817090 2 c sys/src/ape/lib/ap/stdio/fseek.c - 664 sys sys 1046815860 416
+1046887277 0 c sys/man/2/9p - 664 sys sys 1046886431 15221
