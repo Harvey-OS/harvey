@@ -2,6 +2,18 @@
 .SH NAME
 mahjongg, sokoban \- time wasters
 .SH SYNOPSIS
+.B games/juggle
+[
+.B -d
+.I delay
+] [
+.B -h
+.I hands
+] [
+.I start
+]
+.I pattern
+.br
 .B games/mahjongg
 [
 .B -c
@@ -18,11 +30,26 @@ mahjongg, sokoban \- time wasters
 .br
 .B games/sokoban
 [
-.B level
+.I level
 ]
 .SH DESCRIPTION
 There are a few games in
 .BR /bin/games :
+.TP
+.B juggle
+Display the juggling
+.I pattern
+using the optional initial
+.I start
+pattern.
+The number of hands involved (default 2) can be specified with
+.BR -h ,
+and
+.I delay
+can be used to speed up or slow down the action (default is 20).
+Try the pattern 333333441333333 or 333353505151512333333
+(see
+.IR http://seehuhn.de/jong/theory.html ).
 .TP
 .B mahjongg
 Remove all tiles
