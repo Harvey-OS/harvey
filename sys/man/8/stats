@@ -53,6 +53,11 @@ number of page faults per second.
 .B "i intr
 number of interrupts per second.
 .TP
+.B "I idle
+system load, % time in idle, and % time in interrupts.
+The last two are averaged over all processors on a
+multiprocessor.
+.TP
 .B "l load
 (default) system load average.
 The load is computed as a running average of

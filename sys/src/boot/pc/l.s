@@ -1,7 +1,7 @@
 #include "x16.h"
 #include "mem.h"
 
-#define PDB		0x08000		/* temporary page tables (24KB) */
+#define PDB		0x90000		/* temporary page tables (24KB) */
 
 #define NoScreenBlank	1
 /*#define ResetDiscs	1*/

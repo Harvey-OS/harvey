@@ -105,6 +105,7 @@ char **ini;
 
 int scsi0port;
 char *defaultpartition;
+int iniread;
 
 static Medium*
 parse(char *line, char **file)
@@ -258,7 +259,7 @@ main(void)
 			continue;
 		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)){
 			print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
-			dotini(mp->inifs);
+			iniread = !dotini(mp->inifs);
 			break;
 		}
 	}

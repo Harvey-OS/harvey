@@ -24,26 +24,26 @@ extern int ether83815reset(Ether*);
 struct {
 	char	*type;
 	int	(*reset)(Ether*);
+	int	noprobe;
 } ethercards[] = {
-	{ "21140", ether2114xreset, },
-	{ "2114x", ether2114xreset, },
-	{ "i82557", i82557reset, },
-	{ "elnk3", elnk3reset, },
-	{ "3C509", elnk3reset, },
-	{ "3C575", elnk3reset, },
-	{ "3C589", ether589reset, },
-	{ "3C562", ether589reset, },
-	{ "589E", ether589reset, },
-	{ "NE2000", ne2000reset, },
-	{ "WD8003", wd8003reset, },
-	{ "EC2T", ec2treset, },
-	{ "AMD79C970", amd79c970reset, },
-	{ "RTL8139", rtl8139pnp, },
-	{ "83815", ether83815reset, },
+	{ "21140", ether2114xreset, 0, },
+	{ "2114x", ether2114xreset, 0, },
+	{ "i82557", i82557reset, 0, },
+	{ "elnk3", elnk3reset, 0, },
+	{ "3C509", elnk3reset, 0, },
+	{ "3C575", elnk3reset, 0, },
+	{ "3C589", ether589reset, 1, },
+	{ "3C562", ether589reset, 1, },
+	{ "589E", ether589reset, 1, },
+	{ "NE2000", ne2000reset, 1, },
+	{ "WD8003", wd8003reset, 1, },
+	{ "EC2T", ec2treset, 0, },
+	{ "AMD79C970", amd79c970reset, 0, },
+	{ "RTL8139", rtl8139pnp, 0, },
+	{ "83815", ether83815reset, 0, },
 
 	{ 0, }
 };
-
 
 static void xetherdetach(void);
 
@@ -58,18 +58,27 @@ etherinit(void)
 	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
 		ctlr = &ether[ctlrno];
 		memset(ctlr, 0, sizeof(Ether));
-		if(isaconfig("ether", ctlrno, ctlr) == 0)
+		if(iniread && isaconfig("ether", ctlrno, ctlr) == 0)
 			continue;
 
 		for(n = 0; ethercards[n].type; n++){
-			if(cistrcmp(ethercards[n].type, ctlr->type))
+			if(!iniread){
+				if(ethercards[n].noprobe)
+					continue;
+				memset(ctlr, 0, sizeof(Ether));
+				strcpy(ctlr->type, ethercards[n].type);
+			}
+			else if(cistrcmp(ethercards[n].type, ctlr->type))
 				continue;
 			ctlr->ctlrno = ctlrno;
 
 			x = splhi();
 			if((*ethercards[n].reset)(ctlr)){
 				splx(x);
-				break;
+				if(iniread)
+					break;
+				else
+					continue;
 			}
 
 			ctlr->state = 1;

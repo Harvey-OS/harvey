@@ -1,6 +1,6 @@
 .TH 9LOAD 8
 .SH NAME
-9load, ld \- PC bootstrap program
+9load, ld, 9pxeload \- PC bootstrap program
 .SH SYNOPSIS
 .I "(Under MS-DOS)
 .br
@@ -122,20 +122,30 @@ usually
 .BR 0x80100020 .
 After loading, control is passed to the entry location.
 .PP
+Finally,
+.I 9pxeload
+is a version of
+.I 9load
+that can be booted using the PXE download
+found on some ethernet card BIOSs.
+.PP
 In summary,
-Plan 9 can be booted on a PC two different ways:
+Plan 9 can be booted on a PC three different ways:
 either by booting MS-DOS and using
 .I ld
 to start
 .I 9load
 in the appropriate directory,
-or by booting directly from a Plan 9 boot floppy or disk
+by booting directly from a Plan 9 boot floppy or disk
 partition
 prepared using
 .B format
 to install the appropriate files and bootstrap sectors
 (see
-.IR prep (8)).
+.IR prep (8)),
+or by using a PXE capable BIOS to boot
+.I 9pxeload
+directly over the ethernet.
 .PP
 The
 .IR bootfile ,

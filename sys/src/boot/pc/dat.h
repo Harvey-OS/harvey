@@ -199,5 +199,6 @@ struct Boot {
 };
 
 extern int	debug;
-extern Apminfo apm;
-extern char *defaultpartition;
+extern Apminfo	apm;
+extern char	*defaultpartition;
+extern int	iniread;
