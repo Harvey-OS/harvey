@@ -54,6 +54,7 @@ configip(void)
 	bind("#l1", mpoint, MAFTER);
 	bind("#l2", mpoint, MAFTER);
 	bind("#l3", mpoint, MAFTER);
+	werrstr("");
 
 	/* let ipconfig configure the ip interface */
 	switch(pid = fork()){

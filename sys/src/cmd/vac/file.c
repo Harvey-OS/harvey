@@ -314,6 +314,7 @@ Err:
 VacFile *
 vfRoot(VacFS *fs, uchar *score)
 {
+	VtEntry e;
 	Lump *u, *v;
 	Source *r, *r0, *r1, *r2;
 	MetaBlock mb;
@@ -346,8 +347,8 @@ vfRoot(VacFS *fs, uchar *score)
 		v = nil;
 	}
 	vtUnlock(u->lk);
-	if(u->asize <= VtEntrySize){	/* just one entry */
-		fprint(2, "new\n");
+	vtEntryUnpack(&e, u->data, 2);
+	if(e.flags == 0){		/* just one entry */
 		r = sourceAlloc(fs->cache, u, 0, 0, fs->readOnly);
 		if(r == nil)
 			goto Err;
@@ -398,6 +399,7 @@ vfRoot(VacFS *fs, uchar *score)
 		goto Err;
 	if(!vdUnpack(&root->dir, &me))
 		goto Err;
+
 	vfRAccess(root);
 	lumpDecRef(u, 0);
 	sourceFree(r2);
@@ -688,7 +690,7 @@ if(0)fprint(2, "vfRead: %s %d, %lld\n", vf->dir.elem, cnt, offset);
 		if(nn > n)
 			nn = n;
 		memmove(b, u->data+off, nn);
-		memset(b+nn, 0, nn-n);
+		memset(b+nn, 0, n-nn);
 		off = 0;
 		bn++;
 		cnt -= n;
@@ -1078,6 +1080,7 @@ dirEntrySize(Source *s, ulong elem, ulong gen, uvlong *size)
 	}
 	vtEntryUnpack(&e, u->data, elem);
 	if(!(e.flags & VtEntryActive) || e.gen != gen) {
+fprint(2, "gen mismatch\n");
 		vtSetError(ENoDir);
 		goto Err;
 	}

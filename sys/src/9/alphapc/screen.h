@@ -70,6 +70,7 @@ struct VGAdev {
 	ulong	(*linear)(VGAscr*, int*, int*);
 	void	(*drawinit)(VGAscr*);
 	int	(*fill)(VGAscr*, Rectangle, ulong);
+	void (*flush)(VGAscr*, Rectangle);
 
 };
 
