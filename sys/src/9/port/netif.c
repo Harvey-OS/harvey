@@ -308,6 +308,17 @@ netifwrite(Netif *nif, Chan *c, void *a, long n)
 			f->prom = 1;
 			nif->prom++;
 		}
+	} else if((p = matchtoken(buf, "scanbs")) != 0){
+		/* scan for base stations */
+		if(f->scan == 0){
+			type = atoi(p);
+			if(type < 5)
+				type = 5;
+			if(nif->scanbs != nil)
+				nif->scanbs(nif->arg, type);
+			f->scan = type;
+			nif->scan++;
+		}
 	} else if(matchtoken(buf, "bridge")){
 		f->bridge = 1;
 	} else if(matchtoken(buf, "headersonly")){
@@ -388,6 +399,14 @@ netifclose(Netif *nif, Chan *c)
 				nif->promiscuous(nif->arg, 0);
 			qunlock(nif);
 			f->prom = 0;
+		}
+		if(f->scan){
+			qlock(nif);
+			if(--(nif->scan) == 0 && nif->scanbs != nil)
+				nif->scanbs(nif->arg, 0);
+			qunlock(nif);
+			f->prom = 0;
+			f->scan = 0;
 		}
 		if(f->nmaddr){
 			qlock(nif);

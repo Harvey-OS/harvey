@@ -7,6 +7,8 @@
 enum
 {
 	WTyp_Stats	= 0xf100,
+	WTyp_Scan	= 0xf101,
+	WTyp_Link	= 0xf200,
 	WTyp_Ptype	= 0xfc00,
 	WTyp_Mac	= 0xfc01,
 	WTyp_WantName	= 0xfc02,
@@ -69,7 +71,7 @@ enum
 		WCmdDis		= 0x0002,
 		WCmdTx		= 0x000b,
 		WCmdMalloc	= 0x000a,
-		WCmdAskStats	= 0x0011,
+		WCmdEnquire	= 0x0011,
 		WCmdMsk		= 0x003f,
 		WCmdAccRd	= 0x0021,
 		WCmdReclaim	= 0x0100,
@@ -134,6 +136,7 @@ typedef struct Wltv	Wltv;
 typedef struct WFrame	WFrame;
 typedef struct Stats	Stats;
 typedef struct WStats	WStats;
+typedef struct WScan	WScan;
 typedef struct WKey	WKey;
 
 struct WStats
@@ -160,6 +163,18 @@ struct WStats
 	ulong	nrxmsgfrag;
 	ulong	nrxmsgbadfrag;
 	ulong	end;
+};
+
+struct WScan
+{
+	ushort	chan;			/* dss channel */
+	ushort	noise;			/* average noise in the air */
+	ushort	signal;			/* signal strength */
+	uchar	bssid[Eaddrlen];	/* MAC address of the ap */
+	ushort	interval;		/* beacon transmit interval */
+	ushort	capinfo;		/* capability bits (0-ess, 1-ibss, 4-privacy [wep]) */
+	ushort	ssid_len;		/* ssid length */
+	char	ssid[WNameLen];		/* ssid (ap name) */
 };
 
 struct WFrame
@@ -266,6 +281,7 @@ struct Ctlr
 	int	pmwait;
 
 	Proc	*timerproc;
+	int	scanticks;
 
 	char	netname[WNameLen];
 	char	wantname[WNameLen];
@@ -289,6 +305,8 @@ struct Ctlr
 
 	Stats;
 	WStats;
+
+	ushort	scanbuf[25*4];		// buffer for base station scan info
 };
 
 extern char* wavenames[];

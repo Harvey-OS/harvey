@@ -39,6 +39,7 @@ struct Netfile
 
 	int	type;			/* multiplexor type */
 	int	prom;			/* promiscuous mode */
+	int	scan;			/* base station scanning interval */
 	int	bridge;			/* bridge mode */
 	int	headersonly;		/* headers only - no data */
 	uchar	maddr[8];		/* bitmask of multicast addresses requested */
@@ -79,6 +80,7 @@ struct Netif
 	int	nmaddr;			/* number of known multicast addresses */
 	Netaddr *mhash[Nmhash];		/* hash table of multicast addresses */
 	int	prom;			/* number of promiscuous opens */
+	int	scan;			/* number of base station scanners */
 	int	all;			/* number of -1 multiplexors */
 
 	/* statistics */
@@ -96,6 +98,7 @@ struct Netif
 	void	*arg;
 	void	(*promiscuous)(void*, int);
 	void	(*multicast)(void*, uchar*, int);
+	void	(*scanbs)(void*, uint);	/* scan for base stations */
 };
 
 void	netifinit(Netif*, char*, int, ulong);
