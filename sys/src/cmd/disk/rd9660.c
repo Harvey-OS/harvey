@@ -104,12 +104,12 @@ struct Cdir {
 #pragma varargck type "D" Cdir*
 
 int
-Dconv(va_list *va, Fconv *fp)
+Dfmt(Fmt *fmt)
 {
 	char buf[128];
 	Cdir *c;
 
-	c = va_arg(*va, Cdir*);
+	c = va_arg(fmt->args, Cdir*);
 	if(c->namelen == 1 && c->name[0] == '\0' || c->name[0] == '\001') {
 		snprint(buf, sizeof buf, ".%s dloc %.4N dlen %.4N",
 			c->name[0] ? "." : "", c->dloc, c->dlen);
@@ -117,7 +117,7 @@ Dconv(va_list *va, Fconv *fp)
 		snprint(buf, sizeof buf, "%.*T dloc %.4N dlen %.4N", c->namelen, c->name,
 			c->dloc, c->dlen);
 	}
-	strconv(buf, fp);
+	fmtstrcpy(fmt, buf);
 	return 0;
 }
 
@@ -145,15 +145,15 @@ littleend(void)
 }
 
 int
-Pconv(va_list *va, Fconv *fp)
+Pfmt(Fmt *fmt)
 {
-	char fmt[128], buf[128];
+	char xfmt[128], buf[128];
 	Path *p;
 
-	p = va_arg(*va, Path*);
-	sprint(fmt, "%%.*T loc %%p namelen %%d %%.4%c par %%.2%c", longc, longc);
-	snprint(buf, sizeof buf, fmt, p->namelen, p->name, p, p->namelen, p->dloc, p->parent);
-	strconv(buf, fp);
+	p = va_arg(fmt->args, Path*);
+	sprint(xfmt, "data=%%.4%c up=%%.2%c name=%%.*T (%%d)", longc, longc);
+	snprint(buf, sizeof buf, xfmt, p->dloc, p->parent, p->namelen, p->name, p->namelen);
+	fmtstrcpy(fmt, buf);
 	return 0;
 }
 
@@ -187,99 +187,139 @@ little(void *a, int n)
 
 /* numbers in big or little endian. */
 int
-BLconv(va_list *va, Fconv *fp)
+BLfmt(Fmt *fmt)
 {
 	ulong v;
 	uchar *p;
 	char buf[20];
 
-	p = va_arg(*va, uchar*);
+	p = va_arg(fmt->args, uchar*);
 
-	if(fp->f2 < 0) {
-		strconv("*BL*", fp);
+	if(!(fmt->flags&FmtPrec)) {
+		fmtstrcpy(fmt, "*BL*");
 		return 0;
 	}
 
-	if(fp->chr == 'B')
-		v = big(p, fp->f2);
+	if(fmt->r == 'B')
+		v = big(p, fmt->prec);
 	else
-		v = little(p, fp->f2);
+		v = little(p, fmt->prec);
 
-	sprint(buf, "0x%.*lux", fp->f2*2, v);
-	fp->f2 = -1000;
-	strconv(buf, fp);
+	sprint(buf, "0x%.*lux", fmt->prec*2, v);
+	fmt->flags &= ~FmtPrec;
+	fmtstrcpy(fmt, buf);
 	return 0;
 }
 
 /* numbers in both little and big endian */
 int
-Nconv(va_list *va, Fconv *fp)
+Nfmt(Fmt *fmt)
 {
 	char buf[100];
 	uchar *p;
 
-	p = va_arg(*va, uchar*);
+	p = va_arg(fmt->args, uchar*);
 
-	sprint(buf, "%.*L %.*B", fp->f2, p, fp->f2, p+fp->f2);
-	fp->f2 = -1000;
-	strconv(buf, fp);
+	sprint(buf, "%.*L %.*B", fmt->prec, p, fmt->prec, p+fmt->prec);
+	fmt->flags &= ~FmtPrec;
+	fmtstrcpy(fmt, buf);
 	return 0;
 }
 
 int
-asciiTconv(va_list *va, Fconv *fp)
+asciiTfmt(Fmt *fmt)
 {
 	char *p, buf[256];
 	int i;
 
-	p = va_arg(*va, char*);
-	for(i=0; i<fp->f2; i++)
+	p = va_arg(fmt->args, char*);
+	for(i=0; i<fmt->prec; i++)
 		buf[i] = *p++;
 	buf[i] = '\0';
 	for(p=buf+strlen(buf); p>buf && p[-1]==' '; p--)
 		;
 	p[0] = '\0';
-	fp->f2 = -1000;
-	strconv(buf, fp);
+	fmt->flags &= ~FmtPrec;
+	fmtstrcpy(fmt, buf);
 	return 0;
 }
 
 int
-runeTconv(va_list *va, Fconv *fp)
+runeTfmt(Fmt *fmt)
 {
 	Rune buf[256], *r;
 	int i;
 	uchar *p;
 
-	p = va_arg(*va, uchar*);
-	for(i=0; i*2+2<=fp->f2; i++, p+=2)
+	p = va_arg(fmt->args, uchar*);
+	for(i=0; i*2+2<=fmt->prec; i++, p+=2)
 		buf[i] = (p[0]<<8)|p[1];
 	buf[i] = L'\0';
 	for(r=buf+i; r>buf && r[-1]==L' '; r--)
 		;
 	r[0] = L'\0';
-	fp->f2 = -1000;
-	Strconv(buf, fp);
-	return 0;
+	fmt->flags &= ~FmtPrec;
+	return fmtprint(fmt, "%S", buf);
 }
 
 void
 ascii(void)
 {
-	fmtinstall('T', asciiTconv);
+	fmtinstall('T', asciiTfmt);
 }
 
 void
 joliet(void)
 {
-	fmtinstall('T', runeTconv);
+	fmtinstall('T', runeTfmt);
 }
 
 void
 getsect(uchar *buf, int n)
 {
 	if(Bseek(b, n*2048, 0) != n*2048 || Bread(b, buf, 2048) != 2048)
-		sysfatal("reading block %d\n", n);
+		sysfatal("reading block %ux\n", n);
+}
+
+void
+pathtable(Voldesc *v, int islittle)
+{
+	int i, j, n, sz, addr;
+	ulong (*word)(void*, int);
+	uchar x[2048], *p, *ep;
+	Path *pt;
+
+	print(">>> entire %s path table\n", islittle ? "little" : "big");
+	littleend();
+	if(islittle) {
+		littleend();
+		word = little;
+	}else{
+		bigend();
+		word = big;
+	}
+	sz = little(v->pathsize, 4);	/* little, not word */
+	addr = word(islittle ? v->lpathloc : v->mpathloc, 4);
+	j = 0;
+	n = 1;
+	while(sz > 0){
+		getsect(x, addr);
+		p = x;
+		ep = x+sz;
+		if(ep > x+2048)
+			ep = x+2048;
+		for(i=0; p<ep; i++) {
+			pt = (Path*)p;
+			if(pt->namelen==0)
+				break;
+			print("0x%.4x %4d+%-4ld %P\n", n, j, p-x, pt);
+			n++;
+			p += 8+pt->namelen+(pt->namelen&1);
+		}
+		sz -= 2048;
+		addr++;
+		j++;
+	}
 }
 
 void
@@ -291,28 +331,22 @@ dump(void *root)
 	uchar x[2048];
 	int i;
 	uchar *p;
-	Path *pt;
 
 	dumpbootvol(root);
 	v = (Voldesc*)root;
 	c = (Cdir*)v->rootdir;
 	rootdirloc = little(c->dloc, 4);
+	print(">>> sed 5q root directory\n");
 	getsect(x, rootdirloc);
 	p = x;
 	for(i=0; i<5 && (p-x)<little(c->dlen, 4); i++) {
 		print("%D\n", p);
 		p += ((Cdir*)p)->len;
 	}
-	littleend();
-	getsect(x, little(v->lpathloc, 4));
-	p = x;
-	for(i=0; i<30; i++) {
-		pt = (Path*)p;
-		print("%P\n", pt);
-		p += 8+pt->namelen+(pt->namelen&1);
-	}	
-}
 
+	pathtable(v, 1);
+	pathtable(v, 0);
+}
 
 void
 main(int argc, char **argv)
@@ -326,11 +360,11 @@ main(int argc, char **argv)
 	if(b == nil)
 		sysfatal("bopen %r\n");
 
-	fmtinstall('L', BLconv);
-	fmtinstall('B', BLconv);
-	fmtinstall('N', Nconv);
-	fmtinstall('D', Dconv);
-	fmtinstall('P', Pconv);
+	fmtinstall('L', BLfmt);
+	fmtinstall('B', BLfmt);
+	fmtinstall('N', Nfmt);
+	fmtinstall('D', Dfmt);
+	fmtinstall('P', Pfmt);
 
 	getsect(root, 16);
 	ascii();

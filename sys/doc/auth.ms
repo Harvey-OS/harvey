@@ -75,7 +75,8 @@ is offset by the confusing and typically insecure
 steps for installing X.509 certificates.
 .LP
 The security architecture of the Plan 9
-operating system [Pike95]
+operating system
+[Pike95]
 has recently been redesigned to make it both more secure
 and easier to use.
 By
@@ -104,7 +105,8 @@ Changes and fixes to a security protocol
 required that all components using that protocol needed to be recompiled,
 or at least relinked, and restarted.
 .LP
-Third, the file transport protocol, 9P [Pike93],
+Third, the file transport protocol, 9P
+[Pike93],
 that forms the core of
 the Plan 9 system, had its authentication protocol embedded in its design.
 This meant that fixing or changing the authentication used by 9P
@@ -121,7 +123,7 @@ called
 .CW factotum ,
 that handles the user's keys and negotiates all security
 interactions with system services and applications.
-Like a trusted houseboy with a copy of the owner's keys,
+Like a trusted assistant with a copy of the owner's keys,
 .CW factotum
 does all the negotiation for security and authentication.
 Programs no longer need to be compiled with cryptographic
@@ -230,7 +232,7 @@ confusing software, or administrative oversights.
 It is these practical problems that we are addressing.
 Although this paper describes the algorithms and protocols we are using,
 they are included mainly for concreteness.
-Instead, our focus is to present a simple security architecture built
+Our main intent is to present a simple security architecture built
 upon a small trusted code base that is easy to verify (whether by manual or
 automatic means), easy to understand, and easy to use.
 .LP
@@ -290,7 +292,7 @@ leaking information inadvertently.
 .CW Factotum
 is implemented, like most Plan 9 services, as a file server.
 It is conventionally mounted upon the directory
-.CW /mnt/factotum
+.CW /mnt/factotum ,
 and the files it serves there are analogous to virtual devices that provide access to,
 and control of, the services of the
 .CW factotum .
@@ -314,12 +316,11 @@ If he does,
 will prompt him for the password to the secure store
 and obtain keys from it, prompting only when a key
 isn't found in the store.
-If not,
+Otherwise,
 .CW factotum
 must prompt for each key.
 .LP
-In the typescripts,
-.CW \en
+In the typescripts, \f6\s9\en\s0\fP
 represents a literal newline
 character typed to force a default response.
 User input is in italics, and
@@ -356,15 +357,15 @@ password: \f6****\fP
 .CW Factotum
 is doing all the prompting and the applications
 being started are not even touching the keys.
-Note that it's always clear what key is being requested.
+Note that it's always clear which key is being requested.
 .LP
 Now consider the same login sequence, but in the case where
 .CW gre
 has a secure store account:
 .P1
 user[none]: \f6\s9gre\s0\fP
-secstore password: \f6******\fP
-STA PIN+SecurID: \f6******\fP
+secstore password: \f6*********\fP
+STA PIN+SecurID: \f6*********\fP
 .P2
 That's the last
 .CW gre
@@ -390,9 +391,9 @@ On a single-user system, which we call a terminal,
 the host owner is the id of the terminal's user.
 Shared servers such as CPU servers normally have a pseudo-user
 that initially owns all resources.
-By default,
+At boot time, the Plan 9 kernel starts a
 .CW factotum
-executes as, and therefore has the privileges of,
+executing as, and therefore with the privileges of,
 the host owner.
 .LP
 New processes run as
@@ -412,10 +413,11 @@ prove that the process has access to secret information
 which only the new user should possess.
 For example, consider the setup in Figure 1a.
 If a user on the terminal
-wants to log on to the CPU server using the
+wants to log in to the CPU server using the
 Plan 9
 .CW cpu
-service [Pike93],
+service
+[Pike93],
 then
 $P sub T#
 might be the
@@ -457,7 +459,7 @@ The kernel always uses a single local instance of
 running as the
 host owner, for
 its authentication purposes, but
-a regular user may start multiple
+a regular user may start other
 .CW factotum
 agents.
 In fact, the
@@ -479,7 +481,7 @@ transparently validated by the user's own
 .CW factotum ,
 so
 secrets need never leave the user's terminal.
-SSH agent
+The SSH agent
 [Ylon96]
 does much the
 same with special SSH protocol messages, but
@@ -517,10 +519,9 @@ new or repaired protocols.
 At the time of writing, 
 .CW factotum
 contains authentication
-modules for the Plan 9 shared key protocol (p9sk1), for
+modules for the Plan 9 shared key protocol (p9sk1),
 SSH's RSA authentication, passwords in the clear, APOP, CRAM, PPP's CHAP,
-Microsoft PPP's MSCHAP, and VNC's challenge/response.  We're
-in the process of adding support for TLS handshakes.
+Microsoft PPP's MSCHAP, and VNC's challenge/response.
 .SS
 Local capabilities
 .LP
@@ -567,12 +568,10 @@ to
 Once used, or if a timeout expires,
 the capability is discarded by the kernel.
 .LP
-The capabilities are hashed to keep them secret if
-someone is spying on kernel memory.
-Also, they are local to the machine on which they are created.
+The capabilities are local to the machine on which they are created.
 Hence a
 .CW factotum
-running on one system cannot pass capabilities
+running on one machine cannot pass capabilities
 to processes on another and expect them to work.
 .SS
 Keys
@@ -627,7 +626,7 @@ might be represented like this:
 dom=bell-labs.com proto=p9sk1 user=gre
 	!password='don''t tell'
 proto=apop server=x.y.com user=gre
-	!password='bite me'
+	!password='open sesame'
 .P2
 If a value is empty or contains white space or single quotes, it must be quoted;
 quotes are represented by doubled single quotes.
@@ -792,11 +791,14 @@ Neither
 nor
 .CW noswap
 is specific to
-.CW factotum ;
-any process can use
-them.
-Both are useful, for instance, to protect any user-level program
-providing critical file services for the kernel.
+.CW factotum .
+User-level file servers such as
+.CW dossrv ,
+which interprets FAT file systems,
+could use
+.CW noswap
+to keep their buffer caches from being
+swapped to disk.
 .LP
 Despite our precautions, attackers might still
 find a way to gain access to a process running as the host
@@ -915,7 +917,9 @@ the
 .CW start
 query as well as any public attributes from keys being used.
 .LP
-As an example of the RPC file in action, consider a mail client
+As an example of the
+.CW rpc
+file in action, consider a mail client
 connecting to a mail server and authenticating using
 the POP3 protocol's APOP challenge-response command.
 There are four programs involved: the mail client $P sub C#, the client
@@ -1110,7 +1114,8 @@ is used by system services.
 .NH 1
 Authentication in 9P
 .LP
-Plan 9 uses a remote file access protocol, 9P [Pike93],
+Plan 9 uses a remote file access protocol, 9P
+[Pike93],
 to connect to resources such as the
 file server and remote processes.
 The original design for 9P included special messages at the start of a conversation
@@ -1118,7 +1123,8 @@ to authenticate the user.
 Multiple users can share a single connection, such as when a CPU server
 runs processes for many users connected to a single file server,
 but each must authenticate separately.
-The authentication protocol, similar to that of Kerberos [Stei88],
+The authentication protocol, similar to that of Kerberos
+[Stei88],
 used a sequence of messages passed between client, file server, and authentication
 server to verify the identities of the user, calling machine, and serving machine.
 One major drawback to the design was that the authentication method was defined by 9P
@@ -1126,7 +1132,7 @@ itself and could not be changed.
 Moreover, there was no mechanism to relegate
 authentication to an external (trusted) agent,
 so a process implementing 9P needed, besides support for file service,
-a substantial body of cryptographic code to implement a handful of early messages
+a substantial body of cryptographic code to implement a handful of startup messages
 in the protocol.
 .LP
 A recent redesign of 9P
@@ -1143,11 +1149,9 @@ Since 9P is a file service protocol, the solution involved creating a new type o
 to be served: an
 .I authentication
 .I file .
-When a new user connects to a 9P service, the connection has the
-permissions of
-.CW none ', `
-a state that
-allows no general file access but permits the user to open an authentication file
+Connections to a 9P service begin in a state that
+allows no general file access but permits the client
+to open an authentication file
 by sending a special message, generated by the new
 .CW fauth
 system call:
@@ -1159,7 +1163,7 @@ Here
 is the user's file descriptor for the established network connection to the 9P server
 and
 .CW servicename
-is the name of the desired service offered on that server, for example the file subsystem
+is the name of the desired service offered on that server, typically the file subsystem
 to be accessed.
 The returned file descriptor,
 .CW afd ,
@@ -1170,7 +1174,7 @@ The authentication file represented by
 .CW afd
 is not otherwise addressable on the server, such as through
 the file name hierarchy.
-Otherwise, it behaves like a regular file;
+In all other respects, it behaves like a regular file;
 most important, it accepts standard read and write operations.
 .LP
 To prove its identity, the user process (via
@@ -1278,7 +1282,7 @@ secret $K sub n#.
 The authenticator $K sub n roman "{" "nonce" sub S , "counter" roman "}"#
 convinces the server that the client knows $K sub n# and thus
 must be $"uid" sub C#.
-Similarly, the authenticator $K sub n roman "{" "nonce" sub C , "counter" roman "}"#
+Similarly, authenticator $K sub n roman "{" "nonce" sub C , "counter" roman "}"#
 convinces the client that the server knows $K sub n# and thus
 must be $"uid" sub S#.
 Tickets can be reused, without contacting the authentication
@@ -1305,7 +1309,7 @@ and
 .LP
 .CW Keyfs
 is a user-level file system that manages an
-encrypted data base of user accounts.
+encrypted database of user accounts.
 Each account is represented by a directory containing the
 files
 .CW key ,
@@ -1343,15 +1347,15 @@ section.
 The challenge/response protocols differ
 in detail but all follow the general structure:
 .P1
-$C -> S: ~~ "uid" sub C#
-$S -> A: ~~ "nonce" sub S , "uid" sub S , "domain" sub S , "uid" sub C ,#
-         $"factotum" sub S#
-$A -> S: ~~ "challenge"#
-$S -> C: ~~ "challenge"#
-$C -> S: ~~ "response"#
-$S -> A: ~~ "response"#
-$A -> S: ~~ K sub C roman "{" "nonce" sub S , "uid" sub C , "uid" sub S, K sub n roman "}",#
-         $K sub n roman "{" "nonce" sub C roman "}"#
+$C -> S: ~~ "nonce" sub C#
+$S -> C: ~~ "nonce" sub S , "uid" sub S ,"domain" sub S#
+$C -> A: ~~ "nonce" sub S , "uid" sub S , "domain" sub S ,#
+         $"hostid" sub C , "uid" sub C#
+$A -> C: ~~ K sub C roman "{" "nonce" sub S , "uid" sub C , "uid" sub S, K sub n roman "}",#
+         $K sub S roman "{" "nonce" sub S , "uid" sub C , "uid" sub S, K sub n roman "}"#
+$C -> S: ~~ K sub S roman "{" "nonce" sub S , "uid" sub C , "uid" sub S, K sub n roman "}",#
+         $K sub n roman "{" "nonce" sub S roman "}"#
+$S -> C: ~~ K sub n roman "{" "nonce" sub C roman "}"#
 .P2
 The password protocol is:
 .P1
@@ -1377,7 +1381,7 @@ is used now by all native services on Plan 9.
 The metaprotocol is simple.  The callee sends a
 null-terminated string of the form:
 .P1
-v$"" sub n# $proto sub 1#@$domain sub 1# $proto sub 2#@$domain sub 2# ...
+v.$n# $proto sub 1#@$domain sub 1# $proto sub 2#@$domain sub 2# ...
 .P2
 where
 .I n
@@ -1476,6 +1480,13 @@ amount(int fd, char *mntpt,
 	return ret;
 }
 .P2
+where parameter
+.CW fd
+is a file descriptor returned by
+.CW open
+or
+.CW dial
+for a new connection to a file server.
 The conversation with
 .CW factotum
 occurs in the call to
@@ -1604,9 +1615,9 @@ the host owner, sets the key-getting function to
 Secure Store
 .LP
 .CW Factotum
-stores keys in volatile RAM that must be initialized at boot time.
-To store the keys,
-therefore,
+keeps its keys in volatile memory, which must somehow be
+initialized at boot time.
+Therefore,
 .CW factotum
 must be
 supplemented by a persistent store, perhaps
@@ -1673,6 +1684,8 @@ There are several variants of PAK, all presented in papers
 mainly concerned with proofs of cryptographic properties.
 To aid implementers, we have distilled a description of the specific
 version we use into an Appendix to this paper.
+The Plan 9 open source license provides for use of Lucent's
+encrypted key exchange patents in this context.
 .LP
 As a further layer of defense against password theft,
 we provide (within the encrypted channel $C -> S#)
@@ -1740,7 +1753,7 @@ A principal tool for this is TLS 1.0
 and our software is designed to interoperate
 with implementations of either standard.)
 .LP
-The TLS record layer protocol ensures message integrity and privacy
+TLS defines a record layer protocol for message integrity and privacy
 through the use of message digesting and encryption with shared secrets.
 We implement this service as a kernel device, though it could
 be performed at slightly higher cost by invoking a separate program.
@@ -1812,7 +1825,8 @@ ticket-granting ticket from the authentication server, initializes the
 ticket cache with the ticket-granting ticket, and then forgets the password.
 Other applications can use the ticket-granting ticket to sign tickets
 for themselves on behalf of the user during the login session.
-The ticket cache is removed when the user logs out [Stei88]
+The ticket cache is removed when the user logs out
+[Stei88].
 The ticket cache relieves the user from typing a password
 every time authentication is needed.
 .LP
@@ -1833,12 +1847,6 @@ not only for moderating the use of client authentication keys
 but also for verifying server public keys
 [Mazi99].
 .LP
-... some reviewer is going to claim that the SFS agent is not
-... protocol-specific, which is simply false.  although
-... the method for verifying server public keys is 
-... entirely agent-chosen, the authentication protocol
-... is hard-coded as rabin n^2 authentication.
-... it's not worth going out of our way to avoid.  -rsc
 .CW Factotum
 is a logical continuation of this evolution,
 replacing the program-specific SSH or SFS agents with
@@ -1852,13 +1860,14 @@ capable of using any protocol supported by
 without that program knowing anything about the protocols.
 Traditionally each program needs to implement each
 authentication protocol for itself, an $O(n sup 2 )# coding
-problem that reduces to an $O(n)# coding problem with
-.CW factotum .
+problem that
+.CW factotum
+reduces to $O(n)#.
 .LP
 Previous work on agents has concentrated on their use by clients
 authenticating to servers.
 Looking in the other direction, Sun Microsystem's 
-system of pluggable authentication modules (PAM) is one
+pluggable authentication module (PAM) is one
 of the earliest attempts to 
 provide a general authentication mechanism for Unix-like 
 operating systems
@@ -1931,11 +1940,6 @@ on
 if additional defense of the files on the server
 itself is desired, one can use distributed techniques
 [Ford00].
-... .LP
-... The use of locally shared thumbprint files rather than
-... dependence on a PKI resembles server names in Mazières's 
-... self-certifying file system
-... [Mazi99].
 .LP
 We made a conscious choice of placing encryption, message integrity,
 and key management at the application layer
@@ -1946,6 +1950,15 @@ administration since we can recognize which applications are misbehaving
 based on TCP port numbers.  TLS does suffer (relative to IPsec) from
 the possibility of forged TCP Reset, but we feel that this is adequately
 dealt with by randomized TCP sequence numbers.
+In contrast with other TLS libraries, Plan 9 does not
+require the application to change
+.CW write
+calls to
+.CW sslwrite
+but simply to add a few lines of code at startup
+[Resc01].
+.NH 1
+Conclusion
 .LP
 Writing safe code is difficult.
 Stack attacks,
@@ -1964,6 +1977,9 @@ process whose core is a few thousand lines of code.
 Verifying such a process, both through manual and automatic means,
 is much easier and less error prone
 than requiring it of all servers.
+.LP
+An implementation of these ideas is in Plan 9 from Bell Labs, Fourth Edition,
+freely available from \f(CWhttp://\%plan9.bell-labs.com/\%plan9\fP.
 .SH
 Acknowledgments
 .LP
@@ -1978,13 +1994,14 @@ Sape Mullender,
 and
 Lakshman Y. N.,
 predominantly Dutchmen, gave helpful comments on the paper.
+Russ Cox is supported by a fellowship from the Fannie and John Hertz Foundation.
 .SH
 References
 .LP
 [Bell93]
 S.M. Bellovin and M. Merritt,
 ``Augmented Encrypted Key Exchange,''
-Proceedings of the 1st ACM Conference on Computer and Communications Security (1993) pp. 244 - 250.
+Proceedings of the 1st ACM Conference on Computer and Communications Security, 1993, pp. 244 - 250.
 .LP
 [Boyk00]
 Victor Boyko, Philip MacKenzie, and Sarvar Patel,
@@ -2007,7 +2024,7 @@ Gaithersburg MD, June 14 - 16, 2000.
 [Jabl]
 David P. Jablon,
 ``Strong Password-Only Authenticated Key Exchange,''
-\f(CWhttp://\%www.integritysciences.com/\%speke97.html\fP.
+\f(CWhttp://\%integritysciences.com/\%speke97.html\fP.
 .LP
 [Kami00]
 Michael Kaminsky.
@@ -2025,7 +2042,7 @@ Symposium on Operating Systems Principles, 1999, pp. 124-139.
 .LP
 [Micr]
 Microsoft Passport,
-\f(CWhttp://\%www.passport.com/\%Consumer/\%PrivacyPolicy.asp\fP.
+\f(CWhttp://\%www.passport.com/\fP.
 .LP
 [Perl99]
 Radia Perlman and Charlie Kaufman,
@@ -2044,6 +2061,11 @@ Rob Pike, Dave Presotto, Ken Thompson, Howard Trickey, Phil Winterbottom,
 Operating Systems Review, \f3\&27\fP, 2, April 1993, pp. 72-76
 (reprinted from Proceedings of the 5th ACM SIGOPS European Workshop,
 Mont Saint-Michel, 1992, Paper nº 34).
+.LP
+[Resc01]
+Eric Rescorla,
+``SSL and TLS: Designing and Building Secure Systems,''
+Addison-Wesley, 2001. ISBN 0-201-61598-3, p. 387.
 .LP
 [RFC2138]
 C. Rigney, A. Rubens, W. Simpson, S. Willens,
@@ -2069,7 +2091,7 @@ March 1996, New Delhi, India.
 [Stei88]
 Jennifer G. Steiner, Clifford Neumann, and Jeffrey I. Schiller,
 ``\fIKerberos\fR: An Authentication Service for Open Network Systems,''
-Proceedings of USENIX Winter Conference, Dallas, Texas, February 1988, p. 191\-202.
+Proceedings of USENIX Winter Conference, Dallas, Texas, February 1988, pp. 191\-202.
 ... ftp://athena-dist.mit.edu/pub/kerberos/doc/usenix.PS
 .LP
 [Wu98]
@@ -2077,12 +2099,12 @@ T. Wu,
 ``The Secure Remote Password Protocol,''
 Proceedings of
 the 1998 Internet Society Network and Distributed System Security
-Symposium, San Diego, CA, Mar 1998, pp. 97-111.
+Symposium, San Diego, CA, March 1998, pp. 97-111.
 .LP
 [Ylon96]
 Ylonen, T.,
 ``SSH\(emSecure Login Connections Over the Internet,''
-6th USENIX Security Symposium, pp. 37-42. San Jose, CA, Jul. 1996.
+6th USENIX Security Symposium, pp. 37-42. San Jose, CA, July 1996.
 .SH
 Appendix: Summary of the PAK protocol
 .LP

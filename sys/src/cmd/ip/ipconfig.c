@@ -7,7 +7,7 @@ int	noconfig;
 int	debug;
 int	dodhcp;
 int	nip;
-int	myifc;
+int	myifc = -1;
 int	plan9 = 1;
 Ipifc	*ifc;
 
@@ -503,7 +503,7 @@ binddevice(void)
 			free(w);
 			w = wait();
 			if(w == nil)
-				sysfatal("/ppp disappeated");
+				sysfatal("/ppp disappeared");
 			if(w->pid == pid){
 				if(w->msg[0] != 0)
 					sysfatal("/ppp exited with status: %s", w->msg);
@@ -515,7 +515,7 @@ binddevice(void)
 		// ppp sets up the configuration itself
 		noconfig = 1;
 		getndb();
-	} else if(myifc == 0){
+	} else if(myifc < 0){
 		// get a new ip interface
 		snprint(buf, sizeof(buf), "%s/ipifc/clone", conf.mpoint);
 		conf.cfd = open(buf, ORDWR);

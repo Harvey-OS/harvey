@@ -1,47 +1,56 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libmach.a
-OFILES=executable.$O\
-	map.$O\
-	obj.$O\
-	swap.$O\
-	sym.$O\
-	access.$O\
-	machdata.$O\
-	setmach.$O\
-	v.$O\
-	k.$O\
-	q.$O\
-	0.$O\
-	2.$O\
-	6.$O\
-	8.$O\
-	x.$O\
-	9.$O\
-	5.$O\
-	7.$O\
-	vdb.$O\
-	kdb.$O\
-	qdb.$O\
-	2db.$O\
-	6db.$O\
-	8db.$O\
-	9db.$O\
-	5db.$O\
-	7db.$O\
-	vobj.$O\
-	kobj.$O\
-	2obj.$O\
-	6obj.$O\
-	8obj.$O\
-	xobj.$O\
-	9obj.$O\
-	5obj.$O\
-	7obj.$O\
-	qobj.$O\
-	vcodas.$O\
+FILES=executable\
+	map\
+	obj\
+	swap\
+	sym\
+	access\
+	machdata\
+	setmach\
+	v\
+	k\
+	q\
+	0\
+	2\
+	6\
+	8\
+	x\
+	9\
+	5\
+	7\
+	vdb\
+	kdb\
+	qdb\
+	2db\
+	6db\
+	8db\
+	9db\
+	5db\
+	7db\
+	vobj\
+	kobj\
+	2obj\
+	6obj\
+	8obj\
+	xobj\
+	9obj\
+	5obj\
+	7obj\
+	qobj\
+	vcodas\
 
 HFILES=/sys/include/mach.h
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/lib/libmach.a\
+	$HFILES\
+	$CFILES\
 
 </sys/src/cmd/mksyslib
 

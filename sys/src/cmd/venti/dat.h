@@ -418,6 +418,7 @@ struct IEntry
 	IEntry		*next;			/* next in hash chain */
 	u32int		wtime;			/* last write time */
 	u16int		train;			/* relative train containing the most recent ref; 0 if no ref, 1 if in same car */
+	u8int		rac;			/* read ahead count */
 	IAddr		ia;
 };
 

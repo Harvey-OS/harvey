@@ -44,7 +44,7 @@ struct Source {
 
 	Cache *cache;	/* immutable */
 	int readOnly;	/* immutable */
-	Lump *lump;	/* lump containing dir entry */
+	Lump *lump;	/* lump containing venti dir entry */
 	int entry;	/* which entry in the block: immutable */
 
 	/* unpacked VtDirEntry */

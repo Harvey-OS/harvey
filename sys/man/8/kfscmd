@@ -113,17 +113,46 @@ Report statistics about the performance of the file system.
 Re-initialize authentication information by reading
 .BR /adm/users .
 .TP
+.B nowritegroup
+Each time
+.I kfs
+rereads
+.BR /adm/users ,
+it looks for a group named
+.BR write .
+If such a group exists, then the entire file system
+will appear read-only to users not in the group.
+If a write group exists but no one is in it,
+it will be impossible to edit
+.B /adm/users
+to correct the problem.
+To resolve this, the
+.B nowritegroup
+command turns off write group checking until the next
+time
+.B /adm/users
+is reread.
+.TP
 .BI cfs " filsys
 Change the `console' to the named file system (default is the main system).
 .TP
 .B chat
 Toggle tracing of 9P messages.
 .TP
-.B check [PRdfprtw]
-Check the file system.
+.B check [cdfpPqrtw]
+Check the file system and print summary information.
 The options are
 .PD 0
 .RS
+.TP
+.B c
+fix bad tags and clear the contents of the block.
+.TP
+.B d
+delete redundant references to a block.
+.TP
+.B f
+rebuild the list of free blocks.
 .TP
 .B p
 print the names of directories as they are checked.
@@ -131,20 +160,14 @@ print the names of directories as they are checked.
 .B P
 print the names of all files as they are checked.
 .TP
+.B q
+quiet mode: report errors, but suppress summary information
+.TP
 .B r
 read all of the data blocks and check the tags.
 .TP
-.B f
-rebuild the list of free blocks.
-.TP
-.B d
-delete redundant references to a block.
-.TP
 .B t
 fix bad tags.
-.TP
-.B c
-fix bad tags and clear the contents of the block.
 .TP
 .B w
 write all of the blocks that are touched.

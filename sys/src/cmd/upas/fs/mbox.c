@@ -130,8 +130,10 @@ newmbox(char *path, char *name, int std)
 	}
 
 	// on error, give up
-	if(rv)
+	if(rv){
+		free(mb);
 		return rv;
+	}
 
 	// make sure name isn't taken
 	qlock(&mbllock);
@@ -176,14 +178,17 @@ newmbox(char *path, char *name, int std)
 void
 freembox(char *name)
 {
-	Mailbox *mb;
+	Mailbox **l, *mb;
 
 	qlock(&mbllock);
-	for(mb = mbl; mb != nil; mb = mb->next)
-		if(strcmp(name, mb->name) == 0){
+	for(l=&mbl; *l != nil; l=&(*l)->next){
+		if(strcmp(name, (*l)->name) == 0){
+			mb = *l;
+			*l = mb->next;
 			mboxdecref(mb);
 			break;
 		}
+	}
 	hfree(PATH(0, Qtop), name);
 	qunlock(&mbllock);
 }
@@ -344,13 +349,15 @@ parsebody(Message *m, Mailbox *mb)
 		nm = m->part;
 
 		// promote headers
-		m->from822 = promote(&nm->from822);
-		m->to822 = promote(&nm->to822);
-		m->date822 = promote(&nm->date822);
-		m->sender822 = promote(&nm->sender822);
-		m->replyto822 = promote(&nm->replyto822);
-		m->subject822 = promote(&nm->subject822);
-		m->unixdate = promote(&nm->unixdate);
+		if(m->replyto822 == nil && m->from822 == nil && m->sender822 == nil){
+			m->from822 = promote(&nm->from822);
+			m->to822 = promote(&nm->to822);
+			m->date822 = promote(&nm->date822);
+			m->sender822 = promote(&nm->sender822);
+			m->replyto822 = promote(&nm->replyto822);
+			m->subject822 = promote(&nm->subject822);
+			m->unixdate = promote(&nm->unixdate);
+		}
 	}
 }
 
@@ -885,20 +892,11 @@ mboxincref(Mailbox *mb)
 void
 mboxdecref(Mailbox *mb)
 {
-	Mailbox **l;
-
 	assert(mb->refs > 0);
 	qlock(mb);
 	mb->refs--;
 	if(mb->refs == 0){
-		for(l = &mbl; *l != nil; l = &(*l)->next){
-			if(*l == mb){
-				*l = mb->next;
-				break;
-			}
-		}
 		delmessage(mb, mb->root);
-		qunlock(mb);
 		if(mb->ctl)
 			hfree(PATH(mb->id, Qmbox), "ctl");
 		if(mb->close)
@@ -1063,7 +1061,8 @@ convert(Message *m)
 			m->bend = x + len;
 			m->ballocd = 1;
 		}
-	} else if(cistrcmp(s_to_c(m->charset), "windows-1257") == 0){
+	} else if(cistrcmp(s_to_c(m->charset), "windows-1257") == 0
+			|| cistrcmp(s_to_c(m->charset), "windows-1252") == 0){
 		len = is8bit(m);
 		if(len > 0){
 			len = 2*len + m->bend - m->body + 1;

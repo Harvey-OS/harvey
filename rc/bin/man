@@ -45,8 +45,11 @@ while(~ $d 0) {
 		echo 'Usage: man [-ntp] [-s sec] [0-9] [0-9] ... name1 name2 ...' >[1=2]
 		exit
 	}
-	switch($1) {
-		case [0-9] ; sec=($sec $1) ; shift
+	if(test -d $S/$1){
+		sec=($sec $1)
+		shift
+	}
+	if not switch($1) {
 		case -t ; cmd=t ; shift
 		case -n ; cmd=n ; shift
 		case -p ; cmd=p ; shift

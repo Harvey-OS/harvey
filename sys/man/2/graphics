@@ -586,7 +586,7 @@ if(fd < 0)
 	sysfatal("can't open $wsys: %r");
 
 /* mount creates window; see \f2rio\fP(4) */
-if(mount(fd, "/tmp", MREPL, "new -dx 300-dy 200") < 0)
+if(mount(fd, -1, "/tmp", MREPL, "new -dx 300-dy 200") < 0)
 	sysfatal("can't mount new window: %r");
 if(gengetwindow(display, "/tmp/winname",
    &screen2, &_screen2, Refnone) < 0)

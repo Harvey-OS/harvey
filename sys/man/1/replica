@@ -248,7 +248,7 @@ These paths are relative to the root of the replicated file system.
 .PP
 As an example, the Plan 9 distribution replica configuration looks like:
 .EX
-    fn servermount { 9fs outside; bind /n/outside/plan9 /n/dist }
+    fn servermount { 9fs sources; bind /n/sources/plan9 /n/dist }
     fn serverupdate { status='' }
     serverroot=/n/dist
     s=/n/dist/dist/replica
@@ -285,10 +285,6 @@ to the internet and run
     replica/pull /dist/replica/network
     disk/kfscmd disallow
 .EE
-(We have not yet set up the outside file server at Bell Labs
-to make this work; once we do, we will announce instructions
-on the Plan 9 web page and in the Usenet group
-.BR comp.os.plan9 ).
 .PP
 To see a list of changes made to the local file system
 since installation, run

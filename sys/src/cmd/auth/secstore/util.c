@@ -58,7 +58,7 @@ getpasswd(char *prompt, char *line, int len)
 			fprint(cons, "\n");
 			return -1;
 		}
-		if(n == 0 || *p == '\n' || *p == '\r'){
+		if(n == 0 || *p == '\n' || *p == '\r' || *p == 0x7f){
 			*p = '\0';
 			fprint(consctl, "rawoff");
 			fprint(cons, "\n");

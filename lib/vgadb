@@ -268,6 +268,7 @@ ctlr
 ctlr
 	0xE0090="Chips 65540"				# Globalyst 250
 	0xC008D="Chips 65540"				# Midwest Micro Elite
+	0xE0090="TOSHIBA Video BIOS V1.40"
 	link=vga
 	ctlr=ct65540 linear=1
 	hwgc=ct65545hwgc
@@ -277,6 +278,7 @@ ctlr
 	0xC7800-0xC7B00="TVGA BIOS WEN 6.1"		# NEC Versa SX
 	0xC0078="Trident CYBER 8620"			# Acer TravelMate 350
 	0xC0093="Trident TGUI96xx"
+	0xC0044="GL A6.00E"
 	link=vga
 	ctlr=cyber938x linear=1
 	hwgc=cyber938xhwgc

@@ -65,7 +65,7 @@ print:V: \
 	compiler.ps \
 	libmach.ps \
 	fs/fs.ps \
-	vent/venti.ps \
+	venti/venti.ps \
 	il/il.ps \
 	sleep.ps \
 	lexnames.ps \

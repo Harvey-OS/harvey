@@ -207,7 +207,7 @@ Default user database.
 .SH BUGS
 .PP
 Changing the gid's or uid's while
-.I consoelfs
+.I consolefs
 is running
 is detected by
 .IR consolefs .

@@ -32,6 +32,12 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req)
 	tp->next = 0;
 	repp->qd = tp;
 
+	if(!rrsupported(repp->qd->type)){
+		syslog(0, logfile, "server: request %s", rrname(repp->qd->type, tname, sizeof tname));
+		repp->flags = Runimplimented | Fresp | Fcanrec | Oquery;
+		return;
+	}
+
 	if(repp->qd->owner->class != Cin){
 		syslog(0, logfile, "server: class %d", repp->qd->owner->class);
 		repp->flags = Runimplimented | Fresp | Fcanrec | Oquery;

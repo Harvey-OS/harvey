@@ -353,7 +353,7 @@ statlen(char *ap)
 }
 
 int
-adduser(char *user)
+adduser(char *user, int isgroup)
 {
 	char stat[DIRREC];
 	char msg[100];
@@ -366,22 +366,32 @@ adduser(char *user)
 	 */
 	cmd_exec("cfs");
 	cmd_exec("user");
-	nu = 0;
+	if(isgroup)
+		nu = 9000;
+	else
+		nu = 0;
 	for(i=0, u=uid; i<conf.nuid; i++,u++) {
 		c = u->uid;
 		if(c == 0)
 			break;
 		if(strcmp(uidspace+u->offset, user) == 0)
 			return 1;
-		if(c >= 9000)
+		if(c >= 9000 && !isgroup)
 			continue;
 		if(c > nu)
 			nu = c;
 	}
 	nu++;
-	if(nu >= 9000) {
-		cprint("out of user ids\n");
-		return 0;
+	if(isgroup){
+		if(nu >= 0x10000) {
+			cprint("out of group ids\n");
+			return 0;
+		}
+	} else {
+		if(nu >= 9000) {
+			cprint("out of user ids\n");
+			return 0;
+		}
 	}
 
 	/*
@@ -395,7 +405,7 @@ adduser(char *user)
 	}
 
 	sprint(msg, "%d:%s:%s:\n", nu, user, user);
-	cprint("add user '%s'", msg);
+	cprint("add user %s", msg);
 	c = strlen(msg);
 	i = con_stat(FID2, stat);
 	if(i){
@@ -413,13 +423,14 @@ adduser(char *user)
 void
 cmd_newuser(void)
 {
-	char user[NAMELEN], msg[100];
+	char user[NAMELEN], param[NAMELEN], msg[100];
 	int i, c;
 
 	/*
 	 * get uid
 	 */
 	cname(user);
+	cname(param);
 	for(i=0; i<NAMELEN; i++) {
 		c = user[i];
 		if(c == 0)
@@ -440,12 +451,25 @@ cmd_newuser(void)
 		return;
 	}
 
-	/*
-	 * install and create directory
-	 */
-	if(!adduser(user))
+	switch(param[0]){
+	case 0:
+		if(!adduser(user, 0))
+			return;
+		cmd_exec("user");
+		break;
+	case ':':
+		adduser(user, 1);
+		cmd_exec("user");
 		return;
+	case '#':
+		adduser(user, 0);
+		cmd_exec("user");
+		return;
+	}
 
+	/*
+	 * create directories
+	 */
 	cmd_exec("user");
 	sprint(msg, "create /usr/%s %s %s 775 d", user, user, user);
 	cmd_exec(msg);
@@ -539,6 +563,12 @@ cmd_listen(void)
 		cprint("announce %s\n", addr);
 }
 
+void
+cmd_nowritegroup(void)
+{
+	writegroup = 0;
+}
+
 Command	command[] =
 {
 	"allow",	cmd_allow,	"",
@@ -546,7 +576,7 @@ Command	command[] =
 	"atime",		cmd_atime,	"",
 	"cfs",		cmd_cfs,	"[filesys]",
 	"chat",		cmd_chat,	"",
-	"check",	cmd_check,	"[rftRdPpw]",
+	"check",	cmd_check,	"[cdfpPqrtw]",
 	"clri",		cmd_clri,	"filename",
 	"create",	cmd_create,	"filename user group perm [ald]",
 	"disallow",	cmd_disallow,	"",
@@ -555,6 +585,7 @@ Command	command[] =
 	"listen",		cmd_listen,	"[address]",
 	"newuser",	cmd_newuser,	"username",
 	"noneattach",	cmd_noneattach,	"",
+	"nowritegroup",	cmd_nowritegroup,	"",
 	"remove",	cmd_remove,	"filename",
 	"rename",	cmd_rename,	"file newname",
 	"start",	cmd_start, "",

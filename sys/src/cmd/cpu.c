@@ -129,10 +129,6 @@ main(int argc, char **argv)
 			strcat(cmd, p);
 		}
 		break;
-	case 'o':
-		p9authproto = "p9sk2";
-		srvname = "cpu";
-		break;
 	default:
 		usage();
 	}ARGEND;

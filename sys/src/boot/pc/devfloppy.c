@@ -810,6 +810,29 @@ floppyxfer(FDrive *dp, int cmd, void *a, long off, long n)
 	return -1;
 }
 
+/*
+void
+floppymemwrite(void)
+{
+	int i;
+	int n;
+	uchar *a;
+	FDrive *dp;
+
+	dp = &fl.d[0];
+	a = (uchar*)0x80000000;
+	n = 0;
+	while(n < 1440*1024){
+		i = floppyxfer(dp, Fwrite, a+n, n, 1440*1024-n);
+		if(i <= 0)
+			break;
+		n += i;
+	}
+	print("floppymemwrite wrote %d bytes\n", n);
+splhi(); for(;;);
+}
+*/
+
 static void
 floppyintr(Ureg *ur)
 {

@@ -1729,8 +1729,8 @@ resizecontrolset(Controlset*)
 	r1.max.y = r1.min.y+1+font->height+1;
 	r2.min.y = r1.max.y+10;
 	r2.max.y = r2.min.y+1+font->height+1;
-	chanprint(cs->ctl, "top rect %R\enshow", r1);
-	chanprint(cs->ctl, "bot rect %R\enshow", r2);
+	chanprint(cs->ctl, "top rect %R\entop show", r1);
+	chanprint(cs->ctl, "bot rect %R\enbot show", r2);
 }
 
 void
@@ -1738,7 +1738,7 @@ threadmain(int argc, char *argv[])
 {
 	char *s, *args[3];
 	Channel *c;
-	Contro *top, *bot;
+	Control *top, *bot;
 	int n;
 
 	initdraw(0, 0, "example");

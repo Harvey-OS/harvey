@@ -116,7 +116,7 @@ extern	void		winsetdump(Window*, char*, char*);
 extern	void		readmbox(Message*, char*, char*);
 extern	void		rewritembox(Window*, Message*);
 
-extern	void		mkreply(Message*, char*, char*);
+extern	void		mkreply(Message*, char*, char*, Plumbattr*);
 extern	void		delreply(Message*);
 
 extern	int		mesgadd(Message*, char*, Dir*, char*);

@@ -43,12 +43,26 @@ Crdpath(Cdimg *cd, Cpath *p)
 static void
 writepath(Cdimg *cd, Cdir *c, int parent, int size)
 {
+/*
+	DO NOT UNCOMMENT THIS CODE.
+	This commented-out code is here only so that no one comes
+	along and adds it later.
+
+	The ISO 9660 spec is silent about whether path table entries
+	need to be padded so that they never cross block boundaries.
+	It would be reasonable to assume that they are like every other
+	data structure in the bloody spec; this code pads them out.
+
+	Empirically, though, they're NOT padded.  Windows NT and
+	derivatives are the only known current operating systems
+	that actually read these things.
+
 	int l;
 
 	l = 1+1+4+2+c->namelen;
 	if(Cwoffset(cd)/Blocksize != (Cwoffset(cd)+l)/Blocksize)
 		Cpadblock(cd);
-
+*/
 	Cputc(cd, c->namelen);
 	Cputc(cd, 0);
 	Cwrite(cd, c->dloc + (size==Little ? 0 : 4), 4);

@@ -889,3 +889,19 @@ writehostowner(char *owner)
 	}
 }
 
+int
+attrnamefmt(Fmt *fmt)
+{
+	char *b, buf[1024], *ebuf;
+	Attr *a;
+
+	ebuf = buf+sizeof buf;
+	b = buf;
+	strcpy(buf, " ");
+	for(a=va_arg(fmt->args, Attr*); a; a=a->next){
+		if(a->name == nil)
+			continue;
+		b = seprint(b, ebuf, " %q?", s_to_c(a->name));
+	}
+	return fmtstrcpy(fmt, buf+1);
+}

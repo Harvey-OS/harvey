@@ -8,26 +8,17 @@ rfork en	# so that environment and name space are not polluted
 
 ifs=' 	
 '		# set ifs in case it is munged in user's environment
-SCRATCH=/n/bootesother
-LPSCRATCH=$SCRATCH/lp
+
 LPLIB=/sys/lib/lp		# lp scripts directories and configuration file are here
 LPBIN=/$cputype/bin/aux		# lp specific binaries are here
 LPSPOOL=$LPLIB/queue		# lp queues
 LPLOGDIR=$LPLIB/log		# lp logs
 
-if (! test -d /n/bootesother/lp) {
-	if (! test -r /srv/bootes) srv -m bootes
-	if (! mount -c /srv/bootes $SCRATCH other) {
-		echo 'cannot mount '$SCRATCH' filesystem' >[1=2]
-		exit 'LP mount'
-	}
-}
-if (! bind -a $LPSCRATCH $LPLIB) {
-	echo 'cannot bind '$LPSCRATCH' onto '$LPLIB >[1=2]
-	exit 'LP bind'
-}
+$LPLIB/bin/lpscratch
+x=$status
+if(! ~ $x '') exit $x
 
-# develop /bin from scratch
+# build /bin from the ground up
 bind /$cputype/bin /bin			# general compiled binaries
 bind -a /rc/bin /bin			# general rc scripts
 # This needs to be fixed for the real thing
@@ -57,8 +48,12 @@ USAGE='usage:	lp [-d printer] [-p process] [options] [files]
 # umask 000	# this doesn't work in plan 9
 if (~ $#sysname 0)
 	THIS_HOST=plan9
-if not
-	THIS_HOST=$sysname
+if not {
+	THIS_HOST=`{ndb/query sys $sysname dom}
+	if(~ $#THIS_HOST 0)
+		THIS_HOST=$sysname
+}
+
 LPMACHID=$THIS_HOST
 THIS_USERID=$user
 LPUSERID=$THIS_USERID
@@ -87,7 +82,7 @@ FLAGD=();FLAGH=();FLAGL=();FLAGM=();FLAGQ=();FLAGc=();FLAGd=();FLAGf=()
 FLAGi=();FLAGk=();FLAGl=();FLAGm=();FLAGn=();FLAGo=();FLAGp=();FLAGq=()
 FLAGr=();FLAGt=();FLAGu=();FLAGx=();FLAGy=()
 # Process options
-eval `{aux/getflags DHLM:1Qc:1d:1f:1i:1kl:1m:1n:1o:1p:1qrt:1u:1x:1y:1 $*}
+eval `{aux/getflags DHLM:1QRc:1d:1f:1i:1kl:1m:1n:1o:1p:1qrt:1u:1x:1y:1 $*}
 if (! ~ $status '') exit $status
 if (! ~ $#FLAGD 0) { DEBUG=1; flag x + }; if not { DEBUG=''; flag x - }
 if (! ~ $#FLAGH 0) NOHEAD=1; if not NOHEAD=''
@@ -95,6 +90,7 @@ if (! ~ $#FLAGL 0) LAND=1; if not LAND=''
 # originating machine id (for information only)
 if (! ~ $#FLAGM 0 && ~ $LPUSERID daemon) LPMACHID=$FLAGM
 if (! ~ $#FLAGQ 0) QONLY=1; if not QONLY=''
+if (! ~ $#FLAGR 0) RESET=1; if not RESET=''
 if (! ~ $#FLAGc 0) COPIES=$FLAGc; if not COPIES=1
 if (! ~ $#FLAGd 0) {
 	switch ($FLAGd) {
@@ -171,25 +167,25 @@ if (~ $LPQ 1)
 		exit 'stat command '"$STAT"' not found'
 	}
 DATE=`{date}
-LPLOG=$LPLOGDIR/$LPDEST.$DATE(1)
-if (test -w $LPLOG) {
-	LSLINE=`{ls -l $LPLOG};
-	if (! ~ $LSLINE(7) $DATE(2) || ! ~ $LSLINE(8) $DATE(3))	{
-		rm $LPLOG
-		>$LPLOG
-		chmod ugo+rwa $LPLOG
+LPLOG=$LPLOGDIR/$LPDEST
+if (! test -e $LPLOG) {
+	>$LPLOG
+	chmod +rwa $LPLOG >[2]/dev/null
+}
+
+if (~ $RESET '') {
+	switch ($SPOOLER) {
+	case -;	echo spooler does not exist for $LPDEST >[1=2]
+		exit 'no spooler'
+	case *;	bind -b $LPLIB/spooler /bin
+		if (~ $#* 0) $SPOOLER
+		if not $SPOOLER $*
 	}
 }
 if not {
-	>$LPLOG
-	chmod ugo+rwa $LPLOG
-}
-switch ($SPOOLER) {
-case -;	echo spooler does not exist for $LPDEST >[1=2]
-	exit 'no spooler'
-case *;	bind -b $LPLIB/spooler /bin
-	if (~ $#* 0) $SPOOLER
-	if not $SPOOLER $*
+	echo restarting daemon for printer $LPDEST >[1=2]
+	UNLOCK $LPSPOOL/$LPDEST
+	sleep 5
 }
 
 # run daemon
@@ -198,9 +194,5 @@ if (~ $QONLY '') {
 		bind -b $LPLIB/daemon /bin
 		$DAEMON $* >>$LPLOG >[2=1] &
 	}
-}
-# clean up empty log files
-if (! test -s $LPLOG) {
-	rm $LPLOG
 }
 exit ''

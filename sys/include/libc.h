@@ -351,7 +351,6 @@ extern	int	gettokens(char *, char **, int, char *);
 extern	char*	getuser(void);
 extern	char*	getwd(char*, int);
 extern	int	iounit(int);
-extern	int	kiounit(void);
 extern	long	labs(long);
 extern	double	ldexp(double, int);
 extern	void	longjmp(jmp_buf, int);
@@ -426,8 +425,10 @@ struct RWLock
 
 extern	void	rlock(RWLock*);
 extern	void	runlock(RWLock*);
+extern	int		canrlock(RWLock*);
 extern	void	wlock(RWLock*);
 extern	void	wunlock(RWLock*);
+extern	int		canwlock(RWLock*);
 
 extern	void**	privalloc(void);
 extern	void	privfree(void**);

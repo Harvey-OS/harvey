@@ -62,7 +62,10 @@ allows external programs to control the addition of new keys
 a log of actions
 .TP
 .B ctl
-for maintaining keys; when read, it returns a list of keys (without the secret data)
+for maintaining keys; when read, it returns a list of keys.
+For secret attributes, only the attribute name follow by a
+.L ?
+is returned.
 .PD
 .PP
 In any authentication, the caller typically acts as a client

@@ -61,11 +61,12 @@ quote(Message *m, Biobuf *b, char *dir)
 }
 
 void
-mkreply(Message *m, char *label, char *to)
+mkreply(Message *m, char *label, char *to, Plumbattr *attr)
 {
 	Message *r;
 	char *dir, *t;
 	int quotereply;
+	Plumbattr *a;
 
 	quotereply = (label[0] == 'Q');
 	r = emalloc(sizeof(Message));
@@ -89,10 +90,12 @@ mkreply(Message *m, char *label, char *to)
 	winopenbody(r->w, OWRITE);
 	if(to!=nil && to[0]!='\0')
 		Bprint(r->w->body, "%s\n", to);
+	for(a=attr; a; a=a->next)
+		Bprint(r->w->body, "%s: %s\n", a->name, a->value);
 	dir = nil;
 	if(m != nil){
 		dir = estrstrdup(mbox.name, m->name);
-		if(to == nil){
+		if(to == nil && attr == nil){
 			/* Reply goes to replyto; Reply all goes to From and To and CC */
 			if(strstr(label, "all") == nil)
 				Bprint(r->w->body, "To: %s\n", m->replyto);

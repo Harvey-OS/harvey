@@ -1,0 +1,30 @@
+#
+#	sample rewrite file for systems that send and receive mail directly.
+#
+#	by default, the return address points to this system; if you have multiple systems
+#	and don't want them all to be mail recipients, set $site to a generic
+#	name (e.g., plan9) or system name in /rc/bin/termrc and /rc/bin/cpurc
+#	and put an MX DNS record in /lib/ndb to point to that system.
+#
+#	replace YOURDOMAIN.DOM in the following rules with your domain name.
+
+# translate local aliases from /mail/lib/namefiles
+[^!@.]+			translate	"/bin/upas/aliasmail '&'"
+
+# deliver mail without a domain locally
+local!(.*)		>>		/mail/box/\1/mbox
+
+# your local names
+\l!(.*)					alias		\1
+\l\.YOURDOMAIN\.DOM!(.*)		alias		\1
+
+# convert source domain address to a chain a@b@c@d...
+@([^@!,]*):([^!@]*)@([^!]*)		alias	\2@\3@\1
+@([^@!]*),@([^!@,]*):([^!@]*)@([^!]*)	alias	@\1:\3@\4@\2
+
+# convert a chain a@b@c@d... to ...d!c!b!a
+([^@]+)@([^@]+)@(.+)	alias		\2!\1@\3
+([^@]+)@([^@]+)		alias		\2!\1
+
+# queue all mail for delivery
+([^!]*)!(.*) 		| 		"/mail/lib/qmail '\s' 'net!\1'" "'\2'"

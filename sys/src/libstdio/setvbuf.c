@@ -34,8 +34,8 @@ int setvbuf(FILE *f, char *buf, int mode, long size){
 int _IO_setvbuf(FILE *f){
 	static int isatty(int);
 	if(f==stderr || (f==stdout && isatty(1)))
-		setvbuf(f, (char *)0, _IOLBF, BUFSIZ);
-	else setvbuf(f, (char *)0, _IOFBF, BUFSIZ);
+		return setvbuf(f, (char *)0, _IOLBF, BUFSIZ);
+	else return setvbuf(f, (char *)0, _IOFBF, BUFSIZ);
 }
 static int
 isatty(int fd)

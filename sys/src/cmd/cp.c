@@ -3,6 +3,7 @@
 
 #define	DEFB	(8*1024)
 
+int	failed;
 int	gflag;
 int	uflag;
 int	xflag;
@@ -42,6 +43,8 @@ main(int argc, char *argv[])
 	}
 	for(i=0; i<argc-1; i++)
 		copy(argv[i], argv[argc-1], todir);
+	if(failed)
+		exits("errors");
 	exits(0);
 
 usage:
@@ -90,16 +93,19 @@ copy(char *from, char *to, int todir)
 
 	if((dirb=dirstat(from))==nil){
 		fprint(2,"cp: can't stat %s: %r\n", from);
+		failed = 1;
 		return;
 	}
 	mode = dirb->mode;
 	if(mode&DMDIR){
 		fprint(2, "cp: %s is a directory\n", from);
 		free(dirb);
+		failed = 1;
 		return;
 	}
 	if(samefile(dirb, from, to)){
 		free(dirb);
+		failed = 1;
 		return;
 	}
 	mode &= 0777;
@@ -107,6 +113,7 @@ copy(char *from, char *to, int todir)
 	if(fdf<0){
 		fprint(2, "cp: can't open %s: %r\n", from);
 		free(dirb);
+		failed = 1;
 		return;
 	}
 	fdt=create(to, OWRITE, mode);
@@ -114,6 +121,7 @@ copy(char *from, char *to, int todir)
 		fprint(2, "cp: can't create %s: %r\n", to);
 		close(fdf);
 		free(dirb);
+		failed = 1;
 		return;
 	}
 	if(copy1(fdf, fdt, from, to)==0 && (xflag || gflag || uflag)){
@@ -154,12 +162,14 @@ copy1(int fdf, int fdt, char *from, char *to)
 		n1 = write(fdt, buf, n);
 		if(n1 != n) {
 			fprint(2, "cp: error writing %s: %r\n", to);
+			failed = 1;
 			rv = -1;
 			break;
 		}
 	}
 	if(n < 0) {
 		fprint(2, "cp: error reading %s: %r\n", from);
+		failed = 1;
 		rv = -1;
 	}
 	free(buf);

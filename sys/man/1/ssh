@@ -4,7 +4,7 @@ ssh, sshnet, scp, sshserve, ssh_genkey \- secure login and file copy from/to Uni
 .SH SYNOPSIS
 .B ssh
 [
-.B -CiImPprvw
+.B -CiImPpRrvw
 ]
 [
 .B -A
@@ -115,6 +115,9 @@ force no pseudoterminal request.
 .TP
 .B -r
 strip carriage returns.
+.TP
+.B -R
+put the allocated pseudoterminal, if any, in raw mode.
 .TP
 .B -v
 enable verbose feedback during the connection and authentication process. 

@@ -116,7 +116,7 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 		cd->nextblock = start;
 	} else {
 		direc->block = start;
-		if(chatty)
+		if(chatty > 1)
 			fprint(2, "lookup %.16H %lud (%s) failed\n", digest, length, direc->name);
 		insertmd5(d, atom(direc->name), digest, start, length);
 	}
@@ -135,8 +135,11 @@ _writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int l
 	if((d->mode & DMDIR) == 0)
 		return;
 
+	if(chatty)
+		fprint(2, "%*s%s\n", 4*level, "", d->name);
+
 	for(i=0; i<d->nchild; i++)
-		writedirs(cd, &d->child[i], put);
+		_writedirs(cd, &d->child[i], put, level+1);
 
 	l = 0;
 	l += put(cd, d, (level == 0) ? DTrootdot : DTdot, 0, l);
@@ -177,6 +180,8 @@ writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int))
 	 * then the "root" is really going to be two levels down once
 	 * we patch in the dump hierarchy above it, so start at level non-zero.
 	 */
+	if(chatty)
+		fprint(2, ">>> writedirs\n");
 	_writedirs(cd, d, put, mk9660 ? 0 : 1);
 }
 

@@ -99,6 +99,7 @@ main(int argc, char **argv)
 
 	quotefmtinstall();
 	fmtinstall('A', _attrfmt);
+	fmtinstall('N', attrnamefmt);
 	fmtinstall('H', encodefmt);
 
 	ring = emalloc(sizeof(*ring));
@@ -146,6 +147,7 @@ main(int argc, char **argv)
 				if(strcmp(err, "cancel") == 0)
 					break;
 				fprint(2, "secstorefetch: %r\n");
+				fprint(2, "Enter an empty password to quit.\n");
 				secstorepw = nil; /* just try nvram pw once */
 			}
 		}else{
@@ -435,7 +437,7 @@ keylist(int i, char *a, uint n)
 		return 0;
 	k = ring->key[i];
 	k->attr = sortattr(k->attr);
-	snprint(buf, sizeof buf, "key %A\n", k->attr);
+	snprint(buf, sizeof buf, "key %A %N\n", k->attr, k->privattr);
 	strcpy(buf+sizeof buf-2, "\n");	/* if line is really long, just truncate */
 	if(strlen(buf) > n)
 		return 0;

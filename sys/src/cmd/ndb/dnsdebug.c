@@ -162,6 +162,7 @@ prettyrrfmt(Fmt *f)
 		seprint(p, e, "\t%lud %s", rp->pref, rp->host->name);
 		break;
 	case Ta:
+	case Taaaa:
 		seprint(p, e, "\t%s", rp->ip->name);
 		break;
 	case Tptr:

@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <ip.h>
 #include <mp.h>
 
@@ -267,7 +268,7 @@ main(int argc, char **argv)
 		fd = open(timeserver, ORDWR);
 		if(fd < 0)
 			sysfatal("opening %s: %r\n", timeserver);
-		if(mount(fd, -1, "/n/boot", MREPL, "") < 0)
+		if(amount(fd, "/n/boot", MREPL, "") < 0)
 			sysfatal("mounting %s: %r\n", timeserver);
 		close(fd);
 		break;

@@ -609,16 +609,16 @@ mesgcommand(Message *m, char *cmd)
 	}
 	if(strcmp(args[0], "Reply")==0){
 		if(nargs>=2 && strcmp(args[1], "all")==0)
-			mkreply(m, "Replyall", nil);
+			mkreply(m, "Replyall", nil, nil);
 		else
-			mkreply(m, "Reply", nil);
+			mkreply(m, "Reply", nil, nil);
 		goto Return;
 	}
 	if(strcmp(args[0], "Q") == 0){
 		if(nargs>=3 && strcmp(args[1], "Reply")==0 && strcmp(args[2], "all")==0)
-			mkreply(m, "QReplyall", nil);
+			mkreply(m, "QReplyall", nil, nil);
 		else
-			mkreply(m, "QReply", nil);
+			mkreply(m, "QReply", nil, nil);
 		goto Return;
 	}
 	if(strcmp(args[0], "Del") == 0){
@@ -672,6 +672,111 @@ mesgtagpost(Message *m)
 	m->tagposted = 1;
 }
 
+/* need to expand selection more than default word */
+#pragma varargck argpos eval 2
+
+long
+eval(Window *w, char *s, ...)
+{
+	char buf[64];
+	va_list arg;
+
+	va_start(arg, s);
+	vsnprint(buf, sizeof buf, s, arg);
+	va_end(arg);
+
+	if(winsetaddr(w, buf, 1)==0)
+		return -1;
+
+	if(pread(w->addr, buf, 24, 0) != 24)
+		return -1;
+	return strtol(buf, 0, 10);
+}
+
+int
+isemail(char *s)
+{
+	int nat;
+
+	nat = 0;
+	for(; *s; s++)
+		if(*s == '@')
+			nat++;
+		else if(!isalpha(*s) && !isdigit(*s) && !strchr("_.-+/", *s))
+			return 0;
+	return nat==1;
+}
+
+char addrdelim[] =  "/[ \t\\n<>()\\[\\]]/";
+char*
+expandaddr(Window *w, Event *e)
+{
+	char *s;
+	long q0, q1;
+
+	if(e->q0 != e->q1)	/* cannot happen */
+		return nil;
+
+	q0 = eval(w, "#%d-%s", e->q0, addrdelim);
+	if(q0 == -1)	/* bad char not found */
+		q0 = 0;
+	else			/* increment past bad char */
+		q0++;
+
+	q1 = eval(w, "#%d+%s", e->q0, addrdelim);
+	if(q1 < 0){
+		q1 = eval(w, "$");
+		if(q1 < 0)
+			return nil;
+	}
+	if(q0 >= q1)
+		return nil;
+	s = emalloc((q1-q0)*UTFmax+1);
+	winread(w, q0, q1, s);
+	return s;
+}
+
+int
+replytoaddr(Window *w, Message *m, Event *e, char *s)
+{
+	int did;
+	char *buf;
+	Plumbmsg *pm;
+
+	buf = nil;
+	did = 0;
+	if(e->flag & 2){
+		/* autoexpanded; use our own bigger expansion */
+		buf = expandaddr(w, e);
+		if(buf == nil)
+			return 0;
+		s = buf;
+	}
+	if(isemail(s)){
+		did = 1;
+		pm = emalloc(sizeof(Plumbmsg));
+		pm->src = estrdup("Mail");
+		pm->dst = estrdup("sendmail");
+		pm->data = estrdup(s);
+		pm->ndata = -1;
+		if(m->subject && m->subject[0]){
+			pm->attr = emalloc(sizeof(Plumbattr));
+			pm->attr->name = estrdup("Subject");
+			if(tolower(m->subject[0]) != 'r' || tolower(m->subject[1]) != 'e' || m->subject[2] != ':')
+				pm->attr->value = estrstrdup("Re: ", m->subject);
+			else
+				pm->attr->value = estrdup(m->subject);
+			pm->attr->next = nil;
+		}
+		if(plumbsend(plumbsendfd, pm) < 0)
+			fprint(2, "error writing plumb message: %r\n");
+		plumbfree(pm);
+	}
+	free(buf);
+	return did;
+}
+
+
 void
 mesgctl(void *v)
 {
@@ -679,7 +784,7 @@ mesgctl(void *v)
 	Window *w;
 	Event *e, *eq, *e2, *ea;
 	int na, nopen, i, j;
-	char *s, *t, *buf;
+	char *os, *s, *t, *buf;
 
 	m = v;
 	w = m->w;
@@ -745,6 +850,7 @@ mesgctl(void *v)
 					winread(w, eq->q0, eq->q1, buf);
 					s = buf;
 				}
+				os = s;
 				nopen = 0;
 				do{
 					/* skip mail box name if present */
@@ -766,7 +872,9 @@ mesgctl(void *v)
 					while(*s!=0 && *s++!='\n')
 						;
 				}while(*s);
-				if(nopen == 0)	/* send it back */
+				if(nopen == 0)
+					nopen += replytoaddr(w, m, e, os);
+				if(nopen == 0)
 					winwriteevent(w, e);
 				free(buf);
 				break;

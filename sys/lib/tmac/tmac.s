@@ -1128,7 +1128,7 @@ Piscataway, New Jersey 08854
 .if n .ul 1000
 ..
 .	\"NH - numbered heading
-.de NH
+.de N{
 .RT
 .ie \\n(1T .sp 1
 .el .BG
@@ -1151,6 +1151,9 @@ Piscataway, New Jersey 08854
 .if \\n(NS-2 .as SN \\n(H3.
 .if \\n(NS-3 .as SN \\n(H4.
 .if \\n(NS-4 .as SN \\n(H5.
+..
+.de NH
+.N{ \\$1
 \\*(SN
 ..
 .	\"BG - begin, execute at first PP

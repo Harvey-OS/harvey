@@ -4,7 +4,7 @@ vacfs \- a Venti-based file system
 .SH SYNOPSIS
 .B vacfs
 [
-.B -dis
+.B -dips
 ]
 [
 .B -c
@@ -60,6 +60,9 @@ Use file descriptors 0 and 1 as the 9P communication channel rather than create 
 .BI -m " mtpt
 The location to mount the file system. The default is
 .BR /n/vac .
+.TP
+.BI -p
+Disables permission checking.
 .TP
 .B -s
 Post the 9P channel on #s/vacfs rather than

@@ -564,9 +564,9 @@ stlscmd(char*)
 static int
 topcmd(char *arg)
 {
-	int i, lines, n;
-	Biobuf *b;
+	int done, i, lines, n;
 	char buf[40], *p;
+	Biobuf *b;
 
 	if(*arg == 0)
 		return senderr("TOP requires a message number");
@@ -583,6 +583,16 @@ topcmd(char *arg)
 	if((b = Bopen(buf, OREAD)) == nil)
 		return senderr("message disappeared");
 	sendok("");
+	while(p = Brdstr(b, '\n', 1)){
+		if(p[0]=='.')
+			Bputc(&out, '.');
+		Bwrite(&out, p, strlen(p));
+		Bwrite(&out, "\r\n", 2);
+		done = p[0]=='\0';
+		free(p);
+		if(done)
+			break;
+	}
 	for(i=0; i<lines; i++){
 		p = Brdstr(b, '\n', 1);
 		if(p == nil)

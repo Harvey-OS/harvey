@@ -260,7 +260,6 @@ main(void)
 
 	if((p = getconf("console")) != nil)
 		consinit(p, getconf("baud"));
-
 	devpccardlink();
 	devi82365link();
 
@@ -391,11 +390,12 @@ cistrncmp(char *a, char *b, int n)
 	return 0;
 }
 
+extern void diff(char*);
+
+ulong palloc;
 void*
 ialloc(ulong n, int align)
 {
-
-	static ulong palloc;
 	ulong p;
 	int a;
 
@@ -411,7 +411,6 @@ ialloc(ulong n, int align)
 		p += align - a;
 
 	palloc = p+n;
-
 	return memset((void*)(p|KZERO), 0, n);
 }
 

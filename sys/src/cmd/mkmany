@@ -39,6 +39,7 @@ installall:V:
 		mk $MKFLAGS install
 
 %.safeinstall:V:
+	mk $O.$stem
 	test -e $BIN/$stem && mv $BIN/$stem $BIN/_$stem
 	mk $stem.install
 
@@ -53,6 +54,9 @@ safeinstall:V:
 safeinstallall:V:
 	for (objtype in $CPUS)
 		mk safeinstall
+
+update:V:
+	update $UPDATEFLAGS $UPDATE
 
 nuke:V:
 	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].* *.acid $TARG

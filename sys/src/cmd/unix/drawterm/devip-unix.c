@@ -623,7 +623,7 @@ eipconv(va_list *v, Fconv *f)
 int
 so_socket(int type)
 {
-	int fd;
+	int fd, one;
 
 	switch(type) {
 	default:
@@ -639,6 +639,11 @@ so_socket(int type)
 	fd = socket(AF_INET, type, 0);
 	if(fd < 0)
 		error(strerror(errno));
+
+	one = 1;
+	if(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(one)) > 0)
+		print("setsockopt: %s", strerror(errno));
+
 	return fd;
 }
 

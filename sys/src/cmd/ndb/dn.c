@@ -45,6 +45,7 @@ char *rrtname[] =
 [Tkey]		"key",
 [Tcert]		"cert",
 [Tsig]		"sig",
+[Taaaa]		"ipv6",
 [Tixfr]		"ixfr",
 [Taxfr]		"axfr",
 [Tall]		"all",
@@ -112,14 +113,26 @@ dnhash(char *name)
 DN*
 dnlookup(char *name, int class, int enter)
 {
+	int len;
+	char canonical[Domlen];
+	char *canp, *p;
 	DN **l;
 	DN *dp;
+	static char *ia = ".in-addr.arpa";
+#define IALEN 13
 
-	l = &ht[dnhash(name)];
+	len = strlen(name);
+	canp = name;
+	if(len > IALEN) {
+		p = name + len - IALEN;
+		if (cistrcmp(p, ia) == 0)
+			canp = dorfc2317(canonical, name);
+	}
+	l = &ht[dnhash(canp)];
 	lock(&dnlock);
 	for(dp = *l; dp; dp = dp->next) {
 		assert(dp->magic == DNmagic);
-		if(dp->class == class && cistrcmp(dp->name, name) == 0){
+		if(dp->class == class && cistrcmp(dp->name, canp) == 0){
 			dp->referenced = now;
 			unlock(&dnlock);
 			return dp;
@@ -302,6 +315,7 @@ dnageall(int doit)
 					REF(rp->host);
 					break;
 				case Ta:
+				case Taaaa:
 					REF(rp->ip);
 					break;
 				case Tptr:
@@ -829,6 +843,17 @@ rrname(int type, char *buf, int len)
 }
 
 /*
+ *  return 0 if not a supported rr type
+ */
+int
+rrsupported(int type)
+{
+	if(type < 0 || type >Tall)
+		return 0;
+	return rrtname[type] != 0;
+}
+
+/*
  *  compare 2 types
  */
 int
@@ -954,6 +979,7 @@ rrfmt(Fmt *f)
 		fmtprint(&fstr, "\t%lud %s", rp->pref, rp->host->name);
 		break;
 	case Ta:
+	case Taaaa:
 		fmtprint(&fstr, "\t%s", rp->ip->name);
 		break;
 	case Tptr:
@@ -1046,6 +1072,7 @@ rravfmt(Fmt *f)
 		fmtprint(&fstr, " pref=%lud mx=%s", rp->pref, rp->host->name);
 		break;
 	case Ta:
+	case Taaaa:
 		fmtprint(&fstr, " ip=%s", rp->ip->name);
 		break;
 	case Tptr:
@@ -1217,12 +1244,14 @@ subsume(char *higher, char *lower)
 
 /*
  *  randomize the order we return items to provide some
- *  load balancing for servers
+ *  load balancing for servers.
+ *
+ *  only randomize the first class of entries
  */
 RR*
 randomize(RR *rp)
 {
-	RR *first, *last, *x;
+	RR *first, *last, *x, *base;
 	ulong n;
 
 	if(rp == nil || rp->next == nil)
@@ -1233,9 +1262,17 @@ randomize(RR *rp)
 		if(x->type != Ta && x->type != Tmx && x->type != Tns)
 			return rp;
 
+	base = rp; 
+
 	n = rand();
 	last = first = nil;
 	while(rp != nil){
+		/* stop randomizing if we've moved past our class */
+		if(base->auth != rp->auth || base->db != rp->db){
+			last->next = rp;
+			break;
+		}
+
 		/* unchain */
 		x = rp;
 		rp = x->next;

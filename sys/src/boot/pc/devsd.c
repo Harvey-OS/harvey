@@ -283,6 +283,7 @@ sdinit(void)
 			m |= (1<<i);
 	}
 
+//notesdinfo();
 	return m;
 }
 

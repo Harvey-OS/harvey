@@ -1,0 +1,3 @@
+#!/bin/rc
+
+cd '#$/pci' && grep . *ctl | sed 's/ctl:/:	/'

@@ -39,3 +39,6 @@ nuke:V:
 
 clean:V:
 	rm -f *.[$OS] y.tab.? y.output y.error
+
+update:V:
+	update $UPDATEFLAGS $UPDATE

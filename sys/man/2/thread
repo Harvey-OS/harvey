@@ -119,8 +119,8 @@ int	nbsendp(Channel *c, void *v)
 int	nbsendul(Channel *c, ulong v)
 int	chanprint(Channel *c, char *fmt, ...)
 .XX
-void	procexecl(Channel *cpid, char *file, ...)
-void	procexec(Channel *cpid, char *file, char *args[])
+int	procexecl(Channel *cpid, char *file, ...)
+int	procexec(Channel *cpid, char *file, char *args[])
 Channel*	threadwaitchan(void)
 .XX
 int	threadnotify(int (*f)(void*, char*), int in)
@@ -321,7 +321,7 @@ and
 .IR exec (2));
 on success,
 they replace the calling thread (which must be the only thread in its proc)
-and invoke the external program.
+and invoke the external program, never returning.
 On error, they return \-1.
 If
 .I cpid

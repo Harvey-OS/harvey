@@ -61,7 +61,9 @@ threadpostmountsrv(Srv *s, char *name, char *mtpt, int flag)
 		threadexitsall("procrfork");
 	}
 
+	rfork(RFFDG);
 	if(!s->nopipe){
+		close(p->fd[1]);
 		if(mtpt)
 			if(amount(p->fd[0], mtpt, flag, "") < 0)
 				fprint(2, "mount at %s fails: %r\n", mtpt);

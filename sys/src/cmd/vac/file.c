@@ -430,8 +430,8 @@ vacFileWalk(VacFile *vf, char *elem)
 	for(nvf = vf->down; nvf; nvf=nvf->next) {
 		vtLock(nvf->lk);
 		if(strcmp(elem, nvf->dir.elem) == 0 && !nvf->removed) {
-			nvf = vacFileIncRef(nvf);
 			vtUnlock(nvf->lk);
+			vacFileIncRef(nvf);
 			vtUnlock(vf->lk);
 			return nvf;
 		}

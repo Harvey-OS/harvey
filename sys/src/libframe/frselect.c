@@ -38,24 +38,26 @@ frselect(Frame *f, Mousectl *mc)	/* when called, button 1 is down */
 	do{
 		scrled = 0;
 		if(f->scroll){
-			if(mc->xy.y < f->r.min.y){
-				(*f->scroll)(f, -(f->r.min.y-mc->xy.y)/(int)f->font->height-1);
+			if(mp.y < f->r.min.y){
+				(*f->scroll)(f, -(f->r.min.y-mp.y)/(int)f->font->height-1);
 				p0 = f->p1;
 				p1 = f->p0;
 				scrled = 1;
-			}else if(mc->xy.y > f->r.max.y){
-				(*f->scroll)(f, (mc->xy.y-f->r.max.y)/(int)f->font->height+1);
+			}else if(mp.y > f->r.max.y){
+				(*f->scroll)(f, (mp.y-f->r.max.y)/(int)f->font->height+1);
 				p0 = f->p0;
 				p1 = f->p1;
 				scrled = 1;
 			}
 			if(scrled){
+				if(reg != region(p1, p0))
+					q = p0, p0 = p1, p1 = q;	/* undo the swap that will happen below */
 				pt0 = frptofchar(f, p0);
 				pt1 = frptofchar(f, p1);
 				reg = region(p1, p0);
 			}
 		}
-		q = frcharofpt(f, mc->xy);
+		q = frcharofpt(f, mp);
 		if(p1 != q){
 			if(reg != region(q, p0)){	/* crossed starting point; reset */
 				if(reg > 0)
@@ -97,6 +99,7 @@ frselect(Frame *f, Mousectl *mc)	/* when called, button 1 is down */
 		flushimage(f->display, 1);
 		if(!scrled)
 			readmouse(mc);
+		mp = mc->xy;
 	}while(mc->buttons == b);
 }
 

@@ -4,6 +4,7 @@
 
 enum {
 	Soh=	0x1,
+	Stx=	0x2,
 	Eot=	0x4,
 	Ack=	0x6,
 	Nak=	0x15,
@@ -13,7 +14,7 @@ enum {
 int send(uchar*, int);
 int notifyf(void*, char*);
 
-int debug;
+int debug, progress, onek;
 
 void
 errorout(int ctl, int bytes)
@@ -27,21 +28,47 @@ errorout(int ctl, int bytes)
 	exits("cancel");
 }
 
+ushort
+updcrc(int c, ushort crc)
+{
+	int count;
+
+	for (count=8; --count>=0;) {
+		if (crc & 0x8000) {
+			crc <<= 1;
+			crc += (((c<<=1) & 0400)  !=  0);
+			crc ^= 0x1021;
+		}
+		else {
+			crc <<= 1;
+			crc += (((c<<=1) & 0400)  !=  0);
+		}
+	}
+	return crc;	
+}
+
 void
 main(int argc, char **argv)
 {
 	uchar c;
-	uchar buf[128+4];
+	uchar buf[1024+5];
 	uchar seqno;
 	int fd, ctl;
 	long n;
 	int sum;
 	uchar *p;
 	int bytes;
+	int crcmode;
 
 	ARGBEGIN{
 	case 'd':
 		debug = 1;
+		break;
+	case 'p':
+		progress = 1;
+		break;
+	case '1':
+		onek = 1;
 		break;
 	}ARGEND
 
@@ -56,12 +83,16 @@ main(int argc, char **argv)
 	}
 
 	ctl = open("/dev/consctl", OWRITE);
-	if(ctl >= 0)
-		write(ctl, "rawon", 5);
+	if(ctl < 0){
+		perror("xms");
+		exits("consctl");
+	}
+	write(ctl, "rawon", 5);
 
 	/* give the other side a 30 seconds to signal ready */
 	atnotify(notifyf, 1);
 	alarm(30*1000);
+	crcmode = 0;
 	for(;;){
 		if(read(0, &c, 1) != 1){
 			fprint(2, "xms: timeout\n");
@@ -70,30 +101,50 @@ main(int argc, char **argv)
 		c = c & 0x7f;
 		if(c == Nak)
 			break;
+		if(c == 'C') {
+			if (debug)
+				fprint(2, "crc mode engaged\n");
+			crcmode = 1;
+			break;
+		}
 	}
 	alarm(0);
 
-	/* send the file in 128 byte chunks */
+	/* send the file in 128/1024 byte chunks */
 	for(bytes = 0, seqno = 1; ; bytes += n, seqno++){
-		n = read(fd, buf+3, 128);
+		n = read(fd, buf+3, onek ? 1024 : 128);
 		if(n < 0)
 			exits("read");
 		if(n == 0)
 			break;
-		if(n < 128)
-			memset(&buf[n+3], 0, 128-n);
-		buf[0] = Soh;
+		if(n < (onek ? 1024 : 128))
+			memset(&buf[n+3], 0, (onek ? 1024 : 128)-n);
+		buf[0] = onek ? Stx : Soh;
 		buf[1] = seqno;
 		buf[2] = 255 - seqno;
 
 		/* calculate checksum and stuff into last byte */
-		sum = 0;
-		for(p = buf; p < &buf[128+3]; p++)
-			sum += *p;
-		buf[131] = sum;
+		if (crcmode) {
+			unsigned short crc;
+			crc = 0;
+			for(p = buf + 3; p < &buf[(onek ? 1024 : 128)+3]; p++)
+				crc = updcrc(*p, crc);
+			crc = updcrc(0, crc);
+			crc = updcrc(0, crc);
+			buf[(onek ? 1024 : 128) + 3] = crc >> 8;
+			buf[(onek ? 1024 : 128) + 4] = crc;
+		}
+		else {
+			sum = 0;
+			for(p = buf + 3; p < &buf[(onek ? 1024 : 128)+3]; p++)
+				sum += *p;
+			buf[(onek ? 1024 : 128) + 3] = sum;
+		}
 
-		if(send(buf, 132) < 0)
+		if(send(buf, (onek ? 1024 : 128) + 4 + crcmode) < 0)
 			errorout(ctl, bytes);
+		if (progress && bytes % 10240 == 0)
+			fprint(2, "%dK\n", bytes / 1024);
 	}
 
 	/* tell other side we're done */

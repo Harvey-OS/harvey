@@ -1296,7 +1296,7 @@ serve(Dev *d)
 
 	for(;;){
 		if(d->r == 0 || d->rp == d->wp)
-			return;
+			break;
 		r = d->r;
 		if(r->count > sizeof(buf))
 			r->count = sizeof(buf);

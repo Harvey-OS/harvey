@@ -54,6 +54,46 @@ opendatabase(void)
 		return 0;
 }
 
+int
+count(char *s, int c)
+{
+	int count = 0;
+
+	for (; *s != '\0'; s++)
+		if (*s == c)
+			count++;
+	return count;
+}
+
+// copy name to canonical, removing second component between dots
+// assumes '.' is the rfc2317 separator
+static void
+rfc2317(char *canonical, char *name)
+{
+	int dots = 0;
+
+	for (; *name != '\0'; name++) {
+		if (*name == '.')
+			dots++;
+		if (dots != 1)
+			*canonical++ = *name;
+	}
+	*canonical = '\0';
+}
+
+char *
+dorfc2317(char *canonical, char *name)
+{
+	if (count(name, '.') == 6) {		// 7 components?
+		rfc2317(canonical, name);	// remove 2nd one
+		if (0)
+			syslog(0, logfile, "rfc2317 rewrote %s to %s", name, canonical);
+		return canonical;
+	} else
+		return name;
+
+}
+
 /*
  *  lookup an RR in the network database, look for matches
  *  against both the domain name and the wildcarded domain name.
@@ -70,6 +110,8 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 {
 	RR *rp, *tp;
 	char buf[256];
+	char canonical[Domlen];
+	char *canp;
 	char *wild, *cp;
 	DN *dp, *ndp;
 	int err;
@@ -83,16 +125,20 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 
 	err = Rname;
 
+	if (type == Tptr)
+		canp = dorfc2317(canonical, name);
+	else
+		canp = name;
 	if(type == Tall){
 		rp = 0;
 		for (type = Ta; type < Tall; type++)
 			if(implemented[type])
-				rrcat(&rp, dblookup(name, class, type, auth, ttl));
+				rrcat(&rp, dblookup(canp, class, type, auth, ttl));
 		return rp;
 	}
 
 	lock(&dblock);
-	dp = dnlookup(name, class, 1);
+	dp = dnlookup(canp, class, 1);
 	if(opendatabase() < 0)
 		goto out;
 	if(dp->rr)
@@ -103,17 +149,19 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 	if(cachedb)
 		rp = rrlookup(dp, type, NOneg);
 	else
-		rp = dblookup1(name, type, auth, ttl);
+		rp = dblookup1(canp, type, auth, ttl);
 	if(rp)
 		goto out;
 
 	/* try lower case version */
 	for(cp = name; *cp; cp++)
 		*cp = tolower(*cp);
+	for(cp = canp; *cp; cp++)
+		*cp = tolower(*cp);
 	if(cachedb)
 		rp = rrlookup(dp, type, NOneg);
 	else
-		rp = dblookup1(name, type, auth, ttl);
+		rp = dblookup1(canp, type, auth, ttl);
 	if(rp)
 		goto out;
 
@@ -152,6 +200,8 @@ dblookup1(char *name, int type, int auth, int ttl)
 	RR *rp, *list, **l;
 	Ndbs s;
 	char val[Ndbvlen], dname[Ndbvlen];
+	char canonical[Domlen];
+	char *canp;
 	char *attr;
 	DN *dp;
 	RR *(*f)(Ndbtuple*, Ndbtuple*);
@@ -197,7 +247,11 @@ dblookup1(char *name, int type, int auth, int ttl)
 	/*
 	 *  find a matching entry in the database
 	 */
-	t = ndbgetval(db, &s, "dom", name, attr, val);
+	if (type == Tptr)
+		canp = dorfc2317(canonical, name);
+	else
+		canp = name;
+	t = ndbgetval(db, &s, "dom", canp, attr, val);
 
 	/*
 	 *  hack for local names
@@ -206,7 +260,7 @@ dblookup1(char *name, int type, int auth, int ttl)
 		t = ndbgetval(db, &s, "sys", name, attr, val);
 	if(t == 0){
 		if(type == Tptr)
-			return dbinaddr(dnlookup(name, Cin, 1), ttl);
+			return dbinaddr(dnlookup(canp, Cin, 1), ttl);
 		else
 			return nil;
 	}
@@ -279,7 +333,7 @@ dblookup1(char *name, int type, int auth, int ttl)
 	ndbfree(t);
 
 	if(list == nil && type == Tptr)
-		return dbinaddr(dnlookup(name, Cin, 1), ttl);
+		return dbinaddr(dnlookup(canp, Cin, 1), ttl);
 
 	return list;
 }
@@ -291,9 +345,14 @@ static RR*
 addrrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
+	uchar addr[IPaddrlen];
 
 	USED(entry);
-	rp = rralloc(Ta);
+	parseip(addr, pair->val);
+	if(isv4(addr))
+		rp = rralloc(Ta);
+	else
+		rp = rralloc(Taaaa);
 	rp->ip = dnlookup(pair->val, Cin, 1);
 	return rp;
 }
@@ -455,6 +514,8 @@ static char *ia = ".in-addr.arpa";
 /*
  *  answer in-addr.arpa queries by making up a ptr record if the address
  *  is in our database
+ *  if the query is e.d.c.b.a.in-addr.arpa, assume rfc2317 trickery and
+ *  lookup up e.c.b.a.in-addr.arpa's ip.
  */
 RR*
 dbinaddr(DN *dp, int ttl)
@@ -462,7 +523,9 @@ dbinaddr(DN *dp, int ttl)
 	int len;
 	char ip[Domlen];
 	char dom[Domlen];
+	char canonical[Domlen];
 	char *np, *p;
+	char *canp;
 	Ndbtuple *t, *nt;
 	RR *rp;
 	Ndbs s;
@@ -478,10 +541,12 @@ dbinaddr(DN *dp, int ttl)
 	if(cistrcmp(p, ia) != 0)
 		return 0;
 
+	canp = dorfc2317(canonical, dp->name);
+
 	/* flip ip components into sensible order */
 	np = ip;
 	len = 0;
-	while(p >= dp->name){
+	while(p >= canp){
 		len++;
 		p--;
 		if(*p == '.'){
@@ -542,36 +607,27 @@ doaxfr(Ndb *db, char *name)
 void
 addptr(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 {
-	RR *rp;
-	int len;
-	Ndbtuple *t;
-	char *p, *np;
+	uchar ip[IPaddrlen];
+	char ptr[256];
+	char *p, *e;
 	DN *ipdp;
-	char ip[Domlen];
+	RR *rp;
+	Ndbtuple *t;
+	int i;
 
-	len = strlen(pair->val);
-	if(len >= Domlen - IALEN)
-		return;
-	p = pair->val + len;
-
-	/* flip ip components into reverse order */
-	np = ip;
-	len = 0;
-	while(p >= pair->val){
-		len++;
-		p--;
-		if(*p == '.'){
-			memmove(np, p+1, len-1);
-			np[len-1] = '.';
-			np += len;
-			len = 0;
-		}
+	parseip(ip, pair->val);
+	p = ptr;
+	e = ptr+sizeof(ptr);
+	if(isv4(ip)){
+		for(i = IPaddrlen-1; i >= IPaddrlen-4; i--)
+			p = seprint(p, e, "%ud.", ip[i]);
+		seprint(p, e, "in-addr.arpa");
+	} else {
+		for(i = IPaddrlen-1; i >= 0; i--)
+			p = seprint(p, e, "%ux.%ux.", ip[i]&0xf, ip[i]>>4);
+		seprint(p, e, "ip6.int");
 	}
-	memmove(np, p+1, len-1);
-	np += len-1;
-	*np = 0;
-	strcat(np, ".in-addr.arpa");
-	ipdp = dnlookup(ip, Cin, 1);
+	ipdp = dnlookup(ptr, Cin, 1);
 
 	rp = rralloc(Tptr);
 	rp->ptr = dp;

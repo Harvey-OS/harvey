@@ -84,7 +84,7 @@ getPW(char *id)
 	if(pw->failed < 10)
 		return pw;  // success
 	if(now < mtimePW(id)+300){
-		werrstr("too many failed logins");
+		werrstr("too many failures; try again in five minutes");
 		freePW(pw);
 		return nil;
 	}

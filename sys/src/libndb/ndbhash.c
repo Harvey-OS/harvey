@@ -116,6 +116,9 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 {
 	uchar *p;
 	Ndbtuple *t;
+	Ndbhf *hf;
+
+	hf = hfopen(db, attr);
 
 	memset(s, 0, sizeof(*s));
 	if(_ndbcachesearch(db, s, attr, val, &t) == 0){
@@ -128,7 +131,7 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 	}
 
 	s->db = db;
-	s->hf = hfopen(db, attr);
+	s->hf = hf;
 	if(s->hf){
 		s->ptr = ndbhash(val, s->hf->hlen)*NDBPLEN;
 		p = hfread(s->hf, s->ptr+NDBHLEN, NDBPLEN);

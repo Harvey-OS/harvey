@@ -7,7 +7,7 @@ unmount /n/a:>[2]/dev/null
 
 switch($bootfile) {
 case sd*
-	adisk=`{echo $bootfile | sed 's#(sd..).*#/dev/\1/data#'}
+	adisk=`{echo $bootfile | sed 's#(sd..).*#/dev/\1/dos#'}
 case fd*
 	adisk=`{echo $bootfile | sed 's#(fd.).*#/dev/\1disk#'}
 case *

@@ -17,7 +17,8 @@ struct Scan
 #define USHORT(x)	(x = gshort(sp))
 #define ULONG(x)	(x = glong(sp))
 #define UCHAR(x)	(x = gchar(sp))
-#define ADDR(x)		(x = gaddr(sp))
+#define V4ADDR(x)	(x = gv4addr(sp))
+#define V6ADDR(x)	(x = gv6addr(sp))
 #define BYTES(x, y)	(y = gbytes(sp, &x, len - (sp->p - data)))
 
 static char *toolong = "too long";
@@ -75,7 +76,7 @@ glong(Scan *sp)
  *  get an ip address
  */
 static DN*
-gaddr(Scan *sp)
+gv4addr(Scan *sp)
 {
 	char addr[32];
 
@@ -87,6 +88,22 @@ gaddr(Scan *sp)
 	}
 	snprint(addr, sizeof(addr), "%V", sp->p);
 	sp->p += 4;
+
+	return dnlookup(addr, Cin, 1);
+}
+static DN*
+gv6addr(Scan *sp)
+{
+	char addr[64];
+
+	if(sp->err)
+		return 0;
+	if(sp->ep - sp->p < IPaddrlen){
+		sp->err = toolong;
+		return 0;
+	}
+	snprint(addr, sizeof(addr), "%I", sp->p);
+	sp->p += IPaddrlen;
 
 	return dnlookup(addr, Cin, 1);
 }
@@ -264,7 +281,10 @@ retry:
 		rp->host = dnlookup(NAME(dname), Cin, 1);
 		break;
 	case Ta:
-		ADDR(rp->ip);
+		V4ADDR(rp->ip);
+		break;
+	case Taaaa:
+		V6ADDR(rp->ip);
 		break;
 	case Tptr:
 		rp->ptr = dnlookup(NAME(dname), Cin, 1);

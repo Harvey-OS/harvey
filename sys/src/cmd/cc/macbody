@@ -366,6 +366,29 @@ macexpand(Sym *s, char *b)
 					if(c == '\'')
 						break;
 				}
+			if(c == '/') {
+				c = getc();
+				switch(c) {
+				case '*':
+					for(;;) {
+						c = getc();
+						if(c == '*') {
+							c = getc();
+							if(c == '/')
+								break;
+						}
+					}
+					*cp++ = ' ';
+					continue;
+				case '/':
+					while((c = getc()) != '\n')
+						;
+					break;
+				default:
+					unget(c);
+					c = '/';
+				}
+			}
 			if(l == 0) {
 				if(c == ',') {
 					*cp++ = 0;

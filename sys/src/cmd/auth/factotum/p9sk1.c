@@ -419,7 +419,7 @@ mkserverticket(State *s, char *tbuf)
 	Ticketreq *tr = &s->tr;
 	Ticket t;
 
-	if(strcmp(tr->authid, tr->hostid) != 0 || strcmp(tr->authid, tr->uid) != 0)
+	if(strcmp(tr->authid, tr->hostid) != 0)
 		return -1;
 	memset(&t, 0, sizeof(t));
 	memmove(t.chal, tr->chal, CHALLEN);
@@ -442,9 +442,7 @@ gettickets(State *s, char *trbuf, char *tbuf)
 */
 	if(getastickets(s, trbuf, tbuf) >= 0)
 		return 0;
-	if(sflag)
-		return mkserverticket(s, tbuf);
-	return -1;
+	return mkserverticket(s, tbuf);
 }
 
 Proto p9sk1 = {

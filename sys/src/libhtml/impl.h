@@ -28,9 +28,11 @@ extern void	_splitr(Rune* s, int n, Rune* cl, Rune** p1, int* n1, Rune** p2, int
 extern int		_splitall(Rune* s, int n, Rune* cl, Rune** strarr, int* lenarr, int alen);
 extern Rune*	_Stradd(Rune*s1, Rune* s2, int n);
 extern Rune*	_Strclass(Rune* s, Rune* cl);
+extern int		_Strcmp(Rune* s1, Rune* s2);
 extern Rune*	_Strdup(Rune* s);
 extern Rune*	_Strdup2(Rune* s, Rune* t);
 extern int		_Streqn(Rune* s1, int n1, Rune* s2);
+extern int		_Strlen(Rune* s);
 extern Rune*	_Strnclass(Rune* s, Rune* cl, int n);
 extern int		_Strncmpci(Rune* s1, int n1, Rune* s2);
 extern Rune*	_Strndup(Rune* s, int n);

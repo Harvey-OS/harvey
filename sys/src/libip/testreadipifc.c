@@ -6,16 +6,16 @@ void
 main(void)
 {
 	Ipifc *ifc, *list;
+	Iplifc *lifc;
 	int i;
 
-	fmtinstall('I', eipconv);
-	fmtinstall('M', eipconv);
+	fmtinstall('I', eipfmt);
+	fmtinstall('M', eipfmt);
 
-	for(i = 0; i < 10; i++){
-		list = readipifc("/net", nil);
-		for(ifc = list; ifc; ifc = ifc->next)
-			fprint(2, "ipifc %s %d %I %M %I\n", ifc->dev,
-				ifc->mtu, ifc->ip, ifc->mask, ifc->net);
-		fprint(2, "------\n");
+	list = readipifc("/net", nil, -1);
+	for(ifc = list; ifc; ifc = ifc->next){
+		print("ipifc %s %d\n", ifc->dev, ifc->mtu);
+		for(lifc = ifc->lifc; lifc; lifc = lifc->next)
+			print("\t%I %M %I\n", lifc->ip, lifc->mask, lifc->net);
 	}
 }

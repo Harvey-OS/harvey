@@ -4,11 +4,63 @@
 #include <ip.h>
 
 static Ipifc**
+_readoldipifc(char *buf, Ipifc **l, int index)
+{
+	char *f[200];
+	int i, n;
+	Ipifc *ifc;
+	Iplifc *lifc, **ll;
+
+	/* allocate new interface */
+	*l = ifc = mallocz(sizeof(Ipifc), 1);
+	if(ifc == nil)
+		return l;
+	l = &ifc->next;
+	ifc->index = index;
+
+	n = tokenize(buf, f, nelem(f));
+	if(n < 2)
+		return l;
+
+	strncpy(ifc->dev, f[0], sizeof ifc->dev);
+	ifc->dev[sizeof(ifc->dev) - 1] = 0;
+	ifc->mtu = strtoul(f[1], nil, 10);
+
+	ll = &ifc->lifc;
+	for(i = 2; n-i >= 7; i += 7){
+		/* allocate new local address */
+		*ll = lifc = mallocz(sizeof(Iplifc), 1);
+		ll = &lifc->next;
+
+		parseip(lifc->ip, f[i]);
+		parseipmask(lifc->mask, f[i+1]);
+		parseip(lifc->net, f[i+2]);
+		ifc->pktin = strtoul(f[i+3], nil, 10);
+		ifc->pktout = strtoul(f[i+4], nil, 10);
+		ifc->errin = strtoul(f[i+5], nil, 10);
+		ifc->errout = strtoul(f[i+6], nil, 10);
+	}
+	return l;
+}
+
+char*
+findfield(char *name, char **f, int n)
+{
+	int i;
+
+	for(i = 0; i < n-1; i++)
+		if(strcmp(f[i], name) == 0)
+			return f[i+1];
+	return "";
+}
+
+static Ipifc**
 _readipifc(char *file, Ipifc **l, int index)
 {
-	int i, n, fd;
+	int i, n, fd, lines;
 	char buf[4*1024];
-	char *f[200];
+	char *line[32];
+	char *f[64];
 	Ipifc *ifc;
 	Iplifc *lifc, **ll;
 
@@ -21,9 +73,9 @@ _readipifc(char *file, Ipifc **l, int index)
 		n += i;
 	buf[n] = 0;
 	close(fd);
-	n = tokenize(buf, f, nelem(f));
-	if(n < 2)
-		return l;
+
+	if(strncmp(buf, "device", 6) != 0)
+		return _readoldipifc(buf, l, index);
 
 	/* allocate new interface */
 	*l = ifc = mallocz(sizeof(Ipifc), 1);
@@ -31,78 +83,51 @@ _readipifc(char *file, Ipifc **l, int index)
 		return l;
 	l = &ifc->next;
 	ifc->index = index;
-	i = 0;
 
-	if(strcmp(f[i], "device") == 0){
-		/* new format */
-		i++;
-		strncpy(ifc->dev, f[i++], sizeof(ifc->dev));
-		ifc->dev[sizeof(ifc->dev)-1] = 0;
-		i++;
-		ifc->mtu = strtoul(f[i++], nil, 10);
-		i++;
-		ifc->sendra6 = atoi(f[i++]);
-		i++;
-		ifc->recvra6 = atoi(f[i++]);
-		i++;
-		ifc->rp.mflag = atoi(f[i++]);
-		i++;
-		ifc->rp.oflag = atoi(f[i++]);
-		i++;
-		ifc->rp.maxraint = atoi(f[i++]);
-		i++;
-		ifc->rp.minraint = atoi(f[i++]);
-		i++;
-		ifc->rp.linkmtu = atoi(f[i++]);
-		i++;
-		ifc->rp.reachtime = atoi(f[i++]);
-		i++;
-		ifc->rp.rxmitra = atoi(f[i++]);
-		i++;
-		ifc->rp.ttl = atoi(f[i++]);
-		i++;
-		ifc->rp.routerlt = atoi(f[i++]);
-		i++;
-		ifc->pktin = strtoul(f[i++], nil, 10);
-		i++;
-		ifc->pktout = strtoul(f[i++], nil, 10);
-		i++;
-		ifc->errin = strtoul(f[i++], nil, 10);
-		i++;
-		ifc->errout = strtoul(f[i++], nil, 10);
-	
-		ll = &ifc->lifc;
-		while(n-i >= 5){
-			/* allocate new local address */
-			*ll = lifc = mallocz(sizeof(Iplifc), 1);
-			ll = &lifc->next;
-	
-			parseip(lifc->ip, f[i++]);
-			parseipmask(lifc->mask, f[i++]);
-			parseip(lifc->net, f[i++]);
-			lifc->validlt = strtoul(f[i++], nil, 10);
-			lifc->preflt = strtoul(f[i++], nil, 10);
-		}
-	} else {
-		/* old format */
-		strncpy(ifc->dev, f[i++], sizeof(ifc->dev));
-		ifc->dev[sizeof(ifc->dev)-1] = 0;
-		ifc->mtu = strtoul(f[i++], nil, 10);
+	lines = getfields(buf, line, nelem(line), 1, "\n");
 
-		ll = &ifc->lifc;
-		while(n-i >= 7){
-			/* allocate new local address */
-			*ll = lifc = mallocz(sizeof(Iplifc), 1);
-			ll = &lifc->next;
+	/* pick off device specific info(first line) */
+	n = tokenize(line[0], f, nelem(f));
+	strncpy(ifc->dev, findfield("device", f, n), sizeof(ifc->dev));
+	ifc->dev[sizeof(ifc->dev)-1] = 0;
+	if(ifc->dev[0] == 0){
+		free(ifc);
+		return l;
+	}
+	ifc->mtu = strtoul(findfield("maxmtu", f, n), nil, 10);
+	ifc->sendra6 = atoi(findfield("sendra", f, n));
+	ifc->recvra6 = atoi(findfield("recvra", f, n));
+	ifc->rp.mflag = atoi(findfield("mflag", f, n));
+	ifc->rp.oflag = atoi(findfield("oflag", f, n));
+	ifc->rp.maxraint = atoi(findfield("maxraint", f, n));
+	ifc->rp.minraint = atoi(findfield("minraint", f, n));
+	ifc->rp.linkmtu = atoi(findfield("linkmtu", f, n));
+	ifc->rp.reachtime = atoi(findfield("reachtime", f, n));
+	ifc->rp.rxmitra = atoi(findfield("rxmitra", f, n));
+	ifc->rp.ttl = atoi(findfield("ttl", f, n));
+	ifc->rp.routerlt = atoi(findfield("routerlt", f, n));
+	ifc->pktin = strtoul(findfield("pktin", f, n), nil, 10);
+	ifc->pktout = strtoul(findfield("pktout", f, n), nil, 10);
+	ifc->errin = strtoul(findfield("errin", f, n), nil, 10);
+	ifc->errout = strtoul(findfield("errout", f, n), nil, 10);
 	
-			parseip(lifc->ip, f[i++]);
-			parseipmask(lifc->mask, f[i++]);
-			parseip(lifc->net, f[i++]);
-			ifc->pktin = strtoul(f[i++], nil, 10);
-			ifc->pktout = strtoul(f[i++], nil, 10);
-			ifc->errin = strtoul(f[i++], nil, 10);
-			ifc->errout = strtoul(f[i++], nil, 10);
-		}
+	/* now read the addresses */
+	ll = &ifc->lifc;
+	for(i = 1; i < lines; i++){
+		n = tokenize(line[i], f, nelem(f));
+		if(n < 5)
+			break;
+
+		/* allocate new local address */
+		*ll = lifc = mallocz(sizeof(Iplifc), 1);
+		ll = &lifc->next;
+
+		parseip(lifc->ip, f[0]);
+		parseipmask(lifc->mask, f[1]);
+		parseip(lifc->net, f[2]);
+
+		lifc->validlt = strtoul(f[3], nil, 10);
+		lifc->preflt = strtoul(f[4], nil, 10);
 	}
 
 	return l;

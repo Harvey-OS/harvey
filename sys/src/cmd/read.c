@@ -3,6 +3,7 @@
 
 int	multi;
 int	nlines;
+char	*status = nil;
 
 int
 line(int fd, char *file)
@@ -17,10 +18,13 @@ line(int fd, char *file)
 		n = read(fd, &c, 1);
 		if(n < 0){
 			fprint(2, "read: error reading %s: %r\n", file);
-			exits("open");
+			exits("read error");
 		}
-		if(n == 0)
+		if(n == 0){
+			if(m == 0)
+				status = "eof";
 			break;
+		}
 		if(m == nalloc){
 			nalloc += 1024;
 			buf = realloc(buf, nalloc);
@@ -83,5 +87,5 @@ main(int argc, char *argv[])
 			close(fd);
 		}
 
-	exits(0);
+	exits(status);
 }

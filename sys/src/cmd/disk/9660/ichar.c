@@ -109,8 +109,10 @@ isocmp(const void *va, const void *vb)
 	a = va;
 	b = vb;
 
-	b1 = strecpy(s1, s1+sizeof s1, a->confname);
-	b2 = strecpy(s2, s2+sizeof s2, b->confname);
+	strecpy(s1, s1+sizeof s1, a->confname);
+	b1 = s1;
+	strecpy(s2, s2+sizeof s2, b->confname);
+	b2 = s2;
 	if((e1 = strchr(b1, '.')) != nil)
 		*e1++ = '\0';
 	else

@@ -1,6 +1,6 @@
 .TH FCALL 2
 .SH NAME
-Fcall, convS2M, convD2M, convM2S, convM2D, fcallfmt, dirfmt, dirmodefmt, read9pmsg, statcheck, sizeD2M \- interface to Plan 9 File protocol
+Fcall, convS2M, convD2M, convM2S, convM2D, fcallfmt, dirfmt, dirmodefmt, read9pmsg, statcheck, sizeS2M, sizeD2M \- interface to Plan 9 File protocol
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -31,10 +31,13 @@ int fcallfmt(Fmt*)
 int dirmodefmt(Fmt*)
 .PP
 .B
-int read9pmsg(int fd, uchar *buf, uint nbuf);
+int read9pmsg(int fd, uchar *buf, uint nbuf)
 .PP
 .B
-int statcheck(uchar *buf, uint nbuf);
+int statcheck(uchar *buf, uint nbuf)
+.PP
+.B
+uint sizeS2M(Fcall *f)
 .PP
 .B
 uint sizeD2M(Dir *d)
@@ -214,6 +217,17 @@ will be no more than the buffer size negotiated in the
 exchange, minus
 .BR IOHDRSZ .
 .PP
+The routine
+.I sizeS2M
+returns the number of bytes required to store the machine-independent representation of the
+.B Fcall
+structure
+.IR f ,
+including its initial 32-bit size field.
+In other words, it reports the number of bytes produced
+by a successful call to
+.IR convS2M .
+.PP
 Another structure is
 .BR Dir ,
 used by the routines described in
@@ -265,6 +279,15 @@ With the exception of handling short buffers in
 .IR convD2M ,
 these macros are not usually needed except by internal routines.
 .PP
+Analogous to
+.IR sizeS2M ,
+.I sizeD2M
+returns the number of bytes required to store the machine-independent representation of the
+.B Dir
+structure
+.IR d ,
+including its initial 16-bit size field.
+.PP
 The routine
 .B statcheck
 checks whether the
@@ -298,17 +321,6 @@ It returns
 for a valid entry and
 .B -1
 for an incorrectly formatted entry.
-.PP
-The routine
-.I sizeD2M
-returns the number of bytes required to store the machine-independent representation of the
-.B Dir
-structure
-.IR d ,
-including its initial 16-bit size field.
-In other words, it reports the number of bytes produced
-by a successful call to
-.IR convD2M .
 .PP
 .IR Dirfmt ,
 .IR fcallfmt ,

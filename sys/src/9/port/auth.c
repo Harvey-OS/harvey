@@ -75,6 +75,11 @@ sysfauth(ulong *arg)
 	}
 
 	ac = mntauth(c, aname);
+
+	/* at this point ac is responsible for keeping c alive */
+	cclose(c);
+	poperror();	/* c */
+
 	if(waserror()){
 		cclose(ac);
 		nexterror();
@@ -84,7 +89,6 @@ sysfauth(ulong *arg)
 	if(fd < 0)
 		error(Enofd);
 	poperror();	/* ac */
-	poperror();	/* c */
 
 	/* always mark it close on exec */
 	ac->flag |= CCEXEC;

@@ -1285,6 +1285,8 @@ runwaittask(void *v)
 	if(c->pid != 0)	/* successful exec */
 		sendp(ccommand, c);
 	else{
+		if(c->iseditcmd)
+			sendul(cedit, 0);
 		free(c->name);
 		free(c->text);
 		free(c);

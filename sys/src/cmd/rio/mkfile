@@ -2,18 +2,28 @@
 BIN=/$objtype/bin
 
 TARG=rio
-OFILES=rio.$O\
-	data.$O\
-	fsys.$O\
-	scrl.$O\
-	time.$O\
-	util.$O\
-	wctl.$O\
-	wind.$O\
-	xfid.$O\
+FILES=\
+	rio\
+	data\
+	fsys\
+	scrl\
+	time\
+	util\
+	wctl\
+	wind\
+	xfid\
 
 HFILES=dat.h\
 	fns.h\
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/bin/$TARG\
+	$HFILES\
+	$CFILES\
 
 </sys/src/cmd/mkone
 
@@ -21,5 +31,3 @@ $O.out:	/$objtype/lib/libdraw.a /$objtype/lib/libframe.a /$objtype/lib/libthread
 syms:V:
 	vc -a $CFLAGS rio.c	>syms
 	vc -aa $CFLAGS *.c 	>>syms
-
-install:	$O.out

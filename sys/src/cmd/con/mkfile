@@ -6,6 +6,13 @@ TARG=con\
 	hayes\
 
 BIN=/$objtype/bin
+
+UPDATE=mkfile\
+	${TARG:%=/386/bin/%}\
+	${TARG:%=%.c}\
+	/sys/man/1/con\
+
 </sys/src/cmd/mkmany
 
 con.$O:	rustream.h ruttyio.h rusignal.h rufilio.h
+

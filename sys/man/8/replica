@@ -201,7 +201,7 @@ to the file system rooted at
 copying files when necessary from the file system rooted at
 .IR serverroot .
 By default,
-.I replapplylog
+.I applylog
 does not attempt to set the uid on files; the
 .B -u
 flag enables this.
@@ -212,14 +212,14 @@ the conflict and takes no action.
 If the
 .B -c
 flag is given, 
-.I replapplylog
+.I applylog
 still takes no action, but does so silently and will not
 report the conflicts in the future.
 (The conflict is resolved in favor of the client.)
 If the
 .B -s
 flag is given,
-.I replapplylog
+.I applylog
 overwrites the local changes.
 (The conflict is resolved in favor of the server.)
 .PP

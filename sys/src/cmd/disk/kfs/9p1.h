@@ -110,6 +110,7 @@ int	convM2D9p1(char*, Dentry*);
 int	convM2S9p1(uchar*, Oldfcall*, int);
 int	convS2M9p1(Oldfcall*, uchar*);
 void	fcall9p1(Chan*, Oldfcall*, Oldfcall*);
+int	authorize(Chan*, Oldfcall*, Oldfcall*);
 
 void	(*call9p1[MAXSYSCALL])(Chan*, Oldfcall*, Oldfcall*);
 

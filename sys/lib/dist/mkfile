@@ -1,18 +1,23 @@
-d=/n/emelieother/plan9
-x=`{mount /srv/emelie /n/emelieother other}
+d=/n/sources/plan9
+x=`{9fs sources; 9fs emelieother}
 
 cd:V: /n/emelieother/rsc/plan9.iso
 
 /n/emelieother/rsc/plan9.iso:DV:
+	t=/tmp/pdf.$pid
+	mkdir $t
+	mv $d/sys/doc/*.pdf $t
 	@{cd pc; mk cddisk; cd ..}
 	rm -f $target
 	bind pc/cddisk cdstub/bootdisk.img
 	bind -a cdstub $d
-	disk/mk9660 -9cj -v 'Plan 9 from Bell Labs 4th Edition' -s $d \
+	disk/mk9660 -9cj -v 'Plan 9 4th Edition' -s $d \
 		-b bootdisk.img $target
+	mv $t/*.pdf $d/sys/doc
+	rm $t
 
 scan:V:
-	replica/scan /sys/lib/dist/emelieother.replica
+	replica/scan /sys/lib/dist/sources.replica <scan.lock
 
 compresslog:V:
 	awk -f logcompress.awk $d/dist/replica/plan9.log | awk -f logtime.awk -v 't='^`{date -n} >/tmp/plan9.log
@@ -32,7 +37,7 @@ odump:V:
 		-p /sys/lib/sysconfig/proto/allproto /n/emelieother/rsc/distdump.iso
 
 cd.install:V:
-	if(~ $sysname achille){ echo 'run this on a real machine, like olive.'; exit bad }
+	if(~ $sysname achille){ echo; echo; echo '*** run this on a real machine, like olive.'; exit bad }
 	bzip2 -9 < /n/emelieother/rsc/plan9.iso >web.protect/nplan9.iso.bz2
 
 D.install:V:
@@ -43,8 +48,9 @@ D.install:V:
 
 
 reallyinstall:V:
+	if(! ~ $sysname achille){ echo; echo; echo '*** this needs to run on achille.'; exit bad }
 	cd web.protect
-	for (i in plan9.iso.bz2 disk 9loaddebug){
+	for (i in plan9.iso.bz2 disk 9loaddebug vmware.tar.bz2){
 		if(test -f n$i){
 			mv $i _$i && { mv n$i $i || mv _$i $i }
 		}
@@ -54,9 +60,20 @@ reallyinstall:V:
 
 dump:V:
 	rm -f /srv/9660.xxx
-	9660srv xxx
+	9660srv 9660.xxx
 	mount /srv/9660.xxx /n/kremvax /n/emelieother/rsc/plan9.iso
-	now=`{/usr/rsc/bin/$cputype/mtime /n/emelieother/rsc/plan9.iso | awk '{print $2}'}
+	now=`{/usr/rsc/bin/$cputype/mtime /sys/lib/dist/web.protect/plan9.iso.bz2 | awk '{print $2}'}
 	ls -l /rls/plan9/4e.iso
-	disk/dump9660 -s /n/kremvax -n $now /rls/plan9/4e.iso
+	disk/dump9660 -9cj -s /n/kremvax -n $now /rls/plan9/4e.iso
 	ls -l /rls/plan9/4e.iso
+	rm /srv/9660.xxx
+
+reencode:V:
+	rm -f /n/emelieother/rsc/nplan9.iso
+	rm -f /srv/9660.xxx
+	9660srv 9660.xxx
+	mount /srv/9660.xxx /n/kremvax /n/emelieother/rsc/plan9.iso
+	disk/mk9660 -9cj -v 'Plan 9 4th Edition' -s /n/kremvax \
+		-b bootdisk.img /n/emelieother/rsc/nplan9.iso
+	rm /srv/9660.xxx
+

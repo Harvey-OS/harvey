@@ -2,42 +2,47 @@
 
 CFLAGS=$CFLAGS
 
-LIBOFILES=\
-	arena.$O\
-	arenas.$O\
-	buildbuck.$O\
-	clump.$O\
-	config.$O\
-	conv.$O\
-	dcache.$O\
-	dump.$O\
-	httpd.$O\
-	icache.$O\
-	ifile.$O\
-	index.$O\
-	lump.$O\
-	lumpcache.$O\
-	lumpqueue.$O\
-	part.$O\
-	score.$O\
-	sortientry.$O\
-	stats.$O\
-	syncarena.$O\
-	syncindex.$O\
-	unwhack.$O\
-	utils.$O\
-	unittoull.$O\
-	whack.$O\
-	xml.$O\
-	zeropart.$O\
+UPDATEFLAGS=
+
+FILES=\
+	arena\
+	arenas\
+	buildbuck\
+	clump\
+	config\
+	conv\
+	dcache\
+	dump\
+	httpd\
+	icache\
+	ifile\
+	index\
+	lump\
+	lumpcache\
+	lumpqueue\
+	part\
+	score\
+	sortientry\
+	stats\
+	syncarena\
+	syncindex\
+	unwhack\
+	utils\
+	unittoull\
+	whack\
+	xml\
+	zeropart\
+
+LIBCFILES=${FILES:%=%.c}
+LIBOFILES=${FILES:%=%.$O}
 
 SLIB=libvs.a.$O
+
 LIB=$SLIB\
 
 HFILES=	dat.h\
 	fns.h\
 	stdinc.h\
-	zeropart.c\
 
 TARG=\
 	venti\
@@ -53,6 +58,14 @@ TARG=\
 	sync\
 	verifyarena\
 #	dumparena\
+
+CFILES=${TARG:%=%.c} $LIBCFILES
+
+UPDATE=mkfile\
+	mkxml\
+	${TARG:%=/386/bin/venti/%}\
+	$HFILES\
+	$CFILES\
 
 BIN=/$objtype/bin/venti
 

@@ -72,7 +72,11 @@ It never reads any more data from the input than it prints to the output.
 .I Read
 exits with status
 .B eof
-on end of file.
+on end of file or, in the
+.B -n
+case, if it doesn't read
+.I nlines
+lines.
 .SH BUGS
 Beware of
 .L "cat a b >a"

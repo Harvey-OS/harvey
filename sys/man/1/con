@@ -4,7 +4,7 @@ con, telnet, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
 .SH SYNOPSIS
 .B con
 [
-.B -CdnrRvs
+.B -CdnrRvsT
 ]
 [
 .B -b
@@ -45,6 +45,9 @@ con, telnet, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
 ]
 .PP
 .B xms
+[
+.B -1p
+]
 .I file
 .PP
 .B xmr
@@ -100,7 +103,10 @@ Plan 9.
 .TP
 .B -R
 translates newlines to carriage returns and
-.IR vice versa .
+.IR "vice versa" .
+.TP
+.B -T
+translates incoming carriage returns to newlines.
 .TP
 .B -s
 strips received characters to 7 bits to forestall
@@ -193,6 +199,15 @@ XMODEM protocol.
 They use standard input and standard output for communication
 and are intended for use with
 .IR con .
+The
+.B -1
+option to
+.I xms
+causes it to use kilobyte packet size of 1024 bytes.
+The
+.B -p
+option causes it to print a progress
+message every ten kilobytes.
 .SH EXAMPLES
 .TP
 .L

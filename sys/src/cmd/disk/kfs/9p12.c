@@ -48,28 +48,33 @@ readmsg(Chan *c, void *abuf, int n, int *ninep)
 	return len;
 }
 
-void
+int
 startserveproc(void (*f)(Chan*, uchar*, int), char *name, Chan *c, uchar *b, int nb)
 {
-	switch(rfork(RFMEM|RFPROC)){
+	int pid;
+
+	switch(pid = rfork(RFMEM|RFPROC)){
 	case -1:
 		panic("can't fork");
 	case 0:
 		break;
 	default:
-		return;
+		return pid;
 	}
 	procname = name;
 	f(c, b, nb);
 	_exits(nil);
+	return -1;	/* can't happen */
 }
 
 void
 serve(Chan *chan)
 {
-	int i, nin, p9;
+	int i, nin, p9, npid;
 	uchar inbuf[1024];
 	void (*s)(Chan*, uchar*, int);
+	int *pid;
+	Waitmsg *w;
 
 	p9 = 0;
 	if((nin = readmsg(chan, inbuf, sizeof inbuf, &p9)) < 0)
@@ -87,8 +92,24 @@ serve(Chan *chan)
 		break;
 	}
 
+	pid = malloc(sizeof(pid)*(conf.nserve-1));
+	if(pid == nil)
+		return;
 	for(i=1; i<conf.nserve; i++)
-		startserveproc(s, "srv", chan, nil, 0);
+		pid[i-1] = startserveproc(s, "srv", chan, nil, 0);
+
 	(*s)(chan, inbuf, nin);
+
+	/* wait till all other servers for this chan are done */
+	for(npid = conf.nserve-1; npid > 0;){
+		w = wait();
+		if(w == 0)
+			break;
+		for(i = 0; i < conf.nserve-1; i++)
+			if(pid[i] == w->pid)
+				npid--;
+		free(w);
+	}
+	free(pid);
 }
 

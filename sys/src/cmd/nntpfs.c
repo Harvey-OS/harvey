@@ -1068,9 +1068,9 @@ main(int argc, char **argv)
 	if(auth) {
 		n.auth = 1;
 		if(user)
-			up = auth_getuserpasswd(auth_getkey, "proto=pass service=nntp host=%q user=%q", where, user);
+			up = auth_getuserpasswd(auth_getkey, "proto=pass service=nntp server=%q user=%q", where, user);
 		else
-			up = auth_getuserpasswd(auth_getkey, "proto=pass service=nntp host=%q", where);
+			up = auth_getuserpasswd(auth_getkey, "proto=pass service=nntp server=%q", where);
 		if(up == nil)
 			sysfatal("no password: %r");
 

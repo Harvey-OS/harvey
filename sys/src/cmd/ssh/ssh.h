@@ -242,6 +242,7 @@ void		sshclienthandshake(Conn*);
 void		requestpty(Conn*);
 int		readgeom(int*, int*, int*, int*);
 void		sendwindowsize(Conn*, int, int, int, int);
+int		rawhack;
 
 /* smsg.c */
 void		sshserverhandshake(Conn*);

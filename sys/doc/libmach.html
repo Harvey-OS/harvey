@@ -47,39 +47,38 @@ application program support for a new architecture.
 </H4>
 <P>
 Architecture-dependent information for the new processor
-is stored in the directory tree rooted at
-</I><TT>/<I>m</TT><I>
+is stored in the directory tree rooted at <TT>/</TT><I>m</I>
 where
-</I><I>m</I><I>
+<I>m</I>
 is the name of the new architecture (e.g.,
-</I><TT>mips</TT><I>).
+<TT>mips</TT>).
 The new directory should be initialized with several important
 subdirectories, notably
-</I><TT>bin</TT><I>,
-</I><TT>include</TT><I>,
+<TT>bin</TT>,
+<TT>include</TT>,
 and
-</I><TT>lib</TT><I>.
+<TT>lib</TT>.
 The directory tree of an existing architecture
 serves as a good model for the new tree.
 The architecture-dependent
-</I><TT>mkfile</TT><I>
+<TT>mkfile</TT>
 must be stored in the newly created root directory
 for the architecture.  It is easiest to copy the
 mkfile for an existing architecture and modify
 it for the new architecture.  When the mkfile
 is correct, change the
-</I><TT>OS</TT><I>
+<TT>OS</TT>
 and
-</I><TT>CPUS</TT><I>
+<TT>CPUS</TT>
 variables in the
-</I><TT>/sys/src/mkfile.proto</TT><I>
+<TT>/sys/src/mkfile.proto</TT>
 to reflect the addition of the new architecture.
 </P>
-</I><H4>Headers
+<H4>Headers
 </H4>
 <br>&#32;<br>
 Architecture-dependent headers are stored in directory
-<TT>/<I>m</I>/include</TT>
+<TT>/&lt;I&gt;m&lt;/I&gt;/include</TT>
 where
 <I>m</I>
 is the name of the architecture (e.g.,
@@ -403,7 +402,7 @@ A variety of symbol table access functions then support
 queries on the reformatted table.
 <DT>Debugger Support - <DD>
 Files named
-<TT><I>m</I>.c</TT>,
+<TT>&lt;I&gt;m&lt;/I&gt;.c</TT>,
 where
 <I>m</I>
 is the code letter assigned to the architecture,
@@ -416,7 +415,7 @@ an initialized
 <TT>Machdata</TT>
 structure are stored in
 files named
-<TT><I>m</I>db.c</TT>.
+<TT>&lt;I&gt;m&lt;/I&gt;db.c</TT>.
 Files
 <TT>machdata.c</TT>
 and
@@ -448,7 +447,7 @@ and extract references to symbols.  File
 <TT>obj.c</TT>
 contains code common to all architectures;
 file
-<TT><I>m</I>obj.c</TT>
+<TT>&lt;I&gt;m&lt;/I&gt;obj.c</TT>
 contains the architecture-specific source code
 for the machine with code character
 <I>m</I>.
@@ -528,7 +527,7 @@ A symbolic code for the object file.
 <DL COMPACT>
 <DT>2.<DD>
 In a file name
-<TT>/sys/src/libmach/<I>m</I>.c</TT>
+<TT>/sys/src/libmach/&lt;I&gt;m&lt;/I&gt;.c</TT>
 (where
 <I>m</I>
 is the identifier character assigned to the architecture),
@@ -545,7 +544,7 @@ Most of the fields of the
 data structure are obvious
 but a few require further explanation.
 <DL><DD>
-<DT><TT>kbase</TT> - <DD>
+<DT>&lt;TT&gt;kbase&lt;/TT&gt; - <DD>
 This field
 contains the address of the kernel 
 <TT>ublock</TT>.
@@ -555,7 +554,7 @@ assume the first entry of the kernel
 points to the
 <TT>Proc</TT>
 structure for a kernel thread.
-<DT><TT>ktmask</TT> - <DD>
+<DT>&lt;TT&gt;ktmask&lt;/TT&gt; - <DD>
 This field
 is a bit mask used to calculate the kernel text address from
 the kernel 
@@ -566,7 +565,7 @@ kernel text segment is calculated by
 ANDing
 the negation of this mask with
 <TT>kbase</TT>.
-<DT><TT>kspoff</TT> - <DD>
+<DT>&lt;TT&gt;kspoff&lt;/TT&gt; - <DD>
 This field
 contains the byte offset in the
 <TT>Proc</TT>
@@ -577,7 +576,7 @@ is the offset to the
 field of a
 <TT>Proc</TT>
 table entry.
-<DT><TT>kpcoff</TT> - <DD>
+<DT>&lt;TT&gt;kpcoff&lt;/TT&gt; - <DD>
 This field contains the byte offset into the
 <TT>Proc</TT>
 data structure
@@ -587,7 +586,7 @@ This is the offset to
 field
 <TT>sched.pc</TT>
 in that structure.
-<DT><TT>kspdelta</TT> and <TT>kpcdelta</TT> - <DD>
+<DT>&lt;TT&gt;kspdelta&lt;/TT&gt; and &lt;TT&gt;kpcdelta&lt;/TT&gt; - <DD>
 These fields
 contain corrections to be added to
 the stack pointer and program counter, respectively,
@@ -603,7 +602,7 @@ in the
 data structure.
 Most architectures require no bias
 and these fields contain zeros.
-<DT><TT>scalloff</TT> - <DD>
+<DT>&lt;TT&gt;scalloff&lt;/TT&gt; - <DD>
 This field
 contains the byte offset of the
 <TT>scallnr</TT>
@@ -701,7 +700,7 @@ architecture can be adopted with minor modifications.
 <DT>4.<DD>
 Write an object file parser and
 store it in file
-<TT>/sys/src/libmach/<I>m</I>obj.c</TT>
+<TT>/sys/src/libmach/&lt;I&gt;m&lt;/I&gt;obj.c</TT>
 where
 <I>m</I>
 is the identifier character assigned to the architecture.
@@ -726,7 +725,7 @@ initialize the parameters and jump table of the
 data structure for the architecture.
 This code is conventionally stored in
 a file named
-<TT>/sys/src/libmach/<I>m</I>db.c</TT>
+<TT>/sys/src/libmach/&lt;I&gt;m&lt;/I&gt;db.c</TT>
 where
 <I>m</I>
 is the identifier character assigned to the architecture.
@@ -734,11 +733,11 @@ The fields of the
 <TT>Machdata</TT>
 structure are:
 <DL><DD>
-<DT><TT>bpinst</TT> and <TT>bpsize</TT> - <DD>
+<DT>&lt;TT&gt;bpinst&lt;/TT&gt; and &lt;TT&gt;bpsize&lt;/TT&gt; - <DD>
 These fields
 contain the breakpoint instruction and the size
 of the instruction, respectively.
-<DT><TT>swab</TT> - <DD>
+<DT>&lt;TT&gt;swab&lt;/TT&gt; - <DD>
 This field
 contains the address of a function to
 byte-swap a 16-bit value.  Choose
@@ -746,7 +745,7 @@ byte-swap a 16-bit value.  Choose
 or
 <TT>beswab</TT>
 for little-endian or big-endian architectures, respectively.
-<DT><TT>swal</TT> - <DD>
+<DT>&lt;TT&gt;swal&lt;/TT&gt; - <DD>
 This field
 contains the address of a function to
 byte-swap a 32-bit value.  Choose
@@ -754,7 +753,7 @@ byte-swap a 32-bit value.  Choose
 or
 <TT>beswal</TT>
 for little-endian or big-endian architectures, respectively.
-<DT><TT>ctrace</TT> - <DD>
+<DT>&lt;TT&gt;ctrace&lt;/TT&gt; - <DD>
 This field
 contains the address of a function to perform a
 C-language stack trace.  Two general trace functions,
@@ -767,7 +766,7 @@ new architecture conforms to one of
 these models, select the appropriate function.  If the
 stack model is unique,
 supply a custom stack trace function.
-<DT><TT>findframe</TT> - <DD>
+<DT>&lt;TT&gt;findframe&lt;/TT&gt; - <DD>
 This field
 contains the address of a function to locate the stack
 frame associated with a text address.
@@ -777,7 +776,7 @@ and
 <TT>ciscframe</TT>
 process fixed-frame and relative-frame stack
 models.
-<DT><TT>ufixup</TT> - <DD>
+<DT>&lt;TT&gt;ufixup&lt;/TT&gt; - <DD>
 This field
 contains the address of a function to adjust
 the base address of the register save area.
@@ -785,7 +784,7 @@ Currently, only the
 68020 requires this bias
 to offset over the active
 exception frame.
-<DT><TT>excep</TT> - <DD>
+<DT>&lt;TT&gt;excep&lt;/TT&gt; - <DD>
 This field
 contains the address of a function to produce a
 text
@@ -793,11 +792,11 @@ string describing the
 current exception.
 Each architecture stores exception
 information uniquely, so this code must always be supplied.
-<DT><TT>bpfix</TT> - <DD>
+<DT>&lt;TT&gt;bpfix&lt;/TT&gt; - <DD>
 This field
 contains the address of a function to adjust an
 address prior to laying down a breakpoint.
-<DT><TT>sftos</TT> - <DD>
+<DT>&lt;TT&gt;sftos&lt;/TT&gt; - <DD>
 This field
 contains the address of a function to convert a single
 precision floating point value
@@ -807,7 +806,7 @@ for little-endian
 or
 <TT>beieeesftos</TT>
 for big-endian architectures.
-<DT><TT>dftos</TT> - <DD>
+<DT>&lt;TT&gt;dftos&lt;/TT&gt; - <DD>
 This field
 contains the address of a function to convert a double
 precision floating point value
@@ -817,7 +816,7 @@ for little-endian
 or
 <TT>beieeedftos</TT>
 for big-endian architectures.
-<DT><TT>foll</TT>, <TT>das</TT>, <TT>hexinst</TT>, and <TT>instsize</TT> - <DD>
+<DT>&lt;TT&gt;foll&lt;/TT&gt;, &lt;TT&gt;das&lt;/TT&gt;, &lt;TT&gt;hexinst&lt;/TT&gt;, and &lt;TT&gt;instsize&lt;/TT&gt; - <DD>
 These fields point to functions that interpret machine
 instructions.
 They rely on disassembly of the instruction
@@ -907,5 +906,5 @@ and load with
 </dl>
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2002 Lucent Technologies Inc.  All rights reserved.
 </body></html>

@@ -164,8 +164,9 @@ bunzip(int ofd, char *ofile, Biobuf *bin)
 			strm.next_out = obuf;
 			strm.avail_out = sizeof obuf;
 		}
-
 		if(onemore == 0)
+			break;
+		if(strm.avail_in == 0 && strm.avail_out == sizeof obuf)
 			break;
 	} while((e=BZ2_bzDecompress(&strm)) == BZ_OK || onemore--);
 

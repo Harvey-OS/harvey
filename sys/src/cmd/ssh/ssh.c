@@ -5,6 +5,7 @@ int crstrip;
 int interactive = -1;
 int usemenu = 1;
 int isatty(int);
+int rawhack;
 char *buildcmd(int, char**);
 void fromnet(Conn*);
 void fromstdin(Conn*);
@@ -56,7 +57,7 @@ findauth(char *name, Auth **list, int nlist)
 void
 usage(void)
 {
-	fprint(2, "usage: ssh [-CiImpr] [-A authlist] [-c cipherlist] [user@]hostname [cmd [args]]\n");
+	fprint(2, "usage: ssh [-CiImPpRrvw] [-A authlist] [-c cipherlist] [user@]hostname [cmd [args]]\n");
 	exits("usage");
 }
 
@@ -115,6 +116,9 @@ main(int argc, char **argv)
 		break;
 	case 'p':
 		usepty = 1;
+		break;
+	case 'R':
+		rawhack = 1;
 		break;
 	case 'r':
 		crstrip = 1;
@@ -269,6 +273,7 @@ fromnet(Conn *c)
 			write(fd, s, len);
 			break;
 		}
+		free(m);
 	}
 }		
 

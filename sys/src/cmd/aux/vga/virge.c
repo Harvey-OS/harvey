@@ -151,6 +151,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		break;
 
 	case 0x8A22:				/* Savage4 */
+	case 0x8A26:				/* 3D Savage4? */
 		vga->r[1] = 4;
 		vga->m[1] = 511;
 		vga->n[1] = 127;
@@ -183,6 +184,7 @@ options(Vga *vga, Ctlr* ctlr)
 	case 0x8C10:				/* Savage MX/MV */
 	case 0x8C12:				/* Savage4/IX-MV */
 	case 0x8A22:				/* Savage4 */
+	case 0x8A26:				/* 3D Savage4 */
 		/*
 		 * Round up so stride is multiple of 16.
 		 */
@@ -378,6 +380,7 @@ init(Vga* vga, Ctlr* ctlr)
 
 		/*FALLTHROUGH*/
 	case 0x8A22:				/* Savage4 */
+	case 0x8A26:				/* 3D Savage4? */
 		/*
 		 * The Savage 4 is frustratingly similar to the
 		 * ViRGE/GX2, but has enough slight differences
@@ -473,6 +476,7 @@ init(Vga* vga, Ctlr* ctlr)
 		case 0x8C10:			/* Savage MX/MV */
 		case 0x8C12:			/* Savage4/IX-MV */
 		case 0x8A22:			/* Savage4 */
+		case 0x8A26:			/* 3D Savage4 */
 			vga->sequencer[0x12] = (vga->r[0]<<6)|(vga->n[0] & 0x3F);
 			vga->sequencer[0x39] &= ~0x01;
 			vga->sequencer[0x29] &= ~0x1C;
@@ -557,6 +561,7 @@ load(Vga* vga, Ctlr* ctlr)
 		vgaxo(Crtx, 0x91, vga->crt[0x91]);
 		/*FALLTHROUGH*/
 	case 0x8A22:				/* Savage4 */
+	case 0x8A26:				/* 3D Savage4? */
 		vgaxo(Seqx, 0x29, vga->sequencer[0x29]);
 		vgaxo(Seqx, 0x39, vga->sequencer[0x39]);
 		break;
@@ -594,6 +599,7 @@ load(Vga* vga, Ctlr* ctlr)
 	case 0x8C2E:				/* SuperSavage/IXC16 (let's try this -rsc) */
 	case 0x8C12:				/* Savage4/IX-MV */
 	case 0x8A22:				/* Savage4 */
+	case 0x8A26:				/* 3D Savage4 */
 		vgaxo(Crtx, 0x31, vga->crt[0x31]);
 		vgaxo(Crtx, 0x13, vga->crt[0x13]);
 		vgaxo(Crtx, 0x51, vga->crt[0x51]);
@@ -657,6 +663,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	case 0x8C2E:				/* SuperSavage/IXC16 (let's try this -rsc) */
 	case 0x8C12:				/* Savage4/IX-MV */
 	case 0x8A22:				/* Savage4 */
+	case 0x8A26:				/* 3D Savage4 */
 		m = vga->sequencer[0x13] & 0xFF;
 		if(vga->sequencer[0x29] & (1<<3))
 			m |= 0x100;

@@ -290,7 +290,8 @@ mkreq(DN *dp, int type, uchar *buf, ushort reqno)
 
 	/* make request and convert it to output format */
 	memset(&m, 0, sizeof(m));
-	m.flags = resolver ? Frecurse : 0;
+	m.flags = Frecurse;
+//	m.flags = resolver ? Frecurse : 0;
 	m.id = reqno;
 	m.qd = rralloc(type);
 	m.qd->owner = dp;

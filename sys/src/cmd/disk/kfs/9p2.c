@@ -52,7 +52,9 @@ fsauth(Chan *chan, Fcall *f, Fcall *r)
 	file = filep(chan, f->afid, 1);
 	if(file == nil)
 		return Efidinuse;
-	file->uid = -1;
+
+	/* forget any previous authentication */
+	file->cuid = 0;
 
 	if(access("/mnt/factotum", 0) < 0)
 		if((fd = open("/srv/factotum", ORDWR)) >= 0)
@@ -110,6 +112,9 @@ authread(File *file, uchar *data, int count)
 	int rv;
 
 	rpc = file->rpc;
+	if(rpc == nil)
+		return -1;
+
 	rv = auth_rpc(rpc, "read", nil, 0);
 	switch(rv){
 	case ARdone:
@@ -119,6 +124,7 @@ authread(File *file, uchar *data, int count)
 		if(chat)
 			print("authread identifies user as %s\n", ai->cuid);
 		file->cuid = strtouid(ai->cuid);
+		auth_freeAI(ai);
 		if(file->cuid == 0)
 			return -1;
 		if(chat)
@@ -212,6 +218,8 @@ checkattach(Chan *chan, File *afile, File *file, Filsys *fs)
 			return Eauth;
 	}
 	file->uid = afile->cuid;
+
+	/* once someone has authenticated on the channel, others can become none */
 	chan->authed = 1;
 
 	return 0;
@@ -341,6 +349,7 @@ clone(File* nfile, File* file)
 	nfile->addr = file->addr;
 	nfile->slot = file->slot;
 	nfile->uid = file->uid;
+	nfile->cuid = 0;
 	nfile->open = file->open & ~FREMOV;
 }
 
@@ -616,7 +625,7 @@ fsopen(Chan* chan, Fcall* f, Fcall* r)
 	/*
 	 * if remove on close, check access here
 	 */
-	ro = isro(file->fs->dev);
+	ro = isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup));
 	if(f->mode & ORCLOSE){
 		if(ro){
 			error = Eronly;
@@ -811,7 +820,7 @@ fscreate(Chan* chan, Fcall* f, Fcall* r)
 		error = Efid;
 		goto out;
 	}
-	if(isro(file->fs->dev)){
+	if(isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup))){
 		error = Eronly;
 		goto out;
 	}
@@ -1225,7 +1234,7 @@ fswrite(Chan* chan, Fcall* f, Fcall* r)
 		error = Eopen;
 		goto out;
 	}
-	if(isro(file->fs->dev)){
+	if(isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup))){
 		error = Eronly;
 		goto out;
 	}
@@ -1421,7 +1430,7 @@ fswstat(Chan* chan, Fcall* f, Fcall*, char *strs)
 		goto out;
 	}
 
-	if(isro(file->fs->dev)){
+	if(isro(file->fs->dev) || (writegroup && !ingroup(file->uid, writegroup))){
 		error = Eronly;
 		goto out;
 	}

@@ -5,7 +5,7 @@
 void
 usage(void)
 {
-	fprint(2, "usage: fmtisect [-Z] [-b blocksize] [-d directorySize] name file\n");
+	fprint(2, "usage: fmtisect [-Z] [-b blocksize] name file\n");
 	exits(0);
 }
 

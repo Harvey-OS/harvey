@@ -1,5 +1,5 @@
 WIN=x11
-OS=linux
+OS=posix
 
 CC=gcc
 CFLAGS=-g -c -DLINUX

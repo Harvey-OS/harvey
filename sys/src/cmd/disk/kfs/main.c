@@ -10,6 +10,7 @@ char	*myname;
 int	cmdfd;
 int	writeallow;	/* never on; for compatibility with fs */
 int	wstatallow;
+int	writegroup;
 int	allownone;
 int	noatime;
 int	srvfd(char*, int, int);
@@ -265,22 +266,6 @@ startproc(void (*f)(void), char *name)
 void
 confinit(void)
 {
-/*
-	int fd;
-
-	if ((fd = open("#c/hostowner", OREAD)) > 0) {
-		read(fd, nvr.authid, sizeof(nvr.authid));
-		close(fd);
-	}
-	if ((fd = open("#c/hostdomain", OREAD)) > 0) {
-		read(fd, nvr.authdom, sizeof(nvr.authdom));
-		close(fd);
-	}
-	if ((fd = open("#c/key", OREAD)) > 0) {
-		read(fd, nvr.authkey, sizeof(nvr.authkey));
-		close(fd);
-	}
-*/
 	conf.niobuf = 0;
 	conf.nuid = 600;
 	conf.nserve = 2;

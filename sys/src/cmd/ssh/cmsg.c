@@ -331,6 +331,36 @@ static uchar ptyopt[] =
 	0x00,		/* end options */
 };
 
+static uchar rawptyopt[] = 
+{
+	30,	0,		/* ignpar */
+	31,	0,		/* parmrk */
+	32,	0,		/* inpck */
+	33,	0,		/* istrip */
+	34,	0,		/* inlcr */
+	35,	0,		/* igncr */
+	36,	0,		/* icnrl */
+	37,	0,		/* iuclc */
+	38,	0,		/* ixon */
+	39,	1,		/* ixany */
+	40,	0,		/* ixoff */
+	41,	0,		/* imaxbel */
+
+	50,	0,		/* isig: intr, quit, susp processing */
+	51,	0,		/* icanon: erase and kill processing */
+	52,	0,		/* xcase */
+
+	53,	0,		/* echo */
+
+	57,	0,		/* noflsh */
+	58,	0,		/* tostop */
+	59,	0,		/* iexten: impl defined control chars */
+
+	70,	0,		/* opost */
+
+	0x00,
+};
+
 void
 requestpty(Conn *c)
 {
@@ -349,7 +379,10 @@ requestpty(Conn *c)
 	putlong(m, width);	/* pixels */
 	putlong(m, height);
 
-	putbytes(m, ptyopt, sizeof ptyopt);
+	if(rawhack)
+		putbytes(m, rawptyopt, sizeof rawptyopt);
+	else
+		putbytes(m, ptyopt, sizeof ptyopt);
 
 	sendmsg(m);
 

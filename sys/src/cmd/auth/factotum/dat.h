@@ -9,6 +9,8 @@
 #include <fcall.h>
 #include <9p.h>
 
+#pragma varargck type "N" Attr*
+
 enum
 {
 	Maxname = 128,
@@ -182,6 +184,7 @@ int secstorefetch(char*);
 
 int		_authdial(char*, char*);
 void		askuser(char*);
+int		attrnamefmt(Fmt *fmt);
 int		canusekey(Fsstate*, Key*);
 void		closekey(Key*);
 uchar	*convAI2M(AuthInfo*, uchar*, int);

@@ -38,3 +38,6 @@ nuke:V:
 
 %.acid: %.$O $HFILES
 	$CC $CFLAGS -a $stem.c >$target
+
+update:V:
+	update $UPDATEFLAGS $UPDATE

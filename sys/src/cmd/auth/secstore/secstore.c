@@ -235,7 +235,7 @@ login(char *id, char *dest, int chpass, char **gf, int *Gflag, char **pf, char *
 {
 	char pass[64];
 	ulong len;
-	int rv = -1, fd, passlen, newpasslen = 0;
+	int rv = -1, fd, passlen, newpasslen = 0, ntry = 0;
 	uchar *memfile, *memcur, *memnext;
 	char *S, *list, *cur, *next, *newpass = nil, *hexHi;
 	char *f[8], s[Maxmsg+1], prompt[128], buf[Maxmsg];
@@ -253,6 +253,7 @@ login(char *id, char *dest, int chpass, char **gf, int *Gflag, char **pf, char *
 		}
 		if((conn = newSConn(fd)) == nil)
 			return -1;
+		ntry++;
 		getpasswd("secstore password: ", pass, sizeof pass);
 		if(pass[0]==0){
 			fprint(2, "null password, skipping secstore login\n");
@@ -263,6 +264,8 @@ login(char *id, char *dest, int chpass, char **gf, int *Gflag, char **pf, char *
 			break;
 		conn->free(conn);
 		// and let user try retyping the password
+		if(ntry==3)
+			fprint(2, "Enter an empty password to quit.\n");
 	}
 	passlen = strlen(pass);
 	fprint(2, "%s\n", S);
@@ -412,21 +415,21 @@ main(int argc, char **argv)
 			exits("too many gfiles");
 		gfile[ngfile++] = ARGF();
 		if(gfile[ngfile-1] == nil)
-			exits("usage");
+			usage();
 		break;
 	case 'p':
 		if(npfile >= MAXFILES)
 			exits("too many pfiles");
 		pfile[npfile++] = ARGF();
 		if(pfile[npfile-1] == nil)
-			exits("usage");
+			usage();
 		break;
 	case 'r':
 		if(nrfile >= MAXFILES)
 			exits("too many rfiles");
 		rfile[nrfile++] = ARGF();
 		if(rfile[nrfile-1] == nil)
-			exits("usage");
+			usage();
 		break;
 	case 's':
 		serve = EARGF(usage());
@@ -436,6 +439,9 @@ main(int argc, char **argv)
 		break;
 	case 'v':
 		verbose++;
+		break;
+	default:
+		usage();
 		break;
 	}ARGEND;
 	gfile[ngfile] = nil;

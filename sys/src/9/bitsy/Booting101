@@ -115,20 +115,20 @@ being corrupted, because we haven't yet initialized it.
 sequence of commands.
 
 	# aux/mkflashfs /dev/flash/fs
-	
+
 	# aux/flashfs
 
 aux/flashfs created a Plan 9 server in /srv/brzr, which we can use to set up
 default directories. 
-	
+
 	# mount -c /srv/brzr /n/brzr
-	
+
 	# cd /n/brzr
-	
+
 	# mkdir n usr
-	
+
 	# mkdir n/fs n/emelie n/choline n/nslocum
-	
+
 	# mkdir usr/yourname usr/yourfriend
 
 

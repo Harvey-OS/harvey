@@ -994,7 +994,7 @@ main(int argc, char * argv[])
 	if(argc == 0)
 		argv = defargv;
 
-	if(access(argv[0], OEXEC) < 0)
+	if(access(argv[0], AEXEC) < 0)
 		sysfatal("can't exec %s: %r", argv[0]);
 
 	/*

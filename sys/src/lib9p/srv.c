@@ -654,16 +654,16 @@ if(chatty9p)
 		abort();
 	}
 	assert(n > 2);
-	m = write(srv->outfd, srv->wbuf, n);
-	if(m != n)
-		sysfatal("lib9p srv: write %d returned %d on fd %d: %r", n, m, srv->outfd);
-	qunlock(&srv->wlock);
-
 	if(r->pool){	/* not a fake */
 		closereq(removereq(r->pool, r->ifcall.tag));
 		closereq(r);
 	}else
 		free(r);
+	m = write(srv->outfd, srv->wbuf, n);
+	if(m != n)
+		sysfatal("lib9p srv: write %d returned %d on fd %d: %r", n, m, srv->outfd);
+	qunlock(&srv->wlock);
+
 }
 
 int

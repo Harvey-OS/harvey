@@ -176,6 +176,11 @@ If the
 .B -m
 option is given it is also passed as an option to
 .IR init .
+If the environment variable
+.B init
+is set (via
+.IR plan9.ini (8)),
+it is used as a command line to exec instead.
 .PP
 If the kernel has been built with the cache file system,
 .IR cfs (4),

@@ -135,6 +135,8 @@ retry:
 		f->tlock = 0;
 		f->dslot = 0;
 		f->doffset = 0;
+		f->uid = 0;
+		f->cuid = 0;
 		cp->flist = f;
 		return f;
 	}
@@ -281,11 +283,6 @@ iaccess(File *f, Dentry *d, int m)
 		return 0;
 
 	/*
-	 * other is easiest
-	 */
-	if(m & d->mode)
-		return 0;
-	/*
 	 * owner is next
 	 */
 	if(f->uid == d->uid)
@@ -297,6 +294,20 @@ iaccess(File *f, Dentry *d, int m)
 	if(ingroup(f->uid, d->gid))
 		if((m<<3) & d->mode)
 			return 0;
+	/*
+	 * other access for everyone except members of group 9999
+	 */
+	if(m & d->mode){
+		/* 
+		 *  walk directories regardless.
+		 *  otherwise its impossible to get
+		 *  from the root to noworld's directories.
+		 */
+		if((d->mode & DDIR) && (m == DEXEC))
+			return 0;
+		if(!ingroup(f->uid, 9999))
+			return 0;
+	}
 	return 1;
 }
 

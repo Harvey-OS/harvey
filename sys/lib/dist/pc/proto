@@ -130,7 +130,7 @@ rc	d555 sys sys
 		kill	555 sys sys
 		lc	555 sys sys
 		mkdir	555 sys sys /sys/lib/dist/pc/sub/mkdir
-		pci	555 sys sys /sys/lib/dist/pc/sub/pci
+		pci	555 sys sys
 		pwd	555 sys sys /sys/lib/dist/pc/sub/pwd
 		ramfs	555 sys sys /sys/lib/dist/pc/sub/ramfs
 		replica	d555 sys sys

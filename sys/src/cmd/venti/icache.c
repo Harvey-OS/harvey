@@ -16,7 +16,7 @@ struct ICache
 
 static ICache icache;
 
-static IEntry	*icacheAlloc(int type, u8int *score);
+static IEntry	*icacheAlloc(IAddr *ia, u8int *score);
 
 /*
  * bits is the number of bits in the icache hash table
@@ -54,7 +54,7 @@ and writing back the wtime.
  * must be called with the lump for this score locked
  */
 int
-lookupScore(u8int *score, int type, IAddr *ia)
+lookupScore(u8int *score, int type, IAddr *ia, int *rac)
 {
 	IEntry d, *ie, *last;
 	u32int h;
@@ -75,6 +75,7 @@ lookupScore(u8int *score, int type, IAddr *ia)
 			vtLock(stats.lock);
 			stats.icHits++;
 			vtUnlock(stats.lock);
+			ie->rac = 1;
 			goto found;
 		}
 		last = ie;
@@ -95,16 +96,14 @@ lookupScore(u8int *score, int type, IAddr *ia)
 
 	vtLock(icache.lock);
 
-	ie = icacheAlloc(type, score);
-
-	scoreCp(ie->score, score);
-	ie->ia = d.ia;
+	ie = icacheAlloc(&d.ia, score);
 
 found:
 	ie->next = icache.heads[h];
 	icache.heads[h] = ie;
 
 	*ia = ie->ia;
+	*rac = ie->rac;
 
 	vtUnlock(icache.lock);
 
@@ -115,7 +114,7 @@ found:
  * insert a new element in the hash table.
  */
 int
-insertScore(u8int *score, IAddr *ia)
+insertScore(u8int *score, IAddr *ia, int write)
 {
 	IEntry *ie, se;
 	u32int h;
@@ -127,10 +126,7 @@ insertScore(u8int *score, IAddr *ia)
 	vtLock(icache.lock);
 	h = hashBits(score, icache.bits);
 
-	ie = icacheAlloc(ia->type, score);
-
-	scoreCp(ie->score, score);
-	ie->ia = *ia;
+	ie = icacheAlloc(ia, score);
 
 	ie->next = icache.heads[h];
 	icache.heads[h] = ie;
@@ -138,6 +134,9 @@ insertScore(u8int *score, IAddr *ia)
 	se = *ie;
 
 	vtUnlock(icache.lock);
+
+	if(!write)
+		return 1;
 
 	return storeIEntry(mainIndex, &se);
 }
@@ -148,7 +147,7 @@ insertScore(u8int *score, IAddr *ia)
  * if the score is already in the table, update the entry.
  */
 static IEntry *
-icacheAlloc(int type, u8int *score)
+icacheAlloc(IAddr *ia, u8int *score)
 {
 	IEntry *ie, *last, *next;
 	u32int h;
@@ -156,11 +155,12 @@ icacheAlloc(int type, u8int *score)
 	h = hashBits(score, icache.bits);
 	last = nil;
 	for(ie = icache.heads[h]; ie != nil; ie = ie->next){
-		if(ie->ia.type == type && scoreEq(ie->score, score)){
+		if(ie->ia.type == ia->type && scoreEq(ie->score, score)){
 			if(last != nil)
 				last->next = ie->next;
 			else
 				icache.heads[h] = ie->next;
+			ie->rac = 1;
 			return ie;
 		}
 		last = ie;
@@ -170,7 +170,7 @@ icacheAlloc(int type, u8int *score)
 	if(h < icache.entries){
 		ie = &icache.base[h++];
 		icache.unused = h;
-		return ie;
+		goto Found;
 	}
 
 	h = icache.stolen;
@@ -188,7 +188,12 @@ icacheAlloc(int type, u8int *score)
 			else
 				icache.heads[h] = nil;
 			icache.stolen = h;
-			return ie;
+			goto Found;
 		}
 	}
+Found:
+	ie->ia = *ia;
+	scoreCp(ie->score, score);
+	ie->rac = 0;	
+	return ie;
 }

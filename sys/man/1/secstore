@@ -77,7 +77,7 @@ at startup, open a new window and
   % ramfs -p; cd /tmp
   % auth/secstore -g factotum
   secstore password:
-  % echo 'proto=apop dom=x.com user=ehg !password=y~1' >> factotum
+  % echo 'key proto=apop dom=x.com user=ehg !password=y~1' >> factotum
   % auth/secstore -p factotum
   secstore password:
   % read -m factotum > /mnt/factotum/ctl

@@ -23,7 +23,7 @@ plumb start wdoc2txt $file
 
 # email addresses get a new mail window
 type is text
-data matches '[a-zA-Z0-9_.\-]+@[a-zA-Z0-9_.\-]*'
+data matches '[a-zA-Z0-9_+.\-]+@[a-zA-Z0-9_+.\-]*'
 plumb to sendmail
 plumb start window rc -c '''echo % mail '''$0'; mail '$0
 

@@ -1,7 +1,7 @@
 </$objtype/mkfile
 
 LIBS=common
-PROGS=smtp alias fs ned misc q send scanmail pop3 ml marshal vf
+PROGS=smtp alias fs ned misc q send scanmail pop3 ml marshal vf filterkit
 #libs must be made first
 DIRS=$LIBS $PROGS
 

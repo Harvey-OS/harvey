@@ -32,6 +32,13 @@ HFILES=\
 
 BIN=/$objtype/bin/disk
 
+CFILES=${OFILES:%.$O=%.c}
+
+UPDATE=mkfile\
+	/386/bin/disk/$TARG\
+	$HFILES\
+	$CFILES\
+
 </sys/src/cmd/mkone
 
 $O.out:	devwren.$O

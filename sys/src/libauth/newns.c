@@ -226,7 +226,7 @@ splitargs(char *p, char *argv[], char *argbuf, int maxargs)
 static char *
 expandarg(char *arg, char *buf)
 {
-	char env[3+ANAMELEN], *p, *q;
+	char env[3+ANAMELEN], *p, *q, *x;
 	int fd, n, len;
 
 	n = 0;
@@ -253,8 +253,14 @@ expandarg(char *arg, char *buf)
 		fd = open(env, OREAD);
 		if(fd >= 0){
 			len = read(fd, &buf[n], ANAMELEN - 1);
-			if(len > 0)
+			/* some singleton environment variables have trailing NULs */
+			/* lists separate entries with NULs; we arbitrarily take the first element */
+			if(len > 0){
+				x = memchr(&buf[n], 0, len);
+				if(x != nil)
+					len = x - &buf[n];
 				n += len;
+			}
 			close(fd);
 		}
 	}

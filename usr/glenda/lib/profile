@@ -16,7 +16,8 @@ case terminal
 case cpu
 	if (test -e /mnt/term/mnt/wsys) { # rio already running
 		bind -a /mnt/term/mnt/wsys /dev
-		echo -n $sysname > /dev/label
+		if(test -w /dev/label)
+			echo -n $sysname > /dev/label
 	}
 	bind /mnt/term/dev/cons /dev/cons
 	bind /mnt/term/dev/consctl /dev/consctl

@@ -18,6 +18,9 @@ vac \- create a vac archive on Venti
 .B -f
 .I vacfile
 ] [
+.B -i
+.I name
+] [
 .B -h
 .I host
 ]
@@ -80,6 +83,11 @@ The results of
 are place in
 .IR vacfile ,
 or the standard output if no file is given.
+.TP
+.BI -i " name
+Include standard input as one of the input files, storing it in the archive
+with the specified
+.IR name .
 .TP
 .BI -h " host
 The network address of the Venti server.

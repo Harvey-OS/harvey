@@ -22,6 +22,7 @@ enum
 	Trp=	17,
 	Tsig=	24,
 	Tkey=	25,
+	Taaaa=	28,
 	Tcert=	37,
 
 	/* query types (all RR types are also queries) */
@@ -289,6 +290,7 @@ extern RR*	rrremneg(RR**);
 extern RR*	rrremtype(RR**, int);
 extern int	rrfmt(Fmt*);
 extern int	rravfmt(Fmt*);
+extern int	rrsupported(int);
 extern int	rrtype(char*);
 extern char*	rrname(int, char*, int);
 extern int	tsame(int, int);
@@ -312,6 +314,7 @@ extern int	baddelegation(RR*, RR*, uchar*);
 extern RR*	dnsservers(int);
 extern RR*	domainlist(int);
 extern int	opendatabase(void);
+extern char*	dorfc2317(char *canonical, char *name);
 
 /* dns.c */
 extern char*	walkup(char*);
