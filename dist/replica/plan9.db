@@ -59,7 +59,7 @@
 386/bin/auth/fgui - 775 sys sys 1045537942 211917
 386/bin/auth/guard.srv - 775 sys sys 1045537943 139879
 386/bin/auth/iam - 775 sys sys 1039758534 51077
-386/bin/auth/keyfs - 775 sys sys 1046656931 116514
+386/bin/auth/keyfs - 775 sys sys 1055797591 116737
 386/bin/auth/login - 775 sys sys 1053200894 101393
 386/bin/auth/newns - 775 sys sys 1053200894 86051
 386/bin/auth/pemdecode - 775 sys sys 1048622918 59616
@@ -3207,7 +3207,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1054049159 243650
+sys/games/lib/fortunes - 664 sys sys 1055817277 243905
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1055701304 1291
@@ -4584,7 +4584,7 @@ sys/man/2/arith3 - 664 sys sys 969499887 4397
 sys/man/2/assert - 664 sys sys 960089153 371
 sys/man/2/atof - 664 sys sys 1015091517 2766
 sys/man/2/auth - 664 sys sys 1017423719 7539
-sys/man/2/authsrv - 664 sys sys 1018386774 4043
+sys/man/2/authsrv - 664 sys sys 1055734550 4145
 sys/man/2/bin - 664 sys sys 985023077 1880
 sys/man/2/bind - 664 sys sys 1015091518 4685
 sys/man/2/bio - 664 sys sys 1017423720 6538
@@ -6575,7 +6575,7 @@ sys/src/cmd/auth/factotum/util.c - 664 sys sys 1048614988 17031
 sys/src/cmd/auth/factotum/wep.c - 664 sys sys 1048614986 2205
 sys/src/cmd/auth/guard.srv.c - 664 sys sys 1032497638 2334
 sys/src/cmd/auth/iam.c - 664 sys sys 1015008430 841
-sys/src/cmd/auth/keyfs.c - 664 sys sys 1032497639 17288
+sys/src/cmd/auth/keyfs.c - 664 sys sys 1055797577 17594
 sys/src/cmd/auth/lib - 20000000775 sys sys 1015008430 0
 sys/src/cmd/auth/lib/error.c - 664 sys sys 1015008430 301
 sys/src/cmd/auth/lib/fs.c - 664 sys sys 1015008430 228
@@ -10807,7 +10807,6 @@ sys/src/fs/sony/fns.h - 664 sys sys 1037805175 1968
 sys/src/fs/sony/io.h - 664 sys sys 1037805175 6576
 sys/src/fs/sony/mem.h - 664 sys sys 1015110103 2865
 sys/src/fs/sony/mkfile - 664 sys sys 1037805175 1583
-sys/src/fs/words - 664 sys sys 1015110099 661
 sys/src/fs/worms - 664 sys sys 1015110031 2806
 sys/src/lib9p - 20000000775 sys sys 1015023311 0
 sys/src/lib9p/_post.c - 664 sys sys 1044836326 1641

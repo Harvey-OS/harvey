@@ -12310,3 +12310,8 @@
 1055709063 3 c sys/src/cmd/venti/syncarena.c - 664 sys sys 1055707444 4116
 1055709063 4 c sys/src/cmd/venti/utils.c - 664 sys sys 1055707445 4602
 1055719875 0 c sys/src/libauthsrv/readnvram.c - 664 sys sys 1055718668 8534
+1055736087 0 c sys/man/2/authsrv - 664 sys sys 1055734550 4145
+1055797304 0 d sys/src/fs/words - 664 sys sys 1015110099 0
+1055799107 0 c 386/bin/auth/keyfs - 775 sys sys 1055797591 116737
+1055799107 1 c sys/src/cmd/auth/keyfs.c - 664 sys sys 1055797577 17594
+1055818924 0 c sys/games/lib/fortunes - 664 sys sys 1055817277 243905
