@@ -2357,13 +2357,25 @@ switchmb(char *file, char *singleton)
 				n = Elemlen-12;
 			sprint(mbname+n, "%ld", time(0));
 		}
-	
+
 		if(fprint(fd, "open %s %s", s_to_c(path), mbname) < 0){
 			fprint(2, "!can't 'open %s %s': %r\n", file, mbname);
 			s_free(path);
 			return -1;
 		}
 		close(fd);
+	}else
+	if (singleton && access(singleton, 0)==0
+	    && strncmp(singleton, "/mail/fs/", 9) == 0){
+		if ((p = strchr(singleton +10, '/')) == nil){
+			fprint(2, "!bad mbox name");
+			return -1;
+		}
+		n = p-(singleton+9);
+		strncpy(mbname, singleton+9, n);
+		mbname[n+1] = 0;
+		path = s_reset(nil);
+		mboxpath(mbname, user, path, 0);
 	}else{
 		path = s_reset(nil);
 		mboxpath("mbox", user, path, 0);
