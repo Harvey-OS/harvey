@@ -13262,3 +13262,8 @@
 1106152208 0 c rc/bin/patch/diff - 775 sys sys 1106151131 466
 1106152208 1 c sys/src/cmd/diff/main.c - 664 sys sys 1106151067 4325
 1106195417 0 c 386/bin/diff - 775 sys sys 1106194001 84036
+1106235025 0 c mail/lib/validatesender - 775 upas upas 1106233741 1128
+1106263831 0 c sys/src/cmd/samterm/mesg.c - 664 sys sys 1106263089 12586
+1106263831 1 c sys/src/cmd/samterm/plan9.c - 664 sys sys 1106263089 4763
+1106263831 2 c sys/src/cmd/samterm/samterm.h - 664 sys sys 1106263089 3750
+1106281836 0 c 386/bin/aux/samterm - 775 sys sys 1106280481 247878

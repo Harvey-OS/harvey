@@ -16,6 +16,7 @@ uchar	indata[DATASIZE+1];	/* room for NUL */
 uchar	outdata[DATASIZE];
 short	outcount;
 int	hversion;
+int	exiting;
 
 void	inmesg(Hmesg, int);
 int	inshort(int);
@@ -291,6 +292,7 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hexit:
+		exiting = 1;
 		outT0(Texit);
 		threadexitsall(nil);
 		break;
