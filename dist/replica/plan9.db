@@ -275,7 +275,7 @@
 386/bin/ip/httpd/save - 775 sys sys 1064598231 130742
 386/bin/ip/httpd/webls - 775 sys sys 1065646626 129996
 386/bin/ip/httpd/wikipost - 775 sys sys 1064598232 111102
-386/bin/ip/imap4d - 775 sys sys 1064598233 234268
+386/bin/ip/imap4d - 775 sys sys 1065833429 235591
 386/bin/ip/ipconfig - 775 sys sys 1064598234 128285
 386/bin/ip/ping - 775 sys sys 1064598234 74889
 386/bin/ip/ppp - 775 sys sys 1064598236 216026
@@ -5264,7 +5264,7 @@ sys/src/9/pc/pcf - 664 sys sys 1056503364 1457
 sys/src/9/pc/pcf.c - 664 sys sys 1058659039 5110
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1055700671 1410
-sys/src/9/pc/pci.c - 664 sys sys 1032052921 23359
+sys/src/9/pc/pci.c - 664 sys sys 1065815722 23867
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1048635123 1545
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1015014521 5264
 sys/src/9/pc/plan9l.s - 664 sys sys 1015014521 910
@@ -6320,7 +6320,7 @@ sys/src/boot/pc/pbsdisk.s - 664 sys sys 1017854325 6371
 sys/src/boot/pc/pbsdisklba - 775 sys sys 1015007954 509
 sys/src/boot/pc/pbsdisklba.s - 664 sys sys 1015007954 6022
 sys/src/boot/pc/pbslba.s - 664 sys sys 1017854326 8147
-sys/src/boot/pc/pci.c - 664 sys sys 1032059068 17251
+sys/src/boot/pc/pci.c - 664 sys sys 1065815736 17580
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1032215925 2404
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1015007954 52004
@@ -9202,10 +9202,10 @@ sys/src/cmd/ip/imap4d/copy.c - 664 sys sys 1062298855 4597
 sys/src/cmd/ip/imap4d/csquery.c - 664 sys sys 1015013076 762
 sys/src/cmd/ip/imap4d/date.c - 664 sys sys 1045505209 5668
 sys/src/cmd/ip/imap4d/debug.c - 664 sys sys 1016731557 1962
-sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1040309082 11765
+sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1065833426 11749
 sys/src/cmd/ip/imap4d/fns.h - 664 sys sys 1015013076 4282
 sys/src/cmd/ip/imap4d/folder.c - 664 sys sys 1015013076 5959
-sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1045505233 40500
+sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1065805751 40675
 sys/src/cmd/ip/imap4d/imap4d.h - 664 sys sys 1015013076 6697
 sys/src/cmd/ip/imap4d/list.c - 664 sys sys 1015013076 7619
 sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1015013077 16842

@@ -52,7 +52,7 @@ breakout:
  *	body[id] === body[id.header] + body[id.text]
 */
 int
-fetchMsg(Box *box, Msg *m, int uids, void *vf)
+fetchMsg(Box *, Msg *m, int uids, void *vf)
 {
 	Tm tm;
 	Fetch *f;
@@ -66,11 +66,6 @@ fetchMsg(Box *box, Msg *m, int uids, void *vf)
 	for(f = vf; f != nil; f = f->next){
 		switch(f->op){
 		case FFlags:
-			/*
-			 * flags get sent with status update
-			 */
-			box->sendFlags = 1;
-			m->sendFlags = 1;
 			break;
 		case FUid:
 			todo = 1;
@@ -118,7 +113,10 @@ fetchMsg(Box *box, Msg *m, int uids, void *vf)
 			bye("bad implementation of fetch");
 			break;
 		case FFlags:
-			continue;
+			Bprint(&bout, "%sflags (", sep);
+			writeFlags(&bout, m, 1);
+			Bprint(&bout, ")");
+			break;
 		case FUid:
 			if(uids)
 				continue;

@@ -13858,3 +13858,9 @@
 1065718912 4 c sys/src/cmd/upas/send/main.c - 664 sys sys 1065717618 11856
 1065718912 5 c sys/src/cmd/upas/send/message.c - 664 sys sys 1065717617 11064
 1065753032 0 c sys/games/lib/fortunes - 664 sys sys 1065751340 245757
+1065807099 0 c 386/bin/ip/imap4d - 775 sys sys 1065805760 235516
+1065807099 1 c sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1065805751 40675
+1065816109 0 c sys/src/9/pc/pci.c - 664 sys sys 1065815722 23867
+1065816109 1 c sys/src/boot/pc/pci.c - 664 sys sys 1065815736 17580
+1065834010 0 c 386/bin/ip/imap4d - 775 sys sys 1065833429 235591
+1065834010 1 c sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1065833426 11749
