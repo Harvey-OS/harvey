@@ -77,6 +77,28 @@ mp008intr(Ureg* ureg, void* arg)
 }
 
 /*
+ * install a default serial port on a PC unless 
+ * name=disabled is set in plan9.ini
+ */
+void
+ns16552default(char *name, int port, int irq)
+{
+	char *p;
+
+	if((p = getconf(name)) && strncmp(p, "disabled", 8) == 0)
+		return;
+
+	if(ioalloc(port, 8, 0, name) < 0) {
+		print("%s: port %x in use\n", name, port);
+		return;
+	}
+
+	ns16552setup(port, UartFREQ, name, Ns550);
+	intrenable(irq, ns16552intrx, (void*)(nuart-1), BUSUNKNOWN, name);
+}
+
+
+/*
  *  install the uarts (called by reset)
  */
 void
@@ -92,15 +114,10 @@ ns16552install(void)
 		return;
 	already = 1;
 
-	/* first two ports are always there and always the normal frequency */
-	if(ioalloc(0x3f8, 8, 0, "eia0") < 0)
-		print("eia0: port %d in use\n", 0x3f8);
-	ns16552setup(0x3F8, UartFREQ, "eia0", Ns550);
-	intrenable(IrqUART0, ns16552intrx, (void*)0, BUSUNKNOWN, "eia0");
-	if(ioalloc(0x2F8, 8, 0, "eia1") < 0)
-		print("eia1: port %d in use\n", 0x2F8);
-	ns16552setup(0x2F8, UartFREQ, "eia1", Ns550);
-	intrenable(IrqUART1, ns16552intrx, (void*)1, BUSUNKNOWN, "eia1");
+	/* first two ports are usually there and always the normal frequency */
+	ns16552default("eia0", 0x3F8, IrqUART0);
+	ns16552default("eia1", 0x2F8, IrqUART1);
+
 	addclock0link(uartclock);
 
 	/* set up a serial console */

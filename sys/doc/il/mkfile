@@ -2,9 +2,7 @@
 
 il.ps:D:	il.ms transition.pic
 	{echo $FONTS; cat il.ms} | pic | troff -ms | lp -dstdout >il.ps
-
-il.bs:D:	il.ms transition.pic
-	../prfile il
+	../cleanps il.ps
 
 il.html:D:	il.ms transition.pic
 	{echo $FONTS; cat il.ms} | pic | ms2html >il.html

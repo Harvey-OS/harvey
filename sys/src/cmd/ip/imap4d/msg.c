@@ -1383,6 +1383,8 @@ stripQuotes(char *q)
 	char *s;
 	int c;
 
+	if(q == nil)
+		return;
 	s = q++;
 	while(c = *q++){
 		if(c == '\\'){
@@ -1396,8 +1398,8 @@ stripQuotes(char *q)
 }
 
 /*
- * quoted-str	: '"' *(any char but '"\\\r', or '\' any char) '"'
- * domain-lit	: '[' *(any char but '[]\\\r', or '\' any char) ']'
+ * quoted-str	: '"' *(any char but '"\\\r', or '\' any char, or linear-white-space) '"'
+ * domain-lit	: '[' *(any char but '[]\\\r', or '\' any char, or linear-white-space) ']'
  */
 static char *
 headQuoted(int start, int stop)
@@ -1421,8 +1423,10 @@ headQuoted(int start, int stop)
 			free(s);
 			return nil;
 		}
-		if(c == '\r')
+		if(c == '\r'){
+			headStr++;
 			continue;
+		}
 		if(c == '\n'){
 			headStr++;
 			while(*headStr == ' ' || *headStr == '\t' || *headStr == '\r' || *headStr == '\n')

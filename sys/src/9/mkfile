@@ -1,0 +1,29 @@
+ARCH=\
+	alphapc\
+	mpc\
+	pc\
+	
+all:V:
+	for(i in $ARCH)@{
+		cd $i
+		mk
+	}
+
+installall:V:
+	for(i in $ARCH) @{
+		cd $i
+		mk installall
+	}
+
+clean:V:
+	@{ cd boot; mk clean }
+	for(i in $ARCH) @{
+		cd $i
+		mk clean
+	}
+
+backup:V: clean
+	9fs bootes
+	disk/kfscmd allow
+	disk/mkfs -s /n/bootes /sys/src/9/proto
+	disk/ksync

@@ -5,8 +5,6 @@
 #include <libsec.h>
 #include "wrap.h"
 
-#define H ((void*)~0)
-
 static int
 mountarch(char *file, char *mtpt)
 {
@@ -82,12 +80,6 @@ readupdate(Update *u, char *base, char *elem)
 	return u;
 }
 
-enum {
-	NONE = 0,
-	PKG = 1,
-	UPD = 2
-};
-
 static int
 sniffdir(char *base, char *elem, vlong *pt)
 {
@@ -98,76 +90,80 @@ sniffdir(char *base, char *elem, vlong *pt)
 
 	t = strtoll(elem, 0, 10);
 	if(t == 0)
-		return NONE;
+		return 0;
 
 	sprint(buf, "%lld", t);
 	if(strcmp(buf, elem) != 0)
-		return NONE;
+		return 0;
 
-	rv = NONE;
+	rv = 0;
 	p = mkpath3(base, elem, "package");
 	if(access(p, 0) >= 0)
-		rv = PKG;
+		rv |= PKG;
 	free(p);
 
 	p = mkpath3(base, elem, "update");
-	if(access(p, 0) >= 0) {
-		if(rv == PKG)
-			rv = NONE;
-		else
-			rv = UPD;
-	}
+	if(access(p, 0) >= 0)
+		rv |= UPD;
 	free(p);
 
-	if(rv != NONE)
+	if(rv != 0)
 		*pt = t;
 	return rv;
 }
 
 static int
-openupdate(Update **up, char *dir)
+updatecmp(void *va, void *vb)
+{
+	Update *a, *b;
+
+	a = va;
+	b = vb;
+	if(a->utime == b->utime)
+		return 0;
+	if(a->utime < b->utime)
+		return -1;
+	return 1;
+}
+
+static int
+openupdate(Update **up, char *dir, vlong *tpkgp)
 {
 	Dir d;
-	int fd;
-	vlong t, tmax, tmaxupd;
+	int type, fd;
+	vlong t, tpkg, tpkgupd;
 	Update *u;
 	int nu;
 
 	if((fd = open(dir, OREAD)) < 0)
 		return -1;
 
-	tmax = 0;
-	tmaxupd = 0;
+	/*
+	 * We are looking to find the most recent full
+	 * package; anything before that is irrelevant.
+	 * Also figure out the most recent package update.
+	 * Non-package updates before that are irrelevant.
+	 * If there are no packages installed, 
+	 * grab all the updates we can find.
+	 */
+	tpkg = -1;
+	tpkgupd = -1;
+	nu = 0;
 	while(dirread(fd, &d, sizeof(d)) == sizeof(d)) {
 		switch(sniffdir(dir, d.name, &t)) {
 		case PKG:
-			if(t > tmax)
-				tmax = t;
+			nu++;
+			if(t > tpkg)
+				tpkg = t;
+			break;
+		case PKG|UPD:
+			nu++;
+			if(t > tpkgupd)
+				tpkgupd = t;
 			break;
 		case UPD:
-			if(t > tmaxupd)
-				tmaxupd = t;
+			nu++;
 			break;
-		}
-	}
-	close(fd);
-
-	if(tmax == 0) {
-		tmax = tmaxupd;
-		if(tmax == 0)
-			return -1;
-	}
-
-	u = nil;
-	nu = 0;
-	if((fd = open(dir, OREAD)) < 0)
-		return -1;
-	while(dirread(fd, &d, sizeof(d)) == sizeof(d)) {
-		if(sniffdir(dir, d.name, &t) != NONE) {
-			if(nu%8 == 0)
-				u = erealloc(u, (nu+8)*sizeof(u[0]));
-			if(readupdate(&u[nu], dir, d.name) != nil)
-				nu++;
 		}
 	}
 	close(fd);
@@ -175,7 +171,38 @@ openupdate(Update **up, char *dir)
 	if(nu == 0)
 		return -1;
 
+	/*
+	 * A new full package is better than an old package update.
+	 */
+	if(tpkg > tpkgupd)
+		tpkgupd = tpkg;
+
+	u = nil;
+	nu = 0;
+	if((fd = open(dir, OREAD)) < 0)
+		return -1;
+	while(dirread(fd, &d, sizeof(d)) == sizeof(d)) {
+		if((type = sniffdir(dir, d.name, &t)) == 0)
+			continue;
+		if(t < tpkg)
+			continue;
+		if(t < tpkgupd && t == UPD)
+			continue;
+			
+		if(nu%8 == 0)
+			u = erealloc(u, (nu+8)*sizeof(u[0]));
+		u[nu].type = type;
+		if(readupdate(&u[nu], dir, d.name) != nil)
+			nu++;
+	}
+	close(fd);
+
+	if(nu == 0)
+		return -1;
+
+	qsort(u, nu, sizeof(u[0]), updatecmp);
 	*up = u;
+	*tpkgp = tpkgupd;	/* save time of last virtual full package */
 	return nu;
 }
 
@@ -199,7 +226,7 @@ openmount(char *name, char *root)
 	w->root = estrdup(root);
 	p = mkpath3(root, "wrap", name);
 
-	if((w->nu = openupdate(&w->u, p)) < 0) {
+	if((w->nu = openupdate(&w->u, p, &w->time)) < 0) {
 		free(p);
 		closewrap(w);
 		return nil;
@@ -211,7 +238,32 @@ openmount(char *name, char *root)
 Wrap*
 openwrap(char *name, char *root)
 {
-	if(access(name, 0) < 0)
+	Dir d;
+	char *p;
+	Wrap *w;
+
+	if(root == nil)
+		root = "/";
+
+	if(dirstat(name, &d) < 0)
+		return openmount(name, root);
+
+	/*
+	 * Accept root/ or root/wrap/pkgname
+	 */
+	if(d.mode & CHDIR) {
+		p = estrdup(name);
+		root = p;
+		if(name = strstr(p, "/wrap/")) {
+			*name = '\0';
+			name += 6;
+		}
+		w = openmount(name, root);
+		free(p);
+		return w;
+	}
+		
+	if(dirstat(name, &d) < 0 || (d.mode & CHDIR))
 		return openmount(name, root);
 
 	if(mountarch(name, root) < 0)
@@ -240,8 +292,9 @@ Wrap*
 openwraphdr(char *name, char *root, char **prefix, int nprefix)
 {
 	char *nname;
+	Dir d;
 
-	if(access(name, 0) < 0)
+	if(dirstat(name, &d) < 0 || (d.mode & CHDIR))
 		return openwrap(name, root);
 
 	if(openarchgz(name, &nname, prefix, nprefix) == nil)
@@ -315,11 +368,13 @@ Bputwrapfile(Biobuf *b, char *name, vlong time, char *elem, char *file)
 }
 
 void
-Bputwrap(Biobuf *b, char *name, vlong time, char *desc, vlong utime)
+Bputwrap(Biobuf *b, char *name, vlong time, char *desc, vlong utime, int pkg)
 {
 	Dir d;
 	char *p;
 	char buf[4*NAMELEN];
+
+	assert(utime || pkg);
 
 	memset(&d, 0, sizeof d);
 	strcpy(d.uid, "sys");
@@ -343,7 +398,8 @@ Bputwrap(Biobuf *b, char *name, vlong time, char *desc, vlong utime)
 		d.length = 23;
 		Bputhdr(b, buf, &d);
 		Bprint(b, "%22lld\n", utime);
-	} else {
+	}
+	if(pkg) {
 		strcpy(p, "package");
 		d.length = 0;
 		Bputhdr(b, buf, &d);

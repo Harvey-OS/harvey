@@ -227,3 +227,10 @@ will not return until it has successfully attached
 to the file server, so the process doing a
 .I mount
 cannot be the one serving.
+.PP
+The file system cache enabled by
+.B MCACHE
+mishandles (in fact, doesn't know about) append-only files.
+The fix requires a change to 9P.
+.B /lib/namespace
+mounts mailboxes, the most important append-only files, uncached.

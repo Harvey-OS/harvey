@@ -2283,7 +2283,7 @@ main(int argc, char **argv)
 			if(baud)
 				fprint(cfd, "b%d", baud);
 			fprint(cfd, "m1");	/* cts/rts flow control (and fifo's) on */
-			fprint(cfd, "q64000");	/* increas q size to 64k */
+			fprint(cfd, "q64000");	/* increase q size to 64k */
 			fprint(cfd, "n1");	/* nonblocking writes on */
 			fprint(cfd, "r1");	/* rts on */
 			fprint(cfd, "d1");	/* dtr on */

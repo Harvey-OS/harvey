@@ -174,8 +174,7 @@ floppyinit(void)
 		mask |= 1<<dp->dev;
 		floppysetdef(dp);
 		dp->cyl = -1;			/* because we don't know */
-		//dp->cache = (uchar*)xspanalloc(maxtsize, BY2PG, 64*1024);
-		dp->cache = (uchar*)ialloc(maxtsize, BY2PG);
+		dp->cache = (uchar*)xspanalloc(maxtsize, BY2PG, 64*1024);
 		dp->ccyl = -1;
 		dp->vers = 0;
 		dp->maxtries = 5;
@@ -221,53 +220,53 @@ floppyboot(int dev, char *file, Boot *b)
 	return dosboot(dos, file, b);
 }
 
-///*
-// *  check if the floppy has been replaced under foot.  cause
-// *  an error if it has.
-// *
-// *  a seek and a read clears the condition.  this was determined
-// *  experimentally, there has to be a better way.
-// *
-// *  if the read fails, cycle through the possible floppy
-// *  density till one works or we've cycled through all
-// *  possibilities for this drive.
-// */
-//static int
-//changed(FDrive *dp)
-//{
-//	FType *start;
-//
-//	/*
-//	 *  if floppy has changed or first time through
-//	 */
-//	if((inb(Pdir)&Fchange) || dp->vers == 0){
-//		DPRINT("changed\n");
-//		fldump();
-//		dp->vers++;
-//		floppysetdef(dp);
-//		start = dp->t;
-//		dp->confused = 1;	/* make floppyon recal */
-//		floppyon(dp);
-//		pcfloppyseek(dp, dp->t->heads*dp->t->tsize);
-//
-//		while(floppyxfer(dp, Fread, dp->cache, 0, dp->t->tsize) <= 0){
-//			while(++dp->t){
-//				if(dp->t == &floppytype[nelem(floppytype)])
-//					dp->t = floppytype;
-//				if(dp->dt == dp->t->dt)
-//					break;
-//			}
-//			floppyon(dp);
-//			DPRINT("changed: trying %s\n", dp->t->name);
-//			fldump();
-//			if(dp->t == start){
-//				return -1;
-//			}
-//		}
-//	}
-//
-//	return 0;
-//}
+/*
+ *  check if the floppy has been replaced under foot.  cause
+ *  an error if it has.
+ *
+ *  a seek and a read clears the condition.  this was determined
+ *  experimentally, there has to be a better way.
+ *
+ *  if the read fails, cycle through the possible floppy
+ *  density till one works or we've cycled through all
+ *  possibilities for this drive.
+ */
+static int
+changed(FDrive *dp)
+{
+	FType *start;
+
+	/*
+	 *  if floppy has changed or first time through
+	 */
+	if((inb(Pdir)&Fchange) || dp->vers == 0){
+		DPRINT("changed\n");
+		fldump();
+		dp->vers++;
+		floppysetdef(dp);
+		start = dp->t;
+		dp->confused = 1;	/* make floppyon recal */
+		floppyon(dp);
+		pcfloppyseek(dp, dp->t->heads*dp->t->tsize);
+
+		while(floppyxfer(dp, Fread, dp->cache, 0, dp->t->tsize) <= 0){
+			while(++dp->t){
+				if(dp->t == &floppytype[nelem(floppytype)])
+					dp->t = floppytype;
+				if(dp->dt == dp->t->dt)
+					break;
+			}
+			floppyon(dp);
+			DPRINT("changed: trying %s\n", dp->t->name);
+			fldump();
+			if(dp->t == start){
+				return -1;
+			}
+		}
+	}
+
+	return 0;
+}
 
 static int
 readtrack(FDrive *dp, int cyl, int head)
@@ -304,8 +303,8 @@ floppyread(Dos *dos, void *a, long n)
 
 	offset = dp->offset;
 	floppyon(dp);
-//	if(changed(dp))
-//		return -1;
+	if(changed(dp))
+		return -1;
 
 	for(rv = 0; rv < n; rv += len){
 		/*

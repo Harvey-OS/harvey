@@ -113,6 +113,7 @@ char	holdqueue[128];
 char	copydir[128];
 
 char	header[Hdrsize+2];
+char	cmd[1024];
 Pattern	*lineoff;
 Pattern *patterns;
 char	**qname;
@@ -158,7 +159,7 @@ main(int argc, char *argv[])
 {
 	int i, n, nolines;
 	char **args, **a, *cp, *buf;
-	char body[Bufsize+2], cmd[1024];
+	char body[Bufsize+2];
 	Resub match[1];
 	Pattern *p;
 	Biobuf *bp;
@@ -401,7 +402,9 @@ Spat*
 isalt(char *message, Spat *alt)
 {
 	while(alt) {
-		if(strstr(header+1, alt->string))
+		if(message != cmd && strstr(cmd, alt->string))
+			break;
+		if(message != header+1 && strstr(header+1, alt->string))
 			break;
 		if(strstr(message, alt->string))
 			break;

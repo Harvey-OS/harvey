@@ -1758,7 +1758,7 @@ atarctl(SDunit* unit, char* p, int l)
 		n += snprint(p+n, l-n, " rwm %ud rwmctl %ud",
 			drive->rwm, drive->rwmctl);
 	n += snprint(p+n, l-n, "\n");
-	if(!unit->changed && unit->sectors){
+	if(unit->sectors){
 		n += snprint(p+n, l-n, "geometry %ld %ld",
 			unit->sectors, unit->secsize);
 		if(drive->pkt == 0)

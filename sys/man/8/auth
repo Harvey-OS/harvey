@@ -1,12 +1,16 @@
 .TH AUTH 8
 .SH NAME
-changeuser, wrkey, convkeys, printnetkey, status, auth.srv, guard.srv, login \- maintain authentication databases
+changeuser, wrkey, convkeys, convkeys2, printnetkey, status, auth.srv, guard.srv, login \- maintain authentication databases
 .SH SYNOPSIS
 .B auth/changeuser
 .RB [ -np ]
 .I user
 .PP
 .B auth/wrkey
+.PP
+.B auth/convkeys
+.RB [ -p ]
+.I keyfile
 .PP
 .B auth/convkeys
 .RB [ -p ]
@@ -120,6 +124,14 @@ The format of
 .I keyfile
 is described in
 .IR keyfs (4).
+.PP
+The format of the key file changed between Release 2
+and 3 of Plan 9.
+.I Convkeys2
+is like
+.IR convkeys .
+However, in addition to rekeying, it converts from
+the previous format to the Release 3 format.
 .PP
 .I Printnetkey
 displays the network key as it should be entered into the

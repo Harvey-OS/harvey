@@ -656,6 +656,7 @@ syscall(Ureg* ureg)
 	}
 	if(up->nerrlab){
 		print("bad errstack [%d]: %d extra\n", scallnr, up->nerrlab);
+		print("scall %s lr =%lux\n", sysctab[scallnr], ureg->lr);
 		for(i = 0; i < NERR; i++)
 			print("sp=%lux pc=%lux\n", up->errlab[i].sp, up->errlab[i].pc);
 		panic("error stack");

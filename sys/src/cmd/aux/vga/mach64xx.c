@@ -282,6 +282,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 	switch(mp->reg[ConfigChipId] & 0xFFFF){
 	default:
 		break;
+	case ('L'<<8)|'B':		/* 4C42: Rage LTPro AGP */
 	case ('L'<<8)|'I':		/* 4C49: Rage 3D LTPro */
 	case ('L'<<8)|'M':		/* 4C4D: Rage Mobility */
 	case ('L'<<8)|'P':		/* 4C50: Rage 3D LTPro */
@@ -306,6 +307,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		case ('G'<<8)|'V':	/* 4756: Rage2C */
 		case ('G'<<8)|'Z':	/* 475A: Rage2C */
 		case ('V'<<8)|'U':	/* 5655: 264VT3 */
+		case ('L'<<8)|'B':	/* 4C42: Rage LTPro AGP */
 		case ('L'<<8)|'I':	/* 4C49: Rage 3D LTPro */
 		case ('L'<<8)|'M':	/* 4C4D: Rage Mobility */
 		case ('L'<<8)|'P':	/* 4C50: Rage 3D LTPro */
@@ -689,7 +691,7 @@ init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
 	Mach64xx *mp;
-	int p, x;
+	int p, x, y;
 
 	mode = vga->mode;
 	if((mode->x > 640 || mode->y > 480) && mode->z == 1)
@@ -716,6 +718,7 @@ init(Vga* vga, Ctlr* ctlr)
 		case ('V'<<8)|'U':	/* 5655: 264VT3 */
 		case ('G'<<8)|'T':	/* 4754: 264GT[B] */
 		case ('V'<<8)|'T':	/* 5654: 264VT/GT/VTB */
+		case ('L'<<8)|'B':	/* 4C42: Rage LTPro AGP */
 		case ('L'<<8)|'I':	/* 4C49: 264LT PRO */
 		case ('L'<<8)|'M':	/* 4C4D: Rage Mobility */
 		case ('L'<<8)|'P':	/* 4C50: 264LT PRO */
@@ -822,17 +825,45 @@ init(Vga* vga, Ctlr* ctlr)
 		mp->lcd[LCD_GenCtrl] &= ~0x00000404;
 		mp->lcd[LCD_ConfigPanel] |= 0x00004000;
 
-		mp->lcd[LCD_HorzStretch] = 0;
-		if(mode->x < 1024){
-			x = (mode->x*4096)/1024;
-			mp->lcd[LCD_HorzStretch] = 0xC0000000|x;
-		}
 		mp->lcd[LCD_VertStretch] = 0;
-		if(mode->y < 768){
-			x = (mode->y*1024)/768;
+		y = ((mp->lcd[LCD_ExtVertStretch]>>11) & 0x7FF)+1;
+		if(mode->y < y){
+			x = (mode->y*1024)/y;
 			mp->lcd[LCD_VertStretch] = 0xC0000000|x;
 		}
 		mp->lcd[LCD_ExtVertStretch] &= ~0x00400400;
+
+		/*
+		 * The x value doesn't seem to be available on all
+		 * chips so intuit it from the y value which seems to
+		 * be reliable.
+		 */
+		mp->lcd[LCD_HorzStretch] &= ~0xC00000FF;
+		x = (mp->lcd[LCD_HorzStretch]>>20) & 0xFF;
+		if(x == 0){
+			switch(y){
+			default:
+				break;
+			case 480:
+				x = 640;
+				break;
+			case 600:
+				x = 800;
+				break;
+			case 768:
+				x = 1024;
+				break;
+			case 1024:
+				x = 1280;
+				break;
+			}
+		}
+		else
+			x = (x+1)*8;
+		if(mode->x < x){
+			x = (mode->x*4096)/x;
+			mp->lcd[LCD_HorzStretch] |= 0xC0000000|x;
+		}
 	}
 
 	if(ctlr->flag&Uenhanced)
@@ -1112,6 +1143,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	switch(mp->reg[ConfigChipId] & 0xFFFF){
 	default:
 		break;
+	case ('L'<<8)|'B':		/* 4C42: Rage LTPro AGP */
 	case ('L'<<8)|'I':		/* 4C49: Rage 3D LTPro */
 	case ('L'<<8)|'M':		/* 4C4D: Rage Mobility */
 	case ('L'<<8)|'P':		/* 4C50: Rage 3D LTPro */

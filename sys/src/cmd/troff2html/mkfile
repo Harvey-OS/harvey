@@ -1,0 +1,7 @@
+</$objtype/mkfile
+
+TARG=troff2html
+OFILES=troff2html.$O\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

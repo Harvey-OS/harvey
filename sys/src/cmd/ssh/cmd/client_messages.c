@@ -391,6 +391,18 @@ user_auth(void) {
 	}
 }
 
+static int
+int_env(char *key, int dflt)
+{
+	int ival;
+	char *eval;
+
+	eval = getenv(key);
+	if (eval != nil && (ival=atoi(eval)) > 0)
+		return ival;
+	return dflt;
+}
+
 void
 request_pty(void) {
 	Packet *packet;
@@ -408,8 +420,8 @@ request_pty(void) {
 		term = "9term";
 
 	putstring(packet, term, strlen(term));
-	putlong(packet, 24);	/* rows */
-	putlong(packet, 80);	/* columns */
+	putlong(packet, int_env("LINES", 24));	/* rows */
+	putlong(packet, int_env("COLS", 80));	/* columns */
 	putlong(packet, 0);	/* width in pixels; 0 ≡ not supported */
 	putlong(packet, 0);	/* height in pixels; 0 ≡ not supported */
 

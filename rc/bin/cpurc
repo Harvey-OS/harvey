@@ -23,14 +23,20 @@ NPROC=`{echo $NPROC|sed 's/ .*//'}
 
 prompt=($sysname^'# ' '	')
 
-# keep clock synchronized (replace NTP with your favorite ntp server)
-#aux/timesync -nl -d /sys/log/timesync.d NTP
+#aux/timesync -nl -d /sys/log/timesync.d
 
 # uncomment the following for booting other systems
-#ip/dhcp
+#ip/dhcpd
 #ip/tftpd
 
-# services available to networks (remove -t /rc/bin/service.auth
-# if this isn't an auth server)
-aux/listen -q -d /rc/bin/service -t /rc/bin/service.auth il
-aux/listen -q -d /rc/bin/service -t /rc/bin/service.auth tcp
+# services available to networks
+aux/listen -q -d /rc/bin/service il
+aux/listen -q -d /rc/bin/service tcp
+
+# run these instead of the above two if you are an auth server
+# also be sure to remove /rc/bin/service/il566 and tcp567
+#
+# auth/keyfs -wp -m /mnt/keys /adm/keys >/dev/null >[2=1]
+# aux/listen -q -d /rc/bin/service -t /rc/bin/service.auth il
+# aux/listen -q -d /rc/bin/service -t /rc/bin/service.auth tcp
+# auth/cron >>/sys/log/cron >[2=1] &

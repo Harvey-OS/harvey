@@ -528,7 +528,6 @@ sdpclose(Chan* ch)
 			}
 		}
 		qunlock(c);
-		poperror();
 		break;
 	}
 }

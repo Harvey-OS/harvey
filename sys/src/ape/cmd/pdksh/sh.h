@@ -496,6 +496,7 @@ enum sh_flag {
 	FNOEXEC,	/* -n: don't execute any commands */
 	FNOGLOB,	/* -f: don't do file globbing */
 	FNOHUP,		/* -H: don't kill running jobs when login shell exits */
+	FNOTTALKING,	/* -I: don't be interactive */
 	FNOLOG,		/* don't save functions in history (ignored) */
 #ifdef	JOBS
 	FNOTIFY,	/* -b: asynchronous job completion notification */

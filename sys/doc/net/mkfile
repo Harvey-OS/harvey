@@ -5,9 +5,7 @@ DEPS	=	net.ms\
 
 net.ps:D:	$DEPS
 	{ echo $FONTS; cat net.ms } | tbl | troff -ms | lp -dstdout > net.ps
-
-net.bs:D:	$DEPS
-	../prfile net
+	../cleanps net.ps
 
 net.trout:D:	$DEPS
 	{ echo $FONTS; cat net.ms } | tbl | troff -ms > net.trout

@@ -306,7 +306,7 @@ main(argc, argv)
 		s->file = "<stdin>";
 		s->u.shf = shf_fdopen(0, SHF_RD | can_seek(0),
 				      (struct shf *) 0);
-		if (isatty(0) && isatty(2)) {
+		if (!Flag(FNOTTALKING) && isatty(0) && isatty(2)) {
 			Flag(FTALKING) = Flag(FTALKING_I) = 1;
 			/* The following only if isatty(0) */
 			s->flags |= SF_TTY;

@@ -178,19 +178,35 @@ p9part(SDunit *unit)
 	}
 }
 
+enum {
+	NEW = 1<<0,
+	OLD = 1<<1
+};
+
 void
 partition(SDunit *unit)
 {
+	int type;
+	char *p;
+
 	if(unit->part == 0)
 		return;
+
+	p = getconf("partition");
+	if(p != nil && strncmp(p, "new", 3) == 0)
+		type = NEW;
+	else if(p != nil && strncmp(p, "old", 3) == 0)
+		type = OLD;
+	else
+		type = NEW|OLD;
 
 	if(nbuf < unit->secsize) {
 		buf = malloc(unit->secsize);
 		nbuf = unit->secsize;
 	}
 
-	if(mbrpart(unit) < 0) /* did not find plan9 partition, try old format */
-		oldp9part(unit);
-	else
+	if((type & NEW) && mbrpart(unit) >= 0)
 		p9part(unit);
+	else if(type & OLD)
+		oldp9part(unit);
 }

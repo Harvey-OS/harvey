@@ -163,6 +163,7 @@ fs mail
 mail mail
 marshal mail
 nedmail mail
+pop3 mail
 send mail
 smtp mail
 smtpd mail
@@ -280,6 +281,7 @@ touch touch
 tr tr
 nroff troff
 troff troff
+troff2html troff2html
 tweak tweak
 hget uget
 uget uget

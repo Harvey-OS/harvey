@@ -157,7 +157,7 @@ is replaced by the string delimited by
 .B match[0].sp
 and
 .BR match[0].ep .
-.LP
+.PP
 .IR Regerror ,
 called whenever an error is detected in
 .IR regcomp ,

@@ -271,7 +271,7 @@ the address, but are used to show that the given addresses are
 the default.
 `Dot' means the current line.
 .TP
-.RB \*. \|a
+.RB (\|\fL.\fP\|) \|a
 .br
 .ns
 .TP
@@ -423,7 +423,7 @@ Join the addressed lines into a single line;
 intermediate newlines are deleted.
 Dot is left at the resulting line.
 .TP
-.RB \*. \|k\fIx\fP
+.RB (\|\fL.\fP\|) \|k\fIx\fP
 Mark the addressed line with name
 .IR x ,
 which must be a lower-case letter.

@@ -61,7 +61,7 @@ LIB=\
 
 ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
 VGA=`{echo devvga.c screen.c vga*.c | sed 's/\.c/.'$O'/g'}
-
+SCSI=`{echo devsd.c sd*.c | sed 's/\.c/.'$O'/g'}
 $p$CONF:	$CONF.c $OBJ $LIB
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
 	$LD -o $target -T0x80100020 -l $OBJ $CONF.$O $LIB
@@ -82,6 +82,7 @@ clock.$O devether.$O main.$O trap.$O:	/$objtype/include/ureg.h
 $ETHER: 			etherif.h ../port/netif.h
 ether8003.$O ether8390.$O:	ether8390.h
 $VGA mouse.$O:			screen.h
+$SCSI:				sd.h
 devfloppy.$O: 			floppy.h
 archmp.$O mp.$O:		apbootstrap.h
 apic.$O archmp.$O mp.$O:	mp.h

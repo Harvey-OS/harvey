@@ -1,5 +1,7 @@
 #include "mem.h"
 
+#define PDB		0x08000		/* temporary page tables (24KB) */
+
 #define NoScreenBlank	1
 /*#define ResetDiscs	1*/
 
@@ -224,39 +226,20 @@ flush:
 	 LONG	$mode32bit-KZERO(SB)
 	 WORD	$SELECTOR(2, SELGDT, 0)
 
-/*
- * When we load 9load from DOS, the bootstrap jumps
- * to the instruction right after `JUMP', which gets
- * us into mode32bit.
- *
- * The name is so we are not optimized away.
- */
-TEXT jumplabel(SB), $0
-	BYTE $'J'; BYTE $'U'; BYTE $'M'; BYTE $'P'
-
 TEXT	mode32bit(SB),$0
-	/*
-	 * Clear BSS
-	 */
-	LEAL	edata-KZERO(SB),SI
-	MOVL	SI,DI
-	ADDL	$4,DI
-	MOVL	$0,AX
-	MOVL	AX,(SI)
-	LEAL	end-KZERO(SB),CX
-	SUBL	DI,CX
-	SHRL	$2,CX
-	CLD
-	REP
-	MOVSL
-
 	/*
 	 *  make a bottom level page table page that maps the first
 	 *  16 meg of physical memory
 	 */
-	LEAL	tpt-KZERO(SB),AX	/* get phys addr of temporary page table */
-	ADDL	$(BY2PG-1),AX		/* must be page aligned */
-	ANDL	$(~(BY2PG-1)),AX	/* ... */
+	MOVL	$PDB, DI			/* clear 6 pages for the tables etc. */
+	XORL	AX, AX
+	MOVL	$(6*BY2PG), CX
+	SHRL	$2, CX
+
+	CLD
+	REP;	STOSL
+
+	MOVL	$PDB, AX		/* phys addr of temporary page table */
 	MOVL	$(4*1024),CX		/* pte's per page */
 	MOVL	$((((4*1024)-1)<<PGSHIFT)|PTEVALID|PTEKERNEL|PTEWRITE),BX
 setpte:
@@ -298,7 +281,34 @@ setpte:
 	LEAL	tokzero(SB),AX
 	JMP*	AX
 
+/*
+ * When we load 9load from DOS, the bootstrap jumps
+ * to the instruction right after `JUMP', which gets
+ * us into kzero.
+ *
+ * The name is so we are not optimized away.
+ */
+TEXT jumplabel(SB), $0
+	BYTE $'J'; BYTE $'U'; BYTE $'M'; BYTE $'P'
+
+	LEAL	tokzero(SB),AX
+	JMP*	AX
+
 TEXT	tokzero(SB),$0
+	/*
+	 * Clear BSS
+	 */
+	LEAL	edata(SB),SI
+	MOVL	SI,DI
+	ADDL	$4,DI
+	MOVL	$0,AX
+	MOVL	AX,(SI)
+	LEAL	end(SB),CX
+	SUBL	DI,CX
+	SHRL	$2,CX
+	CLD
+	REP
+	MOVSL
 
 	/*
 	 *  stack and mach
@@ -315,7 +325,6 @@ loop:
 
 GLOBL	mach0+0(SB), $MACHSIZE
 GLOBL	m(SB), $4
-GLOBL	tpt(SB), $(BY2PG*6)
 
 /*
  *  gdt to get us to 32-bit/segmented/unpaged mode
@@ -493,6 +502,10 @@ TEXT	getcr2(SB),$0		/* fault address */
 
 TEXT	getcr3(SB),$0		/* page directory base */
 	MOVL	CR3,AX
+	RET
+
+TEXT getcr4(SB), $0		/* CR4 - extensions */
+	MOVL	CR4, AX
 	RET
 
 /*

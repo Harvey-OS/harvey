@@ -13,31 +13,19 @@ char *desc;
 char *proto;
 int verbose;
 int update;
+int pkgupdate;
+int debug;
 
 Wrap *w;
 char **prefix;
 int nprefix;
-int pass;
 
-/*
- * We need to make sure that the files we list
- * in the md5sum file are the same files we
- * archive in the second pass through the proto
- * file; in order to do this without actually
- * keeping a list of files (which would defeat
- * the point of just processing the proto a 
- * second time), we run the list of file names
- * through MD5 and save the digests; the 
- * digest from pass 1 and the digest from pass 2
- * must match.
- */
-int pass;
-DigestState *md5s;
+Biobuf bmd5;
+Biobuf barch;
 
 static void
-mkarch(char *new, char *old, Dir *d, void *aux)
+mkarch(char *new, char *old, Dir *d, void*)
 {
-	Biobuf *b;
 	uchar digest[MD5dlen], odigest[MD5dlen];
 	vlong t;
 
@@ -52,20 +40,11 @@ mkarch(char *new, char *old, Dir *d, void *aux)
 	&& memcmp(digest, odigest, MD5dlen) == 0)
 		return;
 
-	md5((uchar*)new, strlen(new), nil, md5s);
-	b = aux;
-	switch(pass) {
-	default:
-		assert(0);
-	case 1:
-		Bprint(b, "%s %M\n", new, digest);
-		break;
-	case 2:
-		Bputhdr(b, new, d);
-		if((d->mode & CHDIR) == 0)
-			if(Bcopyfile(b, old, d->length) < 0)
-				sysfatal("error copying %s\n", old);
-		break;
+	Bputhdr(&barch, new, d);
+	if((d->mode & CHDIR) == 0) {
+		Bprint(&bmd5, "%s %M\n", new, digest);
+		if(Bcopyfile(&barch, old, d->length) < 0)
+			sysfatal("error copying %s\n", old);
 	}
 }
 
@@ -74,21 +53,43 @@ usage(void)
 {
 	fprint(2, "usage: wrap/create [-d desc] [-p proto] [-r root] [-t time] [-v] name\n");
 	fprint(2, "or  wrap/create -u [-d desc] [-p proto] [-r root] [-t time] [-v] package [prefix...]\n");
+	fprint(2, "or  wrap/create -U [-d desc] [-p proto] [-r root] [-t time] [-v] package\n");
 	exits("usage");
 }
 
+/*
+ * creating an archive goes through the following steps:
+ *
+ *	process proto, writing md5 sums to /tmp/wrap.md5.* and
+ *		the archive to /tmp/wrap.arch.*.
+ *	sort /tmp/wrap.md5.* into /tmp/wrap.md5sort.*
+ *	write an archive to stdout that begins with the md5 list
+ *		and other wrap files, and then continues with /tmp/wrap.arch.*.
+ *
+ * the pain of making sure the wrap metadata is at the beginning
+ * of the archive means that we can access it in gzipped archives without
+ * needing to gunzip the whole thing.
+ *
+ * we used to use an algorithm that processed the proto twice, once
+ * to create the md5 sum file and once to create the archive.
+ * it's much better to copy the archive to a temporary file since you
+ * can put it in ramfs, you avoid walking the entire tree again,
+ * and prefetching can help you if you're not using ramfs.
+ */
 void
 main(int argc, char **argv)
 {
-	char *name, md5file[2*NAMELEN], md5sort[2*NAMELEN],
+	char *name, md5file[2*NAMELEN], md5sort[2*NAMELEN], tmparch[2*NAMELEN],
 		rmfile[2*NAMELEN], *p, *q;
-	uchar digest[MD5dlen], digest0[MD5dlen];
 	Biobuf bout;
-	vlong t;
-	int fd;
+	vlong t, archlen;
+	int archfd, fd;
 
 	t = time(0);
 	ARGBEGIN{
+	case 'D':
+		debug = 1;
+		break;
 	case 'd':
 		desc = ARGF();
 		break;
@@ -100,6 +101,9 @@ main(int argc, char **argv)
 		break;
 	case 't':
 		t = strtoll(ARGF(), 0, 10);
+		break;
+	case 'U':
+		pkgupdate = 1;
 		break;
 	case 'u':
 		update = 1;
@@ -114,14 +118,27 @@ main(int argc, char **argv)
 	rfork(RFNAMEG);
 	fmtinstall('M', md5conv);
 
+	if(update && pkgupdate)
+		usage();
+
 	if((update && argc < 1) || (!update && argc != 1))
 		usage();
 
-	if(update) { 
-		w = openwraphdr(argv[0], root, argv+1, argc-1);
+	if(update) {
+		prefix = argv+1;
+		nprefix = argc-1;
+	}
+
+	if(update || pkgupdate) { 
+		w = openwraphdr(argv[0], root, nil, 0);
 		if(w == nil)
 			sysfatal("no such package found");
-		w->nu = 1;	/* ignore any updates */
+
+		/* ignore any updates */
+		while(w->nu > 0 && w->u[w->nu-1].type == UPD)
+			w->nu--;
+
+		w->nu = 1;
 		if(proto == nil)
 			proto = mkpath(w->u->dir, "proto");
 		name = w->name;
@@ -138,22 +155,25 @@ main(int argc, char **argv)
 
 	strcpy(md5file, "/tmp/wrap.md5.XXXXXX");
 	fd = opentemp(md5file);
+	Binit(&bmd5, fd, OWRITE);
 
-	md5s = md5(nil, 0, nil, nil);
-	Binit(&bout, fd, OWRITE);
-	pass = 1;
-	if(rdproto(proto, root, mkarch, nil, &bout) < 0)
+	strcpy(tmparch, "/tmp/wrap.arch.XXXXXX");
+	archfd = opentemp(tmparch);
+	Binit(&barch, archfd, OWRITE);
+
+	if(rdproto(proto, root, mkarch, nil, nil) < 0)
 		sysfatal("rdproto: %r");
-	Bflush(&bout);
-	Bterm(&bout);
-	md5(nil, 0, digest, md5s);
-	md5s = nil;
+	Bflush(&bmd5);
+	Bterm(&bmd5);
+	Bflush(&barch);
+	archlen = Boffset(&barch);
+	Bterm(&barch);
 
-	strcpy(md5sort, "/tmp/wrap.md5.XXXXXX");
+	strcpy(md5sort, "/tmp/wrap.md5sort.XXXXXX");
 	fd = opentemp(md5sort);
 	fsort(fd, md5file);
 
-	if(update) {
+	if(update || pkgupdate) {
 		strcpy(rmfile, "/tmp/wrap.rm.XXXXXX");
 		fd = opentemp(rmfile);
 		Bseek(w->u->bmd5, 0, 0);
@@ -169,24 +189,20 @@ main(int argc, char **argv)
 	}
 
 	Binit(&bout, 1, OWRITE);
-	if(update)
-		Bputwrap(&bout, name, t, desc, w->u->time);
+	if(update || pkgupdate)
+		Bputwrap(&bout, name, t, desc, w->time, pkgupdate);
 	else
-		Bputwrap(&bout, name, t, desc, 0);
+		Bputwrap(&bout, name, t, desc, 0, 1);
 	Bputwrapfile(&bout, name, t, "proto", proto);
 	Bputwrapfile(&bout, name, t, "md5sum", md5sort);
 	if(update)
 		Bputwrapfile(&bout, name, t, "remove", rmfile);
 
-	pass = 2;
-	md5s = md5(nil, 0, nil, nil);
-	if(rdproto(proto, root, mkarch, nil, &bout) < 0)
-		sysfatal("%r");
-	md5(nil, 0, digest0, md5s);
-	md5s = nil;
+	seek(archfd, 0, 0);	/* Binit assumes this */
+	Binit(&barch, archfd, OREAD);
+	if(Bcopy(&bout, &barch, archlen) < 0)
+		sysfatal("copy of temp file did not succeed: %lld %lld", Boffset(&barch), archlen);
 
-	if(memcmp(digest, digest0, MD5dlen) != 0)
-		sysfatal("files changed underfoot between passes %M %M", digest, digest0);
 	Bprint(&bout, "end of archive\n");
 	Bterm(&bout);
 	exits(0);

@@ -1,8 +1,6 @@
 ARCH=\
-	indigo\
-	magnum\
+	alphapc\
 	pc\
-	carrera\
 
 all:V:
 	for(i in $ARCH)@{
@@ -10,10 +8,10 @@ all:V:
 		mk
 	}
 
-installall:V:
+installall install:V:
 	for(i in $ARCH) @{
 		cd $i
-		mk installall
+		mk install
 	}
 
 clean:V:

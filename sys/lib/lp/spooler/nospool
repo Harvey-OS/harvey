@@ -1,29 +1,33 @@
 #!/bin/rc
 if (! ~ $DEBUG '') flag x +
+
+if (~ $LPCLASS *sendEOT*) SENDEOT=1
+if not SENDEOT=0
+
 if (~ $OUTDEV -) {
 	if (~ $#* 0) {
 		@{bind -b $LPLIB/process /bin; $LPPROC}
-		if (! ~ $LPDEST stdout) echo -n `{ascii -t 4}
+		if (~ $SENDEOT 1) echo -n `{ascii -t 4}
 	}
 	if not {
 		if (! ~ $DEBUG '') echo input files $*
 		for (i in $*) {
 			@{bind -b $LPLIB/process /bin; $LPPROC} < $i
-			if (! ~ $LPDEST stdout) echo -n `{ascii -t 4}
+			if (~ $SENDEOT 1) echo -n `{ascii -t 4}
 		}
 	}
 }
 if not {
 	if (~ $#* 0) {
 		@{bind -b $LPLIB/process /bin; $LPPROC} > $OUTDEV
-		if (! ~ $LPDEST stdout) echo -n `{ascii -t 4} > $OUTDEV
+		if (~ $SENDEOT 1) echo -n `{ascii -t 4} > $OUTDEV
 	}
 	if not {
 		if (! ~ $DEBUG '') echo input files $*
 		for (i in $*) {
 			echo processing $i >[1=2]
 			@{bind -b $LPLIB/process /bin; $LPPROC} < $i > $OUTDEV
-			if (! ~ $LPDEST stdout) echo -n `{ascii -t 4} > $OUTDEV
+			if (~ $SENDEOT 1) echo -n `{ascii -t 4} > $OUTDEV
 		}
 	}
 }

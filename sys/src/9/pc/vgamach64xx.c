@@ -13,7 +13,7 @@
 #include "screen.h"
 
 /*
- * ATI Mach64(CT|ET|G*|VT|VU|LP).
+ * ATI Mach64(CT|ET|G*|VT|VU|L*).
  */
 static ushort mach64xxdid[] = {
 	('C'<<8)|'T',
@@ -29,6 +29,7 @@ static ushort mach64xxdid[] = {
 	('G'<<8)|'Z',
 	('V'<<8)|'T',
 	('V'<<8)|'U',
+	('L'<<8)|'B',
 	('L'<<8)|'I',
 	('L'<<8)|'M',
 	('L'<<8)|'P',
@@ -765,8 +766,16 @@ mach64xxdrawinit(VGAscr *scr)
 		scr->scroll = mach64hwscroll;
 	}
 /*	scr->blank = mach64blank; */
-	if(scr->id == ('L'<<8)|'P')	/* Rage LT PRO */
+	switch(scr->id){
+	default:
+		break;
+	case ('L'<<8)|'B':		/* 4C42: Rage 3D LTPro */
+	case ('L'<<8)|'I':		/* 4C49: Rage 3D LTPro */
+	case ('L'<<8)|'M':		/* 4C4D: Rage Mobility */
+	case ('L'<<8)|'P':		/* 4C50: Rage 3D LTPro */
 		scr->blank = mach64lcdblank;
+		break;
+	}
 }
 
 VGAdev vgamach64xxdev = {

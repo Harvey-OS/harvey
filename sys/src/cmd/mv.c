@@ -119,7 +119,7 @@ mv(char *from, char *todir, char *toelem)
 	}
 	if ((stat = copy1(fdf, fdt, fromname, toname)) != -1)
 		if (remove(fromname) < 0) {
-			fprint(2, "mv: can't remove %s", fromname);
+			fprint(2, "mv: can't remove %s ", fromname);
 			perror("");
 			return -1;
 		}

@@ -29,7 +29,7 @@ enum
 static int cpufreq = 66000000;
 static int cpumhz = 66;
 static int loopconst = 100;
-static int cpuidax, cpuiddx;
+int cpuidax, cpuiddx;
 
 static void
 clockintr(Ureg*, void*)

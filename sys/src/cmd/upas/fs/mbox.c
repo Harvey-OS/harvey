@@ -676,12 +676,13 @@ headerline(char **pp, String *hl)
 		x = strchr(p, '\n');
 		if(x == nil)
 			x = p + strlen(p);
-		else
-			x++;
 		s_nappend(hl, p, x-p);
 		p = x;
-		if(*p != ' ' && *p != '\t')
+		if(*p != '\n' || *++p != ' ' && *p != '\t')
 			break;
+		while(*p == ' ' || *p == '\t')
+			p++;
+		s_putc(hl, ' ');
 	}
 	*pp = p;
 	return 1;
@@ -854,19 +855,6 @@ killtrailingwhite(char *p)
 }
 
 static void
-singleline(String *s)
-{
-	char *p;
-
-	for(p = s_to_c(s); *p; p++)
-		if(*p == '\n'){
-			if(*(p+1) == ' ' || *(p+1) == '\t')
-				memmove(p, p+1, strlen(p+1)+1);
-			*p = ' ';
-		}
-}
-
-static void
 date822(Message *m, Header *h, char *p)
 {
 	p += strlen(h->type);
@@ -875,7 +863,6 @@ date822(Message *m, Header *h, char *p)
 	m->date822 = s_copy(p);
 	p = s_to_c(m->date822);
 	killtrailingwhite(p);
-	singleline(m->date822);
 }
 
 static void
@@ -887,7 +874,6 @@ subject822(Message *m, Header *h, char *p)
 	m->subject822 = s_copy(p);
 	p = s_to_c(m->subject822);
 	killtrailingwhite(p);
-	singleline(m->subject822);
 }
 
 static void
@@ -899,7 +885,6 @@ inreplyto822(Message *m, Header *h, char *p)
 	m->inreplyto822 = s_copy(p);
 	p = s_to_c(m->inreplyto822);
 	killtrailingwhite(p);
-	singleline(m->inreplyto822);
 }
 
 static void
@@ -911,7 +896,6 @@ messageid822(Message *m, Header *h, char *p)
 	m->messageid822 = s_copy(p);
 	p = s_to_c(m->messageid822);
 	killtrailingwhite(p);
-	singleline(m->messageid822);
 }
 
 static int

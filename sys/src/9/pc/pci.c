@@ -61,6 +61,7 @@ enum
 static Lock pcicfglock;
 static Lock pcicfginitlock;
 static int pcicfgmode = -1;
+static int pcimaxbno = 255;
 static int pcimaxdno;
 static Pcidev* pciroot;
 static Pcidev* pcilist;
@@ -534,11 +535,13 @@ pcicfginit(void)
 
 	fmtinstall('T', tbdfconv);
 
+	if(p = getconf("*pcimaxbno"))
+		pcimaxbno = strtoul(p, 0, 0);
 	if(p = getconf("*pcimaxdno"))
 		pcimaxdno = strtoul(p, 0, 0);
 
 	list = &pciroot;
-	for(bno = 0; bno < 256; bno++) {
+	for(bno = 0; bno <= pcimaxbno; bno++) {
 		bno = pciscan(bno, list);
 		while(*list)
 			list = &(*list)->link;

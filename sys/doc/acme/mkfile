@@ -5,9 +5,7 @@ ALL:V:
 
 acme.ps:D:	acme.ms
 	{echo $FONTS; cat acme.ms} | troff -mpm -mpictures -mnihongo | lp -m.9 -dstdout >acme.ps
-
-acme.bs:D:	acme.ms
-	{echo $FONTS; cat bs acme.ms} | troff -mpm -mpictures -mnihongo | lp -m.9 -dstdout >acme.bs
+	../cleanps acme.ps
 
 acme.html:D:	acme.ms
 	{echo $FONTS; cat acme.ms} | ms2html >acme.html

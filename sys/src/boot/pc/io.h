@@ -9,25 +9,6 @@ enum
 	Matherr1vec=	16,		/* math coprocessor error interrupt */
 	Faultvec=	14,		/* page fault */
 
-#ifdef notdef
-	Int0vec=	24,		/* first 8259 */
-	 Clockvec=	Int0vec+0,	/*  clock interrupts */
-	 Kbdvec=	Int0vec+1,	/*  keyboard interrupts */
-	 Uart1vec=	Int0vec+3,	/*  modem line */
-	 Uart0vec=	Int0vec+4,	/*  serial line */
-	 PCMCIAvec=	Int0vec+5,	/*  PCMCIA card change */
-	 Floppyvec=	Int0vec+6,	/*  floppy interrupts */
-	 Parallelvec=	Int0vec+7,	/*  parallel port interrupts */
-	Int1vec=	Int0vec+8,
-	 Vector9=	Int0vec+9,	/*  unassigned */
-	 Vector10=	Int0vec+10,	/*  unassigned, usually ethernet */
-	 Vector11=	Int0vec+11,	/*  unassigned, usually scsi */
-	 Mousevec=	Int0vec+12,	/*  mouse interrupt */
-	 Matherr2vec=	Int0vec+13,	/*  math coprocessor */
-	 ATAvec0=	Int0vec+14,	/*  ATA controller #1 */
-	 ATAvec1=	Int0vec+15,	/*  ATA controller #2 */
-#endif /* notdef */
-
 	Syscallvec=	64,
 
 	VectorPIC	= 24,		/* external [A]PIC interrupts */
@@ -77,7 +58,7 @@ enum {
 
 enum {
 	MaxEISA		= 16,
-	EISAconfig	= 0xC80,
+	CfgEISA		= 0xC80,
 };
 
 /*
@@ -143,19 +124,23 @@ typedef struct Pcidev {
 	ushort	vid;			/* vendor ID */
 	ushort	did;			/* device ID */
 
+	uchar	rid;
+	uchar	ccrp;
+	uchar	ccru;
+	uchar	ccrb;
+
 	struct {
 		ulong	bar;		/* base address */
 		int	size;
 	} mem[6];
 
 	uchar	intl;			/* interrupt line */
-	uchar	ccrp;
-	uchar	ccru;
-	uchar	ccrb;
 
 	Pcidev*	list;
 	Pcidev*	bridge;			/* down a bus */
 	Pcidev*	link;			/* next device on this bno */
+
+	ulong	pcr;
 };
 
 /*

@@ -81,7 +81,7 @@ There should be
 .I ncmd
 bytes of
 command data in 
-.I cmd ;
+.IR cmd ;
 if
 .I dir
 is 

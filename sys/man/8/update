@@ -5,6 +5,7 @@ setup.kfs, update \- administration for local file systems
 .SH SYNOPSIS
 .B pc/bootfloppy
 .I floppydisk
+.I plan9.ini
 .br
 .B pc/bootplan9 
 .I /dev/sdXX
@@ -67,10 +68,12 @@ the user who runs the command.
 .PP
 The boot scripts prepare various ways to bootstrap Plan 9.
 .I Bootfloppy
-creates a boot floppy containing just
-.B ld.com
-and
-.BR 9load .
+creates a boot floppy containing
+.BR 9load ,
+a zeroed 512-byte
+.BR plan9.nvr ,
+and the named file as
+.BR plan9.ini .
 .I Bootplan9
 sets the 
 .B 9fat

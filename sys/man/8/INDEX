@@ -6,6 +6,7 @@ auth auth
 auth.srv auth
 changeuser auth
 convkeys auth
+convkeys2 auth
 guard.srv auth
 login auth
 printnetkey auth

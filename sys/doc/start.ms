@@ -716,3 +716,264 @@ with the system you are encouraged to set
 up a dedicated file and cpu server, and
 try running your terminals with no local state
 other than their bootstrap programs.
+.SH
+Configuring a standalone cpu/authentication server
+.PP
+When configuring a Plan 9 network, the first 
+machine to set up is a standalone cpu and authentication
+server.
+After you have this, you can go on to configure
+a file server and then boot terminals and other
+cpu servers from it.
+.PP
+Start by installing the distribution as though
+creating a standalone terminal.
+Reboot the system, and log in as 
+.CW glenda .
+.PP
+Decide what name to give your 
+cpu server owner.  This is the user
+that all the cpu servers run as.
+We'll name the user
+.CW bootes .
+Choose a password for
+.CW bootes .
+Edit
+.CW /adm/users 
+as described above to create
+any users you want the 
+.I kfs
+file server to know about.
+.PP
+Edit 
+.CW /rc/bin/cpurc .
+Just before 
+.CW ndb/cs ,
+add a call to
+.CW ip/ipconfig ,
+specifying the appropriate numbers
+if you don't want to use DHCP:
+.P1
+ip/ipconfig -g gateway.addr ether /net/ether0 ip.addr ip.mask
+.P2
+If
+.CW DHCP
+will not get the system name correct, you
+may wish to add
+.CW sysname= \fIsystem\fR
+just before the
+.CW ip/ipconfig
+line.
+Uncomment 
+the calls to
+.CW ip/dhcpd
+and 
+.CW ip/tftpd
+if you want to run those servers.
+(Note that early copies of the distribution
+have a 
+.CW cpurc
+that says
+.CW ip/dhcp
+rather than
+.CW ip/dhcpd ;
+if yours does, you should correct this.)
+Replace the two
+.CW aux/listen
+lines with
+.P1
+auth/keyfs -wp -m /mnt/keys /adm/keys >/dev/null >[2=1]
+aux/listen -q -d /rc/bin/service -t /rc/bin/service.auth il
+aux/listen -q -d /rc/bin/service -t /rc/bin/service.auth tcp
+auth/cron >>/sys/log/cron >[2=1] &
+.P2
+to start the key server, the network listeners, and cron.
+You'll probably want to uncomment 
+the call to
+.CW aux/timesync
+as well.
+Bind in some extra devices by adding 
+.P1
+for (i in '#m' '#i' '#S' '#t')
+	bind -a $i /dev >/dev/null >[2]/dev/null
+.P2
+to the top of 
+.CW cpurc ,
+just after the
+.CW facedom=
+line.
+If you leave out
+.CW '#m' ,
+.I rio
+will not start when you boot your server
+(sometimes a desirable property).
+.PP
+Generate some SSH keys for the host:
+.P1
+aux/ssh_genkey
+chgrp -u bootes /sys/lib/ssh/hostkey.*
+.P2
+.PP 
+Edit the contents of
+.CW /lib/ndb
+to fit your network,
+as described above.
+Be sure to list 
+.CW auth= \fIauthserver\fR
+as an attribute in your
+network's entry.
+If you are going to use NTP for
+.CW timesync ,
+make sure you define an
+.CW ntp= \fIntpserver\fR
+attribute as well.
+It's a good idea to check that you
+got your network config right by trying
+.P1
+ndb/ipquery ip your.ip.add.ress auth
+ndb/ipquery ip your.ip.add.ress cpu
+ndb/ipquery ip your.ip.add.ress ntp
+.P2
+.PP
+Edit
+.CW /lib/ndb/auth
+to say that the cpu server user is allowed
+to become any other user (given the appropriate credentials).
+A sample file might be
+.P1
+hostid=bootes
+	uid=!sys uid=!adm uid=*
+.P2
+.PP
+Optionally, configure your mail setup (described above) by editing
+.CW rewrite ,
+.CW remotemail ,
+.CW smtpd.conf ,
+and
+.CW names.local ,
+all in
+.CW /mail/lib .
+.PP
+Remove 
+.CW /rc/bin/service/il566
+and
+.CW /rc/bin/service/tcp567 .
+They proxy calls for the authentication
+services to the authentication server.
+On the authentication server itself, you'll
+want to run different services on those ports.
+To run them, 
+.P1
+cd /rc/bin/service.auth
+mv authsrv.il566 il566
+mv authsrv.tcp567 tcp567
+.P2
+.PP
+Compile and install a disk-based cpu server kernel:
+.P1
+cd /sys/src/9/pc
+mk 'CONF=pccpudisk' 9pccpudisk
+9fat:
+cp 9pccpudisk /n/9fat/9pccpud
+.P2
+Note that you can't call it
+.CW 9pccpudisk
+because the bootstrap loader
+does not know about long FAT filenames.
+Edit
+.CW /n/9fat/plan9.ini
+to say
+.CW bootfile=sdXX!9fat!9pccpud ,
+where
+.CW sdXX
+is the disk with the
+.CW 9fat
+partition.
+.PP
+Create an
+.CW nvram
+partition on your disk.
+(At present, this only works if you make it on
+.CW sd00 
+or 
+.CW sdC0 ;
+we will fix this real soon.
+You can change this by editing
+.CW /sys/src/9/boot/key.c .)
+Use 
+.CW disk/prep :
+the
+.CW nvram
+partition need only be a single sector,
+which you can easily steal from the beginning or end
+of your swap partition.
+For good measure, 
+.P1
+echo blahblahblah >/dev/sdC0/nvram
+.P2
+so that the checksum won't be correct
+when you next boot. 
+This will force the cpu server to ask you
+for authentication information.
+.PP
+Reboot the machine.
+When it comes up, it should load the
+.CW 9pccpud
+kernel and then complain about
+the
+nvram checksum being incorrect.
+Having done this, 
+it will prompt for a
+password, authentication id, 
+and
+authentication domain.
+Enter 
+.CW bootes 's
+password and
+.CW bootes
+for authentication id.
+The authentication domain
+is not used, except for debugging.
+It is often an internet domain
+like
+.CW moscvax.edu .
+.PP
+Once
+.I rio
+comes up, create some user accounts
+in the key database by using
+.CW auth/changeuser
+(see
+.I auth (8)).
+In particular, be sure to create an account for
+.CW bootes
+using the same password you just typed.
+.PP
+At this point you should be all set.
+Test out a new user account by attempting
+to telnet into the auth server
+as that user, using
+.CW netkey
+to respond to the challenge.
+.PP
+Note that you have configured a standalone
+cpu server whose primary purpose is as an
+authentication server.
+A set of patches to
+.I kfs 
+exists to make it act as a network file server,
+so that you could use one machine to support
+the network rather than needing two.
+This is not the best way to run a Plan 9 system \(em 
+.I kfs
+is slow and can't provide 
+.I dump -style
+backups, and it's easier to administer the network
+when each machine has only one job.
+Even so, for small installations (one or two people)
+this is a decent way to get terminals booting without
+any local state.
+The 
+.I kfs
+patches are currently being soaked
+and may appear before long.

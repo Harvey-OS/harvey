@@ -1,0 +1,72 @@
+nl='
+'
+tab='	'
+
+fn prompt {
+	def=()
+	what=()
+	if(~ $1 -d && ! ~ $#* 1){
+		def=$2
+		shift
+		shift
+	}
+
+	optstr=()
+	if(~ $1 -w && ! ~ $#* 1){
+		optstr=$2
+		shift
+		shift
+	}
+
+	pr=$1
+	shift
+
+	opts=($*)
+	if(~ $#opts 0) {
+		suf=' '
+	}
+	if not if(! ~ $#optstr 0) {
+		if(~ $optstr '') 
+			suf=' '
+		if not {
+			pr=$pr^' ('^$"optstr^')'
+			suf=''
+		}
+	}
+	if not {
+		pr=$pr^' ('^$1
+		shift
+		for(i)
+			pr=$pr^', '^$i
+		pr=$pr^')'
+		suf=''
+	}
+
+	if(~ $#def 1)
+		pr=$pr^$suf^'['^$def^']'
+	pr=$pr^': '
+
+
+	okay=no
+	while(~ $okay no) {
+# whatis opts
+		echo -n $pr >[1=2]
+		ifs='' {rd=`{read}}
+		if(~ $#rd 0)
+			exit notdone
+		rd=`{echo $rd}
+		if(~ $#rd 0 || ~ $rd '')
+			rd=$def
+
+		switch($#opts){
+		case 0
+			if(! ~ $rd '')
+				okay=yes
+		case *
+			if(~ $rd $opts)
+				okay=yes
+		}
+	}
+	echo -n $rd >/env/rd	# just in case
+}
+

@@ -217,6 +217,14 @@ scsionline(SDunit* unit)
 			 */
 			unit->sectors++;
 			unit->secsize = (p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7];
+
+			/*
+			 * Some ATAPI CD readers lie about the block size.
+			 * Since we don't read audio via this interface
+			 * it's okay to always fudge this.
+			 */
+			if((unit->inquiry[0] & 0x1F) == 0x05 && unit->secsize == 2352)
+				unit->secsize = 2048;
 			ok = 1;
 			break;
 		case 1:
@@ -230,7 +238,10 @@ scsionline(SDunit* unit)
 	free(p);
 	free(r);
 
-	return ok;
+	if(ok)
+		return ok+retries;
+	else
+		return 0;
 }
 
 int
@@ -331,15 +342,13 @@ again:
 		case 0x06:		/* check condition */
 			/*
 			 * Check for a removeable media change.
-			 * If so, mark it and zap the geometry info
+			 * If so, mark it by zapping the geometry info
 			 * to force an online request.
 			 */
 			if(r->sense[12] != 0x28 || r->sense[13] != 0)
 				break;
-			if(unit->inquiry[1] & 0x80){
-				unit->changed = 1;
+			if(unit->inquiry[1] & 0x80)
 				unit->sectors = 0;
-			}
 			break;
 		case 0x02:		/* not ready */
 			/*

@@ -75,6 +75,8 @@ int pchar(Tchar i)
 	default:
 		setcbits(i, trtab[j]);
 	}
+	if (NROFF & xon)	/* rob fix for man2html */
+		return 0;
 	pchar1(i);
 	return 0;
 }

@@ -176,17 +176,6 @@ rootwrite(Chan *c, void*, long, vlong)
 	return 0;
 }
 
-static void
-rootcreate(Chan *c, char *name, int mode, ulong perm)
-{
-	if(!iseve() || c->qid.path != (CHDIR|Qdir) ||
-	   (perm & CHDIR) == 0 || mode != OREAD)
-		error(Eperm);
-	addrootdir(name);
-	c->flag |= COPEN;
-	c->mode = OREAD;
-}
-
 Dev rootdevtab = {
 	'/',
 	"root",
@@ -198,7 +187,7 @@ Dev rootdevtab = {
 	rootwalk,
 	rootstat,
 	rootopen,
-	rootcreate,
+	devcreate,
 	rootclose,
 	rootread,
 	devbread,

@@ -17,3 +17,8 @@ in the README file.
 
 Russ Cox <rsc@plan9.bell-labs.com>
 March 2000
+
+12 June 2000: rsc: Added -I flag so you can 
+	bind pdksh over rc for use in mk,
+	a dubious justification.
+

@@ -12,9 +12,7 @@ OBJ=\
 
 fs.ps:D:	$OBJ
 	{echo $FONTS; cat $OBJ } | troff -ms | lp -dstdout >fs.ps
-
-fs.bs:D:	$OBJ
-	../prfile fs $OBJ
+	../cleanps fs.ps
 
 fs.trout:D:	$OBJ
 	{echo $FONTS; cat $OBJ } | troff -ms >fs.trout

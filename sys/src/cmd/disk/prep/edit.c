@@ -207,7 +207,7 @@ editdel(Edit *edit, int argc, char **argv)
 
 static char *helptext = 
 	". [newdot] - display or set value of dot\n"
-	"a name [start [size]] - add partition\n"
+	"a name [start [end]] - add partition\n"
 	"d name - delete partition\n"
 	"h - print help message\n"
 	"p - print partition table\n"

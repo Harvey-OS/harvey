@@ -30,6 +30,11 @@ char *Bsearch(Biobuf*, char*);	/* binary search */
 /* open a potentially gzipped file */
 Biobuf *Bopengz(char*);
 
+enum {
+	PKG = 1,
+	UPD = 2
+};
+
 /* wrap management */
 typedef struct Update Update;
 struct Update {
@@ -38,21 +43,23 @@ struct Update {
 	vlong time;
 	vlong utime;
 	Biobuf *bmd5;	/* a cache for getfileinfo */
+	int type;
 };
 
 typedef struct Wrap Wrap;
 struct Wrap {
 	char *name;
 	char *root;
+	vlong time;	/* not necessarily u[0].time, if there are package updates */
 
-	Update *u;	/* u[0] is base package, others are patches */
+	Update *u;	/* u[0] is base package, others are package updates, then updates */
 	int nu;
 };
 
 Wrap *openwrap(char *name, char *root);
 Wrap *openwraphdr(char*, char*, char**, int);
 void closewrap(Wrap*);
-void Bputwrap(Biobuf*, char*, vlong, char*, vlong);
+void Bputwrap(Biobuf*, char*, vlong, char*, vlong, int);
 void Bputwrapfile(Biobuf*, char*, vlong, char*, char*);
 int getfileinfo(Wrap*, char*, vlong*, uchar*);
 

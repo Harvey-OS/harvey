@@ -3,10 +3,14 @@ Installing the Plan 9 Distribution
 .SH
 System requirements
 .PP
-You need an x86-based PC with 16MB of RAM,
+You need an x86-based PC with 32MB of RAM,
 a supported video card, 
 and a hard disk with at least 300MB of unpartitioned space
 and a free primary partition slot.
+(These are requirements for the installation procedure.
+A machine with 16MB of memory and no free disk space
+at all will work as a terminal.)
+.PP
 If you wish to install from local media,
 you need an extant FAT or EXT2 file system,
 or a CD-ROM drive (and a CD writer or some other

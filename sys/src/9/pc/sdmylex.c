@@ -737,10 +737,12 @@ mylex32interrupt(Ureg*, void* arg)
 static int
 mylexrio(SDreq* r)
 {
+	int subno;
 	Ctlr *ctlr;
 
+	subno = r->unit->subno;
 	ctlr = r->unit->dev->ctlr;
-	if((r->unit->subno) == ctlr->id)
+	if(subno == ctlr->id || (!ctlr->wide && subno >= 8))
 		r->status = SDtimeout;
 	else if(ctlr->bus == 24)
 		r->status = mylex24rio(r);
@@ -1012,9 +1014,6 @@ buggery:
 
 static int mylexport[8] = {
 	0x330, 0x334, 0x230, 0x234, 0x130, 0x134, 0x000, 0x000,
-};
-static int mylexirq[8] = {
-	9, 10, 11, 12, 14, 15, 0, 0,
 };
 
 static SDev*

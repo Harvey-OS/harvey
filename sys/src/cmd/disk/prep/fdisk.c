@@ -805,13 +805,13 @@ cmdadd(Edit *edit, char *name, vlong start, vlong end)
 	assert(primary[i]->type == TypeEMPTY);
 
 	sh = edit->disk->s * edit->disk->h;
-	if(start % sh || end % sh) {
+	if((start != edit->disk->s && start % sh) || end % sh) {
 		/*
 		 * The first partition can start at C/H/S 0/1/1; I guess
 		 * it gets special treatment because of the MBR at 0/0/1.
 		 */
-		if(start < edit->disk->h)
-			start = edit->disk->h;
+		if(start < edit->disk->s)
+			start = edit->disk->s;
 		else if(start % sh)
 			start += sh - (start % sh);
 		end -= end % sh;

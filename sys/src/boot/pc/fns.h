@@ -31,6 +31,7 @@ char*	getconf(char*);
 ulong	getcr0(void);
 ulong	getcr2(void);
 ulong	getcr3(void);
+ulong	getcr4(void);
 int	getfields(char*, char**, int, char);
 int	getstr(char*, char*, int, char*, int);
 int	gunzip(uchar*, int, uchar*, int);
@@ -95,10 +96,14 @@ void	uartputs(IOQ*, char*, int);
 ulong	umbmalloc(ulong, int, int);
 void	umbfree(ulong, int);
 ulong	umbrwmalloc(ulong, int, int);
+void	upafree(ulong, int);
+ulong	upamalloc(ulong, int, int);
 void	warp9(ulong);
 int	x86cpuid(int*, int*);
+void*	xspanalloc(ulong, int, ulong);
 
 #define malloc(n)	ialloc(n, 0)
+#define mallocz(n, c)	ialloc(n, 0)
 #define free(v)
 
 #define	GSHORT(p)	(((p)[1]<<8)|(p)[0])

@@ -26,6 +26,7 @@ enum {					/* configuration mechanism #1 */
 static Lock pcicfglock;
 static Lock pcicfginitlock;
 static int pcicfgmode = -1;
+static int pcimaxbno = 255;
 static int pcimaxdno;
 static Pcidev* pciroot;
 static Pcidev* pcilist;
@@ -33,10 +34,24 @@ static Pcidev* pcitail;
 
 static int pcicfgrw32(int, int, int, int);
 
+ulong
+pcibarsize(Pcidev *p, int rno)
+{
+	ulong v, size;
+
+	v = pcicfgrw32(p->tbdf, rno, 0, 1);
+	pcicfgrw32(p->tbdf, rno, 0xFFFFFFF0, 0);
+	size = pcicfgrw32(p->tbdf, rno, 0, 1);
+	if(v & 1)
+		size |= 0xFFFF0000;
+	pcicfgrw32(p->tbdf, rno, v, 0);
+
+	return -(size & ~0x0F);
+}
+
 static int
 pciscan(int bno, Pcidev** list)
 {
-	ulong v;
 	Pcidev *p, *head, *tail;
 	int dno, fno, i, hdt, l, maxfno, maxubn, rno, sbn, tbdf, ubn;
 
@@ -47,11 +62,12 @@ pciscan(int bno, Pcidev** list)
 		maxfno = 0;
 		for(fno = 0; fno <= maxfno; fno++){
 			/*
-			 * For this possible device, form the bus+device+function
-			 * triplet needed to address it and try to read the vendor
-			 * and device ID. If successful, allocate a device struct
-			 * and start to fill it in with some useful information from
-			 * the device's configuration space.
+			 * For this possible device, form the
+			 * bus+device+function triplet needed to address it
+			 * and try to read the vendor and device ID.
+			 * If successful, allocate a device struct and
+			 * start to fill it in with some useful information
+			 * from the device's configuration space.
 			 */
 			tbdf = MKBUS(BusPCI, bno, dno, fno);
 			l = pcicfgrw32(tbdf, PciVID, 0, 1);
@@ -68,10 +84,13 @@ pciscan(int bno, Pcidev** list)
 				pcilist = p;
 			pcitail = p;
 
-			p->intl = pcicfgr8(p, PciINTL);
+			p->rid = pcicfgr8(p, PciRID);
 			p->ccrp = pcicfgr8(p, PciCCRp);
 			p->ccru = pcicfgr8(p, PciCCRu);
 			p->ccrb = pcicfgr8(p, PciCCRb);
+			p->pcr = pcicfgr32(p, PciPCR);
+
+			p->intl = pcicfgr8(p, PciINTL);
 
 			/*
 			 * If the device is a multi-function device adjust the
@@ -91,7 +110,7 @@ pciscan(int bno, Pcidev** list)
 			case 0x02:		/* network controller */
 			case 0x03:		/* display controller */
 			case 0x04:		/* multimedia device */
-			case 0x07:		/* simple communication controllers */
+			case 0x07:		/* simple comm. controllers */
 			case 0x08:		/* base system peripherals */
 			case 0x09:		/* input devices */
 			case 0x0A:		/* docking stations */
@@ -103,10 +122,7 @@ pciscan(int bno, Pcidev** list)
 				for(i = 0; i < nelem(p->mem); i++){
 					rno += 4;
 					p->mem[i].bar = pcicfgr32(p, rno);
-					pcicfgw32(p, rno, -1);
-					v = pcicfgr32(p, rno);
-					pcicfgw32(p, rno, p->mem[i].bar);
-					p->mem[i].size = -(v & ~0xF);
+					p->mem[i].size = pcibarsize(p, rno);
 				}
 				break;
 
@@ -130,26 +146,27 @@ pciscan(int bno, Pcidev** list)
 		/*
 		 * Find PCI-PCI bridges and recursively descend the tree.
 		 */
-		if(p->ccru != ((0x06<<8)|0x04))
+		if(p->ccrb != 0x06 || p->ccru != 0x04)
 			continue;
 
 		/*
-		 * If the secondary or subordinate bus number is not initialised
-		 * try to do what the PCI BIOS should have done and fill in the
-		 * numbers as the tree is descended. On the way down the subordinate
-		 * bus number is set to the maximum as it's not known how many
-		 * buses are behind this one; the final value is set on the way
-		 * back up.
+		 * If the secondary or subordinate bus number is not
+		 * initialised try to do what the PCI BIOS should have
+		 * done and fill in the numbers as the tree is descended.
+		 * On the way down the subordinate bus number is set to
+		 * the maximum as it's not known how many buses are behind
+		 * this one; the final value is set on the way back up.
 		 */
 		sbn = pcicfgr8(p, PciSBN);
 		ubn = pcicfgr8(p, PciUBN);
+
 		if(sbn == 0 || ubn == 0){
 			sbn = maxubn+1;
 			/*
-			 * Make sure memory, I/O and master enables are off,
-			 * set the primary, secondary and subordinate bus numbers
-			 * and clear the secondary status before attempting to
-			 * scan the secondary bus.
+			 * Make sure memory, I/O and master enables are
+			 * off, set the primary, secondary and subordinate
+			 * bus numbers and clear the secondary status before
+			 * attempting to scan the secondary bus.
 			 *
 			 * Initialisation of the bridge should be done here.
 			 */
@@ -159,6 +176,7 @@ pciscan(int bno, Pcidev** list)
 			pcicfgw16(p, PciSPSR, 0xFFFF);
 			maxubn = pciscan(sbn, &p->bridge);
 			l = (maxubn<<16)|(sbn<<8)|bno;
+
 			pcicfgw32(p, PciPBN, l);
 		}
 		else{
@@ -178,41 +196,46 @@ pcicfginit(void)
 	Pcidev **list;
 
 	lock(&pcicfginitlock);
-	if(pcicfgmode == -1){
-		/*
-		 * Try to determine which PCI configuration mode is implemented.
-		 * Mode2 uses a byte at 0xCF8 and another at 0xCFA; Mode1 uses
-		 * a DWORD at 0xCF8 and another at 0xCFC and will pass through
-		 * any non-DWORD accesses as normal I/O cycles. There shouldn't be
-		 * a device behind these addresses so if Mode2 accesses fail try
-		 * for Mode1 (which is preferred, Mode2 is deprecated).
-		 */
-		outb(PciCSE, 0);
-		if(inb(PciCSE) == 0){
-			pcicfgmode = 2;
-			pcimaxdno = 15;
-		}
-		else{
-			outl(PciADDR, 0);
-			if(inl(PciADDR) == 0){
-				pcicfgmode = 1;
-				pcimaxdno = 31;
-			}
-		}
-	
-		if(pcicfgmode > 0){
-			if(p = getconf("*pcimaxdno"))
-				pcimaxdno = strtoul(p, 0, 0);
+	if(pcicfgmode != -1)
+		goto out;
 
-			list = &pciroot;
-			for(bno = 0; bno < 256; bno++){
-				bno = pciscan(bno, list);
-				while(*list)
-					list = &(*list)->link;
-			}
-				
+	/*
+	 * Try to determine which PCI configuration mode is implemented.
+	 * Mode2 uses a byte at 0xCF8 and another at 0xCFA; Mode1 uses
+	 * a DWORD at 0xCF8 and another at 0xCFC and will pass through
+	 * any non-DWORD accesses as normal I/O cycles. There shouldn't be
+	 * a device behind these addresses so if Mode2 accesses fail try
+	 * for Mode1 (which is preferred, Mode2 is deprecated).
+	 */
+	outb(PciCSE, 0);
+	if(inb(PciCSE) == 0){
+		pcicfgmode = 2;
+		pcimaxdno = 15;
+	}
+	else {
+		outl(PciADDR, 0);
+		if(inl(PciADDR) == 0){
+			pcicfgmode = 1;
+			pcimaxdno = 31;
 		}
 	}
+	
+	if(pcicfgmode < 0)
+		goto out;
+
+
+	if(p = getconf("*pcimaxbno"))
+		pcimaxbno = strtoul(p, 0, 0);
+	if(p = getconf("*pcimaxdno"))
+		pcimaxdno = strtoul(p, 0, 0);
+
+	list = &pciroot;
+	for(bno = 0; bno <= pcimaxbno; bno++) {
+		bno = pciscan(bno, list);
+		while(*list)
+			list = &(*list)->link;
+	}
+out:
 	unlock(&pcicfginitlock);
 }
 
@@ -416,12 +439,12 @@ pcihinv(Pcidev* p)
 
 	if(p == nil) {
 		p = pciroot;
-		print("bus dev type vid  did  memory\n");
+		print("bus dev type vid  did intl memory\n");
 	}
 	for(t = p; t != nil; t = t->link) {
-		print("%d  %2d/%d %.4ux %.4ux %.4ux %d ",
+		print("%d  %2d/%d %.2ux %.2ux %.2ux %.4ux %.4ux %3d  ",
 			BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
-			t->ccru, t->vid, t->did, t->intl);
+			t->ccrb, t->ccru, t->ccrp, t->vid, t->did, t->intl);
 
 		for(i = 0; i < nelem(p->mem); i++) {
 			if(t->mem[i].size == 0)

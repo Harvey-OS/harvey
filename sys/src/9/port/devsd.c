@@ -78,7 +78,9 @@ sdaddpart(SDunit* unit, char* name, ulong start, ulong end)
 	/*
 	 * Check there is a free slot and size and extent are valid.
 	 */
-	if(partno == -1 || start > end || end > unit->sectors)
+	if(partno == -1)
+		error(Ebadctl);
+	if(start > end || end > unit->sectors)
 		error(Eio);
 	pp = &unit->part[partno];
 	pp->start = start;
@@ -87,7 +89,6 @@ sdaddpart(SDunit* unit, char* name, ulong start, ulong end)
 	strncpy(pp->user, eve, NAMELEN);
 	pp->perm = 0640;
 	pp->valid = 1;
-	unit->npart++;
 }
 
 static void
@@ -99,8 +100,6 @@ sddelpart(SDunit* unit,  char* name)
 	/*
 	 * Look for the partition to delete.
 	 * Can't delete if someone still has it open.
-	 * If it's the last valid partition zap the
-	 * whole table.
 	 */
 	pp = unit->part;
 	for(i = 0; i < SDnpart; i++){
@@ -112,29 +111,24 @@ sddelpart(SDunit* unit,  char* name)
 		error(Ebadctl);
 	if(strncmp(up->user, pp->user, NAMELEN) && !iseve())
 		error(Eperm);
-	if(pp->nopen)
-		error(Einuse);
 	pp->valid = 0;
-
-	unit->npart--;
-	if(unit->npart == 0){
-		free(unit->part);
-		unit->part = nil;
-	}
+	pp->vers++;
 }
 
 static int
 sdinitpart(SDunit* unit)
 {
-	int nf;
+	int i, nf;
 	ulong start, end;
 	char *f[4], *p, *q, buf[10];
 
+	unit->vers++;
 	unit->sectors = unit->secsize = 0;
-	unit->npart = 0;
 	if(unit->part){
-		free(unit->part);
-		unit->part = nil;
+		for(i = 0; i < SDnpart; i++){
+			unit->part[i].valid = 0;
+			unit->part[i].vers++;
+		}
 	}
 
 	if(unit->inquiry[0] & 0xC0)
@@ -322,22 +316,20 @@ sd2gen(Chan* c, int i, Dir* dp)
 	SDpart *pp;
 	SDunit *unit;
 
+	unit = sdunit[UNIT(c->qid)];
 	switch(i){
 	case Qctl:
-		q = (Qid){QID(UNIT(c->qid), PART(c->qid), Qctl), c->qid.vers};
+		q = (Qid){QID(UNIT(c->qid), PART(c->qid), Qctl), unit->vers};
 		devdir(c, q, "ctl", 0, eve, 0640, dp);
 		return 1;
 	case Qraw:
-		q = (Qid){QID(UNIT(c->qid), PART(c->qid), Qraw), c->qid.vers};
+		q = (Qid){QID(UNIT(c->qid), PART(c->qid), Qraw), unit->vers};
 		devdir(c, q, "raw", 0, eve, CHEXCL|0600, dp);
 		return 1;
 	case Qpart:
-		unit = sdunit[UNIT(c->qid)];
-		if(unit->changed)
-			break;
 		pp = &unit->part[PART(c->qid)];
 		l = (pp->end - pp->start) * (vlong)unit->secsize;
-		q = (Qid){QID(UNIT(c->qid), PART(c->qid), Qpart), c->qid.vers};
+		q = (Qid){QID(UNIT(c->qid), PART(c->qid), Qpart), unit->vers+pp->vers};
 		if(pp->user[0] == '\0')
 			strncpy(pp->user, eve, NAMELEN);
 		devdir(c, q, pp->name, l, pp->user, pp->perm, dp);
@@ -392,8 +384,16 @@ sdgen(Chan* c, Dirtab*, int, int s, Dir* dp)
 		}
 		unit = sdunit[UNIT(c->qid)];
 		qlock(&unit->ctl);
-		if(!unit->changed && unit->sectors == 0)
+
+		/*
+		 * Check for media change.
+		 * If one has already been detected, sectors will be zero.
+		 * If there is one waiting to be detected, online will return > 1.
+		 * Online is a bit of a large hammer but does the job.
+		 */
+		if(unit->sectors == 0 || (unit->dev->ifc->online && unit->dev->ifc->online(unit) > 1))
 			sdinitpart(unit);
+
 		i = s+Qunitbase;
 		if(i < Qpart){
 			r = sd2gen(c, i, dp);
@@ -401,17 +401,17 @@ sdgen(Chan* c, Dirtab*, int, int s, Dir* dp)
 			return r;
 		}
 		i -= Qpart;
-		if(unit->npart == 0 || i >= SDnpart){
+		if(unit->part == nil || i >= SDnpart){
 			qunlock(&unit->ctl);
 			break;
 		}
 		pp = &unit->part[i];
-		if(unit->changed || !pp->valid){
+		if(!pp->valid){
 			qunlock(&unit->ctl);
 			return 0;
 		}
 		l = (pp->end - pp->start) * (vlong)unit->secsize;
-		q = (Qid){QID(UNIT(c->qid), i, Qpart), c->qid.vers};
+		q = (Qid){QID(UNIT(c->qid), i, Qpart), unit->vers+pp->vers};
 		if(pp->user[0] == '\0')
 			strncpy(pp->user, eve, NAMELEN);
 		devdir(c, q, pp->name, l, pp->user, pp->perm, dp);
@@ -493,8 +493,13 @@ sdopen(Chan* c, int omode)
 	switch(TYPE(c->qid)){
 	default:
 		break;
+	case Qctl:
+		unit = sdunit[UNIT(c->qid)];
+		c->qid.vers = unit->vers;
+		break;
 	case Qraw:
 		unit = sdunit[UNIT(c->qid)];
+		c->qid.vers = unit->vers;
 		if(!canlock(&unit->rawinuse)){
 			c->flag &= ~COPEN;
 			error(Einuse);
@@ -509,11 +514,8 @@ sdopen(Chan* c, int omode)
 			c->flag &= ~COPEN;
 			nexterror();
 		}
-		if(unit->changed)
-			error(Eio);
 		pp = &unit->part[PART(c->qid)];
-		pp->nopen++;
-		unit->nopen++;
+		c->qid.vers = unit->vers+pp->vers;
 		qunlock(&unit->ctl);
 		poperror();
 		break;
@@ -524,7 +526,6 @@ sdopen(Chan* c, int omode)
 static void
 sdclose(Chan* c)
 {
-	SDpart *pp;
 	SDunit *unit;
 
 	if(c->qid.path & CHDIR)
@@ -539,28 +540,13 @@ sdclose(Chan* c)
 		unit = sdunit[UNIT(c->qid)];
 		unlock(&unit->rawinuse);
 		break;
-	case Qpart:
-		unit = sdunit[UNIT(c->qid)];
-		qlock(&unit->ctl);
-		if(waserror()){
-			qunlock(&unit->ctl);
-			c->flag &= ~COPEN;
-			nexterror();
-		}
-		pp = &unit->part[PART(c->qid)];
-		pp->nopen--;
-		unit->nopen--;
-		if(unit->nopen == 0)
-			unit->changed = 0;
-		qunlock(&unit->ctl);
-		poperror();
-		break;
 	}
 }
 
 static long
 sdbio(Chan* c, int write, char* a, long len, vlong off)
 {
+	int nchange;
 	long l;
 	uchar *b;
 	SDpart *pp;
@@ -569,12 +555,21 @@ sdbio(Chan* c, int write, char* a, long len, vlong off)
 
 	unit = sdunit[UNIT(c->qid)];
 
+	nchange = 0;
 	qlock(&unit->ctl);
-	if(waserror()){
+	while(waserror()){
+		/* notification of media change; go around again */
+		if(strcmp(up->error, Eio) == 0 && unit->sectors == 0 && nchange++ == 0){
+			sdinitpart(unit);
+			continue;
+		}
+
+		/* other errors; give up */
 		qunlock(&unit->ctl);
 		nexterror();
 	}
-	if(unit->changed)
+	pp = &unit->part[PART(c->qid)];
+	if(unit->vers+pp->vers != c->qid.vers)
 		error(Eio);
 
 	/*
@@ -588,7 +583,6 @@ sdbio(Chan* c, int write, char* a, long len, vlong off)
 	 * (sectors, secsize) can't change once the drive has
 	 * been brought online.
 	 */
-	pp = &unit->part[PART(c->qid)];
 	bno = (off/unit->secsize) + pp->start;
 	nb = ((off+len+unit->secsize-1)/unit->secsize) + pp->start - bno;
 	max = SDmaxio/unit->secsize;
@@ -728,7 +722,9 @@ sdread(Chan *c, void *a, long n, vlong off)
 		 */
 		if(unit->dev->ifc->rctl)
 			l += unit->dev->ifc->rctl(unit, p+l, READSTR-l);
-		if(!unit->changed && unit->sectors){
+		if(unit->sectors == 0)
+			sdinitpart(unit);
+		if(unit->sectors){
 			if(unit->dev->ifc->rctl == nil)
 				l += snprint(p+l, READSTR-l,
 					"geometry %ld %ld\n",
@@ -789,13 +785,13 @@ sdwrite(Chan *c, void *a, long n, vlong off)
 			free(cb);
 			nexterror();
 		}
-		if(unit->changed)
+		if(unit->vers != c->qid.vers)
 			error(Eio);
 
 		if(cb->nf < 1)
 			error(Ebadctl);
 		if(strcmp(cb->f[0], "part") == 0){
-			if(cb->nf != 4 || unit->npart >= SDnpart)
+			if(cb->nf != 4)
 				error(Ebadctl);
 			if(unit->sectors == 0 && !sdinitpart(unit))
 				error(Eio);
@@ -874,10 +870,8 @@ sdwstat(Chan* c, char* dp)
 		nexterror();
 	}
 
-	if(unit->changed)
-		error(Enonexist);
 	pp = &unit->part[PART(c->qid)];
-	if(!pp->valid)
+	if(unit->vers+pp->vers != c->qid.vers)
 		error(Enonexist);
 	if(strncmp(up->user, pp->user, NAMELEN) && !iseve())
 		error(Eperm);

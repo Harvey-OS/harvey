@@ -49,7 +49,7 @@ case NCR* 'AT&TNSX'* generic* _MP_* 'alpha apc'*
 	}
 	if(test -f /dev/mousectl){
 		switch($mouseport){
-		case ps2 0 1 2
+		case ps2 ps2intellimouse 0 1 2
 			aux/mouse $mouseport
 
 			# parse vgasize into fields

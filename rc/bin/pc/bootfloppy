@@ -1,0 +1,8 @@
+#!/bin/rc
+
+if(! ~ $#* 1) {
+	echo 'usage: bootfloppy /dev/fd0disk' >[1=2]
+	exit usage
+}
+
+disk/format -b /386/pbs -f -d $1 /386/9load

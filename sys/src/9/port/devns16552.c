@@ -312,6 +312,8 @@ ns16552fifoon(Uart *p)
 	else
 		uartwrreg(p, Fifoctl, Fena|Ftrig4);
 
+	/* fix from Scott Schwartz <schwartz@bio.cse.psu.edu> */
+ 	p->istat = uartrdreg(p, Istat); 
 	if((p->istat & Fenabd) == 0){
 		/* didn't work, must be an earlier chip type */
 		p->type = Ns450;
@@ -890,7 +892,7 @@ uartstatus(Chan*, Uart *p, void *buf, long n, long offset)
 	fstat = p->sticky[Format];
 	snprint(str, sizeof str,
 		"b%d c%d d%d e%d l%d m%d p%c r%d s%d\n"
-		"%d %d %d%s%s%s%s%s\n",
+		"dev(%d) type(%d) framing(%d) overruns(%d)%s%s%s%s%s\n",
 
 		p->baud,
 		p->hup_dcd, 
@@ -903,6 +905,7 @@ uartstatus(Chan*, Uart *p, void *buf, long n, long offset)
 		(fstat & Stop2) ? 2 : 1,
 
 		p->dev,
+		p->type,
 		p->frame,
 		p->overrun, 
 		p->fifoon       ? " fifo" : "",

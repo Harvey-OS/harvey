@@ -105,7 +105,10 @@ ctlr
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.00-06"
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.2-07"
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.5-07"
+	0xC0044="Phoenix S3 TRIO64V+ Enhanced VGA BIOS. Version 1."
 	0xC0044="S3 86C325 Video BIOS. Version 1.00-05"
+	0xC0094="#9-764 BIOS Version 1.02.00u"
+	0xC0044="S3 86C765 Video BIOS"
 	link=vga
 	hwgc=s3hwgc
 	ctlr=trio64 linear=1
@@ -184,6 +187,7 @@ ctlr
 	0xC00CA="MACH64GBPCIMTSGU"			# Dell Optiplex GX1
 	0xC00EB="MACH64GPPCIMTSGU"			# ATI Xpert 98
 	0xC00F7="MACH64LIPCIMTSDU"			# Xpert LCD PCI
+	0xC00F7="MACH64LBPCIMTSGU"			# Xpert LCD AGP
 	0xC00F8="MACH64LIPCIMTSDU"			# Xpert LCD PCI
 	0xC00F6="MACH64LMPC"				# COMPAQ Armada E500
 	0xC00E1="MACH64GTPCIUYMU"			# ATI Rage II PCI
@@ -216,10 +220,12 @@ ctlr
 	hwgc=ark2000pvhwgc
 ctlr
 	0xE0090="Chips 65540"				# Globalyst 250
+	0xC008D="Chips 65540"				# Midwest Micro Elite
 	link=vga
 	ctlr=ct65540 linear=1
 	hwgc=ct65545hwgc
 ctlr
+	0xC7345="TVGA BIOS  Z6.1I (0.02)"			# IBM Thinkpad 760ED (U9A)
 	0xC7367="TVGA BIOS  Z6.1I (0.05) "		# IBM Thinkpad 560E
 	0xC7845="TVGA BIOS WEN 6.1 (31)   "		# NEC Versa SX
 	link=vga
@@ -586,6 +592,8 @@ nec5fg = 1024x768					# 70Hz, 57.2KHz
 
 #
 # NEC Versa 6030X/6200MX Laptop.
+# These use a C&T 65550 and a native panel size of 1024x768.
+# The clock isn't actually programmed.
 #
 versa6xxx = 1024x768
 	clock=63
@@ -750,6 +758,7 @@ p815 = 1024x768
 	include=1024x768
 #
 # SGI 1600SW Flat Panel
+# Usually coupled with a #9 Ticket to Ride IV.
 #
 sgi1600sw = 1600x1024
 	clock=103.125
@@ -765,6 +774,7 @@ sgi1600sw = 800x512
 	hsync=+ vsync=+
 #
 # Viewsonic VPD150
+# Usually coupled with an ATI Xpert LCD PCI/AGP.
 #
 vpd150 = 1024x768
 	clock=65.14
@@ -780,6 +790,7 @@ vpd150 = 640x480
 	include=640x480
 #
 # NEC Multisync LCD1525X
+# Usually coupled with an ATI Xpert LCD PCI/AGP.
 #
 lcd1525x = 1024x768
 	clock=78.82
@@ -789,7 +800,12 @@ lcd1525x = 1024x768
 	hsync=- vsync=-
 #
 # COMPAQ Armada E500
+# This uses an ATI Rage Mobility and a native panel size of 800x600.
+# The clock value is a guess.
 #
 e500 = 800x600
-	clock=79.74
+	clock=40
 	include=800x600
+e500 = 640x480
+	clock=40
+	include=640x480

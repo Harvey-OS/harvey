@@ -25,6 +25,18 @@ Type types[] = {
 	},
 };
 
+#include "sd.h"
+
+extern SDifc sdataifc;
+extern SDifc sdmylexifc;
+extern SDifc sd53c8xxifc;
+SDifc* sdifc[] = {
+	&sdataifc,
+	&sdmylexifc,
+//	&sd53c8xxifc,
+	nil,
+};
+
 typedef struct Mode Mode;
 
 enum {
@@ -326,6 +338,24 @@ ialloc(ulong n, int align)
 	palloc = p+n;
 
 	return memset((void*)(p|KZERO), 0, n);
+}
+
+void*
+xspanalloc(ulong size, int align, ulong span)
+{
+	ulong a, v;
+
+	a = (ulong)ialloc(size+align+span, 0);
+
+	if(span > 2)
+		v = (a + span) & ~(span-1);
+	else
+		v = a;
+
+	if(align > 1)
+		v = (v + align) & ~(align-1);
+
+	return (void*)v;
 }
 
 static Block *allocbp;

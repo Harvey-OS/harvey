@@ -36,7 +36,10 @@ pcclone		-			-			/dev/lpt1data		-		post+nohead			generic		pcclone		-			-			-			-
 # Xante Accel-a-Writer-8200.  1200dpi printer that uses a BSD lpr print daemon protocol
 # psu		2C-501		cetus			psu					-		post+1200dpi		generic		generic		xante		generic		lpddaemon	FIFO
 #
-# sends the output to the standard output of the lp command.
+# 'stdout' sends the output to the standard output of the lp command.
+# if the 'phys_dev_name' field is set to a file or device, the output will go to it instead.
+# if '+sendEOT' is added to the 'class' field, an EOT character will be sent at the end of the output.
+#
 stdout	-			-				-					-		post+nohead			generic		nospool		-			-			-			-
 #
 # sends the output to the standard output of the lp command.

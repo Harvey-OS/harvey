@@ -1,6 +1,6 @@
 .TH MAIL 1
 .SH NAME
-mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, fs, biff \-  mail commands
+mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, fs, biff, pop3 \-  mail commands
 .SH SYNOPSIS
 .B mail
 [

@@ -4,7 +4,7 @@ wrap, create, info, inst, wdiff \- software package preparation
 .SH SYNOPSIS
 .B wrap/create
 [
-.B -uv
+.B -uUv
 ]
 [
 .B -d
@@ -49,7 +49,7 @@ wrap, create, info, inst, wdiff \- software package preparation
 .PP
 .B wrap/wdiff
 [
-.B -b
+.B -bl
 ]
 [
 .B -r
@@ -61,7 +61,7 @@ root
 ]
 .SH DESCRIPTION
 These programs
-are used to manage software packages and updates.
+are used to manage software packages.
 .PP
 Packages are identified by a unique name, and should
 correspond to some reference tree.
@@ -72,31 +72,51 @@ and corresponds to the root of the Plan 9 distribution file server
 at Bell Labs.
 Successive versions are distinguished by a date
 stored as seconds since January 1, 1970.
-A package is an archive of the entire reference tree.
-An update to a particular package contains
+There are three kinds of archive:
+.IP
+A 
+.I package 
+is an archive of the entire reference tree.
+.I Create
+writes these by default.
+.IP
+An 
+.I update 
+to a particular package contains
 only files from the reference tree that differ from
-those in the package.
-An update must always be relative to a
-package, not to another update.
-Updates need not contain every file that
-has changed in the reference tree since
-the package was created.
+those in the package, and is usually restricted to 
+chosen subtrees.
 For example, one might create an update
 of the Plan 9 distribution package containing
 only changes to 
 .IR acme .
-.PP
-By default,
-.I create
-makes a package;
-the
-.B -u flag
-causes it to create an update instead.
+Updates can only be in reference to
+packages, not other updates.
+An update can only be installed if the package 
+it is updating is already installed.
+.I Create
+writes these when given the
+.B -u
+flag.
+.IP
+An
+.I update
+.I package
+is a hybrid of the two:
+it is an update in that it contains only
+files changed since some earlier package.
+At the same time, once installed it functions
+as a full package for the purposes of satisfying
+the prerequisites of later updates.
+.I Create
+writes these when given the
+.B -U
+flag.
 .PP
 .I Wrap/inst
 installs packages and updates,
 taking into account version conflicts,
-prerequisites, and the possibility of local modifications.
+prerequisite packages, and the possibility of local modifications.
 .I Wrap/info
 prints information about a package or update,
 and
@@ -104,7 +124,11 @@ and
 runs
 .I diff
 to compare files in a package or update
-with installed files.
+with installed files;
+.B wdiff 
+.B -l
+merely lists those files modified or removed
+since the package or update was created.
 .PP
 To decide whether a given update
 contains files fresher than those currently
@@ -112,7 +136,7 @@ installed on the system, it is not enough to
 compare the update's date with the
 date of the most recent update to the same package:
 updates may only involve parts
-of a package, so package updates can 
+of a package, so updates can 
 only be partially ordered.
 As an example, if you have a full
 Plan 9 distribution package
@@ -197,9 +221,14 @@ as a prefix.
 Without the
 .B -u
 flag, prefixes are not allowed.
+If
+.I create
+is given the
+.B -U
+flag, it creates an update package.
 .PP
 .I Inst
-unpacks a package or package update created by 
+unpacks a package or update created by 
 .IR create .
 It extracts from the package or update
 the files with names starting with
@@ -242,18 +271,30 @@ these checks are disabled by the
 flag.
 .PP
 .SH EXAMPLES
-.PP
 Create a package consisting of the entire Plan 9 distribution tree:
 .IP
 .EX
 wrap/create -r /plan9dist -d 'Plan 9 — Third Edition' \e
-	-p /sys/lib/sysconfig/proto/allproto plan9 | gzip > 9dist.9gz
+	-p /sys/lib/sysconfig/proto/allproto plan9 | gzip > plan9.9gz
 .EE
 .PP
-Create an update package containing new VGA software:
+Create a package as well as an update package.
+Note that we need to use the
+.B -t
+flag to make sure both have the same timestamp.
 .IP
 .EX
-wrap/create -ur /plan9dist `{cat /tmp/vgasfiles} | gzip >vga.9gz
+now=`{date -n}
+wrap/create -r /plan9dist -d 'Plan 9 — Third Edition' -t $now \e
+	-p /sys/lib/sysconfig/proto/allproto plan9 | gzip > plan9.9gz
+
+wrap/create -Ur /plan9dist -t $now old.9gz | gzip > updatepkg.9gz
+.EE
+.PP
+Create an update containing new VGA software:
+.IP
+.EX
+wrap/create -ur /plan9dist `{cat /tmp/vgafiles} | gzip >vga.9gz
 .EE
 .PP
 where 
@@ -328,7 +369,7 @@ wrap/create -u -r /root quux >quuxpatch.9gz
 Installed package information is maintained via
 a small tree rooted at 
 .IB dst /wrap \fR.
-For each package and package update, there is a directory
+For each package and update, there is a directory
 .IB name / time
 that contains the following files:
 .TP 
@@ -336,6 +377,7 @@ that contains the following files:
 The
 .I description 
 for the package, if any.
+.TL \w'\fLmd5sum '
 .TP
 .B md5sum
 A sorted list of all files in the package,
@@ -358,6 +400,11 @@ of the package being updated.
 .B done
 The installation of the package completed successfully.
 .PP
+Update packages contain both
+.B package
+and
+.B update
+files.
 A package is itself an
 (optionally gzipped)
 .IR mkfs -style
@@ -384,4 +431,20 @@ to allow for quick access in compressed archives.
 .SH BUGS
 Because
 .I inst
-sets the modes on the created files
+sets the modes on the created files,
+permission checking must be turned off
+on the file server
+in order to create files
+in unwritable directories
+or overwrite updated files
+that are not normally writable.
+.PP
+In the absence of the
+.B -l
+flag (which can use the MD5 checksums alone)
+.I wrap/wdiff
+must uncompress the entire archive 
+to pass it to
+.IR archfs (4).
+.PP
+The terminology can be confusing.

@@ -308,3 +308,176 @@ umbrwfree(ulong addr, int size)
 {
 	mapfree(&rmapumbrw, PADDR(addr), size);
 }
+
+ulong*
+mmuwalk(ulong* pdb, ulong va, int level, int create)
+{
+	ulong pa, *table;
+
+	/*
+	 * Walk the page-table pointed to by pdb and return a pointer
+	 * to the entry for virtual address va at the requested level.
+	 * If the entry is invalid and create isn't requested then bail
+	 * out early. Otherwise, for the 2nd level walk, allocate a new
+	 * page-table page and register it in the 1st level.
+	 */
+	table = &pdb[PDX(va)];
+	if(!(*table & PTEVALID) && create == 0)
+		return 0;
+
+	switch(level){
+
+	default:
+		return 0;
+
+	case 1:
+		return table;
+
+	case 2:
+		if(*table & PTESIZE)
+			panic("mmuwalk2: va 0x%ux entry 0x%ux\n", va, *table);
+		if(!(*table & PTEVALID)){
+			pa = PADDR(ialloc(BY2PG, BY2PG));
+			*table = pa|PTEWRITE|PTEVALID;
+		}
+		table = KADDR(PPN(*table));
+
+		return &table[PTX(va)];
+	}
+}
+
+static Lock mmukmaplock;
+
+ulong
+mmukmap(ulong pa, ulong va, int size)
+{
+	ulong pae, *table, *pdb, pgsz, *pte, x;
+	int pse, sync;
+	extern int cpuidax, cpuiddx;
+
+	pdb = KADDR(getcr3());
+	if((cpuiddx & 0x08) && (getcr4() & 0x10))
+		pse = 1;
+	else
+		pse = 0;
+	sync = 0;
+
+	pa = PPN(pa);
+	if(va == 0)
+		va = (ulong)KADDR(pa);
+	else
+		va = PPN(va);
+
+	pae = pa + size;
+	lock(&mmukmaplock);
+	while(pa < pae){
+		table = &pdb[PDX(va)];
+		/*
+		 * Possibly already mapped.
+		 */
+		if(*table & PTEVALID){
+			if(*table & PTESIZE){
+				/*
+				 * Big page. Does it fit within?
+				 * If it does, adjust pgsz so the correct end can be
+				 * returned and get out.
+				 * If not, adjust pgsz up to the next 4MB boundary
+				 * and continue.
+				 */
+				x = PPN(*table);
+				if(x != pa)
+					panic("mmukmap1: pa 0x%ux  entry 0x%ux\n",
+						pa, *table);
+				x += 4*MB;
+				if(pae <= x){
+					pa = pae;
+					break;
+				}
+				pgsz = x - pa;
+				pa += pgsz;
+				va += pgsz;
+
+				continue;
+			}
+			else{
+				/*
+				 * Little page. Walk to the entry.
+				 * If the entry is valid, set pgsz and continue.
+				 * If not, make it so, set pgsz, sync and continue.
+				 */
+				pte = mmuwalk(pdb, va, 2, 0);
+				if(pte && *pte & PTEVALID){
+					x = PPN(*pte);
+					if(x != pa)
+						panic("mmukmap2: pa 0x%ux entry 0x%ux\n",
+							pa, *pte);
+					pgsz = BY2PG;
+					pa += pgsz;
+					va += pgsz;
+					sync++;
+
+					continue;
+				}
+			}
+		}
+
+		/*
+		 * Not mapped. Check if it can be mapped using a big page -
+		 * starts on a 4MB boundary, size >= 4MB and processor can do it.
+		 * If not a big page, walk the walk, talk the talk.
+		 * Sync is set.
+		 */
+		if(pse && (pa % (4*MB)) == 0 && (pae >= pa+4*MB)){
+			*table = pa|PTESIZE|PTEWRITE|PTEUNCACHED|PTEVALID;
+			pgsz = 4*MB;
+		}
+		else{
+			pte = mmuwalk(pdb, va, 2, 1);
+			*pte = pa|PTEWRITE|PTEUNCACHED|PTEVALID;
+			pgsz = BY2PG;
+		}
+		pa += pgsz;
+		va += pgsz;
+		sync++;
+	}
+	unlock(&mmukmaplock);
+
+	/*
+	 * If something was added
+	 * then need to sync up.
+	 */
+	if(sync)
+		putcr3(PADDR(pdb));
+
+	return pa;
+}
+
+ulong
+upamalloc(ulong addr, int size, int align)
+{
+	ulong ae;
+
+	USED(align);
+
+	/*
+	 * This is a travesty, but they all are.
+	 */
+	ae = mmukmap(addr, 0, size);
+
+	/*
+	 * Should check here that it was all delivered
+	 * and put it back and barf if not.
+	 */
+	USED(ae);
+
+	/*
+	 * Be very careful this returns a PHYSICAL address.
+	 */
+	return addr;
+}
+
+void
+upafree(ulong pa, int size)
+{
+	USED(pa, size);
+}

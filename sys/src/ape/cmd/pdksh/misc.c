@@ -129,13 +129,7 @@ const struct option options[] = {
 #endif
 	{ "bgnice",	  0,		OF_ANY },
 	{ (char *) 0, 	'c',	    OF_CMDLINE },
-#ifdef EMACS
-	{ "emacs",	  0,		OF_ANY },
-#endif
 	{ "errexit",	'e',		OF_ANY },
-#ifdef EMACS
-	{ "gmacs",	  0,		OF_ANY },
-#endif
 	{ "ignoreeof",	  0,		OF_ANY },
 	{ "interactive",'i',	    OF_CMDLINE },
 	{ "keyword",	'k',		OF_ANY },
@@ -150,6 +144,7 @@ const struct option options[] = {
 	{ "noexec",	'n',		OF_ANY },
 	{ "noglob",	'f',		OF_ANY },
 	{ "nohup",	  0,		OF_ANY },
+	{ "nointeractive", 'I',		OF_CMDLINE },
 	{ "nolog",	  0,		OF_ANY }, /* no effect */
 #ifdef	JOBS
 	{ "notify",	'b',		OF_ANY },
@@ -162,13 +157,6 @@ const struct option options[] = {
 	{ "stdin",	's',	    OF_CMDLINE }, /* pseudo non-standard */
 	{ "trackall",	'h',		OF_ANY },
 	{ "verbose",	'v',		OF_ANY },
-#ifdef VI
-	{ "vi",		  0,		OF_ANY },
-	{ "viraw",	  0,		OF_ANY }, /* no effect */
-	{ "vi-show8",	  0,		OF_ANY }, /* non-standard */
-	{ "vi-tabcomplete",  0, 	OF_ANY }, /* non-standard */
-	{ "vi-esccomplete",  0, 	OF_ANY }, /* non-standard */
-#endif
 	{ "xtrace",	'x',		OF_ANY },
 	/* Anonymous flags: used internally by shell only
 	 * (not visable to user)
@@ -277,41 +265,10 @@ change_flag(f, what, newval)
 
 	oldval = Flag(f);
 	Flag(f) = newval;
-#ifdef JOBS
-	if (f == FMONITOR) {
-		if (what != OF_CMDLINE && newval != oldval)
-			j_change();
-	} else
-#endif /* JOBS */
-#ifdef EDIT
-	if (0
-# ifdef VI
-	    || f == FVI
-# endif /* VI */
-# ifdef EMACS
-	    || f == FEMACS || f == FGMACS
-# endif /* EMACS */
-	   )
-	{
-		if (newval) {
-# ifdef VI
-			Flag(FVI) = 0;
-# endif /* VI */
-# ifdef EMACS
-			Flag(FEMACS) = Flag(FGMACS) = 0;
-# endif /* EMACS */
-			Flag(f) = newval;
-		}
-	} else
-#endif /* EDIT */
 	/* Turning off -p? */
 	if (f == FPRIVILEGED && oldval && !newval) {
-#ifdef OS2
-		;
-#else /* OS2 */
 		setuid(ksheuid = getuid());
 		setgid(getgid());
-#endif /* OS2 */
 	} else if (f == FPOSIX && newval) {
 #ifdef BRACE_EXPAND
 		Flag(FBRACEEXPAND) = 0
@@ -322,6 +279,9 @@ change_flag(f, what, newval)
 	if (f == FTALKING) {
 		if ((what == OF_CMDLINE || what == OF_SET) && procpid == kshpid)
 			Flag(FTALKING_I) = newval;
+	} else if(f == FNOTTALKING) {
+		if ((what == OF_CMDLINE || what == OF_SET) && procpid == kshpid)
+			Flag(FTALKING_I) = !newval;
 	}
 }
 

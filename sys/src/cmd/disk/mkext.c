@@ -57,6 +57,7 @@ main(int argc, char **argv)
 	while(p = Brdline(&bin, '\n')){
 		p[Blinelen(&bin)-1] = '\0';
 		if(strcmp(p, "end of archive") == 0){
+			Bterm(&bout);
 			fprint(2, "done\n");
 			exits(0);
 		}

@@ -1,0 +1,72 @@
+#!/bin/rc
+
+rfork e
+
+. /rc/bin/pc/defs
+
+if(! ~ $#* 1) {
+	echo 'usage: bootplan9 /dev/sdC0' >[1=2]
+	echo 'sets active the plan 9 partition on the named disk.' >[1=2]
+	exit usage
+}
+
+disk=$1
+
+fn x {
+	if(! test -f $disk/$1) {
+		echo 'could not find '$disk/$1
+		exit disk
+	}
+}
+
+x plan9
+x data
+x ctl
+
+diskbase=`{basename `{cleanname $disk}}
+
+first=`{ls -p '#S' | sed 1q}
+if(! ~ $first $diskbase) {
+	echo 'warning: The plan 9 partition is not on the boot disk,' >[1=2]
+	echo 'so making it the active partition will have no effect.' >[1=2]
+}
+
+p9offset=`{disk/fdisk -p $disk/data |grep '^part plan9 ' | awk '{print $4}'}
+if(! ~ $#p9offset 1) {
+	echo 'could not find plan 9 partition.' >[1=2]
+	echo 'cannot happen' >[1=2]
+	exit bad
+}
+
+if(test $p9offset -gt 4128705) {	# 65536 * 63
+	echo  >[1=2]
+	echo 'Your Plan 9 partition is more than 2GB into your disk,' >[1=2]
+	echo 'and the master boot records used by most operating systems' >[1=2]
+	echo 'cannot access it (and thus cannot boot it).' >[1=2]
+	echo >[1=2]
+	echo 'Would you like to install a master boot record' >[1=2]
+	echo 'that will be able to access partitions more than 2GB into the disk?' >[1=2]
+	echo >[1=2]
+	prompt 'Install a new mbr' y n 
+	switch($rd) {
+	case n
+		echo >[1=2]
+		echo 'Not setting Plan 9 partition active, then.' >[1=2]
+		echo >[1=2]
+		exit bad
+	case y
+		disk/mbr -m /386/mbr $disk/data
+	}
+}
+
+p9part=`{disk/fdisk $disk/data >[2]/dev/null </dev/null | 
+		grep PLAN9 | sed 1q | sed 's/ *(p.) .*/\1/'}
+if(~ $#p9part 1) {
+	{ echo 'A '^$p9part; echo w } | disk/fdisk $disk/data >[2]/dev/null >/dev/null
+}
+if not {
+	echo 'Could not find Plan 9 partition.'
+	exit notdone
+}
+
+exit

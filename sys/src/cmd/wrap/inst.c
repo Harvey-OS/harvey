@@ -16,6 +16,7 @@ char *root = "/";
 char **prefix;
 int nprefix;
 
+int debug;
 int setowner;
 int force;
 int verbose;
@@ -90,6 +91,9 @@ extract(Arch *arch, Ahdr *a, char *to)
 			fprint(2, "mkdir %s: is a file\n", to);
 			problems = 1;
 			return;
+		} else {
+			if(donothing)
+				return;
 		}
 	} else {
 		if(verbose || donothing)
@@ -141,6 +145,9 @@ main(int argc, char **argv)
 	Biobuf bin, *b;
 
 	ARGBEGIN{
+	case 'D':
+		debug = 1;
+		break;
 	case 'r':
 		root = ARGF();
 		break;
@@ -156,6 +163,8 @@ main(int argc, char **argv)
 	case 'x':
 		donothing = 1;
 		break;
+	default:
+		usage();
 	}ARGEND
 
 	rfork(RFNAMEG);
@@ -185,20 +194,31 @@ main(int argc, char **argv)
 			continue;
 
 		p = mkpath(root, a->name);
-		if((a->mode & CHDIR) == 0
-		&& getfileinfo(oldw, a->name, &t, digest) >= 0
-		&& md5file(p, digest0) >= 0) {
-			if(memcmp(digest, digest0, MD5dlen) != 0) {
-				skipfile(a->name, "locally updated", 1);
-				free(p);
-				continue;
-			}
-			if(t >= w->u->time) {
-				if(t > w->u->time)
-					skipfile(a->name, "newer than archive", 0);
-				/* don't warn about t == w->t; probably same archive */
-				free(p);
-				continue;
+		if(force == 0 && (a->mode & CHDIR) == 0) {
+			if(getfileinfo(oldw, a->name, &t, digest) >= 0) {
+				if(md5file(p, digest0) >= 0) {
+					if(memcmp(digest, digest0, MD5dlen) != 0) {
+						if(debug)
+							fprint(2, "file %s expect %M got %M\n",
+								a->name, digest, digest0);
+						skipfile(a->name, "locally updated", 1);
+						free(p);
+						continue;
+					}
+					if(t >= w->time) {
+						if(t > w->time)
+							skipfile(a->name, "newer than archive", 1);
+						/* don't warn about t == w->t; probably same archive */
+						free(p);
+						continue;
+					}
+				}
+			} else {
+				if(access(p, 0) >= 0) {
+					skipfile(a->name, "locally created", 1);
+					free(p);
+					continue;
+				}
 			}
 		}
 		extract(arch, a, p);
@@ -215,8 +235,8 @@ main(int argc, char **argv)
 
 	if(skipfd != -1) {
 		fprint(2, "wrap/wdiff -r %s %s \\\n", root, argv[0]);
+		seek(skipfd, 0, 0);	/* Binit assumes this */
 		Binit(&bin, skipfd, OREAD);
-		Bseek(&bin, 0, 0);
 		while(p = Bgetline(&bin)) {
 			fprint(2, "\t%s \\\n", p);
 			free(p);
