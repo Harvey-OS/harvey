@@ -8,10 +8,10 @@
 #include	"ip.h"
 
 typedef struct Ip4hdr		Ip4hdr;
-typedef struct	IP	IP;
-typedef struct	Fragment4	Fragment4;
-typedef struct	Fragment6	Fragment6;
-typedef struct	Ipfrag	Ipfrag;
+typedef struct IP		IP;
+typedef struct Fragment4	Fragment4;
+typedef struct Fragment6	Fragment6;
+typedef struct Ipfrag		Ipfrag;
 
 enum
 {
@@ -803,5 +803,3 @@ ipcsum(uchar *addr)
 
 	return (sum^0xffff);
 }
-
-

@@ -218,7 +218,7 @@ setspeed(int rec, int speed)
 		* controls[rec][Channel_control].value[0]
 		* controls[rec][Resolution_control].value[0]/8;
 	if(ps > ep->maxpkt){
-		fprint(2, "packet size %d > maximum packet size %d",
+		fprint(2, "packet size %d > maximum packet size %d\n",
 			ps, ep->maxpkt);
 		return Undef;
 	}
