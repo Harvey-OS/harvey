@@ -529,12 +529,16 @@ replymsg(String *errstring, message *mp, dest *dp)
 	boundary = mkboundary();
 
 	refp->bulk = 1;
+	refp->rfc822headers = 1;
 	rcvr = dp->status==d_eloop ? "postmaster" : s_to_c(mp->replyaddr);
 	ndp = d_new(s_copy(rcvr));
 	s_append(refp->sender, "postmaster");
 	s_append(refp->replyaddr, "/dev/null");
 	s_append(refp->date, thedate());
-	s_append(refp->body, "From: postmaster\n");
+	refp->haveto = 1;
+	s_append(refp->body, "To: ");
+	s_append(refp->body, rcvr);
+	s_append(refp->body, "\n");
 	s_append(refp->body, "Subject: bounced mail\n");
 	s_append(refp->body, "MIME-Version: 1.0\n");
 	s_append(refp->body, "Content-Type: multipart/mixed;\n");
