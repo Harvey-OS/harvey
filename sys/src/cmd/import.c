@@ -124,10 +124,10 @@ main(int argc, char **argv)
 	mntpt = 0;		/* to shut up compiler */
 	if(backwards){
 		switch(argc) {
-		case 1:
+		default:
 			mntpt = argv[0];
 			break;
-		default:
+		case 0:
 			usage();
 		}
 	} else {
@@ -199,6 +199,11 @@ main(int argc, char **argv)
 	if(mount(fd, -1, mntpt, mntflags, "") < 0)
 		sysfatal("can't mount %s: %r", argv[1]);
 	alarm(0);
+
+	if(backwards && argc > 1){
+		execl(argv[1], &argv[1]);
+		sysfatal("exec: %r");
+	}
 	exits(0);
 }
 
@@ -299,7 +304,9 @@ passive(void)
 
 	fd = dup(0, -1);
 	close(0);
+	open("/dev/null", ORDWR);
 	close(1);
+	open("/dev/null", ORDWR);
 
 	return fd;
 }
@@ -369,4 +376,3 @@ mksecret(char *t, uchar *f)
 	sprint(t, "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
 }
-

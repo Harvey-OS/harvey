@@ -121,7 +121,7 @@ syncclock(void)
 		while(x == MACHP(0)->tscticks)
 			;
 		wrmsr(0x10, MACHP(0)->tscticks);
-		m->tscticks = MACHP(0)->tscticks;
+		cycles(&m->tscticks);
 	}
 }
 

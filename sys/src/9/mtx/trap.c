@@ -297,10 +297,18 @@ trap(Ureg *ureg)
 
 	/* restoreureg must execute at high IPL */
 	splhi();
+
+	/* delaysched set because we held a lock or because our quantum ended */
+	if(up && up->delaysched){
+		sched();
+		splhi();
+	}
+
 	if(user) {
 		notify(ureg);
 		if(up->fpstate == FPinactive)
 			ureg->srr1 &= ~MSR_FP;
+		kexit(ureg);
 	}
 }
 

@@ -108,7 +108,7 @@ struct Fid {
 	AuthRpc* rpc;
 	char*	cuname;
 
-	Fid*	sort;				/* sorted by uname in cmdWho */
+	Fid*	sort;			/* sorted by uname in cmdWho */
 	Fid*	hash;			/* lookup by fidno */
 	Fid*	next;			/* clunk session with Tversion */
 	Fid*	prev;

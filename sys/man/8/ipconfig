@@ -3,7 +3,7 @@
 ipconfig, rip \- Internet configuration and routing
 .SH SYNOPSIS
 .B ip/ipconfig
-.RB [ -NDGPdnpr ]
+.RB [ -NDGPOdnpr ]
 .RB [ -b
 .IR baud ]
 .RB [ -c
@@ -188,6 +188,11 @@ The options
 and
 .B ntp
 are always requested.
+.TP
+.B O
+addresses specified on the command line override those obtained
+via DHCP.
+A command line addresse of 0 implies no override.
 .PD
 .PP
 If DHCP is requested, a process is forked

@@ -306,6 +306,9 @@ perfticks(void)
 {
 	uvlong x;
 
-	cycles(&x);
+	if(m->havetsc)
+		cycles(&x);
+	else
+		x = 0;
 	return x;
 }

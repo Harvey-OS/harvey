@@ -517,7 +517,7 @@ struct Timer
 	/* Internal */
 	Lock;
 	Timers	*tt;		/* Timers queue this timer runs on */
-	uvlong	twhen;		/* ns represented in fastticks */
+	vlong	twhen;		/* ns represented in fastticks */
 	Timer	*tnext;
 };
 
@@ -579,10 +579,9 @@ enum
 
 	Npriq		= 20,		/* number of scheduler priority levels */
 	Nrq		= Npriq+2,	/* number of priority levels including real time */
-	PriRelease	= Npriq,	/* priority of released edf processes */
-	PriEdf		= Npriq+1,	/* priority of active edf processes */
-	PriLock		= 0,		/* priority for processes waiting on a lock */
-	PriExtra	= 1,		/* priority for edf processes in extra time */
+	PriRelease	= Npriq,	/* released edf processes */
+	PriEdf		= Npriq+1,	/* active edf processes */
+	PriExtra	= 0,		/* edf processes we don't care about */
 	PriNormal	= 10,		/* base priority for normal processes */
 	PriKproc	= 13,		/* base priority for kernel processes */
 	PriRoot		= 13,		/* base priority for root processes */
@@ -896,23 +895,6 @@ struct Uart
 };
 
 extern	Uart*	consuart;
-
-struct Edfinterface {
-	int		(*isedf)(Proc*);
-	void	(*edfbury)(Proc*);
-	int		(*edfanyready)(void);
-	void	(*edfready)(Proc*);
-	Proc*	(*edfrunproc)(void);
-	void	(*edfblock)(Proc*);
-	void	(*edfinit)(void);
-	void	(*edfexpel)(Task*);
-	char*	(*edfadmit)(Task*);
-	void	(*edfyield)(Proc*);
-	void	(*edfdump)(void);
-	char*	(*edfstatus)(char*, char*);
-	char*	(*edfaddproc)(Task*, Proc*);
-	char*	(*edfremproc)(Task*, Proc*);
-};
 
 /*
  *  performance timers, all units in perfticks

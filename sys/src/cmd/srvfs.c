@@ -35,6 +35,9 @@ main(int argc, char **argv)
 		*argp++ = "-P";
 		*argp++ = ARGF();
 		break;
+	case 'R':
+		*argp++ = "-R";
+		 break;
 	}ARGEND
 	*argp = 0;
 	if(argc != 2)
@@ -75,7 +78,10 @@ main(int argc, char **argv)
 		fprint(2, "not OK (%d): %s\n", n, buf);
 		exits("OK");
 	}
-	sprint(buf, "/srv/%s", argv[0]);
+	if(argv[0][0] == '/')
+		strcpy(buf, argv[0]);
+	else
+		sprint(buf, "/srv/%s", argv[0]);
 	fd = create(buf, OWRITE, perm);
 	if(fd < 0){
 		fprint(2, "can't create %s: %r\n", buf);

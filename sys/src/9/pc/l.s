@@ -329,9 +329,9 @@ TEXT putcr4(SB), $0
 	MOVL	AX, CR4
 	RET
 
-TEXT _cycles(SB), $0			/* time stamp counter; cycles since power up */
+TEXT _cycles(SB), $0				/* time stamp counter; cycles since power up */
 	RDTSC
-	MOVL	vlong+0(FP), CX		/* &vlong */
+	MOVL	vlong+0(FP), CX			/* &vlong */
 	MOVL	AX, 0(CX)			/* lo */
 	MOVL	DX, 4(CX)			/* hi */
 	RET
@@ -473,32 +473,35 @@ TEXT fpenv(SB), $0				/* save state without waiting */
 /*
  */
 TEXT splhi(SB), $0
-	MOVL	$(MACHADDR+0x04), AX 		/* save PC in m->splpc */
-	MOVL	(SP), BX
-	MOVL	BX, (AX)
-
+shi:
 	PUSHFL
 	POPL	AX
+	TESTL	$0x200, AX
+	JZ	alreadyhi
+	MOVL	$(MACHADDR+0x04), CX 		/* save PC in m->splpc */
+	MOVL	(SP), BX
+	MOVL	BX, (CX)
+alreadyhi:
 	CLI
 	RET
 
 TEXT spllo(SB), $0
+slo:
 	PUSHFL
 	POPL	AX
+	TESTL	$0x200, AX
+	JNZ	alreadylo
+	MOVL	$(MACHADDR+0x04), CX		/* clear m->splpc */
+	MOVL	$0, (CX)
+alreadylo:
 	STI
 	RET
 
 TEXT splx(SB), $0
-	MOVL	$(MACHADDR+0x04), AX 		/* save PC in m->splpc */
-	MOVL	(SP), BX
-	MOVL	BX, (AX)
-	/*FALLTHROUGH*/
-
-TEXT splxpc(SB), $0				/* for iunlock */
 	MOVL	s+0(FP), AX
-	PUSHL	AX
-	POPFL
-	RET
+	TESTL	$0x200, AX
+	JNZ	slo
+	JMP	shi
 
 TEXT spldone(SB), $0
 	RET
@@ -538,7 +541,7 @@ _xdeclt:
 	RET
 
 TEXT mb386(SB), $0
-	POPL	AX			/* return PC */
+	POPL	AX				/* return PC */
 	PUSHFL
 	PUSHL	CS
 	PUSHL	AX

@@ -57,7 +57,7 @@ timeconv(Fmt *f)
 	case 'U':
 		t = va_arg(f->args, uvlong);
 		break;
-	case 't':		// vlong in nanoseconds
+	case 't':	// vlong in nanoseconds
 		t = va_arg(f->args, vlong);
 		break;
 	default:
@@ -82,11 +82,20 @@ timeconv(Fmt *f)
 	return fmtstrcpy(f, buf);
 }
 
-void
-edflock(void)
+Edf*
+edflock(Proc *p)
 {
+	Edf *e;
+
+	if (p->edf == nil)
+		return nil;
 	ilock(&thelock);
-	now = todget(nil);
+	if ((e = p->edf) && (e->flags & Admitted)){
+		now = todget(nil);
+		return e;
+	}
+	iunlock(&thelock);
+	return nil;
 }
 
 void
@@ -118,6 +127,7 @@ deadlineintr(Ureg*, Timer *t)
 	/* Proc reached deadline */
 	extern int panicking;
 	Proc *p;
+	void (*pt)(Proc*, int, vlong);
 
 	if(panicking || active.exiting)
 		return;
@@ -133,6 +143,9 @@ deadlineintr(Ureg*, Timer *t)
 	 * returns to user space
 	 */
 	if (p == up){
+		pt = proctrace;
+		if(up->trace && pt)
+			pt(up, SInts, 0);
 		up->delaysched++;
  		delayedscheds++;
 	}
@@ -180,7 +193,6 @@ static void
 releaseintr(Ureg*, Timer *t)
 {
 	Proc *p;
-	Edf *e;
 	extern int panicking;
 	Schedq *rq;
 
@@ -188,10 +200,8 @@ releaseintr(Ureg*, Timer *t)
 		return;
 
 	p = t->ta;
-	e = p->edf;
-	if ((e->flags & Admitted) == 0)
+	if((edflock(p)) == nil)
 		return;
-	edflock();
 	DPRINT("%t releaseintr %lud[%s]\n", now, p->pid, statename[p->state]);
 	switch(p->state){
 	default:
@@ -201,7 +211,7 @@ releaseintr(Ureg*, Timer *t)
 		/* remove proc from current runq */
 		rq = &runq[p->priority];
 		if (dequeueproc(rq, p) != p){
-			print("releaseintr: can't find proc or lock race\n");
+			DPRINT("releaseintr: can't find proc or lock race\n");
 			release(p);	/* It'll start best effort */
 			edfunlock();
 			return;
@@ -243,8 +253,8 @@ edfrecord(Proc *p)
 	Edf *e;
 	void (*pt)(Proc*, int, vlong);
 
-	e = p->edf;
-	edflock();
+	if((e = edflock(p)) == nil)
+		return;
 	used = now - e->s;
 	if (e->d <= now)
 		e->edfused += used;
@@ -268,6 +278,7 @@ void
 edfrun(Proc *p, int edfpri)
 {
 	Edf *e;
+	void (*pt)(Proc*, int, vlong);
 
 	e = p->edf;
 	/* Called with edflock held */
@@ -285,10 +296,12 @@ edfrun(Proc *p, int edfpri)
 		if (e->d < e->tns)
 			e->tns = e->d;
 		if(e->tt == nil || e->tf != deadlineintr){
-			DPRINT("%t edfrun, deadline=%t\n", now, p->tns);
+			DPRINT("%t edfrun, deadline=%t\n", now, e->tns);
 		}else{
 			DPRINT("v");
 		}
+		if(p->trace && (pt = proctrace))
+			pt(p, SInte, e->tns);
 		e->tmode = Tabsolute;
 		e->tf = deadlineintr;
 		e->ta = p;
@@ -329,9 +342,9 @@ edfadmit(Proc *p)
 		qunlock(&edfschedlock);
 		return err;
 	}
-	edflock();
-
 	e->flags |= Admitted;
+
+	edflock(p);
 
 	if(pt = proctrace)
 		pt(p, SAdmit, now);
@@ -372,12 +385,11 @@ edfadmit(Proc *p)
 				now, p->pid, statename[p->state], e->t);
 			edfunlock();
 			qunlock(&edfschedlock);
-			edfyield();
 			return nil;
 		}else{
 			DPRINT("%t edfadmit other %lud[%s], release at %t\n",
 				now, p->pid, statename[p->state], e->t);
-			if(p->tt == nil){
+			if(e->tt == nil){
 				e->tf = releaseintr;
 				e->ta = p;
 				e->tns = e->t;
@@ -397,8 +409,7 @@ edfstop(Proc *p)
 	Edf *e;
 	void (*pt)(Proc*, int, vlong);
 
-	if ((e = p->edf) && (e->flags & Admitted)){
-		edflock();
+	if (e = edflock(p)){
 		DPRINT("%t edfstop %lud[%s]\n", now, p->pid, statename[p->state]);
 		if(pt = proctrace)
 			pt(p, SExpel, now);
@@ -412,7 +423,7 @@ edfstop(Proc *p)
 static int
 yfn(void *)
 {
-	return todget(nil) >= up->edf->r;
+	return up->trend == nil || todget(nil) >= up->edf->r;
 }
 
 void
@@ -422,8 +433,8 @@ edfyield(void)
 	Edf *e;
 	void (*pt)(Proc*, int, vlong);
 
-	edflock();
-	e = up->edf;
+	if((e = edflock(up)) == nil)
+		return;
 	if(pt = proctrace)
 		pt(up, SYield, now);
 	while(e->t < now)
@@ -431,12 +442,15 @@ edfyield(void)
 	e->r = e->t;
 	e->flags |= Yield;
 	e->d = now;
-	up->tns = e->t;
-	up->tf = releaseintr;
-	up->tmode = Tabsolute;
-	up->ta = up;
-	up->trend = &up->sleep;
-	timeradd(up);
+	if (up->tt == nil){
+		up->tns = e->t;
+		up->tf = releaseintr;
+		up->tmode = Tabsolute;
+		up->ta = up;
+		up->trend = &up->sleep;
+		timeradd(up);
+	}else if(up->tf != releaseintr)
+		print("edfyield: surprise! 0x%lux\n", up->tf);
 	edfunlock();
 	sleep(&up->sleep, yfn, nil);
 }
@@ -449,10 +463,8 @@ edfready(Proc *p)
 	Proc *l, *pp;
 	void (*pt)(Proc*, int, vlong);
 
-	if ((e = p->edf) == nil || (e->flags & Admitted) == 0)
-		return 0;	/* Not an edf process */
-
-	edflock();
+	if((e = edflock(p)) == nil)
+		return 0;
 	if (e->d <= now){
 		/* past deadline, arrange for next release */
 		if ((e->flags & Sporadic) == 0){
@@ -462,7 +474,7 @@ edfready(Proc *p)
 		}	
 		if (now < e->t){
 			/* Next release is in the future, schedule it */
-			if (p->tt == nil || p->tf != releaseintr){
+			if (e->tt == nil || e->tf != releaseintr){
 				e->tns = e->t;
 				e->tmode = Tabsolute;
 				e->tf = releaseintr;
@@ -493,6 +505,7 @@ edfready(Proc *p)
 		/* release now */
 		release(p);
 	}
+	edfunlock();
 	DPRINT("^");
 	rq = &runq[PriEdf];
 	/* insert in queue in earliest deadline order */
@@ -514,12 +527,11 @@ edfready(Proc *p)
 	nrdy++;
 	runvec |= 1 << PriEdf;
 	p->priority = PriEdf;
-	unlock(runq);
 	p->readytime = m->ticks;
 	p->state = Ready;
+	unlock(runq);
 	if(pt = proctrace)
 		pt(p, SReady, now);
-	edfunlock();
 	return 1;
 }
 

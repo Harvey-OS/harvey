@@ -53,6 +53,7 @@ ulong	inl(ulong);
 void	intrdisable(int, int, void (*)(Ureg*, void*), void*, char*);
 void	intrenable(int, int, void (*)(Ureg*, void*), void*, char*);
 void	irpower(int);
+#define kexit(a)
 #define	kmapinval()
 void	lcdpower(int);
 void	links(void);

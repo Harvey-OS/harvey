@@ -305,7 +305,6 @@ trap(Ureg* ureg)
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 	Mach *mach;
-	void (*pt)(Proc*, int, vlong);
 
 	m->perf.intrts = perfticks();
 	user = (ureg->cs & 0xFFFF) == UESEL;
@@ -317,9 +316,6 @@ trap(Ureg* ureg)
 	vno = ureg->trap;
 	if(ctl = vctl[vno]){
 		if(ctl->isintr){
-			pt = proctrace;
-			if(up && up->trace && pt)
-				pt(up, (vno << 16) | SInts, 0);
 			m->intr++;
 			if(vno >= VectorPIC && vno != VectorSYSCALL)
 				m->lastintr = ctl->irq;
@@ -336,9 +332,6 @@ trap(Ureg* ureg)
 
 		if(ctl->isintr){
 			intrtime(m, vno);
-			pt = proctrace;
-			if(up && up->trace && pt)
-				pt(up, (vno << 16) | SInte, 0);
 
 			if(up && ctl->irq != IrqTIMER && ctl->irq != IrqCLOCK)
 				preempted();
@@ -377,25 +370,24 @@ trap(Ureg* ureg)
 
 		/* clear the interrupt */
 		i8259isr(vno);
-			
-		if(0)print("cpu%d: spurious interrupt %d, last %d",
+
+		if(0)print("cpu%d: spurious interrupt %d, last %d\n",
 			m->machno, vno, m->lastintr);
-		for(i = 0; i < 32; i++){
-			if(!(active.machs & (1<<i)))
-				continue;
-			mach = MACHP(i);
-			if(m->machno == mach->machno)
-				continue;
-			print(": cpu%d: last %d", mach->machno, mach->lastintr);
+		if(0)if(conf.nmach > 1){
+			for(i = 0; i < 32; i++){
+				if(!(active.machs & (1<<i)))
+					continue;
+				mach = MACHP(i);
+				if(m->machno == mach->machno)
+					continue;
+				print(" cpu%d: last %d",
+					mach->machno, mach->lastintr);
+			}
+			print("\n");
 		}
-		print("\n");
 		m->spuriousintr++;
-		if(user){
-			/* if we delayed sched because we held a lock, sched now */
-			if(up->delaysched)
-				sched();
+		if(user)
 			kexit(ureg);
-		}
 		return;
 	}
 	else{
@@ -416,15 +408,17 @@ trap(Ureg* ureg)
 			panic("%s", excname[vno]);
 		panic("unknown trap/intr: %d\n", vno);
 	}
+	splhi();
+
+	/* delaysched set because we held a lock or because our quantum ended */
+	if(up && up->delaysched){
+		sched();
+		splhi();
+	}
 
 	if(user){
-		if(up->procctl || up->nnote){
-			splhi();
+		if(up->procctl || up->nnote)
 			notify(ureg);
-		}
-		/* if we delayed sched because we held a lock, sched now */
-		if(up->delaysched)
-			sched();
 		kexit(ureg);
 	}
 }

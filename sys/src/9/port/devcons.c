@@ -57,7 +57,7 @@ enum
 	CMhalt,
 	CMreboot,
 	CMpanic,
-	CMcoop, /* RSC */
+	CMcoop,					/* RSC */
 };
 
 Cmdtab rebootmsg[] =
@@ -65,7 +65,7 @@ Cmdtab rebootmsg[] =
 	CMhalt,		"halt",		1,
 	CMreboot,	"reboot",	0,
 	CMpanic,	"panic",	0,
-	CMcoop,	"coop",	0, /* RSC */
+	CMcoop,		"coop",		0,	/* RSC */
 };
 
 void

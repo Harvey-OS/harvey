@@ -585,6 +585,7 @@ struct	FILE_STRING
 	"\377\330\377\340",	"jpeg",				4,	"image/jpeg",
 	"\377\330\377\341",	"jpeg",				4,	"image/jpeg",
 	"\377\330\377\333",	"jpeg",				4,	"image/jpeg",
+	"BM",			"bmp",				2,	"image/bmp",
 	"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",	"microsoft office document",	8,	"application/octet-stream",
 	"<MakerFile ",		"FrameMaker file",		11,	"application/framemaker",
 	"\033%-12345X",	"HPJCL file",		9,	"application/hpjcl",

@@ -343,9 +343,18 @@ trap(Ureg *ur)
 		break;
 	}
 
-	if(user && (up->procctl || up->nnote)){
+	splhi();
+
+	/* delaysched set because we held a lock or because our quantum ended */
+	if(up && up->delaysched){
+		sched();
 		splhi();
-		notify(ur);
+	}
+
+	if(user){
+		if(up->procctl || up->nnote)
+			notify(ur);
+		kexit(ur);
 	}
 }
 

@@ -349,7 +349,7 @@ regfree(Node *n)
 	reg[i]--;
 	return;
 err:
-	diag(n, "error in regfree: %d", i);
+	diag(n, "error in regfree: %R", i);
 }
 
 void
@@ -1117,6 +1117,22 @@ gopcode(int o, Type *ty, Node *f, Node *t)
 	}
 	a = AGOK;
 	switch(o) {
+	case OCOM:
+		a = ANOTL;
+		if(et == TCHAR || et == TUCHAR)
+			a = ANOTB;
+		if(et == TSHORT || et == TUSHORT)
+			a = ANOTW;
+		break;
+
+	case ONEG:
+		a = ANEGL;
+		if(et == TCHAR || et == TUCHAR)
+			a = ANEGB;
+		if(et == TSHORT || et == TUSHORT)
+			a = ANEGW;
+		break;
+
 	case OADDR:
 		a = ALEAL;
 		break;

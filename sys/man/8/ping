@@ -9,6 +9,8 @@ ping, gping, traceroute, hogports \- probe the Internet
 .B -i
 .I interval
 ] [
+.B -r
+] [
 .B -s
 .I size
 ] [
@@ -77,6 +79,10 @@ sets the time between messages
 to be
 .I interval
 milliseconds, default 1000 ms.
+.TP
+.B r
+randomizes the delay with a minimum extra delay of 0 ms and a
+maximum extra delay of the selected interval.
 .TP
 .B l
 causes only lost messages to be reported.

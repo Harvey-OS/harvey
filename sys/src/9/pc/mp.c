@@ -19,6 +19,7 @@ static int machno2apicno[MaxAPICNO+1];	/* inverse map: machno -> APIC ID */
 static Lock mprdthilock;
 static int mprdthi;
 static Ref mpvnoref;			/* unique vector assignment */
+static int mpmachno = 1;
 
 static char* buses[] = {
 	"CBUSI ",
@@ -62,9 +63,9 @@ mkprocessor(PCMPprocessor* p)
 		apic->machno = 0;
 	}
 	else{
-		machno2apicno[conf.nmach] = p->apicno;
-		apic->machno = conf.nmach;
-		conf.nmach++;
+		machno2apicno[mpmachno] = p->apicno;
+		apic->machno = mpmachno;
+		mpmachno++;
 	}
 
 	return apic;
@@ -372,6 +373,9 @@ squidboy(Apic* apic)
 	active.machs |= 1<<m->machno;
 	unlock(&active);
 
+	while(!active.thunderbirdsarego)
+		microdelay(100);
+
 	schedinit();
 }
 
@@ -439,14 +443,14 @@ mpstartap(Apic* apic)
 
 	nvramwrite(0x0F, 0x0A);
 	lapicstartap(apic, PADDR(APBOOTSTRAP));
-	for(i = 0; i < 100000; i++){
+	for(i = 0; i < 1000; i++){
 		lock(&mprdthilock);
 		if(mprdthi & ((1<<apic->apicno)<<24)){
 			unlock(&mprdthilock);
 			break;
 		}
 		unlock(&mprdthilock);
-		microdelay(10);
+		delay(10);
 	}
 	nvramwrite(0x0F, 0x00);
 }
@@ -473,7 +477,7 @@ mpinit(void)
 	if(mmukmap(pcmp->lapicbase, 0, 1024) == 0)
 		return;
 
-	bpapic = 0;
+	bpapic = nil;
 
 	/*
 	 * Run through the table saving information needed for starting
@@ -571,6 +575,7 @@ mpinit(void)
 		if((apic->flags & (PcmpBP|PcmpEN)) == PcmpEN
 		&& apic->type == PcmpPROCESSOR){
 			mpstartap(apic);
+			conf.nmach++;
 			ncpu--;
 		}
 	}

@@ -22,6 +22,7 @@ typedef	struct	C1	C1;
 typedef	struct	Var	Var;
 typedef	struct	Reg	Reg;
 typedef	struct	Rgn	Rgn;
+typedef	struct	Renv	Renv;
 
 EXTERN	struct
 {
@@ -111,6 +112,14 @@ struct	Reg
 	Prog*	prog;
 };
 #define	R	((Reg*)0)
+
+struct	Renv
+{
+	int	safe;
+	Node	base;
+	Node*	saved;
+	Node*	scope;
+};
 
 #define	NRGN	600
 struct	Rgn
@@ -204,6 +213,7 @@ int	bcomplex(Node*, Node*);
 /*
  * cgen.c
  */
+void	zeroregm(Node*);
 void	cgen(Node*, Node*);
 void	reglcgen(Node*, Node*, Node*);
 void	lcgen(Node*, Node*);
@@ -211,6 +221,16 @@ void	bcgen(Node*, int);
 void	boolgen(Node*, int, Node*);
 void	sugen(Node*, Node*, long);
 int	needreg(Node*, int);
+
+/*
+ * cgen64.c
+ */
+int	notvaddr(Node*, int);
+void	loadpair(Node*, Node*);
+int	cgen64(Node*, Node*);
+void	testv(Node*, int);
+void	reg64save(Renv*);
+void	reg64rest(Renv*);
 
 /*
  * txt.c
@@ -317,8 +337,14 @@ int	BtoF(long);
 #define	D_LO	D_NONE
 
 /*
+ * bound
+ */
+void	comtarg(void);
+
+/*
  * com64
  */
+int	cond(int);
 int	com64(Node*);
 void	com64init(void);
 void	bool64(Node*);
@@ -329,3 +355,7 @@ void	bool64(Node*);
 #pragma	varargck	type	"P"	Prog*
 #pragma	varargck	type	"R"	int
 #pragma	varargck	type	"S"	char*
+
+/* wrecklesly steal a field */
+
+#define	rplink	label

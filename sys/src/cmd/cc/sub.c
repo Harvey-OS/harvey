@@ -1302,6 +1302,7 @@ Init	onamesinit[] =
 	OTST,		0,	"TST",
 	OINDEX,		0,	"INDEX",
 	OFAS,		0,	"FAS",
+	OREGPAIR,	0,	"REGPAIR",
 	OEND,		0,	"END",
 	-1,		0,	0,
 };
@@ -1343,6 +1344,7 @@ int	typeilpinit[] =
 };
 
 char	typechl[NTYPE];
+char	typechlv[NTYPE];
 int	typechlinit[] =
 {
 	TCHAR, TUCHAR, TSHORT, TUSHORT, TINT, TUINT, TLONG, TULONG, -1,
@@ -1688,6 +1690,7 @@ tinit(void)
 	for(i=0; typechlinit[i] >= 0; i++) {
 		urk("typechl", nelem(typechl), typechlinit[i]);
 		typechl[typechlinit[i]] = 1;
+		typechlv[typechlinit[i]] = 1;
 	}
 	for(i=0; typechlpinit[i] >= 0; i++) {
 		urk("typechlp", nelem(typechlp), typechlpinit[i]);
@@ -1712,6 +1715,7 @@ tinit(void)
 	for(i=0; typevinit[i] >= 0; i++) {
 		urk("typev", nelem(typev), typevinit[i]);
 		typev[typevinit[i]] = 1;
+		typechlv[typevinit[i]] = 1;
 	}
 	for(i=0; typefdinit[i] >= 0; i++) {
 		urk("typefd", nelem(typefd), typefdinit[i]);

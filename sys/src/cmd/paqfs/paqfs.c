@@ -925,7 +925,7 @@ blockRead(uchar *data, ulong addr, int type)
 	}
 	getBlock(buf, &b);
 	if(b.magic != BlockMagic || b.size > blocksize || b.type != type){
-		fprint(2, "paqfs: bad block: magic %.8lux (want %.8lux) size %d (max %d) type %d (want %d)\n",
+		fprint(2, "paqfs: bad block: magic %.8lux (want %.8ux) size %lud (max %d) type %ud (want %ud)\n",
 			b.magic, BlockMagic, b.size, blocksize, b.type, type);
 		return 0;
 	}
@@ -996,7 +996,7 @@ readBlocks(char *name, DigestState *ds)
 		getBlock(buf, &b);
 
 		if(b.size > blocksize)
-			sysfatal("bad block size: %d: %s", b.size, name);
+			sysfatal("bad block size: %lud: %s", b.size, name);
 		if(ds) {
 			if(Bread(bin, buf, b.size) < b.size)
 				sysfatal("sysfatal reading block: %s: %r", name);

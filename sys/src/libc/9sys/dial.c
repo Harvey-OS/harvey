@@ -132,11 +132,14 @@ call(char *clone, char *dest, DS *ds)
 	char cname[Maxpath], name[Maxpath], data[Maxpath], *p;
 
 	/* because cs is in a different name space, replace the mount point */
-	p = strchr(clone+1, '/');
-	if(p == nil)
+	if(*clone == '/'){
+		p = strchr(clone+1, '/');
+		if(p == nil)
+			p = clone;
+		else 
+			p++;
+	} else
 		p = clone;
-	else 
-		p++;
 	snprint(cname, sizeof cname, "%s/%s", ds->netdir, p);
 
 	cfd = open(cname, ORDWR);

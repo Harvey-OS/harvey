@@ -204,7 +204,7 @@ lastbefore(ulong t, char *f, char *b, char *ndump)
 	if(verb)
 		print("%ld lastbefore %s\n", t0, f);
 	mtime = 0;
-	for(try=0; try<10; try++) {
+	for(try=0; try<30; try++) {
 		tm = localtime(t);
 		sprint(b, "/n/%s/%.4d/%.2d%.2d", ndump,
 			tm->year+1900, tm->mon+1, tm->mday);
