@@ -14,7 +14,7 @@ int
 mii(Mii* mii, int mask)
 {
 	MiiPhy *miiphy;
-	int bit, phyno, r, rmask;
+	int bit, oui, phyno, r, rmask;
 
 	/*
 	 * Probe through mii for PHYs in mask;
@@ -33,14 +33,18 @@ mii(Mii* mii, int mask)
 		}
 		if(mii->mir(mii, phyno, Bmsr) == -1)
 			continue;
+		r = mii->mir(mii, phyno, Phyidr1);
+		oui = (r & 0x3FFF)<<6;
+		r = mii->mir(mii, phyno, Phyidr2);
+		oui |= r>>10;
+		if(oui == 0xFFFFF || oui == 0)
+			continue;
+
 		if((miiphy = malloc(sizeof(MiiPhy))) == nil)
 			continue;
 
 		miiphy->mii = mii;
-		r = mii->mir(mii, phyno, Phyidr1);
-		miiphy->oui = (r & 0x3FFF)<<6;
-		r = mii->mir(mii, phyno, Phyidr2);
-		miiphy->oui |= r>>10;
+		miiphy->oui = oui;
 		miiphy->phyno = phyno;
 
 		miiphy->anar = ~0;

@@ -456,6 +456,14 @@ ipopen(Chan* c, int omode)
 		if(cv->state != Announced)
 			error("not announced");
 
+		if(waserror()){
+			closeconv(cv);
+			nexterror();
+		}
+		qlock(cv);
+		cv->inuse++;
+		qunlock(cv);
+
 		nc = nil;
 		while(nc == nil) {
 			/* give up if we got a hangup */
@@ -483,6 +491,8 @@ ipopen(Chan* c, int omode)
 			qunlock(&cv->listenq);
 			poperror();
 		}
+		closeconv(cv);
+		poperror();
 		break;
 	}
 	c->mode = openmode(omode);

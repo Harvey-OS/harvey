@@ -8,17 +8,17 @@
 #include "ip.h"
 
 
-static void	pktbind(Ipifc *ifc, int argc, char **argv);
-static void	pktunbind(Ipifc *ifc);
-static void	pktbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip);
-static void	pktin(Fs*, Ipifc *ifc, Block *bp);
+static void	pktbind(Ipifc*, int, char**);
+static void	pktunbind(Ipifc*);
+static void	pktbwrite(Ipifc*, Block*, int, uchar*);
+static void	pktin(Fs*, Ipifc*, Block*);
 
 Medium pktmedium =
 {
 .name=		"pkt",
 .hsize=		14,
-.mintu=	40,
-.maxtu=	4*1024,
+.mintu=		40,
+.maxtu=		4*1024,
 .maclen=	6,
 .bind=		pktbind,
 .unbind=	pktunbind,

@@ -2182,8 +2182,11 @@ reset:
 	 */
 	for(;;) {
 		if(seg.flags & RST) {
-			if(tcb->state == Established)
+			if(tcb->state == Established) {
 				tpriv->stats[EstabResets]++;
+				if(tcb->rcv.nxt != seg.seq)
+					print("out of order RST rcvd: %I.%d -> %I.%d, rcv.nxt %lux seq %lux\n", s->raddr, s->rport, s->laddr, s->lport, tcb->rcv.nxt, seg.seq);
+			}
 			localclose(s, Econrefused);
 			goto raise;
 		}

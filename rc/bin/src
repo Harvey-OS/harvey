@@ -50,5 +50,6 @@ for(i){
 	if(test -f $i) go $i
 	if not if(test -f /bin/$i) go /bin/$i
 	if not if(test -f /bin/*/$i) go /bin/*/$i
+	if not if(test -f /bin/*/*/$i) go /bin/*/*/$i
 	if not echo 'src: can''t find '$i
 }
