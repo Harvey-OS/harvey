@@ -1,0 +1,121 @@
+# create a /tmp for here documents
+rfork en
+bind -c /mail/tmp /tmp
+
+# caller should set KEY and USER
+
+if(! ~ $#USER 1)
+	exit 'bad pipeto: no USER variable'
+if(! ~ $#KEY 1)
+	KEY=plan9
+
+cd /mail/box/$USER
+RECIP=$1
+MBOX=$2
+PF=/mail/box/$USER/_pattern
+TMP=/mail/tmp/$pid.$sysname
+BIN=/bin/upas
+D=/mail/fs/mbox/1
+
+# clean up files on exit
+fn sigexit {
+	rm -f $TMP.*
+}
+
+fn log {
+	if(~ $#USER 1)
+		echo `{date} $* >>/mail/box/$USER/_log >[2]/dev/null
+}
+
+# deliver mail to a local file
+fn spool {
+	if(~ $#* 0)
+		_mbox=$MBOX
+	if not
+		_mbox=$1
+	$BIN/deliver $RECIP $D/from $_mbox < $D/raw || exit $status
+}
+
+# forward mail to a list of addresses
+fn forward {
+	upasname=`{awk '{print $2}' $D/unixheader} cat $D/raw | upas/send $* || exit $status
+}
+
+# pipe mail through a command
+fn pipe {
+	if(~ $#* 0)
+		exit 'bad pipe command'
+	{cat $D/unixheader $D/raw; echo} | $* || exit $status
+}
+
+# add @domain to all unqualified addresses in the message
+fn qualify {
+	if(! ~ $#* 1){
+		echo 'usage: qualify domain' >[1=2]
+		exit bad-qualify
+	}
+	{
+		sed 1q $TMP.msg
+		cat $TMP.msg | sed 1d | upas/smtp -fh $1 a b
+	} >$TMP.msg2 || exit $status
+	mv $TMP.msg2 $TMP.msg || exit $status
+	unmount /mail/fs
+	upas/fs -f $TMP.msg || exit $status
+}
+
+# classify message according to token-based white list 
+fn tokenfilter {
+	if($BIN/list check $PF $D/from $D/sender $D/replyto)
+		echo match
+	if not if(~ $status *!match*)
+		echo !match
+	if not if($BIN/token $KEY $D/subject)
+		echo token
+	if not
+		echo new
+}
+
+# reject a message due to the token-based white list
+fn tokenreply {
+	TOKEN=`{upas/token $KEY}
+	if(! ~ $#MAILTO 1)
+		exit 'bad token reply: no MAILTO variable'
+	{
+		cat /mail/lib/token.msg |
+		sed 's/TOKEN/'$TOKEN'/g;s/USER/'$USER'/g;s/MAILTO/'$MAILTO'/g'
+		cat $D/raw
+	} | upasname=/dev/null mail `{cat $D/replyto}
+}
+
+# add addresses in message to white list
+fn listupdate {
+	$BIN/list add $PF $D/from $D/to $D/cc $D/sender
+}
+
+# alternative to token-based approach
+# bayesian classification.  run /mail/lib/setup.bayes to start.
+fn isspam {
+	for(i in _prof.mbox _prof.spam _bounced){
+		if(! test -f $i){
+			echo 'need '^$i >[1=2]
+			exit 'need '^$i
+		}
+	}
+	upas/msgcat $TMP.msg |upas/msgtok |grep -v '^....................(.*)	' >$TMP.tok
+	x=`{upas/bayes -k _prof.mbox _prof.spam ~ $TMP.tok | sed 's/_prof.//'}
+	where=$x(1)
+	prob=$x(2)
+	prob1000=`{echo $prob '*1000' | hoc | sed 's/\..*//'}
+	echo `{sed 's/^From ([^ ]+) (.*)/\2 from \1/' $D/unixheader} $x >>_bounced
+	if(~ $where spam && test $prob1000 -lt 999)
+		where=mbox
+	upas/addhash -o _prof.$where _prof.$where 1 $TMP.tok 1
+	if(~ $where spam)
+		where=''
+	status=$where
+}
+
+# save and parse the mail file
+sed '/^$/,$ s/^From / From /' >$TMP.msg
+upas/fs -f $TMP.msg || exit $status
+
