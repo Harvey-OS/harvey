@@ -65,7 +65,13 @@ main(int argc, char **argv)
 	Binit(&boutbuf, 1, OWRITE);
 	kflag = 0;
 	line = 0;
-	dict = &dicts[0];
+	dict = 0;
+	for(i=0; dicts[i].name; i++){
+		if(access(dicts[i].path, 0)>=0 && access(dicts[i].indexpath, 0)>=0){
+			dict = &dicts[i];
+			break;
+		}
+	}
 	ARGBEGIN {
 		case 'd':
 			p = ARGF();
@@ -94,6 +100,11 @@ main(int argc, char **argv)
 		default:
 			usage();
 	ARGEND }
+	if(dict == 0){
+		err("no dictionaries present on this system");
+		exits("nodict");
+	}
+
 	if(kflag) {
 		(*dict->printkey)();
 		exits(0);
@@ -151,11 +162,18 @@ void
 usage(void)
 {
 	int i;
+	char *a, *b;
 
 	Bprint(bout, "Usage: %s [-d dict] [-k] [-c cmd] [word]\n", argv0);
-	Bprint(bout, "available dictionaries:\n");
-	for(i = 0; dicts[i].name; i++)
-		Bprint(bout, "   %s\t%s\n", dicts[i].name, dicts[i].desc);
+	Bprint(bout, "dictionaries (brackets mark dictionaries not present on this system):\n");
+	for(i = 0; dicts[i].name; i++){
+		a = b = "";
+		if(access(dicts[i].path, 0)<0 || access(dicts[i].indexpath, 0)<0){
+			a = "[";
+			b = "]";
+		}
+		Bprint(bout, "   %s%s\t%s%s\n", a, dicts[i].name, dicts[i].desc, b);
+	}
 	exits("usage");
 }
 
