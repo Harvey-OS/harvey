@@ -3,13 +3,13 @@
 386/9loaddebug - 775 sys sys 1106021711 306647
 386/9loadlite - 775 sys sys 1100269949 132260
 386/9loadlitedebug - 775 sys sys 1104122096 195560
-386/9pc - 775 sys sys 1107405606 1833830
+386/9pc - 775 sys sys 1107490489 1834244
 386/9pc.gz - 664 sys sys 1077049336 635727
-386/9pccpu - 775 sys sys 1107405611 1488772
+386/9pccpu - 775 sys sys 1107490494 1488803
 386/9pccpu.gz - 664 sys sys 1077049387 519909
-386/9pcdisk - 775 sys sys 1107405618 2039532
+386/9pcdisk - 775 sys sys 1107490498 2039946
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
-386/9pcf - 775 sys sys 1107405626 2382364
+386/9pcf - 775 sys sys 1107490504 2382778
 386/9pcf.gz - 664 sys sys 1077049490 872650
 386/9pxeload - 775 sys sys 1100269949 208708
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -101,6 +101,8 @@
 386/bin/aux/flashfs - 775 sys sys 1104121976 160286
 386/bin/aux/g3p9bit - 775 sys sys 1104121976 67278
 386/bin/aux/getflags - 775 sys sys 1104121977 43817
+386/bin/aux/gpsevermore - 775 sys sys 1107490157 71417
+386/bin/aux/gpsfs - 775 sys sys 1107490157 174347
 386/bin/aux/grabit - 775 sys sys 1020319063 1244
 386/bin/aux/hardcopy - 775 sys sys 1020319063 1699
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
@@ -141,7 +143,7 @@
 386/bin/aux/stub - 775 sys sys 1104121986 135062
 386/bin/aux/tcpostio - 775 sys sys 1094040084 200808
 386/bin/aux/text2post - 775 sys sys 1104121986 78336
-386/bin/aux/timesync - 775 sys sys 1104121987 127215
+386/bin/aux/timesync - 775 sys sys 1107490157 128213
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1104121988 83293
 386/bin/aux/typepasswd - 775 sys sys 1104121988 69503
@@ -429,6 +431,7 @@
 386/bin/unicode - 775 sys sys 1104122068 62523
 386/bin/uniq - 775 sys sys 1104122068 61900
 386/bin/units - 775 sys sys 1104122068 75250
+386/bin/unlnfs - 775 sys sys 1107490157 71362
 386/bin/unmount - 775 sys sys 1104122068 36611
 386/bin/unzip - 775 sys sys 1104122069 89733
 386/bin/upas - 20000000775 sys sys 1016857390 0
@@ -440,7 +443,7 @@
 386/bin/upas/fs - 775 sys sys 1107405598 332387
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1104122071 82776
-386/bin/upas/marshal - 775 sys sys 1104122071 132491
+386/bin/upas/marshal - 775 sys sys 1107490159 132595
 386/bin/upas/ml - 775 sys sys 1104122072 123499
 386/bin/upas/mlmgr - 775 sys sys 1104122072 104185
 386/bin/upas/mlowner - 775 sys sys 1104122072 92108
@@ -4777,7 +4780,6 @@ sys/man/1/strip - 664 sys sys 958580250 448
 sys/man/1/sum - 664 sys sys 984772442 1390
 sys/man/1/syscall - 664 sys sys 1016466457 1439
 sys/man/1/tail - 664 sys sys 1017679307 1413
-sys/man/1/tapefs - 664 sys sys 1097900346 1811
 sys/man/1/tar - 664 sys sys 1070371922 2538
 sys/man/1/tbl - 664 sys sys 944959674 4308
 sys/man/1/tcs - 664 sys sys 952627441 2575
@@ -5021,7 +5023,7 @@ sys/man/4/rio - 664 sys sys 1023206844 8660
 sys/man/4/sacfs - 664 sys sys 964886843 907
 sys/man/4/snap - 664 sys sys 1017251244 1833
 sys/man/4/srv - 664 sys sys 1045236157 4649
-sys/man/4/tapefs - 664 sys sys 944959699 1731
+sys/man/4/tapefs - 664 sys sys 1107543772 1811
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
@@ -5360,7 +5362,7 @@ sys/src/9/pc/devlm78.c - 664 sys sys 1091129037 6255
 sys/src/9/pc/devlml.c - 664 sys sys 1026847636 7486
 sys/src/9/pc/devlml.h - 664 sys sys 1026847636 2948
 sys/src/9/pc/devlpt.c - 664 sys sys 1015014514 4420
-sys/src/9/pc/devpccard.c - 664 sys sys 1089299187 40138
+sys/src/9/pc/devpccard.c - 664 sys sys 1107531947 40194
 sys/src/9/pc/devrtc.c - 664 sys sys 1015014515 7167
 sys/src/9/pc/devtv.c - 664 sys sys 1091734484 45725
 sys/src/9/pc/devusb.c - 664 sys sys 1105193103 18364
@@ -12463,12 +12465,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/9pc - 775 sys sys 1107490489 1834244
-386/9pccpu - 775 sys sys 1107490494 1488803
-386/9pcdisk - 775 sys sys 1107490498 2039946
-386/9pcf - 775 sys sys 1107490504 2382778
-386/bin/aux/gpsevermore - 775 sys sys 1107490157 71417
-386/bin/aux/gpsfs - 775 sys sys 1107490157 174347
-386/bin/aux/timesync - 775 sys sys 1107490157 128213
-386/bin/unlnfs - 775 sys sys 1107490157 71362
-386/bin/upas/marshal - 775 sys sys 1107490159 132595
+386/9pc - 775 sys sys 1107577216 1834252
+386/9pcdisk - 775 sys sys 1107577221 2039954
+386/9pcf - 775 sys sys 1107577226 2382786
