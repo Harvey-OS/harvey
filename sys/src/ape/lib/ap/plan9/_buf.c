@@ -384,7 +384,8 @@ alarmed(int v)
 static void
 _killtimerproc(void)
 {
-	kill(timerpid, SIGKILL);
+	if(timerpid > 0)
+		kill(timerpid, SIGKILL);
 }
 
 static void
