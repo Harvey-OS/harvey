@@ -9371,7 +9371,6 @@ sys/src/cmd/iostats/statfs.h - 664 sys sys 1014925727 2621
 sys/src/cmd/iostats/statsrv.c - 664 sys sys 1055699098 10756
 sys/src/cmd/ip - 20000000775 sys sys 1015096228 0
 sys/src/cmd/ip/arp.h - 664 sys sys 944961005 751
-sys/src/cmd/ip/bootp.h - 664 sys sys 944961013 789
 sys/src/cmd/ip/dhcp.h - 664 sys sys 1051206271 3368
 sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1050714660 11978
 sys/src/cmd/ip/dhcpd - 20000000775 sys sys 988249979 0
@@ -9440,7 +9439,7 @@ sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
 sys/src/cmd/ip/ipconfig.c - 664 sys sys 1084471140 34896
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
-sys/src/cmd/ip/mkfile - 664 sys sys 1078879907 1240
+sys/src/cmd/ip/mkfile - 664 sys sys 1089739069 1232
 sys/src/cmd/ip/ping.c - 664 sys sys 1084471009 5651
 sys/src/cmd/ip/ppp - 20000000775 sys sys 988249980 0
 sys/src/cmd/ip/ppp/block.c - 664 sys sys 1015090266 5353
