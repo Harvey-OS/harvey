@@ -20,6 +20,7 @@ enum {
 	SAVAGE4		= 0x8A22,
 	PROSAVAGEP	= 0x8A25,
 	PROSAVAGEK	= 0x8A26,
+	PROSAVAGE8	= 0x8D04,
 	SAVAGEMXMV	= 0x8C10,
 	SAVAGEMX	= 0x8C11,
 	SAVAGEIXMV	= 0x8C12,
@@ -366,6 +367,7 @@ savagewaitidle(VGAscr *scr)
 	case SAVAGE4:
 	case PROSAVAGEP:
 	case PROSAVAGEK:
+	case PROSAVAGE8:
 		/* wait for engine idle and FIFO empty */
 		statw = (ulong*)((uchar*)scr->mmio+AltStatus0);
 		mask = CBEMask | Ge2Idle;
@@ -496,6 +498,7 @@ savageinit(VGAscr *scr)
 	case SAVAGE4:
 	case PROSAVAGEP:
 	case PROSAVAGEK:
+	case PROSAVAGE8:
 	case SAVAGEIXMV:
 	case SUPERSAVAGEIXC16:
 	case SAVAGEMXMV:
@@ -566,4 +569,3 @@ savageinit(VGAscr *scr)
 	scr->blank = savageblank;
 	hwblank = 0;
 }
-
