@@ -733,7 +733,7 @@ printdate(Biobuf *b)
 
 	return Bprint(b, "Date: %s, %d %s %d %2.2d:%2.2d:%2.2d %s%.4d\n",
 		ascwday[tm->wday], tm->mday, ascmon[tm->mon], 1900+tm->year,
-		tm->hour, tm->min, tm->sec, tz>0?"+":"", tz);
+		tm->hour, tm->min, tm->sec, tz>=0?"+":"", tz);
 }
 
 int
@@ -745,10 +745,13 @@ printfrom(Biobuf *b)
 int
 printto(Biobuf *b, Addr *a)
 {
+	int i;
+
 	if(Bprint(b, "To: %s", a->v) < 0)
 		return -1;
+	i = 0;
 	for(a = a->next; a != nil; a = a->next)
-		if(Bprint(b, ", %s", a->v) < 0)
+		if(Bprint(b, "%s%s", ((i++ & 7) == 7)?",\n\t":", ", a->v) < 0)
 			return -1;
 	if(Bprint(b, "\n") < 0)
 		return -1;
@@ -758,12 +761,15 @@ printto(Biobuf *b, Addr *a)
 int
 printcc(Biobuf *b, Addr *a)
 {
+	int i;
+
 	if(a == nil)
 		return 0;
 	if(Bprint(b, "CC: %s", a->v) < 0)
 		return -1;
+	i = 0;
 	for(a = a->next; a != nil; a = a->next)
-		if(Bprint(b, ", %s", a->v) < 0)
+		if(Bprint(b, "%s%s", ((i++ & 7) == 7)?",\n\t":", ", a->v) < 0)
 			return -1;
 	if(Bprint(b, "\n") < 0)
 		return -1;
@@ -935,7 +941,7 @@ printunixfrom(int fd)
 	return fprint(fd, "From %s %s %s %d %2.2d:%2.2d:%2.2d %s%.4d %d\n",
 		user,
 		ascwday[tm->wday], ascmon[tm->mon], tm->mday,
-		tm->hour, tm->min, tm->sec, tz>0?"+":"", tz, 1900+tm->year);
+		tm->hour, tm->min, tm->sec, tz>=0?"+":"", tz, 1900+tm->year);
 }
 
 char *specialfile[] =

@@ -45,7 +45,7 @@ wavelanpcmciareset(Ether *ether)
 	for(i=0; i<ether->nopt; i++){
 		if(cistrncmp(ether->opt[i], "id=", 3) == 0){
 			if((ctlr->slot = pcmspecial(&ether->opt[i][3], ether)) < 0)
-				return -1;
+				goto abort;
 			break;
 		}
 	}

@@ -17,8 +17,8 @@ fsaddr=`{sed -n 's/	fs=(.*)/\1/p' /net/ndb|sed 1q}
 
 factotum -sfactotum -S -a $authaddr
 
-if(! srv il!$fsaddr!17008 boot){
-	if(! srv tcp!$fsaddr!564 boot)
+if(! srv tcp!$fsaddr!564 boot){
+	if(! srv il!$fsaddr!17008 boot)
 		exec ./rc -m/boot/rcmain -i
 }
 

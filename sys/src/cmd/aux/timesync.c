@@ -15,6 +15,7 @@ enum {
 	Rtc,
 	Ntp,
 	Utc,
+	Gps,
 
 	HZAvgSecs=	3*60,	/* target averaging period for the frequency in seconds */
 	MinSampleSecs=	60,	/* minimum sampling time in seconds */
@@ -26,6 +27,7 @@ char *logfile = "timesync";
 char *timeserver;
 char *Rootid;
 int utcfil;
+int gpsfil;
 int debug;
 int impotent;
 int logging;
@@ -104,6 +106,7 @@ static int	caperror(vlong dhz, int tsecs, vlong taccuracy);
 static long	fstime(void);
 static int	gettime(vlong *nsec, uvlong *ticks, uvlong *hz); // returns time, ticks, hz
 static int	getclockprecision(vlong);
+static vlong	gpssample(void);
 static void	hnputts(void *p, vlong nsec);
 static void	hnputts(void *p, vlong nsec);
 static void	inittime(void);
@@ -169,9 +172,10 @@ main(int argc, char **argv)
 	case 'U':
 		type = Utc;
 		stratum = 1;
-		timeserver = ARGF();
-		if (timeserver == nil)
-			sysfatal("bad time source");
+		break;
+	case 'G':
+		type = Gps;
+		stratum = 1;
 		break;
 	case 'n':
 		type = Ntp;
@@ -246,6 +250,18 @@ main(int argc, char **argv)
 		rfork(RFNAMEG);
 
 	switch(type){
+	case Utc:
+		if(argc > 0)
+			timeserver = argv[0];
+		else
+			sysfatal("bad time source");
+		break;
+	case Gps:
+		if(argc > 0)
+			timeserver = argv[0];
+		else
+			timeserver = "/mnt/gps/time";
+		break;
 	case Fs:
 		if(argc > 0)
 			timeserver = argv[0];
@@ -296,6 +312,12 @@ main(int argc, char **argv)
 		if(fd < 0)
 			sysfatal("opening %s: %r\n", timeserver);
 		utcfil = fd;
+		break;
+	case Gps:
+		fd = open(timeserver, OREAD);
+		if(fd < 0)
+			sysfatal("opening %s: %r\n", timeserver);
+		gpsfil = fd;
 		break;
 	}
 
@@ -362,11 +384,21 @@ main(int argc, char **argv)
 				continue;
 			}
 			break;
+		case Gps:
+			diff = gpssample();
+			if(diff == 0LL){
+				if(logging)
+					syslog(0, logfile, "no sample");
+				free(s);
+				if(secs > 60*15)
+					tsecs = 60*15;
+				continue;
+			}
 		}
 
 		// use fastest method to read local clock and ticks
 		gettime(&s->ltime, &s->ticks, 0);
-		if(type == Ntp)
+		if(type == Ntp || type == Gps)
 			s->stime = s->ltime + diff;
 
 		// if the sample was bad, ignore it
@@ -973,6 +1005,34 @@ ntptimediff(NTPserver *ns)
 	}
 	close(fd);
 	return -1;
+}
+
+static vlong
+gpssample(void)
+{
+	vlong	l, g, d;
+	int	i, n;
+	char	*v[4], buf[128];
+
+	d = -1000000000000000000LL;
+	for(i = 0; i < 5; i++){
+		sleep(1100);
+		seek(gpsfil, 0, 0);
+		n = read(gpsfil, buf, sizeof buf - 1);
+		if (n <= 0)
+			return(0LL);
+		buf[n] = 0;
+		n = tokenize(buf, v, nelem(v));
+		if(n != 4)
+			return(0LL);
+		if(strcmp(v[3], "A") != 0)
+			return(0LL);
+		g = atoll(v[1]);
+		l = atoll(v[2]);
+		if(g-l > d)
+			d = g-l;
+	}
+	return(d);
 }
 
 static vlong

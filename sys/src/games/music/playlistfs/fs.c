@@ -417,41 +417,6 @@ rread(Worker *w)
 	return nil;
 }
 
-static char*
-qtoken(char *s, char *sep)
-{
-	int quoting;
-	char *t;
-
-	quoting = 0;
-	t = s;	/* s is output string, t is input string */
-	while(*t!='\0' && (quoting || utfrune(sep, *t)==nil)){
-		if(*t != '\''){
-			*s++ = *t++;
-			continue;
-		}
-		/* *t is a quote */
-		if(!quoting){
-			quoting = 1;
-			t++;
-			continue;
-		}
-		/* quoting and we're on a quote */
-		if(t[1] != '\''){
-			/* end of quoted section; absorb closing quote */
-			t++;
-			quoting = 0;
-			continue;
-		}
-		/* doubled quote; fold one quote into two */
-		t++;
-		*s++ = *t++;
-	}
-	if(*t == '\0')
-		return nil;
-	return t;
-}
-
 char*
 rwrite(Worker *w)
 {
