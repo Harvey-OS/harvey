@@ -11,7 +11,7 @@ typedef	struct Exwork	Exwork;
 
 enum
 {
-	Nfidhash	= 1,
+	Nfidhash	= 32,
 	Maxfdata	= 8192,
 	Maxrpc		= IOHDRSZ + Maxfdata,
 };
