@@ -39,6 +39,7 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth, int
 		for(nrp = drp; nrp != nil; nrp = nrp->next){
 			snprint(nname, sizeof(nname), "%s.%s", name, nrp->ptr->name);
 			rp = dnresolve(nname, class, type, req,cn, depth, recurse, rooted, status);
+			rrfreelist(rrremneg(&rp));
 			if(rp != nil)
 				break;
 		}

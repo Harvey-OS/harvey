@@ -19031,3 +19031,14 @@
 1048969914 3 c sys/src/cmd/unix/u9fs/plan9.h - 664 sys sys 1048969296 5572
 1049040058 0 c sys/man/4/factotum - 664 sys sys 1049038407 14737
 1049135487 0 c sys/man/4/nfs - 664 sys sys 1049135219 2740
+1049250615 0 c 386/bin/ndb/cs - 775 sys sys 1049249435 143599
+1049250615 1 c 386/bin/ndb/dns - 775 sys sys 1049249442 211255
+1049250615 2 c 386/bin/upas/smtp - 775 sys sys 1049249426 268972
+1049250615 3 c sys/src/cmd/ndb/cs.c - 664 sys sys 1049249331 32741
+1049250615 4 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1049249333 18409
+1049250615 5 c sys/src/cmd/ndb/dn.c - 664 sys sys 1049249332 25182
+1049250615 6 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1049249333 15279
+1049250615 7 c sys/src/cmd/ndb/dns.c - 664 sys sys 1049249331 15051
+1049250615 8 c sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1049249332 8333
+1049250615 9 c sys/src/cmd/ndb/mkfile - 664 sys sys 1049249334 1835
+1049250615 10 c sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1049249402 18227

@@ -718,10 +718,18 @@ rwrite(Job *job, Mfile *mf, Request *req)
 		rrfreelist(neg);
 	}
 	if(rp == 0){
-		if(status == Rname)
+		
+		switch(status){
+		case Rname:
 			err = "name does not exist";
-		else
-			err = "no translation found";
+			break;
+		case Rserver:
+			err = "dns failure";
+			break;
+		default:
+			err = "resource does not exist";
+			break;
+		}
 	} else {
 		/* format data to be read later */
 		n = 0;

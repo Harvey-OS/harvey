@@ -305,7 +305,7 @@ squirrelserveraddrs(void)
 		}
 		req.isslave = 1;
 		req.aborttime = now + 60;	/* don't spend more than 60 seconds */
-		*l = dnresolve(rp->host->name, Cin, Ta, &req, 0, 0, Recurse, 1, 0);
+		*l = dnresolve(rp->host->name, Cin, Ta, &req, 0, 0, Recurse, 0, 0);
 		while(*l != nil)
 			l = &(*l)->next;
 	}
@@ -353,6 +353,7 @@ doquery(char *name, char *tstr)
 	RR *rr, *rp;
 	int len, type;
 	char *p, *np;
+	int rooted;
 	char buf[1024];
 
 	if(resolver)
@@ -368,8 +369,11 @@ doquery(char *name, char *tstr)
 
 	/* if name end in '.', remove it */
 	len = strlen(name);
-	if(len > 0 && name[len-1] == '.')
+	if(len > 0 && name[len-1] == '.'){
+		rooted = 1;
 		name[len-1] = 0;
+	} else
+		rooted = 0;
 
 	/* inverse queries may need to be permuted */
 	strncpy(buf, name, sizeof buf);
@@ -405,7 +409,7 @@ doquery(char *name, char *tstr)
 	getactivity(&req);
 	req.isslave = 1;
 	req.aborttime = now + 60;	/* don't spend more than 60 seconds */
-	rr = dnresolve(buf, Cin, type, &req, 0, 0, Recurse, 1, 0);
+	rr = dnresolve(buf, Cin, type, &req, 0, 0, Recurse, rooted, 0);
 	if(rr){
 		print("----------------------------\n");
 		for(rp = rr; rp; rp = rp->next)
