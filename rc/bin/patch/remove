@@ -1,0 +1,19 @@
+#!/bin/rc
+
+rfork e
+if(~ $#* 0){
+	echo 'usage: patch/remove patch-name...' >[1=2]
+	exit usage
+}
+
+if(! test -d /n/sources/patch){
+	rfork n
+	9fs sources
+}
+
+for(i){
+	if(! test -d /n/sources/patch/$i)
+		echo 'no such patch' /n/sources/patch/$i >[1=2]
+	if not
+		rm -rf /n/sources/patch/$i
+}

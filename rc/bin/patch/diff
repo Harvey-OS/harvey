@@ -1,5 +1,6 @@
 #!/bin/rc
 
+rfork e
 if(! ~ $#* 1){
 	echo 'usage: patch/diff patch-name' >[1=2]
 	exit usage
