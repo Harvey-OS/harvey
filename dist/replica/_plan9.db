@@ -856,10 +856,8 @@ dist/replica - 20000000775 sys sys 1019277119 0
 dist/replica/cd - 664 sys sys 1019527959 390
 dist/replica/kfs - 664 sys sys 1019527929 237
 dist/replica/network - 775 sys sys 1071079179 996
-dist/replica/plan9.proto - 664 sys sys 1089404586 2510
+dist/replica/plan9.proto - 664 sys sys 1104813012 2497
 env - 20000000775 sys sys 1015094872 0
-env/* - 664 sys sys 1104736310 8
-env/status - 664 sys sys 1104736310 1
 fd - 20000000775 sys sys 947958544 0
 lib - 20000000775 sys sys 958504315 0
 lib/areacodes - 664 sys sys 1032057527 26182
@@ -3993,7 +3991,7 @@ sys/lib/man - 20000000775 sys sys 960356011 0
 sys/lib/man/checkman.awk - 664 sys sys 1017679304 6277
 sys/lib/man/colophon - 664 sys sys 956337727 545
 sys/lib/man/lookman - 20000000775 sys sys 956337764 0
-sys/lib/man/lookman/index - 664 sys sys 1104736420 1460912
+sys/lib/man/lookman/index - 664 sys sys 1104811681 1460912
 sys/lib/man/lookman/junkwords - 664 sys sys 956337764 3059
 sys/lib/man/lookman/mkindex - 775 sys sys 1017679307 306
 sys/lib/man/mkhtmlindex - 775 sys sys 1072129593 1235
@@ -4649,7 +4647,7 @@ sys/man/1/0intro - 664 sys sys 1101668050 9625
 sys/man/1/2a - 664 sys sys 1101668050 1188
 sys/man/1/2c - 664 sys sys 1101668050 7700
 sys/man/1/2l - 664 sys sys 1101668051 4365
-sys/man/1/INDEX - 664 sys sys 1104736348 3004
+sys/man/1/INDEX - 664 sys sys 1104811679 3004
 sys/man/1/INDEX.html - 664 sys sys 1104736360 16403
 sys/man/1/acid - 664 sys sys 1101668051 9727
 sys/man/1/acme - 664 sys sys 1101996606 17593
@@ -4805,7 +4803,7 @@ sys/man/2/9p - 664 sys sys 1089084170 15221
 sys/man/2/9pcmdbuf - 664 sys sys 1044430197 2057
 sys/man/2/9pfid - 664 sys sys 1048637158 3626
 sys/man/2/9pfile - 664 sys sys 1048637158 4408
-sys/man/2/INDEX - 664 sys sys 1104736364 20487
+sys/man/2/INDEX - 664 sys sys 1104811679 20487
 sys/man/2/INDEX.html - 664 sys sys 1104736374 27481
 sys/man/2/abort - 664 sys sys 944959693 331
 sys/man/2/abs - 664 sys sys 944959693 461
@@ -4983,7 +4981,7 @@ sys/man/3/usb - 664 sys sys 1063855746 6727
 sys/man/3/vga - 664 sys sys 1020356225 4827
 sys/man/4 - 20000000775 sys sys 1018581459 0
 sys/man/4/0intro - 664 sys sys 944959699 472
-sys/man/4/INDEX - 664 sys sys 1104736378 985
+sys/man/4/INDEX - 664 sys sys 1104811679 985
 sys/man/4/INDEX.html - 664 sys sys 1104736381 4926
 sys/man/4/acme - 664 sys sys 1015024813 9642
 sys/man/4/archfs - 664 sys sys 960000712 533
@@ -5071,7 +5069,7 @@ sys/man/6/venti.conf - 664 sys sys 1055707590 1917
 sys/man/6/vgadb - 664 sys sys 960256513 10972
 sys/man/7 - 20000000775 sys sys 1015092163 0
 sys/man/7/0intro - 664 sys sys 944959677 256
-sys/man/7/INDEX - 664 sys sys 1104736386 111
+sys/man/7/INDEX - 664 sys sys 1104811679 111
 sys/man/7/INDEX.html - 664 sys sys 1104736386 918
 sys/man/7/astro - 664 sys sys 964455064 2454
 sys/man/7/dict - 664 sys sys 944959678 3438
@@ -6792,7 +6790,7 @@ sys/src/cmd/acme/acme.c - 664 sys sys 1104430286 19613
 sys/src/cmd/acme/addr.c - 664 sys sys 1018553456 4787
 sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
 sys/src/cmd/acme/cols.c - 664 sys sys 1079102914 11126
-sys/src/cmd/acme/dat.h - 664 sys sys 1101910760 11143
+sys/src/cmd/acme/dat.h - 664 sys sys 1104874643 11144
 sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
 sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
 sys/src/cmd/acme/edit.c - 664 sys sys 1101910761 12068
@@ -6810,8 +6808,8 @@ sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
 sys/src/cmd/acme/text.c - 664 sys sys 1103606882 27652
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1100535510 7208
-sys/src/cmd/acme/wind.c - 664 sys sys 1096388102 11187
-sys/src/cmd/acme/xfid.c - 664 sys sys 1079044030 19175
+sys/src/cmd/acme/wind.c - 664 sys sys 1104874643 11201
+sys/src/cmd/acme/xfid.c - 664 sys sys 1104874643 19219
 sys/src/cmd/ar.c - 664 sys sys 1046643027 23717
 sys/src/cmd/archfs.c - 664 sys sys 1014925694 3871
 sys/src/cmd/ascii.c - 664 sys sys 964457138 3989
@@ -7534,7 +7532,7 @@ sys/src/cmd/fax/receive.c - 664 sys sys 944960990 1097
 sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
-sys/src/cmd/file.c - 664 sys sys 1101909618 22781
+sys/src/cmd/file.c - 664 sys sys 1104849659 22939
 sys/src/cmd/fmt.c - 664 sys sys 1070032009 4088
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
@@ -7543,7 +7541,7 @@ sys/src/cmd/fossil/9auth.c - 664 sys sys 1061530721 3393
 sys/src/cmd/fossil/9dir.c - 664 sys sys 1085333382 2219
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
 sys/src/cmd/fossil/9fid.c - 664 sys sys 1045600016 5521
-sys/src/cmd/fossil/9fsys.c - 664 sys sys 1087005808 33234
+sys/src/cmd/fossil/9fsys.c - 664 sys sys 1104858629 33296
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1042005503 2865
 sys/src/cmd/fossil/9p.c - 664 sys sys 1077896346 21766
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
@@ -9749,7 +9747,7 @@ sys/src/cmd/mv.c - 664 sys sys 1014926695 4276
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1060612175 6862
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
-sys/src/cmd/ndb/cs.c - 664 sys sys 1080572749 32985
+sys/src/cmd/ndb/cs.c - 664 sys sys 1104854491 33070
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1087406287 18127
@@ -10959,7 +10957,7 @@ sys/src/cmd/usb/printer - 20000000775 sys sys 1073007760 0
 sys/src/cmd/usb/usbd - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/usbd/dat.h - 664 sys sys 1091204979 675
 sys/src/cmd/usb/usbd/fns.h - 664 sys sys 1091204979 495
-sys/src/cmd/usb/usbd/hub.c - 664 sys sys 1091204979 4296
+sys/src/cmd/usb/usbd/hub.c - 664 sys sys 1104849419 4296
 sys/src/cmd/usb/usbd/mkfile - 664 sys sys 1091204979 304
 sys/src/cmd/usb/usbd/setup.c - 664 sys sys 1091204979 1192
 sys/src/cmd/usb/usbd/usbd.c - 664 sys sys 1091204979 5188
@@ -12451,12 +12449,8 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/lib/man/lookman/index - 664 sys sys 1104811681 1460912
-sys/man/1/INDEX - 664 sys sys 1104811679 3004
-sys/man/2/INDEX - 664 sys sys 1104811679 20487
-sys/man/4/INDEX - 664 sys sys 1104811679 985
-sys/man/7/INDEX - 664 sys sys 1104811679 111
-dist/replica/plan9.proto - 664 sys sys 1104813012 2497
-env/status xxx REMOVED xxx xxx 0 0
-env/* xxx REMOVED xxx xxx 0 0
-env xxx REMOVED xxx xxx 0 0
+386/bin/acme - 775 sys sys 1104898008 427257
+386/bin/usb/usbd - 775 sys sys 1104898010 129846
+386/bin/file - 775 sys sys 1104898008 112418
+386/bin/fossil/fossil - 775 sys sys 1104898009 360361
+386/bin/ndb/cs - 775 sys sys 1104898009 149237

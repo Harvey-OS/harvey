@@ -998,6 +998,9 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 	else
 		low = ~(u32int)0;
 
+	if(low == 0)
+		return cliError("low epoch cannot be zero");
+
 	fs = fsys->fs;
 
 	vtRLock(fs->elk);

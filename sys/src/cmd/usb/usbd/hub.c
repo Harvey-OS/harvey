@@ -37,7 +37,7 @@ newhub(Hub *parent, Device *d)
 	Port *p;
 	Hub *h;
 	DHub *dd;
-	byte buf[256], *PortPwrCtrlMask;
+	byte buf[128], *PortPwrCtrlMask;
 	int nr, nport, nmap, i, offset, mask;
 
 	h = emallocz(sizeof(Hub), 1);
