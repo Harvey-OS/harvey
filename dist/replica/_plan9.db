@@ -377,7 +377,7 @@
 386/bin/scat - 775 sys sys 1085077095 281706
 386/bin/scp - 775 sys sys 1094218814 149872
 386/bin/scuzz - 775 sys sys 1085077096 109619
-386/bin/sed - 775 sys sys 1085077096 87471
+386/bin/sed - 775 sys sys 1101010294 87484
 386/bin/seq - 775 sys sys 1085077096 38178
 386/bin/sha1sum - 775 sys sys 1085077096 59101
 386/bin/size - 775 sys sys 1091936094 72436
@@ -2980,7 +2980,7 @@ rc/bin/B - 775 sys sys 945617206 645
 rc/bin/C - 775 sys sys 1045493437 788
 rc/bin/Kill - 775 sys sys 1018637942 115
 rc/bin/a: - 775 sys sys 1063856406 255
-rc/bin/ap - 775 sys sys 1081200030 675
+rc/bin/ap - 775 sys sys 1101043629 661
 rc/bin/ape - 20000000775 sys sys 954039414 0
 rc/bin/ape/ar89 - 775 sys sys 945617285 308
 rc/bin/ape/c89 - 775 sys sys 945617285 39
@@ -12394,4 +12394,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/sed - 775 sys sys 1101010294 87484

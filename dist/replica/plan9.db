@@ -2980,7 +2980,7 @@ rc/bin/B - 775 sys sys 945617206 645
 rc/bin/C - 775 sys sys 1045493437 788
 rc/bin/Kill - 775 sys sys 1018637942 115
 rc/bin/a: - 775 sys sys 1063856406 255
-rc/bin/ap - 775 sys sys 1081200030 675
+rc/bin/ap - 775 sys sys 1101043629 661
 rc/bin/ape - 20000000775 sys sys 954039414 0
 rc/bin/ape/ar89 - 775 sys sys 945617285 308
 rc/bin/ape/c89 - 775 sys sys 945617285 39
