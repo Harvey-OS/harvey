@@ -55,6 +55,19 @@ is written to
 .I dbfile
 (default
 .BR iostats.out ).
+.SH EXAMPLE
+Display summary of file I/O incurred by
+.IR ls (1):
+.IP
+.EX
+iostats ls
+.EE
+.PP
+Start a new shell, displaying all 9P traffic caused by the shell or its children:
+.IP
+.EX
+iostats -df /fd/1 rc
+.EE
 .SH SOURCE
 .B /sys/src/cmd/iostats
 .SH BUGS

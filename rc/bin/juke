@@ -1,0 +1,60 @@
+#!/bin/rc
+
+wide=`{echo $vgasize | sed 's/(.*)x.*x.*/\1 > 240/' | hoc}
+
+debug=0
+tflag=''
+wflag=''
+host=''
+kb=4096
+flags=()
+sname=$user
+if (! ~ $wide 1) {
+	flags=($flags -t)
+	kb=1024
+}
+while(! ~ $#* 0) {
+	switch ($1) {
+	case -d
+		debug=$2
+		shift
+	case -t
+		tflag='-t'
+	case -h
+		host=$2
+		shift
+	case -w
+		wflags='-w'
+	case -s
+		sname=$2
+		shift
+	case -*
+		echo Usage: classical [-d level] [-t] [-h srvhost]
+		exit usage
+	}
+	shift
+}
+if (! test -e /mnt/playlist){
+	if (! ~ $debug '0') echo mounting playlistfs
+	if (! test -e /srv/playlist.$sname && ! ~ $host ''){
+		import -a $host /srv /srv
+	}
+	if (! mount -b /srv/playlist.$sname /mnt >/dev/null >[2]/dev/null){
+		rm -f /srv/playlist.$sname
+		if (! ~ $debug '0') echo starting playlistfs
+		games/playlistfs -s $sname -d $debug
+	}
+}
+if (! test -w /mnt/juke) {
+	if (! test -e /srv/jukefs.$sname && ! ~ $host ''){
+		import -a $host /srv /srv
+	}
+	if (! mount -b /srv/jukefs.$sname /mnt >/dev/null >[2]/dev/null){
+		if (! ~ $debug '0') echo games/jukefs
+		games/jukefs -s $sname
+	}
+}
+if (~ $wflags '-w') {
+	exec games/jukebox -w -d $debug $tflag &
+}
+exec games/jukebox -d $debug $tflag

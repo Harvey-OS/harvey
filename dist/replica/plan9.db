@@ -243,7 +243,10 @@
 386/bin/ftpfs - 775 sys sys 1104122014 154397
 386/bin/games - 20000000775 sys sys 1096298711 0
 386/bin/games/juggle - 775 sys sys 1096341940 123161
+386/bin/games/jukebox - 775 sys sys 1105589128 264821
+386/bin/games/jukefs - 775 sys sys 1105589129 165320
 386/bin/games/mahjongg - 775 sys sys 1096341940 161454
+386/bin/games/playlistfs - 775 sys sys 1105589129 148484
 386/bin/games/sokoban - 775 sys sys 1096341940 157093
 386/bin/getmap - 775 sys sys 1104122014 65180
 386/bin/gif - 775 sys sys 1104122015 157687
@@ -421,7 +424,7 @@
 386/bin/tr - 775 sys sys 1104122066 61851
 386/bin/trace - 775 sys sys 1104122067 180734
 386/bin/troff - 775 sys sys 1094040114 357714
-386/bin/troff2html - 775 sys sys 1104122067 82076
+386/bin/troff2html - 775 sys sys 1105589129 79914
 386/bin/tweak - 775 sys sys 1104122068 191750
 386/bin/unicode - 775 sys sys 1104122068 62523
 386/bin/uniq - 775 sys sys 1104122068 61900
@@ -3018,6 +3021,7 @@ rc/bin/ipconf/outside - 775 sys sys 1058790951 550
 rc/bin/ipconf/theworld - 775 sys sys 1058790940 1212
 rc/bin/ipso - 775 sys sys 1079377794 2838
 rc/bin/iwhois - 775 sys sys 1100534870 1372
+rc/bin/juke - 775 sys sys 1105565140 1131
 rc/bin/kill - 775 sys sys 1018387014 132
 rc/bin/label - 775 sys sys 945617207 34
 rc/bin/lc - 775 sys sys 945617207 24
@@ -4993,14 +4997,14 @@ sys/man/4/cfs - 664 sys sys 1015024813 1758
 sys/man/4/consolefs - 664 sys sys 1069179473 3920
 sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
-sys/man/4/exportfs - 664 sys sys 1104939769 4540
+sys/man/4/exportfs - 664 sys sys 1105574692 4692
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1104430211 14454
 sys/man/4/fossil - 664 sys sys 1101668322 9564
 sys/man/4/fs - 664 sys sys 1019058716 3387
 sys/man/4/ftpfs - 664 sys sys 1048285446 4327
 sys/man/4/import - 664 sys sys 1034195346 2204
-sys/man/4/iostats - 664 sys sys 959566568 1415
+sys/man/4/iostats - 664 sys sys 1105574383 1621
 sys/man/4/keyfs - 664 sys sys 1017251244 5003
 sys/man/4/kfs - 664 sys sys 1102088374 2164
 sys/man/4/lnfs - 664 sys sys 1073491345 1219
@@ -10552,9 +10556,9 @@ sys/src/cmd/troff/t6.c - 664 sys sys 944961294 15408
 sys/src/cmd/troff/tdef.h - 664 sys sys 984718894 18334
 sys/src/cmd/troff/unansi - 664 sys sys 944961294 1221
 sys/src/cmd/troff2html - 20000000775 sys sys 961257241 0
-sys/src/cmd/troff2html/chars.h - 644 sys sys 964457133 3997
-sys/src/cmd/troff2html/mkfile - 644 sys sys 961257241 96
-sys/src/cmd/troff2html/troff2html.c - 664 sys sys 1020313486 12073
+sys/src/cmd/troff2html/chars.h - 664 sys sys 1105584129 3957
+sys/src/cmd/troff2html/mkfile - 664 sys sys 1105584066 111
+sys/src/cmd/troff2html/troff2html.c - 664 sys sys 1105584129 14152
 sys/src/cmd/tweak.c - 664 sys sys 1018721441 38987
 sys/src/cmd/unicode.c - 664 sys sys 944961351 1953
 sys/src/cmd/uniq.c - 664 sys sys 944961351 2236
@@ -11313,7 +11317,7 @@ sys/src/games/music/icon/stop.bit - 644 sys sys 1103793917 143
 sys/src/games/music/icon/trash.bit - 644 sys sys 1103793917 143
 sys/src/games/music/juke.rc - 664 sys sys 1103793915 1352
 sys/src/games/music/jukebox - 20000000775 sys sys 1103794221 0
-sys/src/games/music/jukebox/client.c - 664 sys sys 1103793917 2747
+sys/src/games/music/jukebox/client.c - 664 sys sys 1105531439 2737
 sys/src/games/music/jukebox/client.h - 664 sys sys 1103793917 248
 sys/src/games/music/jukebox/colors.c - 664 sys sys 1103793918 3819
 sys/src/games/music/jukebox/colors.h - 664 sys sys 1103793918 692
@@ -11340,7 +11344,7 @@ sys/src/games/music/missing - 775 sys sys 1103793915 72
 sys/src/games/music/mkfile - 664 sys sys 1103793915 723
 sys/src/games/music/mkinc - 664 sys sys 1103793915 92
 sys/src/games/music/playlistfs - 20000000775 sys sys 1103794221 0
-sys/src/games/music/playlistfs/boilerplate.c - 664 sys sys 1103793922 1087
+sys/src/games/music/playlistfs/boilerplate.c - 664 sys sys 1105531426 1362
 sys/src/games/music/playlistfs/fs.c - 664 sys sys 1103793922 18071
 sys/src/games/music/playlistfs/main.c - 664 sys sys 1103793922 1636
 sys/src/games/music/playlistfs/mk.dep - 664 sys sys 1103793923 594
