@@ -120,21 +120,26 @@ struct Ndbs
 
 #define NDB_IPlen 16
 
-ulong		ndbhash(char*, int);
-Ndbtuple*	ndbparse(Ndb*);
-void		ndbfree(Ndbtuple*);
-Ndb*		ndbopen(char*);
-Ndb*		ndbcat(Ndb*, Ndb*);
-int		ndbreopen(Ndb*);
-void		ndbclose(Ndb*);
-Ndbtuple*	ndblookval(Ndbtuple*, Ndbtuple*, char*, char*);
-long		ndbseek(Ndb*, long);
-Ndbtuple*	ndbsearch(Ndb*, Ndbs*, char*, char*);
-Ndbtuple*	ndbsnext(Ndbs*, char*, char*);
-Ndbtuple*	ndbgetval(Ndb*, Ndbs*, char*, char*, char*, char*);
 Ndbtuple*	csgetval(char*, char*, char*, char*, char*);
-char*		ipattr(char*);
-Ndbtuple*	ndbipinfo(Ndb*, char*, char*, char**, int);
 Ndbtuple*	csipinfo(char*, char*, char*, char**, int);
 Ndbtuple*	dnsquery(char*, char*, char*);
-int		ndbchanged(Ndb *db);
+char*		ipattr(char*);
+Ndb*		ndbcat(Ndb*, Ndb*);
+int		ndbchanged(Ndb*);
+void		ndbclose(Ndb*);
+Ndbtuple*	ndbconcatenate(Ndbtuple*, Ndbtuple*);
+Ndbtuple*	ndbdiscard(Ndbtuple*, Ndbtuple*);
+void		ndbfree(Ndbtuple*);
+Ndbtuple*	ndbgetipaddr(Ndb*, char*);
+Ndbtuple*	ndbgetval(Ndb*, Ndbs*, char*, char*, char*, char*);
+ulong		ndbhash(char*, int);
+Ndbtuple*	ndbipinfo(Ndb*, char*, char*, char**, int);
+Ndbtuple*	ndblookval(Ndbtuple*, Ndbtuple*, char*, char*);
+Ndb*		ndbopen(char*);
+Ndbtuple*	ndbparse(Ndb*);
+int		ndbreopen(Ndb*);
+Ndbtuple*	ndbreorder(Ndbtuple*, Ndbtuple*);
+Ndbtuple*	ndbsearch(Ndb*, Ndbs*, char*, char*);
+long		ndbseek(Ndb*, long);
+Ndbtuple*	ndbsnext(Ndbs*, char*, char*);
+Ndbtuple*	ndbsubstitute(Ndbtuple*, Ndbtuple*, Ndbtuple*);

@@ -1,6 +1,6 @@
 .TH NDB 2
 .SH NAME
-ndbopen, ndbcat, ndbchanged, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetval, ndbfree, ipattr, ndbipinfo, csipinfo, ndbhash, ndbparse, csgetval, ndblookval, dnsquery \- network database
+ndbopen, ndbcat, ndbchanged, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetval, ndbfree, ipattr, ndbgetipaddr, ndbipinfo, csipinfo, ndbhash, ndbparse, csgetval, ndblookval, dnsquery, ndbdiscard, ndbconcatenate, ndbreorder, ndbsubstitute \- network database
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -42,10 +42,10 @@ Ndbtuple*	ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val,
 Ndbtuple*	csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
 .PP
 .B
-void	ndbfree(Ndbtuple *db)
+char*	ipattr(char *name)
 .PP
 .B
-char*	ipattr(char *name)
+Ndbtuple*	ndbgetipaddr(Ndb *db, char *sys);
 .PP
 .B
 Ndbtuple*	ndbipinfo(Ndb *db, char *attr, char *val, char **attrs,
@@ -68,6 +68,21 @@ Ndbtuple*	dnsquery(char *netroot, char *domainname, char *type)
 .PP
 .B
 Ndbtuple*	ndblookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
+.PP
+.B
+void	ndbfree(Ndbtuple *db)
+.PP
+.B
+Ndbtuple*	ndbdiscard(Ndbtuple  *t, Ndbtuple *a)
+.PP
+.B
+Ndbtuple*	ndbconcatenate(Ndbtuple *a, Ndbtuple *b);
+.PP
+.B
+Ndbtuple*	ndbreorder(Ndbtuple *t, Ndbtuple *a);
+.PP
+.B
+Ndbtuple*	ndbsubstitute(Ndbtuple *t, Ndbtuple *from, Ndbtuple *to);
 .SH DESCRIPTION
 These routines are used by network administrative programs to search
 the network database.
@@ -213,6 +228,21 @@ Internet number
 system name
 .RE
 .PP
+.I Ndbgetipaddr
+looks in
+.I db
+for an entry matching
+.I sys
+as the value of a
+.B sys=
+or
+.B dom=
+attribute/value pair and returns all IP addresses in the entry.
+If
+.I sys
+is already an IP address, a tuple containing just
+that address is returned.
+.PP
 .I Ndbipinfo
 looks up Internet protocol information about a system.
 This is an IP aware search.  It looks first for information
@@ -260,7 +290,7 @@ as
 is to
 .IR ndbgetval .
 .PP
-The last three calls are used by programs that create the
+The next three routines are used by programs that create the
 hash tables and database files.
 .I Ndbhash
 computes a hash offset into a table of length
@@ -371,6 +401,47 @@ routine can be used by the application to periodicly
 check for changes.  It returns zero
 if none of the files comprising the database have
 changes and non-zero if they have.
+.PP
+Finally, a number of routines are provided for manipulating
+tuples.
+.PP
+.I Ndbdiscard
+removes attr/val pair
+.I a
+from tuple
+.I t
+and frees it.
+If
+.I a
+isn't in
+.I t
+it is just freed.
+.PP
+.I Ndbconcatenate
+concatenates two tuples and returns the result.  Either
+or both tuples may be nil.
+.PP
+.I Ndbreorder
+reorders a tuple
+.IR t
+to make the line containing attr/val pair
+.I a
+first in the entry and making
+.I a
+first in its line.
+.PP
+.I Ndbsubstitute
+replaces a single att/val pair
+.I from
+in
+.I t
+with the tuple
+.IR to .
+All attr/val pairs in
+.I to
+end up on the same line.
+.I from
+is freed.
 .SH FILES
 .BR /lib/ndb "    directory of network database files
 .SH SOURCE
