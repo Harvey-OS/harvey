@@ -14,7 +14,7 @@
 # change CC and LD to gcc.  Add -lsocket, -lnsl to LDTAIL.
 # If you need <inttypes.h> copy sun-inttypes.h to inttypes.h.
 #
-CC=cc
+#CC=cc
 CFLAGS=-g -I.
 LD=cc
 LDFLAGS=
