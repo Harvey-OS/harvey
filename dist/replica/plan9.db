@@ -4881,7 +4881,7 @@ sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/ping - 664 sys sys 1028233565 2789
 sys/man/8/plan9.ini - 664 sys sys 1040698791 20588
 sys/man/8/pop3 - 664 sys sys 1037397443 2444
-sys/man/8/ppp - 664 sys sys 1050078465 4343
+sys/man/8/ppp - 664 sys sys 1050361032 4424
 sys/man/8/prep - 664 sys sys 1018802868 12910
 sys/man/8/qer - 664 sys sys 960837925 4785
 sys/man/8/reboot - 664 sys sys 969499895 414
@@ -6666,7 +6666,7 @@ sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
 sys/src/cmd/aux/listen.c - 664 sys sys 1015008684 8139
 sys/src/cmd/aux/listen1.c - 664 sys sys 1024375142 2016
-sys/src/cmd/aux/mkfile - 664 sys sys 1045589265 956
+sys/src/cmd/aux/mkfile - 664 sys sys 1050364303 946
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
 sys/src/cmd/aux/mnihongo - 20000000775 sys sys 944960789 0
 sys/src/cmd/aux/mnihongo/README - 664 sys sys 944960789 475
@@ -9061,15 +9061,15 @@ sys/src/cmd/ip/ppp/dotest - 775 sys sys 944961006 152
 sys/src/cmd/ip/ppp/ipaux.c - 664 sys sys 1015090266 2326
 sys/src/cmd/ip/ppp/mkfile - 664 sys sys 1032059844 378
 sys/src/cmd/ip/ppp/mppc.c - 664 sys sys 1015090267 16624
-sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1045505276 57262
-sys/src/cmd/ip/ppp/ppp.h - 664 sys sys 1045505276 8116
+sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1050360942 59111
+sys/src/cmd/ip/ppp/ppp.h - 664 sys sys 1050360942 8225
 sys/src/cmd/ip/ppp/testppp.c - 664 sys sys 1045505281 3011
 sys/src/cmd/ip/ppp/thw.c - 664 sys sys 1015090268 5962
 sys/src/cmd/ip/ppp/thwack.c - 664 sys sys 1015090268 8004
 sys/src/cmd/ip/ppp/thwack.h - 664 sys sys 964662210 2052
 sys/src/cmd/ip/ppp/unthwack.c - 664 sys sys 1015090268 5883
-sys/src/cmd/ip/pppoe.c - 664 sys sys 1036972579 12507
-sys/src/cmd/ip/pptp.c - 664 sys sys 1015096228 16587
+sys/src/cmd/ip/pppoe.c - 664 sys sys 1050360937 12507
+sys/src/cmd/ip/pptp.c - 664 sys sys 1050360938 16575
 sys/src/cmd/ip/pptpd.c - 664 sys sys 1015701128 23548
 sys/src/cmd/ip/rarpd.c - 664 sys sys 1031510476 3347
 sys/src/cmd/ip/rexexec.c - 664 sys sys 1025393126 740
@@ -11104,7 +11104,7 @@ sys/src/libc/fmt/runesmprint.c - 664 sys sys 1014927316 176
 sys/src/libc/fmt/runesnprint.c - 664 sys sys 1014927316 203
 sys/src/libc/fmt/runesprint.c - 664 sys sys 1014927316 192
 sys/src/libc/fmt/runevseprint.c - 664 sys sys 1014927316 313
-sys/src/libc/fmt/runevsmprint.c - 664 sys sys 1048801035 1031
+sys/src/libc/fmt/runevsmprint.c - 664 sys sys 1050360307 1030
 sys/src/libc/fmt/runevsnprint.c - 664 sys sys 1014927316 330
 sys/src/libc/fmt/seprint.c - 664 sys sys 1014927317 196
 sys/src/libc/fmt/smprint.c - 664 sys sys 1014927317 168

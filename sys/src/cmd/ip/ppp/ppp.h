@@ -181,6 +181,10 @@ enum {
 	Fipaddrs=	1<<Oipaddrs,
 	Fipcompress=	1<<Oipcompress,
 	Fipaddr=	1<<Oipaddr,
+	Fipdns=		1<<8, 	// Oipdns,
+	Fipwins=	1<<9,	// Oipwins,
+	Fipdns2=	1<<10,	// Oipdns2,
+	Fipwins2=	1<<11,	// Oipwins2,
 
 	Period=		5*1000,	/* period of retransmit process (in ms) */
 	Timeout=	20,	/* xmit timeout (in Periods) */
@@ -324,7 +328,7 @@ struct PPP
 
 extern Block*	pppread(PPP*);
 extern int	pppwrite(PPP*, Block*);
-extern void	pppopen(PPP*, int, int, char*, Ipaddr, Ipaddr, int, int, char*);
+extern void	pppopen(PPP*, int, int, char*, Ipaddr, Ipaddr, int, int);
 
 struct Lcpmsg
 {

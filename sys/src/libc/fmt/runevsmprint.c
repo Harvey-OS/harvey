@@ -32,7 +32,7 @@ runefmtstrinit(Fmt *f)
 {
 	int n;
 
-	memset(&f, 0, sizeof *f);
+	memset(f, 0, sizeof *f);
 	f->runes = 1;
 	n = 32;
 	f->start = malloc(sizeof(Rune)*n);

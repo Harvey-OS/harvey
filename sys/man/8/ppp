@@ -5,30 +5,28 @@ ppp, pppoe, pptp, pptpd \- point to point protocol
 .B ip/ppp
 [
 .B -CPScdfu
-][
+] [
 .B -b
 .I baud
-][
+] [
+.B -k
+.I keyspec
+] [
 .B -m
 .I mtu
-][
-.B -p
-.I dev
-][
-.B -s
-.IR username : secret
-][
-.B -x
-.I netmntpt
-][
-.B -t
-.I modemcmd
-]
-[
+] [
 .B -M
 .I chatfile
-]
-[
+] [
+.B -p
+.I dev
+] [
+.B -x
+.I netmntpt
+] [
+.B -t
+.I modemcmd
+] [
 .I local
 [
 .I remote
@@ -36,18 +34,11 @@ ppp, pppoe, pptp, pptpd \- point to point protocol
 .PP
 .B ip/pppoe
 [
+.B -dP
+]
+[
 .B -m
 .I mtu
-]
-[
-.B -P
-]
-[
-.B -d
-]
-[
-.B -s
-.IR username : secret
 ]
 [
 .B -x
@@ -57,14 +48,11 @@ ppp, pppoe, pptp, pptpd \- point to point protocol
 .PP
 .B ip/pptp
 [
-.B -P
+.B -dP
 ]
 [
-.B -d
-]
-[
-.B -s
-.IR username : secret
+.B -k
+.I keyspec
 ]
 [
 .B -w
@@ -111,6 +99,31 @@ specify a communications device, usually a serial line with a modem.
 .PP
 PPP supports the following options:
 .TP
+.B b
+set the baud rate on the communications device
+.TP
+.B f
+make PPP add HDLC framing.  This is necessary when using
+PPP over a serial line or a TCP connection
+.TP
+.B k
+add
+.I keyspec
+to the
+.IR factotum (4)
+key pattern when looking for a user name and password
+for authentication; the default key pattern is
+.B "proto=pass" "service=ppp"
+.TP
+.B m
+set the maximum transfer unit (default 1450)
+.TP
+.B P
+use this as the primary IP interface; set the default
+route through this interface and write its configuration
+to
+.B /net/ndb
+.TP
 .B p
 communicate over
 .I dev
@@ -125,41 +138,17 @@ and then type commands at a modem before
 .I ppp
 takes over
 .TP
-.B b
-set the baud rate on the communications device
-.TP
-.B f
-make PPP add HDLC framing.  This is necessary when using
-PPP over a serial line or a TCP connection
-.TP
-.B m
-set the maximum transfer unit (default 1450)
-.TP
-.B P
-use this as the primary IP interface; set the default
-route through this interface and write its configuration
-to
-.B /net/ndb
-.TP
-.B s
-supplies the user name and secret
-to be used in authenticating to the remote side.
-The
-.I username
-is optional, the default being the local user id.
-We support both PPP CHAP and MS CHAP
-.TP
 .B S
 run as a server
-.TP
-.B x
-use the IP stack mounted at
-.I netmntpt
 .TP
 .B t
 before starting the PPP protocol, write
 .I modemcmd
 to the device
+.TP
+.B x
+use the IP stack mounted at
+.I netmntpt
 .TP
 .B M
 chat with the modem as specified in the chat file.  Each line in
@@ -218,10 +207,10 @@ to
 .IR ppp ,
 default 1492
 .TP
-.B s
+.B k
 pass
-.B -s
-.IR username : secret
+.B -k
+.I keyspec
 to
 .I ppp
 .TP
@@ -282,3 +271,9 @@ of the received packets.  This is used for testing.
 .B /sys/src/cmd/ip/pptpd.c
 .br
 .B /sys/src/cmd/ip/pppoe.c
+.SH BUGS
+.I Ppp
+should use factotum to execute
+the client side of the challenge-reponse
+protocol, but instead it reads a password
+from factotum and runs the protocol itself.
