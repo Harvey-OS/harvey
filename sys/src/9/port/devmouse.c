@@ -11,6 +11,13 @@
 #include	<cursor.h>
 #include	"screen.h"
 
+enum {
+	ScrollUp = 0x08,
+	ScrollDown = 0x10,
+	ScrollLeft = 0x20,
+	ScrollRight = 0x40,
+};
+
 typedef struct Mouseinfo	Mouseinfo;
 typedef struct Mousestate	Mousestate;
 
@@ -648,8 +655,8 @@ m5mouseputc(Queue*, int c)
 			(msg[0] & 0x10) >> (mouseshifted ? 3 : 2)
 			| (msg[0] & 0x20) >> 5
 			| ( msg[3] == 0x10 ? 0x02 :
-			    msg[3] == 0x0f ? 0x08 :
-			    msg[3] == 0x01 ? 0x10 : 0 );
+			    msg[3] == 0x0f ? ScrollUp :
+			    msg[3] == 0x01 ? ScrollDown : 0 );
 		mousetrack(dx, dy, newbuttons, TK2MS(MACHP(0)->ticks));
 		nb = 0;
 	}

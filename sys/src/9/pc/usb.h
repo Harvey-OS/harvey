@@ -39,42 +39,43 @@ struct Endpt
 {
 	Ref;
 	Lock;
-	int		x;		/* index in Udev.ep */
-	int		id;		/* hardware endpoint address */
-	int		maxpkt;	/* maximum packet size (from endpoint descriptor) */
-	int		data01;	/* 0=DATA0, 1=DATA1 */
+	int	x;		/* index in Udev.ep */
+	int	id;		/* hardware endpoint address */
+	int	maxpkt;		/* maximum packet size (from endpoint descriptor) */
+ 	uchar	wdata01;	/* 0=DATA0, 1=DATA1 for output direction */
+ 	uchar	rdata01;	/* 0=DATA0, 1=DATA1 for input direction */
 	uchar	eof;
 	ulong	csp;
-	uchar	mode;	/* OREAD, OWRITE, ORDWR */
-	uchar	nbuf;	/* number of buffers allowed */
+	uchar	mode;		/* OREAD, OWRITE, ORDWR */
+	uchar	nbuf;		/* number of buffers allowed */
 	uchar	iso;
 	uchar	debug;
-	uchar	active;	/* listed for examination by interrupts */
-	int		setin;
+	uchar	active;		/* listed for examination by interrupts */
+	int	setin;
 	/* ISO related: */
-	int		hz;
-	int		remain;	/* for packet size calculations */
-	int		samplesz;
-	int		sched;	/* schedule index; -1 if undefined or aperiodic */
-	int		pollms;	/* polling interval in msec */
-	int		psize;	/* (remaining) size of this packet */
-	int		off;		/* offset into packet */
+	int	hz;
+	int	remain;		/* for packet size calculations */
+	int	samplesz;
+	int	sched;		/* schedule index; -1 if undefined or aperiodic */
+	int	pollms;		/* polling interval in msec */
+	int	psize;		/* (remaining) size of this packet */
+	int	off;		/* offset into packet */
 	/* Real-time iso stuff */
 	ulong	foffset;	/* file offset (to detect seeks) */
 	ulong	poffset;	/* offset of next packet to be queued */
 	ulong	toffset;	/* offset associated with time */
 	vlong	time;		/* timeassociated with offset */
-	int		buffered;	/* bytes captured but unread, or written but unsent */
+	int	buffered;	/* bytes captured but unread, or written but unsent */
 	/* end ISO stuff */
 
-	Udev*	dev;	/* owning device */
+	Udev*	dev;		/* owning device */
 
 	ulong	nbytes;
 	ulong	nblocks;
 
 	void	*private;
 
-	// all the rest could (should?) move to the driver private structure; except perhaps err
+	/* all the rest could (should?) move to the driver private structure; except perhaps err */
 	QLock	rlock;
 	Rendez	rr;
 	Queue*	rq;

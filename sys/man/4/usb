@@ -7,7 +7,10 @@ usbprinter
 .SH SYNOPSIS
 .B usb/usbmouse
 [
-.B -f
+.B \-s
+] [
+[
+.B \-f
 ] [
 .I ctrlno
 .I n
@@ -15,15 +18,15 @@ usbprinter
 .PP
 .B usb/usbaudio
 [
-.B -V
+.B \-V
 ] [
-.B -v
+.B \-v
 .I volume
 ] [
-.B -m
+.B \-m
 .I mountpoint
 ] [
-.B -s
+.B \-s
 .I srvname
 ] [
 .I ctrlno
@@ -49,7 +52,11 @@ and uses the first one it finds.  A pair of numeric arguments overrides this sea
 with a specific USB controller and device.
 .PP
 The
-.B -f
+.B \-s
+flag enables scroll-wheel or scroll-button, if present.
+.PP
+The
+.B \-f
 flag runs
 .B usbmouse
 in the foreground.

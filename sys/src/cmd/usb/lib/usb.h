@@ -172,16 +172,21 @@ enum
 	CL_COMMS = 2,
 	CL_HID = 3,
 	CL_PRINTER = 7,
+	CL_STORAGE = 8,
 	CL_HUB = 9,
 	CL_DATA = 10,
 };
 
 struct Endpt
 {
-	int		id;
-	int		class;
+	uchar	addr;		/* endpoint address, 0-15 */
+	uchar	dir;		/* direction, Ein/Eout */
+	uchar	type;		/* Econtrol, Eiso, Ebulk, Eintr */
+	uchar	isotype;	/* Eunknown, Easync, Eadapt, Esync */
+	int	id;
+	int	class;
 	ulong	csp;
-	int		maxpkt;
+	int	maxpkt;
 	Device*	dev;
 	Dconf*	conf;
 	Dinf*	iface;
@@ -189,28 +194,27 @@ struct Endpt
 
 struct Dalt
 {
-	int		maxpkt;	/* max packet size */
-	int		attrib;
-	int		interval;
+	int	attrib;
+	int	interval;
 	void*	devspec;	/* device specific settings */
 };
 
 struct Dinf
 {
-	int 		interface;	/* interface number */
-	int		addr;	/* endpoint number */
+	int 	interface;	/* interface number */
 	ulong	csp;		/* USB class/subclass/proto */
-	Dalt*		dalt[16];
+	Dalt*	dalt[16];
+	Endpt*	endpt[16];
 };
 
 struct Dconf
 {
-	ulong	csp;			/* USB class/subclass/proto */
-	int		nif;			/* number of interfaces */
-	int		cval;			/* value for set configuration */
-	int		attrib;
-	int		milliamps;		/* maximum power in this configuration */
-	Dinf*	iface[16];		/* up to 16 interfaces */
+	ulong	csp;		/* USB class/subclass/proto */
+	int	nif;		/* number of interfaces */
+	int	cval;		/* value for set configuration */
+	int	attrib;
+	int	milliamps;	/* maximum power in this configuration */
+	Dinf*	iface[16];	/* up to 16 interfaces */
 };
 
 /* Dconf.attrib */
@@ -224,20 +228,20 @@ enum
 struct Device
 {
 	Ref;
-	int		ctlrno;
-	int		ctl;
-	int		setup;
-	int		status;
-	int		state;
-	int		id;
-	int		class;
-	int		npt;
-	int		ls;			/* low speed */
+	int	ctlrno;
+	int	ctl;
+	int	setup;
+	int	status;
+	int	state;
+	int	id;
+	int	class;
+	int	npt;
+	int	ls;		/* low speed */
 	ulong	csp;		/* USB class/subclass/proto */
-	int		nconf;
-	int		nif;		/* number of interfaces (sum of per-conf `nif's) */
-	int		vid;		/* vendor id */
-	int		did;		/* product (device) id */
+	int	nconf;
+	int	nif;		/* number of interfaces (sum of per-conf `nif's) */
+	int	vid;		/* vendor id */
+	int	did;		/* product (device) id */
 	Dconf*	config[16];
 	Endpt*	ep[Nendpt];
 };
@@ -360,19 +364,19 @@ void	pcs_raw(char *tag, byte *b, int n);
 /*
  * interface
  */
-void		usbfmtinit(void);
+void	usbfmtinit(void);
 Device*	opendev(int, int);
-void		closedev(Device*);
-int		describedevice(Device*);
-int		loadconfig(Device *d, int n);
+void	closedev(Device*);
+int	describedevice(Device*);
+int	loadconfig(Device *d, int n);
 Endpt *	newendpt(Device *d, int id, ulong csp);
-int		setupcmd(Endpt*, int, int, int, int, byte*, int);
-int		setupreq(Endpt*, int, int, int, int, int);
-int		setupreply(Endpt*, void*, int);
-void		setdevclass(Device *d, int n);
-void	*	emalloc(ulong);
-void	*	emallocz(ulong, int);
+int	setupcmd(Endpt*, int, int, int, int, byte*, int);
+int	setupreq(Endpt*, int, int, int, int, int);
+int	setupreply(Endpt*, void*, int);
+void	setdevclass(Device *d, int n);
+void *	emalloc(ulong);
+void *	emallocz(ulong, int);
 
-char	*	namefor(Namelist *, int);
+char *	namefor(Namelist *, int);
 
 #pragma	varargck	type  "D"	Device*

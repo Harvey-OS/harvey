@@ -116,7 +116,7 @@ struct {
 	{	S(1000),	S(500),		S(100),		100},
 };
 
-int ntasks, verbose;
+int ntasks, verbose, triggerproc, paused;
 Task *tasks;
 Image *cols[Ncolor][4];
 Font *mediumfont, *tinyfont;
@@ -126,7 +126,7 @@ char*profdev = "/proc/trace";
 static void
 usage(void)
 {
-	fprint(2, "Usage: %s [-d profdev] [-w] [-v] [processes]\n", argv0);
+	fprint(2, "Usage: %s [-d profdev] [-w] [-v] [-t triggerproc] [processes]\n", argv0);
 	exits(nil);
 }
 
@@ -146,6 +146,9 @@ threadmain(int argc, char **argv)
 		break;
 	case 'w':
 		newwin++;
+		break;
+	case 't':
+		triggerproc = (int)strtol(EARGF(usage()), nil, 0);
 		break;
 	default:
 		usage();
@@ -362,11 +365,16 @@ redraw(int scaleno)
 			case SEdf:
 				sx = time2x(e->time);
 				ex = time2x(e->etime);
+				if(ex == sx)
+					ex++;
 
 				r = Rect(sx, topmargin + 8, ex, Height - lineht);
 				r = rectaddpt(r, p);
 
 				draw(screen, r, cols[n % Ncolor][e->etype==SRun?1:3], nil, ZP);
+
+				if(t->pid == triggerproc && ex < Width)
+					paused ^= 1;
 
 				for(j = 0; j < t->nevents; j++){
 					_e = &t->events[j];
@@ -552,7 +560,6 @@ drawtrace(void)
 	int wfd, logfd;
 	Mousectl *mousectl;
 	Keyboardctl *keyboardctl;
-	int paused;
 	int scaleno;
 	Rune r;
 	int i, n;
@@ -655,7 +662,7 @@ drawtrace(void)
 				break;
 
 			case 'p':
-				paused = (paused + 1) & 1;
+				paused ^= 1;
 				prevts = 0;
 				break;
 

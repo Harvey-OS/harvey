@@ -375,7 +375,10 @@ edfadmit(Proc *p)
 			DPRINT("%t edfadmit other %lud[%s], release now: r=%t d=%t t=%t\n",
 				now, p->pid, statename[p->state], e->r, e->d, e->t);
 			p->ta = p;
+			edfunlock();
+			qunlock(&edfschedlock);
 			releaseintr(nil, p);
+			return nil;
 		}
 	}else{
 		/* Release in synch to something else */

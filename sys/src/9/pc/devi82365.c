@@ -83,6 +83,12 @@ enum
 	Rconfig=	0,
 	 Creset=	 (1<<7),	/*  reset device */
 	 Clevel=	 (1<<6),	/*  level sensitive interrupt line */
+	 Cirq=		 (1<<2),	/*  IRQ enable */
+	 Cdecode=	 (1<<1),	/*  address decode */
+	 Cfunc=		 (1<<0),	/*  function enable */
+	Riobase0=	5,
+	Riobase1=	6,
+	Riosize=	9,
 };
 
 #define MAP(x,o)	(Rmap + (x)*0x8 + o)
@@ -180,7 +186,7 @@ slotena(PCMslot *pp)
 	wrreg(pp, Rigc, 0);
 	delay(100);
 	wrreg(pp, Rigc, Fnotreset);
-	delay(500);
+	delay(5000);
 
 	/* get configuration */
 	slotinfo(pp);
@@ -922,8 +928,8 @@ pcmio(int slotno, ISAConf *isa)
 			return -1;
 		ct = &pp->ctab[index];
 	}
+
 	if(ct == 0){
-	
 		/* assume default is right */
 		if(pp->def)
 			ct = pp->def;
@@ -992,7 +998,7 @@ pcmio(int slotno, ISAConf *isa)
 	wrreg(pp, Riotop0lo, i);
 	wrreg(pp, Riotop0hi, i>>8);
 	we |= 1<<6;
-	if(ct->nio == 2 && ct->io[1].start){
+	if(ct->nio >= 2 && ct->io[1].start){
 		wrreg(pp, Riobtm1lo, ct->io[1].start);
 		wrreg(pp, Riobtm1hi, ct->io[1].start>>8);
 		i = ct->io[1].start+ct->io[1].len-1;
@@ -1003,10 +1009,10 @@ pcmio(int slotno, ISAConf *isa)
 	wrreg(pp, Rwe, we);
 
 	/* only touch Rconfig if it is present */
-	if(pp->cpresent & (1<<Rconfig)){
+	m = pcmmap(slotno, pp->cfg[0].caddr + Rconfig, 0x20, 1);
+	p = KADDR(m->isa + pp->cfg[0].caddr - m->ca);
+	if(pp->cfg[0].cpresent & (1<<Rconfig)){
 		/*  Reset adapter */
-		m = pcmmap(slotno, pp->caddr + Rconfig, 1, 1);
-		p = KADDR(m->isa + pp->caddr + Rconfig - m->ca);
 
 		/*  set configuration and interrupt type.
 		 *  if level is possible on the card, use it.
@@ -1014,10 +1020,25 @@ pcmio(int slotno, ISAConf *isa)
 		x = ct->index;
 		if(ct->irqtype & 0x20)
 			x |= Clevel;
-		*p = x;
-		delay(5);
 
-		pcmunmap(slotno, m);
+		/*  enable the device, enable address decode and
+		 *  irq enable.
+		 */
+		x |= Cfunc|Cdecode|Cirq;
+
+		p[0] = x;
+		//delay(5);
+		microdelay(40);
 	}
+
+	if(pp->cfg[0].cpresent & (1<<Riobase0)){
+		/* set up the iobase 0 */
+		p[Riobase0 << 1] = isa->port;
+		p[Riobase1 << 1] = isa->port >> 8;
+	}
+
+	if(pp->cfg[0].cpresent & (1<<Riosize))
+		p[Riosize << 1] = ct->io[0].len;
+	pcmunmap(slotno, m);
 	return 0;
 }

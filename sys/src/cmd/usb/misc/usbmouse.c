@@ -5,18 +5,20 @@
 
 int mousefd, ctlfd, mousein;
 
-char hbm[]			= "Enabled 0x020103\n";
+char hbm[]		= "Enabled 0x020103\n";
 char *mouseinfile	= "#m/mousein";
 char *statfmt		= "#U/usb%d/%d/status";
 char *ctlfmt		= "#U/usb%d/%d/ctl";
 char *msefmt		= "#U/usb%d/%d/ep1data";
-char *ctlstr		= "ep 1 bulk r 3 32";
+char *ctl3str		= "ep 1 bulk r 3 32";
+char *ctl5str		= "ep 1 bulk r 5 32";
 char ctlfile[32];
 char msefile[32];
 
 int verbose;
 int nofork;
 int accel;
+int scroll;
 int maxacc = 3;
 int debug;
 
@@ -90,6 +92,9 @@ threadmain(int argc, char *argv[])
 	char line[256];
 
 	ARGBEGIN{
+	case 's':
+		scroll=1;
+		break;
 	case 'v':
 		verbose=1;
 		break;
@@ -136,8 +141,8 @@ threadmain(int argc, char *argv[])
 	if ((ctlfd = open(ctlfile, OWRITE)) < 0)
 		sysfatal("%s: %r", ctlfile);
 	if (verbose)
-		fprint(2, "Send %s to %s\n", ctlstr, ctlfile);
-	write(ctlfd, ctlstr, strlen(ctlstr));
+		fprint(2, "Send %s to %s\n", scroll?ctl5str:ctl3str, ctlfile);
+	write(ctlfd, scroll?ctl5str:ctl3str, scroll?strlen(ctl5str):strlen(ctl3str));
 	close(ctlfd);
 	if ((mousefd = open(msefile, OREAD)) < 0)
 		sysfatal("%s: %r", msefile);
@@ -155,11 +160,24 @@ threadmain(int argc, char *argv[])
 
 void
 work(void *){
-	char buf[4];
-	int x, y;
+	char buf[6];
+	int x, y, buts;
 
 	for (;;) {
-		switch (robustread(mousefd, buf, 3)) {
+		buts = 0;
+		switch (robustread(mousefd, buf, scroll?5:3)) {
+		case 4:
+			if(buf[3] == 1)
+				buts |= 0x08;
+			else if(buf[3] == -1)
+				buts |= 0x10;
+			/* Fall through */
+		case 5:
+			if(buf[3] > 10)
+				buts |= 0x08;
+			else if(buf[3] < -10)
+				buts |= 0x10;
+			/* Fall through */
 		case 3:
 			if (accel) {
 				x = scale(buf[1]);
@@ -168,7 +186,7 @@ work(void *){
 				x = buf[1];
 				y = buf[2];
 			}
-			fprint(mousein, "m%11d %11d %11d", x, y, maptab[buf[0]&0x7]);
+			fprint(mousein, "m%11d %11d %11d", x, y, buts | maptab[buf[0]&0x7]);
 			break;
 		case -1:
 			sysfatal("read error: %r");

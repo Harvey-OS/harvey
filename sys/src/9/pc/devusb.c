@@ -653,11 +653,11 @@ usbread(Chan *c, void *a, long n, vlong offset)
 		if(t == 0) {
 			if(e->iso)
 				error(Egreg);
-			e->data01 = 1;
+ 			e->rdata01 = 1;
 			n = uh->read(uh, e, a, n, 0LL);
 			if(e->setin){
 				e->setin = 0;
-				e->data01 = 1;
+				e->wdata01 = 1;
 				uh->write(uh, e, "", 0, 0LL, TokOUT);
 			}
 			return n;
@@ -778,7 +778,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			if(i < 0 || i >= nelem(d->ep) || d->ep[i] == nil)
 				error(Ebadusbmsg);
 			e = d->ep[i];
-			e->data01 = strtoul(cb->f[2], nil, 0) != 0;
+			e->wdata01 = e->rdata01 = strtoul(cb->f[2], nil, 0) != 0;
 			break;
 		case CMmaxpkt:
 			i = strtoul(cb->f[1], nil, 0);
@@ -905,10 +905,10 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 		if(n < 8)
 			error(Eio);
 		nw = *(uchar*)a & RD2H;
-		e->data01 = 0;
+		e->wdata01 = 0;
 		n = uh->write(uh, e, a, n, 0LL, TokSETUP);
 		if(nw == 0) {	/* host to device: use IN[DATA1] to ack */
-			e->data01 = 1;
+			e->rdata01 = 1;
 			nw = uh->read(uh, e, cmd, 0LL, 8);
 			if(nw != 0)
 				error(Eio);	/* could provide more status */

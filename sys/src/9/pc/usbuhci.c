@@ -294,7 +294,7 @@ alloctde(Ctlr *ctlr, Endpt *e, int pid, int n)
 	t = alloctd(ctlr);
 	id = (e->x<<7)|(e->dev->x&0x7F);
 	tog = 0;
-	if(e->data01 && pid != TokSETUP)
+	if((pid == TokOUT && e->wdata01) || (pid == TokIN && e->rdata01))
 		tog = IsDATA1;
 	t->ep = e;
 	t->status = ErrLimit3 | Active | IOC;	/* or put IOC only on last? */
@@ -342,7 +342,7 @@ dumpqh(QH *q)
 	q0 = q;
 	for(i = 0; q != nil && i < 10; i++){
 		XPRINT("qh %8.8lux: %8.8lux %8.8lux\n", q, q->head, q->entries);
-		if((q->entries & Terminate) == 0)
+		if((q->entries & (IsQH|Terminate)) == 0)
 			dumptd(TFOL(q->entries), 1);
 		if(q->head & Terminate)
 			break;
@@ -1259,7 +1259,7 @@ read(Usbhost *uh, Endpt *e, void *a, long n, vlong offset)
 			error(e->err);
 		qrcv(ctlr, e);
 		if(!e->iso)
-			e->data01 ^= 1;
+			e->rdata01 ^= 1;
 		sleep(&e->rr, eptinput, e);
 		if(e->err)
 			error(e->err);
@@ -1336,7 +1336,7 @@ write(Usbhost *uh, Endpt *e, void *a, long n, vlong offset, int tok)
 		poperror();
 		qh = qxmit(ctlr, e, b, tok);
 		tok = TokOUT;
-		e->data01 ^= 1;
+		e->wdata01 ^= 1;
 		if(e->ntd >= e->nbuf) {
 XPRINT("qh %s: q=%p first=%p last=%p entries=%.8lux\n",
  "writeusb sleep", qh, qh->first, qh->last, qh->entries);
@@ -1385,9 +1385,18 @@ scanpci(void)
 		 * Find UHCI controllers.  Class = 12 (serial controller),
 		 * Sub-class = 3 (USB) and Programming Interface = 0.
 		 */
-		if(p->ccrb != 0x0C || p->ccru != 0x03 || p->ccrp != 0x00)
+		if(p->ccrb != 0x0C || p->ccru != 0x03)
 			continue;
-		io = p->mem[4].bar & ~0x0F;
+		switch(p->ccrp){
+		case 0x00:
+			io = p->mem[4].bar & ~0x0F;
+			break;
+		case 0x10:
+			print("usbohci: %x/%x port 0x%lux size 0x%x irq %d\n",
+				p->vid, p->did, p->mem[0].bar & ~0x0F, p->mem[0].size, p->intl);
+		default:
+			continue;
+		}
 		if(io == 0) {
 			print("usbuhci: failed to map registers\n");
 			continue;

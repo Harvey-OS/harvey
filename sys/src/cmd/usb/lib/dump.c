@@ -387,6 +387,7 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 	DConfig *dc;
 	DInterface *di;
 	DEndpoint *de;
+	int i;
 
 	class = Class(csp);
 
@@ -489,16 +490,24 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 				sysfatal("d->config[c]->iface[ifc] == nil");
 			if (d->config[c]->iface[ifc]->dalt[dalt] == nil)
 				d->config[c]->iface[ifc]->dalt[dalt] = mallocz(sizeof(Dalt),1);
-			d->config[c]->iface[ifc]->addr = de->bEndpointAddress;
-			d->config[c]->iface[ifc]->dalt[dalt]->maxpkt = GET2(de->wMaxPacketSize);
 			d->config[c]->iface[ifc]->dalt[dalt]->attrib = de->bmAttributes;
 			d->config[c]->iface[ifc]->dalt[dalt]->interval = de->bInterval;
 			ep = de->bEndpointAddress & 0xf;
 			if (d->ep[ep] == nil)
 				d->ep[ep] = newendpt(d, ep, class);
+			d->ep[ep]->maxpkt = GET2(de->wMaxPacketSize);
+			d->ep[ep]->addr = de->bEndpointAddress;
 			d->ep[ep]->csp = csp;
 			d->ep[ep]->conf = d->config[c];
 			d->ep[ep]->iface = d->config[c]->iface[ifc];
+			for(i = 0; i < nelem(d->config[c]->iface[ifc]->endpt); i++){
+				if(d->config[c]->iface[ifc]->endpt[i] == nil){
+					d->config[c]->iface[ifc]->endpt[i] = d->ep[ep];
+					break;
+				}
+			}
+			if(i == nelem(d->config[c]->iface[ifc]->endpt))
+				fprint(2, "Too many endpoints\n");
 			if (d->nif <= ep) d->nif = ep+1;
 			break;
 		default:
