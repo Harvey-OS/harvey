@@ -79,7 +79,7 @@
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
 386/bin/auth/secstore - 775 sys sys 1064598053 187847
 386/bin/auth/secstored - 775 sys sys 1064598055 193693
-386/bin/auth/secuser - 775 sys sys 1064598056 150924
+386/bin/auth/secuser - 775 sys sys 1064667524 151195
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1064598056 61525
 386/bin/auth/warning - 775 sys sys 1064598057 98465
@@ -5301,8 +5301,8 @@ sys/src/9/pc/vgamga4xx.c - 664 sys sys 1015014527 11122
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1032375144 10693
 sys/src/9/pc/vganvidia.c - 664 sys sys 1060269772 6545
 sys/src/9/pc/vgargb524.c - 664 sys sys 1015014527 4235
-sys/src/9/pc/vgas3.c - 664 sys sys 1055689893 12082
-sys/src/9/pc/vgasavage.c - 664 sys sys 1046203931 16194
+sys/src/9/pc/vgas3.c - 664 sys sys 1064679984 12160
+sys/src/9/pc/vgasavage.c - 664 sys sys 1064679984 16251
 sys/src/9/pc/vgat2r4.c - 664 sys sys 1015014528 10355
 sys/src/9/pc/vgatvp3020.c - 664 sys sys 1015014528 4491
 sys/src/9/pc/vgatvp3026.c - 664 sys sys 1015014528 3940
@@ -6758,7 +6758,7 @@ sys/src/cmd/auth/secstore/secchk.c - 664 sys sys 1055698993 560
 sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1062277640 12269
 sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1041890053 841
 sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1062525349 7978
-sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1061842567 4914
+sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1064667494 4971
 sys/src/cmd/auth/secstore/util.c - 664 sys sys 1021579985 1498
 sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1045504896 8973
 sys/src/cmd/auth/status - 775 sys sys 1015008430 738
