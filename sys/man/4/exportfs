@@ -4,7 +4,7 @@ exportfs, srvfs \- network file server plumbing
 .SH SYNOPSIS
 .B exportfs
 [
-.B -ads
+.B -adsR
 ] [
 .B -f
 .I dbgfile
@@ -19,19 +19,17 @@ exportfs, srvfs \- network file server plumbing
 .I service
 ] [
 .B -A announce
-]
-[
+] [
+.B -e
+.I "'enc auth'"
+] [
 .B -P
 .I patternfile
 ]
 .PP
 .B srvfs
 [
-.B -d
-]
-[
-.B -e
-.I "'enc auth'"
+.B -dR
 ]
 [
 .B -p
@@ -40,6 +38,9 @@ exportfs, srvfs \- network file server plumbing
 [
 .B -P
 .I patternfile
+] [
+.B -e
+.I exportprog
 ]
 .I name
 .I path
@@ -61,6 +62,10 @@ then acts as a relay file server: operations in the imported file
 tree are executed on the remote server and the results returned.  This
 gives the appearance of exporting a name space from a remote machine
 into a local file tree.
+.PP
+The
+.B -R
+option makes the served name space read only.
 .PP
 The 
 .B -r
@@ -179,14 +184,14 @@ mounting
 (typically a file in 
 .BR /srv ).
 If the
-.B -d
+.BR -d ,
+.BR -R ,
 or
 .B -P
-option is given,
+options are given,
 .I srvfs
-passes it to
-.I exportprog
-to enable debugging.
+passes them to
+.IR exportprog .
 .PP
 The
 .B -A
