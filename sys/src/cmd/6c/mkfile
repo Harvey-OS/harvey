@@ -1,0 +1,22 @@
+</$objtype/mkfile
+
+TARG=6c
+OFILES=\
+	cgen.$O\
+	enam.$O\
+	list.$O\
+	sgen.$O\
+	swt.$O\
+	txt.$O\
+	reg.$O\
+	peep.$O\
+
+HFILES=\
+	gc.h\
+	6.out.h\
+	../cc/cc.h\
+
+LIB=../cc/cc.a$O
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

@@ -1,0 +1,33 @@
+</$objtype/mkfile
+
+TARG =	faxreceive\
+	faxsend\
+
+RECEIVE=\
+	fax2modem.$O\
+	fax2receive.$O\
+	file.$O\
+	receive.$O\
+	modem.$O\
+	subr.$O\
+
+SEND=\
+	fax2modem.$O\
+	fax2send.$O\
+	file.$O\
+	send.$O\
+	modem.$O\
+	subr.$O\
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkmany
+
+$O.faxreceive: $RECEIVE
+	$LD -o $target $prereq
+
+$O.faxsend: $SEND
+	$LD -o $target $prereq
+
+install.rc:V:
+	mkdir /sys/lib/fax
+	cp receiverc /sys/lib/fax

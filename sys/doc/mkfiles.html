@@ -1,0 +1,667 @@
+<html>
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Plan 9 Mkfiles
+</H1>
+<DL><DD><I>Bob Flandrena<br>
+bobf@plan9.bell-labs.com<br>
+</I></DL>
+<H4>Introduction
+</H4>
+<br>&#32;<br>
+Every Plan 9 source directory contains a file, called
+<TT>mkfile</TT>,
+specifying the rules for building the executable or
+library that is the product of the directory.
+<A href="/magic/man2html/1/mk"><I>mk</I>(1)
+</A>interprets the rules in the file, calculates
+the dependencies, and executes an
+<A href="/magic/man2html/1/rc"><I>rc</I>(1)
+</A>script to construct the product.
+If necessary components are supplied by
+neighboring directories or sub-directories, the mkfiles in those
+directories are first executed to build the components
+before the local construction proceeds.
+<br>&#32;<br>
+Most application source directories produce one of
+four types of product:
+a single executable, several
+executables, a local library, or
+a system library.
+Four generic
+mkfiles
+define the normal rules
+for building each type of product.  The simplest
+mkfiles need only
+list the components
+and include the appropriate
+generic
+mkfile 
+to do the work.
+More complex 
+mkfiles
+may supply additional rules
+to augment, modify, or override the generic rules.
+<H4>Using a Mkfile
+</H4>
+<br>&#32;<br>
+To build a product, change to the directory containing
+its source and invoke
+<I>mk</I>
+with the appropriate target as an argument.
+All mkfiles provide the following standard targets:
+<br><img src="data.8940.gif"><br>
+<br>&#32;<br>
+If no target is specified on the
+<TT>mk</TT>
+command line, the
+<TT>all</TT>
+target is built by default.  In a directory
+producing multiple executables, there is
+no default target.
+<br>&#32;<br>
+In addition to the five standard targets,
+additional targets may be supplied by each
+generic mkfile or by the directory's mkfile.
+<br>&#32;<br>
+The environment variable
+<TT>NPROC</TT>
+is set by the system to the number of
+available processors.
+Setting
+this variable, either in the environment or in
+a mkfile, controls the amount of parallelism in
+the build.  For example, the command
+<DL><DT><DD><TT><PRE>
+	NPROC=1 mk
+</PRE></TT></DL>
+restricts a build to a single thread of execution.
+<H4>Creating a Mkfile
+</H4>
+<br>&#32;<br>
+The easiest way to build a new mkfile is to copy and modify
+an existing mkfile of the same type.
+Failing that, it is usually possible to create a new
+mkfile with minimal effort, since the appropriate
+generic mkfile predefines the rules that do all the work.
+In the simplest and most common cases, the new mkfile
+need only define a couple of variables and include the appropriate
+architecture-specific
+and generic mkfiles.
+<H4></H4>
+<br>&#32;<br>
+There are four generic mkfiles containing commonly
+used rules for building a product:
+<TT>mkone</TT>,
+<TT>mkmany</TT>,
+<TT>mklib</TT>,
+and
+<TT>mksyslib</TT>.
+These rules
+perform such actions as compiling C source files,
+loading object files, archiving libraries, and
+installing executables in the
+<TT>bin</TT>
+directory of the appropriate architecture.
+The generic mkfiles are stored in directory
+<TT>/sys/src/cmd</TT>.
+Mkfile
+<TT>mkone</TT>
+builds a single executable,
+<TT>mkmany</TT>
+builds several executables from the source in a single
+directory, and
+<TT>mklib</TT>
+and
+<TT>mksyslib</TT>,
+maintain local and system libraries, respectively.
+The rules in the generic mkfiles are driven by
+the values of variables, some of which must be
+set by the product mkfile and some of which are
+supplied by the generic mkfile.  Variables in the
+latter class include:
+<br><img src="data.8941.gif"><br>
+<br>&#32;<br>
+The following variables are set by the product mkfile
+and used by the generic mkfile.
+Any may be empty depending on the specific product being
+made.
+<br><img src="data.8942.gif"><br>
+<H4>Mkfile Organization
+</H4>
+<br>&#32;<br>
+All
+mkfiles
+share the following common structure:
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile	# architecture-dependent definitions
+<br>&#32;<br>
+<I>variable definitions</I>		# TARG, OFILES, HFILES, etc.
+<br>&#32;<br>
+&#60;/sys/src/cmd/<I>generic</I>	# mkone, mkmany, mklib, or mksyslib
+<br>&#32;<br>
+<I>variable overrides</I>		# CFLAGS, objtype, etc.
+<br>&#32;<br>
+<I>extra rules</I>			# overrides, augmented rules, additional targets
+</PRE></TT></DL>
+Note that the architecture-dependent mkfiles include file
+<TT>/sys/src/mkfile.proto</TT>
+for system-wide variables that are common to all architectures.
+<br>&#32;<br>
+The variables driving the expansion of the generic mkfile
+may be specified in any order as long as they are defined
+before the inclusion of the generic mkfile.  The value
+of a variable may be changed by assigning a new value
+following the inclusion of the generic mkfile, but the
+effects are sometimes counter-intuitive.
+Such variable assignments do not apply to the target and
+prerequisite portions of any previously defined rules;
+the new values only apply to the recipes of rules preceding
+the assignment statement and
+to all parts of any rules following it.
+<br>&#32;<br>
+The rules supplied by the generic mkfile may
+be overridden or augmented.  The new rules must
+be specified after the inclusion of the generic
+mkfile.  If the target and prerequisite portion
+of the rule exactly match the target and prerequisite
+portion of a previously defined rule and the new rule contains
+a recipe, the new rule replaces the old one.
+If the target of a new rule exactly matches the
+target of a previous rule and one or more new
+prerequisites are specified and the new rule contains
+no recipe, the new prerequisites are added to the prerequisites
+of the old rule.
+<br>&#32;<br>
+Following sections discuss
+each generic mkfile in detail.
+<H4>Mkone
+</H4>
+<br>&#32;<br>
+The
+<TT>mkone</TT>
+generic mkfile contains rules for building
+a single executable from one or more files
+in a directory.
+The variable
+<TT>TARG</TT>
+specifies the name of the executable and
+variables
+<TT>OFILES</TT>
+and
+<TT>YFILES</TT>
+specify the object files and
+<TT>yacc</TT>
+source files used to build it.
+<TT>HFILES</TT>
+contains the names of the local header files
+included in all source files.
+<TT>BIN</TT>
+is the name of the directory where the executable
+is installed.
+<TT>LIB</TT>
+contains the names of local libraries used by the
+linker.  This variable is rarely needed
+as libraries referenced by a
+<TT>#pragma</TT>
+directive in an associated header file, including
+all system libraries, are automatically
+searched by the loader.
+<br>&#32;<br>
+If
+<TT>mk</TT>
+is executed without a target, the
+<TT>all</TT>
+target is built; it
+produces an executable in
+<TT>$O.out</TT>.
+Variable
+<TT>HFILES</TT>
+identifies the header files that
+are included in all or most or
+the C source files.  Occasionally,
+a program has other header files
+that are only used in some
+source files.  A
+header can be added to the prerequisites for
+those object files by adding a rule of
+the following form following the inclusion of generic mkfile
+<TT>mkone</TT>:
+<DL><DT><DD><TT><PRE>
+file.$O:	header.h
+</PRE></TT></DL>
+<br>&#32;<br>
+The mkfile for a directory producing a single
+executable using the normal set of rules is
+trivial: a list of some files followed by the
+inclusion of
+<I>mkone.</I>
+For example, 
+<TT>/sys/src/cmd/diff/mkfile</TT>
+contains:
+<DL><DT><DD><TT><PRE>
+&#60; /$objtype/mkfile
+
+TARG=diff
+OFILES=\
+	diffdir.$O\
+	diffio.$O\
+	diffreg.$O\
+	main.$O\
+
+HFILES=diff.h
+
+BIN=/$objtype/bin
+&#60;/sys/src/cmd/mkone
+</PRE></TT></DL>
+The more complex mkfile in
+<TT>/sys/src/cmd/awk</TT>
+overrides compiler and loader variables to
+select the ANSI/POSIX Computing Environment with appropriately
+defined command line variables.  It also overrides
+the default
+<TT>yacc</TT>
+rule to place the output soure in file
+<TT>awkgram.c</TT>
+and the
+<TT>clean</TT>
+and
+<TT>nuke</TT>
+rules, so it can remove the non-standard intermediate
+files.  Finally, the last three rules build a version of
+<TT>maketab</TT>
+appropriate for the architecture where the
+<TT>mk</TT>
+is being
+run and then executes it to create source file
+<TT>proctab.c</TT>:
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+
+TARG=awk
+OFILES=re.$O\
+	lex.$O\
+	main.$O\
+	parse.$O\
+	proctab.$O\
+	tran.$O\
+	lib.$O\
+	run.$O\
+	awkgram.$O\
+
+HFILES=awk.h\
+	y.tab.h\
+	proto.h\
+
+YFILES=awkgram.y
+
+BIN=/$objtype/bin
+&#60;/sys/src/cmd/mkone
+CFLAGS=-c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE \
+	-D_BSD_EXTENSION -DUTF
+YFLAGS=-S -d -v
+CC=pcc
+LD=pcc
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+y.tab.h awkgram.c:	$YFILES
+	$YACC -o awkgram.c $YFLAGS $prereq
+
+clean:V:
+	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug\
+		 y.output $TARG
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug\
+		 y.output awkgram.c $TARG
+
+proctab.c:	$cpuobjtype.maketab
+	./$cpuobjtype.maketab &#62;proctab.c
+
+$cpuobjtype.maketab:	y.tab.h maketab.c
+	objtype=$cputype
+	mk maketab.$cputype
+
+maketab.$cputype:V:	y.tab.h maketab.$O
+	$LD -o $O.maketab maketab.$O
+</PRE></TT></DL>
+<H4>Mkmany
+</H4>
+<br>&#32;<br>
+The
+<TT>mkmany</TT>
+generic mkfile builds several
+executables from the files in a
+directory.  It differs from the operation of
+<TT>mkone</TT>
+in three respects:
+<TT>TARG</TT>
+specifies the names of all executables,
+there is no default command-line target,
+and additional rules allow a single executable to
+be built or installed.
+<br>&#32;<br>
+The
+<TT>TARG</TT>
+variable specifies the names of all
+executables produced by the mkfile.  The
+rules assume the name of each executable is also
+the name of the file containing its
+<TT>main</TT>
+function.
+<TT>OFILES</TT>
+specifies files containing
+common subroutines loaded with all executables.
+Consider the mkfile:
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+
+TARG=alpha beta
+OFILES=common.$O
+BIN=/$objtype/bin
+&#60;/sys/src/cmd/mkmany
+</PRE></TT></DL>
+It assumes the main functions for executables
+<TT>alpha</TT>
+and
+<TT>beta</TT>
+are in files
+<TT>alpha.$O</TT>
+and
+<TT>beta.$O</TT>
+and that both programs use the subroutines
+in file
+<TT>common.$O</TT>.
+The
+<TT>all</TT>
+target builds all executables, leaving each in
+a file with a name of the form
+<TT>$O.<I>progname</I></TT>
+where
+<I>progname</I>
+is the name of the executable.  In this
+example the
+<TT>all</TT>
+target produces executables
+<TT>$O.alpha</TT>
+and 
+<TT>$O.beta</TT>.
+<br>&#32;<br>
+The
+<TT>mkmany</TT>
+rules provide additional
+targets for building a single
+executable:
+<br><img src="data.8943.gif"><br>
+<H4>Mklib
+</H4>
+<br>&#32;<br>
+The
+<TT>mklib</TT>
+generic mkfile builds a local library.
+Since this form of mkfile constructs no
+executable, the
+<TT>TARG</TT>
+and
+<TT>BIN</TT>
+variables are not needed.  Instead, the
+<TT>LIB</TT>
+variable specifies the library
+to be built or updated.  Variable
+<TT>OFILES</TT>
+contains the names of the object files to be archived
+in the library.  The use of variables
+<TT>YFILES</TT>
+and
+<TT>HFILES</TT>
+does not change.  When possible, only the
+out-of-date members of the library are updated.
+<br>&#32;<br>
+The variable
+<TT>LIBDIR</TT>
+contains the name of the directory where the
+library is installed; by default it selects
+the current directory.  It can be overridden
+by assigning the new directory name after the
+point where
+<TT>mklib</TT>
+is included.
+<br>&#32;<br>
+The
+<TT>clean</TT>
+target removes object files and
+<TT>yacc</TT>
+intermediate files but does not touch the
+library.  The
+<TT>nuke</TT>
+target removes the library as well as the
+files removed by the
+<TT>clean</TT>
+target.  The command
+<DL><DD>
+<TT>mk -s clean all</TT>
+</DL>
+causes the existing library to be updated, or
+created if it doesn't already exist.  The command
+<DL><DD>
+<TT>mk -s nuke all</TT>
+</DL>
+forces the library to be rebuilt from scratch.
+<br>&#32;<br>
+The mkfile from
+<TT>/sys/src/cmd/upas/libString</TT>
+contains the following specifications to
+build the local library
+<TT>libString.a$O</TT>
+for the object architecture referenced by
+<TT>$O:</TT>
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+
+LIB=libString.a$O
+OFILES=	s_alloc.$O\
+	s_append.$O\
+	s_array.$O\
+	s_copy.$O\
+	s_getline.$O\
+	s_grow.$O\
+	s_nappend.$O\
+	s_parse.$O\
+	s_read.$O\
+	s_read_line.$O\
+	s_tolower.$O\
+
+&#60;/sys/src/cmd/mklib
+
+nuke:V:
+	mk clean
+	rm -f libString.a[$OS]
+</PRE></TT></DL>
+The override of the rule for target
+<TT>nuke</TT>
+removes the libraries for all architectures as
+opposed to the default recipe for this target
+which removes the library for the current architecture.
+<H4>Mksyslib
+</H4>
+<br>&#32;<br>
+The
+<TT>mksyslib</TT>
+generic mkfile is similar to the
+<TT>mklib</TT>
+mkfile except that it operates on a system library
+instead of a local library.
+The
+<TT>install</TT>
+and
+<TT>all</TT>
+targets are the same; since there is no local copy of
+the library, all updates are performed on the
+installed library.
+The rule for the
+<TT>nuke</TT>
+target is identical to that of the
+<TT>clean</TT>
+target; unlike the
+<TT>nuke</TT>
+target for local libraries,
+the library is never removed.
+<br>&#32;<br>
+No attempt is made to determine if individual library
+members are up-to-date; all members of a
+library are always updated.
+Special targets support manipulation of a single
+object file; the target
+<TT>objfile</TT>
+updates file
+<TT>objfile<TT>.$O</TT></TT>
+in the library of the current architecture and the target
+<TT>objfile.all</TT>
+updates
+<TT>objfile<TT>.$O</TT></TT>
+in the libraries of all architectures.
+<H4>Overrides
+</H4>
+<br>&#32;<br>
+The rules provided by a generic mkfile or
+the variables used to control the evaluation
+of those rules may be overridden in most
+circumstances.  Overrides
+must be specified in the product mkfile
+after the point where the generic
+mkfile is included; in general, variable
+and rule overrides occupy the end of a
+product mkfile.
+<br>&#32;<br>
+The value of a variable is overridden by
+assigning a new value to the variable.
+Most variable overrides modify the
+values of flags or the names of commands executed
+in recipes.  For example, the default value of
+<TT>CFLAGS</TT>
+is often overridden or augmented and
+the ANSI/POSIX Computing Environment is selected by
+setting the
+<TT>CC</TT>
+and
+<TT>LD</TT>
+variables to
+<TT>pcc.</TT>
+<br>&#32;<br>
+Modifying rules is trickier than modifying
+variables.  Additional constraints can be added
+to a rule by specifying the target and
+the new prerequisite.  For example,
+<DL><DT><DD><TT><PRE>
+%.$O:	header.h
+</PRE></TT></DL>
+adds file
+<TT>header.h</TT>
+the set of prerequisites for all object files.
+There is no mechanism for adding additional
+commands to an existing recipe; if a
+recipe is unsatisfactory, the rule and its recipe
+must be completely overridden.
+A rule is overridden only when the replacement rule
+matches the target and prerequisite portions
+of the original rule exactly.  The recipe
+associated with the new rule
+then replaces the recipe of the original rule.
+For example,
+<TT>/sys/src/cmd/lex/mkfile</TT>
+overrides the default
+<TT>installall</TT>
+rule to perform the normal loop on all
+architectures and then copy a prototype file
+to the system library directory.
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+
+TARG=lex
+OFILES=lmain.$O\
+	y.tab.$O\
+	sub1.$O\
+	sub2.$O\
+	header.$O\
+
+HFILES=ldefs.h\
+
+YFILES=parser.y\
+
+BIN=/$objtype/bin
+&#60;/sys/src/cmd/mkone
+
+installall:V:
+	for(objtype in $CPUS)
+		mk install
+	cp ncform /sys/lib/lex
+</PRE></TT></DL>
+Another way to perform the same override is to
+add a dependency to the default
+<TT>installall</TT>
+rule that executes an additional rule to
+install the prototype file:
+<DL><DT><DD><TT><PRE>
+installall:V:	ncform.install
+
+ncform.install:V:
+	cp ncform /sys/lib/lex
+</PRE></TT></DL>
+<H4>Special Tricks
+</H4>
+<br>&#32;<br>
+Two special cases
+require extra deviousness.
+<br>&#32;<br>
+In the first, a file needed to build an
+executable is generated by a program that,
+in turn, is built from a source file that
+is not part of the product.  In this case,
+the
+executable must be built for the
+target architecture, but the intermediate
+executable must be built for the architecture
+<TT>mk</TT>
+is executing on.  The intermediate executable
+is built by recursively invoking
+<TT>mk</TT>
+with the appropriate target and the
+executing architecture as the target
+architecture.  When that
+<TT>mk</TT>
+completes, the intermediate is
+executed to generate the source file to
+complete the build for the target architecture.
+The earlier example of
+<TT>/sys/src/cmd/awk/mkfile</TT>
+illustrates this technique.
+<br>&#32;<br>
+Another awkward situation
+occurs when a directory contains
+source to build an executable as
+well as source for auxiliary executables
+that are not to be installed.  In this case
+the
+<TT>mkmany</TT>
+generic rules are inappropriate, because
+all executables would be built and installed.
+Instead, use the
+<TT>mkone</TT>
+generic file to build the primary executable
+and provide extra targets to
+build the auxiliary files.  This
+approach is also useful when the auxiliary
+files are not executables;
+<TT>/sys/src/cmd/spell/mkfile</TT>
+augments the default rules to build and install the
+<TT>spell</TT>
+executable with
+elaborate rules to generate
+and maintain the auxiliary spelling lists.
+
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>

@@ -1,0 +1,7 @@
+#!/bin/rc
+if(! test -f /srv/dos)
+	dossrv >/dev/null </dev/null >[2]/dev/null
+unmount /n/b:>[2]/dev/null
+mount -c /srv/dos /n/b: /dev/fd1disk
+unmount /n/b >[2]/dev/null
+mount -c /srv/dos /n/b /dev/fd1disk

@@ -1,0 +1,23 @@
+.nr LL 6.5i
+.nr LT 6.5i
+.\" arg1 is secno, arg2 is starting page no, arg3 is title
+.de XX
+.nr %# \\$2
+.ds %e .tl |\\$3||\\f(NI\\$1\\fP|
+.ds %o .tl |\\f(NI\\$1\\fP||\\$3|
+.ds %E .tl |\\\\n(PN-i|||
+.ds %O .tl |||\\\\n(PN-i|
+..
+.\" print nothing visible
+.de BB
+\0
+.sp -1
+..
+.de MB
+.KS L
+.so \\$1.so
+.KE
+..
+.ds cr \h'3p'\s+3\fS\N'191'\fP\s-3
+.\" so startup doesn't break title matching for index
+.br

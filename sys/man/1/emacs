@@ -1,0 +1,17 @@
+.TH EMACS 1
+.SH NAME
+emacs \- editor macros
+.SH SYNOPSIS
+.B emacs
+[
+.I options
+]
+.SH DESCRIPTION
+This page intentionally left blank.
+.SH SOURCE
+MIT
+.SH SEE ALSO
+.IR sam (1),
+.IR vi (1)
+.SH BUGS
+Yes.

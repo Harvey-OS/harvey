@@ -1,0 +1,22 @@
+#!/bin/rc
+
+if(~ $#* 0 1) {
+	echo 'usage: bootfloppy /dev/fd0disk plan9.ini [files...]'>[1=2]
+	exit usage
+}
+
+if(! test -f $2) {
+	echo $2 does not exist >[1=2]
+	exit noplan9.ini
+}
+
+disk=$1
+ini=$2
+shift 
+shift
+
+mkdir /tmp/bootfloppy.$pid
+cp $ini /tmp/bootfloppy.$pid/plan9.ini
+dd -bs 512 -count 1 < /dev/zero >/tmp/bootfloppy.$pid/plan9.nvr
+disk/format -b /386/pbs -f -d $disk /386/9load /tmp/bootfloppy.$pid/* $*
+rm -rf /tmp/bootfloppy.$pid

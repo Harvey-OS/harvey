@@ -1,0 +1,161 @@
+#CONF=FreeBSD
+#CONF=FreeBSD-power	# MAC OSX
+#CONF=Irix
+#CONF=Linux
+#CONF=OSF1
+#CONF=Solaris
+#CONF=Solaris-386
+#CONF=Solaris-sparc
+#CONF=Windows
+#DSRC=/n/emelie/sys/src/cmd/unix/drawterm
+DSRC=.
+BIN=$DSRC/bin
+
+<$DSRC/mkfile-$CONF
+
+DRAWTERM=\
+	_asgetticket.$O\
+	_asrdfile.$O\
+	_asrdresp.$O\
+	_asreadn.$O\
+	argv0.$O\
+	atexit.$O\
+	auth.$O\
+	authaux.$O\
+	authdial.$O\
+	chan.$O\
+	conv.$O\
+	crypt.$O\
+	dev.$O\
+	devtab.$O\
+	devcon.$O\
+	devdraw.$O\
+	$DEVFS.$O\
+	$DEVIP.$O\
+	devmnt.$O\
+	devmouse.$O\
+	devpipe.$O\
+	devroot.$O\
+	drawterm.$O\
+	dial.$O\
+	dirfstat.$O\
+	doprint.$O\
+	error.$O\
+	exportfs.$O\
+	fcallconv.$O\
+	getcallerpc.$O\
+	getuser.$O\
+	latin1.$O\
+	lock.$O\
+	mallocz.$O\
+	nan.$O\
+	netmkaddr.$O\
+	ns.$O\
+	passtokey.$O\
+	pipe.$O\
+	pow10.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	readn.$O\
+	ref.$O\
+	rune.$O\
+	rwlock.$O\
+	screen-$WIN.$O\
+	syscall.$O\
+	tabs.$O\
+	term.$O\
+	tokenize.$O\
+	$OS.$O\
+	utflen.$O\
+	utfrune.$O\
+	werrstr.$O\
+	wstrtoutf.$O\
+	$OSFILES\
+	
+# screen
+
+LIBMEMLAYER=\
+	ml-draw.$O\
+	ml-lalloc.$O\
+	ml-layerop.$O\
+	ml-ldelete.$O\
+	ml-lhide.$O\
+	ml-line.$O\
+	ml-load.$O\
+	ml-lorigin.$O\
+	ml-lsetrefresh.$O\
+	ml-ltofront.$O\
+	ml-ltorear.$O\
+
+LIBMEMDRAW=\
+	md-alloc.$O\
+	md-alloc-$WIN.$O\
+	md-arc.$O\
+	md-cload.$O\
+	md-cload-$WIN.$O\
+	md-cmap.$O\
+	md-cread.$O\
+	md-defont.$O\
+	md-draw.$O\
+	md-draw-$WIN.$O\
+	md-ellipse.$O\
+	md-fillpoly.$O\
+	md-hwdraw.$O\
+	md-line.$O\
+	md-load.$O\
+	md-load-$WIN.$O\
+	md-poly.$O\
+	md-read.$O\
+	md-string.$O\
+	md-subfont.$O\
+	md-unload.$O\
+
+LIBDRAW=\
+	d-alloc.$O\
+	d-arith.$O\
+	d-bytesperline.$O\
+	d-chan.$O\
+	d-defont.$O\
+	d-rectclip.$O\
+	d-rgb.$O\
+	d-icossin.$O\
+	d-icossin2.$O\
+
+XFILES=\
+	md-alloc-x11.$O\
+	md-cload-x11.$O\
+	md-draw-x11.$O\
+	md-load-x11.$O\
+
+OFILES=$DRAWTERM $LIBMEMLAYER $LIBMEMDRAW $LIBDRAW
+
+all:V: $TARG
+
+$TARG: $OFILES
+	$LD $LDFLAGS $prereq $LIBS
+
+# don't combine with following %.$O rules
+%.$O:	$HFILES		
+
+$LIBMEMDRAW: $DSRC/libmemdraw/memdraw.h $DSRC/libdraw/draw.h
+$LIBDRAW: $DSRC/libdraw/draw.h
+$LIBMEMLAYER: $DSRC/libmemdraw/memdraw.h $DSRC/libdraw/draw.h $DSRC/libmemlayer/memlayer.h
+$XFILES: $DSRC/libmemdraw/xmem.h
+
+
+%.$O:	$DSRC/%.c
+	$CC $CFLAGS $DSRC/$stem.c
+
+%.$O:	$DSRC/%.s
+	$AS $ASFLAGS -o $stem.$O $DSRC/$stem.s
+	
+install: $TARG
+	install $TARG $BIN/$TARG
+
+clean:V:
+	rm -f *.$O a.out y.tab.? y.debug y.output *.pch *.pdb *.map $TARG
+
+src.tar:V:
+	tar cf src.tar *.[ch] mkfile* */*.[ch]
+

@@ -1,0 +1,8 @@
+</sys/doc/fonts
+
+8½.ps:D:	8½.ms fig1.ps
+	{echo $FONTS; cat 8½.ms} | tbl | troff -ms -mpictures -mnihongo | lp -dstdout >8½.ps
+	../cleanps 8½.ps
+
+8½.html:D:
+	{echo $FONTS; cat 8½.ms} | tbl | ms2html >8½.html

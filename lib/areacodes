@@ -1,0 +1,376 @@
+# area code updated april 2002 from http://www-cse.ucsd.edu/users/bsy/area.html
+201 NJ [-5] N New Jersey: Jersey City, Hackensack (see split 973 , overlay 551 ) 
+202 DC [-5] Washington, D.C. 
+203 CT [-5] Connecticut: Bridgeport, New Haven (see 860 ) 
+204 MB [-6] Canada: Manitoba 
+205 AL [-6] Central Alabama (including Birmingham; excludes the southeastern corner of Alabama and the deep south; see splits 256 and 334 ) 
+206 WA [-8] W Washington state: Seattle and Bainbridge Island (see splits 253 , 360 , 425 ; overlay 564 ) 
+207 ME [-5] Maine 
+208 ID [-7] Idaho 
+209 CA [-8] Cent. California: Stockton (see 559 ) 
+210 TX [-6] S Texas: San Antonio (see also splits 830 , 956 ) 
+211 -- [--] Local community info / referral services 
+212 NY [-5] New York City, New York (Manhattan; see 646 , 718 ) 
+213 CA [-8] S California: Los Angeles (see 310 , 323 , 626 , 818 ) 
+214 TX [-6] Texas: Dallas Metro (overlays 214 / 469 / 972 ) 
+215 PA [-5] SE Pennsylvania: Philadelphia (see overlays 267 , 445 ) 
+216 OH [-5] Cleveland (see splits 330 , 440 ) 
+217 IL [-6] Cent. Illinois: Springfield 
+218 MN [-6] N Minnesota: Duluth 
+219 IN [-5] NW Indiana: Gary (see 260 , split 574 , 260 ) 
+224 IL [-6] Northern NE Illinois: Evanston, Waukegan, Northbrook (overlay on 847 , eff 1/5/2002) 
+225 LA [-6] Louisiana: Baton Rouge, New Roads, Donaldsonville, Albany, Gonzales, Greensburg, Palquemine, Vacherie 
+228 MS [-6] S Mississippi (coastal areas, Biloxi, Gulfport; split from 601 ) 
+229 GA [-5] SW Georgia: Albany (split from 912 ; see also 478 ; perm 8/1/00) 
+231 MI [-5] W Michigan: Northwestern portion of lower Peninsula; Traverse City, Muskegon, Cheboyhan (eff 99/06/05; see 616) 
+234 OH [-5] NE Ohio: Canton, Akron (overlaid on 330 ; perm 10/30/00) 
+236 VA [-5] Virginia (region unknown) / Unassigned? 
+239 FL [-5] Florida (Lee, Collier, and Monroe Counties, excl the Keys; see 305 ; eff ???/mand ???) 
+240 MD [-5] W Maryland: Silver Spring, Frederick (overlay, see 301 ) 
+242 -- [-5] Bahamas 
+246 -- [-4] Barbados 
+248 MI [-5] Michigan: Oakland county (split from 810 ) 
+250 BC [-8] Canada: British Columbia (see 604 ) 
+251 AL [-6] S Alabama: Mobile (incl Auburn/Opelika, Montgomery, Mobile and coastal areas; split from 334 , eff 6/18/01; see also 205, 256) 
+252 NC [-5] E North Carolina (Rocky Mount; split from 919 ) 
+253 WA [-8] Washington: South Tier - Tacoma, Federal Way (split from 206 , see also 425 ; overlay 564 ) 
+254 TX [-6] Central Texas (Waco, Stephenville; split, see 817 , 940 ) 
+256 AL [-6] E and N Alabama (Huntsville, Florence, Gadsden; split from 205 ; see also 334 ) 
+260 IN [-5] NE Indiana: Fort Wayne (see 219 ) 
+262 WI [-6] SE Wisconsin: counties of Kenosha, Ozaukee, Racine, Walworth, Washington, Waukesha (split from 414 ) 
+264 -- [-4] Anguilla (split from 809 ) 
+267 PA [-5] SE Pennsylvania: Philadelphia (see 215 ) 
+268 -- [-4] Antigua and Barbuda (split from 809 ) 
+270 KY [-6] W Kentucky: Bowling Green, Paducah (split from 502 ) 
+276 VA [-5] Northern Virginia: Fredericksburg and Roanoke and nearby areas (see 540 ; split/overlay unknown; perm 9/1/01, mand 3/16/02) 
+278 MI [-5] Michigan (overlaid on 734 , SUSPENDED) 
+281 TX [-6] Texas: Houston Metro (split 713 ; overlay 832 ) 
+283 OH [-5] SW Ohio: Cincinnati (overlaid on 513 ) 
+284 -- [-4] British Virgin Islands (split from 809 ) 
+289 ON [-5] Canada: S Cent. Ontario: Greater Toronto Area -- Durham, Halton, Hamilton-Wentworth, Niagara, Peel, York, and southern Simcoe County (excluding Toronto -- overlaid on 905 , eff 6/9/01) 
+301 MD [-5] W Maryland: Silver Spring, Frederick, Camp Springs, Prince George's County (see 240 ) 
+302 DE [-5] Delaware 
+303 CO [-7] Central Colorado: Denver (see 970 , also 720 overlay) 
+304 WV [-5] West Virginia 
+305 FL [-5] SE Florida: Miami, the Keys (see 786 , 954 ; 239 ) 
+306 SK [-6/-7] Canada: Saskatchewan 
+307 WY [-7] Wyoming 
+308 NE [-6] W Nebraska: North Platte 
+309 IL [-6] W Cent. Illinois: Peoria 
+310 CA [-8] S California: Beverly Hills, West Hollywood, West Los Angeles (see split 562 ; overlay 424 -- approval denied) 
+311 -- [--] Reserved for special applications 
+312 IL [-6] Illinois: Chicago (downtown only -- in the loop; see 773 ; overlay 872 ) 
+313 MI [-5] Michigan: Detroit and suburbs (see 734 ) 
+314 MO [-6] SE Missouri: St Louis metro area only (see 573 , 636 , overlay 557 ) 
+315 NY [-5] N Cent. New York: Syracuse 
+316 KS [-6] S Kansas: Wichita (see split 620 ) 
+317 IN [-6] Cent. Indiana: Indianapolis (see 765 ) 
+318 LA [-6] N Louisiana: Shreveport, Ruston, Monroe, Alexandria (see split 337 ) 
+319 IA [-6] E Iowa: Cedar Rapids (see split 563 ) 
+320 MN [-6] Cent. Minnesota: Saint Cloud (rural Minn, excl St. Paul/Minneapolis) 
+321 FL [-5] Florida: Brevard County, Cape Canaveral area 
+323 CA [-8] S California: Los Angeles (outside downtown: Hollywood; split from 213 ) 
+327 KY [-5] Kentucky: Maceo 
+330 OH [-5] NE Ohio: Akron, Canton (see splits 216 , 440 , overlay 234 ) 
+331 IL [-6] W NE Illinois, western suburbs of Chicago (part of what used to be 708 ; overlaid on 630 ; perm NONE, mand t.b.a.) 
+334 AL [-6] S Alabama: Mobile (incl Auburn/Opelika, Montgomery, Mobile and coastal areas; part of what used to be 205 ; see also 256 , split 251 ) 
+336 NC [-5] Cent. North Carolina: Greensboro (split from 910 ) 
+337 LA [-6] SW Louisiana: Lake Charles, Lafayette (see split 318 ) 
+339 MA [-5] Massachusetts: Boston surburbs, to the south and west (see splits 617 , 508 ; overlaid on 781 , eff 5/2/2001) 
+340 -- [-4] US Virgin Islands (see also 809 ) 
+341 CA [-8] (overlay on 510 ; SUSPENDED) 
+345 -- [-5] Cayman Islands 
+347 NY [-5] New York (overlay for 718 : NYC area, except Manhattan) 
+351 MA [-5] Massachusetts: north of Boston to NH, 508 , and 781 (overlaid on 978 , eff 4/2/2001) 
+352 FL [-5] Florida: Gainesville area, Ocala, Crystal River (split from 904 ) 
+360 WA [-8] W Washington State: Olympia, Bellingham (except Seattle area; part of what used to be 206 ; see overlay 564 ) 
+361 TX [-6] S Texas: Corpus Christi (split from 512 ; eff 2/13/99) 
+369 CA [-8] Solano County (perm 12/02/00, mand 06/02/01) 
+385 UT [-7] Utah: Salt Lake City Metro (split from 801 , eff 3/30/02; see also 435) 
+386 FL [-5] N central Florida: Lake City (split from 904 , perm 2/15/01, mand 11-05-01) 
+401 RI [-5] Rhode Island 
+402 NE [-6] E Nebraska: Omaha, Lincoln 
+403 AB [-7] Canada: Southern Alberta (see 780 , 867 ) 
+404 GA [-5] N Georgia: Atlanta and suburbs (see overlay 678 , split 770 ) 
+405 OK [-6] W Oklahoma: Oklahoma City (see 580 ) 
+406 MT [-7] Montana 
+407 FL [-5] Centra Florida: Metro Orlando 
+408 CA [-8] Cent. Coastal California: San Jose (see overlay 669 ) 
+409 TX [-6] SE Texas: Galveston, Port Arthur (splits 936 , 979 ) 
+410 MD [-5] E Maryland: Baltimore, Annapolis, Chesapeake Bay area, Ocean City (see 443 ) 
+411 -- [--] Reserved for special applications 
+412 PA [-5] W Pennsylvania: Pittsburgh (see split 724 , overlay 878 ) 
+413 MA [-5] W Massachusetts: Springfield 
+414 WI [-6] SE Wisconsin: Milwaukee county (see splits 920 , 262 ) 
+415 CA [-8] San Francisco, California (see 650 ) 
+416 ON [-5] Canada: S Cent. Ontario: Toronto (see overlay 647 , eff 3/5/01) 
+417 MO [-6] SW Missouri: Springfield 
+418 QC [-5/-4] Canada: NE Quebec: Quebec 
+419 OH [-5] NW Ohio: Toledo (see overlay 567 , perm 1/1/02) 
+420 WI [-6] Wisconsin (not sure what area / split) 
+423 TN [-5] E Tennessee: Chattanooga (see split 865 ; part of what used to be 615 ) 
+424 CA [-8] S California: Los Angeles (see split 562 ; overlaid on 310 PENDING) 
+425 WA [-8] Washington: North Tier - Everett, Bellevue (split from 206 , see also 253 ; overly 564 ) 
+434 VA [-5] E Virginia: Charlottesville, Lynchburg, Danville, South Boston, and Emporia (split from 804 , eff 6/1/01; see also 757) 
+435 UT [-7] Rural Utah outside Salt Lake City metro (see split 801 ) 
+440 OH [-5] Ohio: Cleveland metro area, excluding Cleveland (split from 216 , see also 330 ) 
+441 -- [-4] Bermuda (part of what used to be 809 ) 
+442 CA [-8] Far north suburbs of San Diego (Oceanside, Escondido, SUSPENDED -- originally perm 10/21/00, mand 04/14/01) 
+443 MD [-5] E Maryland: Baltimore, Annapolis, Chesapeake Bay area, Ocean City (overlaid on 410 ) 
+445 PA [-5] SE Pennsylvania: Philadelphia (overlaid on 215 , eff 5/1/01; see also 267) 
+450 QC [-5/-4] Canada: Southeastern Quebec outside metro Montreal 
+456 -- [--] Inbound International 
+464 IL [-6] Illinois: south suburbs of Chicago (see 630 ; overlaid on 708 ) 
+469 TX [-6] Texas: Dallas Metro (overlays 214 / 469 / 972 ) 
+470 GA [-5] Georgia: Greater Atlanta Metropolitan Area (overlaid on 404 / 770 / 678 ; mand 9/2/01) 
+473 -- [-4] Grenada ("new" -- split from 809 ) 
+475 CT [-5] Connecticut: New Haven, Greenwich, southwestern (perm 01/06/01; mand 03/01/01???) 
+478 GA [-5] Central Georgia: Macon (split from 912 ; see also 229 ; perm 08/01/00; mand 08/01/01) 
+479 AR [-6] NW Arkansas: Fayetteville, Springdale, Bentonville (split from 501 , perm 01/19/02, mand 07/20/02) 
+480 AZ [-7] East Phoenix Arizona (see 520 ; also Phoenix split 602 , 623 ) 
+484 PA [-5] SE Pennsylvania: Allentown, Reading (see 610 ) 
+500 -- [--] Personal Communication Service 
+501 AR [-6] N Arkansas (see split 479 ) 
+502 KY [-5] N Central Kentucky: Louisville (see 270 ) 
+503 OR [-8] Oregon (see 541 , 971 ) 
+504 LA [-6] E Louisiana: New Orleans metro area (see split 985 ) 
+505 NM [-7] New Mexico 
+506 NB [-4] Canada: New Brunswick 
+507 MN [-6] S Minnesota: Rochester 
+508 MA [-5] Cent. Massachusetts: Framingham; Cape Cod (see split 978 , overlay 774 ) 
+509 WA [-8] E Washington state: Spokane 
+510 CA [-8] California: Oakland, East Bay (see 925 ) 
+511 -- [--] Reserved for special applications 
+512 TX [-6] S Texas: Austin (see split 361 ; overlay 737 , perm 11/10/01) 
+513 OH [-5] SW Ohio: Cincinnati (see overlay 283 , split 937 ) 
+514 QC [-5] Canada: SW Quebec: Montreal 
+515 IA [-6] Cent. Iowa: Des Moines (see split 641 ) 
+516 NY [-5] New York: Nassau County, Long Island; Hempstead (see split 631 ) 
+517 MI [-5] Cent. Michigan: Lansing (see split 989 ) 
+518 NY [-5] NE New York: Albany 
+519 ON [-5] Canada: SW Ontario: Windsor 
+520 AZ [-7] SE Arizona: Tucson area, Yuma (split from 602 ; see split 928 ) 
+530 CA [-8] NE California: Chico, Redding, Marysville, Nevada City/Grass Valley (split from 916 ) 
+540 VA [-5] Northern Virginia: Fredericksburg and Roanoke and nearby areas (see 276 ; split/overlay unknown) 
+541 OR [-8] Oregon: Eugene, Medford (split from 503 ; 503 retains NW part [Portland/Salem], all else moves to 541 ) 
+546 MI [-5] E Michigan: Flint, Pontiac (overlaid on 810 , perm 9/22/01; see also 248) 
+551 NJ [-5] N New Jersey: Jersey City, Hackensack (overlaid on 201 ) 
+557 MO [-6] SE Missouri: St Louis metro area only (overlaid on 314 ) 
+559 CA [-8] Central California: Fresno (see 209 ) 
+561 FL [-5] S. Central Florida: Palm Beach County (West Palm Beach, Boca Raton, Vero Beach; see split 772 , eff 2/11/02; mand 11/11/02) 
+562 CA [-8] California: Long Beach, Brea (split from 310 Los Angeles) 
+563 IA [-6] E Iowa: Davenport, Dubuque (split from 319 , eff 3/25/01) 
+564 WA [-8] W Washington State: Olympia, Bellingham (overlaid on 360 ; perm 02/03/01; see also 206, 253, 425) 
+567 OH [-5] NW Ohio: Toledo (overlaid on 419 , perm 1/1/02) 
+570 PA [-5] NE and N Central Pennsylvania: Wilkes-Barre, Scranton (see 717 ) 
+571 VA [-5] Northern Virginia: Arlington, McLean, Tysons Corner (to be overlaid on 703 3/1/2000; see earlier split 540) 
+573 MO [-6] SE Missouri: excluding St Louis metro area, includes Central/East Missouri 
+574 IN [-5] N Indiana (split from 219 ) 
+580 OK [-6] W Oklahoma (rural areas outside Oklahoma City; split from 405 ) 
+585 NY [-5] NW New York: Rochester (split from 716 ) 
+586 MI [-5] Michigan: Macomb County (split from 810 ; perm 9/22/01, mand 3/23/02) 
+590 -- [-4] French West Indies Carribean Islands: St. Barthelemy (French), St. martin (Dutch & French) (time zones?) 
+600 -- [--] Canadian Services 
+601 MS [-6] Mississippi: Jackson area (see splits 228 , 662 ) 
+602 AZ [-7] Phoenix Arizona (see 520 ; also Phoenix split 480 , 623 ) 
+603 NH [-5] New Hampshire 
+604 BC [-8] Canada: British Columbia: Greater Vancouver (overlay 778 , perm 11/3/01; see 250) 
+605 SD [-6/-7] South Dakota 
+606 KY [-5/-6] E Kentucky: area east of Frankfort: Ashland (see 859 ) 
+607 NY [-5] S Cent. New York: Ithaca, Binghamton 
+608 WI [-6] SW Wisconsin: Madison 
+609 NJ [-5] S New Jersey: Trenton (see 856 ) 
+610 PA [-5] SE Pennsylvania: Allentown, Reading (see overlays 484 , 835 ) 
+611 -- [--] Reserved for special applications 
+612 MN [-6] Cent. Minnesota: Minneapolis (split from St. Paul, see 651 ; see splits 763 , 952 ) 
+613 ON [-5] Canada: SE Ontario: Ottawa 
+614 OH [-5] SE Ohio: Columbus 
+615 TN [-6] E Tennessee: Nashville metro area (see 423 , 931 ) 
+616 MI [-5] W Michigan: Grand Rapids, Battle Creek, Kalamazoo (see 231 ) 
+617 MA [-5] Massachusetts: greater Boston (see overlay 857 ) 
+618 IL [-6] S Illinois: Centralia 
+619 CA [-8] S California: San Diego (see split 760 ; overlay 858 , 935 ) 
+620 KS [-6] S Kansas: Wichita (split from 316 ; perm 2/3/01) 
+623 AZ [-7] West Phoenix Arizona (see 520 ; also Phoenix split 480 , 602 ) 
+626 CA [-8] E S California: Pasadena (split from 818 Los Angeles) 
+627 CA [-8] Napa, Sonoma counties (perm 10/13/01, mand 04/13/02) 
+628 CA [-8] (Region unknown; perm 10/21/00) 
+630 IL [-6] W NE Illinois, western suburbs of Chicago (part of what used to be 708 ; overlay 331 ) 
+631 NY [-5] New York: Suffolk County, Long Island; Huntington, Riverhead (split 516 ) 
+636 MO [-6] Missouri: St. Charles County, Jefferson County area south (between 314 and 573 ) 
+641 IA [-6] Iowa: Mason City, Marshalltown, Creston, Ottumwa (split from 515 ; perm 07/09/00) 
+646 NY [-5] New York (overlay 212 / 917 ) NYC: Manhattan only 
+647 ON [-5] Canada: S Cent. Ontario: Toronto (overlaid on 416 ; eff 3/5/01) 
+649 -- [-5] Turks & Caicos Islands 
+650 CA [-8] California: Peninsula south of San Francisco -- San Mateo county, parts of Santa Clara county (split from 415 ) 
+651 MN [-6] Cent. Minnesota: St. Paul (split from Minneapolis, see 612 ) 
+657 CA [-8] California: North and Central Orange County (overlaid on 714 ; perm 10/7/00) 
+660 MO [-6] N Missouri (split from 816 ) 
+661 CA [-8] California: N Los Angeles, Mckittrick, Mojave, Newhall, Oildale, Palmdal, Taft, Tehachapi, Bakersfield, Earlimart, Lancaster (split from 805 ) 
+662 MS [-6] N Mississippi: Tupelo, Grenada, Meridian (split from 601 ) 
+664 -- [-4] Montserrat (split from 809 ) 
+669 CA [-8] Cent. Coastal California: San Jose (rejected was: overlaid on 408 ) 
+670 MP [+10] Commonwealth of the Northern Mariana Islands (CNMI, US Commonwealth) 
+671 GU [+10] Guam 
+678 GA [-5] N Georgia: Atlanta and suburbs (overlay; see 404 , 770 ) 
+679 MI [-5/-6] (Region unknown; perm 2/3/01) 
+682 TX [-6] Texas: Fort Worth areas (perm 10/7/00, mand 12/9/00) 
+684 -- [-11] American Samoa 
+700 -- [--] Interexchange Carrier Services 
+701 ND [-6] North Dakota 
+702 NV [-8] Nevada: Clark County, incl Las Vegas (see 775 ) 
+703 VA [-5] Northern Virginia: Arlington, McLean, Tysons Corner (see split 540 ; overlay 571 ) 
+704 NC [-5] W North Carolina: Charlotte (see split 828 , overlay 980 ) 
+705 ON [-5] Canada: NW Ontario: Sault Ste. Marie/N Ontario: N Bay, Sudbury, Thunder Bay 
+706 GA [-5] N Georgia: Columbus, Augusta 
+707 CA [-8] NW California: Santa Rosa 
+708 IL [-6] Illinois: south suburbs of Chicago (see 630 ; overlay 464 ) 
+709 NF [-4/-3.5] Canada: Newfoundland 
+710 -- [?] US Government 
+711 -- [--] Reserved for special applications 
+712 IA [-6] W Iowa: Council Bluffs 
+713 TX [-6] Mid SE Texas: central Houston (split, 281 ; overlay 832 ) 
+714 CA [-8] North and Central Orange County (see split 949 ; overlay 657 ) 
+715 WI [-6] N Wisconsin: Eau Claire 
+716 NY [-5] NW New York: Buffalo (see split 585 ) 
+717 PA [-5] E Pennsylvania: Harrisburg (see split 570 ) 
+718 NY [-5] New York City Metro Area, New York (Queens, Staten Island, The Bronx, and Brooklyn; see 212 , 347 ) 
+719 CO [-7] SE Colorado: Pueblo, Colorado Springs 
+720 CO [-7] Central Colorado: Denver (overlaid on 303 ) 
+724 PA [-5] SW Pennsylvania (areas outside metro Pittsburgh; split from 412 ) 
+727 FL [-5] Florida Tampa Metro: Saint Petersburg, Clearwater (Pinellas and parts of Pasco county; split from 813 ) 
+731 TN [-6] W Tennessee: outside Memphis metro area (split from 901 , perm 2/12/01, mand 9/17/01) 
+732 NJ [-5] Cent. New Jersey: Toms River, New Brunswick, Bound Brook (see overlay 848 ) 
+734 MI [-5] SE Michigan: west and south of Detroit -- Ann Arbor, Monroe (split from 313 ) 
+737 TX [-6] S Texas: Austin (overlaid on 512 , perm 11/10/01; see also 361) 
+740 OH [-5] SE Ohio (rural areas outside Columbus; split from 614 ) 
+747 CA [-8] (Region unknown) 
+752 CA [-8] California: Ontario, Ponoma, Chino, San Bernandino (perm 2/10/01) 
+754 FL [-5] Florida: Broward County area, incl Ft. Lauderdale (overlaid on 954 ; perm 8/1/01, mand 9/1/01) 
+757 VA [-5] E Virginia: Tidewater / Hampton Roads area -- Norfolk, Virginia Beach, Chesapeake, Portsmouth, Hampton, Newport News, Suffolk (part of what used to be 804 ) 
+758 -- [-4] St. Lucia (split from 809 ) 
+760 CA [-8] California: San Diego North County to Sierra Nevada (split from 619 ) 
+763 MN [-6] Cent. Minnesota: Minneapolis (split from 612 ; see also 952 ) 
+764 CA [-8] (overlay on 650 ; SUSPENDED) 
+765 IN [-5] Indiana: outside Indianapolis (split from 317 ) 
+767 -- [-4] Dominica (split from 809 ) 
+770 GA [-5] Georgia: Atlanta suburbs: outside of I- 285 ring road (part of what used to be 404 ; see also overlay 678 ) 
+772 FL [-5] S. Central Florida: St. Lucie, Martin, and Indian River counties (split from 561 ; eff 2/11/02; mand 11/11/02) 
+773 IL [-6] Illinois: city of Chicago, outside the loop (see 312 ; overlay 872 ) 
+774 MA [-5] Cent. Massachusetts: Framingham; Cape Cod (see split 978 , overlaid on 508 , eff 4/2/2001) 
+775 NV [-8] Nevada: Reno (all of NV except Clark County area; see 702 ) 
+778 BC [-8] Canada: British Columbia: Greater Vancouver (overlaid on 604 , per 11/3/01; see also 250) 
+780 AB [-7] Canada: Northern Alberta, north of Lacombe (see 403 ) 
+781 MA [-5] Massachusetts: Boston surburbs, to the north and west (see splits 617 , 508 ; overlay 339 ) 
+784 -- [-4] St. Vincent & Grenadines (split from 809 ) 
+785 KS [-6] N & W Kansas: Topeka (split from 913 ) 
+786 FL [-5] SE Florida, Monroe county (Miami; overlaid on 305 ) 
+787 PR [-4] Puerto Rico (see overlay 939 , perm 8/1/01) 
+800 -- [?] US toll free (see 888 , 877 , 866 , 855 , 844 , 833 , 822 ) 
+801 UT [-7] Utah: Salt Lake City Metro (see split 385 , eff 3/30/02; see also split 435) 
+802 VT [-5] Vermont 
+803 SC [-5] South Carolina: Columbia, Aiken (see 843 , 864 ) 
+804 VA [-5] E Virginia: Richmond (see splits 757 , 434 ) 
+805 CA [-8] S Cent. Coastal California (Ventura County): San Luis Obispo, Thousand Oaks (see 661 split) 
+806 TX [-6] Panhandle Texas: Amarillo 
+807 ON [-5/-6] Canada: W Ontario: Thunder Bay 
+808 HI [-10] Hawaii 
+809 -- [-4] Dominican Republic (see splits 264 , 268 , 284 , 340 , 441 , 473 , 664 , 758 , 767 , 784 , 868 , 876 ) 
+810 MI [-5] E Michigan: Flint, Pontiac (see 248 ; overlay 546 , split 586 ) 
+811 -- [--] Reserved for special applications 
+812 IN [-6] S Indiana: Evansville 
+813 FL [-5] SW Florida: Tampa Metro (splits 727 St. Petersburg, Clearwater, and 941 Sarasota) 
+814 PA [-5] Cent. Pennsylvania: Erie 
+815 IL [-6] NE Illinois: Rockford, Kankakee 
+816 MO [-6] N Missouri: Kansas City (see split 660 , overlay 975 ) 
+817 TX [-6] N Cent. Texas: Fort Worth area (see 254 , 940 ) 
+818 CA [-8] S California (Woodland Hills): Los Angeles (see 213 , 310 , 562 , 626 ) 
+819 QC [-5] NW Quebec: Trois Rivieres (see 867 ) 
+822 -- [?] US toll free (proposed, may not be in use yet) 
+828 NC [-5] W North Carolina: Asheville (split from 704 ) 
+830 TX [-6] Texas: N and W of San Antonio (split from 210 ) 
+831 CA [-8] California: central coast area from Santa Cruz through Monterey County 
+832 TX [-6] Texas: Houston (overlay 713 / 281 ) 
+833 -- [?] US toll free (proposed, may not be in use yet) 
+835 PA [-5] SE Pennsylvania: Allentown, Reading (overlaid on 610 , eff 5/1/01; see also 484) 
+836 FL [-5] Florida (region unknown) 
+843 SC [-5] South Carolina, coastal area: Charleston, Beaufort, Myrtle Beach (split from 803 ) 
+844 -- [?] US toll free (proposed, may not be in use yet) 
+845 NY [-5] New York: Poughkeepsie; Nyack, Nanuet, Valley Cottage, New City, Putnam, Dutchess, Rockland, Orange, Ulster and parts of Sullivan counties in New York's lower Hudson Valley (see 914 ; perm 6/5/2000) 
+847 IL [-6] Northern NE Illinois: northwestern suburbs of chicago (Evanston, Waukegan, Northbrook; see overlay 224 ) 
+848 NJ [-5] Cent. New Jersey: Toms River, New Brunswick, Bound Brook (see overlay 732 ) 
+850 FL [-5] Florida panhandle, from east of Tallahassee to Pensacola (split from 904 ) 
+855 -- [?] US toll free (proposed, may not be in use yet) 
+856 NJ [-5] SW New Jersey: greater Camden area, Mt Laurel (split from 609 ) 
+857 MA [-5] Massachusetts: greater Boston (overlaid on 617 , eff 4/2/2001) 
+858 CA [-8] S California: San Diego (see split 760 ; overlay 619 , 935 ) 
+859 KY [-5] N and Central Kentucky: Lexington; suburban KY counties of Cincinnati OH metro area; Covington, Newport, Ft. Thomas, Ft. Wright, Florence (split from 606 ) 
+860 CT [-5] Connecticut: Hartford, New London (split from 203 , overlay 959 ) 
+862 NJ [-5] N New Jersey: Newark Paterson Morristown (overlaid on 973 ) 
+863 FL [-5] Florida: Polk county (split from 941 ) 
+864 SC [-5] South Carolina, upstate area: Greenville, Spartanburg (split from 803 ) 
+865 TN [-5] E Tennessee: Knoxville, Knox and adjacent counties (split from 423 ; part of what used to be 615 ) 
+866 -- [?] US toll free 
+867 YT [-8/-9] Canada: Yukon and Northwest Territories (split from 403 / 819 ) 
+868 -- [-4] Trinidad and Tobago ("new" -- see 809 ) 
+869 -- [-4] St. Kitts & Nevis 
+870 AR [-6] S. Arkansas: Jonesboro 
+872 IL [-6] Illinois: Chicago (downtown only -- in the loop; see 773 ; overlaid on 312 and 773 ) 
+876 -- [-5] Jamaica (split from 809 ) 
+877 -- [?] US toll free 
+878 PA [-5] Pittsburgh, New Castle (overlaid on 412 , perm 8/17/01, mand t.b.a.) 
+880 -- [--] Paid Toll-Free Service 
+881 -- [--] Paid Toll-Free Service 
+882 -- [--] Paid Toll-Free Service 
+888 -- [?] US toll free 
+900 -- [?] US toll calls -- prices vary with the number called 
+901 TN [-6] W Tennessee: Memphis metro area (see 615 , 931 , split 731 ) 
+902 NS [-4] Canada: Nova Scotia, Prince Edward Island 
+903 TX [-6] NE Texas: Tyler 
+904 FL [-5] N Florida: Jacksonville (see splits 352 , 386 , 850 ) 
+905 ON [-5] Canada: S Cent. Ontario: Greater Toronto Area -- Durham, Halton, Hamilton-Wentworth, Niagara, Peel, York, and southern Simcoe County (excluding Toronto -- see overlay 289 [eff 6/9/01], splits 416, 647) 
+906 MI [-5] Upper Peninsula Michigan: Sault Ste. Marie, Escanaba, Marquette 
+907 AK [-9] Alaska 
+908 NJ [-5] Cent. New Jersey: Elizabeth, Basking Ridge, Somerville, Bridgewater 
+909 CA [-8] California: Inland empire: San Bernandino (? see 752 ), Riverside 
+910 NC [-5] S Cent. North Carolina: Fayetteville, Wilmington (see 336 ) 
+911 -- [--] Emergency 
+912 GA [-5] SE Georgia: Savannah (see splits 229 , 478 ) 
+913 KS [-6] Kansas: Kansas City area (see 785 ) 
+914 NY [-5] S New York: Westchester County (see 845 ) 
+915 TX [-7/-6] W Texas: Sweetwater, El Paso, Odessa, Midland 
+916 CA [-8] NE California: Sacramento, Walnut Grove, Lincoln, Newcastle and El Dorado Hills (split to 530 ) 
+917 NY [-5] New York: New York City (cellular, see 646 ) 
+918 OK [-6] E Oklahoma: Tulsa (see 580 ) 
+919 NC [-5] E North Carolina: Raleigh (see split 252 , overlay 984 ) 
+920 WI [-6] NE Wisconsin: Appleton, Green Bay, Sheboygan, Fond du Lac (from Beaver Dam NE to Oshkosh, Appleton, and Door County; part of what used to be 414 ) 
+925 CA [-8] California (Antioch, Concord, Pleasanton, Walnut Creek; split from 510 ) 
+928 AZ [-7] Central and Northern Arizona (split from 520 ) 
+931 TN [-6] Central Tennessee: semi-circular ring around Nashville (split from 615 ) 
+935 CA [-8] S California: San Diego (see split 760 ; overlay 858 , 619 ; on hold) 
+936 TX [-6] SE Texas: Conroe, Lufkin, Nacogdoches, Crockett (split from 409 , see also 979 ) 
+937 OH [-5] SW Ohio: Dayton (part of what used to be 513 ) 
+939 PR [-4] Puerto Rico (overlaid on 787 , perm 8/1/01) 
+940 TX [-6] N Cent. Texas: Denton, Wichita Falls (split from 254 , 817 ) 
+941 FL [-5] SW Florida: Sarasota and Manatee counties (part of what used to be 813 ; see split 863 ) 
+947 MI [-5/-6] (Region unknown; perm 5/5/01) 
+949 CA [-8] California: S Coastal Orange County (split from 714 ) 
+951 CA [-8] (Region unknown) 
+952 MN [-6] Cent. Minnesota: Minneapolis, Bloomington (split from 612 ; see also 763 ) 
+954 FL [-5] Florida: Broward County area, incl Ft. Lauderdale (part of what used to be 305 , see overlay 754 ) 
+956 TX [-6] Texas: Valley of Texas area; Harlingen, Laredo (split from 210 ) 
+957 NM [-7] New Mexico (pending; region unknown) 
+959 CT [-5] Connecticut: Hartford, New London (overlaid on 860 perm 1/6/01; mand 3/1/01???) 
+969 MD [-5] Maryland: Severn area (eff ???) 
+970 CO [-7] N and W Colorado (part of what used to be 303 ) 
+971 OR [-8] Oregon: Metropolitan Portland (see 503 ; perm 10/1/00) 
+972 TX [-6] Texas: Dallas Metro (overlays 214 / 469 / 972 ) 
+973 NJ [-5] N New Jersey: Newark Paterson Morristown (see overlay 862 ; split from 201 ) 
+975 MO [-6] N Missouri: Kansas City (overlaid on 816 ) 
+978 MA [-5] Massachusetts: north of Boston to NH (see split 978 -- this is the northern half of old 508 ; see overlay 351 ) 
+979 TX [-6] SE Texas: Galveston, Port Arthur, Bryan, College Station (split from 409 , see also 936 ) 
+980 NC [-5] North Carolina: (overlay on 704 ; perm 5/1/00, mand 3-15-01) 
+984 NC [-5] E North Carolina: Raleigh (overlaid on 919 , perm 8/1/01, mand 2/5/02) 
+985 LA [-6] E Louisiana: SE/N shore of Lake Pontchartrain: Hammond, Slidell, Covington, Amite, Kentwood, area SW of New Orleans, Houma, Thibodaux, Morgan City (split from 504 ; perm 02/12/2001; mand 10/22/01) 
+989 MI [-5] Upper central Michigan: Mt Pleasant, Saginaw (split from 517 ; perm 4/7/01) 
+52555 MX [-6] Mexico: Mexico City area (country code + city code) 

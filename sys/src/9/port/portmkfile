@@ -1,0 +1,130 @@
+PFILES=`{builtin cd ../port;echo *.c | sed 's/ /|/g; s/\.c//g'}
+^($PFILES)\.$O:R:	'../port/\1.c'
+	$CC $CFLAGS -I. ../port/$stem1.c
+
+IPFILES=`{builtin cd ../ip;echo *.c | sed 's/ /|/g; s/\.c//g'}
+^($IPFILES)\.$O:R:	'../ip/\1.c' ../ip/ip.h
+	$CC $CFLAGS -I. ../ip/$stem1.c
+
+%.$O:	%.s
+	$AS $AFLAGS $stem.s
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.acid:	%.c
+	$CC $CFLAGS -a $stem.c >$stem.acid
+
+%.acid:	../ip/%.c
+	$CC $CFLAGS -a -I.  ../ip/$stem.c >$stem.acid
+
+%.acid:	../port/%.c
+	$CC $CFLAGS -a -I. ../port/$stem.c >$stem.acid
+
+installall:V:
+	for(i in $CONFLIST)
+		mk 'CONF='$i install
+
+all:V:
+	for(i in $CONFLIST)
+		mk 'CONF='$i
+
+clean:V:
+	rm -f *.[$OS] *.root.s cfs.h fs.h init.h conf.h *.out
+	for(i in $CONFLIST)
+		mk $i.clean
+
+%.clean:V:
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.*
+
+%.$O:	/$objtype/include/u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h
+
+../port/systab.h:	/sys/src/libc/9syscall/sys.h ../port/mksystab
+	rc ../port/mksystab > ../port/systab.h
+
+$CONF.$O:	$CONF.c
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+
+$CONF.c:	../port/mkdevc $CONF
+	rc ../port/mkdevc $CONF > $CONF.c
+
+errstr.h:	../port/mkerrstr ../port/error.h
+	rc ../port/mkerrstr > errstr.h
+
+../port/latin1.h:	/lib/keyboard
+	aux/mklatinkbd /lib/keyboard > ../port/latin1.h
+
+%.db:		main.$O
+	$CC -s$stem main.c | dbfmt > $stem.db
+
+alloc.$O:	/sys/include/pool.h
+devmnt.$O:	/sys/include/fcall.h
+proc.$O:	errstr.h
+devroot.$O:	errstr.h
+trap.$O:	/$objtype/include/ureg.h
+devproc.$O:	/$objtype/include/ureg.h
+main.$O:	init.h
+trap.$O:	../port/systab.h
+devpipe.$O:	../port/netif.h
+netif.$O:	../port/netif.h
+devuart.$O:	../port/netif.h
+devmouse.$O:	screen.h
+devdraw.$O:	screen.h
+screen.$O:	screen.h
+latin1.$O:	../port/latin1.h
+thwack.$O:	../port/thwack.h
+unthwack.$O:	../port/thwack.h
+devsdp.$O:	../port/thwack.h
+devrealtime.$O edf.$O realtime.$O: ../port/edf.h
+
+nkfs.root.s:	/$objtype/bin/disk/nkfs
+	cp $prereq nkfs.out
+	../port/mkroot nkfs kfs
+
+dossrv.root.s:	/$objtype/bin/dossrv
+	cp $prereq dossrv.out
+	../port/mkroot dossrv kfs
+
+bzfs.root.s: /sys/lib/dist/bin/$objtype/bzfs
+	cp $prereq bzfs.out
+	../port/mkroot bzfs kfs
+
+bzroot.root.s: /sys/lib/dist/pc/root.bz2
+	aux/data2s bzroot < /sys/lib/dist/pc/root.bz2 > bzroot.root.s
+
+9660srv.root.s: /$objtype/bin/9660srv
+	cp $prereq 9660srv.out	
+	../port/mkroot 9660srv kfs
+
+factotum.root.s:	/$objtype/bin/auth/factotum
+	cp $prereq factotum.out
+	../port/mkroot factotum factotum
+
+nfactotum.root.s: /$objtype/bin/auth/nfactotum
+	cp $prereq nfactotum.out
+	../port/mkroot nfactotum factotum
+
+rcmain.root.s: /rc/lib/rcmain
+	cp /rc/lib/rcmain rcmain.out
+	../port/mkroot rcmain rcmain
+
+%.root.s:	/$objtype/bin/%
+	cp $prereq $stem.out
+	../port/mkroot $stem $stem
+
+%.root.s:	/$objtype/bin/disk/%
+	cp $prereq $stem.out
+	../port/mkroot $stem $stem
+
+%.root.s:	/$objtype/bin/ip/%
+	cp $prereq $stem.out
+	../port/mkroot $stem $stem
+
+%.embed.root.s: ../embed/%
+	aux/data2s $stem < $prereq > $target
+
+boot$CONF.root.s: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
+	$BOOTDIR/mkboot $CONF > boot$CONF.c
+	$CC $CFLAGS boot$CONF.c
+	$LD -o boot$CONF.out boot$CONF.$O $BOOTLIB print.$O
+	../port/mkroot boot$CONF boot

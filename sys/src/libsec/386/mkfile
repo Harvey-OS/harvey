@@ -1,0 +1,19 @@
+objtype=386
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libsec.a
+FILES=\
+	md5block\
+	sha1block\
+
+HFILES=/sys/include/libsec.h
+
+SFILES=${FILES:%=%.s}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib

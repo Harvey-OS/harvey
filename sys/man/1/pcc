@@ -1,0 +1,185 @@
+.TH PCC 1 
+.SH NAME
+pcc \- APE C compiler driver
+.SH SYNOPSIS
+.B pcc
+[
+.I option ...
+]
+[
+.I name ...
+]
+.SH DESCRIPTION
+.I Pcc
+compiles and loads C programs,
+using APE (ANSI C/POSIX) include files and libraries.
+Named files ending with
+.B .c
+are preprocessed with
+.IR cpp (1),
+then compiled with one of the compilers described in
+.IR 2c (1),
+as specified by the environment variable
+.BR $objtype .
+The object files are then loaded using one of the loaders described in
+.IR 2l (1).
+The options are:
+.TP \w'\fL-D\ \fIname=def\ 'u
+.B "-+
+Accept C++
+.B //
+comments.
+.TP
+.BI -o " out"
+Place loader output in file
+.I out
+instead of the default
+.BR 2.out ,
+.BR v.out ,
+etc.
+.TP
+.B -P
+Omit the compilation and loading phases;
+leave the result of preprocessing
+.IB name .c
+in
+.IB name .i\f1.
+.TP
+.B -E
+Like
+.BR -P ,
+but send the result to standard output.
+.TP
+.B -c
+Omit the loading phase.
+.TP
+.B -p
+Insert profiling code into the executable output.
+.TP
+.B -w
+Print compiler warning messages.
+.TP
+.BI -l lib
+Include
+.BI / $objtype /lib/ape/lib lib .a
+as a library during the linking phase.
+.TP
+.B -B
+Don't complain about functions used without
+ANSI function prototypes.
+.TP
+.B -V
+Enable
+.B void*
+conversion warnings, as in
+.IR 2c (1).
+.TP
+.B -v
+Echo the preprocessing, compiling, and loading commands
+before they are executed.
+.TP
+.BI -D name=def
+.br
+.ns
+.TP
+.BI -D name
+Define the
+.I name
+to the preprocessor,
+as if by
+.LR #define .
+If no definition is given, the name is defined as
+.LR 1 .
+.TP
+.BI -U name
+Undefine the
+.I name
+to the preprocessor,
+as if by
+.LR #undef .
+.TP
+.BI -I dir
+.L #include
+files whose names do not begin with 
+.L /
+are always
+sought first in the directory 
+of the
+.I file
+argument,
+then in directories named in 
+.B -I
+options,
+then in
+.BR /$objtype/include/ape .
+.TP
+.B -N
+Don't optimize compiled code.
+.TP
+.B -S
+Print an assembly language version of the object code
+on standard output.
+.TP
+.B -a
+Instead of compiling, print on standard output acid functions (see
+.IR acid (1))
+for examining structures declared in the source files.
+.TP
+.B -aa
+Like
+.B -a
+except that functions for structures declared in included header files
+are omitted.
+.TP
+.B -F
+Enable vararg type checking as described in 
+.IR 2c (1).
+This is of limited use without the appropriate 
+.B #pragma 
+definitions.
+.PP
+The APE environment contains all of the include
+files and library routines specified in the ANSI C standard
+(X3.159-1989), as well as those specified in the IEEE Portable
+Operating System Interface standard (POSIX, 1003.1-1990, ISO 9945-1).
+In order to access the POSIX routines, source programs should
+define the preprocessor constant
+.BR _POSIX_SOURCE .
+.SH FILES
+.TF /$objtype/lib/ape/libap.a
+.TP
+.B /sys/include/ape
+directory for machine-independent
+.B #include
+files.
+.TP
+.B /$objtype/include/ape
+directory for machine-dependent
+.B #include
+files.
+.TP
+.B /$objtype/lib/ape/libap.a
+ANSI C/POSIX library.
+.SH "SEE ALSO"
+.IR cpp (1),
+.IR 2c (1),
+.IR 2a (1),
+.IR 2l (1),
+.IR mk (1),
+.IR nm (1),
+.IR acid (1),
+.IR db (1),
+.IR prof (1)
+.PP
+Howard Trickey,
+``APE \(em The ANSI/POSIX Environment''
+.SH SOURCE
+.B /sys/src/cmd/pcc.c
+.SH BUGS
+The locale manipulation functions are minimal.
+Signal functions and terminal characteristic
+handlers are only minimally implemented.
+.IR Link
+always fails, because Plan 9 doesn't support multiple links to a file.
+The functions related to setting effective user and group ids
+cannot be implemented because the concept doesn't exist in Plan 9.

@@ -1,0 +1,50 @@
+#!/bin/rc
+
+# desc: save the current installation state, to be resumed later
+# prereq: 
+# mustdo: 
+
+switch($1) {
+case checkdone
+	stop=notdone
+	export stop
+
+case checkready
+	if(~ $cdboot yes){
+		stop=notdone
+		export stop
+	}
+
+case go
+	coherence
+	switch($2){
+	case finished
+		echo 'We need to write the state of the current installation to the install floppy,'
+		echo 'so that you can pick up from here if, for example, you want to set up'
+		echo 'more boot methods.'
+		echo
+	case *
+		echo 'We need to write the state of the current installation to the install floppy.'
+		echo 'so that you can pick up from here when you wish to continue.'
+		echo
+	}
+	echo -n 'Please make sure the install floppy is in the floppy drive and press enter.'
+	read >/dev/null >[2]/dev/null
+
+	if(! a:) {
+		echo 'Couldn''t mount the floppy disk; sorry.'
+		exit
+	}
+
+	if(cp /tmp/vars /n/a:/9inst.cnf || cp /tmp/vars /n/a:/9inst.cnf) {
+		echo 'Your install state has been saved to the install floppy.'
+		if(~ $2 finished){
+			echo
+			echo 'Congratulations; you''ve completed the install.'
+		}
+		echo
+		halt
+	}
+
+	echo 'Couldn''t save the state to your install floppy.  Sorry.'
+}

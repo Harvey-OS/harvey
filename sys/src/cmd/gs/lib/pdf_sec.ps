@@ -1,0 +1,361 @@
+%   Copyright (C) 1996-1998 Geoffrey Keating. 
+%	Copyright (C) 2001 Artifex Software, Inc.
+% This file may be freely distributed with or without modifications,
+% so long as modified versions are marked as such and copyright notices are
+% not removed.
+
+% $Id: pdf_sec.ps,v 1.5 2001/10/09 20:17:23 lpd Exp $
+% Implementation of security hooks for PDF reader.
+
+% This file contains the procedures that have to take encryption into
+% account when reading a PDF file. It replaces the stub version of this
+% file that is shipped with GhostScript. It requires GhostScript 7.01
+% or later.
+
+% Documentation for using this file is available at
+% http://www.ozemail.com.au/%7Egeoffk/pdfencrypt/
+
+% Modified by Alex Cherepanov to work with GS 6.60 and higher.
+% New versions of GS require explicit checks for /true , /false, and /null
+% in .decpdfrun . This fix is backward-compatible.
+
+% Modified by Raph Levien and Ralph Giles to use the new C
+% implementations of md5 and arcfour in ghostscript 7.01, and to
+% be compatible with PDF 1.4 128-bit encryption.
+
+/.setlanguagelevel where { pop 2 .setlanguagelevel } if
+.currentglobal true .setglobal
+/pdfdict where { pop } { /pdfdict 100 dict def } ifelse
+pdfdict begin
+
+% Older ghostscript versions do not have .pdftoken, so we use 'token' instead.
+/.pdftoken where { pop } { /.pdftoken /token load def } ifelse
+
+% take a stream and arc4 decrypt it.
+% <stream> <key> arc4decodefilter <stream>
+/arc4decodefilter {
+  1 dict begin
+  /Key exch def
+  currentdict end /ArcfourDecode filter
+} bind def
+
+% <ciphertext> <key> arc4decode <plaintext>
+/arc4decode {
+  %(key: ) print dup == (ct: ) print 1 index ==
+  1 index length 0 eq {
+    pop
+  } {
+    1 index length string 3 1 roll arc4decodefilter exch readstring pop
+  } ifelse
+} bind def
+
+/md5 {
+  16 string dup /MD5Encode filter dup 4 3 roll writestring closefile
+} bind def
+
+/pdf_padding_string
+   <28bf4e5e4e758a41 64004e56fffa0108
+    2e2e00b6d0683e80 2f0ca9fe6453697a>
+def
+
+% Pad a key out to 32 bytes.
+/pdf_pad_key {		% <key> pdf_pad_key <padded key>
+  dup length 32 gt { 0 32 getinterval } if
+  pdf_padding_string
+  0 32 3 index length sub getinterval
+  concatstrings
+} bind def
+
+/pdf_xorbytes {      % <iter-num> <key> pdf_xorbytes <xored-key>
+  dup length dup string
+  exch 1 sub 0 1 3 2 roll {
+    % <iter-num> <key> <new-key> <byte-num>
+    dup 3 index exch get 4 index xor
+    % <iter-num> <key> <new-key> <byte-num> <byte>
+    3 copy put pop pop
+  } for
+  3 1 roll pop pop
+} bind def
+
+% Get length of encryption key in bytes
+/pdf_key_length {    % pdf_key_length <key_length>
+  Trailer /Encrypt oget /Length knownoget { -3 bitshift } { 5 } ifelse
+} bind def
+
+% Algorithm 3.2
+/pdf_compute_encryption_key {  % <password> pdf_compute_encryption_key <key>
+  % Step 1.
+  pdf_pad_key
+
+  % Step 2, 3.
+  Trailer /Encrypt oget dup /O oget
+  % <padded-key> <encrypt> <O>
+
+  % Step 4.
+  exch /P oget 4 string exch
+  2 copy 255 and 0 exch put
+  2 copy -8 bitshift 255 and 1 exch put
+  2 copy -16 bitshift 255 and 2 exch put
+  2 copy -24 bitshift 255 and 3 exch put pop
+  % <padded-key> <O> <P>
+
+  % Step 5.
+  Trailer /ID oget 0 oget
+  3 { concatstrings } repeat md5
+
+  % Step 6.
+  Trailer /Encrypt oget /R oget 3 eq {
+     50 { md5 } repeat
+  } if
+
+  % Step 7.
+  0 pdf_key_length getinterval
+} bind def
+
+% Algorithm 3.4
+/pdf_gen_user_password_R2 { % <filekey> pdf_gen_user_password_R2 <U>
+
+  % Step 2.
+  pdf_padding_string exch arc4decode
+} bind def
+
+% Algorithm 3.5
+/pdf_gen_user_password_R3 { % <filekey> pdf_gen_user_password_R3 <U>
+
+  % Step 2.
+  pdf_padding_string
+
+  % Step 3.
+  Trailer /ID oget 0 oget
+  concatstrings md5
+
+  % Step 4.
+  1 index arc4decode
+
+  % Step 5.
+  1 1 19 {
+    2 index pdf_xorbytes arc4decode
+  } for
+  exch pop
+
+} bind def
+
+/pdf_gen_user_password { % <password> pdf_gen_user_password <filekey> <U>
+  % common Step 1 of Algorithms 3.4 and 3.5.
+  pdf_compute_encryption_key dup
+
+  Trailer /Encrypt oget
+
+  /R oget dup 2 eq {
+    pop pdf_gen_user_password_R2
+  } {
+    dup 3 eq {
+      pop pdf_gen_user_password_R3
+    } {
+      (****This file uses an unknown standard security handler revision: )
+      print == flush
+      /pdf_check_user_password cvx /undefined signalerror
+    } ifelse
+  } ifelse
+} bind def
+
+% Algorithm 3.6
+/pdf_check_user_password { % <password> pdf_check_user_password <filekey> true
+                           % <password> pdf_check_user_password false
+  pdf_gen_user_password
+
+  Trailer /Encrypt oget /U oget
+
+  0 2 index length getinterval eq {
+    true
+  } {
+    pop false
+  } ifelse
+} bind def
+
+% Compute an owner key, ie the result of step 4 of Algorithm 3.3
+/pdf_owner_key % <password> pdf_owner_key <owner-key>
+{
+  % Step 1.
+  pdf_pad_key
+
+  % Step 2.
+  md5
+
+  % 3.3 Step 3.
+  Trailer /Encrypt oget /R oget 3 eq {
+    50 { md5 } repeat
+  } if
+
+  % Step 4.
+  0 pdf_key_length getinterval
+} bind def
+
+% Algorithm 3.7
+/pdf_check_owner_password { % <password> pdf_check_owner_password <filekey> true
+                            % <password> pdf_check_owner_password false
+  % Step 1.
+  pdf_owner_key
+
+  % Step 2.
+  Trailer /Encrypt oget dup /O oget 2 index arc4decode
+  % <encryption-key> <encrypt-dict> <decrypted-O>
+
+  % Step 3.
+  exch /R oget 3 eq {
+    1 1 19 {
+      2 index pdf_xorbytes arc4decode
+    } for
+  } if
+  exch pop
+  % <result-of-step-3>
+
+  pdf_check_user_password
+} bind def
+
+% Process the encryption information in the Trailer.
+/pdf_process_Encrypt {
+  Trailer /Encrypt oget
+  /Filter oget /Standard eq not {
+    (****This file uses an unknown security handler.\n) print flush
+    /pdf_process_Encrypt cvx /undefined signalerror
+  } if
+  () pdf_check_user_password
+  {
+    /FileKey exch def
+  } {
+    /PDFPassword where {
+       pop PDFPassword pdf_check_user_password
+       {
+         /FileKey exch def
+       } {
+         PDFPassword pdf_check_owner_password
+         {
+           /FileKey exch def
+         } {
+           (****Password did not work.\n) print flush
+	   /pdf_process_Encrypt cvx /invalidfileaccess signalerror
+         } ifelse
+       } ifelse
+    } {
+      (****This file requires a password for access.\n) print flush
+      /pdf_process_Encrypt cvx /invalidfileaccess signalerror
+    } ifelse
+  } ifelse
+
+%   Trailer /Encrypt oget /P oget 4 and 0 eq #? and
+%    { (****This owner of this file has requested you do not print it.\n)
+%	  print flush
+%      /pdf_process_Encrypt cvx /invalidfileaccess signalerror
+%    }
+%   if
+} bind def
+
+% Calculate the key used to decrypt an object (to pass to .decpdfrun or
+% put into a stream dictionary).
+/computeobjkey	% <object#> <generation#> computeobjkey <keystring>
+{
+  exch
+  FileKey length 5 add string
+  dup 0 FileKey putinterval
+  exch
+		% stack:  gen# string obj#
+    2 copy 255 and FileKey length exch put
+    2 copy -8 bitshift 255 and FileKey length 1 add exch put
+    2 copy -16 bitshift 255 and FileKey length 2 add exch put
+  pop exch
+    2 copy 255 and FileKey length 3 add exch put
+    2 copy -8 bitshift 255 and FileKey length 4 add exch put
+  pop md5 0 FileKey length 5 add 2 index length min getinterval
+} bind def
+
+% As .pdfrun, but decrypt strings with key <key>.
+/.decpdfrun			% <file> <keystring> <opdict> .decpdfrun -
+ {	% Construct a procedure with the file, opdict and key bound into it.
+   2 index cvlit mark mark 5 2 roll
+    { .pdftoken not { (%%EOF) cvn cvx } if
+      dup xcheck
+       { DEBUG { dup == flush } if
+	 3 -1 roll pop
+	 2 copy .knownget
+	  { exch pop exch pop exec
+          }
+	  { exch pop
+            dup /true eq
+              { pop //true
+              }
+              { dup /false eq
+                  { pop //false 
+                  }
+                  { dup /null eq
+                      { pop //null
+                      }
+                      { (%stderr) (w) file
+	                dup (****************Unknown operator: ) writestring
+	                dup 3 -1 roll .writecvs dup (\n) writestring flushfile
+                      }
+                    ifelse
+                  }
+                ifelse
+              }
+            ifelse
+	  }
+	 ifelse
+       }
+       { exch pop DEBUG { dup ==only ( ) print flush } if
+	 dup type /stringtype eq
+	  { 1 index arc4decode
+	    DEBUG { (%Decrypted: ) print dup == flush } if
+	  }
+	 if
+	 exch pop
+       }
+      ifelse
+    }
+   aload pop .packtomark cvx
+   /loop cvx 2 packedarray cvx
+    { stopped /PDFsource } aload pop
+   PDFsource
+    { store { stop } if } aload pop .packtomark cvx 
+   /PDFsource 3 -1 roll store exec
+ } bind def
+
+% Run the code to resolve an object reference.
+/pdf_run_resolve
+ { /FileKey where
+    { pop
+      2 copy computeobjkey dup 4 1 roll
+      PDFfile exch resolveopdict .decpdfrun
+      dup dup dup 5 2 roll
+	% stack: object object key object object
+      xcheck exch type /dicttype eq and
+       { /StreamKey exch put }
+       { pop pop }
+      ifelse
+    }
+    { PDFfile resolveopdict .pdfrun }
+   ifelse
+ } bind def
+
+% Prefix a decryption filter to a stream if needed.
+% Stack: readdata? dict parms file/string filternames
+% (both before and after).
+/pdf_decrypt_stream
+ { 3 index /StreamKey known
+   {
+      exch 
+	% Stack: readdata? dict parms filternames file/string
+      3 index /Length oget
+      dup 0 eq {
+	% Handle Length=0 case specially to avoid SubFileDecode semantics
+        pop pop ()
+      } {
+        () /SubFileDecode filter
+      } ifelse
+      3 index /StreamKey get arc4decodefilter
+      exch
+   } if
+ } bind def
+
+end			% pdfdict
+.setglobal

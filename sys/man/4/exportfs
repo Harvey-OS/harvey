@@ -1,0 +1,205 @@
+.TH EXPORTFS 4
+.SH NAME
+exportfs, srvfs \- network file server plumbing
+.SH SYNOPSIS
+.B exportfs
+[
+.B -ads
+] [
+.B -f
+.I dbgfile
+] [
+.B -m
+.I msize
+] [
+.B -r
+.I root
+] [
+.B -S
+.I service
+] [
+.B -A announce
+]
+.PP
+.B srvfs
+[
+.B -d
+]
+[
+.B -e
+.I "'enc auth'"
+]
+[
+.B -p
+.I filter
+]
+.I name
+.I path
+.SH DESCRIPTION
+.I Exportfs
+is a user level file server that allows Plan 9 compute servers, rather
+than file servers, to export portions of a name space across networks.
+The service is started either by the
+.IR cpu (1)
+command or by a network listener process.  An initial protocol
+establishes a root directory for the exported name space.
+The
+connection to
+.I exportfs
+is then mounted, typically on
+.BR /mnt/term .
+.I Exportfs
+then acts as a relay file server: operations in the imported file
+tree are executed on the remote server and the results returned.  This
+gives the appearance of exporting a name space from a remote machine
+into a local file tree.
+.PP
+The 
+.B -r
+option bypasses the initial protocol, instead immediately
+serving the name space rooted at 
+.IR root .
+The
+.B -s
+option is equivalent to
+.B -r 
+.BR / ,
+but predates
+.B -r
+and remains for compatibility.
+.PP
+The
+.B -S
+option also bypasses the initial protocol but
+serves the result of mounting
+.IR service .
+A separate mount is used for each
+.IR attach (5)
+message,
+to correctly handle servers in which each mount
+corresponds to a different client
+.IR e.g. , (
+.IR rio (4)).
+.PP
+The
+.B -m
+option sets the maximum message size that 
+exportfs should offer to send (see
+.IR version (5));
+this helps tunneled
+9P connections to avoid unnecessary fragmentation.
+.PP
+The
+.B -a
+option instructs
+.I exportfs
+to authenticate the user, usually because it is
+being invoked from a remote machine.
+.PP
+The
+.B -d
+option instructs
+.I exportfs
+to log all 9P traffic to 
+.I dbgfile
+(default
+.BR /tmp/exportdb ).
+.PP
+The
+.B -e
+option specifies the encryption and authentication algorithms to use for
+encrypting the wire traffic.  The defaults are
+.B rc4_256
+and
+.BR sha1 .
+The full list of supported protocols in in
+.IR ssl (3).
+.PP
+The
+.B cpu
+command uses
+.I exportfs
+to serve device files in the terminal.  The
+.IR import (4)
+command calls
+.I exportfs
+on a remote machine, permitting users to access arbitrary pieces of
+name space on other systems.
+Because the kernel disallows reads and writes on mounted pipes
+(as might be found in
+.BR /srv ),
+.I exportfs
+calls itself (with appropriate
+.B -m
+and
+.B -S 
+options) to simulate reads and writes on such files.
+.PP
+.I Srvfs
+invokes
+.I exportprog
+(default
+.BR /bin/exportfs )
+to create a mountable file system from a name space
+and posts it at
+.BI /srv/ name ,
+which is created with mode
+.I perm
+(default 0600).
+By default, the name space is the directory tree rooted at 
+.IR path .
+If the 
+.B -S
+option is given, the name space is obtained by
+mounting
+.B path
+(typically a file in 
+.BR /srv ).
+If the
+.B -d
+option is given,
+.I srvfs
+passes it to
+.I exportprog
+to enable debugging.
+.PP
+The
+.B -A
+filter specifies an announce string when exportfs is used in combination
+with aan.  The announce string identifies the network and network 
+protocol to use for aan connections.
+.SH EXAMPLES
+Use
+.I srvfs
+to enable mounting of an FTP file system (see
+.IR ftpfs (4))
+in several windows, 
+or to publish a
+.B /proc
+(see
+.IR proc (3))
+with a broken process so a remote person may debug the program:
+.IP
+.EX
+srvfs ftp /n/ftp
+srvfs broke /mnt/term/proc
+.EE
+.LP
+Use 
+.I srvfs
+to obtain a copy of a service to be manipulated directly
+by a user program like
+.IR nfsserver (8):
+.IP
+.EX
+srvfs nfs.boot /srv/boot
+aux/nfsserver -f /srv/nfs.boot
+.EE
+.SH SOURCE
+.B /sys/src/cmd/exportfs
+.br
+.B /sys/src/cmd/srvfs.c
+.SH SEE ALSO
+.IR aan (1),
+.IR import (4),
+.IR exportfs (4)

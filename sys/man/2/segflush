@@ -1,0 +1,42 @@
+.TH SEGFLUSH 2
+.SH NAME
+segflush \- flush instruction and data caches
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+int	segflush(void *va, ulong len)
+.PP
+.SH DESCRIPTION
+.I Segflush
+invalidates any instruction cache and writes back any data
+cache associated with pages contained in a segment.
+All subsequent new pages in the segment will also be flushed when first referenced.
+.PP
+.I Va
+is an address within the segment to be flushed;
+it is rounded down to the nearest page boundary.
+.I Len
+specifies the length in bytes of
+the memory to flush;
+.IB va + len
+is rounded up to the nearest page boundary.
+.I Segflush
+works correctly when the memory straddles multiple segments.
+.PP
+Correct use of
+.I segflush
+depends on an understanding of the cache architecture of the specific
+machine.
+.SH SOURCE
+.B /sys/src/libc/9syscall
+.SH SEE ALSO
+.IR segattach (2),
+.IR segbrk (2)
+.br
+.BR /proc/*/segment
+.SH DIAGNOSTICS
+Sets
+.IR errstr .

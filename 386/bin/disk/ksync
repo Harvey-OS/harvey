@@ -1,0 +1,20 @@
+#!/bin/rc
+
+fn dosync {
+	echo disk/kfscmd $* sync
+	if(disk/kfscmd $* sync)
+		echo synced
+	if not
+		echo sync failed
+}
+
+kfs = `{ls /srv/kfs.*.cmd >[2]/dev/null}
+switch($#kfs){
+case 0
+	dosync
+case *
+	if(test -r /srv/kfs.cmd)
+		dosync
+	for(i in $kfs)
+		dosync -n `{echo $i|sed 's%/srv/kfs.(.*).cmd%\1%'}
+}

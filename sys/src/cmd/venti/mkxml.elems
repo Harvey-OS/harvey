@@ -1,0 +1,42 @@
+#!/bin/rc
+
+echo \
+'#include "stdinc.h"
+#include "dat.h"
+#include "fns.h"
+#include "httpd.h"
+#include "xml.h"
+'
+
+sed -n '/<struct/,/<\/struct>/{
+	s/^[^<]+</</
+	t cleart
+:cleart
+	s/<struct name="(.*)" type="(.*)">.*/void xml\1(Hio *hout, \2s, char *tag, int indent){\n	xmlIndent(hout, indent);\n	hprint(hout, "<%s>\\n", tag);/
+	t start
+	s/<field name="(.*)" val="(.*)" type="(.*)"\/>.*/	xml\3(hout, \2, "\1", indent + 1);/
+	t field
+	s/<array name="(.*)" val="(.*)" elems="(.*)" type="(.*)"\/>.*/	for(i = 0; i < \3; i++)\n		xml\4(hout, \2, "\1", indent + 1);/
+	t array
+	s/<\/struct>/	xmlIndent(hout, indent);\n	hprint(hout, "<\/%s>\\n", tag);\n}\n/
+	t produce
+}
+b
+:start
+	h
+	b
+:field
+	H
+	b
+:array
+	H
+	x
+	s/{\n/&	int i;\n\n/
+	s/^	int i;\n\n	int i;\n/	int i;\n/
+	x
+	b
+:produce
+	H
+	g
+	p
+' $1

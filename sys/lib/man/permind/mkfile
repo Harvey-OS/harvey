@@ -1,0 +1,35 @@
+BUILTINS=
+< /$objtype/mkfile
+< /sys/man/fonts
+
+out: permindex dopermind mac
+	dopermind > out
+
+permindex:V: $O.ptx1
+	rm -f junk*
+	for (i in /sys/man/[0-9])
+		makind1 $i >> junk0
+	sed 's/0intro/intro/g
+	s/  +/ /g
+	s/ +$//' junk0 > junk1
+	$O.ptx1 -f -w 5.3i -g 0.1i -h 3n -c '.ps 8
+	.fp 1 R LucidaSans
+	.ft 1' -i ignore -b bfile -r junk1 >junk2
+	awk -f dup2.awk junk2 | awk -f dup1.awk | sort -dfut'"' +5 -6 +1 -2 +8 +0 >junk3
+	mv junk3 junk2
+	awk -f dup2.awk junk2 | awk -f dup1.awk | sort -dfut'"' +5 -6 +1 -2 +8 +0 >junk3
+	mv junk3 junk2
+	awk -f dup2.awk junk2 | awk -f dup1.awk | sort -dfut'"' +5 -6 +1 -2 +8 +0 >junk3
+	tr A-Z a-z <toc | awk '{ print "\"" $1 "(" $2 ")\"", $3 }' >junk4
+	awk '	BEGIN { Q = "\""
+			while(getline <"junk4") toc[$1] = $1 " " $2 }
+		{ $NF = toc[$NF]; print }
+	' junk3 >permindex
+
+
+$O.ptx1: ptx1.c
+	$CC ptx1.c
+	$LD -o $O.ptx1 ptx1.$O -lstdio
+
+clean:V:
+	rm -f junk* ptx1.v *.ptx1 permindex out

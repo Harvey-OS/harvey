@@ -1,0 +1,29 @@
+</$objtype/mkfile
+
+TARG=dossrv
+OFILES=\
+	xfssrv.$O\
+	xfile.$O\
+	dosfs.$O\
+	dossubs.$O\
+	iotrack.$O\
+	lock.$O\
+	chat.$O\
+	devio.$O\
+
+HFILES=dat.h\
+	dosfs.h\
+	fns.h\
+	iotrack.h\
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/%}\
+
+</sys/src/cmd/mkone
+
+xfssrv.$O:	errstr.h

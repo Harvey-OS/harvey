@@ -1,0 +1,15 @@
+#!/bin/rc
+
+rfork en
+
+fn usage {
+	echo 'usage: replica/changes replica-name [paths]' >[1=2]
+	exit usage
+}
+
+. /rc/bin/replica/defs $*
+
+need clientdb clientroot clientproto
+
+must clientmount
+exec replica/updatedb -p $clientproto -l -r $clientroot $clientexclude $clientdb $paths

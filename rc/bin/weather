@@ -1,0 +1,46 @@
+#!/bin/rc
+
+rfork e
+
+DEFAULT=ewr
+
+fn usage{
+	echo 'usage: weather 3-letter-city-code' >[1=2]
+	echo 'for a list of cities in new york, say' >[1=2]
+	echo '	weather ny' >[1=2]
+	exit usage
+}
+
+switch($#*){
+case 0
+	arg=$DEFAULT
+	if(~ $#weather 1)
+		arg=$weather
+case 1
+	arg=$1
+case *
+	usage
+}
+
+switch($arg){
+case [a-zA-Z][a-zA-Z][a-zA-Z]
+	script=('' '' 'C' '4' '1' '1' $arg '' '' '' '' 'X')
+case [a-zA-Z][a-zA-Z]
+	script=('' '' 'C' '4' '1' '3' $arg '' '' '' '' 'X')
+case *
+	usage
+}
+
+{
+	for(i in $script)
+		echo $i
+} |
+con -nrl tcp!rainmaker.wunderground.com!telnet |
+sed -n '/Enter .-letter .* code:/,/CITY FORECAST MENU/p' |
+sed 's/Enter .-letter .* code: //' |
+sed 's/   Press Return to continue, M to return to menu, X to exit: //' |
+grep -v 'CITY FORECAST MENU' |
+tr -d '' |
+sed 's/ *$//' |
+uniq
+

@@ -1,0 +1,205 @@
+.TH HTTPD 8
+.SH NAME
+httpd, mirror, save, imagemap, man2html \- HTTP server
+.SH SYNOPSIS
+.PP
+.B ip/httpd/httpd
+.RB [ -a
+.IR srvaddr ]
+.RB [ -c
+.IR cert ]
+.RB [ -d
+.IR domain ]
+.RB [ -n
+.IR namespace ]
+.RB [ -w
+.IR webroot ]
+.PP
+.B ip/httpd/mirror
+.RB [ -b
+.IR inbuf ]
+.RB [ -d
+.IR domain ]
+.RB [ -r
+.IR remoteip ]
+.RB [ -w
+.IR webroot ]
+.RB [ -N
+.IR netdir ]
+.I method version uri
+.RI [ search ]
+.PP
+.B ip/httpd/save
+.RB [ -b
+.IR inbuf ]
+.RB [ -d
+.IR domain ]
+.RB [ -r
+.IR remoteip ]
+.RB [ -w
+.IR webroot ]
+.RB [ -N
+.IR netdir ]
+.I method version uri
+.RI [ search ]
+.PP
+.B ip/httpd/imagemap
+.RB [ -b
+.IR inbuf ]
+.RB [ -d
+.IR domain ]
+.RB [ -r
+.IR remoteip ]
+.RB [ -w
+.IR webroot ]
+.RB [ -N
+.IR netdir ]
+.I method version uri
+.PP
+.B ip/httpd/man2html
+.RB [ -b
+.IR inbuf ]
+.RB [ -d
+.IR domain ]
+.RB [ -r
+.IR remoteip ]
+.RB [ -w
+.IR webroot ]
+.RB [ -N
+.IR netdir ]
+.I method version uri
+.RI [ search ]
+.SH DESCRIPTION
+.I Httpd
+serves the
+.I webroot
+directory of the file system described by
+.I namespace
+(default
+.BR /lib/namespace.httpd ),
+using version 1.1 of the HTTP protocol.
+It announces the service
+.I srvaddr
+(default
+.BR tcp!*!http ),
+and listens for incoming calls.
+If an X.509 certificate is supplied with the
+.B -c
+option, then the service is instead
+.BR tcp!*!https .
+There should already be a factotum
+holding the corresponding private key.
+.PP
+.I Httpd
+supports only the GET and HEAD methods of the HTTP protocol;
+some magic programs support POST as well.
+Persistent connections are supported for HTTP/1.1 or later clients;
+all connections close after a magic command is executed.
+The Content-type
+(default application/octet-stream)
+and Content-encoding
+(default binary)
+of a file are determined by looking for suffixes of the file name in
+.BR /sys/lib/mimetype .
+.PP
+Each requested URI is looked up in a redirection table, read from
+.BR /sys/lib/httpd.rewrite .
+If a prefix of the URI matches a redirection path,
+the URI is rewritten using a replacement path,
+and a redirect is sent to the HTTP client.
+If the replacement path does not specify a server name,
+and the request has no explicit host,
+then
+.I domain
+is the host name used in the redirection.
+.PP
+Before opening any file,
+.I httpd
+looks for a file in the same directory called
+.BR .httplogin .
+If the file exists, the directory is considered
+locked and the client must specify a user name
+and password machine a pair in the file.
+.B .httplogin
+contains a list of space or newline separated tokens, each
+possibly delimited by single quotes.  The first
+is a domain name presented to the HTTP client.
+The rest are pairs of user name and password.
+Thus, there can be many user name/password pairs
+valid for a directory.
+.PP
+If the requested URI begins with
+.BI  /magic/ server /\f1,
+.I httpd
+executes the file
+.BI /bin/ip/httpd/ server
+to finish servicing the request.
+.IR Method
+and
+.IR version
+are those received on the first line of the request.
+.I Uri
+is the remaining portion of the requested URI.
+.I Inbuf
+contains the rest of the bytes read by the server,
+and
+.I netdir
+is the network directory for the connection.
+There are routines for processing command arguments,
+parsing headers, etc. in the httpd library,
+.BR /sys/src/cmd/ip/httpd/libhttpd.a.$O .
+See
+.B httpd.h
+in that directory and existing magic commands for more details.
+.PP
+.I Mirror
+is a trivial server that just returns the method, URI, any search,
+the headers, and the message body sent by the client.
+.PP
+.I Save
+writes a line to
+.BI /usr/web/save/ uri .data
+and returns the contents of
+.BI /usr/web/save/ uri .html.
+Both files must be accessible for the request to succeed.
+The saved line includes the current time
+and either the search string from a HEAD or GET
+or the first line of the body from a POST.
+It is used to record form submissions.
+.PP
+.I Imagemap
+processes an HTML imagemap query.
+It looks up a the point
+.I search
+in the image map file given by 
+.IR uri ,
+and returns a redirection to the appropriate page.
+The map file defaults to NCSA format.
+Any entries after a line starting with the word
+.B #cern
+are interpreted in CERN format.
+.PP
+.I Man2html
+converts
+.IR man (6)
+format manual pages into html.
+It includes some abilities to search the manuals.
+.SH FILES
+.TF /lib/namespace.httpd
+.TP
+.B /sys/lib/mimetype
+content type description file
+.TP
+.B /lib/namespace.httpd
+default namespace file for httpd
+.TP
+.B /sys/lib/httpd.rewrite
+redirection file
+.SH SOURCE
+.B /sys/src/cmd/ip/httpd
+.SH "SEE ALSO"
+.I newns
+in
+.IR auth (2),
+.IR listen (8),
+.IR x509 (8)

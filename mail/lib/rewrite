@@ -1,0 +1,9 @@
+# mail rewrite rules, see rewrite(6)
+#
+# see the appropriate example rewrite files
+# your type of mail system:
+#
+# /mail/lib/rewrite.direct - for systems that deliver all mail directly
+# /mail/lib/rewrite.gateway - for systems that route all mail to a gateway
+#				or mail server for delivery
+#

@@ -1,0 +1,27 @@
+</$objtype/mkfile
+
+<../config
+TARG=download
+
+OFILES=download.$O
+
+COMMONDIR=../common
+
+HFILES=download.h\
+	$COMMONDIR/comments.h\
+	$COMMONDIR/gen.h\
+	$COMMONDIR/path.h\
+	$COMMONDIR/ext.h\
+
+LIB=$COMMONDIR/com.a$O
+BIN=$POSTBIN
+
+</sys/src/cmd/mkone
+CC=pcc
+LD=pcc
+CFLAGS=-c -D$SYSTEM -D_POSIX_SOURCE -I$COMMONDIR -B
+
+$LIB:
+	cd $COMMONDIR
+	mk install
+	mk clean

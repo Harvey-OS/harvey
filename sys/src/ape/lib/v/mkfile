@@ -1,0 +1,21 @@
+APE=/sys/src/ape
+<$APE/config
+
+LIB=/$objtype/lib/ape/libv.a
+
+OFILES=getpass.$O\
+	tty.$O\
+	rand.$O\
+	nrand.$O\
+	getfields.$O\
+	min.$O\
+	max.$O\
+	error.$O\
+	nap.$O
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c
+
+%.$O:	$FAMILY/%.c
+	$CC $CFLAGS $prereq

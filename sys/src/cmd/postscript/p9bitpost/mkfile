@@ -1,0 +1,17 @@
+</$objtype/mkfile
+
+
+<../config
+
+COMMONDIR=../common
+
+TARG=p9bitpost
+OFILES=pslib.$O\
+	p9bitpost.$O\
+
+BIN=$POSTBIN
+
+LIB=/$objtype/lib/libmemdraw.a
+< /sys/src/cmd/mkone
+
+CFLAGS=-w -I$COMMONDIR

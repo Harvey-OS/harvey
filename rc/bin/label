@@ -1,0 +1,2 @@
+#!/bin/rc
+echo -n $* > /dev/label

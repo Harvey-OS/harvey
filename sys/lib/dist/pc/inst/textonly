@@ -1,0 +1,12 @@
+#!/bin/rc
+
+# text-only install
+cd /bin/inst
+. defs
+
+tailfsrv &
+while(! test -f /srv/log)
+	sleep 1
+log `{date} Installation process started
+inst/mainloop
+

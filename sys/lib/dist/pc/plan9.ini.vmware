@@ -1,0 +1,10 @@
+*nomp=1
+partition=new
+nobootprompt=local!/bzroot
+bootfile=fd0!9pcflop.gz
+mouseport=ps2
+monitor=xga
+vgasize=1024x768x16
+#adisk=/dev/sdD0/cdboot
+console=0
+baud=9600

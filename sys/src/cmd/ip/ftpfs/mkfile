@@ -1,0 +1,16 @@
+</$objtype/mkfile
+
+TARG=ftpfs
+OFILES=ftpfs.$O\
+	proto.$O\
+	file.$O\
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/%}\
+
+</sys/src/cmd/mkone

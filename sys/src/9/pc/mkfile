@@ -1,0 +1,143 @@
+CONF=pc
+CONFLIST=pc pccpu pcdisk pcauth
+
+objtype=386
+</$objtype/mkfile
+p=9
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	fault.$O\
+	latin1.$O\
+	nulledf.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	rebootcmd.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	plan9l.$O\
+	cga.$O\
+	i8253.$O\
+	i8259.$O\
+	kbd.$O\
+	main.$O\
+	memory.$O\
+	mmu.$O\
+	random.$O\
+	rdb.$O\
+	trap.$O\
+	$DEVS\
+	$PORT\
+	boot$CONF.root.$O\
+
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libc.a\
+	/$objtype/lib/libsec.a\
+
+ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
+VGA=`{echo devvga.c screen.c vga*.c | sed 's/\.c/.'$O'/g'}
+SDEV=`{echo devsd.c sd*.c | sed 's/\.c/.'$O'/g'}
+
+$p$CONF:	$CONF.c $OBJ $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -T0x80100020 -l $OBJ $CONF.$O $LIB
+	size $target
+
+$p$CONF.gz: $p$CONF
+	strip < $p$CONF | gzip -9 > $p$CONF.gz
+
+install:V: $p$CONF $p$CONF.gz
+	cp $p$CONF $p$CONF.gz /$objtype/
+	import lookout / /n/lookout && cp $p$CONF $p$CONF.gz /n/lookout/$objtype/
+
+<../boot/bootmkfile
+<../port/portmkfile
+
+$ETHER: 			etherif.h ../port/netif.h
+ether8003.$O ether8390.$O:	ether8390.h
+$VGA mouse.$O:			screen.h
+devfloppy.$O: 			floppy.h
+archmp.$O mp.$O:		apbootstrap.h
+apic.$O archmp.$O mp.$O:	mp.h
+$SDEV:				../port/sd.h
+sd53c8xx.$O:			sd53c8xx.i
+main.$O:			init.h reboot.h
+wavelan.$O:	wavelan.c ../pc/wavelan.c ../pc/wavelan.h
+etherwavelan.$O:	etherwavelan.c  ../pc/wavelan.h
+devusb.$O usbuhci.$O usbohci.$O:	usb.h
+
+sd53c8xx.i:	sd53c8xx.n
+	aux/na $prereq > $target
+
+init.h:	initcode.s /sys/src/libc/9syscall/sys.h
+	$AS initcode.s
+	$LD -l -R4 -o init.out initcode.$O
+	{echo 'uchar initcode[]={'
+	 xd -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+reboot.h:	rebootcode.s
+	$AS rebootcode.s
+	$LD -l -s -T0x1000 -R4 -o reboot.out rebootcode.$O
+	{echo 'uchar rebootcode[]={'
+	 xd -1x reboot.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > reboot.h
+
+apbootstrap.h:	apbootstrap.s mem.h
+	$AS $prereq
+	$LD -o apbootstrap.out -T0x80001000 -R4 -l -s apbootstrap.$O
+	{echo 'uchar apbootstrap[]={'
+	 xd -1x apbootstrap.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > $target
+
+acid:V:
+	8c -a -w -I. ../port/qio.c>acid
+
+%.checkether:VQ:
+	for (i in ether*.c){
+		x=`{echo $i | sed 's/\.c//'}
+		if(! ~ $x ether8390 && ! grep -s '^	'^$x^'([ 	]|$)' $stem)
+			echo $x not included in $stem
+	}
+	exit 0
+
+%.checkvga:VQ:
+	for (i in vga*.c){
+		x=`{echo $i | sed 's/\.c//'}
+		if(! ~ $x vga vgax vgasavage && ! grep -s '^	'^$x^'([ 	]|$)' $stem)
+			echo $x not included in $stem
+	}
+	exit 0
+
+checkdist:VQ:
+	for(i in pcdisk pcflop)
+	for(j in checkvga checkether)
+		mk $i.$j

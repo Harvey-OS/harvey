@@ -1,0 +1,3 @@
+#!/bin/sh
+# $Id: bdftops,v 1.2 2001/03/27 21:15:55 alexcher Exp $
+exec gs -q -dBATCH -dNODISPLAY -- bdftops.ps "$@"

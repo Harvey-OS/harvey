@@ -1,0 +1,124 @@
+.TH DRAWTERM 8
+.SH NAME
+drawterm \- connect to Plan 9 CPU servers from other operating systems
+.SH SYNOPSIS
+.B drawterm
+[
+.B -a
+.I authaddr
+]
+[
+.B -c
+.I cpuaddr
+]
+[
+.B -d
+depth
+]
+[
+.B -r
+root
+]
+[
+.B -nm
+]
+.SH DESCRIPTION
+.I Drawterm
+is
+.I not
+a Plan 9 program.
+It is a program that users of non-Plan 9 systems can use
+to establish graphical 
+.IR cpu (1)
+connections with Plan 9 CPU servers.
+Just as a real Plan 9 terminal does, 
+.I drawterm
+serves its local name space
+as well as some devices (the keyboard, mouse, and screen)
+to a remote CPU server, which mounts this name space
+on 
+.B /mnt/term
+and starts a shell.
+Typically, either explicitly or via the profile, one uses the shell
+to start
+.IR rio (1).
+.PP
+By default, 
+drawterm
+uses the CPU server
+.B CPUSERV
+and the authentication server
+.BR AUTHSERV .
+The 
+.B -a
+and
+.B -c
+options specify alternate servers.
+(Edit the source to set appropriate local values  for the variables
+.B AUTHSERV
+and
+.BR CPUSERV ).
+.PP
+On Windows systems, the file system served by the
+terminal (and mounted on
+.BR /mnt/term )
+is the tree rooted at
+.BR c:/ .
+The
+.B -r
+option specifies a different file system root.
+In Windows, the depth of the virtual screen
+provided by
+drawterm
+matches the depth of the actual screen.
+To present a screen with a different depth, use the
+.B -d
+option.
+Both options do nothing on non-Windows systems.
+.PP
+The 
+.B -n
+option causes 
+drawterm to prompt for authentication via
+.IR netkey -style
+challenge/response rather than using
+the password-based protocol typically used
+by terminals.
+.PP
+By default, drawterm queues mouse events to
+guard against lost events due to network latency.
+The
+.B -m
+option turns this behavior off.
+.PP
+Drawterm has been ported to
+Digital Unix,
+Irix,
+Linux,
+Solaris,
+and
+Windows.
+Binaries are kept in
+.BR /sys/src/cmd/unix/drawterm/bin .
+.SH SOURCE
+.B /sys/src/cmd/unix/drawterm
+.SH DIAGNOSTICS
+The Unix versions of drawterm print diagnostics
+to standard error.
+The Windows version displays message boxes.
+.SH "SEE ALSO
+.IR cpu (1),
+.IR rio (1)
+.SH BUGS
+Although at first
+.I drawterm
+may seem like a Plan 9 terminal, in fact it is just a way to provide a CPU server
+with some terminal devices.
+The difference is important because one cannot run terminal-resident programs
+when using
+.IR drawterm .
+The illusion can be improved by delicate adjustments in
+.BR /usr/$user/lib/profile .
+.PP
+It would be nice to be able to change the default servers
+without recompiling.

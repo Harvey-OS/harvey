@@ -1,0 +1,132 @@
+%    Copyright (C) 1994, 1995, 1996 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: markhint.ps,v 1.2 2000/09/19 18:29:11 lpd Exp $
+% markhint.ps
+% Draw the hints for a Type 1 font.
+
+(type1ops.ps) runlibfile
+
+/mhsetup		% <matrix> <print> mhsetup -
+ { /mhprint exch def
+   /mhmx exch def
+   /mhdash 0 9 gsave initmatrix dtransform grestore idtransform add abs def
+   gsave
+   clippath pathbbox
+   2 index sub /bbh exch def
+   2 index sub /bbw exch def
+   /bby exch def
+   /bbx exch def
+   grestore
+ } def
+
+/markfonthints		% <matrix> <print> markfonthints -
+ { mhsetup
+ } def
+
+/hmark			% <y> hmark -
+ { bbx exch moveto bbw 0 rlineto stroke
+ } def
+/hsmark			% <y0> <dy> hsmark -
+ { 1 index add exch gsave
+   [mhdash] 0 setdash 0 exch mhmx transform exch pop hmark
+   [mhdash 2 div dup 2 mul] 0 setdash 0 exch mhmx transform exch pop hmark
+   grestore
+ } def
+/vmark			% <x> vmark -
+ { bby moveto 0 bbh rlineto stroke
+ } def
+/vsmark			% <x0> <dx> vsmark -
+ { 1 index add exch gsave
+   [mhdash] mhdash setdash 0 mhmx transform pop vmark
+   [mhdash 2 div dup 2 mul] 0 setdash 0 mhmx transform pop vmark
+   grestore
+ } def
+/pmark			% <x> <y> pmark -
+ { newpath 0 4.5 gsave initmatrix dtransform grestore idtransform add abs
+   0 360 arc stroke
+ } def
+/mchdict mark
+  /hsbw { pop 0 mhmx transform translate 0 0 pmark }
+  /sbw { pop pop mhmx transform translate 0 0 pmark }
+  /hstem
+   { mhprint { (hstem ) print 2 copy 2 packedarray == } if
+     hsmark
+   }
+  /vstem
+   { mhprint { (vstem ) print 2 copy 2 packedarray == } if
+     vsmark
+   }
+  /hstem3
+   { mhprint { (hstem3 ) print 6 copy 6 packedarray == } if
+     3 { hsmark } repeat
+   }
+  /vstem3
+   { mhprint { (vstem3 ) print 6 copy 6 packedarray == } if
+     3 { vsmark } repeat
+   }
+  /div
+   { div
+   }
+  /callothersubr
+   { 3 eq
+      { pop
+	mhprint { (replace) = } if
+		% We're replacing hints; lighten the color.
+	currentrgbcolor 3 { 2 mul 3 div 3 1 roll } repeat setrgbcolor
+      }
+      { { pop } repeat
+      } ifelse
+   }
+  /callsubr
+   { Private /Subrs get exch get mchinterp
+   }
+  /pop
+   {
+   }
+  /return
+   {
+   }
+.dicttomark def
+
+/mchinterp		% <charstring> mchinterp -
+ { 4330 exch dup length string .type1decrypt exch pop
+   dup length lenIV sub lenIV exch getinterval
+   0 () /SubFileDecode filter
+   mark exch charstack_read ]
+    { dup type /nametype eq
+       { mchdict exch .knownget { exec } { cleartomark mark } ifelse
+       }
+      if
+    }
+   forall
+ } def
+
+/markcharhints		% <charname> <matrix> <print> markcharhints -
+ { mhsetup
+   gsave mark
+   /Private currentfont /Private get def
+   Private rcheck	% make sure we won't get an access error
+    { /lenIV Private /lenIV .knownget not { 4 } if def
+      currentfont /CharStrings get 3 -1 roll get mchinterp
+    }
+    { (Sorry, this font is protected; I can't show the hints.\n) print flush
+      exch
+    }
+   ifelse
+   cleartomark grestore
+ } def

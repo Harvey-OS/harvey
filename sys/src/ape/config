@@ -1,0 +1,16 @@
+# global include file for the APE environment
+
+< /$objtype/mkfile		# gives (compiler loader extension ranliber)
+APEBIN=/$objtype/bin/ape	# where installed ape binaries go
+APELIB=/rc/bin/ape		# where helper programs go
+CC=pcc				# compiler (must be ansi)
+LD=pcc				# loader
+CFLAGS=				# global defaults
+FAMILY=plan9
+AR=ar				# manipulating libraries
+RANLIB=echo			# for updating libraries
+
+INSTALL=$APELIB/install		# install script
+INSOWNER=()			# default installation parameter
+INSGROUP=bin			# default installation parameter
+INSMODE=775			# default installation parameter

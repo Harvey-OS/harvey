@@ -1,0 +1,15 @@
+APE=/sys/src/ape
+<$APE/config
+
+LIB=/$objtype/lib/ape/libregexp.a
+OFILES=regcomp.$O\
+	regerror.$O\
+	regexec.$O\
+	regsub.$O\
+	regaux.$O\
+	rregexec.$O\
+	rregsub.$O\
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c -DUTF -D_REGEXP_EXTENSION

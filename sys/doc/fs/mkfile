@@ -1,0 +1,21 @@
+</sys/doc/fonts
+OBJ=\
+	p0\
+	p1\
+	p2\
+	p3\
+	p4\
+	p5\
+	p6\
+	p7\
+	p8\
+
+fs.ps:D:	$OBJ
+	{echo $FONTS; cat $OBJ } | troff -ms | lp -dstdout >fs.ps
+	../cleanps fs.ps
+
+fs.trout:D:	$OBJ
+	{echo $FONTS; cat $OBJ } | troff -ms >fs.trout
+
+fs.html:D:
+	{echo $FONTS; cat $OBJ } | ms2html >fs.html

@@ -1,0 +1,130 @@
+.TH IMPORT 4
+.SH NAME
+import \- import a name space from a remote system
+.SH SYNOPSIS
+.B import
+[
+.B -abcC
+] [
+.B "-E clear | ssl"
+.\" .B "| tls"	.\" Not yet implemented
+] [
+.B "-e 'enc auth'"
+] [
+.B -k
+.I keypattern
+] [
+.B -p
+] [
+.B "-s \f2srvname\fP
+]
+.I system
+.I file
+[
+.I mountpoint
+] 
+.SH DESCRIPTION
+.I Import
+allows an arbitrary
+.I file
+on a remote
+.I system
+to be imported into the local name space.
+Usually
+.I file
+is a directory, so the complete
+file tree under the directory is made available.
+.PP
+A process is started on the
+remote machine, with authority of the user of
+.IR import ,
+to perform work for the local machine using the
+.IR exportfs (4)
+service.
+If
+.I mountpoint
+is omitted
+.I import
+uses the name of the remote
+.I file
+as the local mount point.
+.PP
+If
+.I file
+is a directory,
+.I import
+allows options exactly as in
+.I mount
+and
+.IR bind (1)
+to control the construction of union directories.
+.PP
+The
+.B -E
+option causes
+.I import
+to push an authentication protocol on its network connection.
+Currently, the protocols supported are
+.B clear
+(the default) which pushes no protocol,
+and
+.BR ssl .
+There are plans to make
+.B tls
+available too.
+.PP
+The
+.B -e
+option specifies the encryption and authentication algorithms to use for
+encrypting the wire traffic.  The defaults are
+.B rc4_256
+and
+.BR sha1 .
+The full list of supported protocols in in
+.IR ssl (3).
+.PP
+The
+.B -p
+option pushes the
+.B aan
+filter onto the connection.  This filter will protect the connection from
+temporary network outages; see
+.IR aan (1).
+.PP
+The
+.B -s
+option posts the connection's mountable file descriptor in
+.B /srv
+under the given name.
+.PP
+The
+.B -k
+option specifies a key pattern suffix to be used in the
+.B auth_proxy
+call that authenticates to the remote side.
+.SH EXAMPLE
+Assume a machine
+.B kremvax
+that has IP interfaces for the company intranet and the global
+internet mounted on
+.I /net
+and
+.I /net.alt
+respectively.
+Any machine inside the company can get telnet out to the global
+internet using:
+.IP
+.EX
+import -a kremvax /net.alt
+telnet /net.alt/tcp!ucbvax
+.EE
+.SH SOURCE
+.B /sys/src/cmd/import.c
+.SH SEE ALSO
+.IR bind (1),
+.IR aan (1),
+.IR exportfs (4),
+.IR ssl (3),
+.B cs
+in
+.IR ndb (8)

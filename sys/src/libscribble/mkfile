@@ -1,0 +1,31 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libscribble.a
+
+OFILES=\
+	li_recognizer.$O\
+	hre_api.$O\
+	graffiti.$O\
+
+HFILES = \
+	li_recognizer_internal.h\
+	hre_internal.h\
+	graffiti.h\
+	scribbleimpl.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+all:V:	$LIB syms
+
+< /sys/src/cmd/mksyslib
+
+syms: $HFILES
+	$CC -a li_recognizer.c	>syms
+
+graffiti.$O: scribbleimpl.h graffiti.h
+hre_api.$O: scribbleimpl.h hre_internal.h
+li_recognizer.$O: scribbleimpl.h hre_internal.h li_recognizer_internal.h

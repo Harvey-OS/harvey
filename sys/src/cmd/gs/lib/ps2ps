@@ -1,0 +1,20 @@
+#!/bin/sh
+# $Id: ps2ps,v 1.3 2001/06/22 16:09:22 lpd Exp $
+# "Distill" PostScript.
+
+OPTIONS="-dSAFER"
+while true
+do
+	case "$1" in
+	-*) OPTIONS="$OPTIONS $1" ;;
+	*)  break ;;
+	esac
+	shift
+done
+
+if [ $# -ne 2 ]; then
+	echo "Usage: `basename $0` ...switches... input.ps output.ps" 1>&2
+	exit 1
+fi
+
+exec gs -q -sDEVICE=pswrite "-sOutputFile=$2" -dNOPAUSE -dBATCH $OPTIONS "$1"

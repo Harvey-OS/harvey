@@ -1,0 +1,24 @@
+#!/bin/rc
+
+rfork e
+if(! test -f /srv/dos)
+	dossrv >/dev/null </dev/null >[2]/dev/null
+unmount /n/a:>[2]/dev/null
+
+switch($bootfile) {
+case sd*!cdboot!*
+	# just look for the right file.  bootfile isn''t trustworthy
+	adisk=/dev/sd*/cdboot
+	if(! ~ $#adisk 1)
+		adisk=$adisk(1)
+case sd*
+	adisk=`{echo $bootfile | sed 's#(sd..).*#/dev/\1/dos#'}
+case fd*
+	adisk=`{echo $bootfile | sed 's#(fd.).*#/dev/\1disk#'}
+case *
+	echo 'unknown bootfile '^$bootfile^'; mail 9trouble@plan9.bell-labs.com'
+	exit oops
+}
+
+mount -c /srv/dos /n/a: $adisk
+

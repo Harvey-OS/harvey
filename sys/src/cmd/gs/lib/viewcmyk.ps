@@ -1,0 +1,65 @@
+%    Copyright (C) 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: viewcmyk.ps,v 1.2 2000/09/19 18:29:11 lpd Exp $
+% viewcmyk.ps
+% Display a raw CMYK file.
+% Requires the colorimage operator.
+% If SCALE is defined, maps input pixels to output pixels with that scale;
+% if SCALE is undefined, scales the image to fit the page.
+% If BITS is defined, it is the number of bits per sample (1,2,4,8,12);
+% if BITS is undefined, its default value is 1.
+
+/viewcmyk {			% <filename> <width> viewcmyk -
+  20 dict begin
+  /w exch def
+  /fname exch def
+  /bpc /BITS where { pop BITS } { 1 } ifelse def
+  /f fname (r) file def
+  mark fname status pop pop pop /flen exch def cleartomark
+  /h flen w bpc 4 mul mul 7 add 8 idiv idiv def
+  (Dimensions: ) print [w h] == flush
+		% Set up scaling.
+  /SCALE where {
+    pop
+	% Map pixels SCALE-for-1.  Assume orthogonal transformation.
+    SCALE 1 0 dtransform add abs div
+    SCALE 0 1 dtransform add abs div
+  } {
+	% Scale the image (uniformly) to fit the page.
+    clippath pathbbox pop pop translate
+    pathbbox 3 -1 roll sub h div
+    3 1 roll exch sub w div min dup
+  } ifelse scale
+  w h bpc [1 0 0 -1 0 h] f false 4 colorimage
+  showpage
+  f closefile
+  end
+} bind def
+
+% If the program was invoked from the command line, run it now.
+[ shellarguments {
+  counttomark 2 eq {
+    cvi viewcmyk
+  } {
+    cleartomark
+    (Usage: gs -- viewcmyk.ps filename.cmyk width\n) print
+    ( e.g.: gs -- viewcmyk.ps my.cmyk 2550\n) print flush
+  } ifelse
+} {
+  pop
+} ifelse

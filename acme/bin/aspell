@@ -1,0 +1,43 @@
+#!/bin/rc
+
+spellflags=()
+fflag=''
+for(x){
+	switch($x){
+	case -[bcvx]
+		spellflags=($spellflags $x)
+	case -f
+		fflag=$x
+	case *
+		if(~ $fflag -f)	{
+			spellflags=($spellflags -f $x)
+			fflag=''
+		}
+		if not args = ($args $x)
+	}
+}
+
+dir = /mnt/wsys
+if(! test -f $dir/cons)
+	dir = /mnt/term/$dir
+id=`{cat $dir/new/ctl}
+id=$id(1)
+
+if(~ $#args 1 && ~ $args /*){
+	adir = `{basename -d $args}
+	args = `{basename $args}
+	echo 'name '^$adir^/-spell > $dir/$id/ctl
+	cd $adir
+}
+if not {
+	echo 'name '^`{pwd}^/-spell > $dir/$id/ctl
+}
+
+{
+	echo noscroll
+	if(~ $#args 0)
+		/acme/bin/$cputype/spout | sort  -t: -u +2 | sort  -t: +1.1n | aux/sprog -a $spellflags > $dir/$id/body
+	if not for(i in $args)
+		/acme/bin/$cputype/spout $i | sort  -t: -u +2 | sort  -t: +1.1n | aux/sprog -a $spellflags > $dir/$id/body
+	echo clean
+}> $dir/$id/ctl

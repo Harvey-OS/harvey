@@ -1,0 +1,53 @@
+#!/bin/rc
+
+# desc: configure your internet connection via an ethernet card
+
+switch($1) {
+case go
+	echo
+	echo 'Please choose a method for configuring your ethernet connection.'
+	echo
+	echo '	manual - specify IP address, network mask, gateway IP address'
+	echo '	dhcp - use DHCP to automatically configure'
+	echo
+	
+	prompt 'Configuration method' manual dhcp
+	ethermethod=$rd
+	gwaddr=xxx
+	ipaddr=xxx
+	ipmask=xxx
+	switch($ethermethod){
+	case dhcp
+		echo
+		echo 'Some ISPs, notably @HOME, require a host name passed with DHCP'
+		echo 'requests.  An example for @HOME would be "cc1018221-a".  If your'
+		echo 'ISP supplied you such a name, enter it.'
+		echo
+		prompt -d none 'host name'; dhcphost=$rd
+		switch($dhcphost){
+		case none
+			dhcphost=();
+		case *
+			dhcphost=(-h $dhcphost)
+		}
+		export dhcphost
+	case manual
+		prompt 'ip address'; ipaddr=$rd
+		prompt 'network mask'; ipmask=$rd
+		prompt 'gateway address'; gwaddr=$rd
+		export ipaddr ipmask gwaddr
+	}
+	
+	export ethermethod gwaddr ipaddr ipmask dhcphost
+	exec startether go
+
+case checkdone
+	if(! ~ $ethermethod manual dhcp) {
+		configether=notdone
+		export configether
+	}
+	if(~ $ethermethod manual && ~ 0 $#ipaddr $#ipmask $#gwaddr) {
+		configether=notdone
+		export configether
+	}
+}

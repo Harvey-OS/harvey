@@ -1,0 +1,448 @@
+// NCR 53c8xx driver for Plan 9
+// Nigel Roles (nigel@9fs.org)
+//
+// Microcode
+//
+// 27/5/02	Fixed problems with transfers >= 256 * 512
+//
+// 13/3/01	Fixed microcode to support targets > 7
+//
+
+extern	scsi_id_buf
+extern	msg_out_buf
+extern	cmd_buf
+extern	data_buf
+extern	status_buf
+extern	msgin_buf
+extern	dsa_0
+extern  dsa_1
+extern	dsa_head
+extern	ssid_mask
+
+SIR_MSG_IO_COMPLETE = 0
+error_not_cmd_complete = 1
+error_disconnected = 2
+error_reselected = 3
+error_unexpected_phase = 4
+error_weird_message = 5
+SIR_ERROR_NOT_MSG_IN_AFTER_RESELECT = 6
+error_not_identify_after_reselect = 7
+error_too_much_data = 8
+error_too_little_data = 9
+SIR_MSG_REJECT = 10
+SIR_MSG_SDTR = 11
+SIR_EV_RESPONSE_OK = 12
+error_sigp_set = 13
+SIR_EV_PHASE_SWITCH_AFTER_ID = 14
+SIR_MSG_WDTR = 15
+SIR_MSG_IGNORE_WIDE_RESIDUE = 16
+SIR_NOTIFY_DISC = 100
+SIR_NOTIFY_RESELECT = 101
+SIR_NOTIFY_MSG_IN = 102
+SIR_NOTIFY_STATUS = 103
+SIR_NOTIFY_DUMP = 104
+SIR_NOTIFY_DUMP2 = 105
+SIR_NOTIFY_SIGP = 106
+SIR_NOTIFY_ISSUE = 107
+SIR_NOTIFY_WAIT_RESELECT = 108
+SIR_NOTIFY_ISSUE_CHECK = 109
+SIR_NOTIFY_DUMP_NEXT_CODE = 110
+SIR_NOTIFY_COMMAND = 111
+SIR_NOTIFY_DATA_IN = 112
+SIR_NOTIFY_DATA_OUT = 113
+SIR_NOTIFY_BLOCK_DATA_IN = 114
+SIR_NOTIFY_WSR = 115
+SIR_NOTIFY_LOAD_SYNC = 116
+SIR_NOTIFY_RESELECTED_ON_SELECT = 117
+
+STATE_FREE = 0
+STATE_ALLOCATED = 1
+STATE_ISSUE = 2
+STATE_DISCONNECTED = 3
+STATE_DONE = 4
+
+RESULT_OK = 0
+	
+MSG_IDENTIFY = 0x80
+MSG_DISCONNECT = 0x04
+MSG_SAVE_DATA_POINTER = 0x02
+MSG_RESTORE_POINTERS = 0x03
+MSG_IGNORE_WIDE_RESIDUE = 0x23
+X_MSG = 0x01
+X_MSG_SDTR = 0x01
+X_MSG_WDTR = 0x03
+MSG_REJECT = 0x07
+
+BSIZE = 512
+//BSIZE=4096
+
+idle:
+	jump	wait_for_reselection	
+start:
+	call	load_sync
+//	move	13 to ctest0
+//	int	SIR_NOTIFY_ISSUE
+	clear	target
+	select	atn from scsi_id_buf, reselected_on_select // do I need to clear ATN here?
+	jump	start1, when msg_in
+start1:
+//	move	14 to ctest0
+	move	from msg_out_buf, when msg_out
+id_out_mismatch:
+	jump	start1, when msg_out		// repeat on parity grounds
+	jump	to_decisions, when not cmd
+cmd_phase:
+//	int	SIR_NOTIFY_COMMAND
+	clear	atn
+	move	from cmd_buf, when cmd
+cmd_out_mismatch:
+	jump	to_decisions, when not data_in
+data_in_phase:
+	move	memory 4, state, scratcha
+	move	memory 4, dmaaddr, scratchb
+//	int	SIR_NOTIFY_DATA_IN
+data_in_block_loop:
+	move	scratcha2 to sfbr
+	jump	data_in_normal, if 0
+//	int	SIR_NOTIFY_BLOCK_DATA_IN
+	move	BSIZE, ptr dmaaddr, when data_in		// transfer BSIZE bytes
+data_in_block_mismatch:
+	move	scratchb1 + BSIZE / 256 to scratchb1		// add BSIZE to scratchb
+	move	scratchb2 + 0 to scratchb2 with carry
+	move	scratchb3 + 0 to scratchb3 with carry
+	move	scratcha2 + 255 to scratcha2			// sub one from block count
+	move	memory 4, scratchb, dmaaddr			// save latest dmaddr
+	jump	data_in_block_loop, when data_in
+	move	memory 4, scratcha, state			// save latest state
+	call	save_state
+	jump	to_decisions
+data_block_mismatch_recover:
+	move	memory 4, scratchb, dmaaddr			// save latest dmaddr
+data_mismatch_recover:
+	move	memory 4, scratcha, state			// save latest state
+	jump	to_decisions					// no need to save
+								// as interrupt routine
+								// did this
+data_in_normal:
+	move	scratcha3 to sfbr
+	int	error_too_much_data, if not 0
+	move	from data_buf, when data_in
+data_in_mismatch:
+	move	2 to scratcha3
+	move	memory 4, scratcha, state
+	call	save_state
+	jump	post_data_to_decisions
+data_out_phase:
+//	int	SIR_NOTIFY_DATA_OUT
+	move	memory 4, state, scratcha
+	move	memory 4, dmaaddr, scratchb
+data_out_block_loop:
+	move	scratcha2 to sfbr
+	jump	data_out_normal, if 0
+	move	memory 4, dmaaddr, scratchb
+	move	BSIZE, ptr dmaaddr, when data_out		// transfer BSIZE bytes
+data_out_block_mismatch:
+	move	scratchb1 + BSIZE / 256 to scratchb1		// add BSIZE to scratchb
+	move	scratchb2 + 0 to scratchb2 with carry
+	move	scratchb3 + 0 to scratchb3 with carry
+	move	scratcha2 + 255 to scratcha2			// sub one from block count
+	move	memory 4, scratchb, dmaaddr			// save latest dmaddr
+	jump	data_out_block_loop, when data_out
+	move	memory 4, scratcha, state			// save latest state
+	jump	to_decisions
+data_out_normal:
+	move	scratcha3 to sfbr
+	int	error_too_little_data, if not 0
+	move	from data_buf, when data_out
+data_out_mismatch:
+	move	2 to scratcha3
+	move	memory 4, scratcha, state
+	call	save_state
+	jump	post_data_to_decisions
+status_phase:
+	move	from status_buf, when status
+//	int	SIR_NOTIFY_STATUS
+	int	error_unexpected_phase, when not msg_in
+msg_in_phase:
+	move	1, scratcha, when msg_in
+//	int	SIR_NOTIFY_MSG_IN
+	jump	rejected, if MSG_REJECT
+msg_in_not_reject:
+	jump	disconnected, if MSG_DISCONNECT
+	jump	msg_in_skip, if MSG_SAVE_DATA_POINTER
+	jump	msg_in_skip, if MSG_RESTORE_POINTERS
+	jump	ignore_wide, if MSG_IGNORE_WIDE_RESIDUE
+	jump	extended, if X_MSG
+	int	error_not_cmd_complete, if not 0
+	move	scntl2&0x7e to scntl2			// take care not to clear WSR
+	clear	ack
+	wait	disconnect
+	// update state
+	move	memory 4, state, scratcha
+	move	STATE_DONE to scratcha0
+	move	RESULT_OK to scratcha1
+	move	memory 4, scratcha, state
+	call	save_state
+//	int	SIR_MSG_IO_COMPLETE
+	intfly	0
+	jump	issue_check
+
+rejected:
+	int	SIR_MSG_REJECT
+	clear	ack
+	jump	to_decisions
+msg_in_skip:
+	clear	ack
+	jump	to_decisions
+	
+extended:
+	clear	ack
+	int	error_unexpected_phase, when not msg_in
+	move	1, scratcha1, when msg_in
+	jump	ext_3, if 3
+	jump	ext_2, if 2
+	int	error_weird_message, if not 1
+ext_1:
+	clear	ack
+	int	error_unexpected_phase, when not msg_in
+	move	1, scratcha1, when msg_in
+	jump	ext_done
+
+ext_3:	clear	ack
+	int	error_unexpected_phase, when not msg_in
+	move	1, scratcha1, when msg_in
+	clear	ack
+	int	error_unexpected_phase, when not msg_in
+	move	1, scratcha2, when msg_in
+	clear	ack
+	int	error_unexpected_phase, when not msg_in
+	move	1, scratcha3, when msg_in
+	move	scratcha1 to sfbr
+	jump	ext_done, if not X_MSG_SDTR
+
+// the target sent SDTR - leave ACK asserted and signal kernel
+// kernel will either restart at reject, or continue
+sdtr:	int	SIR_MSG_SDTR
+	clear	ack
+	jump	to_decisions
+
+ext_2:	clear	ack
+	int	error_unexpected_phase, when not msg_in
+	move	1, scratcha1, when msg_in
+	clear	ack
+	int	error_unexpected_phase, when not msg_in
+	move	1, scratcha2, when msg_in
+	move	scratcha1 to sfbr
+	jump	ext_done, if not X_MSG_WDTR
+
+wdtr:	int	SIR_MSG_WDTR
+	clear	ack
+	jump	to_decisions
+
+ext_done:
+//	ought to check message here, but instead reject all
+//	NB ATN set
+reject:
+	set	atn					// get target's ATN
+	clear	ack					// finish ACK
+	move	MSG_REJECT to scratcha			// prepare message
+	int	error_unexpected_phase, when not msg_out// didn't get ATN
+	clear	atn					// last byte coming
+	move	1, scratcha, when msg_out		// send byte
+	clear	ack					// finish ACK
+	jump	reject, when msg_out			// parity error
+	jump	to_decisions
+	
+ignore_wide:
+	clear	ack
+	int	error_unexpected_phase, when not msg_in
+	move	1, scratcha1, when msg_in
+	int	SIR_MSG_IGNORE_WIDE_RESIDUE
+	clear	ack
+	jump	to_decisions
+
+//	sends a response to a message
+response:
+	set	atn
+	clear	ack
+	int	error_unexpected_phase, when not msg_out
+response_repeat:
+	move	from msg_out_buf, when msg_out
+	jump	response_repeat, when msg_out		// repeat on parity grounds
+// now look for response
+// msg_in could be a REJECT
+// anything other message is something else so signal kernel first
+	jump	response_msg_in, when msg_in
+	int	SIR_EV_RESPONSE_OK			// not a MSG_IN so OK
+	jump	to_decisions
+
+response_msg_in:
+	move	1, scratcha, when msg_in
+	jump	rejected, if MSG_REJECT		// go and generate rej interrupt
+	int	SIR_EV_RESPONSE_OK		// not a REJECT so OK
+	jump	msg_in_not_reject		// try others
+
+disconnected:
+//	move	5 to ctest0
+	move	scntl2&0x7e to scntl2			// don't clear WSR
+	clear 	ack
+	wait	disconnect
+	// UPDATE state to disconnected
+	move	memory 4, state, scratcha
+	move	STATE_DISCONNECTED to scratcha0
+	move	memory 4, scratcha, state
+	call	save_state
+wsr_check:
+	move	scntl2&0x01 to sfbr
+	int	SIR_NOTIFY_WSR, if not 0
+//	int	SIR_NOTIFY_DISC
+	jump	issue_check
+
+reselected_on_select:
+	int	SIR_NOTIFY_RESELECTED_ON_SELECT
+	jump	reselected
+
+wait_for_reselection:
+//	move	11 to ctest0
+//	int	SIR_NOTIFY_WAIT_RESELECT
+	wait reselect sigp_set
+reselected:
+//	move	12 to ctest0
+	clear	target
+	int	SIR_ERROR_NOT_MSG_IN_AFTER_RESELECT, when not msg_in
+	move	1, scratchb, when msg_in
+	int	error_not_identify_after_reselect, if not MSG_IDENTIFY and mask 0x1f
+//	int	SIR_NOTIFY_RESELECT
+	// now locate the right DSA - note do not clear ACK, so target doesn't start
+	// synchronous transfer until we are ready
+find_dsa:
+//	move	6 to ctest0
+ 	move	memory 4, dsa_head, dsa
+find_dsa_loop:
+//	move	7 to ctest0
+	move	dsa0 to sfbr
+	jump	find_dsa_1, if not 0
+	move	dsa1 to sfbr
+	jump	find_dsa_1, if not 0
+	move	dsa2 to sfbr
+	jump	find_dsa_1, if not 0
+	move	dsa3 to sfbr
+	int	error_reselected, if 0			// couldn't match dsa (panic)
+find_dsa_1:
+//	move	8 to ctest0
+	// load state from DSA into dsa_copy
+	call	load_state
+	move	memory 4, state, scratcha		// get dsastate in scratcha
+	move	scratcha0 to sfbr			// and state variable in sfbr
+	jump	find_dsa_next, if not STATE_DISCONNECTED // wrong state
+	move	ssid & ssid_mask to sfbr			// get target ID
+	move	memory 1, targ, find_dsa_smc1		// forge target comparison instruction
+find_dsa_smc1:
+	jump	find_dsa_next, if not 255		// jump if not matched
+	move	memory 1, lun, find_dsa_smc2		// forge lun comparison instruction
+	move	scratchb0 to sfbr			// recover IDENTIFY message
+find_dsa_smc2:
+	jump	reload_sync, if 255 and mask ~7		// off we jolly well go
+find_dsa_next:
+	move	memory 4, next, dsa			// find next
+	jump	find_dsa_loop
+
+// id_out terminated early
+// most likely the message wasn't recognised
+// clear ATN and accept the message in
+id_out_mismatch_recover:
+	clear	atn
+        jump    msg_in_phase, when msg_in
+        int     SIR_MSG_REJECT
+        jump    to_decisions
+
+// Reload synchronous registers after a reconnect. If the transfer is a synchronous read, then
+// as soon as we clear ACK, the target will switch to data_in and start blasting data into the
+// fifo. We need to be executing the 'jump when data_in' instruction before the target stops REQing
+// since it is the REQ which latches the 'when'. The target will do 16 REQs before stopping, so
+// we have 16 bytes (160uS) plus delays to do this after clearing ACK. Once the jump is executing,
+// the target will wait, so as much debugging as you like can happen in data_in_phase, just don't
+// stick any delays between 'clear ack' and 'jump data_in_phase, when data_in'.
+
+reload_sync:
+	call	load_sync
+	clear	ack
+to_decisions:
+	jump	data_in_phase, when data_in
+	jump	cmd_phase, if cmd
+	jump	data_out_phase, if data_out
+	jump	status_phase, if status
+	jump	msg_in_phase, if msg_in
+	int	error_unexpected_phase
+post_data_to_decisions:
+	jump	status_phase, when status
+	jump	msg_in_phase, if msg_in
+	int	error_unexpected_phase
+	
+//
+// MULTI_TARGET
+//
+// following must mirror top of dsa structure
+// the first section is loaded and saved, the
+// second section loaded only
+dsa_copy:
+state:	defw	0			// a0 is state, a1 result, a2 dma block count
+dmaaddr: defw	0			// dma address for block moves
+dsa_save_end:
+targ:	defw	0			// lsb is target
+lun:	defw	0			// lsb is lun
+sync:	defw	0			// lsb is scntl3, sxfer
+next:	defw	0
+dsa_load_end:
+dsa_load_len = dsa_load_end - dsa_copy
+dsa_save_len = dsa_save_end - dsa_copy
+
+load_state:
+	// load state from DSA into dsa_copy
+//	move	9 to ctest0
+	move	memory 4, dsa, load_state_smc0 + 4
+load_state_smc0:
+	move	memory dsa_load_len, 0, dsa_copy
+//	move	20 to ctest0
+	return
+save_state:
+	move	memory 4, dsa, save_state_smc0 + 8
+save_state_smc0:
+	move	memory dsa_save_len, dsa_copy, 0
+	return
+
+sigp_set:
+//	int	SIR_NOTIFY_SIGP
+	move	ctest2 to sfbr				// clear SIGP
+issue_check:
+//	int	SIR_NOTIFY_ISSUE_CHECK
+//	move	1 to ctest0
+	move	memory 4, dsa_head, dsa
+issue_check_loop:
+//	move	2 to ctest0
+	move	dsa0 to sfbr
+	jump	issue_check_1, if not 0
+	move	dsa1 to sfbr
+	jump	issue_check_1, if not 0
+	move	dsa2 to sfbr
+	jump	issue_check_1, if not 0
+	move	dsa3 to sfbr
+	jump	wait_for_reselection, if 0		// nothing to do
+issue_check_1:
+//	move	3 to ctest0
+ 	call	load_state
+	move	memory 4, state, scratcha		// get dsastate in scratcha
+	move	scratcha0 to sfbr			// and state variable in sfbr
+	jump	start, if STATE_ISSUE			// right state
+issue_check_next:
+//	move	4 to ctest0
+	move	memory 4, next, dsa			// find next
+	jump	issue_check_loop
+load_sync:
+	move	memory 4, sync, scratcha		// load the sync stuff
+	move	scratcha0 to sfbr			// assuming load_state has been called
+	move	sfbr to scntl3
+	move	scratcha1 to sfbr
+	move	sfbr to sxfer
+//	int	SIR_NOTIFY_LOAD_SYNC
+	return

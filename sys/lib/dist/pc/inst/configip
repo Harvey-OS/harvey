@@ -1,0 +1,64 @@
+#!/bin/rc
+
+switch($1) {
+case go
+
+	devs=''
+	if(test -d '#l/ether0' >[2]/dev/null)
+		devs=$devs^ether
+	if(test -f '#t'/eia? >[2]/dev/null)
+		devs=$devs^ppp
+	
+	switch($devs){
+	case ''
+		echo
+		echo 'Could not find ethernet card nor serial port nor modem.'
+		echo 'Please use a local copy of the distribution archive.'
+		echo
+		ifc=none
+	
+	case ppp
+		echo
+		echo 'No ethernet card was detected, but there is a serial port or modem.'
+		echo 'We will configure PPP.'
+		echo
+		ifc=ppp
+	
+	case ether
+		echo
+		echo 'No serial port or modem detected, but there is an ethernet card.'
+		echo 'We will configure the ethernet.'
+		echo
+		ifc=ether
+	
+	case etherppp
+		echo
+		echo 'You can connect to the internet via'
+		echo 'a local ethernet or a dial-up PPP connection.'
+		echo
+		prompt 'Interface to use' ether ppp
+		ifc=$rd
+	}
+	
+	ipinterface=$ifc
+	export ipinterface
+	
+	switch($ifc) {
+	case ether
+		exec configether go
+	case ppp
+		exec configppp go
+	}
+
+case checkdone
+	if(~ $#ipinterface 1)
+		switch($ipinterface) {
+		case ether
+			exec configether checkdone
+		case ppp
+			exec configppp checkdone
+		}
+	configarch=notdone
+	export configarch
+
+}

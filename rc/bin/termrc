@@ -1,0 +1,104 @@
+#!/bin/rc -x
+
+# replace FILESERVER with the name of your file server
+# here we start with kfs, your local disk file system
+fileserver=kfs
+# replace CPU with the name of your cpu server
+cpu=CPU
+# replace FACEDOM with the local domain to be used in the faces database
+facedom=FACEDOM
+TIMESYNCACCURACY=1000000	# accuracy in nanosec
+NDBFILE=/lib/ndb/local
+
+if(test -e /rc/bin/termrc.local)
+	. /rc/bin/termrc.local
+
+# cs sets sysname
+ndb/cs -f $NDBFILE
+sysname=`{cat /dev/sysname}
+
+# start IP on the LAN.  It's commented out to avoid a long timeout
+# on startup waiting for DHCP.
+#
+# If your system has DHCP
+#
+#if(! test -e /net/ipifc/0/ctl)
+#	ip/ipconfig >/dev/null >[2=1]
+#
+# Otherwise use
+#
+#if(! test -e /net/ipifc/0/ctl)
+#	ip/ipconfig -g your-gateway ether /net/ether0 your-ip-address your-subnet-mask >/dev/null >[2=1]
+
+if(test -e /net/ipifc/0/ctl)
+	ndb/dns -rf $NDBFILE
+
+aux/timesync -rLa $TIMESYNCACCURACY
+
+switch($terminal){
+case carrera*
+	bind -a '#t' /dev
+case *' ss'*
+	/bin/bind -a '#w' /dev >/dev/null >[2=1]
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+case *' magnum'*
+	/bin/bind -a '#m' /dev >/dev/null >[2=1]
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+	aux/mouse -dC 0
+case *' indigo'*
+	/bin/bind -a '#L' /dev >/dev/null >[2=1]
+	/bin/bind -a '#w1' /dev >/dev/null >[2=1]
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+	/bin/bind -a '#A' /dev >/dev/null >[2=1]
+case NCR* 'AT&TNSX'* generic* _MP_* 'alpha apc'*
+	for(i in H w f t m v L S P U '$' Σ)
+		/bin/bind -a '#'^$i /dev >/dev/null >[2=1]
+	for(disk in /dev/sd??) {
+		if(test -f $disk/data && test -f $disk/ctl)
+			disk/fdisk -p $disk/data >$disk/ctl >[2]/dev/null
+		for(part in $disk/plan9*)
+			if(test -f $part)
+				disk/prep -p $part >$disk/ctl >[2]/dev/null
+	}
+
+	if(! ~ `{cat /dev/user} none)
+		aux/vmware
+	if(~ $mouseport ask){
+		echo -n 'mouseport is (ps2, ps2intellimouse, 0, 1, 2)[ps2]: '
+		mouseport=`{read}
+		if(~ $#mouseport 0)
+			mouseport=ps2
+	}
+	if(~ $vgasize ask){
+		echo -n 'vgasize [640x480x8]: '
+		vgasize=`{read}
+		if(~ $#vgasize 0)
+			vgasize=640x480x8
+	}
+	if(~ $monitor ask){
+		echo -n 'monitor is [xga]: '
+		monitor=`{read}
+		if(~ $#monitor 0)
+			monitor=xga
+	}
+	if(test -f /dev/mousectl){
+		switch($mouseport){
+		case ps2 ps2intellimouse 0 1 2
+			aux/mouse $mouseport
+			# parse vgasize into fields
+			vgasize=`{echo $vgasize}
+			if(! ~ $"monitor '' && ! ~ `{cat /dev/user} none)
+				aux/vga -l $vgasize
+			if(~ $accupoint 1)
+				pipefile -dr /bin/aux/accupoint /dev/mouse
+		}
+	}
+	disk=''
+	if(test -f /dev/sd*/swap)
+		disk=`{ls /dev/sd*/swap >[2]/dev/null | sed 1q | sed 's!swap$!!'}
+	if(! ~ $disk '') {
+		swap $disk^swap >/dev/null >[2=1]
+		dossrv
+		c:
+	}
+}

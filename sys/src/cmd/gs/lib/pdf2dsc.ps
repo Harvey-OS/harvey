@@ -1,0 +1,166 @@
+%    Copyright (C) 1994, 1995, 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: pdf2dsc.ps,v 1.3 2000/12/29 05:03:49 alexcher Exp $
+% pdf2dsc.ps
+% read pdf file and produce DSC "index" file.
+%
+% Input  file is named PDFname
+% Output file is named DSCname
+%
+% Run using:
+%  gs -dNODISPLAY -sPDFname=pdffilename -sDSCname=tempfilename pdf2dsc.ps
+% Then display the PDF file with
+%  gs tempfilename
+%
+% Modified by Geoff Keating <geoffk@ozemail.com.au> 21/12/98:
+%	Add DocumentMedia, PageMedia comments
+%	Use inherited BoundingBox and Orientation
+%	Reformat, add new macro 'puts', generally clean up
+% Modified by Johannes Plass <plass@dipmza.physik.uni-mainz.de> 1996-11-05:
+%	Adds BoundingBox and Orientation if available.
+% Modified by rjl/lpd 9/19/96
+%	Updates for compatibility with modified pdf_*.ps code for handling
+%	  page ranges (i.e., partial files) better.
+% Modified by Geoff Keating <Geoff.Keating@anu.edu.au> 7/3/96:
+%	include Title and CreationDate DSC comments (these are displayed by
+%	  Ghostview);
+%	reduce the size of typical output files by a factor of about 3.
+% Modified by L. Peter Deutsch 3/18/96:
+%	Removes unnecessary and error-prone code duplicated from pdf_main.ps
+% Modified by L. Peter Deutsch for GS 3.33
+% Originally by Russell Lang  1995-04-26
+
+/DSCfile DSCname (w) file def
+systemdict /.setsafe known { .setsafe } if
+
+/puts { DSCfile exch writestring } bind def
+/DSCstring 255 string def
+/MediaTypes 10 dict def
+
+% (str1) (str2)  concatstr  (str1str2)
+/concatstr {
+  2 copy length exch length add string
+  dup dup 5 2 roll copy length
+% stack: newstring newstring str2 str1-length
+  exch putinterval
+} bind def
+
+   GS_PDF_ProcSet begin
+   pdfdict begin
+   PDFname (r) file
+   pdfopen begin
+   /FirstPage where { pop } { /FirstPage 1 def } ifelse
+   /LastPage where { pop } { /LastPage pdfpagecount def } ifelse
+
+% scan through for media sizes, keep them in the dictionary
+   FirstPage 1 LastPage {
+      pdfgetpage /MediaBox pget pop   % MediaBox is a required attribute
+      aload pop 
+      3 -1 roll sub 3 1 roll exch sub exch
+      2 array astore 
+      aload 3 1 roll 10 string cvs exch 10 string cvs
+      (x) exch concatstr concatstr cvn
+      MediaTypes 3 1 roll exch put
+   } for
+
+% write header and prolog
+   (%!PS-Adobe-3.0\n) puts
+   Trailer /Info knownoget
+    {
+      dup /Title knownoget
+       {
+         (%%Title: ) puts
+         DSCfile exch write==
+       }
+      if
+      /CreationDate knownoget
+       {
+         (%%CreationDate: ) puts
+         DSCfile exch write==
+       }
+      if
+    }
+   if
+   % This is really supposed to be sorted by frequency of usage...
+   (%%DocumentMedia: )
+   MediaTypes { 
+      exch pop
+      1 index puts
+      (y) puts dup 1 get DSCstring cvs puts
+      (x) puts dup 0 get DSCstring cvs puts 
+      ( ) puts dup 0 get DSCstring cvs puts
+      ( ) puts 1 get DSCstring cvs puts 
+      ( 70 white ()\n) puts
+      pop (%%+ )
+   } forall
+   pop
+
+   (%%Pages: ) puts
+   LastPage FirstPage sub 1 add DSCstring cvs puts
+   (\n%%EndComments\n) puts
+   (%%BeginProlog\n) puts
+   (/Page null def\n/Page# 0 def\n/PDFSave null def\n) puts
+   (/DSCPageCount 0 def\n) puts
+   (/DoPDFPage {dup /Page# exch store pdfgetpage pdfshowpage } def\n) puts
+   (GS_PDF_ProcSet begin\npdfdict begin\n) puts
+   (%%EndProlog\n) puts
+   (%%BeginSetup\n) puts
+   DSCfile PDFname write==only
+   ( \(r\) file pdfopen begin\n) puts
+   (%%EndSetup\n) puts
+   % process each page
+   FirstPage 1 LastPage {
+       (%%Page: ) puts
+       dup DSCstring cvs puts
+       ( ) puts
+       dup DSCstring cvs puts
+       (\n) puts
+
+       dup pdfgetpage
+       dup /MediaBox pget pop
+         (%%PageMedia: y) puts
+	 aload pop 3 -1 roll sub DSCstring cvs puts
+	 (x) puts exch sub DSCstring cvs puts
+	 (\n) puts
+       dup /CropBox pget {
+         (%%PageBoundingBox: ) puts
+         {DSCfile exch write=only ( ) puts} forall
+         (\n) puts
+       } if
+       /Rotate pget {
+         (%%PageOrientation: ) puts
+         90 div cvi 4 mod dup 0 lt {4 add} if
+         [(Portrait) (Landscape) (UpsideDown) (Seascape)] exch get puts
+         (\n) puts
+       } if
+
+       DSCfile exch DSCstring cvs writestring
+       ( DoPDFPage\n) puts
+    } for
+   currentdict pdfclose
+   end
+   end
+   end
+% write trailer
+(%%Trailer\n) puts
+(currentdict pdfclose\nend\nend\nend\n) puts
+(%%EOF\n) puts
+% close output file and exit
+DSCfile closefile
+quit
+% end of pdf2dsc.ps

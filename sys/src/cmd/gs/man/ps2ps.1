@@ -1,0 +1,24 @@
+.\" $Id: ps2ps.1,v 1.17.2.2 2002/02/01 05:31:26 raph Exp $
+.TH PS2PS 1 "31 January 2002" 7.04 "Ghostscript Tools" \" -*- nroff -*-
+.SH NAME
+ps2ps, eps2eps \- Ghostscript PostScript "distiller"
+.SH SYNOPSIS
+\fBps2ps\fR [ \fIoptions\fR ] \fIinput.ps output.ps\fR
+.br
+\fBeps2eps\fR [ \fIoptions\fR ] \fIinput.eps output.eps\fR
+.SH DESCRIPTION
+\fBps2ps\fR uses \fIgs\fR(1) to convert \fBPostScript\fR(tm) file
+"input.ps" to simpler and (usually) faster PostScript in
+"output.ps".  Normally the output is allowed to use PostScript Level 2
+constructs, but the \fB\-dLanguageLevel=1\fR option restricts the output to
+Level 1.
+.PP
+\fBeps2eps\fR performs the equivalent optimization for Encapsulated
+PostScript (EPS) files. 
+.SH FILES
+Run "\fBgs -h\fR" to find the location of Ghostscript documentation on your
+system, from which you can get more details.
+.SH VERSION
+This document was last revised for Ghostscript version 7.04.
+.SH AUTHOR
+L. Peter Deutsch <ghost@aladdin.com>

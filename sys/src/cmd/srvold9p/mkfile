@@ -1,0 +1,11 @@
+</$objtype/mkfile
+BIN=/$objtype/bin
+
+TARG=srvold9p
+OFILES=srvold9p.$O\
+	9p1lib.$O\
+	fcall.$O\
+
+</sys/src/cmd/mkone
+
+install:	$O.out

@@ -1,0 +1,30 @@
+#!/bin/rc
+fn sigexit {echo -n '[4i';exit 1}
+# Send output to the printer port on an AT&T 630/730 terminal
+# Process and enqueue files to be printed
+# take arguments as input files
+i=0
+if (~ $#* 0) *=''
+for (j in $*) {
+	i= `{echo $i + 1|hoc}
+
+# check access to the file so that you know that a failure in the
+# processing is a drastic error which will cause an exit from lp.
+
+	if (~ $j '' || test -f $j) {
+		switch ($j) {
+		case ''; @{
+				echo -n '[5i'; sleep 1
+				bind -b $LPLIB/process /bin
+				$LPPROC
+				echo -n '[4i'
+			}
+		case *;	@{
+				echo -n '[5i'; sleep 1
+				bind -b $LPLIB/process /bin
+				$LPPROC
+				echo -n '[4i'
+			} <$j
+		}
+	}
+}

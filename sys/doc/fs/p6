@@ -1,0 +1,247 @@
+.SH
+Cache/WORM Driver
+.PP
+The cache/WORM (cw) driver is by far the
+largest and most complicated device driver in the file server.
+There are four devices involved in the cw driver.
+It implements a read/write pseudo-device (the cw-device)
+and a read-only pseudo-device (the dump device)
+by performing operations on its two constituent devices
+the read-write c-device and the write-once-read-many
+w-device.
+The block numbers on the four devices are distinct,
+although the cw addresses,
+dump addresses,
+and the w addresses are
+highly correlated.
+.PP
+The cw-driver uses the w-device as the
+stable storage of the file system at the time of the
+last dump.
+All newly written and a large number of recently used
+exact copies of blocks of the w-device are kept on the c-device.
+The c-device is much smaller than the w-device and
+so the subset of w-blocks that are kept on the c-device are
+mapped through a hash table kept on a partition of the c-device.
+.PP
+The map portion of the c-device consists of blocks of buckets of entries.
+The declarations follow.
+.P1
+    enum
+    {
+        BKPERBLK = 10,
+        CEPERBK  = (BUFSIZE - BKPERBLK*sizeof(long)) /
+                   (sizeof(Centry)*BKPERBLK),
+    };
+.P2
+.P1
+    typedef
+    struct
+    {
+        ushort   age;
+        short    state;
+        long     waddr;
+    } Centry;
+.P2
+.P1
+    typedef
+    struct
+    {
+        long     agegen;
+        Centry   entry[CEPERBK];
+    } Bucket;
+.P2
+.P1
+    Bucket   bucket[BKPERBLK];
+.P2
+There is exactly one entry structure for each block in the
+data partition of the c-device.
+A bucket contains all of the w-addresses that have
+the same hash code.
+There are as many buckets as will fit
+in a block and enough blocks to have the required
+number of entries.
+The entries in the bucket are maintained
+in FIFO order with an age variable and an incrementing age generator.
+When the age generator is about to overflow,
+all of the ages in the bucket are rescaled
+from zero.
+.PP
+The following steps go into converting a w-address into a c-address.
+The bucket is found by
+.P1
+    bucket_number = w-address % total_buckets
+    getbuf(c-device, bucket_offset + bucket_number/BKPERBLK);
+.P2
+After the desired bucket is found,
+the desired entry is found by a linear search within the bucket for the
+entry with the desired
+.CW waddr .
+.PP
+The state variable in the entry is
+one of the following.
+.P1
+    enum
+    {
+        Cnone    = 0,
+        Cdirty,
+        Cdump,
+        Cread,
+        Cwrite,
+        Cdump1,
+    };
+.P2
+Every w-address has a state.
+Blocks that are not in the
+c-device have the implied
+state
+.CW Cnone .
+The
+.CW Cread
+state is for blocks that have the
+same data as the corresponding block in
+the w-device.
+Since the c-device is much faster than the
+w-device,
+.CW Cread
+blocks are kept as long as possible and
+used in preference to reading the w-device.
+.CW Cread
+blocks may be discarded from the c-device
+when the space is needed for newer data.
+The
+.CW Cwrite
+state is when the c-device contains newer data
+than the corresponding block on the w-device.
+This happens when a
+.CW Cnone ,
+.CW Cread ,
+or
+.CW Cwrite
+block is written.
+The
+.CW Cdirty
+state
+is when the c-device contains
+new data and the corresponding block
+on the w-device has never been written.
+This happens when a new block has been
+allocated from the free space on the w-device.
+.PP
+The
+.CW Cwrite
+and
+.CW Cdirty
+blocks are created and never removed.
+Unless something is done to
+convert these blocks,
+the c-device will gradually
+fill up and stop functioning.
+Once a day,
+or by command,
+a
+.I dump
+of the cw-device
+is taken.
+The purpose of
+a dump is to queue the writes that
+have been shunted to the c-device
+to be written to the w-device.
+Since the w-device is a WORM,
+blocks cannot be rewritten.
+Blocks that have already been written to the WORM must be
+relocated to the unused portion of the w-device.
+These are precisely the
+blocks with
+.CW Cwrite
+state.
+.PP
+The dump algorithm is as follows:
+a) The tree on the cw-device is walked
+as long as the blocks visited have been
+modified since the last dump.
+These are the blocks with state
+.CW Cwrite
+and
+.CW Cdirty .
+It is possible to restrict the search
+to within these blocks
+since the directory containing a modified
+file must have been accessed to modify the
+file and accessing a directory will set its
+modified time thus causing the block containing it
+to be written.
+The directory containing that directory must be
+modified for the same reason.
+The tree walk is thus drastically restrained and the
+tree walk does not take much time.
+b) All
+.CW Cwrite
+blocks found in the tree search
+are relocated to new blank blocks on the w-device
+and converted to
+.CW Cdump
+state.
+All
+.CW Cdirty
+blocks are converted to
+.CW Cdump
+state without relocation.
+At this point,
+all modified blocks in the cw-device
+have w-addresses that point to unwritten
+WORM blocks.
+These blocks are marked for later
+writing to the w-device
+with the state
+.CW Cdump .
+c) All open files that were pointing to modified
+blocks are reopened to point at the corresponding
+reallocated blocks.
+This causes the directories leading to the
+open files to be modified.
+Thus the invariant discussed in a) is maintained.
+d) The background dumping process will slowly
+go through the map of the c-device and write out
+all blocks with
+.CW Cdump
+state.
+.PP
+The dump takes a few minutes to walk the tree
+and mark the blocks.
+It can take hours to write the marked blocks
+to the WORM.
+If a marked block is rewritten before the old
+copy has been written to the WORM,
+it must be forced to the WORM before it is rewritten.
+There is no problem if another dump is taken before the first one
+is finished.
+The newly marked blocks are just added to the marked blocks
+left from the first dump.
+.PP
+If there is an error writing a marked block
+to the WORM
+then the
+.CW dump
+state is converted to
+.CW Cdump1
+and manual intervention is needed.
+(See the
+.CW cwcmd
+.CW mvstate
+command in
+.I fs (8)).
+These blocks can be disposed of by converting
+their state back to
+.CW Cdump
+so that they will be written again.
+They can also be converted to
+.CW Cwrite
+state so that they will be allocated new
+addresses at the next dump.
+In most other respects,
+a
+.CW Cdump1
+block behaves like a
+.CW Cwrite
+block.

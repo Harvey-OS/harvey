@@ -1,0 +1,10 @@
+#!/bin/rc
+
+id=`{cat /mnt/acme/new/ctl}
+id=$id(1)
+cmd = $*
+if(~ $#cmd 0) cmd = cat
+
+echo 'name '^`{pwd}^/-^`{basename $cmd(1)} > /mnt/acme/$id/ctl
+$cmd > /mnt/acme/$id/body
+echo clean > /mnt/acme/$id/ctl

@@ -1,0 +1,6 @@
+#!/bin/rc
+
+cd $LPSPOOL
+KILLCMD=$LPLIB/bin/kill_xerox-4512
+
+exec generic $*

@@ -1,0 +1,500 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>ps2pdf: PostScript-to-PDF converter</title>
+<!-- $Id: Ps2pdf.htm,v 1.32.2.2 2002/02/01 05:31:25 raph Exp $ -->
+<!-- Originally: ps2pdf.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<h1><tt>ps2pdf</tt>: PostScript-to-PDF converter</h1>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<h2>Table of contents</h2>
+
+<blockquote><ul>
+<li><a href="#Overview">Overview</a>
+<li><a href="#Usage">Usage</a>
+<li><a href="#Options">Options</a>
+<li><a href="#Limitations">Limitations</a>
+<li><a href="#Problems">Known problems</a>
+<li><a href="#Ps2pdf_vs_AD">Comparison of <b><tt>ps2pdf</tt></b> and Acrobat Distiller</a>
+<li><a href="#Acknowledgments">Acknowledgments</a>
+</ul></blockquote>
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>For other information, see the <a href="Readme.htm">Ghostscript
+overview</a>.
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<h2><a name="Overview"></a>Overview</h2>
+
+<b><tt>ps2pdf</tt></b> is a work-alike for nearly all the functionality (but
+not the user interface) of Adobe's Acrobat<small><sup>TM</sup></small>
+Distiller<small><sup>TM</sup></small> product: it converts PostScript files
+to Portable Document Format (PDF) files.
+
+<p>
+<b><tt>ps2pdf</tt></b> is implemented as a very small command script (batch
+file) that invokes Ghostscript, selecting a special "output device" called
+<b><tt>pdfwrite</tt></b>.  In order to use <b><tt>ps2pdf</tt></b>, the
+<b><tt>pdfwrite</tt></b> device must be included in the makefile when
+Ghostscript was compiled; see the <a
+href="Make.htm#Features_and_devices">documentation on building
+Ghostscript</a> for details: this is currently the case on all platforms, in
+Ghostscript as we distribute it.
+
+<hr>
+
+<h2><a name="Usage"></a>Usage</h2>
+
+<p>
+The usage for <b><tt>ps2pdf</tt></b> is
+
+<blockquote><b><tt>
+ps2pdf</tt></b> <em>[options] input.[e]ps output.pdf</em>
+</blockquote>
+
+<p>
+or, on Unix systems and some versions of Windows NT and OS/2
+
+<blockquote><b><tt>
+ps2pdf</tt></b> <em>input.[e]ps</em>
+</blockquote>
+
+<p>
+which is equivalent to
+
+<blockquote><b><tt>
+ps2pdf</tt></b> <em>input.[e]ps input.pdf</em>
+</blockquote>
+
+<p>
+There are actually several different <b><tt>ps2pdf</tt></b><em>*</em> scripts:
+the name <b><tt>ps2pdf</tt></b> above refers to any of them.
+
+<ul>
+
+<li><b><tt>ps2pdf12</tt></b> will always produce PDF 1.2 output (Acrobat
+3-and-later compatible).
+
+<li><b><tt>ps2pdf13</tt></b> will always produce PDF 1.3 output (Acrobat
+4-and-later compatible).
+
+<li><b><tt>ps2pdf14</tt></b> will always produce PDF 1.4 output (Acrobat
+5-and-later compatible).
+
+<li><b><tt>ps2pdf</tt></b> per se currently produces PDF 1.2 output (Acrobat
+3-and-later compatible).  However, this may change in the future.  If you
+care about the compatibility level of the output, use
+<b><tt>ps2pdf12</tt></b>, <b><tt>ps2pdf13</tt></b>, or
+<b><tt>ps2pdf14</tt></b>, or use the
+<b><tt>-dCompatibilityLevel=</tt></b><em>1.x</em> switch in the command
+line.
+
+</ul>
+
+<p>
+All of these scripts actually call a script named <b><tt>ps2pdfwr</tt></b>
+or <b><tt>ps2pdfxx</tt></b>.  The Unix <b><tt>ps2pdfwr</tt></b> script
+assumes that the Ghostscript executable is named <b><tt>gs</tt></b>; it is
+unlikely that you will need to change this.  The DOS and MS Windows
+<b><tt>ps2pdfxx.bat</tt></b> script uses the value of the
+<b><tt>GSC</tt></b> environment variable, if defined, as the name of the
+executable; otherwise the script assumes the executable is named
+<b><tt>gswin32c</tt></b>.  So in these environments, if the executable has a
+different name, you must set <b><tt>GSC</tt></b> to the name of the
+executable.
+
+<hr>
+
+<h2><a name="Options"></a>Options</h2>
+
+<p>
+The <em>options</em> in the command line may include any switches that may
+be used with Ghostscript's PostScript and PDF interpreter (see <a
+href="Use.htm#Switches">here</a> for a complete list), although almost none
+of them are useful with <b><tt>ps2pdf</tt></b>.  The following may be
+useful:
+
+<dl>
+
+<dt><b><tt>-r</tt></b><em>resolution</em>
+<dd>Sets the resolution for pattern fills and for fonts that must be
+converted to bitmaps.
+
+<dt><b><tt>-dProcessColorModel=</tt></b><em>device_color_space</em> <dd>Sets
+the color space to be used for device-dependent colors in the
+output. <em>device_color_space</em> may be <b><tt>/DeviceGray</tt></b>,
+<b><tt>/DeviceRGB</tt></b>, or <b><tt>/DeviceCMYK</tt></b>; the default
+value is <b><tt>/DeviceRGB</tt></b>.
+
+</dl>
+
+<p>
+More importantly, <em>options</em> may include
+<b><tt>-d</tt></b><em>parameter</em>=<em>value</em> or
+<b><tt>-s</tt></b><em>parameter</em>=<em>string</em> switches for setting
+"distiller parameters", Adobe's documented parameters for controlling the
+conversion process.  The PostScript <b><tt>setdistillerparams</tt></b> and
+<b><tt>currentdistillerparams</tt></b> operators are also recognized when
+running <b><tt>ps2pdf</tt></b>, and provide an equivalent way to set these
+parameters from within the PostScript input file.
+
+<p>
+<b><tt>ps2pdf</tt></b> also recognizes the following switches:
+
+<dl>
+<dt><b><tt>-dPDFSETTINGS=</tt></b><em>configuration</em>
+<dd>Presets the "distiller parameters" to one of four predefined settings:
+
+<ul>
+
+<li><b><tt>/screen</tt></b> selects low-resolution output similar to the
+Acrobat Distiller "Screen Optimized" setting.
+
+<li><b><tt>/printer</tt></b> selects output similar to the Acrobat Distiller
+"Print Optimized" setting.
+
+<li><b><tt>/prepress</tt></b> selects output similar to Acrobat Distiller
+"Prepress Optimized" setting.
+
+<li><b><tt>/default</tt></b> selects output intended to be useful across a
+wide variety of uses, possibly at the expense of a larger output file.
+
+</ul>
+
+</dl>
+
+<p>
+<b><tt>ps2pdf</tt></b> recognizes all of the Acrobat Distiller 4 parameters
+documented in
+<a href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/distparm.pdf">
+Adobe Technical Note #5151</a>.  Cells in the table containing '=' mean that
+the value of the parameter is the same as in the "default" column.
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr valign=bottom>
+	<th align=left>Parameter name
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;
+	<th align=left>Notes
+	<td>&nbsp;&nbsp;
+	<th align=left>default
+	<td>&nbsp;&nbsp;
+	<th align=left>screen
+	<td>&nbsp;&nbsp;
+	<th align=left>printer
+	<td>&nbsp;&nbsp;
+	<th align=left>prepress
+<tr>	<td colspan=11><hr>
+<tr valign=top><td><b><tt>ASCII85EncodePages</tt></b><td><td><td><td>false<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>AlwaysEmbed</tt></b><td><td><td><td>[]<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>AntiAliasColorImages</tt></b><td><td>(0)<td><td>false<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>AntiAliasGrayImages</tt></b><td><td>(0)<td><td>false<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>AntiAliasMonoImages</tt></b><td><td>(0)<td><td>false<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>AutoFilterColorImages</tt></b><td><td>(1)<td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>AutoFilterGrayImages</tt></b><td><td>(1)<td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>AutoPositionEPSFiles</tt></b><td><td>(0)<td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>AutoRotatePages</tt></b><td><td><td><td>/PageByPage<td><td>/PageByPage<td><td>/None<td><td>/None
+<tr valign=top><td><b><tt>Binding</tt></b><td><td>(0)<td><td>/Left<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>CalCMYKProfile</tt></b><td><td>(0)<td><td>()<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>CalGrayProfile</tt></b><td><td>(0)<td><td>()<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>CalRGBProfile</tt></b><td><td>(0)<td><td>()<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>CannotEmbedFontPolicy</tt></b><td><td>(0)<td><td>/Warning<td><td>/Warning<td><td>/Warning<td><td>/Error
+<tr valign=top><td><b><tt>ColorACSImageDict</tt></b><td><td><td><td>(note 7)<td><td>(note 7)<td><td>(note 8)<td><td>(note 9)
+<tr valign=top><td><b><tt>ColorConversionStrategy</tt></b><td><td>(0,6)<td><td>/LeaveColorUnchanged<td><td>/sRGB<td><td>/UseDeviceIndependentColor<td><td>/LeaveColorUnchanged
+<tr valign=top><td><b><tt>ColorImageDepth</tt></b><td><td><td><td>-1<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>ColorImageDict</tt></b><td><td><td><td>(note 7)<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>ColorImageFilter</tt></b><td><td><td><td>/DCTEncode<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>ColorImageDownsampleThreshold</tt></b><td><td><td><td>1.5<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>ColorImageDownsampleType</tt></b><td><td>(3)<td><td>/Subsample<td><td>/Average<td><td>/Bicubic<td><td>/Bicubic
+<tr valign=top><td><b><tt>ColorImageResolution</tt></b><td><td><td><td>72<td><td>72<td><td>300<td><td>300
+<tr valign=top><td><b><tt>CompatibilityLevel</tt></b><td><td><td><td>1.3<td><td>1.2<td><td>1.3<td><td>1.3
+<tr valign=top><td><b><tt>CompressPages</tt></b><td><td><td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>ConvertCMYKImagesToRGB</tt></b><td><td><td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>ConvertImagesToIndexed</tt></b><td><td>(0)<td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>CoreDistVersion</tt></b><td><td><td><td>4000<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>CreateJobTicket</tt></b><td><td>(0)<td><td>false<td><td>false<td><td>true<td><td>true
+<tr valign=top><td><b><tt>DefaultRenderingIntent</tt></b><td><td><td><td>/Default<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>DetectBlends</tt></b><td><td>(0)<td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>DoThumbnails</tt></b><td><td>(0)<td><td>false<td><td>false<td><td>false<td><td>true
+<tr valign=top><td><b><tt>DownsampleColorImages</tt></b><td><td><td><td>false<td><td>true<td><td>false<td><td>false
+<tr valign=top><td><b><tt>DownsampleGrayImages</tt></b><td><td><td><td>false<td><td>true<td><td>false<td><td>false
+<tr valign=top><td><b><tt>DownsampleMonoImages</tt></b><td><td><td><td>false<td><td>true<td><td>false<td><td>false
+<tr valign=top><td><b><tt>EmbedAllFonts</tt></b><td><td><td><td>true<td><td>false<td><td>true<td><td>true
+<tr valign=top><td><b><tt>EmitDSCWarnings</tt></b><td><td>(0)<td><td>false<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>EncodeColorImages</tt></b><td><td><td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>EncodeGrayImages</tt></b><td><td><td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>EncodeMonoImages</tt></b><td><td><td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>EndPage</tt></b><td><td>(0)<td><td>-1<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>GrayACSImageDict</tt></b><td><td><td><td>(note 7)<td><td>(note 7)<td><td>(note 8)<td><td>=
+<tr valign=top><td><b><tt>GrayImageDepth</tt></b><td><td><td><td>-1<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>GrayImageDict</tt></b><td><td><td><td>(note 7)<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>GrayImageDownsampleThreshold</tt></b><td><td><td><td>1.5<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>GrayImageDownsampleType</tt></b><td><td>(3)<td><td>/Subsample<td><td>/Average<td><td>/Bicubic<td><td>/Bicubic
+<tr valign=top><td><b><tt>GrayImageFilter</tt></b><td><td><td><td>/DCTEncode<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>GrayImageResolution</tt></b><td><td><td><td>72<td><td>72<td><td>300<td><td>300
+<tr valign=top><td><b><tt>ImageMemory</tt></b><td><td>(0)<td><td>500000<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>LockDistillerParams</tt></b><td><td><td><td>false<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>LZWEncodePages</tt></b><td><td>(2)<td><td>false<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>MaxSubsetPct</tt></b><td><td><td><td>100<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>MonoImageDepth</tt></b><td><td><td><td>-1<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>MonoImageDict</tt></b><td><td><td><td><<K -1>><td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>MonoImageDownsampleThreshold</tt></b><td><td><td><td>1.5<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>MonoImageDownsampleType</tt></b><td><td><td><td>/Subsample<td><td>/Average<td><td>/Bicubic<td><td>/Bicubic
+<tr valign=top><td><b><tt>MonoImageFilter</tt></b><td><td><td><td>/CCITTFaxEncode<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>MonoImageResolution</tt></b><td><td><td><td>300<td><td>300<td><td>1200<td><td>1200
+<tr valign=top><td><b><tt>NeverEmbed</tt></b><td><td><td><td>[]<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>OPM</tt></b><td><td><td><td>1<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>Optimize</tt></b><td><td>(0,5)<td><td>false<td><td>true<td><td>true<td><td>true
+<tr valign=top><td><b><tt>ParseDSCComments</tt></b><td><td><td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>ParseDSCCommentsForDocInfo</tt></b><td><td><td><td>true<td><td>false<td><td>true<td><td>true
+<tr valign=top><td><b><tt>PreserveCopyPage</tt></b><td><td>(0)<td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>PreserveEPSInfo</tt></b><td><td>(0)<td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>PreserveHalftoneInfo</tt></b><td><td><td><td>false<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>PreserveOPIComments</tt></b><td><td>(0)<td><td>false<td><td>false<td><td>true<td><td>true
+<tr valign=top><td><b><tt>PreserveOverprintSettings</tt></b><td><td><td><td>false<td><td>false<td><td>true<td><td>true
+<tr valign=top><td><b><tt>sRGBProfile</tt></b><td><td>(0)<td><td>()<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>StartPage</tt></b><td><td>(0)<td><td>1<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>SubsetFonts</tt></b><td><td><td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>TransferFunctionInfo</tt></b><td><td>(4)<td><td>/Preserve<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>UCRandBGInfo</tt></b><td><td><td><td>/Remove<td><td>/Remove<td><td>/Preserve<td><td>/Preserve
+<tr valign=top><td><b><tt>UseFlateCompression</tt></b><td><td><td><td>true<td><td>=<td><td>=<td><td>=
+<tr valign=top><td><b><tt>UsePrologue</tt></b><td><td>(0)<td><td>false<td><td>=<td><td>=<td><td>=
+</table></blockquote>
+
+<p>
+(note 0) This parameter can be set and queried, but currently has no effect.
+
+<p>
+(note 1) <b><tt>AutoFilterxxxImages</tt></b> doesn't examine the image to
+decide between JPEG and LZW or Flate compression: it uses JPEG compression
+if the image has 8 bits per component and does not use an Indexed color
+space, and LZW or Flate compression otherwise.
+
+<p>
+(note 2) Because of Unisys's threats regarding the Welch patent,
+<b><tt>ps2pdf</tt></b> cannot actually use LZW compression: instead, it
+treats all requests for LZW compression as calling for Flate compression if
+<b><tt>UseFlateCompression</tt></b> is true and
+<b><tt>CompatibilityLevel</tt></b> &gt;= 1.2, and ignores them otherwise.
+
+<p>
+(note 3) The <b><tt>xxxDownsampleType</tt></b> parameters can also have the
+value /Bicubic (a Distiller 4 feature), which is currently treated as
+equivalent to /Average.
+
+<p>
+(note 4) Currently, the transfer function is always applied.  If the
+corresponding parameter is set to <b><tt>/Preserve</tt></b>, the function
+setting is also copied into the PDF file.
+
+<p>
+(note 5) Optimization (linearization) is implemented with a separate
+program, <b><tt>pdfopt</tt></b> <em>input.pdf</em> <em>output.pdf</em>; the
+<b><tt>Optimize</tt></b> parameter has no effect.
+
+<p>
+(note 6) Currently, colors for images and shadings are left in the color
+space specified in the PostScript input, except for
+<b><tt>ConvertCMYKImagesToRGB</tt></b>; the current color in the graphics
+state (used for fill, stroke, text, and imagemask) is always converted to
+the color space specified by the current value of
+<b><tt>ProcessColorModel</tt></b>. The intended behavior is the same as for
+Acrobat Distiller, except that if <b><tt>ColorConversionStrategy</tt></b> is
+set to <b><tt>/UseDeviceDependentColor</tt></b>, colors are converted to the
+color space specified by <b><tt>ProcessColorModel</tt></b> rather than
+always to <b><tt>/DeviceRGB</tt></b>.
+
+<p>
+(note 7) The default image parameter dictionary is
+<blockquote><b><tt>
+<< /QFactor 0.9 /Blend 1 /HSamples [2 1 1 2] /VSamples [2 1 1 2] >>
+</tt></b></blockquote>
+
+<p>
+(note 8) The printer ACS image parameter dictionary is
+<blockquote><b><tt>
+<< /QFactor 0.55 /Blend 1 /HSamples [2 1 1 2] /VSamples [2 1 1 2] >>
+</tt></b></blockquote>
+
+<p>
+(note 9) The prepress ACS image parameter dictionary is
+<blockquote><b><tt>
+<< /QFactor 0.25 /HSamples [1 1 1 1] /VSamples [1 1 1 1] >>
+</tt></b></blockquote>
+
+<hr>
+
+<h2><a name="Limitations"></a>Limitations</h2>
+
+<p>
+<b><tt>ps2pdf</tt></b> will sometimes convert text to high-resolution
+bitmapped fonts rather than to embedded outline fonts.  This will occur when
+the PostScript file uses Type 3, CIDFontType 1, or CIDFontType 4 fonts, or
+Type 0 fonts that reference any of these; it may also occur in some cases if
+the input file uses fonts with non-standard encodings, or in some other rare
+cases.
+
+<p>
+The PDF output always represents the colors of text and graphics in
+DeviceGray or DeviceRGB color space (or DeviceCMYK if the
+<b><tt>ProcessColorModel</tt></b> parameter has been set to
+<b><tt>/DeviceCMYK</tt></b>); all other color spaces are converted to these.
+However, for images, it will retain the original color space for DeviceGray,
+DeviceRGB, DeviceCMYK, certain CIEBased spaces, and Indexed spaces based on
+these.
+
+<p>
+<b><tt>ps2pdf</tt></b> will sometimes convert PostScript constructs to
+lower-level ones, even if a higher-level construct is available.  For
+example, if the PostScript file uses <b><tt>charpath</tt></b> to set a
+clipping path consisting of text, <b><tt>ps2pdf</tt></b> will write the
+clipping path as a path in the PDF file, rather than as text, even though
+PDF is able to express clipping with text.  This is only a performance
+issue, and will be improved incrementally over time.
+
+<p>
+Some applications, such as HIGZ, produce PostScript files that use
+ridiculously large coordinates.  On such files, <b><tt>ps2pdf</tt></b> may
+cause a <b><tt>limitcheck</tt></b> error.  If this occurs, try reducing the
+default internal resolution of 720 dpi by using the <b><tt>-r</tt></b>
+switch, e.g., <b><tt>ps2pdf&nbsp;-r300&nbsp;somefile.ps</tt></b>.
+
+<p>
+<b><tt>ps2pdf</tt></b> ignores the PDF 1.3 (Acrobat 4.x) pdfmarks related to
+document content structure: <b><tt>StRoleMap</tt></b>,
+<b><tt>StClassMap</tt></b>, <b><tt>StPNE</tt></b>,
+<b><tt>StBookmarkRoot</tt></b>, <b><tt>StPush</tt></b>,
+<b><tt>StPop</tt></b>, <b><tt>StPopAll</tt></b>, <b><tt>StBMC</tt></b>,
+<b><tt>StBDC</tt></b>, <b><tt>EMC</tt></b>, <b><tt>StOBJ</tt></b>,
+<b><tt>StAttr</tt></b>, <b><tt>StStore</tt></b>, <b><tt>StRetrieve</tt></b>,
+<b><tt>NamespacePush</tt></b>, <b><tt>NamespacePop</tt></b>, and
+<b><tt>NI</tt></b>.  While this causes some structural information to be
+omitted from the output file, the displayed and printed output are normally
+not affected.
+
+<p>
+<b><tt>ps2pdf</tt></b> currently has only very limited support for PDF 1.4.
+It writes out the blend mode, constant alpha, and text knockout graphics
+state parameters, and it handles images with soft masks, but it does not
+handle transparency groups, or soft masks in the graphics state.  (Note that
+there is no standard way to specify any of these things in PostScript, so
+these statements only apply when the input file is already a PDF 1.4 file.)
+
+<hr>
+
+<h2><a name="Problems"></a>Known problems</h2>
+
+<p>
+Distiller parameters should only be saved by <b><tt>save</tt></b> and
+restored by <b><tt>restore</tt></b>, but they are also saved by
+<b><tt>gsave</tt></b> and restored by <b><tt>grestore</tt></b>.
+
+<p>
+Changing the value of the <b><tt>CompressPages</tt></b> parameter after any
+marks have been made on the page may cause a crash.
+
+<p>
+If the input file downloads Type 1 fonts incrementally, the output file may
+contain embedded fonts with some information missing from the
+FontDescriptor, which may crash Acrobat Reader 4 or produce incorrect
+character spacing.
+
+<hr>
+
+<h2><a name="Ps2pdf_vs_AD"></a>Comparison of <b><tt>ps2pdf</tt></b> and
+Acrobat Distiller</h2>
+
+<p>
+According to users, the greatest benefit of <b><tt>ps2pdf</tt></b> is that
+it is more robust than Acrobat Distiller: it will process complex and
+difficult PostScript files that Acrobat Distiller is not able to handle.
+
+<p>
+For certain documents, <b><tt>ps2pdf</tt></b> is much faster than Adobe
+Distiller, and may be suitable for run-time conversions.  George White,
+a heavy user of <b><tt>ps2pdf</tt></b>, remarks:
+
+<blockquote>
+I haven't seen a head to head comparison, but Distiller seems
+slower when running on what should be a faster system (for instance,
+Distiller on a PPC Mac vs a 25 MHz 68040 NeXT running
+<b><tt>ps2pdf</tt></b>), so I think this is fair -- also, one of Mark
+Doyle's postings indicated that Distiller was not fast enough for use as a
+run-time server.  In contrast, I find that I can use <b><tt>ps2pdf</tt></b>
+as a post-processor during routine document creation.
+</blockquote>
+
+<p>
+On the other hand, there are some documents for which <b><tt>ps2pdf</tt></b>
+may be much slower than Acrobat Distiller.  Caveat user.
+
+<p>
+<b><tt>ps2pdf</tt></b> usually produces output that is comparable in size to
+the output of Acrobat Distiller; however, it sometimes produces much larger
+output, especially if the input file involves pattern fills.
+
+<p>
+Many users report that the combination of <b><tt>ps2pdf</tt></b> with
+Acrobat Reader is superior to using a generic PostScript viewer
+(<b><tt>psview</tt></b> or <b><tt>ghostview</tt></b>), particularly for
+documents with many pages where the navigational support in PDF files
+reduces the overhead involved in navigating conventional PostScript
+documents.
+
+<hr>
+
+<h2><a name="Acknowledgments"></a>Acknowledgments</h2>
+
+<p>
+Thanks to George N. White III &lt;<a href="mailto:aa056@chebucto.ns.ca">aa056@chebucto.ns.ca</a>&gt; of the Ocean
+Sciences Division of the Bedford Institute of Oceanography in Dartmouth,
+Nova Scotia for extensive testing of early versions of
+<b><tt>ps2pdf</tt></b>, and for contributing most of this writeup.
+
+<p>
+Thanks to Martin Hosken of SIL International &lt;<a
+href="http://www.sil.org">http://www.sil.org</a>&gt; for help with testing
+<b><tt>ps2pdf</tt></b> with a wide variety of international fonts.
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+<hr>
+
+<p>
+<small>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights
+reserved.</small>
+
+<p>
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
+
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

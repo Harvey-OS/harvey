@@ -1,0 +1,12 @@
+</sys/doc/fonts
+
+ALL:V:
+	echo 'for technical reasons, -mpm is gone and acme.ps cannot be regenerated'
+
+acme.ps:D:	acme.ms
+	{echo $FONTS; cat acme.ms} | troff -mpm -mpictures -mnihongo | lp -m.9 -dstdout >acme.ps
+	../cleanps acme.ps
+
+acme.html:D:	acme.ms
+	{echo $FONTS; cat acme.ms} | ms2html >acme.html
+

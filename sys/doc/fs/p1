@@ -1,0 +1,31 @@
+.SH
+Process Structure
+.PP
+The Plan 9 file system server is made from
+an ancient version of the Plan 9 kernel.
+The kernel contains process control,
+synchronization,
+locks,
+and some memory
+allocation.
+The kernel has no user processes or
+virtual memory.
+.PP
+The structure of the file system server
+is a set of kernel processes
+synchronizing mostly through message passing.
+In Emelie there are 26 processes of 10 types:
+.P1
+.ft R
+number name  function
+  15       \f(CWsrv\fP   Main file system server processes
+  \01       \f(CWrah\fP   Block read-ahead processes
+  \h'\w'0'u'1       \f(CWscp\fP   Sync process
+  \h'\w'0'u'1       \f(CWwcp\fP   WORM copy process
+  \h'\w'0'u'1       \f(CWcon\fP   Console process
+  \h'\w'0'u'1       \f(CWilo\fP   IL protocol process
+  \h'\w'0'u'1       \f(CWilt\fP   IL timer process
+  \h'\w'0'u'2       \f(CWethi\fP   Ethernet input process
+  \h'\w'0'u'2       \f(CWetho\fP   Ethernet output process
+  \h'\w'0'u'1       \f(CWflo\fP   Floppy disk process
+.P2

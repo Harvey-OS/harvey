@@ -1,0 +1,173 @@
+.SH
+The server processes
+.PP
+The main file system algorithm is a set
+of identical processes
+named
+.CW srv
+that honor the
+9P protocol.
+Each file system process waits on
+a message queue for an incoming request.
+The request contains a 9P message and
+the address of a reply queue.
+A
+.CW srv
+process parses the message,
+performs pseudo-disk I/O
+to the corresponding file system block device,
+formulates a response,
+and sends the
+response back to the reply queue.
+.PP
+The unit of storage is a
+block of data on a device:
+.P1
+    enum
+    {
+        RBUFSIZE = 16*1024
+    };
+
+    typedef
+    struct
+    {
+        short   pad;
+        short	tag;
+        long	path;
+    } Tag;
+
+    enum
+    {
+        BUFSIZE = RBUFSIZE - sizeof(Tag)
+    };
+
+    typedef
+    struct
+    {
+        uchar   data[BUFSIZE];
+        Tag     tag;
+    } Block;
+.P2
+All devices are idealized as a perfect disk
+of contiguously numbered blocks each of size
+.CW RBUFSIZE .
+Each block has a tag that identifies what type
+of block it is and a unique id of the file or directory
+where this block resides.
+The remaining data in the block depends on
+what type of block it is.
+.PP
+The
+.CW srv
+process's main data structure is the directory entry.
+This is the equivalent of a UNIX i-node and
+defines the set of block addresses that comprise a file or directory.
+Unlike the i-node,
+the directory entry also has the name of the
+file or directory in it:
+.P1
+    enum
+    {
+        NAMELEN = 28,
+        NDBLOCK = 6
+    };
+.P2
+.P1
+    typedef
+    struct
+    {
+        char    name[NAMELEN];
+        short   uid;
+        short   gid;
+        ushort  mode;
+        short   wuid;
+        Qid     qid;
+        long    size;
+        long    dblock[NDBLOCK];
+        long    iblock;
+        long    diblock;
+        long    atime;
+        long    mtime;
+    } Dentry;
+.P2
+Each directory entry holds the file or directory
+name, protection mode, access times, user-id, group-id, and addressing
+information.
+The entry
+.CW wuid
+is the user-id of the last writer of the file
+and
+.CW size
+is the size of the file in bytes.
+The first 6
+blocks of the file are held in the
+.CW dblock
+array.
+If the file is larger than that,
+an indirect block is allocated that holds
+the next
+.CW BUFSIZE/sizeof(long)
+blocks of the file.
+The indirect block address is held in the structure member
+.CW iblock .
+If the file is larger yet,
+then there is a double indirect block that points
+at indirect blocks.
+The double indirect address is held in
+.CW diblock
+and can point at another
+.CW (BUFSIZE/sizeof(long))\u\s-2\&2\s+2\d
+blocks of data.
+The maximum addressable size of a file is
+therefore 275 Gbytes.
+There is a tighter restriction of
+2\u\s-2\&32\s+2\d
+bytes because the length of a file is maintained in
+a long.
+Even so,
+sloppy use of long arithmetic restricts the length to
+2\u\s-2\&31\s+2\d
+bytes.
+These numbers are based on Emelie
+which has a block size of 16K and
+.CW sizeof(long)
+is 4.
+It would be different if the size of a block
+changed.
+.PP
+The declarations of the indirect and double indirect blocks
+are as follows.
+.P1
+    enum
+    {
+        INDPERBUF = BUFSIZE/sizeof(long),
+    };
+.P2
+.P1
+    typedef
+    {
+        long    dblock[INDPERBUF];
+        Tag     ibtag;
+    } Iblock;
+.P2
+.P1
+    typedef
+    {
+        long    iblock[INDPERBUF];
+        Tag     dibtag;
+    } Diblock;
+.P2
+.PP
+The root of a file system is a single directory entry
+at a known block address.
+A directory is a file that consists of a list of
+directory entries.
+To make access easier,
+a directory entry cannot cross blocks.
+In Emelie there are 233 directory entries per block.
+.PP
+The device on which the blocks reside is implicit
+and ultimately comes from the 9P
+.CW attach
+message that specifies the name of the
+device containing the root.

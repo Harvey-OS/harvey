@@ -1,0 +1,135 @@
+.TH PTX 1
+.CT 1 writing_aids
+.SH NAME
+ptx \- permuted index
+.SH SYNOPSIS
+.B ptx
+[
+.I option ...
+]
+[
+.I input
+]
+.SH DESCRIPTION
+.I Ptx
+place on standard output a permuted index to file
+.I input
+or to standard input.
+It has three phases: the first does the permutation, generating
+one line for each keyword in an input line.
+The keyword is rotated to the front.
+The permuted file is then
+sorted.
+Finally, the sorted lines are rotated so the keyword
+comes at the middle of the page.
+The output is exemplified by:
+.br
+.IP
+.L
+\&.xx "tail" "before" "keyword and after" "head"
+.LP
+where
+.L .xx
+may be defined as a
+.IR troff (1)
+macro
+for user-defined formatting.
+The
+.I before
+and
+.I keyword and after
+fields incorporate as much of the line as will fit
+around the keyword when it is printed at the middle of the page.
+.I Tail
+and
+.I head,
+at least one of which is an empty string,
+are wrapped-around pieces small enough to fit
+in the unused space at the opposite end of the line.
+When original text must be discarded, 
+.L /
+marks the spot.
+.PP
+The following options can be applied:
+.TP
+.BR -f
+Fold upper and lower case letters for sorting.
+.TP
+.BR -t
+Prepare the output for 
+.RI troff (1).
+.TP
+.BI -w " w"
+The width of the permuted output is
+.IR w ;
+default is
+.B 72n
+in
+.I nroff,
+.B 100n
+in
+.I troff.
+.TP
+.BI -g " w"
+The width of the gutter before the third part
+of the line is 
+.IR w ;
+default is 
+.BR 3n .
+.TP
+.BI -h " w"
+The minimum width hole between the
+first and second or third and and fourth parts
+of the line is
+.IR w ;
+default is the gutter width.
+.TP
+.BI -c " cmds"
+Use the (newline-separated) 
+.I troff
+commands to determine widths of input characters.
+Implies
+.BR -t .
+.TP
+.BI -o " only"
+Use as keywords only the words given in the
+.I only
+file.
+.TP
+.BI -i " ignore"
+Do not use as keywords any words given in the
+.I
+ignore
+file.
+If the
+.B -i
+and
+.B -o
+options are missing, use
+.F /sys/lib/man/permind/eign
+as the
+.I
+ignore
+file.
+.TP
+.BI -b " break"
+Use the characters in the
+.I break
+file to separate words.
+In any case, tab, newline, and space characters are always used as break characters.
+.TP
+.B -r
+Take any leading nonblank characters of each input line to
+be a reference identifier (as to a page or chapter)
+separate from the text of the line.
+Attach that identifier as a 5th field on each output line.
+.PP
+The index for this manual was generated using
+.I ptx.
+.SH FILES
+.TF junk*
+.TP
+.B junk*
+temporary files
+.TP
+.B /sys/lib/man/permin/ignore

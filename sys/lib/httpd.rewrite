@@ -1,0 +1,24 @@
+# syntax: prefix replacement
+# parsed by splitting into fields separated by spaces and tabs.
+# Anything following a # is ignored.
+#
+# prefix is a literal string match which is applied to each
+# file prefix of each url. The most specific, ie longest
+# pattern wins,  and is applied once (no rescanning).
+# Leave off trailing slash if pattern is a directory.
+#
+# If replacemant is a url, a "Permanently moved" message is returned.
+#
+# If replacement is "basic:" followed by a user name,
+# the http authorization for that user is require to access the subtree.
+#
+# An example of a local redirect
+#/netlib/c++/idioms/index.html.Z /netlib/c++/idioms/index.html
+#
+# Redirection to another site
+#/netlib/lapack/lawns http://netlib.org/lapack/lawns
+#
+# Home page for virtual host
+#http://www.ampl.com/		/cm/cs/what/ampl/index.html
+
+

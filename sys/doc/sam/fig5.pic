@@ -1,0 +1,27 @@
+.PS
+scale=100
+define m0 |
+[
+$2: box "\f(CWBuffer\fP" $1 ht 40 wid 88 with .nw at 0,40 
+box "\f(CWString\fP" "(cache)" ht 40 wid 72 with .nw at 104,40 
+line left 16 from last box.w
+] |
+
+define m1 |
+[
+box "\f(CWDisc\fP" ht 40 wid 88 with .sw at 0,56
+box "temp. file" ht 40 wid 88 with .sw at 0,0
+line up 16 from last box.n
+] |
+
+D1: m1 with .nw at 184,576
+D2: m1 with .nw at 0,576
+Mtranscript: m0("(transcript)", Buffer) with .nw at 0,640
+Mcontents: m0("(contents)", Contents) with .nw at 184,640
+F: box "\f(CWFile\fP" ht 40 wid 112 with .nw at 75,704 
+
+line from D2.n to Mtranscript.Buffer.s
+line from D1.n to Mcontents.Contents.s
+line up 12 from Mtranscript.Buffer.n then right 50 then up 12
+line up 12 from Mcontents.Contents.n then left 60 then up 12
+.PE

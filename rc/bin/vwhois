@@ -1,0 +1,9 @@
+#!/bin/rc
+
+if(test -f /mnt/plumb/seemail || test -f /mnt/term/mnt/plumb/seemail){
+	for(i)
+		plumb -dseemail -a 'filetype=vwhois digest=poot mailtype=new sender='^$i /mail/fs/mbox/XXX
+}
+if not for (i){
+	echo vwhois: vwhois: vwhois: delivered `{cat /dev/user} From $i '(vwho)' >> /sys/log/mail
+}

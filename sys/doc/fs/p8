@@ -1,0 +1,38 @@
+.SH
+9P Protocol Drivers
+.PP
+The file server described so far
+waits for 9P protocol messages to
+appear in its input queue.
+It processes each message and
+sends the reply back to the originator.
+There are groups of processes that
+perform protocol I/O on some network or
+device and the resulting messages
+are sent to the file system queue.
+.PP
+There are two sets of processes
+.CW ethi
+and
+.CW etho
+that perform Ethernet input and output on two different networks.
+These processes send Ethernet messages
+to/from two more processes
+.CW ilo
+and
+.CW ilt
+that do the IL reliable datagram protocol
+on top of IP packets.
+.PP
+The last process in Emelie,
+.CW con ,
+reads the console
+and calls internal subroutines to
+executes commands typed.
+Since there is only one process,
+only one command can be executing at a
+time.
+See
+.I fs (8)
+for a description of the
+commands available at the console.

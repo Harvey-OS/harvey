@@ -1,0 +1,250 @@
+#
+# This Plan 9 mkfile is for ``easy'' building.
+# It worked for Ghostscript 5.70 - 5.91
+#
+# This mkfile consists of two parts: the first part builds the gs executable,
+# the second unpacks the gs distribution and sets configuration parameters.
+#
+# Place this mkfile in the root directory of the gs distribution (the gsX.XX dir)
+# Edit the drivers list below, and mk fake-make to let gs configure
+# itself.  Fake-make doesn't actually build very much.
+#
+# Then you can run mk normally.
+#
+# Be sure to have the jpeg, libpng, and zlib subdirectories before starting.
+# Note that the jpeg source directory has been renamed to jpeg rather
+# than jpeg-6a, in deference to the extraordinarily stubborn makefiles.
+#
+# Each time you change the drivers list you must rerun mk fake-make
+# before building.
+#
+# If you want to try out a new GS distribution, you should be able
+# to mk try-X.XX, test it out, and then do mk install-X.XX, where X.XX
+# is the version number (e.g. 5.70).  If outside BL, you may have to edit the
+# scripts to remove some local dependencies (e.g. calling outside and the
+# cpu call to thresher, alpha to make mips.h, alpha.h).
+#
+
+</$objtype/mkfile
+CPUS=386 mips alpha arm power
+
+BIN=/$objtype/bin
+
+TARG=gs
+OFILES=\
+	obj/gs.$O\
+	`{sed 's#^./obj/(.*)\.o .*#obj/\1.$O#' src/ld.tr >[2] /dev/null | sort}
+
+# The first driver is the default.
+DRIVERS=\
+	plan9\
+	bj10e\
+	bjc600\
+	bjc800\
+	cdj1600\
+	cdj670\
+	cdj850\
+	cdj890\
+	dfaxlow\
+	epswrite\
+	inferno\
+	jpeg\
+	jpeggray\
+	laserjet\
+	ljet2p\
+	ljet3\
+	ljet3d\
+	ljet4\
+	pbm\
+	pbmraw\
+	pdfwrite\
+	pgm\
+	pgmraw\
+	plan9bm\
+	pnm\
+	pnmraw\
+	ppm\
+	ppmraw\
+	pswrite\
+	stcolor\
+	tiffg32d\
+	tiffg3\
+	tiffg4\
+
+HFILES=$objtype.h\
+	arch.h\
+
+# enforce some startup conditions
+x=`{mkdir obj >[2]/dev/null; mv jpeg/jmorecfg.h jpeg/jmorecfg.h.save >[2] /dev/null}
+
+
+</sys/src/cmd/mkone
+
+UPDATE=\
+	/386/bin/gs\
+	/sys/man/1/gs\
+	/rc/bin/ps2pdf\
+	/rc/bin/pdf2ps\
+	/sys/man/1/ps2pdf\
+
+update:V:
+	update $UPDATEFLAGS $UPDATE `{cat lsr}
+
+
+CC=pcc
+CFLAGS=-c -DPlan9 -D_POSIX_SOURCE -D_BSD_EXTENSION\
+	-I. -Isrc -Ijpeg -Izlib -Iicclib -DT$objtype '-DGS_INIT="gs_init.ps"'
+
+
+obj/gconfig.$O obj/gconf.$O obj/gscdef.$O\
+ obj/gscdefs.$O obj/iconf.$O obj/iconfig.$O: src/gconfig.h
+
+obj/%.$O: icclib/%.c
+	$CC $CFLAGS icclib/$stem.c; mv $stem.$O obj
+
+obj/%.$O:	jpeg/%.c
+	$CC $CFLAGS jpeg/$stem.c; mv $stem.$O obj
+
+obj/%.$O:	zlib/%.c
+	$CC $CFLAGS zlib/$stem.c; mv $stem.$O obj
+
+obj/%.$O:	src/%.c
+	$CC $CFLAGS src/$stem.c; mv $stem.$O obj
+
+#if possible, use genarch to build $objtype.h; it must run on same cpu type.
+#if not, try to use a default header for the target architecture.
+$objtype.h:	$O.genarch
+	if(~ $objtype $cputype) {
+		./$O.genarch $target
+		rm -f $O.genarch
+	}
+	if not {
+		if (test -r default.$objtype.h)
+			cp default.$objtype.h $target && chmod 664 $target
+		if not {
+			echo 'no default header file for target architecture'
+			echo 'run mk on the target architecture to build one'
+			exit false
+		}
+	}
+
+$O.genarch:U:	src/genarch.c
+	if(~ $objtype $cputype) {
+		rfork e
+		objtype=$cputype
+		pcc -B -o $O.genarch src/genarch.c
+	}
+	if not
+		status=''
+
+libinstall:V:
+	cp lib/* /sys/lib/ghostscript
+
+nuke clean:V:
+	rm -f *.[$OS] obj/* [$OS].out y.tab.? y.debug y.output $TARG
+
+#################################################################################
+
+fake-make:V: src/plan9.mak src/plan9-aux.mak fakecc
+	cp jpeg/jmorecfg.h.save jpeg/jmorecfg.h
+	ape/psh -c 'CC=fakecc make -f src/plan9.mak'
+	rm -f jpeg/jmorecfg.h
+	cp obj/*.c obj/*.h obj/ld.tr src
+	rm -f src/arch.h
+	rm -f obj/*.o
+	rm -f fakecc
+
+real-make:V: src/plan9.mak src/plan9-aux.mak
+	ape/psh -c 'CC=cc make -f src/plan9.mak'
+
+fakecc:V:
+	echo '#!/bin/rc
+		if(~ ./obj/genconf $* || ~ ./obj/genarch $* || ~ ./obj/echogs $*) cc $*
+		status='''' ' >$target
+	chmod +x $target
+
+src/plan9.mak:	src/unixansi.mak /sys/src/cmd/gs/contrib9.mak
+	devlist='$(DD)'^$DRIVERS^'.dev'
+	devlist=$"devlist
+	sed 's#^GS_LIB_DEFAULT=.*#GS_LIB_DEFAULT=/sys/lib/ghostscript:/sys/lib/ghostscript/font:/sys/lib/postscript/font#
+		s#^XCFLAGS=.*#XCFLAGS=-D_BSD_EXTENSION -DPlan9#
+		s#^CFLAGS_STANDARD=.*#CFLAGS_STANDARD=#
+		s#^include \$\(.*\)/(.*)#include src/\1#
+		s#unix-aux.mak#plan9-aux.mak#
+		s#gsdatadir *=.*#gsdatadir=/sys/src/cmd/gs#
+		s#DEVICE_DEVS=.*#DEVICE_DEVS='$devlist'#
+		s#(DEVICE_DEVS[0-9]+)=.*#\1=#' $prereq >$target
+
+src/plan9-aux.mak:	src/unix-aux.mak
+	sed 's#^INCLUDE=.*#INCLUDE=/sys/include/ape#' $prereq >$target
+
+try-%:V:	gs%/$O.out
+	bind gs$stem/$O.out /bin/gs
+	bind -b gs$stem/lib /sys/lib/ghostscript
+	echo 'give it a whirl'
+
+gs([0-9]+\.[0-9]+)/$O.out:R:	gs\1/src
+	@{ cd gs$stem1
+	for(i in jpeg zlib libpng)
+		bind -c ../$i $i
+	if(! test -f src/ld.tr)
+		mk fake-make
+	cp ../arch.h .
+	mk $O.out
+	for(i in jpeg zlib libpng)
+		unmount $i || status=''
+	}
+
+gs%/src:	ghostscript-%.tar.gz
+	rm -rf gs$stem
+	gunzip < ghostscript-$stem.tar.gz | tar x
+	chmod g+w gs$stem/* gs$stem/*/*
+	# local drivers
+	cp src/gdevifno.c src/gdevplan9.c src/gdevcd8.c gs$stem/src
+	# local conventions
+	ed gs$stem/lib/gs_init.ps <fixSAFER.ed
+	mkdir gs$stem/^(jpeg obj zlib libpng)
+	echo '<../mkfile' >gs$stem/mkfile
+	cp default.*.h gs$stem
+	@{cd gs$stem; mk startover}
+
+ghostscript-%.tar.gz:
+	outside
+	hget -o $target http://download.sourceforge.net/ghostscript/$target
+#	ftpfs -a $user^'@' ftp.cs.wisc.edu
+#	cp /n/ftp/ghost/aladdin/*/ghostscript-$stem.tar.gz .
+
+startover:V:
+	rm -rf obj/*
+	rm -f src/ld.tr
+	rm -f src/plan9.mak src/plan9-aux.mak
+
+install-%:V:
+	unmount /bin/gs || status=''
+	unmount /sys/lib/ghostscript || status=''
+	mk installsrc-$stem
+	cpu -h thresher -c 'mk mips.h' || status=''
+	cpu -h alpha -c 'mk alpha.h' || status=''
+	mk all
+	mk installall
+	for(i in lib/*.ps)
+		if(! cmp $i /sys/lib/ghostscript/^`{basename $i} >/dev/null)
+			cp $i /sys/lib/ghostscript
+	cp /sys/lib/ghostscript/pdf_sec-ps.bak /sys/lib/ghostscript/pdf_sec.ps
+
+installsrc-%:V:	gs%/$O.out
+	pwd=`{pwd}
+	# don't accidentally do this from gsX.XX
+	if(! ~ $pwd */gs)
+		echo 'i don''t think you meant to do that' && exit oops
+	if(! cmp src/version.mak gs$stem/src/version.mak) {
+		rm -rf doc examples icclib lib man obj src
+		@{cd gs$stem; tar c doc examples icclib lib man src} | tar xT
+		mk clean
+	}
+	status=''
+
+clean-%:V:
+	for (i in gs$stem/*)
+		unmount $i >[2]/dev/null || status=''
+	rm -rf gs$stem ghostscript-$stem.tar.gz

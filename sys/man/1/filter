@@ -1,0 +1,209 @@
+.TH FILTER 1
+.SH NAME
+filter, list, deliver, token, vf \-  filterng mail
+.SH SYNOPSIS
+.PP
+.B upas/filter
+[
+.B -bh
+]
+.I rcvr
+.I mailbox
+.I "regexp file
+[
+.I "regexp file
+]*
+.PP
+.B upas/list add|check
+.I patterns
+.I addrfile ...
+.PP
+.B upas/deliver 
+.I recipient
+.I fromfile
+.I mbox
+.PP
+.B upas/token
+.I key
+[
+.I tokenfile
+]
+.PP
+.B upas/vf
+.SH DESCRIPTION
+.PP
+A user may filter all incoming mail by creating
+a world readable/executable file
+.BI /mail/box/ username /pipeto.
+If the file is a shell script, it can use the
+commands described here to implement a filter.
+.PP
+.I Filter
+provides simple mail filtering.
+The first two arguments are the recipient's address and mailbox, that is,
+the same arguments provided to
+.BR pipeto .
+The remaining arguments are all pairs of a regular expression and a file name.
+With no flags, the sender's address is matched against each
+regular expression starting with the first.  If the expression
+matches, then the message is delivered to the file whose name
+follows the expression.  The file must be world writable and should
+be append only.
+A message that matches none of the expressions is delivered into
+the user's standard mail box.
+The flags are:
+.TP
+.B h
+the regular expression is matched against the message header
+rather than the address.
+.TP
+.B b
+the regular expression is matched against both the header and the body
+of the message.
+.PP
+For example, to delete any messages of precedence bulk, place in
+your
+.B pipeto
+file:
+.EX
+/bin/upas/filter -h $1 $2 'Precedence: bulk' /dev/null
+.EE
+.PP
+Three other commands exist which, combined by an
+.IR rc (1)
+script, allow you to build your own filter.
+.PP
+.I List
+takes two verbs;
+.B check
+and
+.BR add .
+.B Check
+directs
+.I list
+to check each address contained in the
+.IR addressfile s
+against a list of patterns in
+.IR patternfile .
+Patterns come in four forms:
+.TP
+.B ~\fIregular-expression\fP
+If any address matches the regular expression,
+.I list
+returns successfully.
+.TP
+.BR =\fIstring\fP .
+If any address exactly matches
+.IR string ,
+.I list
+returns successfully.
+.TP
+.B !~\fIregular-expression\fP
+If any address matches the regular expression
+and no other address matches a non `!' rule,
+.I list
+returns error status "!match".
+.TP
+.B !=\fIstring\fP
+If any address exactly matches
+.I string
+and no other address matches a non `!' rule,
+.I list
+returns error status "!match".
+.PP
+If no addresses match a pattern,
+.I list
+returns "no match".
+.PP
+The pattern file may also contain lines of the form
+.EX
+#include filename
+.EE
+This allows pattern files to include other pattern
+files.
+All pattern matches are case insensitive.
+.I List
+searches the pattern file (and its includes) in order.
+The first matching pattern determines the action.
+.PP
+.I List
+.B add
+directs
+.I list
+to add a pattern to
+.I patternfile
+for each address in the
+.IR addrssfile 's
+that doesh't already match a pattern.
+.PP
+.IR Token ,
+with only one argument, prints to standard output a unique token
+created from the current date and
+.IR key .
+With two arguments, it checks
+.I token
+against tokens created over the last 10 days with
+.IR key .
+If a match is found, it returns successfully.
+.PP
+.I Deliver
+delivers into mail box
+.I mbox
+the message read from standard input.
+It obeys standard mail file locking and logging
+conventions.
+.PP
+A sample 
+.B pipeto
+using the filter kit can be found in
+.BR /sys/src/cmd/upas/filterkit/pipeto.sample .
+.PP
+A sample
+.BR myupassend ,
+.BR /sys/src/cmd/upas/filterkit/myupassend.sample ,
+is provided which adds all addresses of your outgoing
+mail to your pattern file.
+You should copy it into a directory that normally gets
+bound by your profile onto
+.BR /bin .
+.PP
+.I Vf
+takes a mail message as standard input, searches for executable
+MIME attachments, wraps them in a warning message, and appends
+.B .suspect
+to any related filenames.
+.B /sys/lib/mimetype
+contains the list of known MIME content types and file extensions.
+.I Vf
+wraps all those for which the fifth field of
+.B mimetype
+is
+.BR n .
+.SH FILES
+.TF /mail/box/*/dead.letter
+.TP
+.B /mail/box/*/pipeto
+mail filter
+.TP
+.B /sys/lib/mimetype
+mime content types
+.SH SOURCE
+.TP
+.B /sys/src/cmd/upas/send
+.TP
+.B /sys/src/cmd/upas/filterkit
+.TP
+.B /sys/src/cmd/upas/vf
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR mail (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR smtp (8),
+.IR upasfs (4)
+

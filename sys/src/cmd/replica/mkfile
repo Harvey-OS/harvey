@@ -1,0 +1,49 @@
+</$objtype/mkfile
+
+SCRIPTS=\
+	changes\
+	pull\
+	push\
+	scan\
+	setupdirs\
+	
+TARG=\
+	applychanges\
+	applylog\
+	compactdb\
+	updatedb\
+	$SCRIPTS\
+
+OFILES=\
+	avl.$O\
+	db.$O\
+	util.$O\
+
+HFILES=all.h
+
+UPDATE=\
+	mkfile\
+	/sys/man/1/replica\
+	/sys/man/8/replica\
+	${OFILES:%.$O=%.c}\
+	revproto.c\
+	$HFILES\
+	applychanges.c\
+	updatedb.c\
+	${TARG:%=/386/bin/replica/%}\
+	${SCRIPTS:%=/rc/bin/replica/%}\
+	/rc/bin/replica/defs\
+
+
+BIN=/$objtype/bin/replica
+</sys/src/cmd/mkmany
+
+$O.applychanges: revproto.$O
+
+${SCRIPTS:%=$BIN/%}:
+	{ echo '#!/bin/rc'; echo 'exec /rc/bin/replica/'^`{basename $target}^' $*' } >$target
+	chmod +x $target
+
+${SCRIPTS:%=$O.%}:QV:
+	;
+

@@ -1,0 +1,166 @@
+.SH
+REFERENCES
+.PP
+.nr PI \w'20. 'u
+.IP \01. 
+R. Pike,
+`The Blit: a multiplexed graphics terminal,'
+.I
+AT&T Bell Labs. Tech. J.,
+.R
+.B 63 ,
+(8),
+1607-1631 (1984).
+.IP \02. 
+L. Johnson,
+.I MacWrite,
+Apple Computer Inc., Cupertino, Calif. 1983.
+.IP \03. 
+B. Lampson,
+`Bravo Manual,'
+in
+.I
+Alto User's Handbook,
+.R
+pp. 31-62,
+Xerox Palo Alto Research Center,
+Palo Alto, Calif.
+1979.
+.IP \04. 
+W. Teitelman,
+`A tour through Cedar,'
+.I
+IEEE Software,
+.R
+.B 1
+(2), 44-73 (1984).
+.IP \05. 
+J. Gutknecht,
+`Concepts of the text editor Lara,'
+.I
+Comm. ACM,
+.R
+.B 28 ,
+(9),
+942-960 (1985).
+.IP \06. 
+Bell Telephone Laboratories,
+.I
+UNIX Programmer's Manual,
+.R
+Holt, Rinehart and Winston, New York 1983.
+.IP \07. 
+B. W. Kernighan and R. Pike,
+.I
+The Unix Programming Environment,
+.R
+Prentice-Hall, Englewood Cliffs, New Jersey 1984.
+.IP \08. 
+.I
+Unix Time-Sharing System Programmer's Manual, Research Version, Ninth Edition,
+Volume 1,
+.R
+AT&T Bell Laboratories, Murray Hill, New Jersey 1986.
+.IP \09. 
+.I
+Unix Time-Sharing System Programmer's Manual, 4.1 Berkeley Software Distribution,
+Volumes 1 and 2C,
+.R
+University of California, Berkeley, Calif. 1981.
+.IP 10. 
+R. Pike,
+`Structural Regular Expressions,'
+.I
+Proc. EUUG Spring Conf., Helsinki 1987,
+.R
+Eur. Unix User's Group, Buntingford, Herts, UK 1987.
+.IP 11. 
+A. Goldberg,
+.I
+Smalltalk-80 \(en The Interactive Programming Environment,
+.R
+Addison-Wesley, Reading, Mass. 1984.
+.IP 12. 
+K. Thompson,
+`Regular expression search algorithm,'
+.I
+Comm. ACM,
+.R
+.B 11 ,
+(6),
+419-422 (1968).
+.IP 13. 
+A. V. Aho, J. E. Hopcroft and J. D. Ullman,
+.I
+The Design and Analysis of Computer Algorithms,
+.R
+Addison-Wesley, Reading, Mass. 1974.
+.IP 14. 
+B. W. Kernighan and D. M. Ritchie,
+.I
+The C Programming Language,
+.R
+Prentice-Hall, Englewood Cliffs, New Jersey 1978.
+.IP 15. 
+W. M. Waite,
+`The cost of lexical analysis,'
+.I
+Softw. Pract. Exp.,
+.R
+.B 16 ,
+(5),
+473-488 (1986).
+.IP 16. 
+C. W. Fraser,
+`A generalized text editor,'
+.I
+Comm. ACM,
+.R
+.B 23 ,
+(3),
+154-158 (1980).
+.IP 17. 
+R. Pike,
+`Graphics in overlapping bitmap layers,'
+.I
+ACM Trans. on Graph.,
+.R
+.B 2 ,
+(2)
+135-160 (1983).
+.IP 18. 
+L. J. Guibas and J. Stolfi,
+`A language for bitmap manipulation,'
+.I
+ACM Trans. on Graph.,
+.R
+.B 1 ,
+(3),
+191-214 (1982).
+.IP 19. 
+R. Pike, B. Locanthi and J. Reiser,
+`Hardware/software trade-offs for bitmap graphics on the Blit,'
+.I
+Softw. Pract. Exp.,
+.R
+.B 15 ,
+(2),
+131-151 (1985).
+.IP 20. 
+T. A. Cargill,
+`The feel of Pi,'
+.I
+Winter USENIX Conference Proceedings,
+Denver 1986,
+.R
+62-71,
+USENIX Assoc., El Cerrito, CA.
+.IP 21. 
+G. J. Holzmann,
+`Tracing protocols,'
+.I
+AT&T Tech. J.,
+.R
+.B 64 ,
+(10),
+2413-2434 (1985).

@@ -1,0 +1,39 @@
+</$objtype/mkfile
+
+TARG=grap
+OFILES=\
+	grap.$O\
+	grapl.$O\
+	main.$O\
+	input.$O\
+	print.$O\
+	frame.$O\
+	for.$O\
+	coord.$O\
+	ticks.$O\
+	plot.$O\
+	label.$O\
+	misc.$O\
+
+HFILES=grap.h\
+	y.tab.h\
+
+YFILES=grap.y\
+
+LFILES=grapl.lx\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CC=pcc
+LD=pcc
+YFLAGS = -d -S
+CFLAGS=-c
+
+grap.c:	y.tab.c
+	mv $prereq $target
+
+grapl.c:	$LFILES
+	$LEX -t $prereq > $target
+
+clean:V:
+	rm -f [$OS].out *.[$OS] y.tab.? lex.yy.c grapl.c grap.c grap

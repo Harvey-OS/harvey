@@ -1,0 +1,15 @@
+#!/bin/rc
+
+switch($#*){
+case 0
+	exit
+case 1
+	name = /`{echo $1 | sed 's;.*//;;
+		s;/.*;;'}^/webpage
+	# send hget errors to 2 so they appear in window
+	hget $1 >[2=1]| {echo $1; echo; htmlfmt} >[2=1] | plumb -i -d edit -a 'action=showdata filename='$name
+	exit
+case *
+	for(i in *)
+		wurl2txt $i
+}

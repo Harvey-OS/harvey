@@ -1,0 +1,35 @@
+.TH USBD 4
+.SH NAME
+usbd \- Universal Serial Bus daemon
+.SH SYNOPSIS
+.B usbd
+[
+.B -v
+] [
+.B -d
+]
+.SH DESCRIPTION
+.I Usbd
+manages the USB infrastructure, polls all ports, configures hubs and
+provides access to USB devices through a file system in
+.BR #U .
+It monitors all ports, active or inactive and acts on state changes
+by configuring devices when they are plugged in or turned on and
+unconfiguring them when they are pulled out or switched off.
+.PP
+.B Usbd
+recognizes the following flags:
+.I 
+.TP
+.B v
+Verbose; print configuration information and device status as they change.
+.TP
+.B d
+Debug; print the bytes in each message sent or received.
+.LP
+.sp
+.SH SOURCE
+.B /sys/src/cmd/usb/usbd
+.SH "SEE ALSO"
+.IR usb (3),
+.IR usb (4)

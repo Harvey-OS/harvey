@@ -1,0 +1,8 @@
+#!/bin/rc
+for(i){
+	if (test -f /usr/$user/lib/tel)
+		grep -i $i $home/lib/tel
+	grep -i $i /lib/tel
+	grep -i $i /lib/areacodes
+}
+exit ''

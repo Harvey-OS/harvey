@@ -1,0 +1,12 @@
+/usr/glenda
+/lib/font/bit/lucidasans/unicode.8.font
+/lib/font/bit/lucm/unicode.9.font
+          0          20          75
+f          0          24           0           0           1 
+         24          34          16           1           0 /usr/glenda/ Del Snarf Get | Look 
+f          1          25         567         567           1 
+         25          34         567           0           0 readme.acme Del Snarf Undo | Look 
+e          2           0           0           0           1 
+         23          49          52           0           0 /mail/fs/mbox/ Del Snarf | Look Put Mail Delmesg 
+/acme/mail
+Mail mbox

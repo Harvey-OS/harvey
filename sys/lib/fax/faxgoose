@@ -1,0 +1,4 @@
+#!/bin/rc
+9fs emelie
+bind /n/emelie/mail /mail
+exec upas/runq -t3 /mail/faxoutqueue /sys/lib/fax/faxtry < /dev/null > /dev/null >[2=1] &

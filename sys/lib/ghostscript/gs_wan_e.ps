@@ -1,0 +1,48 @@
+%    Copyright (C) 1994, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: gs_wan_e.ps,v 1.2 2000/09/19 18:29:11 lpd Exp $
+% Define the WinAnsi encoding vector.
+/currentglobal where
+ { pop currentglobal { setglobal } true setglobal }
+ { { } }
+ifelse
+/WinAnsiEncoding
+ISOLatin1Encoding 0 39 getinterval aload pop
+    /quotesingle
+ISOLatin1Encoding 40 5 getinterval aload pop
+    /hyphen
+ISOLatin1Encoding 46 50 getinterval aload pop
+    /grave
+ISOLatin1Encoding 97 30 getinterval aload pop
+    /bullet
+% \20x
+	% NOTE: /Euro, /Zcaron, and /zcaron are new for PDF 1.3.
+	% We may have to take them out for backward compatibility.
+    /Euro /bullet /quotesinglbase /florin
+	/quotedblbase /ellipsis /dagger /daggerdbl
+    /circumflex /perthousand /Scaron /guilsinglleft
+	/OE /bullet /Zcaron /bullet
+    /bullet /quoteleft /quoteright /quotedblleft
+	/quotedblright /bullet /endash /emdash
+    /tilde /trademark /scaron /guilsinglright
+	/oe /bullet /zcaron /Ydieresis
+ISOLatin1Encoding 160 96 getinterval aload pop
+256 packedarray
+4 1 index .registerencoding
+.defineencoding
+exec

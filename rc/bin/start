@@ -1,0 +1,5 @@
+#!/bin/rc
+U=`{cat /dev/user}
+ps | sed -n '/^'$U' .*Stopped.* '$1'$/s%[^ ]*  *%~>/proc/%
+s%  *.*%/ctl%
+s%~%echo start%p'

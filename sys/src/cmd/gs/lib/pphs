@@ -1,0 +1,7 @@
+#!/bin/sh
+# $Id: pphs,v 1.1 2001/07/15 16:25:02 lpd Exp $
+# Print the Primary Hint Stream from a linearized PDF file.  Usage:
+#	pphs filename.pdf
+# Output goes to stdout.
+
+exec gs -q -dNODISPLAY -- pphs.ps "$@"

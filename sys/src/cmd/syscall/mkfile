@@ -1,0 +1,29 @@
+</$objtype/mkfile
+CFLAGS=-I/sys/src/libc/9syscall $CFLAGS
+
+TARG=syscall
+OFILES=syscall.$O\
+
+HFILES=tab.h\
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/%}\
+
+</sys/src/cmd/mkone
+
+SYSCALL=/sys/src/libc/9syscall/sys.h
+
+tab.h:	$SYSCALL
+	sed '/#define._X[0-9_]/d;
+		/#define.NSYSCALL/d;
+		s/#define.([A-Z0-9_][A-Z0-9_]*).*/	"\1",	(int(*)(...))\1,/' $SYSCALL |
+		tr A-Z a-z > tab.h
+	echo '	"read",	(int(*)(...))read,' >> tab.h
+	echo '	"write",	(int(*)(...))write,' >> tab.h
+
+clean:V:
+	rm -f *.[$OS] [$OS].out $TARG $HFILES

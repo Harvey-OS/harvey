@@ -1,0 +1,64 @@
+.TL
+Preface to the Fourth (2002) Edition
+.LP
+Plan 9 continues to grow and adapt.
+The fourth major release of the system
+incorporates a number of changes, but the most central
+is the conversion to a new version of the 9P file system
+protocol.
+This new version was motivated by a desire to support
+files with name elements longer than 27 bytes (the old
+.CW NAMELEN ),
+but the opportunity was taken to change a number of other things
+about the protocol,
+making it more efficient, more flexible, and easier to encapsulate.
+One simple but indispensable new feature made possible by the protocol
+change is that the system now records the user who last modified a file;
+try
+.CW ls
+.CW -m
+to identify the culprit.
+.LP
+Many aspects of system security have been improved.
+The new security agent
+.I factotum (4)
+maintains user passwords, while
+.I secstore (4)
+keeps them safe and enables single sign-on to multiple domains and machines
+using a variety of secure protocols and services.
+.LP
+Throughout the system, components have been rewritten and interfaces
+modified to eliminate restrictions, improve performance, and clarify design.
+The full list is too long to include here, but significant changes have occurred
+in a number of system calls
+.I wait (2), (
+.I stat (2),
+.I mount (2),
+and
+.I errstr (2)),
+the thread library
+.I thread (2)), (
+formatted printing
+.I print (2) (
+and
+.I fmtinstall (2)),
+security
+(many pages in section 2, including
+.I auth (2),
+.I authsrv (2)),
+and many others.
+.LP
+The changes are sweeping and are accompanied by many new programs, tools,
+services,
+and libraries.
+See the manual pages and the accompanying documents for more information.
+.LP
+.sp
+.in 3i
+Bell Labs
+.br
+Computing Science Research Center
+.br
+Murray Hill NJ
+.br
+April, 2002

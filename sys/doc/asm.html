@@ -1,0 +1,1359 @@
+<html>
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>A Manual for the Plan 9 assembler
+</H1>
+<DL><DD><I>Rob Pike<br>
+rob@plan9.bell-labs.com<br>
+</I></DL>
+<H4>Machines
+</H4>
+<P>
+There is an assembler for each of the MIPS, SPARC, Intel 386,
+Intel 960, AMD 29000, Motorola 68020 and 68000, Motorola Power PC, DEC Alpha, and Acorn ARM.
+The 68020 assembler,
+<TT>2a</TT>,
+is the oldest and in many ways the prototype.
+The assemblers are really just variations of a single program:
+they share many properties such as left-to-right assignment order for
+instruction operands and the synthesis of macro instructions
+such as
+<TT>MOVE</TT>
+to hide the peculiarities of the load and store structure of the machines.
+To keep things concrete, the first part of this manual is
+specifically about the 68020.
+At the end is a description of the differences among
+the other assemblers.
+</P>
+<P>
+The document, ``How to Use the Plan 9 C Compiler'', by Rob Pike,
+is a prerequisite for this manual.
+</P>
+<H4>Registers
+</H4>
+<P>
+All pre-defined symbols in the assembler are upper-case.
+Data registers are
+<TT>R0</TT>
+through
+<TT>R7</TT>;
+address registers are
+<TT>A0</TT>
+through
+<TT>A7</TT>;
+floating-point registers are
+<TT>F0</TT>
+through
+<TT>F7</TT>.
+</P>
+<P>
+A pointer in
+<TT>A6</TT>
+is used by the C compiler to point to data, enabling short addresses to
+be used more often.
+The value of
+<TT>A6</TT>
+is constant and must be set during C program initialization
+to the address of the externally-defined symbol
+<TT>a6base</TT>.
+</P>
+<P>
+The following hardware registers are defined in the assembler; their
+meaning should be obvious given a 68020 manual:
+<TT>CAAR</TT>,
+<TT>CACR</TT>,
+<TT>CCR</TT>,
+<TT>DFC</TT>,
+<TT>ISP</TT>,
+<TT>MSP</TT>,
+<TT>SFC</TT>,
+<TT>SR</TT>,
+<TT>USP</TT>,
+and
+<TT>VBR</TT>.
+</P>
+<P>
+The assembler also defines several pseudo-registers that
+manipulate the stack:
+<TT>FP</TT>,
+<TT>SP</TT>,
+and
+<TT>TOS</TT>.
+<TT>FP</TT>
+is the frame pointer, so
+<TT>0(FP)</TT>
+is the first argument,
+<TT>4(FP)</TT>
+is the second, and so on.
+<TT>SP</TT>
+is the local stack pointer, where automatic variables are held
+(SP is a pseudo-register only on the 68020);
+<TT>0(SP)</TT>
+is the first automatic, and so on as with
+<TT>FP</TT>.
+Finally,
+<TT>TOS</TT>
+is the top-of-stack register, used for pushing parameters to procedures,
+saving temporary values, and so on.
+</P>
+<P>
+The assembler and loader track these pseudo-registers so
+the above statements are true regardless of what has been
+pushed on the hardware stack, pointed to by
+<TT>A7</TT>.
+The name
+<TT>A7</TT>
+refers to the hardware stack pointer, but beware of mixed use of
+<TT>A7</TT>
+and the above stack-related pseudo-registers, which will cause trouble.
+Note, too, that the
+<TT>PEA</TT>
+instruction is observed by the loader to
+alter SP and thus will insert a corresponding pop before all returns.
+The assembler accepts a label-like name to be attached to
+<TT>FP</TT>
+and
+<TT>SP</TT>
+uses, such as
+<TT>p+0(FP)</TT>,
+to help document that
+<TT>p</TT>
+is the first argument to a routine.
+The name goes in the symbol table but has no significance to the result
+of the program.
+</P>
+<H4>Referring to data
+</H4>
+<P>
+All external references must be made relative to some pseudo-register,
+either
+<TT>PC</TT>
+(the virtual program counter) or
+<TT>SB</TT>
+(the ``static base'' register).
+<TT>PC</TT>
+counts instructions, not bytes of data.
+For example, to branch to the second following instruction, that is,
+to skip one instruction, one may write
+<DL><DT><DD><TT><PRE>
+	BRA	2(PC)
+</PRE></TT></DL>
+Labels are also allowed, as in
+<DL><DT><DD><TT><PRE>
+	BRA	return
+	NOP
+return:
+	RTS
+</PRE></TT></DL>
+When using labels, there is no
+<TT>(PC)</TT>
+annotation.
+</P>
+<P>
+The pseudo-register
+<TT>SB</TT>
+refers to the beginning of the address space of the program.
+Thus, references to global data and procedures are written as
+offsets to
+<TT>SB</TT>,
+as in
+<DL><DT><DD><TT><PRE>
+	MOVL	$array(SB), TOS
+</PRE></TT></DL>
+to push the address of a global array on the stack, or
+<DL><DT><DD><TT><PRE>
+	MOVL	array+4(SB), TOS
+</PRE></TT></DL>
+to push the second (4-byte) element of the array.
+Note the use of an offset; the complete list of addressing modes is given below.
+Similarly, subroutine calls must use
+<TT>SB</TT>:
+<DL><DT><DD><TT><PRE>
+	BSR	exit(SB)
+</PRE></TT></DL>
+File-static variables have syntax
+<DL><DT><DD><TT><PRE>
+	local&#60;&#62;+4(SB)
+</PRE></TT></DL>
+The
+<TT><></TT>
+will be filled in at load time by a unique integer.
+</P>
+<P>
+When a program starts, it must execute
+<DL><DT><DD><TT><PRE>
+	MOVL	$a6base(SB), A6
+</PRE></TT></DL>
+before accessing any global data.
+(On machines such as the MIPS and SPARC that cannot load a register
+in a single instruction, constants are loaded through the static base
+register.  The loader recognizes code that initializes the static
+base register and treats it specially.  You must be careful, however,
+not to load large constants on such machines when the static base
+register is not set up, such as early in interrupt routines.)
+</P>
+<H4>Expressions
+</H4>
+<P>
+Expressions are mostly what one might expect.
+Where an offset or a constant is expected,
+a primary expression with unary operators is allowed.
+A general C constant expression is allowed in parentheses.
+</P>
+<P>
+Source files are preprocessed exactly as in the C compiler, so
+<TT>#define</TT>
+and
+<TT>#include</TT>
+work.
+</P>
+<H4>Addressing modes
+</H4>
+<P>
+The simple addressing modes are shared by all the assemblers.
+Here, for completeness, follows a table of all the 68020 addressing modes,
+since that machine has the richest set.
+In the table,
+<TT>o</TT>
+is an offset, which if zero may be elided, and
+<TT>d</TT>
+is a displacement, which is a constant between -128 and 127 inclusive.
+Many of the modes listed have the same name;
+scrutiny of the format will show what default is being applied.
+For instance, indexed mode with no address register supplied operates
+as though a zero-valued register were used.
+For "offset" read "displacement."
+For "<TT>.s</TT>" read one of
+<TT>.L</TT>,
+or
+<TT>.W</TT>
+followed by
+<TT>*1</TT>,
+<TT>*2</TT>,
+<TT>*4</TT>,
+or
+<TT>*8</TT>
+to indicate the size and scaling of the data.
+</P>
+<DL>
+<DT><DT>&#32;<DD>
+<br><img src="data.10610.gif"><br>
+</dl>
+<H4>Laying down data
+</H4>
+<P>
+Placing data in the instruction stream, say for interrupt vectors, is easy:
+the pseudo-instructions
+<TT>LONG</TT>
+and
+<TT>WORD</TT>
+(but not
+<TT>BYTE</TT>)
+lay down the value of their single argument, of the appropriate size,
+as if it were an instruction:
+<DL><DT><DD><TT><PRE>
+	LONG	$12345
+</PRE></TT></DL>
+places the long 12345 (base 10)
+in the instruction stream.
+(On most machines,
+the only such operator is
+<TT>WORD</TT>
+and it lays down 32-bit quantities.
+The 386 has all three:
+<TT>LONG</TT>,
+<TT>WORD</TT>,
+and
+<TT>BYTE</TT>.
+The 960 has only one,
+<TT>LONG</TT>.)
+</P>
+<P>
+Placing information in the data section is more painful.
+The pseudo-instruction
+<TT>DATA</TT>
+does the work, given two arguments: an address at which to place the item,
+including its size,
+and the value to place there.  For example, to define a character array
+<TT>array</TT>
+containing the characters
+<TT>abc</TT>
+and a terminating null:
+<DL><DT><DD><TT><PRE>
+	DATA    array+0(SB)/1, $'a'
+	DATA    array+1(SB)/1, $'b'
+	DATA    array+2(SB)/1, $'c'
+	GLOBL   array(SB), $4
+</PRE></TT></DL>
+or
+<DL><DT><DD><TT><PRE>
+	DATA    array+0(SB)/4, $"abc\z"
+	GLOBL   array(SB), $4
+</PRE></TT></DL>
+The
+<TT>/1</TT>
+defines the number of bytes to define,
+<TT>GLOBL</TT>
+makes the symbol global, and the
+<TT>$4</TT>
+says how many bytes the symbol occupies.
+Uninitialized data is zeroed automatically.
+The character
+<TT>z</TT>
+is equivalent to the C
+<TT> .</TT>
+The string in a
+<TT>DATA</TT>
+statement may contain a maximum of eight bytes;
+build larger strings piecewise.
+Two pseudo-instructions,
+<TT>DYNT</TT>
+and
+<TT>INIT</TT>,
+allow the (obsolete) Alef compilers to build dynamic type information during the load
+phase.
+The
+<TT>DYNT</TT>
+pseudo-instruction has two forms:
+<DL><DT><DD><TT><PRE>
+	DYNT	, ALEF_SI_5+0(SB)
+	DYNT	ALEF_AS+0(SB), ALEF_SI_5+0(SB)
+</PRE></TT></DL>
+In the first form,
+<TT>DYNT</TT>
+defines the symbol to be a small unique integer constant, chosen by the loader,
+which is some multiple of the word size.  In the second form,
+<TT>DYNT</TT>
+defines the second symbol in the same way,
+places the address of the most recently
+defined text symbol in the array specified by the first symbol at the
+index defined by the value of the second symbol,
+and then adjusts the size of the array accordingly.
+</P>
+<P>
+The
+<TT>INIT</TT>
+pseudo-instruction takes the same parameters as a
+<TT>DATA</TT>
+statement.  Its symbol is used as the base of an array and the
+data item is installed in the array at the offset specified by the most recent
+<TT>DYNT</TT>
+pseudo-instruction.
+The size of the array is adjusted accordingly.
+The
+<TT>DYNT</TT>
+and
+<TT>INIT</TT>
+pseudo-instructions are not implemented on the 68020.
+</P>
+<H4>Defining a procedure
+</H4>
+<P>
+Entry points are defined by the pseudo-operation
+<TT>TEXT</TT>,
+which takes as arguments the name of the procedure (including the ubiquitous
+<TT>(SB)</TT>)
+and the number of bytes of automatic storage to pre-allocate on the stack,
+which will usually be zero when writing assembly language programs.
+On machines with a link register, such as the MIPS and SPARC,
+the special value -4 instructs the loader to generate no PC save
+and restore instructions, even if the function is not a leaf.
+Here is a complete procedure that returns the sum
+of its two arguments:
+<DL><DT><DD><TT><PRE>
+TEXT	sum(SB), $0
+	MOVL	arg1+0(FP), R0
+	ADDL	arg2+4(FP), R0
+	RTS
+</PRE></TT></DL>
+An optional middle argument
+to the
+<TT>TEXT</TT>
+pseudo-op is a bit field of options to the loader.
+Setting the 1 bit suspends profiling the function when profiling is enabled for the rest of
+the program.
+For example,
+<DL><DT><DD><TT><PRE>
+TEXT	sum(SB), 1, $0
+	MOVL	arg1+0(FP), R0
+	ADDL	arg2+4(FP), R0
+	RTS
+</PRE></TT></DL>
+will not be profiled; the first version above would be.
+Subroutines with peculiar state, such as system call routines,
+should not be profiled.
+</P>
+<P>
+Setting the 2 bit allows multiple definitions of the same
+<TT>TEXT</TT>
+symbol in a program; the loader will place only one such function in the image.
+It was emitted only by the Alef compilers.
+</P>
+<P>
+Subroutines to be called from C should place their result in
+<TT>R0</TT>,
+even if it is an address.
+Floating point values are returned in
+<TT>F0</TT>.
+Functions that return a structure to a C program
+receive as their first argument the address of the location to
+store the result;
+<TT>R0</TT>
+is unused in the calling protocol for such procedures.
+A subroutine is responsible for saving its own registers,
+and therefore is free to use any registers without saving them (``caller saves'').
+<TT>A6</TT>
+and
+<TT>A7</TT>
+are the exceptions as described above.
+</P>
+<H4>When in doubt
+</H4>
+<P>
+If you get confused, try using the
+<TT>-S</TT>
+option to
+<TT>2c</TT>
+and compiling a sample program.
+The standard output is valid input to the assembler.
+</P>
+<H4>Instructions
+</H4>
+<P>
+The instruction set of the assembler is not identical to that
+of the machine.
+It is chosen to match what the compiler generates, augmented
+slightly by specific needs of the operating system.
+For example,
+<TT>2a</TT>
+does not distinguish between the various forms of
+<TT>MOVE</TT>
+instruction: move quick, move address, etc.  Instead the context
+does the job.  For example,
+<DL><DT><DD><TT><PRE>
+	MOVL	$1, R1
+	MOVL	A0, R2
+	MOVW	SR, R3
+</PRE></TT></DL>
+generates official
+<TT>MOVEQ</TT>,
+<TT>MOVEA</TT>,
+and
+<TT>MOVESR</TT>
+instructions.
+A number of instructions do not have the syntax necessary to specify
+their entire capabilities.  Notable examples are the bitfield
+instructions, the
+multiply and divide instructions, etc.
+For a complete set of generated instruction names (in
+<TT>2a</TT>
+notation, not Motorola's) see the file
+<TT>/sys/src/cmd/2c/2.out.h</TT>.
+Despite its name, this file contains an enumeration of the
+instructions that appear in the intermediate files generated
+by the compiler, which correspond exactly to lines of assembly language.
+</P>
+<P>
+The MC68000 assembler,
+<TT>1a</TT>,
+is essentially the same, honoring the appropriate subset of the instructions
+and addressing modes.
+The definitions of these are, nonetheless, part of
+<TT>2.out.h</TT>.
+</P>
+<H4>Laying down instructions
+</H4>
+<P>
+The loader modifies the code produced by the assembler and compiler.
+It folds branches,
+copies short sequences of code to eliminate branches,
+and discards unreachable code.
+The first instruction of every function is assumed to be reachable.
+The pseudo-instruction
+<TT>NOP</TT>,
+which you may see in compiler output,
+means no instruction at all, rather than an instruction that does nothing.
+The loader discards all
+<TT>NOP</TT>'s.
+</P>
+<P>
+To generate a true
+<TT>NOP</TT>
+instruction, or any other instruction not known to the assembler, use a
+<TT>WORD</TT>
+pseudo-instruction.
+Such instructions on RISCs are not scheduled by the loader and must have
+their delay slots filled manually.
+</P>
+<H4>MIPS
+</H4>
+<P>
+The registers are only addressed by number:
+<TT>R0</TT>
+through
+<TT>R31</TT>.
+<TT>R29</TT>
+is the stack pointer;
+<TT>R30</TT>
+is used as the static base pointer, the analogue of
+<TT>A6</TT>
+on the 68020.
+Its value is the address of the global symbol
+<TT>setR30(SB)</TT>.
+The register holding returned values from subroutines is
+<TT>R1</TT>.
+When a function is called, space for the first argument
+is reserved at
+<TT>0(FP)</TT>
+but in C (not Alef) the value is passed in
+<TT>R1</TT>
+instead.
+</P>
+<P>
+The loader uses
+<TT>R28</TT>
+as a temporary.  The system uses
+<TT>R26</TT>
+and
+<TT>R27</TT>
+as interrupt-time temporaries.  Therefore none of these registers
+should be used in user code.
+</P>
+<P>
+The control registers are not known to the assembler.
+Instead they are numbered registers
+<TT>M0</TT>,
+<TT>M1</TT>,
+etc.
+Use this trick to access, say,
+<TT>STATUS</TT>:
+<DL><DT><DD><TT><PRE>
+#define	STATUS	12
+	MOVW	M(STATUS), R1
+</PRE></TT></DL>
+</P>
+<P>
+Floating point registers are called
+<TT>F0</TT>
+through
+<TT>F31</TT>.
+By convention,
+<TT>F24</TT>
+must be initialized to the value 0.0,
+<TT>F26</TT>
+to 0.5,
+<TT>F28</TT>
+to 1.0, and
+<TT>F30</TT>
+to 2.0;
+this is done by the operating system.
+</P>
+<P>
+The instructions and their syntax are different from those of the manufacturer's
+manual.
+There are no
+<TT>lui</TT>
+and kin; instead there are
+<TT>MOVW</TT>
+(move word),
+<TT>MOVH</TT>
+(move halfword),
+and
+<TT>MOVB</TT>
+(move byte) pseudo-instructions.  If the operand is unsigned, the instructions
+are
+<TT>MOVHU</TT>
+and
+<TT>MOVBU</TT>.
+The order of operands is from left to right in dataflow order, just as
+on the 68020 but not as in MIPS documentation.
+This means that the
+<TT>Bcond</TT>
+instructions are reversed with respect to the book; for example, a
+<TT>va</TT>
+<TT>BGTZ</TT>
+generates a MIPS
+<TT>bltz</TT>
+instruction.
+</P>
+<P>
+The assembler is for the R2000, R3000, and most of the R4000 and R6000 architectures.
+It understands the 64-bit instructions
+<TT>MOVV</TT>,
+<TT>MOVVL</TT>,
+<TT>ADDV</TT>,
+<TT>ADDVU</TT>,
+<TT>SUBV</TT>,
+<TT>SUBVU</TT>,
+<TT>MULV</TT>,
+<TT>MULVU</TT>,
+<TT>DIVV</TT>,
+<TT>DIVVU</TT>,
+<TT>SLLV</TT>,
+<TT>SRLV</TT>,
+and
+<TT>SRAV</TT>.
+The assembler does not have any cache, load-linked, or store-conditional instructions.
+</P>
+<P>
+Some assembler instructions are expanded into multiple instructions by the loader.
+For example the loader may convert the load of a 32 bit constant into an
+<TT>lui</TT>
+followed by an
+<TT>ori</TT>.
+</P>
+<P>
+Assembler instructions should be laid out as if there
+were no load, branch, or floating point compare delay slots;
+the loader will rearrange&#173;<I>schedule</I>&#173;the instructions
+to guarantee correctness and improve performance.
+The only exception is that the correct scheduling of instructions
+that use control registers varies from model to model of machine
+(and is often undocumented) so you should schedule such instructions
+by hand to guarantee correct behavior.
+The loader generates
+<DL><DT><DD><TT><PRE>
+	NOR	R0, R0, R0
+</PRE></TT></DL>
+when it needs a true no-op instruction.
+Use exactly this instruction when scheduling code manually;
+the loader recognizes it and schedules the code before it and after it independently.  Also,
+<TT>WORD</TT>
+pseudo-ops are scheduled like no-ops.
+</P>
+<P>
+The
+<TT>NOSCHED</TT>
+pseudo-op disables instruction scheduling
+(scheduling is enabled by default);
+<TT>SCHED</TT>
+re-enables it.
+Branch folding, code copying, and dead code elimination are
+disabled for instructions that are not scheduled.
+</P>
+<H4>SPARC
+</H4>
+<P>
+Once you understand the Plan 9 model for the MIPS, the SPARC is familiar.
+Registers have numerical names only:
+<TT>R0</TT>
+through
+<TT>R31</TT>.
+Forget about register windows: Plan 9 doesn't use them at all.
+The machine has 32 global registers, period.
+<TT>R1</TT>
+[sic] is the stack pointer.
+<TT>R2</TT>
+is the static base register, with value the address of
+<TT>setSB(SB)</TT>.
+<TT>R7</TT>
+is the return register and also the register holding the first
+argument to a C (not Alef) function, again with space reserved at
+<TT>0(FP)</TT>.
+<TT>R14</TT>
+is the loader temporary.
+</P>
+<P>
+Floating-point registers are exactly as on the MIPS.
+</P>
+<P>
+The control registers are known by names such as
+<TT>FSR</TT>.
+The instructions to access these registers are
+<TT>MOVW</TT>
+instructions, for example
+<DL><DT><DD><TT><PRE>
+	MOVW	Y, R8
+</PRE></TT></DL>
+for the SPARC instruction
+<DL><DT><DD><TT><PRE>
+	rdy	%r8
+</PRE></TT></DL>
+</P>
+<P>
+Move instructions are similar to those on the MIPS: pseudo-operations
+that turn into appropriate sequences of
+<TT>sethi</TT>
+instructions, adds, etc.
+Instructions read from left to right.  Because the arguments are
+flipped to
+<TT>SUBCC</TT>,
+the condition codes are not inverted as on the MIPS.
+</P>
+<P>
+The syntax for the ASI stuff is, for example to move a word from ASI 2:
+<DL><DT><DD><TT><PRE>
+	MOVW	(R7, 2), R8
+</PRE></TT></DL>
+The syntax for double indexing is
+<DL><DT><DD><TT><PRE>
+	MOVW	(R7+R8), R9
+</PRE></TT></DL>
+</P>
+<P>
+The SPARC's instruction scheduling is similar to the MIPS's.
+The official no-op instruction is:
+<DL><DT><DD><TT><PRE>
+	ORN	R0, R0, R0
+</PRE></TT></DL>
+</P>
+<H4>i960
+</H4>
+<P>
+Registers are numbered
+<TT>R0</TT>
+through
+<TT>R31</TT>.
+Stack pointer is
+<TT>R29</TT>;
+return register is
+<TT>R4</TT>;
+static base is
+<TT>R28</TT>;
+it is initialized to the address of
+<TT>setSB(SB)</TT>.
+<TT>R3</TT>
+must be zero; this should be done manually early in execution by
+<DL><DT><DD><TT><PRE>
+	SUBO	R3, R3
+</PRE></TT></DL>
+<TT>R27</TT>
+is the loader temporary.
+</P>
+<P>
+There is no support for floating point.
+</P>
+<P>
+The Intel calling convention is not supported and cannot be used; use
+<TT>BAL</TT>
+instead.
+Instructions are mostly as in the book.  The major change is that
+<TT>LOAD</TT>
+and
+<TT>STORE</TT>
+are both called
+<TT>MOV</TT>.
+The extension character for
+<TT>MOV</TT>
+is as in the manual:
+<TT>O</TT>
+for ordinal,
+<TT>W</TT>
+for signed, etc.
+</P>
+<H4>i386
+</H4>
+<P>
+The assembler assumes 32-bit protected mode.
+The register names are
+<TT>SP</TT>,
+<TT>AX</TT>,
+<TT>BX</TT>,
+<TT>CX</TT>,
+<TT>DX</TT>,
+<TT>BP</TT>,
+<TT>DI</TT>,
+and
+<TT>SI</TT>.
+The stack pointer (not a pseudo-register) is
+<TT>SP</TT>
+and the return register is
+<TT>AX</TT>.
+There is no physical frame pointer but, as for the MIPS,
+<TT>FP</TT>
+is a pseudo-register that acts as
+a frame pointer.
+</P>
+<P>
+Opcode names are mostly the same as those listed in the Intel manual
+with an
+<TT>L</TT>,
+<TT>W</TT>,
+or
+<TT>B</TT>
+appended to identify 32-bit, 
+16-bit, and 8-bit operations.
+The exceptions are loads, stores, and conditionals.
+All load and store opcodes to and from general registers, special registers
+(such as
+<TT>CR0,</TT>
+<TT>CR3,</TT>
+<TT>GDTR,</TT>
+<TT>IDTR,</TT>
+<TT>SS,</TT>
+<TT>CS,</TT>
+<TT>DS,</TT>
+<TT>ES,</TT>
+<TT>FS,</TT>
+and
+<TT>GS</TT>)
+or memory are written
+as
+<DL><DT><DD><TT><PRE>
+	MOV<I>x</I>	src,dst
+</PRE></TT></DL>
+where
+<I>x</I>
+is
+<TT>L</TT>,
+<TT>W</TT>,
+or
+<TT>B</TT>.
+Thus to get
+<TT>AL</TT>
+use a
+<TT>MOVB</TT>
+instruction.  If you need to access
+<TT>AH</TT>,
+you must mention it explicitly in a
+<TT>MOVB</TT>:
+<DL><DT><DD><TT><PRE>
+	MOVB	AH, BX
+</PRE></TT></DL>
+There are many examples of illegal moves, for example,
+<DL><DT><DD><TT><PRE>
+	MOVB	BP, DI
+</PRE></TT></DL>
+that the loader actually implements as pseudo-operations.
+</P>
+<P>
+The names of conditions in all conditional instructions
+(<TT>J</TT>,
+<TT>SET</TT>)
+follow the conventions of the 68020 instead of those of the Intel
+assembler:
+<TT>JOS</TT>,
+<TT>JOC</TT>,
+<TT>JCS</TT>,
+<TT>JCC</TT>,
+<TT>JEQ</TT>,
+<TT>JNE</TT>,
+<TT>JLS</TT>,
+<TT>JHI</TT>,
+<TT>JMI</TT>,
+<TT>JPL</TT>,
+<TT>JPS</TT>,
+<TT>JPC</TT>,
+<TT>JLT</TT>,
+<TT>JGE</TT>,
+<TT>JLE</TT>,
+and
+<TT>JGT</TT>
+instead of
+<TT>JO</TT>,
+<TT>JNO</TT>,
+<TT>JB</TT>,
+<TT>JNB</TT>,
+<TT>JZ</TT>,
+<TT>JNZ</TT>,
+<TT>JBE</TT>,
+<TT>JNBE</TT>,
+<TT>JS</TT>,
+<TT>JNS</TT>,
+<TT>JP</TT>,
+<TT>JNP</TT>,
+<TT>JL</TT>,
+<TT>JNL</TT>,
+<TT>JLE</TT>,
+and
+<TT>JNLE</TT>.
+</P>
+<P>
+The addressing modes have syntax like
+<TT>AX</TT>,
+<TT>(AX)</TT>,
+<TT>(AX)(BX*4)</TT>,
+<TT>10(AX)</TT>,
+and
+<TT>10(AX)(BX*4)</TT>.
+The offsets from
+<TT>AX</TT>
+can be replaced by offsets from
+<TT>FP</TT>
+or
+<TT>SB</TT>
+to access names, for example
+<TT>extern+5(SB)(AX*2)</TT>.
+</P>
+<P>
+Other notes: Non-relative
+<TT>JMP</TT>
+and
+<TT>CALL</TT>
+have a
+<TT>*</TT>
+added to the syntax.
+Only
+<TT>LOOP</TT>,
+<TT>LOOPEQ</TT>,
+and
+<TT>LOOPNE</TT>
+are legal loop instructions.  Only
+<TT>REP</TT>
+and
+<TT>REPN</TT>
+are recognized repeaters.  These are not prefixes, but rather
+stand-alone opcodes that precede the strings, for example
+<DL><DT><DD><TT><PRE>
+	CLD; REP; MOVSL
+</PRE></TT></DL>
+Segment override prefixes in
+<TT>MOD/RM</TT>
+fields are not supported.
+</P>
+<H4>Alpha
+</H4>
+<P>
+On the Alpha, all registers are 64 bits.  The architecture handles 32-bit values
+by giving them a canonical format (sign extension in the case of integer registers).
+Registers are numbered
+<TT>R0</TT>
+through
+<TT>R31</TT>.
+<TT>R0</TT>
+holds the return value from subroutines, and also the first parameter.
+<TT>R30</TT>
+is the stack pointer,
+<TT>R29</TT>
+is the static base,
+<TT>R26</TT>
+is the link register, and
+<TT>R27</TT>
+and
+<TT>R28</TT>
+are linker temporaries.
+</P>
+<P>
+Floating point registers are numbered
+<TT>F0</TT>
+to
+<TT>F31</TT>.
+<TT>F28</TT>
+contains
+<TT>0.5</TT>,
+<TT>F29</TT>
+contains
+<TT>1.0</TT>,
+and
+<TT>F30</TT>
+contains
+<TT>2.0</TT>.
+<TT>F31</TT>
+is always
+<TT>0.0</TT>
+on the Alpha.
+</P>
+<P>
+The extension character for
+<TT>MOV</TT>
+follows DEC's notation:
+<TT>B</TT>
+for byte (8 bits),
+<TT>W</TT>
+for word (16 bits),
+<TT>L</TT>
+for long (32 bits),
+and
+<TT>Q</TT>
+for quadword (64 bits).
+Byte and ``word'' loads and stores may be made unsigned
+by appending a
+<TT>U</TT>.
+<TT>S</TT>
+and
+<TT>T</TT>
+refer to IEEE floating point single precision (32 bits) and double precision (64 bits), respectively.
+</P>
+<H4>Power PC
+</H4>
+<P>
+The Power PC follows the Plan 9 model set by the MIPS and SPARC,
+not the elaborate ABIs.
+The 32-bit instructions of the 60x and 8xx PowerPC architectures are supported;
+there is no support for the older POWER instructions.
+Registers are
+<TT>R0</TT>
+through
+<TT>R31</TT>.
+<TT>R0</TT>
+is initialized to zero; this is done by C start up code
+and assumed by the compiler and loader.
+<TT>R1</TT>
+is the stack pointer.
+<TT>R2</TT>
+is the static base register, with value the address of
+<TT>setSB(SB)</TT>.
+<TT>R3</TT>
+is the return register and also the register holding the first
+argument to a C function, with space reserved at
+<TT>0(FP)</TT>
+as on the MIPS.
+<TT>R31</TT>
+is the loader temporary.
+The external registers in Plan 9's C are allocated from
+<TT>R30</TT>
+down.
+</P>
+<P>
+Floating point registers are called
+<TT>F0</TT>
+through
+<TT>F31</TT>.
+By convention, several registers are initialized
+to specific values; this is done by the operating system.
+<TT>F27</TT>
+must be initialized to the value
+<TT>0x4330000080000000</TT>
+(used by float-to-int conversion),
+<TT>F28</TT>
+to the value 0.0,
+<TT>F29</TT>
+to 0.5,
+<TT>F30</TT>
+to 1.0, and
+<TT>F31</TT>
+to 2.0.
+</P>
+<P>
+As on the MIPS and SPARC, the assembler accepts arbitrary literals
+as operands to
+<TT>MOVW</TT>,
+and also to
+<TT>ADD</TT>
+and others where `immediate' variants exist,
+and the loader generates sequences
+of
+<TT>addi</TT>,
+<TT>addis</TT>,
+<TT>oris</TT>,
+etc. as required.
+The register indirect addressing modes use the same syntax as the SPARC,
+including double indexing when allowed.
+</P>
+<P>
+The instruction names are generally derived from the Motorola ones,
+subject to slight transformation:
+the
+`<TT>.</TT>'
+marking the setting of condition codes is replaced by
+<TT>CC</TT>,
+and when the letter
+`<TT>o</TT>'
+represents `OE=1' it is replaced by
+<TT>V</TT>.
+Thus
+<TT>add</TT>,
+<TT>addo.</TT>
+and
+<TT>subfzeo.</TT>
+become
+<TT>ADD</TT>,
+<TT>ADDVCC</TT>
+and
+<TT>SUBFZEVCC</TT>.
+As well as the three-operand conditional branch instruction
+<TT>BC</TT>,
+the assembler provides pseudo-instructions for the common cases:
+<TT>BEQ</TT>,
+<TT>BNE</TT>,
+<TT>BGT</TT>,
+<TT>BGE</TT>,
+<TT>BLT</TT>,
+<TT>BLE</TT>,
+<TT>BVC</TT>,
+and
+<TT>BVS</TT>.
+The unconditional branch instruction is
+<TT>BR</TT>.
+Indirect branches use
+<TT>(CTR)</TT>
+or
+<TT>(LR)</TT>
+as target.
+</P>
+<P>
+Load or store operations are replaced by
+<TT>MOV</TT>
+variants in the usual way:
+<TT>MOVW</TT>
+(move word),
+<TT>MOVH</TT>
+(move halfword with sign extension), and
+<TT>MOVB</TT>
+(move byte with sign extension, a pseudo-instruction),
+with unsigned variants
+<TT>MOVHZ</TT>
+and
+<TT>MOVBZ</TT>,
+and byte-reversing
+<TT>MOVWBR</TT>
+and
+<TT>MOVHBR</TT>.
+`Load or store with update' versions are
+<TT>MOVWU</TT>,
+<TT>MOVHU</TT>,
+and
+<TT>MOVBZU</TT>.
+Load or store multiple is
+<TT>MOVMW</TT>.
+The exceptions are the string instructions, which are
+<TT>LSW</TT>
+and
+<TT>STSW</TT>,
+and the reservation instructions
+<TT>lwarx</TT>
+and
+<TT>stwcx.</TT>,
+which are
+<TT>LWAR</TT>
+and
+<TT>STWCCC</TT>,
+all with operands in the usual data-flow order.
+Floating-point load or store instructions are
+<TT>FMOVD</TT>,
+<TT>FMOVDU</TT>,
+<TT>FMOVS</TT>,
+and
+<TT>FMOVSU</TT>.
+The register to register move instructions
+<TT>fmr</TT>
+and
+<TT>fmr.</TT>
+are written
+<TT>FMOVD</TT>
+and
+<TT>FMOVDCC</TT>.
+</P>
+<P>
+The assembler knows the commonly used special purpose registers:
+<TT>CR</TT>,
+<TT>CTR</TT>,
+<TT>DEC</TT>,
+<TT>LR</TT>,
+<TT>MSR</TT>,
+and
+<TT>XER</TT>.
+The rest, which are often architecture-dependent, are referenced as
+<TT>SPR(n)</TT>.
+The segment registers of the 60x series are similarly
+<TT>SEG(n)</TT>,
+but
+<I>n</I>
+can also be a register name, as in
+<TT>SEG(R3)</TT>.
+Moves between special purpose registers and general purpose ones,
+when allowed by the architecture,
+are written as
+<TT>MOVW</TT>,
+replacing
+<TT>mfcr</TT>,
+<TT>mtcr</TT>,
+<TT>mfmsr</TT>,
+<TT>mtmsr</TT>,
+<TT>mtspr</TT>,
+<TT>mfspr</TT>,
+<TT>mftb</TT>,
+and many others.
+</P>
+<P>
+The fields of the condition register
+<TT>CR</TT>
+are referenced as
+<TT>CR(0)</TT>
+through
+<TT>CR(7)</TT>.
+They are used by the
+<TT>MOVFL</TT>
+(move field) pseudo-instruction,
+which produces
+<TT>mcrf</TT>
+or
+<TT>mtcrf</TT>.
+For example:
+<DL><DT><DD><TT><PRE>
+	MOVFL	CR(3), CR(0)
+	MOVFL	R3, CR(1)
+	MOVFL	R3, $7, CR
+</PRE></TT></DL>
+They are also accepted in
+the conditional branch instruction, for example
+<DL><DT><DD><TT><PRE>
+	BEQ	CR(7), label
+</PRE></TT></DL>
+Fields of the
+<TT>FPSCR</TT>
+are accessed using
+<TT>MOVFL</TT>
+in a similar way:
+<DL><DT><DD><TT><PRE>
+	MOVFL	FPSCR, F0
+	MOVFL	F0, FPSCR
+	MOVFL	F0, $7, FPSCR
+	MOVFL	$0, FPSCR(3)
+</PRE></TT></DL>
+producing
+<TT>mffs</TT>,
+<TT>mtfsf</TT>
+or
+<TT>mtfsfi</TT>,
+as appropriate.
+</P>
+<H4>ARM
+</H4>
+<P>
+The assembler provides access to
+<TT>R0</TT>
+through
+<TT>R14</TT>
+and the
+<TT>PC</TT>.
+The stack pointer is
+<TT>R13</TT>,
+the link register is
+<TT>R14</TT>,
+and the static base register is
+<TT>R12</TT>.
+<TT>R0</TT>
+is the return register and also the register holding
+the first argument to a subroutine.
+The assembler supports the
+<TT>CPSR</TT>
+and
+<TT>SPSR</TT>
+registers.
+It also knows about coprocessor registers
+<TT>C0</TT>
+through
+<TT>C15</TT>.
+Floating registers are
+<TT>F0</TT>
+through
+<TT>F7</TT>,
+<TT>FPSR</TT>
+and
+<TT>FPCR</TT>.
+</P>
+<P>
+As with the other architectures, loads and stores are called
+<TT>MOV</TT>,
+e.g.
+<TT>MOVW</TT>
+for load word or store word, and
+<TT>MOVM</TT>
+for
+load or store multiple,
+depending on the operands.
+</P>
+<P>
+Addressing modes are supported by suffixes to the instructions:
+<TT>.IA</TT>
+(increment after),
+<TT>.IB</TT>
+(increment before),
+<TT>.DA</TT>
+(decrement after), and
+<TT>.DB</TT>
+(decrement before).
+These can only be used with the
+<TT>MOV</TT>
+instructions.
+The move multiple instruction,
+<TT>MOVM</TT>,
+defines a range of registers using brackets, e.g.
+<TT>[R0-R12]</TT>.
+The special
+<TT>MOVM</TT>
+addressing mode bits
+<TT>W</TT>,
+<TT>U</TT>,
+and
+<TT>P</TT>
+are written in the same manner, for example,
+<TT>MOVM.DB.W</TT>.
+A
+<TT>.S</TT>
+suffix allows a
+<TT>MOVM</TT>
+instruction to access user
+<TT>R13</TT>
+and
+<TT>R14</TT>
+when in another processor mode.
+Shifts and rotates in addressing modes are supported by binary operators
+<TT><<</TT>
+(logical left shift),
+<TT>>></TT>
+(logical right shift),
+<TT>-></TT>
+(arithmetic right shift), and
+<TT>@></TT>
+(rotate right); for example
+<TT>R7>>R2</TT>or
+<TT>R2@>2</TT>.
+The assembler does not support indexing by a shifted expression;
+only names can be doubly indexed.
+</P>
+<P>
+Any instruction can be followed by a suffix that makes the instruction conditional:
+<TT>.EQ</TT>,
+<TT>.NE</TT>,
+and so on, as in the ARM manual, with synonyms
+<TT>.HS</TT>
+(for
+<TT>.CS</TT>)
+and
+<TT>.LO</TT>
+(for
+for<TT>.CC</TT>),
+<TT>ADD.NE</TT>.
+Arithmetic
+and logical instructions
+can have a
+<TT>.S</TT>
+suffix, as ARM allows, to set condition codes.
+</P>
+<P>
+The syntax of the
+<TT>MCR</TT>
+and
+<TT>MRC</TT>
+coprocessor instructions is largely as in the manual, with the usual adjustments.
+The assembler directly supports only the ARM floating-point coprocessor
+operations used by the compiler:
+<TT>CMP</TT>,
+<TT>ADD</TT>,
+<TT>SUB</TT>,
+<TT>MUL</TT>,
+and
+<TT>DIV</TT>,
+all with
+<TT>F</TT>
+or
+<TT>D</TT>
+suffix selecting single or double precision.
+Floating-point load or store become
+<TT>MOVF</TT>
+and
+<TT>MOVD</TT>.
+Conversion instructions are also specified by moves:
+<TT>MOVWD</TT>,
+<TT>MOVWF</TT>,
+<TT>MOVDW</TT>,
+<TT>MOVWD</TT>,
+<TT>MOVFD</TT>,
+and
+<TT>MOVDF</TT>.
+</P>
+<H4>AMD 29000
+</H4>
+<P>
+For details about this assembly language, which was built for the AMD 29240,
+look at the sources or examine compiler output.
+
+</P>
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>

@@ -1,0 +1,8 @@
+#!/bin/sh
+# $Id: pf2afm,v 1.2 2001/02/03 21:31:40 alexcher Exp $
+# Make an AFM file from PFB / PFA and (optionally) PFM files.  Usage:
+#	pf2afm fontfilename
+# Output goes to fontfilename.afm, which must not already exist.
+# See pf2afm.ps for more details.
+
+exec gs -q -dNODISPLAY -dSAFER -dDELAYSAFER  -- pf2afm.ps "$@"

@@ -1,0 +1,103 @@
+Plan 9 Wiki
+D1018335352
+Arsc
+#
+#WELCOME TO A COPY OF THE PLAN 9 WIKI
+#
+# Note that this is not the Plan 9 wiki.  It is a local
+# copy intended to demonstrate what the wiki data files look like.
+# To get at the real Plan 9 wiki, execute:
+#
+# Local srv net!plan9.bell-labs.com!wiki wiki /mnt/wiki
+# 
+# and then restart the wiki reader:
+#
+# Wiki /mnt/wiki
+#
+# Do not run the command
+#
+# Local wikifs /sys/lib/wiki
+#
+# which brings up this local copy instead.
+#
+#This collection of pages contains information pertinent to
+#installing, configuring, and using the operating system [Plan 9 from
+#Bell Labs | http://plan9.bell-labs.com/plan9].
+#
+#This is a [wiki], which means that anyone with a web browser or a
+#Plan 9 installation can edit any of the pages (including this one).
+#If you find a document you believe to be unclear or incomplete, edit
+#that page to fix it. We use a simple [wiki syntax] rather than full
+#HTML, which makes the editing much easier. If you're using a web
+#browser, there is an Edit link at the bottom of the page. If you're
+#using Acme, just edit the text and put the document back.
+#
+#There are also [Acme wiki instructions].
+#
+#INSTALLATION
+#
+# *	[Supported PC hardware]
+# *	The [installation instructions |
+#	http://plan9.bell-labs.com/sys/doc/install.html]
+#
+#CONFIGURATION
+#
+# *	[Kfs file system configuration]
+# *	[Compiling kernels]
+# *	[Printer configuration]
+# *	[TeX configuration]
+# *	[Network configuration]
+# *	[Mail configuration]
+# *	[SSH configuration]
+# *	[Configuring a standalone CPU server]
+# *	[Installing a Plan 9 File Server]
+#
+#USING THE SYSTEM
+#
+# *	[Using rio]. An introduction to using the window system.
+# *	[Using acme]. Acme is a hybrid window system, editor, and shell.
+# *	[Using plumbing]. The plumber works behind the scenes to connect
+#	various programs in interesting ways.
+# *	[Using troff]. Formatting text for printing on a typesetter.
+# *	[Using PQ]. The implicit relational database client. <-- please,
+#	write at least an intro, whoever is capable of doing it!
+# *	[The manual pages | http://plan9.bell-labs.com/sys/man/] are
+#	quite informative.
+# *	[Useful commands]
+# *	See also, a Japanese [website |
+#	http://basalt.cias.osakafu-u.ac.jp/plan9/p9index.html] that
+#	includes tools for Japanese character input and display.
+#
+#DOCUMENTATION
+#
+# *	Documentation is available on Plan 9 systems via [man(1) |
+#	http://plan9.bell-labs.com/magic/man2html/1/man] and in /sys/doc.
+# *	The online version of the [manual pages |
+#	http://plan9.bell-labs.com/sys/man/].
+# *	A collection of [papers | http://plan9.bell-labs.com/sys/doc/]
+#	about Plan 9.
+# *	Pointers to [Plan9 info on other forums and wikis].
+#
+#DEVELOPMENT
+#
+# *	[Summary of the Plan 9 development environment].
+# *	[aux/vga theory of operation]
+#
+#SOFTWARE
+#
+# *	[Charles Forsyth's Collection |
+#	http://www.caldo.demon.co.uk/plan9/].
+# *	[Repo's Collection | http://mapage.noos.fr/~repo/].
+# *	[LEO | ftp://ftp.leo.org/pub/comp/os/plan9/3rd/]
+# *	Other [User-contributed software].
+#
+#META
+#
+# *	[Wiki syntax]
+# *	[Acme wiki instructions]
+# *	People new to a wiki should play around in the [sandbox] to gain
+#	familiarity with the concept.
+# *	[Plan9 wiki wish list].
+# *	A listing of almost all the pages in this wiki, a.k.a. [What is
+#	Here].
+#

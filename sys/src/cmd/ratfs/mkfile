@@ -1,0 +1,12 @@
+</$objtype/mkfile
+
+TARG=ratfs
+OFILES=main.$O\
+	proto.$O\
+	misc.$O\
+	ctlfiles.$O\
+
+HFILES=ratfs.h\
+
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkone

@@ -1,0 +1,330 @@
+LucidaSans (/sys/lib/postscript/font/LucidaSans) ;
+LucidaSans-Demi (/sys/lib/postscript/font/LucidaSans-Demi) ;
+LucidaSans-DemiItalic (/sys/lib/postscript/font/LucidaSans-DemiItalic) ;
+LucidaSans-Italic (/sys/lib/postscript/font/LucidaSans-Italic) ;
+LucidaSans-Typewriter83 (/sys/lib/postscript/font/LucidaSans-Typewriter83) ;
+LucidaSansUnicode00 (/sys/lib/postscript/font/lsunr00.pfa) ;
+LucidaSansUnicode01 (/sys/lib/postscript/font/lsunr01.pfa) ;
+LucidaSansUnicode02 (/sys/lib/postscript/font/lsunr02.pfa) ;
+LucidaSansUnicode03 (/sys/lib/postscript/font/lsunr03.pfa) ;
+LucidaSansUnicode04 (/sys/lib/postscript/font/lsunr04.pfa) ;
+LucidaSansUnicode05 (/sys/lib/postscript/font/lsunr05.pfa) ;
+LucidaSansUnicode20 (/sys/lib/postscript/font/lsunr20.pfa) ;
+LucidaSansUnicode21 (/sys/lib/postscript/font/lsunr21.pfa) ;
+LucidaSansUnicode22 (/sys/lib/postscript/font/lsunr22.pfa) ;
+LucidaSansUnicode24 (/sys/lib/postscript/font/lsunr24.pfa) ;
+LucidaSansUnicode25 (/sys/lib/postscript/font/lsunr25.pfa) ;
+LucidaTypewriter (/sys/lib/postscript/font/LucidaTypewriter) ;
+% alias for troff
+LucidaCW (/sys/lib/postscript/font/LucidaTypewriter) ;
+% Postscript versions of TeX fonts
+CMB10 (/sys/lib/postscript/font/cm/cmb10.pfa) ;
+CMBSY10 (/sys/lib/postscript/font/cm/cmbsy10.pfa) ;
+CMBX10 (/sys/lib/postscript/font/cm/cmbx10.pfa) ;
+CMBX12 (/sys/lib/postscript/font/cm/cmbx12.pfa) ;
+CMBX5 (/sys/lib/postscript/font/cm/cmbx5.pfa) ;
+CMBX6 (/sys/lib/postscript/font/cm/cmbx6.pfa) ;
+CMBX7 (/sys/lib/postscript/font/cm/cmbx7.pfa) ;
+CMBX8 (/sys/lib/postscript/font/cm/cmbx8.pfa) ;
+CMBX9 (/sys/lib/postscript/font/cm/cmbx9.pfa) ;
+CMBXSL10 (/sys/lib/postscript/font/cm/cmbxsl10.pfa) ;
+CMBXTI10 (/sys/lib/postscript/font/cm/cmbxti10.pfa) ;
+CMCSC10 (/sys/lib/postscript/font/cm/cmcsc10.pfa) ;
+CMDUNH10 (/sys/lib/postscript/font/cm/cmdunh10.pfa) ;
+CMEX10 (/sys/lib/postscript/font/cm/cmex10.pfa) ;
+CMFF10 (/sys/lib/postscript/font/cm/cmff10.pfa) ;
+CMFI10 (/sys/lib/postscript/font/cm/cmfi10.pfa) ;
+CMFIB8 (/sys/lib/postscript/font/cm/cmfib8.pfa) ;
+CMINCH (/sys/lib/postscript/font/cm/cminch.pfa) ;
+CMITT10 (/sys/lib/postscript/font/cm/cmitt10.pfa) ;
+CMMI10 (/sys/lib/postscript/font/cm/cmmi10.pfa) ;
+CMMI12 (/sys/lib/postscript/font/cm/cmmi12.pfa) ;
+CMMI5 (/sys/lib/postscript/font/cm/cmmi5.pfa) ;
+CMMI6 (/sys/lib/postscript/font/cm/cmmi6.pfa) ;
+CMMI7 (/sys/lib/postscript/font/cm/cmmi7.pfa) ;
+CMMI8 (/sys/lib/postscript/font/cm/cmmi8.pfa) ;
+CMMI9 (/sys/lib/postscript/font/cm/cmmi9.pfa) ;
+CMMIB10 (/sys/lib/postscript/font/cm/cmmib10.pfa) ;
+CMR10 (/sys/lib/postscript/font/cm/cmr10.pfa) ;
+CMR12 (/sys/lib/postscript/font/cm/cmr12.pfa) ;
+CMR17 (/sys/lib/postscript/font/cm/cmr17.pfa) ;
+CMR5 (/sys/lib/postscript/font/cm/cmr5.pfa) ;
+CMR6 (/sys/lib/postscript/font/cm/cmr6.pfa) ;
+CMR7 (/sys/lib/postscript/font/cm/cmr7.pfa) ;
+CMR8 (/sys/lib/postscript/font/cm/cmr8.pfa) ;
+CMR9 (/sys/lib/postscript/font/cm/cmr9.pfa) ;
+CMSL10 (/sys/lib/postscript/font/cm/cmsl10.pfa) ;
+CMSL12 (/sys/lib/postscript/font/cm/cmsl12.pfa) ;
+CMSL8 (/sys/lib/postscript/font/cm/cmsl8.pfa) ;
+CMSL9 (/sys/lib/postscript/font/cm/cmsl9.pfa) ;
+CMSLTT10 (/sys/lib/postscript/font/cm/cmsltt10.pfa) ;
+CMSS10 (/sys/lib/postscript/font/cm/cmss10.pfa) ;
+CMSS12 (/sys/lib/postscript/font/cm/cmss12.pfa) ;
+CMSS17 (/sys/lib/postscript/font/cm/cmss17.pfa) ;
+CMSS8 (/sys/lib/postscript/font/cm/cmss8.pfa) ;
+CMSS9 (/sys/lib/postscript/font/cm/cmss9.pfa) ;
+CMSSBX10 (/sys/lib/postscript/font/cm/cmssbx10.pfa) ;
+CMSSDC10 (/sys/lib/postscript/font/cm/cmssdc10.pfa) ;
+CMSSI10 (/sys/lib/postscript/font/cm/cmssi10.pfa) ;
+CMSSI12 (/sys/lib/postscript/font/cm/cmssi12.pfa) ;
+CMSSI17 (/sys/lib/postscript/font/cm/cmssi17.pfa) ;
+CMSSI8 (/sys/lib/postscript/font/cm/cmssi8.pfa) ;
+CMSSI9 (/sys/lib/postscript/font/cm/cmssi9.pfa) ;
+CMSSQ8 (/sys/lib/postscript/font/cm/cmssq8.pfa) ;
+CMSSQI8 (/sys/lib/postscript/font/cm/cmssqi8.pfa) ;
+CMSY10 (/sys/lib/postscript/font/cm/cmsy10.pfa) ;
+CMSY5 (/sys/lib/postscript/font/cm/cmsy5.pfa) ;
+CMSY6 (/sys/lib/postscript/font/cm/cmsy6.pfa) ;
+CMSY7 (/sys/lib/postscript/font/cm/cmsy7.pfa) ;
+CMSY8 (/sys/lib/postscript/font/cm/cmsy8.pfa) ;
+CMSY9 (/sys/lib/postscript/font/cm/cmsy9.pfa) ;
+CMTCSC10 (/sys/lib/postscript/font/cm/cmtcsc10.pfa) ;
+CMTEX10 (/sys/lib/postscript/font/cm/cmtex10.pfa) ;
+CMTEX8 (/sys/lib/postscript/font/cm/cmtex8.pfa) ;
+CMTEX9 (/sys/lib/postscript/font/cm/cmtex9.pfa) ;
+CMTI10 (/sys/lib/postscript/font/cm/cmti10.pfa) ;
+CMTI12 (/sys/lib/postscript/font/cm/cmti12.pfa) ;
+CMTI7 (/sys/lib/postscript/font/cm/cmti7.pfa) ;
+CMTI8 (/sys/lib/postscript/font/cm/cmti8.pfa) ;
+CMTI9 (/sys/lib/postscript/font/cm/cmti9.pfa) ;
+CMTT10 (/sys/lib/postscript/font/cm/cmtt10.pfa) ;
+CMTT12 (/sys/lib/postscript/font/cm/cmtt12.pfa) ;
+CMTT8 (/sys/lib/postscript/font/cm/cmtt8.pfa) ;
+CMTT9 (/sys/lib/postscript/font/cm/cmtt9.pfa) ;
+CMU10 (/sys/lib/postscript/font/cm/cmu10.pfa) ;
+CMVTT10 (/sys/lib/postscript/font/cm/cmvtt10.pfa) ;
+LASY10 (/sys/lib/postscript/font/cm/lasy10.pfa) ;
+LASY5 (/sys/lib/postscript/font/cm/lasy5.pfa) ;
+LASY6 (/sys/lib/postscript/font/cm/lasy6.pfa) ;
+LASY7 (/sys/lib/postscript/font/cm/lasy7.pfa) ;
+LASY8 (/sys/lib/postscript/font/cm/lasy8.pfa) ;
+LASY9 (/sys/lib/postscript/font/cm/lasy9.pfa) ;
+LASYB10 (/sys/lib/postscript/font/cm/lasyb10.pfa) ;
+LCIRCLE1 (/sys/lib/postscript/font/cm/lcircle1.pfa) ;
+LCIRCLEW (/sys/lib/postscript/font/cm/lcirclew.pfa) ;
+LCMSS8 (/sys/lib/postscript/font/cm/lcmss8.pfa) ;
+LCMSSB8 (/sys/lib/postscript/font/cm/lcmssb8.pfa) ;
+LCMSSI8 (/sys/lib/postscript/font/cm/lcmssi8.pfa) ;
+LINE10 (/sys/lib/postscript/font/cm/line10.pfa) ;
+LINEW10 (/sys/lib/postscript/font/cm/linew10.pfa) ;
+LOGO10 (/sys/lib/postscript/font/cm/logo10.pfa) ;
+LOGO8 (/sys/lib/postscript/font/cm/logo8.pfa) ;
+LOGO9 (/sys/lib/postscript/font/cm/logo9.pfa) ;
+LOGOBF10 (/sys/lib/postscript/font/cm/logobf10.pfa) ;
+LOGOSL10 (/sys/lib/postscript/font/cm/logosl10.pfa) ;
+% AMS fonts for TeX
+CMBSY5 (/sys/lib/postscript/font/ams/cmbsy5.pfa) ;
+CMBSY7 (/sys/lib/postscript/font/ams/cmbsy7.pfa) ;
+CMMIB5 (/sys/lib/postscript/font/ams/cmmib5.pfa) ;
+CMMIB7 (/sys/lib/postscript/font/ams/cmmib7.pfa) ;
+EUEX10 (/sys/lib/postscript/font/ams/euex10.pfa) ;
+EUFB10 (/sys/lib/postscript/font/ams/eufb10.pfa) ;
+EUFB5 (/sys/lib/postscript/font/ams/eufb5.pfa) ;
+EUFB7 (/sys/lib/postscript/font/ams/eufb7.pfa) ;
+EUFM10 (/sys/lib/postscript/font/ams/eufm10.pfa) ;
+EUFM5 (/sys/lib/postscript/font/ams/eufm5.pfa) ;
+EUFM7 (/sys/lib/postscript/font/ams/eufm7.pfa) ;
+EURB10 (/sys/lib/postscript/font/ams/eurb10.pfa) ;
+EURB5 (/sys/lib/postscript/font/ams/eurb5.pfa) ;
+EURB7 (/sys/lib/postscript/font/ams/eurb7.pfa) ;
+EURM10 (/sys/lib/postscript/font/ams/eurm10.pfa) ;
+EURM5 (/sys/lib/postscript/font/ams/eurm5.pfa) ;
+EURM7 (/sys/lib/postscript/font/ams/eurm7.pfa) ;
+EUSB10 (/sys/lib/postscript/font/ams/eusb10.pfa) ;
+EUSB5 (/sys/lib/postscript/font/ams/eusb5.pfa) ;
+EUSB7 (/sys/lib/postscript/font/ams/eusb7.pfa) ;
+EUSM10 (/sys/lib/postscript/font/ams/eusm10.pfa) ;
+EUSM5 (/sys/lib/postscript/font/ams/eusm5.pfa) ;
+EUSM7 (/sys/lib/postscript/font/ams/eusm7.pfa) ;
+MSAM10 (/sys/lib/postscript/font/ams/msam10.pfa) ;
+MSAM5 (/sys/lib/postscript/font/ams/msam5.pfa) ;
+MSAM7 (/sys/lib/postscript/font/ams/msam7.pfa) ;
+MSBM10 (/sys/lib/postscript/font/ams/msbm10.pfa) ;
+MSBM5 (/sys/lib/postscript/font/ams/msbm5.pfa) ;
+MSBM7 (/sys/lib/postscript/font/ams/msbm7.pfa) ;
+WNCYB10 (/sys/lib/postscript/font/ams/wncyb10.pfa) ;
+WNCYI10 (/sys/lib/postscript/font/ams/wncyi10.pfa) ;
+WNCYR10 (/sys/lib/postscript/font/ams/wncyr10.pfa) ;
+WNCYSC10 (/sys/lib/postscript/font/ams/wncysc10.pfa) ;
+WNCYSS10 (/sys/lib/postscript/font/ams/wncyss10.pfa) ;
+% Copyright (C) 1996, 1999 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of Aladdin Ghostscript.
+% 
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
+% 
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
+
+% $Id: Fontmap.GS,v 1.1 2000/03/09 08:40:39 lpd Exp $
+% Fontmap - standard font catalog for Ghostscript.
+
+% ----------------------------------------------------------------
+
+% This file is a catalog of fonts known to Ghostscript.  Any font
+% that is to be loaded automatically when named must be in this catalog,
+% except for fonts that Ghostscript finds automatically in directories
+% named in the GS_FONTPATH environment variable.
+
+% Each font has an entry consisting of three items:
+%
+%	- The name by which the font is known inside Ghostscript
+%	(a Ghostscript name preceded by a `/', or a string enclosed
+%	in parentheses).  This is used to find the file from which
+%	a font of a given name should be loaded.
+%
+%	- Information depending on whether this is a real font or a
+%	font alias:
+%
+%		- For real fonts, the name of the Ghostscript font
+%		file (a Ghostscript string, enclosed in parentheses).
+%		The filename should include the extension, which (by
+%		convention) is `.gsf'.  `.pfa' and `.pfb' files are
+%		also usable as fonts for Ghostscript.
+%
+%		- For font aliases, the name of the font which should
+%		be used when this one is requested, preceded by a
+%		`/'.  See the entry for Charter below for an example.
+%		Note that an alias name cannot be enclosed in parentheses.
+%
+%	- At least one space or tab, and a terminating semicolon.
+
+% Because of limitations in the MS-DOS environment, Ghostscript font
+% file names must be no more than 8 characters long, must consist only
+% of LOWER CASE letters, digits, and underscores, and must start with a
+% letter.  Font names, on the other hand, need only obey the syntax of
+% names in the Ghostscript language, which is much more liberal.
+
+% The following table is actually a Ghostscript data structure.
+% If you add new entries, be sure to copy the punctuation accurately;
+% in particular, you must leave at least one space or tab between each
+% field in the entry.  Also, please read fonts.doc for important information
+% about font names.
+
+% Note that .pfa and .pfb fonts are compatible with Adobe Type Manager
+% and other programs that don't include full PostScript interpreters,
+% as well as with PostScript interpreters; .gsf fonts are compatible with
+% PostScript interpreters, but not with ATM or similar programs.
+
+% 
+%
+% Fonts contributed by:
+%	URW++ Design and Development Incorporated
+%	Poppenbuetteler Bogen 29A
+%	D-22399 Hamburg
+%	Germany
+%	tel. +49 (40) 60 60 50
+%	fax +49 (40) 60 60 51 11
+%	http://www.urwpp.de
+% for distribution under the GNU License and Aladdin Free Public License.
+% See the notice at the head of this Fontmap file for licensing terms.
+% Each of these fonts is individually covered by the license:
+% for licensing purposes, they are not "part of" any larger entity.
+% The following notice applies to these fonts:
+%
+%	Copyright URW Software, Copyright 1994 by URW.
+%
+
+% Actual fonts
+
+/URWBookmanL-DemiBold	(b018015l.pfb)	;
+/URWBookmanL-DemiBoldItal	(b018035l.pfb)	;
+/URWBookmanL-Ligh	(b018012l.pfb)	;
+/URWBookmanL-LighItal	(b018032l.pfb)	;
+
+/NimbusMonL-Regu	(n022003l.pfb)	;
+/NimbusMonL-ReguObli	(n022023l.pfb)	;
+/NimbusMonL-Bold	(n022004l.pfb)	;
+/NimbusMonL-BoldObli	(n022024l.pfb)	;
+
+/URWGothicL-Book	(a010013l.pfb)	;
+/URWGothicL-BookObli	(a010033l.pfb)	;
+/URWGothicL-Demi	(a010015l.pfb)	;
+/URWGothicL-DemiObli	(a010035l.pfb)	;
+
+/NimbusSanL-Regu	(n019003l.pfb)	;
+/NimbusSanL-ReguItal	(n019023l.pfb)	;
+/NimbusSanL-Bold	(n019004l.pfb)	;
+/NimbusSanL-BoldItal	(n019024l.pfb)	;
+
+/NimbusSanL-ReguCond	(n019043l.pfb)	;
+/NimbusSanL-ReguCondItal	(n019063l.pfb)	;
+/NimbusSanL-BoldCond	(n019044l.pfb)	;
+/NimbusSanL-BoldCondItal	(n019064l.pfb)	;
+
+/URWPalladioL-Roma	(p052003l.pfb)	;
+/URWPalladioL-Ital	(p052023l.pfb)	;
+/URWPalladioL-Bold	(p052004l.pfb)	;
+/URWPalladioL-BoldItal	(p052024l.pfb)	;
+
+/CenturySchL-Roma	(c059013l.pfb)	;
+/CenturySchL-Ital	(c059033l.pfb)	;
+/CenturySchL-Bold	(c059016l.pfb)	;
+/CenturySchL-BoldItal	(c059036l.pfb)	;
+
+/NimbusRomNo9L-Regu	(n021003l.pfb)	;
+/NimbusRomNo9L-ReguItal	(n021023l.pfb)	;
+/NimbusRomNo9L-Medi	(n021004l.pfb)	;
+/NimbusRomNo9L-MediItal	(n021024l.pfb)	;
+
+/StandardSymL	(s050000l.pfb)	;
+
+/URWChanceryL-MediItal	(z003034l.pfb)	;
+
+/Dingbats	(d050000l.pfb)	;
+
+% Aliases
+
+/Bookman-Demi			/URWBookmanL-DemiBold	;
+/Bookman-DemiItalic		/URWBookmanL-DemiBoldItal	;
+/Bookman-Light			/URWBookmanL-Ligh	;
+/Bookman-LightItalic		/URWBookmanL-LighItal	;
+
+/Courier			/NimbusMonL-Regu	;
+/Courier-Oblique		/NimbusMonL-ReguObli	;
+/Courier-Bold			/NimbusMonL-Bold	;
+/Courier-BoldOblique		/NimbusMonL-BoldObli	;
+
+/AvantGarde-Book		/URWGothicL-Book	;
+/AvantGarde-BookOblique		/URWGothicL-BookObli	;
+/AvantGarde-Demi		/URWGothicL-Demi	;
+/AvantGarde-DemiOblique		/URWGothicL-DemiObli	;
+
+/Helvetica			/NimbusSanL-Regu	;
+/Helvetica-Oblique		/NimbusSanL-ReguItal	;
+/Helvetica-Bold			/NimbusSanL-Bold	;
+/Helvetica-BoldOblique		/NimbusSanL-BoldItal	;
+
+/Helvetica-Narrow		/NimbusSanL-ReguCond	;
+/Helvetica-Narrow-Oblique	/NimbusSanL-ReguCondItal	;
+/Helvetica-Narrow-Bold		/NimbusSanL-BoldCond	;
+/Helvetica-Narrow-BoldOblique	/NimbusSanL-BoldCondItal	;
+
+/Palatino-Roman			/URWPalladioL-Roma	;
+/Palatino-Italic		/URWPalladioL-Ital	;
+/Palatino-Bold			/URWPalladioL-Bold	;
+/Palatino-BoldItalic		/URWPalladioL-BoldItal	;
+
+/NewCenturySchlbk-Roman		/CenturySchL-Roma	;
+/NewCenturySchlbk-Italic	/CenturySchL-Ital	;
+/NewCenturySchlbk-Bold		/CenturySchL-Bold	;
+/NewCenturySchlbk-BoldItalic	/CenturySchL-BoldItal	;
+
+/Times-Roman			/NimbusRomNo9L-Regu	;
+/Times-Italic			/NimbusRomNo9L-ReguItal	;
+/Times-Bold			/NimbusRomNo9L-Medi	;
+/Times-BoldItalic		/NimbusRomNo9L-MediItal	;
+
+/Symbol				/StandardSymL	;
+
+/ZapfChancery-MediumItalic	/URWChanceryL-MediItal	;
+
+/ZapfDingbats			/Dingbats	;

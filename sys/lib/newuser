@@ -1,0 +1,65 @@
+#!/bin/rc
+
+user=`{cat /dev/user}
+home=/usr/$user
+if(test -f $home/lib/profile){
+	echo user directories already made
+	exit no
+}
+cd $home
+x='$'
+mkdir bin bin/rc bin/mips bin/386
+mkdir lib tmp
+mkdir /cron/$user
+chmod 775 /cron/$user
+chgrp $user /cron/$user
+bind -c $home/tmp /tmp
+
+cat > lib/profile <<!
+bind -a $x^home/bin/rc /bin
+bind -a $x^home/bin/$x^cputype /bin
+bind -c $x^home/tmp /tmp
+font = /lib/font/bit/pelm/euro.9.font
+switch($x^service){
+case terminal
+	plumber
+	upas/fs
+	echo -n accelerated > '#m/mousectl'
+	echo -n 'res 3' > '#m/mousectl'
+	prompt=('term% ' '	')
+	fn term%{ $x^* }
+	exec rio
+case cpu
+	if (test -e /mnt/term/mnt/wsys) {
+		# rio already running
+		wsys = /mnt/term^`{cat /mnt/term/env/wsys}
+		bind -a /mnt/term/mnt/wsys /dev
+		echo -n $x^sysname > /dev/label
+	}
+	bind /mnt/term/dev/cons /dev/cons
+	bind /mnt/term/dev/consctl /dev/consctl
+	bind -a /mnt/term/dev /dev
+	prompt=('cpu% ' '	')
+	fn cpu%{ $x^* }
+	upas/fs
+	news
+	if (! test -e /mnt/term/mnt/wsys) {
+		# cpu call from drawterm
+		font=/lib/font/bit/pelm/latin1.8.font
+		exec rio
+	}
+case con
+	prompt=('cpu% ' '	')
+	news
+}
+!
+cat > lib/plumbing <<!
+# to update: cp /usr/$user/lib/plumbing /mnt/plumb/rules
+
+editor = acme
+
+include basic
+
+!
+
+. lib/profile

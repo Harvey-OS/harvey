@@ -1,0 +1,12 @@
+#!/bin/rc
+args=''
+while(~ $1 -*) {
+	args=$args^' '^$1
+	shift 1
+}
+if (~ $#1 0)
+	sysname=alice
+if not
+	sysname=$1
+if (! test -f /n/$sysname/usr/spool/ap ) { 9fs $sysname }
+eval exec /acme/bin/$cputype/apread $args $sysname

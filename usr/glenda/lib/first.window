@@ -1,0 +1,5 @@
+#!/bin/rc
+echo -n readme > /dev/label
+cat readme.rio
+exec rc -i
+

@@ -1,0 +1,22 @@
+#!/bin/rc
+
+rfork e
+
+# 0000000  eb 3c 90  P  l  a  n  9  .  0  0 00 02 04 02 00
+# 0000010  02 00 02 02  P f8 14 00  ? 00 ff 00  ~ 04  } 00
+# 0000020  02  P 00 00 80 00  ) a8 04  } 00  C  Y  L  I  N
+# 0000030   D  R  I  C  A  L  F  A  T  1  6          fa 8c
+
+if(! ~ $#* 1) {
+	echo 'usage: isfat /dev/sdC0/part' >[1=2]
+	exit usage
+}
+
+arg=$1
+fn fat {
+	cmp -s <{dd -if $arg -bs 1 -count 3 -skip $1 >[2]/dev/null} <{echo -n FAT}
+}
+
+fat 54 || fat 82
+exit $status
+

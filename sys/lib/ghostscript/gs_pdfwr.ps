@@ -1,0 +1,496 @@
+%    Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: gs_pdfwr.ps,v 1.11 2001/05/04 20:59:33 alexcher Exp $
+% PDF writer additions to systemdict.
+
+% This file should be included iff the pdfwrite "device" is included
+% in the executable.
+
+% ---------------- Predefined configurations ---------------- %
+
+% These correspond to the 3 predefined settings in Acrobat Distiller 4,
+% plus a "default" setting.
+
+% Parameters common to all configurations.
+% Note that we don't set AlwaysEmbed or NeverEmbed, since the default values
+% depend on the CompatibilityLevel and are initialized internally.
+/.defaultImageDict mark
+  /QFactor 0.9 /Blend 1
+  /HSamples [2 1 1 2] /VSamples [2 1 1 2]
+.dicttomark readonly def
+/.distillercommon mark
+  /ASCII85EncodePages false
+  /AntiAliasColorImages false
+  /AntiAliasGrayImages false
+  /AntiAliasMonoImages false
+  /AutoFilterColorImages true
+  /AutoFilterGrayImages true
+  /AutoFilterMonoImages true
+  /AutoPositionEPSFiles true
+  /Binding /Left
+	% What to do about the CalxxxProfiles?
+  /ColorACSImageDict .defaultImageDict
+  /ColorImageDepth -1
+  /ColorImageDict .defaultImageDict
+  /ColorImageDownsampleThreshold 1.5
+  /ColorImageFilter /DCTEncode
+  /CompressPages true
+  /ConvertImagesToIndexed true
+  /DefaultRenderingIntent /Default
+  /DetectBlends true
+  /DownsampleColorImages true
+  /DownsampleGrayImages true
+  /DownsampleMonoImages true
+  /EmitDSCWarnings false
+  /EncodeColorImages true
+  /EncodeGrayImages true
+  /EncodeMonoImages true
+  /EndPage -1
+  /GrayACSImageDict .defaultImageDict
+  /GrayImageDepth -1
+  /GrayImageDict .defaultImageDict
+  /GrayImageDownsampleThreshold 1.5
+  /GrayImageFilter /DCTEncode
+  /ImageMemory 500000
+  /LockDistillerParams false
+  /MaxSubsetPct 100
+  /MonoImageDepth -1
+  /MonoImageDict mark
+    /K -1
+  .dicttomark readonly
+  /MonoImageDownsampleThreshold 1.5
+  /MonoImageFilter /CCITTFaxEncode
+  /OPM 1
+  /Optimize true
+  /ParseDSCComments true
+  /ParseDSCCommentsForDocInfo true
+  /PreserveCopyPage true
+  /PreserveEPSInfo true
+  /PreserveHalftoneInfo false
+  /StartPage 1
+  /SubsetFonts true
+  /TransferFunctionInfo /Preserve
+  /UseFlateCompression true
+  /UsePrologue false
+.dicttomark readonly def
+
+/.distillersettings mark
+
+/default mark
+  /AutoRotatePages /PageByPage
+  /CannotEmbedFontPolicy /Warning
+  /DownsampleColorImages false
+  /DownsampleGrayImages false
+  /DownsampleMonoImages false
+  /Optimize false
+.dicttomark readonly
+
+/screen mark
+  /AutoRotatePages /PageByPage
+  /CannotEmbedFontPolicy /Warning
+  /ColorConversionStrategy /sRGB
+  /ColorImageDownsampleType /Average
+  /ColorImageResolution 72
+  /CompatibilityLevel 1.2
+  /CreateJobTicket false
+  /DoThumbnails false
+  /DownsampleColorImages true
+  /DownsampleGrayImages true
+  /DownsampleMonoImages true
+  /EmbedAllFonts false
+  /GrayImageDownsampleType /Average
+  /GrayImageResolution 72
+  /MonoImageDownsampleType /Average
+  /MonoImageResolution 300
+  /ParseDSCCommentsForDocInfo false
+  /PreserveOPIComments false
+  /PreserveOverprintSettings false
+  /UCRandBGInfo /Remove
+.dicttomark readonly
+
+/.printerACSImageDict mark
+  /QFactor 0.55 /Blend 1
+  /HSamples [2 1 1 2] /VSamples [2 1 1 2]
+.dicttomark readonly def
+/printer mark
+  /AutoRotatePages /None
+  /CannotEmbedFontPolicy /Warning
+  /ColorACSImageDict .printerACSImageDict
+  /ColorConversionStrategy /UseDeviceIndependentColor
+  /ColorImageDownsampleType /Bicubic
+  /ColorImageResolution 300
+  /CompatibilityLevel 1.3
+  /CreateJobTicket true
+  /DoThumbnails false
+  /EmbedAllFonts true
+  /GrayACSImageDict .printerACSImageDict
+  /GrayImageDownsampleType /Bicubic
+  /GrayImageResolution 300
+  /MonoImageDownsampleType /Bicubic
+  /MonoImageResolution 1200
+  /ParseDSCCommentsForDocInfo true
+  /PreserveOPIComments true
+  /PreserveOverprintSettings true
+  /UCRandBGInfo /Preserve
+.dicttomark readonly
+
+/.prepressACSImageDict mark
+  /QFactor 0.25
+  /HSamples [1 1 1 1] /VSamples [1 1 1 1]
+.dicttomark readonly def
+/prepress mark
+  /AutoRotatePages /None
+  /CannotEmbedFontPolicy /Error
+  /ColorACSImageDict .prepressACSImageDict
+  /ColorConversionStrategy /LeaveColorUnchanged
+  /ColorImageDownsampleType /Bicubic
+  /ColorImageResolution 300
+  /CompatibilityLevel 1.3
+  /CreateJobTicket true
+  /DoThumbnails true
+  /EmbedAllFonts true
+  /GrayACSImageDict .prepressACSImageDict
+  /GrayImageDownsampleType /Bicubic
+  /GrayImageResolution 300
+  /MonoImageDownsampleType /Bicubic
+  /MonoImageResolution 1200
+  /ParseDSCCommentsForDocInfo true
+  /PreserveOPIComments true
+  /PreserveOverprintSettings true
+  /UCRandBGInfo /Preserve
+.dicttomark readonly
+
+.dicttomark readonly def
+
+% ---------------- End of predefined configurations ---------------- %
+
+% Set optimizations for converting PostScript to PDF.
+% The ps2pdf* scripts invoke this.
+/.setpdfwrite {		% - .setpdfwrite -
+		% Set a large VM threshold to reduce garbage collection.
+  currentuserparams /VMThreshold get 3000000 .max setvmthreshold
+		% Install a level of 'save' to reduce font loading.
+  save pop
+} bind def
+
+% ---------------- pdfmark and DSC processing ---------------- %
+
+% Encode values to pass for the /pdfmark or /DSC pseudo-parameter.
+/.pdf===dict mark
+  /arraytype
+   { dup xcheck { ({) (}) } { ([) (]) } ifelse
+		% Stack: file obj left right
+      4 1 roll 2 index exch writestring () exch
+       { exch 2 index exch writestring
+	 1 index exch pdf===only ( )
+       }
+      forall pop exch writestring
+   } bind
+  /packedarraytype 1 index
+  /dicttype
+   { 1 index (<<\n) writestring
+      { 2 index 3 -1 roll pdf===only 1 index ( ) writestring
+	1 index exch pdf===only dup (\n) writestring
+      }
+     forall (>>) writestring
+   } bind
+.dicttomark readonly def
+/pdf===only {	% <file> <obj> pdf===only -
+  .pdf===dict 1 index type .knownget { exec } { write===only } ifelse
+} bind def
+/.pdfcvbuf 10 string def	% enough for most arguments
+userdict /.pdfcvstring () put
+/.pdfcvs {		% <obj> .pdfcvs <string>
+  currentglobal exch false .setglobal
+  /.pdfcvstring () store
+		% We can't handle long values yet.
+  { pop dup length 0 eq { pop } {
+      /.pdfcvstring .pdfcvstring 3 -1 roll concatstrings store
+    } ifelse //.pdfcvbuf
+  } /NullEncode filter dup 3 -1 roll pdf===only
+  closefile
+  .setglobal .pdfcvstring
+} bind def
+
+% Redefine pdfmark to pass the data to the driver.
+% We use a pseudo-parameter named /pdfmark whose value is an array:
+%	/key1 (value1) ... (CTM) /type
+/.pdfputparams {	% -mark- <key1> <value1> ... .pdfputparams <result...>
+  currentdevice null false counttomark 1 add 3 roll
+		% Don't allow the page device to get cleared....
+  {.putdeviceparams} .currentpagedevice pop {.setpagedevice} 3 .execn
+} bind def
+% Convert relevant operands to strings in an array.
+/.pdfcvsloop {		% -mark- values ... markname start step .pdfcvsloop
+			%   [values ... ctm markname]
+   matrix currentmatrix .pdfcvs 4 1 roll
+   counttomark 1 add 2 roll 
+   counttomark .localvmarray astore exch pop
+   3 1 roll
+			% Stack: values start step
+   2 index length 3 sub { 2 copy 2 copy get .pdfcvs put pop } for
+} bind def
+/.pdfcvsall {		% -mark- values ... markname .pdfcvsall <<same>>
+  0 1 .pdfcvsloop
+} bind def
+/.pdfcvseven {		% -mark- key value ... markname .pdfcvseven <<same>>
+  1 2 .pdfcvsloop
+} bind def
+/.pdfcvsnone {		% -mark- values ... markname .pdfcvsnone <<same>>
+  100000 1 .pdfcvsloop
+} bind def
+/.pdfcvsfirst {		% -mark- first values ... markname .pdfcvsfirst<<same>>
+  .pdfcvsnone
+  dup 0 2 copy get .pdfcvs put
+} bind def
+% The procedures in the following dictionary are called with the entire
+% pdfmark operand list (including the pdfmark name) on the stack;
+% they may modify this ad lib.  They must call .pdfcvsxxx.
+/.pdfmarkparams mark
+	% Unpack a dictionary for PUT, and don't convert stream data.
+  /PUT {
+    counttomark 3 eq {
+      1 index type /dicttype eq {
+	pop { } forall /.PUTDICT .pdfcvsall
+      } {
+	pop dup type /filetype eq {
+		% Read the file into a sequence of strings.
+		% This isn't great, but it's simple.
+	  {
+	    dup 1000 string readstring not { exch exit } if
+	    exch
+	  } loop closefile
+	} if
+	/.PUTSTREAM .pdfcvsfirst
+      } ifelse
+    } {
+      .pdfcvsall
+    } ifelse
+  } bind
+	% Unpack the array for PUTINTERVAL.
+  /PUTINTERVAL {
+    pop aload pop /.PUTINTERVAL .pdfcvsall
+  } bind
+.dicttomark readonly def
+/.pdfparamerror {	% ? ? ? -mark- ... <errname> <opname> .pdfparamerror -
+    counttomark 4 add 2 roll cleartomark pop pop pop
+    .systemvar exch signalerror
+} bind def
+/pdfmark {		% -mark- <key> <value> ... <markname> pdfmark -
+  counttomark 1 add copy
+  //.pdfmarkparams 1 index .knownget { exec } { .pdfcvsall } ifelse
+  mark /pdfmark 3 -1 roll .pdfputparams
+  dup type /booleantype ne {
+    /pdfmark .pdfparamerror
+  } if cleartomark
+} odef
+userdict /pdfmark .undef
+currentdict /.pdfmarkparams .undef
+
+% Use the DSC processing hook to pass DSC comments to the driver.
+% We use a pseudo-parameter named DSC whose value is an array:
+%	/key1 (value1) ... /type
+/.pdfdsc_dict 2 dict def
+/.pdfdsc {	% <file> <DSC string> <dsc dict> [<prev proc>] .pdfdsc -
+  0 get dup null ne { 4 copy exch pop exec } { pop } ifelse 3 -1 roll pop
+		% Stack: <dsc string> <dsc dict>
+  20 .localvmdict 1 index { 3 copy put pop pop } forall
+  3 -1 roll .parse_dsc_comments	% <dsc dict> <dict> <type>
+  dup /NOP ne 2 index length 1 gt or {	% Skip unparsed comments
+    DEBUG { (**** DSC comment: ) print dup == 1 index === flush } if
+    exch mark 4 1 roll {
+		% mark <key1> <value1> ... <dsc dict> <type> <key> <value>
+      3 index 2 index known {	% Skip the DSC_struct entry
+        pop pop
+      } {
+        .pdfcvs 4 -2 roll
+      } ifelse
+    } forall exch pop counttomark .localvmarray astore
+    mark /DSC 3 -1 roll .pdfputparams
+    dup type /booleantype ne {
+      /DSC .pdfparamerror
+    } {
+      cleartomark
+    } ifelse
+  } {
+    pop pop pop
+  } ifelse
+} bind def
+/.initialize_dsc_parser where {
+  pop 2 dict dup .initialize_dsc_parser readonly
+  currentuserparams /ProcessDSCComment get
+  1 array astore	% in case the value is executable
+  //.pdfdsc /exec load 4 array astore cvx readonly
+  << /ProcessDSCComment 3 -1 roll >> setuserparams
+} if
+
+% ---------------- {set,current}distillerparams ---------------- %
+
+% Define setdistillerparams / currentdistillerparams.
+% Distiller parameters are currently treated as device parameters.
+/.distillerparamkeys mark
+		% General parameters -- all distillers
+  /ASCII85EncodePages { }
+  /AutoRotatePages { }
+  /Binding { }
+  /CompressPages { }
+  /DefaultRenderingIntent { }
+  /DetectBlends { }
+  /DoThumbnails { }
+  /ImageMemory { }
+  /LockDistillerParams { }
+  /LZWEncodePages { }
+  /OPM { }
+  /PreserveHalftoneInfo { }
+  /PreserveOPIComments { }
+  /PreserveOverprintSettings { }
+  /TransferFunctionInfo { }
+  /UCRandBGInfo { }
+  /UseFlateCompression { }
+		% General parameters -- PDF writer
+		% StartPage and EndPage are renamed because EndPage
+		% clashes with a page device parameter.
+  /CoreDistVersion { }
+  /CompatibilityLevel { }
+		% ****** NOTE: StartPage and EndPage are disabled because
+		% ****** EndPage clashes with a page device parameter.
+%  /EndPage { exch pop /PDFEndPage exch }
+    /PDFEndPage { pop pop }
+%  /StartPage { exch pop /PDFStartPage exch }
+    /PDFStartPage { pop pop }
+  /Optimize { }
+  /ParseDSCCommentsForDocInfo { }
+  /ParseDSCComments { }
+  /EmitDSCWarnings { }
+  /CreateJobTicket { }
+  /PreserveEPSInfo { }
+  /AutoPositionEPSFiles { }
+  /PreserveCopyPage { }
+  /UsePrologue { }
+		% Color sampled image parameters
+  /ColorACSImageDict { }
+  /AntiAliasColorImages { }
+  /AutoFilterColorImages { }
+  /ColorImageDepth { }
+  /ColorImageDict { }
+  /DownsampleColorImages { }
+  /ColorImageDownsampleThreshold { }
+  /ColorImageDownsampleType { }
+  /EncodeColorImages { }
+  /ColorImageFilter { }
+  /ColorImageResolution { }
+		% Color processing parameters
+  /CalCMYKProfile { }
+  /CalGrayProfile { }
+  /CalRGBProfile { }
+  /sRGBProfile { }
+  /ColorConversionStrategy { }
+  /ConvertCMYKImagesToRGB { }
+  /ConvertImagesToIndexed { }
+		% Grayscale sampled image parameters
+  /GrayACSImageDict { }
+  /AntiAliasGrayImages { }
+  /AutoFilterGrayImages { }
+  /GrayImageDepth { }
+  /GrayImageDict { }
+  /DownsampleGrayImages { }
+  /GrayImageDownsampleThreshold { }
+  /GrayImageDownsampleType { }
+  /EncodeGrayImages { }
+  /GrayImageFilter { }
+  /GrayImageResolution { }
+		% Monochrome sampled image parameters
+  /AntiAliasMonoImages { }
+  /MonoImageDepth { }
+  /MonoImageDict { }
+  /DownsampleMonoImages { }
+  /MonoImageDownsampleThreshold { }
+  /MonoImageDownsampleType { }
+  /EncodeMonoImages { }
+  /MonoImageFilter { }
+  /MonoImageResolution { }
+		% Font embedding parameters
+  /AlwaysEmbed
+   { dup length 0 gt
+      { dup 0 get false eq
+         { dup length 1 sub 1 exch getinterval exch pop /~AlwaysEmbed exch
+         } if
+      } if
+   }
+  /NeverEmbed
+   { dup length 0 gt
+      { dup 0 get false eq
+         { dup length 1 sub 1 exch getinterval exch pop /~NeverEmbed exch
+         } if
+      } if
+   }
+  /CannotEmbedFontPolicy { }
+  /EmbedAllFonts { }
+  /MaxSubsetPct { }
+  /SubsetFonts { }
+.dicttomark readonly def
+/.distillerdevice
+ { currentdevice .devicename /pdfwrite eq
+    { currentdevice }
+    { /pdfwrite finddevice }
+   ifelse
+ } bind def
+/setdistillerparams {		% <dict> setdistillerparams -
+  .distillerdevice null false mark 4 index {
+    //.distillerparamkeys 2 index .knownget { exec } { pop pop } ifelse
+  } forall .putdeviceparams
+  dup type /booleantype ne {
+    /setdistillerparams .pdfparamerror
+  } {
+    pop pop pop
+  } ifelse
+} odef
+/currentdistillerparams {	% - currentdistillerparams <dict>
+  .distillerdevice //.distillerparamkeys .getdeviceparams .dicttomark
+		% Patch StartPage and EndPage
+		% ****** NOTE: StartPage and EndPage are disabled because
+		% ****** EndPage clashes with a page device parameter.
+%  begin /StartPage PDFStartPage /EndPage PDFEndPage
+%  currentdict dup /PDFStartPage undef /PDFEndPage undef
+%  def def currentdict end
+} odef
+
+% Patch 'where' so that the distillerparams operators are only visible
+% if the pdfwrite device is the current one, for the benefit of badly
+% designed PostScript files that "know" they have to do something different
+% if a distiller is processing them.
+.wheredict /currentdistillerparams {
+  currentdevice .devicename /pdfwrite eq {
+    .where
+  } {
+    .where pop dup //systemdict eq { pop false } { true } ifelse
+  } ifelse
+} bind put
+.wheredict /setdistillerparams .wheredict /currentdistillerparams get put
+
+% Set a predefined configuration if PDFSETTINGS is defined.
+/PDFSETTINGS where { pop /PDFSETTINGS load } { /default } ifelse
+.distillersettings exch get
+% Don't override parameters defined on the command line.
+dup length .distillercommon length add dict begin
+.distillercommon 2 {
+  {
+    systemdict 2 index known { pop pop } { def } ifelse
+  } forall
+} repeat
+currentdict end setdistillerparams

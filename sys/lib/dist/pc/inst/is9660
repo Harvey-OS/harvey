@@ -1,0 +1,12 @@
+#!/bin/rc
+
+# 0000000  01  C  D  0  0  1 01 00  P  L  A  N     9
+   
+if(! ~ $#* 1) {
+	echo 'usage: is9660 /dev/sdC0/part' >[1=2]
+	exit usage
+}
+
+ifs=$nl {id=`{dd -if $1 -bs 2048 -skip 16>[2]/dev/null | xd -c | sed 1q | sed 's/.........(....................).*/\1/'}}
+~ $id '01  C  D  0  0  1 01'
+exit $status

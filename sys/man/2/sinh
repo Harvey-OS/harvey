@@ -1,0 +1,23 @@
+.TH SINH 2
+.SH NAME
+sinh, cosh, tanh \- hyperbolic functions
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+double sinh(double x)
+.PP
+.B
+double cosh(double x)
+.PP
+.B
+double tanh(double x)
+.SH DESCRIPTION
+These functions compute the designated hyperbolic functions
+for real arguments.
+.SH SOURCE
+.B /sys/src/libc/port
+.SH SEE ALSO
+.IR intro (2)

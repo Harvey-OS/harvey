@@ -1,0 +1,110 @@
+CONF=apc
+CONFLIST=apc apccpu
+
+objtype=alpha
+</$objtype/mkfile
+p=9
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	fault.$O\
+	latin1.$O\
+	log.$O\
+	nulledf.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	rdb.$O\
+	rebootcmd.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	cga.$O\
+	clock.$O\
+	faultalpha.$O\
+	fdc37c93x.$O\
+	fptrap.$O\
+	i8259.$O\
+	kbd.$O\
+	main.$O\
+	mmu.$O\
+	random.$O\
+	trap.$O\
+	$DEVS\
+	$PORT\
+	boot$CONF.root.$O\
+
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libc.a\
+	/$objtype/lib/libsec.a\
+
+ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
+VGA=`{echo devvga.c screen.c vga*.c | sed 's/\.c/.'$O'/g'}
+SDEV=`{echo devsd.c sd*.c | sed 's/\.c/.'$O'/g'}
+
+loadaddr = 0x80400020
+
+$p$CONF:	$CONF.c $OBJ $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -H3 -R8 -T$loadaddr -l $OBJ $CONF.$O $LIB
+	size $target
+
+install:V: $p$CONF
+	cp $p$CONF /$objtype/$p$CONF
+
+<../boot/bootmkfile
+<../port/portmkfile
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	$AS initcode
+	$LD -l -s -R8 -o init.out initcode.$O -lc
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+clock.$O faultalpha.$O:	/$objtype/include/ureg.h
+main.$O: 		/sys/src/boot/alphapc/conf.h
+sd53c8xx.$O:	sd53c8xx.i
+
+sd53c8xx.i:	../pc/sd53c8xx.n
+	aux/na $prereq > $target
+
+devfloppy.$O:	../pc/devfloppy.c
+ether2114x.$O:	../pc/ether2114x.c
+mouse.$O:	../pc/mouse.c
+sdata.$O:	../pc/sdata.c
+sdscsi.$O:	../pc/sdscsi.c
+uarti8250.$O:	../pc/uarti8250.c
+vga.$O:		../pc/vga.c
+vgargb524.$O:	../pc/vgargb524.c
+vgas3.$O:	../pc/vgas3.c
+vgasavage.$O:	../pc/vgasavage.c
+vgatvp3026.$O:	../pc/vgatvp3026.c
+vgax.$O:	../pc/vgax.c
+
+acid:V:
+	$CC -a -w -I. ../port/qio.c>acid

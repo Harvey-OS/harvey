@@ -1,0 +1,136 @@
+.TH NNTPFS 4
+.SH NAME
+nntpfs \- network news transport protocol (NNTP) file system
+.SH SYNOPSIS
+.B nntpfs
+[
+.B -a
+]
+[
+.B -s
+.I service
+]
+[
+.B -m
+.I mountpoint
+]
+[
+.I system
+]
+.SH DESCRIPTION
+.I Nntpfs
+dials the TCP network news transport protocol (NNTP)
+port, 119, on
+.I system
+(default
+.BR '$nntp' )
+and presents at
+.I mountpoint
+(default
+.BR /mnt/news )
+a file system corresponding to the
+news articles stored on 
+.IR system .
+.PP
+If the
+.B -s
+option is given, the file system is posted as
+.BI /srv/ service \fR.
+If the
+.B -a
+option is given,
+.I nntpfs
+authenticates to the system with a user name and password
+obtained from
+.IR factotum (4).
+The key specifier is
+.IP
+.B
+proto=pass service=nntp server=\fIserver\fR user? !password?
+.PP
+The file system contains a directory per newsgroup,
+with dots turned into slashes, e.g.,
+.B comp/os/plan9
+for
+.BR comp.os.plan9 .
+Each newsgroup directory contains one
+numbered directory per article.
+The directories follow the numbering used by
+the server.
+Each article directory contains three files:
+.BR article ,
+.BR header ,
+and
+.BR body .
+The
+.B article
+file contains the full text of the article,
+while 
+.B header
+and 
+.B body
+contain only the header or body.
+.PP
+Each newsgroup directory contains a 
+write-only
+.B post
+file that may be used to post news articles.
+RFC1036-compliant articles should be written to it.
+The
+.B post
+file will only exist in a given newsgroup directory
+if articles are allowed to be posted to it.
+Other than that, the
+.B post
+file is
+.I not
+tied to its directory's newsgroup.
+The groups to which articles are eventually posted
+are determined by the
+.B newsgroups:
+header lines in the posted article,
+not by the location of the 
+.B post
+file in the file system.
+.PP
+The qid version of a newsgroup directory
+is the largest numbered article directory it
+contains (~0, if there are no articles).
+.PP
+The modification time on a newsgroup
+directory is the last time a new article was recorded
+during this 
+.I nntpfs 
+session.
+To force a check for new articles,
+.IR stat (2)
+the newsgroup directory.
+.PP
+To force a check for new newsgroups,
+.IR stat (2)
+the root directory.
+Note that this causes the entire list of groups,
+which can be about a megabyte,
+to be transferred.
+.PP
+To terminate the connection,
+.B unmount
+the mount point.
+.PP
+.I Nntpfs
+makes no effort to send ``keepalives'' so that
+servers do not hang up on it.
+Instead, it redials as necessary when hangups are detected.
+.SH EXAMPLE
+Authenticate to a private news server:
+.IP
+.EX
+% echo key proto=pass service=nntp server=nose.mit.edu \e
+	user=rsc !password=secret >/mnt/factotum/ctl
+% nntpfs -a nose.mit.edu
+.EE
+.SH SOURCE
+.B /sys/src/cmd/nntpfs.c
+.SH BUGS
+Directories are presented for deleted articles;
+the files in them cannot be opened.

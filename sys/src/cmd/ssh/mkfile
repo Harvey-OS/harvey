@@ -1,0 +1,92 @@
+</$objtype/mkfile
+
+HFILES=ssh.h
+
+TARG=\
+	scp\
+	ssh\
+	sshnet\
+	sshserve\
+	ssh_genkey\
+
+AUTHOFILES=\
+	authpasswd.$O\
+	authrsa.$O\
+	authtis.$O\
+
+AUTHSRVOFILES=\
+	authsrvpasswd.$O\
+	authsrvtis.$O\
+
+CIPHEROFILES=\
+	cipher3des.$O\
+	cipherblowfish.$O\
+	cipherdes.$O\
+	ciphernone.$O\
+	cipherrc4.$O\
+	ciphertwiddle.$O\
+
+OFILES=\
+	msg.$O\
+	util.$O\
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	agent.c\
+	cmsg.c\
+	smsg.c\
+	pubkey.c\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${AUTHOFILES:%.$O=%.c}\
+	${AUTHSRVOFILES:%.$O=%.c}\
+	${CIPHEROFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	/386/bin/scp\
+	/386/bin/ssh\
+	/386/bin/sshnet\
+	/386/bin/aux/sshserve\
+	/386/bin/aux/ssh_genkey\
+
+
+</sys/src/cmd/mkmany
+
+$O.ssh: \
+	$AUTHOFILES\
+	$CIPHEROFILES\
+	agent.$O\
+	cmsg.$O\
+	pubkey.$O\
+
+$O.sshserve: \
+	$AUTHSRVOFILES\
+	$CIPHEROFILES\
+	smsg.$O\
+
+$O.sshnet: \
+	$AUTHOFILES\
+	$CIPHEROFILES\
+	cmsg.$O\
+	pubkey.$O\
+
+$BIN/sshserve:VQ: $BIN/aux/sshserve
+	;
+
+$BIN/ssh_genkey:VQ: $BIN/aux/ssh_genkey
+	;
+
+$BIN/aux/sshserve: $O.sshserve
+	cp $O.sshserve $BIN/aux/sshserve
+
+$BIN/aux/ssh_genkey: $O.ssh_genkey
+	cp $O.ssh_genkey $BIN/aux/ssh_genkey
+
+sshserve.safeinstall:
+	test -e $BIN/aux/sshserve && mv $BIN/aux/sshserve $BIN/aux/_sshserve
+	mk sshserve.install
+
+ssh_genkey.safeinstall:
+	test -e $BIN/aux/ssh_genkey && mv $BIN/aux/ssh_genkey $BIN/aux/_ssh_genkey
+	mk ssh_genkey.install

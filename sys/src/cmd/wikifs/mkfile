@@ -1,0 +1,28 @@
+</$objtype/mkfile
+
+TARG=wikifs
+
+HFILES=wiki.h
+COFILES=\
+	io.$O\
+	parse.$O\
+	parsehist.$O\
+	tohtml.$O\
+	util.$O\
+	wdir.$O\
+
+OFILES=fs.$O $COFILES
+
+BIN=/$objtype/bin
+LIB=/$objtype/lib/lib9p.a #/$objtype/lib/libdebugmalloc.a
+
+</sys/src/cmd/mkone
+
+$O.wiki2html: wiki2html.$O $COFILES
+	$LD -o $target $prereq
+
+$O.wiki2text: wiki2text.$O $COFILES
+	$LD -o $target $prereq
+
+$O.owikifs: ofs.$O $COFILES
+	$LD -o $target $prereq

@@ -1,0 +1,31 @@
+.FP lucidasans
+.TL
+The Plan 9 File Server
+.AU
+Ken Thompson
+ken@plan9.bell-labs.com
+.AB
+This paper describes the structure
+and the operation of Plan 9 file servers.
+The specifics apply to
+our main Plan 9 file server
+Emelie,
+but
+the code is also the basis for
+the user level file server
+.CW kfs .
+.AE
+.SH
+Introduction
+.PP
+The Plan 9 file server
+Emelie
+is the oldest piece of system software
+still in use on Plan 9.
+It evolved from a user-level program that served
+serial lines on a Sequent multi-processor.
+The current implementation is neither clean nor
+portable,
+but it has slowly come to terms with
+its particular set of cranky computers
+and devices.

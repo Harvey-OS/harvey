@@ -1,0 +1,166 @@
+.TH WEBCOOKIES 4
+.SH NAME
+webcookies \- HTTP cookie manager
+.SH SYNOPSIS
+.B webcookies
+[
+.B -f
+.I cookiefile
+]
+[
+.B -m
+.I mtpt
+]
+[
+.B -s
+.I service
+]
+.SH DESCRIPTION
+.I Webcookies
+manages a set of HTTP cookies, which are
+used to associate HTTP requests with persistent state 
+(such as user profiles) on many web servers.
+.PP
+.I Webcookies
+reads
+.I cookiefile
+(default
+.BR $home/lib/webcookies )
+and mounts itself at 
+.I mtpt
+(default
+.BR /mnt/webcookies ).
+If
+.I service
+is specified, 
+.I cookiefs
+will post a service file descriptor
+in
+.BR /srv/\fIservice .
+.PP
+The cookie file contains one cookie per line;
+each cookie comprises some number of
+.IB attr = value
+pairs.
+Cookie attributes are:
+.TF \fBnetscapestyle=flag
+.TP
+.BI name= name
+The name of the cookie on the remote server.
+.TP
+.BI value= value
+The value associated with that name on the remote server.
+The actual data included when a cookie is sent back
+to the server is
+.IB \fR``\fIname = value\fR''
+(where, confusingly,
+.I name
+and
+.I value
+are the values associated with the
+.B name
+and
+.B value
+attributes.
+.TP
+.BI domain= domain
+The domain within which the cookie can be used.
+If
+.I domain
+is an IP address, the cookie can only be used when
+connecting to a web server at that IP address.
+If
+.I domain
+is a pattern beginning with a dot,
+the cookie can only be used for servers whose name
+has
+.I domain
+as a suffix.
+For example, a cookie with
+.B domain=.bell-labs.com
+may be used on the web sites
+.I www.bell-labs.com
+and
+.IR www.research.bell-labs.com .
+.TP
+.BI path= path
+The cookie can only be used for URLs with a path (the part after
+.BI http:// hostname\fR)
+beginning with
+.IR path .
+.TP
+.BI version= version
+The version of the HTTP cookie specification, specified by the server.
+.TP
+.BI comment= comment
+A comment, specified by the server.
+.TP
+.BI expire= expire
+The cookie expires at time
+.IR expire ,
+which is a decimal number of seconds since the epoch.
+.TP
+.B secure=1
+The cookie may only be used over secure
+.RB ( https )
+connections.
+.TP
+.B explicitdomain=1
+The domain associated with this cookie was set by
+the server (rather than inferred from a URL).
+.TP
+.B explicitpath=1
+The path associated with this cookie was set by the
+server (rather than inferred from a URL).
+.TP
+.B netscapestyle=1
+The server presented the cookie in ``Netscape style,'' which
+does not conform to the cookie standard, RFC2109.
+It is assumed that when presenting the cookie to the server,
+it must be sent back in Netscape style as well.
+.PD
+.PP
+.I Webcookies
+serves a directory containing two files.
+The first,
+.BR cookies ,
+is a textual representation of the cookie file,
+which can be edited to change the set of cookies
+currently held.
+The second,
+.BR http ,
+is intended to be used by HTTP clients
+to access cookies.
+Upon opening
+.BR http ,
+the client must write a full URL to it.
+After writing the URL, reading from the file will yield any
+HTTP
+.B Cookie:
+headers that should be included in the 
+request for this particular URL.
+Once the request has been made, any
+.B Set-Cookie:
+lines in the HTTP response header should
+be written to the file to save them for next time.
+If
+.B cookiefs
+decides not to accept the cookie (as outlined in
+RFC2109, section 4.3.4), no indication is given.
+.PP
+.IR Hget (1)
+uses
+.BR /mnt/webcookies/http ,
+when it exists, to manage cookie state.
+.I Webfs
+does not (yet).
+.SH SOURCE
+.B /sys/src/cmd/webcookies.c
+.SH SEE ALSO
+.IR hget (1)
+.SH BUGS
+It's not clear what the relationship between
+.I cookiefs
+and something like
+.I webfs
+should be.

@@ -1,0 +1,150 @@
+/* configuration commands */
+
+/* configuration commands */
+filsys main j(w6)(r5.<0-18>r5.<20-38>)
+e!0!helix:/386/9pcfs
+
+/* AUDIO */
+ip/dhcp
+ip/tftpd
+con /dev/eia1
+bootp()phaeton:/sys/src/fs/audio/audio
+
+/* AUDIO */
+touch superblock 2835710
+
+config w2
+service audio
+filsys main cw2j(w5w4)(l<0-39>)
+filsys dump o
+ip 135.104.3.106
+ipgw 135.104.3.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+/* RORO running 9pcfs (16KB blocks)  */
+config w2
+service roro
+filsys main [w2w3]
+ip 135.104.9.29
+ipgw 135.104.9.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+/* RORO running plan9pc (4KB blocks) */
+config w1
+service roro
+filsys main w1
+ip 135.104.9.29
+ipgw 135.104.9.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+/* EMELIE */
+e!0!helix:/usr/ken/fs/pc/9pcfs
+130 disks loaded
+
+/* BOOTES 00006b8244f8 */
+superblocks:
+bootes 44930632
+	dump 44945151 is good; 44945224 next
+        	44945220 cwroot; 44945223 roroot
+fornax 8917649
+	dump 8919157 is good; 8919167 next
+        	8919163 cwroot; 8919166 roroot
+	sbaddr =  8919379
+	craddr =  8919383  8919383
+
+/* BOOTES little endian */
+config xw5
+service bootes
+filsys main c[xw5]j(w1.1.8xw1.1.1)(r<0-44>r<50-94>)
+filsys dump o
+filsys fornax c[xw3]j(w1.2.8xw1.2.0)(r<0-18>)
+filsys fdump o
+ip 135.104.9.30
+ipgw 135.104.9.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+/* BOOTES little endian with only fornax filesystem */
+config xw5
+service bootes
+//filsys main c[xw5]j(w1.1.8xw1.1.1)(r<0-44>r<50-94>)
+//filsys dump o
+filsys main c[xw3]j(w1.2.8xw1.2.0)(r<0-18>)
+filsys dump o
+ip 135.104.9.30
+ipgw 135.104.9.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+/* BOOTES little endian with only bootes filesystem */
+config xw5
+service bootes
+filsys main c[xw5]j(w1.2.8xw1.2.1)(r<0-44>r<50-94>)
+filsys dump o
+ip 135.104.9.30
+ipgw 135.104.9.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+/* BOOTES 00006b8244f8 big endian */
+config w5
+service bootes
+filsys main c[w5]j(w0.1.8w0.1.1)(r<0-44>r<50-94>)
+filsys dump o
+//filsys fornax c[w3]j(w0.2.8w0.2.0)(r<0-18>)
+//filsys fdump o
+ip 135.104.9.30
+ipgw 135.104.9.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+// jukefs
+// DSIZE = 39815
+config w6
+service jukefs
+filsys main cw6j(w5w<1-4>)(r<0-140>r<144-284>)
+filsys dump o
+ip 135.104.9.10
+ipgw 135.104.9.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+// emelie
+// DSIZE = 157933
+config w1.0.0
+service emelie
+filsys main c[w1.<0-5>.0]j(w6w5w4w3w2)(l<0-236>l<238-474>)
+filsys dump o
+filsys other [w1.<9-14>.0]
+filsys temp [w1.8.0]
+ipauth  135.104.9.7
+ip     135.104.9.42
+ipgw   135.104.9.1
+ipmask 255.255.255.0
+ipsntp 135.104.9.52
+end
+
+// choline
+// DSIZE = 79563-1
+config w1.0.0
+service    choline
+filsys main c[w<1-3>]j(w1.<6-0>.0)(l<0-124>l<128-252>)
+filsys dump o
+filsys other [w<4-6>]
+ipauth  135.104.9.7
+ip	135.104.72.2
+ipgw	135.104.72.1
+ipmask	255.255.255.0
+ipsntp 135.104.9.52
+end

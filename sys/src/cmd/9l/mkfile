@@ -1,0 +1,23 @@
+</$objtype/mkfile
+
+TARG=9l
+OFILES=\
+	asm.$O\
+	list.$O\
+	noop.$O\
+	sched.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	enam.$O\
+
+HFILES=\
+	l.h\
+	../9c/9.out.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+enam.$O:	../9c/enam.c
+	$CC $CFLAGS ../9c/enam.c

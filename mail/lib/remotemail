@@ -1,0 +1,14 @@
+#!/bin/rc
+shift
+sender=$1
+shift
+addr=$1
+shift
+fd=`{/bin/upas/aliasmail -f $sender}
+switch($fd){
+case *.*
+	;
+case *
+	fd=yourdomain.dom
+}
+exec /bin/upas/smtp -h $fd $addr $sender $*

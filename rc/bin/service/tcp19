@@ -1,0 +1,2 @@
+#!/bin/rc
+/bin/aux/write 4096

@@ -1,0 +1,25 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libip.a
+OFILES=\
+	eipfmt.$O\
+	parseip.$O\
+	parseether.$O\
+	myetheraddr.$O\
+	myipaddr.$O\
+	classmask.$O\
+	bo.$O\
+	readipifc.$O\
+	ipaux.$O\
+	ptclbsum.$O\
+
+HFILES=\
+	ip.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib

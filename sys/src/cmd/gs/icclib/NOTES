@@ -1,0 +1,310 @@
+This directory contains a subset of the icclib 2.0 distribution for
+use with Ghostscript. The full version of icclib is available from
+Graeme Gill's website: http://web.access.net.au/argyll/color.html
+
+In the near future, we expect to treat icclib much the same way we
+do libjpeg and friends. At that point, it will be available from
+the Ghostscript download locations, but won't actually be included
+in the Ghostscript distribution proper, or in the source tree.
+
+Raph Levien
+18 October 2001
+
+Release notes by Jan Stoeckenius follow (lightly edited by Raph Levien
+to reflect the icclib 2.0 integration):
+
+This patch integrates Graeme W. Gill's icclib code into ghostscript,
+to support ICCBased color spaces for both PostScript and PDF.
+
+The PDF support is as documented in version 1.3 of PDF; see the "PDR
+Reference", 2nd. ed., Sec. 4.5.4 (pp. 165 - 180).
+
+Support for PostScript is essentially identical. An ICCBased color space is
+array of the form:
+
+    [ /ICCBased <dictionary> ]
+
+The recognized entries in the dictionary are:
+
+    N           integer     (Required) The number of color space components,
+                            as in the PDF dictionary. This may be 1, 3, or 4.
+
+    Alternate   array or    (Optional) The alternative color space to use if
+                name        the ICC profile is not useable (for any reason).
+                            If this entry is not provided, its default value
+                            is determined by N, using the rule 1 ==> DeviceGray,
+                            3 ==> DeviceRGB, 4 ==> DeviceCMYK. All this is
+                            the same as in the PDF dictionary.
+
+    Range       array       (Optional) An array of 2 * N numbers, which obey
+                            the relationship Range[2 * i] <= Range[2 * i + 1].
+                            The i'th component of a color, c[i], is
+                            constrained such that:
+ 
+                                Range[2 * i] <= c[i] <= Range[2 * i + 1]
+
+                            If this entry is not provided, its default value
+                            is an array of length 2 * N with the form
+                            [ 0 1  0 1 ... ]. All of this is the same as for
+                            the PDF dictionary.
+
+    DataSource  file or     (Required)The ICC profile data. If this is a
+                string      file it must be positionable.
+
+With the exception of running out of memory, most errors discovered while
+reading the profile will result in the alternative space being used.
+
+
+New Files:
+
+  src/gsicc.c
+    Implementation of the methods associated with the ICCBased color space
+    structure (a gs_color_space_s structure of type gs_color_space_index_CIEICC).
+    The gs_cspace_build_CIEICC procedure is also implemented in this file.
+
+  src/gsicc.h
+    Definition of the gs_cie_icc_s structure, which is the essential
+    parameter structure for ICCBased color spaces. The files in this
+    structure are all straightforward, except for the file_id field. This
+    latter field is compared with the read_id and write_id of a stream,
+    to verify that the stream is still valid. This is the same mechanism
+    as is used by the ref structure, and for the same reason.
+
+  src/zicc.c
+    Implementation of the .seticcspace operator, which is used to set the
+    current color space to be an ICCBased color space.
+
+  src/icclib.mak
+    Makefile for building the icclib code (which is in a separate directory).
+    The mechanism used is identical to that used by zlib.mak.
+
+  lib/gs_icc.ps
+    Implementation of the ICCBased color space specific routine in
+    colorspacedict. This routine is much more extensive that those used
+    for the other color spaces, both due to the greater complexity of the
+    color space and because we have chosen to implement much of the error
+    checking in this routine.
+
+    NB: To disable support for ICCBased color spaces, replace "NOCIE" in
+        this file with "true". Though ICCBased will still be a recognized
+        color space family, the alternative space will always be used.
+
+  gs_icclib/icc.c
+  gs_icclib/icc.h
+  gs_icclib/icc9809.h
+    The gs_icclib directory is the default location of the icclib code.
+    The files in this directory are identical to those of the usual
+    distribution of this library.
+
+
+Modified Files:
+
+    src/gdevpdfc.c
+      Added support for ICCBased color spaces to the pdf_color_space procedure.
+      These are effectively translated into themselves, with the DataSource
+      component replaced by a (PDF) stream.
+
+    src/gdevpx.c
+      Added ICCBased to the set of color spaces that
+      pclxl_can_handle_color_space reports as one that cannot be handled.
+
+    src/gscie.c
+      Added support for ICCBased color spaces in the cie_cs_common_abc
+      procedure. Also exported gx_cie_common_complete (previously
+      cie_common_complete) and gx_cie_load_common_cache (previously
+      cie_load_common_cache) for use in gsicc.c.
+
+    src/gscie.h
+      Modified the definitions of st_cie_common and st_cie_common_elements
+      to be public.
+
+    src/gsciemap.c
+      Removed the definition of the macro CIE_CHECK_RENDERING (it is now in
+      gxcie.h). Exported gx_cie_remap_finish (previously cie_remap_finish)
+      for use in gsicc.c.
+
+    src/gscolor.c
+      Added support for ICCBased color spaces in gs_currentrgbcolor.
+
+    src/gscolor1.c
+      Added support for ICCBased color spaces in gs_currentcmykcolor.
+
+    src/gscscie.c
+      Exported st_cie_common, st_cie_common_elements, gx_concrete_space_CIE,
+      gx_install_CIE, gx_set_common_cie_defaults (previously
+      set_common_cie_defaults), and gx_build_cie_space (previously
+      build_cie_space) for use in gsicc.c.
+
+    src/gscspace.h
+      Added the gs_icc_params data structure (for ICCBased color spaces),
+      and the associated type indicator (gs_color_space_index_CIEICC). Also
+      broke what had been the gs_base_color_space structure into two, with
+      gs_small_base_color_space covering all the prior base color spaces,
+      and gs_base_color_space covering these and the ICCBased color space.
+      See the comments in the file for an explanation as to why this was
+      necessary.
+
+    src/gscssub.c
+      Added code to allow ICCBased color spaces to be substituted for the
+      device specific color spaces. This is necessary to support the
+      DefaultDevice* color spaces in PDF.
+
+    src/gxcie.h
+      Moved the definition of the CIE_CHECK_RENDERING macro to this file
+      (it was in gsciemap.c). Added prototypes for st_cie_common,
+      st_cie_common_elemets_t, gx_set_common_cie_defaults,
+      gx_cie_load_common_cache, gx_cie_common_complete, gx_install_CIE,
+      gx__build_cie_space, and gs_concrete_cspace_CIE.
+
+    src/gxshade.c
+      Added support for ICCBased color spaces in shade_init_fill_state.
+
+    src/icie.h
+      Added a prototype for cie_set_finish.
+
+    src/zcie.c
+      Exported cie_set_finish (previously set_cie_finish) for use in zicc.c
+      (the name change maintains consistency with other exported CIE-specific
+      interpreter routines).
+
+    src/lib.mak
+      Added the sicclib.dev feature device, and the associated compilation
+      directives and dependency lists. Also updated the dependency lists
+      for gscie.c and gxshade.c (both now require gsicc.h).
+
+    src/int.mak
+      Added the icc.dev feature device,  and the associated compilation
+      directives and dependency lists. This pdf.dev feature device now
+      lists icc.dev as a prerequisite.
+
+    src/devs.mak
+      Updated the dependency list for gdevpdfc.c.
+
+    src/bcwin32.mak
+    src/dvx-gcc.mak
+    src/msvc32.mak
+    src/msvclib.mak
+    src/openvms.mak
+    src/os2.mak
+    src/ugcclib.mak
+    src/unix-gcc.mak
+    src/unixansi.mak
+    src/unixtrad.mak
+    src/watc.mak
+    src/watclib.mak
+    src/watcw32.mak
+      Added a default definition for ICCSRCDIR, the source directory for
+      the icclib code.
+
+    src/gs.mak
+      Added default definitions for ICCGENDIR, ICCOBJDIR, ICCI_ (ICC specific
+      include directories), and ICCF_ (currently empty).
+
+
+    lib/pdf_draw.ps
+      Added ICCBased color space specific procedures for csncompdict and
+      defaultdecodedict. Modified the ICCBased color space procedure in
+      csrdict to map a PDF-form color space to the PostScript form.
+
+    lib/pdf__ops.ps
+     Added ICCBased color space specific procedure to CSdict and Cdict.
+
+Additional notes by Jan Stoeckenius:
+
+1. The color produced when ICCBased color spaces are employed is
+   dependent on the installed color rendering dictionary. For the
+   default X11 device, this dictionary does not provide correction
+   for the relative white point (at least, not as far as we can tell).
+   ICC profiles use the D50 white point. In the absence of white point
+   adjustment, "white" in the associated color space appears to be
+   a moderate yellow on the output device (other colors are similarly
+   "red-shifted").
+
+   This arrangement has the advantage of making it obvious when ICCBased
+   color spaces are supported (useful for testing). On the other hand,
+   the output is probably not what the user intended.
+
+   If you have any devices with known "good" color rendering dictionaries,
+   it would be useful to test ICCBased color space support on those
+   devices as soon as possible.
+
+2. The tests we have run do not exercise the memory handling facilities
+   in ghostscript to any extent. The support for ICCBased color spaces
+   involves two new structures, for which we have provided structure
+   descriptors. We believe these have been correctly constructed, and
+   that the one reference-counted structure is being handled properly,
+   but we have no simple way of testing for this.
+
+3. Changes were required in an unexpectedly large number of files
+   (9 new files, 34 existing files [these figures refer to the
+   integration into 7.00 - RLL]), though in many cases only a few
+   lines needed to be modified.
+
+   The primary reason for this is that the graphic library color space
+   code severely violates the principles of object-oriented programming.
+   Color space objects have a visible type indicator, and this type is
+   directly used in many places. When adding a new color space type, it
+   was not sufficient to create the associated methods. We also had to
+   search the code for all places in which a color space type indicator
+   was explicitly accessed.
+
+   We believe we have found all the places where this occurs, and have
+   modified them appropriately (see the ReleaseNotes file for details).
+   On the other hand, we have not come remotely close to testing all of
+   these changes, nor is there any easy test to see if there are places
+   we missed.
+
+   When Peter was the only person working on the graphic library,
+   this situation was bothersome but probably not critical. In the
+   new environment in which ghostscript is being developed, we believe
+   this situation will lead to serious problems. We recommend that a
+   project be started to make the color space code much more object-
+   oriented, by creating color space methods for all of the required
+   color space properties.
+
+4. The current method of "inline" storage of alternative/base color spaces
+   is becoming hard to maintain. Strictly speaking, ICCBased color spaces
+   cannot be implemented within this mechanism: the color spaces may be
+   (and are) used as alternative color spaces for Separation and DeviceN
+   color spaces, and may in turn access such color spaces as their own
+   alternative color space. We hacked around this problem by disallowing
+   the latter possibility, and introducing yet another layer in the
+   color space hierarchy. The class gs_base_color_space is now split
+   into gs_small_base_color_space (all of the previous base color spaces)
+   and gs_base_color_space (gs_small_base_color_space and ICCBased color
+   spaces). This is an unholy mess, but at least it seems to be functional.
+
+   As the number of layers in the color space hierarchy grows, so does the
+   potential for serious and well-hidden problems. The reason is that
+   pointers to alternative/base color spaces may point into the middle of
+   an object. If such a pointer is accessible via the heap, and is subject
+   to relocation, the location of the structure descriptor will be read
+   incorrectly. By the time this error is apparent, much of the affected
+   memory may be overwritten. Tracing such problems is typically quite
+   time-consuming.
+
+   The original guard against this problem was to perform all color space
+   assignments by value. This worked when Peter was the only person regularly
+   changing the code, and may continue to work under the current arrangement.
+   We believe, however, that this situation will cause trouble in the
+   future.
+
+   We recommend that the current color space mechanism be discarded. A new
+   mechanism should allow alternative/base color spaces to be included by
+   reference rather than by value. Such a mechanism should also move the
+   generic color space parameters (number of components, additive/subtractive
+   indicator, etc.) into the base structure, even if these parameters are
+   fixed for certain color spaces.
+
+5. The PDF device code currently attempts to translate PostScript's
+   CIEBased color spaces into the more restrictive set of CIE color spaces
+   in PDF. Many color spaces cannot be translated directly, and the code
+   will fail if such a color space is encountered.
+
+   We have generalized this code to handle ICCBased color spaces, which
+   effectively are translated to themselves. A much more complete solution
+   could be provided by mapping PostScript's CIEBased color spaces into
+   ICCBased color spaces in PDF. Essentially all CIEBased color spaces
+   could be handled in this manner (via sample and generation of a lookup
+   table).
+

@@ -1,0 +1,90 @@
+%!
+%    Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: gsnup.ps,v 1.2 2000/09/19 18:29:11 lpd Exp $
+% Prefix this to very well-behaved PostScript files for n-up printing.
+
+/cdef { 1 index where { pop pop } { def } ifelse } def
+
+%%%%%%%%%%%%%%%% Begin parameters %%%%%%%%%%%%%%%%
+
+% All parameters are also settable from the command line with -d, e.g.,
+% -d.Nx=3
+
+/.Nx 2 cdef			% # of pages across the physical page
+/.Ny 2 cdef			% # of pages down the physical page
+/.Landscape false cdef		% if true, rotate page by 90 degrees
+
+%%%%%%%%%%%%%%%% End parameters %%%%%%%%%%%%%%%%
+
+vmstatus pop pop 0 eq { save pop } if
+.Landscape {
+  currentpagedevice /PageSize get aload pop
+  exch 2 array astore
+  1 dict dup /PageSize 4 -1 roll put
+  setpagedevice
+} if
+/.BP currentpagedevice /BeginPage get def
+/.EP currentpagedevice /EndPage get def
+/.Ps 1 string def	% survive save/restore
+/.Pn { .Ps 0 get } def
+true setglobal		% protect from restore
+/.ELevel [0] def
+/.Rmat matrix def
+false setglobal
+/.max { 2 copy lt { exch } if pop } cdef
+% Work around the common save ... showpage ... restore locution.
+/restore {
+  .Rmat currentmatrix pop restore
+  vmstatus pop pop .ELevel 0 get lt { .Rmat setmatrix } if
+} bind def
+<<
+  /BeginPage {
+    .BP .Nx .Ny .max
+    gsave
+      initclip clippath pathbbox exch 4 -1 roll sub 3 1 roll exch sub
+    grestore
+    2 copy exch .Nx div exch .Ny div
+    .Pn dup .Nx mod exch .Nx idiv .Ny 1 sub exch sub
+		% Stack: nmax pw ph pw/nx ph/ny ix iy
+    exch 3 index mul exch 2 index mul
+    translate
+		% Stack: nmax pw ph pw/nx ph/ny
+    4 -1 roll 4 index div 4 -1 roll 4 index div
+		% Stack: nmax pw/nx ph/ny pw/nmax ph/nmax
+    exch 4 -1 roll exch sub 2 div
+    3 1 roll sub 2 div
+    translate
+		% Stack: nmax
+    1 exch div dup scale
+  }
+  /EndPage {
+    .ELevel 0 vmstatus pop pop put
+    .Ps 0 .Pn 1 add .Nx .Ny mul mod put    
+    .Pn 0 eq {
+      .EP
+    } {
+      pop pop false
+    } ifelse
+  }
+>> setpagedevice
+/.EOJ {
+  { .Pn 0 eq { exit } if showpage } loop
+} def
+
+{ currentfile cvx exec .EOJ } exec

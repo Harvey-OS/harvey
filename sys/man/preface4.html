@@ -1,0 +1,78 @@
+<html>
+<title>
+preface4
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Preface to the Fourth (2002) Edition
+</H1>
+<br>&#32;<br>
+Plan 9 continues to grow and adapt.
+The fourth major release of the system
+incorporates a number of changes, but the most central
+is the conversion to a new version of the 9P file system
+protocol.
+This new version was motivated by a desire to support
+files with name elements longer than 27 bytes (the old
+<TT>NAMELEN</TT>),
+but the opportunity was taken to change a number of other things
+about the protocol,
+making it more efficient, more flexible, and easier to encapsulate.
+One simple but indispensable new feature made possible by the protocol
+change is that the system now records the user who last modified a file;
+try
+<TT>ls</TT>
+<TT>-m</TT>
+to identify the culprit.
+<br>&#32;<br>
+Many aspects of system security have been improved.
+The new security agent
+<A href="/magic/man2html/4/factotum"><I>factotum</I>(4)
+</A>maintains user passwords, while
+<A href="/magic/man2html/8/secstore"><I>secstore</I>(8)
+</A>keeps them safe and enables single sign-on to multiple domains and machines
+using a variety of secure protocols and services.
+<br>&#32;<br>
+Throughout the system, components have been rewritten and interfaces
+modified to eliminate restrictions, improve performance, and clarify design.
+The full list is too long to include here, but significant changes have occurred
+in a number of system calls
+<A href="/magic/man2html/2/wait">(<I>wait</I>(2),
+</A><A href="/magic/man2html/2/stat"><I>stat</I>(2),
+</A><A href="/magic/man2html/2/mount"><I>mount</I>(2),
+</A>and
+<A href="/magic/man2html/2/errstr"><I>errstr</I>(2)),
+</A>the thread library
+<A href="/magic/man2html/2/thread">(<I>thread</I>(2)),
+</A>formatted printing
+<A href="/magic/man2html/2/print">(<I>print</I>(2)
+</A>and
+<A href="/magic/man2html/2/fmtinstall"><I>fmtinstall</I>(2)),
+</A>security
+(many pages in section 2, including
+<A href="/magic/man2html/2/auth"><I>auth</I>(2),
+</A><A href="/magic/man2html/2/authsrv"><I>authsrv</I>(2)),
+</A>and many others.
+<br>&#32;<br>
+The changes are sweeping and are accompanied by many new programs, tools,
+services,
+and libraries.
+See the manual pages and the accompanying documents for more information.
+<br>&#32;<br>
+<br>&#32;<br>
+<DL><DT><DD>
+<DL><DT><DD>
+<DL><DT><DD>
+<DL><DT><DD>
+<DL><DT><DD>
+<DL><DT><DD>
+Bell Labs
+<br>
+Computing Science Research Center
+<br>
+Murray Hill NJ
+<br>
+April, 2002
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2002 Lucent Technologies Inc.  All rights reserved.
+</body></html>

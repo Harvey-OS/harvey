@@ -1,0 +1,22 @@
+</$objtype/mkfile
+
+<../config
+
+all:V:	cropmarks
+
+install:V:	$POSTBIN/cropmarks $POSTLIB/cropmarks.ps
+
+installall:V:	install
+
+$POSTLIB/cropmarks.ps:	cropmarks.ps
+	cp $prereq $target
+
+$POSTBIN/cropmarks:	cropmarks
+	cp $prereq $target
+
+cropmarks:	cropmarks.rc
+	sed 's?^POSTLIB=.*?POSTLIB='$POSTLIB'?' cropmarks.rc >cropmarks
+	chmod 775 cropmarks
+
+clean nuke:V:
+	rm -f cropmarks

@@ -1,0 +1,95 @@
+%    Copyright (C) 1993, 1994, 1996 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: showchar.ps,v 1.2 2000/09/19 18:29:11 lpd Exp $
+% showchar.ps
+% Show the outline and rasterized forms of a character.
+
+/F where { pop } { /F /Times-Roman def } ifelse
+/P where { pop } { /P 16 def } ifelse
+/Rx where { pop } { /Rx 100 def } ifelse
+/Ry where { pop } { /Ry 100 def } ifelse
+/Cs where { pop } { /Cs (M) def } ifelse
+/Pr where { pop } { /Pr false def } ifelse
+/Delay where { pop } { /Delay 0 def } ifelse
+
+0 setgray
+(markpath.ps) runlibfile
+(markhint.ps) runlibfile
+/mmx [1 0 0 1 0 0] def
+/getpath		% - getpath <pathproc>
+ { [
+    { /moveto cvx } { /lineto cvx } { /curveto cvx } { /closepath cvx }
+   pathforall
+   ] cvx
+ } def
+/bitselectfont		% <fontname> <scale> bitselectfont -
+ { exch findfont exch scalefont setfont
+	% Compute the bounding box in device coordinates.
+   gsave [Rx 72 div 0 0 Ry 72 div 0 0] setmatrix
+   currentfont /FontMatrix get concat
+   currentfont /FontBBox get aload pop
+   transform ceiling cvi /ury exch def ceiling cvi /urx exch def
+   transform floor cvi /lly exch def floor cvi /llx exch def
+   /bbx urx llx sub def /bby ury lly sub def
+   grestore
+ } def
+/bitshow		% <string> bitshow -
+ { /S exch def gsave
+   /W bbx 8 add 7 or 1 add def
+   /H bby 8 add def
+   /buf W 8 idiv string def
+   /M [Rx 72 div 0 0 Ry -72 div 4 llx sub H 4 sub] def
+   M W H <ff 00> makeimagedevice
+   /dev exch def
+   gsave dev setdevice
+   newpath 0 lly idtransform moveto
+   0 setgray
+   gsave
+     /hpath S false charpath getpath def
+   grestore
+   S show grestore
+   20 20 translate
+   50000 Rx Ry .max P mul div dup scale
+   0.7 setgray
+   0 W H true M
+    { dup 1 add exch dev exch buf copyscanlines
+    } imagemask pop
+   0 setlinewidth
+   gsave 0.5 1 0.5 setrgbcolor hpath exec mmx markpath grestore
+   0 0.5 1 setrgbcolor hpath exec stroke
+	% Show the hints for Type 1 fonts also.
+   currentfont /FontType get 1 eq
+    { gsave 1 0 0 setrgbcolor
+      0 lly M idtransform translate
+      currentfont /FontMatrix get
+      dup Pr markfonthints
+      currentfont /Encoding get S 0 get get exch Pr markcharhints
+      grestore
+    }
+   if
+ } def
+F P bitselectfont
+/S1 1 string def
+Cs
+ { /C exch def
+   currentfont /Encoding get C get /.notdef ne
+    { save S1 0 C put S1 bitshow
+      showpage restore
+    } if
+ } forall
+quit

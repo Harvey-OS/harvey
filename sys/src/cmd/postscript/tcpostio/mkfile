@@ -1,0 +1,16 @@
+</$objtype/mkfile
+
+<../config
+
+TARG=tcpostio
+OFILES= tcpostio.$O\
+	dial.$O\
+
+BIN=$POSTBIN
+
+</sys/src/cmd/mkone
+CC=pcc
+CFLAGS=-Bw -c -D_BSD_EXTENSION -D_NET_EXTENSION -Dplan9
+
+syms:V:
+	vc $CFLAGS -a tcpostio.c > syms

@@ -1,0 +1,22 @@
+#!/bin/rc
+if (! ~ $DEBUG '') flag x +
+if (~ $OUTDEV -) OUTDEV=/fd/1
+
+# make a place for pc's to spool files that is private
+ramfs
+mkdir /tmp/log /tmp/prob /tmp/queue
+bind -b /tmp/log $LPLIB/log
+bind -b /tmp/prob $LPLIB/prob
+bind -b /tmp/queue $LPLIB/queue
+
+if (~ $#* 0) {
+	@{bind -b $LPLIB/process /bin; $LPPROC} | aux/download -f -H/sys/lib/postscript/font -mfontmap -plw+ > $OUTDEV
+	if (! ~ $LPDEST stdout) echo -n `{ascii -t 4} > $OUTDEV
+}
+if not {
+	for (i in $*) {
+		@{bind -b $LPLIB/process /bin; $LPPROC} < $i  | aux/download -f -H/sys/lib/postscript/font -mfontmap -plw+ > $OUTDEV
+		if (! ~ $LPDEST stdout) echo -n `{ascii -t 4} > $OUTDEV
+	}
+}
+exit ''

@@ -1,0 +1,24 @@
+#!/bin/rc
+
+if(~ $#* 0 1){
+	echo >[1=2] usage: adiff file1 file2
+	echo >[1=2] or adiff file1 file2... dir
+	exit usage
+}
+
+dir = /mnt/wsys
+if(! test -f $dir/cons)
+	dir = /mnt/term/$dir
+id=`{cat $dir/new/ctl}
+id=$id(1)
+
+l=$1
+r=$2
+if (test -d $1) l=$1/`{basename $2}
+if not if (test -d $2) r=$2/`{basename $1}
+
+echo 'name '^`{pwd}^/-diff-^`{basename $l} > $dir/$id/ctl
+
+diff $* | awk -v 'l='$l -v 'r='^$r '/^diff/ {l=$2; r=$3; next} /^[1-9]/ {sub("[acd]", " & " r ":"); sub("^", l ":", $0)}
+	{print $0}' > $dir/$id/body
+echo clean > $dir/$id/ctl

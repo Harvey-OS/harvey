@@ -1,0 +1,220 @@
+<html><html>
+<head>
+<title>::freedb.org::</title>
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#101070" vlink="#101070">
+
+<center>
+
+<table cellpadding=0 cellspacing=0 border=0 width="99%" align=center><tr><td align=left>
+<a href="/">
+<table border=0>
+<td bgcolor="#ffffff">
+ <table border=0 width=100% cellpadding=0 cellspacing=0>
+  <td bgcolor=#101070>
+   <table border=0>
+    <td bgcolor=#ffffff><font face="Arial,Helvetica,Lucida" color="#101070" size=8><b>freedb</b></td>
+    <td bgcolor=#101070><font face="Arial,Helvetica,Lucida" color="#ffffff" size=8><b>.org</b></td>
+   </table>
+  </td>
+  <tr>
+  <td align=right><font face="Arial,Helvetica,Lucida" color="#101070" size=2><b>a free approach to cddbp
+ </table>
+</td>
+</table>
+</a>
+</td><td align=right width=100%>
+	<form action="search.php" method=post>
+	<font face=Arial,Helvetica size=2><input type=name name=query width=20 size=20 length=20>
+	</td>
+	<td align=right>&nbsp;&nbsp;<input type=image src=images/menu/english/search.gif border=0 align=middle></td>
+	</form>
+
+</td></tr></table><br>
+<table cellpadding=0 cellspacing=0 border=0 width="99%" bgcolor=101070><tr><td>
+<table cellpadding=5 cellspacing=1 border=0 width="100%" bgcolor=FFFFFF><tr><td>
+<font face=Lucida,Verdana,Arial,Helvetica size=2>freedb.org - a free approach to cddbp</td></tr></table></td></tr></table><P>
+
+<table width="99%" align=center cellpadding=0 cellspacing=0 border=0><tr>
+	<td valign=top rowspan=5>
+
+<table border=0><tr><td>
+
+	<table width="115" border="0" cellpadding="0" cellspacing="0"><tr valign="top" bgcolor="#101070">
+                 <td bgcolor="#FFFFFF"><img src="themes/SlashOcean/pix.gif" width="3" height="3"></td>
+                 <td><img src="themes/SlashOcean/cl.gif" width="7" height="10"></td>
+                 <td><font face="verdana,helvetica,arial" size="1" color="#ffffff"><B>Main Menu</B></font></td>
+                 <td align="right"><img src="themes/SlashOcean/cr.gif" width="7" height="10" alt=""></td>
+                 <td bgcolor="#FFFFFF" align="right"><img src="themes/SlashOcean/pix.gif" width="3" height="3"></td>
+	</tr></table>
+	<table width="100%" border="0" cellpadding="0" cellspacing="0">
+	<tr bgcolor="#101070"><td colspan="3"><img src="themes/SlashOcean/pix.gif" width="1" height="1"></td></tr>
+	<tr bgcolor="#ffffff">
+		<td background="themes/SlashOcean/sl.gif"><img src="themes/SlashOcean/pix.gif" width="3" height="3" alt=""></td>
+		<td width="100%">
+		<table width="100%" border="0" cellpadding="5" cellspacing="0"><tr>
+		<td><font face="verdana,helvetica,arial" size="1">
+		<li><a href=index.php>Home</a>
+<li><a href=topics.php>News-Topics</a>
+<li><a href=sections.php?op=listarticles&secid=1>About</a>
+<li><a href=sections.php?op=listarticles&secid=2>Developers</a>
+<li><a href=sections.php?op=listarticles&secid=3>Applications</a>
+<li><a href=sections.php?op=listarticles&secid=7>Download</a>
+<li><a href=forum/index.php>Forum</a>
+<li><a href=http://freedb.music.sk/search/>Web-based Search</a>
+<li><a href=links.php>Web Links</a>
+<li><a href=user.php>Your Account</a>
+<li><a href=submit.php>Submit News</a>
+
+		</font></td>
+		</tr></table>
+
+		
+	</td><td background="themes/SlashOcean/sr.gif" align="right"><img src="themes/SlashOcean/pix.gif" width="3" height="3" alt=""></td>
+      </tr>
+	<tr bgcolor="#101070"><td colspan="3"><img src="themes/SlashOcean/pix.gif" width="1" height="1"></td></tr>
+	</table>
+	</td>
+
+
+
+
+
+
+</tr></td></table>
+<br>
+<table border=0><tr><td>
+
+	<table width="115" border="0" cellpadding="0" cellspacing="0"><tr valign="top" bgcolor="#101070">
+                 <td bgcolor="#FFFFFF"><img src="themes/SlashOcean/pix.gif" width="3" height="3"></td>
+                 <td><img src="themes/SlashOcean/cl.gif" width="7" height="10"></td>
+                 <td><font face="verdana,helvetica,arial" size="1" color="#ffffff"><B>FAQ</B></font></td>
+                 <td align="right"><img src="themes/SlashOcean/cr.gif" width="7" height="10" alt=""></td>
+                 <td bgcolor="#FFFFFF" align="right"><img src="themes/SlashOcean/pix.gif" width="3" height="3"></td>
+	</tr></table>
+	<table width="100%" border="0" cellpadding="0" cellspacing="0">
+	<tr bgcolor="#101070"><td colspan="3"><img src="themes/SlashOcean/pix.gif" width="1" height="1"></td></tr>
+	<tr bgcolor="#ffffff">
+		<td background="themes/SlashOcean/sl.gif"><img src="themes/SlashOcean/pix.gif" width="3" height="3" alt=""></td>
+		<td width="100%">
+		<table width="100%" border="0" cellpadding="5" cellspacing="0"><tr>
+		<td><font face="verdana,helvetica,arial" size="1">
+		Our FAQ can be found <a href="http://freedb.freedb.org/sections.php?op=viewarticle&artid=26">here</a>.<br>
+Please read the FAQ before asking questions via email.		</font></td>
+		</tr></table>
+
+		
+	</td><td background="themes/SlashOcean/sr.gif" align="right"><img src="themes/SlashOcean/pix.gif" width="3" height="3" alt=""></td>
+      </tr>
+	<tr bgcolor="#101070"><td colspan="3"><img src="themes/SlashOcean/pix.gif" width="1" height="1"></td></tr>
+	</table>
+	</td>
+
+</tr></td></table>
+<br>
+<table border=0><tr><td>
+
+	<table width="115" border="0" cellpadding="0" cellspacing="0"><tr valign="top" bgcolor="#101070">
+                 <td bgcolor="#FFFFFF"><img src="themes/SlashOcean/pix.gif" width="3" height="3"></td>
+                 <td><img src="themes/SlashOcean/cl.gif" width="7" height="10"></td>
+                 <td><font face="verdana,helvetica,arial" size="1" color="#ffffff"><B>Contact</B></font></td>
+                 <td align="right"><img src="themes/SlashOcean/cr.gif" width="7" height="10" alt=""></td>
+                 <td bgcolor="#FFFFFF" align="right"><img src="themes/SlashOcean/pix.gif" width="3" height="3"></td>
+	</tr></table>
+	<table width="100%" border="0" cellpadding="0" cellspacing="0">
+	<tr bgcolor="#101070"><td colspan="3"><img src="themes/SlashOcean/pix.gif" width="1" height="1"></td></tr>
+	<tr bgcolor="#ffffff">
+		<td background="themes/SlashOcean/sl.gif"><img src="themes/SlashOcean/pix.gif" width="3" height="3" alt=""></td>
+		<td width="100%">
+		<table width="100%" border="0" cellpadding="5" cellspacing="0"><tr>
+		<td><font face="verdana,helvetica,arial" size="1">
+		General questions:<br>
+<a href="mailto:info@freedb.org">info@freedb.org</a><hr>
+Databaseupdates:<br>
+<a href="mailto:updates@freedb.org">updates@freedb.org</a><br>
+(<b>NOT</b> for submission!)<hr>
+Please keep in mind that we are NOT the Nero-Support and please do not send CD-submits to the adresses above.<br>
+Submits have to go to:<br>
+<a href="mailto:freedb-submit@freedb.org">freedb-submit@freedb.org</a>		</font></td>
+		</tr></table>
+
+		
+	</td><td background="themes/SlashOcean/sr.gif" align="right"><img src="themes/SlashOcean/pix.gif" width="3" height="3" alt=""></td>
+      </tr>
+	<tr bgcolor="#101070"><td colspan="3"><img src="themes/SlashOcean/pix.gif" width="1" height="1"></td></tr>
+	</table>
+	</td>
+
+</tr></td></table>
+<br>
+<table border=0><tr><td>
+
+	<table width="115" border="0" cellpadding="0" cellspacing="0"><tr valign="top" bgcolor="#101070">
+                 <td bgcolor="#FFFFFF"><img src="themes/SlashOcean/pix.gif" width="3" height="3"></td>
+                 <td><img src="themes/SlashOcean/cl.gif" width="7" height="10"></td>
+                 <td><font face="verdana,helvetica,arial" size="1" color="#ffffff"><B>Downloads</B></font></td>
+                 <td align="right"><img src="themes/SlashOcean/cr.gif" width="7" height="10" alt=""></td>
+                 <td bgcolor="#FFFFFF" align="right"><img src="themes/SlashOcean/pix.gif" width="3" height="3"></td>
+	</tr></table>
+	<table width="100%" border="0" cellpadding="0" cellspacing="0">
+	<tr bgcolor="#101070"><td colspan="3"><img src="themes/SlashOcean/pix.gif" width="1" height="1"></td></tr>
+	<tr bgcolor="#ffffff">
+		<td background="themes/SlashOcean/sl.gif"><img src="themes/SlashOcean/pix.gif" width="3" height="3" alt=""></td>
+		<td width="100%">
+		<table width="100%" border="0" cellpadding="5" cellspacing="0"><tr>
+		<td><font face="verdana,helvetica,arial" size="1">
+		The link to the database downloads is <a href="/sections.php?op=viewarticle&artid=12">here</a>		</font></td>
+		</tr></table>
+
+		
+	</td><td background="themes/SlashOcean/sr.gif" align="right"><img src="themes/SlashOcean/pix.gif" width="3" height="3" alt=""></td>
+      </tr>
+	<tr bgcolor="#101070"><td colspan="3"><img src="themes/SlashOcean/pix.gif" width="1" height="1"></td></tr>
+	</table>
+	</td>
+
+
+</tr></td></table>
+<td>&nbsp;</td><td valign="top" width="100%">
+
+<!-- columna de inicio -->
+<center>
+	<table border=0 cellpadding=1 cellspacing=0 width=100% bgcolor=000000><tr><td>
+	<table border=0 cellpadding=8 cellspacing=0 width=100% bgcolor=FFFFFF>
+	<tr><td align=left><font face=Arial,Helvetica size=3>
+	<b>Mailinglists</b><br>
+	<font size=2>
+	<br><br>
+	There are a couple of mailinglists available:
+
+<h4>fdb-apps@freedb.org</h4>
+
+This mailinglist is intended for all developers that want to
+exchange tips and tricks, codesnippets and so on. Subcribe
+to this list by sending an email to<br>
+<a href="mailto:fdb-apps-request@freedb.org">fdb-apps-request@freedb.org</a><br>
+with the word "subscribe" in the body of the email.
+<h4>fdb-dev@freedb.org</h4>
+
+This list is for anyone interested in developing the freedb.org
+server software. Subcribe
+to this list by sending an email to<br>
+<a href="mailto:fdb-dev-request@freedb.org">fdb-dev-request@freedb.org</a><br>
+with the word "subscribe" in the body of the email.
+	</tr></td>
+	<tr><td align=center><font face=Arial,Helvetica>
+	&nbsp;
+	</tr></td>
+	</table></tr></td></table></center></td><td>&nbsp;</td>
+
+
+</tr></table></td></tr></table><br><br>
+
+<font face=Arial,Helvetica size=1><center>
+<br>
+<br>
+<br>
+<br>
+</body>
+</html>

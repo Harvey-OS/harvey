@@ -1,0 +1,47 @@
+#!/bin/rc
+
+if(! c: || ! test -f /n/c:/boot.ini) {
+	echo 'Could not find NT''s boot.ini on the first FAT disk.'
+	exit bad
+}
+
+if(test -f /n/c:/boot.p9) {
+	echo 'A Plan 9 backup already exists; will not edit boot.ini again.'
+	exit bad
+}
+
+if(! cp /n/c:/boot.ini /n/c:/boot.p9) {
+	echo 'Could not back up boot.ini; will not continue.'
+	exit bad
+}
+
+chmod +w /n/c:/boot.ini
+
+if(! grep -si '\[operating systems\]' /n/c:/boot.ini) {
+	echo 'Could not parse boot.ini.'
+	exit bad
+}
+
+if(grep -si 'Plan 9' /n/c:/boot.ini) {
+	p9file=`{grep 'Plan 9' /n/c:/boot.ini | sed 1q | sed 's/=.*//'}
+	if(! ~ $p9file [Cc]:'\'*) {
+		echo 'Unexpected Plan 9 entry in boot.ini already; not continuing.'
+		exit bad
+	}
+}
+
+if not {
+	p9file='c:\bootsect.p9'
+	echo 'c:\bootsect.p9 = "Plan 9 from Bell Labs"' >>/n/c:/boot.ini
+}
+
+p9file=/n/^`{echo $p9file | sed 's!\\!/!g'}
+
+
+if(dd -if /dev/$disk/plan9 -bs 512 -count 1 -of $p9file >/dev/null >[2]/dev/null) {
+	echo 'Plan 9 added to Windows NT boot menu.'
+	exit ''
+}
+
+echo 'Error copying Plan 9 boot sector to file.'
+exit bad

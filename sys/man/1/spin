@@ -1,0 +1,149 @@
+.TH SPIN 1
+.SH NAME
+spin \- verification tool for concurrent systems
+.SH SYNOPSIS
+.B spin
+[
+.BI -n N
+]
+[
+.B -cplgrsmv
+]
+[
+.B -iat
+]
+[
+.B -V
+]
+[
+.I file
+]
+.SH DESCRIPTION
+.I Spin
+is a tool for analyzing the logical consistency of
+concurrent systems, specifically communication protocols.
+The system is specified in a guarded command language called
+.SM PROMELA\c
+\&.
+The language, described in the references,
+allows for the dynamic creation of processes,
+nondeterministic case selection, loops, gotos,
+variables, and the specification of correctness requirements.
+The tool has fast algorithms for analyzing arbitrary
+liveness and safety conditions.
+.PP
+Given a model system specified in
+.SM PROMELA\c
+,
+.I spin
+can perform interactive, guided, or random simulations
+of the system's execution
+or it can generate a C program that performs an exhaustive
+or approximate verification of the system.
+The verifier can check, for instance, if user specified system
+invariants are violated during a protocol's execution, or
+if non-progress execution cycles exist.
+.PP
+Without any options the program performs a random simulation of the system
+defined in the input
+.IR file ,
+default standard input.
+The option
+.BI -n N
+sets the random seed to the integer value
+.IR N .
+.PP
+The group of options
+.B -pglmrsv
+is used to set the level of information reported
+about the simulation run.
+Every line of output normally contains a reference to the source
+line in the specification that caused it.
+.TP
+.B c
+Show message send and receive operations in tabular form, but
+no other information about the execution.
+.TP
+.B p
+Show at each time step which process changed state and what source
+statement was executed.
+.TP
+.B l
+In combination with option
+.BR p ,
+show the current value of local variables of the process.
+.TP
+.B g
+Show the value of global variables at each time step.
+.TP
+.B r
+Show all message-receive events, giving
+the name and number of the receiving process
+and the corresponding source line number.
+For each message parameter, show
+the message type and the message channel number and name.
+.TP
+.B s
+Show all message-send events.
+.TP
+.B m
+Ordinarily, a send action will be delayed if the
+target message buffer if full.
+With this option a message sent to a full buffer is lost.
+The option can be combined with
+.B -a
+(see below).
+.TP
+.B v
+Verbose mode: add extra detail and include more warnings.
+.TP
+.BI i
+Perform an interactive simulation.
+.TP
+.B a
+Generate a protocol-specific verifier.
+The output is written into a set of C files, named
+.BR pan. [ cbhmt ],
+that can be compiled
+.RB ( "cc pan.c" )
+to produce an executable verifier.
+Systems that require more memory than available
+on the target machine can still be analyzed by compiling
+the verifier with a bit state space:
+.IP
+.B "   cc -DBITSTATE pan.c
+.IP
+This collapses the state space to 1 bit per system state,
+with minimal side-effects.
+Partial order reduction rules normally take effect during the
+verification unless the compiler directive
+.B -DNOREDUCE
+is used.
+.IP
+The compiled verifiers have their own sets of options,
+which can be seen by running them with option
+.BR -? .
+.TP
+.B t
+If the verifier finds a violation of a correctness property,
+it writes an error trail.
+The trail can be inspected in detail by invoking
+.I spin
+with the
+.B -t
+option.
+In combination with the options
+.BR pglrsv ,
+different views of the error sequence are then be obtained.
+.TP
+.B V
+Print the version number and exit.
+.SH SEE ALSO
+G.J. Holzmann,
+.I
+Design and Validation of Computer Protocols,
+Prentice Hall, 1991.
+.br
+\(em, ``Using
+.SM SPIN\c
+\&''.

@@ -1,0 +1,127 @@
+.TH UPDATE 8
+.SH NAME
+bootfloppy, bootplan9, bootwin9x, bootwinnt, personalize, setup.9fat, setup.disk,
+setup.kfs, update \- administration for local file systems
+.SH SYNOPSIS
+.B pc/bootfloppy
+.I floppydisk
+.I plan9.ini
+.br
+.B pc/bootplan9 
+.I /dev/sdXX
+.br
+.B pc/bootwin9x
+.br
+.B pc/bootwinnt
+.br
+.B pc/personalize
+.br
+.B pc/setup.9fat
+.I /dev/sdXX/9fat
+.I plan9.ini
+.br
+.B pc/setup.disk
+.I /dev/sdXX
+.I plan9.ini
+.br
+.B pc/update
+.PD
+.SH DESCRIPTION
+These programs help maintain a file system on a local disk for a private machine.
+.PP
+.I Setup.disk
+partitions a disk
+and makes a new file system on the disk.
+It then calls
+.IR setup.9fat ,
+.IR update ,
+and
+.I personalize
+to initialize the file system.
+.PP
+.I Setup.9fat
+formats the named
+.I 9fat
+partition,
+installing
+.BR /386/9load ,
+.BR /386/9pcdisk ,
+and the named
+.I plan9.ini
+file.
+.PP
+.I Update
+copies the current kernel to the disk and updates
+files on the local file system by copying them from the main file server
+(named by the environment variable
+.BR $fileserver ).
+The files it updates are specified by the
+.IR mkfs (8)
+prototype file
+.BR /sys/lib/sysconfig/proto/386proto .
+.PP
+.I Personalize
+removes the contents of the
+.B /usr
+directory on the local disk and copies a minimal set of files for
+the user who runs the command.
+.PP
+The boot scripts prepare various ways to bootstrap Plan 9.
+.I Bootfloppy
+creates a boot floppy containing
+.BR 9load ,
+a zeroed 512-byte
+.BR plan9.nvr ,
+and the named file as
+.BR plan9.ini .
+.I Bootplan9
+sets the 
+.B 9fat
+partition to be the active partition, the one
+used at boot time.
+.I Bootwin9x
+edits the files
+.BR config.sys ,
+.BR msdos.sys ,
+and
+.B autoexec.bat
+on the drive mounted by
+.B c:
+to provide Plan 9
+as a boot menu option.
+These system files are first backed up
+as 
+.BR config.p9 ,
+.BR msdos.p9 ,
+and
+.BR autoexec.p9 .
+.I Bootwinnt
+edits the Windows NT 
+boot loader menu contained in
+the first FAT partition's
+.I boot.ini
+to provide Plan 9 
+as an option.
+It is first backed up as
+.IR boot.p9 .
+If backup files already exist,
+.I bootwin9x
+and
+.I bootwinnt
+do nothing.
+.SH FILES
+.TF /sys/lib/sysconfig/proto/
+.TP
+.B /sys/lib/sysconfig/proto/
+.IR Mkfs (8)
+prototype files.
+.SH SOURCE
+.B /rc/bin/pc/*
+.SH "SEE ALSO"
+.IR kfs (4),
+.IR 9load (8),
+.IR mkfs (8),
+.IR prep (8),
+.IR sd (3)
+.br
+``Installing the Plan 9 Distribution''.

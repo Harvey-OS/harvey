@@ -1,0 +1,103 @@
+#!/bin/rc
+boottime=`{date}
+boottime=$"boottime
+site=plan9
+fileserver=emelie
+facedom=astro
+
+bind -a '#f' /dev
+bind -a '#t' /dev
+bind -a '#S' /dev
+bind -a '#m' /dev
+
+echo 'dma on' > /dev/sdC0/ctl
+swap /dev/sdC0/swap
+
+# start internal network
+if(test -e /net/ipifc/clone){
+	ip/ipconfig -g 135.104.9.1 ether /net/ether0 135.104.9.11 255.255.255.0
+	ip/ipconfig ether /net/ether0 add 135.104.9.114 255.255.255.0
+}
+
+# cs sets /dev/sysname
+sysname=boundary
+ndb/cs
+sysname=`{cat /dev/sysname}
+switch($sysname){
+case achille lookout boundary
+	ndb/dns -s
+case *
+	ndb/dns -r
+}
+
+# parallelism for mk
+NPROC=2
+
+prompt=($sysname^'# ' '	')
+
+# auth server
+# auth/keyfs -wp -m/mnt/keys /adm/keys # > /dev/null >[2=1]
+# auth/keyfs -wn -m/mnt/netkeys /adm/netkeys # > /dev/null >[2=1]
+
+# internal network services
+chmod 600 /srv/kfs.cmd
+aux/listen -q -t /bin/service.auth -d /bin/service il
+aux/listen -q -t /bin/service.auth -d /bin/service tcp
+# ip/dhcpd
+# ip/tftpd
+
+# start external network
+ip/ipconfig -x /net.alt -g 204.178.31.1 ether /net.alt/ether1 204.178.31.4 255.255.255.0
+
+# external network services
+ndb/cs -x /net.alt -f /lib/ndb/external
+ndb/dns -sx /net.alt -f /lib/ndb/external
+#aux/listen -d /rc/bin/service.alt -t /rc/bin/service.alt.auth /net.alt/tcp
+#aux/listen -d /rc/bin/service.alt /net.alt/il
+
+# don't allow anyone to start an external vnc server
+ip/hogports /net.alt/tcp!*!5900-5950
+
+# what time is it?
+aux/timesync -s /net -nl -s /net.alt -d /sys/log/timesync.d oncore
+
+# serial line services
+aux/consolefs
+{
+	# give consolefs time to start up
+ 	# then log some of the more important consoles
+ 	sleep 5
+ 	mk -f /sys/log/mkfile startclog
+} &
+
+# make sure cron is alive
+# {
+# 	while(test true){
+# 		switch(`{ps|grep cron}){
+# 		case *cron
+# 			;
+# 		case *
+# 			rm -fr /srv/$fileserver
+# 			srv $fileserver && mount -c /srv/$fileserver /n/$fileserver &&
+# 			{
+# 				bind -c /n/$fileserver/cron /cron
+# 				auth/cron >> /sys/log/cron >[2=1] &
+# 			}
+# 		}
+# 		sleep 300
+# 	}
+# } &
+
+if(test -f /dev/mousectl){
+	switch($mouseport){
+	case ps2 0 1 2
+		if(aux/mouse $mouseport && ! ~ $monitor ''){
+			echo accelerated > /dev/mousectl
+			echo 'res 3' > /dev/mousectl
+			aux/vga -l $vgasize
+			echo -n ctlpoff > /dev/consctl
+			font=/lib/font/bit/pelm/euro.9.font
+			#rio -s
+		}
+	}
+}

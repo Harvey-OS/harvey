@@ -1,0 +1,4 @@
+
+Simple ASCII file to PostScript translator. The -e options is new
+and allows access to all characters in PostScript fonts.
+

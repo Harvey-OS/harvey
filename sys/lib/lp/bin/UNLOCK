@@ -1,0 +1,3 @@
+#!/bin/rc
+
+rm -f $1/LOCK

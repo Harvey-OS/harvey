@@ -1,0 +1,39 @@
+.TH ROOT 3 
+.SH NAME
+root \- the root file system
+.SH SYNOPSIS
+.nf
+.B /
+.B /boot
+.B /dev
+.B /env
+.B /net
+.B /net.alt
+.B /proc
+.B /root
+.B /srv
+.fi
+.SH DESCRIPTION
+The syntax
+.L #/
+is illegal, so this device can only be accessed directly by the kernel.
+.PP
+This device is set up by the kernel to be the root of
+the name space.
+The names in the one-level tree are mostly just place-holders,
+to allow a place to
+.IR bind (2)
+to.
+The exception is
+.BR /boot ,
+which provides executable code when read.
+The kernel does an
+.IR exec (2)
+of
+.B /boot
+when initializing.
+Some kernels are built with other services, such as
+.IR kfs (4) ,
+in the root directory.
+.SH SOURCE
+.B /sys/src/9/port/devroot.c

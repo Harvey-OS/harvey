@@ -1,0 +1,34 @@
+.nf
+.PS
+scale=100
+define t100 |
+[ box invis ht 32 wid 22 with .sw at 0,0
+"\f(CW\s10\&ether\f1\s0" at 11,24
+"\f(CW\s10\&\f1\s0" at 11,8
+] |
+
+box invis ht 144 wid 408 with .sw at 0,0
+"\f(CW\s10\&ctl\f1\s0" at 192,-10
+"\f(CW\s10\&data\f1\s0" at 140,-10
+"\f(CW\s10\&ctl\f1\s0" at 80,-10
+line  from 384,48 to 408,8 
+line  from 368,48 to 344,8 
+"\f(CW\s10\&. . .\f1\s0" at 300,62
+"\f(CW\s10\&clone\f1\s0" at 20,58
+t100 with .nw at 161,142
+line  from 184,120 to 376,80 
+line  from 176,120 to 224,80 
+line  from 168,120 to 112,80 
+line  from 160,120 to 24,80 
+"\fI\s10\&n\f1\s0" at 376,58
+"\f(CW\s10\&2\f1\s0" at 228,58
+"\f(CW\s10\&1\f1\s0" at 112,58
+line  from 232,48 to 256,8 
+line  from 216,48 to 192,8 
+line  from 120,48 to 144,8 
+line  from 104,48 to 80,8 
+"\f(CW\s10\&data\f1\s0" at 408,-10
+"\f(CW\s10\&ctl\f1\s0" at 344,-10
+"\f(CW\s10\&data\f1\s0" at 256,-10
+.PE
+.fi

@@ -1,0 +1,92 @@
+.TH PERROR 2
+.SH NAME
+perror, syslog, sysfatal \- system error messages
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+void perror(char *s)
+.PP
+.B
+void syslog(int cons, char *logname, char *fmt, ...)
+.PP
+.B
+void sysfatal(char *fmt, ...)
+.SH DESCRIPTION
+.I Perror
+produces a short error message
+on the standard error file
+describing the last error encountered during a call
+to the system.
+First the argument string
+.I s
+is printed, then a colon, then the message and a newline.
+If
+.I s
+is nil, only the error message and newline are printed.
+.PP
+.I Syslog
+logs messages in the file named by
+.I logname
+in the directory
+.BR /sys/log ;
+the file must already exist and should be append-only.
+.I Logname
+must contain no slashes.
+The message is a line with several fields:
+the name of the machine writing the message;
+the date and time;
+the message specified by the
+.IR print (2)
+format
+.I fmt
+and any following arguments;
+and a final newline.
+If
+.I cons
+is set or the log file cannot be opened, the message is also printed
+on the system console.
+.I Syslog
+can be used safely in multi-threaded programs.
+.PP
+.I Sysfatal
+prints to standard error the name of the running program,
+a colon and a space, 
+the message described by the
+.IR print (2)
+format string
+.I fmt
+and subsequent arguments, and a newline.
+It then calls
+.IR exits (2)
+with the formatted message as argument.
+The program's name is the value of
+.BR argv0 ,
+which will be set if the program uses the
+.IR arg (2)
+interface to process its arguments.
+If
+.B argv0
+is null, it is ignored and the following colon and space are suppressed.
+.SH SOURCE
+.B /sys/src/libc/port/perror.c
+.br
+.B /sys/src/libc/9sys/syslog.c
+.br
+.B /sys/src/libc/9sys/sysfatal.c
+.SH "SEE ALSO"
+.IR intro (2),
+.IR errstr (2),
+the
+.B %r
+format in
+.IR print (2)
+.SH BUGS
+.I Perror
+is a holdover; the
+.B %r
+format in
+.IR print (2)
+is preferred.

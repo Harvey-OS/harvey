@@ -1,0 +1,23 @@
+
+A program that displays a matrix as a gray scale image on PostScript
+printers. May be useful if you have a large matrix and want a simple
+way to look for patterns. Expect a 600x600 matrix is an optimistic
+upper limit on a 300 dpi printers using 5 shades of gray and 8.5x11
+inch paper.
+
+Matrix elements are a series of floating point numbers arranged in
+the input file in row major order. By default each matrix is assumed
+to be square and the number of rows (and columns) is set to the square
+root of the number of elements in the input file. White space, including
+newlines, is not used to determine the matrix dimensions. Each matrix
+element is mapped into an integer in the range 0 to 255 (254 by default)
+and PostScript's image operator maps that integer into a gray scale
+appropriate for the printer.
+
+The mapping from floating point matrix elements to integers is controlled
+by an interval list and grayscale map. The default interval list is
+"-1,0,1" which partitions the real line into 7 regions. The default
+grayscale map gets darker as the regions move from left to right along
+the real line. The -i option changes the interval list and the -g option
+modifies the grayscale mapping. Check the man page for more details.
+

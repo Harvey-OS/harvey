@@ -1,0 +1,447 @@
+.TH SCANMAIL 8
+.SH NAME
+scanmail, testscan \-  spam filters
+.SH SYNOPSIS
+.B upas/scanmail
+[
+.I options
+]
+[
+.I qer-args
+]
+.I root
+.B mail
+.I sender system rcpt-list
+.PP
+.B upas/testscan
+[
+.B -avd
+]
+[
+.B -p
+.I patfile
+]
+[
+.I filename
+]
+.SH DESCRIPTION
+.B Scanmail
+accepts a mail message supplied on standard input,
+applies a file of patterns to a portion of it,
+and dispatches
+the message based
+on the results.
+It exactly replaces the
+generic queuing command
+.IR qer (8)
+that is executed from the
+.IR rc (1)
+script
+.B /mail/lib/qmail
+in the mail processing pipeline.
+Associated with each pattern is an
+.I action
+in order of decreasing priority:
+.in +5
+.TP 10
+.B dump
+the message is deleted and a log entry is written to
+.B /sys/log/smtpd
+.TP 10
+.B hold
+the message is placed in a queue for human inspection
+.TP
+.B log
+a line containing the matching portion of the message is written to a log
+.in -5
+.PP
+If no pattern matches or only patterns with an action of
+.B log
+match, the message is accepted and
+.I scanmail
+queues the message for delivery.
+.I Scanmail
+meshes with the blocking facilities
+of
+.IR smtpd (6)
+to provide several layers of
+filtering on gateway systems.  In all cases the sender
+is notified that the message has been successfully
+delivered,
+leaving the sender unaware that the message has been potentially delayed or deleted.
+.PP
+.I Scanmail
+accepts the arguments of
+.IR qer (8)
+as well as the following:
+.TF filename
+.TP
+.B  -c
+Save a copy of each message in a
+randomly-named file in
+directory
+.BR /mail/copy .
+.TP
+.B -d
+Write debugging information to standard error.
+.TP
+.B -h
+Queue
+.I held
+messages by sending domain name.
+The
+.B -q
+option must specify a root directory; messages
+are queued in subdirectories of this directory.
+If the
+.B -h
+option is not specified,
+messages are accumulated in a subdirectory of
+.B /mail/queue.hold
+named for the contents of
+.BR /dev/user ,
+usually
+.BR none .
+.TF filename
+.TP
+.B -n
+Messages are never held for inspection, but are delivered.  Also known as
+.IR "vacation mode" .
+.TP
+.BI -p " filename"
+Read the patterns from
+.I filename
+rather than
+.BR /mail/lib/patterns .
+.TP
+.BI -q " holdroot"
+Queue deliverable messages in subdirectories of
+.IR holdroot .
+This option is the same as the
+.B -q
+option of
+.IR qer (8)
+and must be present if the
+.B -h
+option is given.
+.TP
+.B  -s
+Save deleted
+messages.   Messages are stored, one per randomly-named file,
+in subdirectories of
+.B /mail/queue.dump
+named with the date.
+.TP
+.B -t
+Test mode.  The pattern matcher is applied but the message is
+discarded and the result is not logged.
+.TP
+.B -v
+Print the highest priority match.
+This is useful
+with the
+.B -t
+option for testing the pattern matcher without actually
+sending a message.
+.PD
+.PP
+.I Testscan
+is the command line version of
+.IR scanmail .
+If
+.I filename
+is missing, it applies the pattern set to
+the message on standard input.  Unlike
+.IR scanmail ,
+which finds the highest priority match,
+.I testscan
+prints all matches in the portion of the message under test.
+It is useful for testing a pattern set or
+implementing a personal filter
+using the
+.B pipeto
+file in a user's mail directory.
+.I Testscan
+accepts the following options:
+.TP
+.B -a
+Print matches in the complete input message
+.TP
+.B -d
+Enable debug mode
+.TP
+.B -v
+Print the message after conversion to canonical form
+.RI ( q.v. ).
+.TP
+.BI -p " filename"
+Read the patterns from
+.I filename
+rather than
+.BR /mail/lib/patterns .
+.SS Canonicalization
+Before pattern matching, both programs convert a portion of
+the message header and the beginning of the
+message to a canonical form.  The amount of the header
+and message body processed are set by
+compile-time parameters in the source files.
+The canonicalization process converts letters to lower-case and
+replaces consecutive spaces, tabs and newline characters
+with a single space.  HTML commands are
+deleted except for the parameters following
+.B A
+.BR HREF ,
+.B IMG
+.BR SRC ,
+and
+.B IMG
+.B BORDER
+directives.  Additionally, the following MIME escape sequences
+are replaced by their ASCII
+equivalents:
+.PP
+.EX
+           Escape Seq   ASCII
+           ----------   -----
+                =2e       .
+                =2f       /
+                =20    <space>
+                =3d       =
+.EE
+and the sequence
+.I =<newline>
+is elided.
+.I Scanmail
+assembles the sender, destination domain and recipient fields of
+the command line into a string that is
+subjected to the same canonical processing.
+Following canonicalization, the command line and
+the two long strings containing
+the header and the message body are passed to the
+matching engine for analysis.
+.SS Pattern Syntax
+The matching engine compiles the pattern set
+and matches it to each canonicalized input string.
+Patterns are specified one per line
+as follows:
+.PP
+.EX
+	{*}\fIaction\fP: \fIpattern-spec\fP {~~\fIoverride\fP...~~\fIoverride\fP}
+.EE
+.PP
+On all lines, a
+.B #
+introduces a comment; there is no way to escape this character.
+.PP
+Lines beginning with
+.B *
+contain a
+.I pattern-spec
+that is a string; otherwise, the the
+.I pattern-spec
+is a regular expression in the style of
+.IR regexp (6).
+Regular expression matching is many
+times less efficient than string matching, so it is
+wiser to enumerate several similar strings
+than to combine them into a regular expression.
+The
+.I action
+is a keyword terminated by a
+.B : 
+and separated from the pattern by optional white-space.
+It must be one of the following:
+.TP 10
+.B dump
+if the pattern matches, the message is deleted.  If the
+.B -s
+command line option is set, the message is saved.
+.TP 10
+.B hold
+if the pattern matches, the message is queued in a subdirectory
+of
+.B /mail/queue.hold
+for manual inspection.  After inspection, the queue can be swept
+manually using
+.B runq
+(see
+.IR qer (8))
+to deliver messages that were inadvertently matched.
+.TP 10
+.B header
+this is the same as the
+.B hold
+action, except the pattern is only applied to the message header.
+This optimization is useful for patterns that match header fields
+that are unlikely to be present in the body of the message.
+.TP 10
+.B line
+the sender and a section of the message around the match are written to
+the file
+.BR /sys/log/lines .
+The message is always delivered.
+.TP 10
+.B loff
+patterns of this type are applied only to the canonicalized command line.
+When a match occurs, all patterns with
+.B line
+actions are disabled.  This is useful for limiting
+the size of the log file by excluding repetitive messages, such
+as those from mailing lists.
+.PP
+Patterns are accumulated into pattern sets sharing the same action.
+The matching engine applies the
+.B dump
+pattern set first, then the
+.B header
+and
+.B hold
+pattern sets, and finally the
+.B line
+pattern set.  Each pattern set is applied three times:
+to the canonicalized command line, to the message header, and
+finally to the message body.  The ordering of patterns
+in the pattern file is insignificant.
+.PP
+The
+.I pattern-spec
+is a string of characters terminated by a
+.BR newline ,
+.B #
+or override indicator,
+.BR ~~ .
+Trailing white-space is deleted but
+patterns containing leading or trailing white-space can
+be enclosed in double-quote
+characters.  A pattern containing a double-quote
+must be enclosed in double-quote
+characters and preceded by a backslash.
+For example, the pattern
+.PP
+.EX
+	"this is not \\"spam\\""
+.EE
+.PP
+matches the string \fLthis is not "spam"\fP.
+The
+.I pattern-spec
+is followed by zero or more
+.I override
+strings.  When the specific pattern matches,
+each override is applied and
+if one matches, it cancels the effect of the pattern.
+Overrides must be strings; regular expressions are not supported.
+Each override is introduced by the string
+.BR ~~
+and continues until a subsequent
+.BR ~~ ,
+.B #
+or
+.BR newline ,
+white-space included.
+A
+.B ~~
+immediately followed by a
+.B newline
+indicates a line continuation and further overrides continue
+on the following line.
+Leading white-space
+on the continuation line is ignored.  For example,
+.PP
+.EX
+        *hold:   sex.com~~essex.com~~sussex.com~~sysex.com~~
+                 lasex.com~~cse.psu.edu!owner-9fans
+.EE
+.PP
+matches all input containing the string
+.B sex.com
+except for messages that also contain the
+strings in the override list.  Often it
+is desirable to override a pattern based on
+the name of the sender or
+recipient.  For this reason, each override
+pattern is applied to the header and the command line as well
+as the section of the
+canonicalized input containing the matching data.
+Thus a pattern matching the command line or the header
+searches both the command line and the header
+for overrides while a match in the body searches
+the body, header and command line for overrides.
+.PP
+The structure of the pattern file and the matching
+algorithm define the strategy for detecting
+and filtering unwanted messages.  Ideally, a
+.B hold
+pattern selects a message for inspection and if it
+is determined to be undesirable, a specific
+.B dump
+pattern is added to delete further instances
+of the message.  Additionally, it is often
+useful to block the sender by updating the
+.B smtpd
+control file.
+.PP
+In this regime, patterns with a
+.I dump
+action, generally match phrases
+that are likely to be unique.  Patterns that
+hold a message for inspection
+match phrases commonly found in undesirable material and
+occasionally in legitimate messages.  Patterns
+that log matches are less specific yet.  In all
+cases the ability to override a pattern by
+matching another string, allows repetitive messages
+that trigger the pattern, such as mailing lists,
+to pass the filter after the first one is processed
+manually.  The
+.B -s
+option allows deleted messages to be salvaged
+by either manual or semi-automatic review, supporting
+the specification of more aggressive patterns.
+Finally, the utility of the pattern matcher is not
+confined to filtering spam; it is a generally useful
+administrative tool for deleting inadvertently harmful
+messages, for example, mail loops, stuck senders or viruses.
+It is also useful for collecting or counting messages
+matching certain criteria.
+.SH FILES
+.TF /mail/queue.dump/*
+.TP
+.B /mail/lib/patterns
+default pattern file
+.TP
+.B /sys/log/smtpd
+log of deleted messages
+.TP
+.B /mail/log/lines
+file where
+.I log
+matches are logged
+.TP
+.B /mail/queue/*
+directories where legitimate messages are queued for delivery
+.TP
+.B /mail/queue.hold
+directory where held messages are queued for inspection
+.TP
+.B /mail/queue.dump/*
+directory where
+.I dumped
+messages are stored when the
+.B -s
+command line option is specified.
+.TP
+.B /mail/copy/*
+directory where copies of all incoming messages
+are stored.
+.SH SOURCE
+.TP
+.B /sys/src/cmd/upas/scanmail
+.SH "SEE ALSO"
+.IR mail (1),
+.IR qer (8),
+.IR smtpd (6)
+.SH BUGS
+.I Testscan
+does not report a match when the body of a message
+contains exactly one line.

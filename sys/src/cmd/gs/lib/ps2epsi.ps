@@ -1,0 +1,263 @@
+%    Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: ps2epsi.ps,v 1.5 2001/04/04 04:45:42 alexcher Exp $
+% Convert an arbitrary PostScript file to an EPSI file.
+%
+% Please do not contact these users if you have questions.  They no longer
+% have the time, interest, or current expertise to keep this code working.
+% If you find bugs, please send proposed fixes to bug-gs@aladdin.com.
+%
+% Bug fix 2000-04-11 by lpd: if a font didn't have a FontName (which is the
+%   case for bitmap fonts produced by recent versions of dvips), setfont
+%   caused an error.
+% Bug fix 8/21/99 by lpd: many of the margin and width computations were
+%   wrong (off by 1).  The code only "worked" because the bugs were
+%   (mostly) in conservative directions.
+% Modified 3/17/98 by lpd to make it possible to run this file without
+%   running the ps2epsi script first, for debugging.
+% Bug fix 9/29/97 by lpd <ghost@aladdin.com>: if the page size wasn't an
+%   exact multiple of 8 bits, an incorrect bounding box (or a rangecheck
+%   error) could occur.
+% Patched 7/26/95 by
+%	Greg P. Kochanski <gpk@bell-labs.com>
+%   to add many new DSC comments and make the comments conforming.
+% Original version contributed by
+%	George Cameron <george@bio-medical-physics.aberdeen.ac.uk>
+%
+
+% Initialize, and redefine copypage and showpage.
+
+% ps2edict is normally defined in the pre-loaded code created by the
+% ps2epsi script.
+/ps2edict where { pop } { /ps2edict 25 dict def } ifelse
+ps2edict begin
+
+				% The main procedure
+  /ps2epsi
+   {				% Open the file
+     outfile (w) file /epsifile exch def
+     //systemdict /.setsafe known { .setsafe } if
+					% Get the device parameters
+     currentdevice getdeviceprops .dicttomark 
+     /HWSize get aload pop
+       /devheight exch def
+       /devwidth exch def
+     matrix defaultmatrix
+       /devmatrix exch def
+				% Make a corresponding memory device
+     devmatrix devwidth devheight <ff 00>
+     makeimagedevice
+     /arraydevice exch def
+     arraydevice setdevice	% (does an erasepage)
+     /rowwidth devwidth 7 add 8 idiv def
+     /row rowwidth string def
+     /zerorow rowwidth string def	% all zero
+				% Replace the definition of showpage
+     userdict /showpage { ps2edict begin epsipage end } bind put
+     userdict /setfont { ps2edict begin epsisetfont end } bind put
+   } bind def
+
+ /epsifontdict 100 dict def
+
+ /epsisetfont
+ {
+ % code here keeps a list of font names in dictionary epsifontdict
+ /tmpfont exch def
+ tmpfont /FontName known {
+   /tmpfontname tmpfont /FontName get def
+   epsifontdict tmpfontname known not { epsifontdict tmpfontname 0 put } if
+   epsifontdict tmpfontname 2 copy get 1 add put
+ } if
+ tmpfont setfont
+ } bind def
+
+% Get a scan line from the memory device, zeroing any bits beyond
+% the device width.
+/getscanline {		% <device> <y> <string> getscanline <string>
+  dup 4 1 roll copyscanlines pop
+  16#ff00 devwidth 7 and neg bitshift 255 and
+  dup 0 ne {
+    1 index dup length 1 sub 2 copy get 4 -1 roll and put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/margintest {		% <y-start> <step> <y-limit> margintest <y-non-blank>
+			% <y-start> <step> <y-limit> margintest -
+  { dup arraydevice exch row getscanline
+    zerorow ne { exit } if pop
+  } for
+} bind def
+
+
+  /epsiNameStr 200 string def
+  /epsiNpages 0 def
+  /epsiNpageStr 20 string def
+  /epsipage
+   {      
+     /epsiNpages epsiNpages 1 add def
+     /loopcount devheight 1 sub def
+
+     % Find top margin -- minimum Y of non-blank scan line.
+     -1 0 1 loopcount margintest
+     dup -1 eq { (blank page!!\n) print quit }{ exch pop } ifelse 
+     /tm exch def
+
+     % Find bottom margin -- maximum Y of non-blank scan line.
+     loopcount -1 0 margintest
+     /bm exch def
+     
+     % Initialise limit variables
+     /loopcount rowwidth 1 sub def
+     /lm loopcount def /lmb 0 def
+     /rm 0 def /rmb 0 def
+
+     % Find left and right boundaries of image
+     tm 1 bm
+      { % Get more data
+	arraydevice exch row getscanline pop
+	% Scan from left to find first non-zero element
+	% We save first the element, then the index
+	-1 0 1 loopcount
+	{ dup row exch get dup 0 ne { exch exit }{ pop pop } ifelse
+	} for
+	% If we found -1, row is blank ..
+	dup -1 ne 
+	{ % Find the leftmost index
+          dup lm lt
+          % If the new index is less, we save index and element
+          { /lm exch def /lmb exch def }
+          % If the index is equal, we or the bits together
+          { lm eq { lmb or /lmb exch def }{ pop } ifelse
+          } ifelse
+	  % Now find the rightmost index
+	  loopcount -1 0
+          { dup row exch get dup 0 ne { exch exit }{ pop pop } ifelse
+          } for
+	  dup rm gt
+          % If the new index is greater, we save index and element
+          { /rm exch def /rmb exch def }
+          % If the index is equal, or the bits
+          { rm eq { rmb or /rmb exch def } { pop } ifelse
+          } ifelse
+	} if
+	pop
+      } for
+
+     % Now we find the real left & right bit positions
+     256 0 1 7
+     { exch 2 div dup lmb le { pop exit }{ exch pop } ifelse
+     } for
+     /lmb exch def
+
+     1 7 -1 0
+     { exch dup dup rmb and eq { pop exit }{ 2 mul exch pop } ifelse
+     } for
+     /rmb exch def
+
+     % Calculate the bounding box values.
+     % Note that these must be corrected to produce closed-open intervals.
+     /llx lm 8 mul lmb add def
+     /lly devheight bm sub 1 sub def
+     /urx rm 8 mul rmb add 1 add def
+     /ury devheight tm sub def
+
+    % Write out the magic string and bounding box information
+     epsifile (%!PS-Adobe-2.0 EPSF-1.2\n) writestring
+	 /epsititle where { pop epsifile epsititle writestring } if
+	 /epsicreator where { pop epsifile epsicreator writestring } if
+	 /epsicrdt where { pop epsifile epsicrdt writestring } if
+	 /epsifor where { pop epsifile epsifor writestring } if
+     epsifile flushfile
+
+	% Write out the page count:
+	 epsifile (%%Pages: ) writestring
+	 epsifile epsiNpages epsiNpageStr cvs writestring
+	 epsifile (\n) writestring
+     epsifile flushfile
+
+	% Write out the list of used fonts:
+	 epsifile (%%DocumentFonts:) writestring
+	 epsifontdict {
+					epsifile ( ) writestring
+					pop epsiNameStr cvs epsifile exch writestring
+					} forall
+	 epsifile (\n) writestring
+     epsifile flushfile
+
+     epsifile (%%BoundingBox: ) writestring
+     epsifile llx write==only epsifile ( ) writestring
+     epsifile lly write==only epsifile ( ) writestring
+     epsifile urx write==only epsifile ( ) writestring
+     epsifile ury write==
+     epsifile (%%BeginPreview: ) writestring
+     epsifile urx llx sub write==only epsifile ( ) writestring
+     epsifile bm tm sub 1 add write==only epsifile ( 1 ) writestring
+     epsifile bm tm sub 1 add write==
+     epsifile flushfile
+
+    % Define character and bit widths for the output line buffer:
+     /cwidth rm lm sub 1 add def
+     /bwidth cwidth 8 mul def
+     /owidth urx llx sub 7 add 8 idiv def
+     /out cwidth string def
+
+     % Create a 1-bit-high device for bitblt to align with the bbox
+     gsave
+     matrix cwidth 8 mul 1 <00 ff> makeimagedevice setdevice
+
+     % 'image' a zero string to clear the line device
+     bwidth 1 1 matrix cwidth string image
+
+     tm 1 bm
+      { % Get a scan line interval from the array device
+	arraydevice exch row copyscanlines lm cwidth getinterval
+	lmb 0 gt
+	{ % 'image' it into the line device with the lmb offset
+	  bwidth 1 1 [1 0 0 1 lmb 0] 5 -1 roll image
+	  % Now we get the modified scan line
+	  currentdevice 0 out copyscanlines 0 owidth getinterval
+	} if
+	% Write out the hex data
+	epsifile (% ) writestring 
+	epsifile exch writehexstring
+	epsifile (\n) writestring
+      } for
+
+     epsifile (%%EndImage\n) writestring
+     epsifile (%%EndPreview\n) writestring
+     epsifile flushfile
+     grestore
+     erasepage initgraphics
+
+     DonePage 0 1 put
+   } bind def
+
+
+(outfile) getenv
+  { /outfile exch def 
+    ps2epsi
+
+    /DonePage 1 string def
+    (%stdin) (r) file cvx execute0
+    DonePage 0 get 0 eq { showpage } if
+  } if
+
+end
+quit

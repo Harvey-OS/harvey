@@ -1,0 +1,6 @@
+</sys/src/mkfile.proto
+
+CC=7c
+LD=7l
+O=7
+AS=7a

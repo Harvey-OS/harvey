@@ -1,0 +1,34 @@
+.TH CHECKARENAS 8
+.SH NAME
+checkarenas \- check the integrity, and optionally fix, Venti arenas
+.SH SYNOPSIS
+.B venti/checkarenas
+[
+.B -afv 
+]
+.I file
+.SH DESCRIPTION
+.I Checkarenas
+examines the Venti arenas contained in the given
+.IR file .
+The program detects various error conditions, and optionally attempts
+to fix any errors that are found.
+.PP
+Option to 
+.I checkarenas
+are:
+.TP
+.B -a
+For each arena, scan the entire data section.
+If this option is omitted, only the end section of
+the arena is examined.
+.TP
+.B -f
+Attempt to fix any errors that are found.
+.TP
+.B -v
+Increase the verbosity of output.
+.SH SOURCE
+.B /sys/src/cmd/venti
+.SH "SEE ALSO"
+.IR venti (8)

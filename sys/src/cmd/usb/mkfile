@@ -1,0 +1,16 @@
+</386/mkfile
+
+DIRS=\
+	lib\
+	usbd\
+	audio\
+	mouse\
+
+none:VQ:
+	echo mk all, install, installall, clean, or nuke
+
+all install installall safeinstall clean nuke:VQ:
+	for (i in $DIRS) @{
+		cd $i
+		mk $target
+	}

@@ -1,0 +1,35 @@
+</$objtype/mkfile
+
+<../config
+
+COMMONDIR=../common
+
+TARG=tr2post
+
+OFILES=tr2post.$O\
+	chartab.$O\
+	Bgetfield.$O\
+	conv.$O\
+	utils.$O\
+	devcntl.$O\
+	draw.$O\
+	readDESC.$O\
+	ps_include.$O\
+	pictures.$O\
+	common.$O\
+
+HFILES=tr2post.h\
+	ps_include.h\
+	$COMMONDIR/common.h\
+	$COMMONDIR/comments.h\
+	$COMMONDIR/path.h\
+	$COMMONDIR/ext.h\
+
+BIN=$POSTBIN
+
+</sys/src/cmd/mkone
+
+CFLAGS=-c -D'PROGRAMVERSION="0.1"' -D'DOROUND=1' -I$COMMONDIR
+
+%.$O:	$COMMONDIR/%.c
+	$CC $CFLAGS $COMMONDIR/$stem.c

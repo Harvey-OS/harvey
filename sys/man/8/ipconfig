@@ -1,0 +1,205 @@
+.TH IPCONFIG 8
+.SH NAME
+ipconfig, rip \- Internet configuration and routing
+.SH SYNOPSIS
+.B ip/ipconfig
+.RB [ -ndDrG ]
+.RB [ -b
+.IR baud ]
+.RB [ -m
+.IR mtu ]
+.RB [ -g
+.IR gateway ]
+.RB [ -h
+.IR hostname ]
+.RB [ -x
+.IR netmtpt ]
+.I type
+.I device
+.RI [ verb ]
+.RI [ local-addr ]
+.RI [ mask ]
+.RI [ remote-addr ]
+.RI [ file-server-addr ]
+.RI [ auth-server-addr ]
+.PP
+.B ip/rip
+.RB [ -bdr ]
+.RB [ -x
+.IR netmtpt ]
+.SH DESCRIPTION
+.I Ipconfig
+binds a device interface (default
+.BR /net/ether0 )
+to a mounted IP stack (default
+.BR /net )
+and configures the interface with a local address, a
+mask, and a remote address.  The addresses can be specified
+in the command line or obtained via DHCP.  If DHCP is
+requested, it will also obtain the addresses of DNS
+servers, NTP servers, gateways, a Plan 9 file server,
+and a Plan 9 authentication server.  If this is the first
+interface on the IP stack, the information will be
+written to
+.B /net/ndb
+in the form of an
+.IR ndb (8)
+entry.
+.PP
+.I Type
+may be
+.BR ether ,
+.BR ppp ,
+or
+.BR gbe .
+The
+.B gbe
+type is equivalent to
+.B ether
+except that it allows jumbo packets.
+For
+.B ppp
+the device can be any byte stream device.
+.PP
+The verb (default
+.IR add )
+determines the action performed.  The verbs are:
+.TP
+.B add
+if the device is not bound to the IP stack, bind it.
+Add the given local address, mask, and remote address to the interface.
+An interface may have multiple addresses.
+.TP
+.B remove
+remove the address from the device interface.
+.TP
+.B unbind
+unbind the device interface and all its addresses from the
+IP stack.
+.PP
+The options are:
+.TP
+.B x
+use the IP stack mounted at
+.I netmtpt
+instead of at
+.BR /net .
+.TP
+.B g
+the default gateway.
+.TP
+.B d
+use DHCP to determine any unspecified configuration parameters.
+.TP
+.B r
+by default, 
+.I ipconfig
+exits after trying DHCP for 15 seconds with no answer.
+This option directs
+.I ipconfig
+instead to fork a background
+process that keeps trying forever.
+.TP
+.B h
+the hostname to add to DHCP requests.  Some DHCP
+servers, such as the one used by COMCAST, will not respond
+unless a correct hostname is in the request.
+.TP
+.B n
+determine parameters but don't configure the interface.
+.TP
+.B b
+the baud rate to use on a serial line
+when configuring
+.BR PPP .
+.TP
+.B D
+turn on debugging.
+.TP
+.B G
+use only generic DHCP options.  Without this option,
+.I ipconfig
+adds to requests a Vendor Class option with value
+.BI plan9_$ cputype
+and also requests vendor specific options 128 and 129 which we
+interpret as the Plan 9 file server and auth server.
+Replies to these options contain a list of IP addresses for possible
+file servers and auth servers.
+.TP
+.B m
+the maximum IP packet size to use on this
+interface.
+.PP
+If DHCP is requested, a process is forked
+off to renew the lease before it
+runs out.  If the lease does run out, this
+process will remove any configured addresses
+from the interface.
+.PP
+.I Rip
+runs the routing protocol RIP.
+It listens for RIP packets on connected networks and
+updates the kernel routing tables.
+The options are:
+.TP
+.B b
+broadcasts routing information onto the networks.
+.TP
+.B n
+gathers routing information but doesn't write to the
+route table.  This is useful with
+.B \-d
+to debug a network.
+.TP
+.B x
+use the IP stack mounted at
+.I netmtpt
+instead of at
+.BR /net .
+.TP
+.B d
+turn on (voluminous) debugging.
+.PP
+.SH EXAMPLE
+Configure Ethernet 0 as the primary IP interface.
+Get all addresses via DHCP.  Start up a connection server
+and DNS resolver for this IP stack.
+.IP
+.EX
+% bind -b '#l0' /net
+% bind -a '#I0' /net
+% ip/ipconfig
+% ndb/cs
+% ndb/dns -r
+.EE
+.PP
+Add a second address to the stack.
+.IP
+.EX
+% ip/ipconfig ether /net/ether0 add 12.1.1.2 255.255.255.0
+.EE
+.PP
+At Lucent our primary IP stack is always to the company's internal
+firewall-protected network.  The following creates an external
+IP stack to directly access the outside Internet.  Note that the
+connection server uses a different set of
+.I ndb
+files.  This prevents us from confusing inside and outside name/address
+bindings.
+.IP
+.EX
+% bind -b '#l1' /net.alt
+% bind -b '#I1' /net.alt
+% ip/ipconfig -x /net.alt -g 204.178.31.1 ether /net.alt/ether1\\
+	204.178.31.6 255.255.255.0
+% ndb/cs -x /net.alt -f /lib/ndb/external
+% ndb/dns -sx /net.alt -f /lib/ndb/external
+% aux/listen -d /rc/bin/service.alt /net.alt/tcp
+% aux/listen -d /rc/bin/service.alt /net.alt/il
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ip/ipconfig.c
+.br
+.B /sys/src/cmd/ip/rip.c
+.SH "SEE ALSO"
+.IR ndb (6)

@@ -1,0 +1,47 @@
+#!/bin/rc
+
+echo \
+'#include "stdinc.h"
+#include "dat.h"
+#include "fns.h"
+#include "httpd.h"
+#include "xml.h"
+'
+
+sed -n '/<struct/,/<\/struct>/{
+	s/^[^<]+</</
+	t cleart
+:cleart
+	s/<struct name="(.*)" type="(.*)">.*/void xml\1(Hio *hout, \2s, char *tag, int indent){\n	xmlIndent(hout, indent);\n	hprint(hout, "<%s", tag);\n	hprint(hout, ">\\n");/
+	t start
+	s/<field name="(.*)" val="(.*)" type="(.*)"\/>.*/	xml\3(hout, \2, "\1");\n	hprint(hout, ">\\n");/
+	t field
+	s/<array name="(.*)" val="(.*)" elems="(.*)" type="(.*)"\/>.*/	xmlIndent(hout, indent + 1);\n	hprint(hout, "<\1s>\\n");\n	for(i = 0; i < \3; i++)\n		xml\4(hout, \2, "\1", indent + 2);\n	xmlIndent(hout, indent + 1);\n	hprint(hout, "<\/\1s>\\n");/
+	t array
+	s/<\/struct>/	xmlIndent(hout, indent);\n	hprint(hout, "<\/%s>\\n", tag);\n}\n/
+	t produce
+}
+b
+:start
+	h
+	b
+:field
+	x
+	s/	hprint\(hout, ">\\n"\);//g
+	x
+	H
+	b
+:array
+	H
+	x
+	s/{\n/&	int i;\n\n/
+	s/^	int i;\n\n	int i;\n/	int i;\n/
+	x
+	b
+:produce
+	H
+	g
+	s/\n\n/\n/g
+	s/	hprint.hout, ">\\n".;\n	xmlIndent.hout, indent.;\n	hprint.*/	hprint(hout, "\/>\\n");/
+	p
+' $1

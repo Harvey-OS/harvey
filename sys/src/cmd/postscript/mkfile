@@ -1,0 +1,50 @@
+</$objtype/mkfile
+
+<config
+
+#
+# $(TARGETS) is the default list of things built by make.
+#
+# buildtables
+
+TARGETS=common\
+	cropmarks\
+	download\
+	grabit\
+	hardcopy\
+	mpictures\
+	postgif\
+	postprint\
+	postreverse\
+	posttek\
+	printfont\
+	psencoding\
+	psfiles\
+	g3p9bit\
+	p9bitpost\
+	tcpostio\
+	text2post\
+	tr2post
+
+# UNIX remnants
+#	trofftable\
+#	picpack\
+#	postbgi\
+#	postdaisy\
+#	postdmd\
+#	postmd
+#	postio
+
+default:V:	all
+
+$TARGETS:V:
+	cd $target
+	mk all
+
+&:VQ:
+	test -d $POSTBIN || mkdir $POSTBIN
+	for (i in $TARGETS) @{
+		echo ---- Making $target in $i ----;
+		cd $i;
+		mk $target
+	}

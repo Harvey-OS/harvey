@@ -1,0 +1,61 @@
+#                                                                    -*-perl-*-
+$description = "The following test creates a makefile to ...\n";
+
+$details = "DETAILS";
+
+open(MAKEFILE,"> $makefile");
+
+# The Contents of the MAKEFILE ...
+
+print MAKEFILE "all: \n"
+              ."\t\$(MAKE) -f $makefile foo \n"
+              ."foo: \n"
+              ."\t\@echo \$(MAKE) \n"
+              ."\t\@echo MAKELEVEL = \$(MAKELEVEL)\n"
+              ."\t\$(MAKE) -f $makefile last \n"
+              ."last: \n"
+              ."\t\@echo \$(MAKE) \n"
+              ."\t\@echo MAKELEVEL = \$(MAKELEVEL) \n"
+              ."\t\@echo THE END\n";
+
+# END of Contents of MAKEFILE
+
+close(MAKEFILE);
+
+if ($vos)
+{
+   $answer = "$make_name: Entering directory \`$pwd\'\n"
+            ."make 'CFLAGS=-O' -f $makefile foo \n"
+            ."make CFLAGS=-O\n"
+            ."MAKELEVEL = 0\n"
+            ."make 'CFLAGS=-O' -f $makefile last \n"
+            ."make CFLAGS=-O\n"
+            ."MAKELEVEL = 0\n"
+            ."THE END\n"
+            ."$make_name: Leaving directory `$pwd'\n";
+}
+else
+{
+   $answer = "$make_name: Entering directory `$pwd'\n"
+            ."$mkpath -f $makefile foo \n"
+            ."${make_name}[1]: Entering directory `$pwd'\n"
+            ."$mkpath\n"
+            ."MAKELEVEL = 1\n"
+            ."$mkpath -f $makefile last \n"
+            ."${make_name}[2]: Entering directory `$pwd'\n"
+            ."$mkpath\n"
+            ."MAKELEVEL = 2\n"
+            ."THE END\n"
+            ."${make_name}[2]: Leaving directory `$pwd'\n"
+            ."${make_name}[1]: Leaving directory `$pwd'\n"
+            ."$make_name: Leaving directory `$pwd'\n";
+}
+
+$mkoptions = "CFLAGS=-O -w";
+$mkoptions .= " -j 2" if ($parallel_jobs);
+
+&run_make_with_options($makefile,$mkoptions,&get_logfile,0);
+
+&compare_output($answer,&get_logfile(1));
+
+1;

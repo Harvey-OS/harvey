@@ -1,0 +1,7 @@
+#!/bin/rc
+# set up a shell running in an approximate POSIX 1003.2 environment
+rfork en
+bind -b /rc/bin/ape /bin
+bind -b /$cputype/bin/ape /bin
+bind -a /$cputype/bin/pub /bin
+exec /bin/sh $*

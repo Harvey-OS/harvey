@@ -1,0 +1,270 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Information specifically about the current release</title>
+<!-- $Id: Current.htm,v 1.13.2.2 2002/02/01 05:31:24 raph Exp $ -->
+<!-- Originally: current.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<h1>Information specifically about Ghostscript 6.0</h1>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<h2>Table of contents</h2>
+
+<ul>
+<li><a href="#New_features">New features (since release 5.50)</a>
+<li><a href="#Changes">Changes (since release 5.50)</a>
+<li><a href="#Known_problems">Known problems</a>
+ <ul>
+  <li><a href="#Usage">Usage</a>
+  <li><a href="#Limitations">Limitations</a>
+  <li><a href="#Graphics_bugs">Graphics bugs</a>
+  <li><a href="#Non_graphics_bugs">Non-graphics bugs</a>
+ </ul>
+</ul>
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>For other information, see the <a href="Readme.htm">Ghostscript
+overview</a>.
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<h2><a name="New_features"></a>New features (since release 5.50)</h2>
+
+<p>
+(This is not a complete list of new features: see <a href="News.htm">the
+news</a> for details.)
+
+<p>
+Ghostscript now handles essentially all of PostScript LanguageLevel 3 and
+PDF 1.3 (Acrobat 4.x compatibility).  See <a
+href="Language.htm"><b>Language.htm</b></a> for details.
+
+<p>
+The PDF writer now implements most of the Acrobat (TM) Distiller parameters
+for compressing and downsampling images.
+
+<p>
+The PDF writer now recognizes nearly all varieties of pdfmark, other than
+the Distiller 3.0 "named object" pdfmarks and the Distiller 4.0 "document
+structure" pdfmarks.
+
+<p>
+The PDF writer now handles text in all fonts, not just the 14 built-in ones,
+and implements the Distiller parameters affecting font embedding and
+subsetting.  (It still usually converts double-byte fonts to bitmaps.)
+
+<p>
+16- and 24-bit X Windows displays are now fully supported.
+
+<p>
+You now need only the header files and shared libraries, not the source
+code, if you want to use precompiled versions of the jpeg, libpng, or zlib
+libraries.
+
+<p>
+The syntax
+<b><tt>%</tt></b><em>iodevice</em><b><tt>%</tt></b><em>filename</em> is now
+supported with the <b><tt>-sOutputFile=</tt></b> switch, allowing you to
+send raster output to a piped command.
+
+<p>
+You can now use MMK or MMS to build Ghostscript on OpenVMS systems.
+
+<p>
+For driver writers, there are improved facilities for planar output,
+rasterizing directly into a driver-provided buffer, detecting bands that are
+all white or that only use a subset of the colorants, and providing CRDs
+from the driver.
+
+<p>
+The driver API now includes facilities for passing high-level text
+operations, completing the set of high-level operations (bitmap images and
+vector graphics were implemented in 5.50).  See <a href="Drivers.htm">the
+documentation</a> for details.
+
+<p>
+Ghostscript as a dynamically linked library is now supported on the Mac as
+well as on Windows.
+
+<p>
+GNU readline was supported in most of the beta distributions for 6.0, but
+was removed at the last minute because of objections from the Free Software
+Foundation.  Please see <a href="Make.htm#GNU_readline">here</a> for more
+information.
+
+<h2><a name="Changes"></a>Changes (since release 5.50)</h2>
+
+<h3>Directories and build procedure</h3>
+
+<p>
+The files in the release now have a more complex directory structure.  In
+the table below, <em>top</em> refers to the top-level directory,
+<b><tt>gs</tt></b><em>n.nn</em>.
+
+<p>
+The <em>top</em><b><tt>/</tt></b> is where you create a link to the
+appropriate makefile in <em>top</em><b><tt>/src/</tt></b>.  On all systems
+other than MS Windows, the build procedure does not write into this
+directory.
+
+<p>
+The files included in the Ghostscript release now are found in five
+subdirectories.
+
+<ul>
+<li><em>top</em><b><tt>/src/</tt></b> contains the C/C++ source code, the
+makefiles, and all other files needed to build the program.  The build
+procedure reads from this directory but does not write into it.  Nothing in
+this directory is needed at run time.
+
+<li><p><em>top</em><b><tt>/lib/</tt></b> contains PostScript and script
+files needed at run time.  The build procedure reads from this directory but
+does not write into it.  The contents of this directory are needed at run
+time and are copied by the Unix <b><tt>make install</tt></b> command.
+
+<li><em>top</em><b><tt>/doc/</tt></b> contains documentation.  Copied by
+<b><tt>make install</tt></b>.
+
+<li><em>top</em><b><tt>/man/</tt></b> contains Unix <b><tt>man</tt></b>
+pages.  Copied by <b><tt>make install</tt></b>.
+
+<li><em>top</em><b><tt>/examples/</tt></b> contains sample PostScript and
+PDF files.  Copied by <b><tt>make install</tt></b>.
+
+</ul>
+
+<p>
+The build procedure creates two additional subdirectories,
+<em>top</em><b><tt>/obj/</tt></b> (or <b><tt>debugobj</tt></b> or
+<b><tt>pgobj</tt></b>) and <em>top</em><b><tt>/bin/</tt></b>.  See the
+documentation on <a href="Make.htm">how to build Ghostscript</a> for more
+information.
+
+<h2>Other changes</h2>
+
+<p>
+If you are a developer working with the Ghostscript code in any way other
+than writing or modifying drivers, please read all of the "Incompatible
+changes" sections of the <a href="News.htm">release news</a> for important
+information.
+
+<h2><a name="Known_problems"></a>Known problems</h2>
+
+<p>
+See the <a href="News.htm">release news</a> for details.
+
+<h3><a name="Usage"></a>Usage</h3>
+
+<p>
+On a DOS system, interrupting the interpreter by typing control-C doesn't
+restore the display mode.
+
+<h3><a name="Limitations"></a>Limitations</h3>
+
+<p>
+<b><tt>serialnumber</tt></b> returns the same value in all copies.
+
+<p>
+Some floating point exceptions terminate the interpreter, rather than
+producing a <b><tt>limitcheck</tt></b> error.
+
+<p>
+The <b><tt>DCTEncode</tt></b> filter disregards the <b><tt>Blend</tt></b>
+parameter, and uses different <b><tt>QuantTables</tt></b> and
+<b><tt>HuffTables</tt></b> from Adobe's.
+
+<p>
+The DCT filters do not support nonintegral sample ratios.  Also,
+<b><tt>DCTEncode</tt></b> will not create files with Sum(HS&times;VS)&gt;10
+(regardless of the value of the <b><tt>Relax</tt></b> parameter) because
+they violate the JPEG standard; but <b><tt>DCTDecode</tt></b> will read
+such files.
+
+<p>
+The size of the execution stack cannot be changed dynamically.  (However,
+the sizes of the operand and dictionary stacks can be changed.)
+
+<p>
+<b><tt>Separation</tt></b> and <b><tt>DeviceN</tt></b> color spaces are
+implemented, but devices that actually produce color separations are not
+supported: these color spaces always use the alternate space.  The special
+color separations <b><tt>All</tt></b> and <b><tt>None</tt></b>, and the
+primary separations (<b><tt>Red</tt></b>, <b><tt>Green</tt></b>, etc.), are
+not supported.
+
+<p>
+<b><tt>execform</tt></b> and <b><tt>ucache</tt></b> are implemented, but
+they do not actually do any caching; <b><tt>setucacheparams</tt></b> and
+<b><tt>ucachestatus</tt></b> are dummies.  (This only impacts performance,
+not functionality.)
+
+<p>
+The <b><tt>image</tt></b> operator honors the <b><tt>Interpolate</tt></b>
+flag in the image dictionary only for ImageType 1 and 3 images, only if the
+combined transformation (<b><tt>ImageMatrix</tt></b> + CTM) doesn't involve
+rotation, skewing, or X-reflection, and only for certain scalings and color
+spaces; <b><tt>imagemask</tt></b> doesn't honor <b><tt>Interpolate</tt></b>
+at all.
+
+<p>
+Some path-building operations that would generate a device coordinate
+larger than +/-2^<small><sup>19</sup></small> will cause a
+limitcheck.  However, the common ones (<b><tt>[r]moveto</tt></b>,
+<b><tt>[r]lineto</tt></b>, <b><tt>[r]curveto</tt></b>, <b><tt>closepath</tt></b>) will not.
+
+<h3><a name="Graphics_bugs"></a>Graphics bugs</h3>
+
+<p>
+There are no known graphics bugs in this release.
+
+<h3><a name="Non_graphics_bugs"></a>Non-graphics bugs</h3>
+
+<p>
+The <b><tt>definefont</tt></b> operator (Subrs (type 1 fonts)) expects
+arrays but won't accept packed arrays.
+
+<p>
+Syntax errors occurring within a binary token do not produce the error
+message specified by the Adobe documentation.
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+<hr>
+
+<p>
+<small>Copyright &copy; 1996, 1997, 1998, 1999 Aladdin Enterprises.
+All rights reserved.</small>
+
+<p>
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
+
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

@@ -1,0 +1,4 @@
+#!/bin/rc
+
+window '0 0 100 100' games/clock
+window '80 80 610 360' /usr/glenda/lib/first.window

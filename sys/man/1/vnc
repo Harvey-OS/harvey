@@ -1,0 +1,153 @@
+.TH VNC 1
+.SH NAME
+vncs, vncv \- remote frame buffer server and viewer for Virtual Network Computing (VNC)
+.SH SYNOPSIS
+.B vncs
+[
+.B -v ] [ -g
+.I width
+.B X
+.I height
+.B ]
+.B [ -d
+.I :display
+.B ] 
+.B [command [args ...]]
+.PP
+.B vncs -k
+.I :display
+.PP
+.B vncv
+[
+.B -e
+.I encodings
+]
+[
+.B -csv
+]
+.IR host [\fL: n ]
+.SH DESCRIPTION
+.I vncs
+starts a new virtual frame buffer in memory and waits for connections from remote viewers.
+Each viewer is authenticated using challenge and response. APOP password is used as the
+private key. A display number 
+.I :n
+in the global name space is printed to stderr. A viewer must use the same display number 
+in order to contact the desired server. Multiple VNC servers can co-exist on the same host,
+each with a unique display number.
+.PP
+One frame buffer can have simultaneous viewers if the viewers are started with the -s option,
+see below. Otherwise, starting a new viewer would cause the server to disconnect from all 
+existing viewers. Killing the viewers will not affect the remote server. Therefore, the same desktop
+can migrate from one location to another without restarting the window system.
+.PP
+The server options are:
+.TP
+.B -v
+causes verbose output to stderr.
+.TP
+.B -g " widthXheight
+specifies the frame buffer geometry. Default is 1024x768. The depth is fixed
+at 16 bits per pixel (r5g6b5).
+.TP
+.B -d 
+chooses a display number
+.RI : n .
+The server aborts if the display is not available. If not specified, the server hunts for 
+the first available on that host interface.
+.TP
+.I command [args ...]
+By default, the server starts with a terminal similar to that of drawterm. RC is
+executed on behalf of the owner of the vncs process. The user can specify any program
+to start the VNC server, e.g. rio.
+.TP
+.B -k " :display
+shutdown the VNC server and all of its connected clients on 
+.RI : display .
+Note, kill vncs | rc will kill ALL servers running on that host.
+.PP
+.I Vncv
+provides access to remote frame buffer
+.I n
+on 
+.I host
+using the VNC (Virtual Network Computing)
+protocol.
+It resizes its window to be the smaller of the
+remote frame buffer size and the local screen.
+.PP
+The 
+.B -e
+option specifies an ordered list of rectangle
+encodings to allow in the protocol.
+The default (and full set) is 
+.IP
+.EX
+copyrect corre hextile rre raw
+.EE
+.PP
+By default, connecting to a display closes 
+any other connections to that display.
+The
+.B -s
+option allows the other connections to share the display.
+.PP
+The
+.B -v
+option causes verbose output.
+.PP
+.I Vncv
+negotiates with the VNC server to settle on a true-color pixel format.
+For true-color displays, this is the native display pixel format.
+On eight bit color-mapped displays,
+.I vncv
+requests 
+.B r3g3b2
+pixels and upon receipt translates them to the nearest
+color in the map.
+This does not cover the color map particularly well.
+When invoked with the
+.B -c
+option,
+.I vncv
+requests
+.B r4g4b4
+pixels instead.  This consumes more bandwidth
+but results in better matching to the available colors.
+.PP
+.I Vncv
+correctly handles the typing of control characters
+and shifted keystrokes.
+To support systems that require the use
+of modifiers like Alt, Ctl, and Shift on
+things like mouse events,
+typing the sequences
+.B Alt
+.B Z
+.B A
+(for Alt), 
+.B Alt
+.B Z
+.B C
+(for Ctrl),
+and
+.B Alt
+.B Z
+.B S
+(for Shift)
+will send a ``key down'' message for
+the given key (see
+.IR keyboard (6)).
+A corresponding ``key up'' message
+will be sent after the next key is pressed,
+or when the sequence is retyped,
+whichever happens first.
+.SH SOURCE
+.B /sys/src/cmd/vnc
+.SH "SEE ALSO
+.IR drawterm (8)
+.br
+.B http://www.uk.research.att.com/vnc
+.SH BUGS
+If the remote frame buffer is larger than the local screen,
+only the upper left corner can be accessed.

@@ -1,0 +1,8 @@
+#!/bin/rc
+# ifs='' eval `{getflags dltvb:1p:1 $*}
+y=-S
+#if (~ $#FLAGd 1) y=($y -d)
+#if (~ $#FLAGt 1) y=($y -D2)
+#if (~ $#FLAGv 1) y=($y -v)
+#if (~ $#FLAGb 1) y=($y -s $FLAGb)
+exec /$cputype/bin/yacc $y $*

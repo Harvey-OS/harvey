@@ -1,0 +1,7 @@
+#!/bin/sh
+# $Id: ps2pdf,v 1.1 2000/03/09 08:40:40 lpd Exp $
+# Convert PostScript to PDF.
+
+# Currently, we produce PDF 1.2 by default, but this is not guaranteed
+# not to change in the future.
+exec ps2pdf12 "$@"

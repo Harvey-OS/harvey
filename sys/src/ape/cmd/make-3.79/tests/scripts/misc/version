@@ -1,0 +1,35 @@
+$description = "The following test creates a makefile to ... \n";
+
+$details = "Fill in Later\n";
+
+open(MAKEFILE,"> $makefile");
+
+# The Contents of the MAKEFILE ...
+
+print MAKEFILE "all: \n";
+
+# END of Contents of MAKEFILE
+
+close(MAKEFILE);
+
+&run_make_with_options($makefile,"-v",&get_logfile,0);
+
+# This tells the test driver that the perl test script executed properly.
+1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

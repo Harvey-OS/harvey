@@ -1,0 +1,93 @@
+</$objtype/mkfile
+
+CFLAGS=$CFLAGS
+
+UPDATEFLAGS=
+
+FILES=\
+	arena\
+	arenas\
+	buildbuck\
+	clump\
+	config\
+	conv\
+	dcache\
+	dump\
+	httpd\
+	icache\
+	ifile\
+	index\
+	lump\
+	lumpcache\
+	lumpqueue\
+	part\
+	score\
+	sortientry\
+	stats\
+	syncarena\
+	syncindex0\
+	unwhack\
+	utils\
+	unittoull\
+	whack\
+	xml\
+	zeropart\
+
+LIBCFILES=${FILES:%=%.c}
+LIBOFILES=${FILES:%=%.$O}
+
+SLIB=libvs.a.$O
+
+LIB=$SLIB\
+
+HFILES=	dat.h\
+	fns.h\
+	stdinc.h\
+
+TARG=\
+	venti\
+	fmtarenas\
+	fmtisect\
+	fmtindex\
+	buildindex\
+	checkarenas\
+	checkindex\
+	clumpstats\
+	findscore\
+	rdarena\
+	wrarena\
+	syncindex\
+	verifyarena\
+	sync\
+	read\
+	write\
+#	dumparena\
+
+CFILES=${TARG:%=%.c} $LIBCFILES
+
+UPDATE=mkfile\
+	mkxml\
+	${TARG:%=/386/bin/venti/%}\
+	$HFILES\
+	$CFILES\
+
+BIN=/$objtype/bin/venti
+
+it:V: all
+
+</sys/src/cmd/mkmany
+
+INC=-I../include -I../lib/venti
+CFLAGS=$INC $CFLAGS
+
+acid:	$HFILES icache.c
+	$CC $INC -a icache.c > acid || rm acid
+
+xml.c:	mkxml dat.h
+	mkxml dat.h > xml.c
+
+$SLIB(%.$O):N: %.$O
+$SLIB:	${LIBOFILES:%=$SLIB(%)}
+	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$SLIB'\(([^)]+)\)/\1/gp'}
+	ar vu $SLIB $names
+#	rm $names

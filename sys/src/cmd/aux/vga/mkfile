@@ -1,0 +1,80 @@
+< /$objtype/mkfile
+BIN=/$objtype/bin/aux
+
+TARG=vga
+FILES=\
+	3dfx\
+	ark2000pv\
+	att20c49x\
+	att21c498\
+	bt485\
+	ch9294\
+	clgd542x\
+	clgd546x\
+	ct65540\
+	cyber938x\
+	data\
+	db\
+	error\
+	et4000\
+	et4000hwgc\
+	hiqvideo\
+	i81x\
+	ibm8514\
+	icd2061a\
+	ics2494\
+	ics534x\
+	io\
+	mach32\
+	mach64\
+	mach64xx\
+	main\
+	mga2164w\
+	mga4xx\
+	neomagic\
+	nvidia\
+	palette\
+	pci\
+	rgb524\
+	rgb524mn\
+	s3801\
+	s3928\
+	s3clock\
+	s3generic\
+	s3hwgc\
+	sc15025\
+	stg1702\
+	t2r4\
+	trio64\
+	tvp3020\
+	tvp3025\
+	tvp3025clock\
+	tvp3026\
+	tvp3026clock\
+	vga\
+	virge\
+	vision864\
+	vision964\
+	vision968\
+	vmware\
+	w30c516\
+
+HFILES=\
+	pci.h\
+	vga.h
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/bin/aux/$TARG\
+	/lib/vgadb\
+	$HFILES\
+	riva_tbl.h\
+	$CFILES\
+
+
+</sys/src/cmd/mkone
+
+nvidia.$O:	riva_tbl.h

@@ -1,0 +1,103 @@
+.TH MAIL 1
+.SH NAME
+mail \-  mail and mailboxes
+.SH SYNOPSIS
+.B mail
+[
+.I arg ...
+]
+.SH DESCRIPTION
+.PP
+Mail is a shell script that invokes
+.IR nedmail (1),
+the mail reader,
+when no recipients appear on the command line and
+.IR marshal (1),
+the mail preparer,
+otherwise.
+All command line options are passed through.
+See the man pages for those two commands for
+more details.
+.PP
+Incoming mail for a user
+.I username
+is put in the file
+.BI /mail/box/ username /mbox
+unless either the file
+.BI /mail/box/ username /forward
+or
+.BI /mail/box/ username /pipeto
+exists.
+The mailbox must have append-only and exclusive-access mode
+(see
+.IR chmod (1)).
+A user must create his or her own mailbox using the
+.B -c
+option of
+.IR nedmail (1).
+Mailboxes are created writable (append-only) but not readable by others.
+.PP
+If the file
+.BI /mail/box/ username /forward
+exists and is readable by everyone, incoming mail
+will be forwarded to the addresses contained in the first line of the file.
+The file may contain multiple addresses.
+Forwarding loops are caught and resolved by local delivery.
+.PP
+If the file
+.BI /mail/box/ username /pipeto
+exists and is readable and executable by everyone,
+it will be run for each incoming message for the user.
+The message will be piped to it rather
+than appended to his/her mail box.
+The file is run as user
+.BR none .
+It's two arguments are the 
+with arguments of the destination address
+(e.g.
+.BR local!gremlin )
+and the user's mail box path
+(e.g.
+.BR /mail/box/gremlin/mbox )
+.SH FILES
+.TF /mail/box/*/dead.letter
+.TP
+.B /sys/log/mail
+mail log file
+.TP
+.B /mail/box/*
+mail directories
+.TP
+.B /mail/box/*/mbox
+mailbox files
+.TP
+.B /mail/box/*/forward
+forwarding address(es)
+.TP
+.B /mail/box/*/pipeto
+mail filter
+.TP
+.B /mail/box/*/L.reading
+mutual exclusion lock for multiple mbox readers
+.TP
+.B /mail/box/*/L.mbox
+mutual exclusion lock for altering mbox
+.TP
+.B /lib/face/48x48x?
+directories of icons for
+.I seemail
+.SH SOURCE
+.TP
+.B /rc/bin/mail
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR filter (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR smtp (8),
+.IR upasfs (4)

@@ -1,0 +1,36 @@
+.TH CHGRP 1 
+.SH NAME
+chgrp \- change file group
+.SH SYNOPSIS
+.B chgrp
+[
+.B -ou
+]
+.I group file ...
+.SH DESCRIPTION
+The group of
+each named file
+is changed to
+.IR group ,
+which should be a name known to the server holding the file.
+.PP
+A file's group can be changed by the file's owner, if the
+owner is a member of the new group,
+or by the leader of both
+the file's current group and the new group.
+.PP
+The
+.B -o
+and
+.B -u
+option are synonyms; they specify that the
+.I owner
+is to be set, rather than the group.
+They are ineffectual unless the file server is in the bootstrap
+state that permits changing file ownership.
+.SH SOURCE
+.B /sys/src/cmd/chgrp.c
+.SH "SEE ALSO"
+.IR ls (1),
+.IR chmod (1),
+.IR stat (2)

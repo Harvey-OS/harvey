@@ -1,0 +1,54 @@
+.TH FLOPPY 3 
+.SH NAME
+floppy \- floppy disk interface
+.SH SYNOPSIS
+.nf
+.B bind -a #f /dev
+
+.B /dev/fd0disk
+.B /dev/fd0ctl
+.B /dev/fd1disk
+.B /dev/fd1ctl
+.B /dev/fd2disk
+.B /dev/fd2ctl
+.B /dev/fd3disk
+.B /dev/fd3ctl
+.fi
+.SH DESCRIPTION
+.PP
+The floppy disk interface serves a one-level directory giving access to up
+to four floppy disk drives.
+Each drive is represented by a data and control file.
+There are no partitions.
+.PP
+Messages accepted by the
+.B ctl
+file include:
+.TF format
+.TP
+.B eject
+Eject the floppy, if possible.
+.TP
+.B reset
+Reset the drive.
+.TP
+.BI format " type
+Format the floppy.  The
+.I type
+sets the density and
+type of disk to be formatted; see
+.B format
+in
+.IR prep (8).
+.PD
+.PP
+A read of the
+.B ctl
+file returns a string describing the form factor of the disk, one of
+.BR 3½DD ,
+.BR 3½HD ,
+.BR 5¼DD ,
+or
+.BR 5¼HD .
+.SH SOURCE
+.B /sys/src/9/*/devfloppy.c

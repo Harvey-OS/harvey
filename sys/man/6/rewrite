@@ -1,0 +1,154 @@
+.TH REWRITE 6
+.SH NAME 
+rewrite \- mail rewrite rules
+.SH SYNOPSIS
+.B /mail/lib/rewrite
+.SH DESCRIPTION
+.IR Mail (1)
+uses rewrite rules to convert mail destinations into
+commands used to dispose of the mail.
+Each line of the file 
+.F /mail/lib/rewrite
+is a rule.
+Blank lines and lines beginning with
+.B #
+are ignored.
+.PP
+Each rewriting rule consists of (up to) 4 strings:
+.TF pattern
+.TP
+.I pattern
+A regular expression in the style of
+.IR regexp (6).
+The
+.I pattern
+is applied to mail destination addresses.
+The pattern match is case-insensitive
+and must match the entire address.
+.TP
+.I type
+The type of rule; see below.
+.TP
+.I arg1
+An
+.IR ed (1)
+style replacement string, with
+.BI \e n
+standing for the text matched by the
+.IR n th
+parenthesized subpattern.
+.TP
+.I arg2
+Another
+.IR ed (1)
+style replacement string.
+.PD
+.PP
+In each of these fields the substring
+.B \es
+is replaced by the login id of the
+sender and the substring
+.B \el
+is replaced by the name of the local machine.
+.PP
+When delivering a message,
+.I mail
+starts with the first rule and continues down the list until a pattern
+matches the destination address.
+It then performs one of the following actions depending on the
+.I type
+of the rule:
+.TF alias
+.TP
+.B >>
+Append the mail to the file indicated by expanding
+.IR arg1 ,
+provided that file appears to be a valid mailbox.
+.TP
+.B |
+Pipe the mail through the command formed from concatenating the
+expanded
+.I arg1
+and
+.IR arg2 .
+.TP
+.B alias
+Replace the address by the address(es) specified
+by expanding
+.I arg1
+and recur.
+.TP
+.B translate
+Replace the address by the address(es) output by the
+command formed by expanding
+.I arg1
+and recur.
+.PD
+.PP
+.I Mail
+expands the addresses recursively until each address has matched a
+.B >>
+or
+.B |
+rule or until the recursion depth indicates a rewriting loop
+(currently 32).
+.PD
+.PP
+If
+.IR mail (1)
+is called with more than one address and
+several addresses match
+.B |
+rules and result in the same
+expanded
+.IR arg1 ,
+the message is delivered to all those addresses
+by a single command,
+composed by concatenating the common expanded
+.I arg1
+and each expanded
+.IR arg2 .
+This mail bundling is performed to reduce the number
+of times the same message is transmitted across a
+network.  For example, with the following
+rewrite rule
+.PP
+.EX
+   ([^!]*\.bell-labs\.com)!(.*)  |  "/mail/lib/qmail '\es' 'net!\e1'" "'\e2'"
+.EE
+.PP
+if user
+.B presotto
+runs the command
+.PP
+.EX
+   % mail plan9.bell-labs.com!ken plan9.bell-labs.com!rob
+.EE
+.PP
+there will follow only one execution of the command
+.PP
+.EX
+   /mail/lib/qmail presotto net!plan9.bell-labs.com ken rob
+.EE
+.PP
+Here
+.B /mail/lib/qmail
+is an
+.IR rc (1)
+script used for locally queuing remote mail.
+.PP
+In the event of an error, the disposition of the mail depends on the name of the
+command executing the rewrite.  If the command is called
+.B mail
+and is run by
+.BR $user ,
+the command will print an error and deposit the message in
+.BR /mail/box/$user/dead.letter .
+If the command is called
+.BR rmail ,
+usually because it was invoked to deliver mail arriving over the network,
+the message will be returned to the sender.  The returned message will
+appear to have been sent by user
+.BR postmaster .
+.SH "SEE ALSO"
+.IR mail (1)

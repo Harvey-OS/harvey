@@ -1,0 +1,63 @@
+#!/bin/rc
+
+# desc: configure your internet connection via ppp over a modem
+
+switch($1) {
+case go
+	devs=`{ls -p '#t/'eia? >[2]/dev/null}
+	if(~ $#devs 0) {
+		echo 'No serial port found; this can''t happen.'	# because configip checks
+		exit
+	}
+	
+	# not going to use the mouse for PPP
+	if(~ eia^$mouseport $devs)
+		devs=`{echo $devs | sed 's/eia'^$mouseport^'//'}
+	
+	if(~ $#devs 0) {
+		echo 'The only serial port you have is your mouse.'
+		echo 'Cannot configure PPP.'
+		exit
+	}
+	
+	echo
+	echo 'Please choose the serial port or modem to use to connect to your ISP.'
+	echo
+	for(i in $devs) {
+		n=`{echo $i | sed 's/eia//'}
+		n=`{hoc -e 1+$n}
+		echo '	'^$i^'(Windows'' COM'^$n^')'
+	}
+	echo
+	prompt 'Serial device' $devs
+	pppdev=$rd
+	
+	echo
+	echo 'Pick a baud rate for the PPP connection.'
+	echo
+	prompt -d 115200 'Baud rate'
+	pppbaud=$rd
+	
+	echo
+	echo 'You can specify your dialup phone number, username, and password,'
+	echo 'or you can log in manually by typing the modem commands yourself.'
+	echo
+	prompt 'Dialing method' auto manual
+	pppmethod=$rd
+	
+	switch($pppmethod){
+	case auto
+		prompt 'PPP phone number'; pppphone=$rd
+		prompt 'PPP phone username'; pppuser=$rd
+		prompt 'PPP phone password'; ppppasswd=$rd
+	}
+	
+	export pppdev pppmethod pppphone ppppasswd pppuser pppbaud
+	exec startppp go
+
+case checkdone
+	if(! ~ $#pppmethod 1 || ! test -f /dev/$pppdev){
+		configppp=notdone
+		export configppp
+	}
+}

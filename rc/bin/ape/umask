@@ -1,0 +1,2 @@
+#!/bin/rc
+echo no umask in Plan 9

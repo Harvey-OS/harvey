@@ -1,0 +1,20 @@
+</$objtype/mkfile
+
+TARG=\
+	usbmouse\
+
+HFILES=\
+	../lib/usb.h\
+	../lib/usbproto.h\
+
+LIB=../lib/usb.a$O
+
+BIN=/$objtype/bin/usb
+</sys/src/cmd/mkmany
+
+CFLAGS=-I../lib $CFLAGS
+
+$LIB:
+	cd ../lib
+	mk install
+	mk clean

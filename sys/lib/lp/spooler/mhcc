@@ -1,0 +1,52 @@
+#!/bin/rc
+# send PostScript jobs to the spooler in the MHCC
+# Request is made for bin and account numbers for each file (for typing pool).
+
+if (! ~ $DEBUG '') flag x +
+FONTLIST=lw+
+if (test -r /sys/lib/postscript/font/$LPDEST) FONTLIST=$LPDEST
+
+switch ($LPCLASS) {
+case *duplex*;	DUPLEX=-s2
+case '';	DUPLEX=''
+}
+HOLE=''
+STAPLE='-KSTAPLES\ n'
+TRAY=''
+
+if (~ $IBIN vg view viewgr*;)	$VGS=-fvg
+if (~ $IBIN *hole*)		HOLE=-fhole
+if (~ $IBIN *staple*)		STAPLE=''
+if (~ $IBIN *simplex*)		DUPLEX=''
+if (~ $IBIN *11x17* *ledger*)	TRAY='-KTRAY\ 11x17tray'
+
+if (~ $LAND '' -pport) LAND=-pport
+if not LAND=-pland
+i=0
+if (~ $#* 0) *=''
+for (j) {
+	i=`{echo $i + 1 | hoc}
+# check access to the file so that you know that a failure in the
+# processing is a drastic error which will cause an exit from lp.
+
+	if (~ $j '' || test -f $j) {
+		while (~ $#ACCOUNT 0 || ~ $ACCOUNT '' *0000) {
+			echo -n 'account=' >/dev/cons
+			ACCOUNT = (`{read</dev/cons})
+		}
+		while (~ $#BIN 0 || ~ $BIN '' *000) {
+			echo -n 'bin=' >/dev/cons
+			BIN = (`{read</dev/cons})
+		}
+		switch ($j) {
+		case '';	@{ bind -b $LPLIB/process /bin; $LPPROC } |
+				/sys/lib/postscript/bin/$cputype/download -f -H/sys/lib/postscript/font -mfontmap -p$FONTLIST |
+				{echo -K'ACCTNUM\ '$ACCOUNT -K'BIN\ '$BIN -d$LPDEST -c$COPIES -lpostscript $VGS $HOLE $STAPLE $DUPLEX $LAND $TRAY -u$LPUSERID -j$LPMACHID$pid.$i
+				 cat} | lpsend.rc $DEST_HOST
+		case *;		@{ bind -b $LPLIB/process /bin; $LPPROC } < $j |
+				/sys/lib/postscript/bin/$cputype/download -f -H/sys/lib/postscript/font -mfontmap -p$FONTLIST |
+				{echo -K'ACCTNUM\ '$ACCOUNT -K'BIN\ '$BIN -d$LPDEST -c$COPIES -lpostscript $VGS $HOLE $STAPLE $DUPLEX $LAND $TRAY -u$LPUSERID -j$LPMACHID$pid.$i
+				 cat $j} | lpsend.rc $DEST_HOST
+		}
+	}
+}

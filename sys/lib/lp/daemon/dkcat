@@ -1,0 +1,2 @@
+#!/bin/rc
+generic '/lib/postscript/bin/$cputype/dkcat -s$PRINTLOG $OUTDEV $LPDEST/$FILE(1)' '{cat <{echo -d$LPDEST -pnoproc -M$SCHEDLINE(1) -u$SCHEDLINE(2)} $LPDEST/$FILE(1);sleep 5} | lpsend.rc $DEST_HOST' ''

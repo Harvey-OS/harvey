@@ -1,0 +1,28 @@
+.TH SIZE 1 
+.SH NAME
+size  \- print size of executable files
+.SH SYNOPSIS
+.B size
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Size
+prints the size of the segments for each of the argument executable files
+(default
+.BR v.out ).
+The format is
+.IP
+.IB textsize t
++
+.IB datasize d
++
+.IB bsssize b
+=
+.I total
+.PP
+where the numbers are in bytes.
+.SH SOURCE
+.B /sys/src/cmd/size.c
+.SH "SEE ALSO
+.IR a.out (6)

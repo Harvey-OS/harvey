@@ -1,0 +1,13 @@
+#!/bin/rc
+ifs='' eval `{getflags cdprtxuv $*}
+
+key=''
+if (~ $#FLAGc 1) key=$key^c
+if (~ $#FLAGd 1) key=$key^d
+if (~ $#FLAGp 1) key=$key^p
+if (~ $#FLAGr 1) key=$key^r
+if (~ $#FLAGt 1) key=$key^t
+if (~ $#FLAGx 1) key=$key^x
+if (~ $#FLAGu 1) key=$key^u
+if (~ $#FLAGv 1) key=$key^v
+exec /$cputype/bin/ar $key $*

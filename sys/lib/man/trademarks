@@ -1,0 +1,41 @@
+.sp |2i
+.vs 12
+.fp 1 R LucidaSans
+.ft 1
+.fi
+Trademarks referenced in this document:
+.sp 2
+.ps -1
+.vs -1
+.nf
+Plan 9 is a trademark of Lucent Technologies Inc.
+Aladdin Ghostscript is a trademark of Aladdin Enterprises.
+ARM is a trademark of ARM Limited.
+Avanstar is a registered trademark of Star Gate Technologies, Inc.
+CGA and VGA are trademarks of International Business Machines Corporation.
+Silicon Graphics, IRIS Indigo, IRIS, IRIX, Challenge, and Indigo
+    are registered trademarks of Silicon Graphics, Inc.
+Indy and POWER Series are trademarks of Silicon Graphics, Inc.
+Ethernet is a trademark of Xerox Corporation.
+IBM, PS/2, and PowerPC are registered trademarks of
+    International Business Machines Corporation.
+Intel and Pentium are registered trademarks of Intel Corporation.
+8088, 80286, 80386, and 80486 are trademarks of Intel Corporation.
+Lucida is a registered trademark of Bigelow & Holmes.
+Pellucida is a trademark of Bigelow & Holmes.
+MIPS, R3000, R4000, and R4400 are registered trademarks of MIPS Technologies, Inc.
+R2000 and R6000 are trademarks of MIPS Technologies, Inc.
+Microsoft, Microsoft Word and Microsoft Office, and MS-DOS are
+    registered trademarks of Microsoft Corporation.
+NFS is a registered trademark of Sun Microsystems, Inc.
+PDP and VAX are registered trademarks of Digital Equipment Corp.
+PostScript is a registered trademark of Adobe Systems Incorporated.
+R2000, R6000, R4000, and R4400 are trademarks of MIPS Technologies, Inc.
+SecureNet is a trademark of Digital Pathways, Inc.
+Sound Blaster is a registered trademark of Creative Labs, Inc.
+SPARC is a registered trademark of SPARC International, Inc.
+Unicode is a registered certification mark of Unicode, Inc.
+UNIX is a registered trademark in the USA and other countries licensed
+    exclusively through X/Open Company Limited.
+.ps
+.vs

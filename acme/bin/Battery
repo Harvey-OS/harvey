@@ -1,0 +1,30 @@
+#!/bin/rc
+
+if(! test -f /mnt/apm/battery){
+	echo no apm >[1=2]
+	exit 'no apm'
+}
+
+cd /mnt/acme/new
+echo name /dev/apm >ctl
+echo dump Battery >ctl
+
+awkscript='
+NR==1 {
+	if($3 != -1)
+		printf("%d%% %d:%02d %s", $2, $3/3600, ($3/60)%60, $1);
+	else
+		printf("%d%% %s", $2, $1);
+}
+'
+
+fn chk {
+	what=`{awk $awkscript /mnt/apm/battery}
+	echo cleartag >ctl || exit die
+	echo clean >ctl || exit die
+	echo ' '^$"what >tag || exit die
+}
+
+chk
+while(sleep 60)
+	chk

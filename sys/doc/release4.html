@@ -1,0 +1,162 @@
+<html>
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Plan 9 From Bell Labs
+<br>
+Fourth Release Notes
+<br>
+April, 2002
+</H1>
+<br>&#32;<br>
+<DL><DT><DD><TT><PRE>
+Copyright &#169; 2002 Lucent Technologies Inc.
+All Rights Reserved
+<br>&#32;<br>
+</PRE></TT></DL>
+<br>&#32;<br>
+The fourth release of the Plan 9 operating system from Bell Labs
+packages a major overhaul of the system at every level.
+From the underlying file system protocol, 9P, through the kernel,
+libraries, and applications, almost everything has been modified
+and, in many cases, redesigned or rewritten.
+<br>&#32;<br>
+The most significant change is that 9P has been redesigned to address
+a number of shortcomings, most important, its previous inability to handle long
+file names.
+Unfortunately, squeezing long names onto the disks of existing
+file servers is a messy business that we're still grappling with,
+so at the moment
+<A href="/magic/man2html/4/fs"><I>fs</I>(4)
+</A>and
+<A href="/magic/man2html/4/kfs"><I>kfs</I>(4)
+</A>can't yet handle long names,
+although they do talk the new protocol.
+(In fact, they
+talk both old and new, as required, to ease transition.)
+In the meantime, there is a workaround &#173;
+<A href="/magic/man2html/4/lnfs"><I>lnfs</I>(4)
+</A>&#173;
+and many of the other file servers such as
+<A href="/magic/man2html/4/ramfs"><I>ramfs</I>(4)
+</A>and
+<A href="/magic/man2html/4/u9fs"><I>u9fs</I>(4)
+</A>work just fine with long names.
+It's only the standard disk-resident file servers
+that don't, and as soon we have versions that do, we'll release them.
+<br>&#32;<br>
+The following is a partial list of the major changes throughout the system.
+<br>&#32;<br>
+*
+The file system protocol, 9P, has been reworked.
+It now has variable-length names, so it can handle long names
+but also is more compact when handling short ones.
+It uses a different format that is easily parsed, eliminating the need for the old
+<TT>aux/fcall</TT>
+utility,
+and delegates its authentication duties to an external agent,
+<TT>factotum</TT>.
+<br>&#32;<br>
+*
+Security has been a focus of attention.
+A new security agent,
+<A href="/magic/man2html/4/factotum"><I>factotum</I>(4),
+</A>manages passwords and other secrets and, coupled with a new secure file store
+<A href="/magic/man2html/4/secstore"><I>secstore</I>(4),
+</A>enables secure single sign-on.
+<br>&#32;<br>
+*
+<TT>Cpu</TT>,
+<TT>import</TT>,
+and
+<TT>exportfs</TT>
+all encrypt their connections now, and since they use the new 9P they
+also use new network port numbers.
+A new service
+<A href="/magic/man2html/1/aan"><I>aan</I>(1)
+</A>is used by
+<TT>import</TT>
+to make its network connections more reliable in the face of network outages.
+The old ports still work, through the agency of a protocol conversion filter
+<A href="/magic/man2html/4/srvold9p"><I>srvold9p</I>(4).
+</A><br>&#32;<br>
+*
+We are phasing out the IL protocol since it doesn't handle long-distance connections
+well (and long-distance networks don't handle it well, either).
+IL is still used by
+<A href="/magic/man2html/4/fs"><I>fs</I>(4)
+</A>(in time, that too will change)
+but TCP has become the standard protocol for all other services.
+<br>&#32;<br>
+*
+The software for the new network-resident secure block store,
+<A href="/magic/man2html/8/venti"><I>venti</I>(8),
+</A>is included with this distribution.
+We are in the process of reworking
+<A href="/magic/man2html/4/fs"><I>fs</I>(4)
+</A>to use Venti rather than a WORM as its permanent block repository/backup medium,
+but that code is only in the design stage and is not included in this release.
+<br>&#32;<br>
+*
+The need to handle longer file names triggered a rethinking of the way the
+system handles strings in general.
+The kernel is now more explanatory when it gives an error message and
+more consistent in how it handles strings such as commands to devices.
+The interfaces to many of the system calls, such as
+<A href="/magic/man2html/2/errstr"><I>errstr</I>(2)
+</A>and
+<A href="/magic/man2html/2/wait"><I>wait</I>(2)
+</A>all had to change as a result, as did the library interface to read directories,
+<A href="/magic/man2html/2/stat"><I>stat</I>(2)
+</A>and its relatives.
+<br>&#32;<br>
+*
+The formatted I/O package described in
+<A href="/magic/man2html/2/print"><I>print</I>(2)
+</A>and
+<A href="/magic/man2html/2/fmtinstall"><I>fmtinstall</I>(2)
+</A>has been redesigned.
+Although the basic interface is unchanged, it now runs without locks and
+has an internal buffer management mechanism that means
+<TT>print</TT>
+no longer needs a large on-stack buffer.
+The interface for writing custom print verbs and custom formatted I/O routines
+has also been greatly improved.
+<br>&#32;<br>
+*
+The thread library
+<A href="/magic/man2html/2/thread"><I>thread</I>(2)
+</A>has been completely rewritten.
+The main visible change is that, coupled with the changes to printing,
+<TT>threadprint</TT>
+is gone; you can just use
+<TT>print</TT>
+or
+<TT>fprint</TT>
+at will.
+<br>&#32;<br>
+*
+Support for electronic mail has been extended in many ways and now includes
+some new spam filtering tools,
+much better (and more standard) handling of MIME messages,
+the ability to render incoming HTML mail,
+and much more.
+<br>&#32;<br>
+There are so many changes to the programming interfaces of the system
+that they are described in a separate document, entitled
+Changes to the Programming Environment in the Fourth Release of Plan 9.
+Please read it before you start updating your own software to run under the new system.
+<br>&#32;<br>
+There's lots more.
+If you have problems, mail
+<TT>9trouble@plan9.bell-labs.com</TT>
+or, better, ask the Usenet newsgroup
+<TT>comp.os.plan9</TT>.
+Please don't mail us individually.
+<br>&#32;<br>
+Good Luck!
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2002 Lucent Technologies Inc.  All rights reserved.
+</body></html>

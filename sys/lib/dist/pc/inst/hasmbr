@@ -1,0 +1,12 @@
+#!/bin/rc
+
+if(! ~ $#* 1) {
+	echo 'usage: hasmbr /dev/sdC0/part' >[1=2]
+	exit usage
+}
+
+x=`{xd -b $1 | sed -n '32p;32q'}
+if(~ $x(16) 55 && ~ $x(17) aa) 
+	exit ''
+exit nope
+

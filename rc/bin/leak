@@ -1,0 +1,58 @@
+#!/bin/rc
+
+rfork e
+
+usage='prog-or-pid'
+FLAGs=()
+FLAGb=()
+FLAGr=()
+FLAGx=()
+eval `{aux/getflags bsx:1r:1f:1 $*}
+
+if(~ $#* 0) {
+	echo 'usage: leak [-s] [-f binary] [-b [-r res] [-x width]] '$usage >[1=2]
+	exit usage
+}
+
+sflag=()
+xflag=()
+if(~ $#FLAGs 1)
+	sflag=($sflag -s)
+if(~ $#FLAGf 1)
+	sflag=($sflag -f $FLAGf)
+if(~ $#FLAGb 1)
+	xflag=($xflag -b)
+if(~ $#FLAGr 1)
+	xflag=($xflag -r $FLAGr)
+if(~ $#FLAGx 1)
+	xflag=($xflag -x $FLAGx)
+
+if(~ $#FLAGs 1 && ~ $#FLAGb 1){
+	echo 'cannot use both -s and -b' >[1=2]
+	exit usage
+}
+
+
+if(! test -d /proc/$1) {
+	# x=`{psu | awk '$NF=="'$1'" {print $2}'}
+	x=`{psu | grep ' '$1'$' | sed 's/^[^ ]+ +([0-9]+).*/\1/'}
+	if(~ $#x 0) {
+		echo 'no processes named '$1 >[1=2]
+		exit usage
+	}
+	x=($sflag $xflag $x)
+	echo leak $"x
+	exit
+}
+
+x=`{echo $"* | tr ' ' ,}
+
+echo 'leakdump({'$x'})' | acid -lpool -lleak $1 $FLAGf | aux/acidleak $xflag $binary |
+{
+	if(~ $#FLAGs 1)
+		awk '{print $4}' |
+			sort | uniq -c | sort -nr |
+			sed 's! *(.*) (0x.*)!src(\2); // \1!'
+	if not
+		cat
+}

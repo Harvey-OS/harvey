@@ -1,0 +1,56 @@
+%    Copyright (C) 1989, 1995, 1997 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: ppath.ps,v 1.2 2000/09/19 18:29:11 lpd Exp $
+% Redefine pathforall for tracing.
+% Can't be used recursively.
+
+/# {( )print} def
+
+/-mat matrix def
+/-imat matrix def
+/-smat { //-mat currentmatrix pop //-imat setmatrix } bind def
+/-rmat { //-mat setmatrix } bind def
+/-pathforall /pathforall load def
+/-p2 { ( ) print exch =only ( ) print =only } bind def
+/-dp2 { 2 copy -p2 2 { exch 4096 mul dup cvi dup ( ) print =only sub dup 0 eq { pop } { (+) print =only } ifelse } repeat } bind def
+/-tp2 { //-mat itransform -p2 } bind def
+/-dict 5 dict def
+
+/pathforall
+ { -dict begin
+   /-close exch def  /-curve exch def  /-line exch def  /-move exch def
+   end -smat -mat ==only ( setmatrix) =
+   {2 copy -tp2 ( moveto\t%)print
+    2 copy -dp2 (\n)print
+    flush -dict /-move get -rmat exec -smat}
+   {2 copy -tp2 ( lineto\t%)print
+    2 copy -dp2 (\n)print
+    flush -dict /-line get -rmat exec -smat}
+   {5 index 5 index -tp2 3 index 3 index -tp2 2 copy -tp2 ( curveto\t%)print
+    5 index 5 index -dp2 3 index 3 index -dp2 2 copy -dp2 (\n)print
+    flush -dict /-curve get -rmat exec -smat}
+   {(closepath\n)print flush   -dict /-close get -rmat exec -smat}
+   -pathforall -rmat
+ }
+def
+
+% Just print the current path
+
+/printpath {
+  {pop pop} {pop pop} {pop pop pop pop pop pop} {} pathforall
+} def

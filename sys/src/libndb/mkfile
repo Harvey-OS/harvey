@@ -1,0 +1,33 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libndb.a
+OFILES=\
+	ndbhash.$O\
+	ndbopen.$O\
+	ndbparse.$O\
+	ndbcache.$O\
+	ndbcat.$O\
+	ndbgetval.$O\
+	ndbaux.$O\
+	ndbfree.$O\
+	ipattr.$O\
+	ndbipinfo.$O\
+	ndblookval.$O\
+	csgetval.$O\
+	csipinfo.$O\
+	dnsquery.$O\
+
+HFILES=\
+	/sys/include/ndb.h\
+	ndbhf.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib
+
+$O.out: testipinfo.$O
+	$LD $prereq

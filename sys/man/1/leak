@@ -1,0 +1,141 @@
+.TH LEAK 1
+.SH NAME
+leak \- examine family of processes for memory leaks
+.SH SYNOPSIS
+.B leak
+[
+.B -bs
+]
+[
+.B -f
+.I binary
+]
+[
+.B -r
+.I res
+]
+[
+.B -x
+.I width
+]
+.I pid ...
+.SH DESCRIPTION
+.I Leak
+examines the named processes, which
+should be sharing their data and bss segments,
+for memory leaks.
+It uses a mark and sweep-style algorithm to 
+determine which allocated blocks are no longer
+reachable from the set of root pointers.
+The set of root pointers is created by looking through
+the shared bss segment as well as each process's registers.
+.PP
+Unless directed otherwise,
+.I leak
+prints, for each block, a line with five space-separated fields:
+the string
+.BR block ,
+the address of the block,
+the size of the block, 
+and the first two words of the block.
+Usually, the first two words of the block
+contain the malloc and realloc tags
+(see
+.IR malloc (2)),
+useful for finding who allocated the leaked blocks.
+.PP
+If the
+.B -s
+option is given,
+.I leak 
+will instead present a sequence of
+.IR acid (1)
+commands that show each leaky allocation site.
+A comment appears next to each command to 
+indicate how many lost blocks were allocated
+at that point in the program.
+.PP
+If the
+.B -b
+option is given, leak will print a Plan 9 image file
+graphically summarizing the memory arenas.
+In the image, each pixel represents
+.I res
+(default 8)
+bytes.
+The color code is:
+.TP "\w'\fIbright blue\fR   'u
+.I "dark blue
+Completely allocated.
+.TP
+.I "bright blue
+Contains malloc headers.
+.TP
+.I "bright red
+Contains malloc headers for leaked memory.
+.TP
+.I "dark red
+Contains leaked memory.
+.TP
+.I "yellow
+Completely free
+.TP
+.I "white
+Padding to fill out the image.
+.PD
+The bright pixels representing headers help in 
+counting the number of blocks.
+Magnifying the images with
+.IR lens (1)
+is often useful.
+.PP
+If given a name rather than a list of process ids,
+.I leak
+echoes back a command-line with process ids of every process
+with that name.
+.PP
+The
+.B -f
+option specifies a binary to go on the 
+.IR acid (1)
+command-line used to inspect the
+processes, and is only necessary
+when inspecting processes started
+from stripped binaries.
+.SH EXAMPLES
+List lost blocks in 
+.IR 8.out .
+This depends on the fact that there is only
+once instance of 
+.I 8.out
+running; if there were more, the output of
+.B "leak -s 8.out
+would need editing before sending to the shell.
+.IP
+.EX
+g% leak -s 8.out
+leak -s 229 230
+g% leak -s 8.out | rc
+src(0x0000bf1b); // 64
+src(0x000016f5); // 7
+src(0x0000a988); // 7
+g%
+.EE
+.LP
+View the memory usage graphic for the window system.
+.IP
+.EX
+g% leak -b rio | rc | page
+.EE
+.SH SOURCE
+.B /sys/lib/acid/leak
+.br
+.B /sys/src/cmd/aux/acidleak.c
+.br
+.B /rc/bin/leak
+.SH BUGS
+Leak depends on the internal structure of the
+libc pool memory allocator (see 
+.IR pool (2)).
+Since the ANSI/POSIX environment uses a different
+allocator, leak will not work on APE programs.

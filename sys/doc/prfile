@@ -1,0 +1,184 @@
+#!/bin/rc
+
+switch($#*){
+	case 1
+		outfile = $1
+		infile = $1.ms
+	case *
+		outfile = $1
+		shift
+		infile = $*
+}
+
+FONTS='.FP lucidasans'
+
+MACS ='.de BT
+.nr PX \\n(.s
+.nr PF \\n(.f
+.nr Bt 1
+.ft 1
+.ps \\n(PS
+''lt \\n(LTu
+.po \\n(POu
+.if \\n%>0 .tl \(ts\\*(LF\(ts\\*(CF\(ts\\*(RF\(ts
+.ft \\n(PF
+.ps \\n(PX
+..
+.de PT
+.lt \\n(LLu
+.pc %
+.nr PN \\n%
+.nr Ps \\n(PS-1
+.if \\n(Bt>0  .if e .tl @\\n%     \s\\n(Ps\\*(Au\s0@@@
+.if \\n(Bt>0  .if o .tl @@@\f2\\*(Tl\\f1     \\n%@
+.lt \\n(.lu
+..'
+
+
+macros = -ms
+
+switch($outfile){
+case 8½ acme gfx panel sam
+	macros = ($macros -mpictures)
+}
+
+switch($outfile){
+case 9 comp 8½ utf acme
+	macros = ($macros -mnihongo)
+}
+
+fn assemble{
+	switch($1){
+	case 9
+		pageno = 1
+		title = 'Plan 9 From Bell Labs'
+		author = 'INTRODUCTION'
+	case README
+		pageno = 23
+		title = '\s-1README\s0'
+		author = 'INTRODUCTION'
+	case names
+		pageno = 29
+		title = 'The Use of Name Spaces in Plan 9'
+		author = 'INTRODUCTION'
+	case net
+		pageno = 35
+		title = 'The Organization of Networks in Plan 9'
+		author = 'INTRODUCTION'
+	case comp
+		pageno = 49
+		title = 'How to Use the Plan 9 C Compiler'
+		author = 'PROGRAMMING'
+	case ape
+		pageno = 63
+		title = 'APE \(em The ANSI/POSIX Environment'
+		author = 'PROGRAMMING'
+	case ug
+		pageno = 67
+		title = 'Alef User''s Guide'
+		author = 'PROGRAMMING'
+	case alef
+		pageno = 103
+		title = 'Alef Language Reference Manual'
+		author = 'PROGRAMMING'
+	case acidpaper
+		pageno = 141
+		title = 'Acid: A Debugger Built From A Language'
+		author = 'PROGRAMMING'
+	case acid
+		pageno = 155
+		title = 'Acid Manual'
+		author = 'PROGRAMMING'
+	case mk
+		pageno = 181
+		title = 'Maintaining Files on Plan 9 with Mk'
+		author = 'PROGRAMMING'
+	case mkfiles
+		pageno = 195
+		title = 'Plan 9 Mkfiles'
+		author = 'PROGRAMMING'
+	case asm
+		pageno = 203
+		title = 'A Manual for the Plan 9 assembler'
+		author = 'PROGRAMMING'
+	case 8½
+		pageno = 211
+		title = '8½, the Plan 9 Window System'
+		author = 'USER INTERFACES'
+	case rc
+		pageno = 221
+		title = 'Rc \(em The Plan 9 Shell'
+		author = 'USER INTERFACES'
+	case sam
+		pageno = 237
+		title = 'The Text Editor Sam'
+		author = 'USER INTERFACES'
+	case acme	# actually done in acme/mkfile
+		pageno = 267
+		title = 'The Text Editor Sam'
+		author = 'USER INTERFACES'
+	case utf
+		pageno = 283
+		title = 'Hello World, or \f1\S''12''Καλημέρα κόσμε\fP\S''0'', or \f(Jpこんにちは 世界\fP'
+		author = 'IMPLEMENTATION'
+	case compiler
+		pageno = 295
+		title = 'Plan 9 C Compilers'
+		author = 'IMPLEMENTATION'
+	case libmach
+		pageno = 305
+		title = 'Adding Application Support for a New Architecture'
+		author = 'IMPLEMENTATION'
+	case fs
+		pageno = 313
+		title = 'The Plan 9 File Server'
+		author = 'IMPLEMENTATION'
+	case il
+		pageno = 321
+		title = 'The IL Protocol'
+		author = 'IMPLEMENTATION'
+	case sleep
+		pageno = 327
+		title = 'Process Sleep and Wakeup on a Shared-memory Multiprocessor'
+		author = 'IMPLEMENTATION'
+	case gfx
+		pageno = 333
+		title = 'Raster Graphics in Plan 9'
+		author = 'MISCELLANY'
+	case panel
+		pageno = 343
+		title = 'A Quick Introduction to the Panel Library'
+		author = 'MISCELLANY'
+	case lp
+		pageno = 363
+		title = 'A Guide to the Lp Printer Spooler'
+		author = 'MISCELLANY'
+	case troff
+		pageno = 371
+		title = 'Troff User''s Manual'
+		author = 'MISCELLANY'
+	case spin
+		pageno = 411
+		title = 'Using SPIN'
+		author = 'MISCELLANY'
+	case port
+		pageno = 439
+		title = 'The Various Ports'
+		author = 'INSTALLATION'
+	case install
+		pageno = 447
+		title = 'Installing the Plan 9 Distribution'
+		author = 'INSTALLATION'
+	case *
+		echo $1 page number not known >[2=1]
+		exit page
+	}
+	echo $FONTS
+	echo .pn $pageno
+	echo .ds Tl "$title
+	echo .ds Au "$author
+	echo $MACS
+	pic $infile | tbl | eqn
+}
+
+assemble $outfile | troff $macros | lp -m.9 -dstdout > $outfile.bs

@@ -1,0 +1,20 @@
+objtype=386
+</386/mkfile
+
+LIB=/$objtype/lib/libmp.a
+SFILES=\
+	mpvecadd.s\
+	mpvecdigmuladd.s\
+	mpvecdigmulsub.s\
+	mpvecsub.s\
+	mpdigdiv.s\
+
+HFILES=/$objtype/include/u.h /sys/include/mp.h ../port/dat.h
+
+OFILES=${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib

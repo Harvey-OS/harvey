@@ -1,0 +1,2927 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>How to use Ghostscript</title>
+<!-- $Id: Use.htm,v 1.33.2.3 2002/02/01 04:55:55 raph Exp $ -->
+<!-- Originally: use.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<h1>How to use Ghostscript</h1>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<h2>Table of contents</h2>
+
+<blockquote><ul>
+<li><a href="#Invoking">Invoking Ghostscript</a>
+<ul>
+<li><a href="#Help_command">Help at the command line: <b><tt>gs -h</tt></b></a>
+</ul>
+<li><a href="#Security">Security</a>
+<li><a href="#Pipe_input">Input from a pipe</a>
+<li><a href="#Output_device">Selecting an output device</a>
+<ul>
+<li><a href="#Printer_resolution">Printer resolution</a>
+<li><a href="#File_output">Output to files</a>
+<ul>
+<li><a href="#One_page_per_file">One page per file</a>
+<li><a href="#Pipe_output">Output to a pipe</a>
+<li><a href="#Output_to_graphics">Output to graphics file formats</a>
+<li><a href="#Bounding_box_output">Bounding box output</a>
+</ul>
+<li><a href="#Paper_size">Choosing paper size</a>
+<li><a href="#Change_default_size">Changing the installed default paper size</a>
+</ul>
+<li><a href="#Finding_files">How Ghostscript finds files</a>
+<ul>
+<li><a href="#PS_resources">Finding PostScript Level 2 resources</a>
+<li><a href="#Font_lookup">Font lookup</a>
+<li><a href="#Temp_files">Temporary files</a>
+</ul>
+<li><a href="#Environment_variables">Summary of environment variables</a>
+<li><a href="#PDF">Using Ghostscript with PDF files</a>
+<ul>
+<li><a href="#PDF_stdin">PDF files from standard input</a>
+<li><a href="#PDF_switches">Switches for PDF files</a>
+<li><a href="#PDF_problems">Problems interpreting a PDF file</a>
+</ul>
+<li><a href="#Platforms">Notes on specific platforms</a>
+<ul>
+<li><a href="#Unix">Unix</a>
+<li><a href="#VMS">VMS</a>
+<ul>
+<li><a href="#VMS_X_Windows">Using X Windows on VMS</a>
+</ul>
+<li><a href="#MS_Windows">MS Windows</a>
+<li><a href="#MS-DOS">MS-DOS</a>
+<li><a href="#X_Windows">X Windows</a>
+<ul>
+<li><a href="#X_resources">X resources</a>
+<li><a href="#X_server_bugs">Working around bugs in X servers</a>
+<li><a href="#X_fonts">X fonts</a>
+<li><a href="#GS_fonts_as_X_fonts">Using Ghostscript fonts on X displays</a>
+<li><a href="#X_device_parameters">X device parameters</a>
+</ul>
+<li><a href="#SCO_Unix">SCO Unix</a>
+</ul>
+<li><a href="#Switches">Switches</a>
+<ul>
+<li><a href="#General_switches">General switches</a>
+<ul>
+<li><a href="#Input_control">Input control</a>
+<li><a href="#File_searching">File searching</a>
+<li><a href="#Parameters">Setting parameters</a>
+<li><a href="#Quiet">Suppress messages</a>
+</ul>
+<li><a href="#Parameter_switches">Parameter switches (<b><tt>-d</tt></b> and <b><tt>-s</tt></b>)</a>
+<ul>
+<li><a href="#Rendering_parameters">Rendering parameters</a>
+<li><a href="#Page_parameters">Page parameters</a>
+<li><a href="#Font_related_parameters">Font-related parameters</a>
+<li><a href="#Interaction_related_parameters">Interaction-related parameters</a>
+<li><a href="#Output_selection_parameters">Device and output selection parameters</a>
+<li><a href="#Other_parameters">Other parameters</a>
+</ul>
+</ul>
+<li><a href="#Improving_performance">Improving performance</a>
+<li><a href="#Debugging">Debugging</a>
+<li><a href="#Known_paper_sizes">Appendix: Paper sizes known to Ghostscript</a>
+<li><a href="#X_font_mappings">Appendix: X default font mappings</a>
+<ul>
+<li><a href="#Standard_X_server_fonts">Standard X servers</a>
+<ul>
+<li><a href="#X_regular_fonts">Regular fonts</a>
+<li><a href="#X_symbol_fonts">Symbol fonts</a>
+<li><a href="#X_dingbat_fonts">Dingbat fonts</a>
+</ul>
+<li><a href="#OpenWindows_fonts">Sun OpenWindows</a>
+</ul>
+</ul></blockquote>
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>For other information, see the <a href="Readme.htm">Ghostscript
+overview</a>, the new user's documentation on
+<a href="New-user.htm#Previewers">previewers</a> and, if necessary, how to
+<a href="Install.htm">install Ghostscript</a>.
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<h2><a name="Invoking"></a>Invoking Ghostscript</h2>
+
+<p><a name="Command_line"></a> The command line to invoke Ghostscript is
+essentially the same on all systems, although the name of the executable
+program itself may differ among systems.  For instance, to invoke
+Ghostscript on Unix:
+
+<blockquote>
+<b><tt>gs</tt></b> [switches] {filename 1} ... [switches] {filename <em>N</em>} ...
+</blockquote>
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><th colspan=3 bgcolor="#CCCC00"><hr><font size="+1">Ghostscript's name on different systems</font><hr>
+<tr>	<th align=left>System
+	<td>&nbsp;&nbsp;
+	<th align=left>Ghostscript's name
+<tr>	<td colspan=3><hr>
+<tr>	<td>Unix
+	<td>&nbsp;<td><b><tt>gs</tt></b>
+<tr>	<td>VMS
+	<td>&nbsp;<td><b><tt>gs</tt></b>
+<tr>	<td>DOS &amp; MS Windows 3
+	<td>&nbsp;<td><b><tt>gs386</tt></b>
+<tr>	<td>MS Windows 95/98
+	<td>&nbsp;<td><b><tt>gswin32</tt></b>
+<tr>	<td>MS Windows 95/98 command line
+	<td>&nbsp;<td><b><tt>gswin32c</tt></b>
+<tr>	<td>OS/2
+	<td>&nbsp;<td><b><tt>gsos2</tt></b>
+</table></blockquote>
+
+<p>
+Note, though, that on a system with a windowed graphical user interface,
+it's common to use Ghostscript through a previewer, so you should read the
+<a href="New-user.htm#Previewers">section about previewers</a> in the
+documentation for new users.
+
+<p>
+Ghostscript is capable of interpreting PostScript, encapsulated PostScript
+(EPS), DOS EPS (EPSF), and -- if the executable was built for it -- Adobe
+Portable Document Format (PDF).  The interpreter reads and executes the
+files in sequence, using the method described under
+"<a href="#File_searching">File searching</a>" to find them.  After doing
+this, it reads further lines of PostScript language commands from the
+primary input stream, normally the keyboard, interpreting each line
+separately.  To quit the interpreter, type "<b><tt>quit</tt></b>".  The
+interpreter also quits gracefully if it encounters end-of-file or
+control-C.
+
+<p>
+The interpreter recognizes many <a href="#Switches">switches</a>. A switch
+may appear anywhere in the command line, and applies to all files named
+after it on the line. Many of the switches include "<b><tt>=</tt></b>"
+followed by a parameter.  (However, with the DOS executable
+<b><tt>gs386.exe</tt></b> in the standard Ghostscript distribution, you
+must use "<b><tt>#</tt></b>" rather than "<b><tt>=</tt></b>", because of a
+strange design decision in the Watcom C/C++ run-time library used to build
+it.)
+
+<h3><a name="Help_command"></a>Help at the command line: <b><tt>gs -h</tt></b></h3>
+
+<p>
+You can get a brief help message by invoking Ghostscript with the
+<b><tt>-h</tt></b> or <b><tt>-?</tt></b> switch, like this:
+
+<blockquote><b><tt>
+gs -h<br>
+gs -?
+</tt></b></blockquote>
+
+<p>
+(Of course, for "<b><tt>gs</tt></b>" use the right
+<a href="#Command_line">command for your system</a>.)  The message shows
+for this executable
+
+<ul>
+<li>its version
+<li>the format of the command to invoke it
+<li>a few of the most useful switches
+<li>the formats it can interpret
+<li>the devices for which it can produce output
+<li>where it looks for font files
+<li>where and how to send bug reports
+</ul>
+
+<h2><a name="Security"></a>Security</h2>
+
+<p>
+Ghostscript implements a full-featured programming language, with
+access to the filesystem and the ability to control a diverse set of
+devices. As such, there are potential security implications.
+
+<p>
+The first line of defense is to use the security mechanisms
+provided by Ghostscript. If you're running arbitrary PostScript files
+(for example, those sent through email or downloaded from the Web),
+make sure to use the -dSAFER option. Otherwise, you are opening up
+your entire filesystem to potentially malicious code.
+
+<p>
+By default, Ghostscript opens up read access to the entire
+filesystem. In general, if you're just viewing or printing documents,
+this does not pose a significant security risk. However, if there is
+a chance that the output of Ghostscript can leak sensitive information,
+also set the -DPARANOIDSAFER option. Note, however, that this option
+is incompatible with some scripts and wrappers, including gv and
+related viewer apps.
+
+<p>
+We plan to make -dSAFER the default in future versions of Ghostscript.
+Since most people use Ghostscript to print and view documents, rather
+than to run scripts written in the PostScript language, this will
+provide additional safety with little hassle for most users.  If you
+<em>are</em> using Ghostscript as a scripting language and need
+unfettered access to the filesystem, use the -dNOSAFER flag to signal
+explictly that you wish the PostScript code to have full access to the
+file system. Currently, this flag has no effect, but it will insure
+than your scripts execute as expected in future versions.
+
+<p>
+While we've tried to patch all known security problems, there is
+no guarantee that we've caught them all. Ghostscript is a complex
+application written in C. Buffer overflows and other exploits remain
+a distinct possibility. Thus we recommend that, whenever possible,
+Ghostscript should run in a secure "sandbox" environment, making
+use of the security mechanisms of the underlying operating system.
+In particular, we urge Linux distributors to invoke Ghostscript from
+the print subsystem in a chroot'ed environment, and never as root.
+
+<p>
+We will continue to be vigilant regarding security issues. As
+always, apply security updates promptly.
+
+<h2><a name="Pipe_input"></a>Input from a pipe</h2>
+
+<p>
+As noted above, one normally specifies input with file names on the command
+line.  However, one can also "pipe" input into Ghostscript by using the
+special file name "<b><tt>-</tt></b>" or "<b><tt>-_</tt></b>", for instance
+
+<blockquote>
+{some program producing PS} <b><tt>| gs</tt></b> {...options...} <b><tt>-</tt></b>
+<br>
+{some program producing PS} <b><tt>| gs</tt></b> {...options...} <b><tt>-_</tt></b>
+</blockquote>
+
+<p>
+These switches differ from a named file in two respects:
+
+<ol>
+<li>When Ghostscript finishes reading from the pipe, it quits rather than
+going into interactive mode.  Because of this, these switches are
+really only useful as the last argument on the command line.
+
+<li>These switches can't be used to pipe PDF input to Ghostscript.
+See "<a href="#PDF">Using Ghostscript with PDF files</a>" below.
+</ol>
+
+<p>
+
+The difference between "<b><tt>-</tt></b>" and "<b><tt>-_</tt></b>" is that
+"<b><tt>-</tt></b>" reads the input one character at a time, which is useful
+for programs such as GSview that generate input for Ghostscript dynamically
+and watch for some response, whereas "<b><tt>-_</tt></b>" reads the input in
+blocks, which is more efficient for ordinary (batch) execution.
+
+<h2><a name="Output_device"></a>Selecting an output device</h2>
+
+<p>
+Ghostscript may be built to handle multiple output devices, and it normally
+opens and directs output to the first one built in.  Ghostscript's
+<b><tt>gs&nbsp;-h</tt></b> <a href="#Help_command">help message</a> lists
+the output devices known to the executable.  Once you invoke Ghostscript
+you can also find out what devices are available by
+"<b><tt>devicenames&nbsp;==</tt></b>" at its command prompt.
+
+<p><a name="Source_code"></a>
+
+A little more information about devices appears near the beginning of the
+files <b><tt>devs.mak</tt></b> (for drivers that are considered "part of"
+Ghostscript and are maintained by the maintainers of the main Ghostscript
+code) and <b><tt>contrib.mak</tt></b> (for user-contributed drivers) used to
+build Ghostscript.  (If you got Ghostscript under the Aladdin <a
+href="Public.htm">Free Public License</a>, the person or place from which
+you got it is also required to make the source code available to you; if you
+got it under the GNU General Public License (GPL), see the GNU <a
+href="http://www.gnu.org/copyleft/gpl.html">General Public License</a> for
+more information.)
+
+<p><a name="Device_output"></a>
+To use device <em>xyz</em> as the initial output device, use the
+command-line switch
+
+<blockquote>
+	<b><tt>-sDEVICE=</tt></b><em>xyz</em>
+</blockquote>
+
+<p>
+Note that this switch must precede the name of the first input file, and
+only its first use has any effect.  For example, for printer output in a
+configuration that includes an Epson printer driver, instead of just
+"<b><tt>gs&nbsp;myfile.ps</tt></b>" you might use
+
+<blockquote>
+	<b><tt>gs -sDEVICE=epson myfile.ps</tt></b>
+</blockquote>
+
+<p>
+Alternatively, once you invoke Ghostscript and have its own command prompt
+you can type
+
+<blockquote><b><tt>
+	(epson) selectdevice<br>
+	(myfile.ps) run
+</tt></b></blockquote>
+
+<p>
+All output then goes to the Epson printer instead of the display until you
+do something to change devices.  You can switch devices at any time by
+using the <b><tt>selectdevice</tt></b> procedure, for
+instance like one of these:
+
+<blockquote><b><tt>
+	(vga) selectdevice<br>
+	(epson) selectdevice
+</tt></b></blockquote>
+
+<p><a name="GS_DEVICE"></a>
+A third possibility is to define an environment variable
+<b><tt>GS_DEVICE</tt></b> with the name of your desired default device.
+The order of precedence for these alternatives, highest to lowest, is:
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr>	<td><b><tt>selectdevice</tt></b>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<td>Highest precedence
+<tr>	<td>(command line)
+	<td>&nbsp;
+	<td>&nbsp;
+<tr>	<td><b><tt>GS_DEVICE</tt></b>
+	<td>&nbsp;
+	<td>&nbsp;
+<tr>	<td>(first device built in)
+	<td>&nbsp;
+	<td>Default; lowest precedence
+</table></blockquote>
+
+<h3><a name="Printer_resolution"></a>Printer resolution</h3>
+
+<p>
+Some printers can print at several different resolutions, letting you
+balance resolution against printing speed.  To select the resolution on
+such a printer, use the <b><tt>-r</tt></b> switch:
+
+<blockquote>
+	<b><tt>gs -sDEVICE=</tt></b><em>printer</em><b><tt> -r</tt></b><em>XRES</em><b><tt>x</tt></b><em>YRES</em>
+</blockquote>
+
+<p>
+For example, on Epson-compatible printers you have these choices:
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr>	<td><b><tt>gs -sDEVICE=epson</tt></b>
+	<td>&nbsp;&nbsp;
+	<td><b><tt>-r60x72</tt></b>
+	<td>&nbsp;&nbsp;
+	<td>9-pin
+	<td>&nbsp;&nbsp;
+	<td>lowest resolution
+	<td>&nbsp;&nbsp;
+	<td>fastest
+<tr>	<td>&nbsp;
+	<td>&nbsp;
+	<td><b><tt>-r240x72</tt></b>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>highest
+	<td>&nbsp;
+	<td>slowest
+<tr>	<td>&nbsp;
+<tr>	<td>&nbsp;
+	<td>&nbsp;
+	<td><b><tt>-r60x60</tt></b>
+	<td>&nbsp;
+	<td>24-pin
+	<td>&nbsp;
+	<td>lowest
+	<td>&nbsp;
+	<td>fastest
+<tr>	<td>&nbsp;
+	<td>&nbsp;
+	<td><b><tt>-r360x180</tt></b>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>highest
+	<td>&nbsp;
+	<td>slowest
+</table></blockquote>
+
+<h3><a name="File_output"></a>Output to files</h3>
+
+<p>
+If you select a printer as the output device, Ghostscript also allows you to
+control where the device sends its output.  On DOS and MS Windows systems,
+output normally goes directly to the printer (<b><tt>PRN</tt></b>); on Unix
+or VMS systems normally to a temporary file for later printing.  To send the
+output to a file, use the <b><tt>-sOutputFile=</tt></b> switch (for
+compatibility with older versions of Ghostscript,
+<b><tt>-sOUTPUTFILE=</tt></b> also works).  For instance, to direct all
+output into the file <b><tt>ABC.xyz</tt></b>, use
+
+<blockquote><b><tt>
+gs -sOutputFile=ABC.xyz
+</tt></b></blockquote>
+
+<p>
+The file name follows the PostScript convention that if a name begins with
+<b><tt>%</tt></b>, the name must be in the form <b><tt>%</tt></b>filedevice
+or <b><tt>%</tt></b>filedevice<b><tt>%</tt></b>file.  The legal values of
+filedevice are system-dependent, but the following have consistent meanings
+across systems:
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><th colspan=3 bgcolor="#CCCC00"><hr><font size="+1">"%{filedevice}%{file}" in <b><tt>-sOutputFile=</tt></b></font><hr>
+<tr valign=bottom>
+	<th align=left>filedevice
+	<td>&nbsp;&nbsp;&nbsp;
+	<th align=left>Meaning
+<tr>	<td colspan=3><hr>
+<tr valign=top>	<td><b><tt>%os%xyz</tt></b>
+	<td>&nbsp;
+	<td>An ordinary file named <b><tt>xyz</tt></b>
+<tr valign=top>	<td><b><tt>%pipe%cmd</tt></b>
+	<td>&nbsp;
+	<td>(if supported) A pipe to an instance of the command <b><tt>cmd</tt></b>
+<tr valign=top>	<td><b><tt>%stdout</tt></b>
+	<td>&nbsp;
+	<td>The standard output file
+</table></blockquote>
+
+<p>
+Note that because of this, if you want to specify a file name that actually
+begins with <b><tt>%</tt></b>, you must specify the <b><tt>%os%</tt></b>
+filedevice explicitly: e.g., for output to a file named
+<b><tt>%abc</tt></b>, you need to specify
+<b><tt>-sOutputFile=%os%%abc</tt></b>.  Note also that on DOS and MS Windows
+systems, the <b><tt>%</tt></b> character has a special meaning for the
+command processor (shell), so you will have to double it, e.g., for a pipe
+on MS Windows,
+
+<blockquote><b><tt>
+gs -sOutputFile=%%pipe%%cmd
+</tt></b></blockquote>
+
+<h4><a name="One_page_per_file"></a>One page per file</h4>
+
+<p>
+You can also tell Ghostscript to put each page of output in a separate
+file.  To send output to a series of files each representing a single page,
+use in the filename the <b><tt>printf</tt></b> format specifier
+"<b><tt>%d</tt></b>" (or its extended form like "<b><tt>%02d</tt></b>");
+for instance
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><th colspan=3 bgcolor="#CCCC00"><hr><font size="+1">"%{n}d" in <b><tt>-sOutputFile=</tt></b></font><hr>
+<tr valign=bottom>
+	<th align=left>Output specification
+	<td>&nbsp;&nbsp;&nbsp;
+	<th align=left>Produces the series of 1-page files
+<tr>	<td colspan=3><hr>
+<tr valign=top>	<td><b><tt>-sOutputFile=ABC%d.xyz</tt></b>
+	<td>&nbsp;
+	<td><b><tt>ABC1.xyz</tt></b> ... <b><tt>ABC10.xyz</tt></b> ...
+<tr valign=top>	<td><b><tt>-sOutputFile=ABC%03d.xyz</tt></b>
+	<td>&nbsp;
+	<td><b><tt>ABC001.xyz</tt></b> ... <b><tt>ABC010.xyz</tt></b> ...
+</table></blockquote>
+
+<p>
+As noted above, on DOS and MS Windows systems, you will have to double the
+<b><tt>%</tt></b> character, e.g.,
+
+<blockquote><b><tt>
+gs -sOutputFile=ABC%%03d.xyz
+</tt></b></blockquote>
+
+<h4><a name="Pipe_output"></a>Output to a pipe</h4>
+
+<p>
+On Unix and (32-bit) MS Windows systems you can use this switch to send
+output directly to a pipe.  For example, to pipe the output to
+<b><tt>lpr</tt></b>, use the command
+
+<blockquote><b><tt>
+	gs -sOutputFile=\|lpr
+</tt></b></blockquote>
+or, as noted above,
+<blockquote><b><tt>
+	gs -sOutputFile=%pipe%lpr
+</tt></b></blockquote>
+
+<p>
+(doubling the <b><tt>%</tt></b> characters on MS Windows systems, as noted
+above.)  You can also send output to standard output for piping in the usual
+way supported by the system:
+
+<blockquote>
+	<b><tt>gs -sOutputFile=- -q |</tt></b> ...
+</blockquote>
+or, as noted above,
+<blockquote>
+	<b><tt>gs -sOutputFile=%stdout -q |</tt></b> ...
+</blockquote>
+
+<p>
+(again, doubling the <b><tt>%</tt></b> character on MS Windows systems.)
+In this case you must also use the <a href="#Quiet"><b><tt>-q</tt></b>
+switch</a> to prevent Ghostscript from writing messages to standard output
+which become mixed with the intended output stream.
+
+<h4><a name="Output_to_graphics"></a>Output to graphics file formats</h4>
+
+<p>
+File formats like PCX and PBM are also "devices".  When you select a file
+format as the "device", you must also specify an output file, for instance
+
+<blockquote><b><tt>
+gs -sDEVICE=pcxmono -sOutputFile=xyz.pcx
+</tt></b></blockquote>
+
+<p>
+Here, as with printable files, you can use "<b><tt>%d</tt></b>"
+("<b><tt>%%d</tt></b>" on DOS and MS Windows) to specify <a
+href="#One_page_per_file">one page per output file</a>.
+
+<h4><a name="Bounding_box_output"></a>Bounding box output</h4>
+
+<p>
+There is a special <b><tt>bbox</tt></b> "device" that just prints the
+bounding box of each page.  You select it in the usual way:
+
+<blockquote><b><tt>
+gs -dNOPAUSE -dBATCH -sDEVICE=bbox
+</tt></b></blockquote>
+
+<p>
+It prints the output in a format like this:
+
+<blockquote>
+<pre><b><tt>%%BoundingBox: 14 37 570 719
+%%HiResBoundingBox: 14.308066 37.547999 569.495061 718.319158
+</tt></b></pre></blockquote>
+
+<p>
+Currently, it always prints the bounding box on <b><tt>stderr</tt></b>;
+eventually, it should also recognize <b><tt>-sOutputFile=</tt></b>.
+
+<p>
+Note that this device, like other devices, has a resolution and a (maximum)
+page size.  As for other devices, the product (resolution x page size) is
+limited to approximately 500K pixels.  By default, the resolution is 4000
+DPI and the maximum page size is approximately 125", or approximately 9000
+default (1/72") user coordinate units.  If you need to measure larger pages
+than this, you must reset <em>both</em> the resolution and the page size in
+pixels, e.g.,
+
+<blockquote><b><tt>
+gs -dNOPAUSE -dBATCH -sDEVICE=bbox -r100 -g500000x500000
+</tt></b></blockquote>
+
+<h3><a name="Paper_size"></a>Choosing paper size</h3>
+
+<p>
+Ghostscript is distributed configured to use U.S. letter paper as its
+default page size.  There are two ways to select other paper sizes from the
+command line:
+
+<ul>
+
+<li>
+If the desired paper size is listed in the section on <a
+href="#Known_paper_sizes">paper sizes known to Ghostscript</a> below, you
+can select it as the default paper size for a single invocation of
+Ghostscript by using the <b><tt>-sPAPERSIZE=</tt></b> switch, for instance
+
+<blockquote><b><tt>
+-sPAPERSIZE=a4<br>
+-sPAPERSIZE=legal
+</tt></b></blockquote>
+
+<li>
+Otherwise, let <em>w</em> be the desired paper width and <em>h</em> be the
+desired paper height, in 1/72" units.  You can set the page size using the
+pair of switches
+
+<blockquote>
+<b><tt>-dDEVICEWIDTHPOINTS=</tt></b><em>w</em>
+<b><tt>-dDEVICEHEIGHTPOINTS=</tt></b><em>h</em>
+</blockquote>
+
+</ul>
+
+<p>
+Individual documents can (and often do) specify a paper size, which takes
+precedence over the default size.  To force a specific paper size and
+ignore the paper size specified in the document, select a paper size as
+just described, and also include the
+<a href="#FIXEDMEDIA"><b><tt>-dFIXEDMEDIA</tt></b> switch</a> on the
+command line.
+
+<h3><a name="Change_default_size"></a>Changing the installed default paper size</h3>
+
+<p>
+You can change the installed default paper size in installing Ghostscript
+or later, by editing the initialization file <b><tt>gs_init.ps</tt></b>.
+Find the consecutive lines
+
+<blockquote><b><tt>
+%&nbsp;Optionally&nbsp;choose&nbsp;a&nbsp;default&nbsp;paper&nbsp;size&nbsp;other&nbsp;than&nbsp;U.S.&nbsp;letter.<br>
+%&nbsp;(a4)
+</tt></b></blockquote>
+
+<p>
+Then to make A4 the default paper size, uncomment the second line to change
+this to
+
+<blockquote><b><tt>
+%&nbsp;Optionally&nbsp;choose&nbsp;a&nbsp;default&nbsp;paper&nbsp;size&nbsp;other&nbsp;than&nbsp;U.S.&nbsp;letter.<br>
+(a4)
+</tt></b></blockquote>
+
+<p>
+For <b><tt>a4</tt></b> you can substitute any
+<a href="#Known_paper_sizes">paper size Ghostscript knows</a>.
+
+<h2><a name="Finding_files"></a>How Ghostscript finds files</h2>
+
+<p>
+When looking for initialization files (<b><tt>gs_*.ps</tt></b>,
+<b><tt>pdf_*.ps</tt></b>), font files, the <b><tt>Fontmap</tt></b> file,
+and files named on the command line, Ghostscript first tests whether the
+file name specifies an explicit directory.
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><th colspan=3 bgcolor="#CCCC00"><hr><font size="+1">Testing a file name for an explicit directory</font><hr>
+<tr>	<th align=left>System
+	<td>&nbsp;&nbsp;
+	<th align=left>Does the name ...
+<tr>	<td colspan=3><hr>
+<tr>	<td valign=top>Unix
+	<td>&nbsp;
+	<td>Begin with <b><tt><u>/</u></tt></b>, <b><tt><u>./</u></tt></b> or <b><tt><u>../</u></tt></b> ?
+<tr>	<td valign=top>DOS or MS Windows
+	<td>&nbsp;
+	<td>Have <b><tt><u>:</u></tt></b> as its second character, or
+		begin with <b><tt><u>/</u></tt></b>, <b><tt><u>\</u></tt></b>,
+		<b><tt><u>./</u></tt></b>, <b><tt><u>../</u></tt></b>, <b><tt><u>.\</u></tt></b>, or <b><tt><u>..\</u></tt></b> ?
+<tr>	<td valign=top>VMS
+	<td>&nbsp;
+	<td>Contain a node, device, root, or directory specification?
+</table></blockquote>
+
+<p><a name="General_search_path"></a> If the test succeeds, the file name
+specifies an explicit directory and Ghostscript tries to open the file
+using the name given.  Otherwise it tries directories in this order:
+
+<ol>
+<li>The current directory (unless disabled by the
+<a href="#P-_switch"><b><tt>-P-</tt></b> switch</a>);
+
+<li>The directories specified by <a href="#I_switch"><b><tt>-I</tt></b>
+switches</a> in the command line, if any;
+
+<li>The directories specified by the <b><tt>GS_LIB</tt></b>
+environment variable, if any;
+
+<li>The directories specified by the
+<b><tt>GS_LIB_DEFAULT</tt></b> macro (if any) in the makefile
+when this executable was built.
+</ol>
+
+<p>
+<b><tt>GS_LIB_DEFAULT</tt></b>,
+<b><tt>GS_LIB</tt></b>, and the
+<b><tt>-I</tt></b> parameter may specify either a single
+directory or a list of directories separated by a character appropriate for
+the operating system ("<b><tt>:</tt></b>" on Unix systems,
+"<b><tt>,</tt></b>" on VMS systems, and
+"<b><tt>;</tt></b>" on DOS systems).  We think that trying
+the current directory first is a very bad idea -- it opens serious security
+loopholes and can lead to very confusing errors if one has more than one
+version of Ghostscript in one's environment -- but when we attempted to
+change it, users insisted that we change it back.  You can disable looking
+in the current directory first by using the
+<a href="#P_switch"><b><tt>-P-</tt></b> switch</a>.
+
+<p>
+Note that Ghostscript does not use this file searching algorithm for the
+<b><tt>run</tt></b> or <b><tt>file</tt></b>
+operators: for these operators, it simply opens the file with the name
+given.  To run a file using the searching algorithm, use
+<b><tt>runlibfile</tt></b> instead of
+<b><tt>run</tt></b>.
+
+<h3><a name="PS_resources"></a>Finding PostScript Level 2 resources</h3>
+
+<p>
+Ghostscript uses a completely different rule for looking for files
+containing PostScript Level 2 "resources": per the Adobe documentation, it
+concatenates together
+
+<ol>
+<li>the value of the system parameter
+<b><tt>GenericResourceDir</tt></b> (initially
+<b><tt>/Resource/</tt></b>)
+
+<li>the name of the resource category (for instance, <b><tt>ProcSet</tt></b>)
+
+<li>the value of the system parameter
+<b><tt>GenericResourcePathSep</tt></b> (initially
+"<b><tt>/</tt></b>")
+
+<li>the name of the resource instance (for instance, <b><tt>CIDInit</tt></b>)
+</ol>
+
+<p>
+To look up fonts, after exhausting the search method described in <a href="#Font_lookup">the
+next section</a>, it concatenates together
+
+<ol>
+<li>the value of the system parameter
+<b><tt>FontResourceDir</tt></b> (initially
+<b><tt>/Resource/Font/</tt></b>)
+
+<li>the name of the resource font (for instance, <b><tt>Times-Roman</tt></b>)
+</ol>
+
+<p>
+Note that even though the system parameters are named "somethingDir", they
+are not just plain directory names: they have "<b><tt>/</tt></b>" on the
+end, so that they can be concatenated with the category name or font name.
+
+<h3><a name="Font_lookup"></a>Font lookup</h3>
+
+<p>
+Ghostscript has a slightly different way to find the file containing a font
+with a given name.  This rule uses not only the search path defined by
+<b><tt>-I</tt></b>, <b><tt>GS_LIB</tt></b>, and
+<b><tt>GS_LIB_DEFAULT</tt></b> <a href="#General_search_path">as described
+above</a>, but also the directory that is the value of the
+<b><tt>FontResourceDir</tt></b> system parameter, and an additional list of
+directories that is the value of the <b><tt>GS_FONTPATH</tt></b> environment
+variable (or the value provided with the <b><tt>-sFONTPATH=</tt></b> switch,
+if present).
+
+<p>
+At startup time, Ghostscript reads in the <b><tt>Fontmap</tt></b> files in
+every directory on the search path (or in the list provided with the
+<b><tt>-sFONTMAP=</tt></b> switch, if present): these files are catalogs of
+fonts and the files that contain them.  (See <a href="Fonts.htm#Fontmap">the
+documentation of fonts</a> for details.)  Then, when Ghostscript needs to
+find a font that isn't already loaded into memory, it goes through a series
+of steps.
+
+<ul>
+
+<li>
+First, it looks up the font name in the combined Fontmaps.  If there is an
+entry for the desired font name, and the file named in the entry can be
+found in some directory on the general search path (defined by
+<b><tt>-I</tt></b>, <b><tt>GS_LIB</tt></b>, and
+<b><tt>GS_LIB_DEFAULT</tt></b>), and the file is loaded successfully, and
+loading it defines a font of the desired name, that is the end of the
+process.
+
+<li>
+If this process fails at any step, Ghostscript looks for a file whose name
+is the concatenation of the value of the <b><tt>FontResourceDir</tt></b>
+system parameter and the font name, with no extension.  If such a file
+exists, can be loaded, and defines a font of the desired name, that again is
+the end.  The value of <b><tt>FontResourceDir</tt></b> is normally the
+string <b><tt>/Resource/Font/</tt></b>, but it can be changed with the
+<b><tt>setsystemparams</tt></b> operator: see the PostScript Language
+Reference Manual for details.
+
+<li>
+If that fails, Ghostscript then looks for a file on the general search path
+whose name is the desired font name, with no extension.  If such a file
+exists, can be loaded, and defines a font of the desired name, that again is
+the end.
+
+<li>
+If that too fails, Ghostscript looks at the <b><tt>GS_FONTPATH</tt></b>
+environment variable (or the value provided with the
+<b><tt>-sFONTPATH=</tt></b> switch, if present), which is also a list of
+directories.  It goes to the first directory on the list, looking for all
+files that appear to contain PostScript fonts; it then adds all those files
+and fonts to the combined Fontmaps, and starts over.
+
+<li>
+If scanning the first FONTPATH directory doesn't produce a file that
+provides the desired font, it adds the next directory on the FONTPATH list,
+and so on until either the font is defined successfully or the list is
+exhausted.
+
+<li>
+Finally, if all else fails, it will try to find a substitute for the font
+from among the standard 35 fonts.
+
+</ul>
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><th colspan=3 bgcolor="#CCCC00"><hr><font size="+1">Differences between search path and font path</font><hr>
+<tr>	<th>Search path
+	<td>&nbsp;&nbsp;&nbsp;
+	<th>Font path
+<tr>	<td colspan=3><hr>
+<tr>	<td><b><tt>-I</tt></b> switch
+	<td>&nbsp;
+	<td><b><tt>-sFONTPATH=</tt></b> switch
+<tr>	<td>&nbsp;
+<tr>	<td><b><tt>GS_LIB</tt></b> and <b><tt>GS_LIB_DEFAULT</tt></b>
+	    environment variables
+	<td>&nbsp;
+	<td><b><tt>GS_FONTPATH</tt></b> environment variable
+<tr>	<td>&nbsp;
+<tr>	<td valign=top>Consulted first
+	<td>&nbsp;
+	<td valign=top>Consulted only if search path and
+	<b><tt>FontResourceDir</tt></b> don't provide the file.
+<tr>	<td>&nbsp;
+<tr>	<td valign=top>Font-name-to-file-name mapping given in Fontmap
+	    files; aliases are possible, and there need not be any relation
+	    between the font name in the Fontmap and the
+	    <b><tt>FontName</tt></b> in the file.
+	<td>&nbsp; <td valign=top>Font-name-to-file-name mapping is
+	    implicit -- the <b><tt>FontName</tt></b> in the file is
+	    used. Aliases are not possible.
+<tr>	<td>&nbsp;
+<tr>	<td valign=top>Only fonts and files named in Fontmap are used.
+	<td>&nbsp;
+	<td valign=top>Every Type 1 font file in each directory is
+	    available; if TrueType fonts are supported (the
+	    <b><tt>ttfont.dev</tt></b> feature was included when the
+	    executable was built), they are also available.
+</table></blockquote>
+
+<p>
+If you are using one of the following types of computer, you may wish to
+set the environment variable <b><tt>GS_FONTPATH</tt></b> to
+the value indicated so that Ghostscript will automatically acquire all the
+installed Type 1 (and, if supported, TrueType) fonts (but see below for
+notes on systems marked with "*"):
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><th colspan=5 bgcolor="#CCCC00"><hr><font size="+1">Suggested <b><tt>GS_FONTPATH</tt></b> for different systems</font><hr>
+<tr>	<td>&nbsp;
+	<td>&nbsp;&nbsp;
+	<th align=left>System type
+	<td>&nbsp;&nbsp;
+	<th valign=bottom align=left><b><tt>GS_FONTPATH</tt></b>
+<tr>	<td colspan=5><hr>
+<tr>	<td>&nbsp;
+	<td>&nbsp;
+	<td valign=top>Digital Unix
+	<td>&nbsp;
+	<td><b><tt>/usr/lib/X11/fonts/Type1Adobe</tt></b>
+<tr>	<td>&nbsp;
+	<td>&nbsp;
+	<td valign=top>Ultrix
+	<td>&nbsp;
+	<td><b><tt>/usr/lib/DPS/outline/decwin</tt></b>
+<tr>	<td>&nbsp;
+	<td>&nbsp;
+	<td valign=top>HP-UX 9
+	<td>&nbsp;
+	<td><b><tt>/usr/lib/X11/fonts/type1.st/typefaces</tt></b>
+<tr>	<td>&nbsp;
+	<td>&nbsp;
+	<td valign=top>IBM AIX
+	<td>&nbsp;
+	<td><b><tt>/usr/lpp/DPS/fonts/outlines
+		<br>/usr/lpp/X11/lib/X11/fonts/Type1
+		<br>/usr/lpp/X11/lib/X11/fonts/Type1/DPS</tt></b>
+<tr>	<td>&nbsp;
+	<td>&nbsp;
+	<td valign=top>NeXT
+	<td>&nbsp;
+	<td><b><tt>/NextLibrary/Fonts/outline</tt></b>
+<tr>	<td>*
+	<td>&nbsp;
+	<td valign=top>SGI IRIX
+	<td>&nbsp;
+	<td><b><tt>/usr/lib/DPS/outline/base
+		<br>/usr/lib/X11/fonts/Type1</tt></b>
+<tr>	<td>&nbsp;
+	<td>&nbsp;
+	<td valign=top>SunOS 4.x<br>(NeWSprint only)
+	<td>&nbsp;
+	<td valign=top><b><tt>newsprint_2.5/SUNWsteNP/reloc/$BASEDIR/NeWSprint/<br>&nbsp;&nbsp;&nbsp;&nbsp;small_openwin/lib/fonts</tt></b>
+<tr>	<td>**
+	<td>&nbsp;
+	<td valign=top>SunOS 4.x
+	<td>&nbsp;
+	<td><b><tt>/usr/openwin/lib/X11/fonts/Type1/outline</tt></b>
+<tr>	<td>**
+	<td>&nbsp;
+	<td valign=top>Solaris 2.x
+	<td>&nbsp;
+	<td><b><tt>/usr/openwin/lib/X11/fonts/Type1/outline</tt></b>
+<tr>	<td>&nbsp;
+	<td>&nbsp;
+	<td valign=top>VMS
+	<td>&nbsp;
+	<td><b><tt>SYS$COMMON:[SYSFONT.XDPS.OUTLINE]</tt></b>
+</table>
+
+<hr align=left width="25%">
+
+<p>
+<b>*</b> On SGI IRIX systems, you must use <b><tt>Fontmap.SGI</tt></b> in
+place of <b><tt>Fontmap</tt></b> or <b><tt>Fontmap.GS</tt></b>, because
+otherwise the entries in <b><tt>Fontmap</tt></b> will take precedence over
+the fonts in the FONTPATH directories.
+
+<p>
+<b>**</b> On Solaris systems simply setting <b><tt>GS_FONTPATH</tt></b> or
+using <b><tt>-sFONTPATH=</tt></b> may not work, because for some reason some
+versions of Ghostscript can't seem to find any of the Type1 fonts in
+<b><tt>/usr/openwin/lib/X11/fonts/Type1/outline</tt></b>. (It says: "15
+files, 15 scanned, 0 new fonts". We think this problem has been fixed in
+Ghostscript version 6.0, but we aren't sure because we've never been able to
+reproduce it.)  See <b><tt>Fontmap.Sol</tt></b> instead.  Also, on Solaris
+2.x it's probably not worth your while to add Sun's fonts to your font path
+and Fontmap.  The fonts Sun distributes on Solaris 2.x in the directories
+
+<blockquote><b><tt>
+	/usr/openwin/lib/X11/fonts/Type1<br>
+	/usr/openwin/lib/X11/fonts/Type1/outline
+</tt></b></blockquote>
+
+<p>
+are already represented among the ones distributed as part of Ghostscript;
+and on some test files, Sun's fonts have been shown to cause incorrect
+displays with Ghostscript.
+
+</blockquote>
+
+<p>
+These paths may not be exactly right for your installation; if the indicated
+directory doesn't contain files whose names are familiar font names like
+Courier and Helvetica, you may wish to ask your system administrator where
+to find these fonts.
+
+<p>
+Adobe Acrobat comes with a set of fourteen Type 1 fonts, on Unix typically
+in a directory called ...<b><tt>/Acrobat3/Fonts</tt></b>.  There is no
+particular reason to use these instead of the corresponding fonts in the
+Ghostscript distribution (which are of just as good quality), except to save
+about a megabyte of disk space, but the installation documentation explains
+how to do it <a href="Install.htm#Use_Acrobat_fonts_Unix">on Unix</a> and <a
+href="Install.htm#Use_platform_fonts_DOS">on DOS</a> (where you can also use
+Adobe Type Manager fonts).
+
+<h3><a name="Temp_files"></a>Temporary files</h3>
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><th colspan=5 bgcolor="#CCCC00"><hr><font size="+1">Where Ghostscript puts temporary files</font><hr>
+<tr valign=bottom>
+	<th align=left>Platform
+	<td>&nbsp;&nbsp;&nbsp;
+	<th align=left>Filename
+	<td>&nbsp;&nbsp;&nbsp;
+	<th align=left>Location
+<tr>	<td colspan=5><hr>
+<tr valign=top>	<td>DOS and OpenVMS
+	<td>&nbsp;
+	<td><b><tt>_temp_</tt></b>XX.XXX
+	<td>&nbsp;
+	<td>Current directory
+<tr valign=top>	<td>OS/2
+	<td>&nbsp;
+	<td><b><tt>gs</tt></b>XXXXXX
+	<td>&nbsp;
+	<td>Current directory
+<tr valign=top>	<td>Unix
+	<td>&nbsp;
+	<td><b><tt>gs_</tt></b>XXXXX
+	<td>&nbsp;
+	<td><b><tt>/tmp</tt></b>
+</table></blockquote>
+
+<p>
+You can change in which directory Ghostscript creates temporary files by
+setting the <b><tt>TMPDIR</tt></b> or <b><tt>TEMP</tt></b> environment
+variable to the name of the directory you want used.  Ghostscript currently
+doesn't do a very good job of deleting temporary files if it exits because
+of an error; you may have to delete them manually from time to time.
+
+<dl>
+<dt><b><tt>GS</tt></b>, <b><tt>GSC</tt></b> (MS Windows only)
+<dd>Specify the names of the Ghostscript executables.  <b><tt>GS</tt></b>
+brings up a new typein window and possibly a graphics window;
+<b><tt>GSC</tt></b> uses the DOS console.  If these are not set,
+<b><tt>GS</tt></b> defaults to <b><tt>gswin32</tt></b>, and
+<b><tt>GSC</tt></b> defaults to <b><tt>gswin32c</tt></b>.
+</dl>
+
+<dl>
+<dt><a href="#GS_DEVICE"><b><tt>GS_DEVICE</tt></b></a>
+<dd>Defines the default output device.
+</dl>
+
+<dl>
+<dt><a href="#Font_lookup"><b><tt>GS_FONTPATH</tt></b></a>
+<dd>Specifies a list of directories to scan for fonts if a font requested
+can't be found anywhere on the search path.
+</dl>
+
+<dl>
+<dt><a href="#Finding_files"><b><tt>GS_LIB</tt></b></a>
+<dd>Provides a search path for initialization files and fonts.
+</dl>
+
+<dl>
+<dt><b><tt>GS_OPTIONS</tt></b>
+<dd>Defines a list of command-line arguments to be processed before the
+ones actually specified on the command line.  For example, setting
+<b><tt>GS_DEVICE</tt></b> to XYZ is equivalent to setting
+<b><tt>GS_OPTIONS</tt></b> to <b><tt>-sDEVICE=XYZ</tt></b>.  The contents
+of <b><tt>GS_OPTIONS</tt></b> are not limited to switches; they may include
+actual file names or even <a href="#Input_control">"@file" arguments</a>.
+
+</dl>
+
+<dl>
+<dt><a href="#Temp_files"><b><tt>TEMP</tt></b>, <b><tt>TMPDIR</tt></b></a>
+<dd>Defines a directory name for temporary files.  If both
+<b><tt>TEMP</tt></b> and <b><tt>TMPDIR</tt></b> are defined,
+<b><tt>TMPDIR</tt></b> takes precedence.
+</dl>
+
+<hr>
+
+<h2><a name="PDF"></a>Using Ghostscript with PDF files</h2>
+
+<p>
+Ghostscript is normally built (except on 16-bit DOS platforms) to interpret
+both PostScript and PDF files, examining each file to determine
+automatically whether its contents are PDF or PostScript.  All the normal
+switches and procedures for interpreting PostScript files also apply to PDF
+files, with a few exceptions.  In addition, the
+<b><tt>pdf2ps</tt></b> utility uses Ghostscript to convert
+PDF to (Level 2) PostScript.
+
+<h3><a name="PDF_stdin"></a>PDF files from standard input</h3>
+
+<p>
+
+Using the <a href="#Pipe_input">"<b><tt>-</tt></b>" or "<b><tt>-_</tt></b>"
+switch</a> you can provide PDF input from a file, but not from a pipe,
+because the PDF language, unlike the PostScript language, inherently
+requires random access to the file, while a pipe is always sequential.  That
+is,
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr>	<td><b><tt>gs -_ &lt; somefile.pdf</tt></b>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<td>(<b><em>is</em></b> permissible)
+<tr>	<td>{some program producing PDF} <b><tt>| gs -_</tt></b>
+	<td>&nbsp;
+	<td>(is <b><em>not</em></b> permissible)
+</table></blockquote>
+
+<h3><a name="PDF_switches"></a>Switches for PDF files</h3>
+
+<dl>
+<dt><b><tt>-dFirstPage=</tt></b><em>pagenumber</em>
+<dd>Begins interpreting on the designated page of the document.
+</dl>
+
+<dl>
+<dt><b><tt>-dLastPage=</tt></b><em>pagenumber</em>
+<dd>Stops interpreting after the designated page of the document.
+</dl>
+
+<dl>
+<dt><b><tt>-dPrinted</tt></b>
+<dt><b><tt>-dPrinted=false</tt></b>
+<dd>Determines whether the file should be displayed or printed using the
+"screen" or "printer" options for annotations and images.  With
+<b><tt>-dPrinted</tt></b>, the output will use the file's "print"
+options; with <b><tt>-dPrinted=false</tt></b>, the output will use the
+file's "screen" options.  If neither of these is specified, the output will
+use the screen options for any output device that doesn't have an
+<b><tt>OutputFile</tt></b> parameter, and the printer options for
+devices that do have this parameter.
+</dl>
+
+<dl>
+<dt><b><tt>-sPDFPassword=</tt></b><em>password</em>
+<dd>Sets the user or owner password to be used in decoding encrypted
+PDF files.
+</dl>
+
+<h3><a name="PDF_problems"></a>Problems interpreting a PDF file</h3>
+
+<p>
+Occasionally you may try to read or print a <b><tt>*.pdf</tt></b> file that
+Ghostscript doesn't recognize as PDF, even though the same file
+<b><em>can</em></b> be opened and interpreted by an Adobe Acrobat viewer.
+This can happen when, for instance, a PDF file produced on a Macintosh is
+carelessly moved to another kind of system, leaving now-useless
+Macintosh-specific data before the standard header.  Ghostscript can't read
+these files because they don't conform to the PDF standard, Adobe's <a
+href="http://partners.adobe.com/asn/developer/acrosdk/docs/PDFRef.pdf"
+class="offsite"><cite>Portable
+Document Format Reference Manual</cite></a>, version 1.2, which states:
+
+<blockquote>
+The first line of a PDF file specifies the version number of the PDF
+specification to which the file adheres....  [T]he first line of a
+1.2-conforming PDF file should be <b><tt>%PDF-1.2</tt></b>.
+</blockquote>
+
+<p>
+However, in an appendix the manual also says that Adobe
+
+<blockquote>
+Acrobat viewers are very liberal in their check for a valid PDF header.
+All viewers allow the header to appear anywhere in the first 1,000 bytes of
+the file.
+</blockquote>
+
+<p>
+Ghostscript doesn't do this: it expects PDF files to conform to the
+standard, because that's how it recognizes them among other formats it
+handles, unlike Acrobat viewers which need deal only with PDF and can
+therefore afford to be more liberal with PDF.  So if you encounter a file
+with useless characters before the header and you want to use it with
+Ghostscript, you can fix it by stripping the extra characters from before
+the standard header.  The file should begin with exactly the characters
+
+<blockquote><b><tt>
+%PDF
+</tt></b></blockquote>
+
+<p>
+PDF files are binary, not text, so be careful to edit the file as a binary,
+not as text.  On Unix, after determining the length of the useless prefix
+string, which you can do with <b><tt>od</tt></b>, you can use
+<b><tt>tail</tt></b> to strip them off.  For instance:
+
+<blockquote>
+<b><tt>od -c Macintosh.pdf | more</tt></b> ;# <em>shows that <b><tt>%PDF</tt></b> occurs after 128 characters</em><br>
+<b><tt>tail +128c Macintosh.pdf &gt;Legal.pdf</tt></b>
+</blockquote>
+
+<p>
+On PCs and other systems you can use the <b><tt>hexl</tt></b> program
+distributed with GNU emacs to convert the PDF file to editable text form.
+After editing, <b><tt>hexl</tt></b> can convert the text form back to
+binary.
+
+<hr>
+
+<h2><a name="Platforms"></a>Notes on specific platforms</h2>
+
+<h3><a name="Unix"></a>Unix</h3>
+
+<p>
+The Ghostscript distribution includes some Unix shell scripts to use with
+Ghostscript in different environments.  These are all user-contributed
+code, so if you have questions, please contact the user identified in the
+file, not Aladdin Enterprises or artofcode LLC.
+
+<dl>
+<dt><b><tt>pv.sh</tt></b>
+<dd>Preview a specified page of a <b><tt>dvi</tt></b> file in an X window
+</dl>
+
+<dl>
+<dt><b><tt>sysvlp.sh</tt></b>
+<dd>System V 3.2 lp interface for parallel printer
+</dl>
+
+<dl>
+<dt><b><tt>pj-gs.sh</tt></b>
+<dd>Printing on an H-P PaintJet under HP-UX
+</dl>
+
+<dl>
+<dt><b><tt>unix-lpr.sh</tt></b>
+<dd>Queue filter for <b><tt>lpr</tt></b> under Unix;
+<a href="Unix-lpr.htm">its documentation</a> is intended for system
+administrators
+</dl>
+
+<dl>
+<dt><b><tt>lprsetup.sh</tt></b>
+<dd>Setup for <b><tt>unix-lpr.sh</tt></b>
+</dl>
+
+<hr>
+
+<h3><a name="VMS"></a>VMS</h3>
+
+<ul>
+<li>To be able to specify switches and file names when invoking the
+interpreter, define <b><tt>gs</tt></b> as a foreign command:
+
+<blockquote>
+<b><tt>$ gs == "$</tt></b><em>disk</em><b><tt>:[</tt></b><em>directory</em><b><tt>]gs.exe</tt></b>"
+</blockquote>
+
+<p>
+where the "<em>disk</em>" and "<em>directory</em>" specify where
+the Ghostscript executable is located.  For instance,
+
+<blockquote><b><tt>
+$ gs == "$dua1:[ghostscript]gs.exe"
+</tt></b></blockquote>
+
+<li>On VMS systems, the last character of each "directory" name indicates
+what sort of entity the "directory" refers to.  If the "directory" name
+ends with a colon "<b><tt>:</tt></b>", it is taken to refer to a logical
+device, for instance
+
+<blockquote><b><tt>
+$ define ghostscript_device dua1:[ghostscript_510]<br>
+$ define gs_lib ghostscript_device:
+</tt></b></blockquote>
+
+<p>
+If the "directory" name ends with a closing square bracket
+"<b><tt>]</tt></b>", it is taken to refer to a real directory, for instance
+
+<blockquote><b><tt>
+$ define gs_lib dua1:[ghostscript]
+</tt></b></blockquote>
+
+<li>Defining the logical <b><tt>GS_LIB</tt></b>
+
+<blockquote>
+<b><tt>$ define gs_lib</tt></b> <em>disk</em><b><tt>:[</tt></b><em>directory</em><b><tt>]</tt></b>
+</blockquote>
+
+<p>
+allows Ghostscript to find its initialization files in the Ghostscript
+directory even if that's not where the executable resides.<br>&nbsp;
+
+<li>Although VMS DCL itself converts unquoted parameters to upper case, C
+programs such as Ghostscript receive their parameters through the C runtime
+library, which forces all unquoted command-line parameters to lower case.
+That is, with the command
+
+<blockquote><b><tt>
+$ gs -Isys$login:
+</tt></b></blockquote>
+
+<p>
+Ghostscript sees the switch as <b><tt>-isys$login</tt></b>,
+which doesn't work.  To preserve the case of switches, quote them like
+this:
+
+<blockquote><b><tt>
+$ gs "-Isys$login:"
+</tt></b></blockquote>
+
+<li>If you write printer output to a file with
+<b><tt>-sOutputFile=</tt></b> and then want to print the file later, use
+"<b><tt>PRINT/PASSALL</tt></b>".
+</ul>
+
+<ul>
+<li>PDF files (or PostScript files that use the
+<b><tt>setfileposition</tt></b> operator) must be "stream LF" type files to
+work properly on VMS systems. (<b><em>Note:</em></b> This definitely matters
+if Ghostscript was compiled with DEC C; we are not sure of the situation if
+you use <b><tt>gcc</tt></b>.)  Because of this, if you transfer files by
+FTP, you probably need to do one of these two things after the transfer:
+
+<ol>
+<li>If the FTP transfer was in text (ASCII) mode:
+
+<blockquote>
+<b><tt>$ convert/fdl=streamlf.fdl</tt></b> input-file output-file
+</blockquote>
+
+<p>
+where the contents of the file <b><tt>STREAMLF.FDL</tt></b> are
+
+<blockquote>
+<pre>FILE
+        ORGANIZATION            sequential
+
+RECORD
+        BLOCK_SPAN              yes
+        CARRIAGE_CONTROL        carriage_return
+        FORMAT                  stream_lf
+</pre></blockquote>
+
+<li>If the FTP transfer was in binary mode:
+
+<blockquote><b><tt>
+     $ set file/attribute=(rfm:stmlf)
+</tt></b></blockquote>
+</ol>
+</ul>
+
+<h4><a name="VMS_X_Windows"></a>Using X Windows on VMS</h4>
+
+<p>
+If you are using on an X Windows display, you can set it up with the node
+name and network transport, for instance
+
+<blockquote><b><tt>
+	$ set display/create/node="doof.city.com"/transport=tcpip
+</tt></b></blockquote>
+
+<p>
+and then run Ghostscript by typing <b><tt>gs</tt></b> at the command line.
+
+<hr>
+
+<h3><a name="MS_Windows"></a>MS Windows</h3>
+
+<p>
+You must add <em>gs\</em><b><tt>bin</tt></b> and
+<em>gs\</em><b><tt>lib</tt></b> to the <b><tt>PATH</tt></b>, where
+<em>gs</em> is the top-level Ghostscript directory.
+
+<hr>
+
+<h3><a name="MS-DOS"></a>MS-DOS</h3>
+
+<p>
+You must add <em>gs\</em><b><tt>bin</tt></b> and
+<em>gs\</em><b><tt>lib</tt></b> to the <b><tt>PATH</tt></b>, where
+<em>gs</em> is the top-level Ghostscript directory.
+
+<ul>
+<li>
+Ghostscript supports many SuperVGA displays directly, most of them with
+more than 16 colors.  The complete list is in the file
+<b><tt>devs.mak</tt></b>, part of Ghostscript's
+<a href="#Source_code">source code</a>.
+
+<li>
+Some applications, such as Microsoft Word, require a prologue in front of
+the PostScript files they produce.  In the case of MS Word, this prologue
+is one of the *.ini files Microsoft includes with Word.  Other applications
+may require other prologues.  You may specify a prologue on the Ghostscript
+command line, for instance
+
+<blockquote><b><tt>
+	gs386 prologue.ini myfile.ps
+</tt></b></blockquote>
+
+<li>
+If you have a SuperVGA display that supports a 16-color mode with 800x600
+pixels and you know the display mode number for this mode, you can select
+it by using the command line switches
+
+<blockquote>
+<b><tt>-sDEVICE=svga16 -dDisplayMode=</tt></b><em>NNN</em>
+</blockquote>
+
+<p>
+where <em>NNN</em> is the display mode number in decimal.  Here are modes
+for some popular display chipsets; the ones that use the default value are
+marked "*".  If your card's chipset doesn't appear on this list, or if you
+try the value here and it doesn't work, please send the name of the chipset
+and its correct display mode to &lt;<a href="mailto:bug-gs@aladdin.com">bug-gs@aladdin.com</a>&gt; to include in
+future releases.
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><th colspan=6 bgcolor="#CCCC00"><hr><font size="+1">Display modes for PC display chipsets</font><hr>
+<tr>	<td>&nbsp;
+	<th>Chipset
+	<td>&nbsp;
+	<th>Decimal
+	<td>&nbsp;
+	<th>Hex
+<tr>	<td colspan=6><hr>
+<tr>	<td>&nbsp;
+	<td>Acumos AVGA2, AVGA3
+	<td>&nbsp;
+	<td align=center>88
+	<td>&nbsp;
+	<td align=right><tt>0x58</tt>
+<tr>	<td>&nbsp;
+	<td>Advance Logic AL2101
+	<td>&nbsp;
+	<td align=center>43
+	<td>&nbsp;
+	<td align=right><tt>0x2B</tt>
+<tr>	<td>&nbsp;
+	<td>Ahead V5000
+	<td>&nbsp;
+	<td align=center>113
+	<td>&nbsp;
+	<td align=right><tt>0x71</tt>
+<tr>	<td>&nbsp;
+	<td>ATI VGAWONDER, Graphics Ultra etc.
+	<td>&nbsp;
+	<td align=center>84
+	<td>&nbsp;
+	<td align=right><tt>0x54</tt>
+<tr>	<td>&nbsp;
+	<td>Chips and Technologies
+	<td>&nbsp;
+	<td align=center>106
+	<td>&nbsp;
+	<td align=right><tt>0x6A</tt>
+<tr>	<td>&nbsp;
+	<td>Cirrus Logic CL-GD 500/600
+	<td>&nbsp;
+	<td align=center>100
+	<td>&nbsp;
+	<td align=right><tt>0x64</tt>
+<tr>	<td>&nbsp;
+	<td>Cirrus Logic GD 5422
+	<td>&nbsp;
+	<td align=center>88
+	<td>&nbsp;
+	<td align=right><tt>0x58</tt>
+<tr>	<td>&nbsp;
+	<td>Compaq VGA
+	<td>&nbsp;
+	<td align=center>89
+	<td>&nbsp;
+	<td align=right><tt>0x59</tt>
+<tr>	<td>&nbsp;
+	<td>CTI
+	<td>&nbsp;
+	<td align=center>106
+	<td>&nbsp;
+	<td align=right><tt>0x6A</tt>
+<tr>	<td>*
+	<td>Genoa 5xxx, Sigma VGA
+	<td>&nbsp;
+	<td align=center>41
+	<td>&nbsp;
+	<td align=right><tt>0x29</tt>
+<tr>	<td>&nbsp;
+	<td>Genoa 6xxx
+	<td>&nbsp;
+	<td align=center>106
+	<td>&nbsp;
+	<td align=right><tt>0x6A</tt>
+<tr>	<td>&nbsp;
+	<td>MXIC MX 68010
+	<td>&nbsp;
+	<td align=center>85
+	<td>&nbsp;
+	<td align=right><tt>0x55</tt>
+<tr>	<td>&nbsp;
+	<td>NCR 77C22
+	<td>&nbsp;
+	<td align=center>88
+	<td>&nbsp;
+	<td align=right><tt>0x58</tt>
+<tr>	<td>&nbsp;
+	<td>OAK Technologies OTI-067, OTI-077, OTI037C
+	<td>&nbsp;
+	<td align=center>82
+	<td>&nbsp;
+	<td align=right><tt>0x52</tt>
+<tr>	<td>&nbsp;
+	<td>OAK Technologies OTI037C w/ NEL BIOS
+	<td>&nbsp;
+	<td align=center>91
+	<td>&nbsp;
+	<td align=right><tt>0x5B</tt>
+<tr>	<td>*
+	<td>Orchid Prodesigner
+	<td>&nbsp;
+	<td align=center>41
+	<td>&nbsp;
+	<td align=right><tt>0x29</tt>
+<tr>	<td>&nbsp;
+	<td>Paradise
+	<td>&nbsp;
+	<td align=center>88
+	<td>&nbsp;
+	<td align=right><tt>0x58</tt>
+<tr>	<td>&nbsp;
+	<td>Poach
+	<td>&nbsp;
+	<td align=center>106
+	<td>&nbsp;
+	<td align=right><tt>0x6A</tt>
+<tr>	<td>&nbsp;
+	<td>Primus
+	<td>&nbsp;
+	<td align=center>42
+	<td>&nbsp;
+	<td align=right><tt>0x2A</tt>
+<tr>	<td>&nbsp;
+	<td>Realtek RT 3106
+	<td>&nbsp;
+	<td align=center>31
+	<td>&nbsp;
+	<td align=right><tt>0x1F</tt>
+<tr>	<td>&nbsp;
+	<td>Tecmar
+	<td>&nbsp;
+	<td align=center>22
+	<td>&nbsp;
+	<td align=right><tt>0x16</tt>
+<tr>	<td>&nbsp;
+	<td>Trident 8900
+	<td>&nbsp;
+	<td align=center>91
+	<td>&nbsp;
+	<td align=right><tt>0x5B</tt>
+<tr>	<td>*
+	<td>Tseng ET-3000, ET-4000
+	<td>&nbsp;
+	<td align=center>41
+	<td>&nbsp;
+	<td align=right><tt>0x29</tt>
+<tr>	<td>*
+	<td>VEGA
+	<td>&nbsp;
+	<td align=center>41
+	<td>&nbsp;
+	<td align=right><tt>0x29</tt>
+<tr>	<td>&nbsp;
+	<td>Video 7 SVGA
+	<td>&nbsp;
+	<td align=center>98
+	<td>&nbsp;
+	<td align=right><tt>0x62</tt>
+<tr>	<td>&nbsp;
+	<td>WD90C11
+	<td>&nbsp;
+	<td align=center>92
+	<td>&nbsp;
+	<td align=right><tt>0x5C</tt>
+<tr>	<td>&nbsp;
+	<td>Western Digital
+	<td>&nbsp;
+	<td align=center>88
+	<td>&nbsp;
+	<td align=right><tt>0x58</tt>
+</table></blockquote>
+</ul>
+
+<hr>
+
+<h3><a name="X_Windows"></a>X Windows</h3>
+
+<p>
+Ghostscript looks for the following resources under the program name
+<b><tt>ghostscript</tt></b> and class name
+<b><tt>Ghostscript</tt></b>; the ones marked "**" are
+calculated from display metrics:
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><th colspan=5 bgcolor="#CCCC00"><hr><font size="+1">X Windows resources</font><hr>
+<tr>	<th align=left>Name
+	<td>&nbsp;&nbsp;
+	<th align=left>Class
+	<td>&nbsp;&nbsp;
+	<th align=left>Default
+<tr>	<td colspan=5><hr>
+<tr>	<td><b><tt>background</tt></b>
+	<td>&nbsp;
+	<td><b><tt>Background</tt></b>
+	<td>&nbsp;
+	<td><b><tt>white</tt></b>
+<tr>	<td><b><tt>foreground</tt></b>
+	<td>&nbsp;
+	<td><b><tt>Foreground</tt></b>
+	<td>&nbsp;
+	<td><b><tt>black</tt></b>
+<tr>	<td><b><tt>borderColor</tt></b>
+	<td>&nbsp;
+	<td><b><tt>BorderColor</tt></b>
+	<td>&nbsp;
+	<td><b><tt>black</tt></b>
+<tr>	<td><b><tt>borderWidth</tt></b>
+	<td>&nbsp;
+	<td><b><tt>BorderWidth</tt></b>
+	<td>&nbsp;
+	<td><b><tt>1</tt></b>
+<tr>	<td><b><tt>geometry</tt></b>
+	<td>&nbsp;
+	<td><b><tt>Geometry</tt></b>
+	<td>&nbsp;
+	<td><b><tt>NULL</tt></b>
+<tr>	<td><b><tt>xResolution</tt></b>
+	<td>&nbsp;
+	<td><b><tt>Resolution</tt></b>
+	<td>&nbsp;
+	<td>**
+<tr>	<td><b><tt>yResolution</tt></b>
+	<td>&nbsp;
+	<td><b><tt>Resolution</tt></b>
+	<td>&nbsp;
+	<td>**
+<tr>	<td><b><tt>useExternalFonts</tt></b>
+	<td>&nbsp;
+	<td><b><tt>UseExternalFonts</tt></b>
+	<td>&nbsp;
+	<td><b><tt>true</tt></b>
+<tr>	<td><b><tt>useScalableFonts</tt></b>
+	<td>&nbsp;
+	<td><b><tt>UseScalableFonts</tt></b>
+	<td>&nbsp;
+	<td><b><tt>true</tt></b>
+<tr>	<td><b><tt>logExternalFonts</tt></b>
+	<td>&nbsp;
+	<td><b><tt>LogExternalFonts</tt></b>
+	<td>&nbsp;
+	<td><b><tt>false</tt></b>
+<tr>	<td><b><tt>externalFontTolerance</tt></b>
+	<td>&nbsp;
+	<td><b><tt>ExternalFontTolerance</tt></b>
+	<td>&nbsp;
+	<td><b><tt>10.0</tt></b>
+<tr>	<td><b><tt>palette</tt></b>
+	<td>&nbsp;
+	<td><b><tt>Palette</tt></b>
+	<td>&nbsp;
+	<td><b><tt>Color</tt></b>
+<tr>	<td><b><tt>maxGrayRamp</tt></b>
+	<td>&nbsp;
+	<td><b><tt>MaxGrayRamp</tt></b>
+	<td>&nbsp;
+	<td><b><tt>128</tt></b>
+<tr>	<td><b><tt>maxRGBRamp</tt></b>
+	<td>&nbsp;
+	<td><b><tt>MaxRGBRamp</tt></b>
+	<td>&nbsp;
+	<td><b><tt>5</tt></b>
+<tr>	<td><b><tt>maxDynamicColors</tt></b>
+	<td>&nbsp;
+	<td><b><tt>MaxDynamicColors</tt></b>
+	<td>&nbsp;
+	<td><b><tt>256</tt></b>
+<tr>	<td><b><tt>useBackingPixmap</tt></b>
+	<td>&nbsp;
+	<td><b><tt>UseBackingPixmap</tt></b>
+	<td>&nbsp;
+	<td><b><tt>true</tt></b>
+<tr>	<td><b><tt>useXPutImage</tt></b>
+	<td>&nbsp;
+	<td><b><tt>UseXPutImage</tt></b>
+	<td>&nbsp;
+	<td><b><tt>true</tt></b>
+<tr>	<td><b><tt>useXSetTile</tt></b>
+	<td>&nbsp;
+	<td><b><tt>UseXSetTile</tt></b>
+	<td>&nbsp;
+	<td><b><tt>true</tt></b>
+<tr>	<td><b><tt>regularFonts</tt></b>
+	<td>&nbsp;
+	<td><b><tt>RegularFonts</tt></b>
+	<td>&nbsp;
+	<td>See "<a href="#X_fonts">X fonts</a>"
+<tr>	<td><b><tt>symbolFonts</tt></b>
+	<td>&nbsp;
+	<td><b><tt>SymbolFonts</tt></b>
+	<td>&nbsp;
+	<td>See "<a href="#X_fonts">X fonts</a>"
+<tr>	<td><b><tt>dingbatFonts</tt></b>
+	<td>&nbsp;
+	<td><b><tt>DingbatFonts</tt></b>
+	<td>&nbsp;
+	<td>See "<a href="#X_fonts">X fonts</a>"
+</table></blockquote>
+
+<h4><a name="X_resources"></a>X resources</h4>
+
+<ul>
+<li>
+To set X resources, put them in a file (such as
+<b><tt>~/.Xdefaults</tt></b> on Unix) in a form like this:
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><td><b><tt>Ghostscript*geometry:</tt></b><td><b><tt>&nbsp;&nbsp;</tt></b><td><b><tt>595x842-0+0</tt></b>
+<tr><td><b><tt>Ghostscript*xResolution:</tt></b><td><b><tt>&nbsp;</tt></b><td><b><tt>72</tt></b>
+<tr><td><b><tt>Ghostscript*yResolution:</tt></b><td><b><tt>&nbsp;</tt></b><td><b><tt>72</tt></b>
+</table></blockquote>
+
+<p>
+Then merge these resources into the X server's resource database:
+
+<blockquote><b><tt>
+	xrdb -merge ~/.Xdefaults
+</tt></b></blockquote>
+
+<li>
+Ghostscript doesn't look at the default system background and foreground
+colors; if you want to change the background or foreground color, you must
+set them explicitly for Ghostscript.  This is a deliberate choice, so that
+PostScript documents will display correctly by default -- with white as
+white and black as black -- even if text windows use other colors.
+
+<li>
+The <b><tt>geometry</tt></b> resource affects only window placement.
+
+<li>
+Resolution is expressed in pixels per inch (1 inch = 2.54cm).
+
+<li>
+The font tolerance gives the largest acceptable difference in height of the
+screen font, expressed as a percentage of the height of the desired font.
+
+<li>
+The <b><tt>palette</tt></b> resource can be used to restrict Ghostscript to
+using a grayscale or monochrome palette.
+
+<li>
+<b><tt>maxRGBRamp</tt></b> and
+<b><tt>maxGrayRamp</tt></b> control the maximum number of
+colors that ghostscript allocates ahead of time for the dither cube (ramp).
+Ghostscript never preallocates more than half the cells in a colormap.
+<b><tt>maxDynamicColors</tt></b> controls the maximum
+number of colors that Ghostscript will allocate dynamically in the
+colormap.
+</ul>
+
+<h4><a name="X_server_bugs"></a>Working around bugs in X servers</h4>
+
+<p>
+The "<b><tt>use</tt></b>..." resources exist primarily to work around bugs
+in X servers.
+
+<ul>
+<li>	Old versions of DEC's X server (DECwindows) have bugs that
+	require setting <b><tt>useXPutImage</tt></b> or
+	<b><tt>useXSetTile</tt></b> to
+	<b><tt>false</tt></b>.
+
+<li>	Some servers do not implement backing pixmaps properly, or do not
+	have enough memory for them.  If you get strange behavior or "out
+	of memory" messages, try setting
+	<b><tt>useBackingPixmap</tt></b> to
+	<b><tt>false</tt></b>.
+
+<li>	Some servers do not implement tiling properly.  This appears
+	as broad bands of color where dither patterns should appear.  If
+	this happens, try setting
+	<b><tt>useXSetTile</tt></b> to
+	<b><tt>false</tt></b>.
+
+<li>	Some servers do not implement bitmap or pixmap displaying properly.
+	This may appear as white or black rectangles where characters
+	should appear; or characters may appear in "inverse video" (for
+	instance, white on a black rectangle rather than black on white).
+	If this happens, try setting
+	<b><tt>useXPutImage</tt></b> to
+	<b><tt>false</tt></b>.
+</ul>
+
+<h4><a name="X_fonts"></a>X fonts</h4>
+
+<p>
+To use native X11 fonts, Ghostscript must map PostScript font names to the
+XLFD font names.  The resources <b><tt>regularFonts</tt></b>
+(fonts available in standard or ISO-Latin-1 encoding),
+<b><tt>symbolFonts</tt></b> (using Symbol encoding), and
+<b><tt>dingbatFonts</tt></b> (using Dingbat encoding) give
+the name mapping for different encodings.  The XLFD font name in the
+mapping must contain 7 dashes; the X driver adds the additional size and
+encoding fields to bring the total number of dashes in the font name to 14.
+See the appendix "<a href="#X_font_mappings">X default font mappings</a>"
+for the full list of default mappings.
+
+<p>
+Users who switch regularly between different X servers may wish to use the
+"*" wild card in place of the foundry name
+(<b><tt>itc</tt></b>,
+<b><tt>monotype</tt></b>,
+<b><tt>linotype</tt></b>,
+<b><tt>b&amp;h</tt></b>, or
+<b><tt>adobe</tt></b>); users who do not switch X servers
+should leave the explicit foundry in the name, since it speeds up access to
+fonts.
+
+<p>
+Ghostscript takes advantage of the "HP XLFD Enhancements," if available, to
+use native X11 fonts for fonts that are anamorphically scaled, rotated, or
+mirrored.  If the changes have been installed to the X or font server, they
+are automatically used when appropriate.
+
+<h4><a name="GS_fonts_as_X_fonts"></a>Using Ghostscript fonts on X displays</h4>
+
+<p>
+Font files distributed with Ghostscript can be used on X Windows displays.
+You can find full instructions in the
+<a href="Fonts.htm#Use_gs_fonts_with_X">documentation on fonts</a>.
+
+<h4><a name="X_device_parameters"></a>X device parameters</h4>
+
+<p>
+In addition to the device parameters recognized by <a
+href="Language.htm#Device_parameters">all devices</a>, Ghostscript's X
+driver provides parameters to adjust its performance.  Users will rarely
+need to modify these.  Note that these are parameters to be set with the
+<b><tt>-d</tt></b> switch in the command line (e.g.,
+<b><tt>-dMaxBitmap=10000000</tt></b>), not resources to be defined in the
+<b><tt>~/.Xdefaults</tt></b> file.
+
+<dl>
+<dt><b><tt>AlwaysUpdate &lt;boolean&gt;</tt></b>
+<dd>If <b><tt>true</tt></b>, the driver updates the screen after each
+primitive drawing operation; if <b><tt>false</tt></b> (the default), the
+driver uses an intelligent buffered updating algorithm.
+</dl>
+
+<dl>
+<dt><b><tt>MaxBitmap &lt;integer&gt;</tt></b>
+<dd>If the amount of memory required to hold the pixmap for the window is no
+more than the value of <b><tt>MaxBitmap</tt></b>, the driver will draw to a
+pixmap in Ghostscript's address space (called a "client-side pixmap") and
+will copy it to the screen from time to time; if the amount of memory
+required for the pixmap exceeds the value of <b><tt>MaxBitmap</tt></b>, the
+driver will draw to a server pixmap.  Using a client-side pixmap usually
+provides better performance -- for bitmap images, possibly much better
+performance -- but since it may require quite a lot of RAM (e.g., about 2.2
+Mb for a 24-bit 1024x768 window), the default value of
+<b><tt>MaxBitmap</tt></b> is 0.
+</dl>
+
+<dl>
+<dt><b><tt>MaxTempPixmap, MaxTempImage, MaxBufferedTotal, MaxBufferedArea,
+MaxBufferedCount &lt;integer&gt;</tt></b>
+<dd>These control various aspects of the driver's buffering behavior.  For
+details, please consult the source file <b><tt>gdevx.h</tt></b>.
+</dl>
+
+<hr>
+
+<h3><a name="SCO_Unix"></a>SCO Unix</h3>
+
+<p>
+Because of bugs in the SCO Unix kernel, Ghostscript will not work if you
+select direct screen output and also allow it to write messages on the
+console.  If you are using direct screen output, redirect Ghostscript's
+terminal output to a file.
+
+<hr>
+
+<h2><a name="Switches"></a>Switches</h2>
+
+<p>
+Unless otherwise noted, these switches can be used on all platforms.
+
+<h3><a name="General_switches"></a>General switches</h3>
+
+<h4><a name="Input_control"></a>Input control</h4>
+
+<dl>
+<dt><b><tt>@</tt></b><em>filename</em>
+<dd>Causes Ghostscript to read <em>filename</em> and treat its contents the
+same as the command line.  (This is intended primarily for getting around
+DOS's 128-character limit on the length of a command line.)  Switches or
+file names in the file may be separated by any amount of white space
+(space, tab, line break); there is no limit on the size of the file.
+</dl>
+
+<dl>
+<dt><b><tt>--</tt></b> <em>filename arg1 ...</em>
+<br><b><tt>-+</tt></b> <em>filename arg1 ...</em>
+<dd>Takes the next argument as a file name as usual, but takes all
+remaining arguments (even if they have the syntactic form of switches) and
+defines the name <b><tt>ARGUMENTS</tt></b> in userdict (not systemdict) as
+an array of those strings, <em>before</em> running the file.  When
+Ghostscript finishes executing the file, it exits back to the shell.
+</dl>
+
+<dl>
+<dt><b><tt>-@</tt></b> <em>filename arg1 ...</em>
+<dd>Does the same thing as <b><tt>--</tt></b> and <b><tt>-+</tt></b>, but
+expands <b><tt>@</tt></b><em>filename</em> arguments.
+</dl>
+
+<dl>
+<dt><b><tt>-</tt></b>
+<br><b><tt>-_</tt></b>
+<dd>These are not really switches: they tell Ghostscript to read from
+standard input, which is coming from a file or a pipe,
+with or without buffering.
+See <a href="#Pipe_input">"Input from a pipe"</a> above.
+</dl>
+
+<dl>
+<dt><b><tt>-c</tt></b> <em>tokens ...</em>
+<dd>Interprets arguments as PostScript code up to the next argument that
+begins with "<b><tt>-</tt></b>" followed by a non-digit, or with
+"<b><tt>@</tt></b>".  For example, if the file <b><tt>quit.ps</tt></b>
+contains just the word "<b><tt>quit</tt></b>", then
+<b><tt>-c&nbsp;quit</tt></b> on the command line is equivalent to
+<b><tt>quit.ps</tt></b> there.  Each argument must be exactly one token, as
+defined by the <b><tt>token</tt></b> operator.
+</dl>
+
+<dl>
+<dt><b><tt>-f</tt></b>
+<dd>Interprets following non-switch arguments as file names to be executed
+using the normal <b><tt>run</tt></b> command.  Since this is the default
+behavior, <b><tt>-f</tt></b> is useful only for terminating the list of
+tokens for the <b><tt>-c</tt></b> switch.
+</dl>
+
+<dl>
+<dt><b><tt>-f</tt></b><em>filename</em>
+<dd>Execute the given file, even if its name begins with a
+"<b><tt>-</tt></b>" or "<b><tt>@</tt></b>".
+</dl>
+
+<h4><a name="File_searching"></a>File searching</h4>
+
+<p>
+Note that by "library files" here we mean all the files identified using
+the search rule under "<a href="#Finding_files">How Ghostscript finds
+files</a>" above: Ghostscript's own initialization files, fonts, and files
+named on the command line.
+
+<dl>
+<dt><a name="I_switch"></a><b><tt>-I</tt></b><em>directories</em>
+<dd>Adds the designated list of directories at the head of the search path
+for library files.
+</dl>
+
+<dl>
+<dt><a name="P_switch"></a><b><tt>-P</tt></b>
+<dd>Makes Ghostscript look first in the current directory for library
+files.  This is currently the default.
+</dl>
+
+<dl>
+<dt><a name="P-_switch"></a><b><tt>-P-</tt></b>
+<dd>Makes Ghostscript <b><em>not</em></b> look first in the current
+directory for library files (unless, of course, the first explicitly
+supplied directory is "<b><tt>.</tt></b>").
+</dl>
+
+<h4><a name="Parameters"></a>Setting parameters</h4>
+
+<dl>
+<dt><b><tt>-D</tt></b><em>name</em>
+<br><b><tt>-d</tt></b><em>name</em>
+<dd>Define a name in systemdict with value=true.
+</dl>
+
+<dl>
+<dt><b><tt>-D</tt></b><em>name</em><b><tt>=</tt></b><em>token</em>
+<br><b><tt>-d</tt></b><em>name</em><b><tt>=</tt></b><em>token</em>
+<dd>Define a name in systemdict with the given definition.  The token must
+be exactly one token (as defined by the <b><tt>token</tt></b> operator) and
+must not contain any whitespace.  If the token is a non-literal name, it
+must be true, false, or null.
+</dl>
+
+<dl>
+<dt><b><tt>-S</tt></b><em>name</em><b><tt>=</tt></b><em>string</em>
+<br><b><tt>-s</tt></b><em>name</em><b><tt>=</tt></b><em>string</em>
+<dd>Define a name in systemdict with a given string as value.  This is
+different from <b><tt>-d</tt></b>.  For example, <b><tt>-dXYZ=35</tt></b>
+on the command line is equivalent to the program fragment
+
+<blockquote><b><tt>
+/XYZ 35 def
+</tt></b></blockquote>
+
+<p>
+whereas <b><tt>-sXYZ=35</tt></b> is equivalent to
+
+<blockquote><b><tt>
+/XYZ (35) def
+</tt></b></blockquote>
+</dl>
+
+<dl>
+<dt><b><tt>-u</tt></b><em>name</em>
+<dd>Un-define a name, cancelling <b><tt>-d</tt></b> or <b><tt>-s</tt></b>.
+</dl>
+
+<p>
+Note that the initialization file <b><tt>gs_init.ps</tt></b> makes
+<b><tt>systemdict</tt></b> read-only, so the values of names defined with
+<b><tt>-D</tt></b>, <b><tt>-d</tt></b>, <b><tt>-S</tt></b>, and
+<b><tt>-s</tt></b> cannot be changed -- although, of course, they can be
+superseded by definitions in <b><tt>userdict</tt></b> or other dictionaries.
+However, device parameters set this way (<b><tt>PageSize</tt></b>,
+<b><tt>Margins</tt></b>, etc.) are <em>not</em> read-only, and <em>can</em>
+be changed by code in PostScript files.
+
+<dl>
+<dt><b><tt>-g</tt></b><em>number1</em><b><tt>x</tt></b><em>number2</em>
+<dd>Equivalent to <b><tt>-dDEVICEWIDTH=</tt></b><em>number1</em> and
+<b><tt>-dDEVICEHEIGHT=</tt></b><em>number2</em>, specifying the device
+width and height in pixels for the benefit of devices such as X11 windows
+and VESA displays that require (or allow) you to specify width and height.
+Note that this causes documents of other sizes to be clipped, not scaled:
+see <b><tt>-dFIXEDMEDIA</tt></b> below.
+</dl>
+
+<dl>
+<dt><a name="Resolution_switch"></a><b><tt>-r</tt></b><em>number</em> (same
+as <b><tt>-r</tt></b><em>number</em><b><tt>x</tt></b><em>number</em>)
+<br><b><tt>-r</tt></b><em>number1</em><b><tt>x</tt></b><em>number2</em>
+<dd>Equivalent to <b><tt>-dDEVICEXRESOLUTION=</tt></b><em>number1</em> and
+<b><tt>-dDEVICEYRESOLUTION=</tt></b><em>number2</em>, specifying the device
+horizontal and vertical resolution in pixels per inch for the benefit of
+devices such as printers that support multiple X and Y resolutions.
+</dl>
+
+<h4><a name="Quiet"></a>Suppress messages</h4>
+
+<dl>
+<dt><a name="Quiet"></a><b><tt>-q</tt></b>
+<dd>Quiet startup: suppress normal startup messages, and also do the
+equivalent of <a href="#dQUIET"><b><tt>-dQUIET</tt></b></a>.
+</dl>
+
+<h3><a name="Parameter_switches"></a>Parameter switches (<b><tt>-d</tt></b> and <b><tt>-s</tt></b>)</h3>
+
+<p>
+As noted above, <b><tt>-d</tt></b> and <b><tt>-s</tt></b> define initial
+values for PostScript names.  Some of these names are parameters that
+control the interpreter or the graphics engine.  You can also use
+<b><tt>-d</tt></b> or <b><tt>-s</tt></b> to define a value for any device
+parameter of the initial device (the one defined with
+<b><tt>-sDEVICE=</tt></b>, or the default device if this switch is not
+used).  For example, since the <b><tt>ppmraw</tt></b> device has a numeric
+<b><tt>GrayValues</tt></b> parameter that controls the number of bits per
+component, <b><tt>-sDEVICE=ppmraw -dGrayValues=16</tt></b> will make this
+the default device and set the number of bits per component to 4 (log2(16)).
+
+<h4><a name="Rendering_parameters"></a>Rendering parameters</h4>
+
+<dl>
+<dt><b><tt>-dCOLORSCREEN
+<br>-dCOLORSCREEN=0
+<br>-dCOLORSCREEN=false</tt></b>
+<dd>On high-resolution devices (at least 150 dpi resolution, or
+<b><tt>-dDITHERPPI</tt></b> specified), <b><tt>-dCOLORSCREEN</tt></b>
+forces the use of separate halftone screens with different angles for CMYK
+or RGB if halftones are needed (this produces the best-quality output);
+<b><tt>-dCOLORSCREEN=0</tt></b> uses separate screens with the same
+frequency and angle; <b><tt>-dCOLORSCREEN=false</tt></b> forces the use of
+a single binary screen.  The default if <b><tt>COLORSCREEN</tt></b> is not
+specified is to use separate screens with different angles if the device
+has fewer than 5 bits per color, and a single binary screen (which is never
+actually used under normal circumstances) on all other devices.
+</dl>
+
+<dl>
+<dt><b><tt>-dDITHERPPI=</tt></b><em>lpi</em>
+<dd>Forces all devices to be considered high-resolution, and forces use of
+a halftone screen or screens with <em>lpi</em> lines per inch, disregarding
+the actual device resolution.  Reasonable values for <em>lpi</em> are
+<b><em>N</em></b>/5 to <b><em>N</em></b>/20, where <b><em>N</em></b> is the
+resolution in dots per inch.
+</dl>
+
+<dl>
+<dt><b><tt>-dDOINTERPOLATE</tt></b>
+<dd>Turns on image interpolation for all images, improving image quality for
+scaled images at the expense of speed.  Note that
+<b><tt>-dNOINTERPOLATE</tt></b> overrides <b><tt>-dDOINTERPOLATE</tt></b> if
+both are specified.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOCIE</tt></b>
+<dd>Substitutes <b><tt>DeviceGray</tt></b> and <b><tt>DeviceRGB</tt></b>
+for CIEBasedA and CIEBasedABC color spaces respectively.  Useful only on
+very slow systems where color accuracy is less important.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOINTERPOLATE</tt></b>
+<dd>Turns off image interpolation, improving performance on interpolated
+images at the expense of image quality.  <b><tt>-dNOINTERPOLATE</tt></b>
+overrides <b><tt>-dDOINTERPOLATE</tt></b>.
+</dl>
+
+<h4><a name="Page_parameters"></a>Page parameters</h4>
+
+<dl>
+<dt><a name="FIXEDMEDIA"></a><b><tt>-dFIXEDMEDIA</tt></b>
+<dd>Causes the media size to be fixed after initialization, forcing pages
+of other sizes or orientations to be clipped.  This may be useful when
+printing documents on a printer that can handle their requested paper size
+but whose default is some other size.  Note that <b><tt>-g</tt></b>
+automatically sets <b><tt>-dFIXEDMEDIA</tt></b>, but
+<b><tt>-sPAPERSIZE=</tt></b> does not.
+</dl>
+
+<dl>
+<dt><b><tt>-dFIXEDRESOLUTION</tt></b>
+<dd>Causes the media resolution to be fixed similarly.  <b><tt>-r</tt></b>
+automatically sets <b><tt>-dFIXEDRESOLUTION</tt></b>.
+</dl>
+
+<dl>
+<dt><b><tt>-dORIENT1=true
+<br>-dORIENT1=false</tt></b>
+<dd>Defines the meaning of the 0 and 1 orientation values for the
+setpage[params] compatibility operators.  The default value of
+<b><tt>ORIENT1</tt></b> is true (set in <b><tt>gs_init.ps</tt></b>), which
+is the correct value for most files that use setpage[params] at all,
+namely, files produced by badly designed applications that "know" that the
+output will be printed on certain roll-media printers: these applications
+use 0 to mean landscape and 1 to mean portrait.
+<b><tt>-dORIENT1=false</tt></b> declares that 0 means portrait and 1 means
+landscape, which is the convention used by a smaller number of files
+produced by properly written applications.
+</dl>
+
+<dl>
+<dt><b><tt>-dDEVICEWIDTHPOINTS=</tt></b><em>w</em>
+<br><b><tt>-dDEVICEHEIGHTPOINTS=</tt></b><em>h</em>
+<dd>Sets the initial page width to <em>w</em> or initial page height to
+<em>h</em> respectively, specified in 1/72" units.
+</dl>
+
+<h4><a name="Font_related_parameters"></a>Font-related parameters</h4>
+
+<dl>
+<dt><a name="DISKFONTS"></a><b><tt>-dDISKFONTS</tt></b>
+<dd>Causes individual character outlines to be loaded from the disk the
+first time they are encountered.  (Normally Ghostscript loads all the
+character outlines when it loads a font.)  This may allow loading more
+fonts into memory at the expense of slower rendering.
+<b><tt>DISKFONTS</tt></b> is effective only if the diskfont feature was
+built into the executable; otherwise it is ignored.
+</dl>
+
+<dl>
+<dt><b><tt>-dLOCALFONTS</tt></b>
+<dd>Causes Type 1 fonts to be loaded into the current VM -- normally local
+VM -- instead of always being loaded into global VM.  Useful only for
+compatibility with Adobe printers for loading some obsolete fonts.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOCCFONTS</tt></b>
+<dd>Suppresses the use of fonts precompiled into the Ghostscript executable.
+See <a href="Fonts.htm#Precompiling">"Precompiling fonts"</a> in the
+documentation on fonts for details.  This is probably useful only for
+debugging.
+</dl>
+
+<dl>
+<dt><a name="FONTMAP_switch"></a><b><tt>-dNOFONTMAP</tt></b>
+<dd>Suppresses the normal loading of the Fontmap file.  This may be useful
+in environments without a file system.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOFONTPATH</tt></b>
+<dd>Suppresses consultation of <b><tt>GS_FONTPATH</tt></b>.  This may be
+useful for debugging.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOPLATFONTS</tt></b>
+<dd>Disables the use of fonts supplied by the underlying platform (X
+Windows or Microsoft Windows).  This may be needed if the platform fonts
+look undesirably different from the scalable fonts.
+</dl>
+
+<dl>
+<dt><b><tt>-sFONTMAP=</tt></b><em>filename1</em><b><tt>;</tt></b><em>filename2</em><b><tt>;</tt></b><em>...</em>
+<dd>Specifies alternate name or names for the Fontmap file.  Note that the
+names are separated by "<b><tt>:</tt></b>" on Unix systems, by
+"<b><tt>;</tt></b>" on DOS or MS Windows systems, and by
+"<b><tt>,</tt></b>" on VMS systems, just as for search paths.
+</dl>
+
+<dl>
+<dt><b><tt>-sFONTPATH=</tt></b><em>dir1</em><b><tt>;</tt></b><em>dir2</em><b><tt>;</tt></b><em>...</em>
+<dd>Specifies a list of directories that will be scanned when looking for
+fonts not found on the search path, overriding the environment variable
+<b><tt>GS_FONTPATH</tt></b>.
+</dl>
+
+<dl>
+<dt><b><tt>-sSUBSTFONT=</tt></b><em>fontname</em>
+<dd>Causes the given font to be substituted for all unknown fonts, instead
+of using the normal intelligent substitution algorithm.  Also, in this
+case, the font returned by <b><tt>findfont</tt></b> is the actual font
+named "<em>fontname</em>", not a copy of the font with the
+<b><tt>FontName</tt></b> changed to the requested one.
+</dl>
+
+<h4><a name="Interaction_related_parameters"></a>Interaction-related parameters</h4>
+
+<dl>
+<dt><b><tt>-dBATCH</tt></b>
+<dd>Causes Ghostscript to exit after processing all files named on the
+command line, rather than going into an interactive loop reading PostScript
+commands.  Equivalent to putting -c quit at the end of the command line.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOPAGEPROMPT</tt></b>
+<dd>Disables only the prompt, but not the pause, at the end of each page.
+This may be useful on PC displays that get confused if a program attempts
+to write text to the console while the display is in a graphics mode.
+</dl>
+
+<dl>
+<dt><a name="NoPause"></a><b><tt>-dNOPAUSE</tt></b>
+<dd>Disables the prompt and pause at the end of each page.  Normally one
+should use this (along with <b><tt>-dBATCH</tt></b>) when producing output
+on a printer or to a file; it also may be desirable for applications where
+another program is "driving" Ghostscript.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOPROMPT</tt></b>
+<dd>Disables the prompt printed by Ghostscript when it expects interactive
+input, as well as the end-of-page prompt (<b><tt>-dNOPAGEPROMPT</tt></b>);
+also disables the implicit <b><tt>flushpage</tt></b> that normally occurs
+each time Ghostscript asks for more input.  This allows piping input
+directly into Ghostscript, as long as the data doesn't refer to
+<b><tt>currentfile</tt></b>.
+</dl>
+
+<dl>
+<dt><a name="dQUIET"></a><b><tt>-dQUIET</tt></b>
+<dd>Suppresses routine information comments on standard output.  This is
+currently necessary when redirecting device output to standard output.
+</dl>
+
+<dl>
+<dt><b><tt>-dSHORTERRORS</tt></b>
+<dd>Makes certain error and information messages more Adobe-compatible.
+</dl>
+
+<dl>
+<dt><b><tt>-sstdout=</tt></b><em>filename</em>
+<dd>Redirect PostScript <b><tt>%stdout</tt></b> to a file or 
+<b><tt>stderr</tt></b>, to avoid it being mixed with device stdout.
+To redirect stdout to stderr use <b><tt>-sstdout=%stderr</tt></b>.
+To cancel redirection of stdout use <b><tt>-sstdout=%stdout</tt></b>
+or <b><tt>-sstdout=-</tt></b>.
+</dl>
+
+<dl>
+<dt><b><tt>-dTTYPAUSE</tt></b>
+<dd>Causes Ghostscript to read a character from <b><tt>/dev/tty</tt></b>,
+rather than standard input, at the end of each page.  This may be useful if
+input is coming from a pipe.  Note that <b><tt>-dTTYPAUSE</tt></b>
+overrides <b><tt>-dNOPAUSE</tt></b>.
+</dl>
+
+<h4><a name="Output_selection_parameters"></a>Device and output selection parameters</h4>
+
+<dl>
+<dt><b><tt>-dNODISPLAY</tt></b>
+<dd>Initializes Ghostscript with a null device (a device that discards the
+output image) rather than the default device or the device selected with
+<b><tt>-sDEVICE=</tt></b>.  This is usually useful only when running
+PostScript code whose purpose is to compute something rather than to
+produce an output image; for instance, when converting PostScript to PDF.
+</dl>
+
+<dl>
+<dt><a name="DEVICE_switch"></a><b><tt>-sDEVICE=</tt></b><em>device</em>
+<dd>Selects an alternate <a href="#Output_device">initial output
+device</a>.
+</dl>
+
+<dl>
+<dt><b><tt>-sOutputFile=</tt></b><em>filename</em>
+<dd>Selects an alternate output file (or pipe) for the initial output
+device, as described above.
+</dl>
+
+<h4><a name="Other_parameters"></a>Other parameters</h4>
+
+<dl>
+<dt><b><tt>-dDELAYBIND</tt></b>
+<dd>Causes <b><tt>bind</tt></b> to remember all its invocations, but not
+actually execute them until the <b><tt>.bindnow</tt></b> procedure is
+called.  Useful only for certain specialized packages like
+<b><tt>pstotext</tt></b> that redefine operators.
+</dl>
+
+<dl> 
+<dt><b><tt>-dDOPDFMARKS</tt></b> 
+<dd>Causes <b><tt>pdfmark</tt></b> to be called for bookmarks, 
+annotations, links and cropbox when processing PDF files. 
+Normally, <b><tt>pdfmark</tt></b> is only called for these types 
+for PostScript files or when the output device requests it 
+(e.g. pdfwrite device). 
+</dl> 
+
+<dl>
+<dt><b><tt>-dNOBIND</tt></b>
+<dd>Disables the <b><tt>bind</tt></b> operator.  Useful only for debugging.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOCACHE</tt></b>
+<dd>Disables character caching.  Useful only for debugging.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOGC</tt></b>
+<dd>Suppresses the initial automatic enabling of the garbage collector in
+Level 2 systems.  (The <b><tt>vmreclaim</tt></b> operator is not disabled.)
+Useful only for debugging.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOSAFER</tt></b> (equivalent to <b><tt>-dDELAYSAFER</tt></b>).
+<dd>This flag disables SAFER mode until the <b><tt>.setsafe</tt></b>
+procedure is run. This is intended for clients or scripts that cannot
+operate in SAFER mode. If Ghostscript is started with <b><tt>-dNOSAFER</tt></b>
+or <b><tt>-dDELAYSAFER</tt></b>, PostScript programs are allowed to read, write,
+rename or delete any files in the system that are not protected by operating
+system permissions.
+<p><b>This mode should be used with caution, and <tt>.setsafe</tt> should be
+run prior to running any PostScript file with unknown contents.</b>
+</dl>
+
+<a name="Safer"></a>
+<dl>
+<dt><b><tt>-dSAFER</tt></b>
+<dd>Disables the <b><tt>deletefile</tt></b> and <b><tt>renamefile</tt></b>
+operators, and the ability to open piped commands (<b><tt>%pipe%</tt></b><em>cmd</em>)
+at all. Only <b><tt>%stdout</tt></b> and <b><tt>%stderr</tt></b> can be opened
+for writing.
+<p>
+This mode also sets the <a href="Language.htm#LockSafetyParams">.LockSafetyParams</a>
+parameter of the default device, or the device specified with the <b><tt>-sDEVICE= </tt></b>
+switch to protect against programs that attempt to write to files using the
+OutputFile device parameter. Note that since the device parameters specified
+on the command line (including OutputFile) are set prior to SAFER mode,
+the <b><tt>-sOutputFile=...</tt></b> on the command line is unrestricted.
+<p>
+<b><tt>SAFER</tt></b> mode also prevents changing the /GenericResourceDir,
+/FontResourceDir and either the /SystemParamsPassword or the /StartJobPassword.
+<p>
+<b>Note: </b>While SAFER mode is not the default, in a subsequent release of
+Ghostscript, SAFER mode will be the default thus scripts or programs that need
+to open files or set restricted parameters will require the <b><tt>-dNOSAFER</tt></b>
+command line option.
+<p>
+When running -dNOSAFER it is possible to perform a <b><tt>save</tt></b>,
+followed by <b><tt>.setsafe</tt></b>, execute a file or procedure in SAFER mode,
+then use <b><tt>restore</tt></b> to return to NOSAFER mode. In order to prevent
+the save object from being restored by the foreign file or procedure, the
+<a href="Language.htm#Runandhide"><b>.runandhide</b></a> operator should
+be used to hide the save object from the restricted procedure.
+</dl>
+
+<dl>
+<dt><b><tt>-dPARANOIDSAFER</tt></b>
+<dd>Disables reading of files other than <b><tt>%stdin</tt></b>, those given as
+a command line argument, or those contained on one of the paths given by
+LIBPATH and FONTPATH and specified by the system params /FontResourceDir
+and /GenericResourceDir.
+<p>
+<b><tt>-dPARANOIDSAFER</tt></b> implies <b><tt>-dSAFER</tt></b> so if
+<b><tt>-dPARANOIDSAFER</tt></b> is given on the command line, 
+<b><tt>-dSAFER</tt></b> is optional.
+</dl>
+
+<dl>
+<dt><b><tt>-dSTRICT</tt></b>
+<dd>Disables as many Ghostscript extensions as feasible, to be more helpful
+in debugging applications that produce output for Adobe and other RIPs.
+</dl>
+
+<dl>
+<dt><b><tt>-dWRITESYSTEMDICT</tt></b>
+<dd>Leaves <b><tt>systemdict</tt></b> writable.  This is necessary when
+running special utility programs such as <b><tt>font2c</tt></b> and
+<b><tt>pcharstr</tt></b>, which must bypass normal PostScript access
+protection.
+</dl>
+
+<hr>
+
+<h2><a name="Improving_performance"></a>Improving performance</h2>
+
+<p>
+Ghostscript attempts to find an optimum balance between speed and memory
+consumption, but there are some cases in which you may get a very large
+speedup by telling Ghostscript to use more memory.
+
+<ul>
+
+<li>
+If you are using X Windows, setting the <b><tt>-dMaxBitmap=</tt></b>
+parameter described <a href="#X_device_parameters">above</a> may
+dramatically improve performance on files that have a lot of bitmap images.
+
+<li>
+If you are using Chinese, Japanese, or other fonts with very large character
+sets, adding the following sequence of switches before the first file name
+may dramatically improve performance at the cost of an additional 2-3 Mb of
+memory: <b><tt>-c&nbsp;3000000&nbsp;setvmthreshold&nbsp;-f</tt></b>.
+
+</ul>
+
+<hr>
+
+<h2><a name="Debugging"></a>Debugging</h2>
+
+<p>
+The information here describing the debugging switches is probably
+interesting only to developers.  The <b><tt>-Z</tt></b> switch applies only
+if the interpreter was <a href="Make.htm#Debugging">built for a debugging
+configuration</a>.  In the table below, the first column is a debugging
+switch, the second is an equivalent switch (if any) and the third is its
+usage.
+
+<table cellpadding=0 cellspacing=0>
+<tr><th colspan=5 bgcolor="#CCCC00"><hr><font size="+1">Switches used in debugging</font><hr>
+<tr>	<th align=left>Switch
+	<td>&nbsp;&nbsp;
+	<th align=left>Equivalent
+	<td>&nbsp;&nbsp;
+	<th>&nbsp;
+<tr>	<td colspan=5><hr>
+<tr>	<td valign=top><b><tt>-A</tt></b>
+	<td>&nbsp;
+	<td valign=top><b><tt>-Z@</tt></b>
+	<td>&nbsp;
+	<td>Fill empty storage with a distinctive bit pattern for debugging
+
+<tr>	<td valign=top><b><tt>-A-</tt></b>
+	<td>&nbsp;
+	<td valign=top><b><tt>-Z-@</tt></b>
+	<td>&nbsp;
+	<td>Turn off <b><tt>-A</tt></b>
+<tr>	<td valign=top><b><tt>-B</tt></b><em>size</em>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>Run all subsequent files named on the command line (except for
+	    <b><tt>-F</tt></b>) through the run_string interface, using a
+	    buffer of <em>size</em> bytes
+<tr>	<td valign=top><b><tt>-B-</tt></b>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>Turn off <b><tt>-B</tt></b>: run subsequent files (except for
+	    <b><tt>-F</tt></b>) directly in the normal way
+<tr>	<td valign=top><b><tt>-E</tt></b>
+	<td>&nbsp;
+	<td valign=top><b><tt>-Z#</tt></b>
+	<td>&nbsp;
+	<td>Turn on tracing of error returns from operators
+<tr>	<td valign=top><b><tt>-E-</tt></b>
+	<td>&nbsp;
+	<td valign=top><b><tt>-Z-#</tt></b>
+	<td>&nbsp;
+	<td>Turn off <b><tt>-E</tt></b>
+<tr>	<td valign=top><b><tt>-F</tt></b><em>file</em>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>Execute the file with <b><tt>-B1</tt></b> temporarily in effect
+<tr>	<td valign=top><b><tt>-K</tt></b><em>n</em>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>Limit the total amount of memory that the interpreter can have
+	    allocated at any one time to <b><em>n</em></b>K bytes.
+	    <b><em>n</em></b> is a positive decimal integer.
+<tr>	<td valign=top><b><tt>-M</tt></b><em>n</em>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>Force the interpreter's allocator to acquire additional memory
+	    in units of <b><em>n</em></b>K bytes, rather than the default
+	    (currently 20K on DOS systems, 50K on Unix). <b><em>n</em></b>
+	    is a positive decimal integer, on DOS systems no greater than
+	    63.
+<tr>	<td valign=top><b><tt>-N</tt></b><em>n</em>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>Allocate space for <b><em>n</em></b>K names, rather than the
+	    default (normally 64K).  <b><em>n</em></b> may be greater than
+	    64 only if <b><tt>EXTEND_NAMES</tt></b> was defined when the
+	    interpreter was compiled .
+<tr>	<td valign=top><b><tt>-Z</tt></b><em>xxx</em><br><b><tt>-Z-</tt></b><em>xxx</em>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>Turn debugging printout on (off). Each of the <em>xxx</em>
+	    characters selects an option.  Case is significant: "a" and
+	    "A" have different meanings.
+
+<dl compact>
+<dt><b><tt>0</tt></b><dd>garbage collector, minimal detail
+<dt><b><tt>1</tt></b><dd>type 1 and type 42 font interpreter
+<dt><b><tt>2</tt></b><dd>curve subdivider/rasterizer
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>3</tt></b><dd>curve subdivider/rasterizer, detail
+<dt><b><tt>4</tt></b><dd>garbage collector (strings)
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>5</tt></b><dd>garbage collector (strings, detail)
+<dt><b><tt>6</tt></b><dd>garbage collector (chunks, roots)
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>7</tt></b><dd>garbage collector (objects)
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>8</tt></b><dd>garbage collector (refs)
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>9</tt></b><dd>garbage collector (pointers)
+<dt><b><tt>a</tt></b><dd>allocator (large blocks only)
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>A</tt></b><dd>allocator (all calls)
+<dt><b><tt>b</tt></b><dd>bitmap image processor
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>B</tt></b><dd>bitmap images, detail
+<dt><b><tt>c</tt></b><dd>color/halftone mapper
+<dt><b><tt>d</tt></b><dd>dictionary put/undef
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>D</tt></b><dd>dictionary lookups
+<dt><b><tt>e</tt></b><dd>external (OS-related) calls
+<dt><b><tt>f</tt></b><dd>fill algorithm (summary)
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>F</tt></b><dd>fill algorithm (detail)
+<dt><b><tt>g</tt></b><dd>gsave/grestore[all]
+<dt><b><tt>h</tt></b><dd>halftone renderer
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>H</tt></b><dd>halftones, every pixel
+<dt><b><tt>i</tt></b><dd>interpreter, just names
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>I</tt></b><dd>interpreter, everything
+<dt><b><tt>j</tt></b><dd>(Japanese) composite fonts
+<dt><b><tt>k</tt></b><dd>character cache and xfonts
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>K</tt></b><dd>character cache, every access
+<dt><b><tt>l</tt></b><dd>command lists, bands
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>L</tt></b><dd>command lists, everything
+<dt><b><tt>m</tt></b><dd>makefont and font cache
+<dt><b><tt>n</tt></b><dd>name lookup (new names only)
+<dt><b><tt>o</tt></b><dd>outliner (stroke)
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>O</tt></b><dd>stroke detail
+<dt><b><tt>p</tt></b><dd>band list paths
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>P</tt></b><dd>all paths
+<dt><b><tt>q</tt></b><dd>clipping
+<dt><b><tt>r</tt></b><dd>arc renderer
+<dt><b><tt>s</tt></b><dd>streams
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>S</tt></b><dd>scanner
+<dt><b><tt>t</tt></b><dd>tiling algorithm
+<dt><b><tt>u</tt></b><dd>undo saver (for save/restore), finalization
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>U</tt></b><dd>undo saver, more detail
+<dt><b><tt>v</tt></b><dd>alpha/transparency
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>V</tt></b><dd>alpha/transparency, more detail
+<dt><b><tt>w</tt></b><dd>compression encoder/decoder
+<dt><b><tt>x</tt></b><dd>transformations
+<dt><b><tt>y</tt></b><dd>Type 1 hints
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>Y</tt></b><dd>Type 1 hints, every access
+<dt><b><tt>z</tt></b><dd>trapezoid fill
+<dt><b><tt>#</tt></b><dd>operator error returns
+<dt><b><tt>%</tt></b><dd>externally processed comments
+<dt><b><tt>*</tt></b><dd>image and RasterOp parameters
+<dt><b><tt>:</tt></b><dd>command list and allocator/time summary
+<dt><b><tt>~</tt></b><dd>math functions and Functions
+<dt><b><tt>'</tt></b><dd>contexts, create/destroy
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>"</tt></b><dd>contexts, every operation
+<dt><b><tt>^</tt></b><dd>reference counting
+<dt><b><tt>_</tt></b><dd>high-level output
+<dt><b><tt>|</tt></b><dd>(reserved for experimental code)
+</dl>
+
+<p>
+The following switch affects what is printed, but does not select specific
+items for printing:
+
+<dl compact>
+<dt><b><tt>/</tt></b><dd>include file name and line number on all trace output
+</dl>
+
+<p>
+These switches select debugging options other than what should be printed:
+
+<dl compact>
+<dt><b><tt>$</tt></b><dd>set unused parts of object references to
+identifiable garbage values
+<dt><b><tt>+</tt></b><dd>use minimum-size stack blocks
+<dt><b><tt>,</tt></b><dd>don't use path-based banding
+<dt><b><tt>`</tt></b><dd>don't use high-level banded images
+<dt><b><tt>.</tt></b><dd>use small-memory table sizes even on large-memory
+machines
+<dt><b><tt>?</tt></b><dd>validate pointers before, during and after garbage
+collection, also before and after save and restore; also make other
+allocator validity checks
+<dt><b><tt>@</tt></b><dd>fill newly allocated, garbage-collected, and freed
+storage with a marker (a1, c1, and f1 respectively)
+</dl>
+</table>
+
+<hr>
+
+<h2><a name="Known_paper_sizes"></a>Appendix: Paper sizes known to Ghostscript</h2>
+
+<p>
+The paper sizes known to Ghostscript are defined at the beginning of the
+initialization file <b><tt>gs_statd.ps</tt></b>; see the comments there for
+more details about the definitions. The table here lists them by name and
+size.  <b><tt>gs_statd.ps</tt></b> defines their sizes exactly in points,
+and the dimensions in inches (at 72 points per inch) and centimeters shown
+in the table are derived from those, rounded to the nearest 0.1 unit.  A
+guide to international paper sizes can be found at
+
+<blockquote>
+<a href="http://www.twics.com/~eds/papersize.html">http://www.twics.com/~eds/papersize.html</a>
+</blockquote>
+
+<table cellpadding=0 cellspacing=0>
+<tr><th colspan=13 bgcolor="#CCCC00"><hr><font size="+1">Paper sizes known to Ghostscript</font><hr>
+<tr><th colspan=13>U.S. standard
+<tr>	<td>&nbsp;
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<th colspan=3>Inches
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<th colspan=3>cm
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<th colspan=3>Points
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<td>&nbsp;
+<tr>	<th align=left>Name
+	<td>&nbsp;
+	<th>&nbsp;W&nbsp;
+	<td>&times;
+	<th>&nbsp;H&nbsp;
+	<td>&nbsp;
+	<th>&nbsp;W&nbsp;
+	<td>&times;
+	<th>&nbsp;H&nbsp;
+	<td>&nbsp;
+	<th>&nbsp;W&nbsp;
+	<td>&times;
+	<th>&nbsp;H&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+<tr>	<td colspan=13><hr>
+<tr>	<td>11x17
+	<td>&nbsp;&nbsp;<td align=right>11.0<td>&nbsp;&nbsp;<td align=right>17.0<td>&nbsp;&nbsp;<td align=right>27.9<td>&nbsp;&nbsp;<td align=right>43.2<td>&nbsp;&nbsp;<td align=right>792<td>&nbsp;&nbsp;<td align=right>1224<td>&nbsp;&nbsp;<td>11&times;17in portrait
+<tr>	<td>ledger
+	<td>&nbsp;<td align=right>17.0<td>&nbsp;<td align=right>11.0<td>&nbsp;<td align=right>43.2<td>&nbsp;<td align=right>27.9<td>&nbsp;<td align=right>1224<td>&nbsp;<td align=right>792<td>&nbsp;<td>11&times;17in landscape
+<tr>	<td>legal
+	<td>&nbsp;<td align=right>8.5<td>&nbsp;<td align=right>14.0<td>&nbsp;<td align=right>21.6<td>&nbsp;<td align=right>35.6<td>&nbsp;<td align=right>612<td>&nbsp;<td align=right>1008<td>&nbsp;<td>&nbsp;
+<tr>	<td>letter
+	<td>&nbsp;<td align=right>8.5<td>&nbsp;<td align=right>11.0<td>&nbsp;<td align=right>21.6<td>&nbsp;<td align=right>27.9<td>&nbsp;<td align=right>612<td>&nbsp;<td align=right>792<td>&nbsp;<td>&nbsp;
+<tr>	<td>lettersmall
+	<td>&nbsp;<td align=right>8.5<td>&nbsp;<td align=right>11.0<td>&nbsp;<td align=right>21.6<td>&nbsp;<td align=right>27.9<td>&nbsp;<td align=right>612<td>&nbsp;<td align=right>792<td>&nbsp;<td>&nbsp;
+<tr>	<td>archE
+	<td>&nbsp;<td align=right>36.0<td>&nbsp;<td align=right>48.0<td>&nbsp;<td align=right>91.4<td>&nbsp;<td align=right>121.9<td>&nbsp;<td align=right>2592<td>&nbsp;<td align=right>3456<td>&nbsp;<td>&nbsp;
+<tr>	<td>archD
+	<td>&nbsp;<td align=right>24.0<td>&nbsp;<td align=right>36.0<td>&nbsp;<td align=right>61.0<td>&nbsp;<td align=right>91.4<td>&nbsp;<td align=right>1728<td>&nbsp;<td align=right>2592<td>&nbsp;<td>&nbsp;
+<tr>	<td>archC
+	<td>&nbsp;<td align=right>18.0<td>&nbsp;<td align=right>24.0<td>&nbsp;<td align=right>45.7<td>&nbsp;<td align=right>61.0<td>&nbsp;<td align=right>1296<td>&nbsp;<td align=right>1728<td>&nbsp;<td>&nbsp;
+<tr>	<td>archB
+	<td>&nbsp;<td align=right>12.0<td>&nbsp;<td align=right>18.0<td>&nbsp;<td align=right>30.5<td>&nbsp;<td align=right>45.7<td>&nbsp;<td align=right>864<td>&nbsp;<td align=right>1296<td>&nbsp;<td>&nbsp;
+<tr>	<td>archA
+	<td>&nbsp;<td align=right>9.0<td>&nbsp;<td align=right>12.0<td>&nbsp;<td align=right>22.9<td>&nbsp;<td align=right>30.5<td>&nbsp;<td align=right>648<td>&nbsp;<td align=right>864<td>&nbsp;<td>&nbsp;
+<tr>	<td colspan=13><hr>
+<tr><th colspan=13>ISO standard
+<tr>	<td colspan=13><hr>
+<tr>	<td>a0
+	<td>&nbsp;<td align=right>33.1<td>&nbsp;<td align=right>46.8<td>&nbsp;<td align=right>84.0<td>&nbsp;<td align=right>118.8<td>&nbsp;<td align=right>2380<td>&nbsp;<td align=right>3368<td>&nbsp;<td>&nbsp;
+<tr>	<td>a1
+	<td>&nbsp;<td align=right>23.4<td>&nbsp;<td align=right>33.1<td>&nbsp;<td align=right>59.4<td>&nbsp;<td align=right>84.0<td>&nbsp;<td align=right>1684<td>&nbsp;<td align=right>2380<td>&nbsp;<td>&nbsp;
+<tr>	<td>a2
+	<td>&nbsp;<td align=right>16.5<td>&nbsp;<td align=right>23.4<td>&nbsp;<td align=right>42.0<td>&nbsp;<td align=right>59.4<td>&nbsp;<td align=right>1190<td>&nbsp;<td align=right>1684<td>&nbsp;<td>&nbsp;
+<tr>	<td>a3
+	<td>&nbsp;<td align=right>11.7<td>&nbsp;<td align=right>16.5<td>&nbsp;<td align=right>29.7<td>&nbsp;<td align=right>42.0<td>&nbsp;<td align=right>842<td>&nbsp;<td align=right>1190<td>&nbsp;<td>&nbsp;
+<tr>	<td>a4
+	<td>&nbsp;<td align=right>8.3<td>&nbsp;<td align=right>11.7<td>&nbsp;<td align=right>21.0<td>&nbsp;<td align=right>29.7<td>&nbsp;<td align=right>595<td>&nbsp;<td align=right>842<td>&nbsp;<td>&nbsp;
+<tr>	<td>a4small
+	<td>&nbsp;<td align=right>8.3<td>&nbsp;<td align=right>11.7<td>&nbsp;<td align=right>21.0<td>&nbsp;<td align=right>29.7<td>&nbsp;<td align=right>595<td>&nbsp;<td align=right>842<td>&nbsp;<td>&nbsp;
+<tr>	<td>a5
+	<td>&nbsp;<td align=right>5.8<td>&nbsp;<td align=right>8.3<td>&nbsp;<td align=right>14.9<td>&nbsp;<td align=right>21.0<td>&nbsp;<td align=right>421<td>&nbsp;<td align=right>595<td>&nbsp;<td>&nbsp;
+<tr>	<td>a6
+	<td>&nbsp;<td align=right>4.1<td>&nbsp;<td align=right>5.8<td>&nbsp;<td align=right>10.5<td>&nbsp;<td align=right>14.9<td>&nbsp;<td align=right>297<td>&nbsp;<td align=right>421<td>&nbsp;<td>&nbsp;
+<tr>	<td>a7
+	<td>&nbsp;<td align=right>2.9<td>&nbsp;<td align=right>4.1<td>&nbsp;<td align=right>7.4<td>&nbsp;<td align=right>10.5<td>&nbsp;<td align=right>210<td>&nbsp;<td align=right>297<td>&nbsp;<td>&nbsp;
+<tr>	<td>a8
+	<td>&nbsp;<td align=right>2.1<td>&nbsp;<td align=right>2.9<td>&nbsp;<td align=right>5.2<td>&nbsp;<td align=right>7.4<td>&nbsp;<td align=right>148<td>&nbsp;<td align=right>210<td>&nbsp;<td>&nbsp;
+<tr>	<td>a9
+	<td>&nbsp;<td align=right>1.5<td>&nbsp;<td align=right>2.1<td>&nbsp;<td align=right>3.7<td>&nbsp;<td align=right>5.2<td>&nbsp;<td align=right>105<td>&nbsp;<td align=right>148<td>&nbsp;<td>&nbsp;
+<tr>	<td>a10
+	<td>&nbsp;<td align=right>1.0<td>&nbsp;<td align=right>1.5<td>&nbsp;<td align=right>2.6<td>&nbsp;<td align=right>3.7<td>&nbsp;<td align=right>74<td>&nbsp;<td align=right>105<td>&nbsp;<td>&nbsp;
+<tr>	<td>isob0
+	<td>&nbsp;<td align=right>39.4<td>&nbsp;<td align=right>55.7<td>&nbsp;<td align=right>100.0<td>&nbsp;<td align=right>141.4<td>&nbsp;<td align=right>2836<td>&nbsp;<td align=right>4008<td>&nbsp;<td>&nbsp;
+<tr>	<td>isob1
+	<td>&nbsp;<td align=right>27.8<td>&nbsp;<td align=right>39.4<td>&nbsp;<td align=right>70.7<td>&nbsp;<td align=right>100.0<td>&nbsp;<td align=right>2004<td>&nbsp;<td align=right>2836<td>&nbsp;<td>&nbsp;
+<tr>	<td>isob2
+	<td>&nbsp;<td align=right>19.7<td>&nbsp;<td align=right>27.8<td>&nbsp;<td align=right>50.0<td>&nbsp;<td align=right>70.7<td>&nbsp;<td align=right>1418<td>&nbsp;<td align=right>2004<td>&nbsp;<td>&nbsp;
+<tr>	<td>isob3
+	<td>&nbsp;<td align=right>13.9<td>&nbsp;<td align=right>19.7<td>&nbsp;<td align=right>35.3<td>&nbsp;<td align=right>50.0<td>&nbsp;<td align=right>1002<td>&nbsp;<td align=right>1418<td>&nbsp;<td>&nbsp;
+<tr>	<td>isob4
+	<td>&nbsp;<td align=right>9.8<td>&nbsp;<td align=right>13.9<td>&nbsp;<td align=right>25.0<td>&nbsp;<td align=right>35.3<td>&nbsp;<td align=right>709<td>&nbsp;<td align=right>1002<td>&nbsp;<td>&nbsp;
+<tr>	<td>isob5
+	<td>&nbsp;<td align=right>7.0<td>&nbsp;<td align=right>9.8<td>&nbsp;<td align=right>17.7<td>&nbsp;<td align=right>25.0<td>&nbsp;<td align=right>501<td>&nbsp;<td align=right>709<td>&nbsp;<td>&nbsp;
+<tr>	<td>c0
+	<td>&nbsp;<td align=right>36.1<td>&nbsp;<td align=right>51.1<td>&nbsp;<td align=right>91.7<td>&nbsp;<td align=right>129.7<td>&nbsp;<td align=right>2600<td>&nbsp;<td align=right>3677<td>&nbsp;<td>&nbsp;
+<tr>	<td>c1
+	<td>&nbsp;<td align=right>25.5<td>&nbsp;<td align=right>36.1<td>&nbsp;<td align=right>64.8<td>&nbsp;<td align=right>91.7<td>&nbsp;<td align=right>1837<td>&nbsp;<td align=right>2600<td>&nbsp;<td>&nbsp;
+<tr>	<td>c2
+	<td>&nbsp;<td align=right>18.0<td>&nbsp;<td align=right>25.5<td>&nbsp;<td align=right>45.8<td>&nbsp;<td align=right>64.8<td>&nbsp;<td align=right>1298<td>&nbsp;<td align=right>1837<td>&nbsp;<td>&nbsp;
+<tr>	<td>c3
+	<td>&nbsp;<td align=right>12.8<td>&nbsp;<td align=right>18.0<td>&nbsp;<td align=right>32.4<td>&nbsp;<td align=right>45.8<td>&nbsp;<td align=right>918<td>&nbsp;<td align=right>1298<td>&nbsp;<td>&nbsp;
+<tr>	<td>c4
+	<td>&nbsp;<td align=right>9.0<td>&nbsp;<td align=right>12.8<td>&nbsp;<td align=right>22.9<td>&nbsp;<td align=right>32.4<td>&nbsp;<td align=right>649<td>&nbsp;<td align=right>918<td>&nbsp;<td>&nbsp;
+<tr>	<td>c5
+	<td>&nbsp;<td align=right>6.4<td>&nbsp;<td align=right>9.0<td>&nbsp;<td align=right>16.2<td>&nbsp;<td align=right>22.9<td>&nbsp;<td align=right>459<td>&nbsp;<td align=right>649<td>&nbsp;<td>&nbsp;
+<tr>	<td>c6
+	<td>&nbsp;<td align=right>4.5<td>&nbsp;<td align=right>6.4<td>&nbsp;<td align=right>11.4<td>&nbsp;<td align=right>16.2<td>&nbsp;<td align=right>323<td>&nbsp;<td align=right>459<td>&nbsp;<td>&nbsp;
+<tr>	<td colspan=13><hr>
+<tr><th colspan=13>JIS standard
+<tr>	<td colspan=13><hr>
+<tr>	<td>jisb0
+	<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td align=right>103.0<td>&nbsp;<td align=right>145.6<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td>&nbsp;
+<tr>	<td>jisb1
+	<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td align=right>72.8<td>&nbsp;<td align=right>103.0<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td>&nbsp;
+<tr>	<td>jisb2
+	<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td align=right>51.5<td>&nbsp;<td align=right>72.8<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td>&nbsp;
+<tr>	<td>jisb3
+	<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td align=right>36.4<td>&nbsp;<td align=right>51.5<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td>&nbsp;
+<tr>	<td>jisb4
+	<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td align=right>25.7<td>&nbsp;<td align=right>36.4<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td>&nbsp;
+<tr>	<td>jisb5
+	<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td align=right>18.2<td>&nbsp;<td align=right>25.7<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td>&nbsp;
+<tr>	<td>jisb6
+	<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td align=right>12.8<td>&nbsp;<td align=right>18.2<td>&nbsp;<td align=right><td>&nbsp;<td align=right><td>&nbsp;<td>&nbsp;
+<tr>	<td colspan=13><hr>
+<tr><th colspan=13>ISO/JIS switchable
+<tr>	<td colspan=13><hr>
+<tr>	<td>b0 (see * below)
+<tr>	<td>b1 (see * below)
+<tr>	<td>b2 (see * below)
+<tr>	<td>b3 (see * below)
+<tr>	<td>b4 (see * below)
+<tr>	<td>b5 (see * below)
+<tr>	<td colspan=13><hr>
+<tr><th colspan=13>Other
+<tr>	<td colspan=13><hr>
+<tr>	<td>flsa
+	<td>&nbsp;<td align=right>8.5<td>&nbsp;<td align=right>13.0<td>&nbsp;<td align=right>21.6<td>&nbsp;<td align=right>33.0<td>&nbsp;<td align=right>612<td>&nbsp;<td align=right>936<td>&nbsp;<td>U.S. foolscap
+<tr>	<td>flse
+	<td>&nbsp;<td align=right>8.5<td>&nbsp;<td align=right>13.0<td>&nbsp;<td align=right>21.6<td>&nbsp;<td align=right>33.0<td>&nbsp;<td align=right>612<td>&nbsp;<td align=right>936<td>&nbsp;<td>European foolscap
+<tr>	<td>halfletter
+	<td>&nbsp;<td align=right>5.5<td>&nbsp;<td align=right>8.5<td>&nbsp;<td align=right>14.0<td>&nbsp;<td align=right>21.6<td>&nbsp;<td align=right>396<td>&nbsp;<td align=right>612<td>&nbsp;<td>&nbsp;
+</table>
+
+<p>
+*<em>Note:</em> Initially the B paper sizes are the ISO sizes, e.g.,
+<b><tt>b0</tt></b> is the same as <b><tt>isob0</tt></b>.  Running the file
+<b><tt>lib/jispaper.ps</tt></b> makes the B paper sizes be the JIS sizes,
+e.g., <b><tt>b0</tt></b> becomes the same as <b><tt>jisb0</tt></b>.
+
+<hr>
+
+<h2><a name="X_font_mappings"></a>Appendix: X default font mappings</h2>
+
+<h3><a name="Standard_X_server_fonts"></a>Standard X servers</h3>
+
+<h4><a name="X_regular_fonts"></a>Regular fonts</h4>
+
+<pre>    AvantGarde-Book:              -Adobe-ITC Avant Garde Gothic-Book-R-Normal--\n\
+    AvantGarde-BookOblique:       -Adobe-ITC Avant Garde Gothic-Book-O-Normal--\n\
+    AvantGarde-Demi:              -Adobe-ITC Avant Garde Gothic-Demi-R-Normal--\n\
+    AvantGarde-DemiOblique:       -Adobe-ITC Avant Garde Gothic-Demi-O-Normal--\n\
+    Bookman-Demi:                 -Adobe-ITC Bookman-Demi-R-Normal--\n\
+    Bookman-DemiItalic:           -Adobe-ITC Bookman-Demi-I-Normal--\n\
+    Bookman-Light:                -Adobe-ITC Bookman-Light-R-Normal--\n\
+    Bookman-LightItalic:          -Adobe-ITC Bookman-Light-I-Normal--\n\
+    Courier:                      -Adobe-Courier-Medium-R-Normal--\n\
+    Courier-Bold:                 -Adobe-Courier-Bold-R-Normal--\n\
+    Courier-BoldOblique:          -Adobe-Courier-Bold-O-Normal--\n\
+    Courier-Oblique:              -Adobe-Courier-Medium-O-Normal--\n\
+    Helvetica:                    -Adobe-Helvetica-Medium-R-Normal--\n\
+    Helvetica-Bold:               -Adobe-Helvetica-Bold-R-Normal--\n\
+    Helvetica-BoldOblique:        -Adobe-Helvetica-Bold-O-Normal--\n\
+    Helvetica-Narrow:             -Adobe-Helvetica-Medium-R-Narrow--\n\
+    Helvetica-Narrow-Bold:        -Adobe-Helvetica-Bold-R-Narrow--\n\
+    Helvetica-Narrow-BoldOblique: -Adobe-Helvetica-Bold-O-Narrow--\n\
+    Helvetica-Narrow-Oblique:     -Adobe-Helvetica-Medium-O-Narrow--\n\
+    Helvetica-Oblique:            -Adobe-Helvetica-Medium-O-Normal--\n\
+    NewCenturySchlbk-Bold:        -Adobe-New Century Schoolbook-Bold-R-Normal--\n\
+    NewCenturySchlbk-BoldItalic:  -Adobe-New Century Schoolbook-Bold-I-Normal--\n\
+    NewCenturySchlbk-Italic:      -Adobe-New Century Schoolbook-Medium-I-Normal--\n\
+    NewCenturySchlbk-Roman:       -Adobe-New Century Schoolbook-Medium-R-Normal--\n\
+    Palatino-Bold:                -Adobe-Palatino-Bold-R-Normal--\n\
+    Palatino-BoldItalic:          -Adobe-Palatino-Bold-I-Normal--\n\
+    Palatino-Italic:              -Adobe-Palatino-Medium-I-Normal--\n\
+    Palatino-Roman:               -Adobe-Palatino-Medium-R-Normal--\n\
+    Times-Bold:                   -Adobe-Times-Bold-R-Normal--\n\
+    Times-BoldItalic:             -Adobe-Times-Bold-I-Normal--\n\
+    Times-Italic:                 -Adobe-Times-Medium-I-Normal--\n\
+    Times-Roman:                  -Adobe-Times-Medium-R-Normal--\n\
+    ZapfChancery-MediumItalic:    -Adobe-ITC Zapf Chancery-Medium-I-Normal--
+</pre>
+
+<h4><a name="X_symbol_fonts"></a>Symbol fonts</h4>
+
+<pre>    Symbol:                       -Adobe-Symbol-Medium-R-Normal--
+</pre>
+
+<h4><a name="X_dingbat_fonts"></a>Dingbat fonts</h4>
+
+<pre>    ZapfDingbats:                 -Adobe-ITC Zapf Dingbats-Medium-R-Normal--
+</pre>
+
+<h3><a name="OpenWindows_fonts"></a>Sun OpenWindows</h3>
+
+<p>
+For Sun's X11/NeWS one can use the OpenWindows scalable fonts instead,
+which gives good output for any point size.  In this environment, the
+relevant section of the resource file should look like this:
+
+<pre>Ghostscript.regularFonts: \
+    AvantGarde-Book:              -itc-avantgarde-book-r-normal-- \n\
+    AvantGarde-BookOblique:       -itc-avantgarde-book-o-normal-- \n\
+    AvantGarde-Demi:              -itc-avantgarde-demi-r-normal-- \n\
+    AvantGarde-DemiOblique:       -itc-avantgarde-demi-o-normal-- \n\
+    Bembo:                        -monotype-bembo-medium-r-normal-- \n\
+    Bembo-Bold:                   -monotype-bembo-bold-r-normal-- \n\
+    Bembo-BoldItalic:             -monotype-bembo-bold-i-normal-- \n\
+    Bembo-Italic:                 -monotype-bembo-medium-i-normal-- \n\
+    Bookman-Demi:                 -itc-bookman-demi-r-normal-- \n\
+    Bookman-DemiItalic:           -itc-bookman-demi-i-normal-- \n\
+    Bookman-Light:                -itc-bookman-light-r-normal-- \n\
+    Bookman-LightItalic:          -itc-bookman-light-i-normal-- \n\
+    Courier:                      -itc-courier-medium-r-normal-- \n\
+    Courier-Bold:                 -itc-courier-bold-r-normal-- \n\
+    Courier-BoldOblique:          -itc-courier-bold-o-normal-- \n\
+    Courier-Oblique:              -itc-courier-medium-o-normal-- \n\
+    GillSans:                     -monotype-gill-medium-r-normal-sans- \n\
+    GillSans-Bold:                -monotype-gill-bold-r-normal-sans- \n\
+    GillSans-BoldItalic:          -monotype-gill-bold-i-normal-sans- \n\
+    GillSans-Italic:              -monotype-gill-normal-i-normal-sans- \n\
+    Helvetica:                    -linotype-helvetica-medium-r-normal-- \n\
+    Helvetica-Bold:               -linotype-helvetica-bold-r-normal-- \n\
+    Helvetica-BoldOblique:        -linotype-helvetica-bold-o-normal-- \n\
+    Helvetica-Narrow:             -linotype-helvetica-medium-r-narrow-- \n\
+    Helvetica-Narrow-Bold:        -linotype-helvetica-bold-r-narrow-- \n\
+    Helvetica-Narrow-BoldOblique: -linotype-helvetica-bold-o-narrow-- \n\
+    Helvetica-Narrow-Oblique:     -linotype-helvetica-medium-o-narrow-- \n\
+    Helvetica-Oblique:            -linotype-helvetica-medium-o-normal-- \n\
+    LucidaBright:                 -b&amp;h-lucidabright-medium-r-normal-- \n\
+    LucidaBright-Demi:            -b&amp;h-lucidabright-demibold-r-normal-- \n\
+    LucidaBright-DemiItalic:      -b&amp;h-lucidabright-demibold-i-normal-- \n\
+    LucidaBright-Italic:          -b&amp;h-lucidabright-medium-i-normal-- \n\
+    LucidaSans:                   -b&amp;h-lucida-medium-r-normal-sans- \n\
+    LucidaSans-Bold:              -b&amp;h-lucida-bold-r-normal-sans- \n\
+    LucidaSans-BoldItalic:        -b&amp;h-lucida-bold-i-normal-sans- \n\
+    LucidaSans-Italic:            -b&amp;h-lucida-medium-i-normal-sans- \n\
+    LucidaSans-Typewriter:        -b&amp;h-lucidatypewriter-medium-r-normal-sans- \n\
+    LucidaSans-TypewriterBold:    -b&amp;h-lucidatypewriter-bold-r-normal-sans- \n\
+    NewCenturySchlbk-BoldItalic:  -linotype-new century schoolbook-bold-i-normal-- \n\
+    NewCenturySchlbk-Bold:        -linotype-new century schoolbook-bold-r-normal-- \n\
+    NewCenturySchlbk-Italic:      -linotype-new century schoolbook-medium-i-normal-- \n\
+    NewCenturySchlbk-Roman:       -linotype-new century schoolbook-medium-r-normal-- \n\
+    Palatino-Bold:                -linotype-palatino-bold-r-normal-- \n\
+    Palatino-BoldItalic:          -linotype-palatino-bold-i-normal-- \n\
+    Palatino-Italic:              -linotype-palatino-medium-i-normal-- \n\
+    Palatino-Roman:               -linotype-palatino-medium-r-normal-- \n\
+    Rockwell:                     -monotype-rockwell-medium-r-normal-- \n\
+    Rockwell-Bold:                -monotype-rockwell-bold-r-normal-- \n\
+    Rockwell-BoldItalic:          -monotype-rockwell-bold-i-normal-- \n\
+    Rockwell-Italic:              -monotype-rockwell-medium-i-normal-- \n\
+    Times-Bold:                   -linotype-times-bold-r-normal-- \n\
+    Times-BoldItalic:             -linotype-times-bold-i-normal-- \n\
+    Times-Italic:                 -linotype-times-medium-i-normal-- \n\
+    Times-Roman:                  -linotype-times-medium-r-normal-- \n\
+    Utopia-Bold:                  -adobe-utopia-bold-r-normal-- \n\
+    Utopia-BoldItalic:            -adobe-utopia-bold-i-normal-- \n\
+    Utopia-Italic:                -adobe-utopia-regular-i-normal-- \n\
+    Utopia-Regular:               -adobe-utopia-regular-r-normal-- \n\
+    ZapfChancery-MediumItalic:    -itc-zapfchancery-medium-i-normal-- \n
+Ghostscript.dingbatFonts: \
+    ZapfDingbats:                 -itc-zapfdingbats-medium-r-normal--
+Ghostscript.symbolFonts: \
+    Symbol:                       --symbol-medium-r-normal--
+</pre>
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+<hr>
+
+<p>
+<small>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights
+reserved.</small>
+
+<p>
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
+
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

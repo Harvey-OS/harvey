@@ -1,0 +1,13 @@
+APE=/sys/src/ape
+<$APE/config
+
+TARG=sed
+OFILES=sed0.$O\
+	sed1.$O
+
+HFILES=sed.h
+
+BIN=$APEBIN
+</sys/src/cmd/mkone
+
+CFLAGS=-c -D_POSIX_SOURCE

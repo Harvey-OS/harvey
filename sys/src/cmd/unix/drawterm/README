@@ -1,0 +1,9 @@
+This is drawterm, enough of a Plan 9 kernel to provide
+an environment under which ``cpu'' can run, so that you
+can access Plan 9 from Windows and various flavors
+of Unix.  See the manual page for more information.
+
+This drawterm still uses the old (third edition) 9P, aka 9P1.
+A 9P2000 version of drawterm and many other tools is in 
+progress.  If you are interested in helping, mail rsc@plan9.bell-labs.com.
+

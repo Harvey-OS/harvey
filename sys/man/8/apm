@@ -1,0 +1,111 @@
+.TH APM 8
+.SH NAME
+apm \- Advanced Power Management 1.2 BIOS interface
+.SH SYNOPSIS
+.I (in plan9.ini)
+.B apm0=
+.PP
+bind -a '#P' /dev
+.PP
+.B aux/apm
+[
+.B -d
+.I device
+]
+[
+.B -m
+.I mountpoint
+]
+[
+.B -s
+.I service
+]
+.SH DESCRIPTION
+.I Aux/apm
+presents at
+.I mountpoint
+(default
+.BR /mnt/apm )
+an interface to the APM 1.2 BIOS 
+(see
+.IR apm (3))
+.I device
+(the default is to try
+.BR /dev/apm ,
+followed by
+.BR #P/apm ).
+If a
+.I service
+is specified, the interface will be
+posted at
+.BI /srv/ service 
+as well.
+.PP
+The directory contains the following files.
+.TP
+.B battery
+Contains one line for each battery in the system.
+Each line lists three fields: the status (a string, one of
+.BR unknown ,
+.BR high ,
+.BR low ,
+.BR critical ,
+or
+.BR charging ),
+the percent charge remaining, and
+an estimate of the amount of time left in seconds.
+If either or both of the last two are unknown,
+the corresponding field will be zero.
+.TP
+.B ctl
+The
+.B ctl
+file is used to set power management modes for
+various parts of the system.
+Control messages are of the form
+.RI `` device " " verb ,''
+where 
+.I device
+is one of
+.BR system ,
+.BR display ,
+.BR storage ,
+.BR lpt ,
+.BR eia ,
+.BR network ,
+and
+.BR pcmcia ,
+and 
+.I verb is one of
+.BR enable ,
+.BR disable ,
+.BR standby ,
+and 
+.BR on .
+.B Enable
+and
+.B disable
+control whether power management is active
+for the device, while
+.B standby
+puts the device into standby mode
+and
+.B on
+brings it back to full power.
+.TP
+.B event
+Reads from this file will block until an APM event
+has occurred.
+A large enough read is guaranteed to return
+an integral number of textual event descriptions, one per line.
+.SH SOURCE
+.B /sys/src/cmd/aux/apm.c
+.br
+.B /acme/bin/Battery
+.SH BUGS
+The verbs
+.B suspend
+and
+.B off
+should be supported but doing so requires
+nontrivial help from the kernel.

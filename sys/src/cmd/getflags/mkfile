@@ -1,0 +1,9 @@
+</$objtype/mkfile
+
+TARG=aux/getflags
+OFILES=\
+	getflags.$O\
+	funcgetflags.$O\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

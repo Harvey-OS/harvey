@@ -1,0 +1,372 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html><head>
+<title>Ghostscript 7.04 change history as of 2002-02-01 13:53:07</title>
+<link rel=stylesheet type="text/css" href="gs.css">
+</head><body>
+
+<!-- cvs command: cvs -d :ext:raph@cvs.ghostscript.sourceforge.net:/cvsroot/ghostscript -Q log  -rGS_7_0X -->
+
+<ul>
+<li><a href="#7.04-Documentation">Documentation</a>,
+    <a href="#7.04-Procedures">Procedures</a>,
+    <a href="#7.04-Utilities">Utilities</a>,
+    <a href="#7.04-Drivers">Drivers</a>,
+    <a href="#7.04-PDF_Interpreter">PDF Interpreter</a>,
+    <a href="#7.04-Interpreter">Interpreter</a>,
+    <a href="#7.04-Library">Library</a>,
+    <a href="#7.04-Other">Other</a>
+</ul>
+
+
+<h2><a name="7.04-Documentation"></a>Documentation</h2><pre>
+
+Fixes problems:
+	- Improve security in a (mostly) backward compatible fashion adding
+more flexible file access paths (PermitFile...) as user paramters and adding
+the facility to return to NOSAFER mode after running jobs (files/procedures)
+in SAFER mode. Also adds a -dPARANOIDSAFER command line option that only
+allows reading files from %stdin, paths specified on LIBPATH, FONTPATH and
+/GenericResourceDir or /FontResourceDir. Improve security for device related
+access to the file system and to pipes by allowing the dangerous parameters
+to be locked (for example, OutputFile). The locking is performed after
+command line parameters are established. This should address SF bug #474582
+and eliminate the need for the RedHat PARANOIDSAFER patch.
+(doc/Language.htm [1.34.2.1], doc/Use.htm [1.33.2.1]: 2002/01/25 06:33:08
+rayjj)
+
+Removes the admonishment to update PVERSION and JVERSION from the Makefile
+documentation. The build dependencies were removed earlier to reduce user
+confusion; they're currently vestigial in expectation of future build
+requirements. This is the second half of the fix for sf bug #457838.
+(doc/Make.htm [1.36.2.1]: 2001/10/24 22:29:29 giles)
+
+Adds a link to the v7.xx history files. (doc/News.htm [1.90.2.2]: 2001/10/24
+22:32:18 giles)
+
+Adds basic autoconf support to the build system. (doc/Make.htm [1.36.2.2],
+doc/Release.htm [1.40.2.1]: 2002/01/24 01:30:56 giles)
+
+Adds a new documentation section on display devices along with a basic
+description of the x11 devices. (doc/Devices.htm [1.34.2.1]: 2002/01/30
+07:36:09 giles)
+
+Minor change from 'search' to 'filenameforall' in discussion about the
+wildcard characters in PermitFile... strings. (doc/Language.htm [1.34.2.2]:
+2002/01/31 17:36:56 rayjj)
+
+Version number upgrade and minor documentation patch in preparation for 7.04
+release. (doc/API.htm [1.11.2.1], doc/Bug-form.htm [1.23.2.1],
+doc/Bug-info.htm [1.20.2.1], doc/C-style.htm [1.21.2.1],
+doc/Changes.htm [1.28.2.2], doc/Commprod.htm [1.15.2.1],
+doc/Copying.htm [1.13.2.1], doc/Current.htm [1.13.2.1],
+doc/DLL.htm [1.15.2.1], doc/Develop.htm [1.47.2.1],
+doc/Devices.htm [1.34.2.2], doc/Drivers.htm [1.21.2.1],
+doc/Fonts.htm [1.22.2.1], doc/Helpers.htm [1.17.2.1],
+doc/History1.htm [1.13.2.1], doc/History2.htm [1.13.2.1],
+doc/History3.htm [1.13.2.1], doc/History4.htm [1.13.2.1],
+doc/History5.htm [1.15.2.1], doc/History6.htm [1.30.2.1],
+doc/History7.htm [1.5.2.2], doc/Htmstyle.htm [1.18.2.1],
+doc/Install.htm [1.26.2.1], doc/Issues.htm [1.15.2.1],
+doc/Language.htm [1.34.2.3], doc/Lib.htm [1.14.2.1],
+doc/Maintain.htm [1.23.2.1], doc/Make.htm [1.36.2.3],
+doc/New-user.htm [1.30.2.1], doc/News.htm [1.90.2.3], doc/PUBLIC [1.5.2.1],
+doc/Projects.htm [1.33.2.1], doc/Ps-style.htm [1.13.2.1],
+doc/Ps2epsi.htm [1.15.2.1], doc/Ps2pdf.htm [1.32.2.1],
+doc/Psfiles.htm [1.22.2.1], doc/README [1.12.2.1],
+doc/Readme.htm [1.31.2.1], doc/Release.htm [1.40.2.2],
+doc/Source.htm [1.13.2.1], doc/Tester.htm [1.14.2.1],
+doc/Unix-lpr.htm [1.13.2.1], doc/Use.htm [1.33.2.2],
+doc/Xfonts.htm [1.13.2.1], doc/gs-vms.hlp [1.12.2.1],
+man/dvipdf.1 [1.10.2.1], man/font2c.1 [1.10.2.1], man/gs.1 [1.10.2.1],
+man/gslp.1 [1.10.2.1], man/gsnd.1 [1.10.2.1], man/pdf2dsc.1 [1.10.2.1],
+man/pdf2ps.1 [1.12.2.1], man/pdfopt.1 [1.10.2.1], man/pf2afm.1 [1.10.2.1],
+man/pfbtopfa.1 [1.11.2.1], man/printafm.1 [1.10.2.1],
+man/ps2ascii.1 [1.10.2.1], man/ps2epsi.1 [1.10.2.1],
+man/ps2pdf.1 [1.14.2.1], man/ps2pdfwr.1 [1.13.2.1], man/ps2ps.1 [1.17.2.1],
+man/wftopfa.1 [1.10.2.1]: 2002/02/01 03:25:43 raph)
+
+Adds IJS driver to Ghostscript. Includes complete IJS version 0.33
+distribution. Also includes autoconf patch by Ralph Giles.
+(doc/Develop.htm [1.47.2.2], doc/Devices.htm [1.34.2.3]: 2002/02/01 03:30:14
+raph)
+
+Adds a small section on security to the documentation.
+(doc/Use.htm [1.33.2.3]: 2002/02/01 04:55:55 raph)
+
+Nitpicky doc changes in preparation for 7.04 release. Updates makeset.tcl to
+include ijs/ subdir in tarballs. (doc/API.htm [1.11.2.2],
+doc/Bug-form.htm [1.23.2.2], doc/Bug-info.htm [1.20.2.2],
+doc/C-style.htm [1.21.2.2], doc/Changes.htm [1.28.2.3],
+doc/Commprod.htm [1.15.2.2], doc/Copying.htm [1.13.2.2],
+doc/Current.htm [1.13.2.2], doc/DLL.htm [1.15.2.2],
+doc/Develop.htm [1.47.2.3], doc/Devices.htm [1.34.2.4],
+doc/Drivers.htm [1.21.2.2], doc/Fonts.htm [1.22.2.2],
+doc/Helpers.htm [1.17.2.2], doc/History1.htm [1.13.2.2],
+doc/History2.htm [1.13.2.2], doc/History3.htm [1.13.2.2],
+doc/History4.htm [1.13.2.2], doc/History5.htm [1.15.2.2],
+doc/History6.htm [1.30.2.2], doc/History7.htm [1.5.2.3],
+doc/Htmstyle.htm [1.18.2.2], doc/Install.htm [1.26.2.2],
+doc/Issues.htm [1.15.2.2], doc/Language.htm [1.34.2.4],
+doc/Lib.htm [1.14.2.2], doc/Maintain.htm [1.23.2.2],
+doc/Make.htm [1.36.2.4], doc/New-user.htm [1.30.2.2],
+doc/News.htm [1.90.2.4], doc/Projects.htm [1.33.2.2],
+doc/Ps-style.htm [1.13.2.2], doc/Ps2epsi.htm [1.15.2.2],
+doc/Ps2pdf.htm [1.32.2.2], doc/Psfiles.htm [1.22.2.2],
+doc/README [1.12.2.2], doc/Readme.htm [1.31.2.2],
+doc/Release.htm [1.40.2.3], doc/Source.htm [1.13.2.2],
+doc/Tester.htm [1.14.2.2], doc/Unix-lpr.htm [1.13.2.2],
+doc/Xfonts.htm [1.13.2.2], doc/gs-vms.hlp [1.12.2.2],
+man/dvipdf.1 [1.10.2.2], man/font2c.1 [1.10.2.2], man/gs.1 [1.10.2.2],
+man/gslp.1 [1.10.2.2], man/gsnd.1 [1.10.2.2], man/pdf2dsc.1 [1.10.2.2],
+man/pdf2ps.1 [1.12.2.2], man/pdfopt.1 [1.10.2.2], man/pf2afm.1 [1.10.2.2],
+man/pfbtopfa.1 [1.11.2.2], man/printafm.1 [1.10.2.2],
+man/ps2ascii.1 [1.10.2.2], man/ps2epsi.1 [1.10.2.2],
+man/ps2pdf.1 [1.14.2.2], man/ps2pdfwr.1 [1.13.2.2], man/ps2ps.1 [1.17.2.2],
+man/wftopfa.1 [1.10.2.2]: 2002/02/01 05:31:24 raph)
+
+Adds a top level makefile for MacOS X, including support for building as a
+framework. (doc/API.htm [1.11.2.3], doc/Make.htm [1.36.2.5]: 2002/02/01
+06:16:21 giles)
+
+Documents the work-around of using '#' instead of '=' to separate command
+line options from their arguments. The was previously listed only as a quirk
+of the Wacom build on MS-DOS, but is also needed on win32 because the
+command shell treats '=' as whitespace in passing arguments to batch files
+(like ps2pdf.bat). Closes SourceForge bug #483066. Also documents that
+MS-DOS is no longer a supported operating system. (doc/Use.htm [1.33.2.4]:
+2002/02/01 19:43:02 giles)
+
+</pre><h2><a name="7.04-Procedures"></a>Procedures</h2><pre>
+
+Fixes problems:
+	- the icclib makefile comments were out of date; the build rule
+referred to gs_stdio_h, which no longer exists; the build rule for gsicc.o
+referred to icc_h, which was not defined at that point. patch originally by
+lpd, propagated from the development branch. (gs.mak [1.5.2.1],
+icclib.mak [1.3.2.1], lib.mak [1.53.2.1]: 2001/10/26 00:15:30 giles)
+	- Fix for #474544. Corrects inability to convert valid DeviceN tint
+transform functions into type 4 functions. Valid operator names were not
+being recognized unless the tint transform function had been bound. One of
+two fixes required for this problem. Customer #710. (int.mak [1.50.2.1]:
+2002/01/17 02:59:35 dancoby)
+	- Fix for #474544. This is the second of two fixes required for this
+problem. This fix creates a type 0 function which implements a "color cube"
+for those tint transform functions which cannot be converted into a type 4
+function. Customer #710. Note: There is one more revision planned for this
+effort. This revision will make the buildcolorcube operator into a more
+general buildsampledfunction. This will allow its use in other situations.
+(int.mak [1.50.2.2]: 2002/01/17 06:57:55 dancoby)
+	- Fixes a couple of installatation nits: makeset.tcl now includes
+the configure script, and unixinst.mak installs all .htm files.
+(toolbin/makeset.tcl [1.10.2.2], unixinst.mak [1.20.2.1]: 2002/02/01
+05:53:50 raph)
+
+Version number upgrade and minor documentation patch in preparation for 7.04
+release. (all-arch.mak [1.9.2.1], bcwin32.mak [1.12.2.1],
+dvx-gcc.mak [1.12.2.1], libpng.mak [1.10.2.1], macos-mcp.mak [1.3.2.1],
+msvc32.mak [1.20.2.1], msvclib.mak [1.16.2.1], openvms.mak [1.16.2.1],
+os2.mak [1.19.2.1], ugcclib.mak [1.13.2.1], unix-gcc.mak [1.23.2.1],
+unixansi.mak [1.16.2.1], version.mak [1.36.2.1], watc.mak [1.16.2.1],
+watclib.mak [1.13.2.1], watcw32.mak [1.13.2.1]: 2002/02/01 03:25:45 raph)
+
+Adds IJS driver to Ghostscript. Includes complete IJS version 0.33
+distribution. Also includes autoconf patch by Ralph Giles.
+(bcwin32.mak [1.12.2.2], devs.mak [1.47.2.1], dvx-gcc.mak [1.12.2.2],
+gs.mak [1.5.2.2], ijs.mak [1.2.2.1], macos-mcp.mak [1.3.2.2],
+msvc32.mak [1.20.2.2], openvms.mak [1.16.2.2], os2.mak [1.19.2.2],
+ugcclib.mak [1.13.2.2], unix-gcc.mak [1.23.2.2], unixansi.mak [1.16.2.2],
+watclib.mak [1.13.2.2], watcw32.mak [1.13.2.2], wctail.mak [1.3.2.1],
+winlib.mak [1.12.2.1]: 2002/02/01 03:30:13 raph)
+
+Nitpicky doc changes in preparation for 7.04 release. Updates makeset.tcl to
+include ijs/ subdir in tarballs. (devs.mak [1.47.2.2],
+toolbin/makeset.tcl [1.10.2.1], version.mak [1.36.2.2]: 2002/02/01 05:31:26
+raph)
+
+Adds a top level makefile for MacOS X, including support for building as a
+framework. (macosx.mak [1.3.2.1]: 2002/02/01 06:16:22 giles)
+
+Adds the framework-build makefile missing from the last commit
+(macos-fw.mak [1.1.2.1]: 2002/02/01 06:18:37 giles)
+
+Adds IJS to Windows and Unix default builds. (msvc32.mak [1.20.2.3],
+unix-gcc.mak [1.23.2.3], unixansi.mak [1.16.2.3]: 2002/02/01 06:27:58 raph)
+
+</pre><h2><a name="7.04-Utilities"></a>Utilities</h2><pre>
+
+Fixes problems:
+	- Incorporate patch from Tim Waugh of RedHat to allow ps2pdfwr to
+correctly process files with spaces in their names. Peter's earlier fix
+missed a few enclosing "'s for output files. Fixes Sourceforge bug #505338.
+(lib/ps2pdfwr [1.6.2.1]: 2002/01/22 21:34:04 jackiem)
+	- Improve security in a (mostly) backward compatible fashion adding
+more flexible file access paths (PermitFile...) as user paramters and adding
+the facility to return to NOSAFER mode after running jobs (files/procedures)
+in SAFER mode. Also adds a -dPARANOIDSAFER command line option that only
+allows reading files from %stdin, paths specified on LIBPATH, FONTPATH and
+/GenericResourceDir or /FontResourceDir. Improve security for device related
+access to the file system and to pipes by allowing the dangerous parameters
+to be locked (for example, OutputFile). The locking is performed after
+command line parameters are established. This should address SF bug #474582
+and eliminate the need for the RedHat PARANOIDSAFER patch.
+(gp_macio.c [1.2.4.1], gp_ntfs.c [1.5.2.1], gp_os2.c [1.10.2.1],
+gp_vms.c [1.7.2.1]: 2002/01/25 06:33:09 rayjj)
+	- Extra (old) parameters to gp_file_name_concat_string removed.
+(gp_ntfs.c [1.5.2.2]: 2002/02/01 08:04:38 rayjj)
+
+Replaces references of 'FontManagerLib' with 'FontManager' to match the
+Universal Headers stub shipped with Metrowerks CW 6.3.
+(macgenmcpxml.sh [1.1.4.1]: 2001/11/02 02:31:21 giles)
+
+Disables the 'unused arguments' warning with the Metrowerks Codewarrior 6.3
+Compiler. We have many of these by design and it's responsible for a large
+number of warnings on that platform. (macgenmcpxml.sh [1.1.4.2]: 2001/11/02
+02:33:21 giles)
+
+Adds the plist metadata required for the framework build.
+(lib/Info-macos.plist [1.1.2.1]: 2002/02/01 06:30:14 giles)
+
+removes a spurious include from the dll example source.
+(dxmainc.c [1.4.2.1]: 2002/02/01 06:38:54 giles)
+
+</pre><h2><a name="7.04-Drivers"></a>Drivers</h2><pre>
+
+Fixes problems:
+	- Improve security in a (mostly) backward compatible fashion adding
+more flexible file access paths (PermitFile...) as user paramters and adding
+the facility to return to NOSAFER mode after running jobs (files/procedures)
+in SAFER mode. Also adds a -dPARANOIDSAFER command line option that only
+allows reading files from %stdin, paths specified on LIBPATH, FONTPATH and
+/GenericResourceDir or /FontResourceDir. Improve security for device related
+access to the file system and to pipes by allowing the dangerous parameters
+to be locked (for example, OutputFile). The locking is performed after
+command line parameters are established. This should address SF bug #474582
+and eliminate the need for the RedHat PARANOIDSAFER patch.
+(gdevcgm.c [1.2.6.1], gdevmac.c [1.1.4.1]: 2002/01/25 06:33:09 rayjj)
+	- Removes broken x11alpha driver, and installs an alias for x11
+under that name, with default parameters changed to support antialiasing.
+Fixes SourceForge bug #505692. (gdevx.c [1.8.2.1], gdevxalt.c [1.2.6.1]:
+2002/01/30 20:09:26 raph)
+
+Don't allocate memory or call callbacks when display device does not have a
+callback function. (gdevdsp.c [1.5.2.1]: 2001/12/18 07:09:17 ghostgum)
+
+Adds IJS driver to Ghostscript. Includes complete IJS version 0.33
+distribution. Also includes autoconf patch by Ralph Giles.
+(gdevijs.c [1.1.2.1]: 2002/02/01 03:30:13 raph)
+
+</pre><h2><a name="7.04-PDF_Interpreter"></a>PDF Interpreter</h2><pre>
+
+Fixes problems:
+	- T* applied the leading horizontally when using a font in vertical
+writing mode, but the PDF Reference says the leading is always applied
+vertically. (lib/pdf_ops.ps [1.17.2.1]: 2001/12/22 07:34:23 masata-y)
+
+</pre><h2><a name="7.04-Interpreter"></a>Interpreter</h2><pre>
+
+Fixes problems:
+	- Some gsapi functions were not passing the user_errors argument to
+the corresponding gs_main_run_string_* functions, and instead, these
+functions were passing 0. (iapi.c [1.1.2.1]: 2002/01/03 20:20:38 jackiem)
+	- ifont.h requires gsmatix.h and gxfont.h for clean compilation. Not
+having them was a warning on gcc, but an error on Borland CBuilder 5.5.
+Thanks to Rod Webster for the fix. Closes Sourceforge bug #474246.
+(iccfont.c [1.2.6.1]: 2002/01/09 21:52:04 giles)
+	- ReleaseDC was missed in Windows client applications. SourceForge
+bug #499903. (dwmain.c [1.6.2.1], dwmainc.c [1.8.2.1]: 2002/01/16 21:07:16
+igorm)
+	- Fix for #474544. Corrects inability to convert valid DeviceN tint
+transform functions into type 4 functions. Valid operator names were not
+being recognized unless the tint transform function had been bound. One of
+two fixes required for this problem. Customer #710. (ifunc.h [1.3.6.1],
+zfunc.c [1.6.6.1], zfunc0.c [1.3.6.1], zfunc3.c [1.2.6.1],
+zfunc4.c [1.7.4.1], zshade.c [1.4.6.1]: 2002/01/17 02:59:35 dancoby)
+	- Fix for #474544. This is the second of two fixes required for this
+problem. This fix creates a type 0 function which implements a "color cube"
+for those tint transform functions which cannot be converted into a type 4
+function. Customer #710. Note: There is one more revision planned for this
+effort. This revision will make the buildcolorcube operator into a more
+general buildsampledfunction. This will allow its use in other situations.
+(ifunc.h [1.3.6.2], lib/gs_lev2.ps [1.7.2.1], zccube.c [1.1.2.1],
+zcsdevn.c [1.5.2.1], zfunc.c [1.6.6.2]: 2002/01/17 06:57:55 dancoby)
+	- Improve security in a (mostly) backward compatible fashion adding
+more flexible file access paths (PermitFile...) as user paramters and adding
+the facility to return to NOSAFER mode after running jobs (files/procedures)
+in SAFER mode. Also adds a -dPARANOIDSAFER command line option that only
+allows reading files from %stdin, paths specified on LIBPATH, FONTPATH and
+/GenericResourceDir or /FontResourceDir. Improve security for device related
+access to the file system and to pipes by allowing the dangerous parameters
+to be locked (for example, OutputFile). The locking is performed after
+command line parameters are established. This should address SF bug #474582
+and eliminate the need for the RedHat PARANOIDSAFER patch.
+(icontext.c [1.6.6.1], icstate.h [1.4.6.1], imainarg.c [1.13.2.1],
+iutil2.c [1.2.6.1], iutil2.h [1.2.6.1], lib/gs_fonts.ps [1.13.2.1],
+lib/gs_init.ps [1.40.2.2], lib/gs_lev2.ps [1.7.2.2],
+lib/gs_setpd.ps [1.8.2.1], zcontrol.c [1.3.6.1], zdevice.c [1.3.6.1],
+zdevice2.c [1.4.2.1], zfile.c [1.11.2.1], zusparam.c [1.3.6.1],
+zvmem.c [1.3.2.1]: 2002/01/25 06:33:09 rayjj)
+	- .locksafe is not supposed to change the PermitFileWriting and
+PermitFileControl paths (was setting them to empty arrays).
+(lib/gs_init.ps [1.40.2.3]: 2002/01/31 17:39:07 rayjj)
+
+Change the unstopped error handler to print the operand stack in the same
+order as the normal error handler, with the top of the stack at the right.
+Fixes Sourceforge bug #496440. (lib/gs_init.ps [1.40.2.1]: 2002/01/10
+02:41:01 ghostgum)
+
+Version number upgrade and minor documentation patch in preparation for 7.04
+release. (lib/gs_init.ps [1.40.2.4]: 2002/02/01 03:25:45 raph)
+
+</pre><h2><a name="7.04-Library"></a>Library</h2><pre>
+
+Fixes problems:
+	- Change show_enum pointer enumeration to properly enumerate
+underlying gs_text_enum structure. (gxchar.c [1.5.2.1]: 2001/10/26 16:35:25
+raph)
+	- Image Type 4 images processed with the Interpolate turned on (as
+from -dDOINTERPOLATE) left an uninitialized variable that could cause
+extensive slowdown. Fix for SourceForge bug #491308 for Artifex customer
+671. (gxiscale.c [1.2.6.1]: 2001/12/14 19:16:04 rayjj)
+	- Improve security in a (mostly) backward compatible fashion adding
+more flexible file access paths (PermitFile...) as user paramters and adding
+the facility to return to NOSAFER mode after running jobs (files/procedures)
+in SAFER mode. Also adds a -dPARANOIDSAFER command line option that only
+allows reading files from %stdin, paths specified on LIBPATH, FONTPATH and
+/GenericResourceDir or /FontResourceDir. Improve security for device related
+access to the file system and to pipes by allowing the dangerous parameters
+to be locked (for example, OutputFile). The locking is performed after
+command line parameters are established. This should address SF bug #474582
+and eliminate the need for the RedHat PARANOIDSAFER patch.
+(gdevprn.c [1.5.6.1], gdevvec.c [1.12.2.1], gp.h [1.8.2.1],
+gp_dosfe.c [1.2.6.1], gp_dosfs.c [1.2.6.1], gp_unifn.c [1.2.6.1],
+gsdparam.c [1.4.6.1], gsutil.c [1.4.6.1], gsutil.h [1.3.6.1],
+gxdevcli.h [1.5.2.1], gxdevice.h [1.4.6.1]: 2002/01/25 06:33:09 rayjj)
+
+</pre><h2><a name="7.04-Other"></a>Other</h2><pre>
+
+Adds basic autoconf support to the build system. (.cvsignore [1.2.2.1],
+Makefile.in [1.1.4.1], autogen.sh [1.3.4.1], configure.ac [1.4.4.1]:
+2002/01/24 01:30:56 giles)
+
+Adds IJS driver to Ghostscript. Includes complete IJS version 0.33
+distribution. Also includes autoconf patch by Ralph Giles.
+(Makefile.in [1.1.4.2], configure.ac [1.4.4.2]: 2002/02/01 03:30:13 raph)
+
+Uses --with-ijs (instead of --without) in the configure option help.
+(configure.ac [1.4.4.3]: 2002/02/01 04:13:36 giles)
+
+Populates the ijs/ directory with the IJS 0.33 release (overlooked in
+previous commit). (ijs/Makefile [1.1.2.1], ijs/Makefile.in [1.1.2.1],
+ijs/README [1.1.2.1], ijs/common.mak [1.1.2.1], ijs/configure [1.1.2.1],
+ijs/configure.in [1.1.2.1], ijs/ijs-config [1.1.2.1],
+ijs/ijs-config.in [1.1.2.1], ijs/ijs.c [1.1.2.1], ijs/ijs.h [1.1.2.1],
+ijs/ijs_client.c [1.1.2.1], ijs/ijs_client.h [1.1.2.1],
+ijs/ijs_client_example.c [1.1.2.1], ijs/ijs_exec_unix.c [1.1.2.1],
+ijs/ijs_exec_win.c [1.1.2.1], ijs/ijs_server.c [1.1.2.1],
+ijs/ijs_server.h [1.1.2.1], ijs/ijs_server_example.c [1.1.2.1],
+ijs/ijs_spec.pdf [1.1.2.1], ijs/ijs_spec.ps [1.1.2.1],
+ijs/ijs_spec.sgml [1.1.2.1], ijs/install-sh [1.1.2.1],
+ijs/state.eps [1.1.2.1], ijs/state.fig [1.1.2.1], ijs/unistd_.h [1.1.2.1],
+ijs/unix.mak [1.1.2.1], ijs/windows.mak [1.1.2.1]: 2002/02/01 05:05:58 raph)
+
+</pre></body></html>

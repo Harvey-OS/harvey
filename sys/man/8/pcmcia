@@ -1,0 +1,23 @@
+.TH PCMCIA 8
+.SH NAME
+pcmcia \- identify a PCMCIA card
+.SH SYNOPSIS
+.B aux/pcmcia
+[
+.I file
+]
+.SH DESCRIPTION
+.B Aux/pcmcia
+translates the PCMCIA information structure from
+.I file
+(default
+.BR #y/pcm0attr )
+into a readable description and writes it to
+standard output.
+.SH FILES
+.TF #y/pcm0attr
+.TP
+.B #y/pcm0attr
+The attribute memory of the card in the PCMCIA slot.
+.SH SOURCE
+.B /sys/src/cmd/aux/pcmcia.c

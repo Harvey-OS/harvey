@@ -1,0 +1,114 @@
+bind.c:		} else if(forward_loop(s_to_c(mp->sender), thissys)) {
+filter.c:	cp = strchr(s_to_c(mp->sender), '!');
+filter.c:		mp->sender = s_copy(cp);
+filter.c:	cp = findbody(s_to_c(mp->body));
+filter.c:		if(regexec(p, s_to_c(mp->sender), match, 10)){
+filter.c:		if(regexec(p, s_to_c(mp->body), match, 10)){
+gateway.c:	base = skipequiv(s_to_c(mp->sender));
+gateway.c:	if(base != s_to_c(mp->sender)){
+gateway.c:		s = mp->sender;
+gateway.c:		mp->sender = s_copy(base);
+log.c:	sender = unescapespecial(s_clone(mp->sender));
+log.c:			s_to_c(sender), s_to_c(mp->date),
+log.c:			s_to_c(parent->addr), mp->size);
+log.c:			s_to_c(sender), s_to_c(mp->date), mp->size);
+log.c:	sender = unescapespecial(s_clone(mp->sender));
+log.c:				s_to_c(mp->date), s_to_c(parent->addr), mp->size);
+log.c:				s_to_c(mp->date), mp->size);
+log.c:	sender = unescapespecial(s_clone(mp->sender));
+log.c:		s_to_c(sender), s_to_c(mp->date));
+main.c:	mp->sender = escapespecial(mp->sender);
+main.c:	if (shellchars(s_to_c(mp->sender)))
+main.c:		mp->replyaddr = s_copy("postmaster");
+main.c:		mp->replyaddr = s_clone(mp->sender);
+main.c:	if(mp->received > 32)
+main.c:	if(mp->size < 0)
+main.c:	if(add822headers && mp->haveto == 0){
+main.c:			mp->to = d_to(bound);
+main.c:			mp->to = arglist;
+main.c:		} else if(mp->bulk)
+main.c:			if(!outofresources && !mp->bulk)
+main.c:	sender = unescapespecial(s_clone(mp->sender));
+main.c:	rcvr = dp->status==d_eloop ? "postmaster" : s_to_c(mp->replyaddr);
+main.c:	s_nappend(refp->body, s_to_c(mp->body), 8*1024);
+message.c:		s_append(mp->sender, cp);
+message.c:		s_append(mp->sender, lp);
+message.c:	s_append(mp->date, thedate());
+message.c:	mp->sender = s_new();
+message.c:	mp->replyaddr = s_new();
+message.c:	mp->date = s_new();
+message.c:	mp->body = s_new();
+message.c:	mp->size = 0;
+message.c:	mp->fd = -1;
+message.c:	if(mp->fd >= 0){
+message.c:		close(mp->fd);
+message.c:		sysremove(s_to_c(mp->tmp));
+message.c:		s_free(mp->tmp);
+message.c:	s_free(mp->sender);
+message.c:	s_free(mp->date);
+message.c:	s_free(mp->body);
+message.c:	mp->tmp = file;
+message.c:		mp->size += n;
+message.c:		if(mp->size > MSGLIMIT){
+message.c:			mp->size = -1;
+message.c:	mp->fd = fd;
+message.c:	yyinit(s_to_c(mp->body));
+message.c:	mp->rfc822headers = 0;
+message.c:	mp->rfc822headers = 1;
+message.c:	mp->received = received;
+message.c:	cp = s_to_c(mp->body);
+message.c:			mp->havemime = 1;
+message.c:			mp->havefrom = 1;
+message.c:			mp->haveto = 1;
+message.c:			mp->havedate = 1;
+message.c:			mp->havesubject = 1;
+message.c:					mp->bulk = 1;
+message.c:	s_memappend(body, cp, s_len(mp->body) - (cp - s_to_c(mp->body)));
+message.c:	mp->size += s_len(body) - s_len(mp->body);
+message.c:	s_free(mp->body);
+message.c:	mp->body = body;
+message.c:		while(s_read_line(fp, s_restart(mp->body)) != 0) {
+message.c:			if (regexec(rfprog, s_to_c(mp->body), subexp, 10) == 0){
+message.c:				if(regexec(fprog, s_to_c(mp->body), subexp,10) == 0)
+message.c:				USE(s_restart(mp->body));
+message.c:				append_match(subexp, s_restart(mp->date), DATEMATCH);
+message.c:			append_match(subexp, s_restart(mp->date), REMDATEMATCH);
+message.c:				append_match(subexp, mp->sender, REMSYSMATCH);
+message.c:				s_append(mp->sender, "!");
+message.c:		s_append(mp->sender, s_to_c(sender));
+message.c:	if(*s_to_c(mp->sender)=='\0')
+message.c:			line = s_read_line(fp, mp->body);
+message.c:				mp->body->ptr -= 2;
+message.c:				*mp->body->ptr = '\0';
+message.c:		mp->size = mp->body->ptr - mp->body->base;
+message.c:		mp->size = mp->body->ptr - mp->body->base;
+message.c:		n = s_read(fp, mp->body, VMLIMIT);
+message.c:		mp->size += n;
+message.c:	if (!rmail && mp->size == 0)
+message.c:	if(offset >= mp->size)
+message.c:	if(offset < s_len(mp->body)){
+message.c:		*pp = mp->body->base + offset;
+message.c:		return mp->body->ptr - mp->body->base - offset;
+message.c:	offset -= s_len(mp->body);
+message.c:	if(mp->fd < 0)
+message.c:	if(seek(mp->fd, offset, 0)<0)
+message.c:	return read(mp->fd, buf, sizeof buf);
+message.c:	for(offset = 0; offset < mp->size; offset += n){
+message.c:	for(offset = 0; offset < mp->size; offset += n){
+message.c:	s = username(mp->sender);
+message.c:		s_append(s, s_to_c(mp->sender));
+message.c:		s = s_copy(s_to_c(mp->sender));
+message.c:	sender = unescapespecial(s_clone(mp->sender));
+message.c:		if(print_remote_header(fp,s_to_c(sender),s_to_c(mp->date),remote) < 0){
+message.c:		if(print_header(fp, s_to_c(sender), s_to_c(mp->date)) < 0){
+message.c:	if(!rmail && !mp->havedate){
+message.c:		date = s_copy(s_to_c(mp->date));
+message.c:	if(!rmail && !mp->havemime && isutf8(mp->body))
+message.c:	if(mp->to){
+message.c:		if (Bprint(fp, "%s\n", s_to_c(mp->to)) < 0)
+message.c:		if (!mp->havefrom && printfrom(mp, fp) < 0)
+message.c:		if(!mp->rfc822headers && *s_to_c(mp->body) != '\n')
+message.c:		if (!mp->havefrom && printfrom(mp, fp) < 0)
+message.c:		if(!mp->rfc822headers && *s_to_c(mp->body) != '\n')
+rewrite.c:				for(s = s_to_c(mp->replyaddr); *s; s++)
+rewrite.c:				if(mp->bulk)

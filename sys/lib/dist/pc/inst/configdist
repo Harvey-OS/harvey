@@ -1,0 +1,22 @@
+#!/bin/rc
+
+# prereq: mountfs
+# desc: choose the source of the distribution archive
+
+switch($1){
+case checkdone
+	if(! ~ $distisfrom net local){
+		configdist=ready
+		export configdist
+	}
+
+case go
+	echo 'Are you going to download the distribution'
+	echo 'from the internet or do you have it on local media?'
+	echo
+	prompt -d local 'Distribution is from' local net
+	distisfrom=$rd
+	export distisfrom
+}
+
+

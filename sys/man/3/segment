@@ -1,0 +1,117 @@
+.TH SEGMENT 3 
+.SH NAME
+segment \- long lived memory segments
+.SH SYNOPSIS
+.nf
+.B bind '#g' /mnt/segment
+
+.BI #g/ seg1
+.BI #g/ seg1 /ctl
+.BI #g/ seg1 /data
+.BI #g/ seg2
+.BI #g/ seg2 /ctl
+.BI #g/ seg2 /data
+ ...
+.fi
+.SH DESCRIPTION
+.PP
+The
+.I segment
+device provides a 2-level file system representing
+long-lived sharable segments that processes may
+.IR segattach (2).
+The name of the directory is the
+.I class
+argument to
+.IR segattach .
+.PP
+New segments are created under the top level
+using
+.B create
+(see
+.IR open (2)).
+The
+.B DMDIR
+bit must be set in the permissions.
+.IR Remove (2)'ing
+the directory makes the segment no longer
+available for
+.IR segattach .
+However, the segment will continue to exist until all
+processes using it either exit or
+.I segdetach
+it.
+.PP
+Within each segment directory are two files,
+.B data
+and
+.BR ctl .
+Reading and writing
+.B data
+affects the contents of the segment.
+Reading and writing 
+.B ctl
+retrieves and sets the segment's properties.
+.PP
+There is only one control message, which sets the segment's
+virtual address and length in bytes:
+.EX
+	va \fIaddress length\fP
+.EE
+.I Address
+is automatically rounded down to a page boundary and
+.I length
+is rounded up to end the segment at a page boundary.
+The segment will reside at the same virtual address in
+all processes sharing it.
+When the segment
+is attached using
+.IR segattach,
+the address and length arguments are ignored in the call;
+they are defined only by the
+.B va
+control message.
+Once the address and length are set, they cannot be reset.
+.PP
+Reading the control file
+returns a message of the same format with the segment's actual
+start address and length.
+.PP
+Opening
+.B data
+or reading
+.B ctl
+before setting the virtual address yields the error
+``segment not yet allocated''.
+.PP
+The permissions check when
+.IR segattach ing
+is equivalent to the one performed when opening
+.B data
+with mode ORDWR.
+.SH EXAMPLE
+.PP
+Create a one megabyte segment at address 0x10000000:
+.EX
+	% bind '#g' /mnt/segment
+	% mkdir /mnt/segment/example
+	% echo 'va 0x10000000 0x100000' > /mnt/segment/example/ctl
+.EE
+.PP
+Put the string ``hi mom'' at the start of the segment:
+.EX
+	% echo -n hi mom > /mnt/segment/example/data
+.EE
+.PP
+Attach the segment to a process:
+.EX
+{
+	ulong va;
+
+	va = segattach(0, "example", 0, 0);
+}
+.EE
+.SH "SEE ALSO
+.IR segattach (2)
+.SH SOURCE
+.B /sys/src/9/port/devsegment.c

@@ -1,0 +1,180 @@
+.TH LOCK 2
+.SH NAME
+lock, canlock, unlock,
+qlock, canqlock, qunlock,
+rlock, runlock, canrlock,
+wlock, wunlock, canwlock,
+incref, decref
+\- shared memory spin locks, rendez-vous locks, reader-writer locks, and
+atomic increment and decrement
+.SH SYNOPSIS
+.B
+#include <u.h>
+.br
+.B
+#include <libc.h>
+.PP
+.B
+void	lock(Lock *l)
+.PP
+.B
+int	canlock(Lock *l)
+.PP
+.B
+void	unlock(Lock *l)
+.PP
+.B
+void	qlock(QLock *l)
+.PP
+.B
+void	qunlock(QLock *l)
+.PP
+.B
+int	canqlock(QLock *l)
+.PP
+.B
+void	rlock(RWLock *l)
+.PP
+.B
+void	runlock(RWLock *l)
+.PP
+.B
+int	canrlock(RWLock *l)
+.PP
+.B
+void	wlock(RWLock *l)
+.PP
+.B
+void	wunlock(RWLock *l)
+.PP
+.B
+int	canwlock(RWLock *l)
+.PP
+.PP
+.B
+#include <thread.h>
+.PP
+.B
+typedef struct Ref {
+.br
+.B
+	long ref;
+.br
+.B
+} Ref;
+.PP
+.B
+void incref(Ref*)
+.PP
+.B
+long decref(Ref*)
+.SH DESCRIPTION
+These routines are used  to synchronize processes sharing memory.
+.PP
+The first group
+.RI ( lock ,
+.IR canlock , 
+.IR unlock )
+uses spin locks in shared memory.
+The second group
+.RI ( qlock ,
+.IR canqlock ,
+.IR qunlock ),
+uses rendezvous locks in shared
+memory.
+The third group
+.RI ( rlock ,
+.IR runlock ,
+.IR canrlock ,
+.IR wlock ,
+.IR wunlock ,
+.IR canwlock ),
+also uses rendezvous locks but has slightly different
+semantics.
+.PP
+Locks work in regular programs as well as programs that use the thread library
+(see
+.IR thread (2)).
+The thread library replaces the
+.B rendezvous
+system call
+(see
+.IR rendezvous (2))
+with its own implementation,
+.BR threadrendezvous ,
+so that threads as well as processes may be synchronized by locking calls
+in threaded programs.
+.PP
+Used carelessly, spin locks can be expensive and can easily generate deadlocks.
+Their use is discouraged, especially in programs that use the
+thread library because they prevent context switches between threads.
+.PP
+.I Lock
+blocks until the lock has been obtained.
+.I Canlock
+is non-blocking.
+It tries to obtain a lock and returns a non-zero value if it
+was successful, 0 otherwise.
+.I Unlock
+releases a lock.
+.PP
+.B QLocks
+have the same interface but are not spin locks; instead if the lock is taken
+.I qlock
+will suspend execution of the calling task until it is released.
+.PP
+Although
+.B Locks
+are the more primitive lock, they have limitations; for example,
+they cannot synchronize between tasks in the same
+.IR proc .
+Use
+.B QLocks
+instead.
+.PP
+.B RWLocks
+manage access to a data structure that has distinct readers and writers.
+.I Rlock
+grants read access;
+.I runlock
+releases it.
+.I Wlock
+grants write access;
+.I wunlock
+releases it.
+.I Canrlock
+and
+.I canwlock
+are the non-blocking versions.
+There may be any number of simultaneous readers,
+but only one writer.
+Moreover,
+if write access is granted no one may have
+read access until write access is released.
+.PP
+All types of lock should be initialized to all zeros before use; this
+puts them in the unlocked state.
+.PP
+A
+.B Ref
+contains a
+.B long
+that can be incremented and decremented atomically:
+.I Incref
+increments the
+.I Ref
+in one atomic operation.
+.I Decref
+atomically decrements the
+.B Ref
+and returns zero if the resulting value is zero, non-zero otherwise.
+.SH SOURCE
+.B /sys/src/libc/port/lock.c
+.br
+.B /sys/src/libc/9sys/qlock.c
+.br
+.B /sys/src/libthread/ref.c
+.SH SEE ALSO
+.I rfork
+in
+.IR fork (2)

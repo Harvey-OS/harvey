@@ -1,0 +1,747 @@
+<html>
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>A Guide to the Lp
+Printer Spooler
+</H1>
+<DL><DD><I>Paul Glick<br>
+pg@plan9.bell-labs.com<br>
+</I></DL>
+<DL><DD><H4>ABSTRACT</H4>
+<P>
+<I>Lp</I>
+is a collection of programs used to provide an easy-to-use
+interface for printing a variety of document types on a variety
+of printers.
+<I>Lp</I>
+is the glue that connects various document language
+translators and printer communication programs together so that
+the users may have a consistent view of printers.
+Most of the glue
+is shell script, which can be easily modified.
+The user need not
+specify options to get sensible output in most cases.
+<I>Lp</I>
+is described here
+so that others may make additions and changes.
+</DL>
+
+</P>
+<H4>1 Introduction
+</H4>
+<P>
+<I>Lp</I>
+is used to format and print data on a variety of output devices.
+The need for
+<I>lp</I>
+was rooted in the inability of other printer spoolers to do simple
+tasks without a great deal of user specification of options.
+At the time
+<I>lp</I>
+was written, there were several printer
+languages, such as ImPress and PostScript, and
+an internally developed printer that would accept
+<I>troff</I>
+output.
+Now, all our printers take PostScript,
+but printers that use HPCL and HPGL abound and
+support for those printers may be added easily.
+A great deal of what underlies
+<I>lp</I>
+is taken from BSD's
+<I>lpr</I>
+and System V's
+<I>lp</I>.
+The important features of this system are that most of the programs
+are easily modified shell scripts and the user need not
+learn to use the large amount of underlying software developed by others.
+<I>Lp</I>
+runs under Plan 9 and several flavors of
+UNIX.
+This document deals with
+<I>lp</I>
+as it relates to Plan 9.
+<I>Lp</I>
+was developed using both Datakit and Ethernet to transport data between machines.
+Now only the Ethernet transport mechanism remains.
+</P>
+<P>
+Text, graphics, and formatted text files are appropriately processed and
+placed into a spool directory from which they are taken to be printed by a daemon process.
+Additional functions include checking the status of a printer queue
+and removing jobs from the printer queue.
+</P>
+<P>
+All the shell scripts (see
+<A href="/magic/man2html/1/rc"><I>rc</I>(1))
+</A>associated with
+<I>lp</I>
+reside in the spool directory
+<TT>/sys/lib/lp</TT>
+except for the
+<I>lp</I>
+command itself, which resides in
+<TT>/rc/bin</TT>.
+Commands related to
+<I>lp</I>
+that are not shell scripts can most often be found
+in
+<TT>/$cputype/bin/aux</TT>.
+The directory where all the
+<I>lp</I>
+scripts  reside is defined within
+<I>lp</I>
+by the shell variable
+<TT>LPLIB</TT>.
+In the remainder of this document, file names will be specified
+with this shell variable as their root.
+</P>
+<H4>2 Usage
+</H4>
+<P>
+<I>Lp</I>
+requires an output device to be specified
+before it will process input.
+This can be done in any of three ways described here.
+</P>
+<DL COMPACT>
+<DT>1)<DD>
+The file
+<TT>$LPLIB/defdevice</TT>
+may contain the name of a default output device.
+This may not be practical for environments where
+there are many printers.
+<DT>2)<DD>
+The user's environment variable
+<TT>LPDEST</TT>
+may be set to the name of the device to be used.
+This is often a more practical solution when there are several printers
+available.
+This overrides a
+<TT>defdevice</TT>
+specification.
+<DT>3)<DD>
+The
+<TT>-d</TT>
+<I>printer</I>
+option to the
+<I>lp</I>
+command specifies
+<I>printer</I>
+as the device to which output should be directed, overriding the
+previous two specifications.
+</dl>
+<P>
+<br>
+If
+<I>printer</I>
+is
+<TT>?</TT>,
+a list of printers and other information in the
+<TT>devices</TT>
+file is printed, as shown in Figure 1.
+Quote the question mark to prevent it from being
+interpreted by the shell language as a metacharacter.
+
+<DL><DT><DD><TT><PRE>
+% lp -d'?'
+device   location  host             class
+fn       2C-501    helix            post/2+600dpi+duplex
+pcclone  -         -                post+nohead
+peacock  2C-501    cetus            post/2+300dpi+nohead+color
+ps83     st8_fl3   rice             post+300dpi+reverse
+psu      2C-501    cetus            post/2+1200dpi
+     .
+     .
+     .
+%
+</PRE></TT></DL>
+<I>Figure 1.  Sample listing of installed printers</I>
+</P>
+<P>
+Normally,
+<I>lp</I>
+uses the
+<TT>file</TT>
+command to figure out what type of input it is receiving.
+This is done within the
+<TT>generic</TT>
+process which is discussed later in this paper in the
+<B>Process directory</B>
+section.
+To select a specific input processor the
+<TT>-p</TT><I>process</I>
+option is used where
+<I>process</I>
+is one of the shell scripts in the
+<TT>process</TT>
+directory.
+</P>
+<br>&#32;<br>
+Troff
+output can be printed, in this case, on printer
+<I>fn</I>
+with
+<DL><DT><DD><TT><PRE>
+% troff -ms lp.ms | lp -dfn
+</PRE></TT></DL>
+<br>&#32;<br>
+A file can be converted to PostScript using the pseudo-printer
+<TT>stdout</TT>:
+<DL><DT><DD><TT><PRE>
+% troff -ms lp.ms | lp -dstdout &#62; lp.ps
+</PRE></TT></DL>
+LaTeX (and analogously TeX)
+documents are printed in two steps:
+<DL><DT><DD><TT><PRE>
+% latex lp.tex
+     .
+     .
+% lp lp.dvi
+     .
+     .
+%
+</PRE></TT></DL>
+LaTeX
+produces a `.dvi' file and
+does not permit the use of a pipe
+connection to the standard input of
+<I>lp</I>.
+To look at the status and queue of a device, use
+<TT>-q</TT>:
+<DL><DT><DD><TT><PRE>
+% lp -dpsu -q
+daemon status:
+:  67.17% sent
+printer status:
+%%[ status: busy; source: lpd ]%%
+
+queue on cetus:
+job		user	try	size
+rice29436.1	pg	0	17454
+slocum17565.1	ches	1	49995
+%
+</PRE></TT></DL>
+This command can print the status and queue of the local
+and remote hosts.
+Administrators should be advised that working in an environment where the
+<I>lp</I>
+spool directory is shared among the local and remote hosts,
+no spooling should be done on the local hosts.
+The format of the status and queue printout is up to the administrator.
+The job started above can be killed with
+<TT>-k</TT>:
+<DL><DT><DD><TT><PRE>
+$ lp -dpsu -k rice29436.1
+rice29436.1 removed from psu queue on cetus
+</PRE></TT></DL>
+<H4>3 Options
+</H4>
+<P>
+There are options available to modify the way in which a job is handled.
+It is the job of the
+<I>lp</I>
+programs to convert the option settings so they may be used by each of the
+different translation and interface programs.
+Not all options are applicable to all printer environments.
+Table 1 lists the standard
+<I>lp</I>
+options, the shell variable settings, and description of the options.
+
+<br>&#32;<br>
+<br><img src="data.15750.gif"><br>
+<br>&#32;<br>
+<I>Table 1. Lp Option List</I>
+<br>&#32;<br>
+
+</P>
+<H4>4 Devices file
+</H4>
+<P>
+The
+<TT>devices</TT>
+file is found in the spool directory.
+Each line in the file is composed of 12 fields, separated
+by tabs or spaces, that describe the attributes
+of the printer and how it should be serviced.
+Within the
+<TT>lp</TT>
+command, a shell variable is set for each attribute;
+the following list describes them:
+</P>
+<DL COMPACT>
+<DT><TT>0<DD>
+LPDEST0</TT> is the name of the device as given to
+<I>lp</I>
+with the
+<TT>-d</TT>
+option
+or as specified by the shell environment variable
+<TT>LPDEST</TT>
+or as specified by
+the file
+<TT>$LPLIB/defdevice</TT>.
+This name is used in creating directories and log files that are associated with
+the printers operation.
+<DT><TT>0<DD>
+LOC0</TT> just describes where the printer is physically located.
+<DT><TT>0<DD>
+DEST_HOST0</TT> is the host from which the files are printed.
+Files may be spooled on other machines before being transferred to the
+destination host.
+<DT><TT>0<DD>
+OUT_DEV0</TT> is the physical device name or network address needed by the printer daemon
+to connect to the printer.
+This field depends on the requirements of the daemon and may contain a `&#191;'
+if not required.
+<DT><TT>0<DD>
+SPEED0</TT> is the baud rate setting for the port.
+This field depends on the requirements of the daemon and may contain a `&#191;'
+if not required.
+<DT><TT>0<DD>
+LPCLASS0</TT> is used to encode minor printer differences.
+The keyword
+<TT>reverse</TT>
+is used by some of the preprocessors
+to reverse the order the pages are printed to accommodate different output
+trays (either face up or face down).
+The keyword
+<TT>nohead</TT>
+is used to suppress the header page.
+This is used for special and color printers.
+The keyword
+<TT>duplex</TT>
+is used to coax double sided output from duplex printers.
+<DT><TT>0<DD>
+LPPROC0</TT> is the command from the
+<TT>LPLIB/process</TT>
+directory to be used to convert input to a format
+that will be accepted by the device.
+The preprocessor is invoked by the spooler.
+<DT><TT>0<DD>
+SPOOLER0</TT> is the command from the
+<TT>LPLIB/spooler</TT>
+directory which will select files using the
+<TT>SCHED</TT>
+command and invoke the
+<TT>LPPROC</TT>
+command, putting its output
+into the remote spool directory.
+The output is sent directly to the spool directory on the
+destination machine to avoid conflicts when client and
+server machines share spool directories.
+<DT><TT>0<DD>
+STAT0</TT> is the command from the
+<TT>LPLIB/stat</TT>
+directory that prints the status of the device and the list of jobs
+waiting on the queue for the device.
+The status information depends on what is available from the printer
+and interface software.
+The queue information should be changed to show information
+useful in tracking down problems.
+The
+<TT>SCHED</TT>
+command is used to show the jobs in the order
+in which they will be printed.
+<DT><TT>0<DD>
+KILL0</TT> is the command from the
+<TT>LPLIB/kill</TT>
+that removes jobs from the queue.
+The jobs to be removed are given as arguments to the
+<I>lp</I>
+command.
+When possible, it should also abort the currently running job
+if it has to be killed.
+<DT><TT>0<DD>
+DAEMON0</TT> is the command from the
+<TT>LPLIB/daemon</TT>
+that is meant to run asynchronously to remove
+jobs from the queue.
+Jobs may either be passed on to another host or sent to the
+printing device.
+<I>Lp</I>
+always tries to start a daemon process when one is specified.
+<DT><TT>0<DD>
+SCHED0</TT> is the command from the
+<TT>LPLIB/sched</TT>
+that is used to present the job names to the
+daemon and stat programs
+in some order, e.g., first-in-first-out, smallest first.
+</dl>
+<H4>5 Support programs
+</H4>
+<P>
+The following sections describe the basic functions of the programs
+that are found in the subdirectories of
+<TT>$LPLIB</TT>.
+The programs in a specific directory vary with the
+type of output device or networks that have to be used.
+</P>
+<H4>5.1 Process directory
+</H4>
+<P>
+The
+<TT>generic</TT>
+preprocessor
+is the default preprocessor for most printers.
+It uses the
+<A href="/magic/man2html/1/file"><I>file</I>(1)
+</A>command to determine the format of the input file.
+The appropriate preprocessor is then selected to transform the
+file to a format suitable for the printer.
+</P>
+<P>
+Here is a list of some of the preprocessors and
+a description of their function.
+A complete list of preprocessors and their descriptions can be found in the manual page
+<A href="/magic/man2html/8/lp"><I>lp</I>(8).
+</A><br>&#32;<br>
+</P>
+<DL COMPACT>
+<DT><TT>dvipost</TT><DD>
+Converts TeX or LaTeX output (<TT>.dvi</TT> files) to PostScript
+<DT><TT>ppost</TT><DD>
+Converts UTF text to PostScript.
+The default font is Courier with Lucida fonts filling in
+the remainder of the (available) Unicode character space.
+<DT><TT>tr2post</TT><DD>
+Converts (device independent) troff output for the device type
+<TT>utf</TT>.
+See
+<TT>/sys/lib/troff/font/devutf</TT>
+directory for troff font width table descriptions.
+See also the
+<TT>/sys/lib/postscript/troff</TT>
+directory for mappings of
+troff
+<TT>UTF</TT>
+character space to PostScript font space.
+<DT><TT>p9bitpost</TT><DD>
+Converts Plan 9 bitmaps (see
+<I>bitfile</I>(9.6))
+to PostScript.
+<DT><TT>g3post</TT><DD>
+Converts fax (CCITT-G31 format) to PostScript.
+<DT><TT>hpost</TT><DD>
+Does header page processing and page reversal processing, if
+necessary.
+Page reversal is done here so the header page always comes
+out at the beginning of the job.
+Header page processing is very location-dependent.
+</dl>
+<H4>5.2 Spool directory
+</H4>
+<P>
+The
+<TT>generic</TT>
+spooler is responsible for executing the preprocessor
+and directing its output to a file in the printer's queue.
+An additional file is created containing information such as the system name,
+user id, job number, and number of times this job was attempted.
+</P>
+<P>
+Certain printer handling programs do not require separate
+preprocessing and spooling.
+For such circumstances a
+<TT>nospool</TT>
+spooler is available that just executes the preprocessing program.
+The processing and spooling functions are assumed by this program and the output is sent to
+<TT>OUT_DEV</TT>
+or standard output if
+<TT>OUT_DEV</TT>
+is '-'.
+</P>
+<P>
+The
+<TT>pcclone</TT>
+spooler is used to send print jobs directly to a printer connected
+to a 386 compatible printer port (See
+<A href="/magic/man2html/3/lpt"><I>lpt</I>(3)).
+</A></P>
+<H4>5.3 Stat directory
+</H4>
+<P>
+The function of the shell scripts in the
+<TT>stat</TT>
+directory is to present status information about the
+printer and its queue.
+When necessary, the
+<TT>stat</TT>
+scripts may be designed
+to return information about the local queue as well as the remote queue.
+This is not done on Plan 9 because many systems share the same queue directory.
+The scheduler is used to print the queue in the order in which the jobs
+will be executed.
+</P>
+<H4>5.4 Kill directory
+</H4>
+<P>
+The
+<TT>kill</TT>
+scripts receive command line arguments passed to them by
+<I>lp</I>
+and remove the job and id files which match the arguments
+for the particular queue.
+When a job is killed, the generic kill procedure:
+</P>
+<DL COMPACT>
+<DT>1)<DD>
+kills the daemon for this queue if the job being killed
+is first in the queue,
+<DT>2)<DD>
+removes the files associated with the job from the queue,
+<DT>3)<DD>
+attempts to restart the daemon.
+</dl>
+<H4>5.5 Daemon directory
+</H4>
+<P>
+The
+<TT>daemon</TT>
+shell scripts are the last to be invoked by
+<I>lp</I>
+if the
+<TT>-Q</TT>
+option has not been given.
+The daemon process is executed asynchronously
+with its standard output and standard error appended to
+the printer log file.
+The log file is described in a subsequent section.
+Because the daemon runs asynchronously, it must
+catch signals that could cause it to terminate abnormally.
+The daemon first checks to see that it is the only one running
+by using the
+<TT>LOCK</TT>
+program found in the
+<TT>/$cputype/bin/aux</TT>
+directory.
+The
+<TT>LOCK</TT>
+command creates a
+<TT>LOCK</TT>
+file in the printer's queue directory.
+The daemon then executes the scheduler to obtain the name of the
+next job on the queue.
+</P>
+<P>
+The processing of jobs may entail transfer to another host
+or transmission to a printer.
+The details of this are specific to the individual daemons.
+If a job is processed without error, it is removed from the queue.
+If a job does not succeed, the associated files may be
+moved to a printer specific directory in
+<TT>$LPLIB/prob</TT>.
+In either case, the daemon can make an entry in the printer's
+log file.
+Before exiting, the daemon should clean up lock files by calling
+<TT>UNLOCK</TT>.
+</P>
+<P>
+Several non-standard daemon programs have been designed
+to suit various requirements and whims.
+One such program announces job completion and empty paper trays
+by causing icons to appear in peoples'
+<TT>seemail</TT>
+window.
+Another, using a voice synthesizer, makes verbal announcements.
+Other daemons may be designed to taste.
+</P>
+<H4>5.6 Sched directory
+</H4>
+<P>
+The scheduler must decide which job files should be executed and
+in what order.
+The most commonly used scheduler program is
+<TT>FIFO</TT>,
+which looks like this:
+<DL><DT><DD><TT><PRE>
+ls -tr $* | sed -n -e 's/.*  *//' \
+  -e '/^[0-9][0-9]*.[1-9][0-9]*$/p'
+</PRE></TT></DL>
+This lists all the job files in this printer's queue in modification
+time order.
+Jobs entering the queue have a dot (.) prefixed to their name
+to keep the scheduler from selecting them before they are complete.
+</P>
+<H4>6 Where Things Go Wrong
+</H4>
+<P>
+There are four directories where
+<I>lp</I>
+writes files.
+On the Plan 9 release these directories may be found
+in a directory on a scratch filesystem that is not
+backed-up.
+This directory is
+<TT>/n/emelieother/lp</TT>.
+It is built on top of a file system
+<TT>other</TT>
+that is mounted on the file server
+<TT>emelie</TT>.
+The four directories in
+this scratch directory
+are
+<TT>log</TT>,
+<TT>prob</TT>,
+<TT>queue</TT>,
+and
+<TT>tmp</TT>.
+<I>Lp</I>
+binds (see
+<A href="/magic/man2html/1/bind"><I>bind</I>(1))
+</A>the first three into the directory
+<TT>/sys/lib/lp</TT>
+for its processes and their children.
+The
+<TT>tmp</TT>
+directory is bound to the
+<TT>/tmp</TT>
+directory so that the lp daemons, which run as user `none',
+may write into this directory.
+</P>
+<P>
+On any new installation, it is important that these directories
+be set up and that the
+<I>/rc/bin/lp</I>
+command be editted to reflect the change.
+If you do not have a scratch filesystem for these directories,
+create the four directories
+<TT>log</TT>,
+<TT>prob</TT>,
+<TT>queue</TT>,
+and
+<TT>tmp</TT>
+in
+<TT>$LPLIB</TT>
+<TT>(/sys/lib/lp)</TT>
+so that they are writable by anyone.
+</P>
+<H4>6.1 Log directory
+</H4>
+<P>
+The log files for a particular
+<I>printer</I>
+appear in a subdirectory of the spool directory
+<TT>log</TT>/<I>printer</I>.
+There are currently two types of log files.
+One is for the daemon to log errors and successful completions
+of jobs.
+These are named
+<I>printer.day</I>
+where
+<I>day</I>
+is the three letter abbreviation for the day of the week.
+These are overwritten once a week to avoid the need for regular
+cleanup.
+The other type of log file contains the status of the printer and
+is written by the program that communicates with the printer itself.
+These are named
+<I>printer</I>.<TT>st</TT>.
+These are overwritten with each new job and are saved in the
+<TT>$LPLIB/prob</TT>
+directory along with the job under circumstances described below.
+When a printer does not appear to be functioning these files are the
+place to look first.
+</P>
+<H4>6.2 Prob directory
+</H4>
+<P>
+When a job fails to produce output,
+the log files should be checked for any obvious problems.
+If none can be found, a directory with full read and write permissions
+should be created with the name of the printer in the
+<TT>$LPLIB/prob</TT>
+directory.
+Subsequent failure of a job will cause the daemon to leave a
+copy of the job and the printer communication log in
+<TT>$LPLIB/prob/</TT><I>printer</I>
+directory.
+It is common for a printer to enter states from which
+it cannot be rescued except by manually cycling the power on the printer.
+After this is done the print daemon should recover by itself
+(give it a minute).
+If it does not recover, remove the
+<TT>LOCK</TT>
+file from the printer's spool directory to kill the daemon.
+The daemon will have to be restarted by sending another job
+to the printer.
+For PostScript printers just use:
+<DL><DT><DD><TT><PRE>
+echo '%!PS' | lp
+</PRE></TT></DL>
+</P>
+<H4>6.3 Repairing Stuck Daemons
+</H4>
+<P>
+There are conditions that occur which are not handled
+by the daemons.
+One such problem can only be described as the printer entering a
+comatose state.
+The printer does not respond to any messages sent to it.
+The daemon should recover from the reset and an error message
+will appear in the log files.
+If all else fails, one can kill the first job in the queue
+or remove the
+<TT>LOCK</TT>
+file from the queue directory.
+This will kill the daemon, which will have to be restarted.
+</P>
+<H4>7 Interprocessor Communication
+</H4>
+<P>
+A Plan 9 CPU server can be set up as a printer's spooling host.
+That is, the machine where jobs are spooled and from which those jobs
+are sent directly to the printer.
+To do this, the CPU must listen on TCP port 515 which is the well known
+port for the BSD line printer daemon.
+The file
+<TT>/rc/bin/service/tcp515</TT>
+is executed when a call comes in on that port.
+The Plan 9
+<TT>lpdaemon</TT>
+will accept jobs sent from BSD LPR/LPD systems.
+The
+<TT>/$cputype/bin/aux/lpdaemon</TT>
+command is executed from the service call and it accepts print jobs, requests for status,
+and requests to kill jobs.
+The command
+<TT>/$cputype/bin/aux/lpsend</TT>
+is used to send jobs
+to other Plan 9 machines and is usually called from
+within a spooler or daemon script.
+The command
+<TT>/$cputype/bin/aux/lpdsend</TT>
+is used to send jobs
+to machines and printers that use the BSD LPR/LPD protocol and is also usually called from
+within a spooler or daemon script.
+</P>
+<H4>8 Acknowledgements
+</H4>
+<P>
+Special thanks to Rich Drechsler for supplying and maintaining most of
+the PostScript translation and interface programs,
+without which
+<I>lp</I>
+would be an empty shell.
+Tomas Rokicki provided the
+TeX
+to PostScript
+translation program.
+</P>
+<H4>9 References
+</H4>
+<br>&#32;<br>
+[Camp86] Ralph Campbell,
+``4.3BSD Line Printer Spooler Manual'', UNIX System Manager's Manual,
+May, 1986, Berkeley, CA
+<br>
+[RFC1179] Request for Comments: 1179, Line Printer Daemon Protocol, Aug 1990
+<br>
+[Sys5] System V manual, date unknown
+
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>

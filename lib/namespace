@@ -1,0 +1,30 @@
+# root
+mount -aC #s/boot /root $rootspec
+bind -a $rootdir /
+bind -c $rootdir/mnt /mnt
+
+# kernel devices
+bind #c /dev
+bind #d /fd
+bind -c #e /env
+bind #p /proc
+bind -c #s /srv
+bind -a #¤ /dev
+
+# authentication
+mount -a /srv/factotum /mnt
+
+# standard bin
+bind /$cputype/bin /bin
+bind -a /rc/bin /bin
+
+# networks
+bind -a #l /net
+bind -a #I /net
+mount -a /srv/cs /net
+mount -a /srv/dns /net
+mount -a /srv/net /net
+bind -a #D /net
+
+bind -c /usr/$user/tmp /tmp
+cd /usr/$user

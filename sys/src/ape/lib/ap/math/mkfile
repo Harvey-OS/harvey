@@ -1,0 +1,27 @@
+APE=/sys/src/ape
+<$APE/config
+LIB=/$objtype/lib/ape/libap.a
+OFILES=\
+	asin.$O\
+	atan.$O\
+	atan2.$O\
+	erf.$O\
+	exp.$O\
+	fabs.$O\
+	floor.$O\
+	fmod.$O\
+	gamma.$O\
+	hypot.$O\
+	j0.$O\
+	j1.$O\
+	jn.$O\
+	log.$O\
+	pow.$O\
+	sin.$O\
+	sinh.$O\
+	tan.$O\
+	tanh.$O\
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c -D_POSIX_SOURCE

@@ -1,0 +1,3 @@
+IPFILES=`{builtin cd ../ip;echo *.c | sed 's/ /|/g; s/\.c//g'}
+^($IPFILES)\.$O:R:	'../ip/\1.c'
+	$CC $CFLAGS -I. ../ip/$stem1.c

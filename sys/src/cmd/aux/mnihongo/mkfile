@@ -1,0 +1,7 @@
+</$objtype/mkfile
+
+TARG=mnihongo
+OFILES=mnihongo.$O
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkone

@@ -1,0 +1,88 @@
+.TH LOOPBACK 3 
+.SH NAME
+loopback \- network link simulation
+.SH SYNOPSIS
+.nf
+.B bind -a #X /net
+
+.BI /net/loopback n /[0-1]
+.BI /net/loopback n /[0-1]/data
+.BI /net/loopback n /[0-1]/ctl
+.BI /net/loopback n /[0-1]/status
+.BI /net/loopback n /[0-1]/stats
+
+.fi
+.SH DESCRIPTION
+The loopback interface,
+.BI /net/loopback n\f1,
+is a directory containing two subdirectories,
+one for each end of a simulated network link.
+The number
+.I n
+is the device number of the link, permitting multiple links to be used on a single machine.
+.PP
+Each directory contains files to control the associated connection,
+receive and send data,
+monitor the simulation parameters,
+and supply statistics.
+.PP
+The
+.B data
+files for the two directories are cross-connected.
+Writes to one are divided into packets of at most a certain size,
+typically 32768 bytes,
+written to a flow-controlled output queue,
+transferred across the link,
+and put into an input queue where it is readable from the other
+.B data
+file.
+.PP
+Options are set by writing to the
+.B ctl
+file for the receiving end of the link,
+and are reported in the same format by reading
+.BR status .
+The following options are supported.
+.TP
+.BI delay \ latency\ bytedelay
+Control the time a packet takes in the link.
+A packet
+.B n
+bytes long takes
+.I bytedelay
+.B *
+.B n
+nanoseconds to exit the output queue and
+is available for reading
+.I latency
+nanoseconds later.
+.TP
+.BI droprate \ n
+Randomly drop approximately one out of
+.B n
+packets.
+If zero drop no packets.
+.TP
+.BR indrop \ [01]
+Disallow or allow packets to be dropped if the input queue overflows.
+.TP
+.BI limit \ n
+Set the input and output queues to hold at most
+.I n
+bytes.
+.TP
+.B reset
+Clear all of the statistics recorded for the link.
+.PP
+Reading
+.B stats
+returns a list of 4 tagged numbers representing:
+.EX
+.ft 1
+	packets sent to this receiver
+	bytes sent to this receiver
+	packets dropped due to droprate
+	packets dropped due to input queue overflows
+.EE
+.SH SOURCE
+.B /sys/src/9/port/devloopback.c

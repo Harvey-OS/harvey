@@ -1,0 +1,24 @@
+WIN=x11
+OS=posix
+
+CC=cc
+CFLAGS=-g -c -DFREEBSD -pthread -I/usr/X11R6/include
+TARG=drawterm
+O=o
+LD=cc
+LDFLAGS=-pthread -g -o drawterm
+
+DEVIP=devip-unix
+DEVFS=devunixfs
+OSFILES=md-iprint.$O canlock-x86-gcc.$O
+LIBS=-lm -L/usr/X11R6/lib -lX11
+
+ml-%.$O:	$DSRC/libmemlayer/%.c
+	$CC $CFLAGS -o ml-$stem.o $DSRC/libmemlayer/$stem.c
+
+md-%.$O:	$DSRC/libmemdraw/%.c
+	$CC $CFLAGS -o md-$stem.o $DSRC/libmemdraw/$stem.c
+
+d-%.$O:	$DSRC/libdraw/%.c
+	$CC $CFLAGS -o d-$stem.o $DSRC/libdraw/$stem.c
+

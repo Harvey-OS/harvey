@@ -1,0 +1,50 @@
+#!/bin/rc
+
+# prereq: mountfs
+# desc: download or continue to download the distribution archives
+
+switch($1) {
+case checkready
+	devs=(`{cat /net/ipifc/*/status >[2]/dev/null | sed 's/ .*//'})
+	if(~ $#devs 0) {
+		download=notdone
+		export download
+	}
+	if(~ $mountdist done){
+		download=notdone
+		export download
+	}
+
+case go
+	if(! test -f /srv/cs) {
+		log starting cs, dns
+		logprog ndb/cs >>/srv/log >[2=1]
+		logprog ndb/dns -r >>/srv/log >[2=1]
+	}
+	if(! test -f /net/cs) {
+		logprog mount -a /srv/cs /net
+		logprog mount -a /srv/dns /net
+	}
+
+	kname=`{kfsname $fs}
+	# BUG make restartable
+	echo 'Downloading distribution package...'
+	if(! hget -vo /n/kfs/dist/_plan9.iso.bz2 $installurl/plan9.iso.bz2 |[2] bargraph -w 145,129,445,168 'downloading '^plan9.iso.bz2)
+		exit
+	mv /n/kfs/dist/_plan9.iso.bz2 /n/kfs/dist/plan9.iso.bz2
+	disk/kfscmd -n$kname sync
+
+	echo 'The distribution is downloaded.'
+
+	srvmedia=(disk/kfs -f $fs -n $kname)
+	mountmedia=(mount /srv/kfs.$kname /n/distmedia)
+	distmediadir=/dist
+	export srvmedia mountmedia distmediadir
+	
+case checkdone
+	if(! test -f /n/kfs/dist/plan9.iso.bz2) {
+		download=notdone
+		export download
+	}
+}
+

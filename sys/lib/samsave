@@ -1,0 +1,14 @@
+#!/bin/rc
+
+file=$1
+switch($#*){
+case 1
+	echo -n $file'?'
+	yn=`{read < /dev/cons}
+	if(~ $yn y){
+		cat > $file
+	}
+case 2
+	/bin/echo $file
+	/bin/cat > $file
+}

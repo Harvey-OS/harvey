@@ -1,0 +1,52 @@
+.TH JUKE 7
+.SH NAME
+juke \-
+.SM CDROM
+juke box
+.SH SYNOPSIS
+.B 9fs juke
+.SH DESCRIPTION
+The
+.I juke
+file system is a stand-alone file server,
+.BR jukefs ,
+that stores copies of
+.SM CDROM\c
+s
+in a simulation of the true juke box that it replaces.
+Each `disc' in the juke box appears as a file in
+.B /n/juke
+or in a subdirectory of
+.BR /n/juke .
+Here are descriptions of some of them.
+.nr zz \w'\f(CWsupercomputing.93\fP'u/1n+2
+.TP \n(zz
+.B plan9.1992
+The 1992 Plan 9 release.
+.TP
+.B plan9.1995
+The 1995 Plan 9 release.
+.TP
+.B dss/dss.???
+Digitized Sky Survey (102 discs covering the night sky); access with
+.IR scat (7).
+.TP
+.B eg/*
+Chess end games.
+.PP
+To see the contents of a
+.SM CDROM\c
+, start
+.B 9660srv
+(see
+.IR dossrv (4))
+and mount the service with the file name of the
+.SM CDROM
+as the attach specifier.
+.SH BUGS
+There should be a way to access the contents of the
+.SM CDROM\c
+s
+without running
+.B 9660srv
+locally.

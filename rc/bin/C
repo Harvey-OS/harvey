@@ -1,0 +1,36 @@
+#!/bin/rc
+
+rfork n
+switch($1){
+case -r
+	shift
+	opt=''
+case *
+	opt=-r
+}
+
+# change to console server
+# may want to use a switch on the 
+# machine name to support multiple
+# console servers
+
+server=$sysname
+
+if(! test -e /mnt/consoles/$1){
+	switch($sysname){
+	case $server
+		mount /srv/consoles /mnt/consoles
+	case *
+		import $server /mnt/consoles
+	}
+}
+
+if(! test -e /mnt/consoles/$1 && test -e /srv/consoles)
+	mount /srv/consoles /mnt/consoles
+
+if(! test -e /mnt/consoles/$1){
+	echo console not found
+	exit 'console not found'
+}
+
+con -l $opt /mnt/consoles/$1

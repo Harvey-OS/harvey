@@ -1,0 +1,63 @@
+APE=/sys/src/ape
+<$APE/config
+LIB=/$objtype/lib/ape/libap.a
+
+ALLOFILES=\
+	_assert.$O\
+	abort.$O\
+	abs.$O\
+	atof.$O\
+	atoi.$O\
+	atol.$O\
+	atoll.$O\
+	bsearch.$O\
+	calloc.$O\
+	clock.$O\
+	ctype.$O\
+	difftime.$O\
+	div.$O\
+	getenv.$O\
+	isalnum.$O\
+	itoa.$O\
+	itol.$O\
+	ldiv.$O\
+	mbwc.$O\
+	memccpy.$O\
+	memchr.$O\
+	memcmp.$O\
+	memmove.$O\
+	memset.$O\
+	mktime.$O\
+	qsort.$O\
+	raise.$O\
+	rand.$O\
+	strcat.$O\
+	strchr.$O\
+	strcmp.$O\
+	strcoll.$O\
+	strcpy.$O\
+	strcspn.$O\
+	strftime.$O\
+	strlen.$O\
+	strncat.$O\
+	strncmp.$O\
+	strncpy.$O\
+	strpbrk.$O\
+	strrchr.$O\
+	strspn.$O\
+	strstr.$O\
+	strtod.$O\
+	strtok.$O\
+	strtol.$O\
+	strtoll.$O\
+	strtoul.$O\
+	strtoull.$O\
+	strxfrm.$O\
+	toupper.$O\
+
+# cull things in the per-machine directories from this list
+OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c -D_POSIX_SOURCE

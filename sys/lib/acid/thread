@@ -1,0 +1,283 @@
+include("/sys/src/libthread/sched.acid");
+
+defn labstk(l)
+{
+	if objtype == "386" then
+		_stk(longjmp, *l, linkreg(0), 0);
+	else
+		_stk(*(l+4), *l, linkreg(0), 0);
+}
+
+defn lablstk(l)
+{
+	if objtype == "386" then
+		_stk(longjmp, *l, linkreg(0), 1);
+	else
+		_stk(*(l+4), *l, linkreg(0), 1);
+}
+
+defn altfmt(A){
+	local i, s, yes;
+	complex Alt A;
+
+	s = "alt(";
+	s = s + "tag(*" + itoa(A.tag\X) + "=" + itoa(*A.tag\X) + ") ";
+	i = 0;
+	yes = 0;
+	while A.op != CHANEND && A.op != CHANNOBLK do{
+		if A.op != CHANNOP then{
+			if yes then s = s + ", ";
+			s = s + itoa(i);
+			s = s + ": ";
+			if A.op == CHANSND then s = s + "send";
+			if A.op == CHANRCV then s = s + "recv";
+			s = s + "(channel(";
+			s = s + itoa(A.c);
+			s = s + "))";
+			yes = 1;
+		}
+		i = i + 1;
+		A = (Alt)(A + sizeofAlt);
+	}
+	if A.op==CHANNOBLK then{
+		if yes then s = s + ", ";
+		s = s + "noblock";
+	}
+	s = s + ")";
+	return s;
+}
+
+defn alt(A){
+	print(altfmt(A), "\n");
+}
+
+defn thread(T){
+	complex Thread T;
+	local A, yes, i, P;
+
+	P = (Proc)T.proc;
+	if T.cmdname != 0 then{
+		print("\t", *(T.cmdname\s), ":\n");
+	}
+	print("\t", T\X, "\t", T.id);
+	if T.state == Running then{
+		print("\t\tRunning   ");
+	} else if T.state == Ready then{
+		print("\t\tReady     ");
+	} else if T.state == Rendezvous then{
+		print("\t\tRendezvous ");
+	}else{
+		print("\t\tBad state ", T.state\X, " ");
+	}
+	if T.chan == Chanalt then{
+		print("\t\t", altfmt(T.alt), "\n");
+	} else if T.chan == Chansend then{
+		A = (Alt)T.alt;
+		print("\t\tsend(Channel(", A.c\X, "))");
+	} else if T.chan == Chanrecv then{
+		A = (Alt)T.alt;
+		print("\t\trecv(Channel(", A.c\X, "))");
+	}
+	if T.moribund == 1 then{
+		print(" (Moribund)");
+	}
+	print("\n");
+}
+
+defn pthreads(P){
+	complex Proc P;
+	local T, Tq;
+
+	mainpid = pid;
+	setproc(P.pid);
+	Tq = (Tqueue)P.threads;
+	T = (Thread)Tq.$head;
+	while T != 0 do{
+		thread(T);
+		T = T.nextt;
+	}
+	setproc(mainpid);
+}
+
+defn threads(){
+	local P;
+
+	P = (Proc)_threadpq.$head;
+	while P != 0 do{
+		if P != (Proc)_threadpq.$head then print("\n");
+		lproc(P);
+		P = P.next;
+	}
+}
+
+defn stacks(){
+	local P;
+
+	mainpid = pid;
+	P = (Proc)_threadpq.$head;
+	while P != 0 do{
+		print("=========================================================\n");
+		proc(P);
+		setproc(P.pid);
+		if P.thread==0 then{
+			print("=== thread scheduler stack\n");
+			stk();
+		}
+		threadstks(P);
+		P = P.next;
+	}
+	setproc(mainpid);
+}
+
+defn stacksizes(){
+	local P, T, Tq, top, sp;
+
+	mainpid = pid;
+	P = (Proc)_threadpq.$head;
+	while P != 0 do{
+		P = (Proc)P;
+		Tq = (Tqueue)P.threads;
+		T = (Thread)Tq.$head;
+		while T != 0 do{
+			top = T.stk+T.stksize;
+			if T.state==Running then {
+				sp = *SP;
+			}else{
+				sp = *(T.sched);
+			}
+			sp = *(T.sched);
+			print(top-sp\D, "\n");
+			T = T.nextt;
+		}
+		P = P.next;
+	}
+	setproc(mainpid);
+}
+
+defn lproc(P){
+	proc(P);
+	pthreads(P);
+}
+
+defn threadstks(P){
+	complex Proc P;
+	local T, Tq;
+
+	mainpid = pid;
+	setproc(P.pid);
+	Tq = (Tqueue)P.threads;
+	T = (Thread)Tq.$head;
+	while T != 0 do{
+		print("=============================\n");
+		thread(T);
+		print("\n");
+		threadstk(T);
+		T = T.nextt;
+	}
+	setproc(mainpid);
+}
+
+defn proc(P){
+	complex Proc P;
+
+	print("Proc *p=", P\X, ", p->pid=", P.pid\D);
+	if P.thread==0 then{
+		print(", p->state=Sched, p->tag=", P\X);
+	}else{
+		print(", p->state=Running");
+	}
+	print("\n");
+}
+
+defn procs(){
+	local P;
+
+	P = (Proc)_threadpq.$head;
+	while P != 0 do{
+		proc(P);
+		P = P.next;
+	}
+}
+
+defn threadlstk(T){
+	complex Thread T;
+	local P, mainpid;
+
+	P = (Proc)T.proc;
+	mainpid = pid;
+	setproc(P.pid);
+
+	if T.state == Running then{
+		lstk();
+	} else {
+		lablstk(T.sched);
+	}
+	setproc(mainpid);
+}
+
+defn threadstk(T){
+	complex Thread T;
+	local P, mainpid;
+
+	P = (Proc)T.proc;
+	mainpid = pid;
+	setproc(P.pid);
+
+	if T.state == Running then{
+		stk();
+	} else {
+		labstk(T.sched);
+	}
+	setproc(mainpid);
+}
+
+defn tqueue(Q) {
+	complex Tqueue Q;
+
+	while Q != 0 do {
+		print(Q.$head\X, " ");
+		Q = *(Q.$tail);
+	
+	}
+	print("#\n");
+}
+
+defn channel(C) {
+	complex Channel C;
+	local i, p;
+
+	print("channel ", C\X);
+	if C.freed then {
+		print(" (moribund)");
+	}
+	print("\n");
+	print("\telementsize=", C.e\D, " buffersize=", C.s, "\n");
+	if C.s then {
+		print("\t", C.n\D, " values in channel:\n");
+		print("\t");
+		p = C.v+C.e*(C.f%C.s);
+		loop 1,C.n do {
+			if C.e==4 then {
+				print((*p)\X, " ");
+			}else {
+				print("data(", (*p)\X, ") ");
+			}
+			p = p+C.e;
+			if p == C.v+C.s*C.e then {
+				p = C.v;
+			}
+		}
+	}
+	print("\n");
+	print(C.nentry\D, " queue slots:\n");
+	i=0;
+	loop 1,C.nentry do {
+		if C.qentry[i] then
+			print("\t", altfmt(C.qentry[i]), "\n");
+		else
+			print("\t<empty>\n");
+		i=i+1;
+	}
+}
+
+print("/sys/lib/acid/thread");

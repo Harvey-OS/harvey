@@ -1,0 +1,21 @@
+</$objtype/mkfile
+
+TARG=vf
+
+OFILES=vf.$O\
+
+LIB=../common/libcommon.a$O\
+
+HFILES=../common/common.h\
+	 ../common/sys.h\
+
+
+BIN=/$objtype/bin/upas
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/upas/%}\
+
+</sys/src/cmd/mkone
+CFLAGS=$CFLAGS -I../common

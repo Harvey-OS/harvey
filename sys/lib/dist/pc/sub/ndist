@@ -1,0 +1,16 @@
+#!/bin/rc
+
+s=/n/dist/dist/replica
+serverroot=/n/dist
+serverlog=$s/plan9.log
+serverproto=$s/plan9.proto
+fn servermount { status='' } 
+fn serverupdate { status='' }
+
+fn clientmount { status='' }
+c=/n/kfs/dist/replica
+clientroot=/n/kfs
+clientproto=$c/plan9.proto
+clientdb=$c/client/plan9.db
+clientexclude=(dist/replica/client)
+clientlog=$c/client/plan9.log

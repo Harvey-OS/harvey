@@ -1,0 +1,17 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libl.a
+OFILES=\
+	allprint.$O\
+	main.$O\
+	reject.$O\
+	yyless.$O\
+	yywrap.$O\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib

@@ -1,0 +1,134 @@
+.SH
+Block Devices
+.PP
+The block device I/O system is like a
+protocol stack of filters.
+There are a set of pseudo-devices that call
+recursively to other pseudo-devices and real devices.
+The protocol stack is compiled from a configuration
+string that specifies the order of pseudo-devices and devices.
+Each pseudo-device and device has a set of entry points
+that corresponds to the operations that the file system
+requires of a device.
+The most notable operations are
+.CW read ,
+.CW write ,
+and
+.CW size .
+.PP
+The device stack can best be described by
+describing the syntax of the configuration string
+that specifies the stack.
+Configuration strings are used
+during the setup of the file system.
+For a description see
+.I fsconfig (8).
+In the following recursive definition,
+.I D
+represents a
+string that specifies a block device.
+.IP "\fID\fP = (\fIDD\fP...)"
+.br
+This is a set of devices that
+are concatenated to form a single device.
+The size of the catenated device is the
+sum of the sizes of each sub-device.
+.IP "\fID\fP = [\fIDD\fP...]"
+.br
+This is the interleaving of the
+individual devices.
+If there are N devices in the list,
+then the pseudo-device is the N-way block
+interleaving of the sub-devices.
+The size of the interleaved device is
+N times the size of the smallest sub-device.
+.IP "\fID\fP = \f(CWp\fP\fIDN1.N2\fP"
+.br
+This is a partition of a sub-device.
+The sub-device is partitioned into 100 equal pieces.
+If the size of the sub-device is not divisible by 100,
+then there will be some slop thrown away at the top.
+The pseudo-device starts at the N1-th piece and
+continues for N2 pieces. Thus
+.CW p\fID\fP67.33
+will be the
+last third of the device
+.I D .
+.IP "\fID\fP = \f(CWf\fP\fID\fP"
+.br
+This is a fake write-once-read-many device simulated by a
+second read-write device.
+This second device is partitioned
+into a set of block flags and a set of blocks.
+The flags are used to generate errors if a
+block is ever written twice or read without being written first.
+.IP "\fID\fP = \f(CWc\fP\fIDD\fP"
+.br
+This is the cache/WORM device made up of a cache (read-write)
+device and a WORM (write-once-read-many) device.
+More on this later.
+.IP "\fID\fP = \f(CWo\fP"
+.br
+This is the dump file system that is the
+two-level hierarchy of all dumps ever taken on a cache/WORM.
+The read-only root of the cache/WORM file system
+(on the dump taken Feb 18, 1995) can
+be referenced as
+.CW /1995/0218
+in this pseudo device.
+The second dump taken that day will be
+.CW /1995/02181 .
+.IP "\fID\fP = \f(CWw\fP\fIN1.N2\fP"
+.br
+This is a SCSI disk on controller N1 and target N2.
+.IP "\fID\fP = \f(CWl\fP\fIN1.N2\fP"
+.br
+This is the same as
+.CW w ,
+but one block from the SCSI disk is removed for labeling.
+.IP "\fID\fP = \f(CWj(\fP\fID\d\s-2\&1\s+2\u\fID\d\s-2\&2\s+2\u\f(CW*)\fID\d\s-2\&3\s+2\u\f1"
+.br
+.I D\d\s-2\&1\s+2\u
+is the juke box SCSI interface.
+The
+.I D\d\s-2\&2\s+2\u 's
+are the SCSI drives in the juke box
+and  the
+.I D\d\s-2\&3\s+2\u 's
+are the demountable platters in the juke box.
+.I D\d\s-2\&1\s+2\u
+and
+.I D\d\s-2\&2\s+2\u
+must be
+.CW w .
+.I D\d\s-2\&3\s+2\u
+must be pseudo devices of
+.CW w
+or
+.CW l
+devices.
+.PP
+For both
+.CW w
+and
+.CW r
+devices any of the configuration numbers
+can be replaced by an iterator of the form
+.CW <\fIN1-N2\fP> .
+Thus
+.P1
+    [w0.<2-6>]
+.P2
+is the interleaved SCSI disks on SCSI targets
+2 through 6 of SCSI controller 0.
+The main file system on
+Emelie
+is defined by the configuration string
+.P1
+    c[w1.<0-5>.0]j(w6w5w4w3w2)l(<0-236>l<238-474>)
+.P2
+This is a cache/WORM driver.
+The cache is three interleaved disks on SCSI controller 1
+targets 0, 1, 2, 3, 4, and 5.
+The WORM half of the cache/WORM
+is 474 jukebox disks.

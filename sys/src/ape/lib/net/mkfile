@@ -1,0 +1,10 @@
+APE=/sys/src/ape
+<$APE/config
+
+LIB=/$objtype/lib/ape/libnet.a
+OFILES=dial.$O\
+	announce.$O\
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c -D_POSIX_SOURCE -D_RESEARCH_SOURCE -D_NET_EXTENSION

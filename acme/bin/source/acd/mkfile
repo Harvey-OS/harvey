@@ -1,0 +1,22 @@
+</$objtype/mkfile
+
+TARG=acd
+BIN=/acme/bin/$objtype
+
+OFILES=\
+	acme.$O\
+	cddb.$O\
+	main.$O\
+	mmc.$O\
+	util.$O\
+	win.$O\
+
+HFILES=acd.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/acme/bin/386/%}\
+
+</sys/src/cmd/mkone

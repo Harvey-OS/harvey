@@ -1,0 +1,54 @@
+</$objtype/mkfile
+
+TARG=awk
+OFILES=re.$O\
+	lex.$O\
+	main.$O\
+	parse.$O\
+	proctab.$O\
+	tran.$O\
+	lib.$O\
+	run.$O\
+	awkgram.$O\
+
+HFILES=awk.h\
+	y.tab.h\
+	proto.h\
+
+YFILES=awkgram.y
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	awk.h proto.h\
+	$YFILES\
+	re.c lex.c main.c parse.c proctab.c tran.c lib.c run.c\
+	maketab.c\
+	${TARG:%=/386/bin/%}\
+
+</sys/src/cmd/mkone
+CFLAGS=-c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE -D_BSD_EXTENSION -DUTF
+YFLAGS=-S -d -v
+CC=pcc
+LD=pcc
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+y.tab.h awkgram.c:	$YFILES
+	$YACC -o awkgram.c $YFLAGS $prereq
+
+clean:V:
+	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug y.output $TARG
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug y.output awkgram.c $TARG
+
+proctab.c:	$cpuobjtype.maketab
+	./$cpuobjtype.maketab >proctab.c
+
+$cpuobjtype.maketab:	y.tab.h maketab.c
+	objtype=$cputype
+	mk maketab.$cputype
+
+maketab.$cputype:V:	y.tab.h maketab.$O
+	$LD -o $O.maketab maketab.$O

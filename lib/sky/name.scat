@@ -1,0 +1,980 @@
+30 dor	ngc2070
+47 tuc	ngc104
+AB aur	sao57506
+AB cyg	sao71513
+AC dra	sao18817
+AC her	sao86134
+AD per	sao23207
+AE aur	sao57816
+AE cap	sao163437
+AF cyg	sao48521
+AF dra	sao9802
+AG car	sao251185
+AG cru	sao240150
+AG peg	sao107436
+AG per	sao56973
+AH cep	sao20247
+AH vel	sao219587
+AI dra	sao30164
+AI vel	sao219640
+AK hya	sao154514
+AN and	sao52881
+AO cas	sao21273
+AO cru	sao251832
+AP pup	sao198641
+AP sgr	sao186478
+AQ sgr	sao162777
+AR aur	sao57858
+AR cas	sao35478
+AR cep	sao3809
+AR lac	sao51684
+AS dra	sao7552
+AT dra	sao29874
+AW peg	sao90061
+AW per	sao57431
+AX mon	sao113974
+BB sgr	sao187349
+BF oph	sao185020
+BK gem	sao95749
+BL ori	sao95659
+BL tel	sao245923
+BM eri	sao149466
+BM sco	sao209132
+BN gem	sao97083
+BO car	sao238447
+BO mus	sao251957
+BQ gem	sao96638
+BQ ori	sao77756
+BR eri	sao130743
+BU gem	sao78098
+BU tau	sao76229
+BW vul	sao89265
+BZ car	sao251169
+CC cas	sao23886
+CD tau	sao77084
+CE tau	sao94628
+CG and	sao53568
+CH cyg	sao31632
+CI ori	sao132176
+CK car	sao238038
+CK ori	sao112837
+CM lac	sao51531
+CO aur	sao58649
+CP cyg	sao51109
+CS vir	sao158481
+CU vir	sao120339
+CV vel	sao236495
+CW cep	sao20401
+DD lac	sao72627
+DM cep	sao10258
+DM per	sao23321
+DQ cep	sao33026
+DT cyg	sao70917
+DY vul	sao89414
+EE peg	sao126971
+EI cep	sao10061
+EM cep	sao19718
+EN lac	sao52512
+EO aur	sao57857
+ER car	sao238825
+ER vul	sao89396
+ES vul	sao87036
+EU del	sao106329
+EW lac	sao52526
+FF aql	sao104296
+FV sco	sao208558
+FZ per	sao23217
+IM mon	sao133189
+IQ her	sao103576
+IW per	sao56538
+IX car	sao238523
+IX per	sao56559
+IZ per	sao22364
+KK per	sao22994
+KP per	sao38927
+KS per	sao39773
+KX ori	sao132302
+L2 pup	sao218549
+LQ her	sao84240
+N vel	sao237067
+NU ori	sao132328
+OP her	sao47080
+P cyg	sao69773
+QS aql	sao105132
+R and	sao53860
+R ant	sao201114
+R aps	sao257212
+R aql	sao124266
+R aqr	sao165849
+R ara	sao244037
+R ari	sao75245
+R aur	sao25112
+R boo	sao83440
+R car	sao250614
+R cen	sao241580
+R cet	sao129898
+R cma	sao152724
+R cmi	sao96548
+R cnc	sao97694
+R crb	sao84015
+R cru	sao251878
+R crv	sao157211
+R cvn	sao63763
+R cyg	sao31822
+R del	sao125610
+R dor	sao249066
+R eri	sao149988
+R gem	sao79070
+R her	sao101927
+R hya	sao181695
+R leo	sao98769
+R lep	sao150058
+R lmi	sao61669
+R lyn	sao26097
+R lyr	sao47919
+R mus	sao251996
+R nor	sao225948
+R oph	sao160299
+R pav	sao254172
+R peg	sao108403
+R per	sao56496
+R pic	sao216987
+R psc	sao109934
+R pup	sao198286
+R pyx	sao176430
+R ret	sao249053
+R scl	sao193122
+R sct	sao142620
+R ser	sao101771
+R sgr	sao162394
+R tau	sao93949
+R tra	sao253107
+R uma	sao15273
+R vel	sao237690
+R vir	sao119509
+R vul	sao89429
+RR ari	sao75030
+RR car	sao237549
+RR cen	sao241587
+RR crb	sao64848
+RR eri	sao130157
+RR her	sao29781
+RR lyn	sao25731
+RR lyr	sao48421
+RR sco	sao208221
+RR umi	sao16558
+RS cnc	sao61306
+RS cyg	sao69636
+RS del	sao106153
+RS her	sao85031
+RS pup	sao198944
+RS sco	sao227442
+RS sex	sao118248
+RS sgr	sao209959
+RS vul	sao87035
+RT aur	sao59128
+RT cyg	sao48773
+RU cas	sao11617
+RU cyg	sao33654
+RU sgr	sao229959
+RV cam	sao24656
+RV cyg	sao71642
+RV hya	sao136144
+RV mon	sao114704
+RV sco	sao208246
+RW cep	sao34387
+RW tau	sao76418
+RW vir	sao138594
+RX aur	sao57573
+RX eri	sao149923
+RX her	sao103793
+RX lep	sao150206
+RX tel	sao229497
+RY boo	sao83548
+RY cam	sao13165
+RY dra	sao15945
+RY sco	sao209340
+RY sgr	sao211117
+RY uma	sao15775
+RY vir	sao158092
+RZ ari	sao93189
+RZ cas	sao12445
+RZ eri	sao149847
+RZ sct	sao142317
+RZ vel	sao220186
+S ant	sao177619
+S aqr	sao191516
+S boo	sao29125
+S car	sao250840
+S cep	sao10100
+S cet	sao128740
+S cha	sao257060
+S cmi	sao115591
+S crb	sao64652
+S cru	sao240362
+S eri	sao150064
+S her	sao102434
+S hya	sao117236
+S lac	sao52048
+S lep	sao171222
+S lib	sao183401
+S mon	sao114258
+S mus	sao251791
+S nor	sao243586
+S ori	sao132163
+S pav	sao246334
+S peg	sao128130
+S phe	sao248090
+S pic	sao217221
+S pup	sao218988
+S scl	sao192424
+S sct	sao142674
+S ser	sao101503
+S sge	sao105436
+S tra	sao253377
+S vel	sao221279
+S vir	sao139403
+SS cep	sao594
+SS hya	sao181708
+ST cam	sao13285
+ST her	sao45758
+ST uma	sao43748
+SU cas	sao12472
+SU cyg	sao87659
+SU mon	sao153273
+SU per	sao23250
+SV cas	sao35640
+SV lyn	sao60532
+SV vul	sao87829
+SW crb	sao64844
+SW vel	sao220356
+SW vir	sao139236
+SX ari	sao75788
+SX pav	sao255003
+SX phe	sao231773
+SX sco	sao209256
+SY uma	sao27430
+SZ cam	sao13031
+SZ tau	sao94036
+T and	sao73930
+T aqr	sao144854
+T ari	sao93115
+T cae	sao195295
+T cap	sao164343
+T car	sao251178
+T cas	sao21343
+T cen	sao204739
+T cep	sao19229
+T cet	sao166210
+T col	sao195748
+T cru	sao251861
+T cyg	sao70499
+T eri	sao168950
+T her	sao66680
+T hya	sao136414
+T ind	sao230635
+T lep	sao170041
+T lyr	sao67087
+T mic	sao189308
+T mon	sao113845
+T nor	sao242884
+T pav	sao257742
+T psa	sao191138
+T pup	sao219006
+T tra	sao253029
+T uma	sao28444
+T vul	sao89216
+TT aql	sao124305
+TT cyg	sao68688
+TT per	sao22663
+TT tau	sao76788
+TU aur	sao41193
+TU cam	sao25447
+TU cas	sao21398
+TU cvn	sao44383
+TU gem	sao78066
+TV cas	sao21296
+TV gem	sao78092
+TV hya	sao181797
+TV psc	sao91910
+TV uma	sao62693
+TW aur	sao40721
+TW peg	sao90201
+TX dra	sao17155
+TX leo	sao118380
+TX psc	sao128374
+TX uma	sao43460
+TY cra	sao210828
+U ant	sao201533
+U aql	sao143454
+U cam	sao12870
+U car	sao238635
+U cep	sao168
+U cet	sao148467
+U crb	sao64619
+U cyg	sao49479
+U del	sao106458
+U her	sao102160
+U hya	sao222202
+U mon	sao134775
+U oph	sao122226
+U ori	sao77730
+U per	sao22817
+U pyx	sao199294
+U sge	sao104711
+U sgr	sao161571
+U tra	sao253430
+U uma	sao15129
+U vel	sao221280
+U vir	sao119627
+U vul	sao87447
+UU aur	sao59280
+UU com	sao82346
+UU psc	sao109087
+UV cam	sao13009
+UW cma	sao173444
+UW dra	sao30659
+UX dra	sao9404
+UY vir	sao157664
+UZ aur	sao40163
+UZ per	sao56354
+V aql	sao142985
+V aqr	sao126200
+V boo	sao64180
+V car	sao236021
+V cen	sao241777
+V cep	sao3994
+V cnc	sao97753
+V cyg	sao49940
+V hor	sao232977
+V mon	sao133182
+V oph	sao159916
+V pav	sao244964
+V pup	sao219226
+V pyx	sao199750
+V vel	sao236893
+V vir	sao139350
+V1647 sgr	sao209552
+V1942 sgr	sao162465
+V356 sgr	sao187294
+V359 ori	sao132331
+V367 cyg	sao70517
+V369 cen	sao239789
+V372 ori	sao132288
+V373 cas	sao35899
+V380 cyg	sao48892
+V381 cen	sao241219
+V393 sco	sao209291
+V394 cra	sao209564
+V396 cen	sao252241
+V412 cen	sao241324
+V418 cen	sao252712
+V441 her	sao85545
+V444 cyg	sao69833
+V448 cyg	sao69410
+V449 cyg	sao69031
+V449 sco	sao209028
+V450 aql	sao124789
+V453 sco	sao209489
+V460 cyg	sao71613
+V482 sco	sao208899
+V505 sgr	sao163080
+V533 oph	sao141939
+V551 oph	sao185610
+V553 cen	sao205930
+V566 oph	sao122946
+V568 cyg	sao70406
+V599 aql	sao162122
+V636 sco	sao227880
+V695 cyg	sao49337
+V703 sco	sao209160
+V720 sco	sao209371
+V727 sco	sao208593
+V805 aql	sao162189
+V819 cyg	sao48940
+V822 aql	sao143494
+V832 cyg	sao50335
+V889 aql	sao104708
+V913 aql	sao104242
+V923 aql	sao124704
+V986 oph	sao123090
+V988 oph	sao123489
+VV cep	sao19753
+VV ori	sao132255
+VW cep	sao9828
+VW dra	sao17414
+VW uma	sao7250
+VY cma	sao173591
+VY leo	sao118576
+VY uma	sao15274
+VZ cam	sao1179
+VZ cnc	sao98035
+VZ sge	sao105522
+W aql	sao143184
+W boo	sao83488
+W cep	sao34614
+W cet	sao166005
+W cma	sao152427
+W cyg	sao51079
+W gem	sao95862
+W her	sao65409
+W hya	sao181981
+W ori	sao112406
+W sgr	sao186237
+W uma	sao27364
+WW aur	sao59194
+WX leo	sao99874
+WY gem	sao78094
+WY vel	sao236888
+X cnc	sao98230
+X cyg	sao70423
+X her	sao45863
+X hya	sao155319
+X oct	sao258577
+X oph	sao123744
+X per	sao56815
+X pup	sao173973
+X sgr	sao185755
+XX cam	sao24431
+XX cen	sao241049
+XY lyr	sao67193
+Y aql	sao104488
+Y boo	sao83308
+Y cen	sao182618
+Y cvn	sao44317
+Y cyg	sao70599
+Y hya	sao178088
+Y lyn	sao41784
+Y oph	sao141926
+Y pav	sao254990
+Y ser	sao140398
+Y sgr	sao161376
+Y tau	sao77516
+Y uma	sao28471
+YY per	sao39636
+YZ cas	sao4216
+YZ per	sao23484
+YZ sgr	sao161870
+Z eri	sao148612
+Z her	sao103254
+Z psc	sao74593
+Z scl	sao192663
+Z uma	sao28194
+Z vul	sao87113
+ZZ boo	sao83080
+ZZ cam	sao13084
+a car	sao236693
+acamar	sao216113
+acamar	sao216114
+achernar	sao232481
+acrab	sao159682
+acrab	sao159683
+acrux	sao251904
+acubens	sao98267
+adhafera	sao81265
+adhara	sao172676
+ain	sao93954
+akappard	sao21732
+alamak	sao37734
+alamak	sao37735
+alaraph	sao119076
+albali	sao144810
+albireo	sao87301
+albireo	sao87302
+alchiba	sao180505
+alcor	sao28751
+alcyone	sao76199
+aldebaran	sao94027
+alderamin	sao19302
+aldib	sao18222
+alfard	sao136871
+alfirk	sao10057
+algedi	sao163422
+algedi	sao163427
+algenib	sao38787
+algenib	sao91781
+algieba	sao81298
+algieba	sao81299
+algol	sao38592
+algorab	sao157323
+alhajoth	sao40186
+alhena	sao95912
+alioth	sao28553
+alkaid	sao44752
+alkalurops	sao64686
+alkappata	sao180505
+alkes	sao156375
+almach	sao37734
+almach	sao37735
+alnair	sao230992
+alnasl	sao209696
+alnilam	sao132346
+alnitak	sao132444
+alphard	sao136871
+alphecca	sao83893
+alpheratz	sao73765
+alphirk	sao10057
+alrai	sao10818
+alrakis	sao30239
+alrami	sao229659
+alrescha	sao110291
+alrisha	sao110291
+alruccaba	sao308
+alshain	sao125235
+alshian	sao125235
+alsuhail	sao220878
+altair	sao125122
+altais	sao18222
+alterf	sao80885
+aludra	sao173651
+alula australis	sao62484
+alula borealis	sao62486
+alwaid	sao30429
+alya	sao124068
+alya	sao124070
+ambartsumian's knot	ngc3561
+ancha	sao145991
+ankaa	sao215093
+antares	sao184415
+antennae	ngc4038
+antennae	ngc4039
+arcturus	sao100944
+arich	sao138917
+arided	sao49941
+arkab posterior	sao229654
+arkab prior	sao229646
+arneb	sao150547
+arrakis	sao30239
+ascella	sao187600
+asellus australis	sao98087
+asellus borealis	sao80378
+aspidiske	sao236808
+asterion	sao44230
+asterope	sao76159
+atik	sao56799
+atiks	sao56673
+atlas	sao76228
+atria	sao74996
+auva	sao119674
+avior	sao235932
+azelfafage	sao33665
+azha	sao130197
+azimech	sao157923
+azmidiske	sao174601
+b per	sao24531
+barnard's galaxy	ngc6822
+baten kaitos	sao148059
+baxendell's unphotographable nebula	ngc7088
+bear paw galaxy	ngc2537
+beehive	ngc2632
+beid	sao131019
+bellatrix	sao112740
+benetnash	sao44752
+betelgeuse	sao113271
+biham	sao127340
+black-eye galaxy	ngc4826
+blinking planetary	ngc6826
+blue planetary	ngc3918
+blue snowball	ngc7662
+bode's nebulae	ngc3031
+bode's nebulae	ngc3034
+bootes cluster	abell1930
+botein	sao93328
+box	ngc4169
+box	ngc4173
+box	ngc4174
+box	ngc4175
+box nebula	ngc6309
+bubble nebula	ngc7635
+bug nebula	ngc6302
+butterfly cluster	ngc6405
+butterfly nebula	ic2220
+california nebula	ngc1499
+canicula	sao151881
+canopus	sao234480
+capella	sao40186
+caph	sao21133
+castor	sao60198
+cebalrai	sao122671
+ceginus	sao45643
+celaeno	sao76126
+centaurus a	ngc5128
+chara	sao63257
+chertan	sao99512
+christmas tree cluster	ngc2264
+cocoon nebula	ic5146
+coma cluster	abell1656
+cone nebula	ngc2264
+copeland's septet	ngc3745
+copeland's septet	ngc3746
+copeland's septet	ngc3748
+copeland's septet	ngc3750
+copeland's septet	ngc3751
+copeland's septet	ngc3753
+copeland's septet	ngc3754
+cor caroli	sao63257
+cor hydrae	sao136871
+cor serpentis	sao121157
+corona borealis cluster	abell2065
+coxa	sao99512
+crab nebula	ngc1952
+crescent nebula	ngc6888
+cursa	sao131794
+cynosura	sao308
+d ser	sao123497
+dabih	sao163481
+deneb algedi	sao164644
+deneb algiedi	sao164644
+deneb cygni	sao49941
+deneb kaitos	sao147420
+deneb okab	sao124603
+denebola	sao99809
+diadem	sao100443
+diphda	sao147420
+dog star	sao151881
+double cluster	ngc869
+double cluster	ngc884
+dschubba	sao184014
+dubhe	sao15384
+dumbbell nebula	ngc6853
+dziban	sao8890
+dziban	sao8891
+eagle nebula	ic2177
+eagle nebula	ngc6611
+edasich	sao29520
+eight-burst planetary	ngc3132
+elacrab	sao159682
+elacrab	sao159683
+electra	sao76131
+elgomaisa	sao115756
+elnath	sao77168
+eltanin	sao30653
+enif	sao127029
+erakis	sao33693
+errai	sao10818
+eskimo nebula	ngc2392
+eta car nebula	ngc3372
+etamin	sao30653
+f aql	sao143286
+filamentary nebula	ngc6960
+flaming star nebula	ic405
+fomalhaut	sao191524
+furud	sao196698
+g her	sao46108
+gacrux	sao240019
+gamma cas nebulae	ic59
+gamma cas nebulae	ic63
+gamma cyg nebulae	ic1318
+gemma	sao83893
+ghost of jupiter	ngc3242
+gianfar	sao15532
+giausar	sao15532
+gienah	sao70474
+gnosia	sao83893
+gomeisa	sao115456
+gorgona	sao38592
+grafais	sao227402
+graffias	sao159682
+graffias	sao159683
+great cluster in hercules	ngc6205
+great looped nebula	ngc2070
+great nebula in andromeda	ngc224
+great nebula in orion	ngc1976
+great square of pegasus	sao108378
+great square of pegasus	sao73765
+great square of pegasus	sao90981
+great square of pegasus	sao91781
+gredi	sao163422
+gredi	sao163427
+grumium	sao30631
+grus quartet	ngc7552
+grus quartet	ngc7582
+grus quartet	ngc7590
+grus quartet	ngc7599
+hamal	sao75151
+haris	sao64203
+hassaleh	sao57522
+hatysa	sao132323
+heka	sao112921
+helix galaxy	ngc2685
+helix nebula	ngc7293
+hercules cluster	abell2151
+heze	sao139420
+hind's variable nebula	ngc1555
+hoedous i	sao39966
+hoedous ii	sao40026
+homam	sao108103
+homunculus nebula	ngc3372
+horsehead nebula	ic434
+hourglass nebula	ngc6523
+hourglass nebula	ngc6523
+hubble's variable nebula	ngc2261
+hydra i cluster	abell1060
+i boo	sao45357
+intergalactic wanderer	ngc2419
+izar	sao83500
+jewel box	ngc4755
+kaffa	sao28315
+kaffaljidhma	sao110707
+kaitain	sao110291
+kajam	sao102153
+kalb	sao98967
+kaus australis	sao210091
+kaus borealis	sao186841
+kaus media	sao186681
+kaus medius	sao186681
+keenan's system	ngc5216
+keenan's system	ngc5218
+keid	sao131063
+kelb alrai	sao122671
+kerb	sao91186
+kiffa australis	sao158836
+kiffa australis	sao158840
+kiffa borealis	sao140430
+kitalpha	sao126662
+kochab	sao8102
+kornephoros	sao84411
+kraz	sao180915
+ksora	sao22268
+kuma	sao30447
+kuma	sao30450
+kurhah	sao19826
+kurhah	sao19827
+lace-work nebula	ngc6960
+lagoon nebula	ngc6523
+lambda cen nebula	ic2944
+lambda cen nebula	ic2948
+leo a cluster	abell1185
+leo cluster	abell1020
+leo triplet	ngc3623
+leo triplet	ngc3627
+leo triplet	ngc3628
+lesath	sao208896
+little dog star	sao115756
+little dumbbell	ngc650
+little dumbbell	ngc651
+little gem	ngc6445
+maasym	sao85163
+maia	sao76155
+maia nebula	ngc1432
+marfik	sao121658
+markab	sao108378
+markeb	sao174198
+marsik	sao101951
+marsik	sao101952
+matar	sao90734
+mebsuta	sao78682
+megrez	sao28315
+meissa	sao112921
+mekab	sao110920
+mekbuda	sao79031
+menkalinan	sao40750
+menkar	sao110920
+menkent	sao205188
+menkhib	sao56799
+menkib	sao56856
+merak	sao27876
+merez	sao45337
+merga	sao45226
+merope	sao76172
+merope nebula	ngc1435
+mesarthim	sao92680
+mesarthim	sao92681
+mesartim	sao92680
+mesartim	sao92681
+metallah	sao74996
+miaplacidus	sao250495
+minelauva	sao119674
+miniature spiral	ngc3928
+minkar	sao180531
+mintaka	sao132220
+mira	sao129825
+mirach	sao54471
+mirak	sao83500
+miram	sao23655
+mirfak	sao38787
+mirzam	sao151428
+misam	sao38609
+mizar	sao28737
+mizar	sao28738
+mothallah	sao74996
+mufrid	sao100766
+muliphein	sao152303
+muphrid	sao100766
+muscida	sao14616
+naos	sao198752
+nash	sao209696
+nashira	sao164560
+nath	sao77168
+nekkar	sao45337
+network nebula	ngc6992
+network nebula	ngc6995
+nihal	sao170457
+nodus i	sao17365
+nodus ii	sao18222
+north american nebula	ngc7000
+north star	sao308
+nunki	sao187448
+nusakan	sao83831
+nushaba	sao209696
+okda	sao110291
+omega cen	ngc5139
+omega nebula	ngc6618
+owl nebula	ngc3587
+p car	sao251106
+p car	sao99171
+palilicium	sao94027
+papillon	ic708
+peacock	sao246574
+pelican nebula	ic5067
+pelican nebula	ic5070
+perseus a	ngc1275
+perseus cluster	abell426
+phact	sao196059
+phakt	sao196059
+phecda	sao28179
+phekda	sao28179
+pherkad	sao8220
+pherkard	sao2937
+pin-wheel nebula	ngc4254
+pleione	sao76229
+polaris	sao308
+polaris australis	sao258857
+polarissima australis	ngc2573
+polarissima borealis	ngc3172
+pollux	sao79666
+porrima	sao138917
+praesepe	ngc2632
+praesepe	sao98024
+procyon	sao115756
+propus	sao78135
+pulcherrima	sao83500
+q car	sao250905
+rana	sao130686
+ras algethi	sao102680
+ras algethi	sao102681
+ras alhague	sao102932
+ras elased australis	sao81004
+ras elased borealis	sao81064
+rasalas	sao81064
+rastaban	sao30653
+reda	sao105223
+regulus	sao98967
+rescha	sao110291
+rho oph nebula	ic4604
+rigel	sao131907
+rigil kentaurus	sao252838
+ring nebula in lyra	ngc6720
+rosette nebula	ngc2237
+rosette nebula	ngc2238
+rosette nebula	ngc2239
+rosette nebula	ngc2246
+rotanev	sao106316
+rucha	sao22268
+ruchbah	sao22268
+rukbat	sao229659
+running chicken nebula	ic2944
+rutilicus	sao84411
+sabik	sao160332
+sadachbia	sao146044
+sadalachbia	sao146044
+sadalbari	sao90816
+sadalmelik	sao145862
+sadalsud	sao145457
+sadalsuud	sao145457
+sador	sao49528
+sadr	sao49528
+saiph	sao132542
+sarin	sao84951
+saturn nebula	ngc7009
+sceptrum	sao149781
+scheat	sao90981
+schedar	sao21609
+scheddi	sao164644
+schedir	sao21609
+sculptor galaxy	ngc253
+segin	sao12031
+seginus	sao64203
+sertan	sao98267
+seyfert's sextet	ngc6027
+sham	sao105120
+shaula	sao208954
+sheliak	sao67451
+sheratan	sao75012
+siamese twins	ngc4567
+siamese twins	ngc4568
+sirius	sao151881
+sirrah	sao73765
+situla	sao146210
+skat	sao165375
+sombrero galaxy	ngc4594
+southern pleiades	ic2602
+spica	sao157923
+spindle galaxy	ngc3115
+star queen nebula	ic4703
+stephan's quintet	ngc7317
+stephan's quintet	ngc7318
+stephan's quintet	ngc7319
+stephan's quintet	ngc7320
+sterope	sao76159
+struve's lost nebula	ngc1554
+subra	sao98709
+suhel	sao234480
+sulafat	sao67663
+sulaphat	sao67663
+sunflower galaxy	ngc5055
+svalocin	sao106357
+syrma	sao139824
+tabit	sao112106
+talitha	sao42630
+tania australis	sao43310
+tania borealis	sao43268
+tarantula nebula	ngc2070
+tarazed	sao105223
+taygeta	sao76140
+tejat posterior	sao78297
+tejat prior	sao78135
+the eyes	ngc4435
+the eyes	ngc4438
+the mice	ngc4676
+theemin	sao195148
+thuban	sao16273
+toby jug nebula	ic2220
+toliman	sao252838
+triangulum galaxy	ngc598
+trifid nebula	ngc6514
+tureis	sao236808
+tyl	sao9540
+u her	sao65913
+unuk elhaia	sao121157
+ursa major i cluster	abell1377
+vega	sao67174
+veil nebula	ngc6960
+veil nebula	ngc6992
+veil nebula	ngc6995
+vespertilio	sao184415
+vindemiatrix	sao100384
+virgo a	ngc4486
+wasat	sao79294
+wazn	sao196240
+wezen	sao173047
+whirlpool galaxy	ngc5194
+whirlpool galaxy	ngc5195
+wild duck cluster	ngc6705
+witch head nebula	ic2118
+yed posterior	sao141086
+yed prior	sao141052
+yildun	sao2937
+zaniah	sao138721
+zaurak	sao149283
+zavijah	sao119076
+zavijava	sao119076
+zibal	sao130387
+zosma	sao81727
+zuben elakrab	sao159370
+zuben elakribi	sao140270
+zuben elgenubi	sao158836
+zuben elgenubi	sao158840
+zuben elschemali	sao140430
+zuben hakrabi	sao159028
+delta peg	sao73765

@@ -1,0 +1,2 @@
+#!/bin/rc
+generic '/$cputype/bin/aux/lpdsend -d$LPDEST -H$LPMACHID -P$LPUSERID $OUTDEV >[2] $PRINTLOG' '{cat <{echo -d$LPDEST -pnoproc -M$SCHEDLINE(1) -u$SCHEDLINE(2)} $LPDEST/$FILE(1);sleep 5} | lpsend.rc $DEST_HOST' ''

@@ -1,0 +1,33 @@
+</$objtype/mkfile
+
+TARG=vl
+OFILES=\
+	asm.$O\
+	list.$O\
+	noop.$O\
+	sched.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	enam.$O\
+	compat.$O\
+
+HFILES=\
+	l.h\
+	../vc/v.out.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+enam.$O:	../vc/enam.c
+	$CC $CFLAGS ../vc/enam.c
+
+x:V:	$O.out
+	$O.out -la -o/dev/null x.v
+
+test:V:	$O.out
+	rm -f xxx
+	mv $O.out xxx
+	./xxx $OFILES
+	cmp $O.out xxx

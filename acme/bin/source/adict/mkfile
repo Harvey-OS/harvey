@@ -1,0 +1,11 @@
+</$objtype/mkfile
+
+TARG=adict
+
+HFILES=win.h
+
+OFILES=adict.$O\
+		win.$O\
+
+BIN= /acme/bin/$objtype
+</sys/src/cmd/mkone

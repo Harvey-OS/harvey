@@ -1,0 +1,36 @@
+.TH STOP 1
+.SH NAME
+stop, start \- print commands to stop and start processes
+.SH SYNOPSIS
+.B stop
+.I name
+.PP
+.B start
+.I name
+.SH DESCRIPTION
+.I Stop
+prints commands that will cause all processes called
+.I name
+and owned by the current user to be stopped.
+The processes can then be debugged when they are in a consistent state.
+.PP
+.I Start
+prints commands that will cause all stopped processes called
+.I name
+and owned by the current user to be started again.
+.PP
+Use the
+.B send
+command of
+.IR rio (1),
+or pipe into
+.IR rc (1)
+to execute the commands.
+.SH SOURCE
+.B /rc/bin/stop
+.br
+.B /rc/bin/start
+.SH "SEE ALSO"
+.IR ps (1),
+.IR kill (1),
+.IR proc (3)

@@ -1,0 +1,62 @@
+.TH BRK 2
+.SH NAME
+brk, sbrk \- change memory allocation
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.ta \w'\fLvoid* 'u
+.B
+int	brk(void *addr)
+.PP
+.B
+void*	sbrk(ulong incr)
+.SH DESCRIPTION
+.I Brk
+sets the system's idea of the lowest bss location not used by the program
+(called the break)
+to
+.I addr
+rounded up to the next multiple of 8 bytes.
+Locations not less than
+.I addr
+and below the stack pointer
+may cause a memory violation if accessed.
+.PP
+In the alternate function
+.IR sbrk ,
+.I incr
+more bytes are added to the
+program's data space and a pointer to the
+start of the new area is returned.
+Rounding occurs as with
+.IR brk .
+.PP
+When a program begins execution via
+.I exec
+the break is set at the
+highest location defined by the program
+and data storage areas.
+Ordinarily, therefore, only programs with growing
+data areas need to use
+.IR brk .
+A call to
+.I sbrk
+with a zero argument returns the lowest address
+in the dynamic segment.
+.SH SOURCE
+.B /sys/src/libc/9sys/sbrk.c
+.SH SEE ALSO
+.IR intro (2),
+.IR malloc (2),
+.IR segattach (2),
+.IR segbrk (2)
+.SH DIAGNOSTICS
+These functions set
+.IR errstr .
+.PP
+The error return from
+.I sbrk
+is
+.BR (void*)-1 .

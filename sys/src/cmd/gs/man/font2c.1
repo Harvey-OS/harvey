@@ -1,0 +1,27 @@
+.\" $Id: font2c.1,v 1.10.2.2 2002/02/01 05:31:25 raph Exp $
+.TH FONT2C 1 "31 January 2002" 7.04 Ghostscript \" -*- nroff -*-
+.SH NAME
+font2c \- Write PostScript Type 0 or Type 1 font as C code
+.SH SYNOPSIS
+\fBfont2c\fR \fIfontnames\fR
+.SH DESCRIPTION
+This script invokes
+.BR gs (1)
+with the following options:
+
+.ce
+.B -q -dNODISPLAY -dWRITESYSTEMDICT
+
+followed by the arguments from the command line.
+This will write out a PostScript Type 0 or Type 1 font as C code
+that can be linked with the interpreter.
+.SH SEE ALSO
+gs(1)
+.SH VERSION
+This document was last revised for Ghostscript version 7.04.
+.SH AUTHOR
+L. Peter Deutsch <ghost@aladdin.com> is the principal author of Ghostscript.
+Russell J. Lang <rjl@aladdin.com> is the author of most of the MS Windows
+code in Ghostscript.
+This manpage by George Ferguson.
+

@@ -1,0 +1,116 @@
+%    Copyright (C) 2001 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: gs_icc.ps,v 1.2 2001/06/12 16:02:39 rayjj Exp $
+% PostScript portion of ICCBased color space support
+
+//userdict /.icc_comp_map_dict
+  << 1 /DeviceGray  3 /DeviceRGB  4 /DeviceCMYK >>
+put
+
+colorspacedict /ICCBased
+  {
+    % Verify that the source object is an array, that it is at least of length
+    % two, and that the second entry is a readable dictionary. If we got this
+    % far, we know the top-level object exists and is readable, but it might
+    % be a dictionary.
+    dup type dup /arraytype ne exch /packedarraytype ne and
+      { /setcolorspace /typecheck signalerror }
+    if
+    dup length 2 lt
+      { /setcolorspace /rangecheck signalerror }
+    if
+    dup 1 get type /dicttype ne
+      { /setcolorspace /typecheck signalerror }
+    if
+    dup 1 get rcheck not
+      { /setcolorspace /invalidaccess signalerror }
+    if
+
+    % Verify that the dictionary defines the key N (number of components) and
+    %  entry is provided and has a legitimate value
+    dup 1 get /N .knownget
+      {
+        //.icc_comp_map_dict exch known not
+          { 
+            % generate the appropriate error
+            /setcolorspace 
+            1 index 1 get /N type type /integertype ne
+              { /typecheck }
+              { /rangecheck }
+            ifelse
+            signalerror
+          }
+        if
+      }
+      { /setcolorspace /undefined signalerror }
+    ifelse
+
+    % Verify DataSrouce and, if it is a string, convert it to a file
+    dup 1 get /DataSource .knownget
+      {
+        dup rcheck not
+          { pop /setcolorspace /invalidaccess signalerror }
+        if
+        type dup /stringtype eq
+          {
+            pop
+            2 array copy
+            dup 1
+             2 copy get dup length dict copy
+             dup /DataSource
+              2 copy get /ReusableStreamDecode filter
+             put
+            put
+          }
+          {
+            /filetype ne
+              { /setcolorspace /typecheck signalerror }
+            if
+          }
+        ifelse
+      }
+      { /setcolorspace /undefined signalerror }
+    ifelse
+
+    % set the alternate color space to be the current color space
+    dup 1 get /Alternate .knownget not
+      { dup 1 get /N get //.icc_comp_map_dict exch get }
+    if
+    setcolorspace
+
+    % if CIE spaces are not use, just take the alternate space
+    NOCIE
+      { pop //null }
+      { % check for native support
+        /.seticcspace where
+          { pop dup 1 get
+	    % Acrobat Reader silently ignores errors with ICC profiles
+	    % and uses the alternate color space -- do the same.
+	    mark exch { .seticcspace } stopped
+	      { cleartomark pop //null }
+	      { pop }
+	    ifelse
+	  }
+          { pop //null }
+        ifelse
+      }
+    ifelse
+  }
+bind put
+
+//userdict /.icc_comp_map_dict undef

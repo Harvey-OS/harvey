@@ -1,0 +1,48 @@
+.SH
+Sync Copy and WORM Copy Processes
+.PP
+The
+.CW scp
+process
+wakes up every ten seconds and
+issues writes to blocks in the buffer cache
+that have been modified.
+This is done automatically on important
+console commands such as
+.CW halt
+and
+.CW dump .
+.PP
+The
+.CW wcp
+process also wakes up every ten seconds
+and tries to copy a
+.CW dump
+block from the cache to the WORM.
+As long as there are
+.CW dump
+blocks to copy and there is no competition for
+the WORM device,
+the copy will continue at full speed.
+Whenever there is competition for the WORM
+or there are no more blocks to
+copy,
+then the process will sleep ten seconds
+before looking again.
+.PP
+The HP WORM jukebox consists of
+238 disks divided into 476 sides
+or platters.
+Platter 0 is the
+.I A
+side of disk 0.
+Platter 1 is the
+.I A
+side of the disk 1.
+Platter 238 is the
+.I B
+side of disk 0.
+On Emelie,
+the main file system is configured
+on both sides of the first 237 disks,
+platters 0-236 and 238-474.

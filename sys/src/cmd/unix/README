@@ -1,0 +1,22 @@
+This directory contains the source for programs that
+live in both the Plan 9 and Unix worlds.  The following
+programs are supplied:
+
+	u9fs - a Unix resident file server that serves the
+		Plan 9 protocol, P9.
+
+	sam - an X-windows version of the sam editor that runs
+		on most popular Unix systems and Suns, too.
+
+	bootp - program to allow a Unix machine to answer a Plan 9 bootp.
+
+	tcs.shar.Z - a compressed version of the Unix source for the
+		character set converter.
+
+	spin - on-the-fly verification program for concurrent systems.
+
+	9pfreebsd - IL and 9FS for FreeBSD 3.2.
+
+A README file in each subdirectory further explains each
+program.
+

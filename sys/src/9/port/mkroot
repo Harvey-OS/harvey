@@ -1,0 +1,10 @@
+#!/bin/rc
+
+echo mkroot $*
+if(! ~ $#* 2){
+	echo usage: mkroot file name >[2=1]
+	exit 1
+}
+strip $1.out
+aux/data2s $2 < $1.out > $1.root.s
+echo mkroot $* done

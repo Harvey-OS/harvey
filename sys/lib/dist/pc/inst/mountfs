@@ -1,0 +1,96 @@
+#!/bin/rc
+
+# desc: choose and mount file system partition
+
+switch($1){
+case go
+	echo 'The following partitions named fs* were found.'
+	echo
+	echo 'Please choose one to use as the installation media'
+	echo 'for your Plan 9 installation.'
+	echo
+	files=(/dev/sd*/fs*)
+	ls -l $files
+	echo
+	if(~ $#files 1)
+		default=(-d $files)
+	if not
+		default=()
+	prompt $default 'Partition to use for Plan 9 installation' $files
+	fs=$rd
+	export fs
+
+	kname=`{kfsname $fs}
+	doinit=(-rb8192)
+	if(iskfs $fs){
+		echo 'A Plan 9 file system already exists on '^$fs^'.'
+		echo 'Do you want to wipe it clean?'
+		echo
+		prompt -d keep 'Wipe the Plan 9 file system clean' keep wipe
+		switch($rd){
+		case keep
+			doinit=()
+		}
+	}
+
+	log Starting kfs file server for $fs
+	unmount /n/kfs >[2]/dev/null
+	disk/kfscmd -n $kname halt >[2]/dev/null
+	rm -f /srv/kfs.$kname /srv/kfs.$kname.cmd
+	logprog disk/kfs -n $kname $doinit -f $fs
+	disk/kfscmd -n $kname allow >>[2]/srv/log
+	
+	log Mounting kfs file server for $fs
+	if(! logprog mount -c /srv/kfs.$kname /n/kfs){
+		echo 'mounting kfs: '^$status
+		exit oops
+	}
+
+	if(test -d /n/kfs/wrap){
+		moveoldfs go
+		if(test -d /n/kfs/wrap)
+			exit cannotsmashold
+	}
+	if(! test -f /n/kfs/dist/replica/client/plan9.log){
+		disk/kfscmd -n $kname 'create /dist sys sys 775 d'
+		disk/kfscmd -n $kname 'create /dist/replica sys sys 775 d'
+		disk/kfscmd -n $kname 'create /dist/replica/ndist sys sys 775'
+		disk/kfscmd -n $kname 'create /dist/replica/client sys sys 775 d'
+		disk/kfscmd -n $kname 'create /dist/replica/client/plan9.db sys sys 664'
+		disk/kfscmd -n $kname 'create /dist/replica/client/plan9.log sys sys 664 a'
+	}
+
+case checkready checkdone
+	if(! test -f /dev/sd*/fs*){
+		mountfs=notdone
+		export mountfs
+		exit
+	}
+	if(! ~ $#fs 1 || ! test -f $fs){
+		mountfs=ready
+		export mountfs
+		exit
+	}
+	kname=`{kfsname $fs}
+	if(! test -f /srv/kfs.$kname){
+		disk/kfscmd -n $kname halt >[2]/dev/null
+		rm -f /srv/kfs.$kname /srv/kfs.$kname.cmd
+		logprog disk/kfs -n $kname -f $fs
+		disk/kfscmd -n $kname allow >>[2]/srv/log
+	}
+	if(test -f /srv/kfs.$kname && ! test -f /n/kfs/dist/replica/client/plan9.log){
+		log Mounting kfs file server for $fs
+		if(! logprog mount -c /srv/kfs.$kname /n/kfs)
+			echo 'mounting kfs: '^$status
+		disk/kfscmd -n $kname allow >>[2]/srv/log
+	}
+	if(test -f /srv/kfs.$kname && test -f /n/kfs/dist/replica/client/plan9.log){
+		mountfs=done
+		export mountfs
+		exit
+	}
+	mountfs=ready
+	export mountfs
+	exit
+}
+

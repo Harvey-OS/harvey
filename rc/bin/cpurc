@@ -1,0 +1,46 @@
+#!/bin/rc
+echo -n cpu > /env/service
+date > /env/boottime
+
+# replace FILESERVER with the name of your file server
+# here we start with kfs, your local disk file system
+fileserver=kfs
+
+# replace FACEDOM with the local domain to be used in the faces database
+facedom=FACEDOM
+
+# name translation, cs sets /dev/sysname
+ndb/cs
+sysname=`{cat /dev/sysname}
+ndb/dns -r
+
+# parallelism for mk
+NPROC=`{wc -l /dev/sysstat}
+NPROC=`{echo $NPROC|sed 's/ .*//'}
+
+prompt=($sysname^'# ' '	')
+
+# pick a timeserver closer to you when you can or we'll get clogged
+aux/timesync plan9.bell-labs.com
+
+# uncomment the following for booting other systems
+#ip/dhcpd
+#ip/tftpd
+
+# If you are on an auth server, start these before listening:
+#
+# auth/keyfs -wp -m /mnt/keys /adm/keys >/dev/null >[2=1]
+# auth/cron >>/sys/log/cron >[2=1] &
+#
+# also rename some files:
+#
+# if(! test -e /rc/bin/service.auth/il566){
+#	mv /rc/bin/service.auth/authsrv.il566 /rc/bin/service.auth/il566
+#	mv /rc/bin/service.auth/authsrv.tcp567 /rc/bin/service.auth/tcp567
+#	mv /rc/bin/service/il566 /rc/bin/service/_il566
+#	mv /rc/bin/service/tcp567 /rc/bin/service/_tcp567
+# }
+
+# services available to networks
+aux/listen -q -t /rc/bin/service.auth -d /rc/bin/service il
+aux/listen -q -t /rc/bin/service.auth -d /rc/bin/service tcp

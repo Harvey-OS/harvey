@@ -1,0 +1,236 @@
+.TH BIND 2
+.SH NAME
+bind, mount, unmount \- change name space
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+int bind(char *name, char *old, int flag)
+.PP
+.B
+int mount(int fd, int afd, char *old, int flag, char *aname)
+.PP
+.B
+int unmount(char *name, char *old)
+.SH DESCRIPTION
+.I Bind
+and
+.I mount
+modify the file name space of the current process and other
+processes in its name space group
+(see
+.IR fork (2)).
+For both calls,
+.I old
+is the name of an existing file or directory in the
+current name space where the modification is to be made.
+The name
+.I old
+is
+.I evaluated
+as described in
+.IR intro (2),
+except that no translation of the final path element is done.
+.PP
+For
+.IR bind ,
+.I name
+is the name of another (or possibly the same)
+existing file or directory in
+the current name space.
+After a successful
+.I bind
+call, the file name
+.I old
+is an alias for the object originally named by
+.IR name ;
+if the modification doesn't hide it,
+.I name
+will also still refer to its original file.
+The evaluation of
+.I new
+happens at the time of the
+.IR bind ,
+not when the binding is later used.
+.PP
+The
+.I fd
+argument to
+.I mount
+is a file descriptor of an open network connection
+or pipe to a file server, while
+.I afd
+is a authentication file descriptor as created by
+.IR fauth (2)
+and subsequently authenticated.
+If authentication is not required,
+.I afd
+should be -1.
+The
+.I old
+file must be a directory.
+After a successful
+.I mount
+the file tree
+.I served
+(see below) by
+.I fd
+will be visible with its root directory having name
+.IR old .
+.PP
+The
+.I flag
+controls details of the modification made to the name space.
+In the following,
+.I new
+refers to the file
+as defined by
+.I name
+or the root directory served by
+.IR fd .
+Either both
+.I old
+and new files must be directories,
+or both must not be directories.
+.I Flag
+can be one of:
+.TF MBEFORE
+.TP 
+.B MREPL
+Replace the
+.I old
+file by the new one.
+Henceforth, an evaluation of
+.I old
+will be translated to the new file.
+If they are directories (for
+.IR mount ,
+this condition is true by definition),
+.I old
+becomes a
+.I "union directory"
+consisting of one directory (the new file).
+.TP
+.B MBEFORE
+Both the
+.I old
+and new files must be directories.
+Add the constituent files of the new directory
+to the union directory at
+.I old
+so its contents appear first in the union.
+After an
+.B MBEFORE
+.I bind
+or
+.IR mount ,
+the new directory will be searched first when evaluating file names
+in the union directory.
+.TP
+.B MAFTER
+Like
+.B MBEFORE
+but the new directory goes at the end of the union.
+.PD
+.PP
+The flags are defined in
+.BR <libc.h> .
+In addition, there is an
+.B MCREATE
+flag that can be OR'd with any of the above.
+When a
+.I create
+system call (see
+.IR open (2))
+attempts to create in a union directory, and the file does not exist,
+the elements of the union are searched in order until one is found
+with
+.B MCREATE
+set.
+The file is created in that directory; if that attempt fails,
+the
+.I create
+fails.
+.PP
+Finally, the
+.B MCACHE
+flag, valid for
+.I mount
+only, turns on caching for files made available by the mount.
+By default, file contents are always retrieved from the server.
+With caching enabled, the kernel may instead use a local cache to satisfy
+.IR read (5)
+requests for files accessible through this mount point.
+The currency of cached data for a file is verified at each
+.IR open (5)
+of the file from this client machine.
+.PP
+With
+.IR mount ,
+the file descriptor
+.I fd
+must be open for reading and writing
+and prepared to respond to 9P messages
+(see Section 5).
+After the
+.IR mount ,
+the file tree starting at
+.I old
+is served by a kernel
+.IR mnt (3)
+device.
+That device will turn operations in the tree into messages on
+.IR fd .
+.I Aname
+selects among different
+file trees on the server; the null string chooses the default tree.
+.PP
+The file descriptor
+.I fd
+is automatically closed by a successful
+.I mount
+call.
+.PP
+The effects of
+.I bind
+and
+.I mount
+can be undone by
+.IR unmount .
+If
+.I name
+is zero, everything bound to or mounted upon
+.I old
+is unbound or unmounted.
+If
+.I name
+is not zero, it is evaluated as described above for
+.IR bind ,
+and the effect of binding or mounting that particular result on
+.I old
+is undone.
+.SH SOURCE
+.B /sys/src/libc/9syscall
+.SH SEE ALSO
+.IR bind (1),
+.IR intro (2),
+.IR fcall (2),
+.IR auth (2)
+(particularly
+.BR amount ),
+.IR intro (5),
+.IR mnt (3),
+.IR srv (3)
+.SH DIAGNOSTICS
+The return value is a positive integer (a unique sequence number) for
+success, -1 for failure.
+These routines set
+.IR errstr .
+.SH BUGS
+.I Mount
+will not return until it has successfully attached
+to the file server, so the process doing a
+.I mount
+cannot be the one serving.

@@ -1,0 +1,8 @@
+</sys/doc/fonts
+
+il.ps:D:	il.ms transition.pic
+	{echo $FONTS; cat il.ms} | pic | troff -ms | lp -dstdout >il.ps
+	../cleanps il.ps
+
+il.html:D:	il.ms transition.pic
+	{echo $FONTS; cat il.ms} | pic | ms2html >il.html

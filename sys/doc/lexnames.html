@@ -1,0 +1,1221 @@
+<html>
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Lexical File Names in Plan 9
+<br>
+or
+<br>
+Getting Dot-Dot Right
+</H1>
+<DL><DD><I>Rob Pike<br>
+<TT>rob@plan9.bell-labs.com</TT>
+Bell Laboratories, Murray Hill, NJ, 07974
+</I></DL>
+<DL><DD><H4>ABSTRACT</H4>
+<br>&#32;<br>
+Symbolic links make the Unix file system non-hierarchical, resulting in
+multiple valid path names for a given file.
+This ambiguity is a source of confusion, especially since some shells
+work overtime to present a consistent view from programs such as
+<TT>pwd</TT>,
+while other programs and
+the kernel itself do nothing about the problem.
+<br>&#32;<br>
+Plan 9 has no symbolic links but it does have other mechanisms that produce the same difficulty.
+Moreover, Plan 9 is founded on the ability to control a program's environment
+by manipulating its name space.
+Ambiguous names muddle the result of operations such as copying a name space across
+the network.
+<br>&#32;<br>
+To address these problems,
+the Plan 9 kernel has been modified to maintain an accurate path name for every active
+file (open file, working directory, mount table entry) in the system.
+The definition of `accurate' is that the path name for a file is guaranteed to be the rooted,
+absolute name
+the program used to acquire it.
+These names are maintained by an efficient method that combines lexical processing&#173;such as
+evaluating
+<TT>..</TT>
+by just removing the last path name element of a directory&#173;with
+local operations within the file system to maintain a consistently, easily understood view
+of the name system.
+Ambiguous situations are resolved by examining the lexically maintained names themselves.
+<br>&#32;<br>
+A new kernel call,
+<TT>fd2path</TT>,
+returns the file name associated with an open file,
+permitting the use of reliable names to improve system
+services ranging from
+<TT>pwd</TT>
+to debugging.
+Although this work was done in Plan 9,
+Unix systems could also benefit from the addition of
+a method to recover the accurate name of an
+open file or the current directory.
+</DL>
+<H4>Motivation
+</H4>
+<br>&#32;<br>
+Consider the following unedited transcript of a session running the Bourne shell on a modern
+Unix system:
+<DL><DT><DD><TT><PRE>
+% echo $HOME
+/home/rob
+% cd $HOME
+% pwd
+/n/bopp/v7/rob
+% cd /home/rob
+% cd /home/ken
+% cd ../rob
+../rob: bad directory
+% 
+</PRE></TT></DL>
+(The same output results from running
+<TT>tcsh</TT>;
+we'll discuss
+<TT>ksh</TT>
+in a moment.)
+To a neophyte being schooled in the delights of a hierarchical file name space,
+this behavior must be baffling.
+It is, of course, the consequence of a series of symbolic links intended to give users
+the illusion they share a disk, when in fact their files are scattered over several devices:
+<DL><DT><DD><TT><PRE>
+% ls -ld /home/rob /home/ken
+lrwxr-xr-x  1 root  sys   14 Dec 26  1998 /home/ken -&#62; /n/bopp/v6/ken
+lrwxr-xr-x  1 root  sys   14 Dec 23  1998 /home/rob -&#62; /n/bopp/v7/rob
+% 
+</PRE></TT></DL>
+The introduction of symbolic links has changed the Unix file system from a true
+hierarchy into a directed graph, rendering
+<TT>..</TT>
+ambiguous and sowing confusion.
+<br>&#32;<br>
+Unix popularized hierarchical naming, but the introduction of symbolic links
+made its naming irregular.
+Worse, the
+<TT>pwd</TT>
+command, through the underlying
+<TT>getwd</TT>
+library routine,
+uses a tricky, expensive algorithm that often delivers the wrong answer.
+Starting from the current directory,
+<TT>getwd</TT>
+opens the parent,
+<TT>..</TT>,
+and searches it for an entry whose i-number matches the current directory;
+the matching entry is the final path element of the ultimate result.
+Applying this process iteratively,
+<TT>getwd</TT>
+works back towards the root.
+Since
+<TT>getwd</TT>
+knows nothing about symbolic links, it will recover surprising names for
+directories reached by them,
+as illustrated by the example;
+the backward paths
+<TT>getwd</TT>
+traverses will not backtrack across the links.
+<br>&#32;<br>
+Partly for efficiency and partly to make
+<TT>cd</TT>
+and
+<TT>pwd</TT>
+more predictable, the Korn shell
+<TT>ksh</TT>
+[Korn94]
+implements
+<TT>pwd</TT>
+as a builtin.
+(The
+<TT>cd</TT>
+command must be a builtin in any shell, since the current directory is unique to each process.)
+<TT>Ksh</TT>
+maintains its own private view of the file system to try to disguise symbolic links;
+in particular,
+<TT>cd</TT>
+and
+<TT>pwd</TT>
+involve some lexical processing (somewhat like the
+<TT>cleanname</TT>
+function discussed later
+in this paper), augmented by heuristics such as examining the environment
+for names like
+<TT>$HOME</TT>
+and
+<TT>$PWD</TT>
+to assist initialization of the state of the private view. [Korn00]
+<br>&#32;<br>
+This transcript begins with a Bourne shell running:
+<DL><DT><DD><TT><PRE>
+% cd /home/rob
+% pwd
+/n/bopp/v7/rob
+% ksh
+$ pwd
+/home/rob
+$ 
+</PRE></TT></DL>
+This result is encouraging.  Another example, again starting from a Bourne shell:
+<DL><DT><DD><TT><PRE>
+% cd /home/rob
+% cd ../ken
+../ken: bad directory
+% ksh
+$ pwd
+/home/rob
+$ cd ../ken
+$ pwd
+/home/ken
+$
+</PRE></TT></DL>
+By doing extra work,
+the Korn shell is providing more sensible behavior,
+but it is easy to defeat:
+<DL><DT><DD><TT><PRE>
+% cd /home/rob
+% pwd
+/n/bopp/v7/rob
+% cd bin
+% pwd
+/n/bopp/v7/rob/bin
+% ksh
+$ pwd
+/n/bopp/v7/rob/bin
+$ exit
+% cd /home/ken
+% pwd
+/n/bopp/v6/ken
+% ksh
+$ pwd
+/n/bopp/v6/ken
+$ 
+</PRE></TT></DL>
+In these examples,
+<TT>ksh</TT>'s
+built-in
+<TT>pwd</TT>
+failed to produce the results
+(<TT>/home/rob/bin</TT>
+and
+<TT>/home/ken</TT>)
+that the previous example might have led us to expect.
+The Korn shell is hiding the problem, not solving it, and in fact is not even hiding it very well.
+<br>&#32;<br>
+A deeper question is whether the shell should even be trying to make
+<TT>pwd</TT>
+and
+<TT>cd</TT>
+do a better job.
+If it does, then the
+<TT>getwd</TT>
+library call and every program that uses it will behave differently from the shell,
+a situation that is sure to confuse.
+Moreover, the ability to change directory to
+<TT>../ken</TT>
+with the Korn shell's
+<TT>cd</TT>
+command but not with the
+<TT>chdir</TT>
+system call is a symptom of a diseased system, not a healthy shell.
+<br>&#32;<br>
+The operating system should provide names that work and make sense.
+Symbolic links, though, are here to stay, so we need a way to provide
+sensible, unambiguous names in the face of a non-hierarchical name space.
+This paper shows how the challenge was met on Plan 9, an operating system
+with Unix-like naming.
+<H4>Names in Plan 9
+</H4>
+<br>&#32;<br>
+Except for some details involved with bootstrapping, file names in Plan 9 have the same syntax as in Unix.
+Plan 9 has no symbolic links, but its name space construction operators,
+<TT>bind</TT>
+and
+<TT>mount</TT>,
+make it possible to build the same sort of non-hierarchical structures created
+by symbolically linking directories on Unix.
+<br>&#32;<br>
+Plan 9's
+<TT>mount</TT>
+system call takes a file descriptor
+and attaches to the local name space the file system service it represents:
+<DL><DT><DD><TT><PRE>
+mount(fd, "/dir", flags)
+</PRE></TT></DL>
+Here
+<TT>fd</TT>
+is a file descriptor to a communications port such as a pipe or network connection;
+at the other end of the port is a service, such as file server, that talks 9P, the Plan 9 file
+system protocol.
+After the call succeeds, the root directory of the service will be visible at the
+<I>mount point</I>
+<TT>/dir</TT>,
+much as with the
+<TT>mount</TT>
+call of Unix.
+The
+<TT>flag</TT>
+argument specifies the nature of the attachment:
+<TT>MREPL</TT>
+says that the contents of the root directory (appear to) replace the current contents of
+<TT>/dir</TT>;
+<TT>MAFTER</TT>
+says that the current contents of
+<TT>dir</TT>
+remain visible, with the mounted directory's contents appearing
+<I>after</I>
+any existing files;
+and
+<TT>MBEFORE</TT>
+says that the contents remain visible, with
+the mounted directory's contents appearing
+<I>before</I>
+any existing files.
+These multicomponent directories are called
+<I>union directories</I>
+and are somewhat different from union directories in 4.4BSD-Lite [PeMc95], because
+only the top-level directory itself is unioned, not its descendents, recursively.
+(Plan 9's union directories are used differently from 4.4BSD-Lite's, as will become apparent.)
+<br>&#32;<br>
+For example, to bootstrap a diskless computer the system builds a local name space containing
+only the root directory,
+<TT>/</TT>,
+then uses the network to open a connection
+to the main file server.
+It then executes
+<DL><DT><DD><TT><PRE>
+mount(rootfd, "/", MREPL);
+</PRE></TT></DL>
+After this call, the entire file server's tree is visible, starting from the root of the local machine.
+<br>&#32;<br>
+While
+<TT>mount</TT>
+connects a new service to the local name space,
+<TT>bind</TT>
+rearranges the existing name space:
+<DL><DT><DD><TT><PRE>
+bind("tofile", "fromfile", flags)
+</PRE></TT></DL>
+causes subsequent mention of the
+<TT>fromfile</TT>
+(which may be a plain file or a directory)
+to behave as though
+<TT>tofile</TT>
+had been mentioned instead, somewhat like a symbolic link.
+(Note, however, that the arguments are in the opposite order
+compared to
+<TT>ln</TT>
+<TT>-s</TT>).
+The
+<TT>flags</TT>
+argument is the same as with
+<TT>mount</TT>.
+<br>&#32;<br>
+As an example, a sequence something like the following is done at bootstrap time to
+assemble, under the single directory
+<TT>/bin</TT>,
+all of the binaries suitable for this architecture, represented by (say) the string
+<TT>sparc</TT>:
+<DL><DT><DD><TT><PRE>
+bind("/sparc/bin", "/bin", MREPL);
+bind("/usr/rob/sparc/bin", "/bin", MAFTER);
+</PRE></TT></DL>
+This sequence of
+<TT>binds</TT>
+causes
+<TT>/bin</TT>
+to contain first the standard binaries, then the contents of
+<TT>rob</TT>'s
+private SPARC binaries.
+The ability to build such union directories
+obviates the need for a shell
+<TT>$PATH</TT>
+variable
+while providing opportunities for managing heterogeneity.
+If the system were a Power PC, the same sequence would be run with
+<TT>power</TT>
+textually substituted for
+<TT>sparc</TT>
+to place the Power PC binaries in
+<TT>/bin</TT>
+rather than the SPARC binaries.
+<br>&#32;<br>
+Trouble is already brewing.  After these bindings are set up,
+where does
+<DL><DT><DD><TT><PRE>
+% cd /bin
+% cd ..
+</PRE></TT></DL>
+set the current working directory, to
+<TT>/</TT>
+or
+<TT>/sparc</TT>
+or
+<TT>/usr/rob/sparc</TT>?
+We will return to this issue.
+<br>&#32;<br>
+There are some important differences between
+<TT>binds</TT>
+and symbolic links.
+First,
+symbolic links are a static part of the file system, while
+Plan 9 bindings are created at run time, are stored in the kernel,
+and endure only as long as the system maintains them;
+they are temporary.
+Since they are known to the kernel but not the file system, they must
+be set up each time the kernel boots or a user logs in;
+permanent bindings are created by editing system initialization scripts
+and user profiles rather than by building them in the file system itself.
+<br>&#32;<br>
+The Plan 9 kernel records what bindings are active for a process,
+whereas symbolic links, being held on the Unix file server, may strike whenever the process evaluates
+a file name.
+Also, symbolic links apply to all processes that evaluate the affected file, whereas
+<TT>bind</TT>
+has a local scope, applying only to the process that executes it and possibly some of its
+peers, as discussed in the next section.
+Symbolic links cannot construct the sort of
+<TT>/bin</TT>
+directory built here; it is possible to have multiple directories point to
+<TT>/bin</TT>
+but not the other way around.
+<br>&#32;<br>
+Finally,
+symbolic links are symbolic, like macros: they evaluate the associated names each time
+they are accessed.
+Bindings, on the other hand, are evaluated only once, when the bind is executed;
+after the binding is set up, the kernel associates the underlying files, rather than their names.
+In fact, the kernel's representation of a bind is identical to its representation of a mount;
+in effect, a bind is a mount of the
+<TT>tofile</TT>
+upon the
+<TT>fromfile</TT>.
+The binds and mounts coexist in a single
+<I>mount table</I>,
+the subject of the next section.
+<H4>The Mount Table
+</H4>
+<br>&#32;<br>
+Unix has a single global mount table
+for all processes in the system, but Plan 9's mount tables are local to each process.
+By default it is inherited when a process forks, so mounts and binds made by one
+process affect the other, but a process may instead inherit a copy,
+so modifications it makes will be invisible to other processes.
+The convention is that related processes, such
+as processes running in a single window, share a mount table, while sets of processes
+in different windows have distinct mount tables.
+In practice, the name spaces of the two windows will appear largely the same,
+but the possibility for different processes to see different files (hence services) under
+the same name is fundamental to the system,
+affecting the design of key programs such as the
+window system [Pike91].
+<br>&#32;<br>
+The Plan 9 mount table is little more than an ordered list of pairs, mapping the
+<TT>fromfiles</TT>
+to the
+<TT>tofiles</TT>.
+For mounts, the
+<TT>tofile</TT>
+will be an item called a
+<TT>Channel</TT>,
+similar to a Unix
+<TT>vnode</TT>,
+pointing to the root of the file service,
+while for a bind it will be the
+<TT>Channel</TT>
+pointing to the
+<TT>tofile</TT>
+mentioned in the
+<TT>bind</TT>
+call.
+In both cases, the
+<TT>fromfile</TT>
+entry in the table
+will be a
+<TT>Channel</TT>
+pointing to the
+<TT>fromfile</TT>
+itself.
+<br>&#32;<br>
+The evaluation of a file name proceeds as follows.
+If the name begins with a slash, start with the
+<TT>Channel</TT>
+for the root; otherwise start with the
+<TT>Channel</TT>
+for the current directory of the process.
+For each path element in the name,
+such as
+<TT>usr</TT>
+in
+<TT>/usr/rob</TT>,
+try to `walk' the
+<TT>Channel</TT>
+to that element [Pike93].
+If the walk succeeds, look to see if the resulting
+<TT>Channel</TT>
+is the same as any
+<TT>fromfile</TT>
+in the mount table, and if so, replace it by the corresponding
+<TT>tofile</TT>.
+Advance to the next element and continue.
+<br>&#32;<br>
+There are a couple of nuances.  If the directory being walked is a union directory,
+the walk is attempted in the elements of the union, in order, until a walk succeeds.
+If none succeed, the operation fails.
+Also, when the destination of a walk is a directory for a purpose such as the
+<TT>chdir</TT>
+system call or the
+<TT>fromfile</TT>
+in a
+<TT>bind</TT>,
+once the final walk of the sequence has completed the operation stops;
+the final check through the mount table is not done.
+Among other things, this simplifies the management of union directories;
+for example, subsequent
+<TT>bind</TT>
+calls will append to the union associated with the underlying
+<TT>fromfile</TT>
+instead of what is bound upon it.
+<H4>A Definition of Dot-Dot
+</H4>
+<br>&#32;<br>
+The ability to construct union directories and other intricate naming structures
+introduces some thorny problems: as with symbolic links,
+the name space is no longer hierarchical, files and directories can have multiple
+names, and the meaning of
+<TT>..</TT>,
+the parent directory, can be ambiguous.
+<br>&#32;<br>
+The meaning of
+<TT>..</TT>
+is straightforward if the directory is in a locally hierarchical part of the name space,
+but if we ask what
+<TT>..</TT>
+should identify when the current directory is a mount point or union directory or
+multiply symlinked spot (which we will henceforth call just a mount point, for brevity),
+there is no obvious answer.
+Name spaces have been part of Plan 9 from the beginning, but the definition of
+<TT>..</TT>
+has changed several times as we grappled with this issue.
+In fact, several attempts to clarify the meaning of
+<TT>..</TT>
+by clever coding
+resulted in definitions that could charitably be summarized as `what the implementation gives.'
+<br>&#32;<br>
+Frustrated by this situation, and eager to have better-defined names for some of the
+applications described later in this paper, we recently proposed the following definition
+for
+<TT>..</TT>:
+<DL>
+<DT><DT>&#32;<DD>
+The parent of a directory
+<I>X</I>,
+<I>X<TT>/..</TT>,</I>
+is the same directory that would obtain if
+we instead accessed the directory named by stripping away the last
+path name element of
+<I>X</I>.
+</dl>
+<br>&#32;<br>
+For example, if we are in the directory
+<TT>/a/b/c</TT>
+and
+<TT>chdir</TT>
+to
+<TT>..</TT>,
+the result is
+<I>exactly</I>
+as if we had executed a
+<TT>chdir</TT>
+to
+<TT>/a/b</TT>.
+<br>&#32;<br>
+This definition is easy to understand and seems natural.
+It is, however, a purely
+<I>lexical</I>
+definition that flatly ignores evaluated file names, mount tables, and
+other kernel-resident data structures.
+Our challenge is to implement it efficiently.
+One obvious (and correct)
+implementation is to rewrite path names lexically to fold out
+<TT>..</TT>,
+and then evaluate the file name forward from the root,
+but this is expensive and unappealing.
+We want to be able to use local operations to evaluate file names,
+but maintain the global, lexical definition of dot-dot.
+It isn't too hard.
+<H4>The Implementation
+</H4>
+<br>&#32;<br>
+To operate lexically on file names, we associate a name with each open file in the kernel, that
+is, with each 
+<TT>Channel</TT>
+data structure.
+The first step is therefore to store a
+<TT>char*</TT>
+with each
+<TT>Channel</TT>
+in the system, called its
+<TT>Cname</TT>,
+that records the
+<I>absolute</I>
+rooted
+file name for the
+<TT>Channel</TT>.
+<TT>Cnames</TT>
+are stored as full text strings, shared copy-on-write for efficiency.
+The task is to maintain each
+<TT>Cname</TT>
+as an accurate absolute name using only local operations.
+<br>&#32;<br>
+When a file is opened, the file name argument in the
+<TT>open</TT>
+(or
+<TT>chdir</TT>
+or
+<TT>bind</TT>
+or ...) call is recorded in the
+<TT>Cname</TT>
+of the resulting
+<TT>Channel</TT>.
+When the file name begins with a slash, the name is stored as is,
+subject to a cleanup pass described in the next section.
+Otherwise, it is a local name, and the file name must be made
+absolute by prefixing it with the
+<TT>Cname</TT>
+of the current directory, followed by a slash.
+For example, if we are in
+<TT>/home/rob</TT>
+and
+<TT>chdir</TT>
+to
+<TT>bin</TT>,
+the
+<TT>Cname</TT>
+of the resulting
+<TT>Channel</TT>
+will be the string
+<TT>/home/rob/bin</TT>.
+<br>&#32;<br>
+This assumes, of course, that the local file name contains no
+<TT>..</TT>
+elements.
+If it does, instead of storing for example
+<TT>/home/rob/..</TT>
+we delete the last element of the existing name and set the
+<TT>Cname</TT>
+to
+<TT>/home</TT>.
+To maintain the lexical naming property we must guarantee that the resulting
+<TT>Cname</TT>,
+if it were to be evaluated, would yield the identical directory to the one
+we actually do get by the local
+<TT>..</TT>
+operation.
+<br>&#32;<br>
+If the current directory is not a mount point, it is easy to maintain the lexical property.
+If it is a mount point, though, it is still possible to maintain it on Plan 9
+because the mount table, a kernel-resident data structure, contains all the
+information about the non-hierarchical connectivity of the name space.
+(On Unix, by contrast, symbolic links are stored on the file server rather than in the kernel.)
+Moreover, the presence of a full file name for each
+<TT>Channel</TT>
+in the mount table provides the information necessary to resolve ambiguities.
+<br>&#32;<br>
+The mount table is examined in the
+<TT>from->to</TT>
+direction when evaluating a name, but
+<TT>..</TT>
+points backwards in the hierarchy, so to evaluate
+<TT>..</TT>
+the table must be examined in the
+<TT>to->from</TT>
+direction.
+(``How did we get here?'')
+<br>&#32;<br>
+The value of
+<TT>..</TT>
+is ambiguous when there are multiple bindings (mount points) that point to
+the directories involved in the evaluation of
+<TT>..</TT>.
+For example, return to our original script with
+<TT>/n/bopp/v6</TT>
+(containing a home directory for
+<TT>ken</TT>)
+and
+<TT>/n/bopp/v7</TT>
+(containing a home directory for
+<TT>rob</TT>)
+unioned into
+<TT>/home</TT>.
+This is represented by two entries in the mount table,
+<TT>from=/home</TT>,
+<TT>to=/n/bopp/v6</TT>
+and
+<TT>from=/home</TT>,
+<TT>to=/n/bopp/v7</TT>.
+If we have set our current directory to
+<TT>/home/rob</TT>
+(which has landed us in the physical location
+<TT>/n/bopp/v7/rob</TT>)
+our current directory is not a mount point but its parent is.
+The value of
+<TT>..</TT>
+is ambiguous: it could be
+<TT>/home</TT>,
+<TT>/n/bopp/v7</TT>,
+or maybe even
+<TT>/n/bopp/v6</TT>,
+and the ambiguity is caused by two
+<TT>tofiles</TT>
+bound to the same
+<TT>fromfile</TT>.
+By our definition, if we now evaluate
+<TT>..</TT>,
+we should acquire the directory
+<TT>/home</TT>;
+otherwise
+<TT>../ken</TT>
+could not possibly result in
+<TT>ken</TT>'s
+home directory, which it should.
+On the other hand, if we had originally gone to
+<TT>/n/bopp/v7/rob</TT>,
+the name
+<TT>../ken</TT>
+should
+<I>not</I>
+evaluate to
+<TT>ken</TT>'s
+home directory because there is no directory
+<TT>/n/bopp/v7/ken</TT>
+(<TT>ken</TT>'s
+home directory is on
+<TT>v6</TT>).
+The problem is that by using local file operations, it is impossible
+to distinguish these cases: regardless of whether we got here using the name
+<TT>/home/rob</TT>
+or
+<TT>/n/bopp/v7/rob</TT>,
+the resulting directory is the same.
+Moreover, the mount table does not itself have enough information
+to disambiguate: when we do a local operation to evaluate
+<TT>..</TT>
+and land in
+<TT>/n/bopp/v7</TT>,
+we discover that the directory is a
+<TT>tofile</TT>
+in the mount table; should we step back through the table to
+<TT>/home</TT>
+or not?
+<br>&#32;<br>
+The solution comes from the
+<TT>Cnames</TT>
+themselves.
+Whether to step back through the mount point
+<TT>from=/home</TT>,
+<TT>to=/n/bopp/v7</TT>
+when evaluating
+<TT>..</TT>
+in
+<TT>rob</TT>'s
+directory is trivially resolved by asking the question,
+Does the
+<TT>Cname</TT>
+for the directory begin
+<TT>/home</TT>?
+If it does, then the path that was evaluated to get us to the current
+directory must have gone through this mount point, and we should
+back up through it to evaluate
+<TT>..</TT>;
+if not, then this mount table entry is irrelevant.
+<br>&#32;<br>
+More precisely,
+both
+<I>before</I>
+and
+<I>after</I>
+each
+<TT>..</TT>
+element in the path name is evaluated,
+if the directory is a
+<TT>tofile</TT>
+in the mount table, the corresponding
+<TT>fromfile</TT>
+is taken instead, provided the
+<TT>Cname</TT>
+of the corresponding
+<TT>fromfile</TT>
+is the prefix of the
+<TT>Cname</TT>
+of the original directory.
+Since we always know the full name of the directory
+we are evaluating, we can always compare it against all the entries in the mount table that point
+to it, thereby resolving ambiguous situations
+and maintaining the
+lexical property of
+<TT>..</TT>.
+This check also guarantees we don't follow a misleading mount point, such as the entry pointing to
+<TT>/home</TT>
+when we are really in
+<TT>/n/bopp/v7/rob</TT>.
+Keeping the full names with the
+<TT>Channels</TT>
+makes it easy to use the mount table to decide how we got here and, therefore,
+how to get back.
+<br>&#32;<br>
+In summary, the algorithm is as follows.
+Use the usual file system operations to walk to
+<TT>..</TT>;
+call the resulting directory
+<I>d</I>.
+Lexically remove
+the last element of the initial file name.
+Examine all entries in the mount table whose
+<TT>tofile</TT>
+is
+<I>d</I>
+and whose
+<TT>fromfile</TT>
+has a
+<TT>Cname</TT>
+identical to the truncated name.
+If one exists, that
+<TT>fromfile</TT>
+is the correct result; by construction, it also has the right
+<TT>Cname</TT>.
+In our example, evaluating
+<TT>..</TT>
+in
+<TT>/home/rob</TT>
+(really
+<TT>/n/bopp/v7/rob</TT>)
+will set
+<I>d</I>
+to
+<TT>/n/bopp/v7</TT>;
+that is a
+<TT>tofile</TT>
+whose
+<TT>fromfile</TT>
+is
+<TT>/home</TT>.
+Removing the
+<TT>/rob</TT>
+from the original
+<TT>Cname</TT>,
+we find the name
+<TT>/home</TT>,
+which matches that of the
+<TT>fromfile</TT>,
+so the result is the
+<TT>fromfile</TT>,
+<TT>/home</TT>.
+<br>&#32;<br>
+Since this implementation uses only local operations to maintain its names,
+it is possible to confuse it by external changes to the file system.
+Deleting or renaming directories and files that are part of a
+<TT>Cname</TT>,
+or modifying the mount table, can introduce errors.
+With more implementation work, such mistakes could probably be caught,
+but in a networked environment, with machines sharing a remote file server, renamings
+and deletions made by one machine may go unnoticed by others.
+These problems, however, are minor, uncommon and, most important, easy to understand.
+The method maintains the lexical property of file names unless an external
+agent changes the name surreptitiously;
+within a stable file system, it is always maintained and
+<TT>pwd</TT>
+is always right.
+<br>&#32;<br>
+To recapitulate, maintaining the
+<TT>Channel</TT>'s
+absolute file names lexically and using the names to disambiguate the
+mount table entries when evaluating
+<TT>..</TT>
+at a mount point
+combine to maintain the lexical definition of
+<TT>..</TT>
+efficiently.
+<H4>Cleaning names
+</H4>
+<br>&#32;<br>
+The lexical processing can generate names that are messy or redundant,
+ones with extra slashes or embedded
+<TT>../</TT>
+or
+<TT>./</TT>
+elements and other extraneous artifacts.
+As part of the kernel's implementation, we wrote a procedure,
+<TT>cleanname</TT>,
+that rewrites a name in place to canonicalize its appearance.
+The procedure is useful enough that it is now part of the Plan 9 C
+library and is employed by many programs to make sure they always
+present clean file names.
+<br>&#32;<br>
+<TT>Cleanname</TT>
+is analogous to the URL-cleaning rules defined in RFC 1808 [Field95], although
+the rules are slightly different.
+<TT>Cleanname</TT>
+iteratively does the following until no further processing can be done:
+<DL>
+<DT><DT>&#32;<DD>
+1. Reduce multiple slashes to a single slash.
+<DT><DT>&#32;<DD>
+2. Eliminate
+<TT>.</TT>
+path name elements
+(the current directory).
+<DT><DT>&#32;<DD>
+3. Eliminate
+<TT>..</TT>
+path name elements (the parent directory) and the
+non-<TT>.</TT>
+non-<TT>..,</TT>
+element that precedes them.
+<DT><DT>&#32;<DD>
+4. Eliminate
+<TT>..</TT>
+elements that begin a rooted path, that is, replace
+<TT>/..</TT>
+by
+<TT>/</TT>
+at the beginning of a path.
+<DT><DT>&#32;<DD>
+5. Leave intact
+<TT>..</TT>
+elements that begin a non-rooted path.
+</dl>
+<br>&#32;<br>
+If the result of this process is a null string,
+<TT>cleanname</TT>
+returns the string
+<TT>"."</TT>,
+representing the current directory.
+<H4>The fd2path system call
+</H4>
+<br>&#32;<br>
+Plan 9 has a new system call,
+<TT>fd2path</TT>,
+to enable programs to extract the
+<TT>Cname</TT>
+associated with an open file descriptor.
+It takes three arguments: a file descriptor, a buffer, and the size of the buffer:
+<DL><DT><DD><TT><PRE>
+int fd2path(int fd, char *buf, int nbuf)
+</PRE></TT></DL>
+It returns an error if the file descriptor is invalid; otherwise it fills the buffer with the name
+associated with
+<TT>fd</TT>.
+(If the name is too long, it is truncated; perhaps this condition should also draw an error.)
+The
+<TT>fd2path</TT>
+system call is very cheap, since all it does is copy the
+<TT>Cname</TT>
+string to user space.
+<br>&#32;<br>
+The Plan 9 implementation of
+<TT>getwd</TT>
+uses
+<TT>fd2path</TT>
+rather than the tricky algorithm necessary in Unix:
+<DL><DT><DD><TT><PRE>
+char*
+getwd(char *buf, int nbuf)
+{
+	int n, fd;
+
+	fd = open(".", OREAD);
+	if(fd &#60; 0)
+		return NULL;
+	n = fd2path(fd, buf, nbuf);
+	close(fd);
+	if(n &#60; 0)
+		return NULL;
+	return buf;
+}
+</PRE></TT></DL>
+(The Unix specification of
+<TT>getwd</TT>
+does not include a count argument.)
+This version of
+<TT>getwd</TT>
+is not only straightforward, it is very efficient, reducing the performance
+advantage of a built-in
+<TT>pwd</TT>
+command while guaranteeing that all commands, not just
+<TT>pwd</TT>,
+see sensible directory names.
+<br>&#32;<br>
+Here is a routine that prints the file name associated
+with each of its open file descriptors; it is useful for tracking down file descriptors
+left open by network listeners, text editors that spawn commands, and the like:
+<DL><DT><DD><TT><PRE>
+void
+openfiles(void)
+{
+	int i;
+	char buf[256];
+
+	for(i=0; i&#60;NFD; i++)
+		if(fd2path(i, buf, sizeof buf) &#62;= 0)
+			print("%d: %s\n", i, buf);
+}
+</PRE></TT></DL>
+<H4>Uses of good names
+</H4>
+<br>&#32;<br>
+Although
+<TT>pwd</TT>
+was the motivation for getting names right, good file names are useful in many contexts
+and have become a key part of the Plan 9 programming environment.
+The compilers record in the symbol table the full name of the source file, which makes
+it easy to track down the source of buggy, old software and also permits the
+implementation of a program,
+<TT>src</TT>,
+to automate tracking it down.
+Given the name of a program,
+<TT>src</TT>
+reads its symbol table, extracts the file information,
+and triggers the editor to open a window on the program's
+source for its
+<TT>main</TT>
+routine.
+No guesswork, no heuristics.
+<br>&#32;<br>
+The
+<TT>openfiles</TT>
+routine was the inspiration for a new file in the
+<TT>/proc</TT>
+file system [Kill84].
+For process
+<I>n</I>,
+the file
+<TT>/proc/<I>n</I>/fd</TT>
+is a list of all its open files, including its working directory,
+with associated information including its open status,
+I/O offset, unique id (analogous to i-number)
+and file name.
+Here is the contents of the
+<TT>fd</TT>
+file for a process in the window system on the machine being used to write this paper:
+<DL><DT><DD><TT><PRE>
+% cat /proc/125099/fd 
+/usr/rob
+  0 r  M 5141 00000001.00000000        0 /mnt/term/dev/cons
+  1 w  M 5141 00000001.00000000       51 /mnt/term/dev/cons
+  2 w  M 5141 00000001.00000000       51 /mnt/term/dev/cons
+  3 r  M 5141 0000000b.00000000     1166 /dev/snarf
+  4 rw M 5141 0ffffffc.00000000      288 /dev/draw/new
+  5 rw M 5141 00000036.00000000  4266337 /dev/draw/3/data
+  6 r  M 5141 00000037.00000000        0 /dev/draw/3/refresh
+  7 r  c    0 00000004.00000000  6199848 /dev/bintime
+% 
+</PRE></TT></DL>
+(The Linux implementation of
+<TT>/proc</TT>
+provides a related service by giving a directory in which each file-descriptor-numbered file is
+a symbolic link to the file itself.)
+When debugging errant systems software, such information can be valuable.
+<br>&#32;<br>
+Another motivation for getting names right was the need to extract from the system
+an accurate description of the mount table, so that a process's name space could be
+recreated on another machine, in order to move (or simulate) a computing environment
+across the network.
+One program that does this is Plan 9's
+<TT>cpu</TT>
+command, which recreates the local name space on a remote machine, typically a large
+fast multiprocessor.
+Without accurate names, it was impossible to do the job right; now
+<TT>/proc</TT>
+provides a description of the name space of each process,
+<TT>/proc/<I>n</I>/ns</TT>:
+<DL><DT><DD><TT><PRE>
+% cat /proc/125099/ns
+bind  / /
+mount -aC #s/boot / 
+bind  #c /dev
+bind  #d /fd
+bind -c #e /env
+bind  #p /proc
+bind -c #s /srv
+bind  /386/bin /bin
+bind -a /rc/bin /bin
+bind  /net /net
+bind -a #l /net
+mount -a #s/cs /net 
+mount -a #s/dns /net 
+bind -a #D /net
+mount -c #s/boot /n/emelie 
+bind -c /n/emelie/mail /mail
+mount -c /net/il/134/data /mnt/term 
+bind -a /usr/rob/bin/rc /bin
+bind -a /usr/rob/bin/386 /bin
+mount  #s/boot /n/emelieother other
+bind -c /n/emelieother/rob /tmp
+mount  #s/boot /n/dump dump
+bind  /mnt/term/dev/cons /dev/cons
+...
+cd /usr/rob
+% 
+</PRE></TT></DL>
+(The
+<TT>#</TT>
+notation identifies raw device drivers so they may be attached to the name space.)
+The last line of the file gives the working directory of the process.
+The format of this file is that used by a library routine,
+<TT>newns</TT>,
+which reads a textual description like this and reconstructs a name space.
+Except for the need to quote
+<TT>#</TT>
+characters, the output is also a shell script that invokes the user-level commands
+<TT>bind</TT>
+and
+<TT>mount</TT>,
+which are just interfaces to the underlying system calls.
+However,
+files like
+<TT>/net/il/134/data</TT>
+represent network connections; to find out where they point, so that the corresponding
+calls can be reestablished for another process,
+they must be examined in more detail using the network device files [PrWi93].  Another program,
+<TT>ns</TT>,
+does this; it reads the
+<TT>/proc/<I>n</I>/ns</TT>
+file, decodes the information, and interprets it, translating the network
+addresses and quoting the names when required:
+<DL><DT><DD><TT><PRE>
+...
+mount -a '#s/dns' /net 
+...
+mount -c il!135.104.3.100!12884 /mnt/term 
+...
+</PRE></TT></DL>
+These tools make it possible to capture an accurate description of a process's
+name space and recreate it elsewhere.
+And like the open file descriptor table,
+they are a boon to debugging; it is always helpful to know
+exactly what resources a program is using.
+<H4>Adapting to Unix
+</H4>
+<br>&#32;<br>
+This work was done for the Plan 9 operating system, which has the advantage that
+the non-hierarchical aspects of the name space are all known to the kernel.
+It should be possible, though, to adapt it to a Unix system.
+The problem is that Unix has nothing corresponding precisely to a
+<TT>Channel</TT>,
+which in Plan 9 represents the unique result of evaluating a name.
+The
+<TT>vnode</TT>
+structure is a shared structure that may represent a file
+known by several names, while the
+<TT>file</TT>
+structure refers only to open files, but for example the current working
+directory of a process is not open.
+Possibilities to address this discrepancy include
+introducing a
+<TT>Channel</TT>-like
+structure that connects a name and a
+<TT>vnode</TT>,
+or maintaining a separate per-process table that maps names to
+<TT>vnodes</TT>,
+disambiguating using the techniques described here.
+If it could be done
+the result would be an implementation of
+<TT>..</TT>
+that reduces the need for a built-in
+<TT>pwd</TT>
+in the shell and offers a consistent, sensible interpretation of the `parent directory'.
+<br>&#32;<br>
+We have not done this adaptation, but we recommend that the Unix community try it.
+<H4>Conclusions
+</H4>
+<br>&#32;<br>
+It should be easy to discover a well-defined, absolute path name for every open file and
+directory in the system, even in the face of symbolic links and other non-hierarchical
+elements of the file name space.
+In earlier versions of Plan 9, and all current versions of Unix,
+names can instead be inconsistent and confusing.
+<br>&#32;<br>
+The Plan 9 operating system now maintains an accurate name for each file,
+using inexpensive lexical operations coupled with local file system actions.
+Ambiguities are resolved by examining the names themselves;
+since they reflect the path that was used to reach the file, they also reflect the path back,
+permitting a dependable answer to be recovered even when stepping backwards through
+a multiply-named directory.
+<br>&#32;<br>
+Names make sense again: they are sensible and consistent.
+Now that dependable names are available, system services can depend on them,
+and recent work in Plan 9 is doing just that.
+We&#173;the community of Unix and Unix-like systems&#173;should have done this work a long time ago.
+<H4>Acknowledgements
+</H4>
+<br>&#32;<br>
+Phil Winterbottom devised the
+<TT>ns</TT>
+command and the
+<TT>fd</TT>
+and
+<TT>ns</TT>
+files in
+<TT>/proc</TT>,
+based on an earlier implementation of path name management that
+the work in this paper replaces.
+Russ Cox wrote the final version of
+<TT>cleanname</TT>
+and helped debug the code for reversing the mount table.
+Ken Thompson, Dave Presotto, and Jim McKie offered encouragement and consultation.
+<H4>References
+</H4>
+<br>&#32;<br>
+[Field95]
+R. Fielding,
+``Relative Uniform Resource Locators'',
+<I>Network Working Group Request for Comments: 1808</I>,
+June, 1995.
+<br>&#32;<br>
+[Kill84]
+T. J. Killian,
+``Processes as Files'',
+<I>Proceedings of the Summer 1984 USENIX Conference</I>,
+Salt Lake City, 1984, pp. 203-207.
+<br>&#32;<br>
+[Korn94]
+David G. Korn,
+``ksh: An Extensible High Level Language'',
+<I>Proceedings of the USENIX Very High Level Languages Symposium</I>,
+Santa Fe, 1994, pp. 129-146.
+<br>&#32;<br>
+[Korn00]
+David G. Korn,
+personal communication.
+<br>&#32;<br>
+[PeMc95]
+Jan-Simon Pendry and Marshall Kirk McKusick,
+``Union Mounts in 4.4BSD-Lite'',
+<I>Proceedings of the 1995 USENIX Conference</I>,
+New Orleans, 1995.
+<br>&#32;<br>
+[Pike91]
+Rob Pike,
+``8&#189;, the Plan 9 Window System'',
+<I>Proceedings of the Summer 1991 USENIX Conference</I>,
+Nashville, 1991, pp. 257-265.
+<br>&#32;<br>
+[Pike93]
+Rob Pike, Dave Presotto, Ken Thompson, Howard Trickey, and Phil Winterbottom,
+``The Use of Name Spaces in Plan 9'',
+<I>Operating Systems Review</I>,
+<B>27</B>,
+2, April 1993, pp. 72-76.
+<br>&#32;<br>
+[PrWi93]
+Dave Presotto and Phil Winterbottom,
+``The Organization of Networks in Plan 9'',
+<I>Proceedings of the Winter 1993 USENIX Conference</I>,
+San Diego, 1993, pp. 43-50.
+
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>

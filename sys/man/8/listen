@@ -1,0 +1,216 @@
+.TH LISTEN 8
+.SH NAME
+listen, listen1, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il17031, tcp7, tcp9, tcp19, tcp21, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp17007, tcp17009, tcp17013 \- listen for calls on a network device
+.SH SYNOPSIS
+.B aux/listen
+.RB [ -q ]
+.RB [ -d
+.IR srvdir ]
+.RB [ -t
+.IR trustsrvdir ]
+.RB [ -n
+.IR namespace ]
+.RI [ net
+.RI [ name ]]
+.PP
+.B aux/listen1
+[
+.B -tv
+]
+.I addr
+.I cmd
+[
+.I args...
+]
+.SH DESCRIPTION
+.I listen
+announces itself to a network as
+.I name
+(by default the contents of
+.BR /env/sysname )
+and listens for inbound calls to local services.
+.I Net
+is the network protocol on which to listen, by default
+.BR /net/il .
+The services available are executable files in
+.I srvdir
+or
+.IR trustsrvdir .
+If neither
+.I srvdir
+nor
+.I trustsrvdir
+is given,
+.I listen
+looks for executable files in
+.BR /bin/service .
+Services found in
+.I srvdir
+are executed as user
+.BR none ;
+services found in
+.I trustsrvdir
+as executed as the user who started
+.IR listen .
+Option
+.B -q
+suppresses affirmative log information;
+option
+.B -n
+sets an alternate
+.I namespace
+file (default
+.BR /lib/namespace ).
+.PP
+Service names are made by concatenating the name of
+the network with the name of the service or port.
+For example,
+an inbound call on the TCP network for port 565 executes service
+.BR tcp565 .
+.PP
+The following services are available in
+.BR /bin/service .
+.TF il17005\ tcp17005
+.TP
+.B il19 tcp19
+.B chargen
+service.
+.TP
+.B il17007 tcp17007
+serve a piece of the name space using the Plan 9 file system protocol,
+with authentication (typically used by
+.IR cpu (1)).
+.TP
+.B tcp564
+like 17007, without authentication (used by Unix
+systems to see Plan 9 files).
+.TP
+.B il17008
+like 17007, but serves the root of the tree, forgoing the negotiation for which subtree to serve.
+.TP
+.B il17009 tcp17009
+remote execution.
+.TP
+.B "il17013 tcp17013"
+server for
+.IR cpu (1)
+command.
+.TP
+.B il17031
+server for
+.IR ramfs (4).
+.TP
+.B il565 tcp565
+report the address of the incoming call.
+.TP
+.B tcp21
+FTP daemon
+.TP
+.B tcp515
+LP daemon; see
+.IR lp (8).
+.TP
+.B tcp23
+.B telnet
+terminal connection.
+.TP
+.B tcp25
+mail delivery.
+.TP
+.B tcp513
+.B rlogin
+terminal connection.
+.TP
+.B il7 tcp7
+echo any bytes received (bit mirror)
+.TP
+.B il9 tcp9
+consume any bytes received (bit bucket)
+.TP
+.B tcp53
+TCP port for DNS.
+.TP
+.B tcp110
+POP3 port.
+.TP
+.B tcp143
+IMAP4rev1 port.
+.TP
+.B tcp113
+.B Ident
+port (always reports
+.BR none ).
+.TP
+.B tcp567
+Plan 9 ticket service.
+.PD
+.PP
+The following services are available in
+.BR /bin/service.auth .
+.TF il565\ tcp565
+.TP
+.B tcp566
+check a SecureNet box.
+.TP
+.B il566
+authentication requests.
+.TP
+.B tcp993
+Secure IMAP4rev1 port.
+.PD
+.PP
+.I Listen1
+is a lightweight listener intended for personal use,
+modeled from Inferno's
+.IR listen (1).
+announces on
+.IR address ,
+running
+.I cmd
+.I args...
+for each incoming connection;
+the network directory is passed in the environment
+as 
+.BR $net .
+The
+.B -t
+flag
+causes
+.I listen1
+to run as the invoking user; the default
+is to become
+.B none
+before listening.
+The
+.B -v
+flag causes verbose logging on standard output.
+See
+.B /rc/bin/tlssrvtunnel
+for an example.
+.SH FILES
+.TF /env/sysname
+.TP
+.B /net/il
+by convention, IL device bind point
+.TP
+.B /net/tcp
+by convention, TCP device bind point
+.TP
+.B /env/sysname
+default announced name
+.SH SOURCE
+The sources to
+.I listen
+and
+.I listen1
+are
+.B /sys/src/cmd/aux/listen.c
+and
+.BR /sys/src/cmd/aux/listen1.c .
+The other commands are
+.IR rc (1)
+scripts in
+.BR /rc/bin/service .
+.SH "SEE ALSO"
+.IR authsrv (6),
+.IR dial (2)

@@ -1,0 +1,11 @@
+#!/bin/rc
+
+rfork e
+flags=()
+while(! ~ $#* 0 && ~ $1 -*){
+	flags=($flags $1)
+	shift
+}
+disk/kfscmd allow
+replica/pull -v $flags /dist/replica/network $*
+disk/kfscmd disallow

@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Recent changes in Ghostscript</title>
+<!-- $Id: News.htm,v 1.90.2.4 2002/02/01 05:31:25 raph Exp $ -->
+<!-- Originally: NEWS -->
+<!--
+	WARNING: do not use Pete Kaiser's emacs function "gs-toc" alone to
+	re-create the table of contents here, because it will replace the
+	hand-edited TOC subheads with a separate subhead for each H2 in
+	the body of the file.  Or if you do, first look at the original
+	TOC to see how to edit it for visual conciseness.
+-->
+<link rel="stylesheet" type="text/css" href="gs.css">
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<h1>Changes in the most recent release of Ghostscript</h1>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>
+This document is news about the most recent Ghostscript release.  For
+earlier versions, see the history documents:
+
+<blockquote>
+<a href="History7.htm">History of Ghostscript versions 7.n</a><br>
+<a href="History6.htm">History of Ghostscript versions 6.n</a><br>
+<a href="History5.htm">History of Ghostscript versions 5.n</a><br>
+<a href="History4.htm">History of Ghostscript versions 4.n</a><br>
+<a href="History3.htm">History of Ghostscript versions 3.n</a><br>
+<a href="History2.htm">History of Ghostscript versions 2.n</a><br>
+<a href="History1.htm">History of Ghostscript versions 1.n</a>
+</blockquote>
+
+<p>For other information, see the <a href="Readme.htm">Ghostscript
+overview</a>.
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<h3><a name="Version7.04"></a>Version 7.04 (2002-01-31)</h3>
+
+<p>
+This is a security update of Ghostscript. A number of maintenance
+fixes and new features have been added.
+
+<p> Major changes include:
+
+<ul>
+<li>A rather serious security hole, where PostScript code could cause
+arbitrary commands to be executed, has been patched.
+
+<li>There is also a new -DPARANOIDSAFER option, which locks down
+reading of arbitrary files.
+
+<li>This release integrates the IJS driver, which makes it much easier
+to add and upgrade printer drivers without needing to recompile
+Ghostscript.
+
+<li>There is a configure script for automatically configuring the
+makefile on Unix platforms. Those who enjoy the fun of hand-editing
+the makefile are still welcome to do so.
+
+<li>The usual bug fixes.
+
+</ul>
+
+<p>
+The following SourceForge bug numbers are currently open: 215256,
+219798, 405342, 406979, 407342, 414947, 414985, 415142, 416131,
+416830, 418241, 421057, 423838, 427193, 427314, 427347, 428891,
+428973, 432040, 434277, 436099, 437285, 438957, 443745, 446344,
+446672, 448199, 450663, 451456, 452155, 453969, 458261, 458500,
+458769, 458775, 458780, 459647, 462221, 465720, 465936, 468762,
+472681, 474544, 474582, 474745, 475147, 477644, 479071, 481893,
+482033, 482038, 483066, 483629, 484752, 484753, 485498, 485510,
+487953, 493344, 493348, 493413, 495088, 495319, 498595, 502102,
+503170, 503731, 503794, 505047, 505151, 505429, 505438, 506375,
+508081, 508607, 508675, 508722, 509646, 510713, 510776, 510808,
+511232.
+
+
+<h3><a name="7.04_Incompatible_changes"></a>Incompatible changes</h3>
+
+<p>
+No incompatible changes have been recorded for this version. Authors
+of drivers with potential security implications are encouraged to review
+the security changes, however.
+
+<pre>
+
+</pre>
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+<hr>
+
+<p>
+<small>Copyright &copy; 2002 artofcode LLC.  All rights
+reserved.</small>
+
+<p>
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
+
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

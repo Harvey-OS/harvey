@@ -1,0 +1,5 @@
+PORTFILES=`{builtin cd ../port;echo *.c | sed 's/ /|/g; s/\.c//g'}
+^($PORTFILES)\.$O:R:	'../port/\1.c'
+	$CC $CFLAGS -I. ../port/$stem1.c
+
+9p1.$O 9p1lib.$O console.$O main.$O:	../port/9p1.h

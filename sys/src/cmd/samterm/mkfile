@@ -1,0 +1,38 @@
+</$objtype/mkfile
+
+TARG=samterm
+OFILES=main.$O\
+	icons.$O\
+	menu.$O\
+	mesg.$O\
+	rasp.$O\
+	scroll.$O\
+	flayer.$O\
+	io.$O\
+	plan9.$O\
+
+HFILES=samterm.h\
+	flayer.h\
+	/sys/include/frame.h\
+
+LIB=	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libframe.a\
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkone
+
+CFLAGS=-I../sam $CFLAGS
+
+mesg.$O:	../sam/mesg.h
+
+syms:V:
+	vc -a $CFLAGS main.c	>syms
+	for(i in *.c) vc -aa $CFLAGS $i >> syms
+
+safeinstall: $O.out
+	mv $BIN/$TARG $BIN/o$TARG
+	cp $prereq $BIN/$TARG
+
+safeinstallall:V:
+	for (objtype in $CPUS)
+		mk safeinstall

@@ -1,0 +1,39 @@
+.TH NETSTAT 1
+.SH NAME
+netstat \- summarize network connections
+.SH SYNOPSIS
+.B netstat
+[
+.B -in
+] [
+.I netmtpt
+]
+.SH DESCRIPTION
+.I Netstat
+prints information about network mounted at
+.IR netmtpt ,
+default
+.BR /net .
+With the
+.B \-i
+option, it reports one line per network interface listing the
+device, MTU, local address, masl, remote address, packets in,
+packets out, errors in, and errors out for this interface.
+For
+.I IP
+connections
+.I netstat
+reports the connection number, user,
+connection state, local port, remote port and
+remote address.
+.I Netstat
+looks up port numbers and addresses in the network databases
+to print symbolic names if possible, but if the
+.B -n
+option is specified, it does not translate to symbolic form.
+.SH FILES
+.B /net/*/*
+.SH SOURCE
+.B /sys/src/cmd/netstat.c
+.SH "SEE ALSO"
+.IR ipconfig (8)

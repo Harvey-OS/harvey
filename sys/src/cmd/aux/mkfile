@@ -1,0 +1,91 @@
+</$objtype/mkfile
+
+TARG=\
+	9pcon\
+	accupoint\
+	acidleak\
+	apm\
+	astarld\
+	cddb\
+	clog\
+	consolefs\
+	data2s\
+	depend\
+	disksim\
+	lines\
+	listen\
+	listen1\
+	mklatinkbd\
+	ms2\
+	mswordstrings\
+	mouse\
+	olefs\
+	pcmcia\
+	rdwr\
+	reboot\
+	searchfs\
+	stub\
+	timesync\
+	trampoline\
+	typepasswd\
+	write\
+	X509gen\
+
+BIN=/$objtype/bin/aux
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/aux/%}\
+
+</sys/src/cmd/mkmany
+
+DIRS=mnihongo\
+	flashfs\
+	na\
+	vga
+
+all:V:	$DIRS
+
+$DIRS:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk all
+	}
+
+install:V:	installdirs
+
+nuke:V:	nukedirs
+
+installdirs:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk install
+	}
+
+clean:V:
+	for (i in $DIRS) @{
+		echo clean $i
+		cd $i
+		mk clean
+	}
+	rm -f [$OS].* *.[$OS]
+
+nukedirs:V:
+	for (i in $DIRS) @{
+		echo nuke $i
+		cd $i
+		mk nuke
+	}
+
+update:V:
+	update $UPDATEFLAGS $UPDATE
+	for (i in $DIRS) @{
+		echo update $i
+		cd $i
+		mk 'UPDATEFLAGS='$"UPDATEFLAGS update
+	}

@@ -1,0 +1,25 @@
+.TH MKDIR 1
+.SH NAME
+mkdir \- make a directory
+.SH SYNOPSIS
+.B mkdir
+.I dirname ...
+.SH DESCRIPTION
+.I Mkdir
+creates the specified directories.
+It
+requires write permission in the parent directory.
+.SH "SEE ALSO"
+.IR rm (1)
+.br
+.IR cd
+in
+.IR rc (1)
+.SH SOURCE
+.B /sys/src/cmd/mkdir.c
+.SH DIAGNOSTICS
+.I Mkdir
+returns null exit status if all directories were successfully made.
+Otherwise it prints a diagnostic and returns
+.B \&"error"
+status.

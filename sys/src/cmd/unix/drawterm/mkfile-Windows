@@ -1,0 +1,48 @@
+WIN=win
+OS=windows
+OSFILES=
+BIN=$9pm/bin
+DSRC=.
+
+CC=cl
+LD=link
+O=obj
+CPUS=
+CFLAGS=-c -nologo -W3 -YX -Zi -MT -Zl -DWINDOWS
+# -nologo	a little less verbose
+# -W3		level 3 warning - u.h contains pragma's that inhibit some of the very silly warnings
+# -YX		use precompiled headers (.PCH files)
+# -G5		generate code that runs best on Pentiums - has bugs on 4.2
+# -Zi		generate debug info (.PDB files)
+# -MT		Link with LIBCMT.LIB (multi thread static)
+# -Zl 		don't include libcmt.lib and oldnames.lib in object files
+# -Oi		enable intrinic function, i.e abs, sin, sqrt, etc
+# -FAs		generate asm listing with source
+# -G5		Pentium code
+# -Ob2		Let the compiler inline function -O2 only inlines functions marked inline
+
+LDFLAGS=-entry:mainCRTStartup -debug -nologo -incremental:no
+#-nodefaultlib:libcmt.lib -nodefaultlib:oldnames.lib 
+TARG=drawterm.exe
+LDFLAGS=-nologo -incremental:no -debug -subsystem:windows -out:drawterm.exe
+
+LIBS=\
+	libcmt.lib\
+	oldnames.lib\
+	user32.lib\
+	advapi32.lib\
+	kernel32.lib\
+	gdi32.lib\
+
+DEVIP=devip-win
+DEVFS=devntfs
+
+ml-%.$O:	$DSRC/libmemlayer/%.c
+	$CC $CFLAGS -Foml-$stem $DSRC/libmemlayer/$stem.c
+
+md-%.$O:	$DSRC/libmemdraw/%.c
+	$CC $CFLAGS -Fomd-$stem $DSRC/libmemdraw/$stem.c
+
+d-%.$O:	$DSRC/libdraw/%.c
+	$CC $CFLAGS -Fod-$stem $DSRC/libdraw/$stem.c
+

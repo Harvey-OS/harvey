@@ -1,0 +1,64 @@
+.TH ENV 3
+.SH NAME
+env \- environment variables
+.SH SYNOPSIS
+.nf
+.B bind #e /env
+
+.BI /env/ var1
+.BI /env/ var2
+ ...
+.fi
+.SH DESCRIPTION
+The
+.I env
+device serves a one-level directory containing files with arbitrary names
+and contents.
+The intention is that the file name is the name of an
+.I environment variable
+(see
+.IR rc (1)),
+and the content is the variable's current value.
+.PP
+When a
+.IR fork (2)
+system call creates a new process, both the parent and the
+child continue to see exactly the same files in the
+.I env
+device: changes made in either process can be noticed by the other.
+In contrast, an
+.B rfork
+system call with the
+.B RFENVG
+bit set (see
+.IR fork (2))
+causes a split: initially both process groups see the
+same environment files, but any changes made in one process group
+cannot be noticed by the other.
+An
+.B rfork
+with
+.B RFCENVG
+splits and then clears the environment.
+.PP
+The special global environment
+.B #ec
+contains kernel configuration variables,
+such as those set in 
+.IR plan9.ini (8).
+All processes see the same
+.BR #ec ;
+its contents are writable only by the host owner.
+[XXX actually everything is world writable; that's a mistake.]
+.SH SEE ALSO
+.IR rc (1),
+.IR fork (2),
+.B #c/reboot
+in
+.IR cons (3),
+.IR plan9.ini (8)
+.SH SOURCE
+.B /sys/src/9/port/devenv.c
+.SH BUGS
+A write starting at an offset after the current extent of a file
+yields an error instead of zero filling.

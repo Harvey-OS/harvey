@@ -1,0 +1,764 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>How to prepare a Ghostscript release</title>
+<!-- $Id: Release.htm,v 1.40.2.3 2002/02/01 05:31:25 raph Exp $ -->
+<!-- Originally: make.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<h1>How to prepare a Ghostscript release</h1>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<h2>Table of contents</h2>
+
+<blockquote><ul>
+<li><a href="#Introduction">Introduction</a>
+<li><a href="#Servers">Servers</a>
+<ul>
+<li><a href="#Development_files">Development sources and bug reports</a>
+<li><a href="#Distribution">Distribution</a>
+</ul>
+<li><a href="#Making_distributions">Making distributions</a>
+<ul>
+<li><a href="#Preparing_source">Preparing the source code</a>
+<li><a href="#Testing">Testing</a>
+<li><a href="#Testing_on_Windows">Testing on Windows</a>
+<li><a href="#Finishing_up">Finishing up</a>
+<li><a href="#Beta_distributions">Beta distributions</a>
+<li><a href="#Public_releases">Public releases</a>
+</ul>
+<li><a href="#After_releasing">After releasing</a>
+<li><a href="#GNU_releases">GNU Ghostscript releases</a>
+<ul>
+<li><a href="#GNU_code">GNU code</a>
+<li><a href="#GNU_after_releasing">After releasing (GNU)</a>
+</ul>
+<li><a href="#Fonts">Fonts</a>
+</ul></blockquote>
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>For other information, see the <a href="Readme.htm">Ghostscript
+overview</a> and the instructions on how to <a href="Make.htm">build
+Ghostscript</a>.
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<h2><a name="Introduction"></a>Introduction</h2>
+
+<p>
+This document describes the process that artofcode LLC, the copyright holder
+of Ghostscript, uses for making new Ghostscript releases.  As time goes on,
+it will become a more suitable document for others wishing to prepare
+releases for distribution.  Please note that although the <a
+href="Public.htm">Aladdin Free Public License</a> allows anyone to prepare
+and distribute releases in accordance with its terms and conditions, this
+document is really meant only for developers working closely with artofcode
+LLC.
+
+<p>
+This document is primarily about AFPL Ghostscript releases.  See the
+section on <a href="#GNU_releases">GNU releases</a> below for information on
+making a GNU Ghostscript release from an existing AFPL Ghostscript
+release, and the section on <a href="#Fonts">fonts</a> for information on
+releasing font packages.
+
+<p>
+The release process is evolving. This document is not necessarily up to
+date in all particulars.
+
+<p>
+File names below that don't include an explicit subdirectory name are in the
+<b><tt>src</tt></b> subdirectory.
+
+<p>
+If you do plan to make your own distribution, please be aware of some items
+you will want to change.
+
+<ul>
+
+<li>If you make any significant changes, please edit
+<b><tt>gscdef.c</tt></b> to change <b><tt>GS_PRODUCTFAMILY</tt></b> and
+<b><tt>GS_PRODUCT</tt></b> from "AFPL Ghostscript" to something else, in
+order to avoid confusion with artofcode's releases.
+
+<li>In the same file, you may also want to edit <b><tt>GS_COPYRIGHT</tt></b>
+to add your own copyright notice (although you must not remove any
+notice that is there).
+
+<li>You will almost certainly want to edit <b><tt>version.mak</tt></b> to
+change the revision date, <b><tt>GS_REVISIONDATE</tt></b>.
+
+<li>If you want to change the version number, you must change it in both
+<b><tt>version.mak</tt></b> (<b><tt>GS_VERSION_</tt></b>*) and
+<b><tt>lib/gs_init.ps</tt></b> (the integer on a line by itself near the
+beginning of the file).
+
+</ul>
+
+<h2><a name="Servers"></a>Servers</h2>
+
+<p>
+The AFPL Ghostscript files are maintained on sites accessible to the
+public.  One specific site hosts the active CVS repository for code, data,
+and documentation, and the bug report data base; several sites offer
+distributions with version numbers, intended for wider distribution.
+
+<h3><a name="Development_files"></a>Development sources and bug reports</h3>
+
+<p>
+While we are in the process of transitioning to ghostscript.com, the
+primary repository for AFPL Ghostscript is still SourceForge (<a
+href="http://sourceforge.net/"
+class="offsite">http://sourceforge.net/</a>). Please read the
+SourceForge AFPL Ghostscript home page (<a
+href="http://sourceforge.net/projects/ghostscript/"
+class="offsite">http://sourceforge.net/projects/ghostscript/</a>)
+first.  CVS access information is available at <a
+href="http://cvs.ghostscript.com/"
+class="offsite">http://cvs.ghostscript.com/</a>.
+
+<h3><a name="Distribution"></a>Distribution</h3>
+
+<p>
+Stable, beta, and development releases are all available from
+<blockquote>
+<a
+href="http://sourceforge.net/project/showfiles.php?group_id=1897" 
+class="offsite">http://sourceforge.net/project/showfiles.php?group_id=1897</a>
+</blockquote>
+
+<p>
+Stable releases are also distributed from
+
+<blockquote>
+<a
+href="ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/" 
+class="offsite">ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/</a>
+</blockquote>
+
+<p>
+Development releases are also distributed from
+
+<blockquote>
+<a href="ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/test/" 
+class="offsite">ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/test/</a>
+</blockquote>
+
+<h2><a name="Making_distributions"></a>Making distributions</h2>
+
+<p>
+This document only discusses source distributions.  Source distributions
+currently can only be made on Linux systems (but it probably wouldn't take
+much work to support other Unix systems).  Ghostscript as distributed also
+often includes executables or other packages for the Windows and MacOS
+environments, but artofcode does not produce these, and this document does not
+discuss them.  For more information about Windows packages, please contact
+<a href="mailto:bug-gswin@ghostscript.com"><tt>bug-gswin@ghostscript.com</tt></a>;
+for more information about MacOS packages, please contact <a
+href="mailto:mac-gs@ghostscript.com"><tt>mac-gs@ghostscript.com</tt></a>.
+
+<p>
+To make a source distribution, you will need the scripts and data files in
+the <b><tt>toolbin/</tt></b> directory.  You will probably find it
+convenient to include this directory in the PATH, but the instructions below
+don't assume that you have done this.  To run the scripts, you will need
+reasonably current versions of Tcl, freely available from Scriptics (<a
+class="offsite" 
+href="http://www.scriptics.com"><tt>http://www.scriptics.com</tt></a>), and
+Python, freely available from <a class="offsite"
+href="http://www.python.org"><tt>http://www.python.org</tt></a>.
+
+<p>
+The instructions below also refer to some files that are deliberately
+omitted from the public distribution, because they are copyrighted by their
+authors and not freely redistributable.  You will need to provide similar
+files for your environment.
+
+<blockquote><pre>
+<b><tt>data/*/*.ps</tt></b> (PostScript files) - needed for smoke testing
+<b><tt>beta.msg</tt></b> - the announcement message for the release
+</pre></blockquote>
+
+<h3><a name="Preparing_source"></a>Preparing the source code</h3>
+
+<p>
+Update references to the date:
+
+<ul>
+
+<li>In <b><tt>version.mak</tt></b>, the numeric date.
+
+<li>In <b><tt>doc/News.htm</tt></b>, in 3 places, skipping the Id: line.
+
+</ul>
+
+<p>
+Also in <b><tt>doc/News.htm</tt></b>, update the number of the highest
+closed bug and the list of open bugs.
+
+<p>
+Check in <b><tt>gscdef.c</tt></b> that the definition of
+<b><tt>GS_PRODUCT</tt></b> includes the appropriate one of "DEVELOPMENT
+RELEASE", "BETA RELEASE", or neither, and does not include "CVS
+PRE-RELEASE".
+
+<p>
+Check for patched configuration parameters, <b><tt>#define TEST</tt></b>s,
+version/date inconsistencies, and mismatches between the working directory
+and the CVS repository by running:
+
+<blockquote><pre>
+toolbin/pre
+</pre></blockquote>
+
+<p>
+This program compares the result of various greps against a check file,
+writing the results of grep on one output file and the differences from the
+check file on another.  See the source code of <b><tt>toolbin/pre</tt></b>
+for the default file names.  The important one is the check file,
+<b><tt>toolbin/pre.chk</tt></b>.  <b><tt>pre</tt></b> also verifies that the
+right information is in the following places:
+<ul>
+<li>version number in <b><tt>man/*.1</tt></b>, <b><tt>doc/*.htm</tt></b>,
+<b><tt>version.mak</tt></b>, <b><tt>doc/gs-vms.hlp</tt></b>,
+<b><tt>lib/gs_init.ps</tt></b>
+<li>revision date in <b><tt>man/*.1</tt></b>, <b><tt>doc/*.htm</tt></b>,
+<b><tt>version.mak</tt></b>, <b><tt>doc/gs-vms.hlp</tt></b>
+<li>copyright year (if necessary) in <b><tt>gscdef.c</tt></b>
+<li>third-party library version number in <b><tt>*.mak</tt></b>
+</ul>
+
+<p>
+If necessary, run
+
+<blockquote><pre>
+toolbin/pre update
+</pre></blockquote>
+
+<p>
+to update the version and revision date in the doc files, and then run
+
+<blockquote><pre>
+toolbin/pre
+</pre></blockquote>
+
+<p>
+again. Note: this script currently generates a number of spurious
+warnings.
+
+<p>
+Check the consistency of the source code with the makefiles by
+running:
+
+<blockquote><pre>
+toolbin/gsmake.tcl check
+</pre></blockquote>
+
+<p> Note that this script seems to generate spurious warnings.
+
+<p>
+Check that all source and .ps files are documented at least minimally by
+running:
+
+<blockquote><pre>
+toolbin/hrefcov.tcl +src
+toolbin/hrefcov.tcl +lib
+</pre></blockquote>
+
+<h3><a name="Testing"></a>Testing</h3>
+
+<p>
+Edit the makefile (presumably <b><tt>unix-gcc.mak</tt></b>) to set
+<blockquote><pre>
+FEATURE_DEVS=$(FEATURE_DEVS_ALL)
+COMPILE_INITS=1
+</pre></blockquote>
+
+<p>
+This will help catch compilation problems.
+
+<p>
+Run
+
+<blockquote><pre>
+rm obj/*
+make -j2 &gt;&amp; t.log
+</pre></blockquote>
+
+<p>
+and look for warnings and errors in the log file.
+
+<p>
+Do a smoke test in a separate window, replacing <b><tt>/gs</tt></b> with the
+name of the development root directory if necessary:
+
+<blockquote><pre>
+unset GS_DEVICE GS_FONTPATH GS_LIB GS_OPTIONS
+cd /tmp
+/gs/bin/gs -I/gs/lib -I/gs/fonts -dNOPAUSE -dBATCH /gs/toolbin/smoke.ps | tee t
+export TEMP=/gs/tmp
+/gs/bin/gs -I/gs/lib -I/gs/fonts -dNOPAUSE -dBATCH -sDEVICE=bitcmyk\
+  -sOutputFile=/dev/null -r600 -dBufferSpace=50000 /gs/toolbin/smoke.ps | tee t
+</pre></blockquote>
+
+<p>
+This reads files named
+
+<blockquote><pre>
+<b><tt>/gs/data/ps/*.ps</tt></b>
+<b><tt>/gs/data/psl2/*.ps</tt></b>
+<b><tt>/gs/data/psl3/*.ps</tt></b>
+<b><tt>/gs/data/test/*.ps</tt></b>
+</pre></blockquote>
+
+<p>
+(Edit <b><tt>toolbin/smoke.ps</tt></b> ad lib to use other test sets.)
+Watch for crashes, unusual error messages, or anomalous displayed output.
+If there are any problems, start over from the beginning of the process.
+
+<p>
+Undo the <b><tt>FEATURE_DEVS</tt></b> and <b><tt>COMPILE_INITS</tt></b>
+edits.
+
+<p>
+Run
+
+<blockquote><pre>
+cvs commit
+</pre></blockquote>
+
+<p>
+to ensure the repository is up to date.
+
+<p>
+Execute
+
+<blockquote><pre>
+toolbin/cvs2hist.py -v #.## > doc/Changes.htm
+</pre></blockquote>
+
+<p>
+This consolidates all the CVS logs since the previous release in a readable
+format. Note: the cvs2hist.py tool currently in the distribution is not
+branch-aware. The Changes.htm file for the 7.04 release was made using
+a patched version, and this command line:
+
+<blockquote><pre>
+cvs2hist.py -j gs7_03 -r-rGS_7_0X -v 7.04 > doc/Changes.htm
+</pre></blockquote>
+
+<p>
+Run
+
+<blockquote><pre>
+tclsh
+% source toolbin/makeset.tcl
+% makehist
+</pre></blockquote>
+
+<p>
+This updates <b><tt>doc/History#.htm</tt></b> from
+<b><tt>doc/News.htm</tt></b> and <b><tt>doc/Changes.htm</tt></b>.  Then run
+
+<blockquote><pre>
+cvs commit
+</pre></blockquote>
+
+<p>
+again to check in the Changes and history files.
+
+<p>
+For the unix source distributions only, generate the configure
+scripts. From the top level directory, run 
+
+<blockquote><pre>./autogen.sh
+make clean
+</pre></blockquote>
+
+This should create links to <tt>configure.ac</tt> and
+<tt>Makefile.in</tt> in the top level directory and
+invoke autoconf to create the <tt>configure</tt> script.
+
+<p>
+You should then verify that only autogen.sh, configure,
+Makefile.in exist as files at the top level. Running ./configure
+will create a number of files that should not be distributed.
+'make clean' may or may not remove these depending on the
+version.
+
+<p>
+Make the source archives with
+
+<blockquote><pre>
+tclsh
+% source toolbin/makeset.tcl
+% maketars
+</pre></blockquote>
+
+<p>
+This creates the files
+
+<blockquote><pre>
+<b><tt>ghostscript-#.##.tar.gz</tt></b> (main archive)
+<b><tt>ghostscript-#.##.tar.bz2</tt></b> (main archive)
+</pre></blockquote>
+
+<h3><a name="Testing_on_Windows"></a>Testing on Windows</h3>
+
+<p>
+For Windows testing, you will need, in addition to the files listed
+under "<a href="#Preparing_source">Preparing the source</a>" above:
+<blockquote><pre>
+<b><tt>toolbin/makewin</tt></b> (link to <b><tt>makeset.tcl</tt></b>)
+</pre></blockquote>
+
+<p>
+The following procedures rely on a large number of MS-DOS batch scripts that
+are not discussed here: they are unlikely to be generally useful.
+
+<p>
+Mount the Windows partition on <b><tt>/c</tt></b>, and create the
+<b><tt>/c/work</tt></b> directory if needed.
+
+<p>
+Make the zip archive of all files needed for a Windows build, and copy it to
+the Windows partition:
+
+<blockquote><pre>
+toolbin/makewin
+cp gs###.zip /c/work
+</pre></blockquote>
+
+<p>
+Boot into Windows.  Unpack the archive:
+
+<blockquote><pre>
+cd \work
+unzip -oq gs###.zip
+gs###
+</pre></blockquote>
+
+<p>
+The <b><tt>gs###.bat</tt></b> script creates some necessary directories,
+sets up <b><tt>PATH</tt></b> and <b><tt>GS_LIB</tt></b> for testing, and
+makes the <b><tt>gs#.##</tt></b> directory current.
+
+<p>
+Build with the Borland compiler:
+
+<blockquote><pre>
+config bcwin32
+copy /y /b ..\gs\makefile
+erase obj\*.*
+make > bc.log
+</pre></blockquote>
+
+<p>
+Smoke test the executables (both <b><tt>gswin32</tt></b> and
+<b><tt>gswin32c</tt></b>), as described above for source distributions.
+Then build with the Microsoft compiler:
+
+<blockquote><pre>
+config msvc32
+copy /y /b ..\gs\makefile
+erase obj\*.*
+nmake > msvc.log
+</pre></blockquote>
+
+<p>
+Smoke test these executables too.
+
+<p>
+Building with the Watcom compiler doesn't work, because the
+<b><tt>wmake</tt></b> or <b><tt>wmakel</tt></b> program runs out of memory.
+However, if it did work, this is how to do it:
+
+<blockquote><pre>
+config watcw32
+copy /y /b ..\gs\makefile
+erase obj\*.*
+wmake -u > watc.log
+</pre></blockquote>
+
+<p>
+Boot back into Linux.  If testing in Windows revealed problems, edit the
+source files as necessary, and go back to <a
+href="#Preparing_source">"Preparing the source code."</a>
+
+<h3><a name="Finishing_up"></a>Finishing up</h3>
+
+<p>
+If you are maintaining local master copies, execute
+
+<blockquote><pre>
+toolbin/makemaster
+</pre></blockquote>
+
+<p>
+This creates a <b><tt>master/###</tt></b> directory if necessary, and moves
+the archives to it.
+
+<p>
+Tag the source files with the release number by executing
+
+<blockquote><pre>
+cvs tag gs#_##
+</pre></blockquote
+
+<p>
+Upload <b><tt>ghostscript-#.##.tar.*</tt></b> to SourceForge (by anonymous
+FTP to <b><tt>download.sourceforge.net</tt></b>, directory
+<b><tt>/incoming</tt></b>), and then post it using the "File Release"
+facility in the AFPL Ghostscript project.  If this is a test release, put
+it in the <b><tt>gs-test</tt></b> module, otherwise put it in the
+<b><tt>ghostscript</tt></b> module.  If you are adding Windows executables
+to an existing source release, please use the same release date as the
+source release, not the current date.
+
+<p>
+If <b><tt>ansi2knr.c</tt></b> has changed, put it on
+<b><tt>ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/ansi2knr.c</tt></b>.
+
+<p>
+If <b><tt>doc/C-style.htm</tt></b> has changed, put it on
+<b><tt>ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/C-style.htm</tt></b>.
+
+<h3><a name="Beta_distributions"></a>Beta distributions</h3>
+
+<p>
+Do the steps for distributions in general.
+
+<p>
+Upload <b><tt>ghostscript-#.##.tar.*</tt></b> to
+<b><tt>ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/test</tt></b>.
+
+<p>
+Construct the e-mail announcement by editing <b><tt>beta.msg</tt></b>.
+Mail using:
+<blockquote><pre>
+To: gs-test
+</pre></blockquote>
+
+<h3><a name="Public_releases"></a>Public releases</h3>
+
+<p>
+Update the title (current version #), first heading (previous version #),
+and "new features" and "known problems" lists in
+<b><tt>doc/Current.htm</tt></b>.
+
+<p>
+Do the steps for distributions in general.
+
+<p>
+Create a directory at
+<b><tt>ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/gs###/</tt></b>.  In that
+directory, store the following files:
+
+<ul>
+
+<li>Standard distribution files:
+
+<blockquote><pre>
+<b><tt>ghostscript-#.##.tar.gz</tt></b>
+<b><tt>ghostscript-#.##.tar.bz2</tt></b>
+</pre></blockquote>
+
+<li>MS Windows source and executables:
+
+<blockquote><pre>
+<b><tt>gs###src.zip</tt></b>
+<b><tt>gs###w32.exe</tt></b>
+<b><tt>gs###w32.zip</tt></b>
+</pre></blockquote>
+
+<li>Third-party libraries, as links (upload these if not installed), where
+<b><tt>$$$</tt></b> et al. refer to the version number of the library, which
+should be the latest compatible release of the library and must be consistent
+with the values of <b><tt>JVERSION</tt></b> and <b><tt>PVERSION</tt></b> in 
+the makefiles:
+
+<blockquote><pre>
+<b><tt>jpegsrc.v$$.tar.gz</tt></b> -> <b><tt>../../3rdparty/jpegsrc.v$$.tar.gz</tt></b>
+<b><tt>libpng-$.$.$.tar.gz</tt></b> -> <b><tt>../../3rdparty/libpng-$.$.$.tar.gz</tt></b>
+<b><tt>zlib-$.$.$.tar.gz</tt></b> -> <b><tt>../../3rdparty/zlib-$.$.$.tar.gz</tt></b>
+<b><tt>jpegsr$$.zip</tt></b> -> <b><tt>../../3rdparty/jpegsr$$.zip</tt></b>
+<b><tt>lpng$$$.zip</tt></b> -> <b><tt>../../3rdparty/lpng$$$.zip</tt></b>
+<b><tt>zlib$$$.zip</tt></b> -> <b><tt>../../3rdparty/zlib$$$.zip</tt></b>
+</pre></blockquote>
+
+In any case, the names of the links in the distribution directory should reflect
+the original name of the upstream file.
+
+<li>Fonts, where <b><tt>$.$$</tt></b> refers to the most recent version
+number of the fonts:
+
+<blockquote><pre>
+<b><tt>ghostscript-fonts-other-$.$.tar.gz</tt></b> -> <b><tt>../fonts/ghostscript-fonts-other-$.$.tar.gz</tt></b>
+<b><tt>ghostscript-fonts-std-$.$.tar.gz</tt></b> -> <b><tt>../fonts/ghostscript-fonts-std-$.$.tar.gz</tt></b>
+</pre></blockquote>
+
+</ul>
+
+<p>
+(Note that the link names are somewhat inconsistent: some of them retain the
+version number of the file being referenced, and some of them use the
+Ghostscript version number.  This is a historical artifact that might be
+changed someday.)
+
+<p>
+E-mail the release announcement using:
+<blockquote><pre>
+To: gs-announce
+</pre></blockquote>
+
+<p>
+Edit the Web pages in cvs and commit to reflect the new release.
+The Wisconsin server should update automatically.
+
+<h2><a name="After_releasing"></a>After releasing</h2>
+
+<p>
+Update the version number by incrementing it:
+
+<ul>
+
+<li>In <b><tt>lib/gs_init.ps</tt></b>, at the very beginning of the file.
+
+<li>In <b><tt>version.mak</tt></b>, in 3 definitions.
+
+<li>In <b><tt>doc/News.htm</tt></b>, in 4 places.
+
+</ul>
+
+<p>
+In <b><tt>gscdef.c</tt></b>, edit the definition of
+<b><tt>GS_PRODUCT</tt></b> to include "CVS PRE-RELEASE".
+
+<p>
+Edit <b><tt>doc/News.htm</tt></b> to remove all the content.
+
+<h2><a name="GNU_releases"></a>GNU Ghostscript releases</h2>
+
+<p>
+artofcode LLC re-releases each tested AFPL Ghostscript version with
+the GPL, as GNU Ghostscript, when the next tested AFPL Ghostscript
+version comes out.
+
+<p>Note: This section is completely out of date. We no longer use
+toolbin/makegnu to automatically create the GNU releases.
+
+<h3><a name="GNU_code"></a>GNU code</h3>
+
+<p>
+To make a GNU Ghostscript release from AFPL Ghostscript release #.##, run
+
+<blockquote><pre>
+toolbin/makegnu #.##
+</pre></blockquote>
+
+<p>
+This reads the files 
+
+<blockquote><pre>
+/gs/master/#.##/ghostscript-#.##.tar.gz
+/gs/master/#.##/ghostscript-#.##gnu.tar.gz
+</pre></blockquote>
+
+<p>
+and creates the file
+
+<blockquote><pre>
+/tmp/gnu-gs-#.##.tar.gz
+</pre></blockquote>
+
+<p>
+Note that the <b><tt>makegnu</tt></b> script uses a program called
+<b><tt>copyrite</tt></b> that rewrites the copyright notices.  The
+<b><tt>copyrite</tt></b> program is intentionally not distributed with
+Ghostscript.
+
+<p>
+Upload the file <b><tt>/tmp/gnu-gs-#.##.tar.gz</tt></b> to
+<b><tt>ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/gnu/gs#.##/</tt></b>.  Delete the file
+after uploading.
+
+<h3><a name="GNU_after_releasing"></a>After releasing (GNU)</h3>
+
+<p>
+E-mail the full URL and the <b><tt>md5sum</tt></b> of the new archive(s) to
+<a href="mailto:ftp-upload@gnu.org"><tt>ftp-upload@gnu.org</tt></a>.
+
+<h2><a name="Fonts"></a>Fonts</h2>
+
+<p>
+artofcode LLC distributes a package of the base 35 PostScript fonts, and a
+package of other miscellaneous fonts.  As with the Ghostscript code, each
+package is released both with the AFPL and with the GPL; however, unlike the
+Ghostscript code, artofcode releases these versions simultaneously rather
+than with a one-version delay.
+
+<p>
+To make the font packages, run the command
+
+<blockquote><pre>
+toolbin/makefonts #.##
+</pre></blockquote>
+
+<p>
+This creates the following files:
+
+<blockquote><pre>
+ghostscript-fonts-std-#.##.tar.gz
+ghostscript-fonts-other-#.##.tar.gz
+gnu-gs-fonts-std-#.##.tar.gz
+gnu-gs-fonts-other-#.##.tar.gz
+</pre></blockquote>
+
+<p>
+The first two of these use the AFPL, and should be uploaded to
+<b><tt>ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/fonts/</tt></b>.  The other two
+use the GPL, and should be uploaded to
+<b><tt>ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/gnu/fonts/</tt></b>.  For the GNU
+release, also see <a href="#GNU_after_releasing">"After releasing
+(GNU)"</a>.
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+<hr>
+
+<p>
+<small>Copyright &copy; 1999, 2000 Aladdin Enterprises.  All rights
+reserved.</small>
+
+<p>
+<small>This file is part of AFPL Ghostscript.  See the <a
+href="Public.htm">Aladdin Free Public License</a> (the "License") for full
+details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
+
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+# see auth(6)
+#         Data Base
+#           An ndb(2) database file exists for the authentication
+#           server.  The attribute types used by the AS are hostid and
+#           uid.  The value in the hostid is a client host's ID.  The
+#           values in the uid pairs in the same entry list which users
+#           that host ID make speak for.  A uid value of * means the
+#           host ID may speak for all users.  A uid value of !user means
+#           the host ID may not speak for user.  For example:
+#           hostid=bootes
+#                uid=!sys uid=!adm uid=*
+# 

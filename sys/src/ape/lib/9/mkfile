@@ -1,0 +1,25 @@
+APE=/sys/src/ape
+<$APE/config
+
+LIB=/$objtype/lib/ape/lib9.a
+OFILES=errstr.$O\
+	bind.$O\
+	mount.$O\
+	unmount.$O\
+	rfork.$O\
+	segattach.$O\
+	segdetach.$O\
+	segflush.$O\
+	segfree.$O\
+	rendezvous.$O\
+	getfcr.$O\
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c $CFLAGS -D_POSIX_SOURCE -D_PLAN9_SOURCE
+
+%.$O:	$objtype/%.s
+	$AS $prereq
+
+%.$O:	$objtype/%.c
+	$CC $CFLAGS $prereq

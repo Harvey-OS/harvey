@@ -1,0 +1,36 @@
+%    Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: pfbtopfa.ps,v 1.2 2000/09/19 18:29:11 lpd Exp $
+% pfbtopfa.ps
+% Convert a .pfb font to .pfa format.
+
+[ shellarguments {
+  counttomark 2 eq {
+    /pfa exch def /pfb exch def pop
+    /in1 pfb (r) file def
+    /in in1 true /PFBDecode filter def
+    /out pfa (w) file def
+    { in read not { exit } if out exch write } loop
+    out closefile in closefile in1 closefile
+    quit
+  } {
+    cleartomark (Usage: pfbtopfa input.pfb output.pfa) = flush
+  } ifelse
+} {
+  pop
+} ifelse

@@ -1,0 +1,30 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/lib9p.a
+OFILES=\
+	_post.$O\
+	dirread.$O\
+	fid.$O\
+	file.$O\
+	intmap.$O\
+	mem.$O\
+	req.$O\
+	parse.$O\
+	post.$O\
+	srv.$O\
+	tpost.$O\
+	uid.$O\
+	util.$O\
+
+HFILES=/sys/include/9p.h post.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib
+
+$O.ramfs: ramfs.$O $LIB
+	$LD -o $target $prereq

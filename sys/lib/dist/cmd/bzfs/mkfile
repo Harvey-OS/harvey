@@ -1,0 +1,20 @@
+</$objtype/mkfile
+
+TARG=bzfs
+
+OFILES=\
+	mkext.$O\
+	oramfs.$O\
+	unbflz.$O\
+	unbzip.$O\
+
+HFILES=bzfs.h
+
+BIN=/sys/lib/dist/bin/$objtype
+LIB=/sys/src/cmd/bzip2/lib/libbzip2.a$O
+</sys/src/cmd/mkone
+
+CFLAGS=$CFLAGS -p -I/sys/src/cmd/bzip2/lib
+
+/sys/src/cmd/bzip2/lib/libbzip2.a$O:
+	@{cd /sys/src/cmd/bzip2/lib && mk}

@@ -1,0 +1,24 @@
+</$objtype/mkfile
+CPUS=386
+
+TARG=\
+	bargraph\
+	bflz\
+	cdsh\
+	tailfsrv\
+	touchfs\
+	unbflz\
+
+OFILES=
+HFILES=
+
+BIN=/sys/lib/dist/bin/$objtype
+</sys/src/cmd/mkmany
+
+all:V:	bzfs!all
+install:V:	bzfs!install
+clean:V:	bzfs!clean
+
+bzfs!%:V:
+	cd bzfs; mk $stem; cd ..
+

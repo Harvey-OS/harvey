@@ -1,0 +1,8 @@
+.TH INTRO 7
+.SH NAME
+intro \- introduction to databases
+.SH DESCRIPTION
+This manual section describes databases available on Plan 9
+and the commands that access them.
+Some of them involve proprietary data that is not distributed outside
+Bell Laboratories.

@@ -1,0 +1,13 @@
+APE=/sys/src/ape
+<$APE/config
+
+LIB=/$objtype/lib/ape/libl.a
+OFILES=allprint.$O\
+	main.$O\
+	reject.$O\
+	yyless.$O\
+	yywrap.$O\
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c -D_RESEARCH_SOURCE

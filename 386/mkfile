@@ -1,0 +1,6 @@
+</sys/src/mkfile.proto
+
+CC=8c
+LD=8l
+O=8
+AS=8a

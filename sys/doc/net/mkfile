@@ -1,0 +1,17 @@
+</sys/doc/fonts
+
+DEPS	=	net.ms\
+		tree.pout
+
+net.ps:D:	$DEPS
+	{ echo $FONTS; cat net.ms } | tbl | troff -ms | lp -dstdout > net.ps
+	../cleanps net.ps
+
+net.trout:D:	$DEPS
+	{ echo $FONTS; cat net.ms } | tbl | troff -ms > net.trout
+
+tree.pout:D:	tree
+	pic tree > tree.pout
+
+net.html:D:	$DEPS
+	{ echo $FONTS; cat net.ms } | tbl | ms2html > net.html

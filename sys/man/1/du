@@ -1,0 +1,97 @@
+.TH DU 1
+.SH NAME
+du \- disk usage
+.SH SYNOPSIS
+.B du
+[
+.B -a
+]
+[
+.B -f
+]
+[
+.B -n
+]
+[
+.B -q
+]
+[
+.B -s
+]
+[
+.B -t
+]
+[
+.B -u
+]
+[
+.BI -b size
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Du
+gives the number of Kbytes allocated to data blocks
+of named
+.I files
+and, recursively, of files in named directories.
+It assumes storage is quantized in units of 1024 bytes (Kbytes) by default. 
+Other values can be set by the
+.B -b
+option;
+.I size
+is the number of bytes, optionally suffixed
+.B k
+to specify multiplication by 1024.
+If
+.I file
+is missing,
+the current directory is used.
+The count for a directory includes the counts of the
+contained files and directories.
+.PP
+The
+.B -a
+option prints the number of blocks
+for every file in a directory.
+Normally counts are printed only for contained directories.
+.PP
+The
+.B -f
+option ignores errors,
+otherwise it stops on the first error.
+.PP
+The
+.B -n
+option prints the size in bytes and the name of each file; it sets
+.BR -a .
+.PP
+The
+.B -t
+option prints, in the format of
+.B du
+.BR -n ,
+the modified time of
+each file rather than the size.
+If the options
+.B -tu
+are specified then the accessed time is printed.
+.PP
+The
+.B -q
+option prints, in the format of
+.B du
+.BR -n ,
+the QID of
+each file rather than the size.
+.PP
+Finally, the
+.B -s
+option causes
+.I du
+to descend the hierarchy as always, but to print only a summary line
+for each
+.IR file .
+.SH SOURCE
+.B /sys/src/cmd/du.c

@@ -1,0 +1,178 @@
+Rio is the Plan 9 window system.
+
+To read more of this window, the up and down arrows
+scroll the text up and down half screens.
+
+To effectively use rio, you need at least a three
+button mouse.  If you only have a two button mouse you
+can emulate the middle button by holding down shift key
+whilst pressing the right button.
+
+Button 1, 2, and 3 are used to refer to the left,
+middle, and right buttons respectively.
+
+THE POP-UP MENU
+
+Pressing and holding down button 3 on the desktop or
+shell window will give you a menu with the following
+options:
+
+ * New - create a new window 
+ * Resize - reshape a window 
+ * Move - move a window without reshaping it 
+ * Delete - close a window
+ * Hide - hides a window from display (it will appear
+   in this menu)
+ * <label> - the label of a hidden window,
+   selecting it unhides it
+
+You select an item by releasing the button over the
+menu item.  rio uses the same button that started an
+action throughout that operation.  If you press another
+button during the action the operation is aborted and
+any intermediate changes are reversed.
+
+The menu acts as a action verb selector which then
+requires an object (i.e.  window) to be picked to
+indicate which window the verb is to act on.  A further
+mouse action may then be required.
+
+EXAMPLES
+
+After selecting New, the cursor will change into a
+cross.  Using button 3 again, you should then drag out
+a rectangle to indicate the size and location of the
+new window.  When you release the button a new window
+will be created.
+
+New windows will contain the rc shell.  Invoking a rio
+program from the shell will allow that program to take
+over the window.  As there is no job control in the
+shell (e.g.  &, fg, bg), you just create another window
+if you want to run another program concurrently.
+
+To Resize a window, you select Resize, then click
+(remember using the same button that started the
+action, i.e.  button 3) on the window you want to
+resize.  The cursor will change to a cross-hair theat
+will allow you to drag out the desired shape of the
+window.
+
+After selecting Move, click and keep the button
+depressed over the window you want to move, then move
+the mouse to move the red rectangle that represents the
+new location you want.  Release the button to finish
+the action.
+
+Delete and Hide both operate by requiring you to click
+on the window you wish to respectively Delete or Hide.
+
+WINDOW CONTROL TIPS
+
+Clicking on a window brings it to the front.
+
+You can directly change the shape of a window by
+clicking and dragging on the edge or corner of the
+window border.  Button 1 or 2 will allow you to drag
+the edge or corner to a new size, and Button 3 will
+allow you to move the window.
+
+The pop-up menu remembers the last command chosen, so
+as a short cut you can just press and release button 3
+without moving the mouse between pressing and releasing
+to select the previous command again.
+
+BASIC TEXT CONTROL
+
+Unlike in other systems, the text cursor can only be
+controlled by the mouse or the side-effects of certain
+commands.
+
+Clicking with button 1 will move the text insertion
+point (indicated by an I-beam) to just before the
+character closest to the mouse pointer.  Dragging
+across a section of text will select that portion of
+text.  It may be useful to know that the insertion
+I-beam represents an empty selection (between two
+characters).  In text editors, the current selection is
+known as "dot".
+
+In the shell window button 2 will invoke a pop-up menu.
+Most of it's commands operate on dot.
+
+ * cut - moves the contents of the dot to the clipboard
+   if dot is non-empty 
+ * paste - replaces dot with the contents of the clipboard
+ * snarf - copies dot to the clipboard
+ * plumb - sends dot (or text surrounding dot, if dot is
+   empty)to the plumber.
+ * send - completes the current input line with the dot,
+   if it is non-empty, or the contents of the clipboard.
+   If the dot is non-empty it does a snarf at the same time.
+ * scroll - toggles the automatic scrolling of the window
+   on output.
+
+Double-clicking will allow you to automatically select
+a section of text surrounding that point.  The
+selection is made by an analysis of appropriate
+delimeters.  A whole line is selected by
+double-clicking at either end of the line.  A quoted or
+bracketed selection is made by double-clicking just
+inside of the quote or bracket.
+
+SCROLLING
+
+The arrow keys will let you scroll up or down by half a
+page at a time.
+
+Clicking button 1 on the scrollbar scrolls up by half a
+page.  Button 3 scrolls down by half a page.  Button 2
+jumps to position in the document relative to the
+position on the scrollbar clicked.  Holding a button on
+the scrollbar will have the effect of invoking the
+clicking action continuously.
+
+The white elevator box on the scrollbar is sized
+proportionally to the proportion of the document that
+is currently visible.
+
+Scrolling does not affect the text cursor.
+
+RIO AND THE RC SHELL WINDOW
+
+Rc is a command interpreter for Plan 9 that provides
+similar facilities to UNIX's Bourne shell.  See the
+additional references at the end of this document for
+information specifically about rc.
+
+Rio provides some additional features that enhance the
+interface to programs that use the text console.  The
+rc shell command interpreter is one such program.
+
+Rc commands are typed after the prompt on the last line
+of the text buffer.  The commands are sent to rc only
+after each newline so line editing may be performed if
+desired.  You can move the cursor and edit the previous
+lines of commands and program output but none of this
+will be interpreted by rc shell.
+
+The interpretation of commands is supressed altogether
+when ESC is pressed to put the window in hold mode.
+The window border and text will change to dark blue to
+indicate the hold mode is active.  In this mode you can
+type multiple lines of commands and edit them.
+Pressing ESC again will release the hold and send the
+lines of text to the rc command interpreter.
+
+The DEL key sends an 'interrupt' note to all processes
+in the window's process group.  The usual intent is to
+terminate the execution of the current command.  It is
+also a convenient short cut for ensuring you have a
+fresh command prompt.
+
+FURTHER INFORMATION
+
+For further information, try the rio(1) manual page.
+Type "man rio" or click on rio(1) in either of these
+sentences and select plumb from the button 2 menu.
+

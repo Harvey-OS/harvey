@@ -1,0 +1,3 @@
+#!/bin/rc
+ 
+generic 'aux/download -f -H/sys/lib/postscript/font -mfontmap -plw+ < $LPDEST/$FILE(1) >$OUTDEV >[2]$PRINTLOG;echo -n `{ascii -t 4} > $OUTDEV' 'aux/download -f -H/sys/lib/postscript/font -mfontmap -plw+ < $LPDEST/$FILE(1) >$OUTDEV >[2]$PRINTLOG;echo -n `{ascii -t 4} > $OUTDEV' ''

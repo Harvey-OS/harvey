@@ -1,0 +1,88 @@
+#
+# Assumptions:
+# 1) $fileserver and /env/sysname will be correctly set
+# 2) the standalone kernel will eventually be booted with
+#	bootargs=local -B 4096
+#
+# 'From scratch' procedure:
+# 1) bring system up as a terminal: 
+#	boot /386/9pcdisk
+#	root is from 'il'
+#	login as 'bootes'
+# 2) don't forget to
+#	echo 'dma on'>/dev/sdC0/ctl
+# 3) initialise the disc from scratch and make a 9fat boot partition:
+#	mk partinit
+#    remember to have up to date local copies of plan9.ini and plan9.nvr
+#    and remember the kernel names will be truncated on the FAT parititon.
+# 4) ream the kfs partition
+#	mk ream
+# 5) initialise the fs partition for the system
+#	mk $sysname
+#
+partinit:
+	disk/mbr -m /386/mbr /dev/sdC0/data
+	disk/fdisk -baw /dev/sdC0/data
+	disk/prep -banw /dev/sdC0/plan9
+	disk/format -b /386/pbslba -d -r 2 /dev/sdC0/9fat\
+		/386/9load\
+		/386/9pcauth\
+		$sysname/plan9.ini\
+		$sysname/plan9.nvr
+
+ream:
+	disk/kfs -rb16384 -B 4096 -f /dev/sdC0/fs
+
+fsinit:V:
+	9fs kfs
+	9fs $fileserver
+	disk/kfscmd allow
+	disk/kfscmd 'create /adm sys sys 775 d'
+	disk/kfscmd 'create /adm/users adm adm 664'
+	cp -x /n/$fileserver/adm/users /n/kfs/adm/users
+	disk/kfscmd user
+	disk/mkfs -u /adm/users -s /n/$fileserver ./authproto
+
+boundary:V:
+	mk fsinit
+	disk/kfscmd allow
+	cp -x /n/$fileserver/adm/keys /n/kfs/adm/keys
+	cp -x /n/$fileserver/adm/keys.who /n/kfs/adm/keys.who
+	cp -x /n/$fileserver/adm/netkeys /n/kfs/adm/netkeys
+	cp -x /n/$fileserver/adm/netkeys.who /n/kfs/adm/netkeys.who
+	cp -x /n/$fileserver/adm/warn.keys /n/kfs/adm/warn.keys
+	cp -x /n/$fileserver/adm/warn.netkeys /n/kfs/adm/warn.netkeys
+	cp $sysname/auth /n/kfs/lib/ndb/auth
+	cp $sysname/consoledb /n/kfs/lib/ndb/consoledb
+	cp $sysname/httppasswords /n/kfs/sys/lib/httppasswords
+	cp $sysname/lib.ndb.mkfile /n/kfs/lib/ndb/mkfile
+	cp $sysname/namespace.$sysname /n/kfs/lib/namespace.$sysname
+	cp $sysname/cpurc /n/kfs/rc/bin/cpurc
+	cp $sysname/sys.log.mkfile /n/kfs/sys/log/mkfile
+	{
+		cd /n/kfs/lib/ndb; mk
+		bind -c /n/kfs/sys/log /sys/log
+		mk -f /sys/log/mkfile
+		unmount /sys/log
+		cd /n/kfs/sys/src/9; mk clean
+		cd /n/kfs/sys/src/fs; mk clean
+	}
+	disk/kfscmd disallow
+	disk/kfscmd sync
+
+saveboundary:V:
+	9fs $fileserver
+	savedir=/usr/jmk/auth/$sysname
+	cp /adm/keys /n/$fileserver/$savedir/keys
+	cp /adm/keys.who /n/$fileserver/$savedir/keys.who
+	cp /adm/netkeys /n/$fileserver/$savedir/netkeys
+	cp /adm/netkeys.who /n/$fileserver/$savedir/netkeys.who
+	cp /adm/warn.keys /n/$fileserver/$savedir/warn.keys
+	cp /adm/warn.netkeys /n/$fileserver/$savedir/warn.netkeys
+	cp /lib/ndb/auth /n/$fileserver/$savedir/auth
+	cp /lib/ndb/consoledb /n/$fileserver/$savedir/consoledb
+	cp /sys/lib/httppasswords /n/$fileserver/$savedir/httppasswords
+	cp /lib/ndb/mkfile /n/$fileserver/$savedir/lib.ndb.mkfile
+	cp /lib/namespace.$sysname /n/$fileserver/$savedir/namespace.$sysname
+	cp /rc/bin/cpurc /n/$fileserver/$savedir/cpurc
+	cp /sys/log/mkfile /n/$fileserver/$savedir/sys.log.mkfile

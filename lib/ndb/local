@@ -1,0 +1,9 @@
+
+#
+#  files comprising the database, use as many as you like, see ndb(6)
+#
+database=
+	file=/lib/ndb/local
+	file=/lib/ndb/common
+
+auth=sources.cs.bell-labs.com authdom=outside.plan9.bell-labs.com

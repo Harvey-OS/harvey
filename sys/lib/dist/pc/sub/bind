@@ -1,0 +1,21 @@
+#!/bin/rc
+
+rfork e
+flag=0
+while(~ $1 -*){
+	switch($1){
+	case -b
+		flag=1
+	case -a
+		flag=2
+	case -c
+		flag=4
+	case -ac -ca
+		flag=6
+	case -bc -cb
+		flag=5
+	}
+	shift
+}
+
+syscall bind $1 $2 $flag >[2]/dev/null

@@ -1,0 +1,3 @@
+#!/bin/rc
+
+exec grep -n $* /dev/null

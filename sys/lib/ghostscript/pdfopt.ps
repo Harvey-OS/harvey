@@ -1,0 +1,1127 @@
+%    Copyright (C) 2000, 2001 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of AFPL Ghostscript.
+% 
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
+% 
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
+
+% $Id: pdfopt.ps,v 1.10 2001/07/30 07:16:32 lpd Exp $
+% PDF linearizer ("optimizer").
+
+.currentglobal true .setglobal
+/pdfoptdict 200 dict def
+pdfoptdict begin
+
+% This linearizer is designed for simplicity, not for performance.
+% See the main program (the last procedure in the file) for comments
+% describing the main processing sequence.
+
+% ---------------- Utilities ---------------- %
+
+% ------ Data structures ------ %
+
+% Distinguish dictionaries, arrays, and everything else.
+/ifdaelse {		% <obj> <dictproc> <arrayproc> <otherproc> ifdaelse -
+  3 index type dup /dicttype eq {
+    pop pop pop
+  } {
+    dup /arraytype ne exch /packedarraytype ne and {
+      exch
+    } if pop exch pop
+  } ifelse exec
+} bind def
+
+% Implement dynamically growable arrays using a dictionary.
+/darray {		% <size> darray <darray>
+  dict
+} bind def
+/dadd {			% <darray> <value> dadd -
+  1 index length exch put
+} bind def
+/daforall {		% <darray> <proc> daforall -
+  /exch cvx /get cvx 3 -1 roll /exec cvx 5 packedarray cvx
+  0 1 2 index 0 get length 1 sub 4 -1 roll for
+} bind def
+/dacontents {		% <darray> dacontents <array>
+  [ exch { } daforall ]
+} bind def
+/dacontstring {		% <darray> dacontstring <string>
+  0 1 index { exch pop length add } forall string
+  dup /NullEncode filter
+			% Stack: darray str filter
+  3 -1 roll { 1 index exch writestring } daforall
+  closefile
+} bind def
+
+% Force an object, mapping it if it is a reference.
+/omforcenew {		% <obj> omforce <obj'> <notseen>
+  dup oforce 2 copy eq { pop true } { exch 0 get omapnew exch pop } ifelse
+} bind def
+/omforce {		% <obj> omforce <obj'>
+  omforcenew pop
+} bind def
+/omget {		% <dict|array> <key> omget <obj>
+  get omforce
+} bind def
+% Visit an entire tree.
+/omvisit {		% <obj> omvisit -
+  omforcenew {
+    { { omvisit omvisit } forall }
+    { { omvisit } forall }
+    { pop }
+    ifdaelse
+  } {
+    pop
+  } ifelse
+} bind def
+% Visit a tree, stopping at references to Page objects.
+% (This is only needed for the OpenAction in the Catalog.)
+/omvisitnopage {	% <obj> omvisitnopage -
+  dup oforce dup type /dicttype eq {
+    /Type .knownget { /Page eq } { false } ifelse
+  } {
+    pop false
+  } ifelse {
+    pop		% Page reference
+  } {
+    omforcenew {
+      { { omvisitnopage omvisitnopage } forall }
+      { { omvisitnopage } forall }
+      { pop }
+      ifdaelse
+    } {
+      pop
+    } ifelse
+  } ifelse
+} bind def
+
+% Collect the list of currently mapped object numbers, in order.
+/omapped {		% - omapped <obj#s>
+  RMap length array RMap {
+    2 index 3 1 roll 1 sub exch put
+  } forall
+} bind def
+
+% Collect the list of object numbers passed to omap by a procedure.
+/visited {		% <proc> visited <obj#s>
+  false currentomap 2 .execn
+  omapped exch setomap
+} bind def
+
+% ------ Output ------ %
+
+% Provide a framework for closure-based streams.
+.currentglobal false .setglobal
+userdict /clostreams 20 dict put	% stream -> [data endproc]
+.setglobal
+% Create a closure-based stream.
+/clostream {		% <data> <proc> <endproc> clostream <stream>
+  2 index 3 -1 roll /exec load 3 packedarray cvx
+  /NullEncode filter
+		% Stack: data endproc stream
+  clostreams 1 index 5 -2 roll 2 array astore put
+} bind def
+% Close a closure-based stream.
+/closend {		% <stream> closend <result>
+  dup closefile clostreams exch
+  2 copy get 3 1 roll undef aload pop exec
+} bind def
+
+% Implement in-memory output streams.
+/msproc {		% <data> <more> <accum> msproc <scratch>
+  3 -1 roll dadd { 100 string } { () } ifelse
+} bind def
+/mstream {		% - mstream <mstream>
+  10 darray {msproc} {dacontstring} clostream
+} bind def
+/mcontents {		% <mstream> mcontents <string>
+  closend
+} bind def
+
+% Implement a stream that only keeps track of its position.
+% (All streams should do this, but the PLRM doesn't require it.)
+/posbuf 100 string def
+/posproc {		% <data> <more> <accum> posproc <scratch>
+  0 2 copy get 5 -1 roll length add put
+  pop //posbuf
+} bind def
+/postream {		% - postream <postream>
+  [0] {posproc} {0 get} clostream
+} bind def
+/poslength {		% <postream> poslength <pos>
+  closend
+} bind def
+
+% Implement streams with variable-bit-width data.
+% Note that these are dictionary objects, not stream objects.
+/bitstream {		% <stream> bitstream <bstream>
+  4 dict begin /S exch def /N 8 def /B 0 def
+  currentdict end
+} bind def
+/bitwrite {		% <bstream> <value> <width> bitwrite -
+  PDEBUG { ( ) print 1 index =only (:) print dup = } if
+  3 -1 roll begin
+  N exch sub dup 0 ge {
+    /N exch def N bitshift B add
+  } {
+    2 copy bitshift B add S exch write
+			% Stack: value -left
+    { 8 add dup 0 ge { exit } if
+      2 copy bitshift 255 and S exch write
+    } loop
+    /N 1 index def bitshift 255 and
+  } ifelse /B exch def
+  end
+} bind def
+/bitflush {		% <bstream> bitflush -
+  begin N 8 ne { S B write /B 0 def /N 8 def } if end
+} bind def
+
+% Capture OFile output on the temporary file, in memory, or just as a length.
+/totemp {		% <proc> totemp <start> <end>
+  TFile fileposition OFile
+  /OFile TFile def 3 .execn
+  /OFile exch def
+  TFile fileposition
+} bind def
+/tomemory {		% <proc> tomemory <string>
+  OFile /OFile mstream def 2 .execn
+  OFile mcontents exch /OFile exch def
+} bind def
+/tolength {		% <proc> tolength <string>
+  OFile /OFile postream def 2 .execn
+  OFile poslength exch /OFile exch def
+} bind def
+
+% Copy a range of bytes from TFile to OFile.
+/copyrange {		% <start> <end> copybytes -
+  TFile 2 index setfileposition
+  exch sub 1024 string exch {
+		% Stack: buf left
+    2 copy 1 index length .min 0 exch getinterval
+    TFile exch readstring pop OFile exch writestring
+    1 index length sub dup 0 le { exit } if
+  } loop pop pop
+} bind def
+
+% Pad with blanks to a specified position.
+/padto {		% <pos> padto -
+  OFile fileposition sub
+  dup 0 lt {
+    (ERROR: file position incorrect by ) print =
+    /padto cvx /rangecheck signalerror
+  } {
+    { ( ) ows } repeat
+  } ifelse
+} bind def
+
+% ---------------- Read objects into memory ---------------- %
+
+/touch {		% <object> touch -
+  {
+    { touch touch } forall
+  } {
+    dup xcheck {
+		% Executable array, must be an indirect object.
+      dup 0 get resolved? { pop pop } { oforce touch } ifelse
+    } {
+      { touch } forall
+    } ifelse
+  } {
+    pop
+  } ifdaelse
+} bind def
+
+% ---------------- Replace references with referents ---------------- %
+
+/replaceable? {		% <value> replaceable? <bool>
+  dup type /integertype eq exch xcheck not and
+} bind def
+/replacement {		% <obj|ref> replacement <obj'>
+  dup oforce dup replaceable? { exch } if pop
+} bind def
+
+/replacerefs {		% <object> replacerefs <object>
+  {
+    dup {
+      2 index 2 index undef
+      exch replacement exch replacement
+      2 index 3 1 roll put
+    } forall
+  } {
+    0 1 2 index length 1 sub {
+      1 index exch 2 copy get replacement put
+    } for
+  } {
+  } ifdaelse
+} bind def
+
+/replaceReferences {	% - replaceReferences -
+  Objects { replacerefs pop } lforall
+		% Delete replaced objects.
+  0 1 Objects llength 1 sub {
+    Objects 1 index lget replaceable? {
+      PDEBUG { (Deleting ) print dup = } if
+      Generations 1 index 0 lput
+    } if pop
+  } for
+} bind def
+
+% ---------------- Create new objects ---------------- %
+
+/createObjects {	% [<obj>...] createObjects <firstobj#>
+  Objects llength dup
+  dup 3 index length add growPDFobjects
+		% Stack: objects objn objn
+  3 1 roll exch {
+    Objects 2 index 3 -1 roll lput
+    Generations 1 index 1 lput
+    1 add
+  } forall pop
+} bind def
+
+% ---------------- Propagate attributes ---------------- %
+
+/nopropattrs <<
+	% Never propagate these.
+  /Type dup /Kids dup /Count dup /Parent dup
+	% Handle Resources specially.
+  /Resources dup
+>> def
+
+% Merge Resources.
+/mergeres {		% <fromdict> <todict> mergeres -
+		% Values in todict take priority over fromdict.
+  1 index /Resources .knownget {
+    1 index /Resources .knownget {
+		% Stack: fromdict todict fromres tores
+      exch oforce exch oforce
+		% todict's Resources may be shared, so make a copy.
+      dup length dict .copydict
+      exch {
+		% Stack: fromdict todict tores' fromkey fromvalue
+	2 index 2 index knownoget {
+		% Stack: fromdict todict tores' fromkey fromvalue tovalue
+	  exch oforce exch
+		% ProcSet is an array, other types are dictionaries.
+	  dup type /dicttype eq {
+		% Dictionary, not ProcSet.
+	    exch dup length 2 index length add dict .copydict .copydict
+	  } {
+		% Array or packed array, ProcSet.
+		% Use dictionaries to do the merge.
+	    dup length 2 index length add dict begin
+	    exch { dup def } forall { dup def } forall
+	    mark currentdict end { pop } forall .packtomark
+	  } ifelse
+	} if
+	2 index 3 1 roll put
+      } forall
+    } if /Resources exch put pop
+  } {
+    pop pop
+  } ifelse
+} bind def
+
+% Merge attributes other than Resources.
+/mergeattrs {		% <fromdict> <todict> mergeattrs <fromdict> <todict>
+		% Values in todict take priority over fromdict.
+  1 index {
+		% Stack: fromdict todict fromkey fromvalue
+    //nopropattrs 2 index known {
+      pop pop
+    } {
+      2 index 2 index known { pop pop } { 2 index 3 1 roll put } ifelse
+    } ifelse
+  } forall
+} bind def
+
+% Propagate attributes to a subtree.
+/proppage {		% <attrs> <subtree> proppage -
+		% We should be able to tell when we reach a leaf
+		% by finding a Type unequal to /Pages.  Unfortunately,
+		% some files distributed by Adobe lack the Type key
+		% in some of the Pages nodes!  Instead, we check for Kids.
+  dup /Kids knownoget {
+		% Accumulate inherited values.
+    3 1 roll
+		% Stack: kids attrs pagesnode
+    dup length dict .copydict mergeattrs
+    dup 3 1 roll mergeres
+    exch { oforce 1 index exch proppage } forall pop
+  } {
+		% Merge inherited values into the leaf.
+    mergeattrs mergeres
+  } ifelse
+} bind def
+
+% Propagate attributes to all pages.
+/propagateAttributes {	% - propagateAttributes -
+  0 dict Trailer /Root oget /Pages oget proppage
+} bind def
+
+% ---------------- Identify document-level objects ---------------- %
+
+/identifyDocumentObjects {	% - identifyDocumentObjects <obj#s>
+  {
+    Trailer /Root omget
+    dup /PageMode .knownget { omvisit } if
+	% Don't allow omvisit to trace references to Page objects.
+    dup /OpenAction .knownget { omvisitnopage } if
+    Trailer /Encrypt .knownget { omvisit } if
+    dup /Threads .knownget {
+      omforce { omforce } forall
+    } if
+    dup /AcroForm .knownget { omvisit } if
+    pop
+  } visited
+} bind def
+
+% ---------------- Identify the objects of each page ---------------- %
+
+/identifyfont {		% <fontref> identifyfont -
+  omforce {
+    exch /FontDescriptor eq {
+      omforce dup /Flags .knownget { 32 and 0 ne } { false } ifelse
+      exch {
+	exch dup dup /FontFile eq exch /FontFile2 eq or
+	exch /FontFile3 eq or 2 index and {
+	  fontfiles exch dadd
+	} {
+	  omvisit
+	} ifelse
+      } forall pop
+    } {
+      omvisit
+    } ifelse
+  } forall
+} bind def
+
+/identifyPageObjects {	% <extra> <page#> identifyPageObjects <obj#s>
+  pdffindpageref
+  4 dict begin
+  /images 10 darray def
+  /fontfiles 10 darray def
+  {
+    omforce
+		% Stack: extra page
+		% Visit any extra objects if applicable.
+    exch omvisit
+		% Visit Annots, if any.
+		% We don't try to defer the drawing information.
+    dup /Annots .knownget { omvisit } if
+		% Visit beads.
+    dup /B .knownget { omvisit } if
+		% Visit resources dictionaries.
+    dup /Resources .knownget {
+      omforce dup {
+		% Visit the first-level Resource dictionaries.
+	omforce pop pop
+      } forall {
+		% Visit the resources themselves.
+		% Skip Image XObjects, and FontFile streams if the
+		% FontDescriptor Flags have bit 6 set.
+		% We don't try to visit the resources in the order in which
+		% the Contents stream(s) reference(s) them.
+	exch dup /XObject eq {
+	  pop oforce {
+	    dup oforce /Subtype get /Image eq {
+	      images exch dadd
+	    } {
+	      omvisit
+	    } ifelse pop
+	  } forall
+	} {
+	  /Font eq {
+	    oforce { identifyfont pop } forall
+	  } {
+	    oforce omvisit
+	  } ifelse
+	} ifelse
+      } forall
+    } if
+		% Visit the Contents stream(s).
+    dup /Contents .knownget { omvisit } if
+		% Visit Image XObjects.  We don't try to visit them in
+		% reference order.
+    images { omvisit } daforall
+		% Visit FontFile streams.  We don't try to visit them in
+		% reference order.
+    fontfiles { omvisit } daforall
+    pop
+  } visited end
+} bind def
+
+% Identify the objects of the first page.
+/identifyFirstPageObjects {	% -identifyFirstPageObjects <obj#s>
+  Trailer /Root oget null
+  1 index /PageMode knownoget {
+    /UseOutlines eq {
+      1 index /Outlines knownoget { exch pop } if
+    } if
+  } if exch pop
+  1 identifyPageObjects
+} bind def
+
+% Identify the non-shared objects of the other pages, and the shared objects.
+/identifyOtherPageObjects {	% - identifyOtherPageObjects [<pageobj#s> ...]
+				%   <sharedobj#s>
+  4 dict begin
+  /marks lstring Objects llength lgrowto def
+		% Mark document-level and first page objectsw.
+  [CatalogNs FirstPageNs] {
+    { marks exch 255 lput } forall
+  } forall
+		% Collect objects of other pages and identify sharing.
+  [ 2 1 pdfpagecount { null exch identifyPageObjects } for ]
+  dup {
+    { marks exch 2 copy lget 1 add 254 min lput } forall
+  } forall
+  [ exch {
+    [ exch {
+      marks 1 index lget 1 ne { pop } if
+    } forall ]
+  } forall ]
+  [ 1 1 marks llength 1 sub {
+    marks 1 index lget dup 1 le exch 255 eq or { pop } if
+  } for ]
+  end
+} bind def
+
+% Identify objects not associated with any page.
+/identifyNonPageObjects {	% - identifyNonPageObjects <obj#s>
+  4 dict begin
+  /marks lstring Objects llength lgrowto def
+  [[[LPDictN PHSN] CatalogNs FirstPageNs SharedNs] OtherPageNs] {
+    { { marks exch 1 lput } forall } forall
+  } forall
+	%****** PUT THESE IN A REASONABLE ORDER ******
+  [ 1 1 Objects llength 1 sub {
+    marks 1 index lget 0 eq {
+      Generations 1 index lget 0 eq { pop } if
+    } {
+      pop
+    } ifelse
+  } for ]
+} bind def
+
+% ---------------- Assign object numbers ---------------- %
+
+% Assign object numbers to all objects that will be copied.
+% Return the first (translated) object number in the First Page xref table.
+/assignObjectNumbers {		% - assignObjectNumbers -
+  OtherPageNs { { omap pop } forall } forall
+  SharedNs { omap pop } forall
+  NonPageNs { omap pop } forall
+		% Assign object numbers for the First Page xref table last.
+  LPDictN omap	% don't pop, this is the return value
+  CatalogNs { omap pop } forall
+  FirstPageNs { omap pop } forall
+  PHSN omap pop
+} bind def
+
+% ---------------- Create the LPDict ---------------- %
+
+% Create the contents of the LPDict.
+/createLPDict {			% <phsstart> <phsend> <firstpageend>
+				%   <xref0start> <filelength> createLPDict -
+  LPDict
+  dup /Linearized 1 put
+  dup /L 4 -1 roll put		% filelength
+  dup /T 4 -1 roll put		% xref0start
+  dup /E 4 -1 roll put		% firstpageend
+  dup /H 5 -2 roll 1 index sub 2 array astore put	% phsstart, end-start
+  dup /O 1 pdffindpageref 0 get omap put
+  /N pdfpagecount put
+} bind def
+
+% ---------------- Adjust object positions ---------------- %
+
+/adjustObjectPositions {	% <boundary> <deltabelow> <deltaabove>
+				%   adjustObjectPositions -
+	% Objects fall into 4 categories: LPDict, PHS, Catalog, and others.
+	% We handle the first two as special cases.
+  XRef {
+		% Stack: bdy below above key loc
+    dup 5 index ge { 2 } { 3 } ifelse index add
+    XRef 3 1 roll put
+  } forall pop pop pop
+  XRef LPDictN omap HeaderLength put
+  XRef PHSN omap PHSStart put
+} bind def
+
+% ---------------- Write the output file ---------------- %
+
+% Write objects identified by object number.
+/writeobjn {		% <obj#> writeobjn -
+  Generations 1 index lget pdfwriteobj
+} bind def
+/writeobjns {		% <obj#s> writeobjns -
+  { writeobjn } forall
+} bind def
+
+% Write a part of the output file.
+/writePart {		% <proc> <label> writePart -
+  PDEBUG {
+    dup print ( start=) print
+    OFile { .fileposition } stopped { pop (???) } if =
+    2 .execn
+    print ( end=) print
+    OFile { .fileposition } stopped { pop (???) } if =
+  } {
+    pop exec
+  } ifelse
+} bind def
+
+% Write the header.
+/writePart1 {		% - writePart1 -
+  {
+    pdfwriteheader
+  } (part1) writePart
+} bind def
+
+% Write the linearization parameters dictionary.
+/writePart2 {		% - writePart2 -
+  {
+    LPDictN writeobjn
+  } (part2) writePart
+} bind def
+
+% Write the First Page xref table and trailer.
+% Free variables: FirstPageXN.
+/writePart3 {		% <xrefstart> writePart3 -
+  {
+    FirstPageXN NObjects 1 add 1 index sub pdfwritexref
+    Trailer dup length 1 add dict copy
+    dup /Size NObjects 1 add put
+    dup /Prev 4 -1 roll put
+    pdfwritetrailer
+    0 pdfwritestartxref
+  } (part3) writePart
+} bind def
+
+% Write the Catalog and other required document-level objects.
+% Free variables: CatalogNs.
+/writePart4 {		% - writePart4 -
+  {
+    CatalogNs writeobjns
+  } (part4) writePart
+} bind def
+
+% Write the Primary Hint Stream.
+/writePart5 {		% - writePart5 -
+  {
+    PHSN writeobjn
+  } (part5) writePart
+} bind def
+
+% Write the First Page's objects.
+% Free variables: FirstPageNs.
+/writePart6 {		% - writePart6 -
+  {
+    FirstPageNs writeobjns
+  } (part6) writePart
+} bind def
+
+% Write the objects of other pages (Page + non-shared objects).
+% Free variables: OtherPageNs.
+/writePart7 {		% - writePart7 <lengths>
+  {
+    [ OtherPageNs {
+      OFile fileposition exch
+      writeobjns OFile fileposition exch sub
+    } forall ]
+  } (part7) writePart
+} bind def
+
+% Write the shared objects of other pages.
+% Free variables: SharedNs.
+/writePart8 {		% - writePart8 -
+  {
+    SharedNs writeobjns
+  } (part8) writePart
+} bind def
+
+% Write the other objects not associated with pages.
+% Free variables: NonPageNs.
+/writePart9 {		% - writePart9 -
+  {
+    NonPageNs writeobjns
+  } (part9) writePart
+} bind def
+
+% Write the main xref table and trailer.
+% Free variables: FirstPageXN.
+/writePart11xref {	% writePart11 -
+  {
+    0 FirstPageXN pdfwritexref
+  } (part11xref) writePart
+} bind def
+/writePart11rest {	% <part3start> writePart11rest -
+  {
+    << /Size FirstPageXN >> pdfwritetrailer
+    pdfwritestartxref
+  } (part11rest) writePart
+} bind def
+
+% ---------------- Write hint tables ---------------- %
+
+/bitsneeded {		% <maxvalue> bitsneeded <#bits>
+  0 exch { dup 0 eq { pop exit } if exch 1 add exch 2 idiv } loop
+} bind def
+
+% Find the start and end of objects in the output.
+/omstart {		% <obj#> omstart <pos>
+  PDEBUG { (start\() print dup =only } if
+  omap
+  PDEBUG { (=>) print dup =only } if
+  XRef exch get
+  PDEBUG { (\) = ) print dup = } if
+} bind def
+/omend {		% <obj#> omend <pos>
+	% The end of an object is the start of the next object.
+	% The caller must be sure that this object is not the last one
+	% in part 9.
+  PDEBUG { (end\() print dup =only } if
+  omap
+  PDEBUG { (=>) print dup =only } if
+  1 add
+	% Check that the requested object wasn't the last one in part 6:
+	% the next object in the output file is the first in part 7.
+  PHSN omap 1 index eq { pop 1 } if
+  XRef exch get
+  PDEBUG { (\) = ) print dup = } if
+} bind def
+/omlength {		% <obj#> omlength <length>
+  dup omend exch omstart sub
+} bind def
+
+% Find the Contents of a page.
+/contentsobjects {	% <pagedict> contentsobjects <firstobj#> <lastobj#>
+  /Contents get
+  dup oforce dup type /dicttype eq {
+    pop dup
+  } {
+    dup 0 get exch dup length 1 sub get
+  } ifelse
+  exch 0 get exch 0 get
+} bind def
+/contentsstart {	% <pagedict> contentsstart <pos>
+  contentsobjects pop omstart
+} bind def
+/contentslength {	% <pagedict> contentslength <length>
+  contentsobjects omend exch omstart sub
+} bind def
+
+
+/writePageOffsetHints {
+  PDEBUG { /writePageOffsetHints == } if
+  20 dict begin
+  /bits OFile bitstream def
+  /bwn { bits 3 1 roll bitwrite } def
+
+	% Calculate least length of a page.
+  FirstPageLength OtherPageLengths { .min } forall
+  /minpl exch def
+	% Calculate least contents length.
+  FirstPageNs 0 get Objects exch lget contentslength
+  OtherPageNs { 0 get Objects exch lget contentslength .min } forall
+  /mincl exch def
+
+	% The Adobe documentation says that all versions of Acrobat
+	% require item 8 (mincl) to be zero.  Patch this here.
+  /mincl 0 def
+
+	% Calculate bits needed to represent greatest page length.
+  FirstPageLength OtherPageLengths { .max } forall
+  minpl sub bitsneeded /maxplbits exch def
+	% Calculate bits needed to represent the greatest Contents length.
+  FirstPageNs 0 get Objects exch lget contentslength
+  OtherPageNs { 0 get Objects exch lget contentslength .max } forall
+  mincl sub bitsneeded /maxclbits exch def
+
+	% Per Adobe documentation, Acrobat requires that item 5 (maxplbits)
+	% be equal to item 9 (maxclbits).  Set both to the max of the two.
+  maxplbits maxclbits .max /maxplbits 1 index def /maxclbits exch def
+
+		% 1: Least number of objects in a page:
+  FirstPageNs length OtherPageNs { length .min } forall
+  /minnop 1 index def 32 bwn
+		% 2: Location of first page's Page object:
+  FirstPageNs 0 get omap XRef exch get 32 bwn
+		% 3: Bits needed to represent greatest # of objects in a page:
+  FirstPageNs length OtherPageNs { length .max } forall
+  minnop sub bitsneeded /maxnopbits 1 index def 16 bwn
+		% 4: Least length of a page:
+  minpl 32 bwn
+		% 5: Bits needed to represent the greatest page length:
+  maxplbits 16 bwn
+		% 6: Least start of Contents offset:
+  0		% (Acrobat requires that this be 0.)
+  /minsco 1 index def 32 bwn
+		% 7: Bits needed to represent the greatest start of Contents
+		% offset:
+  0		% (Acrobat ignores this.)
+  /maxscobits 1 index def 16 bwn
+		% 8: Least contents length:
+  mincl 32 bwn
+		% 9: Bits needed to represent the greatest Contents length:
+  maxclbits 16 bwn
+		% 10: Bits needed to represent the greatest number of Shared
+  0		% Object references (we don't report any):
+  /maxsorbits 1 index def 16 bwn
+		% 11: Bits needed to identify a Shared Object (we don't
+  0		% report any):
+  /sobits 1 index def 16 bwn
+		% 12: Bits needed to represent numerator of fraction (only
+  0		% needed for Shared Object references, which we don't report):
+  /numfbits 1 index def 16 bwn
+		% 13: Denominator of fraction (only needed for Shared Object
+		% references, which we don't report):
+  255	% arbitrary
+  /denf 1 index def 16 bwn
+
+		% Number of objects in pages:
+  FirstPageNs length minnop sub maxnopbits bwn
+  OtherPageNs {
+    length minnop sub maxnopbits bwn
+  } forall
+
+		% Total length of pages in bytes;
+  FirstPageLength minpl sub maxplbits bwn
+  OtherPageLengths {
+    minpl sub maxplbits bwn
+  } forall
+
+		% Number of shared objects referenced from page:
+		% (Currently we don't report this.)
+  OtherPageNs length 1 add { 0 maxsorbits bwn } repeat
+
+		% Since there are no shared object references,
+		% the next two sections are empty.
+
+		% Contents offsets:
+  [FirstPageNs OtherPageNs aload pop] {
+    0 get Objects exch lget contentsstart minsco sub maxscobits bwn
+  } forall
+
+		% Contents lengths:
+  [FirstPageNs OtherPageNs aload pop] {
+    0 get Objects exch lget contentslength mincl sub maxclbits bwn
+  } forall
+
+  bits bitflush end
+} bind def
+
+/writeSharedObjectHints {
+  PDEBUG { /writeSharedObjectHints == } if
+  20 dict begin
+  /bits OFile bitstream def
+  /bwn { bits 3 1 roll bitwrite } def
+
+		% Currently we use the Shared Object hint table only for
+		% the objects in the first page, which are all treated as
+		% "shared" objects.
+
+		% Object number of first object in Shared Objects section
+		% (not currently used):
+  0 32 bwn
+		% Location of first object in Shared Objects section
+		% (not currently used): If there are no shared objects,
+		% Acrobat sets this to the location of linearization
+		% parameters object (the very first object).
+  { pdfwriteheader } tomemory length 32 bwn
+		% Number of Shared Object entries for first page:
+  FirstPageNs length 32 bwn
+		% Number of Shared Object entries for Shared Objects
+		% section (not currently used):
+  FirstPageNs length 32 bwn
+		% Bits needed to represent the greatest number of objects
+		% in a shared object group (always 0, because all groups
+		% have only 1 object):
+  0 16 bwn
+		% Least length of a Shared Object Group in bytes:
+  16#7fffffff FirstPageNs { omlength .min } forall
+  /minsol 1 index def 32 bwn
+		% Bits needed to represent the greatest length of a
+		% Shared Object Group:
+  0 FirstPageNs { omlength .max } forall
+  minsol sub bitsneeded
+  /maxsolbits 1 index def 16 bwn
+
+		% Lengths of shared object groups:
+  FirstPageNs { omlength minsol sub maxsolbits bwn } forall
+
+		% MD5 flag:
+  0 1 bwn
+
+  bits bitflush end
+} bind def
+
+% ---------------- Main program ---------------- %
+
+/tmpprefix (/tmp/) def
+
+/pdfOptimize {		% <infile> <outfile> pdfOptimize -
+  realtime 3 1 roll
+  exch pdfdict begin pdfopenfile dup begin
+  40 dict begin
+  /IDict exch def
+  /OFile exch def
+  /starttime exch def
+  /now {
+    QUIET { pop } { print (, t = ) print realtime starttime sub = flush } ifelse
+  } def
+  omapinit
+  
+	% Create and open a temporary file.
+
+  null (w) .tempfile /TFile exch def /TFileName exch def
+  .setsafe
+
+	% Read all objects into memory.
+
+  Trailer touch
+  (Read objects) now
+
+	% Replace indirect references to numbers.  This is needed
+	% for the Length of streams, and doesn't hurt anything else.
+
+  replaceReferences
+  (Replaced references) now
+
+	% Create the two new objects: the linearization parameter
+	% dictionary, and the Primary Hint Stream.
+
+  /LPDict 10 dict def
+  /PHS 10 dict cvx def		% executable = stream
+  [LPDict PHS] createObjects
+  /LPDictN 1 index def 1 add
+  /PHSN exch def
+  PDEBUG { << /LPDictN LPDictN /PHSN PHSN >> === } if
+
+	% Count the number of objects in the output.
+
+  0 0 1 Objects llength 1 sub {
+    Generations exch lget 0 ne { 1 add } if
+  } for
+  /NObjects exch def
+  QUIET not { NObjects =only ( objects total) = flush } if
+
+	% Propagate inherited attributes down the page tree.
+
+  propagateAttributes
+  (Propagated attributes) now
+
+	% Identify the document-level objects (part 4).
+
+  identifyDocumentObjects /CatalogNs exch def
+  QUIET not { CatalogNs === flush } if
+  (Identified Catalog) now
+
+  	% Identify the first page's objects (part 6),
+	% including the Outlines tree if appropriate.
+
+  pdfopencache
+  /FirstPageNs identifyFirstPageObjects def
+  QUIET not { FirstPageNs === flush } if
+  (Identified first page) now
+
+	% Identify shared vs. non-shared objects for remaining pages
+	% (parts 7 and 8).
+
+  identifyOtherPageObjects
+  /SharedNs exch def
+  /OtherPageNs exch def
+  QUIET not { OtherPageNs === flush SharedNs === flush } if
+  (Identified other pages) now
+
+	% Identify objects not associated with any page (part 9).
+
+  /NonPageNs identifyNonPageObjects def
+  QUIET not { NonPageNs === flush } if
+  (Identified non-pages) now
+
+	% Assign final object numbers to all the objects.
+	% (The omap is currently empty.)
+
+  /FirstPageXN assignObjectNumbers def
+  (Assigned objects #s) now
+
+	% Write the document-level objects (part 4).
+
+  { writePart4 } totemp
+  /CatalogTempEnd exch def /CatalogTempStart exch def
+  (Wrote Catalog) now
+
+	% Write the first page's objects (part 6).
+
+  { writePart6 } totemp
+  /FirstPageTempEnd exch def /FirstPageTempStart exch def
+  (Wrote first page) now
+
+	% Write the non-shared objects for other pages (part 7).
+
+  { writePart7 /OtherPageLengths exch def } totemp
+  /OtherPageTempEnd exch def /OtherPageTempStart exch def
+  (Wrote other pages) now
+
+	% Write the shared objects for other pages (part 8).
+
+  { writePart8 } totemp
+  /SharedTempEnd exch def /SharedTempStart exch def
+  (Wrote shared objects) now
+
+	% Write the objects not associated with pages (part 9).
+
+  { writePart9 } totemp
+  /NonPageTempEnd exch def /NonPageTempStart exch def
+
+	% Compute conservative lengths of parts 2,3,5,11 of the output.
+	% It's OK for these to be too large, but not too small.
+
+  % Make dummy XRef entres for LPDict and PHS.
+  XRef LPDictN omap 0 put
+  XRef PHSN omap 0 put
+
+  /HeaderLength {	% this is exact
+    writePart1			% part 1
+  } tolength def
+  /CatalogLength	% this is exact
+    CatalogTempEnd CatalogTempStart sub def	% part 4
+  /FirstPageLength	% this is exact
+    FirstPageTempEnd FirstPageTempStart sub def	% part 6
+  /OtherObjectsLength	% this is exact
+    NonPageTempEnd OtherPageTempStart sub def	% parts 7,8,9
+  /ObjectsLength	% this is exact
+    CatalogLength FirstPageLength add OtherObjectsLength add def
+  /XrefLength {			% part 11
+	% The LPDict must end within the first 1024 bytes,
+	% so the start of the FirstPage xref table can't exceed 1024.
+    writePart11xref 1024 writePart11rest
+  } tolength def
+  /NominalFileLength 	% Make a generous allowance for parts 2,3,5.
+    HeaderLength ObjectsLength 3 mul add 10000 add 99999 max def
+  /FirstPageXrefLength {	% part 3
+    NominalFileLength writePart3
+  } tolength def
+  /LPDictLength {		% part 2
+    NominalFileLength dup 2 mul 2 copy add 1 index dup createLPDict writePart2
+  } tolength def
+
+	% Compute a few additional values from the above.
+
+  /XrefBeginLength {
+    (xref\n0 ) ows
+    OFile FirstPageXN write=
+  } tolength def
+  HeaderLength LPDictLength add
+  /FirstPageXrefStart 1 index def
+  FirstPageXrefLength add
+  /CatalogStart 1 index def
+  CatalogLength add		% phsstart
+  /PHSStart exch def
+
+	% Adjust the object positions ignoring PHS.
+	% (Writing the PHS needs these.)
+
+  0 0 CatalogStart CatalogTempStart sub adjustObjectPositions
+  % Make a temporary XRef entry for the PHS, for the benefit of omend.
+  XRef PHSN omap CatalogStart put
+  (Adjusted positions) now
+
+	% Construct the hint tables (part 5).
+
+  { writePageOffsetHints } totemp
+  pop /PHSTempStart exch def
+  { writeSharedObjectHints } totemp
+  exch PHSTempStart sub PHS /S 3 -1 roll put
+  PHSTempStart sub /PHSTempLength exch def
+  (Wrote hints) now
+
+  % Prepare to read TFile.
+  TFile closefile
+  /TFile TFileName (r) file def
+
+  PHS
+    dup /File TFile put
+    dup /FilePosition PHSTempStart put
+    dup /Length PHSTempLength put
+  pop
+  /PHSLength { writePart5 } tolength def
+
+	% Construct the linearization parameter dictionary (part 2).
+
+  PHSStart
+  dup PHSLength add		% phsend
+  /FirstPageStart 1 index def
+  dup FirstPageLength add	% firstpageend
+  dup OtherObjectsLength add
+  /XrefStart 1 index def
+  XrefBeginLength add		% xref0start
+  dup XrefBeginLength sub XrefLength add	% fileend
+	% Because of a bug, Acrobat Reader doesn't recognize any file
+	% shorter than 1K as linearized.  Patch this here.
+  1024 .max
+  /FileLength 1 index def
+  createLPDict
+
+	% Adjust the object positions again, taking the PHS into account.
+
+  PHSStart 0 PHSLength adjustObjectPositions
+  (Readjusted positions) now
+
+	% Finally, write the output file.
+
+  writePart1
+  writePart2
+  FirstPageXrefStart padto
+  XrefStart writePart3
+  CatalogStart padto
+  CatalogTempStart CatalogTempEnd copyrange	% part 4
+  writePart5
+  FirstPageStart padto
+  FirstPageTempStart NonPageTempEnd copyrange	% parts 6,7,8,9
+  % No Overflow Hint Stream (part 10).
+  XrefStart padto
+  writePart11xref
+  { FirstPageXrefStart writePart11rest } tomemory
+  FileLength 1 index length sub padto ows
+  (Wrote output file) now
+
+	% Wrap up.
+
+  TFile closefile TFileName deletefile
+  end		% temporary dict
+  end		% IDict
+} bind def
+
+end			% pdfoptdict
+.setglobal
+
+% Check for command line arguments.
+[ shellarguments {
+  ] dup length 2 eq {
+	% Load the pdfwrite utilities if necessary.
+    /omapinit where { pop } { (pdfwrite.ps) runlibfile } ifelse
+    save exch
+    aload pop exch (r) file exch (w) file
+    3000000 setvmthreshold
+    pdfoptdict begin pdfOptimize end
+    restore
+  } {
+    (Usage: gs -dNODISPLAY -- pdfopt.ps input.pdf output.pdf) = flush quit
+  } ifelse
+} {
+  pop
+} ifelse

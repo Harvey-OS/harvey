@@ -1,0 +1,191 @@
+.TH JPG 1
+.SH NAME
+jpg, gif, png, ppm, togif, toppm, topng \- view and convert pictures
+.SH SYNOPSIS
+.B jpg
+[
+.B -39cdefFkJrtv
+] [
+.I file ...
+]
+.PP
+.B gif
+[
+.B -39cdektv
+] [
+.I file ...
+]
+.PP
+.B png
+[
+.B -39cdektv
+] [
+.I file ...
+]
+.B ppm
+[
+.B -39cdektv
+] [
+.I file ...
+]
+.PP
+.B togif
+[
+.B -c
+.I comment
+] [
+.B -l
+.I loopcount
+] [
+.B -d
+.I msec
+] [
+.B -t
+.I transindex
+] [
+.I file ...
+[
+.B -d
+.I msec
+]
+.I file ...
+]
+.PP
+.B toppm
+[
+.B -c
+.I comment
+] [
+.I file
+]
+.PP
+.B topng
+[
+.B -c
+.I comment
+] [
+[
+.B -g
+.I gamma
+] [
+.I file
+]
+.SH DESCRIPTION
+These programs read, display, and write image files in public formats.
+.IR Jpg ,
+.IR gif ,
+.IR png ,
+and
+.I ppm
+read files in the corresponding formats and, by default, display
+them in the current window; options cause them instead to convert the images
+to Plan 9 image format and write them to standard output.
+.IR Togif ,
+.IR Toppm ,
+and
+.I topng
+read Plan 9 images files, convert them to GIF, PPM, or PNG, and write them to standard output.
+.PP
+The default behavior of
+.IR jpg ,
+.IR gif ,
+and
+.IR ppm
+is to display the
+.IR file ,
+or standard input if no file is named.
+Once a file is displayed, typing a character causes the program to display the next image.
+Typing a
+.BR q ,
+DEL, or control-D exits the program.
+For a more user-friendly interface, use
+.IR page (1),
+which invokes these programs to convert the images to standard format,
+displays them, and offers scrolling, panning, and menu-driven navigation among the files.
+.PP
+These programs share many options:
+.TP
+.B -e
+Disable Floyd-Steinberg error diffusion, which is used to improve the appearance
+of images on color-mapped displays, typically with 8 bits per pixel.
+Primarily useful for debugging; if the display has true RGB color, the image
+will be displayed in full glory.
+.TP
+.B -k
+Convert and display the image as a black and white (really grey-scale) image.
+.TP
+.B -v
+Convert the image to an RGBV color-mapped image, even if the
+display has true RGB color.
+.TP
+.B -d
+Suppress display of the image; this is set automatically by
+any of the following options:
+.TP
+.B -c
+Convert the image to a Plan 9 representation, as defined by
+.IR image (6),
+and write it to standard output.
+.TP
+.B -9
+Like
+.BR -c ,
+but produce an uncompressed image.
+This saves processing time, particularly when the output is
+being piped to another program such as
+.IR page (1),
+since it avoids compression and decompression.
+.TP
+.B -t
+Convert the image, if it is in color, to a true color RGB image.
+.TP
+.B -3
+Like
+.BR -t ,
+but force the image to RGB even if it is originally grey-scale.
+.PD
+.PP
+.PP
+The
+.IR togif
+and
+.IR toppm
+programs go the other way: they convert from Plan 9 images to GIF and PPM,
+and have no display capability.
+Both accept an option
+.B -c
+to set the comment field of the resulting file.
+If there is only one input picture,
+.I togif
+converts the image to GIF format.
+If there are many
+.IR files ,
+though, it will assemble them into an animated GIF file.
+The options control this process:
+.TP
+.BI -l loopcount
+By default, the animation will loop forever;
+.I loopcount
+specifies how many times to loop.
+A value of zero means loop forever and a negative value means
+to stop after playing the sequence once.
+.TP
+.BI -d msec
+By default, the images are displayed as fast as they can be rendered.
+This option specifies the time, in milliseconds, to pause while
+displaying the next named
+.IR file .
+.PD
+.PP
+.I Gif
+translates files that contain a `transparency' index by attaching
+an alpha channel to the converted image.
+.SH SOURCE
+.B /sys/src/cmd/jpg
+.SH "SEE ALSO"
+.IR page (1),
+.IR image (6).
+.SH BUGS
+Writing an animated GIF using
+.I togif
+is a clumsy undertaking.

@@ -1,0 +1,45 @@
+#!/bin/rc
+owd=`{pwd}
+cd $1
+for (i in *){
+	sed -n '
+	/^.TH *[^ ]* */{
+		s///
+		s/ .*//
+		h
+	}
+	/SH.*NAM/{
+		N
+		s/.*\n//
+		:x
+		N
+		/\n.SH.*/{
+			s///
+			s/^/'$i' /
+			s/\n/ /g
+			s/  */ /g
+			G
+			s/([^ ]*)(.*)\n(.*)/\1(\3)\2/
+			s/[A-Z]\)/)/
+			p
+			d
+		}
+		s/\n\.[^ ]* */ /
+		bx
+	}
+' $i
+}
+cd $owd
+exit
+# add to shell script to get file references
+# in this case, pipe output thru uniq
+	/^\.RF *[^ ]*/s//.F/
+	/^\.FR(.* ).*/s//.F \1/
+	/^\.F  */{
+		s//$i /
+		s/\.[^ .]*//
+		G
+		s/([^ ]*)(.*)\n(.*)/\1(\3)\2/
+		s/[A-Z+]\)/)/
+		p
+	}

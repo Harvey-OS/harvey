@@ -1,0 +1,26 @@
+WIN=x11
+OS=solaris
+
+CC=cc
+CFLAGS=-g -c -DSOLARIS -mt -w -xCC -Xa
+TARG=drawterm
+O=o
+LD=cc
+LDFLAGS=-g -o drawterm -mt
+AS=cc
+ASFLAGS=-g -c -DSOLARIS
+
+DEVIP=devip-unix
+DEVFS=devunixfs
+OSFILES=asm-Solaris-$ARCH.$O md-iprint.$O
+LIBS=-lm -L/usr/X11R6/lib -lX11 -lsocket -lnsl -lposix4
+
+ml-%.$O:	$DSRC/libmemlayer/%.c
+	$CC $CFLAGS -o ml-$stem.o $DSRC/libmemlayer/$stem.c
+
+md-%.$O:	$DSRC/libmemdraw/%.c
+	$CC $CFLAGS -o md-$stem.o $DSRC/libmemdraw/$stem.c
+
+d-%.$O:	$DSRC/libdraw/%.c
+	$CC $CFLAGS -o d-$stem.o $DSRC/libdraw/$stem.c
+
