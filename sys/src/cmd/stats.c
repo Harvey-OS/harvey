@@ -43,7 +43,7 @@ enum
 	Load,
 	Idle,
 	InIntr,
-	/* /net/ether0/0/stats */
+	/* /net/ether0/stats */
 	In		= 0,
 	Out,
 	Err0,
@@ -625,13 +625,23 @@ initmach(Machine *m, char *name)
 	}else
 		m->nproc = 1;
 
-	snprint(buf, sizeof buf, "%s/net/ether0/0/stats", mpt);
+	snprint(buf, sizeof buf, "%s/net/ether0/stats", mpt);
 	m->etherfd = open(buf, OREAD);
+	if(m->etherfd < 0){
+		/* try the old place - this code will disappear on Nov 18th - presotto */
+		snprint(buf, sizeof buf, "%s/net/ether0/0/stats", mpt);
+		m->etherfd = open(buf, OREAD);
+	}
 	if(loadbuf(m, &m->etherfd) && readnums(m, nelem(m->netetherstats), a, 1))
 		memmove(m->netetherstats, a, sizeof m->netetherstats);
 
-	snprint(buf, sizeof buf, "%s/net/ether0/0/ifstats", mpt);
+	snprint(buf, sizeof buf, "%s/net/ether0/ifstats", mpt);
 	m->ifstatsfd = open(buf, OREAD);
+	if(m->ifstatsfd < 0){
+		/* try the old place - this code will disappear on Nov 18th - presotto */
+		snprint(buf, sizeof buf, "%s/net/ether0/0/ifstats", mpt);
+		m->ifstatsfd = open(buf, OREAD);
+	}
 	if(loadbuf(m, &m->ifstatsfd)){
 		/* need to check that this is a wavelan interface */
 		if(strncmp(m->buf, "Signal: ", 8) == 0 && readnums(m, nelem(m->netetherifstats), a, 1))

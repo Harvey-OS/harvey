@@ -8,22 +8,31 @@ myetheraddr(uchar *to, char *dev)
 	int n, fd;
 	char buf[256], *ptr;
 
-	/* Make one exist */
 	if(*dev == '/')
-		sprint(buf, "%s/clone", dev);
+		sprint(buf, "%s/stats", dev);
 	else
-		sprint(buf, "/net/%s/clone", dev);
-	fd = open(buf, ORDWR);
-	if(fd >= 0)
-		close(fd);
+		sprint(buf, "/net/%s/stats", dev);
 
-	if(*dev == '/')
-		sprint(buf, "%s/0/stats", dev);
-	else
-		sprint(buf, "/net/%s/0/stats", dev);
 	fd = open(buf, OREAD);
-	if(fd < 0)
-		return -1;
+	if(fd < 0) {
+		/* try the old place - this code will disappear on Nov 18th */
+		/* Make one exist */
+		if(*dev == '/')
+			sprint(buf, "%s/clone", dev);
+		else
+			sprint(buf, "/net/%s/clone", dev);
+		fd = open(buf, ORDWR);
+		if(fd >= 0)
+			close(fd);
+	
+		if(*dev == '/')
+			sprint(buf, "%s/0/stats", dev);
+		else
+			sprint(buf, "/net/%s/0/stats", dev);
+		fd = open(buf, OREAD);
+		if(fd < 0)
+			return -1;
+	}
 
 	n = read(fd, buf, sizeof(buf)-1);
 	close(fd);

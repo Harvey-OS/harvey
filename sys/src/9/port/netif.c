@@ -79,8 +79,16 @@ netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
 			q.path = Naddrqid;
 			devdir(c, q, "addr", 0, eve, 0666, dp);
 			break;
+		case 2:
+			q.path = Nstatqid;
+			devdir(c, q, "stats", 0, eve, 0444, dp);
+			break;
+		case 3:
+			q.path = Nifstatqid;
+			devdir(c, q, "ifstats", 0, eve, 0444, dp);
+			break;
 		default:
-			i -= 2;
+			i -= 4;
 			if(i >= nif->nfile)
 				return -1;
 			if(nif->f[i] == 0)
@@ -204,6 +212,7 @@ netifread(Netif *nif, Chan *c, void *a, long n, ulong offset)
 	case Nstatqid:
 		p = malloc(READSTR);
 		j = snprint(p, READSTR, "in: %d\n", nif->inpackets);
+		j += snprint(p+j, READSTR-j, "link: %d\n", nif->link);
 		j += snprint(p+j, READSTR-j, "out: %d\n", nif->outpackets);
 		j += snprint(p+j, READSTR-j, "crc errs: %d\n", nif->crcs);
 		j += snprint(p+j, READSTR-j, "overflows: %d\n", nif->overflows);
