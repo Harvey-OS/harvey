@@ -13,6 +13,13 @@ con /srv/fscons
 .I T-message
 ...
 .PP
+.B bind
+[
+.B -b|-a|-c|-bc|-ac
+]
+.I new
+.I old
+.PP
 .B dflag
 .PP
 .B echo
@@ -219,6 +226,23 @@ con /srv/fscons
 [
 .B -a
 ]
+[
+.B -s
+.I src
+]
+[
+.B -d
+.I dst
+]
+.PP
+[
+.B fsys
+.I name
+]
+.B snapclean
+[
+.I timeout
+]
 .PP
 [
 .B fsys
@@ -311,6 +335,13 @@ a file in any file system served by
 executes a 9P transaction; the arguments
 are in the same format used by
 .IR 9pcon (8).
+.PP
+.I Bind
+behaves similarly to
+.IR bind (1).
+It is useful when fossil
+is started without devices it needs configured
+into its namespace.
 .PP
 .I Dflag
 toggles the debug flag and prints the new setting.
@@ -827,6 +858,28 @@ to take an archival snapshot, recording it in
 .BI /archive/ yyyy / mmdd \fR,
 also described in
 .IR fossil (4).
+By default the snapshot is taken of
+.BR /active ,
+the root of the active file system.
+The 
+.B -s
+flag specifies a different source path.
+The
+.B -d
+flag specifies a different destination path.
+These  two flags are useful together for moving snapshots into
+the archive tree.
+.PP
+.I Snapclean
+immediately discards all snapshots that are more than
+.I timeout
+minutes old.
+The default timeout is the one set by the
+.I snaptime
+command.
+The discarding is a one-time event rather than
+a recurring event as in
+.IR snaptime .
 .PP
 .I Snaptime
 displays and edits the times at which snapshots are automatically
@@ -836,9 +889,14 @@ An archival snapshot is taken once a day, at
 while temporary snapshots are taken at multiples of
 .I interval
 minutes.
-Temporary snapshots are discarded once they are
+Temporary snapshots are discarded after they are
 .I timeout
 minutes old.
+The snapshot cleanup runs every
+.I timeout
+minutes or once a day, whichever is more frequent,
+so snapshots may grow to an age of almost twice the timeout
+before actually being discarded.
 With no arguments,
 .I snaptime
 prints the current snapshot times.
@@ -975,4 +1033,10 @@ to it:
 .EX
 uname sys :sys
 uname sys +rob
+.EE
+.PP
+To save an old (but not yet discarded) snapshot into the archive tree:
+.IP
+.EX
+snap -a -s /snapshot/2003/1220/0700 -d /archive/2003/1220
 .EE

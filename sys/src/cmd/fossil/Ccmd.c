@@ -395,6 +395,43 @@ cmdEcho(int argc, char* argv[])
 	return 1;
 }
 
+static int
+cmdBind(int argc, char* argv[])
+{
+	ulong flag = 0;
+	char *usage;
+
+	usage = "usage: bind [-b|-a|-c|-bc|-ac] new old";
+
+	ARGBEGIN{
+	case 'a':
+		flag |= MAFTER;
+		break;
+	case 'b':
+		flag |= MBEFORE;
+		break;
+	case 'c':
+		flag |= MCREATE;
+		break;
+	default:
+		return cliError(usage);
+	}ARGEND
+
+	if(argc != 2 || (flag&MAFTER)&&(flag&MBEFORE))
+		return cliError(usage);
+
+	if(bind(argv[0], argv[1], flag) < 0){
+		/* try to give a less confusing error than the default */
+		if(access(argv[0], 0) < 0)
+			return cliError("bind: %s: %r", argv[0]);
+		else if(access(argv[1], 0) < 0)
+			return cliError("bind: %s: %r", argv[1]);
+		else
+			return cliError("bind %s %s: %r", argv[0], argv[1]);
+	}
+	return 1;
+}
+
 int
 cmdInit(void)
 {
@@ -405,6 +442,7 @@ cmdInit(void)
 	cliAddCmd("9p", cmd9p);
 	cliAddCmd("dflag", cmdDflag);
 	cliAddCmd("echo", cmdEcho);
+	cliAddCmd("bind", cmdBind);
 
 	if(pipe(cbox.confd) < 0)
 		return 0;

@@ -72,7 +72,6 @@ struct I8253
 };
 I8253 i8253;
 
-
 void
 i8253init(void)
 {
@@ -187,8 +186,6 @@ guesscpuhz(int aalcycles)
 	i8253.hz = Freq<<Tickshift;
 }
 
-ulong phist[128];
-
 void
 i8253timerset(uvlong next)
 {
@@ -210,8 +207,6 @@ i8253timerset(uvlong next)
 
 	/* hysteresis */
 	if(i8253.period != period){
-memmove(&phist[0], &phist[1], sizeof(phist)-sizeof(ulong));
-phist[nelem(phist)-1] = period;
 		ilock(&i8253);
 		/* load new value */
 		outb(Tmode, Load0|Square);
@@ -245,7 +240,7 @@ i8253link(void)
 }
 
 /*
- *  return the total ticks of counter 1.  We shift by
+ *  return the total ticks of counter 2.  We shift by
  *  8 to give timesync more wriggle room for interpretation
  *  of the frequency
  */
@@ -265,8 +260,16 @@ i8253read(uvlong *hz)
 
 	if(y < i8253.last)
 		x = i8253.last - y;
-	else
+	else {
 		x = i8253.last + (0x10000 - y);
+		if (x > 3*MaxPeriod) {
+			outb(Tmode, Load2|Square);
+			outb(T2cntr, 0);		/* low byte */
+			outb(T2cntr, 0);		/* high byte */
+			y = 0xFFFF;
+			x = i8253.period;
+		}
+	}
 	i8253.last = y;
 	i8253.ticks += x>>1;
 	ticks = i8253.ticks;
