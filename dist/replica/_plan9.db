@@ -6711,7 +6711,7 @@ sys/src/cmd/8c/8.out.h - 664 sys sys 944960730 4107
 sys/src/cmd/8c/bound.c - 664 sys sys 1084472146 16274
 sys/src/cmd/8c/bound.h - 664 sys sys 1084472146 903
 sys/src/cmd/8c/cgen.c - 664 sys sys 1084472146 28224
-sys/src/cmd/8c/cgen64.c - 664 sys sys 1084472147 43289
+sys/src/cmd/8c/cgen64.c - 664 sys sys 1086543210 43289
 sys/src/cmd/8c/enam.c - 664 sys sys 944960730 3215
 sys/src/cmd/8c/gc.h - 664 sys sys 1084472147 6102
 sys/src/cmd/8c/list.c - 664 sys sys 1067720660 3975
@@ -12427,3 +12427,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/8c - 775 sys sys 1086577386 340969

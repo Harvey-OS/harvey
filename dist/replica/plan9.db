@@ -22,7 +22,7 @@
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/1c - 775 sys sys 1063639729 306762
 386/bin/8a - 775 sys sys 1085076970 112621
-386/bin/8c - 775 sys sys 1085076970 340969
+386/bin/8c - 775 sys sys 1086577386 340969
 386/bin/8l - 775 sys sys 1085076970 106872
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
@@ -6711,7 +6711,7 @@ sys/src/cmd/8c/8.out.h - 664 sys sys 944960730 4107
 sys/src/cmd/8c/bound.c - 664 sys sys 1084472146 16274
 sys/src/cmd/8c/bound.h - 664 sys sys 1084472146 903
 sys/src/cmd/8c/cgen.c - 664 sys sys 1084472146 28224
-sys/src/cmd/8c/cgen64.c - 664 sys sys 1084472147 43289
+sys/src/cmd/8c/cgen64.c - 664 sys sys 1086543210 43289
 sys/src/cmd/8c/enam.c - 664 sys sys 944960730 3215
 sys/src/cmd/8c/gc.h - 664 sys sys 1084472147 6102
 sys/src/cmd/8c/list.c - 664 sys sys 1067720660 3975
