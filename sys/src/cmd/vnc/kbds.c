@@ -10,7 +10,7 @@ enum
 	/*
 	 * plan 9 key mappings
 	 */
-	Spec=		0x80,
+	Spec=		0xF800,
 
 	PF=		Spec|0x20,	/* num pad function key */
 	View=		Spec|0x00,	/* view (shift window up) */

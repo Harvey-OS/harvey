@@ -11122,7 +11122,7 @@ sys/src/cmd/vnc/errstr.h - 664 sys sys 1044880749 2018
 sys/src/cmd/vnc/exporter.c - 664 sys sys 1044880749 1312
 sys/src/cmd/vnc/exportfs.c - 664 sys sys 1045529366 13666
 sys/src/cmd/vnc/kbd.h - 664 sys sys 1044880749 301
-sys/src/cmd/vnc/kbds.c - 664 sys sys 1044880749 3254
+sys/src/cmd/vnc/kbds.c - 664 sys sys 1079809881 3256
 sys/src/cmd/vnc/kbdv.c - 664 sys sys 1047512524 3513
 sys/src/cmd/vnc/latin1.c - 664 sys sys 1044880749 1410
 sys/src/cmd/vnc/latin1.h - 664 sys sys 1044880750 3524
