@@ -62,6 +62,9 @@ conFree(Con* con)
 		con->fd = -1;
 	}
 	con->state = ConDead;
+	con->aok = 0;
+	con->noauth = con->noperm = con->wstatallow = 0;
+	con->isconsole = 0;
 
 	vtLock(cbox.alock);
 	if(con->cprev != nil)
@@ -556,6 +559,8 @@ conAlloc(int fd, char* name)
 	else
 		con->name = vtStrDup("unknown");
 	con->aok = 0;
+	con->noauth = con->noperm = con->wstatallow = 0;
+	con->isconsole = 0;
 	vtUnlock(cbox.alock);
 
 	if(vtThread(msgWrite, con) < 0){

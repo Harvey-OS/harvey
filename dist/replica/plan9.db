@@ -233,7 +233,7 @@
 386/bin/fossil/conf - 775 sys sys 1056364255 1497
 386/bin/fossil/flchk - 775 sys sys 1073888256 235503
 386/bin/fossil/flfmt - 775 sys sys 1073888257 249314
-386/bin/fossil/fossil - 775 sys sys 1077940925 349367
+386/bin/fossil/fossil - 775 sys sys 1079034455 350022
 386/bin/freq - 775 sys sys 1064598145 60197
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1064598146 95907
@@ -336,7 +336,7 @@
 386/bin/nntpfs - 775 sys sys 1064598272 162969
 386/bin/ns - 775 sys sys 1064598273 63582
 386/bin/p - 775 sys sys 1064598274 63537
-386/bin/page - 775 sys sys 1071245340 216518
+386/bin/page - 775 sys sys 1079029959 230759
 386/bin/paqfs - 775 sys sys 1073851235 109518
 386/bin/passwd - 775 sys sys 1069592374 80215
 386/bin/pbd - 775 sys sys 1038443175 4663
@@ -829,6 +829,7 @@ arm/bin/ape - 20000000775 sys sys 985644327 0
 arm/bin/auth - 20000000775 sys sys 985644308 0
 arm/bin/aux - 20000000775 sys sys 985644327 0
 arm/bin/bitsy - 20000000775 sys sys 985559407 0
+arm/bin/bitsy/pencal - 775 sys sys 1079016939 119781
 arm/bin/dial - 20000000775 sys sys 1059180057 0
 arm/bin/disk - 20000000775 sys sys 985644211 0
 arm/bin/fossil - 20000000775 sys sys 1042090587 0
@@ -896,7 +897,7 @@ lib/dict/README.pgw - 664 sys sys 1063660179 147
 lib/face - 20000000775 sys sys 945049943 0
 lib/face/.machinelist - 644 sys sys 944945676 97
 lib/face/48x48x1 - 20000000755 sys sys 944941680 0
-lib/face/48x48x1/.dict - 664 sys sys 1078956098 9824
+lib/face/48x48x1/.dict - 664 sys sys 1079054327 9812
 lib/face/48x48x1/a - 20000000755 sys sys 945300156 0
 lib/face/48x48x1/a/acsnet.1 - 644 sys sys 1020313578 1056
 lib/face/48x48x1/a/adb.1 - 644 sys sys 1020313578 1200
@@ -982,13 +983,14 @@ lib/face/48x48x1/t/tom.1 - 644 sys sys 944941669 1056
 lib/face/48x48x1/t/transistor.1 - 644 sys sys 944941669 1152
 lib/face/48x48x1/t/traveller-request.1 - 644 sys sys 944941669 1152
 lib/face/48x48x1/u - 20000000775 sys sys 1078952812 0
+lib/face/48x48x1/u/u.aibn54.mpifr-bonn.mpg.de - 644 sys sys 944941670 1152
+lib/face/48x48x1/u/u.babsy.mpifr-bonn.mpg.de - 644 sys sys 944941670 1152
 lib/face/48x48x1/u/unicode-request.1 - 644 sys sys 944941669 1152
 lib/face/48x48x1/u/unknown.aaai.org - 644 sys sys 944941669 1152
 lib/face/48x48x1/u/unknown.acsnet - 644 sys sys 944941675 1056
 lib/face/48x48x1/u/unknown.adobe.com - 644 sys sys 944941674 1152
 lib/face/48x48x1/u/unknown.aero.org - 644 sys sys 944941677 1152
 lib/face/48x48x1/u/unknown.ai.mit.edu - 644 sys sys 944941674 1152
-lib/face/48x48x1/u/unknown.aibn54.mpifr-bonn.mpg.de - 644 sys sys 944941670 1152
 lib/face/48x48x1/u/unknown.alliant.com - 644 sys sys 944941678 1152
 lib/face/48x48x1/u/unknown.anl.gov - 644 sys sys 944941677 1152
 lib/face/48x48x1/u/unknown.aol.com - 664 sys sys 1078955399 1200
@@ -1001,7 +1003,6 @@ lib/face/48x48x1/u/unknown.athena.mit.edu - 644 sys sys 944941671 1152
 lib/face/48x48x1/u/unknown.au - 644 sys sys 944941675 1152
 lib/face/48x48x1/u/unknown.auspex.com - 644 sys sys 944941673 1152
 lib/face/48x48x1/u/unknown.austek.oz.au - 644 sys sys 944941680 1152
-lib/face/48x48x1/u/unknown.babsy.mpifr-bonn.mpg.de - 644 sys sys 944941670 1152
 lib/face/48x48x1/u/unknown.bbn.com - 644 sys sys 944941671 1152
 lib/face/48x48x1/u/unknown.be - 644 sys sys 944941677 1152
 lib/face/48x48x1/u/unknown.bellcore.com - 644 sys sys 944941679 1056
@@ -1259,7 +1260,7 @@ lib/face/48x48x2/x - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/y - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/z - 20000000755 sys sys 944941683 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1069781039 2061
+lib/face/48x48x4/.dict - 664 sys sys 1079017691 2391
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -1317,6 +1318,7 @@ lib/face/48x48x4/m - 20000000775 sys sys 947359995 0
 lib/face/48x48x4/m/mhw.1 - 664 sys sys 944941893 1167
 lib/face/48x48x4/m/mig.1 - 664 sys sys 944941893 966
 lib/face/48x48x4/m/mihalis.1 - 664 sys sys 944941893 1071
+lib/face/48x48x4/m/moneybag.1 - 644 sys sys 1079017457 1210
 lib/face/48x48x4/n - 20000000775 sys sys 944941893 0
 lib/face/48x48x4/n/nch.1 - 664 sys sys 944941893 1153
 lib/face/48x48x4/o - 20000000775 sys sys 944945559 0
@@ -1344,6 +1346,7 @@ lib/face/48x48x4/s/sbranigan.1 - 644 sys sys 944941894 1003
 lib/face/48x48x4/s/sean.1 - 664 sys sys 944941893 944
 lib/face/48x48x4/s/seanq.1 - 664 sys sys 944941894 1054
 lib/face/48x48x4/s/sjf.1 - 664 sys sys 944941894 1054
+lib/face/48x48x4/s/spam.1 - 644 sys sys 1079017520 1071
 lib/face/48x48x4/s/spm.1 - 664 sys sys 944941894 1012
 lib/face/48x48x4/t - 20000000775 sys sys 944941929 0
 lib/face/48x48x4/t/td.1 - 664 sys sys 944941894 976
@@ -1352,8 +1355,15 @@ lib/face/48x48x4/t/tkh.1 - 664 sys sys 944941894 1062
 lib/face/48x48x4/t/tor.1 - 664 sys sys 944941894 1080
 lib/face/48x48x4/t/tsalamon.1 - 664 sys sys 944941894 1055
 lib/face/48x48x4/u - 20000000775 sys sys 944941894 0
+lib/face/48x48x4/u/book.1 - 644 sys sys 1079016751 975
+lib/face/48x48x4/u/unknown.aes.org - 644 sys sys 1079016534 923
+lib/face/48x48x4/u/unknown.ebay.com - 664 sys sys 1079017045 588
+lib/face/48x48x4/u/unknown.ghs.com - 664 sys sys 1079016859 490
+lib/face/48x48x4/u/unknown.rs-components.com - 644 sys sys 1079017058 512
+lib/face/48x48x4/u/unknown.snellwilcox.com - 644 sys sys 1079017415 901
 lib/face/48x48x4/v - 20000000775 sys sys 944945622 0
 lib/face/48x48x4/v/va.1 - 664 sys sys 944941894 1116
+lib/face/48x48x4/v/virus.1 - 644 sys sys 1079017494 1110
 lib/face/48x48x4/w - 20000000775 sys sys 944945629 0
 lib/face/48x48x4/w/wkj.1 - 664 sys sys 1056984184 1129
 lib/face/48x48x4/w/wmc.1 - 664 sys sys 944941894 999
@@ -1361,7 +1371,7 @@ lib/face/48x48x4/x - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/y - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/z - 20000000775 sys sys 944941894 0
 lib/face/48x48x8 - 20000000775 sys sys 944941834 0
-lib/face/48x48x8/.dict - 664 sys sys 1078952031 2024
+lib/face/48x48x8/.dict - 664 sys sys 1079022126 2048
 lib/face/48x48x8/Z - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -1410,6 +1420,7 @@ lib/face/48x48x8/u/unknown.ar - 664 sys sys 1078952024 349
 lib/face/48x48x8/u/unknown.at - 664 sys sys 1078952024 342
 lib/face/48x48x8/u/unknown.au - 664 sys sys 1078952024 428
 lib/face/48x48x8/u/unknown.be - 664 sys sys 1078952024 343
+lib/face/48x48x8/u/unknown.bg - 664 sys sys 1079022090 363
 lib/face/48x48x8/u/unknown.br - 664 sys sys 1078952024 437
 lib/face/48x48x8/u/unknown.ca - 664 sys sys 1078952024 384
 lib/face/48x48x8/u/unknown.ch - 664 sys sys 1078952024 353
@@ -4679,7 +4690,7 @@ sys/man/1/news - 664 sys sys 1015024739 1148
 sys/man/1/nm - 664 sys sys 944959673 1539
 sys/man/1/ns - 664 sys sys 944959677 893
 sys/man/1/p - 664 sys sys 944959673 504
-sys/man/1/page - 664 sys sys 1071247418 4870
+sys/man/1/page - 664 sys sys 1079029945 5717
 sys/man/1/passwd - 664 sys sys 1068823217 1377
 sys/man/1/patch - 664 sys sys 1067804449 2176
 sys/man/1/pcc - 664 sys sys 1015024740 3478
@@ -6788,11 +6799,11 @@ sys/src/cmd/acid/print.c - 664 sys sys 984756705 6840
 sys/src/cmd/acid/proc.c - 664 sys sys 1014924908 4513
 sys/src/cmd/acid/util.c - 664 sys sys 944960738 4297
 sys/src/cmd/acme - 20000000775 sys sys 969511023 0
-sys/src/cmd/acme/acme.c - 664 sys sys 1077376255 19258
+sys/src/cmd/acme/acme.c - 664 sys sys 1079044031 19192
 sys/src/cmd/acme/addr.c - 664 sys sys 1018553456 4787
 sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
 sys/src/cmd/acme/cols.c - 664 sys sys 1032462024 11122
-sys/src/cmd/acme/dat.h - 664 sys sys 1077376255 11019
+sys/src/cmd/acme/dat.h - 664 sys sys 1079044030 11080
 sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
 sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
 sys/src/cmd/acme/edit.c - 664 sys sys 1015701171 12055
@@ -6809,9 +6820,9 @@ sys/src/cmd/acme/rows.c - 664 sys sys 1068140772 14637
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
 sys/src/cmd/acme/text.c - 664 sys sys 1077376258 27226
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
-sys/src/cmd/acme/util.c - 664 sys sys 1078466661 7312
+sys/src/cmd/acme/util.c - 664 sys sys 1079044030 7332
 sys/src/cmd/acme/wind.c - 664 sys sys 1073566950 11094
-sys/src/cmd/acme/xfid.c - 664 sys sys 1077376259 19260
+sys/src/cmd/acme/xfid.c - 664 sys sys 1079044030 19175
 sys/src/cmd/ar.c - 664 sys sys 1046643027 23717
 sys/src/cmd/archfs.c - 664 sys sys 1014925694 3871
 sys/src/cmd/ascii.c - 664 sys sys 964457138 3989
@@ -7173,7 +7184,7 @@ sys/src/cmd/bitsy/keyboard.c - 664 sys sys 1014926253 9509
 sys/src/cmd/bitsy/light.rc - 775 sys sys 985466176 242
 sys/src/cmd/bitsy/mkfile - 664 sys sys 985559341 237
 sys/src/cmd/bitsy/params.c - 664 sys sys 1014926253 1124
-sys/src/cmd/bitsy/pencal.c - 664 sys sys 1018288156 4506
+sys/src/cmd/bitsy/pencal.c - 664 sys sys 1079016904 4589
 sys/src/cmd/bitsy/prompter.c - 664 sys sys 1014926253 5888
 sys/src/cmd/bzip2 - 20000000775 sys sys 969500958 0
 sys/src/cmd/bzip2/CHANGES - 664 sys sys 964847954 6251
@@ -7543,7 +7554,7 @@ sys/src/cmd/fossil/9fsys.c - 664 sys sys 1068591358 29979
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1042005503 2865
 sys/src/cmd/fossil/9p.c - 664 sys sys 1077896346 21766
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
-sys/src/cmd/fossil/9proc.c - 664 sys sys 1072705704 14523
+sys/src/cmd/fossil/9proc.c - 664 sys sys 1079034426 14680
 sys/src/cmd/fossil/9srv.c - 664 sys sys 1077896346 3879
 sys/src/cmd/fossil/9user.c - 664 sys sys 1071179088 17260
 sys/src/cmd/fossil/Ccli.c - 664 sys sys 1042005504 1624
@@ -9778,9 +9789,9 @@ sys/src/cmd/page/page.h - 664 sys sys 1078973385 2111
 sys/src/cmd/page/pdf.c - 664 sys sys 1038517814 2884
 sys/src/cmd/page/pdfprolog.ps - 664 sys sys 1035695487 699
 sys/src/cmd/page/ps.c - 664 sys sys 1045505467 9176
-sys/src/cmd/page/rotate.c - 664 sys sys 1078973384 9542
+sys/src/cmd/page/rotate.c - 664 sys sys 1079029957 9971
 sys/src/cmd/page/util.c - 664 sys sys 944961364 2090
-sys/src/cmd/page/view.c - 664 sys sys 1078973385 21779
+sys/src/cmd/page/view.c - 664 sys sys 1079029958 22326
 sys/src/cmd/paqfs - 20000000775 sys sys 1017696804 0
 sys/src/cmd/paqfs/mkfile - 664 sys sys 1032060366 228
 sys/src/cmd/paqfs/mkpaqfs.c - 664 sys sys 1072729575 8836

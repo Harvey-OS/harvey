@@ -154,7 +154,8 @@ threadmain(int argc, char *argv[])
 	cerr = chancreate(sizeof(char*), 0);
 	cedit = chancreate(sizeof(int), 0);
 	cexit = chancreate(sizeof(int), 0);
-	if(cwait==nil || ccommand==nil || ckill==nil || cxfidalloc==nil || cxfidfree==nil || cerr==nil || cexit==nil){
+	cwarn = chancreate(sizeof(void*), 1);
+	if(cwait==nil || ccommand==nil || ckill==nil || cxfidalloc==nil || cxfidfree==nil || cerr==nil || cexit==nil || cwarn==nil){
 		fprint(2, "acme: can't create initial channels: %r\n");
 		exits("channels");
 	}
@@ -379,9 +380,6 @@ keyboardthread(void *)
 				winlock(t->w, 'K');
 				wincommit(t->w, t);
 				winunlock(t->w);
-				qlock(&row);
-				flushwarnings();
-				qunlock(&row);
 				flushimage(display, 1);
 			}
 			alts[KTimer].c = nil;
@@ -408,9 +406,6 @@ keyboardthread(void *)
 			}
 			if(nbrecv(keyboardctl->c, &r) > 0)
 				goto casekeyboard;
-			qlock(&row);
-			flushwarnings();
-			qunlock(&row);
 			flushimage(display, 1);
 			break;
 		}
@@ -427,7 +422,7 @@ mousethread(void *)
 	Plumbmsg *pm;
 	Mouse m;
 	char *act;
-	enum { MResize, MMouse, MPlumb, NMALT };
+	enum { MResize, MMouse, MPlumb, MWarnings, NMALT };
 	static Alt alts[NMALT+1];
 
 	threadsetname("mousethread");
@@ -440,21 +435,24 @@ mousethread(void *)
 	alts[MPlumb].c = cplumb;
 	alts[MPlumb].v = &pm;
 	alts[MPlumb].op = CHANRCV;
+	alts[MWarnings].c = cwarn;
+	alts[MWarnings].v = nil;
+	alts[MWarnings].op = CHANRCV;
 	if(cplumb == nil)
 		alts[MPlumb].op = CHANNOP;
 	alts[NMALT].op = CHANEND;
 	
 	for(;;){
+		qlock(&row);
+		flushwarnings();
+		qunlock(&row);
+		flushimage(display, 1);
 		switch(alt(alts)){
 		case MResize:
 			if(getwindow(display, Refnone) < 0)
 				error("attach to window");
 			scrlresize();
 			rowresize(&row, screen->clipr);
-			qlock(&row);
-			flushwarnings();
-			qunlock(&row);
-			flushimage(display, 1);
 			break;
 		case MPlumb:
 			if(strcmp(pm->type, "text") == 0){
@@ -464,11 +462,9 @@ mousethread(void *)
 				else if(strcmp(act, "showdata")==0)
 					plumbshow(pm);
 			}
-			qlock(&row);
-			flushwarnings();
-			qunlock(&row);
-			flushimage(display, 1);
 			plumbfree(pm);
+			break;
+		case MWarnings:
 			break;
 		case MMouse:
 			/*
@@ -552,8 +548,6 @@ mousethread(void *)
 				goto Continue;
 			}
     Continue:
-			flushwarnings();
-			flushimage(display, 1);
 			qunlock(&row);
 			break;
 		}

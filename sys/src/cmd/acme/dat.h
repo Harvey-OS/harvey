@@ -545,5 +545,6 @@ Channel	*mouseexit1;	/* chan(int) */
 Channel	*cexit;		/* chan(int) */
 Channel	*cerr;		/* chan(char*) */
 Channel	*cedit;		/* chan(int) */
+Channel	*cwarn;		/* chan(void*)[1] (really chan(unit)[1]) */
 
 #define	STACK	8192

@@ -135,6 +135,7 @@ addwarningtext(Mntdir *md, Rune *r, int nr)
 	warn->next = warnings;
 	warnings = warn;
 	bufinsert(&warn->buf, 0, r, nr);
+	nbsendp(cwarn, 0);
 }
 
 /* called while row is locked */
