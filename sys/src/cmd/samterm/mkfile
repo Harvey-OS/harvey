@@ -35,10 +35,3 @@ syms:V:
 	vc -a $CFLAGS main.c	>syms
 	for(i in *.c) vc -aa $CFLAGS $i >> syms
 
-safeinstall: $O.out
-	mv $BIN/$TARG $BIN/o$TARG
-	cp $prereq $BIN/$TARG
-
-safeinstallall:V:
-	for (objtype in $CPUS)
-		mk safeinstall

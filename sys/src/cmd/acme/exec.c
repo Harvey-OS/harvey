@@ -295,7 +295,7 @@ delcol(Text *et, Text*, Text*, int, int, Rune*, int)
 		return;
 	for(i=0; i<c->nw; i++){
 		w = c->w[i];
-		if(w->nopen[QWevent]+w->nopen[QWaddr]+w->nopen[QWdata] > 0){
+		if(w->nopen[QWevent]+w->nopen[QWaddr]+w->nopen[QWdata]+w->nopen[QWxdata] > 0){
 			warning(nil, "can't delete column; %.*S is running an external command\n", w->body.file->nname, w->body.file->name);
 			return;
 		}
@@ -1162,7 +1162,7 @@ runproc(void *argvp)
 	name[e-t] = 0;
 	e = utfrrune(name, '/');
 	if(e)
-		strcpy(name, e+1);
+		memmove(name, e+1, strlen(e+1)+1);	/* strcpy but overlaps */
 	strcat(name, " ");	/* add blank here for ease in waittask */
 	c->name = bytetorune(name, &c->nname);
 	free(name);

@@ -28,7 +28,8 @@ Keyboardctl *keyboardctl;
 void	panic(char*);
 
 void
-initio(void){
+initio(void)
+{
 	threadsetname("main");
 	mousectl = initmouse(nil, display->image);
 	if(mousectl == nil){

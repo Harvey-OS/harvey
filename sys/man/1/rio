@@ -369,6 +369,10 @@ An ACK character (control-F) or Insert character triggers file name completion
 for the preceding string (see
 .IR complete (2)).
 .PP
+Typing a left or right arrow moves the cursor one character in that direction.
+Typing an SOH character (control-A) moves the cursor to the beginning of the
+current line; an ENQ character (control-F) moves to the end.
+.PP
 Text may be moved vertically within the window.
 A scroll bar on the left of the window shows in its clear portion what fragment of the
 total output text is visible on the screen, and in its gray part what
@@ -383,11 +387,12 @@ button 2, treating the scroll bar as a ruler, jumps to the indicated portion
 of the stored text.
 Holding a button pressed in the scroll bar will cause the text
 to scroll continuously until the button is released.
-Also, a VIEW key (possibly with a different label; see
-.IR keyboard (6))
+Also, a page down
 or down-arrow
 scrolls forward
-half a window, and up-arrow scrolls back.
+half a window, and page up or up-arrow scrolls back.
+Typing the home key scrolls to the top of the window; typing the end key scrolls
+to the bottom.
 .PP
 The DEL character sends an
 .L interrupt

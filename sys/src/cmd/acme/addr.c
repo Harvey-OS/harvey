@@ -82,7 +82,7 @@ number(Mntdir *md, Text *t, Range r, int line, int dir, int size, int *evalp)
 		break;
 	case Fore:
 		if(q1 > 0)
-			while(textreadc(t, q1-1) != '\n')
+			while(q1<t->file->nc && textreadc(t, q1-1) != '\n')
 				q1++;
 		q0 = q1;
 		goto Forward;
