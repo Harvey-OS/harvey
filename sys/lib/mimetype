@@ -13,6 +13,7 @@
 .avi		video		x-msvideo	-		m
 .awk		text		plain		-		y # awk program
 .bas		text		plain		-		y # basic program
+.bat		application	octet-stream	-		r # DOS executable
 .bbl		text		plain		-		y # BibTex output
 .bcpio		application	x-bcpio		-		m
 .bib		text		plain		-		y # BibTex input
@@ -22,6 +23,7 @@
 .cc		text		plain		-		y
 .cdf		application	x-netcdf	-		y
 .class		application	java		-		y # Java bytecodes
+.com		application	octet-stream	-		r # DOS executable
 .cpio		application	x-cpio		-		y
 .cpp		text		plain		-		y # DOS C++ program
 .crt		application	x-x509-ca-cert	-		y # DER X.509 CA certificate
@@ -33,8 +35,8 @@
 .enc		application	octet-stream	-		y # encrypted file
 .eps		application	postscript	-		y
 .etx		text		x-setext	-		m
-.exe		application	octet-stream	-		n # DOS executable
-.executable	application	octet-stream	-		n # DOS executable
+.exe		application	octet-stream	-		r # DOS executable
+.executable	application	octet-stream	-		r # DOS executable
 .exz		application	octet-stream	gzip		n # gzipped DOS executable
 .f		text		plain		-		y # fortran-77 program
 .fm		application	framemaker	-		y
@@ -77,6 +79,7 @@
 .p7s		application	x-pkcs7-signature	-	y # SMIME
 .pbm		image		x-portable-bitmap	-	y
 .pdf		application	pdf		-		y # Adobe Portable Document Format
+.pif		application	octet-stream	-		r # DOS executable
 .pgm		image		x-portable-graymap	-	y
 .pl		text		plain		-		y
 .pnm		image		x-portable-anymap	-	y
@@ -96,6 +99,7 @@
 .rpm		audio		x-pn-realaudio-plugin	-	y # G2 RealAudio
 .rtf		application	rtf		-		y
 .rtx		text		richtext 	-		y
+.scr		application	octet-stream	-		r # DOS executable (screen saver)
 .sh		application	x-shar		-		m
 .shar		application	x-shar		-		m
 .smi		application	smil		-		m # sync multimedia

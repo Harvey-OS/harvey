@@ -13388,3 +13388,11 @@
 1064260884 0 c mail/lib/pipeto.lib - 664 upas upas 1064260731 3353
 1064268091 0 c mail/lib/pipeto.lib - 664 upas upas 1064267147 3367
 1064323883 0 c mail/lib/msgcat.rc - 775 upas upas 1064322955 678
+1064394164 0 c 386/bin/upas/smtpd - 775 sys sys 1064393914 313750
+1064394164 1 c 386/bin/upas/vf - 775 sys sys 1064393907 91543
+1064394164 2 c sys/lib/mimetype - 664 sys sys 1064393944 5563
+1064394164 3 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1064393897 24466
+1064394164 4 c sys/src/cmd/upas/vf/mkfile - 664 sys sys 1064393881 241
+1064394164 5 c sys/src/cmd/upas/vf/vf.c - 664 sys sys 1064393883 16853
+1064413860 0 c 386/bin/upas/smtpd - 775 sys sys 1064413588 313832
+1064413860 1 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1064413579 24594

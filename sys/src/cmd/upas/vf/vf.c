@@ -107,6 +107,8 @@ struct Mtype {
 };
 Mtype *mtypes;
 
+int justreject;
+
 /*
  *  this is a filter that changes mime types and names of
  *  suspect attachments.
@@ -116,6 +118,9 @@ void
 main(int argc, char **argv)
 {
 	ARGBEGIN{
+	case 'r':
+		justreject = 1;
+		break;
 	}ARGEND;
 
 	Binit(&in, 0, OREAD);
@@ -182,6 +187,14 @@ part(Part *pp)
 			 * if so, wrap it and change its type
 			 */
 			if(p->badtype || p->badfile){
+				if(p->badfile == 2){
+					syslog(0, "mail", "vf rejected %s %s", p->type?s_to_c(p->type):"?",
+						p->filename?s_to_c(p->filename):"?");
+					fprint(2, "The mail contained an attachment which was a DOS/Windows\n");
+					fprint(2, "executable file.  We refuse all mail containing such.\n");
+					postnote(PNGROUP, getpid(), "mail refused: we don't accept executable attachments");
+					exits("we don't accept executable attachments");
+				}
 				return problemchild(p);
 			} else {
 				writeheader(p);
@@ -311,7 +324,7 @@ problemchild(Part *p)
 	String *boundary;
 	char *cp;
 
-	syslog(0, "mail", "vf %s %s", p->type?s_to_c(p->type):"?",
+	syslog(0, "mail", "vf wrapped %s %s", p->type?s_to_c(p->type):"?",
 		p->filename?s_to_c(p->filename):"?");
 
 	boundary = mkboundary();
@@ -482,8 +495,7 @@ setfilename(Part *p, char *name)
 		p->filename = s_new();
 	getstring(name, s_reset(p->filename), 0);
 	p->filename = tokenconvert(p->filename);
-	if(badfile(s_to_c(p->filename)))
-		p->badfile = 1;
+	p->badfile = badfile(s_to_c(p->filename));
 }
 
 static char*
@@ -689,8 +701,12 @@ badfile(char *name)
 				rv = badfile(name);
 				*p = '.';
 				return rv;
+			case 'r':
+				return 2;
 			}
 		}
+	if(justreject)
+		return 0;
 	return 1;
 }
 
@@ -704,6 +720,9 @@ badtype(char *type)
 	Mtype *m;
 	char *s, *fix;
 	int rv = 1;
+
+	if(justreject)
+		return 0;
 
 	fix = s = strchr(type, '/');
 	if(s != nil)
