@@ -261,7 +261,9 @@ auxpage()
 	return p;
 }
 
-void
+static int dupretries = 15000;
+
+int
 duppage(Page *p)				/* Always call with p locked */
 {
 	Page *np;
@@ -271,12 +273,19 @@ duppage(Page *p)				/* Always call with p locked */
 	retries = 0;
 retry:
 
-	if(retries++ > 10000)
-		panic("duppage %d", retries);
+	if(retries++ > dupretries){
+		print("duppage %d, up %p\n", retries, up);
+		dupretries += 100;
+		if(dupretries > 100000)
+			panic("duppage\n");
+		uncachepage(p);
+		return 1;
+	}
+		
 
 	/* don't dup pages with no image */
 	if(p->ref == 0 || p->image == nil || p->image->notext)
-		return;
+		return 0;
 
 	/*
 	 *  normal lock ordering is to call
@@ -296,7 +305,7 @@ retry:
 	if(palloc.freecount < swapalloc.highwater) {
 		unlock(&palloc);
 		uncachepage(p);
-		return;
+		return 1;
 	}
 
 	color = getpgcolor(p->va);
@@ -308,7 +317,7 @@ retry:
 	if(np == 0) {
 		unlock(&palloc);
 		uncachepage(p);
-		return;
+		return 1;
 	}
 
 	pageunchain(np);
@@ -325,6 +334,8 @@ retry:
 	cachepage(np, p->image);
 	unlock(np);
 	uncachepage(p);
+
+	return 0;
 }
 
 void

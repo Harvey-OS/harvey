@@ -221,6 +221,20 @@ mallocz(ulong size, int clr)
 	return v;
 }
 
+void*
+mallocalign(ulong size, ulong align, long offset, ulong span)
+{
+	void *v;
+
+	v = poolallocalign(mainmem, size+Npadlong*sizeof(ulong), align, offset-Npadlong*sizeof(ulong), span);
+	if(Npadlong && v != nil){
+		v = (ulong*)v+Npadlong;
+		setmalloctag(v, getcallerpc(&size));
+		setrealloctag(v, 0);
+	}
+	return v;
+}
+
 void
 free(void *v)
 {

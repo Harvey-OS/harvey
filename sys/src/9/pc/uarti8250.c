@@ -164,8 +164,9 @@ i8250status(Uart* uart, void* buf, long n, long offset)
 	ier = ctlr->sticky[Ier];
 	lcr = ctlr->sticky[Lcr];
 	snprint(p, READSTR,
-		"b%d c%d d%d e%d l%d m%d p%c r%d s%d i%d ier=%ux\n"
-		"dev(%d) type(%d) framing(%d) overruns(%d)%s%s%s%s\n",
+		"b%d c%d d%d e%d l%d m%d p%c r%d s%d i%d\n"
+		"dev(%d) type(%d) framing(%d) overruns(%d) "
+		"berr(%d) serr(%d)%s%s%s%s\n",
 
 		uart->baud,
 		uart->hup_dcd, 
@@ -177,12 +178,13 @@ i8250status(Uart* uart, void* buf, long n, long offset)
 		(mcr & Rts) != 0,
 		(lcr & Stb) ? 2: 1,
 		ctlr->fena,
-		ier,
 
 		uart->dev,
 		uart->type,
 		uart->ferr,
-		uart->oerr, 
+		uart->oerr,
+		uart->berr,
+		uart->serr,
 		(msr & Cts) ? " cts": "",
 		(msr & Dsr) ? " dsr": "",
 		(msr & Dcd) ? " dcd": "",
@@ -316,8 +318,9 @@ i8250parity(Uart* uart, int parity)
 		lcr |= Pen;
 		break;
 	case 'n':
-	default:
 		break;
+	default:
+		return -1;
 	}
 	ctlr->sticky[Lcr] = lcr;
 	csr8w(ctlr, Lcr, 0);
@@ -420,7 +423,7 @@ i8250break(Uart* uart, int ms)
 	/*
 	 * Send a break.
 	 */
-	if(ms == 0)
+	if(ms <= 0)
 		ms = 200;
 
 	ctlr = uart->regs;
@@ -502,7 +505,7 @@ i8250interrupt(Ureg*, void* arg)
 			 * already been tossed.
 			 */
 			while((lsr = csr8r(ctlr, Lsr)) & Dr){
-				if(lsr & Oe)
+				if(lsr & (FIFOerr|Oe))
 					uart->oerr++;
 				if(lsr & Pe)
 					uart->perr++;

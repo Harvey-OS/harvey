@@ -1,3 +1,7 @@
+/*
+ *  this is a filter that changes mime types and names of
+ *  suspect executable attachments.
+ */
 #include "common.h"
 #include <ctype.h>
 
@@ -111,11 +115,6 @@ Mtype *mtypes;
 int justreject;
 char *savefile;
 
-/*
- *  this is a filter that changes mime types and names of
- *  suspect attachments.
- *
- */
 void
 main(int argc, char **argv)
 {

@@ -1,6 +1,6 @@
 .TH MALLOC 2
 .SH NAME
-malloc, mallocz, free, realloc, calloc, msize, setmalloctag, setrealloctag, getmalloctag, getrealloctag, malloctopoolblock \- memory allocator
+malloc, mallocalign, mallocz, free, realloc, calloc, msize, setmalloctag, setrealloctag, getmalloctag, getrealloctag, malloctopoolblock \- memory allocator
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -9,6 +9,9 @@ malloc, mallocz, free, realloc, calloc, msize, setmalloctag, setrealloctag, getm
 .ta \w'\fLvoid* 'u
 .B
 void*	malloc(ulong size)
+.PP
+.B
+void*	mallocalign(ulong size, ulong align, long offset, ulong span)
 .PP
 .B
 void*	mallocz(ulong size, int clr)
@@ -72,6 +75,26 @@ behaves as
 except that if 
 .I clr
 is non-zero, the memory returned will be zeroed.
+.PP
+.I Mallocalign
+allocates a block of at least 
+.I n
+bytes of memory respecting alignment contraints.
+If
+.I align
+is non-zero,
+the returned pointer is aligned to be equal to
+.I offset
+modulo
+.IR align .
+If
+.I span
+is non-zero,
+the
+.I n
+byte block allocated will not span a
+.IR span -byte
+boundary.
 .PP
 .I Realloc
 changes the size of the block pointed to by

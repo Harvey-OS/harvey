@@ -229,7 +229,7 @@ timersinit(void)
 	timeradd(t);
 }
 
-void
+Timer*
 addclock0link(void (*f)(void), int ms)
 {
 	Timer *nt;
@@ -249,6 +249,7 @@ addclock0link(void (*f)(void), int ms)
 	if(when)
 		timerset(when);
 	iunlock(&timers[0]);
+	return nt;
 }
 
 /*

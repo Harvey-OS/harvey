@@ -1,6 +1,6 @@
 .TH POOL 2
 .SH NAME
-poolalloc, poolfree, poolmsize, poolrealloc, poolcompact, poolcheck, poolblockcheck,
+poolalloc, poolallocalignspan, poolfree, poolmsize, poolrealloc, poolcompact, poolcheck, poolblockcheck,
 pooldump \- general memory management routines
 .SH SYNOPSIS
 .B #include <u.h>
@@ -11,6 +11,11 @@ pooldump \- general memory management routines
 .PP
 .B
 void*	poolalloc(Pool* pool, ulong size)
+.PP
+.B
+void*	poolallocalignspan(Pool *pool, ulong size, 
+.br
+                ulong align, long offset, ulong span)
 .PP
 .B
 void	poolfree(Pool* pool, void* ptr)
@@ -57,6 +62,27 @@ pointer not returned by
 The call
 .B "poolfree(nil)
 is legal and is a no-op.
+.PP
+.I Poolallocalign
+attempts to allocate a block of size
+.B size
+with the given alignment constraints.
+If
+.I align
+is non-zero,
+the returned pointer is aligned to be equal to
+.I offset
+modulo
+.IR align .
+If
+.I span
+is non-zero,
+the
+.I n
+byte block allocated will not span a
+.IR span -byte
+boundary.
+.PP
 .I Poolrealloc
 attempts to resize to
 .B nsize
