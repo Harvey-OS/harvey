@@ -472,6 +472,12 @@ wikiopen(char *arg, char *addr)
 		arg = tmp;
 	}
 */
+
+	/* replace embedded '\n' in links by ' ' */
+	for(p=arg; *p; p++)
+		if(*p=='\n')
+			*p = ' ';
+
 	if(strncmp(arg, dir, strlen(dir))==0 && arg[strlen(dir)]=='/' && arg[strlen(dir)+1])
 		arg += strlen(dir)+1;
 	else if(arg[0] == '/')

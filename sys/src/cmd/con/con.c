@@ -61,7 +61,7 @@ void	simple(char*, char*);
 void
 usage(void)
 {
-	punt("usage: con [-drCvsn] [-l [user]] [-c cmd] net!host[!service]");
+	punt("usage: con [-drCvsn] [-b baud] [-l [user]] [-c cmd] net!host[!service]");
 }
 
 void
@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 	returns = 1;
 	ARGBEGIN{
 	case 'b':
-		baud = atoi(ARGF());
+		baud = atoi(EARGF(usage()));
 		break;
 	case 'd':
 		debug = 1;
