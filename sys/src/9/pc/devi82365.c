@@ -730,7 +730,7 @@ pcmread(int slotno, int attr, void *a, long n, vlong off)
 	for(len = n; len > 0; len -= i){
 		m = pcmmap(pp->slotno, offset, 0, attr);
 		if(m == 0)
-			error("can't map PCMCIA card");
+			error("cannot map PCMCIA card");
 		if(offset + len > m->cea)
 			i = m->cea - offset;
 		else
@@ -816,7 +816,7 @@ pcmwrite(int dev, int attr, void *a, long n, vlong off)
 	for(len = n; len > 0; len -= i){
 		m = pcmmap(pp->slotno, offset, 0, attr);
 		if(m == 0)
-			error("can't map PCMCIA card");
+			error("cannot map PCMCIA card");
 		if(offset + len > m->cea)
 			i = m->cea - offset;
 		else

@@ -1159,7 +1159,7 @@ mntchk(Chan *c)
 		print("mntchk 2: nil mux c %s c->mchan %s \n", channame(c), channame(c->mchan));
 
 	/*
-	 * Was it closed and reused (was error(Eshutdown); now, it can't happen)
+	 * Was it closed and reused (was error(Eshutdown); now, it cannot happen)
 	 */
 	if(m->id == 0 || m->id >= c->dev)
 		panic("mntchk 3: can't happen");

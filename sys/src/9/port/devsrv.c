@@ -299,7 +299,7 @@ srvwrite(Chan *c, void *va, long n, vlong)
 	if(c1->flag & (CCEXEC|CRCLOSE))
 		error("posted fd has remove-on-close or close-on-exec");
 	if(c1->qid.type & QTAUTH)
-		error("can't post auth file in srv");
+		error("cannot post auth file in srv");
 	sp = srvlookup(nil, c->qid.path);
 	if(sp == 0)
 		error(Enonexist);

@@ -10,7 +10,7 @@
 static void
 nullbind(Ipifc*, int, char**)
 {
-	error("can't bind null device");
+	error("cannot bind null device");
 }
 
 static void
