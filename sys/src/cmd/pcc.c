@@ -152,7 +152,7 @@ main(int argc, char *argv[])
 	for(i = 0; i < srcs.n; i++) {
 		append(&cpp, srcs.strings[i]);
 		if(Pflag)
-			append(&cpp, changeext(objs.strings[i], ".i"));
+			append(&cpp, changeext(objs.strings[i], "i"));
 		if(Eflag || Pflag)
 			doexec("/bin/cpp", &cpp);
 		else {
