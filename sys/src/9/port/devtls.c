@@ -468,7 +468,7 @@ tlsopen(Chan *c, int omode)
 				error(Einuse);
 			tr->handq = qopen(2 * MaxCipherRecLen, 0, nil, nil);
 			if(tr->handq == nil)
-				error("can't allocate handshake queue");
+				error("cannot allocate handshake queue");
 			tr->hqref = 1;
 			unlock(&tr->hqlock);
 			poperror();
@@ -1620,7 +1620,7 @@ tlswrite(Chan *c, void *a, long n, vlong off)
 		if(cb->nf != 1)
 			error("usage: changecipher");
 		if(tr->out.new == nil)
-			error("can't change cipher spec without setting secret");
+			error("cannot change cipher spec without setting secret");
 
 		qunlock(&tr->in.seclock);
 		qunlock(&tr->out.seclock);
@@ -1644,7 +1644,7 @@ tlswrite(Chan *c, void *a, long n, vlong off)
 		lock(&tr->statelk);
 		if(tr->state != SHandshake && tr->state != SOpen){
 			unlock(&tr->statelk);
-			error("can't enable data messages");
+			error("cannot enable data messages");
 		}
 		tr->state = SOpen;
 		unlock(&tr->statelk);

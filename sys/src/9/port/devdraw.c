@@ -1424,7 +1424,7 @@ drawmesg(Client *client, void *av, int n)
 			if(ddst == nil)
 				error(Enodrawimage);
 			if(ddst->name)
-				error("can't change repl/clipr of shared image");
+				error("cannot change repl/clipr of shared image");
 			dst = ddst->image;
 			if(a[5])
 				dst->flags |= Frepl;
@@ -1523,12 +1523,12 @@ drawmesg(Client *client, void *av, int n)
 				error(Eshortdraw);
 			dstid = BGLONG(a+1);
 			if(dstid == 0)
-				error("can't use display as font");
+				error("cannot use display as font");
 			font = drawlookup(client, dstid, 1);
 			if(font == 0)
 				error(Enodrawimage);
 			if(font->image->layer)
-				error("can't use window as font");
+				error("cannot use window as font");
 			ni = BGLONG(a+5);
 			if(ni<=0 || ni>4096)
 				error("bad font size (4096 chars max)");
@@ -1629,7 +1629,7 @@ drawmesg(Client *client, void *av, int n)
 				error(Edrawmem);
 			di = drawlookup(client, dstid, 0);
 			if(di == 0)
-				error("draw: can't happen");
+				error("draw: cannot happen");
 			di->vers = dn->vers;
 			di->name = smalloc(j+1);
 			di->fromname = dn->dimage;
