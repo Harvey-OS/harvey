@@ -781,7 +781,6 @@ ncu:
 	if(mpatov(symb, &yylval.vval))
 		yyerror("overflow in constant");
 
-	vv = yylval.vval;
 	if(c1 & Numvlong) {
 		if(c1 & Numuns) {
 			c = LUVLCONST;

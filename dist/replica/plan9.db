@@ -11,11 +11,11 @@
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
 386/9pcf - 775 sys sys 1108095074 2381652
 386/9pcf.gz - 664 sys sys 1077049490 872650
-386/9pxeload - 775 sys sys 1100269949 208708
+386/9pxeload - 775 sys sys 1108397372 213184
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1108285260 115096
-386/bin/8c - 775 sys sys 1108285261 358010
+386/bin/8c - 775 sys sys 1108440451 357989
 386/bin/8l - 775 sys sys 1107835553 115728
 386/bin/9660srv - 775 sys sys 1108354539 103973
 386/bin/aan - 775 sys sys 1108354539 130710
@@ -102,7 +102,7 @@
 386/bin/aux/g3p9bit - 775 sys sys 1104121976 67278
 386/bin/aux/getflags - 775 sys sys 1104121977 43817
 386/bin/aux/gpsevermore - 775 sys sys 1107490157 71417
-386/bin/aux/gpsfs - 775 sys sys 1108354546 174347
+386/bin/aux/gpsfs - 775 sys sys 1108440451 175635
 386/bin/aux/grabit - 775 sys sys 1020319063 1244
 386/bin/aux/hardcopy - 775 sys sys 1020319063 1699
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
@@ -515,7 +515,7 @@
 386/include/u.h - 664 sys sys 1042604326 1450
 386/include/ureg.h - 664 sys sys 944946012 523
 386/init - 775 sys sys 1104122095 100110
-386/ld.com - 775 sys sys 1100269952 71676
+386/ld.com - 775 sys sys 1108397371 72076
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 944969312 0
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
@@ -7065,8 +7065,8 @@ sys/src/cmd/aux/flashfs/utils.c - 664 sys sys 1019498850 1097
 sys/src/cmd/aux/gps - 20000000775 sys sys 1107448949 0
 sys/src/cmd/aux/gps/dat.h - 664 sys sys 1107448949 287
 sys/src/cmd/aux/gps/gpsevermore.c - 664 sys sys 1107448815 4501
-sys/src/cmd/aux/gps/gpsfs.c - 664 sys sys 1107448815 16152
-sys/src/cmd/aux/gps/mkfile - 664 sys sys 1107448949 234
+sys/src/cmd/aux/gps/gpsfs.c - 664 sys sys 1108397331 17433
+sys/src/cmd/aux/gps/mkfile - 664 sys sys 1108397331 219
 sys/src/cmd/aux/gps/util.c - 664 sys sys 1107448815 2795
 sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
@@ -7249,7 +7249,7 @@ sys/src/cmd/cc/compat.c - 664 sys sys 1084472048 417
 sys/src/cmd/cc/dcl.c - 664 sys sys 1089299183 26723
 sys/src/cmd/cc/dpchk.c - 664 sys sys 1107365037 7152
 sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
-sys/src/cmd/cc/lex.c - 664 sys sys 1089299182 23826
+sys/src/cmd/cc/lex.c - 664 sys sys 1108397267 23807
 sys/src/cmd/cc/lexbody - 664 sys sys 1098499731 9014
 sys/src/cmd/cc/mac.c - 664 sys sys 944960808 36
 sys/src/cmd/cc/macbody - 664 sys sys 1108281581 11703
