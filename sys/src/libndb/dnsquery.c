@@ -151,5 +151,6 @@ doquery(int fd, char *dn, char *type)
 		}
 	}
 
+	setmalloctag(first, getcallerpc(&fd));
 	return first;
 }

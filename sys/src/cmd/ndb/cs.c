@@ -275,6 +275,17 @@ mountinit(char *service, char *mntpt)
 
 	if(pipe(p) < 0)
 		error("pipe failed");
+
+	/*
+	 *  make a /srv/cs
+	 */
+	f = create(service, OWRITE|ORCLOSE, 0666);
+	if(f < 0)
+		error(service);
+	snprint(buf, sizeof(buf), "%d", p[1]);
+	if(write(f, buf, strlen(buf)) != strlen(buf))
+		error("write /srv/cs");
+
 	switch(rfork(RFFDG|RFPROC|RFNAMEG)){
 	case 0:
 		close(p[1]);
@@ -282,17 +293,6 @@ mountinit(char *service, char *mntpt)
 	case -1:
 		error("fork failed\n");
 	default:
-		/*
-		 *  make a /srv/cs
-		 */
-		f = create(service, 1, 0666);
-		if(f < 0)
-			error(service);
-		snprint(buf, sizeof(buf), "%d", p[1]);
-		if(write(f, buf, strlen(buf)) != strlen(buf))
-			error("write /srv/cs");
-		close(f);
-
 		/*
 		 *  put ourselves into the file system
 		 */
@@ -596,6 +596,9 @@ rwalk(Job *job, Mfile *mf)
 
     send:
 	if(nmf != nil && (err!=nil || job->reply.nwqid<nelems)){
+		cleanmf(nmf);
+		free(nmf->user);
+		nmf->user = 0;
 		nmf->busy = 0;
 		nmf->fid = 0;
 	}
@@ -711,10 +714,6 @@ cleanmf(Mfile *mf)
 	if(mf->rem != nil){
 		free(mf->rem);
 		mf->rem = nil;
-	}
-	if(mf->user != nil){
-		free(mf->user);
-		mf->user = nil;
 	}
 	for(i = 0; i < mf->nreply; i++){
 		free(mf->reply[i]);
@@ -835,6 +834,8 @@ void
 rclunk(Job *job, Mfile *mf)
 {
 	cleanmf(mf);
+	free(mf->user);
+	mf->user = 0;
 	mf->busy = 0;
 	mf->fid = 0;
 	sendmsg(job, 0);
@@ -950,7 +951,7 @@ void
 ipid(void)
 {
 	uchar addr[6];
-	Ndbtuple *t;
+	Ndbtuple *t, *tt;
 	char *p, *attr;
 	Ndbs s;
 	int f;
@@ -980,13 +981,13 @@ ipid(void)
 		 */
 		if(*mysysname == 0 && netdb != nil){
 			ndbreopen(netdb);
-			for(t = ndbparse(netdb); t != nil; t = t->entry){
+			for(tt = t = ndbparse(netdb); t != nil; t = t->entry){
 				if(strcmp(t->attr, "sys") == 0){
 					strcpy(mysysname, t->val);
 					break;
 				}
 			}
-			ndbfree(t);
+			ndbfree(tt);
 		}
 
 		/* next network database, ip address, and ether address to find a name */
