@@ -25,6 +25,7 @@ AuthInfo 	*ai;
 int		debug;
 
 int	connect(char*, char*, int);
+int	passive(void);
 int	old9p(int);
 void	catcher(void*, char*);
 void	sysfatal(char*, ...);
@@ -67,6 +68,7 @@ main(int argc, char **argv)
 	int fd, mntflags;
 	int oldserver;
 	char *srvpost, srvfile[64];
+	int backwards = 0;
 
 	srvpost = nil;
 	oldserver = 0;
@@ -112,20 +114,33 @@ main(int argc, char **argv)
 	case 's':
 		srvpost = EARGF(usage());
 		break;
+	case 'B':
+		backwards = 1;
+		break;
 	default:
 		usage();
 	}ARGEND;
 
-	switch(argc) {
-	case 2:
-		mntpt = argv[1];
-		break;
-	case 3:
-		mntpt = argv[2];
-		break;		
-	default:
-		mntpt = 0;		/* to shut up compiler */
-		usage();
+	mntpt = 0;		/* to shut up compiler */
+	if(backwards){
+		switch(argc) {
+		case 1:
+			mntpt = argv[0];
+			break;
+		default:
+			usage();
+		}
+	} else {
+		switch(argc) {
+		case 2:
+			mntpt = argv[1];
+			break;
+		case 3:
+			mntpt = argv[2];
+			break;
+		default:
+			usage();
+		}
 	}
 
 	if (encproto == Enctls)
@@ -133,7 +148,11 @@ main(int argc, char **argv)
 
 	notify(catcher);
 	alarm(60*1000);
-	fd = connect(argv[0], argv[1], oldserver);
+
+	if(backwards)
+		fd = passive();
+	else
+		fd = connect(argv[0], argv[1], oldserver);
 
 	if (!oldserver)
 		fprint(fd, "impo %s %s\n", filterp? "aan": "nofilter", encprotos[encproto]);
@@ -263,6 +282,25 @@ connect(char *system, char *tree, int oldserver)
 
 	if(oldserver)
 		return old9p(fd);
+	return fd;
+}
+
+int
+passive(void)
+{
+	int fd;
+
+	ai = auth_proxy(0, auth_getkey, "proto=p9any role=server");
+	if(ai == nil)
+		sysfatal("auth_proxy: %r");
+	if(auth_chuid(ai, nil) < 0)
+		sysfatal("auth_chuid: %r");
+	putenv("service", "import");
+
+	fd = dup(0, -1);
+	close(0);
+	close(1);
+
 	return fd;
 }
 
