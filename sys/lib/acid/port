@@ -42,7 +42,7 @@ defn params(param)
 {
 	while param do {
 		sym = head param;
-		print(sym[0], "=", itoa(sym[1], "%x"));
+		print(sym[0], "=", itoa(sym[1], "%ux"));
 		param = tail param;
 		if param then
 			print (",");
@@ -59,7 +59,7 @@ defn locals(l)
 
 	while l do {
 		sym = head l;
-		print(stkprefix, "\t", sym[0], "=", itoa(sym[1], "%x"), "\n");
+		print(stkprefix, "\t", sym[0], "=", itoa(sym[1], "%ux"), "\n");
 		l = tail l;
 	}	
 }
@@ -102,7 +102,7 @@ defn _stk(pc, sp, link, dolocals)
 		if !ign then {
 			print(stkprefix, fmt(frame[0], 'a'), "(");
 			params(frame[2]);
-			print(")+", itoa(pc-frame[0], "%x"), " ");
+			print(")+", itoa(pc-frame[0], "%ux"), " ");
 			pfl(pc);
 			if dolocals then
 				locals(frame[3]);
