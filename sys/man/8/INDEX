@@ -28,6 +28,7 @@ dhcpleases dhcpd
 rarpd dhcpd
 tftpd dhcpd
 drawterm drawterm
+fossilcons fossilcons
 exsort fs
 fs fs
 fsconfig fsconfig
