@@ -13977,3 +13977,9 @@
 1111465860 0 c 386/bin/acme - 775 sys sys 1111464452 428542
 1111505409 0 c sys/src/9/ppc/mmu.c - 664 sys sys 1111504133 4864
 1111505409 1 c sys/src/games/music/playlistfs/fs.c - 664 sys sys 1111504109 17985
+1111604431 0 c sys/src/cmd/acme/ecmd.c - 664 sys sys 1111602957 24368
+1111608031 0 c 386/bin/acme - 775 sys sys 1111607798 428512
+1111608031 1 c sys/src/cmd/acme/dat.h - 664 sys sys 1111606459 11106
+1111608031 2 c sys/src/cmd/acme/ecmd.c - 664 sys sys 1111606460 24205
+1111608031 3 c sys/src/cmd/acme/elog.c - 664 sys sys 1111607796 7294
+1111638638 0 c 386/bin/acme - 775 sys sys 1111637282 428512

@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1108354539 103973
 386/bin/aan - 775 sys sys 1108354539 130710
 386/bin/acid - 775 sys sys 1108960003 355983
-386/bin/acme - 775 sys sys 1111464452 428542
+386/bin/acme - 775 sys sys 1111637282 428512
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1104121958 70291
@@ -6809,12 +6809,12 @@ sys/src/cmd/acme/acme.c - 664 sys sys 1104430286 19613
 sys/src/cmd/acme/addr.c - 664 sys sys 1111171698 4805
 sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
 sys/src/cmd/acme/cols.c - 664 sys sys 1111119425 11229
-sys/src/cmd/acme/dat.h - 664 sys sys 1111171698 11124
+sys/src/cmd/acme/dat.h - 664 sys sys 1111606459 11106
 sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
-sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
+sys/src/cmd/acme/ecmd.c - 664 sys sys 1111606460 24205
 sys/src/cmd/acme/edit.c - 664 sys sys 1101910761 12068
 sys/src/cmd/acme/edit.h - 664 sys sys 969500816 2466
-sys/src/cmd/acme/elog.c - 664 sys sys 1078839859 7236
+sys/src/cmd/acme/elog.c - 664 sys sys 1111607796 7294
 sys/src/cmd/acme/exec.c - 664 sys sys 1111171699 28243
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1107154481 2916
