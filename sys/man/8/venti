@@ -4,7 +4,7 @@ venti \- an archival block storage server
 .SH SYNOPSIS
 .B venti/venti
 [
-.B -dw
+.B -dsw
 ]
 [
 .B -a
@@ -176,6 +176,12 @@ The size, in bytes, of memory allocated to caching the index mapping fingerprint
 to locations in 
 .IR venti 's
 data log.
+.TP
+.B -s
+Do not run in the background.
+Normally,
+the foreground process will exit once the Venti server
+is initialized and ready for connections.
 .TP
 .B -w
 Enable write buffering.  This option increase the performance of writes to

@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 
 	if(argc){
   usage:
-		fprint(2, "usage: venti [-dw] [-a ventiaddress] [-h httpaddress] [-c config] [-C cachesize] [-I icachesize] [-B blockcachesize]\n");
+		fprint(2, "usage: venti [-dsw] [-a ventiaddress] [-h httpaddress] [-c config] [-C cachesize] [-I icachesize] [-B blockcachesize]\n");
 		exits("usage");
 	}
 
