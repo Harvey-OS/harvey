@@ -4,7 +4,7 @@ snoopy \- spy on network packets
 .SH SYNOPSIS
 .B snoopy
 [
-.B -?stdC
+.B -?stdCp
 ] [
 .B -f
 .I filter-expression
@@ -115,6 +115,10 @@ the contained one, add a field
 where
 .I xxxx
 is the correct checksum.
+.TP
+.B -p
+do not enter promiscuous mode.  Only packets to
+this interface will be seen.
 .TP
 .B -N
 dump
