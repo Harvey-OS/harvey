@@ -84,7 +84,7 @@
 386/bin/aux/LOCK - 775 sys sys 1045537946 58692
 386/bin/aux/X509gen - 775 sys sys 1048341826 129186
 386/bin/aux/accupoint - 775 sys sys 1039758537 41111
-386/bin/aux/acidleak - 775 sys sys 1048745011 68058
+386/bin/aux/acidleak - 775 sys sys 1050557201 68064
 386/bin/aux/apm - 775 sys sys 1048745012 175050
 386/bin/aux/astarld - 775 sys sys 1039758537 63522
 386/bin/aux/cddb - 775 sys sys 1039758537 70432
@@ -94,7 +94,7 @@
 386/bin/aux/cropmarks - 775 sys sys 1020319062 1808
 386/bin/aux/data2s - 775 sys sys 1039758538 59178
 386/bin/aux/depend - 775 sys sys 1045537948 145890
-386/bin/aux/disksim - 775 sys sys 1050521403 145858
+386/bin/aux/disksim - 775 sys sys 1050557201 145983
 386/bin/aux/download - 775 sys sys 1048745014 175067
 386/bin/aux/faxreceive - 775 sys sys 1045537949 83421
 386/bin/aux/faxsend - 775 sys sys 1045537950 88819
@@ -215,9 +215,9 @@
 386/bin/fmt - 775 sys sys 1039758560 63811
 386/bin/fortune - 775 sys sys 1045537977 66332
 386/bin/fossil - 20000000775 sys sys 1042005470 0
-386/bin/fossil/flchk - 775 sys sys 1048889326 228309
-386/bin/fossil/flfmt - 775 sys sys 1048889327 226303
-386/bin/fossil/fossil - 775 sys sys 1048889328 335467
+386/bin/fossil/flchk - 775 sys sys 1050557202 228602
+386/bin/fossil/flfmt - 775 sys sys 1050557203 226596
+386/bin/fossil/fossil - 775 sys sys 1050557204 338782
 386/bin/freq - 775 sys sys 1039758560 60443
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1039758560 96155
@@ -309,7 +309,7 @@
 386/bin/netkey - 775 sys sys 1039758579 70753
 386/bin/netstat - 775 sys sys 1045538036 81379
 386/bin/news - 775 sys sys 1045538036 70512
-386/bin/nfs - 775 sys sys 1050152289 317016
+386/bin/nfs - 775 sys sys 1050585060 317019
 386/bin/nm - 775 sys sys 1045538037 123227
 386/bin/nntpfs - 775 sys sys 1048745059 162301
 386/bin/ns - 775 sys sys 1039758580 63830
@@ -482,13 +482,13 @@
 386/lib/ape/libnet.a - 664 sys sys 1038237543 16604
 386/lib/ape/libregexp.a - 664 sys sys 1038237544 46270
 386/lib/ape/libv.a - 664 sys sys 1038237545 19266
-386/lib/lib9p.a - 664 sys sys 1048745124 80278
+386/lib/lib9p.a - 664 sys sys 1050585062 80292
 386/lib/libString.a - 664 sys sys 1045538115 18554
 386/lib/libauth.a - 664 sys sys 1048799709 53564
 386/lib/libauthsrv.a - 664 sys sys 1048622923 33706
 386/lib/libbin.a - 664 sys sys 1045538115 2556
 386/lib/libbio.a - 664 sys sys 1045538115 28390
-386/lib/libc.a - 664 sys sys 1050419691 499500
+386/lib/libc.a - 664 sys sys 1050557206 499524
 386/lib/libcontrol.a - 664 sys sys 1045538117 243448
 386/lib/libdisk.a - 664 sys sys 1048622925 43692
 386/lib/libdraw.a - 664 sys sys 1045538119 372606
@@ -3075,7 +3075,7 @@ sys/doc/contents.ms - 664 sys sys 1019916701 4920
 sys/doc/contents.ps - 664 sys sys 1019916845 232629
 sys/doc/docfonts - 664 sys sys 1038117516 208
 sys/doc/fonts - 664 sys sys 944959649 137
-sys/doc/fossil.ms - 664 sys sys 1042123106 31437
+sys/doc/fossil.ms - 664 sys sys 1050623502 31400
 sys/doc/fossil.pdf - 664 sys sys 1042123169 63200
 sys/doc/fossil.ps - 664 sys sys 1042123131 313750
 sys/doc/fs - 20000000775 sys sys 945616779 0
@@ -10799,7 +10799,7 @@ sys/src/lib9p/post.c - 664 sys sys 1044429937 364
 sys/src/lib9p/post.h - 664 sys sys 1029850260 201
 sys/src/lib9p/ramfs.c - 664 sys sys 1030450927 2534
 sys/src/lib9p/req.c - 664 sys sys 1044429938 1551
-sys/src/lib9p/srv.c - 664 sys sys 1048645335 16699
+sys/src/lib9p/srv.c - 664 sys sys 1050583820 16705
 sys/src/lib9p/tpost.c - 664 sys sys 1044429939 324
 sys/src/lib9p/uid.c - 664 sys sys 1015023311 517
 sys/src/lib9p/util.c - 664 sys sys 1017679319 465
