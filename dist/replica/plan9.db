@@ -342,7 +342,7 @@
 386/bin/plot - 775 sys sys 1064598279 220038
 386/bin/plumb - 775 sys sys 1064598279 65223
 386/bin/plumber - 775 sys sys 1064598281 170526
-386/bin/png - 775 sys sys 1068385804 158641
+386/bin/png - 775 sys sys 1068658945 158665
 386/bin/ppm - 775 sys sys 1068385805 147658
 386/bin/pr - 775 sys sys 1064598283 76323
 386/bin/primes - 775 sys sys 1064598284 39022
@@ -9316,7 +9316,7 @@ sys/src/cmd/jpg/png.c - 664 sys sys 1014926432 4655
 sys/src/cmd/jpg/ppm.c - 664 sys sys 944961292 4190
 sys/src/cmd/jpg/readgif.c - 664 sys sys 1014926433 10306
 sys/src/cmd/jpg/readjpg.c - 664 sys sys 1032060302 33009
-sys/src/cmd/jpg/readpng.c - 664 sys sys 1014926433 5114
+sys/src/cmd/jpg/readpng.c - 664 sys sys 1068658904 5130
 sys/src/cmd/jpg/readppm.c - 664 sys sys 1014926433 3649
 sys/src/cmd/jpg/readyuv.c - 664 sys sys 1067742240 3502
 sys/src/cmd/jpg/rgbrgbv.c - 664 sys sys 984718829 1236
@@ -9327,7 +9327,7 @@ sys/src/cmd/jpg/toppm.c - 664 sys sys 944961292 1571
 sys/src/cmd/jpg/torgbv.c - 664 sys sys 1067719080 6443
 sys/src/cmd/jpg/totruecolor.c - 664 sys sys 1014926434 3407
 sys/src/cmd/jpg/writegif.c - 664 sys sys 1014926434 10727
-sys/src/cmd/jpg/writepng.c - 664 sys sys 1039753051 4261
+sys/src/cmd/jpg/writepng.c - 664 sys sys 1068658904 4313
 sys/src/cmd/jpg/writeppm.c - 664 sys sys 1014926434 3072
 sys/src/cmd/jpg/writerawimage.c - 664 sys sys 1014926435 4584
 sys/src/cmd/jpg/yuv.c - 664 sys sys 1067719080 4234
