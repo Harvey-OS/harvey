@@ -689,11 +689,11 @@ acme/mail/mips - 20000000775 sys sys 1015011518 0
 acme/mail/mkbox - 775 sys sys 1018029993 133
 acme/mail/old.iostats - 664 sys sys 1015011265 0
 acme/mail/power - 20000000775 sys sys 1015011527 0
-acme/mail/readme - 664 sys sys 1017166342 2725
+acme/mail/readme - 664 sys sys 1084385076 2795
 acme/mail/src - 20000000775 sys sys 1015364010 0
 acme/mail/src/dat.h - 664 sys sys 1033936953 3857
 acme/mail/src/html.c - 664 sys sys 1058463659 1348
-acme/mail/src/mail.c - 664 sys sys 1041481453 10994
+acme/mail/src/mail.c - 664 sys sys 1084385064 11057
 acme/mail/src/mesg.c - 664 sys sys 1043463888 26266
 acme/mail/src/mkfile - 664 sys sys 1037034918 364
 acme/mail/src/reply.c - 664 sys sys 1041137203 11326
@@ -3105,7 +3105,7 @@ rc/bin/service/telcofax - 775 sys sys 945617224 93
 rc/bin/sig - 775 sys sys 1082221092 530
 rc/bin/slay - 775 sys sys 1018387014 123
 rc/bin/spell - 775 sys sys 964540791 312
-rc/bin/src - 775 sys sys 1015089596 869
+rc/bin/src - 775 sys sys 1084333365 916
 rc/bin/srvssh - 775 sys sys 1040696716 2289
 rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1055701355 288
@@ -3336,7 +3336,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1080838116 248410
+sys/games/lib/fortunes - 664 sys sys 1084332868 248449
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1055701304 1291
@@ -4891,7 +4891,7 @@ sys/man/2/readv - 664 sys sys 1017423721 1454
 sys/man/2/regexp - 664 sys sys 988225293 3548
 sys/man/2/remove - 664 sys sys 958249504 518
 sys/man/2/rendezvous - 664 sys sys 950593497 1322
-sys/man/2/rsa - 664 sys sys 1048643959 4151
+sys/man/2/rsa - 664 sys sys 1084332670 4245
 sys/man/2/rune - 664 sys sys 1015091526 3069
 sys/man/2/runestrcat - 664 sys sys 969499889 1086
 sys/man/2/scribble - 664 sys sys 985638584 3847
@@ -4993,7 +4993,7 @@ sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
 sys/man/4/usb - 664 sys sys 1077376395 3332
 sys/man/4/usbd - 664 sys sys 1018386778 731
-sys/man/4/vacfs - 664 sys sys 1022112155 1419
+sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
 sys/man/4/webfs - 664 sys sys 1019828742 6455
 sys/man/4/wikifs - 664 sys sys 1018581459 7501
@@ -6677,7 +6677,7 @@ sys/src/cmd/7a/lex.c - 664 sys sys 1067725160 12389
 sys/src/cmd/7a/mkfile - 664 sys sys 944961626 202
 sys/src/cmd/7c - 20000000775 sys sys 954038668 0
 sys/src/cmd/7c/7.out.h - 644 sys sys 944961627 2648
-sys/src/cmd/7c/cgen.c - 664 sys sys 1076969788 17650
+sys/src/cmd/7c/cgen.c - 664 sys sys 1084370958 17748
 sys/src/cmd/7c/enam.c - 644 sys sys 944961627 1595
 sys/src/cmd/7c/gc.h - 644 sys sys 1014926894 5832
 sys/src/cmd/7c/list.c - 644 sys sys 1067723063 3862
@@ -7086,7 +7086,7 @@ sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
 sys/src/cmd/aux/listen.c - 664 sys sys 1015008684 8139
 sys/src/cmd/aux/listen1.c - 664 sys sys 1024375142 2016
-sys/src/cmd/aux/mkfile - 664 sys sys 1050364303 946
+sys/src/cmd/aux/mkfile - 664 sys sys 1084415958 946
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
 sys/src/cmd/aux/mnihongo - 20000000775 sys sys 944960789 0
 sys/src/cmd/aux/mnihongo/README - 664 sys sys 944960789 475
@@ -7583,7 +7583,7 @@ sys/src/cmd/fossil/build - 664 sys sys 1042005505 449
 sys/src/cmd/fossil/buildsh - 775 sys sys 1042005505 561
 sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
 sys/src/cmd/fossil/cache.c - 664 sys sys 1073851928 42849
-sys/src/cmd/fossil/conf.rc - 775 sys sys 1055703747 1407
+sys/src/cmd/fossil/conf.rc - 775 sys sys 1084333190 1416
 sys/src/cmd/fossil/dat.h - 664 sys sys 1061530727 7851
 sys/src/cmd/fossil/deadlock - 775 sys sys 1042005506 413
 sys/src/cmd/fossil/disk.c - 664 sys sys 1072705706 6409
@@ -11009,7 +11009,7 @@ sys/src/cmd/vac/stdinc.h - 664 sys sys 1036006059 121
 sys/src/cmd/vac/util.c - 664 sys sys 1019678787 930
 sys/src/cmd/vac/vac.c - 664 sys sys 1036470170 23082
 sys/src/cmd/vac/vac.h - 664 sys sys 1036006060 3516
-sys/src/cmd/vac/vacfs.c - 664 sys sys 1055699701 13458
+sys/src/cmd/vac/vacfs.c - 664 sys sys 1084333048 13630
 sys/src/cmd/vac/vactest.c - 664 sys sys 1036024047 2742
 sys/src/cmd/vac/vtdump.c - 664 sys sys 1036006056 7170
 sys/src/cmd/vac/vtread.c - 664 sys sys 1019678788 2052

@@ -15017,3 +15017,14 @@
 1084332617 8 c sys/src/9/pc/io.h - 664 sys sys 1084331225 8023
 1084332617 9 c sys/src/9/pc/ethermii.c - 664 sys sys 1084331434 4612
 1084332617 10 d sys/src/9/port/devrealtime.c - 664 sys sys 1055688366 0
+1084334418 0 c rc/bin/src - 775 sys sys 1084333365 916
+1084334418 1 c sys/games/lib/fortunes - 664 sys sys 1084332868 248449
+1084334418 2 c sys/man/2/rsa - 664 sys sys 1084332670 4245
+1084334418 3 c sys/man/4/vacfs - 664 sys sys 1084333062 1545
+1084334418 4 c sys/src/cmd/aux/mkfile - 664 sys sys 1084332823 955
+1084334418 5 c sys/src/cmd/vac/vacfs.c - 664 sys sys 1084333048 13630
+1084334418 6 c sys/src/cmd/fossil/conf.rc - 775 sys sys 1084333190 1416
+1084372223 0 c sys/src/cmd/7c/cgen.c - 664 sys sys 1084370958 17748
+1084386672 0 c acme/mail/readme - 664 sys sys 1084385076 2795
+1084386672 1 c acme/mail/src/mail.c - 664 sys sys 1084385064 11057
+1084417307 0 c sys/src/cmd/aux/mkfile - 664 sys sys 1084415958 946
