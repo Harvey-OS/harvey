@@ -2777,7 +2777,7 @@ lib/tel - 664 sys sys 957918740 6053
 lib/tftpd - 20000000775 sys sys 944944178 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
-lib/units - 664 sys sys 1014923483 9984
+lib/units - 664 sys sys 1071415518 9997
 lib/vgadb - 664 sys sys 1065961653 27832
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
@@ -10382,7 +10382,7 @@ sys/src/cmd/tapefs/fs.c - 664 sys sys 1032060630 9777
 sys/src/cmd/tapefs/mkfile - 664 sys sys 1032060649 258
 sys/src/cmd/tapefs/tapefs.h - 664 sys sys 1014926384 1609
 sys/src/cmd/tapefs/tapfs.c - 664 sys sys 1063854819 1938
-sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1071322741 2621
+sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1071458376 2672
 sys/src/cmd/tapefs/tpfs.c - 664 sys sys 1071322722 2012
 sys/src/cmd/tapefs/util.c - 664 sys sys 1014926385 2653
 sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1014926385 3754
