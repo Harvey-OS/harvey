@@ -17611,3 +17611,6 @@
 1103261517 1 c 386/bin/fossil/flchk - 775 sys sys 1103261227 237462
 1103261517 2 c 386/bin/fossil/flfmt - 775 sys sys 1103261228 245611
 1103261517 3 c 386/bin/fossil/fossil - 775 sys sys 1103261228 360277
+1103382020 0 c sys/src/cmd/usb/lib/dump.c - 664 sys sys 1103381265 12921
+1103382020 1 c sys/src/cmd/usb/lib/usb.h - 664 sys sys 1103381265 7036
+1103391021 0 c rc/bin/replica/defs - 664 sys sys 1103390458 778

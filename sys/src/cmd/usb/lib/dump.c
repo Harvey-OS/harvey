@@ -498,6 +498,9 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			if(d->ep[ep]->maxpkt < GET2(de->wMaxPacketSize))
 				d->ep[ep]->maxpkt = GET2(de->wMaxPacketSize);
 			d->ep[ep]->addr = de->bEndpointAddress;
+			d->ep[ep]->dir = (de->bEndpointAddress & 0x80) ? Ein : Eout;
+			d->ep[ep]->type = de->bmAttributes & 0x03;
+			d->ep[ep]->isotype = (de->bmAttributes>>2) & 0x03;
 			d->ep[ep]->csp = csp;
 			d->ep[ep]->conf = d->config[c];
 			d->ep[ep]->iface = d->config[c]->iface[ifc];

@@ -1,5 +1,4 @@
 tmp=()
-fn 
 
 fn fatal {
 	if(! ~ $#tmp 0)
