@@ -23,7 +23,7 @@ static ulong	ptabmask;		/* hash mask */
  *	VSID is 24 bits.  3 are required to distinguish segments in user
  *	space (kernel space only uses the BATs).  pid 0 is reserved.
  *	The top 2 bits of the pid are used as a `color' for the background
- *	pid reclaimation algorithm.
+ *	pid reclamation algorithm.
  */
 
 enum {

@@ -84,6 +84,7 @@ char	Ename[] = 	"illegal name";
 char	Ebadctl[] =	"unknown control message";
 char	Epast[] =	"reading past eof";
 
+Fid	*oldfid(int);
 Fid	*newfid(int);
 void	volumeupdater(void*);
 void	playupdater(void*);
@@ -154,6 +155,7 @@ rattach(Worker *w)
 	Req *r;
 
 	r = w->r;
+	r->fid = newfid(r->ifcall.fid);
 	f = r->fid;
 	f->flags |= Busy;
 	f->file = &files[Qdir];
@@ -209,7 +211,9 @@ rwalk(Worker *w)
 	Req *r;
 
 	r = w->r;
-	f = r->fid;
+	r->fid = oldfid(r->ifcall.fid);
+	if((f = r->fid) == nil)
+		return Enotexist;
 	if(f->flags & Open)
 		return Eisopen;
 
@@ -258,7 +262,9 @@ ropen(Worker *w)
 	Req *r;
 
 	r = w->r;
-	f = r->fid;
+	r->fid = oldfid(r->ifcall.fid);
+	if((f = r->fid) == nil)
+		return Enotexist;
 	if(f->flags & Open)
 		return Eisopen;
 
@@ -327,7 +333,9 @@ rread(Worker *w)
 	char *p;
 
 	r = w->r;
-	f = r->fid;
+	r->fid = oldfid(r->ifcall.fid);
+	if((f = r->fid) == nil)
+		return Enotexist;
 	r->ofcall.count = 0;
 	off = r->ifcall.offset;
 	cnt = r->ifcall.count;
@@ -413,7 +421,7 @@ rread(Worker *w)
 			f->vers = f->file->dir.qid.vers;
 		}
 	}else
-		sysfatal("impossible file: 0x%lux, %ld", f->file, f->file - files);
+		abort();
 	return nil;
 }
 
@@ -428,7 +436,9 @@ rwrite(Worker *w)
 	Req *r;
 
 	r = w->r;
-	f = r->fid;
+	r->fid = oldfid(r->ifcall.fid);
+	if((f = r->fid) == nil)
+		return Enotexist;
 	r->ofcall.count = 0;
 	cnt = r->ifcall.count;
 
@@ -569,7 +579,12 @@ rwrite(Worker *w)
 char *
 rclunk(Worker *w)
 {
-	w->r->fid->flags &= ~(Open|Busy);
+	Fid *f;
+
+	f = oldfid(w->r->ifcall.fid);
+	if(f == nil)
+		return Enotexist;
+	f->flags &= ~(Open|Busy);
 	return 0;
 }
 
@@ -585,6 +600,9 @@ rstat(Worker *w)
 	Req *r;
 
 	r = w->r;
+	r->fid = oldfid(r->ifcall.fid);
+	if(r->fid == nil)
+		return Enotexist;
 	r->ofcall.nstat = convD2M(&r->fid->file->dir, r->indata, messagesize - IOHDRSZ);
 	r->ofcall.stat = r->indata;
 	return 0;
@@ -594,6 +612,17 @@ char *
 rwstat(Worker*)
 {
 	return Eperm;
+}
+
+Fid *
+oldfid(int fid)
+{
+	Fid *f;
+
+	for(f = fids; f; f = f->next)
+		if(f->fid == fid)
+			return f;
+	return nil;
 }
 
 Fid *
@@ -608,10 +637,9 @@ newfid(int fid)
 		}else if(ff == nil && (f->flags & Busy) == 0)
 			ff = f;
 	if(ff == nil){
-		ff = malloc(sizeof *ff);
+		ff = mallocz(sizeof *ff, 1);
 		if (ff == nil)
 			sysfatal("malloc: %r");
-		memset(ff, 0, sizeof *ff);
 		ff->next = fids;
 		ff->readers = 0;
 		fids = ff;
@@ -633,10 +661,8 @@ work(Worker *w)
 	r->ofcall.data = (char*)r->indata;
 	if(!fcalls[r->ifcall.type])
 		err = "bad fcall type";
-	else {
-		r->fid = newfid(r->ifcall.fid);
+	else
 		err = (*fcalls[r->ifcall.type])(w);
-	}
 	if(err != (char*)~0){	/* ~0 indicates Flush received */
 		if(err){
 			r->ofcall.type = Rerror;
