@@ -465,8 +465,10 @@ rowloadfonts(char *file)
 		if(l == nil)
 			goto Return;
 		l[Blinelen(b)-1] = 0;
-		if(*l && strcmp(l, fontnames[i])!=0)
+		if(*l && strcmp(l, fontnames[i])!=0){
+			free(fontnames[i]);
 			fontnames[i] = estrdup(l);
+		}
 	}
     Return:
 	Bterm(b);
@@ -515,7 +517,7 @@ rowload(Row *row, char *file, int initing)
 			goto Rescue2;
 		l[Blinelen(b)-1] = 0;
 		if(*l && strcmp(l, fontnames[i])!=0)
-			rfget(i, TRUE, i==0 && initing, estrdup(l));
+			rfget(i, TRUE, i==0 && initing, l);
 	}
 	if(initing && row->ncol==0)
 		rowinit(row, screen->clipr);

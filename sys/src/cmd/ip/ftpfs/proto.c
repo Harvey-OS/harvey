@@ -1167,8 +1167,16 @@ port(void)
 	if(ptr)
 		*ptr = 0;
 	ptr = strchr(buf, '!')+1;
-	parseip(ipaddr, buf);
 	port = atoi(ptr);
+
+	memset(ipaddr, 0, IPaddrlen);
+	if (*net){
+		strcpy(buf, net);
+		ptr = strchr(buf +1, '/');
+		if (ptr)
+			*ptr = 0;
+		myipaddr(ipaddr, buf);
+	}
 
 	/* tell remote side */
 	sprint(buf, "PORT %d,%d,%d,%d,%d,%d", ipaddr[IPv4off+0], ipaddr[IPv4off+1],

@@ -11,7 +11,7 @@ postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 	Postcrud *p;
 
 	p = _post1(s, name, mtpt, flag);
-	switch(rfork(RFPROC|RFNOTEG|RFNAMEG|RFMEM)){
+	switch(rfork(RFPROC|RFNAMEG|RFMEM)){
 	case -1:
 		sysfatal("rfork: %r");
 	case 0:

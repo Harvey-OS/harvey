@@ -1,6 +1,6 @@
 .TH IP 2
 .SH NAME
-eipfmt, parseip, parseipmask, v4parseip, v4parsecidr, parseether, myipaddr, myetheraddr, maskip, equivip, defmask, isv4, v4tov6, v6tov4, nhgetv, nhgetl, nhgets, hnputv, hnputl, hnputs, ptclbsum, readipifc \- Internet protocol
+eipfmt, parseip, parseipmask, v4parseip, v4parsecidr, parseether, myipaddr, myetheraddr, maskip, equivip4, equivip6, defmask, isv4, v4tov6, v6tov4, nhgetv, nhgetl, nhgets, hnputv, hnputl, hnputs, ptclbsum, readipifc \- Internet protocol
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -36,7 +36,10 @@ int	myipaddr(uchar *ipaddr, char *net)
 void	maskip(uchar *from, uchar *mask, uchar *to)
 .PP
 .B
-int	equivip(uchar *ipaddr1, uchar *ipaddr2)
+int	equivip4(uchar *ipaddr1, uchar *ipaddr2)
+.PP
+.B
+int	equivip6(uchar *ipaddr1, uchar *ipaddr2)
 .PP
 .B
 uchar*	defmask(uchar *ipaddr)
@@ -197,6 +200,10 @@ to by the third.
 .I Equivip
 returns non-zero if the IP addresses pointed to by its two
 arguments are equal.
+.I Equivip4
+operates on v4 addresses,
+.I equivip6
+operates on v6 addresses.
 .PP
 .I Defmask
 returns the standard class A, B, or C mask for
