@@ -2,7 +2,7 @@
 
 TARG=dict
 LFILES=oed.$O ahd.$O pcollins.$O pcollinsg.$O movie.$O slang.$O robert.$O\
-	world.$O jis208.$O gb2312.$O thesaurus.$O simple.$O
+	world.$O jis208.$O gb2312.$O thesaurus.$O simple.$O pgw.$O
 
 OFILES=dict.$O\
 	$LFILES\
@@ -11,6 +11,12 @@ OFILES=dict.$O\
 HFILES=dict.h kuten.h
 
 BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
 </sys/src/cmd/mkone
 
 mkindex: mkindex.$O $LFILES utils.$O

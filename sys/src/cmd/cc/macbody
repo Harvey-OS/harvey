@@ -236,26 +236,35 @@ macdef(void)
 		}
 		if(c == '/') {
 			c = getc();
-			if(c != '*') {
-				base = allocn(base, len, 1);
-				base[len++] = '/';
+			if(c == '/'){
+				c = getc();
+				for(;;) {
+					if(c == '\n')
+						break;
+					c = getc();
+				}
 				continue;
 			}
-			c = getc();
-			for(;;) {
-				if(c == '*') {
-					c = getc();
-					if(c != '/')
-						continue;
-					c = getc();
-					break;
-				}
-				if(c == '\n') {
-					yyerror("comment and newline in define: %s", s->name);
-					break;
-				}
+			if(c == '*'){
 				c = getc();
+				for(;;) {
+					if(c == '*') {
+						c = getc();
+						if(c != '/')
+							continue;
+						c = getc();
+						break;
+					}
+					if(c == '\n') {
+						yyerror("comment and newline in define: %s", s->name);
+						break;
+					}
+					c = getc();
+				}
+				continue;
 			}
+			base = allocn(base, len, 1);
+			base[len++] = '/';
 			continue;
 		}
 		if(c == '\\') {
