@@ -538,6 +538,7 @@ extern	void		freenetconninfo(NetConnInfo*);
 #define QTEXCL		0x20		/* type bit for exclusive use files */
 #define QTMOUNT		0x10		/* type bit for mounted channel */
 #define QTAUTH		0x08		/* type bit for authentication file */
+#define QTTMP			0x04		/* type bit for not-backed-up file */
 #define QTFILE		0x00		/* plain file */
 
 /* bits in Dir.mode */
@@ -546,6 +547,7 @@ extern	void		freenetconninfo(NetConnInfo*);
 #define DMEXCL		0x20000000	/* mode bit for exclusive use files */
 #define DMMOUNT		0x10000000	/* mode bit for mounted channel */
 #define DMAUTH		0x08000000	/* mode bit for authentication file */
+#define DMTMP		0x04000000	/* mode bit for non-backed-up files */
 #define DMREAD		0x4		/* mode bit for read permission */
 #define DMWRITE		0x2		/* mode bit for write permission */
 #define DMEXEC		0x1		/* mode bit for execute permission */

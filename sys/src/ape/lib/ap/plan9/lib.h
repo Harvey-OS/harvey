@@ -8,20 +8,20 @@ typedef struct Ureg Ureg;
 /* mux buf for selecting (see _buf.c) */
 enum {
 	READMAX = 8192,			/* read at most this much with _READ */
-	PERFDMAX = 2*READMAX,	/* stop _READing an fd when it has this much */
-	INITBUFS = 4,				/* allow enough room for this many PERFDMAX */
+	PERFDMAX = 2*READMAX,		/* stop _READing an fd when it has this much */
+	INITBUFS = 4,			/* allow enough room for this many PERFDMAX */
 };
 
 typedef struct Muxbuf {
-	int n;						/* # unprocessed chars in buf */
-	unsigned char*	putnext;		/* place for copy process to put next data */
-	unsigned char* getnext;		/* place for parent process to get next data */
-	unsigned char	fd;			/* fd for which this is a buffer */
-	unsigned char	eof;			/* true if eof after current data exhausted */
-	unsigned char	roomwait;		/* true if copy process is waiting for room */
-	unsigned char	datawait;		/* true if parent process is waiting for data */
-	int		copypid;			/* pid of copyproc */
-	unsigned char data[PERFDMAX];
+	int n;				/* # unprocessed chars in buf */
+	unsigned char*	putnext;	/* place for copy process to put next data */
+	unsigned char*	getnext;	/* place for parent process to get next data */
+	char		fd;		/* fd for which this is a buffer */
+	unsigned char	eof;		/* true if eof after current data exhausted */
+	unsigned char	roomwait;	/* true if copy process is waiting for room */
+	unsigned char	datawait;	/* true if parent process is waiting for data */
+	int		copypid;	/* pid of copyproc */
+	unsigned char	data[PERFDMAX];
 } Muxbuf;
 
 /* be sure to change _fdinfo[] init in _fdinfo if you change this */
@@ -69,3 +69,4 @@ extern int _isatty(int);
 extern void _fdinit(char*, char*);
 
 
+void checkbug(char *, int);
