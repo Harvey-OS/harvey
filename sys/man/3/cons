@@ -12,6 +12,7 @@ cons \- console, clocks, process/process group ids, user, null, reboot, etc.
 .B /dev/drivers
 .B /dev/hostdomain
 .B /dev/hostowner
+.B /dev/kmesg
 .B /dev/kprint
 .B /dev/null
 .B /dev/osversion
@@ -110,6 +111,14 @@ At the moment, it contains one field: the 9P protocol version, currently
 .BR 2000 .
 .PP
 The
+.B kmesg
+file holds the last 16 kilobytes of output written to the console
+by the kernel's print statements or by processes writing to
+.BR /dev/cons .
+It is useful for retrieving boot messages once the boot
+process is over.
+.PP
+The
 .B kprint
 file may be read to receive a copy of the data written
 to the console by the kernel's print statements or by processes
@@ -131,7 +140,7 @@ on terminals until you have started
 The
 .B null
 file throws away anything written to it
-and always returns zero bytes when read.
+and always returns zero when read.
 .PP
 The
 .B zero
