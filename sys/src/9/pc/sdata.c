@@ -1869,6 +1869,23 @@ atapnp(void)
 			 * Bugfix code here...
 			 */
 			break;
+		case (0x7441<<16)|0x1022:	/* AMD 768 */
+			/*
+			 * Set:
+			 *	0x41	prefetch, postwrite;
+			 *	0x43	FIFO configuration 1/2 and 1/2;
+			 *	0x44	status register read retry;
+			 *	0x46	DMA read and end of sector flush.
+			 */
+			r = pcicfgr8(p, 0x41);
+			pcicfgw8(p, 0x41, r|0xF0);
+			r = pcicfgr8(p, 0x43);
+			pcicfgw8(p, 0x43, (r & 0x90)|0x2A);
+			r = pcicfgr8(p, 0x44);
+			pcicfgw8(p, 0x44, r|0x08);
+			r = pcicfgr8(p, 0x46);
+			pcicfgw8(p, 0x46, (r & 0x0C)|0xF0);
+			break;
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
 		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
@@ -1882,6 +1899,7 @@ atapnp(void)
 		case (0x248A<<16)|0x8086:	/* 82801CA (ICH3, Mobile) */
 		case (0x248B<<16)|0x8086:	/* 82801CA (ICH3, High-End) */
 		case (0x24CB<<16)|0x8086:	/* 82801DB (ICH4, High-End) */
+		case (0x24DB<<16)|0x8086:	/* 82801EB (ICH5) */
 			break;
 		}
 

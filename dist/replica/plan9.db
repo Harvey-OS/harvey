@@ -4942,7 +4942,7 @@ sys/src/9/alphapc/etherif.h - 664 sys sys 1045063621 1025
 sys/src/9/alphapc/faultalpha.c - 664 sys sys 1015012784 1257
 sys/src/9/alphapc/fdc37c93x.c - 664 sys sys 1015012785 1110
 sys/src/9/alphapc/floppy.h - 664 sys sys 1015012785 3783
-sys/src/9/alphapc/fns.h - 664 sys sys 1039794342 3889
+sys/src/9/alphapc/fns.h - 664 sys sys 1056503356 3888
 sys/src/9/alphapc/fptrap.c - 664 sys sys 1015012785 707
 sys/src/9/alphapc/i8259.c - 664 sys sys 1015012785 3409
 sys/src/9/alphapc/initcode - 664 sys sys 1039753419 779
@@ -4964,7 +4964,7 @@ sys/src/9/alphapc/sd53c8xx.c - 664 sys sys 1015012787 51009
 sys/src/9/alphapc/sdata.c - 664 sys sys 1015012787 25
 sys/src/9/alphapc/sdscsi.c - 664 sys sys 1015012787 26
 sys/src/9/alphapc/sio.c - 664 sys sys 1015012787 293
-sys/src/9/alphapc/trap.c - 664 sys sys 1047261658 17822
+sys/src/9/alphapc/trap.c - 664 sys sys 1056503355 17893
 sys/src/9/alphapc/uarti8250.c - 664 sys sys 1015012788 29
 sys/src/9/alphapc/vga.c - 664 sys sys 1015012788 23
 sys/src/9/alphapc/vgargb524.c - 664 sys sys 1015012788 29
@@ -5169,7 +5169,9 @@ sys/src/9/pc/pc - 664 sys sys 1055700612 1360
 sys/src/9/pc/pcauth - 664 sys sys 1055700612 609
 sys/src/9/pc/pccd - 664 sys sys 1055090302 1302
 sys/src/9/pc/pccpu - 664 sys sys 1055090302 803
+sys/src/9/pc/pccpuf - 664 sys sys 1056503364 909
 sys/src/9/pc/pcdisk - 664 sys sys 1055700613 1432
+sys/src/9/pc/pcf - 664 sys sys 1056503364 1457
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1055700671 1410
 sys/src/9/pc/pci.c - 664 sys sys 1032052921 23359
@@ -5186,7 +5188,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1048644129 3760
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1055689891 52089
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1055087706 49704
+sys/src/9/pc/sdata.c - 664 sys sys 1056475678 50230
 sys/src/9/pc/sdmylex.c - 664 sys sys 1015014523 27750
 sys/src/9/pc/sdscsi.c - 664 sys sys 1055689892 7406
 sys/src/9/pc/trap.c - 664 sys sys 1056299507 19012
