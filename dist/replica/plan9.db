@@ -4920,8 +4920,8 @@ sys/man/vol1.ps.gz - 664 sys sys 1020374752 2174519
 sys/src - 20000000775 sys sys 1016902537 0
 sys/src/9 - 20000000775 sys sys 1017795023 0
 sys/src/9/alphapc - 20000000775 sys sys 1018721238 0
-sys/src/9/alphapc/apc - 664 sys sys 1039753420 621
-sys/src/9/alphapc/apccpu - 664 sys sys 1039753419 507
+sys/src/9/alphapc/apc - 664 sys sys 1056171197 624
+sys/src/9/alphapc/apccpu - 664 sys sys 1056171198 510
 sys/src/9/alphapc/arch164.c - 664 sys sys 1015012783 6100
 sys/src/9/alphapc/audio.h - 664 sys sys 1015012783 349
 sys/src/9/alphapc/axp.h - 664 sys sys 1015012783 1090
@@ -9310,7 +9310,6 @@ sys/src/cmd/mk/symtab.c - 664 sys sys 944961025 1581
 sys/src/cmd/mk/var.c - 664 sys sys 944961025 539
 sys/src/cmd/mk/varsub.c - 664 sys sys 944961025 4438
 sys/src/cmd/mk/word.c - 664 sys sys 944961025 2595
-sys/src/cmd/mk/xyz - 775 sys sys 1055698814 134938
 sys/src/cmd/mkdir.c - 664 sys sys 1014926614 422
 sys/src/cmd/mkfile - 664 sys sys 1045534751 2205
 sys/src/cmd/mklib - 664 sys sys 1022112159 599
@@ -9326,7 +9325,7 @@ sys/src/cmd/mv.c - 664 sys sys 1014926695 4276
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1021579991 6525
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1050714836 6740
-sys/src/cmd/ndb/cs.c - 664 sys sys 1055701923 32739
+sys/src/cmd/ndb/cs.c - 664 sys sys 1056171180 32752
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1055701929 17465
@@ -9339,7 +9338,7 @@ sys/src/cmd/ndb/dns.h - 664 sys sys 1055701923 8875
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1055701923 8359
 sys/src/cmd/ndb/dnserver.c - 664 sys sys 1021579994 3687
 sys/src/cmd/ndb/dnsquery.c - 664 sys sys 1014926160 2108
-sys/src/cmd/ndb/dnstcp.c - 664 sys sys 1024158822 7040
+sys/src/cmd/ndb/dnstcp.c - 664 sys sys 1056171180 7066
 sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1055701924 5277
 sys/src/cmd/ndb/ipquery.c - 664 sys sys 960335375 760
 sys/src/cmd/ndb/mkdb.c - 664 sys sys 957402054 2886
