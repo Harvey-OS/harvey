@@ -1,6 +1,6 @@
 .TH MAN 1
 .SH NAME
-man, lookman \- print or find pages of this manual
+man, lookman, sig \- print or find pages of this manual
 .SH SYNOPSIS
 .B man
 [
