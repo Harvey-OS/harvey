@@ -10,9 +10,9 @@ fn servermount {
 }
 fn serverupdate { status='' }
 
-fn clientmount { 9fs kfs }
-c=/n/kfs/dist/replica
-clientroot=/n/kfs
+fn clientmount { 9fs boot }
+c=/n/boot/dist/replica
+clientroot=/n/boot
 clientdb=$c/client/plan9.db
 clientexclude=(dist/replica/client)
 clientlog=$c/client/plan9.log

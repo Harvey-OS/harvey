@@ -843,7 +843,7 @@ dist - 20000000775 sys sys 1017437778 0
 dist/replica - 20000000775 sys sys 1019277119 0
 dist/replica/cd - 664 sys sys 1019527959 390
 dist/replica/kfs - 664 sys sys 1019527929 237
-dist/replica/network - 775 sys sys 1035481415 463
+dist/replica/network - 775 sys sys 1067910574 466
 dist/replica/plan9.proto - 664 sys sys 1022112985 1209
 env - 20000000775 sys sys 1015094872 0
 fd - 20000000775 sys sys 947958544 0
@@ -1243,7 +1243,7 @@ lib/face/48x48x2/x - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/y - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/z - 20000000755 sys sys 944941683 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1060092065 2010
+lib/face/48x48x4/.dict - 664 sys sys 1067873122 2032
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -5227,7 +5227,7 @@ sys/src/9/pc/devusb.c - 664 sys sys 1063857423 18352
 sys/src/9/pc/devvga.c - 664 sys sys 1063857412 8714
 sys/src/9/pc/dma.c - 664 sys sys 1015014515 4736
 sys/src/9/pc/ether2000.c - 664 sys sys 1017854323 2839
-sys/src/9/pc/ether2114x.c - 664 sys sys 1066618082 41227
+sys/src/9/pc/ether2114x.c - 664 sys sys 1067891102 41253
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1018386992 14056
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
@@ -5350,7 +5350,7 @@ sys/src/9/port/devmouse.c - 664 sys sys 1067722758 12203
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
 sys/src/9/port/devpipe.c - 664 sys sys 1032640439 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1055688361 13021
-sys/src/9/port/devproc.c - 664 sys sys 1067722717 28273
+sys/src/9/port/devproc.c - 664 sys sys 1067880146 28269
 sys/src/9/port/devrealtime.c - 664 sys sys 1055688366 16209
 sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
 sys/src/9/port/devsd.c - 664 sys sys 1055688396 28669

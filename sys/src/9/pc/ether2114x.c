@@ -1637,6 +1637,7 @@ dec2114xpci(void)
 
 		case Tulip0:			/* 21140 */
 		case Tulip1:			/* 21041 */
+		case Pnic:			/* PNIC */
 		case Pnic2:			/* PNIC-II */
 		case CentaurP:			/* ADMtek */
 			break;
