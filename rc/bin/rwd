@@ -1,0 +1,23 @@
+#!/bin/rc
+
+rfork e
+if(! ~ $#* 1){
+	echo 'usage: remotesys=xxx rwd dir' >[1=2]
+	exit usage
+}
+
+suf=''
+if(~ $#remotesys 1)
+	suf = @$remotesys
+if not
+	remotesys=''
+
+echo -n $1 >/dev/wdir
+b=`{basename $1}
+if(! ~ $#b 1)
+	b=/
+echo -n $b^$suf >/dev/label
+if(test -f /dev/acme/ctl){
+	echo name $1/-$remotesys >/dev/acme/ctl
+	echo dumpdir $1 >/dev/acme/ctl
+}

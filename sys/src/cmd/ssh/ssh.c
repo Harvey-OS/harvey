@@ -1,6 +1,7 @@
 #include "ssh.h"
 
-int cooked = 0;
+int cooked = 0;		/* user wants cooked mode */
+int raw = 0;		/* console is in raw mode */
 int crstrip;
 int interactive = -1;
 int usemenu = 1;
@@ -315,7 +316,6 @@ fromnet(Conn *c)
  * Lifted from telnet.c, con.c
  */
 
-static int raw;
 static int consctl = -1;
 static int outfd1=1, outfd2=2;	/* changed during system */
 static void system(Conn*, char*);
@@ -330,7 +330,8 @@ rawon(void)
 		return;
 	if(consctl < 0)
 		return;
-	write(consctl, "rawon", 5);
+	if(write(consctl, "rawon", 5) != 5)
+		return;
 	raw = 1;
 }
 
@@ -344,7 +345,8 @@ rawoff(void)
 		return;
 	if(consctl < 0)
 		return;
-	write(consctl, "rawoff", 6);
+	if(write(consctl, "rawoff", 6) != 6)
+		return;
 	raw = 0;
 }
 
@@ -522,20 +524,19 @@ fromstdin(Conn *c)
 	atexit(atexitkiller);
 	if(interactive){
 		consctl = open("/dev/consctl", OWRITE);
-		if(cooked==0)
+		if(!cooked)
 			rawon();
 	}else
 		consctl = -1;
 
-	if(cooked)
-		notify(cookedcatchint);
+	notify(cookedcatchint);
 
 	eofs = 0;
 	for(;;){
 		n = read(0, buf, sizeof(buf));
 		if(n < 0){
 			if(wasintr()){
-				if(cooked){
+				if(!raw){
 					buf[0] = 0x7f;
 					n = 1;
 				}else
@@ -555,7 +556,7 @@ fromstdin(Conn *c)
 			}
 			continue;
 		}
-		if(cooked && n==0){
+		if(!raw && n==0){
 			buf[0] = 0x4;
 			n = 1;
 		}
