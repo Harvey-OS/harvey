@@ -825,6 +825,8 @@ uchar	ymovtab[] =
 	ASHLL,	Ycol,	Yml,	6,	0xa4,0xa5,0,0,
 	ASHRL,	Ycol,	Yml,	6,	0xac,0xad,0,0,
 
+/* extra imul */
+	AIMULL,	Yml,	Yrl,	7,	Pm,0xaf,0,0,
 	0
 };
 
@@ -1276,6 +1278,12 @@ mfound:
 			asmand(&p->to, reg[p->from.index]);
 			break;
 		}
+		break;
+
+	case 7: /* imul rm,r */
+		*andptr++ = t[4];
+		*andptr++ = t[5];
+		asmand(&p->from, reg[p->to.type]);
 		break;
 	}
 }

@@ -862,17 +862,10 @@ no:
  * return log(n) if n is a power of 2 constant
  */
 int
-vlog(Node *n)
+log2(uvlong v)
 {
 	int s, i;
-	uvlong m, v;
-
-	if(n->op != OCONST)
-		goto bad;
-	if(typefd[n->type->etype])
-		goto bad;
-
-	v = n->vconst;
+	uvlong m;
 
 	s = 0;
 	m = MASK(8*sizeof(uvlong));
@@ -885,6 +878,18 @@ vlog(Node *n)
 	}
 	if(v == 1)
 		return s;
+	return -1;
+}
+
+int
+vlog(Node *n)
+{
+	if(n->op != OCONST)
+		goto bad;
+	if(typefd[n->type->etype])
+		goto bad;
+
+	return log2(n->vconst);
 
 bad:
 	return -1;
