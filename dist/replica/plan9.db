@@ -1328,7 +1328,7 @@ lib/face/48x48x4/x - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/y - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/z - 20000000775 sys sys 944941894 0
 lib/face/48x48x8 - 20000000775 sys sys 944941834 0
-lib/face/48x48x8/.dict - 664 sys sys 1060173964 1938
+lib/face/48x48x8/.dict - 664 sys sys 1062443500 1967
 lib/face/48x48x8/Z - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -1357,6 +1357,7 @@ lib/face/48x48x8/l - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/l/lucent.1 - 664 sys sys 944941833 801
 lib/face/48x48x8/l/lucio.1 - 664 sys sys 1059678230 1069
 lib/face/48x48x8/m - 20000000775 sys sys 944941833 0
+lib/face/48x48x8/m/matt.h.1 - 664 sys sys 1062443541 1161
 lib/face/48x48x8/m/michael.1 - 664 sys sys 1057005144 1806
 lib/face/48x48x8/n - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/n/nemo.1 - 664 sys sys 1056982242 2364
@@ -6812,7 +6813,7 @@ sys/src/cmd/aux/vga/error.c - 664 sys sys 1014925008 745
 sys/src/cmd/aux/vga/et4000.c - 664 sys sys 1014925008 6720
 sys/src/cmd/aux/vga/et4000hwgc.c - 664 sys sys 1014925008 552
 sys/src/cmd/aux/vga/hiqvideo.c - 664 sys sys 1048635653 9211
-sys/src/cmd/aux/vga/i81x.c - 664 sys sys 1062124996 11671
+sys/src/cmd/aux/vga/i81x.c - 664 sys sys 1062391404 11759
 sys/src/cmd/aux/vga/ibm8514.c - 664 sys sys 1014925009 2389
 sys/src/cmd/aux/vga/icd2061a.c - 664 sys sys 1014925009 2152
 sys/src/cmd/aux/vga/ics2494.c - 664 sys sys 1014925009 2000
@@ -7213,10 +7214,10 @@ sys/src/cmd/ext2srv/xfile.c - 664 sys sys 1055687749 2543
 sys/src/cmd/ext2srv/xfssrv.c - 664 sys sys 1055687749 1292
 sys/src/cmd/faces - 20000000775 sys sys 952888246 0
 sys/src/cmd/faces/dblook.c - 664 sys sys 944961084 359
-sys/src/cmd/faces/facedb.c - 664 sys sys 1021579994 8976
+sys/src/cmd/faces/facedb.c - 664 sys sys 1062460263 9927
 sys/src/cmd/faces/faces.h - 664 sys sys 1045419243 1071
 sys/src/cmd/faces/main.c - 664 sys sys 1048644465 13572
-sys/src/cmd/faces/mkfile - 664 sys sys 1035698248 378
+sys/src/cmd/faces/mkfile - 664 sys sys 1062460262 355
 sys/src/cmd/faces/plumb.c - 664 sys sys 1045505116 7132
 sys/src/cmd/faces/util.c - 664 sys sys 1035698250 569
 sys/src/cmd/factor.c - 664 sys sys 944961351 1348

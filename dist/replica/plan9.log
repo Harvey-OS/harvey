@@ -13113,3 +13113,8 @@
 1062279084 7 c sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1062277641 7952
 1062291689 0 c sys/man/8/secstore - 664 sys sys 1062291170 1159
 1062298899 0 c sys/src/cmd/ip/imap4d/copy.c - 664 sys sys 1062298855 4597
+1062392438 0 c sys/src/cmd/aux/vga/i81x.c - 664 sys sys 1062391404 11759
+1062444690 0 c lib/face/48x48x8/.dict - 664 sys sys 1062443500 1967
+1062444690 1 a lib/face/48x48x8/m/matt.h.1 - 664 sys sys 1062443541 1161
+1062460902 0 c sys/src/cmd/faces/facedb.c - 664 sys sys 1062460263 9927
+1062460902 1 c sys/src/cmd/faces/mkfile - 664 sys sys 1062460262 355

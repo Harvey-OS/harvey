@@ -195,7 +195,41 @@ translatedomain(char *dom)
 }
 
 static char*
-tryfindpicture(char *dom, char *user, int depth)
+tryfindpicture_user(char *dom, char *user, int depth)
+{
+	static char buf[200];
+	char *p, *q, *nextp, *file, *usr;
+	usr = getuser();
+
+	sprint(buf, "/usr/%s/lib/face/48x48x%d/.dict", usr, depth);
+	if((file = readfile(buf)) == nil)
+		return nil;
+
+	snprint(buf, sizeof buf, "%s/%s", dom, user);
+
+	for(p=file; p; p=nextp) {
+		if(nextp = strchr(p, '\n'))
+			*nextp++ = '\0';
+
+		if(*p == '#' || (q = strpbrk(p, " \t")) == nil)
+			continue;
+		*q++ = 0;
+
+		if(strcmp(buf, p) == 0) {
+			q += strspn(q, " \t");
+			q = buf+snprint(buf, sizeof buf, "/usr/%s/lib/face/48x48x%d/%s", usr, depth, q);
+			while(q > buf && (q[-1] == ' ' || q[-1] == '\t'))
+				*--q = 0;
+			free(file);
+			return buf;
+		}
+	}
+	free(file);
+	return nil;			
+}
+
+static char*
+tryfindpicture_global(char *dom, char *user, int depth)
 {
 	static char buf[200];
 	char *p, *q, *nextp, *file;
@@ -225,6 +259,17 @@ tryfindpicture(char *dom, char *user, int depth)
 	}
 	free(file);
 	return nil;			
+}
+
+static char*
+tryfindpicture(char *dom, char *user, int depth)
+{
+	char* result;
+
+	if((result = tryfindpicture_user(dom, user, depth)) != nil)
+		return result;
+
+	return tryfindpicture_global(dom, user, depth);
 }
 
 static char*
