@@ -110,7 +110,10 @@ pcmd(io *f, tree *t)
 		case HERE:
 			pchr(f, '<');
 		case READ:
+		case RDWR:
 			pchr(f, '<');
+			if(t->rtype==RDWR)
+				pchr(f, '>');
 			if(t->fd0!=0)
 				pfmt(f, "[%d]", t->fd0);
 			break;

@@ -319,6 +319,9 @@ outcode(tree *t, int eflag)
 		case HERE:
 			emitf(Xread);
 			break;
+		case RDWR:
+			emitf(Xrdwr);
+			break;
 		}
 		emiti(t->fd0);
 		outcode(c1, eflag);
@@ -466,6 +469,7 @@ codefree(code *cp)
 		return;
 	for(p = cp+1;p->f;p++){
 		if(p->f==Xappend || p->f==Xclose || p->f==Xread || p->f==Xwrite
+		|| p->f==Xrdwr
 		|| p->f==Xasync || p->f==Xbackq || p->f==Xcase || p->f==Xfalse
 		|| p->f==Xfor || p->f==Xjump
 		|| p->f==Xsubshell || p->f==Xtrue) p++;

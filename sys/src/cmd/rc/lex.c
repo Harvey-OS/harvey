@@ -267,8 +267,10 @@ yylex(void)
 			if(nextis(c)){
 				t->rtype = HERE;
 				*w++=c;
-			}
-			else t->rtype = READ;
+			} else if (nextis('>')){
+				t->rtype = RDWR;
+				*w++=c;
+			} else t->rtype = READ;
 			t->fd0 = 0;
 			break;
 		}

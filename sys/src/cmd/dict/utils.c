@@ -16,6 +16,9 @@ Dict dicts[] = {
 	{"thesaurus",	"Collins Thesaurus",
 	 "/lib/dict/thesaurus",	"/lib/dict/thesindex",
 	 thesnextoff,	thesprintentry,	thesprintkey},
+	{"roget",		"Project Gutenberg Roget's Thesaurus",
+	 "/lib/dict/roget", "/lib/dict/rogetindex",
+	 rogetnextoff,	rogetprintentry,	rogetprintkey},
 
 	{"ce",		"Gendai Chinese->English",
 	 "/lib/dict/world/sansdata/sandic24.dat",

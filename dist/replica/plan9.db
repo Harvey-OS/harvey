@@ -193,7 +193,7 @@
 386/bin/dial/drain - 775 sys sys 1068385869 4120
 386/bin/dial/expect - 775 sys sys 1085077029 58049
 386/bin/dial/pass - 775 sys sys 1085077030 38786
-386/bin/dict - 775 sys sys 1085077031 183178
+386/bin/dict - 775 sys sys 1100924601 185420
 386/bin/diff - 775 sys sys 1099800611 81711
 386/bin/disk - 20000000775 sys sys 984788664 0
 386/bin/disk/dump9660 - 775 sys sys 1085077032 150298
@@ -356,7 +356,7 @@
 386/bin/ps - 775 sys sys 1085077090 63831
 386/bin/pwd - 775 sys sys 1085077091 36869
 386/bin/ramfs - 775 sys sys 1085077091 86527
-386/bin/rc - 775 sys sys 1085077091 140758
+386/bin/rc - 775 sys sys 1100924601 141176
 386/bin/rdbfs - 775 sys sys 1089397315 166357
 386/bin/read - 775 sys sys 1085077092 56014
 386/bin/replica - 20000000775 sys sys 1018321168 0
@@ -450,7 +450,7 @@
 386/bin/upas/scanmail - 775 sys sys 1085077115 126758
 386/bin/upas/send - 775 sys sys 1098848045 189497
 386/bin/upas/smtp - 775 sys sys 1098848046 270306
-386/bin/upas/smtpd - 775 sys sys 1098848047 326493
+386/bin/upas/smtpd - 775 sys sys 1100924602 326474
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1085077117 81626
 386/bin/upas/token - 775 sys sys 1085077117 75518
@@ -890,6 +890,7 @@ lib/constitution - 644 sys sys 1020369312 45285
 lib/dicewords - 664 sys sys 1037463439 89128
 lib/dict - 20000000775 sys sys 1063656980 0
 lib/dict/README.pgw - 664 sys sys 1063660179 147
+lib/dict/README.roget - 664 sys sys 1100894426 105
 lib/face - 20000000775 sys sys 945049943 0
 lib/face/.machinelist - 644 sys sys 944945676 97
 lib/face/48x48x1 - 20000000755 sys sys 944941680 0
@@ -3897,6 +3898,7 @@ sys/lib/kbmap - 20000000775 sys sys 1079535430 0
 sys/lib/kbmap/ascii - 664 sys sys 1082221421 6248
 sys/lib/kbmap/azerty - 644 sys sys 1079473812 735
 sys/lib/kbmap/bgmap - 664 sys sys 1079475826 561
+sys/lib/kbmap/de - 664 sys sys 1100894012 6265
 sys/lib/kbmap/ee - 644 sys sys 1080222237 429
 sys/lib/kbmap/es - 664 sys sys 1079535430 1360
 sys/lib/kbmap/fi - 664 sys sys 1079617317 369
@@ -4744,7 +4746,7 @@ sys/man/1/proof - 664 sys sys 950892796 2297
 sys/man/1/ps - 664 sys sys 1019769758 1642
 sys/man/1/ps2pdf - 664 sys sys 1032632098 1359
 sys/man/1/pwd - 664 sys sys 957920008 930
-sys/man/1/rc - 664 sys sys 953844589 19457
+sys/man/1/rc - 664 sys sys 1100894083 19898
 sys/man/1/replica - 664 sys sys 1021927495 6619
 sys/man/1/resample - 664 sys sys 1015024740 1083
 sys/man/1/rio - 664 sys sys 1072729053 14321
@@ -7326,7 +7328,7 @@ sys/src/cmd/dict/ahd.c - 664 sys sys 944960882 2082
 sys/src/cmd/dict/canonind.awk - 664 sys sys 944960880 665
 sys/src/cmd/dict/comfix.awk - 664 sys sys 944960880 1202
 sys/src/cmd/dict/dict.c - 664 sys sys 1063660142 12040
-sys/src/cmd/dict/dict.h - 664 sys sys 1063656965 4087
+sys/src/cmd/dict/dict.h - 664 sys sys 1100894436 4172
 sys/src/cmd/dict/egfix - 775 sys sys 944960880 179
 sys/src/cmd/dict/egfix2 - 775 sys sys 944960880 134
 sys/src/cmd/dict/fromemf - 664 sys sys 944960880 2231
@@ -7335,7 +7337,7 @@ sys/src/cmd/dict/gefix - 775 sys sys 944960880 447
 sys/src/cmd/dict/getneeds - 775 sys sys 944960880 205
 sys/src/cmd/dict/jis208.c - 664 sys sys 944960882 60007
 sys/src/cmd/dict/kuten.h - 664 sys sys 944960882 3073
-sys/src/cmd/dict/mkfile - 664 sys sys 1063656964 385
+sys/src/cmd/dict/mkfile - 664 sys sys 1100894435 394
 sys/src/cmd/dict/mkindex.c - 664 sys sys 1063855359 1871
 sys/src/cmd/dict/movie.c - 664 sys sys 944960880 5361
 sys/src/cmd/dict/oed.c - 664 sys sys 1014925320 35942
@@ -7344,11 +7346,12 @@ sys/src/cmd/dict/pcollinsg.c - 664 sys sys 944960881 5114
 sys/src/cmd/dict/pgw.c - 664 sys sys 1063656967 29729
 sys/src/cmd/dict/rev.awk - 664 sys sys 944960880 74
 sys/src/cmd/dict/robert.c - 664 sys sys 944960882 6835
+sys/src/cmd/dict/roget.c - 664 sys sys 1100894437 2500
 sys/src/cmd/dict/simple.c - 664 sys sys 944960882 692
 sys/src/cmd/dict/slang.c - 664 sys sys 944960880 3229
 sys/src/cmd/dict/t.awk - 664 sys sys 944960880 189
 sys/src/cmd/dict/thesaurus.c - 664 sys sys 944960881 1273
-sys/src/cmd/dict/utils.c - 664 sys sys 1063656968 14200
+sys/src/cmd/dict/utils.c - 664 sys sys 1100894437 14345
 sys/src/cmd/dict/world.c - 664 sys sys 944960882 4264
 sys/src/cmd/diff - 20000000775 sys sys 944960882 0
 sys/src/cmd/diff/diff.h - 664 sys sys 1014925333 769
@@ -10184,10 +10187,10 @@ sys/src/cmd/ratfs/mkfile - 664 sys sys 1016943965 142
 sys/src/cmd/ratfs/proto.c - 664 sys sys 1016943965 8528
 sys/src/cmd/ratfs/ratfs.h - 664 sys sys 1016943965 2743
 sys/src/cmd/rc - 20000000775 sys sys 945182874 0
-sys/src/cmd/rc/code.c - 664 sys sys 1055698766 8158
+sys/src/cmd/rc/code.c - 664 sys sys 1100894086 8215
 sys/src/cmd/rc/compiling.on.unix - 664 sys sys 1071884773 37638
-sys/src/cmd/rc/exec.c - 664 sys sys 1055698767 16060
-sys/src/cmd/rc/exec.h - 664 sys sys 1055698767 2779
+sys/src/cmd/rc/exec.c - 664 sys sys 1100894087 16525
+sys/src/cmd/rc/exec.h - 664 sys sys 1100894087 2804
 sys/src/cmd/rc/fmtquote.c - 664 sys sys 1055698768 3609
 sys/src/cmd/rc/fns.h - 664 sys sys 1055698768 1377
 sys/src/cmd/rc/getflags.c - 664 sys sys 1055698770 3954
@@ -10198,12 +10201,12 @@ sys/src/cmd/rc/haventfork.c - 664 sys sys 1055698771 3122
 sys/src/cmd/rc/here.c - 664 sys sys 1055698771 2497
 sys/src/cmd/rc/io.c - 664 sys sys 1055698773 3623
 sys/src/cmd/rc/io.h - 664 sys sys 944961082 532
-sys/src/cmd/rc/lex.c - 664 sys sys 1055698774 6042
+sys/src/cmd/rc/lex.c - 664 sys sys 1100894085 6100
 sys/src/cmd/rc/mkfile - 664 sys sys 1055698774 812
-sys/src/cmd/rc/pcmd.c - 664 sys sys 1055698775 2628
-sys/src/cmd/rc/pfnc.c - 664 sys sys 1055698776 1303
+sys/src/cmd/rc/pcmd.c - 664 sys sys 1100894086 2681
+sys/src/cmd/rc/pfnc.c - 664 sys sys 1100894087 1320
 sys/src/cmd/rc/plan9.c - 664 sys sys 1055698776 9382
-sys/src/cmd/rc/rc.h - 664 sys sys 1091904421 3314
+sys/src/cmd/rc/rc.h - 664 sys sys 1100894086 3329
 sys/src/cmd/rc/simple.c - 664 sys sys 1055698777 8993
 sys/src/cmd/rc/subr.c - 664 sys sys 1055698779 1206
 sys/src/cmd/rc/syn.y - 664 sys sys 944961083 3128
@@ -10916,7 +10919,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1097901337 19565
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1064589597 1084
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1098803934 30216
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1100893957 30201
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1061836986 6949
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1098803961 10231
