@@ -5279,7 +5279,7 @@ sys/src/9/pc/archmp.c - 664 sys sys 1067722683 2323
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1071245548 6177
-sys/src/9/pc/devarch.c - 664 sys sys 1074785125 18549
+sys/src/9/pc/devarch.c - 664 sys sys 1075072880 18432
 sys/src/9/pc/devether.c - 664 sys sys 1048644042 10178
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1020284820 19987
@@ -5293,6 +5293,7 @@ sys/src/9/pc/devtv.c - 664 sys sys 1071245470 45750
 sys/src/9/pc/devusb.c - 664 sys sys 1063857423 18352
 sys/src/9/pc/devvga.c - 664 sys sys 1063857412 8714
 sys/src/9/pc/dma.c - 664 sys sys 1015014515 4736
+sys/src/9/pc/errstr.h - 664 sys sys 1075069582 2137
 sys/src/9/pc/ether2000.c - 664 sys sys 1017854323 2839
 sys/src/9/pc/ether2114x.c - 664 sys sys 1067891102 41253
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
@@ -5341,7 +5342,6 @@ sys/src/9/pc/pccpu - 664 sys sys 1073852088 802
 sys/src/9/pc/pccpuf - 664 sys sys 1073851852 1315
 sys/src/9/pc/pcdisk - 664 sys sys 1073851851 1427
 sys/src/9/pc/pcf - 664 sys sys 1073851852 1455
-sys/src/9/pc/pcf.c - 664 sys sys 1058659039 5110
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1067722894 1383
 sys/src/9/pc/pci.c - 664 sys sys 1071245502 24015
@@ -10773,19 +10773,20 @@ sys/src/cmd/upas/bayes/msgtok.c - 664 sys sys 1063951010 4185
 sys/src/cmd/upas/bayes/regcomp.c - 664 sys sys 1063951010 9707
 sys/src/cmd/upas/bayes/regen.c - 664 sys sys 1063951011 2452
 sys/src/cmd/upas/common - 20000000775 sys sys 1015088626 0
+sys/src/cmd/upas/common/appendfiletombox.c - 664 sys sys 1075064534 2154
 sys/src/cmd/upas/common/aux.c - 664 sys sys 1019498851 2300
 sys/src/cmd/upas/common/become.c - 664 sys sys 1015009623 430
-sys/src/cmd/upas/common/common.h - 664 sys sys 1015009623 1921
+sys/src/cmd/upas/common/common.h - 664 sys sys 1075069143 2021
 sys/src/cmd/upas/common/config.c - 664 sys sys 944961316 254
 sys/src/cmd/upas/common/libsys.c - 664 sys sys 1071334866 14459
 sys/src/cmd/upas/common/mail.c - 664 sys sys 944961315 1346
 sys/src/cmd/upas/common/makefile - 664 sys sys 944961315 366
-sys/src/cmd/upas/common/mkfile - 664 sys sys 1031707285 251
+sys/src/cmd/upas/common/mkfile - 664 sys sys 1075069142 273
 sys/src/cmd/upas/common/process.c - 664 sys sys 1015009624 2984
 sys/src/cmd/upas/common/sys.h - 664 sys sys 1055699577 2223
 sys/src/cmd/upas/filterkit - 20000000775 sys sys 1018549521 0
 sys/src/cmd/upas/filterkit/dat.h - 664 sys sys 1018549520 107
-sys/src/cmd/upas/filterkit/deliver.c - 664 sys sys 1063854806 1951
+sys/src/cmd/upas/filterkit/deliver.c - 664 sys sys 1075069156 1075
 sys/src/cmd/upas/filterkit/list.c - 664 sys sys 1020313488 4751
 sys/src/cmd/upas/filterkit/mkfile - 664 sys sys 1048645255 264
 sys/src/cmd/upas/filterkit/pipefrom.sample - 775 sys sys 1041184939 380
@@ -10796,7 +10797,7 @@ sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1018549521 1312
 sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1047490337 4267
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1068350246 27381
-sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1071689378 16021
+sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1075069146 16233
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1071334860 28493
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1071334861 7465
@@ -10820,7 +10821,7 @@ sys/src/cmd/upas/misc/omail.rc - 775 sys sys 944961318 197
 sys/src/cmd/upas/misc/qmail - 775 sys sys 944961318 119
 sys/src/cmd/upas/misc/remotemail - 775 sys sys 954266541 113
 sys/src/cmd/upas/misc/rewrite - 664 sys sys 954264578 661
-sys/src/cmd/upas/mkfile - 664 sys sys 1064589595 1904
+sys/src/cmd/upas/mkfile - 664 sys sys 1075069142 1910
 sys/src/cmd/upas/ml - 20000000775 sys sys 1015096763 0
 sys/src/cmd/upas/ml/common.c - 664 sys sys 1046643067 3371
 sys/src/cmd/upas/ml/dat.h - 664 sys sys 1015096762 517
@@ -10830,7 +10831,7 @@ sys/src/cmd/upas/ml/mlmgr.c - 664 sys sys 1045505888 2332
 sys/src/cmd/upas/ml/mlowner.c - 664 sys sys 1015096763 1142
 sys/src/cmd/upas/ned - 20000000775 sys sys 1015013194 0
 sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
-sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1071335787 43442
+sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1075069148 43120
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1015009816 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1064589604 186
 sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1063854524 14283
@@ -10877,6 +10878,9 @@ sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1072561144 24496
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1061836986 6949
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1067722785 9661
+sys/src/cmd/upas/unesc - 20000000775 sys sys 1075080255 0
+sys/src/cmd/upas/unesc/mkfile - 664 sys sys 1075080255 164
+sys/src/cmd/upas/unesc/unesc.c - 664 sys sys 1075080255 789
 sys/src/cmd/upas/vf - 20000000775 sys sys 1015096796 0
 sys/src/cmd/upas/vf/mkfile - 664 sys sys 1064393881 241
 sys/src/cmd/upas/vf/vf.c - 664 sys sys 1064589607 16851

@@ -40,6 +40,10 @@ extern String*	escapespecial(String*);
 extern String*	unescapespecial(String*);
 extern int	returnable(char*);
 
+/* in copymessage */
+extern int	appendfiletombox(int, int);
+extern int	appendfiletofile(int, int);
+
 /* mailbox types */
 #define MF_NORMAL 0
 #define MF_PIPE 1
