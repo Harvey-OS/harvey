@@ -16687,3 +16687,4 @@
 1094675442 24 d sys/src/boot/pc/donprint.c - 664 sys sys 1019240172 0
 1094677243 0 c sys/man/8/9load - 664 sys sys 1094676489 9170
 1094700648 0 c sys/src/boot/pc/mkfile - 664 sys sys 1094700526 3090
+1094837475 0 c lib/vgadb - 664 sys sys 1094837311 28572

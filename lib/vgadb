@@ -204,6 +204,7 @@ ctlr							# CL-GD542x
 ctlr
 	0xC0039="CL-GD5436/46 PCI VGA BIOS Version"
 	0xC0039="CL-GD5446 PCI VGA BIOS Version"	
+	vid=0x1013 did=0x00b8		# CL-GD5446, at least in QEMU
 	link=vga
 	ctlr=clgd542x linear=1
 	hwgc=clgd542xhwgc
