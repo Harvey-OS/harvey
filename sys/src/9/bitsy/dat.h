@@ -246,8 +246,11 @@ struct PCMslot
 	/* cis info */
 	int	cisread;	/* set when the cis has been read */
 	char	verstr[512];	/* version string */
-	uchar	cpresent;	/* config registers present */
-	ulong	caddr;		/* relative address of config registers */
+	int	ncfg;		/* number of configurations */
+	struct {
+		ushort	cpresent;	/* config registers present */
+		ulong	caddr;		/* relative address of config registers */
+	} cfg[8];
 	int	nctab;		/* number of config table entries */
 	PCMconftab	ctab[8];
 	PCMconftab	*def;		/* default conftab */
