@@ -4,7 +4,7 @@ lex \- generator of lexical analysis programs
 .SH SYNOPSIS
 .B lex
 [
-.B -tvn
+.B -tvn9
 ]
 [
 .I file ...
@@ -41,6 +41,9 @@ Opposite of
 .BR -v ;
 .B -n
 is default.
+.TP
+.B -9
+Adds code to be able to compile through the native C compilers.
 .SH EXAMPLES
 This program converts upper case to lower,
 removes blanks at the end of lines,

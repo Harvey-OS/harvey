@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxifast.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxifast.c,v 1.4 2001/10/06 03:27:57 rayjj Exp $ */
 /* Fast monochrome image rendering */
 #include "gx.h"
 #include "memory_.h"
@@ -145,17 +145,19 @@ gs_image_class_1_simple(gx_image_enum * penum)
     penum->unpack = sample_unpack_copy;
     penum->unpack_bps = 8;
     if (penum->use_mask_color) {
-	/* Adjust the colors and mask status accordinate to the mask color. */
+	/*
+	 * Set the masked color as 'no_color' to make it transparent
+	 *  according to the mask color range and the decoding.
+	 */
 	penum->masked = true;
 	if (penum->mask_color.values[0] == 1) {
-	    /* v0 = v1 = 1, 1 is transparent. */
-	    memcpy(&penum->map[0].table.lookup4x1to32[0],
-		   lookup4x1to32_inverted, 16 * 4);
-	    penum->icolor1 = penum->icolor0;
+	    /* if v0 == 1, 1 is transparent since v1 must be == 1 to be a valid range */
+	    color_set_pure(penum->map[0].inverted ? &penum->icolor0 : &penum->icolor1,
+			gx_no_color_index);
 	} else if (penum->mask_color.values[1] == 0) {
-	    /* v0 = v1 = 0, 0 is transparent. */
-	    memcpy(&penum->map[0].table.lookup4x1to32[0],
-		   lookup4x1to32_identity, 16 * 4);
+	    /* if v1 == 0, 0 is transparent since v0 must be == 0 to be a valid range */
+	    color_set_pure(penum->map[0].inverted ? &penum->icolor1 : &penum->icolor0,
+			gx_no_color_index);
 	} else {
 	    /*
 	     * The only other possible in-range value is v0 = 0, v1 = 1.
@@ -163,7 +165,6 @@ gs_image_class_1_simple(gx_image_enum * penum)
 	     */
 	    rproc = image_render_skip;
 	}
-	color_set_pure(&penum->icolor0, gx_no_color_index);
 	penum->map[0].decoding = sd_none;
     }
     return rproc;
@@ -325,7 +326,12 @@ image_simple_expand(byte * line, int line_x, uint raster,
     dda_init(xl, xl0, x_extent, w);
     dxx4 = xl.step;
     dda_step_add(dxx4, xl.step);
-    dda_step_add(dxx4, dxx4);
+    /* egcc - 2.91.66 generates incorrect code for
+     * dda_step_add(dxx4, dxx4); 
+     * Using the temp variable.
+     */
+    dxx8 = dxx4;
+    dda_step_add(dxx4, dxx8);
     dxx8 = dxx4;
     dda_step_add(dxx8, dxx4);
     dxx16 = dxx8;

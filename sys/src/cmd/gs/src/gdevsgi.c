@@ -4,7 +4,7 @@
  * public domain.
  */
 
-/*$Id: gdevsgi.c,v 1.1 2000/03/09 08:40:41 lpd Exp $*/
+/*$Id: gdevsgi.c,v 1.2 2001/08/01 00:48:23 stefan911 Exp $*/
 /* SGI raster file driver */
 #include "gdevprn.h"
 #include "gdevsgi.h"
@@ -28,7 +28,7 @@ private gx_device_procs sgi_procs =
   prn_color_procs(gdev_prn_open, gdev_prn_output_page, gdev_prn_close,
 		  sgi_map_rgb_color, sgi_map_color_rgb);
 
-gx_device_printer far_data gs_sgirgb_device =
+const gx_device_printer far_data gs_sgirgb_device =
   sgi_prn_device(sgi_procs, "sgirgb", 3, 24, 255, 255, sgi_print_page);
 
 private gx_color_index

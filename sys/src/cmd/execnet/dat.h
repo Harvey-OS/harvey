@@ -1,24 +1,3 @@
-typedef struct Ioproc Ioproc;
-/* asynchronous i/o in another proc */
-struct Ioproc
-{
-	long (*read)(Ioproc*, int, void*, long);
-	long (*write)(Ioproc*, int, void*, long);
-	int (*close)(Ioproc*, int);
-	void (*interrupt)(Ioproc*);
-
-	int pid;	/* internal */
-	Channel *c;
-	int inuse;
-	void (*op)(Ioproc*);
-	long arg[10];
-	long ret;
-	char err[ERRMAX];
-	Ioproc *next;
-};
-Ioproc*	ioproc(void);
-void		closeioproc(Ioproc*);
-
 typedef struct Msg Msg;
 struct Msg
 {

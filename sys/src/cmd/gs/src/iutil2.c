@@ -1,22 +1,22 @@
 /* Copyright (C) 1993, 1994, 1998 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: iutil2.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: iutil2.c,v 1.2.6.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Level 2 utilities for Ghostscript interpreter */
 #include "memory_.h"
 #include "string_.h"
@@ -133,7 +133,8 @@ dict_read_password(password * ppass, const ref * pdref, const char *pkey)
     return 0;
 }
 int
-dict_write_password(const password * ppass, ref * pdref, const char *pkey)
+dict_write_password(const password * ppass, ref * pdref, const char *pkey,
+			bool change_allowed)
 {
     ref *pvalue;
     int code = dict_find_password(&pvalue, pdref, pkey);
@@ -142,6 +143,10 @@ dict_write_password(const password * ppass, ref * pdref, const char *pkey)
 	return code;
     if (ppass->size >= r_size(pvalue))
 	return_error(e_rangecheck);
+    if (!change_allowed &&
+    	bytes_compare(pvalue->value.bytes + 1, pvalue->value.bytes[0],
+	    ppass->data, ppass->size) != 0)
+	return_error(e_invalidaccess);
     memcpy(pvalue->value.bytes + 1, ppass->data,
 	   (pvalue->value.bytes[0] = ppass->size));
     return 0;

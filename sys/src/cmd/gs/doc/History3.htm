@@ -1,7 +1,8 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>History of Ghostscript versions 3.n</title>
-<!-- $Id: History3.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
+<!-- $Id: History3.htm,v 1.13.2.2 2002/02/01 05:31:24 raph Exp $ -->
 <!-- Originally: history3.txt -->
 <!--
 	WARNING: do not use Pete Kaiser's emacs function "gs-toc" alone to
@@ -10,6 +11,7 @@
 	the body of the file.  Or if you do, first look at the original
 	TOC to see how to edit it for visual conciseness.
 -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -17,9 +19,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>History of Ghostscript versions 3.n</font>
-</table>
+<h1>History of Ghostscript versions 3.n</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -666,19 +666,16 @@ overview</a>.
 
 <!-- [1.0 end visible header] ============================================== -->
 
-<pre>
+<h2><a name="Version3.70p1"></a>Version 3.70 patch 1 (6/24/96)</h2>
 
-<h1><a name="Version3.70p1"></a>Version 3.70 patch 1 (6/24/96)</h1>
-
+<p>
 This contains a few last-minute patches before the release.
 
-<h2><a name="V3.70p1_Procedures"></a>Procedures</h2>
-
+<h3><a name="V3.70p1_Procedures"></a>Procedures</h3><pre>
 Comments out the color inkjet drivers in the cc-based makefile, because a
 bug in Sun's cc prevents them from compiling.  (cc-head.mak)
 
-<h2><a name="V3.70p1_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V3.70p1_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The os2prn driver smashed memory.  (gdevos2p.c)
 	- Some initialized structures weren't declared 'static'.
@@ -686,12 +683,15 @@ Fixes bugs:
 	- The PNG driver wouldn't compile with some older versions of the
 PNG library.  (gdevpng.c)
 
-<h1><a name="Version3.70"></a>Version 3.70 (limited) (6/23/96)</h1>
+</pre>
 
-This is the candidate fileset for 4.0.  Aside from one optimization for the
-PDF writer, the only changes are bug fixes.
+<h2><a name="Version3.70"></a>Version 3.70 (limited) (6/23/96)</h2>
 
-<h2><a name="V3.70_Documentation"></a>Documentation</h2>
+<p>
+This is the candidate fileset for 4.0.  Aside from one optimization
+for the PDF writer, the only changes are bug fixes.
+
+<h3><a name="V3.70_Documentation"></a>Documentation</h3><pre>
 
 Renames all the documentation files from *.doc to *.txt, since the .doc
 extension didn't give any information about the format of the file.
@@ -706,7 +706,7 @@ Adds a new file describing Aladdin's C coding practices.  (c-style.txt)
 Updates the man pages to refer to version 4.0.  (gs.1, pdf2ps.1, ps2ascii.1,
 ps2pdf.1)
 
-<h2><a name="V3.70_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.70_Procedures"></a>Procedures</h3><pre>
 
 Changes some file names to fit within the MS-DOS 8.3 limit.  (gs.mak)
 
@@ -716,7 +716,7 @@ MSC).  (watc.mak, watcwin.mak, os2.mak, msc.mak, msvcwint.mak)
 Changes the -sFONTMAP= switch so it can take a list of font names, like a
 search path.  (use.txt)
 
-<h2><a name="V3.70_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.70_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- Signed and unsigned values were mixed inconsistently.  (gdevcdj.c)
@@ -740,7 +740,7 @@ Disallows BitsPerPixel=16 in the MS Windows and OS/2 drivers, since this bit
 depth is not supported by Windows and would require special extra buffering.
 (install.txt, dwtext.h, dwtext.cpp, gdevmswn.c, gdevpm.c, gdevwpr2.c)
 
-<h2><a name="V3.70_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.70_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- On the PC platforms, file names weren't changed to reflect the
@@ -749,7 +749,7 @@ wccommon.mak)
 
 Modifies some makefiles for greater reusability.  (bclib.mak, watclib.mak)
 
-<h2><a name="V3.70_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.70_Fonts"></a>Fonts</h3><pre>
 
 Changes the font searching rules in the following NON-BACKWARD-COMPATIBLE
 way: (gs_fonts.ps, gs_res.ps)
@@ -773,7 +773,7 @@ font, or no Fontmap entry leads to successful loading; previously,
 	- If loading a font fails, the interpreter tries the next Fontmap
 entry; previously, it fell back to font substitution.
 
-<h2><a name="V3.70_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.70_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Filters didn't peek ahead for an EOD (see Streams below).
@@ -785,7 +785,7 @@ in Level 1.  (zmisc2.c, zusparam.c)
 Adds LIBPATH as a predefined name in systemdict.  Its value is an array of
 strings comprising the library search path.  (imain.c)
 
-<h2><a name="V3.70_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.70_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- A Dests dictionary entry with an array (rather than a dictionary)
@@ -793,7 +793,7 @@ value caused an error.  (pdf_main.ps)
 	- Rotated pages could have incorrect translation and/or clipping.
 (pdf_main.ps)
 
-<h2><a name="V3.70_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.70_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- If a buffer boundary fell just before an EOD, and the client read
@@ -801,7 +801,7 @@ exactly as much data as was present before the EOD, filters didn't consume
 the EOD.  (This is required as a tricky consequence of the Adobe
 specification.)  (stream.h, strimpl.h, stream.c)
 
-<h2><a name="V3.70_Library"></a>Library</h2>
+</pre><h3><a name="V3.70_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- An extra column of bits could get turned on at the right edge of
@@ -811,16 +811,20 @@ floating point overflows.  (gxpcopy.c)
 	- Banding with large line widths could truncate curves or introduce
 spurious lines.  (gxclpath.c)
 
-<h1><a name="Version3.69"></a>Version 3.69 (limited) (6/14/96)</h1>
+</pre>
 
+<hr>
+
+<h2><a name="Version3.69"></a>Version 3.69 (limited) (6/14/96)</h2>
+
+<p>
 More bug fixes, plus one irresistible new feature: the ability to use
 TrueType fonts as freely as Type 1 fonts.  Also, one new feature (outside
 clipping) that was needed for Aladdin's PCL XL project.  We incremented the
 version number because of the change in trapezoid and path filling (see
 under Library below).
 
-<h2><a name="V3.69_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.69_Documentation"></a>Documentation</h3><pre>
 Brings documentation about fonts up to date.  (fonts.doc)
 
 Updates current.doc to reflect changes since 3.53.  (current.doc)
@@ -836,7 +840,7 @@ Updates the OS/2 documentation to make it current.  (install.doc, make.doc)
 
 Documents -dCOLORSCREEN=0.  (use.doc)
 
-<h2><a name="V3.69_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.69_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- 'make clean' didn't work in the Watcom environment.
@@ -874,7 +878,7 @@ Adds the list of devices to --help, since HylaFax depends on this.
 Adds -dCOLORSCREEN=0 to indicate use of 4 separate color screens with the
 same frequency and angle.  (gs_init.ps)
 
-<h2><a name="V3.69_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.69_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- When ps2epsi encountered a blank page, it called the
@@ -885,7 +889,7 @@ underflow.  (ps2epsi.ps)
 	- Images in PostScript files produced by pdf2ps were processed about
 50 times slower than they should have been.  (gs_pdf.ps)
 
-<h2><a name="V3.69_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.69_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- An #include was omitted.  (gdevpdfi.c)
@@ -932,7 +936,7 @@ Adds anti-aliasing capability to the os2pm device.  (gdevpm.c)
 
 Increases the sizes of some tables in the PDF writer.  (gdevpdfx.h)
 
-<h2><a name="V3.69_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.69_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- A patch for the MS Windows platform was accidentally omitted.
@@ -957,7 +961,7 @@ in use.  (dwdll.cpp, gsdll.c)
 
 Adds a DLL-compatible main program for OS/2.  (dpmainc.c, gp_os2.c, gsdll.c)
 
-<h2><a name="V3.69_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.69_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- The WingDings TrueType font wasn't loaded properly.  (gs_ttf.ps)
@@ -965,7 +969,7 @@ Fixes bugs:
 Makes changes so that TrueType fonts can appear in the Fontmap and can be
 loaded directly.  (gs_fonts.ps, gs_ttf.ps)
 
-<h2><a name="V3.69_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.69_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Executing a .quit with only 1 element on the operand stack caused
@@ -1000,7 +1004,7 @@ problem.  (imain.c)
 
 Adds .set/currentrenderalgorithm operators for testing.  (zrop.c)
 
-<h2><a name="V3.69_Library"></a>Library</h2>
+</pre><h3><a name="V3.69_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The TrueType rasterizer didn't map quadratic to cubic splines
@@ -1070,12 +1074,14 @@ Adds an output_page procedure to the bounding box device, for testing.
 Adds a sample device that keeps track of the "render algorithm", for PCL5c
 emulation.  (gdevrrgb.c)
 
-<h1><a name="Version3.68p4"></a>Version 3.68 patch 4 (5/23/96)</h1>
+</pre>
 
+<h2><a name="Version3.68p4"></a>Version 3.68 patch 4 (5/23/96)</h2>
+
+<p>
 More minor bug fixes, mostly related to the MS Windows implementation.
 
-<h2><a name="V3.68p4_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.68p4_Documentation"></a>Documentation</h3><pre>
 Further updates various doc files to make them more useful to new users.
 (NEWS, README, current.doc, helpers.doc, new-user.doc)
 
@@ -1084,7 +1090,7 @@ Adds user-contributed documentation for ps2pdf.  (ps2pdf.doc, unix-end.mak)
 Documents a bug in the Borland C++ 4.52 compiler, and where to find the
 patch for it.  (make.doc)
 
-<h2><a name="V3.68p4_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.68p4_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- A command line exceeded the MS-DOS 120 character limit.
@@ -1092,7 +1098,7 @@ Fixes bugs:
 
 A file was accidentally omitted from the fileset.  (wmakebat.bat)
 
-<h2><a name="V3.68p4_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.68p4_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- Many of the 'show' operators didn't work properly if the PDF
@@ -1125,7 +1131,7 @@ Adds a compile-time option to the 'bit' drivers to expand 4-bit pixels to
 only tools we have available for displaying CMYK images require 32 bits per
 pixel.  (gdevbit.c)
 
-<h2><a name="V3.68p4_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.68p4_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- In DEC C, &lt;time.h&gt; does define the timeval struct.  (time_.h)
@@ -1134,12 +1140,12 @@ Changes gsdll_init() to take an additional argument, a window handle.  This
 is a NON-BACKWARD-COMPATIBLE change.  (dll.doc, dwdll.h, gsdll.h, dwdll.cpp,
 dwmain.cpp, dwmainc.cpp, gsdll.c)
 
-<h2><a name="V3.68p4_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.68p4_Fonts"></a>Fonts</h3><pre>
 
 Updates more Fontmaps to include the new URW++ fonts.  (Fontmap.OS2,
 Fontmap.ATM)
 
-<h2><a name="V3.68p4_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.68p4_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- The default operator array table wasn't big enough.  (iinit.c)
@@ -1150,7 +1156,7 @@ Adds encoding vectors for Windows 3.1 Latin 1, Latin 2, and Latin 5
 encodings.  None of these are loaded in the standard configuration.
 (gs_wl{1,2,5}_e.ps)
 
-<h2><a name="V3.68p4_Library"></a>Library</h2>
+</pre><h3><a name="V3.68p4_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Some tracing output was incorrect or missing.  (gxdither.c)
@@ -1171,28 +1177,29 @@ Adds tracing output for freeing malloc'ed blocks at the end of execution.
 Adds a gs_dashpath procedure that expands dashes in the same way that
 gs_flattenpath expands curves.  (gspath.h, gspath1.c)
 
-<h1><a name="Version3.68p3"></a>Version 3.68 patch 3 (5/17/96)</h1>
+</pre>
 
+<h2><a name="Version3.68p3"></a>Version 3.68 patch 3 (5/17/96)</h2>
+
+<p>
 More bug fixes during the beta test period.  AccurateScreens now works
 properly.
 
-<h2><a name="V3.68p3_Procedures"></a>Procedures</h2>
-
+<h3><a name="V3.68p3_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- The help message was too long to fit on a PC screen or standard
 terminal.  (imainarg.c)
 	- Failure to run tar_cat wasn't detected.  (unix-end.mak,
 unixtail.mak)
 
-<h2><a name="V3.68p3_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V3.68p3_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- In the PostScript files produced by pdf2ps, images using ASCII85
 encoding would cause a typecheck error.  (gs_pdf.ps)
 	- pdf2ps wrote out strings longer than 200 characters incorrectly.
 (pdf_2ps.ps)
 
-<h2><a name="V3.68p3_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.68p3_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs in gdevcdj.c (according to the author, we have no way to test
 this):
@@ -1213,12 +1220,12 @@ gdevccr.c)
 
 Adds an anti-aliasing option for MS Windows.  (gdevmswn.c, gdevwdib.c)
 
-<h2><a name="V3.68p3_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.68p3_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs in the Windows platform:
 	- One had to type "quit" twice to exit.  (dwdll.h, dwdll.cpp)
 
-<h2><a name="V3.68p3_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.68p3_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Platform fonts didn't work properly if the document's primary
@@ -1231,7 +1238,7 @@ error occurred during initialization.  (gs_fonts.ps)
 sometimes ignored the setting of the AccurateScreens user parameter.
 (zht2.c)
 
-<h2><a name="V3.68p3_Library"></a>Library</h2>
+</pre><h3><a name="V3.68p3_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- gs_join_none was defined, but not implemented.  (gxstroke.c)
@@ -1244,12 +1251,14 @@ poor results.  (gshtscr.c)
 	- Color screens were broken (bug introduced in 3.68).  (gxdht.h,
 gzht.h, gsht.c, gshtscr.c)
 
-<h1><a name="Version3.68p2"></a>Version 3.68 patch 2 (5/13/96)</h1>
+</pre>
 
+<h2><a name="Version3.68p2"></a>Version 3.68 patch 2 (5/13/96)</h2>
+
+<p>
 This is another set of patches for the next general release.
 
-<h2><a name="V3.68p2_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.68p2_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- Windows NT and Windows 95 implementations were identified as
 "under development" rather than available.  (README)
@@ -1260,7 +1269,7 @@ Fixes bugs:
 Splits off information for new users into a separate file.  (README,
 new-user.doc)
 
-<h2><a name="V3.68p2_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.68p2_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- gettimeofday takes 2 arguments on SVR4 systems more recent than
@@ -1275,7 +1284,7 @@ gcc-head.mak, ugcclib.mak)
 Changes the unset commands in the Unix script to assignments, because a few
 older Unix shells don't provide unset.  (unixtail.mak)
 
-<h2><a name="V3.68p2_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.68p2_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- An #include incorrectly referred directly to a system header.
@@ -1287,16 +1296,16 @@ Adds a compile-time option to the 'bit' drivers to remove top and bottom
 whitespace.  This change was required in order to track down a customer bug.
 (gdevbit.c)
 
-<h2><a name="V3.68p2_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.68p2_Interpreter"></a>Interpreter</h3><pre>
 
 Updates the interpreter for the split in the gstate API.  (igstate.h)
 
-<h2><a name="V3.68p2_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.68p2_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- Some compilers don't define NULL widely enough.  (spngp.c)
 
-<h2><a name="V3.68p2_Library"></a>Library</h2>
+</pre><h3><a name="V3.68p2_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- There was a minor typo (&amp; for &amp;&amp;) that didn't affect execution.
@@ -1308,27 +1317,31 @@ interfaces to the graphics state.  (gsstate.h, gxstate.h, gzstate.h,
 gsstate.c)
 	- A 'private' declaration was missing (yet again).  (gxclimag.c)
 
-<h1><a name="Version3.68p1"></a>Version 3.68 patch 1 (5/10/96)</h1>
+</pre>
 
-This is the first bug fix (patch) incremental release for the next general
-release.
+<h2><a name="Version3.68p1"></a>Version 3.68 patch 1 (5/10/96)</h2>
 
-<h2><a name="V3.68p1_Procedures"></a>Procedures</h2>
+<p>
+This is the first bug fix (patch) incremental release for the next
+general release.
 
+<h3><a name="V3.68p1_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- Many Windows-specific files were omitted from the previous
 fileset: dw*.rc, dw*.cpp.
 
-<h1><a name="Version3.68"></a>Version 3.68 (limited) (5/9/96)</h1>
+</pre>
 
+<h2><a name="Version3.68"></a>Version 3.68 (limited) (5/9/96)</h2>
+
+<p>
 This release cleans up the new Windows files, mostly implements the
 high-level driver API for bitmap images, and adds practical strip
 (AccurateScreens) halftoning.  This is the first "serious beta" fileset for
 the next general release.  It still has more problems than I would have
 liked.
 
-<h2><a name="V3.68_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.68_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The names of the executable files for MS Windows were out of date.
 (make.doc)
@@ -1364,7 +1377,7 @@ Updates fonts.doc to remove references to fonts.mak.  (fonts.doc)
 Describes how to substitute an LZW compressor for the LZW-compatible
 compressor provided in the standard release.  (make.doc)
 
-<h2><a name="V3.68_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.68_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- Some lines had exceeded the 120-character limit of the
@@ -1389,12 +1402,12 @@ Removes fonts.mak, which is no longer relevant.  (fonts.mak)
 
 Brings the font compilation procedures up to date.  (cfonts.mak, int.mak)
 
-<h2><a name="V3.68_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.68_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- There was an extra 'show' in one file.  (align.ps)
 
-<h2><a name="V3.68_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.68_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The bit devices were missing the map_color_rgb procedure.
@@ -1419,20 +1432,20 @@ Updates Gunther Hess's Epson Stylus Color driver from 1.21 to 1.90.  (Aladdin
 Enterprises takes no responsibility for this driver: if you have questions,
 contact the author.)  (devices.doc, devs.mak, gdevstc*.c, gdevstc.h)
 
-<h2><a name="V3.68_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.68_Platforms"></a>Platforms</h3><pre>
 
 Removes some obsolete MS Windows files and #defines.  (gp_mswtx.h,
 gp_mswtx.c, gp_mswin.h)
 
 Works around a memory limitation in the Watcom make utility.  (wmakebat.bat)
 
-<h2><a name="V3.68_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.68_Fonts"></a>Fonts</h3><pre>
 
 Changes the standard Fontmap from using the low-quality fonts converted from
 bitmaps to using high-quality fonts recently contributed by URW++.
 (Fontmap, Fontmap.GS)
 
-<h2><a name="V3.68_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.68_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- A macro containing an if-else, and a macro generating a compound
@@ -1477,7 +1490,7 @@ Updates clients for strip-based halftones.  (zpcolor.c)
 Updates the initialization code to pass the correct (system) allocator to
 the library initialization.  (imain.c)
 
-<h2><a name="V3.68_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.68_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- If a filter reached EOD exactly at the end of reading data for
@@ -1493,7 +1506,7 @@ algorithms in the PNG specification.  (We'd like to use the code in the PNG
 library, but it's too deeply embedded in the rest of the PNG machinery, and
 it also doesn't provide for suspendable I/O.)  (spngpx.h, spngp.c)
 
-<h2><a name="V3.68_Library"></a>Library</h2>
+</pre><h3><a name="V3.68_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- A test for pure color was backwards, causing garbage output or
@@ -1581,15 +1594,17 @@ different default allocator for the library.  (gslib.h, gsinit.c)
 Adds a resize_object operation to the allocator API.  (gsmemory.h,
 gsalloc.c, gsmemory.c)
 
-<h1><a name="Version3.67"></a>Version 3.67 (limited) (4/12/96)</h1>
+</pre>
 
+<h2><a name="Version3.67"></a>Version 3.67 (limited) (4/12/96)</h2>
+
+<p>
 This release restructures the MS Windows and OS/2 code to be primarily DLL-
 rather than EXE-based.  See under Platforms below for more news.  This
 release was put out in a hurry in order to get the new DLL code into
 testers' hands; it has more rough edges than usual.
 
-<h2><a name="V3.67_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.67_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- A definition &amp; use comment was incorrect.  (scanchar.h)
 	- William Bader's e-mail address was wrong.  (README)
@@ -1597,7 +1612,7 @@ Fixes bugs:
 Adds documentation for the new begin_image, image_data, and end_image
 procedures.  THIS INTERFACE IS STILL SUBJECT TO CHANGE.  (drivers.doc)
 
-<h2><a name="V3.67_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.67_Procedures"></a>Procedures</h3><pre>
 
 Renames all the *core.dev modules as *lib.dev.  (int.mak, *lib.mak, vms.mak,
 gdevmrop.c)
@@ -1608,7 +1623,7 @@ Moves the configuration parameter definitions from gconf.c to a new file
 gscdefs.c.  (bcwin*.mak, *lib.mak, gs.mak, int.mak, lib.mak, unixtail.mak,
 vms.mak, gconf.c, gscdefs.c)
 
-<h2><a name="V3.67_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.67_Platforms"></a>Platforms</h3><pre>
 
 Restructures the MS Windows and OS/2 code to be primarily DLL- rather than
 EXE-based.  This involves two minor NON-BACKWARD-COMPATIBLE changes to the DLL
@@ -1623,7 +1638,7 @@ gdevms*.*, gdevpm.c, gdevw*.c, gp_mswin.c, gp_os2.c, gsos2.def, gswin.rc)
 
 Adds the BMP drivers to the Watcom platform.  (watc.mak)
 
-<h2><a name="V3.67_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.67_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- gs.c assumed the presence of stdio.  (gs.c)
@@ -1636,7 +1651,7 @@ zpaint.c)
 
 Speeds up the search operator slightly.  (zstring.c)
 
-<h2><a name="V3.67_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.67_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- If the PDF interpreter was present, running a PostScript file
@@ -1645,7 +1660,7 @@ didn't close the file properly if it caused an error.  (pdf_main.ps)
 Speeds up embedded font loading by making an internal buffer bigger.
 (pdf_font.ps)
 
-<h2><a name="V3.67_Library"></a>Library</h2>
+</pre><h3><a name="V3.67_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- There could be some non-zero garbage between the width and the
@@ -1672,15 +1687,17 @@ gspcolor.c, gxccache.c)
 Removes an unnecessary level of call for path filling.  (gxpaint.h,
 gxfill.c, gxpaint.c)
 
-<h1><a name="Version3.66"></a>Version 3.66 (limited) (4/8/96)</h1>
+</pre>
 
+<h2><a name="Version3.66"></a>Version 3.66 (limited) (4/8/96)</h2>
+
+<p>
 This release adds support for TrueType fonts and Type 42 (encapsulated
 TrueType) PostScript fonts.  The MS Windows driver now interacts properly
 with the garbage collector.  This release also includes a new, high-quality
 set of free fonts.
 
-<h2><a name="V3.66_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.66_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The list of generic makefiles had gotten out of date.  (make.doc)
 
@@ -1706,7 +1723,7 @@ procedures.  (drivers.doc)
 
 Updates the documentation for building zlib and libpng.  (make.doc)
 
-<h2><a name="V3.66_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.66_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The environment space overflowed on some inferior Unix systems.
@@ -1720,7 +1737,7 @@ loading a TrueType font directly (by converting it to a Type 42 on the fly).
 Updates the makefiles and procedures to libpng 0.88 and zlib 1.0.
 (libpng.mak, zlib.mak)
 
-<h2><a name="V3.66_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.66_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- pdf2ps could produce lines longer than 255 characters.
@@ -1732,7 +1749,7 @@ Updates lines.ps to test the new stroke code more fully.  (lines.ps)
 
 Allows omitting the second argument of ps2pdf, as for ps2epsi.  (ps2pdf)
 
-<h2><a name="V3.66_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.66_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- A routine was incorrectly declared "private".  (I wish gcc caught
@@ -1769,14 +1786,14 @@ compile-time option to a settable run-time variable.  (gdevx.c)
 Patches around a problem with libpng 0.88 that can't be fixed without
 editing a configuration file.  (gdevpng.c)
 
-<h2><a name="V3.66_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.66_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- %g formats with sscanf don't work on NeXT systems.  (gdevpdft.c,
 iutil.c, zdouble.c)
 	- getenv could be declared inconsistently.  (gp_unix.c)
 
-<h2><a name="V3.66_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.66_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- The Type 1 font interpreter sometimes set the flatness too large.
@@ -1792,7 +1809,7 @@ more than once, distorting the character shape.  (gxtype1.h, gxhint3.c)
 	- Oversampling wasn't applied to large enough characters.
 (gschar.c)
 
-<h2><a name="V3.66_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.66_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- The scanner accepted /[, /], /&lt;&lt;, and /&gt;&gt; as literal names (and
@@ -1826,7 +1843,7 @@ zfont1.c, zfont2.c, zfont42.c)
 Adds a few ANSI sheet sizes (commented out, for documentation only).
 (gs_statd.ps)
 
-<h2><a name="V3.66_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.66_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- Clients who called pdfopen/close rather than runpdf could get an
@@ -1840,7 +1857,7 @@ new objects, an error occurred.  (pdf_main.ps)
 	- Some very old Level 1 interpreters couldn't deal with a file
 object embedded in a procedure.  (gs_pdf.ps)
 
-<h2><a name="V3.66_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.66_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The PSStringEncode filter didn't always produce printable 7-bit
@@ -1858,7 +1875,7 @@ there are no external clients of this procedure.  (stream.h, stream.c)
 Splits up sfilter.h so that the headers correspond more directly with the
 implementations.  (sfilter.h, sstring.h, sstring.c)
 
-<h2><a name="V3.66_Library"></a>Library</h2>
+</pre><h3><a name="V3.66_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The default device in the library configuration was device 1, not
@@ -1914,15 +1931,17 @@ gsimage2.c, gspcolor.c, gxacpath.c, gxccache.c, gxcht.c, gxclpath.c,
 gxclread.c, gxdcconv.c, gxdither.c, gxfill.c, gxdraw.c, gxht.c, gxpaint.c,
 gxpcmap.c, gxstroke.c)
 
-<h1><a name="Version3.65"></a>Version 3.65 (limited) (3/9/96)</h1>
+</pre>
 
+<h2><a name="Version3.65"></a>Version 3.65 (limited) (3/9/96)</h2>
+
+<p>
 This release adds garbage collection for device instances.  ****** NOTE:
 Because of changes in memory management, if you are using the MS Windows
 driver (mswin), you must run with -dNOGC.  This is a temporary problem which
 will be fixed before the next beta release.
 
-<h2><a name="V3.65_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.65_Documentation"></a>Documentation</h3><pre>
 Documents the C API equivalent of a -d switch for setting a flag like
 NOPAUSE.  (imain.h)
 
@@ -1951,8 +1970,7 @@ has gotten completely out of hand.  (gdevcdj.c).
 Documents the TextAlphaBits and GraphicsAlphaBits device parameters.
 (language.doc)
 
-<h2><a name="V3.65_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V3.65_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- gs_pdfwr.ps and pdf2ps.1 weren't installed on Unix systems.
 (unix-end.mak)
@@ -1974,7 +1992,7 @@ Moves the library parts of the HSB color and Level 1 path (arcs, pathbbox,
 path enumeration) options from int.mak to lib.mak, and adds them to the
 library makefiles.  (int.mak, lib.mak; bclib.mak. ugcclib.mak, watclib.mak)
 
-<h2><a name="V3.65_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.65_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- pdf2ps would fail if it encountered a font with a standard
@@ -1991,7 +2009,7 @@ conversion time -- primarily useful for debugging.  (pdf_2ps.ps)
 Adds a utility for viewing PCX files, so we can preview high-resolution
 output in a reasonable compressed format.  (unix-end.mak, viewpcx.ps)
 
-<h2><a name="V3.65_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.65_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- Some compilers require an extra #include to define structures even
@@ -2049,7 +2067,7 @@ implemented (more efficiently) in gdevm24.c.  (gdevpbm.c)
 Adds TextAlphaBits and GraphicsAlphaBits as readable parameters for all
 devices.  (gsdparam.c, gdevpbm.c, gdevsvga.c)
 
-<h2><a name="V3.65_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.65_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- There were some attempts to coerce long to short pointers
@@ -2061,7 +2079,7 @@ incorrectly on 16-bit systems.  (gdevwdib.c)
 	- A file included gxdevice.h unnecessarily.  (bcwin.mak,
 bcwin32.mak, msvcwint.mak, gp_mswin.c)
 
-<h2><a name="V3.65_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.65_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Storing into a read-only dictionary with def or store was
@@ -2131,7 +2149,7 @@ Adds a hook procedure scan_comment_proc for processing all comments,
 similar to scan_dsc_proc.  If both are set, scan_comment_proc is used only
 for non-DSC comments.  (iscan.h, iscan.c)
 
-<h2><a name="V3.65_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.65_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- Encrypted PDF files produced a random error (usually ioerror in
@@ -2144,7 +2162,7 @@ exactly right, either.)  (pdf_base.ps)
 Gets rid of the special handling of the LZW decoding filter, since the
 filter itself now handles the Predictor facility.  (pdf_base.ps)
 
-<h2><a name="V3.65_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.65_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- Configurations with LZW encoding but not decoding had an
@@ -2168,7 +2186,7 @@ szlibe.c
 Adds a decoding stream for the run-length compression used in PCX.
 (spcxx.h, spcxd.c)
 
-<h2><a name="V3.65_Library"></a>Library</h2>
+</pre><h3><a name="V3.65_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- A recent edit introduced an extraneous right parenthesis.
@@ -2229,16 +2247,18 @@ rather than the C heap: our allocator is considerably faster than malloc.
 Speeds up stroking a little, especially in 90 degree rotated coordinate
 systems.  (gxstroke.c)
 
-<h1><a name="Version3.64"></a>Version 3.64 (limited, incremental) (1/27/96)</h1>
+</pre>
 
+<h2><a name="Version3.64"></a>Version 3.64 (limited, incremental) (1/27/96)</h2>
+
+<p>
 This release fixes a few more bugs, including some serious bugs in band
 lists, and adds pdfmark processing to the PDF writer.  The PDF writer is
 still not fit for real use, since it converts all text characters into 720
 dpi bitmaps and turns images into zillions of tiny rectangles (!), but it
 should be producing legal output.
 
-<h2><a name="V3.64_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.64_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- Frans van Hoesel's e-mail address was incorrect.  (gdevdjet.c)
 	- The man page for ansi2knr was out of date.  (ansi2knr.1)
@@ -2256,7 +2276,7 @@ Notes (here, in NEWS) that the change for device prototypes in 3.61 made the
 protection attributes of a device significant for the first time.  Only the
 writable attribute is significant so far.  (news)
 
-<h2><a name="V3.64_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.64_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The .dev rules in the library makefiles didn't list echogs as a
@@ -2274,7 +2294,7 @@ Adds -A-, -E-, and -Z-... to turn off debugging flags.  (gs.c)
 Adds a -dDELAYBIND switch to delay binding operators, to allow special
 packages like pstotext to redefine them.  (gs_init.ps)
 
-<h2><a name="V3.64_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.64_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- Fonts produced by rollconv.ps left a couple of items on the
@@ -2288,7 +2308,7 @@ on some old compilers.  (ansi2knr.c)
 Changes align.ps so it can be used directly to determine the margin
 parameters.  (align.ps, psfiles.doc)
 
-<h2><a name="V3.64_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.64_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The TIFF/F (G3 and G4) drivers were broken (bug introduced in
@@ -2322,7 +2342,7 @@ for compatibility with Adobe Illustrator.  (gdevpdfx.h, gdevpdf*.c)
 Adds a driver for ImageMagick's MIFF format.  The driver currently only
 produces 24-bit, direct color, RLE compressed output.  (gdevmiff.c)
 
-<h2><a name="V3.64_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.64_Platforms"></a>Platforms</h3><pre>
 
 Changes the gp_check_interrupts platform procedure so that instead of just
 returning a Boolean, it can now also return a negative error code.  THIS IS
@@ -2330,7 +2350,7 @@ returning a Boolean, it can now also return a negative error code.  THIS IS
 implementations of this procedure should only have been returning 0 or 1 up
 to now, no existing code should need to be changed.  (gpcheck.h, gsmisc.c)
 
-<h2><a name="V3.64_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.64_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- devicenames was accidentally deleted.  (gs_init.ps)
@@ -2351,7 +2371,7 @@ Updates the DCT filters for IJG release 6a.  (zfdctc.c)
 Provides an API call for getting the real stdio files.  (imain.h,
 gs.c, gsmain.c)
 
-<h2><a name="V3.64_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.64_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- If the CCITTFaxEncode stream encountered an output buffer boundary
@@ -2362,7 +2382,7 @@ confusing the garbage collector.  (stream.c)
 	- The weighting coefficient structures used for image scaling
 weren't declared properly for the garbage collector.  (siscale.h, siscale.c)
 
-<h2><a name="V3.64_Library"></a>Library</h2>
+</pre><h3><a name="V3.64_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Unrotated patterns always used the bounding box size as the step,
@@ -2407,14 +2427,16 @@ code copying.  (gxcmap.c)
 Implements RasterOp for 24-bit RGB devices.  (gdevm8.c, gdevm24.c,
 gdevmrop.c)
 
-<h1><a name="Version3.63"></a>Version 3.63 (limited, incremental) (1/14/96)</h1>
+</pre>
 
+<h2><a name="Version3.63"></a>Version 3.63 (limited, incremental) (1/14/96)</h2>
+
+<p>
 This release has the usual collection of bug fixes, and two significant
 additions: AccurateScreens, and the first draft of a PostScript-&gt;PDF
 converter ("distiller").
 
-<h2><a name="V3.63_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.63_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- Some documentation for pstoppm.ps was out of date.  (psfiles.doc)
 	- Documentation for acctest.ps, view*.ps, and zeroline.ps was
@@ -2441,7 +2463,7 @@ Adds some new man pages.  (pdf2ps.1, ps2ascii.1)
 
 Greatly expands lib.doc.  (lib.doc)
 
-<h2><a name="V3.63_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.63_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The pg target for Unix platforms didn't include some necessary
@@ -2456,7 +2478,7 @@ initialization procedures.  (gconf.c, genconf.c, gsinit.c)
 Adds a -dCOLORSCREEN[=false] switch to force enabling or disabling of
 4-color screens.  (gs_init.ps, gs_setpd.ps)
 
-<h2><a name="V3.63_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.63_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- The prfont utility didn't leave enough of a margin on the left.
@@ -2469,7 +2491,7 @@ program.  (acctest.ps)
 Adds ps2pdf[.bat] scripts for invoking the new pdfwrite driver.  (ps2pdf,
 ps2pdf.bat, unix-end.mak)
 
-<h2><a name="V3.63_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.63_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The x11alpha driver had a patch that suppressed output in many
@@ -2483,14 +2505,14 @@ Adds a pdfwrite driver that creates syntactically correct PDF output.  The
 output is only reasonable for fill/stroke graphics, not for text or images.
 (iscan.h, sa85x.h, sfilter.h, gdevpdf.c, sfilter2.c, zfdecode.c)
 
-<h2><a name="V3.63_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.63_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The test for WinExec failure on Win32 was incorrect.  (gp_mswin.c)
 	- getenv was declared redundantly on OS/2.  (gp_os2.c)
 	- gs16spl.c was missing &lt;string.h&gt;.  (gs16spl.c)
 
-<h2><a name="V3.63_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.63_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Images read data in smaller and smaller increments (performance
@@ -2508,7 +2530,7 @@ zpaint.c)
 Encapsulates the filling of free memory blocks in a macro.  (igc.c,
 igcstr.c)
 
-<h2><a name="V3.63_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.63_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- If the first line of a file began with % but the line was longer
@@ -2517,12 +2539,12 @@ than 255 characters, an error occurred.  (pdf_main.ps)
 	- Extraneous blank lines in the trailer or cross-reference region
 caused an error.  (pdf_base.ps, pdf_main.ps)
 
-<h2><a name="V3.63_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.63_Streams"></a>Streams</h3><pre>
 
 Speeds up image interpolation a little.  Much more could be still be done.
 (siscale.c)
 
-<h2><a name="V3.63_Library"></a>Library</h2>
+</pre><h3><a name="V3.63_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- An error in handling a boundary condition could cause a horizontal
@@ -2581,14 +2603,16 @@ documentation.  The current implementation can produce very large
 super-cells, so it will not always be able to actually increase the screen
 accuracy.  (gxdht.h, gsht.c, gshtscr.c)
 
-<h1><a name="Version3.62"></a>Version 3.62 (limited, incremental) (12/26/95)</h1>
+</pre>
 
+<h2><a name="Version3.62"></a>Version 3.62 (limited, incremental) (12/26/95)</h2>
+
+<p>
 This release makes some licensee-requested improvements in the garbage
 collector and fixes a couple of minor bugs.  It also constitutes a
 checkpoint for the forthcoming forked 3.53 release.
 
-<h2><a name="V3.62_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.62_Documentation"></a>Documentation</h3><pre>
 Notes that for Win32s, gs16spl.exe must be in the same directory as
 gswin32.exe.  (install.doc)
 
@@ -2597,7 +2621,7 @@ Changes `3.N' to a real version number in the man page.  (gs.1)
 Adds a reference to dos-psv, another "dumb terminal" user interface for
 Ghostscript intended for MS-DOS users.  (README)
 
-<h2><a name="V3.62_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.62_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The stack size for some of the PC platforms was set too small.
@@ -2608,7 +2632,7 @@ a value of 1 for the orientation parameter of setpageparams indicates
 portrait orientation.  THIS IS A NON-BACKWARD-COMPATIBLE CHANGE.  It only
 affects files created for roll-media imagesetters.  (gs_init.ps, use.doc)
 
-<h2><a name="V3.62_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.62_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- The definition of the op_index_op_array_table macro had an
@@ -2631,7 +2655,7 @@ contents of dictionaries, and ppstack, which acts like pstack but uses ===.
 Changes ESTACKPRINT and OSTACKPRINT to use === rather than ==.  (gs_init.ps,
 gs_setpd.ps)
 
-<h2><a name="V3.62_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.62_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- If a PDF file substituted a calibrated color space for the
@@ -2639,20 +2663,22 @@ DeviceGray or DeviceRGB color space using a ColorSpace resource, the
 PostScript file that pdf2ps produced from that PDF file caused an error.
 (gs_pdf.ps)
 
-<h2><a name="V3.62_Library"></a>Library</h2>
+</pre><h3><a name="V3.62_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The debugging code for checking the sorting of line lists didn't
 check for an empty list.  (gxfill.c)
 
-<h1><a name="Version3.61"></a>Version 3.61 (limited) (12/10/95)</h1>
+</pre>
 
+<h2><a name="Version3.61"></a>Version 3.61 (limited) (12/10/95)</h2>
+
+<p>
 This limited release fixes a few bugs (including a couple that significantly
 affected character quality) and also includes some substantial performance
 improvements.
 
-<h2><a name="V3.61_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.61_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The directory name for the PNG library was incorrect.
 (libpng.mak)
@@ -2670,7 +2696,7 @@ Documents the new distinction between devices and device prototypes.
 
 Adds a pointer to DEC's free pstotext utility.  (README)
 
-<h2><a name="V3.61_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.61_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- zlib.mak omitted some files in the encoding module dependencies.
@@ -2686,7 +2712,7 @@ makefiles.  (int.mak, lib.mak, *.mak)
 Adds a 'pg' target to the Unix makefiles, for building profiling
 configurations.  (unix-end.mak)
 
-<h2><a name="V3.61_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.61_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- Type 1 fonts in which some characters are defined by PostScript
@@ -2704,7 +2730,7 @@ fonts.  (rollconv.ps)
 Adds a utility for detecting compiler problems that affect Ghostscript.
 (bughunt.sh)
 
-<h2><a name="V3.61_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.61_Drivers"></a>Drivers</h3><pre>
 
 Adds anti-aliasing capability (-dTextAlphaBits and -dGraphicsAlphaBits) to
 the PGM and PPM drivers.  (gdevpbm.c)
@@ -2712,7 +2738,7 @@ the PGM and PPM drivers.  (gdevpbm.c)
 Declares the static_procs member of the device structure as const *.  This
 should have been done a long time ago!  (drivers.doc, gxdevice.h)
 
-<h2><a name="V3.61_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.61_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- Printing didn't work in 32-bit MS Windows environments.
@@ -2727,7 +2753,7 @@ Adds a conditional to work around a bug in gcc 2.7.x (it didn't recognize
 that the target of a const T * might still be mutable through aliasing).
 (stdpre.h)
 
-<h2><a name="V3.61_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.61_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- Rasterizing a character in a Type 1 font with an invalid FontBBox
@@ -2738,7 +2764,7 @@ left some garbage on the operand stack (bug introduced in 3.52 or 3.60).
 Adds a little more support for CID fonts and CMaps.  (gs_cidfn.ps,
 gs_cmap.ps)
 
-<h2><a name="V3.61_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.61_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- An #include &lt;memory_.h&gt; was missing.  (ziodev.h)
@@ -2774,7 +2800,7 @@ setpagedevice calls .setdefaultscreen before calling the Install procedure,
 so that Install can set different parameters if it wishes.  Note that
 setdevice does not do this.  (gs_init.ps, gs_setpd.ps)
 
-<h2><a name="V3.61_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.61_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- Tf set the current text font twice, and interacted with pdf2ps in
@@ -2795,12 +2821,12 @@ Speeds up the initial processing of PDF files by caching the map from page
 numbers to page objects, and by not scanning the outlines if we aren't
 producing PostScript output.  (pdf_2ps.ps, pdf_base.ps, pdf_main.ps)
 
-<h2><a name="V3.61_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.61_Streams"></a>Streams</h3><pre>
 
 Adds zlibEncode/Decode filters.  (lib.mak, szlibx.h, szlibc.c, szlibd.c,
 szlibe.c)
 
-<h2><a name="V3.61_Library"></a>Library</h2>
+</pre><h3><a name="V3.61_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- glyphshow displayed a character with code 0 rather than the
@@ -2844,16 +2870,18 @@ converting from oversampling to alpha values, and by speeding up the
 bounding box computation itself.  (gsbitops.h, gdevabuf.c, gsbitops.c,
 gxccman.c)
 
-<h1><a name="Version3.60"></a>Version 3.60 (limited) (11/20/95)</h1>
+</pre>
 
+<h2><a name="Version3.60"></a>Version 3.60 (limited) (11/20/95)</h2>
+
+<p>
 (Note: release numbers 3.54 through 3.59 were deliberately skipped.)  This
 internal release includes a major redesign of band lists in order to reduce
 their size for embedded implementations, to move towards supporting "vector"
 output formats, and to further separate the imager library from the language
 interpreters.
 
-<h2><a name="V3.60_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.60_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- A comment was incorrect.  (viewpbm.ps)
 	- The PixelDifference filters were not documented.  (language.doc)
@@ -2882,7 +2910,7 @@ Clarifies XLIBDIR vs. XLIBDIRS.  (make.doc)
 Adds user-contributed documentation on building Ghostscript under QNX.
 (make.doc)
 
-<h2><a name="V3.60_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.60_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The rule for building dfaxhigh.dev had a typo.  (devs.mak)
@@ -2913,7 +2941,7 @@ Adds the PNG drivers to the standard Unix configurations.
 Adds a -dNOFONTPATH switch to suppress any consultation of the FONTPATH
 variable or the GS_FONTPATH environment variable.  (gs_fonts.ps, gs_init.ps)
 
-<h2><a name="V3.60_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.60_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- The default scaling for viewing PBM files was computed
@@ -2937,7 +2965,7 @@ Updates the Unix lpr scripts to handle a wider variety of device options.
 Adds a utility for converting files produced by Macromedia's Rollup program
 to a Type 0 form directly usable by Ghostscript.  (rollconv.ps)
 
-<h2><a name="V3.60_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.60_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- Forwarding devices passed an incorrect first argument when
@@ -2980,7 +3008,7 @@ BubbleJet drivers, contributed by a user.  (gdevcdj.c)
 
 Adds a contributed 12-bit RGB TIFF driver.  (gdevtfnx.c)
 
-<h2><a name="V3.60_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.60_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The printjob created by Ghostscript was called "Ghostscirpt"
@@ -2994,12 +3022,12 @@ procedure that returns epoch seconds/nanoseconds.  This too is a
 NON-BACKWARD-COMPATIBLE change; it is required because we overlooked the
 prior change in a batch of user-contributed code.  (gp.h, gp_*.c)
 
-<h2><a name="V3.60_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.60_Fonts"></a>Fonts</h3><pre>
 
 Adds Heavy as a synonym for Bold when doing intelligent font substitution.
 (gs_fonts.ps)
 
-<h2><a name="V3.60_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.60_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- The setup for the CCITTFax filters set the 'raster' element
@@ -3055,7 +3083,7 @@ milliseconds; the %Calendar% IODevice provides calendar times.  (zmisc.c)
 Extends the LZW filters to handle the PDF Predictor (pixel-differencing)
 option.  (zfdecode.c, zfilter2.c, zfpdiff.c (deleted))
 
-<h2><a name="V3.60_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.60_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- The length of an image's data was sometimes calculated
@@ -3066,7 +3094,7 @@ occur.  (gs_pdf.ps)
 	- Text that was both filled and stroked caused an error.
 (gs_pdf.ps)
 
-<h2><a name="V3.60_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.60_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- When closing an encoding filter stream whose target was also a
@@ -3096,7 +3124,7 @@ of N bytes.  Default value: 1.  (scfx.h, scfd.c, scfe.c)
 Increases the maximum width of a scan line for the CCITTFaxEncode filter to
 32000 pixels.  (scf.h)
 
-<h2><a name="V3.60_Library"></a>Library</h2>
+</pre><h3><a name="V3.60_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Cached characters sometimes had extra blank space on the left,
@@ -3204,8 +3232,13 @@ Substantially speeds up entering anti-aliased characters in the cache, by
 removing white space before compressing rather than vice versa.
 (gsbitops.c, gxccman.c)
 
-<h1><a name="Version3.53"></a>Version 3.53 (1/10/96)</h1>
+</pre>
 
+<hr>
+
+<h2><a name="Version3.53"></a>Version 3.53 (1/10/96)</h2>
+
+<p>
 This is an anomalous, out-of-sequence release requested by a commercial
 licensee.  It consists of 3.52 plus the following retrofits from 3.60
 through 3.63:
@@ -3216,12 +3249,12 @@ through 3.63:
 	- A few other important fixes.
 It does NOT fix all problems reported since 3.52.
 
+<p>
 The list of changes below indicates which subsequent release was the source
 of each change.  In several cases, minor editing of the change was required
 to make it compatible with 3.52.
 
-<h2><a name="V3.53_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.53_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	[3.61] The analysis of curve monotonocity in gxpcopy.c had an error.
 (gxpcopy.c)
@@ -3240,7 +3273,7 @@ for Ghostscript intended for MS-DOS users.  (README)
 [3.60] Adds a reference to ps_view.ps, a "dumb terminal" user interface for
 Ghostscript intended for MS-DOS users.  (README)
 
-<h2><a name="V3.53_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.53_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	[3.60] The geninit program (the implementation of COMPILE_INITS=1)
@@ -3255,7 +3288,7 @@ fix this was to rename it to icfontab.c.  (gs.mak, int.mak, ccfontab.c)
 FONTPATH variable or the GS_FONTPATH environment variable.  (gs_fonts.ps,
 gs_init.ps)
 
-<h2><a name="V3.53_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.53_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	[3.61] pdf2ps didn't write Widths or Encoding in the converted file,
@@ -3270,7 +3303,7 @@ Kanji fonts.  (rollconv.ps)
 [3.60] Adds a utility for converting files produced by Macromedia's Rollup
 program to a Type 0 form directly usable by Ghostscript.  (rollconv.ps)
 
-<h2><a name="V3.53_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.53_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	[3.60] Because of a typo, the LaserJet drivers had incorrect
@@ -3281,7 +3314,7 @@ margins.  This was probably a new bug in 3.5x.  (gdevdjet.c)
 	[3.60] The x11alpha driver set the blue component of colors
 incorrectly.  (gdevxalt.c)
 
-<h2><a name="V3.53_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.53_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	[3.63] The test for WinExec failure on Win32 was incorrect.
@@ -3301,7 +3334,7 @@ instead of "Ghostscript".  (gp_os2.c)
 recognize that the target of a const T * might still be mutable through
 aliasing).  (stdpre.h)
 
-<h2><a name="V3.53_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.53_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	[3.61] Rasterizing a character in a Type 1 font with an invalid
@@ -3313,7 +3346,7 @@ FontBBox left some garbage on the operand stack (bug introduced in 3.52 or
 [3.60] Adds Heavy as a synonym for Bold when doing intelligent font
 substitution.  (gs_fonts.ps)
 
-<h2><a name="V3.53_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.53_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	[3.63] Invoking setpagedevice with an undefined key, even with
@@ -3354,7 +3387,7 @@ or 1% of the total cache size).  (gs_init.ps)
 [3.60] Implements parts of the Type 1 BuildChar callout in C.  (gs_type1.ps,
 zchar.c)
 
-<h2><a name="V3.53_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.53_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	[3.62] If a PDF file substituted a calibrated color space for the
@@ -3386,7 +3419,7 @@ could occur.  (gs_pdf.ps)
 page numbers to page objects, and by not scanning the outlines if we aren't
 producing PostScript output.  (pdf_2ps.ps, pdf_base.ps, pdf_main.ps)
 
-<h2><a name="V3.53_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.53_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	[3.60] When closing an encoding filter stream whose target was also
@@ -3399,7 +3432,7 @@ enough.  (slzwce.c)
 	[3.60] Doing a sgets on a closed stream could call sreadbuf,
 possibly causing an error.  (stream.c)
 
-<h2><a name="V3.53_Library"></a>Library</h2>
+</pre><h3><a name="V3.53_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	[3.63] On 16-bit platforms, the computation of t2 and t3 in
@@ -3462,22 +3495,24 @@ rest of the code.  (gsbitops.c)
 cache, by removing white space before compressing rather than vice versa.
 (gsbitops.c, gxccman.c)
 
-<h1><a name="Version3.52"></a>Version 3.52 (limited) (10/6/95)</h1>
+</pre>
 
+<h2><a name="Version3.52"></a>Version 3.52 (limited) (10/6/95)</h2>
+
+<p>
 This is an incremental release to fix a few problems in 3.51.  Since it is
 being made in an environment with no network connectivity, it will probably
 not be released to the general public.  ****** THE CHANGES MARKED WITH ***
 BELOW WERE LOST IN THE PROCESS OF SHUFFLING FILESETS BETWEEN ENVIRONMENTS.
 THEY ARE INCORPORATED IN 3.60 BUT NOT IN 3.52. ******
 
-<h2><a name="V3.52_Procedures"></a>Procedures</h2>
-
+<h3><a name="V3.52_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- The fileset included a meaningless empty file.  (acctest.ps)
 	*** The definition of pdfread.dev did an ADDMOD, not a SETMOD.
 (int.mak)
 
-<h2><a name="V3.52_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.52_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- The RunLengthEncode filter used with a dictionary argument could
@@ -3496,7 +3531,7 @@ zdict.c)
 *** Implements parts of the Type 1 BuildChar callout in C.  (gs_type1.ps,
 ifont.h, zchar.c, zfont1.c, zfont2.c)
 
-<h2><a name="V3.52_Library"></a>Library</h2>
+</pre><h3><a name="V3.52_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Braces were missing in an initializer.  (gxdcolor.h)
@@ -3512,13 +3547,16 @@ Speeds up displaying very short strings a little.  (gschar.c)
 
 *** Implements parts of the Type 1 BuildChar callout in C.  (gxfont.h)
 
-<h1><a name="Version3.51"></a>Version 3.51 (9/27/95)</h1>
+</pre>
 
+<h2><a name="Version3.51"></a>Version 3.51 (9/27/95)</h2>
+
+<p>
 This is the first public release since 3.33.  Its main features are a
 working setpagedevice, a working PDF interpreter, and a working PDF to PS
 converter.
 
-<h2><a name="V3.51_Documentation"></a>Documentation</h2>
+<h3><a name="V3.51_Documentation"></a>Documentation</h3><pre>
 
 Fixes bugs:
 	- The -dSHORTERRORS switch wasn't documented in enough places.
@@ -3526,7 +3564,7 @@ Fixes bugs:
 	- The DLL documentation was internally inconsistent.  (dll.doc)
 	- The %pipe% file name syntax wasn't documented.  (language.doc)
 
-<h2><a name="V3.51_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.51_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- caption.ps wasn't installed properly.  (unix-end.mak)
@@ -3537,13 +3575,13 @@ int.mak, *.mak)
 Adds the 24-bit color TIFF driver to all configurations that support
 black-and-white TIFF.  (*.mak)
 
-<h2><a name="V3.51_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.51_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- align.ps was omitted from the fileset.  (psfiles.doc, align.ps,
 unix-end.mak)
 
-<h2><a name="V3.51_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.51_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- A driver had some \s in formal parameter lists.  (gdevcdj.c)
@@ -3565,7 +3603,7 @@ Makes many changes to the stcolor driver, submitted by the developer just
 before the release.  (devices.doc, unix-end.mak, gdevstc.h, gdevstc*.c,
 stcinfo.ps, stcolor.ps, stcinfo.ps)
 
-<h2><a name="V3.51_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.51_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- usertime (and realtime) were broken on VMS.  (gp_vms.c)
@@ -3575,19 +3613,19 @@ Removes the color inkjet drivers from the 16-bit Windows executable, because
 they overflow the 64K default data segment; adds PCX, TIFF, and BMP output
 formats.  (bcwin.mak)
 
-<h2><a name="V3.51_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.51_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- A routine was declared 'private' inconsistently.  (zcie.c)
 	- -dSHORTERRORS didn't remove enough non-Adobe error output.
 (gs_init.ps)
 
-<h2><a name="V3.51_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.51_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- The ProcSet relied on the presence of NullFont.  (gs_pdf.ps)
 
-<h2><a name="V3.51_Library"></a>Library</h2>
+</pre><h3><a name="V3.51_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- There was an extraneous \ outside a macro.  (gsline.c)
@@ -3599,32 +3637,39 @@ gsdparam.c, gspath.c)
 	- If banding was required, characters could come out as solid black
 rectangles.  (gxclist.c, gxclread.c)
 
-<h1><a name="Version3.50"></a>Version 3.50 (limited) (9/24/95)</h1>
+</pre>
 
+<h2><a name="Version3.50"></a>Version 3.50 (limited) (9/24/95)</h2>
+
+<p>
 This is the last limited bug-fix release during beta test.  The color
 DeskJet drivers are broken (they sometimes produce black rectangles instead
 of characters); we will fix this in the next release.
-
+<p>
 The following issues have been postponed to an unspecified future release:
-	- Filling areas often writes pixels twice, causing incorrect output
+<ul>
+<li>	- Filling areas often writes pixels twice, causing incorrect
+output
 with certain unusual RasterOp values.  [1.814]
-	- The tar.gz archives should include a subdirectory like gs-3.46/ in
+<li>	- The tar.gz archives should include a subdirectory like
+gs-3.46/ in
 the file names.
-	- The CCITTFaxDecode filter should skip initial junk if EndOfLine =
+<li>	- The CCITTFaxDecode filter should skip initial junk if
+EndOfLine =
 true.  [1844 8/24/95, NRE]
+</ul>
 
-<h2><a name="V3.50_Procedures"></a>Procedures</h2>
-
+<h3><a name="V3.50_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- The name of the new 24-bit TIFF driver was incorrect in one place.
 (vms.mak)
 
-<h2><a name="V3.50_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.50_Utilities"></a>Utilities</h3><pre>
 
 Adds a new utility to put a caption in a box at the bottom of each page.
 (caption.ps)
 
-<h2><a name="V3.50_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.50_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The PC display devices weren't page devices.  Probably all the
@@ -3636,7 +3681,7 @@ we aren't going to bother tracking them down.  (gdevpcfb.c)
 Updates the bjc600 / bjc800 drivers with changes from the author.
 (devices.doc, gdevbjc.h, gdevcdj.c)
 
-<h2><a name="V3.50_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.50_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Building with COMPILE_INITS=1 produced a stackunderflow error.
@@ -3663,7 +3708,7 @@ image devices.  (zdevice.c)
 Adds a -dSHORTERRORS switch that changes some of the common error and
 warning messages for greater Adobe compatibility.  (gs_init.ps, gs_fonts.ps)
 
-<h2><a name="V3.50_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.50_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- If a CharProc for a Type 3 font did a BT/ET, the graphics state
@@ -3671,7 +3716,7 @@ could get confused.  (gs_pdf.ps)
 	- If a Tf occurred inside a BT/ET, it didn't take effect on
 subsequent BT/ETs.  (gs_pdf.ps)
 
-<h2><a name="V3.50_Library"></a>Library</h2>
+</pre><h3><a name="V3.50_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- There was no way to control whether an image device was a page
@@ -3694,18 +3739,22 @@ in the interpreter.  THIS IS A NON-BACKWARD-COMPATIBLE CHANGE, but as far as
 I know, there aren't any external clients of these routines.  (gschar.h,
 gschar.c)
 
-<h1><a name="Version3.49"></a>Version 3.49 (limited) (9/20/95)</h1>
+</pre>
 
+<hr>
+
+<h2><a name="Version3.49"></a>Version 3.49 (limited) (9/20/95)</h2>
+
+<p>
 This is another bug-fix release during beta test.  There are other bugs
 outstanding, but the ones I know about right now are all platform-specific.
 
-<h2><a name="V3.49_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.49_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- make.doc didn't mention that the .def files are needed to build a
 MS Windows executable.  (make.doc)
 
-<h2><a name="V3.49_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.49_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- There were some forward references to macro definitions in the
@@ -3713,7 +3762,7 @@ makefiles.  (int.mak, lib.mak)
 	- The default device for library configurations was the null page
 device, not the first device in DEVICE_DEVS.  (ugcclib.mak)
 
-<h2><a name="V3.49_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.49_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The BJC600 / BJC800 drivers were missing a header file.
@@ -3730,13 +3779,13 @@ Ghostview wasn't involved.  (gdevx.c)
 With the permission of the author, changes the 24-bit TIFF license from GNU
 to Aladdin.  (gdevtfnx.c)
 
-<h2><a name="V3.49_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.49_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The VMS build scripts were out of sync with the makefiles (again).
 (modules.lis, vms.mak)
 
-<h2><a name="V3.49_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.49_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- When the requested media size matched an available size exactly
@@ -3744,7 +3793,7 @@ with a 90 degree rotation, Orientation was ignored.  (zmedia2.c)
 
 Makes zcurrentdevice extern.  (opextern.h, zdevice.c)
 
-<h2><a name="V3.49_Library"></a>Library</h2>
+</pre><h3><a name="V3.49_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- A couple of places used memcpy instead of memmove.  (gxclread.c)
@@ -3760,20 +3809,24 @@ Adds some more code for paths in band lists, but again doesn't activate it.
 (gxcldev.h, gxpath.h, gzline.h, gsline.c, gspath1.c, gxclist.c, gxclread.c,
 gxpath.c)
 
-<h1><a name="Version3.48"></a>Version 3.48 (limited) (9/17/95)</h1>
+</pre>
 
+<h2><a name="Version3.48"></a>Version 3.48 (limited) (9/17/95)</h2>
+
+<p>
 This is the second bug-fix release during beta test.  Among other things, it
 fixes a bug introduced in 3.47 that caused all PDF files to give an error.
+
+<p>
 ******NOTE: the BJC600 and BCJ800 drivers do not work in this release,
 because we didn't get a file from the author in time.  They will compile,
 but not run.  This will be fixed in the next round.
 
-<h2><a name="V3.48_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.48_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- Alan Barclay's contact information was wrong.  (README)
 
-<h2><a name="V3.48_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.48_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The linker path for Watcom C++ 10.5 was wrong.  (wccommon.mak)
@@ -3784,7 +3837,7 @@ Fixes bugs:
 Adds the bjc600 and bjc800 devices on all platforms that already include the
 color DeskJet devices.  (*.mak)
 
-<h2><a name="V3.48_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.48_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The H-P drivers didn't reposition the cursor properly at the
@@ -3804,14 +3857,14 @@ images in a format that is standard on NeXT platforms.  This driver is
 governed by the GNU license and is therefore separated from the rest of the
 Aladdin distribution.  (gdevtfnx.c)
 
-<h2><a name="V3.48_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.48_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- There was an undefined reference to clock_gettime on some Unix
 systems.  (gp_unix.c)
 	- The new gp_fopen routine had several errors.  (gp_vms.c)
 
-<h2><a name="V3.48_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.48_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Some routines that should be main-instance-specific weren't.
@@ -3827,13 +3880,13 @@ VAX systems.  (math_.h, iscannum.c)
 	- Media selection in setpagedevice was broken (again), as of 3.46.
 (gs_setpd.ps, zmedia2.c)
 
-<h2><a name="V3.48_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.48_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- Substituted color spaces caused an error.  (gs_pdf.ps,
 pdf_draw.ps)
 
-<h2><a name="V3.48_Library"></a>Library</h2>
+</pre><h3><a name="V3.48_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- If a halftone had no non-default components that matched the
@@ -3850,14 +3903,16 @@ possibly incorrect by up to 1 pixel.  (gspaint.c)
 Adds preliminary code for including paths in band lists, but doesn't
 activate any of it.  (lib.mak, gxcldev.h, gxclist.c, gxclread.c)
 
-<h1><a name="Version3.47"></a>Version 3.47 (limited) (9/14/95)</h1>
+</pre>
 
+<h2><a name="Version3.47"></a>Version 3.47 (limited) (9/14/95)</h2>
+
+<p>
 This is a bug-fix release during beta test.  It is meant to have no new
 functionality, although in the case of setpagedevice that's stretching
 things a little.
 
-<h2><a name="V3.47_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.47_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The Mac documentation still referred to IJG JPEG v5a rather than
 v6.  (make.doc)
@@ -3869,7 +3924,7 @@ v6.  (make.doc)
 	- current.doc didn't document the recognized setpagedevice keys.
 (current.doc)
 
-<h2><a name="V3.47_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.47_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- Many utility programs weren't included in the Unix 'install' list.
@@ -3887,7 +3942,7 @@ compilation.  (int.mak, lib.mak)
 Adds a customer-contributed makefile for Microsoft Visual C++ 2.n under
 Windows NT.  (msvcwint.mak)
 
-<h2><a name="V3.47_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.47_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- The JPEG utility didn't support the new progressive JPEG modes,
@@ -3899,7 +3954,7 @@ printafm.ps)
 	- Files produced by pdf_2ps didn't include the GS_PDF ProcSet.
 (gs_pdf.ps, pdf_2ps.ps, pdf_base.ps, pdf_main.ps)
 
-<h2><a name="V3.47_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.47_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- Bits read back from an EGA or VGA device were incorrect.
@@ -3916,7 +3971,7 @@ corner vs. unprintable area around edges of physical page) were still
 confused.  We've now fixed this for the H-P monochrome printers, but it's
 probably still confused for all other printers.  (gdevprn.h, gdevdjet.c)
 
-<h2><a name="V3.47_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.47_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The Windows print spooler header file wasn't included when it
@@ -3925,7 +3980,7 @@ needed to be, and some other Win32-specific changes were missing.
 	- Windows DLLs didn't parse "s in the command "arguments" correctly.
 (gsdll.c)
 
-<h2><a name="V3.47_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.47_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- FAKEFONTS could get the font directories into inconsistent states.
@@ -3933,7 +3988,7 @@ Fixes bugs:
 	- The substitutions for Adobe's Myriad and Minion fonts weren't
 appropriate.  (gs_fonts.ps)
 
-<h2><a name="V3.47_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.47_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- If pathforall got an error computing the user-space points on a
@@ -3964,13 +4019,13 @@ to be executed.  (zdict.c)
 	- setpagedevice could set device parameters twice, with an
 incomplete update the first time.  (gs_setpd.ps)
 
-<h2><a name="V3.47_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.47_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- Readers confused the internal pdfrun procedure with the public
 runpdf procedure.  (pdf_*.ps)
 
-<h2><a name="V3.47_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.47_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- Closed streams had a NULL state pointer, causing problems for some
@@ -3979,7 +4034,7 @@ clients.  (stream.c)
 in a horizontal code sequence between a makeup code and the termination
 code.  (scfd.c)
 
-<h2><a name="V3.47_Library"></a>Library</h2>
+</pre><h3><a name="V3.47_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Some 'private' declarations were omitted.  (Why doesn't gcc catch
@@ -4017,14 +4072,16 @@ Adds a new gp_fopen procedure to gp.h.  THIS IS A NON-BACKWARD-COMPATIBLE
 CHANGE, affecting only platform implementors.  It was necessary to fix the
 binary file problem on VMS.  (gp.h, gp_*.c)
 
-<h1><a name="Version3.46"></a>Version 3.46 (limited) (9/4/95)</h1>
+</pre>
 
+<h2><a name="Version3.46"></a>Version 3.46 (limited) (9/4/95)</h2>
+
+<p>
 This is the "serious beta test" release for the next public release.  It
 finishes implementing RasterOp in the graphics state, and the remaining
 commonly used parts of setpagedevice.
 
-<h2><a name="V3.46_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.46_Documentation"></a>Documentation</h3><pre>
 Documents some possible problems when building with DJGPP v2.0-beta.
 (make.doc)
 
@@ -4032,7 +4089,7 @@ Adds documentation on using Ghostscript as a PDF interpreter.  (use.doc)
 
 Notes linking problems with the Watcom 10.0 environment.  (make.doc)
 
-<h2><a name="V3.46_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.46_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The rule for $(ccfonts).dev was wrong.  (gs.mak)
@@ -4069,11 +4126,11 @@ FIXEDMEDIA and -r set FIXEDRESOLUTION.  (gs_init.ps, gs_setpd.ps, gs.c)
 Changes some build procedures to avoid problems with read-only source files.
 (gs.mak, int.mak, lib.mak)
 
-<h2><a name="V3.46_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.46_Utilities"></a>Utilities</h3><pre>
 
 Adds a utility for emulating the CIE color mapping algorithms.  (docie.ps)
 
-<h2><a name="V3.46_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.46_Drivers"></a>Drivers</h3><pre>
 
 Changes the x11alpha device so that it uses 32-bit pixels with 8 bits of
 alpha.  (gdevxalt.c)
@@ -4087,13 +4144,13 @@ Updates the alternate X drivers for the change from PageSize to MediaSize.
 Makes Duplex an optional parameter of printer devices rather than of all
 devices.  (gdevprn.h, gxdevice.h, gsdparam.c, gdevdjet.c, gdevprn.c)
 
-<h2><a name="V3.46_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.46_Platforms"></a>Platforms</h3><pre>
 
 Makes pipes (%pipe% file syntax) a selectable option on Unix platforms,
 rather than always being included.  (ansihead.mak, cc-head.mak,
 gcc-head.mak, ugcclib.mak, unixtail.mak)
 
-<h2><a name="V3.46_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.46_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- colorimage, and the dictionary form of image with
@@ -4144,7 +4201,7 @@ zcrd.c)
 Renames iconfig.c as iconf.c to avoid problems with read-only source files.
 (iconf.c)
 
-<h2><a name="V3.46_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.46_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- PDF to PostScript conversion didn't work.  (pdf_main.ps)
@@ -4153,7 +4210,7 @@ Shifts most of the work in the PDF interpreter from the reader to the
 ProcSet.  This simplifies the code considerably and also makes it easier to
 modify.  (gs_pdf.ps, pdf_draw.ps, pdf_font.ps, pdf_main.ps)
 
-<h2><a name="V3.46_Library"></a>Library</h2>
+</pre><h3><a name="V3.46_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- 'static' was omitted in a place that some compilers require it.
@@ -4206,14 +4263,17 @@ Renames gconfig.c as gconf.c to avoid problems with read-only source files.
 Adds an API procedure for setting a bitmap pattern.  (gscolor2.h,
 gspcolor.c)
 
-<h1><a name="Version3.45"></a>Version 3.45 (limited) (8/27/95)</h1>
+</pre>
 
+<h2><a name="Version3.45"></a>Version 3.45 (limited) (8/27/95)</h2>
+
+<p>
 The purpose of this release is to fix some minor bugs reported by commercial
 licensees, and to add two enhancements: optional RenderTable interpolation
 for CIE color, and reducing the temporary space used during character
 caching (also for a licensee).
 
-<h2><a name="V3.45_Documentation"></a>Documentation</h2>
+<h3><a name="V3.45_Documentation"></a>Documentation</h3><pre>
 
 Notes that the only valid return values from get_alpha_bits are 1, 2, and 4.
 (drivers.doc)
@@ -4222,7 +4282,7 @@ Notes that the get_bits driver procedure will return a pointer to aligned
 data, but does not require the caller's data area to be aligned.
 (drivers.doc)
 
-<h2><a name="V3.45_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.45_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- Many of the printer and file output drivers in devs.mak still
@@ -4241,13 +4301,13 @@ Allows quoted arguments in @-files, e.g.,
 	-sOutputFile="a file name with spaces"
 (gs.c)
 
-<h2><a name="V3.45_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.45_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- The ps2ascii script could fail to delete temporary files in case
 of an abnormal exit.  (ps2ascii)
 
-<h2><a name="V3.45_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.45_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The MS Windows printer capability test was wrong.  (gdevwpr2.c)
@@ -4257,7 +4317,7 @@ Fixes bugs:
 Gets rid of all direct references to dev-&gt;PageSize in drivers.  (gdevl256.c,
 gdevvglb.c)
 
-<h2><a name="V3.45_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.45_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The 32-bit MS Windows configuration file for the Borland C++
@@ -4269,7 +4329,7 @@ directly to the print spooler.  (use.doc, gp_os2.c)
 Makes printing on Windows NT and Windows 95 use the printer queue.
 (gp_mswin.c, gswin32.rc)
 
-<h2><a name="V3.45_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.45_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Copying a null device produced an uninitialized pointer.
@@ -4283,19 +4343,19 @@ Adds const in a few places that needed it.  (zwppm.c)
 
 Adds interpolation to the CIE RenderTable lookup.  (icie.h, zcie.c, zcrd.c)
 
-<h2><a name="V3.45_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.45_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Allows PDF files with control-character garbage at the end, and up to 250
 characters of garbage at the beginning.  The latter is only supported by
 runpdf, not by run.  (pdf_base.ps, pdf_main.ps)
 
-<h2><a name="V3.45_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.45_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- A 1-D CCITTFaxDecode stream could give an error if an input buffer
 boundary fell just before a 0-length termination code.  (scfx.h, scfd.c)
 
-<h2><a name="V3.45_Library"></a>Library</h2>
+</pre><h3><a name="V3.45_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- A variable was used before being set, which could cause band
@@ -4343,15 +4403,17 @@ Adds interpolation to the CIE RenderTable lookup.  This is optional, enabled
 by #define CIE_RENDER_TABLE_INTERPOLATE in gscie.h.  (gscie.h, gxctable.h,
 gscie.c, gxctable.c)
 
-<h1><a name="Version3.44"></a>Version 3.44 (limited) (8/21/95)</h1>
+</pre>
 
+<h2><a name="Version3.44"></a>Version 3.44 (limited) (8/21/95)</h2>
+
+<p>
 This includes a few bug fixes, but its main purpose is to add two new
 features: monobit and 8-bit gray-scale RasterOp (at the driver level, not at
 the gstate level yet), and (compressed) band lists in RAM.  Of course, these
 new features may have introduced new bugs!
 
-<h2><a name="V3.44_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.44_Documentation"></a>Documentation</h3><pre>
 Adds contact information for a user working on NeXT machines.  (README)
 
 Notes that Ghostscript runs on FreeBSD.  (README)
@@ -4361,7 +4423,7 @@ Adds copy_rop (the RasterOp operation) to the driver interface.
 
 Adds FONTPATH information for more operating systems.  (use.doc)
 
-<h2><a name="V3.44_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.44_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The tar_cat script needed a #!/bin/sh to execute correctly on all
@@ -4385,7 +4447,7 @@ CHANGE, required in order for the makefiles to work in cross-compiled
 environments.  (For non-cross-compiled environments, it currently doesn't
 matter.)  (gs.mak, *.mak)
 
-<h2><a name="V3.44_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.44_Utilities"></a>Utilities</h3><pre>
 
 Updates ps2ai.ps to version 2.13.  (ps2ai.ps)
 
@@ -4393,7 +4455,7 @@ Changes all the utility shell scripts to include #!/bin/sh, to use exec, and
 to pass the original arguments using "$@".  (bdftops, font2c, gsbj, gsdj,
 gslj, gslp, gsnd, wftopfa)
 
-<h2><a name="V3.44_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.44_Drivers"></a>Drivers</h3><pre>
 
 Adds the requirement that all page-oriented devices (i.e., those that use
 gdevprn.h and implement the print_page procedure) include page.dev in their
@@ -4412,14 +4474,14 @@ gsdevice.c)
 Adds the ability to read back bits from the display to the x11 devices.
 (x_.h, gdevx.c, gdevxalt.c)
 
-<h2><a name="V3.44_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.44_Platforms"></a>Platforms</h3><pre>
 
 Makes some minor changes to support QNX.  (stat_.h)
 
 Removes the mswinprn driver from the 16-bit Windows configuration, because
 the 64K default data segment overflowed.  (bcwin.mak)
 
-<h2><a name="V3.44_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.44_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Type 1 fonts didn't accept packed arrays for Subrs or OtherSubrs.
@@ -4437,7 +4499,7 @@ Starts adding support for the new CIEBasedDEF and CIEBasedDEFG color spaces.
 Adds access operators for RasterOp and transparency in the graphics state.
 (They don't actually do anything yet.)  (zgstate.c)
 
-<h2><a name="V3.44_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.44_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- PDFDocEncoding was missing characters 24-31.  (gs_pdf_e.ps)
@@ -4445,7 +4507,7 @@ Fixes bugs:
 Moves the definition of pdfmark from systemdict to userdict so that Adobe
 PostScript files won't think the interpreter is a distiller.  (gs_pdf.ps)
 
-<h2><a name="V3.44_Library"></a>Library</h2>
+</pre><h3><a name="V3.44_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Some JPEG images had bands of garbage alternating with bands of
@@ -4484,13 +4546,15 @@ Changes the initialization for memory devices so that they determine their
 polarity from the device for which they are buffering the image (if any).
 This is a subtle change.  (gdevmem.h, gdevmem.c, gdevm1.c, gsdevmem.c)
 
-<h1><a name="Version3.43"></a>Version 3.43 (limited) (8/10/95)</h1>
+</pre>
 
+<h2><a name="Version3.43"></a>Version 3.43 (limited) (8/10/95)</h2>
+
+<p>
 Fixes a few more minor bugs, and changes FEATURE selection back to
 essentially the way it was before 3.41.
 
-<h2><a name="V3.43_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.43_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- A ~ was missing in a URL.  (README)
 
@@ -4505,7 +4569,7 @@ might in the future.)  (gdevpcx.c)
 Adds information about getting Type 1 fonts from H-P if you have an H-P
 PostScript printer.  (use.doc)
 
-<h2><a name="V3.43_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.43_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The auxiliary programs wouldn't compile with ANSI compilers that
@@ -4525,18 +4589,18 @@ modules containing only leaf procedures.  (gs.mak, *.mak)
 Adds a CONFIG makefile variable that helps in maintaining multiple variants
 in a single directory.  (gs.mak, *.mak)
 
-<h2><a name="V3.43_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.43_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- An extern for exit() (in &lt;stdlib.h&gt;) was omitted.  (gp_vms.c)
 
-<h2><a name="V3.43_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.43_Fonts"></a>Fonts</h3><pre>
 
 Reorganizes the compiled font facility so that fonts can be compiled and
 turned into a library by third parties.  (gs.mak, font2c.ps, gs_ccfnt.ps,
 ccfont.h, iccfont.c, ccfontab.c)
 
-<h2><a name="V3.43_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.43_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- internaldict was implemented as a dictionary in systemdict and an
@@ -4556,14 +4620,14 @@ Separates out the code for 'reading' the .ps initialization files, for the
 new COMPILE_INITS arrangement.  (imain.h, gconfig.c, gsmain.c, iconfig.c,
 iccinit0.c, iinit.c)
 
-<h2><a name="V3.43_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.43_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The CCITTFaxDecode filter could read up to 3 bytes beyond EOD.
 This fix doesn't quite cover all cases, but at least it makes things better.
 (ghc.h, sbhc.c, scfd.c)
 
-<h2><a name="V3.43_Library"></a>Library</h2>
+</pre><h3><a name="V3.43_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- After a nocurrentpoint error from a show operation with a
@@ -4590,13 +4654,15 @@ rectangles.  (gxcldev.h, gxclist.c, gxclread.c)
 Implements sin and cos efficiently on machines with slow (or no) floating
 point.  (gxfarith.h, gsmatrix.c, gsmisc.c, gspath1.c)
 
-<h1><a name="Version3.42"></a>Version 3.42 (limited) (8/2/95)</h1>
+</pre>
 
+<h2><a name="Version3.42"></a>Version 3.42 (limited) (8/2/95)</h2>
+
+<p>
 Fixes a few significant problems in 3.41, and brings the DLL code up to
 date.
 
-<h2><a name="V3.42_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.42_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- language.doc still referred to rectappend rather than .rectappend.
 (language.doc)
@@ -4607,11 +4673,11 @@ Updates the DLL documentation.  (dll.doc)
 
 Documents the BCP and TBCP filters as non-experimental.  (language.doc)
 
-<h2><a name="V3.42_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.42_Procedures"></a>Procedures</h3><pre>
 
 Changes the build date printout to YYYY-MM-DD.  (gs_init.ps)
 
-<h2><a name="V3.42_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.42_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The VMS build script had gotten out of sync with the makefiles
@@ -4624,7 +4690,7 @@ gdevpm.c, gdevwdib.c, gp_mswin.c, gp_os2.c, gsdll.c, gsmain.c)
 Adds a new platform-specific routine gp_do_exit, as an alias for the C
 library `exit' call.  (gp.h, gsdll.c, gsmain.c, gp_*.c)
 
-<h2><a name="V3.42_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.42_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- .forgetsave at the outermost level didn't clear the l_new bit,
@@ -4635,12 +4701,12 @@ have).  (gsmain.c)
 Adds a .charboxpath operator that appends to the current path the bounding
 boxes of the characters of a string.  (zchar.c, zchar1.c)
 
-<h2><a name="V3.42_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.42_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- A procedure was declared private inconsistently.  (siscale.c)
 
-<h2><a name="V3.42_Library"></a>Library</h2>
+</pre><h3><a name="V3.42_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The library test program didn't do a necessary initial gsave.
@@ -4658,14 +4724,16 @@ bounding boxes of the characters of a string.  (gschar.h, gscpm.h,
 gstype1.h, gxchar.h, gxpath.h, gxtype1.h, gzstate.h, gschar.c, gspaint.c,
 gstype1.c, gxpath.c)
 
-<h1><a name="Version3.41"></a>Version 3.41 (limited) (7/27/95)</h1>
+</pre>
 
+<h2><a name="Version3.41"></a>Version 3.41 (limited) (7/27/95)</h2>
+<p>
 Another incremental release with bug fixes and customer-requested
 enhancements.  This release was intended to include the full setpagedevice
 media matching and adjustment algorithm, but we discovered some
 architectural problems during development, and have postponed it.
 
-<h2><a name="V3.41_Documentation"></a>Documentation</h2>
+<h3><a name="V3.41_Documentation"></a>Documentation</h3><pre>
 
 Replaces the build instructions for NeXTSTEP with more up-to-date and
 accurate ones.  (make.doc)
@@ -4675,7 +4743,7 @@ Notes that some extra manual steps are required when cross-compiling.
 
 Documents how to define new 'features' in the makefile.  (gs.mak)
 
-<h2><a name="V3.41_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.41_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The build rule for ccinit.dev was circular.  Fixing this required
@@ -4689,7 +4757,7 @@ command line length limit.  (gs.mak)
 Adds a -dFIXEDMEDIA switch to indicate that the media size should be
 considered fixed after initialization.  (gs_init.ps)
 
-<h2><a name="V3.41_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.41_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- traceimg.ps incorrectly referred to .stdout.  (traceimg.ps)
@@ -4702,7 +4770,7 @@ Adobe standard.  (ps2epsi, ps2epsi.ps)
 
 Allows viewpbm.ps to take multiple files on the command line.  (viewpbm.ps)
 
-<h2><a name="V3.41_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.41_Drivers"></a>Drivers</h3><pre>
 
 Adds a preliminary, contributed PNG driver.  THIS IS NOT USABLE YET -- DON'T
 TRY TO USE IT.  (png.mak, gdevpng.c)
@@ -4710,12 +4778,12 @@ TRY TO USE IT.  (png.mak, gdevpng.c)
 Increases the maximum allowable scan line width for the TIFF drivers from
 5183 pixels to 12863 pixels.  (scf.h)
 
-<h2><a name="V3.41_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.41_Platforms"></a>Platforms</h3><pre>
 
 Updates the MS Windows DLL code to export the new, suspendable run_string
 interface.  (gsdll.h, gsdll.c, dll.doc)
 
-<h2><a name="V3.41_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.41_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- There were several errors in cfonts.mak.  (cfonts.mak)
@@ -4733,7 +4801,7 @@ Adds support for Type 4 fonts (Type 1 fonts with their own BuildChar
 procedures), including the CCRun procedure in internaldict.  (gs_fonts.ps,
 gs_res.ps, gs_type1.ps)
 
-<h2><a name="V3.41_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.41_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- showpage and copypage didn't honor NumCopies in a page device.
@@ -4786,12 +4854,12 @@ Adds superexec, an undocumented operator that is equivalent to exec but
 suppresses all invalidaccess checks.  NOT COMPLETED YET; currently superexec
 is equivalent to exec.  (zcontrol.c)
 
-<h2><a name="V3.41_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.41_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- .stderr was used but is no longer defined.  (pdf_base.ps)
 
-<h2><a name="V3.41_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.41_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- Not all streams initialized their state pointer.  (stream.c,
@@ -4804,7 +4872,7 @@ needs to buffer the entire intermediate image.  (siscale.h, siscale.c)
 Increases the maximum allowable scan line width for the CCITTFaxEncode
 filter from 5183 pixels to 12863 pixels.  (scf.h)
 
-<h2><a name="V3.41_Library"></a>Library</h2>
+</pre><h3><a name="V3.41_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- setpagedevice didn't update NumCopies correctly.  (gdevprn.c,
@@ -4844,30 +4912,32 @@ Adds support for Type 4 fonts.  (gxfont.h)
 Adds a default implementation of parameter lists, designed to be usable
 easily from C code.  (gsparam.h, gsparam.c)
 
-<h1><a name="Version3.40"></a>Version 3.40 (limited) (6/28/95)</h1>
+</pre>
 
+<h2><a name="Version3.40"></a>Version 3.40 (limited) (6/28/95)</h2>
+
+<p>
 This is another incremental limited release for delivery of a couple of
 important bug fixes (pixel 'holes' in rotated images, setpagedevice errors
 on some platforms) and an enhancement (architectural support for band lists
 in RAM).
 
-<h2><a name="V3.40_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.40_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The FTP location of the EMX DLLs was incorrect.  (use.doc)
 
-<h2><a name="V3.40_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.40_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- A couple of build rules for IJG v6 were omitted.  (jpeg.mak)
 
-<h2><a name="V3.40_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.40_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- prfont.ps wouldn't print more than 128 unencoded characters.
 (prfont.ps)
 
-<h2><a name="V3.40_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.40_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- setpagedevice often caused /undefined errors on MS Windows and
@@ -4875,7 +4945,7 @@ OS/2 platforms.  (gdevmswn.c, gdevpm.c)
 	- The VMS module list had gotten out of sync with the makefiles
 (again).  (modules.lis)
 
-<h2><a name="V3.40_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.40_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- A couple of casts betwen char * and byte * were omitted.
@@ -4883,12 +4953,12 @@ Fixes bugs:
 	- gs_[main_]run_file_open wasn't exported properly.  (imain.h,
 main.h, gsmain.c)
 
-<h2><a name="V3.40_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.40_Streams"></a>Streams</h3><pre>
 
 Changes the DCTEncode filter to return an error if it wasn't supplied enough
 data before being closed.  (sdcte.c)
 
-<h2><a name="V3.40_Library"></a>Library</h2>
+</pre><h3><a name="V3.40_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The coordinate computations for all filling operations were
@@ -4909,20 +4979,24 @@ adjustment values.  (gxpaint.h, gspaint.c, gxfill.c)
 Makes the command list allocate a small tile cache if the device doesn't
 need halftones.  (gxclist.c)
 
-<h1><a name="Version3.39"></a>Version 3.39 (limited) (6/24/95)</h1>
+</pre>
 
+<hr>
+
+<h2><a name="Version3.39"></a>Version 3.39 (limited) (6/24/95)</h2>
+
+<p>
 This is again an incremental release primarily for delivery of enhancements
 (suspendable string input in particular) to commercial customers, and with a
 few bug fixes.
 
-<h2><a name="V3.39_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.39_Documentation"></a>Documentation</h3><pre>
 Notes that PDF files and repositioning PostScript files do not work if
 Ghostscript was compiled with VAX C.  (use.doc)
 
 Notes the requirement for EOD lookahead in decoding filters.  (strimpl.h)
 
-<h2><a name="V3.39_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.39_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- There were a number of undefined or used-before-defined variables
@@ -4937,7 +5011,7 @@ use.doc)
 
 Makes some makefile changes in anticipation of the IJG v6 release.  (*.mak)
 
-<h2><a name="V3.39_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.39_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- font2c generated invalid C procedure names from font names that
@@ -4945,18 +5019,18 @@ contained non-alphanumerics other then '-'.  (font2c.ps)
 	- font2c generated a single element of incorrect type for numeric
 arrays of zero length.  (font2c.ps)
 
-<h2><a name="V3.39_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.39_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The VMS build scripts had gotten out of sync (again).  (vms*.mak,
 modules.lis)
 
-<h2><a name="V3.39_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.39_Fonts"></a>Fonts</h3><pre>
 
 Makes the FONTPATH directory scanner accept fonts that begin with
 %!PS-AdobeFont or %!FontType1 with no following `-'.  (gs_fonts.ps)
 
-<h2><a name="V3.39_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.39_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- eq and ne on arrays or dictionaries required read access.
@@ -4982,7 +5056,7 @@ for numbers and strings.  (iutil.h, iutil.c, zrelbit.c)
 Changes a few uses of return_error to return in places that don't lead
 directly to a PostScript error.  (idict.c)
 
-<h2><a name="V3.39_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.39_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The logic for skipping up to a 0xff byte when decoding JPEG data
@@ -4994,7 +5068,7 @@ sstring.c)
 Makes some minor changes in anticipation of the IJG v6 release.
 (gsjmorec.h)
 
-<h2><a name="V3.39_Library"></a>Library</h2>
+</pre><h3><a name="V3.39_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- A declaration should have been removed.  (gsdll.c)
@@ -5008,21 +5082,23 @@ didn't set color_info correctly.  (gsdevice.c)
 Speeds up unrotated black-and-white images further by making them render
 directly into a memory device when possible.  (gxdevmem.h, gsimage1.c)
 
-<h1><a name="Version3.38"></a>Version 3.38 (limited) (6/18/95)</h1>
+</pre>
 
+<h2><a name="Version3.38"></a>Version 3.38 (limited) (6/18/95)</h2>
+
+<p>
 This release incorporates several customer-requested enhancements (cleaner
 separation of the graphics library from the interpreter, option for &gt;64K
 names, true garbage collection of names, better handling of halftones on
 band devices).  It is intended primarily for those customers, but is
 intended as a dry run for the next public release.
 
-<h2><a name="V3.38_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.38_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- gx_bitmap had not been updated to gx_tile_bitmap.
 (drivers.doc)
 
-<h2><a name="V3.38_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.38_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The man page extension in the Unix makefiles was still $(manext),
@@ -5036,13 +5112,13 @@ Adds a -dNOPROMPT switch to suppress the end-of-page prompts (but still wait
 for the user to type a newline).  This is different from -dNOPAUSE, which
 suppresses both the prompts and the wait.  (gs_init.ps)
 
-<h2><a name="V3.38_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.38_Utilities"></a>Utilities</h3><pre>
 
 Replaces the mergeini.ps program with an equivalent (actually slightly
 better) version written in C.  (gs.mak, *.mak, psfiles.doc, use.doc,
 geninit.c)
 
-<h2><a name="V3.38_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.38_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The color DeskJet drivers wouldn't compile with a K&amp;R compiler,
@@ -5064,7 +5140,7 @@ page size, but instead scales it to be the same physical size on the page.
 THIS IS A NON BACKWARD COMPATIBLE CHANGE.  However, for full-page images, it
 will not have any visible effect.  (gdevpsim.c)
 
-<h2><a name="V3.38_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.38_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- There were some problems associated with printing in 32-bit
@@ -5074,7 +5150,7 @@ Windows environments.  (gp_mswin.c)
 Adds the PDF interpreter to the standard MS Windows configuration.
 (bcwin.mak)
 
-<h2><a name="V3.38_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.38_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- The entry for Courier-BoldItalic in cfonts.mak incorrectly named
@@ -5090,7 +5166,7 @@ wasn't large enough for complex Asian characters. (gxtype1.h)
 Adds a -dNOFONTMAP switch to suppress loading the Fontmap file.
 (gs_init.ps, gs_fonts.ps)
 
-<h2><a name="V3.38_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.38_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- One of the GC marking routines for halftones had a typo,
@@ -5145,7 +5221,7 @@ Changes the print string for unregistered operators from operator_0x... to
 Changes the garbage collector so it tries to allocate a large mark stack, to
 avoid going into its 'slow' mode if the mark stack overflows.  (igc.c)
 
-<h2><a name="V3.38_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.38_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- Stroked text used the text matrix, rather than just the
@@ -5160,7 +5236,7 @@ Implements the PDF 1.1 color space extensions, except for Lab space.
 
 Implements the Rotate key for pages.  (pdf_main.ps)
 
-<h2><a name="V3.38_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.38_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- When the garbage collector closed a file stream, the stream
@@ -5170,7 +5246,7 @@ Separates out some stream implementations to better distinguish the
 graphics core from the language interpreters.  (smtf.h, sfilter1.c,
 smtf.c, srld.c, srle.c)
 
-<h2><a name="V3.38_Library"></a>Library</h2>
+</pre><h3><a name="V3.38_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Compressing characters being entered in the cache could cause an
@@ -5227,12 +5303,14 @@ Extends the band list so it can cache more than 256 halftone tiles, and to
 make better decisions about tile caching.  (gxcldev.h, gxclist.h, gxclist.c,
 gxclread.c)
 
-<h1><a name="Version3.37"></a>Version 3.37 (limited) (5/11/95)</h1>
+</pre>
 
+<h2><a name="Version3.37"></a>Version 3.37 (limited) (5/11/95)</h2>
+
+<p>
 Another bug fix release distributed only to customers.
 
-<h2><a name="V3.37_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.37_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- Some documentation about parameter lists was incorrect.
 (gsparam.h)
@@ -5241,12 +5319,12 @@ into the interpreter.  (use.doc)
 
 Adds documentation for the BJC-600 to devices.doc.  (devices.doc)
 
-<h2><a name="V3.37_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.37_Procedures"></a>Procedures</h3><pre>
 
 Changes the debugging switch for OS calls from -Z0 to -Ze, and adds -Z0 for
 high-level GC tracing.  (use.doc, gp_unifs.c, ialloc.c, igc.c)
 
-<h2><a name="V3.37_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.37_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- The ps2ascii shell script included an erroneous @d.  (ps2ascii)
@@ -5254,19 +5332,19 @@ Fixes bugs:
 Enhances ps2ascii to output color and rectangle fill/stroke information if
 COMPLEX is defined.  (ps2ascii.ps)
 
-<h2><a name="V3.37_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.37_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- the BJC-600 driver didn't handle BitsPerPixel correctly.
 (gdevcdj.c)
 
-<h2><a name="V3.37_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.37_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- Some buggy Type 1 fonts confused the Type 1 font reader.
 (gs_fonts.ps, gs_type1.ps, pdf_font.ps)
 
-<h2><a name="V3.37_Interpreter_PostScript"></a>Interpreter (PostScript)</h2>
+</pre><h3><a name="V3.37_Interpreter_PostScript"></a>Interpreter (PostScript)</h3><pre>
 
 Fixes bugs:
 	- .registerencoding didn't accept mixedarrays, which could cause an
@@ -5278,7 +5356,7 @@ isave.c)
 Changes the name of the rectappend operator to .rectappend, since it isn't a
 standard PostScript operator.  (zdps1.c)
 
-<h2><a name="V3.37_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.37_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- PDF files didn't interact properly with ps2ascii.  (gs_pdf.ps)
@@ -5286,23 +5364,25 @@ Fixes bugs:
 	- PDF files with incorrect generation numbers in object references
 produced an error rather than a warning.  (pdf_base.ps)
 
-<h1><a name="Version3.36"></a>Version 3.36 (limited) (5/4/95)</h1>
+</pre>
 
+<h2><a name="Version3.36"></a>Version 3.36 (limited) (5/4/95)</h2>
+
+<p>
 This is a limited-distribution release for distributing bug fixes to a few
 customers.
 
-<h2><a name="V3.36_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.36_Documentation"></a>Documentation</h3><pre>
 Adds some environment variables to the man page.  (gs.1)
 
-<h2><a name="V3.36_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.36_Procedures"></a>Procedures</h3><pre>
 
 Adds the psmono device to all 32-bit configurations.  (*.mak)
 
 Moves the psmono and 'bit' devices to DEVICE_DEVS12 to avoid exceeding the
 120-character maximum length of the DOS command line.  (*.mak)
 
-<h2><a name="V3.36_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.36_Drivers"></a>Drivers</h3><pre>
 
 Changes the pgm[raw] and ppm[raw] drivers so they do *not* automatically
 switch to pbm or pgm/ppm respectively if this is possible for the particular
@@ -5311,7 +5391,7 @@ THIS IS A NON-BACKWARD-COMPATIBLE CHANGE.  However, existing programs will
 still work; they just won't produce the smallest and simplest possible
 output.  (devs.mak, gdevpbm.c)
 
-<h2><a name="V3.36_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.36_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- A multi-level restore didn't free gstates allocated by
@@ -5324,24 +5404,26 @@ names have been allocated since the save.  (zfont.c)
 Extends the client API to allow for popping return values off the operand
 stack.  (imain.h, gs.c, gsmain.c)
 
-<h2><a name="V3.36_Library"></a>Library</h2>
+</pre><h3><a name="V3.36_Library"></a>Library</h3><pre>
 
 Modifies the character oversampling algorithms to help prevent dropouts.
 (gsbitops.c, gschar.c)
 
-<h1><a name="Version3.35"></a>Version 3.35 (internal) (5/2/95)</h1>
+</pre>
 
+<h2><a name="Version3.35"></a>Version 3.35 (internal) (5/2/95)</h2>
+
+<p>
 This is another internal "snapshot" version.
 
-<h2><a name="V3.35_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.35_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- Some of the file names in the `man' page had gotten out of date.
 (gs.1)
 	- Two references to .PageCount hadn't been changed to PageCount.
 (language.doc, devarch.doc)
 
-<h2><a name="V3.35_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.35_Procedures"></a>Procedures</h3><pre>
 
 Puts writeppmfile back in the standard Unix and DV/X configurations, since
 gsftopk uses it.  Also puts the PDF reader in all 32-bit configurations.
@@ -5350,7 +5432,7 @@ gsftopk uses it.  Also puts the PDF reader in all 32-bit configurations.
 Moves the BMP devices to DEVICE_DEVS11 to avoid exceeding the 120-character
 maximum length of the DOS command line.  (bcwin.mak, bcwin32.mak, os2.mak)
 
-<h2><a name="V3.35_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.35_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- unix-lpr.sh didn't handle 32-bit devices.  (unix-lpr.sh)
@@ -5363,7 +5445,7 @@ Adds a pdf2dsc.ps utility for writing out fake DSC-compliant PostScript code
 to invoke the PDF reader, for the benefit of viewer programs that aren't
 PDF-aware.  (unix-end.mak, pdf2dsc.ps)
 
-<h2><a name="V3.35_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.35_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The TIFF drivers put out incorrect PageNumber values.
@@ -5390,7 +5472,7 @@ gdevm24.c, gdevm32.c)
 Adds a new MS Windows printer driver, mswinpr2, that uses a DIB rather than
 a DDB.  (gdevwpr2.c)
 
-<h2><a name="V3.35_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.35_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- A routine wouldn't compile because of a bug in the SGI C compiler.
@@ -5403,7 +5485,7 @@ environments.  (gscie.c)
 Turns on compiler optimization for OS/2; adds PDF support and more devices
 for Win32 and OS/2.  (bcwin.mak, bcwin32.mak, os2.mak)
 
-<h2><a name="V3.35_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.35_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- Font loading used 'setglobal' without binding it, which caused
@@ -5416,7 +5498,7 @@ the current VM, rather than global VM.  According to Adobe, this is what
 Adobe printers (but not other interpreters, such as DPS and CPSI) do.
 (gs_init.ps, gs_fonts.ps)
 
-<h2><a name="V3.35_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.35_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- The 'note' page size command caused pages to be clipped
@@ -5428,7 +5510,7 @@ Starts converting the interpreter to use an explicit instance pointer.  This
 is very fragmentary so far and not really supported.  (main.h, gs.c,
 gsmain.c, iccinit.c)
 
-<h2><a name="V3.35_Library"></a>Library</h2>
+</pre><h3><a name="V3.35_Library"></a>Library</h3><pre>
 
 Adds "word" image devices.  (gsdevice.h, gsdevice.c)
 
@@ -5436,16 +5518,18 @@ Removes the requirement that ImagingBBox[0] and [1] be non-negative.  (The
 Adobe specification requires this, but Ghostscript supports more general
 initial CTMs than the Adobe spec.)  (gsdparam.c)
 
-<h1><a name="Version3.34"></a>Version 3.34 (internal) (4/18/95)</h1>
+</pre>
 
+<h2><a name="Version3.34"></a>Version 3.34 (internal) (4/18/95)</h2>
+
+<p>
 This is a "snapshot" version made for internal purposes.  It was never
 released to anyone.
 
-<h2><a name="V3.34_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.34_Documentation"></a>Documentation</h3><pre>
 Updates commprod.doc to be fully consistent with the AGFPL.  (commprod.doc)
 
-<h2><a name="V3.34_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.34_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- tar_x was out of date.  (tar_x)
@@ -5458,12 +5542,12 @@ actually referred to version 5a.  (jpeg.mak)
 (ansihead.mak, cc-head.mak, gcc-head.mak, unixhead.mak, unixtail.mak)
 	- The build rule for dvx-gcc.mak was incorrect.  (unix-end.mak)
 
-<h2><a name="V3.34_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.34_Interpreter"></a>Interpreter</h3><pre>
 
 Restructures the CIE caches to move much more of the computation from color
 mapping time to cache loading time.  (zcie.c)
 
-<h2><a name="V3.34_Library"></a>Library</h2>
+</pre><h3><a name="V3.34_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Color conversion of 12-bit images was very slightly inaccurate.
@@ -5478,12 +5562,15 @@ O-STACK SIZE LIMIT. ****** (gxfmap.h, gxcmap.c)
 Restructures the CIE caches to move much more of the computation from color
 mapping time to cache loading time.  (gscie.h, gscie.c)
 
-<h1><a name="Version3.33"></a>Version 3.33 (4/13/95)</h1>
+</pre>
 
+<h2><a name="Version3.33"></a>Version 3.33 (4/13/95)</h2>
+
+<p>
 A few more last-minute bug fixes.  This is, finally, the first public
 release since 3.12.
 
-<h2><a name="V3.33_Documentation"></a>Documentation</h2>
+<h3><a name="V3.33_Documentation"></a>Documentation</h3><pre>
 
 Fixes bugs:
 	- There was a reference to "VAX with OSF/1", which doesn't exist,
@@ -5494,7 +5581,7 @@ gcc-head.mak)
 	- Notes that DV/X users should use the zip version of the JPEG
 library.  (jpeg.mak)
 
-<h2><a name="V3.33_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.33_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- A command line had gotten too long for the MS-DOS shell.
@@ -5518,7 +5605,7 @@ For the DV/X platform, changes /usr/include to /djgpp/include as the place
 to look for header files.  I'm not sure this is always correct.
 (dvx-tail.mak)
 
-<h2><a name="V3.33_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.33_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- ps2ascii would cause an error if given a font that didn't have an
@@ -5526,41 +5613,43 @@ Fixes bugs:
 	- ps2ascii didn't intercept the Level 2 string display operators.
 (ps2ascii.ps)
 
-<h2><a name="V3.33_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.33_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The Stylus Color driver had an incorrect type name.  (gdevstc.c)
 
-<h2><a name="V3.33_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.33_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- -dBitsPerPixel= didn't work properly for MS Windows or OS/2 PM.
 (gdevmswn.c, gdevpm.c)
 	- The Win32 platform didn't compile properly.  (memory_.h)
 
-<h2><a name="V3.33_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.33_Fonts"></a>Fonts</h3><pre>
 
 Improves the font substitution algorithm to take the face name into account
 in more cases.  (gs_fonts.ps)
 
-<h2><a name="V3.33_Library"></a>Library</h2>
+</pre><h3><a name="V3.33_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Unrotated black-and-white bitmaps with an inverted device X axis
 were displaced in X.  (gsimage1.c)
 
-<h1><a name="Version3.32"></a>Version 3.32 (4/7/95)</h1>
+</pre>
 
+<h2><a name="Version3.32"></a>Version 3.32 (4/7/95)</h2>
+
+<p>
 More bug fixes.  This is still not a public release.
 
-<h2><a name="V3.32_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.32_Documentation"></a>Documentation</h3><pre>
 Further clarifies the "two-phase commit" algorithm for device put_params
 procedures.  (drivers.doc, gsparam.h)
 
 Adds a note about a compiler bug under Ultrix 4.4.  (make.doc)
 
-<h2><a name="V3.32_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.32_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- Some installation scripts could fail because some implementations
@@ -5572,7 +5661,7 @@ Adds "maintainer-clean" as a synonym for "real-clean".  (gs.mak)
 Adds a -dORIENT1 switch that defines orientation = 1 as portrait for
 setpage[params].  (use.doc, gs_init.ps, gs_lev2.ps, gs_statd.ps)
 
-<h2><a name="V3.32_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.32_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- ps2ascii didn't redirect %stdout completely.  (ps2ascii.ps)
@@ -5581,7 +5670,7 @@ Fixes bugs:
 box correctly.  (ps2ascii.ps)
 	- viewpbm didn't scale the image properly.  (viewpbm.ps)
 
-<h2><a name="V3.32_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.32_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The CGM driver wrote out an incorrect color precision value.
@@ -5593,13 +5682,13 @@ output.  (gdevpcx.c)
 	- The PCX driver produced incorrect output for gray-scale or 4- or
 8-bit color.  (gdevpcx.c)
 
-<h2><a name="V3.32_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.32_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The VMS MODULES.LIS file had gotten out of sync with the Unix
 makefiles (again).  (modules.lis)
 
-<h2><a name="V3.32_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.32_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Some compilers won't accept '\l', even in the false arm of a
@@ -5610,7 +5699,7 @@ preprocessor conditional.  (scanchar.h)
 zfont.c, zfont2.c)
 	- status could return true even if the file was closed.  (zfile.c)
 
-<h2><a name="V3.32_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.32_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The LZW filters were factored improperly.  (modules.lis, gs.mak,
@@ -5621,7 +5710,7 @@ Changes the DCTDecode filter for compatibility with Adobe implementations:
 JPEG data.  (sdctd.c)
 	- Set MAX_BLOCKS_IN_MCU to 64.  (jpeg.mak, gsjpglib.h)
 
-<h2><a name="V3.32_Library"></a>Library</h2>
+</pre><h3><a name="V3.32_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The "two-phase commit" for device parameters wasn't fully
@@ -5636,16 +5725,18 @@ axis were displaced in Y.  (gsimage1.c)
 	- On high-resolution devices, parts of regions filled with halftones
 could fail to be painted.  (gxclist.c)
 
-<h1><a name="Version3.31"></a>Version 3.31 (4/2/95)</h1>
+</pre>
 
+<h2><a name="Version3.31"></a>Version 3.31 (4/2/95)</h2>
+
+<p>
 A few final bug fixes for the release.  Includes significant speed
 improvements for CIE color, and a first draft of a low-level CGM driver.
 
-<h2><a name="V3.31_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.31_Documentation"></a>Documentation</h3><pre>
 Notes that the BJC600 driver also works for the BJC4000.  (devs.mak)
 
-<h2><a name="V3.31_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.31_Procedures"></a>Procedures</h3><pre>
 
 At the suggestion of a user, changes the default protections for installed
 files on Unix and DV/X systems from 775/664 to 755/644.  (*head.mak)
@@ -5654,13 +5745,13 @@ At the suggestion of a user, adds a -dNOCIE switch to substitute DeviceGray
 and DeviceRGB color spaces for CIEBasedA and CIEBasedABC spaces
 respectively.  (gs_init.ps, gs_lev2.ps)
 
-<h2><a name="V3.31_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.31_Utilities"></a>Utilities</h3><pre>
 
 Changes gslp and its relatives to use ISOLatin1Encoding for output, and to
 send almost all printout to stderr rather than stdout (for use as a filter
 under Unix).  (gslp.ps)
 
-<h2><a name="V3.31_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.31_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The fax/TIFF driver no longer exported gdev_fax_print_page, which
@@ -5677,7 +5768,7 @@ initialization string.  (gdevbj10.c)
 Adds a preliminary driver that produces low-level CGM output.  (gdevcgml.h,
 gdevcgmx.h, gdevcgm.c, gdevcgml.c)
 
-<h2><a name="V3.31_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.31_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The VMS files had gotten out of sync with the other makefiles
@@ -5688,7 +5779,7 @@ BitsPerPixel as a standard parameter.  (gdevmswn.c, gdevpm.c)
 Removes the TIFF drivers from the Windows platform, and restores the BMP
 drivers.  (bcwin.mak)
 
-<h2><a name="V3.31_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.31_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- The CIE color mapping cache could produce anomalous results
@@ -5711,7 +5802,7 @@ Speeds up the mapping of CIE colors.  (zcie.c)
 Adds a .namestring operator for getting the string of a name without having
 to copy it.  (zstring.c)
 
-<h2><a name="V3.31_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.31_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The IJG code needed a couple more flags set for IJG v6.
@@ -5719,7 +5810,7 @@ Fixes bugs:
 	- Some pointer relocation procedures didn't work correctly on
 systems with sizeof(T *) &gt; sizeof(int).  (stream.c)
 
-<h2><a name="V3.31_Library"></a>Library</h2>
+</pre><h3><a name="V3.31_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The end-test for the fast case of monobit images was wrong,
@@ -5749,17 +5840,19 @@ Shrinks the band list file slightly by using only as many bytes as necessary
 for writing out colors, rather than always using 4 bytes.  (gxclist.c,
 gxclread.c)
 
-<h1><a name="Version3.30"></a>Version 3.30 (beta) (3/21/95)</h1>
+</pre>
 
+<h2><a name="Version3.30"></a>Version 3.30 (beta) (3/21/95)</h2>
+
+<p>
 More bug fixes.  The garbage collector and PDF interpreter finally appear to
 work reliably.
 
-<h2><a name="V3.30_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.30_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- language.doc had gotten out of date.  (language.doc)
 
-<h2><a name="V3.30_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.30_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- Changes in the handling of %stdout had broken ps2ascii.
@@ -5768,7 +5861,7 @@ Fixes bugs:
 Improves ps2ascii to skip empty strings and not output redundant font
 changes.  (ps2ascii.ps)
 
-<h2><a name="V3.30_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.30_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The fax and TIFF drivers didn't free all their working storage.
@@ -5782,7 +5875,7 @@ RLE" format (Group 3 fax with no EOLs). (gdevtfax.c)
 CCITTFaxEncode filter code). (gdevtfax.c)
 	- tiffpack, to produce output in TIFF PackBits format. (gdevtfax.c)
 
-<h2><a name="V3.30_Interpreter_PostScript"></a>Interpreter (PostScript)</h2>
+</pre><h3><a name="V3.30_Interpreter_PostScript"></a>Interpreter (PostScript)</h3><pre>
 
 Fixes bugs:
 	- If the current screen was set with a halftone, setcolorscreen
@@ -5814,7 +5907,7 @@ Distinguishes arch_small_memory from arch_ints_are_short, and adds a new
 -Z. switch to force small-memory table sizes regardless of actual memory
 size.  (dstack.h, idict.c, zpcolor.c, zvmem2.c)
 
-<h2><a name="V3.30_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.30_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- A page with no Contents caused an error.  (pdf_main.ps)
@@ -5823,7 +5916,7 @@ Fixes bugs:
 	- Embedded Type 3 fonts caused an error.  (pdf_draw.ps, pdf_font.ps)
 	- The Widths array of fonts was ignored.  (pdf_font.ps)
 
-<h2><a name="V3.30_Library"></a>Library</h2>
+</pre><h3><a name="V3.30_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Freeing an entry in the pattern cache didn't clear the pointers to
@@ -5848,16 +5941,20 @@ Distinguishes arch_small_memory from arch_ints_are_short, and adds a new
 size.  (gdevprn.h, gxpcolor.h, gzht.h, std.h, gsfont.c, gsht1.c, gspaint.c,
 gsstate.c, gxcht.c, gxht.c, gxpcmap.c)
 
-<h1><a name="Version3.29"></a>Version 3.29 (internal) (3/8/95)</h1>
+</pre>
 
+<hr>
+
+<h2><a name="Version3.29"></a>Version 3.29 (internal) (3/8/95)</h2>
+
+<p>
 Another bug-fix release.  This release processes all but 7 of the 500+ files
 on the Adobe Acrobat Sampler CD-ROM without giving an error.  The garbage
 collector finally appears to be stable.  This version was created for a
 customer; it was not released to the general public or even to the beta test
 list.
 
-<h2><a name="V3.29_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.29_Documentation"></a>Documentation</h3><pre>
 Documents the possible need to set LD_RUN_PATH on SVR4 platforms.
 (make.doc)
 
@@ -5870,7 +5967,7 @@ License.  (PUBLIC)
 Clarifies that the Win32s documentation also applies to Windows NT.
 (make.doc)
 
-<h2><a name="V3.29_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.29_Procedures"></a>Procedures</h3><pre>
 
 Removes the obsolete writeppmfile operator from the standard configurations.
 (gs.mak)
@@ -5878,12 +5975,12 @@ Removes the obsolete writeppmfile operator from the standard configurations.
 Changes the Watcom makefiles to work properly with Watcom C/C++ 10.0.
 (make.doc, msc.mak, watc.mak, watcwin.mak, wccommon.mak)
 
-<h2><a name="V3.29_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.29_Utilities"></a>Utilities</h3><pre>
 
 Adds a wftopfa utility for converting the Wadalab fonts to usable Type 0 and
 Type 1 form.  (wftopfa)
 
-<h2><a name="V3.29_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.29_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- Entries added automatically by definefont (FontInfo, ExactSize)
@@ -5896,7 +5993,7 @@ Makes the name of the Fontmap file an easily editable parameter.
 Adds a utility for converting the Wadalab font to usable Type 0 and Type 1
 form.  (wrfont.ps, wftopfa.ps)
 
-<h2><a name="V3.29_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.29_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The top margin for printer (and fax) devices was computed
@@ -5916,7 +6013,7 @@ Changes the PPM driver so that it chooses between PBM/PGM/PPM on a
 page-by-page basis, rather retaining the most general format ever required
 by any page.  (gdevpbm.c)
 
-<h2><a name="V3.29_Interpreter_PostScript"></a>Interpreter (PostScript)</h2>
+</pre><h3><a name="V3.29_Interpreter_PostScript"></a>Interpreter (PostScript)</h3><pre>
 
 Fixes bugs:
 	- The current page device could be null, rather than an empty
@@ -5986,7 +6083,7 @@ iff the items are being printed with ==.  (gs_init.ps)
 
 Uses finalization to close streams being freed.  (igc.c, zfile.c, ziodev.c)
 
-<h2><a name="V3.29_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.29_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- Embedded Type 1 fonts that invoked save and restore while being
@@ -5994,7 +6091,7 @@ read caused an error.  (pdf_font.ps)
 	- Large files that referenced a non-alphabetic font for the first
 time late in the file could cause an error.  (pdf_main.ps)
 
-<h2><a name="V3.29_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.29_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- SubFileDecode streams didn't copy partial matches of the EOD
@@ -6007,7 +6104,7 @@ Makes file streams close themselves when finalized.  (We can't do this for
 other streams, because finalization procedures aren't allowed to free
 storage explicitly.)  (stream.h, sfile.c, sfileno.c, stream.c)
 
-<h2><a name="V3.29_Library"></a>Library</h2>
+</pre><h3><a name="V3.29_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The obsolete files gcdefs.h and gsfile.c were still included in
@@ -6079,30 +6176,32 @@ gxclist.c, gxclread.c, gxht.c)
 Changes the .HWBitsPerPixel device parameter to BitsPerPixel.  (drivers.doc,
 language.doc, gdevcdj.c, gdevstc.c, gsdparam.c)
 
-<h1><a name="Version3.28"></a>Version 3.28 (beta) (2/13/95)</h1>
+</pre>
 
+<h2><a name="Version3.28"></a>Version 3.28 (beta) (2/13/95)</h2>
+
+<p>
 Another bug-fix beta release.  The number of bugs being fixed in each of
 these sub-releases does exceed the number of new bugs introduced, but the
 latter number is discouragingly high.
 
-<h2><a name="V3.28_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.28_Documentation"></a>Documentation</h3><pre>
 Adds some information about handling VMS file attributes for files
 transferred by FTP.  (use.doc)
 
-<h2><a name="V3.28_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.28_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- unix-gcc.mak said the static linkage switch for SunOS was -Bstatic
 rather than -static.  (unix-gcc.mak)
 	- Some dependency lists in gs.mak were out of date.  (gs.mak)
 
-<h2><a name="V3.28_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.28_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- markhint.ps didn't check for protected fonts.  (markhint.ps)
 
-<h2><a name="V3.28_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.28_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The cdj driver had a byte/char agreement problem.  (gdevcdj.c)
@@ -6112,13 +6211,13 @@ Fixes bugs:
 Removes the setting of InputAttributes and OutputAttributes from the H-P
 drivers, since this causes more problems than it solves.  (gdevdjet.c)
 
-<h2><a name="V3.28_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.28_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- makeoperator assigned incorrect attributes to operators. (bug
 introduced in 3.27) (opdef.h, iinit.c, iutil.c, zmisc.c)
 
-<h2><a name="V3.28_Library"></a>Library</h2>
+</pre><h3><a name="V3.28_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- gs_makeimagedevice didn't set the caller's pointer to the newly
@@ -6130,15 +6229,17 @@ large replicated masks.  (gxht.c)
 	- stroke usually did the wrong thing for degenerate (single-point)
 subpaths.  (gxstroke.c)
 
-<h1><a name="Version3.27"></a>Version 3.27 (beta)(withdrawn) (2/8/95)</h1>
+</pre>
 
+<h2><a name="Version3.27"></a>Version 3.27 (beta)(withdrawn) (2/8/95)</h2>
+
+<p>
 Yet another bug-fix beta release.  This release had so many serious problems
 (the most serious being at least one changed file that the release tool
 failed to include in the fileset) that it was withdrawn less than a day
 after it was issued.
 
-<h2><a name="V3.27_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.27_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The NEWS for 3.26 didn't mention the fact that the stdxxx stream
 interface used by MS Windows, OS/2, and Macintosh implementations had
@@ -6148,7 +6249,7 @@ changed.  (NEWS)
 Brings the NeXTSTEP documentation up to date for NeXTSTEP releases 3.2 and
 subsequent.  (make.doc)
 
-<h2><a name="V3.27_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.27_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- Some dependency lists in gs.mak were out of date.  (gs.mak)
@@ -6157,7 +6258,7 @@ Fixes bugs:
 	- The VMS script used CC_QUALI instead of CC_QUAL in several places.
 (vms.mak)
 
-<h2><a name="V3.27_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.27_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- ps2epsi's usage prompt referred to "pstoepsi".  (ps2epsi)
@@ -6165,7 +6266,7 @@ Fixes bugs:
 
 Comments out the sample usage line at the end of viewjpeg.ps.  (viewjpeg.ps)
 
-<h2><a name="V3.27_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.27_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The fax and tiff drivers didn't free all of their working storage.
@@ -6174,7 +6275,7 @@ Fixes bugs:
 Adds user-contributed drivers for the BJC 600 and ESC/P printers.
 (devs.mak, gdevcdj.c)
 
-<h2><a name="V3.27_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.27_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- Some necessary casts of string parameters to (const byte *) were
@@ -6184,7 +6285,7 @@ Adds the psmono and bit* drivers, and removes the p*m drivers, in the OS/2,
 32-bit MS-DOS, and 32-bit Windows configurations.  (bcwin32.mak, os2.mak,
 watc.mak)
 
-<h2><a name="V3.27_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.27_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- The Fontmap for Ultrix had somehow become slightly incorrect.
@@ -6195,7 +6296,7 @@ makes cfonts.mak readily usable with any set of fonts, but it also means
 that it will always run font2c, rather than being able to avoid this if the
 .c file is up to date.  (cfonts.mak)
 
-<h2><a name="V3.27_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.27_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Some operators could fail if the stdxxx streams weren't currently
@@ -6248,7 +6349,7 @@ filters, to allow specifying EndOfData.  The default is true.  (zfilter.c)
 
 Adds ByteTranslateEncode/Decode filters.  (zfilter2.c)
 
-<h2><a name="V3.27_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.27_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The K &gt; 0 option of the CCITTFaxDecode filter switched back to 2-D
@@ -6262,7 +6363,7 @@ EOD, and RLD ignores 128.  (srlx.h, gxclist.c, gxclread.c, sfilter1.c)
 
 Adds ByteTranslateEncode/Decode streams.  (sbtx.h, sfilter2.c)
 
-<h2><a name="V3.27_Library"></a>Library</h2>
+</pre><h3><a name="V3.27_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- There were some mismatches between char * and byte * values.
@@ -6274,12 +6375,14 @@ invalid memory access.  (gsdparam.c)
 	- The garbage collector didn't handle halftone threshold arrays
 properly.  (gxht.h, gsht.c, gsht1.c)
 
-<h1><a name="Version3.26"></a>Version 3.26 (beta) (2/1/95)</h1>
+</pre>
 
+<h2><a name="Version3.26"></a>Version 3.26 (beta) (2/1/95)</h2>
+
+<p>
 Yet another bug-fix beta release, still not ready for public release.
 
-<h2><a name="V3.26_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.26_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The description of device properties had gotten out of sync with
 the code.  (language.doc)
@@ -6290,7 +6393,7 @@ separate file.  (readme, public.doc, unix-end.mak)
 Adds a pointer to a collection of other free fonts (including some Cyrillic
 ones) available on the net.  (public.doc)
 
-<h2><a name="V3.26_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.26_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- On VMS systems with both VAX C and DEC C installed, the build script
@@ -6304,13 +6407,13 @@ used VAX C rather than DEC C.  (vms.mak)
 Replaces the gssetdev, gssetmod, and gsaddmod scripts with more variants of
 echogs.  (echogs.c, gs.mak)
 
-<h2><a name="V3.26_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.26_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- The ps2ascii shell script passed a -f flag to the shell, which not
 all shells recognize.  (ps2ascii)
 
-<h2><a name="V3.26_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.26_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- Due to a typo in an initialization string, the H-P printers didn't
@@ -6322,14 +6425,14 @@ should probably be generic to all printers.)  (gdevdjet.c)
 Replaces the contributed Epson Stylus Color driver with a newer version.
 (devices.doc, gdevstc.c)
 
-<h2><a name="V3.26_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.26_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- DEC C complained about 'abs' and 'exit' not being declared.  (x_.h)
 	- gp_mswin.c and gp_os2.c wouldn't compile.  (gp_mswin.c, gp_os2.c,
 ziodev.c)
 
-<h2><a name="V3.26_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.26_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- The default CIE rendering dictionary gave everything a magenta tint.
@@ -6348,7 +6451,7 @@ setpagedevice.  (gs_setpd.ps)
 
 Adds a MaxGlobalVM system parameter.  (zmisc2.c)
 
-<h2><a name="V3.26_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.26_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The CCITTFaxEncode filter could access a byte beyond the end of
@@ -6356,7 +6459,7 @@ the allocated area.  (scfe.c)
 	- The CCITTFaxDecode filter could get an ioerror if a buffer
 boundary fell in exactly the wrong place.  (scfd.c)
 
-<h2><a name="V3.26_Library"></a>Library</h2>
+</pre><h3><a name="V3.26_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The garbage collector didn't trace colored halftones properly.
@@ -6371,27 +6474,28 @@ exist within the Ghostscript core.  (gsparam.h, iparam.h, iparam.c)
 
 Removes the InitialMatrix device property.  (gsdparam.c)
 
-<h1><a name="Version3.25"></a>Version 3.25 (beta) (1/24/95)</h1>
+</pre>
 
+<h2><a name="Version3.25"></a>Version 3.25 (beta) (1/24/95)</h2>
+
+<p>
 Yet another bug-fix beta release.  There are still at least half a dozen
 significant known bugs to be fixed before a public release.
 
-<h2><a name="V3.25_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.25_Documentation"></a>Documentation</h3><pre>
 Notes that on Unix systems, one should not edit 'makefile', but should edit
 the individual subfile and run tar_cat.  THIS IS A NON-BACKWARD-COMPATIBLE
 CHANGE.  (make.doc)
 
 Adds information on the Macintosh implementation.  (readme)
 
-<h2><a name="V3.25_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V3.25_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- make clean failed on Unix systems where rm -f requires at least one
 file name.  (gs.mak)
 	- math_.h was omitted from many dependency lists.  (gs.mak)
 
-<h2><a name="V3.25_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.25_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The X Windows and MS Windows draw-line routines couldn't possibly
@@ -6413,12 +6517,12 @@ GraphicsAlphaBits device parameters.  (gdevsvga.h, gdevsvga.c)
 Adds a user-contributed driver for the Epson Stylus Color printer.  (devs.mak,
 gdevstc.c, devices.doc)
 
-<h2><a name="V3.25_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.25_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The VMS build scripts had gotten out of sync (again).  (vms*.mak)
 
-<h2><a name="V3.25_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.25_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- The emulator name array was incorrectly declared const in one place.
@@ -6431,7 +6535,7 @@ zfproc.c, ziodev.c)
 
 Changes (almost) all the operator routines to 'static'.  (z*.c)
 
-<h2><a name="V3.25_Library"></a>Library</h2>
+</pre><h3><a name="V3.25_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The raster value for replicated tiles in the halftone cache was
@@ -6451,17 +6555,19 @@ functions in the future.)  (math_.h, gsmisc.c)
 
 Adds additional interrupt checks in the banding code.  (gxclist.c, gxclread.c)
 
-<h1><a name="Version3.24"></a>Version 3.24 (beta) (1/17/95)</h1>
+</pre>
 
+<h2><a name="Version3.24"></a>Version 3.24 (beta) (1/17/95)</h2>
+
+<p>
 This was supposed to be a public release, but too many bugs showed up in 3.23,
 so this is another bug-fix beta release.  This is the first release with a
 working PDF reader.
 
-<h2><a name="V3.24_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.24_Documentation"></a>Documentation</h3><pre>
 Notes that Solaris requires using installbsd instead of install.  (make.doc)
 
-<h2><a name="V3.24_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.24_Procedures"></a>Procedures</h3><pre>
 
 Changes 'make mostlyclean' so that it doesn't delete the Ghostscript
 executable (but deletes everything else that 'make clean' does).  (gs.mak)
@@ -6475,7 +6581,7 @@ support in the PDF interpreter.  (gs.mak, zpath.c, zpath1.c)
 Adds a printout of the available language interpreters to the -h message.
 (genconf.c, gs.c, iinit.c, gs.mak)
 
-<h2><a name="V3.24_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.24_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The alternate X drivers used a cast in an initializer, causing a
@@ -6486,7 +6592,7 @@ the Duplex page device parameter.  (gdevdjet.c)
 
 Adds Orientation to the bit device.  (gdevbit.c)
 
-<h2><a name="V3.24_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.24_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- There was an extraneous pfen-&gt; in the NT file system module, causing
@@ -6495,7 +6601,7 @@ a compilation error.  (gp_ntfs.c)
 	- The VMS build scripts omitted the LaserJet 4 driver.  (vms-*.mak)
 	- The VMS build scripts had several other minor errors.  (vms.mak)
 
-<h2><a name="V3.24_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.24_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- Defining a font alias in global VM with a name that was a string in
@@ -6503,7 +6609,7 @@ local VM caused an error.  (gs_fonts.ps)
 	- The font compiler referred to an obsolete symbol a_foreign.
 (font2c.ps)
 
-<h2><a name="V3.24_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.24_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- There was an extraneous '#' before an extern declaration.
@@ -6535,7 +6641,7 @@ Adds the beginnings of support for CID-keyed fonts.  (gs_cidfn.ps)
 Changes the format of the stack dump printed for errors, to make it easier to
 read.  (gs_init.ps)
 
-<h2><a name="V3.24_Interpreter_PostScript"></a>Interpreter (PostScript)</h2>
+</pre><h3><a name="V3.24_Interpreter_PostScript"></a>Interpreter (PostScript)</h3><pre>
 
 Fixes bugs:
 	- The .local/global allocation operators always allocated in system
@@ -6553,7 +6659,7 @@ Adds meaningful values for the Emulator resource.  (gsmain.c, gs_res.ps)
 Makes -Z? validate the state of memory before and after save and restore.
 (ialloc.h, igc.h, ialloc.c, igc.c, ilocate.c, zvmem.c)
 
-<h2><a name="V3.24_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.24_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- The Unix install script didn't install the PDF files if they were
@@ -6575,7 +6681,7 @@ compensate for a bug in some Adobe software.  (pdf_base.ps)
 Changes pdfgetpage so it uses 1-origin rather than 0-origin indexing.  THIS IS
 A NON-BACKWARD-COMPATIBLE CHANGE.  (pdf_main.ps)
 
-<h2><a name="V3.24_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.24_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The Group 3 2-D and Group 4 encoders produced incorrect output if a
@@ -6587,7 +6693,7 @@ would smash memory.  (sfilter1.c)
 Updates the DCT filters so they will work with the latest version (5a) of the
 IJG library.  (*.mak, jpeg.mak, sjpegerr.c)
 
-<h2><a name="V3.24_Library"></a>Library</h2>
+</pre><h3><a name="V3.24_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- A call with integer parameters to a procedure with floating point
@@ -6601,14 +6707,16 @@ were very large and the radius was (in user space coordinates) very small.
 Adds support for Orientation and Duplex page device parameters, for those
 devices that support these.  (gdevprn.h, gxdevice.h, gsdevice.c, gsdparam.c)
 
-<h1><a name="Version3.23"></a>Version 3.23 (beta) (1/5/95)</h1>
+</pre>
 
+<h2><a name="Version3.23"></a>Version 3.23 (beta) (1/5/95)</h2>
+
+<p>
 This is almost entirely a bug fix release.  It also includes a largely working
 PDF reader.  This is intended as the beta test release for the next public
 release.
 
-<h2><a name="V3.23_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.23_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- COPYLEFT, COPYING, NEWS, PUBLIC, README, and the standard Fontmap
 were omitted from the 3.22 fileset.
@@ -6629,7 +6737,7 @@ material.  (PUBLIC)
 Documents the fact that Ghostscript *does* attempt to look up files in the
 current directory first.  (use.doc)
 
-<h2><a name="V3.23_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.23_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- In VMS.MAK, .JPEG should have been changed to .JPEG-5 in a few
@@ -6641,7 +6749,7 @@ DeskJet drivers.  Replaces pjet and pjetxl with pj and pjxl.  (*.mak)
 Makes 'run' recognize PDF files if the PDF reader is included.
 (pdf_main.ps)
 
-<h2><a name="V3.23_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.23_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- viewjpeg.ps needed the test for languagelevel = 2 at the
@@ -6659,7 +6767,7 @@ header.  (gsbj, gsdj, gsdj500, gslj)
 Changes ansi2knr so that it will work properly on systems where the ctype
 macros don't handle 8-bit characters correctly.  (ansi2knr.c)
 
-<h2><a name="V3.23_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.23_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- Some compilers don't allow casts in initialization expressions.
@@ -6673,7 +6781,7 @@ device.  (devs.mak, gdevxalt.c)
 Adds a user-contributed driver for the Apple Imagewriter LQ.  (devs.mak,
 gdevadmp.c)
 
-<h2><a name="V3.23_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.23_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The VMS MODULES.LIS file had gotten out of sync with the makefile
@@ -6690,7 +6798,7 @@ Changes the SCO Unix direct frame buffer driver so it generates in-line
 instructions to access the frame buffer, for a dramatic speed improvement.
 (gdevpcfb.h, gdevsco.c)
 
-<h2><a name="V3.23_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.23_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- If a font couldn't be found in the Fontmap, a recursion loop
@@ -6704,7 +6812,7 @@ possible recursion loop.  (gs_dps1.ps, gs_fonts.ps, idict.h, idict.c, zdict.c)
 Further improves the algorithm for substituting for unknown fonts.
 (gs_fonts.ps)
 
-<h2><a name="V3.23_Interpreter_PostScript"></a>Interpreter (PostScript)</h2>
+</pre><h3><a name="V3.23_Interpreter_PostScript"></a>Interpreter (PostScript)</h3><pre>
 
 Fixes bugs:
 	- zcontrol.c had an assignment of const char * to const byte *,
@@ -6775,7 +6883,7 @@ gs_statd.ps)
 
 Alleviates some performance problems in the garbage collector.  (igc.c)
 
-<h2><a name="V3.23_Interpreter_PDF"></a>Interpreter (PDF)</h2>
+</pre><h3><a name="V3.23_Interpreter_PDF"></a>Interpreter (PDF)</h3><pre>
 
 Fixes bugs:
 	- PDF files that used filters with parameters caused a typecheck
@@ -6804,7 +6912,7 @@ Changes the PDF code so that it automatically recognizes PDF files as such.
 
 Splits out the PixelDifference filters as a separate "feature".  (gs.mak)
 
-<h2><a name="V3.23_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.23_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- Closing the primary input stream caused an invalid memory access.
@@ -6815,7 +6923,7 @@ zfilter.c)
 	- The garbage collector didn't properly trace streams that referenced
 strings directly.  (stream.h, stream.c, ziodev.c)
 
-<h2><a name="V3.23_Library"></a>Library</h2>
+</pre><h3><a name="V3.23_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- An extraneous \ upset some compilers.  (gdevabuf.c)
@@ -6861,12 +6969,15 @@ Increases the size of the halftone cache on large-memory machines from 35K
 to 100K.  This substantially improves halftoning performance at higher
 resolutions.  (gxht.c)
 
-<h1><a name="Version3.22"></a>Version 3.22 (beta) (11/30/94)</h1>
+</pre>
 
+<h2><a name="Version3.22"></a>Version 3.22 (beta) (11/30/94)</h2>
+
+<p>
 This is primarily a bug fix release.  It also includes limited anti-aliased
 graphics capability.  This release was not distributed to the public.
 
-<h2><a name="V3.22_Procedures"></a>Procedures</h2>
+<h3><a name="V3.22_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The definition of ghost_h was misplaced, so changes in it or its
@@ -6878,7 +6989,7 @@ Actually implements the -Z+ switch, for forcing small stack blocks.
 Makes the -dSAFER switch disable the %pipe syntax for file names, even for
 reading.  (gs_init.ps)
 
-<h2><a name="V3.22_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.22_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The dfax drivers incorrectly set EncodedByteAlign to false.
@@ -6886,7 +6997,7 @@ Fixes bugs:
 	- softwareValue and dateTimeValue were declared as byte rather than
 char.  (gdevtfax.c)
 
-<h2><a name="V3.22_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.22_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The VMS DEC C compilers declare delete in unixio.h, and doesn't
@@ -6904,12 +7015,12 @@ Renames VMS-AXP.MAK as VMS-DECC.MAK, with some changes that make it
 appropriate for DEC C on both VAX and AXP platforms.  (vms-axp.mak =&gt;
 vms.decc.mak)
 
-<h2><a name="V3.22_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.22_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- gs_kanji.ps got an invalidaccess error.  (gs_kanji.ps)
 
-<h2><a name="V3.22_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.22_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- An off-by-1 test in the roll operator caused it to smash the
@@ -6986,7 +7097,7 @@ Brings filterdict inside the INITIAL_DICTIONARIES conditional.  (iinit.c)
 Adds a .currentscreenlevels operator that returns the number of
 distinguishable halftone levels.  (zht.c)
 
-<h2><a name="V3.22_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.22_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The 2-D case of CCITTFaxDecode could get confused by an input
@@ -6995,7 +7106,7 @@ data buffer boundary that fell immediately after a horizontal code.
 	- The LZW decoder didn't detect invalid data unless DEBUG was
 selected at build time.  (slzwd.c)
 
-<h2><a name="V3.22_Library"></a>Library</h2>
+</pre><h3><a name="V3.22_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The clipping region accumulator could refer to a clipping
@@ -7012,14 +7123,16 @@ Implements the ProcessColorModel parameter (read-only) for all devices.
 Adds a gs_currentscreenlevels procedure that returns the number of
 distinguishable halftone levels.  (gsht.c)
 
-<h1><a name="Version3.21"></a>Version 3.21 (beta) (11/17/94)</h1>
+</pre>
 
+<h2><a name="Version3.21"></a>Version 3.21 (beta) (11/17/94)</h2>
+
+<p>
 This is primarily a bug fix release.  It also includes a substantial
 improvement in the Type 1 font hinting algorithms.  This release was not
 distributed to the public.
 
-<h2><a name="V3.21_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.21_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The `man' page referred to gnu.ghostscript.bug rather than
 comp.lang.postscript.  (gs.1)
@@ -7027,12 +7140,12 @@ comp.lang.postscript.  (gs.1)
 Documents the special entries in operator definition tables that allow
 switching dictionaries.  (opdef.h)
 
-<h2><a name="V3.21_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.21_Procedures"></a>Procedures</h3><pre>
 
 Moves the definition of JSRCDIR to the individual platform makefiles, to
 make it easier to change on platforms that don't have file links.  (*.mak)
 
-<h2><a name="V3.21_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.21_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- ansi2knr didn't recognize that a line ending with } couldn't be a
@@ -7040,7 +7153,7 @@ function definition.  (ansi2knr.c)
 	- ps2epsi always returned an empty bounding box.  (ps2epsi,
 ps2epsi.bat)
 
-<h2><a name="V3.21_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.21_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The bitrgb device had an invalid depth of 3.  (gdevbit.c)
@@ -7048,7 +7161,7 @@ Fixes bugs:
 Replaces the color mapping code in the X driver with a much faster
 algorithm, courtesy of Tim Theisen.  (gdevx.h, gdevx.c, gdevxini.c)
 
-<h2><a name="V3.21_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.21_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- Two variable names were misspelled.  (gdevpm.c, gp_mswin.c)
@@ -7059,7 +7172,7 @@ gp_mswin.c, gshtscr.c)
 
 Adds some more devices to the OS/2 makefile.  (os2.mak)
 
-<h2><a name="V3.21_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.21_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- wrfont.ps, and hence bdftops, didn't write out the FontType or
@@ -7068,7 +7181,7 @@ PaintType.  (Bug introduced since 2.6.1)  (wrfont.ps)
 undefined when the font was loaded.  (Bug introduced since 2.6.1)
 (wrfont.ps)
 
-<h2><a name="V3.21_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.21_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- make_tasv_old called make_tasv_new with extra arguments.
@@ -7163,7 +7276,7 @@ THIS IS A NON-BACKWARD-COMPATIBLE CHANGE from programs that depend on
 max and min that just call the operators, which should take care of any
 ordinary code.  (*.ps, zrelbit.c)
 
-<h2><a name="V3.21_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.21_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The pfb_state pointer in the eexecDecode filter state wasn't
@@ -7173,7 +7286,7 @@ garbage under some conditions.  (Bug introduced in 3.12.)  (zmisc1.c)
 	- The eexec decoding filter would incorrectly ask for more input if
 the output buffer was full.  (seexec.c)
 
-<h2><a name="V3.21_Library"></a>Library</h2>
+</pre><h3><a name="V3.21_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Some compilers reserve the word 'try'.  (gshtscr.c)
@@ -7199,19 +7312,21 @@ the font number of the child font was computed incorrectly.  (gschar0.c)
 Splits up the various memory devices into one file per depth [internal
 change only].  (gdevm*.c)
 
-<h1><a name="Version3.20"></a>Version 3.20 (beta) (10/31/94)</h1>
+</pre>
 
+<h2><a name="Version3.20"></a>Version 3.20 (beta) (10/31/94)</h2>
+
+<p>
 This version contains some support for a PDF interpreter; however, the PDF
 code itself is not ready for release yet.  It also includes anti-aliased text
 capability.  This release was not distributed to the public.
 
-<h2><a name="V3.20_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.20_Documentation"></a>Documentation</h3><pre>
 Notes that the FAQ has moved to smallo.ruhr.de:pub/ghost/gs.faq.  (readme)
 
 Documents various implementation limits.  (language.doc)
 
-<h2><a name="V3.20_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.20_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- bcp.dev wasn't included in the list of dependencies for
@@ -7220,7 +7335,7 @@ level1.dev.  (gs.mak)
 Changes the printout of version numbers so that it is always A.BC,
 rather than A.B if C is zero.  (gs.c, gs_init.ps)
 
-<h2><a name="V3.20_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.20_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- font2c didn't correctly handle Metrics or Metrics2 dictionaries
@@ -7235,7 +7350,7 @@ the input and output files.  (mergeini.ps)
 
 Adds a gsdj500 shell script to parallel gsdj500.bat.  (gsdj500)
 
-<h2><a name="V3.20_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.20_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The X driver didn't mask dynamically assigned colors properly, so
@@ -7250,7 +7365,7 @@ color models:
 
 Changes the left margin of the lj4dith driver to 0.26".  (gdevcdj.c)
 
-<h2><a name="V3.20_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.20_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- If &lt;sys/time.h&gt; didn't exist, time_.h didn't always include
@@ -7274,12 +7389,12 @@ segment in 16-bit environments.  (bcwin.mak, jpeg.mak, sjpeg.c, sjpegerr.c)
 Adds the bmp drivers back into the 16-bit MS Windows executable, since they
 will fit now.  (bcwin.mak)
 
-<h2><a name="V3.20_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.20_Fonts"></a>Fonts</h3><pre>
 
 Makes the font substitution algorithm recognize the word Roman as calling
 for a serif font.  (gs_fonts.ps)
 
-<h2><a name="V3.20_Interpreters"></a>Interpreters</h2>
+</pre><h3><a name="V3.20_Interpreters"></a>Interpreters</h3><pre>
 
 Fixes bugs:
 	- The fix in 3.13 for the inexact function values at 0 didn't work.
@@ -7345,7 +7460,7 @@ colorspacedict.  (gs_lev2.ps, z*.c)
 Adds a new debugging switch, $, that always initializes all fields in a
 ref, in order to keep Purify happy.  (store.h)
 
-<h2><a name="V3.20_Library"></a>Library</h2>
+</pre><h3><a name="V3.20_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- The page size for image devices was always set to (0, 0).
@@ -7391,26 +7506,30 @@ Adds partial support for the Orientation page device parameter.
 Adds support for anti-aliased characters using 2 or 4 bits of alpha.
 (gxfcache.h, gschar.c, gxccache.c)
 
-<h1><a name="Version3.13"></a>Version 3.13(private) (10/3/94)</h1>
+</pre>
 
+<hr>
+
+<h2><a name="Version3.13"></a>Version 3.13(private) (10/3/94)</h2>
+
+<p>
 This release was created for a customer; it was not distributed to the
 public.
 
-<h2><a name="V3.13_Documentation"></a>Documentation</h2>
-
+<h3><a name="V3.13_Documentation"></a>Documentation</h3><pre>
 Notes in make.doc that the file names in the IJG archive distributed with
 Ghostscript do not include the gsA.BC/ prefix.  (make.doc)
 
 Adds a cross-reference to make.doc to the Watcom makefiles.  (watc.mak,
 watcwin.mak, wccommon.mak)
 
-<h2><a name="V3.13_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.13_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The makefile rule for gconfig.h et al had a couple of blank lines
 in the middle of it.  (gs.mak)
 
-<h2><a name="V3.13_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.13_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- wrfont.ps didn't add a lenIV entry to the Private dictionary if
@@ -7420,7 +7539,7 @@ Adds a packfile.ps utility that allows compressing multiple files into a
 single file for environments with very little permanent storage.
 (gs_pfile.ps, packfile.ps, wrfont.ps)
 
-<h2><a name="V3.13_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.13_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The {tiff,fax}{g32d,g4} devices could produce incorrect output.
@@ -7432,7 +7551,7 @@ Changes the default bit order for TIFF/F output to little-endian, which is
 apparently what the majority of TIFF decoders like best.  The bit order for
 the fax drivers is still big-endian.  (gdevdfax.c, gdevtfax.c)
 
-<h2><a name="V3.13_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.13_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The VMS build script used -a rather than -w for creating
@@ -7443,13 +7562,13 @@ fonts.  (fontmap.vms)
 	- The VMS MODULES.LIS file assumed the JPEG library files were in
 directory JPEG rather than JPEG-5.  (modules.lis)
 
-<h2><a name="V3.13_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.13_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- Using DISKFONTS resulted in an invalidaccess error.
 (gs_fonts.ps)
 
-<h2><a name="V3.13_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.13_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- The standard transfer function considered gray values above
@@ -7466,7 +7585,7 @@ says whether or not unrecognized keys should be reported as /undefined
 errors.  THIS IS A NON-BACKWARD-COMPATIBLE CHANGE; however, no user-written
 code should be calling .putdeviceparams.  (zdevice.c)
 
-<h2><a name="V3.13_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.13_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The Group 3 2-D and Group 4 fax encoders could emit incorrect
@@ -7474,7 +7593,7 @@ output.  (scfe.c)
 	- The algorithm for constructing optimal Huffman codes could
 produce invalid codes in some rare cases.  (shcgen.c)
 
-<h2><a name="V3.13_Library"></a>Library</h2>
+</pre><h3><a name="V3.13_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Rectangles closed with lineto rather than closepath weren't
@@ -7485,16 +7604,19 @@ whose translation components had never been initialized.  (gxccman.c)
 	- Some compilers don't allow \ in the formal argument list of a
 preprocessor macro.  (gdevprn.h, gxdevice.h)
 
-<h1><a name="Version3.12"></a>Version 3.12 (9/29/94)</h1>
+</pre>
 
+<h2><a name="Version3.12"></a>Version 3.12 (9/29/94)</h2>
+
+<p>
 This is another bug fix release, the first Level 2 release that we believe
 is reasonably reliable.
 
-<h2><a name="V3.12_Documentation"></a>Documentation</h2>
+<h3><a name="V3.12_Documentation"></a>Documentation</h3><pre>
 
 Adds some text warning about making copies of the makefile.  (make.doc)
 
-<h2><a name="V3.12_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.12_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- There were a number of unnecessary dependencies on $(MAKEFILE) in
@@ -7509,7 +7631,7 @@ as a MS-DOS directory name.  (gconfig.c, gdevtfax.c, gs.c, gs_init.ps)
 Updates the JPEG library to version 5 (official release) of the IJG code.
 (jpeg/*, jpeg.mak)
 
-<h2><a name="V3.12_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.12_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The TIFF/F driver put out invalid PageNumber and Software
@@ -7534,13 +7656,13 @@ properly.  (gdevxini.c)
 Adds a WindowID parameter to the X11 device, to allow setting the window
 for the output.  (gdevx.h, gdevx.c, gdevxini.c)
 
-<h2><a name="V3.12_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.12_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The definition of BEGINFILES in os2.mak occurred too late in the
 file to have the desired effect.  (os2.mak)
 
-<h2><a name="V3.12_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.12_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Updating the list of allocated file objects at a restore didn't
@@ -7548,7 +7670,7 @@ clear the prev pointer of the new head, which could cause the garbage
 collector to encounter an invalid pointer.  (Bug introduced by .forgetsave
 in 3.0.3.)  (zfile.c)
 
-<h2><a name="V3.12_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.12_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The CCITTFaxEncode filter with K &gt; 0 and EncodedByteAlign = true
@@ -7562,7 +7684,7 @@ Format documentation.  (seexec.c)
 	- Closing a stream didn't clear out the strm and state pointers,
 which could cause invalid accesses by the garbage collector.  (stream.c)
 
-<h2><a name="V3.12_Library"></a>Library</h2>
+</pre><h3><a name="V3.12_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- fill_loop could loop indefinitely under certain conditions.
@@ -7573,12 +7695,15 @@ Fixes bugs:
 slivers of the region.  (Probably introduced by the "thin graphics" fix in
 3.1.)  (gxacpath.c)
 
-<h1><a name="Version3.1.1"></a>Version 3.1.1 (9/25/94)</h1>
+</pre>
 
+<h2><a name="Version3.1.1"></a>Version 3.1.1 (9/25/94)</h2>
+
+<p>
 This is primarily a bug fix release.  It was originally intended for some
 commercial licensees, but beta testers found too many problems with it.
 
-<h2><a name="V3.1.1_Documentation"></a>Documentation</h2>
+<h3><a name="V3.1.1_Documentation"></a>Documentation</h3><pre>
 
 Fixes bugs:
 	- NEWS didn't indicate that there was a non-backward-compatible
@@ -7589,14 +7714,14 @@ dev_l_margin(dev), etc.  (news)
 Describes the two-phase commit requirement for device put_params
 procedures.  (drivers.doc, gsparam.h)
 
-<h2><a name="V3.1.1_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.1.1_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The new S macro in genarch.c didn't work on compilers that do
 macro substitution within string constants (which is forbidden by the ANSI
 standard).  (genarch.c)
 
-<h2><a name="V3.1.1_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.1.1_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- Driver put_params implementations didn't observe a "two-phase
@@ -7610,24 +7735,27 @@ put_params implementations, of which there are few.
 NOTE THE NON-BACKWARD-COMPATIBLE CHANGE IN THE gx_device STRUCTURE UNDER
 'Documentation' ABOVE.  (gdevescp.c, gdevsj48.c, gdevsppr.c, gdevxini.c)
 
-<h2><a name="V3.1.1_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.1.1_Platforms"></a>Platforms</h3><pre>
 
 Ensures that the Unix makefiles all include all the variants of TIFF/F and
 fax drivers.  (ansihead.mak, cc-head.mak, gcc-head.mak)
 
-<h2><a name="V3.1.1_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.1.1_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Most of the contents of statusdict were missing when
 running a Level 2 system in Level 1 mode.  (zmisc2.c)
 
-<h1><a name="Version3.1"></a>Version 3.1 (9/20/94)</h1>
+</pre>
 
+<h2><a name="Version3.1"></a>Version 3.1 (9/20/94)</h2>
+
+<p>
 This release finally includes a usable subset implementation of
 setpagedevice, including all the machinery needed to address the
 long-standing "margins" problems.
 
-<h2><a name="V3.1_Documentation"></a>Documentation</h2>
+<h3><a name="V3.1_Documentation"></a>Documentation</h3><pre>
 
 Fixes bugs:
 	- t_oparray objects weren't identified as behaving differently
@@ -7638,13 +7766,13 @@ the description of color mapping.  (drivers.doc)
 Updates drivers.doc to reflect the change from static_procs to
 std_procs in the gx_device structure.  (drivers.doc)
 
-<h2><a name="V3.1_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.1_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The commands for building the JPEG library used rm instead
 of rm -f.  (jpeg.mak)
 
-<h2><a name="V3.1_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.1_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The X Windows driver hadn't been updated to reflect some
@@ -7657,7 +7785,7 @@ macros.  (gdev*.c)
 Adds a print_page_copies procedure for printer drivers, allowing the
 driver to receive num_copies.  (gdevprn.h, gdevprn.c)
 
-<h2><a name="V3.1_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.1_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- ref_memory_enum/reloc_ptrs were declared inconsistently.
@@ -7686,13 +7814,13 @@ implementing Adobe's any-part-of-pixel filling rule.  (gs_init.ps)
 
 Implements a small but useful subset of setpagedevice.  (gs_lev2.ps)
 
-<h2><a name="V3.1_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.1_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The eexec decoder incorrectly concluded that its data was
 in hex form if the first data character was whitespace.  (seexec.c)
 
-<h2><a name="V3.1_Library"></a>Library</h2>
+</pre><h3><a name="V3.1_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- Thin graphics (e.g., lines or rectangles) with small angles
@@ -7728,12 +7856,17 @@ Implements std_device_body macros to help insulate statically initialized
 non-printer devices from future changes in the gx_device structure.
 (gxdevice.h, ... many .c files ...)
 
-<h1><a name="Version3.0.3"></a>Version 3.0.3 (9/16/94)</h1>
+</pre>
 
+<hr>
+
+<h2><a name="Version3.0.3"></a>Version 3.0.3 (9/16/94)</h2>
+
+<p>
 This is primarily a bug fix release; it also implements most of the
 remaining Level 2 loose ends (except for setpagedevice).
 
-<h2><a name="V3.0.3_Documentation"></a>Documentation</h2>
+<h3><a name="V3.0.3_Documentation"></a>Documentation</h3><pre>
 
 Changes code that refers to "Ghostscript" to use the correct product
 name from gs_product.  (gs.mak, gdevpbm.c, gdevsun.c, gswppm.c)
@@ -7743,7 +7876,7 @@ Documents the new .forgetsave operator.  (language.doc)
 Clarifies the distinction between commercial licensing and single-copy
 end-user sales.  (readme)
 
-<h2><a name="V3.0.3_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.0.3_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- The compilation rule for gdevadmp.c was missing from the
@@ -7756,11 +7889,11 @@ gs_init.ps)
 Adds a -dNOGC switch to prevent the garbage collector from being
 enabled.  (gs_init.ps)
 
-<h2><a name="V3.0.3_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.0.3_Utilities"></a>Utilities</h3><pre>
 
 Removes the ps2image utility, since the new psmono driver replaces it.
 
-<h2><a name="V3.0.3_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.0.3_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The TIFF drivers incorrectly assumed that short and ulong
@@ -7781,7 +7914,7 @@ Replaces the X11 driver with the one from 3.01, since the color
 handling rewrite in 3.02 introduced serious bugs.  (gdevx.h, gdevx.c,
 gdevxini.c)
 
-<h2><a name="V3.0.3_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.0.3_Platforms"></a>Platforms</h3><pre>
 
 Changes the definition of gx_no_color_index to work around one of the
 bugs in the SGI Irix compiler.  (gxdcolor.h)
@@ -7789,7 +7922,7 @@ bugs in the SGI Irix compiler.  (gxdcolor.h)
 Rewrites the installation commands in unix-end.mak so they don't have
 very long lines.  (unix-end.mak)
 
-<h2><a name="V3.0.3_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.0.3_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- Fonts that used 2- or 4-element arrays in the Metrics dictionary
@@ -7797,7 +7930,7 @@ interpreted the width and side bearing interchanged with each other.
 (gs_type1.ps)
 	- Setting FONTPATH on the command line didn't work.  (gs_fonts.ps)
 
-<h2><a name="V3.0.3_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.0.3_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The stream position wasn't updated properly if sgets
@@ -7813,7 +7946,7 @@ call" problem.  (stream.c, sfile.c, sfileno.c)
 
 Increases the maximum LZW output code from 3000 to 4095.  (slzwe.c)
 
-<h2><a name="V3.0.3_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.0.3_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- Opening a filter on a file of the wrong access type (read
@@ -7841,7 +7974,7 @@ Implements a .forgetsave operator that effectively causes a given save (and
 all more recent saves) to disappear.  (isave.h, stream.h, isave.c, zfile.c,
 zvmem.c)
 
-<h2><a name="V3.0.3_Library"></a>Library</h2>
+</pre><h3><a name="V3.0.3_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- In the 1-operand form of the image operator, a Decode value of [1
@@ -7875,12 +8008,15 @@ the size of a halftone super-cell.  (gxht.h, gsht.c, gsht1.c)
 Starts to implement the TransferFunction option for halftones.
 (gzht.h, gzstate.h, gsht.c, ...too many others to list...)
 
-<h1><a name="Version3.02"></a>Version 3.02 (8/30/94)</h1>
+</pre>
 
+<h2><a name="Version3.02"></a>Version 3.02 (8/30/94)</h2>
+
+<p>
 This is another bug fix release.  It was distributed only to a few people,
 since the new X Windows color mapping code is not reliable yet.
 
-<h2><a name="V3.02_Documentation"></a>Documentation</h2>
+<h3><a name="V3.02_Documentation"></a>Documentation</h3><pre>
 
 Fixes bugs:
 	- make.doc, but not unixtail.mak, called for setting PLATFORM=unix_
@@ -7902,7 +8038,7 @@ Adds a bug report form to the README file.  (readme)
 Notes that OSF/1 AXP systems require changing the definition of INSTALL
 from install to installbsd.  (make.doc)
 
-<h2><a name="V3.02_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.02_Procedures"></a>Procedures</h3><pre>
 
 Removes -Wno-uninitialized from the gcc flags, and fixes all the places (in
 Aladdin's code only) that need to be fixed to pacify gcc after doing this.
@@ -7914,7 +8050,7 @@ Adds a FAKEFONTS switch that makes fake entries in FontDirectory for
 unloaded fonts, for the benefit of programs that think they can find all
 the available fonts by scanning FontDirectory.  (gs_fonts.ps, gs_init.ps)
 
-<h2><a name="V3.02_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.02_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- ps2epsi didn't work, because setdevice now erases the page.
@@ -7923,7 +8059,7 @@ Fixes bugs:
 with 0 width and height.  The fix -- to remove the -dNODISPLAY -- is not
 satisfactory, because it opens an unnecessary window.  (ps2epsi)
 
-<h2><a name="V3.02_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.02_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- gdev_fax_open was incorrectly declared static in gdevtfax.c,
@@ -7959,7 +8095,7 @@ Changes the margins for the LaserJet 4 to 0.  (gdevdjet.c)
 Adds a user-contributed LaserJet 4 driver that does Floyd-Steinberg
 dithering.  (gdevcdj.c)
 
-<h2><a name="V3.02_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.02_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The exit codes for Ghostscript should be different on VMS.
@@ -7992,7 +8128,7 @@ a user.  (vms.mak, vms-cc.mak, vms-axp.mak)
 Changes the 16-bit Borland makefiles so their standard configuration is
 Level 1 plus color.dev (CMYK color and colorimage).  (bc.mak, bcwin.mak)
 
-<h2><a name="V3.02_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.02_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- cfonts.mak still referred to some .gsf files that have been
@@ -8014,7 +8150,7 @@ Adds the entire set of 35 standard fonts to the ccfonts feature in gs.mak;
 removes all the compilation rules for compiled fonts, since these rules are
 in cfonts.mak already.  (gs.mak)
 
-<h2><a name="V3.02_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.02_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- kshow executed a null, rather than the correct procedure, between
@@ -8057,7 +8193,7 @@ Moves =string from systemdict to userdict for Adobe compatibility.
 Starts to implement the Interpolate flag in image dictionaries.  See under
 Library below for restrictions.  (zpaint.c, zimage2.c)
 
-<h2><a name="V3.02_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.02_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- stream_compact attempted to compact a read-only string being used
@@ -8066,7 +8202,7 @@ as the data source of a filter.  (sbasic.c, stream.c)
 Adds an EncodedEOLAlign flag to the CCITTFaxEncode stream, to allow direct
 generation of TIFF/F output.  (scfx.h, scfe.c, zfilter2.c)
 
-<h2><a name="V3.02_Library"></a>Library</h2>
+</pre><h3><a name="V3.02_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- There was no structure definition for gs_type1_state, so a GC
@@ -8113,12 +8249,15 @@ gsiscale.h, gximage.h, gsimage.c, gsimage1.c, gsiscale.c)
 Starts to implement XStep and YStep in pattern dictionaries.  (gxdcolor.h,
 gxpcolor.h, gspcolor.c, gxpcmap.c)
 
-<h1><a name="Version3.01"></a>Version 3.01 (8/14/94)</h1>
+</pre>
 
+<h2><a name="Version3.01"></a>Version 3.01 (8/14/94)</h2>
+
+<p>
 This is a patch release to fix early problems in release 3.0, and to clean
 up a few known loose ends.
 
-<h2><a name="V3.01_Documentation"></a>Documentation</h2>
+<h3><a name="V3.01_Documentation"></a>Documentation</h3><pre>
 
 Fixes bugs:
 	- language.doc still documented the devicename procedure, which has
@@ -8138,7 +8277,7 @@ than -dBitsPerPixel=.  (devices.doc)
 Notes that a kernel bug in SCO Unix makes Ghostscript not work correctly in
 some circumstances.  (use.doc)
 
-<h2><a name="V3.01_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.01_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- devs.mak incorrectly referred to gdevjetp.c instead of
@@ -8160,7 +8299,7 @@ the executable scripts from gsdatadir to a new directory scriptdir, which
 defaults to bindir.  (ansihead.mak, cc-head.mak, gcc-head.mak,
 unix-end.mak)
 
-<h2><a name="V3.01_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.01_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- genconf had fixed buffer sizes built into it, which it could
@@ -8169,7 +8308,7 @@ overrun its working storage without checking.  (genconf.c)
 Removes RCS or SCCS headers from two utility files.  (pj-gs.sh,
 printafm.ps)
 
-<h2><a name="V3.01_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.01_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The new dfaxhigh and dfaxlow drivers didn't set
@@ -8203,7 +8342,7 @@ Replaces the atiw16, tseng16, and tvga16 SuperVGA drivers with a single
 svga16 driver that allows specifying the display mode number.  (devs.mak,
 gdevpcfb.c)
 
-<h2><a name="V3.01_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.01_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- The MS Windows and OS/2 drivers allocated their terminal input
@@ -8218,7 +8357,7 @@ __STDC__ was defined.  (stdpre.h)
 Changes the DVX platform so that stdprn is buffered.  This should improve
 printing performance dramatically.  (gp_dvx.c)
 
-<h2><a name="V3.01_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.01_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- Setting DISKFONTS resulted in a reference to FontFileDirectory
@@ -8233,7 +8372,7 @@ rather than .pfa.  (fontmap.gs)
 	- Fonts whose FontBBox was [0 0 0 0] were not displayed, or were
 displayed as tiny dots.  (gs_type1.ps)
 
-<h2><a name="V3.01_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.01_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- dict_put could read from the variable pvslot before it was used.
@@ -8278,7 +8417,7 @@ PixelDifferenceEncode/Decode, and splits them off into a separate
 Adds experimental code for filtered image scaling.  DON'T USE THIS CODE.
 (zimage2.c)
 
-<h2><a name="V3.01_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.01_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- The CCITTFaxEncode filter could put out an EOB in the middle of
@@ -8287,7 +8426,7 @@ the data.  (scfe.c)
 Splits off the PixelDifferenceEncode/Decode filters into a separate
 "feature".  (gs.mak)
 
-<h2><a name="V3.01_Library"></a>Library</h2>
+</pre><h3><a name="V3.01_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- gs_setcachedevice could return a garbage error code.  (gschar.c)
@@ -8313,12 +8452,15 @@ Renames gsfile.c as gswppm.c.  (gsfile.c, gswppm.c)
 Implements the ability to cache arbitrarily transformed characters.  This
 is currently enabled by a compile-time flag in gschar.c.  (gschar.c)
 
-<h1><a name="Version3.0"></a>Version 3.0 (8/1/94)</h1>
+</pre>
 
+<h2><a name="Version3.0"></a>Version 3.0 (8/1/94)</h2>
+
+<p>
 This is the first full Level 2 version released to the public.
 Unfortunately, we were not able to include setpagedevice in this release.
 
-<h2><a name="V3.0_Documentation"></a>Documentation</h2>
+<h3><a name="V3.0_Documentation"></a>Documentation</h3><pre>
 
 Fixes bugs:
 	- README didn't mention Aladdin's European distributor.
@@ -8329,7 +8471,7 @@ modules on the H-P RISC architecture.
 
 Notes that on AXP platforms running VMS, DEC C V4.0 is required.
 
-<h2><a name="V3.0_Procedures"></a>Procedures</h2>
+</pre><h3><a name="V3.0_Procedures"></a>Procedures</h3><pre>
 
 Fixes bugs:
 	- 'make clean' didn't delete devs.tr or t.tr.
@@ -8342,14 +8484,14 @@ Updates jpeg.mak to reference version 5beta1 of the IJG JPEG code.
 Changes the version numbering scheme from A.B.C to A.B[CC].  I.e., the
 first sub-release after 3.0 will be 3.01 or 3.001, not 3.0.1.
 
-<h2><a name="V3.0_Utilities"></a>Utilities</h2>
+</pre><h3><a name="V3.0_Utilities"></a>Utilities</h3><pre>
 
 Fixes bugs:
 	- ps2ascii didn't do a setglobal.
 
 Adds an option to ansi2knr to convert ... to va_alist/va_dcl.
 
-<h2><a name="V3.0_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V3.0_Drivers"></a>Drivers</h3><pre>
 
 Fixes bugs:
 	- The newly added faxg32d driver didn't have an entry in devs.mak.
@@ -8363,7 +8505,7 @@ Adds faxg32d and tiffg32d drivers.
 Reinstates the DigiFax drivers, which were withdrawn when the new fax
 drivers were added.
 
-<h2><a name="V3.0_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V3.0_Platforms"></a>Platforms</h3><pre>
 
 Fixes bugs:
 	- gs_btokn.ps and gs_ccfnt.ps weren't installed on Unix platforms.
@@ -8380,7 +8522,7 @@ fonts.
 pipe.  (We fixed this with a temporary patch in gs.c; this isn't a good
 solution for the longer term.)
 
-<h2><a name="V3.0_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V3.0_Fonts"></a>Fonts</h3><pre>
 
 Fixes bugs:
 	- The free AvantGarde, Bookman, and Palatino font families had
@@ -8391,7 +8533,7 @@ chopped off on the right.  (The bitmaps were chopped off in the original
 BDF fonts from which these fonts were made.)  ****** THIS PROBLEM WAS NOT
 ACTUALLY FIXED. ******
 
-<h2><a name="V3.0_Interpreter"></a>Interpreter</h2>
+</pre><h3><a name="V3.0_Interpreter"></a>Interpreter</h3><pre>
 
 Fixes bugs:
 	- gs -h and gs -v didn't print the tertiary version number correctly.
@@ -8412,13 +8554,13 @@ definition, causing ps2ascii to loop endlessly.
 Adds a facility for writing and reading dictionaries in binary object
 sequences.  This is experimental and subject to change in the future.
 
-<h2><a name="V3.0_Streams"></a>Streams</h2>
+</pre><h3><a name="V3.0_Streams"></a>Streams</h3><pre>
 
 Fixes bugs:
 	- gs_run_string and ccinit didn't have any way to mark the string
 as "foreign", which confused the GC.
 
-<h2><a name="V3.0_Library"></a>Library</h2>
+</pre><h3><a name="V3.0_Library"></a>Library</h3><pre>
 
 Fixes bugs:
 	- gxchar.h had an extra comma after the last element of the
@@ -8433,19 +8575,19 @@ path.
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.
+All rights reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
+
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

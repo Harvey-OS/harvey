@@ -199,9 +199,9 @@ options(Vga *vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	int id, width;
+	char *p, *val;
 	ulong pclk, x;
-	char *p;
+	int id, noclockset, width;
 
 	s3generic.init(vga, ctlr);
 
@@ -209,6 +209,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 * Work out the part speed-grade from name. Name can have,
 	 * e.g. '-135' on the end for 135MHz part.
 	 */
+	noclockset = 0;
 	if(p = strrchr(ctlr->name, '-'))
 		vga->f[1] = strtoul(p+1, 0, 0) * 1000000;
 	pclk = vga->f[1];
@@ -287,6 +288,8 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->crt[0x60] &= 0x0F;
 		/*FALLTHROUGH*/
 	case 0x8812:				/* Aurora64V+ */
+		if(id == 0x8812)		/* Aurora64V+ */
+			noclockset = 1;
 		vga->crt[0x65] = 0;
 		vga->crt[0x66] = 0x89;
 		vga->crt[0x67] = 0;
@@ -419,7 +422,7 @@ init(Vga* vga, Ctlr* ctlr)
 			vga->crt[0x67] |= 0x40;
 			vga->crt[0x50] |= 1<<4;
 			/*
-			 * Manual says this should be acompanied by setting
+			 * Manual says this should be accompanied by setting
 			 * the clock-doubled modes but this seems to be the
 			 * right answer.
 			 * Should check if using doubled modes tidies any of
@@ -442,6 +445,10 @@ init(Vga* vga, Ctlr* ctlr)
 	 * set using bits <3:2> of vga->misc, otherwise we
 	 * need to programme the DCLK PLL.
 	 */
+	if(val = dbattr(vga->mode->attr, "noclockset")){
+		 if((noclockset = strtol(val, &p, 0)) == 0 && p == val)
+			error("%s: invalid 'noclockset' attr\n", ctlr->name);
+	}
 	if(vga->f[0] == 0)
 		vga->f[0] = vga->mode->frequency;
 	vga->misc &= ~0x0C;
@@ -450,9 +457,10 @@ init(Vga* vga, Ctlr* ctlr)
 	}
 	else if(vga->f[0] == VgaFreq1)
 		vga->misc |= 0x04;
-	else if(id == 0x8812){			/* Aurora64V+ */
+	else if(noclockset){
 		/*
-		 * Don't touch the clock on the Aurora64V+.
+		 * Don't touch the clock on the Aurora64V+
+		 * and optionally on some others.
 		 */
 		vga->misc |= 0x0C;
 	}

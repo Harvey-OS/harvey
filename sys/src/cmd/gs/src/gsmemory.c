@@ -1,22 +1,22 @@
 /* Copyright (C) 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsmemory.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsmemory.c,v 1.4 2001/08/25 06:46:21 lpd Exp $ */
 /* Generic allocator support */
 #include "memory_.h"
 #include "gdebug.h"
@@ -27,11 +27,11 @@
 #include "gsstruct.h"		/* ditto */
 
 /* Define the fill patterns for unallocated memory. */
-byte gs_alloc_fill_alloc = 0xa1;
-byte gs_alloc_fill_block = 0xb1;
-byte gs_alloc_fill_collected = 0xc1;
-byte gs_alloc_fill_deleted = 0xd1;
-byte gs_alloc_fill_free = 0xf1;
+const byte gs_alloc_fill_alloc = 0xa1;
+const byte gs_alloc_fill_block = 0xb1;
+const byte gs_alloc_fill_collected = 0xc1;
+const byte gs_alloc_fill_deleted = 0xd1;
+const byte gs_alloc_fill_free = 0xf1;
 
 /* A 'structure' type descriptor for free blocks. */
 gs_public_st_simple(st_free, byte, "(free)");
@@ -155,6 +155,25 @@ gs_free_const_string(gs_memory_t * mem, const byte * data, uint nbytes,
 
     u.r = data;
     gs_free_string(mem, u.w, nbytes, cname);
+}
+
+/* Free a [const] bytestring. */
+void
+gs_free_bytestring(gs_memory_t *mem, gs_bytestring *pbs, client_name_t cname)
+{
+    if (pbs->bytes)
+	gs_free_object(mem, pbs->bytes, cname);
+    else
+	gs_free_string(mem, pbs->data, pbs->size, cname);
+}
+void
+gs_free_const_bytestring(gs_memory_t *mem, gs_const_bytestring *pbs,
+			 client_name_t cname)
+{
+    if (pbs->bytes)
+	gs_free_const_object(mem, pbs->bytes, cname);
+    else
+	gs_free_const_string(mem, pbs->data, pbs->size, cname);
 }
 
 /* No-op consolidation procedure */

@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevvec.h,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevvec.h,v 1.7 2001/07/12 03:28:02 lpd Exp $ */
 /* Common definitions for "vector" devices */
 
 #ifndef gdevvec_INCLUDED
@@ -89,6 +89,8 @@ typedef enum {
     gx_path_type_clip = 4,
     gx_path_type_winding_number = 0,
     gx_path_type_even_odd = 8,
+    gx_path_type_optimize = 16,	/* OK to optimize paths by merging seg.s */
+    gx_path_type_always_close = 32, /* include final closepath even if not stroke */
     gx_path_type_rule = gx_path_type_winding_number | gx_path_type_even_odd
 } gx_path_type_t;
 typedef enum {
@@ -155,6 +157,7 @@ int gdev_vector_dorect(P6(gx_device_vector * vdev, fixed x0, fixed y0,
 	stream *strm;\
 	byte *strmbuf;\
 	uint strmbuf_size;\
+	int open_options;	/* see below */\
 		/* Graphics state */\
 	gs_imager_state state;\
 	float dash_pattern[max_dash];\
@@ -162,6 +165,7 @@ int gdev_vector_dorect(P6(gx_device_vector * vdev, fixed x0, fixed y0,
 	gs_id no_clip_path_id;	/* indicates no clipping */\
 	gs_id clip_path_id;\
 		/* Other state */\
+	gx_path_type_t fill_options, stroke_options;  /* optimize */\
 	gs_point scale;		/* device coords / scale => output coords */\
 	bool in_page;		/* true if any marks on this page */\
 	gx_device_bbox *bbox_device;	/* for tracking bounding box */\
@@ -177,12 +181,14 @@ int gdev_vector_dorect(P6(gx_device_vector * vdev, fixed x0, fixed y0,
 	0,		/* strm */\
 	0,		/* strmbuf */\
 	0,		/* strmbuf_size */\
+	0,		/* open_options */\
 	 { 0 },		/* state */\
 	 { 0 },		/* dash_pattern */\
 	 { 0 },		/* fill_color ****** WRONG ****** */\
 	 { 0 },		/* stroke_color ****** WRONG ****** */\
 	gs_no_id,	/* clip_path_id */\
 	gs_no_id,	/* no_clip_path_id */\
+	0, 0,		/* fill/stroke_options */\
 	 { X_DPI/72.0, Y_DPI/72.0 },	/* scale */\
 	0/*false*/,	/* in_page */\
 	0,		/* bbox_device */\
@@ -211,10 +217,20 @@ void gdev_vector_init(P1(gx_device_vector * vdev));
 /* Reset the remembered graphics state. */
 void gdev_vector_reset(P1(gx_device_vector * vdev));
 
-/* Open the output file and stream, with optional bbox tracking. */
-int gdev_vector_open_file_bbox(P3(gx_device_vector * vdev, uint strmbuf_size,
-				  bool bbox));
-
+/*
+ * Open the output file and stream, with optional bbox tracking.
+ * The options must be defined so that 0 is always the default.
+ */
+#define VECTOR_OPEN_FILE_ASCII 1	/* open file as text, not binary */
+#define VECTOR_OPEN_FILE_SEQUENTIAL 2	/* open as non-seekable */
+#define VECTOR_OPEN_FILE_SEQUENTIAL_OK 4  /* open as non-seekable if */
+					/* open as seekable fails */
+#define VECTOR_OPEN_FILE_BBOX 8		/* also open bbox device */
+int gdev_vector_open_file_options(P3(gx_device_vector * vdev,
+				     uint strmbuf_size, int open_options));
+#define gdev_vector_open_file_bbox(vdev, bufsize, bbox)\
+  gdev_vector_open_file_options(vdev, bufsize,\
+				(bbox ? VECTOR_OPEN_FILE_BBOX : 0))
 #define gdev_vector_open_file(vdev, strmbuf_size)\
   gdev_vector_open_file_bbox(vdev, strmbuf_size, false)
 
@@ -242,6 +258,7 @@ int gdev_vector_prepare_fill(P4(gx_device_vector * vdev,
 /* for the line width and dash offset explicitly. */
 /* May call setlinewidth, setlinecap, setlinejoin, setmiterlimit, */
 /* setdash, setflat, setstrokecolor, setlogop. */
+/* Any of pis, params, and pdcolor may be NULL. */
 int gdev_vector_prepare_stroke(P5(gx_device_vector * vdev,
 				  const gs_imager_state * pis,
 				  const gx_stroke_params * params,
@@ -249,9 +266,10 @@ int gdev_vector_prepare_stroke(P5(gx_device_vector * vdev,
 				  floatp scale));
 
 /*
- * Compute the scale or transformation matrix for transforming the line
- * width and dash pattern for a stroke operation.  Return 0 if scaling,
- * 1 if a full matrix is needed.
+ * Compute the scale for transforming the line width and dash pattern for a
+ * stroke operation, and, if necessary to handle anisotropic scaling, a full
+ * transformation matrix to be inverse-applied to the path elements as well.
+ * Return 0 if only scaling, 1 if a full matrix is needed.
  */
 int gdev_vector_stroke_scaling(P4(const gx_device_vector *vdev,
 				  const gs_imager_state *pis,

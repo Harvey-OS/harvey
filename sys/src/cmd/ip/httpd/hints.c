@@ -87,10 +87,10 @@ urlinit(void)
 	uint url;
 	char *file;
 
+	if(filelen < 0)
+		return;
 	file = "/sys/log/httpd/url";
 	if(b == nil){
-		if(filelen == -1)
-			return; /* if failed first time */
 		b = Bopen(file, OREAD); /* first time */
 		if(b == nil){
 			syslog(0, HTTPLOG, "no %s, abandon prefetch hints", file);
@@ -102,6 +102,8 @@ urlinit(void)
 	if(newlen == filelen || Bage(b)<300)
 		return;
 	filelen = newlen;
+	if(filelen < 0)
+		return;
 	if(nurl){ /* free existing tables */
 		free(urlname[0]); /* arena */
 		memset(urlhash,0,sizeof urlhash);

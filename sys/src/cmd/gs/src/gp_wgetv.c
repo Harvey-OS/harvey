@@ -1,22 +1,22 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gp_wgetv.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gp_wgetv.c,v 1.4 2001/04/09 09:01:10 raph Exp $ */
 /* MS Windows implementation of gp_getenv */
 
 #include <windows.h>
@@ -56,10 +56,10 @@ gp_getenv(const char *name, char *ptr, int *plen)
     {
 	/* If using Win32, look in the registry for a value with
 	 * the given name.  The registry value will be under the key
-	 * HKEY_CURRENT_USER\Software\Aladdin Ghostscript\N.NN
+	 * HKEY_CURRENT_USER\Software\AFPL Ghostscript\N.NN
 	 * or if that fails under the key
-	 * HKEY_LOCAL_MACHINE\Software\Aladdin Ghostscript\N.NN
-	 * where "Aladdin Ghostscript" is actually gs_productfamily
+	 * HKEY_LOCAL_MACHINE\Software\AFPL Ghostscript\N.NN
+	 * where "AFPL Ghostscript" is actually gs_productfamily
 	 * and N.NN is obtained from gs_revision.
 	 */
 	DWORD version = GetVersion();
@@ -69,8 +69,11 @@ gp_getenv(const char *name, char *ptr, int *plen)
 	    /* not Win32s */
 	    int code;
 	    char key[256];
-	    sprintf(key, "Software\\%s\\%d.%d", gs_productfamily,
-		    (int)(gs_revision / 100), (int)(gs_revision % 100));
+	    char dotversion[16];
+	    
+	    sprintf(dotversion, "%d.%02d", (int)(gs_revision / 100),
+		    (int)(gs_revision % 100));
+	    sprintf(key, "Software\\%s\\%s", gs_productfamily, dotversion);
 
 	    code = gp_getenv_registry(HKEY_CURRENT_USER, key, name, ptr, plen);
 	    if ( code <= 0 )

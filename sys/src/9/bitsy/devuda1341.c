@@ -246,7 +246,7 @@ L3_acquirepins(void)
 {
 	gpioregs->set = (GPIO_L3_MODE_o | GPIO_L3_SCLK_o | GPIO_L3_SDA_io);
 	gpioregs->direction |=  (GPIO_L3_MODE_o | GPIO_L3_SCLK_o | GPIO_L3_SDA_io);
-	µdelay(L3_AcquireTime);
+	microdelay(L3_AcquireTime);
 }
 
 /*
@@ -256,7 +256,7 @@ static void
 L3_releasepins(void)
 {
 	gpioregs->direction &= ~(GPIO_L3_MODE_o | GPIO_L3_SCLK_o | GPIO_L3_SDA_io);
-	µdelay(L3_ReleaseTime);
+	microdelay(L3_ReleaseTime);
 }
 
 /*
@@ -279,12 +279,12 @@ L3_getbit(void)
 	int data;
 
 	gpioregs->clear = GPIO_L3_SCLK_o;
-	µdelay(L3_ClockLowTime);
+	microdelay(L3_ClockLowTime);
 
 	data = (gpioregs->level & GPIO_L3_SDA_io) ? 1 : 0;
 
  	gpioregs->set = GPIO_L3_SCLK_o;
-	µdelay(L3_ClockHighTime);
+	microdelay(L3_ClockHighTime);
 
 	return data;
 }
@@ -304,10 +304,10 @@ L3_sendbit(int bit)
 		gpioregs->clear = GPIO_L3_SDA_io;
 
 	/* Assumes L3_DataSetupTime < L3_ClockLowTime */
-	µdelay(L3_ClockLowTime);
+	microdelay(L3_ClockLowTime);
 
 	gpioregs->set = GPIO_L3_SCLK_o;
-	µdelay(L3_ClockHighTime);
+	microdelay(L3_ClockHighTime);
 }
 
 /*
@@ -328,12 +328,12 @@ L3_sendbyte(char data, int mode)
 		break;
 	default: /* Subsequent bytes */
 		gpioregs->clear = GPIO_L3_MODE_o;
-		µdelay(L3_HaltTime);
+		microdelay(L3_HaltTime);
 		gpioregs->set = GPIO_L3_MODE_o;
 		break;
 	}
 
-	µdelay(L3_ModeSetupTime);
+	microdelay(L3_ModeSetupTime);
 
 	for (i = 0; i < 8; i++)
 		L3_sendbit(data >> i);
@@ -341,7 +341,7 @@ L3_sendbyte(char data, int mode)
 	if (mode == 0)  /* Address mode */
 		gpioregs->set = GPIO_L3_MODE_o;
 
-	µdelay(L3_ModeHoldTime);
+	microdelay(L3_ModeHoldTime);
 }
 
 /*
@@ -364,17 +364,17 @@ L3_getbyte(int mode)
 		break;
 	default: /* Subsequent bytes */
 		gpioregs->clear = GPIO_L3_MODE_o;
-		µdelay(L3_HaltTime);
+		microdelay(L3_HaltTime);
 		gpioregs->set = GPIO_L3_MODE_o;
 		break;
 	}
 
-	µdelay(L3_ModeSetupTime);
+	microdelay(L3_ModeSetupTime);
 
 	for (i = 0; i < 8; i++)
 		data |= (L3_getbit() << i);
 
-	µdelay(L3_ModeHoldTime);
+	microdelay(L3_ModeHoldTime);
 
 	return data;
 }
@@ -649,7 +649,7 @@ setreg(char *name, int val, int n)
 
 	if(strcmp(name, "pause") == 0){
 		for(i = 0; i < n; i++)
-			µdelay(val);
+			microdelay(val);
 		return;
 	}
 

@@ -128,7 +128,7 @@ readseg(int fd, long off, ulong len, char *name)
 			break;
 	}
 
-	if(i == 0)
+	if(i==0 && len!=0)
 		goto Die;
 
 	s->offset = off;

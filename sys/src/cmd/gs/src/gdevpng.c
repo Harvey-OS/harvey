@@ -1,22 +1,22 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevpng.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevpng.c,v 1.4 2001/09/28 22:06:21 ghostgum Exp $ */
 /* PNG (Portable Network Graphics) Format.  Pronounced "ping". */
 /* lpd 1999-09-24: changes PNG_NO_STDIO to PNG_NO_CONSOLE_IO for libpng
    versions 1.0.3 and later. */
@@ -81,12 +81,13 @@ prn_device(prn_std_procs, "pngmono",
 private const gx_device_procs png16_procs =
 prn_color_procs(gdev_prn_open, gdev_prn_output_page, gdev_prn_close,
 		pc_4bit_map_rgb_color, pc_4bit_map_color_rgb);
-const gx_device_printer gs_png16_device =
-prn_device(png16_procs, "png16",
+const gx_device_printer gs_png16_device = {
+  prn_device_body(gx_device_printer, png16_procs, "png16",
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
 	   0, 0, 0, 0,		/* margins */
-	   4, png_print_page);
+	   3, 4, 3, 2, 4, 3, png_print_page)
+};
 
 /* 8-bit (SuperVGA-style) color. */
 /* (Uses a fixed palette of 3,3,2 bits.) */
@@ -94,12 +95,13 @@ prn_device(png16_procs, "png16",
 private const gx_device_procs png256_procs =
 prn_color_procs(gdev_prn_open, gdev_prn_output_page, gdev_prn_close,
 		pc_8bit_map_rgb_color, pc_8bit_map_color_rgb);
-const gx_device_printer gs_png256_device =
-prn_device(png256_procs, "png256",
+const gx_device_printer gs_png256_device = {
+  prn_device_body(gx_device_printer, png256_procs, "png256",
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
 	   0, 0, 0, 0,		/* margins */
-	   8, png_print_page);
+	   3, 8, 6, 6, 7, 7, png_print_page)
+};
 
 /* 8-bit gray */
 
@@ -146,7 +148,7 @@ png_print_page(gx_device_printer * pdev, FILE * file)
     int height = pdev->height;
     int depth = pdev->color_info.depth;
     int y;
-    int code = 0;		/* return code */
+    int code;			/* return code */
     const char *software_key = "Software";
     char software_text[256];
     png_text text_png;
@@ -161,6 +163,7 @@ png_print_page(gx_device_printer * pdev, FILE * file)
 	code = gs_note_error(gs_error_VMerror);
 	goto done;
     }
+    code = 0;			/* for normal path */
     /* set up the output control */
     png_init_io(png_ptr, file);
 

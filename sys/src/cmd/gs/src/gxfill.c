@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxfill.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxfill.c,v 1.8 2001/05/10 18:35:14 igorm Exp $ */
 /* Lower-level path filling procedures */
 #include "gx.h"
 #include "gserrors.h"
@@ -29,13 +29,23 @@
 #include "gxhttile.h"
 #include "gxistate.h"
 #include "gxpaint.h"		/* for prototypes */
+#include "gsptype2.h"
 
-/* Define which fill algorithm(s) to use. */
+/*
+ * Define which fill algorithm(s) to use.  At least one of the following
+ * two #defines must be included (not commented out).
+ */
 #define FILL_SCAN_LINES
-#define FILL_CURVES
 #define FILL_TRAPEZOIDS
+/*
+ * Define whether to sample curves when using the scan line algorithm
+ * rather than flattening them.  This produces more accurate output, at
+ * some cost in time.
+ */
+#define FILL_CURVES
 
-/* Statistics */
+/* ---------------- Statistics ---------------- */
+
 #ifdef DEBUG
 struct stats_fill_s {
     long
@@ -53,14 +63,16 @@ struct stats_fill_s {
 #  define INCR_BY(x,n) DO_NOTHING
 #endif
 
+/* ---------------- Active line management ---------------- */
+
 /* Define the structure for keeping track of active lines. */
 typedef struct active_line_s active_line;
 struct active_line_s {
     gs_fixed_point start;	/* x,y where line starts */
     gs_fixed_point end;		/* x,y where line ends */
     gs_fixed_point diff;	/* end - start */
-#define al_dx(alp) ((alp)->diff.x)
-#define al_dy(alp) ((alp)->diff.y)
+#define AL_DX(alp) ((alp)->diff.x)
+#define AL_DY(alp) ((alp)->diff.y)
     fixed y_fast_max;		/* can do x_at_y in fixed point */
 				/* if y <= y_fast_max */
     fixed num_adjust;		/* 0 if diff.x >= 0, -diff.y + epsilon if */
@@ -71,43 +83,50 @@ struct active_line_s {
     (alp)->num_adjust =\
       ((alp)->diff.x >= 0 ? 0 : -(alp)->diff.y + fixed_epsilon)
 #  define ADD_NUM_ADJUST(num, alp) ((num) + (alp)->num_adjust)
+#  define MAX_MINUS_NUM_ADJUST(alp) ADD_NUM_ADJUST(max_fixed, alp)
 #else
     /* neg/pos takes the floor, no special action is needed. */
 #  define SET_NUM_ADJUST(alp) DO_NOTHING
 #  define ADD_NUM_ADJUST(num, alp) (num)
+#  define MAX_MINUS_NUM_ADJUST(alp) max_fixed
 #endif
-#define set_al_points(alp, startp, endp)\
+#define SET_AL_POINTS(alp, startp, endp)\
   BEGIN\
     (alp)->diff.y = (endp).y - (startp).y;\
     (alp)->diff.x = (endp).x - (startp).x;\
     SET_NUM_ADJUST(alp);\
-    (alp)->y_fast_max = max_fixed /\
+    (alp)->y_fast_max = MAX_MINUS_NUM_ADJUST(alp) /\
       (((alp)->diff.x >= 0 ? (alp)->diff.x : -(alp)->diff.x) | 1) +\
       (startp).y;\
     (alp)->start = startp, (alp)->end = endp;\
   END
-#define al_x_at_y(alp, yv)\
+    /*
+     * We know that alp->start.y <= yv <= alp->end.y, because the fill loop
+     * guarantees that the only lines being considered are those with this
+     * property.
+     */
+#define AL_X_AT_Y(alp, yv)\
   ((yv) == (alp)->end.y ? (alp)->end.x :\
    ((yv) <= (alp)->y_fast_max ?\
-    ADD_NUM_ADJUST(((yv) - (alp)->start.y) * al_dx(alp), alp) / al_dy(alp) :\
+    ADD_NUM_ADJUST(((yv) - (alp)->start.y) * AL_DX(alp), alp) / AL_DY(alp) :\
     (INCR_EXPR(slow_x),\
-     fixed_mult_quo(al_dx(alp), (yv) - (alp)->start.y, al_dy(alp)))) +\
+     fixed_mult_quo(AL_DX(alp), (yv) - (alp)->start.y, AL_DY(alp)))) +\
    (alp)->start.x)
     fixed x_current;		/* current x position */
     fixed x_next;		/* x position at end of band */
     const segment *pseg;	/* endpoint of this line */
     int direction;		/* direction of line segment */
-#define dir_up 1
-#define dir_horizontal 0	/* (these are handled specially) */
-#define dir_down (-1)
-    int curve_k;		/* # of subdivisions for curves, */
-    /* -1 for lines */
-    curve_cursor cursor;	/* cursor for curves, */
-    /* unused for lines */
-/* "Pending" lines (not reached in the Y ordering yet) use next and prev */
-/* to order lines by increasing starting Y.  "Active" lines (being scanned) */
-/* use next and prev to order lines by increasing current X, or if the */
-/* current Xs are equal, by increasing final X. */
+#define DIR_UP 1
+#define DIR_HORIZONTAL 0	/* (these are handled specially) */
+#define DIR_DOWN (-1)
+    int curve_k;		/* # of subdivisions for curves,-1 for lines */
+    curve_cursor cursor;	/* cursor for curves, unused for lines */
+/*
+ * "Pending" lines (not reached in the Y ordering yet) use next and prev
+ * to order lines by increasing starting Y.  "Active" lines (being scanned)
+ * use next and prev to order lines by increasing current X, or if the
+ * current Xs are equal, by increasing final X.
+ */
     active_line *prev, *next;
 /* Link together active_lines allocated individually */
     active_line *alloc_next;
@@ -123,7 +142,7 @@ struct active_line_s {
  * Y value, or, of the x_current values are equal, greater Y values
  * (if any: this Y value might be the end of both lines).
  */
-private bool
+private int
 x_order(const active_line *lp1, const active_line *lp2)
 {
     bool s1;
@@ -143,21 +162,22 @@ x_order(const active_line *lp1, const active_line *lp2)
      * We really do have to compare the slopes.  Fortunately, this isn't
      * needed very often.  We want the sign of the comparison
      * dx1/dy1 - dx2/dy2, or (since we know dy1 and dy2 are positive)
-     * dx1 * dy2 - dx2 * dy1.  However, we can't simply do this using
+     * dx1 * dy2 - dx2 * dy1.  In principle, we can't simply do this using
      * doubles, since we need complete accuracy and doubles don't have
-     * enough fraction bits.
-     *
-     * ****** FOR THE MOMENT, PUNT. ******
+     * enough fraction bits.  However, with the usual 20+12-bit fixeds and
+     * 64-bit doubles, both of the factors would have to exceed 2^15
+     * device space pixels for the result to be inaccurate, so we
+     * simply disregard this possibility.  ****** FIX SOMEDAY ******
      */
     INCR(slow_order);
     {
-	double diff = ((double)(lp1->end.x - lp1->start.x) *
-		       (lp2->end.y - lp2->start.y)) -
-	    ((double)(lp2->end.x - lp2->start.x) *
-	     (lp1->end.y - lp1->start.y));
+	fixed dx1 = lp1->end.x - lp1->start.x,
+	    dy1 = lp1->end.y - lp1->start.y;
+	fixed dx2 = lp2->end.x - lp2->start.x,
+	    dy2 = lp2->end.y - lp2->start.y;
+	double diff = (double)dx1 * dy2 - (double)dx2 * dy1;
 
-	return
-	    (diff < 0 ? -1 : diff > 0 ? 1 : 0);
+	return (diff < 0 ? -1 : diff > 0 ? 1 : 0);
     }
 }
 
@@ -199,8 +219,12 @@ print_line_list(const active_line * flp)
 	dputc('\n');
     }
 }
-#define print_al(label,alp)\
-  if ( gs_debug_c('F') ) print_active_line(label, alp)
+inline private void
+print_al(const char *label, const active_line * alp)
+{
+    if (gs_debug_c('F'))
+	print_active_line(label, alp);
+}
 private int
 check_line_list(const active_line * flp)
 {
@@ -236,11 +260,11 @@ struct line_list_s {
     /* Allocate a few active_lines locally */
     /* to avoid round trips through the allocator. */
 #if arch_small_memory
-#  define max_local_active 5	/* don't overburden the stack */
+#  define MAX_LOCAL_ACTIVE 6	/* don't overburden the stack */
 #else
-#  define max_local_active 20
+#  define MAX_LOCAL_ACTIVE 20
 #endif
-    active_line local_active[max_local_active];
+    active_line local_active[MAX_LOCAL_ACTIVE];
 };
 typedef struct line_list_s line_list;
 typedef line_list *ll_ptr;
@@ -253,14 +277,14 @@ private int add_y_list(P5(gx_path *, ll_ptr, fixed, fixed,
 			  const gs_fixed_rect *));
 private int add_y_line(P4(const segment *, const segment *, int, ll_ptr));
 private void insert_x_new(P2(active_line *, ll_ptr));
-private bool end_x_line(P1(active_line *));
+private bool end_x_line(P2(active_line *, bool));
 
-#define fill_loop_proc(proc)\
+#define FILL_LOOP_PROC(proc)\
 int proc(P11(ll_ptr, gx_device *,\
   const gx_fill_params *, const gx_device_color *, gs_logical_operation_t,\
   const gs_fixed_rect *, fixed, fixed, fixed, fixed, fixed))
-private fill_loop_proc(fill_loop_by_scan_lines);
-private fill_loop_proc(fill_loop_by_trapezoids);
+private FILL_LOOP_PROC(fill_loop_by_scan_lines);
+private FILL_LOOP_PROC(fill_loop_by_trapezoids);
 
 /*
  * This is the general path filling algorithm.
@@ -308,18 +332,14 @@ gx_adjust_if_empty(const gs_fixed_rect * pbox, gs_fixed_point * adjust)
 }
 
 /*
- * Fill a path.  This is the default implementation of the driver
- * fill_path procedure.
+ * The general fill  path algorithm.
  */
-int
-gx_default_fill_path(gx_device * pdev, const gs_imager_state * pis,
+private int
+gx_general_fill_path(gx_device * pdev, const gs_imager_state * pis,
 		     gx_path * ppath, const gx_fill_params * params,
 		 const gx_device_color * pdevc, const gx_clip_path * pcpath)
 {
     gs_fixed_point adjust;
-
-#define adjust_x adjust.x
-#define adjust_y adjust.y
     gs_logical_operation_t lop = pis->log_op;
     gs_fixed_rect ibox, bbox;
     gx_device_clip cdev;
@@ -330,8 +350,7 @@ gx_default_fill_path(gx_device * pdev, const gs_imager_state * pis,
     int code;
     fixed adjust_left, adjust_right, adjust_below, adjust_above;
     int max_fill_band = dev->max_fill_band;
-
-#define no_band_mask ((fixed)(-1) << (sizeof(fixed) * 8 - 1))
+#define NO_BAND_MASK ((fixed)(-1) << (sizeof(fixed) * 8 - 1))
     bool fill_by_trapezoids;
     line_list lst;
 
@@ -349,30 +368,29 @@ gx_default_fill_path(gx_device * pdev, const gs_imager_state * pis,
 	gx_adjust_if_empty(&ibox, &adjust);
     /* Check the bounding boxes. */
     if_debug6('f', "[f]adjust=%g,%g bbox=(%g,%g),(%g,%g)\n",
-	      fixed2float(adjust_x), fixed2float(adjust_y),
+	      fixed2float(adjust.x), fixed2float(adjust.y),
 	      fixed2float(ibox.p.x), fixed2float(ibox.p.y),
 	      fixed2float(ibox.q.x), fixed2float(ibox.q.y));
     if (pcpath)
 	gx_cpath_inner_box(pcpath, &bbox);
     else
 	(*dev_proc(dev, get_clipping_box)) (dev, &bbox);
-    if (!rect_within(ibox, bbox)) {	/*
-					 * Intersect the path box and the clip bounding box.
-					 * If the intersection is empty, this fill is a no-op.
-					 */
+    if (!rect_within(ibox, bbox)) {
+	/*
+	 * Intersect the path box and the clip bounding box.
+	 * If the intersection is empty, this fill is a no-op.
+	 */
 	if (pcpath)
 	    gx_cpath_outer_box(pcpath, &bbox);
 	if_debug4('f', "   outer_box=(%g,%g),(%g,%g)\n",
 		  fixed2float(bbox.p.x), fixed2float(bbox.p.y),
 		  fixed2float(bbox.q.x), fixed2float(bbox.q.y));
 	rect_intersect(ibox, bbox);
-	if (ibox.p.x - adjust_x >= ibox.q.x + adjust_x ||
-	    ibox.p.y - adjust_y >= ibox.q.y + adjust_y
+	if (ibox.p.x - adjust.x >= ibox.q.x + adjust.x ||
+	    ibox.p.y - adjust.y >= ibox.q.y + adjust.y
 	    ) {			/* Intersection of boxes is empty! */
 	    return 0;
 	}
-#undef adjust_x
-#undef adjust_y
 	/*
 	 * The path is neither entirely inside the inner clip box
 	 * nor entirely outside the outer clip box.
@@ -419,31 +437,29 @@ gx_default_fill_path(gx_device * pdev, const gs_imager_state * pis,
      *
      *      Scan    Trap
      *      ----    ----
-     *       no     +yes    perfectly accurate Y adjustment
      *       skip   +draw   0-height horizontal lines
      *       slow   +fast   rectangles
      *      +fast    slow   curves
      *      +yes     no     write pixels at most once when adjust != 0
      *
-     * Normally we use the scan line algorithm for characters, where
-     * curve speed is important and no Y adjustment is involved, and for
-     * non-idempotent RasterOps, where double pixel writing must be
-     * avoided, and the trapezoid algorithm otherwise.  However, we
-     * always use the trapezoid algorithm for rectangles.
+     * Normally we use the scan line algorithm for characters, where curve
+     * speed is important, and for non-idempotent RasterOps, where double
+     * pixel writing must be avoided, and the trapezoid algorithm otherwise.
+     * However, we always use the trapezoid algorithm for rectangles.
      */
-#define double_write_ok lop_is_idempotent(lop)
+#define DOUBLE_WRITE_OK() lop_is_idempotent(lop)
 #ifdef FILL_SCAN_LINES
 #  ifdef FILL_TRAPEZOIDS
     fill_by_trapezoids =
-	((adjust_below | adjust_above) != 0 || !gx_path_has_curves(ppath) ||
-	 params->flatness >= 1.0);
+	(!gx_path_has_curves(ppath) || params->flatness >= 1.0);
 #  else
     fill_by_trapezoids = false;
 #  endif
 #else
     fill_by_trapezoids = true;
 #endif
-    if (fill_by_trapezoids && !double_write_ok) {
+#ifdef FILL_TRAPEZOIDS
+    if (fill_by_trapezoids && !DOUBLE_WRITE_OK()) {
 	/* Avoid filling rectangles by scan line. */
 	gs_fixed_rect rbox;
 
@@ -458,7 +474,8 @@ gx_default_fill_path(gx_device * pdev, const gs_imager_state * pis,
 	}
 	fill_by_trapezoids = false; /* avoid double write */
     }
-#undef double_write_ok
+#endif
+#undef DOUBLE_WRITE_OK
     /*
      * Pre-process curves.  When filling by trapezoids, we need to
      * flatten the path completely; when filling by scan lines, we only
@@ -468,16 +485,32 @@ gx_default_fill_path(gx_device * pdev, const gs_imager_state * pis,
     if (!gx_path_has_curves(ppath))	/* don't need to flatten */
 	pfpath = ppath;
     else
-#ifdef FILL_CURVES
-    if (fill_by_trapezoids) {
-	gx_path_init_local(&ffpath, ppath->memory);
-	code = gx_path_add_flattened_accurate(ppath, &ffpath,
-					      params->flatness,
-					      pis->accurate_curves);
-	if (code < 0)
-	    return code;
-	pfpath = &ffpath;
-    } else if (gx_path_is_monotonic(ppath))
+#if defined(FILL_CURVES) && defined(FILL_SCAN_LINES)
+	/* Filling curves is possible. */
+#  ifdef FILL_TRAPEZOIDS
+	/* Not filling curves is also possible. */
+    if (fill_by_trapezoids)
+#  endif
+#endif
+#if !defined(FILL_CURVES) || defined(FILL_TRAPEZOIDS)
+	/* Not filling curves is possible. */
+	{
+	    gx_path_init_local(&ffpath, ppath->memory);
+	    code = gx_path_add_flattened_accurate(ppath, &ffpath,
+						  params->flatness,
+						  pis->accurate_curves);
+	    if (code < 0)
+		return code;
+	    pfpath = &ffpath;
+	}
+#endif
+#if defined(FILL_CURVES) && defined(FILL_SCAN_LINES)
+    /* Filling curves is possible. */
+#  ifdef FILL_TRAPEZOIDS
+    /* Not filling curves is also possible. */
+    else
+#  endif
+    if (gx_path_is_monotonic(ppath))
 	pfpath = ppath;
     else {
 	gx_path_init_local(&ffpath, ppath->memory);
@@ -486,21 +519,11 @@ gx_default_fill_path(gx_device * pdev, const gs_imager_state * pis,
 	    return code;
 	pfpath = &ffpath;
     }
-#else
-    {
-	gx_path_init_local(&ffpath, ppath->memory);
-	code = gx_path_add_flattened_accurate(ppath, &ffpath,
-					      params->flatness,
-					      pis->accurate_curves);
-	if (code < 0)
-	    return code;
-	pfpath = &ffpath;
-    }
 #endif
     if ((code = add_y_list(pfpath, &lst, adjust_below, adjust_above, &ibox)) < 0)
 	goto nope;
     {
-	fill_loop_proc((*fill_loop));
+	FILL_LOOP_PROC((*fill_loop));
 
 	/* Some short-sighted compilers won't allow a conditional here.... */
 	if (fill_by_trapezoids)
@@ -510,7 +533,7 @@ gx_default_fill_path(gx_device * pdev, const gs_imager_state * pis,
 	code = (*fill_loop)
 	    (&lst, dev, params, pdevc, lop, &ibox,
 	     adjust_left, adjust_right, adjust_below, adjust_above,
-	   (max_fill_band == 0 ? no_band_mask : int2fixed(-max_fill_band)));
+	   (max_fill_band == 0 ? NO_BAND_MASK : int2fixed(-max_fill_band)));
     }
   nope:if (lst.close_count != 0)
 	unclose_path(pfpath, lst.close_count);
@@ -541,6 +564,56 @@ gx_default_fill_path(gx_device * pdev, const gs_imager_state * pis,
     return code;
 }
 
+/*
+ * Fill a path.  This is the default implementation of the driver
+ * fill_path procedure.
+ */
+int
+gx_default_fill_path(gx_device * pdev, const gs_imager_state * pis,
+		     gx_path * ppath, const gx_fill_params * params,
+		 const gx_device_color * pdevc, const gx_clip_path * pcpath)
+{
+    if (gx_dc_is_pattern2_color(pdevc)) {
+	/*  Optimization for shading fill :
+	    The general path filling algorithm subdivides fill region with 
+	    trapezoid or rectangle subregions and then paints each subregion 
+	    with given color. If the color is shading, each subregion to be 
+	    subdivided into areas of constant color. But with radial 
+	    shading each area is a high order polygon, being 
+	    subdivided into smaller subregions, so as total number of
+	    subregions grows huge. Faster processing is done here by changing 
+	    the order of subdivision cycles : we first subdivide the shading into 
+	    areas of constant color, then apply the general path filling algorithm 
+	    (i.e. subdivide each area into trapezoids or rectangles), using the 
+	    filling path as clip mask.
+	*/
+
+	gx_clip_path cpath_intersection;
+	gx_path path_intersection;
+	int code;
+
+	/*  Shading fill algorithm uses "current path" parameter of the general
+	    path filling algorithm as boundary of constant color area,
+	    so we need to intersect the filling path with the clip path now,
+	    reducing the number of pathes passed to it :
+	*/
+	gx_path_init_local(&path_intersection, pdev->memory);
+	gx_cpath_init_local_shared(&cpath_intersection, pcpath, pdev->memory);
+	if ((code = gx_cpath_intersect(&cpath_intersection, ppath, params->rule, (gs_imager_state *)pis)) >= 0)
+	    code = gx_cpath_to_path(&cpath_intersection, &path_intersection);
+
+	/* Do fill : */
+	if (code >= 0)
+            code = gx_dc_pattern2_fill_path_adjusted(pdevc, &path_intersection, NULL,  pdev);
+
+	/* Destruct local data and return :*/
+	gx_path_free(&path_intersection, "shading_fill_path_intersection");
+	gx_cpath_free(&cpath_intersection, "shading_fill_cpath_intersection");
+	return code;
+    } 
+    return gx_general_fill_path(pdev, pis, ppath, params, pdevc, pcpath);
+}
+
 /* Initialize the line list for a path. */
 private void
 init_line_list(ll_ptr ll, gs_memory_t * mem)
@@ -548,7 +621,7 @@ init_line_list(ll_ptr ll, gs_memory_t * mem)
     ll->memory = mem;
     ll->active_area = 0;
     ll->next_active = ll->local_active;
-    ll->limit = ll->next_active + max_local_active;
+    ll->limit = ll->next_active + MAX_LOCAL_ACTIVE;
     ll->close_count = 0;
     ll->y_list = 0;
     ll->y_line = 0;
@@ -579,10 +652,10 @@ unclose_path(gx_path * ppath, int count)
 private void
 free_line_list(ll_ptr ll)
 {
+    /* Free any individually allocated active_lines. */
     gs_memory_t *mem = ll->memory;
     active_line *alp;
 
-    /* Free any individually allocated active_lines. */
     while ((alp = ll->active_area) != 0) {
 	active_line *next = alp->alloc_next;
 
@@ -601,24 +674,24 @@ private int
 add_y_list(gx_path * ppath, ll_ptr ll, fixed adjust_below, fixed adjust_above,
 	   const gs_fixed_rect * pbox)
 {
-    register segment *pseg = (segment *) ppath->first_subpath;
+    segment *pseg = (segment *) ppath->first_subpath;
     int close_count = 0;
-
     /* fixed xmin = pbox->p.x; *//* not currently used */
     fixed ymin = pbox->p.y;
-
     /* fixed xmax = pbox->q.x; *//* not currently used */
     fixed ymax = pbox->q.y;
     int code;
 
-    while (pseg) {		/* We know that pseg points to a subpath head (s_start). */
+    while (pseg) {
+	/* We know that pseg points to a subpath head (s_start). */
 	subpath *psub = (subpath *) pseg;
 	segment *plast = psub->last;
 	int dir = 2;		/* hack to skip first segment */
 	int first_dir, prev_dir;
 	segment *prev;
 
-	if (plast->type != s_line_close) {	/* Create a fake s_line_close */
+	if (plast->type != s_line_close) {
+	    /* Create a fake s_line_close */
 	    line_close_segment *lp = &psub->closer;
 	    segment *next = plast->next;
 
@@ -635,10 +708,8 @@ add_y_list(gx_path * ppath, ll_ptr ll, fixed adjust_below, fixed adjust_above,
 	}
 	while ((prev_dir = dir, prev = pseg,
 		(pseg = pseg->next) != 0 && pseg->type != s_start)
-	    ) {			/*
-				 * This element is either a line or a monotonic
-				 * curve segment.
-				 */
+	    ) {
+	    /* This element is either a line or a monotonic curve segment. */
 	    fixed iy = pseg->pt.y;
 	    fixed py = prev->pt.y;
 
@@ -647,16 +718,18 @@ add_y_list(gx_path * ppath, ll_ptr ll, fixed adjust_below, fixed adjust_above,
 	     * are treated as though they were horizontal, *
 	     * i.e., they are never put on the list.
 	     */
-#define compute_dir(xo, xe, yo, ye)\
-  (ye > yo ? (ye <= ymin || yo >= ymax ? 0 : dir_up) :\
-   ye < yo ? (yo <= ymin || ye >= ymax ? 0 : dir_down) :\
+#define COMPUTE_DIR(xo, xe, yo, ye)\
+  (ye > yo ? (ye <= ymin || yo >= ymax ? 0 : DIR_UP) :\
+   ye < yo ? (yo <= ymin || ye >= ymax ? 0 : DIR_DOWN) :\
    2)
-#define add_dir_lines(prev2, prev, this, pdir, dir)\
-  if ( pdir )\
-   { if ( (code = add_y_line(prev2, prev, pdir, ll)) < 0 ) return code; }\
-  if ( dir )\
-   { if ( (code = add_y_line(prev, this, dir, ll)) < 0 ) return code; }
-	    dir = compute_dir(prev->pt.x, pseg->pt.x, py, iy);
+#define ADD_DIR_LINES(prev2, prev, this, pdir, dir)\
+  BEGIN\
+    if (pdir)\
+      { if ((code = add_y_line(prev2, prev, pdir, ll)) < 0) return code; }\
+    if (dir)\
+      { if ((code = add_y_line(prev, this, dir, ll)) < 0) return code; }\
+  END
+	    dir = COMPUTE_DIR(prev->pt.x, pseg->pt.x, py, iy);
 	    if (dir == 2) {	/* Put horizontal lines on the list */
 		/* if they would color any pixels. */
 		if (fixed2int_pixround(iy - adjust_below) <
@@ -664,14 +737,14 @@ add_y_list(gx_path * ppath, ll_ptr ll, fixed adjust_below, fixed adjust_above,
 		    ) {
 		    INCR(horiz);
 		    if ((code = add_y_line(prev, pseg,
-					   dir_horizontal, ll)) < 0
+					   DIR_HORIZONTAL, ll)) < 0
 			)
 			return code;
 		}
 		dir = 0;
 	    }
 	    if (dir > prev_dir) {
-		add_dir_lines(prev->prev, prev, pseg, prev_dir, dir);
+		ADD_DIR_LINES(prev->prev, prev, pseg, prev_dir, dir);
 	    } else if (prev_dir == 2)	/* first segment */
 		first_dir = dir;
 	    if (pseg == plast) {
@@ -681,13 +754,12 @@ add_y_list(gx_path * ppath, ll_ptr ll, fixed adjust_below, fixed adjust_above,
 		 * have `closed' all subpaths.
 		 */
 		if (first_dir > dir) {
-		    add_dir_lines(prev, pseg, psub->next,
-				  dir, first_dir);
+		    ADD_DIR_LINES(prev, pseg, psub->next, dir, first_dir);
 		}
 	    }
 	}
-#undef compute_dir
-#undef add_dir_lines
+#undef COMPUTE_DIR
+#undef ADD_DIR_LINES
     }
     return close_count;
 }
@@ -699,7 +771,7 @@ private int
 add_y_line(const segment * prev_lp, const segment * lp, int dir, ll_ptr ll)
 {
     gs_fixed_point this, prev;
-    register active_line *alp = ll->next_active;
+    active_line *alp = ll->next_active;
     fixed y_start;
 
     if (alp == ll->limit) {	/* Allocate separately */
@@ -717,17 +789,17 @@ add_y_line(const segment * prev_lp, const segment * lp, int dir, ll_ptr ll)
     prev.x = prev_lp->pt.x;
     prev.y = prev_lp->pt.y;
     switch ((alp->direction = dir)) {
-	case dir_up:
+	case DIR_UP:
 	    y_start = prev.y;
-	    set_al_points(alp, prev, this);
+	    SET_AL_POINTS(alp, prev, this);
 	    alp->pseg = lp;
 	    break;
-	case dir_down:
+	case DIR_DOWN:
 	    y_start = this.y;
-	    set_al_points(alp, this, prev);
+	    SET_AL_POINTS(alp, this, prev);
 	    alp->pseg = prev_lp;
 	    break;
-	case dir_horizontal:
+	case DIR_HORIZONTAL:
 	    y_start = this.y;	/* = prev.y */
 	    alp->start = prev;
 	    alp->end = this;
@@ -739,8 +811,8 @@ add_y_line(const segment * prev_lp, const segment * lp, int dir, ll_ptr ll)
     }
     /* Insert the new line in the Y ordering */
     {
-	register active_line *yp = ll->y_line;
-	register active_line *nyp;
+	active_line *yp = ll->y_line;
+	active_line *nyp;
 
 	if (yp == 0) {
 	    alp->next = alp->prev = 0;
@@ -782,8 +854,8 @@ add_y_line(const segment * prev_lp, const segment * lp, int dir, ll_ptr ll)
 private void
 insert_x_new(active_line * alp, ll_ptr ll)
 {
-    register active_line *next;
-    register active_line *prev = &ll->x_head;
+    active_line *next;
+    active_line *prev = &ll->x_head;
 
     alp->x_current = alp->start.x;
     while (INCR_EXPR(x_step),
@@ -797,10 +869,12 @@ insert_x_new(active_line * alp, ll_ptr ll)
     prev->next = alp;
 }
 
-/* Handle a line segment that just ended.  Return true iff this was */
-/* the end of a line sequence. */
+/*
+ * Handle a line segment that just ended.  Return true iff this was
+ * the end of a line sequence.
+ */
 private bool
-end_x_line(active_line * alp)
+end_x_line(active_line *alp, bool update)
 {
     const segment *pseg = alp->pseg;
     /*
@@ -810,19 +884,21 @@ end_x_line(active_line * alp)
      * sure not to process the start/end point twice.
      */
     const segment *next =
-    (alp->direction == dir_up ?
-     (				/* Upward line, go forward along path. */
-	 pseg->type == s_line_close ?	/* end of subpath */
-	 ((const line_close_segment *)pseg)->sub->next :
-	 pseg->next) :
-     (				/* Downward line, go backward along path. */
-	 pseg->type == s_start ?	/* start of subpath */
-	 ((const subpath *)pseg)->last->prev :
-	 pseg->prev)
-    );
+	(alp->direction == DIR_UP ?
+	 (			/* Upward line, go forward along path. */
+	  pseg->type == s_line_close ?	/* end of subpath */
+	  ((const line_close_segment *)pseg)->sub->next :
+	  pseg->next) :
+	 (			/* Downward line, go backward along path. */
+	  pseg->type == s_start ?	/* start of subpath */
+	  ((const subpath *)pseg)->last->prev :
+	  pseg->prev)
+	);
     gs_fixed_point npt;
 
     npt.y = next->pt.y;
+    if (!update)
+	return npt.y <= pseg->pt.y;
     if_debug5('F', "[F]ended 0x%lx: pseg=0x%lx y=%f next=0x%lx npt.y=%f\n",
 	      (ulong) alp, (ulong) pseg, fixed2float(pseg->pt.y),
 	      (ulong) next, fixed2float(npt.y));
@@ -837,251 +913,17 @@ end_x_line(active_line * alp)
     }
     alp->pseg = next;
     npt.x = next->pt.x;
-    set_al_points(alp, alp->end, npt);
+    SET_AL_POINTS(alp, alp->end, npt);
     print_al("repl", alp);
     return false;
 }
 
-#define loop_fill_rectangle(x, y, w, h)\
+#define LOOP_FILL_RECTANGLE(x, y, w, h)\
   gx_fill_rectangle_device_rop(x, y, w, h, pdevc, dev, lop)
-#define loop_fill_rectangle_direct(x, y, w, h)\
+#define LOOP_FILL_RECTANGLE_DIRECT(x, y, w, h)\
   (fill_direct ?\
    (*fill_rect)(dev, x, y, w, h, cindex) :\
    gx_fill_rectangle_device_rop(x, y, w, h, pdevc, dev, lop))
-
-/* ---------------- Scan line filling loop ---------------- */
-
-/* Forward references */
-private void set_scan_line_points(P2(active_line *, fixed));
-
-/* Main filling loop. */
-private int
-fill_loop_by_scan_lines(ll_ptr ll, gx_device * dev,
-	       const gx_fill_params * params, const gx_device_color * pdevc,
-		     gs_logical_operation_t lop, const gs_fixed_rect * pbox,
-			fixed adjust_left, fixed adjust_right,
-		    fixed adjust_below, fixed adjust_above, fixed band_mask)
-{
-    int rule = params->rule;
-    fixed fixed_flat = float2fixed(params->flatness);
-    bool fill_direct = color_writes_pure(pdevc, lop);
-    gx_color_index cindex;
-
-    dev_proc_fill_rectangle((*fill_rect));
-    active_line *yll = ll->y_list;
-    fixed y_limit = pbox->q.y;
-    fixed y;
-
-    /*
-     * The meaning of adjust_below (B) and adjust_above (A) is that
-     * the pixels that would normally be painted at coordinate Y get
-     * "smeared" to coordinates Y-B through Y+A-epsilon, inclusive.
-     * This is equivalent to saying that the pixels actually painted
-     * at coordinate Y are those contributed by scan lines Y-A+epsilon
-     * through Y+B, inclusive, or up to Y+B+epsilon, half-open.
-     * (A = B = 0 is a special case, equivalent to B = 0, A = epsilon.)
-     */
-    fixed look_below =
-    (adjust_above == fixed_0 ? fixed_0 : adjust_above - fixed_epsilon);
-    fixed look_above =
-    adjust_below + fixed_epsilon;
-    fixed look_height = look_above + look_below;
-    bool do_adjust = look_height > fixed_epsilon;
-
-    if (yll == 0)		/* empty list */
-	return 0;
-    if (fill_direct)
-	cindex = pdevc->colors.pure,
-	    fill_rect = dev_proc(dev, fill_rectangle);
-#define next_pixel_center(y)\
-  (fixed_pixround(y) + fixed_half)
-    y = next_pixel_center(yll->start.y) - look_below;	/* first Y sample point */
-    ll->x_list = 0;
-    ll->x_head.x_current = min_fixed;	/* stop backward scan */
-    while (1) {
-	active_line *alp, *nlp;
-	fixed x;
-	fixed ya = y + look_height;
-
-	INCR(iter);
-	/* Move newly active lines from y to x list. */
-	while (yll != 0 && yll->start.y < ya) {
-	    active_line *ynext = yll->next;	/* insert smashes next/prev links */
-
-	    if (yll->direction == dir_horizontal) {	/* Ignore for now. */
-	    } else {
-		insert_x_new(yll, ll);
-		set_scan_line_points(yll, fixed_flat);
-	    }
-	    yll = ynext;
-	}
-	/* Check whether we've reached the maximum y. */
-	if (y >= y_limit)
-	    break;
-	if (ll->x_list == 0) {	/* No active lines, skip to next start */
-	    if (yll == 0)
-		break;		/* no lines left */
-	    y = next_pixel_center(yll->start.y) - look_below;
-	    continue;
-	}
-	/* Update active lines to y. */
-	x = min_fixed;
-	for (alp = ll->x_list; alp != 0; alp = nlp) {
-	    fixed nx;
-
-	    nlp = alp->next;
-	  e:if (alp->end.y <= y) {
-		if (end_x_line(alp))
-		    continue;
-		set_scan_line_points(alp, fixed_flat);
-		goto e;
-	    }
-	    /* Note that if Y adjustment is in effect, */
-	    /* alp->start.y might be greater than y. */
-	    nx = alp->x_current =
-		(alp->start.y >= y ? alp->start.x :
-		 alp->curve_k < 0 ?
-		 al_x_at_y(alp, y) :
-		 gx_curve_x_at_y(&alp->cursor, y));
-	    if (nx < x) {	/* Move this line backward in the list. */
-		active_line *ilp = alp;
-
-		while (nx < (ilp = ilp->prev)->x_current);
-		/* Now ilp->x_current <= nx < ilp->next->x_cur. */
-		alp->prev->next = alp->next;
-		if (alp->next)
-		    alp->next->prev = alp->prev;
-		if (ilp->next)
-		    ilp->next->prev = alp;
-		alp->next = ilp->next;
-		ilp->next = alp;
-		alp->prev = ilp;
-		continue;
-	    }
-	    x = nx;
-	}
-
-	/* Fill inside regions at y. */
-	{
-	    int inside = 0;
-	    int x1_prev = min_int;
-
-	    /* rule = -1 for winding number rule, i.e. */
-	    /* we are inside if the winding number is non-zero; */
-	    /* rule = 1 for even-odd rule, i.e. */
-	    /* we are inside if the winding number is odd. */
-#define inside_path_p() ((inside & rule) != 0)
-	    INCR(band);
-	    for (alp = ll->x_list; alp != 0; alp = alp->next) {		/* We're outside a filled region. */
-		int x0 = fixed2int_pixround(alp->x_current -
-					    adjust_left);
-
-		/*
-		 * This doesn't handle lines that cross
-		 * within the adjustment region, but it's a
-		 * good start.
-		 */
-		if (do_adjust && alp->end.x < alp->start.x) {
-		    fixed xa = (alp->end.y < ya ? alp->end.x :
-				alp->curve_k < 0 ?
-				al_x_at_y(alp, ya) :
-				gx_curve_x_at_y(&alp->cursor,
-						ya));
-		    int x0a = fixed2int_pixround(xa -
-						 adjust_left);
-
-		    if (x0a < x0)
-			x0 = x0a;
-		}
-		for (;;) {	/* We're inside a filled region. */
-		    print_al("step", alp);
-		    INCR(band_step);
-		    inside += alp->direction;
-		    if (!inside_path_p())
-			break;
-		    /*
-		     * Since we're dealing with closed paths, the test for
-		     * alp == 0 shouldn't be needed, but we may have omitted
-		     * lines that are to the right of the clipping region.
-		     */
-		    if ((alp = alp->next) == 0)
-			goto out;
-		}
-#undef inside_path_p
-		/*
-		 * We just went from inside to outside, so fill the region.
-		 * Avoid writing pixels twice.
-		 */
-		if (x0 < x1_prev)
-		    x0 = x1_prev;
-		{
-		    int x1 = fixed2int_rounded(alp->x_current +
-					       adjust_right);
-
-		    if (do_adjust && alp->end.x > alp->start.x) {
-			fixed xa = (alp->end.y < ya ?
-				    alp->end.x :
-				    alp->curve_k < 0 ?
-				    al_x_at_y(alp, ya) :
-				    gx_curve_x_at_y(&alp->cursor,
-						    ya));
-			int x1a = fixed2int_rounded(xa +
-						    adjust_right);
-
-			if (x1a > x1)
-			    x1 = x1a;
-		    }
-		    if (x1 > x0) {
-			int code =
-			loop_fill_rectangle_direct(x0,
-						   fixed2int_var(y),
-						   x1 - x0, 1);
-
-			if_debug3('F', "[F]drawing [%d:%d),%d\n",
-				  x0, x1, fixed2int_var(y));
-			if (code < 0)
-			    return code;
-			x1_prev = x1;
-		    }
-		}
-	    }
-	  out:;
-	}
-	y += fixed_1;
-    }
-    return 0;
-}
-
-private void
-set_scan_line_points(active_line * alp, fixed fixed_flat)
-{
-    const segment *pseg = alp->pseg;
-    const gs_fixed_point *pp0;
-
-    if (alp->direction < 0) {
-	pseg =
-	    (pseg->type == s_line_close ?
-	     ((const line_close_segment *)pseg)->sub->next :
-	     pseg->next);
-	if (pseg->type != s_curve) {
-	    alp->curve_k = -1;
-	    return;
-	}
-	pp0 = &alp->end;
-    } else {
-	if (pseg->type != s_curve) {
-	    alp->curve_k = -1;
-	    return;
-	}
-	pp0 = &alp->start;
-    }
-#define pcseg ((const curve_segment *)pseg)
-    alp->curve_k =
-	gx_curve_log2_samples(pp0->x, pp0->y, pcseg, fixed_flat);
-    gx_curve_cursor_init(&alp->cursor, pp0->x, pp0->y, pcseg,
-			 alp->curve_k);
-#undef pcseg
-}
 
 /* ---------------- Trapezoid filling loop ---------------- */
 
@@ -1092,7 +934,7 @@ private int fill_slant_adjust(P12(fixed, fixed, fixed, fixed, fixed,
 private void resort_x_line(P1(active_line *));
 
 /****** PATCH ******/
-#define loop_fill_trapezoid_fixed(fx0, fw0, fy0, fx1, fw1, fh)\
+#define LOOP_FILL_TRAPEZOID_FIXED(fx0, fw0, fy0, fx1, fw1, fh)\
   loop_fill_trap(dev, fx0, fw0, fy0, fx1, fw1, fh, pbox, pdevc, lop)
 private int
 loop_fill_trap(gx_device * dev, fixed fx0, fixed fw0, fixed fy0,
@@ -1159,8 +1001,8 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
     fixed y_span_delta = _fixed_pixround_v + adjust_above;
     fixed y_span_limit = adjust_below + adjust_above;
 
-#define adjusted_y_spans_pixel(y)\
-  fixed_fraction((y) + y_span_delta) < y_span_limit
+#define ADJUSTED_Y_SPANS_PIXEL(y)\
+  (fixed_fraction((y) + y_span_delta) < y_span_limit)
 
     if (yll == 0)
 	return 0;		/* empty list */
@@ -1181,8 +1023,11 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 	while (yll != 0 && yll->start.y == y) {
 	    active_line *ynext = yll->next;	/* insert smashes next/prev links */
 
-	    if (yll->direction == dir_horizontal) {	/* This is a hack to make sure that */
-		/* isolated horizontal lines get stroked. */
+	    if (yll->direction == DIR_HORIZONTAL) {
+		/*
+		 * This is a hack to make sure that isolated horizontal
+		 * lines get stroked.
+		 */
 		int yi = fixed2int_pixround(y - adjust_below);
 		int xi, wi;
 
@@ -1196,7 +1041,7 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 					    adjust_left),
 			wi = fixed2int_pixround(yll->start.x +
 						adjust_right) - xi;
-		code = loop_fill_rectangle_direct(xi, yi, wi, 1);
+		code = LOOP_FILL_RECTANGLE_DIRECT(xi, yi, wi, 1);
 		if (code < 0)
 		    return code;
 	    } else
@@ -1236,20 +1081,20 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 #endif
 	/* Now look for line intersections before y1. */
 	x = min_fixed;
-#define have_pixels()\
+#define HAVE_PIXELS()\
   (fixed_pixround(y - adjust_below) < fixed_pixround(y1 + adjust_above))
-	draw = (have_pixels()? 1 : -1);
+	draw = (HAVE_PIXELS()? 1 : -1);
 	/*
 	 * Loop invariants:
 	 *      alp = endp->next;
 	 *      for all lines lp from stopx up to alp,
-	 *        lp->x_next = al_x_at_y(lp, y1).
+	 *        lp->x_next = AL_X_AT_Y(lp, y1).
 	 */
 	for (alp = stopx = ll->x_list;
 	     INCR_EXPR(find_y), alp != 0;
 	     endp = alp, alp = alp->next
 	    ) {
-	    fixed nx = al_x_at_y(alp, y1);
+	    fixed nx = AL_X_AT_Y(alp, y1);
 	    fixed dx_old, dx_den;
 
 	    /* Check for intersecting lines. */
@@ -1290,16 +1135,16 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 		    INCR(cross_slow);
 		    if (endp->start.y < alp->start.y)
 			ys = alp->start.y,
-			    xs0 = al_x_at_y(endp, ys), xs1 = alp->start.x;
+			    xs0 = AL_X_AT_Y(endp, ys), xs1 = alp->start.x;
 		    else
 			ys = endp->start.y,
-			    xs0 = endp->start.x, xs1 = al_x_at_y(alp, ys);
+			    xs0 = endp->start.x, xs1 = AL_X_AT_Y(alp, ys);
 		    if (endp->end.y > alp->end.y)
 			ye = alp->end.y,
-			    xe0 = al_x_at_y(endp, ye), xe1 = alp->end.x;
+			    xe0 = AL_X_AT_Y(endp, ye), xe1 = alp->end.x;
 		    else
 			ye = endp->end.y,
-			    xe0 = endp->end.x, xe1 = al_x_at_y(alp, ye);
+			    xe0 = endp->end.x, xe1 = AL_X_AT_Y(alp, ye);
 		    dy = ye - ys;
 		    dx0 = xe0 - xs0;
 		    dx1 = xe1 - xs1;
@@ -1323,7 +1168,7 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 		}
 		if (y_new < y1) {
 		    y1 = y_new;
-		    nx = al_x_at_y(alp, y1);
+		    nx = AL_X_AT_Y(alp, y1);
 		    draw = 0;
 		}
 		if (nx > x)
@@ -1333,7 +1178,7 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 	}
 	/* Recompute next_x for lines before the intersection. */
 	for (alp = ll->x_list; alp != stopx; alp = alp->next)
-	    alp->x_next = al_x_at_y(alp, y1);
+	    alp->x_next = AL_X_AT_Y(alp, y1);
 #ifdef DEBUG
 	if (gs_debug_c('F')) {
 	    dlprintf1("[F]after loop: y1=%f\n", fixed2float(y1));
@@ -1342,12 +1187,7 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 #endif
 	/* Fill a multi-trapezoid band for the active lines. */
 	/* Don't bother if no pixel centers lie within the band. */
-	if (draw > 0 || (draw == 0 && have_pixels())) {
-
-/*******************************************************************/
-/* For readability, we start indenting from the left margin again. */
-/*******************************************************************/
-
+	if (draw > 0 || (draw == 0 && HAVE_PIXELS())) {
 	    fixed height = y1 - y;
 	    fixed xlbot, xltop;	/* as of last "outside" line */
 	    int inside = 0;
@@ -1357,8 +1197,6 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 	    for (x = min_fixed, alp = ll->x_list; alp != 0; alp = nlp) {
 		fixed xbot = alp->x_current;
 		fixed xtop = alp->x_current = alp->x_next;
-
-#define nx xtop
 		fixed wtop;
 		int xi, xli;
 		int code;
@@ -1368,36 +1206,38 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 		nlp = alp->next;
 		/* Handle ended or out-of-order lines.  After this, */
 		/* the only member of alp we use is alp->direction. */
-		if (alp->end.y != y1 || !end_x_line(alp)) {
-		    if (nx <= x)
+		if (alp->end.y != y1 || !end_x_line(alp, true)) {
+		    if (xtop <= x)
 			resort_x_line(alp);
 		    else
-			x = nx;
+			x = xtop;
 		}
-#undef nx
 		/* rule = -1 for winding number rule, i.e. */
 		/* we are inside if the winding number is non-zero; */
 		/* rule = 1 for even-odd rule, i.e. */
 		/* we are inside if the winding number is odd. */
-#define inside_path_p() ((inside & rule) != 0)
-		if (!inside_path_p()) {		/* i.e., outside */
+#define INSIDE_PATH_P() ((inside & rule) != 0)
+		if (!INSIDE_PATH_P()) {		/* i.e., outside */
 		    inside += alp->direction;
-		    if (inside_path_p())	/* about to go in */
+		    if (INSIDE_PATH_P())	/* about to go in */
 			xlbot = xbot, xltop = xtop;
 		    continue;
 		}
 		/* We're inside a region being filled. */
 		inside += alp->direction;
-		if (inside_path_p())	/* not about to go out */
+		if (INSIDE_PATH_P())	/* not about to go out */
 		    continue;
-#undef inside_path_p
+#undef INSIDE_PATH_P
 		/* We just went from inside to outside, so fill the region. */
 		wtop = xtop - xltop;
 		INCR(band_fill);
-		/* If lines are temporarily out of */
-		/* order, wtop might be negative. */
-		/* Patch this up now. */
-		if (wtop < 0) {
+		/*
+		 * If lines are temporarily out of order, we might have
+		 * xtop < xltop.  Patch this up now if necessary.  Note that
+		 * we can't test wtop < 0, because the subtraction might
+		 * overflow.
+		 */
+		if (xtop < xltop) {
 		    if_debug2('f', "[f]patch %g,%g\n",
 			      fixed2float(xltop), fixed2float(xtop));
 		    xtop = xltop += arith_rshift(wtop, 1);
@@ -1418,7 +1258,7 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 		    int yi = fixed2int_pixround(y - adjust_below);
 		    int wi = fixed2int_pixround(y1 + adjust_above) - yi;
 
-		    code = loop_fill_rectangle_direct(xli, yi,
+		    code = LOOP_FILL_RECTANGLE_DIRECT(xli, yi,
 						      xi - xli, wi);
 		} else if ((adjust_below | adjust_above) != 0) {
 		    /*
@@ -1433,14 +1273,14 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 
 		    if (xltop <= xlbot) {
 			if (xtop >= xbot) {	/* Top wider than bottom. */
-			    code = loop_fill_trapezoid_fixed(
+			    code = LOOP_FILL_TRAPEZOID_FIXED(
 					      xlbot, wbot, y - adjust_below,
 						       xltop, wtop, height);
-			    if (adjusted_y_spans_pixel(y1)) {
+			    if (ADJUSTED_Y_SPANS_PIXEL(y1)) {
 				if (code < 0)
 				    return code;
 				INCR(afill);
-				code = loop_fill_rectangle_direct(
+				code = LOOP_FILL_RECTANGLE_DIRECT(
 				 xli, fixed2int_pixround(y1 - adjust_below),
 				     fixed2int_var_pixround(xtop) - xli, 1);
 			    }
@@ -1452,16 +1292,16 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 			}
 		    } else {
 			if (xtop <= xbot) {	/* Bottom wider than top. */
-			    if (adjusted_y_spans_pixel(y)) {
+			    if (ADJUSTED_Y_SPANS_PIXEL(y)) {
 				INCR(afill);
 				xli = fixed2int_var_pixround(xlbot);
-				code = loop_fill_rectangle_direct(
+				code = LOOP_FILL_RECTANGLE_DIRECT(
 				  xli, fixed2int_pixround(y - adjust_below),
 				     fixed2int_var_pixround(xbot) - xli, 1);
 				if (code < 0)
 				    return code;
 			    }
-			    code = loop_fill_trapezoid_fixed(
+			    code = LOOP_FILL_TRAPEZOID_FIXED(
 					      xlbot, wbot, y + adjust_above,
 						       xltop, wtop, height);
 			} else {	/* Slanted trapezoid. */
@@ -1472,17 +1312,13 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 			}
 		    }
 		} else		/* No Y adjustment. */
-		    code = loop_fill_trapezoid_fixed(xlbot, xbot - xlbot,
+		    code = LOOP_FILL_TRAPEZOID_FIXED(xlbot, xbot - xlbot,
 						     y, xltop, wtop, height);
 		if (code < 0)
 		    return code;
 	    }
-
-/**************************************************************/
-/* End of section requiring less indentation for readability. */
-/**************************************************************/
-
-	} else {		/* Just scan for ended or out-of-order lines. */
+	} else {
+	    /* Just scan for ended or out-of-order lines. */
 	    active_line *nlp;
 
 	    for (x = min_fixed, alp = ll->x_list; alp != 0;
@@ -1496,7 +1332,7 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 			  (ulong) alp->prev, fixed2float(x),
 			  (ulong) alp, fixed2float(nx));
 		if (alp->end.y == y1) {
-		    if (end_x_line(alp))
+		    if (end_x_line(alp, true))
 			continue;
 		}
 		if (nx <= x)
@@ -1595,7 +1431,7 @@ fill_slant_adjust(fixed xlbot, fixed xbot, fixed y,
 	    int ix = fixed2int_var_pixround(vert_left.start.x);
 	    int iw = fixed2int_var_pixround(vert_right.start.x) - ix;
 
-	    code = loop_fill_rectangle(ix, iy1b, iw, iya - iy1b);
+	    code = LOOP_FILL_RECTANGLE(ix, iy1b, iw, iya - iy1b);
 	    if (code < 0)
 		return code;
 	}
@@ -1650,9 +1486,526 @@ resort_x_line(active_line * alp)
     }
     alp->next = next;
     alp->prev = prev;
-    /* next might be null, if alp was in */
-    /* the correct spot already. */
+    /* next might be null, if alp was in the correct spot already. */
     if (next)
 	next->prev = alp;
     prev->next = alp;
+}
+
+/* ---------------- Range list management ---------------- */
+
+/*
+ * We originally thought we would store fixed values in coordinate ranges,
+ * but it turned out we want to store integers.
+ */
+typedef int coord_value_t;
+#define MIN_COORD_VALUE min_int
+#define MAX_COORD_VALUE max_int
+/*
+ * The invariant for coord_range_ts in a coord_range_list_t:
+ *	if prev == 0:
+ *		next != 0
+ *		rmin == rmax == MIN_COORD_VALUE
+ *	else if next == 0:
+ *		prev != 0
+ *		rmin == rmax == MAX_COORD_VALUE
+ *	else
+ *		rmin < rmax
+ *	if prev != 0:
+ *		prev->next == this
+ *		prev->rmax < rmin
+ *	if next != 0:
+ *		next->prev = this
+ *		next->rmin > rmax
+ * A coord_range_list_t has a boundary element at each end to avoid having
+ * to test for null pointers in the insertion loop.  The boundary elements
+ * are the only empty ranges.
+ */
+typedef struct coord_range_s coord_range_t;
+struct coord_range_s {
+    coord_value_t rmin, rmax;
+    coord_range_t *prev, *next;
+    coord_range_t *alloc_next;
+};
+/* We declare coord_range_ts as simple because they only exist transiently. */
+gs_private_st_simple(st_coord_range, coord_range_t, "coord_range_t");
+
+typedef struct coord_range_list_s {
+    gs_memory_t *memory;
+    struct rl_ {
+	coord_range_t *first, *next, *limit;
+    } local;
+    coord_range_t *allocated;
+    coord_range_t *freed;
+    coord_range_t *current;
+    coord_range_t first, last;
+} coord_range_list_t;
+
+private coord_range_t *
+range_alloc(coord_range_list_t *pcrl)
+{
+    coord_range_t *pcr;
+
+    if (pcrl->freed) {
+	pcr = pcrl->freed;
+	pcrl->freed = pcr->next;
+    } else if (pcrl->local.next < pcrl->local.limit)
+	pcr = pcrl->local.next++;
+    else {
+	pcr = gs_alloc_struct(pcrl->memory, coord_range_t, &st_coord_range,
+			      "range_alloc");
+	if (pcr == 0)
+	    return 0;
+	pcr->alloc_next = pcrl->allocated;
+	pcrl->allocated = pcr;
+    }
+    return pcr;
+}
+
+private void
+range_delete(coord_range_list_t *pcrl, coord_range_t *pcr)
+{
+    if_debug3('Q', "[Qr]delete 0x%lx: [%d,%d)\n", (ulong)pcr, pcr->rmin,
+	      pcr->rmax);
+    pcr->prev->next = pcr->next;
+    pcr->next->prev = pcr->prev;
+    pcr->next = pcrl->freed;
+    pcrl->freed = pcr;
+}
+
+private void
+range_list_clear(coord_range_list_t *pcrl)
+{
+    if_debug0('Q', "[Qr]clearing\n");
+    pcrl->first.next = &pcrl->last;
+    pcrl->last.prev = &pcrl->first;
+    pcrl->current = &pcrl->last;
+}
+
+/* ------ "Public" procedures ------ */
+
+/* Initialize a range list.  We require num_local >= 2. */
+private void range_list_clear(P1(coord_range_list_t *));
+private void
+range_list_init(coord_range_list_t *pcrl, coord_range_t *pcr_local,
+		int num_local, gs_memory_t *mem)
+{
+    pcrl->memory = mem;
+    pcrl->local.first = pcrl->local.next = pcr_local;
+    pcrl->local.limit = pcr_local + num_local;
+    pcrl->allocated = pcrl->freed = 0;
+    pcrl->first.rmin = pcrl->first.rmax = MIN_COORD_VALUE;
+    pcrl->first.prev = 0;
+    pcrl->last.rmin = pcrl->last.rmax = MAX_COORD_VALUE;
+    pcrl->last.next = 0;
+    range_list_clear(pcrl);
+}
+
+/* Reset an initialized range list to the empty state. */
+private void
+range_list_reset(coord_range_list_t *pcrl)
+{
+    if (pcrl->first.next != &pcrl->last) {
+	pcrl->last.prev->next = pcrl->freed;
+	pcrl->freed = pcrl->first.next;
+	range_list_clear(pcrl);
+    }
+}
+
+/*
+ * Move the cursor to the beginning of a range list, in the belief that
+ * the next added ranges will roughly parallel the existing ones.
+ * (Only affects performance, not function.)
+ */
+inline private void
+range_list_rescan(coord_range_list_t *pcrl)
+{
+    pcrl->current = pcrl->first.next;
+}
+
+/* Free a range list. */
+private void
+range_list_free(coord_range_list_t *pcrl)
+{
+    coord_range_t *pcr;
+
+    while ((pcr = pcrl->allocated) != 0) {
+	coord_range_t *next = pcr->alloc_next;
+
+	gs_free_object(pcrl->memory, pcr, "range_list_free");
+	pcrl->allocated = next;
+    }
+}
+
+/* Add a range. */
+private int
+range_list_add(coord_range_list_t *pcrl, coord_value_t rmin, coord_value_t rmax)
+{
+    coord_range_t *pcr = pcrl->current;
+
+    if (rmin >= rmax)
+	return 0;
+    /*
+     * Usually, ranges are added in increasing order within each scan line,
+     * and overlapping ranges don't differ much.  Optimize accordingly.
+     */
+ top:
+    if (rmax < pcr->rmin) {
+	if (rmin > pcr->prev->rmax)
+	    goto ins;
+	pcr = pcr->prev;
+	goto top;
+    }
+    if (rmin > pcr->rmax) {
+	pcr = pcr->next;
+	if (rmax < pcr->rmin)
+	    goto ins;
+	goto top;
+    }
+    /*
+     * Now we know that (rmin,rmax) overlaps (pcr->rmin,pcr->rmax).
+     * Don't delete or merge into the special min and max ranges.
+     */
+    while (rmin <= pcr->prev->rmax) {
+	/* Merge the range below pcr into this one. */
+	if (!pcr->prev->prev)
+	    break;		/* don't merge into the min range */
+	pcr->rmin = pcr->prev->rmin;
+	range_delete(pcrl, pcr->prev);
+    }
+    while (rmax >= pcr->next->rmin) {
+	/* Merge the range above pcr into this one. */
+	if (!pcr->next->next)
+	    break;		/* don't merge into the max range */
+	pcr->rmax = pcr->next->rmax;
+	range_delete(pcrl, pcr->next);
+    }
+    /*
+     * Now we know that the union of (rmin,rmax) and (pcr->rmin,pcr->rmax)
+     * doesn't overlap or abut either adjacent range, except that it may
+     * abut if the adjacent range is the special min or max range.
+     */
+    if (rmin < pcr->rmin) {
+	if_debug3('Q', "[Qr]update 0x%lx => [%d,%d)\n", (ulong)pcr, rmin,
+		  pcr->rmax);
+	pcr->rmin = rmin;
+    }
+    if (rmax > pcr->rmax) {
+	if_debug3('Q', "[Qr]update 0x%lx => [%d,%d)\n", (ulong)pcr, pcr->rmin,
+		  rmax);
+	pcr->rmax = rmax;
+    }
+    pcrl->current = pcr->next;
+    return 0;
+ ins:
+    /* Insert a new range below pcr. */
+    {
+	coord_range_t *prev = range_alloc(pcrl);
+
+	if (prev == 0)
+	    return_error(gs_error_VMerror);
+	if_debug3('Q', "[Qr]insert 0x%lx: [%d,%d)\n", (ulong)prev, rmin, rmax);
+	prev->rmin = rmin, prev->rmax = rmax;
+	(prev->prev = pcr->prev)->next = prev;
+	prev->next = pcr;
+	pcr->prev = prev;
+    }
+    pcrl->current = pcr;
+    return 0;
+}
+
+/* ---------------- Scan line filling loop ---------------- */
+
+/* Forward references */
+private int merge_ranges(P6(coord_range_list_t *pcrl, ll_ptr ll,
+			    fixed y_min, fixed y_top,
+			    fixed adjust_left, fixed adjust_right));
+private void set_scan_line_points(P2(active_line *, fixed));
+
+/* Main filling loop. */
+private int
+fill_loop_by_scan_lines(ll_ptr ll, gx_device * dev,
+			const gx_fill_params * params,
+			const gx_device_color * pdevc,
+			gs_logical_operation_t lop, const gs_fixed_rect * pbox,
+			fixed adjust_left, fixed adjust_right,
+			fixed adjust_below, fixed adjust_above,
+			fixed band_mask)
+{
+    int rule = params->rule;
+    fixed fixed_flat = float2fixed(params->flatness);
+    bool fill_direct = color_writes_pure(pdevc, lop);
+    gx_color_index cindex;
+    dev_proc_fill_rectangle((*fill_rect));
+    active_line *yll = ll->y_list;
+    fixed y_limit = pbox->q.y;
+    /*
+     * The meaning of adjust_below (B) and adjust_above (A) is that the
+     * pixels that would normally be painted at coordinate Y get "smeared"
+     * to coordinates Y-B through Y+A-epsilon, inclusive.  This is
+     * equivalent to saying that the pixels actually painted at coordinate Y
+     * are those contributed by scan lines Y-A+epsilon through Y+B,
+     * inclusive.  (A = B = 0 is a special case, equivalent to B = 0, A =
+     * epsilon.)
+     */
+    fixed y_frac_min =
+	(adjust_above == fixed_0 ? fixed_half :
+	 fixed_half + fixed_epsilon - adjust_above);
+    fixed y_frac_max =
+	fixed_half + adjust_below;
+    int y0 = fixed2int(min_fixed);
+    fixed y_bot = min_fixed;	/* normally int2fixed(y0) + y_frac_min */
+    fixed y_top = min_fixed;	/* normally int2fixed(y0) + y_frac_max */
+    coord_range_list_t rlist;
+    coord_range_t rlocal[MAX_LOCAL_ACTIVE];
+    int code = 0;
+
+    if (yll == 0)		/* empty list */
+	return 0;
+    range_list_init(&rlist, rlocal, countof(rlocal), ll->memory);
+    if (fill_direct)
+	cindex = pdevc->colors.pure,
+	    fill_rect = dev_proc(dev, fill_rectangle);
+    ll->x_list = 0;
+    ll->x_head.x_current = min_fixed;	/* stop backward scan */
+    while (code >= 0) {
+	active_line *alp, *nlp;
+	fixed y, x;
+	bool new_band;
+
+	INCR(iter);
+
+	/*
+	 * Find the next sampling point, either the bottom of a sampling
+	 * band or a line start.
+	 */
+
+	if (ll->x_list == 0)
+	    y = (yll == 0 ? y_limit : yll->start.y);
+	else {
+	    y = y_bot + fixed_1;
+	    if (yll != 0)
+		y = min(y, yll->start.y);
+	    for (alp = ll->x_list; alp != 0; alp = alp->next)
+		if (!end_x_line(alp, false))
+		    y = min(y, alp->end.y);
+	}
+
+	/* Move newly active lines from y to x list. */
+
+	while (yll != 0 && yll->start.y == y) {
+	    active_line *ynext = yll->next;	/* insert smashes next/prev links */
+
+	    if (yll->direction == DIR_HORIZONTAL) {
+		/* Ignore for now. */
+	    } else {
+		insert_x_new(yll, ll);
+		set_scan_line_points(yll, fixed_flat);
+	    }
+	    yll = ynext;
+	}
+
+	/* Update active lines to y. */
+
+	x = min_fixed;
+	for (alp = ll->x_list; alp != 0; alp = nlp) {
+	    fixed nx;
+
+	    nlp = alp->next;
+	  e:if (alp->end.y <= y) {
+		if (end_x_line(alp, true))
+		    continue;
+		set_scan_line_points(alp, fixed_flat);
+		goto e;
+	    }
+	    nx = alp->x_current =
+		(alp->start.y >= y ? alp->start.x :
+		 alp->curve_k < 0 ?
+		 AL_X_AT_Y(alp, y) :
+		 gx_curve_x_at_y(&alp->cursor, y));
+	    if (nx < x) {
+		/* Move this line backward in the list. */
+		active_line *ilp = alp;
+
+		while (nx < (ilp = ilp->prev)->x_current)
+		    DO_NOTHING;
+		/* Now ilp->x_current <= nx < ilp->next->x_cur. */
+		alp->prev->next = alp->next;
+		if (alp->next)
+		    alp->next->prev = alp->prev;
+		if (ilp->next)
+		    ilp->next->prev = alp;
+		alp->next = ilp->next;
+		ilp->next = alp;
+		alp->prev = ilp;
+		continue;
+	    }
+	    x = nx;
+	}
+
+	if (y > y_top || y >= y_limit) {
+	    /* We're beyond the end of the previous sampling band. */
+	    const coord_range_t *pcr;
+
+	    /* Fill the ranges for y0. */
+
+	    for (pcr = rlist.first.next; pcr != &rlist.last;
+		 pcr = pcr->next
+		 ) {
+		int x0 = pcr->rmin, x1 = pcr->rmax;
+
+		if_debug4('Q', "[Qr]draw 0x%lx: [%d,%d),%d\n", (ulong)pcr,
+			  x0, x1, y0);
+		code = LOOP_FILL_RECTANGLE_DIRECT(x0, y0, x1 - x0, 1);
+		if_debug3('F', "[F]drawing [%d:%d),%d\n", x0, x1, y0);
+		if (code < 0)
+		    goto done;
+	    }
+	    range_list_reset(&rlist);
+
+	    /* Check whether we've reached the maximum y. */
+
+	    if (y >= y_limit)
+		break;
+
+	    /* Reset the sampling band. */
+
+	    y0 = fixed2int(y);
+	    if (fixed_fraction(y) < y_frac_min)
+		--y0;
+	    y_bot = int2fixed(y0) + y_frac_min;
+	    y_top = int2fixed(y0) + y_frac_max;
+	    new_band = true;
+	} else
+	    new_band = false;
+
+	if (y <= y_top) {
+	    /*
+	     * We're within the same Y pixel.  Merge regions for segments
+	     * starting here (at y), up to y_top or the end of the segment.
+	     * If this is the first sampling within the band, run the
+	     * fill/eofill algorithm.
+	     */
+	    fixed y_min;
+
+	    if (new_band) {
+		/*
+		 * rule = -1 for winding number rule, i.e.
+		 * we are inside if the winding number is non-zero;
+		 * rule = 1 for even-odd rule, i.e.
+		 * we are inside if the winding number is odd.
+		 */
+		int inside = 0;
+
+#define INSIDE_PATH_P() ((inside & rule) != 0)
+		INCR(band);
+		for (alp = ll->x_list; alp != 0; alp = alp->next) {
+		    int x0 = fixed2int_pixround(alp->x_current - adjust_left);
+
+		    for (;;) {
+			/* We're inside a filled region. */
+			print_al("step", alp);
+			INCR(band_step);
+			inside += alp->direction;
+			if (!INSIDE_PATH_P())
+			    break;
+			/*
+			 * Since we're dealing with closed paths, the test
+			 * for alp == 0 shouldn't be needed, but we may have
+			 * omitted lines that are to the right of the
+			 * clipping region.
+			 */
+			if ((alp = alp->next) == 0)
+			    goto out;
+		    }
+#undef INSIDE_PATH_P
+		    /* We just went from inside to outside, so fill the region. */
+		    code = range_list_add(&rlist, x0,
+					  fixed2int_rounded(alp->x_current +
+							    adjust_right));
+		    if (code < 0)
+			goto done;
+		}
+	    out:
+		y_min = min_fixed;
+	    } else
+		y_min = y;
+	    code = merge_ranges(&rlist, ll, y_min, y_top, adjust_left,
+				adjust_right);
+	} /* else y < y_bot + 1, do nothing */
+    }
+ done:
+    range_list_free(&rlist);
+    return code;
+}
+
+/*
+ * Merge regions for active segments starting at a given Y, or all active
+ * segments, up to the end of the sampling band or the end of the segment,
+ * into the range list.
+ */
+private int
+merge_ranges(coord_range_list_t *pcrl, ll_ptr ll, fixed y_min, fixed y_top,
+	     fixed adjust_left, fixed adjust_right)
+{
+    active_line *alp, *nlp;
+    int code = 0;
+
+    range_list_rescan(pcrl);
+    for (alp = ll->x_list; alp != 0 && code >= 0; alp = nlp) {
+	fixed x0 = alp->x_current, x1, xt;
+
+	nlp = alp->next;
+	if (alp->start.y < y_min)
+	    continue;
+	if (alp->end.y < y_top)
+	    x1 = alp->end.x;
+	else if (alp->curve_k < 0)
+	    x1 = AL_X_AT_Y(alp, y_top);
+	else
+	    x1 = gx_curve_x_at_y(&alp->cursor, y_top);
+	if (x0 > x1)
+	    xt = x0, x0 = x1, x1 = xt;
+	code = range_list_add(pcrl,
+			      fixed2int_pixround(x0 - adjust_left),
+			      fixed2int_rounded(x1 + adjust_right));
+    }
+    return code;
+}
+
+/*
+ * Set curve_k and, if necessary, the curve rendering parameters for
+ * the current segment of an active line.
+ */
+private void
+set_scan_line_points(active_line * alp, fixed fixed_flat)
+{
+    const segment *pseg = alp->pseg;
+    const gs_fixed_point *pp0;
+
+    if (alp->direction < 0) {
+	pseg =
+	    (pseg->type == s_line_close ?
+	     ((const line_close_segment *)pseg)->sub->next :
+	     pseg->next);
+	if (pseg->type != s_curve) {
+	    alp->curve_k = -1;
+	    return;
+	}
+	pp0 = &alp->end;
+    } else {
+	if (pseg->type != s_curve) {
+	    alp->curve_k = -1;
+	    return;
+	}
+	pp0 = &alp->start;
+    }
+    {
+	const curve_segment *const pcseg = (const curve_segment *)pseg;
+
+	alp->curve_k =
+	    gx_curve_log2_samples(pp0->x, pp0->y, pcseg, fixed_flat);
+	gx_curve_cursor_init(&alp->cursor, pp0->x, pp0->y, pcseg,
+			     alp->curve_k);
+    }
 }

@@ -49,7 +49,7 @@ char 	*(*fcalls[])(Fid*) = {
 
 char	Eperm[] =	"permission denied";
 char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"no authentication in tapefs";
+char	Enoauth[] =	"tapefs: authentication not required";
 char	Enotexist[] =	"file does not exist";
 char	Einuse[] =	"file in use";
 char	Eexist[] =	"file exists";

@@ -38,32 +38,33 @@ typedef struct {
 
 extern Fs fs[3];
 
-char	*findkey(char*, char*, char*);
-char	*setkey(char*, char*, char*);
-char	*findsecret(char*, char*, char*);
-char	*setsecret(char*, char*, char*);
-char	*netresp(char*, long, char*);
-char	*netdecimal(char*);
-int	netcheck(void*, long, char*);
-int	smartcheck(void*, long, char*);
-char	*okpasswd(char*);
-void	logfail(char*);
-void	fail(char*);
-void	succeed(char*);
+void	checksum(char*, char*);
 void	error(char*, ...);
-int	readarg(int, char*, int);
-long	readn(int, void*, long);
-void	readln(char*, char*, int, int);
+void	fail(char*);
+char*	findkey(char*, char*, char*);
+char*	findsecret(char*, char*, char*);
+int	getauthkey(char*);
 long	getexpiration(char *db, char *u);
 void	getpass(char*, char*, int, int);
 int	getsecret(int, char*);
-int	getauthkey(char*);
 int	keyfmt(Fmt*);
-int	readfile(char*, char*, int);
-int	writefile(char*, char*, int);
-void	checksum(char*, char*);
-void	rdbio(char*, char*, Acctbio*);
+void	logfail(char*);
+int	netcheck(void*, long, char*);
+char*	netdecimal(char*);
+char*	netresp(char*, long, char*);
+char*	okpasswd(char*);
 int	querybio(char*, char*, Acctbio*);
+void	rdbio(char*, char*, Acctbio*);
+int	readarg(int, char*, int);
+int	readfile(char*, char*, int);
+void	readln(char*, char*, int, int);
+long	readn(int, void*, long);
+char*	secureidcheck(char*, char*);
+char*	setkey(char*, char*, char*);
+char*	setsecret(char*, char*, char*);
+int	smartcheck(void*, long, char*);
+void	succeed(char*);
 void	wrbio(char*, Acctbio*);
+int	writefile(char*, char*, int);
 
 #pragma	varargck	type	"K"	char*

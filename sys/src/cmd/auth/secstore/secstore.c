@@ -376,7 +376,6 @@ login(char *id, char *dest, int chpass, char **gf, int *Gflag, char **pf, char *
 			free(memfile);
 		}
 		free(list);
-		free(newpass);
 	}
 
 	conn->write(conn, (uchar*)"BYE", 3);
@@ -457,10 +456,8 @@ main(int argc, char **argv)
 	}
 
 	rc = strlen(serve)+sizeof("tcp!!99990");
-	tcpserve = malloc(rc);
-	if(!tcpserve)
-		exits("out of memory");
-	else if(strchr(serve,'!'))
+	tcpserve = emalloc(rc);
+	if(strchr(serve,'!'))
 		strcpy(tcpserve, serve);
 	else
 		snprint(tcpserve, rc, "tcp!%s!5356", serve);

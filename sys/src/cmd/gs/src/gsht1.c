@@ -1,22 +1,22 @@
 /* Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsht1.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsht1.c,v 1.3 2001/05/12 14:51:52 igorm Exp $ */
 /* Extended halftone operators for Ghostscript library */
 #include "memory_.h"
 #include "gx.h"
@@ -341,6 +341,7 @@ gs_sethalftone_prepare(gs_state * pgs, gs_halftone * pht,
 		    /* we don't need components. */
 		    gs_free_object(mem, pocs, "gs_sethalftone");
 		    pdht->components = 0;
+		    pdht->num_comp = 0;
 		} else {
 		    pdht->components = pocs;
 		    pdht->num_comp = count;

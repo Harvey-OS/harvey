@@ -16,7 +16,7 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	}ARGEND;
 
-	ai = auth_proxy(0, auth_getkey, "proto=p9sk2 role=server");
+	ai = auth_proxy(0, auth_getkey, "proto=p9any role=server");
 	if(ai == nil)
 		sysfatal("auth_proxy: %r");
 	if(strcmp(ai->cuid, "none") == 0)

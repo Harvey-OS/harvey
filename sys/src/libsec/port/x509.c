@@ -3,6 +3,8 @@
 #include <mp.h>
 #include <libsec.h>
 
+typedef DigestState*(*DigestFun)(uchar*,ulong,uchar*,DigestState*);
+
 /* ANSI offsetof, backwards. */
 #define	OFFSETOF(a, b)	offsetof(b, a)
 
@@ -24,9 +26,7 @@ typedef struct Elist Elist;
 
 /* tag classes */
 #define Universal 0
-#define Application 0x40
 #define Context 0x80
-#define Private 0xC0
 
 /* universal tags */
 #define BOOLEAN 1
@@ -1477,10 +1477,8 @@ freevalfields(Value* v)
  *		validity Validity,
  *		subject Name,
  *		subjectPublicKeyInfo SubjectPublicKeyInfo }
- *
- *	(version v2 has two more fields, optional
- *	 unique identifiers for issuer and subject; since we
- *	 ignore these anyway, we won't parse them)
+ *	(version v2 has two more fields, optional unique identifiers for
+ *  issuer and subject; since we ignore these anyway, we won't parse them)
  *
  *	Validity ::= SEQUENCE {
  *		notBefore UTCTime,
@@ -1501,7 +1499,6 @@ freevalfields(Value* v)
  *	AttributeTypeAndValue ::= SEQUENCE {
  *		type OBJECT IDENTIFER,
  *		value DirectoryString }
- *
  *	(selected attributes have these Object Ids:
  *		commonName {2 5 4 3}
  *		countryName {2 5 4 6}
@@ -1516,6 +1513,19 @@ freevalfields(Value* v)
  *		printableString PrintableString,
  *		universalString UniversalString }
  *
+ *  See rfc1423, rfc2437 for AlgorithmIdentifier, subjectPublicKeyInfo, signature.
+ *
+ *  Not yet implemented:
+ *   CertificateRevocationList ::= SIGNED SEQUENCE{
+ *           signature       AlgorithmIdentifier,
+ *           issuer          Name,
+ *           lastUpdate      UTCTime,
+ *           nextUpdate      UTCTime,
+ *           revokedCertificates
+ *                           SEQUENCE OF CRLEntry OPTIONAL}
+ *   CRLEntry ::= SEQUENCE{
+ *           userCertificate SerialNumber,
+ *           revocationDate UTCTime}
  */
 
 typedef struct CertX509 {
@@ -1556,6 +1566,7 @@ static Ints *alg_oid_tab[NUMALGS+1] = {
 	(Ints*)&oid_sha1WithRSAEncryption,
 	nil
 };
+static DigestFun digestalg[NUMALGS+1] = { md5, md5, md5, md5, sha1, nil };
 
 static void
 freecert(CertX509* c)
@@ -1610,12 +1621,10 @@ parse_name(Elem* e)
 			eat = &esetl->hd;
 			if(!is_seq(eat, &eatl) || elistlen(eatl) != 2)
 				goto errret;
-			if(!is_string(&eatl->tl->hd, &s))
+			if(!is_string(&eatl->tl->hd, &s) || i>=MAXPARTS)
 				goto errret;
 			parts[i++] = s;
 			plen += strlen(s) + 2;		/* room for ", " after */
-			if(i == MAXPARTS)
-				break;
 			esetl = esetl->tl;
 		}
 		el = el->tl;
@@ -1696,6 +1705,7 @@ decode_cert(Bytes* a)
  	ecertinfo = &elcert->hd;
  	el = elcert->tl;
  	esigalg = &el->hd;
+	c->signature_alg = parse_alg(esigalg);
  	el = el->tl;
  	esig = &el->hd;
 
@@ -1715,6 +1725,8 @@ decode_cert(Bytes* a)
  		el = el->tl;
  	}
 
+	if(parse_alg(&el->hd) != c->signature_alg)
+		goto errret;
  	el = el->tl;
  	eissuer = &el->hd;
  	el = el->tl;
@@ -1766,7 +1778,6 @@ decode_cert(Bytes* a)
  	c->publickey = makebytes(bits->data, bits->len);
 
 	/*resume Certificate */
-	c->signature_alg = parse_alg(esigalg);
 	if(c->signature_alg < 0)
 		goto errret;
  	if(!is_bitstring(esig, &bits))
@@ -1921,6 +1932,67 @@ asn1toRSApriv(uchar *kd, int kn)
 	return key;
 }
 
+/*
+ * digest(CertificateInfo)
+ * Our ASN.1 library doesn't return pointers into the original
+ * data array, so we need to do a little hand decoding.
+ */
+static void
+digest_certinfo(Bytes *cert, DigestFun digestfun, uchar *digest)
+{
+	uchar *info, *p, *pend;
+	ulong infolen;
+	int isconstr, length;
+	Tag tag;
+	Elem elem;
+
+	p = cert->data;
+	pend = cert->data + cert->len;
+	if(tag_decode(&p, pend, &tag, &isconstr) != ASN_OK ||
+			tag.class != Universal || tag.num != SEQUENCE ||
+			length_decode(&p, pend, &length) != ASN_OK ||
+			p+length > pend)
+		return;
+	info = p;
+	if(ber_decode(&p, pend, &elem) != ASN_OK || elem.tag.num != SEQUENCE)
+		return;
+	infolen = p - info;
+	fprint(2, "info [%lud] %2ux %2ux %2ux...\n", infolen, info[0], info[1], info[2]);
+	(*digestfun)(info, infolen, digest, nil);
+}
+
+static char*
+verify_signature(Bytes* signature, RSApub *pk, uchar *edigest)
+{
+	Elem e;
+	Elist *el;
+	Bytes *digest;
+	uchar *pkcs1buf, *buf;
+	int buflen;
+	mpint *pkcs1;
+
+	/* see 9.2.1 of rfc2437 */
+	pkcs1 = betomp(signature->data, signature->len, nil);
+	mpexp(pkcs1, pk->ek, pk->n, pkcs1);
+	buflen = mptobe(pkcs1, nil, 0, &pkcs1buf);
+	buf = pkcs1buf;
+	if(buflen < 4 || buf[0] != 1)
+		return "expected 1";
+	buf++;
+	while(buf[0] == 0xff)
+		buf++;
+	if(buf[0] != 0)
+		return "expected 0";
+	buf++;
+	buflen -= buf-pkcs1buf;
+	if(decode(buf, buflen, &e) != ASN_OK || !is_seq(&e, &el) || elistlen(el) != 2 ||
+			!is_octetstring(&el->tl->hd, &digest))
+		return "signature parse error";
+	if(memcmp(digest->data, edigest, digest->len) == 0)
+		return nil;
+	return "digests did not match";
+}
+	
 RSApub*
 X509toRSApub(uchar *cert, int ncert, char *name, int nname)
 {
@@ -1943,4 +2015,24 @@ X509toRSApub(uchar *cert, int ncert, char *name, int nname)
 	pk = decode_rsapubkey(c->publickey);
 	freecert(c);
 	return pk;
+}
+
+char*
+X509verify(uchar *cert, int ncert, RSApub *pk)
+{
+	char *e;
+	Bytes *b;
+	CertX509 *c;
+	uchar digest[SHA1dlen];
+
+	b = makebytes(cert, ncert);
+	c = decode_cert(b);
+	if(c != nil)
+		digest_certinfo(b, digestalg[c->signature_alg], digest);
+	freebytes(b);
+	if(c == nil)
+		return nil;
+	e = verify_signature(c->signature, pk, digest);
+	freecert(c);
+	return e;
 }

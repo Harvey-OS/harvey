@@ -62,7 +62,7 @@ List the
 (see
 .IR stat (2))
 of each file; the printed fields are in the order
-type, path, and version.
+path, version, and type.
 .TP
 .B  -r
 Reverse the order of sort.

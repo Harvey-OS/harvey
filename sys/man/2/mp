@@ -343,6 +343,8 @@ is
 then a buffer is allocated and a pointer to it is
 deposited in the location pointed to by
 .IR bufp .
+Sign is ignored in these conversions, i.e., the byte
+array version is always positive.
 .PP
 .IR Betomp ,
 and

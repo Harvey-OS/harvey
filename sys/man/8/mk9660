@@ -62,12 +62,12 @@ writes to the random access file
 an ISO-9660 CD image containing the
 files named in
 .I proto
-(default
+(by default,
 .BR /sys/lib/sysconfig/proto/allproto )
 from the file tree
 .I src
-(default
-.BR / ).
+(by default,
+the current directory).
 The
 .I proto
 file is formatted as described in
@@ -107,7 +107,7 @@ If the
 .B -j
 flag is given, the usual directory tree is written,
 but an additional tree in Microsoft Joliet format is
-alos added.
+also added.
 This second tree can contain long Unicode file names,
 and can be read by
 .I 9660srv

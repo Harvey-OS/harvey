@@ -37,7 +37,6 @@ threadmain,
 threadnotify,
 threadid,
 threadpid,
-threadprint,
 threadsetgrp,
 threadsetname,
 threadwaitchan,
@@ -289,9 +288,7 @@ and
 will not terminate a thread that never relinquishes
 the processor.
 .PP
-Primarily for debugging
-(see
-.IR XXXacidthread ),
+Primarily for debugging,
 threads can have string names associated with them.
 .I Threadgetname
 returns the current thread's name;

@@ -18,12 +18,15 @@ TARG=\
 	login\
 	uniq\
 	iam\
+	debug\
 
 DIRS=lib\
 	factotum\
 	secstore\
 
 HFILES=/sys/include/auth.h /sys/include/authsrv.h authcmdlib.h
+
+UPDATE=`{echo *.[ch] mkfile lib/*.[ch]} `{echo $TARG |sed 's/([^ $]*)( |$)/\/386\/bin\/auth\/\1 /g'}
 
 LIB=lib.$O.a /$objtype/lib/libc.a
 BIN=/$objtype/bin/auth

@@ -1,22 +1,22 @@
-/* Copyright (C) 1992, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: dstack.h,v 1.1 2000/03/09 08:40:40 lpd Exp $ */
+/*$Id: dstack.h,v 1.3 2000/12/26 01:20:58 lpd Exp $ */
 /* Definitions for the interpreter's dictionary stack */
 
 #ifndef dstack_INCLUDED
@@ -74,35 +74,35 @@
 
 /*
 Notes on dictionary lookup performance
---------------------------------------
+======================================
 
 We mark heavily used operations with a * below; moderately heavily used
 operations with a +.
-
-The following operations change the dictionary stack:
-	+begin, +end
-	readonly (on a dictionary that is on the stack)
-	noaccess (on a dictionary that is on the stack)
-	context switch
-We implement cleardictstack as a series of ends.
-
-The following operations change the contents of dictionaries:
-	*def, +put
-	undef
-	restore
-	.setmaxlength
-We implement store in PostScript, and copy as a series of puts.  Many
-other operators also do puts (e.g., ScaleMatrix in makefont,
-Implementation in makepattern, ...).  Note that put can do an implicit
-.setmaxlength (if it has to grow the dictionary).
 
 The following operations look up keys on the dictionary stack:
 	*(interpreter name lookup)
 	load
 	where
 
+The following operations change the contents of dictionaries:
+	*def, +put
+	undef
+	restore
+	(grow)
+We implement store in PostScript, and copy as a series of puts.  Many
+other operators also do puts (e.g., ScaleMatrix in makefont,
+Implementation in makepattern, ...).  Note that put can do an implicit
+.setmaxlength (if it has to grow the dictionary).
+
+The following operations change the dictionary stack:
+	+begin, +end
+	+?(context switch)
+	readonly (on a dictionary that is on the stack)
+	noaccess (on a dictionary that is on the stack)
+We implement cleardictstack as a series of ends.
+
 Current design
---------------
+==============
 
 Each name N has a pointer N.V that has one of 3 states:
 	- This name has no definitions.
@@ -116,192 +116,185 @@ single-probe lookups in this dictionary.  We also cache a value that
 allows us to do a fast check for stores into the top dictionary
 (writability + space check).
 
-Cheap shallow binding
----------------------
+Improved design
+===============
 
-We define a global event counter, Event.  Each name N has, in addition to
-its value pointer N.V, an associated event stamp N.E.  The invariant we want
-to preserve is that N.V is valid iff N.E >= Event.  Similarly, each entry B
-on the dictionary stack has, in addition to its dictionary B.D, an
-associated event stamp B.E which is the value of Event when the entry was
-made, and a slow lookup flag B.F which indicates whether any slow lookups
-have been done since the entry was made.  Finally, each dictionary D has a
-counter D.N which indicates how many times it appears on the dictionary
-stack.  (The counter is an optional feature of this scheme: if we omit it,
-we consider it to have a permanently non-zero value in all dictionaries.)
+Data structures
+---------------
 
-The idea of the B.F flag is for 'end' to be able to reset Event, rather than
-incrementing it, if no names had their stamp set to the incremented Event
-value.  This in turn prevents the mass invalidation of the N.V cache that
-would otherwise occur.
+With each dictionary stack (or equivalently with each context), we
+associate:
 
-Here are the implementations of the various operations with respect to the
-cache.  We preserve the current scheme for fast implementation of 'def',
-which we don't discuss here.
+    * A name lookup cache, C.  Each entry C[i] in the cache consists of:
 
-Initialize:
-	Event = 0
-When creating a name:
-	N.V = NULL, N.E = 0
-begin(D):
-	create B with B.D = D, B.E = Event, B.F = false
-	++Event
-end(B):
-	if !B.F, Event = B.E; else ++Event, and set B.F in the new top entry
-readonly(D):
-	<< nothing >>
-noaccess(D):
-	if D.N, ++Event
-def(D,K,V):
-	if K is already defined in D or K is not a name N, nothing to do
-	if N.V is NULL and D is systemdict,
-	  set N.V to point into D, N.E = infinite
-	else
-	  set N.V to point into D, N.E = Event, B.F = true in top entry
-put(D,K,V):
-	if K is already defined in D, K is not a name N, or D.N == 0,
-	  nothing to do
-	if N.V is NULL and D is systemdict,
-	  set N.V to point into D, N.E = infinite
-	else if D is the top dict on the dict stack
-	  set N.V to point into D, N.E = Event, B.F = true in top entry
-	else
-	  set N.V = invalid, N.E = 0
-undef(D,K):
-	if K is defined in D, D.N > 0, and K is a name N, clear N.E
-restore:
-	****** TBC ******
-.setmaxlength(D):
-	for each name key N in D, if N.V points into D, repoint it
-value = lookup(N): (load and where are similar)
-	<< do the fast lookup in the top dict >>
-	if N.E >= Event, use N.V
-	otherwise, do the dict stack lookup
-	set B.F in the top dict stack entry
-	set N.E = Event, N.V = the binding pointer
-context switch:
-	++Event
-	for each B on the old dict stack, --(B.D.N)
-	for each B on the new dict stack, ++(B.D.N)
-Event counter overflow:
-	clear N.E in all names where it isn't infinite
+	A key, K (a name index).
 
-Full shallow binding
+	A dictionary stack level (depth), L.  C[i] is valid iff the
+	current dictionary stack depth, |dstack|, is equal to L.
+	(L is always less than or equal to |dstack|.)
+
+	A value pointer, V, which points to some value slot of some
+	dictionary on the stack.
+
+    * A lookup cache restoration stack, R.  Each entry R[j] on this stack
+    consists of:
+
+	An index i in C.
+
+	The previous (K,D,V) of C[i].
+
+C needs to be large enough to satisfy the overwhelming majority of name
+lookups with only 1-3 probes.  In a single-context system, C can be large
+(perhaps 8K entries = 80K bytes, which is enough to accommodate every name
+in a typical run with no reprobes).  In a multiple-context system, one can
+choose a variety of different strategies for managing C, such as:
+
+	A single cache that is cleared on every context switch;
+
+	A small cache (e.g., .5K entries) for each context;
+
+	A cache that starts out small and grows adaptively if the hit rate
+	is too low.
+
+R needs to be able to grow dynamically; in the worst case, it may have |C|
+entries per level of the dictionary stack.  We assume that R will always be
+able to grow as needed (i.e., inability to allocate space for R is a
+VMerror, like inability to allocate space for the undo-save information for
+'save').
+
+With each entry E[j] on the dictionary stack, we associate:
+
+    * A value U that gives the depth of R at the time that E[j] was pushed
+    on the stack.  E[j].U = 0 for 0 <= j < the initial depth of the dictionary
+    stack (normally 3).
+
+With each dictionary D we associate:
+
+    * A counter S that gives the total number of occurrences of D on all
+    dictionary stacks.  If this counter overflows, it is pinned at its maximum
+    value.
+
+In order to be effective, D.S needs to be able to count up to a small
+multiple of the total number of contexts: 16 bits should be plenty.
+
+As at present, we also maintain a pair of pointers that bracket the value
+region of the top dictionary on the stack, for fast checking in def.  If the
+top dictionary is readonly or noaccess, the pointers designate an empty
+area.  We call this the "def region cache".
+
+Now we describe the implementation of each of the above operations.
+
+(name lookup)
+-------------
+
+To look up a name with index N, compute a hash index 0 <= i < |C|.  There
+are three cases:
+
+	1. C[i].K == N and C[i].L == |dstack|.  Nothing more is needed:
+	C[i].V points to the N's value.
+
+	2. C[i].K == N but C[i].L < |dstack|.  Look up N in the top |dstack|
+	- L entries on the dictionary stack; push i and C[i] onto R; set
+	C[i].V to point to the value if found, and in any case set C[i].L =
+	|dstack|.
+
+	3. C[i].K != N.  Reprobe some small number of times.
+
+If all reprobes fail, look up N on the (full) dictionary stack.  Pick an
+index i (one of the probed entries) in C to replace.  If C[i].L != |dstack|,
+push i and C[i] onto R.  Then replace C[i] with K = N, L = |dstack|, and V
+pointing to N's value.
+
+load
+----
+
+Proceed as for name lookup.  However, it might be worth not making the new
+cache entry in case 3, since names looked up by load will rarely be looked
+up again.
+
+where
+-----
+
+Just do a full lookup, ignoring C.
+
+def
+---
+
+As at present: start by doing one or two fast probes in the def region
+cache; if they succeed, just store the new value; otherwise, do a normal
+dictionary lookup and access check.  If a new dictionary entry is created
+and the key is a name, check all possible probe slots of the name in C; if
+the name is present, update its entry in C as for a lookup.  Then if D.S >
+1, scan as for 'grow' below.
+
+put
+---
+
+If the key is a name, the dictionary entry is new, and D.S != 0, scan as for
+'grow' below.
+
+undef
+-----
+
+If the key is a name and D.S != 0, scan as for 'grow' below.  It might be
+worth checking for D.S == 1 and D = the top dictionary on the stack as a
+special case, which only requires removing the name from C, similar to
+'def'.
+
+restore
+-------
+
+The undo-save machinery must be enhanced so that grow, def/put, and undef
+operations can be recognized as such.  TBD.
+
+(grow)
+------
+
+If D.S == 0, do nothing special.  Otherwise, scan C, R, and the dictionary
+stack (first for the current context, and then for other contexts if needed)
+until D.S occurrences of D have been processed.  (If D is in local VM, it is
+only necessary to scan contexts that share local VM with the current one; if
+D is in global VM, it is necessary to scan contexts that share global VM
+with the current one.)  Entries in C whose V pointed within D's old values
+array are updated; entries in R whose V pointed within the old values array
+are replaced with empty entries.
+
+begin
+-----
+
+After pushing the new dictionary, set dstack[|dstack| - 1].U = |R|.  Reset
+the def region cache.
+
+end
+---
+
+Before popping the top entry, for dstack[|dstack| - 1].U <= j < |R|, restore
+C[R[j].i] from R[j].(K,L,V), popping R.  Reset the def region cache.
+
+(context switch)
+----------------
+
+Reset the def region cache.
+
+readonly
+--------
+
+If the dictionary is the top one on the stack, reset the def region cache.
+
+noaccess
+--------
+
+If D.S != 0, scan as for 'grow' above, removing every C and R entry whose V
+points into D.  Also reset the def region cache if the dictionary is the top
+one on the stack.
+
+(garbage collection)
 --------------------
 
-We implement shallow binding with a pointer in each name that points to
-the value slot that holds the name's definition.  If the name is
-undefined, or if we don't know where the slot is, the binding pointer
-points to a ref with a special type t__invalid, which cannot occur
-anywhere else.  "Clearing" the pointer means setting it to point to this
-ref.
-
-We also maintain a pair of pointers that bracket the value region of the
-top dictionary on the stack, for fast checking in def.  If the top
-dictionary is readonly or noaccess, the pointers designate an empty area.
-We call this the "def region" cache.
-
-We implement the above operations as follows:
-	begin - push the dictionary on the stack; set the pointers of
-		all name keys to point to the corresponding value slots.
-	end - pop the stack; clear the pointers of all name keys.
-	readonly - if the dictionary is the top one on the stack,
-		reset the def region cache.
-	noaccess - clear the pointers of all name keys.  (This is overly
-		conservative, but this is a very rare operation.)
-		Also reset the def region cache if the dictionary is
-		the top one on the stack.
-	def - if the key is a name and its pointer points within the cached
-		def region, store the value through the pointer; otherwise,
-		look up the key in the top dictionary, store the value,
-		and if the key is a name, set its pointer to the value slot.
-	put - if the key is a name and wasn't in the dictionary before,
-		clear its pointer.  (Conservative, but rare.)
-	undef - if the key is a name, clear its pointer.  (Overly
-		conservative, but rare.)
-	restore - if either the old or the new value of a change is a name
-		(possibly in a packed array), clear its pointer.  This is
-		conservative, but easy to detect, and probably not *too*
-		conservative.
-	.setmaxlength - clear all the pointers, like noaccess.
-	(name lookup) - fetch the value through the pointer and dispatch
-		on its type; if the type is t__invalid, do a full search
-		and set the pointer.  This avoids a separate check for a
-		clear pointer in the usual case where the pointer is valid.
-	load - if the pointer is clear, do a search and set the pointer;
-		then fetch the value.
-	where - always do a full search and set the pointer.
-		(Conservative, but rare.)
-
-One place where shallow binding will result in major new overhead is the
-extra push of systemdict for loading fonts.  This probably isn't a problem
-in real life.
-
-****** Context switching is horrendously expensive: it has to do the
-equivalent of 'end' for every dictionary on the old stack followed by
-'begin' for every dictionary on the new stack.
-
-Adaptive shallow binding
-------------------------
-
-We do validity checking for the name value cache using an epoch counter.
-For each dictionary D, we keep an on-stack flag F.  Each dictionary stack
-entry is <D,M,F,E> where D is the actual dictionary, M is a mark vector of
-V bits (V is a system constant, probably 64), F is D's former on-stack
-flag, and E is the epoch at which the entry was made.  For each name K, we
-keep a cache <P,E> where P is a pointer to the dictionary value slot that
-holds the current value of K, and E is an epoch value; the cache is valid
-if K->E >= dsp->E.  Here is what happens for each operation:
-
-****** Still need to handle names defined only in systemdict or userdict?
-
-To initialize:
-	Epoch = 0
-To clear the cache entry for K:
-	*K = <ptr to invalid value, 0>
-begin(D):
-	*++dsp = <D, {0...}, D->F, ++Epoch>
-	set D->F
-value = lookup(K):
-	if K->E >= dsp->E
-	  value = *K->P
-	else
-	  do lookup as usual
-	  *K = <ptr to value, Epoch>
-	  set dp->M[i mod V] where dp is the dstack slot of the dictionary
-	    where K was found and i is the index within that dictionary
-end:
-	for each i such that dsp->M[i] is set,
-	  clear the cache entry for dsp->D->keys[i, i+V, ...]
-	dsp->D->F = dsp->F
-	--dsp
-noaccess(D):
-	if D->F is set,
-	  clear the cache entries for all name keys of D
-readonly(D):
-	<< nothing >>
-.setmaxlength(D,N):
-	same as noaccess
-restore:
-	If either the old or the new value of a change is a name
-	  (possibly in a packed array), clear its cache entry.  This is
-	  conservative, but easy to detect, and probably not *too*
-	  conservative.
-def(K,V):
-	if K->P points into dsp->D
-	  *K->P = V
-	else
-	  put the new value in dsp->D
-	  set *K and dsp->M[i mod V] as for a lookup
-put(D,K,V):
-	if K is already defined in D, do nothing special
-	otherwise, if D->F isn't set, do nothing special
-	otherwise, clear K's cache entry
-undef(D,K):
-	if D->F is set,
-	  clear K's cache entry
-
-****** Same problem for context switching as for full shallow binding.
+The garbage collector must mark names referenced from C and R.  Dictionaries
+referenced from C and R are also referenced from the dictionary stack, so
+they do not need to be marked specially; however, pointers to those
+dictionaries' values arrays from C and R need to be relocated.
 
  */
 

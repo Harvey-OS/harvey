@@ -1,22 +1,22 @@
 /* Copyright (C) 1994, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: sdcte.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: sdcte.c,v 1.4 2001/09/01 23:54:57 raph Exp $ */
 /* DCT encoding filter stream */
 #include "memory_.h"
 #include "stdio_.h"
@@ -28,6 +28,8 @@
 #include "strimpl.h"
 #include "sdct.h"
 #include "sjpeg.h"
+
+public_st_jpeg_compress_data();
 
 /* ------ DCTEncode ------ */
 
@@ -54,7 +56,7 @@ s_DCTE_set_defaults(stream_state * st)
 
     s_DCT_set_defaults(st);
     ss->QFactor = 1.0;
-    ss->ColorTransform = 0;
+    ss->ColorTransform = -1;
     ss->Markers.data = 0;
     ss->Markers.size = 0;
     ss->NoMarker = true;

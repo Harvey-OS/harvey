@@ -1,22 +1,22 @@
 /* Copyright (C) 1994, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: sdct.h,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: sdct.h,v 1.4 2001/06/08 07:08:44 rayjj Exp $ */
 /* Definitions for DCT filters */
 /* Requires stream.h, strimpl.h, jpeg/jpeglib.h */
 
@@ -26,6 +26,21 @@
 #include <setjmp.h>		/* for jmp_buf */
 
 /* ------ DCT filters ------ */
+
+/*
+ * We don't want to allocate JPEG's private data directly from
+ * the C heap, but we must allocate it as immovable; and to avoid
+ * garbage collection issues, we must keep GC-traceable pointers
+ * to every block allocated.
+ */
+typedef struct jpeg_block_s jpeg_block_t;
+struct jpeg_block_s {
+    jpeg_block_t *next;
+    void *data;
+};
+#define private_st_jpeg_block()	/* in sjpegc.c */\
+  gs_private_st_ptrs2(st_jpeg_block, jpeg_block_t, "jpeg_block_t",\
+    jpeg_block_enum_ptrs, jpeg_block_reloc_ptrs, next, data)
 
 /*
  * Define the stream state.
@@ -39,16 +54,22 @@
 	struct jpeg_error_mgr err;\
 	jmp_buf exit_jmpbuf;\
 	gs_memory_t *memory;	/* heap for library allocations */\
+        jpeg_block_t *blocks;   /* ptr to allocated data block list */\
 		/* The following are documented in Adobe TN 5116. */\
 	int Picky;		/* 0 or 1 */\
 	int Relax		/* 0 or 1 */
+
 typedef struct jpeg_stream_data_s {
     jpeg_stream_data_common;
 } jpeg_stream_data;
 
 /* Define initialization for the non-library part of the stream state. */
 #define jpeg_stream_data_common_init(pdata)\
-  ((pdata)->Picky = 0, (pdata)->Relax = 0)
+BEGIN\
+  (pdata)->Picky = 0;\
+  (pdata)->Relax = 0;\
+  (pdata)->blocks = 0;\
+END
 
 typedef struct jpeg_compress_data_s {
     jpeg_stream_data_common;
@@ -58,6 +79,11 @@ typedef struct jpeg_compress_data_s {
     byte finish_compress_buf[100];
     int fcb_size, fcb_pos;
 } jpeg_compress_data;
+
+extern_st(st_jpeg_compress_data);
+#define public_st_jpeg_compress_data()	/* in sdcte.c */\
+  gs_public_st_ptrs1(st_jpeg_compress_data, jpeg_compress_data,\
+    "JPEG compress data", jpeg_compress_data_enum_ptrs, jpeg_compress_data_reloc_ptrs, blocks)
 
 typedef struct jpeg_decompress_data_s {
     jpeg_stream_data_common;
@@ -71,6 +97,11 @@ typedef struct jpeg_decompress_data_s {
     byte *scanline_buffer;	/* buffer for oversize scanline, or NULL */
     uint bytes_in_scanline;	/* # of bytes remaining to output from same */
 } jpeg_decompress_data;
+
+#define private_st_jpeg_decompress_data()	/* in zfdctd.c */\
+  gs_private_st_ptrs2(st_jpeg_decompress_data, jpeg_decompress_data,\
+    "JPEG decompress data", jpeg_decompress_data_enum_ptrs,\
+    jpeg_decompress_data_reloc_ptrs, blocks, scanline_buffer)
 
 /* The stream state itself.  This is kept in garbage-collectable memory. */
 typedef struct stream_DCT_state_s {
@@ -101,9 +132,8 @@ typedef struct stream_DCT_state_s {
 /* the encoding and decoding filters. */
 extern_st(st_DCT_state);
 #define public_st_DCT_state()	/* in sdctc.c */\
-  gs_public_st_const_strings1(st_DCT_state, stream_DCT_state,\
-    "DCTEncode/Decode state", dct_enum_ptrs, dct_reloc_ptrs, Markers)
-
+  gs_public_st_const_strings1_ptrs1(st_DCT_state, stream_DCT_state,\
+    "DCTEncode/Decode state", dct_enum_ptrs, dct_reloc_ptrs, Markers, data.common)
 /*
  * NOTE: the client *must* invoke the set_defaults procedure in the
  * template before calling the init procedure.

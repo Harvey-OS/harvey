@@ -6,6 +6,9 @@
 #include "dat.h"
 
 #pragma varargck argpos imap4cmd 2
+#pragma varargck	type	"Z"	char*
+
+int	doublequote(Fmt*);
 
 static char Eio[] = "i/o error";
 
@@ -298,12 +301,12 @@ imap4login(Imap *imap)
 		return "cannot find password";
 
 	imap->tag = 1;
-	imap4cmd(imap, "LOGIN %s %s", up->user, up->passwd);
+	imap4cmd(imap, "LOGIN %Z %Z", up->user, up->passwd);
 	free(up);
 	if(!isokay(s = imap4resp(imap)))
 		return s;
 
-	imap4cmd(imap, "SELECT %s", imap->mbox);
+	imap4cmd(imap, "SELECT %Z", imap->mbox);
 	if(!isokay(s = imap4resp(imap)))
 		return s;
 
@@ -543,7 +546,7 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 	int i, ignore, nnew, t;
 	Message *m, *next, **l;
 
-	imap4cmd(imap, "STATUS %s (MESSAGES UIDVALIDITY)", imap->mbox);
+	imap4cmd(imap, "STATUS %Z (MESSAGES UIDVALIDITY)", imap->mbox);
 	if(!isokay(s = imap4resp(imap)))
 		return s;
 
@@ -551,9 +554,11 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 	imap->uid = erealloc(imap->uid, imap->nmsg*sizeof(imap->uid[0]));
 	imap->muid = imap->nmsg;
 
-	imap4cmd(imap, "UID FETCH 1:* UID");
-	if(!isokay(s = imap4resp(imap)))
-		return s;
+	if(imap->nmsg > 0){
+		imap4cmd(imap, "UID FETCH 1:* UID");
+		if(!isokay(s = imap4resp(imap)))
+			return s;
+	}
 
 	l = &mb->root->part;
 	for(i=0; i<imap->nuid; i++){
@@ -769,6 +774,7 @@ imap4mbox(Mailbox *mb, char *path)
 	Imap *imap;
 
 	quotefmtinstall();
+	fmtinstall('Z', doublequote);
 	if(strncmp(path, "/imap/", 6) != 0 && strncmp(path, "/imaps/", 7) != 0)
 		return Enotme;
 	mustssl = (strncmp(path, "/imaps/", 7) == 0);
@@ -807,4 +813,56 @@ imap4mbox(Mailbox *mb, char *path)
 	//mb->fetch = imap4fetch;
 
 	return nil;
+}
+
+//
+// Formatter for %"
+// Use double quotes to protect white space, frogs, \ and "
+//
+enum
+{
+	Qok = 0,
+	Qquote,
+	Qbackslash,
+};
+
+static int
+needtoquote(Rune r)
+{
+	if(r >= Runeself)
+		return Qquote;
+	if(r <= ' ')
+		return Qquote;
+	if(r=='\\' || r=='"')
+		return Qbackslash;
+	return Qok;
+}
+
+int
+doublequote(Fmt *f)
+{
+	char *s, *t;
+	int w, quotes;
+	Rune r;
+
+	s = va_arg(f->args, char*);
+	if(s == nil || *s == '\0')
+		return fmtstrcpy(f, "\"\"");
+
+	quotes = 0;
+	for(t=s; *t; t+=w){
+		w = chartorune(&r, t);
+		quotes |= needtoquote(r);
+	}
+	if(quotes == 0)
+		return fmtstrcpy(f, s);
+
+	fmtrune(f, '"');
+	for(t=s; *t; t+=w){
+		w = chartorune(&r, t);
+		if(needtoquote(r) == Qbackslash)
+			fmtrune(f, '\\');
+		fmtrune(f, r);
+	}
+	return fmtrune(f, '"');
 }

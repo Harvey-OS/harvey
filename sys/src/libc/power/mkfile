@@ -1,26 +1,35 @@
 objtype=power
-</power/mkfile
+</$objtype/mkfile
 
 LIB=/$objtype/lib/libc.a
-OFILES=\
-	main9.$O\
-	main9p.$O\
-	argv0.$O\
-	getcallerpc.$O\
-	getfcr.$O\
-	memccpy.$O\
-	memcmp.$O\
-	memmove.$O\
-	memset.$O\
-	notejmp.$O\
-	setjmp.$O\
-	sqrt.$O\
-	strcmp.$O\
-	strncmp.$O\
-	tas.$O\
-	vlop.$O\
-	vlrt.$O\
+SFILES=\
+	argv0.s\
+	getcallerpc.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memccpy.s\
+	memcmp.s\
+	memmove.s\
+	memset.s\
+	setjmp.s\
+	strcmp.s\
+	strncmp.s\
+	tas.s\
+	vlop.s
+
+CFILES=\
+	notejmp.c\
+	sqrt.c\
+	vlrt.c\
 
 HFILES=/sys/include/libc.h
+
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
 
 </sys/src/cmd/mksyslib

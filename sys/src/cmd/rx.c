@@ -71,7 +71,7 @@ rex(int fd, char *cmd)
 	int kid, n;
 	AuthInfo *ai;
 
-	ai = auth_proxy(fd, auth_getkey, "proto=p9sk2 role=client");
+	ai = auth_proxy(fd, auth_getkey, "proto=p9any role=client");
 	if(ai == nil)
 		error("auth_proxy", nil);
 	write(fd, cmd, strlen(cmd)+1);

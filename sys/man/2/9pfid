@@ -34,7 +34,8 @@ typedef struct Fid
 typedef struct Req
 {
 	ulong	tag;
-	Fcall	fcall;
+	Fcall	ifcall;
+	Fcall	ofcall;
 	Req	*oldreq;
 	void	*aux;
 	\fI...\fP

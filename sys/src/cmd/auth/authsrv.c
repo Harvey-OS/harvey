@@ -40,7 +40,6 @@ void	desencrypt(uchar data[8], uchar key[7]);
 int	tickauthreply(Ticketreq*, char*);
 void	safecpy(char*, char*, int);
 
-extern	secureidcheck(char*, char*);
 
 void
 main(int argc, char *argv[])
@@ -167,6 +166,7 @@ challengebox(Ticketreq *tr)
 	char *key, *netkey;
 	char kbuf[DESKEYLEN], nkbuf[DESKEYLEN], hkey[DESKEYLEN];
 	char buf[NETCHLEN+1];
+	char *err;
 
 	key = findkey(KEYDB, tr->uid, kbuf);
 	netkey = findkey(NETKEYDB, tr->uid, nkbuf);
@@ -198,8 +198,8 @@ challengebox(Ticketreq *tr)
 		exits(0);
 	if(!(key && netcheck(key, chal, buf))
 	&& !(netkey && netcheck(netkey, chal, buf))
-	&& !secureidcheck(tr->uid, buf)){
-		replyerror("cr-fail bad response %s %s", tr->uid, raddr);
+	&& (err = secureidcheck(tr->uid, buf)) != nil){
+		replyerror("cr-fail %s %s %s", err, tr->uid, raddr);
 		logfail(tr->uid);
 		if(debug)
 			syslog(0, AUTHLOG, "cr-fail %s@%s(%s): bad resp",

@@ -1,7 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>HTML coding and style guidelines for Ghostscript documentation</title>
-<!-- $Id: Htmstyle.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
+<!-- $Id: Htmstyle.htm,v 1.18.2.2 2002/02/01 05:31:25 raph Exp $ -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -9,11 +12,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-HTML coding and style guidelines for Ghostscript documentation
-</font>
-</table>
+<h1>HTML coding and style guidelines for Ghostscript documentation</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -85,7 +84,7 @@ overview</a>.
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h1><a name="Introduction"></a>Introduction</h1>
+<h2><a name="Introduction"></a>Introduction</h2>
 
 <p>
 The most important intention in casting Ghostscript's documentation into
@@ -120,14 +119,14 @@ Here are those guidelines.
 
 <hr>
 
-<h1><a name="Appearance"></a>Appearance and contents</h1>
+<h2><a name="Appearance"></a>Appearance and contents</h2>
 
 <p>
 What the user sees browsing the documentation, and what a document
 developer or editor sees working with it, are different.  This section is
 about what the user sees.
 
-<h2><a name="Page_structure"></a>Page structure</h2>
+<h3><a name="Page_structure"></a>Page structure</h3>
 
 <p>
 A Ghostscript document in HTML form should consist of
@@ -161,7 +160,12 @@ more usable, do that.  See
 introductory material at the beginning of the visible header, before the
 table of contents.
 
-<h2><a name="Links_outside"></a>Links to outside the Ghostscript documentation</h2>
+<h3><a name="Links_outside"></a>Links to outside the Ghostscript documentation</h3>
+
+<p>
+Links to sites and documents outside the ghostscript distribution
+must carry the <code>class="offsite"</code> attribute and value. This signals special
+formatting to the stylesheet to assist users reading offline.
 
 <p>
 Avoid gratuitous commercial links; for instance, link the title of a book
@@ -178,14 +182,14 @@ reference to <a href="Make.htm#Third-party_libraries">InfoZip
 <b><tt>unzip</tt></b></a> (where many commercial products provide similar
 functions).
 
-<h2><a name="Images"></a>Images and graphics</h2>
+<h3><a name="Images"></a>Images and graphics</h3>
 
 <p>
 Use no graphics or images.  The documents are text-only, so nothing is lost
 when a document is converted into ASCII text.  This is an explicit initial
 design goal of the HTML documentation.
 
-<h2><a name="index.html"></a><b><tt>index.html</tt></b></h2>
+<h3><a name="index.html"></a><b><tt>index.html</tt></b></h3>
 
 <p>
 <b><tt>index.html</tt></b> is not a part of the visible Ghostscript
@@ -199,9 +203,9 @@ make life easier for both webmasters and users.
 
 <hr>
 
-<h1><a name="Large_structure"></a>HTML large structure</h1>
+<h2><a name="Large_structure"></a>HTML large structure</h2>
 
-<h2><a name="HTML_head"></a>HTML <b><tt>&lt;head&gt;</tt></b></h2>
+<h3><a name="HTML_head"></a>HTML <b><tt>&lt;head&gt;</tt></b></h3>
 
 <p>
 Besides the essential HTML structure elements, Ghostscript HTML document's
@@ -215,7 +219,8 @@ Besides the essential HTML structure elements, Ghostscript HTML document's
 comment:
 
 <blockquote>
-<b><tt>&lt;!-- $Id: Htmstyle.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ --&gt;</tt></b>
+<!-- The next line must not contain the literal string $,I,d,:! -->
+<b><tt>&lt;!-- $Id</tt><tt>: </tt></b><b><em>{file name}</em></b><b><tt>.htm $ --&gt;</tt></b>
 </blockquote>
 
 <li>For documents converted from another form, an HTML comment line giving
@@ -226,7 +231,7 @@ the name of the original file before it was edited and converted to HTML:
 </blockquote>
 </ol>
 
-<h2><a name="HTML_body"></a>HTML <b><tt>&lt;body&gt;</tt></b></h2>
+<h3><a name="HTML_body"></a>HTML <b><tt>&lt;body&gt;</tt></b></h3>
 
 <p>
 A Ghostscript HTML document's <b><tt>&lt;body&gt;</tt></b> consists of five
@@ -275,9 +280,9 @@ This document for an example of that structure.
 
 <hr>
 
-<h1><a name="Inner_structure"></a>HTML inner structure</h1>
+<h2><a name="Inner_structure"></a>HTML inner structure</h2>
 
-<h2><a name="Structuring_comments"></a>Structuring comments</h2>
+<h3><a name="Structuring_comments"></a>Structuring comments</h3>
 
 <p>
 Special comment lines within the HTML files mark internally the visible
@@ -298,13 +303,13 @@ for an example of these structuring comments.  The sections they mark are:
 <li>the <b><em>trailer</em></b>
 </ol>
 
-<h2><a name="Headers"></a>Headers: <b><tt>&lt;Hn&gt;</tt></b></h2>
+<h3><a name="Headers"></a>Headers: <b><tt>&lt;Hn&gt;</tt></b></h3>
 
 <p>
 Give a header <b><tt>&lt;Hn&gt;</tt></b> this structure:
 
 <blockquote><b><tt>
-&lt;h1&gt;&lt;a name="Head_anchor"&gt;&lt;/a&gt;Header text&lt;/h1&gt;
+&lt;h2&gt;&lt;a name="Head_anchor"&gt;&lt;/a&gt;Header text&lt;/h2&gt;
 </tt></b></blockquote>
 
 <p>
@@ -317,7 +322,7 @@ Represent every header in the table of contents, linked
 the header.  Of course, the headers are also convenient linkage points for
 references from other documents.
 
-<h2><a name="Anchors"></a>Anchors: <b><tt>&lt;a name="..."&gt;</tt></b></h2>
+<h3><a name="Anchors"></a>Anchors: <b><tt>&lt;a name="..."&gt;</tt></b></h3>
 
 <p>
 Give an anchor a name consisting only of letters, digits, dots
@@ -380,11 +385,11 @@ paragraph, list item, head, etc.) and at its beginning.
 
 <hr>
 
-<h1><a name="Text"></a>The presentation of text</h1>
+<h2><a name="Text"></a>The presentation of text</h2>
 
-<h2><a name="Text_sections"></a>Sections of text</h2>
+<h3><a name="Text_sections"></a>Sections of text</h3>
 
-<h3><a name="Paragraphs"></a>Paragraphs: <b><tt>&lt;p&gt;</tt></b></h3>
+<h4><a name="Paragraphs"></a>Paragraphs: <b><tt>&lt;p&gt;</tt></b></h4>
 
 <p>
 Define unindented paragraphs with <b><tt>&lt;p&gt;</tt></b>, never with
@@ -394,7 +399,7 @@ ragged-right, not right-filled or centered.  Put the paragraph tag
 <a href="#Anchor_placement">followed immediately by an anchor</a>.
 Don't place the anchor before the paragraph tag.
 
-<h3><a name="Blockquote"></a>Indented paragraphs: <b><tt>&lt;blockquote&gt;</tt></b></h3>
+<h4><a name="Blockquote"></a>Indented paragraphs: <b><tt>&lt;blockquote&gt;</tt></b></h4>
 
 <p>
 Define indented paragraphs with <b><tt>&lt;blockquote&gt;</tt></b>.  Avoid
@@ -403,7 +408,7 @@ generally a poor idea to try to make indentation carry too much weight of
 meaning for text, so use indentation simply to separate visual elements for
 easier reading.
 
-<h3><a name="Line_breaks"></a>Explicit line breaks: <b><tt>&lt;br&gt;</tt></b></h3>
+<h4><a name="Line_breaks"></a>Explicit line breaks: <b><tt>&lt;br&gt;</tt></b></h4>
 
 <p>
 Use explicit line breaks <b><tt>&lt;br&gt;</tt></b> sparingly, and never as
@@ -415,7 +420,7 @@ a substitute for paragraph tags.  Do use them in
 <li>table entries, sparingly
 </ul>
 
-<h3><a name="Preformatted_text"></a>Preformatted text: <b><tt>&lt;pre&gt;</tt></b></h3>
+<h4><a name="Preformatted_text"></a>Preformatted text: <b><tt>&lt;pre&gt;</tt></b></h4>
 
 <p>
 Use preformatted text <b><tt>&lt;pre&gt;</tt></b> exclusively for material
@@ -429,7 +434,7 @@ be wider than a typical browser window, reduce the font size:
 <b><tt>&lt;/pre&gt;&lt;/font&gt;</tt></b>
 </blockquote>
 
-<h2><a name="Use_of_fonts"></a>The use of different font faces</h2>
+<h3><a name="Use_of_fonts"></a>The use of different font faces</h3>
 
 <p>
 Do not use named fonts.  Use only standard markup to specify fonts, as
@@ -471,7 +476,7 @@ shown in this table.
 
 <hr>
 
-<h1><a name="Lists"></a>Lists: <b><tt>&lt;ul&gt;, &lt;ol&gt;, &lt;dl&gt;</tt></b></h1>
+<h2><a name="Lists"></a>Lists: <b><tt>&lt;ul&gt;, &lt;ol&gt;, &lt;dl&gt;</tt></b></h2>
 
 <p>
 Don't over-use lists: instead simply use clear wording in running text
@@ -529,9 +534,9 @@ are often much better.
 
 <hr>
 
-<h1><a name="Tables"></a>Tables: <b><tt>&lt;table&gt;</tt></b></h1>
+<h2><a name="Tables"></a>Tables: <b><tt>&lt;table&gt;</tt></b></h2>
 
-<h2><a name="Readability"></a>Readability for the user and the HTML writer</h2>
+<h3><a name="Readability"></a>Readability for the user and the HTML writer</h3>
 
 <p>
 Format tables to be as readable as possible both with a browser and when
@@ -546,7 +551,7 @@ explicit spacing.
 Secondarily, arrange HTML source code for tables to be readable by the
 writer and developer.
 
-<h2><a name="Table_guidelines"></a>Specific guidelines for coding tables</h2>
+<h3><a name="Table_guidelines"></a>Specific guidelines for coding tables</h3>
 
 <ul>
 <li>Large tables have heads with the same background color as the page's
@@ -582,12 +587,12 @@ sparingly.  Be consistent with the existing tables.
 empty cell as a placeholder.
 </ul>
 
-<h2><a name="Typical_table"></a>HTML code for typical tables</h2>
+<h3><a name="Typical_table"></a>HTML code for typical tables</h3>
 
 <p>
 The HTML source code for a typical large table should look like this:
 
-<blockquote><font size="-1"><b>
+<blockquote>
 <pre>&lt;table cellpadding=0 cellspacing=0&gt;
 &lt;tr&gt;&lt;th colspan=5 bgcolor="#CCCC00"&gt;&lt;hr&gt;&lt;font size="+1"&gt;Large&nbsp;table&lt;/font&gt;&lt;hr&gt;
 &lt;tr&gt;    &lt;th align=left&gt;...
@@ -602,12 +607,12 @@ The HTML source code for a typical large table should look like this:
         &lt;td&gt;...
 ...
 &lt;/table&gt;
-</pre></b></font></blockquote>
+</pre></blockquote>
 
 <p>
 The HTML source code for a typical small table should look like this:
 
-<blockquote><font size="-1"><b>
+<blockquote>
 <pre>&lt;table cellpadding=0 cellspacing=0&gt;
 &lt;tr&gt;    &lt;td&gt;...
         &lt;td&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;
@@ -617,11 +622,11 @@ The HTML source code for a typical small table should look like this:
         &lt;td&gt;...
 ...
 &lt;/table&gt;
-</pre></b></font></blockquote>
+</pre></blockquote>
 
 <hr>
 
-<h1><a name="Unused_tags"></a>Tags not used</h1>
+<h2><a name="Unused_tags"></a>Tags not used</h2>
 
 <p>
 Don't use optional tags (ones not required by the HTML standard).  These
@@ -632,9 +637,9 @@ include <b><tt>&lt;/dd&gt;</tt></b>, <b><tt>&lt;/dt&gt;</tt></b>,
 
 <hr>
 
-<h1><a name="New_document"></a>Creating a new document</h1>
+<h2><a name="New_document"></a>Creating a new document</h2>
 
-<h2><a name="File_name"></a>Name the new document in 8+3 format</h2>
+<h3><a name="File_name"></a>Name the new document in 8+3 format</h3>
 
 <p>
 If you create a new Ghostscript HTML document, choose for it a name in 8+3
@@ -654,7 +659,7 @@ not case, to distinguish between names: that is, don't create a new file
 whose name differs from an existing one only by the difference between
 upper and lower case, because some platforms can't store two such files.
 
-<h2><a name="Plagiarize"></a>Use an existing document as a model</h2>
+<h3><a name="Plagiarize"></a>Use an existing document as a model</h3>
 
 <p>
 To create an entirely new Ghostscript document, plagiarize this one for the
@@ -684,7 +689,7 @@ and
 <p>
 You now have a template document ready for new contents.
 
-<h2><a name="Readme_material"></a>Write new references to go in <b><tt>Readme.htm</tt></b></h2>
+<h3><a name="Readme_material"></a>Write new references to go in <b><tt>Readme.htm</tt></b></h3>
 
 <p>
 Write material to go in <a href="Readme.htm"><b><tt>Readme.htm</tt></b></a>
@@ -697,7 +702,7 @@ that describes the new document, and links to it from two sections:
 <a href="Readme.htm#Ordered_roadmap">arranged by file name</a>.
 </ul>
 
-<h2><a name="New_doc_other"></a>Other considerations</h2>
+<h3><a name="New_doc_other"></a>Other considerations</h3>
 
 <p>
 Follow the other guidelines here, including which elements of the
@@ -716,7 +721,7 @@ other structures built along the guidelines in this document.
 
 <hr>
 
-<h1><a name="Miscellany"></a>Miscellany</h1>
+<h2><a name="Miscellany"></a>Miscellany</h2>
 
 <p>
 Use <b><tt>&lt;&gt;</tt></b> to bracket links to visible email addresses
@@ -752,19 +757,18 @@ This is intended for readability both in a browser and as plain text.
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights
+reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

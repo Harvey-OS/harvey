@@ -1,74 +1,54 @@
-/* Copyright (C) 1994-1996, Russell Lang.  All rights reserved.
-   Portions Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
-
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
+/* Copyright (C) 1994-2001, Ghostgum Software Pty Ltd.  All rights reserved.
+  Portions Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
  */
 
 
-/*$Id: gsdll.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsdll.h,v 1.3 2001/03/13 07:09:28 ghostgum Exp $ */
+
+/* This interface is deprecated and will be removed in future
+ * ghostscript releases.  Use the interface described in
+ * API.htm and iapi.h.
+ */
+
+#include "iapi.h"
 
 #ifndef gsdll_INCLUDED
 #  define gsdll_INCLUDED
   
-#ifdef __MACINTOSH__
 
+#ifdef __MACINTOSH__
 #define HWND char *
-#define GSFAR 
 #include <QDOffscreen.h>
 #pragma export on
-
-#endif
-
-#ifndef GSDLLEXPORT
-#define GSDLLEXPORT
 #endif
 
 #ifdef __WINDOWS__
 #define _Windows
 #endif
 
-/* type of exported functions */
-#ifdef _Windows
-#ifdef _WATCOM_
-#define GSDLLAPI GSDLLEXPORT
-#else
-#define GSDLLAPI CALLBACK GSDLLEXPORT
-#endif
-#else
-#ifdef __IBMC__
-#define GSDLLAPI _System
-#else
-#define GSDLLAPI
-#endif
-#endif
-
-#ifdef _Windows
-#define GSDLLCALLLINK
-#define GSFAR FAR
-#else
 #ifdef __IBMC__
 #define GSDLLCALLLINK _System
 #else
 #define GSDLLCALLLINK
 #endif
-#define GSFAR
-#endif
 
 /* global pointer to callback */
-typedef int (GSFAR * GSDLLCALLLINK GSDLL_CALLBACK) (int, char GSFAR *, unsigned long);
+typedef int (* GSDLLCALLLINK GSDLL_CALLBACK) (int, char *, unsigned long);
 extern GSDLL_CALLBACK pgsdll_callback;
 
 /* message values for callback */
@@ -99,23 +79,24 @@ extern GSDLL_CALLBACK pgsdll_callback;
 
 /* DLL exported  functions */
 /* for load time dynamic linking */
-int GSDLLAPI gsdll_revision(char GSFAR * GSFAR * product, char GSFAR * GSFAR * copyright, long GSFAR * gs_revision, long GSFAR * gs_revisiondate);
-int GSDLLAPI gsdll_init(GSDLL_CALLBACK callback, HWND hwnd, int argc, char GSFAR * GSFAR * argv);
-int GSDLLAPI gsdll_execute_begin(void);
-int GSDLLAPI gsdll_execute_cont(const char GSFAR * str, int len);
-int GSDLLAPI gsdll_execute_end(void);
-int GSDLLAPI gsdll_exit(void);
-int GSDLLAPI gsdll_lock_device(unsigned char *device, int flag);
+GSDLLEXPORT int GSDLLAPI gsdll_revision(const char * * product, const char * * copyright, long * gs_revision, long * gs_revisiondate);
+GSDLLEXPORT int GSDLLAPI gsdll_init(GSDLL_CALLBACK callback, HWND hwnd, int argc, char * * argv);
+GSDLLEXPORT int GSDLLAPI gsdll_execute_begin(void);
+GSDLLEXPORT int GSDLLAPI gsdll_execute_cont(const char * str, int len);
+GSDLLEXPORT int GSDLLAPI gsdll_execute_end(void);
+GSDLLEXPORT int GSDLLAPI gsdll_exit(void);
+GSDLLEXPORT int GSDLLAPI gsdll_lock_device(unsigned char *device, int flag);
 
 /* Function pointer typedefs */
 /* for run time dynamic linking */
-typedef int (GSDLLAPI * PFN_gsdll_revision) (char GSFAR * GSFAR *, char GSFAR * GSFAR *, long GSFAR *, long GSFAR *);
-typedef int (GSDLLAPI * PFN_gsdll_init) (GSDLL_CALLBACK, HWND, int argc, char GSFAR * GSFAR * argv);
-typedef int (GSDLLAPI * PFN_gsdll_execute_begin) (void);
-typedef int (GSDLLAPI * PFN_gsdll_execute_cont) (const char GSFAR * str, int len);
-typedef int (GSDLLAPI * PFN_gsdll_execute_end) (void);
-typedef int (GSDLLAPI * PFN_gsdll_exit) (void);
-typedef int (GSDLLAPI * PFN_gsdll_lock_device) (unsigned char GSFAR *, int);
+typedef int (GSDLLAPIPTR PFN_gsdll_revision)(const char ** product, 
+    const char ** copyright, long * revision, long * revisiondate);
+typedef int (GSDLLAPIPTR PFN_gsdll_init) (GSDLL_CALLBACK, HWND, int argc, char * * argv);
+typedef int (GSDLLAPIPTR PFN_gsdll_execute_begin) (void);
+typedef int (GSDLLAPIPTR PFN_gsdll_execute_cont) (const char * str, int len);
+typedef int (GSDLLAPIPTR PFN_gsdll_execute_end) (void);
+typedef int (GSDLLAPIPTR PFN_gsdll_exit) (void);
+typedef int (GSDLLAPIPTR PFN_gsdll_lock_device) (unsigned char *, int);
 
 #ifdef __MACINTOSH__
 #pragma export off

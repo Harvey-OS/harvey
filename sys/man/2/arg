@@ -62,7 +62,9 @@ and, if that returns, calls
 A typical value for
 .I code
 is 
-.BR usage() .
+.BR usage() ,
+as in
+.BR EARGF(usage()) .
 .PP
 After
 .IR ARGBEGIN ,

@@ -67,8 +67,8 @@ extern int	connectsac(void);
 extern void	configpaq(Method*);
 extern int	connectpaq(void);
 
-extern void	configrc(Method*);
-extern int	connectrc(void);
+extern void	configembed(Method*);
+extern int	connectembed(void);
 
 /* hack for passing authentication address */
 extern char	*authaddr;

@@ -1,22 +1,22 @@
 /* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsropt.h,v 1.2 2000/03/10 04:06:15 lpd Exp $ */
+/*$Id: gsropt.h,v 1.4 2001/04/05 23:21:15 raph Exp $ */
 /* RasterOp / transparency type definitions */
 
 #ifndef gsropt_INCLUDED
@@ -150,10 +150,15 @@ typedef enum {
  * and render algorithm all packed into a single integer.
  * In principle, we should use a structure, but most C implementations
  * implement structure values very inefficiently.
+ *
+ * In addition, we define a "pdf14" flag which indicates that PDF
+ * transparency is in effect. This doesn't change rendering in any way,
+ * but does force the lop to be considered non-idempotent.
  */
 #define lop_rop(lop) ((gs_rop3_t)((lop) & 0xff))	/* must be low-order bits */
 #define lop_S_transparent 0x100
 #define lop_T_transparent 0x200
+#define lop_pdf14 0x4000
 #define lop_ral_shift 10
 #define lop_ral_mask 0xf
 typedef uint gs_logical_operation_t;
@@ -179,7 +184,7 @@ typedef uint gs_logical_operation_t;
 #define lop_no_S_is_T(lop)\
   (((lop) & (lop_T_transparent | (rop3_1 - rop3_S))) == (rop3_T & ~rop3_S))
 /* Test whether a logical operation is idempotent. */
-#define lop_is_idempotent(lop) rop3_is_idempotent(lop)
+#define lop_is_idempotent(lop) (rop3_is_idempotent(lop) && !(lop & lop_pdf14))
 
 /*
  * Define the logical operation versions of some RasterOp transformations.

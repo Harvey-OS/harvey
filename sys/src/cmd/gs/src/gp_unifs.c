@@ -1,31 +1,34 @@
-/* Copyright (C) 1993, 1995, 1996, 1998 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gp_unifs.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gp_unifs.c,v 1.6 2001/07/15 13:57:50 lpd Exp $ */
 /* "Unix-like" file system platform routines for Ghostscript */
 #include "memory_.h"
 #include "string_.h"
 #include "gx.h"
 #include "gp.h"
+#include "gpmisc.h"
 #include "gsstruct.h"
 #include "gsutil.h"		/* for string_match */
 #include "stat_.h"
 #include "dirent_.h"
+#include "unistd_.h"
+#include <stdlib.h>             /* for mkstemp/mktemp */
 #include <sys/param.h>		/* for MAXPATHLEN */
 
 /* Some systems (Interactive for example) don't define MAXPATHLEN,
@@ -55,22 +58,44 @@ const char gp_current_directory_name[] = ".";
 FILE *
 gp_open_scratch_file(const char *prefix, char fname[gp_file_name_sizeof],
 		     const char *mode)
-{				/* The -8 is for XXXXXX plus a possible final / and -. */
-    int len = gp_file_name_sizeof - strlen(prefix) - 8;
+{	/* The -8 is for XXXXXX plus a possible final / and -. */
+    int prefix_length = strlen(prefix);
+    int len = gp_file_name_sizeof - prefix_length - 8;
 
-    if (gp_getenv("TEMP", fname, &len) != 0)
+    if (gp_file_name_is_absolute(prefix, prefix_length))
+	*fname = 0;
+    else if (gp_gettmpdir(fname, &len) != 0)
 	strcpy(fname, "/tmp/");
     else {
 	if (strlen(fname) != 0 && fname[strlen(fname) - 1] != '/')
 	    strcat(fname, "/");
     }
+    if (strlen(fname) + prefix_length + 8 >= gp_file_name_sizeof)
+	return 0;		/* file name too long */
     strcat(fname, prefix);
     /* Prevent trailing X's in path from being converted by mktemp. */
     if (*fname != 0 && fname[strlen(fname) - 1] == 'X')
 	strcat(fname, "-");
     strcat(fname, "XXXXXX");
+
+#ifdef HAVE_MKSTEMP
+    {
+	    int file;
+	    FILE *fp;
+
+	    file = mkstemp(fname);
+	    if (file < -1)
+		    return NULL;
+	    fp = fdopen(file, mode);
+	    if (fp == NULL)
+		    close(file);
+		    
+	    return fp;
+    }
+#else
     mktemp(fname);
-    return fopen(fname, mode);
+    return gp_fopentemp(fname, mode);
+#endif
 }
 
 /* Open a file with the given name, as a stream of uninterpreted bytes. */
@@ -128,10 +153,13 @@ wmatch(const byte * str, uint len, const byte * pstr, uint plen,
     bool match = string_match(str, len, pstr, plen, psmp);
 
     if (gs_debug_c('e')) {
+	int i;
 	dlputs("[e]string_match(\"");
-	fwrite(str, 1, len, dstderr);
+	for (i=0; i<len; i++)
+	    errprintf("%c", str[i]);
 	dputs("\", \"");
-	fwrite(pstr, 1, plen, dstderr);
+	for (i=0; i<plen; i++)
+	    errprintf("%c", pstr[i]);
 	dprintf1("\") = %s\n", (match ? "TRUE" : "false"));
     }
     return match;

@@ -60,7 +60,7 @@ dom=myuniversity.edu
 #  each dnsdomain is a domain to search through when resolving
 #  dnsnames
 #
-ipnet=mynetwork ip=10.0.0.0 ipmask=255.0.0.0 ipsubmask=255.255.255.0
+ipnet=mynetwork ip=10.0.0.0 ipmask=255.0.0.0
 	fs=myfileserver.myuniversity.edu
 	auth=myauthserver.myuniversity.edu
 	dns=10.0.0.1

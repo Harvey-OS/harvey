@@ -20,7 +20,7 @@ configip(void)
 	Waitmsg *w;
 	char **arg;
 	char buf[32];
-	
+
 	fmtinstall('I', eipfmt);
 	fmtinstall('M', eipfmt);
 	fmtinstall('E', eipfmt);
@@ -134,7 +134,7 @@ void
 configil(Method*)
 {
 	configip();
-	setauthaddr("il", 566);
+	setauthaddr("tcp", 567);
 }
 
 int

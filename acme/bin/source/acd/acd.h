@@ -13,7 +13,7 @@ typedef struct Window Window;
 
 enum
 {
-	STACK		= 8192,
+	STACK		= 16384,
 	EVENTSIZE	= 256,
 	NEVENT		= 5,
 };
@@ -110,7 +110,7 @@ struct Toc {
 	char *title;
 };
 
-extern int msfconv(va_list*, Fconv*);
+extern int msfconv(Fmt*);
 
 #pragma	varargck	argpos	error	1
 #pragma	varargck	argpos	ctlprint	2
@@ -154,7 +154,7 @@ void cdstatusproc(void*);	/* Drive* */
 
 extern int debug;
 
-#define DPRINT if(debug)threadprint
+#define DPRINT if(debug)fprint
 void acmeevent(Drive*, Window*, Event*);
 
 int playtrack(Drive*, int, int);

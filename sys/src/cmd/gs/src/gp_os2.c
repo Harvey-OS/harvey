@@ -1,22 +1,22 @@
-/* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gp_os2.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gp_os2.c,v 1.10.2.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Common platform-specific routines for OS/2 and MS-DOS */
 /* compiled with GCC/EMX */
 
@@ -51,6 +51,7 @@
 #include "gsmemory.h"
 #include "gsstruct.h"
 #include "gp.h"
+#include "gpmisc.h"
 #include "gsutil.h"
 #include "stdlib.h"		/* need _osmode, exit */
 #include "time_.h"
@@ -109,7 +110,7 @@ gp_get_realtime(long *pdt)
 
     if (gettimeofday(&tp, &tzp) == -1) {
 	lprintf("Ghostscript: gettimeofday failed!\n");
-	gs_exit(1);
+	tp.tv_sec = tp.tv_usec = 0;
     }
     /* tp.tv_sec is #secs since Jan 1, 1970 */
     pdt[0] = tp.tv_sec;
@@ -153,7 +154,7 @@ gp_file_is_console(FILE * f)
 	return ((regs.h.dl & 0x80) != 0 && (regs.h.dl & 3) != 0);
     }
 #endif
-    if ((f == stdin) || (f == stdout) || (f == stderr))
+    if ((f == gs_stdin) || (f == gs_stdout) || (f == gs_stderr))
 	return true;
     return false;
 }
@@ -184,7 +185,8 @@ const char gp_fmode_wb[] = "wb";
 /* i.e. is absolute (not directory- or device-relative). */
 bool
 gp_file_name_is_absolute(const char *fname, uint len)
-{				/* A file name is absolute if it contains a drive specification */
+{			
+    /* A file name is absolute if it contains a drive specification */
     /* (second character is a :) or if it start with 0 or more .s */
     /* followed by a / or \. */
     if (len >= 2 && fname[1] == ':')
@@ -194,11 +196,38 @@ gp_file_name_is_absolute(const char *fname, uint len)
     return (len && (*fname == '/' || *fname == '\\'));
 }
 
+/* Answer whether the file_name references the directory	*/
+/* containing the specified path (parent). 			*/
+bool
+gp_file_name_references_parent(const char *fname, unsigned len)
+{
+    int i = 0, last_sep_pos = -1;
+
+    /* A file name references its parent directory if it starts */
+    /* with ../ or ..\  or if one of these strings follows / or \ */
+    while (i < len) {
+	if (fname[i] == '/' || fname[i] == '\\') {
+	    last_sep_pos = i++;
+	    continue;
+	}
+	if (fname[i++] != '.')
+	    continue;
+        if (i > last_sep_pos + 2 || (i < len && fname[i] != '.'))
+	    continue;
+	i++;
+	/* have separator followed by .. */
+	if (i < len && (fname[i] == '/' || fname[i++] == '\\'))
+	    return true;
+    }
+    return false;
+}
+
+
 /* Answer the string to be used for combining a directory/device prefix */
-/* with a base file name.  The file name is known to not be absolute. */
+/* with a base file name. The prefix directory/device is examined to	*/
+/* determine if a separator is needed and may return an empty string	*/
 const char *
-gp_file_name_concat_string(const char *prefix, uint plen,
-			   const char *fname, uint len)
+gp_file_name_concat_string(const char *prefix, uint plen)
 {
     if (plen > 0)
 	switch (prefix[plen - 1]) {
@@ -207,7 +236,7 @@ gp_file_name_concat_string(const char *prefix, uint plen,
 	    case '\\':
 		return "";
 	};
-    return "\\";
+    return "/";
 }
 
 
@@ -377,10 +406,9 @@ gp_init(void)
 #ifdef __EMX__
     _emxload_env("GS_LOAD");
 #endif
+
     /* Set up the handler for numeric exceptions. */
     signal(SIGFPE, handle_FPE);
-
-    gp_init_console();
 }
 
 
@@ -393,16 +421,10 @@ handle_FPE(int sig)
     exit(1);
 }
 
-extern int gs_exit_status;
-
 /* Do platform-dependent cleanup. */
 void
 gp_exit(int exit_status, int code)
 {
-#ifndef __DLL__
-    if (exit_status && (_osmode == OS2_MODE))
-	DosSleep(2000);
-#endif
 #if defined(__DLL__) && defined(__EMX__)
     if (environ != fake_environ) {
 	free(environ);
@@ -415,13 +437,6 @@ gp_exit(int exit_status, int code)
 void
 gp_do_exit(int exit_status)
 {
-#if defined(__DLL__)
-    /* Use longjmp since exit would terminate caller */
-    /* setjmp code will check gs_exit_status */
-    longjmp(gsdll_env, gs_exit_status);
-#else
-    exit(exit_status);
-#endif
 }
 
 /* ------ Printer accessing ------ */
@@ -581,9 +596,9 @@ pm_find_queue(char *queue_name, char *driver_name)
 		    } else {
 			/* list queue details */
 			if (prq->fsType & PRQ3_TYPE_APPDEFAULT)
-			    fprintf(stdout, "  %s  (DEFAULT)\n", prq->pszName);
+			    eprintf1("  %s  (DEFAULT)\n", prq->pszName);
 			else
-			    fprintf(stdout, "  %s\n", prq->pszName);
+			    eprintf1("  %s\n", prq->pszName);
 		    }
 		    prq++;
 		}		/*endfor cReturned */
@@ -594,7 +609,7 @@ pm_find_queue(char *queue_name, char *driver_name)
     /* end if Q level given */ 
     else {
 	/* If we are here we had a bad error code. Print it and some other info. */
-	fprintf(stdout, "SplEnumQueue Error=%ld, Total=%ld, Returned=%ld, Needed=%ld\n",
+	eprintf4("SplEnumQueue Error=%ld, Total=%ld, Returned=%ld, Needed=%ld\n",
 		splerr, cTotal, cReturned, cbNeeded);
     }
     if (splerr)
@@ -651,7 +666,7 @@ pm_spool(char *filename, const char *queue)
     }
     if (pm_find_queue(queue_name, driver_name)) {
 	/* error, list valid queue names */
-	fprintf(stdout, "Invalid queue name.  Use one of:\n");
+	eprintf("Invalid queue name.  Use one of:\n");
 	pm_find_queue(NULL, NULL);
 	return 1;
     }
@@ -660,12 +675,12 @@ pm_spool(char *filename, const char *queue)
 
 
     if ((buffer = malloc(PRINT_BUF_SIZE)) == (char *)NULL) {
-	fprintf(stdout, "Out of memory in pm_spool\n");
+	eprintf("Out of memory in pm_spool\n");
 	return 1;
     }
     if ((f = fopen(filename, "rb")) == (FILE *) NULL) {
 	free(buffer);
-	fprintf(stdout, "Can't open temporary file %s\n", filename);
+	eprintf1("Can't open temporary file %s\n", filename);
 	return 1;
     }
     /* Allocate memory for pdata */
@@ -684,7 +699,7 @@ pm_spool(char *filename, const char *queue)
 
 	hspl = SplQmOpen(pszToken, 4L, (PQMOPENDATA) pdata);
 	if (hspl == SPL_ERROR) {
-	    fprintf(stdout, "SplQmOpen failed.\n");
+	    eprintf("SplQmOpen failed.\n");
 	    DosFreeMem((PVOID) pdata);
 	    free(buffer);
 	    fclose(f);
@@ -692,7 +707,7 @@ pm_spool(char *filename, const char *queue)
 	}
 	rc = SplQmStartDoc(hspl, "Ghostscript");
 	if (!rc) {
-	    fprintf(stdout, "SplQmStartDoc failed.\n");
+	    eprintf("SplQmStartDoc failed.\n");
 	    DosFreeMem((PVOID) pdata);
 	    free(buffer);
 	    fclose(f);
@@ -702,19 +717,19 @@ pm_spool(char *filename, const char *queue)
 	while (rc && (count = fread(buffer, 1, PRINT_BUF_SIZE, f)) != 0) {
 	    rc = SplQmWrite(hspl, count, buffer);
 	    if (!rc)
-		fprintf(stdout, "SplQmWrite failed.\n");
+		eprintf("SplQmWrite failed.\n");
 	}
 	free(buffer);
 	fclose(f);
 
 	if (!rc) {
-	    fprintf(stdout, "Aborting Spooling.\n");
+	    eprintf("Aborting Spooling.\n");
 	    SplQmAbort(hspl);
 	} else {
 	    SplQmEndDoc(hspl);
 	    rc = SplQmClose(hspl);
 	    if (!rc)
-		fprintf(stdout, "SplQmClose failed.\n");
+		eprintf("SplQmClose failed.\n");
 	}
     } else
 	rc = 0;			/* no memory */
@@ -730,21 +745,32 @@ gp_open_scratch_file(const char *prefix, char fname[gp_file_name_sizeof],
 		     const char *mode)
 {
 #ifdef __IBMC__
-    char *temp = getenv("TEMP");
+    char *temp = 0;
     char *tname;
 
+    if (!gp_file_name_is_absolute(prefix, prefix_length)) {
+	temp = getenv("TMPDIR");
+	if (temp == 0)
+	    temp = getenv("TEMP");
+    }
     *fname = 0;
     tname = _tempnam(temp, (char *)prefix);
     if (tname) {
-/****** SHOULD DO A LENGTH CHECK ******/
+	if (strlen(tname) > gp_file_name_sizeof - 1) {
+	    free(tname);
+	    return 0;		/* file name too long */
+	}
 	strcpy(fname, tname);
 	free(tname);
     }
 #else
     /* The -7 is for XXXXXX plus a possible final \. */
-    int len = gp_file_name_sizeof - strlen(prefix) - 7;
+    int prefix_length = strlen(prefix);
+    int len = gp_file_name_sizeof - prefix_length - 7;
 
-    if (gp_getenv("TEMP", fname, &len) != 0)
+    if (gp_file_name_is_absolute(prefix, prefix_length) ||
+	gp_gettmpdir(fname, &len) != 0
+	)
 	*fname = 0;
     else {
 	char last = '\\';
@@ -754,18 +780,20 @@ gp_open_scratch_file(const char *prefix, char fname[gp_file_name_sizeof],
 	for (temp = fname; *temp; temp++)
 	    *temp = last = tolower(*temp);
 	switch (last) {
-	    default:
-		strcat(fname, "\\");
-	    case ':':
-	    case '\\':
-		;
+	default:
+	    strcat(fname, "\\");
+	case ':':
+	case '\\':
+	    ;
 	}
     }
+    if (strlen(fname) + prefix_length + 7 >= gp_file_name_sizeof)
+	return 0;		/* file name too long */
     strcat(fname, prefix);
     strcat(fname, "XXXXXX");
     mktemp(fname);
 #endif
-    return fopen(fname, mode);
+    return gp_fopentemp(fname, mode);
 }
 
 /* Open a file with the given name, as a stream of uninterpreted bytes. */
@@ -775,186 +803,3 @@ gp_fopen(const char *fname, const char *mode)
     return fopen(fname, mode);
 }
 
-#ifdef __DLL__
-
-/* The DLL version must not be allowed direct access to stdin and stdout */
-/* Instead these are redirected to the gsdll_callback */
-#include "gsdll.h"
-#include <stdarg.h>
-
-/* for redirecting stdin/out/err */
-#include "stream.h"
-#include "gxiodev.h"		/* must come after stream.h */
-
-
-/* ====== Substitute for stdio ====== */
-
-/* this code has been derived from gp_mswin.c */
-
-/* Forward references */
-private stream_proc_process(pm_std_read_process);
-private stream_proc_process(pm_std_write_process);
-private stream_proc_available(pm_std_available);
-
-/* Use a pseudo IODevice to get pm_stdio_init called at the right time. */
-/* This is bad architecture; we'll fix it later. */
-private iodev_proc_init(pm_stdio_init);
-const gx_io_device gs_iodev_wstdio = {
-    /* The name is null to keep this from showing up as a resource. */
-    0, "Special",
-    {pm_stdio_init, iodev_no_open_device,
-     iodev_no_open_file, iodev_no_fopen, iodev_no_fclose,
-     iodev_no_delete_file, iodev_no_rename_file,
-     iodev_no_file_status, iodev_no_enumerate_files
-    }
-};
-
-/* Discard the contents of the buffer when reading. */
-void
-pm_std_read_reset(stream * s)
-{
-    s_std_read_reset(s);
-    s->end_status = 0;
-}
-
-/* Define alternate 'open' routines for our stdin/out/err streams. */
-
-extern const gx_io_device gs_iodev_stdin;
-private int
-pm_stdin_open(gx_io_device * iodev, const char *access, stream ** ps,
-	      gs_memory_t * mem)
-{
-    int code = gs_iodev_stdin.procs.open_device(iodev, access, ps, mem);
-    stream *s = *ps;
-
-    if (code != 1)
-	return code;
-    s->procs.reset = pm_std_read_reset;
-    s->procs.process = pm_std_read_process;
-    s->procs.available = pm_std_available;
-    s->file = NULL;
-    return 0;
-}
-
-extern const gx_io_device gs_iodev_stdout;
-private int
-pm_stdout_open(gx_io_device * iodev, const char *access, stream ** ps,
-	       gs_memory_t * mem)
-{
-    int code = gs_iodev_stdout.procs.open_device(iodev, access, ps, mem);
-    stream *s = *ps;
-
-    if (code != 1)
-	return code;
-    s->procs.process = pm_std_write_process;
-    s->procs.available = pm_std_available;
-    s->file = NULL;
-    return 0;
-}
-
-extern const gx_io_device gs_iodev_stderr;
-private int
-pm_stderr_open(gx_io_device * iodev, const char *access, stream ** ps,
-	       gs_memory_t * mem)
-{
-    int code = gs_iodev_stderr.procs.open_device(iodev, access, ps, mem);
-    stream *s = *ps;
-
-    if (code != 1)
-	return code;
-    s->procs.process = pm_std_write_process;
-    s->procs.available = pm_std_available;
-    s->file = NULL;
-    return 0;
-}
-
-/* Patch stdin/out/err to use our windows. */
-private int
-pm_stdio_init(gx_io_device * iodev, gs_memory_t * mem)
-{
-    /* If stdxxx is the console, replace the 'open' routines, */
-    /* which haven't gotten called yet. */
-
-    if (gp_file_is_console(gs_stdin))
-	gs_findiodevice((const byte *)"%stdin", 6)->procs.open_device =
-	    pm_stdin_open;
-
-    if (gp_file_is_console(gs_stdout))
-	gs_findiodevice((const byte *)"%stdout", 7)->procs.open_device =
-	    pm_stdout_open;
-
-    if (gp_file_is_console(gs_stderr))
-	gs_findiodevice((const byte *)"%stderr", 7)->procs.open_device =
-	    pm_stderr_open;
-
-    return 0;
-}
-
-
-/* We should really use a private buffer for line reading, */
-/* because we can't predict the size of the supplied input area.... */
-private int
-pm_std_read_process(stream_state * st, stream_cursor_read * ignore_pr,
-		    stream_cursor_write * pw, bool last)
-{
-    int count = pw->limit - pw->ptr;
-
-    if (count == 0)		/* empty buffer */
-	return 1;
-
-    /* callback to get more input */
-    count = (*pgsdll_callback) (GSDLL_STDIN, pw->ptr + 1, count);
-    if (count == 0) {
-	/* EOF */
-	/* what should we do? */
-	return EOFC;
-    }
-    pw->ptr += count;
-    return 1;
-}
-
-private int
-pm_std_available(register stream * s, long *pl)
-{
-    *pl = -1;		// EOF, since we can't do it
-    return 0;		// OK
-}
-
-
-private int
-pm_std_write_process(stream_state * st, stream_cursor_read * pr,
-		     stream_cursor_write * ignore_pw, bool last)
-{
-    uint count = pr->limit - pr->ptr;
-
-    (*pgsdll_callback) (GSDLL_STDOUT, (char *)(pr->ptr + 1), count);
-    pr->ptr = pr->limit;
-    return 0;
-}
-
-/* This is used instead of the stdio version. */
-/* The declaration must be identical to that in <stdio.h>. */
-#ifdef __EMX__
-int
-fprintf(FILE * file, __const__ char *fmt,...)
-#else
-int
-fprintf(FILE * file, const char *fmt,...)
-#endif
-{
-    int count;
-    va_list args;
-
-    va_start(args, fmt);
-    if (gp_file_is_console(file)) {
-	char buf[1024];
-
-	count = vsprintf(buf, fmt, args);
-	(*pgsdll_callback) (GSDLL_STDOUT, buf, count);
-    } else {
-	count = vfprintf(file, fmt, args);
-    }
-    va_end(args);
-    return count;
-}
-#endif /* __DLL__ */

@@ -262,6 +262,7 @@ dcf0:	DCBF	(R5)
 	ADD	$CACHELINESZ, R5
 	BDNZ	dcf0
 dcf1:
+	SYNC
 	RETURN
 
 TEXT	tas(SB), $0

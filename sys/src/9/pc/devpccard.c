@@ -214,7 +214,7 @@ typedef struct {
 } Pcminfo;
 
 typedef struct {
-	QLock;
+	Lock;
 	Variant		*variant;		/* Which CardBus chipset */
 	Pcidev		*pci;			/* The bridge itself */
 	ulong		*regs;			/* Cardbus registers */
@@ -230,7 +230,7 @@ typedef struct {
 	int			special;		/* card is allocated to a driver */
 
 	int			refs;			/* Number of refs to slot */
-	QLock		refslock;		/* inc/dev ref lock */
+	Lock		refslock;		/* inc/dev ref lock */
 } Cardbus;
 
 static int managerstarted;
@@ -400,9 +400,9 @@ engine(Cardbus *cb, int message)
 static void
 qengine(Cardbus *cb, int message)
 {
-	qlock(cb);
+	lock(cb);
 	engine(cb, message);
-	qunlock(cb);
+	unlock(cb);
 }
 
 typedef struct {
@@ -971,13 +971,13 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 	for (i = 0; i != nslots; i++) {
 		cb = &cbslots[i];
 
-		qlock(cb);
+		lock(cb);
 		if (cb->state == SlotConfigured &&
 		    cb->type == PC16 && 
 		    !cb->special &&
 		    strstr(cb->linfo.verstr, idstr)) 
 			break;
-		qunlock(cb);
+		unlock(cb);
 	}
 
 	if (i == nslots) {
@@ -1005,7 +1005,7 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 			continue;
 		index = strtol(&isa->opt[i][6], &cp, 0);
 		if(cp == &isa->opt[i][6] || index >= pi->nctab) {
-			qunlock(cb);
+			unlock(cb);
 			print("#Y%d: Cannot find index %d in conf table\n", 
 				 (int)(cb - cbslots), index);
 			return -1;
@@ -1050,12 +1050,12 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 	}
 
 	if(ct == et || ct->nio == 0) {
-		qunlock(cb);
+		unlock(cb);
 		print("#Y%d: No configuration?\n", (int)(cb - cbslots));
 		return -1;
 	}
 	if(isa->port == 0 && ct->io[0].start == 0) {
-		qunlock(cb);
+		unlock(cb);
 		print("#Y%d: No part or start address\n", (int)(cb - cbslots));
 		return -1;
 	}
@@ -1122,9 +1122,9 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 
 	pi->port = isa->port;
 	pi->irq = isa->irq;
-	qunlock(cb);
+	unlock(cb);
 
-	print("#Y%d: %s irq %ld, port %lX\n", (int)(cb - cbslots), pi->verstr, isa->irq, isa->port);
+//	print("#Y%d: %s irq %ld, port %lX\n", (int)(cb - cbslots), pi->verstr, isa->irq, isa->port);
 	return (int)(cb - cbslots);
 }
 
@@ -1261,17 +1261,17 @@ pccardstat(Chan *c, uchar *db, int n)
 static void
 increfp(Cardbus *cb)
 {
-	qlock(&cb->refslock);
+	lock(&cb->refslock);
 	cb->refs++;
-	qunlock(&cb->refslock);
+	unlock(&cb->refslock);
 }
 
 static void
 decrefp(Cardbus *cb)
 {
-	qlock(&cb->refslock);
+	lock(&cb->refslock);
 	cb->refs--;
-	qunlock(&cb->refslock);
+	unlock(&cb->refslock);
 }
 
 static Chan*
@@ -1312,7 +1312,7 @@ pccardread(Chan *c, void *a, long n, vlong offset)
 		e = p + READSTR;
 	
 		cb = &cbslots[SLOTNO(c)];
-		qlock(cb);
+		lock(cb);
 		p = seprint(p, e, "slot %ld: %s; ", cb - cbslots, states[cb->state]);
 
 		switch (cb->type) {
@@ -1366,7 +1366,7 @@ pccardread(Chan *c, void *a, long n, vlong offset)
 			}
 			break;
 		}
-		qunlock(cb);
+		unlock(cb);
 			
 		n = readstr(offset, a, n, buf);
 		free(buf);

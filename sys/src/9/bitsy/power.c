@@ -14,6 +14,7 @@
  * it's only used by routines in l.s
  */
 ulong	power_state[200/4];
+ulong	resumeaddr[1];
 Rendez	powerr;
 ulong	powerflag = 0;	/* set to start power-off sequence */
 
@@ -163,11 +164,15 @@ powerdown(void *)
 void
 deepsleep(void) {
 	static int power_pl;
-	ulong xsp, xlink, mecr;
+	ulong xsp, xlink;
+//	ulong mecr;
+	extern void power_resume(void);
 
 	power_pl = splhi();
 	xlink = getcallerpc(&xlink);
+
 	/* Power down */
+	pcmciapower(0);
 	irpower(0);
 	audiopower(0);
 	screenpower(0);
@@ -182,14 +187,9 @@ deepsleep(void) {
 	intrcpy(&savedintrregs, intrregs);
 	cacheflush();
 	delay(50);
-	mecr = memconfregs->mecr;
 	if(setpowerlabel()){
 		/* return here with mmu back on */
 		trapresume();
-
-		/* Turn off memory auto power */
-//		memconfregs->mdrefr &= ~0x30000000;
-		memconfregs->mecr = mecr;
 
 		gpiorestore(gpioregs, &savedgpioregs);
 		delay(50);
@@ -209,9 +209,10 @@ deepsleep(void) {
 //		dumpitall();
 		delay(1000);
 //		irpower(1);
-//		audiopower(1);
+		audiopower(1);
 		µcpower(1);
 		screenpower(1);
+		pcmciapower(1);
 		splx(power_pl);
 		return;
 	}
@@ -236,10 +237,10 @@ powerkproc(void*)
 		deepsleep();
 		xlink1 = getcallerpc(&xlink1);
 
-//		iprint("deepsleep returned, pc = 0x%lux, sp = 0x%lux\n", xlink1, &xlink);
 
 		delay(2000);
 
+//		iprint("deepsleep returned, pc = 0x%lux, sp = 0x%lux\n", xlink1, &xlink);
 		powerflag = 0;
 	}
 }
@@ -275,6 +276,21 @@ blanktimer(void)
 void
 powerinit(void)
 {
+	extern ulong power_magic;
+	extern ulong power_code;
+	extern ulong doze_code;
+	ulong *p, *q, i;
+
+	p = (ulong*)(((ulong)&power_magic + 0x1f) & ~0x1f);
+	q = &power_code;
+	for (i = 0; i < 8; i++)
+		*p++ = *q++;
+	p = (ulong*)(((ulong)doze + 0x3f) & ~0x1f);
+	q = &doze_code;
+	for (i = 0; i < 3; i++)
+		*p++ = *q++;
+
+	*resumeaddr = (ulong) power_resume;
 	addclock0link(blanktimer);
 	intrenable(GPIOrising, bitno(GPIO_PWR_ON_i), onoffintr, nil, "on/off");
 }
@@ -295,4 +311,3 @@ idlehands(void)
 		spllo();
 	}
 }
-

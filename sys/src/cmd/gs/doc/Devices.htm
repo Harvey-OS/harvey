@@ -1,8 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Details of Ghostscript output devices</title>
-<!-- $Id: Devices.htm,v 1.3 2000/03/16 08:09:42 lpd Exp $ -->
+<!-- $Id: Devices.htm,v 1.34.2.4 2002/02/01 05:31:24 raph Exp $ -->
 <!-- Originally: devices.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -10,11 +12,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-Details of Ghostscript output devices
-</font>
-</table>
+<h1>Details of Ghostscript output devices</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -24,8 +22,18 @@ Details of Ghostscript output devices
 
 <blockquote><ul>
 <li><a href="#Measurements">Notes on measurements</a>
+<li><a href="#IJS">IJS - Inkjet and other raster devices</a>
 <li><a href="#Win">MS Windows printers</a>
+<li><a href="#File_formats">File formats</a>
+<ul>
 <li><a href="#JFIF">JPEG file format (JFIF)</a>
+<li><a href="#TIFF">TIFF file formats</a>
+</ul>
+<li><a href="#Display_devices">Display devices</a>
+<ul>
+<li><a href="#x11_devices">X Window System</a>
+</ul>
+<li><a href="#HP_ijs">HP Deskjet official drivers</a>
 <li><a href="#HP8_color_inkjet">H-P 8xx, 1100, and 1600 color inkjet printers</a>
 <ul>
 <li><a href="#HP8_gdevcd8">Drivers contained in <b><tt>gdevcd8.c</tt></b></a>
@@ -51,7 +59,8 @@ Details of Ghostscript output devices
 <li><a href="#HP_resolution_enhance">HP's resolution-enhanced mode for Inkjet printers</a>
 <li><a href="#HP_tips">General tips</a>
 </ul>
-<li><a href="#BJC">Canon BubbleJet (BJC) printers</a>
+<li><a href="#BJC_8200">Canon BJC-8200 printer</a>
+<li><a href="#BJC">Other Canon BubbleJet (BJC) printers</a>
 <ul>
 <li><a href="#BJC_history">History</a>
 <li><a href="#BJC_build">Configuring and building the BJC drivers</a>
@@ -111,7 +120,9 @@ Details of Ghostscript output devices
 <li><a href="#Uni_background">Notes on <b><tt>uniprint</tt></b>'s background</a>
 <li><a href="#Uni_make_pfile">Godzilla's guide to the creation of Unified Printer Parameter (<b><tt>.upp</tt></b>) files</a>
 <li><a href="#Uni_all_parameters">All parameters in brief</a>
-<li><a href="#Uni_honors"><b><tt>uniprint</tt></b>'s Roll of Honor</a>
+<li><a href="#Uni_honors"><b><tt>Uniprint</tt></b>'s Roll of Honor</a>
+<li><a href="#Uni_weaving_howto"><b><tt>Uniprint</tt></b> weaving parameters howto</a></li>
+<li><a href="#Uni_esc300">Extension to <b><tt>uniprint</tt></b> for the Epson Stylus Color 300</a></li>
 </ul>
 <li><a href="#SPARCprinter">Sun SPARCprinter</a>
 <ul>
@@ -138,7 +149,7 @@ the description of the <a href="Drivers.htm">driver interface</a>.
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h1><a name="Measurements"></a>Notes on measurements</h1>
+<h2><a name="Measurements"></a>Notes on measurements</h2>
 
 <p>
 Several different important kinds of measures appear throughout this
@@ -148,7 +159,7 @@ document: inches, centimeters and millimeters, points, and bits per pixel.
 <dt><b>Inches</b>
 <dd>1 inch equals 2.54 centimeters.  The inch measure is sometimes
 represented by "<b>in</b>" or a quotation mark (<b>&quot;</b>) to the right
-of a measure, like <b>8.5in</b> or <b>8.5"</b>.  Dots per inch,
+of a measure, like <b>8.5in</b> or <b>8.5""</b>.  Dots per inch,
 "<b>dpi</b>", are the common measure of printing resolution for dot-matrix,
 laser, and ink-jet printers.  U.S. "letter" paper is exactly
 8.5in&times;11in, approximately 21.6cm&times;27.9cm.  (See in the usage
@@ -175,9 +186,149 @@ known to Ghostscript</a> are defined in the initialization file
 
 <hr>
 
-<h1><a name="Win"></a>MS Windows printers</h1>
+<h2><a name="IJS"></a>IJS - Inkjet and other raster devices</h2>
 
-<h1><a name="Win"></a>MS Windows printers</h1>
+<p>
+IJS is a relatively new initiative to improve the quality and ease of
+use of inkjet printing with Ghostscript. Using IJS, you can add new
+drivers, or upgrade existing ones, without recompiling Ghostscript.
+All driver authors are encouraged to adapt their drivers for IJS, and
+if there is an IJS driver available for your printer, it should be
+your first choice.
+</p>
+
+<p>Please see the <a href="http://www.linuxprinting.org/ijs/">IJS web
+page</a> for more information about IJS, including a listing of
+IJS-compatible drivers.
+</p>
+
+<p>
+A typical command line for IJS is:
+</p>
+
+<blockquote>
+<b><tt>
+gs -DSAFER -sDEVICE=ijs -sIjsServer=hpijs 
+ -sDeviceManufacturer=HEWLETT-PACKARD -sDeviceModel='DESKJET 990'
+ -DIjsUseOutputFD -sOutputFile=/dev/usb/lp1 -DNOPAUSE --
+ examples/tiger.eps
+</tt></b>
+</blockquote>
+
+
+<p>
+Individual IJS command line parameters are as follows:
+</p>
+
+<dl>
+<dt><b><tt>-sIjsServer=</tt></b><em>{path}</em>
+<dd>Sets the pathname for the IJS server (ie printer driver).
+Ghostscript will spawn a new process for this driver, and communicate
+with it using the IJS protocol. The pathname need not be absolute,
+as the PATH environment variable is searched, but it's probably a good
+idea for robustness and security. Note also that if -dSAFER is not
+specified, it's possible for PostScript code to set this parameter,
+so it can cause arbitrary code to be executed. See the section on <a
+href="Use.htm#Security">Security</a> for more information.
+</dl>
+
+<dl>
+<dt><b><tt>-sDeviceManufacturer=</tt></b><em>{name}</em>
+<dt><b><tt>-sDeviceModel=</tt></b><em>{name}</em>
+<dd>These parameters select the device according to IEEE-1284 standard
+device ID strings. In general, consult the documentation for the
+driver to find the appropriate settings. Note that, if the value
+contains a space, you'll want to quote the value in your shell, as
+in the example above.
+</dl>
+
+<dl>
+<dt><b><tt>-sIjsParams=</tt></b><em>{params}</em>
+<dd>This parameter allows you to set arbitrary IJS parameters on
+the IJS driver. The format is a comma-separated list of
+<b><tt>key=value</tt></b> pairs. If it is necessary to send a
+value containing a comma or backslash, it can be escaped with
+a backslash. Thus, <b><tt>'-sIjsParams=Foo=bar,Baz=a\,b'</tt></b> sets
+the parameter Foo to "bar", and Baz to "a,b".
+</dl>
+
+<dl>
+<dt><b><tt>-dIjsUseOutputFD</tt></b>
+<dd>This flag indicates that Ghostscript should open the output file
+and pass a file descriptor to the server. If not set, Ghostscript
+simply passes the filename set in OutputFile to the server. In most
+cases, this flag won't matter, but if you have a driver which works
+only with OutputFD (such as hpijs 1.0.2), or if you're using the
+-sOutputFile="|cmd" syntax, you'll need to set it.
+</dl>
+
+<dl>
+<dt><b><tt>-dBitsPerSample=</tt></b><em>N</em>
+<dd>This parameter controls the number of bits per sample. The
+default value of 8 should be appropriate for most work. For monochrome
+images, use -dBitsPerSample=1.
+</dl>
+
+<p>Generic Ghostscript options that are particularly relevant for IJS
+are summarized below:
+</p>
+
+<dl>
+<dt><b><tt>-r</tt></b><em>number</em>
+<br><b><tt>-r</tt></b><em>number1</em><b><tt>x</tt></b><em>number2</em>
+<dd>Sets the resolution, in dpi. If the resolution is not specified,
+Ghostscript queries the IJS server to determine the preferred resolution.
+When the resolution is specified, it overrides the value (if any)
+preferred by the IJS server.
+</dl>
+
+<dl>
+<dt><b><tt>-dDuplex</tt></b>
+<dt><b><tt>-dTumble</tt></b>
+<dd>These flags enable duplex (two-sided) printing. Tumble controls
+the orientation. When Tumble is false, the pages
+are oriented suitably at the left or right. When Tumble is true,
+the pages are oriented suitably for binding at the top or
+bottom.
+</dl>
+
+<dl>
+<dt><b><tt>-sProcessColorModel=</tt></b><em>{name}</em>
+<dd>Use this flag to select the process color model. Suitable values
+include DeviceGray, DeviceRGB, and DeviceCMYK.
+</dl>
+
+<h3>Building IJS</h3>
+
+<p> IJS is included by default on Unix gcc builds, and also in
+autoconf'ed builds. Others may need some makefile tweaking. First,
+make sure the IJS device is selected:
+
+<blockquote>
+DEVICE_DEVS2=$(DD)ijs.dev
+</blockquote>
+
+<p> Next, make sure that the path and execution type are set in
+the toplevel makefile. The values for Unix are as follows:
+
+<blockquote>
+IJSSRCDIR=ijs
+IJSEXECTYPE=unix
+</blockquote>
+
+<p> At present, "unix" and "win" are the only supported values for
+IJSEXECTYPE. If neither sounds appropriate for your system, it's
+possible that more porting work is needed.
+
+<p> Last, make sure that ijs.mak is included in the toplevel makefile.
+It should be present right after the include of icclib.mak.
+
+<p> IJS is not inherently platform-specific. We're very much interested
+in taking patches from people who have ported it to non-mainstream
+platforms. And once it's built, you won't have to recompile Ghostscript
+to support new drivers!
+
+<h2><a name="Win"></a>MS Windows printers</h2>
 
 <p>
 This section was written by Russell Lang, the author of Ghostscript's
@@ -243,7 +394,7 @@ The Ghostscript physical device size is updated to match the Windows
 printer physical device.
 </p>
 
-<h2><a name="Win_properties"></a>Supported command-line parameters</h2>
+<h3><a name="Win_properties"></a>Supported command-line parameters</h3>
 
 <p>
 The <b><tt>mswinpr2</tt></b> device supports a limited number of command-line
@@ -271,7 +422,7 @@ typed exactly as it appears in the Printers control panel, including spaces.</dd
 </dl>
 </blockquote>
 
-<h2><a name="Win_options"></a>Supported options (device properties)</h2>
+<h3><a name="Win_options"></a>Supported options (device properties)</h3>
 
 <p>
 Several extra options exist which cannot be set through the command-line,
@@ -320,45 +471,45 @@ The following options are available:
 
 <blockquote>
 <dl>
-<dt><b><tt>/NoCancel <em>boolean</em></tt></b>
+<dt><b><tt>/NoCancel <em>boolean</em></tt></b></dt>
 <dd>Disables (hides) the progress dialog when set to <em><tt>true</tt></em> or
-show the progress dialog if not set or set to <em><tt>false</tt></em>.</dd></dt>
+show the progress dialog if not set or set to <em><tt>false</tt></em>.</dd>
 
-<dt><b><tt>/OutputFile <em>string</em></b></tt></dt>
+<dt><b><tt>/OutputFile <em>string</em></tt></b></dt>
 <dd>Specifies which printer should be used. The string should be of the form
 <tt><b>\\spool\<em>printer_name</em></b></tt>, where the <em>printer_name</em> should be
-typed exactly as it appears in the Printers control panel, including spaces.</dd></dt>
+typed exactly as it appears in the Printers control panel, including spaces.</dd>
 
-<dt><b><tt>/QueryUser <em>integer</em></tt></b>
+<dt><b><tt>/QueryUser <em>integer</em></tt></b></dt>
 <dd>Shows the standard printer dialog (<tt><b>1</b></tt> or any other value),
 shows the <em>printer setup dialog</em> (<tt><b>2</b></tt>) or selects the
-<em>default Windows printer</em> without any user interaction (<tt><b>3</b></tt>).</dd></dt>
+<em>default Windows printer</em> without any user interaction (<tt><b>3</b></tt>).</dd>
 
-<dt><b><tt>/BitsPerPixel <em>integer</em></tt></b>
+<dt><b><tt>/BitsPerPixel <em>integer</em></tt></b></dt>
 <dd>Sets the device depth to the specified bits per pixel. Currently supported
 values are <tt><b>1</b></tt> (monochrome), <tt><b>4</b></tt> (CMYK with screening
 handled by Ghostscript) and <tt><b>24</b></tt> (True Color, dithering handled by
-the Windows printer driver; this option can produce huge print jobs).</dd></dt>
+the Windows printer driver; this option can produce huge print jobs).</dd>
 
-<dt><b><tt>/UserSettings <em>dict</em></tt></b>
+<dt><b><tt>/UserSettings <em>dict</em></tt></b></dt>
 <dd>Sets additional options, defined in a dictionary. The following properties can
-be set:</dd>
+be set:
 
 <dl>
-<dt><b><tt>/DocumentName <em>string</em></tt></b>
+<dt><b><tt>/DocumentName <em>string</em></tt></b></dt>
 <dd>Defines the user friendly document name which will be displayed by the
-Windows spooler.</dd></dt>
+Windows spooler.</dd>
 
-<dt><b><tt>/DocumentRange <em>[n1 n2]</em></tt></b>
+<dt><b><tt>/DocumentRange <em>[n1 n2]</em></tt></b></dt>
 <dd>Defines the range of pages contained in the document. This information can
-be used by the printer dialog, in conjunction with the following property.</dd></dt>
+be used by the printer dialog, in conjunction with the following property.</dd>
 
-<dt><b><tt>/SelectedRange <em>[n1 n2]</em></tt></b>
+<dt><b><tt>/SelectedRange <em>[n1 n2]</em></tt></b></dt>
 <dd>Defines the selected range of pages. This information will be displayed in
 the printer dialog and will be updated after the user interaction. A PostScript
-program could check these values and print only the selected page range.</dd></dt>
+program could check these values and print only the selected page range.</dd>
 
-<dt><b><tt>/MaxResolution <em>dpi</em></tt></b>
+<dt><b><tt>/MaxResolution <em>dpi</em></tt></b></dt>
 <dd>Specifies the maximum tolerated output resolution. If the selected printer has
 a higher resolution than <tt><b>dpi</b></tt>, then Ghostscript will render the
 document with a submultiple of the printer resolution. For example, if 
@@ -366,10 +517,9 @@ document with a submultiple of the printer resolution. For example, if
 up to 1200 dpi, then Ghostscript renders the document with an internal
 resolution of 1200/4=300 dpi. This can be very useful to reduce the memory
 requirements when printing in True Color on some high resolution ink-jet color
-printers.</dd></dt>
+printers.</dd>
 
-</dl>
-</dt>
+</dl></dd>
 
 </dl>
 </blockquote>
@@ -401,7 +551,7 @@ dictionary. You should not rely on them. Their use is still experimental and
 they could be removed in a future version.
 </p>
 
-<h2><a name="Win_duplex"></a>Duplex printing</h2>
+<h3><a name="Win_duplex"></a>Duplex printing</h3>
 
 <p>
 If the Windows printer supports the duplex printing feature, then it will
@@ -425,9 +575,12 @@ the long side of the paper as the reference):
 <p>
 </p>
 
+
 <hr>
 
-<h1><a name="JFIF"></a>JPEG file format (JFIF)</h1>
+<h2><a name="File_formats"></a>File formats</h2>
+
+<h3><a name="JFIF"></a>JPEG file format (JFIF)</h3>
 
 <p>
 Ghostscript includes output drivers that can produce <a
@@ -437,10 +590,10 @@ JPEG is a compression method specifically intended for continuous-tone
 images such as photographs, not for graphics, and it is therefore quite
 unsuitable for the vast majority of page images produced with PostScript,
 which should be saved in a form better for graphics, such as
-<a href="http://www.cdrom.com/pub/png/">Portable Network Graphics</a> (PNG)
-format.  If you get crummy-looking JPEG files, don't blame Ghostscript;
-instead consult a reference about uses and abuses of JPEG, such as the JPEG
-FAQ
+<a href="http://www.libpng.org/pub/png/">Portable Network Graphics</a>
+(PNG) format.  If you get crummy-looking JPEG files, don't blame
+Ghostscript; instead consult a reference about uses and abuses of JPEG,
+such as the JPEG FAQ
 
 <blockquote>
 <a href="http://www.faqs.org/faqs/jpeg-faq/">http://www.faqs.org/faqs/jpeg-faq/</a>
@@ -488,16 +641,195 @@ future.  The JPEG drivers could be extended to support additional JPEG
 compression options, such as the other DCTEncode filter parameters, but so
 far they haven't been.
 
+<h3><a name="TIFF"></a>TIFF file formats</h3>
+
+<p>
+There are two unrelated sets of TIFF drivers.  There are two color TIFF
+drivers that produce uncompressed output:
+
+<blockquote>
+<dl>
+<dt><b><tt>tiff12nc</tt></b>
+<dd>Produces 12-bit RGB output (4 bits per component).
+<dt><b><tt>tiff24nc</tt></b>
+<dd>Produces 24-bit RGB output (8 bits per component).
+</dl>
+</blockquote>
+
+<p>
+The remaining TIFF drivers all produce black-and-white output with different
+compression modes:
+
+<blockquote>
+<dl>
+<dt><b><tt>tiffcrle</tt></b>
+<dd>G3 fax encoding with no EOLs
+<dt><b><tt>tiffg3</tt></b>
+<dd>G3 fax encoding with EOLs
+<dt><b><tt>tiffg32d</tt></b>
+<dd>2-D G3 fax encoding
+<dt><b><tt>tiffg4</tt></b>
+<dd>G4 fax encoding
+<dt><b><tt>tifflzw</tt></b>
+<dd>LZW-compatible (tag = 5) compression
+<dt><b><tt>tiffpack</tt></b>
+<dd>PackBits (tag = 32773) compression
+</dl>
+</blockquote>
+
+<p>
+The black-and-white TIFF drivers support creation of files that are
+comprised of more than a single strip.  Multi-strip files reduce the memory
+requirement on the reader, since readers need only store and process one
+strip at a time.  These drivers provide two parameters beyond the standard
+set:
+
+<blockquote>
+<dl>
+<dt><b><tt>-dMaxStripSize=</tt><em>N</em></b> (non-negative integer; default = 0)
+<dd>Set the maximum (uncompressed) size of a strip.
+
+<dt><b><tt>-dAdjustWidth=</tt><em>true|false</em></b> (Boolean; default =
+true)
+<dd>If true, then if the requested page width is close to either A4 (1728
+columns) or B4 (2048 columns), set the page width to A4 or B4 respectively.
+</dl></blockquote>
+
+<p>
+The TIFF 6.0 specification, Section 7, page 27, recommends that the size of
+each strip be about 8 Kbytes.  As an example, to generate the 'tiger' in
+tiffg4 format that has the recommended strip size, use:
+
+<blockquote><pre>
+gs -sDEVICE=tiffg4 -sOutputFile=tiger.tif -dMaxStripSize=8192 examples/tiger.ps
+</pre></blockquote>
+
+<p>
+If the value of the <b><tt>MaxStripSize</tt></b> parameter is smaller than a
+single image row, then no error will be generated, and the TIFF file will be
+generated correctly using one row per strip.  Note that smaller strip sizes
+increase the size of the file by increasing the size of the StripOffsets and
+StripByteCounts tables, and by reducing the effectiveness of the compression
+which must start over for each strip.
+
+<p>
+If the value of MaxStripSize is 0 (the default), then the entire image will
+be a single strip.
+
+
 <hr>
 
-<h1><a name="HP8_color_inkjet"></a>H-P 8xx, 1100, and 1600 color inkjet printers</h1>
+<h2><a name="Display_devices"></a>Display Devices</h2>
+
+<p>
+Ghostscript is often used for screen display of postscript and pdf documents.
+In many cases, a client or 'viewer' application calls the ghostscript engine
+to do the rasterization and handles the display of the resulting image itself,
+but it is also possible to invoke ghostscript directly and select an output
+device which directly handles displaying the image on screen.
+
+<p>
+This section describes the various display-oriented devices that are available
+in ghostscript.
+
+<h3><a name="x11_devices"></a>X Window System</h3>
+
+<p>
+Perhaps the most common use of of a display device is with the X Window System
+on unix-like systems. It is the default device on the command line client on
+such systems, and is used more creatively by the gv client application.
+
+<p>
+The available devices are:
+
+<dl>
+<dt><b>x11</b>
+<dd>This is the default device, handling display on X11R6.
+
+<dt><b>x11alpha</b>
+<dd>This is the x11 device, but with antialiasing. It is equivalent to
+invoking the x11 device with the options <tt>-dGraphicsAlphaBits=4 
+-dTextAlphaBits=4 -dMaxBitmap=50000000</tt>.
+
+<dt><b>x11cmyk</b>
+<dd>This device rasterizes the image in the CMKY color space, then flattens
+it to RGB for display. It's intended for testing only.
+
+<dt><b>x11mono</b>
+<dd>This is a strict black-and-white device for 1-bit monochrome displays.
+
+<dt><b>x11gray2</b>
+<dd>This is a device for 2 bpp (4-level) monochrome displays.
+
+<dt><b>x11gray4</b>
+<dd>This is a device for 4 bpp (16-level) monochrome displays.
+</dl>
+
+
+<hr>
+
+<h2><a name="HP_ijs"></a>HP Deskjet official drivers</h2>
+
+<p>
+HP provides official drivers for many of their Deskjet printer models.
+In order to use these drivers, you will need the HP Inkjet Server as
+well as Ghostscript, available from <a
+href="http://hpinkjet.sourceforge.net">http://hpinkjet.sourceforge.net</a>.
+This version of Ghostscript includes the patch from version 0.97 of
+the hpijs software. If you are installing hpijs from an RPM, you will
+only need the hpijs RPM, not the ghostscript-hpijs one, as the code
+needed to work with hpijs is already included.
+
+<p>
+Note that newer version of the hpijs drivers support the IJS protocol.
+If you can, you should consider using the ijs driver instead. Among
+other things, the hpijs Ghostscript driver is Unix-only, and is untested
+on older Unix platforms.
+
+<p>
+As of the 0.97 version, hpijs supports the following printer models:
+
+<dl><dt><b>e-Series:</b>
+ <dd>e-20
+<dt><b>DeskJet 350C Series:</b>
+ <dd>350C
+<dt><b>DeskJet 600C Series:</b>
+ <dd>600C, 660C, 670/672C, 670TV, 680/682C
+<dt><b>DeskJet 600C Series Photo:</b>
+ <dd>610/612C, 640/648C, 690/692/693/694/695/697C
+<dt><b>DeskJet 630C Series:</b>
+ <dd>630/632C
+<dt><b>DeskJet 800C Series:</b>
+ <dd>810/812C, 830/832C, 840/842/843C, 880/882C, 895C
+<dt><b>DeskJet 900C Series, PhotoSmart::</b>
+ <dd>930/932C, 950/952C, 970C, PhotoSmart 1000/1100
+<dt><b>DeskJet 990C, PhotoSmart:</b>
+ <dd>960C, 980C, 990C, PhotoSmart 1215/1218
+</ul>
+
+<p>You will need to add the following line to your makefile:
+
+<blockquote>
+DEVICE_DEVS2=$(DD)DJ630.dev $(DD)DJ6xx.dev $(DD)DJ6xxP.dev $(DD)DJ8xx.dev $(DD)DJ9xx.dev $(DD)DJ9xxVIP.dev $(DD)AP21xx.dev
+</blockquote>
+
+<p>
+Please see <a
+href="http://hpinkjet.sourceforge.net">http://hpinkjet.sourceforge.net</a>
+for more information about this driver. Thanks to the folks at HP,
+especially David Suffield for making this driver available and working to
+integrate it with Ghostscript.
+
+<hr>
+
+<h2><a name="HP8_color_inkjet"></a>H-P 8xx, 1100, and 1600 color inkjet printers</h2>
 
 <p>
 This section, written by Uli Wortmann &lt;<a
 href="mailto:uliw@erdw.ethz.ch">uliw@erdw.ethz.ch</a>&gt;, deals with the
 DeskJet 670, 690, 850, 855, 870, 890, 1100, and 1600.
 
-<h2><a name="HP8_gdevcd8"></a>Drivers contained in <b><tt>gdevcd8.c</tt></b></h2>
+<h3><a name="HP8_gdevcd8"></a>Drivers contained in <b><tt>gdevcd8.c</tt></b></h3>
 
 <p>
 The source module <b><tt>gdevcd8.c</tt></b> contains four generic drivers:
@@ -517,7 +849,7 @@ The source module <b><tt>gdevcd8.c</tt></b> contains four generic drivers:
 	<td>HP DeskJet 1600
 </table></blockquote>
 
-<h2><a name="HP8_further_documentation"></a>Further documentation</h2>
+<h3><a name="HP8_further_documentation"></a>Further documentation</h3>
 
 <p>
 <b>Credits:</b> Much of the driver is based on ideas derived from the
@@ -691,21 +1023,19 @@ Uli &lt;<a href="mailto:uliw@erdw.ethz.ch">uliw@erdw.ethz.ch</a>&gt;
 
 <hr>
 
-<h1><a name="HP880_color_inkjet"></a>H-P 812, 815, 832, 880, 882, 895, and 970 color inkjet printers</h1>
+<h2><a name="HP880_color_inkjet"></a>H-P 812, 815, 832, 880, 882, 895, and 970 color inkjet printers</h2>
 
 <p>
 This section, written by Matthew Gelhaus &lt;<a
-href="mailto:mgelhaus@proaxis.com">mgelhaus@proaxis.com</a>&gt;, deals with the
+href="mailto:hp880@gelhaus.net">hp880@gelhaus.net</a>&gt;, deals with the
 DeskJet 812, 815, 832, 880, 882, 895, and 970.
 
 <p>
-
 This is a modified version of the <a href="#HP8_color_inkjet">HP8xx driver</a>
 written by Uli Wortmann.  More information and download are available at
-<a href="http://www.proaxis.com/~mgelhaus/linux/software/hp880c/hp880c.html">
-http://www.proaxis.com/~mgelhaus/linux/software/hp880c/hp880c.html</a>.
+<a href="http://www.gelhaus.net/hp880c/">http://www.gelhaus.net/hp880c/</a>.
 
-<h2><a name="HP880_gdevcd8"></a>Drivers contained in <b><tt>gdevcd8.c</tt></b></h2>
+<h3><a name="HP880_gdevcd8"></a>Drivers contained in <b><tt>gdevcd8.c</tt></b></h3>
 
 <p>
 The source module <b><tt>gdevcd8.c</tt></b> contains one generic driver:
@@ -716,7 +1046,7 @@ The source module <b><tt>gdevcd8.c</tt></b> contains one generic driver:
 	<td>HP DeskJet 812, 815, 832, 880, 882, 895, and 970
 </table></blockquote>
 
-<h2><a name="HP880_further_documentation"></a>Further documentation</h2>
+<h3><a name="HP880_further_documentation"></a>Further documentation</h3>
 
 <p>
 <b>Credits:</b> This driver is based on the cdj850 driver by Uli Wortmann, and shares the same
@@ -816,19 +1146,19 @@ DEVICE_DEVS4=$(DD)cdj880.dev
 </blockquote>
 
 <p>
-Matthew Gelhaus &lt;<a href="mailto:mgelhaus@proaxis.com">mgelhaus@proaxis.com</a>&gt;
-<br><a href="http://www.proaxis.com/~mgelhaus">http://www.proaxis.com/~mgelhaus</a>
+Matthew Gelhaus &lt;<a href="mailto:hp880@gelhaus.net">mailto:hp880@gelhaus.net</a>&gt;
+<br><a href="http://www.gelhaus.net/hp880c/">http://www.gelhaus.net/hp880c/</a>
 
 <hr>
 
-<h1><a name="HP_color_inkjet"></a>H-P color inkjet printers</h1>
+<h2><a name="HP_color_inkjet"></a>H-P color inkjet printers</h2>
 
 <p>
 This section, written by George Cameron, deals with the DeskJet 500C,
 DeskJet 550C, PaintJet, PaintJet XL, PaintJet XL300, the DEC LJ250
 operating in PaintJet-compatible mode.
 
-<h2><a name="HP_gdevcdj"></a>Drivers contained in <b><tt>gdevcdj.c</tt></b></h2>
+<h3><a name="HP_gdevcdj"></a>Drivers contained in <b><tt>gdevcdj.c</tt></b></h3>
 
 <p>
 The source module <b><tt>gdevcdj.c</tt></b> contains six generic drivers:
@@ -880,17 +1210,17 @@ drivers above (and <b><tt>cDeskJet</tt></b> is identical to
 	<td>for <b><tt>cdjmono</tt></b>
 </table></blockquote>
 
-<h2><a name="HP_paper_size"></a>Default paper size</h2>
+<h3><a name="HP_paper_size"></a>Default paper size</h3>
 
 <p>
 If the preprocessor symbol <b><tt>A4</tt></b> is defined, the default paper
 size is ISO A4; otherwise it is U.S. letter size (see about
 <a href="Use.htm#Known_paper_sizes">paper sizes</a> in the usage
-documentation).  You can <a href="Use#Paper_size">specify other paper
+documentation).  You can <a href="Use.htm#Paper_size">specify other paper
 sizes</a> on the command line, including A3 for the PaintJet XL and
 PaintJet XL300, as also explained in the usage documentation.
 
-<h2><a name="HP_limits"></a>DeskJet physical limits</h2>
+<h3><a name="HP_limits"></a>DeskJet physical limits</h3>
 
 <p>
 The DeskJet's maximum printing width is 2400 dots, or 8 inches
@@ -905,7 +1235,7 @@ All DeskJets have 0.5 inches (1.27cm) of unprintable bottom margin, due to the m
 arrangement used to grab the paper.  Side margins are approximately 0.25 inches (0.64cm)
 for U.S. letter paper, and 0.15 inches (0.38cm) for A4.
 
-<h2><a name="HP_command_line"></a>Printer properties (command-line parameters)</h2>
+<h4><a name="HP_command_line"></a>Printer properties (command-line parameters)</h4>
 
 <p>
 Several printer "properties" have been implemented for these printers.
@@ -920,7 +1250,7 @@ specified, for instance, like
 which sets the <b><tt>BitsPerPixel</tt></b> parameter to 32 and the
 <b><tt>Shingling</tt></b> parameter to 1.
 
-<h3><a name="HP_bpp"></a>Bits per pixel</h3>
+<h4><a name="HP_bpp"></a>Bits per pixel</h4>
 
 <p>
 If the preprocessor symbol <b><tt>BITSPERPIXEL</tt></b> is defined as an
@@ -978,7 +1308,7 @@ on this printer, and uses less memory.  Any differences between 24-bit and
 32-bit should be small.)
 </dl></blockquote>
 
-<h3><a name="HP_DeskJet_properties"></a>DeskJet properties</h3>
+<h4><a name="HP_DeskJet_properties"></a>DeskJet properties</h4>
 
 <blockquote><table cellpadding=0 cellspacing=0>
 <tr valign=bottom>
@@ -1005,7 +1335,7 @@ on this printer, and uses less memory.  Any differences between 24-bit and
 	<td>"Intelligent" dot-removal: 0 = none, 1 = 25%, 2 = 50%, 1 best for graphics? Use 0 for transparencies.
 </table></blockquote>
 
-<h3><a name="HP_PaintJet_properties"></a>PaintJet XL300 / PaintJet XL properties</h3>
+<h4><a name="HP_PaintJet_properties"></a>PaintJet XL300 / PaintJet XL properties</h4>
 
 <blockquote>
 <table cellpadding=0 cellspacing=0>
@@ -1045,7 +1375,7 @@ The PaintJet (non-XL) has no additional properties.
 
 </blockquote>
 
-<h2><a name="HP_gamma"></a>Gamma correction</h2>
+<h3><a name="HP_gamma"></a>Gamma correction</h3>
 
 <p>
 One consequence of using Floyd-Steinberg dithering rather than Ghostscript's
@@ -1102,7 +1432,7 @@ the device might be doing already.  To do the correction
 This example sets the gamma for R, G, and B to 3, which seems to work
 reasonably well in practice.
 
-<h2><a name="HP_resolution_enhance"></a>HP's resolution-enhanced mode for Inkjet printers</h2>
+<h3><a name="HP_resolution_enhance"></a>HP's resolution-enhanced mode for Inkjet printers</h3>
 
 <p>
 This feature is available on HP's more recent inkjet printers, including
@@ -1132,7 +1462,7 @@ To summarise, you may lose a smidgin of (potential) text clarity using the
 <b><tt>cdjmono</tt></b> etc.), but other than that, they are the ones for
 the job.
 
-<h2><a name="HP_tips"></a>General tips</h2>
+<h3><a name="HP_tips"></a>General tips</h3>
 
 <p>
 For all the printers above, the choice of paper is critically important to
@@ -1158,24 +1488,264 @@ findings back to me.
 
 <hr>
 
-<h1><a name="BJC"></a>Canon BubbleJet (BJC) printers</h1>
+<h2><a name="BJC_8200"></a>Canon BJC-8200 printer</h2>
+
+<p>
+This section was contributed by the author of the <b><tt>uniprint</tt></b>
+configuration files for the Canon BJC-8200, Stephan C. Buchert &lt;<a
+href="mailto:scb@stelab.nagoya-u.ac.jp">scb@stelab.nagoya-u.ac.jp</a>&gt;.
+These files also handle the Japanese Canon F850 printer.
+
+<p>
+Warning: Usage of this program is neither supported nor endorsed by
+the Canon corporation. Please see the Ghostscript <a
+href="Public.htm">license</a> regarding warranty.
+
+<h3>Introduction</h3>
+
+<p>
+The Canon Bubble Jet printer BJC-8200 is designed for printing digital
+photos and halftone images. Software drivers for Windows 95-2000 and Mac are
+usually included and can be downloaded from the Canon web sites like
+<a href="http://consumer.usa.canon.com/bjc/bjc8200/">http://consumer.usa.canon.com/bjc/bjc8200/</a>
+for the US market. If these drivers cannot be used for some reason, then at
+present Ghostscript is probably the alternative giving the best results.
+
+<p>
+The BJC-8200 has features not found among the specs of earlier bubble jet
+models (except the even more advanced BJC-8500) and is advertised to offer:
+
+<ol>
+
+<li>microfine droplet technology;
+
+<li>support for printing on a new type of paper, Photo Paper Pro;
+
+<li>a printhead capable of printing up to 1200 DpI;
+
+<li>individual ink tanks for 6 colors;
+
+<li>an internal status monitor reporting low ink back to a driver;
+
+<li>an optional color scanner cartridge for up to 600 DpI resolution.
+
+</ol>
+
+<p>
+Access to features 5 and 6 requires use of the original Canon drivers for
+the foreseeable future. This README is about getting the printer features
+1-3 working with Ghostscript. No (re)compilation of Ghostscript is normally
+required.
+
+<p>
+Ghostscript comes with a relatively highly configurable driver, called
+<a href="#Uniprint">uniprint</a>, for printers which understand raster
+images in various propriety formats. Most options for this driver are
+usually organized into files having the suffix ".upp." Ghostscript
+versions >= 5.10 (or even earlier) include such uniprint control files
+for the Canon BJC-610. They work also well for some other Canon Bubble
+Jet models, for example for my BJC-35vII. But when using them for a
+BJC-8200 the result is unsatisfactory.
+
+<h3>The uniprint control files for the BJC-8200</h3>
+
+<p>
+After some experimenting with the options for uniprint I have obtained quite
+satisfactory prints with my printer(*). This distribution includes six new
+uniprint control files:
+
+<ul>
+<li>bj8pp12f.upp
+<li>bj8hg12f.upp
+<li>bj8gc12f.upp
+<li>bj8oh06n.upp
+<li>bj8ts06n.upp
+<li>bj8pa06n.upp
+</ul>
+
+<p>
+They are included in Ghostscript >=6.21. For older versions you can put
+them anywhere in the Ghostscript search path (type "gs -h" to see the
+path), but should perhaps add the files to the directory with the
+other *.upp files. This is "/usr/share/ghostscript/gs6.01/lib" in my
+RedHat 6.1 Linux box with Aladdin Ghostscript 6.01.
+
+<p>
+Here is an explanation of my file name convention: the prefix "bj8" should
+perhaps be used for the Canon BJC-8200 and compatible (like the Japanese
+F850 and perhaps the non-Japanese BJC-8500) models. The next two letters
+indicate the print media:
+
+<ul>
+<li>pp "Photo Paper Pro"
+<li>hg "High Gloss Photo Film"
+<li>gc "Glossy Photo Cards"
+<li>oh "OHP transparencies"
+<li>ts "T-shirt transfer"
+<li>pa "Plain Paper"
+</ul>
+
+<p>
+The numbers at positions 6 and 7 indicate the resolution
+
+<ul>
+<li>12   1200x1200 DpIxDpI
+<li>06    600x600  DpIxDpI
+</ul>
+
+<p>
+The last letter stands for a quality factor that effects also the print
+speed (presumably related to the number of passes that the printhead makes).
+
+<ul>
+<li>f   highest quality
+<li>n   normal quality
+</ul>
+
+<p>
+Printing a postcard size (~10x15 cm^2) image at 1200x1200 DpI^2 takes about
+3 minutes. The output of Ghostscript is then typically 4-5 MByte. The
+bootleneck seems to be the transfer of the raster image in run-length
+encoded Canon format to the printer (via the parallel port on my system) or
+the printer's speed, not Ghostscript or the uniprint renderer.
+
+<h3>Further Optimization for the Canon BJC-8200</h3>
+
+So far I have only experimented with the printer initialization code at the
+beginning of each page (-dupBeginPageCommand) and the resolution (-r). Other
+options, particularly the transfer arrays (-dupBlackTransfer,
+-dupCyanTransfer, -dupMagentaTransfer, -dupYellowTransfer) and the margins
+(-dupMargins) were simply copied from the files for the BJC-610, but they
+may need to be changed for optimized performance.
+
+<p>
+Here is information useful for changing or adding uniprint control files for
+the BJC-8200:
+
+<p>
+In "-dupBeginPageCommand=..." use the line
+
+<blockquote>
+   1b28 64 0400 04b0 04b0
+</blockquote>
+
+<p>
+for 1200x1200 resolution, and
+
+<blockquote>
+   1b28 64 0400 0258 0258
+</blockquote>
+
+<p>
+for 600x600. The "-r" option in the control file must of course match this
+line. Other resolutions might work as well, but I didn't try.
+
+<p>
+Crucial are the numbers in the lines like
+
+<blockquote><pre>
+   1b28 63 0300 3005 04
+                   ^  ^
+       Plain Paper 0  4 Highest quality
+  OHP transparency 2  .
+  T-shirt transfer 3  .
+ Glossy Photo Film 5  .
+  High Gloss Paper 6  0 Lowest quality
+   Photo Paper Pro 9
+</pre></blockquote>
+
+<h3>Outlook</h3>
+
+<p>
+Presently uniprint can use the black (K), cyan (C), magenta (M), and
+yellow (Y) colors in the BJC-8200. The unused colors are photo (or
+light) cyan (c) and magenta (m). Also the Canon driver seems to use
+only CMYK, for example when printing on Photo Paper Pro in "Camera" or
+"SuperPhoto" mode. These modes supposedly produce prints of the best
+quality that the Canon driver can offer. Other modes of Canon driver
+do use up to all six color cartridges (CMYKcm). Therefore expanding
+uniprint's capabilities for six colors would be interesting, but it may
+not increase the output quality of 6-color printers such as the
+BJC-8200 drastically.
+
+<p>
+More control files for uniprint could be added in order to offer more
+versatility for controlling the BJC-8200 within a Ghostscript
+installation. The number of possible combinations for media type, resolution
+and print quality factor is very large, many combinations would not make
+much sense, many might be used here and there, but relatively rarely. The
+user would have to remember a name for each combination that is used.
+
+<p>
+A better way would be to let the user patch optionally a user owned or
+system wide uniprint control file before each print via some print
+tool. This is similar to the approach taken by Canon with their driver for
+Windows. Similarly a uniprint tool could also incorporate other functions
+such as printing test and demo pages and the low ink warning once the
+protocol for this is known. Clearly it would be difficult to code such a
+uniprint tool for all the platforms where Ghostscript is running.
+
+<h3>Usage on RedHat Linux</h3>
+
+<p>
+In order to install a BJC-8200 printer on a RedHat Linux system with
+RedHat's printtool, you need also to insert with a text editor the contents
+of the file <b><tt>bj8.rpd</tt></b> into the RedHat printer database
+<b><tt>/usr/lib/rhs/rhs-printfilters/printerdb</tt></b>. Insert it most
+appropriately after the section
+
+<blockquote><pre>
+StartEntry: U_CanonBJC610
+.
+.
+.
+EndEntry
+
+< --- insert here "bj8.rpd" from this distribution:
+< --- StartEntry: U_CanonBJC8200
+      .
+      .
+      .
+</pre></blockquote>
+
+<h3>Contacting the Author</h3>
+
+<p>
+E-mail address: &lt;<a
+href="mailto:scb@stelab.nagoya-u.ac.jp">scb@stelab.nagoya-u.ac.jp</a>&gt;
+
+<p>
+Footnotes:
+
+<p>
+(*) Actually I have a F850, not a BJC-8200. That model is sold for the
+Japanese market only. The specs and also the external look are the
+same as those of the BJC-8200 models for the American and European
+markets. I expect that the raster image mode which is used exclusively
+by Ghostscript is entirely compatible for both models.
+
+<p>
+Stephan C. Buchert
+
+<hr>
+
+<h2><a name="BJC"></a>Other Canon BubbleJet (BJC) printers</h2>
 
 <p>
 This section was contributed by the author of the drivers, Yves Arrouye
-&lt;<a href="mailto:yves.arrouye@usa.net">yves.arrouye@usa.net</a>&gt;.
+(&lt;<a href="mailto:yves.arrouye@usa.net">yves.arrouye@usa.net</a>&gt;, but
+please do not send questions to him: he no longer maintains these drivers.)
 The drivers handle Canon BJC-600, BJC-4xxx, BJC-70, Stylewriter 2x00, and
 BJC-800 printers.
 
-<h2><a name="BJC_history"></a>History</h2>
+<h3><a name="BJC_history"></a>History</h3>
 
 <p>
 The BJC-600 driver was written in the first place by Yoshio Kuniyoshi and
-later modified by Yves Arrouye
-&lt;<a href="mailto:yves.arrouye@usa.net">yves.arrouye@usa.net</a>&gt;.  We
-tried to make it evolve synchronously, though Yoshio cannot be reached
-since a long time ago.  The drivers are based on code for the HP printers
-by George Cameron (in fact, they are in the same file!), so he's the first
-person to thank.
+later modified by Yves Arrouye.  We tried to make it evolve synchronously,
+though Yoshio cannot be reached since a long time ago.  The drivers are
+based on code for the HP printers by George Cameron (in fact, they are in
+the same file!), so he's the first person to thank.
 
 <p>
 The 2.00 version of the drivers was a complete rewrite of the driver
@@ -1185,9 +1755,10 @@ width of an A3 paper size.  PostScript Printer Description (PPD) files for
 the drivers were released with version 2.15.  They are incomplete,
 but they can be used to drive the printers' main features.
 
-<h2><a name="BJC_build"></a>Configuring and building the BJC drivers</h2>
+<h3><a name="BJC_build"></a>Configuring and building the BJC drivers</h3>
 
-<h3><a name="BJC_defaults"></a>Modify values in <b><tt>gdevbjc.h</tt></b></h3>
+<h4><a name="BJC_defaults"></a>Modify values in
+<b><tt>gdevbjc.h</tt></b></h4>
 
 <p>
 Configure the drivers by modifying the default values in the file
@@ -1195,7 +1766,7 @@ Configure the drivers by modifying the default values in the file
 that, the drivers use reasonable defaults that make them work "as
 expected".  All default values shown here are defined in that file.
 
-<h3><a name="BJC_CMYK_RGB"></a>CMYK-to-RGB color conversion</h3>
+<h4><a name="BJC_CMYK_RGB"></a>CMYK-to-RGB color conversion</h4>
 
 <p>
 By default, the drivers use the same algorithm as Ghostscript to convert
@@ -1203,7 +1774,8 @@ CMYK colors to RGB. If you prefer to use Adobe formulas, define
 <b><tt>USE_ADOBE_CMYK_RGB</tt></b> when compiling.  (See the top of the
 file <b><tt>gdevcdj.c</tt></b> to see the difference between the two.)
 
-<h3><a name="BJC_vertical_centering"></a>Vertical centering of the printable area</h3>
+<h4><a name="BJC_vertical_centering"></a>Vertical centering of the
+printable area</h4>
 
 <p>
 The drivers center the imageable area horizontally but not vertically, so
@@ -1212,7 +1784,7 @@ define <b><tt>BJC_DEFAULT_CENTEREDAREA</tt></b> when compiling, then the
 top and bottom margins will be the same, resulting in a (smaller)
 vertically centered imageable area also.
 
-<h3><a name="BJC_margins"></a>Page margins</h3>
+<h4><a name="BJC_margins"></a>Page margins</h4>
 
 <p>
 If you define <b><tt>USE_RECOMMENDED_MARGINS</tt></b>, then the top and
@@ -1244,7 +1816,7 @@ If the margins are okay, you will get a rectangle visibly surrounding
 the printable area.  If they're not correct, one or more of the sides will
 be either incomplete or completely unprinted.
 
-<h3><a name="BJC_compile"></a>Makefile and compilation</h3>
+<h4><a name="BJC_compile"></a>Makefile and compilation</h4>
 
 <p>
 Make sure the <b><tt>bjc600</tt></b> or <b><tt>bjc800</tt></b> devices are
@@ -1257,7 +1829,7 @@ for instance, one makefile has
 DEVICE_DEVS6=bj10e.dev&nbsp;bj200.dev&nbsp;bjc600.dev&nbsp;bjc800.dev
 </tt></b></blockquote>
 
-<h2><a name="BJC_usage"></a>Use of the drivers</h2>
+<h3><a name="BJC_usage"></a>Use of the drivers</h3>
 
 <p>
 There are two drivers here.  The "<b><tt>bjc600</tt></b>" one supports the BJC-600 and
@@ -1265,7 +1837,7 @@ BJC-4xxx (maybe the BJC-70 as well) and the "<b><tt>bjc800</tt></b>" one support
 BJC-800 series.  Remarks here that apply to both drivers use the name
 "bjc".
 
-<h3><a name="BJC_options"></a>Supported Options and Defaults</h3>
+<h4><a name="BJC_options"></a>Supported Options and Defaults</h4>
 
 <p>
 Note: "options", "properties", and "parameters" designate the same thing:
@@ -1713,7 +2285,7 @@ start of printing, not at the end.  This is the expected behaviour.  If you
 need to reset the printer to its default state, simply print a file that
 does just a <b><tt>showpage</tt></b>.
 
-<h3><a name="BJC_device_info"></a>Device information</h3>
+<h4><a name="BJC_device_info"></a>Device information</h4>
 
 <p>
 Here is other information published by the driver that you will find
@@ -1742,7 +2314,7 @@ beta versions.  The date of the last change to this version is given in the
 form MM/DD/YY (no, it won't adapt to your locale).
 </dl>
 
-<h3><a name="BJC_HW_margins"></a>Hardware margins</h3>
+<h4><a name="BJC_HW_margins"></a>Hardware margins</h4>
 
 <p>
 The BJC printers have top and bottom hardware margins of 3mm and 7.1mm
@@ -1756,7 +2328,7 @@ The maximum printing width of a BJC-600 printer is 203mm.  The maximum
 printing width of a BJC-800 printer is 289mm on A3 paper, 203mm on
 U.S. letter and ISO A4 paper.
 
-<h3><a name="BJC_PPD"></a>PostScript printer description (PPD) files</h3>
+<h4><a name="BJC_PPD"></a>PostScript printer description (PPD) files</h4>
 
 <p>
 The files <b><tt>CBJC600.PPD</tt></b> and <b><tt>CBJC800.PPD</tt></b> (whose
@@ -1771,7 +2343,7 @@ correctly enforce constraints specified in these files (in UIConstraints
 descriptions): you must force yourself to use valid combinations of
 options.
 
-<h3><a name="BJC_PPD_custom"></a>Customizing the PPD files</h3>
+<h4><a name="BJC_PPD_custom"></a>Customizing the PPD files</h4>
 
 <p>
 By default the PPD files are set for U.S. letter size paper, and they use a
@@ -1816,23 +2388,21 @@ All customization should be done using the "<b><tt>*Include:</tt></b>"
 feature of PPD files so that your local changes will be retained if you
 update the PPD files.
 
-<h2><a name="BJC_bugs"></a>How to report problems</h2>
+<h3><a name="BJC_bugs"></a>How to report problems</h3>
 
 <p>
-If you have problems with this driver (or if you are extremely satisfied
-with it, you may email me directly at
-&lt;<a href="mailto:yves.arrouye@usa.net">yves.arrouye@usa.net</a>&gt;.
-When you report a problem please be as descriptive as possible, and please
-send information that can be used to reproduce the problem.  Don't forget
-to say which driver you use, and in what version.  Version information can
-be found in the source code of the driver or by issuing the following
-command in a shell:
+Yves Arrouye no longer maintains this driver, and will not answer questions
+about it.  If you are posting a question about it in a public form, please
+be as descriptive as possible, and please send information that can be used
+to reproduce the problem.  Don't forget to say which driver you use, and in
+what version.  Version information can be found in the source code of the
+driver or by issuing the following command in a shell:
 
 <blockquote><b><tt>
 echo&nbsp;"currentpagedevice&nbsp;/VersionString&nbsp;get&nbsp;=="&nbsp;|&nbsp;gs&nbsp;-q&nbsp;-sDEVICE=bjc600&nbsp;-
 </tt></b></blockquote>
 
-<h2><a name="BJC_acks"></a>Acknowledgements</h2>
+<h3><a name="BJC_acks"></a>Acknowledgements</h3>
 
 <p>
 I am particularly grateful to Yoshio Kuniyoshi &lt;<a
@@ -1861,7 +2431,7 @@ Epson Stylus Color, which I then adapted to the code of these drivers.
 
 <hr>
 
-<h1><a name="STC_epson_stylus"></a>Epson Stylus color printer (see also <b><tt>uniprint</tt></b>)</h1>
+<h2><a name="STC_epson_stylus"></a>Epson Stylus color printer (see also <b><tt>uniprint</tt></b>)</h2>
 
 <p>
 This section was contributed by Gunther Hess
@@ -1870,7 +2440,7 @@ This section was contributed by Gunther Hess
 the section on <a href="#Uniprint"><b><tt>uniprint</tt></b></a> for whether
 it might be better for your uses than this driver.
 
-<h2><a name="STC_usage"></a>Usage</h2>
+<h3><a name="STC_usage"></a>Usage</h3>
 
 <p>
 
@@ -1908,7 +2478,7 @@ Ghostscript options, while their manipulation at the PostScript level is
 documented in the material on <a href="Language.htm">the relationship of
 Ghostscript and PostScript</a> and in <b><tt>stcolor.ps</tt></b>.
 
-<h2><a name="STC_options"></a>Options</h2>
+<h3><a name="STC_options"></a>Options</h3>
 
 <p>
 Now to explain the options (as written on my UNIX system).  The order is
@@ -2194,7 +2764,7 @@ value even if the value is not supported by the printer.  <b>You asked for
 it and you got it!</b>
 </blockquote>
 
-<h2><a name="STC_FAQ"></a>Application note and FAQ</h2>
+<h3><a name="STC_FAQ"></a>Application note and FAQ</h3>
 
 <p>
 Quite a bunch of parameters.  Hopefully you never need any of them, besides
@@ -2205,7 +2775,7 @@ After answering some questions over fifty times I prepared a FAQ.  Here is
 version 1.3 of the FAQ, as of <b><tt>stcolor</tt></b> version 1.20 (for
 Ghostscript 3.50).
 
-<h3><a name="STC_FAQ_A3"></a>Support for A3 paper</h3>
+<h4><a name="STC_FAQ_A3"></a>Support for A3 paper</h4>
 
 <p>
 Yes, this driver supports the A3-size printer: merely set the required
@@ -2215,7 +2785,7 @@ procedure call "<b><tt>a3</tt></b>" in the PostScript prolog section.  To
 optimize the printable area or set the proper margins, see the next
 paragraph.
 
-<h3><a name="STC_FAQ_margins"></a>Margins, PageSize</h3>
+<h4><a name="STC_FAQ_margins"></a>Margins, PageSize</h4>
 
 <p>
 I refuse to add code to <b><tt>stcolor</tt></b> that tries to guess the
@@ -2230,13 +2800,13 @@ mark % prepare stack for "putdeviceprops"
 <p>
 insert these lines, which define page size and margins in points:
 
-<blockquote><font size="-1">
+<blockquote>
 <pre>/.HWMargins [9.0 39.96 12.6 9.0]     % Left, bottom, right, top (1/72")
 /PageSize   [597.6 842.4]            % Paper, including margins (1/72")
 /Margins [ % neg. Offset to Left/Top in Pixels
    4 index 0 get STCold /HWResolution get 0 get mul 72 div neg
    5 index 3 get STCold /HWResolution get 1 get mul 72 div neg
-]</pre></font></blockquote>
+]</pre></blockquote>
 
 <p>
 Feel free to change the values of <b><tt>.HWMargins</tt></b> and
@@ -2255,7 +2825,7 @@ U.S. letter size.
 to add the proper "<b><tt>.HWMargins</tt></b>" to the command line or to
 <b><tt>stcolor.ps</tt></b>.
 
-<h3><a name="STC_FAQ_II_IIS_1500"></a>Stylus Color II / IIs and 1500</h3>
+<h4><a name="STC_FAQ_II_IIS_1500"></a>Stylus Color II / IIs and 1500</h4>
 
 <p>
 First the good news: the driver can print on the Stylus Color II.
@@ -2285,7 +2855,7 @@ behaviour.  I experienced significantly increased printing speed with the
 second variant on the old Stylus Color, when printing mostly monochrome
 data.
 
-<h2><a name="STC_recommendations"></a>Recommendations</h2>
+<h3><a name="STC_recommendations"></a>Recommendations</h3>
 
 <p>
 The next section is a contribution from Jason Patterson &lt;jason@reflections.com.au&gt;
@@ -2306,7 +2876,8 @@ where "..." is the name of the desired algorithm.
 for which it is useless and would not allow the selection of
 "<b><tt>gscmyk</tt></b>".
 
-<h3><a name="STC_dither_experiment"></a>Color dithering experiments with <b><tt>gdevstc</tt></b> 1.21</h3>
+<h4><a name="STC_dither_experiment"></a>Color dithering experiments with
+<b><tt>gdevstc</tt></b> 1.21</h4>
 
 <p>
 Here are data about the EPSON Stylus Color driver's different dithering
@@ -2405,7 +2976,7 @@ the MS Windows driver.
 	<td><b><tt>0&nbsp;1&nbsp;2&nbsp;3&nbsp;4&nbsp;5&nbsp;6&nbsp;7&nbsp;8&nbsp;9&nbsp;10</tt></b>
 </table></blockquote>
 
-<h2><a name="STC_color_transform"></a>Color transformation</h2>
+<h3><a name="STC_color_transform"></a>Color transformation</h3>
 
 <p>
 In the initial version of the driver distributed with Ghostscript 3.33, the
@@ -2485,7 +3056,7 @@ per color component and if the algorithm uses bytes too, the second
 transformation is included within the first, which saves significant
 computation time when printing the data.
 
-<h2><a name="STC_CAM"></a><b><tt>ColorAdjustMatrix</tt></b></h2>
+<h3><a name="STC_CAM"></a><b><tt>ColorAdjustMatrix</tt></b></h3>
 
 <p>
 The driver supports different values for <b><tt>ProcessColorModel</tt></b>,
@@ -2568,7 +3139,7 @@ If no <b><tt>ColorAdjustMatrix</tt></b> is set, the matrix computations are
 skipped.  Thus the transformation reduces to range inversion in monochrome
 mode and black separation in CMYK mode.
 
-<h2><a name="STC_RGBCMYK_coding"></a>RGB / CMYK coding and transfer, and <b><tt>BitsPerPixel</tt></b></h2>
+<h3><a name="STC_RGBCMYK_coding"></a>RGB / CMYK coding and transfer, and <b><tt>BitsPerPixel</tt></b></h3>
 
 <p>
 These two (groups of) parameters are arrays of floating-point numbers in
@@ -3122,7 +3693,7 @@ correction, which is not necessarily faster than the
 to the internal color indices.
 </ul></blockquote>
 
-<h2><a name="What_is_weaving"></a>What is weaving?</h2>
+<h3><a name="What_is_weaving"></a>What is weaving?</h3>
 
 <p>
 The Epson Stylus Color has a head assembly that contains two physically
@@ -3298,7 +3869,7 @@ takes place.  Without weaving, adjacent rows are printed by the same jet
 and this makes the dot diameter deviations visible as 1/90in stripes on
 the paper.
 
-<h2><a name="STC_print_modes"></a>Print mode parameters</h2>
+<h3><a name="STC_print_modes"></a>Print mode parameters</h3>
 
 <p>
 The parameters "<b><tt>Unidirectional</tt></b>",
@@ -3306,7 +3877,7 @@ The parameters "<b><tt>Unidirectional</tt></b>",
 "<b><tt>OutputCode</tt></b>", "<b><tt>Model</tt></b>" and the given
 resolution control the data generated for the printer.
 
-<h3><a name="STC_unidirectional"></a><b><tt>Unidirectional</tt></b></h3>
+<h4><a name="STC_unidirectional"></a><b><tt>Unidirectional</tt></b></h4>
 
 <p>
 Simply toggles the unidirectional mode of the printer.  Setting
@@ -3314,7 +3885,8 @@ Simply toggles the unidirectional mode of the printer.  Setting
 improve the quality.  I use this for printing transparencies, where fast
 head movement could smear the ink.
 
-<h3><a name="STC_noweave"></a><b><tt>Microweave</tt></b>, <b><tt>noWeave</tt></b> and <b><tt>OutputCode=deltarow</tt></b></h3>
+<h4><a name="STC_noweave"></a><b><tt>Microweave</tt></b>,
+<b><tt>noWeave</tt></b> and <b><tt>OutputCode=deltarow</tt></b></h4>
 
 <p>
 The first are two booleans, which implies that four combinations are
@@ -3350,7 +3922,7 @@ ESC/P2 code becomes smaller, but I have never observed faster printing
 speed.  Things tend to become slower with <b><tt>deltarow</tt></b> compared
 to <b><tt>Softweave</tt></b>.
 
-<h3><a name="STC_model"></a><b><tt>Model</tt></b></h3>
+<h4><a name="STC_model"></a><b><tt>Model</tt></b></h4>
 
 <p>
 Some ESC/P2 printers such as the Stylus 800 do not offer
@@ -3361,7 +3933,7 @@ compatible with the given printer model.  Currently only
 "<b><tt>st800</tt></b>" is supported besides the default
 <b><tt>stcolor</tt></b>.
 
-<h2><a name="STC_Pitfalls"></a>Bugs and pitfalls</h2>
+<h3><a name="STC_Pitfalls"></a>Bugs and pitfalls</h3>
 
 <ul>
 <li>The given <b><tt>?coding</tt></b> and <b><tt>?transfer</tt></b> arrays
@@ -3386,7 +3958,7 @@ modes and should always use <b><tt>stcolor.ps</tt></b>.  (I prefer
 360&times;720.)
 </ul>
 
-<h2><a name="STC_Tests"></a>Tests</h2>
+<h3><a name="STC_Tests"></a>Tests</h3>
 
 <p>
 This section gives an overview of performance in terms of processing and
@@ -3396,7 +3968,7 @@ printing speed without regard to speed of processing on the host, since at
 high resolutions, processing time is the same order of magnitude and thus
 may become the limiting factor.
 
-<h3><a name="STC_OutputCodes"></a>The various OutputCodes</h3>
+<h4><a name="STC_OutputCodes"></a>The various OutputCodes</h4>
 
 <p>
 I ran several files though Ghostscript and recorded the size of the
@@ -3515,7 +4087,7 @@ in the size of the code are achieved, "<b><tt>deltarow</tt></b>" is not
 competitive.  <b><tt>colorcir.ps</tt></b> shows savings with
 <b><tt>deltarow</tt></b>, but printing is a mess.
 
-<h3><a name="STC_printing_time"></a>Printing time related to other options</h3>
+<h4><a name="STC_printing_time"></a>Printing time related to other options</h4>
 
 <p>
 Full page halftone images printed, unless otherwise noted.
@@ -3776,7 +4348,7 @@ Full page halftone images printed, unless otherwise noted.
 	<td>&nbsp;
 </table></blockquote>
 
-<h2><a name="STC_acks"></a>Acknowledgments</h2>
+<h3><a name="STC_acks"></a>Acknowledgments</h3>
 
 <p>
 This driver was copied from <b><tt>gdevcdj.c</tt></b> (Ghostscript 3.12),
@@ -3802,7 +4374,7 @@ Germany<br>
 
 <hr>
 
-<h1><a name="Uniprint"></a>uniprint, a flexible unified printer driver</h1>
+<h2><a name="Uniprint"></a>uniprint, a flexible unified printer driver</h2>
 
 <p>
 <b><tt>uniprint</tt></b> is a unified parametric driver by Gunther Hess
@@ -3982,7 +4554,7 @@ gs @stc.upp -sOutputFile=/dev/lp1 tiger.ps -c quit
 	<td>&nbsp;
 	<td>300&times;300dpi
 	<td>&nbsp;
-	<td>Color
+	<td>Color -- also good for 450C
 <tr valign=top>	<td>&nbsp;
 	<td><b><tt>dnj750m.upp</tt></b>
 	<td>&nbsp;
@@ -4060,6 +4632,26 @@ gs @stc.upp -sOutputFile=/dev/lp1 tiger.ps -c quit
 	<td>&nbsp;
 	<td>Plain Paper
 <tr>	<td>&nbsp;
+<tr>	<th align=left colspan=6>Epson Stylus Color 300
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>stc300.upp</tt></b>
+	<td>&nbsp;
+	<td>360&times;360dpi
+	<td>&nbsp;
+	<td>32-bit CMYK, plain paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>stc300bl.upp</tt></b>
+	<td>&nbsp;
+	<td>180&times;180dpi
+	<td>&nbsp;
+	<td>black only, plain paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>stc300bm.upp</tt></b>
+	<td>&nbsp;
+	<td>360&times;360dpi
+	<td>&nbsp;
+	<td>black only, plain paper
+<tr>	<td>&nbsp;
 <tr>	<th align=left colspan=6>Epson Stylus Color 500 (good transfer curves for plain paper)
 <tr valign=top>	<td>&nbsp;
 	<td><b><tt>stc500p.upp</tt></b>
@@ -4101,6 +4693,51 @@ gs @stc.upp -sOutputFile=/dev/lp1 tiger.ps -c quit
 	<td>720&times;720dpi
 	<td>&nbsp;
 	<td>plain paper?
+
+
+
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640p.upp</tt></b>
+	<td>&nbsp;
+	<td>720&times;720dpi
+	<td>&nbsp;
+	<td>CMYK, plain paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640pg.upp</tt></b>
+	<td>&nbsp;
+	<td>720&times;720dpi
+	<td>&nbsp;
+	<td>grayscale, plain paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640pl.upp</tt></b>
+	<td>&nbsp;
+	<td>360&times;360dpi
+	<td>&nbsp;
+	<td>CMYK, plain paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640plg.upp</tt></b>
+	<td>&nbsp;
+	<td>360&times;360dpi
+	<td>&nbsp;
+	<td>grayscale, plain paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640ih.upp</tt></b>
+	<td>&nbsp;
+	<td>1440&times;720dpi
+	<td>&nbsp;
+	<td>CMYK, inkjet paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640ihg.upp</tt></b>
+	<td>&nbsp;
+	<td>1440&times;720dpi
+	<td>&nbsp;
+	<td>grayscale, inkjet paper
+
+
+
+
+
+
 <tr>	<td>&nbsp;
 <tr>	<th align=left colspan=6>Epson Stylus Color 800, 64/180-inch weaving
 <tr valign=top>	<td>&nbsp;
@@ -4168,7 +4805,10 @@ gs @stc.upp -sOutputFile=/dev/lp1 tiger.ps -c quit
 </table></blockquote>
 
 <p>
-Thanks to Danilo Beuche, Guido Classen, Mark Goldberg and  Hans-Heinrich Viehmann for providing the files for the stc200, hp690, stc500 and the stc640.
+Thanks to Danilo Beuche, Guido Classen, Mark Goldberg and Hans-Heinrich
+Viehmann for providing the files for the stc200, hp690, stc500 and the
+stc640.  Thanks to Michael Lossin &lt;losse@germanymail.com&gt; for the
+newer st640 parameter sets.
 
 <p>
 Please note the following:
@@ -4182,7 +4822,7 @@ usually not possible.
 <b><tt>stcany</tt></b>, but their gamma correction might be wrong.
 </ul></blockquote>
 
-<h2><a name="Uni_state"></a>The state of this driver</h2>
+<h3><a name="Uni_state"></a>The state of this driver</h3>
 
 <p>
 The coding of <b><tt>uniprint</tt></b> was triggered by the requirements of
@@ -4204,7 +4844,7 @@ primarily for printing on Canon printers from the pbmplus library. Starting
 with version 1.68 of uniprint, BJC support is available. Work on the
 <b><tt>hpdj</tt></b> integration will start after the update of my website.
 
-<h2><a name="Uni_background"></a>Notes on <b><tt>uniprint</tt></b>'s background</h2>
+<h3><a name="Uni_background"></a>Notes on <b><tt>uniprint</tt></b>'s background</h3>
 
 <p>
 <b><tt>uniprint</tt></b> is actually an update of <b><tt>stcolor</tt></b>,
@@ -4271,7 +4911,7 @@ parameterized are:
 <li>weaving.
 </ul></blockquote>
 
-<h2><a name="Uni_make_pfile"></a>Godzilla's guide to the creation of Unified Printer Parameter (<b><tt>.upp</tt></b>) files</h2>
+<h3><a name="Uni_make_pfile"></a>Godzilla's guide to the creation of Unified Printer Parameter (<b><tt>.upp</tt></b>) files</h3>
 
 <p>
 Here is one of the distributed parameter files (<b><tt>stc_l.upp</tt></b>)
@@ -4537,7 +5177,7 @@ pagedevice dictionary. This includes any parameters generated or changed by
 <b><tt>uniprint</tt></b>.
 </ul>
 
-<h2><a name="Uni_all_parameters"></a>All parameters in brief</h2>
+<h3><a name="Uni_all_parameters"></a>All parameters in brief</h3>
 
 <p>
 This table gives a brief explanation of every parameter known to
@@ -4920,7 +5560,7 @@ denotes that a parameter is an array, and "(RO)" that it is read-only.
 	<td>Yellow transfer
 </table></blockquote>
 
-<h2><a name="Uni_honors"></a><b><tt>uniprint</tt></b>'s Roll of Honor</h2>
+<h3><a name="Uni_honors"></a><b><tt>uniprint</tt></b>'s Roll of Honor</h3>
 
 <p>
 I should mention all of the people who were involved in
@@ -4960,10 +5600,661 @@ Germany<br>
 +49 203 376273 telephone (MET evening hours)<br>
 &lt;<a href="mailto:ghess@elmos.de">ghess@elmos.de</a>&gt;
 </address>
+<h3><a name="Uni_weaving_howto"></a><tt>Uniprint</tt> weaving parameters howto</h3>
+This section was contributed by Glenn Ramsey.<p>
+<p>I wrote this because the documentation was very brief and I really struggled
+with it for a while, but it is very simple once you understand what is going
+on.
+<p>This only describes how to work out the Y parameters, I haven't looked
+at the X parameters yet.
+<ol>
+<li>
+<b>Determine the nozzle geometry (upOutputPins)</b>
+<p>
+You need to know how many nozzles the printer has and the spacing between
+them. Usually you can find this out from the printer manual, or the printer
+supplier, but you may have to dissect a couple of printer output files
+produced with the driver supplied with the printer. There is a utility
+called escp2ras<a href="#escp2ras"><sup>*</sup></a> that will help with that.
+Sometimes the term pin is used instead of nozzle but they mean the same thing. 
+<p>The number of nozzles will be the value assigned to the upOutputPins
+parameter.
+<p>Actually you don't have to print with all the pins available but for
+the purpose of demonstration I'll assume that we are using them all.
+<p>
+<a name="escp2ras"></a>* escp2ras is available from Gunther Hess' page at <a href="http://www-md.e-technik.uni-rostock.de/ma/gunther/gs/index.html">http://www-md.e-technik.uni-rostock.de/ma/gunther/gs/index.html</a>
+</li>
+<p>
+<li><b>Determine how many passes are required (upWeaveYPasses)</b>
+<p>The number of passes required is going to depend on the required resolution
+and the nozzle spacing.
+<blockquote>
+<tt>passes = resolution * nozzle spacing
+</tt>
+</blockquote>
+This will be the value assigned to the upWeaveYPasses parameter.
+<p>For example if the desired resolution is 360 dpi and the nozzles are
+spaced at 1/90in then 360 * 1/90 = 4 passes are required. For 720 dpi 8
+passes would be required. The printer would, of course, have to be capable
+of moving the paper in increments of either 360 or 720 dpi too.
+</li>
+<p>
+<li>
+<b>Determine the normal Y feed increment (upWeaveYFeeds)</b>
+<p>
+You need to work out how much to feed the paper so that when the paper
+has moved by one head length in however many passes you have then each
+row space on the paper has been passed over by at least one nozzle. There
+will be one feed value for each pass and the feed values must comply with
+the following rules:
+<blockquote>
+<tt>
+<p>sum of feeds = passes * nozzles
+<br>feed%passes != 0 (feed is not exactly divisible by passes)
+<br>sum of (nozzles - feed) = 0
+</tt>
+</blockquote>
+<p>For example if passes=4 and nozzles=15, then sum of feeds=60. The feed
+values could be 1,1,1,57 or 15,15,15,15 or 14,15,18,13.
+<p>These values will be assigned to the upWeaveYFeeds parameter.
+<p>You would need to experiment to see what combination looks best on the
+printer.
+<p>I found it convenient to draw several lines of nozzles and then move
+them around to see how the different combinations would fill the paper.
+A computer drawing tool makes this easier than pencil and paper (I used
+Dia, a GNOME app). The number of nozzles would probably be be a good place
+to start.
+<p>Remember that if the number of passes is more than 1 then the feed increment
+will be less than the nozzle spacing and <tt>passes &times; feed increment size</tt>
+must equal the physical distance between each nozzle.
+</li>
+<p>
+<li>
+<b>Determine the beginning of page pins (upWeaveInitialPins)</b>
+<p>
+These values will be assigned to the upWeaveInitialPins parameter and are
+the numbers of nozzles to operate in each of the initial passes at the top
+of a page. The nozzles that the values refer to are the topmost nozzles
+on the head, nearest the top margin. If the image doesn't start at the
+top margin then uniprint doesn't use these feeds.
+<p>I don't know a mathematical relation for this except that at least one
+of the values must be the number of nozzles, but I'm sure that there must
+be one. I used a graphical method, the description that follows refers
+to the ascii diagram in below.
+<p>Draw a line of nozzles for each pass arranged as they would be using
+the normal Y feed increment determined in step 3. In the diagram below
+this would be passes 5-8.
+<p>Draw a line of nozzles that would print just before the first normal
+pass. The feed increment for this pass will be close to and most likely
+1 or 2 units less than the feed increment of the last normal pass. In the
+example below this line is pass 4 and the feed increment is 13 whereas
+the normal feed increment is 15.
+<p>Draw each pass before that with a small feed increment so that if all
+of the nozzles appearing above the first nozzle of the first normal pass
+operate then all of the spaces will be filled. This feed increment is usually
+1 except in cases where some jiggery pokery is going on to make the printer
+print at an apparent higher resolution than the nozzle diameter.
+<p>Now select the nozzles that will operate in each of theses initial passes
+so that the paper is filled. In each pass the nozzles must be adjacent
+to each other and at least one of the passes will have all the nozzles
+operating. I suspect that for each combination of normal Y feed increments
+there will only be one set of valid beginning of page increments.
+</li>
+</ol>
+<h4>Example: stc.upp from Aladdin Ghostscript 6.01</h4>
+15 nozzles spaced at 1/90 in, 360 dpi requires 4 passes.
+<blockquote><tt><pre>
+-dupWeaveYPasses=4
+-dupOutputPins=15
+-dupWeaveYFeeds="{15 15 15 15}"
+-dupWeaveInitialYFeeds="{1 1 1 13}"
+-dupWeaveInitialPins="{ 4 15 11 7}"
+</pre></tt></blockquote>
+The following diagram shows which nozzles operate during each pass.
+<br>Passes 1-4 are beginning of page passes and passes 5-8 are normal passes.
+<blockquote>
+<p>x=nozzle operates, o=nozzle not used in this pass<tt></tt>
+<p><tt>&nbsp; 1 2 3 4 5 6 7 8 - pass no</tt>
+<br><tt>0 x</tt>
+<br><tt>1&nbsp;&nbsp; x</tt>
+<br><tt>2&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>4 x</tt>
+<br><tt>5&nbsp;&nbsp; x</tt>
+<br><tt>6&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>8 x</tt>
+<br><tt>9&nbsp;&nbsp; x</tt>
+<br><tt>0&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>2 x</tt>
+<br><tt>3&nbsp;&nbsp; x</tt>
+<br><tt>4&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>6 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>7&nbsp;&nbsp; x</tt>
+<br><tt>8&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>0 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>1&nbsp;&nbsp; x</tt>
+<br><tt>2&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>4 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>5&nbsp;&nbsp; x</tt>
+<br><tt>6&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>8 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>9&nbsp;&nbsp; x</tt>
+<br><tt>0&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp; x</tt>
+<br><tt>2 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>3&nbsp;&nbsp; x</tt>
+<br><tt>4&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp; x</tt>
+<br><tt>6 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>7&nbsp;&nbsp; x</tt>
+<br><tt>8&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp; x</tt>
+<br><tt>0 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>1&nbsp;&nbsp; x</tt>
+<br><tt>2&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp; x</tt>
+<br><tt>4 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>5&nbsp;&nbsp; x</tt>
+<br><tt>6&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp; x</tt>
+<br><tt>8 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>9&nbsp;&nbsp; x</tt>
+<br><tt>0&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp; x</tt>
+<br><tt>2 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>3&nbsp;&nbsp; x</tt>
+<br><tt>4&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp; x</tt>
+<br><tt>6 o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>7&nbsp;&nbsp; x</tt>
+<br><tt>8&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; o&nbsp;&nbsp; x</tt>
+<br><tt>0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>6</tt>
+<br><tt>7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>0</tt>
+<br><tt>1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>4</tt>
+<br><tt>5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x</tt>
+<br><tt>8</tt>
+<br><tt>9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>1</tt>
+<br><tt>2</tt>
+<br><tt>3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>5</tt>
+<br><tt>6</tt>
+<br><tt>7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>9</tt>
+<br><tt>0</tt>
+<br><tt>1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>3</tt>
+<br><tt>4</tt>
+<br><tt>5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>6</tt>
+<br><tt>7</tt>
+<br><tt>8</tt>
+<br><tt>9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>0</tt>
+<br><tt>1</tt>
+<br><tt>2</tt>
+<br><tt>3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+<br><tt>4</tt>
+<br><tt>5</tt>
+<br><tt>6</tt>
+<br><tt>7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+x</tt>
+</blockquote>
+<p>These parameters would also work:
+<blockquote><tt><pre>
+-dupWeaveYPasses=4
+-dupOutputPins=15
+-dupWeaveYFeeds="{14 15 18 13}"
+-dupWeaveInitialYFeeds="{1 1 1 13}"
+-dupWeaveInitialPins="{ 4 11 7 15}"
+</pre></tt></blockquote>
+<p>
+<hr>
+<h3><a name="Uni_esc300"></a>Extension to <tt>uniprint</tt> for the Epson Stylus Color 300</h3>
+This section was contributed by Glenn Ramsey.<p>
+The Epson Stylus Color 300 uses a different command set to other Epson
+Stylus Color printers that use the ESC/P2 language. As far as I can
+tell its commands are a subset of ESC/P2. In ESC/P2 the colour to be
+printed is selected by a 'set colour' command and then the data sent
+is only printed in that colour until the colour is changed with another
+'set colour' command. The Stylus Color 300 lacks this functionality.
+The data sent to the printer maps directly to the ink nozzles and colour
+of an output scan line in the printed output is determined by the position
+of the scan line within the data. This means that the driver must know
+how the nozzles are arranged and must format the output accordingly.
+The extension adds a format that I have called EscNozzleMap and adds some
+ additional parameters to uniprint.<br>
+<ul>
+  <li><b><tt>upOutputFormat</tt></b>selects the output method, and should be set to the value
+<b><tt>/EscNozzleMap</tt></b> to select this format.
+    <blockquote>
+      <table cellpadding="0" cellspacing="0">
+        <tbody>
+          <tr valign="Top">
+            <td><b><tt>/EscNozzleMap</tt></b></td>
+            <td>&nbsp;</td>
+            <td>produces output for the Epson Stylus Color 300
+	    </td>
+          </tr>
+         <tbody>
+       </table>
+     </blockquote>
+</ul>
 
+<blockquote>
+  <table cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <th colspan="5" bgcolor="#cccc00">
+        <hr><font size="+1"><b><tt>uniprint</tt></b> parameters for the
+        EscNozzleMap format</font>
+        <hr></th>
+      </tr>
+      <tr valign="Bottom">
+        <th align="Left">Parameter
+	</th>
+        <td>&nbsp;
+	</td>
+        <th align="Left">Type
+	</th>
+        <td>&nbsp;&nbsp;&nbsp;
+	</td>
+        <th align="Left">Use
+	</th>
+      </tr>
+      <tr>
+        <td colspan="5">
+        <hr></td>
+      </tr>
+      <tr valign="Top">
+        <td><b><tt>upNozzleMapRowsPerPass</tt></b></td>
+        <td>&nbsp;
+	</td>
+        <td>Int
+	</td>
+        <td>&nbsp;
+	</td>
+        <td>output rows to generate for each pass of the head
+	</td>
+      </tr>
+      <tr valign="Top">
+        <td><b><tt>upNozzleMapPatternRepeat</tt></b></td>
+        <td>&nbsp;
+	</td>
+        <td>Int
+	</td>
+        <td>&nbsp;
+	</td>
+        <td>no. of rows that correspond to the repeat pattern of the
+        nozzles 
+	</td>
+      </tr>
+      <tr valign="Top">
+        <td><b><tt>upNozzleMapRowMask</tt></b></td>
+        <td>&nbsp;
+	</td>
+        <td>Int[]
+	</td>
+        <td>&nbsp;
+	</td>
+        <td>mask indicating the colour of the nozzles
+	</td>
+      </tr>
+      <tr valign="Top">
+        <td><b><tt>upNozzleMapMaskScanOffset</tt></b></td>
+        <td>&nbsp;
+	</td>
+        <td>Int[]
+	</td>
+        <td>&nbsp;
+	</td>
+        <td>mask indicating the physical position of the nozzles
+	</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h4>A more detailed description of the new parameters</h4>
+<ul>
+  <li><b><tt>upNozzleMapRowsPerPass</tt></b><br>
+  The number of rows of data that are required to address all nozzles for a
+  single pass of the head. There will always be this number of rows of output
+  data generated. I'd expect it to be the same as the total number of nozzles but
+  it wouldn't break the formatter if it wasn't. So if you wanted to print with
+  only the 10th nozzle then row 10 would contain data corresponding to the bit
+  pattern and all of the others would be padded with zeros.
+  </li>
+  <li><b><tt>upNozzleMapPatternRepeat</tt></b><br>
+  The number of nozzles in each repeated group on the printing head.
+  This parameter must correspond with the length of the upNozzleMapRowMask array.
+  </li>
+  <li><b><tt>upNozzleMapRowMask</tt></b><br>
+  An array of integers that defines the colour of the nozzles on the
+  head and whether the nozzles will be used to print. The array index
+  defines the row index for the nozzle in the output data
+  and the value defines the colour of the nozzle. The mapping
+  of colours to values is defined in the table below.
+        <blockquote>
+          <table cellpadding="0" cellspacing="0">
+            <tbody>
+              <tr valign="Bottom">
+                <th align="Left">colour
+	        </th>
+                <td>&nbsp;
+	        </td>
+                <th align="center">mask value
+	        </th>
+              </tr>
+              <tr>
+                <td colspan="5">
+                <hr></td>
+              </tr>
+              <tr valign="Top" align="middle">
+                <td><b><tt>K</tt></b></td>
+                <td>&nbsp;
+	        </td>
+                <td>1
+	        </td>
+              </tr>
+              <tr valign="Top" align="middle">
+                <td><b><tt>C</tt></b></td>
+                <td>&nbsp;
+	        </td>
+                <td>2
+              </tr>
+              <tr valign="Top" align="middle">
+                <td><b><tt>M</tt></b></td>
+                <td>&nbsp;
+	        </td>
+                <td>3
+                </td>
+              </tr>
+              <tr valign="Top" align="middle">
+                <td><b><tt>Y</tt></b></td>
+                <td>&nbsp;
+	        </td>
+                <td>4
+	        </td>
+              </tr>
+              <tr valign="Top" align="middle">
+                <td><b><tt>no data</tt></b></td>
+                <td>&nbsp;
+	        </td>
+                <td>0
+	        </td>
+              </tr>
+            </tbody>
+          </table>
+        </blockquote>
+  A value of 0 means that the nozzle is not used and the row in the output data will be
+  padded with zeros.<br>
+  </li>
+  <li><b><tt>upNozzleMapMaskScanOffset</tt></b><br>
+  An array of integers that defines the physical position of the nozzles relative
+  to the first nozzle in the repeated group. The relative distance is measured in
+  printed line widths and will be different for different printing resolutions.
+  This parameter is used because the physical spacing of the nozzles may not
+  correspond to their mapping in the output data. For example the ESC300 has nozzles
+  physically arranged something like this:
+  <table>
+    <tr>
+      <td bgcolor="#00ffff">&nbsp;
+      </td>
+      <td bgcolor="#ffff00">&nbsp;
+      </td>
+      <td bgcolor="#000000">&nbsp;
+      </td>
+      <td bgcolor="#ff00ff">&nbsp;
+      </td>
+      <td bgcolor="#000000">&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td bgcolor="#000000">&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td bgcolor="#00ffff">&nbsp;
+      </td>
+      <td bgcolor="#ffff00">&nbsp;
+      </td>
+      <td bgcolor="#000000">&nbsp;
+      </td>
+      <td bgcolor="#ff00ff">&nbsp;
+      </td>
+      <td bgcolor="#000000">&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td bgcolor="#000000">&nbsp;
+      </td>
+      <td bgcolor="#ffffff">&nbsp;
+      </td>
+    </tr>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td bgcolor="#00ffff">&nbsp;
+      </td>
+      <td bgcolor="#ffff00">&nbsp;
+      </td>
+      <td bgcolor="#000000">&nbsp;
+      </td>
+      <td bgcolor="#ff00ff">&nbsp;
+      </td>
+      <td bgcolor="#000000">&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td bgcolor="#000000">&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td>&nbsp;
+      </td>
+      <td bgcolor="#00ffff">&nbsp;
+      </td>
+      <td bgcolor="#ffff00">&nbsp;
+      </td>
+      <td>etc ...
+      </td>
+
+    <tr>
+    </tr>    
+  </table>
+  There is a one nozzle width space between the last two nozzles in each group.
+  In the output data the data for the last nozzle in the group would be in row 5
+  (numbering starts at 0) but the nozzle is physically positioned at 6 spaces from
+  the first nozzle. 
+</ul>
+<h4>Example 1 - Epson Stylus Color 300 - 360 dpi colour</h4>
+<blockquote><pre>
+-dupWeaveYPasses=6
+-dupOutputPins=11
+-dupWeaveYFeeds="{ 11 11 11 11 11 11 }"
+-dupWeaveInitialYFeeds="{ 1 1 1 1 1 7 }"
+-dupWeaveInitialPins="{ 2 11 9 7 5 3 }"
+-dupNozzleMapRowsPerPass=64
+-dupNozzleMapPatternRepeat=6
+-dupNozzleMapRowMask="{ 2 4 1 3 0 0 }"
+-dupNozzleMapMaskScanOffset="{ 0 1 2 3 0 0 }"
+</pre></blockquote>
+The weaving parameters are the same as for any other uniprint driver
+but they must be consistent with the nozzle map parameters. In this printer
+the coloured nozzles are spaced at 1/60" so 6 passes are required for 360
+dpi resolution.
+<p>
+In the example there are 64 rows of data required for each head pass. Each
+row must be completely filled with data for each pass so if certain nozzles
+do not print in the pass then the rows for those nozzles will be padded
+with zeroes.
+<P>
+The row mask translates to "C Y K M 0 0" so in the output data rows 0,7,13,...
+will contain data for cyan, rows 1,8,14,... will contain data for yellow, etc. Rows 4,10,16,...
+and 5, 11,15,... will always be padded with zeroes. The <i>upNozzleMapPatternRepeat</i>
+parameter defines the length of the mask.
+<p>
+The row mask is repeated for each group of <i>upNozzleMapPatternRepeat</i> rows
+in the output data. In this case there are 64 rows so there will be 10 groups
+of "C Y K M 0 0" followed by "C Y K M" which is equivalent to 11 output
+pins.
+<P>
+The <i>upNozzleMaskScanOffset</i> array indicates how the data from the scan
+buffer is mapped to the output data. The data is presented to the formatter
+as a buffer of four colour scanlines. The index of the scanline being printed,
+lets call it y, always corresponds, in this example, to the physical position of
+the cyan nozzle but since the nozzles are not on the same horizontal
+line then the other colours for the current pass must come from other
+scanlines in the scan buffer. The example is { 0 1 2 3 0 0 }, this means that
+when printing a 4 colour image the magenta data would come from scanline y+3,
+the black from scanline y+2, etc. It would have been possible in this case
+to use the array index instead of the <i>upNozzleMaskScanOffset</i> parameter
+however the parameter is necessary to be able to use the full capability of the
+printer in black only mode.
+
+<h4>Example 2 - Epson Stylus Color 300 - 180 dpi black only</h4>
+<blockquote>
+<pre>
+-dupMargins="{ 9.0 39.96 9.0 9.0}"
+-dupWeaveYPasses=1
+-dupOutputPins=31
+-dupNozzleMapRowsPerPass=64
+-dupNozzleMapPatternRepeat=6
+-dupNozzleMapRowMask="{ 0 0 1 0 1 1}"
+-dupNozzleMapMaskScanOffset="{ 0 0 0 0 1 2 }"
+</pre>
+</blockquote>
+In this example there is no weaving.
+<p>
+The ESC300 has black nozzles evenly physically arranged as K K K but the data must
+be sent to the printer as 00K0KK. This is handled by the <i>upNozzleMapRowMask</i>
+and <i>upNozzleMaskScanOffset</i> arrays. The <i>upNozzleMapRowMask</i>  array is
+{ 0 0 1 0 1 1} which translates to { 0 0 K 0 K K } so rows 0, 1 and 3 will always
+contain zeros and the other rows will contain data.
+<p>
+The <i>upNozzleMaskScanOffset</i> array
+in this case is { 0 0 0 0 1 2 } so if the data for the 1st nozzle comes from row
+y in the scan buffer then the data for the 2nd and 3rd nozzles will come from rows
+y+1 and y+2.
+
+<h4>Example 3 - Epson Stylus Color 300 - 360 dpi black only</h4>
+<blockquote>
+<pre>
+-dupWeaveYPasses=2
+-dupOutputPins=31
+-dupWeaveYFeeds="{31 31}"
+-dupWeaveInitialYFeeds="{1 31}"
+-dupWeaveInitialPins="{16 31}"
+-dupNozzleMapRowsPerPass=64
+-dupNozzleMapPatternRepeat=6
+-dupNozzleMapRowMask="{ 0 0 1 0 1 1}"
+-dupNozzleMapMaskScanOffset="{ 0 0 0 0 2 4 }"
+</pre>
+</blockquote>
+In this example 2 weave passes are required to achieve the desired resolution.
+<p>
+The <i>upNozzleMaskScanOffset</i> array in this case is { 0 0 0 0 2 4 } because
+there are two weave passes so if the data for the first nozzle comes from row y
+in the scan buffer then the data for the 2nd and 3rd nozzles must come from rows
+y+(1*2) and y+(2*2).
+<p>
+<address>
+Glenn Ramsey<br>
+glennr at users.sourceforge.net<br>
+February 2001
+</address>
+<br>
 <hr>
 
-<h1><a name="SPARCprinter"></a>Sun SPARCprinter</h1>
+<h2><a name="SPARCprinter"></a>Sun SPARCprinter</h2>
 
 <p>
 This section was contributed by Martin Schulte.
@@ -4984,7 +6275,7 @@ The problem is that there has yet been no effort to make the SPARCPrinter
 driver behave like a BSD output filter.  I made my tests using the script
 shown here.
 
-<h2><a name="SPARC_install"></a>Installation</h2>
+<h3><a name="SPARC_install"></a>Installation</h3>
 
 <p>
 Add <b><tt>sparc.dev</tt></b> to <b><tt>DEVICE_DEVS</tt></b> and compile
@@ -5006,7 +6297,7 @@ else
 fi
 </pre></blockquote>
 
-<h2><a name="SPARC_problems"></a>Problems</h2>
+<h3><a name="SPARC_problems"></a>Problems</h3>
 
 <p>
 Since <b><tt>/dev/lpi</tt></b> can be opened only for exclusive use, if
@@ -5026,7 +6317,7 @@ the print job to be terminated.
 
 <hr>
 
-<h1><a name="Apple"></a>Apple dot matrix printer</h1>
+<h2><a name="Apple"></a>Apple dot matrix printer</h2>
 
 <p>
 This section was contributed by Mark Wedel
@@ -5065,21 +6356,21 @@ meet your needs.
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 2000 Aladdin Enterprises.
+All rights reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 
 </body>
 </html>
+

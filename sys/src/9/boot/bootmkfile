@@ -8,7 +8,7 @@ BOOTFILES=\
 	bootcache.$O\
 	bootip.$O\
 	local.$O\
-	rc.$O\
+	embed.$O\
 	settime.$O\
 	sac.$O\
 	paq.$O\

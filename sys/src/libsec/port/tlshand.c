@@ -2072,7 +2072,7 @@ rsacomp(Bytes* block, RSApub* key, int modlen)
 	return ybytes;
 }
 
-// encrypt data according to PKCS#1, /lib/rfc/rfc2437
+// encrypt data according to PKCS#1, /lib/rfc/rfc2437 9.1.2.1
 static Bytes*
 pkcs1_encrypt(Bytes* data, RSApub* key, int blocktype)
 {

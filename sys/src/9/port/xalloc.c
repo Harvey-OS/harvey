@@ -87,7 +87,6 @@ void*
 xspanalloc(ulong size, int align, ulong span)
 {
 	ulong a, v, t;
-
 	a = (ulong)xalloc(size+align+span);
 	if(a == 0)
 		panic("xspanalloc: %lud %d %lux\n", size, align, span);

@@ -1,22 +1,22 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: sdeparam.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: sdeparam.c,v 1.4 2001/09/01 23:54:57 raph Exp $ */
 /* DCTEncode filter parameter setting and reading */
 #include "memory_.h"
 #include "jpeglib_.h"
@@ -103,10 +103,8 @@ s_DCTE_get_params(gs_param_list * plist, const stream_DCT_state * ss, bool all)
     int code;
 
     if (!all) {
-	jpeg_compress_data *jcdp_default =
-	(jpeg_compress_data *)
-	gs_alloc_bytes_immovable(mem, sizeof(*jcdp), "s_DCTE_get_params");
-
+	jpeg_compress_data *jcdp_default = gs_alloc_struct_immovable(mem,
+           jpeg_compress_data, &st_jpeg_compress_data, "s_DCTE_get_params");
 	if (jcdp_default == 0)
 	    return_error(gs_error_VMerror);
 	defaults = &dcts_defaults;
@@ -212,29 +210,10 @@ s_DCTE_put_params(gs_param_list * plist, stream_DCT_state * pdct)
 	params.Blend < 0 || params.Blend > 1
 	)
 	return_error(gs_error_rangecheck);
-/****** HACK: SET DEFAULTS HERE ******/
     jcdp->Picky = 0;
     jcdp->Relax = 0;
-    if ((code = s_DCT_put_params(plist, pdct)) < 0 ||
-	(code = s_DCT_put_huffman_tables(plist, pdct, false)) < 0
-	)
+    if ((code = s_DCT_put_params(plist, pdct)) < 0)
 	return code;
-    switch ((code = s_DCT_put_quantization_tables(plist, pdct, false))) {
-	case 0:
-	    break;
-	default:
-	    return code;
-	case 1:
-	    /* No QuantTables, but maybe a QFactor to apply to default. */
-	    if (pdct->QFactor != 1.0) {
-		code = gs_jpeg_set_linear_quality(pdct,
-					     (int)(min(pdct->QFactor, 100.0)
-						   * 100.0 + 0.5),
-						  TRUE);
-		if (code < 0)
-		    return code;
-	    }
-    }
     /* Set up minimal image description & call set_defaults */
     jcdp->cinfo.image_width = params.Columns;
     jcdp->cinfo.image_height = params.Rows;
@@ -254,6 +233,24 @@ s_DCTE_put_params(gs_param_list * plist, stream_DCT_state * pdct)
     }
     if ((code = gs_jpeg_set_defaults(pdct)) < 0)
 	return code;
+    if ((code = s_DCT_put_huffman_tables(plist, pdct, false)) < 0)
+	return code;
+    switch ((code = s_DCT_put_quantization_tables(plist, pdct, false))) {
+	case 0:
+	    break;
+	default:
+	    return code;
+	case 1:
+	    /* No QuantTables, but maybe a QFactor to apply to default. */
+	    if (pdct->QFactor != 1.0) {
+		code = gs_jpeg_set_linear_quality(pdct,
+					     (int)(min(pdct->QFactor, 100.0)
+						   * 100.0 + 0.5),
+						  TRUE);
+		if (code < 0)
+		    return code;
+	    }
+    }
     /* Change IJG colorspace defaults as needed;
      * set ColorTransform to what will go in the Adobe marker.
      */

@@ -161,10 +161,10 @@ pipestat(Chan *c, uchar *db, int n)
 		devdir(c, c->qid, ".", 0, eve, DMDIR|0555, &dir);
 		break;
 	case Qdata0:
-		devdir(c, c->qid, "data", qlen(p->q[0]), eve, 0660, &dir);
+		devdir(c, c->qid, "data", qlen(p->q[0]), eve, 0600, &dir);
 		break;
 	case Qdata1:
-		devdir(c, c->qid, "data1", qlen(p->q[1]), eve, 0660, &dir);
+		devdir(c, c->qid, "data1", qlen(p->q[1]), eve, 0600, &dir);
 		break;
 	default:
 		panic("pipestat");

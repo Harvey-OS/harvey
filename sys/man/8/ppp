@@ -25,6 +25,10 @@ ppp, pppoe, pptp, pptpd \- point to point protocol
 .I modemcmd
 ]
 [
+.B -M
+.I chatfile
+]
+[
 .I local
 [
 .I remote
@@ -156,6 +160,11 @@ use the IP stack mounted at
 before starting the PPP protocol, write
 .I modemcmd
 to the device
+.TP
+.B M
+chat with the modem as specified in the chat file.  Each line in
+the chat file contains a string that is transmitted to the modem
+and the response expected (e.g. 'AT' 'OK')
 .TP
 .B c
 disallow packet compression

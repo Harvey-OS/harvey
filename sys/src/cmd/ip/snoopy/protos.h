@@ -7,6 +7,7 @@ extern Proto rarp;
 extern Proto udp;
 extern Proto bootp;
 extern Proto dhcp;
+extern Proto hdlc;
 extern Proto tcp;
 extern Proto il;
 extern Proto icmp;

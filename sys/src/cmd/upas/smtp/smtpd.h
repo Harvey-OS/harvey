@@ -1,4 +1,3 @@
-
 enum {
 	ACCEPT = 0,
 	REFUSED,
@@ -38,13 +37,14 @@ extern	List	ourdoms;
 extern	ulong	peerip;
 extern	int	trusted;
 
+void	auth(String *);
 int	blocked(String*);
 int	cidrcheck(char*);
 void	data(void);
 char*	dumpfile(char*);
 int	forwarding(String*);
 void	getconf(void);
-void	hello(String*);
+void	hello(String*, int extended);
 void	help(String *);
 void	listadd(List*, String*);
 void	listfree(List*);

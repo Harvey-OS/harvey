@@ -58,25 +58,43 @@ struct Table {
 static int
 partitiongeometry(Disk *disk)
 {
-	int i, h, s;
+	char *rawname;
+	int i, h, rawfd, s;
 	uchar buf[512];
 	Table *t;
 
+	t = (Table*)(buf + Toffset);
 
-	if(seek(disk->fd, 0, 0) < 0) {
+	/*
+	 * look for an MBR first in the /dev/sdXX/data partition, otherwise
+	 * attempt to fall back on the current partition.
+	 */
+	rawname = malloc(strlen(disk->prefix) + 5);	/* prefix + "data" + nul */
+	if(rawname == nil)
 		return -1;
+
+	strcpy(rawname, disk->prefix);
+	strcat(rawname, "data");
+	rawfd = open(rawname, OREAD);
+	free(rawname);
+	if(rawfd >= 0
+	&& seek(rawfd, 0, 0) >= 0
+	&& readn(rawfd, buf, 512) == 512
+	&& t->magic[0] == Magic0
+	&& t->magic[1] == Magic1) {
+		close(rawfd);
+	} else {
+		if(rawfd >= 0)
+			close(rawfd);
+		if(seek(disk->fd, 0, 0) < 0
+		|| readn(disk->fd, buf, 512) != 512
+		|| t->magic[0] != Magic0
+		|| t->magic[1] != Magic1) {
+			return -1;
+		}
 	}
-
-	if(readn(disk->fd, buf, 512) != 512) {
-		return -1;
-	}
-
-	t = (Table*)(buf+Toffset);
-	if(t->magic[0] != Magic0 || t->magic[1] != Magic1)
-		return -1;
 
 	h = s = -1;
-	
 	for(i=0; i<NTentry; i++) {
 		if(t->entry[i].type == 0)
 			continue;
@@ -277,13 +295,14 @@ opendisk(char *disk, int rdonly, int noctl)
 	if(noctl)
 		return openfile(d);
 
-	p = strdup(disk);
+	p = malloc(strlen(disk) + 4);	/* 4: slop for "ctl\0" */
 	if(p == nil) {
 		close(d->wfd);
 		close(d->fd);
 		free(d);
 		return nil;
 	}
+	strcpy(p, disk);
 
 	/* check for floppy(3) disk */
 	if(strlen(p) >= 7) {
@@ -322,6 +341,8 @@ opendisk(char *disk, int rdonly, int noctl)
 		return opensd(d);
 	}
 
+	*q = '\0';
+	d->prefix = p;
 	/* assume we just have a normal file */
 	d->type = Tfile;
 	return openfile(d);

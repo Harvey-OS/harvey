@@ -12,6 +12,7 @@ case go
 	fat=(/dev/sd*/9fat)
 	fat=$fat(1)
 	disk=`{echo $fat | sed 's:/dev/::;s:/9fat::'}
+	bootfs=`{echo $fs | sed 's:/dev/(sd..)/(.*):\1!\2:'}
 	if(! test -f /dev/$disk/9fat) {
 		echo 'You have no 9fat partition.  Can''t setup booting.'
 		exit
@@ -19,10 +20,13 @@ case go
 
 	if(! test -f /tmp/plan9.ini) {
 		{
-			echo bootfile'='$disk!9fat!9pcdisk
+			echo bootfile'='$bootfs!/386/9pcdisk
 			sfs=`{echo $fs | sed 's;/dev;#S;'}
 			echo 'bootdisk=local!'^$sfs
-			grep -v 'bootfile|bootdisk|bootargs|nobootprompt' /tmp/plan9.orig
+			grep -v '(^\[)|menuitem|adisk|bootfile|bootdisk|bootargs|nobootprompt|mouseport|vgasize|monitor|cdboot' /tmp/plan9.orig
+			echo 'mouseport='^$mouseport
+			echo 'monitor='^$monitor
+			echo 'vgasize='^$vgasize
 		} >/tmp/plan9.ini
 	}
 	if(! test -f /tmp/plan9ini.bak)
@@ -60,8 +64,6 @@ case go
 			logprog mv /n/9fat/plan9.ini /n/9fat/plan9-3e.ini
 		if(test -f /n/9fat/9pcdisk && ! test -f /n/9fat/9pc3e)
 			logprog mv /n/9fat/9pcdisk /n/9fat/9pc3e
-
-		logprog cp /n/kfs/386/9pcdisk /n/9fat
 
 		awk -f /bin/inst/mkini.awk >/n/9fat/plan9.ini
 		>/n/9fat/4e

@@ -1,22 +1,22 @@
-/* Copyright (C) 1994, 1995, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/*$Id: gdevdfax.c,v 1.1 2000/03/09 08:40:41 lpd Exp $*/
+/*$Id: gdevdfax.c,v 1.4 2001/02/12 21:02:51 alexcher Exp $*/
 /* DigiBoard fax device. */
 /***
  *** Note: this driver is maintained by a user: please contact
@@ -25,6 +25,7 @@
 #include "gdevprn.h"
 #include "strimpl.h"
 #include "scfx.h"
+#include "gdevfax.h"
 #include "gdevtfax.h"
 
 /* Define the device parameters. */
@@ -79,7 +80,7 @@ dfax_print_page(gx_device_printer *dev, FILE *prn_stream)
 	static char hdr[64] = "\000PC Research, Inc\000\000\000\000\000\000";
 	int code;
 
-	gdev_fax_init_state(&state, dev);
+	gdev_fax_init_state(&state, (gx_device_fax *)dev);
 	state.EndOfLine = true;
 	state.EncodedByteAlign = true;
 

@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1995, 1998 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 1995, 1998, 2001 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gstypes.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gstypes.h,v 1.3 2001/08/25 06:46:21 lpd Exp $ */
 /* Miscellaneous common types for Ghostscript library */
 
 #ifndef gstypes_INCLUDED
@@ -36,6 +36,11 @@ typedef ulong gs_id;
  * Define a sensible representation of a string, as opposed to
  * the C char * type (which can't store arbitrary data, represent
  * substrings, or perform concatenation without destroying aliases).
+ *
+ * If a byte * pointer P is the result of allocating a string of size N,
+ * then any substring of [P .. P+N) is a valid gs_string, i.e., any
+ * gs_string S is valid (until the string is deallocated) if it has P <=
+ * S.data and S.data + S.size <= P + N.
  */
 #define GS_STRING_COMMON\
     byte *data;\
@@ -52,8 +57,12 @@ typedef struct gs_const_string_s {
 
 /*
  * Since strings are allocated differently from ordinary objects, define a
- * structure that can reference either a string (if bytes == 0) or a byte
- * object (if bytes != 0, in which case data+size point within the object).
+ * structure that can reference either a string or a byte object.  If bytes
+ * == 0, data and size are the same as for a gs_string.  If bytes != 0, data
+ * and size point within the object addressed by bytes (i.e., the bytes
+ * member plays the role of P in the consistency condition given for
+ * gs_string above).  Thus in either case, code can process the string using
+ * only data and size: bytes is only relevant for garbage collection.
  *
  * Note: for garbage collection purposes, the string_common members must
  * come first.

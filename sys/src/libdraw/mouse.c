@@ -44,7 +44,7 @@ readmouse(Mousectl *mc)
 
 static
 void
-ioproc(void *arg)
+_ioproc(void *arg)
 {
 	int n, nerr, one;
 	char buf[1+5*12];
@@ -119,7 +119,7 @@ initmouse(char *file, Image *i)
 	mc->image = i;
 	mc->c = chancreate(sizeof(Mouse), 0);
 	mc->resizec = chancreate(sizeof(int), 2);
-	proccreate(ioproc, mc, 4096);
+	proccreate(_ioproc, mc, 4096);
 	return mc;
 }
 

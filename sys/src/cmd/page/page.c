@@ -55,6 +55,25 @@ bell(void *u, char *x)
 	return 0;
 }
 
+static int
+afmt(Fmt *fmt)
+{
+	char *s;
+
+	s = va_arg(fmt->args, char*);
+	if(s == nil || s[0] == '\0')
+		return fmtstrcpy(fmt, "");
+	else
+		return fmtprint(fmt, "%#q", s);
+}
+
+void
+usage(void)
+{
+	fprint(2, "usage: page [-biRrw] [-p ppi] file...\n");
+	exits("usage");
+}
+
 void
 main(int argc, char **argv)
 {
@@ -78,6 +97,10 @@ main(int argc, char **argv)
 	case 'a':
 		doabort++;
 		break;
+	case 'T':
+		textbits = atoi(EARGF(usage()));
+		gfxbits = atoi(EARGF(usage()));
+		break;
 
 	/* real options */
 	case 'R':
@@ -87,7 +110,7 @@ main(int argc, char **argv)
 		reverse = 1;
 		break;
 	case 'p':
-		ppi = atoi(ARGF());
+		ppi = atoi(EARGF(usage()));
 		break;
 	case 'b':
 		truetoboundingbox = 1;
@@ -100,8 +123,7 @@ main(int argc, char **argv)
 		imagemode = 1;
 		break;
 	default:
-		fprint(2, "usage: page file...\n");
-		wexits("usage");
+		usage();
 	}ARGEND;
 
 	notegp = getpid();
@@ -129,6 +151,9 @@ main(int argc, char **argv)
 		close(0);
 		open("/dev/cons", OREAD);
 	}
+
+	quotefmtinstall();
+	fmtinstall('a', afmt);
 
 	fmtinstall('R', Rfmt);
 	fmtinstall('P', Pfmt);

@@ -1,19 +1,19 @@
 d=/n/sources/plan9
-x=`{9fs sources; 9fs emelieother}
+x=`{9fs sources; mount /srv/emelie /n/emelieother other}
 
 cd:V: /n/emelieother/rsc/plan9.iso
 
 /n/emelieother/rsc/plan9.iso:DV:
 	t=/tmp/pdf.$pid
 	mkdir $t
-	mv $d/sys/doc/*.pdf $t
+	#mv $d/sys/doc/*.pdf $t
 	@{cd pc; mk cddisk; cd ..}
 	rm -f $target
 	bind pc/cddisk cdstub/bootdisk.img
 	bind -a cdstub $d
 	disk/mk9660 -9cj -v 'Plan 9 4th Edition' -s $d \
 		-b bootdisk.img $target
-	mv $t/*.pdf $d/sys/doc
+	#mv $t/*.pdf $d/sys/doc
 	rm $t
 
 scan:V:
@@ -62,7 +62,7 @@ dump:V:
 	rm -f /srv/9660.xxx
 	9660srv 9660.xxx
 	mount /srv/9660.xxx /n/kremvax /n/emelieother/rsc/plan9.iso
-	now=`{/usr/rsc/bin/$cputype/mtime /sys/lib/dist/web.protect/plan9.iso.bz2 | awk '{print $2}'}
+	now=`{mtime /sys/lib/dist/web.protect/plan9.iso.bz2 | awk '{print $1}'}
 	ls -l /rls/plan9/4e.iso
 	disk/dump9660 -9cj -s /n/kremvax -n $now /rls/plan9/4e.iso
 	ls -l /rls/plan9/4e.iso

@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxdevice.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxdevice.h,v 1.4.6.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Definitions for device implementors */
 
 #ifndef gxdevice_INCLUDED
@@ -31,6 +31,11 @@
  * for these.  (Eventually they should go away.)
  */
 #include "gsmalloc.h"
+/*
+ * Similarly, quite a few drivers reference stdout and/or stderr.
+ * (Eventually these references must go away.)
+ */
+#include "gxstdio.h"
 
 /*
  * NOTE: if you write code that creates device instances (either with
@@ -91,12 +96,15 @@
  */
 #define std_device_part2_(width, height, x_dpi, y_dpi)\
 	{ gx_no_color_index, gx_no_color_index }, width, height,\
-	{ (((width) * 72.0 + 0.5) - 0.5) / (x_dpi),\
-	  (((height) * 72.0 + 0.5) - 0.5) / (y_dpi) },\
-	{ 0, 0, 0, 0 }, 0/*false*/, { x_dpi, y_dpi }, { x_dpi, y_dpi }
+	{ (((width) * 72.0 + 0.5) - 0.5) / (x_dpi)/*MediaSize[0]*/,\
+	  (((height) * 72.0 + 0.5) - 0.5) / (y_dpi)/*MediaSize[1]*/},\
+	{ 0, 0, 0, 0 }/*ImagingBBox*/, 0/*ImagingBBox_set*/,\
+	{ x_dpi, y_dpi }/*HWResolution*/, { x_dpi, y_dpi }/*MarginsHWResolution*/
+
 /* offsets and margins go here */
 #define std_device_part3_()\
-	0, 0, 1, 0/*false*/, 0/*false*/, 0/*false*/,\
+	0/*PageCount*/, 0/*ShowpageCount*/, 1/*NumCopies*/, 0/*NumCopies_set*/,\
+	0/*IgnoreNumCopies*/, 0/*UseCIEColor*/, 0/*LockSafetyParams*/,\
 	{ gx_default_install, gx_default_begin_page, gx_default_end_page }
 /*
  * We need a number of different variants of the std_device_ macro simply
@@ -253,6 +261,7 @@ dev_proc_create_compositor(gx_default_create_compositor);
 dev_proc_create_compositor(gx_null_create_compositor);
 dev_proc_get_hardware_params(gx_default_get_hardware_params);
 dev_proc_text_begin(gx_default_text_begin);
+dev_proc_finish_copydevice(gx_default_finish_copydevice);
 /* BACKWARD COMPATIBILITY */
 #define gx_non_imaging_create_compositor gx_null_create_compositor
 

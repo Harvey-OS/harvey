@@ -86,8 +86,8 @@ main(int argc, char **argv)
 		fatal("secsize %d invalid", disk->secsize);
 
 	secsize = disk->secsize;
-	buf = malloc(secsize);
-	mbr = malloc(secsize);
+	buf = malloc(secsize*(disk->s+1));
+	mbr = malloc(secsize*disk->s);
 	if(buf == nil || mbr == nil)
 		fatal("out of memory");
 
@@ -103,25 +103,25 @@ main(int argc, char **argv)
 		nmbr = ndefmbr;
 		memmove(mbr, defmbr, nmbr);
 	} else {
+		memset(buf, 0, secsize*disk->s);
 		if((sysfd = open(mbrfile, OREAD)) < 0)
 			fatal("open %s: %r", mbrfile);
-		if((nmbr = read(sysfd, buf, secsize)) < 0)
+		if((nmbr = read(sysfd, buf, secsize*(disk->s+1))) < 0)
 			fatal("read %s: %r", mbrfile);
-		if(nmbr > Toffset)
-			fatal("master boot record too large");
+		if(nmbr > secsize*disk->s)
+			fatal("master boot record too large %d > %d", nmbr, secsize*disk->s);
+		if(nmbr < secsize)
+			nmbr = secsize;
 		close(sysfd);
+		memmove(buf+Toffset, mbr+Toffset, secsize-Toffset);
 		memmove(mbr, buf, nmbr);
 	}
-
-	if(nmbr < Toffset)
-		memset(mbr+nmbr, 0, Toffset-nmbr);
-
 	mbr[secsize-2] = 0x55;
 	mbr[secsize-1] = 0xAA;
-
+	nmbr = (nmbr+secsize-1)&~(secsize-1);
 	if(seek(disk->wfd, 0, 0) < 0)
 		fatal("seek to MBR sector: %r\n");
-	if(write(disk->wfd, mbr, secsize) != secsize)
+	if(write(disk->wfd, mbr, nmbr) != nmbr)
 		fatal("writing MBR: %r");
 	
 	exits(0);

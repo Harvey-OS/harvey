@@ -1,22 +1,22 @@
-/* Copyright (C) 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevbbox.c,v 1.1 2000/03/09 08:40:40 lpd Exp $ */
+/*$Id: gdevbbox.c,v 1.4 2001/04/01 00:33:36 raph Exp $ */
 /* Device for tracking bounding box */
 #include "math_.h"
 #include "memory_.h"
@@ -130,7 +130,8 @@ gx_device_bbox gs_bbox_device =
      gx_default_map_color_rgb_alpha,
      bbox_create_compositor,
      NULL,			/* get_hardware_params */
-     bbox_text_begin
+     bbox_text_begin,
+     NULL			/* finish_copydevice */
     },
     0,				/* target */
     1,				/*true *//* free_standing */
@@ -1239,6 +1240,10 @@ bbox_text_begin(gx_device * dev, gs_imager_state * pis,
 	return code;
     }
     bbox_text_enum_copy(pbte);
+
+    /* See note on imaging_dev in gxtext.h */
+    rc_assign(pbte->target_info->imaging_dev, dev, "bbox_text_begin");
+
     *ppenum = (gs_text_enum_t *) pbte;
     return code;
 }

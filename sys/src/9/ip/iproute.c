@@ -16,22 +16,6 @@ Route*	v4freelist;
 Route*	v6freelist;
 RWlock	routelock;
 
-enum
-{
-	RWadd,
-	RWflush,
-	RWremove,
-	RWtag,
-};
-
-static
-Cmdtab routecmd[] = {
-	RWadd,		"add",		4,
-	RWflush,	"flush",	2,
-	RWremove,	"remove",	3,
-	RWtag,		"tag",		2,
-};
-
 static void
 freeroute(Route *r)
 {
@@ -337,6 +321,7 @@ v4addroute(Fs *f, char *tag, uchar *a, uchar *mask, uchar *gate, int type)
 }
 
 #define	V6H(a)	(((a)[IPllen-1] & 0x07ffffff)>>(32-Lroot-5))
+#define ISDFLT(a, mask, tag) ((ipcmp((a),v6Unspecified)==0) && (ipcmp((mask),v6Unspecified)==0) && (strcmp((tag), "ra")!=0))
 
 void
 v6addroute(Fs *f, char *tag, uchar *a, uchar *mask, uchar *gate, int type)
@@ -345,6 +330,12 @@ v6addroute(Fs *f, char *tag, uchar *a, uchar *mask, uchar *gate, int type)
 	ulong sa[IPllen], ea[IPllen];
 	ulong x, y;
 	int h, eh;
+
+	/*
+	if(ISDFLT(a, mask, tag))
+		f->v6p->cdrouter = -1;
+	*/
+
 
 	for(h = 0; h < IPllen; h++){
 		x = nhgetl(a+4*h);
@@ -528,8 +519,8 @@ v6lookup(Fs *f, uchar *a)
 	ulong x, y;
 	uchar gate[IPaddrlen];
 
-	if(memcmp(a, v4prefix, 12) == 0){
-		q = v4lookup(f, a+12);
+	if(memcmp(a, v4prefix, IPv4off) == 0){
+		q = v4lookup(f, a+IPv4off);
 		if(q != nil)
 			return q;
 	}
@@ -568,10 +559,8 @@ next:		;
 
 	if(q && (q->ifc == nil || q->ifcid != q->ifc->ifcid)){
 		if(q->type & Rifc) {
-			hnputl(gate, q->v6.gate[0]);
-			hnputl(gate+4, q->v6.gate[1]);
-			hnputl(gate+8, q->v6.gate[2]);
-			hnputl(gate+12, q->v6.gate[3]);
+			for(h = 0; h < IPllen; h++)
+				hnputl(gate+4*h, q->v6.address[h]);
 			q->ifc = findipifc(f, gate, q->type);
 		} else
 			q->ifc = findipifc(f, q->v6.gate, q->type);
@@ -606,10 +595,10 @@ routetype(int type, char *p)
 
 enum
 {
-	Rlinelen=	89,
+	Rlinelen=	137,
 };
 
-char *rformat = "%-24.24I %-24.24M %-24.24I %4.4s %4.4s %3s\n";
+char *rformat = "%-40.40I %-40.40M %-40.40I %4.4s %4.4s %3s\n";
 
 void
 convroute(Route *r, uchar *addr, uchar *mask, uchar *gate, char *t, int *nifc)
@@ -779,7 +768,6 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 	int h, changed;
 	char *tag;
 	Cmdbuf *cb;
-	Cmdtab *ct;
 	uchar addr[IPaddrlen];
 	uchar mask[IPaddrlen];
 	uchar gate[IPaddrlen];
@@ -791,25 +779,7 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 		nexterror();
 	}
 
-	ct = lookupcmd(cb, routecmd, nelem(routecmd));
-
-	switch(ct->index){
-	case RWadd:
-		parseip(addr, cb->f[1]);
-		parseipmask(mask, cb->f[2]);
-		parseip(gate, cb->f[3]);
-		tag = "none";
-		if(c != nil){
-			a = c->aux;
-			tag = a->tag;
-		}
-		if(memcmp(addr, v4prefix, IPv4off) == 0)
-			v4addroute(f, tag, addr+IPv4off, mask+IPv4off, gate+IPv4off, 0);
-		else
-			v6addroute(f, tag, addr, mask, gate, 0);
-		break;
-
-	case RWflush:
+	if(strcmp(cb->f[0], "flush") == 0){
 		tag = cb->f[1];
 		for(h = 0; h < nelem(f->v4root); h++)
 			for(changed = 1; changed;){
@@ -823,18 +793,34 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 				changed = routeflush(f, f->v6root[h], tag);
 				wunlock(&routelock);
 			}
-		break;
-
-	case RWremove:
+	} else if(strcmp(cb->f[0], "remove") == 0){
+		if(cb->nf < 3)
+			error(Ebadarg);
 		parseip(addr, cb->f[1]);
 		parseipmask(mask, cb->f[2]);
 		if(memcmp(addr, v4prefix, IPv4off) == 0)
 			v4delroute(f, addr+IPv4off, mask+IPv4off, 1);
 		else
 			v6delroute(f, addr, mask, 1);
-		break;
+	} else if(strcmp(cb->f[0], "add") == 0){
+		if(cb->nf < 4)
+			error(Ebadarg);
+		parseip(addr, cb->f[1]);
+		parseipmask(mask, cb->f[2]);
+		parseip(gate, cb->f[3]);
+		tag = "none";
+		if(c != nil){
+			a = c->aux;
+			tag = a->tag;
+		}
+		if(memcmp(addr, v4prefix, IPv4off) == 0)
+			v4addroute(f, tag, addr+IPv4off, mask+IPv4off, gate+IPv4off, 0);
+		else
+			v6addroute(f, tag, addr, mask, gate, 0);
+	} else if(strcmp(cb->f[0], "tag") == 0) {
+		if(cb->nf < 2)
+			error(Ebadarg);
 
-	case RWtag:
 		a = c->aux;
 		na = newipaux(a->owner, cb->f[1]);
 		c->aux = na;

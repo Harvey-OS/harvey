@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1995, 1996, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 1995, 1996, 1998, 1999, 2000, 2001 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevmswn.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevmswn.c,v 1.4 2001/03/13 07:09:28 ghostgum Exp $ */
 /*
  * Microsoft Windows 3.n driver for Ghostscript.
  *
@@ -30,8 +30,8 @@
 #include "gpcheck.h"
 #include "gsparam.h"
 #include "gdevpccm.h"
+#include "iapi.h"
 #include "gsdll.h"
-#include "gsdllwin.h"
 
 /* Forward references */
 private int win_set_bits_per_pixel(P2(gx_device_win *, int));
@@ -89,7 +89,8 @@ win_open(gx_device * dev)
 int
 win_sync_output(gx_device * dev)
 {
-    (*pgsdll_callback) (GSDLL_SYNC, (unsigned char *)wdev, 0);
+    if (pgsdll_callback)
+	(*pgsdll_callback) (GSDLL_SYNC, (unsigned char *)wdev, 0);
     return (0);
 }
 
@@ -97,7 +98,8 @@ win_sync_output(gx_device * dev)
 int
 win_output_page(gx_device * dev, int copies, int flush)
 {
-    (*pgsdll_callback) (GSDLL_PAGE, (unsigned char *)wdev, 0);
+    if (pgsdll_callback)
+	(*pgsdll_callback) (GSDLL_PAGE, (unsigned char *)wdev, 0);
     return gx_finish_output_page(dev, copies, flush);;
 }
 

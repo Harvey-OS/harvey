@@ -1,0 +1,5 @@
+#!/bin/rc
+
+disk/kfscmd allow
+replica/pull -v $* /dist/replica/network
+disk/kfscmd disallow

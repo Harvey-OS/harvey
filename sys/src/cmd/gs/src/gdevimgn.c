@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1993, 1994, 1996 by Aladdin Enterprises.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
  
-/*$Id: gdevimgn.c,v 1.1 2000/03/09 08:40:41 lpd Exp $*/
+/*$Id: gdevimgn.c,v 1.4 2001/08/01 00:48:23 stefan911 Exp $*/
 /*
  * Imagen ImPRESS printer driver - version 1.4
  *
@@ -161,7 +161,7 @@
 /* Flag for displaying debug messages at run-time.  Higher
 	number = higher detail */
 #define IM_DEBUG 0
-#define DebugMsg(Level,P1,P2) if (Level<=IM_DEBUG) {fprintf(stderr,P1,P2 );}
+#define DebugMsg(Level,P1,P2) if (Level<=IM_DEBUG) {errprintf(P1,P2 );}
 
 /*-------------------------------------------*/ 
   /* Impress bitmaps are made up of 32x32 bit swatches. 
@@ -237,7 +237,7 @@ gx_device_procs imagen_procs =
 #define ppdev ((gx_device_printer *)pdev)
 
 /*-------------------------------------------*/ 
-gx_device_printer far_data gs_imagen_device = 
+const gx_device_printer far_data gs_imagen_device = 
   prn_device(/*prn_std_procs*/ imagen_procs,
 	"imagen", 
 	WIDTH_10THS, 

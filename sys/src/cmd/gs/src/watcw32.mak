@@ -1,21 +1,21 @@
-#    Copyright (C) 1991-1999 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1991-2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: watcw32.mak,v 1.2 2000/03/10 15:48:58 lpd Exp $
+# $Id: watcw32.mak,v 1.13.2.2 2002/02/01 03:30:13 raph Exp $
 # watcw32.mak
 # makefile for Watcom C++ v??, Windows NT or Windows 95 platform.
 #   Does NOT build gs16spl.exe, which is 16-bit and is used under Win32s.
@@ -45,7 +45,7 @@ PSOBJDIR=obj
 
 # Define the root directory for Ghostscript installation.
 
-AROOTDIR=c:/Aladdin
+AROOTDIR=c:/gs
 GSROOTDIR=$(AROOTDIR)/gs$(GS_DOT_VERSION)
 
 # Define the directory that will hold documentation at runtime.
@@ -126,12 +126,24 @@ JVERSION=6
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10005
+PVERSION=10201
 
 # Define the directory where the zlib sources are stored.
 # See zlib.mak for more information.
 
 ZSRCDIR=zlib
+
+# Define the directory where the icclib source are stored.
+# See icclib.mak for more information
+
+ICCSRCDIR=icclib
+
+# Define the directory where the ijs source is stored,
+# and the process forking method to use for the server.
+# See ijs.mak for more information.
+
+IJSSRCDIR=ijs
+IJSEXECTYPE=win
 
 # Define any other compilation flags.
 
@@ -178,7 +190,7 @@ CPU_TYPE=486
 # of that type (or higher) is available: this is NOT currently checked
 # at runtime.
 
-FPU_TYPE=0
+FPU_TYPE=387
 
 # Define the .dev module that implements thread and synchronization
 # primitives for this platform.  Don't change this unless you really know
@@ -218,6 +230,11 @@ BAND_LIST_COMPRESSOR=zlib
 # See gs.mak and sfxfd.c for more details.
 
 FILE_IMPLEMENTATION=stdio
+
+# Choose the implementation of stdio: '' for file I/O and 'c' for callouts
+# See gs.mak and ziodevs.c/ziodevsc.c for more details.
+
+STDIO_IMPLEMENTATION=c
 
 # Choose the device(s) to include.  See devs.mak for details,
 # devs.mak and contrib.mak for the list of available devices.

@@ -1,19 +1,30 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libflate.a
-OFILES=\
-	deflate.$O\
-	deflatezlib.$O\
-	deflateblock.$O\
-	deflatezlibblock.$O\
-	inflate.$O\
-	inflatezlib.$O\
-	inflateblock.$O\
-	inflatezlibblock.$O\
-	flateerr.$O\
-	crc.$O\
-	adler.$O\
+FILES=\
+	deflate\
+	deflatezlib\
+	deflateblock\
+	deflatezlibblock\
+	inflate\
+	inflatezlib\
+	inflateblock\
+	inflatezlibblock\
+	flateerr\
+	crc\
+	adler\
 
-HFILES=/sys/include/flate.h
+HFILES=\
+	/sys/include/flate.h\
+	zlib.h\
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/lib/libflate.a\
+	$HFILES\
+	$CFILES\
 
 </sys/src/cmd/mksyslib

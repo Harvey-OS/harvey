@@ -1,27 +1,30 @@
-%    Copyright (C) 1990, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+%    Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of Aladdin Ghostscript.
+% This file is part of AFPL Ghostscript.
 % 
-% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-% or distributor accepts any responsibility for the consequences of using it,
-% or for whether it serves any particular purpose or works at all, unless he
-% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-% License (the "License") for full details.
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
 % 
-% Every copy of Aladdin Ghostscript must include a copy of the License,
-% normally in a plain ASCII text file named PUBLIC.  The License grants you
-% the right to copy, modify and redistribute Aladdin Ghostscript, but only
-% under certain conditions described in the License.  Among other things, the
-% License requires that the copyright notice and this notice be preserved on
-% all copies.
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
 
-% $Id: ps2epsi.ps,v 1.1 2000/03/09 08:40:40 lpd Exp $
+% $Id: ps2epsi.ps,v 1.5 2001/04/04 04:45:42 alexcher Exp $
 % Convert an arbitrary PostScript file to an EPSI file.
 %
 % Please do not contact these users if you have questions.  They no longer
 % have the time, interest, or current expertise to keep this code working.
-% If you find bugs, please send proposed fixes to gs-bugs@aladdin.com.
+% If you find bugs, please send proposed fixes to bug-gs@aladdin.com.
 %
+% Bug fix 2000-04-11 by lpd: if a font didn't have a FontName (which is the
+%   case for bitmap fonts produced by recent versions of dvips), setfont
+%   caused an error.
 % Bug fix 8/21/99 by lpd: many of the margin and width computations were
 %   wrong (off by 1).  The code only "worked" because the bugs were
 %   (mostly) in conservative directions.
@@ -48,8 +51,9 @@ ps2edict begin
   /ps2epsi
    {				% Open the file
      outfile (w) file /epsifile exch def
+     //systemdict /.setsafe known { .setsafe } if
 					% Get the device parameters
-     currentdevice getdeviceprops .dicttomark
+     currentdevice getdeviceprops .dicttomark 
      /HWSize get aload pop
        /devheight exch def
        /devwidth exch def
@@ -66,7 +70,7 @@ ps2edict begin
 				% Replace the definition of showpage
      userdict /showpage { ps2edict begin epsipage end } bind put
      userdict /setfont { ps2edict begin epsisetfont end } bind put
-   } def
+   } bind def
 
  /epsifontdict 100 dict def
 
@@ -74,10 +78,11 @@ ps2edict begin
  {
  % code here keeps a list of font names in dictionary epsifontdict
  /tmpfont exch def
- /tmpfontname tmpfont /FontName get def
- epsifontdict tmpfontname known not { epsifontdict tmpfontname 0 put } if
- epsifontdict tmpfontname
-	epsifontdict tmpfontname get 1 add put
+ tmpfont /FontName known {
+   /tmpfontname tmpfont /FontName get def
+   epsifontdict tmpfontname known not { epsifontdict tmpfontname 0 put } if
+   epsifontdict tmpfontname 2 copy get 1 add put
+ } if
  tmpfont setfont
  } bind def
 
@@ -105,8 +110,8 @@ ps2edict begin
   /epsiNpages 0 def
   /epsiNpageStr 20 string def
   /epsipage
-   {
-	 /epsiNpages epsiNpages 1 add def
+   {      
+     /epsiNpages epsiNpages 1 add def
      /loopcount devheight 1 sub def
 
      % Find top margin -- minimum Y of non-blank scan line.

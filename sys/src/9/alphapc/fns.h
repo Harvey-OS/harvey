@@ -110,7 +110,6 @@ void	upafree(ulong, int);
 #define		userureg(ur) ((ur)->status & UMODE)
 void		wrent(int, void*);
 void		wrvptptr(uvlong);
-ulong	TK2MS(ulong);				/* ticks to milliseconds */
 
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
 #define	kmapperm(x)	kmap(x)

@@ -9,6 +9,12 @@ case checkdone
 	stop=notdone
 	export stop
 
+case checkready
+	if(~ $cdboot yes){
+		stop=notdone
+		export stop
+	}
+
 case go
 	coherence
 	switch($2){

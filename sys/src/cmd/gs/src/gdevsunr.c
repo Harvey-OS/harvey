@@ -1,22 +1,22 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevsunr.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevsunr.c,v 1.4 2001/08/01 00:48:23 stefan911 Exp $ */
 /* Sun raster file driver */
 #include "gdevprn.h"
 
@@ -48,7 +48,7 @@ typedef struct sun_rasterfile_s {
 
 private dev_proc_print_page(sunhmono_print_page);
 
-gx_device_printer gs_sunhmono_device =
+const gx_device_printer gs_sunhmono_device =
     prn_device(prn_std_procs, "sunhmono",
 	       DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	       X_DPI, Y_DPI,
@@ -68,7 +68,7 @@ sunhmono_print_page(gx_device_printer * pdev, FILE * prn_stream)
     int code = 0;
 
     /*
-      fprintf(stderr,"pdev->width:%d (%d/%d) gsLineBytes:%d rasLineBytes:%d\n",
+      errprintf("pdev->width:%d (%d/%d) gsLineBytes:%d rasLineBytes:%d\n",
       pdev->width, pdev->width/8, pdev->width%8,gsLineBytes,rasLineBytes);
     */
     lineStorage = gs_malloc(gsLineBytes, 1, "rasterfile_print_page(in)");

@@ -18,11 +18,10 @@ void	clockpower(int);
 #define	coherence()
 #define	dcflush(a, b)
 void	delay(int);
-void	µdelay(ulong);
 void	µcpower(int);
+void	deepsleep(void);
 void	dmainit(void);
-void	_doze(void);
-void	(*doze)(void);
+void	doze(void);
 void	egpiobits(ulong, int);
 void	evenaddr(ulong);
 void	exppackpower(int);
@@ -40,9 +39,10 @@ ulong	getttb(void);
 void*	getlink(void);
 #define	getpgcolor(a)	0
 ulong	getsp(void);
-void	gpiointrenable(ulong, int, void (*)(Ureg*, void*), void*, char*);
 void	h3650uartsetup(void);
 int	havetimer(void);
+void	_hibernate(void);
+void	(*hibernate)(void);
 void	icacheinvalidate(void);
 void	idle(void);
 void	idlehands(void);
@@ -50,6 +50,7 @@ uchar	inb(ulong);
 ushort	ins(ulong);
 void	inss(ulong, void*, int);
 ulong	inl(ulong);
+void	intrdisable(int, int, void (*)(Ureg*, void*), void*, char*);
 void	intrenable(int, int, void (*)(Ureg*, void*), void*, char*);
 void	irpower(int);
 #define	kmapinval()
@@ -75,6 +76,7 @@ void	outb(ulong, uchar);
 void	outs(ulong, ushort);
 void	outss(ulong, void*, int);
 void	outl(ulong, ulong);
+void	pcmciapower(int);
 void	pcmcisread(PCMslot*);
 int	pcmcistuple(int, int, int, void*, int);
 PCMmap*	pcmmap(int, ulong, int, int);
@@ -119,7 +121,6 @@ int	unsac(uchar*, uchar*, int, int);
 void	vectors(void);
 void	vtable(void);
 void	wbflush(void);
-ulong	TK2MS(ulong);				/* ticks to milliseconds */
 #define KADDR(a) (void*)mmu_kaddr((ulong)(a))
 #define PADDR(a) mmu_paddr((ulong)(a))
 

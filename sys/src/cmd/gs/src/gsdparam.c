@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsdparam.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsdparam.c,v 1.4.6.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Default device parameters for Ghostscript library */
 #include "memory_.h"		/* for memcpy */
 #include "string_.h"		/* for strlen */
@@ -38,16 +38,33 @@ private bool param_HWColorMap(P2(gx_device *, byte *));
 
 /* Get the device parameters. */
 int
-gs_get_device_or_hw_params(gx_device * dev, gs_param_list * plist,
+gs_get_device_or_hw_params(gx_device * orig_dev, gs_param_list * plist,
 			   bool is_hardware)
 {
+    /*
+     * We must be prepared to copy the device if it is the read-only
+     * prototype.
+     */
+    gx_device *dev;
+    int code;
+
+    if (orig_dev->memory)
+	dev = orig_dev;
+    else {
+	code = gs_copydevice(&dev, orig_dev, plist->memory);
+	if (code < 0)
+	    return code;
+    }
     gx_device_set_procs(dev);
     fill_dev_proc(dev, get_params, gx_default_get_params);
     fill_dev_proc(dev, get_page_device, gx_default_get_page_device);
     fill_dev_proc(dev, get_alpha_bits, gx_default_get_alpha_bits);
-    return (is_hardware ?
+    code = (is_hardware ?
 	    (*dev_proc(dev, get_hardware_params)) (dev, plist) :
 	    (*dev_proc(dev, get_params)) (dev, plist));
+    if (dev != orig_dev)
+	gx_device_retain(dev, false);  /* frees the copy */
+    return code;
 }
 
 /* Standard ProcessColorModel values. */
@@ -151,8 +168,8 @@ gx_default_get_params(gx_device * dev, gs_param_list * plist)
 	(code = param_write_int(plist, "TextAlphaBits",
 				&dev->color_info.anti_alias.text_bits)) < 0 ||
 	(code = param_write_int(plist, "GraphicsAlphaBits",
-				&dev->color_info.anti_alias.graphics_bits)) < 0
-
+				&dev->color_info.anti_alias.graphics_bits)) < 0 ||
+	(code = param_write_bool(plist, ".LockSafetyParams", &dev->LockSafetyParams)) < 0 
 	)
 	return code;
 
@@ -419,6 +436,7 @@ gx_default_put_params(gx_device * dev, gs_param_list * plist)
     int ncset = dev->NumCopies_set;
     bool ignc = dev->IgnoreNumCopies;
     bool ucc = dev->UseCIEColor;
+    bool locksafe = dev->LockSafetyParams;
     gs_param_float_array ibba;
     bool ibbnull = false;
     int colors = dev->color_info.num_components;
@@ -444,9 +462,10 @@ gx_default_put_params(gx_device * dev, gs_param_list * plist)
     BEGIN\
     switch (code = pread(plist, (param_name = pname), &(pa))) {\
       case 0:\
-	if ( (pa).size != psize )\
+	if ((pa).size != psize) {\
 	  ecode = gs_note_error(gs_error_rangecheck);\
-	else
+	  (pa).data = 0;	/* mark as not filled */\
+	} else
 #define END_ARRAY_PARAM(pa, e)\
 	goto e;\
       default:\
@@ -573,6 +592,18 @@ nce:
     if ((code = param_anti_alias_bits(plist, "GraphicsAlphaBits", &gab)) < 0)
 	ecode = code;
 
+    switch (code = param_read_bool(plist, (param_name = ".LockSafetyParams"), &locksafe)) {
+	case 0:
+	    if (dev->LockSafetyParams && !locksafe)
+		code = gs_note_error(gs_error_invalidaccess);
+	    else
+		break;
+	default:
+	    ecode = code;
+	    param_signal_error(plist, param_name, ecode);
+	case 1:
+	    break;
+    }
     /* Ignore parameters that only have meaning for printers. */
 #define IGNORE_INT_PARAM(pname)\
   { int igni;\
@@ -714,6 +745,7 @@ nce:
     dev->UseCIEColor = ucc;
     dev->color_info.anti_alias.text_bits = tab;
     dev->color_info.anti_alias.graphics_bits = gab;
+    dev->LockSafetyParams = locksafe;
     gx_device_decache_colors(dev);
     return 0;
 }

@@ -95,6 +95,11 @@ OFILES=\
 	wait.$O\
 	write.$O\
 
+UPDATE=\
+	mkfile\
+	/386/lib/ape/libap.a\
+	${OFILES:%.$O=%.c}\
+
 </sys/src/cmd/mksyslib
 
 CFLAGS=-c -D_POSIX_SOURCE -D_PLAN9_SOURCE -D_BSD_EXTENSION

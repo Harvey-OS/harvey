@@ -226,7 +226,7 @@ RSApriv*	asn1toRSApriv(uchar*, int);
 uchar*		decodepem(char *s, char *type, int *len);
 
 /////////////////////////////////////////////////////////
-// eg
+// elgamal
 /////////////////////////////////////////////////////////
 typedef struct EGpub EGpub;
 typedef struct EGpriv EGpriv;
@@ -265,6 +265,46 @@ void		egprivfree(EGpriv*);
 EGsig*		egsigalloc(void);
 void		egsigfree(EGsig*);
 EGpub*		egprivtopub(EGpriv*);
+
+/////////////////////////////////////////////////////////
+// dsa
+/////////////////////////////////////////////////////////
+typedef struct DSApub DSApub;
+typedef struct DSApriv DSApriv;
+typedef struct DSAsig DSAsig;
+
+// public/encryption key
+struct DSApub
+{
+	mpint	*p;	// modulus
+	mpint	*q;	// group order, q divides p-1
+	mpint	*alpha;	// group generator
+	mpint	*key;	// (encryption key) alpha**secret mod p
+};
+
+// private/decryption key
+struct DSApriv
+{
+	DSApub	pub;
+	mpint	*secret; // (decryption key)
+};
+
+// signature
+struct DSAsig
+{
+	mpint	*r, *s;
+};
+
+DSApriv*	dsagen(DSApub *opub);
+DSAsig*		dsasign(DSApriv *k, mpint *m);
+int		dsaverify(DSApub *k, DSAsig *sig, mpint *m);
+DSApub*		dsapuballoc(void);
+void		dsapubfree(DSApub*);
+DSApriv*	dsaprivalloc(void);
+void		dsaprivfree(DSApriv*);
+DSAsig*		dsasigalloc(void);
+void		dsasigfree(DSAsig*);
+DSApub*		dsaprivtopub(DSApriv*);
 
 /////////////////////////////////////////////////////////
 // TLS

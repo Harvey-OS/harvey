@@ -1,0 +1,155 @@
+.TH SMTP 8
+.SH NAME
+smtp, smtpd \-  mail transport
+.SH SYNOPSIS
+.PP
+.B upas/smtp
+[
+.B -df
+][
+.B -g
+.I gateway
+][
+.B -h
+.I host
+][
+.I .domain
+]
+.I destaddr
+.I sender
+.I rcpt-list
+.PP
+.B upas/smtpd
+[
+.B -dfr
+][
+.B -n
+.I netdir
+][
+.B -h
+.I mydom
+][
+.B -k
+.I evilipaddr
+]
+.SH DESCRIPTION
+.PP
+.I Smtp
+sends the mail message from standard input
+to the users
+.I rcpt-list
+on the host at network address
+.I address 
+using the Simple Mail Transfer Protocol.
+.The options are:
+.TP
+.B -d
+turn on debugging to standard error.
+.TP
+.B -h
+use
+.I host
+as the local system name;
+it may be fully-qualified or not.  If not
+specified, the local system name will be
+contents of the environment variable
+.BR site .
+If that isn't specified, it will be the contents of
+.BR /dev/sysname .
+.TP
+.B -f
+just filter the converted message to standard
+output rather than sending it.
+.TP
+.B -g
+makes
+.I gateway
+the system to pass the message to if smtp can't
+find an address or MX entry for the destination system.
+.PD
+.PP
+Finally if
+.I .domain
+is given, it is appended to the end of any unqaulified system names
+in the envelope or header.
+.PP
+.I Smtpd
+receives a message using the Simple Mail Transfer Protocol.
+Standard input and output are the protocol connection.
+SMTP authentication by
+.I login
+and
+.I cram-md5
+protocols is supported; authenticated connections are permitted to relay.
+.PP
+The options are:
+.TP 1.1i
+.B -d
+turns on debugging output to standard error.
+.TP
+.B -r
+turns on forward DNS validation of non-trusted sender address.
+.TP
+.B -f
+prevents relaying from non-trusted networks.
+.TP
+.B -n
+specifies the name of the network directory assigned to the incoming connection.
+This is used to determine the peer IP address.  If this flag is not
+specified, the peer address is determined using standard input.
+.TP
+.B -h
+specifies the receiving domain.  If this flag is not specified, the
+receiving domain is inferred from the host name.
+.TP
+.B -s
+causes copies of blocked messages to be saved in a sub-directory of
+.BR /mail/queue.dump .
+.TP
+.B -k
+causes connections from the host at
+the IP address,
+.IR evilipaddr ,
+to be dropped at program startup.  Multiple addresses
+can be specified with several
+.B -k
+options.  This option should be used carefully;
+it is intended to lessen the effects of denial of
+service attacks or broken mailers which continually
+connect.  The connections are not logged and the
+remote system is not notified via the protocol.
+.TP
+.B -a
+requires that all clients authenticate to be able to send mail.
+.TP
+.B -p
+permits clients to authenticate using protocols which transfer
+the password in the clear, e.g.
+.I login
+protocol. This should only be used if the connection has
+previously encrypted using e.g.
+.IR tlssrv (8).
+.PP
+.I Smtpd
+is normally run by a network listener such as
+.IR listen (8).
+Most of the command line options are more conveniently
+specified in the smtpd configuration file stored in
+.BR /mail/lib/smtpd.conf .
+.SH FILES
+.SH SOURCE
+.TP
+.B /sys/src/cmd/upas/smtp
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR filter (1),
+.IR mail (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR tlssrv (8),
+.IR upasfs (4)

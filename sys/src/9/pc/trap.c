@@ -14,6 +14,12 @@ static void fault386(Ureg*, void*);
 
 static Lock vctllock;
 static Vctl *vctl[256];
+ulong *intrtimes[256];
+
+enum
+{
+	Ntimevec = 1000		/* number of time buckets for each intr */
+};
 
 void
 intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
@@ -52,6 +58,8 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 				vctl[vno]->isr, v->isr, vctl[vno]->eoi, v->eoi);
 		v->next = vctl[vno];
 	}
+	if(intrtimes[vno] == nil)
+		intrtimes[vno] = xalloc(Ntimevec*sizeof(ulong));
 	vctl[vno] = v;
 	iunlock(&vctllock);
 }
@@ -90,7 +98,7 @@ intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 static long
 irqallocread(Chan*, void *vbuf, long n, vlong offset)
 {
-	char *buf, *p, str[11+1+KNAMELEN+1];
+	char *buf, *p, str[2*(11+1)+KNAMELEN+1+1];
 	int m, vno;
 	long oldn;
 	Vctl *v;
@@ -241,6 +249,28 @@ static char* excname[32] = {
 };
 
 /*
+ *  keep histogram of interrupt service times
+ */
+void
+intrtime(Mach*, int vno)
+{
+	ulong diff;
+	ulong x = perfticks();
+
+	diff = x - m->perf.intrts;
+	m->perf.intrts = x;
+
+	m->perf.inintr += diff;
+	if(up == nil && m->perf.inidle > diff)
+		m->perf.inidle -= diff;
+
+	diff /= m->cpumhz;
+	if(diff >= Ntimevec)
+		diff = Ntimevec-1;
+	intrtimes[vno][diff]++;
+}
+
+/*
  *  All traps come here.  It is slower to have all traps call trap()
  *  rather than directly vectoring the handler.  However, this avoids a
  *  lot of code duplication and possible bugs.  The only exception is
@@ -255,7 +285,7 @@ trap(Ureg* ureg)
 	Vctl *ctl, *v;
 	Mach *mach;
 
-	m->intrts = fastticks(nil);
+	m->perf.intrts = perfticks();
 	user = 0;
 	if((ureg->cs & 0xFFFF) == UESEL){
 		user = 1;
@@ -291,11 +321,14 @@ trap(Ureg* ureg)
 		if(up->preempted == 0)
 		if(!active.exiting){
 			up->preempted = 1;
+			intrtime(m, vno);
 			sched();
 			splhi();
 			up->preempted = 0;
 			return;
 		}
+		if(ctl->isintr)
+			intrtime(m, vno);
 	}
 	else if(vno <= nelem(excname) && user){
 		spllo();
@@ -619,6 +652,12 @@ notify(Ureg* ureg)
 	if(up->nnote == 0)
 		return 0;
 
+	if(up->fpstate == FPactive){
+		fpsave(&up->fpsave);
+		up->fpstate = FPinactive;
+	}
+	up->fpstate |= FPillegal;
+
 	s = spllo();
 	qlock(&up->debug);
 	up->notepending = 0;
@@ -664,9 +703,9 @@ notify(Ureg* ureg)
 	sp -= BY2WD+ERRMAX;
 	memmove((char*)sp, up->note[0].msg, ERRMAX);
 	sp -= 3*BY2WD;
-	*(ulong*)(sp+2*BY2WD) = sp+3*BY2WD;	/* arg 2 is string */
+	*(ulong*)(sp+2*BY2WD) = sp+3*BY2WD;		/* arg 2 is string */
 	*(ulong*)(sp+1*BY2WD) = (ulong)up->ureg;	/* arg 1 is ureg* */
-	*(ulong*)(sp+0*BY2WD) = 0;		/* arg 0 is pc */
+	*(ulong*)(sp+0*BY2WD) = 0;			/* arg 0 is pc */
 	ureg->usp = sp;
 	ureg->pc = (ulong)up->notify;
 	up->notified = 1;
@@ -697,6 +736,8 @@ noted(Ureg* ureg, ulong arg0)
 	up->notified = 0;
 
 	nureg = up->ureg;	/* pointer to user returned Ureg struct */
+
+	up->fpstate &= ~FPillegal;
 
 	/* sanity clause */
 	oureg = (ulong)nureg;
@@ -774,6 +815,9 @@ execregs(ulong entry, ulong ssize, ulong nargs)
 	ulong *sp;
 	Ureg *ureg;
 
+	up->fpstate = FPinit;
+	fpoff();
+
 	sp = (ulong*)(USTKTOP - ssize);
 	*--sp = nargs;
 
@@ -819,6 +863,7 @@ linkproc(void)
 {
 	spllo();
 	up->kpfun(up->kparg);
+	pexit("kproc dying", 0);
 }
 
 void

@@ -51,16 +51,16 @@ walk(char *new, char *old, Dir *pd, void*)
 	Dir od, d;
 	static Dir *xd;
 
+	new = unroot(new, "/");
+	old = unroot(old, serverroot);
+
 	if(!ismatch(new))
 		return;
-	old = unroot(old, serverroot);
 	if(xd != nil){
 		free(xd);
 		xd = nil;
 	}
 
-	assert(new[0]=='/');
-	new++;
 	for(i=0; i<nx; i++){
 		if(strcmp(new, x[i]) == 0)
 			return;

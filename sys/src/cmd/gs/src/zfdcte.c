@@ -1,22 +1,22 @@
 /* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zfdcte.c,v 1.2 2000/03/10 04:32:51 lpd Exp $ */
+/*$Id: zfdcte.c,v 1.5 2001/05/30 17:38:45 rayjj Exp $ */
 /* DCTEncode filter creation */
 #include "memory_.h"
 #include "stdio_.h"		/* for jpeglib.h */
@@ -34,7 +34,6 @@
 #include "iparam.h"
 
 /*#define TEST*/
-
 /* Import the parameter processing procedure from sdeparam.c */
 stream_state_proc_put_params(s_DCTE_put_params, stream_DCT_state);
 #ifdef TEST
@@ -55,8 +54,8 @@ zDCTE(i_ctx_t *i_ctx_p)
     uint dspace;
 
     /* First allocate space for IJG parameters. */
-    jcdp = (jpeg_compress_data *)
-	gs_alloc_bytes_immovable(mem, sizeof(*jcdp), "zDCTE");
+    jcdp = gs_alloc_struct_immovable(mem, jpeg_compress_data,
+      &st_jpeg_compress_data, "zDCTE");
     if (jcdp == 0)
 	return_error(e_VMerror);
     if (s_DCTE_template.set_defaults)

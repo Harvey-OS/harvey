@@ -1,22 +1,22 @@
-/* Copyright (C) 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsnogc.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsnogc.c,v 1.7 2001/04/20 09:56:22 joukj Exp $ */
 /* String freelist implementation and ersatz garbage collector */
 #include "gx.h"
 #include "gsmdebug.h"
@@ -170,26 +170,34 @@ sf_free_string(gs_memory_t * mem, byte * str, uint size, client_name_t cname)
 	uint *pfree1 = &cp->sfree1[str_offset >> 8];
 	uint count = size;
 	byte *prev;
-	byte *ptr = str;
+	byte *ptr;
 
 	if (*pfree1 == 0) {
 	    *str = 0;
 	    *pfree1 = str_offset;
+	    if (!--count)
+		return;
 	    prev = str;
+	    ptr = str + 1;
 	} else if (str_offset < *pfree1) {
 	    *str = *pfree1 - str_offset;
 	    *pfree1 = str_offset;
+	    if (!--count)
+		return;
 	    prev = str;
+	    ptr = str + 1;
 	} else {
 	    uint next;
 
 	    prev = csbase(cp) + *pfree1;
-	    while (prev + (next = *prev) < str)
+	    while ((next = *prev) != 0 && prev + next < str)
 		prev += next;
+	    ptr = str;
 	}
 	for (;;) {
 	    /*
 	     * Invariants:
+	     *      ptr == str + size - count
 	     *      prev < sfbase + str_offset
 	     *      *prev == 0 || prev + *prev > sfbase + str_offset
 	     */
@@ -319,18 +327,34 @@ gs_nogc_reclaim(vm_spaces * pspaces, bool global)
 	    use_string_freelists((gs_ref_memory_t *)mem->stable_memory);
     }
 }
+#ifdef VMS
+#pragma optimize ansi_alias=off
+#endif
 private void
-use_string_freelists(gs_ref_memory_t *mem)
+use_string_freelists(gs_ref_memory_t *rmem)
 {
     /*
-     * Change the allocator to use string freelists in the future.
+     * ANSI made an incompatible change to the C language standard that
+     * caused the following to generate aliasing warnings:
+	gs_memory_t *mem = (gs_memory_t *)rmem;
+     * Consequently, we now use rmem rather than mem in the assignments
+     * below, even though this degrades code readability by obscuring the
+     * fact that they are only manipulating fields of the more abstract
+     * superclass.
+     * For OpenVMS this still gets us a warning so we switch the warning
+     * message off.
      */
-    mem->procs.alloc_string = sf_alloc_string;
-    if (mem->procs.free_string != gs_ignore_free_string)
-	mem->procs.free_string = sf_free_string;
-    mem->procs.enable_free = sf_enable_free;
-    mem->procs.consolidate_free = sf_consolidate_free;
+#ifdef VMS
+#pragma message disable BADANSIALIAS
+#endif
 
-	/* Merge free objects, detecting entirely free chunks. */
-    gs_consolidate_free((gs_memory_t *)mem);
+    /* Change the allocator to use string freelists in the future.  */
+    rmem->procs.alloc_string = sf_alloc_string;
+    if (rmem->procs.free_string != gs_ignore_free_string)
+	rmem->procs.free_string = sf_free_string;
+    rmem->procs.enable_free = sf_enable_free;
+    rmem->procs.consolidate_free = sf_consolidate_free;
+
+    /* Merge free objects, detecting entirely free chunks. */
+    gs_consolidate_free((gs_memory_t *)rmem);
 }

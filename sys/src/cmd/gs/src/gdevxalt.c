@@ -1,22 +1,22 @@
 /* Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevxalt.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevxalt.c,v 1.2.6.1 2002/01/30 20:09:26 raph Exp $ */
 /* Alternative X Windows drivers for help in driver debugging */
 #include "gx.h"			/* for gx_bitmap; includes std.h */
 #include "math_.h"
@@ -708,6 +708,7 @@ x_gray_alt_map_color(gx_device * dev, gx_color_index color,
     return -1;
 }
 
+#ifdef USE_BROKEN_X11ALPHA
 /* ---------------- Alpha procedures ---------------- */
 
 /* Device procedures */
@@ -760,7 +761,7 @@ x_alpha_alt_map_color(gx_device * dev, gx_color_index color,
 {
     return color & 0xffffff;	/* just remove alpha */
 }
-
+#endif
 /* Device procedures */
 
 /* We encode a complemented alpha value in the top 8 bits of the */
@@ -782,6 +783,7 @@ x_alpha_map_rgb_alpha_color(gx_device * dev,
 	    ((gx_color_index) (abyte ^ 0xff) << 24) + color);
 }
 
+#ifdef USE_BROKEN_X11ALPHA
 private int
 x_alpha_copy_alpha(gx_device * dev, const unsigned char *base, int sourcex,
 		   int raster, gx_bitmap_id id, int x, int y, int w, int h,
@@ -856,6 +858,7 @@ x_alpha_copy_alpha(gx_device * dev, const unsigned char *base, int sourcex,
     }
     return 0;
 }
+#endif
 
 /* ---------------- Permuted RGB16/32 procedures ---------------- */
 

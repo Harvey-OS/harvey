@@ -16,7 +16,7 @@ dev
 #	loopback
 
 	ether		netif
-	ip		arp chandial inferno ip ipaux iproute netlog nullmedium pktmedium ptclbsum
+	ip		arp chandial inferno ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum
 
 	draw		screen vga vgax
 	mouse		mouse
@@ -55,6 +55,7 @@ ip
 	udp
 	ipifc
 	icmp
+	icmp6
 
 port
 	int cpuserver = 0;

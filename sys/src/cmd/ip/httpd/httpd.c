@@ -363,6 +363,14 @@ send(HConnect *c)
 	strcpy(w, webroot);
 	strcat(w, masque);
 	strcat(w, c->req.uri);
+
+	/*
+	 * don't show the contents of .httplogin
+	 */
+	n = strlen(w);
+	if(strcmp(w+n-STRLEN(".httplogin"), ".httplogin") == 0)
+		return notfound(c, c->req.uri);
+
 	fd = open(w, OREAD);
 	if(fd < 0 && strlen(masque)>0 && strncmp(c->req.uri, masque, strlen(masque)) == 0){
 		// may be a URI from before virtual hosts;  try again without masque

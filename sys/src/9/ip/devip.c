@@ -15,6 +15,7 @@ enum
 	Qndb,
 	Qiproute,
 	Qipselftab,
+	Qipgate6,
 	Qlog,
 
 	Qprotodir,			/* directory for a protocol */
@@ -53,30 +54,6 @@ static char network[] = "network";
 QLock	fslock;
 Fs	*ipfs[Nfs];	/* attached fs's */
 Queue	*qlog;
-
-enum
-{
-	CMaddmulti,
-	CMannounce,
-	CMbind,
-	CMconnect,
-	CMremmulti,
-	CMtos,
-	CMttl,
-	CMwildcard,
-};
-
-Cmdtab ipctlmsg[] =
-{
-	CMaddmulti,	"addmulti",	0,
-	CMannounce,	"announce",	0,
-	CMbind,		"bind",		0,
-	CMconnect,	"connect",	0,
-	CMremmulti,	"remmulti",	0,
-	CMtos,		"tos",		0,
-	CMttl,		"ttl",			0,
-	CMwildcard,	"*",			0,
-};
 
 extern	void nullmediumlink(void);
 extern	void pktmediumlink(void);
@@ -149,6 +126,7 @@ ip1gen(Chan *c, int i, Dir *dp)
 	int prot;
 	int len = 0;
 	Fs *f;
+	extern ulong	kerndate;
 
 	f = ipfs[c->dev];
 
@@ -175,12 +153,16 @@ ip1gen(Chan *c, int i, Dir *dp)
 		p = "ipselftab";
 		prot = 0444;
 		break;
+	case Qipgate6:
+		p = "ipgate6";
+		prot = 0444;
+		break;
 	case Qlog:
 		p = "log";
 		break;
 	}
 	devdir(c, q, p, len, network, prot, dp);
-	if(i == Qndb)
+	if(i == Qndb && f->ndbmtime > kerndate)
 		dp->mtime = f->ndbmtime;
 	return 1;
 }
@@ -217,6 +199,7 @@ ipgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	case Qlog:
 	case Qiproute:
 	case Qipselftab:
+	case Qipgate6:
 		return ip1gen(c, TYPE(c->qid), dp);
 	case Qprotodir:
 		if(s == DEVDOTDOT){
@@ -346,6 +329,7 @@ ipwalk(Chan* c, Chan *nc, char **name, int nname)
 	return w;
 }
 
+
 static int
 ipstat(Chan* c, uchar* db, int n)
 {
@@ -384,12 +368,10 @@ ipopen(Chan* c, int omode)
 	default:
 		break;
 	case Qndb:
-		if((omode & (OWRITE|OTRUNC)) && !iseve())
+		if(omode & (OWRITE|OTRUNC) && !iseve())
 			error(Eperm);
-		if((omode & (OWRITE|OTRUNC)) == (OWRITE|OTRUNC)){
+		if((omode & (OWRITE|OTRUNC)) == (OWRITE|OTRUNC))
 			f->ndb[0] = 0;
-			f->ndbvers++;
-		}
 		break;
 	case Qlog:
 		netlogopen(f);
@@ -405,6 +387,7 @@ ipopen(Chan* c, int omode)
 	case Qstats:
 	case Qbootp:
 	case Qipselftab:
+	case Qipgate6:
 		if(omode != OREAD)
 			error(Eperm);
 		break;
@@ -497,14 +480,25 @@ ipopen(Chan* c, int omode)
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
 	c->offset = 0;
-	c->iounit = qiomaxatomic;
 	return c;
+}
+
+static void
+ipcreate(Chan*, char*, int, ulong)
+{
+	error(Eperm);
+}
+
+static void
+ipremove(Chan*)
+{
+	error(Eperm);
 }
 
 static int
 ipwstat(Chan *c, uchar *dp, int n)
 {
-	Dir *d;
+	Dir d;
 	Conv *cv;
 	Fs *f;
 	Proto *p;
@@ -519,26 +513,16 @@ ipwstat(Chan *c, uchar *dp, int n)
 		break;
 	}
 
-	d = smalloc(n + sizeof(Dir));
-	if(waserror()){
-		free(d);
-		nexterror();
+	n = convM2D(dp, n, &d, nil);
+	if(n > 0){
+		p = f->p[PROTO(c->qid)];
+		cv = p->conv[CONV(c->qid)];
+		if(!iseve() && strcmp(ATTACHER(c), cv->owner) != 0)
+			error(Eperm);
+		if(d.uid[0])
+			kstrdup(&cv->owner, d.uid);
+		cv->perm = d.mode & 0777;
 	}
-	n = convM2D(dp, n, d, nil);
-	if(n == 0)
-		error(Eshortstat);
-
-	p = f->p[PROTO(c->qid)];
-	cv = p->conv[CONV(c->qid)];
-	if(!iseve() && strcmp(ATTACHER(c), cv->owner) != 0)
-		error(Eperm);
-	if(!emptystr(d->uid))
-		kstrdup(&cv->owner, d->uid);
-	if(d->mode != ~0UL)
-		cv->perm = d->mode & 0777;
-
-	poperror();
-	free(d);
 	return n;
 }
 
@@ -631,6 +615,8 @@ ipread(Chan *ch, void *a, long n, vlong off)
 		return routeread(f, a, offset, n);
 	case Qipselftab:
 		return ipselftabread(f, a, offset, n);
+	case Qipgate6:
+		return ipgateread6(f, a, offset, n);
 	case Qlog:
 		return netlogread(f, a, offset, n);
 	case Qctl:
@@ -748,6 +734,7 @@ setluniqueport(Conv* c, int lport)
 	qunlock(p);
 	return nil;
 }
+
 
 /*
  *  pick a local port and set it
@@ -891,8 +878,18 @@ Fsstdconnect(Conv *c, char *argv[], int argc)
 		p = setraddrport(c, argv[1]);
 		if(p != nil)
 			return p;
-		return setladdrport(c, argv[2], 0);
+		p = setladdrport(c, argv[2], 0);
+		if(p != nil)
+			return p;
 	}
+
+	if( (memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
+		memcmp(c->laddr, v4prefix, IPv4off) == 0)
+		|| ipcmp(c->raddr, IPnoaddr) == 0)
+		c->ipversion = V4;
+	else
+		c->ipversion = V6;
+
 	return nil;
 }
 /*
@@ -1037,7 +1034,6 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 	Proto *x;
 	char *p;
 	Cmdbuf *cb;
-	Cmdtab *ct;
 	uchar ia[IPaddrlen], ma[IPaddrlen];
 	Fs *f;
 	char *a;
@@ -1057,7 +1053,6 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 			error(Eperm);
 
 		qwrite(c->wq, a, n);
-		x->kick(c);
 		break;
 	case Qarp:
 		return arpwrite(f, a, n);
@@ -1080,26 +1075,23 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 			free(cb);
 			nexterror();
 		}
-		ct = lookupcmd(cb, ipctlmsg, nelem(ipctlmsg));
-		switch(ct->index){
-		case CMconnect:
+		if(cb->nf < 1)
+			error("short control request");
+		if(strcmp(cb->f[0], "connect") == 0)
 			connectctlmsg(x, c, cb);
-			break;
-		case CMannounce:
+		else if(strcmp(cb->f[0], "announce") == 0)
 			announcectlmsg(x, c, cb);
-			break;
-		case CMbind:
+		else if(strcmp(cb->f[0], "bind") == 0)
 			bindctlmsg(x, c, cb);
-			break;
-		case CMttl:
+		else if(strcmp(cb->f[0], "ttl") == 0)
 			ttlctlmsg(c, cb);
-			break;
-		case CMtos:
+		else if(strcmp(cb->f[0], "tos") == 0)
 			tosctlmsg(c, cb);
-			break;
-		case CMaddmulti:
-			if(cb->nf != 2 && cb->nf != 3)
-				cmderror(cb, Ecmdargs);
+		else if(strcmp(cb->f[0], "ignoreadvice") == 0)
+			c->ignoreadvice = 1;
+		else if(strcmp(cb->f[0], "addmulti") == 0){
+			if(cb->nf < 2)
+				error("addmulti needs interface address");
 			if(cb->nf == 2){
 				if(!ipismulticast(c->raddr))
 					error("addmulti for a non multicast address");
@@ -1112,23 +1104,19 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 				parseip(ia, cb->f[1]);
 				ipifcaddmulti(c, ma, ia);
 			}
-			break;
-		case CMremmulti:
+		} else if(strcmp(cb->f[0], "remmulti") == 0){
 			if(cb->nf < 2)
 				error("remmulti needs interface address");
 			if(!ipismulticast(c->raddr))
 				error("remmulti for a non multicast address");
 			parseip(ia, cb->f[1]);
 			ipifcremmulti(c, c->raddr, ia);
-			break;
-		case CMwildcard:
-			if(x->ctl == nil)
-				cmderror(cb, "unknown control request");
+		} else if(x->ctl != nil) {
 			p = x->ctl(c, cb->f, cb->nf);
 			if(p != nil)
 				error(p);
-		}
-
+		} else 
+			error("unknown control request");
 		qunlock(c);
 		free(cb);
 		poperror();
@@ -1157,7 +1145,6 @@ ipbwrite(Chan* ch, Block* bp, ulong offset)
 			bp = concatblock(bp);
 		n = BLEN(bp);
 		qbwrite(c->wq, bp);
-		x->kick(c);
 		return n;
 	default:
 		return devbwrite(ch, bp, offset);
@@ -1175,13 +1162,13 @@ Dev ipdevtab = {
 	ipwalk,
 	ipstat,
 	ipopen,
-	devcreate,
+	ipcreate,
 	ipclose,
 	ipread,
 	ipbread,
 	ipwrite,
 	ipbwrite,
-	devremove,
+	ipremove,
 	ipwstat,
 };
 
@@ -1252,7 +1239,7 @@ retry:
 			}
 			*pp = c;
 			p->ac++;
-			c->eq = qopen(1024, 1, 0, 0);
+			c->eq = qopen(1024, Qmsg, 0, 0);
 			(*p->create)(c);
 			break;
 		}
@@ -1331,7 +1318,7 @@ Fsrcvpcolx(Fs *f, uchar proto)
  *  called with protocol locked
  */
 Conv*
-Fsnewcall(Conv *c, uchar *raddr, ushort rport, uchar *laddr, ushort lport)
+Fsnewcall(Conv *c, uchar *raddr, ushort rport, uchar *laddr, ushort lport, uchar version)
 {
 	Conv *nc;
 	Conv **l;
@@ -1359,6 +1346,8 @@ Fsnewcall(Conv *c, uchar *raddr, ushort rport, uchar *laddr, ushort lport)
 	nc->next = nil;
 	*l = nc;
 	nc->state = Connected;
+	nc->ipversion = version;
+
 	qunlock(c);
 
 	wakeup(&c->listenr);

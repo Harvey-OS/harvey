@@ -1,5 +1,5 @@
 CONF=pc
-CONFLIST=pc pccpu pcdisk
+CONFLIST=pc pccpu pcdisk pcauth
 
 objtype=386
 </$objtype/mkfile
@@ -17,6 +17,7 @@ PORT=\
 	dev.$O\
 	fault.$O\
 	latin1.$O\
+	nulledf.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\
@@ -72,10 +73,10 @@ $p$CONF.gz: $p$CONF
 
 install:V: $p$CONF $p$CONF.gz
 	cp $p$CONF $p$CONF.gz /$objtype/
+	import lookout / /n/lookout && cp $p$CONF $p$CONF.gz /n/lookout/$objtype/
 
 <../boot/bootmkfile
 <../port/portmkfile
-
 
 $ETHER: 			etherif.h ../port/netif.h
 ether8003.$O ether8390.$O:	ether8390.h
@@ -86,7 +87,8 @@ apic.$O archmp.$O mp.$O:	mp.h
 $SDEV:				../port/sd.h
 sd53c8xx.$O:			sd53c8xx.i
 main.$O:			init.h reboot.h
-
+wavelan.$O:	wavelan.c ../pc/wavelan.c ../pc/wavelan.h
+etherwavelan.$O:	etherwavelan.c  ../pc/wavelan.h
 devusb.$O usbuhci.$O usbohci.$O:	usb.h
 
 sd53c8xx.i:	sd53c8xx.n
@@ -118,3 +120,24 @@ apbootstrap.h:	apbootstrap.s mem.h
 
 acid:V:
 	8c -a -w -I. ../port/qio.c>acid
+
+%.checkether:VQ:
+	for (i in ether*.c){
+		x=`{echo $i | sed 's/\.c//'}
+		if(! ~ $x ether8390 && ! grep -s '^	'^$x^'([ 	]|$)' $stem)
+			echo $x not included in $stem
+	}
+	exit 0
+
+%.checkvga:VQ:
+	for (i in vga*.c){
+		x=`{echo $i | sed 's/\.c//'}
+		if(! ~ $x vga vgax vgasavage && ! grep -s '^	'^$x^'([ 	]|$)' $stem)
+			echo $x not included in $stem
+	}
+	exit 0
+
+checkdist:VQ:
+	for(i in pcdisk pcflop)
+	for(j in checkvga checkether)
+		mk $i.$j

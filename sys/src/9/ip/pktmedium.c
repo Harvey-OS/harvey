@@ -64,7 +64,7 @@ pktin(Fs *f, Ipifc *ifc, Block *bp)
 	if(ifc->lifc == nil)
 		freeb(bp);
 	else
-		ipiput(f, ifc, bp);
+		ipiput4(f, ifc, bp);
 }
 
 void

@@ -187,10 +187,10 @@ static vlong pcfloppyseek(FDrive*, vlong);
 FController	fl;
 
 vlong
-floppyseek(Dos *dos, vlong off)
+floppyseek(Fs *fs, vlong off)
 {
 	FDrive *dp;
 
-	dp = &fl.d[dos->dev];
+	dp = &fl.d[fs->dev];
 	return pcfloppyseek(dp, off);
 }

@@ -16,7 +16,7 @@
 %left	'+' '-'
 %left	'*' '/' '%'
 %token	<lval>	LTYPE0 LTYPE1 LTYPE2 LTYPE3 LTYPE4
-%token	<lval>	LTYPEC LTYPED LTYPEN LTYPER LTYPET LTYPES LTYPEM
+%token	<lval>	LTYPEC LTYPED LTYPEN LTYPER LTYPET LTYPES LTYPEM LTYPEI
 %token	<lval>	LCONST LFP LPC LSB
 %token	<lval>	LBREG LLREG LSREG LFREG
 %token	<dval>	LFCONST
@@ -25,7 +25,7 @@
 %type	<lval>	con expr pointer offset
 %type	<gen>	mem imm reg nam rel rem rim rom omem nmem
 %type	<gen2>	nonnon nonrel nonrem rimnon rimrem remrim
-%type	<gen2>	spec1 spec2 spec3 spec4 spec5 spec6
+%type	<gen2>	spec1 spec2 spec3 spec4 spec5 spec6 spec7
 %%
 prog:
 |	prog line
@@ -72,6 +72,7 @@ inst:
 |	LTYPEN spec4	{ outcode($1, &$2); }
 |	LTYPES spec5	{ outcode($1, &$2); }
 |	LTYPEM spec6	{ outcode($1, &$2); }
+|	LTYPEI spec7	{ outcode($1, &$2); }
 
 nonnon:
 	{
@@ -199,6 +200,23 @@ spec6:	/* MOVW/MOVL */
 		if($$.to.index != D_NONE)
 			yyerror("dp move with lhs index");
 		$$.to.index = $5;
+	}
+
+spec7:
+	rim ','
+	{
+		$$.from = $1;
+		$$.to = nullgen;
+	}
+|	rim
+	{
+		$$.from = $1;
+		$$.to = nullgen;
+	}
+|	rim ',' rem
+	{
+		$$.from = $1;
+		$$.to = $3;
 	}
 
 rem:

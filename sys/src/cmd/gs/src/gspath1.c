@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gspath1.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gspath1.c,v 1.3 2000/12/04 21:13:55 raph Exp $ */
 /* Additional PostScript Level 1 path routines for Ghostscript library */
 #include "math_.h"
 #include "gx.h"
@@ -412,6 +412,7 @@ add:
 int
 gs_dashpath(gs_state * pgs)
 {
+    gx_path *ppath;
     gx_path fpath;
     int code;
 
@@ -420,9 +421,9 @@ gs_dashpath(gs_state * pgs)
     code = gs_flattenpath(pgs);
     if (code < 0)
 	return code;
-    gx_path_init_local(&fpath, pgs->memory);
-    code = gx_path_add_dash_expansion(pgs->path, &fpath,
-				      (gs_imager_state *) pgs);
+    ppath = pgs->path;
+    gx_path_init_local(&fpath, ppath->memory);
+    code = gx_path_add_dash_expansion(ppath, &fpath, (gs_imager_state *)pgs);
     if (code < 0) {
 	gx_path_free(&fpath, "gs_dashpath");
 	return code;

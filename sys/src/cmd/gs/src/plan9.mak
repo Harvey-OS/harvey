@@ -1,21 +1,21 @@
 #    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: unixansi.mak,v 1.3 2000/03/10 15:48:58 lpd Exp $
+# $Id: unixansi.mak,v 1.16.2.3 2002/02/01 06:27:58 raph Exp $
 # makefile for Unix/ANSI C/X11 configuration.
 
 # ------------------------------- Options ------------------------------- #
@@ -62,7 +62,6 @@ bindir = $(exec_prefix)/bin
 scriptdir = $(bindir)
 mandir = $(prefix)/man
 man1ext = 1
-man1dir = $(mandir)/man$(man1ext)
 datadir = $(prefix)/share
 gsdir = $(datadir)/ghostscript
 gsdatadir=/sys/src/cmd/gs
@@ -135,7 +134,9 @@ JVERSION=6
 # DON'T DO THIS. If you do, the resulting executable will not be able to
 # read some PostScript files containing JPEG data, because Adobe chose to
 # define PostScript's JPEG capabilities in a way that is slightly
-# incompatible with the JPEG standard.  See Make.htm for more details.
+# incompatible with the JPEG standard.  Note also that if you set SHARE_JPEG
+# to 1, you must still have the library header files available to compile
+# Ghostscript.  See doc/Make.htm for more information.
 
 # DON'T SET THIS TO 1!  See the comment just above.
 SHARE_JPEG=0
@@ -147,7 +148,7 @@ JPEG_NAME=jpeg
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10005
+PVERSION=10201
 
 # Choose whether to use a shared version of the PNG library, and if so,
 # what its name is.
@@ -168,6 +169,18 @@ ZSRCDIR=zlib
 SHARE_ZLIB=0
 #ZLIB_NAME=gz
 ZLIB_NAME=z
+
+# Define the directory where the icclib source are stored.
+# See icclib.mak for more information
+
+ICCSRCDIR=icclib
+
+# Define the directory where the ijs source is stored,
+# and the process forking method to use for the server.
+# See ijs.mak for more information.
+ 
+IJSSRCDIR=ijs
+IJSEXECTYPE=unix
 
 # Define how to build the library archives.  (These are not used in any
 # standard configuration.)
@@ -235,7 +248,10 @@ EXTRALIBS=
 # All reasonable platforms require -lm, but Rhapsody and perhaps one or
 # two others fold libm into libc and don't require any additional library.
 
-STDLIBS=-lpthread -lm
+#STDLIBS=-lpthread -lm
+
+# Since the default build is for nosync, don't include pthread lib
+STDLIBS=-lm
 
 # Define the include switch(es) for the X11 header files.
 # This can be null if handled in some other way (e.g., the files are
@@ -245,7 +261,7 @@ STDLIBS=-lpthread -lm
 # Note that x_.h expects to find the header files in $(XINCLUDE)/X11,
 # not in $(XINCLUDE).
 
-XINCLUDE=-I/usr/local/X/include
+XINCLUDE=-I/usr/X11R6/include
 
 # Define the directory/ies and library names for the X11 library files.
 # XLIBDIRS is for ld and should include -L; XLIBDIR is for LD_RUN_PATH
@@ -259,7 +275,7 @@ XINCLUDE=-I/usr/local/X/include
 # X11R6 (on any platform) may need
 #XLIBS=Xt SM ICE Xext X11
 
-XLIBDIRS=-L/usr/local/X/lib
+XLIBDIRS=-L/usr/X11R6/lib
 XLIBDIR=
 XLIBS=Xt Xext X11
 
@@ -278,7 +294,12 @@ FPU_TYPE=1
 # primitives for this platform.  Don't change this unless you really know
 # what you're doing.
 
-SYNC=posync
+# If POSIX sync primitives are used, also change the STDLIBS to include
+# the pthread library.
+#SYNC=posync
+
+# Default is No sync primitives since some platforms don't have it (HP-UX)
+SYNC=nosync
 
 # ------ Devices and features ------ #
 
@@ -307,10 +328,15 @@ BAND_LIST_COMPRESSOR=zlib
 
 FILE_IMPLEMENTATION=stdio
 
+# Choose the implementation of stdio: '' for file I/O and 'c' for callouts
+# See gs.mak and ziodevs.c/ziodevsc.c for more details.
+
+STDIO_IMPLEMENTATION=c
+
 # Choose the device(s) to include.  See devs.mak for details,
 # devs.mak and contrib.mak for the list of available devices.
 
-DEVICE_DEVS=$(DD)inferno.dev $(DD)bj10e.dev $(DD)bjc600.dev $(DD)bjc800.dev $(DD)cdj1600.dev $(DD)cdj670.dev $(DD)cdj850.dev $(DD)cdj890.dev $(DD)dfaxlow.dev $(DD)epswrite.dev $(DD)jpeg.dev $(DD)jpeggray.dev $(DD)laserjet.dev $(DD)ljet2p.dev $(DD)ljet3.dev $(DD)ljet3d.dev $(DD)ljet4.dev $(DD)pbm.dev $(DD)pbmraw.dev $(DD)pdfwrite.dev $(DD)pgm.dev $(DD)pgmraw.dev $(DD)plan9bm.dev $(DD)pnm.dev $(DD)pnmraw.dev $(DD)ppm.dev $(DD)ppmraw.dev $(DD)pswrite.dev $(DD)stcolor.dev $(DD)tiffg32d.dev $(DD)tiffg3.dev $(DD)tiffg4.dev
+DEVICE_DEVS=$(DD)plan9.dev $(DD)bj10e.dev $(DD)bjc600.dev $(DD)bjc800.dev $(DD)cdj1600.dev $(DD)cdj670.dev $(DD)cdj850.dev $(DD)cdj890.dev $(DD)dfaxlow.dev $(DD)epswrite.dev $(DD)inferno.dev $(DD)jpeg.dev $(DD)jpeggray.dev $(DD)laserjet.dev $(DD)ljet2p.dev $(DD)ljet3.dev $(DD)ljet3d.dev $(DD)ljet4.dev $(DD)pbm.dev $(DD)pbmraw.dev $(DD)pdfwrite.dev $(DD)pgm.dev $(DD)pgmraw.dev $(DD)plan9bm.dev $(DD)pnm.dev $(DD)pnmraw.dev $(DD)ppm.dev $(DD)ppmraw.dev $(DD)pswrite.dev $(DD)stcolor.dev $(DD)tiffg32d.dev $(DD)tiffg3.dev $(DD)tiffg4.dev
 DEVICE_DEVS1=
 DEVICE_DEVS2=
 DEVICE_DEVS3=
@@ -365,9 +391,47 @@ include src/jpeg.mak
 # zlib.mak must precede libpng.mak
 include src/zlib.mak
 include src/libpng.mak
+include src/icclib.mak
+include src/ijs.mak
 include src/devs.mak
 include src/contrib.mak
 include src/plan9-aux.mak
 include src/unixlink.mak
 include src/unix-end.mak
 include src/unixinst.mak
+# Contributed drivers not found in the current distribution
+# We reinsert them whenever we download a new distribution.
+
+### ------------------------- Plan 9 bitmaps -------------------------- ###
+### Note: this driver was contributed by a user: please contact          ###
+###       Russ Cox <rsc@plan9.bell-labs.com> if you have questions.      ###
+
+plan9_=$(GLOBJ)gdevplan9.$(OBJ)
+$(DD)plan9.dev : $(plan9_) $(DD)page.dev
+	$(SETPDEV) $(DD)plan9 $(plan9_)
+
+$(GLOBJ)gdevplan9.$(OBJ) : $(GLSRC)gdevplan9.c $(PDEVH) $(gsparam_h) $(gxlum_h)
+	$(GLCC) $(GLO_)gdevplan9.$(OBJ) $(C_) $(GLSRC)gdevplan9.c
+
+### -------------- cdj850 - HP 850c Driver under development ------------- ###
+### For questions about this driver, please contact:                       ###
+###       Uli Wortmann (uliw@erdw.ethz.ch)                                 ###
+
+cdeskjet8_=$(GLOBJ)gdevcd8.$(OBJ) $(HPPCL)
+
+$(DD)cdj850.dev : $(cdeskjet8_) $(DD)page.dev
+	$(SETPDEV2) $(DD)cdj850 $(cdeskjet8_)
+
+$(DD)cdj670.dev : $(cdeskjet8_) $(DD)page.dev
+	$(SETPDEV2) $(DD)cdj670 $(cdeskjet8_)
+
+$(DD)cdj890.dev : $(cdeskjet8_) $(DD)page.dev
+	$(SETPDEV2) $(DD)cdj890 $(cdeskjet8_)
+
+$(DD)cdj1600.dev : $(cdeskjet8_) $(DD)page.dev
+	$(SETPDEV2) $(DD)cdj1600 $(cdeskjet8_)
+
+$(GLOBJ)gdevcd8.$(OBJ) : $(GLSRC)gdevcd8.c $(PDEVH) $(math__h)\
+ $(gsparam_h) $(gxlum_h) $(gdevpcl_h)
+	$(GLCC) $(GLO_)gdevcd8.$(OBJ) $(C_) $(GLSRC)gdevcd8.c
+

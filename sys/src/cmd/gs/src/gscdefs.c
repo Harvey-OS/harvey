@@ -1,22 +1,22 @@
 /* Copyright (C) 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gscdef.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gscdef.c,v 1.15 2001/10/20 08:44:31 raph Exp $ */
 /* Configuration scalars */
 #include "std.h"
 #include "gscdefs.h"		/* interface */
@@ -35,19 +35,19 @@ CONFIG_CONST long gs_buildtime = GS_BUILDTIME;
 
 #ifndef GS_COPYRIGHT
 #  define GS_COPYRIGHT\
-	"Copyright (C) 2000 Aladdin Enterprises, Menlo Park, CA.  All rights reserved."
+	"Copyright (C) 2001 artofcode LLC, Benicia, CA.  All rights reserved."
 #endif
 const char *CONFIG_CONST gs_copyright = GS_COPYRIGHT;
 
 #ifndef GS_PRODUCTFAMILY
 #  define GS_PRODUCTFAMILY\
-	"Aladdin Ghostscript"
+	"AFPL Ghostscript"
 #endif
 const char *CONFIG_CONST gs_productfamily = GS_PRODUCTFAMILY;
 
 #ifndef GS_PRODUCT
 #  define GS_PRODUCT\
-	"Aladdin Ghostscript"
+	"AFPL Ghostscript"
 #endif
 const char *CONFIG_CONST gs_product = GS_PRODUCT;
 

@@ -45,7 +45,7 @@ or in a file mentioned in a
 .B .PS
 line:
 .IP
-.BI .PS " optional-width optional-height " < file
+.BI .PS " " < file
 .LP
 If
 .IR optional-width

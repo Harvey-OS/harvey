@@ -12,4 +12,4 @@ fn usage {
 need clientdb clientroot clientproto
 
 must clientmount
-exec replica/updatedb -p $clientproto -u glenda -l -r $clientroot $clientexclude $clientdb $paths
+exec replica/updatedb -p $clientproto -l -r $clientroot $clientexclude $clientdb $paths

@@ -5,6 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 #include	"ip.h"
+#include  "ipv6.h"
 
 /*
  *  well known IP addresses
@@ -33,6 +34,7 @@ uchar IPallbits[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff
 };
+
 uchar IPnoaddr[IPaddrlen];
 
 /*
@@ -44,6 +46,151 @@ uchar v4prefix[IPaddrlen] = {
 	0, 0, 0xff, 0xff,
 	0, 0, 0, 0
 };
+
+
+char *v6hdrtypes[Maxhdrtype] =
+{
+	[HBH]		"HopbyHop",
+	[ICMP]		"ICMP",
+	[IGMP]		"IGMP",
+	[GGP]		"GGP",
+	[IPINIP]		"IP",
+	[ST]		"ST",
+	[TCP]		"TCP",
+	[UDP]		"UDP",
+	[ISO_TP4]	"ISO_TP4",
+	[RH]		"Routinghdr",
+	[FH]		"Fraghdr",
+	[IDRP]		"IDRP",
+	[RSVP]		"RSVP",
+	[AH]		"Authhdr",
+	[ESP]		"ESP",
+	[ICMPv6]	"ICMPv6",
+	[NNH]		"Nonexthdr",
+	[ISO_IP]	"ISO_IP",
+	[IGRP]		"IGRP",
+	[OSPF]		"OSPF",
+};
+
+/*
+ *  well known IPv6 addresses
+ */
+uchar v6Unspecified[IPaddrlen] = {
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+uchar v6loopback[IPaddrlen] = {
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0x01
+};
+uchar v6linklocal[IPaddrlen] = {
+	0xfe, 0x80, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+uchar v6linklocalmask[IPaddrlen] = {
+	0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+int v6linklocalprefix = 8;
+uchar v6sitelocal[IPaddrlen] = {
+	0xfe, 0xc0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+uchar v6sitelocalmask[IPaddrlen] = {
+	0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+int v6sitelocalprefix = 6;
+uchar v6glunicast[IPaddrlen] = {
+	0x08, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+uchar v6multicast[IPaddrlen] = {
+	0xff, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+uchar v6multicastmask[IPaddrlen] = {
+	0xff, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+int v6multicastprefix = 1;
+uchar v6allnodesN[IPaddrlen] = {
+	0xff, 0x01, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0x01
+};
+uchar v6allnodesNmask[IPaddrlen] = {
+	0xff, 0xff, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+int v6allnodesprefix = 2;
+uchar v6allnodesL[IPaddrlen] = {
+	0xff, 0x02, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0x01
+};
+uchar v6allnodesLmask[IPaddrlen] = {
+	0xff, 0xff, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+int v6allnodesLprefix = 2;
+uchar v6allroutersN[IPaddrlen] = {
+	0xff, 0x01, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0x02
+};
+uchar v6allroutersL[IPaddrlen] = {
+	0xff, 0x02, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0x02
+};
+uchar v6allroutersS[IPaddrlen] = {
+	0xff, 0x05, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0x02
+};
+uchar v6solicitednode[IPaddrlen] = {
+	0xff, 0x02, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0x01,
+	0xff, 0, 0, 0
+};
+uchar v6solicitednodemask[IPaddrlen] = {
+	0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff,
+	0xff, 0x0, 0x0, 0x0
+};
+int v6solicitednodeprefix = 13;
+
+
 
 
 ushort
@@ -135,16 +282,13 @@ eipfmt(Fmt *f)
 	switch(f->r) {
 	case 'E':		/* Ethernet address */
 		p = va_arg(f->args, uchar*);
-		snprint(buf, sizeof buf, efmt, p[0], p[1], p[2], p[3], p[4], p[5]);
-		return fmtstrcpy(f, buf);
+		return fmtprint(f, efmt, p[0], p[1], p[2], p[3], p[4], p[5]);
 
 	case 'I':		/* Ip address */
 		p = va_arg(f->args, uchar*);
 common:
-		if(memcmp(p, v4prefix, 12) == 0){
-			snprint(buf, sizeof buf, ifmt, p[12], p[13], p[14], p[15]);
-			return fmtstrcpy(f, buf);
-		}
+		if(memcmp(p, v4prefix, 12) == 0)
+			return fmtprint(f, ifmt, p[12], p[13], p[14], p[15]);
 
 		/* find longest elision */
 		eln = eli = -1;
@@ -182,8 +326,7 @@ common:
 
 	case 'V':		/* v4 ip address */
 		p = va_arg(f->args, uchar*);
-		snprint(buf, sizeof buf, ifmt, p[0], p[1], p[2], p[3]);
-		return fmtstrcpy(f, buf);
+		return fmtprint(f, ifmt, p[0], p[1], p[2], p[3]);
 
 	case 'M':		/* ip mask */
 		p = va_arg(f->args, uchar*);
@@ -203,10 +346,10 @@ common:
 			n = 8*16;
 
 		/* got one, use /xx format */
-		snprint(buf, sizeof buf, "/%d", n);
-		return fmtstrcpy(f, buf);
+		return fmtprint(f, "/%d", n);
+
 	}
-	return fmtstrcpy(f, "(eipfmt)");
+	return fmtprint(f, "(eipfmt)");
 }
 
 #define CLASS(p) ((*(uchar*)(p))>>6)
@@ -230,7 +373,7 @@ v4parseip(uchar *to, char *from)
 			to[3] = to[2];
 			to[2] = to[1];
 			to[1] = 0;
-		} else if (i == 2){
+		} else if(i == 2){
 			to[3] = to[1];
 			to[1] = 0;
 		}
@@ -395,8 +538,33 @@ uchar classmask[4][16] = {
 uchar*
 defmask(uchar *ip)
 {
-	return classmask[ip[IPv4off]>>6];
+	if(isv4(ip))
+		return classmask[ip[IPv4off]>>6];
+	else {
+		if(ipcmp(ip, v6loopback) == 0)
+			return IPallbits;
+		else if(memcmp(ip, v6linklocal, v6linklocalprefix) == 0)
+			return v6linklocalmask;
+		else if(memcmp(ip, v6sitelocal, v6sitelocalprefix) == 0)
+			return v6sitelocalmask;
+		else if(memcmp(ip, v6solicitednode, v6solicitednodeprefix) == 0)
+			return v6solicitednodemask;
+		else if(memcmp(ip, v6multicast, v6multicastprefix) == 0)
+			return v6multicastmask;
+		return IPallbits;
+	}
 }
+
+void
+ipv62smcast(uchar *smcast, uchar *a)
+{
+	assert(IPaddrlen == 16);
+	memmove(smcast, v6solicitednode, IPaddrlen);
+	smcast[13] = a[13];
+	smcast[14] = a[14];
+	smcast[15] = a[15];
+}
+
 
 /*
  *  parse a hex mac address

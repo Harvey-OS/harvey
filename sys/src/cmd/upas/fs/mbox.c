@@ -27,7 +27,7 @@ static	void	cc822(Message*, Header*, char*);
 static	void	bcc822(Message*, Header*, char*);
 static	void	messageid822(Message*, Header*, char*);
 static	void	mimeversion(Message*, Header*, char*);
-
+static	void	nullsqueeze(Message*);
 enum
 {
 	Mhead=	11,	/* offset of first mime header */
@@ -279,6 +279,11 @@ parseheaders(Message *m, int justmime, Mailbox *mb)
 		p++;
 	m->rbody = m->body = p;
 
+	// if type is text, get any nulls out of the body.  This is
+	// for the two seans and imap clients that get confused.
+	if(strncmp(s_to_c(m->type), "text/", 5) == 0)
+		nullsqueeze(m);
+
 	//
 	// cobble together Unix-style from line
 	// for local mailbox messages, we end up recreating the
@@ -381,11 +386,20 @@ parseattachments(Message *m, Mailbox *mb)
 		l = &m->part;
 		for(;;){
 			x = strstr(p, s_to_c(m->boundary));
-			if(x == nil || (x != m->body && *(x-1) != '\n')){
+
+			/* no boundary, we're done */
+			if(x == nil){
 				if(nm != nil)
 					nm->rbend = nm->bend = nm->end = m->bend;
 				break;
 			}
+
+			/* boundary must be at the start of a line */
+			if(x != m->body && *(x-1) != '\n'){
+				p = x+1;
+				continue;
+			}
+
 			if(nm != nil)
 				nm->rbend = nm->bend = nm->end = x;
 			x += strlen(s_to_c(m->boundary));
@@ -1052,6 +1066,15 @@ convert(Message *m)
 			m->bend = x + len;
 			m->ballocd = 1;
 		}
+	} else if(cistrcmp(s_to_c(m->charset), "iso-8859-2") == 0){
+		len = xtoutf("8859-2", &x, m->body, m->bend);
+		if(len != 0){
+			if(m->ballocd)
+				free(m->body);
+			m->body = x;
+			m->bend = x + len;
+			m->ballocd = 1;
+		}
 	} else if(cistrcmp(s_to_c(m->charset), "big5") == 0){
 		len = xtoutf("big5", &x, m->body, m->bend);
 		if(len != 0){
@@ -1341,6 +1364,8 @@ emalloc(ulong n)
 void *
 erealloc(void *p, ulong n)
 {
+	if(n == 0)
+		n = 1;
 	p = realloc(p, n);
 	if(!p){
 		fprint(2, "%s: out of memory realloc %lud\n", argv0, n);
@@ -1465,6 +1490,25 @@ logmsg(char *s, Message *m)
 			m->from822 ? s_to_c(m->from822) : "?",
 			s_to_c(m->sdigest));
 }
+
+/*
+ *  squeeze nulls out of the body
+ */
+static void
+nullsqueeze(Message *m)
+{
+	char *p, *q;
+
+	for(p = m->body; p < m->end; p = q){
+		q = memchr(p, 0, m->end-p);
+		if(q == nil)
+			break;
+		memmove(q, q+1, m->end - q - 1);
+		m->end--;
+	}
+	m->bend = m->rbend = m->bend;
+}
+
 
 //
 // convert an RFC822 date into a Unix style date

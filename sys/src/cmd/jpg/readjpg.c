@@ -1356,6 +1356,7 @@ decode(Header *h, Huffman *t)
 {
 	int code, v, cnt, m, sr, i;
 	int *maxcode;
+	static int badcode;
 
 	maxcode = t->maxcode;
 	if(h->cnt < 8)
@@ -1391,8 +1392,12 @@ decode(Header *h, Huffman *t)
 		}
 		cnt--;
 	}
-	if(i >= 17)
-		jpgerror(h, "badly encoded %dx%d JPEG file", h->X, h->Y);
+	if(i >= 17){
+		if(badcode == 0)
+			fprint(2, "badly encoded %dx%d JPEG file; ignoring bad value\n", h->X, h->Y);
+		badcode = 1;
+		i = 0;
+	}
 	h->cnt = cnt;
 	return t->val[t->valptr[i]+(code-t->mincode[i])];
 }

@@ -118,8 +118,8 @@ static int mach64revb;			/* Revision B or greater? */
 static ulong mach64overlay;		/* Overlay buffer */
 
 static mach64types mach64s[] = {
-	('C'<<8)|'T',	0,	0,		0,	/* 4354: CT */
-	('E'<<8)|'T',	0,	0,		0,	/* 4554: ET */
+	('C'<<8)|'T',	0,	1350000, /*?*/	0,	/* 4354: CT */
+	('E'<<8)|'T',	0,	1350000, /*?*/	0,	/* 4554: ET */
 	('G'<<8)|'B',	1,	1250000,		1, 	/* 4742: 264GT PRO */
 	('G'<<8)|'D',	1,	1250000,		1, 	/* 4744: 264GT PRO */
 	('G'<<8)|'I',	1,	1250000,		1, 	/* 4749: 264GT PRO */

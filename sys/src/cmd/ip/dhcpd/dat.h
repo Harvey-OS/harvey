@@ -26,6 +26,8 @@ struct Info
 	char	domain[Ndbvlen];	/* system domain name */
 	char	bootf[Ndbvlen];		/* boot file */
 	char	bootf2[Ndbvlen];	/* alternative boot file */
+	uchar	tftp[NDB_IPlen];	/* ip addr of tftp server */
+	uchar	tftp2[NDB_IPlen];	/* ip addr of alternate server */
 	uchar	ipaddr[NDB_IPlen];	/* ip address of system */
 	uchar	ipmask[NDB_IPlen];	/* ip network mask */
 	uchar	ipnet[NDB_IPlen];	/* ip network address (ipaddr & ipmask) */
@@ -55,14 +57,16 @@ extern int	commitbinding(Binding*);
 extern int	releasebinding(Binding*, char*);
 extern int	samenet(uchar *ip, Info *iip);
 extern void	mkoffer(Binding*, char*, long);
+extern int	syncbinding(Binding*, int);
 
 /* from ndb.c */
 extern int	lookup(Bootp*, Info*, Info*);
-extern int	lookupip(uchar*, Info*);
-extern void	lookupname(uchar*, char*);
+extern int	lookupip(uchar*, Info*, int);
+extern void	lookupname(char*, Ndbtuple*);
 extern Iplifc*	findlifc(uchar*);
 extern int	forme(uchar*);
-extern int	lookupserver(char*, uchar**, uchar*);
+extern int	lookupserver(char*, uchar**, Ndbtuple *t);
+extern Ndbtuple* lookupinfo(uchar *ipaddr, char **attr, int n);
 
 /* from icmp.c */
 extern int	icmpecho(uchar*);

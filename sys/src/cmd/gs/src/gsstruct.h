@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsstruct.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsstruct.h,v 1.8 2001/04/04 18:45:08 alexcher Exp $ */
 /* Definitions for Ghostscript modules that define allocatable structures */
 /* Requires gstypes.h */
 
@@ -515,6 +515,13 @@ extern void reloc_const_bytestring(P2(gs_const_bytestring *pbs, gc_state_t *gcst
 #define gs_private_st_simple(stname, stype, sname)\
   gs__st_simple(private_st, stname, stype, sname)
 
+#define gs__st_simple_final(scope_st, stname, stype, sname, pfinal)\
+  scope_st stname = { sizeof(stype), sname, 0, 0, gs_no_struct_enum_ptrs, gs_no_struct_reloc_ptrs, pfinal }
+#define gs_public_st_simple_final(stname, stype, sname, pfinal)\
+  gs__st_simple_final(public_st, stname, stype, sname, pfinal)
+#define gs_private_st_simple_final(stname, stype, sname, pfinal)\
+  gs__st_simple_final(private_st, stname, stype, sname, pfinal)
+
 /* ---------------- Structures with explicit procedures. ---------------- */
 
 /*
@@ -671,6 +678,18 @@ extern void reloc_const_bytestring(P2(gs_const_bytestring *pbs, gc_state_t *gcst
 #define gs_private_st_const_strings1(stname, stype, sname, penum, preloc, e1)\
   gs__st_const_strings1(private_st, stname, stype, sname, penum, preloc, e1)
 
+	/* Structures with 1 const string and 1 pointer. */
+
+#define gs__st_const_strings1_ptrs1(scope_st, stname, stype, sname, penum, preloc, e1, e2)\
+  BASIC_PTRS(penum) {\
+    GC_CONST_STRING_ELT(stype, e1), GC_OBJ_ELT(stype, e2)\
+  };\
+  gs__st_basic(scope_st, stname, stype, sname, penum, preloc)
+#define gs_public_st_const_strings1_ptrs1(stname, stype, sname, penum, preloc, e1, e2)\
+  gs__st_const_strings1_ptrs1(public_st, stname, stype, sname, penum, preloc, e1, e2)
+#define gs_private_st_const_strings1_ptrs1(stname, stype, sname, penum, preloc, e1, e2)\
+  gs__st_const_strings1_ptrs1(private_st, stname, stype, sname, penum, preloc, e1, e2)
+
 	/* Structures with 2 const strings. */
 
 #define gs__st_const_strings2(scope_st, stname, stype, sname, penum, preloc, e1, e2)\
@@ -812,6 +831,18 @@ extern void reloc_const_bytestring(P2(gs_const_bytestring *pbs, gc_state_t *gcst
 #define gs_private_st_suffix_add1_final(stname, stype, sname, penum, preloc, pfinal, supstname, e1)\
   gs__st_suffix_add1_final(private_st, stname, stype, sname, penum, preloc, pfinal, supstname, e1)
 
+	/* Suffix subclasses with 1 additional string. */
+
+#define gs__st_suffix_add_strings1(scope_st, stname, stype, sname, penum, preloc, supstname, e1)\
+  BASIC_PTRS(penum) {\
+    GC_STRING_ELT(stype, e1)\
+  };\
+  gs__st_basic_super(scope_st, stname, stype, sname, penum, preloc, &supstname, 0)
+#define gs_public_st_suffix_add_strings1(stname, stype, sname, penum, preloc, supstname, e1)\
+  gs__st_suffix_add_strings1(public_st, stname, stype, sname, penum, preloc, supstname, e1)
+#define gs_private_st_suffix_add_strings1(stname, stype, sname, penum, preloc, supstname, e1)\
+  gs__st_suffix_add_strings1(private_st, stname, stype, sname, penum, preloc, supstname, e1)
+
 	/* Suffix subclasses with 2 additional pointers. */
 
 #define gs__st_suffix_add2(scope_st, stname, stype, sname, penum, preloc, supstname, e1, e2)\
@@ -887,6 +918,18 @@ extern void reloc_const_bytestring(P2(gs_const_bytestring *pbs, gc_state_t *gcst
 #define gs_private_st_suffix_add4_final(stname, stype, sname, penum, preloc, pfinal, supstname, e1, e2, e3, e4)\
   gs__st_suffix_add4_final(private_st, stname, stype, sname, penum, preloc, pfinal, supstname, e1, e2, e3, e4)
 
+	/* Suffix subclasses with 5 additional pointers. */
+
+#define gs__st_suffix_add5(scope_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5)\
+  BASIC_PTRS(penum) {\
+    GC_OBJ_ELT3(stype, e1, e2, e3), GC_OBJ_ELT2(stype, e4, e5)\
+  };\
+  gs__st_basic_super(scope_st, stname, stype, sname, penum, preloc, &supstname, 0)
+#define gs_public_st_suffix_add5(stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5)\
+  gs__st_suffix_add5(public_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5)
+#define gs_private_st_suffix_add5(stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5)\
+  gs__st_suffix_add5(private_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5)
+
 	/* Suffix subclasses with 6 additional pointers. */
 
 #define gs__st_suffix_add6(scope_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6)\
@@ -898,6 +941,45 @@ extern void reloc_const_bytestring(P2(gs_const_bytestring *pbs, gc_state_t *gcst
   gs__st_suffix_add6(public_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6)
 #define gs_private_st_suffix_add6(stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6)\
   gs__st_suffix_add6(private_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6)
+
+	/* Suffix subclasses with 7 additional pointers. */
+
+#define gs__st_suffix_add7(scope_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7)\
+  BASIC_PTRS(penum) {\
+    GC_OBJ_ELT3(stype, e1, e2, e3), GC_OBJ_ELT3(stype, e4, e5, e6),\
+    GC_OBJ_ELT(stype, e7)\
+  };\
+  gs__st_basic_super(scope_st, stname, stype, sname, penum, preloc, &supstname, 0)
+#define gs_public_st_suffix_add7(stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7)\
+  gs__st_suffix_add7(public_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7)
+#define gs_private_st_suffix_add7(stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7)\
+  gs__st_suffix_add7(private_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7)
+
+	/* Suffix subclasses with 8 additional pointers. */
+
+#define gs__st_suffix_add8(scope_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7, e8)\
+  BASIC_PTRS(penum) {\
+    GC_OBJ_ELT3(stype, e1, e2, e3), GC_OBJ_ELT3(stype, e4, e5, e6),\
+    GC_OBJ_ELT2(stype, e7, e8)\
+  };\
+  gs__st_basic_super(scope_st, stname, stype, sname, penum, preloc, &supstname, 0)
+#define gs_public_st_suffix_add8(stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7, e8)\
+  gs__st_suffix_add8(public_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7, e8)
+#define gs_private_st_suffix_add8(stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7, e8)\
+  gs__st_suffix_add8(private_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7, e8)
+
+	/* Suffix subclasses with 9 additional pointers. */
+
+#define gs__st_suffix_add9(scope_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7, e8, e9)\
+  BASIC_PTRS(penum) {\
+    GC_OBJ_ELT3(stype, e1, e2, e3), GC_OBJ_ELT3(stype, e4, e5, e6),\
+    GC_OBJ_ELT3(stype, e7, e8, e9)\
+  };\
+  gs__st_basic_super(scope_st, stname, stype, sname, penum, preloc, &supstname, 0)
+#define gs_public_st_suffix_add9(stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7, e8, e9)\
+  gs__st_suffix_add9(public_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7, e8, e9)
+#define gs_private_st_suffix_add9(stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7, e8, e9)\
+  gs__st_suffix_add9(private_st, stname, stype, sname, penum, preloc, supstname, e1, e2, e3, e4, e5, e6, e7, e8, e9)
 
 /* ---------------- General subclasses ---------------- */
 

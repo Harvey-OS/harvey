@@ -1,23 +1,24 @@
-/* Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zfont1.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zfont1.c,v 1.9 2000/12/03 23:35:30 lpd Exp $ */
 /* Type 1 and Type 4 font creation operators */
+#include "memory_.h"
 #include "ghost.h"
 #include "oper.h"
 #include "gxfixed.h"
@@ -28,6 +29,7 @@
 #include "bfont.h"
 #include "ialloc.h"
 #include "icharout.h"
+#include "ichar1.h"
 #include "idict.h"
 #include "idparam.h"
 #include "ifont1.h"
@@ -37,13 +39,8 @@
 /* Type 1 font procedures (defined in zchar1.c) */
 extern const gs_type1_data_procs_t z1_data_procs;
 font_proc_glyph_info(z1_glyph_info);
-font_proc_glyph_outline(zcharstring_glyph_outline);
 /* Font procedures defined here */
-private font_proc_font_info(z1_font_info);
 private font_proc_same_font(z1_same_font);
-
-/* Default value of lenIV */
-#define DEFAULT_LENIV_1 4
 
 /* ------ Private utilities ------ */
 
@@ -74,7 +71,7 @@ z1_enumerate_glyph(gs_font * pfont, int *pindex, gs_glyph_space_t ignored,
 
 /* Extract pointers to internal structures. */
 int
-charstring_font_get_refs(os_ptr op, charstring_font_refs_t *pfr)
+charstring_font_get_refs(const_os_ptr op, charstring_font_refs_t *pfr)
 {
     check_type(*op, t_dictionary);
     if (dict_find_string(op, "Private", &pfr->Private) <= 0 ||
@@ -96,15 +93,12 @@ charstring_font_get_refs(os_ptr op, charstring_font_refs_t *pfr)
     return 0;
 }
 
-/* Build a Type 1, Type 2, or Type 4 font. */
+/* Get the parameters of a CharString-based font or a FDArray entry. */
 int
-build_charstring_font(i_ctx_t *i_ctx_p, os_ptr op, build_proc_refs *pbuild,
-		      font_type ftype, charstring_font_refs_t *pfr,
-		      gs_type1_data *pdata1, build_font_options_t options)
+charstring_font_params(const_os_ptr op, charstring_font_refs_t *pfr,
+		       gs_type1_data *pdata1)
 {
     const ref *pprivate = pfr->Private;
-    gs_font_type1 *pfont;
-    font_data *pdata;
     int code;
 
     /* Get the rest of the information from the Private dictionary. */
@@ -133,7 +127,11 @@ build_charstring_font(i_ctx_t *i_ctx_p, os_ptr op, build_proc_refs *pbuild,
 			    &pdata1->FamilyOtherBlues.values[0], NULL)) < 0 ||
 	(code = dict_bool_param(pprivate, "ForceBold", false,
 				&pdata1->ForceBold)) < 0 ||
-	(code = dict_int_param(pprivate, "LanguageGroup", 0, 1, 0,
+    /*
+     * We've seen a few fonts with out-of-range LanguageGroup values;
+     * if it weren't for this, the only legal values should be 0 or 1.
+     */
+	(code = dict_int_param(pprivate, "LanguageGroup", min_int, max_int, 0,
 			       &pdata1->LanguageGroup)) < 0 ||
 	(code = pdata1->OtherBlues.count =
 	 dict_float_array_param(pprivate, "OtherBlues", max_OtherBlues * 2,
@@ -141,11 +139,13 @@ build_charstring_font(i_ctx_t *i_ctx_p, os_ptr op, build_proc_refs *pbuild,
 	(code = dict_bool_param(pprivate, "RndStemUp", true,
 				&pdata1->RndStemUp)) < 0 ||
 	(code = pdata1->StdHW.count =
-	 dict_float_array_param(pprivate, "StdHW", 1,
-				&pdata1->StdHW.values[0], NULL)) < 0 ||
+	 dict_float_array_check_param(pprivate, "StdHW", 1,
+				      &pdata1->StdHW.values[0], NULL,
+				      0, e_rangecheck)) < 0 ||
 	(code = pdata1->StdVW.count =
-	 dict_float_array_param(pprivate, "StdVW", 1,
-				&pdata1->StdVW.values[0], NULL)) < 0 ||
+	 dict_float_array_check_param(pprivate, "StdVW", 1,
+				      &pdata1->StdVW.values[0], NULL,
+				      0, e_rangecheck)) < 0 ||
 	(code = pdata1->StemSnapH.count =
 	 dict_float_array_param(pprivate, "StemSnapH", max_StemSnap,
 				&pdata1->StemSnapH.values[0], NULL)) < 0 ||
@@ -181,24 +181,56 @@ build_charstring_font(i_ctx_t *i_ctx_p, os_ptr op, build_proc_refs *pbuild,
 	if (pdata1->BlueScale * max_zone_height > 1.0)
 	    pdata1->BlueScale = 1.0 / max_zone_height;
     }
-    /* Do the work common to primitive font types. */
-    code = build_gs_primitive_font(i_ctx_p, op, (gs_font_base **)&pfont, ftype,
-				   &st_gs_font_type1, pbuild, options);
-    if (code != 0)
-	return code;
-    /* This is a new font, fill it in. */
+    /*
+     * According to the same Adobe book, section 5.11, only values
+     * 0 and 1 are allowed for LanguageGroup and we have encountered
+     * fonts with other values. If the value is anything else, map it to 0
+     * so that the remainder of the graphics library won't see an
+     * unexpected value.
+     */
+    if (pdata1->LanguageGroup > 1 || pdata1->LanguageGroup < 0)
+	pdata1->LanguageGroup = 0;
+    return 0;
+}
+
+/* Fill in a newly built CharString-based font or FDArray entry. */
+int
+charstring_font_init(gs_font_type1 *pfont, const charstring_font_refs_t *pfr,
+		     const gs_type1_data *pdata1)
+{
+    font_data *pdata;
+
     pdata = pfont_data(pfont);
     pfont->data = *pdata1;
     ref_assign(&pdata->u.type1.OtherSubrs, pfr->OtherSubrs);
     ref_assign(&pdata->u.type1.Subrs, pfr->Subrs);
     ref_assign(&pdata->u.type1.GlobalSubrs, pfr->GlobalSubrs);
-    pfont->data.procs = &z1_data_procs;
+    pfont->data.procs = z1_data_procs;
     pfont->data.proc_data = (char *)pdata;
-    pfont->procs.font_info = z1_font_info;
     pfont->procs.same_font = z1_same_font;
     pfont->procs.glyph_info = z1_glyph_info;
     pfont->procs.enumerate_glyph = z1_enumerate_glyph;
-    pfont->procs.glyph_outline = zcharstring_glyph_outline;
+    pfont->procs.glyph_outline = zchar1_glyph_outline;
+    return 0;
+}
+
+/* Build a Type 1, Type 2, or Type 4 font. */
+int
+build_charstring_font(i_ctx_t *i_ctx_p, os_ptr op, build_proc_refs *pbuild,
+		      font_type ftype, charstring_font_refs_t *pfr,
+		      gs_type1_data *pdata1, build_font_options_t options)
+{
+    int code = charstring_font_params(op, pfr, pdata1);
+    gs_font_type1 *pfont;
+
+    if (code < 0)
+	return code;
+    code = build_gs_primitive_font(i_ctx_p, op, (gs_font_base **)&pfont, ftype,
+				   &st_gs_font_type1, pbuild, options);
+    if (code != 0)
+	return code;
+    /* This is a new font, fill it in. */
+    charstring_font_init(pfont, pfr, pdata1);
     return define_gs_font((gs_font *)pfont);
 }
 
@@ -263,54 +295,6 @@ const op_def zfont1_op_defs[] =
 
 /* ------ Font procedures for Type 1 fonts ------ */
 
-/* font_info procedure */
-private bool
-z1_font_info_has(const ref *pfidict, const char *key, gs_const_string *pmember)
-{
-    ref *pvalue;
-
-    if (dict_find_string(pfidict, key, &pvalue) > 0 &&
-	r_has_type(pvalue, t_string)
-	) {
-	pmember->data = pvalue->value.const_bytes;
-	pmember->size = r_size(pvalue);
-	return true;
-    }
-    return false;
-}
-private int
-z1_font_info(gs_font *font, const gs_point *pscale, int members,
-	     gs_font_info_t *info)
-{
-    const gs_font_type1 *const pfont1 = (const gs_font_type1 *)font;
-    int code = gs_default_font_info(font, pscale, members &
-		    ~(FONT_INFO_COPYRIGHT | FONT_INFO_NOTICE |
-		      FONT_INFO_FAMILY_NAME | FONT_INFO_FULL_NAME),
-				    info);
-    const ref *pfdict;
-    ref *pfontinfo;
-
-    if (code < 0)
-	return code;
-    pfdict = &pfont_data(pfont1)->dict;
-    if (dict_find_string(pfdict, "FontInfo", &pfontinfo) <= 0 ||
-	!r_has_type(pfontinfo, t_dictionary))
-	return 0;
-    if ((members & FONT_INFO_COPYRIGHT) &&
-	z1_font_info_has(pfontinfo, "Copyright", &info->Copyright))
-	info->members |= FONT_INFO_COPYRIGHT;
-    if ((members & FONT_INFO_NOTICE) &&
-	z1_font_info_has(pfontinfo, "Notice", &info->Notice))
-	info->members |= FONT_INFO_NOTICE;
-    if ((members & FONT_INFO_FAMILY_NAME) &&
-	z1_font_info_has(pfontinfo, "FamilyName", &info->FamilyName))
-	info->members |= FONT_INFO_FAMILY_NAME;
-    if ((members & FONT_INFO_FULL_NAME) &&
-	z1_font_info_has(pfontinfo, "FullName", &info->FullName))
-	info->members |= FONT_INFO_FULL_NAME;
-    return code;
-}
-
 /* same_font procedure */
 private bool
 same_font_dict(const font_data *pdata, const font_data *podata,
@@ -344,7 +328,7 @@ z1_same_font(const gs_font *font, const gs_font *ofont, int mask)
 	const font_data *const podata = pfont_data(pofont1);
 
 	if ((check & (FONT_SAME_OUTLINES | FONT_SAME_METRICS)) &&
-	    pofont1->data.procs == &z1_data_procs &&
+	    !memcmp(&pofont1->data.procs, &z1_data_procs, sizeof(z1_data_procs)) &&
 	    obj_eq(&pdata->CharStrings, &podata->CharStrings) &&
 	    /*
 	     * We use same_font_dict for convenience: we know that
@@ -355,7 +339,7 @@ z1_same_font(const gs_font *font, const gs_font *ofont, int mask)
 	    same |= FONT_SAME_OUTLINES;
 
 	if ((check & FONT_SAME_METRICS) && (same & FONT_SAME_OUTLINES) &&
-	    pofont1->data.procs == &z1_data_procs &&
+	    !memcmp(&pofont1->data.procs, &z1_data_procs, sizeof(z1_data_procs)) &&
 	    /* Metrics may be affected by CDevProc, Metrics, Metrics2. */
 	    same_font_dict(pdata, podata, "Metrics") &&
 	    same_font_dict(pdata, podata, "Metrics2") &&

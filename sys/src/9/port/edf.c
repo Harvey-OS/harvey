@@ -32,13 +32,12 @@ static Timer	releasetimer[MAXMACH];		/* Time of next release */
 static int		initialized;
 static uvlong	fasthz;	
 static Ticks	now;
+/* Edfschedlock protects modification of sched params, including resources */
 QLock		edfschedlock;
 Lock			edflock;
 
-Task			tasks[Maxtasks];
-int			ntasks;
-Resource		resources[Maxresources];
-int			nresources;
+Head		tasks;
+Head		resources;
 int			edfstateupdate;
 int			misseddeadlines;
 
@@ -49,6 +48,7 @@ enum{
 
 static int earlierrelease(Task *t1, Task *t2) {return t1->r < t2->r;}
 static int earlierdeadline(Task *t1, Task *t2) {return t1->d < t2->d;}
+static void	edfrelease(Task *t);
 
 /* Tasks waiting for release, head earliest release time */
 Taskq		qwaitrelease =	{{0}, nil, earlierrelease};
@@ -71,7 +71,7 @@ static void		edfreleaseintr(Ureg *, Timer *cy);
 static void		edfdeadlineintr(Ureg*, Timer*);
 static char *	edftestschedulability(Task *thetask);
 
-void
+static void
 edfinit(void)
 {
 	int i;
@@ -96,13 +96,13 @@ edfinit(void)
 	iunlock(&edflock);
 }
 
-int
+static int
 isedf(Proc *p)
 {
 	return p && p->task && p->task->state >= EdfIdle;
 }
 
-int
+static int
 edfanyready(void)
 {
 	return edfstack[m->machno].head || qreleased.head;
@@ -220,7 +220,7 @@ edfreleasetimer(void)
 	timeradd(&releasetimer[m->machno]);
 }
 
-void
+static void
 edfblock(Proc *p)
 {
 	Task *t, *pt;
@@ -252,6 +252,7 @@ static void
 deadline(Proc *p, SEvent why)
 {
 	Task *t, *nt;
+	Ticks used;
 
 	/* Task has reached its deadline, lock must be held */
 	DPRINT("%d deadline, %s, %d\n", m->machno, edfstatename[p->task->state], p->task->runq.n);
@@ -272,13 +273,18 @@ deadline(Proc *p, SEvent why)
 		timerdel(&deadlinetimer[m->machno]);
 		deadlinetimer[m->machno].when = 0;
 	}
+	used = now - t->scheduled;
+	t->S -= used;
+	t->scheduled = now;
+	t->total += used;
+	t->aged = (t->aged*31 + t->C - t->S) >> 5;
 	t->d = now;
 	t->state = EdfDeadline;
 	if(devrt) devrt(t, now, why);
 	edfresched(t);
 }
 
-void
+static void
 edfdeadline(Proc *p)
 {
 	DPRINT("%d edfdeadline\n", m->machno);
@@ -289,11 +295,12 @@ edfdeadline(Proc *p)
 	iunlock(&edflock);
 }
 
-char *
+static char *
 edfadmit(Task *t)
 {
 	char *err;
 
+	/* Called with edfschedlock held */
 	if (t->state != EdfExpelled)
 		return "task state";	/* should never happen */
 
@@ -309,12 +316,11 @@ edfadmit(Task *t)
 	if (t->C > t->D)
 		return "C > D";
 
-	qlock(&edfschedlock);
 	if (err = edftestschedulability(t)){
-		qunlock(&edfschedlock);
 		return err;
 	}
 	ilock(&edflock);
+	qunlock(&edfschedlock);
 	DPRINT("%d edfadmit, %s, %d\n", m->machno, edfstatename[t->state], t->runq.n);
 	now = fastticks(nil);
 
@@ -330,6 +336,7 @@ edfadmit(Task *t)
 		t->S = t->C;
 		t->scheduled = now;
 		t->state = EdfRunning;
+		t->periods++;
 		if(devrt) devrt(t, now, SRun);
 		setdelta();
 		assert(t->runq.n > 0 || (up && up->task == t));
@@ -350,16 +357,16 @@ edfadmit(Task *t)
 		}
 	}
 	iunlock(&edflock);
-	qunlock(&edfschedlock);
+	qlock(&edfschedlock);
 	return nil;
 }
 
-void
+static void
 edfexpel(Task *t)
 {
 	Task *tt;
 
-	qlock(&edfschedlock);
+	/* Called with edfschedlock held */
 	ilock(&edflock);
 	DPRINT("%d edfexpel, %s, %d\n", m->machno, edfstatename[t->state], t->runq.n);
 	now = fastticks(nil);
@@ -368,7 +375,6 @@ edfexpel(Task *t)
 	case EdfExpelled:
 		/* That was easy */
 		iunlock(&edflock);
-		qunlock(&edfschedlock);
 		return;
 	case EdfAdmitted:
 	case EdfIdle:
@@ -400,7 +406,6 @@ edfexpel(Task *t)
 	if(devrt) devrt(t, now, SExpel);
 	setdelta();
 	iunlock(&edflock);
-	qunlock(&edfschedlock);
 	return;
 }
 
@@ -457,6 +462,7 @@ edfdeadlineintr(Ureg*, Timer*)
 	
 		used = now - t->scheduled;
 		t->scheduled = now;
+		t->total += used;
 
 		if (t->r < now){
 			if (t->S <= used)
@@ -466,8 +472,10 @@ edfdeadlineintr(Ureg*, Timer*)
 	
 			if (t->d <= now || t->S == 0LL){
 				/* Task has reached its deadline/slice, remove from queue */
-				if (t->S > 0LL)
+				if (t->d <= now){
+					t->missed++;
 					misseddeadlines++;
+				}
 				deadline(up, SSlice);
 				while (t = edfstack[m->machno].head){
 					if (now < t->d)
@@ -482,11 +490,10 @@ edfdeadlineintr(Ureg*, Timer*)
 	splhi();
 }
 
-void
+static void
 edfbury(Proc *p)
 {
 	Task *t;
-	Proc **pp;
 
 	DPRINT("%d edfbury\n", m->machno);
 	ilock(&edflock);
@@ -498,16 +505,12 @@ edfbury(Proc *p)
 		return;
 	}
 	assert(edfstack[m->machno].head == t);
-	for (pp = t->procs; pp < t->procs + nelem(t->procs); pp++)
-		if (*pp == p){
-			t->nproc--;
-			*pp = nil;
-		}
+	delist(&t->procs, p);
 	if (t->runq.head == nil){
 		edfpop();
 		t->state = EdfBlocked;
 	}
-	if (t->nproc == 0){
+	if (t->procs.n == 0){
 		assert(t->runq.head == nil);
 		t->state = EdfIdle;
 	}
@@ -516,7 +519,7 @@ edfbury(Proc *p)
 	iunlock(&edflock);
 }
 
-void
+static void
 edfready(Proc *p)
 {
 	Task *t;
@@ -553,7 +556,7 @@ edfresched(Task *t)
 	Task *xt;
 
 	DPRINT("%d edfresched, %s, %d\n", m->machno, edfstatename[t->state], t->runq.n);
-	if (t->nproc == 0){
+	if (t->procs.n == 0){
 		/* No member processes */
 		if (t->state > EdfIdle){
 			t->state = EdfIdle;
@@ -661,7 +664,7 @@ edfresched(Task *t)
 	}
 }
 
-void
+static void
 edfrelease(Task *t)
 {
 	DPRINT("%d edfrelease, %s, %d\n", m->machno, edfstatename[t->state], t->runq.n);
@@ -675,7 +678,7 @@ edfrelease(Task *t)
 	if(devrt) devrt(t, now, SRelease);
 }
 
-Proc *
+static Proc *
 edfrunproc(void)
 {
 	/* Return an edf proc to run or nil */
@@ -728,7 +731,6 @@ edfrunproc(void)
 		edfdequeue(&qreleased);
 		assert(nt->runq.n >= 1);
 		edfpush(nt);
-		nt->state = EdfRunning;
 		t = nt;
 		t->scheduled = now;
 	}else{
@@ -741,6 +743,7 @@ runt:
 	 * No need to lock runq, edflock always held to access runq
 	 */
 	t->state = EdfRunning;
+	t->periods++;
 	p = t->runq.head;
 	if ((t->runq.head = p->rnext) == nil)
 		t->runq.tail = nil;
@@ -776,48 +779,66 @@ runt:
 static void
 setdelta(void)
 {
-	Resource *r, **rr;
-	Task **tt, *t;
+	Resource *r;
+	Task *t;
+	List *lr, *lt;
 
-	for (r = resources; r < resources + nelem(resources); r++){
-		if (r->name == nil)
-			continue;
+	for (lr = resources.next; lr; lr = lr->next){
+		r = lr->i;
+		assert(r);
 		r->Delta = ~0LL;
-		for (tt = r->tasks; tt < r->tasks + nelem(r->tasks); tt++)
-			if (*tt && (*tt)->D < r->Delta)
-				r->Delta = (*tt)->D;
+		for (lt = r->tasks.next; lt; lt = lt->next){
+			t = lt->i;
+			assert(t);
+			if (t->D < r->Delta)
+				r->Delta = t->D;
+		}
 	}
-	for (t = tasks; t < tasks + nelem(tasks); t++){
+	for (lt = tasks.next; lt ; lt = lt->next){
+		t = lt->i;
+		assert(t);
 		if (t->state < EdfIdle)
 			continue;
 		t->Delta = t->D;
-		for (rr = t->res; rr < t->res + nelem(t->res); rr++)
-			if (*rr && (*rr)->Delta < t->Delta)
-				t->Delta = (*rr)->Delta;
+		for (lr = t->res.next; lr; lr = lr->next){
+			r = lr->i;
+			assert(r);
+			if (r->Delta < t->Delta)
+				t->Delta = r->Delta;
+		}
 	}
 }
 
 static void
 testdelta(Task *thetask)
 {
-	Resource *r, **rr;
-	Task **tt, *t;
+	Resource *r;
+	Task *t;
+	List *lr, *lt;
 
-	for (r = resources; r < resources + nelem(resources); r++){
-		if (r->name == nil)
-			continue;
+	for (lr = resources.next; lr; lr = lr->next){
+		r = lr->i;
+		assert(r);
 		r->testDelta = ~0ULL;
-		for (tt = r->tasks; tt < r->tasks + nelem(r->tasks); tt++)
-			if (*tt && (*tt)->D < r->testDelta)
-				r->testDelta = (*tt)->D;
+		for (lt = r->tasks.next; lt; lt = lt->next){
+			t = lt->i;
+			assert(t);
+			if (t->D < r->testDelta)
+				r->testDelta = t->D;
+		}
 	}
-	for (t = tasks; t < tasks + nelem(tasks); t++){
+	for (lt = tasks.next; lt ; lt = lt->next){
+		t = lt->i;
+		assert(t);
 		if (t->state <= EdfExpelled && t != thetask)
 			continue;
 		t->testDelta = t->D;
-		for (rr = t->res; rr < t->res + nelem(t->res); rr++)
-			if (*rr && (*rr)->testDelta < t->testDelta)
-				t->testDelta = (*rr)->testDelta;
+		for (lr = t->res.next; lr; lr = lr->next){
+			r = lr->i;
+			assert(r);
+			if (r->testDelta < t->testDelta)
+				t->testDelta = r->testDelta;
+		}
 	}
 }
 
@@ -826,9 +847,12 @@ blockcost(Ticks ticks, Task *thetask)
 {
 	Task *t;
 	Ticks Cb;
+	List *lt;
 
 	Cb = 0;
-	for (t = tasks; t < tasks + Maxtasks; t++){
+	for (lt = tasks.next; lt ; lt = lt->next){
+		t = lt->i;
+		assert(t);
 		if (t->state <= EdfExpelled && t != thetask)
 			continue;
 		if (t->testDelta <= ticks && ticks < t->D && Cb < t->C)
@@ -869,19 +893,22 @@ edftestschedulability(Task *thetask)
 	Task *t;
 	Ticks H, G, Cb, ticks;
 	int steps;
+	List *l;
 
 	/* initialize */
 	testdelta(thetask);
 	if (thetask && (thetask->flags & Verbose))
 		pprint("schedulability test\n");
 	qschedulability = nil;
-	for (t = tasks; t < tasks + Maxtasks; t++){
+	for (l = tasks.next; l; l = l->next){
+		t = l->i;
+		assert(t);
 		if (t->state <= EdfExpelled && t != thetask)
 			continue;
 		t->testtype = Release;
 		t->testtime = 0;
 		if (thetask && (thetask->flags & Verbose))
-			pprint("\tInit: enqueue task %lud\n", t - tasks);
+			pprint("\tInit: enqueue task %lud\n", t->taskno);
 		testenq(t);
 	}
 	H=0;
@@ -896,7 +923,7 @@ edftestschedulability(Task *thetask)
 			Cb = blockcost(ticks, thetask);
 			if (thetask && (thetask->flags & Verbose))
 				pprint("\tStep %3d, Ticks %T, task %lud, deadline, H += %T → %T, Cb = %T\n",
-					steps, ticks2time(ticks), t - tasks,
+					steps, ticks2time(ticks), t->taskno,
 					ticks2time(t->C), ticks2time(H), ticks2time(Cb));
 			if (H+Cb>ticks)
 				return "not schedulable";
@@ -907,7 +934,7 @@ edftestschedulability(Task *thetask)
 		case Release:
 			if (thetask && (thetask->flags & Verbose))
 				pprint("\tStep %3d, Ticks %T, task %lud, release, G  %T, C%T\n",
-					steps, ticks2time(ticks), t - tasks,
+					steps, ticks2time(ticks), t->taskno,
 					ticks2time(t->C), ticks2time(G));
 			if(ticks && G <= ticks)
 				return nil;
@@ -950,3 +977,16 @@ time2ticks(Time time)
 	assert(time >= 0);
 	return uvmuldiv(time, fasthz, Onesecond);
 }
+
+Edfinterface realedf = {
+	.isedf		= isedf,
+	.edfbury		= edfbury,
+	.edfanyready	= edfanyready,
+	.edfready		= edfready,
+	.edfrunproc	= edfrunproc,
+	.edfblock		= edfblock,
+	.edfinit		= edfinit,
+	.edfexpel		= edfexpel,
+	.edfadmit		= edfadmit,
+	.edfdeadline	= edfdeadline,
+};

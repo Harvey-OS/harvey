@@ -1,22 +1,22 @@
 /* Copyright (C) 1995, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: icie.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: icie.h,v 1.3 2001/03/17 01:15:42 raph Exp $ */
 /* Internal definitions for interpreter CIE color handling */
 
 #ifndef icie_INCLUDED
@@ -60,6 +60,9 @@ int cie_table_param(P3(const ref * ptable, gx_color_lookup_table * pclt,
 		       gs_memory_t * mem));
 
 /* ------ Internal routines ------ */
+
+int cie_set_finish(P5(i_ctx_t *, gs_color_space *,
+                      const ref_cie_procs *, int, int));
 
 int cie_cache_push_finish(P4(i_ctx_t *i_ctx_p, op_proc_t finish_proc,
 			     gs_ref_memory_t * imem, void *data));

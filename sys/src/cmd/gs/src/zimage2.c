@@ -1,22 +1,22 @@
-/* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zimage2.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zimage2.c,v 1.4 2001/03/12 22:53:22 alexcher Exp $ */
 /* image operator extensions for Level 2 PostScript */
 #include "math_.h"
 #include "memory_.h"
@@ -58,15 +58,13 @@ data_image_params(const ref *op, gs_data_image_t *pim,
 	(code = dict_int_param(op, "BitsPerComponent", 1,
 			       max_bits_per_component, -1,
 			       &pim->BitsPerComponent)) < 0 ||
-	(code = decode_size = dict_float_array_param(op, "Decode",
-						     num_components * 2,
-					      &pim->Decode[0], NULL)) < 0 ||
+	(code = decode_size = dict_floats_param(op, "Decode",
+						num_components * 2,
+						&pim->Decode[0], NULL)) < 0 ||
 	(code = dict_bool_param(op, "Interpolate", false,
 				&pim->Interpolate)) < 0
 	)
 	return code;
-    if (decode_size != num_components * 2)
-	return_error(e_rangecheck);
     pip->pDecode = &pim->Decode[0];
     /* Extract and check the data sources. */
     if ((code = dict_find_string(op, "DataSource", &pds)) <= 0) {
@@ -75,11 +73,13 @@ data_image_params(const ref *op, gs_data_image_t *pim,
 	return 1;		/* no data source */
     }
     if (pip->MultipleDataSources) {
-	check_type_only(*pds, t_array);
+	long i;
+        if (!r_is_array(pds))
+            return_error(e_typecheck);
 	if (r_size(pds) != num_components)
 	    return_error(e_rangecheck);
-	memcpy(&pip->DataSource[0], pds->value.refs,
-	       sizeof(ref) * num_components);
+	for (i = 0; i < num_components; ++i)
+            array_get(pds, i, &pip->DataSource[i]);
     } else
 	pip->DataSource[0] = *pds;
     return 0;

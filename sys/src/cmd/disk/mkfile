@@ -17,6 +17,13 @@ OFILES=
 
 BIN=/$objtype/bin/disk
 
+UPDATE=\
+	mkfile\
+	${TARG:%=%.c}\
+	/sys/man/8/prep\
+	/sys/man/8/mkfs\
+	${TARG:%=/386/bin/disk/%}\
+
 </sys/src/cmd/mkmany
 
 all:V:	all-kfs

@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevvec.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevvec.c,v 1.12.2.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Utilities for "vector" devices */
 #include "math_.h"
 #include "memory_.h"
@@ -46,29 +46,41 @@ gdev_vector_setflat(gx_device_vector * vdev, floatp flatness)
     return 0;
 }
 
-/*
- * Put a path on the output file.  If type is stroke and the last
- * path component is a closepath, omit it and return 1.
- */
+/* Put a path on the output file. */
+private bool
+coord_between(fixed start, fixed mid, fixed end)
+{
+    return (start <= end ? start <= mid && mid <= end :
+	    start >= mid && mid >= end);
+}
 int
 gdev_vector_dopath(gx_device_vector *vdev, const gx_path * ppath,
 		   gx_path_type_t type, const gs_matrix *pmat)
 {
-    bool do_close = (type & gx_path_type_stroke) != 0;
+    bool do_close =
+	(type & (gx_path_type_stroke | gx_path_type_always_close)) != 0;
     gs_fixed_rect rbox;
     gx_path_rectangular_type rtype = gx_path_is_rectangular(ppath, &rbox);
     gs_path_enum cenum;
     gdev_vector_dopath_state_t state;
+    gs_fixed_point line_start, line_end;
+    bool incomplete_line = false;
+    bool need_moveto = false;
     int code;
 
     gdev_vector_dopath_init(&state, vdev, type, pmat);
     /*
      * if the path type is stroke, we only recognize closed
      * rectangles; otherwise, we recognize all rectangles.
+     * Note that for stroking with a transformation, we can't use dorect,
+     * which requires (untransformed) device coordinates.
      */
     if (rtype != prt_none &&
 	!((type & gx_path_type_stroke) && rtype == prt_open) &&
-	(pmat == 0 || is_xxyy(pmat) || is_xyyx(pmat))
+	(pmat == 0 || is_xxyy(pmat) || is_xyyx(pmat)) &&
+	(state.scale_mat.xx == 1.0 && state.scale_mat.yy == 1.0 &&
+	 is_xxyy(&state.scale_mat) &&
+	 is_fzero2(state.scale_mat.tx, state.scale_mat.ty))
 	) {
 	gs_point p, q;
 
@@ -91,29 +103,110 @@ gdev_vector_dopath(gx_device_vector *vdev, const gx_path * ppath,
 	int pe_op = gx_path_enum_next(&cenum, vs);
 
     sw:
-	switch (pe_op) {
-	    case 0:		/* done */
-		code = vdev_proc(vdev, endpath)(vdev, type);
-		return (code < 0 ? code : 0);
-	    case gs_pe_closepath:
-		if (!do_close) {
-		    pe_op = gx_path_enum_next(&cenum, vs);
-		    if (pe_op != 0) {
-			code = gdev_vector_dopath_segment(&state,
-							  gs_pe_closepath, vs);
-			if (code < 0)
-			    return code;
-			goto sw;
-		    }
-		    code = vdev_proc(vdev, endpath)(vdev, type);
-		    return (code < 0 ? code : 1);
+	if (type & gx_path_type_optimize) {
+	opt:
+	    if (pe_op == gs_pe_lineto) {
+		if (!incomplete_line) {
+		    line_end = vs[0];
+		    incomplete_line = true;
+		    continue;
 		}
-		/* falls through */
-	    default:
-		code = gdev_vector_dopath_segment(&state, pe_op, vs);
+		/*
+		 * Merge collinear horizontal or vertical line segments
+		 * going in the same direction.
+		 */
+		if (vs[0].x == line_end.x) {
+		    if (vs[0].x == line_start.x &&
+			coord_between(line_start.y, line_end.y, vs[0].y)
+			) {
+			line_end.y = vs[0].y;
+			continue;
+		    }
+		} else if (vs[0].y == line_end.y) {
+		    if (vs[0].y == line_start.y &&
+			coord_between(line_start.x, line_end.x, vs[0].x)
+			) {
+			line_end.x = vs[0].x;
+			continue;
+		    }
+		}
+	    }
+	    if (incomplete_line) {
+		if (need_moveto) {	/* see gs_pe_moveto case */
+		    code = gdev_vector_dopath_segment(&state, gs_pe_moveto,
+						      &line_start);
+		    if (code < 0)
+			return code;
+		    need_moveto = false;
+		}
+		code = gdev_vector_dopath_segment(&state, gs_pe_lineto,
+						  &line_end);
 		if (code < 0)
 		    return code;
+		line_start = line_end;
+		incomplete_line = false;
+		goto opt;
+	    }
 	}
+	switch (pe_op) {
+	case 0:		/* done */
+	done:
+	    code = vdev_proc(vdev, endpath)(vdev, type);
+	    return (code < 0 ? code : 0);
+	case gs_pe_curveto:
+	    if (need_moveto) {	/* see gs_pe_moveto case */
+		code = gdev_vector_dopath_segment(&state, gs_pe_moveto,
+						  &line_start);
+		if (code < 0)
+		    return code;
+		need_moveto = false;
+	    }
+	    line_start = vs[2];
+	    goto draw;
+	case gs_pe_moveto:
+	    /*
+	     * A bug in Acrobat Reader 4 causes it to draw a single pixel
+	     * for a fill with an isolated moveto.  If we're doing a fill
+	     * without a stroke, defer emitting a moveto until we know that
+	     * the subpath has more elements.
+	     */
+	    line_start = vs[0];
+	    if (!(type & gx_path_type_stroke) && (type & gx_path_type_fill)) {
+		need_moveto = true;
+		continue;
+	    }
+	    goto draw;
+	case gs_pe_lineto:
+	    if (need_moveto) {	/* see gs_pe_moveto case */
+		code = gdev_vector_dopath_segment(&state, gs_pe_moveto,
+						  &line_start);
+		if (code < 0)
+		    return code;
+		need_moveto = false;
+	    }
+	    line_start = vs[0];
+	    goto draw;
+	case gs_pe_closepath:
+	    if (need_moveto) {	/* see gs_pe_moveto case */
+		need_moveto = false;
+		continue;
+	    }
+	    if (!do_close) {
+		pe_op = gx_path_enum_next(&cenum, vs);
+		if (pe_op == 0)
+		    goto done;
+		code = gdev_vector_dopath_segment(&state, gs_pe_closepath, vs);
+		if (code < 0)
+		    return code;
+		goto sw;
+	    }
+	    /* falls through */
+	draw:
+	    code = gdev_vector_dopath_segment(&state, pe_op, vs);
+	    if (code < 0)
+		return code;
+	}
+	incomplete_line = false; /* only needed if optimizing */
     }
 }
 
@@ -169,19 +262,32 @@ gdev_vector_reset(gx_device_vector * vdev)
 
 /* Open the output file and stream. */
 int
-gdev_vector_open_file_bbox(gx_device_vector * vdev, uint strmbuf_size,
-			   bool bbox)
-{				/* Open the file as positionable if possible. */
-    int code = gx_device_open_output_file((gx_device *) vdev, vdev->fname,
-					  true, true, &vdev->file);
+gdev_vector_open_file_options(gx_device_vector * vdev, uint strmbuf_size,
+			      int open_options)
+{
+    bool binary = !(open_options & VECTOR_OPEN_FILE_ASCII);
+    int code = -1;		/* (only for testing, never returned) */
 
+    /* Open the file as seekable or sequential, as requested. */
+    if (!(open_options & VECTOR_OPEN_FILE_SEQUENTIAL)) {
+	/* Try to open as seekable. */
+	code =
+	    gx_device_open_output_file((gx_device *)vdev, vdev->fname,
+				       binary, true, &vdev->file);
+    }
+    if (code < 0 && (open_options & (VECTOR_OPEN_FILE_SEQUENTIAL |
+				     VECTOR_OPEN_FILE_SEQUENTIAL_OK))) {
+	/* Try to open as sequential. */
+	code = gx_device_open_output_file((gx_device *)vdev, vdev->fname,
+					  binary, false, &vdev->file);
+    }
     if (code < 0)
 	return code;
     if ((vdev->strmbuf = gs_alloc_bytes(vdev->v_memory, strmbuf_size,
 					"vector_open(strmbuf)")) == 0 ||
 	(vdev->strm = s_alloc(vdev->v_memory,
 			      "vector_open(strm)")) == 0 ||
-	(bbox &&
+	((open_options & VECTOR_OPEN_FILE_BBOX) &&
 	 (vdev->bbox_device =
 	  gs_alloc_struct_immovable(vdev->v_memory,
 				    gx_device_bbox, &st_device_bbox,
@@ -205,6 +311,7 @@ gdev_vector_open_file_bbox(gx_device_vector * vdev, uint strmbuf_size,
     }
     vdev->strmbuf_size = strmbuf_size;
     swrite_file(vdev->strm, vdev->file, vdev->strmbuf, strmbuf_size);
+    vdev->open_options = open_options;
     /*
      * We don't want finalization to close the file, but we do want it
      * to flush the stream buffer.
@@ -322,95 +429,104 @@ dash_pattern_eq(const float *stored, const gx_dash_params * set, floatp scale)
 
 /* Bring state up to date for stroking. */
 int
-gdev_vector_prepare_stroke(gx_device_vector * vdev, const gs_imager_state * pis,
-	  const gx_stroke_params * params, const gx_drawing_color * pdcolor,
+gdev_vector_prepare_stroke(gx_device_vector * vdev,
+			   const gs_imager_state * pis,	/* may be NULL */
+			   const gx_stroke_params * params, /* may be NULL */
+			   const gx_drawing_color * pdcolor, /* may be NULL */
 			   floatp scale)
 {
-    int pattern_size = pis->line_params.dash.pattern_size;
-    float dash_offset = pis->line_params.dash.offset * scale;
-    float half_width = pis->line_params.half_width * scale;
+    if (pis) {
+	int pattern_size = pis->line_params.dash.pattern_size;
+	float dash_offset = pis->line_params.dash.offset * scale;
+	float half_width = pis->line_params.half_width * scale;
 
-    if (pattern_size > max_dash)
-	return_error(gs_error_limitcheck);
-    if (dash_offset != vdev->state.line_params.dash.offset ||
-	pattern_size != vdev->state.line_params.dash.pattern_size ||
-	(pattern_size != 0 &&
-	 !dash_pattern_eq(vdev->dash_pattern, &pis->line_params.dash,
-			  scale))
-	) {
-	float pattern[max_dash];
-	int i, code;
+	if (pattern_size > max_dash)
+	    return_error(gs_error_limitcheck);
+	if (dash_offset != vdev->state.line_params.dash.offset ||
+	    pattern_size != vdev->state.line_params.dash.pattern_size ||
+	    (pattern_size != 0 &&
+	     !dash_pattern_eq(vdev->dash_pattern, &pis->line_params.dash,
+			      scale))
+	    ) {
+	    float pattern[max_dash];
+	    int i, code;
 
-	for (i = 0; i < pattern_size; ++i)
-	    pattern[i] = pis->line_params.dash.pattern[i] * scale;
-	code = (*vdev_proc(vdev, setdash))
-	    (vdev, pattern, pattern_size, dash_offset);
-	if (code < 0)
-	    return code;
-	memcpy(vdev->dash_pattern, pattern, pattern_size * sizeof(float));
+	    for (i = 0; i < pattern_size; ++i)
+		pattern[i] = pis->line_params.dash.pattern[i] * scale;
+	    code = (*vdev_proc(vdev, setdash))
+		(vdev, pattern, pattern_size, dash_offset);
+	    if (code < 0)
+		return code;
+	    memcpy(vdev->dash_pattern, pattern, pattern_size * sizeof(float));
 
-	vdev->state.line_params.dash.pattern_size = pattern_size;
-	vdev->state.line_params.dash.offset = dash_offset;
+	    vdev->state.line_params.dash.pattern_size = pattern_size;
+	    vdev->state.line_params.dash.offset = dash_offset;
+	}
+	if (half_width != vdev->state.line_params.half_width) {
+	    int code = (*vdev_proc(vdev, setlinewidth))
+		(vdev, half_width * 2);
+
+	    if (code < 0)
+		return code;
+	    vdev->state.line_params.half_width = half_width;
+	}
+	if (pis->line_params.miter_limit != vdev->state.line_params.miter_limit) {
+	    int code = (*vdev_proc(vdev, setmiterlimit))
+		(vdev, pis->line_params.miter_limit);
+
+	    if (code < 0)
+		return code;
+	    gx_set_miter_limit(&vdev->state.line_params,
+			       pis->line_params.miter_limit);
+	}
+	if (pis->line_params.cap != vdev->state.line_params.cap) {
+	    int code = (*vdev_proc(vdev, setlinecap))
+		(vdev, pis->line_params.cap);
+
+	    if (code < 0)
+		return code;
+	    vdev->state.line_params.cap = pis->line_params.cap;
+	}
+	if (pis->line_params.join != vdev->state.line_params.join) {
+	    int code = (*vdev_proc(vdev, setlinejoin))
+		(vdev, pis->line_params.join);
+
+	    if (code < 0)
+		return code;
+	    vdev->state.line_params.join = pis->line_params.join;
+	} {
+	    int code = gdev_vector_update_log_op(vdev, pis->log_op);
+
+	    if (code < 0)
+		return code;
+	}
     }
-    if (params->flatness != vdev->state.flatness) {
-	int code = (*vdev_proc(vdev, setflat)) (vdev, params->flatness);
+    if (params) {
+	if (params->flatness != vdev->state.flatness) {
+	    int code = (*vdev_proc(vdev, setflat)) (vdev, params->flatness);
 
-	if (code < 0)
-	    return code;
-	vdev->state.flatness = params->flatness;
+	    if (code < 0)
+		return code;
+	    vdev->state.flatness = params->flatness;
+	}
     }
-    if (half_width != vdev->state.line_params.half_width) {
-	int code = (*vdev_proc(vdev, setlinewidth))
-	    (vdev, half_width * 2);
+    if (pdcolor) {
+	if (!drawing_color_eq(pdcolor, &vdev->stroke_color)) {
+	    int code = (*vdev_proc(vdev, setstrokecolor)) (vdev, pdcolor);
 
-	if (code < 0)
-	    return code;
-	vdev->state.line_params.half_width = half_width;
-    }
-    if (pis->line_params.miter_limit != vdev->state.line_params.miter_limit) {
-	int code = (*vdev_proc(vdev, setmiterlimit))
-	    (vdev, pis->line_params.miter_limit);
-
-	if (code < 0)
-	    return code;
-	gx_set_miter_limit(&vdev->state.line_params,
-			   pis->line_params.miter_limit);
-    }
-    if (pis->line_params.cap != vdev->state.line_params.cap) {
-	int code = (*vdev_proc(vdev, setlinecap))
-	    (vdev, pis->line_params.cap);
-
-	if (code < 0)
-	    return code;
-	vdev->state.line_params.cap = pis->line_params.cap;
-    }
-    if (pis->line_params.join != vdev->state.line_params.join) {
-	int code = (*vdev_proc(vdev, setlinejoin))
-	    (vdev, pis->line_params.join);
-
-	if (code < 0)
-	    return code;
-	vdev->state.line_params.join = pis->line_params.join;
-    } {
-	int code = gdev_vector_update_log_op(vdev, pis->log_op);
-
-	if (code < 0)
-	    return code;
-    }
-    if (!drawing_color_eq(pdcolor, &vdev->stroke_color)) {
-	int code = (*vdev_proc(vdev, setstrokecolor)) (vdev, pdcolor);
-
-	if (code < 0)
-	    return code;
-	vdev->stroke_color = *pdcolor;
+	    if (code < 0)
+		return code;
+	    vdev->stroke_color = *pdcolor;
+	}
     }
     return 0;
 }
 
 /*
- * Compute the scale or transformation matrix for transforming the line
- * width and dash pattern for a stroke operation.  Return 0 if scaling,
- * 1 if a full matrix is needed.
+ * Compute the scale for transforming the line width and dash pattern for a
+ * stroke operation, and, if necessary to handle anisotropic scaling, a full
+ * transformation matrix to be inverse-applied to the path elements as well.
+ * Return 0 if only scaling, 1 if a full matrix is needed.
  */
 int
 gdev_vector_stroke_scaling(const gx_device_vector *vdev,
@@ -444,10 +560,11 @@ gdev_vector_stroke_scaling(const gx_device_vector *vdev,
     }
     if (set_ctm) {
 	/*
-	 * Adobe Acrobat Reader can't handle user coordinates larger than
-	 * 32K.  If we scale the matrix down too far, the coordinates will
-	 * get too big: don't allow this to happen.  (This does no harm
-	 * for other output formats.)
+	 * Adobe Acrobat Reader has limitations on the maximum user
+	 * coordinate value.  If we scale the matrix down too far, the
+	 * coordinates will get too big: limit the scale factor to prevent
+	 * this from happening.  (This does no harm for other output
+	 * formats.)
 	 */
 	double
 	    mxx = pis->ctm.xx / vdev->scale.x,
@@ -818,8 +935,26 @@ gdev_vector_put_params(gx_device * dev, gs_param_list * plist)
 
     switch (code = param_read_string(plist, (param_name = "OutputFile"), &ofns)) {
 	case 0:
+	    /*
+	     * Vector devices typically write header information at the
+	     * beginning of the file: changing the file name after writing
+	     * any pages should be an error.
+	     */
 	    if (ofns.size > fname_size)
 		ecode = gs_error_limitcheck;
+	    else if (!bytes_compare(ofns.data, ofns.size,
+				    (const byte *)vdev->fname,
+				    strlen(vdev->fname))
+		     ) {
+		/* The new name is the same as the old name.  Do nothing. */
+		ofns.data = 0;
+		break;
+	    } else if (dev->LockSafetyParams ||
+	    		(dev->is_open && vdev->strm != 0 &&
+		       stell(vdev->strm) != 0)
+		       )
+		ecode = (dev->LockSafetyParams) ? gs_error_invalidaccess : 
+				gs_error_rangecheck;
 	    else
 		break;
 	    goto ofe;
@@ -844,17 +979,19 @@ gdev_vector_put_params(gx_device * dev, gs_param_list * plist)
     if (code < 0)
 	return code;
 
-    if (ofns.data != 0 &&
-	bytes_compare(ofns.data, ofns.size,
-		      (const byte *)vdev->fname, strlen(vdev->fname))
-	) {
+    if (ofns.data != 0) {
 	memcpy(vdev->fname, ofns.data, ofns.size);
 	vdev->fname[ofns.size] = 0;
 	if (vdev->file != 0) {
+	    gx_device_bbox *bbdev = vdev->bbox_device;
+
+	    vdev->bbox_device = 0; /* don't let it be freed */
 	    code = gdev_vector_close_file(vdev);
+	    vdev->bbox_device = bbdev;
 	    if (code < 0)
 		return code;
-	    return gdev_vector_open_file(vdev, vdev->strmbuf_size);
+	    return gdev_vector_open_file_options(vdev, vdev->strmbuf_size,
+						 vdev->open_options);
 	}
     }
     gdev_vector_load_cache(vdev);	/* in case color mapping changed */
@@ -911,7 +1048,8 @@ gdev_vector_fill_path(gx_device * dev, const gs_imager_state * pis,
 	(code = (*vdev_proc(vdev, dopath))
 	 (vdev, ppath,
 	  (params->rule > 0 ? gx_path_type_even_odd :
-	   gx_path_type_winding_number) | gx_path_type_fill,
+	   gx_path_type_winding_number) | gx_path_type_fill |
+	   vdev->fill_options,
 	 NULL)) < 0
 	)
 	return gx_default_fill_path(dev, pis, ppath, params, pdevc, pcpath);
@@ -936,7 +1074,7 @@ gdev_vector_stroke_path(gx_device * dev, const gs_imager_state * pis,
 	  ((gx_device *) vdev->bbox_device, pis, ppath, params,
 	   pdcolor, pcpath)) < 0) ||
 	(code = (*vdev_proc(vdev, dopath))
-	 (vdev, ppath, gx_path_type_stroke, NULL)) < 0
+	 (vdev, ppath, gx_path_type_stroke | vdev->stroke_options, NULL)) < 0
 	)
 	return gx_default_stroke_path(dev, pis, ppath, params, pdcolor, pcpath);
     return code;

@@ -1,22 +1,22 @@
 /* Copyright (C) 1991, 1994, 1996, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/*$Id: gdevcp50.c,v 1.1 2000/03/09 08:40:40 lpd Exp $*/
+/*$Id: gdevcp50.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
 /* Mitsubishi CP50 color printer driver */
 #include "gdevprn.h"
 #define ppdev ((gx_device_printer *)pdev)
@@ -54,7 +54,7 @@ private gx_device_procs cp50_procs =
   prn_color_procs(gdev_prn_open, cp50_output_page, gdev_prn_close,
     cp50_rgb_color, cp50_color_rgb);
 
-gx_device_printer far_data gs_cp50_device =
+const gx_device_printer far_data gs_cp50_device =
   prn_device(cp50_procs, "cp50",
 	39,				/* width_10ths, 100mm */
 	59,				/* height_10ths,150mm  */

@@ -24,6 +24,7 @@ struct	Exec
 #define	Q_MAGIC		_MAGIC(21)	/* powerpc */
 #define	N_MAGIC		_MAGIC(22)	/* mips 4000 LE */
 #define	L_MAGIC		_MAGIC(23)	/* dec alpha */
+#define	P_MAGIC		_MAGIC(24)	/* mips 3000 LE */
 
 #define	DYN_MAGIC	0x80000000	/* or'd in for dynamically loaded modules */
 

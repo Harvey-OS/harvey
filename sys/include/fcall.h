@@ -91,7 +91,7 @@ enum
 {
 	Tversion =	100,
 	Rversion,
-	Tauth =	102,
+	Tauth =		102,
 	Rauth,
 	Tattach =	104,
 	Rattach,

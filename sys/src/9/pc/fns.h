@@ -2,7 +2,6 @@
 
 void	aamloop(int);
 Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,vlong), long(*)(Chan*,void*,long,vlong));
-//void	addscsilink(char*, Scsiio (*)(int, ISAConf*));
 void	apicclkenable(void);
 void	archinit(void);
 void	bootargs(ulong);
@@ -35,15 +34,17 @@ char*	getconf(char*);
 void	guesscpuhz(int);
 void	halt(void);
 int	i8042auxcmd(int);
+int	i8042auxcmds(uchar*, int);
 void	i8042auxenable(void (*)(int, int));
 void	i8042reset(void);
 void	i8250console(void);
 void*	i8250alloc(int, int, int);
 void	i8250mouse(char*, int (*)(Queue*, int), int);
-void	i8253init(void);
 void	i8253enable(void);
-void	i8253timerset(uvlong);
+void	i8253init(void);
+void	i8253link(void);
 uvlong	i8253read(uvlong*);
+void	i8253timerset(uvlong);
 void	i8259init(void);
 int	i8259isr(int);
 int	i8259enable(Vctl*);
@@ -57,7 +58,7 @@ ushort	ins(int);
 void	inss(int, void*, int);
 ulong	inl(int);
 void	insl(int, void*, int);
-void intrdisable(int, void (*)(Ureg *, void *), void*, int, char*);
+void	intrdisable(int, void (*)(Ureg *, void *), void*, int, char*);
 void	intrenable(int, void (*)(Ureg*, void*), void*, int, char*);
 void	iofree(int);
 void	ioinit(void);
@@ -93,16 +94,16 @@ void	outss(int, void*, int);
 void	outl(int, ulong);
 void	outsl(int, void*, int);
 int	pciscan(int, Pcidev **);
-ulong pcibarsize(Pcidev *, int);
+ulong	pcibarsize(Pcidev *, int);
 int	pcicfgr8(Pcidev*, int);
 int	pcicfgr16(Pcidev*, int);
 int	pcicfgr32(Pcidev*, int);
 void	pcicfgw8(Pcidev*, int, int);
 void	pcicfgw16(Pcidev*, int, int);
 void	pcicfgw32(Pcidev*, int, int);
-void pciclrbme(Pcidev*);
+void	pciclrbme(Pcidev*);
 void	pcihinv(Pcidev*);
-uchar pciipin(Pcidev *, uchar);
+uchar	pciipin(Pcidev *, uchar);
 Pcidev* pcimatch(Pcidev*, int, int);
 Pcidev* pcimatchtbdf(int);
 void	pcireset(void);
@@ -111,9 +112,9 @@ void	pcmcisread(PCMslot*);
 int	pcmcistuple(int, int, int, void*, int);
 PCMmap*	pcmmap(int, ulong, int, int);
 int	pcmspecial(char*, ISAConf*);
-int (*_pcmspecial)(char *, ISAConf *);
+int	(*_pcmspecial)(char *, ISAConf *);
 void	pcmspecialclose(int);
-void (*_pcmspecialclose)(int);
+void	(*_pcmspecialclose)(int);
 void	pcmunmap(int, PCMmap*);
 void	printcpufreq(void);
 #define	procrestore(p)
@@ -145,7 +146,6 @@ void	wrmsr(int, vlong);
 void	wbflush(void);
 void	wbinvd(void);
 int	xchgw(ushort*, int);
-ulong	TK2MS(ulong);				/* ticks to milliseconds */
 
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
 #define KADDR(a)	((void*)((ulong)(a)|KZERO))

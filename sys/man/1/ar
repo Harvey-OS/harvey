@@ -16,7 +16,6 @@ ar \- archive and library maintainer
 maintains groups of files
 combined into a single archive file,
 .IR afile .
-try this out
 The main use of
 .I ar
 is to create and update library files for the loaders

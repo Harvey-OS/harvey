@@ -345,7 +345,7 @@ hputc(Hio *h, int c)
 	return *h->pos++ = c;
 }
 
-int
+static int
 fmthflush(Fmt *f)
 {
 	Hio *h;

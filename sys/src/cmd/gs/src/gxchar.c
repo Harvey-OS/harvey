@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxchar.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gxchar.c,v 1.5.2.1 2001/10/26 16:35:25 raph Exp $ */
 /* Default implementation of text writing */
 #include "gx.h"
 #include "memory_.h"
@@ -39,14 +39,14 @@
 
 /* Define whether or not to cache characters rotated by angles other than */
 /* multiples of 90 degrees. */
-private bool CACHE_ROTATED_CHARS = true;
+private const bool CACHE_ROTATED_CHARS = true;
 
 /* Define whether or not to oversample characters at small sizes. */
-private bool OVERSAMPLE = true;
+private const bool OVERSAMPLE = true;
 
 /* Define the maximum size of a full temporary bitmap when rasterizing, */
 /* in bits (not bytes). */
-private uint MAX_TEMP_BITMAP_BITS = 80000;
+private const uint MAX_TEMP_BITMAP_BITS = 80000;
 
 /* Define whether the show operation uses the character outline data, */
 /* as opposed to just needing the width (or nothing). */
@@ -59,7 +59,7 @@ extern_st(st_gs_text_enum);
 extern_st(st_gs_state);		/* only for testing */
 private 
 ENUM_PTRS_BEGIN(show_enum_enum_ptrs)
-     return ENUM_USING(st_gs_text_enum, vptr, size, index);
+     return ENUM_USING(st_gs_text_enum, vptr, size, index - 5);
 ENUM_PTR(0, gs_show_enum, pgs);
 ENUM_PTR(1, gs_show_enum, show_gstate);
 ENUM_PTR3(2, gs_show_enum, dev_cache, dev_cache2, dev_null);
@@ -315,6 +315,14 @@ set_cache_device(gs_show_enum * penum, gs_state * pgs, floatp llx, floatp lly,
     /* See if we want to cache this character. */
     if (pgs->in_cachedevice)	/* no recursion! */
 	return 0;
+    if (SHOW_IS_ALL_OF(penum, TEXT_DO_NONE | TEXT_INTERVENE)) { /* cshow */
+	int code;
+	if_debug0('k', "[k]no cache: cshow");
+	code = gs_nulldevice(pgs);
+	if (code < 0)
+	    return code;
+	return 0;
+    }
     pgs->in_cachedevice = CACHE_DEVICE_NOT_CACHING;	/* disable color/gray/image operators */
     /* We can only use the cache if we know the glyph. */
     glyph = CURRENT_GLYPH(penum);
@@ -452,6 +460,7 @@ set_cache_device(gs_show_enum * penum, gs_state * pgs, floatp llx, floatp lly,
 		  (uint) iwidth, (uint) iheight,
 		  fixed2float(cc->offset.x),
 		  fixed2float(cc->offset.y));
+	pgs->in_cachedevice = CACHE_DEVICE_NONE; /* Provide correct grestore */
 	if ((code = gs_gsave(pgs)) < 0) {
 	    gx_free_cached_char(dir, cc);
 	    return code;
@@ -566,8 +575,13 @@ continue_show(gs_show_enum * penum)
 /* the cached values in the enumerator. */
 private int
 continue_kshow(gs_show_enum * penum)
-{
-    int code = show_state_setup(penum);
+{   int code;
+    gs_state *pgs = penum->pgs;
+
+    if (pgs->font != penum->orig_font) 
+	gs_setfont(pgs, penum->orig_font);
+
+    code = show_state_setup(penum);
 
     if (code < 0)
 	return code;

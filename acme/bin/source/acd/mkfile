@@ -13,4 +13,10 @@ OFILES=\
 
 HFILES=acd.h
 
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/acme/bin/386/%}\
+
 </sys/src/cmd/mkone

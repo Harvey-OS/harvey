@@ -133,10 +133,11 @@ struct Mach
 	int	load;
 	int	intr;
 	vlong	fastclock;		/* last sampled value */
-	vlong	intrts;			/* time stamp of last interrupt */
+	uvlong	inidle;			/* time spent in idlehands() */
 	ulong	spuriousintr;
 	int	lastintr;
-	int		ilockdepth;
+	int	ilockdepth;
+	Perf	perf;			/* performance counters */
 
 	int	flushmmu;		/* make current proc flush it's mmu state */
 	Proc	*pid2proc[31];		/* what proc holds what pid */
@@ -236,6 +237,8 @@ struct PCMslot
 	uchar	occupied;	/* card in the slot */
 	uchar	configed;	/* card configured */
 
+	Dev		*dev;	/* set in ctlwrite `configure' */
+
 	/* cis info */
 	int	cisread;	/* set when the cis has been read */
 	char	verstr[512];	/* version string */
@@ -255,10 +258,11 @@ struct PCMslot
  */
 struct DevConf
 {
+	RWlock;			/* write: configure/unconfigure/suspend; read: normal access */
 	ulong	mem;	/* mapped memory address */
 	ulong	port;		/* mapped i/o regs */
 	int		size;		/* access size */
 	int		itype;	/* type of interrupt */
-	ulong	interrupt;	/* interrupt number */
+	ulong	irq;		/* interrupt number */
 	char		*type;	/* card type, mallocated */
 };

@@ -18,7 +18,7 @@ dev
 	kprof
 
 	ether		netif
-	ip		arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
 
 	sd
 	floppy		dma
@@ -26,15 +26,21 @@ dev
 	uart
 
 link
+	ether2000	ether8390
 	ether2114x	pci
+	ether79c970	pci
+	ether8003	ether8390
+	ether8139	pci
 	ether82543gc	pci
 	ether82557	pci
+	ether83815	pci
 	etherelnk3	pci
+	etherga620	pci
+	ethersink
 	ethermedium
 	loopbackmedium
 
 misc
-	edf
 	archmp		mp apic
 
 	uarti8250
@@ -51,6 +57,7 @@ ip
 	udp
 	ipifc
 	icmp
+	icmp6
 	gre
 	ipmux
 	esp

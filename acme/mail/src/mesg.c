@@ -282,25 +282,31 @@ readfile(char *dir, char *name, int *np)
 }
 
 char*
-info(Message *m, int ind)
+info(Message *m, int ind, int ogf)
 {
 	char *i;
-	int j;
+	int j, len, lens;
+	char *p;
+	char fmt[80], s[80];
 
-	if (ind == 0 && shortmenu) {
-		char fmt[80];
-		char s[80];
-		int len;
-		int lens;
+	if (ogf)
+		p=m->to;
+	else
+		p=m->fromcolon;
 
-		len = (shortmenu > 1) ? 10 : 30;
-		lens = (shortmenu > 1) ? 25 : 30;
-		if (ind == 0 && m->subject[0] == '\0'){
-			snprint(fmt, 80, " %%-%d.%ds", len, len);
-			snprint(s, 80, fmt, m->fromcolon);
+	if(ind==0 && shortmenu){
+		len = 30;
+		lens = 30;
+		if(shortmenu > 1){
+			len = 10;
+			lens = 25;
+		}
+		if(ind==0 && m->subject[0]=='\0'){
+			snprint(fmt, sizeof fmt, " %%-%d.%ds", len, len);
+			snprint(s, sizeof s, fmt, p);
 		}else{
-			snprint(fmt, 80, " %%-%d.%ds  %%-%d.%ds", len, len, lens, lens);
-			snprint(s, 80, fmt, m->fromcolon, m->subject);
+			snprint(fmt, sizeof fmt, " %%-%d.%ds  %%-%d.%ds", len, len, lens, lens);
+			snprint(s, sizeof s, fmt, p, m->subject);
 		}
 		i = estrdup(s);
 
@@ -308,7 +314,7 @@ info(Message *m, int ind)
 	} 
 
 	i = estrdup("");
-	i = eappend(i, "\t", m->fromcolon);
+	i = eappend(i, "\t", p);
 	i = egrow(i, "\t", stripdate(m->date));
 	if(ind == 0){
 		if(strcmp(m->type, "text")!=0 && strncmp(m->type, "text/", 5)!=0 && 
@@ -331,6 +337,10 @@ mesgmenu0(Window *w, Message *mbox, char *realdir, char *dir, int ind, Biobuf *f
 	int i;
 	Message *m;
 	char *name, *tmp;
+	int ogf=0;
+
+	if (strcmp(realdir, "/mail/fs/outgoing/") == 0)
+		ogf=1;
 
 	/* show mail box in reverse order, pieces in forward order */
 	if(ind > 0)
@@ -343,7 +353,7 @@ mesgmenu0(Window *w, Message *mbox, char *realdir, char *dir, int ind, Biobuf *f
 		if(ind != 0)
 			Bprint(fd, "  ");
 		name = estrstrdup(dir, m->name);
-		tmp = info(m, ind);
+		tmp = info(m, ind, ogf);
 		Bprint(fd, "%s%s\n", name, tmp);
 		free(tmp);
 		if(dotail && m->tail)
@@ -872,7 +882,7 @@ mesgctl(void *v)
 					while(*s!=0 && *s++!='\n')
 						;
 				}while(*s);
-				if(nopen == 0)
+				if(nopen == 0 && e->c1 == 'L')
 					nopen += replytoaddr(w, m, e, os);
 				if(nopen == 0)
 					winwriteevent(w, e);
@@ -1293,4 +1303,3 @@ mesglookupfile(Message *mbox, char *name, char *digest)
 	}
 	return mesglookup(mbox, name+n, digest);
 }
-

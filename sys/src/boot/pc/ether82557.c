@@ -551,7 +551,7 @@ i82557pci(void)
 		switch(p->did){
 		default:
 			continue;
-		case 0x1209:		/* INtel 82559ER */
+		case 0x1209:		/* Intel 82559ER */
 		case 0x1229:		/* Intel 8255[789] */
 		case 0x1031:		/* Intel 82562EM */
 		case 0x2449:		/* Intel 82562ET */

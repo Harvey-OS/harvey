@@ -1,27 +1,29 @@
-/* Copyright (C) 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevos2p.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevos2p.c,v 1.4 2001/03/13 06:51:39 ghostgum Exp $ */
 /*
  * OS/2 printer device
  *
  * By Russell Lang, derived from mswinpr2 device by Russell Lang and
  * L. Peter Deutsch, Aladdin Enterprises.
+ *
+ * Bug fixed by Pierre Arnaud 2000-03-20 (os2prn_set_bpp did not set anti_alias)
  */
 
 /* This device works when GS is a DLL loaded by a PM program */
@@ -147,12 +149,12 @@ os2prn_open(gx_device * dev)
     oprn = opdev;
 
     if (DosGetInfoBlocks(&pptib, &pppib)) {
-	fprintf(stderr, "\nos2prn_open: Couldn't get pid\n");
+	errprintf("\nos2prn_open: Couldn't get pid\n");
 	return gs_error_limitcheck;
     }
     if (pppib->pib_ultype != 3) {
 	/* if caller is not PM app */
-	fprintf(stderr, "os2prn device can only be used from a PM application\n");
+	errprintf("os2prn device can only be used from a PM application\n");
 	return gs_error_limitcheck;
     }
     opdev->hab = WinQueryAnchorBlock(hwndtext);
@@ -188,10 +190,10 @@ os2prn_open(gx_device * dev)
 	pprq = &(opdev->ql.prq[opdev->ql.defqueue]);
     }
     if (pprq == (PRQINFO3 *) NULL) {
-	fprintf(stderr, "Invalid os2prn queue  name -sOS2QUEUE=\042%s\042\n", opdev->queue_name);
-	fprintf(stderr, "Valid device names are:\n");
+	errprintf("Invalid os2prn queue  name -sOS2QUEUE=\042%s\042\n", opdev->queue_name);
+	errprintf("Valid device names are:\n");
 	for (i = 0; i < opdev->ql.nqueues; i++) {
-	    fprintf(stderr, "  -sOS2QUEUE=\042%s\042\n", opdev->ql.prq[i].pszName);
+	    errprintf("  -sOS2QUEUE=\042%s\042\n", opdev->ql.prq[i].pszName);
 	}
 	return gs_error_rangecheck;
     }
@@ -208,7 +210,7 @@ os2prn_open(gx_device * dev)
     if (opdev->hdc == DEV_ERROR) {
 	ERRORID eid = WinGetLastError(opdev->hab);
 
-	fprintf(stderr, "DevOpenDC for printer error 0x%x\n", eid);
+	errprintf("DevOpenDC for printer error 0x%x\n", eid);
 	return gs_error_limitcheck;
     }
     os2prn_free_queue_list(&opdev->ql);
@@ -264,7 +266,7 @@ os2prn_open(gx_device * dev)
     if (opdev->hdcMem == DEV_ERROR) {
 	ERRORID eid = WinGetLastError(opdev->hab);
 
-	fprintf(stderr, "DevOpenDC for memory error 0x%x\n", eid);
+	errprintf("DevOpenDC for memory error 0x%x\n", eid);
 	return gs_error_limitcheck;
     }
     sizlPage.cx = dev->width;
@@ -274,14 +276,14 @@ os2prn_open(gx_device * dev)
     if (opdev->hpsMem == GPI_ERROR) {
 	ERRORID eid = WinGetLastError(opdev->hab);
 
-	fprintf(stderr, "GpiCreatePS for memory error 0x%x\n", eid);
+	errprintf("GpiCreatePS for memory error 0x%x\n", eid);
 	return gs_error_limitcheck;
     }
     if (DevEscape(opdev->hdc, DEVESC_STARTDOC, (LONG) strlen(gs_product),
 		  (char *)gs_product, NULL, NULL) == DEVESC_ERROR) {
 	ERRORID eid = WinGetLastError(opdev->hab);
 
-	fprintf(stderr, "DEVESC_STARTDOC error 0x%x\n", eid);
+	errprintf("DEVESC_STARTDOC error 0x%x\n", eid);
 	return gs_error_limitcheck;
     }
     /* gdev_prn_open opens a temporary file which we don't want */
@@ -626,8 +628,7 @@ os2prn_set_bpp(gx_device * dev, int depth)
 	/* 3 plane printer */
 	/* suitable for impact dot matrix CMYK printers */
 	/* create 4-bit bitmap, but only use 8 colors */
-	static const gx_device_color_info os2prn_4color =
-	{3, 4, 1, 1, 2, 2};
+	static const gx_device_color_info os2prn_4color = dci_values(3, 4, 1, 1, 2, 2);
 
 	dev->color_info = os2prn_4color;
     } else {			/* default is black_and_white */
@@ -683,7 +684,7 @@ os2prn_get_queue_list(OS2QL * ql)
 	}
     } else {
 	/* If we are here we had a bad error code. Print it and some other info. */
-	fprintf(stdout, "SplEnumQueue Error=%ld, Total=%ld, Returned=%ld, Needed=%ld\n",
+	eprintf4("SplEnumQueue Error=%ld, Total=%ld, Returned=%ld, Needed=%ld\n",
 		splerr, cTotal, cReturned, cbNeeded);
     }
     if (splerr)

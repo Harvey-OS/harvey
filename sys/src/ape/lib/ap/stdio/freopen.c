@@ -12,35 +12,44 @@
  * w+ w+b wb+	open to read and write, truncating
  * a+ a+b ab+	open to read and write, positioned at eof, creating if non-existant.
  */
-FILE *freopen(const char *nm, const char *mode, FILE *f){
-	if(f->state!=CLOSED) fclose(f);
-	if(mode[1]=='+' || mode[2]=='+'){
-		if(mode[0]=='w') close(creat(nm, 0666));
-		f->fd=open(nm, O_RDWR);
-		if(f->fd==-1){
-			close(creat(nm, 0666));
-			f->fd=open(nm, O_RDWR);
-		}
-		if(mode[0]=='a') lseek(f->fd, 0L, 2);
+FILE *freopen(const char *name, const char *mode, FILE *f){
+	int m;
+
+	if(f->state!=CLOSED){
+		fclose(f);
+		f->state=OPEN;
 	}
-	else{
-		switch(mode[0]){
-		default: return NULL;
-		case 'r':
-			f->fd=open(nm, O_RDONLY);
-			break;
-		case 'w':
-			f->fd=creat(nm, 0666);
-			break;
-		case 'a':
-			f->fd=open(nm, O_WRONLY);
-			if(f->fd==-1)
-				f->fd=creat(nm, 0666);
-			lseek(f->fd, 0L, 2);
-			break;
-		}
+
+	m = *mode++;
+	if(m == 0)
+		return NULL;
+	if(*mode == 'b')
+		mode++;
+	switch(m){
+	default:
+		return NULL;
+	case 'r':
+		m = O_RDONLY;
+		if(*mode == '+') m = O_RDWR;
+		f->fd=open(name, m);
+		break;
+	case 'w':
+		m = O_WRONLY;
+		if(*mode == '+') m = O_RDWR;
+		f->fd=creat(name, 0666);
+		break;
+	case 'a':
+		m = O_WRONLY;
+		if(*mode == '+') m = O_RDWR;
+		f->fd=open(name, m);
+		if(f->fd<0)
+			f->fd=creat(name, 0666);
+		lseek(f->fd, 0L, 2);
+		break;
 	}
-	if(f->fd==-1) return NULL;
+
+	if(f->fd==-1)
+		return NULL;
 	f->flags=(mode[0]=='a')? APPEND : 0;
 	f->state=OPEN;
 	f->buf=0;

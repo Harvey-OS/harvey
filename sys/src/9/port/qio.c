@@ -50,14 +50,7 @@ struct Queue
 
 enum
 {
-	/* Queue.state */
-	Qstarve		= (1<<0),	/* consumer starved */
-	Qmsg		= (1<<1),	/* message stream */
-	Qclosed		= (1<<2),
-	Qflow		= (1<<3),
-	Qcoalesce	= (1<<4),	/* coallesce packets on read */
-
-	Maxatomic	= 32*1024,
+	Maxatomic	= 64*1024,
 };
 
 uint	qiomaxatomic = Maxatomic;
@@ -467,8 +460,17 @@ qdiscard(Queue *q, int len)
 		}
 	}
 
-	/* if writer flow controlled, restart */
-	if((q->state & Qflow) && q->len < q->limit/2){
+	/*
+	 *  if writer flow controlled, restart
+	 *
+	 *  This used to be
+	 *	q->len < q->limit/2
+	 *  but it slows down tcp too much for certain write sizes.
+	 *  I really don't understand it completely.  It may be
+	 *  due to the queue draining so fast that the transmission
+	 *  stalls waiting for the app to produce more data.  - presotto
+	 */
+	if((q->state & Qflow) && q->len < q->limit){
 		q->state &= ~Qflow;
 		dowakeup = 1;
 	} else
@@ -798,11 +800,7 @@ qopen(int limit, int msg, void (*kick)(void*), void *arg)
 	q->limit = q->inilim = limit;
 	q->kick = kick;
 	q->arg = arg;
-	q->state = 0;
-	if(msg > 0)
-		q->state |= Qmsg;
-	else if(msg < 0)
-		q->state |= Qcoalesce;
+	q->state = msg;
 	
 	q->state |= Qstarve;
 	q->eof = 0;
@@ -1135,6 +1133,8 @@ qnotfull(void *a)
 	return q->len < q->limit || (q->state & Qclosed);
 }
 
+ulong noblockcnt;
+
 /*
  *  add a block to a queue obeying flow control
  */
@@ -1167,6 +1167,7 @@ qbwrite(Queue *q, Block *b)
 		if(q->noblock){
 			iunlock(q);
 			freeb(b);
+			noblockcnt += n;
 			qunlock(&q->wlock);
 			poperror();
 			return n;
@@ -1192,9 +1193,12 @@ qbwrite(Queue *q, Block *b)
 	}
 	iunlock(q);
 
+	/*  get output going again */
+	if(q->kick && (dowakeup || (q->state&Qkick)))
+		q->kick(q->arg);
+
+	/* wakeup anyone consuming at the other end */
 	if(dowakeup){
-		if(q->kick)
-			q->kick(q->arg);
 		p = wakeup(&q->rr);
 
 		/* if we just wokeup a higher priority process, let it run */

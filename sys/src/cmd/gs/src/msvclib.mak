@@ -1,21 +1,21 @@
-#    Copyright (C) 1991-1999 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1991-2001 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: msvclib.mak,v 1.2 2000/03/10 15:48:58 lpd Exp $
+# $Id: msvclib.mak,v 1.16.2.1 2002/02/01 03:25:45 raph Exp $
 # makefile for Microsoft Visual C++ 4.1 or later, Windows NT or Windows 95 LIBRARY.
 #
 # All configurable options are surrounded by !ifndef/!endif to allow 
@@ -30,7 +30,7 @@
 # Define the root directory for Ghostscript installation.
 
 !ifndef AROOTDIR
-AROOTDIR=c:/Aladdin
+AROOTDIR=c:/gs
 !endif
 !ifndef GSROOTDIR
 GSROOTDIR=$(AROOTDIR)/gs$(GS_DOT_VERSION)
@@ -141,7 +141,7 @@ JVERSION=6
 
 !ifndef PSRCDIR
 PSRCDIR=libpng
-PVERSION=10005
+PVERSION=10201
 !endif
 
 # Define the directory where the zlib sources are stored.
@@ -149,6 +149,13 @@ PVERSION=10005
 
 !ifndef ZSRCDIR
 ZSRCDIR=zlib
+!endif
+
+# Define the directory where the icclib source are stored.
+# See icclib.mak for more information
+
+!ifndef ICCSRCDIR
+ICCSRCDIR=icclib
 !endif
 
 # Define any other compilation flags.
@@ -167,14 +174,14 @@ MSVC_VERSION = 5
 
 # Define the drive, directory, and compiler name for the Microsoft C files.
 # COMPDIR contains the compiler and linker (normally \msdev\bin).
-# INCDIR contains the include files (normally \msdev\include).
+# MSINCDIR contains the include files (normally \msdev\include).
 # LIBDIR contains the library files (normally \msdev\lib).
 # COMP is the full C compiler path name (normally \msdev\bin\cl).
 # COMPCPP is the full C++ compiler path name (normally \msdev\bin\cl).
 # COMPAUX is the compiler name for DOS utilities (normally \msdev\bin\cl).
 # RCOMP is the resource compiler name (normallly \msdev\bin\rc).
 # LINK is the full linker path name (normally \msdev\bin\link).
-# Note that when INCDIR and LIBDIR are used, they always get a '\' appended,
+# Note that when MSINCDIR and LIBDIR are used, they always get a '\' appended,
 #   so if you want to use the current directory, use an explicit '.'.
 
 !if $(MSVC_VERSION) == 4
@@ -187,32 +194,125 @@ SHAREDBASE=$(DEVSTUDIO)
 
 !if $(MSVC_VERSION) == 5
 ! ifndef DEVSTUDIO
-#DEVSTUDIO=c:\program files\devstudio
-DEVSTUDIO=c:\progra~1\devstu~1
+DEVSTUDIO=C:\Program Files\Devstudio
 ! endif
+!if "$(DEVSTUDIO)"==""
+COMPBASE=
+SHAREDBASE=
+!else
 COMPBASE=$(DEVSTUDIO)\VC
 SHAREDBASE=$(DEVSTUDIO)\SharedIDE
+!endif
 !endif
 
 !if $(MSVC_VERSION) == 6
 ! ifndef DEVSTUDIO
-#DEVSTUDIO=c:\program files\microsoft visual studio
-DEVSTUDIO=c:\progra~1\micros~2
+DEVSTUDIO=C:\Program Files\Microsoft Visual Studio
 ! endif
+!if "$(DEVSTUDIO)"==""
+COMPBASE=
+SHAREDBASE=
+!else
 COMPBASE=$(DEVSTUDIO)\VC98
 SHAREDBASE=$(DEVSTUDIO)\Common\MSDev98
 !endif
+!endif
 
+# Some environments don't want to specify the path names for the tools at all.
+# Typical definitions for such an environment would be:
+#   MSINCDIR= LIBDIR= COMP=cl COMPAUX=cl RCOMP=rc LINK=link
+# COMPDIR, LINKDIR, and RCDIR are irrelevant, since they are only used to
+# define COMP, LINK, and RCOMP respectively, but we allow them to be
+# overridden anyway for completeness.
+!ifndef COMPDIR
+!if "$(COMPBASE)"==""
+COMPDIR=
+!else
 COMPDIR=$(COMPBASE)\bin
+!endif
+!endif
+
+!ifndef LINKDIR
+!if "$(COMPBASE)"==""
+LINKDIR=
+!else
 LINKDIR=$(COMPBASE)\bin
+!endif
+!endif
+
+!ifndef RCDIR
+!if "$(SHAREDBASE)"==""
+RCDIR=
+!else
 RCDIR=$(SHAREDBASE)\bin
-INCDIR=$(COMPBASE)\include
+!endif
+!endif
+
+!ifndef MSINCDIR
+!if "$(COMPBASE)"==""
+MSINCDIR=
+!else
+MSINCDIR=$(COMPBASE)\include
+!endif
+!endif
+
+!ifndef LIBDIR
+!if "$(COMPBASE)"==""
+LIBDIR=
+!else
 LIBDIR=$(COMPBASE)\lib
-COMP=$(COMPDIR)\cl
+!endif
+!endif
+
+!ifndef COMP
+!if "$(COMPDIR)"==""
+COMP=cl
+!else
+COMP="$(COMPDIR)\cl"
+!endif
+!endif
+!ifndef COMPCPP
 COMPCPP=$(COMP)
-COMPAUX=$(COMPDIR)\cl
-RCOMP=$(RCDIR)\rc
-LINK=$(LINKDIR)\link
+!endif
+!ifndef COMPAUX
+COMPAUX=$(COMP)
+!endif
+
+!ifndef RCOMP
+!if "$(RCDIR)"==""
+RCOMP=rc
+!else
+RCOMP="$(RCDIR)\rc"
+!endif
+!endif
+
+!ifndef LINK
+!if "$(LINKDIR)"==""
+LINK=link
+!else
+LINK="$(LINKDIR)\link"
+!endif
+!endif
+
+# nmake does not have a form of .BEFORE or .FIRST which can be used
+# to specify actions before anything else is done.  If LIB and INCLUDE
+# are not defined then we want to define them before we link or
+# compile.  Here is a kludge which allows us to to do what we want.
+# nmake does evaluate preprocessor directives when they are encountered.
+# So the desired set statements are put into dummy preprocessor
+# directives.
+!ifndef INCLUDE
+!if "$(MSINCDIR)"!=""
+!if [set INCLUDE=$(MSINCDIR)]==0
+!endif
+!endif
+!endif
+!ifndef LIB
+!if "$(LIBDIR)"!=""
+!if [set LIB=$(LIBDIR)]==0
+!endif
+!endif
+!endif
 
 # Define the processor architecture. (i386, ppc, alpha)
 
@@ -248,7 +348,7 @@ CPU_TYPE=486
 # at runtime.
 
 ! ifndef FPU_TYPE
-FPU_TYPE=0
+FPU_TYPE=387
 ! endif
 
 !endif
@@ -266,13 +366,13 @@ SYNC=winsync
 # Choose the language feature(s) to include.  See gs.mak for details.
 
 !ifndef FEATURE_DEVS
-FEATURE_DEVS=dps2lib.dev psl2cs.dev cielib.dev imasklib.dev patlib.dev htxlib.dev roplib.dev devcmap.dev bbox.dev pipe.dev
+FEATURE_DEVS=$(GLD)psl3lib.dev $(GLD)path1lib.dev $(GLD)dps2lib.dev $(GLD)psl2cs.dev $(GLD)cielib.dev $(GLD)imasklib.dev $(GLD)patlib.dev $(GLD)htxlib.dev $(GLD)roplib.dev $(GLD)devcmap.dev $(GLD)bbox.dev $(GLD)pipe.dev
 !endif
 
 # Choose whether to compile the .ps initialization files into the executable.
 # See gs.mak for details.
 
-!ifndef COMPILED_INITS
+!ifndef COMPILE_INITS
 COMPILE_INITS=0
 !endif
 
@@ -298,10 +398,15 @@ BAND_LIST_COMPRESSOR=zlib
 FILE_IMPLEMENTATION=stdio
 !endif
 
+# Choose the implementation of stdio: Only '' is allowed for library.
+# See gs.mak and ziodevs.c/ziodevsc.c for more details.
+
+STDIO_IMPLEMENTATION= 
+
 # Choose the device(s) to include.  See devs.mak for details,
 # devs.mak and contrib.mak for the list of available devices.
 !ifndef DEVICE_DEVS
-DEVICE_DEVS=ljet2p.dev bbox.dev
+DEVICE_DEVS=$(DD)ljet2p.dev $(DD)bbox.dev
 DEVICE_DEVS1=
 DEVICE_DEVS2=
 DEVICE_DEVS3=
@@ -350,7 +455,7 @@ TOP_MAKEFILES=$(MAKEFILE) $(GLSRCDIR)\msvccmd.mak $(GLSRCDIR)\msvctail.mak $(GLS
 # nmake expands macros when encountered, not when used,
 # so this must precede the !include statements.
 
-BEGINFILES2=$(GLOBJDIR)\$(GS).ilk $(GLOBJDIR)\$(GS).pdb
+BEGINFILES2=$(GLOBJDIR)\$(GS).ilk $(GLOBJDIR)\$(GS).pdb $(GLOBJDIR)\genarch.ilk $(GLOBJDIR)\genarch.pdb 
 
 # Define these right away because they modify the behavior of
 # msvccmd.mak, msvctail.mak & winlib.mak.
@@ -375,9 +480,9 @@ $(GLOBJ)gp_mslib.$(OBJ): $(GLSRC)gp_mslib.c $(AK)
 
 mslib32__=$(GLOBJ)gp_mslib.$(OBJ)
 
-$(GLGEN)mslib32_.dev: $(mslib32__) $(ECHOGS_XE) $(GLGEN)msw32nc_.dev
+$(GLGEN)mslib32_.dev: $(mslib32__) $(ECHOGS_XE) $(GLGEN)mswin32_.dev
         $(SETMOD) $(GLGEN)mslib32_ $(mslib32__)
-	$(ADDMOD) $(GLGEN)mslib32_ -include $(GLGEN)msw32nc_.dev
+	$(ADDMOD) $(GLGEN)mslib32_ -include $(GLGEN)mswin32_.dev
 
 # ----------------------------- Main program ------------------------------ #
 
@@ -389,7 +494,6 @@ $(GS_XE):  $(GS_ALL) $(DEVS_ALL) $(LIB_ONLY) $(LIBCTR)
 	echo $(GLOBJ)gscdefs.obj >> $(GLGENDIR)\gslib32.tr
 	echo  /SUBSYSTEM:CONSOLE > $(GLGENDIR)\gslib32.rsp
 	echo  /OUT:$(GS_XE) >> $(GLGENDIR)\gslib32.rsp
-	$(LINK_SETUP)
         $(LINK) $(LCT) @$(GLGENDIR)\gslib32.rsp $(GLOBJ)gslib @$(GLGENDIR)\gslib32.tr @$(LIBCTR) $(INTASM) @$(GLGENDIR)\lib.tr
 	-del $(GLGENDIR)\gslib32.rsp
 	-del $(GLGENDIR)\gslib32.tr

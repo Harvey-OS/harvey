@@ -1,22 +1,22 @@
 /* Copyright (C) 1989-1994, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/*$Id: gdevepsn.c,v 1.1 2000/03/09 08:40:41 lpd Exp $*/
+/*$Id: gdevepsn.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
 /*
  * Epson (and similar) dot-matrix printer driver for Ghostscript.
  *
@@ -103,7 +103,7 @@ private dev_proc_print_page(eps9high_print_page);
 private dev_proc_print_page(ibmpro_print_page);
 
 /* Standard Epson device */
-gx_device_printer far_data gs_epson_device =
+const gx_device_printer far_data gs_epson_device =
   prn_device(prn_std_procs, "epson",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,
@@ -111,7 +111,7 @@ gx_device_printer far_data gs_epson_device =
 	1, epson_print_page);
 
 /* Mid-res (interleaved, 1 pass per line) 9-pin device */
-gx_device_printer far_data gs_eps9mid_device = 
+const gx_device_printer far_data gs_eps9mid_device = 
   prn_device(prn_std_procs, "eps9mid",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, 3*Y_BASERES,
@@ -120,7 +120,7 @@ gx_device_printer far_data gs_eps9mid_device =
 
 
 /* High-res (interleaved) 9-pin device */
-gx_device_printer far_data gs_eps9high_device = 
+const gx_device_printer far_data gs_eps9high_device = 
   prn_device(prn_std_procs, "eps9high",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, 3*Y_BASERES,
@@ -128,7 +128,7 @@ gx_device_printer far_data gs_eps9high_device =
 	1, eps9high_print_page);
 
 /* IBM ProPrinter device */
-gx_device_printer far_data gs_ibmpro_device =
+const gx_device_printer far_data gs_ibmpro_device =
   prn_device(prn_std_procs, "ibmpro",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,

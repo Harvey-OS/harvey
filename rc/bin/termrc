@@ -61,6 +61,8 @@ case NCR* 'AT&TNSX'* generic* _MP_* 'alpha apc'*
 				disk/prep -p $part >$disk/ctl >[2]/dev/null
 	}
 
+	if(! ~ `{cat /dev/user} none)
+		aux/vmware
 	if(~ $mouseport ask){
 		echo -n 'mouseport is (ps2, ps2intellimouse, 0, 1, 2)[ps2]: '
 		mouseport=`{read}

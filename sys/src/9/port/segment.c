@@ -520,10 +520,25 @@ mfreeseg(Segment *s, ulong start, int pages)
 		}
 		while(j < PTEPERTAB) {
 			pg = s->map[i]->pages[j];
+			/*
+			 * We want to zero s->map[i]->page[j] and putpage(pg),
+			 * but we have to make sure other processors flush the entry
+			 * entry from their TLBs before the page is freed.
+			 * We construct a list of the pages to be freed, zero
+			 * the entries, then (below) call procflushseg, and call
+			 * putpage on the whole list.
+			 *
+			 * Swapped-out pages don't appear in TLBs, so it's okay
+			 * to putswap those pages before procflushseg.
+			 */
 			if(pg){
+				if(onswap(pg))
+					putswap(pg);
+				else{
+					pg->next = list;
+					list = pg;
+				}
 				s->map[i]->pages[j] = 0;
-				pg->next = list;
-				list = pg;
 			}
 			if(--pages == 0)
 				goto out;

@@ -226,7 +226,11 @@ sslgen(Chan *c, char*, Dirtab *d, int nd, int s, Dir *dp)
 		return 1;
 	default:
 		ds = dstate[CONV(c->qid)];
-		devdir(c, c->qid, sslnames[TYPE(c->qid)], 0, ds->user, 0660, dp);
+		if(ds != 0)
+			nm = ds->user;
+		else
+			nm = eve;
+		devdir(c, c->qid, sslnames[TYPE(c->qid)], 0, nm, 0660, dp);
 		return 1;
 	}
 	return -1;

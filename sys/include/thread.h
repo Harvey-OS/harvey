@@ -104,3 +104,20 @@ Channel*	threadwaitchan(void);
 void		yield(void);
 
 extern	int		mainstacksize;
+
+/* slave I/O processes */
+typedef struct Ioproc Ioproc;
+
+Ioproc*	ioproc(void);
+void		closeioproc(Ioproc*);
+void		iointerrupt(Ioproc*);
+
+int		ioclose(Ioproc*, int);
+int		iodial(Ioproc*, char*, char*, char*, int*);
+int		ioopen(Ioproc*, char*, int);
+long		ioread(Ioproc*, int, void*, long);
+long		ioreadn(Ioproc*, int, void*, long);
+long		iowrite(Ioproc*, int, void*, long);
+
+long		iocall(Ioproc*, long (*)(va_list*), ...);
+void		ioret(Ioproc*, int);

@@ -13,6 +13,7 @@
 
 /* debugging */
 extern int			edfprint;
+extern Edfinterface	realedf, *edf;
 
 static Schedevent *events;
 static int nevents, revent, wevent;
@@ -21,6 +22,7 @@ static QLock elock;
 static Ref logopens;
 static Ref debugopens;
 static uvlong fasthz;	
+static int taskno;
 
 static int		timeconv(Fmt *);
 static char *	parsetime(Time *, char *);
@@ -31,6 +33,7 @@ enum {
 	Qrealtime,
 	Qclone,
 	Qdebug,
+	Qdump,
 	Qlog,
 	Qnblog,
 	Qresrc,
@@ -50,6 +53,7 @@ Dirtab scheddir[]={
 	".",			{Qrealtime, 0, QTDIR},	0,	DMDIR|0555,
 	"clone",		{Qclone},				0,	0666,
 	"debug",		{Qdebug},				0,	0444,
+	"dump",		{Qdump},				0,	0444,
 	"log",		{Qlog},				0,	0444,	/* one open only */
 	"nblog",		{Qnblog},				0,	0444,	/* nonblocking version of log */
 	"resources",	{Qresrc},				0,	0444,
@@ -68,6 +72,18 @@ static char *schedstatename[] = {
 	[SSlice] =		"Slice",
 	[SExpel] =		"Expel",
 };
+
+Task *
+findtask(int taskno)
+{
+	List *l;
+	Task *t;
+
+	for (l = tasks.next; l; l = l->next)
+		if ((t = l->i) && t->taskno == taskno)
+			return t;
+	return nil;
+}
 
 static char*
 dumptask(char *p, char *e, Task *t, Ticks now)
@@ -121,6 +137,42 @@ dumpq(char *p, char *e, Taskq *q, Ticks now)
 	return nil;
 }
 
+static Task *
+taskinit(void)
+{
+	Dirtab *d;
+	Task *t;
+
+	t = malloc(sizeof(Task));
+	if (t == nil)
+		error("taskinit: malloc");
+	d = &t->dir;
+	if (up->user)
+		kstrdup(&t->user, up->user);
+	else
+		kstrdup(&t->user, eve);
+	t->state = EdfExpelled;
+	t->taskno = ++taskno;
+	snprint(d->name, sizeof d->name, "%d", t->taskno);
+	mkqid(&d->qid, Qistask | t->taskno, 0, QTFILE);
+	d->length = 0;
+	d->perm = 0600;
+	enlist(&tasks, t);
+	incref(t);
+	return t;
+}
+
+void
+taskfree(Task *t)
+{
+	if (decref(t))
+		return;
+	assert(t->procs.n == 0);
+	assert(t->res.n == 0);
+	free(t->user);
+	free(t);
+}
+
 /*
  * the zeroth element of the table MUST be the directory itself for ..
 */
@@ -132,18 +184,28 @@ schedgen(Chan *c, char*, Dirtab *, int, int i, Dir *dp)
 	char *owner;
 	ulong taskindex;
 	Qid qid;
+	Task *t;
+	List *l;
 
 	if((ulong)c->qid.path & Qistask){
+		qlock(&edfschedlock);
 		taskindex = (ulong)c->qid.path & (Qistask-1);
-		if (taskindex >= Maxtasks || tasks[taskindex].state == EdfUnused)
+		if ((t = findtask(taskindex)) == nil){
+			qunlock(&edfschedlock);
 			return -1;
+		}
 	}else if((ulong)c->qid.path == Qtask){
+		qlock(&edfschedlock);
+
 		taskindex = i;
-		for (i = 0; i < Maxtasks; i++)
-			if (tasks[i].state != EdfUnused && taskindex-- == 0)
+		SET(t);
+		for (l = tasks.next; l; l = l->next)
+			if ((t = l->i) && taskindex-- == 0)
 				break;
-		if (i == Maxtasks)
+		if (l == nil){
+			qunlock(&edfschedlock);
 			return -1;
+		}
 	}else {
 		if((ulong)c->qid.path == Qdir){
 			tab = schedrootdir;
@@ -165,13 +227,14 @@ schedgen(Chan *c, char*, Dirtab *, int, int i, Dir *dp)
 	if(i == DEVDOTDOT){
 		mkqid(&qid, Qtask, 0, QTDIR);
 		devdir(c, qid, ".", 0, eve, 0555, dp);
-		return 1;
+	}else{
+		owner = t->user;
+		if (owner == nil)
+			owner = eve;
+		tab = &t->dir;
+		devdir(c, tab->qid, tab->name, tab->length, owner, tab->perm, dp);
 	}
-	owner = tasks[i].user;
-	if (owner == nil)
-		owner = eve;
-	tab = &tasks[i].dir;
-	devdir(c, tab->qid, tab->name, tab->length, owner, tab->perm, dp);
+	qunlock(&edfschedlock);
 	return 1;
 }
 
@@ -182,7 +245,7 @@ _devrt(Task *t, Ticks t1, SEvent etype)
 		return;
 
 	if(edfprint)iprint("state %s\n", schedstatename[etype]);
-	events[wevent].tid = t - tasks;
+	events[wevent].tid = t->taskno;
 	events[wevent].ts = 0;
 	if (t1)
 		events[wevent].ts = ticks2time(t1);
@@ -219,6 +282,7 @@ devrtinit(void)
 	events = (Schedevent *)malloc(sizeof(Schedevent) * Nevents);
 	assert(events);
 	nevents = revent = wevent = 0;
+	edf = &realedf;
 }
 
 static Chan *
@@ -237,25 +301,6 @@ static int
 devrtstat(Chan *c, uchar *db, int n)
 {
 	return devstat(c, db, n, nil, 0, schedgen);
-}
-
-static void
-taskinit(Task *t)
-{
-	Dirtab *d;
-
-	d = &t->dir;
-	memset(t, 0, sizeof(Task));
-	if (up->user)
-		kstrdup(&t->user, up->user);
-	else
-		kstrdup(&t->user, eve);
-	t->state = EdfExpelled;
-	snprint(d->name, sizeof d->name, "%ld", t - tasks);
-	mkqid(&d->qid, Qistask | (t - tasks), 0, QTFILE);
-	d->length = 0;
-	d->perm = 0600;
-	ntasks++;
 }
 
 static Chan *
@@ -283,22 +328,19 @@ devrtopen(Chan *c, int mode)
 			error("already open");
 		}
 		break;
+	case Qdump:
+		if (mode != OREAD) 
+			error(Eperm);
+		break;
 	case Qclone:
 		if (mode == OREAD) 
 			error(Eperm);
-		edfinit();
+		edf->edfinit();
+		qlock(&edfschedlock);
 		/* open a new task */
-		for (t = tasks; t< tasks + Maxtasks; t++){
-			qlock(t);
-			if(t->state == EdfUnused){
-				taskinit(t);
-				c->qid.vers = t - tasks;
-				break;
-			}
-			qunlock(t);
-		}
-		if (t == tasks + Maxtasks)
-			error("too many tasks");
+		t = taskinit();
+		c->qid.vers = t->taskno;
+		qunlock(&edfschedlock);
 		break;
 	}
 //	print("open %lux, mode %o\n", (ulong)c->qid.path, mode);
@@ -335,9 +377,11 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 	long n0;
 	int navail;
 	Task *t;
-	int s, i, fst;
+	int s, i;
 	Ticks now;
 	Time tim;
+	List *l;
+	Resource *r;
 
 	n0 = n;
 //	print("schedread 0x%lux\n", (ulong)c->qid.path);
@@ -401,32 +445,45 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 		qunlock(&elock);
 		break;
 	case Qresrc:
+		qlock(&edfschedlock);
+		if(waserror()){
+			qunlock(&edfschedlock);
+			nexterror();
+		}
 		p = buf;
 		e = p + sizeof(buf);
-		for (i = 0; i < Maxresources; i++){
-			if (resources[i].name == nil)
-				continue;
-			p = seprint(p, e, "name=%s", resources[i].name);
-			if (resources[i].ntasks){
+		for (l = resources.next; l; l = l->next){
+			r = l->i;
+			assert(r);
+			p = seprint(p, e, "name=%s", r->name);
+			if (r->tasks.n){
+				List *l;
+
 				p = seprint(p, e, " tasks='");
-				fst = 0;
-				for (s = 0; s < nelem(resources[i].tasks); s++)
-					if (resources[i].tasks[s]){
-						if (fst)
-							p = seprint(p, e, " ");
-						p = seprint(p, e, "%ld", resources[i].tasks[s] - tasks);
-						fst++;
-					}
+				for (l = r->tasks.next; l; l = l->next) {
+					if (l != r->tasks.next)
+						p = seprint(p, e, " ");
+					p = seprint(p, e, "%d", ((Task *)l->i)->taskno);
+				}
 				p = seprint(p, e, "'");
 			}
-			if (resources[i].Delta)
-				p = seprint(p, e, " Δ=%T", ticks2time(resources[i].Delta));
-			else if (resources[i].testDelta)
-				p = seprint(p, e, " testΔ=%T", ticks2time(resources[i].testDelta));
+			if (r->Delta)
+				p = seprint(p, e, " Δ=%T", ticks2time(r->Delta));
+			else if (r->testDelta)
+				p = seprint(p, e, " testΔ=%T", ticks2time(r->testDelta));
 			p = seprint(p, e, "\n");
 		}
+		qunlock(&edfschedlock);
+		poperror();
 		return readstr(offs, v, n, buf);
 		break;
+	case Qdump:
+		p = buf;
+		e = p + sizeof(buf);
+		qlock(&edfschedlock);
+		qunlock(&edfschedlock);
+		p = seprint(p, e, "\n");
+		return readstr(offs, v, n, buf);
 	case Qdebug:
 		p = buf;
 		e = p + sizeof(buf);
@@ -444,7 +501,6 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 		dumpq(p, e, &qextratime, now);
 		iunlock(&edflock);
 		return readstr(offs, v, n, buf);
-		break;
 	case Qclone:
 		s = c->qid.vers;
 		goto common;
@@ -453,9 +509,12 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 			error(Enonexist);
 		s = (ulong)c->qid.path & (Qistask - 1);
 	common:
-		if (s < 0 || s >= Maxtasks || tasks[s].state == EdfUnused)
+		qlock(&edfschedlock);
+		t = findtask(s);
+		if (t == nil){
+			qunlock(&edfschedlock);
 			error(Enonexist);
-		t = tasks + s;
+		}
 		p = buf;
 		e = p + sizeof(buf);
 		p = seprint(p, e, "task=%d", s);
@@ -471,31 +530,40 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 		else if (t->testDelta)
 			p = seprint(p, e, " testΔ=%T", ticks2time(t->testDelta));
 		p = seprint(p, e, " yieldonblock=%d", (t->flags & Verbose) != 0);
-		if (t->nres){
+		if (t->res.n){
 			p = seprint(p, e, " resources='");
-			fst = 0;
-			for (i = 0; i < nelem(t->res); i++)
-				if (t->res[i]){
-					if (fst)
-						p = seprint(p, e, " ");
-					p = seprint(p, e, "%s", t->res[i]->name);
-					fst++;
-				}
+			for (l = t->res.next; l; l = l->next){
+				r = l->i;
+				assert(r);
+				if (l != t->res.next)
+					p = seprint(p, e, " ");
+				p = seprint(p, e, "%s", r->name);
+			}
 			p = seprint(p, e, "'");
 		}
-		if (t->nproc){
+		if (t->procs.n){
 			p = seprint(p, e, " procs='");
-			fst = 0;
-			for (i = 0; i < nelem(t->procs); i++)
-				if (t->procs[i]){
-					if (fst)
-						p = seprint(p, e, " ");
-					p = seprint(p, e, "%lud", t->procs[i]->pid);
-					fst++;
-				}
+			for (l = t->procs.next; l; l = l->next){
+				Proc *pr = l->i;
+				assert(pr);
+				if (l != t->procs.next)
+					p = seprint(p, e, " ");
+				p = seprint(p, e, "%lud", pr->pid);
+			}
 			p = seprint(p, e, "'");
 		}
+		if (t->periods)
+			p = seprint(p, e, " n=%lud", t->periods);
+		if (t->missed)
+			p = seprint(p, e, " m=%lud", t->missed);
+		if (t->preemptions)
+			p = seprint(p, e, " p=%lud", t->preemptions);
+		if (t->total)
+			p = seprint(p, e, " t=%T", ticks2time(t->total));
+		if (t->aged)
+			p = seprint(p, e, " c=%T", ticks2time(t->aged));
 		seprint(p, e, "\n");
+		qunlock(&edfschedlock);
 		return readstr(offs, v, n, buf);
 	}
 	return n0 - n;
@@ -504,134 +572,47 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 static Resource *
 resource(char *name, int add)
 {
-	Resource *r, *i;
-	Task **t;
+	Resource *r;
+	List *l;
 
-	r = nil;
-	for (i = resources; i < resources + nelem(resources); i++){
-		if (i->name == nil)
-			r = i;
-		else if (strcmp(i->name, name) == 0)
-			return i;
-	}
-	if (add == 0)
+	for (l = resources.next; l; l = l->next)
+		if ((r = l->i) && strcmp(r->name, name) == 0)
+			return r;
+	if (add < 0)
 		return nil;
+	r = malloc(sizeof(Resource));
 	if (r == nil)
-		error("too many resources");
+		error("resource: malloc");
 	kstrdup(&r->name, name);
-	for (t = r->tasks; t < r->tasks + nelem(r->tasks); t++)
-		*t = nil;
-	r->ntasks = 0;
-	nresources++;
+	enlist(&resources, r);
 	return r;
 }
 
-static char *
-tasktoresource(Resource *r, Task *t, int add)
+void
+resourcefree(Resource *r)
 {
-	Task **et, **rt, **i;
-
-	et = nil;
-	rt = nil;
-	for (i = r->tasks; i < r->tasks + nelem(r->tasks ); i++){
-		if (*i == nil)
-			et = i;
-		else if (*i == t)
-			rt = i;
-	}
-	if (add > 0){
-		if (rt)
-			return nil;	/* resource already present */
-		if (et == nil)
-			return "too many resources";
-		*et = t;
-		r->ntasks++;
-	}else{
-		if (rt == nil)
-			return nil;	/* resource not found */
-		*rt = nil;
-		r->ntasks--;
-	}
-	return nil;
-}
-
-static char *
-resourcetotask(Task *t, Resource *r, int add)
-{
-	Resource **i, **tr, **er;
-
-	er = nil;
-	tr = nil;
-	for (i = t->res; i < t->res + nelem(t->res); i++){
-		if (*i == nil)
-			er = i;
-		else if (*i == r)
-			tr = i;
-	}
-	if (add > 0){
-		if (tr)
-			return nil;	/* resource already present */
-		if (er == nil)
-			return "too many resources";
-		*er = r;
-		t->nres++;
-	}else{
-		if (tr == nil)
-			return nil;	/* resource not found */
-		*tr = nil;
-		t->nres--;
-	}
-	return nil;
-}
-
-static char *
-proctotask(Task *t, Proc *p, int add)
-{
-	Proc **i, **tr, **er;
-
-	er = nil;
-	tr = nil;
-	for (i = t->procs; i < t->procs + nelem(t->procs); i++){
-		if (*i == nil)
-			er = i;
-		else if (*i == p)
-			tr = i;
-	}
-	if (add > 0){
-		if (tr){
-			assert (p->task == t);
-			return nil;	/* proc already present */
-		}
-		if (er == nil)
-			return "too many resources";
-		if (p->task != nil && p->task != t)
-			error("proc belongs to another task");
-		p->task = t;
-		*er = p;
-		t->nproc++;
-	}else{
-		if (tr == nil)
-			return nil;	/* resource not found */
-		assert(p->task == t);
-		p->task = nil;
-		*tr = nil;
-		t->nproc--;
-	}
-	return nil;
+	if (decref(r))
+		return;
+	delist(&resources, r);
+	assert(r->tasks.n == 0);
+	free(r->name);
+	free(r);
 }
 
 static void
 removetask(Task *t)
 {
-	int s, i;
-	Proc *p, **pp;
+	Proc *p;
 	Resource *r;
+	List *l;
 
-	qlock(t);
-	edfexpel(t);
-	for (pp = t->procs; pp < t->procs + nelem(t->procs); pp++)
-		if (p = *pp)
-			p->task = nil;
+	edf->edfexpel(t);
+	while (l = t->procs.next){
+		p = l->i;
+		assert(p);
+		p->task = nil;
+		delist(&t->procs, p);
+	}
 	while (p = t->runq.head){
 		/* put runnable procs on regular run queue */
 		t->runq.head = p->rnext;
@@ -640,27 +621,18 @@ removetask(Task *t)
 	}
 	t->runq.tail = nil;
 	assert(t->runq.n == 0);
-	for (s = 0; s < nelem(t->res); s++){
-		if (t->res[s] == nil)
-			continue;
-		r = t->res[s];
-		for (i = 0; i < nelem(r->tasks); i++)
-			if (r->name && r->tasks[i] == t){
-				r->tasks[i] = nil;
-				if (--r->ntasks == 0){
-					/* resource became unused, delete it */
-					free(r->name);
-					r->name = nil;
-					nresources--;
-				}
-			}
+	while (l = t->res.next){
+		r = l->i;
+		if (delist(&r->tasks, t))
+			taskfree(t);
+		if (delist(&t->res, r))
+			resourcefree(r);
 	}
-	if(t->user){
-		free(t->user);
-		t->user = nil;
-	}
+	free(t->user);
+	t->user = nil;
 	t->state = EdfUnused;
-	qunlock(t);
+	if (delist(&tasks, t))
+		taskfree(t);
 }
 
 static long
@@ -668,8 +640,7 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 {
 	char *a, *v, *e, *args[16], *rargs[16], buf[512];
 	int i, j, s, nargs, nrargs, add;
-	Resource **rp, *r;
-	Proc **pp;
+	Resource *r;
 	Task *t;
 	Ticks ticks;
 	Time time;
@@ -688,9 +659,14 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 			error(Enonexist);
 		s = (ulong)c->qid.path & (Qistask - 1);
 	common:
-		if (s < 0 || s >= Maxtasks || tasks[s].state == EdfUnused)
+		qlock(&edfschedlock);
+		if (waserror()){
+			qunlock(&edfschedlock);
+			nexterror();
+		}
+		t = findtask(s);
+		if (t == nil)
 			error(Enonexist);
-		t = tasks + s;
 		if(n >= sizeof(buf))
 			n = sizeof(buf)-1;
 		strncpy(buf, a, n);
@@ -714,7 +690,7 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 				if (e=parsetime(&time, v))
 					error(e);
 				ticks = time2ticks(time);
-				edfexpel(t);
+				edf->edfexpel(t);
 				switch(add){
 				case -1:
 					if (ticks > t->T)
@@ -735,7 +711,7 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 				if (e=parsetime(&time, v))
 					error(e);
 				ticks = time2ticks(time);
-				edfexpel(t);
+				edf->edfexpel(t);
 				switch(add){
 				case -1:
 					if (ticks > t->D)
@@ -754,7 +730,7 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 				if (e=parsetime(&time, v))
 					error(e);
 				ticks = time2ticks(time);
-				edfexpel(t);
+				edf->edfexpel(t);
 				switch(add){
 				case -1:
 					if (ticks > t->C)
@@ -774,24 +750,34 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 			}else if (strcmp(a, "resources") == 0){
 				if (v == nil)
 					error("resources: value missing");
-				edfexpel(t);
+				edf->edfexpel(t);
 				if (add == 0){
-					for (rp = t->res; rp < t->res + nelem(t->res); rp++)
-						if (*rp){
-							tasktoresource(*rp, t, 0);
-							resourcetotask(t, *rp, 0);
-						}
-					assert(t->nres == 0);
+					List *l;
+
+					while (l = t->res.next) {
+						r = l->i;
+						assert(r);
+						if (delist(&r->tasks, t))
+							taskfree(t);
+						if (delist(&t->res, r))
+							resourcefree(r);
+					}
+					assert(t->res.n == 0);
 					add = 1;
 				}
 				nrargs = tokenize(v, rargs, nelem(rargs));
 				for (j = 0; j < nrargs; j++)
 					if (r = resource(rargs[j], add)){
-						if (e = tasktoresource(r, t, add))
-							error(e);
-						if (e = resourcetotask(t, r, add)){
-							tasktoresource(r, t, -1);
-							error(e);
+						if (add > 0){
+							if (enlist(&r->tasks, t))
+								incref(t);
+							if (enlist(&t->res, r))
+								incref(r);
+						}else{
+							if (delist(&r->tasks, t))
+								taskfree(t);
+							if (delist(&t->res, r))
+								resourcefree(r);
 						}
 					}else
 						error("resource not found");
@@ -799,13 +785,17 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 				if (v == nil)
 					error("procs: value missing");
 				if (add <= 0){
-					edfexpel(t);
+					edf->edfexpel(t);
 				}
 				if (add == 0){
-					for (pp = t->procs; pp < t->procs + nelem(t->procs); pp++)
-						if (*pp){
-							proctotask(t, *pp, -1);
-						}
+					List *l;
+
+					while (l = t->procs.next){
+						p = l->i;
+						assert(p->task == t);
+						delist(&t->procs, p);
+						p->task = nil;
+					}
 					add = 1;
 				}
 				nrargs = tokenize(v, rargs, nelem(rargs));
@@ -821,22 +811,27 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 							error("no such process");
 						p = proctab(s);
 					}
-					if (e = proctotask(t, p, add))
-						error(e);
+					if(p->task && p->task != t)
+						error("proc belongs to another task");
+					if (add > 0){
+						enlist(&t->procs, p);
+						p->task = t;
+					}else{
+						delist(&t->procs, p);
+						p->task = nil;
+					}
 				}
 			}else if (strcmp(a, "admit") == 0){
-				/* Do the admission test */
-				if (e = edfadmit(t))
+				if (e = edf->edfadmit(t))
 					error(e);
 			}else if (strcmp(a, "expel") == 0){
-				/* Do the admission test */
-				edfexpel(t);
+				edf->edfexpel(t);
 			}else if (strcmp(a, "remove") == 0){
-				/* Do the admission test */
 				removetask(t);
+				poperror();
+				qunlock(&edfschedlock);
 				return n;	/* Ignore any subsequent commands */
 			}else if (strcmp(a, "verbose") == 0){
-				/* Do the admission test */
 				if (t->flags & Verbose)
 					t->flags &= ~Verbose;
 				else
@@ -851,14 +846,18 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 				else
 					t->flags |= Useblocking;
 			}else if (strcmp(a, "yield") == 0){
-				if (isedf(up) && up->task == t){
-					edfdeadline(up);	/* schedule next release */
+				if (edf->isedf(up) && up->task == t){
+					edf->edfdeadline(up);	/* schedule next release */
+					qunlock(&edfschedlock);
 					sched();
+					qlock(&edfschedlock);
 				}else
 					error("yield outside task");
 			}else
 				error("unrecognized command");
 		}
+		poperror();
+		qunlock(&edfschedlock);
 	}
 	return n;
 }
@@ -872,10 +871,17 @@ devrtremove(Chan *c)
 	if ((c->qid.path & Qistask) == 0)
 		error(Eperm);
 	s = (ulong)c->qid.path & (Qistask - 1);
-	t = tasks + s;
-	if (s < 0 || s >= Maxtasks || t->state == EdfUnused)
+	t = findtask(s);
+	if (t == nil)
 		error(Enonexist);
+	qlock(&edfschedlock);
+	if (waserror()){
+		qunlock(&edfschedlock);
+		nexterror();
+	}
 	removetask(t);
+	poperror();
+	qunlock(&edfschedlock);
 }
 
 Dev realtimedevtab = {
@@ -956,14 +962,71 @@ parsetime(Time *rt, char *s)
 		l *= p10[e-p-1];
 	}else
 		l = 0;
-	if (*e == '\0' || strcmp(e, "s") == 0){
-		ticks = 1000000000 * ticks + l;
-	}else if (strcmp(e, "ms") == 0){
-		ticks = 1000000 * ticks + l/1000;
-	}else if (strcmp(e, "µs") == 0 || strcmp(e, "us") == 0){
-		ticks = 1000 * ticks + l/1000000;
-	}else if (strcmp(e, "ns") != 0)
-		return "unrecognized unit";
+	if (*e){
+		if(strcmp(e, "s") == 0)
+			ticks = 1000000000 * ticks + l;
+		else if (strcmp(e, "ms") == 0)
+			ticks = 1000000 * ticks + l/1000;
+		else if (strcmp(e, "µs") == 0 || strcmp(e, "us") == 0)
+			ticks = 1000 * ticks + l/1000000;
+		else if (strcmp(e, "ns") != 0)
+			return "unrecognized unit";
+	}
 	*rt = ticks;
+	return nil;
+}
+
+int
+putlist(Head *h, List *l)
+{
+	l->next = h->next;
+	h->next = l;
+	h->n++;
+	return 1;
+}
+
+int
+enlist(Head *h, void *i)
+{
+	List *l;
+
+	for (l = h->next; l; l = l->next)
+		if (l->i == i){
+			/* already on the list */
+			return 0;
+		}
+	l = malloc(sizeof(List));
+	if (l == nil)
+		panic("malloc in enlist");
+	l->i = i;
+	l->next = h->next;
+	h->next = l;
+	h->n++;
+	return 1;
+}
+
+int
+delist(Head *h, void *i)
+{
+	List *l, **p;
+
+	for (p = &h->next; l = *p; p = &l->next)
+		if (l->i == i){
+			*p = l->next;
+			free(l);
+			h->n--;
+			return 1;
+		}
+	return 0;
+}
+
+void *
+findlist(Head *h, void *i)
+{
+	List *l;
+
+	for (l = h->next; l; l = l->next)
+		if (l->i == i)
+			return i;
 	return nil;
 }

@@ -65,9 +65,9 @@ error(char *fmt, ...)
 	va_list arg;
 	char buf[256];
 
-	threadprint(2, "Mail: ");
+	fprint(2, "Mail: ");
 	va_start(arg, fmt);
-	n = doprint(buf, buf+sizeof buf, fmt, arg) - buf;
+	n = vsnprint(buf, sizeof buf, fmt, arg);
 	va_end(arg);
 	write(2, buf, n);
 	write(2, "\n", 1);
@@ -82,7 +82,7 @@ ctlprint(int fd, char *fmt, ...)
 	char buf[256];
 
 	va_start(arg, fmt);
-	n = doprint(buf, buf+sizeof buf, fmt, arg) - buf;
+	n = vsnprint(buf, sizeof buf, fmt, arg);
 	va_end(arg);
 	if(write(fd, buf, n) != n)
 		error("control file write error: %r");

@@ -1,21 +1,21 @@
 #    Copyright (C) 1989, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: gs.mak,v 1.1 2000/03/09 08:40:41 lpd Exp $
+# $Id: gs.mak,v 1.5.2.2 2002/02/01 03:30:13 raph Exp $
 # Generic makefile, common to all platforms, products, and configurations.
 # The platform-specific makefiles `include' this file.
 
@@ -124,6 +124,11 @@
 #	    both, provides both implementations with different procedure
 #	    names for the fd-based implementation (see sfxfd.c for
 #	    more information).
+#	STDIO_IMPLEMENTATION - normally 'c' which uses callouts and 
+#	    ziodevsc.c, but ghostscript library must use '' for file 
+#	    based stdio in ziodevs.c. 
+#           Callouts use procedure based streams and return back to
+#           to gs_main_interpret() in imain.c whenever stdio is needed.
 #	EXTEND_NAMES - a value N between 0 and 6, indicating that the name
 #	    table should have a capacity of 2^(16+N) names.  This normally
 #	    should be set to 0 (or left undefined), since non-zero values
@@ -205,6 +210,10 @@ PNGGENDIR=$(GLGENDIR)
 PNGOBJDIR=$(GLOBJDIR)
 ZGENDIR=$(GLGENDIR)
 ZOBJDIR=$(GLOBJDIR)
+ICCGENDIR=$(GLGENDIR)
+ICCOBJDIR=$(GLOBJDIR)
+IJSGENDIR=$(GLGENDIR)
+IJSOBJDIR=$(GLOBJDIR)
 #**************** END PATCHES
 
 GSGEN=$(GLGENDIR)$(D)
@@ -291,6 +300,14 @@ ADDMOD=$(EXP)$(ECHOGS_XE) -e .dev -a- $(NULL)
 # The search lists must be enclosed in $(I_) and $(_I).
 # Note that we can't define the entire compilation command,
 # because this must include $(GLSRCDIR), which isn't defined yet.
+ICCI_=$(ICCSRCDIR)
+ICCF_=
+# Currently there is no option for sharing icclib.
+ICCCF_=
+IJSI_=$(IJSSRCDIR)
+IJSF_=
+# Currently there is no option for sharing ijs.
+IJSCF_=
 JI_=$(JSRCDIR)
 JF_=
 JCF_=$(D_)SHARE_JPEG=$(SHARE_JPEG)$(_D)

@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zchar.c,v 1.2 2000/03/10 04:41:47 lpd Exp $ */
+/*$Id: zchar.c,v 1.4 2001/05/10 19:15:29 igorm Exp $ */
 /* Character operators */
 #include "ghost.h"
 #include "oper.h"
@@ -426,9 +426,8 @@ op_show_finish_setup(i_ctx_t *i_ctx_p, gs_text_enum_t * penum, int npop,
     if (endproc == NULL)
 	endproc = finish_show;
     make_null(&esslot(ep));
-    make_int(&esodepth(ep), 0);	/* see gs_show_render case in */
-    /* op_show_continue_dispatch */
-    make_int(&esddepth(ep), 0);	/* ditto */
+    make_int(&esodepth(ep), ref_stack_count_inline(&o_stack) - npop); /* Save stack depth for */
+    make_int(&esddepth(ep), ref_stack_count_inline(&d_stack));        /* correct interrupt processing */
     make_int(&esgslevel(ep), igs->level);
     make_null(&essfont(ep));
     make_null(&esrfont(ep));

@@ -1,12 +1,22 @@
 </$objtype/mkfile
 
-OFILES=\
-	disk.$O\
-	proto.$O\
-	scsi.$O\
+FILES=\
+	disk\
+	proto\
+	scsi\
 
 HFILES=/sys/include/disk.h
 LIB=/$objtype/lib/libdisk.a
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/lib/libdisk.a\
+	$HFILES\
+	$CFILES\
+
 </sys/src/cmd/mksyslib
 
 $O.test: test.$O $LIB

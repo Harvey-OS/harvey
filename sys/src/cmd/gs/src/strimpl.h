@@ -1,22 +1,22 @@
 /* Copyright (C) 1993, 1995, 1997, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: strimpl.h,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: strimpl.h,v 1.3 2000/11/01 22:36:13 lpd Exp $ */
 /* Definitions for stream implementors */
 /* Requires stdio.h */
 
@@ -106,6 +106,14 @@
  *
  *	Any stream whose state includes additional pointers (beyond those
  *	in stream_state_common) must have a set_defaults procedure.
+ */
+
+/*
+ * Note that all decoding filters that require an explicit EOD in the
+ * source data must have an init procedure that sets min_left = 1.
+ * This effectively provides a 1-byte lookahead in the source data,
+ * which is required so that the stream can close itself "after reading
+ * the last byte of data" (per Adobe specification), as noted above.
  */
 
 /*

@@ -28,34 +28,39 @@ srv \- 9P file service
 typedef struct Srv {
 	Tree*	tree;
 
-	void		(*attach)(Req*);
-	void		(*auth)(Req*);
-	void		(*open)(Req*);
-	void		(*create)(Req*);
-	void		(*read)(Req*);
-	void		(*write)(Req*);
-	void		(*remove)(Req*);
-	void		(*flush)(Req*);
-	void		(*stat)(Req*);
-	void		(*wstat)(Req*);
-	void		(*walk)(Req*);
+	void		(*attach)(Req *r);
+	void		(*auth)(Req *r);
+	void		(*open)(Req *r);
+	void		(*create)(Req *r);
+	void		(*read)(Req *r);
+	void		(*write)(Req *r);
+	void		(*remove)(Req *r);
+	void		(*flush)(Req *r);
+	void		(*stat)(Req *r);
+	void		(*wstat)(Req *r);
+	void		(*walk)(Req *r);
 
 	char*	(*walk1)(Fid *fid, char *name, Qid *qid);
 	char*	(*clone)(Fid *oldfid, Fid *newfid);
 
-	void		(*destroyfid)(Fid*);
-	void		(*destroyreq)(Req*);
-	void		(*end)(Srv*);
+	void		(*destroyfid)(Fid *fid);
+	void		(*destroyreq)(Req *r);
+	void		(*end)(Srv *s);
 	void*	aux;
+
+	int		infd;
+	int		outfd;
+	int		srvfd;
+	int		nopipe;
 } Srv;
 .fi
 .PP
 .nf
 .ft L
 .ta \w'\fLvoid* 'u
-int	srv(Srv *s, int fd)
-int	postmountsrv(Srv *s, char *srvname, char *mtpt, int flag)
-int	threadpostmountsrv(Srv *s, char *srvname, char *mtpt, int flag)
+int	srv(Srv *s)
+void	postmountsrv(Srv *s, char *name, char *mtpt, int flag)
+void	threadpostmountsrv(Srv *s, char *name, char *mtpt, int flag)
 int	postfd(char *srvname, int fd)
 void	respond(Req *r, char *error)
 ulong	readstr(Req *r, char *src)
@@ -79,9 +84,22 @@ extern int chatty9p;
 .SH DESCRIPTION
 The function
 .I srv
-uses serves a 9P session by dispatching requests
-to the function pointers kept in 
-.BR Srv .
+serves a 9P session by reading requests from
+.BR s->infd ,
+dispatching them to the function pointers kept in 
+.BR Srv ,
+and
+writing the responses to
+.BR s->outfd .
+(Typically,
+.I postmountsrv
+or
+.I threadpostmountsrv
+initializes the
+.B infd
+and
+.B outfd
+structure members.  See the description below.)
 .PP
 .B Req
 and 
@@ -104,47 +122,9 @@ discussion of the service loop below.
 The
 .B aux
 element is the client's, to do with as it pleases.
-At the end of its service loop,
-.I srv
-calls the
-.I endsrv
-function (if not zero)
-on the
-.I Srv
-structure itself.
-.I Endsrv
-should perform any necessary cleanup,
-which may include freeing the data associated
-with
-.IR aux ,
-or freeing the 
-.B Srv
-structure itself.
 .PP
 .I Srv
 does not return until the 9P conversation is finished.
-.I Postmountsrv
-and
-.I threadpostmountsrv
-are wrappers that create a separate process in which to run
-.IR srv ,
-optionally posting the remote end of the service pipe in
-.BI /srv/ srvname
-or mounting it at 
-.IR mtpt .
-They both return 
-the file descriptor corresponding to the 
-.I local
-end of the service pipe on success, or \-1 on failure.
-.I Threadpostmountsrv
-is intended for use in programs that utilize the 
-.IR thread (2)
-library.
-.I Postfd
-posts the given file descriptor as
-.BI /srv/ srvname \fR,
-but does not mount and does not start the service loop.
-.PP
 Since it is usually run in a separate process so that
 the caller can exit, the service loop has little chance
 to return gracefully on out of memory errors.
@@ -152,7 +132,7 @@ It calls
 .IR emalloc9p ,
 .IR erealloc9p ,
 and
-.I estrdup 9p
+.I estrdup9p
 to obtain its memory.
 The default implementations of these functions
 act as
@@ -163,6 +143,78 @@ and
 but abort the program if they run out of memory.
 If alternate behavior is desired, clients can link against
 alternate implementations of these functions.
+.PP
+.I Postmountsrv
+and
+.I threadpostmountsrv
+are wrappers that create a separate process in which to run
+.IR srv .
+They do the following:
+.IP
+If
+.IB s -> nopipe
+is zero (the common case),
+initialize
+.IB s -> infd
+and
+.IB s -> outfd
+to be one end of a freshly allocated pipe,
+with
+.IB s -> srvfd
+initialized as the other end.
+.IP
+If
+.B name
+is non-nil, call
+.BI postfd( s -> srvfd ,
+.IB name )
+to post
+.IB s -> srvfd
+as
+.BI /srv/ name .
+.IP
+Fork a child process via
+.I rfork
+(see
+.IR fork (2))
+or
+.I procrfork
+(see
+.IR thread (2)),
+using the
+.BR RFFDG ,
+.RR RFNOTEG ,
+.BR RFNAMEG ,
+and
+.BR RFMEM
+flags.
+The child process
+calls
+.IB close( s -> srvfd )
+and then
+.IB srv( s ) \fR;
+it will exit once
+.I srv
+returns.
+.IP
+If
+.I mtpt
+is non-nil,
+call
+.BI amount( s -> srvfd,
+.IB mtpt ,
+.IB flag ,
+\fB"")\fR;
+otherwise, close
+.IB s -> srvfd \fR.
+.IP
+The parent returns to the caller.
+.LP
+If any error occurs during
+this process, the entire process is terminated by calling
+.I sysfatal
+(see
+.IR perror (2)).
 .SS Service functions
 The functions in a 
 .B Srv
@@ -177,7 +229,7 @@ The only parameter of each service function
 is a 
 .B Req*
 parameter (say
-.BR r ).
+.IR r ).
 The incoming request parameters are stored in 
 .IB r -> ifcall \fR;
 .IB r -> fid
@@ -197,7 +249,7 @@ structure corresponding to
 The outgoing response data should be stored in 
 .IB r -> ofcall \fR.
 The one exception to this rule is that 
-.B stat
+.I stat
 should fill in 
 .IB r -> d
 rather than
@@ -205,7 +257,7 @@ rather than
 the library will convert the structure into the machine-independent
 wire representation.
 Similarly, 
-.B wstat
+.I wstat
 may consult
 .IB r -> d
 rather than decoding
@@ -214,7 +266,7 @@ itself.
 When a request has been handled,
 .I respond
 should be called with
-.B r
+.I r
 and an error string.
 If the request was satisfied successfully, the error
 string should be a nil pointer.
@@ -226,7 +278,7 @@ as long as it has arranged for
 to be called at some point in the future
 by another proc sharing its address space,
 but see the discussion of
-.B flush
+.I flush
 below.
 Once
 .I respond
@@ -265,7 +317,7 @@ If authentication is desired,
 the
 .I auth
 function should record that
-.B afid
+.I afid
 is the new authentication fid and
 set 
 .I afid->qid
@@ -286,7 +338,7 @@ is the program name variable as set by
 The
 .I attach
 function should check the authentication state of
-.B afid
+.I afid
 if desired,
 and set
 .IB r -> fid -> qid
@@ -298,7 +350,7 @@ may be nil only if file trees are in use;
 in this case, the qid will be filled from the root
 of the tree, and no authentication will be done.
 .TP
-.B Walk
+.I Walk
 If file trees are in use,
 .I walk
 is handled internally, and 
@@ -308,15 +360,15 @@ is never called.
 If file trees are not in use,
 .I walk
 should consult
-.B ifcall.wname
+.IB r -> ifcall . wname
 and
-.BR ifcall.nwname ,
+.IB r -> ifcall . nwname \fR,
 filling in 
-.B ofcall.qid
+.IB ofcall . qid
 and
-.BR ofcall.nqid ,
+.IB ofcall . nqid \fR,
 and also copying any necessary 
-.B aux
+.I aux
 state from
 .IB r -> fid
 to
@@ -325,7 +377,7 @@ when the two are different.
 As long as
 .I walk 
 sets
-.B ofcall.nqid
+.IB ofcall . nqid
 appropriately, it can
 .I respond
 with a nil error string even when 9P
@@ -334,7 +386,7 @@ demands an error
 in the case of a short walk);
 the library detects error conditions and handles them appropriately.
 .TP
-.B Walk1\fR, \fPClone
+.I Walk1\fR, \fPClone
 Because implementing the full walk message is 
 intricate and prone to error, the client may instead provide functions
 .IB srv -> walk1
@@ -366,7 +418,7 @@ Rather than calling
 both should return nil
 on success or an error message on error.
 .TP
-.B Open
+.I Open
 If file trees are in use, the file
 metadata will be consulted on open, create, remove, and wstat
 to see if the requester has the appropriate permissions.
@@ -381,7 +433,7 @@ already initialized to the one stored in the
 structure (that is, the one returned in the previous walk).
 If the qid changes, both should be updated.
 .TP
-.B Create
+.I Create
 The
 .I create
 function must fill in
@@ -406,7 +458,7 @@ function is nil,
 behaves as though it were a function that always responded
 with the error ``create prohibited''.
 .TP
-.B Remove
+.I Remove
 .I Remove
 should mark the file as removed, whether
 by calling
@@ -432,7 +484,7 @@ If
 is not provided, all remove requests will draw
 ``remove prohibited'' errors.
 .TP
-.B Read
+.I Read
 The
 .I read
 function must be provided; it fills
@@ -456,13 +508,13 @@ and
 .I readbuf
 are useful for satisfying read requests on a string or buffer.
 Consulting the request in
-.BR r->ifcall ,
+.IB r -> ifcall \fR,
 they fill
-.B r->ofcall.data
+.IB r -> ofcall . data
 and set
-.BR r->ofcall.count ;
+.IB r -> ofcall . count \fR;
 they do not call
-.BR respond .
+.IB respond .
 Similarly,
 .I dirread9p
 can be used to handle directory reads in servers
@@ -473,7 +525,7 @@ function will be called as necessary to
 fill
 .I dir
 with information for the
-.I n th
+.IR n th
 entry in the directory.
 The string pointers placed in
 .I dir
@@ -489,7 +541,7 @@ should return zero if it successfully filled
 .IR dir ,
 minus one on end of directory.
 .TP
-.B Write
+.I Write
 The 
 .I write 
 function is similar but need not be provided.
@@ -498,18 +550,18 @@ If it is not, all writes will draw
 Otherwise, 
 .I write
 should attempt to write the
-.IB r -> ifcall . n
+.IB r -> ifcall . count
 bytes of 
 .IB r -> ifcall . data
 to offset
 .IB r -> ifcall . offset
 of the file, setting
-.IB r -> ofcall . offset
+.IB r -> ofcall . count
 to the number of bytes actually written.
 Most programs consider it an error to
 write less than the requested amount.
 .TP
-.B Stat
+.I Stat
 .I Stat
 should fill
 .IB r -> d
@@ -541,7 +593,7 @@ Otherwise
 should take care to enforce permissions
 where appropriate.
 .TP
-.B Flush
+.I Flush
 Single-threaded servers, which always call 
 .I respond
 before returning from the service functions,
@@ -579,7 +631,7 @@ and
 .I end
 are auxiliary functions, not called in direct response to 9P requests.
 .TP
-.B Destroyfid
+.I Destroyfid
 When a 
 .BR Fid 's
 reference count drops to zero
@@ -589,10 +641,10 @@ requests referring to it),
 .I destroyfid
 is called to allow the program to dispose
 of the
-.B Fid.aux
+.IB fid -> aux
 pointer.
 .TP
-.B Destroyreq
+.I Destroyreq
 Similarly, when a
 .BR Req 's
 reference count drops to zero
@@ -602,18 +654,18 @@ it has been handled via
 or has been successfully flushed),
 .I destroyreq
 is called to allow the program to dispose of the
-.B Req.aux
+.IB r -> aux
 pointer.
 .TP
-.B End
+.I End
 Once the 9P service loop has finished
 (end of file been reached on the service pipe
 or a bad message has been read),
 .I end
 is called (if provided) to allow any final cleanup.
-For example, it is used by the Palm Pilot synchronization
-file system to gracefully close the serial connection once
-the file system has been unmounted.
+For example, it was used by the Palm Pilot synchronization
+file system (never finished) to gracefully terminate the serial conversation once
+the file system had been unmounted.
 After calling
 .IR end ,
 the service loop (which runs in a separate process

@@ -5,7 +5,7 @@ dev
 	env
 	ether	netif
 	flash
-	ip	arp chandial ip ipaux iproute netlog nullmedium pktmedium inferno
+	ip	arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium inferno
 	kprof
 	mnt
 	µc
@@ -26,11 +26,12 @@ ip
 	udp
 	ipifc
 	icmp
+	icmp6
 	gre
 	ipmux
 
 link
-	etherwavelan
+	etherwavelan wavelan
 	ethermedium
 
 misc

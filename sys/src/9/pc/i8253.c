@@ -186,6 +186,7 @@ guesscpuhz(int aalcycles)
 }
 
 ulong i8253periodset;
+int i8253dotimerset = 1;
 
 void
 i8253timerset(uvlong next)
@@ -193,6 +194,9 @@ i8253timerset(uvlong next)
 	ulong period;
 	ulong want;
 	ulong now;
+
+	if(i8253dotimerset == 0)
+		return;
 
 	want = next>>Tickshift;
 	now = i8253.ticks;	/* assuming whomever called us just did fastticks() */
@@ -206,7 +210,7 @@ i8253timerset(uvlong next)
 			period = MaxPeriod;
 	}
 
-	/* histeresis */
+	/* hysteresis */
 	if(i8253.period != period){
 		ilock(&i8253);
 		/* load new value */
@@ -233,6 +237,40 @@ i8253enable(void)
 	i8253.enabled = 1;
 	i8253.period = Freq/HZ;
 	intrenable(IrqCLOCK, i8253clock, 0, BUSUNKNOWN, "clock");
+}
+
+static long
+i8253timerread(Chan*, void *a, long n, vlong offset)
+{
+	if(n < 16)
+		error("need more room");
+	if(offset)
+		return 0;
+	return snprint(a, n, "timerset %s", i8253dotimerset ? "on" : "off");
+}
+
+static long
+i8253timerwrite(Chan*, void *a, long n, vlong)
+{
+	if(n==3 && memcmp(a, "off", 3) == 0){
+		i8253dotimerset = 0;
+		outb(Tmode, Load0|Square);
+		outb(T0cntr, (Freq/HZ));
+		outb(T0cntr, (Freq/HZ)>>8);
+		return n;
+	}
+	if(n==2 && memcmp(a, "on", 2) == 0){
+		i8253dotimerset = 1;
+		return n;
+	}
+	error("invalid control message");
+	return -1;
+}
+
+void
+i8253link(void)
+{
+	addarchfile("i8253timerset", 0664, i8253timerread, i8253timerwrite);
 }
 
 /*
@@ -285,15 +323,17 @@ microdelay(int microsecs)
 	aamloop(microsecs);
 }
 
+/*  
+ *  performance measurement ticks.  must be low overhead.
+ *  doesn't have to count over a second.
+ */
 ulong
-TK2MS(ulong ticks)
+perfticks(void)
 {
-	uvlong t, hz;
+	uvlong x;
 
-	t = ticks;
-	hz = HZ;
-	t *= 1000L;
-	t = t/hz;
-	ticks = t;
-	return ticks;
+	if(!m->havetsc)
+		return m->ticks;
+	rdtsc(&x);
+	return x;
 }

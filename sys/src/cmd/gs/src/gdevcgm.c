@@ -1,22 +1,22 @@
 /* Copyright (C) 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevcgm.c,v 1.1 2000/03/09 08:40:40 lpd Exp $ */
+/*$Id: gdevcgm.c,v 1.2.6.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* CGM (Computer Graphics Metafile) driver */
 #include "memory_.h"
 #include "gx.h"
@@ -251,6 +251,10 @@ cgm_put_params(gx_device * dev, gs_param_list * plist)
 
     switch (code = param_read_string(plist, (param_name = "OutputFile"), &ofs)) {
 	case 0:
+	    if (dev->LockSafetyParams) {
+	        ecode = gs_note_error(gs_error_invalidaccess);
+		goto ofe;
+	    }
 	    if (ofs.size > fname_size)
 		ecode = gs_error_limitcheck;
 	    else

@@ -631,10 +631,8 @@ cm801u = 1376x1024						# ??Hz, ??.?KHz
 	vrs=1028 vre=1034 vt=1064
 
 #
-# IBM Thinkpad T23 14.1" 1400x1050 LCD
+# IBM Thinkpad T23
 #
-t23
-	alias=xga
 # We can't seem to set the clock higher than 100MHz here.
 # Maybe it's because we don't have clock doubling code in aux/vga,
 # maybe it's because the chip won't go that high.  
@@ -645,6 +643,11 @@ t23 = 1400x1050							# 50Hz, ??.?KHz
 	clock=100
 	shb=1460 ehb=1644 ht=1820
 	vrs=1060 vre=1068 vt=1100
+t23 = 1024x768
+	noclockset=1
+	include=1024x768
+t23
+	alias=xga
 #
 # IDEK 5421
 #
@@ -1089,3 +1092,12 @@ a901ht = 1600x1200     # 72Hz, 90.0KHz
 a901ht = 1024x768
 	clock=79
 	include=1024x768
+
+#
+# Planar PT1704A flat panel.
+#
+planar = 1280x1024
+	defaultclock=135
+	shb=1376 ehb=1544 ht=1712
+	shs=1392
+	vrs=1072 vre=1073 vt=1075

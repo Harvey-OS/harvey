@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zfunc.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zfunc.c,v 1.6.6.2 2002/01/17 06:57:55 dancoby Exp $ */
 /* Generic PostScript language interface to Functions */
 #include "memory_.h"
 #include "ghost.h"
@@ -42,8 +42,6 @@ gs_private_st_element(st_function_ptr_element, gs_function_t *,
 
 /* ------ Operators ------ */
 
-private int zexecfunction(P1(i_ctx_t *));
-
 /* <dict> .buildfunction <function_struct> */
 private int
 zbuildfunction(i_ctx_t *i_ctx_p)
@@ -57,7 +55,7 @@ zbuildfunction(i_ctx_t *i_ctx_p)
 			    ".buildfunction");
     if (code < 0)
 	return code;
-    code = fn_build_function(op, &pfn, imemory);
+    code = fn_build_function(i_ctx_p, op, &pfn, imemory);
     if (code < 0) {
 	ifree_ref_array(&cref, ".buildfunction");
 	return code;
@@ -69,7 +67,7 @@ zbuildfunction(i_ctx_t *i_ctx_p)
 }
 
 /* <in1> ... <function_struct> %execfunction <out1> ... */
-private int
+int
 zexecfunction(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
@@ -85,7 +83,7 @@ zexecfunction(i_ctx_t *i_ctx_p)
 	 * its type.
 	 */
     if (!r_is_struct(op) ||
-	r_has_masked_attrs(op, a_executable | a_execute, a_all)
+	!r_has_masked_attrs(op, a_executable | a_execute, a_executable | a_all)
 	)
 	return_error(e_typecheck);
     {
@@ -96,16 +94,23 @@ zexecfunction(i_ctx_t *i_ctx_p)
 	if (diff > 0)
 	    check_ostack(diff);
 	{
-	    float *in = (float *)ialloc_byte_array(m, sizeof(float),
-						   "%execfunction(in)");
-	    float *out = (float *)ialloc_byte_array(n, sizeof(float),
-						    "%execfunction(out)");
-	    int code;
+	    float params[20];	/* arbitrary size, just to avoid allocs */
+	    float *in;
+	    float *out;
+	    int code = 0;
 
-	    if (in == 0 || out == 0)
-		code = gs_note_error(e_VMerror);
-	    else if ((code = float_params(op - 1, m, in)) < 0 ||
-		     (code = gs_function_evaluate(pfn, in, out)) < 0
+	    if (m + n <= countof(params)) {
+		in = params;
+	    } else {
+		in = (float *)ialloc_byte_array(m + n, sizeof(float),
+						"%execfunction(in/out)");
+		if (in == 0)
+		    code = gs_note_error(e_VMerror);
+	    }
+	    out = in + m;
+	    if (code < 0 ||
+		(code = float_params(op - 1, m, in)) < 0 ||
+		(code = gs_function_evaluate(pfn, in, out)) < 0
 		)
 		DO_NOTHING;
 	    else {
@@ -117,8 +122,8 @@ zexecfunction(i_ctx_t *i_ctx_p)
 		}
 		code = make_floats(op + 1 - n, out, n);
 	    }
-	    ifree_object(out, "%execfunction(out)");
-	    ifree_object(in, "%execfunction(in)");
+	    if (in != params)
+		ifree_object(in, "%execfunction(in)");
 	    return code;
 	}
     }
@@ -128,13 +133,13 @@ zexecfunction(i_ctx_t *i_ctx_p)
 
 /* Build a function structure from a PostScript dictionary. */
 int
-fn_build_function(const ref * op, gs_function_t ** ppfn, gs_memory_t *mem)
+fn_build_function(i_ctx_t *i_ctx_p, const ref * op, gs_function_t ** ppfn, gs_memory_t *mem)
 {
-    return fn_build_sub_function(op, ppfn, 0, mem);
+    return fn_build_sub_function(i_ctx_p, op, ppfn, 0, mem);
 }
 int
-fn_build_sub_function(const ref * op, gs_function_t ** ppfn, int depth,
-		      gs_memory_t *mem)
+fn_build_sub_function(i_ctx_t *i_ctx_p, const ref * op, gs_function_t ** ppfn,
+		      int depth, gs_memory_t *mem)
 {
     int code, type, i;
     gs_function_params_t params;
@@ -164,7 +169,7 @@ fn_build_sub_function(const ref * op, gs_function_t ** ppfn, int depth,
     /* Finish building the function. */
     /* If this fails, it will free all the parameters. */
     return (*build_function_type_table[i].proc)
-	(op, &params, depth + 1, ppfn, mem);
+	(i_ctx_p, op, &params, depth + 1, ppfn, mem);
 fail:
     gs_free_const_object(mem, params.Range, "Range");
     gs_free_const_object(mem, params.Domain, "Domain");
@@ -214,7 +219,8 @@ fn_build_float_array(const ref * op, const char *kstr, bool required,
 
 	if (ptr == 0)
 	    return_error(e_VMerror);
-	code = dict_float_array_param(op, kstr, size, ptr, NULL);
+	code = dict_float_array_check_param(op, kstr, size, ptr, NULL,
+					    0, e_rangecheck);
 	if (code < 0 || (even && (code & 1) != 0)) {
 	    gs_free_object(mem, ptr, kstr);
 	    return(code < 0 ? code : gs_note_error(e_rangecheck));
@@ -222,6 +228,27 @@ fn_build_float_array(const ref * op, const char *kstr, bool required,
 	*pparray = ptr;
     }
     return code;
+}
+
+/*
+ * If a PostScript object is a Function procedure, return the function
+ * object, otherwise return 0.
+ */
+gs_function_t *
+ref_function(const ref *op)
+{
+    if (r_has_type(op, t_array) &&
+	r_has_masked_attrs(op, a_executable | a_execute,
+			   a_executable | a_all) &&
+	r_size(op) == 2 &&
+	r_has_type_attrs(op->value.refs + 1, t_operator, a_executable) &&
+	op->value.refs[1].value.opproc == zexecfunction &&
+	r_is_struct(op->value.refs) &&
+	r_has_masked_attrs(op->value.refs, a_executable | a_execute,
+			   a_executable | a_all)
+	)
+	return (gs_function_t *)op->value.refs->value.pstruct;
+    return 0;
 }
 
 /* ------ Initialization procedure ------ */

@@ -88,6 +88,8 @@ without sending a message.
 .BR /mail/fs/mbox   "   mail directory.
 .SH "SEE ALSO"
 .IR mail (1),
+.IR marshal (1),
+.IR nedmail (1),
 .IR plumber (4),
 .IR face (6),
 .IR plumb (6)

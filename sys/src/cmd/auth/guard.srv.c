@@ -15,7 +15,6 @@
 
 void	catchalarm(void*, char*);
 void	getraddr(char*);
-int	secureidcheck(char*, char*);
 
 char	user[ANAMELEN];
 char	raddr[128];
@@ -29,6 +28,7 @@ main(int argc, char *argv[])
 	long chal;
 	int n;
 	Ndb *db2;
+	char *err;
 
 	ARGBEGIN{
 	case 'd':
@@ -81,11 +81,12 @@ main(int argc, char *argv[])
 
 	if(!findkey(NETKEYDB, user, ukey) || !netcheck(ukey, chal, resp))
 	if(!findkey(KEYDB, user, ukey) || !netcheck(ukey, chal, resp))
-	if(!secureidcheck(user, resp)){
+	if((err = secureidcheck(user, resp)) != nil){
+		print("NO %s", err);
 		write(1, "NO", 2);
 		if(debug)
-			syslog(0, AUTHLOG, "g-fail %s@%s: bad response %s to %lud",
-				user, raddr, resp, chal);
+			syslog(0, AUTHLOG, "g-fail %s@%s: %s %s to %lud",
+				err, user, raddr, resp, chal);
 		fail(user);
 	}
 	write(1, "OK", 2);

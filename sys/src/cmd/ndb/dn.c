@@ -113,26 +113,14 @@ dnhash(char *name)
 DN*
 dnlookup(char *name, int class, int enter)
 {
-	int len;
-	char canonical[Domlen];
-	char *canp, *p;
 	DN **l;
 	DN *dp;
-	static char *ia = ".in-addr.arpa";
-#define IALEN 13
 
-	len = strlen(name);
-	canp = name;
-	if(len > IALEN) {
-		p = name + len - IALEN;
-		if (cistrcmp(p, ia) == 0)
-			canp = dorfc2317(canonical, name);
-	}
-	l = &ht[dnhash(canp)];
+	l = &ht[dnhash(name)];
 	lock(&dnlock);
 	for(dp = *l; dp; dp = dp->next) {
 		assert(dp->magic == DNmagic);
-		if(dp->class == class && cistrcmp(dp->name, canp) == 0){
+		if(dp->class == class && cistrcmp(dp->name, name) == 0){
 			dp->referenced = now;
 			unlock(&dnlock);
 			return dp;
@@ -487,8 +475,7 @@ rrattach1(RR *new, int auth)
 	new->next = 0;
 
 	/*
-	 *  find first rr of the right type, similar types
-	 *  are grouped mostly for debugging
+	 *  find first rr of the right type
 	 */
 	l = &dp->rr;
 	for(rp = *l; rp; rp = *l){
@@ -529,6 +516,16 @@ rrattach1(RR *new, int auth)
 					rrfree(new);
 					return;
 				}
+			}
+
+			/*  Hack for pointer records.  This makes sure
+			 *  the ordering in the list reflects the ordering
+			 *  received or read from the database
+			 */
+			if(rp->type == Tptr){
+				if(!rp->negative && !new->negative
+				&& rp->ptr->ordinal > new->ptr->ordinal)
+					break;
 			}
 		}
 		l = &rp->next;
@@ -983,7 +980,7 @@ rrfmt(Fmt *f)
 		fmtprint(&fstr, "\t%s", rp->ip->name);
 		break;
 	case Tptr:
-		fmtprint(&fstr, "\t%s", rp->ptr->name);
+		fmtprint(&fstr, "\t%s(%lud)", rp->ptr->name, rp->ptr->ordinal);
 		break;
 	case Tsoa:
 		fmtprint(&fstr, "\t%s %s %lud %lud %lud %lud %lud", rp->host->name,
@@ -1407,4 +1404,71 @@ estrdup(char *s)
 		abort();
 	memmove(p, s, size);
 	return p;
+}
+
+/*
+ *  create a pointer record
+ */
+static RR*
+mkptr(DN *dp, char *ptr, ulong ttl)
+{
+	DN *ipdp;
+	RR *rp;
+
+	ipdp = dnlookup(ptr, Cin, 1);
+
+	rp = rralloc(Tptr);
+	rp->ptr = dp;
+	rp->owner = ipdp;
+	rp->db = 1;
+	if(ttl)
+		rp->ttl = ttl;
+	return rp;
+}
+
+/*
+ *  look for all ip addresses in this network and make
+ *  pointer records for them.
+ */
+void
+dnptr(uchar *net, uchar *mask, char *dom, int bytes, int ttl)
+{
+	int i, j;
+	DN *dp;
+	RR *rp, *nrp, *first, **l;
+	uchar ip[IPaddrlen];
+	uchar nnet[IPaddrlen];
+	char ptr[Domlen];
+	char *p, *e;
+
+syslog(0, logfile, "looking for things in %s %I %I", dom, net, mask);
+
+	l = &first;
+	first = nil;
+	for(i = 0; i < HTLEN; i++){
+		for(dp = ht[i]; dp; dp = dp->next){
+			for(rp = dp->rr; rp; rp = rp->next){
+				if(rp->type != Ta)
+					continue;
+				parseip(ip, rp->ip->name);
+				maskip(ip, mask, nnet);
+				if(ipcmp(net, nnet) != 0)
+					continue;
+				p = ptr;
+				e = ptr+sizeof(ptr);
+				for(j = IPaddrlen-1; j >= IPaddrlen-bytes; j--)
+					p = seprint(p, e, "%d.", ip[j]);
+				seprint(p, e, "%s", dom);
+				nrp = mkptr(dp, ptr, ttl);
+				*l = nrp;
+				l = &nrp->next;
+			}
+		}
+	}
+
+	for(rp = first; rp != nil; rp = nrp){
+		nrp = rp->next;
+		rp->next = nil;
+		rrattach(rp, 1);
+	}
 }

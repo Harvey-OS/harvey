@@ -1,8 +1,15 @@
 # include "ldefs.h"
+
+extern int nine;
+
 void
 phead1(void)
 {
 	Bprint(&fout,"typedef unsigned char Uchar;\n");
+	if (nine) {
+		Bprint(&fout,"# include <u.h>\n");
+		Bprint(&fout,"# include <libc.h>\n");
+	}
 	Bprint(&fout,"# include <stdio.h>\n");
 	Bprint(&fout, "# define U(x) x\n");
 	Bprint(&fout, "# define NLSTATE yyprevious=YYNEWLINE\n");
@@ -15,11 +22,6 @@ phead1(void)
 	Bprint(&fout,"# define LEXDEBUG 1\n");
 # endif
 	Bprint(&fout,"# define YYLMAX 200\n");
-	Bprint(&fout,"# define output(c) putc(c,yyout)\n");
-	Bprint(&fout, "%s%d%s\n",
-  "# define input() (((yytchar=yysptr>yysbuf?U(*--yysptr):getc(yyin))==",
-	'\n',
- "?(yylineno++,yytchar):yytchar)==EOF?0:yytchar)");
 	Bprint(&fout,
 "# define unput(c) {yytchar= (c);if(yytchar=='\\n')yylineno--;*yysptr++=yytchar;}\n");
 	Bprint(&fout,"# define yymore() (yymorfg=1)\n");
@@ -38,6 +40,44 @@ phead1(void)
 	Bprint(&fout,"struct yysvf *yyestate;\n");
 	Bprint(&fout,"extern struct yysvf yysvec[], *yybgin;\n");
 	Bprint(&fout,"int yylook(void), yywrap(void), yyback(int *, int);\n");
+	if(nine) {
+		Bprint(&fout,
+				"int infd, outfd;\n"
+				"\n"
+				"void\n"
+				"output(char c)\n"
+				"{\n"
+				"	int rv;\n"
+				"	if ((rv = write(outfd, &c, 1)) < 0)\n"
+				"		sysfatal(\"output: %%r\");\n"
+				"	if (rv == 0)\n"
+				"		sysfatal(\"output: EOF?\");\n"
+				"}\n"
+				"\n"
+				"int\n"
+				"input(void)\n"
+				"{\n"
+				"	if(yysptr > yysbuf)\n"
+				"		yytchar = U(*--yysptr);\n"
+				"	else {\n"
+				"		int rv;\n"
+				"		if ((rv = read(infd, &yytchar, 1)) < 0)\n"
+				"			sysfatal(\"input: %%r\");\n"
+				"		if (rv == 0)\n"
+				"			return 0;\n"
+				"	}\n"
+				"	if (yytchar == '\\n')\n"
+				"		yylineno++;\n"
+				"	return yytchar;\n"
+				"}\n");
+	}
+	else {
+		Bprint(&fout,"# define output(c) putc(c,yyout)\n");
+		Bprint(&fout, "%s%d%s\n",
+ 		 "# define input() (((yytchar=yysptr>yysbuf?U(*--yysptr):getc(yyin))==",
+		'\n',
+ 		"?(yylineno++,yytchar):yytchar)==EOF?0:yytchar)");
+	}
 }
 
 void

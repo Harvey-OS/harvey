@@ -1,23 +1,24 @@
-/* Copyright (C) 1989, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: idict.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: idict.c,v 1.4 2000/12/26 06:09:58 lpd Exp $ */
 /* Dictionary implementation */
+#include "math_.h"		/* for frexp */
 #include "string_.h"		/* for strlen */
 #include "ghost.h"
 #include "gxalloc.h"		/* for accessing masks */
@@ -61,6 +62,14 @@ bool dict_auto_expand = false;
 
 /* Define whether dictionaries are packed by default. */
 bool dict_default_pack = true;
+
+/*
+ * Define the check for whether we can set the 1-element cache.
+ * We only set the cache if we aren't inside a save.
+ * This way, we never have to undo setting the cache.
+ */
+#define CAN_SET_PVALUE_CACHE(pds, pdref, mem)\
+  (pds && dstack_dict_is_permanent(pds, pdref) && !ref_saving_in(mem))
 
 /* Forward references */
 private int dict_create_contents(P3(uint size, const ref * pdref, bool pack));
@@ -281,38 +290,58 @@ dict_find(const ref * pdref, const ref * pkey,
     /* Compute hash.  The only types we bother with are strings, */
     /* names, and (unlikely, but worth checking for) integers. */
     switch (r_type(pkey)) {
-	case t_name:
-	    nidx = name_index(pkey);
-	  nh:hash = dict_name_index_hash(nidx);
-	    kpack = packed_name_key(nidx);
-	    ktype = t_name;
-	    break;
-	case t_string:		/* convert to a name first */
-	    {
-		ref nref;
-		int code;
+    case t_name:
+	nidx = name_index(pkey);
+    nh:
+	hash = dict_name_index_hash(nidx);
+	kpack = packed_name_key(nidx);
+	ktype = t_name;
+	break;
+    case t_string:		/* convert to a name first */
+	{
+	    ref nref;
+	    int code;
 
-		if (!r_has_attr(pkey, a_read))
-		    return_error(e_invalidaccess);
-		code = name_ref(pkey->value.bytes, r_size(pkey), &nref, 1);
-		if (code < 0)
-		    return code;
-		nidx = name_index(&nref);
-	    }
-	    goto nh;
-	case t_integer:
-	    hash = (uint) pkey->value.intval * 30503;
-	    kpack = packed_key_impossible;
-	    ktype = -1;
-	    nidx = 0;		/* only to pacify gcc */
-	    break;
-	case t_null:		/* not allowed as a key */
-	    return_error(e_typecheck);
-	default:
-	    hash = r_btype(pkey) * 99;	/* yech */
-	    kpack = packed_key_impossible;
-	    ktype = -1;
-	    nidx = 0;		/* only to pacify gcc */
+	    if (!r_has_attr(pkey, a_read))
+		return_error(e_invalidaccess);
+	    code = name_ref(pkey->value.bytes, r_size(pkey), &nref, 1);
+	    if (code < 0)
+		return code;
+	    nidx = name_index(&nref);
+	}
+	goto nh;
+    case t_real:
+	/*
+	 * Make sure that equal reals and integers hash the same.
+	 */
+	{
+	    int expt;
+	    double mant = frexp(pkey->value.realval, &expt);
+	    /*
+	     * The value is mant * 2^expt, where 0.5 <= mant < 1,
+	     * or else expt == mant == 0.
+	     */
+
+	    if (expt < sizeof(long) * 8 || pkey->value.realval == min_long)
+		hash = (uint)(int)pkey->value.realval * 30503;
+	    else
+		hash = (uint)(int)(mant * min_long) * 30503;
+	}
+	goto ih;
+    case t_integer:
+	hash = (uint)pkey->value.intval * 30503;
+    ih:
+	kpack = packed_key_impossible;
+	ktype = -1;
+	nidx = 0;		/* only to pacify gcc */
+	break;
+    case t_null:		/* not allowed as a key */
+	return_error(e_typecheck);
+    default:
+	hash = r_btype(pkey) * 99;	/* yech */
+	kpack = packed_key_impossible;
+	ktype = -1;
+	nidx = 0;		/* only to pacify gcc */
     }
     /* Search the dictionary */
     if (dict_is_packed(pdict)) {
@@ -477,12 +506,7 @@ dict_put(ref * pdref /* t_dictionary */ , const ref * pkey, const ref * pvalue,
 	    name *pname = pkey->value.pname;
 
 	    if (pname->pvalue == pv_no_defn &&
-		pds && dstack_dict_is_permanent(pds, pdref) &&
-		/*
-		 * Only set the cache if we aren't inside a save.
-		 * This way, we never have to undo setting the cache.
-		 */
-		!ref_saving_in(mem)
+		CAN_SET_PVALUE_CACHE(pds, pdref, mem)
 		) {		/* Set the cache. */
 		if_debug0('d', "[d]set cache\n");
 		pname->pvalue = pvslot;
@@ -620,12 +644,18 @@ dict_max_index(const ref * pdref /* t_dictionary */ )
     return npairs(pdref->value.pdict) - 1;
 }
 
-/* Copy one dictionary into another. */
-/* If new_only is true, only copy entries whose keys */
-/* aren't already present in the destination. */
-int
-dict_copy_entries(const ref * pdrfrom /* t_dictionary */ ,
-		  ref * pdrto /* t_dictionary */ , bool new_only,
+/*
+ * Copy one dictionary into another.
+ * If COPY_NEW_ONLY is set, only copy entries whose keys
+ * aren't already present in the destination.
+ * If COPY_FOR_RESIZE is set, reset any valid name cache entries to
+ * pv_no_defn before doing the dict_put.
+ */
+#define COPY_NEW_ONLY 1
+#define COPY_FOR_RESIZE 2
+private int
+dict_copy_elements(const ref * pdrfrom /* t_dictionary */ ,
+		  ref * pdrto /* t_dictionary */ , int options,
 		  dict_stack_t *pds)
 {
     int space = r_space(pdrto);
@@ -634,10 +664,13 @@ dict_copy_entries(const ref * pdrfrom /* t_dictionary */ ,
     ref *pvslot;
     int code;
 
-    if (space != avm_max) {	/* Do the store check before starting the copy. */
+    if (space != avm_max) {
+	/* Do the store check before starting the copy. */
 	index = dict_first(pdrfrom);
 	while ((index = dict_next(pdrfrom, index, elt)) >= 0)
-	    if (!new_only || dict_find(pdrto, &elt[0], &pvslot) <= 0) {
+	    if (!(options & COPY_NEW_ONLY) ||
+		dict_find(pdrto, &elt[0], &pvslot) <= 0
+		) {
 		store_check_space(space, &elt[0]);
 		store_check_space(space, &elt[1]);
 	    }
@@ -645,12 +678,35 @@ dict_copy_entries(const ref * pdrfrom /* t_dictionary */ ,
     /* Now copy the contents. */
     index = dict_first(pdrfrom);
     while ((index = dict_next(pdrfrom, index, elt)) >= 0) {
-	if (new_only && dict_find(pdrto, &elt[0], &pvslot) > 0)
+	ref *pvalue = pv_no_defn;
+
+	if ((options & COPY_NEW_ONLY) &&
+	    dict_find(pdrto, &elt[0], &pvslot) > 0
+	    )
 	    continue;
-	if ((code = dict_put(pdrto, &elt[0], &elt[1], pds)) < 0)
+	if ((options & COPY_FOR_RESIZE) &&
+	    r_has_type(&elt[0], t_name) &&
+	    (pvalue = elt[0].value.pname->pvalue, pv_valid(pvalue))
+	    )
+	    elt[0].value.pname->pvalue = pv_no_defn;
+	if ((code = dict_put(pdrto, &elt[0], &elt[1], pds)) < 0) {
+	    /*
+	     * If COPY_FOR_RESIZE is set, the dict_put isn't supposed to
+	     * be able to fail, but we don't want to depend on this.
+	     */
+	    if (pvalue != pv_no_defn)
+		elt[0].value.pname->pvalue = pvalue;
 	    return code;
+	}
     }
     return 0;
+}
+int
+dict_copy_entries(const ref *pdrfrom, ref *pdrto, bool new_only,
+		  dict_stack_t *pds)
+{
+    return dict_copy_elements(pdrfrom, pdrto, (new_only ? COPY_NEW_ONLY : 0),
+			      pds);
 }
 
 /* Resize a dictionary. */
@@ -674,11 +730,30 @@ dict_resize(ref * pdref, uint new_size, dict_stack_t *pds)
     dnew.memory = pdict->memory;
     if ((code = dict_create_contents(new_size, &drto, dict_is_packed(pdict))) < 0)
 	return code;
-    /* We must suppress the store check, in case we are expanding */
-    /* systemdict or another global dictionary that is allowed */
-    /* to reference local objects. */
+    /*
+     * We must suppress the store check, in case we are expanding
+     * systemdict or another global dictionary that is allowed
+     * to reference local objects.
+     */
     r_set_space(&drto, avm_local);
-    dict_copy(pdref, &drto, pds);	/* can't fail */
+    /*
+     * If we are expanding a permanent dictionary, we must make sure that
+     * dict_put doesn't think this is a second definition for any
+     * single-definition names.  This in turn requires that
+     * dstack_dict_is_permanent must be true for the second ("to")
+     * argument of dict_copy_elements, which requires temporarily
+     * setting *pdref = drto.
+     */
+    if (CAN_SET_PVALUE_CACHE(pds, pdref, mem)) {
+	ref drfrom;
+
+	drfrom = *pdref;
+	*pdref = drto;
+	dict_copy_elements(&drfrom, pdref, COPY_FOR_RESIZE, pds);
+	*pdref = drfrom;
+    } else {
+	dict_copy_elements(pdref, &drto, 0, pds);
+    }
     /* Save or free the old dictionary. */
     if (ref_must_save_in(mem, &pdict->values))
 	ref_do_save_in(mem, pdref, &pdict->values, "dict_resize(values)");

@@ -1,21 +1,21 @@
-#    Copyright (C) 1991-2000 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1991-2001 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: msvc32.mak,v 1.2 2000/03/10 15:48:58 lpd Exp $
+# $Id: msvc32.mak,v 1.20.2.3 2002/02/01 06:27:58 raph Exp $
 # makefile for 32-bit Microsoft Visual C++, Windows NT or Windows 95 platform.
 #
 # All configurable options are surrounded by !ifndef/!endif to allow 
@@ -69,7 +69,7 @@ PSOBJDIR=.\obj
 # Define the root directory for Ghostscript installation.
 
 !ifndef AROOTDIR
-AROOTDIR=c:/Aladdin
+AROOTDIR=c:/gs
 !endif
 !ifndef GSROOTDIR
 GSROOTDIR=$(AROOTDIR)/gs$(GS_DOT_VERSION)
@@ -185,7 +185,7 @@ JVERSION=6
 
 !ifndef PSRCDIR
 PSRCDIR=libpng
-PVERSION=10005
+PVERSION=10201
 !endif
 
 # Define the directory where the zlib sources are stored.
@@ -193,6 +193,22 @@ PVERSION=10005
 
 !ifndef ZSRCDIR
 ZSRCDIR=zlib
+!endif
+
+# Define the directory where the icclib source are stored.
+# See icclib.mak for more information
+
+!ifndef ICCSRCDIR
+ICCSRCDIR=icclib
+!endif
+
+# Define the directory where the ijs source is stored,
+# and the process forking method to use for the server.
+# See ijs.mak for more information.
+
+!ifndef IJSSRCDIR
+IJSSRCDIR=ijs
+IJSEXECTYPE=win
 !endif
 
 # Define any other compilation flags.
@@ -217,22 +233,22 @@ PSD=$(PSGENDIR)\$(NUL)
 # ------ Platform-specific options ------ #
 
 # Define which major version of MSVC is being used
-# (currently, 4 & 5 are supported).
+# (currently, 4, 5, and 6 are supported).
 
 !ifndef MSVC_VERSION 
-MSVC_VERSION=5
+MSVC_VERSION=6
 !endif
 
 # Define the drive, directory, and compiler name for the Microsoft C files.
 # COMPDIR contains the compiler and linker (normally \msdev\bin).
-# INCDIR contains the include files (normally \msdev\include).
+# MSINCDIR contains the include files (normally \msdev\include).
 # LIBDIR contains the library files (normally \msdev\lib).
 # COMP is the full C compiler path name (normally \msdev\bin\cl).
 # COMPCPP is the full C++ compiler path name (normally \msdev\bin\cl).
 # COMPAUX is the compiler name for DOS utilities (normally \msdev\bin\cl).
 # RCOMP is the resource compiler name (normallly \msdev\bin\rc).
 # LINK is the full linker path name (normally \msdev\bin\link).
-# Note that when INCDIR and LIBDIR are used, they always get a '\' appended,
+# Note that when MSINCDIR and LIBDIR are used, they always get a '\' appended,
 #   so if you want to use the current directory, use an explicit '.'.
 
 !if $(MSVC_VERSION) == 4
@@ -245,32 +261,125 @@ SHAREDBASE=$(DEVSTUDIO)
 
 !if $(MSVC_VERSION) == 5
 ! ifndef DEVSTUDIO
-#DEVSTUDIO=c:\program files\devstudio
-DEVSTUDIO=c:\progra~1\devstu~1
+DEVSTUDIO=C:\Program Files\Devstudio
 ! endif
+!if "$(DEVSTUDIO)"==""
+COMPBASE=
+SHAREDBASE=
+!else
 COMPBASE=$(DEVSTUDIO)\VC
 SHAREDBASE=$(DEVSTUDIO)\SharedIDE
+!endif
 !endif
 
 !if $(MSVC_VERSION) == 6
 ! ifndef DEVSTUDIO
-#DEVSTUDIO=c:\program files\microsoft visual studio
-DEVSTUDIO=c:\progra~1\micros~2
+DEVSTUDIO=C:\Program Files\Microsoft Visual Studio
 ! endif
+!if "$(DEVSTUDIO)"==""
+COMPBASE=
+SHAREDBASE=
+!else
 COMPBASE=$(DEVSTUDIO)\VC98
 SHAREDBASE=$(DEVSTUDIO)\Common\MSDev98
 !endif
+!endif
 
+# Some environments don't want to specify the path names for the tools at all.
+# Typical definitions for such an environment would be:
+#   MSINCDIR= LIBDIR= COMP=cl COMPAUX=cl RCOMP=rc LINK=link
+# COMPDIR, LINKDIR, and RCDIR are irrelevant, since they are only used to
+# define COMP, LINK, and RCOMP respectively, but we allow them to be
+# overridden anyway for completeness.
+!ifndef COMPDIR
+!if "$(COMPBASE)"==""
+COMPDIR=
+!else
 COMPDIR=$(COMPBASE)\bin
+!endif
+!endif
+
+!ifndef LINKDIR
+!if "$(COMPBASE)"==""
+LINKDIR=
+!else
 LINKDIR=$(COMPBASE)\bin
+!endif
+!endif
+
+!ifndef RCDIR
+!if "$(SHAREDBASE)"==""
+RCDIR=
+!else
 RCDIR=$(SHAREDBASE)\bin
-INCDIR=$(COMPBASE)\include
+!endif
+!endif
+
+!ifndef MSINCDIR
+!if "$(COMPBASE)"==""
+MSINCDIR=
+!else
+MSINCDIR=$(COMPBASE)\include
+!endif
+!endif
+
+!ifndef LIBDIR
+!if "$(COMPBASE)"==""
+LIBDIR=
+!else
 LIBDIR=$(COMPBASE)\lib
-COMP=$(COMPDIR)\cl
+!endif
+!endif
+
+!ifndef COMP
+!if "$(COMPDIR)"==""
+COMP=cl
+!else
+COMP="$(COMPDIR)\cl"
+!endif
+!endif
+!ifndef COMPCPP
 COMPCPP=$(COMP)
-COMPAUX=$(COMPDIR)\cl
-RCOMP=$(RCDIR)\rc
-LINK=$(LINKDIR)\link
+!endif
+!ifndef COMPAUX
+COMPAUX=$(COMP)
+!endif
+
+!ifndef RCOMP
+!if "$(RCDIR)"==""
+RCOMP=rc
+!else
+RCOMP="$(RCDIR)\rc"
+!endif
+!endif
+
+!ifndef LINK
+!if "$(LINKDIR)"==""
+LINK=link
+!else
+LINK="$(LINKDIR)\link"
+!endif
+!endif
+
+# nmake does not have a form of .BEFORE or .FIRST which can be used
+# to specify actions before anything else is done.  If LIB and INCLUDE
+# are not defined then we want to define them before we link or
+# compile.  Here is a kludge which allows us to to do what we want.
+# nmake does evaluate preprocessor directives when they are encountered.
+# So the desired set statements are put into dummy preprocessor
+# directives.
+!ifndef INCLUDE
+!if "$(MSINCDIR)"!=""
+!if [set INCLUDE=$(MSINCDIR)]==0
+!endif
+!endif
+!endif
+!ifndef LIB
+!if "$(LIBDIR)"!=""
+!if [set LIB=$(LIBDIR)]==0
+!endif
+!endif
+!endif
 
 # Define the processor architecture. (i386, ppc, alpha)
 
@@ -306,7 +415,7 @@ CPU_TYPE=486
 # at runtime.
 
 ! ifndef FPU_TYPE
-FPU_TYPE=0
+FPU_TYPE=387
 ! endif
 
 !endif
@@ -324,7 +433,7 @@ SYNC=winsync
 # Choose the language feature(s) to include.  See gs.mak for details.
 
 !ifndef FEATURE_DEVS
-FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)mshandle.dev $(GLD)pipe.dev
+FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)mshandle.dev $(PSD)msprinter.dev $(PSD)mspoll.dev $(GLD)pipe.dev
 !endif
 
 # Choose whether to compile the .ps initialization files into the executable.
@@ -356,15 +465,22 @@ BAND_LIST_COMPRESSOR=zlib
 FILE_IMPLEMENTATION=stdio
 !endif
 
+# Choose the implementation of stdio: '' for file I/O and 'c' for callouts
+# See gs.mak and ziodevs.c/ziodevsc.c for more details.
+
+!ifndef STDIO_IMPLEMENTATION
+STDIO_IMPLEMENTATION=c
+!endif
+
 # Choose the device(s) to include.  See devs.mak for details,
 # devs.mak and contrib.mak for the list of available devices.
 
 !ifndef DEVICE_DEVS
-DEVICE_DEVS=$(DD)mswindll.dev $(DD)mswinprn.dev $(DD)mswinpr2.dev
+DEVICE_DEVS=$(DD)display.dev $(DD)mswindll.dev $(DD)mswinprn.dev $(DD)mswinpr2.dev
 DEVICE_DEVS2=$(DD)epson.dev $(DD)eps9high.dev $(DD)eps9mid.dev $(DD)epsonc.dev $(DD)ibmpro.dev
 DEVICE_DEVS3=$(DD)deskjet.dev $(DD)djet500.dev $(DD)laserjet.dev $(DD)ljetplus.dev $(DD)ljet2p.dev
 DEVICE_DEVS4=$(DD)cdeskjet.dev $(DD)cdjcolor.dev $(DD)cdjmono.dev $(DD)cdj550.dev
-DEVICE_DEVS5=$(DD)djet500c.dev $(DD)declj250.dev $(DD)lj250.dev
+DEVICE_DEVS5=$(DD)djet500c.dev $(DD)declj250.dev $(DD)lj250.dev $(DD)ijs.dev
 DEVICE_DEVS6=$(DD)st800.dev $(DD)stcolor.dev $(DD)bj10e.dev $(DD)bj200.dev
 DEVICE_DEVS7=$(DD)t4693d2.dev $(DD)t4693d4.dev $(DD)t4693d8.dev $(DD)tek4696.dev
 DEVICE_DEVS8=$(DD)pcxmono.dev $(DD)pcxgray.dev $(DD)pcx16.dev $(DD)pcx256.dev $(DD)pcx24b.dev $(DD)pcxcmyk.dev
@@ -409,7 +525,9 @@ TOP_MAKEFILES=$(MAKEFILE) $(GLSRCDIR)\msvccmd.mak $(GLSRCDIR)\msvctail.mak $(GLS
 # nmake expands macros when encountered, not when used,
 # so this must precede the !include statements.
 
-BEGINFILES2=$(GLOBJDIR)\*.exp $(GLOBJDIR)\*.ilk $(GLOBJDIR)\*.pdb $(GLOBJDIR)\*.lib $(GLGENDIR)\lib32.rsp $(GLOBJDIR)\dw*.res $(SETUP_XE) $(UNINSTALL_XE) $(BINDIR)\*.exp $(BINDIR)\*.ilk $(BINDIR)\*.pdb $(BINDIR)\*.lib
+BEGINFILES2=$(GLGENDIR)\lib32.rsp\
+ $(GLOBJDIR)\*.exp $(GLOBJDIR)\*.ilk $(GLOBJDIR)\*.pdb $(GLOBJDIR)\*.lib\
+ $(BINDIR)\*.exp $(BINDIR)\*.ilk $(BINDIR)\*.pdb $(BINDIR)\*.lib
 
 !include $(GLSRCDIR)\msvccmd.mak
 !include $(GLSRCDIR)\winlib.mak
@@ -420,10 +538,11 @@ BEGINFILES2=$(GLOBJDIR)\*.exp $(GLOBJDIR)\*.ilk $(GLOBJDIR)\*.pdb $(GLOBJDIR)\*.
 
 GSCONSOLE_XE=$(BINDIR)\$(GSCONSOLE).exe
 GSDLL_DLL=$(BINDIR)\$(GSDLL).dll
+GSDLL_OBJS=$(GLOBJ)gsdll.$(OBJ) $(GLOBJ)gp_msdll.$(OBJ)
 
 $(GLGEN)lib32.rsp: $(TOP_MAKEFILES)
 	echo /NODEFAULTLIB:LIBC.lib > $(GLGEN)lib32.rsp
-	echo $(LIBDIR)\libcmt.lib >> $(GLGEN)lib32.rsp
+	echo libcmt.lib >> $(GLGEN)lib32.rsp
 
 !if $(MAKEDLL)
 # The graphical small EXE loader
@@ -437,39 +556,38 @@ $(GS_XE): $(GSDLL_DLL)  $(DWOBJ) $(GSCONSOLE_XE) $(SETUP_XE) $(UNINSTALL_XE)
 $(GSCONSOLE_XE): $(OBJC) $(GS_OBJ).res $(GLSRCDIR)\dw32c.def
 	echo /SUBSYSTEM:CONSOLE > $(GLGEN)gswin32.rsp
 	echo  /DEF:$(GLSRCDIR)\dw32c.def /OUT:$(GSCONSOLE_XE) >> $(GLGEN)gswin32.rsp
-	$(LINK_SETUP)
         $(LINK) $(LCT) @$(GLGEN)gswin32.rsp $(OBJC) @$(LIBCTR) $(GS_OBJ).res
 	del $(GLGEN)gswin32.rsp
 
 # The big DLL
-$(GSDLL_DLL): $(GS_ALL) $(DEVS_ALL) $(GLOBJ)gsdll.$(OBJ) $(GSDLL_OBJ).res $(GLGEN)lib32.rsp
+$(GSDLL_DLL): $(GS_ALL) $(DEVS_ALL) $(GSDLL_OBJS) $(GSDLL_OBJ).res $(GLGEN)lib32.rsp
 	echo /DLL /DEF:$(GLSRCDIR)\gsdll32.def /OUT:$(GSDLL_DLL) > $(GLGEN)gswin32.rsp
-	$(LINK_SETUP)
-        $(LINK) $(LCT) @$(GLGEN)gswin32.rsp $(GLOBJ)gsdll @$(ld_tr) $(INTASM) @$(GLGEN)lib.tr @$(GLGEN)lib32.rsp @$(LIBCTR) $(GSDLL_OBJ).res
+        $(LINK) $(LCT) @$(GLGEN)gswin32.rsp $(GSDLL_OBJS) @$(ld_tr) $(INTASM) @$(GLGEN)lib.tr @$(GLGEN)lib32.rsp @$(LIBCTR) $(GSDLL_OBJ).res
 	del $(GLGEN)gswin32.rsp
 
 !else
 # The big graphical EXE
-$(GS_XE): $(GSCONSOLE_XE) $(GS_ALL) $(DEVS_ALL) $(GLOBJ)gsdll.$(OBJ) $(DWOBJNO) $(GSDLL_OBJ).res $(GLSRCDIR)\dwmain32.def $(GLGEN)lib32.rsp
+$(GS_XE): $(GSCONSOLE_XE) $(GS_ALL) $(DEVS_ALL) $(GSDLL_OBJS) $(DWOBJNO) $(GSDLL_OBJ).res $(GLSRCDIR)\dwmain32.def $(GLGEN)lib32.rsp
 	copy $(ld_tr) $(GLGEN)gswin32.tr
 	echo $(GLOBJ)dwnodll.obj >> $(GLGEN)gswin32.tr
 	echo $(GLOBJ)dwimg.obj >> $(GLGEN)gswin32.tr
 	echo $(GLOBJ)dwmain.obj >> $(GLGEN)gswin32.tr
 	echo $(GLOBJ)dwtext.obj >> $(GLGEN)gswin32.tr
+	echo $(GLOBJ)dwreg.obj >> $(GLGEN)gswin32.tr
 	echo /DEF:$(GLSRCDIR)\dwmain32.def /OUT:$(GS_XE) > $(GLGEN)gswin32.rsp
-	$(LINK_SETUP)
         $(LINK) $(LCT) @$(GLGEN)gswin32.rsp $(GLOBJ)gsdll @$(GLGEN)gswin32.tr @$(LIBCTR) $(INTASM) @$(GLGEN)lib.tr @$(GLGEN)lib32.rsp $(GSDLL_OBJ).res
 	del $(GLGEN)gswin32.tr
 	del $(GLGEN)gswin32.rsp
 
 # The big console mode EXE
-$(GSCONSOLE_XE): $(GS_ALL) $(DEVS_ALL) $(GLOBJ)gsdll.$(OBJ) $(OBJCNO) $(GS_OBJ).res $(GLSRCDIR)\dw32c.def $(GLGEN)lib32.rsp
+$(GSCONSOLE_XE): $(GS_ALL) $(DEVS_ALL) $(GSDLL_OBJS) $(OBJCNO) $(GS_OBJ).res $(GLSRCDIR)\dw32c.def $(GLGEN)lib32.rsp
 	copy $(ld_tr) $(GLGEN)gswin32c.tr
 	echo $(GLOBJ)dwnodllc.obj >> $(GLGEN)gswin32c.tr
+	echo $(GLOBJ)dwimg.obj >> $(GLGEN)gswin32c.tr
 	echo $(GLOBJ)dwmainc.obj >> $(GLGEN)gswin32c.tr
+	echo $(GLOBJ)dwreg.obj >> $(GLGEN)gswin32c.tr
 	echo /SUBSYSTEM:CONSOLE > $(GLGEN)gswin32.rsp
 	echo /DEF:$(GLSRCDIR)\dw32c.def /OUT:$(GSCONSOLE_XE) >> $(GLGEN)gswin32.rsp
-	$(LINK_SETUP)
         $(LINK) $(LCT) @$(GLGEN)gswin32.rsp $(GLOBJ)gsdll @$(GLGEN)gswin32c.tr @$(LIBCTR) $(INTASM) @$(GLGEN)lib.tr @$(GLGEN)lib32.rsp $(GS_OBJ).res
 	del $(GLGEN)gswin32.rsp
 	del $(GLGEN)gswin32c.tr
@@ -483,9 +601,8 @@ $(SETUP_XE): $(GLOBJ)dwsetup.obj $(GLOBJ)dwinst.obj $(GLOBJ)dwsetup.res $(GLSRC)
 	echo /DEF:$(GLSRC)dwsetup.def /OUT:$(SETUP_XE) > $(GLGEN)dwsetup.rsp
 	echo $(GLOBJ)dwsetup.obj $(GLOBJ)dwinst.obj >> $(GLGEN)dwsetup.rsp
 	copy $(LIBCTR) $(GLGEN)dwsetup.tr
-        echo $(LIBDIR)\ole32.lib >> $(GLGEN)dwsetup.tr
-        echo $(LIBDIR)\uuid.lib >> $(GLGEN)dwsetup.tr
-	$(LINK_SETUP)
+        echo ole32.lib >> $(GLGEN)dwsetup.tr
+        echo uuid.lib >> $(GLGEN)dwsetup.tr
         $(LINK) $(LCT) @$(GLGEN)dwsetup.rsp @$(GLGEN)dwsetup.tr $(GLOBJ)dwsetup.res
 	del $(GLGEN)dwsetup.rsp
 	del $(GLGEN)dwsetup.tr
@@ -494,14 +611,19 @@ $(UNINSTALL_XE): $(GLOBJ)dwuninst.obj $(GLOBJ)dwuninst.res $(GLSRC)dwuninst.def
 	echo /DEF:$(GLSRC)dwuninst.def /OUT:$(UNINSTALL_XE) > $(GLGEN)dwuninst.rsp
 	echo $(GLOBJ)dwuninst.obj >> $(GLGEN)dwuninst.rsp
 	copy $(LIBCTR) $(GLGEN)dwuninst.tr
-        echo $(LIBDIR)\ole32.lib >> $(GLGEN)dwuninst.tr
-        echo $(LIBDIR)\uuid.lib >> $(GLGEN)dwuninst.tr
-	$(LINK_SETUP)
+        echo ole32.lib >> $(GLGEN)dwuninst.tr
+        echo uuid.lib >> $(GLGEN)dwuninst.tr
         $(LINK) $(LCT) @$(GLGEN)dwuninst.rsp @$(GLGEN)dwuninst.tr $(GLOBJ)dwuninst.res
 	del $(GLGEN)dwuninst.rsp
 	del $(GLGEN)dwuninst.tr
 
 !endif
 
+DEBUGDEFS=BINDIR=.\debugbin GLGENDIR=.\debugobj GLOBJDIR=.\debugobj PSLIBDIR=.\lib PSGENDIR=.\debugobj PSOBJDIR=.\debugobj DEBUG=1 TDEBUG=1
+debug:
+	nmake $(DEBUGDEFS)
+
+debugclean:
+	nmake $(DEBUGDEFS) clean
 
 # end of makefile

@@ -282,7 +282,10 @@ shell9p(int fd)
 		}
 		memset(&t, 0, sizeof t);
 		t.type = msg9p[i].type;
-		t.tag = ++taggen;
+		if(t.type == Tversion)
+			t.tag = NOTAG;
+		else
+			t.tag = ++taggen;
 		if(nf < 1 || (msg9p[i].argc && nf != 1+msg9p[i].argc)){
 			fprint(2, "?usage: %s %s\n", msg9p[i].name, msg9p[i].usage);
 			continue;

@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/*$Id: gdevadmp.c,v 1.1 2000/03/09 08:40:40 lpd Exp $*/
+/*$Id: gdevadmp.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
 /*
  * Apple DMP / Imagewriter driver
  *
@@ -119,7 +119,7 @@
 private dev_proc_print_page(dmp_print_page);
 
 /* Standard DMP device */
-gx_device_printer far_data gs_appledmp_device =
+const gx_device_printer far_data gs_appledmp_device =
 prn_device(prn_std_procs, "appledmp",
 	85,				/* width_10ths, 8.5" */
 	110,				/* height_10ths, 11" */
@@ -129,7 +129,7 @@ prn_device(prn_std_procs, "appledmp",
 
 
 /*  lowrez Imagewriter device */
-gx_device_printer far_data gs_iwlo_device =
+const gx_device_printer far_data gs_iwlo_device =
 prn_device(prn_std_procs, "iwlo",
 	85,				/* width_10ths, 8.5" */
 	110,				/* height_10ths, 11" */
@@ -139,7 +139,7 @@ prn_device(prn_std_procs, "iwlo",
 
 
 /*  hirez Imagewriter device */
-gx_device_printer far_data gs_iwhi_device =
+const gx_device_printer far_data gs_iwhi_device =
 prn_device(prn_std_procs, "iwhi",
 	85,				/* width_10ths, 8.5" */
 	110,				/* height_10ths, 11" */
@@ -149,7 +149,7 @@ prn_device(prn_std_procs, "iwhi",
 
 
 /* LQ hirez Imagewriter device */
-gx_device_printer far_data gs_iwlq_device =
+const gx_device_printer far_data gs_iwlq_device =
 prn_device(prn_std_procs, "iwlq",
 	85,				/* width_10ths, 8.5" */
 	110,				/* height_10ths, 11" */

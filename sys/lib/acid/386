@@ -59,6 +59,14 @@ defn regs()				// print all registers
 	gpr();
 }
 
+defn mmregs()
+{
+	print("MM0\t", *MM0, " MM1\t", *MM1, "\n");
+	print("MM2\t", *MM2, " MM3\t", *MM3, "\n");
+	print("MM4\t", *MM4, " MM5\t", *MM5, "\n");
+	print("MM6\t", *MM6, " MM7\t", *MM7, "\n");
+}
+
 defn pstop(pid)
 {
 	local l;

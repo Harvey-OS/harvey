@@ -58,6 +58,8 @@ enum
 char *argv0;
 int debug;
 
+void	histogram(long *t, int n, int buckets, long lo, long hi);
+
 void
 usage(void)
 {
@@ -366,26 +368,40 @@ dial_string_parse(char *str, DS *ds)
 void
 main(int argc, char **argv)
 {
-	int i, j, done;
+	int j, done;
 	DS ds;
 	char clone[Maxpath], dest[Maxstring], hop[Maxstring], dom[Maxstring];
 	char err[Maxstring];
-	long t[10], lo, hi, sum, x;
+	long lo, hi, sum, x;
 	char *p;
 	int tries, notranslate;
 	char *net;
+	int buckets, ttl;
+	long *t;
 
+	buckets = 0;
 	tries = 3;
 	notranslate = 0;
 	net = "/net";
+	ttl = 1;
 	ARGBEGIN{
+	case 't':
+		p = ARGF();
+		if(p)
+			ttl = atoi(p);
+		break;
+	case 'h':
+		p = ARGF();
+		if(p)
+			buckets = atoi(p);
+		break;
 	case 'd':
 		debug++;
 		break;
 	case 'n':
 		notranslate++;
 		break;
-	case 't':
+	case 'a':
 		p = ARGF();
 		if(p)
 			tries = atoi(p);
@@ -400,6 +416,8 @@ main(int argc, char **argv)
 	if(argc < 1)
 		usage();
 
+	t = malloc(tries*sizeof(ulong));
+
 	dial_string_parse(argv[0], &ds);
 
 	if(ds.netdir == 0)
@@ -409,21 +427,21 @@ main(int argc, char **argv)
 		exits(0);
 	}
 	print("trying %s/%s!%s\n\n", ds.netdir, ds.proto, dest);
-	print("                    round trip times in µs\n");
-	print("                     low      avg     high\n");
-	print("                --------------------------\n");
+	print("                       round trip times in µs\n");
+	print("                        low      avg     high\n");
+	print("                     --------------------------\n");
 
 	done = 0;
-	for(i = 1; i < 30; i++){
-		for(j = 0; j < 10; j++){
-			if(call(&ds, clone, dest, i, &t[j]) >= 0){
+	for(; ttl < 32; ttl++){
+		for(j = 0; j < tries; j++){
+			if(call(&ds, clone, dest, ttl, &t[j]) >= 0){
+				if(debug)
+					print("%ld %s\n", t[j], dest);
 				strcpy(hop, dest);
 				done = 1;
 				continue;
 			}
 			errstr(err, sizeof err);
-			if(debug)
-				print("%s\n", err);
 			if(strstr(err, "refused")){
 				strcpy(hop, dest);
 				p = strchr(hop, '!');
@@ -431,7 +449,7 @@ main(int argc, char **argv)
 					*p = 0;
 				done = 1;
 			} else if(strstr(err, "unreachable")){
-				strcpy(hop, dest);
+				snprint(hop, sizeof(hop), "%s", err);
 				p = strchr(hop, '!');
 				if(p)
 					*p = 0;
@@ -442,6 +460,8 @@ main(int argc, char **argv)
 				strcpy(hop, "*");
 				break;
 			}
+			if(debug)
+				print("%ld %s\n", t[j], hop);
 		}
 		if(strcmp(hop, "*") == 0){
 			print("*\n");
@@ -460,10 +480,48 @@ main(int argc, char **argv)
 		}
 		if(notranslate == 1 || dodnsquery(&ds, hop, dom) < 0)
 			dom[0] = 0;
-		print("%15.15s %8ld %8ld %8ld %s\n", hop, lo, sum/tries, hi, dom);
+		print("%-18.18s %8ld %8ld %8ld %s\n", hop, lo, sum/tries, hi, dom);
+		if(buckets)
+			histogram(t, tries, buckets, lo, hi);
 		if(done)
 			break;
 	}
 
 	exits(0);
+}
+
+char *order = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+void
+histogram(long *t, int n, int buckets, long lo, long hi)
+{
+	int i, j, empty;
+	long span;
+	static char *bar;
+	char *p;
+	char x[64];
+
+	if(bar == nil)
+		bar = malloc(n+1);
+
+	print("+++++++++++++++++++++++\n");
+	span = (hi-lo)/buckets;
+	span++;
+	empty = 0;
+	for(i = 0; i < buckets; i++){
+		p = bar;
+		for(j = 0; j < n; j++)
+			if(t[j] >= lo+i*span && t[j] <= lo+(i+1)*span)
+				*p++ = order[j];
+		*p = 0;
+		if(p != bar){
+			snprint(x, sizeof x, "[%ld-%ld]", lo+i*span, lo+(i+1)*span);
+			print("%-16s %s\n", x, bar);
+			empty = 0;
+		} else if(!empty){
+			print("...\n");
+			empty = 1;
+		}
+	}
+	print("+++++++++++++++++++++++\n");
 }

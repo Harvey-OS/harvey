@@ -176,7 +176,7 @@ clockinit(void)
 	int x, y;	/* change in counter */
 	int family, model, loops, incr, havecycleclock;
 	X86type *t;
-	vlong a, b;
+	uvlong a, b;
 
 	/*
 	 *  set vector for clock interrupts
@@ -250,13 +250,13 @@ clockinit(void)
 		 */
 		outb(Tmode, Latch0);
 		if(havecycleclock)
-			rdmsr(0x10, &a);
+			rdtsc(&a);
 		x = inb(T0cntr);
 		x |= inb(T0cntr)<<8;
 		aamloop(loops);
 		outb(Tmode, Latch0);
 		if(havecycleclock)
-			rdmsr(0x10, &b);
+			rdtsc(&b);
 		y = inb(T0cntr);
 		y |= inb(T0cntr)<<8;
 		x -= y;

@@ -51,30 +51,34 @@ static char *cmds[] = {
 enum
 {
 	Cd,
-	Hidden,
-	Id,
-	Minx,
-	Miny,
-	Maxx,
-	Maxy,
 	Deltax,
 	Deltay,
-	R,
+	Hidden,
+	Id,
+	Maxx,
+	Maxy,
+	Minx,
+	Miny,
 	PID,
+	R,
+	Scrolling,
+	Noscrolling,
 };
 
 static char *params[] = {
-	[Cd]	 	= "-cd",
-	[Id]		= "-id",
-	[Hidden]	= "-hide",
-	[Minx]	= "-minx",
-	[Miny]	= "-miny",
-	[Maxx]	= "-maxx",
-	[Maxy]	= "-maxy",
-	[Deltax]	= "-dx",
-	[Deltay]	= "-dy",
-	[R]		= "-r",
-	[PID]		= "-pid",
+	[Cd]	 			= "-cd",
+	[Deltax]			= "-dx",
+	[Deltay]			= "-dy",
+	[Hidden]			= "-hide",
+	[Id]				= "-id",
+	[Maxx]			= "-maxx",
+	[Maxy]			= "-maxy",
+	[Minx]			= "-minx",
+	[Miny]			= "-miny",
+	[PID]				= "-pid",
+	[R]				= "-r",
+	[Scrolling]			= "-scroll",
+	[Noscrolling]		= "-noscroll",
 	nil
 };
 
@@ -186,13 +190,14 @@ riostrtol(char *s, char **t)
 
 
 int
-parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, int *hiddenp, char **cdp, char *s, char *err)
+parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, int *hiddenp, int *scrollingp, char **cdp, char *s, char *err)
 {
 	int cmd, param, xy, sign;
 	char *t;
 
 	*pidp = 0;
 	*hiddenp = 0;
+	*scrollingp = scrolling;
 	*cdp = nil;
 	cmd = word(&s, cmds);
 	if(cmd < 0){
@@ -204,11 +209,17 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, int *hid
 
 	strcpy(err, "missing or bad wctl parameter");
 	while((param = word(&s, params)) >= 0){
-		if(param == Hidden){
+		switch(param){	/* special cases */
+		case Hidden:
 			*hiddenp = 1;
 			continue;
-		}
-		if(param == R){
+		case Scrolling:
+			*scrollingp = 1;
+			continue;
+		case Noscrolling:
+			*scrollingp = 0;
+			continue;
+		case R:
 			r.min.x = riostrtol(s, &t);
 			if(t == s)
 				return -1;
@@ -297,7 +308,7 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, int *hid
 }
 
 int
-wctlnew(Rectangle rect, char *arg, int pid, int hideit, char *dir, char *err)
+wctlnew(Rectangle rect, char *arg, int pid, int hideit, int scrollit, char *dir, char *err)
 {
 	char **argv;
 	Image *i;
@@ -328,7 +339,7 @@ wctlnew(Rectangle rect, char *arg, int pid, int hideit, char *dir, char *err)
 	}
 	border(i, rect, Selborder, red, ZP);
 
-	new(i, hideit, pid, dir, "/bin/rc", argv);
+	new(i, hideit, scrollit, pid, dir, "/bin/rc", argv);
 
 	free(argv);	/* when new() returns, argv and args have been copied */
 	return 1;
@@ -337,7 +348,7 @@ wctlnew(Rectangle rect, char *arg, int pid, int hideit, char *dir, char *err)
 int
 writewctl(Xfid *x, char *err)
 {
-	int cnt, cmd, j, id, hideit, pid;
+	int cnt, cmd, j, id, hideit, scrollit, pid;
 	Image *i;
 	char *arg, *dir;
 	Rectangle rect;
@@ -349,7 +360,7 @@ writewctl(Xfid *x, char *err)
 	id = 0;
 
 	rect = rectsubpt(w->screenr, screen->r.min);
-	cmd = parsewctl(&arg, rect, &rect, &pid, &id, &hideit, &dir, x->data, err);
+	cmd = parsewctl(&arg, rect, &rect, &pid, &id, &hideit, &scrollit, &dir, x->data, err);
 	if(cmd < 0)
 		return -1;
 
@@ -375,7 +386,7 @@ writewctl(Xfid *x, char *err)
 
 	switch(cmd){
 	case New:
-		return wctlnew(rect, arg, pid, hideit, dir, err);
+		return wctlnew(rect, arg, pid, hideit, scrollit, dir, err);
 	case Set:
 		if(pid > 0)
 			wsetpid(w, pid, 0);
@@ -454,7 +465,7 @@ void
 wctlthread(void *v)
 {
 	char *buf, *arg, *dir;
-	int cmd, id, pid, hideit;
+	int cmd, id, pid, hideit, scrollit;
 	Rectangle rect;
 	char err[ERRMAX];
 	Channel *c;
@@ -465,11 +476,11 @@ wctlthread(void *v)
 
 	for(;;){
 		buf = recvp(c);
-		cmd = parsewctl(&arg, ZR, &rect, &pid, &id, &hideit, &dir, buf, err);
+		cmd = parsewctl(&arg, ZR, &rect, &pid, &id, &hideit, &scrollit, &dir, buf, err);
 
 		switch(cmd){
 		case New:
-			wctlnew(rect, arg, pid, hideit, dir, err);
+			wctlnew(rect, arg, pid, hideit, scrollit, dir, err);
 		}
 		free(buf);
 	}

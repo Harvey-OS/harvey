@@ -67,7 +67,15 @@ expand_local(dest *dp)
 		fp = sysopen(s_to_c(file), "r", 0);
 		if (fp != 0) {
 			line = s_new();
-			s_read_line(fp, line);
+			for(;;){
+				if(s_read_line(fp, line) == nil)
+					break;
+				if(*(line->ptr - 1) != '\n')
+					break;
+				if(*(line->ptr - 2) == '\\')
+					*(line->ptr-2) = ' ';
+				*(line->ptr-1) = ' ';
+			}
 			sysclose(fp);
 			if(debug)
 				fprint(2, "forward = %s\n", s_to_c(line));

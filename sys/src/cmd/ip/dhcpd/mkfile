@@ -1,22 +1,38 @@
 </$objtype/mkfile
 
-TARG=dhcpd
-OFILES=	dhcpd.$O\
+TARG=dhcpd\
+	dhcpleases\
+
+DOFILES=\
+	dhcpd.$O\
 	db.$O\
 	ndb.$O\
+	ping.$O\
+
+IOFILES=\
+	dhcpleases.$O\
+	db.$O\
 	ping.$O\
 
 HFILES=dat.h
 
 BIN=/$objtype/bin/ip
-</sys/src/cmd/mkone
 
-$O.out: $OFILES
-	$LD $OFILES
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${DOFILES:%.$O=%.c}\
+	${IOFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/ip/%}\
 
-safeinstall: $O.out
-	mv $BIN/$TARG $BIN/o$TARG
-	cp $O.out $BIN/$TARG
+</sys/src/cmd/mkmany
+
+$O.dhcpd: $DOFILES
+	$LD -o $target $DOFILES
+
+$O.dhcpleases: $IOFILES
+	$LD -o $target $IOFILES
 
 $O.testping: testping.$O ping.$O
 	$LD -o $target $prereq
+

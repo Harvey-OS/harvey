@@ -1,25 +1,25 @@
-/* Copyright (C) 1999, Ghostgum Software Pty Ltd.  All rights reserved.
-
-  This file is part of Aladdin Ghostscript.
+/* Copyright (C) 1999, 2000, Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This program is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public 
-  License (the "License") for full details.
-	
-  Every copy of Aladdin Ghostscript must include a copy of the License, 
-  normally in a plain ASCII text file named PUBLIC.  The License grants you 
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only 
-  under certain conditions described in the License.  Among other things, the 
-  License requires that the copyright notice and this notice be preserved on 
-  all copies.
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-// $Id: dwsetup.cpp,v 1.1 2000/03/09 08:40:40 lpd Exp $
+// $Id: dwsetup.cpp,v 1.5 2000/09/22 05:35:02 lpd Exp $
 //
 //
-// This is the setup program for Win32 Aladdin Ghostscript
+// This is the setup program for Win32 AFPL Ghostscript
 //
 // The starting point is a self extracting zip archive
 // with the following contents:
@@ -39,22 +39,22 @@
 // uninstall log files are to be placed.  
 // Subsequent lines contain files to be copied (but not directories).
 // For example, filelist.txt might contain:
-//   Aladdin Ghostscript 6.0
-//   gs6.0
-//   gs6.0\bin\gsdll32.dll
-//   gs6.0\lib\gs_init.ps
+//   AFPL Ghostscript 6.50
+//   gs6.50
+//   gs6.50\bin\gsdll32.dll
+//   gs6.50\lib\gs_init.ps
 // The file fontlist.txt might contain:
-//   Aladdin Ghostscript Fonts
+//   AFPL Ghostscript Fonts
 //   fonts
 //   fonts\n019003l.pfb
 //   fonts\n019023l.pfb
 //
-// The default install directory is c:\Aladdin.
-// The default Start Menu Folder is Aladdin.
+// The default install directory is c:\gs.
+// The default Start Menu Folder is Ghostscript.
 // These are set in the resources.
 // The setup program will create the following uninstall log files
-//   c:\Aladdin\gs#.##\uninstal.txt
-//   c:\Aladdin\fonts\uninstal.txt
+//   c:\gs\gs#.##\uninstal.txt
+//   c:\gs\fonts\uninstal.txt
 // The uninstall program (accessed through control panel) will not 
 // remove directories nor will it remove itself.
 //
@@ -688,13 +688,14 @@ install_all()
 BOOL
 install_prog()
 {
-	char *regkey1 = "Aladdin Ghostscript";
+	char *regkey1 = "AFPL Ghostscript";
 	char regkey2[16];
 	char szDLL[MAXSTR];
 	char szLIB[MAXSTR];
 	char szProgram[MAXSTR];
 	char szArguments[MAXSTR];
 	char szDescription[MAXSTR];
+	char szDotVersion[MAXSTR];
 	
 	if (g_bQuit)
 		return FALSE;
@@ -716,7 +717,8 @@ install_prog()
 		nGSversion = (p[0]-'0')*100 + (p[2]-'0')*10 + (p[3]-'0');
 	else if (strlen(p) == 3)
 		nGSversion = (p[0]-'0')*100 + (p[2]-'0')*10;
-	sprintf(regkey2, "%d.%d", nGSversion / 100, nGSversion % 100);
+        strncpy(szDotVersion, p, sizeof(szDotVersion));
+	strncpy(regkey2, szDotVersion, sizeof(regkey2));
 	
 	// copy files
 	if (!cinst.InstallFiles(g_bNoCopy, &g_bQuit)) {
@@ -775,8 +777,7 @@ install_prog()
 	strcpy(szArguments, "\042-I");
 	strcat(szArguments, szLIB);
 	strcat(szArguments, "\042");
-	sprintf(szDescription, "Ghostscript %d.%d", 
-		nGSversion / 100, nGSversion % 100);
+	sprintf(szDescription, "Ghostscript %s", szDotVersion);
 	if (!cinst.StartMenuAdd(szDescription, szProgram, szArguments)) {
 		gs_addmess("Failed to add Start Menu item\n");
 		return FALSE;
@@ -785,8 +786,7 @@ install_prog()
 	strcat(szProgram, "\\");
 	strcat(szProgram, cinst.GetMainDir());
 	strcat(szProgram, "\\doc\\Readme.htm");
-	sprintf(szDescription, "Ghostscript Readme %d.%d", 
-		nGSversion / 100, nGSversion % 100);
+	sprintf(szDescription, "Ghostscript Readme %s", szDotVersion);
 	if (!cinst.StartMenuAdd(szDescription, szProgram, NULL)) {
 		gs_addmess("Failed to add Start Menu item\n");
 		return FALSE;
@@ -1014,7 +1014,7 @@ BOOL make_filelist(int argc, char *argv[])
 		    if ((title == NULL) || (strlen(title) == 0) ||
 			(dir == NULL) || (strlen(dir) == 0) ||
 			(list == NULL) || (strlen(list) == 0)) {
-			message_box("Usage: setupgs -title \042Aladdin Ghostscript #.##\042 -dir \042gs#.##\042 -list \042filelist.txt\042 spec1 spec2 specn\n");
+			message_box("Usage: setupgs -title \042AFPL Ghostscript #.##\042 -dir \042gs#.##\042 -list \042filelist.txt\042 spec1 spec2 specn\n");
 			return FALSE;
 		    }
 		    if (fList == (FILE *)NULL) {

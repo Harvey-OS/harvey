@@ -640,8 +640,7 @@ Map driver program
 .B /sys/src/cmd/map
 .SH "SEE ALSO"
 .IR map (6), 
-.IR plot (1),
-.IR road (7)
+.IR plot (1)
 .SH DIAGNOSTICS
 `Map seems to be empty'\(ema coarse survey found
 zero extent within the 

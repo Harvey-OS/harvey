@@ -76,3 +76,16 @@ dns.safeinstall: $O.dns
 	for (objtype in $CPUS)
 		mk $stem.safeinstall
 
+dns.update:V:
+	SRC=`{echo $DNSOBJ|sed 's/\.'$O'/.c/g'}
+	update dns.h $SRC /386/bin/ndb/dns
+
+%.update:V:
+	update $stem.c /386/bin/ndb/$stem
+
+update:V:
+	mk clean
+	T=`{echo $TARG|sed 's/( |$)/.update /g'}
+	mk $T
+	update mkfile
+

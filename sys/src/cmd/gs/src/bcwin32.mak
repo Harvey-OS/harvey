@@ -1,21 +1,21 @@
 #    Copyright (C) 1989-1999 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: bcwin32.mak,v 1.2 2000/03/10 15:48:58 lpd Exp $
+# $Id: bcwin32.mak,v 1.12.2.2 2002/02/01 03:30:13 raph Exp $
 # makefile for (MS-Windows 3.1/Win32s / Windows 95 / Windows NT) +
 #   Borland C++ 4.5 platform.
 #   Borland C++Builder 3 platform (need BC++ 4.5 for 16-bit code)
@@ -41,7 +41,7 @@ PSOBJDIR=obj
 
 # Define the root directory for Ghostscript installation.
 
-AROOTDIR=c:/Aladdin
+AROOTDIR=c:/gs
 GSROOTDIR=$(AROOTDIR)/gs$(GS_DOT_VERSION)
 
 # Define the directory that will hold documentation at runtime.
@@ -129,12 +129,24 @@ JVERSION=6
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10005
+PVERSION=10201
 
 # Define the directory where the zlib sources are stored.
 # See zlib.mak for more information.
 
 ZSRCDIR=zlib
+
+# Define the directory where the icclib source are stored.
+# See icclib.mak for more information
+
+ICCSRCDIR=icclib
+
+# Define the directory where the ijs source is stored,
+# and the process forking method to use for the server.
+# See ijs.mak for more information.
+ 
+IJSSRCDIR=ijs
+IJSEXECTYPE=win
 
 # Define any other compilation flags.
 
@@ -273,6 +285,11 @@ BAND_LIST_COMPRESSOR=zlib
 # See gs.mak and sfxfd.c for more details.
 
 FILE_IMPLEMENTATION=stdio
+
+# Choose the implementation of stdio: '' for file I/O and 'c' for callouts
+# See gs.mak and ziodevs.c/ziodevsc.c for more details.
+
+STDIO_IMPLEMENTATION=c
 
 # Choose the device(s) to include.  See devs.mak for details,
 # devs.mak and contrib.mak for the list of available devices.
@@ -605,3 +622,4 @@ $(GLOBJ)dwuninst.res
 
 
 # end of makefile
+`

@@ -1072,12 +1072,26 @@ eptinput(void *arg)
 }
 
 static int
+isoreadyx(Endptx *x)
+{
+	return x->etd == nil || (x->etd != x->xtd && (x->etd->status & Active) == 0);
+}
+
+static int
 isoready(void *arg)
 {
+	int ret;
+	Ctlr *ctlr;
+	Endpt *e;
 	Endptx *x;
 
-	x = arg;
-	return x->etd == nil || (x->etd != x->xtd && (x->etd->status & Active) == 0);
+	e = arg;
+	ctlr = e->dev->uh->ctlr;
+	x = e->private;
+	ilock(&ctlr->activends);
+	ret = isoreadyx(x);
+	iunlock(&ctlr->activends);
+	return ret;
 }
 
 static long
@@ -1151,13 +1165,13 @@ isoio(Ctlr *ctlr, Endpt *e, void *a, long n, ulong offset, int w)
 				e->off = 0;
 			}else{
 				/* New td, make sure it's ready */
-				isolock = 0;
-				iunlock(&ctlr->activends);
-				while (isoready(x) == 0){
-					sleep(&e->wr, isoready, x);
+				while (isoreadyx(x) == 0){
+					isolock = 0;
+					iunlock(&ctlr->activends);
+					sleep(&e->wr, isoready, e);
+					ilock(&ctlr->activends);
+					isolock = 1;
 				}
-				ilock(&ctlr->activends);
-				isolock = 1;
 				if (x->etd == nil){
 					XPRINT("!");
 					continue;

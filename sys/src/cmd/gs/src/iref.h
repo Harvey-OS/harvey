@@ -1,32 +1,37 @@
-/* Copyright (C) 1989, 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: iref.h,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: iref.h,v 1.5 2000/11/01 21:24:42 lpd Exp $ */
 /* Object structure and type definitions for Ghostscript */
 
 #ifndef iref_INCLUDED
 #  define iref_INCLUDED
 
 /* The typedef for object references */
+#ifndef ref_DEFINED
 typedef struct ref_s ref;
+#  define ref_DEFINED
+#endif
 
-/* The typedef for packed object references.  This is opaque here: */
-/* the details are in packed.h. */
+/*
+ * Define the type for packed object references.  This is opaque here:
+ * the details are in ipacked.h.
+ */
 typedef ushort ref_packed;
 
 #define log2_sizeof_ref_packed arch_log2_sizeof_short
@@ -41,6 +46,11 @@ typedef ushort ref_packed;
  * The types marked with + use the read/write/execute
  * attributes; the rest only use the executable attribute.
  * The types marked with # use the size field.
+ *
+ * Note that for the object types that support getinterval (array and
+ * string types), there is no way to tell whether a given reference
+ * designates an original object or a sub-interval.  This is a deliberate
+ * design decision.
  */
 typedef enum {
 
@@ -52,10 +62,10 @@ typedef enum {
  * type 0 for t__invalid, which will never appear in a real ref.
  *
  * The "invalid" type is only used in a few special places: the guard
- * entries at the bottom of the o-stack that detect stack underflow,
- * and (eventually) the ref that the cached value pointer in names points to
- * if the binding isn't known.  It never appears on a stack or in a
- * program-visible data structure.
+ * entries at the bottom of the o-stack that detect stack underflow, and
+ * (perhaps eventually) the ref that the cached value pointer in names
+ * points to if the binding isn't known.  It never appears on a stack or in
+ * a program-visible data structure.
  */
 
     t__invalid,			/*      (no value) */
@@ -70,8 +80,10 @@ typedef enum {
 
 #define _t_array_span 4
     t_array,			/* @!+# value.refs */
-    /* The following are the two implementations of */
-    /* packed arrays. */
+    /*
+     * The following are the two implementations of packed arrays.
+     * See ipacked.h for details.
+     */
     t_mixedarray,		/* @!+# value.packed */
     t_shortarray,		/* @!+# value.packed */
     t_unused_array_,		/*      (an unused array type) */
@@ -111,7 +123,7 @@ typedef enum {
  */
     t_name,			/* @! # value.pname, uses size for index */
     t_null,			/*  ! # (value.opproc, uses size for mark */
-    /*        type, on e-stack only) */
+				/*        type, on e-stack only) */
 /*
  * Operator objects use the a_space field because they may actually be
  * disguised procedures.  (Real operators always have a_space = 0.)
@@ -119,7 +131,7 @@ typedef enum {
     t_operator,			/* @! # value.opproc, uses size for index */
     t_real,			/*      value.realval */
     t_save,			/*      value.saveid, see isave.h for why */
-    /*        this isn't a t_struct */
+				/*        this isn't a t_struct */
     t_string,			/* @!+# value.bytes */
 /*
  * The following are extensions to the PostScript type set.
@@ -247,21 +259,48 @@ extern const byte ref_type_properties[1 << 6];	/* r_type_bits */
  * The layout given below results in the most efficient code overall.
  */
 
-/* Location attributes. */
-/* Note that these are associated with the *location*, not with the */
-/* ref that is *stored* in that location. */
+/*
+ * A few of the fields of a ref are associated with the *location*;
+ * most are associated with the ref that is *stored* in that location.
+ * When a ref is copied from one location to another, the former are
+ * preserved in the destination, the latter are copied.
+ */
+/*
+ * The following are the attributes associated with the location:
+ */
 #define l_mark 1		/* mark for garbage collector */
 #define l_new 2			/* stored into since last save */
-/* Attributes visible at the PostScript language level. */
-/* Reserve bits for VM space information (defined in ivmspace.h). */
+/*
+ * The following are attributes associated with the ref itself (the
+ * contents of the location).  These are visible to PostScript code.
+ */
+/*
+ * Reserve bits for VM space information (defined in ivmspace.h).  Note that
+ * These bits refer to the VM space of the pointer in the ref, if any, not
+ * the location in which the ref itself is stored.  For scalars, these bits
+ * are always zero.
+ */
 #define r_space_bits 2
 #define r_space_shift 2
+/*
+ * Define the protection attributes.  Only 4 combinations are legal:
+ * 0, execute, execute + read, execute + read + write.  Note that some
+ * refs (such as scalars) do not use these: in such refs, they are
+ * always zero.
+ */
 #define a_write 0x10
 #define a_read 0x20
 #define a_execute 0x40
+#define a_readonly (a_read + a_execute)
+#define a_all (a_write + a_read+a_execute)
+/*
+ * Define the executable attribute.  All refs use this.
+ */
 #define a_executable 0x80
-#define a_readonly (a_read+a_execute)
-#define a_all (a_write+a_read+a_execute)
+/*
+ * Define the bits used for the ref type.  See ipacked.h for more
+ * information about the possible values of the type byte.
+ */
 #define r_type_shift 8
 #define r_type_bits 6
 

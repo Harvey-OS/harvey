@@ -533,45 +533,51 @@ memrandom(void *p, int n)
 }
 
 /*
+ *  keep caphash fd open since opens of it could be disabled
+ */
+static int caphashfd;
+
+void
+initcap(void)
+{
+	caphashfd = open("#¤/caphash", OWRITE);
+	if(caphashfd < 0)
+		fprint(2, "%s: opening #¤/caphash: %r", argv0);
+}
+
+/*
  *  create a change uid capability 
  */
 char*
-mkcap(char *user)
+mkcap(char *from, char *to)
 {
 	uchar rand[20];
 	char *cap;
 	char *key;
-	int nuser;
+	int nfrom, nto;
 	uchar hash[SHA1dlen];
-	int fd;
 
-	if(strchr(user, '@') != nil)
+	if(caphashfd < 0)
 		return nil;
 
 	/* create the capability */
-	nuser = strlen(user);
-	cap = emalloc(nuser+1+sizeof(rand)*3+1);
-	strcpy(cap, user);
-	cap[nuser] = '@';
+	nto = strlen(to);
+	nfrom = strlen(from);
+	cap = emalloc(nfrom+1+nto+1+sizeof(rand)*3+1);
+	sprint(cap, "%s@%s", from, to);
 	memrandom(rand, sizeof(rand));
-	key = cap+nuser+1;
+	key = cap+nfrom+1+nto+1;
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uchar*)user, strlen(user), (uchar*)key, strlen(key), hash, nil);
+	hmac_sha1((uchar*)cap, strlen(cap), (uchar*)key, strlen(key), hash, nil);
 
 	/* give the kernel the hash */
-	fd = open("#¤/caphash", OWRITE);
-	if(fd < 0){
+	key[-1] = '@';
+	if(write(caphashfd, hash, SHA1dlen) < 0){
 		free(cap);
 		return nil;
 	}
-	if(write(fd, hash, SHA1dlen) < 0){
-		free(cap);
-		close(fd);
-		return nil;
-	}
-	close(fd);
 
 	return cap;
 }

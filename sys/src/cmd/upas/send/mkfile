@@ -3,11 +3,14 @@
 TARG=send\
 	filter
 
-OFILES=message.$O\
+UOFILES=message.$O\
 	dest.$O\
 	log.$O\
-	../smtp/rfc822.tab.$O\
 	skipequiv.$O\
+
+OFILES=\
+	$UOFILES\
+	../smtp/rfc822.tab.$O\
 
 SMOBJ=main.$O\
 	bind.$O\
@@ -27,6 +30,14 @@ HFILES=send.h\
 LIB=../common/libcommon.a$O\
 
 BIN=/$objtype/bin/upas
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${UOFILES:%.$O=%.c}\
+	${SMOBJ:%.$O=%.c}\
+	filter.c\
+	${TARG:%=/386/bin/upas/%}\
+
 </sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common
 

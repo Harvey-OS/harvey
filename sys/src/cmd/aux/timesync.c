@@ -207,6 +207,12 @@ main(int argc, char **argv)
 	case 'l':
 		logging = 1;
 		break;
+	case 'S':
+		a = ARGF();
+		if(a == nil)
+			sysfatal("bad stratum specified");
+		stratum = strtoll(a, 0, 0);
+		break;
 	}ARGEND;
 
 	fmtinstall('E', eipfmt);

@@ -290,14 +290,17 @@ flsh(void)
 	int c;
 
 	if(obc) {
-		if(obc == obs)
-			nofr++; else
-			nopr++;
 		c = write(obf, obuf, obc);
 		if(c != obc) {
+			if(c > 0)
+				++nopr;
 			perror("write");
 			term();
 		}
+		if(obc == obs)
+			nofr++;
+		else
+			nopr++;
 		obc = 0;
 	}
 }

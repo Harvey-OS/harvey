@@ -57,7 +57,7 @@ findauth(char *name, Auth **list, int nlist)
 void
 usage(void)
 {
-	fprint(2, "usage: ssh [-CiImPpRrvw] [-A authlist] [-c cipherlist] [user@]hostname [cmd [args]]\n");
+	fprint(2, "usage: ssh [-CiImPpRrw] [-A authlist] [-c cipherlist] [user@]hostname [cmd [args]]\n");
 	exits("usage");
 }
 

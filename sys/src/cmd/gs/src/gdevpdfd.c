@@ -1,22 +1,22 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevpdfd.c,v 1.3 2000/03/16 01:21:24 lpd Exp $ */
+/*$Id: gdevpdfd.c,v 1.16 2001/07/27 22:28:31 lpd Exp $ */
 /* Path drawing procedures for pdfwrite driver */
 #include "math_.h"
 #include "gx.h"
@@ -27,6 +27,7 @@
 #include "gzpath.h"
 #include "gzcpath.h"
 #include "gdevpdfx.h"
+#include "gdevpdfg.h"
 
 /* ---------------- Drawing ---------------- */
 
@@ -47,8 +48,8 @@ gdev_pdf_fill_rectangle(gx_device * dev, int x, int y, int w, int h,
 	return code;
     /* Make sure we aren't being clipped. */
     pdf_put_clip_path(pdev, NULL);
-    pdf_set_color(pdev, color, &pdev->fill_color,
-		  &psdf_set_fill_color_commands);
+    pdf_set_pure_color(pdev, color, &pdev->fill_color,
+		       &psdf_set_fill_color_commands);
     pprintd4(pdev->strm, "%d %d %d %d re f\n", x, y, w, h);
     return 0;
 }
@@ -56,6 +57,32 @@ gdev_pdf_fill_rectangle(gx_device * dev, int x, int y, int w, int h,
 /* ---------------- Path drawing ---------------- */
 
 /* ------ Vector device implementation ------ */
+
+private int
+pdf_setlinewidth(gx_device_vector * vdev, floatp width)
+{
+    /* Acrobat Reader doesn't accept negative line widths. */
+    return psdf_setlinewidth(vdev, fabs(width));
+}
+
+private int
+pdf_setfillcolor(gx_device_vector * vdev, const gx_drawing_color * pdc)
+{
+    gx_device_pdf *const pdev = (gx_device_pdf *)vdev;
+
+    return pdf_set_drawing_color(pdev, pdc, &pdev->fill_color,
+				 &psdf_set_fill_color_commands);
+}
+
+private int
+pdf_setstrokecolor(gx_device_vector * vdev, const gx_drawing_color * pdc)
+{
+    gx_device_pdf *const pdev = (gx_device_pdf *)vdev;
+
+    return pdf_set_drawing_color(pdev, pdc, &pdev->stroke_color,
+				 &psdf_set_stroke_color_commands);
+}
+
 private int
 pdf_dorect(gx_device_vector * vdev, fixed x0, fixed y0, fixed x1, fixed y1,
 	   gx_path_type_t type)
@@ -96,17 +123,18 @@ pdf_dorect(gx_device_vector * vdev, fixed x0, fixed y0, fixed x1, fixed y1,
 	y1 = ymax;
     return psdf_dorect(vdev, x0, y0, x1, y1, type);
 }
+
 private int
 pdf_endpath(gx_device_vector * vdev, gx_path_type_t type)
 {
     return 0;			/* always handled by caller */
 }
-private const gx_device_vector_procs pdf_vector_procs =
-{
+
+const gx_device_vector_procs pdf_vector_procs = {
 	/* Page management */
     NULL,
 	/* Imager state */
-    psdf_setlinewidth,
+    pdf_setlinewidth,
     psdf_setlinecap,
     psdf_setlinejoin,
     psdf_setmiterlimit,
@@ -114,8 +142,8 @@ private const gx_device_vector_procs pdf_vector_procs =
     psdf_setflat,
     psdf_setlogop,
 	/* Other state */
-    psdf_setfillcolor,
-    psdf_setstrokecolor,
+    pdf_setfillcolor,
+    pdf_setstrokecolor,
 	/* Paths */
     psdf_dopath,
     pdf_dorect,
@@ -151,11 +179,10 @@ pdf_put_clip_path(gx_device_pdf * pdev, const gx_clip_path * pcpath)
 {
     stream *s = pdev->strm;
 
-    pdev->vec_procs = &pdf_vector_procs;
     if (pcpath == NULL) {
 	if (pdev->clip_path_id == pdev->no_clip_path_id)
 	    return 0;
-	pputs(s, "Q\nq\n");
+	stream_puts(s, "Q\nq\n");
 	pdev->clip_path_id = pdev->no_clip_path_id;
     } else {
 	if (pdev->clip_path_id == pcpath->id)
@@ -166,7 +193,7 @@ pdf_put_clip_path(gx_device_pdf * pdev, const gx_clip_path * pcpath)
 	    ) {
 	    if (pdev->clip_path_id == pdev->no_clip_path_id)
 		return 0;
-	    pputs(s, "Q\nq\n");
+	    stream_puts(s, "Q\nq\n");
 	    pdev->clip_path_id = pdev->no_clip_path_id;
 	} else {
 	    gdev_vector_dopath_state_t state;
@@ -174,7 +201,7 @@ pdf_put_clip_path(gx_device_pdf * pdev, const gx_clip_path * pcpath)
 	    gs_fixed_point vs[3];
 	    int pe_op;
 
-	    pprints1(s, "Q\nq\n%s\n", (pcpath->rule <= 0 ? "W" : "W*"));
+	    stream_puts(s, "Q\nq\n");
 	    gdev_vector_dopath_init(&state, (gx_device_vector *)pdev,
 				    gx_path_type_fill, NULL);
 	    /*
@@ -186,7 +213,7 @@ pdf_put_clip_path(gx_device_pdf * pdev, const gx_clip_path * pcpath)
 	    gx_cpath_enum_init(&cenum, (gx_clip_path *) pcpath);
 	    while ((pe_op = gx_cpath_enum_next(&cenum, vs)) > 0)
 		gdev_vector_dopath_segment(&state, pe_op, vs);
-	    pputs(s, "n\n");
+	    pprints1(s, "%s n\n", (pcpath->rule <= 0 ? "W" : "W*"));
 	    if (pe_op < 0)
 		return pe_op;
 	    pdev->clip_path_id = pcpath->id;
@@ -197,6 +224,36 @@ pdf_put_clip_path(gx_device_pdf * pdev, const gx_clip_path * pcpath)
 	pdev->context = PDF_IN_STREAM;
     pdf_reset_graphics(pdev);
     return 0;
+}
+
+/*
+ * Compute the scaling to ensure that user coordinates for a path are within
+ * Acrobat's range.  Return true if scaling was needed.  In this case, the
+ * CTM will be multiplied by *pscale, and all coordinates will be divided by
+ * *pscale.
+ */
+private bool
+make_path_scaling(const gx_device_pdf *pdev, gx_path *ppath,
+		  floatp prescale, double *pscale)
+{
+    gs_fixed_rect bbox;
+    double bmin, bmax;
+
+    gx_path_bbox(ppath, &bbox);
+    bmin = min(bbox.p.x / pdev->scale.x, bbox.p.y / pdev->scale.y) * prescale;
+    bmax = max(bbox.q.x / pdev->scale.x, bbox.q.y / pdev->scale.y) * prescale;
+    if (bmin <= int2fixed(-MAX_USER_COORD) ||
+	bmax > int2fixed(MAX_USER_COORD)
+	) {
+	/* Rescale the path. */
+	*pscale = max(bmin / int2fixed(-MAX_USER_COORD),
+		      bmax / int2fixed(MAX_USER_COORD));
+	return true;
+    } else {
+	*pscale = 1;
+	return false;
+    }
+#undef MAX_USER_COORD
 }
 
 /* ------ Driver procedures ------ */
@@ -219,7 +276,6 @@ gdev_pdf_fill_path(gx_device * dev, const gs_imager_state * pis, gx_path * ppath
      */
     bool have_path;
 
-    pdev->vec_procs = &pdf_vector_procs;
     /*
      * Check for an empty clipping path.
      */
@@ -230,15 +286,17 @@ gdev_pdf_fill_path(gx_device * dev, const gs_imager_state * pis, gx_path * ppath
 	if (box.p.x >= box.q.x || box.p.y >= box.q.y)
 	    return 0;		/* empty clipping path */
     }
-    if (!gx_dc_is_pure(pdcolor))
-	return gx_default_fill_path(dev, pis, ppath, params, pdcolor,
-				    pcpath);
-    /*
-     * Make a special check for the initial fill with white,
-     * which shouldn't cause the page to be opened.
-     */
-    if (gx_dc_pure_color(pdcolor) == pdev->white && !is_in_page(pdev))
-	return 0;
+    code = pdf_prepare_fill(pdev, pis);
+    if (code < 0)
+	return code;
+    if (gx_dc_is_pure(pdcolor)) {
+	/*
+	 * Make a special check for the initial fill with white,
+	 * which shouldn't cause the page to be opened.
+	 */
+	if (gx_dc_pure_color(pdcolor) == pdev->white && !is_in_page(pdev))
+	    return 0;
+    }
     have_path = !gx_path_is_void(ppath);
     if (have_path || pdev->context == PDF_IN_NONE ||
 	pdf_must_put_clip_path(pdev, pcpath)
@@ -248,18 +306,31 @@ gdev_pdf_fill_path(gx_device * dev, const gs_imager_state * pis, gx_path * ppath
 	    return code;
     }
     pdf_put_clip_path(pdev, pcpath);
-    pdf_set_color(pdev, gx_dc_pure_color(pdcolor), &pdev->fill_color,
-		  &psdf_set_fill_color_commands);
+    if (pdf_setfillcolor((gx_device_vector *)pdev, pdcolor) < 0)
+	return gx_default_fill_path(dev, pis, ppath, params, pdcolor,
+				    pcpath);
     if (have_path) {
 	stream *s = pdev->strm;
+	double scale;
+	gs_matrix smat;
+	gs_matrix *psmat = NULL;
 
 	if (params->flatness != pdev->state.flatness) {
 	    pprintg1(s, "%g i\n", params->flatness);
 	    pdev->state.flatness = params->flatness;
 	}
+	if (make_path_scaling(pdev, ppath, 1.0, &scale)) {
+	    gs_make_scaling(pdev->scale.x * scale, pdev->scale.y * scale,
+			    &smat);
+            pdf_put_matrix(pdev, "q ", &smat, "cm\n");
+	    psmat = &smat;
+	}
 	gdev_vector_dopath((gx_device_vector *)pdev, ppath,
-			   gx_path_type_fill, NULL);
-	pputs(s, (params->rule < 0 ? "f\n" : "f*\n"));
+			   gx_path_type_fill | gx_path_type_optimize,
+			   psmat);
+	stream_puts(s, (params->rule < 0 ? "f\n" : "f*\n"));
+	if (psmat)
+	    stream_puts(s, "Q\n");
     }
     return 0;
 }
@@ -273,16 +344,16 @@ gdev_pdf_stroke_path(gx_device * dev, const gs_imager_state * pis,
     gx_device_pdf *pdev = (gx_device_pdf *) dev;
     stream *s;
     int code;
-    double scale;
+    double scale, path_scale;
     bool set_ctm;
     gs_matrix mat;
+    double prescale = 1;
 
     if (gx_path_is_void(ppath))
 	return 0;		/* won't mark the page */
-    if (!gx_dc_is_pure(pdcolor))
-	return gx_default_stroke_path(dev, pis, ppath, params, pdcolor,
-				      pcpath);
-    pdev->vec_procs = &pdf_vector_procs;
+    code = pdf_prepare_stroke(pdev, pis);
+    if (code < 0)
+	return code;
     code = pdf_open_page(pdev, PDF_IN_STREAM);
     if (code < 0)
 	return code;
@@ -298,18 +369,45 @@ gdev_pdf_stroke_path(gx_device * dev, const gs_imager_state * pis,
      */
     set_ctm = (bool)gdev_vector_stroke_scaling((gx_device_vector *)pdev,
 					       pis, &scale, &mat);
+    if (set_ctm) {
+	/*
+	 * We want a scaling factor that will bring the largest reasonable
+	 * user coordinate within bounds.  We choose a factor based on the
+	 * minor axis of the transformation.  Thanks to Raph Levien for
+	 * the following formula.
+	 */
+	double a = mat.xx, b = mat.xy, c = mat.yx, d = mat.yy;
+	double u = fabs(a * d - b * c);
+	double v = a * a + b * b + c * c + d * d;
+	double minor = (sqrt(v + 2 * u) - sqrt(v - 2 * u)) * 0.5;
+
+	prescale = (minor == 0 || minor > 1 ? 1 : 1 / minor);
+    }
+    if (make_path_scaling(pdev, ppath, prescale, &path_scale)) {
+	scale /= path_scale;
+	if (set_ctm)
+	    gs_matrix_scale(&mat, path_scale, path_scale, &mat);
+	else {
+	    gs_make_scaling(path_scale, path_scale, &mat);
+	    set_ctm = true;
+	}
+    }
     pdf_put_clip_path(pdev, pcpath);
-    gdev_vector_prepare_stroke((gx_device_vector *)pdev, pis, params,
-			       pdcolor, scale);
+    code = gdev_vector_prepare_stroke((gx_device_vector *)pdev, pis, params,
+				      pdcolor, scale);
+    if (code < 0)
+	return gx_default_stroke_path(dev, pis, ppath, params, pdcolor,
+				      pcpath);
+
     if (set_ctm)
-	pdf_put_matrix(pdev, "q ", &mat, "cm\n");
+  	pdf_put_matrix(pdev, "q ", &mat, "cm\n");
     code = gdev_vector_dopath((gx_device_vector *)pdev, ppath,
-			      gx_path_type_stroke,
+			      gx_path_type_stroke | gx_path_type_optimize,
 			      (set_ctm ? &mat : (const gs_matrix *)0));
     if (code < 0)
 	return code;
     s = pdev->strm;
-    pputs(s, (code ? "s" : "S"));
-    pputs(s, (set_ctm ? " Q\n" : "\n"));
+    stream_puts(s, (code ? "s" : "S"));
+    stream_puts(s, (set_ctm ? " Q\n" : "\n"));
     return 0;
 }

@@ -122,7 +122,7 @@ hzclock(Ureg *ur)
 		return;
 
 	/* i.e. don't deschedule an EDF process here! */
-	if(anyready() && !isedf(up)){
+	if(anyready() && !edf->isedf(up)){
 		sched();
 		splhi();
 	}
@@ -141,6 +141,10 @@ timerintr(Ureg *u, uvlong)
 	Timers *tt;
 	uvlong when, now;
 	int callhzclock;
+	ulong pc;
+	static int sofar;
+
+	pc = m->splpc;	/* remember last splhi pc for kernel profiling */
 
 	intrcount[m->machno]++;
 	callhzclock = 0;
@@ -152,6 +156,7 @@ timerintr(Ureg *u, uvlong)
 		if(when > now){
 			iunlock(tt);
 			timerset(when);
+			m->splpc = pc;	/* for kernel profiling */
 			if(callhzclock)
 				hzclock(u);
 			return;
@@ -208,4 +213,31 @@ addclock0link(void (*f)(void))
 	 * this one's synchronized with hztimer which is already running
 	 */
 	iunlock(&timers[0]);
+}
+
+/*
+ *  This tk2ms avoids overflows that the macro version is prone to.
+ *  It is a LOT slower so shouldn't be used if you're just converting
+ *  a delta.
+ */
+ulong
+tk2ms(ulong ticks)
+{
+	uvlong t, hz;
+
+	t = ticks;
+	hz = HZ;
+	t *= 1000L;
+	t = t/hz;
+	ticks = t;
+	return ticks;
+}
+
+ulong
+ms2tk(ulong ms)
+{
+	/* avoid overflows at the cost of precision */
+	if(ms >= 1000000000/HZ)
+		return (ms/1000)*HZ;
+	return (ms*HZ+500)/1000;
 }

@@ -1,22 +1,22 @@
 /* Copyright (C) 1993, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zmedia2.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zmedia2.c,v 1.3 2001/04/26 17:57:41 alexcher Exp $ */
 /* Media matching for setpagedevice */
 #include "math_.h"
 #include "memory_.h"
@@ -338,72 +338,74 @@ match_page_size(const gs_point * request, const gs_rect * medium, int policy,
 	*best_mismatch = 0;
 	gs_make_identity(pmat);
 	*pmsize = *request;
-	return true;
-    }
-    if (rx - medium->p.x >= -5 && rx - medium->q.x <= 5 &&
-	ry - medium->p.y >= -5 && ry - medium->q.y <= 5 &&
-	(orient < 0 || !(orient & 1))
-	) {
-	*best_mismatch = 0;
-	make_adjustment_matrix(request, medium, pmat, false,
-			       (orient >= 0 ? orient : 0));
-    } else if (rx - medium->p.y >= -5 && rx - medium->q.y <= 5 &&
-	       ry - medium->p.x >= -5 && ry - medium->q.x <= 5 &&
-	       (orient < 0 || (orient & 1))
-	) {
-	*best_mismatch = 0;
-	make_adjustment_matrix(request, medium, pmat, false,
-			       (orient >= 0 ? orient :
-				rx < ry ? -1 : 1));
     } else {
-	int rotate =
-	(orient >= 0 ? orient :
-	 rx < ry ?
-	 (medium->q.x > medium->q.y ? -1 : 0) :
-	 (medium->q.x < medium->q.y ? 1 : 0));
-	bool larger =
-	(rotate ? medium->q.y >= rx && medium->q.x >= ry :
-	 medium->q.x >= rx && medium->q.y >= ry);
-	bool adjust = false;
-	float mismatch = medium->q.x * medium->q.y - rx * ry;
+        int fit_direct  = rx - medium->p.x >= -5 && rx - medium->q.x <= 5 
+                       && ry - medium->p.y >= -5 && ry - medium->q.y <= 5;
+	int fit_rotated = rx - medium->p.y >= -5 && rx - medium->q.y <= 5 
+                       && ry - medium->p.x >= -5 && ry - medium->q.x <= 5;
+        
+        if ( fit_direct && fit_rotated) {
+	    *best_mismatch = 0;
+	    make_adjustment_matrix(request, medium, pmat, false, orient < 0 ? 0 : orient);
+        } else if ( fit_direct ) {
+            int rotate = orient < 0 ? 0 : orient;
+            *best_mismatch = rotate & 1 ? 0.1 : 0;
+	    make_adjustment_matrix(request, medium, pmat, false, (rotate + 1) & 2);
+        } else if ( fit_rotated ) {
+            int rotate = orient < 0 ? 1 : orient;
+            *best_mismatch = rotate & 1 ? 0 : 0.1;
+	    make_adjustment_matrix(request, medium, pmat, false, rotate | 1);
+        } else {
+	    int rotate = orient >= 0 ? orient : rx < ry ^ medium->q.x < medium->q.y;
+	    bool larger =
+	    (rotate & 1 ? medium->q.y >= rx && medium->q.x >= ry :
+	     medium->q.x >= rx && medium->q.y >= ry);
+	    bool adjust = false;
+	    float mismatch = medium->q.x * medium->q.y - rx * ry;
 
-	switch (policy) {
-	    default:		/* exact match only */
-		return false;
-	    case 3:		/* nearest match, adjust */
-		adjust = true;
-	    case 5:		/* nearest match, don't adjust */
-		if (fabs(mismatch) >= fabs(*best_mismatch))
+	    switch (policy) {
+	        default:		/* exact match only */
 		    return false;
-		break;
-	    case 4:		/* next larger match, adjust */
-		adjust = true;
-	    case 6:		/* next larger match, don't adjust */
-		if (!larger || mismatch >= *best_mismatch)
-		    return false;
-		break;
-	}
-	if (adjust)
-	    make_adjustment_matrix(request, medium, pmat, !larger, rotate);
-	else {
-	    gs_rect req_rect;
+	        case 3:		/* nearest match, adjust */
+		    adjust = true;
+	        case 5:		/* nearest match, don't adjust */
+		    if (fabs(mismatch) >= fabs(*best_mismatch))
+		        return false;
+		    break;
+	        case 4:		/* next larger match, adjust */
+		    adjust = true;
+	        case 6:		/* next larger match, don't adjust */
+		    if (!larger || mismatch >= *best_mismatch)
+		        return false;
+		    break;
+	    }
+	    if (adjust)
+	        make_adjustment_matrix(request, medium, pmat, !larger, rotate);
+	    else {
+	        gs_rect req_rect;
+                if(rotate & 1) { 
+                    req_rect.p.x = ry;
+                    req_rect.p.y = rx;
+                } else {
+                    req_rect.p.x = rx;
+                    req_rect.p.y = ry;
+                }
+	        req_rect.q = req_rect.p;
+	        make_adjustment_matrix(request, &req_rect, pmat, false, rotate);
+	    }
+	    *best_mismatch = mismatch;
+        }
+        if (pmat->xx == 0) {	/* Swap request X and Y. */
+	    double temp = rx;
 
-	    req_rect.p = *request;
-	    req_rect.q = *request;
-	    make_adjustment_matrix(request, &req_rect, pmat, false, rotate);
-	}
-	*best_mismatch = mismatch;
-    }
-    if (pmat->xx == 0) {	/* Swap request X and Y. */
-	double temp = rx;
-
-	rx = ry, ry = temp;
-    }
+	    rx = ry, ry = temp;
+        }
 #define ADJUST_INTO(req, mmin, mmax)\
-  (req < mmin ? mmin : req > mmax ? mmax : req)
-    pmsize->x = ADJUST_INTO(rx, medium->p.x, medium->q.x);
-    pmsize->y = ADJUST_INTO(ry, medium->p.y, medium->q.y);
+      (req < mmin ? mmin : req > mmax ? mmax : req)
+        pmsize->x = ADJUST_INTO(rx, medium->p.x, medium->q.x);
+        pmsize->y = ADJUST_INTO(ry, medium->p.y, medium->q.y);
 #undef ADJUST_INTO
+    }
     return true;
 }
 /*
@@ -414,33 +416,33 @@ match_page_size(const gs_point * request, const gs_rect * medium, int policy,
  * We recognize this by an unreasonably small medium->p.{x,y}.
  */
 #define MIN_MEDIA_SIZE 9
-private void
+private void 
 make_adjustment_matrix(const gs_point * request, const gs_rect * medium,
 		       gs_matrix * pmat, bool scale, int rotate)
 {
     double rx = request->x, ry = request->y;
     double mx = medium->q.x, my = medium->q.y;
 
-    /* Rotate the request if necessary. */
+    /* Rotate the request if necessary. */ 
     if (rotate & 1) {
 	double temp = rx;
 
 	rx = ry, ry = temp;
     }
-    /* Adjust the medium size if flexible. */
+    /* Adjust the medium size if flexible. */ 
     if (medium->p.x < MIN_MEDIA_SIZE && mx > rx)
 	mx = rx;
     if (medium->p.y < MIN_MEDIA_SIZE && my > ry)
 	my = ry;
 
-    /* Translate to align the centers. */
+    /* Translate to align the centers. */ 
     gs_make_translation(mx / 2, my / 2, pmat);
 
-    /* Rotate if needed. */
+    /* Rotate if needed. */ 
     if (rotate)
 	gs_matrix_rotate(pmat, 90.0 * rotate, pmat);
 
-    /* Scale if needed. */
+    /* Scale if needed. */ 
     if (scale) {
 	double xfactor = mx / rx;
 	double yfactor = my / ry;
@@ -449,8 +451,8 @@ make_adjustment_matrix(const gs_point * request, const gs_rect * medium,
 	if (factor < 1)
 	    gs_matrix_scale(pmat, factor, factor, pmat);
     }
-    /* Now translate the origin back, */
-    /* using the original, unswapped request. */
+    /* Now translate the origin back, */ 
+    /* using the original, unswapped request. */ 
     gs_matrix_translate(pmat, -request->x / 2, -request->y / 2, pmat);
 }
 #undef MIN_MEDIA_SIZE

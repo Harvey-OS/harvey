@@ -102,7 +102,7 @@ dirdevrw(ScsiReq *rp, uchar *cmd, long nbytes)
 	long n;
 
 	n = nbytes/rp->lbsize;
-	if(rp->offset <= 0x1fffff && n <= 256){
+	if(rp->offset <= 0x1fffff && n <= 256 && (rp->flags & Frw10) == 0){
 		cmd[1] = rp->offset>>16;
 		cmd[2] = rp->offset>>8;
 		cmd[3] = rp->offset;
@@ -237,7 +237,7 @@ SRseek(ScsiReq *rp, long offset, int type)
 		rp->status = Status_BADARG;
 		return -1;
 	}
-	if(offset <= 0x1fffff){
+	if(offset <= 0x1fffff && (rp->flags & Frw10) == 0){
 		cmd[0] = ScmdSeek;
 		cmd[1] = (offset>>16) & 0x1F;
 		cmd[2] = offset>>8;
@@ -505,11 +505,15 @@ SRclose(ScsiReq *rp)
 static int
 dirdevopen(ScsiReq *rp)
 {
+	ulong blocks;
 	uchar data[8];
 
 	if(SRstart(rp, 1) == -1 || SRrcapacity(rp, data) == -1)
 		return -1;
 	rp->lbsize = (data[4]<<28)|(data[5]<<16)|(data[6]<<8)|data[7];
+	blocks = (data[0]<<24)|(data[1]<<16)|(data[2]<<8)|data[3];
+	if(blocks > 0x1fffff)
+		rp->flags |= Frw10;		/* some newer devices don't support 6-byte commands */
 	return 0;
 }
 

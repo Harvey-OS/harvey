@@ -1,32 +1,31 @@
-/* Copyright (C) 1992, 1993 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxfrac.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxfrac.h,v 1.3 2000/11/03 04:53:00 lpd Exp $ */
 /* Fraction representation for Ghostscript */
 
 #ifndef gxfrac_INCLUDED
 #  define gxfrac_INCLUDED
 
 /*
- * Represent a fraction in [0.0..1.0].
- * Note that the 1.0 endpoint is included.
- * Since undercolor removal requires a signed frac,
- * we limit fracs to 15 bits rather than 16.
+ * Represent a fraction in [0.0..1.0].  Note that the 1.0 endpoint is
+ * included.  Since undercolor removal requires a signed frac, we limit
+ * fracs to 15 bits rather than 16.
  */
 typedef short frac;
 typedef short signed_frac;
@@ -35,8 +34,15 @@ typedef short signed_frac;
 #define arch_sizeof_frac arch_sizeof_short
 #define frac_bits 15
 #define frac_0 ((frac)0)
-/* The following definition of frac_1 allows exact representation of */
-/* almost all common fractions (e.g., N/360 for 0<=N<=360). */
+
+/*
+ * Normally one would represent a fractional value of this kind as a short
+ * integer, in [-32767..32767].  Unfortunately, this approach cannot
+ * represent any of the common values like 1/2, 1/3, or 1/5 exactly, causing
+ * rounding errors.  Instead, we opt for using the range [-32760..32760],
+ * which allows exact representation of almost all commonly used fractions
+ * (e.g., N/360 for 0<=N<=360).
+ */
 #define frac_1_0bits 3
 #define frac_1 ((frac)0x7ff8)
 #define frac_1_long ((long)frac_1)

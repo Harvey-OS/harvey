@@ -192,6 +192,7 @@ void	relackq(Reliable *, Block*);
 void	relhangup(Conv *, Reliable*);
 void	relrexmit(Conv *, Reliable*);
 void	relput(Reliable*);
+void	rudpkick(void *x);
 
 static void
 rudpstartackproc(Proto *rudp)
@@ -263,8 +264,8 @@ rudpannounce(Conv *c, char** argv, int argc)
 static void
 rudpcreate(Conv *c)
 {
-	c->rq = qopen(64*1024, 1, 0, 0);
-	c->wq = qopen(64*1024, 0, 0, 0);
+	c->rq = qopen(64*1024, Qmsg, 0, 0);
+	c->wq = qopen(64*1024, Qkick, rudpkick, c);
 }
 
 static void
@@ -321,7 +322,7 @@ doipoput(Conv *c, Fs *f, Block *bp, int x, int ttl, int tos)
 	if(ucb->randdrop && nrand(100) < ucb->randdrop)
 		freeblist(bp);
 	else
-		ipoput(f, bp, x, ttl, tos);
+		ipoput4(f, bp, x, ttl, tos);
 }
 
 int
@@ -333,8 +334,9 @@ flow(void *v)
 }
 
 void
-rudpkick(Conv *c)
+rudpkick(void *x)
 {
+	Conv *c = x;
 	Udphdr *uh;
 	ushort rport;
 	uchar laddr[IPaddrlen], raddr[IPaddrlen];
@@ -402,6 +404,7 @@ rudpkick(Conv *c)
 		return;
 
 	uh = (Udphdr *)(bp->rp);
+	uh->vihl = IP_VER4;
 
 	rh = (Rudphdr*)uh;
 
@@ -707,7 +710,6 @@ rudpinit(Fs *fs)
 	rudp = smalloc(sizeof(Proto));
 	rudp->priv = smalloc(sizeof(Rudppriv));
 	rudp->name = "rudp";
-	rudp->kick = rudpkick;
 	rudp->connect = rudpconnect;
 	rudp->announce = rudpannounce;
 	rudp->ctl = rudpctl;
@@ -987,6 +989,7 @@ relsendack(Conv *c, Reliable *r, int hangup)
 	bp->wp += UDP_IPHDR + UDP_RHDRSIZE;
 	f = c->p->f;
 	uh = (Udphdr *)(bp->rp);
+	uh->vihl = IP_VER4;
 	rh = (Rudphdr*)uh;
 
 	ptcllen = (UDP_RHDRSIZE-UDP_PHDRSIZE);

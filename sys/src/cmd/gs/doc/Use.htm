@@ -1,8 +1,11 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>How to use Ghostscript</title>
-<!-- $Id: Use.htm,v 1.2 2000/03/10 08:02:59 lpd Exp $ -->
+<!-- $Id: Use.htm,v 1.33.2.3 2002/02/01 04:55:55 raph Exp $ -->
 <!-- Originally: use.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -10,11 +13,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-How to use Ghostscript
-</font>
-</table>
+<h1>How to use Ghostscript</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -27,6 +26,7 @@ How to use Ghostscript
 <ul>
 <li><a href="#Help_command">Help at the command line: <b><tt>gs -h</tt></b></a>
 </ul>
+<li><a href="#Security">Security</a>
 <li><a href="#Pipe_input">Input from a pipe</a>
 <li><a href="#Output_device">Selecting an output device</a>
 <ul>
@@ -124,7 +124,7 @@ overview</a>, the new user's documentation on
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h1><a name="Invoking"></a>Invoking Ghostscript</h1>
+<h2><a name="Invoking"></a>Invoking Ghostscript</h2>
 
 <p><a name="Command_line"></a> The command line to invoke Ghostscript is
 essentially the same on all systems, although the name of the executable
@@ -183,7 +183,7 @@ must use "<b><tt>#</tt></b>" rather than "<b><tt>=</tt></b>", because of a
 strange design decision in the Watcom C/C++ run-time library used to build
 it.)
 
-<h2><a name="Help_command"></a>Help at the command line: <b><tt>gs -h</tt></b></h2>
+<h3><a name="Help_command"></a>Help at the command line: <b><tt>gs -h</tt></b></h3>
 
 <p>
 You can get a brief help message by invoking Ghostscript with the
@@ -209,7 +209,55 @@ for this executable
 <li>where and how to send bug reports
 </ul>
 
-<h1><a name="Pipe_input"></a>Input from a pipe</h1>
+<h2><a name="Security"></a>Security</h2>
+
+<p>
+Ghostscript implements a full-featured programming language, with
+access to the filesystem and the ability to control a diverse set of
+devices. As such, there are potential security implications.
+
+<p>
+The first line of defense is to use the security mechanisms
+provided by Ghostscript. If you're running arbitrary PostScript files
+(for example, those sent through email or downloaded from the Web),
+make sure to use the -dSAFER option. Otherwise, you are opening up
+your entire filesystem to potentially malicious code.
+
+<p>
+By default, Ghostscript opens up read access to the entire
+filesystem. In general, if you're just viewing or printing documents,
+this does not pose a significant security risk. However, if there is
+a chance that the output of Ghostscript can leak sensitive information,
+also set the -DPARANOIDSAFER option. Note, however, that this option
+is incompatible with some scripts and wrappers, including gv and
+related viewer apps.
+
+<p>
+We plan to make -dSAFER the default in future versions of Ghostscript.
+Since most people use Ghostscript to print and view documents, rather
+than to run scripts written in the PostScript language, this will
+provide additional safety with little hassle for most users.  If you
+<em>are</em> using Ghostscript as a scripting language and need
+unfettered access to the filesystem, use the -dNOSAFER flag to signal
+explictly that you wish the PostScript code to have full access to the
+file system. Currently, this flag has no effect, but it will insure
+than your scripts execute as expected in future versions.
+
+<p>
+While we've tried to patch all known security problems, there is
+no guarantee that we've caught them all. Ghostscript is a complex
+application written in C. Buffer overflows and other exploits remain
+a distinct possibility. Thus we recommend that, whenever possible,
+Ghostscript should run in a secure "sandbox" environment, making
+use of the security mechanisms of the underlying operating system.
+In particular, we urge Linux distributors to invoke Ghostscript from
+the print subsystem in a chroot'ed environment, and never as root.
+
+<p>
+We will continue to be vigilant regarding security issues. As
+always, apply security updates promptly.
+
+<h2><a name="Pipe_input"></a>Input from a pipe</h2>
 
 <p>
 As noted above, one normally specifies input with file names on the command
@@ -242,7 +290,7 @@ for programs such as GSview that generate input for Ghostscript dynamically
 and watch for some response, whereas "<b><tt>-_</tt></b>" reads the input in
 blocks, which is more efficient for ordinary (batch) execution.
 
-<h1><a name="Output_device"></a>Selecting an output device</h1>
+<h2><a name="Output_device"></a>Selecting an output device</h2>
 
 <p>
 Ghostscript may be built to handle multiple output devices, and it normally
@@ -255,14 +303,15 @@ you can also find out what devices are available by
 <p><a name="Source_code"></a>
 
 A little more information about devices appears near the beginning of the
-files <b><tt>devs.mak</tt></b> (for Aladdin's own drivers) and
-<b><tt>contrib.mak</tt></b> (for user-contributed drivers) used to build
-Ghostscript.  (If you got Ghostscript under the Aladdin
-<a href="Public.htm">Free Public License</a>, the person or place from
-which you got it is also required to make the source code available to you;
-if you got it under the GNU General Public License (GPL), see the GNU
-<a href="http://www.gnu.org/copyleft/gpl.html">General Public License</a>
-for more information.)
+files <b><tt>devs.mak</tt></b> (for drivers that are considered "part of"
+Ghostscript and are maintained by the maintainers of the main Ghostscript
+code) and <b><tt>contrib.mak</tt></b> (for user-contributed drivers) used to
+build Ghostscript.  (If you got Ghostscript under the Aladdin <a
+href="Public.htm">Free Public License</a>, the person or place from which
+you got it is also required to make the source code available to you; if you
+got it under the GNU General Public License (GPL), see the GNU <a
+href="http://www.gnu.org/copyleft/gpl.html">General Public License</a> for
+more information.)
 
 <p><a name="Device_output"></a>
 To use device <em>xyz</em> as the initial output device, use the
@@ -322,7 +371,7 @@ The order of precedence for these alternatives, highest to lowest, is:
 	<td>Default; lowest precedence
 </table></blockquote>
 
-<h2><a name="Printer_resolution"></a>Printer resolution</h2>
+<h3><a name="Printer_resolution"></a>Printer resolution</h3>
 
 <p>
 Some printers can print at several different resolutions, letting you
@@ -376,7 +425,7 @@ For example, on Epson-compatible printers you have these choices:
 	<td>slowest
 </table></blockquote>
 
-<h2><a name="File_output"></a>Output to files</h2>
+<h3><a name="File_output"></a>Output to files</h3>
 
 <p>
 If you select a printer as the output device, Ghostscript also allows you to
@@ -418,15 +467,20 @@ across systems:
 </table></blockquote>
 
 <p>
-Note that on DOS and MS Windows systems, the <b><tt>%</tt></b> character has
-a special meaning for the command processor (shell), so you will have to
-double it, e.g., for a pipe on MS Windows,
+Note that because of this, if you want to specify a file name that actually
+begins with <b><tt>%</tt></b>, you must specify the <b><tt>%os%</tt></b>
+filedevice explicitly: e.g., for output to a file named
+<b><tt>%abc</tt></b>, you need to specify
+<b><tt>-sOutputFile=%os%%abc</tt></b>.  Note also that on DOS and MS Windows
+systems, the <b><tt>%</tt></b> character has a special meaning for the
+command processor (shell), so you will have to double it, e.g., for a pipe
+on MS Windows,
 
 <blockquote><b><tt>
 gs -sOutputFile=%%pipe%%cmd
 </tt></b></blockquote>
 
-<h3><a name="One_page_per_file"></a>One page per file</h3>
+<h4><a name="One_page_per_file"></a>One page per file</h4>
 
 <p>
 You can also tell Ghostscript to put each page of output in a separate
@@ -458,7 +512,7 @@ As noted above, on DOS and MS Windows systems, you will have to double the
 gs -sOutputFile=ABC%%03d.xyz
 </tt></b></blockquote>
 
-<h3><a name="Pipe_output"></a>Output to a pipe</h3>
+<h4><a name="Pipe_output"></a>Output to a pipe</h4>
 
 <p>
 On Unix and (32-bit) MS Windows systems you can use this switch to send
@@ -492,7 +546,7 @@ In this case you must also use the <a href="#Quiet"><b><tt>-q</tt></b>
 switch</a> to prevent Ghostscript from writing messages to standard output
 which become mixed with the intended output stream.
 
-<h3><a name="Output_to_graphics"></a>Output to graphics file formats</h3>
+<h4><a name="Output_to_graphics"></a>Output to graphics file formats</h4>
 
 <p>
 File formats like PCX and PBM are also "devices".  When you select a file
@@ -507,7 +561,7 @@ Here, as with printable files, you can use "<b><tt>%d</tt></b>"
 ("<b><tt>%%d</tt></b>" on DOS and MS Windows) to specify <a
 href="#One_page_per_file">one page per output file</a>.
 
-<h3><a name="Bounding_box_output"></a>Bounding box output</h3>
+<h4><a name="Bounding_box_output"></a>Bounding box output</h4>
 
 <p>
 There is a special <b><tt>bbox</tt></b> "device" that just prints the
@@ -542,20 +596,37 @@ pixels, e.g.,
 gs -dNOPAUSE -dBATCH -sDEVICE=bbox -r100 -g500000x500000
 </tt></b></blockquote>
 
-<h2><a name="Paper_size"></a>Choosing paper size</h2>
+<h3><a name="Paper_size"></a>Choosing paper size</h3>
 
 <p>
 Ghostscript is distributed configured to use U.S. letter paper as its
-default page size, but it knows about many others, listed by name and size
-in the section on <a href="#Known_paper_sizes">paper sizes known to
-Ghostscript</a>.  To select one of these as the default paper size for a
-single invocation of Ghostscript, you can use the
-<b><tt>-sPAPERSIZE=</tt></b> switch, for instance
+default page size.  There are two ways to select other paper sizes from the
+command line:
+
+<ul>
+
+<li>
+If the desired paper size is listed in the section on <a
+href="#Known_paper_sizes">paper sizes known to Ghostscript</a> below, you
+can select it as the default paper size for a single invocation of
+Ghostscript by using the <b><tt>-sPAPERSIZE=</tt></b> switch, for instance
 
 <blockquote><b><tt>
 -sPAPERSIZE=a4<br>
 -sPAPERSIZE=legal
 </tt></b></blockquote>
+
+<li>
+Otherwise, let <em>w</em> be the desired paper width and <em>h</em> be the
+desired paper height, in 1/72" units.  You can set the page size using the
+pair of switches
+
+<blockquote>
+<b><tt>-dDEVICEWIDTHPOINTS=</tt></b><em>w</em>
+<b><tt>-dDEVICEHEIGHTPOINTS=</tt></b><em>h</em>
+</blockquote>
+
+</ul>
 
 <p>
 Individual documents can (and often do) specify a paper size, which takes
@@ -565,7 +636,7 @@ just described, and also include the
 <a href="#FIXEDMEDIA"><b><tt>-dFIXEDMEDIA</tt></b> switch</a> on the
 command line.
 
-<h2><a name="Change_default_size"></a>Changing the installed default paper size</h2>
+<h3><a name="Change_default_size"></a>Changing the installed default paper size</h3>
 
 <p>
 You can change the installed default paper size in installing Ghostscript
@@ -590,7 +661,7 @@ this to
 For <b><tt>a4</tt></b> you can substitute any
 <a href="#Known_paper_sizes">paper size Ghostscript knows</a>.
 
-<h1><a name="Finding_files"></a>How Ghostscript finds files</h1>
+<h2><a name="Finding_files"></a>How Ghostscript finds files</h2>
 
 <p>
 When looking for initialization files (<b><tt>gs_*.ps</tt></b>,
@@ -659,7 +730,7 @@ given.  To run a file using the searching algorithm, use
 <b><tt>runlibfile</tt></b> instead of
 <b><tt>run</tt></b>.
 
-<h2><a name="PS_resources"></a>Finding PostScript Level 2 resources</h2>
+<h3><a name="PS_resources"></a>Finding PostScript Level 2 resources</h3>
 
 <p>
 Ghostscript uses a completely different rule for looking for files
@@ -697,7 +768,7 @@ Note that even though the system parameters are named "somethingDir", they
 are not just plain directory names: they have "<b><tt>/</tt></b>" on the
 end, so that they can be concatenated with the category name or font name.
 
-<h2><a name="Font_lookup"></a>Font lookup</h2>
+<h3><a name="Font_lookup"></a>Font lookup</h3>
 
 <p>
 Ghostscript has a slightly different way to find the file containing a font
@@ -919,7 +990,7 @@ how to do it <a href="Install.htm#Use_Acrobat_fonts_Unix">on Unix</a> and <a
 href="Install.htm#Use_platform_fonts_DOS">on DOS</a> (where you can also use
 Adobe Type Manager fonts).
 
-<h2><a name="Temp_files"></a>Temporary files</h2>
+<h3><a name="Temp_files"></a>Temporary files</h3>
 
 <blockquote><table cellpadding=0 cellspacing=0>
 <tr><th colspan=5 bgcolor="#CCCC00"><hr><font size="+1">Where Ghostscript puts temporary files</font><hr>
@@ -949,12 +1020,19 @@ Adobe Type Manager fonts).
 
 <p>
 You can change in which directory Ghostscript creates temporary files by
-setting the <b><tt>TEMP</tt></b> environment variable to the name of the
-directory you want used.  Ghostscript currently doesn't do a very good job
-of deleting temporary files when it exits; you may have to delete them
-manually from time to time.
+setting the <b><tt>TMPDIR</tt></b> or <b><tt>TEMP</tt></b> environment
+variable to the name of the directory you want used.  Ghostscript currently
+doesn't do a very good job of deleting temporary files if it exits because
+of an error; you may have to delete them manually from time to time.
 
-<h1><a name="Environment_variables"></a>Summary of environment variables</h1>
+<dl>
+<dt><b><tt>GS</tt></b>, <b><tt>GSC</tt></b> (MS Windows only)
+<dd>Specify the names of the Ghostscript executables.  <b><tt>GS</tt></b>
+brings up a new typein window and possibly a graphics window;
+<b><tt>GSC</tt></b> uses the DOS console.  If these are not set,
+<b><tt>GS</tt></b> defaults to <b><tt>gswin32</tt></b>, and
+<b><tt>GSC</tt></b> defaults to <b><tt>gswin32c</tt></b>.
+</dl>
 
 <dl>
 <dt><a href="#GS_DEVICE"><b><tt>GS_DEVICE</tt></b></a>
@@ -984,13 +1062,15 @@ actual file names or even <a href="#Input_control">"@file" arguments</a>.
 </dl>
 
 <dl>
-<dt><a href="#Temp_files"><b><tt>TEMP</tt></b></a>
-<dd>Defines a directory name for temporary files.
+<dt><a href="#Temp_files"><b><tt>TEMP</tt></b>, <b><tt>TMPDIR</tt></b></a>
+<dd>Defines a directory name for temporary files.  If both
+<b><tt>TEMP</tt></b> and <b><tt>TMPDIR</tt></b> are defined,
+<b><tt>TMPDIR</tt></b> takes precedence.
 </dl>
 
 <hr>
 
-<h1><a name="PDF"></a>Using Ghostscript with PDF files</h1>
+<h2><a name="PDF"></a>Using Ghostscript with PDF files</h2>
 
 <p>
 Ghostscript is normally built (except on 16-bit DOS platforms) to interpret
@@ -1001,7 +1081,7 @@ files, with a few exceptions.  In addition, the
 <b><tt>pdf2ps</tt></b> utility uses Ghostscript to convert
 PDF to (Level 2) PostScript.
 
-<h2><a name="PDF_stdin"></a>PDF files from standard input</h2>
+<h3><a name="PDF_stdin"></a>PDF files from standard input</h3>
 
 <p>
 
@@ -1020,30 +1100,50 @@ is,
 	<td>(is <b><em>not</em></b> permissible)
 </table></blockquote>
 
-<h2><a name="PDF_switches"></a>Switches for PDF files</h2>
+<h3><a name="PDF_switches"></a>Switches for PDF files</h3>
 
 <dl>
-<dt><b><tt>-dFirstPage=pagenumber</tt></b>
+<dt><b><tt>-dFirstPage=</tt></b><em>pagenumber</em>
 <dd>Begins interpreting on the designated page of the document.
 </dl>
 
 <dl>
-<dt><b><tt>-dLastPage=pagenumber</tt></b>
+<dt><b><tt>-dLastPage=</tt></b><em>pagenumber</em>
 <dd>Stops interpreting after the designated page of the document.
 </dl>
 
-<h2><a name="PDF_problems"></a>Problems interpreting a PDF file</h2>
+<dl>
+<dt><b><tt>-dPrinted</tt></b>
+<dt><b><tt>-dPrinted=false</tt></b>
+<dd>Determines whether the file should be displayed or printed using the
+"screen" or "printer" options for annotations and images.  With
+<b><tt>-dPrinted</tt></b>, the output will use the file's "print"
+options; with <b><tt>-dPrinted=false</tt></b>, the output will use the
+file's "screen" options.  If neither of these is specified, the output will
+use the screen options for any output device that doesn't have an
+<b><tt>OutputFile</tt></b> parameter, and the printer options for
+devices that do have this parameter.
+</dl>
+
+<dl>
+<dt><b><tt>-sPDFPassword=</tt></b><em>password</em>
+<dd>Sets the user or owner password to be used in decoding encrypted
+PDF files.
+</dl>
+
+<h3><a name="PDF_problems"></a>Problems interpreting a PDF file</h3>
 
 <p>
 Occasionally you may try to read or print a <b><tt>*.pdf</tt></b> file that
-Ghostscript doesn't recognize as PDF, but the same file <b><em>can</em></b>
-be opened and interpreted by an Adobe Acrobat viewer.  This can happen
-when, for instance, a PDF file produced on a Macintosh is carelessly moved
-to another kind of system, leaving now-useless Macintosh-specific data
-before the standard header.  Ghostscript can't read these files because
-they don't conform to the PDF standard, Adobe's
-"<a href="http://www.adobe.com/supportservice/devrelations/PDFS/TN/PDFSPEC.PDF"><b><em>Portable
-Document Format Reference Manual</em></b></a>", version 1.2, which states:
+Ghostscript doesn't recognize as PDF, even though the same file
+<b><em>can</em></b> be opened and interpreted by an Adobe Acrobat viewer.
+This can happen when, for instance, a PDF file produced on a Macintosh is
+carelessly moved to another kind of system, leaving now-useless
+Macintosh-specific data before the standard header.  Ghostscript can't read
+these files because they don't conform to the PDF standard, Adobe's <a
+href="http://partners.adobe.com/asn/developer/acrosdk/docs/PDFRef.pdf"
+class="offsite"><cite>Portable
+Document Format Reference Manual</cite></a>, version 1.2, which states:
 
 <blockquote>
 The first line of a PDF file specifies the version number of the PDF
@@ -1092,15 +1192,15 @@ binary.
 
 <hr>
 
-<h1><a name="Platforms"></a>Notes on specific platforms</h1>
+<h2><a name="Platforms"></a>Notes on specific platforms</h2>
 
-<h2><a name="Unix"></a>Unix</h2>
+<h3><a name="Unix"></a>Unix</h3>
 
 <p>
 The Ghostscript distribution includes some Unix shell scripts to use with
 Ghostscript in different environments.  These are all user-contributed
 code, so if you have questions, please contact the user identified in the
-file, not Aladdin Enterprises.
+file, not Aladdin Enterprises or artofcode LLC.
 
 <dl>
 <dt><b><tt>pv.sh</tt></b>
@@ -1131,7 +1231,7 @@ administrators
 
 <hr>
 
-<h2><a name="VMS"></a>VMS</h2>
+<h3><a name="VMS"></a>VMS</h3>
 
 <ul>
 <li>To be able to specify switches and file names when invoking the
@@ -1218,7 +1318,7 @@ FTP, you probably need to do one of these two things after the transfer:
 <p>
 where the contents of the file <b><tt>STREAMLF.FDL</tt></b> are
 
-<blockquote><font size="-1">
+<blockquote>
 <pre>FILE
         ORGANIZATION            sequential
 
@@ -1226,7 +1326,7 @@ RECORD
         BLOCK_SPAN              yes
         CARRIAGE_CONTROL        carriage_return
         FORMAT                  stream_lf
-</pre></font></blockquote>
+</pre></blockquote>
 
 <li>If the FTP transfer was in binary mode:
 
@@ -1236,7 +1336,7 @@ RECORD
 </ol>
 </ul>
 
-<h3><a name="VMS_X_Windows"></a>Using X Windows on VMS</h3>
+<h4><a name="VMS_X_Windows"></a>Using X Windows on VMS</h4>
 
 <p>
 If you are using on an X Windows display, you can set it up with the node
@@ -1251,7 +1351,7 @@ and then run Ghostscript by typing <b><tt>gs</tt></b> at the command line.
 
 <hr>
 
-<h2><a name="MS_Windows"></a>MS Windows</h2>
+<h3><a name="MS_Windows"></a>MS Windows</h3>
 
 <p>
 You must add <em>gs\</em><b><tt>bin</tt></b> and
@@ -1260,7 +1360,7 @@ You must add <em>gs\</em><b><tt>bin</tt></b> and
 
 <hr>
 
-<h2><a name="MS-DOS"></a>MS-DOS</h2>
+<h3><a name="MS-DOS"></a>MS-DOS</h3>
 
 <p>
 You must add <em>gs\</em><b><tt>bin</tt></b> and
@@ -1478,7 +1578,7 @@ future releases.
 
 <hr>
 
-<h2><a name="X_Windows"></a>X Windows</h2>
+<h3><a name="X_Windows"></a>X Windows</h3>
 
 <p>
 Ghostscript looks for the following resources under the program name
@@ -1601,7 +1701,7 @@ calculated from display metrics:
 	<td>See "<a href="#X_fonts">X fonts</a>"
 </table></blockquote>
 
-<h3><a name="X_resources"></a>X resources</h3>
+<h4><a name="X_resources"></a>X resources</h4>
 
 <ul>
 <li>
@@ -1652,7 +1752,7 @@ number of colors that Ghostscript will allocate dynamically in the
 colormap.
 </ul>
 
-<h3><a name="X_server_bugs"></a>Working around bugs in X servers</h3>
+<h4><a name="X_server_bugs"></a>Working around bugs in X servers</h4>
 
 <p>
 The "<b><tt>use</tt></b>..." resources exist primarily to work around bugs
@@ -1685,7 +1785,7 @@ in X servers.
 	<b><tt>false</tt></b>.
 </ul>
 
-<h3><a name="X_fonts"></a>X fonts</h3>
+<h4><a name="X_fonts"></a>X fonts</h4>
 
 <p>
 To use native X11 fonts, Ghostscript must map PostScript font names to the
@@ -1716,14 +1816,14 @@ use native X11 fonts for fonts that are anamorphically scaled, rotated, or
 mirrored.  If the changes have been installed to the X or font server, they
 are automatically used when appropriate.
 
-<h3><a name="GS_fonts_as_X_fonts"></a>Using Ghostscript fonts on X displays</h3>
+<h4><a name="GS_fonts_as_X_fonts"></a>Using Ghostscript fonts on X displays</h4>
 
 <p>
 Font files distributed with Ghostscript can be used on X Windows displays.
 You can find full instructions in the
 <a href="Fonts.htm#Use_gs_fonts_with_X">documentation on fonts</a>.
 
-<h3><a name="X_device_parameters"></a>X device parameters</h3>
+<h4><a name="X_device_parameters"></a>X device parameters</h4>
 
 <p>
 In addition to the device parameters recognized by <a
@@ -1764,7 +1864,7 @@ details, please consult the source file <b><tt>gdevx.h</tt></b>.
 
 <hr>
 
-<h2><a name="SCO_Unix"></a>SCO Unix</h2>
+<h3><a name="SCO_Unix"></a>SCO Unix</h3>
 
 <p>
 Because of bugs in the SCO Unix kernel, Ghostscript will not work if you
@@ -1774,14 +1874,14 @@ terminal output to a file.
 
 <hr>
 
-<h1><a name="Switches"></a>Switches</h1>
+<h2><a name="Switches"></a>Switches</h2>
 
 <p>
 Unless otherwise noted, these switches can be used on all platforms.
 
-<h2><a name="General_switches"></a>General switches</h2>
+<h3><a name="General_switches"></a>General switches</h3>
 
-<h3><a name="Input_control"></a>Input control</h3>
+<h4><a name="Input_control"></a>Input control</h4>
 
 <dl>
 <dt><b><tt>@</tt></b><em>filename</em>
@@ -1842,7 +1942,7 @@ tokens for the <b><tt>-c</tt></b> switch.
 "<b><tt>-</tt></b>" or "<b><tt>@</tt></b>".
 </dl>
 
-<h3><a name="File_searching"></a>File searching</h3>
+<h4><a name="File_searching"></a>File searching</h4>
 
 <p>
 Note that by "library files" here we mean all the files identified using
@@ -1869,7 +1969,7 @@ directory for library files (unless, of course, the first explicitly
 supplied directory is "<b><tt>.</tt></b>").
 </dl>
 
-<h3><a name="Parameters"></a>Setting parameters</h3>
+<h4><a name="Parameters"></a>Setting parameters</h4>
 
 <dl>
 <dt><b><tt>-D</tt></b><em>name</em>
@@ -1915,8 +2015,10 @@ Note that the initialization file <b><tt>gs_init.ps</tt></b> makes
 <b><tt>systemdict</tt></b> read-only, so the values of names defined with
 <b><tt>-D</tt></b>, <b><tt>-d</tt></b>, <b><tt>-S</tt></b>, and
 <b><tt>-s</tt></b> cannot be changed -- although, of course, they can be
-superseded by definitions in <b><tt>userdict</tt></b> or other
-dictionaries.
+superseded by definitions in <b><tt>userdict</tt></b> or other dictionaries.
+However, device parameters set this way (<b><tt>PageSize</tt></b>,
+<b><tt>Margins</tt></b>, etc.) are <em>not</em> read-only, and <em>can</em>
+be changed by code in PostScript files.
 
 <dl>
 <dt><b><tt>-g</tt></b><em>number1</em><b><tt>x</tt></b><em>number2</em>
@@ -1938,7 +2040,7 @@ horizontal and vertical resolution in pixels per inch for the benefit of
 devices such as printers that support multiple X and Y resolutions.
 </dl>
 
-<h3><a name="Quiet"></a>Suppress messages</h3>
+<h4><a name="Quiet"></a>Suppress messages</h4>
 
 <dl>
 <dt><a name="Quiet"></a><b><tt>-q</tt></b>
@@ -1946,7 +2048,7 @@ devices such as printers that support multiple X and Y resolutions.
 equivalent of <a href="#dQUIET"><b><tt>-dQUIET</tt></b></a>.
 </dl>
 
-<h2><a name="Parameter_switches"></a>Parameter switches (<b><tt>-d</tt></b> and <b><tt>-s</tt></b>)</h2>
+<h3><a name="Parameter_switches"></a>Parameter switches (<b><tt>-d</tt></b> and <b><tt>-s</tt></b>)</h3>
 
 <p>
 As noted above, <b><tt>-d</tt></b> and <b><tt>-s</tt></b> define initial
@@ -1960,7 +2062,7 @@ used).  For example, since the <b><tt>ppmraw</tt></b> device has a numeric
 component, <b><tt>-sDEVICE=ppmraw -dGrayValues=16</tt></b> will make this
 the default device and set the number of bits per component to 4 (log2(16)).
 
-<h3><a name="Rendering_parameters"></a>Rendering parameters</h3>
+<h4><a name="Rendering_parameters"></a>Rendering parameters</h4>
 
 <dl>
 <dt><b><tt>-dCOLORSCREEN
@@ -2009,13 +2111,7 @@ images at the expense of image quality.  <b><tt>-dNOINTERPOLATE</tt></b>
 overrides <b><tt>-dDOINTERPOLATE</tt></b>.
 </dl>
 
-<dl>
-<dt><b><tt>-dUsePrinterImages</tt></b>
-<dd>In PDF files that provide alternate images for printing, uses the
-alternate image (for all output devices).  Useful for print previewing.
-</dl>
-
-<h3><a name="Page_parameters"></a>Page parameters</h3>
+<h4><a name="Page_parameters"></a>Page parameters</h4>
 
 <dl>
 <dt><a name="FIXEDMEDIA"></a><b><tt>-dFIXEDMEDIA</tt></b>
@@ -2048,7 +2144,14 @@ landscape, which is the convention used by a smaller number of files
 produced by properly written applications.
 </dl>
 
-<h3><a name="Font_related_parameters"></a>Font-related parameters</h3>
+<dl>
+<dt><b><tt>-dDEVICEWIDTHPOINTS=</tt></b><em>w</em>
+<br><b><tt>-dDEVICEHEIGHTPOINTS=</tt></b><em>h</em>
+<dd>Sets the initial page width to <em>w</em> or initial page height to
+<em>h</em> respectively, specified in 1/72" units.
+</dl>
+
+<h4><a name="Font_related_parameters"></a>Font-related parameters</h4>
 
 <dl>
 <dt><a name="DISKFONTS"></a><b><tt>-dDISKFONTS</tt></b>
@@ -2065,6 +2168,14 @@ built into the executable; otherwise it is ignored.
 <dd>Causes Type 1 fonts to be loaded into the current VM -- normally local
 VM -- instead of always being loaded into global VM.  Useful only for
 compatibility with Adobe printers for loading some obsolete fonts.
+</dl>
+
+<dl>
+<dt><b><tt>-dNOCCFONTS</tt></b>
+<dd>Suppresses the use of fonts precompiled into the Ghostscript executable.
+See <a href="Fonts.htm#Precompiling">"Precompiling fonts"</a> in the
+documentation on fonts for details.  This is probably useful only for
+debugging.
 </dl>
 
 <dl>
@@ -2110,7 +2221,7 @@ named "<em>fontname</em>", not a copy of the font with the
 <b><tt>FontName</tt></b> changed to the requested one.
 </dl>
 
-<h3><a name="Interaction_related_parameters"></a>Interaction-related parameters</h3>
+<h4><a name="Interaction_related_parameters"></a>Interaction-related parameters</h4>
 
 <dl>
 <dt><b><tt>-dBATCH</tt></b>
@@ -2156,6 +2267,15 @@ currently necessary when redirecting device output to standard output.
 </dl>
 
 <dl>
+<dt><b><tt>-sstdout=</tt></b><em>filename</em>
+<dd>Redirect PostScript <b><tt>%stdout</tt></b> to a file or 
+<b><tt>stderr</tt></b>, to avoid it being mixed with device stdout.
+To redirect stdout to stderr use <b><tt>-sstdout=%stderr</tt></b>.
+To cancel redirection of stdout use <b><tt>-sstdout=%stdout</tt></b>
+or <b><tt>-sstdout=-</tt></b>.
+</dl>
+
+<dl>
 <dt><b><tt>-dTTYPAUSE</tt></b>
 <dd>Causes Ghostscript to read a character from <b><tt>/dev/tty</tt></b>,
 rather than standard input, at the end of each page.  This may be useful if
@@ -2163,7 +2283,7 @@ input is coming from a pipe.  Note that <b><tt>-dTTYPAUSE</tt></b>
 overrides <b><tt>-dNOPAUSE</tt></b>.
 </dl>
 
-<h3><a name="Output_selection_parameters"></a>Device and output selection parameters</h3>
+<h4><a name="Output_selection_parameters"></a>Device and output selection parameters</h4>
 
 <dl>
 <dt><b><tt>-dNODISPLAY</tt></b>
@@ -2186,7 +2306,7 @@ device</a>.
 device, as described above.
 </dl>
 
-<h3><a name="Other_parameters"></a>Other parameters</h3>
+<h4><a name="Other_parameters"></a>Other parameters</h4>
 
 <dl>
 <dt><b><tt>-dDELAYBIND</tt></b>
@@ -2195,6 +2315,15 @@ actually execute them until the <b><tt>.bindnow</tt></b> procedure is
 called.  Useful only for certain specialized packages like
 <b><tt>pstotext</tt></b> that redefine operators.
 </dl>
+
+<dl> 
+<dt><b><tt>-dDOPDFMARKS</tt></b> 
+<dd>Causes <b><tt>pdfmark</tt></b> to be called for bookmarks, 
+annotations, links and cropbox when processing PDF files. 
+Normally, <b><tt>pdfmark</tt></b> is only called for these types 
+for PostScript files or when the output device requests it 
+(e.g. pdfwrite device). 
+</dl> 
 
 <dl>
 <dt><b><tt>-dNOBIND</tt></b>
@@ -2214,10 +2343,58 @@ Useful only for debugging.
 </dl>
 
 <dl>
-<dt><a name="Safer"></a><b><tt>-dSAFER</tt></b>
+<dt><b><tt>-dNOSAFER</tt></b> (equivalent to <b><tt>-dDELAYSAFER</tt></b>).
+<dd>This flag disables SAFER mode until the <b><tt>.setsafe</tt></b>
+procedure is run. This is intended for clients or scripts that cannot
+operate in SAFER mode. If Ghostscript is started with <b><tt>-dNOSAFER</tt></b>
+or <b><tt>-dDELAYSAFER</tt></b>, PostScript programs are allowed to read, write,
+rename or delete any files in the system that are not protected by operating
+system permissions.
+<p><b>This mode should be used with caution, and <tt>.setsafe</tt> should be
+run prior to running any PostScript file with unknown contents.</b>
+</dl>
+
+<a name="Safer"></a>
+<dl>
+<dt><b><tt>-dSAFER</tt></b>
 <dd>Disables the <b><tt>deletefile</tt></b> and <b><tt>renamefile</tt></b>
-operators, and the ability to open files in any mode other than read-only.
-This may be desirable for spoolers or other sensitive environments.
+operators, and the ability to open piped commands (<b><tt>%pipe%</tt></b><em>cmd</em>)
+at all. Only <b><tt>%stdout</tt></b> and <b><tt>%stderr</tt></b> can be opened
+for writing.
+<p>
+This mode also sets the <a href="Language.htm#LockSafetyParams">.LockSafetyParams</a>
+parameter of the default device, or the device specified with the <b><tt>-sDEVICE= </tt></b>
+switch to protect against programs that attempt to write to files using the
+OutputFile device parameter. Note that since the device parameters specified
+on the command line (including OutputFile) are set prior to SAFER mode,
+the <b><tt>-sOutputFile=...</tt></b> on the command line is unrestricted.
+<p>
+<b><tt>SAFER</tt></b> mode also prevents changing the /GenericResourceDir,
+/FontResourceDir and either the /SystemParamsPassword or the /StartJobPassword.
+<p>
+<b>Note: </b>While SAFER mode is not the default, in a subsequent release of
+Ghostscript, SAFER mode will be the default thus scripts or programs that need
+to open files or set restricted parameters will require the <b><tt>-dNOSAFER</tt></b>
+command line option.
+<p>
+When running -dNOSAFER it is possible to perform a <b><tt>save</tt></b>,
+followed by <b><tt>.setsafe</tt></b>, execute a file or procedure in SAFER mode,
+then use <b><tt>restore</tt></b> to return to NOSAFER mode. In order to prevent
+the save object from being restored by the foreign file or procedure, the
+<a href="Language.htm#Runandhide"><b>.runandhide</b></a> operator should
+be used to hide the save object from the restricted procedure.
+</dl>
+
+<dl>
+<dt><b><tt>-dPARANOIDSAFER</tt></b>
+<dd>Disables reading of files other than <b><tt>%stdin</tt></b>, those given as
+a command line argument, or those contained on one of the paths given by
+LIBPATH and FONTPATH and specified by the system params /FontResourceDir
+and /GenericResourceDir.
+<p>
+<b><tt>-dPARANOIDSAFER</tt></b> implies <b><tt>-dSAFER</tt></b> so if
+<b><tt>-dPARANOIDSAFER</tt></b> is given on the command line, 
+<b><tt>-dSAFER</tt></b> is optional.
 </dl>
 
 <dl>
@@ -2236,7 +2413,7 @@ protection.
 
 <hr>
 
-<h1><a name="Improving_performance"></a>Improving performance</h1>
+<h2><a name="Improving_performance"></a>Improving performance</h2>
 
 <p>
 Ghostscript attempts to find an optimum balance between speed and memory
@@ -2260,7 +2437,7 @@ memory: <b><tt>-c&nbsp;3000000&nbsp;setvmthreshold&nbsp;-f</tt></b>.
 
 <hr>
 
-<h1><a name="Debugging"></a>Debugging</h1>
+<h2><a name="Debugging"></a>Debugging</h2>
 
 <p>
 The information here describing the debugging switches is probably
@@ -2317,6 +2494,13 @@ usage.
 	<td>&nbsp;
 	<td>&nbsp;
 	<td>Execute the file with <b><tt>-B1</tt></b> temporarily in effect
+<tr>	<td valign=top><b><tt>-K</tt></b><em>n</em>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>Limit the total amount of memory that the interpreter can have
+	    allocated at any one time to <b><em>n</em></b>K bytes.
+	    <b><em>n</em></b> is a positive decimal integer.
 <tr>	<td valign=top><b><tt>-M</tt></b><em>n</em>
 	<td>&nbsp;
 	<td>&nbsp;
@@ -2386,8 +2570,8 @@ usage.
 <dt><b><tt>t</tt></b><dd>tiling algorithm
 <dt><b><tt>u</tt></b><dd>undo saver (for save/restore), finalization
 <dt>&nbsp;&nbsp;&nbsp;<b><tt>U</tt></b><dd>undo saver, more detail
-<dt><b><tt>v</tt></b><dd>rectangle fill
-<dt>&nbsp;&nbsp;&nbsp;<b><tt>V</tt></b><dd>device-level output
+<dt><b><tt>v</tt></b><dd>alpha/transparency
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>V</tt></b><dd>alpha/transparency, more detail
 <dt><b><tt>w</tt></b><dd>compression encoder/decoder
 <dt><b><tt>x</tt></b><dd>transformations
 <dt><b><tt>y</tt></b><dd>Type 1 hints
@@ -2434,7 +2618,7 @@ storage with a marker (a1, c1, and f1 respectively)
 
 <hr>
 
-<h1><a name="Known_paper_sizes"></a>Appendix: Paper sizes known to Ghostscript</h1>
+<h2><a name="Known_paper_sizes"></a>Appendix: Paper sizes known to Ghostscript</h2>
 
 <p>
 The paper sizes known to Ghostscript are defined at the beginning of the
@@ -2595,14 +2779,12 @@ e.g., <b><tt>b0</tt></b> becomes the same as <b><tt>jisb0</tt></b>.
 
 <hr>
 
-<h1><a name="X_font_mappings"></a>Appendix: X default font mappings</h1>
+<h2><a name="X_font_mappings"></a>Appendix: X default font mappings</h2>
 
-<h2><a name="Standard_X_server_fonts"></a>Standard X servers</h2>
+<h3><a name="Standard_X_server_fonts"></a>Standard X servers</h3>
 
-<h3><a name="X_regular_fonts"></a>Regular fonts</h3>
+<h4><a name="X_regular_fonts"></a>Regular fonts</h4>
 
-<p>
-<font size="-1">
 <pre>    AvantGarde-Book:              -Adobe-ITC Avant Garde Gothic-Book-R-Normal--\n\
     AvantGarde-BookOblique:       -Adobe-ITC Avant Garde Gothic-Book-O-Normal--\n\
     AvantGarde-Demi:              -Adobe-ITC Avant Garde Gothic-Demi-R-Normal--\n\
@@ -2636,31 +2818,25 @@ e.g., <b><tt>b0</tt></b> becomes the same as <b><tt>jisb0</tt></b>.
     Times-Italic:                 -Adobe-Times-Medium-I-Normal--\n\
     Times-Roman:                  -Adobe-Times-Medium-R-Normal--\n\
     ZapfChancery-MediumItalic:    -Adobe-ITC Zapf Chancery-Medium-I-Normal--
-</pre></font>
+</pre>
 
-<h3><a name="X_symbol_fonts"></a>Symbol fonts</h3>
+<h4><a name="X_symbol_fonts"></a>Symbol fonts</h4>
 
-<p>
-<font size="-1">
 <pre>    Symbol:                       -Adobe-Symbol-Medium-R-Normal--
-</pre></font>
+</pre>
 
-<h3><a name="X_dingbat_fonts"></a>Dingbat fonts</h3>
+<h4><a name="X_dingbat_fonts"></a>Dingbat fonts</h4>
 
-<p>
-<font size="-1">
 <pre>    ZapfDingbats:                 -Adobe-ITC Zapf Dingbats-Medium-R-Normal--
-</pre></font>
+</pre>
 
-<h2><a name="OpenWindows_fonts"></a>Sun OpenWindows</h2>
+<h3><a name="OpenWindows_fonts"></a>Sun OpenWindows</h3>
 
 <p>
 For Sun's X11/NeWS one can use the OpenWindows scalable fonts instead,
 which gives good output for any point size.  In this environment, the
 relevant section of the resource file should look like this:
 
-<p>
-<font size="-1">
 <pre>Ghostscript.regularFonts: \
     AvantGarde-Book:              -itc-avantgarde-book-r-normal-- \n\
     AvantGarde-BookOblique:       -itc-avantgarde-book-o-normal-- \n\
@@ -2725,26 +2901,25 @@ Ghostscript.dingbatFonts: \
     ZapfDingbats:                 -itc-zapfdingbats-medium-r-normal--
 Ghostscript.symbolFonts: \
     Symbol:                       --symbol-medium-r-normal--
-</pre></font>
+</pre>
 
 <!-- [2.0 end contents] ==================================================== -->
 
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights
+reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

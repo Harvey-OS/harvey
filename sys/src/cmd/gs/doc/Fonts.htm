@@ -1,8 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Fonts and font facilities supplied with Ghostscript</title>
-<!-- $Id: Fonts.htm,v 1.2 2000/03/16 04:05:07 lpd Exp $ -->
+<!-- $Id: Fonts.htm,v 1.22.2.2 2002/02/01 05:31:24 raph Exp $ -->
 <!-- Originally: fonts.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -10,11 +12,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-Fonts and font facilities<br>supplied with Ghostscript
-</font>
-</table>
+<h1>Fonts and font facilities supplied with Ghostscript</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -178,8 +176,10 @@ detail in the <a href="Hershey.htm">documentation on Hershey fonts</a>.
 Fonts can be found at
 
 <blockquote>
-ftp://ftp.cs.wisc.edu/ghost/aladdin/gs###/ (for a particular version)<br>
-<a href="ftp://ftp.cs.wisc.edu/ghost/aladdin/fonts/">ftp://ftp.cs.wisc.edu/ghost/aladdin/fonts/</a> (for several versions)
+ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/gs###/ (for a particular version)<br>
+<a href="ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/fonts/" 
+class="offsite">ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/fonts/</a> (for
+several versions)
 </blockquote>
 
 <hr>
@@ -190,8 +190,17 @@ ftp://ftp.cs.wisc.edu/ghost/aladdin/gs###/ (for a particular version)<br>
 
 <p>
 Don Knuth's Computer Modern fonts are popular, free, and widely available.
-A Fontmap appropriate for these fonts is available from <a
-href="http://ls2-www.cs.uni-dortmund.de/.tmp/Fontmap.cmr">http://ls2-www.cs.uni-dortmund.de/.tmp/Fontmap.cmr</a>.
+A Fontmap appropriate for these fonts is available from:
+
+<blockquote>
+<a
+href="ftp://tug.ctan.org/tex-archive/fonts/cm/ps-type1/contrib/Fontmap.cmr" 
+class="offsite">
+ftp://tug.ctan.org/tex-archive/fonts/cm/ps-type1/contrib/Fontmap.cmr</a>
+</blockquote>
+
+<p>
+or from other <a href="New-user.htm#CTAN">CTAN</a> sites.
 
 <h3><a name="Chinese"></a>Free Chinese (Hanzi) fonts</h3>
 
@@ -201,7 +210,8 @@ Ltd., Taiwan under the GPL and now distributed by the Taiwan NeXT User
 Group, is available from:
 
 <blockquote>
-<a href="ftp://ftp.cs.wisc.edu/ghost/hanzi/">ftp://ftp.cs.wisc.edu/ghost/hanzi/</a>
+<a href="ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/3rdparty/fonts/hanzi/" 
+class="offsite">ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/3rdparty/fonts/hanzi/</a>
 </blockquote>
 
 <p>
@@ -212,7 +222,8 @@ href="mailto:ntut019@ccms.ntu.edu.tw">ntut019@ccms.ntu.edu.tw</a>.  The
 fonts are available from
 
 <blockquote>
-<a href="ftp://cle.linux.org.tw/pub/fonts/cwfont/">ftp://cle.linux.org.tw/pub/fonts/cwfont/</a><br>
+<a href="ftp://cle.linux.org.tw/pub/fonts/cwfont/" 
+class="offsite">ftp://cle.linux.org.tw/pub/fonts/cwfont/</a><br>
 </blockquote>
 
 <p>
@@ -224,7 +235,8 @@ href="Make.htm#Features_and_devices">here</a> for more information.)  The
 fonts and license are available from
 
 <blockquote>
-<a href="ftp://linux.tmtc.edu.tw/pub/arphic/">ftp://linux.tmtc.edu.tw/pub/arphic/</a><br>
+<a href="ftp://cle.linux.org.tw/pub/fonts/arphic/" 
+class="offsite">ftp://cle.linux.org.tw/pub/fonts/arphic/</a><br>
 </blockquote>
 
 <h3><a name="Japanese"></a>Free Japanese (Kanji) fonts</h3>
@@ -234,7 +246,8 @@ Mr. Tetsurou Tanaka of the Department of Engineering, University of Tokyo,
 has created a set of free Kanji fonts available from
 
 <blockquote>
-<a href="ftp://ftp.ipl.t.u-tokyo.ac.jp/Font/">ftp://ftp.ipl.t.u-tokyo.ac.jp/Font/</a><br>
+<a href="ftp://ftp.ipl.t.u-tokyo.ac.jp/Font/" 
+class="offsite">ftp://ftp.ipl.t.u-tokyo.ac.jp/Font/</a><br>
 </blockquote>
 
 <p>
@@ -243,7 +256,8 @@ conditions of use and how to use them.  An older copy of these fonts, under
 somewhat different names, is available at the Ghostscript site:
 
 <blockquote>
-<a href="ftp://ftp.cs.wisc.edu/ghost/kanji/">ftp://ftp.cs.wisc.edu/ghost/kanji/</a><br>
+<a href="ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/3rdparty/fonts/kanji/">
+ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/3rdparty/fonts/kanji/</a><br>
 </blockquote>
 
 <p>
@@ -252,7 +266,8 @@ Kanji fonts.  An easy-to-install Kanji font for Ghostscript, with
 installation instructions, is at
 
 <blockquote>
-<a href="http://www.cit.ics.saitama-u.ac.jp/~far/howto/gs-ttf.html">http://www.cit.ics.saitama-u.ac.jp/~far/howto/gs-ttf.html</a>
+<a href="http://www.cit.ics.saitama-u.ac.jp/~far/howto/gs-ttf.html" 
+class="offsite">http://www.cit.ics.saitama-u.ac.jp/~far/howto/gs-ttf.html</a>
 </blockquote>
 
 <p>
@@ -260,7 +275,8 @@ The same site has patches to make Ghostscript work with Japanese VF fonts,
 with documentation in both English and Japanese:
 
 <blockquote>
-<a href="http://www.cit.ics.saitama-u.ac.jp/~far/howto/gs-vflib.html">http://www.cit.ics.saitama-u.ac.jp/~far/howto/gs-vflib.html</a>
+<a href="http://www.cit.ics.saitama-u.ac.jp/~far/howto/gs-vflib.html" 
+class="offsite">http://www.cit.ics.saitama-u.ac.jp/~far/howto/gs-vflib.html</a>
 </blockquote>
 
 <p>
@@ -268,11 +284,14 @@ Here are some other resources in Japanese relating to VFlib and using
 Ghostscript with Japanese fonts:
 
 <blockquote><dl compact>
-<dt><a href="http://www.ldl.jaist.ac.jp/~akr/nonresearch/free-software/ghostscript/index.ja.html">http://www.ldl.jaist.ac.jp/~akr/nonresearch/free-software/ghostscript/index.ja.html</a>
-<dd>Author &lt;<a href="mailto:akr@jaist.ac.jp">akr@jaist.ac.jp</a>&gt;
-<dt><a href="http://kakugawa.aial.hiroshima-u.ac.jp/~kakugawa/Hacks/">http://kakugawa.aial.hiroshima-u.ac.jp/~kakugawa/Hacks/</a>
-<dt><a href="http://itohws03.ee.noda.sut.ac.jp/~matsuda/VFlib-FT/">http://itohws03.ee.noda.sut.ac.jp/~matsuda/VFlib-FT/</a>
+<dt><a href="http://kakugawa.aial.hiroshima-u.ac.jp/~kakugawa/Hacks/" 
+class="offsite">http://kakugawa.aial.hiroshima-u.ac.jp/~kakugawa/Hacks/</a>
+<dt><a href="http://itohws03.ee.noda.sut.ac.jp/~matsuda/VFlib-FT/" 
+class="offsite">http://itohws03.ee.noda.sut.ac.jp/~matsuda/VFlib-FT/</a>
 <dd>Author &lt;<a href="mailto:matsuda@itohws01.ee.noda.sut.ac.jp">matsuda@itohws01.ee.noda.sut.ac.jp</a>&gt;
+<dt><a href="http://www.rd.nacsis.ac.jp/~katayama/homepage/ghostscript/Japanese.html"
+class="offsite">http://www.rd.nacsis.ac.jp/~katayama/homepage/ghostscript/Japanese.html</a>
+<dd>Author &lt;<a href="mailto:katayama@rd.nacsis.ac.jp">katayama@rd.nacsis.ac.jp</a>&gt;
 </dl></blockquote>
 
 <h3><a name="Unicode_CMaps"></a>Unicode CMaps</h3>
@@ -281,7 +300,8 @@ Ghostscript with Japanese fonts:
 The Unicode CMaps distributed with Ghostscript are freely downloadable from
 
 <blockquote>
-<a href="ftp://ftp.oreilly.com/pub/examples/nutshell/ujip/adobe/">ftp://ftp.oreilly.com/pub/examples/nutshell/ujip/adobe/</a>
+<a href="ftp://ftp.oreilly.com/pub/examples/nutshell/ujip/adobe/" 
+class="offsite">ftp://ftp.oreilly.com/pub/examples/nutshell/ujip/adobe/</a>
 </blockquote>
 
 <h3><a name="Cyrillic"></a>Free Cyrillic fonts</h3>
@@ -293,7 +313,8 @@ N. Glonty and A. Samarin created in 1989 a Cyrillic extension of TeX's
 for instance at
 
 <blockquote>
-<a href="ftp://ctan.tug.org/tex-archive/fonts/cyrillic/cmcyr/">ftp://ctan.tug.org/tex-archive/fonts/cyrillic/cmcyr/</a>
+<a href="ftp://ctan.tug.org/tex-archive/fonts/cyrillic/cmcyr/" 
+class="offsite">ftp://ctan.tug.org/tex-archive/fonts/cyrillic/cmcyr/</a>
 </blockquote>
 
 <p>
@@ -301,53 +322,27 @@ for instance at
 is, for instance, at
 
 <blockquote>
-<a href="ftp://ctan.tug.org/tex-archive/fonts/cyrillic/">ftp://ctan.tug.org/tex-archive/fonts/cyrillic/</a>
+<a href="ftp://ctan.tug.org/tex-archive/fonts/cyrillic/" 
+class="offsite">ftp://ctan.tug.org/tex-archive/fonts/cyrillic/</a>
 </blockquote>
 
 <p>
 Basil K. Malyshev created the "Paradissa Fonts Collection" in 1993.  It
-contains 165 fonts, including the Glonty and Samarin font above plus other
+contained 165 fonts, including the Glonty and Samarin font above plus other
 Computer Modern, Euler, and LaTeX fonts, all in PostScript Type 1 format
-with <tt><b>.AFM</b></tt> and
-<tt><b>.PFM</b></tt> files, compatible with ATM.  The
-collection could once be found through CTAN, for instance at
+with <code>.afm</code> and <code>.pfm</code> files, compatible with ATM.
+The collection could once be found through CTAN, for instance at
 
 <blockquote>
-<a href="ftp://ctan.tug.org/tex-archive/fonts/postscript/cm/">ftp://ctan.tug.org/tex-archive/fonts/postscript/cm/</a>
+http://www.ctan.org/tex-archive/fonts/
+<!-- orginal was ftp://ctan.tug.org/tex-archive/fonts/postscript/cm/ -->
 </blockquote>
 
 <p>
-but the CTAN archive has been reorganized and it is not clear where to find
-the fonts.  These fonts are covered by this license:
-
-<blockquote>
-Paradissa fonts collection.<br>
-Copyright &copy; 1993, Basil K. Malyshev. All Rights Reserved.
-
-<p align=center>
-Licensing agreement</p>
-
-<p>
-The author of this fonts grants to any individual or non-commercial
-organization the right to use and to make an unlimited number of copies of
-full collection or selected fonts when this is done WITHOUT CHARGE and has
-attached this licence agreement.
-
-<p>
-This fonts cannot be sold or distributed with any commercial product
-without written authorization from the author.  If you want to charge a
-small fee for distribute fonts as is or with any software, you should
-contact the author.
-
-<p>
-This restriction is not intended to apply to connect time charges, or flat
-rate connection/download fees for electronic bulletin board services.
-
-<p>
-Basil K. Malyshev &lt;<a
-href="mailto:malyshev@mx.ihep.su">malyshev@mx.ihep.su</a>&gt; 22 December
-1993, Protvino, Russia.
-</blockquote>
+but the collection no longer seems to be available. However, the
+<a href="http://www.ctan.org/tex-archive/fonts/" class="offsite">ctan fonts directory</a>
+remains an excellent source of free fonts, many of which are offered in
+postscript as well we as TeX Metafont format.
 
 <hr>
 
@@ -360,7 +355,8 @@ very large subset of the remaining Unicode set.  They are available in both
 Type 1 and TrueType formats.  See
 
 <blockquote>
-<a href="http://bibliofile.mc.duke.edu/gww/fonts/Unicode.html">http://bibliofile.mc.duke.edu/gww/fonts/Unicode.html</a>
+<a href="http://bibliofile.mc.duke.edu/gww/fonts/Unicode.html" 
+class="offsite">http://bibliofile.mc.duke.edu/gww/fonts/Unicode.html</a>
 </blockquote>
 
 <h2><a name="Get_fonts"></a>How Ghostscript gets fonts when it runs</h2>
@@ -482,14 +478,13 @@ with Ghostscript and defined earlier in the file.
 
 <p>
 In the PC world, Type 1 fonts are customarily given names ending in
-<tt><b>.PFA</b></tt> or <tt><b>.PFB</b></tt>.
-Ghostscript can use these directly: you just need to make the entry in
-Fontmap.  If you want to use with Ghostscript a commercial Type 1 font
-(such as fonts obtained in conjunction with Adobe Type Manager), please
-read carefully the license that accompanies the font to satisfy yourself
-that you may do so legally; Aladdin Enterprises takes no responsibility for
-any possible violations of such licenses.  The same applies to TrueType
-fonts.
+<tt><b>.PFA</b></tt> or <tt><b>.PFB</b></tt>.  Ghostscript can use these
+directly: you just need to make the entry in Fontmap.  If you want to use
+with Ghostscript a commercial Type 1 font (such as fonts obtained in
+conjunction with Adobe Type Manager), please read carefully the license that
+accompanies the font to satisfy yourself that you may do so legally; we take
+no responsibility for any possible violations of such licenses.  The same
+applies to TrueType fonts.
 
 <h3><a name="Convert_BDF"></a>Converting BDF fonts</h3>
 
@@ -832,11 +827,11 @@ San Jose, CA  95110-2704<br>
 The XUID is a Level 2 PostScript feature that serves the same function as
 the UniqueID, but is not limited to a single 24-bit integer.  The
 <tt><b>bdftops</b></tt> program creates XUIDs of the form
-"<tt><b>[-X-&nbsp;0&nbsp;-U-]</b></tt>" where
-"<tt><b>-X-</b></tt>" is the organization XUID and
-"<tt><b>-U-</b></tt>" is the UniqueID.  (Aladdin Enterprises'
-organization XUID is 107; do not use this for your own fonts that you
-distribute.)
+"<tt><b>[-X-&nbsp;0&nbsp;-U-]</b></tt>" where "<tt><b>-X-</b></tt>" is the
+organization XUID and "<tt><b>-U-</b></tt>" is the UniqueID.  (Aladdin
+Enterprises' organization XUID, which appears in a few places in various
+font-related files distributed with Ghostscript, is 107; do not use this for
+your own fonts that you distribute.)
 
 <p>
 Because Ghostscript runs on many different systems, including DOS, the
@@ -1321,19 +1316,18 @@ This section by Bertrand Petit
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 1997, 1998, 1999, 2000 Aladdin
+Enterprises. All rights reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

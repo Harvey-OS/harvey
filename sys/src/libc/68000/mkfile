@@ -1,32 +1,39 @@
 objtype=68000
-</68000/mkfile
+</$objtype/mkfile
 
 LIB=/$objtype/lib/libc.a
-OFILES=\
-	main9.$O\
-	main9p.$O\
-	argv0.$O\
-	doprint.$O\
-	getfcr.$O\
-	memccpy.$O\
-	memchr.$O\
-	memcmp.$O\
-	memmove.$O\
-	muldivrt.$O\
-	notejmp.$O\
-	scale.$O\
-	setjmp.$O\
-	strcat.$O\
-	strchr.$O\
-	strcmp.$O\
-	strcpy.$O\
-	strlen.$O\
-	sqrt.$O\
-	vlrt.$O\
+SFILES=\
+	argv0.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memccpy.s\
+	memchr.s\
+	memcmp.s\
+	memmove.s\
+	memset.s\
+	muldivrt.s\
+	scale.s\
+	setjmp.s\
+	sqrt.s\
+	strcat.s\
+	strchr.s\
+	strcmp.s\
+	strcpy.s\
+	strlen.s\
+
+CFILES=\
+	doprint.c\
+	notejmp.c\
+	vlrt.c\
 
 HFILES=/sys/include/libc.h
 
-</sys/src/cmd/mksyslib
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
 
-installall:V:
-	mk install
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib

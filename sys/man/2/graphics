@@ -115,8 +115,6 @@ typedef
 struct Display
 {
 	...
-	ulong	chan;
-	int	depth;
 	void	(*error)(Display*, char*);
 	...
 	Image	*black;

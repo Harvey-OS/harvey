@@ -19,6 +19,7 @@ struct Proto
 	int	(*seprint)(Msg*);
 	Mux*	mux;
 	Field*	field;
+	int	(*framer)(int, uchar*, int);
 };
 extern Proto *protos[];
 
@@ -92,6 +93,7 @@ extern int	yyparse(void);
 extern Filter*	newfilter(void);
 extern void	compile_cmp(char*, Filter*, Field*);
 extern void	demux(Mux*, ulong, ulong, Msg*, Proto*);
+extern int	defaultframer(int, uchar*, int);
 
 extern int Nflag;
 extern int dflag;

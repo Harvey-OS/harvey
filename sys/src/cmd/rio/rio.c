@@ -221,7 +221,7 @@ threadmain(int argc, char *argv[])
 			r.max.x = r.min.x+300;
 			r.max.y = r.min.y+80;
 			i = allocwindow(wscreen, r, Refbackup, DWhite);
-			wkeyboard = new(i, 0, 0, nil, "/bin/rc", kbdargv);
+			wkeyboard = new(i, FALSE, scrolling, 0, nil, "/bin/rc", kbdargv);
 			if(wkeyboard == nil)
 				error("can't create keyboard window");
 		}
@@ -644,12 +644,11 @@ button3menu(void)
 	menu3str[i+Hidden] = nil;
 
 	sweeping = 1;
-	/*BUG: MENUHIT SHOULD TAKE FONT, COLOR, ETC. */
 	switch(i = menuhit(3, mousectl, &menu3, wscreen)){
 	case -1:
 		break;
 	case New:
-		new(sweep(), 0, 0, nil, "/bin/rc", nil);
+		new(sweep(), FALSE, scrolling, 0, nil, "/bin/rc", nil);
 		break;
 	case Reshape:
 		resize();
@@ -1056,7 +1055,7 @@ unhide(int h)
 }
 
 Window*
-new(Image *i, int hideit, int pid, char *dir, char *cmd, char **argv)
+new(Image *i, int hideit, int scrollit, int pid, char *dir, char *cmd, char **argv)
 {
 	Window *w;
 	Mousectl *mc;
@@ -1075,7 +1074,7 @@ new(Image *i, int hideit, int pid, char *dir, char *cmd, char **argv)
 	*mc = *mousectl;
 	mc->image = i;
 	mc->c = cm;
-	w = wmk(i, mc, ck, cctl);
+	w = wmk(i, mc, ck, cctl, scrollit);
 	free(mc);	/* wmk copies *mc */
 	window = erealloc(window, ++nwindow*sizeof(Window*));
 	window[nwindow-1] = w;

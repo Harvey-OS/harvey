@@ -172,7 +172,7 @@ Flush(Fid *f)
 char *
 Auth(Fid *)
 {
-	return "keyfs: no authentication required";
+	return "keyfs: authentication not required";
 }
 
 char *

@@ -567,7 +567,7 @@ system(int fd, char *cmd)
 	case 0:
 		close(pfd[1]);
 		dup(pfd[0], 0);
-		dup(pfd[0], 1);
+		dup(fd, 1);
 		close(ctl);
 		close(fd);
 		close(pfd[0]);

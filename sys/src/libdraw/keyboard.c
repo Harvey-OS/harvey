@@ -28,7 +28,7 @@ closekeyboard(Keyboardctl *kc)
 
 static
 void
-ioproc(void *arg)
+_ioproc(void *arg)
 {
 	int m, n;
 	char buf[20];
@@ -91,7 +91,7 @@ Error2:
 	}
 	free(t);
 	kc->c = chancreate(sizeof(Rune), 20);
-	proccreate(ioproc, kc, 4096);
+	proccreate(_ioproc, kc, 4096);
 	return kc;
 }
 

@@ -1,22 +1,22 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zfilter.c,v 1.2 2000/03/10 04:32:51 lpd Exp $ */
+/*$Id: zfilter.c,v 1.5 2001/02/28 00:39:26 rayjj Exp $ */
 /* Filter creation */
 #include "memory_.h"
 #include "ghost.h"
@@ -141,6 +141,8 @@ zSFD(i_ctx_t *i_ctx_p)
     ref *sop = op;
     int npop;
 
+    if (s_SFD_template.set_defaults)
+	s_SFD_template.set_defaults((stream_state *)&state);
     if (LL3_ENABLED && r_has_type(op, t_dictionary)) {
 	int count;
 	int code;
@@ -179,6 +181,7 @@ filter_read(i_ctx_t *i_ctx_p, int npop, const stream_template * template,
     os_ptr op = osp;
     uint min_size = template->min_out_size + max_min_left;
     uint save_space = ialloc_space(idmemory);
+    uint use_space = max(space, save_space);
     os_ptr sop = op - npop;
     stream *s;
     stream *sstrm;
@@ -196,10 +199,11 @@ filter_read(i_ctx_t *i_ctx_p, int npop, const stream_template * template,
      * Check to make sure that the underlying data
      * can function as a source for reading.
      */
+    use_space = max(use_space, r_space(sop));
     switch (r_type(sop)) {
 	case t_string:
 	    check_read(*sop);
-	    ialloc_set_space(idmemory, max(space, r_space(sop)));
+	    ialloc_set_space(idmemory, use_space);
 	    sstrm = file_alloc_stream(imemory, "filter_read(string stream)");
 	    if (sstrm == 0) {
 		code = gs_note_error(e_VMerror);
@@ -210,11 +214,11 @@ filter_read(i_ctx_t *i_ctx_p, int npop, const stream_template * template,
 	    break;
 	case t_file:
 	    check_read_known_file(sstrm, sop, return);
-	    ialloc_set_space(idmemory, max(space, r_space(sop)));
+	    ialloc_set_space(idmemory, use_space);
 	    goto ens;
 	default:
 	    check_proc(*sop);
-	    ialloc_set_space(idmemory, max(space, r_space(sop)));
+	    ialloc_set_space(idmemory, use_space);
 	    code = sread_proc(sop, &sstrm, iimemory);
 	    if (code < 0)
 		goto out;
@@ -256,6 +260,7 @@ filter_write(i_ctx_t *i_ctx_p, int npop, const stream_template * template,
     os_ptr op = osp;
     uint min_size = template->min_in_size + max_min_left;
     uint save_space = ialloc_space(idmemory);
+    uint use_space = max(space, save_space);
     register os_ptr sop = op - npop;
     stream *s;
     stream *sstrm;
@@ -273,10 +278,11 @@ filter_write(i_ctx_t *i_ctx_p, int npop, const stream_template * template,
      * Check to make sure that the underlying data
      * can function as a sink for writing.
      */
+    use_space = max(use_space, r_space(sop));
     switch (r_type(sop)) {
 	case t_string:
 	    check_write(*sop);
-	    ialloc_set_space(idmemory, max(space, r_space(sop)));
+	    ialloc_set_space(idmemory, use_space);
 	    sstrm = file_alloc_stream(imemory, "filter_write(string)");
 	    if (sstrm == 0) {
 		code = gs_note_error(e_VMerror);
@@ -287,11 +293,11 @@ filter_write(i_ctx_t *i_ctx_p, int npop, const stream_template * template,
 	    break;
 	case t_file:
 	    check_write_known_file(sstrm, sop, return);
-	    ialloc_set_space(idmemory, max(space, r_space(sop)));
+	    ialloc_set_space(idmemory, use_space);
 	    goto ens;
 	default:
 	    check_proc(*sop);
-	    ialloc_set_space(idmemory, max(space, r_space(sop)));
+	    ialloc_set_space(idmemory, use_space);
 	    code = swrite_proc(sop, &sstrm, iimemory);
 	    if (code < 0)
 		goto out;

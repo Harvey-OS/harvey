@@ -281,7 +281,7 @@ colgrow(Column *c, Window *w, int but)
 	cr = c->r;
 	if(but < 0){	/* make sure window fills its own space properly */
 		r = w->r;
-		if(i == c->nw-1)
+		if(i==c->nw-1 || c->safe==FALSE)
 			r.max.y = cr.max.y;
 		else
 			r.max.y = c->w[i+1]->r.min.y;
@@ -459,7 +459,7 @@ coldragwin(Column *c, Window *w, int but)
 		return;
 	}
 	/* is it a flick to the right? */
-	if(abs(p.y-op.y)<10 && p.x>op.x+30)
+	if(abs(p.y-op.y)<10 && p.x>op.x+30 && rowwhichcol(c->row, p)==c)
 		p.x += Dx(w->r);	/* yes: toss to next column */
 	nc = rowwhichcol(c->row, p);
 	if(nc!=nil && nc!=c){

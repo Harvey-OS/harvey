@@ -2,6 +2,9 @@
 // Nigel Roles (nigel@9fs.org)
 //
 // Microcode
+//
+// 27/5/02	Fixed problems with transfers >= 256 * 512
+//
 // 13/3/01	Fixed microcode to support targets > 7
 //
 
@@ -115,6 +118,7 @@ data_in_block_mismatch:
 	jump	to_decisions
 data_block_mismatch_recover:
 	move	memory 4, scratchb, dmaaddr			// save latest dmaddr
+data_mismatch_recover:
 	move	memory 4, scratcha, state			// save latest state
 	jump	to_decisions					// no need to save
 								// as interrupt routine
@@ -124,7 +128,7 @@ data_in_normal:
 	int	error_too_much_data, if not 0
 	move	from data_buf, when data_in
 data_in_mismatch:
-	move	1 to scratcha3
+	move	2 to scratcha3
 	move	memory 4, scratcha, state
 	call	save_state
 	jump	post_data_to_decisions
@@ -151,7 +155,7 @@ data_out_normal:
 	int	error_too_little_data, if not 0
 	move	from data_buf, when data_out
 data_out_mismatch:
-	move	1 to scratcha3
+	move	2 to scratcha3
 	move	memory 4, scratcha, state
 	call	save_state
 	jump	post_data_to_decisions

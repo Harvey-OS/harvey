@@ -233,8 +233,8 @@ connect(char* net)
 
 	if(fd < 0){
 		rerrstr(buf, sizeof(buf));
-		Bprint(&berr, "smtp: %s\n", buf);
-		syslog(0, "smtp.fail", "%s", buf);
+		Bprint(&berr, "smtp: %s (%s)\n", buf, net);
+		syslog(0, "smtp.fail", "%s (%s)", buf, net);
 		if(strstr(buf, "illegal")
 		|| strstr(buf, "unknown")
 		|| strstr(buf, "can't translate")

@@ -26,7 +26,7 @@
 #
 
 </$objtype/mkfile
-CPUS=386 mips
+CPUS=386 mips alpha arm power
 
 BIN=/$objtype/bin
 
@@ -37,7 +37,7 @@ OFILES=\
 
 # The first driver is the default.
 DRIVERS=\
-	inferno\
+	plan9\
 	bj10e\
 	bjc600\
 	bjc800\
@@ -47,6 +47,7 @@ DRIVERS=\
 	cdj890\
 	dfaxlow\
 	epswrite\
+	inferno\
 	jpeg\
 	jpeggray\
 	laserjet\
@@ -76,15 +77,30 @@ HFILES=$objtype.h\
 # enforce some startup conditions
 x=`{mkdir obj >[2]/dev/null; mv jpeg/jmorecfg.h jpeg/jmorecfg.h.save >[2] /dev/null}
 
+
 </sys/src/cmd/mkone
+
+UPDATE=\
+	/386/bin/gs\
+	/sys/man/1/gs\
+	/rc/bin/ps2pdf\
+	/rc/bin/pdf2ps\
+	/sys/man/1/ps2pdf\
+
+update:V:
+	update $UPDATEFLAGS $UPDATE `{cat lsr}
+
 
 CC=pcc
 CFLAGS=-c -DPlan9 -D_POSIX_SOURCE -D_BSD_EXTENSION\
-	-I. -Isrc -Ijpeg -Izlib -DT$objtype '-DGS_INIT="gs_init.ps"'
+	-I. -Isrc -Ijpeg -Izlib -Iicclib -DT$objtype '-DGS_INIT="gs_init.ps"'
 
 
 obj/gconfig.$O obj/gconf.$O obj/gscdef.$O\
  obj/gscdefs.$O obj/iconf.$O obj/iconfig.$O: src/gconfig.h
+
+obj/%.$O: icclib/%.c
+	$CC $CFLAGS icclib/$stem.c; mv $stem.$O obj
 
 obj/%.$O:	jpeg/%.c
 	$CC $CFLAGS jpeg/$stem.c; mv $stem.$O obj
@@ -135,7 +151,7 @@ fake-make:V: src/plan9.mak src/plan9-aux.mak fakecc
 	rm -f jpeg/jmorecfg.h
 	cp obj/*.c obj/*.h obj/ld.tr src
 	rm -f src/arch.h
-	rm -f obj/*
+	rm -f obj/*.o
 	rm -f fakecc
 
 real-make:V: src/plan9.mak src/plan9-aux.mak
@@ -147,7 +163,7 @@ fakecc:V:
 		status='''' ' >$target
 	chmod +x $target
 
-src/plan9.mak:	src/unixansi.mak
+src/plan9.mak:	src/unixansi.mak /sys/src/cmd/gs/contrib9.mak
 	devlist='$(DD)'^$DRIVERS^'.dev'
 	devlist=$"devlist
 	sed 's#^GS_LIB_DEFAULT=.*#GS_LIB_DEFAULT=/sys/lib/ghostscript:/sys/lib/ghostscript/font:/sys/lib/postscript/font#
@@ -184,7 +200,7 @@ gs%/src:	ghostscript-%.tar.gz
 	gunzip < ghostscript-$stem.tar.gz | tar x
 	chmod g+w gs$stem/* gs$stem/*/*
 	# local drivers
-	cp src/gdevifno.c gs$stem/src/gdevifno.c
+	cp src/gdevifno.c src/gdevplan9.c src/gdevcd8.c gs$stem/src
 	# local conventions
 	ed gs$stem/lib/gs_init.ps <fixSAFER.ed
 	mkdir gs$stem/^(jpeg obj zlib libpng)
@@ -222,8 +238,8 @@ installsrc-%:V:	gs%/$O.out
 	if(! ~ $pwd */gs)
 		echo 'i don''t think you meant to do that' && exit oops
 	if(! cmp src/version.mak gs$stem/src/version.mak) {
-		rm -rf doc examples lib man obj src
-		@{cd gs$stem; tar c doc examples lib man src} | tar xT
+		rm -rf doc examples icclib lib man obj src
+		@{cd gs$stem; tar c doc examples icclib lib man src} | tar xT
 		mk clean
 	}
 	status=''

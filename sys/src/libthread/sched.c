@@ -15,7 +15,7 @@ static char *_psstate[] = {
 	"Rendezvous",
 };
 
-char*
+static char*
 psstate(int s)
 {
 	if(s < 0 || s >= nelem(_psstate))

@@ -1,22 +1,22 @@
 /* Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: igcref.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: igcref.c,v 1.3 2001/03/12 03:50:02 ghostgum Exp $ */
 /* ref garbage collector for Ghostscript */
 #include "memory_.h"
 #include "ghost.h"
@@ -707,7 +707,7 @@ refs_compact(obj_header_t * pre, obj_header_t * dpre, uint size)
 	lprintf3("Reloc error for refs 0x%lx: reloc = %lu, stored = %u\n",
 		 (ulong) dpre, (ulong) ((byte *) src - (byte *) dest),
 		 (uint) r_size((ref *) src - 1));
-	gs_exit(1);
+	gs_abort();
     }
 #endif
     /* Pad to a multiple of sizeof(ref). */

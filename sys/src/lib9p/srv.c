@@ -226,7 +226,7 @@ srv(Srv *srv)
 				break;
 			}
 			r->afid = nil;
-			if(r->ifcall.afid != NOFID && (r->afid = allocfid(srv->fpool, r->ifcall.fid)) == nil){
+			if(r->ifcall.afid != NOFID && (r->afid = lookupfid(srv->fpool, r->ifcall.afid)) == nil){
 				respond(r, Eunknownfid);
 				break;
 			}
@@ -487,6 +487,9 @@ srv(Srv *srv)
 			break;
 		}
 	}
+
+	if(srv->end)
+		srv->end(srv);
 }
 
 void

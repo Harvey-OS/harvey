@@ -13,6 +13,13 @@ HFILES=\
 YFILES=a.y\
 
 BIN=/$objtype/bin
+UPDATE=\
+	mkfile\
+	a.y\
+	lex.c\
+	a.h\
+	${TARG:%=/386/bin/%}\
+
 < /sys/src/cmd/mkone
 YFLAGS=-D1 -d
 

@@ -137,8 +137,8 @@ and
 packets:
 .sp
 .EX
-% snoopy -f 'arp | bootp'
-after optimize: ether( arp | ip( udp( bootp ) ) )
+% snoopy -f 'arp || bootp'
+after optimize: ether( arp || ip( udp( bootp ) ) )
 .EE
 .PP
 The first line of output shows the completed filter
@@ -153,7 +153,7 @@ later display those to/from TCP port 80:
 .sp
 .EX
 % ramfs
-% snoopy -df 'ip(s=135.104.9.2&d=135.104.9.6)|\\
+% snoopy -df 'ip(s=135.104.9.2&d=135.104.9.6)||\\
 	ip(s=135.104.9.6&d=135.104.9.2)' > /tmp/quux
 <interrupt from the keyboard>
 % snoopy -tf 'tcp(sd=80)' /tmp/quux

@@ -1,6 +1,6 @@
 .TH LISTEN 8
 .SH NAME
-listen, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il17031, tcp7, tcp9, tcp19, tcp21, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp17007, tcp17009, tcp17013 \- listen for calls on a network device
+listen, listen1, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il17031, tcp7, tcp9, tcp19, tcp21, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp17007, tcp17009, tcp17013 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
 .RB [ -q ]
@@ -10,8 +10,18 @@ listen, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il1703
 .IR trustsrvdir ]
 .RB [ -n
 .IR namespace ]
-.RI[ net
+.RI [ net
 .RI [ name ]]
+.PP
+.B aux/listen1
+[
+.B -tv
+]
+.I addr
+.I cmd
+[
+.I args...
+]
 .SH DESCRIPTION
 .I listen
 announces itself to a network as
@@ -147,6 +157,36 @@ authentication requests.
 .TP
 .B tcp993
 Secure IMAP4rev1 port.
+.PD
+.PP
+.I Listen1
+is a lightweight listener intended for personal use,
+modeled from Inferno's
+.IR listen (1).
+announces on
+.IR address ,
+running
+.I cmd
+.I args...
+for each incoming connection;
+the network directory is passed in the environment
+as 
+.BR $net .
+The
+.B -t
+flag
+causes
+.I listen1
+to run as the invoking user; the default
+is to become
+.B none
+before listening.
+The
+.B -v
+flag causes verbose logging on standard output.
+See
+.B /rc/bin/tlssrvtunnel
+for an example.
 .SH FILES
 .TF /env/sysname
 .TP
@@ -159,10 +199,14 @@ by convention, TCP device bind point
 .B /env/sysname
 default announced name
 .SH SOURCE
-The source to
+The sources to
 .I listen
-is in
-.BR /sys/src/cmd/aux/listen.c .
+and
+.I listen1
+are
+.B /sys/src/cmd/aux/listen.c
+and
+.BR /sys/src/cmd/aux/listen1.c .
 The other commands are
 .IR rc (1)
 scripts in

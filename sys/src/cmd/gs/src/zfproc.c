@@ -1,22 +1,22 @@
-/* Copyright (C) 1994, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1994, 1995, 1997, 1998, 1999, 2001 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zfproc.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zfproc.c,v 1.9 2001/03/29 04:09:40 rayjj Exp $ */
 /* Procedure-based filter stream support */
 #include "memory_.h"
 #include "ghost.h"
@@ -188,6 +188,7 @@ s_handle_read_exception(i_ctx_t *i_ctx_p, int status, const ref * fop,
 {
     int npush = nstate + 4;
     stream *ps;
+    stream *psstdin;
 
     switch (status) {
 	case INTC:
@@ -209,6 +210,14 @@ s_handle_read_exception(i_ctx_t *i_ctx_p, int status, const ref * fop,
     esp[-1] = *fop;
     r_clear_attrs(esp - 1, a_executable);
     *esp = ((stream_proc_state *) ps->state)->proc;
+
+    /* If stream is stdin, ask for callout. */
+    zget_stdin(i_ctx_p, &psstdin);
+    if (ps == psstdin) {
+	check_estack(1);
+	esp += 1;
+	make_op_estack(esp, zneedstdin);
+    }
     return o_push_estack;
 }
 /* Continue a read operation after returning from a procedure callout. */
@@ -239,6 +248,7 @@ s_proc_read_continue(i_ctx_t *i_ctx_p)
 /* ---------------- Write streams ---------------- */
 
 /* Forward references */
+private stream_proc_flush(s_proc_write_flush);
 private stream_proc_process(s_proc_write_process);
 private int s_proc_write_continue(P1(i_ctx_t *));
 
@@ -249,7 +259,7 @@ private const stream_template s_proc_write_template = {
 };
 private const stream_procs s_proc_write_procs = {
     s_std_noavailable, s_std_noseek, s_std_write_reset,
-    s_std_write_flush, s_std_null, NULL
+    s_proc_write_flush, s_std_null, NULL
 };
 
 /* Allocate and open a procedure-based write stream. */
@@ -289,6 +299,17 @@ s_proc_write_process(stream_state * st, stream_cursor_read * pr,
     return ((ss->eof = last) ? EOFC : 0);
 }
 
+/* Flush the output.  This is non-standard because it must call the */
+/* procedure. */
+private int
+s_proc_write_flush(stream *s)
+{
+    int result = s_process_write_buf(s, false);
+    stream_proc_state *const ss = (stream_proc_state *)s->state;
+
+    return (result < 0 || ss->index == 0 ? result : CALLC);
+}
+
 /* Handle an exception (INTC or CALLC) from a write stream */
 /* whose buffer is full. */
 int
@@ -296,6 +317,8 @@ s_handle_write_exception(i_ctx_t *i_ctx_p, int status, const ref * fop,
 			 const ref * pstate, int nstate, op_proc_t cont)
 {
     stream *ps;
+    stream *psstderr;
+    stream *psstdout;
     stream_proc_state *psst;
 
     switch (status) {
@@ -310,16 +333,7 @@ s_handle_write_exception(i_ctx_t *i_ctx_p, int status, const ref * fop,
     for (ps = fptr(fop); ps->strm != 0;)
 	ps = ps->strm;
     psst = (stream_proc_state *) ps->state;
-    if (psst->eof) {
-	/* This is the final call from closing the stream. */
-	/* Don't run the continuation. */
-	check_estack(5);
-	esp += 5;
-	make_op_estack(esp - 4, zpop);	/* pop the file */
-	make_op_estack(esp - 3, zpop);	/* pop the string returned */
-					/* by the procedure */
-	make_false(esp - 1);
-    } else {
+    {
 	int npush = nstate + 6;
 
 	check_estack(npush);
@@ -330,11 +344,20 @@ s_handle_write_exception(i_ctx_t *i_ctx_p, int status, const ref * fop,
 	make_op_estack(esp - 4, s_proc_write_continue);
 	esp[-3] = *fop;
 	r_clear_attrs(esp - 3, a_executable);
-	make_true(esp - 1);
+	make_bool(esp - 1, !psst->eof);
     }
     esp[-2] = psst->proc;
     *esp = psst->data;
     r_set_size(esp, psst->index);
+
+    /* If stream is stdout/err, ask for callout. */
+    zget_stdout(i_ctx_p, &psstdout);
+    zget_stderr(i_ctx_p, &psstderr);
+    if ((ps == psstderr) || (ps == psstdout)) {
+	check_estack(1);
+	esp += 1;
+	make_op_estack(esp, (ps == psstderr) ? zneedstderr : zneedstdout);
+    }
     return o_push_estack;
 }
 /* Continue a write operation after returning from a procedure callout. */
@@ -351,8 +374,12 @@ s_proc_write_continue(i_ctx_t *i_ctx_p)
 
     check_file(ps, op);
     check_write_type(*opbuf, t_string);
-    while ((ps->end_status = 0, ps->strm) != 0)
+    while (ps->strm != 0) {
+	if (ps->end_status == CALLC)
+	    ps->end_status = 0;
 	ps = ps->strm;
+    }
+    ps->end_status = 0;
     ss = (stream_proc_state *) ps->state;
     ss->data = *opbuf;
     ss->index = 0;

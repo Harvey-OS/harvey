@@ -26,6 +26,6 @@ if(! test -f /mnt/doc/WordDocument) {
 	exit worddoc
 }
 
-aux/mswordstrings /mnt/doc/WordDocument | tcs -f microsoft -t utf |fmt -j | uniq
+aux/mswordstrings /mnt/doc/WordDocument | tcs -f microsoft -t utf |fmt  | uniq
 unmount /mnt/doc
 rm -f /tmp/doc2txt.$pid

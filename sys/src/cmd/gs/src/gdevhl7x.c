@@ -1,22 +1,22 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/* $Id: gdevhl7x.c,v 1.2 2000/03/10 07:33:44 lpd Exp $ */
+/* $Id: gdevhl7x.c,v 1.5 2001/08/01 00:48:23 stefan911 Exp $ */
 /*
  * Brother HL 720 and 730 driver for Ghostscript
  *
@@ -276,7 +276,7 @@ private const gx_device_procs prn_hl_procs =
 		   gdev_prn_get_params, gdev_prn_put_params);
 
 
-gx_device_printer far_data gs_hl7x0_device =
+const gx_device_printer far_data gs_hl7x0_device =
   prn_device(prn_hl_procs, "hl7x0",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,
@@ -981,7 +981,7 @@ private void addByte(ByteList *list,Byte value ) {
  if (list->current < list->maxSize)
   list->data[list->current++] = value;
  else
-   fprintf(stderr,"Could not add byte to command\n");
+   errprintf("Could not add byte to command\n");
 }
 
 
@@ -996,7 +996,7 @@ private void addArray(ByteList *list, Byte *source, short nb){
     list->current += nb;
   }
   else 
-    fprintf(stderr,"Could not add byte array to command\n");
+    errprintf("Could not add byte array to command\n");
 }
 
 
@@ -1015,7 +1015,7 @@ private void addNBytes(ByteList * list, Byte value, short nb){
     list->current += nb;
   }
   else 
-    fprintf(stderr,"Could not add %d bytes to command\n",nb);
+    errprintf("Could not add %d bytes to command\n",nb);
 }
 
 /*

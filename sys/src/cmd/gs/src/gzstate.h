@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gzstate.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gzstate.h,v 1.5 2001/03/13 00:41:10 raph Exp $ */
 /* Private graphics state definition for Ghostscript library */
 
 #ifndef gzstate_INCLUDED
@@ -54,6 +54,14 @@ typedef struct gs_client_color_s gs_client_color;
 #ifndef gs_font_DEFINED
 #  define gs_font_DEFINED
 typedef struct gs_font_s gs_font;
+#endif
+#ifndef gs_transparency_group_DEFINED
+#  define gs_transparency_group_DEFINED
+typedef struct gs_transparency_group_s gs_transparency_group_t;
+#endif
+#ifndef gs_device_filter_stack_DEFINED
+#  define gs_device_filter_stack_DEFINED
+typedef struct gs_device_filter_stack_s gs_device_filter_stack_t;
 #endif
 
 /* Graphics state structure. */
@@ -116,6 +124,9 @@ struct gs_state_s {
     gx_device *device;
 #undef gs_currentdevice_inline
 #define gs_currentdevice_inline(pgs) ((pgs)->device)
+    gs_device_filter_stack_t *dfilter_stack;
+
+    gs_transparency_group_t *transparency_group_stack; /* (PDF 1.4 only) */
 
     /* Client data: */
 
@@ -127,5 +138,20 @@ struct gs_state_s {
 #define public_st_gs_state()	/* in gsstate.c */\
   gs_public_st_composite(st_gs_state, gs_state, "gs_state",\
     gs_state_enum_ptrs, gs_state_reloc_ptrs)
+
+/*
+ * Enumerate the pointers in a graphics state, other than the ones in the
+ * imager state, and device, which must be handled specially.
+ */
+#define gs_state_do_ptrs(m)\
+  m(0,saved) m(1,path) m(2,clip_path) m(3,clip_stack)\
+  m(4,view_clip) m(5,effective_clip_path)\
+  m(6,color_space) m(7,ccolor) m(8,dev_color)\
+  m(9,font) m(10,root_font) m(11,show_gstate) /*m(---,device)*/\
+  m(12,transparency_group_stack)\
+  m(13,device_color_spaces.named.Gray)\
+  m(14,device_color_spaces.named.RGB)\
+  m(15,device_color_spaces.named.CMYK)
+#define gs_state_num_ptrs 16
 
 #endif /* gzstate_INCLUDED */

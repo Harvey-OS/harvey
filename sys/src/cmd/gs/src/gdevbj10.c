@@ -1,23 +1,23 @@
-/* Copyright (C) 1990, 1995, 1997 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1990, 1995, 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/*$Id: gdevbj10.c,v 1.1 2000/03/09 08:40:40 lpd Exp $*/
-/* Canon Bubble Jet BJ-10e and BJ200 printer driver */
+/*$Id: gdevbj10.c,v 1.4 2001/08/01 00:48:23 stefan911 Exp $*/
+/* Canon Bubble Jet BJ-10e, BJ200, and BJ300 printer driver */
 #include "gdevprn.h"
 
 /*
@@ -74,6 +74,33 @@
  * reset to the DIP switch defaults.
  */
 
+/*
+ * According to md@duesti.fido.de (Matthias Duesterhoeft):
+
+It is possible to use the printer Canon BJ-300 (and 330) with Ghostscript if
+you use the driver for the Canon BJ-200. The Printer has to be set to
+Proprinter Mode. Although it is possible to set the print quality with a DIP
+switch, you should add the following to the already existing init-string:
+1B 5B 64 01 00 80  (all numbers in hex)
+This sets the print quality to letter quality.
+
+The minimum margins are the following:
+
+Portrait:
+B5/A4: min. left and right margin: 3.4 mm (0.13")
+Letter: min. left and right margin: 6.4 mm (0.25")
+
+Landscape:
+B4: min. left and right margin: 9.3 mm (0.37")
+A3: min. left and right margin: 37.3 mm (1.47")
+
+The recommended top margin is 12.7 mm (0.5"), although the printer is capable
+to start at 0 mm. The recommended bottom margin is 25.4 mm (1"), but 12.7 mm
+(0.5") are possible, too. If you ask me, don't use the recommended top and
+bottom margins, use 0" and 0.5".
+
+ */
+
 #define BJ200_TOP_MARGIN		0.12
 #define BJ200_BOTTOM_MARGIN		0.29
 #define BJ200_LETTER_SIDE_MARGIN	0.25
@@ -86,7 +113,7 @@ private dev_proc_print_page(bj10e_print_page);
 private gx_device_procs prn_bj200_procs =
   prn_procs(bj200_open, gdev_prn_output_page, gdev_prn_close);
 
-gx_device_printer far_data gs_bj200_device =
+const gx_device_printer far_data gs_bj200_device =
   prn_device(prn_bj200_procs, "bj200",
 	DEFAULT_WIDTH_10THS,
 	DEFAULT_HEIGHT_10THS,
@@ -101,7 +128,7 @@ gx_device_printer far_data gs_bj200_device =
  * fine with the bj200 setup here.
  */
 
-gx_device_printer far_data gs_bj10e_device =
+const gx_device_printer far_data gs_bj10e_device =
   prn_device(prn_bj200_procs, "bj10e",
 	DEFAULT_WIDTH_10THS,
 	DEFAULT_HEIGHT_10THS,

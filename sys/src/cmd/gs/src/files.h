@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: files.h,v 1.1 2000/03/09 08:40:40 lpd Exp $ */
+/*$Id: files.h,v 1.4 2001/03/13 07:09:28 ghostgum Exp $ */
 /* Definitions for interpreter support for file objects */
 /* Requires stream.h */
 
@@ -162,4 +162,12 @@ stream *file_alloc_stream(P2(gs_memory_t *, client_name_t));
 int zreadline_from(P5(stream *s, gs_string *buf, gs_memory_t *bufmem,
 		      uint *pcount, bool *pin_eol));
 
+/* Procedures exported by zfileio.c. */
+	/* for zfile.c */
+int zfilelineedit(i_ctx_t *i_ctx_p);
+
+	/* for zfproc.c */
+int zneedstdin(P1(i_ctx_t *i_ctx_p));
+int zneedstdout(P1(i_ctx_t *i_ctx_p));
+int zneedstderr(P1(i_ctx_t *i_ctx_p));
 #endif /* files_INCLUDED */

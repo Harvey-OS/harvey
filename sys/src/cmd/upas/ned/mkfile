@@ -9,6 +9,13 @@ HFILES=	../common/common.h\
 OFILES=nedmail.$O
 
 BIN=/$objtype/bin/upas
+
+UPDATE=\
+	mkfile\
+	${OFILES:%.$O=%.c}\
+	$HFILES\
+	${TARG:%=/386/bin/upas/%}\
+
 </sys/src/cmd/mkone
 CFLAGS=$CFLAGS -I../common
 

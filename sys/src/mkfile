@@ -82,3 +82,9 @@ cleanlibs:V:
 		cd $i
 		mk clean
 	}
+
+updatelibs:V:
+	for (i in $LIBS) @{
+		cd $i
+		mk update
+	}

@@ -1,22 +1,22 @@
 /* Copyright (C) 1993, 1994 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/*$Id: gdevescp.c,v 1.1 2000/03/09 08:40:41 lpd Exp $*/
+/*$Id: gdevescp.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
 /*
  * Epson 'ESC/P 2' language printer driver.
  *
@@ -90,7 +90,7 @@
 private dev_proc_print_page(escp2_print_page);
 
 /* Stylus 800 device */
-gx_device_printer far_data gs_st800_device =
+const gx_device_printer far_data gs_st800_device =
   prn_device(prn_std_procs, "st800",
 	DEFAULT_WIDTH_10THS,
 	DEFAULT_HEIGHT_10THS,			
@@ -99,7 +99,7 @@ gx_device_printer far_data gs_st800_device =
 	1, escp2_print_page);
 
 /* AP3250 device */
-gx_device_printer far_data gs_ap3250_device =
+const gx_device_printer far_data gs_ap3250_device =
   prn_device(prn_std_procs, "ap3250",
 	DEFAULT_WIDTH_10THS,
 	DEFAULT_HEIGHT_10THS,			

@@ -14,6 +14,8 @@ OFILES =\
 
 TARG = secstore secstored secuser aescbc
 
+UPDATE=`{echo *.[ch] mkfile} `{echo $TARG |sed 's/([^ $]*)( |$)/\/386\/bin\/auth\/\1 /g'}
+
 default:V: $O.aescbc $O.secstore $O.secstored $O.secuser
 
 $O.aescbc: aescbc.$O

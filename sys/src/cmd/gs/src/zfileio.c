@@ -1,23 +1,24 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000, 2001 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zfileio.c,v 1.2 2000/03/10 04:35:53 lpd Exp $ */
+/*$Id: zfileio.c,v 1.12 2001/07/11 12:05:52 joukj Exp $ */
 /* File I/O operators */
+#include "memory_.h"
 #include "ghost.h"
 #include "gp.h"
 #include "oper.h"
@@ -471,12 +472,22 @@ int
 zflush(i_ctx_t *i_ctx_p)
 {
     stream *s;
+    int status;
+    ref rstdout;
     int code = zget_stdout(i_ctx_p, &s);
 
     if (code < 0)
 	return code;
-    sflush(s);
-    return 0;
+
+    make_stream_file(&rstdout, s, "w");
+    status = sflush(s);
+    if (status == 0 || status == EOFC) {
+	return 0;
+    }
+    return
+	(s_is_writing(s) ?
+	 handle_write_status(i_ctx_p, status, &rstdout, NULL, zflush) :
+	 handle_read_status(i_ctx_p, status, &rstdout, NULL, zflush));
 }
 
 /* <file> flushfile - */
@@ -586,6 +597,21 @@ zfileposition(i_ctx_t *i_ctx_p)
     make_int(op, stell(s));
     return 0;
 }
+/* <file> .fileposition <int> */
+private int
+zxfileposition(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+    stream *s;
+
+    check_file(s, op);
+    /*
+     * This version of fileposition doesn't give the error, so we can
+     * use it to get the position of string or procedure streams.
+     */
+    make_int(op, stell(s));
+    return 0;
+}
 
 /* <file> <int> setfileposition - */
 private int
@@ -604,6 +630,35 @@ zsetfileposition(i_ctx_t *i_ctx_p)
 
 /* ------ Non-standard extensions ------ */
 
+/* <file> .filename <string> true */
+/* <file> .filename false */
+private int
+zfilename(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+    stream *s;
+    gs_const_string fname;
+    byte *str;
+
+    check_file(s, op);
+    if (sfilename(s, &fname) < 0) {
+	make_false(op);
+	return 0;
+    }
+    check_ostack(1);
+    str = ialloc_string(fname.size, "filename");
+    if (str == 0)
+	return_error(e_VMerror);
+    memcpy(str, fname.data, fname.size);
+    push(1);			/* can't fail */
+    make_const_string( op - 1 , 
+		      a_all | imemory_space((const struct gs_ref_memory_s*) imemory), 
+		      fname.size, 
+		      str);
+    make_true(op);
+    return 0;
+}
+
 /* <file> .isprocfilter <bool> */
 private int
 zisprocfilter(i_ctx_t *i_ctx_p)
@@ -618,7 +673,50 @@ zisprocfilter(i_ctx_t *i_ctx_p)
     return 0;
 }
 
-/* <file> <int> unread - */
+/* <file> <string> .peekstring <substring> <filled_bool> */
+private int
+zpeekstring(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+    stream *s;
+    uint len, rlen;
+
+    check_read_file(s, op - 1);
+    check_write_type(*op, t_string);
+    len = r_size(op);
+    while ((rlen = sbufavailable(s)) < len) {
+	int status = s->end_status;
+
+	/*
+	 * The following is a HACK.  It should reallocate the buffer to hold
+	 * at least len bytes.  However, this raises messy problems about
+	 * which allocator to use and how it should interact with restore.
+	 */
+	if (len >= s->bsize)
+	    return_error(e_rangecheck);
+	switch (status) {
+	case EOFC:
+	    break;
+	case 0:
+	    s_process_read_buf(s);
+	    continue;
+	default:
+	    return handle_read_status(i_ctx_p, status, op - 1, NULL,
+				      zpeekstring);
+	}
+	break;
+    }
+    if (rlen > len)
+	rlen = len;
+    /* Don't remove the data from the buffer. */
+    memcpy(op->value.bytes, sbufptr(s), rlen);
+    r_set_size(op, rlen);
+    op[-1] = *op;
+    make_bool(op, (rlen == len ? 1 : 0));
+    return 0;
+}
+
+/* <file> <int> .unread - */
 private int
 zunread(i_ctx_t *i_ctx_p)
 {
@@ -711,6 +809,32 @@ zwritecvp_continue(i_ctx_t *i_ctx_p)
     return zwritecvp_at(i_ctx_p, op - 1, (uint) op->value.intval, false);
 }
 
+/* Callout for stdin */
+/* - .needstdin - */
+int
+zneedstdin(i_ctx_t *i_ctx_p)
+{
+    return e_NeedStdin;		/* Interpreter will exit to caller. */
+}
+
+/* Callout for stdout */
+/* - .needstdout - */
+int
+zneedstdout(i_ctx_t *i_ctx_p)
+{
+    return e_NeedStdout;	/* Interpreter will exit to caller. */
+}
+
+/* Callout for stderr */
+/* - .needstderr - */
+int
+zneedstderr(i_ctx_t *i_ctx_p)
+{
+    return e_NeedStderr;	/* Interpreter will exit to caller. */
+}
+
+
+
 /* ------ Initialization procedure ------ */
 
 /* We need to split the table because of the 16-element limit. */
@@ -719,31 +843,37 @@ const op_def zfileio1_op_defs[] = {
     {"1closefile", zclosefile},
 		/* currentfile is in zcontrol.c */
     {"1echo", zecho},
+    {"1.filename", zfilename},
+    {"1.fileposition", zxfileposition},
     {"1fileposition", zfileposition},
     {"0flush", zflush},
     {"1flushfile", zflushfile},
+    {"1.isprocfilter", zisprocfilter},
+    {"2.peekstring", zpeekstring},
     {"1print", zprint},
     {"1read", zread},
     {"2readhexstring", zreadhexstring},
     {"2readline", zreadline},
     {"2readstring", zreadstring},
-    {"1resetfile", zresetfile},
     op_def_end(0)
 };
 const op_def zfileio2_op_defs[] = {
-    {"1.isprocfilter", zisprocfilter},
+    {"1resetfile", zresetfile},
     {"2setfileposition", zsetfileposition},
-    {"2unread", zunread},
+    {"2.unread", zunread},
     {"2write", zwrite},
     {"3.writecvp", zwritecvp},
     {"2writehexstring", zwritehexstring},
     {"2writestring", zwritestring},
 		/* Internal operators */
     {"3%zreadhexstring_continue", zreadhexstring_continue},
-    {"3%zwritehexstring_continue", zwritehexstring_continue},
-    {"3%zreadstring_continue", zreadstring_continue},
     {"3%zreadline_continue", zreadline_continue},
+    {"3%zreadstring_continue", zreadstring_continue},
     {"4%zwritecvp_continue", zwritecvp_continue},
+    {"3%zwritehexstring_continue", zwritehexstring_continue},
+    {"0.needstdin", zneedstdin},
+    {"0.needstdout", zneedstdout},
+    {"0.needstderr", zneedstderr},
     op_def_end(0)
 };
 

@@ -1,22 +1,22 @@
 /* Copyright (C) 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxcht.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gxcht.c,v 1.3 2001/05/12 14:51:52 igorm Exp $ */
 /* Color halftone rendering for Ghostscript imaging library */
 #include "memory_.h"
 #include "gx.h"
@@ -71,23 +71,21 @@ private bool
 gx_dc_ht_colored_equal(const gx_device_color * pdevc1,
 		       const gx_device_color * pdevc2)
 {
-    uint num_comp;
+    uint num_comp, m, i;
 
     if (pdevc2->type != pdevc1->type ||
 	pdevc1->colors.colored.c_ht != pdevc2->colors.colored.c_ht ||
 	pdevc1->colors.colored.alpha != pdevc2->colors.colored.alpha ||
+	pdevc1->colors.colored.plane_mask != pdevc2->colors.colored.plane_mask ||
 	pdevc1->phase.x != pdevc2->phase.x ||
 	pdevc1->phase.y != pdevc2->phase.y
 	)
 	return false;
-    num_comp = pdevc1->colors.colored.c_ht->num_comp;
-    return
-	!memcmp(pdevc1->colors.colored.c_base,
-		pdevc2->colors.colored.c_base,
-		num_comp * sizeof(pdevc1->colors.colored.c_base[0])) &&
-	!memcmp(pdevc1->colors.colored.c_level,
-		pdevc2->colors.colored.c_level,
-		num_comp * sizeof(pdevc1->colors.colored.c_level[0]));
+    for (m = pdevc1->colors.colored.plane_mask, i = 0; m != 0; m >>=1, i++)
+        if(m & 1)
+            if (pdevc1->colors.colored.c_base[i]  != pdevc2->colors.colored.c_base[i] ||
+                pdevc1->colors.colored.c_level[i] != pdevc2->colors.colored.c_level[i])
+                return false;
 }
 
 /* Define an abbreviation for a heavily used value. */

@@ -1055,7 +1055,7 @@ parse_irq(confdata_t* cd, char* option)
 {
 	char *e;
 
-	cd->o_cf.interrupt = strtoul(option, &e, 0);
+	cd->o_cf.intnum = strtoul(option, &e, 0);
 	if(e == nil || *e != '\0')
 		error(Ebadarg);
 }
@@ -1123,7 +1123,7 @@ sdwrite(Chan* c, void* a, long n, vlong off)
 
 		if(cd.o_on){
 			if(cd.o_spec == '\0' || cd.o_cf.nports == 0 || 
-			     cd.o_cf.interrupt == 0 || cd.o_cf.type == nil)
+			     cd.o_cf.intnum == 0 || cd.o_cf.type == nil)
 				error(Ebadarg);
 		}
 		else{
@@ -1337,7 +1337,7 @@ configure(char* spec, DevConf* cf)
 		     in sdata and I'll move it later.  Really! */
 		memset(&isa, 0, sizeof(isa));
 		isa.port = cf->ports[0].port;
-		isa.irq = cf->interrupt;
+		isa.irq = cf->intnum;
 
 		if(pcmspecial(p, &isa) < 0)
 			error("Cannot find controller");

@@ -1,76 +1,80 @@
 < /$objtype/mkfile
 BIN=/$objtype/bin/aux
 
-#
-# For systems based on the Plan 9 Distribution CD set
-#	DIST=dist
-#
-DIST=
-
 TARG=vga
+FILES=\
+	3dfx\
+	ark2000pv\
+	att20c49x\
+	att21c498\
+	bt485\
+	ch9294\
+	clgd542x\
+	clgd546x\
+	ct65540\
+	cyber938x\
+	data\
+	db\
+	error\
+	et4000\
+	et4000hwgc\
+	hiqvideo\
+	i81x\
+	ibm8514\
+	icd2061a\
+	ics2494\
+	ics534x\
+	io\
+	mach32\
+	mach64\
+	mach64xx\
+	main\
+	mga2164w\
+	mga4xx\
+	neomagic\
+	nvidia\
+	palette\
+	pci\
+	rgb524\
+	rgb524mn\
+	s3801\
+	s3928\
+	s3clock\
+	s3generic\
+	s3hwgc\
+	sc15025\
+	stg1702\
+	t2r4\
+	trio64\
+	tvp3020\
+	tvp3025\
+	tvp3025clock\
+	tvp3026\
+	tvp3026clock\
+	vga\
+	virge\
+	vision864\
+	vision964\
+	vision968\
+	vmware\
+	w30c516\
 
-OFILES=\
-	3dfx.$O\
-	ark2000pv.$O\
-	att20c49x.$O\
-	att21c498.$O\
-	bt485.$O\
-	ch9294.$O\
-	clgd542x.$O\
-	clgd546x.$O\
-	ct65540.$O\
-	cyber938x.$O\
-	data.$O\
-	db.$O\
-	error$DIST.$O\
-	et4000.$O\
-	et4000hwgc.$O\
-	hiqvideo.$O\
-	i81x.$O\
-	ibm8514.$O\
-	icd2061a.$O\
-	ics2494.$O\
-	ics534x.$O\
-	io.$O\
-	mach32.$O\
-	mach64.$O\
-	mach64xx.$O\
-	main.$O\
-	mga2164w.$O\
-	neomagic.$O\
-	nvidia.$O\
-	palette.$O\
-	pci.$O\
-	rgb524.$O\
-	rgb524mn.$O\
-	s3801.$O\
-	s3928.$O\
-	s3clock.$O\
-	s3generic.$O\
-	s3hwgc.$O\
-	sc15025.$O\
-	stg1702.$O\
-	t2r4.$O\
-	trio64.$O\
-	tvp3020.$O\
-	tvp3025.$O\
-	tvp3025clock.$O\
-	tvp3026.$O\
-	tvp3026clock.$O\
-	vga.$O\
-	virge.$O\
-	vision864.$O\
-	vision964.$O\
-	vision968.$O\
-	vmware.$O\
-	w30c516.$O\
-	mga4xx.$O\
+HFILES=\
+	pci.h\
+	vga.h
 
-HFILES=pci.h vga.h
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/bin/aux/$TARG\
+	/lib/vgadb\
+	$HFILES\
+	riva_tbl.h\
+	$CFILES\
+
 
 </sys/src/cmd/mkone
 
 nvidia.$O:	riva_tbl.h
-
-adjust:	adjust.$O error$DIST.$O io.$O vga.$O palette.$O
-	$LD -o $target $prereq

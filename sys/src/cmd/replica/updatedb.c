@@ -54,13 +54,11 @@ walk(char *new, char *old, Dir *xd, void*)
 	int i, change, len;
 	Dir od, d;
 
+	new = unroot(new, "/");
+	old = unroot(old, root);
+
 	if(!ismatch(new))
 		return;
-	old = unroot(old, root);
-	assert(new[0]=='/');
-	new++;
-	assert(old[0]=='/');
-	old++;
 	for(i=0; i<nx; i++){
 		if(strcmp(new, x[i]) == 0)
 			return;

@@ -1,22 +1,22 @@
 /* Copyright (C) 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: szlibc.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: szlibc.c,v 1.3 2001/07/16 08:29:46 igorm Exp $ */
 /* Code common to zlib encoding and decoding streams */
 #include "std.h"
 #include "gserror.h"
@@ -85,7 +85,7 @@ void *
 s_zlib_alloc(void *zmem, uint items, uint size)
 {
     zlib_dynamic_state_t *const zds = zmem;
-    gs_memory_t *mem = zds->memory;
+    gs_memory_t *mem = zds->memory->stable_memory;
     zlib_block_t *block =
 	gs_alloc_struct(mem, zlib_block_t, &st_zlib_block,
 			"s_zlib_alloc(block)");
@@ -109,7 +109,7 @@ void
 s_zlib_free(void *zmem, void *data)
 {
     zlib_dynamic_state_t *const zds = zmem;
-    gs_memory_t *mem = zds->memory;
+    gs_memory_t *mem = zds->memory->stable_memory;
     zlib_block_t *block = zds->blocks;
 
     gs_free_object(mem, data, "s_zlib_free(data)");

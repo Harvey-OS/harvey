@@ -22,7 +22,6 @@ enum
 typedef struct Mfile Mfile;
 typedef struct Ram Ram;
 typedef struct P9fs P9fs;
-typedef struct Clunkitem Clunkitem;
 
 struct Mfile
 {
@@ -43,22 +42,6 @@ struct P9fs
 	char	*name;
 };
 
-/*
- * We do clunks asynchronously (we don't wait for the rclunk from
- * the server).  The fid, however, may not be reused until the Rcklunk
- * is in.  We therefore remember outstanding Rclunks in a linked
- * list of Clunkitems.  It is hard to imagine having more than one or two
- * outstanding.  We pretend clunks always succeed.
- */
-struct Clunkitem
-{
-	u32int	fid;
-	ushort	tag;
-	Clunkitem	*next;
-};
-Clunkitem	*clunklist;
-
-
 P9fs	c;	/* client conversation */
 P9fs	s;	/* server conversation */
 
@@ -76,7 +59,6 @@ uchar	datarcv[MAXFDATA + IOHDRSZ];
 Qid	rootqid;
 Qid	ctlqid = {0x5555555555555555LL, 0, 0};
 
-Clunkitem *getclunk(u32int, ushort);
 void	rversion(void);
 void	rauth(Mfile*);
 void	rflush(void);
@@ -93,12 +75,9 @@ void	rwstat(Mfile*);
 void	error(char*, ...);
 void	warning(char*);
 void	mountinit(char*, char*);
-Clunkitem *notclunked(u32int, ushort);
 void	io(void);
-void putclunk(u32int, ushort);
 void	sendreply(char*);
 void	sendmsg(P9fs*, Fcall*);
-u32int rcvclunk(P9fs*, Fcall*);
 void	rcvmsg(P9fs*, Fcall*);
 int	delegate(void);
 int	askserver(void);
@@ -280,7 +259,6 @@ io(void)
 		cfsstat.cm[type].n++;
 		cfsstat.cm[type].s = nsec();
 	}
-
 	mf = &mfile[c.thdr.fid];
 	switch(type){
 	default:
@@ -383,7 +361,6 @@ void
 rwalk(Mfile *mf)
 {
 	Mfile *nmf;
-	u32int fid;
 
 	nmf = nil;
 	if(statson
@@ -404,12 +381,6 @@ rwalk(Mfile *mf)
 	if(c.thdr.newfid != c.thdr.fid){
 		if(c.thdr.newfid<0 || Nfid<=c.thdr.newfid)
 			error("clone nfid out of range");
-		if(notclunked(c.thdr.newfid, NOTAG)){
-			/* wait for any outstanding clunks on this new fid */
-			do{
-				fid = rcvclunk(&s, &s.rhdr);
-			}while(fid != c.thdr.newfid);
-		}
 		nmf = &mfile[c.thdr.newfid];
 		if(nmf->busy)
 			error("clone to used channel");
@@ -479,20 +450,7 @@ rclunk(Mfile *mf)
 		return;
 	}
 	mf->busy = 0;
-	if(statson && ctltest(mf)){
-		sendreply(0);
-		return;
-	}
-	if(statson){
-		cfsstat.sm[Tclunk].n++;
-		cfsstat.sm[Tclunk].s = nsec();
-	}
-	/* forward clunk to server */
-	sendmsg(&s, &c.thdr);
-	/* record outstanding rclunk from server */
-	putclunk(c.thdr.fid, c.thdr.tag);
-	/* reply immediately */
-	sendreply(0);
+	delegate();
 }
 
 void
@@ -820,40 +778,13 @@ dump(uchar *p, int len)
 	fprint(2, "\n");
 }
 
-u32int
-rcvclunk(P9fs *p, Fcall *f)
-{
-	Clunkitem *ci;
-	int rlen;
-	char buf[128];
-	u32int fid;
-
-	p->len = read9pmsg(p->fd[0], datarcv, sizeof(datarcv));
-	if(p->len <= 0){
-		sprint(buf, "read9pmsg(%d)->%ld: %r", p->fd[0], p->len);
-		error(buf);
-	}
-
-	if((rlen = convM2S(datarcv, p->len, f)) != p->len)
-		error("rcvmsg format error, expected length %d, got %d", rlen, p->len);
-	if(f->type != Rclunk && f->type != Rerror)
-		sysfatal("rcvclunk: unexpected message, type %d", f->type);
-	if((ci = getclunk(NOFID, f->tag)) == nil)
-		sysfatal("rcvclunk: unexpected clunk, %d", f->tag);
-	fid = ci->fid;
-	free(ci);
-	return fid;
-}
-
 void
 rcvmsg(P9fs *p, Fcall *f)
 {
-	Clunkitem *ci;
 	int olen, rlen;
 	char buf[128];
 
 	olen = p->len;
-again:
 	p->len = read9pmsg(p->fd[0], datarcv, sizeof(datarcv));
 	if(p->len <= 0){
 		sprint(buf, "read9pmsg(%d)->%ld: %r", p->fd[0], p->len);
@@ -862,15 +793,6 @@ again:
 
 	if((rlen = convM2S(datarcv, p->len, f)) != p->len)
 		error("rcvmsg format error, expected length %d, got %d", rlen, p->len);
-	if(f->type == Rclunk){
-		if(ci = getclunk(NOFID, f->tag))
-			free(ci);
-		goto again;
-	}
-	if(f->type == Rerror && (ci = getclunk(NOFID, f->tag))){
-		free(ci);
-		goto again;
-	}
 	if(f->fid<0 || Nfid<=f->fid){
 		fprint(2, "<-%s: %d %s on %d\n", p->name, f->type,
 			mname[f->type]? mname[f->type] : "mystery",
@@ -951,43 +873,4 @@ genstats(void)
 		cfsstat.bytestocache, cfsstat.bytestocache - cfsprev.bytestocache);
 	statlen = p - statbuf;
 	cfsprev = cfsstat;
-}
-
-void
-putclunk(u32int fid, ushort tag)
-{
-	Clunkitem *c;
-
-	c = malloc(sizeof(Clunkitem));
-	if(c == nil)
-		sysfatal("putclunk: malloc: %r");
-	c->fid = fid;
-	c->tag = tag;
-	c->next = clunklist;
-	clunklist = c;
-}
-
-Clunkitem *
-getclunk(u32int fid, ushort tag)
-{
-	Clunkitem **p, *c;
-
-	for(p = &clunklist; c = *p; p = &c->next){
-		if(fid != c->fid && tag != c->tag)
-			continue;
-		*p = c->next;
-		return c;
-	}
-	return nil;		
-}
-
-Clunkitem *
-notclunked(u32int fid, ushort tag)
-{
-	Clunkitem *c;
-
-	for(c = clunklist; c != nil; c = c->next)
-		if(fid == c->fid || tag == c->tag)
-			return c;
-	return nil;		
 }

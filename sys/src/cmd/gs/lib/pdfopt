@@ -1,0 +1,20 @@
+#!/bin/sh
+# $Id: pdfopt,v 1.4 2001/07/23 06:57:27 lpd Exp $
+# Convert PDF to "optimized" form.
+
+OPTIONS="-dSAFER -dDELAYSAFER"
+while true
+do
+	case "$1" in
+	-*) OPTIONS="$OPTIONS $1" ;;
+	*)  break ;;
+	esac
+	shift
+done
+
+if [ $# -ne 2 ]; then
+	echo "Usage: `basename $0` input.pdf output.pdf" 1>&2
+	exit 1
+fi
+
+exec gs -q -dNODISPLAY $OPTIONS -- pdfopt.ps "$1" "$2"

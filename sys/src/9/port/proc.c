@@ -22,6 +22,10 @@ static struct Procalloc
 
 static Schedq	runq[Nrq];
 
+extern Edfinterface	nulledf;
+
+Edfinterface *edf = &nulledf;
+
 char *statename[] =
 {	/* BUG: generate automatically */
 	"Dead",
@@ -57,8 +61,8 @@ schedinit(void)		/* never returns */
 			break;
 		case Moribund:
 			up->state = Dead;
-			if (isedf(up))
-				edfbury(up);
+			if (edf->isedf(up))
+				edf->edfbury(up);
 
 			/*
 			 * Holding locks from pexit:
@@ -88,7 +92,9 @@ void
 sched(void)
 {
 	if(m->ilockdepth)
-		panic("ilockdepth %d", m->ilockdepth);
+		panic("ilockdepth %d, last lock 0x%p at 0x%lux",
+			m->ilockdepth, up?up->lastilock:nil,
+			(up && up->lastilock)?up->lastilock->pc:0);
 
 	if(up){
 		if(up->nlocks && up->state != Moribund){
@@ -120,7 +126,7 @@ sched(void)
 int
 anyready(void)
 {
-	return nrdy || edfanyready();
+	return nrdy || edf->edfanyready();
 }
 
 int
@@ -151,8 +157,8 @@ ready(Proc *p)
 
 	s = splhi();
 
-	if(isedf(p)){
-		edfready(p);
+	if(edf->isedf(p)){
+		edf->edfready(p);
 		splx(s);
 		return;
 	}
@@ -205,8 +211,11 @@ runproc(void)
 	Schedq *rq, *xrq;
 	Proc *p, *l;
 	ulong rt;
+	ulong start, now;
 
-	if ((p = edfrunproc()) != nil)
+	start = perfticks();
+
+	if ((p = edf->edfrunproc()) != nil)
 		return p;
 
 loop:
@@ -256,7 +265,12 @@ loop:
 				}
 			}
 		}
+
+		/* remember how much time we're here */
 		idlehands();
+		now = perfticks();
+		m->perf.inidle += now-start;
+		start = now;
 	}
 
 found:
@@ -501,8 +515,8 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 			unlock(r);
 			// Behind unlock, we may call wakeup on ourselves.
 
-			if (isedf(up))
-				edfblock(up);
+			if (edf->isedf(up))
+				edf->edfblock(up);
 
 			gotolabel(&m->sched);
 		}
@@ -521,15 +535,6 @@ int
 tfn(void *arg)
 {
 	return MACHP(0)->ticks >= up->twhen || up->tfn(arg);
-}
-
-ulong
-ms2tk(ulong ms)
-{
-	/* avoid overflows at the cost of precision */
-	if(ms >= 1000000000/HZ)
-		return (ms/1000)*HZ;
-	return (ms*HZ+500)/1000;
 }
 
 void
@@ -711,8 +716,8 @@ addbroken(Proc *p)
 	broken.p[broken.n++] = p;
 	qunlock(&broken);
 
-	if (isedf(up))
-		edfbury(up);
+	if (edf->isedf(up))
+		edf->edfbury(up);
 	p->state = Broken;
 	p->psstate = 0;
 	sched();
@@ -812,9 +817,9 @@ pexit(char *exitstr, int freemem)
 		wq->w.pid = up->pid;
 		utime = up->time[TUser] + up->time[TCUser];
 		stime = up->time[TSys] + up->time[TCSys];
-		wq->w.time[TUser] = TK2MS(utime);
-		wq->w.time[TSys] = TK2MS(stime);
-		wq->w.time[TReal] = TK2MS(MACHP(0)->ticks - up->time[TReal]);
+		wq->w.time[TUser] = tk2ms(utime);
+		wq->w.time[TSys] = tk2ms(stime);
+		wq->w.time[TReal] = tk2ms(MACHP(0)->ticks - up->time[TReal]);
 		if(exitstr && exitstr[0])
 			snprint(wq->w.msg, sizeof(wq->w.msg), "%s %lud: %s", up->text, up->pid, exitstr);
 		else
@@ -882,8 +887,8 @@ pexit(char *exitstr, int freemem)
 	lock(&procalloc);
 	lock(&palloc);
 
-	if (isedf(up))
-		edfbury(up);
+	if (edf->isedf(up))
+		edf->edfbury(up);
 	up->state = Moribund;
 	sched();
 	panic("pexit");
@@ -1137,8 +1142,8 @@ procctl(Proc *p)
 		qunlock(&p->debug);
 		splhi();
 		p->state = Stopped;
-		if (isedf(up))
-			edfblock(up);
+		if (edf->isedf(up))
+			edf->edfblock(up);
 		sched();
 		p->psstate = state;
 		splx(s);
@@ -1193,7 +1198,7 @@ killbig(void)
 			if(s != 0)
 				l += s->top - s->base;
 		}
-		if(l > max) {
+		if(l > max && strcmp(p->text, "kfs") != 0){
 			kp = p;
 			max = l;
 		}
@@ -1231,14 +1236,28 @@ void
 accounttime(void)
 {
 	Proc *p;
-	int n;
-	static int nrun;
+	ulong n, per;
+	static ulong nrun;
 
 	p = m->proc;
 	if(p) {
 		nrun++;
 		p->time[p->insyscall]++;
 	}
+
+	/* calculate decaying duty cycles */
+	n = perfticks();
+	per = n - m->perf.last;
+	m->perf.last = n;
+	if(per == 0)
+		per = 1;
+	m->perf.period = (m->perf.period*(HZ-1)+per)/HZ;
+
+	m->perf.avg_inidle = (m->perf.avg_inidle*(HZ-1)+m->perf.inidle)/HZ;
+	m->perf.inidle = 0;
+
+	m->perf.avg_inintr = (m->perf.avg_inintr*(HZ-1)+m->perf.inintr)/HZ;
+	m->perf.inintr = 0;
 
 	/* only one processor gets to compute system load averages */
 	if(m->machno != 0)
@@ -1247,7 +1266,6 @@ accounttime(void)
 	/* calculate decaying load average */
 	n = nrun;
 	nrun = 0;
-
 	n = (nrdy+n)*1000;
 	m->load = (m->load*19+n)/20;
 }

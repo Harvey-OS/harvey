@@ -4,7 +4,7 @@ default:V: ndisk
 	ls -l ndisk
 
 SUB=`{ls sub inst}
-boot.bz2:Q: proto $SUB
+boot.raw:Q: proto $SUB
 	rm -rf boot
 	mkdir boot
 	bind /dev/null /sys/log/timesync
@@ -19,7 +19,10 @@ boot.bz2:Q: proto $SUB
 	}
 	cat proto | sed 's!/.*!!' >proto.cp
 	disk/mkfs -a -s boot proto.cp | tee >{wc -c >[1=2]} | 
-		touchfs 1000000000 |
+		touchfs 1000000000 >boot.raw
+
+boot.bz2:Q: boot.raw
+	cat boot.raw |
 		bflz -n 32 | bzip2 -9 >$target
 	# rm -rf boot proto.cp
 	ls -l boot.bz2
@@ -73,3 +76,7 @@ install:V: ndisk 9loaddebug
 test:V: ndisk 9loaddebug
 	cp 9loaddebug ../web.protect/n9loaddebug
 	cp ndisk ../web.protect/ndisk
+
+cd0:D:	cddisk
+	rm -f cd0
+	disk/mk9660 -9cj -v 'Plan 9 4th Edition' -s . -p cd0.proto -b cddisk cd0

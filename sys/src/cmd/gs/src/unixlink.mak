@@ -1,21 +1,21 @@
 #    Copyright (C) 1990, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: unixlink.mak,v 1.1 2000/03/09 08:40:44 lpd Exp $
+# $Id: unixlink.mak,v 1.3 2000/11/28 00:14:48 raph Exp $
 # Partial makefile common to all Unix configurations.
 # This part of the makefile contains the linking steps.
 
@@ -67,7 +67,7 @@ $(GS_XE): $(ld_tr) $(ECHOGS_XE) $(XE_ALL)
 	$(ECHOGS_XE) -a $(ldt_tr) -n -s $(PSOBJ)gs.$(OBJ) -s
 	cat $(ld_tr) >>$(ldt_tr)
 	$(ECHOGS_XE) -a $(ldt_tr) -s - $(EXTRALIBS) $(STDLIBS)
-	LD_RUN_PATH=$(XLIBDIR); export LD_RUN_PATH; \
+	if [ x$(XLIBDIR) != x ]; then LD_RUN_PATH=$(XLIBDIR); export LD_RUN_PATH; fi; \
 	XCFLAGS= XINCLUDE= XLDFLAGS= XLIBDIRS= XLIBS= \
 	FEATURE_DEVS= DEVICE_DEVS= DEVICE_DEVS1= DEVICE_DEVS2= DEVICE_DEVS3= \
 	DEVICE_DEVS4= DEVICE_DEVS5= DEVICE_DEVS6= DEVICE_DEVS7= DEVICE_DEVS8= \

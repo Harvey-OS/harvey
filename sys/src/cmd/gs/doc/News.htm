@@ -1,7 +1,8 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Recent changes in Ghostscript</title>
-<!-- $Id: News.htm,v 1.5 2000/03/18 04:13:40 lpd Exp $ -->
+<!-- $Id: News.htm,v 1.90.2.4 2002/02/01 05:31:25 raph Exp $ -->
 <!-- Originally: NEWS -->
 <!--
 	WARNING: do not use Pete Kaiser's emacs function "gs-toc" alone to
@@ -10,6 +11,7 @@
 	the body of the file.  Or if you do, first look at the original
 	TOC to see how to edit it for visual conciseness.
 -->
+<link rel="stylesheet" type="text/css" href="gs.css">
 </head>
 
 <body>
@@ -17,11 +19,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-Changes in the most recent release of Ghostscript
-</font>
-</table>
+<h1>Changes in the most recent release of Ghostscript</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -36,6 +34,7 @@ This document is news about the most recent Ghostscript release.  For
 earlier versions, see the history documents:
 
 <blockquote>
+<a href="History7.htm">History of Ghostscript versions 7.n</a><br>
 <a href="History6.htm">History of Ghostscript versions 6.n</a><br>
 <a href="History5.htm">History of Ghostscript versions 5.n</a><br>
 <a href="History4.htm">History of Ghostscript versions 4.n</a><br>
@@ -55,31 +54,56 @@ overview</a>.
 
 <!-- [2.0 begin contents] ================================================== -->
 
+<h3><a name="Version7.04"></a>Version 7.04 (2002-01-31)</h3>
+
+<p>
+This is a security update of Ghostscript. A number of maintenance
+fixes and new features have been added.
+
+<p> Major changes include:
+
+<ul>
+<li>A rather serious security hole, where PostScript code could cause
+arbitrary commands to be executed, has been patched.
+
+<li>There is also a new -DPARANOIDSAFER option, which locks down
+reading of arbitrary files.
+
+<li>This release integrates the IJS driver, which makes it much easier
+to add and upgrade printer drivers without needing to recompile
+Ghostscript.
+
+<li>There is a configure script for automatically configuring the
+makefile on Unix platforms. Those who enjoy the fun of hand-editing
+the makefile are still welcome to do so.
+
+<li>The usual bug fixes.
+
+</ul>
+
+<p>
+The following SourceForge bug numbers are currently open: 215256,
+219798, 405342, 406979, 407342, 414947, 414985, 415142, 416131,
+416830, 418241, 421057, 423838, 427193, 427314, 427347, 428891,
+428973, 432040, 434277, 436099, 437285, 438957, 443745, 446344,
+446672, 448199, 450663, 451456, 452155, 453969, 458261, 458500,
+458769, 458775, 458780, 459647, 462221, 465720, 465936, 468762,
+472681, 474544, 474582, 474745, 475147, 477644, 479071, 481893,
+482033, 482038, 483066, 483629, 484752, 484753, 485498, 485510,
+487953, 493344, 493348, 493413, 495088, 495319, 498595, 502102,
+503170, 503731, 503794, 505047, 505151, 505429, 505438, 506375,
+508081, 508607, 508675, 508722, 509646, 510713, 510776, 510808,
+511232.
+
+
+<h3><a name="7.04_Incompatible_changes"></a>Incompatible changes</h3>
+
+<p>
+No incompatible changes have been recorded for this version. Authors
+of drivers with potential security implications are encouraged to review
+the security changes, however.
+
 <pre>
-<h1><a name="Version6.01"></a>Version 6.01 (2000-03-17)</h1>
-
-This is a bug-fix release for 6.0.
-
-This release fixes the following reported bugs: #101555, #101813, #101816,
-#101818, #101827, #101830, #101871, #101853, #101906, #101949, #101950,
-#102003, #102004, #102038, #102081, #102936.
-
-<h2><a name="6.01_Incompatible_changes"></a>Incompatible changes</h2>
-
-(Platforms)
-	- OpenVMS using VAX C is no longer supported.  (OpenVMS with DEC C
-and gcc are still supported.)
-(Drivers)
-	- The third argument of psdf_set_color is changed from const char *
-to const psdf_set_color_commands_t *.
-(Interpreter)
-	- The non-standard feature of writing dictionaries in binary object
-output is now disabled by default, but can now be enabled dynamically.
-(Library)
-	- The definition of TRANSPARENCY_PER_H_P is moved from gdevmrop.h to
-gsropt.h.
-	- The handling of the source opaque, texture transparent case of
-RasterOp when TRANSPARENCY_PER_H_P is defined is changed slightly.
 
 </pre>
 
@@ -88,19 +112,18 @@ RasterOp when TRANSPARENCY_PER_H_P is defined is changed slightly.
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 2000 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 2002 artofcode LLC.  All rights
+reserved.</small>
 
 <p>
-Ghostscript version 6.01, 17 March 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

@@ -336,8 +336,7 @@ main()
 	/* get the first line sent and parse it as arguments for lp */
 	if ((rv=readline(0)) < 0)
 		exit(1);
-	ap = lnbuf;
-	bp = ap;
+	bp = lnbuf;
 	/* setup the remaining arguments */
 	/* check for BSD style request */
 	/* ^A, ^B, ^C, ^D, ^E (for BSD lpr) */
@@ -390,8 +389,16 @@ main()
 		CPYFIELD(bp, cp);				/* printer */
 		*cp++ = '\0';
 		argvals[argcnt++] = cp;
-		*cp++ = '-'; *cp++ = 'u'; 			/* -u */
+		*cp++ = '-'; ap = cp; *cp++ = 'u'; 		/* -u */
 		CPYFIELD(bp, cp);				/* username */
+
+		/* deal with bug in lprng where the username is not supplied
+		 */
+		if (ap == (cp-1)) {
+			ap = (unsigned char *)"none";
+			CPYFIELD(ap, cp);
+		}
+
 		*cp++ = '\0';
 		datafd[0] = tempfile();
 		blen = strlen((const char *)bp);

@@ -1,28 +1,37 @@
 objtype=sparc
-</sparc/mkfile
+</$objtype/mkfile
 
 LIB=/$objtype/lib/libc.a
-OFILES=\
-	main9.$O\
-	main9p.$O\
-	argv0.$O\
-	getfcr.$O\
-	memccpy.$O\
-	memchr.$O\
-	memcmp.$O\
-	memmove.$O\
-	memset.$O\
-	muldivrt.$O\
-	notejmp.$O\
-	setjmp.$O\
-	strchr.$O\
-	strcmp.$O\
-	strcpy.$O\
-	sqrt.$O\
-	tas.$O\
-	vlrt.$O\
-	vlop.$O\
+SFILES=\
+	argv0.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memccpy.s\
+	memchr.s\
+	memcmp.s\
+	memmove.s\
+	memset.s\
+	muldivrt.s\
+	setjmp.s\
+	strchr.s\
+	strcmp.s\
+	strcpy.s\
+	tas.s\
+	vlop.s
+
+CFILES=\
+	notejmp.c\
+	sqrt.c\
+	vlrt.c\
 
 HFILES=/sys/include/libc.h
+
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
 
 </sys/src/cmd/mksyslib

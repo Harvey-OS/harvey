@@ -55,6 +55,9 @@ populate(char *name)
 		f.size = strtoul(dblock.dbuf.size, 0, 8);
 		f.mdate = strtoul(dblock.dbuf.mtime, 0, 8);
 		chksum = strtoul(dblock.dbuf.chksum, 0, 8);
+		/* the mode test is ugly but sometimes necessary */
+		if (dblock.dbuf.linkflag == '5' || (f.mode&0170000) == 040000)
+			f.mode |= DMDIR;
 		linkflg = dblock.dbuf.linkflag=='s' || dblock.dbuf.linkflag=='1';
 		isabs = dblock.dbuf.name[0]=='/';
 		if (chksum != checksum()){

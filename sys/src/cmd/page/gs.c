@@ -159,7 +159,7 @@ spawngs(GSInfo *g)
 	args[nargs++] = "gs";
 	args[nargs++] = "-dNOPAUSE";
 	args[nargs++] = "-dSAFER";
-	args[nargs++] = "-sDEVICE=inferno";
+	args[nargs++] = "-sDEVICE=plan9";
 	args[nargs++] = "-sOutputFile=/fd/3";
 	args[nargs++] = "-dQUIET";
 	args[nargs++] = "-r100";

@@ -1,24 +1,24 @@
-/* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gp_mswin.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gp_mswin.c,v 1.7 2001/09/22 07:07:02 ghostgum Exp $ */
 /*
- * Microsoft Windows 3.n platform support for Ghostscript.
+ * Microsoft Windows platform support for Ghostscript.
  *
  * Original version by Russell Lang and Maurice Castro with help from
  * Programming Windows, 2nd Ed., Charles Petzold, Microsoft Press;
@@ -46,102 +46,31 @@
 #include "gx.h"
 #include "gp.h"
 #include "gpcheck.h"
+#include "gpmisc.h"
 #include "gserrors.h"
 #include "gsexit.h"
 
 #include "windows_.h"
 #include <shellapi.h>
-#ifdef __WIN32__
 #include <winspool.h>
-#endif
 #include "gp_mswin.h"
-#include "gsdll.h"
-/* use longjmp instead of exit when using DLL */
-#include <setjmp.h>
-extern jmp_buf gsdll_env;
 
 /* Library routines not declared in a standard header */
 extern char *getenv(P1(const char *));
 
-/* ------ from gnuplot winmain.c plus new stuff ------ */
-
 /* limits */
 #define MAXSTR 255
 
-/* public handles */
+/* GLOBAL VARIABLE that needs to be removed */
+char win_prntmp[MAXSTR];	/* filename of PRN temporary file */
+
+/* GLOBAL VARIABLES - initialised at DLL load time */
 HINSTANCE phInstance;
-HWND hwndtext = HWND_DESKTOP;	/* would be better to be a real window */
+BOOL is_win32s = FALSE;
 
 const LPSTR szAppName = "Ghostscript";
-BOOL is_win32s = FALSE;
-char FAR win_prntmp[MAXSTR];	/* filename of PRN temporary file */
 private int is_printer(const char *name);
-int win_init = 0;		/* flag to know if gp_exit has been called */
-int win_exit_status;
 
-BOOL CALLBACK _export AbortProc(HDC, int);
-
-#ifdef __WIN32__
-/* DLL entry point for Borland C++ */
-BOOL WINAPI _export
-DllEntryPoint(HINSTANCE hInst, DWORD fdwReason, LPVOID lpReserved)
-{
-    /* Win32s: HIWORD bit 15 is 1 and bit 14 is 0 */
-    /* Win95:  HIWORD bit 15 is 1 and bit 14 is 1 */
-    /* WinNT:  HIWORD bit 15 is 0 and bit 14 is 0 */
-    /* WinNT Shell Update Release is WinNT && LOBYTE(LOWORD) >= 4 */
-    DWORD version = GetVersion();
-
-    if (((HIWORD(version) & 0x8000) != 0) && ((HIWORD(version) & 0x4000) == 0))
-	is_win32s = TRUE;
-
-    phInstance = hInst;
-    return TRUE;
-}
-
-/* DLL entry point for Microsoft Visual C++ */
-BOOL WINAPI _export
-DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID lpReserved)
-{
-    return DllEntryPoint(hInst, fdwReason, lpReserved);
-}
-
-
-#else
-int WINAPI _export
-LibMain(HINSTANCE hInstance, WORD wDataSeg, WORD wHeapSize, LPSTR lpszCmdLine)
-{
-    phInstance = hInstance;
-    return 1;
-}
-
-int WINAPI _export
-WEP(int nParam)
-{
-    return 1;
-}
-#endif
-
-
-BOOL CALLBACK _export
-AbortProc(HDC hdcPrn, int code)
-{
-    process_interrupts();
-    if (code == SP_OUTOFDISK)
-	return (FALSE);		/* cancel job */
-    return (TRUE);
-}
-
-/* ------ Process message loop ------ */
-/*
- * Check messages and interrupts; return true if interrupted.
- * This is called frequently - it must be quick!
- */
-int
-gp_check_interrupts(void)
-{
-    return (*pgsdll_callback) (GSDLL_POLL, NULL, 0);
-}
 
 /* ====== Generic platform procedures ====== */
 
@@ -151,24 +80,18 @@ gp_check_interrupts(void)
 void
 gp_init(void)
 {
-    win_init = 1;
 }
 
 /* Do platform-dependent cleanup. */
 void
 gp_exit(int exit_status, int code)
 {
-    win_init = 0;
-    win_exit_status = exit_status;
 }
 
 /* Exit the program. */
 void
 gp_do_exit(int exit_status)
 {
-    /* Use longjmp since exit would terminate caller */
-    /* setjmp code will check gs_exit_status */
-    longjmp(gsdll_env, gs_exit_status);
 }
 
 /* ------ Printer accessing ------ */
@@ -206,67 +129,9 @@ gp_close_printer(FILE * pfile, const char *fname)
     unlink(win_prntmp);
 }
 
-/* Printer abort procedure and progress/cancel dialog box */
-/* Used by Win32 and mswinprn device */
-
-HWND hDlgModeless;
-
-BOOL CALLBACK _export
-PrintAbortProc(HDC hdcPrn, int code)
-{
-    MSG msg;
-
-    while (hDlgModeless && PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
-	if (hDlgModeless || !IsDialogMessage(hDlgModeless, &msg)) {
-	    TranslateMessage(&msg);
-	    DispatchMessage(&msg);
-	}
-    }
-    return (hDlgModeless != 0);
-}
-
-/* Modeless dialog box - Cancel printing */
-BOOL CALLBACK _export
-CancelDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message) {
-	case WM_INITDIALOG:
-	    SetWindowText(hDlg, szAppName);
-	    return TRUE;
-	case WM_COMMAND:
-	    switch (LOWORD(wParam)) {
-		case IDCANCEL:
-		    DestroyWindow(hDlg);
-		    hDlgModeless = 0;
-		    EndDialog(hDlg, 0);
-		    return TRUE;
-	    }
-    }
-    return FALSE;
-}
-
-#ifndef __WIN32__
-
-/* Windows does not provide API's in the SDK for writing directly to a */
-/* printer.  Instead you are supposed to use the Windows printer drivers. */
-/* Ghostscript has its own printer drivers, so we need to use some API's */
-/* that are documented only in the Device Driver Adaptation Guide */
-/* that comes with the DDK.  Prototypes taken from DDK <print.h> */
-DECLARE_HANDLE(HPJOB);
-
-HPJOB WINAPI OpenJob(LPSTR, LPSTR, HPJOB);
-int WINAPI StartSpoolPage(HPJOB);
-int WINAPI EndSpoolPage(HPJOB);
-int WINAPI WriteSpool(HPJOB, LPSTR, int);
-int WINAPI CloseJob(HPJOB);
-int WINAPI DeleteJob(HPJOB, int);
-int WINAPI WriteDialog(HPJOB, LPSTR, int);
-int WINAPI DeleteSpoolPage(HPJOB);
-
-#endif /* WIN32 */
 
 /* Dialog box to select printer port */
-BOOL CALLBACK _export
+BOOL CALLBACK
 SpoolDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     LPSTR entry;
@@ -283,12 +148,7 @@ SpoolDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 	    switch (LOWORD(wParam)) {
 		case SPOOL_PORT:
-#ifdef __WIN32__
-		    if (HIWORD(wParam)
-#else
-		    if (HIWORD(lParam)
-#endif
-			== LBN_DBLCLK)
+		    if (HIWORD(wParam) == LBN_DBLCLK)
 			PostMessage(hDlg, WM_COMMAND, IDOK, 0L);
 		    return FALSE;
 		case IDOK:
@@ -344,14 +204,13 @@ is_printer(const char *name)
     return FALSE;
 }
 
-#ifdef __WIN32__		/* ******** WIN32 ******** */
 
 /******************************************************************/
 /* Print File to port or queue */
 /* port==NULL means prompt for port or queue with dialog box */
 
 /* This is messy because Microsoft changed the spooler interface */
-/* between Window 3.1 and Windows 95/NT */
+/* between Windows 3.1 and Windows 95/NT */
 /* and didn't provide the spooler interface in Win32s */
 
 /* Win95, WinNT: Use OpenPrinter, WritePrinter etc. */
@@ -475,10 +334,8 @@ get_ports(void)
 {
     char *buffer;
 
-#ifdef __WIN32__
     if (!is_win32s)
 	return get_queues();
-#endif
 
     if ((buffer = malloc(PORT_BUF_SIZE)) == (char *)NULL)
 	return NULL;
@@ -697,134 +554,6 @@ gp_printfile_gs16spl(const char *filename, const char *port)
 
 
 
-#else /* ******** !WIN32 ******** */
-
-/* Print File to port */
-private int
-gp_printfile(const char *filename, const char *pmport)
-{
-#define PRINT_BUF_SIZE 16384u
-    char *buffer;
-    char *portname;
-    int i, port;
-    FILE *f;
-    DLGPROC lpfnSpoolProc;
-    WORD count;
-    DLGPROC lpfnCancelProc;
-    int error = FALSE;
-    long lsize;
-    long ldone;
-    char pcdone[20];
-    MSG msg;
-    HPJOB hJob;
-
-    if (is_spool(pmport) && (strlen(pmport) >= 8)) {
-	/* translate from printer name to port name */
-	char driverbuf[256];
-
-	GetProfileString("Devices", pmport + 8, "", driverbuf, sizeof(driverbuf));
-	strtok(driverbuf, ",");
-	pmport = strtok(NULL, ",");
-    }
-    /* get list of ports */
-    if ((buffer = malloc(PRINT_BUF_SIZE)) == (char *)NULL)
-	return FALSE;
-
-    if ((strlen(pmport) == 0) || (strcmp(pmport, "PRN") == 0)) {
-	GetProfileString("ports", NULL, "", buffer, PRINT_BUF_SIZE);
-	/* select a port */
-#ifdef __WIN32__
-	lpfnSpoolProc = (DLGPROC) SpoolDlgProc;
-#else
-#ifdef __DLL__
-	lpfnSpoolProc = (DLGPROC) GetProcAddress(phInstance, "SpoolDlgProc");
-#else
-	lpfnSpoolProc = (DLGPROC) MakeProcInstance((FARPROC) SpoolDlgProc, phInstance);
-#endif
-#endif
-	port = DialogBoxParam(phInstance, "SpoolDlgBox", (HWND) NULL, lpfnSpoolProc, (LPARAM) buffer);
-#if !defined(__WIN32__) && !defined(__DLL__)
-	FreeProcInstance((FARPROC) lpfnSpoolProc);
-#endif
-	if (!port) {
-	    free(buffer);
-	    return FALSE;
-	}
-	portname = buffer;
-	for (i = 1; i < port && strlen(portname) != 0; i++)
-	    portname += lstrlen(portname) + 1;
-    } else
-	portname = (char *)pmport;	/* Print Manager port name already supplied */
-
-    if ((f = fopen(filename, "rb")) == (FILE *) NULL) {
-	free(buffer);
-	return FALSE;
-    }
-    fseek(f, 0L, SEEK_END);
-    lsize = ftell(f);
-    if (lsize <= 0)
-	lsize = 1;
-    fseek(f, 0L, SEEK_SET);
-
-    hJob = OpenJob(portname, filename, (HPJOB) NULL);
-    switch ((int)hJob) {
-	case SP_APPABORT:
-	case SP_ERROR:
-	case SP_OUTOFDISK:
-	case SP_OUTOFMEMORY:
-	case SP_USERABORT:
-	    fclose(f);
-	    free(buffer);
-	    return FALSE;
-    }
-    if (StartSpoolPage(hJob) < 0)
-	error = TRUE;
-
-#ifdef __WIN32__
-    lpfnCancelProc = (DLGPROC) CancelDlgProc;
-#else
-#ifdef __DLL__
-    lpfnCancelProc = (DLGPROC) GetProcAddress(phInstance, "CancelDlgProc");
-#else
-    lpfnCancelProc = (DLGPROC) MakeProcInstance((FARPROC) CancelDlgProc, phInstance);
-#endif
-#endif
-    hDlgModeless = CreateDialog(phInstance, "CancelDlgBox", (HWND) NULL, lpfnCancelProc);
-    ldone = 0;
-
-    while (!error && hDlgModeless
-	   && (count = fread(buffer, 1, PRINT_BUF_SIZE, f)) != 0) {
-	if (WriteSpool(hJob, buffer, count) < 0)
-	    error = TRUE;
-	ldone += count;
-	sprintf(pcdone, "%d %%done", (int)(ldone * 100 / lsize));
-	SetWindowText(GetDlgItem(hDlgModeless, CANCEL_PCDONE), pcdone);
-	while (PeekMessage(&msg, hDlgModeless, 0, 0, PM_REMOVE)) {
-	    if ((hDlgModeless == 0) || !IsDialogMessage(hDlgModeless, &msg)) {
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	    }
-	}
-    }
-    free(buffer);
-    fclose(f);
-
-    if (!hDlgModeless)
-	error = TRUE;
-    DestroyWindow(hDlgModeless);
-    hDlgModeless = 0;
-#if !defined(__WIN32__) && !defined(__DLL__)
-    FreeProcInstance((FARPROC) lpfnCancelProc);
-#endif
-    EndSpoolPage(hJob);
-    if (error)
-	DeleteJob(hJob, 0);
-    else
-	CloseJob(hJob);
-    return !error;
-}
-
-#endif /* ******** (!)WIN32 ******** */
 
 /* ------ File naming and accessing ------ */
 
@@ -832,10 +561,13 @@ gp_printfile(const char *filename, const char *pmport)
 /* Write the actual file name at fname. */
 FILE *
 gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
-{				/* The -7 is for XXXXXX plus a possible final \. */
-    int len = gp_file_name_sizeof - strlen(prefix) - 7;
+{	/* The -7 is for XXXXXX plus a possible final \. */
+    int prefix_length = strlen(prefix);
+    int len = gp_file_name_sizeof - prefix_length - 7;
 
-    if (gp_getenv("TEMP", fname, &len) != 0)
+    if (gp_file_name_is_absolute(prefix, prefix_length) ||
+	gp_gettmpdir(fname, &len) != 0
+	)
 	*fname = 0;
     else {
 	char *temp;
@@ -846,10 +578,12 @@ gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
 	if (strlen(fname) && (fname[strlen(fname) - 1] != '\\'))
 	    strcat(fname, "\\");
     }
+    if (strlen(fname) + prefix_length + 7 >= gp_file_name_sizeof)
+	return 0;		/* file name too long */
     strcat(fname, prefix);
     strcat(fname, "XXXXXX");
     mktemp(fname);
-    return fopen(fname, mode);
+    return gp_fopentemp(fname, mode);
 }
 
 /* Open a file with the given name, as a stream of uninterpreted bytes. */
@@ -858,3 +592,4 @@ gp_fopen(const char *fname, const char *mode)
 {
     return fopen(fname, mode);
 }
+

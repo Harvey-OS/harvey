@@ -137,6 +137,29 @@ long		readdirfile(Readdir*, uchar*, long);
 void		closedirfile(Readdir*);
 
 /*
+ * Kernel-style command parser
+ */
+typedef struct Cmdbuf Cmdbuf;
+typedef struct Cmdtab Cmdtab;
+Cmdbuf*		parsecmd(char *a, int n);
+void		respondcmderror(Req*, Cmdbuf*, char*, ...);
+Cmdtab*	lookupcmd(Cmdbuf*, Cmdtab*, int);
+#pragma varargck argpos respondcmderr 3
+struct Cmdbuf
+{
+	char	*buf;
+	char	**f;
+	int	nf;
+};
+
+struct Cmdtab
+{
+	int	index;	/* used by client to switch on result */
+	char	*cmd;	/* command name */
+	int	narg;	/* expected #args; 0 ==> variadic */
+};
+
+/*
  * File service loop.
  */
 struct Srv {

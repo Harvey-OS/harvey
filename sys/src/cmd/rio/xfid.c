@@ -148,7 +148,7 @@ void
 xfidattach(Xfid *x)
 {
 	Fcall t;
-	int id, hideit;
+	int id, hideit, scrollit;
 	Window *w;
 	char *err, *n, *dir, errbuf[ERRMAX];
 	int pid, newlymade;
@@ -189,7 +189,7 @@ xfidattach(Xfid *x)
 				border(i, r, Selborder, display->black, ZP);
 				if(pid == 0)
 					pid = -1;	/* make sure we don't pop a shell! - UGH */
-				w = new(i, hideit, pid, nil, nil, nil);
+				w = new(i, hideit, scrolling, pid, nil, nil, nil);
 				flushimage(display, 1);
 				newlymade = TRUE;
 			}else
@@ -197,7 +197,7 @@ xfidattach(Xfid *x)
 		}
 	}else if(strncmp(x->aname, "new", 3) == 0){	/* new -dx -dy - new syntax, as in wctl */
 		pid = 0;
-		if(parsewctl(nil, ZR, &r, &pid, nil, &hideit, &dir, x->aname, errbuf) < 0)
+		if(parsewctl(nil, ZR, &r, &pid, nil, &hideit, &scrollit, &dir, x->aname, errbuf) < 0)
 			err = errbuf;
 		else
 			goto Allocate;
@@ -436,6 +436,10 @@ xfidwrite(Xfid *x)
 			break;
 		}
 		if(strncmp(x->data, "rawon", 5)==0){
+			if(w->holding){
+				w->holding = FALSE;
+				wsendctlmesg(w, Holdoff, ZR, nil);
+			}
 			if(w->rawing++ == 0)
 				wsendctlmesg(w, Rawon, ZR, nil);
 			break;

@@ -304,7 +304,11 @@ The initial working directory of the new window may be set by a
 option.
 The
 .B -hide
-option causes the window to be created off-screen, in the hidden state.
+option causes the window to be created off-screen, in the hidden state, while
+.B -scroll
+and
+.B -noscroll
+set the initial scrolling state of the window; the default is that of the main program.
 .IP
 The
 .B set

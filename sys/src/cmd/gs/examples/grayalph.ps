@@ -1,6 +1,8 @@
 %!
 % grayscaled text test, including a trivial user bitmap font
 
+/grayalphsave save def		% prevent left over effects
+
 /inch {72 mul} def
 
 /BuildCharDict 10 dict def
@@ -59,3 +61,5 @@ end
         } for
 
 showpage
+clear cleardictstack
+grayalphsave restore

@@ -241,8 +241,15 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 	Block *bp;
 
 	ether = etherxx[chan->dev];
-	if(NETTYPE(chan->qid.path) != Ndataqid)
+	if(NETTYPE(chan->qid.path) != Ndataqid){
+
+		if(n == sizeof("nonblocking")-1 && strncmp((char*)buf, "nonblocking", n) == 0){
+			qnoblock(ether->oq, 1);
+			return n;
+		}
+
 		return netifwrite(ether, chan, buf, n);
+	}
 
 	if(n > ETHERMAXTU)
 		error(Etoobig);
@@ -383,12 +390,12 @@ etherreset(void)
 			if(ether->mbps == 100){
 				netifinit(ether, name, Ntypes, 256*1024);
 				if(ether->oq == 0)
-					ether->oq = qopen(256*1024, 1, 0, 0);
+					ether->oq = qopen(256*1024, Qmsg, 0, 0);
 			}
 			else{
 				netifinit(ether, name, Ntypes, 65*1024);
 				if(ether->oq == 0)
-					ether->oq = qopen(65*1024, 1, 0, 0);
+					ether->oq = qopen(65*1024, Qmsg, 0, 0);
 			}
 			if(ether->oq == 0)
 				panic("etherreset %s", name);

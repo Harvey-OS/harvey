@@ -1,0 +1,520 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Ghostscript Open Issues.</title>
+<!-- $Id: Issues.htm,v 1.15.2.2 2002/02/01 05:31:25 raph Exp $ -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<h1>Known limitations and minor bugs.</h1>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<h2>Table of contents</h2>
+
+<ul>
+<li><a href="#Known_Limitations">Known Limitations</a>
+<li><a href="#Minor_bugs">Minor bugs</a>
+<li><a href="#Driver_Issues">Specific Driver Issues</a>
+<li><a href="#Performance">Performance</a>
+<li><a href="#Differences_from_Adobe">Differences from Adobe Implementation</a>
+</ul>
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>For other information, see the <a href="Projects.htm">Development Projects list
+</a>.
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<p>
+There are many areas that might make Ghostscript more useful or minor bugs
+that we would like to investigate and possibly fix, but for which we don't
+have enough resources. These may or may not be addressed in future releases.
+<p>
+If you would like to take responsibility for any of these issues, please
+<a href="mailto:raph@artofcode.com">contact us</a>.
+<p>
+Additional comments on implementation approaches or project goals are in
+<I>italic type like this</I>.
+<hr>
+
+<h2><a name="Known_Limitations"></a>Known Limitations.</h2>
+
+<h3>bbox device doesn't allow min coords < 0.</h3>
+Adobe eps specification doesn't say that bbox values must be positive,
+and, for example Adobe Illustrator, can create EPS files with negative bboxes.
+In such case, Ghostscipt returns zero instead of proper negative number. 
+<br>SourceForge Bug #202735 March 09, 2000.
+<p>
+<I>
+This might be able to be fixed by applying a large positive translation to
+the bbox CTM which would be subtracted from coordinates passed to the target
+device as well as from the results the bbox device reports.
+<p>
+If coordinates for the ImagingBBox[0] and [1] values, then negative
+values are handled, but this is not reliable since there are places in
+the graphics library that depend on first quadrant coordinates.
+</I>
+
+<h3>Error messages are too low level and confusing.</h3>
+
+<p>
+Although technically correct many error messages are confusing for
+end users. Some commonly reported examples are listed below.
+
+<p>
+When pdfwrite device cannot open the output file it fails with:
+<pre>**** Unable to open the initial device, quitting.</pre>
+
+When CIDFont-CMap pair required by PDF file is not available GS
+fails with:
+<pre>/undefinedresource in --findresource--</pre>
+
+<hr>
+<h2><a name="Minor_bugs"></a>Minor Bugs.</h2>
+
+<h3>gs-6.31 and gs-6.60 fail running lib/image-qa.ps</h3>
+Running lib/image-qa.ps with gs-6.31 or gs-6.60 produces an error message. 
+<pre>
+Type 1 
+Stencil 
+Mask 
+Error: /ioerror in --fileposition-- 
+</pre>
+SourceForge Bug #223005, November 20, 2000.
+<p>
+<I>
+This is an error in the test file, not GS. fileposition correctly
+throws ioerror when it is used on filtered files.
+<br>
+The test should be written to use .fileposition when running on Ghostscript
+and enclose fileposition in { } stopped when not. Also for portability to
+PostScript interpreters without Ghostscript extensions, '=only' should be
+defined to use '=print' or '='.
+</I>
+
+<h3>PageSize cannot use packedarray</h3>
+PageSize doesn't accept packed array as an argument if the page size is
+adjusted, for instance, to the whole number of pixels. The following
+program 
+<pre>
+%!
+/x 333.33333333 def /y 666.66666666 def
+
+<< /PageSize x y 2 packedarray >> setpagedevice
+(pached passed)==    % fails
+%EOF
+</pre>
+fails with
+<pre>
+Error: /configurationerror in --setpagedevice--
+Additional information: [/PageSize [333.333344 666.666687]]
+</pre>
+
+<h3> Multiple encode filters in a pipeline fail.</h3>
+The following code fragment should output "3E>". It outputs nothing. 
+<pre>
+%!PS 
+(%stdout) (w) file 
+/ASCIIHexEncode filter 
+/ASCIIHexEncode filter 
+closefile 
+</pre>
+SourceForge bug #224134, December 2, 2000.
+
+<h3> Bad JPEG stream in PDF generated when source ends prematurely</h3>
+When GS converts the source image to JPEG stream in PDF file and the
+source data end prematurely, it generates bad JPEG stream. 
+tiff2ps from libtiff distribution often generates such files.
+<p>
+One potential workaround is to use -dAutoFilterColorImages=false and 
+-dColorImageFilter=/FlateEncode.
+<p>
+SourceForge bug #228808, Jan 15, 2000.
+<p>
+<I>
+JPEG stream writes image dimensions in JPEG header when the stream is created.
+When the source data end the dimensions are not updated. There may be other
+problems too.
+</I>
+
+<h3> Some attributes of Catalog object are lost during PDF to PDF conversion</h3>
+Dests, OpenAction, URI, PageMode, ViewerPreferences are lost during PDF to PDF
+conversion. Other attributes have not been checked.
+<p>
+<I>
+The loss happens diring PDF interpretation. GS can generate these attributes
+from pdfmark's.
+</I>
+<p>
+March 25, 2001.
+<h3>ps2pdf ignores transfer functions in shaded fill</h3>
+ps2pdf ignores transfer functions in the shaded fill but 
+uses them for vector objects. The following sample program 
+has 2 shaded fills and 2 rectangles that should have the 
+same color as the left end of the shaded fill.
+<pre>
+
+      <</PageSize [612 200] /Policies<</PageSize 1>> >>setpagedevice 
+      612 1 scale 
+      /grad 
+      { gsave 
+	  0 0 1 100 rectclip 
+	  <<
+	      /ColorSpace [/DeviceCMYK] 
+	      /Domain [0 1] 
+	      /Coords [0 0 1 0] 
+	      /Extend [false false] 
+	      /Function 
+	      << /FunctionType 3 
+		  /Domain [ 0 1] 
+		  /Functions 
+		  [ <<
+		      /FunctionType 2 
+		      /N 1 
+		      /C0 [ 0 0.5 0 0 ] 
+		      /Domain [ 0 1] 
+		      /C1 [0.5 0 0 0] 
+		  >> ] 
+		  /Bounds [] 
+		  /Encode [0 1] 
+	      >> 
+	      /ShadingType 2 
+	  >> shfill 
+
+      0 0.5 0 0 setcmykcolor 
+      0 0 0.1 50 rectfill 
+      grestore 
+      } def 
+
+      grad 
+      {1 exch 2 div sub} settransfer 
+      0 100 translate 
+      grad 
+      showpage 
+</pre>
+SourceForge Bug #232334, Feb 14, 2001.
+
+<h3>ResourceFileName gives wrong result with Font category.</h3>
+The following sequence:
+
+<pre>
+	/Font /Category findresource begin 
+	/CharterBT-Roman 255 string ResourceFileName = 
+	end 
+</pre>
+
+Gives the results:
+<pre>
+        /Resource/Font/CharterBT-Roman 
+</pre>
+
+This should be a valid platform specific file name and path such as:
+<pre>
+        f:/afpl/fonts/bchr.pfa 
+</pre>
+SourceForge Bug #233403, Feb 21, 2001.
+<h3>GS doesn't handle names of separations with HalftoneType 5.</h3>
+PLRM3 says, that HalftoneType 5 may use user defined 
+names of separations. Neither zht2.c nor cmd_put_drawing_color in
+gxclpath.c can handle this. GS chooses default halftone component
+for any non-standard separation name. 
+<p>
+SourceForge Bug #406643, Mar 7, 2001.
+
+<h3> PDF 1.4 images don't deallocate all memory </h3>
+
+The pdf14_begin_typed_image() function in the PDF 1.4 device creates
+a marking device, but this is not freed on end_image. The garbage
+collector will free it, so it's not a real memory leak, but it would
+still be nicer to free it explicitly.
+
+<h3> </h3>
+
+<hr>
+
+<h2><a name="Driver_Issues"></a>Driver Issues.</h2>
+
+<h3> [ ] Missing text in landscape mode.</h3>
+Using GSWIN32C.EXE with djet500 to print a file in landscape mode
+on a HP 2000C, the first 3 characters on the left margin are missing.<br>
+When the postscript file is editted to use a larger offset (1st moveto
+parameter), the text appears ok.<br>
+When the postscript file is sent to a printer with a builtin postscript
+interpreter, it prints ok.
+<br>SourceForge Bug #206652.
+<p><I>
+A possible work around is to send the following
+postscript file to the printer prior to printing the problem
+file.  This works but it leaves a .5" margin at the top
+and left which is may be ok for some uses.
+</I>
+<pre>
+
+%!PS-Adobe-2.0
+% Reset the offset and margins.
+<<
+    /PageOffset [-12 -18]
+    /Margins [0 0]
+    /.HWMargins [0 0 0 0]
+>>
+setpagedevice
+</pre>
+
+<I>
+This is an instance of the endless struggle with printer margins, especially
+for HP printers. The HP drivers are inconsistent as to whether the user space
+(0,0) should be the physical corner of the page (as it is in PostScript) or
+the corner of the printable area, and if the latterm whether the page should
+be clipped or scaled.
+</I>
+<p>
+
+<hr>
+
+<h2><a name="Performance"></a>Performance.</h2>
+
+<h3>Incremental loading for CIDFontType 2 and TrueType fonts.</h3>
+
+Entire TrueType outline data in CIDFontType 2 and TrueType fonts are
+loaded into memory at once.  Incremental loading of the outline data is
+indispensable for practical use of Asian fonts.
+<p>
+There is one other type of CID-keyed font that should also be
+loaded incrementally: CFF CIDFontType0, i.e., a CIDFontType 0
+font represented using the compact binary CFF format. This is
+important because this is one of the two variants of Asian OpenType
+fonts (the other is essentially the same as TrueType). Ghostscript
+already supports both of these OpenType variants, but not with
+incremental loading.
+<p>
+SourceForge bug #223992, November 30, 2000.
+<p><I>
+We suggest that anyone who would like to work on this project
+start by looking at how CIDFontType 0 fonts do incremental loading
+(lib/gs_cidfn.ps and src/zfcid0.c). Probably much of this
+code can be also be used with CIDFontType 2 and TrueType fonts.
+</I>
+
+<hr>
+
+<h2><a name="Differences_from_Adobe"></a>Differences from Adobe Implementation.</h2>
+
+<h3>pdfwrite + TT font => Acrobat 3.x for Windows gives error</h3>
+
+Running ps2pdf12 on the file test1.ps produces a PDF on which Acrobat
+3.x for Windows complains about not being able to find or create a
+particular TrueType font that is embedded in the PDF file.  However,
+Acrobat 3.x for other platforms, and Acrobat 4.x for all platforms,
+accepts the file.
+<p>
+SourceForge bug #201955, February 14, 2000.
+<p><I>
+Since Acrobat 3 is superseded by Acrobat 4 which is available at no
+charge, and the file produced by Ghostscript meets published PDF
+specification, this will most likely be left as is.
+</I>
+
+<h3> Inconsistent handling of /Orientation.</h3>
+PLRM says "The dictionary returned by currentpagedevice always
+contains an entry for every parameter supported by the device".
+GS prints both messages in the following program: 
+
+<pre>
+%! 
+currentpagedevice /Orientation known not 
+{ (This printer does _not_ support Orientation.) = 
+} 
+if 
+<</Orientation 1>> setpagedevice 
+currentpagedevice /Orientation known 
+{ (Err... wait... it does.) = 
+} 
+if 
+%%EOF 
+</pre>
+SourceForge bug #220967, October 31, 2000.
+<p><I>
+The handling of Orientation is a mess. The PLRM says quite explicitly
+that it is only supported for roll devices, where the page size
+alone doesn't give enough information to decide whether to rotate
+the page.
+<p>
+The reason that Ghostscript accepts it for other devices at all
+is twofold: displays are like roll media in that they don't have
+an inherent orientation, and almost none of the other Ghostscript
+devices actually specify their page sizes. Both of these reasons
+are now poorly motivated: displays should behave like
+portrait-orientation devices (albeit with variable page dimensions),
+rotating the image if the requested page width is greater than
+the height, and now that setpagedevice and the Resource machinery
+are fully implemented, all printer drivers should be updated
+to provide the paper size information. Once these fixes are made
+(which will probably have some repercussions other places in
+the code), Ghostscript will handle Orientation properly.
+<p>
+This should be addressed when the "setpagedevice in C" project is
+completed since part of this will require printer drivers to make
+page size information available to the setpagedevice logic.
+</I>
+
+<h3>Filesystem implementation differences.</h3>
+Adobe implementations often treat the filesystem as flat. This means that the
+path separator characters are not handled as special characters in filenames.
+The PLRM states that file names are implementation specific (section 3.8.2)
+and Ghostscript currently implements filenames that conform with the underlying
+operating system as is stated in this section about the %os% device. This
+can result from behaviour that is different from Adobe printer implementations.
+<br><br>
+<I>
+Current implementation is incompatible with most font installers. Installers
+expect that:
+<ul>
+"filenameforall" enumerates all files in all directories using the relative path name.
+Directory names, including . and .. are not enumerated
+</ul>
+<ul>
+characters not supported on the platform are encoded.
+</ul>
+<ul>
+"(w) file" operator creates directories if necessary.
+</ul>
+</I>
+
+<h3>Cannot load Adobe's fonts. </h3>
+The following program fails with Adobe fonts: 
+
+<pre>
+(C*) 
+{ cvn findfont pop 
+} 255 string /Font resourceforall 
+</pre>
+SourceForge Bug #226462, December 20, 2000.
+<p>
+<I>
+The 'findfont' operator and '/Font resourceforall' are very difficult to
+keep consistent, because the same logic algorithms must be implemented
+in two different ways. The problem is likely to be in lib/gs_fonts.ps,
+lib/gs_res.ps, and lib/gs_cidcm.ps.
+</I>
+<h3> There's no %ram% device.</h3>
+GS doesn't have %ram% device reguired on all Level 3 products. 
+It is documented in PS Supplement 3010 and 3011 dated August 30, 1999 
+<br>SourceForge Bug #226943, December 27, 2000.
+<p>
+<I>
+This should be implemented using the (disk) file system rather than
+actual RAM, at least initially, since that will be easy.
+<br>
+On Unix, it should be implemented with a directory /tmp/$$/ (where
+$$ is the process id), which Ghostscript should delete when it exits.
+</I>
+
+<h3> pdfwrite doesn't recognise the image type by content</h3>
+Currently pdfwrite uses JPEG compression for any 8 bit per component
+images >= 64 pixels in both dimensions.
+<p>
+<I>
+pdfwrite needs to be changed to use a reasonable algorithm for deciding
+between JPEG and Flate compression, probably based on sharp vs. smooth
+color transitions in the image; in case of uncertainty, it should use Flate.
+</I>
+<p>
+SourceForge Bug #226391, December 19, 2000.
+<p>
+
+
+<h3> ps2ascii can't handle incremental fonts</h3>
+ps2ascii fails with rangecheck on incremental fonts.
+Need to recognise incremental fonts and say that incremental
+fonts are impossible to convert to ASCII.
+<p>
+SourceForge Bug #441959 keeps good test data for this.
+<p>
+
+
+<h3> Buffering in input filters</h3>
+
+The following program prints differently to stdout on GS and Adobe :
+<p>
+<pre>
+%!
+/proc
+  { currentfile =string readline pop
+    dup ==
+    (%) anchorsearch { pop } if
+  } bind def
+/test
+  { //proc /ASCIIHexDecode filter 
+    3 string readstring pop ==
+  } bind def
+
+(start) ==
+
+test
+%31
+%32
+%33
+%34
+%35
+%36
+%37
+%38
+%39
+
+(stop) ==
+
+%%EOF
+</pre>
+<p>
+<I>
+Adobe fills entire input buffer of ASCIIHexDecode with procedure's output,
+before passing data to ASCIIHexDecode, and without knowledge how much data
+does ASCIIHexDecode want. GS does know the size of data requested,
+so as the procedure is called exact number of times. Thus, GS is more conservative.
+</I>
+<p>
+Anoter useful test to be made by repeating lines %31-%39 hundred times,
+without intermediate empty lines.
+<p>
+<h3>                                              </h3>
+<p>
+
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+<hr>
+
+<p>
+<small>Copyright &copy; 2000 artofocode LLC.  All rights reserved.</small>
+
+<p>
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
+
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

@@ -170,7 +170,7 @@ int		winborder(Window*, Point);
 void		winctl(void*);
 void		winshell(void*);
 Window*	wlookid(int);
-Window*	wmk(Image*, Mousectl*, Channel*, Channel*);
+Window*	wmk(Image*, Mousectl*, Channel*, Channel*, int);
 Window*	wpointto(Point);
 Window*	wtop(Point);
 void		wtopme(Window*);

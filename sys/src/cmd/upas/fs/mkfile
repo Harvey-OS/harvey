@@ -1,7 +1,14 @@
 </$objtype/mkfile
 
 TARG=	fs\
-	biff\
+
+OFILES=\
+	fs.$O\
+	imap4.$O\
+	mbox.$O\
+	plan9.$O\
+	pop3.$O\
+	strtotm.$O\
 
 LIB=../common/libcommon.a$O\
 
@@ -9,25 +16,13 @@ HFILES= ../common/common.h\
 	dat.h
 
 BIN=/$objtype/bin/upas
-</sys/src/cmd/mkmany
+
+UPDATE=\
+	mkfile\
+	${TARG:%=/386/bin/upas/%}\
+	${TARG:%=%.c}\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone
 CFLAGS=$CFLAGS -I/sys/include -I../common
-
-
-FSOFILES=\
-	imap4.$O\
-	mbox.$O\
-	plan9.$O\
-	pop3.$O\
-	strtotm.$O\
-
-$O.fs:	$FSOFILES
-
-safeinstallall:V:
-	for(objtype in $CPUS)
-		mk $MKFLAGS safeinstall
-
-safeinstall:V:
-	mv $BIN/fs $BIN/_fs
-	mk install
-
-

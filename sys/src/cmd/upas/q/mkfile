@@ -3,11 +3,21 @@
 TARG = qer\
 	runq\
 
+OFILES=
+
 HFILES=../common/common.h\
 	../common/sys.h\
 
 LIB=../common/libcommon.a$O\
 
 BIN=/$objtype/bin/upas
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/upas/%}\
+
 </sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common

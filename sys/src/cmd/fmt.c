@@ -7,21 +7,20 @@
  * block up paragraphs, possibly with indentation
  */
 
-void	fmt(Biobuf*);
-void	outchar(Rune);
-void	addrune(Rune);
-void	outword(void);
-void	puncttest(void);
-void	flush(void);
-void nextline(void);
-
-int join = 1;			/* can input lines be joined? */
-int indent = 0;			/* how many spaces to indent */
-int tindent = 0;		/* temporary extra indent */
+int extraindent = 0;			/* how many spaces to indent all lines */
+int indent = 0;			/* current value of indent, before extra indent */
 int length = 70;		/* how many columns per output line */
 int maxtab = 8;
 Biobuf bin;
 Biobuf bout;
+
+typedef struct Word Word;
+struct Word{
+	int	indent;
+	char	text[1];
+};
+
+void	fmt(void);
 
 void
 usage(void)
@@ -38,10 +37,7 @@ main(int argc, char **argv)
 
 	ARGBEGIN{
 	case 'i':
-		indent = atoi(EARGF(usage()));
-		break;
-	case 'j':
-		join = 0;
+		extraindent = atoi(EARGF(usage()));
 		break;
 	case 'w':
 	case 'l':
@@ -63,7 +59,7 @@ main(int argc, char **argv)
 	Binit(&bout, 1, OWRITE);
 	if(argc <= 0){
 		Binit(&bin, 0, OREAD);
-		fmt(&bin);
+		fmt();
 	}else{
 		for(i=0; i<argc; i++){
 			f = open(argv[i], OREAD);
@@ -72,7 +68,7 @@ main(int argc, char **argv)
 				err = "open";
 			}else{
 				Binit(&bin, f, OREAD);
-				fmt(&bin);
+				fmt();
 				Bterm(&bin);
 				if(i != argc-1)
 					Bputc(&bout, '\n');
@@ -81,179 +77,155 @@ main(int argc, char **argv)
 	}
 	exits(err);
 }
-void
-fmt(Biobuf *f)
-{
-	long c;
-
-	while((c = Bgetrune(f)) >= 0)
-		outchar((Rune) c);
-	flush();
-}
-
-#define	NWORD	(maxtab*32)
-
-Rune *word;
-int mword;
-int wp;
-
-int col = 0;		/* output column number */
-int bol = 1;		/* at beginning of output line? */
-int punct = 0;		/* last character out was punctuation? */
-int newline = 1;	/* last char read was newline */
-int nspace = 0;		/* number of spaces beginning this line */
 
 int
-addspace(int nspace, Rune c)
+indentof(char **linep)
 {
-	if(c == ' ')
-		return nspace+1;
-	/* else tab */
-	nspace = ((nspace/maxtab)+1)*maxtab;
-	return nspace;
-}
+	int i, ind;
+	char *line;
 
-void
-outchar(Rune c)
-{
-	switch(c){
-	case '\0':
-		break;
-	case '\n':
-		switch(newline){
-		case 0:
-			if(join)
-				outword();
-			else
-				flush();
-			break;
-		case 1:
-			flush();
-		case 2:
-			tindent = 0;
-			Bputc(&bout, '\n');
-			wp = 0;
-		}
-		newline = 1;
-		break;
-	case ' ':
-	case '\t':
-		switch(newline) {
-		case 0:
-			outword();
-			break;
-		case 1:
-			nspace = addspace(nspace, c);
-			outword();
-			break;
-		}
-		break;
-	default:
-		if(nspace > 0){
-			if(!newline && tindent != nspace){
-				nextline();
-				newline = 1;
-			}
-			tindent = nspace;
-			nspace = 0;
-		}else
-			if(newline){
-				if(tindent)
-					nextline();
-				tindent = 0;
-			}
-		addrune(c);
-		newline = 0;
-	}
-}
-
-void
-addrune(Rune c)
-{
-	if(wp==mword) {
-		if(mword == 0)
-			mword = 10;
-		else
-			mword *= 2;
-		word = realloc(word, sizeof(Rune)*mword);
-		if(word == nil) {
-			fprint(2, "fmt: out of memory\n");
-			exits("out of memory");
-		}
-	}
-	word[wp++] = c;
-}
-
-void
-outword(void)
-{
-	int i;
-
-	if(wp == 0)
-		return;
-	if(wp+col+(bol?0:punct?2:1) > length){
-		Bputc(&bout, '\n');
-		col = 0;
-		bol = 1;
-	}
-	if(col == 0){
-		for(i=0; i+maxtab <= indent+tindent; i+=maxtab)
-			Bputc(&bout, '\t');
-		while(i++ < indent+tindent)
-			Bputc(&bout, ' ');
-		col = indent+tindent;
-	}
-	if(bol)
-		bol = 0;
-	else{
-		if(punct){
-			Bputc(&bout, ' ');
-			col++;
-		}
-		Bputc(&bout, ' ');
-		col++;
-	}
-	puncttest();
-	for (i = 0; i < wp; i++)
-		Bputrune(&bout, word[i]);
-	col += i;
-	wp = 0;
-}
-
-/* is the word followed by major punctuation, .?:! */
-/* disregard short things followed by periods; they are probably
-   initials or titles like Mrs. and Dr. */
-void
-puncttest(void)
-{
-	int rp;
-
-	punct = 0;
-	for(rp=wp; --rp>=0; ) {
-		switch(word[rp]) {
-		case ')': case '\'': case '"':
-			continue;
-		case '.':
-			if(isupper(*word)&&rp<=3)
-				return;
-		case '?': case '!': /*case ':':*/
-			punct = 1;
+	ind = 0;
+	line = *linep;
+	for(i=0; line[i]; i++)
+		switch(line[i]){
 		default:
-			return;
+			*linep = line;
+			return ind;
+		case ' ':
+			ind++;
+			break;
+		case '\t':
+			ind += maxtab;
+			ind -= ind%maxtab;
+			break;
 		}
+			
+	/* plain white space doesn't change the indent */
+	*linep = "";
+	return indent;
+}
+
+Word**
+addword(Word **words, int *nwordp, char *s, int l, int indent)
+{
+	Word *w;
+
+	w = malloc(sizeof(Word)+l+1);
+	memmove(w->text, s, l);
+	w->text[l] = '\0';
+	w->indent = indent;
+	words = realloc(words, (*nwordp+1)*sizeof(Word*));
+	words[(*nwordp)++] = w;
+	return words;
+}
+
+Word**
+parseline(char *line, Word **words, int *nwordp)
+{
+	int ind, l, blankline;
+
+	ind = indentof(&line);
+	indent = ind;
+	blankline = 1;
+	for(;;){
+		/* find next word */
+		while(*line==' ' || *line=='\t')
+			line++;
+		if(*line == '\0'){
+			if(blankline)
+				return addword(words, nwordp, "", 0, -1);
+			break;
+		}
+		blankline = 0;
+		/* how long is this word? */
+		for(l=0; line[l]; l++)
+			if(line[l]==' ' || line[l]=='\t')
+				break;
+		words = addword(words, nwordp, line, l, indent);
+		line += l;
+	}
+	return words;
+}
+
+void
+printindent(int w)
+{
+	while(w >= maxtab){
+		Bputc(&bout, '\t');
+		w -= maxtab;
+	}
+	while(w > 0){
+		Bputc(&bout, ' ');
+		w--;
 	}
 }
-void
-nextline(void)
+
+/* give extra space if word ends with period, etc. */
+int
+nspaceafter(char *s)
 {
-	Bputc(&bout, '\n');
-	col = 0;
-	bol = 1;
+	int n;
+
+	n = strlen(s);
+	if(n < 2)
+		return 1;
+	if(strchr(".!?", s[n-1]) != nil)
+		return 2;
+	return 1;
 }
+	
+
 void
-flush(void)
+printwords(Word **w, int nw)
 {
-	outword();
-	if(col != 0)
-		nextline();
+	int i, j, col, nsp;
+
+	/* one output line per loop */
+	for(i=0; i<nw; ){
+		/* if it's a blank line, print it */
+		if(w[i]->indent == -1){
+			Bputc(&bout, '\n');
+			if(++i == nw)	/* out of words */
+				break;
+		}
+		/* emit leading indent */
+		col = extraindent+w[i]->indent;
+		printindent(col);
+		/* emit words until overflow; always emit at least one word */
+		for(;;){
+			Bprint(&bout, "%s", w[i]->text);
+			col += strlen(w[i]->text);
+			if(++i == nw)
+				break;	/* out of words */
+			if(w[i]->indent != w[i-1]->indent)
+				break;	/* indent change */
+			nsp = nspaceafter(w[i-1]->text);
+			if(col+nsp+strlen(w[i]->text) > extraindent+length)
+				break;	/* fold line */
+			for(j=0; j<nsp; j++)
+				Bputc(&bout, ' ');	/* emit space; another word will follow */
+			col += nsp;
+		}
+		/* emit newline */
+		Bputc(&bout, '\n');
+	}
+}
+
+void
+fmt(void)
+{
+	char *s;
+	int i, nw;
+	Word **w;
+
+	nw = 0;
+	w = nil;
+	while((s = Brdstr(&bin, '\n', 1)) != nil){
+		w = parseline(s, w, &nw);
+		free(s);
+	}
+	printwords(w, nw);
+	for(i=0; i<nw; i++)
+		free(w[i]);
+	free(w);
 }

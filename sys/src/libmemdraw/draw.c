@@ -107,6 +107,10 @@ DBG	print("memimagedraw %p/%luX %R @ %p %p/%luX %P %p/%luX %P... ", dst, dst->ch
 			par.state |= Simplesrc;
 			par.srgba = imgtorgba(src, par.sval);
 			par.sdval = rgbatoimg(dst, par.srgba);
+			if((par.srgba&0xFF) == 0){
+//				if (drawdebug) iprint("fill with transparent source\n");
+				return;	/* no-op successfully handled */
+			}
 		}
 	}
 

@@ -509,9 +509,18 @@ TEXT setpowerlabel(SB), $-4
 	MOVW	R3, 160(R0)
 	MRC		CpMMU, 0, R3, C(CpPID), C(0x0)
 	MOVW	R3, 164(R0)
+	/* usr */
+	BIC		$(PsrMask), R2, R3
+	ORR		$(0xdf), R3
+	MOVW		R3, CPSR
+	MOVW		SPSR, R11
+	MOVW		R11, 168(R0)
+	MOVW		R12, 172(R0)
+	MOVW		R13, 176(R0)
+	MOVW		R14, 180(R0)
 	/* irq */
 	BIC		$(PsrMask), R2, R3
-	ORR		$(PsrDirq|PsrMirq), R3
+	ORR		$(0xd2), R3
 	MOVW	R3, CPSR
 	MOVW	SPSR, R11
 	MOVW	R11, 64(R0)
@@ -520,7 +529,7 @@ TEXT setpowerlabel(SB), $-4
 	MOVW	R14, 76(R0)
 	/* und */
 	BIC		$(PsrMask), R2, R3
-	ORR		$(PsrDirq|PsrMund), R3
+	ORR		$(0xdb), R3
 	MOVW	R3, CPSR
 	MOVW	SPSR, R11
 	MOVW	R11, 80(R0)
@@ -529,7 +538,7 @@ TEXT setpowerlabel(SB), $-4
 	MOVW	R14, 92(R0)
 	/* abt */
 	BIC		$(PsrMask), R2, R3
-	ORR		$(PsrDirq|PsrMabt), R3
+	ORR		$(0xd7), R3
 	MOVW	R3, CPSR
 	MOVW	SPSR, R11
 	MOVW	R11, 96(R0)
@@ -538,7 +547,7 @@ TEXT setpowerlabel(SB), $-4
 	MOVW	R14, 108(R0)
 	/* fiq */
 	BIC		$(PsrMask), R2, R3
-	ORR		$(PsrDirq|PsrMfiq), R3
+	ORR		$(0xd1), R3
 	MOVW	R3, CPSR
 	MOVW	SPSR, R7
 	MOVW	R7, 112(R0)
@@ -607,9 +616,17 @@ TEXT power_resume(SB), $-4
 	MOVW	R0,R0
 	MOVW	R0,R0
 	MOVW	R0,R0
+	/* usr */
+	BIC		$(PsrMask), R2, R3
+	ORR		$(0xdf), R3
+	MOVW		168(R0), R11
+	MOVW		172(R0), R12
+	MOVW		176(R0), R13
+	MOVW		180(R0), R14
+	MOVW		R11, SPSR
 	/* irq */
 	BIC		$(PsrMask), R2, R3
-	ORR		$(PsrDirq|PsrMirq), R3
+	ORR		$(0xd2), R3
 	MOVW	R3, CPSR
 	MOVW	64(R0), R11
 	MOVW	68(R0), R12
@@ -618,7 +635,7 @@ TEXT power_resume(SB), $-4
 	MOVW	R11, SPSR
 	/* und */
 	BIC		$(PsrMask), R2, R3
-	ORR		$(PsrDirq|PsrMund), R3
+	ORR		$(0xdb), R3
 	MOVW	R3, CPSR
 	MOVW	80(R0), R11
 	MOVW	84(R0), R12
@@ -627,7 +644,7 @@ TEXT power_resume(SB), $-4
 	MOVW	R11, SPSR
 	/* abt */
 	BIC		$(PsrMask), R2, R3
-	ORR		$(PsrDirq|PsrMabt), R3
+	ORR		$(0xd7), R3
 	MOVW	R3, CPSR
 	MOVW	96(R0), R11
 	MOVW	100(R0), R12
@@ -636,7 +653,7 @@ TEXT power_resume(SB), $-4
 	MOVW	R11, SPSR
 	/* fiq */
 	BIC		$(PsrMask), R2, R3
-	ORR		$(PsrDirq|PsrMfiq), R3
+	ORR		$(0xd1), R3
 	MOVW	R3, CPSR
 	MOVW	112(R0), R7
 	MOVW	116(R0), R8
@@ -677,70 +694,134 @@ TEXT power_down(SB), $-4
 	MOVW	gpioregs+0(SB),R6
 	MOVW	memconfregs+0(SB),R5
 	MOVW	powerregs+0(SB),R3
-	MOVW	0x1c(R5),R4
-	ORR		$0x30400000,R4
-	AND		$(~0xfff0),R4
-	MOVW	$0x80000003,R2
+
+
+	/* wakeup on power | rtc */
+	MOVW	$(PWR_rtc|PWR_gpio0),R2
 	MOVW	R2,0xc(R3)
-	MOVW	$15,R2
-	MOVW	R2,0x4(R7)
-	MOVW	$7,R2
+
+	/* clear reset status */
+	MOVW	$(RCSR_all), R2
+	MOVW	R2, 0x4(R7)
+	/* float */
+	MOVW	$(PCFR_opde|PCFR_fp|PCFR_fs), R2
 	MOVW	R2,0x10(R3)
+	/* sleep state */
 	MOVW	$0,R2
 	MOVW	R2,0x18(R3)
-/*	MOVW	$power_resume+0(SB),R2	*/
-	MOVW	$0,R2
+	/* set resume address (pspr)*/
+	MOVW	$resumeaddr+0(SB),R1
+	MOVW	0x0(R1), R2
 	MOVW	R2,0x8(R3)
-	MOVW	$0,R2
-	MOVW	R2,0x4(R6)
-	MOVW	0x1c(R5),R2
-	ORR		$0x400000,R2
-	MOVW	R2,0x1c(R5)
-	MOVW	$(90*206),R0
-l13:	SUB		$1,R0
-	BGT		l13
+
+	BL	cacheflush(SB)
+
+	/* disable clock switching */
+	MCR   	CpPWR, 0, R1, C(CpTest), C(0x2), 2
+
+	/* adjust mem timing */
+	MOVW	memconfregs+0(SB),R5
+	MOVW	0x1c(R5), R2
+	ORR	$(MDREFR_k1db2), R2
+	MOVW	R2, 0x1c(R5)
+
+	/* set PLL to lower speed w/ delay (ppcr = 0)*/
 	MOVW	powerregs+0(SB),R3
-	MOVW	$0,R2
-	MOVW	R2,20(R3)
-	MOVW	$(90*206),R0
-l14:	SUB		$1,R0
-	BGT		l14
-	MOVW	powerregs+0(SB),R5
-	ORR		$0x80000000,R4,R6
-	AND		$(~0x80100000),R6,R11
+	MOVW	$(120*206),R0
+l11:	SUB	$1,R0
+	BGT	l11
+	MOVW	$0, R2
+	MOVW	R2, 0x14(R3)
+	MOVW	$(120*206),R0
+l12:	SUB	$1,R0
+	BGT	l12
 
-	MOVW	memconfregs+0(SB),R3
-	MOVW	0x0(R3),R12
-	AND		$(~0x30003),R12
-
-	MOVW	0x10(R3),R2
-	AND		$(~0x00030003),R2
-	MOVW	R2,0x10(R3)
-	MOVW	0x14(R3),R2
-	AND		$(~0x00030003),R2
-	MOVW	R2,0x14(R3)
-	MOVW	0x2c(R3),R2
-	AND		$(~0x00030003),R2
-	MOVW	R2,0x2c(R3)
-	MOVW	R0,R0			/* filler */
-
+	/* setup registers for suspend procedure:
+	 * 1. clear RT in mscx (R1, R7, R8)
+	 * 2. clear DRI in mdrefr (R4)
+	 * 3. set slfrsh in mdrefr (R6)
+	 * 4. clear DE in mdcnfg (R9)
+	 * 5. clear dram refresh (R10)
+	 * 6. force sleep (R2)
+	 */
+	/* 1 */
+	MOVW	0x10(R5), R2
+	BIC	$(MSC_rt), R2
+	MOVW	R2, R1
+	MOVW	0x14(R5), R2
+	BIC	$(MSC_rt), R2
+	MOVW	R2, R7
+	MOVW	0x2c(R5), R2
+	BIC	$(MSC_rt), R2
+	MOVW	R2, R8
+	/* 2 */
+	MOVW	0x1c(R5), R2
+	BIC	$(0xff00), R2
+	BIC	$(0x00f0), R2
+	MOVW	R2, R4
+	/* 3 */
+	ORR	$(MDREFR_slfrsh), R2, R6
+	/* 4 */
+	MOVW	0x0(R5), R9
+	BIC	$(MDCFNG_de), R9, R9
+	/* 5 */
+	MOVW	R4, R2
+	BIC	$(MDREFR_slfrsh), R2, R2
+	BIC	$(MDREFR_e1pin), R2, R2
+	MOVW	R2, R10
+	/* 6 */
 	MOVW	$1,R2
-	MOVW	R4,0x1c(R3)
-//	MOVW	R6,0x1c(R3)
-	MOVW	R12,0x0(R3)
-//	MOVW	R11,0x1c(R3)
-	MOVW	R2,0x0(R5)
 
+TEXT power_magic(SB), $-4
+	/* power_code gets copied into the area of no-ops below,
+	 * at a cache-line boundary (8 instructions)
+	 */
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+	MOVW	R0, R0
+
+TEXT power_code(SB), $-4
+	/* Follow the procedure; this code gets copied to the no-op
+	 * area preceding this code
+	 */
+	/* 1 */
+	MOVW	R1, 0x10(R5)
+	MOVW	R7, 0x14(R5)
+	MOVW	R8, 0x2c(R5)
+	/* 2 */
+	MOVW	R4, 0x1c(R5)
+	/* 3 */
+	MOVW	R6, 0x1c(R5)
+	/* 4 */
+	MOVW	R9, 0x0(R5)
+	/* 5 */
+	MOVW	R10, 0x1c(R5)
+	/* 6 */
+	MOVW	R2, 0x0(R3)
 slloop:
 	B		slloop			/* loop waiting for sleep */
 
 /* The first MCR instruction of this function needs to be on a cache-line
- * boundary; to make this happen, it will be copied (in trap.c).
+ * boundary; to make this happen, it will be copied to the first cache-line
+ * boundary 8 words from the start of doze.
  *
  * Doze puts the machine into idle mode.  Any interrupt will get it out
  * at the next instruction (the RET, to be precise).
  */
-TEXT _doze(SB), $-4
+TEXT doze(SB), $-4
 	MOVW	$UCDRAMZERO, R1
 	MOVW	R0,R0
 	MOVW	R0,R0
@@ -749,7 +830,26 @@ TEXT _doze(SB), $-4
 	MOVW	R0,R0
 	MOVW	R0,R0
 	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	RET
+	
+TEXT doze_code(SB), $-4
 	MCR   	CpPWR, 0, R0, C(CpTest), C(0x2), 2
 	MOVW	(R1), R0
 	MCR  	CpPWR, 0, R0, C(CpTest), C(0x8), 2
-	RET

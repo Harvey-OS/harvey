@@ -1,7 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <authsrv.h>
+#include <libsec.h>
+#include <auth.h>
 #include "authcmdlib.h"
 
 char CRONLOG[] = "cron";
@@ -46,6 +47,7 @@ Job	*readjobs(char*, User*);
 int	getname(char**);
 ulong	gettime(int, int);
 int	gettok(int, int);
+void	initcap(void);
 void	pushtok(void);
 void	usage(void);
 void	freejobs(Job*);
@@ -57,6 +59,7 @@ void	createuser(void);
 int	mkcmd(char*, char*, int);
 void	printjobs(void);
 int	qidcmp(Qid, Qid);
+int	becomeuser(char*);
 
 void
 main(int argc, char *argv[])
@@ -85,6 +88,8 @@ main(int argc, char *argv[])
 		printjobs();
 		exits(0);
 	}
+
+	initcap();
 
 	switch(fork()){
 	case -1:
@@ -439,8 +444,9 @@ mkcmd(char *cmd, char *buf, int len)
 void
 rexec(User *user, Job *j)
 {
-	char buf[8*1024], key[DESKEYLEN];
+	char buf[8*1024];
 	int n, fd;
+	AuthInfo *ai;
 
 	switch(rfork(RFPROC|RFNOWAIT|RFNAMEG|RFENVG|RFFDG)){
 	case 0:
@@ -449,10 +455,6 @@ rexec(User *user, Job *j)
 		syslog(0, CRONLOG, "can't fork a job for %s: %r\n", user->name);
 	default:
 		return;
-	}
-	if(findkey(KEYDB, user->name, key) == 0){
-		syslog(0, CRONLOG, "%s: key not found", user->name);
-		_exits(0);
 	}
 
 	if(!mkcmd(j->cmd, buf, sizeof buf)){
@@ -468,15 +470,19 @@ rexec(User *user, Job *j)
 	fd = call(j->host);
 	if(fd < 0){
 		if(fd == -2){
-			syslog(0, AUTHLOG, "%s: dangerous host %s", user->name, j->host);
 			syslog(0, CRONLOG, "%s: dangerous host %s", user->name, j->host);
 		}
 		syslog(0, CRONLOG, "%s: can't call %s: %r", user->name, j->host);
 		_exits(0);
 	}
 syslog(0, CRONLOG, "%s: called %s on %s", user->name, j->cmd, j->host);
-	if(myauth(fd, user->name) < 0){
-		syslog(0, CRONLOG, "%s: can't auth %s on %s: %r", user->name, j->cmd, j->host);
+	if(becomeuser(user->name) < 0){
+		syslog(0, CRONLOG, "%s: can't change uid for %s on %s: %r", user->name, j->cmd, j->host);
+		_exits(0);
+	}
+	ai = auth_proxy(fd, nil, "proto=p9any role=client");
+	if(ai == nil){
+		syslog(0, CRONLOG, "%s: can't authenticate for %s on %s: %r", user->name, j->cmd, j->host);
 		_exits(0);
 	}
 syslog(0, CRONLOG, "%s: authenticated %s on %s", user->name, j->cmd, j->host);
@@ -517,65 +523,96 @@ usage(void)
 }
 
 int
-myauth(int fd, char *user)
-{
-	int i;
-	char hkey[DESKEYLEN];
-	char buf[512];
-	Ticketreq tr;
-	Ticket t;
-	Authenticator a;
-
-	/* get ticket request from remote machine */
-	if(readn(fd, buf, TICKREQLEN) < 0){
-		werrstr("bad request");
-		return -1;
-	}
-	convM2TR(buf, &tr);
-	if(tr.type != AuthTreq){
-		werrstr("bad request");
-		return -1;
-	}
-	if(findkey(KEYDB, tr.authid, hkey) == 0){
-		werrstr("no key for authid %s", tr.authid);
-		return -1;
-	}
-
-	/* create ticket+authenticator and send to destination */
-	memset(&t, 0, sizeof t);
-	memmove(t.chal, tr.chal, CHALLEN);
-	strncpy(t.cuid, user, sizeof(t.cuid));
-	strncpy(t.suid, user, sizeof(t.suid));
-	srand(time(0));
-	for(i = 0; i < DESKEYLEN; i++)
-		t.key[i] = nrand(256);
-	t.num = AuthTs;
-	convT2M(&t, buf, hkey);
-	memmove(a.chal, tr.chal, CHALLEN);
-	a.id = 0;
-	a.num = AuthAc;
-	convA2M(&a, buf+TICKETLEN, t.key);
-	if(write(fd, buf, TICKETLEN+AUTHENTLEN) != TICKETLEN+AUTHENTLEN){
-		werrstr("connection dropped: %r");
-		return -1;
-	}
-
-	/* get authenticator from server and check */
-	if(readn(fd, buf, AUTHENTLEN) < 0){
-		werrstr("connection dropped: %r");
-		return -1;
-	}
-	convM2A(buf, &a, t.key);
-	if(a.num != AuthAs){
-		werrstr("bad reply authenticator");
-		return -1;
-	}
-	return 0;
-}
-
-int
 qidcmp(Qid a, Qid b)
 {
 	/* might be useful to know if a > b, but not for cron */
 	return(a.path != b.path || a.vers != b.vers);
+}
+
+void
+memrandom(void *p, int n)
+{
+	uchar *cp;
+
+	for(cp = (uchar*)p; n > 0; n--)
+		*cp++ = fastrand();
+}
+
+/*
+ *  keep caphash fd open since opens of it could be disabled
+ */
+static int caphashfd;
+
+void
+initcap(void)
+{
+	caphashfd = open("#¤/caphash", OWRITE);
+	if(caphashfd < 0)
+		fprint(2, "%s: opening #¤/caphash: %r", argv0);
+}
+
+/*
+ *  create a change uid capability 
+ */
+char*
+mkcap(char *from, char *to)
+{
+	uchar rand[20];
+	char *cap;
+	char *key;
+	int nfrom, nto;
+	uchar hash[SHA1dlen];
+
+	if(caphashfd < 0)
+		return nil;
+
+	/* create the capability */
+	nto = strlen(to);
+	nfrom = strlen(from);
+	cap = emalloc(nfrom+1+nto+1+sizeof(rand)*3+1);
+	sprint(cap, "%s@%s", from, to);
+	memrandom(rand, sizeof(rand));
+	key = cap+nfrom+1+nto+1;
+	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
+
+	/* hash the capability */
+	hmac_sha1((uchar*)cap, strlen(cap), (uchar*)key, strlen(key), hash, nil);
+
+	/* give the kernel the hash */
+	key[-1] = '@';
+	if(write(caphashfd, hash, SHA1dlen) < 0){
+		free(cap);
+		return nil;
+	}
+
+	return cap;
+}
+
+int
+usecap(char *cap)
+{
+	int fd, rv;
+
+	fd = open("#¤/capuse", OWRITE);
+	if(fd < 0)
+		return -1;
+	rv = write(fd, cap, strlen(cap));
+	close(fd);
+	return rv;
+}
+
+int
+becomeuser(char *new)
+{
+	char *cap;
+	int rv;
+
+	cap = mkcap(getuser(), new);
+	if(cap == nil)
+		return -1;
+	rv = usecap(cap);
+	free(cap);
+
+	newns(new, nil);
+	return rv;
 }

@@ -2,6 +2,8 @@
  * NCR/Symbios/LSI Logic 53c8xx driver for Plan 9
  * Nigel Roles (nigel@9fs.org)
  *
+ * 27/5/02	Fixed problems with transfers >= 256 * 512
+ *
  * 13/3/01	Fixed microcode to support targets > 7
  *
  * 01/12/00	Removed previous comments. Fixed a small problem in
@@ -205,7 +207,10 @@ typedef struct Dsa {
 	uchar dmablks;
 	uchar flag;	/* setbyte(state,3,...) */
 
-	uchar dmaaddr[4];
+	union {
+		ulong dmancr;		/* For block transfer: NCR order (little-endian) */
+		uchar dmaaddr[4];
+	};
 
 	uchar target;			/* Target */
 	uchar pad0[3];
@@ -1170,13 +1175,20 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 			 * now recover
 			 */
 			if (sa == E_data_in_mismatch) {
+				/*
+				 * though this is a failure in the residue, there may have been blocks
+				 * as well. if so, dmablks will not have been zeroed, since the state
+				 * was not saved by the microcode. 
+				 */
 				dbc = read_mismatch_recover(c, n, dsa);
 				tbc = legetl(dsa->data_buf.dbc) - dbc;
+				dsa->dmablks = 0;
+				n->scratcha[2] = 0;
 				advancedata(&dsa->data_buf, tbc);
 				if (DEBUG(1) || DEBUG(2))
 					IPRINT(PRINTPREFIX "%d/%d: transferred = %ld residue = %ld\n",
 					    dsa->target, dsa->lun, tbc, legetl(dsa->data_buf.dbc));
-				cont = E_to_decisions;
+				cont = E_data_mismatch_recover;
 			}
 			else if (sa == E_data_in_block_mismatch) {
 				dbc = read_mismatch_recover(c, n, dsa);
@@ -1196,17 +1208,19 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				    dsa->dmablks, legetl(dsa->dmaaddr),
 				    legetl(dsa->data_buf.pa), legetl(dsa->data_buf.dbc));
 				n->scratcha[2] = dsa->dmablks;
-				lesetl(n->scratchb, *(ulong*)dsa->dmaaddr);
+				lesetl(n->scratchb, dsa->dmancr);
 				cont = E_data_block_mismatch_recover;
 			}
 			else if (sa == E_data_out_mismatch) {
 				dbc = write_mismatch_recover(c, n, dsa);
 				tbc = legetl(dsa->data_buf.dbc) - dbc;
+				dsa->dmablks = 0;
+				n->scratcha[2] = 0;
 				advancedata(&dsa->data_buf, tbc);
 				if (DEBUG(1) || DEBUG(2))
 					IPRINT(PRINTPREFIX "%d/%d: transferred = %ld residue = %ld\n",
 					    dsa->target, dsa->lun, tbc, legetl(dsa->data_buf.dbc));
-				cont = E_to_decisions;
+				cont = E_data_mismatch_recover;
 			}
 			else if (sa == E_data_out_block_mismatch) {
 				dbc = write_mismatch_recover(c, n, dsa);
@@ -1223,7 +1237,7 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				    dmablks * A_BSIZE - tbc + legetl(dsa->data_buf.dbc));
 				/* copy changes into scratch registers */
 				n->scratcha[2] = dsa->dmablks;
-				lesetl(n->scratchb, *(ulong*)dsa->dmaaddr);
+				lesetl(n->scratchb, dsa->dmancr);
 				cont = E_data_block_mismatch_recover;
 			}
 			else if (sa == E_id_out_mismatch) {

@@ -254,26 +254,18 @@ extern MemConfRegs *memconfregs;
  */
 
 /* Power management ops */
-enum {
-	PCFR_suspend	= 1,
-
-	PCFR_opde	= 1,
-	PCFR_fp		= 2,
-	PCFR_fs		= 4,
-	PCFR_fo		= 8,
-};
 
 typedef struct PowerRegs PowerRegs;
 struct PowerRegs
 {
-	ulong	pmcr;	/* Power manager control register */
-	ulong	pssr;	/* Power manager sleep status register */
-	ulong	pspr;	/* Power manager scratch pad register */
-	ulong	pwer;	/* Power manager wakeup enable register */
-	ulong	pcfr;	/* Power manager general configuration register */
-	ulong	ppcr;	/* Power manager PPL configuration register */
-	ulong	pgsr;	/* Power manager GPIO sleep state register */
-	ulong	posr;	/* Power manager oscillator status register */
+	ulong	pmcr;	/* 0x0 Power manager control register */
+	ulong	pssr;	/* 0x4 Power manager sleep status register */
+	ulong	pspr;	/* 0x8 Power manager scratch pad register */
+	ulong	pwer;	/* 0xc Power manager wakeup enable register */
+	ulong	pcfr;	/* 0x10 Power manager general configuration register */
+	ulong	ppcr;	/* 0x14 Power manager PPL configuration register */
+	ulong	pgsr;	/* 0x18 Power manager GPIO sleep state register */
+	ulong	posr;	/* 0x1c Power manager oscillator status register */
 };
 extern PowerRegs *powerregs;
 
@@ -287,7 +279,6 @@ enum
 	RCSR_swr = 0x00000002,	/* sw reset */
 	RCSR_wdr = 0x00000004,	/* watch dog */
 	RCSR_smr = 0x00000008,	/* sleep mode reset */
-	RCSR_all = 0x0000000f,
 };
 
 typedef struct ResetRegs ResetRegs;

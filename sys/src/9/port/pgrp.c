@@ -134,10 +134,7 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 		l = tom++;
 		for(f = from->mnthash[i]; f; f = f->hash) {
 			rlock(&f->lock);
-			mh = smalloc(sizeof(Mhead));
-			mh->from = f->from;
-			mh->ref = 1;
-			incref(mh->from);
+			mh = newmhead(f->from);
 			*l = mh;
 			l = &mh->hash;
 			link = &mh->mount;

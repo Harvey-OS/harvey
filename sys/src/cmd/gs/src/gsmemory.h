@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 1996, 1997, 1998, 1999, 2001 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsmemory.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsmemory.h,v 1.3 2001/08/25 06:46:21 lpd Exp $ */
 /* Client interface for memory allocation */
 
 /*
@@ -36,6 +36,7 @@
 #  define gsmemory_INCLUDED
 
 #include "gsmemraw.h"
+#include "gstypes.h"		/* for gs_bytestring */
 
 /* Define the opaque type for a structure descriptor. */
 typedef struct gs_memory_struct_type_s gs_memory_struct_type_t;
@@ -253,6 +254,15 @@ void gs_free_const_object(P3(gs_memory_t *mem, const void *data,
 			     client_name_t cname));
 void gs_free_const_string(P4(gs_memory_t *mem, const byte *data, uint nbytes,
 			     client_name_t cname));
+
+/*
+ * Free a [const] bytestring.  Note that this is *not* a member procedure of
+ * the allocator: it calls the free_object or free_string procedure.
+ */
+void gs_free_bytestring(gs_memory_t *mem, gs_bytestring *pbs,
+			client_name_t cname);
+void gs_free_const_bytestring(gs_memory_t *mem, gs_const_bytestring *pbs,
+			      client_name_t cname);
 
 /*
  * Either allocate (if obj == 0) or resize (if obj != 0) a structure array.

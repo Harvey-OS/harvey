@@ -4,6 +4,9 @@ nntpfs \- network news transport protocol (NNTP) file system
 .SH SYNOPSIS
 .B nntpfs
 [
+.B -a
+]
+[
 .B -s
 .I service
 ]
@@ -11,7 +14,9 @@ nntpfs \- network news transport protocol (NNTP) file system
 .B -m
 .I mountpoint
 ]
+[
 .I system
+]
 .SH DESCRIPTION
 .I Nntpfs
 dials the TCP network news transport protocol (NNTP)
@@ -26,6 +31,22 @@ and presents at
 a file system corresponding to the
 news articles stored on 
 .IR system .
+.PP
+If the
+.B -s
+option is given, the file system is posted as
+.BI /srv/ service \fR.
+If the
+.B -a
+option is given,
+.I nntpfs
+authenticates to the system with a user name and password
+obtained from
+.IR factotum (4).
+The key specifier is
+.IP
+.B
+proto=pass service=nntp server=\fIserver\fR user? !password?
 .PP
 The file system contains a directory per newsgroup,
 with dots turned into slashes, e.g.,
@@ -100,6 +121,14 @@ the mount point.
 makes no effort to send ``keepalives'' so that
 servers do not hang up on it.
 Instead, it redials as necessary when hangups are detected.
+.SH EXAMPLE
+Authenticate to a private news server:
+.IP
+.EX
+% echo key proto=pass service=nntp server=nose.mit.edu \e
+	user=rsc !password=secret >/mnt/factotum/ctl
+% nntpfs -a nose.mit.edu
+.EE
 .SH SOURCE
 .B /sys/src/cmd/nntpfs.c
 .SH BUGS

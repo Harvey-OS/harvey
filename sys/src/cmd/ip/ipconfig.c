@@ -878,12 +878,16 @@ dhcprecv(void)
 		errstr(err, sizeof err);
 		if(strstr(err, "interrupt") == nil)
 			fprint(2, "ipconfig: bad read: %s\n", err);
+		else
+			DEBUG("read timed out\n");
 		return;
 	}
 
 	bp = parsebootp(buf, n);
-	if(bp == 0)
+	if(bp == 0) {
+		DEBUG("parsebootp failed: dropping packet\n");
 		return;
+	}
 
 	type = optgetbyte(bp->optdata, ODtype);
 	switch(type) {

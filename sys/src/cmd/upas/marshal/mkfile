@@ -9,6 +9,14 @@ HFILES=	../common/common.h\
 OFILES= marshal.$O
 
 BIN=/$objtype/bin/upas
+
+UPDATE=\
+	mkfile\
+	${TARG:%=%.c}\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/upas/%}\
+	$HFILES\
+	
 </sys/src/cmd/mkone
 CFLAGS=$CFLAGS -I../common
 

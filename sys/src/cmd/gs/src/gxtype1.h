@@ -1,22 +1,22 @@
 /* Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxtype1.h,v 1.2 2000/03/10 04:29:37 lpd Exp $ */
+/*$Id: gxtype1.h,v 1.5 2000/11/23 23:34:22 lpd Exp $ */
 /* Private Adobe Type 1 / Type 2 charstring interpreter definitions */
 
 #ifndef gxtype1_INCLUDED
@@ -133,8 +133,10 @@ typedef struct {
     const byte *ip;
     crypt_state dstate;
     gs_const_string char_string;	/* original CharString or Subr, */
-    /* for GC */
-} ip_state;
+					/* for GC */
+    int free_char_string;		/* if > 0, free char_string */
+					/* after executing it */
+} ip_state_t;
 
 /* Get the next byte from a CharString.  It may or may not be encrypted. */
 #define charstring_this(ch, state, encrypted)\
@@ -175,7 +177,7 @@ struct gs_type1_state_s {
     /* The following are updated dynamically */
     fixed ostack[ostack_size];	/* the Type 1 operand stack */
     int os_count;		/* # of occupied stack entries */
-    ip_state ipstack[ipstack_size + 1];		/* control stack */
+    ip_state_t ipstack[ipstack_size + 1];	/* control stack */
     int ips_count;		/* # of occupied entries */
     int init_done;		/* -1 if not done & not needed, */
 				/* 0 if not done & needed, 1 if done */
@@ -313,8 +315,11 @@ void gs_type1_finish_init(P2(gs_type1_state * pcis, is_ptr ps));
 int gs_type1_sbw(P5(gs_type1_state * pcis, fixed sbx, fixed sby,
 		    fixed wx, fixed wy));
 
+/* blend returns the number of values to pop. */
+int gs_type1_blend(P3(gs_type1_state *pcis, fixed *csp, int num_results));
+
 int gs_type1_seac(P4(gs_type1_state * pcis, const fixed * cstack,
-		     fixed asb_diff, ip_state * ipsp));
+		     fixed asb_diff, ip_state_t * ipsp));
 
 int gs_type1_endchar(P1(gs_type1_state * pcis));
 

@@ -11,6 +11,7 @@ PROTOS=\
 	udp\
 	bootp\
 	dhcp\
+	hdlc\
 	tcp\
 	il\
 	icmp\
@@ -36,6 +37,12 @@ HFILES=dat.h\
 
 
 BIN=/$objtype/bin
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/%}\
+
 </sys/src/cmd/mkone
 
 protos.h: mkfile

@@ -210,3 +210,27 @@
  *  H3650 specific definitions
  */
 #define EGPIOREGS	0x49000000	/* Additional GPIO register */
+
+/* Power management */
+
+#define PWR_rtc		0x80000000	/* resume on RTC */
+#define	PWR_gpio0	0x00000001	/* resume on power button */
+
+#define RCSR_all	0x0000000f
+#define PCFR_opde	0x00000001	/* oscillator power-down enable */
+#define PCFR_suspend	0x00000001
+#define PCFR_fp		0x00000002	/* float pcmcia */
+#define PCFR_fs		0x00000004	/* float static memory */
+#define PCFR_fo		0x00000008
+
+#define MDREFR_k1db2	(1 << 22)
+#define MDREFR_slfrsh	0x80000000	/* self refresh */
+#define MDREFR_e1pin	(1 << 20)
+#define MSC_rt		0x00030003
+
+#define MDCNFG_de0	0x00000001	/* dram enable */
+#define MDCNFG_de1	0x00000002
+#define MDCNFG_de2	0x00000004
+#define MDCNFG_de3	0x00000008
+#define MDCFNG_de	0x0000000f
+#define PMCR_sf		1

@@ -130,6 +130,7 @@ enum {					/* type */
 	Tfloppy		= 0x01,
 	Tsd		= 0x02,
 	Tether		= 0x03,
+	Tcd		= 0x04,
 
 	Tany		= -1,
 };
@@ -137,15 +138,15 @@ enum {					/* type */
 enum {					/* name and flag */
 	Fnone		= 0x00,
 
-	Ndos		= 0x00,
-	Fdos		= (1<<Ndos),
+	Nfs		= 0x00,
+	Ffs		= (1<<Nfs),
 	Nboot		= 0x01,
 	Fboot		= (1<<Nboot),
 	Nbootp		= 0x02,
 	Fbootp		= (1<<Nbootp),
 	NName		= 3,
 
-	Fany		= Fbootp|Fboot|Fdos,
+	Fany		= Fbootp|Fboot|Ffs,
 
 	Fini		= 0x10,
 	Fprobe		= 0x80,
@@ -156,7 +157,7 @@ typedef struct Type {
 	int	flag;
 	int	(*init)(void);
 	void	(*initdev)(int, char*);
-	void*	(*getdospart)(int, char*, int);	/* actually returns Dos* */
+	void*	(*getfspart)(int, char*, int);	/* actually returns Dos* */
 	void	(*addconf)(int);
 	int	(*boot)(int, char*, Boot*);
 	void	(*printdevs)(int);

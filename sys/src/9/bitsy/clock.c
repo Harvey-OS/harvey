@@ -145,7 +145,7 @@ delay(int ms)
 }
 
 void
-µdelay(ulong µs)
+microdelay(int µs)
 {
 	ulong start;
 	int i;
@@ -163,15 +163,12 @@ void
 	}
 }
 
+/*  
+ *  performance measurement ticks.  must be low overhead.
+ *  doesn't have to count over a second.
+ */
 ulong
-TK2MS(ulong ticks)
+perfticks(void)
 {
-	uvlong t, hz;
-
-	t = ticks;
-	hz = HZ;
-	t *= 1000L;
-	t = t/hz;
-	ticks = t;
-	return ticks;
+	return timerregs->oscr;
 }

@@ -7,7 +7,11 @@ void*
 emalloc(ulong n)
 {
 	void *v;
-	v = erealloc(nil, n);
+	v = malloc(n);
+	if(v == nil){
+		fprint(2, "out of memory\n");
+		exits("memory");
+	}
 	memset(v, 0, n);
 	return v;
 }

@@ -1,28 +1,34 @@
 /* Copyright (C) 1992, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: echogs.c,v 1.1 2000/03/09 08:40:40 lpd Exp $ */
+/*$Id: echogs.c,v 1.3 2001/02/22 03:59:39 raph Exp $ */
 /* 'echo'-like utility */
 #include "stdpre.h"
 #include <stdio.h>
-/* Some brain-damaged environments (e.g. Sun) don't include */
-/* prototypes for fputc/fputs in stdio.h! */
+
+#if defined(__sun__) && !defined(const)
+/* Apparently, there are archaic Sun platforms which don't include
+ * prototypes for fputc/fputs in stdio.h. The following prototype can
+ * cause type mismatches if const has been defined (usually with
+ * -Dconst=), so it's only included if const is undefined.
+ */
 extern int fputc(P2(int, FILE *)), fputs(P2(const char *, FILE *));
+#endif
 
 /* Some systems have time_t in sys/types.h rather than time.h. */
 #include <sys/types.h>

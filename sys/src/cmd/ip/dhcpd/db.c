@@ -168,7 +168,7 @@ writebinding(int fd, Binding *b)
 /*
  *  synchronize cached binding with file.  the file always wins.
  */
-static int
+int
 syncbinding(Binding *b, int returnfd)
 {
 	char buf[512];

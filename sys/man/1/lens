@@ -33,6 +33,10 @@ key  in the
 .I lens
 window will refresh the
 display, as will changing the magnification.
+.PP
+To make counting pixels easier, typing a
+.B g
+toggles whether a checkerboard grid is imposed on the magnified area.
 .SH SOURCE
 .B /sys/src/cmd/lens.c
 .SH BUGS

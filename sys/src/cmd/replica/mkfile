@@ -2,7 +2,6 @@
 
 SCRIPTS=\
 	changes\
-	newreplica\
 	pull\
 	push\
 	scan\
@@ -21,6 +20,20 @@ OFILES=\
 	util.$O\
 
 HFILES=all.h
+
+UPDATE=\
+	mkfile\
+	/sys/man/1/replica\
+	/sys/man/8/replica\
+	${OFILES:%.$O=%.c}\
+	revproto.c\
+	$HFILES\
+	applychanges.c\
+	updatedb.c\
+	${TARG:%=/386/bin/replica/%}\
+	${SCRIPTS:%=/rc/bin/replica/%}\
+	/rc/bin/replica/defs\
+
 
 BIN=/$objtype/bin/replica
 </sys/src/cmd/mkmany

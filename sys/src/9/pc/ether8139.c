@@ -73,7 +73,7 @@ enum {					/* Imr/Isr */
 	PunLc		= 0x0020,	/* Packet Underrun or Link Change */
 	Fovw		= 0x0040,	/* Receive FIFO Overflow */
 	Clc		= 0x2000,	/* Cable Length Change */
-	Timerbit		= 0x4000,	/* Timer */
+	Timerbit	= 0x4000,	/* Timer */
 	Serr		= 0x8000,	/* System Error */
 };
 

@@ -893,7 +893,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 		e = d->ep[0];
 		if(e == nil || e->iso)
 			error(Egreg);
-		if(n < 8 || n > 1023)
+		if(n < 8)
 			error(Eio);
 		nw = *(uchar*)a & RD2H;
 		e->data01 = 0;

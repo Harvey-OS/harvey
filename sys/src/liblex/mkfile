@@ -1,11 +1,19 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libl.a
-OFILES=\
-	allprint.$O\
-	main.$O\
-	reject.$O\
-	yyless.$O\
-	yywrap.$O\
+FILES=\
+	allprint\
+	main\
+	reject\
+	yyless\
+	yywrap\
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/lib/libl.a\
+	$CFILES\
 
 </sys/src/cmd/mksyslib

@@ -2,6 +2,7 @@
 #include "smtpd.h"
 #include "smtp.h"
 #include "ip.h"
+#include <auth.h>
 
 char	*me;
 char	*him="";
@@ -23,6 +24,9 @@ int	debug;
 int	fflag;
 int	rflag;
 int	sflag;
+int	authenticate;
+int	authenticated;
+int	passwordinclear;
 
 List senders;
 List rcvers;
@@ -111,6 +115,12 @@ main(int argc, char **argv)
 		break;
 	case 's':				/* save blocked messages */
 		sflag = 1;
+		break;
+	case 'a':
+		authenticate = 1;
+		break;
+	case 'p':
+		passwordinclear = 1;
 		break;
 	default:
 		fprint(2, "usage: smtpd [-dfhrs] [-n net]\n");
@@ -230,15 +240,21 @@ sayhi(void)
 }
 
 void
-hello(String *himp)
+hello(String *himp, int extended)
 {
 	if(rejectcheck())
 		return;
 	him = s_to_c(himp);
 	if(strchr(him, '.') == 0 && nci != nil && strchr(nci->rsys, '.') != nil)
 		him = nci->rsys;
-		
-	reply("250 %s you are %s\r\n", dom, him);
+
+	reply("250%c%s you are %s\r\n", extended ? '-' : ' ', dom, him);
+	if (extended) {
+		if (passwordinclear)		
+			reply("250 AUTH CRAM-MD5 LOGIN\r\n");
+		else
+			reply("250 AUTH CRAM-MD5\r\n");
+	}
 }
 
 void
@@ -250,6 +266,11 @@ sender(String *path)
 
 	if(rejectcheck())
 		return;
+	if (authenticate && !authenticated) {
+		rejectcount++;
+		reply("530 Authentication required\r\n");
+		return;
+	}
 	if(him == 0 || *him == 0){
 		rejectcount++;
 		reply("503 Start by saying HELO, please.\r\n", s_to_c(path));
@@ -334,7 +355,7 @@ receiver(String *path)
 
 	logged = 0;
 		/* forwarding() can modify 'path' on loopback request */
-	if(filterstate == ACCEPT && fflag && forwarding(path)) {
+	if(filterstate == ACCEPT && (fflag && !authenticated) && forwarding(path)) {
 		syslog(0, "smtpd", "Bad Forward %s (%s/%s) (%s)",
 			s_to_c(senders.last->p), him, nci->rsys, s_to_c(path));
 		rejectcount++;
@@ -579,7 +600,7 @@ startcmd(void)
 		/*
 		 *  start mail process
 		 */
-		pp = noshell_proc_start(av, instream(), 0, outstream(), 0, 0);
+		pp = noshell_proc_start(av, instream(), outstream(), outstream(), 0, 0);
 		free(av);
 		break;
 	}
@@ -674,7 +695,7 @@ pipemsg(int *byteswritten)
 			break;
 		}
 
-		s_append(hdr, s_to_c(line));
+		s_append(hdr, *cp == '.' ? cp+1 : cp);
 	}
 
 	/*
@@ -726,7 +747,7 @@ pipemsg(int *byteswritten)
 			break;
 		}
 		nbytes += n;
-		if(Bwrite(pp->std[0]->fp, s_to_c(line), n) < 0){
+		if(Bwrite(pp->std[0]->fp, *cp == '.' ? cp+1 : cp, n) < 0){
 			status = 1;
 			break;
 		}
@@ -776,9 +797,9 @@ data(void)
 	reply("354 Input message; end with <CRLF>.<CRLF>\r\n");
 
 	/*
-	 *  allow 45 more minutes to move the data
+	 *  allow 145 more minutes to move the data
 	 */
-	alarm(45*60*1000);
+	alarm(145*60*1000);
 
 	status = pipemsg(&nbytes);
 
@@ -872,4 +893,135 @@ mailerpath(char *p)
 	s_append(s, "/");
 	s_append(s, p);
 	return s;
+}
+
+String *
+s_dec64(String *sin)
+{
+	String *sout;
+	int lin, lout;
+	lin = s_len(sin) - 1;	// strip nl
+	sout = s_newalloc(lin + 1);	// for nul
+	lout = dec64((uchar *)s_to_c(sout), lin, s_to_c(sin), lin);
+	if (lout < 0) {
+		s_free(sout);
+		return nil;
+	}
+	sout->ptr = sout->base + lout;
+	s_terminate(sout);
+	return sout;
+}
+
+void
+auth(String *mech)
+{
+	Chalstate *chs = nil;
+	AuthInfo *ai = nil;
+	String *s_resp1_64 = nil;
+	String *s_resp2_64 = nil;
+	String *s_resp1 = nil;
+	String *s_resp2 = nil;
+	char *scratch = nil;
+
+	if (rejectcheck())
+		goto bomb_out;
+
+	if (authenticated) {
+	bad_sequence:
+		rejectcount++;
+		reply("503 Bad sequence of commands\r\n");
+		goto bomb_out;
+	}
+	if (cistrcmp(s_to_c(mech), "login") == 0) {
+
+		if (!passwordinclear) {
+			rejectcount++;
+			reply("538 Encryption required for requested authentication mechanism\r\n");
+			goto bomb_out;
+		}
+		reply("334 VXNlcm5hbWU6\r\n");
+		s_resp1_64 = s_new();
+		if (getcrnl(s_resp1_64, &bin) <= 0)
+			goto bad_sequence;
+		reply("334 UGFzc3dvcmQ6\r\n");
+		s_resp2_64 = s_new();
+		if (getcrnl(s_resp2_64, &bin) <= 0)
+			goto bad_sequence;
+		s_resp1 = s_dec64(s_resp1_64);
+		s_resp2 = s_dec64(s_resp2_64);
+		memset(s_to_c(s_resp2_64), 'X', s_len(s_resp2_64));
+		if (s_resp1 == nil || s_resp2 == nil) {
+			rejectcount++;
+			reply("501 Cannot decode base64\r\n");
+			goto bomb_out;
+		}
+		ai = auth_userpasswd(s_to_c(s_resp1), s_to_c(s_resp2));
+		authenticated = ai != nil;
+		memset(s_to_c(s_resp2), 'X', s_len(s_resp2));
+	windup:
+		if (authenticated)
+			reply("235 Authentication successful\r\n");
+		else {
+			rejectcount++;
+			reply("535 Authentication failed\r\n");
+		}
+		goto bomb_out;
+	}
+	else if (cistrcmp(s_to_c(mech), "cram-md5") == 0) {
+		char *resp;
+		int chal64n;
+		char *t;
+
+		chs = auth_challenge("proto=cram role=server");
+		if (chs == nil) {
+			rejectcount++;
+			reply("501 Couldn't get CRAM-MD5 challenge\r\n");
+			goto bomb_out;
+		}
+		scratch = malloc(chs->nchal * 2 + 1);
+		chal64n = enc64(scratch, chs->nchal * 2, (uchar *)chs->chal, chs->nchal);
+		scratch[chal64n] = 0;
+		reply("334 %s\r\n", scratch);
+		s_resp1_64 = s_new();
+		if (getcrnl(s_resp1_64, &bin) <= 0)
+			goto bad_sequence;
+		s_resp1 = s_dec64(s_resp1_64);
+		if (s_resp1 == nil) {
+			rejectcount++;
+			reply("501 Cannot decode base64\r\n");
+			goto bomb_out;
+		}
+		// should be of form <user><space><response>
+		resp = s_to_c(s_resp1);
+		t = strchr(resp, ' ');
+		if (t == nil) {
+			rejectcount++;
+			reply("501 Poorly formed CRAM-MD5 response\r\n");
+			goto bomb_out;
+		}
+		*t++ = 0;
+		chs->user = resp;
+		chs->resp = t;
+		chs->nresp = strlen(t);
+		ai = auth_response(chs);
+		authenticated = ai != nil;
+		goto windup;
+	}
+	rejectcount++;
+	reply("501 Unrecognised authentication type %s\r\n", s_to_c(mech));
+bomb_out:
+	if (ai)
+		auth_freeAI(ai);
+	if (chs)
+		auth_freechal(chs);
+	if (scratch)
+		free(scratch);
+	if (s_resp1)
+		s_free(s_resp1);
+	if (s_resp2)
+		s_free(s_resp2);
+	if (s_resp1_64)
+		s_free(s_resp1_64);
+	if (s_resp2_64)
+		s_free(s_resp2_64);
 }

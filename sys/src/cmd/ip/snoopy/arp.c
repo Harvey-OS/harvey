@@ -113,6 +113,7 @@ Proto arp =
 	p_seprint,
 	nil,
 	p_fields,
+	defaultframer,
 };
 
 Proto rarp =
@@ -123,4 +124,5 @@ Proto rarp =
 	p_seprint,
 	nil,
 	p_fields,
+	defaultframer,
 };

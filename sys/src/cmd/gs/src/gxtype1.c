@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxtype1.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxtype1.c,v 1.8 2000/11/23 23:34:22 lpd Exp $ */
 /* Adobe Type 1 font interpreter support */
 #include "math_.h"
 #include "gx.h"
@@ -25,6 +25,7 @@
 #include "gsline.h"
 #include "gsstruct.h"
 #include "gxarith.h"
+#include "gxchrout.h"
 #include "gxfixed.h"
 #include "gxistate.h"
 #include "gxmatrix.h"
@@ -74,7 +75,7 @@ private RELOC_PTRS_WITH(gs_type1_state_reloc_ptrs, gs_type1_state *pcis)
     RELOC_PTR(gs_type1_state, path);
     RELOC_PTR(gs_type1_state, callback_data);
     for (i = 0; i < pcis->ips_count; i++) {
-	ip_state *ipsp = &pcis->ipstack[i];
+	ip_state_t *ipsp = &pcis->ipstack[i];
 	int diff = ipsp->ip - ipsp->char_string.data;
 
 	RELOC_CONST_STRING_VAR(ipsp->char_string);
@@ -207,33 +208,8 @@ gs_type1_finish_init(gs_type1_state * pcis, gs_op1_state * ps)
     }
     reset_stem_hints(pcis);
 
-    /*
-     * Set the flatness to a value that is likely to produce reasonably
-     * good-looking curves, regardless of its current value in the
-     * graphics state.  If the character is very small, set the flatness
-     * to zero, which will produce very accurate curves.
-     */
-    {
-	float cxx = fabs(pis->ctm.xx), cyy = fabs(pis->ctm.yy);
-
-	if (is_fzero(cxx) || (cyy < cxx && !is_fzero(cyy)))
-	    cxx = cyy;
-	if (!is_xxyy(&pis->ctm)) {
-	    float cxy = fabs(pis->ctm.xy), cyx = fabs(pis->ctm.yx);
-
-	    if (is_fzero(cxx) || (cxy < cxx && !is_fzero(cxy)))
-		cxx = cxy;
-	    if (is_fzero(cxx) || (cyx < cxx && !is_fzero(cyx)))
-		cxx = cyx;
-	}
-	/* Don't let the flatness be worse than the default. */
-	if (cxx > pis->flatness)
-	    cxx = pis->flatness;
-	/* If the character is tiny, force accurate curves. */
-	if (cxx < 0.2)
-	    cxx = 0;
-	pcis->flatness = cxx;
-    }
+    /* Compute the flatness needed for accurate rendering. */
+    pcis->flatness = gs_char_flatness(pis, 0.001);
 
     /* Move to the side bearing point. */
     accum_xy(pcis->lsb.x, pcis->lsb.y);
@@ -244,9 +220,6 @@ gs_type1_finish_init(gs_type1_state * pcis, gs_op1_state * ps)
 }
 
 /* ------ Operator procedures ------ */
-
-/* We put these before the interpreter to save having to write */
-/* prototypes for all of them. */
 
 int
 gs_op1_closepath(register is_ptr ps)
@@ -325,6 +298,34 @@ gs_type1_sbw(gs_type1_state * pcis, fixed lsbx, fixed lsby, fixed wx, fixed wy)
     return 0;
 }
 
+/* Blend values for a Multiple Master font instance. */
+/* The stack holds values ... K*N othersubr#. */
+int
+gs_type1_blend(gs_type1_state *pcis, fixed *csp, int num_results)
+{
+    gs_type1_data *pdata = &pcis->pfont->data;
+    int num_values = fixed2int_var(csp[-1]);
+    int k1 = num_values / num_results - 1;
+    int i, j;
+    fixed *base;
+    fixed *deltas;
+
+    if (num_values < num_results ||
+	num_values % num_results != 0
+	)
+	return_error(gs_error_invalidfont);
+    base = csp - 1 - num_values;
+    deltas = base + num_results - 1;
+    for (j = 0; j < num_results;
+	 j++, base++, deltas += k1
+	 )
+	for (i = 1; i <= k1; i++)
+	    *base += deltas[i] *
+		pdata->WeightVector.values[i];
+    pcis->ignore_pops = num_results;
+    return num_values - num_results + 2;
+}
+
 /*
  * Handle a seac.  Do the base character now; when it finishes (detected
  * in endchar), do the accent.  Note that we pass only 4 operands on the
@@ -332,7 +333,7 @@ gs_type1_sbw(gs_type1_state * pcis, fixed lsbx, fixed lsby, fixed wx, fixed wy)
  */
 int
 gs_type1_seac(gs_type1_state * pcis, const fixed * cstack, fixed asb,
-	      ip_state * ipsp)
+	      ip_state_t * ipsp)
 {
     gs_font_type1 *pfont = pcis->pfont;
     gs_const_string bcstr;
@@ -346,12 +347,13 @@ gs_type1_seac(gs_type1_state * pcis, const fixed * cstack, fixed asb,
     pcis->save_adxy.y = cstack[1];
     pcis->os_count = 0;		/* clear */
     /* Ask the caller to provide the base character's CharString. */
-    code = (*pfont->data.procs->seac_data)
+    code = pfont->data.procs.seac_data
 	(pfont, fixed2int_var(cstack[2]), NULL, &bcstr);
-    if (code != 0)
+    if (code < 0)
 	return code;
     /* Continue with the supplied string. */
     ipsp->char_string = bcstr;
+    ipsp->free_char_string = code;
     return 0;
 }
 
@@ -397,12 +399,13 @@ gs_type1_endchar(gs_type1_state * pcis)
 	/* Remove any base character hints. */
 	reset_stem_hints(pcis);
 	/* Ask the caller to provide the accent's CharString. */
-	code = (*pfont->data.procs->seac_data)(pfont, achar, NULL, &astr);
+	code = pfont->data.procs.seac_data(pfont, achar, NULL, &astr);
 	if (code < 0)
 	    return code;
 	/* Continue with the supplied string. */
 	pcis->ips_count = 1;
 	pcis->ipstack[0].char_string = astr;
+	pcis->ipstack[0].free_char_string = code;
 	return 1;
     }
     if (pcis->hint_next != 0 || path_is_drawing(ppath))
@@ -468,7 +471,7 @@ gs_type1_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
     int piece_members = members & (GLYPH_INFO_NUM_PIECES | GLYPH_INFO_PIECES);
     int width_members = members & (GLYPH_INFO_WIDTH0 << wmode);
     int default_members = members - (piece_members + width_members);
-    int code = 0;
+    int code = 0, gcode = 0;
     gs_const_string str;
 
     if (default_members) {
@@ -480,8 +483,8 @@ gs_type1_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
 	info->members = 0;
 
     if (default_members != members) {
-	if ((code = pdata->procs->glyph_data(pfont, glyph, &str)) < 0)
-	    return code;		/* non-existent glyph */
+	if ((gcode = pdata->procs.glyph_data(pfont, glyph, &str)) < 0)
+	    return gcode;		/* non-existent glyph */
     }
 
     if (piece_members) {
@@ -490,9 +493,11 @@ gs_type1_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
 	/*
 	 * Decode the CharString looking for seac.  We have to process
 	 * callsubr, callothersubr, and return operators, but if we see
-	 * any other operators other than [h]sbw, pop, or hint operators,
-	 * we can return immediately.  This includes all Type 2 operators,
-	 * since Type 2 CharStrings don't use seac.
+	 * any other operators other than [h]sbw, pop, hint operators,
+	 * or endchar, we can return immediately.  We have to include
+	 * endchar because it is an (undocumented) equivalent for seac
+	 * in Type 2 CharStrings: see the cx_endchar case in
+	 * gs_type2_interpret in gstype2.c.
 	 *
 	 * It's really unfortunate that we have to duplicate so much parsing
 	 * code, but factoring out the parser from the interpreter would
@@ -500,13 +505,14 @@ gs_type1_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
 	 */
 	bool encrypted = pdata->lenIV >= 0;
 	fixed cstack[ostack_size];
-	fixed *csp = cstack - 1;
-	ip_state ipstack[ipstack_size + 1];
-	ip_state *ipsp = &ipstack[0];
+	fixed *csp;
+	ip_state_t ipstack[ipstack_size + 1];
+	ip_state_t *ipsp = &ipstack[0];
 	const byte *cip;
 	crypt_state state;
 	int c;
     
+	CLEAR_CSTACK(cstack, csp);
 	info->num_pieces = 0;	/* default */
 	cip = str.data;
     call:
@@ -538,22 +544,28 @@ gs_type1_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
 		    return_error(gs_error_invalidfont);
 		continue;
 	    }
-#define cnext csp = cstack - 1; goto top
+#define cnext CLEAR_CSTACK(cstack, csp); goto top
 	    switch ((char_command) c) {
 	    default:
 		goto out;
 	    case c_callsubr:
 		c = fixed2int_var(*csp);
-		code = pdata->procs->subr_data
+		code = pdata->procs.subr_data
 		    (pfont, c, false, &ipsp[1].char_string);
 		if (code < 0)
 		    return_error(code);
 		--csp;
 		ipsp->ip = cip, ipsp->dstate = state;
 		++ipsp;
+		ipsp->free_char_string = code;
 		cip = ipsp->char_string.data;
 		goto call;
 	    case c_return:
+		if (ipsp->free_char_string > 0)
+		    gs_free_const_string(pfont->memory,
+					 ipsp->char_string.data,
+					 ipsp->char_string.size,
+					 "gs_type1_glyph_info");
 		--ipsp;
 		cip = ipsp->ip, state = ipsp->dstate;
 		goto top;
@@ -561,6 +573,25 @@ gs_type1_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
 	    case cx_vstem:
 	    case c1_hsbw:
 		cnext;
+	    case cx_endchar:
+		if (csp < cstack + 3)
+		    goto out;	/* not seac */
+	    do_seac:
+		/* This is the payoff for all this code! */
+		if (pieces) {
+		    gs_char bchar = fixed2int(csp[-1]);
+		    gs_char achar = fixed2int(csp[0]);
+		    int bcode =
+			pdata->procs.seac_data(pfont, bchar,
+					       &pieces[0], NULL);
+		    int acode =
+			pdata->procs.seac_data(pfont, achar,
+					       &pieces[1], NULL);
+
+		    code = (bcode < 0 ? bcode : acode);
+		}
+		info->num_pieces = 2;
+		goto out;
 	    case cx_escape:
 		charstring_next(*cip, state, c, encrypted);
 		++cip;
@@ -578,21 +609,7 @@ gs_type1_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
 		     */
 		    goto top;
 		case ce1_seac:
-		    /* This is the payoff for all this code! */
-		    if (pieces) {
-			gs_char bchar = fixed2int(csp[-1]);
-			gs_char achar = fixed2int(csp[0]);
-			int bcode =
-			    pdata->procs->seac_data(pfont, bchar,
-						    &pieces[0], NULL);
-			int acode =
-			    pdata->procs->seac_data(pfont, achar,
-						    &pieces[1], NULL);
-
-			code = (bcode < 0 ? bcode : acode);
-		    }
-		    info->num_pieces = 2;
-		    goto out;
+		    goto do_seac;
 		case ce1_callothersubr:
 		    switch (fixed2int_var(*csp)) {
 		    default:
@@ -656,5 +673,8 @@ out:	info->members |= piece_members;
 	info->members |= width_members;
     }
 
+    if (gcode > 0)
+	gs_free_const_string(font->memory, str.data, str.size,
+			     "gs_type1_glyph_info");
     return code;
 }

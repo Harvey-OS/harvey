@@ -3,13 +3,19 @@ BUILTINS=
 
 BIN=/$objtype/bin/fs
 TARG=tarfs tpfs v6fs 32vfs cpiofs tapfs v10fs
-OBJ=\
+OFILES=\
 	fs.$O\
 	util.$O
 
 HFILES=\
 	tapefs.h\
 
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/fs/%}\
+
 </sys/src/cmd/mkmany
 
-$O.&:		&.$O $OBJ

@@ -2,20 +2,32 @@
 
 LIB=/$objtype/lib/libmemlayer.a
 
-OFILES=\
-	draw.$O\
-	lalloc.$O\
-	layerop.$O\
-	ldelete.$O\
-	lhide.$O\
-	line.$O\
-	load.$O\
-	lorigin.$O\
-	lsetrefresh.$O\
-	ltofront.$O\
-	ltorear.$O\
-	unload.$O\
+FILES=\
+	draw\
+	lalloc\
+	layerop\
+	ldelete\
+	lhide\
+	line\
+	load\
+	lorigin\
+	lsetrefresh\
+	ltofront\
+	ltorear\
+	unload\
 
-HFILES=/sys/include/memlayer.h /sys/include/memdraw.h /sys/include/draw.h
+HFILES=\
+	/sys/include/memlayer.h\
+	/sys/include/memdraw.h\
+	/sys/include/draw.h
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/lib/libmemlayer.a\
+	$HFILES\
+	$CFILES\
 
 </sys/src/cmd/mksyslib

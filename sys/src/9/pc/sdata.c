@@ -17,8 +17,9 @@ enum {
 	DbgSTATE	= 0x04,		/* dump state on panic */
 	DbgPROBE	= 0x08,		/* trace device probing */
 	DbgDEBUG	= 0x80,		/* the current problem... */
+	DbgINL		= 0x100,	/* That Inil20+ message we hate */
 };
-#define DEBUG		(DbgDEBUG|DbgSTATE|DbgCONFIG)
+#define DEBUG		(DbgDEBUG|DbgSTATE)
 
 enum {					/* I/O ports */
 	Data		= 0,
@@ -199,13 +200,13 @@ typedef struct Ctlr {
 
 	Pcidev*	pcidev;
 	void	(*ienable)(Ctlr*);
-	void (*idisable)(Ctlr*);
+	void	(*idisable)(Ctlr*);
 	SDev*	sdev;
 
 	Drive*	drive[2];
 
 	Prd*	prdt;			/* physical region descriptor table */
-	void* prdtbase;
+	void*	prdtbase;
 
 	QLock;				/* current command */
 	Drive*	curdrive;
@@ -475,7 +476,7 @@ atadmamode(Drive* drive)
 	dma = drive->info[Imwdma] & 0x0707;
 	drive->dma = (dma>>8) & dma;
 	if(drive->dma == 0 && (drive->info[Ivalid] & 0x04)){
-		dma = drive->info[Iudma] & 0x1F1F;
+		dma = drive->info[Iudma] & 0x3F3F;
 		drive->dma = (dma>>8) & dma;
 		if(drive->dma)
 			drive->dma |= 'U'<<16;
@@ -587,14 +588,14 @@ retry:
 	}
 	else{
 		if(drive->info[Ivalid] & 0x0001){
-			drive->c = drive->info[Ilcyl];
-			drive->h = drive->info[Ilhead];
-			drive->s = drive->info[Ilsec];
-		}
-		else{
 			drive->c = drive->info[Iccyl];
 			drive->h = drive->info[Ichead];
 			drive->s = drive->info[Icsec];
+		}
+		else{
+			drive->c = drive->info[Ilcyl];
+			drive->h = drive->info[Ilhead];
+			drive->s = drive->info[Ilsec];
 		}
 		if(drive->info[Icapabilities] & 0x0200){
 			drive->sectors = (drive->info[Ilba1]<<16)
@@ -833,7 +834,7 @@ ataprobew(DevConf *cf)
 	if (cf->nports != 2)
 		error(Ebadarg);
 
-	return ataprobe(cf->ports[0].port, cf->ports[1].port, cf->interrupt);
+	return ataprobe(cf->ports[0].port, cf->ports[1].port, cf->intnum);
 }
 
 static int
@@ -1557,7 +1558,7 @@ atainterrupt(Ureg*, void* arg)
 	status = inb(cmdport+Status);
 	if((drive = ctlr->curdrive) == nil){
 		iunlock(ctlr);
-		if((DEBUG & DbgDEBUG) && ctlr->command != Cedd)
+		if((DEBUG & DbgINL) && ctlr->command != Cedd)
 			print("Inil%2.2uX+", ctlr->command);
 		return;
 	}
@@ -1700,6 +1701,7 @@ atapnp(void)
 			break;
 		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
 		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
+		case (0x0004<<16)|0x1103:	/* HighPoint HPT-370 */
 			pi = 0x85;
 			break;
 		case (0x0640<<16)|0x1095:	/* CMD 640B */
@@ -1711,7 +1713,7 @@ atapnp(void)
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
 		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
 		case (0x1230<<16)|0x8086:	/* 82371FB (PIIX) */
-		case (0x248A<<16)|0x8086:	/* not sure (on Thinkpad T23) */
+		case (0x248A<<16)|0x8086:	/* 82801BAM ICH2-M */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */
 			break;

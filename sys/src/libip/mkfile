@@ -1,15 +1,28 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libip.a
-OFILES = eipfmt.$O\
-	parseip.$O\
-	parseether.$O\
-	myetheraddr.$O\
-	myipaddr.$O\
-	classmask.$O\
-	bo.$O\
-	readipifc.$O\
-	ipaux.$O\
-	ptclbsum.$O\
+FILES =\
+	eipfmt\
+	parseip\
+	parseether\
+	myetheraddr\
+	myipaddr\
+	classmask\
+	bo\
+	readipifc\
+	ipaux\
+	ptclbsum\
+
+HFILES=\
+	ip.h
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/lib/libip.a\
+	$HFILES\
+	$CFILES\
 
 </sys/src/cmd/mksyslib

@@ -1,7 +1,6 @@
 typedef struct Client Client;
 typedef struct Ctl Ctl;
 typedef struct Ibuf Ibuf;
-typedef struct Ioproc Ioproc;
 typedef struct Url Url;
 
 /* simple buffered i/o for network connections; shared by http, ftp */
@@ -40,27 +39,6 @@ struct Client
 	Ioproc *io;
 	int ref;
 	void *aux;
-};
-
-/* asynchronous i/o in another proc */
-struct Ioproc
-{
-	long (*read)(Ioproc*, int, void*, long);
-	long (*write)(Ioproc*, int, void*, long);
-	int (*dial)(Ioproc*, char*, char*, char*, int*, int);
-	int (*close)(Ioproc*, int);
-	int (*open)(Ioproc*, char*, int);
-	int (*print)(Ioproc*, int, char*, ...);
-	void (*interrupt)(Ioproc*);
-
-	int pid;	/* internal */
-	Channel *c;
-	int inuse;
-	void (*op)(Ioproc*);
-	long arg[10];
-	long ret;
-	char err[ERRMAX];
-	Ioproc *next;
 };
 
 /*

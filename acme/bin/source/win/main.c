@@ -39,6 +39,10 @@ threadmain(int argc, char *argv[])
 		debug = 1;
 		chatty9p =1;
 		break;
+	case 'D':
+{extern int _threaddebuglevel;
+		_threaddebuglevel = 1<<20;
+}
 	}ARGEND
 
 	if(argc == 0){
@@ -465,22 +469,19 @@ mainctl(void *v)
 					hostpt = e->q0;
 				break;
 			case 'I':
-				if(e->nr>0 && e->r[e->nr-1]==0x7F){
-					/* do full reset of state, just in case we've lost track */
-					write(notepg, "interrupt", 9);
-					winsetaddr(w, "$", 0);
-					tmp[0] = 0;
-					seek(w->addr, 0, 0);
-					read(w->addr, tmp, 24);
-					hostpt = atoi(tmp);
-					endpt = hostpt;
-					break;
-				}
-				delta = e->q1-e->q0;
+				delta = e->q1 - e->q0;
 				endpt += delta;
+				if(endpt < e->q1)	/* just in case */
+					endpt = e->q1;
 				if(e->q0 < hostpt)
 					hostpt += delta;
-				else if(hasboundary(e->r, e->nr)){
+				if(e->nr>0 && e->r[e->nr-1]==0x7F){
+					write(notepg, "interrupt", 9);
+					hostpt = endpt;
+					break;
+				}
+				if(e->q0 >= hostpt
+				&& hasboundary(e->r, e->nr)){
 					/*
 					 * If we are between the S message (which
 					 * we processed by inserting text in the
@@ -583,7 +584,7 @@ execproc(void *v)
 	Channel *cpid;
 
 	e = v;
-	rfork(RFCFDG);
+	rfork(RFCFDG|RFNOTEG);
 	av = e->argv;
 	close(0);
 	open("/dev/cons", OREAD);

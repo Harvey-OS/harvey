@@ -29,7 +29,6 @@ struct Caphash
 struct
 {
 	QLock;
-	int	opens;
 	Caphash	*first;
 	int	nhash;
 } capalloc;
@@ -41,13 +40,14 @@ enum
 	Quse,
 };
 
+/* caphash must be last */
 Dirtab capdir[] =
 {
 	".",		{Qdir,0,QTDIR},	0,		DMDIR|0500,
-	"caphash",	{Qhash},	0,		0200,
 	"capuse",	{Quse},		0,		0222,
+	"caphash",	{Qhash},	0,		0200,
 };
-#define NCAPDIR 3
+int ncapdir = nelem(capdir);
 
 static Chan*
 capattach(char *spec)
@@ -58,13 +58,23 @@ capattach(char *spec)
 static Walkqid*
 capwalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	return devwalk(c, nc, name, nname, capdir, NCAPDIR, devgen);
+	return devwalk(c, nc, name, nname, capdir, ncapdir, devgen);
 }
+
+static void
+capremove(Chan *c)
+{
+	if(iseve() && c->qid.path == Qhash)
+		ncapdir = nelem(capdir)-1;
+	else
+		error(Eperm);
+}
+
 
 static int
 capstat(Chan *c, uchar *db, int n)
 {
-	return devstat(c, db, n, capdir, NCAPDIR, devgen);
+	return devstat(c, db, n, capdir, ncapdir, devgen);
 }
 
 /*
@@ -82,22 +92,12 @@ capopen(Chan *c, int omode)
 		return c;
 	}
 
-	if(waserror()){
-		qunlock(&capalloc);
-		nexterror();
-	}
-	qlock(&capalloc);
 	switch((ulong)c->qid.path){
 	case Qhash:
-		if(capalloc.opens > 0){
-			qunlock(&capalloc);
-			error("exclusive use");
-		}
-		capalloc.opens++;
+		if(!iseve())
+			error(Eperm);
 		break;
 	}
-	poperror();
-	qunlock(&capalloc);
 
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
@@ -162,14 +162,8 @@ addcap(uchar *hash)
 }
 
 static void
-capclose(Chan *c)
+capclose(Chan*)
 {
-	if(c->flag & COPEN)
-		if(c->qid.path == Qhash){
-			qlock(&capalloc);
-			capalloc.opens--;
-			qunlock(&capalloc);
-		}
 }
 
 static long
@@ -177,7 +171,7 @@ capread(Chan *c, void *va, long n, vlong)
 {
 	switch((ulong)c->qid.path){
 	case Qdir:
-		return devdirread(c, va, n, capdir, nelem(capdir), devgen);
+		return devdirread(c, va, n, capdir, ncapdir, devgen);
 
 	default:
 		error(Eperm);
@@ -256,22 +250,22 @@ capwrite(Chan *c, void *va, long n, vlong)
 }
 
 Dev capdevtab = {
-	L'¤',
-	"cap",
+.dc=		L'¤',
+.name=		"cap",
 
-	devreset,
-	devinit,
-	devshutdown,
-	capattach,
-	capwalk,
-	capstat,
-	capopen,
-	devcreate,
-	capclose,
-	capread,
-	devbread,
-	capwrite,
-	devbwrite,
-	devremove,
-	devwstat,
+.reset=		devreset,
+.init=		devinit,
+.shutdown=	devshutdown,
+.attach=	capattach,
+.walk=		capwalk,
+.stat=		capstat,
+.open=		capopen,
+.create=	devcreate,
+.close=		capclose,
+.read=		capread,
+.bread=		devbread,
+.write=		capwrite,
+.bwrite=	devbwrite,
+.remove=	capremove,
+.wstat=		devwstat,
 };

@@ -1,8 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>The Ghostscript library</title>
-<!-- $Id: Lib.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
+<!-- $Id: Lib.htm,v 1.14.2.2 2002/02/01 05:31:25 raph Exp $ -->
 <!-- Originally: lib.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -10,11 +12,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-The Ghostscript library
-</font>
-</table>
+<h1>The Ghostscript Library</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -47,7 +45,7 @@ overview</a>.
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h1><a name="GS_library"></a>The Ghostscript library</h1>
+<h2><a name="GS_library"></a>The Ghostscript library</h2>
 
 <p>
 This document describes the Ghostscript library, a set of procedures
@@ -59,16 +57,15 @@ operations in the PostScript language and in Adobe Portable Document Format
 Ghostscript is actually two programs: a language interpreter, and a
 graphics library.  The library provides, in the form of C procedures, all
 the graphics functions of the language, that is, approximately those
-facilities listed in section 8.1 of the
-<em><a href="http://cseng.awl.com/bookdetail.qry?ISBN=0-201-18127-4&amp;ptype=0">PostScript
-Language Reference Manual</a></em>, Second Edition, starting with the
+facilities listed in section 8.1 of the <cite>PostScript
+Language Reference Manual</cite>, starting with the
 graphics state operators.  In addition, the library provides some
 lower-level graphics facilities that offer higher performance in exchange
 for less generality.
 
 <hr>
 
-<h1><a name="PS_operator_API"></a>PostScript operator API</h1>
+<h2><a name="PS_operator_API"></a>PostScript operator API</h2>
 
 <p>
 The highest level of the library, which is the one that most clients will
@@ -89,8 +86,7 @@ directly to PostScript errors, and are defined in
 
 <p>
 The library implements all the operators in the following sections of the
-<em><a href="http://cseng.awl.com/bookdetail.qry?ISBN=0-201-18127-4&amp;ptype=0">PostScript
-Language Reference Manual</a></em>, Second Edition, with the indicated
+<cite>PostScript Language Reference Manual</cite>, with the indicated
 omissions and with the APIs defined in the indicated <b><tt>.h</tt></b>
 files.  A header of the form <b><em>A.h(B.h)</em></b> indicates that
 <b><em>A.h</em></b> is included in <b><em>B.h</em></b>, so
@@ -284,7 +280,7 @@ hidden from clients, also have names beginning with "<b><tt>gs_</tt></b>",
 that is, the prefix, not the implementation, reflects at what level the
 abstraction is made available.
 
-<h2><a name="Patterns"></a>Patterns</h2>
+<h3><a name="Patterns"></a>Patterns</h3>
 
 <p>
 Patterns are the most complicated PostScript language objects that the
@@ -359,7 +355,7 @@ patterns.  Its API is documented in <b><tt>gscolor2.h</tt></b>; its implementati
 <b><tt>gspcolor.c</tt></b>, may be useful as an example of a pattern using a particularly
 simple <b><tt>PaintProc.</tt></b>
 
-<h2><a name="Lower_level_API"></a>Lower-level API</h2>
+<h3><a name="Lower_level_API"></a>Lower-level API</h3>
 
 <p>
 Files named <b><tt>gx*.c</tt></b> implement the lower level of the graphics
@@ -378,7 +374,7 @@ clients.
 
 <hr>
 
-<h1><a name="Full_example"></a>A full example</h1>
+<h2><a name="Full_example"></a>A full example</h2>
 
 <p>
 The file <b><tt>gslib.c</tt></b> in the Ghostscript fileset is a complete
@@ -474,19 +470,18 @@ is finished, it should execute:
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.
+All rights reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

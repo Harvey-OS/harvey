@@ -1,22 +1,22 @@
-/* Copyright (C) 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: icharout.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: icharout.h,v 1.3 2000/10/19 23:46:46 lpd Exp $ */
 /* Interface to zcharout.c */
 
 #ifndef icharout_INCLUDED
@@ -49,11 +49,12 @@ int /*metrics_present*/
  * o_push_estack if we had to call a CDevProc, or if we are skipping the
  * rendering process (only getting the metrics).
  */
-int zchar_set_cache(P8(i_ctx_t *i_ctx_p, const gs_font_base * pbfont,
+int zchar_set_cache(P9(i_ctx_t *i_ctx_p, const gs_font_base * pbfont,
 		       const ref * pcnref, const double psb[2],
 		       const double pwidth[2], const gs_rect * pbbox,
 		       int (*cont_fill) (P1(i_ctx_t *)),
-		       int (*cont_stroke) (P1(i_ctx_t *))));
+		       int (*cont_stroke) (P1(i_ctx_t *)),
+		       const double Metrics2_sbw_default[4]));
 
 /*
  * Get the CharString data corresponding to a glyph.  Return typecheck

@@ -18,6 +18,7 @@ enum {
 	SAVAGE3D	= 0x8A20,	/* PCI DID */
 	SAVAGE3DMV	= 0x8A21,
 	SAVAGE4		= 0x8A22,
+	SAVAGE4A	= 0x8A26,
 	SAVAGEMXMV	= 0x8C10,
 	SAVAGEMX	= 0x8C11,
 	SAVAGEIXMV	= 0x8C12,
@@ -362,6 +363,7 @@ savagewaitidle(VGAscr *scr)
 
 	switch(scr->id){
 	case SAVAGE4:
+	case SAVAGE4A:
 		/* wait for engine idle and FIFO empty */
 		statw = (ulong*)((uchar*)scr->mmio+AltStatus0);
 		mask = CBEMask | Ge2Idle;
@@ -490,6 +492,7 @@ savageinit(VGAscr *scr)
 	/* if you add chip IDs here be sure to update savagewaitidle */
 	switch(scr->id){
 	case SAVAGE4:
+	case SAVAGE4A:
 	case SAVAGEIXMV:
 	case SUPERSAVAGEIXC16:
 	case SAVAGEMXMV:

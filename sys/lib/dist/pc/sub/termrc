@@ -5,7 +5,6 @@ if(~ $#debug 1 && ~ $debug yes)
 if not
 	debug=0
 
-
 if(~ $debug yes) echo env...
 sysname=gnot
 font=/lib/font/bit/lucidasans/typelatin1.7.font
@@ -34,6 +33,8 @@ dossrv
 boota:
 boota:	# again, just in case a timeout made the earlier one fail
 cp /n/a:/plan9.ini /tmp/plan9.orig
+if(! ~ $cdboot yes)
+	pci >/n/a:/pci.txt >[2]/dev/null
 
 # restore a partial install
 if(test -f /n/a:/9inst.cnf)
@@ -42,6 +43,8 @@ if(test -f /n/a:/9inst.cnf)
 # make vgadb easier to edit
 if(test -f /n/a:/vgadb)
 	cp /n/a:/vgadb /lib/vgadb
+
+aux/vmware
 
 if(~ $mouseport ask){
 	echo -n 'mouseport is (ps2, ps2intellimouse, 0, 1, 2)[ps2]: '
@@ -61,11 +64,13 @@ if(~ $monitor ask){
 	if(~ $#monitor 0)
 		monitor=xga
 }
+
 if(~ $#mouseport 1) {
 	aux/mouse $mouseport
 	if(~ $#vgasize 1 && ! ~ $vgasize '') {
 		vgasize=`{echo $vgasize}
-		aux/vga -vip $vgasize >/n/a:/vgainfo.txt
+		if(! ~ $cdboot yes)
+			aux/vga -vip $vgasize >/n/a:/vgainfo.txt
 		sleep 2	# wait for floppy to finish
 		aux/vga -l $vgasize
 		echo -n 'hwaccel off' >'#v/vgactl' >[2]/dev/null

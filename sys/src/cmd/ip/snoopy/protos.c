@@ -4,6 +4,7 @@
 #include "protos.h"
 Proto *protos[] =
 {
+	&hdlc,
 	&ether,
 	&ip,
 	&ip6,

@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zcontrol.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: zcontrol.c,v 1.3.6.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Control operators */
 #include "string_.h"
 #include "ghost.h"
@@ -104,6 +104,7 @@ int
 zexec(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
+
     check_op(1);
     if (!r_has_attr(op, a_executable))
 	return 0;		/* literal object just gets pushed back */
@@ -153,11 +154,104 @@ zexecn(i_ctx_t *i_ctx_p)
 }
 
 /* <obj> superexec - */
-/* THIS IS NOT REALLY IMPLEMENTED YET. */
+private int end_superexec(P1(i_ctx_t *));
 private int
 zsuperexec(i_ctx_t *i_ctx_p)
 {
-    return zexec(i_ctx_p);
+    os_ptr op = osp;
+    es_ptr ep;
+
+    check_op(1);
+    if (!r_has_attr(op, a_executable))
+	return 0;		/* literal object just gets pushed back */
+    check_estack(2);
+    ep = esp += 3;
+    make_mark_estack(ep - 2, es_other, end_superexec); /* error case */
+    make_op_estack(ep - 1,  end_superexec); /* normal case */
+    ref_assign(ep, op);
+    esfile_check_cache();
+    pop(1);
+    i_ctx_p->in_superexec++;
+    return o_push_estack;
+}
+private int
+end_superexec(i_ctx_t *i_ctx_p)
+{
+    i_ctx_p->in_superexec--;
+    return 0;
+}
+
+/* <array> <executable> .runandhide <obj>				*/
+/* 	before executing  <executable>, <array> is been removed from	*/
+/*	the operand stack and placed on the execstack with attributes	*/
+/* 	changed to 'noaccess'.						*/
+/* 	After execution, the array will be placed on  the top of the	*/
+/*	operand stack (on top of any elemetns pushed by <executable>	*/
+/*	for both the normal case and for the error case.		*/
+private int end_runandhide(P1(i_ctx_t *));
+private int err_end_runandhide(P1(i_ctx_t *));
+private int
+zrunandhide(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+    es_ptr ep;
+    uint size;
+    int code;
+
+    check_op(2);
+    if (!r_is_array(op - 1))
+	return_op_typecheck(op);
+    if (!r_has_attr(op, a_executable))
+	return 0;		/* literal object just gets pushed back */
+    check_estack(5);
+    ep = esp += 5;
+    make_mark_estack(ep - 4, es_other, err_end_runandhide); /* error case */
+    make_op_estack(ep - 1,  end_runandhide); /* normal case */
+    ref_assign(ep, op);
+    /* Store the object we are hiding  and it's current tas.type_attrs */
+    /* on the exec stack then change to 'noaccess' */
+    make_int(ep - 3, (int)op[-1].tas.type_attrs);
+    ref_assign(ep - 2, op - 1);
+    r_clear_attrs(ep - 2, a_all);
+    /* replace the array with a special kind of mark that has a_read access */
+    esfile_check_cache();
+    pop(2);
+    return o_push_estack;
+}
+private int
+runandhide_restore_hidden(i_ctx_t *i_ctx_p, ref *obj, ref *attrs)
+{
+    os_ptr op = osp;
+
+    push(1);
+    /* restore the hidden_object and its type_attrs */
+    ref_assign(op, obj);
+    r_clear_attrs(op, a_all);
+    r_set_attrs(op, attrs->value.intval);
+    return 0;
+}
+
+/* - %end_runandhide hiddenobject */
+private int
+end_runandhide(i_ctx_t *i_ctx_p)
+{
+    int code;
+
+    if ((code = runandhide_restore_hidden(i_ctx_p, esp, esp - 1)) < 0)
+        return code;
+    esp -= 2;		/* pop the hidden value and its atributes */
+    return o_pop_estack;
+}
+
+/* restore hidden object for error returns */
+private int
+err_end_runandhide(i_ctx_t *i_ctx_p)
+{
+    int code;
+
+    if ((code = runandhide_restore_hidden(i_ctx_p, esp + 3, esp + 2)) < 0)
+        return code;
+    return 0;
 }
 
 /* <bool> <proc> if - */
@@ -835,6 +929,9 @@ const op_def zcontrol3_op_defs[] = {
     {"0%repeat_continue", repeat_continue},
     {"0%stopped_push", stopped_push},
     {"1superexec", zsuperexec},
+    {"0%end_superexec", end_superexec},
+    {"2.runandhide", zrunandhide},
+    {"0%end_runandhide", end_runandhide},
     op_def_end(0)
 };
 

@@ -1,0 +1,3 @@
+#!/bin/rc
+
+exec tlssrv -lpop3 -c/sys/lib/ssl/cert.pem -r`{cat $3/remote} /bin/upas/pop3 -p -r`{cat $3/remote} >[2]/sys/log/pop3

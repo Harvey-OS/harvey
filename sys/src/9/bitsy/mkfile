@@ -18,6 +18,7 @@ PORT=\
 	edf.$O\
 	fault.$O\
 	latin1.$O\
+	nulledf.$O\
 	rebootcmd.$O\
 	page.$O\
 	parse.$O\
@@ -80,6 +81,7 @@ $p$CONF:	$OBJ $CONF.c $LIB /arm/inflate
 
 install:V:	$p$CONF paqdisk
 	cp $p$CONF /$objtype/$p$CONF
+	9fs lookout && cp $p$CONF /n/lookout/$objtype/$p$CONF
 
 <../boot/bootmkfile
 <../port/portmkfile
@@ -95,6 +97,7 @@ init.h:	initcode /sys/src/libc/9syscall/sys.h
 clock.$O:	/$objtype/include/ureg.h
 
 devether.$O: ../port/netif.h
+wavelan.$O: wavelan.c ../pc/wavelan.c wavelan.h ../pc/wavelan.h
 
 fpi.$O: fpi.h
 fpiarm.$O: fpi.h

@@ -2,18 +2,27 @@
 
 LIB=/$objtype/lib/libventi.a
 
-OFILES=\
-	packet.$O\
-	plan9.$O\
-	score.$O\
-	sha1-plan9.$O\
-	venti.$O\
-	errfmt.$O\
-	util.$O\
+FILES=\
+	packet\
+	plan9\
+	score\
+	sha1-plan9\
+	venti\
+	errfmt\
+	util\
 
 HFILES=\
 	packet.h\
 	session.h\
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/lib/libventi.a\
+	$HFILES\
+	$CFILES\
 
 CFLAGS=$CFLAGS
 

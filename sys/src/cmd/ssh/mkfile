@@ -30,9 +30,20 @@ OFILES=\
 	msg.$O\
 	util.$O\
 
-HFILES=ssh.h
-
 BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	/386/bin/scp\
+	/386/bin/ssh\
+	/386/bin/sshnet\
+	/386/bin/aux/sshserve\
+	/386/bin/aux/ssh_genkey\
+
+
 </sys/src/cmd/mkmany
 
 $O.ssh: \

@@ -1,22 +1,22 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevps.c,v 1.3 2000/03/10 07:45:50 lpd Exp $ */
+/*$Id: gdevps.c,v 1.19 2001/09/28 23:18:46 rayjj Exp $ */
 /* PostScript-writing driver */
 #include "math_.h"
 #include "memory_.h"
@@ -37,12 +37,10 @@
 #include "sstring.h"
 #include "sa85x.h"
 #include "gdevpsdf.h"
+#include "gdevpsu.h"
 
-/****************************************************************
- * Notes:
- *	Images are never compressed; in fact, none of the other
- *	  Distiller parameters do anything.
- ****************************************************************/
+/* Current ProcSet version */
+#define PSWRITE_PROCSET_VERSION 1
 
 /* ---------------- Device definition ---------------- */
 
@@ -50,6 +48,7 @@
 private dev_proc_open_device(psw_open);
 private dev_proc_output_page(psw_output_page);
 private dev_proc_close_device(psw_close);
+private dev_proc_fill_rectangle(psw_fill_rectangle);
 private dev_proc_copy_mono(psw_copy_mono);
 private dev_proc_copy_color(psw_copy_color);
 private dev_proc_put_params(psw_put_params);
@@ -66,7 +65,7 @@ typedef struct psw_path_state_s {
     int num_points;		/* # of points since last non-lineto */
     int move;			/* 1 iff last non-lineto was moveto, else 0 */
     gs_point dprev[2];		/* line deltas before previous point, */
-    /* if num_points - move >= 2 */
+				/* if num_points - move >= 2 */
 } psw_path_state_t;
 
 typedef struct psw_image_params_s {
@@ -76,20 +75,22 @@ typedef struct psw_image_params_s {
 
 typedef struct gx_device_pswrite_s {
     gx_device_psdf_common;
-    /* Settable parameters */
+    /* LanguageLevel in pswrite_common is settable. */
+    gx_device_pswrite_common_t pswrite_common;
 #define LanguageLevel_default 2.0
 #define psdf_version_default psdf_version_level2
-    float LanguageLevel;
     /* End of parameters */
-    bool ProduceEPS;
     bool first_page;
-    long bbox_position;
     psdf_binary_writer *image_writer;
 #define image_stream image_writer->strm
 #define image_cache_size 197
 #define image_cache_reprobe_step 121
     psw_image_params_t image_cache[image_cache_size];
     bool cache_toggle;
+    struct pf_ {
+	gs_int_rect rect;
+	gx_color_index color;
+    } page_fill;
     /* Temporary state while writing a path */
     psw_path_state_t path_state;
 } gx_device_pswrite;
@@ -108,7 +109,7 @@ gs_private_st_suffix_add1_final(st_device_pswrite, gx_device_pswrite,
 		psw_close,\
 		gx_default_rgb_map_rgb_color,\
 		gx_default_rgb_map_color_rgb,\
-		gdev_vector_fill_rectangle,\
+		psw_fill_rectangle,\
 		NULL,			/* tile_rectangle */\
 		psw_copy_mono,\
 		psw_copy_color,\
@@ -139,26 +140,30 @@ gs_private_st_suffix_add1_final(st_device_pswrite, gx_device_pswrite,
 		NULL/******psw_strip_copy_rop******/\
 	}
 
-const gx_device_pswrite gs_pswrite_device =
-{std_device_dci_type_body(gx_device_pswrite, 0, "pswrite",
-			  &st_device_pswrite,
-	DEFAULT_WIDTH_10THS * X_DPI / 10, DEFAULT_HEIGHT_10THS * Y_DPI / 10,
-			  X_DPI, Y_DPI, 3, 24, 255, 255, 256, 256),
- psw_procs,
- psdf_initial_values(psdf_version_default, 1 /*true */ ),	/* (ASCII85EncodePages) */
- LanguageLevel_default,		/* LanguageLevel */
- 0				/*false *//* ProduceEPS */
+const gx_device_pswrite gs_pswrite_device = {
+    std_device_dci_type_body(gx_device_pswrite, 0, "pswrite",
+			     &st_device_pswrite,
+			     DEFAULT_WIDTH_10THS * X_DPI / 10,
+			     DEFAULT_HEIGHT_10THS * Y_DPI / 10,
+			     X_DPI, Y_DPI, 3, 24, 255, 255, 256, 256),
+    psw_procs,
+    psdf_initial_values(psdf_version_default, 1 /*true */ ),	/* (ASCII85EncodePages) */
+    PSWRITE_COMMON_VALUES(LanguageLevel_default, /* LanguageLevel */
+			  0 /*false*/, /* ProduceEPS */
+			  PSWRITE_PROCSET_VERSION /* ProcSet_version */)
 };
 
-const gx_device_pswrite gs_epswrite_device =
-{std_device_dci_type_body(gx_device_pswrite, 0, "epswrite",
-			  &st_device_pswrite,
-	DEFAULT_WIDTH_10THS * X_DPI / 10, DEFAULT_HEIGHT_10THS * Y_DPI / 10,
-			  X_DPI, Y_DPI, 3, 24, 255, 255, 256, 256),
- psw_procs,
- psdf_initial_values(psdf_version_default, 1 /*true */ ),	/* (ASCII85EncodePages) */
- LanguageLevel_default,		/* LanguageLevel */
- 1				/*true *//* ProduceEPS */
+const gx_device_pswrite gs_epswrite_device = {
+    std_device_dci_type_body(gx_device_pswrite, 0, "epswrite",
+			     &st_device_pswrite,
+			     DEFAULT_WIDTH_10THS * X_DPI / 10,
+			     DEFAULT_HEIGHT_10THS * Y_DPI / 10,
+			     X_DPI, Y_DPI, 3, 24, 255, 255, 256, 256),
+    psw_procs,
+    psdf_initial_values(psdf_version_default, 1 /*true */ ),	/* (ASCII85EncodePages) */
+    PSWRITE_COMMON_VALUES(LanguageLevel_default, /* LanguageLevel */
+			  1 /*true*/, /* ProduceEPS */
+			  PSWRITE_PROCSET_VERSION /* ProcSet_version */)
 };
 
 /* Vector device implementation */
@@ -205,31 +210,12 @@ private const gx_device_vector_procs psw_vector_procs = {
 
 /* ---------------- File header ---------------- */
 
-private const char *const psw_ps_header[] =
-{
-    "%!PS-Adobe-3.0",
-    "%%Pages: (atend)",
-    0
-};
+/*
+ * NOTE: Increment PSWRITE_PROCSET_VERSION (above) whenever the following
+ * definitions change.
+ */
 
-private const char *const psw_eps_header[] =
-{
-    "%!PS-Adobe-3.0 EPSF-3.0",
-    0
-};
-
-private const char *const psw_header[] =
-{
-    "%%EndComments",
-    "%%BeginProlog",
- "% This copyright applies to everything between here and the %%EndProlog:",
-    0
-};
-
-private const char *const psw_prolog[] =
-{
-    "%%BeginResource: procset GS_pswrite_ProcSet",
-    "/GS_pswrite_ProcSet 80 dict dup begin",
+private const char *const psw_procset[] = {
     "/!{bind def}bind def/#{load def}!/N/counttomark #",
 	/* <rbyte> <gbyte> <bbyte> rG - */
 	/* <graybyte> G - */
@@ -240,7 +226,12 @@ private const char *const psw_prolog[] =
     "/r6{dup 3 -1 roll rG}!/r5{dup 3 1 roll rG}!/r3{dup rG}!",
     "/w/setlinewidth #/J/setlinecap #",
     "/j/setlinejoin #/M/setmiterlimit #/d/setdash #/i/setflat #",
-    "/m/moveto #/l/lineto #/c/rcurveto #/h{p closepath}!/H{P closepath}!",
+    "/m/moveto #/l/lineto #/c/rcurveto #",
+	/* <dx1> <dy1> ... <dxn> <dyn> p - */
+    "/p{N 2 idiv{N -2 roll rlineto}repeat}!",
+	/* <x> <y> <dx1> <dy1> ... <dxn> <dyn> P - */
+    "/P{N 0 gt{N -2 roll moveto p}if}!",
+    "/h{p closepath}!/H{P closepath}!",
 	/* <dx> lx - */
 	/* <dy> ly - */
 	/* <dx2> <dy2> <dx3> <dy3> v - */
@@ -250,13 +241,9 @@ private const char *const psw_prolog[] =
     "/re{4 -2 roll m exch dup lx exch ly neg lx h}!",
 	/* <x> <y> <a> <b> ^ <x> <y> <a> <b> <-x> <-y> */
     "/^{3 index neg 3 index neg}!",
-	/* <x> <y> <dx1> <dy1> ... <dxn> <dyn> P - */
-    "/P{N 0 gt{N -2 roll moveto p}if}!",
-	/* <dx1> <dy1> ... <dxn> <dyn> p - */
-    "/p{N 2 idiv{N -2 roll rlineto}repeat}!",
     "/f{P fill}!/f*{P eofill}!/s{H stroke}!/S{P stroke}!",
     "/q/gsave #/Q/grestore #/rf{re fill}!",
-    "/Y{initclip P clip newpath}!/Y*{initclip P eoclip newpath}!/rY{re Y}!",
+    "/Y{P clip newpath}!/Y*{P eoclip newpath}!/rY{re Y}!",
 	/* <w> <h> <name> <data> <?> |= <w> <h> <data> */
     "/|={pop exch 4 1 roll 3 array astore cvx exch 1 index def exec}!",
 	/* <w> <h> <name> <length> <src> | <w> <h> <data> */
@@ -265,6 +252,9 @@ private const char *const psw_prolog[] =
     "/+{dup type/nametype eq{2 index 7 add -3 bitshift 2 index mul}if}!",
 	/* <w> <h> <name> (<length>|) $ <w> <h> <data> */
     "/@/currentfile #/${+ @ |}!",
+	/* <file> <nbytes> <ncomp> B <proc_1> ... <proc_ncomp> true */
+    "/B{{2 copy string{readstring pop}aload pop 4 array astore cvx",
+    "3 1 roll}repeat pop pop true}!",
 	/* <x> <y> <w> <h> <bpc/inv> <src> Ix <w> <h> <bps/inv> <mtx> <src> */
     "/Ix{[1 0 0 1 11 -2 roll exch neg exch neg]exch}!",
 	/* <x> <y> <h> <src> , - */
@@ -274,33 +264,26 @@ private const char *const psw_prolog[] =
     0
 };
 
-private const char *const psw_1_prolog[] =
-{
+private const char *const psw_1_procset[] = {
     0
 };
 
-private const char *const psw_1_x_prolog[] =
-{
+private const char *const psw_1_x_procset[] = {
 	/* <w> <h> <name> <length> <src> |X <w> <h> <data> */
 	/* <w> <h> <name> (<length>|) $X <w> <h> <data> */
     "/|X{exch string readhexstring |=}!/$X{+ @ |X}!",
 	/* - @X <hexsrc> */
     "/@X{{currentfile ( ) readhexstring pop}}!",
-	/* <w> <h> <sizename> PS - */
-    "/PS{1 index where{pop cvx exec pop pop}{pop/setpage where",
-    "{pop pageparams 3{exch pop}repeat setpage}{pop pop}ifelse}ifelse}!",
     0
 };
 
-private const char *const psw_1_5_prolog[] =
-{
+private const char *const psw_1_5_procset[] = {
 	/* <x> <y> <w> <h> <src> <bpc> Ic - */
     "/Ic{exch Ix false 3 colorimage}!",
     0
 };
 
-private const char *const psw_2_prolog[] =
-{
+private const char *const psw_2_procset[] = {
 	/* <src> <w> <h> -mark- ... F <g4src> */
 	/* <src> <w> <h> FX <g4src> */
     "/F{/Columns counttomark 3 add -2 roll/Rows exch/K -1/BlackIs1 true>>",
@@ -324,24 +307,34 @@ private const char *const psw_2_prolog[] =
     0
 };
 
-private const char *const psw_end_prolog[] =
-{
-    "end def",
-    "%%EndResource",
-    "%%EndProlog",
-    0
-};
-
-private void
-psw_put_lines(stream * s, const char *const lines[])
-{
-    int i;
-
-    for (i = 0; lines[i] != 0; ++i)
-	pprints1(s, "%s\n", lines[i]);
-}
-
 /* ---------------- Utilities ---------------- */
+
+/*
+ * Output the file header.  This must write to a file, not a stream,
+ * because it may be called during finalization.
+ */
+private int
+psw_begin_file(gx_device_pswrite *pdev, const gs_rect *pbbox)
+{
+    FILE *f = pdev->file;
+
+    psw_begin_file_header(f, (gx_device *)pdev, pbbox,
+			  &pdev->pswrite_common,
+			  pdev->params.ASCII85EncodePages);
+    psw_print_lines(f, psw_procset);
+    if (pdev->pswrite_common.LanguageLevel < 1.5) {
+	psw_print_lines(f, psw_1_x_procset);
+	psw_print_lines(f, psw_1_procset);
+    } else if (pdev->pswrite_common.LanguageLevel > 1.5) {
+	psw_print_lines(f, psw_1_5_procset);
+	psw_print_lines(f, psw_2_procset);
+    } else {
+	psw_print_lines(f, psw_1_x_procset);
+	psw_print_lines(f, psw_1_5_procset);
+    }
+    psw_end_file_header(f);
+    return 0;
+}
 
 /* Reset the image cache. */
 private void
@@ -387,21 +380,23 @@ image_cache_lookup(gx_device_pswrite * pdev, gx_bitmap_id id,
     return -1;
 }
 
-/* Prepare the encoding stream for image data. */
-/* Return 1 if we are using ASCII85 (or, for Level 1, ASCIIHex) encoding. */
+/*
+ * Prepare the encoding stream for image data.
+ * Return 1 if using ASCII (Hex or 85) encoding, 0 if binary.
+ */
 private int
-psw_image_stream_setup(gx_device_pswrite * pdev)
+psw_image_stream_setup(gx_device_pswrite * pdev, bool binary_ok)
 {
-    int code, encode;
+    int code;
+    bool save = pdev->binary_ok;
 
-    if (pdev->LanguageLevel >= 2 || pdev->binary_ok) {
+    if (pdev->pswrite_common.LanguageLevel >= 2 || binary_ok) {
+	pdev->binary_ok = binary_ok;
 	code = psdf_begin_binary((gx_device_psdf *)pdev, pdev->image_writer);
-	encode =
-	    (pdev->image_stream->state->template == &s_A85E_template ? 1 : 0);
     } else {
+	/* LanguageLevel 1, binary not OK.  Use ASCIIHex encoding. */
 	pdev->binary_ok = true;
 	code = psdf_begin_binary((gx_device_psdf *)pdev, pdev->image_writer);
-	pdev->binary_ok = false;
 	if (code >= 0) {
 	    stream_state *st =
 		s_alloc_state(pdev->v_memory, s_AXE_template.stype,
@@ -416,9 +411,9 @@ psw_image_stream_setup(gx_device_pswrite * pdev)
 		    ((stream_AXE_state *)st)->EndOfData = false; /* no > */
 	    }
 	}
-	encode = 1;
     }
-    return (code < 0 ? code : encode);
+    pdev->binary_ok = save;
+    return (code < 0 ? code : !binary_ok);
 }
 
 /* Clean up after writing an image. */
@@ -442,17 +437,45 @@ psw_put_bits(stream * s, const byte * data, int data_x_bit, uint raster,
 
     for (y = 0; y < height; ++y, row += raster)
 	if (shift == 0)
-	    pwrite(s, row, (width_bits + 7) >> 3);
+	    stream_write(s, row, (width_bits + 7) >> 3);
 	else {
 	    const byte *src = row;
 	    int wleft = width_bits;
 	    int cshift = 8 - shift;
 
 	    for (; wleft + shift > 8; ++src, wleft -= 8)
-		pputc(s, (*src << shift) + (src[1] >> cshift));
+		stream_putc(s, (*src << shift) + (src[1] >> cshift));
 	    if (wleft > 0)
-		pputc(s, (*src << shift) & (byte)(0xff00 >> wleft));
+		stream_putc(s, (*src << shift) & (byte)(0xff00 >> wleft));
 	}
+}
+private int
+psw_put_image_bits(gx_device_pswrite *pdev, const char *op,
+		   const byte * data, int data_x, uint raster,
+		   int width, int height, int depth)
+{
+    pprints1(pdev->strm, "%s\n", op);
+    psw_put_bits(pdev->image_stream, data, data_x * depth, raster,
+		 width * depth, height);
+    psw_image_cleanup(pdev);
+    return 0;
+}
+private int
+psw_put_image(gx_device_pswrite *pdev, const char *op, int encode,
+	      const byte * data, int data_x, uint raster,
+	      int width, int height, int depth)
+{
+    int code = psw_image_stream_setup(pdev, !(encode & 1));
+
+    if (code < 0)
+	return code;
+    if (encode & 2) {
+	code = psdf_CFE_binary(pdev->image_writer, width, height, false);
+	if (code < 0)
+	    return code;
+    }
+    return psw_put_image_bits(pdev, op, data, data_x, raster,
+			      width, height, depth);
 }
 private int
 psw_image_write(gx_device_pswrite * pdev, const char *imagestr,
@@ -461,10 +484,11 @@ psw_image_write(gx_device_pswrite * pdev, const char *imagestr,
 {
     stream *s = gdev_vector_stream((gx_device_vector *) pdev);
     uint width_bits = width * depth;
-    int data_x_bit = data_x * depth;
     int index = image_cache_lookup(pdev, id, width_bits, height, false);
     char str[40];
+    char endstr[20];
     int code, encode;
+    const char *op;
 
     if (index >= 0) {
 	sprintf(str, "%d%c", index / 26, index % 26 + 'A');
@@ -473,17 +497,12 @@ psw_image_write(gx_device_pswrite * pdev, const char *imagestr,
 	return 0;
     }
     pprintd4(s, "%d %d %d %d ", x, y, width, height);
-    encode = code = psw_image_stream_setup(pdev);
-    if (code < 0)
-	return code;
-    if (depth == 1 && width > 16 && pdev->LanguageLevel >= 2) {
+    encode = !pdev->binary_ok;
+    if (depth == 1 && width > 16 && pdev->pswrite_common.LanguageLevel >= 2) {
 	/*
 	 * We should really look at the statistics of the image before
 	 * committing to using G4 encoding....
 	 */
-	code = psdf_CFE_binary(pdev->image_writer, width, height, false);
-	if (code < 0)
-	    return code;
 	encode += 2;
     }
     if (id == gx_no_bitmap_id || width_bits * (ulong) height > 8000) {
@@ -491,27 +510,60 @@ psw_image_write(gx_device_pswrite * pdev, const char *imagestr,
 	    "@", "@X", "@F", "@C"
 	};
 
-	pprints2(s, "%s %s\n", uncached[encode], imagestr);
-	psw_put_bits(pdev->image_stream, data, data_x_bit, raster,
-		     width_bits, height);
-	psw_image_cleanup(pdev);
-	spputc(s, '\n');
+	stream_puts(s, uncached[encode]);
+	op = imagestr;
+	strcpy(endstr, "\n");
     } else {
 	static const char *const cached[4] = {
 	    "$", "$X", "$F", "$C"
 	};
 
 	index = image_cache_lookup(pdev, id, width_bits, height, true);
-	sprintf(str, "/%d%c ", index / 26, index % 26 + 'A');
-	pputs(s, str);
+	sprintf(str, "/%d%c", index / 26, index % 26 + 'A');
+	stream_puts(s, str);
 	if (depth != 1)
-	    pprintld1(s, "%ld ", ((width_bits + 7) >> 3) * (ulong) height);
-	pprints1(s, "%s\n", cached[encode]);
-	psw_put_bits(pdev->image_stream, data, data_x_bit, raster,
-		     width_bits, height);
-	psw_image_cleanup(pdev);
-	pprints1(s, "\n%s\n", imagestr);
+	    pprintld1(s, " %ld", ((width_bits + 7) >> 3) * (ulong) height);
+	op = cached[encode];
+	sprintf(endstr, "\n%s\n", imagestr);
     }
+    /*
+     * In principle, we should put %%BeginData: / %%EndData around all data
+     * sections.  However, as long as the data are ASCII (not binary), they
+     * can't cause problems for a DSC parser as long as all lines are
+     * limited to 255 characters and there is no possibility that %% might
+     * occur at the beginning of a line.  ASCIIHexEncoded data can't contain
+     * % at all, and our implementation of ASCII85Encode also guarantees
+     * the desired property.  Therefore, we only bracket binary data.
+     */
+    if (encode & 1) {
+	/* We're using ASCII encoding. */
+	stream_putc(s, '\n');
+	code = psw_put_image(pdev, op, encode, data, data_x, raster,
+			     width, height, depth);
+	if (code < 0)
+	    return code;
+    } else {
+	/*
+	 * Do a pre-pass to compute the amount of binary data for the
+	 * %%BeginData DSC comment.
+	 */
+	stream poss;
+
+	swrite_position_only(&poss);
+	pdev->strm = &poss;
+	code = psw_put_image(pdev, op, encode, data, data_x, raster,
+			     width, height, depth);
+	pdev->strm = s;
+	if (code < 0)
+	    return code;
+	pprintld1(s, "\n%%%%BeginData: %ld\n", stell(&poss));
+	code = psw_put_image(pdev, op, encode, data, data_x, raster,
+			     width, height, depth);
+	if (code < 0)
+	    return code;
+	stream_puts(s, "\n%%EndData");
+    }
+    stream_puts(s, endstr);
     return 0;
 }
 
@@ -523,99 +575,63 @@ psw_put_matrix(stream * s, const gs_matrix * pmat)
 	     pmat->xx, pmat->xy, pmat->yx, pmat->yy, pmat->tx, pmat->ty);
 }
 
-/* ---------------- Vector device implementation ---------------- */
+/* Check for a deferred erasepage. */
+private int
+psw_check_erasepage(gx_device_pswrite *pdev)
+{
+    int code = 0;
 
-#define pdev ((gx_device_pswrite *)vdev)
+    if (pdev->page_fill.color != gx_no_color_index) {
+	code = gdev_vector_fill_rectangle((gx_device *)pdev,
+					  pdev->page_fill.rect.p.x,
+					  pdev->page_fill.rect.p.y,
+					  pdev->page_fill.rect.q.x -
+					    pdev->page_fill.rect.p.x,
+					  pdev->page_fill.rect.q.y -
+					    pdev->page_fill.rect.p.y,
+					  pdev->page_fill.color);
+	pdev->page_fill.color = gx_no_color_index;
+    }
+    return code;
+}
+#define CHECK_BEGIN_PAGE(pdev)\
+  BEGIN\
+    int code_ = psw_check_erasepage(pdev);\
+\
+    if (code_ < 0)\
+      return code_;\
+  END
+
+/* Check if we write each page into separate file. */
+private bool 
+psw_is_separate_pages(gx_device_vector *const vdev)
+{
+    const char *fmt;
+    gs_parsed_file_name_t parsed;
+    int code = gx_parse_output_file_name(&parsed, &fmt, vdev->fname, strlen(vdev->fname));
+    return (code >= 0 && fmt != 0);
+}
+
+/* ---------------- Vector device implementation ---------------- */
 
 private int
 psw_beginpage(gx_device_vector * vdev)
 {
-    stream *s = vdev->strm;
-    long page = vdev->PageCount + 1;
-
-    if (pdev->first_page) {
-	psw_put_lines(s,
-		      (pdev->ProduceEPS ? psw_eps_header : psw_ps_header));
-	if (ftell(vdev->file) < 0) {	/* File is not seekable. */
-	    pdev->bbox_position = -1;
-	    pputs(s, "%%BoundingBox: (atend)\n");
-	    pputs(s, "%%HiResBoundingBox: (atend)\n");
-	} else {		/* File is seekable, leave room to rewrite bbox. */
-	    pdev->bbox_position = stell(s);
-	    pputs(s, "%...............................................................\n");
-	    pputs(s, "%...............................................................\n");
-	}
-	pprints1(s, "%%%%Creator: %s ", gs_product);
-	pprintld1(s, "%ld ", (long)gs_revision);
-	pprints1(s, "(%s)\n", vdev->dname);
-	{
-	    struct tm tms;
-	    time_t t;
-	    char date_str[25];
-
-	    time(&t);
-	    tms = *localtime(&t);
-	    sprintf(date_str, "%d/%02d/%02d %02d:%02d:%02d",
-		    tms.tm_year + 1900, tms.tm_mon + 1, tms.tm_mday,
-		    tms.tm_hour, tms.tm_min, tms.tm_sec);
-	    pprints1(s, "%%%%CreationDate: %s\n", date_str);
-	}
-	if (pdev->params.ASCII85EncodePages)
-	    pputs(s, "%%DocumentData: Clean7Bit\n");
-	if (pdev->LanguageLevel == 2.0)
-	    pputs(s, "%%LanguageLevel: 2\n");
-	else if (pdev->LanguageLevel == 1.5)
-	    pputs(s, "%%Extensions: CMYK\n");
-	psw_put_lines(s, psw_header);
-	pprints1(s, "%% %s\n", gs_copyright);
-	psw_put_lines(s, psw_prolog);
-	if (pdev->LanguageLevel < 1.5) {
-	    psw_put_lines(s, psw_1_x_prolog);
-	    psw_put_lines(s, psw_1_prolog);
-	} else if (pdev->LanguageLevel > 1.5) {
-	    psw_put_lines(s, psw_1_5_prolog);
-	    psw_put_lines(s, psw_2_prolog);
-	} else {
-	    psw_put_lines(s, psw_1_x_prolog);
-	    psw_put_lines(s, psw_1_5_prolog);
-	}
-	psw_put_lines(s, psw_end_prolog);
+    stream *s;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
+    if (!vdev->is_open) {
+	int code = psw_open((gx_device *)vdev);
+	if (code < 0)
+	     return code;
+	vdev->is_open = true;
     }
-    pprintld2(s, "%%%%Page: %ld %ld\n%%%%BeginPageSetup\n", page, page);
-    pputs(s, "/pagesave save def GS_pswrite_ProcSet begin\n");
-    if (!pdev->ProduceEPS) {
-	int width = (int)(vdev->width * 72.0 / vdev->HWResolution[0] + 0.5);
-	int height = (int)(vdev->height * 72.0 / vdev->HWResolution[1] + 0.5);
+    s = vdev->strm;
+    if (pdev->first_page)
+	psw_begin_file(pdev, NULL);
 
-	if (pdev->LanguageLevel > 1.5)
-	    pprintd2(s, "<< /PageSize [%d %d] >> setpagedevice\n",
-		     width, height);
-	else {
-	    typedef struct ps_ {
-		const char *size_name;
-		int width, height;
-	    } page_size;
-	    static const page_size sizes[] = {
-		{"/11x17", 792, 1224},
-		{"/a3", 842, 1190},
-		{"/a4", 595, 842},
-		{"/b5", 501, 709},
-		{"/ledger", 1224, 792},
-		{"/legal", 612, 1008},
-		{"/letter", 612, 792},
-		{"null", 0, 0}
-	    };
-	    const page_size *p = sizes;
-
-	    while (p->size_name[0] == '/' &&
-		   (p->width != width || p->height != height))
-		++p;
-	    pprintd2(s, "%d %d ", width, height);
-	    pprints1(s, "%s PS\n", p->size_name);
-	}
-    }
-    pprintg2(s, "%g %g scale\n%%%%EndPageSetup\nmark\n",
-	     72.0 / vdev->HWResolution[0], 72.0 / vdev->HWResolution[1]);
+    psw_write_page_header(s, (gx_device *)vdev, &pdev->pswrite_common, true, 
+                          (psw_is_separate_pages(vdev) ? 1 : vdev->PageCount + 1));
+    pdev->page_fill.color = gx_no_color_index;
     return 0;
 }
 
@@ -636,7 +652,7 @@ psw_setcolors(gx_device_vector * vdev, const gx_drawing_color * pdc)
 
 	if (r == g && g == b) {
 	    if (r == 0)
-		pputs(s, "K\n");
+		stream_puts(s, "K\n");
 	    else
 		pprintd1(s, "%d G\n", r);
 	} else if (r == g)
@@ -669,21 +685,44 @@ psw_dorect(gx_device_vector * vdev, fixed x0, fixed y0, fixed x1, fixed y1,
  * we only need to write coordinates with 2 decimals of precision,
  * since this is 10 times more precise than any existing output device.
  */
-#define round_coord(v) (floor((v) * 100 + 0.5) / 100.0)
+inline private double
+round_coord2(floatp v)
+{
+    return floor(v * 100 + 0.5) / 100.0;
+}
 private void
 print_coord2(stream * s, floatp x, floatp y, const char *str)
 {
-    pprintg2(s, "%g %g ", round_coord(x), round_coord(y));
+    pprintg2(s, "%g %g ", round_coord2(x), round_coord2(y));
     if (str != 0)
-	pputs(s, str);
+	stream_puts(s, str);
 }
-#undef round_coord
 
 private int
 psw_beginpath(gx_device_vector * vdev, gx_path_type_t type)
 {
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
+
+    if (type & (gx_path_type_fill | gx_path_type_stroke)) {
+	/*
+	 * fill_path and stroke_path call CHECK_BEGIN_PAGE themselves:
+	 * we do it here to handle polygons (trapezoid, parallelogram,
+	 * triangle), which don't go through fill_path.
+	 */
+	CHECK_BEGIN_PAGE(pdev);
+    }
     pdev->path_state.num_points = 0;
     pdev->path_state.move = 0;
+    if (type & gx_path_type_clip) {
+	/*
+	 * This approach doesn't work for clip + fill or stroke, but that
+	 * combination can't occur.
+	 */
+	stream *s = gdev_vector_stream(vdev);
+
+	stream_puts(s, "Q q\n");
+	gdev_vector_reset(vdev);
+    }
     return 0;
 }
 
@@ -692,15 +731,16 @@ psw_moveto(gx_device_vector * vdev, floatp x0, floatp y0, floatp x, floatp y,
 	   gx_path_type_t type)
 {
     stream *s = gdev_vector_stream(vdev);
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
 
     if (pdev->path_state.num_points > pdev->path_state.move)
-	pputs(s, (pdev->path_state.move ? "P\n" : "p\n"));
+	stream_puts(s, (pdev->path_state.move ? "P\n" : "p\n"));
     else if (pdev->path_state.move) {
 	/*
 	 * Two consecutive movetos -- possible only if a zero-length line
 	 * was discarded.
 	 */
-	pputs(s, "pop pop\n");
+	stream_puts(s, "pop pop\n");
     }
     print_coord2(s, x, y, NULL);
     pdev->path_state.num_points = 1;
@@ -715,17 +755,22 @@ psw_lineto(gx_device_vector * vdev, floatp x0, floatp y0, floatp x, floatp y,
     double dx = x - x0, dy = y - y0;
 
     /*
-     * Omit null lines when filling.
+     * Omit null lines except when stroking (so that linecap works).
      ****** MAYBE WRONG IF PATH CONSISTS ONLY OF NULL LINES. ******
      */
-    if (dx != 0 || dy != 0) {
+    if ((type & gx_path_type_stroke) || dx != 0 || dy != 0) {
 	stream *s = gdev_vector_stream(vdev);
+	gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
 
+	if (pdev->path_state.num_points > 0 &&
+	    !(pdev->path_state.num_points & 7)
+	    )
+	    stream_putc(s, '\n');	/* limit line length for DSC compliance */
 	if (pdev->path_state.num_points - pdev->path_state.move >= 2 &&
 	    dx == -pdev->path_state.dprev[1].x &&
 	    dy == -pdev->path_state.dprev[1].y
 	    )
-	    pputs(s, "^ ");
+	    stream_puts(s, "^ ");
 	else
 	    print_coord2(s, dx, dy, NULL);
 	pdev->path_state.num_points++;
@@ -745,9 +790,10 @@ psw_curveto(gx_device_vector * vdev, floatp x0, floatp y0,
     double dx1 = x1 - x0, dy1 = y1 - y0;
     double dx2 = x2 - x0, dy2 = y2 - y0;
     double dx3 = x3 - x0, dy3 = y3 - y0;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
 
     if (pdev->path_state.num_points > 0)
-	pputs(s, (pdev->path_state.move ?
+	stream_puts(s, (pdev->path_state.move ?
 		  (pdev->path_state.num_points == 1 ? "m\n" : "P\n") :
 		  "p\n"));
     if (dx1 == 0 && dy1 == 0) {
@@ -770,7 +816,9 @@ private int
 psw_closepath(gx_device_vector * vdev, floatp x0, floatp y0,
 	      floatp x_start, floatp y_start, gx_path_type_t type)
 {
-    pputs(gdev_vector_stream(vdev),
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
+
+    stream_puts(gdev_vector_stream(vdev),
 	  (pdev->path_state.num_points > 0 && pdev->path_state.move ?
 	   "H\n" : "h\n"));
     pdev->path_state.num_points = 0;
@@ -783,9 +831,10 @@ psw_endpath(gx_device_vector * vdev, gx_path_type_t type)
 {
     stream *s = vdev->strm;
     const char *star = (type & gx_path_type_even_odd ? "*" : "");
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
 
     if (pdev->path_state.num_points > 0 && !pdev->path_state.move)
-	pputs(s, "p ");
+	stream_puts(s, "p ");
     if (type & gx_path_type_fill) {
 	if (type & (gx_path_type_stroke | gx_path_type_clip))
 	    pprints1(s, "q f%s Q ", star);
@@ -794,21 +843,16 @@ psw_endpath(gx_device_vector * vdev, gx_path_type_t type)
     }
     if (type & gx_path_type_stroke) {
 	if (type & gx_path_type_clip)
-	    pputs(s, "q S Q ");
+	    stream_puts(s, "q S Q ");
 	else
-	    pputs(s, "S\n");
+	    stream_puts(s, "S\n");
     }
     if (type & gx_path_type_clip)
 	pprints1(s, "Y%s\n", star);
     return 0;
 }
 
-#undef pdev
-
 /* ---------------- Driver procedures ---------------- */
-
-#define vdev ((gx_device_vector *)dev)
-#define pdev ((gx_device_pswrite *)dev)
 
 /* ------ Open/close/page ------ */
 
@@ -817,16 +861,21 @@ private int
 psw_open(gx_device * dev)
 {
     gs_memory_t *mem = gs_memory_stable(dev->memory);
+    gx_device_vector *const vdev = (gx_device_vector *)dev;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
 
     vdev->v_memory = mem;
     vdev->vec_procs = &psw_vector_procs;
     {
-	int code = gdev_vector_open_file_bbox(vdev, 512, true);
+	int code = gdev_vector_open_file_options(vdev, 512,
+					VECTOR_OPEN_FILE_SEQUENTIAL_OK |
+					VECTOR_OPEN_FILE_BBOX);
 
 	if (code < 0)
 	    return code;
     }
     gdev_vector_init(vdev);
+    vdev->fill_options = vdev->stroke_options = gx_path_type_optimize;
     pdev->first_page = true;
     pdev->binary_ok = !pdev->params.ASCII85EncodePages;
     pdev->image_writer = gs_alloc_struct(mem, psdf_binary_writer,
@@ -837,91 +886,69 @@ psw_open(gx_device * dev)
     return 0;
 }
 
-/*
- * Write the page trailer.  We do this directly to the file, rather than to
- * the stream, because we may have to do it during finalization.
- */
-private void
-psw_write_page_trailer(gx_device *dev, int num_copies, int flush)
-{
-    FILE *f = vdev->file;
-
-    if (num_copies != 1)
-	fprintf(f, "userdict /#copies %d put\n", num_copies);
-    fprintf(f, "cleartomark end %s pagesave restore\n%%%%PageTrailer\n",
-	    (flush ? "showpage" : "copypage"));
-}
-
 /* Wrap up ("output") a page. */
 private int
 psw_output_page(gx_device * dev, int num_copies, int flush)
 {
+    gx_device_vector *const vdev = (gx_device_vector *)dev;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
     stream *s = gdev_vector_stream(vdev);
 
+    /* Check for a legitimate empty page. */
+    CHECK_BEGIN_PAGE(pdev);
     sflush(s);			/* sync stream and file */
-    psw_write_page_trailer(dev, num_copies, flush);
+    psw_write_page_trailer(vdev->file, num_copies, flush);
     vdev->in_page = false;
     pdev->first_page = false;
     gdev_vector_reset(vdev);
     image_cache_reset(pdev);
     if (ferror(vdev->file))
 	return_error(gs_error_ioerror);
-    return gx_finish_output_page(dev, num_copies, flush);
+
+    dev->PageCount ++;
+    if (psw_is_separate_pages(vdev)) {
+	psw_close(dev);
+	dev->is_open = false;
+    }
+    return 0;
 }
 
 /* Close the device. */
 /* Note that if this is being called as a result of finalization, */
 /* the stream may have been finalized; but the file will still be open. */
-private void psw_print_bbox(P2(FILE *, const gs_rect *));
 private int
 psw_close(gx_device * dev)
 {
+    gx_device_vector *const vdev = (gx_device_vector *)dev;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
     FILE *f = vdev->file;
+    gs_rect bbox;
 
-    /* If there is an incomplete page, complete it now. */
-    if (vdev->in_page) {
-	/*
-	 * Flush the stream if it hasn't been flushed (and finalized)
-	 * already.
-	 */
-	stream *s = vdev->strm;
+    gx_device_bbox_bbox(vdev->bbox_device, &bbox);
+    if (pdev->first_page & !vdev->in_page) {
+	/* Nothing has been written.  Write the file header now. */
+	psw_begin_file(pdev, &bbox);
+    } else {
+	/* If there is an incomplete page, complete it now. */
+	if (vdev->in_page) {
+	    /*
+	     * Flush the stream if it hasn't been flushed (and finalized)
+	     * already.
+	     */
+	    stream *s = vdev->strm;
 
-	if (s->swptr != s->cbuf - 1)
-	    sflush(s);
-	psw_write_page_trailer(dev, 1, 1);
-	dev->PageCount++;
+	    if (s->swptr != s->cbuf - 1)
+		sflush(s);
+	    psw_write_page_trailer(vdev->file, 1, 1);
+	    dev->PageCount++;
+	}
     }
-    fprintf(f, "%%%%Trailer\n%%%%Pages: %ld\n", dev->PageCount);
-    {
-	gs_rect bbox;
-
-	gx_device_bbox_bbox(vdev->bbox_device, &bbox);
-	if (pdev->bbox_position >= 0) {
-	    long save_pos = ftell(f);
-
-	    fseek(f, pdev->bbox_position, SEEK_SET);
-	    psw_print_bbox(f, &bbox);
-	    fputc('%', f);
-	    fseek(f, save_pos, SEEK_SET);
-	} else
-	    psw_print_bbox(f, &bbox);
-    }
-    if (!pdev->ProduceEPS)
-	fputs("%%EOF\n", f);
+    psw_end_file(f, dev, &pdev->pswrite_common, &bbox, 
+                 (psw_is_separate_pages(vdev) ? 1 : vdev->PageCount));
     gs_free_object(pdev->v_memory, pdev->image_writer,
 		   "psw_close(image_writer)");
     pdev->image_writer = 0;
     return gdev_vector_close_file(vdev);
-}
-private void
-psw_print_bbox(FILE *f, const gs_rect *pbbox)
-{
-    fprintf(f, "%%%%BoundingBox: %d %d %d %d\n",
-	    (int)floor(pbbox->p.x), (int)floor(pbbox->p.y),
-	    (int)ceil(pbbox->q.x), (int)ceil(pbbox->q.y));
-    fprintf(f, "%%%%HiResBoundingBox: %f %f %f %f\n",
-	    pbbox->p.x, pbbox->p.y, pbbox->q.x, pbbox->q.y);
-
 }
 
 /* ---------------- Get/put parameters ---------------- */
@@ -930,12 +957,13 @@ psw_print_bbox(FILE *f, const gs_rect *pbbox)
 private int
 psw_get_params(gx_device * dev, gs_param_list * plist)
 {
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)dev;
     int code = gdev_psdf_get_params(dev, plist);
     int ecode;
 
     if (code < 0)
 	return code;
-    if ((ecode = param_write_float(plist, "LanguageLevel", &pdev->LanguageLevel)) < 0)
+    if ((ecode = param_write_float(plist, "LanguageLevel", &pdev->pswrite_common.LanguageLevel)) < 0)
 	return ecode;
     return code;
 }
@@ -947,7 +975,8 @@ psw_put_params(gx_device * dev, gs_param_list * plist)
     int ecode = 0;
     int code;
     gs_param_name param_name;
-    float ll = pdev->LanguageLevel;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)dev;
+    float ll = pdev->pswrite_common.LanguageLevel;
     psdf_version save_version = pdev->version;
 
     switch (code = param_read_float(plist, (param_name = "LanguageLevel"), &ll)) {
@@ -983,9 +1012,39 @@ psw_put_params(gx_device * dev, gs_param_list * plist)
 	pdev->version = save_version;
 	return code;
     }
-    pdev->LanguageLevel = ll;
+    pdev->pswrite_common.LanguageLevel = ll;
     return code;
 }
+
+/* ---------------- Rectangles ---------------- */
+
+private int
+psw_fill_rectangle(gx_device * dev, int x, int y, int w, int h,
+		   gx_color_index color)
+{
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)dev;
+
+    /*
+     * If the transfer function doesn't map 1 setgray to device white,
+     * the first rectangle fill on a page (from erasepage) will be with
+     * some color other than white, which gdev_vector_fill_rectangle
+     * won't handle correctly.  Note that this doesn't happen on the
+     * very first page of a document.
+     */
+    if (!pdev->in_page && !pdev->first_page) {
+	if (pdev->page_fill.color == gx_no_color_index) {
+	    /* Save, but don't output, the erasepage. */
+	    pdev->page_fill.rect.p.x = x;
+	    pdev->page_fill.rect.p.y = y;
+	    pdev->page_fill.rect.q.x = x + w;
+	    pdev->page_fill.rect.q.y = y + h;
+	    pdev->page_fill.color = color;
+	    return 0;
+	}
+    }
+    return gdev_vector_fill_rectangle(dev, x, y, w, h, color);
+}
+
 
 /* ---------------- Images ---------------- */
 
@@ -995,10 +1054,13 @@ psw_copy_mono(gx_device * dev, const byte * data,
 	int data_x, int raster, gx_bitmap_id id, int x, int y, int w, int h,
 	      gx_color_index zero, gx_color_index one)
 {
+    gx_device_vector *const vdev = (gx_device_vector *)dev;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
     gx_drawing_color color;
     const char *op;
     int code = 0;
 
+    CHECK_BEGIN_PAGE(pdev);
     if (w <= 0 || h <= 0)
 	return 0;
     (*dev_proc(vdev->bbox_device, copy_mono))
@@ -1041,7 +1103,10 @@ psw_copy_color(gx_device * dev,
     const byte *bits = data + data_x * 3;
     char op[6];
     int code;
+    gx_device_vector *const vdev = (gx_device_vector *)dev;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
 
+    CHECK_BEGIN_PAGE(pdev);
     if (w <= 0 || h <= 0)
 	return 0;
     (*dev_proc(vdev->bbox_device, copy_color))
@@ -1064,14 +1129,17 @@ psw_copy_color(gx_device * dev,
 }
 
 /* Fill or stroke a path. */
-/* We redefine these to skip empty paths. */
+/* We redefine these to skip empty paths, and to allow optimization. */
 private int
 psw_fill_path(gx_device * dev, const gs_imager_state * pis,
 	      gx_path * ppath, const gx_fill_params * params,
 	      const gx_device_color * pdevc, const gx_clip_path * pcpath)
 {
+    CHECK_BEGIN_PAGE((gx_device_pswrite *)dev);
     if (gx_path_is_void(ppath))
 	return 0;
+    /* Update the clipping path now. */
+    gdev_vector_update_clip_path((gx_device_vector *)dev, pcpath);
     return gdev_vector_fill_path(dev, pis, ppath, params, pdevc, pcpath);
 }
 private int
@@ -1079,13 +1147,19 @@ psw_stroke_path(gx_device * dev, const gs_imager_state * pis,
 		gx_path * ppath, const gx_stroke_params * params,
 		const gx_device_color * pdcolor, const gx_clip_path * pcpath)
 {
+    gx_device_vector *const vdev = (gx_device_vector *)dev;
+
+    CHECK_BEGIN_PAGE((gx_device_pswrite *)dev);
     if (gx_path_is_void(ppath) &&
 	(gx_path_is_null(ppath) ||
 	 gs_currentlinecap((const gs_state *)pis) != gs_cap_round)
 	)
 	return 0;
+    /* Update the clipping path now. */
+    gdev_vector_update_clip_path(vdev, pcpath);
     /* Do the right thing for oddly transformed coordinate systems.... */
     {
+	gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
 	stream *s;
 	int code;
 	double scale;
@@ -1101,12 +1175,12 @@ psw_stroke_path(gx_device * dev, const gs_imager_state * pis,
 				   pdcolor, scale);
 	s = pdev->strm;
 	if (set_ctm) {
-	    pputs(s, "q");
+	    stream_puts(s, "q");
 	    if (is_fzero2(mat.xy, mat.yx) && is_fzero2(mat.tx, mat.ty))
 		pprintg2(s, " %g %g scale\n", mat.xx, mat.yy);
 	    else {
 		psw_put_matrix(s, &mat);
-		pputs(s, "concat\n");
+		stream_puts(s, "concat\n");
 	    }
 	}
 	code = gdev_vector_dopath(vdev, ppath, gx_path_type_stroke,
@@ -1114,7 +1188,7 @@ psw_stroke_path(gx_device * dev, const gs_imager_state * pis,
 	if (code < 0)
 	    return code;
 	if (set_ctm)
-	    pputs(s, "Q\n");
+	    stream_puts(s, "Q\n");
     }
     /* We must merge in the bounding box explicitly. */
     return (vdev->bbox_device == 0 ? 0 :
@@ -1131,6 +1205,10 @@ psw_fill_mask(gx_device * dev,
 	      const gx_drawing_color * pdcolor, int depth,
 	      gs_logical_operation_t lop, const gx_clip_path * pcpath)
 {
+    gx_device_vector *const vdev = (gx_device_vector *)dev;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
+
+    CHECK_BEGIN_PAGE(pdev);
     if (w <= 0 || h <= 0)
 	return 0;
     if (depth > 1 ||
@@ -1143,6 +1221,8 @@ psw_fill_mask(gx_device * dev,
     (*dev_proc(vdev->bbox_device, fill_mask))
 	((gx_device *) vdev->bbox_device, data, data_x, raster, id,
 	 x, y, w, h, pdcolor, depth, lop, pcpath);
+    /* Update the clipping path now. */
+    gdev_vector_update_clip_path(vdev, pcpath);
     return psw_image_write(pdev, ",", data, data_x, raster, id,
 			   x, y, w, h, 1);
 }
@@ -1151,8 +1231,7 @@ psw_fill_mask(gx_device * dev,
 
 private image_enum_proc_plane_data(psw_image_plane_data);
 private image_enum_proc_end_image(psw_image_end_image);
-private const gx_image_enum_procs_t psw_image_enum_procs =
-{
+private const gx_image_enum_procs_t psw_image_enum_procs = {
     psw_image_plane_data, psw_image_end_image
 };
 
@@ -1164,21 +1243,36 @@ psw_begin_image(gx_device * dev,
 	      const gx_drawing_color * pdcolor, const gx_clip_path * pcpath,
 		gs_memory_t * mem, gx_image_enum_common_t ** pinfo)
 {
-    gdev_vector_image_enum_t *pie =
-	gs_alloc_struct(mem, gdev_vector_image_enum_t,
-			&st_vector_image_enum, "psw_begin_image");
+    gx_device_vector *const vdev = (gx_device_vector *)dev;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
+    gdev_vector_image_enum_t *pie;
     const gs_color_space *pcs = pim->ColorSpace;
     const gs_color_space *pbcs = pcs;
     const char *base_name;
     gs_color_space_index index;
     int num_components;
-    bool can_do = prect == 0 &&
-	(pim->format == gs_image_format_chunky ||
-	 pim->format == gs_image_format_component_planar);
+    bool binary = pdev->binary_ok;
+    byte *buffer = 0;		/* image buffer if needed */
+    stream *bs = 0;		/* buffer stream if needed */
+#define MAX_IMAGE_OP 10		/* imagemask\n */
     int code;
 
+    CHECK_BEGIN_PAGE(pdev);
+    pie = gs_alloc_struct(mem, gdev_vector_image_enum_t,
+			  &st_vector_image_enum, "psw_begin_image");
     if (pie == 0)
 	return_error(gs_error_VMerror);
+    if (prect && !(prect->p.x == 0 && prect->p.y == 0 &&
+		   prect->q.x == pim->Width && prect->q.y == pim->Height)
+	)
+	goto fail;
+    switch (pim->format) {
+    case gs_image_format_chunky:
+    case gs_image_format_component_planar:
+	break;
+    default:
+	goto fail;
+    }
     pie->memory = mem;
     pie->default_info = 0;	/* not used */
     if (pim->ImageMask) {
@@ -1188,7 +1282,7 @@ psw_begin_image(gx_device * dev,
 	index = gs_color_space_get_index(pcs);
 	num_components = gs_color_space_num_components(pcs);
 	if (pim->CombineWithColor)
-	    can_do = false;
+	    goto fail;
 	/*
 	 * We can only handle Device color spaces right now, or Indexed
 	 * color spaces over them, and only the default Decode [0 1 ...]
@@ -1196,12 +1290,11 @@ psw_begin_image(gx_device * dev,
 	 */
 	switch (index) {
 	case gs_color_space_index_Indexed: {
-	    if (pdev->LanguageLevel < 2 || pcs->params.indexed.use_proc ||
+	    if (pdev->pswrite_common.LanguageLevel < 2 || pcs->params.indexed.use_proc ||
 		pim->Decode[0] != 0 ||
 		pim->Decode[1] != (1 << pim->BitsPerComponent) - 1
 		) {
-		can_do = false;
-		break;
+		goto fail;
 	    }
 	    pbcs = (const gs_color_space *)&pcs->params.indexed.base_space;
 	    switch (gs_color_space_get_index(pbcs)) {
@@ -1212,7 +1305,7 @@ psw_begin_image(gx_device * dev,
 	    case gs_color_space_index_DeviceCMYK:
 		base_name = "DeviceCMYK"; break;
 	    default:
-		can_do = false;
+		goto fail;
 	    }
 	    break;
 	}
@@ -1223,37 +1316,74 @@ psw_begin_image(gx_device * dev,
 
 	    for (i = 0; i < num_components * 2; ++i)
 		if (pim->Decode[i] != (i & 1))
-		    can_do = false;
+		    goto fail;
 	    break;
 	}
 	default:
-	    can_do = false;
+	    goto fail;
 	}
     }
-    if (pdev->LanguageLevel < 2 && !pim->ImageMask) {
+    if (pdev->pswrite_common.LanguageLevel < 2 && !pim->ImageMask) {
 	/*
 	 * Restrict ourselves to Level 1 images: bits per component <= 8,
 	 * not indexed.
 	 */
 	if (pim->BitsPerComponent > 8 || pbcs != pcs)
-	    can_do = false;
+	    goto fail;
     }
-    if (!can_do ||
-	gdev_vector_begin_image(vdev, pis, pim, format, prect, pdcolor,
-			     pcpath, mem, &psw_image_enum_procs, pie) < 0 ||
-	(code = psw_image_stream_setup(pdev)) < 0
-	) {
-	gs_free_object(mem, pie, "psw_begin_image");
-	return gx_default_begin_image(dev, pis, pim, format, prect,
-				      pdcolor, pcpath, mem, pinfo);
+    if (gdev_vector_begin_image(vdev, pis, pim, format, prect, pdcolor,
+				pcpath, mem, &psw_image_enum_procs, pie) < 0)
+	goto fail;
+    if (binary) {
+	/*
+	 * We need to buffer the entire image in memory.  Currently, the
+	 * only reason for this is the infamous "short image" problem: the
+	 * image may actually have fewer rows than its height specifies.  If
+	 * it weren't for that, we could know the size of the binary data in
+	 * advance.  However, this will change if we compress images.
+	 */
+	uint bsize = MAX_IMAGE_OP +
+	    ((pie->bits_per_row + 7) >> 3) * pie->height;
+
+	buffer = gs_alloc_bytes(mem, bsize, "psw_begin_image(buffer)");
+	bs = s_alloc(mem, "psw_begin_image(buffer stream)");
+	if (buffer && bs) {
+	    swrite_string(bs, buffer, bsize);
+	} else {
+	    /* An allocation failed. */
+	    gs_free_object(mem, bs, "psw_begin_image(buffer stream)");
+	    gs_free_object(mem, buffer, "psw_begin_image(buffer)");
+	    /*
+	     * Rather than returning VMerror, we fall back to an ASCII
+	     * encoding, which doesn't require a buffer stream.
+	     */
+	    buffer = 0;
+	    bs = 0;
+	    binary = false;
+	}
     }
+    if (binary) {
+	/* Set up the image stream to write into the buffer. */
+	stream *save = pdev->strm;
+
+	pdev->strm = bs;
+	code = psw_image_stream_setup(pdev, true);
+	pdev->strm = save;
+    } else {
+	code = psw_image_stream_setup(pdev, false);
+    }
+    if (code < 0)
+	goto fail;
+    /* Update the clipping path now. */
+    gdev_vector_update_clip_path(vdev, pcpath);
     /* Write the image/colorimage/imagemask preamble. */
     {
 	stream *s = gdev_vector_stream((gx_device_vector *) pdev);
 	const char *source = (code ? "@X" : "@");
 	gs_matrix imat;
+	const char *op;
 
-	pputs(s, "q");
+	stream_puts(s, "q");
 	(*dev_proc(dev, get_initial_matrix)) (dev, &imat);
 	gs_matrix_scale(&imat, 72.0 / dev->HWResolution[0],
 			72.0 / dev->HWResolution[1], &imat);
@@ -1262,9 +1392,10 @@ psw_begin_image(gx_device * dev,
 	psw_put_matrix(s, &imat);
 	pprintd2(s, "concat\n%d %d ", pie->width, pie->height);
 	if (pim->ImageMask) {
-	    pputs(s, (pim->Decode[0] == 0 ? "false" : "true"));
+	    stream_puts(s, (pim->Decode[0] == 0 ? "false" : "true"));
 	    psw_put_matrix(s, &pim->ImageMatrix);
-	    pprints1(s, "%s imagemask\n", source);
+	    stream_puts(s, source);
+	    op = "imagemask";
 	} else {
 	    pprintd1(s, "%d", pim->BitsPerComponent);
 	    psw_put_matrix(s, &pim->ImageMatrix);
@@ -1272,27 +1403,45 @@ psw_begin_image(gx_device * dev,
 		/* This is an Indexed color space. */
 		pprints1(s, "[/Indexed /%s ", base_name);
 		pprintd1(s, "%d\n", pcs->params.indexed.hival);
+		/*
+		 * Don't write the table in binary: it might interfere
+		 * with DSC parsing.
+		 */
 		s_write_ps_string(s, pcs->params.indexed.lookup.table.data,
 				  pcs->params.indexed.lookup.table.size,
-				  (pdev->binary_ok ? PRINT_BINARY_OK : 0) |
 				  PRINT_ASCII85_OK);
-		pprintd1(s, "\n]setcolorspace[0 %d]", (int)pim->Decode[1]),
-		pprints2(s, "%s %s IC\n",
+		pprintd1(s, "\n]setcolorspace[0 %d]", (int)pim->Decode[1]);
+		pprints2(s, "%s %s",
 			 (pim->Interpolate ? "true" : "false"), source);
-	    } else if (index == gs_color_space_index_DeviceGray)
-		pprints1(s, "%s image\n", source);
-	    else {
+		op = "IC";
+	    } else if (index == gs_color_space_index_DeviceGray) {
+		stream_puts(s, source);
+		op = "image";
+	    } else {
 		if (format == gs_image_format_chunky)
 		    pprints1(s, "%s false", source);
-		else
-		    pprints2(s, "%s %strue", source,
-			     "dup dup dup " + (16 - num_components * 4));
-		pprintd1(s, " %d colorimage\n", num_components);
+		else {
+		    /* We have to use procedures. */
+		    stream_puts(s, source);
+		    pprintd2(s, " %d %d B",
+			     (pim->Width * pim->BitsPerComponent + 7) >> 3,
+			     num_components);
+		}
+		pprintd1(s, " %d", num_components);
+		op = "colorimage";
 	    }
 	}
+	stream_putc(s, '\n');
+	pprints1((bs ? bs : s), "%s\n", op);
     }
     *pinfo = (gx_image_enum_common_t *) pie;
     return 0;
+ fail:
+    gs_free_object(mem, bs, "psw_begin_image(buffer stream)");
+    gs_free_object(mem, buffer, "psw_begin_image(buffer)");
+    gs_free_object(mem, pie, "psw_begin_image");
+    return gx_default_begin_image(dev, pis, pim, format, prect,
+				  pdcolor, pcpath, mem, pinfo);
 }
 
 /* Process the next piece of an image. */
@@ -1302,17 +1451,20 @@ psw_image_plane_data(gx_image_enum_common_t * info,
 		     int *rows_used)
 {
     gx_device *dev = info->dev;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)dev;
     gdev_vector_image_enum_t *pie = (gdev_vector_image_enum_t *) info;
     int code =
 	gx_image_plane_data_rows(pie->bbox_info, planes, height, rows_used);
     int pi;
 
-    for (pi = 0; pi < pie->num_planes; ++pi)
+    for (pi = 0; pi < pie->num_planes; ++pi) {
+	if (pie->bits_per_row != pie->width * info->plane_depths[pi])
+	    return_error(gs_error_rangecheck);
 	psw_put_bits(pdev->image_stream, planes[pi].data,
 		     planes[pi].data_x * info->plane_depths[pi],
-		     planes[pi].raster,
-		     pie->width * info->plane_depths[pi],
+		     planes[pi].raster, pie->bits_per_row,
 		     *rows_used);
+    }
     pie->y += *rows_used;
     return code;
 }
@@ -1322,13 +1474,38 @@ private int
 psw_image_end_image(gx_image_enum_common_t * info, bool draw_last)
 {
     gx_device *dev = info->dev;
+    gx_device_vector *const vdev = (gx_device_vector *)dev;
+    gx_device_pswrite *const pdev = (gx_device_pswrite *)vdev;
     gdev_vector_image_enum_t *pie = (gdev_vector_image_enum_t *) info;
     int code;
 
     code = gdev_vector_end_image(vdev, pie, draw_last, pdev->white);
     if (code > 0) {
+	stream *s = pdev->strm;
+	stream *bs = pdev->image_stream;
+
+	/* If we were buffering a binary image, write it now. */
+	while (bs != s && bs->strm != 0)
+	    bs = bs->strm;
 	psw_image_cleanup(pdev);
-	pputs(pdev->strm, "\nQ\n");
+	if (bs != s) {
+	    /*
+	     * We were buffering a binary image.  Write it now, with the
+	     * DSC comments.
+	     */
+	    gs_memory_t *mem = bs->memory;
+	    byte *buffer = bs->cbuf;
+	    long len = stell(bs);
+	    uint ignore;
+
+	    pprintld1(s, "%%%%BeginData: %ld\n", len);
+	    sputs(s, buffer, (uint)len, &ignore);
+	    stream_puts(s, "\n%%EndData");
+	    /* Free the buffer and its stream. */
+	    gs_free_object(mem, bs, "psw_image_end_image(buffer stream)");
+	    gs_free_object(mem, buffer, "psw_image_end_image(buffer)");
+	}
+	stream_puts(s, "\nQ\n");
     }
     return code;
 }

@@ -148,3 +148,26 @@ hffree(Ndb *db)
 	}
 	db->hf = 0;
 }
+
+/*
+ *  return true if any part of the database has changed
+ */
+int
+ndbchanged(Ndb *db)
+{
+	Ndb *ndb;
+	Dir *d;
+
+	for(ndb = db; ndb != nil; ndb = ndb->next){
+		d = dirfstat(Bfildes(&db->b));
+		if(d == nil)
+			continue;
+		if(ndb->qid.path != d->qid.path
+		|| ndb->qid.vers != d->qid.vers){
+			free(d);
+			return 1;
+		}
+		free(d);
+	}
+	return 0;
+}

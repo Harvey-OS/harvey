@@ -15,7 +15,7 @@ eggen(int nlen, int rounds)
 	pub->key = mpnew(0);
 	priv->secret = mpnew(0);
 	gensafeprime(pub->p, pub->alpha, nlen, rounds);
-	mprand(nlen-1, prng, priv->secret);
+	mprand(nlen-1, genrandom, priv->secret);
 	mpexp(pub->alpha, priv->secret, pub->p, pub->key);
 	return priv;
 }

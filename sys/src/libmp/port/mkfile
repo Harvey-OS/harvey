@@ -1,38 +1,38 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libmp.a
-ALLOFILES=\
-	mpaux.$O\
-	mpfmt.$O\
-	strtomp.$O\
-	mptobe.$O\
-	mptole.$O\
-	betomp.$O\
-	letomp.$O\
-	mpadd.$O\
-	mpsub.$O\
-	mpcmp.$O\
-	mpmul.$O\
-	mpleft.$O\
-	mpright.$O\
-	mpvecadd.$O\
-	mpvecsub.$O\
-	mpvecdigmuladd.$O\
-	mpveccmp.$O\
-	mpdigdiv.$O\
-	mpdiv.$O\
-	mpexp.$O\
-	mpmod.$O\
-	mpextendedgcd.$O\
-	mpinvert.$O\
-	mprand.$O\
-	crt.$O\
-	mptoi.$O\
-	mptoui.$O\
-	mptov.$O\
-	mptouv.$O\
+FILES=\
+	mpaux\
+	mpfmt\
+	strtomp\
+	mptobe\
+	mptole\
+	betomp\
+	letomp\
+	mpadd\
+	mpsub\
+	mpcmp\
+	mpmul\
+	mpleft\
+	mpright\
+	mpvecadd\
+	mpvecsub\
+	mpvecdigmuladd\
+	mpveccmp\
+	mpdigdiv\
+	mpdiv\
+	mpexp\
+	mpmod\
+	mpextendedgcd\
+	mpinvert\
+	mprand\
+	crt\
+	mptoi\
+	mptoui\
+	mptov\
+	mptouv\
 
-
+ALLOFILES=${FILES:%=%.$O}
 # cull things in the per-machine directories from this list
 OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
 
@@ -40,5 +40,13 @@ HFILES=\
 	/$objtype/include/u.h\
 	/sys/include/mp.h\
 	dat.h\
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
 
 </sys/src/cmd/mksyslib

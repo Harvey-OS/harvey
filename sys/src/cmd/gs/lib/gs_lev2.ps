@@ -1,21 +1,21 @@
-%    Copyright (C) 1990, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+%    Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of Aladdin Ghostscript.
+% This file is part of AFPL Ghostscript.
 % 
-% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-% or distributor accepts any responsibility for the consequences of using it,
-% or for whether it serves any particular purpose or works at all, unless he
-% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-% License (the "License") for full details.
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
 % 
-% Every copy of Aladdin Ghostscript must include a copy of the License,
-% normally in a plain ASCII text file named PUBLIC.  The License grants you
-% the right to copy, modify and redistribute Aladdin Ghostscript, but only
-% under certain conditions described in the License.  Among other things, the
-% License requires that the copyright notice and this notice be preserved on
-% all copies.
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
 
-% $Id: gs_lev2.ps,v 1.1 2000/03/09 08:40:40 lpd Exp $
+% $Id: gs_lev2.ps,v 1.7.2.2 2002/01/25 06:33:09 rayjj Exp $
 % Initialization file for Level 2 functions.
 % When this is run, systemdict is still writable,
 % but (almost) everything defined here goes into level2dict.
@@ -37,9 +37,9 @@ level2dict begin
 % a read-only local dictionary named userparams, defined in systemdict.
 % In a multi-context system, each context has its own copy of this
 % dictionary.  In addition, there is a constant dictionary named
-% psuserparams whose keys are the names of user parameters that exist
-% only in PostScript and whose values are (currently) arbitrary values
-% of the correct datatype: setuserparams uses this for type checking.
+% psuserparams where each key is the name of a user parameter that exists
+% only in PostScript and the value is a procedure to check that the value
+% is legal: setuserparams uses this for checking the values.
 % setuserparams updates userparams explicitly, in addition to setting
 % any user parameters in the interpreter; thus we can use userparams
 % to reset those parameters after a restore or a context switch.
@@ -47,23 +47,25 @@ level2dict begin
 % the interpreter creates the userparams dictionary.
 
 % Check parameters that are managed at the PostScript level.
-% Currently we allow resetting them iff the new value is of the same type.
+/.checkparamtype {		% <newvalue> <type> .checkparamtype <bool>
+  exch type eq
+} .bind def
 /.checksetparams {		% <newdict> <opname> <checkdict>
 				%   .checksetparams <newdict>
   2 index {
 		% Stack: newdict opname checkdict key newvalue
-    3 copy pop .knownget
-       { type 1 index type ne
-	  { pop pop pop load /typecheck signalerror }
-	 if
-	 dup type /stringtype eq
-	  { dup rcheck not
-	     { pop pop pop load /invalidaccess signalerror }
-	    if
-	  }
-	 if
-       }
-    if pop pop
+    3 copy 3 1 roll .knownget {
+      exec not {
+	pop pop pop load /typecheck signalerror
+      } if
+      dup type /stringtype eq {
+	dup rcheck not {
+	  pop pop pop load /invalidaccess signalerror
+	} if
+      } if
+    } {
+      pop
+    } ifelse pop pop
   } forall pop pop
 } .bind def	% not odef, shouldn't reset stacks
 
@@ -83,7 +85,7 @@ level2dict begin
 % Some user parameters are managed entirely at the PostScript level.
 % We take care of that here.
 systemdict begin
-/psuserparams 40 dict def
+/psuserparams 48 dict def
 /getuserparam {			% <name> getuserparam <value>
   /userparams .systemvar 1 index get exch pop
 } odef
@@ -93,7 +95,8 @@ counttomark 2 idiv {
   userparams 3 1 roll put
 } repeat pop
 /.definepsuserparam {		% <name> <value> .definepsuserparam -
-  psuserparams 3 copy pop put
+  psuserparams 3 copy pop
+  type cvlit /.checkparamtype cvx 2 packedarray cvx put
   userparams 3 1 roll put
 } .bind def
 end
@@ -152,7 +155,23 @@ end
 /setsystemparams {		% <dict> setsystemparams -
 	% Check that we will be able to set the PostScript-level
 	% system parameters.
-   /setsystemparams //pssystemparams .checksetparams
+   /SAFETY .systemvar /safe get {
+     % SAFER mode disallows some changes
+     [ /GenericResourceDir /FontResourceDir /GenericResourcePathSep ] {
+       2 copy .knownget {
+	 exch //pssystemparams exch .knownget {
+           ne { /setsystemparams /invalidaccess signalerror } if
+         } {
+           pop
+         } ifelse
+       } {
+         pop
+       } ifelse
+     } forall
+   } if
+   /setsystemparams //pssystemparams mark exch {
+     type cvlit /.checkparamtype cvx 2 packedarray cvx
+   } forall .dicttomark .checksetparams
 	% Set the C-level system params.  If this succeeds, we know that
 	% the password check succeeded.
    dup .setsystemparams
@@ -202,12 +221,36 @@ end
 % real parameters later: code near the end of gs_init.ps takes care of
 % removing any such parameters from ps{user,system}params.
 
-psuserparams begin
-  /MaxFormItem 100000 def
-  /MaxPatternItem 20000 def
-  /MaxScreenItem 48000 def
-  /MaxUPathItem 5000 def
-end
+% psuserparams
+  /MaxFormItem 100000 .definepsuserparam
+  /MaxPatternItem 20000 .definepsuserparam
+  /MaxScreenItem 48000 .definepsuserparam
+  /MaxUPathItem 5000 .definepsuserparam
+
+% File Access Permission parameters
+  .currentglobal true .setglobal
+  /.checkFilePermitparams {
+    type /arraytype eq {
+      currentuserparams /LockFilePermissions get {
+        5 { pop } repeat /setuserparams /invalidaccess signalerror
+      }
+      if
+    } {
+      5 { pop } repeat /setuserparams /typecheck signalerror
+    }
+    ifelse
+    true
+  } .bind def
+% Initialize the File Permission access control to wide open
+% These will only be accessed via current/set userparams.
+% Values are a string containing multiple nul terminated path strings
+  /PermitFileReading dup [ (*) ] .definepsuserparam
+    psuserparams exch /.checkFilePermitparams load put
+  /PermitFileWriting dup [ (*) ] .definepsuserparam
+    psuserparams exch /.checkFilePermitparams load put
+  /PermitFileControl dup [ (*) ] .definepsuserparam
+    psuserparams exch /.checkFilePermitparams load put
+  .setglobal
 
 pssystemparams begin
   /CurDisplayList 0 .forcedef
@@ -227,6 +270,33 @@ pssystemparams begin
   /MaxSourceList 25000 .forcedef
   /RamSize 4194304 .forcedef
 end
+
+% Define the procedures for handling comment scanning.  The names
+% %ProcessComment and %ProcessDSCComment are known to the interpreter.
+% These procedures take the file and comment string and file as operands.
+/.checkprocesscomment {
+  dup null eq {
+    pop true
+  } {
+    dup xcheck {
+      type dup /arraytype eq exch /packedarraytype eq or
+    } {
+      pop false
+    } ifelse
+  } ifelse
+} .bind def
+/ProcessComment null .definepsuserparam
+psuserparams /ProcessComment {.checkprocesscomment} put
+(%ProcessComment) cvn {
+  /ProcessComment getuserparam
+  dup null eq { pop pop pop } { exec } ifelse
+} bind def
+/ProcessDSCComment null .definepsuserparam
+psuserparams /ProcessDSCComment {.checkprocesscomment} put
+(%ProcessDSCComment) cvn {
+  /ProcessDSCComment getuserparam
+  dup null eq { pop pop pop } { exec } ifelse
+} bind def
 
 % ------ Miscellaneous ------ %
 
@@ -501,48 +571,96 @@ pop		% currentsystemparams
 currentdict end
 /statusdict exch .forcedef	% statusdict is local, systemdict is global
 
+% The following compatibility operators are in systemdict.  They are
+% defined here, rather than in gs_init.ps, because they require the
+% resource machinery.
+
+/devforall {		% <pattern> <proc> <scratch> devforall -
+  exch {
+    1 index currentdevparams
+    /Type .knownget { /FileSystem eq } { false } ifelse
+    { exec } { pop pop } ifelse
+  } /exec load 3 packedarray cvx exch
+  (*) 3 1 roll ppstack flush /IODevice resourceforall
+} odef
+/devstatus {		% <(%disk*%)> devstatus <searchable> <writable>
+			%   <hasNames> <mounted> <removable> <searchOrder>
+			%   <freePages> <size> true
+			% <string> devstatus false
+  dup length 5 ge {
+    dup 0 5 getinterval (%disk) eq {
+      dup /IODevice resourcestatus {
+	pop pop dup currentdevparams
+	dup /Searchable get
+	exch dup /Writable get
+	exch dup /HasNames get
+	exch dup /Mounted get
+	exch dup /Removable get
+	exch dup /SearchOrder get
+	exch dup /Free get
+	exch /LogicalSize get
+	9 -1 roll pop true
+      } {
+	pop false
+      } ifelse
+    } {
+      pop false
+    } ifelse
+  } {
+    pop false
+  } ifelse
+} odef
+
 % ------ Color spaces ------ %
+
+% Attempt to convert a tint transformation procedure to a type 4 Function.
+% The value <m> is the number  of function inputs
+% The current color space defines the number of function output values.
+% The current color space will be the alternate color space for the function.
+% If the conversion fails then build a color cube function.
+
+/.converttinttransform {	% [.. .. .. proc ] <m>
+				%   .converttinttransform [.. .. .. proc']
+  .currentglobal			% Save current global memory state
+  2 index gcheck .setglobal		% Set gobal mode to match the array's mode
+  4 dict				% Build a dictionary for our type 4 function
+    dup /FunctionType 4 put		% Set FunctionType
+    dup /Function 5 index 3 get put	% Set function expression
+		% Stack: orig m global func
+    dup /Domain
+    [ 5 index {0 1} repeat ] put	% set Domain values
+    dup /Range
+    [ mark currentcolor counttomark
+    dup 2 add 1 roll cleartomark	% # of components in alternate space
+    {0 1} repeat ] put			% Set Range values
+  { .buildfunction } .internalstopped	% Try to build a type 4 function
+  dup
+  {				% type 4 function failed - Collect data for a color cube
+    pop					% Remove duplicate copy of stopped status
+    pop					% Remove invalid type 4 function
+    1 index				% Get number of inputs
+    mark currentcolor counttomark	% Count number of output colors
+    dup 2 add 1 roll cleartomark	% # of components in alternate space
+    4 index 3 get			% Get tint transform function
+    { .buildcolorcube } .internalstopped 
+  } if
+  {					% Color cube build failed
+    pop pop pop exch pop exch pop	% Remove unused parameters
+    .setglobal				% Restore global state
+  } {					% Function build succeeded - install function
+					% Stack: orig m global func
+    3 -1 roll pop			% Stack: orig global func
+    2 index 4 array copy dup 3 4 -1 roll put
+    exch .setglobal exch pop
+  } ifelse
+} bind def
 
 % Define the setcolorspace procedures:
 %	<colorspace> proc <colorspace'|null>
-/colorspacedict mark
-  /DeviceGray { pop 0 setgray null } bind
-  /DeviceRGB { pop 0 0 0 setrgbcolor null } bind
-  /setcmykcolor where
-   { pop /DeviceCMYK { pop 0 0 0 1 setcmykcolor null } bind
-   } if
-  /.setcieaspace where
-   { pop /CIEBasedA { NOCIE { pop 0 setgray null } { dup 1 get .setcieaspace } ifelse } bind
-   } if
-  /.setcieabcspace where
-   { pop /CIEBasedABC { NOCIE { pop 0 0 0 setrgbcolor null } { dup 1 get .setcieabcspace } ifelse } bind
-   } if
-  /.setciedefspace where
-   { pop /CIEBasedDEF { NOCIE { pop 0 0 0 setrgbcolor null } { dup 1 get .setciedefspace } ifelse } bind
-   } if
-  /.setciedefgspace where
-   { pop /CIEBasedDEFG { NOCIE { pop 0 0 0 1 setcmykcolor null } { dup 1 get .setciedefgspace } ifelse } bind
-   } if
-  /.setseparationspace where
-   { pop /Separation { dup 2 get setcolorspace dup .setseparationspace } bind
-   } if
-  /.setindexedspace where
-   { pop /Indexed { dup 1 get setcolorspace dup .setindexedspace } bind
-   } if
-  /.nullpatternspace [/Pattern] readonly def
-  /.setpatternspace where
-   { pop /Pattern
-      { dup type /nametype eq { pop //.nullpatternspace } if
-	dup length 1 gt { dup 1 get setcolorspace } if
-        dup .setpatternspace
-      } bind
-   } if
-	% If DeviceN space is included, gs_ll3.ps registers it.
-  /.setdevicepixelspace where
-   { pop /DevicePixel { dup .setdevicepixelspace } bind
-   } if
-  currentdict /.nullpatternspace .undef
-.dicttomark def
+% We have to define the dictionary first, so it can be bound into the
+% implementation procedure, but we can't populate it until the procedure
+% has been defined, so that the procedure can get bound into recursive calls.
+/colorspacedict 20 dict def
 
 /.devcs [
   /DeviceGray /DeviceRGB /DeviceCMYK /DevicePixel
@@ -559,6 +677,45 @@ currentdict /.devcs .undef
   //colorspacedict exch get exec
   dup null eq { pop } { .setcolorspace } ifelse pop
 } odef
+
+colorspacedict
+  dup /DeviceGray { pop 0 setgray null } bind put
+  dup /DeviceRGB { pop 0 0 0 setrgbcolor null } bind put
+  /setcmykcolor where
+   { pop dup /DeviceCMYK { pop 0 0 0 1 setcmykcolor null } bind put
+   } if
+  /.setcieaspace where
+   { pop dup /CIEBasedA { NOCIE { pop 0 setgray null } { dup 1 get .setcieaspace } ifelse } bind put
+   } if
+  /.setcieabcspace where
+   { pop dup /CIEBasedABC { NOCIE { pop 0 0 0 setrgbcolor null } { dup 1 get .setcieabcspace } ifelse } bind put
+   } if
+  /.setciedefspace where
+   { pop dup /CIEBasedDEF { NOCIE { pop 0 0 0 setrgbcolor null } { dup 1 get .setciedefspace } ifelse } bind put
+   } if
+  /.setciedefgspace where
+   { pop dup /CIEBasedDEFG { NOCIE { pop 0 0 0 1 setcmykcolor null } { dup 1 get .setciedefgspace } ifelse } bind put
+   } if
+  /.setseparationspace where
+   { pop dup /Separation { dup 2 get setcolorspace dup 1 .converttinttransform .setseparationspace } bind put
+   } if
+  /.setindexedspace where
+   { pop dup /Indexed { dup 1 get setcolorspace dup .setindexedspace } bind put
+   } if
+  /.nullpatternspace [/Pattern] readonly def
+  /.setpatternspace where
+   { pop dup /Pattern
+      { dup type /nametype eq { pop //.nullpatternspace } if
+	dup length 1 gt { dup 1 get setcolorspace } if
+        dup .setpatternspace
+      } bind put
+   } if
+	% If DeviceN space is included, gs_ll3.ps registers it.
+  /.setdevicepixelspace where
+   { pop dup /DevicePixel { dup .setdevicepixelspace } bind put
+   } if
+  currentdict /.nullpatternspace .undef
+pop
 
 % ------ CIE color rendering ------ %
 
@@ -630,8 +787,32 @@ mark
 % We must make RangePQR and RangeLMN large enough so that values computed by
 % the assumed encoding MatrixLMN don't get clamped.
    /RangePQR [0 0.9505 0 1 0 1.0890] readonly
+% This TransformPQR implements a relative colorimetric intent by scaling
+% the XYZ values relative to the white and black points.
    /TransformPQR
-     [ {exch pop exch pop exch pop exch pop} bind dup dup ] readonly
+     [ { 5 1 roll                    % p Ws Bs Wd Bd
+         4 {3 get 5 1 roll} repeat   % ws bs wd bd p 
+         3 index sub                 % ws bs wd bd p-bs 
+         1 index                     % ws bs wd bd p-bs bd
+         6 2 roll                    % p-bs bd ws bs wd bd 
+         sub                         % p-bs bd ws bs wd-bd 
+         5 1 roll                    % wd-bd p-bs bd ws bs  
+         sub                         % wd-bd p-bs bd ws-bs  
+         4 2 roll                    % bd ws-bs wd-bd p-bs 
+         mul                         % bd ws-bs (wd-bd)*(p-bs)
+         exch div add                % bd + (wd-bd)*(p-bs)/(ws-bs)
+       } bind
+       { 5 1 roll
+         4 {4 get 5 1 roll} repeat
+         3 index sub 1 index 6 2 roll sub 5 1 roll
+         sub 4 2 roll mul exch div add
+       } bind
+       { 5 1 roll
+         4 {5 get 5 1 roll} repeat
+         3 index sub 1 index 6 2 roll sub 5 1 roll
+         sub 4 2 roll mul exch div add
+       } bind
+     ] readonly
    /RangeLMN [0 0.9505 0 1 0 1.0890] readonly
    /MatrixABC
     [ 3.24063 -0.96893  0.05571

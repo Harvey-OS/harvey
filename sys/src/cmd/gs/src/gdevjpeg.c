@@ -1,22 +1,22 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevjpeg.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevjpeg.c,v 1.3 2001/04/04 19:20:27 alexcher Exp $ */
 /* JPEG output driver */
 #include "stdio_.h"		/* for jpeglib.h */
 #include "jpeglib_.h"
@@ -162,9 +162,8 @@ jpeg_print_page(gx_device_printer * pdev, FILE * prn_stream)
     gs_memory_t *mem = pdev->memory;
     int line_size = gdev_mem_bytes_per_scan_line((gx_device *) pdev);
     byte *in = gs_alloc_bytes(mem, line_size, "jpeg_print_page(in)");
-    jpeg_compress_data *jcdp = (jpeg_compress_data *)
-    gs_alloc_bytes(mem, sizeof(*jcdp),
-		   "jpeg_print_page(jpeg_compress_data)");
+    jpeg_compress_data *jcdp = gs_alloc_struct_immovable(mem, jpeg_compress_data,
+      &st_jpeg_compress_data, "jpeg_print_page(jpeg_compress_data)");
     byte *fbuf = 0;
     uint fbuf_size;
     byte *jbuf = 0;

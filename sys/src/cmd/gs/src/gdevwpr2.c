@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1995, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevwpr2.c,v 1.2 2000/03/10 04:26:07 lpd Exp $ */
+/*$Id: gdevwpr2.c,v 1.9 2001/03/26 11:28:20 ghostgum Exp $ */
 /*
  * Microsoft Windows 3.n printer driver for Ghostscript.
  * Original version by Russell Lang and
@@ -27,6 +27,10 @@
  * Modified by Pierre Arnaud 1999-10-03 (accept b&w printing on color printers).
  * Modified by Pierre Arnaud 1999-11-20 (accept lower resolution)
  * Bug fixed by Pierre Arnaud 2000-03-09 (win_pr2_put_params error when is_open)
+ * Bug fixed by Pierre Arnaud 2000-03-20 (win_pr2_set_bpp did not set anti_alias)
+ * Bug fixed by Pierre Arnaud 2000-03-22 (win_pr2_set_bpp depth was wrong)
+ * Modified by Pierre Arnaud 2000-12-12 (mainly added support for Tumble)
+ * Bug fixed by Pierre Arnaud 2000-12-18 (-dQueryUser now works from cmd line)
  */
 
 /* This driver uses the printer default size and resolution and
@@ -44,7 +48,7 @@
  * rjl 1997-11-20
  */
 
-/* Additions by Pierre Arnaud (Pierre.Arnaud@iname.com) 1992-11-20
+/* Additions by Pierre Arnaud (Pierre.Arnaud@opac.ch)
  *
  * The driver has been extended in order to provide some run-time
  * feed-back about the default Windows printer and to give the user
@@ -126,6 +130,7 @@
 #include "gp_mswin.h"
 
 #include "gp.h"
+#include "gpcheck.h"
 #include "commdlg.h"
 
 
@@ -153,6 +158,10 @@ prn_color_params_procs(win_pr2_open, gdev_prn_output_page, win_pr2_close,
 		       win_pr2_map_rgb_color, win_pr2_map_color_rgb,
 		       win_pr2_get_params, win_pr2_put_params);
 
+#define PARENT_WINDOW  HWND_DESKTOP
+BOOL CALLBACK CancelDlgProc(HWND, UINT, WPARAM, LPARAM);
+BOOL CALLBACK AbortProc2(HDC, int);
+
 
 /* The device descriptor */
 typedef struct gx_device_win_pr2_s gx_device_win_pr2;
@@ -178,13 +187,17 @@ struct gx_device_win_pr2_s {
     int max_dpi;		/* maximum resolution in DPI */
     int ratio;			/* stretch ratio when printing */
     int selected_bpp;		/* selected bpp, memorised by win_pr2_set_bpp */
+    bool tumble;		/* tumble setting (with duplex) */
+    int query_user;		/* query user (-dQueryUser) */
 
     HANDLE win32_hdevmode;	/* handle to device mode information */
     HANDLE win32_hdevnames;	/* handle to device names information */
 
     DLGPROC lpfnAbortProc;
     DLGPROC lpfnCancelProc;
+    HWND hDlgModeless;
 
+    bool use_old_spool_name;	/* user prefers old \\spool\ name */
     gx_device_win_pr2* original_device;	/* used to detect copies */
 };
 
@@ -212,10 +225,13 @@ gx_device_win_pr2 far_data gs_mswinpr2_device =
     0,				/* max_dpi */
     0,				/* ratio */
     0,				/* selected_bpp */
+    false,			/* tumble */
+    -1,				/* query_user */
     NULL,			/* win32_hdevmode */
     NULL,			/* win32_hdevnames */
     NULL,			/* lpfnAbortProc */
     NULL,			/* lpfnCancelProc */
+    false,			/* use_old_spool_name */
     NULL			/* original_device */
 };
 
@@ -247,12 +263,6 @@ win_pr2_open(gx_device * dev)
     
     win_pr2_copy_check(wdev);
 
-    if ((!wdev->nocancel) && (hDlgModeless)) {
-	/* device cannot opened twice since only one hDlgModeless */
-	fprintf(stderr, "Can't open mswinpr2 device twice\n");
-	return gs_error_limitcheck;
-    }
-
     /* get a HDC for the printer */
     if ((wdev->win32_hdevmode) &&
 	(wdev->win32_hdevnames)) {
@@ -283,7 +293,7 @@ win_pr2_open(gx_device * dev)
 	memset(&pd, 0, sizeof(pd));
 	
 	pd.lStructSize = sizeof(pd);
-	pd.hwndOwner = hwndtext;
+	pd.hwndOwner = PARENT_WINDOW;
 	pd.Flags = PD_RETURNDC;
 	pd.nMinPage = wdev->doc_page_begin;
 	pd.nMaxPage = wdev->doc_page_end;
@@ -313,20 +323,12 @@ win_pr2_open(gx_device * dev)
 	pd.hDevNames = NULL;
     }
     if (!(GetDeviceCaps(wdev->hdcprn, RASTERCAPS) != RC_DIBTODEV)) {
-	fprintf(stderr, "Windows printer does not have RC_DIBTODEV\n");
+	errprintf( "Windows printer does not have RC_DIBTODEV\n");
 	DeleteDC(wdev->hdcprn);
 	return gs_error_limitcheck;
     }
     /* initialise printer, install abort proc */
-#ifdef __WIN32__
-    wdev->lpfnAbortProc = (DLGPROC) AbortProc;
-#else
-#ifdef __DLL__
-    wdev->lpfnAbortProc = (DLGPROC) GetProcAddress(phInstance, "AbortProc");
-#else
-    wdev->lpfnAbortProc = (DLGPROC) MakeProcInstance((FARPROC) AbortProc, phInstance);
-#endif
-#endif
+    wdev->lpfnAbortProc = (DLGPROC) AbortProc2;
     SetAbortProc(wdev->hdcprn, (ABORTPROC) wdev->lpfnAbortProc);
 
     /*
@@ -346,10 +348,7 @@ win_pr2_open(gx_device * dev)
     }
 
     if (StartDoc(wdev->hdcprn, &docinfo) <= 0) {
-	fprintf(stderr, "Printer StartDoc failed (error %08x)\n", GetLastError());
-#if !defined(__WIN32__) && !defined(__DLL__)
-	FreeProcInstance((FARPROC) wdev->lpfnAbortProc);
-#endif
+	errprintf("Printer StartDoc failed (error %08x)\n", GetLastError());
 	DeleteDC(wdev->hdcprn);
 	return gs_error_limitcheck;
     }
@@ -406,18 +405,10 @@ win_pr2_open(gx_device * dev)
 
     if (!wdev->nocancel) {
 	/* inform user of progress with dialog box and allow cancel */
-#ifdef __WIN32__
 	wdev->lpfnCancelProc = (DLGPROC) CancelDlgProc;
-#else
-#ifdef __DLL__
-	wdev->lpfnCancelProc = (DLGPROC) GetProcAddress(phInstance, "CancelDlgProc");
-#else
-	wdev->lpfnCancelProc = (DLGPROC) MakeProcInstance((FARPROC) CancelDlgProc, phInstance);
-#endif
-#endif
-	hDlgModeless = CreateDialog(phInstance, "CancelDlgBox",
-				    hwndtext, wdev->lpfnCancelProc);
-	ShowWindow(hDlgModeless, SW_HIDE);
+	wdev->hDlgModeless = CreateDialog(phInstance, "CancelDlgBox",
+				    PARENT_WINDOW, wdev->lpfnCancelProc);
+	ShowWindow(wdev->hDlgModeless, SW_HIDE);
     }
     return code;
 };
@@ -434,23 +425,17 @@ win_pr2_close(gx_device * dev)
     /* Free resources */
 
     if (!wdev->nocancel) {
-	if (!hDlgModeless)
+	if (!wdev->hDlgModeless)
 	    aborted = TRUE;
 	else
-	    DestroyWindow(hDlgModeless);
-	hDlgModeless = 0;
-#if !defined(__WIN32__) && !defined(__DLL__)
-	FreeProcInstance((FARPROC) wdev->lpfnCancelProc);
-#endif
+	    DestroyWindow(wdev->hDlgModeless);
+	wdev->hDlgModeless = 0;
     }
     if (aborted)
 	AbortDoc(wdev->hdcprn);
     else
 	EndDoc(wdev->hdcprn);
 
-#if !defined(__WIN32__) && !defined(__DLL__)
-    FreeProcInstance((FARPROC) wdev->lpfnAbortProc);
-#endif
     DeleteDC(wdev->hdcprn);
 
     if (wdev->win32_hdevmode != NULL) {
@@ -555,8 +540,8 @@ win_pr2_print_page(gx_device_printer * pdev, FILE * file)
 
     if (!wdev->nocancel) {
 	sprintf(dlgtext, "Printing page %d", (int)(pdev->PageCount) + 1);
-	SetWindowText(GetDlgItem(hDlgModeless, CANCEL_PRINTING), dlgtext);
-	ShowWindow(hDlgModeless, SW_SHOW);
+	SetWindowText(GetDlgItem(wdev->hDlgModeless, CANCEL_PRINTING), dlgtext);
+	ShowWindow(wdev->hDlgModeless, SW_SHOW);
     }
     for (y = 0; y < scan_lines;) {
 	/* copy slice to row buffer */
@@ -584,31 +569,31 @@ win_pr2_print_page(gx_device_printer * pdev, FILE * file)
 	if (!wdev->nocancel) {
 	    /* inform user of progress */
 	    sprintf(dlgtext, "%d%% done", (int)(y * 100L / scan_lines));
-	    SetWindowText(GetDlgItem(hDlgModeless, CANCEL_PCDONE), dlgtext);
+	    SetWindowText(GetDlgItem(wdev->hDlgModeless, CANCEL_PCDONE), dlgtext);
 	}
 	/* process message loop */
-	while (PeekMessage(&msg, hDlgModeless, 0, 0, PM_REMOVE)) {
-	    if ((hDlgModeless == 0) || !IsDialogMessage(hDlgModeless, &msg)) {
+	while (PeekMessage(&msg, wdev->hDlgModeless, 0, 0, PM_REMOVE)) {
+	    if ((wdev->hDlgModeless == 0) || !IsDialogMessage(wdev->hDlgModeless, &msg)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	    }
 	}
-	if ((!wdev->nocancel) && (hDlgModeless == 0)) {
+	if ((!wdev->nocancel) && (wdev->hDlgModeless == 0)) {
 	    /* user pressed cancel button */
 	    break;
 	}
     }
 
-    if ((!wdev->nocancel) && (hDlgModeless == 0))
+    if ((!wdev->nocancel) && (wdev->hDlgModeless == 0))
 	code = gs_error_Fatal;	/* exit Ghostscript cleanly */
     else {
 	/* push out the page */
 	if (!wdev->nocancel)
-	    SetWindowText(GetDlgItem(hDlgModeless, CANCEL_PCDONE),
+	    SetWindowText(GetDlgItem(wdev->hDlgModeless, CANCEL_PCDONE),
 			  "Ejecting page...");
 	EndPage(wdev->hdcprn);
 	if (!wdev->nocancel)
-	    ShowWindow(hDlgModeless, SW_HIDE);
+	    ShowWindow(wdev->hDlgModeless, SW_HIDE);
     }
 
   bmp_done:
@@ -680,24 +665,27 @@ win_pr2_set_bpp(gx_device * dev, int depth)
 	static const gx_device_color_info win_pr2_24color = dci_std_color(24);
 
 	dev->color_info = win_pr2_24color;
+	depth = 24;
     } else if (depth >= 8) {
 	/* 8-bit (SuperVGA-style) color. */
 	/* (Uses a fixed palette of 3,3,2 bits.) */
 	static const gx_device_color_info win_pr2_8color = dci_pc_8bit;
 
 	dev->color_info = win_pr2_8color;
+	depth = 8;
     } else if (depth >= 3) {
 	/* 3 plane printer */
 	/* suitable for impact dot matrix CMYK printers */
 	/* create 4-bit bitmap, but only use 8 colors */
-	static const gx_device_color_info win_pr2_4color =
-	{3, 4, 1, 1, 2, 2};
+	static const gx_device_color_info win_pr2_4color = dci_values(3, 4, 1, 1, 2, 2);
 
 	dev->color_info = win_pr2_4color;
+	depth = 4;
     } else {			/* default is black_and_white */
 	static const gx_device_color_info win_pr2_1color = dci_std_color(1);
 
 	dev->color_info = win_pr2_1color;
+	depth = 1;
     }
     
     ((gx_device_win_pr2 *)dev)->selected_bpp = depth;
@@ -717,7 +705,14 @@ win_pr2_get_params(gx_device * pdev, gs_param_list * plist)
 	code = param_write_bool(plist, "NoCancel",
 				&(wdev->nocancel));
     if (code >= 0)
+	code = param_write_bool(plist, "QueryUser",
+				&(wdev->query_user));
+    if (code >= 0)
 	code = win_pr2_write_user_settings(wdev, plist);
+    
+    if ((code >= 0) && (wdev->Duplex_set > 0))
+	code = param_write_bool(plist, "Tumble",
+				&(wdev->tumble));
 
     return code;
 }
@@ -731,9 +726,11 @@ win_pr2_put_params(gx_device * pdev, gs_param_list * plist)
     int ecode = 0, code;
     int old_bpp = pdev->color_info.depth;
     int bpp = old_bpp;
+    bool tumble   = wdev->tumble;
     bool nocancel = wdev->nocancel;
     int queryuser = 0;
     bool old_duplex = wdev->Duplex;
+    bool old_tumble = wdev->tumble;
     int  old_orient = wdev->user_orient;
     int  old_color  = wdev->user_color;
     int  old_paper  = wdev->user_paper;
@@ -742,6 +739,7 @@ win_pr2_put_params(gx_device * pdev, gs_param_list * plist)
     if (wdev->Duplex_set < 0) {
 	wdev->Duplex_set = 0;
 	wdev->Duplex = false;
+	wdev->tumble = false;
     }
     
     win_pr2_copy_check(wdev);
@@ -786,6 +784,17 @@ win_pr2_put_params(gx_device * pdev, gs_param_list * plist)
 	    break;
     }
 
+    switch (code = param_read_bool(plist, "Tumble", &tumble)) {
+	case 0:
+	    wdev->tumble = tumble;
+	    break;
+	default:
+	    ecode = code;
+	    param_signal_error(plist, "Tumble", ecode);
+	case 1:
+	    break;
+    }
+
     switch (code = param_read_int(plist, "QueryUser", &queryuser)) {
 	case 0:
 	    if ((queryuser > 0) &&
@@ -805,6 +814,7 @@ win_pr2_put_params(gx_device * pdev, gs_param_list * plist)
     
     if (wdev->win32_hdevmode && wdev->hdcprn) {
 	if ( (old_duplex != wdev->Duplex)
+	  || (old_tumble != wdev->tumble)
 	  || (old_orient != wdev->user_orient)
 	  || (old_color  != wdev->user_color)
 	  || (old_paper  != wdev->user_paper)
@@ -827,9 +837,6 @@ win_pr2_put_params(gx_device * pdev, gs_param_list * plist)
 
 /********************************************************************************/
 
-#ifndef __WIN32__
-#include <print.h>
-#endif
 
 /* Get Device Context for printer */
 private int
@@ -858,16 +865,19 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
     LPFNDEVCAPS pfnDeviceCapabilities;
     LPDEVMODE podevmode, pidevmode;
 
-#ifdef __WIN32__
     HANDLE hprinter;
-#endif
 
     /* first try to derive the printer name from -sOutputFile= */
-    /* is printer if name prefixed by \\spool\ */
-    if (is_spool(wdev->fname))
+    /* is printer if name prefixed by \\spool\ or by %printer% */
+    if (is_spool(wdev->fname)) {
 	device = wdev->fname + 8;	/* skip over \\spool\ */
-    else
+	wdev->use_old_spool_name = true;
+    } else if (strncmp("%printer%",wdev->fname,9) == 0) {
+	device = wdev->fname + 9;	/* skip over %printer% */
+	wdev->use_old_spool_name = false;
+    } else {
 	return FALSE;
+    }
 
     /* now try to match the printer name against the [Devices] section */
     if ((devices = gs_malloc(4096, 1, "win_pr2_getdc")) == (char *)NULL)
@@ -889,15 +899,12 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
     GetProfileString("Devices", device, "", driverbuf, sizeof(driverbuf));
     driver = strtok(driverbuf, ",");
     output = strtok(NULL, ",");
-#ifdef __WIN32__
     if (is_win32s)
-#endif
     {
 	strcpy(drvname, driver);
 	strcat(drvname, ".drv");
 	driver = drvname;
     }
-#ifdef __WIN32__
 
     if (!is_win32s) {		/* Win32 */
 	if (!OpenPrinter(device, &hprinter, NULL))
@@ -915,7 +922,6 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
 	DocumentProperties(NULL, hprinter, device, podevmode, NULL, DM_OUT_BUFFER);
 	pfnDeviceCapabilities = (LPFNDEVCAPS) DeviceCapabilities;
     } else
-#endif
     {				/* Win16 and Win32s */
 	/* now load the printer driver */
 	hlib = LoadLibrary(driver);
@@ -1049,7 +1055,6 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
     
     win_pr2_update_win(wdev, pidevmode);
     
-#ifdef WIN32
     if (!is_win32s) {
 	
 	/* merge the entries */
@@ -1059,7 +1064,6 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
 	/* now get a DC */
 	wdev->hdcprn = CreateDC(driver, device, NULL, podevmode);
     } else
-#endif
     {				/* Win16 and Win32s */
 	pfnExtDeviceMode(NULL, hlib, podevmode, device, output,
 			 pidevmode, NULL, DM_IN_BUFFER | DM_OUT_BUFFER);
@@ -1120,6 +1124,7 @@ win_pr2_update_dev(gx_device_win_pr2 * dev, LPDEVMODE pdevmode)
     if (pdevmode->dmFields & DM_DUPLEX) {
 	dev->Duplex_set = 1;
 	dev->Duplex = pdevmode->dmDuplex == DMDUP_SIMPLEX ? false : true;
+	dev->tumble = pdevmode->dmDuplex == DMDUP_HORIZONTAL ? true : false;
     }
     
     return TRUE;
@@ -1132,9 +1137,9 @@ win_pr2_update_win(gx_device_win_pr2 * dev, LPDEVMODE pdevmode)
 	pdevmode->dmFields |= DM_DUPLEX;
 	pdevmode->dmDuplex = DMDUP_SIMPLEX;
 	if (dev->Duplex) {
-/*	    if (dev->Tumble) {
+	    if (dev->tumble == false) {
 		pdevmode->dmDuplex = DMDUP_VERTICAL;
-	    } else */ {
+	    } else {
 		pdevmode->dmDuplex = DMDUP_HORIZONTAL;
 	    }
 	}
@@ -1154,6 +1159,7 @@ win_pr2_update_win(gx_device_win_pr2 * dev, LPDEVMODE pdevmode)
 	pdevmode->dmFields |= DM_PAPERSIZE;
 	pdevmode->dmPaperSize = dev->user_paper;
     }
+    return 0;
 }
 
 /********************************************************************************/
@@ -1359,10 +1365,11 @@ win_pr2_print_setup_interaction(gx_device_win_pr2 * wdev, int mode)
     LPDEVNAMES devnames;
 
     wdev->user_changed_settings = FALSE;
+    wdev->query_user = mode;
 
     memset(&pd, 0, sizeof(pd));
     pd.lStructSize = sizeof(pd);
-    pd.hwndOwner = hwndtext;
+    pd.hwndOwner = PARENT_WINDOW;
 
     switch (mode) {
 	case 2:	pd.Flags = PD_PRINTSETUP; break;
@@ -1388,7 +1395,11 @@ win_pr2_print_setup_interaction(gx_device_win_pr2 * wdev, int mode)
     devnames = (LPDEVNAMES) GlobalLock(pd.hDevNames);
 
     wdev->user_changed_settings = TRUE;
-    sprintf(wdev->fname, "\\\\spool\\%s", (char*)(devnames)+(devnames->wDeviceOffset));
+    if (wdev->use_old_spool_name) {
+	sprintf(wdev->fname, "\\\\spool\\%s", (char*)(devnames)+(devnames->wDeviceOffset));
+    } else {
+	sprintf(wdev->fname, "%%printer%%%s", (char*)(devnames)+(devnames->wDeviceOffset));
+    }
 
     if (mode == 3) {
 	devmode->dmCopies = wdev->user_copies * wdev->print_copies;
@@ -1408,6 +1419,7 @@ win_pr2_print_setup_interaction(gx_device_win_pr2 * wdev, int mode)
     if (devmode->dmFields & DM_DUPLEX) {
 	wdev->Duplex_set = 1;
 	wdev->Duplex = devmode->dmDuplex == DMDUP_SIMPLEX ? false : true;
+	wdev->tumble = devmode->dmDuplex == DMDUP_HORIZONTAL ? true : false;
     }
 
     {
@@ -1487,3 +1499,34 @@ win_pr2_copy_check(gx_device_win_pr2 * wdev)
 	}
     }
 }
+
+
+/* Modeless dialog box - Cancel printing */
+BOOL CALLBACK 
+CancelDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message) {
+	case WM_INITDIALOG:
+	    SetWindowText(hDlg, szAppName);
+	    return TRUE;
+	case WM_COMMAND:
+	    switch (LOWORD(wParam)) {
+		case IDCANCEL:
+		    DestroyWindow(hDlg);
+		    EndDialog(hDlg, 0);
+		    return TRUE;
+	    }
+    }
+    return FALSE;
+}
+
+
+BOOL CALLBACK 
+AbortProc2(HDC hdcPrn, int code)
+{
+    process_interrupts();
+    if (code == SP_OUTOFDISK)
+	return (FALSE);		/* cancel job */
+    return (TRUE);
+}
+

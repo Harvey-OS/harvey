@@ -171,7 +171,7 @@ C structure.
 .IR size [4]
 .B Tflush
 .IR tag [2]
-.IR oldtag [4]
+.IR oldtag [2]
 .br
 .IR size [4]
 .B Rflush
@@ -425,10 +425,10 @@ and hence having a single qid.)
 The thirteen-byte qid fields hold a one-byte type,
 specifying whether the file is a directory, append-only file, etc.,
 and two unsigned integers:
-first the eight-byte qid
-.IR path ,
-then the four-byte qid
-.IR version .
+first the four-byte qid
+.IR version ,
+then the eight-byte qid
+.IR path .
 The path is an integer unique among all files in the hierarchy.
 If a file is deleted and recreated with the
 same name in the same directory, the old and new path components of the qids

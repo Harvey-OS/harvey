@@ -4,6 +4,10 @@ tab='	'
 if(~ $#distname 0)
 	distname=plan9
 
+wctl=/dev/null
+if(test -w /dev/wctl)
+	wctl=/dev/wctl
+
 fn log {
 	echo $* >>/srv/log
 }
@@ -67,9 +71,8 @@ fn prompt {
 
 	okay=no
 	while(~ $okay no) {
-# whatis opts
-		echo -n current >/dev/wctl
-		echo -n top >/dev/wctl
+		echo -n current >$wctl
+		echo -n top >$wctl
 		echo -n $pr >[1=2]
 		ifs='' {rd=`{read}}
 		if(~ $#rd 0)

@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gshtscr.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gshtscr.c,v 1.6 2001/08/01 16:21:34 stefan911 Exp $ */
 /* Screen (Type 1) halftone processing for Ghostscript library */
 #include "math_.h"
 #include "gx.h"
@@ -24,12 +24,12 @@
 #include "gsstruct.h"
 #include "gxarith.h"
 #include "gzstate.h"
-#include "gxdevice.h"		/* for gzht.h */
+#include "gxdevice.h"           /* for gzht.h */
 #include "gzht.h"
 
 /* Define whether to force all halftones to be strip halftones, */
 /* for debugging. */
-static bool FORCE_STRIP_HALFTONES = false;
+static const bool FORCE_STRIP_HALFTONES = false;
 
 /* Structure descriptors */
 private_st_gs_screen_enum();
@@ -39,16 +39,16 @@ private
 ENUM_PTRS_WITH(screen_enum_enum_ptrs, gs_screen_enum *eptr)
 {
     if (index < 1 + st_ht_order_max_ptrs) {
-	gs_ptr_type_t ret =
-	    ENUM_USING(st_ht_order, &eptr->order, sizeof(eptr->order),
-		       index - 1);
+        gs_ptr_type_t ret =
+            ENUM_USING(st_ht_order, &eptr->order, sizeof(eptr->order),
+                       index - 1);
 
-	if (ret == 0)		/* don't stop early */
-	    ENUM_RETURN(0);
-	return ret;
+        if (ret == 0)           /* don't stop early */
+            ENUM_RETURN(0);
+        return ret;
     }
     return ENUM_USING(st_halftone, &eptr->halftone, sizeof(eptr->halftone),
-		      index - (1 + st_ht_order_max_ptrs));
+                      index - (1 + st_ht_order_max_ptrs));
 }
 ENUM_PTR(0, gs_screen_enum, pgs);
 ENUM_PTRS_END
@@ -91,7 +91,7 @@ gs_currentminscreenlevels(void)
 }
 
 /* Initialize the screen control statics at startup. */
-init_proc(gs_gshtscr_init);	/* check prototype */
+init_proc(gs_gshtscr_init);     /* check prototype */
 int
 gs_gshtscr_init(gs_memory_t *mem)
 {
@@ -133,43 +133,43 @@ gx_compute_cell_values(gx_ht_cell_params_t * phcp)
     /* Compute the shift value. */
     /* If M1 or N is zero, the shift is zero. */
     if (M1 && N) {
-	int h = 0, k = 0, dy = 0;
-	int shift;
+        int h = 0, k = 0, dy = 0;
+        int shift;
 
-	/*
-	 * There may be a faster way to do this: see Knuth vol. 2,
-	 * section 4.5.2, Algorithm X (p. 302) and exercise 15
-	 * (p. 315, solution p. 523).
-	 */
-	while (dy != D)
-	    if (dy > D) {
-		if (M1 > 0)
-		    ++k;
-		else
-		    --k;
-		dy -= m1;
-	    } else {
-		if (N > 0)
-		    ++h;
-		else
-		    --h;
-		dy += n;
-	    }
-	shift = h * M + k * N1;
-	/* We just computed what amounts to a right shift; */
-	/* what we want is a left shift. */
-	phcp->S = imod(-shift, phcp->W);
+        /*
+         * There may be a faster way to do this: see Knuth vol. 2,
+         * section 4.5.2, Algorithm X (p. 302) and exercise 15
+         * (p. 315, solution p. 523).
+         */
+        while (dy != D)
+            if (dy > D) {
+                if (M1 > 0)
+                    ++k;
+                else
+                    --k;
+                dy -= m1;
+            } else {
+                if (N > 0)
+                    ++h;
+                else
+                    --h;
+                dy += n;
+            }
+        shift = h * M + k * N1;
+        /* We just computed what amounts to a right shift; */
+        /* what we want is a left shift. */
+        phcp->S = imod(-shift, phcp->W);
     } else
-	phcp->S = 0;
+        phcp->S = 0;
     if_debug12('h', "[h]MNR=(%d,%d)/%d, M'N'R'=(%d,%d)/%d => C=%lu, D=%d, D'=%d, W=%u, W'=%u, S=%d\n",
-	       M, N, phcp->R, M1, N1, phcp->R1,
-	       C, D, D1, phcp->W, phcp->W1, phcp->S);
+               M, N, phcp->R, M1, N1, phcp->R1,
+               C, D, D1, phcp->W, phcp->W1, phcp->S);
 }
 
 /* Forward references */
 private int pick_cell_size(P6(gs_screen_halftone * ph,
      const gs_matrix * pmat, ulong max_size, uint min_levels, bool accurate,
-			      gx_ht_cell_params_t * phcp));
+                              gx_ht_cell_params_t * phcp));
 
 /* Allocate a screen enumerator. */
 gs_screen_enum *
@@ -181,70 +181,77 @@ gs_screen_enum_alloc(gs_memory_t * mem, client_name_t cname)
 /* Set up for halftone sampling. */
 int
 gs_screen_init(gs_screen_enum * penum, gs_state * pgs,
-	       gs_screen_halftone * phsp)
+               gs_screen_halftone * phsp)
 {
     return gs_screen_init_accurate(penum, pgs, phsp,
-				   screen_accurate_screens);
+                                   screen_accurate_screens);
 }
 int
 gs_screen_init_memory(gs_screen_enum * penum, gs_state * pgs,
-		gs_screen_halftone * phsp, bool accurate, gs_memory_t * mem)
+                gs_screen_halftone * phsp, bool accurate, gs_memory_t * mem)
 {
     int code =
     gs_screen_order_init_memory(&penum->order, pgs, phsp, accurate, mem);
 
     if (code < 0)
-	return code;
+        return code;
     return
-	gs_screen_enum_init_memory(penum, &penum->order, pgs, phsp, mem);
+        gs_screen_enum_init_memory(penum, &penum->order, pgs, phsp, mem);
 }
 
 /* Allocate and initialize a spot screen. */
 /* This is the first half of gs_screen_init_accurate. */
 int
+gs_screen_order_alloc(gx_ht_order *porder, gs_memory_t *mem)
+{
+    uint num_levels = porder->params.W * porder->params.D;
+    int code;
+
+    if (!FORCE_STRIP_HALFTONES &&
+        ((ulong)porder->params.W1 * bitmap_raster(porder->params.W) +
+           num_levels * sizeof(*porder->levels) +
+           porder->params.W * porder->params.W1 * sizeof(gx_ht_bit)) <=
+        porder->screen_params.max_size) {
+        /*
+         * Allocate an order for the entire tile, but only sample one
+         * strip.  Note that this causes the order parameters to be
+         * self-inconsistent until gx_ht_construct_spot_order fixes them
+         * up: see gxdht.h for more information.
+         */
+        code = gx_ht_alloc_order(porder, porder->params.W,
+                                 porder->params.W1, 0,
+                                 num_levels, mem);
+        porder->height = porder->orig_height = porder->params.D;
+        porder->shift = porder->orig_shift = porder->params.S;
+    } else {
+        /* Just allocate the order for a single strip. */
+        code = gx_ht_alloc_order(porder, porder->params.W,
+                                 porder->params.D, porder->params.S,
+                                 num_levels, mem);
+    }
+    return code;
+}
+int
 gs_screen_order_init_memory(gx_ht_order * porder, const gs_state * pgs,
-		gs_screen_halftone * phsp, bool accurate, gs_memory_t * mem)
+                            gs_screen_halftone * phsp, bool accurate,
+                            gs_memory_t * mem)
 {
     gs_matrix imat;
     ulong max_size = pgs->ht_cache->bits_size;
-    uint num_levels;
     int code;
 
     if (phsp->frequency < 0.1)
-	return_error(gs_error_rangecheck);
+        return_error(gs_error_rangecheck);
     gs_deviceinitialmatrix(gs_currentdevice(pgs), &imat);
     code = pick_cell_size(phsp, &imat, max_size,
-			  screen_min_screen_levels, accurate,
-			  &porder->params);
+                          screen_min_screen_levels, accurate,
+                          &porder->params);
     if (code < 0)
-	return code;
+        return code;
     gx_compute_cell_values(&porder->params);
-    num_levels = porder->params.W * porder->params.D;
-    if (!FORCE_STRIP_HALFTONES &&
-	((ulong)porder->params.W1 * bitmap_raster(porder->params.W) +
-	   num_levels * sizeof(*porder->levels) +
-	   porder->params.W * porder->params.W1 * sizeof(gx_ht_bit)) <=
-	max_size) {
-	/*
-	 * Allocate an order for the entire tile, but only sample one
-	 * strip.  Note that this causes the order parameters to be
-	 * self-inconsistent until gx_ht_construct_spot_order fixes them
-	 * up: see gxdht.h for more information.
-	 */
-	code = gx_ht_alloc_order(porder, porder->params.W,
-				 porder->params.W1, 0,
-				 num_levels, mem);
-	porder->height = porder->orig_height = porder->params.D;
-	porder->shift = porder->orig_shift = porder->params.S;
-    } else {
-	/* Just allocate the order for a single strip. */
-	code = gx_ht_alloc_order(porder, porder->params.W,
-				 porder->params.D, porder->params.S,
-				 num_levels, mem);
-    }
-    if (code < 0)
-	return code;
-    return 0;
+    porder->screen_params.matrix = imat;
+    porder->screen_params.max_size = max_size;
+    return gs_screen_order_alloc(porder, mem);
 }
 
 /*
@@ -287,7 +294,7 @@ gs_screen_order_init_memory(gx_ht_order * porder, const gs_state * pgs,
 /* the routine sets ph->actual_frequency and ph->actual_angle. */
 private int
 pick_cell_size(gs_screen_halftone * ph, const gs_matrix * pmat, ulong max_size,
-	       uint min_levels, bool accurate, gx_ht_cell_params_t * phcp)
+               uint min_levels, bool accurate, gx_ht_cell_params_t * phcp)
 {
     const bool landscape = (pmat->xy != 0.0 || pmat->yx != 0.0);
 
@@ -321,124 +328,124 @@ pick_cell_size(gs_screen_halftone * ph, const gs_matrix * pmat, ulong max_size,
     /* Compute trial values of u and v. */
 
     {
-	gs_matrix rmat;
+        gs_matrix rmat;
 
-	gs_make_rotation(a0 * reflection + rotation, &rmat);
-	gs_distance_transform(72.0 / f0, 0.0, &rmat, &uv0);
-	gs_distance_transform(u0, v0, pmat, &uv0);
-	if_debug10('h', "[h]Requested: f=%g a=%g mat=[%g %g %g %g] max_size=%lu min_levels=%u =>\n     u=%g v=%g\n",
-		   ph->frequency, ph->angle,
-		   pmat->xx, pmat->xy, pmat->yx, pmat->yy,
-		   max_size, min_levels, u0, v0);
+        gs_make_rotation(a0 * reflection + rotation, &rmat);
+        gs_distance_transform(72.0 / f0, 0.0, &rmat, &uv0);
+        gs_distance_transform(u0, v0, pmat, &uv0);
+        if_debug10('h', "[h]Requested: f=%g a=%g mat=[%g %g %g %g] max_size=%lu min_levels=%u =>\n     u=%g v=%g\n",
+                   ph->frequency, ph->angle,
+                   pmat->xx, pmat->xy, pmat->yx, pmat->yy,
+                   max_size, min_levels, u0, v0);
     }
 
     /* Adjust u and v to reasonable values. */
 
     if (u0 == 0 && v0 == 0)
-	return_error(gs_error_rangecheck);
+        return_error(gs_error_rangecheck);
     while ((fabs(u0) + fabs(v0)) * rt < 4)
-	++rt;
+        ++rt;
   try_size:
     better = false;
     {
-	int m0 = (int)floor(u0 * rt + 0.0001);
-	int n0 = (int)floor(v0 * rt + 0.0001);
-	gx_ht_cell_params_t p;
+        int m0 = (int)floor(u0 * rt + 0.0001);
+        int n0 = (int)floor(v0 * rt + 0.0001);
+        gx_ht_cell_params_t p;
 
-	p.R = p.R1 = rt;
-	for (p.M = m0 + 1; p.M >= m0; p.M--)
-	    for (p.N = n0 + 1; p.N >= n0; p.N--) {
-		long raster, wt, wt_size;
-		double fr, ar, ft, at, f_diff, a_diff, f_err, a_err;
+        p.R = p.R1 = rt;
+        for (p.M = m0 + 1; p.M >= m0; p.M--)
+            for (p.N = n0 + 1; p.N >= n0; p.N--) {
+                long raster, wt, wt_size;
+                double fr, ar, ft, at, f_diff, a_diff, f_err, a_err;
 
-		p.M1 = (int)floor(p.M / T + 0.5);
-		p.N1 = (int)floor(p.N * T + 0.5);
-		gx_compute_cell_values(&p);
-		if_debug3('h', "[h]trying m=%d, n=%d, r=%d\n", p.M, p.N, rt);
-		wt = p.W;
-		if (wt >= max_short)
-		    continue;
-		/* Check the strip size, not the full tile size, */
-		/* against max_size. */
-		raster = bitmap_raster(wt);
-		if (raster > max_size / p.D || raster > max_long / wt)
-		    continue;
-		wt_size = raster * wt;
+                p.M1 = (int)floor(p.M / T + 0.5);
+                p.N1 = (int)floor(p.N * T + 0.5);
+                gx_compute_cell_values(&p);
+                if_debug3('h', "[h]trying m=%d, n=%d, r=%d\n", p.M, p.N, rt);
+                wt = p.W;
+                if (wt >= max_short)
+                    continue;
+                /* Check the strip size, not the full tile size, */
+                /* against max_size. */
+                raster = bitmap_raster(wt);
+                if (raster > max_size / p.D || raster > max_long / wt)
+                    continue;
+                wt_size = raster * wt;
 
-		/* Compute the corresponding values of F and A. */
+                /* Compute the corresponding values of F and A. */
 
-		if (landscape)
-		    ar = atan2(p.M * pmat->xy, p.N * pmat->yx),
-			fr = 72.0 * (p.M == 0 ? pmat->xy / p.N * cos(ar) :
-				     pmat->yx / p.M * sin(ar));
-		else
-		    ar = atan2(p.N * pmat->xx, p.M * pmat->yy),
-			fr = 72.0 * (p.M == 0 ? pmat->yy / p.N * sin(ar) :
-				     pmat->xx / p.M * cos(ar));
-		ft = fabs(fr) * rt;
-		/* Normalize the angle to the requested quadrant. */
-		at = (ar * radians_to_degrees - rotation) * reflection;
-		at -= floor(at / 180.0) * 180.0;
-		at += floor(a0 / 180.0) * 180.0;
-		f_diff = fabs(ft - f0);
-		a_diff = fabs(at - a0);
-		f_err = f_diff / fabs(f0);
-		/*
-		 * We used to compute the percentage difference here:
-		 *      a_err = (a0 == 0 ? a_diff : a_diff / fabs(a0));
-		 * but using the angle difference makes more sense:
-		 */
-		a_err = a_diff;
+                if (landscape)
+                    ar = atan2(p.M * pmat->xy, p.N * pmat->yx),
+                        fr = 72.0 * (p.M == 0 ? pmat->xy / p.N * cos(ar) :
+                                     pmat->yx / p.M * sin(ar));
+                else
+                    ar = atan2(p.N * pmat->xx, p.M * pmat->yy),
+                        fr = 72.0 * (p.M == 0 ? pmat->yy / p.N * sin(ar) :
+                                     pmat->xx / p.M * cos(ar));
+                ft = fabs(fr) * rt;
+                /* Normalize the angle to the requested quadrant. */
+                at = (ar * radians_to_degrees - rotation) * reflection;
+                at -= floor(at / 180.0) * 180.0;
+                at += floor(a0 / 180.0) * 180.0;
+                f_diff = fabs(ft - f0);
+                a_diff = fabs(at - a0);
+                f_err = f_diff / fabs(f0);
+                /*
+                 * We used to compute the percentage difference here:
+                 *      a_err = (a0 == 0 ? a_diff : a_diff / fabs(a0));
+                 * but using the angle difference makes more sense:
+                 */
+                a_err = a_diff;
 
-		if_debug5('h', " ==> d=%d, wt=%ld, wt_size=%ld, f=%g, a=%g\n",
-			  p.D, wt, bitmap_raster(wt) * wt, ft, at);
+                if_debug5('h', " ==> d=%d, wt=%ld, wt_size=%ld, f=%g, a=%g\n",
+                          p.D, wt, bitmap_raster(wt) * wt, ft, at);
 
-		/*
-		 * Minimize angle and frequency error within the
-		 * permitted maximum super-cell size.
-		 */
+                /*
+                 * Minimize angle and frequency error within the
+                 * permitted maximum super-cell size.
+                 */
 
-		{
-		    double err = f_err * a_err;
+                {
+                    double err = f_err * a_err;
 
-		    if (err > e_best)
-			continue;
-		    e_best = err;
-		}
-		*phcp = p;
-		f = ft, a = at;
-		better = true;
-		if_debug3('h', "*** best wt_size=%ld, f_diff=%g, a_diff=%g\n",
-			  wt_size, f_diff, a_diff);
-		/*
-		 * We want a maximum relative frequency error of 1% and a
-		 * maximum angle error of 1% (of 90 degrees).
-		 */
-		if (f_err <= 0.01 && a_err <= 0.9 /*degrees*/)
-		    goto done;
-	    }
+                    if (err > e_best)
+                        continue;
+                    e_best = err;
+                }
+                *phcp = p;
+                f = ft, a = at;
+                better = true;
+                if_debug3('h', "*** best wt_size=%ld, f_diff=%g, a_diff=%g\n",
+                          wt_size, f_diff, a_diff);
+                /*
+                 * We want a maximum relative frequency error of 1% and a
+                 * maximum angle error of 1% (of 90 degrees).
+                 */
+                if (f_err <= 0.01 && a_err <= 0.9 /*degrees*/)
+                    goto done;
+            }
     }
-    if (phcp->C < min_levels) {	/* We don't have enough levels yet.  Keep going. */
-	++rt;
-	goto try_size;
+    if (phcp->C < min_levels) { /* We don't have enough levels yet.  Keep going. */
+        ++rt;
+        goto try_size;
     }
-    if (better) {		/* If we want accurate screens, continue till we fail. */
-	if (accurate) {
-	    ++rt;
-	    goto try_size;
-	}
-    } else {			/*
-				 * We couldn't find an acceptable M and N.  If R > 1,
-				 * take what we've got; if R = 1, give up.
-				 */
-	if (rt == 1)
-	    return_error(gs_error_rangecheck);
+    if (better) {               /* If we want accurate screens, continue till we fail. */
+        if (accurate) {
+            ++rt;
+            goto try_size;
+        }
+    } else {                    /*
+                                 * We couldn't find an acceptable M and N.  If R > 1,
+                                 * take what we've got; if R = 1, give up.
+                                 */
+        if (rt == 1)
+            return_error(gs_error_rangecheck);
     }
 
     /* Deliver the results. */
   done:
     if_debug5('h', "[h]Chosen: f=%g a=%g M=%d N=%d R=%d\n",
-	      f, a, phcp->M, phcp->N, phcp->R);
+              f, a, phcp->M, phcp->N, phcp->R);
     ph->actual_frequency = f;
     ph->actual_angle = a;
     return 0;
@@ -450,9 +457,10 @@ pick_cell_size(gs_screen_halftone * ph, const gs_matrix * pmat, ulong max_size,
 /* This is the second half of gs_screen_init_accurate. */
 int
 gs_screen_enum_init_memory(gs_screen_enum * penum, const gx_ht_order * porder,
-	       gs_state * pgs, gs_screen_halftone * phsp, gs_memory_t * mem)
+                           gs_state * pgs, const gs_screen_halftone * phsp,
+                           gs_memory_t * mem)
 {
-    penum->pgs = pgs;		/* ensure clean for GC */
+    penum->pgs = pgs;           /* ensure clean for GC */
     penum->order = *porder;
     penum->halftone.rc.memory = mem;
     penum->halftone.type = ht_type_screen;
@@ -480,21 +488,22 @@ gs_screen_enum_init_memory(gs_screen_enum * penum, const gx_ht_order * porder,
      *      f = -1
      */
     {
-	const int M = porder->params.M, N = porder->params.N, R = porder->params.R;
-	const int M1 = porder->params.M1, N1 = porder->params.N1, R1 = porder->params.R1;
-	double Q = 2.0 / ((long)M * M1 + (long)N * N1);
+        const int M = porder->params.M, N = porder->params.N, R = porder->params.R;
+        const int M1 = porder->params.M1, N1 = porder->params.N1, R1 = porder->params.R1;
+        double Q = 2.0 / ((long)M * M1 + (long)N * N1);
 
-	penum->mat.xx = Q * (R * M1);
-	penum->mat.xy = Q * (-R1 * N);
-	penum->mat.yx = Q * (R * N1);
-	penum->mat.yy = Q * (R1 * M);
-	penum->mat.tx = -1.0;
-	penum->mat.ty = -1.0;
+        penum->mat.xx = Q * (R * M1);
+        penum->mat.xy = Q * (-R1 * N);
+        penum->mat.yx = Q * (R * N1);
+        penum->mat.yy = Q * (R1 * M);
+        penum->mat.tx = -1.0;
+        penum->mat.ty = -1.0;
+        gs_matrix_invert(&penum->mat, &penum->mat_inv);
     }
     if_debug7('h', "[h]Screen: (%dx%d)/%d [%f %f %f %f]\n",
-	      porder->width, porder->height, porder->params.R,
-	      penum->mat.xx, penum->mat.xy,
-	      penum->mat.yx, penum->mat.yy);
+              porder->width, porder->height, porder->params.R,
+              penum->mat.xx, penum->mat.xy,
+              penum->mat.yx, penum->mat.yy);
     return 0;
 }
 
@@ -504,24 +513,45 @@ gs_screen_currentpoint(gs_screen_enum * penum, gs_point * ppt)
 {
     gs_point pt;
     int code;
+    double sx, sy; /* spot center in spot coords (integers) */
+    gs_point spot_center; /* device coords */
 
-    if (penum->y >= penum->strip) {	/* all done */
-	gx_ht_construct_spot_order(&penum->order);
-	return 1;
+    if (penum->y >= penum->strip) {     /* all done */
+        gx_ht_construct_spot_order(&penum->order);
+        return 1;
     }
     /* We displace the sampled coordinates very slightly */
     /* in order to reduce the likely number of points */
     /* for which the spot function returns the same value. */
     if ((code = gs_point_transform(penum->x + 0.501, penum->y + 0.498, &penum->mat, &pt)) < 0)
-	return code;
+        return code;
+
+    /* find the spot center in device coords : */
+    sx = ceil( pt.x / 2 ) * 2;
+    sy = ceil( pt.y / 2 ) * 2;
+    if ((code = gs_point_transform(sx, sy, &penum->mat_inv, &spot_center)) < 0)
+        return code;
+
+    /* shift the spot center to nearest pixel center : */
+    spot_center.x = floor(spot_center.x) + 0.5;
+    spot_center.y = floor(spot_center.y) + 0.5;
+
+    /* compute the spot function arguments for the shifted spot : */
+    if ((code = gs_distance_transform(penum->x - spot_center.x + 0.501, 
+                                      penum->y - spot_center.y + 0.498,
+                                      &penum->mat, &pt)) < 0)
+        return code;
+    pt.x += 1;
+    pt.y += 1;
+
     if (pt.x < -1.0)
-	pt.x += ((int)(-ceil(pt.x)) + 1) & ~1;
+        pt.x += ((int)(-ceil(pt.x)) + 1) & ~1;
     else if (pt.x >= 1.0)
-	pt.x -= ((int)pt.x + 1) & ~1;
+        pt.x -= ((int)pt.x + 1) & ~1;
     if (pt.y < -1.0)
-	pt.y += ((int)(-ceil(pt.y)) + 1) & ~1;
+        pt.y += ((int)(-ceil(pt.y)) + 1) & ~1;
     else if (pt.y >= 1.0)
-	pt.y -= ((int)pt.y + 1) & ~1;
+        pt.y -= ((int)pt.y + 1) & ~1;
     *ppt = pt;
     return 0;
 }
@@ -535,23 +565,25 @@ gs_screen_next(gs_screen_enum * penum, floatp value)
     gx_ht_bit *bits = (gx_ht_bit *)penum->order.bit_data;
 
     if (value < -1.0 || value > 1.0)
-	return_error(gs_error_rangecheck);
-    /* The following statement was split into two */
+        return_error(gs_error_rangecheck);
+
+   /* The following statement was split into two */
     /* to work around a bug in the Siemens C compiler. */
     sample = (ht_sample_t) (value * max_ht_sample);
     sample += max_ht_sample;	/* convert from signed to biased */
+
 #ifdef DEBUG
     if (gs_debug_c('H')) {
-	gs_point pt;
+        gs_point pt;
 
-	gs_screen_currentpoint(penum, &pt);
-	dlprintf6("[H]sample x=%d y=%d (%f,%f): %f -> %u\n",
-		  penum->x, penum->y, pt.x, pt.y, value, sample);
+        gs_screen_currentpoint(penum, &pt);
+        dlprintf6("[H]sample x=%d y=%d (%f,%f): %f -> %u\n",
+                  penum->x, penum->y, pt.x, pt.y, value, sample);
     }
 #endif
     bits[penum->y * width + penum->x].mask = sample;
     if (++(penum->x) >= width)
-	penum->x = 0, ++(penum->y);
+        penum->x = 0, ++(penum->y);
     return 0;
 }
 

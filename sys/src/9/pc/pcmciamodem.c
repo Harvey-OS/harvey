@@ -25,6 +25,7 @@ static char* modems[] = {
 	"KeepInTouch",
 	"CEM56",
 	"MONTANA V.34 FAX/MODEM",	/* Motorola */
+	"REM10",
 	0,
 };
 

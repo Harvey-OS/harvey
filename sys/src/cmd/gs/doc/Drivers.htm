@@ -1,8 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>The interface between Ghostscript and device drivers</title>
-<!-- $Id: Drivers.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
+<!-- $Id: Drivers.htm,v 1.21.2.2 2002/02/01 05:31:24 raph Exp $ -->
 <!-- Originally: drivers.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -10,11 +12,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-The interface between Ghostscript and device drivers
-</font>
-</table>
+<h1>The interface between Ghostscript and device drivers</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -45,7 +43,7 @@ The interface between Ghostscript and device drivers
 <li><a href="#Driver_procedures">Driver procedures</a>
 <ul>
 <li><a href="#Life_cycle">Life cycle</a>
-<li><a href="#Open_close">Open, close, sync</a>
+<li><a href="#Open_close">Open, close, sync, copy</a>
 <li><a href="#Color_mapping">Color and alpha mapping</a>
 <li><a href="#Pixel_level_drawing">Pixel-level drawing</a>
 <ul>
@@ -60,7 +58,7 @@ The interface between Ghostscript and device drivers
 <ul>
 <li><a href="#Paths">Paths</a>
 <li><a href="#Images">Images</a> [<a href="#Images_notes">Notes</a>]
-<li><a href="#Text">Text</a>
+<li><a href="#Text">Text</a> [<a href="#Text_notes">Notes</a>]
 </ul>
 <li><a href="#Reading_bits_back">Reading bits back</a>
 <li><a href="#Parameters">Parameters</a>
@@ -89,7 +87,7 @@ Ghostscript</a>.
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h1><a name="Adding_drivers"></a>Adding a driver</h1>
+<h2><a name="Adding_drivers"></a>Adding a driver</h2>
 
 <p>
 To add a driver to Ghostscript, first pick a name for your device, say
@@ -160,20 +158,21 @@ Note that the space before the :, and the explicit compilation rules for the
 
 <hr>
 
-<h1><a name="KISS"></a>Keeping things simple</h1>
+<h2><a name="KISS"></a>Keeping things simple</h2>
 
 <p>
-If you want to add a simple device (specifically, a monochrome printer),
-you probably don't need to read the rest of this document; just use the
-code in an existing driver as a guide.  The Epson and Canon BubbleJet
-drivers <b><tt>gdevepsn.c</tt></b> and <b><tt>gdevbj10.c</tt></b> are good
-models for dot-matrix printers, which require presenting the data for many
-scan lines at once; the DeskJet/LaserJet drivers in
-<b><tt>gdevdjet.c</tt></b> are good models for laser printers, which take a
-single scan line at a time but support data compression.  For color
-printers, there are unfortunately no good models: the two major color
-inkjet printer drivers, <b><tt>gdevcdj.c</tt></b> and
-<b><tt>gdevstc.c</tt></b>, are far too complex to read.
+If you want to add a simple device (specifically, a monochrome printer), you
+probably don't need to read the rest of this document; just use the code in
+an existing driver as a guide.  The Epson and Canon BubbleJet drivers <a
+href="../src/gdevepsn.c">gdevepsn.c</a> and <a
+href="../src/gdevbj10.c">gdevbj10.c</a> are good models for dot-matrix
+printers, which require presenting the data for many scan lines at once; the
+DeskJet/LaserJet drivers in <a href="../src/gdevdjet.c">gdevdjet.c</a> are
+good models for laser printers, which take a single scan line at a time but
+support data compression.  For color printers, there are unfortunately no
+good models: the two major color inkjet printer drivers, <a
+href="../src/gdevcdj.c">gdevcdj.c</a> and <a
+href="../src/gdevstc.c">gdevstc.c</a>, are far too complex to read.
 
 <p>
 On the other hand, if you're writing a driver for some more esoteric
@@ -186,12 +185,12 @@ Duplication of code, and sheer volume of code, is a serious maintenance and
 distribution problem for Ghostscript.  If your device is similar to an
 existing one, try to implement your driver by adding some parameterization
 to an existing driver rather than by copying code to create an entirely new
-source module.  <b><tt>gdevepsn.c</tt></b> and <b><tt>gdevdjet.c</tt></b>
-are good examples of this approach.
+source module.  <a href="../src/gdevepsn.c">gdevepsn.c</a> and <a
+href="../src/gdevdjet.c">gdevdjet.c</a> are good examples of this approach.
 
 <hr>
 
-<h1><a name="Structure"></a>Driver structure</h1>
+<h2><a name="Structure"></a>Driver structure</h2>
 
 <p>
 A device is represented by a structure divided into three parts:
@@ -216,10 +215,10 @@ compatibility reasons the latter is not.
 <p>
 The <b><tt>gx_device_common</tt></b> macro defines the common structure
 elements, with the intent that devices define and export a structure along
-the following lines.  Do not fill in the individual generic parameter
-values in the usual way for C structures: use the macros defined for this
-purpose in <b><tt>gxdevice.h</tt></b> or, if applicable,
-<b><tt>gdevprn.h</tt></b>.
+the following lines.  Do not fill in the individual generic parameter values
+in the usual way for C structures: use the macros defined for this purpose
+in <a href="../src/gxdevice.h">gxdevice.h</a> or, if applicable, <a
+href="../src/gdevprn.h">gdevprn.h</a>.
 
 <blockquote>
 <pre>typedef struct smurf_device_s {
@@ -259,13 +258,13 @@ initialization statement at the beginning of each procedure:
 example, the cast would be unnecessary, and in fact the procedure table
 would be constructed by the compiler.)
 
-<h2><a name="Structure_definition"></a>Structure definition</h2>
+<h3><a name="Structure_definition"></a>Structure definition</h3>
 
 <p>
 You should consult the definition of struct <b><tt>gx_device_s</tt></b> in
-<b><tt>gxdevice.h</tt></b> for the complete details of the generic device
-structure.  Some of the most important members of this structure for
-ordinary drivers are:
+<a href="../src/gxdevice.h">gxdevice.h</a> for the complete details of the
+generic device structure.  Some of the most important members of this
+structure for ordinary drivers are:
 
 <blockquote><table cellpadding=0 cellspacing=0>
 <tr valign=top>	<td><b><tt>const char *dname;</tt></b>
@@ -287,9 +286,9 @@ ordinary drivers are:
 
 <p>
 The name in the structure (<b><tt>dname</tt></b>) should be the same as the
-name in <b><tt>contrib.mak</tt></b>.
+name in <a href="../src/contrib.mak">contrib.mak</a>.
 
-<h2><a name="Sophisticated"></a>For sophisticated developers only</h2>
+<h3><a name="Sophisticated"></a>For sophisticated developers only</h3>
 
 <p>
 If for any reason you need to change the definition of the basic device
@@ -299,54 +298,63 @@ structure, or to add procedures, you must change the following places:
 <li>This document and the <a href="News.htm">news document</a> (if you want
 	to keep the documentation up to date).
 <li>The definition of <b><tt>gx_device_common</tt></b> and the procedures
-	in <b><tt>gxdevcli.h</tt></b>.
+	in <a href="../src/gxdevcli.h">gxdevcli.h</a>.
 <li>Possibly, the default forwarding procedures declared in
-	<b><tt>gxdevice.h</tt></b> and implemented in
-	<b><tt>gdevnfwd.c</tt></b>.
+	<a href="../src/gxdevice.h">gxdevice.h</a> and implemented in
+	<a href="../src/gdevnfwd.c">gdevnfwd.c</a>.
 <li>The device procedure record completion routines in
-	<b><tt>gdevdflt.c</tt></b>.
+	<a href="../src/gdevdflt.c">gdevdflt.c</a>.
 <li>Possibly, the default device implementation in
-	<b><tt>gdevdflt.c</tt></b>, <b><tt>gdevddrw.c</tt></b>, and
-	<b><tt>gxcmap.c</tt></b>.
-<li>The bounding box device in <b><tt>gdevbbox.c</tt></b> (probably just
-	adding <b><tt>NULL</tt></b> procedure entries if the new procedures
-	don't produce output).
+	<a href="../src/gdevdflt.c">gdevdflt.c</a>,
+	<a href="../src/gdevddrw.c">gdevddrw.c</a>, and
+	<a href="../src/gxcmap.c">gxcmap.c</a>.
+<li>The bounding box device in <a href="../src/gdevbbox.c">gdevbbox.c</a>
+	(probably just adding <b><tt>NULL</tt></b> procedure entries if the
+	new procedures don't produce output).
 <li>These devices that must have complete (non-defaulted) procedure vectors:
 <ul>
-<li>The null device in <b><tt>gdevnfwd.c</tt></b>.
-<li>The command list "device" in <b><tt>gxclist.c</tt></b>.  This is not an
-	actual device; it only defines procedures.
-<li>The "memory" devices in <b><tt>gdevmem.h</tt></b> and
+<li>The null device in <a href="../src/gdevnfwd.c">gdevnfwd.c</a>.
+<li>The command list "device" in <a href="../src/gxclist.c">gxclist.c</a>.
+	This is not an actual device; it only defines procedures.
+<li>The "memory" devices in <a href="../src/gdevmem.h">gdevmem.h</a> and
 	<b><tt>gdevm*.c</tt></b>.
-<li>The halftoning device in <b><tt>gdevht.c</tt></b>.
+<li>The halftoning device in <a href="../src/gdevht.c">gdevht.c</a>.
 </ul>
-<li>The clip list accumulation "device" in <b><tt>gxacpath.c</tt></b>.
-<li>The clipping "devices" <b><tt>xclip.c</tt></b>,
-	<b><tt>gxclip2.c</tt></b>, and <b><tt>gxclipm.c</tt></b>.
-<li>The pattern accumulation "device" in <b><tt>gxpcmap.c</tt></b>.
-<li>The hit detection "device" in <b><tt>gdevhit.c</tt></b>.
-<li>The generic printer device macros in <b><tt>gdevprn.h</tt></b>.
-<li>The generic printer device code in <b><tt>gdevprn.c</tt></b>.
-<li>The RasterOp source device in <b><tt>gdevmrop.c</tt></b>.
+<li>The clip list accumulation "device" in
+	<a href="../src/gxacpath.c">gxacpath.c</a>.
+<li>The clipping "devices" <a href="../src/gxclip.c">gxclip.c</a>,
+	<a href="../src/gxclip2.c">gxclip2.c</a>,
+	and <a href="../src/gxclipm.c">gxclipm.c</a>.
+<li>The pattern accumulation "device" in
+	<a href="../src/gxpcmap.c">gxpcmap.c</a>.
+<li>The hit detection "device" in <a href="../src/gdevhit.c">gdevhit.c</a>.
+<li>The generic printer device macros in
+	<a href="../src/gdevprn.h">gdevprn.h</a>.
+<li>The generic printer device code in
+	<a href="../src/gdevprn.c">gdevprn.c</a>.
+<li>The RasterOp source device in
+	<a href="../src/gdevrops.c">gdevrops.c</a>.
 </ul></blockquote>
 
 <p>
 You may also have to change the code for
 <b><tt>gx_default_get_params</tt></b> or
-<b><tt>gx_default_put_params</tt></b> in <b><tt>gsdparam.c</tt></b>.
+<b><tt>gx_default_put_params</tt></b> in <a
+href="../src/gsdparam.c">gsdparam.c</a>.
 
 <p>
 You should not have to change any of the real devices in the standard
-Ghostscript distribution (listed in <b><tt>devs.mak</tt></b> and
-<b><tt>contrib.mak</tt></b>) or any of your own devices, because all of
-them are supposed to use the macros in <b><tt>gxdevice.h</tt></b> or
-<b><tt>gdevprn.h</tt></b> to define and initialize their state.
+Ghostscript distribution (listed in <a href="../src/devs.mak">devs.mak</a>
+and <a href="../src/contrib.mak">contrib.mak</a>) or any of your own
+devices, because all of them are supposed to use the macros in <a
+href="../src/gxdevice.h">gxdevice.h</a> or <a
+href="../src/gdevprn.h">gdevprn.h</a> to define and initialize their state.
 
 <hr>
 
-<h1><a name="coordinates_and_types"></a>Coordinates and types</h1>
+<h2><a name="coordinates_and_types"></a>Coordinates and types</h2>
 
-<h2><a name="Coordinate_system"></a>Coordinate system</h2>
+<h3><a name="Coordinate_system"></a>Coordinate system</h3>
 
 <p>
 Since each driver specifies the initial transformation from user
@@ -361,12 +369,12 @@ Ghostscript that assumes this, and indeed some drivers use a coordinate
 system with (0,0) in the lower left corner.
 
 <p>
-Drivers must check (and, if necessary, clip) the coordinate parameters
-given to them: they should not assume the coordinates will be in bounds.
-The <b><tt>fit_fill</tt></b> and <b><tt>fit_copy</tt></b> macros in
-<b><tt>gxdevice.h</tt></b> are very helpful in doing this.
+Drivers must check (and, if necessary, clip) the coordinate parameters given
+to them: they should not assume the coordinates will be in bounds.  The
+<b><tt>fit_fill</tt></b> and <b><tt>fit_copy</tt></b> macros in <a
+href="../src/gxdevice.h">gxdevice.h</a> are very helpful in doing this.
 
-<h2><a name="Color_definition"></a>Color definition</h2>
+<h3><a name="Color_definition"></a>Color definition</h3>
 
 <p>
 Ghostscript represents colors internally as RGB or CMYK values.  In
@@ -396,8 +404,9 @@ follows:
 </blockquote>
 
 <p>
-The following macros (in <b><tt>gxdevice.h</tt></b>) provide convenient shorthands for
-initializing this structure for ordinary black-and-white or color devices:
+The following macros (in <a href="../src/gxdevice.h">gxdevice.h</a>) provide
+convenient shorthands for initializing this structure for ordinary
+black-and-white or color devices:
 
 <blockquote>
 <b><tt>#define dci_black_and_white</tt></b> ...<br>
@@ -440,7 +449,7 @@ distinct colors, equally spaced throughout the color cube, and uses two of
 the nearest ones to the desired color for halftoning.
 </blockquote>
 
-<h2><a name="Types"></a>Types</h2>
+<h3><a name="Types"></a>Types</h3>
 
 <p>
 Here is a brief explanation of the various types that appear as parameters
@@ -485,16 +494,19 @@ typedef unsigned long gx_color_index;
 </dl>
 
 <dl>
-<dt><b><tt>gs_param_list</tt></b> (defined in <b><tt>gsparam.h</tt></b>)
+<dt><b><tt>gs_param_list</tt></b> (defined in <a
+href="../src/gsparam.h">gsparam.h</a>)
 <dd>This is a parameter list, which is used to read and set attributes in a
-device.  See the comments in <b><tt>gsparam.h</tt></b>, and the
-<a href="#Parameters">description of the <b><tt>get_params</tt></b> and
+device.  See the comments in <a href="../src/gsparam.h">gsparam.h</a>, and
+the <a href="#Parameters">description of the <b><tt>get_params</tt></b> and
 <b><tt>put_params</tt></b> procedures</a> below, for more detail.
 </dl>
 
 <dl>
-<dt><b><tt>gx_tile_bitmap</tt></b> (defined in <b><tt>gxbitmap.h</tt></b>)
-<br><b><tt>gx_strip_bitmap</tt></b> (defined in <b><tt>gxbitmap.h</tt></b>)
+<dt><b><tt>gx_tile_bitmap</tt></b> (defined in
+<a href="../src/gxbitmap.h">gxbitmap.h</a>)
+<br><b><tt>gx_strip_bitmap</tt></b> (defined in
+<a href="../src/gxbitmap.h">gxbitmap.h</a>)
 <dd>These structure types represent bitmaps to be used as a tile for
 filling a region (rectangle).  <b><tt>gx_tile_bitmap</tt></b> is an older
 type lacking <b><tt>shift</tt></b> and <b><tt>rep_shift</tt></b>;
@@ -545,15 +557,15 @@ typedef struct gx_strip_bitmap_s {
 
 <hr>
 
-<h1><a name="Coding_conventions"></a>Coding conventions</h1>
+<h2><a name="Coding_conventions"></a>Coding conventions</h2>
 
 <p>
 All the driver procedures defined below that return <b><tt>int</tt></b>
 results return 0 on success, or an appropriate negative error code in the
-case of error conditions.  The error codes are defined in
-<b><tt>gserrors.h</tt></b>; they correspond directly to the errors defined
-in the PostScript language reference manuals.  The most common ones for
-drivers are:
+case of error conditions.  The error codes are defined in <a
+href="../src/gserrors.h">gserrors.h</a>; they correspond directly to the
+errors defined in the PostScript language reference manuals.  The most
+common ones for drivers are:
 
 <blockquote><dl>
 <dt><b><tt>gs_error_invalidfileaccess</tt></b>
@@ -576,16 +588,16 @@ should release all memory it allocated before it returns.)
 
 <p>
 If a driver does return an error, rather than a simple return statement it
-should use the <b><tt>return_error</tt></b> macro defined in
-<b><tt>gx.h</tt></b>, which is automatically included by
-<b><tt>gdevprn.h</tt></b> but not by <b><tt>gserrors.h</tt></b>.  For
-example
+should use the <b><tt>return_error</tt></b> macro defined in <a
+href="../src/gx.h">gx.h</a>, which is automatically included by <a
+href="../src/gdevprn.h">gdevprn.h</a> but not by <a
+href="../src/gserrors.h">gserrors.h</a>.  For example
 
 <blockquote><b><tt>
 return_error(gs_error_VMerror);
 </tt></b></blockquote>
 
-<h2><a name="Allocating_storage"></a>Allocating storage</h2>
+<h3><a name="Allocating_storage"></a>Allocating storage</h3>
 
 <p>
 While most drivers (especially printer drivers) follow a very similar
@@ -594,12 +606,12 @@ reading the code for existing drivers: driver procedures must not use
 <b><tt>malloc</tt></b> to allocate any storage that stays around after the
 procedure returns.  Instead, they must use <b><tt>gs_malloc</tt></b> and
 <b><tt>gs_free</tt></b>, which have slightly different calling conventions.
-(The prototypes for these are in <b><tt>gsmemory.h</tt></b>, which is
-included in <b><tt>gx.h</tt></b>, which is included in
-<b><tt>gdevprn.h</tt></b>.)  This is necessary so that Ghostscript can
-clean up all allocated memory before exiting, which is essential in
-environments that provide only single-address-space multi-tasking (some
-versions of Microsoft Windows).
+(The prototypes for these are in <a href="../src/gsmemory.h">gsmemory.h</a>,
+which is included in <a href="../src/gx.h">gx.h</a>, which is included in <a
+href="../src/gdevprn.h">gdevprn.h</a>.)  This is necessary so that
+Ghostscript can clean up all allocated memory before exiting, which is
+essential in environments that provide only single-address-space
+multi-tasking (some versions of Microsoft Windows).
 
 <blockquote>
 <pre>char *gs_malloc(uint num_elements, uint element_size,
@@ -630,7 +642,7 @@ Unlike <b><tt>free</tt></b>, <b><tt>gs_free</tt></b> demands that
 <b><tt>num_elements</tt></b> and element_size be supplied.  It also
 requires a client name, like <b><tt>gs_malloc</tt></b>.
 
-<h2><a name="Driver_instance_allocation"></a>Driver instance allocation</h2>
+<h3><a name="Driver_instance_allocation"></a>Driver instance allocation</h3>
 
 <p>
 All driver instances allocated by Ghostscript's standard allocator must
@@ -638,32 +650,32 @@ point to a "structure descriptor" that tells the garbage collector how to
 trace pointers in the structure.  For drivers registered in the normal way
 (using the makefile approach described above), no special care is needed as
 long as instances are created only by calling the
-<b><tt>gs_copydevice</tt></b> procedure defined in
-<b><tt>gsdevice.h</tt></b>.  If you have a need to define devices that are
-not registered in this way, you must fill in the stype member in any
-dynamically allocated instances with a pointer to the same structure
-descriptor used to allocate the instance.  For more information about
-structure descriptors, see <b><tt>gsmemory.h</tt></b> and
-<b><tt>gsstruct.h</tt></b>.
+<b><tt>gs_copydevice</tt></b> procedure defined in <a
+href="../src/gsdevice.h">gsdevice.h</a>.  If you have a need to define
+devices that are not registered in this way, you must fill in the stype
+member in any dynamically allocated instances with a pointer to the same
+structure descriptor used to allocate the instance.  For more information
+about structure descriptors, see <a href="../src/gsmemory.h">gsmemory.h</a>
+and <a href="../src/gsstruct.h">gsstruct.h</a>.
 
 <hr>
 
-<h1><a name="Printer_drivers"></a>Printer drivers</h1>
+<h2><a name="Printer_drivers"></a>Printer drivers</h2>
 
 <p>
 Printer drivers (which include drivers that write some kind of raster file)
-are especially simple to implement.  Of the driver procedures defined in
-the next section, they only need implement two:
-<b><tt>map_rgb_color</tt></b> (or <b><tt>map_cmyk_color</tt></b>) and
-<b><tt>map_color_rgb</tt></b>.  In addition, they must implement a
-<b><tt>print_page</tt></b> or <b><tt>print_page_copies</tt></b> procedure.
-There are macros in <b><tt>gdevprn.h</tt></b> that generate the device
-structure for such devices, of which the simplest is
-<b><tt>prn_device</tt></b>; for an example, see <b><tt>gdevbj10.c</tt></b>.
-If you are writing a printer driver, we suggest you start by reading
-<b><tt>gdevprn.h</tt></b> and the <a href="#Color_mapping">subsection on
-"Color mapping"</a> below; you may be able to ignore all the rest of the
-driver procedures.
+are especially simple to implement.  Of the driver procedures defined in the
+next section, they only need implement two: <b><tt>map_rgb_color</tt></b>
+(or <b><tt>map_cmyk_color</tt></b>) and <b><tt>map_color_rgb</tt></b>.  In
+addition, they must implement a <b><tt>print_page</tt></b> or
+<b><tt>print_page_copies</tt></b> procedure.  There are macros in <a
+href="../src/gdevprn.h">gdevprn.h</a> that generate the device structure for
+such devices, of which the simplest is <b><tt>prn_device</tt></b>; for an
+example, see <a href="../src/gdevbj10.c">gdevbj10.c</a>.  If you are writing
+a printer driver, we suggest you start by reading <a
+href="../src/gdevprn.h">gdevprn.h</a> and the <a
+href="#Color_mapping">subsection on "Color mapping"</a> below; you may be
+able to ignore all the rest of the driver procedures.
 
 <p>
 The <b><tt>print_page</tt></b> procedures are defined as follows:
@@ -723,7 +735,7 @@ required to hold a scan line by calling:
 
 <p>
 For a very simple concrete example, we suggest reading the code in
-<b><tt>bit_print_page</tt></b> in <b><tt>gdevbit.c</tt></b>.
+<b><tt>bit_print_page</tt></b> in <a href="../src/gdevbit.c">gdevbit.c</a>.
 
 <p>
 If the device provides <b><tt>print_page</tt></b>, Ghostscript will call
@@ -735,7 +747,7 @@ number of copies.
 
 <hr>
 
-<h1><a name="Driver_procedures"></a>Driver procedures</h1>
+<h2><a name="Driver_procedures"></a>Driver procedures</h2>
 
 <p>
 Most of the procedures that a driver may implement are optional.  If a
@@ -749,7 +761,7 @@ value for omitted structure elements, this convention means that statically
 initialized procedure structures continue to work even if new (optional)
 members are added.
 
-<h2><a name="Life_cycle"></a>Life cycle</h2>
+<h3><a name="Life_cycle"></a>Life cycle</h3>
 
 <p>
 A device instance begins life in a closed state.  In this state, no output
@@ -757,6 +769,7 @@ operations will occur.  Only the following procedures may be called:
 
 <blockquote><b><tt>
 open_device<br>
+finish_copydevice<br>
 get_initial_matrix<br>
 get_params<br>
 put_params<br>
@@ -772,23 +785,42 @@ close a device instance.  Device instances are only closed when they are
 about to be freed, which occurs in three situations:
 
 <ul>
-<li>when a 'restore' occurs, if the instance was created since the
-corresponding 'save';
-<li>by the garbage collector, if the instance is no longer accessible; or
-<li>when Ghostscript exits (terminates).
+<li>When a <b><tt>restore</tt></b> occurs, if the instance was created since
+the corresponding <b><tt>save</tt></b> and is in a VM being restored.  I.e.,
+if the instance was created in local VM since a <b><tt>save</tt></b>, it
+will always be closed and freed by the corresponding
+<b><tt>restore</tt></b>; if it was created in global VM, it will only be
+closed by the outermost <b><tt>restore</tt></b>, regardless of the save
+level at the time the instance was created.
+
+<li>By the garbage collector, if the instance is no longer accessible.
+
+<li>When Ghostscript exits (terminates).
 </ul>
 
-<h2><a name="Open_close"></a>Open, close, sync</h2>
+<h3><a name="Open_close"></a>Open, close, sync, copy</h3>
 
 <dl>
 <dt><b><tt>int (*open_device)(P1(gx_device *))</tt></b> <b><em>[OPTIONAL]</em></b>
-
 <dd>Open the device: do any initialization associated with making the device
 instance valid.  This must be done before any output to the device.  The
 default implementation does nothing.  <b>NOTE</b>: Clients should never call
 a device's <b><tt>open_device</tt></b> procedure directly: they should
 always call <b><tt>gs_opendevice</tt></b> instead.
+</dl>
 
+<dl>
+<dt><b><tt>int (*finish_copydevice)(P2(gx_device *dev, const gx_device
+*from_dev))</tt></b> <b><em>[OPTIONAL]</em></b> <dd>Perform any cleanup
+required after <b><tt>copydevice</tt></b> has created a new device instance
+by copying <b><tt>from_dev</tt></b>.  If the copy operation should not be
+allowed, this procedure should return an error; the copy will be freed.  The
+default implementation allows copying the device prototype, but does not
+allow copying device instances, because instances may contain internal
+pointers that should not be shared between copies, and there is no way to
+determine this from outside the device.  <b>NOTE</b>: Clients should never
+call a device's <b><tt>finish_copydevice</tt></b> procedure: this procedure
+is only intended for use by <b><tt>gs_copydevice[2]</tt></b>.
 </dl>
 
 <dl>
@@ -835,7 +867,7 @@ nothing.  <b>NOTE</b>: Clients should never call a device's
 <b><tt>gs_closedevice</tt></b> instead.
 </dl>
 
-<h2><a name="Color_mapping"></a>Color and alpha mapping</h2>
+<h3><a name="Color_mapping"></a>Color and alpha mapping</h3>
 
 <p>
 A given driver normally implements either <b><tt>map_rgb_color</tt></b> or
@@ -942,7 +974,7 @@ appears in the driver procedure vector for backward compatibility.  It
 should never be called, and drivers should not implement it.
 </dl>
 
-<h2><a name="Pixel_level_drawing"></a>Pixel-level drawing</h2>
+<h3><a name="Pixel_level_drawing"></a>Pixel-level drawing</h3>
 
 <p>
 This group of drawing operations specifies data at the pixel level.  All
@@ -966,7 +998,7 @@ Note that <b><tt>fill_rectangle</tt></b> is the only non-optional procedure
 in the driver interface.
 </dl>
 
-<h3><a name="Bitmap_imaging"></a>Bitmap imaging</h3>
+<h4><a name="Bitmap_imaging"></a>Bitmap imaging</h4>
 
 <p>
 Bitmap (or pixmap) images are stored in memory in a nearly standard way.
@@ -1049,7 +1081,7 @@ implementing it efficiently for solid tiles (that is, where either
 important.
 </dl>
 
-<h3><a name="Pixmap_imaging"></a>Pixmap imaging</h3>
+<h4><a name="Pixmap_imaging"></a>Pixmap imaging</h4>
 
 <p>
 Pixmaps are just like bitmaps, except that each pixel occupies more than
@@ -1084,7 +1116,7 @@ but the <b><tt>x</tt></b> and <b><tt>width</tt></b> are in pixels, not
 bits.
 </dl>
 
-<h3><a name="Compositing"></a>Compositing</h3>
+<h4><a name="Compositing"></a>Compositing</h4>
 
 <p>
 In addition to direct writing of opaque pixels, devices must also support
@@ -1238,7 +1270,7 @@ slow) operation.  The arguments are as follows:
 </table></blockquote>
 </dl>
 
-<h4><a name="S_spec"></a>The source specification S</h4>
+<h5><a name="S_spec"></a>The source specification S</h5>
 
 <p>
 As noted above, the source <b>S</b> may be a solid color, a bitmap, or a
@@ -1288,7 +1320,7 @@ Note that if the source is a bitmap with background=0 and foreground=1, and
 the destination is 1 bit deep, then the source can be treated as a pixmap
 (scolors=<b><tt>NULL</tt></b>).
 
-<h4><a name="T_spec"></a>The texture specification T</h4>
+<h5><a name="T_spec"></a>The texture specification T</h5>
 
 <p>
 Similar to the source, the texture <b>T</b> may be a solid color, a bitmap,
@@ -1339,7 +1371,7 @@ the destination, a texture bitmap or pixmap has its own width and height
 specified in the <b><tt>gx_tile_bitmap</tt></b> structure, and is
 replicated or clipped as needed.
 
-<h4><a name="F_spec"></a>The function specification f</h4>
+<h5><a name="F_spec"></a>The function specification f</h5>
 
 <p>
 "Command" indicates the raster operation and transparency as follows:
@@ -1448,7 +1480,7 @@ source and texture are both all 1s and the command specifies transparent
 source and opaque texture, the result <b><em>should</em></b> be written in
 the output.  We think this is an error in the documentation.)
 
-<h4><a name="Compositing_notes"></a>Notes</h4>
+<h5><a name="Compositing_notes"></a>Notes</h5>
 
 <p>
 <b><tt>copy_rop</tt></b> is defined to operate on pixels in RGB space,
@@ -1468,7 +1500,7 @@ static const gx_color_index white2[2] = { 1, 1 };
 Note that <b><tt>rop3_S</tt></b> may be replaced by any other Boolean operation.
 For monobit devices, we assume that black = 1.
 
-<blockquote><font size="-1">
+<blockquote>
 <pre>/* For all devices: */
 (*fill_rectangle)(dev, x, y, w, h, color) ==&gt;
 
@@ -1518,10 +1550,10 @@ For monobit devices, we assume that black = 1.
         (*dev_proc(dev, copy_rop))(dev, NULL, 0, 0, gx_no_bitmap_id,
                                    white2 /*irrelevant*/,
                                    tile, NULL,
-                                   x, y, w, h, px, py, rop3_T)</pre>
-</font></blockquote>
+                                   x, y, w, h, px, py, rop3_T)
+</pre></blockquote>
 
-<h2><a name="Polygon_level_drawing"></a>Polygon-level drawing</h2>
+<h3><a name="Polygon_level_drawing"></a>Polygon-level drawing</h3>
 
 <p>
 In addition to the pixel-level drawing operations that take integer device
@@ -1539,18 +1571,21 @@ region is to the right of it.
 
 <dl>
 <dt><b><tt>int (*fill_trapezoid)(P10(gx_device&nbsp;*dev,
-fixed&nbsp;fx0, fixed&nbsp;fw0, fixed&nbsp;fy0, fixed&nbsp;fx1,
-fixed&nbsp;fw1, fixed&nbsp;fh, bool&nbsp;swap_axes,
+const&nbsp;gs_fixed_edge&nbsp;*left, const&nbsp;gs_fixed_edge&nbsp;*right,
+fixed&nbsp;ybot, fixed&nbsp;ytop,  bool&nbsp;swap_axes,
 const&nbsp;gx_drawing_color&nbsp;*pdcolor,
 gs_logical_operation_t&nbsp;lop))</tt></b> <b><em>[OPTIONAL]</em></b>
-<dd>Fill a trapezoid whose parallel sides are parallel to a coordinate
-axis.  The corners are <em>(fx0,fy0)</em>, <em>(fx0+fw0,fy0)</em>,
-<em>(fx1,fy0+fh)</em>, and <em>(fx1+fw1,fy0+fy)</em>.  We require
-<b><tt>fw0</tt></b>&nbsp;&gt;=&nbsp;0,
-<b><tt>fw1</tt></b>&nbsp;&gt;=&nbsp;0, and
-<b><tt>fh</tt></b>&nbsp;&gt;=&nbsp;0; if <b><tt>fw0</tt></b>&nbsp;=&nbsp;0
-or <b><tt>fw1</tt></b>&nbsp;=&nbsp;0, the trapezoid is actually a triangle.
-If <b><tt>swap_axes</tt></b> is set, the meanings of X and Y are
+<dd>Fill a trapezoid. The bottom and top edges are parallel to the x
+axis, and are defined by <b><tt>ybot</tt></b> and <b><tt>ytop</tt></b>,
+respectively. The left and right edges are defined by <b><tt>left</tt></b>
+and <b><tt>right</tt></b>. Both of these respresent lines (<b><tt>gs_fixed_edge</tt></b>
+is defined in <a href="../src/gxdevcli.h">gxdevcli.h</a> and consists
+of <b><tt>gs_fixed_point</tt></b> <b><tt>start</tt></b> and <b><tt>end</tt></b> points).
+The y coordinates of these lines need not have any specific relation to
+<b><tt>ybot</tt></b> and <b><tt>ytop</tt></b>. The routine is defined this way so
+that the filling algorithm can subdivide edges and still guarantee
+that the exact same pixels will be filled. If
+<b><tt>swap_axes</tt></b> is set, the meanings of X and Y are
 interchanged.
 </dl>
 
@@ -1594,7 +1629,7 @@ backward compatibility.  It should never be called, and drivers should not
 implement it.
 </dl>
 
-<h2><a name="High_level_drawing"></a>High-level drawing</h2>
+<h3><a name="High_level_drawing"></a>High-level drawing</h3>
 
 <p>
 In addition to the lower-level drawing operations described above, the
@@ -1610,38 +1645,42 @@ consult the source code, specifically:
 <tr valign=top>	<th align=left>Header
 	<td>&nbsp;&nbsp;&nbsp;
 	<th align=left>Defines
-<tr valign=top>	<td><b><tt>gxpaint.h</tt></b>
+<tr valign=top>	<td><a href="../src/gxpaint.h">gxpaint.h</a>
 	<td>&nbsp;
 	<td><b><tt>gx_fill_params</tt></b>, <b><tt>gx_stroke_params</tt></b>
-<tr valign=top>	<td><b><tt>gxfixed.h</tt></b>
+<tr valign=top>	<td><a href="../src/gxfixed.h">gxfixed.h</a>
 	<td>&nbsp;
 	<td><b><tt>fixed</tt></b>, <b><tt>gs_fixed_point</tt></b> (used by
 	    <b><tt>gx_*_params</tt></b>)
-<tr valign=top>	<td><b><tt>gxistate.h</tt></b>
+<tr valign=top>	<td><a href="../src/gxistate.h">gxistate.h</a>
 	<td>&nbsp;
 	<td><b><tt>gs_imager_state</tt></b> (used by <b><tt>gx_*_params</tt></b>)
-<tr valign=top>	<td><b><tt>gxline.h</tt></b>
+<tr valign=top>	<td><a href="../src/gxline.h">gxline.h</a>
 	<td>&nbsp;
 	<td><b><tt>gx_line_params</tt></b> (used by <b><tt>gs_imager_state</tt></b>)
-<tr valign=top>	<td><b><tt>gslparam.h</tt></b>
+<tr valign=top>	<td><a href="../src/gslparam.h">gslparam.h</a>
 	<td>&nbsp;
 	<td>line cap/join values (used by <b><tt>gx_line_params</tt></b>)
-<tr valign=top>	<td><b><tt>gxmatrix.h</tt></b>
+<tr valign=top>	<td><a href="../src/gxmatrix.h">gxmatrix.h</a>
 	<td>&nbsp;
 	<td><b><tt>gs_matrix_fixed</tt></b> (used by <b><tt>gs_imager_state</tt></b>)
-<tr valign=top>	<td><b><tt>g[s,x,z]path.h</tt></b>
+<tr valign=top>	<td><a href="../src/gspath.h">gspath.h</a>, <a href="../src/gxpath.h">gxpath.h</a>, <a href="../src/gzpath.h">gzpath.h</a>
 	<td>&nbsp;
 	<td><b><tt>gx_path</tt></b>
-<tr valign=top>	<td><b><tt>g[x,z]cpath.h</tt></b>
+<tr valign=top>	<td><a href="../src/gxcpath.h">gxcpath.h</a>, <a href="../src/gzcpath.h">gzcpath.h</a>
 	<td>&nbsp;
 	<td><b><tt>gx_clip_path</tt></b>
 </table></blockquote>
 
-<h3><a name="Paths"></a>Paths</h3>
+<p>
+For a minimal example of how to implement the high-level drawing operations,
+see <a href="../src/gdevtrac.c">gdevtrac.c</a>.
+
+<h4><a name="Paths"></a>Paths</h4>
 
 <dl>
 <dt><b><tt>int (*fill_path)(P6(gx_device&nbsp;*dev,
-const&nbsp;gx_imager_state&nbsp;*pis, gx_path&nbsp;*ppath,
+const&nbsp;gs_imager_state&nbsp;*pis, gx_path&nbsp;*ppath,
 const&nbsp;gx_fill_params&nbsp;*params,
 const&nbsp;gx_drawing_color&nbsp;*pdcolor,
 const&nbsp;gx_clip_path&nbsp;*pcpath))</tt></b> <b><em>[OPTIONAL]</em></b>
@@ -1652,7 +1691,7 @@ given parameters, with the given color.  The clip path pointer may be
 
 <dl>
 <dt><b><tt>int (*stroke_path)(P6(gx_device&nbsp;*dev,
-const&nbsp;gx_imager_state&nbsp;*pis, gx_path&nbsp;*ppath,
+const&nbsp;gs_imager_state&nbsp;*pis, gx_path&nbsp;*ppath,
 const&nbsp;gx_stroke_params&nbsp;*params,
 const&nbsp;gx_drawing_color&nbsp;*pdcolor,
 const&nbsp;gx_clip_path&nbsp;*pcpath))</tt></b> <b><em>[OPTIONAL]</em></b>
@@ -1677,7 +1716,7 @@ with the given color and logical operation.  The clip path pointer may be
 command is as for <b><tt>copy_rop</tt></b>.
 </dl>
 
-<h3><a name="Images"></a>Images</h3>
+<h4><a name="Images"></a>Images</h4>
 
 <p>
 Similar to the high-level interface for fill and stroke graphics, a high-level
@@ -1755,8 +1794,9 @@ typedef gs_image1_t gs_image_t;</pre>
 
 <p>
 Of course, standard PostScript images don't have an alpha component.  For
-more details, consult the source code in <b><tt>gsiparam.h</tt></b> and
-<b><tt>gsiparm*.h</tt></b>, which define parameters for an image.
+more details, consult the source code in <a
+href="../src/gsiparam.h">gsiparam.h</a> and <b><tt>gsiparm*.h</tt></b>,
+which define parameters for an image.
 
 <p>
 The <b><tt>begin[_typed_]image</tt></b> driver procedures create image
@@ -1818,8 +1858,9 @@ enumeration structure that contains the procedures that will process the
 image data, together with all variables needed to maintain the state of the
 process.  Since this is somewhat tricky to get right, if you plan to create
 one of your own you should probably read an existing implementation of
-<b><tt>begin[_typed]_image</tt></b>, such as the one in
-<b><tt>gdevbbox.c</tt></b> or <b><tt>gdevps.c</tt></b>.
+<b><tt>begin[_typed]_image</tt></b>, such as the one in <a
+href="../src/gdevbbox.c">gdevbbox.c</a> or <a
+href="../src/gdevps.c">gdevps.c</a>.
 
 <p>
 The data passed at each call of <b><tt>image_plane_data</tt></b> consists of
@@ -2011,7 +2052,7 @@ subsidiary structures.  If <b><tt>draw_last</tt></b> is true, it should
 finish drawing any buffered lines of the image.
 </dl>
 
-<h4><a name="Images_notes"></a>Notes</h4>
+<h5><a name="Images_notes"></a>Notes</h5>
 
 <p>
 While there will almost never be more than one image enumeration in
@@ -2028,7 +2069,7 @@ algorithms or to use the default implementation.  (It may need to call
 <b><tt>gx_default_begin</tt></b>/<b><tt>end_image</tt></b> partway
 through.)  [A later revision of this document may include an example here.]
 
-<h3><a name="Text"></a>Text</h3>
+<h4><a name="Text"></a>Text</h4>
 
 <p>
 The third high-level interface handles text.  As for images, the interface
@@ -2044,7 +2085,7 @@ const&nbsp;gx_device_color&nbsp;*pdcolor,
 const&nbsp;gx_clip_path&nbsp;*pcpath, gs_memory_t&nbsp;*memory,
 gs_text_enum_t&nbsp;**ppte))</tt></b> <b><em>[OPTIONAL]</em></b>
 
-<p>
+<dd>
 Begin processing text, by creating a state structure and storing it in
 <b><tt>*ppte</tt></b>.  The parameters of <b><tt>text_begin</tt></b> are as
 follows:
@@ -2061,7 +2102,7 @@ follows:
 <tr valign=top>	<td><b><tt>text</tt></b>
 	<td>&nbsp;
 	<td>A pointer to the structure that defines the text operation
-	    and parameters.  See <b><tt>gstext.h</tt></b> for details.
+	    and parameters.  See <a href="../src/gstext.h">gstext.h</a> for details.
 <tr valign=top>	<td><b><tt>font</tt></b>
 	<td>&nbsp;
 	<td>Defines the font for drawing.
@@ -2100,11 +2141,11 @@ processing is complete.
 
 <p>
 Clients should not call the driver <b><tt>text_begin</tt></b> procedure
-directly.  Instead, they should call <b><tt>gx_device_text_begin></tt></b>,
+directly.  Instead, they should call <b><tt>gx_device_text_begin</tt></b>,
 which takes the same parameters and also initializes certain common elements
 of the text enumeration structure, or <b><tt>gs_text_begin</tt></b>, which
 takes many of the parameters from a graphics state structure.  For details,
-see <b><tt>gstext.h</tt></b>.
+see <a href="../src/gstext.h">gstext.h</a>.
 
 <p>
 The actual processing of text uses the procedures in the enumeration
@@ -2123,7 +2164,7 @@ procedures, which in turn call the procedures in the text enumerator.
 <dt><b><tt>int gs_text_process(P1(gs_text_enum_t&nbsp;*pte))</tt></b>
 <dd>Continue processing text.  This procedure may return 0 or a negative
 error code as usual, or one of the following values (see
-<b><tt>gstext.h</tt></b> for details).
+<a href="../src/gstext.h">gstext.h</a> for details).
 
 <blockquote><table cellpadding=0 cellspacing=0>
 <tr valign=top>	<td><b><tt>TEXT_PROCESS_RENDER</tt></b>
@@ -2146,20 +2187,32 @@ any time.
 
 <p>
 There are numerous other procedures that clients may call during text
-processing.  See <b><tt>gstext.h</tt></b> for details.
+processing.  See <a href="../src/gstext.h">gstext.h</a> for details.
 
-<h2><a name="Reading_bits_back"></a>Reading bits back</h2>
+<h5><a name="Text_notes"></a>Notes</h5>
+
+<p>
+Note that unlike many other optional procedures, the default implementation
+of <b><tt>text_begin</tt></b> cannot simply return: like the default
+implementation of <b><tt>begin[_typed]_image</tt></b>, it must create and
+return an enumerator.  Furthermore, the implementation of the
+<b><tt>process</tt></b> procedure (in the enumerator structure, called by
+<b><tt>gs_text_process</tt></b>) cannot simply return without doing
+anything, even if it doesn't want to draw anything on the output.  See the
+comments in <a href="../src/gxtext.h">gxtext.h</a> for details.
+
+<h3><a name="Reading_bits_back"></a>Reading bits back</h3>
 
 <dl>
 <dt><b><tt>int (*get_bits_rectangle)(P4(gx_device&nbsp;*dev,
 const&nbsp;gs_int_rect&nbsp;*prect, gs_get_bits_params_t&nbsp;*params,
 gs_int_rect&nbsp;**unread))</tt></b> <b><em>[OPTIONAL]</em></b>
 
-<p>
+<dd>
 Read a rectangle of bits back from the device.  The <b><tt>params</tt></b>
 structure consists of:
 
-<blockquote><table cellpadding=0 cellspacing=0>
+<table cellpadding=0 cellspacing=0>
 <tr valign=top>	<td><b><tt>options</tt></b>
 	<td>&nbsp;
 	<td>the allowable formats for returning the data
@@ -2172,7 +2225,7 @@ structure consists of:
 <tr valign=top>	<td><b><tt>raster</tt></b>
 	<td>&nbsp;
 	<td>the distance between scan lines in the returned data
-</table></blockquote>
+</table>
 
 <p>
 <b><tt>options</tt></b> is a bit mask specifying what formats the client is
@@ -2236,9 +2289,9 @@ determine the actual form of the returned data, and will update
 group.
 
 <p>
-For further details on <b><tt>params</tt></b>, see
-<b><tt>gxgetbit.h</tt></b>.  For further details on <b><tt>options</tt></b>,
-see <b><tt>gxbitfmt.h</tt></b>.
+For further details on <b><tt>params</tt></b>, see <a
+href="../src/gxgetbit.h">gxgetbit.h</a>.  For further details on
+<b><tt>options</tt></b>, see <a href="../src/gxbitfmt.h">gxbitfmt.h</a>.
 
 <p>
 Define w = <b><tt>prect</tt></b>-&gt;q.x - <b><tt>prect</tt></b>-&gt;p.x, h
@@ -2311,7 +2364,7 @@ not define one for <b><tt>get_bits</tt></b>.  (If
 <b><tt>GB_RETURN_POINTER</tt></b> is omitted from the options.)
 </dl>
 
-<h2><a name="Parameters"></a>Parameters</h2>
+<h3><a name="Parameters"></a>Parameters</h3>
 
 <p>
 Devices may have an open-ended set of parameters, which are simply pairs
@@ -2320,7 +2373,7 @@ integer (int or long), boolean, float, string, name, <b><tt>NULL</tt></b>,
 array of integer, array of float, or arrays or dictionaries of mixed types.
 For example, the <b><tt>Name</tt></b> of a device is a string; the
 <b><tt>Margins</tt></b> of a device is an array of two floats.  See
-<b><tt>gsparam.h</tt></b> for more details.
+<a href="../src/gsparam.h">gsparam.h</a> for more details.
 
 <p>
 If a device has parameters other than the ones applicable to all devices
@@ -2329,15 +2382,15 @@ If a device has parameters other than the ones applicable to all devices
 your device has parameters beyond those of a straightforward display or
 printer, we strongly advise using the <b><tt>_get_params</tt></b> and
 <b><tt>_put_params</tt></b> procedures in an existing device (for example,
-<b><tt>gdevcdj.c</tt></b> or <b><tt>gdevbit.c</tt></b>) as a model for your
-own code.
+<a href="../src/gdevcdj.c">gdevcdj.c</a> or <a
+href="../src/gdevbit.c">gdevbit.c</a>) as a model for your own code.
 
 <dl>
 <dt><b><tt>int (*get_params)(P2(gx_device&nbsp;*dev,
 gs_param_list&nbsp;*plist))</tt></b> <b><em>[OPTIONAL]</em></b>
 <dd>Read the parameters of the device into the parameter list at
 <b><tt>plist</tt></b>, using the <b><tt>param_write_*</tt></b>
-macros or procedures defined in <b><tt>gsparam.h</tt></b>.
+macros or procedures defined in <a href="../src/gsparam.h">gsparam.h</a>.
 </dl>
 
 <dl>
@@ -2360,23 +2413,24 @@ sparingly.
 gs_param_list&nbsp;*plist))</tt></b> <b><em>[OPTIONAL]</em></b>
 <dd>Set the parameters of the device from the parameter list at
 <b><tt>plist</tt></b>, using the <b><tt>param_read_</tt></b>*
-macros/procedures defined in <b><tt>gsparam.h</tt></b>.  All
+macros/procedures defined in <a href="../src/gsparam.h">gsparam.h</a>.  All
 <b><tt>put_params</tt></b> procedures must use a "two-phase commit"
-algorithm; see <b><tt>gsparam.h</tt></b> for details.
+algorithm; see <a href="../src/gsparam.h">gsparam.h</a> for details.
 </dl>
 
-<h3><a name="Default_CRD_parameters"></a>Default color rendering dictionary (CRD) parameters</h3>
+<h4><a name="Default_CRD_parameters"></a>Default color rendering
+dictionary (CRD) parameters</h4>
 
 <p>
 Drivers that want to provide one or more default CIE color rendering
 dictionaries (CRDs) can do so through <b><tt>get_params</tt></b>.  To do
 this, they create the CRD in the usual way (normally using the
 <b><tt>gs_cie_render1_build</tt></b> and <b><tt>_initialize</tt></b>
-procedures defined in <b><tt>gscrd.h</tt></b>), and then write it as a
-parameter using <b><tt>param_write_cie_render1</tt></b> defined in
-<b><tt>gscrdp.h</tt></b>.  However, the TransformPQR procedure requires
-special handling.  If the CRD uses a TransformPQR procedure different from
-the default (identity), the driver must do the following:
+procedures defined in <a href="../src/gscrd.h">gscrd.h</a>), and then write
+it as a parameter using <b><tt>param_write_cie_render1</tt></b> defined in
+<a href="../src/gscrdp.h">gscrdp.h</a>.  However, the TransformPQR procedure
+requires special handling.  If the CRD uses a TransformPQR procedure
+different from the default (identity), the driver must do the following:
 
 <ul>
 <li>The TransformPQR element of the CRD must include a
@@ -2394,12 +2448,12 @@ procedure address.
 
 <p>
 For a complete example, see the <b><tt>bit_get_params</tt></b> procedure in
-<b><tt>gdevbit.c</tt></b>.  Note that it is essential that the driver
-return the CRD or the procedure address only if specifically requested
-(<b><tt>param_requested(...)</tt></b> &gt; 0); otherwise, errors will
-occur.
+<a href="../src/gdevbit.c">gdevbit.c</a>.  Note that it is essential that
+the driver return the CRD or the procedure address only if specifically
+requested (<b><tt>param_requested(...)</tt></b> &gt; 0); otherwise, errors
+will occur.
 
-<h2><a name="External_fonts"></a>External fonts</h2>
+<h3><a name="External_fonts"></a>External fonts</h3>
 
 <p>
 Drivers may include the ability to display text.  More precisely, they may
@@ -2425,7 +2479,7 @@ non-default way for this device, if any.  Except for certain special
 internal devices, this is always the device argument.
 </dl>
 
-<h2><a name="Page_devices"></a>Page devices</h2>
+<h3><a name="Page_devices"></a>Page devices</h3>
 
 <dl>
 <dt><b><tt>gx_device&nbsp;*(*get_page_device)(P1(gx_device&nbsp;*dev))</tt></b>
@@ -2438,7 +2492,7 @@ the underlying page device (or <b><tt>NULL</tt></b> if the underlying
 device is not a page device).
 </dl>
 
-<h2><a name="Miscellaneous"></a>Miscellaneous</h2>
+<h3><a name="Miscellaneous"></a>Miscellaneous</h3>
 
 <dl>
 <dt><b><tt>int (*get_band)(P3(gx_device&nbsp;*dev, int&nbsp;y,
@@ -2463,19 +2517,18 @@ clipping region.  For all but a few specialized devices, this is
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 2000 Aladdin Enterprises.
+All rights reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

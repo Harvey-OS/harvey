@@ -1,24 +1,33 @@
 objtype=arm
-</arm/mkfile
+</$objtype/mkfile
 
 LIB=/$objtype/lib/libc.a
-OFILES=\
-	main9.$O\
-	main9p.$O\
-	argv0.$O\
-	getfcr.$O\
-	setjmp.$O\
-	notejmp.$O\
-	div.$O\
-	vlrt.$O\
-	vlop.$O\
-	memmove.$O\
-	memset.$O\
-	strchr.$O\
-	strcpy.$O\
-	strcmp.$O\
-	tas.$O\
+SFILES=\
+	argv0.s\
+	div.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memmove.s\
+	memset.s\
+	setjmp.s\
+	strchr.s\
+	strcmp.s\
+	strcpy.s\
+	tas.s\
+	vlop.s\
+
+CFILES=\
+	notejmp.c\
+	vlrt.c\
 
 HFILES=/sys/include/libc.h
+
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
 
 </sys/src/cmd/mksyslib

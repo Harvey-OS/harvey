@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: icontext.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: icontext.c,v 1.6.6.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Context state operations */
 #include "ghost.h"
 #include "gsstruct.h"		/* for gxalloc.h */
@@ -127,6 +127,7 @@ context_state_alloc(gs_context_state_t ** ppcst,
     pcst->rand_state = rand_state_initial;
     pcst->usertime_total = 0;
     pcst->keep_usertime = false;
+    pcst->in_superexec = 0;
     {	/*
 	 * Create an empty userparams dictionary of the right size.
 	 * If we can't determine the size, pick an arbitrary one.
@@ -138,12 +139,15 @@ context_state_alloc(gs_context_state_t ** ppcst,
 	if (dict_find_string(system_dict, "userparams", &puserparams) >= 0)
 	    size = dict_length(puserparams);
 	else
-	    size = 20;
+	    size = 24;
 	code = dict_alloc(pcst->memory.space_local, size, &pcst->userparams);
 	if (code < 0)
 	    goto x2;
 	/* PostScript code initializes the user parameters. */
     }
+    pcst->scanner_options = 0;
+    pcst->LockFilePermissions = false;
+    pcst->filearg = NULL;
     /* The initial stdio values are bogus.... */
     make_file(&pcst->stdio[0], a_readonly | avm_invalid_file_entry, 1,
 	      invalid_file_entry);
@@ -170,25 +174,23 @@ context_state_load(gs_context_state_t * i_ctx_p)
     gs_ref_memory_t *lmem = iimemory_local;
     ref *system_dict = systemdict;
     uint space = r_space(system_dict);
+    dict_stack_t *dstack = &idict_stack;
     int code;
 
     /*
-     * Set systemdict.userparams to the saved copy, and then
-     * set the actual user parameters.  Be careful to disable both
-     * space checking and save checking while we do this.
+     * Disable save checking, and space check for systemdict, while
+     * copying dictionaries.
      */
-    r_set_space(system_dict, avm_max);
     alloc_set_not_in_save(idmemory);
-    code = dict_put_string(system_dict, "userparams", &i_ctx_p->userparams,
-			   &idict_stack);
-    if (code >= 0)
-	code = set_user_params(i_ctx_p, &i_ctx_p->userparams);
-    if (iimemory_local != lmem) {
-	/*
-	 * Switch references in systemdict to local objects.
-	 * userdict.localdicts holds these objects.
-	 */
-	dict_stack_t *dstack = &idict_stack;
+    r_set_space(system_dict, avm_max);
+    /*
+     * Switch references from systemdict to local objects.
+     * userdict.localdicts holds these objects.  We could optimize this by
+     * only doing it if we're changing to a different local VM relative to
+     * the same global VM, but the cost is low enough relative to other
+     * things that we don't bother.
+     */
+    {
 	ref_stack_t *rdstack = &dstack->stack;
 	const ref *puserdict =
 	    ref_stack_index(rdstack, ref_stack_count(rdstack) - 1 -
@@ -201,6 +203,17 @@ context_state_load(gs_context_state_t * i_ctx_p)
 	    dict_copy(plocaldicts, system_dict, dstack);
 	}
     }
+    /*
+     * Set systemdict.userparams to the saved copy, and then
+     * set the actual user parameters.  Note that we must disable both
+     * space checking and save checking while doing this.  Also,
+     * we must do this after copying localdicts (if required), because
+     * userparams also appears in localdicts.
+     */
+    code = dict_put_string(system_dict, "userparams", &i_ctx_p->userparams,
+			   dstack);
+    if (code >= 0)
+	code = set_user_params(i_ctx_p, &i_ctx_p->userparams);
     r_set_space(system_dict, space);
     if (lmem->save_level > 0)
 	alloc_set_in_save(idmemory);
@@ -233,8 +246,9 @@ context_state_store(gs_context_state_t * pcst)
     return 0;
 }
 
-/* Free the state of a context. */
-bool
+/* Free the contents of the state of a context, always to its local VM. */
+/* Return a mask of which of its VMs, if any, we freed. */
+int
 context_state_free(gs_context_state_t * pcst)
 {
     gs_ref_memory_t *mem = pcst->memory.space_local;
@@ -277,5 +291,5 @@ context_state_free(gs_context_state_t * pcst)
     }
 /****** FREE USERPARAMS ******/
     gs_interp_free_stacks(mem, pcst);
-    return false;
+    return 0;
 }

@@ -54,6 +54,7 @@ void	putcr3(ulong);
 void	putcr4(ulong);
 void	puttr(ulong);
 void	rdmsr(int, vlong*);
+void	rdtsc(uvlong*);
 void	scsiinit(void);
 long	scsiread(int, void*, long);
 long	scsiseek(int, long);

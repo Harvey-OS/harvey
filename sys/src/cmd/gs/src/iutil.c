@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: iutil.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: iutil.c,v 1.3 2001/02/05 20:43:40 alexcher Exp $ */
 /* Utilities for Ghostscript interpreter */
 #include "math_.h"		/* for fabs */
 #include "memory_.h"
@@ -522,8 +522,8 @@ obj_cvs(const ref * op, byte * str, uint len, uint * prlen,
 	*pchars = str;
 	return code;
     }
-    code = obj_string_data(op, pchars, prlen);
-    return (code == e_typecheck ? gs_note_error(e_rangecheck) : code);
+    obj_string_data(op, pchars, prlen);
+    return gs_note_error(e_rangecheck);
 }
 
 /* Find the index of an operator that doesn't have one stored in it. */

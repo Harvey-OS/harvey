@@ -11,6 +11,14 @@ install clean nuke all:V:
 		mk $MKFLAGS $target
 	}
 
+update:V:
+	for(i in port $CPUS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS $target
+	}
+	update /386/lib/libmp.a
+
 installall:V:
 	for(objtype in $CPUS) mk $MKFLAGS install
 

@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxfont.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxfont.h,v 1.3 2000/11/23 23:23:40 lpd Exp $ */
 /* Font object structure */
 /* Requires gsmatrix.h, gxdevice.h */
 
@@ -407,5 +407,11 @@ gs_font_base *
   gs_font_base_alloc(P5(gs_memory_t *mem, gs_memory_type_ptr_t pstype,
 			const gs_font_procs *procs, gs_font_dir *dir,
 			client_name_t cname));
+
+/*
+ * Test whether a glyph is the notdef glyph for a base font.
+ * The test is somewhat adhoc: perhaps this should be a virtual procedure.
+ */
+bool gs_font_glyph_is_notdef(P2(gs_font_base *bfont, gs_glyph glyph));
 
 #endif /* gxfont_INCLUDED */

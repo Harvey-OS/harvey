@@ -217,6 +217,26 @@ declares the current deadline reached and will be released again in the next per
 When the value is zero, the task can block without forfeiting the current release.
 However, when the task blocks long, the deadline may be missed.  The default value is zero.
 .LP
+In addition to these settable attributes, there are a number of attributes
+to be read:
+.TP
+.B n
+Number of releases of this task,
+.TP
+.B m
+Number of deadlines missed,
+.TP
+.B p
+Number of times the task was preempted by one with an earlier deadline,
+.TP
+.B t
+Total time used (divide this by
+.I n
+to get the average time used per period),
+.TP
+.B c
+Aged average time used,
+.LP
 The commands accepted are
 .TP
 .B verbose

@@ -6,7 +6,7 @@ void
 main(int argc, char *argv[])
 {
 	Biobuf bin, bout;
-	long len;
+	long len, slen;
 	int c;
 
 	if(argc != 2){
@@ -25,6 +25,7 @@ main(int argc, char *argv[])
 		if((len&7) == 7)
 			Bprint(&bout, "\"\n");
 	}
+	slen = len;
 	if(len & 7){
 		while(len & 7){
 			Bprint(&bout, "\\z");
@@ -34,6 +35,6 @@ main(int argc, char *argv[])
 	}
 	Bprint(&bout, "GLOBL %scode+0(SB), $%ld\n", argv[1], len);
 	Bprint(&bout, "GLOBL %slen+0(SB), $4\n", argv[1]);
-	Bprint(&bout, "DATA %slen+0(SB)/4, $%ld\n", argv[1], len);
+	Bprint(&bout, "DATA %slen+0(SB)/4, $%ld\n", argv[1], slen);
 	exits(0);
 }

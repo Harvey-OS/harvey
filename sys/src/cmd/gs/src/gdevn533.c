@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1990, 1991, 1993, 1996 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/*$Id: gdevn533.c,v 1.1 2000/03/09 08:40:41 lpd Exp $*/
+/*$Id: gdevn533.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
 /* Sony NWP-533 driver for GhostScript */
 #include "gdevprn.h"
 #define prn_dev ((gx_device_printer *)dev) /* needed in 5.31 et seq */
@@ -52,7 +52,7 @@ private dev_proc_close_device(nwp533_close);
 private gx_device_procs nwp533_procs =
   prn_procs(nwp533_open, gdev_prn_output_page, nwp533_close);
 
-gx_device_printer far_data gs_nwp533_device =
+const gx_device_printer far_data gs_nwp533_device =
   prn_device(nwp533_procs, "nwp533",
 	PAPER_XDOTS * 10.0 / DPI,	/* width_10ths */
 	PAPER_YDOTS * 10.0 / DPI,	/* height_10ths */

@@ -1,8 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Information specifically about the current release</title>
-<!-- $Id: Current.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
+<!-- $Id: Current.htm,v 1.13.2.2 2002/02/01 05:31:24 raph Exp $ -->
 <!-- Originally: current.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -10,11 +12,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-Information specifically about Ghostscript 6.0
-</font>
-</table>
+<h1>Information specifically about Ghostscript 6.0</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -22,19 +20,17 @@ Information specifically about Ghostscript 6.0
 
 <h2>Table of contents</h2>
 
-<blockquote>
 <ul>
 <li><a href="#New_features">New features (since release 5.50)</a>
 <li><a href="#Changes">Changes (since release 5.50)</a>
 <li><a href="#Known_problems">Known problems</a>
-<ul>
-<li><a href="#Usage">Usage</a>
-<li><a href="#Limitations">Limitations</a>
-<li><a href="#Graphics_bugs">Graphics bugs</a>
-<li><a href="#Non_graphics_bugs">Non-graphics bugs</a>
+ <ul>
+  <li><a href="#Usage">Usage</a>
+  <li><a href="#Limitations">Limitations</a>
+  <li><a href="#Graphics_bugs">Graphics bugs</a>
+  <li><a href="#Non_graphics_bugs">Non-graphics bugs</a>
+ </ul>
 </ul>
-</ul>
-</blockquote>
 
 <!-- [1.2 end table of contents] =========================================== -->
 
@@ -51,7 +47,7 @@ overview</a>.
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h1><a name="New_features"></a>New features (since release 5.50)</h1>
+<h2><a name="New_features"></a>New features (since release 5.50)</h2>
 
 <p>
 (This is not a complete list of new features: see <a href="News.htm">the
@@ -115,9 +111,9 @@ was removed at the last minute because of objections from the Free Software
 Foundation.  Please see <a href="Make.htm#GNU_readline">here</a> for more
 information.
 
-<h1><a name="Changes"></a>Changes (since release 5.50)</h1>
+<h2><a name="Changes"></a>Changes (since release 5.50)</h2>
 
-<h2>Directories and build procedure</h2>
+<h3>Directories and build procedure</h3>
 
 <p>
 The files in the release now have a more complex directory structure.  In
@@ -171,18 +167,18 @@ than writing or modifying drivers, please read all of the "Incompatible
 changes" sections of the <a href="News.htm">release news</a> for important
 information.
 
-<h1><a name="Known_problems"></a>Known problems</h1>
+<h2><a name="Known_problems"></a>Known problems</h2>
 
 <p>
 See the <a href="News.htm">release news</a> for details.
 
-<h2><a name="Usage"></a>Usage</h2>
+<h3><a name="Usage"></a>Usage</h3>
 
 <p>
 On a DOS system, interrupting the interpreter by typing control-C doesn't
 restore the display mode.
 
-<h2><a name="Limitations"></a>Limitations</h2>
+<h3><a name="Limitations"></a>Limitations</h3>
 
 <p>
 <b><tt>serialnumber</tt></b> returns the same value in all copies.
@@ -235,12 +231,12 @@ larger than +/-2^<small><sup>19</sup></small> will cause a
 limitcheck.  However, the common ones (<b><tt>[r]moveto</tt></b>,
 <b><tt>[r]lineto</tt></b>, <b><tt>[r]curveto</tt></b>, <b><tt>closepath</tt></b>) will not.
 
-<h2><a name="Graphics_bugs"></a>Graphics bugs</h2>
+<h3><a name="Graphics_bugs"></a>Graphics bugs</h3>
 
 <p>
 There are no known graphics bugs in this release.
 
-<h2><a name="Non_graphics_bugs"></a>Non-graphics bugs</h2>
+<h3><a name="Non_graphics_bugs"></a>Non-graphics bugs</h3>
 
 <p>
 The <b><tt>definefont</tt></b> operator (Subrs (type 1 fonts)) expects
@@ -255,19 +251,18 @@ message specified by the Adobe documentation.
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 1997, 1998, 1999 Aladdin Enterprises.
+All rights reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

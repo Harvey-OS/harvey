@@ -40,9 +40,9 @@ enum
 	MaxQ,
 
 	Maxconv= 256,		// power of 2
-	Nfs= 4,				// number of file systems
+	Nfs= 4,			// number of file systems
 	MaxRetries=	12,
-	KeepAlive = 120,	// keep alive in seconds
+	KeepAlive = 300,	// keep alive in seconds - should probably be about 60 but is higher to avoid linksys bug
 	SecretLength= 32,	// a secret per direction
 	SeqMax = (1<<24),
 	SeqWindow = 32,
@@ -1422,7 +1422,7 @@ if(0)print("conviconnect: %s: %d %uld %uld\n", convstatename[c->state], subtype,
 	}
 Reset:
 	// invalid connection message - reset to sender
-if(0)print("invalid conviconnect - sending reset\n");
+if(1)print("invalid conviconnect - sending reset\n");
 	convoconnect(c, ConReset, dialid, acceptid);
 	convsetstate(c, CClosed);
 }

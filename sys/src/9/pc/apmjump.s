@@ -7,9 +7,9 @@
 
 #include "mem.h"
 
-#define SSOVERRIDE		BYTE $0x36
+#define SSOVERRIDE	BYTE $0x36
 #define CSOVERRIDE	BYTE $0x2E
-#define RETF			BYTE $0xCB
+#define RETF		BYTE $0xCB
 
 GLOBL	apmjumpstruct+0(SB), $8
 
@@ -19,7 +19,7 @@ TEXT fortytwo(SB), $0
 
 TEXT getcs(SB), $0
 	PUSHL	CS
-	POPL		AX
+	POPL	AX
 	RET
 
 TEXT apmfarcall(SB), $0
@@ -55,14 +55,14 @@ TEXT apmfarcall(SB), $0
 	PUSHL	DX
 	XORL	DX, DX
 	PUSHL	DX
-	POPL		DS
+	POPL	DS
 	PUSHL	DX
-	POPL		ES
+	POPL	ES
 	PUSHL	DX
-	POPL		FS
+	POPL	FS
 	PUSHL	DX
-	POPL		GS
-	POPL		DX
+	POPL	GS
+	POPL	DX
 	 */
 
 	PUSHL	$APMDSEG
@@ -83,7 +83,7 @@ TEXT apmfarcall(SB), $0
 	POPL	DS
 
 	PUSHFL
-	POPL		64(DI)
+	POPL	64(DI)
 
 	/* store interesting registers back in Ureg */
 	MOVL	AX, 28(DI)
@@ -93,6 +93,6 @@ TEXT apmfarcall(SB), $0
 	MOVL	SI, 4(DI)
 
 	PUSHFL
-	POPL		AX
+	POPL	AX
 	ANDL	$1, AX	/* carry flag */
 	RET

@@ -1194,7 +1194,7 @@ bad:
 		}
 		return;
 	}
-	diag("doasm: notfound %P\n", p);
+	diag("doasm: notfound t2=%lux from=%lux to=%lux %P\n", t[2], p->from.type, p->to.type, p);
 	return;
 
 mfound:

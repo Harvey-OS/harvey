@@ -228,7 +228,13 @@ release4.html:	release4.ms
 	{ echo $FONTS; cat release4.ms } | tbl | ms2html | uniq > $target
 
 %.pdf: %.ps
+	# must generate PDF from unsullied PS
+	fn cleanps {}
+	mv $stem.ps _$stem.ps
+	mk $stem.ps
 	distill $stem.ps
+	fn cleanps
+	mv _$stem.ps $stem.ps
 
 %.all:V:
 	mk $stem.ps $stem.pdf $stem.html

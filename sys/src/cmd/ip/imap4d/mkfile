@@ -23,4 +23,10 @@ HFILES=imap4d.h\
 
 TARG=imap4d
 BIN=/$objtype/bin/ip
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/%}\
+
 </sys/src/cmd/mkone

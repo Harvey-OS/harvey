@@ -13,37 +13,43 @@
  * a+ a+b ab+	open to read and write, positioned at eof, creating if non-existant.
  */
 FILE *freopen(const char *name, const char *mode, FILE *f){
-	if(f->state!=CLOSED) fclose(f);
-	if(mode[1]=='+' || mode[2]=='+'){
-		if(mode[0]=='w') f->fd=create(name, 2, 0666);
-		else{
-			f->fd=open(name, 2);
-			if(mode[0]=='a'){
-				if(f->fd<0)
-					f->fd=create(name, 2, 0666);
-				if(f->fd>=0)
-					seek(f->fd, 0L, 2);
-			}
-		}
+	int m;
+
+	if(f->state!=CLOSED){
+		fclose(f);
+		f->state=OPEN;
 	}
-	else{
-		switch(mode[0]){
-		default: return NULL;
-		case 'r':
-			f->fd=open(name, 0);
-			break;
-		case 'w':
-			f->fd=create(name, 1, 0666);
-			break;
-		case 'a':
-			f->fd=open(name, 1);
-			if(f->fd==-1)
-				f->fd=create(name, 1, 0666);
-			seek(f->fd, 0L, 2);
-			break;
-		}
+
+	m = *mode++;
+	if(m == 0)
+		return NULL;
+	if(*mode == 'b')
+		mode++;
+	switch(m){
+	default:
+		return NULL;
+	case 'r':
+		m = 0;
+		if(*mode == '+') m = 2;
+		f->fd=open(name, m);
+		break;
+	case 'w':
+		m = 1;
+		if(*mode == '+') m = 2;
+		f->fd=create(name, m, 0666);
+		break;
+	case 'a':
+		m = 1;
+		if(*mode == '+') m = 2;
+		f->fd=open(name, m);
+		if(f->fd<0)
+			f->fd=create(name, m, 0666);
+		seek(f->fd, 0L, 2);
+		break;
 	}
-	if(f->fd==-1) return NULL;
+
+	if(f->fd==-1)
+		return NULL;
 	f->flags=(mode[0]=='a')? APPEND : 0;
 	f->state=OPEN;
 	f->buf=0;

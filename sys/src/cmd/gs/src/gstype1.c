@@ -1,22 +1,22 @@
 /* Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gstype1.c,v 1.2 2000/03/10 04:29:37 lpd Exp $ */
+/*$Id: gstype1.c,v 1.6 2000/11/23 23:34:22 lpd Exp $ */
 /* Adobe Type 1 charstring interpreter */
 #include "math_.h"
 #include "memory_.h"
@@ -74,7 +74,7 @@ gs_type1_interpret(gs_type1_state * pcis, const gs_const_string * str,
 #define ics5 fixed2int_var(cs5)
     cs_ptr csp;
 #define clear CLEAR_CSTACK(cstack, csp)
-    ip_state *ipsp = &pcis->ipstack[pcis->ips_count - 1];
+    ip_state_t *ipsp = &pcis->ipstack[pcis->ips_count - 1];
     register const byte *cip;
     register crypt_state state;
     register int c;
@@ -100,6 +100,7 @@ gs_type1_interpret(gs_type1_state * pcis, const gs_const_string * str,
     if (str == 0)
 	goto cont;
     ipsp->char_string = *str;
+    ipsp->free_char_string = 0;	/* don't free caller-supplied strings */
     cip = str->data;
   call:state = crypt_charstring_seed;
     if (encrypted) {
@@ -188,16 +189,22 @@ gs_type1_interpret(gs_type1_state * pcis, const gs_const_string * str,
 		return_error(gs_error_invalidfont);
 	    case c_callsubr:
 		c = fixed2int_var(*csp) + pdata->subroutineNumberBias;
-		code = (*pdata->procs->subr_data)
+		code = pdata->procs.subr_data
 		    (pfont, c, false, &ipsp[1].char_string);
 		if (code < 0)
 		    return_error(code);
 		--csp;
 		ipsp->ip = cip, ipsp->dstate = state;
 		++ipsp;
+		ipsp->free_char_string = code;
 		cip = ipsp->char_string.data;
 		goto call;
 	    case c_return:
+		if (ipsp->free_char_string > 0)
+		    gs_free_const_string(pfont->memory,
+					 ipsp->char_string.data,
+					 ipsp->char_string.size,
+					 "gs_type1_interpret");
 		--ipsp;
 		goto cont;
 	    case c_undoc15:
@@ -500,27 +507,12 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 				    cnext;
 				case 14:
 				    num_results = 1;
-				  blend:{
-					int num_values = fixed2int_var(csp[-1]);
-					int k1 = num_values / num_results - 1;
-					int i, j;
-					cs_ptr base, deltas;
-
-					if (num_values < num_results ||
-					    num_values % num_results != 0
-					    )
-					    return_error(gs_error_invalidfont);
-					base = csp - 1 - num_values;
-					deltas = base + num_results - 1;
-					for (j = 0; j < num_results;
-					     j++, base++, deltas += k1
-					    )
-					    for (i = 1; i <= k1; i++)
-						*base += deltas[i] *
-						    pdata->WeightVector.values[i];
-					csp = base - 1;
-				    }
-				    pcis->ignore_pops = num_results;
+				  blend:
+				    code = gs_type1_blend(pcis, csp,
+							  num_results);
+				    if (code < 0)
+					return code;
+				    csp -= code;
 				    inext;
 				case 15:
 				    num_results = 2;
@@ -549,7 +541,7 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 				)
 				return_error(gs_error_invalidfont);
 			    n = fixed2int_var(csp[-1]);
-			    code = (*pdata->procs->push_values)
+			    code = (*pdata->procs.push_values)
 				(pcis->callback_data, csp - (n + 1), n);
 			    if (code < 0)
 				return_error(code);
@@ -573,7 +565,7 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 			    inext;
 			}
 			++csp;
-			code = (*pdata->procs->pop_value)
+			code = (*pdata->procs.pop_value)
 			    (pcis->callback_data, csp);
 			if (code < 0)
 			    return_error(code);

@@ -9,9 +9,15 @@
 		auth d555 sys sys
 			factotum	555 sys sys
 		aux	d555 sys sys
+			isvmware	555 sys sys
 			mouse	555 sys sys
 			pcmcia	555 sys sys
+		#	stub	555 sys sys
 			vga	555 sys sys
+			vmware	555 sys sys /sys/lib/dist/pc/sub/vmware
+		#	vmware	555 sys sys
+		#	vmwarefs	555 sys sys
+		#	vmmousepoll	555 sys sys
 		disk	d775 sys sys
 			fdisk	555 sys sys
 			format	555 sys sys
@@ -104,6 +110,7 @@ fd	d555 sys sys
 mnt	d777 sys sys
 	arch	d000 sys sys
 	temp d000 sys sys
+	vmware	d000 sys sys
 	wsys	d000 sys sys
 n	d777 sys sys
 	a:	d000 sys sys

@@ -58,7 +58,7 @@ enum
 };
 
 Fid	*fids;
-Fcall	thdr, rhdr;
+Fcall	rhdr, thdr;
 int 	blocksize;
 int 	cachesize = 20;
 int	mesgsize = 8*1024 + IOHDRSZ;
@@ -124,7 +124,7 @@ char 	*(*fcalls[])(Fid*) = {
 
 char	Eperm[] =	"permission denied";
 char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"no authentication required";
+char	Enoauth[] =	"authentication not required";
 char	Enotexist[] =	"file does not exist";
 char	Einuse[] =	"file in use";
 char	Eexist[] =	"file exists";
@@ -232,13 +232,13 @@ rversion(Fid*)
 	for(f = fids; f; f = f->next)
 		if(f->busy)
 			rclunk(f);
-	if(thdr.msize > mesgsize)
-		rhdr.msize = mesgsize;
+	if(rhdr.msize > mesgsize)
+		thdr.msize = mesgsize;
 	else
-		rhdr.msize = thdr.msize;
-	if(strcmp(thdr.version, "9P2000") != 0)
+		thdr.msize = rhdr.msize;
+	if(strcmp(rhdr.version, "9P2000") != 0)
 		return Eversion;
-	rhdr.version = "9P2000";
+	thdr.version = "9P2000";
 	return 0;
 }
 
@@ -261,9 +261,9 @@ rattach(Fid *f)
 	/* no authentication! */
 	f->busy = 1;
 	f->paq = paqCpy(root);
-	rhdr.qid = f->paq->qid;
-	if(thdr.uname[0])
-		f->user = estrdup(thdr.uname);
+	thdr.qid = f->paq->qid;
+	if(rhdr.uname[0])
+		f->user = estrdup(rhdr.uname);
 	else
 		f->user = "none";
 	return 0;
@@ -278,7 +278,7 @@ clone(Fid *f, Fid **res)
 		return Eisopen;
 	if(f->busy == 0)
 		return Enotexist;
-	nf = newfid(thdr.newfid);
+	nf = newfid(rhdr.newfid);
 	nf->busy = 1;
 	nf->open = 0;
 	nf->paq = paqCpy(f->paq);
@@ -299,18 +299,18 @@ rwalk(Fid *f)
 	if(f->busy == 0)
 		return Enotexist;
 	nf = nil;
-	if(thdr.fid != thdr.newfid){
+	if(rhdr.fid != rhdr.newfid){
 		err = clone(f, &nf);
 		if(err)
 			return err;
 		f = nf;	/* walk the new fid */
 	}
 
-	nwname = thdr.nwname;
+	nwname = rhdr.nwname;
 
 	/* easy case */
 	if(nwname == 0) {
-		rhdr.nwqid = 0;
+		thdr.nwqid = 0;
 		return 0;
 	}
 
@@ -327,7 +327,7 @@ rwalk(Fid *f)
 			err = Eperm;
 			break;
 		}
-		npaq = paqWalk(paq, thdr.wname[nqid]);
+		npaq = paqWalk(paq, rhdr.wname[nqid]);
 		if(npaq == nil) {
 			err = Enotexist;
 			break;
@@ -335,10 +335,10 @@ rwalk(Fid *f)
 		paqFree(paq);
 		paq = npaq;
 		qid = paq->qid;
-		rhdr.wqid[nqid] = qid;
+		thdr.wqid[nqid] = qid;
 	}
 
-	rhdr.nwqid = nqid;
+	thdr.nwqid = nqid;
 
 	if(nqid == nwname){
 		/* success */
@@ -367,11 +367,11 @@ ropen(Fid *f)
 		return Eisopen;
 	if(f->busy == 0)
 		return Enotexist;
-	mode = thdr.mode;
+	mode = rhdr.mode;
 	if(f->paq->qid.type & QTDIR){
 		if(mode != OREAD)
 			return Eperm;
-		rhdr.qid = f->paq->qid;
+		thdr.qid = f->paq->qid;
 		return 0;
 	}
 	if(mode & ORCLOSE)
@@ -386,7 +386,7 @@ ropen(Fid *f)
 	if(mode==OEXEC)
 		if(!perm(f->paq->dir, f->user, Pexec))
 			return Eperm;
-	rhdr.qid = f->paq->qid;
+	thdr.qid = f->paq->qid;
 	f->open = 1;
 	return 0;
 }
@@ -411,9 +411,9 @@ readdir(Fid *f)
 	uchar *buf;
 	Block *ptr, *b;
 
-	buf = (uchar*)rhdr.data;
-	cnt = thdr.count;
-	if(thdr.offset == 0)
+	buf = (uchar*)thdr.data;
+	cnt = rhdr.count;
+	if(rhdr.offset == 0)
 		f->offset = 0;
 	off = f->offset;
 
@@ -423,7 +423,7 @@ readdir(Fid *f)
 	i = off/blocksize;
 	off -= i*blocksize;
 
-	rhdr.count = 0;
+	thdr.count = 0;
 	b = blockLoad(getl(ptr->data + i*4), DirBlock);
 	while(b != nil) {
 		p = b->data + off;
@@ -434,7 +434,7 @@ readdir(Fid *f)
 			paqDirFree(pd);
 			if(n == 0) {
 				blockFree(b);
-				if(rhdr.count == 0) {
+				if(thdr.count == 0) {
 					blockFree(ptr);
 					return Edirtoobig;
 				}
@@ -443,7 +443,7 @@ readdir(Fid *f)
 			off += gets(p);
 			cnt -= n;
 			buf += n;
-			rhdr.count += n;
+			thdr.count += n;
 		} else {
 			off = 0;
 			i++;
@@ -471,18 +471,17 @@ rread(Fid *f)
 	if(f->paq->qid.type & QTDIR)
 		return readdir(f);
 	pd = f->paq->dir;
-	off = thdr.offset;
-	buf = (uchar*)rhdr.data;
-	cnt = thdr.count;
+	off = rhdr.offset;
+	buf = (uchar*)thdr.data;
+	cnt = rhdr.count;
 
-	rhdr.count = 0;
-	if(off >= pd->length || cnt == 0){
+	thdr.count = 0;
+	if(off >= pd->length || cnt == 0)
 		return 0;
-	}
 
-	if(cnt > pd->length - off){
+	if(cnt > pd->length - off)
 		cnt = pd->length - off;
-	}
+
 	ptr = blockLoad(pd->offset, PointerBlock);
 	if(ptr == nil)
 		return Ebadblock;
@@ -501,7 +500,7 @@ rread(Fid *f)
 			n = cnt;
 		memmove(buf, b->data + off, n);
 		cnt -= n;
-		rhdr.count += n;
+		thdr.count += n;
 		buf += n;
 		off = 0;
 		i++;
@@ -541,9 +540,9 @@ rstat(Fid *f)
 {
 	if(f->busy == 0)
 		return Enotexist;
-	rhdr.stat = (uchar*)rhdr.data;
-	rhdr.nstat = packDir(f->paq->dir, rhdr.stat, mesgsize);
-	if(rhdr.nstat == 0)
+	thdr.stat = (uchar*)thdr.data;
+	thdr.nstat = packDir(f->paq->dir, thdr.stat, mesgsize);
+	if(thdr.nstat == 0)
 		return Edirtoobig;
 	return 0;
 }
@@ -766,28 +765,28 @@ io(int fd)
 			sysfatal("mount read");
 		if(n == 0)
 			break;
-		if(convM2S(mdata, n, &thdr) == 0)
+		if(convM2S(mdata, n, &rhdr) == 0)
 			continue;
 
 		if(debug)
-			fprint(2, "paqfs %d:<-%F\n", pid, &thdr);
+			fprint(2, "paqfs %d:<-%F\n", pid, &rhdr);
 
-		rhdr.data = (char*)mdata + IOHDRSZ;
-		if(!fcalls[thdr.type])
+		thdr.data = (char*)mdata + IOHDRSZ;
+		if(!fcalls[rhdr.type])
 			err = "bad fcall type";
 		else
-			err = (*fcalls[thdr.type])(newfid(thdr.fid));
+			err = (*fcalls[rhdr.type])(newfid(rhdr.fid));
 		if(err){
-			rhdr.type = Rerror;
-			rhdr.ename = err;
+			thdr.type = Rerror;
+			thdr.ename = err;
 		}else{
-			rhdr.type = thdr.type + 1;
-			rhdr.fid = thdr.fid;
+			thdr.type = rhdr.type + 1;
+			thdr.fid = rhdr.fid;
 		}
-		rhdr.tag = thdr.tag;
+		thdr.tag = rhdr.tag;
 		if(debug)
-			fprint(2, "paqfs %d:->%F\n", pid, &rhdr);/**/
-		n = convS2M(&rhdr, mdata, mesgsize);
+			fprint(2, "paqfs %d:->%F\n", pid, &thdr);/**/
+		n = convS2M(&thdr, mdata, mesgsize);
 		if(n == 0)
 			sysfatal("convS2M sysfatal on write");
 		if(write(fd, mdata, n) != n)

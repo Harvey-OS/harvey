@@ -12,7 +12,6 @@ TARG=\
 	pbs\
 	pbslba\
 
-
 CORE=\
 	alarm.$O\
 	cga.$O\
@@ -22,8 +21,10 @@ CORE=\
 	donprint.$O\
 	devfloppy.$O\
 	dma.$O\
+	fs.$O\
 	ilock.$O\
 	kbd.$O\
+	kfsboot.$O\
 	queue.$O\
 	trap.$O\
 
@@ -125,7 +126,8 @@ ld.$O:	l.s
 l.$O pbs.$O pbslba.$O mbr.$O:	x16.h
 
 clock.$O floppy.$O trap.$O:	ureg.h
-conf.$O dosboot.$O main.$O:	dosfs.h
+bcom.$O conf.$O devfloppy.$O devsd.$O dosboot.$O fs.$O \
+	kfsboot.$O load.$O part.$O:	dosfs.h fs.h kfs.h
 ether.$O etherelnk3.$O:	etherif.h
 devsd.$O part.$O sdata.$O sdscsi.$O: sd.h
 bootp.$O:	ip.h
@@ -155,4 +157,30 @@ install:V:
 
 $BIN/%:	%
 	cp $stem $BIN/$stem
+
+UPDATE=\
+	mkfile\
+	${CORE:%.$O=%.c}\
+	${LOAD:%.$O=%.c}\
+	${BCOM:%.$O=%.c}\
+	${ETHER:%.$O=%.c}\
+	$HFILES\
+	l.s\
+	noether.c\
+	pbs.s\
+	pbslba.s\
+	mbr.s\
+	x16.h\
+	ureg.h\
+	dosfs.h\
+	fs.h\
+	kfs.h\
+	etherif.h\
+	sd.h\
+	ip.h\
+	devfloppy.h\
+	${TARG:%=/386/%}\
+
+update:V:
+	update $UPDATEFLAGS $UPDATE
 

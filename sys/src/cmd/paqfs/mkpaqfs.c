@@ -168,7 +168,7 @@ paqFile(char *name, Dir *dir)
 		if(n < blocksize)
 			continue;
 		if(nb >= blocksize/OffsetSize) {
-			warn("file too big for blocksize: %s");
+			warn("file too big for blocksize: %s", name);
 			goto Err;
 		}
 		offset = writeBlock(block, DataBlock);
@@ -322,7 +322,6 @@ writeHeader(char *label)
 	PaqHeader hdr;
 	uchar buf[HeaderSize];
 
-fprint(2, "label = %s\n", label);
 	memset(&hdr, 0, sizeof(hdr));
 	hdr.magic = HeaderMagic;
 	hdr.version = Version;

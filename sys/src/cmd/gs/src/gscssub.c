@@ -1,22 +1,22 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gscssub.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gscssub.c,v 1.3 2001/03/17 01:15:42 raph Exp $ */
 /* Color space substitution "operators" */
 #include "gx.h"
 #include "gserrors.h"
@@ -26,6 +26,9 @@
 #include "gzstate.h"
 
 /* .setsubstitutecolorspace */
+/* Note that, to support PDF, ICCBased color spaces may be used to substitute
+ * for the Device* color spaces (previously, only CIEBased color spaces could
+ * be used for this purpose). */
 int
 gs_setsubstitutecolorspace(gs_state *pgs, gs_color_space_index csi,
 			   const gs_color_space *pcs)
@@ -45,7 +48,12 @@ gs_setsubstitutecolorspace(gs_state *pgs, gs_color_space_index csi,
     if (index < 0 || index > 2)
 	return_error(gs_error_rangecheck);
     if (pcs) {
-	if (!masks[index] & (1 << gs_color_space_get_index(pcs)))
+        if (gs_color_space_get_index(pcs) == gs_color_space_index_CIEICC) {
+            static const byte dev_ncomps[3] = {1, 3, 4};
+
+             if (dev_ncomps[index] != cs_num_components(pcs))
+                 return_error(gs_error_rangecheck);
+        } else if (!masks[index] && (1 << gs_color_space_get_index(pcs)))
 	    return_error(gs_error_rangecheck);
     }
     pcs_old = pgs->device_color_spaces.indexed[index];

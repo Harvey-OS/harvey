@@ -124,9 +124,14 @@ enum
 	CL_AUDIO = 1,
 	CL_COMMS = 2,
 	CL_HID = 3,
+	CL_PHYSICAL = 5,
+	CL_IMAGE = 6,
 	CL_PRINTER = 7,
+	CL_STORAGE = 8,
 	CL_HUB = 9,
 	CL_DATA = 10,
+	CL_CHIP = 11,
+	CL_SECURITY = 13,
 };
 
 /*

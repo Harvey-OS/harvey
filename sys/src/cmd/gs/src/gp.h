@@ -1,22 +1,22 @@
 /* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gp.h,v 1.2 2000/03/18 01:45:16 lpd Exp $ */
+/*$Id: gp.h,v 1.8.2.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Interface to platform-specific routines */
 /* Requires gsmemory.h */
 
@@ -114,30 +114,19 @@ int gp_readline(P9(stream *s_in, stream *s_out, void *readline_data,
  */
 void gp_readline_finit(P1(void *readline_data));
 
-/* ------ Screen management ------ */
+/* ------ Reading from stdin, unbuffered if possible ------ */
 
-/*
- * The following routines are only relevant in a single-window environment
- * such as a PC; on platforms with window systems, the 'make current'
- * routines do nothing.
+/* Read bytes from stdin, using unbuffered if possible.
+ * Store up to len bytes in buf.
+ * Returns number of bytes read, or 0 if EOF, or -ve if error.
+ * If unbuffered is NOT possible, fetch 1 byte if interactive
+ * is non-zero, or up to len bytes otherwise.
+ * If unbuffered is possible, fetch at least 1 byte (unless error or EOF) 
+ * and any additional bytes that are available without blocking.
  */
+int gp_stdin_read(P4(char *buf, int len, int interactive, FILE *f));
 
-#ifndef gx_device_DEFINED
-#  define gx_device_DEFINED
-typedef struct gx_device_s gx_device;
-#endif
-
-/* Initialize the console. */
-void gp_init_console(P0());
-
-/* Write a string to the console. */
-void gp_console_puts(P2(const char *, uint));
-
-/* Make the console current on the screen. */
-int gp_make_console_current(P1(gx_device *));
-
-/* Make the graphics current on the screen. */
-int gp_make_graphics_current(P1(gx_device *));
+/* ------ Screen management ------ */
 
 /*
  * The following are only relevant for X Windows.
@@ -155,7 +144,7 @@ const char *gp_getenv_display(P0());
  * Note that this is the size of the buffer, not the maximum number of
  * characters: the latter is one less, because of the terminating \0.
  */
-#define gp_file_name_sizeof 128
+#define gp_file_name_sizeof 260 /* == MAX_PATH on Windows */
 
 /* Define the character used for separating file names in a list. */
 extern const char gp_file_name_list_separator;
@@ -190,16 +179,21 @@ FILE *gp_fopen(P2(const char *fname, const char *mode));
 
 /* Force given file into binary mode (no eol translations, etc) */
 /* if 2nd param true, text mode if 2nd param false */
-bool gp_setmode_binary(P2(FILE * pfile, bool mode));
+int gp_setmode_binary(P2(FILE * pfile, bool mode));
 
 /* Answer whether a file name contains a directory/device specification, */
 /* i.e. is absolute (not directory- or device-relative). */
 bool gp_file_name_is_absolute(P2(const char *fname, uint len));
 
+/* Answer whether a file name contains a parent directory reference, */
+/* e.g., "../somefile". Currently used for security purposes. */
+bool gp_file_name_references_parent(P2(const char *fname, uint len));
+
 /* Answer the string to be used for combining a directory/device prefix */
-/* with a base file name.  The file name is known to not be absolute. */
-const char *gp_file_name_concat_string(P4(const char *prefix, uint plen,
-					  const char *fname, uint len));
+/* with a base file name. The prefix directory/device is examined to	*/
+/* determine if a separator is needed and may return an empty string	*/
+/* in some cases (platform dependent).					*/
+const char *gp_file_name_concat_string(P2(const char *prefix, uint plen));
 
 /* ------ Printer accessing ------ */
 

@@ -19,7 +19,7 @@ PORT=\
 	fault.$O\
 	latin1.$O\
 	log.$O\
-	rebootcmd.$O\
+	nulledf.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\
@@ -29,6 +29,7 @@ PORT=\
 	qio.$O\
 	qlock.$O\
 	rdb.$O\
+	rebootcmd.$O\
 	segment.$O\
 	swap.$O\
 	sysfile.$O\

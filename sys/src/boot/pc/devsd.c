@@ -11,7 +11,7 @@
 #include "error.h"
 
 #include "sd.h"
-#include "dosfs.h"
+#include "fs.h"
 
 #define parttrace 0
 
@@ -21,6 +21,9 @@ extern SDifc* sdifc[];
 static SDev* sdlist;
 static SDunit** sdunit;
 static int sdnunit;
+static int _sdmask;
+static int cdmask;
+static int sdmask;
 
 enum {
 	Rawcmd,
@@ -221,8 +224,8 @@ _sddetach(void)
 	}
 }
 
-int
-sdinit(void)
+static int
+_sdinit(void)
 {
 	ulong m;
 	int i;
@@ -273,18 +276,41 @@ sdinit(void)
 	}
 
 	m = 0;
+	cdmask = sdmask = 0;
 	for(i=0; i<sdnunit && i < 32; i++) {
 		unit = sdindex2unit(i);
 		if(unit == nil)
 			continue;
 		sdinitpart(unit);
 		partition(unit);
-		if(unit->npart > 0)	/* BUG */
+		if(unit->npart > 0){	/* BUG */
+			if((unit->inquiry[0] & 0x1F) == 0x05)
+				cdmask |= (1<<i);
+			else
+				sdmask |= (1<<i);
 			m |= (1<<i);
+		}
 	}
 
 //notesdinfo();
+	_sdmask = m;
 	return m;
+}
+
+int
+cdinit(void)
+{
+	if(sdnunit == 0)
+		_sdinit();
+	return cdmask;
+}
+
+int
+sdinit(void)
+{
+	if(sdnunit == 0)
+		_sdinit();
+	return sdmask;
 }
 
 void
@@ -305,7 +331,9 @@ sdprintdevs(int i)
 	unit = sdindex2unit(i);
 	for(i=0; i<unit->npart; i++){
 		s = unit->part[i].name;
-		if(strncmp(s, "dos", 3) == 0 || strncmp(s, "9fat", 4) == 0)
+		if(strncmp(s, "dos", 3) == 0
+		|| strncmp(s, "9fat", 4) == 0
+		|| strncmp(s, "fs", 2) == 0)
 			print(" %s!%s", unit->name, s);
 	}
 }
@@ -333,38 +361,38 @@ sdfindpart(SDunit *unit, char *name)
 
 typedef struct Scsicrud Scsicrud;
 struct Scsicrud {
-	Dos;
+	Fs fs;
 	vlong offset;
 	SDunit *unit;
 	SDpart *part;
 };
 
 long
-sdread(Dos *vdos, void *v, long n)
+sdread(Fs *vcrud, void *v, long n)
 {
-	Scsicrud *dos;
+	Scsicrud *crud;
 	long x;
 
-	dos = (Scsicrud*)vdos;
-	x = sdbio(dos->unit, dos->part, v, n, dos->offset);
+	crud = (Scsicrud*)vcrud;
+	x = sdbio(crud->unit, crud->part, v, n, crud->offset);
 	if(x > 0)
-		dos->offset += x;
+		crud->offset += x;
 	return x;
 }
 
 vlong
-sdseek(Dos *vdos, vlong seek)
+sdseek(Fs *vcrud, vlong seek)
 {
-	((Scsicrud*)vdos)->offset = seek;
+	((Scsicrud*)vcrud)->offset = seek;
 	return seek;
 }
 
 void*
-sdgetdospart(int i, char *s, int chatty)
+sdgetfspart(int i, char *s, int chatty)
 {
 	SDunit *unit;
 	SDpart *p;
-	Scsicrud *dos;
+	Scsicrud *crud;
 
 	unit = sdindex2unit(i);
 	if((p = sdfindpart(unit, s)) == nil){
@@ -372,23 +400,23 @@ sdgetdospart(int i, char *s, int chatty)
 			print("unknown partition %s!%s\n", unit->name, s);
 		return nil;
 	}
-	if(p->dos == nil) {
-		dos = malloc(sizeof(Scsicrud));
-		dos->dev = i;
-		dos->read = sdread;
-		dos->seek = sdseek;
-		dos->start = 0;
-		dos->unit = unit;
-		dos->part = p;
-		if(dosinit(dos) < 0 && dosinit(dos) < 0){
+	if(p->crud == nil) {
+		crud = malloc(sizeof(Scsicrud));
+		crud->fs.dev = i;
+		crud->fs.diskread = sdread;
+		crud->fs.diskseek = sdseek;
+	//	crud->start = 0;
+		crud->unit = unit;
+		crud->part = p;
+		if(dosinit(&crud->fs) < 0 && dosinit(&crud->fs) < 0 && kfsinit(&crud->fs) < 0){
 			if(chatty)
-				print("partition %s!%s does not contain a DOS file system\n",
+				print("partition %s!%s does not contain a DOS or KFS file system\n",
 					unit->name, s);
 			return nil;
 		}
-		p->dos = dos;
+		p->crud = crud;
 	}
-	return p->dos;
+	return p->crud;
 }
 
 /*
@@ -421,7 +449,7 @@ int
 sdboot(int dev, char *pname, Boot *b)
 {
 	char *file;
-	Dos *dos;
+	Fs *fs;
 
 	if((file = strchr(pname, '!')) == nil) {
 		print("syntax is sdC0!partition!file\n");
@@ -429,11 +457,11 @@ sdboot(int dev, char *pname, Boot *b)
 	}
 	*file++ = '\0';
 
-	dos = sdgetdospart(dev, pname, 1);
-	if(dos == nil)
+	fs = sdgetfspart(dev, pname, 1);
+	if(fs == nil)
 		return -1;
 
-	return dosboot(dos, file, b);
+	return fsboot(fs, file, b);
 }
 
 long

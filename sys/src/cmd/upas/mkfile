@@ -5,6 +5,10 @@ PROGS=smtp alias fs ned misc q send scanmail pop3 ml marshal vf filterkit
 #libs must be made first
 DIRS=$LIBS $PROGS
 
+UPDATE=\
+	mkfile\
+	/sys/man/1/mail\
+
 all:V:
 	for (i in $DIRS) @{
 		cd $i
@@ -55,6 +59,14 @@ safeinstallall:V:
 	for (i in $DIRS) @{
 		cd $i
 		mk clean
+	}
+
+update:V:
+	update $UPDATEFLAGS $UPDATE
+	for (i in $DIRS) @{
+		cd $i
+		echo '>>>>>>>>>>' `{pwd} '<<<<<<<<<<<'
+		mk $MKFLAGS update
 	}
 
 #

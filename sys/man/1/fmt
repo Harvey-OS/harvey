@@ -40,9 +40,6 @@ A synonym for
 Indent
 .I n
 spaces (default 0).
-.TP
-.BI -j
-Don't join input lines, simply split them where necessary.
 .PP
 Empty lines and initial white space in input lines are preserved.
 Empty lines are inserted between input files.

@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1995, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevwdib.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevwdib.c,v 1.3 2001/03/12 03:56:13 ghostgum Exp $ */
 /* MS Windows 3.n driver for Ghostscript using a DIB for buffering. */
 #include "gdevmswn.h"
 #include "gxdevmem.h"
@@ -140,10 +140,12 @@ win_dib_open(gx_device * dev)
 	return code;
     }
     /* notify caller about new device */
-    (*pgsdll_callback) (GSDLL_DEVICE, (unsigned char *)dev, 1);
-    (*pgsdll_callback) (GSDLL_SIZE, (unsigned char *)dev,
+    if (pgsdll_callback) {
+	(*pgsdll_callback) (GSDLL_DEVICE, (unsigned char *)dev, 1);
+	(*pgsdll_callback) (GSDLL_SIZE, (unsigned char *)dev,
 			(dev->width & 0xffff) +
 			((ulong) (dev->height & 0xffff) << 16));
+    }
     return code;
 }
 
@@ -168,7 +170,8 @@ win_dib_close(gx_device * dev)
 
     /* wait until bitmap is not being used by caller */
     win_dib_lock_device((unsigned char *)dev, 1);
-    (*pgsdll_callback) (GSDLL_DEVICE, (unsigned char *)dev, 0);
+    if (pgsdll_callback)
+	(*pgsdll_callback) (GSDLL_DEVICE, (unsigned char *)dev, 0);
     win_dib_lock_device((unsigned char *)dev, 0);
     win_dib_free_bitmap((gx_device_win *) dev);
 #ifdef __WIN32__
@@ -604,7 +607,7 @@ win_dib_alloc_bitmap(gx_device_win * dev, gx_device * param_dev)
     wdev->mdev.base = (byte *) base;
     wmproc(open_device) ((gx_device *) & wdev->mdev);
 
-    if (wdev->is_open)
+    if (wdev->is_open && pgsdll_callback)
 	(*pgsdll_callback) (GSDLL_SIZE, (unsigned char *)dev,
 			    (dev->width & 0xffff) +
 			    ((ulong) (dev->height & 0xffff) << 16));

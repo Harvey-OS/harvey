@@ -365,7 +365,6 @@ xfidwrite(Xfid *x)
 	Range a;
 	Text *t;
 	uint q0, tq0, tq1;
-	Mntdir *md;
 
 	qid = FILE(x->f->qid);
 	w = x->f->w;
@@ -383,9 +382,10 @@ xfidwrite(Xfid *x)
 	x->data[x->count] = 0;
 	switch(qid){
 	case Qcons:
-		md = x->f->mntdir;
-		warning(md, "%s", x->data);
-		/* fall through */
+		w = errorwin(x->f->mntdir, 'X');
+		t=&w->body;
+		goto BodyTag;
+
 	case Qlabel:
 		fc.count = x->count;
 		respond(x, &fc, nil);

@@ -1,4 +1,13 @@
 #!/bin/rc
+
+# $proxy is typically set to tailfan's address.
+ipnet=`{grep 'ip=' /net/ndb | sed 's/^.*ip=([0-9]+\.[0-9]+\.[0-9]+\.).*$/\1/'}
+if (~ $proxy $ipnet^*){
+	# Use a proxy
+	echo import $proxy /net /net
+	import $proxy /net /net
+}
+
 switch($fs){
 case ''
 	echo you must set the environment variable fs

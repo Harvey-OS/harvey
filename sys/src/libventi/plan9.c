@@ -312,8 +312,8 @@ vtSleep(VtRendez *q)
 		p->hold = nil;
 	else {
 		p->hold = tt;
-		tt->next = nil;
 		p->qfirst = tt->next;
+		tt->next = nil;
 	}
 	if(q->wfirst == nil)
 		q->wfirst = t;

@@ -1,24 +1,24 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: iminst.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: iminst.h,v 1.5 2001/09/22 07:33:35 ghostgum Exp $ */
 /* Definition of interpreter instance */
-/* Requires stdio_.h, gsmemory.h, iref.h */
+/* Requires stdio_.h, gsmemory.h, iref.h, iapi.h */
 
 #ifndef iminst_INCLUDED
 #  define iminst_INCLUDED
@@ -52,6 +52,11 @@ typedef struct gs_file_path_s {
     uint count;
 } gs_file_path;
 
+/* buffer sizes for stdio */
+#define STDIN_BUF_SIZE 128
+#define STDOUT_BUF_SIZE 128
+#define STDERR_BUF_SIZE 128
+
 /*
  * Here is where we actually define the structure of interpreter instances.
  * Clients should not reference any of the members.  Note that in order to
@@ -63,6 +68,9 @@ struct gs_main_instance_s {
     FILE *fstdin;
     FILE *fstdout;
     FILE *fstderr;
+    FILE *fstdout2;		/* for redirecting %stdout and diagnostics */
+    bool stdout_is_redirected;	/* to stderr or fstdout2 */
+    bool stdout_to_stderr;
     bool stdin_is_interactive;
     gs_memory_t *heap;		/* (C) heap allocator */
     uint memory_chunk_size;	/* 'wholesale' allocation unit */
@@ -76,6 +84,16 @@ struct gs_main_instance_s {
     gs_file_path lib_path;	/* library search list (GS_LIB) */
     long base_time[2];		/* starting usertime */
     void *readline_data;	/* data for gp_readline */
+    char stdin_buf[STDIN_BUF_SIZE];	/* for e_NeedStdin callout */
+    char stdout_buf[STDOUT_BUF_SIZE];	/* for e_NeedStdout callout */
+    char stderr_buf[STDERR_BUF_SIZE];	/* for e_NeedStderr callout */
+    ref error_object;		/* Use by gsapi_*() */
+    void *caller_handle;	/* identifies caller of GS DLL/shared object */
+    int (GSDLLCALL *stdin_fn)(void *caller_handle, char *buf, int len);
+    int (GSDLLCALL *stdout_fn)(void *caller_handle, const char *str, int len);
+    int (GSDLLCALL *stderr_fn)(void *caller_handle, const char *str, int len);
+    int (GSDLLCALL *poll_fn)(void *caller_handle);
+    display_callback *display;	/* callback structure for display device */
     /* The following are updated dynamically. */
     i_ctx_t *i_ctx_p;		/* current interpreter context state */
 };
@@ -85,7 +103,7 @@ struct gs_main_instance_s {
  * must include gconfig.h, because of SEARCH_HERE_FIRST.
  */
 #define gs_main_instance_default_init_values\
-  0, 0, 0, 1 /*true*/, 0, 20000, 0, 0, -1, 0, SEARCH_HERE_FIRST, 1
+  0, 0, 0, 0, 0, 0 ,1 /*true*/, 0, 20000, 0, 0, -1, 0, SEARCH_HERE_FIRST, 1
 extern const gs_main_instance gs_main_instance_init_values;
 
 #endif /* iminst_INCLUDED */

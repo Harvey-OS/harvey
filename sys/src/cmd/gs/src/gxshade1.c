@@ -1,22 +1,22 @@
-/* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxshade1.c,v 1.2 2000/03/17 08:17:55 lpd Exp $ */
+/*$Id: gxshade1.c,v 1.9 2001/04/05 08:32:28 igorm Exp $ */
 /* Rendering for non-mesh shadings */
 #include "math_.h"
 #include "memory_.h"
@@ -32,6 +32,7 @@
 #include "gxistate.h"
 #include "gxpath.h"
 #include "gxshade.h"
+#include "gxdevcli.h"
 
 /* ================ Utilities ================ */
 
@@ -69,17 +70,22 @@ shade_fill_device_rectangle(const shading_fill_state_t * pfs,
 	ymin = p0->y, ymax = p1->y;
     else
 	ymin = p1->y, ymax = p0->y;
-    /****** NOT QUITE RIGHT FOR PIXROUND ******/
+
+    /* See gx_default_fill_path for an explanation of the tweak below. */
     xmin -= pis->fill_adjust.x;
+    if (pis->fill_adjust.x == fixed_half)
+	xmin += fixed_epsilon;
     xmax += pis->fill_adjust.x;
     ymin -= pis->fill_adjust.y;
+    if (pis->fill_adjust.y == fixed_half)
+	ymin += fixed_epsilon;
     ymax += pis->fill_adjust.y;
-    x = fixed2int_var(xmin);
-    y = fixed2int_var(ymin);
+    x = fixed2int_var_pixround(xmin);
+    y = fixed2int_var_pixround(ymin);
     return
 	gx_fill_rectangle_device_rop(x, y,
-				     fixed2int_var(xmax) - x,
-				     fixed2int_var(ymax) - y,
+				     fixed2int_var_pixround(xmax) - x,
+				     fixed2int_var_pixround(ymax) - y,
 				     pdevc, pfs->dev, pis->log_op);
 }
 
@@ -91,6 +97,10 @@ shade_fill_device_rectangle(const shading_fill_state_t * pfs,
 typedef struct Fb_frame_s {	/* recursion frame */
     gs_rect region;
     gs_client_color cc[4];	/* colors at 4 corners */
+    gs_paint_color c_min, c_max; /* estimated color range for the region */
+    bool painted;
+    bool devide_X;
+    int state;
 } Fb_frame_t;
 
 typedef struct Fb_fill_state_s {
@@ -99,148 +109,239 @@ typedef struct Fb_fill_state_s {
     gs_matrix_fixed ptm;	/* parameter space -> device space */
     bool orthogonal;		/* true iff ptm is xxyy or xyyx */
     int depth;			/* 1 <= depth < Fb_max_depth */
+    bool painted;               /* the last region is painted */
+    gs_paint_color c_min, c_max; /* estimated color range for the last region */
     Fb_frame_t frames[Fb_max_depth];
 } Fb_fill_state_t;
 /****** NEED GC DESCRIPTOR ******/
 
-private int
-Fb_fill_region(Fb_fill_state_t * pfs)
+#define CheckRET(a) { int code = a; if (code < 0) return code; }
+#define Exch(t,a,b) { t x; x = a; a = b; b = x; }
+
+private bool
+Fb_build_color_range(const Fb_fill_state_t * pfs, const Fb_frame_t * fp, 
+		     gs_paint_color * c_min, gs_paint_color * c_max)
 {
-    const gs_shading_Fb_t * const psh = pfs->psh;
-    gs_imager_state *pis = pfs->pis;
-    Fb_frame_t *fp = &pfs->frames[pfs->depth - 1];
+    int ci;
+    const gs_client_color *cc = fp->cc;
+    bool big = false;
+    for (ci = 0; ci < pfs->num_components; ++ci) {
+	float c0 = cc[0].paint.values[ci], c1 = cc[1].paint.values[ci],
+	      c2 = cc[2].paint.values[ci], c3 = cc[3].paint.values[ci];
+	float min01, max01, min23, max23;
+	if (c0 < c1)
+	    min01 = c0, max01 = c1;
+	else
+	    min01 = c1, max01 = c0;
+	if (c2 < c3)
+	    min23 = c2, max23 = c3;
+	else
+	    min23 = c3, max23 = c2;
+	c_max->values[ci] = max(max01, max23);
+	c_min->values[ci] = min(min01, min23);
+	big |= ((c_max->values[ci] - c_min->values[ci]) > pfs->cc_max_error[ci]);
+    }
+    return !big;
+}
 
-    for (;;) {
-	const double
-	    x0 = fp->region.p.x, y0 = fp->region.p.y,
-	    x1 = fp->region.q.x, y1 = fp->region.q.y;
+private bool 
+Fb_unite_color_range(const Fb_fill_state_t * pfs, 
+		     const gs_paint_color * c_min0, const gs_paint_color * c_max0, 
+		     gs_paint_color * c_min1, gs_paint_color * c_max1)
+{   int ci;
+    bool big = false;
+    for (ci = 0; ci < pfs->num_components; ++ci) {
+	c_min1->values[ci] = min(c_min1->values[ci], c_min0->values[ci]);
+	c_max1->values[ci] = max(c_max1->values[ci], c_max0->values[ci]);
+	big |= ((c_max1->values[ci] - c_min1->values[ci]) > pfs->cc_max_error[ci]);
+    }
+    return !big;
+}
 
-	if (!shade_colors4_converge(fp->cc,
-				    (const shading_fill_state_t *)pfs) &&
-	    fp < &pfs->frames[countof(pfs->frames) - 1]
-	    ) {
-	    /*
-	     * The colors don't converge.  Does the region color more than
-	     * a single pixel?
-	     */
-	    gs_rect region;
-
-	    gs_bbox_transform(&fp->region, (const gs_matrix *)&pfs->ptm,
-			      &region);
-	    if (region.q.x - region.p.x > 1 || region.q.y - region.p.y > 1)
-		goto recur;
-	    {
-		/*
-		 * More precisely, does the bounding box of the region,
-		 * taking fill adjustment into account, span more than 1
-		 * pixel center in either X or Y?
-		 */
-		fixed ax = pis->fill_adjust.x;
-		int nx =
-		    fixed2int_pixround(float2fixed(region.q.x) + ax) -
-		    fixed2int_pixround(float2fixed(region.p.x) - ax);
-		fixed ay = pis->fill_adjust.y;
-		int ny =
-		    fixed2int_pixround(float2fixed(region.q.y) + ay) -
-		    fixed2int_pixround(float2fixed(region.p.y) - ay);
-
-		if ((nx > 1 && ny != 0) || (ny > 1 && nx != 0))
-		    goto recur;
-	    }
-	    /* We could do the 1-pixel case a lot faster! */
+private int
+Fb_build_half_region(Fb_fill_state_t * pfs, int h, bool use_old)
+{   Fb_frame_t * fp0 = &pfs->frames[pfs->depth];
+    Fb_frame_t * fp1 = &pfs->frames[pfs->depth + 1];
+    gs_function_t *pfn = pfs->psh->params.Function;
+    const double x0 = fp0->region.p.x, y0 = fp0->region.p.y,
+		 x1 = fp0->region.q.x, y1 = fp0->region.q.y;
+    float v[2];
+    int code;
+    if (fp0->devide_X) {
+	double xm = (x0 + x1) * 0.5;
+	int h10 = (!h ? 1 : 0), h32 = (!h ? 3 : 2);
+	int h01 = (!h ? 0 : 1), h23 = (!h ? 2 : 3);
+	if_debug1('|', "[|]dividing at x=%g\n", xm);
+	if (use_old) {
+	    fp1->cc[h10].paint = fp1->cc[h01].paint;
+	    fp1->cc[h32].paint = fp1->cc[h23].paint;
+	} else {
+	    v[0] = xm, v[1] = y0;
+	    CheckRET(gs_function_evaluate(pfn, v, fp1->cc[h10].paint.values));
+	    v[1] = y1;
+	    CheckRET(gs_function_evaluate(pfn, v, fp1->cc[h32].paint.values));
 	}
-	/* Fill the region with the color. */
-	{
-	    gx_device_color dev_color;
-	    const gs_color_space *pcs = psh->params.ColorSpace;
-	    gs_client_color cc;
-	    gs_fixed_point pts[4];
-	    int code;
-
-	    if_debug0('|', "[|]... filling region\n");
-	    cc = fp->cc[0];
-	    (*pcs->type->restrict_color)(&cc, pcs);
-	    (*pcs->type->remap_color)(&cc, pcs, &dev_color, pis,
-				      pfs->dev, gs_color_select_texture);
-	    gs_point_transform2fixed(&pfs->ptm, x0, y0, &pts[0]);
-	    gs_point_transform2fixed(&pfs->ptm, x1, y1, &pts[2]);
-	    if (pfs->orthogonal) {
-		code =
-		    shade_fill_device_rectangle((const shading_fill_state_t *)pfs,
-						&pts[0], &pts[2], &dev_color);
-	    } else {
-		gx_path *ppath = gx_path_alloc(pis->memory, "Fb_fill");
-
-		gs_point_transform2fixed(&pfs->ptm, x1, y0, &pts[1]);
-		gs_point_transform2fixed(&pfs->ptm, x0, y1, &pts[3]);
-		gx_path_add_point(ppath, pts[0].x, pts[0].y);
-		gx_path_add_lines(ppath, pts + 1, 3);
-		code = shade_fill_path((const shading_fill_state_t *)pfs,
-				       ppath, &dev_color);
-		gx_path_free(ppath, "Fb_fill");
-	    }
-	    if (code < 0 || fp == &pfs->frames[0])
-		return code;
-	    --fp;
-	    continue;
+	fp1->cc[h01].paint = fp0->cc[h01].paint;
+	fp1->cc[h23].paint = fp0->cc[h23].paint;
+	if (!h) {
+	    fp1->region.p.x = x0, fp1->region.p.y = y0;
+	    fp1->region.q.x = xm, fp1->region.q.y = y1;
+	} else {
+	    fp1->region.p.x = xm, fp1->region.p.y = y0;
+	    fp1->region.q.x = x1, fp1->region.q.y = y1;
 	}
-
-	/*
-	 * No luck.  Subdivide the region and recur.
-	 *
-	 * We should subdivide on the axis that has the largest color
-	 * discrepancy, but for now we subdivide on the axis with the
-	 * largest coordinate difference.
-	 */
-    recur:
-	{
-	    gs_function_t *pfn = psh->params.Function;
-	    float v[2];
-	    int code;
-
-	    if (fabs(y1 - y0) > fabs(x1 - x0)) {
-		/* Subdivide in Y. */
-		double ym = (y0 + y1) * 0.5;
-
-		if_debug1('|', "[|]dividing at y=%g\n", ym);
-		v[1] = ym;
-		v[0] = x0;
-		code = gs_function_evaluate(pfn, v, fp[1].cc[2].paint.values);
-		if (code < 0)
-		    return code;
-		v[0] = x1;
-		code = gs_function_evaluate(pfn, v, fp[1].cc[3].paint.values);
-		fp[1].region.q.x = x1;
-		fp[1].region.q.y = fp->region.p.y = ym;
-		fp[1].cc[0].paint = fp->cc[0].paint;
-		fp[1].cc[1].paint = fp->cc[1].paint;
-		fp->cc[0].paint = fp[1].cc[2].paint;
-		fp->cc[1].paint = fp[1].cc[3].paint;
-	    } else {
-		/* Subdivide in X. */
-		double xm = (x0 + x1) * 0.5;
-
-		if_debug1('|', "[|]dividing at x=%g\n", xm);
-		v[0] = xm;
-		v[1] = y0;
-		code = gs_function_evaluate(pfn, v, fp[1].cc[1].paint.values);
-		if (code < 0)
-		    return code;
-		v[1] = y1;
-		code = gs_function_evaluate(pfn, v, fp[1].cc[3].paint.values);
-		fp[1].region.q.x = fp->region.p.x = xm;
-		fp[1].region.q.y = y1;
-		fp[1].cc[0].paint = fp->cc[0].paint;
-		fp[1].cc[2].paint = fp->cc[2].paint;
-		fp->cc[0].paint = fp[1].cc[1].paint;
-		fp->cc[2].paint = fp[1].cc[3].paint;
-	    }
-	    if (code < 0)
-		return code;
-	    fp[1].region.p.x = x0, fp[1].region.p.y = y0;
-	    ++fp;
+    } else {
+	double ym = (y0 + y1) * 0.5;
+	int h20 = (!h ? 2 : 0), h31 = (!h ? 3 : 1);
+	int h02 = (!h ? 0 : 2), h13 = (!h ? 1 : 3);
+	if_debug1('|', "[|]dividing at y=%g\n", ym);
+	if (use_old) {
+	    fp1->cc[h20].paint = fp1->cc[h02].paint;
+	    fp1->cc[h31].paint = fp1->cc[h13].paint;
+	} else {
+	    v[0] = x0, v[1] = ym;
+	    CheckRET(gs_function_evaluate(pfn, v, fp1->cc[h20].paint.values));
+	    v[0] = x1;
+	    CheckRET(gs_function_evaluate(pfn, v, fp1->cc[h31].paint.values));
+	}
+	fp1->cc[h02].paint = fp0->cc[h02].paint;
+	fp1->cc[h13].paint = fp0->cc[h13].paint;
+	if (!h) {
+	    fp1->region.p.x = x0, fp1->region.p.y = y0;
+	    fp1->region.q.x = x1, fp1->region.q.y = ym;
+	} else {
+	    fp1->region.p.x = x0, fp1->region.p.y = ym;
+	    fp1->region.q.x = x1, fp1->region.q.y = y1;
 	}
     }
+    return 0;
+}
+
+private int
+Fb_fill_region_with_constant_color(const Fb_fill_state_t * pfs, const Fb_frame_t * fp, gs_paint_color * c_min, gs_paint_color * c_max)
+{
+    const gs_shading_Fb_t * const psh = pfs->psh;
+    gx_device_color dev_color;
+    const gs_color_space *pcs = psh->params.ColorSpace;
+    gs_client_color cc;
+    gs_fixed_point pts[4];
+    int code, ci;
+
+    if_debug0('|', "[|]... filling region\n");
+    cc = fp->cc[0];
+    for (ci = 0; ci < pfs->num_components; ++ci)
+	cc.paint.values[ci] = (c_min->values[ci] + c_max->values[ci]) / 2;
+    (*pcs->type->restrict_color)(&cc, pcs);
+    (*pcs->type->remap_color)(&cc, pcs, &dev_color, pfs->pis,
+			      pfs->dev, gs_color_select_texture);
+    gs_point_transform2fixed(&pfs->ptm, fp->region.p.x, fp->region.p.y, &pts[0]);
+    gs_point_transform2fixed(&pfs->ptm, fp->region.q.x, fp->region.q.y, &pts[2]);
+    if (pfs->orthogonal) {
+	code = shade_fill_device_rectangle((const shading_fill_state_t *)pfs,
+					   &pts[0], &pts[2], &dev_color);
+    } else {
+	gx_path *ppath = gx_path_alloc(pfs->pis->memory, "Fb_fill");
+
+	gs_point_transform2fixed(&pfs->ptm, fp->region.q.x, fp->region.p.y, &pts[1]);
+	gs_point_transform2fixed(&pfs->ptm, fp->region.p.x, fp->region.q.y, &pts[3]);
+	gx_path_add_point(ppath, pts[0].x, pts[0].y);
+	gx_path_add_lines(ppath, pts + 1, 3);
+	code = shade_fill_path((const shading_fill_state_t *)pfs,
+			       ppath, &dev_color);
+	gx_path_free(ppath, "Fb_fill");
+    }
+    return code;
+}
+
+private int
+Fb_fill_region_lazy(Fb_fill_state_t * pfs)
+{   fixed minsize = fixed_1 * 7 / 10; /* pixels */
+    float min_extreme_dist = 4; /* points */
+    fixed min_edist_x = float2fixed(min_extreme_dist * pfs->dev->HWResolution[0] / 72); 
+    fixed min_edist_y = float2fixed(min_extreme_dist * pfs->dev->HWResolution[1] / 72); 
+    min_edist_x = max(min_edist_x, minsize);
+    min_edist_y = max(min_edist_y, minsize);
+    while (pfs->depth >= 0) {
+	Fb_frame_t * fp = &pfs->frames[pfs->depth];
+	fixed size_x, size_y;
+	bool single_extreme, single_pixel, small_color_diff = false;
+	switch (fp->state) {
+	    case 0:
+		fp->painted = false;
+		{   /* Region size in device space : */
+		    gs_point p, q;
+		    CheckRET(gs_distance_transform(fp->region.q.x - fp->region.p.x, 0, (gs_matrix *)&pfs->ptm, &p));
+		    CheckRET(gs_distance_transform(0, fp->region.q.y - fp->region.p.y, (gs_matrix *)&pfs->ptm, &q));
+		    size_x = float2fixed(hypot(p.x, p.y));
+		    size_y = float2fixed(hypot(q.x, q.y));
+		    single_extreme = (float2fixed(any_abs(p.x) + any_abs(q.x)) < min_edist_x && 
+		                      float2fixed(any_abs(p.y) + any_abs(q.y)) < min_edist_y);
+		    single_pixel = (size_x < minsize && size_y < minsize);
+		    /* Note: single_pixel implies single_extreme. */
+		}
+		if (single_extreme || pfs->depth >= Fb_max_depth - 1)
+		    small_color_diff = Fb_build_color_range(pfs, fp, &pfs->c_min, &pfs->c_max);
+		if (single_extreme && small_color_diff || 
+		    single_pixel ||
+		    pfs->depth >= Fb_max_depth - 1) {
+		    Fb_build_color_range(pfs, fp, &pfs->c_min, &pfs->c_max);
+		    -- pfs->depth;
+		    pfs->painted = false;
+		    break;
+		}
+		fp->state = 1;
+		fp->devide_X = (size_x > size_y);
+		CheckRET(Fb_build_half_region(pfs, 0, false));
+		++ pfs->depth; /* Do recur, left branch. */
+		pfs->frames[pfs->depth].state = 0;
+		break;
+	    case 1:
+		fp->painted = pfs->painted; /* Save return value. */
+		fp->c_min = pfs->c_min;	    /* Save return value. */
+		fp->c_max = pfs->c_max;	    /* Save return value. */
+		CheckRET(Fb_build_half_region(pfs, 1, true));
+		fp->state = 2;
+		++ pfs->depth; /* Do recur, right branch. */
+		pfs->frames[pfs->depth].state = 0;
+		break;
+	    case 2:
+		if (fp->painted && pfs->painted) { 
+		    /* Both branches are painted - do nothing */
+		} else if (fp->painted && !pfs->painted) { 
+		    CheckRET(Fb_fill_region_with_constant_color(pfs, fp + 1, &pfs->c_min, &pfs->c_max));
+		    pfs->painted = true;
+		} else if (!fp->painted && pfs->painted) { 
+		    CheckRET(Fb_build_half_region(pfs, 0, true));
+		    CheckRET(Fb_fill_region_with_constant_color(pfs, fp + 1, &fp->c_min, &fp->c_max));
+		} else {
+		    gs_paint_color c_min = pfs->c_min, c_max = pfs->c_max;
+		    if (Fb_unite_color_range(pfs, &fp->c_min, &fp->c_max, &pfs->c_min, &pfs->c_max)) {
+			/* Both halfs are not painted, and color range is small - do nothing */
+			/* return: pfs->painted = false; pfs->c_min, pfs->c_max are united. */
+		    } else {
+			/* Color range too big, paint each part with its color : */
+			CheckRET(Fb_fill_region_with_constant_color(pfs, fp + 1, &c_min, &c_max));
+			CheckRET(Fb_build_half_region(pfs, 0, true));
+			CheckRET(Fb_fill_region_with_constant_color(pfs, fp + 1, &fp->c_min, &fp->c_max));
+			pfs->painted = true;
+		    }
+		}
+		-- pfs->depth;
+		break;
+	}
+    }
+    return 0;
+}
+
+private int
+Fb_fill_region(Fb_fill_state_t * pfs)
+{   
+    pfs->depth = 0;
+    pfs->frames[0].state = 0;
+    CheckRET(Fb_fill_region_lazy(pfs));
+    if(!pfs->painted)
+	CheckRET(Fb_fill_region_with_constant_color(pfs, &pfs->frames[0], &pfs->c_min, &pfs->c_max));
+    return 0;
 }
 
 int
@@ -283,7 +384,6 @@ gs_shading_Fb_fill_rectangle(const gs_shading_t * psh0, const gs_rect * rect,
     state.frames[0].region.p.y = y[0];
     state.frames[0].region.q.x = x[1];
     state.frames[0].region.q.y = y[1];
-    state.depth = 1;
     return Fb_fill_region(&state);
 }
 
@@ -306,7 +406,7 @@ typedef struct A_fill_state_s {
     shading_fill_state_common;
     const gs_shading_A_t *psh;
     bool orthogonal;		/* true iff ctm is xxyy or xyyx */
-    gs_rect rect;
+    gs_rect rect;		/* bounding rectangle in user space */
     gs_point delta;
     double length, dd;
     int depth;
@@ -337,31 +437,55 @@ A_fill_stripe(const A_fill_state_t * pfs, gs_client_color *pcc,
     (*pcs->type->remap_color)(pcc, pcs, &dev_color, pis,
 			      pfs->dev, gs_color_select_texture);
     if (x0 == x1 && pfs->orthogonal) {
-	/* Stripe is horizontal in both user and device space. */
+	/*
+	 * Stripe is horizontal in user space and horizontal or vertical
+	 * in device space.
+	 */
 	x0 = pfs->rect.p.x;
 	x1 = pfs->rect.q.x;
     } else if (y0 == y1 && pfs->orthogonal) {
-	/* Stripe is vertical in both user and device space space. */
+	/*
+	 * Stripe is vertical in user space and horizontal or vertical
+	 * in device space.
+	 */
 	y0 = pfs->rect.p.y;
 	y1 = pfs->rect.q.y;
     } else {
 	/*
-	 * Stripe is neither horizontal nor vertical.
-	 * Extend it to the edges of the rectangle.
+	 * Stripe is neither horizontal nor vertical in user space.
+	 * Extend it to the edges of the (user-space) rectangle.
 	 */
 	gx_path *ppath = gx_path_alloc(pis->memory, "A_fill");
-	double dist = max(pfs->rect.q.x - pfs->rect.p.x,
-			  pfs->rect.q.y - pfs->rect.p.y);
-	double denom = hypot(pfs->delta.x, pfs->delta.y);
-	double dx = dist * pfs->delta.y / denom,
-	    dy = -dist * pfs->delta.x / denom;
+	if (fabs(pfs->delta.x) < fabs(pfs->delta.y)) {
+	    /*
+	     * Calculate intersections with vertical sides of rect.
+	     */
+	    double slope = pfs->delta.x / pfs->delta.y;
+	    double yi = y0 - slope * (pfs->rect.p.x - x0);
 
-	if_debug6('|', "[|]p0=(%g,%g), p1=(%g,%g), dxy=(%g,%g)\n",
-		  x0, y0, x1, y1, dx, dy);
-	gs_point_transform2fixed(&pis->ctm, x0 - dx, y0 - dy, &pts[0]);
-	gs_point_transform2fixed(&pis->ctm, x0 + dx, y0 + dy, &pts[1]);
-	gs_point_transform2fixed(&pis->ctm, x1 + dx, y1 + dy, &pts[2]);
-	gs_point_transform2fixed(&pis->ctm, x1 - dx, y1 - dy, &pts[3]);
+	    gs_point_transform2fixed(&pis->ctm, pfs->rect.p.x, yi, &pts[0]);
+	    yi = y1 - slope * (pfs->rect.p.x - x1);
+	    gs_point_transform2fixed(&pis->ctm, pfs->rect.p.x, yi, &pts[1]);
+	    yi = y1 - slope * (pfs->rect.q.x - x1);
+	    gs_point_transform2fixed(&pis->ctm, pfs->rect.q.x, yi, &pts[2]);
+	    yi = y0 - slope * (pfs->rect.q.x - x0);
+	    gs_point_transform2fixed(&pis->ctm, pfs->rect.q.x, yi, &pts[3]);
+	}
+	else {
+	    /*
+	     * Calculate intersections with horizontal sides of rect.
+	     */
+	    double slope = pfs->delta.y / pfs->delta.x;
+	    double xi = x0 - slope * (pfs->rect.p.y - y0);
+
+	    gs_point_transform2fixed(&pis->ctm, xi, pfs->rect.p.y, &pts[0]);
+	    xi = x1 - slope * (pfs->rect.p.y - y1);
+	    gs_point_transform2fixed(&pis->ctm, xi, pfs->rect.p.y, &pts[1]);
+	    xi = x1 - slope * (pfs->rect.q.y - y1);
+	    gs_point_transform2fixed(&pis->ctm, xi, pfs->rect.q.y, &pts[2]);
+	    xi = x0 - slope * (pfs->rect.q.y - y0);
+	    gs_point_transform2fixed(&pis->ctm, xi, pfs->rect.q.y, &pts[3]);
+	}
 	gx_path_add_point(ppath, pts[0].x, pts[0].y);
 	gx_path_add_lines(ppath, pts + 1, 3);
 	code = shade_fill_path((const shading_fill_state_t *)pfs,

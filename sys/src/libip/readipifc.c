@@ -43,7 +43,7 @@ _readoldipifc(char *buf, Ipifc **l, int index)
 	return l;
 }
 
-char*
+static char*
 findfield(char *name, char **f, int n)
 {
 	int i;

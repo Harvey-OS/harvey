@@ -17,6 +17,7 @@ static	int	server;
 static	int	nip;		/* number of ip interfaces */
 static	int	dying;		/* flag to signal to all threads its time to go */
 static	int	primary;	/* this is the primary IP interface */
+static	char	*chatfile;
 
 int	debug;
 char*	LOG = "ppp";
@@ -1319,6 +1320,7 @@ ppptimer(PPP *ppp)
 		sleep(Period);
 		qlock(ppp);
 
+		netlog("ppp: ppptimer\n");
 		ptimer(ppp, ppp->lcp);
 		if(ppp->lcp->state == Sopened) {
 			switch(ppp->phase){
@@ -2356,6 +2358,73 @@ connect(int fd, int cfd)
 	int n, ctl;
 	char xbuf[128];
 
+	if (chatfile) {
+		int chatfd, lineno, nb;
+		char *buf, *p, *s, response[128];
+		Dir *dir;
+
+		if ((chatfd = open(chatfile, OREAD)) < 0)
+			sysfatal("cannot open %s: %r", chatfile);
+
+		if ((dir = dirfstat(chatfd)) == nil)
+			sysfatal("cannot fstat %s: %r",chatfile);
+
+		buf = (char *)malloc(dir->length + 1);
+		assert(buf);
+
+		if ((nb = read(chatfd, buf, dir->length)) < 0)
+			sysfatal("cannot read chatfile %s: %r", chatfile);
+		assert(nb == dir->length);
+		buf[dir->length] = '\0';
+		free(dir);
+		close(chatfd);
+
+		p = buf;
+		lineno = 0;
+		while (1) {
+			char *_args[3];
+
+			if ((s = strchr(p, '\n')) == nil)
+				break;
+			*s++ = '\0';
+		
+			lineno++;
+
+			if (*p == '#') {
+				p = s; 
+				continue;
+			}
+
+			if (tokenize(p, _args, 3) != 2)
+				sysfatal("invalid line %d (line expected: 'send' 'expect')", 
+						lineno);
+
+			if (debug)
+				print("sending %s, expecting %s\n", _args[0], _args[1]);
+
+			if ((nb = write(fd, _args[0], strlen(_args[0]))) < 0)
+				sysfatal("cannot write %ss: %r", _args[0]);
+			assert(nb == strlen(_args[0]));
+
+			if (strlen(_args[1]) > 0) {
+				if ((nb = read(fd, response, sizeof response)) < 0)
+					sysfatal("cannot read response from: %r");
+
+				if (debug)
+					print("response %s\n", response);
+
+				if (nb == 0)
+					sysfatal("eof on input?\n");
+
+				if (cistrstr(response, _args[1]) == nil)
+					sysfatal("expected %s, got %s\n", _args[1], response);
+			}
+			p = s;
+		}
+		free(buf);
+		return;
+	}
+
 	print("Connect to file system now, type ctrl-d when done.\n");
 	print("...(Use the view or down arrow key to send a break)\n");
 	print("...(Use ctrl-e to set even parity or ctrl-o for odd)\n");
@@ -2477,6 +2546,9 @@ main(int argc, char **argv)
 		if(mtu > Maxmtu)
 			mtu = Maxmtu;
 		break;
+	case 'M':
+		chatfile = EARGF(usage());
+		break;
 	case 'p':
 		dev = ARGF();
 		break;
@@ -2585,12 +2657,21 @@ void
 netlog(char *fmt, ...)
 {
 	va_list arg;
+	char *m;
+	static long start;
+	long now;
+
+	now = time(0);
+	if(start == 0)
+		start = now;
 
 	if(debug == 0)
 		return;
 
 	va_start(arg, fmt);
-	vfprint(2, fmt, arg);
+	m = vsmprint(fmt, arg);
+	fprint(2, "%ld %s", now-start, m);
+	free(m);
 	va_end(arg);
 }
 

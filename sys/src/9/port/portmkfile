@@ -7,7 +7,7 @@ IPFILES=`{builtin cd ../ip;echo *.c | sed 's/ /|/g; s/\.c//g'}
 	$CC $CFLAGS -I. ../ip/$stem1.c
 
 %.$O:	%.s
-	$AS $stem.s
+	$AS $AFLAGS $stem.s
 
 %.$O:	%.c
 	$CC $CFLAGS $stem.c
@@ -119,6 +119,9 @@ rcmain.root.s: /rc/lib/rcmain
 %.root.s:	/$objtype/bin/ip/%
 	cp $prereq $stem.out
 	../port/mkroot $stem $stem
+
+%.embed.root.s: ../embed/%
+	aux/data2s $stem < $prereq > $target
 
 boot$CONF.root.s: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
 	$BOOTDIR/mkboot $CONF > boot$CONF.c

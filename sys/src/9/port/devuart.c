@@ -169,7 +169,7 @@ uartreset(void)
 	}
 
 	if(uartnuart)
-		uart = xalloc(uartnuart*sizeof(Uart));
+		uart = xalloc(uartnuart*sizeof(Uart*));
 
 	uartndir = 1 + 3*uartnuart;
 	uartdir = xalloc(uartndir * sizeof(Dirtab));
@@ -211,8 +211,9 @@ uartreset(void)
 		p = p->next;
 	}
 
-	if(uartnuart)
+	if(uartnuart){
 		addclock0link(uartclock);
+	}
 }
 
 

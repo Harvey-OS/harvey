@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000, 2001 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: stream.c,v 1.2 2000/03/10 03:40:13 lpd Exp $ */
+/*$Id: stream.c,v 1.15 2001/10/19 21:52:50 raph Exp $ */
 /* Stream package for Ghostscript interpreter */
 #include "stdio_.h"		/* includes std.h */
 #include "memory_.h"
@@ -45,6 +45,7 @@ else
     ENUM_RETURN(st->cbuf);
 ENUM_PTR3(1, stream, strm, prev, next);
 ENUM_PTR(4, stream, state);
+case 5: return ENUM_CONST_STRING(&st->file_name);
 ENUM_PTRS_END
 private RELOC_PTRS_WITH(stream_reloc_ptrs, stream *st)
 {
@@ -68,6 +69,7 @@ private RELOC_PTRS_WITH(stream_reloc_ptrs, stream *st)
     RELOC_VAR(st->prev);
     RELOC_VAR(st->next);
     RELOC_VAR(st->state);
+    RELOC_CONST_STRING_VAR(st->file_name);
 }
 RELOC_PTRS_END
 /* Finalize a stream by closing it. */
@@ -104,8 +106,11 @@ s_init(stream *s, gs_memory_t * mem)
 {
     s->memory = mem;
     s->report_error = s_no_report_error;
+    s->min_left = 0;
     s->error_string[0] = 0;
     s->prev = s->next = 0;	/* clean for GC */
+    s->file_name.data = 0;	/* ibid. */
+    s->file_name.size = 0;	
     s->close_strm = false;	/* default */
     s->close_at_eod = true;	/* default */
 }
@@ -130,6 +135,7 @@ s_init_state(stream_state *st, const stream_template *template,
     st->template = template;
     st->memory = mem;
     st->report_error = s_no_report_error;
+    st->min_left = 0;
 }
 stream_state *
 s_alloc_state(gs_memory_t * mem, gs_memory_type_ptr_t stype,
@@ -166,8 +172,47 @@ s_std_init(register stream * s, byte * ptr, uint len, const stream_procs * pp,
     s->procs = *pp;
     s->state = (stream_state *) s;	/* hack to avoid separate state */
     s->file = 0;
+    s->file_name.data = 0;	/* in case stream is on stack */
+    s->file_name.size = 0;
     if_debug4('s', "[s]init 0x%lx, buf=0x%lx, len=%u, modes=%d\n",
 	      (ulong) s, (ulong) ptr, len, modes);
+}
+
+
+/* Set the file name of a stream, copying the name. */
+/* Return <0 if the copy could not be allocated. */
+int
+ssetfilename(stream *s, const byte *data, uint size)
+{
+    byte *str =
+	(s->file_name.data == 0 ?
+	 gs_alloc_string(s->memory, size + 1, "ssetfilename") :
+	 gs_resize_string(s->memory,
+			  (byte *)s->file_name.data,	/* break const */
+			  s->file_name.size,
+			  size + 1, "ssetfilename"));
+
+    if (str == 0)
+	return -1;
+    memcpy(str, data, size);
+    str[size] = 0;
+    s->file_name.data = str;
+    s->file_name.size = size + 1;
+    return 0;
+}
+
+/* Return the file name of a stream, if any. */
+/* There is a guaranteed 0 byte after the string. */
+int
+sfilename(stream *s, gs_const_string *pfname)
+{
+    pfname->data = s->file_name.data;
+    if (pfname->data == 0) {
+	pfname->size = 0;
+	return -1;
+    }
+    pfname->size = s->file_name.size - 1; /* omit terminator */
+    return 0;
 }
 
 /* Implement a stream procedure as a no-op. */
@@ -259,6 +304,13 @@ s_disable(register stream * s)
     s->strm = 0;
     s->state = (stream_state *) s;
     s->template = &s_no_template;
+    /* Free the file name. */
+    if (s->file_name.data) {
+	gs_free_const_string(s->memory, s->file_name.data, s->file_name.size,
+			     "s_disable(file_name)");
+	s->file_name.data = 0;
+	s->file_name.size = 0;
+    }
     /****** SHOULD DO MORE THAN THIS ******/
     if_debug1('s', "[s]disable 0x%lx\n", (ulong) s);
 }
@@ -368,20 +420,6 @@ sclose(register stream * s)
     }
     s_disable(s);
     return code;
-}
-
-/*
- * Define the minimum amount of data that must be left in an input buffer
- * after a read operation to handle filter read-ahead.  This is 1 byte for
- * filters (including procedure data sources) that haven't reached EOD,
- * 0 for files.
- */
-int
-sbuf_min_left(const stream *s)
-{
-    return
-	(s->strm == 0 ? (s->end_status != CALLC ? 0 : 1) :
-	 s->end_status == EOFC || s->end_status == ERRC ? 0 : 1);
 }
 
 /*
@@ -695,10 +733,7 @@ s_process_write_buf(stream * s, bool last)
     int status = swritebuf(s, &s->cursor.r, last);
 
     stream_compact(s, false);
-    if (status >= 0)
-	status = 0;
-    s->end_status = status;
-    return status;
+    return (status >= 0 ? 0 : status);
 }
 
 /* Move forward or backward in a pipeline.  We temporarily reverse */
@@ -715,7 +750,12 @@ s_process_write_buf(stream * s, bool last)
     curr->strm = prev; prev = curr; curr = ahead;\
   END
 
-/* Read from a pipeline. */
+/*
+ * Read from a stream pipeline.  Update end_status for all streams that were
+ * actually touched.  Return the status from the outermost stream: this is
+ * normally the same as s->end_status, except that if s->procs.process
+ * returned 1, sreadbuf sets s->end_status to 0, but returns 1.
+ */
 private int
 sreadbuf(stream * s, stream_cursor_write * pbuf)
 {
@@ -725,11 +765,12 @@ sreadbuf(stream * s, stream_cursor_write * pbuf)
 
     for (;;) {
 	stream *strm;
+	stream_cursor_write *pw;
+	byte *oldpos;
 
 	for (;;) {		/* Descend into the recursion. */
 	    stream_cursor_read cr;
 	    stream_cursor_read *pr;
-	    stream_cursor_write *pw;
 	    int left;
 	    bool eof;
 
@@ -750,6 +791,7 @@ sreadbuf(stream * s, stream_cursor_write * pbuf)
 	    if_debug4('s', "[s]read process 0x%lx, nr=%u, nw=%u, eof=%d\n",
 		      (ulong) curr, (uint) (pr->limit - pr->ptr),
 		      (uint) (pw->limit - pw->ptr), eof);
+	    oldpos = pw->ptr;
 	    status = (*curr->procs.process) (curr->state, pr, pw, eof);
 	    pr->limit += left;
 	    if_debug4('s', "[s]after read 0x%lx, nr=%u, nw=%u, status=%d\n",
@@ -757,9 +799,11 @@ sreadbuf(stream * s, stream_cursor_write * pbuf)
 		      (uint) (pw->limit - pw->ptr), status);
 	    if (strm == 0 || status != 0)
 		break;
-	    status = strm->end_status;
-	    if (status < 0)
+	    if (strm->end_status < 0) {
+		if (strm->end_status != EOFC || pw->ptr == oldpos)
+		    status = strm->end_status;
 		break;
+	    }
 	    MOVE_AHEAD(curr, prev);
 	    stream_compact(curr, false);
 	}
@@ -773,15 +817,6 @@ sreadbuf(stream * s, stream_cursor_write * pbuf)
 	    if (cstat != 0)
 		status = cstat;
 	}
-#if 0
-	/* If we need to do a callout, unwind all the way now. */
-	if (status == CALLC) {
-	    while ((curr->end_status = status), prev != 0) {
-		MOVE_BACK(curr, prev);
-	    }
-	    return status;
-	}
-#endif
 	/* Unwind from the recursion. */
 	curr->end_status = (status >= 0 ? 0 : status);
 	if (prev == 0)
@@ -806,8 +841,6 @@ swritebuf(stream * s, stream_cursor_read * pbuf, bool last)
      * the first stream in the pipeline, or it is a temporary stream
      * below the first stream and the stream immediately above it has
      * end_status = EOFC.
-     *      - We never unwind the recursion past a stream with
-     * end_status < 0.
      */
     for (;;) {
 	for (;;) {
@@ -875,14 +908,19 @@ swritebuf(stream * s, stream_cursor_read * pbuf, bool last)
 	curr->end_status = (status >= 0 ? 0 : status);
 	if (status < 0 || prev == 0) {
 	    /*
-	     * All streams above here were called with last = true
-	     * and returned 0 or EOFC: finish unwinding and then
-	     * return.
+	     * All streams up to here were called with last = true
+	     * and returned 0 or EOFC (so their end_status is now EOFC):
+	     * finish unwinding and then return.  Change the status of
+	     * the prior streams to ERRC if the new status is ERRC,
+	     * otherwise leave it alone.
 	     */
 	    while (prev) {
 		if_debug0('s', "[s]unwinding\n");
 		MOVE_BACK(curr, prev);
-		curr->end_status = (status >= 0 ? 0 : status);
+		if (status >= 0)
+		    curr->end_status = 0;
+		else if (status == ERRC)
+		    curr->end_status = ERRC;
 	    }
 	    return status;
 	}
@@ -960,19 +998,24 @@ private void
 s_string_reusable_reset(stream *s)
 {
     s->srptr = s->cbuf - 1;	/* just reset to the beginning */
+    s->srlimit = s->srptr + s->bsize;  /* might have gotten reset */
 }
 private int
 s_string_reusable_flush(stream *s)
 {
-    s->srptr = s->srlimit;	/* just set to the end */
+    s->srptr = s->srlimit = s->cbuf + s->bsize - 1;  /* just set to the end */
     return 0;
 }
 void
 sread_string_reusable(stream *s, const byte *ptr, uint len)
 {
+    static const stream_procs p = {
+	 s_string_available, s_string_read_seek, s_string_reusable_reset,
+	 s_string_reusable_flush, s_std_null, s_string_read_process
+    };
+
     sread_string(s, ptr, len);
-    s->procs.reset = s_string_reusable_reset;
-    s->procs.flush = s_string_reusable_flush;
+    s->procs = p;
     s->close_at_eod = false;
 }
 
@@ -993,6 +1036,8 @@ s_string_read_seek(register stream * s, long pos)
     if (pos < 0 || pos > s->bsize)
 	return ERRC;
     s->srptr = s->cbuf + pos - 1;
+    /* We might be seeking after a reusable string reached EOF. */
+    s->srlimit = s->cbuf + s->bsize - 1;
     return 0;
 }
 
@@ -1065,8 +1110,8 @@ s_write_position_process(stream_state * st, stream_cursor_read * pr,
 /* ------ Filter pipelines ------ */
 
 /*
- * Add a filter to a pipeline.  The client must have allocated the stream
- * state, if any, using the given allocator.  For s_init_filter, the
+ * Add a filter to an output pipeline.  The client must have allocated the
+ * stream state, if any, using the given allocator.  For s_init_filter, the
  * client must have called s_init and s_init_state.
  */
 int
@@ -1075,7 +1120,7 @@ s_init_filter(stream *fs, stream_state *fss, byte *buf, uint bsize,
 {
     const stream_template *template = fss->template;
 
-    if (bsize < template->min_out_size)
+    if (bsize < template->min_in_size)
 	return ERRC;
     s_std_init(fs, buf, bsize, &s_filter_write_procs, s_mode_write);
     fs->procs.process = template->process;
@@ -1089,16 +1134,31 @@ stream *
 s_add_filter(stream **ps, const stream_template *template,
 	     stream_state *ss, gs_memory_t *mem)
 {
-    stream *es = s_alloc(mem, "s_add_filter(stream)");
-    stream_state *ess = (ss == 0 ? (stream_state *)es : ss);
-    uint bsize = max(template->min_out_size, 256);	/* arbitrary */
-    byte *buf = gs_alloc_bytes(mem, bsize, "s_add_filter(buf)");
+    stream *es;
+    stream_state *ess;
+    uint bsize = max(template->min_in_size, 256);	/* arbitrary */
+    byte *buf;
 
+    /*
+     * Ensure enough buffering.  This may require adding an additional
+     * stream.
+     */
+    if (bsize > (*ps)->bsize && template->process != s_NullE_template.process) {
+	stream_template null_template;
+
+	null_template = s_NullE_template;
+	null_template.min_in_size = bsize;
+	if (s_add_filter(ps, &null_template, NULL, mem) == 0)
+	    return 0;
+    }
+    es = s_alloc(mem, "s_add_filter(stream)");
+    buf = gs_alloc_bytes(mem, bsize, "s_add_filter(buf)");
     if (es == 0 || buf == 0) {
 	gs_free_object(mem, buf, "s_add_filter(buf)");
 	gs_free_object(mem, es, "s_add_filter(stream)");
 	return 0;
     }
+    ess = (ss == 0 ? (stream_state *)es : ss);
     ess->template = template;
     ess->memory = mem;
     es->memory = mem;
@@ -1134,3 +1194,21 @@ s_close_filters(stream **ps, stream *target)
     }
     return 0;
 }
+
+/* ------ NullEncode/Decode ------ */
+
+/* Process a buffer */
+private int
+s_Null_process(stream_state * st, stream_cursor_read * pr,
+	       stream_cursor_write * pw, bool last)
+{
+    return stream_move(pr, pw);
+}
+
+/* Stream template */
+const stream_template s_NullE_template = {
+    &st_stream_state, NULL, s_Null_process, 1, 1
+};
+const stream_template s_NullD_template = {
+    &st_stream_state, NULL, s_Null_process, 1, 1
+};

@@ -1,8 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>How to install Ghostscript</title>
-<!-- $Id: Install.htm,v 1.4 2000/03/15 07:29:53 lpd Exp $ -->
+<!-- $Id: Install.htm,v 1.26.2.2 2002/02/01 05:31:25 raph Exp $ -->
 <!-- Originally: install.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -10,11 +12,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-How to install Ghostscript
-</font>
-</table>
+<h1>How to install Ghostscript</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -26,6 +24,7 @@ How to install Ghostscript
 <li><a href="#Overview">Overview of how to install Ghostscript</a>
 <li><a href="#Install_Unix">Installing Ghostscript on Unix</a>
 <ul>
+<li><a href="#Shared_object">Ghostscript as a shared object</a>
 <li><a href="#Install_Linux">Additional notes on Linux</a>
 </ul>
 <li><a href="#Install_Windows">Installing Ghostscript on MS Windows</a>
@@ -50,7 +49,7 @@ code</a>".
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h1><a name="Overview"></a>Overview of how to install Ghostscript</h1>
+<h2><a name="Overview"></a>Overview of how to install Ghostscript</h2>
 
 <p>
 You must have three things to run Ghostscript:
@@ -91,7 +90,7 @@ files.
 
 <hr>
 
-<h1><a name="Install_Unix"></a>Installing Ghostscript on Unix</h1>
+<h2><a name="Install_Unix"></a>Installing Ghostscript on Unix</h2>
 
 <p>
 You need the file <b><tt>gs</tt></b> to run Ghostscript on Unix, and
@@ -120,7 +119,13 @@ Helvetica-Bold, Helvetica-BoldOblique, Helvetica-Oblique, Symbol, Times-Bold,
 Times-BoldItalic, Times-Italic, Times-Roman, ZapfDingbats
 </blockquote>
 
-<h2><a name="Install_Linux"></a>Additional notes on Linux</h2>
+<h3><a name="Shared_object"></a>Ghostscript as a shared object</h3>
+Instead of using "<b><tt>make install</tt></b>", you should use
+"<b><tt>make soinstall</tt></b>".  
+See <a href="Make.htm#Shared_object">how to build Ghostscript
+as a shared object</a> for more details.
+
+<h3><a name="Install_Linux"></a>Additional notes on Linux</h3>
 
 <p>
 Red Hat Linux 6 and later installs the Ghostscript base 35 fonts in
@@ -137,43 +142,30 @@ rpm -U ghostscript-fonts-N.NN-1.noarch.rpm
 </tt></b></blockquote>
 
 <p>
-However, please note that Aladdin Enterprises does not create RPMs for
-Ghostscript and takes no responsibility for RPMs created by others.
+However, please note that we do not create RPMs for Ghostscript, and we take
+no responsibility for RPMs created by others.
 
 <hr>
 
-<h1><a name="Install_Windows"></a>Installing Ghostscript on MS Windows</h1>
+<h2><a name="Install_Windows"></a>Installing Ghostscript on MS Windows</h2>
 
 <p>
-Aladdin Enterprises usually distributes Ghostscript releases for 
-Windows as self-extracting archive files, since this is the most 
-convenient form for users.  
-However, we or other parties may distribute releases in the form of 
-plain zip archives.  
+We usually distribute Ghostscript releases for Windows as self-extracting
+archive files, since this is the most convenient form for users.  These
+files can also be unpacked as if they were plain zip files.
 
 <p>
 The self-extracting archive is normally named
 <b><tt>gs###w32.exe</tt></b>,
-where ### is the release number (e.g., 403 for Ghostscript 4.03, 
-600 for Ghostscript 6.0).
+where ### is the release number (e.g., 650 for Ghostscript 6.50, 
+700 for Ghostscript 7.00).
 
-<p>
-The zip archive is normally named 
-<b><tt>gs###w32.zip</tt></b>, 
-where ### is the release number (e.g., 403 for Ghostscript 4.03, 
-600 for Ghostscript 6.0).
-
-<p>
-Only one of <b><tt>gs###w32.exe</tt></b> or <b><tt>gs###w32.zip</tt></b>
-is required. 
-
-<h2><a name="Windows4"></a>Windows 95/98 and NT 4</h2>
+<h3><a name="Windows4"></a>Windows 95/98 and NT 4</h3>
 
 <p>
 To install a self-extracting Ghostscript archive on Windows 95/98 or
-Windows
-NT 4, you need just this self-extracting archive file.  Run this file to
-install Ghostscript.
+Windows NT4/2000, you need just this self-extracting archive file.  
+Run this file to install Ghostscript.
 
 <p>
 Alternatively, if you have the zip file, unzip it to a temporary
@@ -188,76 +180,28 @@ Information on GSview is available from:
 
 <blockquote>
 <a
-href="http://www.cs.wisc.edu/~ghost/gsview/">http://www.cs.wisc.edu/~ghost
-/gsview/</a>
+href="http://www.cs.wisc.edu/~ghost/gsview/" 
+class="offsite">http://www.cs.wisc.edu/~ghost/gsview/</a>
 </blockquote>
 
-<h2><a name="Windows3"></a>Win32s (Windows 3.1) and Windows NT 3.5</h2>
-
-<p>
-To install Ghostscript on Win32s (partial 32-bit environment under MS
-Windows 3.1), or Windows NT 3.5 you need the same archive file. 
-However, the self extracting archive will not automatically run 
-and install the Ghostscript.  
-You must manually unzip this archive and install it.
-To install Ghostscript, execute the following commands in a Command Prompt
-window (replacing <em>###</em> with the release number):
-
-<blockquote><b><tt>
-c:
-<br>mkdir \Aladdin
-<br>cd \Aladdin
-<br>ftp get gs<em>###</em>w32.zip
-<br>unzip gs<em>###</em>w32.zip
-</tt></b></blockquote>
-
-If the file is named <b><tt>.zip</tt></b> and not <b><tt>.exe</tt></b>,
-unzip it using
-<blockquote><b><tt>
-unzip gs<em>###</em>w32.zip
-</tt></b></blockquote>
-
-<p>
-After unpacking the archive, create a shortcut to
-
-<blockquote>
-<b><tt>c:\Aladdin\gs<em>#.#</em>\bin\gswin32.exe</tt></b>
-</blockquote>
-
-<p>
-If you place Ghostscript in a different directory, you will need to set
-<b><tt>GS_LIB</tt></b> or use the command line option <b><tt>-I</tt></b>.
-See <a href="Use.htm">Use.htm</a> for details.
-
-<h2><a name="General_Windows"></a>General Windows configuration</h2>
+<h3><a name="General_Windows"></a>General Windows configuration</h3>
 
 <p>
 The archive includes files in these subdirectories:
 
 <blockquote><b><tt>
-gs<em>#.#</em>\bin
-<br>gs<em>#.#</em>\lib
-<br>gs<em>#.#</em>\examples
-<br>gs<em>#.#</em>\doc
+gs<em>#.##</em>\bin
+<br>gs<em>#.##</em>\lib
+<br>gs<em>#.##</em>\examples
+<br>gs<em>#.##</em>\doc
 <br>fonts
 </tt></b></blockquote>
 
 <p>
-Note that the subdirectory is only <em>#.#</em>, not <em>#.##</em>, if
-the
-release number ends in 00.  E.g., for release 6.0, <em>###</em> is 600,
-but
-<em>#.#</em> is 6.0.
-
-<p>
-The actual executable files, in the <b><tt>gs<em>#.#</em>\bin</tt></b>
+The actual executable files, in the <b><tt>gs<em>#.##</em>\bin</tt></b>
 subdirectory, are:
 
 <blockquote><table cellpadding=0 cellspacing=0>
-<tr valign=top>	<td><b><tt>GS16SPL.EXE</tt></b>
-	<td>&nbsp;&nbsp;&nbsp;
-	<td>Print spooler for Win32s (Windows 3.1) only; must be in the same
-	    directory as <b><tt>GSWIN32.EXE</tt></b>
 <tr valign=top>	<td><b><tt>GSWIN32.EXE</tt></b>
 	<td>&nbsp;
 	<td>32-bit Ghostscript using windows
@@ -316,13 +260,14 @@ This can be modified as follows.
 <dt><b><tt>-sOutputFile="LPT1:"</tt></b>
 <dd>Output to the named port.
 
-<dt><b><tt>-sOutputFile="\\spool\printer name"</tt></b> (Windows 95 or
-Windows NT)
-<dd>Output to the named printer.
+<dt><b><tt>-sOutputFile="%printer%printer name"</tt></b> (Windows 95, 98,
+NT or 2000)
+<dd>Output to the named printer.  If your printer is named "HP DeskJet 500"
+then you would use <tt>-sOutputFile="%printer%HP DeskJet 500"</tt>.
 
-<dt><b><tt>-sOutputFile="\\spool"</tt></b> (Windows 95 or Windows NT)
-<dd>Prompt for the name of a printer.  Only local printers are
-supported.
+<dt><b><tt>-sOutputFile="\\spool\printer name"</tt></b> (Windows 3.1/Win32s)
+<dd>Output to the named printer.  Note that this is NOT a UNC name.
+
 </dl>
 </blockquote>
 
@@ -331,14 +276,14 @@ If Ghostscript fails to find an environment variable, it looks for a
 registry value of the same name under the key
 
 <blockquote><b><tt>
-HKEY_CURRENT_USER\Software\Aladdin Ghostscript\#.##
+HKEY_CURRENT_USER\Software\AFPL Ghostscript\#.##
 </tt></b></blockquote>
 
 <p>
 or if that fails, under the key
 
 <blockquote><b><tt>
-HKEY_LOCAL_MACHINE\SOFTWARE\Aladdin Ghostscript\#.##
+HKEY_LOCAL_MACHINE\SOFTWARE\AFPL Ghostscript\#.##
 </tt></b></blockquote>
 
 <p>
@@ -347,75 +292,105 @@ Win32s (that is, Windows 3.1, which doesn't support named registry
 values).
 
 <p>
-If the environment variable <b><tt>GS_DLL</tt></b> is defined,
-Ghostscript
-tries to load the Ghostscript dynamic link library (DLL) with the name
-given.  If this fails, Ghostscript tries to load
-<b><tt>GSDLL32.DLL</tt></b> from the current directory, the search path
-or
-the same directory as the Ghostscript executable.
+Ghostscript will attempt to load the Ghostscript dynamic link 
+library <b><tt>GSDLL32.DLL</tt></b> in the following order:
+<ul>
+<li> In the same directory as the Ghostscript executable.
+<li> If the environment variable <b><tt>GS_DLL</tt></b> is defined, 
+Ghostscript tries to load the Ghostscript dynamic link library (DLL) 
+with the name given.  
+<li> Using the standard Windows library search method: the directory
+from which the application loaded, the current directory, the Windows
+system directory, the Windows directory and the directories listed in
+the PATH environment variable.
+</ul>
 
 <p>
 The Ghostscript setup program will create registry values
 for the environment variables <b><tt>GS_LIB</tt></b> 
 and <b><tt>GS_DLL</tt></b>.
 
-<h2><a name="Uninstall_Windows"></a>Uninstalling Ghostscript on Windows</h2>
+<h3><a name="Uninstall_Windows"></a>Uninstalling Ghostscript on Windows</h3>
 
 <p>
 To uninstall Ghostscript, use the Control Panel, Add/Remove Programs and
-remove "Aladdin Ghostscript #.##" and "Aladdin Ghostscript Fonts".
+remove "Ghostscript #.##" and "Ghostscript Fonts".  (The entries may be
+called "Aladdin Ghostscript" or "AFPL Ghostscript", rather than just
+"Ghostscript", depending on what version of Ghostscript was installed.)
 
 <hr>
 
-<h1><a name="Install_VMS"></a>Installing Ghostscript on OpenVMS</h1>
+<h2><a name="Install_VMS"></a>Installing Ghostscript on OpenVMS</h2>
 
 <p>
 You need the file <b><tt>GS.EXE</tt></b> to run Ghostscript on OpenVMS, and
 installing Ghostscript on an OpenVMS system requires building it first:
-please
-read <a href="Make.htm#VMS_build">how to build Ghostscript on VMS</a> in the
-documentation on building Ghostscript.
+please read <a href="Make.htm#VMS_build">how to build Ghostscript on VMS</a>
+in the documentation on building Ghostscript.
 
 <p>
-Install all the files, including the fonts, in the same directory as the
-executable and initialization files.  By default, this is the directory in
-which you did the compilation.  Consult the
-<a href="Make.htm#VMS_build">documentation on building Ghostscript</a> for
-more details.
+The following installation steps assume that the Ghostscript directory is
+<b><tt>DISK1:[DIR.GHOSTSCRIPT]</tt></b>.  Yours will almost certainly be in
+a different location so adjust the following commands accordingly.
+
+<ul>
+
+<li>Download the fonts and unpack them into
+<b><tt>DISK1:[DIR.GHOSTSCRIPT.LIB]</tt></b>.
+
+<li>Enable access to the program and support files for all users with:
+
+<blockquote><pre>
+$ set file/prot=w:re DISK1:[DIR]GHOSTSCRIPT.dir
+$ set file/prot=w:re DISK1:[DIR.GHOSTSCRIPT...]*.*
+</pre></blockquote>
+
+<li>Optionally, add the Ghostscript help instructions to your system wide
+help file:
+
+<blockquote><pre>
+$ lib/help sys$help:HELPLIB.HLB DISK1:[DIR.GHOSTSCRIPT.DOC]GS-VMS.HLP
+</pre></blockquote>
+
+<li>Lastly, add the following lines to the appropriate system wide or user
+specific login script.
+
+<blockquote><pre>
+$ define gs_exe DISK1:[DIR.GHOSTSCRIPT.BIN]
+$ define gs_lib DISK1:[DIR.GHOSTSCRIPT.EXE]
+$ gs :== $gs_exe:gs.exe
+</pre></blockquote>
+
+</ul>
 
 <p>
 If you have DECWindows/Motif installed, you may wish to replace the
 <b><tt>FONTMAP.GS</tt></b> file with <b><tt>FONTMAP.VMS</tt></b>.  Read the
 comment at the beginning of the latter file for more information.
 
-<!-- [2.0 end contents] ==================================================== -->
-
-<!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<h1><a name="Install_DOS"></a>Installing Ghostscript on DOS</h1>
+<h2><a name="Install_DOS"></a>Installing Ghostscript on DOS</h2>
 
 <p>
 You need the files <b><tt>GS386.EXE</tt></b> and <b><tt>DOS4GW.EXE</tt></b>
 to run Ghostscript.  You should install all the files except the fonts in
 <b><tt>C:\GS</tt></b>, and the fonts in <b><tt>C:\GS\FONTS</tt></b>.
 
-<p><a name="Use_platform_fonts_DOS"></a>
-If you have Adobe Type Manager (ATM) fonts installed on your system, and
-you wish to use them with Ghostscript, you may wish to replace the
-<b><tt>FONTMAP</tt></b> file with <b><tt>FONTMAP.ATM</tt></b>, and to add
-to the environment variable <b><tt>GS_LIB</tt></b> the name of the
-directory where the fonts are located (see below for more information about
-<b><tt>GS_LIB</tt></b>).  Before you do this, please read carefully the
-license that accompanies the ATM fonts; Aladdin Enterprises takes no
-responsibility for any possible violations of such licenses.  Similarly, if
-you have Adobe Type Basics, you may wish to replace <b><tt>FONTMAP</tt></b>
-with <b><tt>FONTMAP.ATB</tt></b>.  Finally, if you have neither ATM nor ATB
-but you have Adobe Acrobat installed, you can use the Acrobat fonts in
-place of the ones provided with Ghostscript by adding the Acrobat fonts
-directory to <b><tt>GS_FONTPATH</tt></b> and removing these fonts from
-<b><tt>FONTMAP</tt></b>:
+<p><a name="Use_platform_fonts_DOS"></a> If you have Adobe Type Manager
+(ATM) fonts installed on your system, and you wish to use them with
+Ghostscript, you may wish to replace the <b><tt>FONTMAP</tt></b> file with
+<b><tt>FONTMAP.ATM</tt></b>, and to add to the environment variable
+<b><tt>GS_LIB</tt></b> the name of the directory where the fonts are located
+(see below for more information about <b><tt>GS_LIB</tt></b>).  Before you
+do this, please read carefully the license that accompanies the ATM fonts;
+we take no responsibility for any possible violations of such licenses.
+Similarly, if you have Adobe Type Basics, you may wish to replace
+<b><tt>FONTMAP</tt></b> with <b><tt>FONTMAP.ATB</tt></b>.  Finally, if you
+have neither ATM nor ATB but you have Adobe Acrobat installed, you can use
+the Acrobat fonts in place of the ones provided with Ghostscript by adding
+the Acrobat fonts directory to <b><tt>GS_FONTPATH</tt></b> and removing
+these fonts from <b><tt>FONTMAP</tt></b>:
 
 <blockquote>
 Courier, Courier-Bold, Courier-BoldOblique, Courier-Oblique, Helvetica,
@@ -425,7 +400,7 @@ Times-BoldItalic, Times-Italic, Times-Roman, ZapfDingbats
 
 <hr>
 
-<h1><a name="Install_OS2"></a>Installing Ghostscript on OS/2 2.x</h1>
+<h2><a name="Install_OS2"></a>Installing Ghostscript on OS/2 2.x</h2>
 
 <p>
 The Ghostscript OS/2 implementation is designed for OS/2 2.1 or later.  A
@@ -459,7 +434,8 @@ can find the package by using a search engine or an ftp lookup service such
 as the one at
 
 <blockquote>
-<a href="http://ftpsearch.lycos.com/">http://ftpsearch.lycos.com/</a>
+<a href="http://ftpsearch.lycos.com/"
+class="offset">http://ftpsearch.lycos.com/</a>
 </blockquote>
 
 <p>
@@ -467,15 +443,14 @@ The system menu of the Ghostscript Image window includes a "Copy" command
 to copy the currently displayed bitmap to the Clipboard.
 
 <p>
-OS/2 comes with some Adobe Type Manager fonts. If you wish to use these
-with Ghostscript, you should replace the <b><tt>FONTMAP</tt></b> file with
+OS/2 comes with some Adobe Type Manager fonts. If you wish to use these with
+Ghostscript, you should replace the <b><tt>FONTMAP</tt></b> file with
 <b><tt>FONTMAP.OS2</tt></b>, and add to the environment variable
 <b><tt>GS_LIB</tt></b> (see below for more information about
 <b><tt>GS_LIB</tt></b>) the name of the directory where the fonts are
 located, usually <b><tt>C:\PSFONTS</tt></b>.  Before you do this, please
-read carefully the license that accompanies the ATM fonts; Aladdin
-Enterprises takes no responsibility for any possible violations of such
-licenses.
+read carefully the license that accompanies the ATM fonts; we take no
+responsibility for any possible violations of such licenses.
 
 <p>
 Since <b><tt>GSOS2.EXE</tt></b> is not a PM application, it cannot
@@ -536,21 +511,23 @@ For printer devices, output goes to the default queue.  To print to a
 specified queue, use <b><tt>-sOutputFile=\\spool\NullLPT1</tt></b>, where
 <b><tt>NullLPT1</tt></b> is the queue's physical name.
 
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights
+reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

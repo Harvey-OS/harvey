@@ -81,7 +81,6 @@ threadmain(int argc, char *argv[])
 	plumbsendfd = plumbopen("send", OWRITE|OCEXEC);
 	plumbseemailfd = plumbopen("seemail", OREAD|OCEXEC);
 	plumbshowmailfd = plumbopen("showmail", OREAD|OCEXEC);
-	plumbsendmailfd = plumbopen("sendmail", OREAD|OCEXEC);
 
 	shortmenu = 0;
 	ARGBEGIN{
@@ -130,7 +129,6 @@ threadmain(int argc, char *argv[])
 				name = mboxname;
 		}
 	}
-
 
 	user = getenv("user");
 	if(user == nil)
@@ -186,13 +184,20 @@ threadmain(int argc, char *argv[])
 	wctlfd = open("/dev/wctl", OWRITE|OCEXEC);	/* for acme window */
 	cplumb = chancreate(sizeof(Plumbmsg*), 0);
 	cplumbshow = chancreate(sizeof(Plumbmsg*), 0);
-	cplumbsend = chancreate(sizeof(Plumbmsg*), 0);
+	if(strcmp(name, "mbox") == 0){
+		/*
+		 * Avoid creating multiple windows to send mail by only accepting
+		 * sendmail plumb messages if we're reading the main mailbox.
+		 */
+		plumbsendmailfd = plumbopen("sendmail", OREAD|OCEXEC);
+		cplumbsend = chancreate(sizeof(Plumbmsg*), 0);
+		proccreate(plumbsendproc, nil, STACK);
+		threadcreate(plumbsendthread, nil, STACK);
+	}
 	/* start plumb reader as separate proc ... */
 	proccreate(plumbproc, nil, STACK);
 	proccreate(plumbshowproc, nil, STACK);
-	proccreate(plumbsendproc, nil, STACK);
 	threadcreate(plumbshowthread, nil, STACK);
-	threadcreate(plumbsendthread, nil, STACK);
 	/* ... and use this thread to read the messages */
 	plumbthread();
 }

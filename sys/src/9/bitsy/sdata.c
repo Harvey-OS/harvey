@@ -7,7 +7,7 @@
 #include "ureg.h"
 #include "../port/error.h"
 
-#include "../port/sd.h"
+#include "sd.h"
 
 
 extern SDifc sdataifc;
@@ -353,22 +353,21 @@ ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 		 * can be used as a test for !Bsy.
 		 */
 		as = inb(ctlport+As);
-		if(as & reset)
-			;
-		else if(dev){
-			outb(cmdport+Dh, dev);
-			dev = 0;
+		if((as & reset) == 0){
+			if(dev){
+				outb(cmdport+Dh, dev);
+				dev = 0;
+			}
+			else if(ready == 0 || (as & ready)){
+				atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
+				return as;
+			}
 		}
-		else if(ready == 0 || (as & ready)){
-			atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
-			return as;
-		}
-
 		if(micro-- <= 0){
 			atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
 			break;
 		}
-		µdelay(4);
+		microdelay(4);
 	}
 	atadebug(cmdport, ctlport, "ataready: timeout");
 
@@ -431,7 +430,7 @@ atarwmmode(Drive* drive, int cmdport, int ctlport, int dev)
 		return 0;
 	outb(cmdport+Count, rwm);
 	outb(cmdport+Command, Csm);
-	µdelay(4);
+	microdelay(4);
 	as = ataready(cmdport, ctlport, 0, Bsy, Drdy|Df|Err, 1000);
 	inb(cmdport+Status);
 	if(as < 0 || (as & (Df|Err)))
@@ -482,7 +481,7 @@ ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
 	if(as < 0)
 		return as;
 	outb(cmdport+Command, command);
-	µdelay(4);
+	microdelay(4);
 
 	as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 400*1000);
 	if(as < 0)
@@ -600,11 +599,11 @@ atasrst(int ctlport)
 	 * Also, there will be problems here if overlapped commands
 	 * are ever supported.
 	 */
-	µdelay(20);
+	microdelay(20);
 	outb(ctlport+Dc, Srst);
-	µdelay(20);
+	microdelay(20);
 	outb(ctlport+Dc, 0);
-	µdelay(4*1000);
+	microdelay(4*1000);
 }
 
 static SDev*
@@ -631,7 +630,7 @@ ataprobe(int cmdport, int ctlport, int irq)
 	dev = Dev0;
 	if(inb(ctlport+As) & Bsy){
 		outb(cmdport+Dh, dev);
-		µdelay(5);
+		microdelay(5);
 trydev1:
 		atadebug(cmdport, ctlport, "ataprobe bsy");
 		outb(cmdport+Cyllo, 0xAA);
@@ -732,7 +731,7 @@ tryedd1:
 			}
 			else{
 				outb(cmdport+Dh, Dev0);
-				µdelay(1);
+				microdelay(1);
 			}
 		}
 #endif
@@ -846,13 +845,13 @@ atanop(Drive* drive, int subcommand)
 	ctlr->command = Cnop;		/* debugging */
 	outb(cmdport+Command, Cnop);
 
-	µdelay(1);
+	microdelay(1);
 	ctlport = ctlr->ctlport;
 	for(timeo = 0; timeo < 1000; timeo++){
 		as = inb(ctlport+As);
 		if(!(as & Bsy))
 			break;
-		µdelay(1);
+		microdelay(1);
 	}
 	drive->error |= Abrt;
 }
@@ -1078,7 +1077,7 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 	outb(cmdport+Command, Cpkt);
 
 	if((drive->info[Iconfig] & 0x0060) != 0x0020){
-		µdelay(1);
+		microdelay(1);
 		as = ataready(cmdport, ctlport, 0, Bsy, Drq|Chk, 4*1000);
 		if(as < 0)
 			r = SDtimeout;
@@ -1180,7 +1179,7 @@ atageniostart(Drive* drive, int lba)
 	switch(drive->command){
 	case Cws:
 	case Cwsm:
-		µdelay(1);
+		microdelay(1);
 		as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 1000);
 		if(as < 0 || (as & Err)){
 			iunlock(ctlr);
@@ -1581,18 +1580,15 @@ static SDev*
 ataid(SDev* sdev)
 {
 	int i;
-	Ctlr *ctlr;
 
 	if(sdev == nil)
 		return nil;
-	ctlr = sdev->ctlr;
 	i = 0;
 	while(sdev){
 		if(sdev->ifc == &sdataifc){
-			ctlr = sdev->ctlr;
 			sdev->idno = 'C'+i;
 			i++;
-			snprint(sdev->name, NAMELEN, "sd%c", sdev->idno);
+			snprint(sdev->name, KNAMELEN, "sd%c", sdev->idno);
 		}
 		sdev = sdev->next;
 	}
@@ -1606,14 +1602,14 @@ static int
 ataenable(SDev* sdev)
 {
 	Ctlr *ctlr;
-	char name[NAMELEN];
+	char name[KNAMELEN];
 
 	ctlr = sdev->ctlr;
 
 	if(ctlr->bmiba){
 		ctlr->prdt = xspanalloc(Nprd*sizeof(Prd), 4, 4*1024);
 	}
-	snprint(name, NAMELEN, "%s (%s)", sdev->name, sdev->ifc->name);
+	snprint(name, KNAMELEN, "%s (%s)", sdev->name, sdev->ifc->name);
 //	intrenable(ctlr->irq, atainterrupt, ctlr, ctlr->tbdf, name);
 	outb(ctlr->ctlport+Dc, 0);
 	intrenable(ataitype, atairq, atainterrupt, ctlr, name);
@@ -2040,9 +2036,8 @@ struct Try {
 };
 
 static SDev*
-ataconfig(int on, char *, void *pf)
+ataconfig(int on, char *, DevConf *cf)
 {
-	DevConf* cf = pf;
 	int	cmdport;
 	int	ctlport;
 	int	irq;
@@ -2054,10 +2049,10 @@ ataconfig(int on, char *, void *pf)
 	rc = nil;
 	for (try = &tries[0]; try->p != 0 || try->c != 0; try++){
 		ataitype = cf->itype;
-		atairq  = cf->interrupt;
+		atairq  = cf->irq;
 		cmdport = cf->port + try->p;
 		ctlport = cmdport + try->c;
-		irq = cf->interrupt;
+		irq = cf->irq;
 		rc = ataprobe(cmdport, ctlport, irq);
 		if (rc)
 			break;

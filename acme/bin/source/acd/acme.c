@@ -175,14 +175,14 @@ drawtoc(Window *w, Drive *d, Toc *t)
 	if(!winsetaddr(w, ",", 1))
 		return;
 
-	threadprint(w->data, "Title\n\n");
+	fprint(w->data, "Title\n\n");
 	playing = -1;
 	if(d->status.state == Splaying || d->status.state == Spaused)
 		playing = d->status.track-t->track0;
 
 	for(i=0; i<t->ntrack; i++)
-		threadprint(w->data, "%s%d/ Track %d\n", i==playing ? "> " : "", i+1, i+1);
-	threadprint(w->data, "");
+		fprint(w->data, "%s%d/ Track %d\n", i==playing ? "> " : "", i+1, i+1);
+	fprint(w->data, "");
 }
 
 void
@@ -255,7 +255,7 @@ acmeevent(Drive *d, Window *w, Event *e)
 	switch(e->c1){	/* origin of action */
 	default:
 	Unknown:
-		threadprint(2, "unknown message %c%c\n", e->c1, e->c2);
+		fprint(2, "unknown message %c%c\n", e->c1, e->c2);
 		break;
 
 	case 'E':	/* write to body or tag; can't affect us */

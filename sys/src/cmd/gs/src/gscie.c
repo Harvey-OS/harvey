@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gscie.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gscie.c,v 1.4 2001/03/17 01:15:42 raph Exp $ */
 /* CIE color rendering cache management */
 #include "math_.h"
 #include "memory_.h"
@@ -31,6 +31,7 @@
 #include "gxdevice.h"		/* for gxcmap.h */
 #include "gxcmap.h"
 #include "gzstate.h"
+#include "gsicc.h"
 
 /* Forward references */
 private int cie_joint_caches_init(P3(gx_cie_joint_caches *,
@@ -375,7 +376,6 @@ gx_restrict_CIEA(gs_client_color * pcc, const gs_color_space * pcs)
 
 /* ------ Install a CIE color space ------ */
 
-private void cie_load_common_cache(P2(gs_cie_common *, gs_state *));
 private void cie_cache_mult(P3(gx_cie_vector_cache *, const gs_vector3 *,
 			       const cie_cache_floats *));
 private bool cie_cache_mult3(P2(gx_cie_vector_cache *,
@@ -389,7 +389,7 @@ gx_install_cie_abc(gs_cie_abc *pcie, gs_state * pgs)
     CIE_LOAD_CACHE_BODY(pcie->caches.DecodeABC, pcie->RangeABC.ranges,
 			&pcie->DecodeABC, DecodeABC_default, pcie,
 			"DecodeABC");
-    cie_load_common_cache(&pcie->common, pgs);
+    gx_cie_load_common_cache(&pcie->common, pgs);
     gs_cie_abc_complete(pcie);
     return gs_cie_cs_complete(pgs, true);
 }
@@ -437,14 +437,15 @@ gx_install_CIEA(const gs_color_space * pcs, gs_state * pgs)
 	if_debug3('C', "[C]DecodeA[%d] = %g => %g\n",
 		  i, in, pcie->caches.DecodeA.floats.values[i]);
     }
-    cie_load_common_cache(&pcie->common, pgs);
+    gx_cie_load_common_cache(&pcie->common, pgs);
     gs_cie_a_complete(pcie);
     return gs_cie_cs_complete(pgs, true);
 }
 
 /* Load the common caches when installing the color space. */
-private void
-cie_load_common_cache(gs_cie_common * pcie, gs_state * pgs)
+/* This routine is exported for the benefit of gsicc.c */
+void
+gx_cie_load_common_cache(gs_cie_common * pcie, gs_state * pgs)
 {
     if_debug_matrix3("[c]CIE MatrixLMN =", &pcie->MatrixLMN);
     cie_matrix_init(&pcie->MatrixLMN);
@@ -454,8 +455,9 @@ cie_load_common_cache(gs_cie_common * pcie, gs_state * pgs)
 }
 
 /* Complete loading the common caches. */
-private void
-cie_common_complete(gs_cie_common *pcie)
+/* This routine is exported for the benefit of gsicc.c */
+void
+gx_cie_common_complete(gs_cie_common *pcie)
 {
     int i;
 
@@ -463,11 +465,14 @@ cie_common_complete(gs_cie_common *pcie)
 	cache_set_linear(&pcie->caches.DecodeLMN[i].floats);
 }
 
-/* Restrict and scale the DecodeDEF[G] cache according to RangeHIJ[K]. */
+/*
+ * Restrict the DecodeDEF[G] cache according to RangeHIJ[K], and scale to
+ * the dimensions of Table.
+ */
 private void
-gs_cie_defx_scale(float *values, const gs_range *range)
+gs_cie_defx_scale(float *values, const gs_range *range, int dim)
 {
-    double scale = 255.0 / (range->rmax - range->rmin);
+    double scale = (dim - 1.0) / (range->rmax - range->rmin);
     int i;
 
     for (i = 0; i < gx_cie_cache_size; ++i) {
@@ -475,7 +480,7 @@ gs_cie_defx_scale(float *values, const gs_range *range)
 
 	values[i] =
 	    (value <= range->rmin ? 0 :
-	     value >= range->rmax ? 255 :
+	     value >= range->rmax ? dim - 1 :
 	     (value - range->rmin) * scale);
     }
 }
@@ -489,7 +494,7 @@ gs_cie_defg_complete(gs_cie_defg * pcie)
 
     for (j = 0; j < 4; ++j)
 	gs_cie_defx_scale(pcie->caches_defg.DecodeDEFG[j].floats.values,
-			  &pcie->RangeHIJK.ranges[j]);
+			  &pcie->RangeHIJK.ranges[j], pcie->Table.dims[j]);
     gs_cie_abc_complete((gs_cie_abc *)pcie);
 }
 
@@ -502,7 +507,7 @@ gs_cie_def_complete(gs_cie_def * pcie)
 
     for (j = 0; j < 3; ++j)
 	gs_cie_defx_scale(pcie->caches_def.DecodeDEF[j].floats.values,
-			  &pcie->RangeHIJ.ranges[j]);
+			  &pcie->RangeHIJ.ranges[j], pcie->Table.dims[j]);
     gs_cie_abc_complete((gs_cie_abc *)pcie);
 }
 
@@ -514,7 +519,7 @@ gs_cie_abc_complete(gs_cie_abc * pcie)
     cache3_set_linear(pcie->caches.DecodeABC);
     pcie->caches.skipABC =
 	cie_cache_mult3(pcie->caches.DecodeABC, &pcie->MatrixABC);
-    cie_common_complete((gs_cie_common *)pcie);
+    gx_cie_common_complete((gs_cie_common *)pcie);
 }
 
 /* Complete loading a CIEBasedA color space. */
@@ -525,7 +530,7 @@ gs_cie_a_complete(gs_cie_a * pcie)
     cie_cache_mult(&pcie->caches.DecodeA, &pcie->MatrixA,
 		   &pcie->caches.DecodeA.floats);
     cache_set_linear(&pcie->caches.DecodeA.floats);
-    cie_common_complete((gs_cie_common *)pcie);
+    gx_cie_common_complete((gs_cie_common *)pcie);
 }
 
 /* Convert a scalar cache to a vector cache by multiplying */
@@ -956,6 +961,8 @@ cie_cs_common_abc(const gs_color_space *pcs_orig, const gs_cie_abc **ppabc)
 	    return &pcs->params.abc->common;
 	case gs_color_space_index_CIEA:
 	    return &pcs->params.a->common;
+        case gs_color_space_index_CIEICC:
+            return &pcs->params.icc.picc_info->common;
 	default:
             pcs = gs_cspace_base_space(pcs);
             break;

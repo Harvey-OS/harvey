@@ -83,7 +83,7 @@ char 	*(*fcalls[])(Fid*) = {
 
 char	Eperm[] =	"permission denied";
 char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"no authentication in ramfs";
+char	Enoauth[] =	"upas/fs: authentication not required";
 char	Enotexist[] =	"file does not exist";
 char	Einuse[] =	"file in use";
 char	Eexist[] =	"file exists";
@@ -566,7 +566,7 @@ rversion(Fid*)
 char*
 rauth(Fid*)
 {
-	return "upas/fs: no authentication required";
+	return Enoauth;
 }
 
 char*
@@ -1223,12 +1223,13 @@ reader(void)
 			if(d == nil)
 				continue;
 
+			qlock(mb);
 			if(d->qid.path != mb->d->qid.path
 			   || d->qid.vers != mb->d->qid.vers){
-				qlock(mb);
 				free(d);
 				break;
 			}
+			qunlock(mb);
 			free(d);
 		}
 		qunlock(&mbllock);
@@ -1348,12 +1349,14 @@ struct Charset {
 	char *name;
 	int len;
 	int convert;
+	char *tcsname;
 } charsets[] =
 {
-	{ "us-ascii",		8,	1, },
-	{ "utf-8",		5,	0, },
-	{ "iso-8859-1",		10,	1, },
-	{ "big5",		4,	2, },
+	{ "us-ascii",		8,	1, nil, },
+	{ "utf-8",		5,	0, nil, },
+	{ "iso-8859-1",		10,	1, nil, },
+	{ "iso-8859-2",		10,	2, "8859-2", },
+	{ "big5",		4,	2, "big5", },
 };
 
 int
@@ -1381,7 +1384,7 @@ rfc2047convert(String *s, char *token, int len)
 		return -1;
 
 	// bail if it doesn't fit 
-	if(strlen(token) > sizeof(decoded)-1)
+	if(e-token > sizeof(decoded)-1)
 		return -1;
 
 	// bail if we don't understand the encoding
@@ -1407,7 +1410,7 @@ rfc2047convert(String *s, char *token, int len)
 		s_append(s, utfbuf);
 		break;
 	case 2:
-		if(xtoutf(charsets[i].name, &x, decoded, decoded+len) <= 0){
+		if(xtoutf(charsets[i].tcsname, &x, decoded, decoded+len) <= 0){
 			s_append(s, decoded);
 		} else {
 			s_append(s, x);

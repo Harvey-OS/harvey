@@ -38,10 +38,13 @@ RSApub*	rsaprivtopub(RSApriv*)
 RSApub*	X509toRSApub(uchar *cert, int ncert, char *name, int nname)
 .PP
 .B
+char* X509verify(uchar *cert, int ncert, RSApub *pk)
+.PP
+.B
 RSApriv*	asn1toRSApriv(uchar *priv, int npriv)
 .PP
 .B
-uchar*	decodepem(char *s, char *type, uchar *len)
+uchar*	decodepem(char *s, char *type, int *len)
 .SH DESCRIPTION
 .PP
 RSA is a public key encryption algorithm.  The owner of a key publishes
@@ -115,6 +118,13 @@ X.509 certificates are often stored in PEM format; use
 .I dec64
 to convert to binary before computing the fingerprint or calling
 .IR X509toRSApub .
+For the special case of
+certificates signed by a known trusted key
+(in a single step, without certificate chains)
+.I X509verify
+checks the signature on
+.IR cert .
+It returns nil if successful, else an error string.
 .PP
 .I Asn1toRSApriv
 converts an ASN1 formatted RSA private key into the corresponding
@@ -142,6 +152,7 @@ is undefined.
 .IR aes (2),
 .IR blowfish (2),
 .IR des (2),
+.IR dsa (2),
 .IR elgamal (2),
 .IR rc4 (2),
 .IR sechash (2),

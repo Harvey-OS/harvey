@@ -1,21 +1,21 @@
-%    Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+% (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of Aladdin Ghostscript.
+% This file is part of AFPL Ghostscript.
 % 
-% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-% or distributor accepts any responsibility for the consequences of using it,
-% or for whether it serves any particular purpose or works at all, unless he
-% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-% License (the "License") for full details.
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
 % 
-% Every copy of Aladdin Ghostscript must include a copy of the License,
-% normally in a plain ASCII text file named PUBLIC.  The License grants you
-% the right to copy, modify and redistribute Aladdin Ghostscript, but only
-% under certain conditions described in the License.  Among other things, the
-% License requires that the copyright notice and this notice be preserved on
-% all copies.
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
 
-% $Id: gs_init.ps,v 1.3 2000/03/10 18:47:31 lpd Exp $
+% $Id: gs_init.ps,v 1.40.2.4 2002/02/01 03:25:45 raph Exp $
 % Initialization file for the interpreter.
 % When this is run, systemdict is still writable.
 
@@ -31,7 +31,7 @@
 
 % Check the interpreter revision.  NOTE: the interpreter code requires
 % that the first non-comment token in this file be an integer.
-601
+704
 dup revision ne
  { (gs: Interpreter revision \() print revision 10 string cvs print
    (\) does not match gs_init.ps revision \() print 10 string cvs print
@@ -112,6 +112,7 @@ currentdict /NOBIND known   /NOBIND exch def
 /.bind /bind load def
 NOBIND { /bind { } def } if
 currentdict /NOCACHE known   /NOCACHE exch def
+currentdict /NOCCFONTS known   /NOCCFONTS exch def
 currentdict /NOCIE known   /NOCIE exch def
 currentdict /NODISPLAY known   not /DISPLAYING exch def
 currentdict /NOFONTMAP known   /NOFONTMAP exch def
@@ -130,7 +131,15 @@ currentdict /OUTPUTFILE known	% obsolete
    currentdict /OUTPUTFILE .undef
  } if
 currentdict /QUIET known   /QUIET exch def
-currentdict /SAFER known   /SAFER exch def
+% DELAYSAFER is effectively the same as newer NOSAFER
+currentdict /DELAYSAFER known { /DELAYSAFER true def /NOSAFER true def } if
+currentdict /PARANOIDSAFER known /PARANOIDSAFER exch def
+/SAFER currentdict /NOSAFER known {
+  false
+} {
+  currentdict /SAFER known PARANOIDSAFER or
+}
+ifelse def
 currentdict /SHORTERRORS known   /SHORTERRORS exch def
 currentdict /STRICT known   /STRICT exch def
 currentdict /TTYPAUSE known   /TTYPAUSE exch def
@@ -175,7 +184,6 @@ userdict begin
  { (Enter PostScript commands.  '(filename) run' runs a file, 'quit' exits.\n)
    print flush
  } .bind def
-/? /help load def
 end
 
 % Define =string, which is used by some PostScript programs even though
@@ -199,7 +207,7 @@ userdict /=string 256 string put
    revisiondate 100 idiv 10 mod revisiondate 1000 idiv 10 mod (-)
    revisiondate 10000 idiv ( \()
    revision 10 mod
-   revision 100 mod dup 0 ne { 10 idiv } { pop } ifelse (.)
+   revision 100 mod 10 idiv (.)
    revision 100 idiv ( )
    product
    counttomark
@@ -254,7 +262,7 @@ DELAYBIND NOBIND not and
     } .bind def
  } if
 
-%**************** BACKWARD COMPATIBILITY
+%**************** BACKWARD COMPATIBILITY ****************
 /hwsizedict mark /HWSize null .dicttomark readonly def
 /copyscanlines {		% <device> <y> <string> copyscanlines <substr>
   0 3 1 roll 3 index //hwsizedict .getdeviceparams
@@ -274,11 +282,15 @@ currentdict /hwsizedict .undef
     }
    if
  } bind odef
-/max { .max } bind def
-/min { .min } bind def
 /.currentfilladjust { .currentfilladjust2 pop } bind odef
 /.setfilladjust { dup .setfilladjust2 } bind odef
 /.writecvs { 0 .writecvp } bind odef
+%**************** DEPRECATED PROCEDURES ****************
+%**************** DO NOT USE THESE IN NEW CODE ****************
+/max { .max } bind def		% use .max instead
+/min { .min } bind def		% use .min instead
+/unread /.unread load def	% use .peekstring instead
+%**************** END OF BACKWARD COMPATIBILITY SECTION ****************
 
 % Define predefined procedures substituting for operators,
 % in alphabetical order.
@@ -351,7 +363,7 @@ userdict /.echo.mode true put
 	} odef
 % To satisfy the Genoa FTS, executive must be a procedure, not an operator.
 /executive
-	{ { NOPROMPT not { prompt } if
+	{ { prompt
 	     { (%statementedit) (r) file } stopped
 	     { pop pop $error /errorname get /undefinedfilename eq
 		{ .clearerror exit } if		% EOF
@@ -384,7 +396,7 @@ userdict /.echo.mode true put
 	count 0 ne { (<) print count =only } if
 	(>) print flush
 } bind def
-/prompt	{ flush flushpage .promptmsg } bind def
+/prompt	{ flush flushpage NOPROMPT not { .promptmsg } if } bind def
 /pstack	{ 0 1 count 3 sub { index == } for } bind def
 /putdeviceprops
 	{ .putdeviceprops { erasepage } if } odef
@@ -470,13 +482,18 @@ currentdict /.typenames .undef
 	//.wheredict 1 index .knownget { exec } { .where } ifelse
 } odef
 
-% internaldict is defined in systemdict, but is allocated in local VM.
+% internaldict is defined in systemdict, but the dictionary is allocated
+% in local VM.  However, the procedure must be global, since it is an
+% "operator" and must be bind-able into global procedures.
 % We make a procedure for creating it, since we must create a new one
 % for each context with private local VM.
 /.makeinternaldict {
-  .currentglobal false .setglobal
+  .currentglobal true .setglobal
     [ /dup .systemvar 1183615869 /eq .systemvar
-	[ /pop .systemvar 10 dict ] cvx
+	[ /pop .systemvar null ] cvx
+	false .setglobal
+	dup 1 10 dict .forceput	% proc is global, dict is local
+	true .setglobal
 	[ /internaldict /cvx .systemvar /invalidaccess /signalerror cvx ] cvx
       /ifelse .systemvar
     ] cvx executeonly
@@ -494,7 +511,7 @@ currentdict /superexec .knownget {
 % the PostScript Language Reference Manual).
 % Warning: these are not guaranteed to stay the same from one release
 % to the next!
-/concatstrings
+/concatstrings	%	(str1) (str2) concatstrings (str1str2)
 	{ exch dup length 2 index length add string	% str2 str1 new
 	  dup dup 4 2 roll copy		% str2 new new new1
 	  length 4 -1 roll putinterval
@@ -506,18 +523,9 @@ currentdict /superexec .knownget {
 	{ dup 3 -1 roll { put dup } forall pop } bind def
 /copystring
 	{ dup length string copy } bind def
-/finddevice
-	{ /devicedict .systemvar exch get
-	  dup 1 get null eq
-	   {		% This is the first request for this type of device.
-			% Create a default instance now.
-			% Stack: [proto null]
-	     .currentglobal true .setglobal exch
-	     dup dup 0 get copydevice 1 exch put
-	     exch .setglobal
-	   }
-	  if 1 get
-	} bind def
+/findlibfile {
+	.libfile { dup .filename pop exch true } { false } ifelse
+} odef
 /.growdictlength	% get size for growing a dictionary
 	{ length 3 mul 2 idiv 1 add
 	} bind def
@@ -530,6 +538,23 @@ currentdict /superexec .knownget {
 	   } if
 	  put
 	} bind def
+% .localvmarray may be an operator: see zsysvm.c.
+/.localvmarray where {
+  pop
+} {
+  /.localvmarray {
+    .currentglobal false .setglobal
+    exch array exch .setglobal
+  } bind def
+} ifelse
+/.localvmdict where {
+  pop
+} {
+  /.localvmdict {
+    .currentglobal false .setglobal
+    exch dict exch .setglobal
+  } bind def
+} ifelse
 /.packtomark
 	{ counttomark packedarray exch pop } bind def
 /ppstack
@@ -561,6 +586,25 @@ currentdict /superexec .knownget {
 /=print	/=only load def
 % Temporarily define == as = for the sake of runlibfile0.
 /== /= load def
+
+% The following procedures are documented.
+/copydevice {		% <device> copydevice <newdevice>
+  false .copydevice2
+} odef
+/finddevice {		% <devicename> finddevice <device>
+  /devicedict .systemvar exch get
+  dup 1 get null eq {
+		% This is the first request for this type of device.
+		% Create a default instance now.
+		% Stack: [proto null]
+    .currentglobal true .setglobal exch
+    dup dup 0 get copydevice 1 exch put
+    exch .setglobal
+  } if 1 get
+} bind def
+/findprotodevice {	% <devicename> findprotodevice <protodevice>
+  /devicedict .systemvar exch get 0 get
+} bind def
 
 % Run a resource file.  This allows us to distinguish resource objects
 % from objects coming from input files.
@@ -700,7 +744,7 @@ userdict /.currentresourcefile null put
       ( in ) print = flush
       count 2 gt
        { (Operand stack:\n  ) print
-	 2 1 count 3 sub { (  ) print index =only flush } for
+         count 1 sub -1 2 { (  ) print index =only flush } for
 	 () = flush
        } if
     }
@@ -887,8 +931,9 @@ $error begin
   /position null def
 end
 % Define errordict similarly.  It has one entry per error name,
-%   plus handleerror.
-/errordict ErrorNames length 1 add dict
+%   plus handleerror.  However, some astonishingly badly written PostScript
+%   files require it to have at least one empty slot.
+/errordict ErrorNames length 2 add dict
 .forcedef		% errordict is local, systemdict is global
 .setglobal		% contents of errordict are global
 errordict begin
@@ -975,7 +1020,7 @@ end
 .forcedef		% FontDirectory is local, systemdict is global
 
 % Define the encoding dictionary.
-/EncodingDirectory 10 dict def	% enough for Level 2 + PDF standard encodings
+/EncodingDirectory 16 dict def	% enough for Level 2 + PDF standard encodings
 
 % Define .findencoding.  (This is redefined in Level 2.)
 /.findencoding
@@ -1435,7 +1480,7 @@ ifelse
 % Trap this and produce a reasonable error message.
 { setdevice }		% does an erasepage
 DEBUG { exec false } { .internalstopped } ifelse {
-  (**** Unable to open the initial device, quitting.) = 1 .quit
+  (**** Unable to open the initial device, quitting.) = flush 1 .quit
 } if
 
 % If the media size is fixed, update the current page device dictionary.
@@ -1514,34 +1559,107 @@ gsave
  } bind def
 
 % If we want a "safer" system, disable some obvious ways to cause havoc.
-SAFER not { (%END SAFER) .skipeof } if
-/file
- { dup (r) eq 2 index (%pipe*) .stringmatch not and
-   2 index (%std*) .stringmatch or
-   2 index (/fd/*) .stringmatch or
-    { file }
-    { /invalidfileaccess signalerror }
-   ifelse
- } .bind odef
-/renamefile { /invalidfileaccess signalerror } odef
-/deletefile { /invalidfileaccess signalerror } odef
-/putdeviceprops
- { counttomark
-   dup 2 mod 0 eq { pop /rangecheck signalerror } if
-   3 2 3 2 roll
-    { dup index /OutputFile eq  
-       { -2 roll 
-         dup () ne { /putdeviceprops load /invalidfileaccess signalerror } if
-         3 -1 roll
-       }
-       { pop
-       }
-      ifelse
-    } for
-   putdeviceprops
- } .bind odef
+.currentglobal true .setglobal
+/SAFETY 2 dict
+  dup /safe false put
+  dup /tempfiles 10 dict readonly put
+readonly def
+.setglobal
 
-%END SAFER
+% Convert a path name into a string suitable for filenameforall
+% For example: (a\\b*?c) to (a\\\\b\\*\\?c)
+/.makepathtemplate {	% str1 -- str2
+   dup length dup add string 0	% result string up to twice the size
+   0 1 4 index length 1 sub {
+     3 index exch get
+     dup 92 eq {		% \ -> \\
+        2 index 2 index 92
+        put
+        exch 1 add exch
+     } 
+     if
+     dup 42 eq {		% * -> \*
+        2 index 2 index 92
+        put
+        exch 1 add exch
+     } 
+     if
+     dup 63 eq {		% ? -> \?
+        2 index 2 index 92
+        put
+        exch 1 add exch
+     } 
+     if
+     2 index 2 index 3 -1 roll put 1 add
+   } for
+   0 exch getinterval exch pop
+} bind def
+
+/.locksafe {
+  SAFETY /safe get not {
+    <<
+      /PermitFileReading [
+        currentuserparams /PermitFileReading get aload pop
+	{ .makepathtemplate 
+          dup .filenamedirseparator concatstrings (*) concatstrings 
+	  exch		% put string below this procedure
+	}
+        /LIBPATH .systemvar { 1 index exec } forall
+        /FONTPATH .systemvar  { 1 index exec } forall
+	currentsystemparams /GenericResourceDir get 1 index exec 
+	currentsystemparams /FontResourceDir get exch exec
+      ]
+      /LockFilePermissions true
+    >> setuserparams
+  }
+  if
+  mark /.LockSafetyParams true currentdevice .putdeviceprops pop pop
+  //SAFETY /safe //true .forceput % overrides readonly
+} .bind executeonly odef
+
+/.setsafe
+{
+  SAFETY /safe get not {
+    <<
+      PARANOIDSAFER {		% only PARANOIDSAFER locks down reading files
+        /PermitFileReading [ ]
+      } if
+      /PermitFileWriting [ (/fd/*) ]
+      /PermitFileControl [ ]
+    >> setuserparams
+  }
+  if
+  .locksafe
+} .bind executeonly odef
+
+/deletefile {
+  count 1 lt {
+    //deletefile /stackunderflow signalerror
+  }
+  if
+  dup { deletefile } stopped {
+    pop //deletefile $error /errorname get signalerror
+  } {
+    % deletefile succeeded. Remove from tempfile list if present
+    //SAFETY /tempfiles get exch cvn 2 copy known {
+      .forceundef
+    } {
+      pop pop
+    }
+    ifelse
+  }
+  ifelse
+} .bind executeonly odef
+
+% If a file is opened with .tempfile with SAFER not (yet) set,
+% the file can be deleted later, even if SAFER is set.
+/.tempfile {
+  .tempfile	% filename file
+  //SAFETY /tempfiles get 2 index true .forceput
+} .bind executeonly odef
+
+% If we are running in SAFER mode, lock things down
+SAFER { .setsafe } if
 
 % If we delayed binding, make it possible to do it later.
 /.bindnow {
@@ -1583,7 +1701,7 @@ false setpacking
 	% Save a copy of userparams for use with save/restore
 	% (and, if implemented, context switching).
   .currentglobal false .setglobal
-     mark .currentuserparams psuserparams { } forall .dicttomark readonly
+     mark userparams { } forall .dicttomark readonly
      /userparams exch .forcedef		% systemdict is read-only
   .setglobal
 } if
@@ -1597,8 +1715,9 @@ false setpacking
 
 % Conditionally turn image interpolation on or off.
 currentdict /INTERPOLATE known not { (%END INTERPOLATE) .skipeof } if
+
 /.interpolate {
-  dup /Interpolate .knownget not { false } if
+  dup /Interpolate .knownget not { //false } if
   /INTERPOLATE .systemvar ne {
     dup gcheck .currentglobal exch .setglobal
     exch dup length dict copy
@@ -1606,34 +1725,82 @@ currentdict /INTERPOLATE known not { (%END INTERPOLATE) .skipeof } if
     exch .setglobal
   } if
 } bind odef
-/image {
-  dup type /dicttype eq {
-    .interpolate image
-  } {
-    /INTERPOLATE .systemvar {
-      8 dict begin
-      /ImageType 1 def
-      /DataSource 1 index def
-      /ImageMatrix 2 index def
-      /BitsPerComponent 3 index def
-      /Decode {0 1} def
-      /Height 4 index def
-      /Width 5 index def
-      /Interpolate true def
-      currentdict end
-      gsave /DeviceGray setcolorspace image grestore
-      5 { pop } repeat
-    } {
-      image
-    } ifelse
-  } ifelse
-} bind odef
+
+/colorimage
+  { /INTERPOLATE .systemvar
+      { .currentglobal                    % w h bit [] {}...{} multi ncomp glob
+        //false .setglobal
+        9 dict begin                      % w h bit [] {}...{} multi ncomp glob
+        2 index { 1 index 7 add } { 8 } ifelse
+        copy gsave pop                    % preserve the arguments
+        { 0 /DeviceGray 0 /DeviceRGB /DeviceCMYK }
+        1 index get setcolorspace         % ... glob w h bit [] {}...{} multi ncomp
+        {0 1 0 1 0 1 0 1}
+        1 index 2 mul 0 exch              % ... glob w h bit [] {}...{} multi ncomp {0 1 ...} 0 2*ncomp
+        getinterval /Decode exch def      % ... glob w h bit [] {}...{} multi ncomp
+        exch dup                          % ... glob w h bit [] {}...{} ncomp multi multi
+        /MultipleDataSources exch def     % ... glob w h bit [] {}...{} ncomp multi
+        { array astore} { pop } ifelse    % ... glob w h bit [] [{}...{}]
+        /DataSource exch def              % ... glob w h bit []
+        /ImageMatrix exch def             % ... glob w h bit
+        /BitsPerComponent exch def        % ... glob w h
+        /Height exch def                  % ... glob w
+        /Width exch def                   % ... glob 
+        /ImageType 1 def
+        /Interpolate //true def
+        .setglobal currentdict end        % ... <<>>
+        image grestore
+        exch { 4 add } { 6 } ifelse
+        { pop } repeat                    % -
+      }
+      { colorimage
+      }
+    ifelse
+  } bind odef
+
+/image
+  { dup type /dicttype eq
+      { dup /ImageType get 3 eq
+          { .currentglobal //false .setglobal exch
+            dup length dict copy begin .setglobal 
+            /DataDict DataDict .interpolate def
+            /MaskDict MaskDict .interpolate def
+            currentdict end
+          }
+          { .interpolate 
+          }
+        ifelse
+        image
+      }
+      { /INTERPOLATE .systemvar
+          { .currentglobal //false .setglobal
+            8 dict begin .setglobal
+            /ImageType 1 def
+            /DataSource 1 index def
+            /ImageMatrix 2 index def
+            /BitsPerComponent 3 index def
+            /Decode {0 1} def
+            /Height 4 index def
+            /Width 5 index def
+            /Interpolate //true def
+            currentdict end
+            gsave /DeviceGray setcolorspace image grestore
+            5 { pop } repeat
+          }
+          { image
+          }
+        ifelse
+      }
+    ifelse
+  } bind odef
+
 /imagemask {
   dup type /dicttype eq {
     .interpolate imagemask
   } {
     /INTERPOLATE .systemvar {
-      8 dict begin
+      .currentglobal //false .setglobal
+      8 dict begin .setglobal
       /ImageType 1 def
       /DataSource 1 index def
       /ImageMatrix 2 index def
@@ -1641,13 +1808,16 @@ currentdict /INTERPOLATE known not { (%END INTERPOLATE) .skipeof } if
       2 index { {1 0} } { {0 1} } ifelse /Decode exch def
       /Height 4 index def
       /Width 5 index def
-      /Interpolate true def
+      /Interpolate //true def
       currentdict end imagemask 5 { pop } repeat
     } {
       imagemask
     } ifelse
   } ifelse
 } bind odef
+
+currentdict /.interpolate undef
+
 %END INTERPOLATE
 
 % Establish local VM as the default.
@@ -1693,5 +1863,14 @@ DELAYBIND not {
 WRITESYSTEMDICT not { systemdict readonly pop } if
 
 (END GC) VMDEBUG
+
+% The Adobe AGM_Core used by Illustrator 9 has some code that breaks
+% if the 'product' is not (Adobe PostScript Parser). A bug has been
+% submitted to Adobe since this also fails with Acrobat Distiller.
+% As a temporary work around, the following HACK will work for
+% devices without spot color support. Once Ghostscript can
+% support DeviceN and spot color separations this will need to
+% be 'true' in some cases.
+userdict /AGM_preserve_spots false put
 
 % The interpreter will run the initial procedure (start).

@@ -147,7 +147,7 @@ Mount:
 	if(amount(fd, mtpt, mountflag, "") < 0){
 		err[0] = 0;
 		errstr(err, sizeof err);
-		if(strstr(err, "hungup") || strstr(err, "timed out")){
+		if(strstr(err, "Hangup") || strstr(err, "hungup") || strstr(err, "timed out")){
 			remove(srv);
 			if(try == 1)
 				goto Again;

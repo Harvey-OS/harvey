@@ -9,8 +9,8 @@ typedef struct SDreq SDreq;
 typedef struct SDunit SDunit;
 
 typedef struct SDperm {
-	char	name[NAMELEN];
-	char	user[NAMELEN];
+	char	name[KNAMELEN];
+	char	user[KNAMELEN];
 	ulong	perm;
 } SDperm;
 
@@ -50,7 +50,7 @@ typedef struct SDev {
 	SDifc*	ifc;			/* pnp/legacy */
 	void	*ctlr;
 	int	idno;
-	char	name[NAMELEN];
+	char	name[KNAMELEN];
 	int	index;			/* into unit space */
 	int	nunit;
 	SDev*	next;
@@ -59,7 +59,7 @@ typedef struct SDev {
 	int	enabled;
 } SDev;
 
-typedef struct SDifc {
+struct SDifc {
 	char*	name;
 
 	SDev*	(*pnp)(void);
@@ -75,8 +75,8 @@ typedef struct SDifc {
 	int	(*wctl)(SDunit*, Cmdbuf*);
 
 	long	(*bio)(SDunit*, int, int, void*, long, long);
-	SDev*	(*config)(int on, char *spec, void *cf);
-} SDifc;
+	SDev*	(*config)(int on, char *spec, DevConf *cf);
+};
 
 typedef struct SDreq {
 	SDunit*	unit;

@@ -1,22 +1,22 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: spprint.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: spprint.c,v 1.4 2001/08/25 06:59:04 lpd Exp $ */
 /* Print values in ASCII form on a stream */
 #include "math_.h"		/* for fabs */
 #include "stdio_.h"		/* for stream.h */
@@ -28,7 +28,7 @@
 
 /* Put a byte array on a stream. */
 int
-pwrite(stream * s, const void *ptr, uint count)
+stream_write(stream * s, const void *ptr, uint count)
 {
     uint used;
 
@@ -38,7 +38,7 @@ pwrite(stream * s, const void *ptr, uint count)
 
 /* Put a string on a stream. */
 int
-pputs(stream * s, const char *str)
+stream_puts(stream * s, const char *str)
 {
     uint len = strlen(str);
     uint used;
@@ -65,6 +65,16 @@ pprintf_scan(stream * s, const char *format)
     return fp;
 }
 
+/* Print a short string on a stream. */
+private void
+pputs_short(stream *s, const char *str)
+{
+    const char *p = str;
+
+    for (; *p; ++p)
+	sputc(s, *p);
+}
+
 /* Print (an) int value(s) using a format. */
 const char *
 pprintd1(stream * s, const char *format, int v)
@@ -77,7 +87,7 @@ pprintd1(stream * s, const char *format, int v)
 	lprintf1("Bad format in pprintd1: %s\n", format);
 #endif
     sprintf(str, "%d", v);
-    pputs(s, str);
+    pputs_short(s, str);
     return pprintf_scan(s, fp + 2);
 }
 const char *
@@ -113,7 +123,7 @@ pprintg1(stream * s, const char *format, floatp v)
 	/* Bad news.  Try again using f-format. */
 	sprintf(str, (fabs(v) > 1 ? "%1.1f" : "%1.8f"), v);
     }
-    pputs(s, str);
+    pputs_short(s, str);
     return pprintf_scan(s, fp + 2);
 }
 const char *
@@ -151,7 +161,7 @@ pprintld1(stream * s, const char *format, long v)
 	lprintf1("Bad format in pprintld: %s\n", format);
 #endif
     sprintf(str, "%ld", v);
-    pputs(s, str);
+    pputs_short(s, str);
     return pprintf_scan(s, fp + 3);
 }
 const char *
@@ -175,7 +185,7 @@ pprints1(stream * s, const char *format, const char *str)
     if (*fp == 0 || fp[1] != 's')	/* shouldn't happen! */
 	lprintf1("Bad format in pprints: %s\n", format);
 #endif
-    pputs(s, str);
+    pputs_short(s, str);
     return pprintf_scan(s, fp + 2);
 }
 const char *

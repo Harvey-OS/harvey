@@ -15,7 +15,7 @@ enum{
 	Qkbdin,
 	Qled,
 	Qversion,
-	Qsuspend,
+	Qpower,
 
 	/* command types */
 	BLversion=	0,
@@ -58,7 +58,7 @@ Dirtab µcdir[]={
 	"kbdin",		{ Qkbdin, 0 },		0,	0664,
 	"led",		{ Qled, 0 },			0,	0664,
 	"version",		{ Qversion, 0 },		0,	0664,
-	"suspend",	{ Qsuspend, 0 },	0,	0222,
+	"power",		{ Qpower, 0 },		0,	0600,
 };
 
 static struct µcontroller
@@ -353,8 +353,8 @@ static long
 	char str[64];
 	int i, j;
 	Rune r;
-	extern Rendez	powerr;
-	extern ulong	powerflag;
+	extern ulong resumeaddr[];
+	extern void power_resume(void);
 
 	if(c->qid.path == Qkbdin){
 		if(n >= sizeof(str))
@@ -367,13 +367,17 @@ static long
 		}
 		return n;
 	}
-	if(c->qid.path == Qsuspend){
+	if(c->qid.path == Qpower){
 		if(!iseve())
 			error(Eperm);
-		if(strncmp(a, "suspend", 7) != 0)
+		if(strncmp(a, "suspend", 7) == 0)
+			*resumeaddr = (ulong)power_resume;
+		else if(strncmp(a, "halt", 4) == 0)
+			*resumeaddr = 0;
+		else
 			error(Ebadarg);
-		powerflag = 1;
-		wakeup(&powerr);
+		deepsleep();
+		return n;
 	}
 
 	cmd = parsecmd(a, n);

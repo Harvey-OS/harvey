@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zvmem.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zvmem.c,v 1.3.2.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* "Virtual memory" operators */
 #include "ghost.h"
 #include "gsstruct.h"
@@ -36,10 +36,10 @@
 
 /* Define whether we validate memory before/after save/restore. */
 /* Note that we only actually do this if DEBUG is set and -Z? is selected. */
-private bool I_VALIDATE_BEFORE_SAVE = true;
-private bool I_VALIDATE_AFTER_SAVE = true;
-private bool I_VALIDATE_BEFORE_RESTORE = true;
-private bool I_VALIDATE_AFTER_RESTORE = true;
+private const bool I_VALIDATE_BEFORE_SAVE = true;
+private const bool I_VALIDATE_AFTER_SAVE = true;
+private const bool I_VALIDATE_BEFORE_RESTORE = true;
+private const bool I_VALIDATE_AFTER_RESTORE = true;
 
 /* 'Save' structure */
 typedef struct vm_save_s vm_save_t;
@@ -168,6 +168,12 @@ zrestore(i_ctx_t *i_ctx_p)
     dict_set_top();		/* reload dict stack cache */
     if (I_VALIDATE_AFTER_RESTORE)
 	ivalidate_clean_spaces(i_ctx_p);
+    /* If the i_ctx_p LockFilePermissions is true, but the userparams */
+    /* we just restored is false, we need to make sure that we do not */
+    /* cause an 'invalidaccess' in setuserparams. Temporarily set     */
+    /* LockFilePermissions false until the gs_lev2.ps can do a        */
+    /* setuserparams from the restored userparam dictionary.          */
+    i_ctx_p->LockFilePermissions = false;
     return 0;
 }
 /* Check the operand of a restore. */

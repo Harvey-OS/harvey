@@ -1,22 +1,22 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zfunc3.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zfunc3.c,v 1.2.6.1 2002/01/17 02:59:35 dancoby Exp $ */
 /* PostScript language interface to LL3 Functions */
 #include "memory_.h"
 #include "ghost.h"
@@ -37,7 +37,7 @@ build_function_proc(gs_build_function_3);
 
 /* Finish building a FunctionType 2 (ExponentialInterpolation) function. */
 int
-gs_build_function_2(const ref *op, const gs_function_params_t * mnDR,
+gs_build_function_2(i_ctx_t *i_ctx_p, const ref *op, const gs_function_params_t * mnDR,
 		    int depth, gs_function_t ** ppfn, gs_memory_t *mem)
 {
     gs_function_ElIn_params_t params;
@@ -69,7 +69,7 @@ fail:
 
 /* Finish building a FunctionType 3 (1-Input Stitching) function. */
 int
-gs_build_function_3(const ref *op, const gs_function_params_t * mnDR,
+gs_build_function_3(i_ctx_t *i_ctx_p, const ref *op, const gs_function_params_t * mnDR,
 		    int depth, gs_function_t ** ppfn, gs_memory_t *mem)
 {
     gs_function_1ItSg_params_t params;
@@ -96,7 +96,7 @@ gs_build_function_3(const ref *op, const gs_function_params_t * mnDR,
 	    ref subfn;
 
 	    array_get(pFunctions, (long)i, &subfn);
-	    code = fn_build_sub_function(&subfn, &ptr[i], depth, mem);
+	    code = fn_build_sub_function(i_ctx_p, &subfn, &ptr[i], depth, mem);
 	    if (code < 0)
 		goto fail;
 	}

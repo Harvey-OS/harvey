@@ -2,7 +2,7 @@
 .SH NAME
 cdfs, cddb \- CD reader and writer file system
 .SH SYNOPSIS
-.B cdfs 
+.B cdfs
 [
 .B -d
 .I sddev
@@ -13,6 +13,20 @@ cdfs, cddb \- CD reader and writer file system
 ]
 .br
 .B "grep aux/cddb /mnt/cd/ctl | rc
+.br
+.B aux/cddb
+[
+.B -DTt
+]
+[
+.B -s
+.I server
+]
+.B query
+.I diskid
+.I ntracks
+.I track0id
+.I ...
 .SH DESCRIPTION
 .I Cdfs
 serves a one and a half level directory
@@ -133,6 +147,27 @@ Subsequent lines contain the current and maximum
 reading and writing speeds.
 .PD
 .PP
+.I Aux/cddb takes 4 optional arguments.
+The
+.B -s server
+option causes
+.I aux/cddb
+to use a different server for the query
+(default is
+.IR freedb.freedb.org ).
+The
+.B -D
+option causes the raw database response from the server to be dumped
+to standard output.
+The
+.I -t
+option causes the time of each track to be appended to the normal output.
+.I -T
+is like
+.I -t
+but prints a line with the total time at the end.
+.PD
+.PP
 Only MMC-compliant CD readers and writers
 are supported, but it would be easy to add
 support for early CD writers if desired.
@@ -151,14 +186,6 @@ and then fixate the disk as an audio CD.
 .EX
 cp /tmp/songs/* /mnt/cd/wa
 rm /mnt/cd/wa
-.EE
-.PP
-Cut your own 9660 CD-ROM, without
-spooling the CD image to a temporary file.
-.IP
-.EX
-disk/mk9660 -9cj -n notice cdproto >/mnt/cd/wd/foo
-rm /mnt/cd/wd
 .EE
 .SH SOURCE
 .B /sys/src/cmd/cdfs

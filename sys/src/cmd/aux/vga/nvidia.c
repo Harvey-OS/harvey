@@ -11,8 +11,8 @@ struct Nvidia {
 	ulong	mmio;
 	Pcidev*	pci;
 
-	int		arch;
-	int		crystalfreq;
+	int	arch;
+	int	crystalfreq;
 
 	ulong*	pfb;			/* mmio pointers */
 	ulong*	pramdac;
@@ -28,10 +28,13 @@ struct Nvidia {
 	ulong	vpll;
 	ulong	pllsel;
 	ulong	general;
+	ulong	scale;
 	ulong	config;
 
 	ulong	offset[4];
 	ulong	pitch[6];
+
+	int	islcd;
 };
 
 static int extcrts[] = {
@@ -153,8 +156,8 @@ snarf(Vga* vga, Ctlr* ctlr)
 	nv->vpll	= nv->pramdac[0x00000508/4];
 	nv->pllsel	= nv->pramdac[0x0000050C/4];
 	nv->general	= nv->pramdac[0x00000600/4];
+	nv->scale	= nv->pramdac[0x00000848/4];
 	nv->config	= nv->pfb[0x00000200/4];
-
 
 	ctlr->flag |= Fsnarf;
 }
@@ -212,6 +215,7 @@ init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
 	Nvidia *nv;
+	char *p, *val;
 	int digital, i, tmp;
 	int pixeldepth;
 
@@ -226,7 +230,13 @@ init(Vga* vga, Ctlr* ctlr)
 
 	clock(vga, ctlr);
 
-	digital = vga->crt[0x28] & 0x80;
+	if(val = dbattr(vga->mode->attr, "lcd")){
+		 if((nv->islcd = strtol(val, &p, 0)) == 0 && p == val)
+			error("%s: invalid 'lcd' attr\n", ctlr->name);
+	}
+	if(digital = (vga->crt[0x28] & 0x80))
+		nv->islcd = 1;
+
 	for(i = 0; extcrts[i] >= 0; i++)
 		vga->crt[extcrts[i]] = 0;
 
@@ -239,6 +249,14 @@ init(Vga* vga, Ctlr* ctlr)
 		nv->general = 0x00001100;
 	else
 		nv->general = 0x00000100;
+	nv->scale &= 0xFFF000FF;
+	if(nv->islcd){
+		digital = 0x80;
+		nv->scale |= 0x100;
+		vga->crt[0x21] = 0xFA;
+		vga->crt[0x53] = 0;
+		vga->crt[0x54] = 0;
+	}
 	if(nv->arch == 4)
 		nv->config  = 0x00001114;
 	else if(nv->arch == 10 || nv->arch == 20)
@@ -480,8 +498,16 @@ load(Vga* vga, Ctlr* ctlr)
 		vgaxo(Crtx, extcrts[i], vga->crt[extcrts[i]]);
 
 	nv->pramdac[0x00000300/4] = nv->cursor2;
-	nv->pramdac[0x00000508/4] = nv->vpll;
-	nv->pramdac[0x0000050C/4] = nv->pllsel;
+	if(nv->islcd){
+		nv->pramdac[0x00000848/4] = nv->scale;
+		vgaxo(Crtx, 0x21, 0xFA);
+		vgaxo(Crtx, 0x53, 0);
+		vgaxo(Crtx, 0x54, 0);
+	}
+	else{
+		nv->pramdac[0x00000508/4] = nv->vpll;
+		nv->pramdac[0x0000050C/4] = nv->pllsel;
+	}
 	nv->pramdac[0x00000600/4] = nv->general;
 
 	ctlr->flag |= Fload;
@@ -520,8 +546,12 @@ dump(Vga* vga, Ctlr* ctlr)
 	Bprint(&stdout, " %lux\n", nv->pllsel);
 	printitem(ctlr->name, "general");
 	Bprint(&stdout, " %lux\n", nv->general);
+	printitem(ctlr->name, "scale");
+	Bprint(&stdout, " %lux\n", nv->scale);
 	printitem(ctlr->name, "config");
 	Bprint(&stdout, " %lux\n", nv->config);
+	printitem(ctlr->name, "islcd");
+	Bprint(&stdout, " %d\n", nv->islcd);
 }
 
 Ctlr nvidia = {

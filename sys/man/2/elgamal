@@ -1,6 +1,6 @@
 .TH ELGAMAL 2
 .SH NAME
-eggen, egencrypt, egdecrypt, egsign, egverify, egalloc, egfree, egpuballoc, egpubfree, egprivalloc, egprivfree, egsigalloc, egsigfree, egprivtopub - elgamal encryption
+eggen, egencrypt, egdecrypt, egsign, egverify, egpuballoc, egpubfree, egprivalloc, egprivfree, egsigalloc, egsigfree, egprivtopub - elgamal encryption
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -47,7 +47,8 @@ void		egsigfree(EGsig*)
 EGpub*	egprivtopub(EGpriv*)
 .SH DESCRIPTION
 .PP
-The corresponding keys for the ElGamal algorithm are:
+Elgamal is a public key encryption and signature algorithm.  The owner of a key publishes
+the public part of the key:
 .EX
 	struct EGpub
 	{
@@ -56,7 +57,12 @@ The corresponding keys for the ElGamal algorithm are:
 		mpint	*key;	// (encryption key) alpha**secret mod p
 	};
 .EE
-and
+This part can be used for encrypting data (with
+.IR egencrypt )
+to be sent to the owner.
+The owner decrypts (with
+.IR egdecrypt )
+using his private key:
 .EX
 	struct EGpriv
 	{
@@ -64,6 +70,26 @@ and
 		mpint	*secret; // (decryption key)
 	};
 .EE
+.PP
+Keys are generated using
+.IR eggen .
+.I Eggen
+takes both bit length of the modulus
+and the number of repetitions of the Miller-Rabin
+primality test to run.  If the latter is 0, it does the default number
+of rounds.
+.I Egprivtopub
+returns a newly allocated copy of the public key
+corresponding to the private key.
+.PP
+The routines
+.IR egpuballoc ,
+.IR egpubfree ,
+.IR egprivalloc ,
+and
+.I egprivfree
+are provided to manage key storage.
+.PP
 .I Egsign
 signs message
 .I m
@@ -78,6 +104,12 @@ yielding a
 .EE
 .I Egverify
 returns 0 if the signature is valid and \-1 if not.
+.PP
+The routines
+.I egsigalloc
+and
+.I egsigfree
+are provided to manage signature storage.
 .SH SOURCE
 .B /sys/src/libsec
 .SH SEE ALSO
@@ -85,6 +117,7 @@ returns 0 if the signature is valid and \-1 if not.
 .IR aes (2),
 .IR blowfish (2),
 .IR des (2),
+.IR dsa (2),
 .IR rc4 (2),
 .IR rsa (2),
 .IR sechash (2),

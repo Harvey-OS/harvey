@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1995, 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 1995, 1996, 1997, 1998, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevwprn.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevwprn.c,v 1.3 2001/03/12 03:56:13 ghostgum Exp $ */
 /*
  * Microsoft Windows 3.n printer driver for Ghostscript.
  *
@@ -25,7 +25,11 @@
  */
 #include "gdevmswn.h"
 #include "gp.h"
+#include "gpcheck.h"
 #include "commdlg.h"
+
+#define PARENT_WINDOW  HWND_DESKTOP
+
 
 /*
  ****** NOTE: this module and gdevwddb should be refactored.
@@ -46,6 +50,7 @@ typedef struct gx_device_win_prn_s gx_device_win_prn;
 private void near win_prn_addtool(P2(gx_device_win_prn *, int));
 private void near win_prn_maketools(P2(gx_device_win_prn *, HDC));
 private void near win_prn_destroytools(P1(gx_device_win_prn *));
+BOOL CALLBACK _export AbortProc(HDC, int);
 
 /* Device procedures */
 
@@ -137,7 +142,7 @@ win_prn_open(gx_device * dev)
 
     memset(&pd, 0, sizeof(PRINTDLG));
     pd.lStructSize = sizeof(PRINTDLG);
-    pd.hwndOwner = hwndtext;
+    pd.hwndOwner = PARENT_WINDOW;
     pd.Flags = PD_PRINTSETUP | PD_RETURNDC;
     if (!PrintDlg(&pd)) {
 	/* device not opened - exit ghostscript */
@@ -151,20 +156,9 @@ win_prn_open(gx_device * dev)
 	DeleteDC(wdev->hdcprn);
 	return gs_error_limitcheck;
     }
-#ifdef __WIN32__
     wdev->lpfnAbortProc = (DLGPROC) AbortProc;
-#else
-#ifdef __DLL__
-    wdev->lpfnAbortProc = (DLGPROC) GetProcAddress(phInstance, "AbortProc");
-#else
-    wdev->lpfnAbortProc = (DLGPROC) MakeProcInstance((FARPROC) AbortProc, phInstance);
-#endif
-#endif
     Escape(wdev->hdcprn, SETABORTPROC, 0, (LPSTR) wdev->lpfnAbortProc, NULL);
     if (Escape(wdev->hdcprn, STARTDOC, strlen(szAppName), szAppName, NULL) <= 0) {
-#if !defined(__WIN32__) && !defined(__DLL__)
-	FreeProcInstance((FARPROC) wdev->lpfnAbortProc);
-#endif
 	DeleteDC(wdev->hdcprn);
 	return gs_error_limitcheck;
     }
@@ -172,9 +166,6 @@ win_prn_open(gx_device * dev)
 			     wdev->mfname, "wb");
     if (f == (FILE *) NULL) {
 	Escape(wdev->hdcprn, ENDDOC, 0, NULL, NULL);
-#if !defined(__WIN32__) && !defined(__DLL__)
-	FreeProcInstance((FARPROC) wdev->lpfnAbortProc);
-#endif
 	DeleteDC(wdev->hdcprn);
 	return gs_error_limitcheck;
     }
@@ -224,9 +215,6 @@ win_prn_open(gx_device * dev)
 	DeleteMetaFile(hmf);
 	unlink(wdev->mfname);
 	Escape(wdev->hdcprn, ENDDOC, 0, NULL, NULL);
-#if !defined(__WIN32__) && !defined(__DLL__)
-	FreeProcInstance((FARPROC) wdev->lpfnAbortProc);
-#endif
 	DeleteDC(wdev->hdcprn);
 	return win_nomemory();
     }
@@ -241,9 +229,6 @@ win_prn_open(gx_device * dev)
 	DeleteMetaFile(hmf);
 	unlink(wdev->mfname);
 	Escape(wdev->hdcprn, ENDDOC, 0, NULL, NULL);
-#if !defined(__WIN32__) && !defined(__DLL__)
-	FreeProcInstance((FARPROC) wdev->lpfnAbortProc);
-#endif
 	DeleteDC(wdev->hdcprn);
 	gs_free((char *)(wdev->limgpalette), 1, sizeof(LOGPALETTE) +
 		(1 << (wdev->color_info.depth)) * sizeof(PALETTEENTRY),
@@ -269,9 +254,6 @@ win_prn_close(gx_device * dev)
 
     /* Free resources */
     Escape(wdev->hdcprn, ENDDOC, 0, NULL, NULL);
-#if !defined(__WIN32__) && !defined(__DLL__)
-    FreeProcInstance((FARPROC) wdev->lpfnAbortProc);
-#endif
     DeleteDC(wdev->hdcprn);
     hmf = CloseMetaFile(wdev->hdcmf);
     DeleteMetaFile(hmf);
@@ -445,11 +427,7 @@ win_prn_draw_line(gx_device * dev, int x0, int y0, int x1, int y1,
 	wdev->hpen = wdev->hpens[(int)color];
 	SelectObject(wdev->hdcmf, wdev->hpen);
     }
-#ifdef __WIN32__
     MoveToEx(wdev->hdcmf, x0, y0, NULL);
-#else
-    MoveTo(wdev->hdcmf, x0, y0);
-#endif
     LineTo(wdev->hdcmf, x1, y1);
     return 0;
 }
@@ -686,3 +664,13 @@ win_prn_destroytools(gx_device_win_prn * wdev)
     gs_free((char *)wdev->hpens, 1, wdev->hpensize,
 	    "win_prn_destroytools(pens)");
 }
+
+BOOL CALLBACK _export
+AbortProc(HDC hdcPrn, int code)
+{
+    process_interrupts();
+    if (code == SP_OUTOFDISK)
+	return (FALSE);		/* cancel job */
+    return (TRUE);
+}
+

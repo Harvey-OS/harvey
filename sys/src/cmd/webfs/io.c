@@ -11,144 +11,56 @@
 #include "dat.h"
 #include "fns.h"
 
-static int tlsdial(char*, char*, char*, int*, int);
-
 static long
-t(Ioproc *io, void (*op)(Ioproc*), int n, ...)
+_iovfprint(va_list *arg)
 {
-	int i, ret;
-	va_list arg;
+	int fd;
+	char *fmt;
+	va_list arg2;
 
-	assert(!io->inuse);
-	io->inuse = 1;
-	io->op = op;
-	va_start(arg, n);
-	for(i=0; i<n; i++)
-		io->arg[i] = va_arg(arg, long);
-	sendp(io->c, io);
-	recvp(io->c);
-	ret = io->ret;
-	if(ret < 0)
-		errstr(io->err, sizeof io->err);
-	io->inuse = 0;
-	return ret;
+	fd = va_arg(*arg, int);
+	fmt = va_arg(*arg, char*);
+	arg2 = va_arg(*arg, va_list);
+	return vfprint(fd, fmt, arg2);
 }
 
-static void
-t2(Ioproc *io, int ret)
+int
+iovfprint(Ioproc *io, int fd, char *fmt, va_list arg)
 {
-	io->ret = ret;
-	if(ret < 0)
-		rerrstr(io->err, sizeof io->err);
-	sendp(io->c, io);
+	return iocall(io, _iovfprint, fd, fmt, arg);
 }
 
-static void ioread2(Ioproc*);
-static long
-ioread(Ioproc *io, int fd, void *a, long n)
-{
-	return t(io, ioread2, 3, fd, a, n);
-}
-static void
-ioread2(Ioproc *io)
-{
-	t2(io, read(io->arg[0], (void*)io->arg[1], io->arg[2]));
-}
-
-static void iowrite2(Ioproc*);
-static long
-iowrite(Ioproc *io, int fd, void *a, long n)
-{
-	return t(io, iowrite2, 3, fd, a, n);
-}
-static void
-iowrite2(Ioproc *io)
-{
-	t2(io, write(io->arg[0], (void*)io->arg[1], io->arg[2]));
-}
-
-static void ioclose2(Ioproc*);
-static int
-ioclose(Ioproc *io, int fd)
-{
-	return t(io, ioclose2, 1, fd);
-}
-static void
-ioclose2(Ioproc *io)
-{
-	t2(io, close(io->arg[0]));
-}
-
-static void iodial2(Ioproc*);
-static int
-iodial(Ioproc *io, char *a, char *b, char *c, int *d, int e)
-{
-	return t(io, iodial2, 5, a, b, c, d, e);
-}
-static void
-iodial2(Ioproc *io)
-{
-	t2(io, tlsdial((char*)io->arg[0], (char*)io->arg[1], (char*)io->arg[2], (int*)io->arg[3], io->arg[4]));
-}
-
-static void ioopen2(Ioproc*);
-static int
-ioopen(Ioproc *io, char *path, int mode)
-{
-	return t(io, ioopen2, 2, path, mode);
-}
-static void
-ioopen2(Ioproc *io)
-{
-	t2(io, open((char*)io->arg[0], io->arg[1]));
-}
-
-static int
+int
 ioprint(Ioproc *io, int fd, char *fmt, ...)
 {
-	char buf[1024];
+	int n;
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof buf, fmt, arg);
+	n = iovfprint(io, fd, fmt, arg);
 	va_end(arg);
-	return iowrite(io, fd, buf, strlen(buf));
+	return n;
 }
 
-static void
-iointerrupt(Ioproc *io)
+static long
+_iotlsdial(va_list *arg)
 {
-	if(!io->inuse)
-		return;
-	postnote(PNPROC, io->pid, "interrupt");
-}
-
-static void
-xioproc(void *a)
-{
-	Ioproc *io;
-
-	io = a;
-	io->pid = getpid();
-	sendp(io->c, nil);
-	while(recvp(io->c) == io)
-		io->op(io);
-	chanfree(io->c);
-	free(io);
-}
-
-static int
-tlsdial(char *a, char *b, char *c, int *d, int usetls)
-{
-	int fd, tfd;
+	char *addr, *local, *dir;
+	int *cfdp, fd, tfd, usetls;
 	TLSconn conn;
 
-	fd = dial(a, b, c, d);
+	addr = va_arg(arg, char*);
+	local = va_arg(arg, char*);
+	dir = va_arg(arg, char*);
+	cfdp = va_arg(arg, int*);
+	usetls = va_arg(arg, int);
+
+	fd = dial(addr, local, dir, cfdp);
 	if(fd < 0)
 		return -1;
-	if(usetls == 0)
+	if(!usetls)
 		return fd;
-	
+
 	memset(&conn, 0, sizeof conn);
 	tfd = tlsClient(fd, &conn);
 	if(tfd < 0){
@@ -163,41 +75,8 @@ tlsdial(char *a, char *b, char *c, int *d, int usetls)
 	return tfd;
 }
 
-Ioproc iofns =
+int
+iotlsdial(Ioproc *io, char *addr, char *local, char *dir, int *cfdp, int usetls)
 {
-	ioread,
-	iowrite,
-	iodial,
-	ioclose,
-	ioopen,
-	ioprint,
-	iointerrupt,
-};
-
-Ioproc *iofree;
-
-Ioproc*
-ioproc(void)
-{
-	Ioproc *io;
-
-	if((io = iofree) != nil){
-		iofree = io->next;
-		return io;
-	}
-	io = emalloc(sizeof(*io));
-	*io = iofns;
-	io->c = chancreate(sizeof(void*), 0);
-	if(proccreate(xioproc, io, STACK) < 0)
-		sysfatal("proccreate: %r");
-	recvp(io->c);
-	return io;
+	return iocall(io, _iotlsdial, addr, local, dir, cfdp, usetls);
 }
-
-void
-closeioproc(Ioproc *io)
-{
-	io->next = iofree;
-	iofree = io;
-}
-

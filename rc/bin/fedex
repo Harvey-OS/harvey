@@ -7,8 +7,24 @@ if(! ~ $#* 1) {
 
 rfork e
 
+fn bgrep{
+pattern=`{echo $1 | sed 's;/;\\&;'}
+shift
 
-hget 'http://www.fedex.com/cgi-bin/track_it?airbill_list='$1'&kurrent_airbill='$1'&language=english&cntry_code=us&state=0' |
-	sed -n '/BEGIN TRACKING/,/END TRACKING/p' |
-	sed 's/<[^>]+>//g;s/[ 	]+$//' | grep .
+echo 'X {
+$
+a
+
+.
+}
+X ,x/(.+\n)+\n/ g/'$pattern'/p' |
+sam -d $* >[2]/dev/null
+}
+
+# hget 'http://www.fedex.com/cgi-bin/track_it?airbill_list='$1'&kurrent_airbill='$1'&language=english&cntry_code=us&state=0' |
+hget 'http://www.fedex.com/cgi-bin/tracking?action=track&language=english&cntry_code=us&initial=x&mps=y&tracknumbers='$1 |
+	htmlfmt >/tmp/fedex.$pid
+bgrep 'Tracking Number' /tmp/fedex.$pid
+bgrep 'Scan Activity' /tmp/fedex.$pid
+rm /tmp/fedex.$pid
 

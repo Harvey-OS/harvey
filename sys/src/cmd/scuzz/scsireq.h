@@ -38,6 +38,7 @@ enum {					/* flags */
 	Fchanger	= 0x0080,	/* medium-changer device */
 	Finqok		= 0x0100,	/* inquiry data is OK */
 	Fmode6		= 0x0200,	/* use 6-byte modeselect */
+	Frw10		= 0x0400,	/* use 10-byte read/write */
 };
 
 enum {

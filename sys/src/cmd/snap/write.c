@@ -29,6 +29,9 @@ writeseg(Biobuf *b, Proc *proc, Seg *s)
 		abort();
 
 	Bprint(b, "%-11lud %-11lud ", s->offset, s->len);
+	if(s->len == 0)
+		return;
+
 	for(i=0, pp=s->pg, p=*pp; i<npg; i++, pp++, p=*pp) {
 		if(p->written) {
 			if(p->type == 'z') {

@@ -35,8 +35,14 @@ ping, gping, traceroute, hogports \- probe the Internet
 [
 .B -dn
 ][
+.B -a
+.I n
+][
+.B -h
+.I nbuck
+][
 .B -t
-.I tries
+.I sttl
 ]
 .I dest
 .PP
@@ -122,10 +128,23 @@ print debugging to standard error
 just print out IP numbers, don't try to
 look up the names of the routers.
 .TP
+.B a
+make
+.I n
+attempts at each TTL value (default 3).
+.TP
 .B t
-send
-.I tries
-packets at each TTL value (default 1).
+set the starting TTL value to
+.I sttl
+(default 1).
+.TP
+.B h
+print out a histogram of times from request
+to response at each TTL value.  The histogram
+contains
+.I nbuck
+buckets.
+.PD
 .PP
 .I Hogports
 announces on a range of ports to keep them from other processes.

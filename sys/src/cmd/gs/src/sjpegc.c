@@ -1,22 +1,22 @@
 /* Copyright (C) 1994, 1997, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: sjpegc.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: sjpegc.c,v 1.4 2001/04/07 00:33:22 rayjj Exp $ */
 /* Interface routines for IJG code, common to encode/decode. */
 #include "stdio_.h"
 #include "string_.h"
@@ -28,6 +28,8 @@
 #include "strimpl.h"
 #include "sdct.h"
 #include "sjpeg.h"
+
+private_st_jpeg_block();
 
 /*
  * Error handling routines (these replace corresponding IJG routines from
@@ -141,51 +143,77 @@ gs_jpeg_destroy(stream_DCT_state * st)
  * Note we do not need these to be declared in any GS header file.
  */
 
-private gs_memory_t *
-gs_j_common_memory(j_common_ptr cinfo)
-{				/*
-				 * We use the offset of cinfo in jpeg_compress data here, but we
-				 * could equally well have used jpeg_decompress_data.
-				 */
-    const jpeg_stream_data *sd =
-    ((const jpeg_stream_data *)((const byte *)cinfo -
-				offset_of(jpeg_compress_data, cinfo)));
+private inline jpeg_compress_data *
+cinfo2jcd(j_common_ptr cinfo)
+{   /* We use the offset of cinfo in jpeg_compress data here, but we */
+    /* could equally well have used jpeg_decompress_data.            */
+    return (jpeg_compress_data *)
+      ((byte *)cinfo - offset_of(jpeg_compress_data, cinfo));
+}
 
-    return sd->memory;
+private void *
+jpeg_alloc(j_common_ptr cinfo, size_t size, const char *info)
+{
+    jpeg_compress_data *jcd = cinfo2jcd(cinfo);
+    gs_memory_t *mem = jcd->memory;
+    
+    jpeg_block_t *p = gs_alloc_struct_immovable(mem, jpeg_block_t,
+    			&st_jpeg_block, "jpeg_alloc(block)");
+    void *data = gs_alloc_bytes_immovable(mem, size, info);
+
+    if (p == 0 || data == 0) {
+	gs_free_object(mem, data, info);
+	gs_free_object(mem, p, "jpeg_alloc(block)");
+	return 0;
+    }
+    p->data = data;
+    p->next = jcd->blocks;
+    jcd->blocks = p;
+    return data;
+}
+
+private void
+jpeg_free(j_common_ptr cinfo, void *data, const char *info)
+{
+    jpeg_compress_data *jcd = cinfo2jcd(cinfo);
+    gs_memory_t *mem = jcd->memory;
+    jpeg_block_t  *p  =  jcd->blocks;
+    jpeg_block_t **pp = &jcd->blocks;
+
+    gs_free_object(mem, data, info);
+    while(p && p->data != data)
+      { pp = &p->next;
+        p = p->next;
+      }
+    if(p == 0)
+      lprintf1("Freeing unrecorded JPEG data 0x%lx!\n", (ulong)data);
+    else
+      *pp = p->next;
+    gs_free_object(mem, p, "jpeg_free(block)");
 }
 
 void *
-jpeg_get_small(j_common_ptr cinfo, size_t sizeofobject)
+jpeg_get_small(j_common_ptr cinfo, size_t size)
 {
-    gs_memory_t *mem = gs_j_common_memory(cinfo);
-
-    return gs_alloc_bytes_immovable(mem, sizeofobject,
-				    "JPEG small internal data allocation");
+    return jpeg_alloc(cinfo, size, "JPEG small internal data allocation");
 }
 
 void
-jpeg_free_small(j_common_ptr cinfo, void *object, size_t sizeofobject)
+jpeg_free_small(j_common_ptr cinfo, void *object, size_t size)
 {
-    gs_memory_t *mem = gs_j_common_memory(cinfo);
-
-    gs_free_object(mem, object, "Freeing JPEG small internal data");
+    jpeg_free(cinfo, object, "Freeing JPEG small internal data");
 }
 
 void FAR *
-jpeg_get_large(j_common_ptr cinfo, size_t sizeofobject)
+jpeg_get_large(j_common_ptr cinfo, size_t size)
 {
-    gs_memory_t *mem = gs_j_common_memory(cinfo);
-
-    return gs_alloc_bytes_immovable(mem, sizeofobject,
-				    "JPEG large internal data allocation");
+    return jpeg_alloc(cinfo, size, "JPEG large internal data allocation");
 }
 
 void
-jpeg_free_large(j_common_ptr cinfo, void FAR * object, size_t sizeofobject)
+jpeg_free_large(j_common_ptr cinfo, void FAR * object, size_t size)
 {
-    gs_memory_t *mem = gs_j_common_memory(cinfo);
-
-    gs_free_object(mem, object, "Freeing JPEG large internal data");
+    jpeg_free(cinfo, object, "Freeing JPEG large internal data");
 }
 
 long

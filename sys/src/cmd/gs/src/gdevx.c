@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevx.c,v 1.3 2000/03/17 07:35:43 lpd Exp $ */
+/*$Id: gdevx.c,v 1.8.2.1 2002/01/30 20:09:26 raph Exp $ */
 /* X Windows driver for Ghostscript library */
 #include "gx.h"			/* for gx_bitmap; includes std.h */
 #include "math_.h"
@@ -77,147 +77,166 @@ private dev_proc_get_page_device(x_get_page_device);
 private dev_proc_strip_tile_rectangle(x_strip_tile_rectangle);
 private dev_proc_begin_typed_image(x_begin_typed_image);
 private dev_proc_get_bits_rectangle(x_get_bits_rectangle);
+/*extern dev_proc_get_xfont_procs(gdev_x_finish_copydevice);*/
 
 /* The device descriptor */
-const gx_device_X gs_x11_device = {
-    std_device_color_stype_body(gx_device_X, 0, "x11", &st_device_X,
-			  FAKE_RES * DEFAULT_WIDTH_10THS / 10,
-			  FAKE_RES * DEFAULT_HEIGHT_10THS / 10,	/* x and y extent (nominal) */
-			  FAKE_RES, FAKE_RES,	/* x and y density (nominal) */
-			  /*dci_color( */ 24, 255, 256 /*) */ ),
-    {				/* std_procs */
-	x_open,
-	x_get_initial_matrix,
-	x_sync,
-	x_output_page,
-	x_close,
-	gdev_x_map_rgb_color,
-	gdev_x_map_color_rgb,
-	x_fill_rectangle,
-	NULL,			/* tile_rectangle */
-	x_copy_mono,
-	x_copy_color,
-	NULL,			/* draw_line */
-	NULL,			/* get_bits */
-	gdev_x_get_params,
-	gdev_x_put_params,
-	NULL,			/* map_cmyk_color */
-	gdev_x_get_xfont_procs,
-	NULL,			/* get_xfont_device */
-	NULL,			/* map_rgb_alpha_color */
-	x_get_page_device,
-	NULL,			/* get_alpha_bits */
-	NULL,			/* copy_alpha */
-	NULL,			/* get_band */
-	NULL,			/* copy_rop */
-	NULL,			/* fill_path */
-	NULL,			/* stroke_path */
-	NULL,			/* fill_mask */
-	NULL,			/* fill_trapezoid */
-	NULL,			/* fill_parallelogram */
-	NULL,			/* fill_triangle */
-	NULL,			/* draw_thin_line */
-	NULL,			/* begin_image */
-	NULL,			/* image_data */
-	NULL,			/* end_image */
-	x_strip_tile_rectangle,
-	NULL,			/* strip_copy_rop */
-	NULL,			/* get_clipping_box */
-	x_begin_typed_image,
-	x_get_bits_rectangle
-    },
-    gx_device_bbox_common_initial(0 /*false*/, 1 /*true*/, 1 /*true*/),
-    0 /*false*/,		/* is_buffered */
-    1 /*true*/,			/* IsPageDevice */
-    0,				/* MaxBitmap */
-    NULL,			/* buffer */
-    0,				/* buffer_size */
-    {				/* image */
-	0, 0,			/* width, height */
-	0, XYBitmap, NULL,	/* xoffset, format, data */
-	MSBFirst, 8,		/* byte-order, bitmap-unit */
-	MSBFirst, 8, 1,		/* bitmap-bit-order, bitmap-pad, depth */
-	0, 1,			/* bytes_per_line, bits_per_pixel */
-	0, 0, 0,		/* red_mask, green_mask, blue_mask */
-	NULL,			/* *obdata */
-	{NULL,			/* *(*create_image)() */
-	 NULL,			/* (*destroy_image)() */
-	 NULL,			/* (*get_pixel)() */
-	 NULL,			/* (*put_pixel)() */
-	 NULL,			/* *(*sub_image)() */
-	 NULL			/* (*add_pixel)() */
-	},
-    },
-    NULL, NULL,			/* dpy, scr */
-				/* (connection not initialized) */
-    NULL,			/* vinfo */
-    (Colormap) None,		/* cmap */
-    (Window) None,		/* win */
-    NULL,			/* gc */
-    (Window) None,		/* pwin */
-    (Pixmap) 0,			/* bpixmap */
-    0,				/* ghostview */
-    (Window) None,		/* mwin */
-    {identity_matrix_body},	/* initial matrix (filled in) */
-    (Atom) 0, (Atom) 0, (Atom) 0,	/* Atoms: NEXT, PAGE, DONE */
-    {				/* update */
-	{			/* box */
-	    {max_int_in_fixed, max_int_in_fixed},
-	    {min_int_in_fixed, min_int_in_fixed}
-	},
-	0,			/* area */
-	0,			/* total */
-	0			/* count */
-    },
-    (Pixmap) 0,			/* dest */
-    0L, (ulong)~0L,		/* colors_or, colors_and */
-    {				/* cp */
-	(Pixmap) 0,		/* pixmap */
-	NULL,			/* gc */
-	-1, -1			/* raster, height */
-    },
-    {				/* ht */
-	(Pixmap) None,		/* pixmap */
-	(Pixmap) None,		/* no_pixmap */
-	gx_no_bitmap_id,	/* id */
-	0, 0, 0,		/* width, height, raster */
-	0, 0			/* fore_c, back_c */
-    },
-    GXcopy,			/* function */
-    FillSolid,			/* fill_style */
-    0,				/* font */
-    0, 0,			/* back_color, fore_color */
-    0, 0,			/* background, foreground */
-    { 0 },			/* cman */
-    0, 0,			/* borderColor, borderWidth */
-    NULL,			/* geometry */
-    128, 5,			/* maxGrayRamp, maxRGBRamp */
-    NULL,			/* palette */
-    NULL, NULL, NULL,		/* regularFonts, symbolFonts, dingbatFonts */
-    NULL, NULL, NULL,		/* regular_fonts, symbol_fonts, dingbat_fonts */
-    1, 1,			/* useXFonts, useFontExtensions */
-    1, 0,			/* useScalableFonts, logXFonts */
-    0.0, 0.0,			/* xResolution, yResolution */
-    1,				/* useBackingPixmap */
-    1, 1,			/* useXPutImage, useXSetTile */
-
-    0 /*false*/,		/* AlwaysUpdate */
-    20000,			/* MaxTempPixmap */
-    5000,			/* MaxTempImage */
-    100000,			/* MaxBufferedTotal */
-    100000,			/* MaxBufferedArea */
-    max_int,			/* MaxBufferedCount */
-
-    {				/* text */
-	0,			/* item_count */
-	0,			/* char_count */
-	{0, 0},			/* origin */
-	0,			/* x */
-	{
-	    {0}},		/* items */
-	{0}			/* chars */
-    }
+#define x_device(this_device, dev_body, max_bitmap) \
+const gx_device_X this_device = { \
+    dev_body, \
+    {				/* std_procs */ \
+	x_open, \
+	x_get_initial_matrix, \
+	x_sync, \
+	x_output_page, \
+	x_close, \
+	gdev_x_map_rgb_color, \
+	gdev_x_map_color_rgb, \
+	x_fill_rectangle, \
+	NULL,			/* tile_rectangle */ \
+	x_copy_mono, \
+	x_copy_color, \
+	NULL,			/* draw_line */ \
+	NULL,			/* get_bits */ \
+	gdev_x_get_params, \
+	gdev_x_put_params, \
+	NULL,			/* map_cmyk_color */ \
+	gdev_x_get_xfont_procs, \
+	NULL,			/* get_xfont_device */ \
+	NULL,			/* map_rgb_alpha_color */ \
+	x_get_page_device, \
+	NULL,			/* get_alpha_bits */ \
+	NULL,			/* copy_alpha */ \
+	NULL,			/* get_band */ \
+	NULL,			/* copy_rop */ \
+	NULL,			/* fill_path */ \
+	NULL,			/* stroke_path */ \
+	NULL,			/* fill_mask */ \
+	NULL,			/* fill_trapezoid */ \
+	NULL,			/* fill_parallelogram */ \
+	NULL,			/* fill_triangle */ \
+	NULL,			/* draw_thin_line */ \
+	NULL,			/* begin_image */ \
+	NULL,			/* image_data */ \
+	NULL,			/* end_image */ \
+	x_strip_tile_rectangle, \
+	NULL,			/* strip_copy_rop */ \
+	NULL,			/* get_clipping_box */ \
+	x_begin_typed_image, \
+	x_get_bits_rectangle, \
+	NULL,			/* map_color_rgb_alpha */ \
+	NULL,			/* create_compositor */ \
+	NULL,			/* get_hardware_params */ \
+	NULL,			/* text_begin */ \
+	gdev_x_finish_copydevice \
+    }, \
+    gx_device_bbox_common_initial(0 /*false*/, 1 /*true*/, 1 /*true*/), \
+    0 /*false*/,		/* is_buffered */ \
+    1 /*true*/,			/* IsPageDevice */ \
+    max_bitmap,			/* MaxBitmap */ \
+    NULL,			/* buffer */ \
+    0,				/* buffer_size */ \
+    {				/* image */ \
+	0, 0,			/* width, height */ \
+	0, XYBitmap, NULL,	/* xoffset, format, data */ \
+	MSBFirst, 8,		/* byte-order, bitmap-unit */ \
+	MSBFirst, 8, 1,		/* bitmap-bit-order, bitmap-pad, depth */ \
+	0, 1,			/* bytes_per_line, bits_per_pixel */ \
+	0, 0, 0,		/* red_mask, green_mask, blue_mask */ \
+	NULL,			/* *obdata */ \
+	{NULL,			/* *(*create_image)() */ \
+	 NULL,			/* (*destroy_image)() */ \
+	 NULL,			/* (*get_pixel)() */ \
+	 NULL,			/* (*put_pixel)() */ \
+	 NULL,			/* *(*sub_image)() */ \
+	 NULL			/* (*add_pixel)() */ \
+	}, \
+    }, \
+    NULL, NULL,			/* dpy, scr */ \
+				/* (connection not initialized) */ \
+    NULL,			/* vinfo */ \
+    (Colormap) None,		/* cmap */ \
+    (Window) None,		/* win */ \
+    NULL,			/* gc */ \
+    (Window) None,		/* pwin */ \
+    (Pixmap) 0,			/* bpixmap */ \
+    0,				/* ghostview */ \
+    (Window) None,		/* mwin */ \
+    {identity_matrix_body},	/* initial matrix (filled in) */ \
+    (Atom) 0, (Atom) 0, (Atom) 0,	/* Atoms: NEXT, PAGE, DONE */ \
+    {				/* update */ \
+	{			/* box */ \
+	    {max_int_in_fixed, max_int_in_fixed}, \
+	    {min_int_in_fixed, min_int_in_fixed} \
+	}, \
+	0,			/* area */ \
+	0,			/* total */ \
+	0			/* count */ \
+    }, \
+    (Pixmap) 0,			/* dest */ \
+    0L, (ulong)~0L,		/* colors_or, colors_and */ \
+    {				/* cp */ \
+	(Pixmap) 0,		/* pixmap */ \
+	NULL,			/* gc */ \
+	-1, -1			/* raster, height */ \
+    }, \
+    {				/* ht */ \
+	(Pixmap) None,		/* pixmap */ \
+	(Pixmap) None,		/* no_pixmap */ \
+	gx_no_bitmap_id,	/* id */ \
+	0, 0, 0,		/* width, height, raster */ \
+	0, 0			/* fore_c, back_c */ \
+    }, \
+    GXcopy,			/* function */ \
+    FillSolid,			/* fill_style */ \
+    0,				/* font */ \
+    0, 0,			/* back_color, fore_color */ \
+    0, 0,			/* background, foreground */ \
+    { 0 },			/* cman */ \
+    0, 0,			/* borderColor, borderWidth */ \
+    NULL,			/* geometry */ \
+    128, 5,			/* maxGrayRamp, maxRGBRamp */ \
+    NULL,			/* palette */ \
+    NULL, NULL, NULL,		/* regularFonts, symbolFonts, dingbatFonts */ \
+    NULL, NULL, NULL,		/* regular_fonts, symbol_fonts, dingbat_fonts */ \
+    1, 1,			/* useXFonts, useFontExtensions */ \
+    1, 0,			/* useScalableFonts, logXFonts */ \
+    0.0, 0.0,			/* xResolution, yResolution */ \
+    1,				/* useBackingPixmap */ \
+    1, 1,			/* useXPutImage, useXSetTile */ \
+ \
+    0 /*false*/,		/* AlwaysUpdate */ \
+    20000,			/* MaxTempPixmap */ \
+    5000,			/* MaxTempImage */ \
+    100000,			/* MaxBufferedTotal */ \
+    100000,			/* MaxBufferedArea */ \
+    max_int,			/* MaxBufferedCount */ \
+ \
+    {				/* text */ \
+	0,			/* item_count */ \
+	0,			/* char_count */ \
+	{0, 0},			/* origin */ \
+	0,			/* x */ \
+	{ \
+	    {0}},		/* items */ \
+	{0}			/* chars */ \
+    } \
 };
+
+x_device(gs_x11_device,
+	 std_device_color_stype_body(gx_device_X, 0, "x11", &st_device_X,
+				     FAKE_RES * DEFAULT_WIDTH_10THS / 10,
+				     FAKE_RES * DEFAULT_HEIGHT_10THS / 10,	/* x and y extent (nominal) */
+				     FAKE_RES, FAKE_RES,	/* x and y density (nominal) */
+				     24, 255, 256 ),
+	 0);
+
+x_device(gs_x11alpha_device,
+	 std_device_dci_alpha_type_body(gx_device_X, 0, "x11alpha", &st_device_X,
+					FAKE_RES * DEFAULT_WIDTH_10THS / 10,
+					FAKE_RES * DEFAULT_HEIGHT_10THS / 10,	/* x and y extent (nominal) */
+					FAKE_RES, FAKE_RES,	/* x and y density (nominal) */
+					3, 24, 255, 255, 256, 256, 4, 4 ),
+	 50000000);
 
 /* If XPutImage doesn't work, do it ourselves. */
 private int alt_put_image(P11(gx_device * dev, Display * dpy, Drawable win,
@@ -284,7 +303,7 @@ x_sync(gx_device * dev)
     gx_device_X *xdev = (gx_device_X *) dev;
 
     update_do_flush(xdev);
-    XFlush(xdev->dpy);
+    XSync(xdev->dpy, False);
     return 0;
 }
 
@@ -1089,11 +1108,15 @@ x_update_add(gx_device_X * xdev, int xo, int yo, int w, int h)
 	    return;
 	}
     }
-    update_do_flush(xdev);
-    xdev->update.box.p.x = xo, xdev->update.box.p.y = yo;
-    xdev->update.box.q.x = xe, xdev->update.box.q.y = ye;
-    xdev->update.count = 1;
-    xdev->update.area = xdev->update.total = added;
+    if (xdev->is_buffered && (xdev->target == NULL))
+	xdev->update.box = u;	/* update deferred since bbox has target disabled */
+    else {
+	update_do_flush(xdev);
+	xdev->update.box.p.x = xo, xdev->update.box.p.y = yo;
+	xdev->update.box.q.x = xe, xdev->update.box.q.y = ye;
+	xdev->update.count = 1;
+	xdev->update.area = xdev->update.total = added;
+    }
 }
 
 /* Flush buffered text to the screen. */
@@ -1148,25 +1171,33 @@ const gx_device_bbox_procs_t gdev_x_box_procs = {
 
 /* ------ Internal procedures ------ */
 
-/* Substitute for XPutImage using XFillRectangle. */
-/* This is a total hack to get around an apparent bug */
-/* in some X servers.  It only works with the specific */
-/* parameters (bit/byte order, padding) used above. */
+/*
+ * Substitute for XPutImage using XFillRectangle.  This is a hack to get
+ * around an apparent bug in some X servers.  It only works with the
+ * specific parameters (bit/byte order, padding) used above.
+ */
 private int
-alt_put_image(gx_device * dev, Display * dpy, Drawable win, GC gc,
-	XImage * pi, int sx, int sy, int dx, int dy, unsigned w, unsigned h)
+alt_put_image(gx_device *dev, Display *dpy, Drawable win, GC gc, XImage *pi,
+	      int sx, int sy, int dx, int dy, unsigned w, unsigned h)
 {
     int raster = pi->bytes_per_line;
     byte *data = (byte *) pi->data + sy * raster + (sx >> 3);
     int init_mask = 0x80 >> (sx & 7);
     int invert = 0;
     int yi;
-
-#define nrects 40
-    XRectangle rects[nrects];
+#define NUM_RECTS 40
+    XRectangle rects[NUM_RECTS];
     XRectangle *rp = rects;
-
     XGCValues gcv;
+
+#ifdef DEBUG
+    if (pi->format != XYBitmap || pi->byte_order != MSBFirst ||
+	pi->bitmap_bit_order != MSBFirst || pi->depth != 1
+	) {
+	lprintf("alt_put_image: unimplemented parameter values!\n");
+	return_error(gs_error_rangecheck);
+    }
+#endif
 
     XGetGCValues(dpy, gc, (GCFunction | GCForeground | GCBackground), &gcv);
 
@@ -1175,11 +1206,25 @@ alt_put_image(gx_device * dev, Display * dpy, Drawable win, GC gc,
 	XFillRectangle(dpy, win, gc, dx, dy, w, h);
 	XSetForeground(dpy, gc, gcv.foreground);
     } else if (gcv.function == GXand) {
+	/* The only cases used above are fc = ~0 or bc = ~0. */
+#ifdef DEBUG
+	if (gcv.foreground != ~(x_pixel)0 && gcv.background != ~(x_pixel)0) {
+	    lprintf("alt_put_image: unimplemented GXand case!\n");
+	    return_error(gs_error_rangecheck);
+	}
+#endif
 	if (gcv.background != ~(x_pixel) 0) {
 	    XSetForeground(dpy, gc, gcv.background);
 	    invert = 0xff;
 	}
     } else if (gcv.function == GXor) {
+	/* The only cases used above are fc = 0 or bc = 0. */
+#ifdef DEBUG
+	if (gcv.foreground != 0 && gcv.background != 0) {
+	    lprintf("alt_put_image: unimplemented GXor case!\n");
+	    return_error(gs_error_rangecheck);
+	}
+#endif
 	if (gcv.background != 0) {
 	    XSetForeground(dpy, gc, gcv.background);
 	    invert = 0xff;
@@ -1198,8 +1243,8 @@ alt_put_image(gx_device * dev, Display * dpy, Drawable win, GC gc,
 	    if ((*dp ^ invert) & mask) {
 		int xleft = xi;
 
-		if (rp == &rects[nrects]) {
-		    XFillRectangles(dpy, win, gc, rects, nrects);
+		if (rp == &rects[NUM_RECTS]) {
+		    XFillRectangles(dpy, win, gc, rects, NUM_RECTS);
 		    rp = rects;
 		}
 		/* Scan over a run of 1-bits */
@@ -1208,7 +1253,7 @@ alt_put_image(gx_device * dev, Display * dpy, Drawable win, GC gc,
 		    if (!(mask >>= 1))
 			mask = 0x80, dp++;
 		    xi++;
-		} while (xi < w && (*dp & mask));
+		} while (xi < w && ((*dp ^ invert) & mask));
 		rp->width = xi - xleft, rp->height = 1;
 		rp++;
 	    } else {
@@ -1222,4 +1267,5 @@ alt_put_image(gx_device * dev, Display * dpy, Drawable win, GC gc,
     if (invert)
 	XSetForeground(dpy, gc, gcv.foreground);
     return 0;
+#undef NUM_RECTS
 }

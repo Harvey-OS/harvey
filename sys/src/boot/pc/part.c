@@ -5,7 +5,7 @@
 #include	"fns.h"
 
 #include	"sd.h"
-#include	"dosfs.h"
+#include	"fs.h"
 
 enum {
 	Npart = 32

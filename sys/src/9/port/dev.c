@@ -283,7 +283,7 @@ devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
 			dsz = convD2M(&dir, (uchar*)d, n-m);
 			if(dsz <= BIT16SZ){	/* <= not < because this isn't stat; read is stuck */
 				if(m == 0)
-					return -1;
+					error(Eshort);
 				return m;
 			}
 			m += dsz;

@@ -1,30 +1,30 @@
-/* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1996, 2000, 2001 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevpdfp.c,v 1.2 2000/03/16 01:21:24 lpd Exp $ */
+/*$Id: gdevpdfp.c,v 1.19 2001/10/07 05:33:11 lpd Exp $ */
 /* Get/put parameters for PDF-writing driver */
+#include "memory_.h"
+#include "string_.h"
 #include "gx.h"
 #include "gserrors.h"
 #include "gdevpdfx.h"
+#include "gdevpdfo.h"
 #include "gsparamx.h"
-#ifdef POST60
-#include "memory_.h"		/* should be first */
-#endif
 
 /*
  * The pdfwrite device supports the following "real" parameters:
@@ -37,13 +37,23 @@
  * Their "value" is an array of strings, some of which may be the result
  * of converting arbitrary PostScript objects to string form.
  *      pdfmark - see gdevpdfm.c
+ *	DSC - processed in this file
  */
+private int pdf_dsc_process(P2(gx_device_pdf * pdev,
+			       const gs_param_string_array * pma));
 
-#ifdef POST60
 private const int CoreDistVersion = 4000;	/* Distiller 4.0 */
 private const gs_param_item_t pdf_param_items[] = {
 #define pi(key, type, memb) { key, type, offset_of(gx_device_pdf, memb) }
-    /* Acrobat Distiller 4 parameters */
+
+	/* Acrobat Distiller 4 parameters */
+
+    /*
+     * EndPage and StartPage are renamed because EndPage collides with
+     * a page device parameter.
+     */
+    pi("PDFEndPage", gs_param_type_int, EndPage),
+    pi("PDFStartPage", gs_param_type_int, StartPage),
     pi("Optimize", gs_param_type_bool, Optimize),
     pi("ParseDSCCommentsForDocInfo", gs_param_type_bool,
        ParseDSCCommentsForDocInfo),
@@ -51,19 +61,126 @@ private const gs_param_item_t pdf_param_items[] = {
     pi("EmitDSCWarnings", gs_param_type_bool, EmitDSCWarnings),
     pi("CreateJobTicket", gs_param_type_bool, CreateJobTicket),
     pi("PreserveEPSInfo", gs_param_type_bool, PreserveEPSInfo),
-    pi("AutoPositionEPSFile", gs_param_type_bool, AutoPositionEPSFile),
+    pi("AutoPositionEPSFiles", gs_param_type_bool, AutoPositionEPSFiles),
     pi("PreserveCopyPage", gs_param_type_bool, PreserveCopyPage),
     pi("UsePrologue", gs_param_type_bool, UsePrologue),
-    /* Ghostscript-specific parameters */
+
+	/* Ghostscript-specific parameters */
+
     pi("ReAssignCharacters", gs_param_type_bool, ReAssignCharacters),
     pi("ReEncodeCharacters", gs_param_type_bool, ReEncodeCharacters),
     pi("FirstObjectNumber", gs_param_type_long, FirstObjectNumber),
 #undef pi
     gs_param_item_end
 };
-#else
-private const int CoreDistVersion = 3000;	/* Distiller 3.0 */
-#endif
+  
+/*
+  Notes on implementing the remaining Distiller functionality
+  ===========================================================
+
+  Architectural issues
+  --------------------
+
+  Must disable all color conversions, so that driver gets original color
+    and color space -- needs "protean" device color space
+  Must optionally disable application of TR, BG, UCR similarly.  Affects:
+    PreserveHalftoneInfo
+    PreserveOverprintSettings
+    TransferFunctionInfo
+    UCRandBGInfo
+
+  * = requires architectural change to complete
+
+  Current limitations
+  -------------------
+
+  Non-primary elements in HalftoneType 5 are not written correctly
+  Doesn't recognize Default TR/HT/BG/UCR
+  Optimization is a separate program
+
+  Optimizations
+  -------------
+
+  Create shared resources for Indexed (and other) color spaces
+  Remember image XObject IDs for sharing
+  Remember image and pattern MD5 fingerprints for sharing -- see
+    CD-ROM from dhoff@margnat.com
+  Merge font subsets?  (k/ricktest.ps, from rick@dgii.com re file output
+    size ps2pdf vs. pstoedit)
+  Minimize tables for embedded TT fonts (requires renumbering glyphs)
+  Clip off image data outside bbox of clip path?
+
+  Acrobat Distiller 3
+  -------------------
+
+  ---- Other functionality ----
+
+  Compress forms, Type 3 fonts, and Cos streams
+
+  ---- Image parameters ----
+
+  AntiAlias{Color,Gray,Mono}Images
+  AutoFilter{Color,Gray}Images
+    Needs to scan image
+  Convert CIE images to Device if can't represent color space
+
+  ---- Other parameters ----
+
+  CompressPages
+    Compress things other than page contents
+  * PreserveHalftoneInfo
+  PreserveOPIComments
+    ? see OPI spec?
+  * PreserveOverprintSettings
+  * TransferFunctionInfo
+  * UCRandBGInfo
+  ColorConversionStrategy
+    Select color space for drawing commands
+  ConvertImagesToIndexed
+    Postprocess image data *after* downsampling (requires an extra pass)
+
+  Acrobat Distiller 4
+  -------------------
+
+  ---- Other functionality ----
+
+  Document structure pdfmarks
+
+  ---- Parameters ----
+
+  xxxDownsampleType = /Bicubic
+    Add new filter (or use siscale?) & to setup (gdevpsdi.c)
+  Binding
+    ? not sure where this goes (check with AD4)
+  DetectBlends
+    Idiom recognition?  PatternType 2 patterns / shfill?  (see AD4)
+  DoThumbnails
+    Also output to memory device -- resolution issue
+  EndPage / StartPage
+    Only affects AR? -- see what AD4 produces
+  ###Profile
+    Output in ICCBased color spaces
+  ColorConversionStrategy
+  * Requires suppressing CIE => Device color conversion
+    Convert other CIE spaces to ICCBased
+  CannotEmbedFontPolicy
+    Check when trying to embed font -- how to produce warning?
+
+  ---- Job-level control ----
+
+  EmitDSCWarnings
+    Require DSC parser / interceptor
+  CreateJobTicket
+    ?
+  PreserveEPSInfo
+  AutoPositionEPSFiles
+    Require DSC parsing
+  PreserveCopyPage
+    Concatenate Contents streams
+  UsePrologue
+    Needs hack in top-level control?
+
+*/
 
 /* ---------------- Get parameters ---------------- */
 
@@ -79,16 +196,12 @@ gdev_pdf_get_params(gx_device * dev, gs_param_list * plist)
     if (code < 0 ||
 	(code = param_write_int(plist, "CoreDistVersion", &cdv)) < 0 ||
 	(code = param_write_float(plist, "CompatibilityLevel", &cl)) < 0 ||
-#ifdef POST60
+	/* Indicate that we can process pdfmark and DSC. */
+	(param_requested(plist, "pdfmark") > 0 &&
+	 (code = param_write_null(plist, "pdfmark")) < 0) ||
+	(param_requested(plist, "DSC") > 0 &&
+	 (code = param_write_null(plist, "DSC")) < 0) ||
 	(code = gs_param_write_items(plist, pdev, NULL, pdf_param_items)) < 0
-#else
-	(code = param_write_bool(plist, "ReAssignCharacters",
-				 &pdev->ReAssignCharacters)) < 0 ||
-	(code = param_write_bool(plist, "ReEncodeCharacters",
-				 &pdev->ReEncodeCharacters)) < 0 ||
-	(code = param_write_long(plist, "FirstObjectNumber",
-				 &pdev->FirstObjectNumber)) < 0
-#endif
 	);
     return code;
 }
@@ -100,20 +213,14 @@ int
 gdev_pdf_put_params(gx_device * dev, gs_param_list * plist)
 {
     gx_device_pdf *pdev = (gx_device_pdf *) dev;
-    int ecode = 0;
-    int code;
+    int ecode, code;
     gx_device_pdf save_dev;
-#ifndef POST60
     float cl = (float)pdev->CompatibilityLevel;
-    bool rac = pdev->ReAssignCharacters;
-    bool rec = pdev->ReEncodeCharacters;
-    long fon = pdev->FirstObjectNumber;
-    psdf_version save_version = pdev->version;
-#endif
+    bool locked = pdev->params.LockDistillerParams;
     gs_param_name param_name;
 
     /*
-     * If this is a pseudo-parameter (show or pdfmark),
+     * If this is a pseudo-parameter (pdfmark or DSC),
      * don't bother checking for any real ones.
      */
 
@@ -134,7 +241,28 @@ gdev_pdf_put_params(gx_device * dev, gs_param_list * plist)
 	    case 1:
 		break;
 	}
+
+	code = param_read_string_array(plist, (param_name = "DSC"), &ppa);
+	switch (code) {
+	    case 0:
+		pdf_open_document(pdev);
+		code = pdf_dsc_process(pdev, &ppa);
+		if (code >= 0)
+		    return code;
+		/* falls through for errors */
+	    default:
+		param_signal_error(plist, param_name, code);
+		return code;
+	    case 1:
+		break;
+	}
     }
+  
+    /* Check for LockDistillerParams before doing anything else. */
+
+    ecode = code = param_read_bool(plist, "LockDistillerParams", &locked);
+    if (locked && pdev->params.LockDistillerParams)
+	return ecode;
 
     /* General parameters. */
 
@@ -147,7 +275,16 @@ gdev_pdf_put_params(gx_device * dev, gs_param_list * plist)
     }
 
     save_dev = *pdev;
-#ifdef POST60
+
+    switch (code = param_read_float(plist, (param_name = "CompatibilityLevel"), &cl)) {
+	default:
+	    ecode = code;
+	    param_signal_error(plist, param_name, ecode);
+	case 0:
+	case 1:
+	    break;
+    }
+
     code = gs_param_read_items(plist, pdev, pdf_param_items);
     if (code < 0)
 	ecode = code;
@@ -170,78 +307,12 @@ gdev_pdf_put_params(gx_device * dev, gs_param_list * plist)
 	    }
 	}
     }
-    if (ecode < 0)
-	goto fail;
-    /*
-     * We have to set version to the new value, because the set of
-     * legal parameter values for psdf_put_params varies according to
-     * the version.
-     */
-    pdev->version =
-	(pdev->CompatibilityLevel < 1.2 ? psdf_version_level2 :
-	 psdf_version_ll3);
-    ecode = gdev_psdf_put_params(dev, plist);
-    if (ecode < 0)
-	goto fail;
-    if (pdev->FirstObjectNumber != save_dev.FirstObjectNumber) {
-	if (pdev->xref.file != 0) {
-	    fseek(pdev->xref.file, 0L, SEEK_SET);
-	    pdf_initialize_ids(pdev);
-	}
-    }
-    return 0;
- fail:
-    /* Restore all the parameters to their original state. */
-    pdev->version = save_dev.version;
-    {
-	const gs_param_item_t *ppi = pdf_param_items;
-
-	for (; ppi->key; ++ppi)
-	    memcpy((char *)pdev + ppi->offset,
-		   (char *)&save_dev + ppi->offset,
-		   gs_param_type_sizes[ppi->type]);
-    }
-    return ecode;
-#else
-    switch (code = param_read_float(plist, (param_name = "CompatibilityLevel"), &cl)) {
-	default:
-	    ecode = code;
-	    param_signal_error(plist, param_name, ecode);
-	case 0:
-	case 1:
-	    break;
-    }
-    ecode = param_put_bool(plist, "ReAssignCharacters", &rac, ecode);
-    ecode = param_put_bool(plist, "ReEncodeCharacters", &rec, ecode);
-    switch (code = param_read_long(plist, (param_name = "FirstObjectNumber"), &fon)) {
-	case 0:
-	    /*
-	     * Setting this parameter is only legal if the file
-	     * has just been opened and nothing has been written,
-	     * or if we are setting it to the same value.
-	     */
-	    if (fon == pdev->FirstObjectNumber)
-		break;
-	    if (fon <= 0 || fon > 0x7fff0000 ||
-		(pdev->next_id != 0 &&
-		 pdev->next_id !=
-		 pdev->FirstObjectNumber + pdf_num_initial_ids)
-		)
-		ecode = gs_error_rangecheck;
-	    else
-		break;
-	default:
-	    ecode = code;
-	    param_signal_error(plist, param_name, ecode);
-	case 1:
-	    break;
-    }
     {
 	/*
 	 * Set ProcessColorModel now, because gx_default_put_params checks
 	 * it.
 	 */
-	static const char *pcm_names[] = {
+	static const char *const pcm_names[] = {
 	    "DeviceGray", "DeviceRGB", "DeviceCMYK", 0
 	};
 	static const gx_device_color_info pcm_color_info[] = {
@@ -258,51 +329,156 @@ gdev_pdf_put_params(gx_device * dev, gs_param_list * plist)
 	    pdf_set_process_color_model(pdev);
 	}
     }
-
     if (ecode < 0)
-	return ecode;
+	goto fail;
     /*
      * We have to set version to the new value, because the set of
      * legal parameter values for psdf_put_params varies according to
      * the version.
      */
-    pdev->version =
-	(cl < 1.2 ? psdf_version_level2 : psdf_version_ll3);
-    code = gdev_psdf_put_params(dev, plist);
-    if (code < 0) {
-	pdev->version = save_version;
-	pdev->color_info = save_dev.color_info;
-	pdf_set_process_color_model(pdev);
-	return code;
-    }
-
+    pdev->version = (cl < 1.2 ? psdf_version_level2 : psdf_version_ll3);
+    ecode = gdev_psdf_put_params(dev, plist);
+    if (ecode < 0)
+	goto fail;
     /*
-     * Acrobat Reader 4.0 and earlier don't handle user-space coordinates
-     * larger than 32K.  To compensate for this, reduce the resolution until
-     * the page size in device space (which we equate to user space)
-     * is significantly less than 32K.  Note
-     * that this still does not protect us against input files that use
-     * coordinates far outside the page boundaries.
+     * Acrobat Reader doesn't handle user-space coordinates larger than
+     * MAX_USER_COORD.  To compensate for this, reduce the resolution so
+     * that the page size in device space (which we equate to user space) is
+     * significantly less than MAX_USER_COORD.  Note that this still does
+     * not protect us against input files that use coordinates far outside
+     * the page boundaries.
      */
+#define MAX_EXTENT ((int)(MAX_USER_COORD * 0.9))
     /* Changing resolution or page size requires closing the device, */
-    while (dev->height > 16000 || dev->width > 16000) {
+    if (dev->height > MAX_EXTENT || dev->width > MAX_EXTENT) {
+	double factor =
+	    max(dev->height / (double)MAX_EXTENT,
+		dev->width / (double)MAX_EXTENT);
+
 	if (dev->is_open)
 	    gs_closedevice(dev);
-	gx_device_set_resolution(dev, dev->HWResolution[0] / 2,
-				 dev->HWResolution[1] / 2);
+	gx_device_set_resolution(dev, dev->HWResolution[0] / factor,
+				 dev->HWResolution[1] / factor);
     }
-
-    /* Handle the float/double mismatch. */
-    pdev->CompatibilityLevel = (int)(cl * 10 + 0.5) / 10.0;
-    pdev->ReAssignCharacters = rac;
-    pdev->ReEncodeCharacters = rec;
-    if (fon != pdev->FirstObjectNumber) {
-	pdev->FirstObjectNumber = fon;
+#undef MAX_EXTENT
+    if (pdev->FirstObjectNumber != save_dev.FirstObjectNumber) {
 	if (pdev->xref.file != 0) {
 	    fseek(pdev->xref.file, 0L, SEEK_SET);
 	    pdf_initialize_ids(pdev);
 	}
     }
+    /* Handle the float/double mismatch. */
+    pdev->CompatibilityLevel = (int)(cl * 10 + 0.5) / 10.0;
     return 0;
-#endif
+ fail:
+    /* Restore all the parameters to their original state. */
+    pdev->version = save_dev.version;
+    pdev->color_info = save_dev.color_info;
+    pdf_set_process_color_model(pdev);
+    {
+	const gs_param_item_t *ppi = pdf_param_items;
+
+	for (; ppi->key; ++ppi)
+	    memcpy((char *)pdev + ppi->offset,
+		   (char *)&save_dev + ppi->offset,
+		   gs_param_type_sizes[ppi->type]);
+    }
+    return ecode;
+}
+
+/* ---------------- Process DSC comments ---------------- */
+
+private int
+pdf_dsc_process(gx_device_pdf * pdev, const gs_param_string_array * pma)
+{
+    /*
+     * The Adobe "Distiller Parameters" documentation says that Distiller
+     * looks at DSC comments, but it doesn't say which ones.  We look at
+     * the ones that we see how to map directly to obvious PDF constructs.
+     */
+    int code = 0;
+    int i;
+
+    for (i = 0; i + 1 < pma->size && code >= 0; i += 2) {
+	const gs_param_string *pkey = &pma->data[i];
+	const gs_param_string *pvalue = &pma->data[i + 1];
+	const char *key;
+	int code;
+
+	if (pdf_key_eq(pkey, "Creator"))
+	    key = "/Creator";
+	else if (pdf_key_eq(pkey, "CreationDate"))
+	    key = "/CreationDate";
+	else if (pdf_key_eq(pkey, "Title"))
+	    key = "/Title";
+	else if (pdf_key_eq(pkey, "For"))
+	    key = "/Author";
+	else {
+	    pdf_page_dsc_info_t *ppdi;
+
+	    if (!pdev->ParseDSCComments)
+		continue;
+	    if ((ppdi = &pdev->doc_dsc_info,
+		 pdf_key_eq(pkey, "Orientation")) ||
+		(ppdi = &pdev->page_dsc_info,
+		 pdf_key_eq(pkey, "PageOrientation"))
+		) {
+		if (pvalue->size == 1 && pvalue->data[0] >= '0' &&
+		    pvalue->data[0] <= '3'
+		    )
+		    ppdi->orientation = pvalue->data[0] - '0';
+		else
+		    ppdi->orientation = -1;
+	    } else if ((ppdi = &pdev->doc_dsc_info,
+			pdf_key_eq(pkey, "ViewingOrientation")) ||
+		       (ppdi = &pdev->page_dsc_info,
+			pdf_key_eq(pkey, "PageViewingOrientation"))
+		       ) {
+		gs_matrix mat;
+		int orient;
+
+		if (sscanf((const char *)pvalue->data, "[%g %g %g %g]",
+			   &mat.xx, &mat.xy, &mat.yx, &mat.yy) != 4
+		    )
+		    continue;	/* error */
+		for (orient = 0; orient < 4; ++orient) {
+		    if (mat.xx == 1 && mat.xy == 0 && mat.yx == 0 && mat.yy == 1)
+			break;
+		    gs_matrix_rotate(&mat, -90.0, &mat);
+		}
+		if (orient == 4) /* error */
+		    orient = -1;
+		ppdi->viewing_orientation = orient;
+	    } else {
+		gs_rect box;
+
+		if (pdf_key_eq(pkey, "EPSF")) {
+		    pdev->is_EPS = (pkey->size >= 1 && pkey->data[0] != '0');
+		    continue;
+		}
+		/*
+		 *
+		 * We only parse the BoundingBox for the sake of
+		 * AutoPositionEPSFiles.
+		 */
+		if (pdf_key_eq(pkey, "BoundingBox"))
+		    ppdi = &pdev->doc_dsc_info;
+		else if (pdf_key_eq(pkey, "PageBoundingBox"))
+		    ppdi = &pdev->page_dsc_info;
+		else
+		    continue;
+		if (sscanf((const char *)pvalue->data, "[%lg %lg %lg %lg]",
+			   &box.p.x, &box.p.y, &box.q.x, &box.q.y) != 4
+		    )
+		    continue;	/* error */
+		ppdi->bounding_box = box;
+		continue;
+	    }
+	    continue;
+	}
+	if (pdev->ParseDSCCommentsForDocInfo)
+	    code = cos_dict_put_c_key_string(pdev->Info, key,
+					     pvalue->data, pvalue->size);
+    }
+    return code;
 }

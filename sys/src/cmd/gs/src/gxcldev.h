@@ -1,22 +1,22 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxcldev.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gxcldev.h,v 1.4 2000/11/05 00:34:24 lpd Exp $ */
 /* Internal definitions for Ghostscript command lists. */
 
 #ifndef gxcldev_INCLUDED
@@ -36,41 +36,15 @@
 /* Define the compression modes for bitmaps. */
 /*#define cmd_compress_none 0 *//* (implicit) */
 #define cmd_compress_rle 1
-#define clist_rle_init(ss)\
-  BEGIN\
-    s_RLE_set_defaults_inline(ss);\
-    s_RLE_init_inline(ss);\
-  END
-#define clist_rld_init(ss)\
-  BEGIN\
-    s_RLD_set_defaults_inline(ss);\
-    s_RLD_init_inline(ss);\
-  END
 #define cmd_compress_cfe 2
-#define clist_cf_init(ss, width, mem)\
-  BEGIN\
-    (ss)->memory = (mem);\
-    (ss)->K = -1;\
-    (ss)->Columns = (width);\
-    (ss)->EndOfBlock = false;\
-    (ss)->BlackIs1 = true;\
-    (ss)->DecodedByteAlign = align_bitmap_mod;\
-  END
-#define clist_cfe_init(ss, width, mem)\
-  BEGIN\
-    s_CFE_set_defaults_inline(ss);\
-    clist_cf_init(ss, width, mem);\
-    (*s_CFE_template.init)((stream_state *)(ss));\
-  END
-#define clist_cfd_init(ss, width, height, mem)\
-  BEGIN\
-    (*s_CFD_template.set_defaults)((stream_state *)ss);\
-    clist_cf_init(ss, width, mem);\
-    (ss)->Rows = (height);\
-    (*s_CFD_template.init)((stream_state *)(ss));\
-  END
 #define cmd_mask_compress_any\
   ((1 << cmd_compress_rle) | (1 << cmd_compress_cfe))
+/* Exported by gxclutil.c */
+void clist_rle_init(P1(stream_RLE_state *ss));
+void clist_rld_init(P1(stream_RLD_state *ss));
+void clist_cfe_init(P3(stream_CFE_state *ss, int width, gs_memory_t *mem));
+void clist_cfd_init(P4(stream_CFD_state *ss, int width, int height,
+		       gs_memory_t *mem));
 
 /*
  * A command always consists of an operation followed by operands;
@@ -262,8 +236,8 @@ struct gx_clist_state_s {
 				/* -1 is used internally */
     short clip_enabled;		/* 0 = don't clip, 1 = do clip, */
 				/* -1 is used internally */
-    ushort color_is_alpha;	/* (Boolean) for copy_color_alpha */
-    ushort known;		/* flags for whether this band */
+    bool color_is_alpha;	/* for copy_color_alpha */
+    uint known;			/* flags for whether this band */
 				/* knows various misc. parameters */
     /* We assign 'known' flags here from the high end; */
     /* gxclpath.h assigns them from the low end. */

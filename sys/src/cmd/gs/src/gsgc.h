@@ -1,22 +1,22 @@
-/* Copyright (C) 1996, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1996, 1999, 2001 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsgc.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsgc.h,v 1.3 2001/06/17 04:03:52 lpd Exp $ */
 /* Library-level interface to garbage collector */
 
 /*
@@ -45,7 +45,13 @@ typedef enum {
     i_vm_max = i_vm_local
 } i_vm_space;
 
-/* Define an array of allocators indexed by space. */
+/*
+ * Define an array of allocators indexed by space.  Note that the first
+ * ("foreign") element of this array is always 0: foreign pointers, by
+ * definition, point to objects that are not managed by a Ghostscript
+ * allocator (typically, static const objects, or objects allocated with
+ * malloc by some piece of code other than Ghostscript).
+ */
 #ifndef gs_ref_memory_DEFINED
 #  define gs_ref_memory_DEFINED
 typedef struct gs_ref_memory_s gs_ref_memory_t;

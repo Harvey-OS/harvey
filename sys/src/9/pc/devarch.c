@@ -11,7 +11,7 @@ typedef struct IOMap IOMap;
 struct IOMap
 {
 	IOMap	*next;
-	int		reserved;
+	int	reserved;
 	char	tag[13];
 	ulong	start;
 	ulong	end;
@@ -44,7 +44,7 @@ static Rdwrfn *readfn[Qmax];
 static Rdwrfn *writefn[Qmax];
 
 static Dirtab archdir[Qmax] = {
-	".",	{ Qdir, 0, QTDIR },	0,	0555,
+	".",		{ Qdir, 0, QTDIR },	0,	0555,
 	"ioalloc",	{ Qioalloc, 0 },	0,	0444,
 	"iob",		{ Qiob, 0 },		0,	0660,
 	"iow",		{ Qiow, 0 },		0,	0660,
@@ -52,7 +52,7 @@ static Dirtab archdir[Qmax] = {
 };
 Lock archwlock;	/* the lock is only for changing archdir */
 int narchdir = Qbase;
-int (*_pcmspecial)(char *, ISAConf *);
+int (*_pcmspecial)(char*, ISAConf*);
 void (*_pcmspecialclose)(int);
 
 
@@ -109,7 +109,7 @@ ioinit(void)
 	// a dummy entry at 2^16
 	ioalloc(0x10000, 1, 0, "dummy");
 	ioalloc(0x0fff, 1, 0, "dummy");	// i82557 is at 0x1000, the dummy
-							// entry is needed for swappable devs.
+					// entry is needed for swappable devs.
 
 	if ((excluded = getconf("ioexclude")) != nil) {
 		char *s;
@@ -137,7 +137,8 @@ ioinit(void)
 
 }
 
-// Reserve a range to be ioalloced later.  This is in particular useful for exchangable cards, such
+// Reserve a range to be ioalloced later. 
+// This is in particular useful for exchangable cards, such
 // as pcmcia and cardbus cards.
 int
 ioreserve(int port, int size, int align, char *tag)
@@ -541,6 +542,7 @@ static X86type x86intel[] =
 	{ 6,	6,	16,	"Celeron", },
 	{ 6,	7,	16,	"PentiumIII/Xeon", },
 	{ 6,	8,	16,	"PentiumIII/Xeon", },
+	{ 6,	0xB,	16,	"PentiumIII/Xeon", },
 	{ 0xF,	1,	16,	"P4", },	/* P4 */
 
 	{ 3,	-1,	32,	"386", },	/* family defaults */
@@ -804,7 +806,7 @@ archinit(void)
 int
 pcmspecial(char *idstr, ISAConf *isa)
 {
-	return (_pcmspecial  != nil)? _pcmspecial(idstr, isa): -1;
+	return (_pcmspecial != nil)? _pcmspecial(idstr, isa): -1;
 }
 
 /*

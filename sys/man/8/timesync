@@ -8,6 +8,10 @@ timesync \- synchronize the system clock to a time source
 .I accuracy
 ]
 [
+.B -S
+.I stratum
+]
+[
 .B -s
 .I netroot
 ]
@@ -79,6 +83,10 @@ network rooted at
 Up to 4
 .B -s
 options are allowed.
+.TP
+.B -S
+sets the stratum number to
+.IR startum .
 .TP
 .B -l
 turns on logging to

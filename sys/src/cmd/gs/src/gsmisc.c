@@ -1,23 +1,43 @@
-/* Copyright (C) 1989, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsmisc.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsmisc.c,v 1.12 2001/06/16 19:02:32 igorm Exp $ */
 /* Miscellaneous utilities for Ghostscript library */
+
+/*
+ * In order to capture the original definition of sqrt, which might be
+ * either a procedure or a macro and might not have an ANSI-compliant
+ * prototype (!), we need to do the following:
+ */
+#include "std.h"
+#if defined(VMS) && defined(__GNUC__)
+/*  DEC VAX/VMS C comes with a math.h file, but GNU VAX/VMS C does not. */
+#  include "vmsmath.h"
+#else
+#  include <math.h>
+#endif
+inline private double
+orig_sqrt(double x)
+{
+    return sqrt(x);
+}
+
+/* Here is the real #include section. */
 #include "ctype_.h"
 #include "malloc_.h"
 #include "math_.h"
@@ -33,6 +53,52 @@
 
 /* Define private replacements for stdin, stdout, and stderr. */
 FILE *gs_stdio[3];
+
+
+/* ------ Redirected stdout and stderr  ------ */
+
+#include <stdarg.h>
+#define PRINTF_BUF_LENGTH 1024
+
+int outprintf(const char *fmt, ...)
+{
+    int count;
+    char buf[PRINTF_BUF_LENGTH];
+    va_list args;
+
+    va_start(args, fmt);
+
+    count = vsprintf(buf, fmt, args);
+    outwrite(buf, count);
+    if (count >= PRINTF_BUF_LENGTH) {
+	count = sprintf(buf, 
+	    "PANIC: printf exceeded %d bytes.  Stack has been corrupted.\n", 
+	    PRINTF_BUF_LENGTH);
+	outwrite(buf, count);
+    }
+    va_end(args);
+    return count;
+}
+
+int errprintf(const char *fmt, ...)
+{
+    int count;
+    char buf[PRINTF_BUF_LENGTH];
+    va_list args;
+
+    va_start(args, fmt);
+
+    count = vsprintf(buf, fmt, args);
+    errwrite(buf, count);
+    if (count >= PRINTF_BUF_LENGTH) {
+	count = sprintf(buf, 
+	    "PANIC: printf exceeded %d bytes.  Stack has been corrupted.\n", 
+	    PRINTF_BUF_LENGTH);
+	errwrite(buf, count);
+    }
+    va_end(args);
+    return count;
+}
 
 /* ------ Debugging ------ */
 
@@ -57,8 +123,15 @@ const char *const dprintf_file_only_format = "%10s(unkn): ";
 
 /*
  * Define the trace printout procedures.  We always include these, in case
- * other modules were compiled with DEBUG set.
+ * other modules were compiled with DEBUG set.  Note that they must use
+ * out/errprintf, not fprintf nor fput[cs], because of the way that 
+ * stdout/stderr are implemented on DLL/shared library builds.
  */
+void
+dflush(void)
+{
+    errflush();
+}
 private const char *
 dprintf_file_tail(const char *file)
 {
@@ -72,56 +145,56 @@ dprintf_file_tail(const char *file)
 }
 #if __LINE__			/* compiler provides it */
 void
-dprintf_file_and_line(FILE * f, const char *file, int line)
+dprintf_file_and_line(const char *file, int line)
 {
     if (gs_debug['/'])
-	fprintf(f, dprintf_file_and_line_format,
+	dpf(dprintf_file_and_line_format,
 		dprintf_file_tail(file), line);
 }
 #else
 void
-dprintf_file_only(FILE * f, const char *file)
+dprintf_file_only(const char *file)
 {
     if (gs_debug['/'])
-	fprintf(f, dprintf_file_only_format, dprintf_file_tail(file));
+	dpf(dprintf_file_only_format, dprintf_file_tail(file));
 }
 #endif
 void
-printf_program_ident(FILE * f, const char *program_name,
-		     long revision_number)
+printf_program_ident(const char *program_name, long revision_number)
 {
-    if (program_name) {
-	fputs(program_name, f);
-	if (revision_number)
-	    fputc(' ', f);
-    }
+    if (program_name)
+	outprintf((revision_number ? "%s " : "%s"), program_name);
     if (revision_number) {
 	int fpart = revision_number % 100;
 
-	fprintf(f, (fpart == 0 ? "%d.%d" : "%d.%02d"),
-		(int)(revision_number / 100), fpart);
+	outprintf("%d.%02d", (int)(revision_number / 100), fpart);
     }
 }
 void
-eprintf_program_ident(FILE * f, const char *program_name,
+eprintf_program_ident(const char *program_name,
 		      long revision_number)
 {
     if (program_name) {
-	printf_program_ident(f, program_name, revision_number);
-	fputs(": ", f);
+	epf((revision_number ? "%s " : "%s"), program_name);
+	if (revision_number) {
+	    int fpart = revision_number % 100;
+
+	    epf("%d.%02d", (int)(revision_number / 100), fpart);
+	}
+	epf(": ");
     }
 }
 #if __LINE__			/* compiler provides it */
 void
-lprintf_file_and_line(FILE * f, const char *file, int line)
+lprintf_file_and_line(const char *file, int line)
 {
-    fprintf(f, "%s(%d): ", file, line);
+    epf("%s(%d): ", file, line);
 }
 #else
 void
 lprintf_file_only(FILE * f, const char *file)
 {
-    fprintf(f, "%s(?): ", file);
+    epf("%s(?): ", file);
 }
 #endif
 
@@ -364,7 +437,18 @@ debug_print_string(const byte * chrs, uint len)
 
     for (i = 0; i < len; i++)
 	dputc(chrs[i]);
-    fflush(dstderr);
+    dflush();
+}
+
+/* Print a string in hexdump format. */
+void
+debug_print_string_hex(const byte * chrs, uint len)
+{
+    uint i;
+
+    for (i = 0; i < len; i++)
+        dprintf1("%02x", chrs[i]);
+    dflush();
 }
 
 /*
@@ -633,8 +717,14 @@ set_fixed2double_(double *pd, fixed x, int frac_bits)
 /*
  * If doubles aren't wide enough, we lose too much precision by using double
  * arithmetic: we have to use the slower, accurate fixed-point algorithm.
+ * See the simpler implementation below for more information.
  */
-#if USE_FPU_FIXED || (arch_double_mantissa_bits < arch_sizeof_long * 12)
+#define MAX_OTHER_FACTOR_BITS\
+  (ARCH_DOUBLE_MANTISSA_BITS - ARCH_SIZEOF_FIXED * 8)
+#define ROUND_BITS\
+  (ARCH_SIZEOF_FIXED * 8 * 2 - ARCH_DOUBLE_MANTISSA_BITS)
+
+#if USE_FPU_FIXED || ROUND_BITS >= MAX_OTHER_FACTOR_BITS - 1
 
 #ifdef DEBUG
 struct {
@@ -730,7 +820,7 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 	    denom <<= bits_8th, shift += bits_8th;
 	}
 #undef bits_8th
-	while (!(denom & (1L << (num_bits - 1)))) {
+	while (!(denom & (-1L << (num_bits - 1)))) {
 	    mincr(mds);
 	    denom <<= 1, ++shift;
 	}
@@ -790,54 +880,71 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
     }
 }
 
-#else				/* can approximate using doubles */
+#else				/* use doubles */
 
 /*
- * Compute A * B / C as above.  Since a double doesn't have enough bits to
- * represent the product of two longs, we have to do it in two steps.
+ * Compute A * B / C as above using doubles.  If floating point is
+ * reasonably fast, this is much faster than the fixed-point algorithm.
  */
 fixed
 fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 {
-#define MAX_OTHER_FACTOR\
-  (1L << (arch_double_mantissa_bits - sizeof(fixed) * 8))
+    /*
+     * Check whether A * B will fit in the mantissa of a double.
+     */
+#define MAX_OTHER_FACTOR (1L << MAX_OTHER_FACTOR_BITS)
     if (B < MAX_OTHER_FACTOR || any_abs(signed_A) < MAX_OTHER_FACTOR) {
-	/* The double computation will be exact. */
-	return (fixed)floor((double)signed_A * B / C);
-    }
 #undef MAX_OTHER_FACTOR
-    {
-	/* Use 2 double steps. */
-	fixed bhi = B >> half_bits;
-	fixed qhi = (fixed)floor((double)signed_A * bhi / C);
-	fixed rhi = signed_A * bhi - qhi * C;
-	fixed blo = B & half_mask;
-	fixed qlo =
-	    (fixed)floor(((double)rhi * (1L << half_bits) +
-			  (double)signed_A * blo) / C);
+	/*
+	 * The product fits, so a straightforward double computation
+	 * will be exact.
+	 */
+	return (fixed)floor((double)signed_A * B / C);
+    } else {
+	/*
+	 * The product won't fit.  However, the approximate product will
+	 * only be off by at most +/- 1/2 * (1 << ROUND_BITS) because of
+	 * rounding.  If we add 1 << ROUND_BITS to the value of the product
+	 * (i.e., 1 in the least significant bit of the mantissa), the
+	 * result is always greater than the correct product by between 1/2
+	 * and 3/2 * (1 << ROUND_BITS).  We know this is less than C:
+	 * because of the 'if' just above, we know that B >=
+	 * MAX_OTHER_FACTOR; since B <= C, we know C >= MAX_OTHER_FACTOR;
+	 * and because of the #if that chose between the two
+	 * implementations, we know that C >= 2 * (1 << ROUND_BITS).  Hence,
+	 * the quotient after dividing by C will be at most 1 too large.
+	 */
+	fixed q =
+	    (fixed)floor(((double)signed_A * B + (1L << ROUND_BITS)) / C);
 
-	return (qhi << half_bits) + qlo;
+	/*
+	 * Compute the remainder R.  If the quotient was correct,
+	 * 0 <= R < C.  If the quotient was too high, -C <= R < 0.
+	 */
+	if (signed_A * B - q * C < 0)
+	    --q;
+	return q;
     }
 }
 
 #endif
+
+#undef MAX_OTHER_FACTOR_BITS
+#undef ROUND_BITS
 
 #undef num_bits
 #undef half_bits
 #undef half_mask
 
 /* Trace calls on sqrt when debugging. */
-#undef sqrt
-extern double sqrt(P1(double));
 double
 gs_sqrt(double x, const char *file, int line)
 {
     if (gs_debug_c('~')) {
-	fprintf(stdout, "[~]sqrt(%g) at %s:%d\n",
-		x, (const char *)file, line);
-	fflush(stdout);
+	dprintf3("[~]sqrt(%g) at %s:%d\n", x, (const char *)file, line);
+	dflush();
     }
-    return sqrt(x);
+    return orig_sqrt(x);
 }
 
 /*
@@ -1085,3 +1192,25 @@ gs_sincos_degrees(double ang, gs_sincos_t * psincos)
 }
 
 #endif /* USE_FPU */
+
+/*
+ * Define an atan2 function that returns an angle in degrees and uses
+ * the PostScript quadrant rules.  Note that it may return
+ * gs_error_undefinedresult.
+ */
+int
+gs_atan2_degrees(double y, double x, double *pangle)
+{
+    if (y == 0) {	/* on X-axis, special case */
+	if (x == 0)
+	    return_error(gs_error_undefinedresult);
+	*pangle = (x < 0 ? 180 : 0);
+    } else {
+	double result = atan2(y, x) * radians_to_degrees;
+
+	if (result < 0)
+	    result += 360;
+	*pangle = result;
+    }
+    return 0;
+}

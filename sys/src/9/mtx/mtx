@@ -16,7 +16,7 @@ dev
 	rtc
 
 	ether		netif
-	ip		arp chandial ip ipaux iproute netif netlog nullmedium pktmedium ptclbsum inferno
+	ip		arp chandial ip ipv6 ipaux iproute netif netlog nullmedium pktmedium ptclbsum inferno
 
 link
 	ether2114x	pci
@@ -35,6 +35,7 @@ ip
 	udp
 	ipifc
 	icmp
+	icmp6
 
 port
 	int cpuserver = 0;

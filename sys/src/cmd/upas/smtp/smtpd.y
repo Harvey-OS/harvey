@@ -31,9 +31,9 @@ conversation	: cmd
 		;
 cmd		: error
 		| 'h' 'e' 'l' 'o' spaces sdomain CRLF
-			{ hello($6.s); }
+			{ hello($6.s, 0); }
 		| 'e' 'h' 'l' 'o' spaces sdomain CRLF
-			{ hello($6.s); }
+			{ hello($6.s, 1); }
 		| 'm' 'a' 'i' 'l' spaces 'f' 'r' 'o' 'm' ':' spath CRLF
 			{ sender($11.s); }
 		| 'r' 'c' 'p' 't' spaces 't' 'o' ':' spath CRLF
@@ -62,6 +62,8 @@ cmd		: error
 			{ quit(); }
 		| 't' 'u' 'r' 'n' CRLF
 			{ turn(); }
+		| 'a' 'u' 't' 'h' spaces name CRLF
+			{ auth($6.s); }
 		| CRLF
 			{ reply("501 illegal command or bad syntax\r\n"); }
 		;

@@ -600,7 +600,7 @@ ctlrinit(Ether* ether)
 	ctlr->rdr = malloc(ctlr->nrdr*sizeof(Des));
 	last = nil;
 	for(des = ctlr->rdr; des < &ctlr->rdr[ctlr->nrdr]; des++){
-		des->bp = allocb(Rbsz);
+		des->bp = iallocb(Rbsz);
 		des->cmdsts = Rbsz;
 		des->addr = PADDR(des->bp->rp);
 		if(last != nil)

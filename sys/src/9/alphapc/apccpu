@@ -16,7 +16,7 @@ dev
 #	loopback
 
 	ether		netif
-	ip		arp chandial inferno ip ipaux iproute netlog nullmedium pktmedium ptclbsum
+	ip		arp chandial inferno ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum
 
 	sd
 	floppy		dma
@@ -45,6 +45,7 @@ ip
 	udp
 	ipifc
 	icmp
+	icmp6
 	gre
 	ipmux
 

@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1992, 1993, 1994, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gscolor.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gscolor.c,v 1.5 2001/03/17 01:15:42 raph Exp $ */
 /* Color and halftone operators for Ghostscript library */
 #include "gx.h"
 #include "gserrors.h"
@@ -123,30 +123,31 @@ gs_setgray(gs_state * pgs, floatp gray)
 }
 
 /* currentgray */
-float
-gs_currentgray(const gs_state * pgs)
+int
+gs_currentgray(const gs_state * pgs, float *pg)
 {
     const gs_client_color *pcc = pgs->ccolor;
     const gs_imager_state *const pis = (const gs_imager_state *)pgs;
 
     switch (pgs->orig_cspace_index) {
 	case gs_color_space_index_DeviceGray:
-	    return pcc->paint.values[0];
+	    *pg = pcc->paint.values[0];
+	    break;
 	case gs_color_space_index_DeviceRGB:
-	    return frac2float(
-				 color_rgb_to_gray(
-					   float2frac(pcc->paint.values[0]),
-					   float2frac(pcc->paint.values[1]),
-					   float2frac(pcc->paint.values[2]),
-						      pis));
+	    *pg = frac2float(color_rgb_to_gray(
+					float2frac(pcc->paint.values[0]),
+					float2frac(pcc->paint.values[1]),
+					float2frac(pcc->paint.values[2]),
+					pis));
+	    break;
 	case gs_color_space_index_DeviceCMYK:
-	    return frac2float(
-				 color_cmyk_to_gray(
-					   float2frac(pcc->paint.values[0]),
-					   float2frac(pcc->paint.values[1]),
-					   float2frac(pcc->paint.values[2]),
-					   float2frac(pcc->paint.values[3]),
-						       pis));
+	    *pg = frac2float(color_cmyk_to_gray(
+					float2frac(pcc->paint.values[0]),
+					float2frac(pcc->paint.values[1]),
+					float2frac(pcc->paint.values[2]),
+					float2frac(pcc->paint.values[3]),
+					pis));
+	    break;
 	default:
 	    /*
 	     * Might be another convertible color space, but this is rare,
@@ -154,14 +155,18 @@ gs_currentgray(const gs_state * pgs)
 	     */
 	    {
 		float rgb[3];
+		int code = gs_currentrgbcolor(pgs, rgb);
 
-		gs_currentrgbcolor(pgs, rgb);
-		return frac2float(
-				     color_rgb_to_gray(
-		 float2frac(rgb[0]), float2frac(rgb[1]), float2frac(rgb[2]),
-							  pis));
+		if (code < 0)
+		    return code;
+		*pg = frac2float(color_rgb_to_gray(
+						   float2frac(rgb[0]),
+						   float2frac(rgb[1]),
+						   float2frac(rgb[2]),
+						   pis));
 	    }
     }
+    return 0;
 }
 
 /* setrgbcolor */
@@ -195,6 +200,7 @@ gs_currentrgbcolor(const gs_state * pgs, float pr3[3])
     gs_color_space_index csi = pgs->orig_cspace_index;
     frac fcc[4];
     gs_client_color cc;
+    int code;
 
   sw:switch (csi) {
 	case gs_color_space_index_DeviceGray:
@@ -216,22 +222,29 @@ gs_currentrgbcolor(const gs_state * pgs, float pr3[3])
 	    pr3[1] = frac2float(fcc[1]);
 	    pr3[2] = frac2float(fcc[2]);
 	    return 0;
+        case gs_color_space_index_CIEICC:
+         icc_cs:if (gs_cspace_base_space(pbcs) != NULL)
+                  goto bcs;
+                break;
 	case gs_color_space_index_DeviceN:
 	case gs_color_space_index_Separation:
 	  ds:if (cs_concrete_space(pbcs, pis) == pbcs)
 		break;		/* not using alternative space */
 	    /* (falls through) */
 	case gs_color_space_index_Indexed:
-	    pbcs = gs_cspace_base_space(pbcs);
+	  bcs:pbcs = gs_cspace_base_space(pbcs);
 	    switch (pbcs->type->index) {
 		case gs_color_space_index_DeviceN:
 		case gs_color_space_index_Separation:
 		    goto ds;
+                case gs_color_space_index_CIEICC:
+                    goto icc_cs;
 		default:	/* outer switch will catch undefined cases */
 		    break;
 	    }
-	    if (cs_concretize_color(pcc, pcs, fcc, pis) < 0)
-		break;
+	    code = cs_concretize_color(pcc, pcs, fcc, pis);
+	    if (code < 0)
+		return code;
 	    cc.paint.values[0] = frac2float(fcc[0]);
 	    cc.paint.values[1] = frac2float(fcc[1]);
 	    cc.paint.values[2] = frac2float(fcc[2]);

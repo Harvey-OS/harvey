@@ -82,18 +82,16 @@ and
 attributes.  If the
 .B ipmask
 is missing, the relevant Class A, B or C one is used.
-The network is subnetted if one or more
-.BR ipsubmask 's
-are specified.
+.LP
 A search for an attribute associated with a network or host starts
-at the top-level Class A, B, or C network and works it's way down to the
-specific entry.  The attribute/value chosen is the one lowest down in the
-search, i.e, closest to the host.
+at the lowest level, the entry for the host or network itself,
+and works its way up, bit by bit, looking at entries for nets/subnets
+that include the network or host.  The search ends when the attribute
+is found.
 For example, consider at the following entries:
 .IP
 .EX
 ipnet=murray-hill ip=135.104.0.0 ipmask=255.255.0.0
-	ipsubmask=255.255.255.0
 	dns=135.104.10.1
 	ntp=ntp.cs.bell-labs.com
 ipnet=plan9 ip=135.104.9.0 ipmask=255.255.255.0
@@ -109,16 +107,33 @@ is on the subnet
 .B plan9
 which is in turn on the class B net
 .BR murray-hill .
-If one were to search for
+Assume that we're searching for
 .BR anna 's
 .B NTP
 and
 .B SMTP
-servers, one would get
-.B oncore.cs.bell-labs.com
-and
-.B smtp2.cs.bell-labs.com
-respectively.
+servers.
+The search starts by looking for an entry with
+.BR sys=anna .
+We find the anna entry.  Since it has an 
+.B smtp=smtp2.cs.bell-labs.com
+pair,
+we're done looking for that attribute.
+To fulfill the NTP request, we continue by looking for networks
+that include anna's IP address.
+We lop off the right most one bit from anna's address and
+look for an
+.B ipnet=
+entry with
+.BR ip=135.104.9.4 .
+Not finding one, we drop another bit and look for an
+.B ipnet=
+entry with
+.BR ip=135.104.9.0 .
+There is
+such an entry and it has the pair,
+.BR ntp=oncore.cs.bell-labs.com ,
+ending our search.
 .PP
 .I Ndb/cs
 can be made to perform such network aware
@@ -162,9 +177,6 @@ Internet network name
 .TP
 .B ipmask
 Internet network mask
-.TP
-.B ipsubmask
-Internet network mask of this network's subnets
 .TP
 .B ipgw
 Internet gateway

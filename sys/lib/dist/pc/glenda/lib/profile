@@ -5,5 +5,10 @@ home=/usr/$user
 bind -a $home/bin/rc /bin
 bind -a $home/bin/$cputype /bin
 bind -c $home/tmp /tmp
-rio -si inst/go
-
+rio -si inst/gui
+echo 
+echo
+echo 'failed to start rio.  you can start a text-based installation by running'
+echo
+echo '	inst/textonly'
+echo

@@ -17,7 +17,7 @@ dev
 #	realtime
 
 	ether		netif
-	ip		arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
 
 	draw		screen vga vgax
 	mouse		mouse
@@ -42,11 +42,16 @@ link
 	ether589	etherelnk3
 	ether79c970	pci
 	ether8003	ether8390
+	ether8139	pci
+	ether82543gc	pci
 	ether82557	pci
+	ether83815	pci
 	etherec2t	ether8390
 	etherelnk3	pci
+	etherga620	pci
 #	ethersink
-	etherwavelan	devi82365 cis pci
+	ethersmc	devi82365 cis
+	etherwavelan	wavelan devi82365 cis pci
 	ethermedium
 	pcmciamodem
 	netdevmedium
@@ -54,7 +59,6 @@ link
 #	usbohci
 
 misc
-	nulledf
 #	archmp		mp apic
 
 #	ipconfig.root
@@ -98,6 +102,7 @@ ip
 	udp
 	ipifc
 	icmp
+	icmp6
 
 port
 	int cpuserver = 0;

@@ -65,7 +65,7 @@ static Mux p_mux[] =
 	{0},
 };
 
-char *icmpmsg6[Maxtype6+1] =
+char *icmpmsg6[256] =
 {
 [EchoReply]		"EchoReply",
 [UnreachableV6]		"UnreachableV6",
@@ -123,7 +123,7 @@ enum
 	mtu	= 5,
 };
 
-static char *icmp6opts[] = 
+static char *icmp6opts[256] = 
 {
 [0]	"unknown opt",
 [1]	"sll_addr",
@@ -184,40 +184,47 @@ opt_seprint(Msg *m)
 	uchar *a;
 	char *p = m->p;
 	char *e = m->e;
+	char *opt;
+	char optbuf[12];
 
 	pktsz = m->pe - m->ps;
 	a = m->ps;
 	while (pktsz > 0) {
 		otype = *a;
+		opt = icmp6opts[otype];
+		if(opt == nil){
+			sprint(optbuf, "0x%ux", otype);
+			opt = optbuf;
+		}
 		osz = (*(a+1)) * 8;
 
 		switch (otype) {
 		default:
-			p = seprint(p, e, "\n	  option=%s ", icmp6opts[0]);
+			p = seprint(p, e, "\n	  option=%s ", opt);
 			m->pr = &dump;
 			return p;
 
 		case sll:
 		case tll:
 			if ((pktsz < osz) || (osz != 8)) { 
-				p = seprint(p, e, "\n	  option=%s bad size=%d", icmp6opts[otype], osz);
+				p = seprint(p, e, "\n	  option=%s bad size=%d", opt, osz);
 				m->pr = &dump;
 				return p;
 			}
-			p = seprint(p, e, "\n	  option=%s maddr=%E", icmp6opts[otype], a+2);
+			p = seprint(p, e, "\n	  option=%s maddr=%E", opt, a+2);
 			pktsz -= osz;
 			a += osz;
 			break;
 
 		case pref:
 			if ((pktsz < osz) || (osz != 32)) { 
-				p = seprint(p, e, "\n	  option=%s: bad size=%d", icmp6opts[otype], osz);
+				p = seprint(p, e, "\n	  option=%s: bad size=%d", opt, osz);
 				m->pr = &dump;
 				return p;
 			}
 
 			p = seprint(p, e, "\n	  option=%s pref=%I preflen=%3.3d lflag=%1.1d aflag=%1.1d unused1=%1.1d validlt=%d preflt=%d unused2=%1.1d",
-				icmp6opts[otype],
+				opt,
 				a+16,
 				(int) (*(a+2)),
 				(*(a+3) & (1 << 7))!=0,
@@ -233,12 +240,12 @@ opt_seprint(Msg *m)
 
 		case redir:
 			if (pktsz < osz) { 
-				p = seprint(p, e, "\n	  option=%s: bad size=%d", icmp6opts[otype], osz);
+				p = seprint(p, e, "\n	  option=%s: bad size=%d", opt, osz);
 				m->pr = &dump;
 				return p;
 			}
 
-			p = seprint(p, e, "\n	  option=%s len %d", icmp6opts[otype], osz);
+			p = seprint(p, e, "\n	  option=%s len %d", opt, osz);
 			a += osz;
 			m->ps = a;
 			return p;			
@@ -246,12 +253,12 @@ opt_seprint(Msg *m)
 
 		case mtu:
 			if ((pktsz < osz) || (osz != 8)) { 
-				p = seprint(p, e, "\n	  option=%s: bad size=%d", icmp6opts[otype], osz);
+				p = seprint(p, e, "\n	  option=%s: bad size=%d", opt, osz);
 				m->pr = &dump;
 				return p;
 			}
 
-			p = seprint(p, e, "\n	  option=%s unused=%1.1d mtu=%d", icmp6opts[otype], NetL(a+2)!=0, NetL(a+4));
+			p = seprint(p, e, "\n	  option=%s unused=%1.1d mtu=%d", opt, NetL(a+2)!=0, NetL(a+4));
 			pktsz -= osz;
 			a += osz;
 			break;
@@ -305,8 +312,8 @@ p_seprint(Msg *m)
 	case UnreachableV6:
 		m->ps += 4;
 		m->pr = &ip6;
-		if (h->code > 5)
-			i = 5;
+		if (h->code >= nelem(unreachcode))
+			i = nelem(unreachcode)-1;
 		else
 			i = h->code;
 		p = seprint(p, e, " code=%s unused=%1.1d ", unreachcode[i], NetL(a)!=0);
@@ -321,8 +328,8 @@ p_seprint(Msg *m)
 	case TimeExceedV6:
 		m->ps += 4;
 		m->pr = &ip6;
-		if (h->code > 2)
-			i = 2;
+		if (h->code >= nelem(timexcode))
+			i = nelem(timexcode)-1;
 		else
 			i = h->code;
 		p = seprint(p, e, " code=%s unused=%1.1d ", timexcode[i], NetL(a)!=0);
@@ -331,8 +338,8 @@ p_seprint(Msg *m)
 	case ParamProblemV6:
 		m->ps += 4;
 		m->pr = &ip6;
-		if (h->code > 3)
-			i = 3;
+		if (h->code > nelem(parpcode))
+			i = nelem(parpcode)-1;
 		else
 			i = h->code;
 		p = seprint(p, e, " code=%s ptr=%2.2ux", parpcode[i], h->data[0]);
@@ -417,4 +424,5 @@ Proto icmp6 =
 	p_seprint,
 	p_mux,
 	p_fields,
+	defaultframer,
 };

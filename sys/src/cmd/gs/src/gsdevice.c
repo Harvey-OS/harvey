@@ -1,25 +1,25 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsdevice.c,v 1.2 2000/03/18 01:45:16 lpd Exp $ */
+/*$Id: gsdevice.c,v 1.11 2001/07/12 14:10:55 rayjj Exp $ */
 /* Device operators for Ghostscript library */
 #include "ctype_.h"
-#include "memory_.h"		/* for memcpy */
+#include "memory_.h"		/* for memchr, memcpy */
 #include "string_.h"
 #include "gx.h"
 #include "gp.h"
@@ -237,21 +237,23 @@ gx_device_make_struct_type(gs_memory_struct_type_t *st,
 
 /* Clone an existing device. */
 int
-gs_copydevice(gx_device ** pnew_dev, const gx_device * dev, gs_memory_t * mem)
+gs_copydevice2(gx_device ** pnew_dev, const gx_device * dev, bool keep_open,
+	       gs_memory_t * mem)
 {
     gx_device *new_dev;
     const gs_memory_struct_type_t *std = dev->stype;
     const gs_memory_struct_type_t *new_std;
+    gs_memory_struct_type_t *a_std = 0;
+    int code;
 
     if (dev->stype_is_dynamic) {
 	/*
 	 * We allocated the stype for this device previously.
 	 * Just allocate a new stype and copy the old one into it.
 	 */
-	gs_memory_struct_type_t *a_std = (gs_memory_struct_type_t *)
+	a_std = (gs_memory_struct_type_t *)
 	    gs_alloc_bytes_immovable(&gs_memory_default, sizeof(*std),
 				     "gs_copydevice(stype)");
-
 	if (!a_std)
 	    return_error(gs_error_VMerror);
 	*a_std = *std;
@@ -261,10 +263,9 @@ gs_copydevice(gx_device ** pnew_dev, const gx_device * dev, gs_memory_t * mem)
 	new_std = std;
     } else {
 	/* We need to figure out or adjust the stype. */
-	gs_memory_struct_type_t *a_std = (gs_memory_struct_type_t *)
+	a_std = (gs_memory_struct_type_t *)
 	    gs_alloc_bytes_immovable(&gs_memory_default, sizeof(*std),
 				     "gs_copydevice(stype)");
-
 	if (!a_std)
 	    return_error(gs_error_VMerror);
 	gx_device_make_struct_type(a_std, dev);
@@ -279,11 +280,32 @@ gs_copydevice(gx_device ** pnew_dev, const gx_device * dev, gs_memory_t * mem)
     if (new_dev == 0)
 	return_error(gs_error_VMerror);
     gx_device_init(new_dev, dev, mem, false);
+    gx_device_set_procs(new_dev);
     new_dev->stype = new_std;
     new_dev->stype_is_dynamic = new_std != std;
-    new_dev->is_open = false;
+    /*
+     * keep_open is very dangerous.  On the other hand, so is copydevice in
+     * general, since it just copies the bits without any regard to pointers
+     * (including self-pointers) that they may contain.  We handle this by
+     * making the default finish_copydevice forbid copying of anything other
+     * than the device prototype.
+     */
+    new_dev->is_open = dev->is_open && keep_open;
+    fill_dev_proc(new_dev, finish_copydevice, gx_default_finish_copydevice);
+    code = dev_proc(new_dev, finish_copydevice)(new_dev, dev);
+    if (code < 0) {
+	gs_free_object(mem, new_dev, "gs_copydevice(device)");
+	if (a_std)
+	    gs_free_object(&gs_memory_default, a_std, "gs_copydevice(stype)");
+	return code;
+    }
     *pnew_dev = new_dev;
     return 0;
+}
+int
+gs_copydevice(gx_device ** pnew_dev, const gx_device * dev, gs_memory_t * mem)
+{
+    return gs_copydevice2(pnew_dev, dev, false, mem);
 }
 
 /* Open a device if not open already.  Return 0 if the device was open, */
@@ -625,6 +647,64 @@ gx_device_copy_params(gx_device *dev, const gx_device *target)
 #undef COPY_PARAM
 
 /*
+ * Parse the output file name detecting and validating any %nnd format
+ * for inserting the page count.  If a format is present, store a pointer
+ * to its last character in *pfmt, otherwise store 0 there.
+ * Note that we assume devices have already been scanned, and any % must
+ * precede a valid format character.
+ *
+ * If there was a format, then return the max_width
+ */
+private int
+gx_parse_output_format(gs_parsed_file_name_t *pfn, const char **pfmt)
+{
+    int code;
+    bool have_format = false, field = 0;
+    int width[2], int_width = sizeof(int) * 3, w = 0;
+    uint i;
+
+    /* Scan the file name for a format string, and validate it if present. */
+    width[0] = width[1] = 0;
+    for (i = 0; i < pfn->len; ++i)
+	if (pfn->fname[i] == '%') {
+	    if (i + 1 < pfn->len && pfn->fname[i + 1] == '%')
+		continue;
+	    if (have_format)	/* more than one % */
+		return_error(gs_error_undefinedfilename);
+	    have_format = true;
+	sw:
+	    if (++i == pfn->len)
+		return_error(gs_error_undefinedfilename);
+	    switch (pfn->fname[i]) {
+		case 'l':
+		    int_width = sizeof(long) * 3;
+		case ' ': case '#': case '+': case '-':
+		    goto sw;
+		case '.':
+		    if (field)
+			return_error(gs_error_undefinedfilename);
+		    field = 1;
+		    continue;
+		case '0': case '1': case '2': case '3': case '4':
+		case '5': case '6': case '7': case '8': case '9':
+		    width[field] = width[field] * 10 + pfn->fname[i] - '0';
+		    goto sw;
+		case 'd': case 'i': case 'u': case 'o': case 'x': case 'X':
+		    *pfmt = &pfn->fname[i];
+		    continue;
+		default:
+		    return_error(gs_error_undefinedfilename);
+	    }
+	}
+    if (have_format) {
+	/* Calculate a conservative maximum width. */
+	w = max(width[0], width[1]);
+	w = max(w, int_width) + 5;
+    }
+    return w;
+}
+
+/*
  * Parse the output file name for a device, recognizing "-" and "|command",
  * and also detecting and validating any %nnd format for inserting the
  * page count.  If a format is present, store a pointer to its last
@@ -635,23 +715,33 @@ int
 gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const char **pfmt,
 			  const char *fname, uint fnlen)
 {
-    int code = gs_parse_file_name(pfn, fname, fnlen);
-    bool have_format = false, field = 0;
-    int width[2], int_width = sizeof(int) * 3, w = 0;
-    uint i;
+    int code;
+    int i;
 
     *pfmt = 0;
-    if (fnlen == 0) {		/* allow null name */
-	pfn->memory = 0;
-	pfn->iodev = NULL;
-	pfn->fname = 0;		/* irrelevant since length = 0 */
-	pfn->len = 0;
+    pfn->memory = 0;
+    pfn->iodev = NULL;
+    pfn->fname = NULL;		/* irrelevant since length = 0 */
+    pfn->len = 0;
+    if (fnlen == 0)  		/* allow null name */
 	return 0;
+    /*
+     * If the file name begins with a %, it might be either an IODevice
+     * or a %nnd format.  Check (carefully) for this case.
+     */
+    code = gs_parse_file_name(pfn, fname, fnlen);
+    if (code < 0) {
+	if (fname[0] == '%') {
+	    /* not a recognized iodev -- may be a leading format descriptor */
+	    pfn->len = fnlen;
+	    pfn->fname = fname;
+	    code = gx_parse_output_format(pfn, pfmt);
+	} 
+	if (code < 0)
+	    return code;
     }
-    if (code < 0)
-	return code;
     if (!pfn->iodev) {
-	if (!strcmp(pfn->fname, "-")) {
+	if ( (pfn->len == 1) && (pfn->fname[0] == '-') ) {
 	    pfn->iodev = gs_findiodevice((const byte *)"%stdout", 7);
 	    pfn->fname = NULL;
 	} else if (pfn->fname[0] == '|') {
@@ -664,46 +754,11 @@ gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const char **pfmt,
     }
     if (!pfn->fname)
 	return 0;
-    /* Scan the file name for a format string, and validate it if present. */
-    width[0] = width[1] = 0;
-    for (i = 0; i < pfn->len; ++i)
-	if (pfn->fname[i] == '%') {
-	    if (i + 1 < pfn->len && pfn->fname[i + 1] == '%')
-		continue;
-	    if (have_format)	/* more than one % */
-		return_error(gs_error_rangecheck);
-	    have_format = true;
-	sw:
-	    if (++i == pfn->len)
-		return_error(gs_error_rangecheck);
-	    switch (pfn->fname[i]) {
-		case 'l':
-		    int_width = sizeof(long) * 3;
-		case ' ': case '#': case '+': case '-':
-		    goto sw;
-		case '.':
-		    if (field)
-			return_error(gs_error_rangecheck);
-		    field = 1;
-		    continue;
-		case '0': case '1': case '2': case '3': case '4':
-		case '5': case '6': case '7': case '8': case '9':
-		    width[field] = width[field] * 10 + pfn->fname[i] - '0';
-		    goto sw;
-		case 'd': case 'i': case 'u': case 'o': case 'x': case 'X':
-		    *pfmt = &pfn->fname[i];
-		    continue;
-		default:
-		    return_error(gs_error_rangecheck);
-	    }
-	}
-    if (have_format) {
-	/* Calculate a conservative maximum width. */
-	w = max(width[0], width[1]);
-	w = max(w, int_width) + 5;
-    }
-    if (strlen(pfn->iodev->dname) + pfn->len + w >= gp_file_name_sizeof)
-	return_error(gs_error_rangecheck);
+    code = gx_parse_output_format(pfn, pfmt);
+    if (code < 0)
+        return code;
+    if (strlen(pfn->iodev->dname) + pfn->len + code >= gp_file_name_sizeof)
+	return_error(gs_error_undefinedfilename);
     return 0;
 }
 
@@ -722,7 +777,7 @@ gx_device_open_output_file(const gx_device * dev, char *fname,
     if (parsed.iodev && !strcmp(parsed.iodev->dname, "%stdout%")) {
 	if (parsed.fname)
 	    return_error(gs_error_undefinedfilename);
-	*pfile = stdout;
+	*pfile = gs_stdout;
 	/* Force stdout to binary. */
 	return gp_setmode_binary(*pfile, true);
     }
@@ -746,10 +801,8 @@ gx_device_open_output_file(const gx_device * dev, char *fname,
 	strcpy(fmode, gp_fmode_wb);
 	if (positionable)
 	    strcat(fmode, "+");
-	code = parsed.iodev->procs.fopen(parsed.iodev, parsed.fname, fmode,
+	return parsed.iodev->procs.fopen(parsed.iodev, parsed.fname, fmode,
 					 pfile, NULL, 0);
-	if (*pfile)
-	    return 0;
     }
     *pfile = gp_open_printer((fmt ? pfname : fname), binary);
     if (*pfile)

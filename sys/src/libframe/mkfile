@@ -1,17 +1,26 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libframe.a
-OFILES=\
-	frbox.$O\
-	frdraw.$O\
-	frdelete.$O\
-	frinit.$O\
-	frinsert.$O\
-	frptofchar.$O\
-	frselect.$O\
-	frstr.$O\
-	frutil.$O\
+FILES=\
+	frbox\
+	frdraw\
+	frdelete\
+	frinit\
+	frinsert\
+	frptofchar\
+	frselect\
+	frstr\
+	frutil\
 
 HFILES=/sys/include/frame.h
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/lib/libframe.a\
+	$HFILES\
+	$CFILES\
 
 < /sys/src/cmd/mksyslib

@@ -2,40 +2,48 @@
 
 LIB=/$objtype/lib/libc.a
 
-OFILES=\
-	dofmt.$O\
-	dorfmt.$O\
-	errfmt.$O\
-	fltfmt.$O\
-	fmt.$O\
-	fmtfd.$O\
-	fmtlock.$O\
-	fmtprint.$O\
-	fmtquote.$O\
-	fmtrune.$O\
-	fmtstr.$O\
-	fmtvprint.$O\
-	fprint.$O\
-	print.$O\
-	runefmtstr.$O\
-	runeseprint.$O\
-	runesmprint.$O\
-	runesnprint.$O\
-	runesprint.$O\
-	runevseprint.$O\
-	runevsmprint.$O\
-	runevsnprint.$O\
-	seprint.$O\
-	smprint.$O\
-	snprint.$O\
-	sprint.$O\
-	vfprint.$O\
-	vseprint.$O\
-	vsmprint.$O\
-	vsnprint.$O\
+FILES=\
+	dofmt\
+	dorfmt\
+	errfmt\
+	fltfmt\
+	fmt\
+	fmtfd\
+	fmtlock\
+	fmtprint\
+	fmtquote\
+	fmtrune\
+	fmtstr\
+	fmtvprint\
+	fprint\
+	print\
+	runefmtstr\
+	runeseprint\
+	runesmprint\
+	runesnprint\
+	runesprint\
+	runevseprint\
+	runevsmprint\
+	runevsnprint\
+	seprint\
+	smprint\
+	snprint\
+	sprint\
+	vfprint\
+	vseprint\
+	vsmprint\
+	vsnprint\
 
 HFILES=/sys/include/libc.h\
 	fmtdef.h\
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
 
 </sys/src/cmd/mksyslib
 

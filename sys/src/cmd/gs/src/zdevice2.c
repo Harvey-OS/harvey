@@ -1,22 +1,22 @@
 /* Copyright (C) 1993, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zdevice2.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: zdevice2.c,v 1.4.2.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Level 2 device operators */
 #include "math_.h"
 #include "memory_.h"
@@ -40,7 +40,8 @@ private int push_callout(P2(i_ctx_t *, const char *));
 /* Extend the `copy' operator to deal with gstates. */
 /* This is done with a hack -- we know that gstates are the only */
 /* t_astruct subtype that implements copy. */
-private int
+/* We export this for recognition in FunctionType 4 functions. */
+int
 z2copy(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
@@ -255,9 +256,16 @@ restore_page_device(const gs_state * pgs_old, const gs_state * pgs_new)
     gx_device *dev_new;
     gx_device *dev_t1;
     gx_device *dev_t2;
+    bool samepagedevice = obj_eq(&gs_int_gstate(pgs_old)->pagedevice,
+    	&gs_int_gstate(pgs_new)->pagedevice);
 
     if ((dev_t1 = (*dev_proc(dev_old, get_page_device)) (dev_old)) == 0)
 	return false;
+    /* If we are going to putdeviceparams in a callout, we need to */
+    /* unlock temporarily.  The device will be re-locked as needed */
+    /* by putdeviceparams from the pgs_old->pagedevice dict state. */
+    if (!samepagedevice)
+        dev_old->LockSafetyParams = false;
     dev_new = gs_currentdevice(pgs_new);
     if (dev_old != dev_new) {
 	if ((dev_t2 = (*dev_proc(dev_new, get_page_device)) (dev_new)) == 0)
@@ -270,8 +278,7 @@ restore_page_device(const gs_state * pgs_old, const gs_state * pgs_new)
      * parameters in the same device object, so we have to check
      * whether the page device dictionaries are the same.
      */
-    return !obj_eq(&gs_int_gstate(pgs_old)->pagedevice,
-		   &gs_int_gstate(pgs_new)->pagedevice);
+    return !samepagedevice;
 }
 
 /* - grestore - */
@@ -304,14 +311,13 @@ z2grestoreall(i_ctx_t *i_ctx_p)
 private int
 z2restore(i_ctx_t *i_ctx_p)
 {
-    for (;;) {
-	if (!restore_page_device(igs, gs_state_saved(igs))) {
-	    if (!gs_state_saved(gs_state_saved(igs)))
-		break;
-	    gs_grestore(igs);
-	} else
-	    return push_callout(i_ctx_p, "%restorepagedevice");
+    while (gs_state_saved(gs_state_saved(igs))) {
+	if (restore_page_device(igs, gs_state_saved(igs)))
+	    return push_callout(i_ctx_p, "%restore1pagedevice");
+	gs_grestore(igs);
     }
+    if (restore_page_device(igs, gs_state_saved(igs)))
+	return push_callout(i_ctx_p, "%restorepagedevice");
     return zrestore(i_ctx_p);
 }
 

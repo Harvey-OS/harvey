@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxccache.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gxccache.c,v 1.5 2001/07/05 20:36:55 raph Exp $ */
 /* Fast case character cache routines for Ghostscript library */
 #include "gx.h"
 #include "gpcheck.h"
@@ -206,8 +206,9 @@ gx_image_cached_char(register gs_show_enum * penum, register cached_char * cc)
     int x, y, w, h, depth;
     int code;
     gs_fixed_point pt;
-    gx_device *dev = gs_currentdevice_inline(pgs);
-    gx_device *orig_dev = dev;
+    gx_device *dev = penum->dev;
+    gx_device *imaging_dev = penum->imaging_dev ? penum->imaging_dev : dev;
+    gx_device *orig_dev = imaging_dev;
     gx_device_clip cdev;
     gx_xglyph xg = cc->xglyph;
     gx_xfont *xf;
@@ -245,7 +246,7 @@ gx_image_cached_char(register gs_show_enum * penum, register cached_char * cc)
 #endif
     if ((x < penum->ibox.p.x || x + w > penum->ibox.q.x ||
 	 y < penum->ibox.p.y || y + h > penum->ibox.q.y) &&
-	dev != (gx_device *) & cdev	/* might be 2nd time around */
+	imaging_dev != (gx_device *) & cdev	/* might be 2nd time around */
 	) {			/* Check for the character falling entirely outside */
 	/* the clipping region. */
 	gx_clip_path *pcpath;
@@ -258,9 +259,9 @@ gx_image_cached_char(register gs_show_enum * penum, register cached_char * cc)
 	if (code < 0)
 	    return code;
 	gx_make_clip_device(&cdev, gx_cpath_list(pcpath));
-	cdev.target = dev;
-	dev = (gx_device *) & cdev;
-	(*dev_proc(dev, open_device)) (dev);
+	cdev.target = imaging_dev;
+	imaging_dev = (gx_device *) & cdev;
+	(*dev_proc(imaging_dev, open_device)) (imaging_dev);
 	if_debug0('K', "[K](clipping)\n");
     }
     /* If an xfont can render this character, use it. */
@@ -276,10 +277,11 @@ gx_image_cached_char(register gs_show_enum * penum, register cached_char * cc)
 	 */
 	if (gs_color_writes_pure(pgs)) {
 	    code = (*xf->common.procs->render_char) (xf, xg,
-					dev, cx, cy, pdevc->colors.pure, 0);
+					imaging_dev, cx, cy,
+					pdevc->colors.pure, 0);
 	    if_debug8('K', "[K]render_char display: xfont=0x%lx, glyph=0x%lx\n\tdev=0x%lx(%s) x,y=%d,%d, color=0x%lx => %d\n",
-		      (ulong) xf, (ulong) xg, (ulong) dev,
-		      dev->dname, cx, cy,
+		      (ulong) xf, (ulong) xg, (ulong) imaging_dev,
+		      imaging_dev->dname, cx, cy,
 		      (ulong) pdevc->colors.pure, code);
 	    if (code == 0)
 		return_check_interrupt(0);
@@ -289,7 +291,7 @@ gx_image_cached_char(register gs_show_enum * penum, register cached_char * cc)
 	if (!cc_has_bits(cc)) {
 	    gx_device_memory mdev;
 
-	    gs_make_mem_mono_device(&mdev, 0, dev);
+	    gs_make_mem_mono_device(&mdev, 0, imaging_dev);
 	    gx_open_cache_device(&mdev, cc);
 	    code = (*xf->common.procs->render_char) (xf, xg,
 				       (gx_device *) & mdev, cx - x, cy - y,
@@ -334,8 +336,8 @@ gx_image_cached_char(register gs_show_enum * penum, register cached_char * cc)
 	gx_color_index color = pdevc->colors.pure;
 
 	if (depth > 1) {
-	    code = (*dev_proc(dev, copy_alpha))
-		(dev, bits, 0, cc_raster(cc), cc->id,
+	    code = (*dev_proc(imaging_dev, copy_alpha))
+		(imaging_dev, bits, 0, cc_raster(cc), cc->id,
 		 x, y, w, h, color, depth);
 	    if (code >= 0)
 		return_check_interrupt(0);
@@ -344,8 +346,8 @@ gx_image_cached_char(register gs_show_enum * penum, register cached_char * cc)
 	    if (bits == 0)
 		return 1;	/* VMerror, but recoverable */
 	}
-	code = (*dev_proc(dev, copy_mono))
-	    (dev, bits, 0, cc_raster(cc), cc->id,
+	code = (*dev_proc(imaging_dev, copy_mono))
+	    (imaging_dev, bits, 0, cc_raster(cc), cc->id,
 	     x, y, w, h, gx_no_color_index, pdevc->colors.pure);
 	goto done;
     }

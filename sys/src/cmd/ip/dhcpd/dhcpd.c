@@ -56,7 +56,9 @@ char	net[256];
 
 int	pptponly;	// only answer request that came from the pptp server
 int	mute;
-int	minlease = MinLease;	
+int	minlease = MinLease;
+
+ulong	start;	
 
 /* option magic */
 char plan9opt[4] = { 'p', '9', ' ', ' ' };
@@ -64,6 +66,93 @@ char genericopt[4] = { 0x63, 0x82, 0x53, 0x63 };
 
 /* well known addresses */
 uchar zeros[Maxhwlen];
+
+/* option debug buffer */
+char optbuf[1024];
+char *op;
+char *oe = optbuf + sizeof(optbuf);
+
+char *optname[256] =
+{
+[OBend]			"end",
+[OBpad]			"pad",
+[OBmask]		"mask",
+[OBtimeoff]		"timeoff",
+[OBrouter]		"router",
+[OBtimeserver]		"time",
+[OBnameserver]		"name",
+[OBdnserver]		"dns",
+[OBlogserver]		"log",
+[OBcookieserver]	"cookie",
+[OBlprserver]		"lpr",
+[OBimpressserver]	"impress",
+[OBrlserver]		"rl",
+[OBhostname]		"host",
+[OBbflen]		"bflen",
+[OBdumpfile]		"dumpfile",
+[OBdomainname]		"dom",
+[OBswapserver]		"swap",
+[OBrootpath]		"rootpath",
+[OBextpath]		"extpath",
+[OBipforward]		"ipforward",
+[OBnonlocal]		"nonlocal",
+[OBpolicyfilter]	"policyfilter",
+[OBmaxdatagram]		"maxdatagram",
+[OBttl]			"ttl",
+[OBpathtimeout]		"pathtimeout",
+[OBpathplateau]		"pathplateau",
+[OBmtu]			"mtu",
+[OBsubnetslocal]	"subnetslocal",
+[OBbaddr]		"baddr",
+[OBdiscovermask]	"discovermask",
+[OBsupplymask]		"supplymask",
+[OBdiscoverrouter]	"discoverrouter",
+[OBrsserver]		"rsserver",
+[OBstaticroutes]	"staticroutes",
+[OBtrailerencap]	"trailerencap",
+[OBarptimeout]		"arptimeout",
+[OBetherencap]		"etherencap",
+[OBtcpttl]		"tcpttl",
+[OBtcpka]		"tcpka",
+[OBtcpkag]		"tcpkag",
+[OBnisdomain]		"nisdomain",
+[OBniserver]		"niserver",
+[OBntpserver]		"ntpserver",
+[OBvendorinfo]		"vendorinfo",
+[OBnetbiosns]		"NBns",
+[OBnetbiosdds]		"NBdds",
+[OBnetbiostype]		"NBtype",
+[OBnetbiosscope]	"NBscope",
+[OBxfontserver]		"xfont",
+[OBxdispmanager]	"xdisp",
+[OBnisplusdomain]	"NPdomain",
+[OBnisplusserver]	"NP",
+[OBhomeagent]		"homeagent",
+[OBsmtpserver]		"smtp",
+[OBpop3server]		"pop3",
+[OBnntpserver]		"nntp",
+[OBwwwserver]		"www",
+[OBfingerserver]	"finger",
+[OBircserver]		"ircserver",
+[OBstserver]		"stserver",
+[OBstdaserver]		"stdaserver",
+
+/* dhcp options */
+[ODipaddr]		"ip",
+[ODlease]		"leas",
+[ODoverload]		"overload",
+[ODtype]		"typ",
+[ODserverid]		"sid",
+[ODparams]		"params",
+[ODmessage]		"message",
+[ODmaxmsg]		"maxmsg",
+[ODrenewaltime]		"renewaltime",
+[ODrebindingtime]	"rebindingtime",
+[ODvendorclass]		"vendorclass",
+[ODclientid]		"cid",
+[ODtftpserver]		"tftpserver",
+[ODbootfile]		"bf",
+};
 
 void	addropt(Req*, int, uchar*);
 void	addrsopt(Req*, int, uchar**, int);
@@ -74,10 +163,10 @@ void	dhcp(Req*);
 void	fatal(int, char*, ...);
 void	hexopt(Req*, int, char*);
 void	longopt(Req*, int, long);
+void	maskopt(Req*, int, uchar*);
 void	miscoptions(Req*, uchar*);
 int	openlisten(char *net);
 void	parseoptions(Req*);
-void	debugoptions(Req*, char*, char*);
 void	proto(Req*, int);
 void	rcvdecline(Req*);
 void	rcvdiscover(Req*);
@@ -95,6 +184,17 @@ int	validip(uchar*);
 void	vectoropt(Req*, int, uchar*, int);
 void	warning(int, char*, ...);
 void	logdhcp(Req*);
+void	logdhcpout(Req *, char *);
+int	readlast(int, uchar*, int);
+
+void
+timestamp(char *tag)
+{
+	ulong t;
+
+	t = nsec()/1000;
+	syslog(0, blog, "%s %lud", tag, t - start);
+}
 
 void
 usage(void)
@@ -106,7 +206,7 @@ usage(void)
 void
 main(int argc, char **argv)
 {
-	int n, fd;
+	int i, n, fd;
 	char *p;
 	uchar ip[IPaddrlen];
 	Req r;
@@ -167,6 +267,11 @@ main(int argc, char **argv)
 		argv += 2;
 	}
 
+	/* for debugging */
+	for(i = 0; i < 256; i++)
+		if(optname[i] == 0)
+			optname[i] = smprint("%d", i);
+
 	/* what is my name? */
 	p = readsysname();
 	strcpy(mysysname, p);
@@ -187,9 +292,12 @@ main(int argc, char **argv)
 	for(;;){
 		memset(&r, 0, sizeof(r));
 		r.fd = fd;
-		n = read(r.fd, r.buf, sizeof(r.buf));
+		n = readlast(r.fd, r.buf, sizeof(r.buf));
 		if(n < Udphdrsize)
 			fatal(1, "error reading requests");
+		start = nsec()/1000;
+		op = optbuf;
+		*op = 0;
 		proto(&r, n);
 		if(r.id != nil)
 			free(r.id);
@@ -237,9 +345,9 @@ proto(Req *rp, int n)
 		if(memcmp(rp->bp->optmagic, genericopt, sizeof(rp->bp->optmagic)) == 0) {
 			rp->genrequest = 1;
 			parseoptions(rp);
-			rp->p = rp->bp->optdata;
 		}
 	}
+	rp->p = rp->bp->optdata;
 
 	/*  If no id is specified, make one from the hardware address
 	 *  of the target.  We assume all zeros is not a hardware address
@@ -259,7 +367,7 @@ proto(Req *rp, int n)
 	}
 
 	/* info about gateway */
-	if(lookupip(relip, &rp->gii) < 0){
+	if(lookupip(relip, &rp->gii, 1) < 0){
 		warning(0, "lookupip failed");
 		return;
 	}
@@ -273,6 +381,7 @@ proto(Req *rp, int n)
 		dhcp(rp);
 	else
 		bootp(rp);
+timestamp("done");
 }
 
 void
@@ -346,8 +455,8 @@ rcvdiscover(Req *rp)
 		}
 	}
 	if(b == nil){
-		warning(0, "discover: no binding for %s ip %I via %I",
-			rp->id, rp->ip, rp->gii.ipaddr);
+		warning(0, "!Discover(%s via %I): no binding %I",
+			rp->id, rp->gii.ipaddr, rp->ip);
 		return;
 	}
 	mkoffer(b, rp->id, rp->leasetime);
@@ -367,8 +476,8 @@ rcvrequest(Req *rp)
 			if(forme(rp->server))
 				sendack(rp, rp->ii.ipaddr, StaticLease, 1);
 			else
-				warning(0, "request: for server %I not me: %s via %I",
-					rp->server, rp->id, rp->gii.ipaddr);
+				warning(0, "!Request(%s via %I): for server %I not me",
+					rp->id, rp->gii.ipaddr, rp->server);
 			return;
 		}
 
@@ -376,7 +485,7 @@ rcvrequest(Req *rp)
 
 		/* if we don't have an offer, nak */
 		if(b == nil){
-			warning(0, "request: no offer for %s via %I",
+			warning(0, "!Request(%s via %I): no offer",
 				rp->id, rp->gii.ipaddr);
 			if(forme(rp->server))
 				sendnak(rp, "no offer for you");
@@ -386,8 +495,8 @@ rcvrequest(Req *rp)
 		/* if not for me, retract offer */
 		if(!forme(rp->server)){
 			b->expoffer = 0;
-			warning(0, "request: for server %I not me: %s via %I",
-				rp->server, rp->id, rp->gii.ipaddr);
+			warning(0, "!Request(%s via %I): for server %I not me",
+				rp->id, rp->gii.ipaddr, rp->server);
 			return;
 		}
 
@@ -396,14 +505,14 @@ rcvrequest(Req *rp)
 		 *  client really shouldn't be specifying this when selecting
 		 */
 		if(validip(rp->ip) && ipcmp(rp->ip, b->ip) != 0){
-			warning(0, "request: %s via %I requests %I, not %I",
+			warning(0, "!Request(%s via %I): requests %I, not %I",
 				rp->id, rp->gii.ipaddr, rp->ip, b->ip);
 			sendnak(rp, "bad ip address option");
 			return;
 		}
 		if(commitbinding(b) < 0){
-			warning(0, "request: can't commit %I for %s via %I",
-				b->ip, rp->id, rp->gii.ipaddr);
+			warning(0, "!Request(%s via %I): can't commit %I",
+				rp->id, rp->gii.ipaddr, b->ip);
 			sendnak(rp, "can't commit binding");
 			return;
 		}
@@ -412,15 +521,14 @@ rcvrequest(Req *rp)
 		/*
 		 *  checking address/net - INIT-REBOOT
 		 *
-		 *  the standard says nothing about acking these requests,
-		 *  only nacking them.  we ack nevertheless since some
-		 *  boxes seem to require it.
+		 *  This is a rebooting client that remembers its old
+		 *  address.
 		 */
 		/* check for hard assignment */
 		if(rp->staticbinding){
 			if(memcmp(rp->ip, rp->ii.ipaddr, IPaddrlen) != 0){
-				warning(0, "request: %I not valid for %s/%E via %I",
-					rp->ip, rp->id, rp->bp->chaddr, rp->gii.ipaddr);
+				warning(0, "!Request(%s via %I): %I not valid for %E",
+					rp->id, rp->gii.ipaddr, rp->ip, rp->bp->chaddr);
 				sendnak(rp, "not valid");
 			}
 			sendack(rp, rp->ii.ipaddr, StaticLease, 1);
@@ -429,33 +537,40 @@ rcvrequest(Req *rp)
 
 		/* make sure the network makes sense */
 		if(!samenet(rp->ip, &rp->gii)){
-			warning(0, "request: bad forward of %I for %s via %I",
-				rp->ip, rp->id, rp->gii.ipaddr);
+			warning(0, "!Request(%s via %I): bad forward of %I",
+				rp->id, rp->gii.ipaddr, rp->ip);
 			sendnak(rp, "wrong network");
 			return;
 		}
 		b = iptobinding(rp->ip, 0);
 		if(b == nil){
-			warning(0, "request: no binding for %I for %s via %I",
-				rp->ip, rp->id, rp->gii.ipaddr);
+			warning(0, "!Request(%s via %I): no binding for %I for",
+				rp->id, rp->gii.ipaddr, rp->ip);
 			return;
 		}
 		if(memcmp(rp->ip, b->ip, IPaddrlen) != 0 || now > b->lease){
-			warning(0, "request: %I not valid for %s via %I",
-				rp->ip, rp->id, rp->gii.ipaddr);
+			warning(0, "!Request(%s via %I): %I not valid",
+				rp->id, rp->gii.ipaddr, rp->ip);
 			sendnak(rp, "not valid");
 			return;
 		}
 		b->offer = b->lease - now;
 		sendack(rp, b->ip, b->offer, 1);
 	} else if(validip(rp->ciaddr)){
-		/* checking address - INIT-REBOOT and RENEWING or REBINDING */
+		/*
+		 *  checking address - RENEWING or REBINDING
+		 *
+		 *  these states are indistinguishable in our action.  The only
+		 *  difference is how close to lease expiration the client is.
+		 *  If it is really close, it broadcasts the request hoping that
+		 *  some server will answer.
+		 */
 
 		/* check for hard assignment */
 		if(rp->staticbinding){
 			if(ipcmp(rp->ciaddr, rp->ii.ipaddr) != 0){
-				warning(0, "request: %I not valid for %s via %I",
-					rp->ciaddr, rp->id, rp->gii.ipaddr);
+				warning(0, "!Request(%s via %I): %I not valid",
+					rp->id, rp->gii.ipaddr, rp->ciaddr);
 				sendnak(rp, "not valid");
 			}
 			sendack(rp, rp->ii.ipaddr, StaticLease, 1);
@@ -464,27 +579,27 @@ rcvrequest(Req *rp)
 
 		/* make sure the network makes sense */
 		if(!samenet(rp->ciaddr, &rp->gii)){
-			warning(0, "request: bad forward of %I for %s via %I",
-				rp->ip, rp->id, rp->gii.ipaddr);
+			warning(0, "!Request(%s via %I): bad forward of %I",
+				rp->id, rp->gii.ipaddr, rp->ip);
 			sendnak(rp, "wrong network");
 			return;
 		}
 		b = iptobinding(rp->ciaddr, 0);
 		if(b == nil){
-			warning(0, "request: no binding for %I for %s via %I",
-				rp->ciaddr, rp->id, rp->gii.ipaddr);
+			warning(0, "!Request(%s via %I): no binding for %I",
+				rp->id, rp->gii.ipaddr, rp->ciaddr);
 			return;
 		}
 		if(ipcmp(rp->ciaddr, b->ip) != 0){
-			warning(0, "request: %I not valid for %s via %I",
-				rp->ciaddr, rp->id, rp->gii.ipaddr);
+			warning(0, "!Request(%I via %s): %I not valid",
+				rp->id, rp->gii.ipaddr, rp->ciaddr);
 			sendnak(rp, "invalid ip address");
 			return;
 		}
 		mkoffer(b, rp->id, rp->leasetime);
 		if(commitbinding(b) < 0){
-			warning(0, "request: can't commit %I for %s via %I",
-				b->ip, rp->id, rp->gii.ipaddr);
+			warning(0, "!Request(%s via %I): can't commit %I",
+				rp->id, rp->gii.ipaddr, b->ip);
 			sendnak(rp, "can't commit binding");
 			return;
 		}
@@ -503,7 +618,7 @@ rcvdecline(Req *rp)
 
 	b = idtooffer(rp->id, &rp->gii);
 	if(b == nil){
-		warning(0, "decline: no binding for %s via %I",
+		warning(0, "!Decline(%s via %I): no binding",
 			rp->id, rp->gii.ipaddr);
 		return;
 	}
@@ -524,16 +639,16 @@ rcvrelease(Req *rp)
 
 	b = idtobinding(rp->id, &rp->gii, 0);
 	if(b == nil){
-		warning(0, "release: no binding for %s via %I",
+		warning(0, "!Release(%s via %I): no binding",
 			rp->id, rp->gii.ipaddr);
 		return;
 	}
 	if(strcmp(rp->id, b->boundto) != 0){
-		warning(0, "release: invalid release of %I from %s via %I",
-			rp->ip, rp->id, rp->gii.ipaddr);
+		warning(0, "!Release(%s via %I): invalid release of %I",
+			rp->id, rp->gii.ipaddr, rp->ip);
 		return;
 	}
-	warning(0, "release: releasing %I from %s", b->ip, b->boundto);
+	warning(0, "Release(%s via %I): releasing %I", b->boundto, rp->gii.ipaddr, b->ip);
 	if(releasebinding(b, rp->id) < 0)
 		warning(0, "release: couldn't release");
 }
@@ -550,23 +665,18 @@ rcvinform(Req *rp)
 
 	b = iptobinding(rp->ciaddr, 0);
 	if(b == nil){
-		warning(0, "inform: no binding for %I for %s via %I",
-			rp->ip, rp->id, rp->gii.ipaddr);
+		warning(0, "!Inform(%s via %I): no binding for %I",
+			rp->id, rp->gii.ipaddr, rp->ip);
 		return;
 	}
 	sendack(rp, b->ip, 0, 0);
 }
 
 int
-setsiaddr(char * attr, uchar *siaddr, uchar *ip, uchar *laddr)
+setsiaddr(uchar *siaddr, uchar *saddr, uchar *laddr)
 {
-	uchar *addrs[2];
-	uchar x[2*IPaddrlen];
-
-	addrs[0] = x;
-	addrs[1] = x+IPaddrlen;
-	if(lookupserver(attr, addrs, ip) > 0){
-		v6tov4(siaddr, addrs[0]);
+	if(ipcmp(saddr, IPnoaddr) != 0){
+		v6tov4(siaddr, saddr);
 		return 0;
 	} else {
 		v6tov4(siaddr, laddr);
@@ -611,7 +721,7 @@ sendoffer(Req *rp, uchar *ip, int offer)
 	memset(bp->ciaddr, 0, sizeof(bp->ciaddr));
 	v6tov4(bp->giaddr, rp->giaddr);
 	v6tov4(bp->yiaddr, ip);
-	setsiaddr("tftp", bp->siaddr, ip, up->laddr);
+	setsiaddr(bp->siaddr, rp->ii.tftp, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
 	strncpy(bp->file, rp->ii.bootf, sizeof(bp->file));
 
@@ -624,8 +734,7 @@ sendoffer(Req *rp, uchar *ip, int offer)
 	miscoptions(rp, ip);
 	termopt(rp);
 
-	warning(0, "Offer %d to %s from %I, ip %I mask %M gw %I", offer, rp->id,
-		up->laddr, ip, rp->gii.ipmask, rp->gii.gwip);
+	logdhcpout(rp, "Offer");
 
 	/*
 	 *  send
@@ -642,7 +751,6 @@ sendack(Req *rp, uchar *ip, int offer, int sendlease)
 	ushort flags;
 	Bootp *bp;
 	Udphdr *up;
-	char buf[1024];
 
 	bp = rp->bp;
 	up = rp->up;
@@ -672,7 +780,7 @@ sendack(Req *rp, uchar *ip, int offer, int sendlease)
 	hnputs(bp->secs, 0);
 	v6tov4(bp->giaddr, rp->giaddr);
 	v6tov4(bp->yiaddr, ip);
-	setsiaddr("tftp", bp->siaddr, ip, up->laddr);
+	setsiaddr(bp->siaddr, rp->ii.tftp, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
 	strncpy(bp->file, rp->ii.bootf, sizeof(bp->file));
 
@@ -680,15 +788,14 @@ sendack(Req *rp, uchar *ip, int offer, int sendlease)
 	 *  set options
 	 */
 	byteopt(rp, ODtype, Ack);
-	if(sendlease)
+	if(sendlease){
 		longopt(rp, ODlease, offer);
+	}
 	addropt(rp, ODserverid, up->laddr);
 	miscoptions(rp, ip);
 	termopt(rp);
 
-	debugoptions(rp, buf, buf+sizeof(buf));
-	warning(0, "Ack %d to %s: %I->%I, ip %I mask %M gw %I %s", offer, rp->id,
-		up->laddr, up->raddr, ip, rp->gii.ipmask, rp->gii.gwip, buf);
+	logdhcpout(rp, "Ack");
 
 	/*
 	 *  send
@@ -741,6 +848,8 @@ sendnak(Req *rp, char *msg)
 		hexopt(rp, ODclientid, rp->id+2);
 	termopt(rp);
 
+	logdhcpout(rp, "Nak");
+
 	/*
 	 *  send nak
 	 */
@@ -758,9 +867,9 @@ bootp(Req *rp)
 	ushort flags;
 	Iplifc *lifc;
 	Info *iip;
-	int servedbyme;
 
-	warning(0, "bootp %I->%I from %s via %I",
+	warning(0, "bootp %s %I->%I from %s via %I",
+		rp->genrequest ? "generic" : (rp->p9request ? "p9" : ""),
 		rp->up->raddr, rp->up->laddr,
 		rp->id, rp->gii.ipaddr);
 
@@ -788,7 +897,9 @@ bootp(Req *rp)
 
 	/* ignore if we don't know what file to load */
 	if(*bp->file == 0){
-		if(iip->bootf)
+		if(rp->genrequest && *iip->bootf2)	/* if not plan 9 and we have an alternate file... */
+			strncpy(bp->file, iip->bootf2, sizeof(bp->file));
+		else if(*iip->bootf)
 			strncpy(bp->file, iip->bootf, sizeof(bp->file));
 		else if(*bp->sname)		/* if we were asked, respond no matter what */
 			bp->file[0] = '\0';
@@ -799,7 +910,7 @@ bootp(Req *rp)
 	}
 
 	/* ignore if the file is unreadable */
-	if(!rp->genrequest && access(bp->file, 4) < 0){
+	if((!rp->genrequest) && bp->file[0] && access(bp->file, 4) < 0){
 		warning(0, "inaccessible bootfile1 %s", bp->file);
 		return;
 	}
@@ -813,10 +924,9 @@ bootp(Req *rp)
 			v4tov6(iip->gwip, bp->giaddr);
 		rp->p += sprint((char*)rp->p, "%V %I %I %I", iip->ipmask+IPv4off, iip->fsip,
 				iip->auip, iip->gwip);
+		sprint(optbuf, "%s", (char*)(bp->optmagic));
 	} else if(rp->genrequest){
 		warning(0, "genericbootp: %I", iip->ipaddr);
-		if( *iip->bootf2 ) /* if not plan9, change the boot file to bootf2 */
-			strncpy(bp->file, iip->bootf2, sizeof(bp->file));
 		memmove(bp->optmagic, genericopt, 4);
 		miscoptions(rp, iip->ipaddr);
 		termopt(rp);
@@ -856,17 +966,14 @@ bootp(Req *rp)
 	/*
 	 *  our identity
 	 */
-	servedbyme = setsiaddr("tftp", bp->siaddr, iip->ipaddr, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
-	/* not plan9 and has alternative bootf */
-	if(servedbyme && rp->genrequest && *iip->bootf2)
-		servedbyme = setsiaddr("tftp2", bp->siaddr, iip->ipaddr, up->laddr);
-	/* havn't we done this a few lines above? why again? */
-	/* ignore if booting plan9 and the file is unreadable */
-	if(servedbyme && access(bp->file, 4) < 0){
-		warning(0, "inaccessible bootfile2 %s", bp->file);
-		return;
-	}
+
+	/*
+	 *  set tftp server
+	 */
+	setsiaddr(bp->siaddr, iip->tftp, up->laddr);
+	if(rp->genrequest && *iip->bootf2)
+		setsiaddr(bp->siaddr, iip->tftp2, up->laddr);
 
 	/*
 	 * RFC 1048 says that we must pad vendor field with
@@ -884,11 +991,11 @@ bootp(Req *rp)
 	n = rp->p - rp->buf;
 	if(!mute && write(rp->fd, rp->buf, n) != n)
 		warning(0, "bootp: write failed: %r");
-	else if(rp->p9request)
-		warning(0, "bootp reply to: %V %s via %I: %s", bp->yiaddr, bp->file,
-			up->raddr, bp->optmagic);
-	else
-		warning(0, "bootp reply to: %V %s via %I", bp->yiaddr, bp->file, up->raddr);
+
+	warning(0, "bootp via %I: file %s xid(%ux)flag(%ux)ci(%V)gi(%V)yi(%V)si(%V) %s",
+			up->raddr, bp->file, nhgetl(bp->xid), nhgets(bp->flags),
+			bp->ciaddr, bp->giaddr, bp->yiaddr, bp->siaddr,
+			optbuf);
 }
 
 void
@@ -988,13 +1095,15 @@ miscoptions(Req *rp, uchar *ip)
 	uchar x[2*IPaddrlen];
 	uchar vopts[64];
 	uchar *op, *omax;
+	char *attr[100], **a;
+	int na;
+	Ndbtuple *t;
 
 	addrs[0] = x;
 	addrs[1] = x+IPaddrlen;
 
-	
 	/* always supply these */
-	addropt(rp, OBmask, rp->gii.ipmask);
+	maskopt(rp, OBmask, rp->gii.ipmask);
 	if(validip(rp->gii.gwip)){
 		remrequested(rp, OBrouter);
 		addropt(rp, OBrouter, rp->gii.gwip);
@@ -1009,19 +1118,61 @@ miscoptions(Req *rp, uchar *ip)
 		remrequested(rp, OBhostname);
 		stringopt(rp, OBhostname, rp->ii.domain);
 	}
-	if( *rp->ii.rootpath ) {
+	if(*rp->ii.rootpath)
 		stringopt(rp, OBrootpath, rp->ii.rootpath);
+
+	/* figure out what we need to lookup */
+	na = 0;
+	a = attr;
+	if(*rp->ii.domain == 0)
+		a[na++] = "dom";
+	for(i = 0; i < sizeof(rp->requested); i++)
+		switch(rp->requested[i]){
+		case OBrouter:
+			a[na++] = "@ipgw";
+			break;
+		case OBdnserver:
+			a[na++] = "@dns";
+			break;
+		case OBnetbiosns:
+			a[na++] = "@wins";
+			break;
+		case OBsmtpserver:
+			a[na++] = "@smtp";
+			break;
+		case OBpop3server:
+			a[na++] = "@pop3";
+			break;
+		case OBwwwserver:
+			a[na++] = "@www";
+			break;
+		case OBntpserver:
+			a[na++] = "@ntp";
+			break;
+		case OBtimeserver:
+			a[na++] = "@time";
+			break;
+		}
+	if(strncmp((char*)rp->vendorclass, "plan9_", 6) == 0
+	|| strncmp((char*)rp->vendorclass, "p9-", 3) == 0){
+		a[na++] = "@fs";
+		a[na++] = "@auth";
 	}
+	t = lookupinfo(ip, a, na);
 
 	/* lookup anything we might be missing */
 	if(*rp->ii.domain == 0)
-		lookupname(ip, rp->ii.domain);
+		lookupname(rp->ii.domain, t);
 
 	/* add any requested ones that we know about */
 	for(i = 0; i < sizeof(rp->requested); i++)
 		switch(rp->requested[i]){
+		case OBrouter:
+			j = lookupserver("ipgw", addrs, t);
+			addrsopt(rp, OBrouter, addrs, j);
+			break;
 		case OBdnserver:
-			j = lookupserver("dns", addrs, ip);
+			j = lookupserver("dns", addrs, t);
 			addrsopt(rp, OBdnserver, addrs, j);
 			break;
 		case OBhostname:
@@ -1034,7 +1185,7 @@ miscoptions(Req *rp, uchar *ip)
 				stringopt(rp, OBdomainname, p+1);
 			break;
 		case OBnetbiosns:
-			j = lookupserver("wins", addrs, ip);
+			j = lookupserver("wins", addrs, t);
 			addrsopt(rp, OBnetbiosns, addrs, j);
 			break;
 		case OBnetbiostype:
@@ -1042,23 +1193,23 @@ miscoptions(Req *rp, uchar *ip)
 			byteopt(rp, OBnetbiostype, 0x2);
 			break;
 		case OBsmtpserver:
-			j = lookupserver("smtp", addrs, ip);
+			j = lookupserver("smtp", addrs, t);
 			addrsopt(rp, OBsmtpserver, addrs, j);
 			break;
 		case OBpop3server:
-			j = lookupserver("pop3", addrs, ip);
+			j = lookupserver("pop3", addrs, t);
 			addrsopt(rp, OBpop3server, addrs, j);
 			break;
 		case OBwwwserver:
-			j = lookupserver("www", addrs, ip);
+			j = lookupserver("www", addrs, t);
 			addrsopt(rp, OBwwwserver, addrs, j);
 			break;
 		case OBntpserver:
-			j = lookupserver("ntp", addrs, ip);
+			j = lookupserver("ntp", addrs, t);
 			addrsopt(rp, OBntpserver, addrs, j);
 			break;
 		case OBtimeserver:
-			j = lookupserver("time", addrs, ip);
+			j = lookupserver("time", addrs, t);
 			addrsopt(rp, OBtimeserver, addrs, j);
 			break;
 		case OBttl:
@@ -1075,9 +1226,9 @@ miscoptions(Req *rp, uchar *ip)
 		rp->p = vopts;
 		rp->max = vopts + sizeof(vopts) - 1;
 
-		j = lookupserver("fs", addrs, ip);
+		j = lookupserver("fs", addrs, t);
 		addrsopt(rp, OP9fs, addrs, j);
-		j = lookupserver("auth", addrs, ip);
+		j = lookupserver("auth", addrs, t);
 		addrsopt(rp, OP9auth, addrs, j);
 
 		// point back
@@ -1086,28 +1237,8 @@ miscoptions(Req *rp, uchar *ip)
 		rp->max = omax;
 		vectoropt(rp, OBvendorinfo, vopts, j);
 	}
-}
 
-void
-debugoptions(Req *rp, char *cp, char *ep)
-{
-	int n, code;
-	uchar *p, *e;
-
-	e = rp->p;
-	p = rp->bp->optdata;
-
-	while(p < e){
-		code = *p++;
-		if(code == 255)
-			break;
-		if(code == 0)
-			continue;
-
-		n = *p++;
-		p += n;
-		cp = seprint(cp, ep, "(%d %d)", code, n);
-	}
+	ndbfree(t);
 }
 
 int
@@ -1142,9 +1273,9 @@ fatal(int syserr, char *fmt, ...)
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(syserr)
-		syslog(1, blog, "dhcp: %s: %r", buf);
+		syslog(1, blog, "%s: %r", buf);
 	else
-		syslog(1, blog, "dhcp: %s", buf);
+		syslog(1, blog, "%s", buf);
 	exits(buf);
 }
 
@@ -1158,13 +1289,13 @@ warning(int syserr, char *fmt, ...)
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(syserr){
-		syslog(0, blog, "dhcp: %s: %r", buf);
+		syslog(0, blog, "%s: %r", buf);
 		if(debug)
-			fprint(2, "dhcp: %s: %r\n", buf);
+			fprint(2, "%s: %r\n", buf);
 	} else {
-		syslog(0, blog, "dhcp: %s", buf);
+		syslog(0, blog, "%s", buf);
 		if(debug)
-			fprint(2, "dhcp: %s\n", buf);
+			fprint(2, "%s\n", buf);
 	}
 }
 
@@ -1209,6 +1340,8 @@ longopt(Req *rp, int t, long v)
 	*rp->p++ = 4;
 	hnputl(rp->p, v);
 	rp->p += 4;
+
+	op = seprint(op, oe, "%s(%ld)", optname[t], v);
 }
 
 void
@@ -1220,6 +1353,21 @@ addropt(Req *rp, int t, uchar *ip)
 	*rp->p++ = 4;
 	memmove(rp->p, ip+IPv4off, 4);
 	rp->p += 4;
+
+	op = seprint(op, oe, "%s(%I)", optname[t], ip);
+}
+
+void
+maskopt(Req *rp, int t, uchar *ip)
+{
+	if(rp->p + 6 > rp->max)
+		return;
+	*rp->p++ = t;
+	*rp->p++ = 4;
+	memmove(rp->p, ip+IPv4off, 4);
+	rp->p += 4;
+
+	op = seprint(op, oe, "%s(%M)", optname[t], ip);
 }
 
 void
@@ -1231,11 +1379,16 @@ addrsopt(Req *rp, int t, uchar **ip, int i)
 		return;
 	*rp->p++ = t;
 	*rp->p++ = 4*i;
+	op = seprint(op, oe, "%s(", optname[t]);
 	while(i-- > 0){
 		v6tov4(rp->p, *ip);
 		rp->p += 4;
+		op = seprint(op, oe, "%I", *ip);
 		ip++;
+		if(i > 0)
+			op = seprint(op, oe, " ");
 	}
+	op = seprint(op, oe, ")");
 }
 
 void
@@ -1246,6 +1399,8 @@ byteopt(Req *rp, int t, uchar v)
 	*rp->p++ = t;
 	*rp->p++ = 1;
 	*rp->p++ = v;
+
+	op = seprint(op, oe, "%s(%d)", optname[t], v);
 }
 
 void
@@ -1270,11 +1425,15 @@ stringopt(Req *rp, int t, char *str)
 	*rp->p++ = n;
 	memmove(rp->p, str, n);
 	rp->p += n;
+
+	op = seprint(op, oe, "%s(%s)", optname[t], str);
 }
 
 void
 vectoropt(Req *rp, int t, uchar *v, int n)
 {
+	int i;
+
 	if(n > 255)
 		n = 255;
 	if(rp->p+n+2 > rp->max)
@@ -1283,6 +1442,12 @@ vectoropt(Req *rp, int t, uchar *v, int n)
 	*rp->p++ = n;
 	memmove(rp->p, v, n);
 	rp->p += n;
+
+	op = seprint(op, oe, "%s(", optname[t]);
+	if(n > 0)
+		op = seprint(op, oe, "%ud", 0);
+	for(i = 1; i < n; i++)
+		op = seprint(op, oe, " %ud", v[i]);
 }
 
 int
@@ -1310,6 +1475,8 @@ hexopt(Req *rp, int t, char *str)
 		*rp->p++ = (fromhex(str[0])<<4)|fromhex(str[1]);
 		str += 2;
 	}
+
+	op = seprint(op, oe, "%s(%s)", optname[t], str);
 }
 
 void
@@ -1350,31 +1517,75 @@ logdhcp(Req *rp)
 
 	p = buf;
 	e = buf + sizeof(buf);
-	p = seprint(p, e, "dhcp %I->%I", rp->up->raddr, rp->up->laddr);
 	if(rp->dhcptype > 0 && rp->dhcptype <= Inform)
-		p = seprint(p, e, " %s", dhcpmsgname[rp->dhcptype]);
+		p = seprint(p, e, "%s(", dhcpmsgname[rp->dhcptype]);
 	else
-		p = seprint(p, e, " %d", rp->dhcptype);
-	if(rp->id != nil)
-		p = seprint(p, e, " from %s", rp->id);
-	if(validip(rp->ciaddr))
-		p = seprint(p, e, " ciaddr %I", rp->ciaddr);
-	if(validip(rp->giaddr))
-		p = seprint(p, e, " giaddr %I", rp->giaddr);
-	if(rp->leasetime)
-		p = seprint(p, e, " lease %d", rp->leasetime);
-	if(validip(rp->ip))
-		p = seprint(p, e, " ip %I", rp->ip);
-	if(validip(rp->server))
-		p = seprint(p, e, " server %I", rp->server);
+		p = seprint(p, e, "%d(", rp->dhcptype);
+	p = seprint(p, e, "%I->%I) xid(%ux)flag(%ux)", rp->up->raddr, rp->up->laddr,
+		nhgetl(rp->bp->xid), nhgets(rp->bp->flags));
 	if(rp->bp->htype == 1)
-		p = seprint(p, e, " ea %E", rp->bp->chaddr);
-	p = seprint(p, e, " (");
+		p = seprint(p, e, "ea(%E)", rp->bp->chaddr);
+	if(validip(rp->ciaddr))
+		p = seprint(p, e, "ci(%I)", rp->ciaddr);
+	if(validip(rp->giaddr))
+		p = seprint(p, e, "gi(%I)", rp->giaddr);
+	if(validip(rp->ip))
+		p = seprint(p, e, "ip(%I)", rp->ip);
+	if(rp->id != nil)
+		p = seprint(p, e, "id(%s)", rp->id);
+	if(rp->leasetime)
+		p = seprint(p, e, "leas(%d)", rp->leasetime);
+	if(validip(rp->server))
+		p = seprint(p, e, "sid(%I)", rp->server);
+	p = seprint(p, e, "need(");
 	for(i = 0; i < sizeof(rp->requested); i++)
 		if(rp->requested[i] != 0)
-			p = seprint(p, e, "%d ", rp->requested[i]);
+			p = seprint(p, e, "%s ", optname[rp->requested[i]]);
 	p = seprint(p, e, ")");
 
 	USED(p);
 	syslog(0, blog, "%s", buf);
+}
+
+void
+logdhcpout(Req *rp, char *type)
+{
+	syslog(0, blog, "%s(%I-%I)id(%s)ci(%V)gi(%V)yi(%V)si(%V) %s",
+		type, rp->up->laddr, rp->up->raddr, rp->id,
+		rp->bp->ciaddr, rp->bp->giaddr, rp->bp->yiaddr, rp->bp->siaddr, optbuf);
+}
+
+/*
+ *  if we get behind, it's useless to try answering since the sender
+ *  will probably have retransmitted with a differnt sequence number.
+ *  So dump all the last message in the queue.
+ */
+void ding(void*, char *msg)
+{
+	if(strstr(msg, "alarm"))
+		noted(NCONT);
+	else
+		noted(NDFLT);
+}
+
+int
+readlast(int fd, uchar *buf, int len)
+{
+	int lastn, n;
+
+	notify(ding);
+
+	lastn = 0;
+	for(;;){
+		alarm(20);
+		n = read(fd, buf, len);
+		alarm(0);
+		if(n < 0){
+			if(lastn > 0)
+				return lastn;
+			break;
+		}
+		lastn = n;
+	}
+	return read(fd, buf, len);
 }

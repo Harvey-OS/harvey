@@ -226,7 +226,7 @@ umbscan(void)
 	 * at 0xE0000 then the whole 64KB up to 0xF0000 is theoretically up
 	 * for grabs; check anyway.
 	 */
-	p = KADDR(0xC0000);
+	p = KADDR(0xD0000);
 	while(p < (uchar*)KADDR(0xE0000)){
 		/*
 		 * Test for 0x55 0xAA before poking obtrusively,
@@ -266,19 +266,6 @@ umbscan(void)
 	}
 }
 
-int
-touch(uchar *p, int n)
-{
-	int x;
-	int i;
-
-	x = 0;
-	for(i=0; i<n; i++)
-		x += p[i];
-	return x;
-}
-
-
 static void
 ramscan(ulong maxmem)
 {
@@ -302,7 +289,7 @@ ramscan(ulong maxmem)
 	bda = (uchar*)KADDR(0x400);
 	n = ((bda[0x14]<<8)|bda[0x13])*KB-x;
 	mapfree(&rmapram, x, n);
-	memset(KADDR(x), 0, n);		/* keep us honest */
+	memset(KADDR(x), 0, n);			/* keep us honest */
 
 	x = PADDR(PGROUND((ulong)end));
 	pa = MemMinMB*MB;

@@ -6,7 +6,8 @@
 %%Pages: (atend)
 %%DocumentFonts: 
 %%BoundingBox: 0 0 612 612
-%%Endcomments
+%%EndComments
+/doretreesave save def		% prevent left over effects
 % The author, Jesse Don Hickson III, hereby places this file into
 % the public domain on this day 23 Feb 2000.
 /Dore 20 dict def
@@ -2479,3 +2480,6 @@ showpage
 %%Trailer
 %%Pages: 1
 end
+clear cleardictstack
+doretreesave restore
+%%EOF

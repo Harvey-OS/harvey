@@ -50,4 +50,5 @@ Proto ninep =
 	p_seprint,
 	nil,
 	nil,
+	defaultframer,
 };

@@ -67,7 +67,7 @@ sysfauth(ulong *arg)
 
 	validaddr(arg[1], 1, 0);
 	aname = (char*)arg[1];
-	validname(aname, 0);
+	validname(aname, 1);
 	c = fdtochan(arg[0], ORDWR, 0, 1);
 	if(waserror()){
 		cclose(c);

@@ -1,6 +1,6 @@
 .TH IPSERV 8
 .SH NAME
-telnetd, rlogind, rexexec, ftpd, imap4d \- Internet remote access daemons
+telnetd, rlogind, rexexec, ftpd \- Internet remote access daemons
 .SH SYNOPSIS
 .PP
 .B ip/telnetd
@@ -16,13 +16,6 @@ telnetd, rlogind, rexexec, ftpd, imap4d \- Internet remote access daemons
 .RB [ -adp ]
 .RB [ -n
 .IR namepace-file ]
-.PP
-.B ip/imap4d
-.RB [ -ap ]
-.RB [ -d
-.IR smtpdomain ]
-.RB [ -s
-.IR servername ]
 .PP
 .SH DESCRIPTION
 These programs support remote access across the Internet.  All expect the

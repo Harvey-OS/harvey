@@ -503,16 +503,6 @@ TEXT gotolabel(SB), $0
 	MOVL	$1, AX				/* return 1 */
 	RET
 
-TEXT swaplabel(SB), $0
-	MOVL	label+0(FP), AX
-	MOVL	pc+4(FP), BX
-	MOVL	0(AX), SP			/* restore sp */
-	MOVL	4(AX), CX			/* put return pc on the stack */
-	MOVL	CX, 0(SP)
-	MOVL	BX, 4(AX)			/* put caller pc where return pc was */
-	MOVL	$1, AX				/* return 1 */
-	RET
-
 TEXT setlabel(SB), $0
 	MOVL	label+0(FP), AX
 	MOVL	SP, 0(AX)			/* store sp */

@@ -40,7 +40,7 @@ The
 or
 .B -?
 options give help and list the available devices; the default is
-.BR inferno,
+.BR plan9 ,
 which produces compressed image files suitable for viewing with
 .IR page (1)
 (but note that
@@ -67,7 +67,7 @@ these alternatives, highest to lowest, is:
 	selectdevice
 	\f1(command line)\fP
 	GS_DEVICE
-	dfaxlow
+	plan9
 .EE
 .PP
 Normally, output goes
@@ -243,6 +243,9 @@ and
 operators, and the
 ability to open files in any mode other than read-only.  This may be
 desirable for spoolers or other sensitive environments.
+Files in the
+.B /fd
+directory may still be opened for writing.
 .TP
 .B -dWRITESYSTEMDICT
 Leaves systemdict writable.  This is necessary when running
@@ -265,7 +268,8 @@ Additional font definitions.
 .SH SOURCE
 .B /sys/src/cmd/gs
 .SH "SEE ALSO"
-.IR page (1)
+.IR page (1),
+.IR ps2pdf (1)
 .br
 The Ghostscript document files in 
 .B doc

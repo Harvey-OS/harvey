@@ -13,6 +13,12 @@ OFILES=ppp.$O\
 HFILES=ppp.h\
 
 BIN=/$objtype/bin/ip
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/ip/%}\
+
 </sys/src/cmd/mkone
 
 safeinstall: $O.out

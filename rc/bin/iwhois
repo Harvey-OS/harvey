@@ -11,13 +11,13 @@ fn boilerplate {
 	tail -r $1|sed '/agree to/,$d'|tail -r
 }
 file=/tmp/iwhois$pid
-echo $person | telnet -n tcp!$machine!whois > $file
+echo ''$person'' | telnet -n tcp!$machine!whois > $file
 x=`{ sed -n 's/.*Whois Server: (.*)/\1/p' $file }
 switch($x){
 case ''
 	;
 case *
-	echo $person | telnet -n tcp!$x!whois > $file
+	echo ''$person'' | telnet -n tcp!$x!whois > $file
 }
 boilerplate $file
 rm $file

@@ -83,4 +83,7 @@ Proto dump =
 	p_compile,
 	p_filter,
 	p_seprint,
+	nil,
+	nil,
+	defaultframer,
 };

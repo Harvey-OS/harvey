@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1993, 1994, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevpm.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevpm.c,v 1.4 2001/03/13 07:09:28 ghostgum Exp $ */
 /*
  * OS/2 Presentation manager driver
  *
@@ -202,11 +202,11 @@ pm_open(gx_device * dev)
     PPIB pppib;
 
     if (!pmdev->dll && (_osmode == DOS_MODE)) {
-	fprintf(stderr, "os2pm driver can't be used under DOS\n");
+	eprintf("os2pm driver can't be used under DOS\n");
 	return gs_error_limitcheck;
     }
     if (DosGetInfoBlocks(&pptib, &pppib)) {
-	fprintf(stderr, "\npm_open: Couldn't get pid\n");
+	eprintf("\npm_open: Couldn't get pid\n");
 	return gs_error_limitcheck;
     }
 #ifdef __DLL__
@@ -224,7 +224,7 @@ pm_open(gx_device * dev)
 	/* We don't need to use shared memory for the DLL */
 	if (DosAllocMem((PPVOID) & pmdev->bitmap,
 			13 * 1024 * 1024, PAG_READ | PAG_WRITE)) {
-	    fprintf(stderr, "pm_open: failed allocating BMP memory\n");
+	    eprintf("pm_open: failed allocating BMP memory\n");
 	    return gs_error_limitcheck;
 	}
     } else
@@ -234,7 +234,7 @@ pm_open(gx_device * dev)
 	sprintf(name, SHARED_NAME, *pmdev->GSVIEW ? pmdev->GSVIEW : id);
 	if (DosAllocSharedMem((PPVOID) & pmdev->bitmap, name,
 			      13 * 1024 * 1024, PAG_READ | PAG_WRITE)) {
-	    fprintf(stderr, "pm_open: failed allocating shared BMP memory %s\n", name);
+	    eprintf1("pm_open: failed allocating shared BMP memory %s\n", name);
 	    return gs_error_limitcheck;
 	}
     }
@@ -243,7 +243,7 @@ pm_open(gx_device * dev)
     /* bitmap header and palette */
     if (DosSetMem(pmdev->bitmap, MIN_COMMIT, PAG_COMMIT | PAG_DEFAULT)) {
 	DosFreeMem(pmdev->bitmap);
-	fprintf(stderr, "pm_open: failed committing BMP memory\n");
+	eprintf("pm_open: failed committing BMP memory\n");
 	return gs_error_limitcheck;
     }
     pmdev->committed = MIN_COMMIT;
@@ -256,7 +256,7 @@ pm_open(gx_device * dev)
 	    DosFreeMem(pmdev->bitmap);
 	    DosCloseEventSem(pmdev->sync_event);
 	    DosCloseQueue(pmdev->drv_queue);
-	    fprintf(stderr, "pm_open: failed to create mutex semaphore %s\n", name);
+	    eprintf1("pm_open: failed to create mutex semaphore %s\n", name);
 	    return gs_error_limitcheck;
 	}
     } else {
@@ -283,7 +283,7 @@ pm_open(gx_device * dev)
 	    if (rc) {
 		DosFreeMem(pmdev->bitmap);
 		DosCloseEventSem(pmdev->next_event);
-		fprintf(stderr, "pm_open: failed to open %s, rc = %u\n", name, rc);
+		eprintf2("pm_open: failed to open %s, rc = %u\n", name, rc);
 		return gs_error_limitcheck;
 	    }
 	} else {		/* not GSVIEW */
@@ -291,7 +291,7 @@ pm_open(gx_device * dev)
 	    sprintf(name, SYNC_NAME, id);
 	    if (DosCreateEventSem(name, &(pmdev->sync_event), 0, FALSE)) {
 		DosFreeMem(pmdev->bitmap);
-		fprintf(stderr, "pm_open: failed to create event semaphore %s\n", name);
+		eprintf1("pm_open: failed to create event semaphore %s\n", name);
 		return gs_error_limitcheck;
 	    }
 	    /* Create mutex - used for preventing gspmdrv from accessing */
@@ -301,7 +301,7 @@ pm_open(gx_device * dev)
 		DosFreeMem(pmdev->bitmap);
 		DosCloseEventSem(pmdev->sync_event);
 		DosCloseQueue(pmdev->drv_queue);
-		fprintf(stderr, "pm_open: failed to create mutex semaphore %s\n", name);
+		eprintf1("pm_open: failed to create mutex semaphore %s\n", name);
 		return gs_error_limitcheck;
 	    }
 	}
@@ -359,7 +359,7 @@ pm_open(gx_device * dev)
 	return 0;		/* GSview will handle displaying */
 
 #ifdef __DLL__
-    if (pmdev->dll) {
+    if (pmdev->dll && pgsdll_callback) {
 	/* notify caller about new device */
 	(*pgsdll_callback) (GSDLL_DEVICE, (unsigned char *)pmdev, 1);
 	return 0;		/* caller will handle displaying */
@@ -395,7 +395,7 @@ int
 pm_sync_output(gx_device * dev)
 {
 #ifdef __DLL__
-    if (pmdev->dll) {
+    if (pmdev->dll && pgsdll_callback) {
 	(*pgsdll_callback) (GSDLL_SYNC, (unsigned char *)dev, 0);
 	return 0;
     }
@@ -407,7 +407,7 @@ pm_sync_output(gx_device * dev)
 
 	rc = DosWriteQueue(pmdev->drv_queue, GS_SYNC, 0, NULL, 0);
 	if (rc)
-	    fprintf(stderr, "pm_sync_output: DosWriteQueue error %d\n", rc);
+	    eprintf1("pm_sync_output: DosWriteQueue error %d\n", rc);
     } else {
 	if (pmdev->updating)
 	    DosStopTimer(pmdev->update_timer);
@@ -429,7 +429,7 @@ pm_do_output_page(gx_device * dev, int copies, int flush)
     pm_write_bmp(pmdev);
 #endif
 #ifdef __DLL__
-    if (pmdev->dll) {
+    if (pmdev->dll && pgsdll_callback) {
 	(*pgsdll_callback) (GSDLL_PAGE, (unsigned char *)dev, 0);
 	return 0;
     }
@@ -439,11 +439,11 @@ pm_do_output_page(gx_device * dev, int copies, int flush)
 	if (copies == -2) {
 	    rc = DosWriteQueue(pmdev->drv_queue, GS_END, 0, NULL, 0);
 	    if (rc)
-		fprintf(stderr, "pm_output_page: DosWriteQueue error %d\n", rc);
+		eprintf1("pm_output_page: DosWriteQueue error %d\n", rc);
 	} else if (copies == -1) {
 	    rc = DosWriteQueue(pmdev->drv_queue, GS_BEGIN, 0, NULL, 0);
 	    if (rc)
-		fprintf(stderr, "pm_output_page: DosWriteQueue error %d\n", rc);
+		eprintf1("pm_output_page: DosWriteQueue error %d\n", rc);
 	} else {
 	    ULONG count;
 
@@ -451,7 +451,7 @@ pm_do_output_page(gx_device * dev, int copies, int flush)
 	    /* signal GSview that another page is ready */
 	    rc = DosWriteQueue(pmdev->drv_queue, GS_PAGE, 0, NULL, 0);
 	    if (rc)
-		fprintf(stderr, "pm_output_page: DosWriteQueue error %d\n", rc);
+		eprintf1("pm_output_page: DosWriteQueue error %d\n", rc);
 	    /* wait for GSview to signal we can move on to next page */
 	    DosWaitEventSem(pmdev->next_event, SEM_INDEFINITE_WAIT);
 	    DosResetEventSem(pmdev->next_event, &count);
@@ -493,7 +493,7 @@ pm_do_output_page(gx_device * dev, int copies, int flush)
 	    if (rc == ERROR_SMG_SESSION_NOT_FOREGRND)
 		DosBeep(400, 50);
 	    else if (rc)
-		fprintf(stderr, "pm_output_page: Select Session error code %u\n", rc);
+		eprintf1("pm_output_page: Select Session error code %u\n", rc);
 	}
     }
     return code;
@@ -517,24 +517,16 @@ pm_close(gx_device * dev)
 #ifdef __DLL__
     if (pmdev->dll) {
 	DosRequestMutexSem(pmdev->bmp_mutex, 60000);
-	(*pgsdll_callback) (GSDLL_DEVICE, (unsigned char *)dev, 0);
+	if (pgsdll_callback)
+	    (*pgsdll_callback) (GSDLL_DEVICE, (unsigned char *)dev, 0);
 	DosReleaseMutexSem(pmdev->bmp_mutex);
     } else
 #endif
     {
 	if (*pmdev->GSVIEW) {
-	    if (gs_exit_status) {
-		ULONG count;
-
-		/* pause so error messages can be read */
-		DosResetEventSem(pmdev->next_event, &count);
-		DosWriteQueue(pmdev->drv_queue, GS_ERROR, 0, NULL, 0);
-		DosWaitEventSem(pmdev->next_event, SEM_INDEFINITE_WAIT);
-		DosResetEventSem(pmdev->next_event, &count);
-	    }
 	    rc = DosWriteQueue(pmdev->drv_queue, GS_CLOSE, 0, NULL, 0);
 	    if (rc)
-		fprintf(stderr, "pm_close: DosWriteQueue error %d\n", rc);
+		eprintf1("pm_close: DosWriteQueue error %d\n", rc);
 	} else {
 	    REQUESTDATA Request;
 	    ULONG DataLength;
@@ -619,7 +611,7 @@ pm_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
 
 			rc = DosWriteQueue(pmdev->drv_queue, GS_PALCHANGE, 0, NULL, 0);
 			if (rc)
-			    fprintf(stderr, "pm_sync_output: DosWriteQueue error %d\n", rc);
+			    eprintf1("pm_sync_output: DosWriteQueue error %d\n", rc);
 		    }
 		    return ((gx_color_index) i);	/* return new palette index */
 		}
@@ -823,7 +815,7 @@ pm_put_params(gx_device * dev, gs_param_list * plist)
     /* obtain mutex - to prevent gspmdrv from using bitmap */
     /* while we change its size */
     if (DosRequestMutexSem(pmdev->bmp_mutex, 20000) == ERROR_TIMEOUT)
-	fprintf(stderr, "pm_put_params: mutex timeout\n");
+	eprintf("pm_put_params: mutex timeout\n");
     if (is_open && (old_bpp != bpp ||
 		    dev->width != width || dev->height != height)
 	) {
@@ -867,7 +859,7 @@ pm_put_params(gx_device * dev, gs_param_list * plist)
 	/* before each use */
 
 #ifdef __DLL__
-	if (pmdev->dll)
+	if (pmdev->dll && pgsdll_callback)
 	    (*pgsdll_callback) (GSDLL_SIZE, (unsigned char *)dev,
 		    (dev->width & 0xffff) + ((dev->height & 0xffff) << 16));
 #endif
@@ -935,16 +927,16 @@ pm_run_gspmdrv(gx_device_pm * pmdev)
     /* Create termination queue - used to find out when gspmdrv terminates */
     sprintf(term_queue_name, "\\QUEUES\\TERMQ_%s", id);
     if (DosCreateQueue(&(pmdev->term_queue), QUE_FIFO, term_queue_name)) {
-	fprintf(stderr, "pm_run_gspmdrv: failed to create termination queue\n");
+	eprintf("pm_run_gspmdrv: failed to create termination queue\n");
 	return gs_error_limitcheck;
     }
     /* get full path to gsos2.exe and hence path to gspmdrv.exe */
     if ((rc = DosGetInfoBlocks(&pptib, &pppib)) != 0) {
-	fprintf(stderr, "pm_run_gspmdrv: Couldn't get module handle, rc = %d\n", rc);
+	eprintf1("pm_run_gspmdrv: Couldn't get module handle, rc = %d\n", rc);
 	return gs_error_limitcheck;
     }
     if ((rc = DosQueryModuleName(pppib->pib_hmte, sizeof(progname) - 1, progname)) != 0) {
-	fprintf(stderr, "pm_run_gspmdrv: Couldn't get module name, rc = %d\n", rc);
+	eprintf1("pm_run_gspmdrv: Couldn't get module name, rc = %d\n", rc);
 	return gs_error_limitcheck;
     }
     if ((tail = strrchr(progname, '\\')) != (PCHAR) NULL) {
@@ -989,8 +981,8 @@ pm_run_gspmdrv(gx_device_pm * pmdev)
 	rc = DosStartSession(&sdata, &pmdev->session_id, &pmdev->process_id);
     }
     if (rc) {
-	fprintf(stderr, "pm_run_gspmdrv: failed to run %s, rc = %d\n", sdata.PgmName, rc);
-	fprintf(stderr, "pm_run_gspmdrv: error_message: %s\n", error_message);
+	eprintf2("pm_run_gspmdrv: failed to run %s, rc = %d\n", sdata.PgmName, rc);
+	eprintf1("pm_run_gspmdrv: error_message: %s\n", error_message);
 	return gs_error_limitcheck;
     }
     return 0;
@@ -1033,7 +1025,7 @@ pm_alloc_bitmap(gx_device_pm * pmdev, gx_device * param_dev)
 	if (rc = DosSetMem(pmdev->bitmap + pmdev->committed,
 			   needed - pmdev->committed,
 			   PAG_COMMIT | PAG_DEFAULT)) {
-	    fprintf(stderr, "No memory in pm_alloc_bitmap, rc = %d\n", rc);
+	    eprintf1("No memory in pm_alloc_bitmap, rc = %d\n", rc);
 	    return gs_error_limitcheck;
 	}
 	pmdev->committed = needed;
@@ -1045,7 +1037,7 @@ pm_alloc_bitmap(gx_device_pm * pmdev, gx_device * param_dev)
 	if (rc = DosSetMem(pmdev->bitmap + needed,
 			   pmdev->committed - needed,
 			   PAG_DECOMMIT)) {
-	    fprintf(stderr, "Failed to decommit memory in pm_alloc_bitmap, rc = %d\n", rc);
+	    eprintf1("Failed to decommit memory in pm_alloc_bitmap, rc = %d\n", rc);
 	    return gs_error_limitcheck;
 	}
 	pmdev->committed = needed;
@@ -1123,7 +1115,7 @@ pm_update(gx_device_pm * pmdev)
 
 	rc = DosWriteQueue(pmdev->drv_queue, GS_UPDATING, 0, NULL, 0);
 	if (rc)
-	    fprintf(stderr, "pm_update: DosWriteQueue error %d\n", rc);
+	    eprintf1("pm_update: DosWriteQueue error %d\n", rc);
     } else {
 	DosStartTimer(pmdev->UpdateInterval, (HSEM) pmdev->sync_event,
 		      &pmdev->update_timer);
@@ -1210,13 +1202,13 @@ pm_write_bmp(gx_device_pm * pmdev)
 		OPEN_ACTION_CREATE_IF_NEW | OPEN_ACTION_REPLACE_IF_EXISTS,
 		OPEN_ACCESS_WRITEONLY | OPEN_SHARE_DENYREADWRITE,
 		0)) {
-	fprintf(stderr, "error opening out.bmp\n");
+	eprintf("error opening out.bmp\n");
 	return;
     }
     if (DosWrite(fh, (PBYTE) & bmfh, bmfh_length, &count))
-	fprintf(stderr, "error writing header for out.bmp\n");
+	eprintf("error writing header for out.bmp\n");
     if (DosWrite(fh, pmdev->bitmap, length, &count))
-	fprintf(stderr, "error writing out.bmp\n");
+	eprintf("error writing out.bmp\n");
     if (DosClose(fh))
-	fprintf(stderr, "error closing out.bmp\n");
+	eprintf("error closing out.bmp\n");
 }

@@ -1,21 +1,21 @@
 #    Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: dvx-gcc.mak,v 1.2 2000/03/10 15:48:58 lpd Exp $
+# $Id: dvx-gcc.mak,v 1.12.2.2 2002/02/01 03:30:13 raph Exp $
 # makefile for DesqView/X/gcc/X11 configuration.
 
 #include $(COMMONDIR)/gccdefs.mak
@@ -118,7 +118,9 @@ JVERSION=6
 # DON'T DO THIS. If you do, the resulting executable will not be able to
 # read some PostScript files containing JPEG data, because Adobe chose to
 # define PostScript's JPEG capabilities in a way that is slightly
-# incompatible with the JPEG standard.  See Make.htm for more details.
+# incompatible with the JPEG standard.  Note also that if you set SHARE_JPEG
+# to 1, you must still have the library header files available to compile
+# Ghostscript.  See doc/Make.htm for more information.
 
 # DON'T SET THIS TO 1!  See the comment just above.
 SHARE_JPEG=0
@@ -130,7 +132,7 @@ JPEG_NAME=jpeg
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10005
+PVERSION=10201
 
 # Choose whether to use a shared version of the PNG library (-lpng).
 # See gs.mak and Make.htm for more information.
@@ -147,6 +149,24 @@ ZSRCDIR=zlib
 
 SHARE_ZLIB=0
 ZLIB_NAME=gz
+
+# Define the directory where the icclib source are stored.
+# See icclib.mak for more information
+
+ICCSRCDIR=icclib
+
+# IJS has not been ported to DesqView/X. If you do the port,
+# you'll need to set these values. You'll also need to
+# include the ijs.mak makefile (right after icclib.mak).
+#
+# Define the directory where the ijs source is stored,
+# and the process forking method to use for the server.
+# See ijs.mak for more information.
+ 
+#IJSSRCDIR=ijs
+#IJSEXECTYPE=unix
+
+
 
 # ------ Platform-specific options ------ #
 
@@ -268,6 +288,11 @@ BAND_LIST_COMPRESSOR=zlib
 
 FILE_IMPLEMENTATION=stdio
 
+# Choose the implementation of stdio: '' for file I/O and 'c' for callouts
+# See gs.mak and ziodevs.c/ziodevsc.c for more details.
+
+STDIO_IMPLEMENTATION=c
+
 # Choose the device(s) to include.  See devs.mak for details,
 # devs.mak and contrib.mak for the list of available devices.
 
@@ -323,6 +348,8 @@ include $(GLSRCDIR)/jpeg.mak
 # zlib.mak must precede libpng.mak
 include $(GLSRCDIR)/zlib.mak
 include $(GLSRCDIR)/libpng.mak
+include $(GLSRCDIR)/icclib.mak
+include $(GLSRCDIR)/ijs.mak
 include $(GLSRCDIR)/devs.mak
 include $(GLSRCDIR)/contrib.mak
 include $(GLSRCDIR)/dvx-tail.mak

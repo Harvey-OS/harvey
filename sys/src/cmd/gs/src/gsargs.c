@@ -1,22 +1,22 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsargs.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsargs.c,v 1.4 2001/03/13 06:51:39 ghostgum Exp $ */
 /* Command line argument list management */
 #include "ctype_.h"
 #include "stdio_.h"
@@ -24,6 +24,7 @@
 #include "gsexit.h"
 #include "gsmemory.h"
 #include "gsargs.h"
+#include "errors.h"
 
 /* Initialize an arg list. */
 void
@@ -40,14 +41,14 @@ arg_init(arg_list * pal, const char **argv, int argc,
 }
 
 /* Push a string onto an arg list. */
-void
+int
 arg_push_memory_string(arg_list * pal, char *str, gs_memory_t * mem)
 {
     arg_source *pas;
 
     if (pal->depth == arg_depth_max) {
 	lprintf("Too much nesting of @-files.\n");
-	gs_exit(1);
+	return 1;
     }
     pas = &pal->sources[pal->depth];
     pas->is_file = false;
@@ -55,6 +56,7 @@ arg_push_memory_string(arg_list * pal, char *str, gs_memory_t * mem)
     pas->u.s.memory = mem;
     pas->u.s.str = str;
     pal->depth++;
+    return 0;
 }
 
 /* Clean up an arg list. */
@@ -74,7 +76,7 @@ arg_finit(arg_list * pal)
 /* Get the next arg from a list. */
 /* Note that these are not copied to the heap. */
 const char *
-arg_next(arg_list * pal)
+arg_next(arg_list * pal, int *code)
 {
     arg_source *pas;
     FILE *f;
@@ -108,8 +110,9 @@ arg_next(arg_list * pal)
 	if (c == endc) {
 	    if (in_quote) {
 		cstr[i] = 0;
-		fprintf(stdout, "Unterminated quote in @-file: %s\n", cstr);
-		gs_exit(1);
+		outprintf("Unterminated quote in @-file: %s\n", cstr);
+		*code = e_Fatal;
+		return NULL;
 	    }
 	    if (i == 0) {
 		/* EOF before any argument characters. */
@@ -159,8 +162,9 @@ arg_next(arg_list * pal)
 	    /* This is different from the Unix shells. */
 	    if (i == arg_str_max - 1) {
 		cstr[i] = 0;
-		fprintf(stdout, "Command too long: %s\n", cstr);
-		gs_exit(1);
+		outprintf("Command too long: %s\n", cstr);
+		*code = e_Fatal;
+		return NULL;
 	    }
 	    cstr[i++] = '\\';
 	    eol = false;
@@ -169,8 +173,9 @@ arg_next(arg_list * pal)
 	/* c will become part of the argument */
 	if (i == arg_str_max - 1) {
 	    cstr[i] = 0;
-	    fprintf(stdout, "Command too long: %s\n", cstr);
-	    gs_exit(1);
+	    outprintf("Command too long: %s\n", cstr);
+	    *code = e_Fatal;
+	    return NULL;
 	}
 	/* If input is coming from an @-file, allow quotes */
 	/* to protect whitespace. */
@@ -187,13 +192,15 @@ arg_next(arg_list * pal)
   at:if (pal->expand_ats && result[0] == '@') {
 	if (pal->depth == arg_depth_max) {
 	    lprintf("Too much nesting of @-files.\n");
-	    gs_exit(1);
+	    *code = e_Fatal;
+	    return NULL;
 	}
 	result++;		/* skip @ */
 	f = (*pal->arg_fopen) (result, pal->fopen_data);
 	if (f == NULL) {
-	    fprintf(stdout, "Unable to open command line file %s\n", result);
-	    gs_exit(1);
+	    outprintf("Unable to open command line file %s\n", result);
+	    *code = e_Fatal;
+	    return NULL;
 	}
 	pal->depth++;
 	pas++;
@@ -212,7 +219,7 @@ arg_copy(const char *str, gs_memory_t * mem)
 
     if (sstr == 0) {
 	lprintf("Out of memory!\n");
-	gs_exit(1);
+	return NULL;
     }
     strcpy(sstr, str);
     return sstr;

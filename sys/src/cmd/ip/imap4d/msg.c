@@ -187,7 +187,7 @@ msgFile(Msg *m, char *f)
 	if(!m->bogus
 	|| strcmp(f, "") != 0 && strcmp(f, "rawbody") != 0
 	&& strcmp(f, "rawheader") != 0 && strcmp(f, "mimeheader") != 0
-	&& strcmp(f, "info") != 0){
+	&& strcmp(f, "info") != 0 && strcmp(f, "unixheader") != 0){
 		if(strlen(f) > MsgNameLen)
 			bye("internal error: msgFile name too long");
 		strcpy(m->efs, f);
@@ -206,7 +206,7 @@ msgFile(Msg *m, char *f)
 	if(parent != nil)
 		p = parent;
 
-	if(strcmp(f, "info") == 0){
+	if(strcmp(f, "info") == 0 || strcmp(f, "unixheader") == 0){
 		strcpy(p->efs, f);
 		return cdOpen(p->fsDir, p->fs, OREAD);
 	}

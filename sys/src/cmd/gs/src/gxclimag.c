@@ -1,22 +1,22 @@
 /* Copyright (C) 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxclimag.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gxclimag.c,v 1.3 2001/08/01 16:21:35 stefan911 Exp $ */
 /* Higher-level image operations for band lists */
 #include "math_.h"
 #include "memory_.h"
@@ -41,7 +41,7 @@ extern_gx_image_type_table();
 
 /* Define whether we should use high-level images. */
 /* (See below for additional restrictions.) */
-static bool USE_HL_IMAGES = true;
+static const bool USE_HL_IMAGES = true;
 
 /* Forward references */
 private int cmd_put_set_data_x(P3(gx_device_clist_writer * cldev,

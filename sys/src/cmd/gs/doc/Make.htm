@@ -1,8 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>How to build Ghostscript from source code</title>
-<!-- $Id: Make.htm,v 1.7 2000/03/17 17:42:59 lpd Exp $ -->
+<!-- $Id: Make.htm,v 1.36.2.5 2002/02/01 06:16:21 giles Exp $ -->
 <!-- Originally: make.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -10,11 +12,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-How to build Ghostscript from source code
-</font>
-</table>
+<h1>How to build Ghostscript from source code</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -58,15 +56,16 @@ How to build Ghostscript from source code
 <li><a href="#Cygwin32_build">Cygwin32 gcc</a>
 <li><a href="#IntelWin32_build">Intel C/C++ compiler</a>
 </ul>
-<li><a href="#Mac_build">How to build Ghostscript from source (Mac version)</a>
+<li><a href="#Mac_build">How to build Ghostscript from source (MacOS version)</a>
 <ul>
 <li><a href="#MacOS">Traditional MacOS</a>
-<li><a href="#Rhapsody">Rhapsody OS</a>
+<li><a href="#MacOSX">MacOS X</a>
 </ul>
 <li><a href="#Unix_build">How to build Ghostscript from source (Unix version)</a>
 <ul>
 <li><a href="#Multi_architecture_makefile">The multi-architecture makefile</a>
 <li><a href="#UNIX_makefile">Setting up "makefile"</a>
+<li><a href="#Shared_object">Shared object</a>
 <li><a href="#Tool_specific_issues">Tool-specific issues</a>
 <ul>
 <li><a href="#gcc_27x">gcc 2.7.*</a>
@@ -79,7 +78,7 @@ How to build Ghostscript from source code
 <li><a href="#Digital_Unix">Digital Unix (Alpha)</a>
 <li><a href="#FreeBSD">FreeBSD</a>
 <li><a href="#Linux">Linux</a>
-<li><a href="#NeXTSTEP">NeXTSTEP</a>
+<li><a href="#NeXTSTEP">NeXTSTEP / OpenSTEP</a>
 <li><a href="#SCO">SCO Unix/Xenix</a>
 <li><a href="#SVR4">SVR4 Unix</a>
 <li><a href="#System_V">System V Unix platforms</a>
@@ -100,10 +99,8 @@ How to build Ghostscript from source code
 <li><a href="#RS6000">IBM RS/6000 with AIX</a>
 <li><a href="#Silicon_Graphics">Silicon Graphics</a>
 <li><a href="#Sun">Sun</a>
-<ul>
 <li><a href="#SunOS">SunOS</a>
 <li><a href="#Solaris">Solaris</a>
-</ul>
 <li><a href="#VAX_Ultrix">VAX with Ultrix</a>
 </ul>
 </ul>
@@ -137,7 +134,7 @@ Ghostscript</a>.
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h1><a name="General_overview"></a>General overview</h1>
+<h2><a name="General_overview"></a>General overview</h2>
 
 <p>
 This document describes how to build a Ghostscript executable from source
@@ -161,23 +158,24 @@ Ghostscript you must then install it; for that, see the
 
 <hr>
 
-<h1><a name="Acquiring"></a>How to acquire the source code</h1>
+<h2><a name="Acquiring"></a>How to acquire the source code</h2>
 
 <p>
 Building Ghostscript requires the Ghostscript source code itself, and also
 the source code for some third-party libraries that Ghostscript uses.
 
-<h2><a name="Ghostscript_source"></a>Ghostscript source code</h2>
+<h3><a name="Ghostscript_source"></a>Ghostscript source code</h3>
 
 <p><a name="Authoritative_distribution_site"></a>
-There are two kinds of Ghostscript distributions available, called "Aladdin
+There are two kinds of Ghostscript distributions available, called "AFPL
 Ghostscript" and "GNU Ghostscript"; the distinction between them is
 explained in the <a href="Commprod.htm">conditions for distributing
-Ghostscript</a>.  The authoritative distribution site for Aladdin
+Ghostscript</a>.  The authoritative distribution site for AFPL
 Ghostscript is
 
 <blockquote>
-<a href="ftp://ftp.cs.wisc.edu/ghost/aladdin/">ftp://ftp.cs.wisc.edu/ghost/aladdin/</a>gs###
+<a href="ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/" 
+class="offsite">ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/</a>gs###
 </blockquote>
 
 <p>
@@ -185,7 +183,8 @@ where "###" is the unpunctuated version number.  GNU Ghostscript should be
 available on all GNU sites, such as
 
 <blockquote>
-<a href="ftp://ftp.gnu.org/pub/gnu/">ftp://ftp.gnu.org/pub/gnu/</a>
+<a href="ftp://ftp.gnu.org/pub/gnu/"
+class="offsite">ftp://ftp.gnu.org/pub/gnu/</a>
 </blockquote>
 
 <p>
@@ -200,7 +199,7 @@ files:
 <b><tt>ghostscript-fonts-other-</tt></b>#.##<b><tt>.tar.gz</tt></b>
 </blockquote>
 
-<p>For recent versions of Aladdin Ghostscript -- <b><em>not</em></b> GNU
+<p>For recent versions of AFPL Ghostscript -- <b><em>not</em></b> GNU
 Ghostscript -- there are also zip files (each zipped file fits onto a
 single 1.44MB diskette):
 
@@ -217,13 +216,15 @@ MS Windows, and VMS -- so you can choose the format most convenient for
 you; but it's up to you to locate that software.  See the section on <a
 href="#Unpack">unpacking the source code</a>.
 
-<h2><a name="Third-party_libraries"></a>Third-party library source code</h2>
+<h3><a name="Third-party_libraries"></a>Third-party library source code</h3>
 
 <p>
 To build Ghostscript you need the source code for the <a
 href="http://www.ijg.org/">Independent JPEG Group</a> (IJG) library, the
-<a href="http://www.cdrom.com/pub/png/">Portable Network Graphics</a> (PNG)
-library, and the <a href="http://www.cdrom.com/pub/infozip/zlib/">zlib</a>
+<a href="http://www.libpng.org/pub/png/">Portable Network Graphics</a>
+(PNG)
+library, and the <a
+href="http://www.info-zip.org/pub/infozip/zlib/">zlib</a>
 compression and decompression library.  Here are authoritative distribution
 points for these libraries, where as elsewhere, "#" is used for version
 numbers.  The JPEG source code is quite stable, so the reference
@@ -234,22 +235,36 @@ version-independent and should always provide the latest version.
 <tr><th colspan=3 bgcolor="#CCCC00"><hr><font size="+1">Third-party libraries: authoritative sources</font><hr>
 <tr>	<td valign=top>JPEG
 	<td>&nbsp;&nbsp;&nbsp;
-	<td><a href="ftp://ftp.uu.net/graphics/jpeg/">ftp://ftp.uu.net/graphics/jpeg/</a><a href="ftp://ftp.uu.net/graphics/jpeg/jpegsrc.v6b.tar.gz">jpegsrc.v6b.tar.gz</a><br>
-	<a href="ftp://ftp.simtel.net/pub/simtelnet/msdos/graphics/">ftp://ftp.simtel.net/pub/simtelnet/msdos/graphics/</a><a href="ftp://ftp.simtel.net/pub/simtelnet/msdos/graphics/jpegsr6b.zip">jpegsr6b.zip</a>
+	<td><a href="ftp://ftp.uu.net/graphics/jpeg/" 
+class="offsite">ftp://ftp.uu.net/graphics/jpeg/</a><a
+href="ftp://ftp.uu.net/graphics/jpeg/jpegsrc.v6b.tar.gz" 
+class="offsite">jpegsrc.v6b.tar.gz</a><br>
+	<a href="ftp://ftp.simtel.net/pub/simtelnet/msdos/graphics/" 
+class="offsite">ftp://ftp.simtel.net/pub/simtelnet/msdos/graphics/</a><a
+href="ftp://ftp.simtel.net/pub/simtelnet/msdos/graphics/jpegsr6b.zip">jpegsr6b.zip</a>
 
 <tr>	<td valign=top>PNG
 	<td>&nbsp;
-	<td><a href="ftp://swrinde.nde.swri.edu/pub/png/src/">ftp://swrinde.nde.swri.edu/pub/png/src/</a>libpng-#.#.#.tar.gz<br>
-	<a href="ftp://swrinde.nde.swri.edu/pub/png/src/">ftp://swrinde.nde.swri.edu/pub/png/src/</a>lpng###.zip<br>
-	<a href="http://www.cdrom.com/pub/png/src/">http://www.cdrom.com/pub/png/src/</a>libpng-#.#.#.tar.gz<br>
-	<a href="http://www.cdrom.com/pub/png/src/">http://www.cdrom.com/pub/png/src/</a>lpng###.zip
+	<td><a href="http://www.libpng.org/pub/png/src/" 
+class="offsite">http://www.libpng.org/pub/png/src/</a>libpng-#.#.#.tar.gz<br>
+	<a href="http://www.libpng.org/pub/png/src/" 
+class="offsite">http://www.libpng.org/pub/png/src/</a>lpng###.zip<br>
+	<a href="ftp://swrinde.nde.swri.edu/pub/png/src/" 
+class="offsite">ftp://swrinde.nde.swri.edu/pub/png/src/</a>libpng-#.#.#.tar.gz<br>
+	<a href="ftp://swrinde.nde.swri.edu/pub/png/src/" 
+class="offsite">ftp://swrinde.nde.swri.edu/pub/png/src/</a>lpng###.zip
 
 <tr>	<td valign=top>zlib (latest)
 	<td>&nbsp;
-	<td>	<a href="ftp://ftp.cdrom.com/pub/infozip/zlib/zlib.tar.gz">ftp://ftp.cdromcom/pub/infozip/zlib/zlib.tar.gz</a><br>
-	<a href="ftp://ftp.cdrom.com/pub/infozip/zlib/zlib.zip">ftp://ftp.cdrom.com/pub/infozip/zlib/zlib.zip</a><br>
-	<a href="http://www.cdrom.com/pub/infozip/zlib/zlib.tar.gz">http://www.cdrom.com/pub/infozip/zlib/zlib.tar.gz</a><br>
-	<a href="http://www.cdrom.com/pub/infozip/zlib/zlib.zip">http://www.cdrom.com/pub/infozip/zlib/zlib.zip</a>
+	<td>	<a
+href="ftp://ftp.info-zip.org/pub/infozip/zlib/zlib.tar.gz"
+class="offsite">ftp://ftp.info-zip.org/pub/infozip/zlib/zlib.tar.gz</a><br>
+	<a href="ftp://ftp.info-zip.org/pub/infozip/zlib/zlib.zip" 
+class="offsite">ftp://ftp.info-zip.org/pub/infozip/zlib/zlib.zip</a><br>
+	<a href="http://www.info-zip.org/pub/infozip/zlib/zlib.tar.gz" 
+class="offsite">http://www.info-zip.org/pub/infozip/zlib/zlib.tar.gz</a><br>
+	<a href="http://www.info-zip.org/pub/infozip/zlib/zlib.zip" 
+class="offsite">http://www.info-zip.org/pub/infozip/zlib/zlib.zip</a>
 </table></blockquote>
 
 <p>
@@ -271,9 +286,13 @@ Although the zip archives of an old version of the PNG library may not be
 named <b><tt>lpng</tt></b>###<b><tt>.zip</tt></b>, we refer to it as
 <b><tt>lpng</tt></b>###<b><tt>.zip</tt></b>.
 
+<p>
+On MacOS, the .sit source archive includes the appropriate source versions
+of these libraries, so no additional downloads are necessary.
+
 <hr>
 
-<h1><a name="Unpack"></a>How to unpack the source code</h1>
+<h2><a name="Unpack"></a>How to unpack the source code</h2>
 
 <p>
 Unfortunately there are no generally accepted standards for how to package
@@ -281,7 +300,7 @@ source code into archives, so the instructions for unpacking Ghostscript are
 longer than they should be.  We begin with a brief explanation of how to
 extract the two kinds of archive files.
 
-<h2><a name="Tarfiles"></a>How to unpack compressed tar files generally</h2>
+<h3><a name="Tarfiles"></a>How to unpack compressed tar files generally</h3>
 
 <p>
 Tar (<b><tt>.tar</tt></b>) files are the <em>de facto</em> standard for
@@ -338,7 +357,7 @@ one of these, you must
 <li>check that it is extracting files into the right place.
 </ul>
 
-<h2><a name="Zipfiles"></a>How to unpack zip files generally</h2>
+<h3><a name="Zipfiles"></a>How to unpack zip files generally</h3>
 
 <p>
 Zip files are the <em>de facto</em> standard for archiving files on DOS and
@@ -358,7 +377,8 @@ Windows (16-bit and 32-bit), Unix, VMS, and other platforms, is InfoZIP
 <b><tt>unzip</tt></b>:
 
 <blockquote>
-<a href="http://www.cdrom.com/pub/infozip/UnZip.html">http://www.cdrom.com/pub/infozip/UnZip.html</a>
+<a href="http://www.info-zip.org/pub/infozip/UnZip.html" 
+class="offsite">http://www.info-zip.org/pub/infozip/UnZip.html</a>
 </blockquote>
 
 <p>
@@ -390,7 +410,7 @@ As with the compressed tar files, make sure you're positioned in the
 the files.  If a subdirectory doesn't already exist, <b><tt>zip</tt></b> or
 <b><tt>pkunzip&nbsp;-d</tt></b> creates it.
 
-<h2><a name="Unpack_Ghostscript"></a>How to unpack Ghostscript itself</h2>
+<h3><a name="Unpack_Ghostscript"></a>How to unpack Ghostscript itself</h3>
 
 <p>
 At this point you have <a href="#Acquiring">acquired all the source code</a>
@@ -448,7 +468,7 @@ directory.
 	<td>Sample PostScript files
 </table></blockquote>
 
-<h2><a name="Unpack_libraries"></a>How to unpack the third-party libraries</h2>
+<h3><a name="Unpack_libraries"></a>How to unpack the third-party libraries</h3>
 
 <p>
 The Ghostscript makefiles expect to find the JPEG, PNG, and zlib source code
@@ -497,31 +517,50 @@ files</a>.
 
 <hr>
 
-<h1><a name="Bug_check"></a>How to check for post-release bug fixes</h1>
+<h2><a name="Bug_check"></a>How to check for post-release bug fixes</h2>
 
 <p>
-Before making any changes for your particular environment, check the
-post-release "known bugs" notice at
+Bug information and fixes are tracked on SourceForge.
+For more information, please visit
 
 <blockquote>
-<a href="http://www.cs.wisc.edu/~ghost/aladdin/relnotes/">http://www.cs.wisc.edu/~ghost/aladdin/relnotes/</a>gs###/index.html
+<a href="http://sourceforge.net/projects/ghostscript">
+http://sourceforge.net/projects/ghostscript</a>
 </blockquote>
-
-<p>
-where "###" is the unpunctuated version number of Ghostscript's latest
-release.  The page lists bugs known in the latest release, and also gives
-workarounds and patches where available.  Apply the patches before building
-Ghostscript.
 
 <hr>
 
-<h1><a name="Makefile_overview"></a>How to prepare the makefiles</h1>
+<h2><a name="Makefile_overview"></a>How to prepare the makefiles</h2>
 
 <p>
 The Ghostscript makefiles are very large and complex in order to deal with
 the diverse requirements of all the different systems where they may be
-used.  Fortunately, the only makefiles you're likely to want to change are
+used.
+
+<p>
+New with this release is support for the GNU autoconf tool for generating
+an automatic configuration script. If you're on unix or a related system
+that supports unix shell scripts, this is the easiest option to use.
+Simply type:
+
+<blockquote>
+<tt>./configure</tt>
+</blockquote>
+
+from the top level of the ghostscript source directory. It should configure
+itself based on what's available on your system, warn you of any missing
+dependencies, and generate a Makefile. At this point you can skip to the
+section <a href="#Invoke_make">invoking make</a> below. Note that the
+autoconfiguration option is only available with the unix .tar distribution
+of the source.
+
+<p>
+If your system doesn't support the configure script or you don't wish to
+use it, you can use the traditional ghostscript makefile system, editing
+the options by hand to match your system as described below.
+Fortunately, the only makefiles you're likely to want to change are
 relatively small ones containing platform-specific information.
+
 
 <blockquote><a name="Platform-specific_makefiles"></a><table cellpadding=0 cellspacing=0>
 <tr><th colspan=3 bgcolor="#CCCC00"><hr><font size="+1">Platform-specific makefiles</font><hr>
@@ -563,7 +602,7 @@ relatively small ones containing platform-specific information.
 	<td>Contributed device drivers
 <tr>	<td><b><tt>devs.mak</tt></b>
 	<td>&nbsp;
-	<td>Aladdin's device drivers
+	<td>Maintained device drivers
 <tr>	<td><b><tt>gs.mak</tt></b>
 	<td>&nbsp;
 	<td>Documentation and miscellany
@@ -594,7 +633,7 @@ options, here we don't duplicate most of that documentation: we recommend
 strongly that you review the entire makefile specific for your operating
 system and compiler before building Ghostscript.
 
-<h2><a name="Preparing_makefiles"></a>Changes for your environment</h2>
+<h3><a name="Preparing_makefiles"></a>Changes for your environment</h3>
 
 <p>
 You must edit the platform-specific makefile to change any of these:
@@ -621,18 +660,14 @@ include comments describing all these except the
 <b><tt>DEVICE_DEVS</tt></b> options.  These are described in
 <b><tt>devs.mak</tt></b> and <b><tt>contrib.mak</tt></b>, even though the
 file that must be edited to select them is the <a
-href="#Platform-specific_makefiles">platform-specific makefile</a>.  Check
-also the <b><tt>JVERSION</tt></b> and <b><tt>PVERSION</tt></b> macros in
-the platform-specific makefile, and adjust them if they don't match the
-JPEG and PNG library versions you're using: see <b><tt>jpeg.mak</tt></b>
-and <b><tt>libpng.mak</tt></b> for more information.
+href="#Platform-specific_makefiles">platform-specific makefile</a>.
 
 <p>
 Some platform-specific options are described in the sections for individual
 platforms.  See the "Options" section near the beginning of the relevant
 makefile for more information.
 
-<h2><a name="Features_and_devices"></a>Selecting features and devices</h2>
+<h3><a name="Features_and_devices"></a>Selecting features and devices</h3>
 
 <p>
 You may build Ghostscript with any of a variety of features and with any
@@ -714,7 +749,7 @@ application and want to include optional graphics library features such as
 CIE color, you represent them as
 <b><tt>$(GLD)</tt></b><em>xxx</em><b><tt>.dev</tt></b>.
 
-<h3><a name="Precompiled_data"></a>Precompiled run-time data</h3>
+<h4><a name="Precompiled_data"></a>Precompiled run-time data</h4>
 
 <p>
 Ghostscript normally reads a number of external data files at run time:
@@ -747,58 +782,58 @@ though the data files use PostScript syntax, compiled halftones do not
 require the PostScript interpreter and may be used with the graphics library
 alone.
 
-<h3><a name="GNU_readline"></a>GNU readline</h3>
+<h4><a name="GNU_readline"></a>GNU readline</h4>
 
 <p>
-Aladdin Ghostscript does not include an interface to GNU readline.  A user
+AFPL Ghostscript does not include an interface to GNU readline.  A user
 contributed code for this purpose, which we spent significant time debugging
 and then updating to track internal architectural changes in Ghostscript.
-The contributor was willing to assign the copyright to Aladdin Enterprises,
-and to allow the code to be distributed with the Aladdin Free Public License
-(AFPL) as well as the GNU License (GPL).  However, even though the GPL
-allows linking GPLed code (such as the GNU readline library package) with
-non-GPLed code (such as all the rest of Aladdin Ghostscript) if one doesn't
-distribute the result, the Free Software Foundation, creators of the GPL,
-have told us that in their opinion, the GPL forbids distributing non-GPLed
-code that is merely <em>intended</em> to be linked with GPLed code.  We
-understand that FSF takes this position in order to prevent the construction
-of software that is partly GPLed and partly not GPLed, even though the
-text of the GPL does not actually forbid this (it only forbids
-<em>distribution</em> of such software).  We think that FSF's position is
-legally questionable and not in the best interest of users, but we do not
-have the resources to challenge it, especially since FSF's attorney
-apparently supports it.  Therefore, even though we added the
-user-contributed interface to GNU readline in internal Aladdin Ghostscript
-version 5.71 and had it working in version 5.93 (one of the last beta
-versions before the 6.0 release), we removed it from the Aladdin Ghostscript
-6.0 distribution.
+The contributor was willing to assign the copyright to Aladdin Enterprises
+(the copyright holder of Ghostscript at the time), and to allow the code to
+be distributed with the Aladdin Free Public License (AFPL) as well as the
+GNU License (GPL).  However, even though the GPL allows linking GPLed code
+(such as the GNU readline library package) with non-GPLed code (such as all
+the rest of AFPL Ghostscript) if one doesn't distribute the result, the Free
+Software Foundation, creators of the GPL, have told us that in their
+opinion, the GPL forbids distributing non-GPLed code that is merely
+<em>intended</em> to be linked with GPLed code.  We understand that FSF
+takes this position in order to prevent the construction of software that is
+partly GPLed and partly not GPLed, even though the text of the GPL does not
+actually forbid this (it only forbids <em>distribution</em> of such
+software).  We think that FSF's position is legally questionable and not in
+the best interest of users, but we do not have the resources to challenge
+it, especially since FSF's attorney apparently supports it.  Therefore, even
+though we added the user-contributed interface to GNU readline in internal
+Aladdin Ghostscript version 5.71 and had it working in version 5.93 (one of
+the last beta versions before the 6.0 release), we removed it from the
+Aladdin Ghostscript 6.0 distribution.
 
 <p>
 GNU Ghostscript distributions will include support for GNU readline.  As
-with other GNU Ghostscript components that are not included in Aladdin
-Ghostscript, Aladdin will not attempt to run, link, or even compile this
-code, or keep it current across changes in the rest of Ghostscript.  We
-will, however, welcome bug fixes or updates, and distribute them with
-subsequent releases of GNU Ghostscript.
+with other GNU Ghostscript components that are not included in AFPL
+Ghostscript, the maintainers of Ghostscript will not attempt to run, link,
+or even compile this code, or keep it current across changes in the rest of
+Ghostscript.  We will, however, welcome bug fixes or updates, and distribute
+them with subsequent releases of GNU Ghostscript.
 
 <p>
 The first GNU Ghostscript distribution that will include GNU readline
-support will be GNU Ghostscript 6.0, currently scheduled for release in the
-third quarter of 2000.  Before that time, we may return the copyright of
-Ghostscript's GNU readline interface module, which the original author
-assigned to Aladdin Enterprises, to the author, so that users of GNU
-Ghostscript will have have access to it.  However, since it requires
-internal changes not available in any released GNU Ghostscript version
-before 6.0, any user who gets this code and links it with Aladdin
-Ghostscript 6.0 will, according to FSF, be violating the intent (though not
-the letter) of the GPL.
+support will be GNU Ghostscript 6.0, currently scheduled for release along
+with AFPL Ghostscript 7.0 in the first or second quarter of 2001.  Before
+that time, we may return the copyright of Ghostscript's GNU readline
+interface module, which the original author assigned to Aladdin Enterprises,
+to the author, so that users of GNU Ghostscript will have have access to it.
+However, since it requires internal changes not available in any released
+GNU Ghostscript version before 6.0, any user who gets this code and links it
+with Aladdin Ghostscript 6.0 will, according to FSF, be violating the intent
+(though not the letter) of the GPL.
 
 <p>
 We put considerable work into making it possible for Ghostscript to use GNU
 readline, including the creation and adjustment of internal software
 interfaces specifically to serve this purpose.  In principle, we should have
-undone this work in Aladdin Ghostscript, lest FSF object to it too as
-intended to facilitate linking Aladdin Ghostscript with GNU readline (as the
+undone this work in AFPL Ghostscript, lest FSF object to it too as
+intended to facilitate linking AFPL Ghostscript with GNU readline (as the
 U.S. government has been said to do for code that merely provides APIs where
 encryption may be added).  However, we are willing to take this risk rather
 than spend the time to undo the interface changes.
@@ -807,15 +842,17 @@ than spend the time to undo the interface changes.
 If you have comments or questions about this situation, please feel free to
 contact the Free Software Foundation, authors of the GPL and copyright
 holders of GNU readline, at <a href="mailto:gnu@gnu.org">gnu@gnu.org</a>,
-and Aladdin Enterprises, author and copyright holder of Ghostscript, at
-<a href="mailto:ghost@aladdin.com">ghost@aladdin.com</a>.
+and/or artofcode LLC, copyright holder of Ghostscript, at <a
+href="mailto:raph@artofcode.com">raph@artofcode.com</a>.
 
-<h2><a name="Makefile_setup"></a>Setting up "makefile"</h2>
+<h3><a name="Makefile_setup"></a>Setting up "makefile"</h3>
 
 <p>
 
-After going through the steps just described to <a href=#Unpack>unpack the
-sources</a>, make any desired <a href=#Preparing_makefiles>changes to the
+After going through the steps just described to <a href="#Unpack">unpack
+the
+sources</a>, make any desired <a href="#Preparing_makefiles">changes to
+the
 makefiles</a>, and unpack or create links to the <a
 href="#Unpack_libraries">third party libraries</a>, as the final step in
 preparing to build Ghostscript you must usually associate the name
@@ -823,7 +860,7 @@ preparing to build Ghostscript you must usually associate the name
 the <b><tt>make</tt></b> command can find it.  See the section on your
 particular platform for how to do that if necessary.
 
-<h2><a name="Invoke_make"></a>Invoking "make"</h2>
+<h3><a name="Invoke_make"></a>Invoking "make"</h3>
 
 <dl>
 <dt><b><tt>make</tt></b>
@@ -873,7 +910,7 @@ executable and want to save it, move it first to another place, because
 quite work in one way or another. Read the section on your specific
 platform.
 
-<h2><a name="Cross-compiling"></a>Cross-compiling</h2>
+<h3><a name="Cross-compiling"></a>Cross-compiling</h3>
 
 <p>
 If you are compiling Ghostscript on machines <b>X1</b> ... <b>X</b><em>n</em> with
@@ -941,7 +978,7 @@ source files that must be compiled.
 
 <hr>
 
-<h1><a name="PC_build"></a>How to build Ghostscript from source (PC version)</h1>
+<h2><a name="PC_build"></a>How to build Ghostscript from source (PC version)</h2>
 
 <p>
 All Ghostscript builds in PC (DOS and MS Windows) environments are 32- or
@@ -1045,7 +1082,7 @@ simple way to fix this, if you have the InfoZIP <b><tt>zip</tt></b> and
 	<td>(Delete the temporary zip file)
 </table></blockquote>
 
-<h2><a name="Borland_build"></a>Borland/Inprise environment</h2>
+<h3><a name="Borland_build"></a>Borland/Inprise environment</h3>
 
 <p>
 To compile Ghostscript with the Borland/Inprise environment (hereafter
@@ -1105,7 +1142,8 @@ the .upp configuration files this way.  This problem may possibly be fixed
 by one or more of the patch files on
 
 <blockquote>
-<a href="ftp://ftp.borland.com/pub/borlandcpp/devsupport/patches/bc4_5/">ftp://ftp.borland.com/pub/borlandcpp/devsupport/patches/bc4_5/</a>
+<a href="ftp://ftp.borland.com/pub/borlandcpp/devsupport/patches/bc4_5/" 
+class="offsite">ftp://ftp.borland.com/pub/borlandcpp/devsupport/patches/bc4_5/</a>
 </blockquote>
 
 <li>Borland C++ 4.52 has a bug that causes the 32-bit Windows executable to
@@ -1113,7 +1151,9 @@ fail during startup.  Borland (now Inprise) provides a patch for this bug
 in
 
 <blockquote>
-<a href="ftp://ftp.borland.com/pub/borlandcpp/devsupport/patches/bc4_5/bc45xp1.zip">ftp://ftp.borland.com/pub/borlandcpp/devsupport/patches/bc4_5/bc45xp1.zip</a>
+<a
+href="ftp://ftp.borland.com/pub/borlandcpp/devsupport/patches/bc4_5/bc45xp1.zip" 
+class="offsite">ftp://ftp.borland.com/pub/borlandcpp/devsupport/patches/bc4_5/bc45xp1.zip</a>
 </blockquote>
 
 <li>Borland C++ 5.0 and 5.01 have a code generator bug that generates
@@ -1132,56 +1172,122 @@ You should then run "<b><tt>_genarch.bat</tt></b>", wait until
 
 </ul>
 
-<h2><a name="Microsoft_build"></a>Microsoft environment</h2>
+<h3><a name="Microsoft_build"></a>Microsoft Environment</h3>
 
-<p>
-NOTE: We have received reports that the Microsoft Visual C++ 5.0 and 6.0
-compilers produce incorrect code for Ghostscript version 6.0 and later, from
-the same source code that compiles and runs correctly with other compilers.
-We strongly recommend using the <a href="#Borland_build">Inprise (Borland)
-compiler</a> rather than MSVC++ 5.0 or later.  (We use the Inprise compiler
-for the executables that we distribute ourselves.) You may also want to try
-out the <a href="#IntelWin32_build">Intel&nbsp;C/C++ compiler</a>, which can
-be integrated into the Microsoft Visual C++ environment.
-
-<p>
-To compile Ghostscript with the Microsoft environment, you need Microsoft
-Visual C++ 4.0 or later with its associated "<b><tt>nmake</tt></b>" utility
-and linker.  If you're using version 4.x, before building, in
-<b><tt>msvc32.mak</tt></b> find the line
-"<b><tt>MSVC_VERSION&nbsp;=&nbsp;5</tt></b>" and change it to
-"<b><tt>MSVC_VERSION&nbsp;=&nbsp;4</tt></b>".
-
-<p>
-To create "<b><tt>makefile</tt></b>", give the command
-
+<p> NOTE: We have received reports that the Microsoft Visual C++ 5.0 and 6.0 compilers 
+  produce incorrect code for Ghostscript version 6.0 and later, from the same 
+  source code that compiles and runs correctly with other compilers. In spite 
+  of these reports, several members of the Artifex staff use version 6.0 of the 
+  MSVC compiler on a regular basis and we have not found any problems. You may 
+  also want to try out the <a href="#IntelWin32_build">Intel&nbsp;C/C++ compiler</a>, 
+  which can be integrated into the Microsoft Visual C++ environment.
+<p>To compile Ghostscript using the Microsoft environment, you need Microsoft 
+  Visual C++ 4.0 or later with its associated "<b><tt>nmake</tt></b>" utility 
+  and linker.
+<h4><a name="Using_the_MS_Development_Environment"> </a>Using Microsoft Developer 
+  Studio</h4>
+<p>Microsoft Developer Studio is the Microsoft Visual C++ integrated development 
+  environment. To use it to build Ghostscript: it is first necessary to create 
+  a new workspace/project. To create the workspace/project, open Microsoft Developer 
+  Studio and select <b><tt>File/New</tt></b>. In the dialog window that is opened, 
+  select 'Makefile' as the type of project. Specify a name for the project. (Microsoft 
+  does not allow special characters such as ., *, ?, /, or \ as part of project 
+  names.) Also specify the location of the master directory for your Ghostscript 
+  files. Then select OK. 
+<p> In the next dialog window, specify the build command line as <b><tt>nmake 
+  /f src/msvc32.mak DEVSTUDIO= </tt></b> Note the value for <b><tt>DEVSTUDIO</tt></b> 
+  is empty. Then select <b><tt>Finish</tt></b>. 
+<p>At this point, it is now possible to build Ghostscript using Developer Studio. 
+  To build, press F7 or select the build icon. Note: multiple warnings will also 
+  given about things like double to float data conversions. Ignore them. We have 
+  not found a way to create a single set of sources that does not create warnings 
+  with the different compilers and operating systems supported by Ghostscript. 
+  We are working to reduce the number of the warning messages. 
+<p>To run Ghostscript inside of Developer Studio, it is necessary to specify the 
+  name of the executable program . Select <b><tt>Project/Settings</tt></b>. Select 
+  the <b><tt>Debug</tt></b> tab. Then for <b><tt>Executable for debug session:</tt></b> 
+  specify <b><tt>bin/gswin32.exe</tt></b> 
+<p>To use all of the features of Microsoft Developer Studio for debugging, and 
+  modifying Ghostscriptt, you need to finish the remaining steps. 
+<p>To add the Ghostscript DLL to the project, select <b><tt>Project/Settings</tt></b>. 
+  Select the <b><tt>Debug</tt></b> tab. Change the <b><tt>Category</tt></b> to 
+  <b><tt>Additional DLLs</tt></b>. Then specify <b><tt>bin/gsdll32.dll</tt></b>. 
+<p> To specify the Ghostscript program arguments, select <b><tt>Project/Settings</tt></b>. 
+  Select the <b><tt>Debug</tt></b> tab. Change the <b><tt>Category</tt></b> to 
+  <b><tt>General</tt></b>. Then specify the desired program arguments. For example, 
+  specifying: <b><tt>examples/tiger.ps</tt></b> will result in the tiger example 
+  file being displayed when Ghostscript is executed. . 
+<p> A final note: it is possible to create a command file (build.bat) to be used 
+  for the build command line. If many different workspaces/projects are created, 
+  it is simpler to use a build batch command file rather than retyping the build 
+  command line for each new project. Here is an example used by one of Artifex's 
+  staff members. This file is one line:
+<blockquote><b><tt> nmake -f src/msvc32.mak DEVSTUDIO= DEBUG=1 GS_LIB_DEFAULT="./lib/;./font;$(GSROOTDIR)/lib;$(AROOTDIR)/fonts" 
+  </tt></b></blockquote>
+<p> The <b><tt>DEBUG=1</tt></b> enables many debugging features built into Ghostscript. 
+  Please note the double quotes around the value for <b><tt>GS_LIB_DEFAULT</tt></b> 
+  and the addition of <b><tt>./lib;./fonts;</tt></b> to its definition. This uses 
+  the local (within the project) copy of the <b><tt>lib</tt></b> and <b><tt>fonts</tt></b> 
+  directories. This is convenient if any changes need to be made in these directories. 
+<h4><a name="Using_the_command_line"></a>Using the command line</h4>
+<p>Ghostscript can be made using either the DOS shell or one one of the various 
+  command line shells made for Windows.
+<p>In order for the makefiles to work properly, two items may have to be changed. 
+  If you are not using version 5.x then before building, in <b><tt>src\msvc32.mak</tt></b> 
+  find the line "<b><tt>MSVC_VERSION=5</tt></b>" and change it to "<b><tt>MSVC_VERSION=4</tt></b>" 
+  or "<b><tt>MSVC_VERSION=6</tt></b>". 
+<p>In some cases the location of the Microsoft Developer Studio, needs to be changed. 
+  The location of Microsoft Developer Studio is defined by the value of <b><tt>DEVSTUDIO</tt></b>. 
+  There are three different definitions of <b><tt>DEVSTUDIO</tt></b> in src\msvc32.mak. 
+  There is one for each of the currently supported versions of Microsoft Visual 
+  C++ (4, 5, and 6). 
+<p>The normal installation process for Microsoft Visual C++ includes setting the 
+  location of the Microsoft Visual C++ executables (cl.exe, link.exe, nmake.exe, 
+  rc.exe) in your PATH definition and the LIB and INCLUDE environment variables 
+  are set to point to the Microsoft Visual C++ directories. If this is true then 
+  the value for <b><tt>DEVSTUDIO</tt></b> can be changed to empty. I.e. <b><tt>DEVSTUDIO=</tt></b>
+<p> If PATH, LIB, and INCLUDE are not correctly set then the value for <b><tt>DEVSTUDIO</tt></b> 
+  needs to be defined. For example, for version 6.0, the default definition for 
+  the location for the Microsoft Developer Studio is: <b><tt>DEVSTUDIO=C:\Program 
+  Files\Microsoft Visual Studio </tt></b> If the path to Microsoft Developer Studio 
+  on your system differs from the default then change the appropriate definition 
+  of <b><tt>DEVSTUDIO</tt></b>. (Remember that there is a separate definition 
+  of <b><tt>DEVSTUDIO</tt></b> for each version of MSVC, so be sure to change 
+  the correct definition.) 
+<p>To run the <b><tt>make</tt></b> program, give the command 
 <blockquote><b><tt>
-echo !include src\msvc32.mak &gt;makefile
+nmake -f src\msvc32.mak
 </tt></b></blockquote>
 
 <p>
-To run the <b><tt>make</tt></b> program, give the commmand
+Rather than changing src/msvc32.mak, these values can be specified on the make
+command line,  I.e.
 
-<blockquote><b><tt>
-nmake
-</tt></b></blockquote>
+<blockquote><b><tt> nmake -f src\msvc32.mak MSVC_VERSION=6 DEVSTUDIO="C:\Program 
+  Files\Microsoft Visual Studio" </tt></b></blockquote>
 
+<p> Note that double quotes have been added around the path for <b><tt>DEVSTUDIO</tt></b> 
+  due to the spaces in the path value.
 <p>
-You may get error messages during compilation about <b><tt>/QI0f</tt></b>
-being an undefined switch, or the message "dwmain32.def: EXETYPE not
-supported for platform; ignored" during linking.  Ignore them.
+This command line can also be put into a batch file.
 
+<p> You may get warning messages during compilation about <b><tt>/QI0f</tt></b> 
+  being an undefined switch, or the message "dwmain32.def: EXETYPE not supported 
+  for platform; ignored" during linking. Multiple warnings will also given about 
+  things like double to float data conversions. Ignore them. We have not found 
+  a way to create a single set of sources that does not create warnings with the 
+  different compilers and operating systems supported by Ghostscript. 
 <p>
 The Microsoft VC++ 5.0 compiler locks up when compiling
 <b><tt>gxi12bit.c</tt></b> with <b><tt>/O2</tt></b>.  Compile this file
 without <b><tt>/O2</tt></b>.
 
-<p>
-The Microsoft VC++ 5.0 compiler produces a non-working executable if
-compiling without stack checking.  Don't change the setting
-<b><tt>TDEBUG=1</tt></b> in <b><tt>msvc32.mak</tt></b>.
+<p> The Microsoft VC++ 5.0 compiler produces a non-working executable if compiling 
+  without stack checking. Don't change the setting <b><tt>TDEBUG=1</tt></b> in 
+  <b><tt>msvc32.mak</tt></b>. 
 
-<h2><a name="Self-extracting_executables"></a>Making self-extracting executables</h2>
+
+<h4><a name="Self-extracting_executables"></a>Making self-extracting executables</h4>
 
 <p>
 You can build self-extracting Windows executables of Ghostscript.  (This is
@@ -1191,11 +1297,12 @@ third-party software:
 
 <ul>
 <li><b><tt>WinZipSE</tt></b>, available from <a
-href="http://www.winzip.com/winzipse.html">http://www.winzip.com/winzipse.html</a>.
+href="http://www.winzip.com/winzipse.html" 
+class="offsite">http://www.winzip.com/winzipse.html</a>.
 This is not free.
 <li><b><tt>zip</tt></b>, available from <a
-href="http://www.cdrom.com/pub/infozip/Zip.html">
-http://www.cdrom.com/pub/infozip/Zip.html</a>.  This is free.
+href="http://www.info-zip.org/pub/infozip/Zip.html" class="offsite">
+http://www.info-zip.org/pub/infozip/Zip.html</a>.  This is free.
 </ul>
 
 <p>
@@ -1204,7 +1311,7 @@ You will have to edit <b><tt>src/winint.mak</tt></b> to define
 path names of these programs.  See <a href="Release.htm">Release.htm</a> for
 the detailed procedure.
 
-<h2><a name="Watcom_build"></a>Watcom environment</h2>
+<h3><a name="Watcom_build"></a>Watcom environment</h3>
 
 <p>
 Because of limitations in the way that Watcom implemented their
@@ -1256,7 +1363,7 @@ For information on using the GNU <b><tt>make</tt></b> program with the
 Watcom compiler to build MS-DOS executables, which avoids the limitations in
 <b><tt>wmake</tt></b>, see <a href="New-user.htm#MS-DOS">here</a>.
 
-<h2><a name="Cygwin32_build"></a>Cygwin32 gcc</h2>
+<h3><a name="Cygwin32_build"></a>Cygwin32 gcc</h3>
 
 <p>
 A user reports that it is possible to compile Ghostscript for MS Windows NT
@@ -1273,7 +1380,7 @@ changes:
 Information about this compiler and environment is at the Cygnus site:
 
 <blockquote>
-<a href="http://sourceware.cygnus.com/cygwin/">http://sourceware.cygnus.com/cygwin/</a>
+<a href="http://sources.redhat.com/cygwin/">http://sources.redhat.com/cygwin/</a>
 </blockquote>
 
 <p>
@@ -1284,7 +1391,7 @@ or the Aladdin <a href="Public.htm">Free Public License</a>, so read their
 license carefully if you want to redistribute the results of using their
 compiler.
 
-<h2><a name="IntelWin32_build"></a>Intel C/C++ environment</h2>
+<h3><a name="IntelWin32_build"></a>Intel C/C++ environment</h3>
 
 <p>
 Intel provides a C/C++ compiler that is compatible with the <a
@@ -1327,104 +1434,91 @@ compiler from Intel's Software Performance Tools web site:
 
 <hr>
 
-<h1><a name="Mac_build"></a>How to build Ghostscript from source (Mac version)</h1>
+<h2><a name="Mac_build"></a>How to build Ghostscript from source (MacOS version)</h2>
 
-<h2><a name="MacOS"></a>Traditional MacOS</h2>
-
-<p>
-There are additional Mac-specific source files in a distribution
-separate from the rest of Ghostscript.  In addition to the standard Ghostscript
-sources, you will need the following files:
-
-<blockquote><dl>
-<dt><a href="ftp://ftp.cs.wisc.edu/ghost/aladdin/mac/">ftp://ftp.cs.wisc.edu/ghost/aladdin/mac/</a>macgs-###-src.sit.bin
-<dd>Source files as a StuffIt archive
-<dt><a href="ftp://ftp.cs.wisc.edu/ghost/aladdin/mac/macgsmanual.html">ftp://ftp.cs.wisc.edu/ghost/aladdin/mac/macgsmanual.html</a>
-<dd>How to use and build MacGS
-<dt><a href="ftp://ftp.cs.wisc.edu/ghost/aladdin/mac/">ftp://ftp.cs.wisc.edu/ghost/aladdin/mac/</a>macgs-###-fonts*.sit.bin
-<dd>Fonts (properly not to build MacGS but to install it)
-</dl></blockquote>
+<h3><a name="MacOS"></a>Traditional MacOS</h3>
 
 <p>
-If you don't have a program to expand and unpack these files, get the free
-<b>StuffIt Expander</b> program from your favorite Macintosh archive.
+The Macintosh version of Ghostscript requires the <a href="http://www.metrowerks.com/"
+class="offsite">Metrowerks Codewarrior</a> development suite. Download the 
+<tt>macgs-7xx-src.sit</tt> source archive from the location listed
+below. This includes a Codewarrior .mcp project file than can be used to build both 
+Carbon and CFM versions of the ghostscript shared library component.
+
+<blockquote>
+<a href="ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/current/"
+ class="offsite">ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/current/</a>
+</blockquote>
 
 <p>
-In the standard method of building Ghostscript, these files except the JPEG
-are unpacked into one big directory; the JPEG stuff is unpacked into a
-directory called <b><tt>jpeg-6</tt></b> under the main directory.  The Macintosh
-stuff is also unpacked into its own directory, called "Mac Specific".
-However, if you like you can set up all these files in this hierarchy:
-
-<blockquote><table cellpadding=0 cellspacing=0>
-<tr><th colspan=4 bgcolor="#CCCC00"><hr><font size="+1">Suggested Macintosh hierarchy</font><hr>
-<tr valign=bottom>
-	<th align=left colspan=4><b><tt>Ghost&nbsp;Dev</tt></b>
-<tr valign=top>	<td>&nbsp;&nbsp;&nbsp;&nbsp;
-	<td><b><tt>files</tt></b>
-	<td>&nbsp;
-	<td>(All *<b><tt>.ps</tt></b>, *<b><tt>.htm</tt></b>, and other non-build files)
-<tr valign=top>	<td>&nbsp;
-	<td><b><tt>fonts</tt></b>
-	<td>&nbsp;
-	<td>(Fonts)
-<tr valign=top>	<td>&nbsp;
-	<td><b><tt>src</tt></b>
-	<td>&nbsp;
-	<td>(*<b><tt>.c</tt></b>, *<b><tt>.h</tt></b>, *<b><tt>.mak</tt></b>)
-<tr valign=top>	<td>&nbsp;
-	<td><b><tt>jpeg-6</tt></b>
-	<td>&nbsp;
-	<td>(JPEG files)
-<tr valign=top>	<td>&nbsp;
-	<td><b><tt>Mac&nbsp;Specific</tt></b>
-	<td>&nbsp;
-	<td>(Mac files)
-<tr valign=top>	<td>&nbsp;
-	<td><b><tt>MPW&nbsp;Build</tt></b>
-	<td>&nbsp;
-	<td>(Empty directory used for building under MPW)
-</table></blockquote>
+If your system doesn't automatically unpack the source archive, you can
+download the free <a href="http://stuffit.com/download.html"
+class="offsite">Stuffit Expander</a> to open it.
 
 <p>
-Once everything is laid out, look at the file <b><tt>Worksheet</tt></b> in
-the "<b><tt>Mac Specific</tt></b>" folder for complete steps to build the
-system with either MPW or CodeWarrior.
+This archive includes appropriate versions of the jpeg, zlib and libpng 3rd party
+library source for convenience. You must still download the fonts and place them in an
+appropriate location, along with the contents of the <tt>lib</tt> directory from the source
+archive.
 
 <p>
-Some versions of CodeWarrior on the PowerPC have a code generation bug that
-causes the compiled Ghostscript to occasionally produce bad output.  To
-avoid triggering this bug, do not use the "Use FMADD &amp; FMSUB" Code Gen
-option.  We recommend using the following options (for CodeWarrior 4, all
-patches applied):
+Note that since this is just a library component, you will need a front-end application, such as
+MacGSView, to actually view or convert postscript and pdf documents.
 
-<blockquote><b><tt>
-Code Gen:
-<br>Struct alignment: PowerPC
-<br>Traceback Tables: Inline
-<br>Target Processor: 750 (or as appropriate for your system)
-<br>Store Static Data in TOC
-<br>Schedule Instructions
-<br>Peephole Optimization
-<br>
-<br>Global Optimizations:
-<br>Level 3
-</tt></b></blockquote>
 
-<h2><a name="Rhapsody"></a>Rhapsody OS</h2>
+<h3><a name="MacOSX"></a>MacOS X</h3>
 
 <p>
-Currently, building with Rhapsody is only supported with non-display
-devices, such as <b><tt>pdfwrite</tt></b> for converting PostScript to PDF,
-raster file devices such as <b><tt>pbmraw</tt></b>, and printers.  For this
-environment, use <b><tt>unixansi.mak</tt></b> with these additional
-definitions in the <b><tt>make</tt></b> command line: <b><tt>SYNC=nosync
-STDLIBS= DEVICE_DEVS=</tt></b> (yes, there is really just a space after the
-second and third '=').
+The unix source distribution (.tar.gz) builds fine on Darwin/MacOS X,
+albeit without a display device. You can generally just use the <tt>Makefile</tt>
+generated by ./configure or <tt>macosx.mak</tt> as your top-level makefile.
+This will allow you to use Ghostscript from the command line as a BSD-layer
+tool to rasterize  postscript and pdf to image files and convert between
+the various formats supported by Ghostscript.
+
+<p>
+There is also a support for building Ghostscript as a framework. This is
+a special encapsulated shared library format specific to MacOS X. To build
+the framework, copy <tt>macosx.mak</tt> to the top-level directory, rename it to
+<tt>makefile</tt> and issue 'make framework' from Terminal.app. This will result
+in a <tt>Ghostscript.framework</tt> in the <tt>sobin</tt> directory. It must be 
+manually copied to /Library/Frameworks/ before applications
+can use it. You may need to create the Frameworks/ directory on some systems.
+
+<p>
+Finally, there is a <tt>macos-mcp.mak</tt> makefile that can be
+used to set up the Codewarrior shared library component build described
+in the section on <a href="#MacOS">Classic MacOS</a> above. Currently
+this makefile is distributed only with the MacOS-specific <tt>.sit</tt>
+source archive, but with be included generally in future releases.
+
+<p>
+To set up the shlib build, download and uncompress the Ghostscript source.
+If the archive doesn't contain the 3rd party jpeg, png, and zlib source,
+you must download them as described at the beginning of this document and
+unpack them under the macgs-###-src directory under the specific names
+<tt>jpeg</tt>, <tt>zlib</tt> and <tt>libpng</tt>. You cannot use symlinks as
+Codewarrior will not be able to follow them for some of the needed header
+files.
+
+<p>
+Copy <tt>src/macos-mcp.mak</tt> to the top-level directory and rename
+it <tt>makefile</tt>. Then run 'make' in that directory, either from
+within Terminal.app or through Project Builder. This will set up the
+generated code required for the build and run a shell script to generate
+<tt>ghostscript.mcp.xml</tt>. Launch Metrowerks Codewarrior, and select
+'Import Project...' from the File menu, and open the xml project file.
+When asked, save the results as <tt>ghostscript.mcp</tt> in the same 
+directory and you should be ready to build the shared library component.
+
+</p>
+Tradtional ('PPC') applications based on the Code Fragment Manager
+will not be able to open the shlib linked with CarbonLib, so two
+targets are provided, one with carbon and one without.
 
 <hr>
 
-<h1><a name="Unix_build"></a>How to build Ghostscript from source (Unix version)</h1>
+<h2><a name="Unix_build"></a>How to build Ghostscript from source (Unix version)</h2>
 
 <p>
 Before issuing the <b><tt>make</tt></b> command to build Ghostscript, you
@@ -1445,7 +1539,7 @@ on your particular platform and compiler.  In fact, that is the
 <b><em>first</em></b> place to check if you build Ghostscript and it crashes
 or produces obviously incorrect results.
 
-<h2><a name="Multi_architecture_makefile"></a>The multi-architecture makefile</h2>
+<h3><a name="Multi_architecture_makefile"></a>The multi-architecture makefile</h3>
 
 <p>
 Especially if you are working in a Unix environment with multiple CPU types,
@@ -1499,7 +1593,7 @@ version.
 
 </blockquote>
 
-<h2><a name="UNIX_makefile"></a>Setting up "makefile"</h2>
+<h3><a name="UNIX_makefile"></a>Setting up "makefile"</h3>
 
 <p>
 The files <b><tt>src/unix</tt></b>*<b><tt>.mak</tt></b> are the makefiles for
@@ -1571,7 +1665,11 @@ the non-standard definition
 
 <p>
 and since shared versions of this library will not have been compiled this
-way, you awill get errors on some valid PostScript and PDF input files.
+way, you will get errors on some valid PostScript and PDF input files.  Note
+also that because not all the JPEG library header files that Ghostscript
+uses are normally installed in <b><tt>/usr/include</tt></b>, you must have
+the source code for this library available even if you set
+<b><tt>SHARE_JPEG</tt></b> to 1.
 
 <p>
 If the X11 client header files are located in some directory which your
@@ -1602,9 +1700,36 @@ is included in the makefile rule for compiling <b><tt>.c</tt></b> files.
 code, where <em>$$</em> is the process ID.  If for some reason you want to
 change this name, it is defined in a script file <b><tt>ccgs</tt></b>.
 
-<h2><a name="Tool_specific_issues"></a>Tool-specific issues</h2>
+<h3><a name="Shared_object"></a>Shared object</h3>
+To build Ghostscript as a shared object with gcc 
+(instead of as a single large executable) use:
+<pre>
+	ln -s src/unix-gcc.mak makefile
+	make so
+</pre>
+<p>
+This will build <b><tt>libgs.so</tt></b> and two programs which use the 
+shared object, <b><tt>gsx</tt></b> which uses Gtk+ and <b><tt>gsc</tt></b> 
+which does not.
 
-<h3><a name="gcc_27x"></a>gcc 2.7.*</h3>
+<p>
+Do not use <tt>make -f src/unix-gcc.mak</tt> because this will
+break the recursive make used in building the shared object.
+<p>
+To install the shared object and these two programs:
+<pre>
+	make soinstall
+</pre>
+To delete files created by the build process:
+<pre>
+	make soclean
+</pre>
+<p>
+For more details see <a href="../src/unix-dll.mak">unix-dll.mak</a>.
+
+<h3><a name="Tool_specific_issues"></a>Tool-specific issues</h3>
+
+<h4><a name="gcc_27x"></a>gcc 2.7.*</h4>
 
 <p>
 Some of the issues in using gcc are very specific to the particular
@@ -1620,7 +1745,7 @@ of gcc; for instance, gcc 2.5.8, gcc 2.6.3, 2.7.2.1 or later which don't
 have this bug.  Note, however, that gcc has other problems on some
 platforms, so please read the section for your specific platform.
 
-<h3><a name="GNU_make"></a>GNU make</h3>
+<h4><a name="GNU_make"></a>GNU make</h4>
 
 <p>
 Current versions of GNU <b><tt>make</tt></b> have no problems, but GNU
@@ -1628,9 +1753,9 @@ Current versions of GNU <b><tt>make</tt></b> have no problems, but GNU
 cases; if this happens, use the platform's standard <b><tt>make</tt></b>,
 typically <b><tt>/bin/make</tt></b>.
 
-<h2><a name="OS_specific_issues"></a>OS-specific issues</h2>
+<h3><a name="OS_specific_issues"></a>OS-specific issues</h3>
 
-<h3><a name="386_Unix"></a>386 Unix</h3>
+<h4><a name="386_Unix"></a>386 Unix</h4>
 
 <ul>
 <li>gcc versions older than 1.38 on Intel 80386 systems do not compile
@@ -1645,7 +1770,7 @@ executable unusable.
 <li>Also see regarding <a href="#System_V">System V</a> platforms.
 </ul>
 
-<h3><a name="BSDI"></a>BSDI</h3>
+<h4><a name="BSDI"></a>BSDI</h4>
 
 <ul>
 
@@ -1664,7 +1789,7 @@ as discussed <a href="#UNIX_makefile">previously</a>.
 use <b><tt>gmake</tt></b> instead.
 </ul>
 
-<h3><a name="Digital_Unix"></a>Digital Unix (Alpha)</h3>
+<h4><a name="Digital_Unix"></a>Digital Unix (Alpha)</h4>
 
 <ul>
 
@@ -1685,9 +1810,13 @@ Unix, users have reported that the proper flags are
 
 <p>
 again, optionally omitting the <b><tt>-g3</tt></b>.
+
+<li>If you get compiler error messages about "ANSI aliasing rules", please
+see the section about <a href="#VMS_build">building under OpenVMS</a> below.
+
 </ul>
 
-<h3><a name="FreeBSD"></a>FreeBSD</h3>
+<h4><a name="FreeBSD"></a>FreeBSD</h4>
 
 <p>
 On FreeBSD systems, in the top-level makefile (<b><tt>unixansi.mak</tt></b>,
@@ -1695,7 +1824,7 @@ On FreeBSD systems, in the top-level makefile (<b><tt>unixansi.mak</tt></b>,
 value of <b><tt>STDLIBS</tt></b> from <b><tt>-lpthread -lm</tt></b> to
 <b><tt>-lc_r -lm</tt></b> before building.
 
-<h3><a name="Linux"></a>Linux</h3>
+<h4><a name="Linux"></a>Linux</h4>
 
 <ul>
 <li>If you build on Linux with X11 R6 or later, you may get link-time error
@@ -1796,11 +1925,13 @@ instructions and shell scripts to build and install Ghostscript, as well as
 all the source and font kits and patches needed:
 
 <blockquote>
-<a href="ftp://ykbsb2.yk.psu.edu/pub/ghost/GS-5.10/">ftp://ykbsb2.yk.psu.edu/pub/ghost/GS-5.10/</a><br>
-<a href="ftp://ykbsb2.yk.psu.edu/pub/ghost/GS-5.10-Extra/">ftp://ykbsb2.yk.psu.edu/pub/ghost/GS-5.10-Extra/</a>
+<a href="ftp://ykbsb2.yk.psu.edu/pub/ghost/GS-5.10/" 
+class="offsite">ftp://ykbsb2.yk.psu.edu/pub/ghost/GS-5.10/</a><br>
+<a href="ftp://ykbsb2.yk.psu.edu/pub/ghost/GS-5.10-Extra/" 
+class="offsite">ftp://ykbsb2.yk.psu.edu/pub/ghost/GS-5.10-Extra/</a>
 </blockquote>
 
-<h3><a name="NeXTSTEP"></a>NeXTSTEP</h3>
+<h4><a name="NeXTSTEP"></a>NeXTSTEP / OpenSTEP</h4>
 
 <ul>
 <li>If you are using a NeXTSTEP version before 3.3, please get a no-cost
@@ -1814,11 +1945,23 @@ following changes:
 are using only the library) change the definition of <b><tt>INCLUDE</tt></b>
 to "<b><tt>INCLUDE=/usr/include/bsd</tt></b>";
 
-<li>in <b><tt>unix-gcc.mak</tt></b>, change <b><tt>CC=gcc</tt></b> to
-<b><tt>CC=cc</tt></b>, change the definition of <b><tt>STDLIBS</tt></b> to
-only <b><tt>-lm</tt></b>, add <b><tt>-D_POSIX_SOURCE</tt></b> to
-<b><tt>CFLAGS</tt></b> and remove <b><tt>-g</tt></b>, and remove
-<b><tt>-Wstrict-prototypes</tt></b> from <b><tt>GCFLAGS</tt></b>; and
+<li>in <b><tt>unix-gcc.mak</tt></b>:
+
+<ul>
+<li>change <b><tt>CC=gcc</tt></b> to <b><tt>CC=cc</tt></b>;
+
+<li>change the definition of <b><tt>STDLIBS</tt></b> to only
+<b><tt>-lm</tt></b>;
+
+<li>change <b><tt>SYNC=posync</tt></b> to <b><tt>SYNC=nosync</tt></b>;
+
+<li>add <b><tt>-D_POSIX_SOURCE</tt></b> to <b><tt>CFLAGS</tt></b> and remove
+<b><tt>-g</tt></b>;
+
+<li>remove <b><tt>-Wstrict-prototypes</tt></b> from <b><tt>GCFLAGS</tt></b>,
+and if you are using NeXTSTEP 3.3 (with gcc 2.5.8), also remove
+<b><tt>-Wmissing-declarations</tt></b>;
+</ul>
 
 <li>to the end of <b><tt>Fontmap.GS</tt></b> add the line
 "<b><tt>/Ohlfs&nbsp;/Courier&nbsp;;</tt></b>".
@@ -1830,11 +1973,11 @@ makefile definitions of <b><tt>XINCLUDE</tt></b> and
 <b><tt>XLIBDIRS</tt></b> to empty strings.
 </ul>
 
-<h3><a name="SCO"></a>SCO Unix/Xenix</h3>
+<h4><a name="SCO"></a>SCO Unix/Xenix</h4>
 
 <ul>
 <li>See also "<a href="#386_Unix">386 Unix</a>" and
-"<a href="System V">System V Unix platforms</a>".
+"<a href="#System_V">System V Unix platforms</a>".
 
 <li>The standard cc compiler on SCO OpenServer v5 has optimizer bugs.
 Compile without -O.
@@ -1889,7 +2032,7 @@ only <b><tt>-lsocket</tt></b> depending on the version), and for SCO ODT
 "<b><tt>XLIBDIRS=</tt></b>".
 </ul>
 
-<h3><a name="SVR4"></a>SVR4 Unix</h3>
+<h4><a name="SVR4"></a>SVR4 Unix</h4>
 
 <ul>
 <li>You may need to set <b><tt>EXTRALIBS=-lnsl</tt></b>.
@@ -1908,7 +2051,7 @@ systems, set only <b><tt>-DSVR4</tt></b> (<b><em>not</em></b>
 <b><tt>-DSVR4_0</tt></b> nor <b><tt>-DSYSV</tt></b>).
 </ul>
 
-<h3><a name="System_V"></a>System V Unix platforms</h3>
+<h4><a name="System_V"></a>System V Unix platforms</h4>
 
 <ul>
 <li>If you are using a stock System V platform that lacks
@@ -1921,16 +2064,16 @@ change "<b><tt>PLATFORM=unix_</tt></b>" to
 "<b><tt>/usr/ucb/install</tt></b>".
 </ul>
 
-<h3><a name="Unixware"></a>Unixware</h3>
+<h4><a name="Unixware"></a>Unixware</h4>
 
 <ul>
 <li>The standard cc compiler has optimizer bugs.  Compile without
 <b><tt>-O</tt></b>.
 </ul>
 
-<h2><a name="Hardware_specific_issues"></a>Hardware-specific issues</h2>
+<h3><a name="Hardware_specific_issues"></a>Hardware-specific issues</h3>
 
-<h3><a name="Alpha_with_gcc"></a>Alpha with gcc</h3>
+<h4><a name="Alpha_with_gcc"></a>Alpha with gcc</h4>
 
 <ul>
 <li>You don't have to use gcc on Alpha systems, because the bundled
@@ -1944,8 +2087,8 @@ suggest you use a recent version.
 from gcc maintainer Jim Wilson
 &lt;<a href="mailto:wilson@cygnus.com">wilson@cygnus.com</a>&gt;.
 
-<p><font size="-1">
-<pre>*** reload.c.orig       Sun Mar  9 14:05:23 1997
+<pre>
+*** reload.c.orig       Sun Mar  9 14:05:23 1997
 --- reload.c    Sun Mar  9 14:06:54 1997
 *************** push_secondary_reload (in_p, x, opnum, o
 *** 589,600 ****
@@ -1973,10 +2116,10 @@ from gcc maintainer Jim Wilson
 !       get_secondary_mem (x, mode, opnum, type);
   #endif
       }
-</pre></font>
+</pre>
 </ul>
 
-<h3><a name="Apollo"></a>H-P Apollo</h3>
+<h4><a name="Apollo"></a>H-P Apollo</h4>
 
 <ul>
 
@@ -1987,14 +2130,14 @@ messages for any function declared as returning a float value.
 get unexpected crashes at run time, use gcc.
 </ul>
 
-<h3><a name="ATT_7040"></a>AT&amp;T 7040 R3</h3>
+<h4><a name="ATT_7040"></a>AT&amp;T 7040 R3</h4>
 
 <ul>
 <li>If Ghostscript crashes on startup, recompile with <b><tt>-O0</tt></b>
 to work around compiler bugs.
 </ul>
 
-<h3><a name="Convex"></a>Convex</h3>
+<h4><a name="Convex"></a>Convex</h4>
 
 <ul>
 
@@ -2005,7 +2148,7 @@ to work around compiler bugs.
 "<b><tt>-no&nbsp;-fn&nbsp;-tm&nbsp;c1</tt></b>".
 </ul>
 
-<h3><a name="DECStations"></a>DECStations with Ultrix</h3>
+<h4><a name="DECStations"></a>DECStations with Ultrix</h4>
 
 <ul>
 
@@ -2039,7 +2182,7 @@ standard distribution):
 <b><tt>$(CCC) -oldc gdevm1.c</tt></b>
 </ul>
 
-<h3><a name="HP_RISC"></a>H-P RISC workstations</h3>
+<h4><a name="HP_RISC"></a>H-P RISC workstations</h4>
 
 <ul>
 
@@ -2097,7 +2240,7 @@ executable with an older gcc by removing <b><tt>-O</tt></b> from
 <b><tt>CFLAGS</tt></b>.
 </ul>
 
-<h3><a name="Intergraph"></a>Intergraph Clipper</h3>
+<h4><a name="Intergraph"></a>Intergraph Clipper</h4>
 
 <ul>
 <li>Recommended settings are:
@@ -2112,7 +2255,7 @@ PLATFORM=sysv_</tt></b><br>&nbsp;
 "<b><tt>XLIBS=Xt X11 Xext</tt></b>" to "<b><tt>XLIBS=Xt_s X11_s Xext</tt></b>".
 </ul>
 
-<h3><a name="MIPS"></a>MIPS</h3>
+<h4><a name="MIPS"></a>MIPS</h4>
 
 <ul>
 <li>There is apparently a bug in older versions of the MIPS C compiler
@@ -2122,18 +2265,18 @@ definitely fixed in MipsPRO C version 6.00; with this version, compiling
 with "<b><tt>-O2 -mips2</tt></b>" produces good output.
 </ul>
 
-<h3><a name="NCR_3550"></a>NCR 3550</h3>
+<h4><a name="NCR_3550"></a>NCR 3550</h4>
 
 <ul>
 <li>With the NCR C Development Toolkit you must use <b><tt>-O0</tt></b>.
 </ul>
 
-<h3><a name="Pyramid"></a>Pyramid MIServer-S</h3>
+<h4><a name="Pyramid"></a>Pyramid MIServer-S</h4>
 
 <p>
 See "<a href="#ATT_7040">AT&amp;T 7040 R3</a>".
 
-<h3><a name="RS6000"></a>IBM RS/6000 with AIX</h3>
+<h4><a name="RS6000"></a>IBM RS/6000 with AIX</h4>
 
 <ul>
 
@@ -2185,10 +2328,19 @@ externals, set
 "<b><tt>XLIBDIRS=-L/usr/lpp/X11/lib/R5&nbsp;-L/usr/lpp/X11/lib</tt></b>"
 rather than just "<b><tt>XLIBDIRS=-L/usr/lpp/X11/lib</tt></b>".
 
+<li>Ghostscript has been successfully compiled and runs under AIX 4.3.3 and
+the IBM C compiler version 5.  The following changes were required in
+unixansi.mak:
+
+<p>
+<b><tt>CC=xlc</tt></b>
+<br>
+<b><tt>XCFLAGS=-qalign=natural</tt></b>
+
 </ul>
 
-<h3>
-<a NAME="Silicon_Graphics"></a>Silicon Graphics</h3>
+<h4>
+<a NAME="Silicon_Graphics"></a>Silicon Graphics</h4>
 
 <p>
 Users have had a lot of problems with the MIPSpro compilers on SGI systems.
@@ -2252,7 +2404,7 @@ not <b><tt>-O3</tt></b>.
 </ul>
 </ul>
 
-<h3><a name="Sun"></a>Sun</h3>
+<h4><a name="Sun"></a>Sun</h4>
 
 <ul>
 <li>The Sun unbundled C compiler (SC1.0) doesn't compile Ghostscript
@@ -2325,7 +2477,7 @@ become unacceptably inaccurate.  You can use <b><tt>-xcg92</tt></b> (SPARC
 V8) and <b><tt>-dalign</tt></b> for better performance.
 </ul>
 
-<h3><a name="VAX_Ultrix"></a>VAX with Ultrix</h3>
+<h4><a name="VAX_Ultrix"></a>VAX with Ultrix</h4>
 
 <ul>
 <li>You may wish to set
@@ -2340,7 +2492,7 @@ search path.
 
 <hr>
 
-<h1><a name="OS2_build"></a>How to build Ghostscript from source (OS/2 version)</h1>
+<h2><a name="OS2_build"></a>How to build Ghostscript from source (OS/2 version)</h2>
 
 <p>
 <em>Note: This section was contributed by a user: please e-mail Hermann
@@ -2411,7 +2563,12 @@ Now, if you wish, you can edit OS2.MAK to suit your needs, and then perform
 
 <hr>
 
-<h1><a name="VMS_build"></a>How to build Ghostscript from source (OpenVMS version)</h1>
+<h2><a name="VMS_build"></a>How to build Ghostscript from source (OpenVMS version)</h2>
+
+<p>The DECC6.2-003 compiler has an optimization problem that may lead to
+warnings about the "ANSI aliasing rules".  DEC (Compaq) can provide a fix
+for this problem.  The DECC6.2-006 compiler apparently does not have the
+problem.
 
 <p>
 DEC C runtime library versions 5.5 and newer have an <b><tt>exit</tt></b>
@@ -2471,7 +2628,7 @@ $&nbsp;ccfonts1&nbsp;=&nbsp;"Courier&nbsp;Courier_Oblique&nbsp;Courier_Bold&nbsp
 $&nbsp;ccfonts2&nbsp;=&nbsp;"Times_Roman&nbsp;Times_Italic&nbsp;Times_Bold&nbsp;Times_BoldItalic"
 </tt></b></blockquote>
 
-<h2><a name="GNU_make_VMS"></a>Building with GNU make on OpenVMS</h2>
+<h3><a name="GNU_make_VMS"></a>Building with GNU make on OpenVMS</h3>
 
 <p>
 <em>Note: GNU make on OpenVMS apparently has bugs that make it stop with an
@@ -2502,10 +2659,11 @@ under OpenVMS on both VAX and Alpha.  The kit is available at the
 its mirrors.  See
 
 <blockquote>
-<a href="ftp://ftp.gnu.org/pub/gnu/">ftp://ftp.gnu.org/pub/gnu/</a>
+<a href="ftp://ftp.gnu.org/pub/gnu/"
+class="offsite">ftp://ftp.gnu.org/pub/gnu/</a>
 </blockquote>
 
-<h2><a name="MMK_MMS_VMS"></a>Building with MMK or MMS on OpenVMS</h2>
+<h3><a name="MMK_MMS_VMS"></a>Building with MMK or MMS on OpenVMS</h3>
 
 <p>
 As of Ghostscript version 5.68 you can use MMK or MMS to build Ghostscript on
@@ -2539,9 +2697,9 @@ To download MMK (source code, and VAX and Alpha executables), visit
 
 <hr>
 
-<h1><a name="Other_environments"></a>Other environments</h1>
+<h2><a name="Other_environments"></a>Other environments</h2>
 
-<h2><a name="No_multi_thread"></a>Environments lacking multi-threading</h2>
+<h3><a name="No_multi_thread"></a>Environments lacking multi-threading</h3>
 
 <p>
 All environments mentioned here by name have multi-threading capability.
@@ -2550,9 +2708,9 @@ multi-threading by setting <b><tt>SYNC=nosync</tt></b> in the top-level
 makefile.  Note that you will not be able to use any so-called "async"
 drivers (drivers that overlap interpretation and rasterization) if you do
 this.  No such drivers are in the <b><tt>DEVICE_DEVS*</tt></b> lists of any
-makefile that Aladdin distributes.
+makefile that we distribute.
 
-<h2><a name="Plan_9"></a>Plan 9</h2>
+<h3><a name="Plan_9"></a>Plan 9</h3>
 
 <p>
 Use <b><tt>unix-gcc.mak</tt></b>, editing it to define
@@ -2565,7 +2723,7 @@ GCFLAGS=-D_BSD_EXTENSION -DPlan9
 <p>
 You will also probably have to edit many path names.
 
-<h2><a name="QNX"></a>QNX</h2>
+<h3><a name="QNX"></a>QNX</h3>
 
 <p>
 David J. Hawkey Jr. writes that he built Ghostscript 4.03 and 5.0 under QNX
@@ -2670,7 +2828,7 @@ to begin
 <dt><b><tt>/etc/config/lpsrvr</tt></b>
 <dd>Here is Hawkey's <b><tt>lpsrvr</tt></b> as an example.
 
-<blockquote><font size="-1">
+<blockquote>
 <pre># lpsrvr
 #
 # Defines the print queues and their devices
@@ -2691,7 +2849,7 @@ to begin
 
 [-lpt2]
         dv=/dev/par2
-</pre></font></blockquote>
+</pre></blockquote>
 </dl>
 
 <!-- [2.0 end contents] ==================================================== -->
@@ -2699,19 +2857,18 @@ to begin
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 2000 Aladdin Enterprises.
+All rights  reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

@@ -733,7 +733,9 @@ audioinit(void)
 	sbconf.irq = IrqAUDIO;
 	if(isaconfig("audio", 0, &sbconf) == 0)
 		return;
-	if(cistrcmp(sbconf.type, "sb16") != 0 && cistrcmp(sbconf.type, "ess1688") != 0)
+	if(sbconf.type == nil ||
+		(cistrcmp(sbconf.type, "sb16") != 0 && 
+		 cistrcmp(sbconf.type, "ess1688") != 0))
 		return;
 	switch(sbconf.port){
 	case 0x220:

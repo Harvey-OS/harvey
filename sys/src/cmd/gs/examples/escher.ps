@@ -20,6 +20,8 @@
 %
 % UUCP {sun,pyramid,cae780,apple}!weitek!wallis
 
+/eschersave save def		% prevent left over side effects
+
 %statusdict begin waittimeout 6000 lt	% if you have a slow printer, you
 %   {0 60 6000 setdefaulttimeouts}	% might need to uncomment this
 %if end
@@ -377,3 +379,6 @@ N neg 1 N {
 } for
 
 showpage
+
+clear cleardictstack
+eschersave restore

@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: errors.h,v 1.1 2000/03/09 08:40:40 lpd Exp $ */
+/*$Id: errors.h,v 1.4 2001/03/12 04:05:19 ghostgum Exp $ */
 /* Definition of error codes */
 
 #ifndef errors_INCLUDED
@@ -132,6 +132,28 @@ extern const char *const gs_error_names[];
  * Internal code for requesting more input from run_string.
  */
 #define e_NeedInput (-106)
+
+/*
+ * Internal code for stdin callout.
+ */
+#define e_NeedStdin (-107)
+
+/*
+ * Internal code for stdout callout.
+ */
+#define e_NeedStdout (-108)
+
+/*
+ * Internal code for stderr callout.
+ */
+#define e_NeedStderr (-109)
+
+/*
+ * Internal code for a normal exit when usage info is displayed.
+ * This allows Window versions of Ghostscript to pause until
+ * the message can be read.
+ */
+#define e_Info (-110)
 
 /*
  * Define which error codes require re-executing the current object.

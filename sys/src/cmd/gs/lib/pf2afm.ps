@@ -455,6 +455,7 @@
     pop pop pop pop (Resulting file exists) printquit
   } if
   /ofi ofn (w) file def
+  //systemdict /.setsafe known { .setsafe } if
 
   /pfmn ifn (.pfm) concatstrings def
   pfmn status {

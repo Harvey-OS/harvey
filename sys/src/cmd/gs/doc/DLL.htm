@@ -1,8 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>How to use the Ghostscript Dynamic Link Library (DLL)</title>
-<!-- $Id: DLL.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
+<!-- $Id: DLL.htm,v 1.15.2.2 2002/02/01 05:31:24 raph Exp $ -->
 <!-- Originally: dll.txt -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -10,11 +12,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>
-How to use the Ghostscript Dynamic Link Library (DLL)
-</font>
-</table>
+<h1>How to use the Ghostscript Dynamic Link Library (DLL)</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -22,7 +20,7 @@ How to use the Ghostscript Dynamic Link Library (DLL)
 
 <h2>Table of contents</h2>
 
-<blockquote><ul>
+<ul>
 <li><a href="#DLL">What is the Ghostscript DLL?</a>
 <li><a href="#Common_functions">Platform-independent DLL functions</a>
 <ul>
@@ -48,7 +46,7 @@ How to use the Ghostscript Dynamic Link Library (DLL)
 <li><a href="#Win_get_row"><b><tt>gsdll_get_bitmap_row()</tt></b></a>
 </ul>
 <li><a href="#Win16">Ghostscript DLL Device for 16-bit MS Windows</a>
-</ul></blockquote>
+</ul>
 
 <!-- [1.2 end table of contents] =========================================== -->
 
@@ -58,9 +56,10 @@ How to use the Ghostscript Dynamic Link Library (DLL)
 overview</a>.
 
 <p>
-<b>WARNING:</b> The API described in this document is subject to changes in
-future releases, possibly ones that are not backward compatible with what
-is described here.
+<b>WARNING: The API described in this document is obsolete and will
+be removed in the future.</b> 
+The current Ghostscript Interpreter API 
+is described in <a href="API.htm">API.htm</a>.
 
 <!-- [1.3 end hint] ======================================================== -->
 
@@ -70,7 +69,7 @@ is described here.
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h1><a name="DLL"></a>What is the Ghostscript DLL?</h1>
+<h2><a name="DLL"></a>What is the Ghostscript DLL?</h2>
 
 <p>
 For the OS/2, Win16 and Win32 platforms, Ghostscript is built as a dynamic
@@ -110,7 +109,7 @@ how to use the DLL.
 
 <hr>
 
-<h1><a name="Common_functions"></a>Platform-independent DLL functions</h1>
+<h2><a name="Common_functions"></a>Platform-independent DLL functions</h2>
 
 <p>
 The seven functions provided by the DLL are
@@ -138,7 +137,7 @@ and under MS Windows as
 </tt></b></blockquote>
 </ul>
 
-<h2><a name="revision"></a><b><tt>gsdll_revision()</tt></b></h2>
+<h3><a name="revision"></a><b><tt>gsdll_revision()</tt></b></h3>
 
 <blockquote>
 This function returns the revision numbers and strings of the Ghostscript
@@ -159,7 +158,7 @@ You may use <b><tt>NULL</tt></b> pointers if you do not want a particular
 value.
 </blockquote>
 
-<h2><a name="init"></a><b><tt>gsdll_init()</tt></b></h2>
+<h3><a name="init"></a><b><tt>gsdll_init()</tt></b></h3>
 
 <blockquote>
 <b><tt>gsdll_init()</tt></b> must be called after loading the DLL and
@@ -204,14 +203,14 @@ immediately unloaded (or the caller terminated).
 <b><tt>gsdll_exit()</tt></b> must not be called.
 </blockquote>
 
-<h2><a name="execute_begin"></a><b><tt>gsdll_execute_begin()</tt></b></h2>
+<h3><a name="execute_begin"></a><b><tt>gsdll_execute_begin()</tt></b></h3>
 
 <blockquote>
 This must be called after <b><tt>gsdll_init()</tt></b> and before
 <b><tt>gsdll_execute_cont()</tt></b>.
 </blockquote>
 
-<h2><a name="execute_cont"></a><b><tt>gsdll_execute_cont()</tt></b></h2>
+<h3><a name="execute_cont"></a><b><tt>gsdll_execute_cont()</tt></b></h3>
 
 <blockquote>
 After successfully calling <b><tt>gsdll_init()</tt></b> and
@@ -258,9 +257,10 @@ When executing a string with <b><tt>gsdll_execute_cont()</tt></b>,
 <b><tt>currentfile</tt></b> is the input from
 <b><tt>gsdll_execute_cont()</tt></b>.  Reading from <b><tt>%stdin</tt></b>
 uses the callback.
+
 </blockquote>
 
-<h2><a name="execute_end"></a><b><tt>gsdll_execute_end()</tt></b></h2>
+<h3><a name="execute_end"></a><b><tt>gsdll_execute_end()</tt></b></h3>
 
 <blockquote>
 If <b><tt>gsdll_execute_cont()</tt></b> did not return an error, then
@@ -269,7 +269,7 @@ If <b><tt>gsdll_execute_cont()</tt></b> did not return an error, then
 <b><tt>gsdll_exit()</tt></b>.
 </blockquote>
 
-<h2><a name="exit"></a><b><tt>gsdll_exit()</tt></b></h2>
+<h3><a name="exit"></a><b><tt>gsdll_exit()</tt></b></h3>
 
 <blockquote>
 Call gsdll_exit() to terminate the Ghostscript DLL.  It must be called if a
@@ -285,7 +285,7 @@ calling <b><tt>DosFreeModule</tt></b> (OS/2) or <b><tt>FreeLibrary</tt></b> (MS 
 </ul>
 </blockquote>
 
-<h2><a name="lock_device"></a><b><tt>gsdll_lock_device()</tt></b></h2>
+<h3><a name="lock_device"></a><b><tt>gsdll_lock_device()</tt></b></h3>
 
 <blockquote>
 Since the caller may be multithreaded, a lock is needed to control access
@@ -335,7 +335,7 @@ message queue only when the bitmap is not being accessed.
 
 <hr>
 
-<h1><a name="Callback"></a>Callback function</h1>
+<h2><a name="Callback"></a>Callback function</h2>
 
 <blockquote>
 As an argument to <a href="#init"><b><tt>gsdll_init()</tt></b></a> the
@@ -352,7 +352,7 @@ The Pascal calling convention is not used.  An example callback function
 is:
 
 <blockquote>
-<font size="-1"><pre>int
+<pre>int
 gsdll_callback(int message, char *str, unsigned long count)
 {
 char *p;
@@ -389,7 +389,7 @@ char *p;
     }
     return 0;
 }
-</pre></font>
+</pre>
 
 <table cellpadding=0 cellspacing=0>
 <tr><th colspan=5 bgcolor="#CCCC00"><hr><font size="+1">Messages used by callback</font><hr>
@@ -451,7 +451,7 @@ char *p;
 
 <hr>
 
-<h1><a name="OS2_device"></a>Ghostscript DLL device for OS/2</h1>
+<h2><a name="OS2_device"></a>Ghostscript DLL device for OS/2</h2>
 
 <p>
 The <b><tt>os2dll</tt></b> device is provided in the Ghostscript DLL for
@@ -464,7 +464,7 @@ notified via the <b><tt>gsdll_callback()</tt></b> when a new
 bitmap size changes (<b><tt>GSDLL_SIZE</tt></b>).
 Note that more than one <b><tt>os2dll</tt></b> device may be opened.
 
-<h2><a name="OS2_bmp"></a><b><tt>gsdll_get_bitmap()</tt></b></h2>
+<h3><a name="OS2_bmp"></a><b><tt>gsdll_get_bitmap()</tt></b></h3>
 
 <blockquote>
 <b><tt>gsdll_get_bitmap()</tt></b> returns a pointer to a bitmap in BMP
@@ -484,14 +484,14 @@ it, and unlock it afterwards.  The bitmap address does not change until the
 palette may change whenever the bitmap is not locked.
 </blockquote>
 
-<h2><a name="OS2_example"></a>Example DLL usage for OS/2</h2>
+<h3><a name="OS2_example"></a>Example DLL usage for OS/2</h3>
 
 <p>
 The example here shows a minimal usage of the Ghostscript DLL under OS/2.
 The sample callback function above is needed.
 
 <blockquote>
-<font size="-1"><pre>#define INCL_DOS
+<pre>#define INCL_DOS
 #include &lt;os2.h&gt;
 #include &lt;stdio.h&gt;
 #include "gsdll.h"
@@ -541,11 +541,11 @@ APIRET rc;
     fprintf(stdout,"DosFreeModule returns %d\n", rc);
     return 0;
 }
-</pre></font></blockquote>
+</pre></blockquote>
 
 <hr>
 
-<h1><a name="Win_device"></a>Ghostscript DLL device for MS Windows</h1>
+<h2><a name="Win_device"></a>Ghostscript DLL device for MS Windows</h2>
 
 <p>
 The <b><tt>mswindll</tt></b> device is provided in the Ghostscript DLL for
@@ -560,7 +560,7 @@ than one <b><tt>mswindll</tt></b> device may be opened.
 Four DLL functions are available to use the <b><tt>mswindll</tt></b>
 device.
 
-<h2><a name="Win_copydib"></a><b><tt>gsdll_copy_dib()</tt></b></h2>
+<h3><a name="Win_copydib"></a><b><tt>gsdll_copy_dib()</tt></b></h3>
 
 <blockquote>
 Copy the <b><tt>mswindll</tt></b> bitmap to the clipboard.
@@ -572,7 +572,7 @@ Copy the <b><tt>mswindll</tt></b> bitmap to the clipboard.
 </pre></blockquote>
 </blockquote>
 
-<h2><a name="Win_copypalette"></a><b><tt>gsdll_copy_palette()</tt></b></h2>
+<h3><a name="Win_copypalette"></a><b><tt>gsdll_copy_palette()</tt></b></h3>
 
 <blockquote>
 Copy the <b><tt>mswindll</tt></b> palette to the clipboard.
@@ -584,7 +584,7 @@ Copy the <b><tt>mswindll</tt></b> palette to the clipboard.
 </pre></blockquote>
 </blockquote>
 
-<h2><a name="Win_draw"></a><b><tt>gsdll_draw()</tt></b></h2>
+<h3><a name="Win_draw"></a><b><tt>gsdll_draw()</tt></b></h3>
 
 <blockquote>
 Display output from the <b><tt>mswindll</tt></b> device.  The caller should
@@ -602,7 +602,7 @@ must be for a device because <b><tt>SetDIBitsToDevice()</tt></b> is used.
 </pre></blockquote>
 </blockquote>
 
-<h2><a name="Win_get_row"></a><b><tt>gsdll_get_bitmap_row()</tt></b></h2>
+<h3><a name="Win_get_row"></a><b><tt>gsdll_get_bitmap_row()</tt></b></h3>
 
 <blockquote>
 Get a BMP header, a palette, and a pointer to a row in the bitmap.  This
@@ -628,7 +628,7 @@ this function while Ghostscript is busy.
 
 <hr>
 
-<h1><a name="Win16"></a>Ghostscript DLL Device for 16-bit MS Windows</h1>
+<h2><a name="Win16"></a>Ghostscript DLL Device for 16-bit MS Windows</h2>
 
 <p>
 This platform has the most problems of the three.  Support for it may be
@@ -682,19 +682,18 @@ if (!code) {
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.
+All rights reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

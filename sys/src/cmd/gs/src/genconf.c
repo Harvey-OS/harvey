@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: genconf.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: genconf.c,v 1.4 2000/12/20 04:20:34 lpd Exp $ */
 /* Generate configuration files */
 #include "stdpre.h"
 #include <assert.h>
@@ -26,32 +26,195 @@
 #include <string.h>
 
 /*
- * We would like to use the real realloc, but it doesn't work on all systems
- * (e.g., some Linux versions).  Also, this procedure does the right thing
- * if old_ptr = NULL.
- */
-private void *
-mrealloc(void *old_ptr, size_t old_size, size_t new_size)
-{
-    void *new_ptr = malloc(new_size);
-
-    if (new_ptr == NULL)
-	return NULL;
-    /* We have to pass in the old size, since we have no way to */
-    /* determine it otherwise. */
-    if (old_ptr)
-	memcpy(new_ptr, old_ptr, min(old_size, new_size));
-    return new_ptr;
-}
-
-/*
- * This program generates a set of configuration files.
- * Usage:
- *      genconf [-Z] [-e escapechar] [-n [name_prefix | -]] [@]xxx.dev*
- *        [-f gconfigf.h] [-h gconfig.h]
- *        [-p[l|L][u][e] pattern] [-l|o|lo|ol out.tr]
- * The default escape character is &.  When this character appears in a
- * pattern, it acts as follows:
+ * This program reads .dev files, which contain definitions of modules,
+ * and generates merged configuration files.
+ *
+ * A .dev file specifies a list of "resources" of various kinds (.obj/.o
+ * files, other .dev files to be merged in, PostScript files, driver names,
+ * compiled fonts, etc.)  that make up the module.  (This is similar in
+ * spirit to the Macintosh resource fork, and to PostScript resources, but
+ * has nothing to do directly with the latter.)
+ *
+ * A .dev file consists of a series of switches and resource names.  Most
+ * switches specifies the type of the following resources, until the next
+ * type switch; there are also a few other switches.
+ *
+ * genconf recognizes the following resource type switches in .dev files.
+ * See the next section on command line switches for the meaning of
+ * <name_prefix>.
+ *
+ *    -dev <device>
+ *
+ *	Adds device_(<name_prefix><device>_device) to <gconfig.h>.
+ *	Used for ordinary devices.
+ *
+ *    -dev2 <device>
+ *
+ *	Adds device2_(<name_prefix><device>_device) to <gconfig.h>.
+ *	Used for some newer devices with potentially different structures
+ *	or conventions.
+ *
+ *    -emulator <emulator>
+ *
+ *	Adds emulator_("<emulator>",<len>), where len is the number of
+ *	characters in <emulator>, to <gconfig.h>.
+ *	Used for names that should appear as instances of the PostScript
+ *	Emulator resource category.
+ *
+ *    -font <font>
+ *
+ *	Adds an entry to <gconfigf.h>, as described below.
+ *
+ *    -functiontype <fntype>
+ *
+ *	Adds function_type_(<fntype>,<name_prefix>build_function_<fntype>)
+ *	to <gconfig.h>.
+ *	Used for instances of the PostScript FunctionType resource category,
+ *	and also to generate a table of procedures for processing
+ *	Function dictionaries.
+ *
+ *    -halftone <htname>
+ *
+ *	Adds halftone_(<name_prefix>dht_<htname>) to <gconfig.h>.
+ *	Used for halftones that will be compiled into the executable.
+ *
+ *    -imageclass <iclass>
+ *
+ *	Adds image_class_(<name_prefix>image_class_<iclass>) to <gconfig.h>.
+ *	Used internally for the various cases of rendering images.
+ *
+ *    -imagetype <itype>
+ *
+ *	Adds image_type_(<itype>,<name_prefix>image_type_<itype>) to
+ *	<gconfig.h>.
+ *	Used for instances of the PostScript ImageType resource category,
+ *	and also to generate a table of procedures for handling the various
+ *	types of images.
+ *
+ *    -include <module>
+ *
+ *	Reads the file named <module> (or <module>.dev if <module> doesn't
+ *	end with ".dev") as though it were part of the current .dev file.
+ *	Used when one module requires the presence of another.
+ *
+ *    -init <initname>
+ *
+ *	Adds init_(<name_prefix><initname>_init) to <gconfig.h>.
+ *	Used for initialization procedures to be called when Ghostscript
+ *	is started.  By convention, <initname> is (almost always) the name
+ *	of the source file in which the procedure is defined.
+ *
+ *    -iodev <iodev>
+ *
+ *	Adds io_device_(<name_prefix>iodev_<iodev>) to <gconfig.h>.
+ *	Used for instances of the PostScript IODevice resource category.
+ *
+ *    -lib <lib>
+ *
+ *	Adds <lib> to the list of libraries to be written by -l.
+ *
+ *    -libpath <libpath>
+ *
+ *	Adds <libpath> to the list of library paths to be written by -l.
+ *
+ *    -link <link>
+ *
+ *	Adds <link> to the list of switches to be passed to the linker,
+ *	to be written by -l.
+ *
+ *    -obj <obj>
+ *
+ *	Adds <obj> to the list of files to be linked, to be written by -o.
+ *
+ *    -oper <opername>
+ *
+ *	Adds oper_(<opername>_op_defs) to <gconfig.h>.
+ *	Used for tables of PostScript operators.  By convention,
+ *	<opername> is (usually) the name of the source file in which the
+ *	table appears.
+ *
+ *    -ps <psname>
+ *
+ *	Adds psfile_("<psname>.ps",<len+3>), where <len> is the number of
+ *	character in <psname>, to <gconfig.h>.
+ *	Used for PostScript files that should be read at initialization.
+ *
+ * genconf recognizes the following other switches in .dev files:
+ *
+ *    -replace <module>
+ *
+ *	This switch declares that <module> has been replaced by another
+ *	module (presumably the one defined by the .dev file in which the
+ *	switch appears), and should be removed from consideration.
+ *	Modules that can be -replaced should not -include other modules.
+ *
+ * genconf writes the following files if the corresponding switch is used:
+ *
+ *    -h <gconfig.h>
+ *
+ *	Writes a list of all the resources as described above.  Each
+ *	sublist is surrounded by an #ifdef/#endif in case the
+ *	referenced macro (e.g., device_, oper_) is undefined.
+ *	Duplicates are eliminated.
+ *
+ *    -f <gconfigf.h>
+ *
+ *	Writes a list of all the -font resources, in the form
+ *		font_("0.font_<name>",<name_prefix>f_<name>,zf_<name)
+ *
+ * Other switches specify various options and parameters:
+ *
+ *    -Z
+ *
+ *	Turns on debugging output.
+ *
+ *    -C [<file_prefix>]
+ *
+ *	Prefixes <file_prefix> to the names of all .dev files read in,
+ *	and to the names of all .obj/.o files written in <gconfig.h>.
+ *	The default file_prefix is the empty string.
+ *	This switch should probably be removed, since nothing in the
+ *	current Ghostscript makefiles uses it.
+ *
+ *    -e <escapechar>
+ *
+ *	Sets the escape character for patterns.  See below.
+ *
+ *    -n [<name_prefix> | -]
+ *
+ *	Prefixes <name_prefix>, or the empty string, to certain items in
+ *	the output, as indicated above.
+ *	The default name_prefix is "gs_".
+ *
+ *    -p[l|L][u][e] <pattern>
+ *
+ *	Sets the pattern (format string) used for writing certain items in
+ *	the output, as indicated above.  '%' in the pattern indicates
+ *	substitution of the variable data, as for printf except that the
+ *	'%' is not followed by a format character -- the data are always
+ *	inserted literally.  See below for more information about patterns.
+ *
+ *    -l[o] <lib.tr>
+ *
+ *	Writes the list of library paths, links, and library file names
+ *	on <lib.tr>.  -lo also writes the list of object file names,
+ *	as for -o.
+ *
+ *    -o[l] <obj.tr>
+ *
+ *	Writes the list object file names on <obj.tr>.  -ol also writes
+ *	the list of library paths, links, and library file names as for -l.
+ *
+ * Usage summary:
+ *
+ *      genconf [-Z] [-C prefix] [-e escapechar] [-n [name_prefix | -]]
+ *	  [@]xxx.dev* [-f gconfigf.h] [-h gconfig.h]
+ *        [-p[l|L][u][e] pattern] [-l|o|lo|ol lib.tr]
+ *
+ * Patterns:
+ *
+ *   The default escape character is &.  When this character appears in a
+ *   pattern, it acts as follows:
  *	&p produces a %;
  *	&s produces a space;
  *	&& (i.e., the escape character twice) produces a \;
@@ -59,6 +222,7 @@ mrealloc(void *old_ptr, size_t old_size, size_t new_size)
  *	&x, for any other character x, is an error.
  */
 
+#define DEFAULT_FILE_PREFIX ""
 #define DEFAULT_NAME_PREFIX "gs_"
 
 #define MAX_STR 120
@@ -68,79 +232,72 @@ typedef struct string_item_s {
     const char *str;
     int file_index;		/* index of file containing this item */
     int index;
-} string_item;
+} string_item_t;
 
 /* The values of uniq_mode are bit masks. */
 typedef enum {
     uniq_all = 1,		/* keep all occurrences (default) */
     uniq_first = 2,		/* keep only first occurrence */
     uniq_last = 4		/* keep only last occurrence */
-} uniq_mode;
+} uniq_mode_t;
 typedef struct string_list_s {
     /* The following are set at creation time. */
     const char *list_name;	/* only for debugging */
     int max_count;
-    uniq_mode mode;
+    uniq_mode_t mode;
     /* The following are updated dynamically. */
     int count;
-    string_item *items;
-} string_list;
+    string_item_t *items;
+} string_list_t;
 
-#define max_pattern 60
+#define MAX_PATTERN 60
 typedef struct string_pattern_s {
     bool upper_case;
     bool drop_extn;
-    char pattern[max_pattern + 1];
-} string_pattern;
+    char pattern[MAX_PATTERN + 1];
+} string_pattern_t;
 typedef struct config_s {
     int debug;
     const char *name_prefix;
     const char *file_prefix;
     /* Special "resources" */
-    string_list file_names;
-    string_list file_contents;
-    string_list replaces;
+    string_list_t file_names;
+    string_list_t file_contents;
+    string_list_t replaces;
     /* Real resources */
     union ru_ {
 	struct nu_ {
-	    string_list sorted_resources;
-#define c_sorted_resources lists.named.sorted_resources
-	    string_list resources;
-#define c_resources lists.named.resources
-	    string_list devs;	/* also includes devs2 */
-#define c_devs lists.named.devs
-	    string_list fonts;
-#define c_fonts lists.named.fonts
-	    string_list libs;
-#define c_libs lists.named.libs
-	    string_list libpaths;
-#define c_links lists.named.links
-	    string_list links;
-#define c_libpaths lists.named.libpaths
-	    string_list objs;
-#define c_objs lists.named.objs
+	    /* These names must parallel config_lists below. */
+	    string_list_t sorted_resources;
+	    string_list_t resources;
+	    string_list_t devs;	/* also includes devs2 */
+	    string_list_t fonts;
+	    string_list_t libs;
+	    string_list_t libpaths;
+	    string_list_t links;
+	    string_list_t objs;
 	} named;
 #define NUM_RESOURCE_LISTS 8
-	string_list indexed[NUM_RESOURCE_LISTS];
+	string_list_t indexed[NUM_RESOURCE_LISTS];
     } lists;
-    string_pattern lib_p;
-    string_pattern libpath_p;
-    string_pattern obj_p;
-} config;
+    string_pattern_t lib_p;
+    string_pattern_t libpath_p;
+    string_pattern_t obj_p;
+} config_t;
 
-/* These lists grow automatically if needed, so we could start out with */
-/* small allocations. */
-static const config init_config =
-{
+/*
+ * These lists grow automatically if needed, so we could start out with
+ * small allocations.
+ */
+static const config_t init_config = {
     0,				/* debug */
     DEFAULT_NAME_PREFIX,	/* name_prefix */
-    "",				/* file_prefix */
+    DEFAULT_FILE_PREFIX,	/* file_prefix */
     {"file name", 200},		/* file_names */
     {"file contents", 200},	/* file_contents */
     {"-replace", 50}
 };
-static const string_list init_config_lists[] =
-{
+static const string_list_t init_config_lists[] = {
     {"resource", 100, uniq_first},
     {"sorted_resource", 20, uniq_first},
     {"-dev", 100, uniq_first},
@@ -152,24 +309,25 @@ static const string_list init_config_lists[] =
 };
 
 /* Forward definitions */
-int alloc_list(P1(string_list *));
+private void *mrealloc(P3(void *, size_t, size_t));
+int alloc_list(P1(string_list_t *));
 void dev_file_name(P1(char *));
-int process_replaces(P1(config *));
-int read_dev(P2(config *, const char *));
+int process_replaces(P1(config_t *));
+int read_dev(P2(config_t *, const char *));
 int read_token(P3(char *, int, const char **));
-int add_entry(P4(config *, char *, const char *, int));
-string_item *add_item(P3(string_list *, const char *, int));
-void sort_uniq(P2(string_list *, bool));
-void write_list(P3(FILE *, const string_list *, const char *));
-void write_list_pattern(P3(FILE *, const string_list *, const string_pattern *));
-bool var_expand(P3(char *, char [MAX_STR], const config *));
-void add_definition(P4(const char *, const char *, string_list *, bool));
-string_item *lookup(P2(const char *, const string_list *));
+int add_entry(P4(config_t *, char *, const char *, int));
+string_item_t *add_item(P3(string_list_t *, const char *, int));
+void sort_uniq(P2(string_list_t *, bool));
+void write_list(P3(FILE *, const string_list_t *, const char *));
+void write_list_pattern(P3(FILE *, const string_list_t *, const string_pattern_t *));
+bool var_expand(P3(char *, char [MAX_STR], const config_t *));
+void add_definition(P4(const char *, const char *, string_list_t *, bool));
+string_item_t *lookup(P2(const char *, const string_list_t *));
 
 int
 main(int argc, char *argv[])
 {
-    config conf;
+    config_t conf;
     char escape = '&';
     int i;
 
@@ -222,7 +380,7 @@ main(int argc, char *argv[])
 		continue;
 	    case 'p':
 		{
-		    string_pattern *pat;
+		    string_pattern_t *pat;
 
 		    switch (*(arg += 2)) {
 			case 'l':
@@ -308,17 +466,17 @@ main(int argc, char *argv[])
 		    sprintf(template,
 			    "font_(\"0.font_%%s\",%sf_%%s,zf_%%s)\n",
 			    conf.name_prefix);
-		    write_list(out, &conf.c_fonts, template);
+		    write_list(out, &conf.lists.named.fonts, template);
 		}
 		break;
 	    case 'h':
 		process_replaces(&conf);
 		fputs("/* This file was generated automatically by genconf.c. */\n", out);
-		write_list(out, &conf.c_devs, "%s\n");
-		sort_uniq(&conf.c_resources, true);
-		write_list(out, &conf.c_resources, "%s\n");
-		sort_uniq(&conf.c_sorted_resources, false);
-		write_list(out, &conf.c_sorted_resources, "%s\n");
+		write_list(out, &conf.lists.named.devs, "%s\n");
+		sort_uniq(&conf.lists.named.resources, true);
+		write_list(out, &conf.lists.named.resources, "%s\n");
+		sort_uniq(&conf.lists.named.sorted_resources, false);
+		write_list(out, &conf.lists.named.sorted_resources, "%s\n");
 		break;
 	    case 'l':
 		lib = 1;
@@ -329,15 +487,15 @@ main(int argc, char *argv[])
 		lib = arg[2] == 'l';
 	      lo:process_replaces(&conf);
 		if (obj) {
-		    sort_uniq(&conf.c_objs, true);
-		    write_list_pattern(out, &conf.c_objs, &conf.obj_p);
+		    sort_uniq(&conf.lists.named.objs, true);
+		    write_list_pattern(out, &conf.lists.named.objs, &conf.obj_p);
 		}
 		if (lib) {
-		    sort_uniq(&conf.c_libs, true);
-		    sort_uniq(&conf.c_links, true);
-		    write_list_pattern(out, &conf.c_libpaths, &conf.libpath_p);
-		    write_list_pattern(out, &conf.c_links, &conf.obj_p);
-		    write_list_pattern(out, &conf.c_libs, &conf.lib_p);
+		    sort_uniq(&conf.lists.named.libs, true);
+		    sort_uniq(&conf.lists.named.links, true);
+		    write_list_pattern(out, &conf.lists.named.libpaths, &conf.libpath_p);
+		    write_list_pattern(out, &conf.lists.named.links, &conf.obj_p);
+		    write_list_pattern(out, &conf.lists.named.libs, &conf.lib_p);
 		}
 		break;
 	    default:
@@ -348,16 +506,35 @@ main(int argc, char *argv[])
 	fclose(out);
     }
 
-    exit(0);
+    return 0;
+}
+
+/*
+ * We would like to use the real realloc, but it doesn't work on all systems
+ * (e.g., some Linux versions).  Also, this procedure does the right thing
+ * if old_ptr = NULL.
+ */
+private void *
+mrealloc(void *old_ptr, size_t old_size, size_t new_size)
+{
+    void *new_ptr = malloc(new_size);
+
+    if (new_ptr == NULL)
+	return NULL;
+    /* We have to pass in the old size, since we have no way to */
+    /* determine it otherwise. */
+    if (old_ptr)
+	memcpy(new_ptr, old_ptr, min(old_size, new_size));
+    return new_ptr;
 }
 
 /* Allocate and initialize a string list. */
 int
-alloc_list(string_list * list)
+alloc_list(string_list_t * list)
 {
     list->count = 0;
     list->items =
-	(string_item *) calloc(list->max_count, sizeof(string_item));
+	(string_item_t *) calloc(list->max_count, sizeof(string_item_t));
     assert(list->items != NULL);
     return 0;
 }
@@ -374,7 +551,7 @@ dev_file_name(char *str)
 
 /* Delete any files that are named as -replace "resources". */
 int
-process_replaces(config * pconf)
+process_replaces(config_t * pconf)
 {
     char bufname[MAX_STR];
     int i;
@@ -396,7 +573,7 @@ process_replaces(config * pconf)
 		    int rn;
 
 		    for (rn = 0; rn < NUM_RESOURCE_LISTS; ++rn) {
-			string_item *items = pconf->lists.indexed[rn].items;
+			string_item_t *items = pconf->lists.indexed[rn].items;
 			int count = pconf->lists.indexed[rn].count;
 			int tn;
 
@@ -428,19 +605,21 @@ process_replaces(config * pconf)
     return 0;
 }
 
-/* Read an entire file into memory. */
-/* We use the 'index' of the file_contents string_item to record the union */
-/* of the uniq_modes of all (direct and indirect) items in the file. */
-/* Return the file_contents item for the file. */
-private string_item *
-read_file(config * pconf, const char *fname)
+/*
+ * Read an entire file into memory.
+ * We use the 'index' of the file_contents string_item_t to record the union
+ * of the uniq_mode_ts of all (direct and indirect) items in the file.
+ * Return the file_contents item for the file.
+ */
+private string_item_t *
+read_file(config_t * pconf, const char *fname)
 {
     char *cname = malloc(strlen(fname) + strlen(pconf->file_prefix) + 1);
     int i;
     FILE *in;
     int end, nread;
     char *cont;
-    string_item *item;
+    string_item_t *item;
 
     if (cname == 0) {
 	fprintf(stderr, "Can't allocate space for file name %s%s.\n",
@@ -480,16 +659,15 @@ read_file(config * pconf, const char *fname)
 	printf("File %s = %d bytes.\n", cname, nread);
     add_item(&pconf->file_names, cname, -1);
     item = add_item(&pconf->file_contents, cont, -1);
-    item->index = 0;		/* union of uniq_modes */
+    item->index = 0;		/* union of uniq_mode_ts */
     return item;
 }
 
-/* Read and parse a .dev file. */
-/* Return the union of all its uniq_modes. */
+/* Read and parse a .dev file.  Return the union of all its uniq_mode_ts. */
 int
-read_dev(config * pconf, const char *arg)
+read_dev(config_t * pconf, const char *arg)
 {
-    string_item *item;
+    string_item_t *item;
     const char *in;
 
 #define MAX_TOKEN 256
@@ -548,10 +726,9 @@ read_token(char *token, int max_len, const char **pin)
     return (len >= max_len ? -1 /* token too long */ : len);
 }
 
-/* Add an entry to a configuration. */
-/* Return its uniq_mode. */
+/* Add an entry to a configuration.  Return its uniq_mode_t. */
 int
-add_entry(config * pconf, char *category, const char *item, int file_index)
+add_entry(config_t * pconf, char *category, const char *item, int file_index)
 {
     if (item[0] == '-' && islower(item[1])) {	/* set category */
 	strcpy(category, item + 1);
@@ -560,7 +737,7 @@ add_entry(config * pconf, char *category, const char *item, int file_index)
 	char str[MAX_STR];
 	char template[80];
 	const char *pat = 0;
-	string_list *list = &pconf->c_resources;
+	string_list_t *list = &pconf->lists.named.resources;
 
 	if (pconf->debug)
 	    printf("Adding %s %s;\n", category, item);
@@ -574,7 +751,7 @@ add_entry(config * pconf, char *category, const char *item, int file_index)
 		    pat = "device2_(%s%%s_device)";
 		else
 		    goto err;
-		list = &pconf->c_devs;
+		list = &pconf->lists.named.devs;
 pre:		sprintf(template, pat, pconf->name_prefix);
 		pat = template;
 		break;
@@ -588,7 +765,7 @@ pre:		sprintf(template, pat, pconf->name_prefix);
 		goto err;
 	    case 'f':
 		if (IS_CAT("font")) {
-		    list = &pconf->c_fonts;
+		    list = &pconf->lists.named.fonts;
 		    break;
 		} else if (IS_CAT("functiontype")) {
 		    pat = "function_type_(%%s,%sbuild_function_%%s)";
@@ -603,7 +780,7 @@ pre:		sprintf(template, pat, pconf->name_prefix);
 		goto pre;
 	    case 'i':
 		if (IS_CAT("imageclass")) {
-		    list = &pconf->c_sorted_resources;
+		    list = &pconf->lists.named.sorted_resources;
 		    pat = "image_class_(%simage_class_%%s)";
 		} else if (IS_CAT("imagetype")) {
 		    pat = "image_type_(%%s,%simage_type_%%s)";
@@ -620,19 +797,19 @@ pre:		sprintf(template, pat, pconf->name_prefix);
 		goto pre;
 	    case 'l':
 		if (IS_CAT("lib")) {
-		    list = &pconf->c_libs;
+		    list = &pconf->lists.named.libs;
 		    break;
 		} else if (IS_CAT("libpath")) {
-		    list = &pconf->c_libpaths;
+		    list = &pconf->lists.named.libpaths;
 		    break;
 		} else if (IS_CAT("link")) {
-		    list = &pconf->c_links;
+		    list = &pconf->lists.named.links;
 		    break;
 		}
 		goto err;
 	    case 'o':
 		if (IS_CAT("obj")) {
-		    list = &pconf->c_objs;
+		    list = &pconf->lists.named.objs;
 		    strcpy(template, pconf->file_prefix);
 		    strcat(template, "%s");
 		    pat = template;
@@ -674,23 +851,23 @@ err:		fprintf(stderr, "Definition not recognized: %s %s.\n",
 }
 
 /* Add an item to a list. */
-string_item *
-add_item(string_list * list, const char *str, int file_index)
+string_item_t *
+add_item(string_list_t * list, const char *str, int file_index)
 {
     char *rstr = malloc(strlen(str) + 1);
     int count = list->count;
-    string_item *item;
+    string_item_t *item;
 
     if (count >= list->max_count) {
 	list->max_count <<= 1;
 	if (list->max_count < 20)
 	    list->max_count = 20;
 	list->items =
-	    (string_item *) mrealloc(list->items,
+	    (string_item_t *) mrealloc(list->items,
 				     (list->max_count >> 1) *
-				     sizeof(string_item),
+				     sizeof(string_item_t),
 				     list->max_count *
-				     sizeof(string_item));
+				     sizeof(string_item_t));
 	assert(list->items != NULL);
     }
     item = &list->items[count];
@@ -702,14 +879,16 @@ add_item(string_list * list, const char *str, int file_index)
     return item;
 }
 
-/* Remove duplicates from a list of string_items. */
-/* In case of duplicates, remove all but the earliest (if last = false) */
-/* or the latest (if last = true). */
-#define psi1 ((const string_item *)p1)
-#define psi2 ((const string_item *)p2)
+/*
+ * Remove duplicates from a list of string_item_ts.
+ * In case of duplicates, remove all but the earliest (if last = false)
+ * or the latest (if last = true).
+ */
 private int
 cmp_index(const void *p1, const void *p2)
 {
+    const string_item_t *const psi1 = (const string_item_t *)p1;
+    const string_item_t *const psi2 = (const string_item_t *)p2;
     int cmp = psi1->index - psi2->index;
 
     return (cmp < 0 ? -1 : cmp > 0 ? 1 : 0);
@@ -717,23 +896,24 @@ cmp_index(const void *p1, const void *p2)
 private int
 cmp_str(const void *p1, const void *p2)
 {
+    const string_item_t *const psi1 = (const string_item_t *)p1;
+    const string_item_t *const psi2 = (const string_item_t *)p2;
+
     return strcmp(psi1->str, psi2->str);
 }
-#undef psi1
-#undef psi2
 void
-sort_uniq(string_list * list, bool by_index)
+sort_uniq(string_list_t * list, bool by_index)
 {
-    string_item *strlist = list->items;
+    string_item_t *strlist = list->items;
     int count = list->count;
-    const string_item *from;
-    string_item *to;
+    const string_item_t *from;
+    string_item_t *to;
     int i;
     bool last = list->mode == uniq_last;
 
     if (count == 0)
 	return;
-    qsort((char *)strlist, count, sizeof(string_item), cmp_str);
+    qsort((char *)strlist, count, sizeof(string_item_t), cmp_str);
     for (from = to = strlist + 1, i = 1; i < count; from++, i++)
 	if (strcmp(from->str, to[-1].str))
 	    *to++ = *from;
@@ -744,14 +924,14 @@ sort_uniq(string_list * list, bool by_index)
     count = to - strlist;
     list->count = count;
     if (by_index)
-	qsort((char *)strlist, count, sizeof(string_item), cmp_index);
+	qsort((char *)strlist, count, sizeof(string_item_t), cmp_index);
 }
 
 /* Write a list of strings using a template. */
 void
-write_list(FILE * out, const string_list * list, const char *pstr)
+write_list(FILE * out, const string_list_t * list, const char *pstr)
 {
-    string_pattern pat;
+    string_pattern_t pat;
 
     pat.upper_case = false;
     pat.drop_extn = false;
@@ -759,7 +939,8 @@ write_list(FILE * out, const string_list * list, const char *pstr)
     write_list_pattern(out, list, &pat);
 }
 void
-write_list_pattern(FILE * out, const string_list * list, const string_pattern * pat)
+write_list_pattern(FILE * out, const string_list_t * list,
+		   const string_pattern_t * pat)
 {
     int i;
     char macname[40];

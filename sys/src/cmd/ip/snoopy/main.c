@@ -27,6 +27,7 @@ Filter *filter;
 Proto *root;
 Biobuf out;
 vlong starttime, pkttime;
+int pcap;
 
 int	filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr);
 void	printpkt(char *p, char *e, uchar *ps, uchar *pe);
@@ -36,6 +37,7 @@ Filter*	compile(Filter *f);
 void	printfilter(Filter *f, char *tag);
 void	printhelp(void);
 void	tracepkt(uchar*, int);
+void	pcaphdr(void);
 
 void
 usage(void)
@@ -60,8 +62,8 @@ main(int argc, char **argv)
 	fmtinstall('H', encodefmt);
 	fmtinstall('F', fcallfmt);
 
-	pkt = malloc(Pktlen+10);
-	pkt += 10;
+	pkt = malloc(Pktlen+16);
+	pkt += 16;
 	buf = malloc(Blen);
 	e = buf+Blen-1;
 
@@ -103,6 +105,10 @@ main(int argc, char **argv)
 	case 'd':
 		toflag = 1;
 		break;
+	case 'D':
+		toflag = 1;
+		pcap = 1;
+		break;
 	case 't':
 		tiflag = 1;
 		break;
@@ -110,6 +116,9 @@ main(int argc, char **argv)
 		Cflag = 1;
 		break;
 	}ARGEND;
+
+	if(pcap)
+		pcaphdr();
 
 	if(argc == 0){
 		file = "/net/ether0";
@@ -137,16 +146,14 @@ main(int argc, char **argv)
 	} else {
 		if(root == nil)
 			root = &ether;
-		tiflag = 1;
 		fd = open(file, OREAD);
 		if(fd < 0)
 			sysfatal("opening %s", file);
 	}
-
 	filter = compile(filter);
 
 	if(tiflag){
-		/* write a trace file */
+		/* read a trace file */
 		for(;;){
 			n = read(fd, pkt, 10);
 			if(n != 10)
@@ -156,7 +163,7 @@ main(int argc, char **argv)
 			if(starttime == 0LL)
 				starttime = pkttime;
 			n = NetS(pkt);
-			if(read(fd, pkt, n) != n)
+			if(readn(fd, pkt, n) != n)
 				break;
 			if(filterpkt(filter, pkt, pkt+n, root))
 				if(toflag)
@@ -168,8 +175,7 @@ main(int argc, char **argv)
 		/* read a real time stream */
 		starttime = nsec();
 		for(;;){
-			/* write a trace file */
-			n = read(fd, pkt, Pktlen);
+			n = root->framer(fd, pkt, Pktlen);
 			if(n <= 0)
 				break;
 			pkttime = nsec();
@@ -238,15 +244,68 @@ filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr)
 }
 
 /*
+ *  from the Unix world
+ */
+#define PCAP_VERSION_MAJOR 2
+#define PCAP_VERSION_MINOR 4
+#define TCPDUMP_MAGIC 0xa1b2c3d4
+
+struct pcap_file_header {
+	ulong		magic;
+	ushort		version_major;
+	ushort		version_minor;
+	long		thiszone;    /* gmt to local correction */
+	ulong		sigfigs;    /* accuracy of timestamps */
+	ulong		snaplen;    /* max length saved portion of each pkt */
+	ulong		linktype;   /* data link type (DLT_*) */
+};
+
+struct pcap_pkthdr {
+        uvlong	ts;	/* time stamp */
+        ulong	caplen;	/* length of portion present */
+        ulong	len;	/* length this packet (off wire) */
+};
+
+/*
+ *  pcap trace header 
+ */
+void
+pcaphdr(void)
+{
+	struct pcap_file_header hdr;
+
+	hdr.magic = TCPDUMP_MAGIC;
+	hdr.version_major = PCAP_VERSION_MAJOR;
+	hdr.version_minor = PCAP_VERSION_MINOR;
+  
+	hdr.thiszone = 0;
+	hdr.snaplen = 1500;
+	hdr.sigfigs = 0;
+	hdr.linktype = 1;
+
+	write(1, &hdr, sizeof(hdr));
+}
+
+/*
  *  write out a packet trace
  */
 void
 tracepkt(uchar *ps, int len)
 {
-	hnputs(ps-10, len);
-	hnputl(ps-8, pkttime>>32);
-	hnputl(ps-4, pkttime);
-	write(1, ps-10, len+10);
+	struct pcap_pkthdr *goo;
+
+	if(pcap){
+		goo = (struct pcap_pkthdr*)(ps-16);
+		goo->ts = pkttime;
+		goo->caplen = len;
+		goo->len = len;
+		write(1, goo, len+16);
+	} else {
+		hnputs(ps-10, len);
+		hnputl(ps-8, pkttime>>32);
+		hnputl(ps-4, pkttime);
+		write(1, ps-10, len+10);
+	}
 }
 
 /*
@@ -347,7 +406,6 @@ static Filter*
 addnode(Filter *f, Proto *pr)
 {
 	Filter *nf;
-
 	nf = newfilter();
 	nf->pr = pr;
 	nf->s = pr->name;
@@ -582,7 +640,8 @@ compile(Filter *f)
 
 	/* constant folding */
 	f = optimize(f);
-	printfilter(f, "after optimize");
+	if(!toflag)
+		printfilter(f, "after optimize");
 
 	/* protocol specific compilations */
 	_compile(f, nil);
@@ -592,7 +651,6 @@ compile(Filter *f)
 		findbogus(f);
 		exits("bad proto");
 	}
-
 	return f->l;	/* don't need the root */
 }
 
@@ -733,4 +791,14 @@ demux(Mux *mx, ulong val1, ulong val2, Msg *m, Proto *def)
 			break;
 		}
 	}
+}
+
+/*
+ *  default framer just assumes the input packet is
+ *  a single read
+ */
+int
+defaultframer(int fd, uchar *pkt, int pktlen)
+{
+	return read(fd, pkt, pktlen);
 }

@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxicolor.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxicolor.c,v 1.3 2001/08/06 21:22:31 dancoby Exp $ */
 /* Color image rendering */
 #include "gx.h"
 #include "memory_.h"
@@ -340,40 +340,41 @@ f:	if_debug7('B', "[B]0x%x,0x%x,0x%x,0x%x -> %ld,%ld,0x%lx\n",
 	    goto set;
 fill:	/* Fill the region between */
 	/* xrun/irun and xprev */
+        /*
+	 * Note;  This section is nearly a copy of a simlar section below
+         * for processing the image pixel in the loop.  This would have been
+         * made into a subroutine except for complications about the number of
+         * variables that would have been needed to be passed to the routine.
+	 */
 	switch (posture) {
 	case image_portrait:
 	    {		/* Rectangle */
 		int xi = irun;
-		int wi =
-		    (irun = fixed2int_var_rounded(xprev)) - xi;
+		int wi = (irun = fixed2int_var_rounded(xprev)) - xi;
 
 		if (wi < 0)
 		    xi += wi, wi = -wi;
 		if (wi > 0)
 		    code = gx_fill_rectangle_device_rop(xi, vci, wi, vdi,
 							pdevc, dev, lop);
-		xrun = xprev;	/* for sake of final run */
 	    }
 	    break;
 	case image_landscape:
 	    {		/* 90 degree rotated rectangle */
 		int yi = irun;
-		int hi =
-		    (irun = fixed2int_var_rounded(yprev)) - yi;
+		int hi = (irun = fixed2int_var_rounded(yprev)) - yi;
 
 		if (hi < 0)
 		    yi += hi, hi = -hi;
 		if (hi > 0)
 		    code = gx_fill_rectangle_device_rop(vci, yi, vdi, hi,
 							pdevc, dev, lop);
-		yrun = yprev;	/* for sake of final run */
 	    }
 	    break;
 	default:
 	    {		/* Parallelogram */
 		code = (*dev_proc(dev, fill_parallelogram))
-		    (dev, xrun, yrun,
-		     xprev - xrun, yprev - yrun, pdyx, pdyy,
+		    (dev, xrun, yrun, xprev - xrun, yprev - yrun, pdyx, pdyy,
 		     pdevc, lop);
 		xrun = xprev;
 		yrun = yprev;
@@ -401,8 +402,44 @@ inc:	xprev = dda_current(pnext.x);
 	yprev = dda_current(pnext.y);	/* harmless if no skew */
     }
     /* Fill the last run. */
-    code = (*dev_proc(dev, fill_parallelogram))
-	(dev, xrun, yrun, xprev - xrun, yprev - yrun, pdyx, pdyy, pdevc, lop);
+    /*
+     * Note;  This section is nearly a copy of a simlar section above
+     * for processing an image pixel in the loop.  This would have been
+     * made into a subroutine except for complications about the number
+     * variables that would have been needed to be passed to the routine.
+     */
+    switch (posture) {
+    	case image_portrait:
+	    {		/* Rectangle */
+		int xi = irun;
+		int wi = (irun = fixed2int_var_rounded(xprev)) - xi;
+
+		if (wi < 0)
+		    xi += wi, wi = -wi;
+		if (wi > 0)
+		    code = gx_fill_rectangle_device_rop(xi, vci, wi, vdi,
+							pdevc, dev, lop);
+	    }
+	    break;
+	case image_landscape:
+	    {		/* 90 degree rotated rectangle */
+		int yi = irun;
+		int hi = (irun = fixed2int_var_rounded(yprev)) - yi;
+
+		if (hi < 0)
+		    yi += hi, hi = -hi;
+		if (hi > 0)
+		    code = gx_fill_rectangle_device_rop(vci, yi, vdi, hi,
+							pdevc, dev, lop);
+	    }
+	    break;
+	default:
+	    {		/* Parallelogram */
+		code = (*dev_proc(dev, fill_parallelogram))
+		    (dev, xrun, yrun, xprev - xrun, yprev - yrun, pdyx, pdyy,
+		     pdevc, lop);
+	    }
+    }
     return (code < 0 ? code : 1);
     /* Save position if error, in case we resume. */
 err:

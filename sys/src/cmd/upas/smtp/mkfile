@@ -3,12 +3,23 @@
 TARG = smtpd\
 	smtp\
 
+OFILES=
 LIB=../common/libcommon.a$O\
 
 HFILES=../common/common.h\
 	../common/sys.h\
+	smtpd.h\
+	smtp.h\
 
 BIN=/$objtype/bin/upas
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/upas/%}\
+	smtpd.y\
+
 </sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common -D'SPOOL="/mail"'
 
@@ -21,9 +32,8 @@ smtpd.$O: 	smtpd.h
 smtp.$O to.$O: 	smtp.h
 
 smtpd.tab.c: smtpd.y smtpd.h
-	yacc -o $target smtpd.y
-	mv smtpd.tab.c xxx
-	sed 's/yy/zz/g' < xxx > smtpd.tab.c
+	yacc -o xxx smtpd.y
+	sed 's/yy/zz/g' < xxx > $target
 	rm xxx
 
 rfc822.tab.c: rfc822.y smtp.h

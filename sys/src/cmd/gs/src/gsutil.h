@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1993, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsutil.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsutil.h,v 1.3.6.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* Prototypes for procedures in gsutil.c */
 
 #ifndef gsutil_INCLUDED
@@ -56,7 +56,9 @@ typedef struct string_match_params_s {
     int any_char;		/* '?' */
     int quote_next;		/* '\\' */
     bool ignore_case;
+    bool slash_equiv;	/* '\\' is equivalent to '/' for Windows filename matching */
 } string_match_params;
+extern const string_match_params string_match_params_default;
 bool string_match(P5(const byte * str, uint len,
 		     const byte * pstr, uint plen,
 		     const string_match_params * psmp));

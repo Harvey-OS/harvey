@@ -1,22 +1,22 @@
 /* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gstext.c,v 1.2 2000/03/10 04:41:47 lpd Exp $ */
+/*$Id: gstext.c,v 1.6 2001/04/01 00:33:36 raph Exp $ */
 /* Driver text interface support */
 #include "memory_.h"
 #include "gstypes.h"
@@ -27,6 +27,7 @@
 #include "gsstruct.h"
 #include "gstypes.h"
 #include "gxdevcli.h"
+#include "gxdcolor.h"		/* for gs_state_color_load */
 #include "gxfont.h"		/* for init_fstack */
 #include "gxpath.h"
 #include "gxtext.h"
@@ -80,15 +81,16 @@ RELOC_PTRS_END
 
 private ENUM_PTRS_WITH(text_enum_enum_ptrs, gs_text_enum_t *eptr)
 {
-    index -= 7;
+    index -= 8;
     if (index <= eptr->fstack.depth)
 	ENUM_RETURN(eptr->fstack.items[index].font);
     index -= eptr->fstack.depth + 1;
      return ENUM_USING(st_gs_text_params, &eptr->text, sizeof(eptr->text), index);
 }
 case 0: return ENUM_OBJ(gx_device_enum_ptr(eptr->dev));
-ENUM_PTR3(1, gs_text_enum_t, pis, orig_font, path);
-ENUM_PTR3(4, gs_text_enum_t, pdcolor, pcpath, current_font);
+case 1: return ENUM_OBJ(gx_device_enum_ptr(eptr->imaging_dev));
+ENUM_PTR3(2, gs_text_enum_t, pis, orig_font, path);
+ENUM_PTR3(5, gs_text_enum_t, pdcolor, pcpath, current_font);
 ENUM_PTRS_END
 
 private RELOC_PTRS_WITH(text_enum_reloc_ptrs, gs_text_enum_t *eptr)
@@ -97,6 +99,7 @@ private RELOC_PTRS_WITH(text_enum_reloc_ptrs, gs_text_enum_t *eptr)
 
     RELOC_USING(st_gs_text_params, &eptr->text, sizeof(eptr->text));
     eptr->dev = gx_device_reloc_ptr(eptr->dev, gcst);
+    eptr->imaging_dev = gx_device_reloc_ptr(eptr->imaging_dev, gcst);
     RELOC_PTR3(gs_text_enum_t, pis, orig_font, path);
     RELOC_PTR3(gs_text_enum_t, pdcolor, pcpath, current_font);
     for (i = 0; i <= eptr->fstack.depth; i++)
@@ -138,6 +141,7 @@ gs_text_enum_init_dynamic(gs_text_enum_t *pte, gs_font *font)
     pte->current_font = font;
     pte->index = 0;
     pte->xy_index = 0;
+    pte->FontBBox_as_Metrics2.x = pte->FontBBox_as_Metrics2.y = 0;
     return font->procs.init_fstack(pte, font);
 }
 int
@@ -151,6 +155,7 @@ gs_text_enum_init(gs_text_enum_t *pte, const gs_text_enum_procs_t *procs,
 
     pte->text = *text;
     pte->dev = dev;
+    pte->imaging_dev = NULL;
     pte->pis = pis;
     pte->orig_font = font;
     pte->path = path;
@@ -183,6 +188,7 @@ gs_text_enum_copy_dynamic(gs_text_enum_t *pto, const gs_text_enum_t *pfrom,
     pto->index = pfrom->index;
     pto->xy_index = pfrom->xy_index;
     pto->fstack.depth = depth;
+    pto->FontBBox_as_Metrics2 = pfrom->FontBBox_as_Metrics2;
     if (depth >= 0)
 	memcpy(pto->fstack.items, pfrom->fstack.items,
 	       (depth + 1) * sizeof(pto->fstack.items[0]));
@@ -205,6 +211,9 @@ gs_text_begin(gs_state * pgs, const gs_text_params_t * text,
 	if (code < 0)
 	    return code;
 	gx_set_dev_color(pgs);
+	code = gs_state_color_load(pgs);
+	if (code < 0)
+	    return code;
     }
     return gx_device_text_begin(pgs->device, (gs_imager_state *) pgs,
 				text, pgs->font, pgs->path, pgs->dev_color,
@@ -509,6 +518,7 @@ void
 gx_default_text_release(gs_text_enum_t *pte, client_name_t cname)
 {
     rc_decrement_only(pte->dev, cname);
+    rc_decrement_only(pte->imaging_dev, cname);
 }
 void
 rc_free_text_enum(gs_memory_t * mem, void *obj, client_name_t cname)

@@ -43,6 +43,7 @@ tdfxlinear(VGAscr* scr, int* size, int* align)
 		switch(p->did){
 		case 0x0003:		/* Banshee */
 		case 0x0005:		/* Avenger (a.k.a. Voodoo3) */
+		case 0x0009:		/* Voodoo5 */
 			aperture = p->mem[1].bar & ~0x0F;
 			*size = p->mem[1].size;
 			break;

@@ -37,6 +37,9 @@ void	setrealloctag(void *ptr, ulong tag)
 .B
 ulong	getrealloctag(void *ptr, ulong tag)
 .PP
+.B
+void*	malloctopoolblock(void*)
+.PP
 .SH DESCRIPTION
 .I Malloc
 and
@@ -50,8 +53,7 @@ The block is suitably aligned for storage of any type of object.
 No two active pointers from
 .I malloc
 will have the same value.
-Incompatibly with ANSI C,
-the call
+The call
 .B malloc(0)
 returns a valid pointer rather than null.
 .PP
@@ -80,15 +82,22 @@ bytes and returns a pointer to the (possibly moved)
 block.
 The contents will be unchanged up to the
 lesser of the new and old sizes.
-The call
+.I Realloc
+takes on special meanings when one or both arguments are zero:
+.TP
 .B "realloc(0,\ size)
-means the same as
-.LR malloc(size) .
-Further,
-the call
+means
+.LR malloc(size) ;
+returns a pointer to the newly-allocated memory
+.TP
 .B "realloc(ptr,\ 0)
-means the same as
-.LR free(ptr) .
+means
+.LR free(ptr) ;
+returns null
+.TP
+.B "realloc(0,\ 0)
+no-op; returns null
+.PD
 .PP
 .I Calloc
 allocates space for

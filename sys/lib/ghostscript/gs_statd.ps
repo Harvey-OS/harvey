@@ -1,21 +1,21 @@
 %    Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of Aladdin Ghostscript.
+% This file is part of AFPL Ghostscript.
 % 
-% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-% or distributor accepts any responsibility for the consequences of using it,
-% or for whether it serves any particular purpose or works at all, unless he
-% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-% License (the "License") for full details.
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
 % 
-% Every copy of Aladdin Ghostscript must include a copy of the License,
-% normally in a plain ASCII text file named PUBLIC.  The License grants you
-% the right to copy, modify and redistribute Aladdin Ghostscript, but only
-% under certain conditions described in the License.  Among other things, the
-% License requires that the copyright notice and this notice be preserved on
-% all copies.
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
 
-% $Id: gs_statd.ps,v 1.2 2000/03/10 04:01:55 lpd Exp $
+% $Id: gs_statd.ps,v 1.5 2001/05/30 21:14:35 rayjj Exp $
 % This file provides statusdict, serverdict, and assorted LaserWriter
 % operators, mostly for the benefit of poorly designed PostScript programs
 % that 'know' they are running on a LaserWriter.
@@ -54,7 +54,7 @@ userdict begin
 % shrunk by 25 units on all 4 sides.
  /note /letter load def
 		% End of Adobe-defined page sizes
-STRICT { (%END) .skipeof } if
+STRICT { (%END SIZES) .skipeof } if
 		% Other page sizes
 	% ISO standard paper sizes
  /a0 {2380 3368 //.setpagesize exec} bind def
@@ -120,10 +120,19 @@ statusdict begin
 % Define the pagetype values for the known page formats.
 % The values for all but letter and note are arbitrary.
 /.pagetypenames
- { /letter /note /legal 
-   /a0 /a1 /a2 /a3 /a4 /a5 /a6 /a7 /a8 /a9 /a10
-   /b0 /b1 /b2 /b3 /b4 /b5 /b6 /archE /archD /archC /archB /archA
-   /flsa /flse /halfletter /11x17 /ledger
+ { /letter /note	%do not change this line, needed by 'setpagetype'
+   /legal /lettersmall
+   /11x17 /ledger
+   /a4small /a3 /a4
+STRICT { (%END SIZES) .skipeof } if
+   /a0 /a1 /a2 /a5 /a6 /a7 /a8 /a9 /a10
+   /archA /archB /archC /archD /archE
+   /b0 /b1 /b2 /b3 /b4 /b5 /b6
+   /c0 /c1 /c2 /c3 /c4 /c5 /c6
+   /flsa /flse /halfletter
+   /isob0 /isob1 /isob2 /isob3 /isob4 /isob5 /isob6
+   /jisb0 /jisb1 /jisb2 /jisb3 /jisb4 /jisb5 /jisb6
+%END SIZES
  } cvlit readonly def
 
 %%%%%% The following items were suggested by a user as useful.

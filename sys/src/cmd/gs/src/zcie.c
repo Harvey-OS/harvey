@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zcie.c,v 1.2 2000/05/18 19:02:25 lpd Exp $ */
+/*$Id: zcie.c,v 1.5 2001/03/17 01:15:42 raph Exp $ */
 /* CIE color operators */
 #include "math_.h"
 #include "memory_.h"
@@ -53,15 +53,13 @@ int
 dict_ranges_param(const ref * pdref, const char *kstr, int count,
 		  gs_range * prange)
 {
-    int code = dict_float_array_param(pdref, kstr, count * 2,
-				      (float *)prange, NULL);
+    int code = dict_floats_param(pdref, kstr, count * 2,
+				 (float *)prange, NULL);
 
     if (code < 0)
 	return code;
     else if (code == 0)
 	memcpy(prange, Range4_default.ranges, count * sizeof(gs_range));
-    else if (code != count * 2)
-	return_error(e_rangecheck);
     return 0;
 }
 
@@ -115,9 +113,9 @@ dict_matrix3_param(const ref *pdref, const char *kstr, gs_matrix3 *pmat3)
     memcpy(&values[0], &Matrix3_default.cu, 3 * sizeof(float));
     memcpy(&values[3], &Matrix3_default.cv, 3 * sizeof(float));
     memcpy(&values[6], &Matrix3_default.cw, 3 * sizeof(float));
-    code = dict_float_array_param(pdref, kstr, 9, values, values);
-    if (code != 9)
-	return (code < 0 ? code : gs_note_error(e_rangecheck));
+    code = dict_floats_param(pdref, kstr, 9, values, values);
+    if (code < 0)
+	return code;
     memcpy(&pmat3->cu, &values[0], 3 * sizeof(float));
     memcpy(&pmat3->cv, &values[3], 3 * sizeof(float));
     memcpy(&pmat3->cw, &values[6], 3 * sizeof(float));
@@ -137,10 +135,10 @@ cie_points_param(const ref * pdref, gs_cie_wb * pwb)
 {
     int code;
 
-    if ((code = dict_float_array_param(pdref, "WhitePoint", 3, (float *)&pwb->WhitePoint, NULL)) != 3 ||
-	(code = dict_float_array_param(pdref, "BlackPoint", 3, (float *)&pwb->BlackPoint, (const float *)&BlackPoint_default)) != 3
+    if ((code = dict_floats_param(pdref, "WhitePoint", 3, (float *)&pwb->WhitePoint, NULL)) < 0 ||
+	(code = dict_floats_param(pdref, "BlackPoint", 3, (float *)&pwb->BlackPoint, (const float *)&BlackPoint_default)) < 0
 	)
-	return (code < 0 ? code : gs_note_error(e_rangecheck));
+	return code;
     if (pwb->WhitePoint.u <= 0 ||
 	pwb->WhitePoint.v != 1 ||
 	pwb->WhitePoint.w <= 0 ||
@@ -271,8 +269,8 @@ cie_abc_param(const ref * pdref, gs_cie_abc * pcie, ref_cie_procs * pcprocs)
 }
 
 /* Finish setting a CIE space (successful or not). */
-private int
-set_cie_finish(i_ctx_t *i_ctx_p, gs_color_space * pcs,
+int
+cie_set_finish(i_ctx_t *i_ctx_p, gs_color_space * pcs,
 	       const ref_cie_procs * pcprocs, int edepth, int code)
 {
     if (code >= 0)
@@ -280,7 +278,7 @@ set_cie_finish(i_ctx_t *i_ctx_p, gs_color_space * pcs,
     /* Delete the extra reference to the parameter tables. */
     gs_cspace_release(pcs);
     /* Free the top-level object, which was copied by gs_setcolorspace. */
-    gs_free_object(gs_state_memory(igs), pcs, "set_cie_finish");
+    gs_free_object(gs_state_memory(igs), pcs, "cie_set_finish");
     if (code < 0) {
 	ref_stack_pop_to(&e_stack, edepth);
 	return code;
@@ -339,7 +337,7 @@ zsetciedefgspace(i_ctx_t *i_ctx_p)
 	(code = cache_abc_common(i_ctx_p, (gs_cie_abc *)pcie, &procs, pcie, imem)) < 0
 	)
 	DO_NOTHING;
-    return set_cie_finish(i_ctx_p, pcs, &procs, edepth, code);
+    return cie_set_finish(i_ctx_p, pcs, &procs, edepth, code);
 }
 private int
 cie_defg_finish(i_ctx_t *i_ctx_p)
@@ -397,7 +395,7 @@ zsetciedefspace(i_ctx_t *i_ctx_p)
 	(code = cache_abc_common(i_ctx_p, (gs_cie_abc *)pcie, &procs, pcie, imem)) < 0
 	)
 	DO_NOTHING;
-    return set_cie_finish(i_ctx_p, pcs, &procs, edepth, code);
+    return cie_set_finish(i_ctx_p, pcs, &procs, edepth, code);
 }
 private int
 cie_def_finish(i_ctx_t *i_ctx_p)
@@ -440,7 +438,7 @@ zsetcieabcspace(i_ctx_t *i_ctx_p)
 	(code = cache_abc_common(i_ctx_p, pcie, &procs, pcie, imem)) < 0
 	)
 	DO_NOTHING;
-    return set_cie_finish(i_ctx_p, pcs, &procs, edepth, code);
+    return cie_set_finish(i_ctx_p, pcs, &procs, edepth, code);
 }
 private int
 cie_abc_finish(i_ctx_t *i_ctx_p)
@@ -478,8 +476,8 @@ zsetcieaspace(i_ctx_t *i_ctx_p)
     if (code < 0)
 	return code;
     pcie = pcs->params.a;
-    if ((code = dict_float_array_param(op, "RangeA", 2, (float *)&pcie->RangeA, (const float *)&RangeA_default)) != 2 ||
-	(code = dict_float_array_param(op, "MatrixA", 3, (float *)&pcie->MatrixA, (const float *)&MatrixA_default)) != 3 ||
+    if ((code = dict_floats_param(op, "RangeA", 2, (float *)&pcie->RangeA, (const float *)&RangeA_default)) < 0 ||
+	(code = dict_floats_param(op, "MatrixA", 3, (float *)&pcie->MatrixA, (const float *)&MatrixA_default)) < 0 ||
 	(code = cie_lmnp_param(op, &pcie->common, &procs)) < 0 ||
 	(code = cie_cache_joint(i_ctx_p, &istate->colorrendering.procs, (gs_cie_common *)pcie, igs)) < 0 ||	/* do this last */
 	(code = cie_cache_push_finish(i_ctx_p, cie_a_finish, imem, pcie)) < 0 ||
@@ -488,7 +486,7 @@ zsetcieaspace(i_ctx_t *i_ctx_p)
 	)
 	DO_NOTHING;
     pcie->DecodeA = DecodeA_default;
-    return set_cie_finish(i_ctx_p, pcs, &procs, edepth, code);
+    return cie_set_finish(i_ctx_p, pcs, &procs, edepth, code);
 }
 private int
 cie_a_finish(i_ctx_t *i_ctx_p)

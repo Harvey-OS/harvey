@@ -30,7 +30,7 @@ readibuf(Ibuf *b, char *buf, int len)
 		b->rp += n;
 		return n;
 	}
-	return b->io->read(b->io, b->fd, buf, len);
+	return ioread(b->io, b->fd, buf, len);
 }
 
 void
@@ -57,7 +57,7 @@ readline(Ibuf *b, char *buf, int len)
 
 	for(p = buf;;){
 		if(b->rp >= b->wp){
-			n = b->io->read(b->io, b->fd, b->wp, sizeof(b->buf)/2);
+			n = ioread(b->io, b->fd, b->wp, sizeof(b->buf)/2);
 			if(n < 0)
 				return -1;
 			if(n == 0)

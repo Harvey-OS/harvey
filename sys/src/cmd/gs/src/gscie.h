@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gscie.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gscie.h,v 1.3 2001/03/17 01:15:42 raph Exp $ */
 /* Structures for CIE color algorithms */
 /* (requires gscspace.h, gscolor2.h) */
 
@@ -358,9 +358,12 @@ struct gs_cie_common_s {
     } caches;
 };
 
-#define private_st_cie_common()     /* in gscscie.c */\
-  gs_private_st_ptrs1(st_cie_common, gs_cie_common, "gs_cie_common",\
+/* st_cie_common and st_cie_common_elements_t are exported for gsicc.c */
+#define public_st_cie_common()     /* in gscscie.c */\
+  gs_public_st_ptrs1(st_cie_common, gs_cie_common, "gs_cie_common",\
 		      cie_common_enum_ptrs, cie_common_reloc_ptrs, client_data)
+
+/* extern_st(st_cie_common); */ /* in gxcie.h */
 
 #define gs_cie_common_elements\
 	gs_cie_common common;		/* must be first */\
@@ -369,13 +372,15 @@ typedef struct gs_cie_common_elements_s {
     gs_cie_common_elements;
 } gs_cie_common_elements_t;
 
-#define private_st_cie_common_elements() /* in gscscie.c */ \
-  gs_private_st_suffix_add0_local(st_cie_common_elements_t,\
+#define public_st_cie_common_elements() /* in gscscie.c */ \
+  gs_public_st_suffix_add0_local( st_cie_common_elements_t,\
 				  gs_cie_common_elements_t,\
 				  "gs_cie_common_elements_t",\
 				  cie_common_enum_ptrs,\
 				  cie_common_reloc_ptrs,\
 				  st_cie_common)
+
+/* extern_st(st_cie_common_elements_t); */ /* in gxcie.h */
 
 /* A CIEBasedA dictionary. */
 struct gs_cie_a_s {

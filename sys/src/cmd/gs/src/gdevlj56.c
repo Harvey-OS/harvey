@@ -1,22 +1,22 @@
 /* Copyright (C) 1997, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevlj56.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevlj56.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $ */
 /* H-P LaserJet 5 & 6 drivers for Ghostscript */
 #include "gdevprn.h"
 #include "stream.h"
@@ -48,7 +48,7 @@ private dev_proc_print_page(ljet5_print_page);
 private const gx_device_procs ljet5_procs =
 prn_procs(ljet5_open, gdev_prn_output_page, ljet5_close);
 
-gx_device_printer gs_lj5mono_device =
+const gx_device_printer gs_lj5mono_device =
 prn_device(ljet5_procs, "lj5mono",
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
@@ -60,7 +60,7 @@ prn_color_procs(ljet5_open, gdev_prn_output_page, ljet5_close,
 		gx_default_gray_map_rgb_color,
 		gx_default_gray_map_color_rgb);
 
-gx_device_printer gs_lj5gray_device = {
+const gx_device_printer gs_lj5gray_device = {
     prn_device_body(gx_device_printer, lj5gray_procs, "lj5gray",
 		    DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 		    X_DPI, Y_DPI,

@@ -137,4 +137,4 @@ char*		ipattr(char*);
 Ndbtuple*	ndbipinfo(Ndb*, char*, char*, char**, int);
 Ndbtuple*	csipinfo(char*, char*, char*, char**, int);
 Ndbtuple*	dnsquery(char*, char*, char*);
-
+int		ndbchanged(Ndb *db);

@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsshade.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsshade.c,v 1.4 2001/04/05 08:32:28 igorm Exp $ */
 /* Constructors for shadings */
 #include "gx.h"
 #include "gscspace.h"
@@ -145,13 +145,13 @@ mesh_shading_params_init(gs_shading_mesh_params_t *params)
 
 /* Allocate and initialize a shading. */
 /* Free variables: mem, params, ppsh, psh. */
-#define ALLOC_SHADING(sttype, stype, sfrproc, cname)\
+#define ALLOC_SHADING(sttype, stype, sprocs, cname)\
   BEGIN\
     psh = gs_alloc_struct(mem, void, sttype, cname);\
     if ( psh == 0 )\
       return_error(gs_error_VMerror);\
     psh->head.type = stype;\
-    psh->head.fill_rectangle = sfrproc;\
+    psh->head.procs = sprocs;\
     psh->params = *params;\
     *ppsh = (gs_shading_t *)psh;\
   END
@@ -172,6 +172,9 @@ gs_shading_Fb_params_init(gs_shading_Fb_params_t * params)
 }
 
 /* Allocate and initialize a Function-based shading. */
+private const gs_shading_procs_t shading_Fb_procs = {
+    gs_shading_Fb_fill_rectangle
+};
 int
 gs_shading_Fb_init(gs_shading_t ** ppsh,
 		   const gs_shading_Fb_params_t * params, gs_memory_t * mem)
@@ -186,7 +189,7 @@ gs_shading_Fb_init(gs_shading_t ** ppsh,
 	)
 	return code;
     ALLOC_SHADING(&st_shading_Fb, shading_type_Function_based,
-		  gs_shading_Fb_fill_rectangle, "gs_shading_Fb_init");
+		  shading_Fb_procs, "gs_shading_Fb_init");
     return 0;
 }
 
@@ -207,6 +210,9 @@ gs_shading_A_params_init(gs_shading_A_params_t * params)
 }
 
 /* Allocate and initialize an Axial shading. */
+private const gs_shading_procs_t shading_A_procs = {
+    gs_shading_A_fill_rectangle
+};
 int
 gs_shading_A_init(gs_shading_t ** ppsh,
 		  const gs_shading_A_params_t * params, gs_memory_t * mem)
@@ -218,7 +224,7 @@ gs_shading_A_init(gs_shading_t ** ppsh,
     if (code < 0)
 	return code;
     ALLOC_SHADING(&st_shading_A, shading_type_Axial,
-		  gs_shading_A_fill_rectangle, "gs_shading_A_init");
+		  shading_A_procs, "gs_shading_A_init");
     return 0;
 }
 
@@ -239,6 +245,9 @@ gs_shading_R_params_init(gs_shading_R_params_t * params)
 }
 
 /* Allocate and initialize a Radial shading. */
+private const gs_shading_procs_t shading_R_procs = {
+    gs_shading_R_fill_rectangle
+};
 int
 gs_shading_R_init(gs_shading_t ** ppsh,
 		  const gs_shading_R_params_t * params, gs_memory_t * mem)
@@ -254,7 +263,7 @@ gs_shading_R_init(gs_shading_t ** ppsh,
 	)
 	return_error(gs_error_rangecheck);
     ALLOC_SHADING(&st_shading_R, shading_type_Radial,
-		  gs_shading_R_fill_rectangle, "gs_shading_R_init");
+		  shading_R_procs, "gs_shading_R_init");
     return 0;
 }
 
@@ -271,6 +280,9 @@ gs_shading_FfGt_params_init(gs_shading_FfGt_params_t * params)
 }
 
 /* Allocate and initialize a Free-form Gouraud triangle mesh shading. */
+private const gs_shading_procs_t shading_FfGt_procs = {
+    gs_shading_FfGt_fill_rectangle
+};
 int
 gs_shading_FfGt_init(gs_shading_t ** ppsh,
 		     const gs_shading_FfGt_params_t * params,
@@ -287,7 +299,7 @@ gs_shading_FfGt_init(gs_shading_t ** ppsh,
     if (params->Decode != 0 && params->Decode[0] == params->Decode[1])
 	return_error(gs_error_rangecheck);
     ALLOC_SHADING(&st_shading_FfGt, shading_type_Free_form_Gouraud_triangle,
-		  gs_shading_FfGt_fill_rectangle, "gs_shading_FfGt_init");
+		  shading_FfGt_procs, "gs_shading_FfGt_init");
     psh->params.BitsPerFlag = bpf;
     return 0;
 }
@@ -305,6 +317,9 @@ gs_shading_LfGt_params_init(gs_shading_LfGt_params_t * params)
 }
 
 /* Allocate and initialize a Lattice-form Gouraud triangle mesh shading. */
+private const gs_shading_procs_t shading_LfGt_procs = {
+    gs_shading_LfGt_fill_rectangle
+};
 int
 gs_shading_LfGt_init(gs_shading_t ** ppsh,
 		 const gs_shading_LfGt_params_t * params, gs_memory_t * mem)
@@ -317,7 +332,7 @@ gs_shading_LfGt_init(gs_shading_t ** ppsh,
     if (params->VerticesPerRow < 2)
 	return_error(gs_error_rangecheck);
     ALLOC_SHADING(&st_shading_LfGt, shading_type_Lattice_form_Gouraud_triangle,
-		  gs_shading_LfGt_fill_rectangle, "gs_shading_LfGt_init");
+		  shading_LfGt_procs, "gs_shading_LfGt_init");
     return 0;
 }
 
@@ -334,6 +349,9 @@ gs_shading_Cp_params_init(gs_shading_Cp_params_t * params)
 }
 
 /* Allocate and initialize a Coons patch mesh shading. */
+private const gs_shading_procs_t shading_Cp_procs = {
+    gs_shading_Cp_fill_rectangle
+};
 int
 gs_shading_Cp_init(gs_shading_t ** ppsh,
 		   const gs_shading_Cp_params_t * params, gs_memory_t * mem)
@@ -347,7 +365,7 @@ gs_shading_Cp_init(gs_shading_t ** ppsh,
     if (bpf < 0)
 	return bpf;
     ALLOC_SHADING(&st_shading_Cp, shading_type_Coons_patch,
-		  gs_shading_Cp_fill_rectangle, "gs_shading_Cp_init");
+		  shading_Cp_procs, "gs_shading_Cp_init");
     psh->params.BitsPerFlag = bpf;
     return 0;
 }
@@ -365,6 +383,9 @@ gs_shading_Tpp_params_init(gs_shading_Tpp_params_t * params)
 }
 
 /* Allocate and initialize a Tensor product patch mesh shading. */
+private const gs_shading_procs_t shading_Tpp_procs = {
+    gs_shading_Tpp_fill_rectangle
+};
 int
 gs_shading_Tpp_init(gs_shading_t ** ppsh,
 		  const gs_shading_Tpp_params_t * params, gs_memory_t * mem)
@@ -378,7 +399,7 @@ gs_shading_Tpp_init(gs_shading_t ** ppsh,
     if (bpf < 0)
 	return bpf;
     ALLOC_SHADING(&st_shading_Tpp, shading_type_Tensor_product_patch,
-		  gs_shading_Tpp_fill_rectangle, "gs_shading_Tpp_init");
+		  shading_Tpp_procs, "gs_shading_Tpp_init");
     psh->params.BitsPerFlag = bpf;
     return 0;
 }
@@ -479,6 +500,8 @@ gs_shading_fill_path(const gs_shading_t *psh, /*const*/ gx_path *ppath,
 	goto out;
     gx_make_clip_device(&path_dev, &path_clip->rect_list->list);
     path_dev.target = dev;
+    path_dev.HWResolution[0] = dev->HWResolution[0];
+    path_dev.HWResolution[1] = dev->HWResolution[1];
     dev = (gx_device *)&path_dev;
     dev_proc(dev, open_device)(dev);
     dev_proc(dev, get_clipping_box)(dev, &path_box);
@@ -510,7 +533,7 @@ gs_shading_fill_path(const gs_shading_t *psh, /*const*/ gx_path *ppath,
 	path_rect.q.y = fixed2float(path_box.q.y);
 	gs_bbox_transform_inverse(&path_rect, (const gs_matrix *)pmat, &rect);
     }
-    code = psh->head.fill_rectangle(psh, &rect, dev, pis);
+    code = gs_shading_fill_rectangle(psh, &rect, dev, pis);
 out:
     if (path_clip)
 	gx_cpath_free(path_clip, "shading_fill_path(path_clip)");

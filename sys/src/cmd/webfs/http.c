@@ -172,11 +172,11 @@ httpopen(Client *c, Url *url)
 	c->aux = hs;
 	if(httpdebug)
 		fprint(2, "dial %s\n", hs->netaddr);
-	fd = io->dial(io, hs->netaddr, 0, 0, 0, url->ischeme==UShttps);
+	fd = iotlsdial(io, hs->netaddr, 0, 0, 0, url->ischeme==UShttps);
 	if(fd < 0){
 	Error:
 		if(httpdebug)
-			fprint(2, "io->dial: %r\n");
+			fprint(2, "iodial: %r\n");
 		free(hs->netaddr);
 		free(hs);
 		close(hs->fd);
@@ -188,32 +188,32 @@ httpopen(Client *c, Url *url)
 	if(httpdebug)
 		fprint(2, "<- %s %s HTTP/1.0\n<- Host: %s\n",
 			c->havepostbody? "POST": " GET", url->http.page_spec, url->host);
-	io->print(io, fd, "%s %s HTTP/1.0\r\nHost: %s\r\n",
+	ioprint(io, fd, "%s %s HTTP/1.0\r\nHost: %s\r\n",
 		c->havepostbody? "POST" : "GET", url->http.page_spec, url->host);
 	if(httpdebug)
 		fprint(2, "<- User-Agent: %s\n", c->ctl.useragent);
 	if(c->ctl.useragent)
-		io->print(io, fd, "User-Agent: %s\r\n", c->ctl.useragent);
+		ioprint(io, fd, "User-Agent: %s\r\n", c->ctl.useragent);
 	if(c->ctl.sendcookies){
 		/* should we use url->page here?  sometimes it is nil. */
 		cookies = httpcookies(url->host, url->http.page_spec, 0);
 		if(cookies && cookies[0])
-			io->print(io, fd, "%s", cookies);
+			ioprint(io, fd, "%s", cookies);
 		if(httpdebug)
 			fprint(2, "<- %s", cookies);
 		free(cookies);
 	}
 	if(c->havepostbody){
-		io->print(io, fd, "Content-type: %s\r\n", PostContentType);
-		io->print(io, fd, "Content-length: %ud\r\n", c->npostbody);
+		ioprint(io, fd, "Content-type: %s\r\n", PostContentType);
+		ioprint(io, fd, "Content-length: %ud\r\n", c->npostbody);
 		if(httpdebug){
 			fprint(2, "<- Content-type: %s\n", PostContentType);
 			fprint(2, "<- Content-length: %ud\n", c->npostbody);
 		}
 	}
-	io->print(io, fd, "\r\n");
+	ioprint(io, fd, "\r\n");
 	if(c->havepostbody)
-		if(io->write(io, fd, c->postbody, c->npostbody) != c->npostbody)
+		if(iowrite(io, fd, c->postbody, c->npostbody) != c->npostbody)
 			goto Error;
 
 	c->havepostbody = 0;
@@ -342,7 +342,7 @@ httpclose(Client *c)
 	HttpState *hs;
 
 	hs = c->aux;
-	c->io->close(c->io, hs->fd);
+	ioclose(c->io, hs->fd);
 	hs->fd = -1;
 	free(hs->location);
 	free(hs->setcookie);

@@ -4,6 +4,7 @@
 #define NOP	XCHGL	AX,AX
 #define CPUID	BYTE $0x0F; BYTE $0xA2	/* CPUID, argument in AX */
 #define RDMSR	BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
+#define RDTSC 	BYTE $0x0F; BYTE $0x31
 
 TEXT	origin(SB),$0
 
@@ -557,6 +558,13 @@ TEXT	splx(SB),$0
 TEXT	getstatus(SB),$0
 	PUSHFL
 	POPL	AX
+	RET
+
+TEXT rdtsc(SB), $0				/* time stamp counter; cycles since power up */
+	RDTSC
+	MOVL	vlong+0(FP), CX			/* &vlong */
+	MOVL	AX, 0(CX)			/* lo */
+	MOVL	DX, 4(CX)			/* hi */
 	RET
 
 TEXT rdmsr(SB), $0				/* model-specific register */

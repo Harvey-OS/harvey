@@ -326,7 +326,7 @@ rpcread(Req *r)
 			break;
 		}
 		memmove(r->ofcall.data, "ok ", 3);
-		fss->ai.cap = mkcap(fss->ai.cuid);
+		fss->ai.cap = mkcap(r->fid->uid, fss->ai.cuid);
 		e = convAI2M(&fss->ai, (uchar*)r->ofcall.data+3, r->ifcall.count-3);
 		free(fss->ai.cap);
 		fss->ai.cap = nil;

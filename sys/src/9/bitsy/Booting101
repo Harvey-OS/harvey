@@ -58,11 +58,18 @@ the con program:
 	partition define ramdisk 0x200000 0x600000 0
 	partition define fs 0x800000 0x800000 0
 	params save
-After each line you'll get a message like `defining partiton: params'.
+After each line you'll get a message like `defining partition: params'.
+Different versions of the bootloader predefine different partitions.
+The bootldr partitions is usually predefined, so you don't have to remake
+that.  You may have to delete one or two partitions.  The command is
+	partition delete <name>
+Make sure the partition layout is as given above; some of this knowledge is
+built into the kernel.
 
 10. Before you can fill the new partitions with a kernel and a read-only
 file system, you'll have to make them.  In the directory /sys/src/9/bitsy,
-type mk and mk paqdisk.  Before mk-ing paqdisk, examine the file
+type mk and mk paqdisk.  Before mk-ing paqdisk, make sure you have all
+the necessary arm binaries installed in /arm and examine the file
 paqfiles/mfs to see what you need to change for connecting to your local
 file servers.
 
@@ -73,9 +80,15 @@ another xmodem download.  Again escape using "Ctrl-\", then use
 12. Download the ramdisk, using "load ramdisk" and
 "!xms /sys/src/9/bitsy/paqdisk", similarly to 10, above. 
 
-13. Type `boot'.  This time, select "boot Linux" at the
-penguin splash screen.  You'll get a Dutch flag, then the boot screen
-will say:
+13. Type `boot' or `boot flash' depending on your version of the boot loader.
+If you need the latter, you may want to
+	set boot_type flash
+and
+	params save
+to make boot flash the default.
+
+You'll get a Dutch flag (or a French one, if you hold the iPaq the wrong way),
+then the boot screen will say:
 
 	root is from [paq]:
 
@@ -91,7 +104,7 @@ could be off since there is depth to the glass in the screen.
 keyboard/scribble area at the bottom.  This is a simple one file editor.
 This file is similar to plan9.ini on PC's.  There may be garbage on the
 top line.  If there is, delete the garbage letters.  You should be left with
-a single line containing (with slightly different numbers)
+a single line containing (with different numbers)
 	calibrate='-16374 22919 251 -24'
 You need to enter a few more things, including,
 but not limited to:
@@ -111,7 +124,7 @@ the word iPAQ on the bitsy.  The system will now come
 up as you.  However, you'll get a message about the flash file system
 being corrupted, because we haven't yet initialized it.
 
-16. To set up the file systems, sweep a window and do the following
+16. To set up the file systems, sweep a window and give the following
 sequence of commands.
 
 	# aux/mkflashfs /dev/flash/fs

@@ -23,6 +23,7 @@ void	clearmouse(void);
 void	allwindows(void(*)(Window*, void*), void*);
 uint loadfile(int, uint, int*, int(*)(void*, uint, Rune*, int), void*);
 
+Window*	errorwin(Mntdir*, int);
 Runestr cleanrname(Runestr);
 void	run(Window*, char*, Rune*, int, int, char*, char*, int);
 void fsysclose(void);

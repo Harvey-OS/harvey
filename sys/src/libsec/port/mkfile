@@ -2,16 +2,19 @@
 
 LIB=/$objtype/lib/libsec.a
 
-ALLOFILES = des.$O desmodes.$O desECB.$O desCBC.$O des3ECB.$O des3CBC.$O\
-	aes.$O blowfish.$O \
-	hmac.$O md5.$O md5block.$O md4.$O sha1.$O sha1block.$O\
-	sha1pickle.$O md5pickle.$O\
-	rc4.$O\
-	genrandom.$O prng.$O\
-	probably_prime.$O smallprimetest.$O genprime.$O dsaprimes.$O gensafeprime.$O genstrongprime.$O\
-	rsagen.$O rsaencrypt.$O rsadecrypt.$O rsaalloc.$O rsaprivtopub.$O x509.$O decodepem.$O \
-	eggen.$O egencrypt.$O egdecrypt.$O egalloc.$O egprivtopub.$O egsign.$O egverify.$O \
-	tlshand.$O thumb.$O readcert.$O \
+CFILES = des.c desmodes.c desECB.c desCBC.c des3ECB.c des3CBC.c\
+	aes.c blowfish.c \
+	hmac.c md5.c md5block.c md4.c sha1.c sha1block.c\
+	sha1pickle.c md5pickle.c\
+	rc4.c\
+	genrandom.c prng.c\
+	probably_prime.c smallprimetest.c genprime.c dsaprimes.c gensafeprime.c genstrongprime.c\
+	rsagen.c rsaencrypt.c rsadecrypt.c rsaalloc.c rsaprivtopub.c x509.c decodepem.c \
+	eggen.c egencrypt.c egdecrypt.c egalloc.c egprivtopub.c egsign.c egverify.c \
+	dsagen.c dsaalloc.c dsaprivtopub.c dsasign.c dsaverify.c \
+	tlshand.c thumb.c readcert.c \
+
+ALLOFILES=${CFILES:%.c=%.$O}
 
 # cull things in the per-machine directories from this list
 OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
@@ -19,5 +22,9 @@ OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
 HFILES=/sys/include/libsec.h
 
 CFLAGS=$CFLAGS -I../../libmp/port
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
 
 </sys/src/cmd/mksyslib

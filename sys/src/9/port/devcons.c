@@ -65,7 +65,7 @@ Cmdtab rebootmsg[] =
 void
 printinit(void)
 {
-	lineq = qopen(2*1024, 0, 0, 0);
+	lineq = qopen(2*1024, 0, nil, nil);
 	if(lineq == nil)
 		panic("printinit");
 	qnoblock(lineq, 1);
@@ -603,7 +603,7 @@ consopen(Chan *c, int omode)
 			error(Einuse);
 		}
 		if(kprintoq == nil){
-			kprintoq = qopen(8*1024, -1, 0, 0);
+			kprintoq = qopen(8*1024, Qcoalesce, 0, 0);
 			if(kprintoq == nil){
 				c->flag &= ~COPEN;
 				error(Enomem);
@@ -757,7 +757,7 @@ consread(Chan *c, void *buf, long n, vlong off)
 		return 0;
 
 	case Qsysstat:
-		b = smalloc(conf.nmach*(NUMSIZE*8+1) + 1);	/* +1 for NUL */
+		b = smalloc(conf.nmach*(NUMSIZE*11+1) + 1);	/* +1 for NUL */
 		bp = b;
 		for(id = 0; id < 32; id++) {
 			if(active.machs & (1<<id)) {
@@ -777,6 +777,14 @@ consread(Chan *c, void *buf, long n, vlong off)
 				readnum(0, bp, NUMSIZE, mp->tlbpurge, NUMSIZE);
 				bp += NUMSIZE;
 				readnum(0, bp, NUMSIZE, mp->load, NUMSIZE);
+				bp += NUMSIZE;
+				readnum(0, bp, NUMSIZE,
+					(mp->perf.avg_inidle*100)/mp->perf.period,
+					NUMSIZE);
+				bp += NUMSIZE;
+				readnum(0, bp, NUMSIZE,
+					(mp->perf.avg_inintr*100)/mp->perf.period,
+					NUMSIZE);
 				bp += NUMSIZE;
 				*bp++ = '\n';
 			}

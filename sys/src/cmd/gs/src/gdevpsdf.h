@@ -1,26 +1,31 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevpsdf.h,v 1.3 2000/03/16 01:21:24 lpd Exp $ */
+/*$Id: gdevpsdf.h,v 1.9 2000/11/02 00:23:56 lpd Exp $ */
 /* Common output syntax and parameters for PostScript and PDF writers */
 
 #ifndef gdevpsdf_INCLUDED
 #  define gdevpsdf_INCLUDED
+
+/*
+ * This file should really be named gdevpsd.h or gdevpsdx.h, but we're
+ * keeping its current name for backward compatibility.
+ */
 
 #include "gdevvec.h"
 #include "gsparam.h"
@@ -28,8 +33,6 @@
 #include "sa85x.h"
 #include "scfx.h"
 #include "spsdf.h"
-
-/*#define POST60*/
 
 extern const stream_template s_DCTE_template; /* don't want all of sdct.h */
 
@@ -41,28 +44,22 @@ extern const stream_template s_DCTE_template; /* don't want all of sdct.h */
 
 /* ---------------- Distiller parameters ---------------- */
 
-#ifdef POST60
-#define POST60_VALUE(v) v,
-#else
-#define POST60_VALUE(v) /* */
-#endif
-
 /* Parameters for controlling distillation of images. */
 typedef struct psdf_image_params_s {
-    stream_state *ACSDict;	/* JPEG */
+    gs_c_param_list *ACSDict;	/* JPEG */
     bool AntiAlias;
     bool AutoFilter;
     int Depth;
-    stream_state *Dict;		/* JPEG or CCITTFax */
+    gs_c_param_list *Dict;	/* JPEG or CCITTFax */
     bool Downsample;
-#ifdef POST60
     float DownsampleThreshold;
-#endif
     enum psdf_downsample_type {
 	ds_Average,
 	ds_Bicubic,
 	ds_Subsample
     } DownsampleType;
+#define psdf_ds_names\
+	"Average", "Bicubic", "Subsample"
     bool Encode;
     const char *Filter;
     int Resolution;
@@ -70,8 +67,8 @@ typedef struct psdf_image_params_s {
 } psdf_image_params;
 
 #define psdf_image_param_defaults(af, res, dst, f, ft)\
-  NULL/*ACSDict*/, 0/*false*/, af, -1, NULL/*Dict*/, 0/*false*/,\
-  POST60_VALUE(dst) ds_Subsample, 1/*true*/, f, res, ft
+  NULL/*ACSDict*/, 0/*false*/, af, -1, NULL/*Dict*/, 1/*true*/,\
+  dst, ds_Subsample, 1/*true*/, f, res, ft
 
 /* Declare templates for default image compression filters. */
 extern const stream_template s_CFE_template;
@@ -87,14 +84,15 @@ typedef struct psdf_distiller_params_s {
 	arp_All,
 	arp_PageByPage
     } AutoRotatePages;
-#ifdef POST60
+#define psdf_arp_names\
+	"None", "All", "PageByPage"
     enum psdf_binding {
 	binding_Left,
 	binding_Right
     } Binding;
-#endif
+#define psdf_binding_names\
+	"Left", "Right"
     bool CompressPages;
-#ifdef POST60
     enum psdf_default_rendering_intent {
 	ri_Default,
 	ri_Perceptual,
@@ -102,79 +100,81 @@ typedef struct psdf_distiller_params_s {
 	ri_RelativeColorimetric,
 	ri_AbsoluteColorimetric
     } DefaultRenderingIntent;
+#define psdf_ri_names\
+	"Default", "Perceptual", "Saturation", "RelativeColorimetric",\
+	"AbsoluteColorimetric"
     bool DetectBlends;
     bool DoThumbnails;
-    int EndPage;
-#endif
     long ImageMemory;
-#ifdef POST60
     bool LockDistillerParams;
-#endif
     bool LZWEncodePages;
-#ifdef POST60
     int OPM;
-#endif
-    bool PreserveHalftoneInfo;
     bool PreserveOPIComments;
+    bool UseFlateCompression;
+
+    /* Color processing parameters */
+
+    gs_const_string CalCMYKProfile;
+    gs_const_string CalGrayProfile;
+    gs_const_string CalRGBProfile;
+    gs_const_string sRGBProfile;
+    enum psdf_color_conversion_strategy {
+	ccs_LeaveColorUnchanged,
+	ccs_UseDeviceDependentColor, /* not in Acrobat Distiller 4.0 */
+	ccs_UseDeviceIndependentColor,
+	ccs_UseDeviceIndependentColorForImages,
+	ccs_sRGB
+    } ColorConversionStrategy;
+#define psdf_ccs_names\
+	"LeaveColorUnchanged", "UseDeviceDependentColor",\
+	"UseDeviceIndependentColor", "UseDeviceIndependentColorForImages",\
+	"sRGB"
+    bool PreserveHalftoneInfo;
     bool PreserveOverprintSettings;
-#ifdef POST60
-    int StartPage;
-#endif
     enum psdf_transfer_function_info {
 	tfi_Preserve,
 	tfi_Apply,
 	tfi_Remove
     } TransferFunctionInfo;
+#define psdf_tfi_names\
+	"Preserve", "Apply", "Remove"
     enum psdf_ucr_and_bg_info {
 	ucrbg_Preserve,
 	ucrbg_Remove
     } UCRandBGInfo;
-    bool UseFlateCompression;
+#define psdf_ucrbg_names\
+	"Preserve", "Remove"
+
 #define psdf_general_param_defaults(ascii)\
-  ascii, arp_None, POST60_VALUE(binding_Left) 1/*true*/,\
-  POST60_VALUE(ri_Default) POST60_VALUE(0 /*false*/)\
-  POST60_VALUE(0 /*false*/) POST60_VALUE(-1)\
-  250000, POST60_VALUE(0 /*false*/) 0/*false*/, POST60_VALUE(0)\
-  0/*false*/, 0/*false*/, 0/*false*/, POST60_VALUE(-1)\
-  tfi_Apply, ucrbg_Remove, 1 /*true*/
+  ascii, arp_None, binding_Left, 1/*true*/,\
+  ri_Default, 1 /*true*/, 0 /*false*/,\
+  500000, 0 /*false*/, 0/*false*/, 1,\
+  0 /*false*/, 1 /*true*/,\
+	/* Color processing parameters */\
+  {0}, {0}, {0}, {0},\
+  ccs_LeaveColorUnchanged, 0/*false*/, 0/*false*/, tfi_Preserve, ucrbg_Remove
 
     /* Color sampled image parameters */
 
     psdf_image_params ColorImage;
-#ifdef POST60
-    /* We're guessing that the xxxProfile parameters are ICC profiles. */
-    gs_const_string CalCMYKProfile;
-    gs_const_string CalGrayProfile;
-    gs_const_string CalRGBProfile;
-    gs_const_string sRGBProfile;
-#endif
-    enum psdf_color_conversion_strategy {
-	ccs_LeaveColorUnchanged,
-#ifdef POST60
-	ccs_UseDeviceIndependentColor,
-	ccs_UseDeviceIndependentColorForImages,
-	ccs_sRGB
-#else
-	ccs_UseDeviceDependentColor,
-	ccs_UseDeviceIndependentColor
-#endif
-    } ColorConversionStrategy;
     bool ConvertCMYKImagesToRGB;
     bool ConvertImagesToIndexed;
+
 #define psdf_color_image_param_defaults\
   { psdf_image_param_defaults(1/*true*/, 72, 1.5, 0/*"DCTEncode"*/, 0/*&s_DCTE_template*/) },\
-  POST60_VALUE({0}) POST60_VALUE({0}) POST60_VALUE({0}) POST60_VALUE({0})\
-  ccs_LeaveColorUnchanged, 1/*true*/, 0/*false */
+  0/*false*/, 1/*true*/
 
     /* Grayscale sampled image parameters */
 
     psdf_image_params GrayImage;
+
 #define psdf_gray_image_param_defaults\
-  { psdf_image_param_defaults(1/*true*/, 72, 2.0, 0/*"DCTEncode"*/, 0/*&s_DCTE_template*/) }
+  { psdf_image_param_defaults(1/*true*/, 72, 1.5, 0/*"DCTEncode"*/, 0/*&s_DCTE_template*/) }
 
     /* Monochrome sampled image parameters */
 
     psdf_image_params MonoImage;
+
 #define psdf_mono_image_param_defaults\
   { psdf_image_param_defaults(0/*false*/, 300, 2.0, "CCITTFaxEncode", &s_CFE_template) }
 
@@ -182,18 +182,19 @@ typedef struct psdf_distiller_params_s {
 
     gs_param_string_array AlwaysEmbed;
     gs_param_string_array NeverEmbed;
-#ifdef POST60
     enum psdf_cannot_embed_font_policy {
 	cefp_OK,
 	cefp_Warning,
 	cefp_Error
     } CannotEmbedFontPolicy;
-#endif
+#define psdf_cefp_names\
+	"OK", "Warning", "Error"
     bool EmbedAllFonts;
     int MaxSubsetPct;
     bool SubsetFonts;
+
 #define psdf_font_param_defaults\
-  {0}, {0}, POST60_VALUE(cefp_OK) 1/*true*/, 35, 1/*true*/
+  {0}, {0}, cefp_Warning, 1/*true*/, 100, 1/*true*/
 
 } psdf_distiller_params;
 
@@ -230,14 +231,14 @@ typedef struct gx_device_psdf_s {
 /* st_device_psdf is never instantiated per se, but we still need to */
 /* extern its descriptor for the sake of subclasses. */
 extern_st(st_device_psdf);
-#define public_st_device_psdf()	/* in gdevpsdf.c */\
+#define public_st_device_psdf()	/* in gdevpsdu.c */\
   BASIC_PTRS(device_psdf_ptrs) {\
     GC_OBJ_ELT2(gx_device_psdf, params.ColorImage.ACSDict,\
 		params.ColorImage.Dict),\
-    POST60_VALUE(GC_CONST_STRING_ELT(gx_device_psdf, CalCMYKProfile))\
-    POST60_VALUE(GC_CONST_STRING_ELT(gx_device_psdf, CalGrayProfile))\
-    POST60_VALUE(GC_CONST_STRING_ELT(gx_device_psdf, CalRGBProfile))\
-    POST60_VALUE(GC_CONST_STRING_ELT(gx_device_psdf, sRGBProfile))\
+    GC_CONST_STRING_ELT(gx_device_psdf, params.CalCMYKProfile),\
+    GC_CONST_STRING_ELT(gx_device_psdf, params.CalGrayProfile),\
+    GC_CONST_STRING_ELT(gx_device_psdf, params.CalRGBProfile),\
+    GC_CONST_STRING_ELT(gx_device_psdf, params.sRGBProfile),\
     GC_OBJ_ELT2(gx_device_psdf, params.GrayImage.ACSDict,\
 		params.GrayImage.Dict),\
     GC_OBJ_ELT2(gx_device_psdf, params.MonoImage.ACSDict,\
@@ -297,7 +298,7 @@ typedef struct psdf_binary_writer_s {
     gx_device_psdf *dev;	/* may be unused */
 } psdf_binary_writer;
 extern_st(st_psdf_binary_writer);
-#define public_st_psdf_binary_writer() /* in gdevpsdf.c */\
+#define public_st_psdf_binary_writer() /* in gdevpsdu.c */\
   gs_public_st_ptrs4(st_psdf_binary_writer, psdf_binary_writer,\
     "psdf_binary_writer", psdf_binary_writer_enum_ptrs,\
     psdf_binary_writer_reloc_ptrs, A85E, target, strm, dev)
@@ -315,113 +316,34 @@ int psdf_encode_binary(P3(psdf_binary_writer * pbw,
 /* Set EndOfBlock iff the stream is not ASCII85 encoded. */
 int psdf_CFE_binary(P4(psdf_binary_writer * pbw, int w, int h, bool invert));
 
+/*
+ * Acquire parameters, and optionally set up the filter for, a DCTEncode
+ * filter.  This is a separate procedure so it can be used to validate
+ * filter parameters when they are set, rather than waiting until they are
+ * used.  pbw = NULL means just set up the stream state.
+ */
+int psdf_DCT_filter(P6(gs_param_list *plist /* may be NULL */,
+		       stream_state /*stream_DCTE_state*/ *st,
+		       int Columns, int Rows, int Colors,
+		       psdf_binary_writer *pbw /* may be NULL */));
+
 /* Set up compression and downsampling filters for an image. */
 /* Note that this may modify the image parameters. */
 /* If pctm is NULL, downsampling is not used. */
 /* pis only provides UCR and BG information for CMYK => RGB conversion. */
 int psdf_setup_image_filters(P5(gx_device_psdf *pdev, psdf_binary_writer *pbw,
-				gs_image_t *pim, const gs_matrix *pctm,
+				gs_pixel_image_t *pim, const gs_matrix *pctm,
 				const gs_imager_state * pis));
+
+/* Set up compression filters for a lossless image, with no downsampling, */
+/* no color space conversion, and only lossless filters. */
+/* Note that this may modify the image parameters. */
+int psdf_setup_lossless_filters(P3(gx_device_psdf *pdev,
+				   psdf_binary_writer *pbw,
+				   gs_pixel_image_t *pim));
 
 /* Finish writing binary data. */
 int psdf_end_binary(P1(psdf_binary_writer * pbw));
-
-/* ---------------- Embedded font writing ---------------- */
-
-typedef struct psdf_glyph_enum_s {
-    gs_font *font;
-    gs_glyph *subset_glyphs;
-    uint subset_size;
-    gs_glyph_space_t glyph_space;
-    ulong index;
-} psdf_glyph_enum_t;
-
-/*
- * Begin enumerating the glyphs in a font or a font subset.  If subset_size
- * > 0 but subset_glyphs == 0, enumerate all glyphs in [0 .. subset_size-1]
- * (as integer glyphs, i.e., offset by gs_min_cid_glyph).
- */
-void psdf_enumerate_glyphs_begin(P5(psdf_glyph_enum_t *ppge, gs_font *font,
-				    gs_glyph *subset_glyphs,
-				    uint subset_size,
-				    gs_glyph_space_t glyph_space));
-
-/*
- * Reset a glyph enumeration.
- */
-void psdf_enumerate_glyphs_reset(P1(psdf_glyph_enum_t *ppge));
-
-/*
- * Enumerate the next glyph in a font or a font subset.
- * Return 0 if more glyphs, 1 if done, <0 if error.
- */
-int psdf_enumerate_glyphs_next(P2(psdf_glyph_enum_t *ppge, gs_glyph *pglyph));
-
-/*
- * Get the set of referenced glyphs (indices) for writing a subset font.
- * Does not sort or remove duplicates.
- */
-int psdf_subset_glyphs(P3(gs_glyph glyphs[256], gs_font *font,
-			  const byte used[32]));
-
-/*
- * Add composite glyph pieces to a list of glyphs.  Does not sort or
- * remove duplicates.  max_pieces is the maximum number of pieces that a
- * single glyph can have: if this value is not known, the caller should
- * use max_count.
- */
-int psdf_add_subset_pieces(P5(gs_glyph *glyphs, uint *pcount, uint max_count,
-			      uint max_pieces, gs_font *font));
-
-/*
- * Sort a list of glyphs and remove duplicates.  Return the number of glyphs
- * in the result.
- */
-int psdf_sort_glyphs(P2(gs_glyph *glyphs, int count));
-
-/*
- * Determine whether a sorted list of glyphs includes a given glyph.
- */
-bool psdf_sorted_glyphs_include(P3(const gs_glyph *glyphs, int count,
-				   gs_glyph glyph));
-
-/* ------ Exported by gdevpsd1.c ------ */
-
-/*
- * Write out a Type 1 font definition.  This procedure does not allocate
- * or free any data.
- */
-#ifndef gs_font_type1_DEFINED
-#  define gs_font_type1_DEFINED
-typedef struct gs_font_type1_s gs_font_type1;
-#endif
-#define WRITE_TYPE1_EEXEC 1
-#define WRITE_TYPE1_ASCIIHEX 2  /* use ASCII hex rather than binary */
-#define WRITE_TYPE1_EEXEC_PAD 4  /* add 512 0s */
-#define WRITE_TYPE1_EEXEC_MARK 8  /* assume 512 0s will be added */
-#define WRITE_TYPE1_POSTSCRIPT 16  /* don't observe ATM restrictions */
-int psdf_write_type1_font(P7(stream *s, gs_font_type1 *pfont, int options,
-			     gs_glyph *subset_glyphs, uint subset_size,
-			     const gs_const_string *alt_font_name,
-			     int lengths[3]));
-
-/* ------ Exported by gdevpsdt.c ------ */
-
-/*
- * Write out a TrueType (Type 42) font definition.  This procedure does
- * not allocate or free any data.
- */
-#ifndef gs_font_type42_DEFINED
-#  define gs_font_type42_DEFINED
-typedef struct gs_font_type42_s gs_font_type42;
-#endif
-#define WRITE_TRUETYPE_CMAP 1	/* generate cmap from the Encoding */
-#define WRITE_TRUETYPE_NAME 2	/* generate name if missing */
-#define WRITE_TRUETYPE_POST 4	/* generate post if missing */
-#define WRITE_TRUETYPE_NO_TRIMMED_TABLE 8  /* not OK to use cmap format 6 */
-int psdf_write_truetype_font(P6(stream *s, gs_font_type42 *pfont, int options,
-				gs_glyph *subset_glyphs, uint subset_size,
-				const gs_const_string *alt_font_name));
 
 /* ---------------- Symbolic data printing ---------------- */
 

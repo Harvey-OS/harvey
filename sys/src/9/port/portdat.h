@@ -6,6 +6,7 @@ typedef struct Cmdtab	Cmdtab;
 typedef struct Cname	Cname;
 typedef struct Dev	Dev;
 typedef struct Dirtab	Dirtab;
+typedef struct Edfinterface	Edfinterface;
 typedef struct Egrp	Egrp;
 typedef struct Evalue	Evalue;
 typedef struct Fgrp	Fgrp;
@@ -23,6 +24,7 @@ typedef struct Mhead	Mhead;
 typedef struct Note	Note;
 typedef struct Page	Page;
 typedef struct Palloc	Palloc;
+typedef struct Perf	Perf;
 typedef struct Pgrps	Pgrps;
 typedef struct PhysUart	PhysUart;
 typedef struct Pgrp	Pgrp;
@@ -134,7 +136,7 @@ struct Block
 	uchar*	rp;			/* first unconsumed byte */
 	uchar*	wp;			/* first empty byte */
 	uchar*	lim;			/* 1 past the end of the buffer */
-	uchar*	base;			/* start of the buffer */
+	uchar*	base;		/* start of the buffer */
 	void	(*free)(Block*);
 	ulong	flag;
 };
@@ -202,7 +204,7 @@ struct Dev
 	void	(*remove)(Chan*);
 	int	(*wstat)(Chan*, uchar*, int);
 	void	(*power)(int);	/* power mgt: power(1) => on, power (0) => off */
-	int	(*config)(int, char*, DevConf*);
+	int	(*config)(int, char*, DevConf*);	// returns nil on error
 };
 
 struct Dirtab
@@ -554,7 +556,7 @@ struct Schedq
 struct Proc
 {
 	Label	sched;		/* known to l.s */
-	char	*kstack;	/* known to l.s */
+	char	*kstack;			/* known to l.s */
 	Mach	*mach;		/* machine running this proc */
 	char	*text;
 	char	*user;
@@ -586,7 +588,7 @@ struct Proc
 
 	ulong	parentpid;
 	ulong	time[6];	/* User, Sys, Real; child U, S, R */
-	short	insyscall;
+	int	insyscall;
 	int	fpstate;
 
 	QLock	debug;		/* to access debugging elements of User */
@@ -639,6 +641,7 @@ struct Proc
 
 	Lock		*lockwait;
 	Lock		*lastlock;	/* debugging */
+	Lock		*lastilock;	/* debugging */
 
 	Mach	*wired;
 	Mach	*mp;		/* machine this process last ran on */
@@ -844,6 +847,48 @@ struct Timer
 	Timer	*next;
 	ulong	period;
 };
+
+struct Edfinterface {
+	int		(*isedf)(Proc*);
+	void		(*edfbury)(Proc*);
+	int		(*edfanyready)(void);
+	void		(*edfready)(Proc*);
+	Proc*	(*edfrunproc)(void);
+	void		(*edfblock)(Proc*);
+	void		(*edfinit)(void);
+	void		(*edfexpel)(Task *t);
+	char *	(*edfadmit)(Task *t);
+	void		(*edfdeadline)(Proc *p);
+};
+
+/*
+ *  performance timers, all units in perfticks
+ */
+struct Perf
+{
+	ulong	intrts;		/* time of last interrupt */
+	ulong	inintr;		/* time since last clock tick in interrupt handlers */
+	ulong	avg_inintr;	/* avg time per clock tick in interrupt handlers */
+	ulong	inidle;		/* time since last clock tick in idle loop */
+	ulong	avg_inidle;	/* avg time per clock tick in idle loop */
+	ulong	last;		/* value of perfticks() at last clock tick */
+	ulong	period;		/* perfticks() per clock tick */
+};
+
+/* queue state bits,  Qmsg, Qcoalesce, and Qkick can be set in qopen */
+enum
+{
+	/* Queue.state */
+	Qstarve		= (1<<0),	/* consumer starved */
+	Qmsg		= (1<<1),	/* message stream */
+	Qclosed		= (1<<2),	/* queue has been closed/hungup */
+	Qflow		= (1<<3),	/* producer flow controlled */
+	Qcoalesce	= (1<<4),	/* coallesce packets on read */
+	Qkick		= (1<<5),	/* always call the kick routine after qwrite */
+};
+
+
+extern Edfinterface *edf;
 
 #define DEVDOTDOT -1
 

@@ -60,7 +60,7 @@ p_compile(Filter *f)
 		if(strcmp(f->s, m->name) == 0){
 			f->pr = m->pr;
 			f->ulv = m->val;
-			f->subop = Od;
+			f->subop = Osd;
 			return;
 		}
 	sysfatal("unknown il field or protocol: %s", f->s);
@@ -142,4 +142,5 @@ Proto il =
 	p_seprint,
 	p_mux,
 	p_fields,
+	defaultframer,
 };

@@ -1005,7 +1005,7 @@ Srv nntpsrv = {
 void
 usage(void)
 {
-	fprint(2, "usage: nntpsrv [-s service] [-m mtpt] [-a user] [nntp.server]\n");
+	fprint(2, "usage: nntpsrv [-a] [-s service] [-m mtpt] [nntp.server]\n");
 	exits("usage");
 }
 

@@ -1,22 +1,22 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: ilocate.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: ilocate.c,v 1.4 2001/09/06 15:46:13 rayjj Exp $ */
 /* Object locating and validating for Ghostscript memory manager */
 #include "ghost.h"
 #include "memory_.h"
@@ -369,9 +369,9 @@ cks:	    if (optr != 0)
 		ialloc_validate_object(optr, NULL, gcst);
 	    break;
 	case t_name:
-	    if (name_index_ptr(r_size(pref)) != pref->value.pname) {
+	    if (name_index_ptr(name_index(pref)) != pref->value.pname) {
 		lprintf3("At 0x%lx, bad name %u, pname = 0x%lx\n",
-			 (ulong) pref, (uint) r_size(pref),
+			 (ulong) pref, (uint)name_index(pref),
 			 (ulong) pref->value.pname);
 		break;
 	    } {
@@ -477,8 +477,10 @@ ialloc_validate_object(const obj_header_t * ptr, const chunk_t * cp,
 	(oname = struct_type_name_string(otype),
 	 *oname < 33 || *oname > 126)
 	) {
-	lprintf4("Bad object 0x%lx(%lu), ssize = %u, in chunk 0x%lx!\n",
-		 (ulong) ptr, (ulong) size, otype->ssize, (ulong) cp);
+	lprintf2("Bad object 0x%lx(%lu),\n",
+		 (ulong) ptr, (ulong) size);
+	dprintf2(" ssize = %u, in chunk 0x%lx!\n",
+		 otype->ssize, (ulong) cp);
 	gs_abort();
     }
 }

@@ -1,22 +1,23 @@
-/* Copyright (C) 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-   This file is part of Aladdin Ghostscript.
+/* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zusparam.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zusparam.c,v 1.3.6.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* User and system parameter operators */
 #include "memory_.h"
 #include "string_.h"
@@ -35,6 +36,7 @@
 #include "iparam.h"
 #include "dstack.h"
 #include "iname.h"
+#include "itoken.h"
 #include "iutil2.h"
 #include "ivmem2.h"
 #include "store.h"
@@ -46,9 +48,11 @@ extern gs_font_dir *ifont_dir;	/* in zfont.c */
 /* Eventually this will be made public. */
 #define param_def_common\
     const char *pname
+
 typedef struct param_def_s {
     param_def_common;
 } param_def_t;
+
 typedef struct long_param_def_s {
     param_def_common;
     long min_value, max_value;
@@ -61,11 +65,13 @@ typedef struct long_param_def_s {
 #else
 #  define MAX_UINT_PARAM max_long
 #endif
+
 typedef struct bool_param_def_s {
     param_def_common;
     bool (*current)(P1(i_ctx_t *));
     int (*set)(P2(i_ctx_t *, bool));
 } bool_param_def_t;
+
 typedef struct string_param_def_s {
     param_def_common;
     void (*current)(P2(i_ctx_t *, gs_param_string *));
@@ -248,7 +254,8 @@ zsetsystemparams(i_ctx_t *i_ctx_p)
 	    break;
 	case 0:
 	    code = dict_write_password(&pass, systemdict,
-				       "StartJobPassword");
+				       "StartJobPassword",
+				       ! i_ctx_p->LockFilePermissions);
 	    if (code < 0)
 		goto out;
     }
@@ -260,7 +267,8 @@ zsetsystemparams(i_ctx_t *i_ctx_p)
 	    break;
 	case 0:
 	    code = dict_write_password(&pass, systemdict,
-				       "SystemParamsPassword");
+				       "SystemParamsPassword",
+				       ! i_ctx_p->LockFilePermissions);
 	    if (code < 0)
 		goto out;
     }
@@ -445,9 +453,24 @@ set_AccurateScreens(i_ctx_t *i_ctx_p, bool val)
     gs_setaccuratescreens(val);
     return 0;
 }
+private bool
+current_LockFilePermissions(i_ctx_t *i_ctx_p)
+{
+    return i_ctx_p->LockFilePermissions;
+}
+private int
+set_LockFilePermissions(i_ctx_t *i_ctx_p, bool val)
+{
+    /* allow locking even if already locked */
+    if (i_ctx_p->LockFilePermissions && !val)
+	return_error(e_invalidaccess);
+    i_ctx_p->LockFilePermissions = val;
+    return 0;
+}
 private const bool_param_def_t user_bool_params[] =
 {
-    {"AccurateScreens", current_AccurateScreens, set_AccurateScreens}
+    {"AccurateScreens", current_AccurateScreens, set_AccurateScreens},
+    {"LockFilePermissions", current_LockFilePermissions, set_LockFilePermissions}
 };
 
 /* The user parameter set */
@@ -455,7 +478,7 @@ private const param_set user_param_set =
 {
     user_long_params, countof(user_long_params),
     user_bool_params, countof(user_bool_params),
-    0, 0
+    0, 0 
 };
 
 /* <dict> .setuserparams - */
@@ -480,8 +503,12 @@ zsetuserparams(i_ctx_t *i_ctx_p)
     os_ptr op = osp;
     int code = set_user_params(i_ctx_p, op);
 
-    if (code >= 0)
+    if (code >= 0) {
+	/* Update cached scanner options. */
+	i_ctx_p->scanner_options =
+	    ztoken_scanner_options(op, i_ctx_p->scanner_options);
 	pop(1);
+    }
     return code;
 }
 

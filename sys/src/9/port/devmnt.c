@@ -83,7 +83,7 @@ mntreset(void)
 	mntalloc.rpctag = Tagspace;
 	fmtinstall('F', fcallfmt);
 	fmtinstall('D', dirfmt);
-	fmtinstall('M', dirmodefmt);
+/*	fmtinstall('M', dirmodefmt);  No!  Clashes with eipfmt [sape] */
 
 	cinit();
 }
@@ -836,7 +836,7 @@ mntrpcread(Mnt *m, Mntrpc *r)
 
 	/* read at least length, type, and tag and pullup to a single block */
 	while(qlen(m->q) < BIT32SZ+BIT8SZ+BIT16SZ){
-		b = devtab[m->c->type]->bread(m->c, 2*MAXRPC, 0);
+		b = devtab[m->c->type]->bread(m->c, m->msize, 0);
 		if(b == nil)
 			return -1;
 		qaddlist(m->q, b);
@@ -846,7 +846,7 @@ mntrpcread(Mnt *m, Mntrpc *r)
 
 	/* read in the rest of the message */
 	while(qlen(m->q) < len){
-		b = devtab[m->c->type]->bread(m->c, 2*MAXRPC, 0);
+		b = devtab[m->c->type]->bread(m->c, m->msize, 0);
 		if(b == nil)
 			return -1;
 		qaddlist(m->q, b);

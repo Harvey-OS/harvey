@@ -16,7 +16,7 @@ int
 unlink(const char *path)
 {
 	int n, i, fd;
-	Dir *db1, *db2;
+	Dir *db1, *db2, nd;
 	Fdinfo *f;
  	char *p, newname[PATH_MAX], newelem[32];
 
@@ -32,17 +32,19 @@ unlink(const char *path)
 			   db1->qid.vers == db2->qid.vers &&
 			   db1->type == db2->type &&
 			   db1->dev == db2->dev) {
-				sprintf(newelem, "%.8lux%.8lux", (ulong)(db2->qid.path>>32), (ulong)db2->qid.path);
-				db2->name = newelem;
-				if(_dirfwstat(i, db2) < 0)
+				sprintf(newelem, "%8.8lx%8.8lx", (ulong)(db2->qid.path>>32), (ulong)db2->qid.path);
+				_nulldir(&nd);
+				nd.name = newelem;
+				if(_dirfwstat(i, &nd) < 0)
 					p = (char*)path;
 				else {
 					p = strrchr(path, '/');
 					if(p == 0)
 						p = newelem; 
 					else {
-						*p = '\0';
-						sprintf(newname, "%s/%.8x", path, newelem);
+						memmove(newname, path, p-path);
+						newname[p-path] = '/';
+						strcpy(newname+(p-path)+1, newelem);
 						p = newname;
 					}
 				}

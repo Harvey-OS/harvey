@@ -122,3 +122,6 @@ nuke clean:V:
 
 installall:V:
 	for(objtype in $CPUS) mk install
+
+update:V:
+	update $UPDATEFLAGS mkfile sys.h

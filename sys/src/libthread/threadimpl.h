@@ -138,6 +138,18 @@ struct Pqueue {		/* Proc queue */
 	Proc		**tail;
 };
 
+struct Ioproc
+{
+	int pid;
+	Channel *c;
+	int inuse;
+	long (*op)(va_list*);
+	va_list arg;
+	long ret;
+	char err[ERRMAX];
+	Ioproc *next;
+};
+
 void		_freeproc(Proc*);
 void		_freethread(Thread*);
 Proc*	_newproc(void(*)(void*), void*, uint, char*, int, int);
@@ -180,3 +192,5 @@ extern Rgrp		_threadrgrp;
 /* #define DBGKILL	(1 << 19) */
 #define DBGNOTE	(1 << 20)
 #define DBGEXEC	(1 << 21)
+
+#define ioproc_arg(io, type)	(va_arg((io)->arg, type))

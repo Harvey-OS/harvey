@@ -1,22 +1,22 @@
-/* Copyright (C) 1990, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1990, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zdps1.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: zdps1.c,v 1.3 2000/12/02 20:39:37 lpd Exp $ */
 /* Level 2 / Display PostScript graphics extensions */
 #include "ghost.h"
 #include "oper.h"
@@ -80,12 +80,27 @@ zcurrentstrokeadjust(i_ctx_t *i_ctx_p)
 
 /* ------ Graphics state objects ------ */
 
-/* Check to make sure that all the elements of a graphics state */
-/* can be stored in the given allocation space. */
-/****** DOESN'T CHECK THE NON-REFS. ****** */
+/*
+ * Check to make sure that all the elements of a graphics state
+ * can be stored in the given allocation space.
+ */
+/* ****** DOESN'T CHECK THE NON-REFS. ****** */
 private int
-gstate_check_space(int_gstate * isp, uint space)
+gstate_check_space(i_ctx_t *i_ctx_p, int_gstate *isp, uint space)
 {
+    /*
+     * ****** WORKAROUND ALERT ******
+     * This code doesn't check the space of the non-refs, or copy their
+     * contents, so it can create dangling references from global VM to
+     * local VM.  Because of this, we simply disallow writing into gstates
+     * in global VM (including creating them in the first place) if the
+     * save level is greater than 0.
+     * ****** WORKAROUND ALERT ******
+     */
+#if 1				/* ****** WORKAROUND ****** */
+    if (space != avm_local && imemory_save_level(iimemory) > 0)
+	return_error(e_invalidaccess);
+#endif				/* ****** END ****** */
 #define gsref_check(p) store_check_space(space, p)
     int_gstate_map_refs(isp, gsref_check);
 #undef gsref_check
@@ -98,7 +113,7 @@ zgstate(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
 
-    int code = gstate_check_space(istate, icurrent_space);
+    int code = gstate_check_space(i_ctx_p, istate, icurrent_space);
     igstate_obj *pigo;
     gs_state *pnew;
     int_gstate *isp;
@@ -149,7 +164,7 @@ zcopy_gstate(i_ctx_t *i_ctx_p)
     pgs = igstate_ptr(op);
     pgs1 = igstate_ptr(op1);
     pistate = gs_int_gstate(pgs);
-    code = gstate_check_space(gs_int_gstate(pgs1), r_space(op));
+    code = gstate_check_space(i_ctx_p, gs_int_gstate(pgs1), r_space(op));
     if (code < 0)
 	return code;
 #define gsref_save(p) ref_save(op, p, "copygstate")
@@ -183,7 +198,7 @@ zcurrentgstate(i_ctx_t *i_ctx_p)
 	return code;
     pgs = igstate_ptr(op);
     pistate = gs_int_gstate(pgs);
-    code = gstate_check_space(istate, r_space(op));
+    code = gstate_check_space(i_ctx_p, istate, r_space(op));
     if (code < 0)
 	return code;
 #define gsref_save(p) ref_save(op, p, "currentgstate")

@@ -1,22 +1,22 @@
 %!PS
 %    Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of Aladdin Ghostscript.
+% This file is part of AFPL Ghostscript.
 % 
-% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-% or distributor accepts any responsibility for the consequences of using it,
-% or for whether it serves any particular purpose or works at all, unless he
-% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-% License (the "License") for full details.
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
 % 
-% Every copy of Aladdin Ghostscript must include a copy of the License,
-% normally in a plain ASCII text file named PUBLIC.  The License grants you
-% the right to copy, modify and redistribute Aladdin Ghostscript, but only
-% under certain conditions described in the License.  Among other things, the
-% License requires that the copyright notice and this notice be preserved on
-% all copies.
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
 %
-% $Id: image-qa.ps,v 1.1 2000/03/09 08:40:40 lpd Exp $
+% $Id: image-qa.ps,v 1.3 2001/04/04 04:54:53 rayjj Exp $
 % Tests for the image operators
 
 % Specifications for Image operator testing.
@@ -552,6 +552,37 @@
 
 % -----------------------------------------------------------------------
 % 
+%  Procedure to handle fileposition. Ghostscript has a private
+%  operator .fileposition that works when fileposition does not
+% 
+%    <file> tryfilepos
+% 	Returns:	fileposition true	if successful
+%			0 false			if not
+/tryfilepos {	
+  /.fileposition where
+    { pop /.fileposition load }	% most likely to succeed
+    { /fileposition load }
+  ifelse
+  stopped
+    { pop 0 false }
+    { true }
+  ifelse
+} bind def
+
+% -----------------------------------------------------------------------
+% 
+% Procedure to provide =only operator if not present. Suggested
+% by Alex Cherepanov to use =print operator present on some Adobe
+% implementations.
+/=only where
+  { pop }
+  { /=print where { pop /=print load } { /print load } ifelse
+    /=only exch def
+  }
+ifelse
+
+% -----------------------------------------------------------------------
+% 
 %  Procedure to make sure that the file is at the EOF.
 %  added above (string == FileTailString.
 %
@@ -563,10 +594,10 @@
 /CheckFileTail {
   dup
   status not dup	% status false says no longer valid
-  { (Unexpected EOF: XX,YY=) print XX =only (,) print YY = }
-  { 1 index fileposition 4 index length ne dup
+  { (Unexpected EOF: XX,YY=) print XX =only (,) print YY = false }
+  { 1 index tryfilepos not exch 5 index length ne or dup
     { 3 index print ( fileposition = ) print
-      2 index fileposition =only
+      2 index tryfilepos pop =only
       ( doesn't match expected = ) print 4 index length = flush
     }
     if

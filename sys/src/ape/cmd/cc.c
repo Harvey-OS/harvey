@@ -209,6 +209,7 @@ main(int argc, char *argv[])
 			append(&ld, ldargs.strings[i]);
 		for(i = 0; i < objs.n; i++)
 			append(&ld, objs.strings[i]);
+		append(&ld, smprint("/%s/lib/ape/libap.a", ot->name));
 		doexec(smprint("/bin/%s", ot->ld), &ld);
 		if(objs.n == 1)
 			remove(objs.strings[0]);

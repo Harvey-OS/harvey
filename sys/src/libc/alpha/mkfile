@@ -2,30 +2,30 @@ objtype=alpha
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libc.a
-OFILES=\
-	main9.$O\
-	main9p.$O\
-	argv0.$O\
-	divl.$O\
-	divq.$O\
-	getcallerpc.$O\
-	getfcr.$O\
-	memmove.$O\
-	memset.$O\
-	notejmp.$O\
-	_seek.$O\
-	setjmp.$O\
-	tas.$O\
+SFILES=\
+	argv0.s\
+	divl.s\
+	divq.s\
+	getcallerpc.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memmove.s\
+	memset.s\
+	setjmp.s\
+	tas.s
 
-FOO=\
-	memchr.$O\
-	memcmp.$O\
-	memcpy.$O\
-	strchr.$O\
-	strcmp.$O\
-	strcpy.$O\
-	strncmp.$O\
+CFILES=\
+	_seek.c\
+	notejmp.c\
 
 HFILES=/sys/include/libc.h
+
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
 
 </sys/src/cmd/mksyslib

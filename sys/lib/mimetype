@@ -48,6 +48,7 @@
 .htm		text		html		-		m
 .html		text		html		-		m
 .ief		image		ief		-		y
+.jar		application	java-archive -		y
 .jfif		image		jpeg		-		y
 .jfif-tbnl	image		jpeg		-		y
 .jpe		image		jpeg		-		y

@@ -10,5 +10,10 @@ case checkdone
 	export finish
 
 case go
+	if(~ $cdboot yes){
+		echo 'Congratulations; you''ve completed the install.'
+		echo
+		halt
+	}
 	stop go finished
 }

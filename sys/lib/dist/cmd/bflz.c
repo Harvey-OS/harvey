@@ -23,6 +23,8 @@
 #include <libc.h>
 #include <bio.h>
 
+#define malloc sbrk
+
 int minrun = 16;
 int win = 16;
 ulong outn;
@@ -30,6 +32,7 @@ int verbose;
 int mindist;
 
 enum { Prime = 16777213 };	/* smallest prime < 2^24 (so p*256+256 < 2^32) */
+enum { NOFF = 3 };
 
 Biobuf bout;
 ulong length;
@@ -43,73 +46,123 @@ int acct;
 int zlength;
 int maxchain;
 int maxrle[256];
+int nnew;
 
 typedef struct Node Node;
 struct Node {
-	ulong key;
-	int offset;
-	Node *left;
-	Node *right;
 	Node *link;
+	ulong key;
+	ulong offset[NOFF];
 };
 
 Node *nodepool;
 int nnodepool;
 
-Node *root;
+Node **hash;
+uint nhash;
+
+uint maxlen;
+uint maxsame;
+uint replacesame = 8*1024*1024;
+
+Node *freelist, **freeend;
+uint nalloc;
 
 Node*
 allocnode(void)
 {
-	if(nodepool == nil){
-		nnodepool = length+win+1;
-		nodepool = mallocz(sizeof(Node)*nnodepool, 1);
+	int i;
+	Node *n;
+
+	if(nnodepool == 0){
+		nnodepool = 256*1024;
+		nodepool = malloc(sizeof(Node)*nnodepool);
+	}
+	if(freelist){
+		n = freelist;
+		freelist = n->link;
+		return n;
 	}
 	assert(nnodepool > 0);
-	return &nodepool[--nnodepool];
+	nalloc++;
+	n = &nodepool[--nnodepool];
+	for(i=0; i<NOFF; i++)
+		n->offset[i] = -1;
+
+	return n;
+}
+
+void
+freenode(Node *n)
+{
+	if(freelist == nil)
+		freelist = n;
+	else
+		*freeend = n;
+	freeend = &n->link;
+	n->link = nil;
 }
 
 Node**
-llookup(ulong key, int walkdown)
+llookup(ulong key)
 {
-	Node **l;
+	uint c;
+	Node **l, **top, *n;
+	
+	if(nhash == 0){
+		uint x;
 
-	l = &root;
-	while(*l){
-		if(key < (*l)->key)
-			l = &(*l)->left;
-		else if(key > (*l)->key)
-			l = &(*l)->right;
-		else{
-			if(walkdown){
-				while(*l)
-					l=&(*l)->link;
-			}
-			break;
+		x = length/8;
+		for(nhash=1; nhash<x; nhash<<=1)
+			;
+		hash = sbrk(sizeof(Node*)*nhash);
+	}
+
+	top = &hash[key&(nhash-1)];
+	c = 0;
+	for(l=top; *l; l=&(*l)->link){
+		c++;
+		if((*l)->key == key){
+			/* move to front */
+			n = *l;
+			*l = n->link;
+			n->link = *top;
+			*top = n;
+			return top;
 		}
 	}
+	if(c > maxlen)
+		maxlen = c;
 	return l;
-}
-
-
-void
-insertnode(ulong key, ulong offset)
-{
-	Node **l, *n;
-
-	l = llookup(key, 1);
-	n = allocnode();
-	n->key = key;
-	n->offset = offset;
-	*l = n;
 }
 
 Node*
 lookup(ulong key)
 {
-	return *llookup(key, 0);
+	return *llookup(key);
 }
-	
+
+void
+insertnode(ulong key, ulong offset)
+{
+	int i;
+	Node *n, **l;
+
+	l = llookup(key);
+	if(*l == nil){
+		if(l==&hash[key&(nhash-1)])
+			nnew++;
+		*l = allocnode();
+		(*l)->key = key;
+	}
+	n = *l;
+
+	/* add or replace last */
+	for(i=0; i<NOFF-1 && n->offset[i]!=-1; i++)
+		;
+	n->offset[i] = offset;
+}
+
 void
 Bputint(Biobufhdr *b, int n)
 {
@@ -187,7 +240,7 @@ countrle(uchar *a)
 void
 compress(void)
 {
-	int i, j, rle, run, maxrun, maxoff;
+	int best, i, j, o, rle, run, maxrun, maxoff;
 	ulong sum;
 	Node *n;
 
@@ -195,28 +248,31 @@ compress(void)
 	for(i=0; i<win && i<length; i++)
 		sum = (sum*256+data[i])%Prime;
 	for(i=0; i<length-win; ){
-		n = lookup(sum);
 		maxrun = 0;
 		maxoff = 0;
 		if(verbose)
 			fprint(2, "look %.6lux\n", sum);
-		j=0;
-		for(; n; n=n->link, j++){
-			run = cmprun(data+i, data+n->offset, length-i);
-			if(verbose)
-				fprint(2, "(%d,%d)%d...", i, n->offset, run);
-			if(run > maxrun && n->offset+mindist < i){
-				maxrun = run;
-				if(verbose)
-					fprint(2, "[%d] (min %d)\n", maxrun, minrun);
-				maxoff = n->offset;
+		n = lookup(sum);
+		if(n){
+			best = -1;
+			for(o=0; o<NOFF; o++){
+				if(n->offset[o] == -1)
+					break;
+				run = cmprun(data+i, data+n->offset[o], length-i);
+				if(run > maxrun && n->offset[o]+mindist < i){
+					maxrun = run;
+					maxoff = n->offset[o];
+					best = o;
+				}
+			}
+			if(best > 0){
+				o = n->offset[best];
+				for(j=best; j>0; j--)
+					n->offset[j] = n->offset[j-1];
+				n->offset[0] = o;
 			}
 		}
-		if(j > maxchain){
-			if(verbose)
-				fprint(2, "%.6lux %d\n", sum, j);
-			maxchain = j;
-		}
+				
 		if(maxrun >= minrun)
 			j = i+refblock(i, maxrun, maxoff);
 		else
@@ -243,7 +299,7 @@ compress(void)
 void
 usage(void)
 {
-	fprint(2, "usage: xzip [-n winsize] [file]\n");
+	fprint(2, "usage: bflz [-n winsize] [file]\n");
 	exits("usage");
 }
 
@@ -256,6 +312,9 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	case 'd':
 		verbose = 1;
+		break;
+	case 's':
+		replacesame = atoi(EARGF(usage()));
 		break;
 	case 'm':
 		mindist = atoi(EARGF(usage()));
@@ -309,5 +368,7 @@ main(int argc, char **argv)
 	compress();
 	Bwrite(&bout, odat, nodat);
 	Bterm(&bout);
+	fprint(2, "brk %p\n", sbrk(1));
+	fprint(2, "%d nodes used; %d of %d hash slots used\n", nalloc, nnew, nhash);
 	exits(nil);	
 }

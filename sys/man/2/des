@@ -135,6 +135,7 @@ using
 .IR mp (2),
 .IR aes (2),
 .IR blowfish (2),
+.IR dsa (2),
 .IR elgamal (2),
 .IR rc4 (2),
 .IR rsa (2),

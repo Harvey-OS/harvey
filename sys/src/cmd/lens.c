@@ -11,21 +11,30 @@ enum {
 Point lastp;
 Image *red;
 Image *tmp;
+Image *grid;
+Image *gridmatte;
+Image *veil;
+Image *chequer;
 int	screenfd;
 int	mag = 4;
+int	showgrid = 0;
 Rectangle	screenr;
 uchar	*screenbuf;
 
 void	magnify(void);
+void makegrid(void);
 
 void
 drawit(void)
 {
+	Rectangle r;
 	border(screen, screen->r, Edge, red, ZP);
 	magnify();
-	draw(screen, insetrect(screen->r, Edge), tmp, nil, tmp->r.min);
+	r = insetrect(screen->r, Edge);
+	draw(screen, r, tmp, nil, tmp->r.min);
 	flushimage(display, 1);
 }
+
 
 int bypp;
 
@@ -44,6 +53,10 @@ main(int argc, char *argv[])
 	}
 	einit(Emouse|Ekeyboard);
 	red = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, DRed);
+	veil = allocimage(display, Rect(0, 0, 1, 1), GREY8, 1, 0x3f3f3fff);
+	chequer = allocimage(display, Rect(0, 0, 2, 2), GREY1, 1, DBlack);
+	draw(chequer, Rect(0, 0, 1, 1), display->white, nil, ZP);
+	draw(chequer, Rect(1, 1, 2, 2), display->white, nil, ZP);
 	lastp = divpt(addpt(screen->r.min, screen->r.max), 2);
 	screenfd = open("/dev/screen", OREAD);
 	if(screenfd < 0){
@@ -83,13 +96,20 @@ main(int argc, char *argv[])
 			case '+':
 				if(mag < Maxmag){
 					mag++;
+					makegrid();
 					drawit();
 				}
+				break;
+			case 'g':
+				showgrid = !showgrid;
+				makegrid();
+				drawit();
 				break;
 			case '-':
 			case '_':
 				if(mag > 1){
 					mag--;
+					makegrid();
 					drawit();
 				}
 				break;
@@ -101,6 +121,7 @@ main(int argc, char *argv[])
 				mag = e.kbdc-'0';
 				if(mag == 0)
 					mag = 10;
+				makegrid();
 				drawit();
 				break;
 			}
@@ -114,6 +135,29 @@ main(int argc, char *argv[])
 			}
 			break;
 		}
+}
+
+void
+makegrid(void)
+{
+	if (grid != nil) {
+		freeimage(grid);
+		grid = nil;
+	}
+	if (showgrid) {
+		if (mag < 4) {
+			grid = allocimage(display, Rect(0, 0, mag*2, mag*2), GREY1, 1, DBlack);
+			draw(grid, Rect(0, 0, mag, mag), display->white, nil, ZP);
+			draw(grid, Rect(mag, mag, mag*2, mag*2), display->white, nil, ZP);
+			gridmatte = veil;
+		} else {
+			grid = allocimage(display, Rect(0, 0, mag, mag),
+				CHAN2(CGrey, 8, CAlpha, 8), 1, DTransparent);
+			draw(grid, Rect(0, 0, mag, 1), chequer, nil, ZP);
+			draw(grid, Rect(0, 1, 1, mag), chequer, nil, ZP);
+			gridmatte = nil;
+		}
+	}
 }
 
 void
@@ -185,4 +229,6 @@ magnify(void)
 			}
 		}
 	}
+	if (showgrid && mag)
+		draw(tmp, tmp->r, grid, gridmatte, ZP);
 }

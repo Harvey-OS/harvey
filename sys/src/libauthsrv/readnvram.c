@@ -32,6 +32,7 @@ static struct {
 	"pc", "#f/fd0disk", -1, 512,	/* 512: #f requires whole sector reads */
 	"pc", "#f/fd1disk", -1, 512,
 	"mips", "#r/nvram", 1024+900, sizeof(Nvrsafe),
+	"power", "#F/flash/flash0", 0x300000, sizeof(Nvrsafe),
 	"power", "#r/nvram", 4352, sizeof(Nvrsafe),	/* OK for MTX-604e */
 	"debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
 };
@@ -158,7 +159,7 @@ readnvram(Nvrsafe *safep, int flag)
 	|| read(fd, buf, safelen) != safelen){
 		err = 1;
 		if(flag&(NVwrite|NVwriteonerr))
-			fprint(2, "can't read nvram\n");
+			fprint(2, "can't read nvram: %r\n");
 		memset(safep, 0, sizeof(*safep));
 		safe = safep;
 	}else{

@@ -3,7 +3,62 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"dosfs.h"
+#include	"fs.h"
+
+struct Dosboot{
+	uchar	magic[3];
+	uchar	version[8];
+	uchar	sectsize[2];
+	uchar	clustsize;
+	uchar	nresrv[2];
+	uchar	nfats;
+	uchar	rootsize[2];
+	uchar	volsize[2];
+	uchar	mediadesc;
+	uchar	fatsize[2];
+	uchar	trksize[2];
+	uchar	nheads[2];
+	uchar	nhidden[4];
+	uchar	bigvolsize[4];
+/* fat 32 */
+	uchar	bigfatsize[4];
+	uchar	extflags[2];
+	uchar	fsversion[2];
+	uchar	rootdirstartclust[4];
+	uchar	fsinfosect[2];
+	uchar	backupbootsect[2];
+/* ???
+	uchar	driveno;
+	uchar	reserved0;
+	uchar	bootsig;
+	uchar	volid[4];
+	uchar	label[11];
+	uchar	reserved1[8];
+*/
+};
+
+struct Dosdir{
+	uchar	name[8];
+	uchar	ext[3];
+	uchar	attr;
+	uchar	lowercase;
+	uchar	hundredth;
+	uchar	ctime[2];
+	uchar	cdate[2];
+	uchar	adate[2];
+	uchar	highstart[2];
+	uchar	mtime[2];
+	uchar	mdate[2];
+	uchar	start[2];
+	uchar	length[4];
+};
+
+#define	DOSRONLY	0x01
+#define	DOSHIDDEN	0x02
+#define	DOSSYSTEM	0x04
+#define	DOSVLABEL	0x08
+#define	DOSDIR	0x10
+#define	DOSARCH	0x20
 
 /*
  *  predeclared
@@ -41,6 +96,7 @@ Clustbuf	bio[Nbio];
 Clustbuf*
 getclust(Dos *dos, long sector)
 {
+	Fs *fs;
 	Clustbuf *p, *oldest;
 	int size;
 
@@ -78,12 +134,14 @@ getclust(Dos *dos, long sector)
 	/*
 	 *  read in the cluster
 	 */
-	chat("getclust addr %lld\n", (sector+dos->start)*(vlong)dos->sectsize);
-	if((*dos->seek)(dos, (sector+dos->start)*(vlong)dos->sectsize) < 0){
+	fs = (Fs*)dos;
+	chat("getclust addr %lud %p %p %p\n", (ulong)((sector+dos->start)*(vlong)dos->sectsize),
+		fs, fs->diskseek, fs->diskread);
+	if(fs->diskseek(fs, (sector+dos->start)*(vlong)dos->sectsize) < 0){
 		chat("can't seek block\n");
 		return 0;
 	}
-	if((*dos->read)(dos, p->iobuf, size) != size){
+	if(fs->diskread(fs, p->iobuf, size) != size){
 		chat("can't read block\n");
 		return 0;
 	}
@@ -222,7 +280,7 @@ dosread(Dosfile *fp, void *a, long n)
 	Clustbuf *p;
 	uchar *from, *to;
 
-	if((fp->attr & DDIR) == 0){
+	if((fp->attr & DOSDIR) == 0){
 		if(fp->offset >= fp->length)
 			return 0;
 		if(fp->offset+n > fp->length)
@@ -264,12 +322,17 @@ dosread(Dosfile *fp, void *a, long n)
  *	 1 if found
  */
 int
-doswalk(Dosfile *file, char *name)
+doswalk(File *f, char *name)
 {
 	Dosdir d;
 	long n;
+	Dosfile *file;
 
-	if((file->attr & DDIR) == 0){
+	chat("doswalk %s\n", name);
+
+	file = &f->dos;
+
+	if((file->attr & DOSDIR) == 0){
 		chat("walking non-directory!\n");
 		return -1;
 	}
@@ -283,7 +346,7 @@ doswalk(Dosfile *file, char *name)
 			continue;
 		if(memcmp(file->ext, d.ext, sizeof(d.ext)) != 0)
 			continue;
-		if(d.attr & DVLABEL){
+		if(d.attr & DOSVLABEL){
 			chat("%8.8s.%3.3s is a LABEL\n", (char*)d.name, (char*)d.ext);
 			continue;
 		}
@@ -306,13 +369,42 @@ doswalk(Dosfile *file, char *name)
 #define	JMPSHORT	0xeb
 #define JMPNEAR		0xe9
 
+/*
+ *  read in a segment
+ */
+long
+dosreadseg(File *f, void *va, long len)
+{
+	char *a;
+	long n, sofar;
+	Dosfile *fp;
+
+	fp = &f->dos;
+	a = va;
+	for(sofar = 0; sofar < len; sofar += n){
+		n = 8*1024;
+		if(len - sofar < n)
+			n = len - sofar;
+		n = dosread(fp, a + sofar, n);
+		if(n <= 0)
+			break;
+		print(".");
+	}
+	return sofar;
+}
+
 int
-dosinit(Dos *dos)
+dosinit(Fs *fs)
 {
 	Clustbuf *p;
 	Dosboot *b;
 	int i;
+	Dos *dos;
+	Dosfile *root;
 
+chat("dosinit0 %p %p %p\n", fs, fs->diskseek, fs->diskread);
+
+	dos = &fs->dos;
 	/* defaults till we know better */
 	dos->sectsize = 512;
 	dos->clustsize = 1;
@@ -323,6 +415,8 @@ dosinit(Dos *dos)
 		chat("can't read boot block\n");
 		return -1;
 	}
+
+chat("dosinit0a\n");
 
 	p->dos = 0;
 	b = (Dosboot *)p->iobuf;
@@ -342,6 +436,8 @@ dosinit(Dos *dos)
 		print("\n");
 		return -1;
 	}
+
+chat("dosinit1\n");
 
 	/*
 	 *  determine the systems' wondersous properties
@@ -384,16 +480,25 @@ dosinit(Dos *dos)
 	}
 	dos->freeptr = 2;
 
+chat("dosinit2\n");
+
 	/*
 	 *  set up the root
 	 */
-	dos->root.dos = dos;
-	dos->root.pstart = dos->rootsize == 0 ? dos->rootclust : 0;
-	dos->root.pcurrent = dos->root.lcurrent = 0;
-	dos->root.offset = 0;
-	dos->root.attr = DDIR;
-	dos->root.length = dos->rootsize*sizeof(Dosdir);
 
+	fs->root.fs = fs;
+	root = &fs->root.dos;
+	root->dos = dos;
+	root->pstart = dos->rootsize == 0 ? dos->rootclust : 0;
+	root->pcurrent = root->lcurrent = 0;
+	root->offset = 0;
+	root->attr = DOSDIR;
+	root->length = dos->rootsize*sizeof(Dosdir);
+
+chat("dosinit3\n");
+
+	fs->read = dosreadseg;
+	fs->walk = doswalk;
 	return 0;
 }
 
@@ -426,100 +531,6 @@ bootdump(Dosboot *b)
 */
 }
 
-/*
- *  grab next element from a path, return the pointer to unprocessed portion of
- *  path.
- */
-static char *
-nextelem(char *path, char *elem)
-{
-	int i;
-
-	while(*path == '/')
-		path++;
-	if(*path==0 || *path==' ')
-		return 0;
-	for(i=0; *path!='\0' && *path!='/' && *path!=' '; i++){
-		if(i==28){
-			print("name component too long\n");
-			return 0;
-		}
-		*elem++ = *path++;
-	}
-	*elem = '\0';
-	return path;
-}
-
-int
-dosstat(Dos *dos, char *path, Dosfile *f)
-{
-	char element[NAMELEN];
-
-	*f = dos->root;
-	while(path = nextelem(path, element)){
-		switch(doswalk(f, element)){
-		case -1:
-			return -1;
-		case 0:
-			return 0;
-		}
-	}
-	return 1;
-}
-
-/*
- *  read in a segment
- */
-long
-dosreadseg(Dosfile *fp, void *va, long len)
-{
-	char *a;
-	long n, sofar;
-
-	a = va;
-	for(sofar = 0; sofar < len; sofar += n){
-		n = 8*1024;
-		if(len - sofar < n)
-			n = len - sofar;
-		n = dosread(fp, a + sofar, n);
-		if(n <= 0)
-			break;
-		print(".");
-	}
-	return sofar;
-}
-
-/*
- *  boot
- */
-int
-dosboot(Dos *dos, char *path, Boot *b)
-{
-	Dosfile file;
-	long n;
-	static char buf[8192];
-
-	switch(dosstat(dos, path, &file)){
-	case -1:
-		print("error walking to %s\n", path);
-		return -1;
-	case 0:
-		print("%s not found\n", path);
-		return -1;
-	case 1:
-		print("found %8.8s.%3.3s attr 0x%ux start 0x%lux len %lud\n", file.name,
-			file.ext, file.attr, file.pstart, file.length);
-		break;
-	}
-
-	while((n = dosreadseg(&file, buf, sizeof buf)) > 0) {
-		if(bootpass(b, buf, n) != MORE)
-			break;
-	}
-
-	bootpass(b, nil, 0);	/* tries boot */
-	return -1;
-}
 
 /*
  *  set up a dos file name

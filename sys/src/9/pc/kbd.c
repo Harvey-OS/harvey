@@ -124,6 +124,8 @@ enum
 	Ckbdint=	(1<<0),		/* kbd interrupt enable */
 };
 
+int mouseshifted;
+
 static Lock i8042lock;
 static uchar ccc;
 static void (*auxputc)(int, int);
@@ -226,6 +228,24 @@ i8042auxcmd(int cmd)
 	return 0;
 }
 
+int
+i8042auxcmds(uchar *cmd, int ncmd)
+{
+	int i;
+
+	ilock(&i8042lock);
+	for(i=0; i<ncmd; i++){
+		if(outready() < 0)
+			break;
+		outb(Cmd, 0xD4);
+		if(outready() < 0)
+			break;
+		outb(Data, cmd[i]);
+	}
+	iunlock(&i8042lock);
+	return i;
+}
+
 /*
  *  keyboard interrupt
  */
@@ -308,6 +328,7 @@ i8042intr(Ureg*, void*)
 			break;
 		case Shift:
 			shift = 0;
+			mouseshifted = 0;
 			break;
 		case Ctrl:
 			ctl = 0;
@@ -351,6 +372,7 @@ i8042intr(Ureg*, void*)
 			return;
 		case Shift:
 			shift = 1;
+			mouseshifted = 1;
 			return;
 		case Latin:
 			alt = 1;

@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gp_vms.c,v 1.2 2000/03/18 01:45:16 lpd Exp $ */
+/*$Id: gp_vms.c,v 1.7.2.1 2002/01/25 06:33:09 rayjj Exp $ */
 /* VAX/VMS specific routines for Ghostscript */
 #include "string_.h"
 #include "gx.h"
@@ -49,6 +49,7 @@ struct dsc$descriptor_s {
 typedef struct dsc$descriptor_s descrip;
 
 /* VMS RMS constants */
+#define RMS_IS_ERROR_OR_NMF(rmsv) (((rmsv) & 1) == 0)
 #define RMS$_NMF    99018
 #define RMS$_NORMAL 65537
 #define NAM$C_MAXRSS  255
@@ -62,9 +63,11 @@ gs_private_st_ptrs1(st_file_enum, struct file_enum_s, "file_enum",
 	  file_enum_enum_ptrs, file_enum_reloc_ptrs, pattern.dsc$a_pointer);
 
 extern uint
-       LIB$FIND_FILE(descrip *, descrip *, uint *, descrip *, descrip *,
-		     uint *, uint *), LIB$FIND_FILE_END(uint *), SYS$FILESCAN(descrip *, uint *, uint *),
-       SYS$PUTMSG(uint *, int (*)(), descrip *, uint);
+    LIB$FIND_FILE(descrip *, descrip *, uint *, descrip *, descrip *,
+		  uint *, uint *),
+    LIB$FIND_FILE_END(uint *),
+    SYS$FILESCAN(descrip *, uint *, uint *),
+    SYS$PUTMSG(uint *, int (*)(), descrip *, uint);
 
 private uint
 strlength(char *str, uint maxlen, char term)
@@ -112,7 +115,7 @@ gp_get_realtime(long *pdt)
     struct {
 	uint _l0, _l1;
     } binary_date, now, difference;
-    long lib$ediv(), lib$subx(), sys$bintim(), sys$gettim();
+    long LIB$EDIV(), LIB$SUBX(), SYS$BINTIM(), SYS$GETTIM();
     long units_per_second = 10000000;
     char *jan_1_1980 = "1-JAN-1980 00:00:00.00";
     descrip str_desc;
@@ -129,14 +132,14 @@ gp_get_realtime(long *pdt)
     /* Convert January 1, 1980 into a binary absolute time */
     str_desc.dsc$w_length = strlen(jan_1_1980);
     str_desc.dsc$a_pointer = jan_1_1980;
-    (void)sys$bintim(&str_desc, &binary_date);
+    (void)SYS$BINTIM(&str_desc, &binary_date);
 
     /* Compute number of 100 nanosecond units since January 1, 1980.  */
-    (void)sys$gettim(&now);
-    (void)lib$subx(&now, &binary_date, &difference);
+    (void)SYS$GETTIM(&now);
+    (void)LIB$SUBX(&now, &binary_date, &difference);
 
     /* Convert to seconds and nanoseconds.  */
-    (void)lib$ediv(&units_per_second, &difference, &pdt[0], &pdt[1]);
+    (void)LIB$EDIV(&units_per_second, &difference, &pdt[0], &pdt[1]);
     pdt[1] *= 100;
 }
 
@@ -216,6 +219,8 @@ FILE *
 gp_open_scratch_file(const char *prefix, char fname[gp_file_name_sizeof],
 		     const char *mode)
 {
+    if (strlen(prefix) + 6 >= gp_file_name_sizeof)
+	return 0;		/* file name too long */
     strcpy(fname, prefix);
     strcat(fname, "XXXXXX");
     mktemp(fname);
@@ -288,11 +293,37 @@ gp_file_name_is_absolute(const char *fname, uint len)
 	return false;
 }
 
+/* Answer whether the file_name references the directory	*/
+/* containing the specified path (parent). 			*/
+bool
+gp_file_name_references_parent(const char *fname, unsigned len)
+{
+    int i = 0, last_sep_pos = -gp_file_name_sizeof;
+
+    /* A file name references its parent directory if it contains -. */
+    /* inside the [ ] part of the file specification */
+    while (i < len && fname[i] != ']') {
+	if (fname[i] == '.' || fname[i] == '[') {
+	    last_sep_pos = i++;
+	    continue;
+	}
+	if (fname[i++] != '-')
+	    continue;
+        if (i > last_sep_pos + 2 || (i < len &&
+		(fname[i] != '.') && fname[i] != ']')
+	   ) 
+	    continue;
+	/* have separator followed by -. or -] */
+	return true;
+    }
+    return false;
+}
+
 /* Answer the string to be used for combining a directory/device prefix */
-/* with a base file name.  The file name is known to not be absolute. */
+/* with a base file name. The prefix directory/device is examined to	*/
+/* determine if a separator is needed and may return an empty string	*/
 const char *
-gp_file_name_concat_string(const char *prefix, uint plen,
-			   const char *fname, uint len)
+gp_file_name_concat_string(const char *prefix, uint plen)
 {
     /*  Full VAX/VMS paths are of the form:
 
@@ -412,12 +443,10 @@ gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen)
 		      (descrip *) 0, (descrip *) 0, (uint *) 0, (uint *) 0);
 
     /* Check the return status */
-    if (i == RMS$_NMF) {
+    if (RMS_IS_ERROR_OR_NMF(i)) {
 	gp_free_enumeration(pfen);
-	return (uint) - 1;
-    } else if (i != RMS$_NORMAL)
-	return 0;
-    else if ((len = strlength(filnam, NAM$C_MAXRSS, ' ')) > maxlen)
+	return (uint)(-1);
+    } else if ((len = strlength(filnam, NAM$C_MAXRSS, ' ')) > maxlen)
 	return maxlen + 1;
 
     /* Copy the returned filename over to the input string ptr */

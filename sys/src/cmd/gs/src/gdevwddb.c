@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 1995, 1996, 1997 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevwddb.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevwddb.c,v 1.3 2001/03/13 06:51:39 ghostgum Exp $ */
 /*
  * Microsoft Windows 3.n driver for Ghostscript,
  * using device-dependent bitmap.
@@ -557,7 +557,7 @@ win_ddb_alloc_bitmap(gx_device_win * dev, gx_device * param_dev)
 	    ReleaseDC(wdev->hwndimg, hdc);
 	    return win_nomemory();
 	}
-	fprintf(stderr, "\nNot enough memory for bitmap.  Halving resolution... ");
+	errprintf("\nNot enough memory for bitmap.  Halving resolution... ");
 	param_dev->x_pixels_per_inch /= 2;
 	param_dev->y_pixels_per_inch /= 2;
 	param_dev->width /= 2;

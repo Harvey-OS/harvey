@@ -65,6 +65,9 @@ snarf(Vga* vga, Ctlr* ctlr)
 		case 0x0005:		/* Avenger (a.k.a. Voodoo3) */
 			vga->f[1] = 300000000;
 			break;
+		case 0x0009:		/* Voodoo5 */
+			vga->f[1] = 350000000;
+			break;
 		}
 		/*
 		 * Frequency output of PLL's is given by

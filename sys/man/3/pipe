@@ -7,23 +7,16 @@ pipe \- two-way interprocess communication
 .nf
 
 .IB dir /data
-.IB dir /ctl
 .IB dir /data1
-.IB dir /ctl1
 .fi
 .SH DESCRIPTION
 .PP
 An
 .IR attach (5)
-of this device allocates two new cross-connected I/O streams.
-.B X/data
+of this device allocates two new cross-connected I/O streams,
+.IB dir /data
 and
-.B x/ctl
-are the data and control channels of one stream and
-.B x/data1
-and
-.B x/ctl1
-are the data and control channels of the other stream.
+.IB dir /data1\f1.
 .PP
 Data written to one channel becomes available for reading at
 the other.

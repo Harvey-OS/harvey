@@ -1,21 +1,21 @@
 #    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: winint.mak,v 1.3 2000/03/17 03:01:58 lpd Exp $
+# $Id: winint.mak,v 1.8 2001/08/01 09:50:36 ghostgum Exp $
 # Common interpreter makefile section for 32-bit MS Windows.
 
 # This makefile must be acceptable to Microsoft Visual C++, Watcom C++,
@@ -63,6 +63,14 @@ UNINSTALL_XE_NAME=uninstgs.exe
 UNINSTALL_XE=$(BINDIR)\$(UNINSTALL_XE_NAME)
 !endif
 
+# Define the RCOMP switch for including INCDIR.
+!if "$(INCDIR)"==""
+i_INCDIR=
+!else
+i_INCDIR=-i$(INCDIR)
+!endif
+
+
 # ----------------------------- Main program ------------------------------ #
 
 ICONS=$(GLGEN)gsgraph.ico $(GLGEN)gstext.ico
@@ -70,10 +78,11 @@ ICONS=$(GLGEN)gsgraph.ico $(GLGEN)gstext.ico
 GS_ALL=$(INT_ALL) $(INTASM)\
   $(LIB_ALL) $(LIBCTR) $(GLGEN)lib.tr $(ld_tr) $(GSDLL_OBJ).res $(GLSRC)$(GSDLL).def $(ICONS)
 
-dwdll_h=$(GLSRC)dwdll.h $(gsdllwin_h)
+dwdll_h=$(GLSRC)dwdll.h
 dwimg_h=$(GLSRC)dwimg.h
 dwmain_h=$(GLSRC)dwmain.h
 dwtext_h=$(GLSRC)dwtext.h
+dwreg_h=$(GLSRC)dwreg.h
 
 # Make the icons from their text form.
 
@@ -88,7 +97,7 @@ $(GS_OBJ).res: $(GLSRC)dwmain.rc $(dwmain_h) $(ICONS) $(WININT_MAK)
 	$(ECHOGS_XE) -w $(GLGEN)_exe.rc -x 23 define -s gstext_ico $(GLGENDIR)\gstext.ico
 	$(ECHOGS_XE) -a $(GLGEN)_exe.rc -x 23 define -s gsgraph_ico $(GLGENDIR)\gsgraph.ico
 	$(ECHOGS_XE) -a $(GLGEN)_exe.rc -R $(GLSRC)dwmain.rc
-	$(RCOMP) -I$(GLSRCDIR) -i$(INCDIR)$(_I) -r $(RO_)$(GS_OBJ).res $(GLGEN)_exe.rc
+	$(RCOMP) -I$(GLSRCDIR) $(i_INCDIR) -r $(RO_)$(GS_OBJ).res $(GLGEN)_exe.rc
 	del $(GLGEN)_exe.rc
 
 # resources for main program (includes dialogs)
@@ -96,56 +105,63 @@ $(GSDLL_OBJ).res: $(GLSRC)gsdll32.rc $(gp_mswin_h) $(ICONS) $(WININT_MAK)
 	$(ECHOGS_XE) -w $(GLGEN)_dll.rc -x 23 define -s gstext_ico $(GLGENDIR)\gstext.ico
 	$(ECHOGS_XE) -a $(GLGEN)_dll.rc -x 23 define -s gsgraph_ico $(GLGENDIR)\gsgraph.ico
 	$(ECHOGS_XE) -a $(GLGEN)_dll.rc -R $(GLSRC)gsdll32.rc
-	$(RCOMP) -I$(GLSRCDIR) -i$(INCDIR)$(_I) -r $(RO_)$(GSDLL_OBJ).res $(GLGEN)_dll.rc
+	$(RCOMP) -I$(GLSRCDIR) $(i_INCDIR) -r $(RO_)$(GSDLL_OBJ).res $(GLGEN)_dll.rc
 	del $(GLGEN)_dll.rc
+
+
+# Modules for big EXE
+
+DWOBJNO = $(GLOBJ)dwnodll.obj $(GLOBJ)dwimg.obj $(GLOBJ)dwmain.obj $(GLOBJ)dwtext.obj $(GLOBJ)dwreg.obj
+
+$(GLOBJ)dwnodll.obj: $(GLSRC)dwnodll.c $(AK)\
+ $(dwdll_h) $(iapi_h)
+	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwnodll.obj $(C_) $(GLSRC)dwnodll.c
+
+# Compile gsdll.c, the main program of the DLL.
+
+$(GLOBJ)gsdll.obj: $(GLSRC)gsdll.c $(AK) $(iapi_h) $(ghost_h)
+	$(PSCCWIN) $(COMPILE_FOR_DLL) $(GLO_)gsdll.$(OBJ) $(C_) $(GLSRC)gsdll.c
+
+$(GLOBJ)gp_msdll.obj: $(GLSRC)gp_msdll.c $(AK) $(iapi_h)
+	$(PSCCWIN) $(COMPILE_FOR_DLL) $(GLO_)gp_msdll.$(OBJ) $(C_) $(GLSRC)gp_msdll.c
+
+# Modules for console mode EXEs
+
+OBJC=$(GLOBJ)dwmainc.obj $(GLOBJ)dwdllc.obj $(GLOBJ)gscdefs.obj $(GLOBJ)gp_wgetv.obj $(GLOBJ)dwimg.obj $(GLOBJ)dwreg.obj
+OBJCNO=$(GLOBJ)dwmainc.obj $(GLOBJ)dwnodllc.obj $(GLOBJ)dwimg.obj $(GLOBJ)dwreg.obj
+
+$(GLOBJ)dwmainc.obj: $(GLSRC)dwmainc.c $(AK) $(dwmain_h) $(dwdll_h) $(gscdefs_h) $(iapi_h)
+	$(GLCPP) $(COMPILE_FOR_CONSOLE_EXE) $(GLO_)dwmainc.obj $(C_) $(GLSRC)dwmainc.c
+
+$(GLOBJ)dwdllc.obj: $(GLSRC)dwdll.c $(AK) $(dwdll_h) $(iapi_h)
+	$(GLCPP) $(COMPILE_FOR_CONSOLE_EXE) $(GLO_)dwdllc.obj $(C_) $(GLSRC)dwdll.c
+
+$(GLOBJ)dwnodllc.obj: $(GLSRC)dwnodll.c $(AK) $(dwdll_h) $(iapi_h)
+	$(GLCPP) $(COMPILE_FOR_CONSOLE_EXE) $(GLO_)dwnodllc.obj $(C_) $(GLSRC)dwnodll.c
 
 
 # Modules for small EXE loader.
 
-DWOBJ=$(GLOBJ)dwdll.obj $(GLOBJ)dwimg.obj $(GLOBJ)dwmain.obj $(GLOBJ)dwtext.obj $(GLOBJ)gscdefs.obj $(GLOBJ)gp_wgetv.obj
+DWOBJ=$(GLOBJ)dwdll.obj $(GLOBJ)dwimg.obj $(GLOBJ)dwmain.obj $(GLOBJ)dwtext.obj $(GLOBJ)gscdefs.obj $(GLOBJ)gp_wgetv.obj $(GLOBJ)dwreg.obj
 
-$(GLOBJ)dwdll.obj: $(GLSRC)dwdll.cpp $(AK)\
- $(dwdll_h) $(gsdll_h) $(gsdllwin_h)
-	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwdll.obj $(C_) $(GLSRC)dwdll.cpp
+$(GLOBJ)dwdll.obj: $(GLSRC)dwdll.c $(AK)\
+ $(dwdll_h) $(iapi_h)
+	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwdll.obj $(C_) $(GLSRC)dwdll.c
 
-$(GLOBJ)dwimg.obj: $(GLSRC)dwimg.cpp $(AK)\
- $(dwmain_h) $(dwdll_h) $(dwtext_h) $(dwimg_h)\
- $(gscdefs_h) $(gsdll_h)
-	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwimg.obj $(C_) $(GLSRC)dwimg.cpp
+$(GLOBJ)dwimg.obj: $(GLSRC)dwimg.c $(AK)\
+ $(dwmain_h) $(dwdll_h) $(dwtext_h) $(dwimg_h) $(gdevdsp_h)\
+ $(gscdefs_h) $(iapi_h) $(dwreg_h)
+	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwimg.obj $(C_) $(GLSRC)dwimg.c
 
-$(GLOBJ)dwmain.obj: $(GLSRC)dwmain.cpp $(AK)\
- $(dwdll_h) $(gscdefs_h) $(gsdll_h)
-	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwmain.obj $(C_) $(GLSRC)dwmain.cpp
+$(GLOBJ)dwmain.obj: $(GLSRC)dwmain.c $(AK)\
+ $(dwdll_h) $(gscdefs_h) $(iapi_h) $(dwreg_h)
+	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwmain.obj $(C_) $(GLSRC)dwmain.c
 
-$(GLOBJ)dwtext.obj: $(GLSRC)dwtext.cpp $(AK) $(dwtext_h)
-	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwtext.obj $(C_) $(GLSRC)dwtext.cpp
+$(GLOBJ)dwtext.obj: $(GLSRC)dwtext.c $(AK) $(dwtext_h)
+	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwtext.obj $(C_) $(GLSRC)dwtext.c
 
-# Modules for big EXE
-
-DWOBJNO = $(GLOBJ)dwnodll.obj $(GLOBJ)dwimg.obj $(GLOBJ)dwmain.obj $(GLOBJ)dwtext.obj
-
-$(GLOBJ)dwnodll.obj: $(GLSRC)dwnodll.cpp $(AK)\
- $(dwdll_h) $(gsdll_h) $(gsdllwin_h)
-	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwnodll.obj $(C_) $(GLSRC)dwnodll.cpp
-
-# Compile gsdll.c, the main program of the DLL.
-
-$(GLOBJ)gsdll.obj: $(GLSRC)gsdll.c $(AK) $(gsdll_h) $(ghost_h)
-	$(PSCCWIN) $(COMPILE_FOR_DLL) $(GLO_)gsdll.$(OBJ) $(C_) $(GLSRC)gsdll.c
-
-# Modules for console mode EXEs
-
-OBJC=$(GLOBJ)dwmainc.obj $(GLOBJ)dwdllc.obj $(GLOBJ)gscdefs.obj $(GLOBJ)gp_wgetv.obj
-OBJCNO=$(GLOBJ)dwmainc.obj $(GLOBJ)dwnodllc.obj
-
-$(GLOBJ)dwmainc.obj: $(GLSRC)dwmainc.cpp $(AK) $(dwmain_h) $(dwdll_h) $(gscdefs_h) $(gsdll_h)
-	$(GLCPP) $(COMPILE_FOR_CONSOLE_EXE) $(GLO_)dwmainc.obj $(C_) $(GLSRC)dwmainc.cpp
-
-$(GLOBJ)dwdllc.obj: $(GLSRC)dwdll.cpp $(AK) $(dwdll_h) $(gsdll_h)
-	$(GLCPP) $(COMPILE_FOR_CONSOLE_EXE) $(GLO_)dwdllc.obj $(C_) $(GLSRC)dwdll.cpp
-
-$(GLOBJ)dwnodllc.obj: $(GLSRC)dwnodll.cpp $(AK) $(dwdll_h) $(gsdll_h)
-	$(GLCPP) $(COMPILE_FOR_CONSOLE_EXE) $(GLO_)dwnodllc.obj $(C_) $(GLSRC)dwnodll.cpp
+$(GLOBJ)dwreg.obj: $(GLSRC)dwreg.c $(AK) $(dwreg_h)
+	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwreg.obj $(C_) $(GLSRC)dwreg.c
 
 
 # ---------------------- Setup and uninstall program ---------------------- #
@@ -156,7 +172,7 @@ $(GLOBJ)dwnodllc.obj: $(GLSRC)dwnodll.cpp $(AK) $(dwdll_h) $(gsdll_h)
 # don't hurt.
 
 $(GLOBJ)dwsetup.res: $(GLSRC)dwsetup.rc $(GLSRC)dwsetup.h $(GLGEN)gstext.ico
-	$(RCOMP) -I$(GLSRCDIR) -i$(GLOBJDIR) -i$(INCDIR)$(_I) -r $(RO_)$(GLOBJ)dwsetup.res $(GLSRC)dwsetup.rc
+	$(RCOMP) -I$(GLSRCDIR) -i$(GLOBJDIR) $(i_INCDIR) -r $(RO_)$(GLOBJ)dwsetup.res $(GLSRC)dwsetup.rc
 
 $(GLOBJ)dwsetup.obj: $(GLSRC)dwsetup.cpp $(GLSRC)dwsetup.h $(GLSRC)dwinst.h
 	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwsetup.obj $(C_) $(GLSRC)dwsetup.cpp
@@ -167,7 +183,7 @@ $(GLOBJ)dwinst.obj: $(GLSRC)dwinst.cpp $(GLSRC)dwinst.h
 # Modules for uninstall program
 
 $(GLOBJ)dwuninst.res: $(GLSRC)dwuninst.rc $(GLSRC)dwuninst.h $(GLGEN)gstext.ico
-	$(RCOMP) -I$(GLSRCDIR) -i$(GLOBJDIR) -i$(INCDIR)$(_I) -r $(RO_)$(GLOBJ)dwuninst.res $(GLSRC)dwuninst.rc
+	$(RCOMP) -I$(GLSRCDIR) -i$(GLOBJDIR) $(i_INCDIR) -r $(RO_)$(GLOBJ)dwuninst.res $(GLSRC)dwuninst.rc
 
 $(GLOBJ)dwuninst.obj: $(GLSRC)dwuninst.cpp $(GLSRC)dwuninst.h
 	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwuninst.obj $(C_) $(GLSRC)dwuninst.cpp
@@ -187,12 +203,13 @@ $(GLOBJ)dwuninst.obj: $(GLSRC)dwuninst.cpp $(GLSRC)dwuninst.h
 
 ZIPTEMPFILE=gs$(GS_DOT_VERSION)\obj\dwfiles.rsp
 ZIPPROGFILE1=gs$(GS_DOT_VERSION)\bin\gsdll32.dll
-ZIPPROGFILE2=gs$(GS_DOT_VERSION)\bin\gswin32.exe
-ZIPPROGFILE3=gs$(GS_DOT_VERSION)\bin\gswin32c.exe
-ZIPPROGFILE4=gs$(GS_DOT_VERSION)\bin\gs16spl.exe
-ZIPPROGFILE5=gs$(GS_DOT_VERSION)\doc
-ZIPPROGFILE6=gs$(GS_DOT_VERSION)\examples
-ZIPPROGFILE7=gs$(GS_DOT_VERSION)\lib
+ZIPPROGFILE2=gs$(GS_DOT_VERSION)\bin\gsdll32.lib
+ZIPPROGFILE3=gs$(GS_DOT_VERSION)\bin\gswin32.exe
+ZIPPROGFILE4=gs$(GS_DOT_VERSION)\bin\gswin32c.exe
+ZIPPROGFILE5=gs$(GS_DOT_VERSION)\bin\gs16spl.exe
+ZIPPROGFILE6=gs$(GS_DOT_VERSION)\doc
+ZIPPROGFILE7=gs$(GS_DOT_VERSION)\examples
+ZIPPROGFILE8=gs$(GS_DOT_VERSION)\lib
 ZIPFONTDIR=fonts
 ZIPFONTFILES=$(ZIPFONTDIR)\*.*
 
@@ -210,8 +227,9 @@ zip: $(SETUP_XE) $(UNINSTALL_XE)
 	echo $(ZIPPROGFILE5) >> $(ZIPTEMPFILE)
 	echo $(ZIPPROGFILE6) >> $(ZIPTEMPFILE)
 	echo $(ZIPPROGFILE7) >> $(ZIPTEMPFILE)
-	$(SETUP_XE_NAME) -title "Aladdin Ghostscript $(GS_DOT_VERSION)" -dir "gs$(GS_DOT_VERSION)" -list "$(FILELIST_TXT)" @$(ZIPTEMPFILE)
-	$(SETUP_XE_NAME) -title "Aladdin Ghostscript Fonts" -dir "fonts" -list "$(FONTLIST_TXT)" $(ZIPFONTFILES)
+	echo $(ZIPPROGFILE8) >> $(ZIPTEMPFILE)
+	$(SETUP_XE_NAME) -title "AFPL Ghostscript $(GS_DOT_VERSION)" -dir "gs$(GS_DOT_VERSION)" -list "$(FILELIST_TXT)" @$(ZIPTEMPFILE)
+	$(SETUP_XE_NAME) -title "AFPL Ghostscript Fonts" -dir "fonts" -list "$(FONTLIST_TXT)" $(ZIPFONTFILES)
 	-del gs$(GS_VERSION)w32.zip
 	$(ZIP_XE) -9 -r gs$(GS_VERSION)w32.zip $(SETUP_XE_NAME) $(UNINSTALL_XE_NAME) $(FILELIST_TXT) $(FONTLIST_TXT)
 	$(ZIP_XE) -9 -r gs$(GS_VERSION)w32.zip $(ZIPFONTDIR)
@@ -226,6 +244,7 @@ zip: $(SETUP_XE) $(UNINSTALL_XE)
 	$(ZIP_XE) -9 -r gs$(GS_VERSION)w32.zip $(ZIPPROGFILE5)
 	$(ZIP_XE) -9 -r gs$(GS_VERSION)w32.zip $(ZIPPROGFILE6)
 	$(ZIP_XE) -9 -r gs$(GS_VERSION)w32.zip $(ZIPPROGFILE7)
+	$(ZIP_XE) -9 -r gs$(GS_VERSION)w32.zip $(ZIPPROGFILE8)
 	-del $(ZIPTEMPFILE)
 	-del $(SETUP_XE_NAME)
 	-del $(UNINSTALL_XE_NAME)
@@ -240,16 +259,16 @@ ZIP_RSP = $(GLOBJ)setupgs.rsp
 # to avoid ANSI/OEM character mapping.
 archive: zip $(GLOBJ)gstext.ico $(ECHOGS_XE)
 	$(ECHOGS_XE) -w $(ZIP_RSP) -q "-win32 -setup"
-	$(ECHOGS_XE) -a $(ZIP_RSP) -q -st -x 22 Aladdin Ghostscript $(GS_DOT_VERSION) for Win32 -x 22
+	$(ECHOGS_XE) -a $(ZIP_RSP) -q -st -x 22 AFPL Ghostscript $(GS_DOT_VERSION) for Win32 -x 22
 	$(ECHOGS_XE) -a $(ZIP_RSP) -q -i -s $(GLOBJ)gstext.ico
 	$(ECHOGS_XE) -a $(ZIP_RSP) -q -a -s $(GLOBJ)about.txt
 	$(ECHOGS_XE) -a $(ZIP_RSP) -q -t -s $(GLOBJ)dialog.txt
 	$(ECHOGS_XE) -a $(ZIP_RSP) -q -c -s $(SETUP_XE_NAME)
-	$(ECHOGS_XE) -w $(GLOBJ)about.txt "Aladdin Ghostscript is Copyright " -x A9 " 1999 Aladdin Enterprises."
+	$(ECHOGS_XE) -w $(GLOBJ)about.txt "AFPL Ghostscript is Copyright " -x A9 " 2001 artofcode LLC."
 	$(ECHOGS_XE) -a $(GLOBJ)about.txt See license in gs$(GS_DOT_VERSION)\doc\PUBLIC.
 	$(ECHOGS_XE) -a $(GLOBJ)about.txt See gs$(GS_DOT_VERSION)\doc\Commprod.htm regarding commercial distribution.
-	$(ECHOGS_XE) -w $(GLOBJ)dialog.txt This installs Aladdin Ghostscript $(GS_DOT_VERSION).
-	$(ECHOGS_XE) -a $(GLOBJ)dialog.txt Aladdin Ghostscript displays, prints and converts PostScript and PDF files.
+	$(ECHOGS_XE) -w $(GLOBJ)dialog.txt This installs AFPL Ghostscript $(GS_DOT_VERSION).
+	$(ECHOGS_XE) -a $(GLOBJ)dialog.txt AFPL Ghostscript displays, prints and converts PostScript and PDF files.
 	$(WINZIPSE_XE) ..\gs$(GS_VERSION)w32 @$(GLOBJ)setupgs.rsp
 # Don't delete temporary files, because make continues
 # before these files are used.

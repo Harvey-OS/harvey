@@ -12,6 +12,15 @@ HFILES=ldefs.h\
 YFILES=parser.y\
 
 BIN=/$objtype/bin
+UPDATE=\
+	mkfile\
+	$HFILES\
+	lmain.c\
+	sub1.c\
+	sub2.c\
+	header.c\
+	${TARG:%=/386/bin/%}\
+
 </sys/src/cmd/mkone
 
 installall:V:

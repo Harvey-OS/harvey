@@ -3,6 +3,7 @@ intro 0intro
 9load 9load
 ld 9load
 9pcon 9pcon
+aliasmail aliasmail
 apm apm
 auth auth
 auth.srv auth
@@ -43,7 +44,6 @@ init init
 ipconfig ipconfig
 rip ipconfig
 ftpd ipserv
-imap4d ipserv
 ipserv ipserv
 rexexec ipserv
 rlogind ipserv
@@ -61,6 +61,7 @@ il566 listen
 il7 listen
 il9 listen
 listen listen
+listen1 listen
 tcp110 listen
 tcp113 listen
 tcp143 listen
@@ -114,6 +115,8 @@ hogports ping
 ping ping
 traceroute ping
 plan9.ini plan9.ini
+imap4d pop3
+pop3 pop3
 ppp ppp
 pppoe ppp
 pptp ppp
@@ -138,11 +141,19 @@ secstore secstore
 secstored secstore
 secuser secstore
 securenet securenet
+send send
+imap4d smtp
+pop3 smtp
+smtp smtp
+smtpd smtp
 snoopy snoopy
 stats stats
 swap swap
 timesync timesync
+tlsclient tlssrv
+tlsclienttunnel tlssrv
 tlssrv tlssrv
+tlssrvtunnel tlssrv
 udpecho udpecho
 bootfloppy update
 bootplan9 update

@@ -1,8 +1,8 @@
 #define	BDNZ	BC	16,0,
-	TEXT	memmove(SB), $0
+	TEXT	memcpy(SB), $0
 	BR	move
 
-	TEXT	memcpy(SB), $0
+	TEXT	memmove(SB), $0
 move:
 
 /*

@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1993, 1994, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zvmem2.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zvmem2.c,v 1.3 2001/09/06 16:01:23 rayjj Exp $ */
 /* Level 2 "Virtual memory" operators */
 #include "ghost.h"
 #include "oper.h"
@@ -100,12 +100,6 @@ set_vm_threshold(i_ctx_t *i_ctx_p, long val)
     return 0;
 }
 
-/*
- * <int> .vmreclaim -
- *
- * This implements only immediate garbage collection: enabling and
- * disabling GC is implemented by calling setuserparams.
- */
 int
 set_vm_reclaim(i_ctx_t *i_ctx_p, long val)
 {
@@ -125,6 +119,13 @@ set_vm_reclaim(i_ctx_t *i_ctx_p, long val)
     } else
 	return_error(e_rangecheck);
 }
+
+/*
+ * <int> .vmreclaim -
+ *
+ * This implements only immediate garbage collection: enabling and
+ * disabling GC is implemented by calling setuserparams.
+ */
 private int
 zvmreclaim(i_ctx_t *i_ctx_p)
 {

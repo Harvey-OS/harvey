@@ -478,7 +478,7 @@ openfile(Netif *nif, int id)
 			f = malloc(sizeof(Netfile));
 			if(f == 0)
 				exhausted("memory");
-			f->in = qopen(nif->limit, 1, 0, 0);
+			f->in = qopen(nif->limit, Qmsg, 0, 0);
 			if(f->in == nil){
 				free(f);
 				exhausted("memory");

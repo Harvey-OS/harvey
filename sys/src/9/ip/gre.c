@@ -47,6 +47,8 @@ struct GREpriv
 	ulong		lenerr;			/* short packet */
 };
 
+static void grekick(void *x);
+
 static char*
 greconnect(Conv *c, char **argv, int argc)
 {
@@ -84,18 +86,18 @@ greconnect(Conv *c, char **argv, int argc)
 	return nil;
 }
 
+static void
+grecreate(Conv *c)
+{
+	c->rq = qopen(64*1024, Qmsg, 0, c);
+	c->wq = qopen(64*1024, Qkick, grekick, c);
+}
+
 static int
 grestate(Conv *c, char *state, int n)
 {
 	USED(c);
 	return snprint(state, n, "%s", "Datagram");
-}
-
-static void
-grecreate(Conv *c)
-{
-	c->rq = qopen(64*1024, 1, 0, c);
-	c->wq = qopen(64*1024, 0, 0, 0);
 }
 
 static char*
@@ -119,8 +121,9 @@ greclose(Conv *c)
 int drop;
 
 static void
-grekick(Conv *c)
+grekick(void *x)
 {
+	Conv *c = x;
 	GREhdr *ghp;
 	Block *bp;
 	uchar laddr[IPaddrlen], raddr[IPaddrlen];
@@ -140,6 +143,7 @@ grekick(Conv *c)
 		return;
 
 	ghp = (GREhdr *)(bp->rp);
+	ghp->vihl = IP_VER4;
 
 	v4tov6(raddr, ghp->dst);
 	if(ipcmp(raddr, v4prefix) == 0)
@@ -156,7 +160,7 @@ grekick(Conv *c)
 	ghp->frag[0] = 0;
 	ghp->frag[1] = 0;
 
-	ipoput(c->p->f, bp, 0, c->ttl, c->tos);
+	ipoput4(c->p->f, bp, 0, c->ttl, c->tos);
 }
 
 static void
@@ -240,7 +244,6 @@ greinit(Fs *fs)
 	gre = smalloc(sizeof(Proto));
 	gre->priv = smalloc(sizeof(GREpriv));
 	gre->name = "gre";
-	gre->kick = grekick;
 	gre->connect = greconnect;
 	gre->announce = greannounce;
 	gre->state = grestate;

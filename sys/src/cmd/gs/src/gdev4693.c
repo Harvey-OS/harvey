@@ -6,7 +6,7 @@
  * This software is provided "as is" without express or implied warranty.
  */
 
-/*$Id: gdev4693.c,v 1.1 2000/03/09 08:40:40 lpd Exp $*/
+/*$Id: gdev4693.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
 /* Driver for the Tektronix 4693d color plotter. */
 #include "gdevprn.h"
 #define prn_dev ((gx_device_printer *)dev) /* needed in 5.31 et seq */
@@ -33,9 +33,9 @@ private gx_device_procs t4693d_procs =
 	3,depth,max_rgb,max_rgb,max_rgb + 1,max_rgb + 1, \
 	t4693d_print_page)}
 
-gx_device_printer gs_t4693d2_device = t4693d_prn_device("t4693d2",8, 3);
-gx_device_printer gs_t4693d4_device = t4693d_prn_device("t4693d4",16, 15);
-gx_device_printer gs_t4693d8_device = t4693d_prn_device("t4693d8",24, 255);
+const gx_device_printer gs_t4693d2_device = t4693d_prn_device("t4693d2",8, 3);
+const gx_device_printer gs_t4693d4_device = t4693d_prn_device("t4693d4",16, 15);
+const gx_device_printer gs_t4693d8_device = t4693d_prn_device("t4693d8",24, 255);
 
 private gx_color_index
 gdev_t4693d_map_rgb_color(gx_device *dev,
@@ -111,7 +111,7 @@ t4693d_print_page(gx_device_printer *dev, FILE *ps_stream)
 	*p = 0x02; /* end of line. */
 	/* write header */
 	if (fwrite(header,1,22,ps_stream) != 22) {
-		fprintf(stderr,"Could not write header (t4693d).\n");
+		errprintf("Could not write header (t4693d).\n");
 		gs_free(data, line_size, 1, "t4693d_print_page");
 		return_error(gs_error_ioerror);
 	}
@@ -137,13 +137,13 @@ t4693d_print_page(gx_device_printer *dev, FILE *ps_stream)
 			case 24:
 				break;
 			default:
-				fprintf(stderr,"Bad depth (%d) t4693d.\n",depth);
+				errprintf("Bad depth (%d) t4693d.\n",depth);
 				gs_free(data, line_size, 1, "t4693d_print_page");
 				return_error(gs_error_rangecheck);
 			}
 
 			if (fwrite(&data[i],1,data_size,ps_stream) != data_size) {
-				fprintf(stderr,"Could not write pixel (t4693d).\n");
+				errprintf("Could not write pixel (t4693d).\n");
 				gs_free(data, line_size, 1, "t4693d_print_page");
 				return_error(gs_error_ioerror);
 			}
@@ -151,7 +151,7 @@ t4693d_print_page(gx_device_printer *dev, FILE *ps_stream)
 		}
 
 		if (fputc(0x02,ps_stream) != 0x02) {
-			fprintf(stderr,"Could not write EOL (t4693d).\n");
+			errprintf("Could not write EOL (t4693d).\n");
 			gs_free(data, line_size, 1, "t4693d_print_page");
 			return_error(gs_error_ioerror);
 		}
@@ -159,7 +159,7 @@ t4693d_print_page(gx_device_printer *dev, FILE *ps_stream)
 	}
 
 	if (fputc(0x01,ps_stream) != 0x01) {
-		fprintf(stderr,"Could not write EOT (t4693d).\n");
+		errprintf("Could not write EOT (t4693d).\n");
 		gs_free(data, line_size, 1, "t4693d_print_page");
 		return_error(gs_error_ioerror);
 	}

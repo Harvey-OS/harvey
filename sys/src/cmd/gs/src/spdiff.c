@@ -1,22 +1,22 @@
-/* Copyright (C) 1994, 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: spdiff.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: spdiff.c,v 1.3 2000/09/19 19:00:51 lpd Exp $ */
 /* Pixel differencing filters */
 #include "stdio_.h"		/* should be std.h, but needs NULL */
 #include "memory_.h"
@@ -90,15 +90,17 @@ s_PDiff_process(stream_state * st, stream_cursor_read * pr,
 		stream_cursor_write * pw, bool last)
 {
     stream_PDiff_state *const ss = (stream_PDiff_state *) st;
-    register const byte *p = pr->ptr;
-    register byte *q = pw->ptr;
-    register int count;
+    const byte *p = pr->ptr;
+    byte *q = pw->ptr;
+    int count;
     int status = 0;
-    register byte s0 = ss->prev[0];
-    register byte t;
+    byte s0 = ss->prev[0];
+    byte t;
     const byte end_mask = ss->end_mask;
     int colors = ss->Colors;
-    int ci;
+    int nb = (colors * ss->BitsPerComponent) >> 3;
+    int final;
+    int ndone, ci;
 
 row:
     if (ss->row_left == 0) {
@@ -114,6 +116,7 @@ row:
 	    rcount = ss->row_left;
 	count = (wcount < rcount ? (status = 1, wcount) : rcount);
     }
+    final = (last && !status ? 1 : nb);
     ss->row_left -= count;
 
     /*
@@ -122,6 +125,10 @@ row:
      * decoding computes D[i] = E[i] + D[i-1].
      * Nevertheless, the loop structures are similar enough that
      * we put the code for both functions in the same place.
+     *
+     * We only optimize BitsPerComponent = 1, 3, and 4, which
+     * correspond to the common color spaces.  (In some cases, it's still
+     * simpler to provide a separate loop for BPC = 2.)
      */
 
 #define LOOP_BY(n, body)\
@@ -134,13 +141,49 @@ row:
 #define ENCODE1_LOOP(ee)\
   LOOP_BY(1, (t = *p, *q = ee, s0 = t)); break
 
+#define ENCODE_ALIGNED_LOOP(ee)\
+  BEGIN\
+    ss->prev[0] = s0;\
+    for (; count >= final; count -= ndone) {\
+	ndone = min(count, nb);\
+	for (ci = 0; ci < ndone; ++ci)\
+	    t = *++p, *++q = ee, ss->prev[ci] = t;\
+    }\
+    s0 = ss->prev[0];\
+  END
+
+#define ENCODE_UNALIGNED_LOOP(shift, cshift, de)\
+  BEGIN\
+    for (; count >= final; count -= ndone) {\
+	ndone = min(count, nb);\
+	for (ci = 1; ci <= ndone; ++ci) {\
+	    ++p;\
+	    t = (s0 << (cshift)) | (ss->prev[ci] >> (shift));\
+	    *++q = de;\
+	    s0 = ss->prev[ci];\
+	    ss->prev[ci] = *p;\
+	}\
+    }\
+  END
+
 	case cEncode + cBits1 + 0:
-	    break;		/****** NYI ******/
+	case cEncode + cBits1 + 2:
+	    if (colors < 8) {	/* 2,5,6,7 */
+		int cshift = 8 - colors;
+
+		ENCODE1_LOOP(t ^ ((s0 << cshift) | (t >> colors)));
+	    } else if (colors & 7) {
+		int shift = colors & 7;
+		int cshift = 8 - shift;
+
+		ENCODE_UNALIGNED_LOOP(shift, cshift, *p ^ t);
+	    } else {
+		ENCODE_ALIGNED_LOOP(t ^ ss->prev[ci]);
+	    }
+	    break;
 
 	case cEncode + cBits1 + 1:
 	    ENCODE1_LOOP(t ^ ((s0 << 7) | (t >> 1)));
-	case cEncode + cBits1 + 2:
-	    ENCODE1_LOOP(t ^ ((s0 << 6) | (t >> 2)));
 	case cEncode + cBits1 + 3:
 	    ENCODE1_LOOP(t ^ ((s0 << 5) | (t >> 3)));
 	case cEncode + cBits1 + 4:
@@ -149,8 +192,44 @@ row:
 #define DECODE1_LOOP(te, de)\
   LOOP_BY(1, (t = te, s0 = *q = de)); break
 
+#define DECODE_ALIGNED_LOOP(de)\
+  BEGIN\
+    ss->prev[0] = s0;\
+    for (; count >= final; count -= ndone) {\
+	ndone = min(count, nb);\
+	for (ci = 0; ci < ndone; ++ci)\
+	    t = *++p, ss->prev[ci] = *++q = de;\
+    }\
+    s0 = ss->prev[0];\
+  END
+
+#define DECODE_UNALIGNED_LOOP(shift, cshift, de)\
+  BEGIN\
+    for (; count >= final; count -= ndone) {\
+	ndone = min(count, nb);\
+	for (ci = 1; ci <= ndone; ++ci) {\
+	    ++p, ++q;\
+	    t = (s0 << (cshift)) | (ss->prev[ci] >> (shift));\
+	    s0 = ss->prev[ci];\
+	    ss->prev[ci] = *q = de;\
+	}\
+    }\
+  END
+
 	case cDecode + cBits1 + 0:
-	    break;		/****** NYI ******/
+	    if (colors < 8) {	/* 5,6,7 */
+		int cshift = 8 - colors;
+
+		DECODE1_LOOP(*p ^ (s0 << cshift), t ^ (t >> colors));
+	    } else if (colors & 7) {
+		int shift = colors & 7;
+		int cshift = 8 - shift;
+
+		DECODE_UNALIGNED_LOOP(shift, cshift, *p ^ t);
+	    } else {
+		DECODE_ALIGNED_LOOP(t ^ ss->prev[ci]);
+	    }
+	    break;
 
 	case cDecode + cBits1 + 1:
 	    DECODE1_LOOP(*p ^ (s0 << 7),
@@ -172,7 +251,15 @@ row:
 #define SUB4X2(a, b) ( ((~(a) & (b) & 0x55) << 1) ^ (a) ^ (b) )
 
 	case cEncode + cBits2 + 0:
-	    break;		/****** NYI ******/
+	    if (colors & 7) {
+		int shift = (colors & 3) << 1;
+		int cshift = 8 - shift;
+
+		ENCODE_UNALIGNED_LOOP(shift, cshift, SUB4X2(*p, t));
+	    } else {
+		ENCODE_ALIGNED_LOOP(SUB4X2(t, ss->prev[ci]));
+	    }
+	    break;
 
 	case cEncode + cBits2 + 1:
 	    ENCODE1_LOOP((s0 = (s0 << 6) | (t >> 2), SUB4X2(t, s0)));
@@ -184,18 +271,23 @@ row:
 	    ENCODE1_LOOP(SUB4X2(t, s0));
 
 	case cDecode + cBits2 + 0:
-	    break;		/****** NYI ******/
+	    if (colors & 7) {
+		int shift = (colors & 3) << 1;
+		int cshift = 8 - shift;
+
+		DECODE_UNALIGNED_LOOP(shift, cshift, ADD4X2(*p, t));
+	    } else {
+		DECODE_ALIGNED_LOOP(ADD4X2(t, ss->prev[ci]));
+	    }
+	    break;
 
 	case cDecode + cBits2 + 1:
 	    DECODE1_LOOP(*p + (s0 << 6),
-			 (t = ADD4X2(t >> 2, t),
-			  ADD4X2(t >> 4, t)));
+			 (t = ADD4X2(t >> 2, t), ADD4X2(t >> 4, t)));
 	case cDecode + cBits2 + 2:
-	    DECODE1_LOOP(*p, (t = ADD4X2(t, s0 << 4),
-			      ADD4X2(t >> 4, t)));
+	    DECODE1_LOOP(*p, (t = ADD4X2(t, s0 << 4), ADD4X2(t >> 4, t)));
 	case cDecode + cBits2 + 3:
-	    DECODE1_LOOP(*p, (t = ADD4X2(t, s0 << 2),
-			      ADD4X2(t >> 6, t)));
+	    DECODE1_LOOP(*p, (t = ADD4X2(t, s0 << 2), ADD4X2(t >> 6, t)));
 	case cDecode + cBits2 + 4:
 	    DECODE1_LOOP(*p, ADD4X2(t, s0));
 
@@ -209,36 +301,21 @@ row:
 #define SUB2X4(a, b) ( (((a) - (b)) & 0xf) + ((a) & 0xf0) - ((b) & 0xf0) )
 #define SUB2X4R4(a) ( (((a) - ((a) >> 4)) & 0xf) + ((a) & 0xf0) )
 
-	case cEncode + cBits4 + 0: {	/* Colors > 4 */
-	    int nb = colors >> 1;
-
+	case cEncode + cBits4 + 0:
+	case cEncode + cBits4 + 2:
+    enc4:
 	    if (colors & 1) {
-		/****** WRONG ******/
-		for (; count >= nb; count -= nb)
-		    for (ci = 1; ci <= nb; ++ci) {
-			++p, ++q;
-			t = (s0 << 4) | (ss->prev[ci] >> 4);
-			s0 = ss->prev[ci];
-			ss->prev[ci] = *q = ADD2X4(*p, t);
-		    }
+		ENCODE_UNALIGNED_LOOP(4, 4, SUB2X4(*p, t));
 	    } else {
-		ss->prev[0] = s0;
-		for (; count >= nb; count -= nb)
-		    for (ci = 0; ci < nb; ++ci)
-			++p, ++q, t = *p, *q = SUB2X4(t, ss->prev[ci]),
-			    ss->prev[ci] = t;
-		s0 = ss->prev[0];
+		ENCODE_ALIGNED_LOOP(SUB2X4(t, ss->prev[ci]));
 	    }
-	} break;
+	    break;
 
 	case cEncode + cBits4 + 1:
 	    ENCODE1_LOOP(((t - (s0 << 4)) & 0xf0) | ((t - (t >> 4)) & 0xf));
 
-	case cEncode + cBits4 + 2:
-	    ENCODE1_LOOP(SUB2X4(t, s0));
-
 	case cEncode + cBits4 + 3: {
-	    register byte s1 = ss->prev[1];
+	    byte s1 = ss->prev[1];
 
 	    LOOP_BY(1,
 		    (t = *p,
@@ -248,43 +325,30 @@ row:
 	} break;
 
 	case cEncode + cBits4 + 4: {
-	    register byte s1 = ss->prev[1];
+	    byte s1 = ss->prev[1];
 
 	    LOOP_BY(2,
 		    (t = p[-1], q[-1] = SUB2X4(t, s0), s0 = t,
 		     t = *p, *q = SUB2X4(t, s1), s1 = t));
 	    ss->prev[1] = s1;
-	} break;
+	    goto enc4;		/* handle leftover bytes */
+	}
 
-	case cDecode + cBits4 + 0: {	/* Colors > 4 */
-	    int nb = colors >> 1;
-
+	case cDecode + cBits4 + 0:
+	case cDecode + cBits4 + 2:
+    dec4:
 	    if (colors & 1) {
-		/****** WRONG ******/
-		for (; count >= nb; count -= nb)
-		    for (ci = 1; ci <= nb; ++ci) {
-			++p, ++q;
-			t = (s0 << 4) | (ss->prev[ci] >> 4);
-			s0 = ss->prev[ci];
-			ss->prev[ci] = *q = ADD2X4(*p, t);
-		    }
+		DECODE_UNALIGNED_LOOP(4, 4, ADD2X4(*p, t));
 	    } else {
-		ss->prev[0] = s0;
-		for (; count >= nb; count -= nb)
-		    for (ci = 0; ci < nb; ++ci)
-			++p, ++q, ss->prev[ci] = *q = ADD2X4(*p, ss->prev[ci]);
-		s0 = ss->prev[0];
+		DECODE_ALIGNED_LOOP(ADD2X4(t, ss->prev[ci]));
 	    }
-	} break;
+	    break;
 
 	case cDecode + cBits4 + 1:
 	    DECODE1_LOOP(*p + (s0 << 4), ADD2X4R4(t));
 
-	case cDecode + cBits4 + 2:
-	    DECODE1_LOOP(*p, ADD2X4(t, s0));
-
 	case cDecode + cBits4 + 3: {
-	    register byte s1 = ss->prev[1];
+	    byte s1 = ss->prev[1];
 
 	    LOOP_BY(1, (t = (s0 << 4) + (s1 >> 4),
 			s0 = s1, s1 = *q = ADD2X4(*p, t)));
@@ -292,13 +356,14 @@ row:
 	} break;
 
 	case cDecode + cBits4 + 4: {
-	    register byte s1 = ss->prev[1];
+	    byte s1 = ss->prev[1];
 
 	    LOOP_BY(2,
 		    (t = p[-1], s0 = q[-1] = ADD2X4(s0, t),
 		     t = *p, s1 = *q = ADD2X4(s1, t)));
 	    ss->prev[1] = s1;
-	} break;
+	    goto dec4;		/* handle leftover bytes */
+	}
 
 #undef ADD2X4
 #undef ADD2X4R4
@@ -310,7 +375,8 @@ row:
 #define ENCODE8(s, d) (q[d] = p[d] - s, s = p[d])
 #define DECODE8(s, d) q[d] = s += p[d]
 
-	case cEncode + cBits8 + 0: {	/* Colors > 4 */
+	case cEncode + cBits8 + 0:
+	case cEncode + cBits8 + 2:
 	    ss->prev[0] = s0;
 	    for (; count >= colors; count -= colors)
 		for (ci = 0; ci < colors; ++ci) {
@@ -318,15 +384,25 @@ row:
 		    ss->prev[ci] = *p;
 		}
 	    s0 = ss->prev[0];
-	} break;
+    enc8:   /* Handle leftover bytes. */
+	    if (last && !status)
+		for (ci = 0; ci < count; ++ci)
+		    *++q = *++p - ss->prev[ci],
+			ss->prev[ci] = *p;
+	    break;
 
-	case cDecode + cBits8 + 0: {	/* Colors > 4 */
+	case cDecode + cBits8 + 0:
+	case cDecode + cBits8 + 2:
 	    ss->prev[0] = s0;
 	    for (; count >= colors; count -= colors)
 		for (ci = 0; ci < colors; ++ci)
 		    *++q = ss->prev[ci] += *++p;
 	    s0 = ss->prev[0];
-	} break;
+    dec8:   /* Handle leftover bytes. */
+	    if (last && !status)
+		for (ci = 0; ci < count; ++ci)
+		    *++q = ss->prev[ci] += *++p;
+	    break;
 
 	case cEncode + cBits8 + 1:
 	    LOOP_BY(1, ENCODE8(s0, 0));
@@ -336,50 +412,40 @@ row:
 	    LOOP_BY(1, DECODE8(s0, 0));
 	    break;
 
-	case cEncode + cBits8 + 2: {
-	    register byte s1 = ss->prev[1];
-
-	    LOOP_BY(2, (ENCODE8(s0, -1), ENCODE8(s1, 0)));
-	    ss->prev[1] = s1;
-	} break;
-
-	case cDecode + cBits8 + 2: {
-	    register byte s1 = ss->prev[1];
-
-	    LOOP_BY(2, (DECODE8(s0, -1), DECODE8(s1, 0)));
-	    ss->prev[1] = s1;
-	} break;
-
 	case cEncode + cBits8 + 3: {
-	    register byte s1 = ss->prev[1], s2 = ss->prev[2];
+	    byte s1 = ss->prev[1], s2 = ss->prev[2];
 
 	    LOOP_BY(3, (ENCODE8(s0, -2), ENCODE8(s1, -1),
 			ENCODE8(s2, 0)));
 	    ss->prev[1] = s1, ss->prev[2] = s2;
-	} break;
+	    goto enc8;
+	}
 
 	case cDecode + cBits8 + 3: {
-	    register byte s1 = ss->prev[1], s2 = ss->prev[2];
+	    byte s1 = ss->prev[1], s2 = ss->prev[2];
 
 	    LOOP_BY(3, (DECODE8(s0, -2), DECODE8(s1, -1),
 			DECODE8(s2, 0)));
 	    ss->prev[1] = s1, ss->prev[2] = s2;
+	    goto dec8;
 	} break;
 
 	case cEncode + cBits8 + 4: {
-	    register byte s1 = ss->prev[1], s2 = ss->prev[2], s3 = ss->prev[3];
+	    byte s1 = ss->prev[1], s2 = ss->prev[2], s3 = ss->prev[3];
 
 	    LOOP_BY(4, (ENCODE8(s0, -3), ENCODE8(s1, -2),
 			ENCODE8(s2, -1), ENCODE8(s3, 0)));
 	    ss->prev[1] = s1, ss->prev[2] = s2, ss->prev[3] = s3;
+	    goto enc8;
 	} break;
 
 	case cDecode + cBits8 + 4: {
-	    register byte s1 = ss->prev[1], s2 = ss->prev[2], s3 = ss->prev[3];
+	    byte s1 = ss->prev[1], s2 = ss->prev[2], s3 = ss->prev[3];
 
 	    LOOP_BY(4, (DECODE8(s0, -3), DECODE8(s1, -2),
 			DECODE8(s2, -1), DECODE8(s3, 0)));
 	    ss->prev[1] = s1, ss->prev[2] = s2, ss->prev[3] = s3;
+	    goto dec8;
 	} break;
 
 #undef ENCODE8

@@ -114,4 +114,5 @@ Proto ether =
 	p_seprint,
 	p_mux,
 	p_fields,
+	defaultframer
 };

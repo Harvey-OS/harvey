@@ -1,21 +1,21 @@
 #    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: unixtrad.mak,v 1.3 2000/03/10 15:48:58 lpd Exp $
+# $Id: unixtrad.mak,v 1.16.2.1 2002/02/01 03:25:46 raph Exp $
 # makefile for Unix/"Traditional" C/X11 configuration.
 
 # ------------------------------- Options ------------------------------- #
@@ -62,7 +62,6 @@ bindir = $(exec_prefix)/bin
 scriptdir = $(bindir)
 mandir = $(prefix)/man
 man1ext = 1
-man1dir = $(mandir)/man$(man1ext)
 datadir = $(prefix)/share
 gsdir = $(datadir)/ghostscript
 gsdatadir = $(gsdir)/$(GS_DOT_VERSION)
@@ -135,7 +134,9 @@ JVERSION=6
 # DON'T DO THIS. If you do, the resulting executable will not be able to
 # read some PostScript files containing JPEG data, because Adobe chose to
 # define PostScript's JPEG capabilities in a way that is slightly
-# incompatible with the JPEG standard.  See Make.htm for more details.
+# incompatible with the JPEG standard.  Note also that if you set SHARE_JPEG
+# to 1, you must still have the library header files available to compile
+# Ghostscript.  See doc/Make.htm for more information.
 
 # DON'T SET THIS TO 1!  See the comment just above.
 SHARE_JPEG=0
@@ -147,7 +148,7 @@ JPEG_NAME=jpeg
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10005
+PVERSION=10201
 
 # Choose whether to use a shared version of the PNG library, and if so,
 # what its name is.
@@ -168,6 +169,11 @@ ZSRCDIR=zlib
 SHARE_ZLIB=0
 #ZLIB_NAME=gz
 ZLIB_NAME=z
+
+# Define the directory where the icclib source are stored.
+# See icclib.mak for more information
+
+ICCSRCDIR=icclib
 
 # Define how to build the library archives.  (These are not used in any
 # standard configuration.)
@@ -230,7 +236,10 @@ EXTRALIBS=
 # All reasonable platforms require -lm, but Rhapsody and perhaps one or
 # two others fold libm into libc and don't require any additional library.
 
-STDLIBS=-lpthread -lm
+#STDLIBS=-lpthread -lm
+
+# Since the default build is for nosync, don't include pthread lib
+STDLIBS=-lm
 
 # Define the include switch(es) for the X11 header files.
 # This can be null if handled in some other way (e.g., the files are
@@ -240,7 +249,7 @@ STDLIBS=-lpthread -lm
 # Note that x_.h expects to find the header files in $(XINCLUDE)/X11,
 # not in $(XINCLUDE).
 
-XINCLUDE=-I/usr/local/X/include
+XINCLUDE=-I/usr/X11R6/include
 
 # Define the directory/ies and library names for the X11 library files.
 # XLIBDIRS is for ld and should include -L; XLIBDIR is for LD_RUN_PATH
@@ -254,7 +263,7 @@ XINCLUDE=-I/usr/local/X/include
 # X11R6 (on any platform) may need
 #XLIBS=Xt SM ICE Xext X11
 
-XLIBDIRS=-L/usr/local/X/lib
+XLIBDIRS=-L/usr/X11R6/lib
 XLIBDIR=
 XLIBS=Xt Xext X11
 
@@ -273,7 +282,12 @@ FPU_TYPE=1
 # primitives for this platform.  Don't change this unless you really know
 # what you're doing.
 
-SYNC=posync
+# If POSIX sync primitives are used, also change the STDLIBS to include
+# the pthread library.
+#SYNC=posync
+
+# Default is No sync primitives since some platforms don't have it (HP-UX)
+SYNC=nosync
 
 # ------ Devices and features ------ #
 
@@ -301,6 +315,11 @@ BAND_LIST_COMPRESSOR=zlib
 # See gs.mak and sfxfd.c for more details.
 
 FILE_IMPLEMENTATION=stdio
+
+# Choose the implementation of stdio: '' for file I/O and 'c' for callouts
+# See gs.mak and ziodevs.c/ziodevsc.c for more details.
+
+STDIO_IMPLEMENTATION=c
 
 # Choose the device(s) to include.  See devs.mak for details,
 # devs.mak and contrib.mak for the list of available devices.
@@ -367,6 +386,7 @@ include $(GLSRCDIR)/jpeg.mak
 # zlib.mak must precede libpng.mak
 include $(GLSRCDIR)/zlib.mak
 include $(GLSRCDIR)/libpng.mak
+include $(GLSRCDIR)/icclib.mak
 include $(GLSRCDIR)/devs.mak
 include $(GLSRCDIR)/contrib.mak
 include $(GLSRCDIR)/unix-aux.mak

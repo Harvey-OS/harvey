@@ -1,22 +1,22 @@
-/* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxtext.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxtext.h,v 1.7 2001/04/01 00:33:36 raph Exp $ */
 /* Driver text interface implementation support */
 
 #ifndef gxtext_INCLUDED
@@ -24,11 +24,6 @@
 
 #include "gstext.h"
 #include "gsrefct.h"
-
-/*
- * WARNING: The APIs and structures in this file are UNSTABLE.
- * Do not try to use them.
- */
 
 /* Define the abstract type for the object procedures. */
 typedef struct gs_text_enum_procs_s gs_text_enum_procs_t;
@@ -84,6 +79,7 @@ rc_free_proc(rc_free_text_enum);
      */\
     gs_text_params_t text;	/* must be first for subclassing */\
     gx_device *dev;\
+    gx_device *imaging_dev;	/* see note below */\
     gs_imager_state *pis;\
     gs_font *orig_font;\
     gx_path *path;			/* unless DO_NONE & !RETURN_WIDTH */\
@@ -102,12 +98,49 @@ rc_free_proc(rc_free_text_enum);
     gx_font_stack_t fstack;\
     int cmap_code;		/* hack for FMapType 9 composite fonts, */\
 				/* the value returned by decode_next */\
+    gs_point FontBBox_as_Metrics2;  /* used with FontType 9,11 && WMode 1 */\
     /* The following are used to return information to the client. */\
     gs_text_returned_t returned
 /* The typedef is in gstext.h. */
 /*typedef*/ struct gs_text_enum_s {
     gs_text_enum_common;
 } /*gs_text_enum_t*/;
+
+/*
+ * Notes on the imaging_dev field of device enumeration structures:
+ *
+ * This field is added as a hack to make the bbox device work
+ * correctly as a forwarding device in some cases, particularly the X
+ * driver. When the X driver is configured to use a memory device for
+ * rendering (ie the MaxBitmap parameter is large enough to hold the
+ * buffer), it sets up a pipeline where the bbox device forwards to
+ * the memory device. The bbox device is used to determine which areas
+ * of the buffer have been drawn on, so that the screen can be
+ * appropriately updated.
+ *
+ * This works well for low-level operations such as filling
+ * rectangles, because the bbox device can easily determine the bbox
+ * of the drawing operation before forwarding it to the target device.
+ * However, for higher level operations, such as those that require
+ * enumerators, the approach is fundamentally broken. Essentially, the
+ * execution of the drawing operation is the responsibility of the
+ * target device, and the bbox device doesn't really have any way to
+ * determine the bounding box.
+ *
+ * The approach taken here is to add an additional field to the
+ * enumerations, imaging_dev. In the common case where the target
+ * device implements the high level drawing operation in terms of
+ * lower level operations, setting the imaging_dev field to non-NULL
+ * requests that these lower level imaging operations be directed to
+ * the imaging_dev rather than dev. The bbox device sets the
+ * imaging_dev field to point to itself. Thus, the low level drawing
+ * operations are intercepted by the bbox device, so that the bbox is
+ * accounted for.
+ *
+ * Note that, if the target device implements higher level operations
+ * by itself, ie not by breaking it into lower level operations, this
+ * approach will fail.
+ */
 
 #define st_gs_text_enum_max_ptrs (st_gs_text_params_max_ptrs + 7)
 /*extern_st(st_gs_text_enum); */
@@ -185,9 +218,28 @@ struct gs_text_enum_procs_s {
     text_enum_proc_resync((*resync));
 
     /*
-     * Process the text.  Then client should call this repeatedly until
+     * Process the text.  The client should call this repeatedly until
      * it returns <= 0.  (> 0 means the client must take action: see
      * gstext.h.)
+     *
+     * Note that a default implementation of this procedure can't simply do
+     * nothing and return:
+     *
+     *   - If TEXT_DO_CHARWIDTH or TEXT_DO_*PATH is set, the procedure must
+     *   append the appropriate elements to the path.
+     *
+     *   - If TEXT_INTERVENE is set, the procedure must return to the client
+     *   after each character except the last one in the string, setting
+     *   returned.current_char and returned.current_glyph appropriately;
+     *   also, it must reset the current font in the graphics state to its
+     *   original value each time each time (after the first) that the
+     *   procedure is called to process further characters of the string.
+     *
+     *   - If TEXT_RETURN_WIDTH is set, the procedure must set
+     *   returned.total_width when(ever) it returns.
+     *
+     * We should provide a default implementation that makes all these
+     * things simple, but currently we don't.
      */
 
 #define text_enum_proc_process(proc)\
@@ -202,7 +254,7 @@ struct gs_text_enum_procs_s {
      */
 
 #define text_enum_proc_is_width_only(proc)\
-  int proc(P1(const gs_text_enum_t *pte))
+  bool proc(P1(const gs_text_enum_t *pte))
 
     text_enum_proc_is_width_only((*is_width_only));
 

@@ -1,21 +1,21 @@
 %    Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of Aladdin Ghostscript.
+% This file is part of AFPL Ghostscript.
 % 
-% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-% or distributor accepts any responsibility for the consequences of using it,
-% or for whether it serves any particular purpose or works at all, unless he
-% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-% License (the "License") for full details.
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
 % 
-% Every copy of Aladdin Ghostscript must include a copy of the License,
-% normally in a plain ASCII text file named PUBLIC.  The License grants you
-% the right to copy, modify and redistribute Aladdin Ghostscript, but only
-% under certain conditions described in the License.  Among other things, the
-% License requires that the copyright notice and this notice be preserved on
-% all copies.
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
 
-% $Id: gs_btokn.ps,v 1.2 2000/03/10 04:27:31 lpd Exp $
+% $Id: gs_btokn.ps,v 1.5 2001/09/15 07:11:00 masata-y Exp $
 % Initialization file for binary tokens.
 % When this is run, systemdict is still writable,
 % but everything defined here goes into level2dict.
@@ -165,7 +165,7 @@ dup /SystemNames exch def .installsystemnames
   /dicttype null
 .dicttomark def
 cntdict /arraytype {
-  dup dup length 5 -1 roll add 4 2 roll {
+  dup length 4 -1 roll add 3 1 roll {
     dup type //cntdict exch get exec
   } forall
 } bind put
@@ -214,7 +214,12 @@ cntdict /dicttype {
   dup length 0 3 -1 roll
 	% Stack: file tag -mark- #refs #chars array
   dup 4 1 roll {
-    dup type //cntdict exch get exec
+      dup type /arraytype eq {
+	  % Nested array. An element of the array is also
+	  % an array(sub array). Push the sub array to the stack.
+	  dup 4 1 roll
+      } if
+      dup type //cntdict exch get exec
    } forall
 
 	% Write the header.
@@ -289,7 +294,7 @@ cntdict /dicttype {
 /.objectprinttest {		% <obj> .objectprinttest -
 		% This is a pseudo-operator so it will restore the stack
 		% if it gets an error.
-  0 0 2 index dup type //cntdict exch get exec pop pop
+  0 0 2 index roll dup type //cntdict exch get exec pop pop pop
 } bind odef
 /.printerror {
   $error /binary get .languagelevel 2 ge and {

@@ -1,7 +1,8 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>History of Ghostscript versions 1.n</title>
-<!-- $Id: History1.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
+<!-- $Id: History1.htm,v 1.13.2.2 2002/02/01 05:31:24 raph Exp $ -->
 <!-- Originally: history1.txt -->
 <!--
 	WARNING: do not use Pete Kaiser's emacs function "gs-toc" alone to
@@ -10,6 +11,7 @@
 	the body of the file.  Or if you do, first look at the original
 	TOC to see how to edit it for visual conciseness.
 -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -17,9 +19,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>History of Ghostscript versions 1.n</font>
-</table>
+<h1>History of Ghostscript versions 1.n</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -77,17 +77,18 @@ overview</a>.
 
 <!-- [1.0 end visible header] ============================================== -->
 
+
+<h2><a name="Version1.3"></a>Version 1.3 (6/20/89)</h2>
 <pre>
-
-<h1><a name="Version1.3"></a>Version 1.3 (6/20/89)</h1>
-
 This release should have had a lot more things in it, but time pressure
 and the already long delay in getting it out made it necessary to push it
 out the door in an incomplete state (e.g., no testing on X systems
 whatsoever).
 
-<h2><a name="V1.3_Interpreter"></a>Interpreter</h2>
+</pre>
+<h3><a name="V1.3_Interpreter"></a>Interpreter</h3>
 
+<pre>
 Makes -d and -D equivalent on the command line.  Adds a new switch -s / -S
 that defines a name as a string rather than a token.
 
@@ -143,15 +144,19 @@ directive used by Turbo C.
 
 Restores the display mode (on MS-DOS systems) when exiting.
 
-<h2><a name="V1.3_Fonts"></a>Fonts</h2>
+</pre>
+<h3><a name="V1.3_Fonts"></a>Fonts</h3>
 
+<pre>
 Makes undefined characters in the standard font display as tilde rather
 than blank (or causing an error).  Unmapped character codes (those mapped
 to .notdef in the encoding) still display as nothing, per the PostScript
 manual.
 
-<h2><a name="V1.3_Library"></a>Library</h2>
+</pre>
+<h3><a name="V1.3_Library"></a>Library</h3>
 
+<pre>
 Adds a new header file, gxbitmap.h, with some new documentation describing
 the internal storage format for bitmaps.
 
@@ -182,8 +187,10 @@ and drivers in a non-trivial way on MS-DOS systems.
 
 Changes gs_malloc and gs_free to take a client name string as an argument.
 
-<h2><a name="V1.3_Usage_procedures"></a>Usage procedures</h2>
+</pre>
+<h3><a name="V1.3_Usage_procedures"></a>Usage procedures</h3>
 
+<pre>
 Changes the compilation rules for Unix systems to not use the -o and -c
 compiler flags together, to be compatible with more versions of cc.
 
@@ -213,10 +220,15 @@ reading the clock.
 Adds a new documentation file, drivers.doc, that describes the interface
 between Ghostscript and device drivers.
 
-<h1><a name="Version1.2"></a>Version 1.2 (2/22/89)</h1>
+</pre>
 
-<h2><a name="V1.2_Interpreter"></a>Interpreter</h2>
+<hr>
 
+<h2><a name="Version1.2"></a>Version 1.2 (2/22/89)</h2>
+
+<h3><a name="V1.2_Interpreter"></a>Interpreter</h3>
+
+<pre>
 Adds the new facilities in version 25 of PostScript: //name for immediate
 lookup, packed arrays (setpacking, currentpacking, packedarray operators),
 and new font cache parameters (setcacheparams, currentcacheparams
@@ -230,16 +242,20 @@ Extends readhexstring to take either a string or a file, just like token.
 Fixes a bug that caused the 'for' operator (and a couple of others) to
 randomly smash memory locations on PC platforms.
 
-<h2><a name="V1.2_Library"></a>Library</h2>
+</pre>
+<h3><a name="V1.2_Library"></a>Library</h3>
 
+<pre>
 Renames the init_device driver procedure as open_device, and adds a
 corresponding close_device.
 
 Adds new procedures to read and set the cache limit values (implementing
 the currentcacheparams and setcacheparams operators).
 
-<h2><a name="V1.2_Usage_procedures"></a>Usage procedures</h2>
+</pre>
+<h3><a name="V1.2_Usage_procedures"></a>Usage procedures</h3>
 
+<pre>
 Changes the name of the Unix makefile to ux-cc-x.mak, and adds a new Unix
 makefile, ux-gcc-x.mak, for using gcc instead of cc.  (The latter doesn't
 actually work yet.)
@@ -247,10 +263,15 @@ actually work yet.)
 Changes the name of the single built-in font from uglyfont.cp to
 ugly10.cp.
 
-<h1><a name="Version1.1"></a>Version 1.1 (2/12/89)</h1>
+</pre>
 
-<h2><a name="V1.1_Interpreter"></a>Interpreter</h2>
+<hr>
 
+<h2><a name="Version1.1"></a>Version 1.1 (2/12/89)</h2>
+
+<h3><a name="V1.1_Interpreter"></a>Interpreter</h3>
+
+<pre>
 Makes the scanner treat ^Z (ASCII code 26) as whitespace: it erroneously
 treated ^R (ASCII code 22, or octal 26) as whitespace.
 
@@ -311,8 +332,10 @@ push on the operand stack must check for overflow explicitly, and
 operators that modify the execution stack must return a special code.
 (See oper.h for details.)
 
-<h2><a name="V1.1_Initialization"></a>Initialization (ghost.ps, gfonts.ps)</h2>
+</pre>
+<h3><a name="V1.1_Initialization"></a>Initialization (ghost.ps, gfonts.ps)</h3>
 
+<pre>
 Modifies ghost.ps and gfonts.ps so they print debugging information only
 if the name DEBUG is defined.  (Presumably the user will set this from the
 command line with -DDEBUG.)
@@ -321,8 +344,10 @@ Changes ghost.ps so it initializes the nominal screen size to 640 x 350 on
 MS-DOS systems as before, but to 612 x 792 on Unix systems, which is an
 8.5" x 11" page at 72 pixels per inch.
 
-<h2><a name="V1.1_Library"></a>Library</h2>
+</pre>
+<h3><a name="V1.1_Library"></a>Library</h3>
 
+<pre>
 Corrects a bug that made the fill and eofill operators (gs_fill and
 gs_eofill) not perform a newpath afterward.
 
@@ -348,8 +373,10 @@ the interpreter.
 Makes stringwidth work if there is no current point.  In version 1.0, this
 gave a nocurrentpoint error.
 
-<h2><a name="V1.1_Usage_procedures"></a>Usage procedures</h2>
+</pre>
+<h3><a name="V1.1_Usage_procedures"></a>Usage procedures</h3>
 
+<pre>
 Changes the name of the 'read me' file from READ.ME to README.
 
 Removes a bogus line (invoking the 'mcopy' utility) from the makefile.
@@ -376,28 +403,29 @@ coprocessor is present.
 Changes the names of all the interpreter .c files, except stream.c, to
 begin with 'i'.
 
-<h1><a name="Version1.0"></a>Version 1.0 (8/11/88)</h1>
+</pre>
 
+<hr>
+
+<h2><a name="Version1.0"></a>Version 1.0 (8/11/88)</h2>
+
+<pre>
 First version released to the public.
-
 </pre>
 
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
+<p><small>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.
+All rights reserved.</small>
 
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
+<p><small>This file is part of AFPL Ghostscript.  See the
 <a href="Public.htm">Aladdin Free Public License</a> (the "License") for
 full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+AFPL Ghostscript.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
-
-</font>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

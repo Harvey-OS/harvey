@@ -235,35 +235,56 @@ setAttribute(Packet *p, uchar type, uchar *s, int n)
 	return 0;
 }
 
+/* return a reply message attribute string */
+char*
+replymsg(Packet *p)
+{
+	Attribute *a;
+	static char buf[255];
+
+	for(a = &p->first; a; a = a->next){
+		if(a->type == R_ReplyMessage){
+			if(a->len >= sizeof buf)
+				a->len = sizeof(buf)-1;
+			memmove(buf, a->val, a->len);
+			buf[a->len] = 0;
+		}
+	}
+	return buf;
+}
 
 /* for convenience while debugging */
 char *replymess;
 Attribute *stateattr;
 
 void
-printPacket(Packet *p)
+logPacket(Packet *p)
 {
 	Attribute *a;
 	char buf[255];
+	char pbuf[4*1024];
 	uchar *au = p->authenticator;
 	int i;
+	char *np, *e;
 
-	print("Packet ID=%d auth=%x %x %x... ", p->ID, au[0], au[1], au[2]);
+	e = pbuf + sizeof(pbuf);
+
+	np = seprint(pbuf, e, "Packet ID=%d auth=%x %x %x... ", p->ID, au[0], au[1], au[2]);
 	switch(p->code){
 	case R_AccessRequest:
-		print("request\n");
+		np = seprint(np, e, "request\n");
 		break;
 	case R_AccessAccept:
-		print("accept\n");
+		np = seprint(np, e, "accept\n");
 		break;
 	case R_AccessReject:
-		print("reject\n");
+		np = seprint(np, e, "reject\n");
 		break;
 	case R_AccessChallenge:
-		print("challenge\n");
+		np = seprint(np, e, "challenge\n");
 		break;
 	default:
-		print("code=%d\n", p->code);
+		np = seprint(np, e, "code=%d\n", p->code);
 		break;
 	}
 	replymess = "0000000";
@@ -271,19 +292,21 @@ printPacket(Packet *p)
 		if(a->len > 253 )
 			a->len = 253;
 		memmove(buf, a->val, a->len);
-		print(" [%d]", a->type);
+		np = seprint(np, e, " [%d]", a->type);
 		for(i = 0; i<a->len; i++)
 			if(isprint(a->val[i]))
-				print("%c", a->val[i]);
+				np = seprint(np, e, "%c", a->val[i]);
 			else
-				print("\\%o", a->val[i]);
-		print("\n");
+				np = seprint(np, e, "\\%o", a->val[i]);
+		np = seprint(np, e, "\n");
 		buf[a->len] = 0;
 		if(a->type == R_ReplyMessage)
 			replymess = strdup(buf);
 		else if(a->type == R_State)
 			stateattr = a;
 	}
+
+	syslog(0, AUTHLOG, "%s", pbuf);
 }
 
 static uchar*
@@ -304,7 +327,7 @@ getipv4addr(void)
 extern Ndb *db;
 
 /* returns 1 on success, 0 on failure */
-int
+char*
 secureidcheck(char *user, char *response)
 {
 	Packet *req = nil, *resp = nil;
@@ -314,7 +337,7 @@ secureidcheck(char *user, char *response)
 	char ruser[Ndbvlen];
 	char dest[3*IPaddrlen+20];
 	Secret shared, pass;
-	int rv = 0;
+	char *rv = "authentication failed";
 	Ndbs s;
 	Ndbtuple *t, *nt, *tt;
 	uchar *ip;
@@ -392,13 +415,19 @@ secureidcheck(char *user, char *response)
 	
 		switch(resp->code){
 		case R_AccessAccept:
-			rv = 1;
+			syslog(0, AUTHLOG, "%s accepted ruser=%s", dest, ruser);
+			rv = nil;
 			break;
 		case R_AccessReject:
-			syslog(0, AUTHLOG, "%s rejected\n", dest);
+			syslog(0, AUTHLOG, "%s rejected ruser=%s %s", dest, ruser, replymsg(resp));
+			rv = "secureid failed";
+			break;
+		case R_AccessChallenge:
+			syslog(0, AUTHLOG, "%s challenge ruser=%s %s", dest, ruser, replymsg(resp));
+			rv = "secureid out of sync";
 			break;
 		default:
-			syslog(0, AUTHLOG, "%s code=%d\n", dest, resp->code);
+			syslog(0, AUTHLOG, "%s code=%d ruser=%s %s", dest, resp->code, ruser, replymsg(resp));
 			break;
 		}
 		break; // we have a proper reply, no need to ask again

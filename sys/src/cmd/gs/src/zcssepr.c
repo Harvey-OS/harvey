@@ -1,22 +1,22 @@
-/* Copyright (C) 1994, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zcssepr.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: zcssepr.c,v 1.8 2001/04/20 09:38:39 igorm Exp $ */
 /* Separation color space support */
 #include "memory_.h"
 #include "ghost.h"
@@ -31,7 +31,9 @@
 #include "estack.h"
 #include "ialloc.h"
 #include "icsmap.h"
+#include "ifunc.h"
 #include "igstate.h"
+#include "iname.h"
 #include "ivmspace.h"
 #include "store.h"
 
@@ -70,35 +72,55 @@ zsetseparationspace(i_ctx_t *i_ctx_p)
     gs_color_space cs;
     ref_colorspace cspace_old;
     uint edepth = ref_stack_count(&e_stack);
-    gs_indexed_map *map;
+    gs_indexed_map *map = 0;
+    ref sname, tname1, tname2;
+    separation_type sep_type;
     int code;
 
     check_read_type(*op, t_array);
     if (r_size(op) != 4)
 	return_error(e_rangecheck);
     pcsa = op->value.const_refs + 1;
-    switch (r_type(pcsa)) {
+    sname = *pcsa;
+    switch (r_type(&sname)) {
 	default:
 	    return_error(e_typecheck);
 	case t_string:
+	    code = name_from_string(&sname, &sname);
+	    if (code < 0)
+		return code;
+	    /* falls through */
 	case t_name:
-	    ;
+	    break;
     }
+
+    if ((code = name_ref((const byte *)"All", 3, &tname1, 0)) < 0)
+	return code;
+    if ((code = name_ref((const byte *)"None", 4, &tname2, 0)) < 0)
+	return code;
+    sep_type = ( name_eq(&sname, &tname1) ? SEP_ALL :
+	         name_eq(&sname, &tname2) ? SEP_NONE : SEP_OTHER);
+
     check_proc(pcsa[2]);
     cs = *gs_currentcolorspace(igs);
     if (!cs.type->can_be_alt_space)
 	return_error(e_rangecheck);
-    code = zcs_begin_map(i_ctx_p, &map, &pcsa[2], SEPARATION_CACHE_SIZE + 1,
-			 (const gs_direct_color_space *)&cs,
-			 separation_map1);
-    if (code < 0)
-	return code;
-    map->proc.tint_transform = lookup_tint;
+    if (sep_type == SEP_OTHER) {
+	code = zcs_begin_map(i_ctx_p, &map, &pcsa[2], SEPARATION_CACHE_SIZE + 1,
+			     (const gs_direct_color_space *)&cs,
+			     separation_map1);
+	if (code < 0)
+	    return code;
+        map->proc.tint_transform = lookup_tint;
+    }
+
     /* See zcsindex.c for why we use memmove here. */
     memmove(&cs.params.separation.alt_space, &cs,
 	    sizeof(cs.params.separation.alt_space));
     gs_cspace_init(&cs, &gs_color_space_type_Separation, NULL);
+    cs.params.separation.sname = name_index(&sname);
     cs.params.separation.map = map;
+    cs.params.separation.sep_type = sep_type;
     cspace_old = istate->colorspace;
     istate->colorspace.procs.special.separation.layer_name = pcsa[0];
     istate->colorspace.procs.special.separation.tint_transform = pcsa[2];
@@ -129,6 +151,14 @@ separation_map1(i_ctx_t *i_ctx_p)
 	pop(m);
 	op -= m;
 	if (i == (int)ep[csme_hival].value.intval) {	/* All done. */
+	    /*
+	     * If the tint_transform procedure is a Function, recognize it
+	     * as such now.
+	     */
+	    gs_function_t *pfn = ref_function(&ep[csme_proc]);
+
+	    if (pfn)
+		gs_cspace_set_sepr_function(gs_currentcolorspace(igs), pfn);
 	    esp -= num_csme;
 	    return o_pop_estack;
 	}
@@ -165,13 +195,40 @@ zsetoverprint(i_ctx_t *i_ctx_p)
     return 0;
 }
 
+/* - .currentoverprintmode <int> */
+private int
+zcurrentoverprintmode(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+
+    push(1);
+    make_int(op, gs_currentoverprintmode(igs));
+    return 0;
+}
+
+/* <int> .setoverprintmode - */
+private int
+zsetoverprintmode(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+    int param;
+    int code = int_param(op, max_int, &param);
+
+    if (code < 0 || (code = gs_setoverprintmode(igs, param)) < 0)
+	return code;
+    pop(1);
+    return 0;
+}
+
 /* ------ Initialization procedure ------ */
 
 const op_def zcssepr_l2_op_defs[] =
 {
     op_def_begin_level2(),
     {"0currentoverprint", zcurrentoverprint},
+    {"0.currentoverprintmode", zcurrentoverprintmode},
     {"1setoverprint", zsetoverprint},
+    {"1.setoverprintmode", zsetoverprintmode},
     {"1.setseparationspace", zsetseparationspace},
 		/* Internal operators */
     {"1%separation_map1", separation_map1},

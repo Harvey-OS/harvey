@@ -1,22 +1,22 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxshade.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxshade.c,v 1.6 2001/03/25 10:18:50 igorm Exp $ */
 /* Shading rendering support */
 #include "math_.h"
 #include "gx.h"
@@ -29,6 +29,7 @@
 #include "gxdht.h"		/* for computing # of different colors */
 #include "gxpaint.h"
 #include "gxshade.h"
+#include "gsicc.h"
 
 /* Define a maximum smoothness value. */
 /* smoothness > 0.2 produces severely blocky output. */
@@ -53,7 +54,16 @@ shade_next_init(shade_coord_stream_t * cs,
     cs->params = params;
     cs->pctm = &pis->ctm;
     if (data_source_is_stream(params->DataSource)) {
-	cs->s = params->DataSource.data.strm;
+	/*
+	 * Reset the data stream iff it is reusable -- either a reusable
+	 * file or a reusable string.
+	 */
+	stream *s = cs->s = params->DataSource.data.strm;
+
+	if ((s->file != 0 && s->file_limit != max_long) ||
+	    (s->file == 0 && s->strm == 0)
+	    )
+	    sreset(s);
     } else {
 	sread_string(&cs->ds, params->DataSource.data.str.data,
 		     params->DataSource.data.str.size);
@@ -132,7 +142,12 @@ cs_next_packed_decoded(shade_coord_stream_t * cs, int num_bits,
 {
     uint value;
     int code = cs->get_value(cs, num_bits, &value);
+#if ARCH_CAN_SHIFT_FULL_LONG
     double max_value = (double)(uint) ((1 << num_bits) - 1);
+#else
+    double max_value = (double)(uint)
+	(num_bits == sizeof(uint) * 8 ? ~0 : ((1 << num_bits) - 1));
+#endif
 
     if (code < 0)
 	return code;
@@ -271,6 +286,8 @@ top:
 	case gs_color_space_index_CIEA:
 	    ranges = &pcs->params.a->RangeA;
 	    break;
+        case gs_color_space_index_CIEICC:
+            ranges = pcs->params.icc.picc_info->Range.ranges;
 	default:
 	    break;
 	}
@@ -301,33 +318,6 @@ shade_bbox_transform2fixed(const gs_rect * rect, const gs_imager_state * pis,
 	rfixed->q.y = float2fixed(dev_rect.q.y);
     }
     return code;
-}
-
-/* Check whether 4 colors fall within the smoothness criterion. */
-bool
-shade_colors4_converge(const gs_client_color cc[4],
-		       const shading_fill_state_t * pfs)
-{
-    int ci;
-
-    for (ci = 0; ci < pfs->num_components; ++ci) {
-	float
-	      c0 = cc[0].paint.values[ci], c1 = cc[1].paint.values[ci],
-	      c2 = cc[2].paint.values[ci], c3 = cc[3].paint.values[ci];
-	float min01, max01, min23, max23;
-
-	if (c0 < c1)
-	    min01 = c0, max01 = c1;
-	else
-	    min01 = c1, max01 = c0;
-	if (c2 < c3)
-	    min23 = c2, max23 = c3;
-	else
-	    min23 = c3, max23 = c2;
-	if (max(max01, max23) - min(min01, min23) > pfs->cc_max_error[ci])
-	    return false;
-    }
-    return true;
 }
 
 /* Fill one piece of a shading. */

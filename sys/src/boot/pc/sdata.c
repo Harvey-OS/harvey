@@ -473,14 +473,14 @@ retry:
 	}
 	else{
 		if(drive->info[Ivalid] & 0x0001){
-			drive->c = drive->info[Ilcyl];
-			drive->h = drive->info[Ilhead];
-			drive->s = drive->info[Ilsec];
-		}
-		else{
 			drive->c = drive->info[Iccyl];
 			drive->h = drive->info[Ichead];
 			drive->s = drive->info[Icsec];
+		}
+		else{
+			drive->c = drive->info[Ilcyl];
+			drive->h = drive->info[Ilhead];
+			drive->s = drive->info[Ilsec];
 		}
 		if(drive->info[Icapabilities] & 0x0200){
 			drive->sectors = (drive->info[Ilba1]<<16)

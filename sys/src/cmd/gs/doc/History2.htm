@@ -1,7 +1,8 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>History of Ghostscript versions 1.n</title>
-<!-- $Id: History2.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
+<!-- $Id: History2.htm,v 1.13.2.2 2002/02/01 05:31:24 raph Exp $ -->
 <!-- Originally: history2.txt -->
 <!--
 	WARNING: do not use Pete Kaiser's emacs function "gs-toc" alone to
@@ -10,6 +11,7 @@
 	the body of the file.  Or if you do, first look at the original
 	TOC to see how to edit it for visual conciseness.
 -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
 <body>
@@ -17,9 +19,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<table width="100%" border="0">
-<tr><th align="center" bgcolor="#CCCC00"><font size=6>History of Ghostscript versions 2.n</font>
-</table>
+<h1>History of Ghostscript versions 2.n</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -317,14 +317,12 @@ overview</a>.
 
 <!-- [1.0 end visible header] ============================================== -->
 
-<pre>
+<h2><a name="Version2.9.10b"></a>Version 2.9.10-beta (7/28/94)</h2>
 
-<h1><a name="Version2.9.10b"></a>Version 2.9.10-beta (7/28/94)</h1>
-
+<p>
 This is the last 2.9 beta, since 3.0 will be released on July 31.
 
-<h2><a name="V2.9.10b_Documentation"></a>Documentation</h2>
-
+<h3><a name="V2.9.10b_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- A | in gs.1 had a \ in front of it instead of \\.
 
@@ -336,16 +334,14 @@ DeskJet 520, and the pjxl300 driver is the right one for the H-P DeskJet
 
 Notes in make.doc that Watcom C++ 10.0 may require a change in a makefile.
 
-<h2><a name="V2.9.10b_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V2.9.10b_Procedures"></a>Procedures</h3><pre>
 Removes ICCINIT from MODULES.LIS for VMS systems.
 
 Updates VMS.MAK to support Motif V1.2.
 
 Updates jpeg.mak to work with version 5alpha4 of the IJG JPEG code.
 
-<h2><a name="V2.9.10b_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.9.10b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- font2c didn't leave extra room in Type 0 font dictionaries for
 entries added by definefont.
@@ -358,15 +354,13 @@ Updates ansi2knr to work better with the GNU configure program.
 
 Updates ansi2knr to handle procedure formal arguments automatically.
 
-<h2><a name="V2.9.10b_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.9.10b_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- If a file contained color or gray-scale information followed by a
 masked image, the X driver would sometimes invert the polarity of the
 image.
 
-<h2><a name="V2.9.10b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.9.10b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- Unix systems with a 2-argument gettimeofday returned garbage
 values for the current time.
@@ -377,8 +371,7 @@ to load gs_ccfnt.ps.
 On Unix systems, changes the subdirectory of $datadir/ghostscript to just
 be the version number (e.g., 2.9.10 rather than gs-2.9.9).
 
-<h2><a name="V2.9.10b_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.9.10b_Fonts"></a>Fonts</h3><pre>
 Adds support code for the Wadalab (University of Tokyo) free Kanji font.
 
 Notes in the documentation in Fontmap that .pfa and .pfb fonts are
@@ -387,8 +380,7 @@ compatible with ATM, but .gsf fonts are not.
 Changes the names of Thomas Wolff's expanded Hershey fonts, replacing .gsf
 with .pfa.
 
-<h2><a name="V2.9.10b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.9.10b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- The scanner became confused if the literal names /&lt;&lt; or /&gt;&gt;
 straddled an input buffer boundary.
@@ -438,8 +430,7 @@ deleting, or renaming of files, but also disallows specifying an explicit
 OutputFile for any device (except for the initial device, by means of
 -sOutputFile= on the command line).
 
-<h2><a name="V2.9.10b_Streams"></a>Streams</h2>
-
+</pre><h3><a name="V2.9.10b_Streams"></a>Streams</h3><pre>
 Fixes bugs:
 	- Hex decoding (ASCIIHexDecode stream and &lt;&gt; literals) didn't treat
 the data source as read-only (although it restored it to its original
@@ -448,8 +439,7 @@ contents).
 Implements move-to-front coding, a simple form of Huffman coding, and
 Burrows/Wheeler block sorting compression.
 
-<h2><a name="V2.9.10b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9.10b_Library"></a>Library</h3><pre>
 Fixes bugs:
 *	- (The following bug fix was actually implemented somewhere around
 version 2.7.)  restore didn't purge character cache entries whose keys were
@@ -479,45 +469,46 @@ fixed2double.  This produces slightly more accurate results in many places,
 and may even be faster (for FPUs that normally generate double rather than
 single precision results).
 
-<h1><a name="Version2.9.9b"></a>Version 2.9.9-beta (6/23/94)</h1>
+</pre>
 
-<h2><a name="V2.9.9b_Documentation"></a>Documentation</h2>
+<h2><a name="Version2.9.9b"></a>Version 2.9.9-beta (6/23/94)</h2>
 
+<h3><a name="V2.9.9b_Documentation"></a>Documentation</h3><pre>
 Puts a pointer to devs.mak in the section of use.doc that talks about
 MS-DOS displays.
 
-<h2><a name="V2.9.9b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.9.9b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- The %pipe% IODevice was omitted on System V platforms.
 	- The AXP VMS build script needed /NESTED_INCLUDE=PRIMARY in
 CC_QUAL to work around a bug in the DEC C compiler.
 
-<h2><a name="V2.9.9b_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.9.9b_Fonts"></a>Fonts</h3><pre>
 Fixes bugs:
 	- gs_lev2.ps redefined .loadFontmap incorrectly.
 
-<h2><a name="V2.9.9b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.9.9b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- stream_compact used memcpy even though the source and destination
 might overlap.
 	- filter applied to a closed file could cause a crash.
 
-<h2><a name="V2.9.9b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9.9b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- putdeviceparams to a printer didn't close and reopen the device
 if only the page size or resolution was changed.
 
-<h1><a name="Version2.9.8"></a>Version 2.9.8 (6/20/94)</h1>
+</pre>
 
-This is the first version that claims to be a full Level 2 implementation.
+<h2><a name="Version2.9.8"></a>Version 2.9.8 (6/20/94)</h2>
+
+<p>
+This is the first version that claims to be a full Level 2
+implementation.
 It was distributed to satisfy a contractual requirement.
+</p>
 
-<h2><a name="V2.9.8_Documentation"></a>Documentation</h2>
-
+<h3><a name="V2.9.8_Documentation"></a>Documentation</h3><pre>
 In make.doc:
 	- Adds a reference to the generic System V section at the end of
 the SCO section.
@@ -531,16 +522,14 @@ Updates the Aladdin Enterprises Free Public License to version 1.
 
 In language.doc, notes that certain device parameters will be phased out.
 
-<h2><a name="V2.9.8_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V2.9.8_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- The file aa.ps was included in the distribution by mistake.
 
 Notes in the Unix makefiles that X11R6 probably needs SM and ICE added to
 XLIBS.
 
-<h2><a name="V2.9.8_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.9.8_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- viewjpeg.ps used a non-existent file as its example.
 	- A temporary string in wrfont.ps was allocated too small.
@@ -548,8 +537,7 @@ Fixes bugs:
 Upgrades font2c.ps so it will handle (simple) Type 0 fonts as well as Type
 1.
 
-<h2><a name="V2.9.8_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.9.8_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The TIFF drivers didn't byte-align each scan line.
 	- gdevtfax.c applied &amp; to an array member of a structure.
@@ -561,8 +549,7 @@ non-backward-compatible change, old implementations will continue to work;
 they just won't deliver complete results to the setpagedevice Policies
 machinery.)
 
-<h2><a name="V2.9.8_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.9.8_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- Removes the time zone adjustment from gp_get_clock in gp_unix.c,
 since the value returned by all Unix systems is bogus.
@@ -574,12 +561,10 @@ reflect changes in 2.9.7.
 	- The MS Windows version wouldn't link (overflowed the 64K primary
 data segment).
 
-<h2><a name="V2.9.8_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.9.8_Fonts"></a>Fonts</h3><pre>
 Makes the font substitution algorithm somewhat more intelligent.
 
-<h2><a name="V2.9.8_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.9.8_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- Enumerating the pointers of a zero-length array of structures
 caused a divide by zero.
@@ -651,8 +636,7 @@ for all devices.  ****** We had to disable setpagedevice just before
 shipping this release, because of interactions with the older device
 handling machinery that we could not fix in the time available.
 
-<h2><a name="V2.9.8_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9.8_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- 24-bit color (mem_true24_fill_rectangle and _copy_mono) had
 algorithm bugs.
@@ -674,13 +658,16 @@ CHANGE.
 
 Implements the BitmapWidths flag in fonts.
 
-<h1><a name="Version2.9.7b"></a>Version 2.9.7-beta (6/5/94)</h1>
+</pre>
 
-Yet another pre-3.0 beta.  The main features are a fairly reliable garbage
+<h2><a name="Version2.9.7b"></a>Version 2.9.7-beta (6/5/94)</h2>
+
+<p>
+Yet another pre-3.0 beta.  The main features are a fairly reliable
+garbage
 collector, and function prototypes almost everywhere they are needed.
 
-<h2><a name="V2.9.7b_Documentation"></a>Documentation</h2>
-
+<h3><a name="V2.9.7b_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The comment at the beginning of the zfindlibfile procedure was
 incorrect.
@@ -688,8 +675,7 @@ incorrect.
 Replaces the GNU License (the COPYING file) with version 0 of the new
 Aladdin Enterprises Free Public License (the PUBLIC file).
 
-<h2><a name="V2.9.7b_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V2.9.7b_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- The definition of cmykread.dev in gs.mak was incorrect (it
 modified color.dev).
@@ -701,8 +687,7 @@ Replaces the -oper2 configuration resource type with the ability to specify
 in the op_def list the dictionary in which operators will be defined.  (See
 opdef.h for more details.)  This is an internal change only.
 
-<h2><a name="V2.9.7b_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.9.7b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- viewgif.ps got an error on interlaced GIF files whose height
 wasn't a multiple of 8.
@@ -710,8 +695,7 @@ wasn't a multiple of 8.
 Changes traceop.ps so it stores the traced operator in the same dictionary
 where the operator is currently defined, if possible.
 
-<h2><a name="V2.9.7b_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.9.7b_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The new G3 fax drivers crashed on page widths greater than 2623
 (40 * 64 + 63) pixels.  (We fixed this by disallowing page widths greater
@@ -721,21 +705,19 @@ in it that produced large volumes of useless console output.
 
 Removes the previous (Leffler) TIFF/F driver and the TruFax driver.
 
-<h2><a name="V2.9.7b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.9.7b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- time_.h, gp_unix.c, and gp_sysv.c didn't do the right thing on
 SVR4 platforms, where gettimeofday only takes 1 argument.
 	- The final linking command on Turbo C platforms didn't specify the
 COMPDIR directory for the linker.
 
-<h2><a name="V2.9.7b_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V2.9.7b_Fonts"></a>Fonts</h3><pre>
 
 Changes the standard Fontmap to use the URW contributed fonts as
 work-alikes for Helvetica and Times Roman.
 
-<h2><a name="V2.9.7b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.9.7b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- The garbage collector wasn't in a consistent state.
 	- In Level 2 mode, statusdict was allocated in global VM rather
@@ -770,8 +752,7 @@ warning messages from gcc and other strict compilers.
 Adds files containing the 4 predefined PDF encodings (MacRoman, MacExpert,
 WinAnsi, and PDFDoc).
 
-<h2><a name="V2.9.7b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9.7b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- image_bbox in gxccman.c could produce a division by 0 if a
 0-width character was being entered into the cache.
@@ -799,16 +780,22 @@ which there are very few.
 Makes many minor changes (mostly adding prototypes) to reduce error and
 warning messages from gcc and other strict compilers.
 
-<h1><a name="Version2.9.6b"></a>Version 2.9.6-beta (5/23/94, not distributed to the public)</h1>
+</pre>
 
-This, too, was supposed to be the last beta release for public release 3.0.
+<h2><a name="Version2.9.6b"></a>Version 2.9.6-beta (5/23/94, not
+distributed to the public)</h2>
+
+<p>
+This, too, was supposed to be the last beta release for public
+release 3.0.
 It was created primarily for a user who desperately needed a Level 1 system
 that would run properly on a 64-bit hardware architecture.  The garbage
 collector is badly broken (it's in the middle of an architectural change);
 setpagedevice is still not implemented.
 
-<h2><a name="V2.9.6b_Documentation"></a>Documentation</h2>
+<h3><a name="V2.9.6b_Documentation"></a>Documentation</h3>
 
+<pre>
 Documents the standard location of Type 1 fonts on AIX.
 
 Changes the last few mentions of Ghostview for Microsoft Windows to GSview
@@ -819,8 +806,10 @@ Notes that Solaris 2.n provides the X11 header files in a different place.
 Changes README to reflect the differentiation between Aladdin Ghostscript
 and GNU Ghostscript.
 
-<h2><a name="V2.9.6b_Procedures"></a>Procedures</h2>
+</pre>
+<h3><a name="V2.9.6b_Procedures"></a>Procedures</h3>
 
+<pre>
 Fixes bugs:
 	- The compilation rules for the modules that call the IJG library
 used -Ijpeg rather than -I$(JPEGSRC).
@@ -829,15 +818,13 @@ used -Ijpeg rather than -I$(JPEGSRC).
 Makes it possible to define the values of buildtime, copyright, revision,
 revisiondate, and serialnumber in the makefile.
 
-<h2><a name="V2.9.6b_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.9.6b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- The viewgif.ps utility didn't handle local color tables.
 
 Updates ps2ai.ps to version 1.81.
 
-<h2><a name="V2.9.6b_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.9.6b_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The TIFF and fax devices used some identical names, causing
 linker complaints.
@@ -867,8 +854,7 @@ THIS IS A NON-BACKWARD-COMPATIBLE CHANGE.  However, it only affects devices
 that implement their own get_props and put_props procedures, of which there
 aren't very many.
 
-<h2><a name="V2.9.6b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.9.6b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- The DV/X makefile used X11 rather than X for the X11 library name.
 	- The DV/X makefile incorrectly included the PC display drivers.
@@ -886,12 +872,11 @@ compiler because it declared a parameter as float rather than floatp.
 *	- The Microsoft C compiler, like the Borland C compilers, only
 compares the offset part of segmented pointers.
 
-<h2><a name="V2.9.6b_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V2.9.6b_Fonts"></a>Fonts</h3><pre>
 
 Adds a fontmap suitable for use with Adobe Type Basics.
 
-<h2><a name="V2.9.6b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.9.6b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- The STACK_LOOP_BEGIN macro in istack.h didn't work correctly on
 segmented systems.
@@ -955,8 +940,7 @@ user-written code should be using .oserrorstring.
 
 Adds oversampling for better character rasterizing.
 
-<h2><a name="V2.9.6b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9.6b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- gx_dc_ht_colored_fill_rectangle gave a compiler warning because
 of a problem with const pointers.
@@ -981,14 +965,19 @@ top and bottom.  (Internal change.)
 
 Adds oversampling for better character rasterizing.
 
-<h1><a name="Version2.9.5b"></a>Version 2.9.5-beta (4/11/94)</h1>
+</pre>
 
-This was supposed to be the last beta release before 3.0, but it won't be.
+<h2><a name="Version2.9.5b"></a>Version 2.9.5-beta (4/11/94)</h2>
+
+<p>
+This was supposed to be the last beta release before 3.0, but it
+won't be.
 The only known major defects are the unreliable garbage collector, and the
 dummy implementation of setpagedevice/currentpagedevice.
 
-<h2><a name="V2.9.5b_Documentation"></a>Documentation</h2>
+<h3><a name="V2.9.5b_Documentation"></a>Documentation</h3>
 
+<pre>
 Fixes bugs:
 	- The file commnew.doc didn't belong in the fileset.
 
@@ -996,8 +985,7 @@ Notes in the makefiles that SVR4 systems may need to set EXTRALIBS=-lnsl.
 
 Adds a user-contributed `man' page for the ps2epsi utility.
 
-<h2><a name="V2.9.5b_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V2.9.5b_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- The IJG files didn't compile properly by themselves, because they
 didn't have $(AK) in their dependency list.
@@ -1028,16 +1016,14 @@ level2.dev must normally be selected.  THIS IS A NON-BACKWARD-COMPATIBLE
 CHANGE for Level 1 systems, which formerly set FEATURE_DEVS to an empty
 definition.
 
-<h2><a name="V2.9.5b_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.9.5b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- bench.ps didn't switch back to local VM properly before running
 the program being benchmarked.
 
 Adds a ppmsetpagesize command to the pstoppm utility.
 
-<h2><a name="V2.9.5b_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.9.5b_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The PCX and GIF drivers used an incorrect algorithm for computing
 the blue component of the color palette, which could cause colors to come
@@ -1061,8 +1047,7 @@ Changes the `bit' driver so one can set the Colors and *Values properties.
 Makes the color mapping for PC displays, PCX files, and GIF files identical
 (they differed slightly before).
 
-<h2><a name="V2.9.5b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.9.5b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- VMS used DISPLAY rather than DECW$DISPLAY to get the display name
 if opening the display failed.
@@ -1077,8 +1062,7 @@ in arc_either (gspath.c) incorrectly.
 	- The temporary file names created under OS/2 could exceed the 8.3
 length limit.
 
-<h2><a name="V2.9.5b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.9.5b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- The test files for the IJG library had been damaged by EOL
 conversion.
@@ -1155,8 +1139,7 @@ Changes the names of some files:
 Changes the name of the value.index member of a ref to value.boolval.
 (Internal change only.)
 
-<h2><a name="V2.9.5b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9.5b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- The definition of RELOC_PTRS_BEGIN in gsstruct.h wouldn't compile
 properly with non-ANSI compilers.
@@ -1168,10 +1151,13 @@ values correctly.
 
 Factors out Type 1 font capability as a separate feature.
 
-<h1><a name="Version2.9.4b"></a>Version 2.9.4-beta (2/19/94)</h1>
+</pre>
 
-<h2><a name="V2.9.4b_Procedures"></a>Procedures</h2>
+<h2><a name="Version2.9.4b"></a>Version 2.9.4-beta (2/19/94)</h2>
 
+<h3><a name="V2.9.4b_Procedures"></a>Procedures</h3>
+
+<pre>
 Changes Ghostscript's path searching algorithm so that it does not
 automatically look in the current directory first.  (The former algorithm
 was more MS-DOS-like; the new one is more Unix-like.)  If you want to
@@ -1182,8 +1168,7 @@ Adds two new resource types for genconf.c:
 	- -header filexxx.h adds #include "filexxx.h" to gconfig.h.
 	- -libpath dir adds dir to the list of library search paths.
 
-<h2><a name="V2.9.4b_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.9.4b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- impath.ps (used by bdftops) computed the starting X coordinate
 incorrectly, typically causing characters to be displaced slightly to the
@@ -1193,13 +1178,13 @@ right.
 Adds a ps2ai.ps utility, contributed by a user, for converting arbitrary
 PostScript files into a form compatible with Adobe Illustrator.
 
-<h2><a name="V2.9.4b_Drivers"></a>Drivers</h2>
+</pre><h3><a name="V2.9.4b_Drivers"></a>Drivers</h3><pre>
 
 Adds new drivers:
 	- A user-contributed driver for Imagen Impress laser printers.
 	- A user-contributed driver for the DEC LA75plus printer.
 
-<h2><a name="V2.9.4b_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V2.9.4b_Platforms"></a>Platforms</h3><pre>
 
 Under OS/2, adds the ability to keep Ghostscript in memory for a
 specified number of minutes.
@@ -1215,8 +1200,7 @@ large sizes, Ghostscript does a perfectly good job, and some X font servers
 rasterize the entire font and lock up the entire window system while doing
 so.
 
-<h2><a name="V2.9.4b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.9.4b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- currentdash always returned a new array of reals, rather than the
 actual argument of setdash.
@@ -1267,8 +1251,7 @@ arrays, on large-memory systems, for compatibility with certain test
 suites.  Changes .registerencoding to accept arrays as well as packed
 arrays.
 
-<h2><a name="V2.9.4b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9.4b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- Due to an error in cie_mult3, CIE-based colors were badly
 mis-mapped.
@@ -1284,25 +1267,24 @@ lengthening them, if non-butt caps were requested.
 Refactors mem_mapped8_copy_mono because of limitations in the bcc32
 compiler.
 
-<h1><a name="Version2.9.3b"></a>Version 2.9.3-beta (1/19/94)</h1>
+</pre>
 
-This version was created for evaluation purposes for a few users who
+<h2><a name="Version2.9.3b"></a>Version 2.9.3-beta (1/19/94)</h2>
+
+<p>This version was created for evaluation purposes for a few users who
 needed Level 2 capability; it was never released to anyone else, even
 beta testers.
 
-<h2><a name="V2.9.3b_Documentation"></a>Documentation</h2>
-
+<h3><a name="V2.9.3b_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The description of psview and xpsview was incorrect.
 
-<h2><a name="V2.9.3b_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V2.9.3b_Procedures"></a>Procedures</h3><pre>
 Changes the installation directories for Unix and similar systems to put
 Ghostscript data in $(datadir)/ghostscript/gs-NN.NN.NN rather than directly
 in $(datadir)/ghostscript.  (Fonts still go in $(datadir)/ghostscript/fonts.)
 
-<h2><a name="V2.9.3b_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.9.3b_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- Some spaces were incorrectly replaced with tabs in the help
 message in the 3B1 display driver.
@@ -1327,8 +1309,7 @@ Changes the name of the Stylus 800 driver from escp2 to st800.
 Adds a compile-time flag to the Epson driver to cope with Panasonic 9-pin
 printers, which sometimes have trouble mixing graphics and tabs.
 
-<h2><a name="V2.9.3b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.9.3b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- The MS Windows driver (gp_mswin.c) referred to iodev.h rather
 than gxiodev.h.
@@ -1350,8 +1331,8 @@ while the image window has the focus, the text window will be brought to
 the top and made the active window.  This is useful when viewing a
 multi-page document with Ghostscript.
 
-<h2><a name="V2.9.3b_Interpreter"></a>Interpreter</h2>
-
+</pre>
+<h3><a name="V2.9.3b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- The definition of public_st_client_color() in gxccolor.h
 included an extraneous semicolon.
@@ -1408,22 +1389,22 @@ Changes the Ghostscript integer version number from 100P+10S+T to
 Changes the default halftone screen for high-resolution devices, both
 black-and-white and color.
 
-<h2><a name="V2.9.3b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9.3b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- The software floating multiply code used with USE_FPU=-1 only
 worked on little-endian platforms.
 	- Specifying a left side bearing to .type1addpath produced an
 inappropriate offset.
 
-<h1><a name="Version2.9.2b"></a>Version 2.9.2-beta (1/2/94)</h1>
+</pre>
 
-This version was distributed only to beta testers.  It adds a garbage
+<h2><a name="Version2.9.2b"></a>Version 2.9.2-beta (1/2/94)</h2>
+
+<p>This version was distributed only to beta testers.  It adds a garbage
 collector and full local and global VM support.  It is the first version
 that sets languagelevel = 2, i.e., claims to be a Level 2 implementation.
 
-<h2><a name="V2.9.2b_Documentation"></a>Documentation</h2>
-
+<h3><a name="V2.9.2b_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- make.doc still referred to use_* variables in gdevx.c, and
 use.doc didn't explain the use* X resources.
@@ -1431,15 +1412,15 @@ use.doc didn't explain the use* X resources.
 Notes that -Olimit=1000 is needed to compile Ghostscript on AXP systems
 under OSF/1 1.3.
 
-<h2><a name="V2.9.2b_Utilities"></a>Utilities</h2>
+</pre>
 
+<h3><a name="V2.9.2b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- viewgif.ps did not work with interlaced images.
 	- font2c.ps omitted gsmemory.h from the #include list in compiled
 fonts.
 
-<h2><a name="V2.9.2b_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.9.2b_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The MS Windows driver hadn't been updated to work with the
 new additions to the gx_device structure.
@@ -1453,8 +1434,7 @@ color table, like the X driver.
 Adds some fragmentary code to begin implementing the PostScript fax
 extensions.
 
-<h2><a name="V2.9.2b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.9.2b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- The procedure initializers for the MS Windows console I/O
 were missing the new reset element.
@@ -1473,16 +1453,14 @@ text window to display messages on an error exit.
 Updates the OS/2 code and documentation for compatibility with the current
 Ghostscript version.
 
-<h2><a name="V2.9.2b_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.9.2b_Fonts"></a>Fonts</h3><pre>
 Fixes bugs:
 	- The X11 .pfa fonts replaced their .gsf requirements in the
 fontmap, but not distributed with the previous (beta) release.
 
 Adds fontmaps appropriate for use with DEC Ultrix and OSF/1 systems.
 
-<h2><a name="V2.9.2b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.9.2b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- 4-value entries in the Metrics dictionary were interpreted with
 the width and side bearing interchanged.
@@ -1534,8 +1512,7 @@ Changes the implementation of save and restore so that the bookkeeping
 structures are allocated in the new area, not the old.  (This is an
 internal change not visible at the PostScript level.)
 
-<h2><a name="V2.9.2b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9.2b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- gdevprn used some preprocessor macros in formal argument
 lists that ansi2knr couldn't handle.
@@ -1554,18 +1531,18 @@ sequences.
 Factors out the Level 1 extended color facilities (CMYK color and
 colorimage) as a separate configuration feature.
 
-<h1><a name="Version2.9.1b"></a>Version 2.9.1-beta (12/7/93)</h1>
+</pre>
 
-This version was distributed only to beta testers.
+<h2><a name="Version2.9.1b"></a>Version 2.9.1-beta (12/7/93)</h2>
 
-<h2><a name="V2.9.1b_Utilities"></a>Utilities</h2>
+<p>This version was distributed only to beta testers.
 
+<h3><a name="V2.9.1b_Utilities"></a>Utilities</h3><pre>
 Adds a viewgif.ps utility to view GIF files.  The current version does not
 work with interlaced data, local color tables, or files containing more
 than one image.
 
-<h2><a name="V2.9.1b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.9.1b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- putinterval and copy didn't do the right thing if the source and
 destination were aliases for overlapping sections of the same array or
@@ -1579,21 +1556,22 @@ InitialCodeLength, FirstBitLowOrder, BlockData, and EarlyChange entries.
 Setting these parameters appropriately allows reading (non-interlaced) GIF
 data directly.
 
-<h2><a name="V2.9.1b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9.1b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- setdash produced inverted output if the pattern had an odd
 number of elements and the offset O had the property that L &lt;= O mod
 2*L, where L was the sum of the pattern elements.
 
-<h1><a name="Version2.9b"></a>Version 2.9-beta (12/6/93)</h1>
+</pre>
 
-Like 2.7, this version was created to satisfy a contractual requirement,
+<h2><a name="Version2.9b"></a>Version 2.9-beta (12/6/93)</h2>
+
+<p>Like 2.7, this version was created to satisfy a contractual
+requirement,
 and will never be distributed to anyone other than the other party to the
 contract.
 
-<h2><a name="V2.9b_Documentation"></a>Documentation</h2>
-
+<h3><a name="V2.9b_Documentation"></a>Documentation</h3><pre>
 Notes that Ghostscript runs on IBM PCs and compatibles under DR DOS
 6.0.
 
@@ -1606,8 +1584,7 @@ on the 550C.
 Gives a list of system-specific directories where Type 1 fonts are
 likely to be installed, as a suggested setting for GS_FONTPATH.
 
-<h2><a name="V2.9b_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V2.9b_Procedures"></a>Procedures</h3><pre>
 Changes the distribution script so that it stores all text files in the
 main source archive with Unix end-of-line conventions, but with DOS
 end-of-line conventions in the MS-DOS-specific archive.
@@ -1624,8 +1601,7 @@ select A4 as the default paper size.
 
 Adds the H-P printer drivers to the standard Unix configurations.
 
-<h2><a name="V2.9b_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.9b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- If there were no unencoded characters, prfont.ps would get
 an error.
@@ -1633,8 +1609,7 @@ an error.
 Changes ansi2knr to accept a wider range of function declaration syntax,
 and to not depend on any Ghostscript header files.
 
-<h2><a name="V2.9b_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.9b_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- Several drivers (DigiFax, Epson LQ-2550, NEC P6) didn't handle
 A4 paper width.
@@ -1663,8 +1638,7 @@ NON-BACKWARD-COMPATIBLE CHANGE.  However, it only affects devices that
 implement their own tile_rectangle procedures, of which there aren't very
 many.
 
-<h2><a name="V2.9b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.9b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- The VMS module lists referred to SDCTD and SDCTE instead of
 SDCT.
@@ -1683,8 +1657,7 @@ Splits off gp_unifs.c, containing code common to "Unix-like" file systems.
 
 Adds a user-contributed OS-9 platform.
 
-<h2><a name="V2.9b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.9b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- The currentfile cache wasn't updated properly if an executable
 file appeared in the middle of a procedure.  In particular, eexec-encoded
@@ -1720,8 +1693,7 @@ Implements resetfile (the only Level 1 operator not yet implemented!).
 
 Changes the name of the getdevice operator to .getdevice.
 
-<h2><a name="V2.9b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.9b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- A couple of necessary casts from char * to byte * were omitted.
 	- A Sun compiler required an extra cast to (void *) in the e1
@@ -1736,15 +1708,21 @@ produce the K component).
 
 Shuffles the order of some declarations to pacify the VMS C compiler.
 
-<h1><a name="Version2.8b"></a>Version 2.8-beta (11/10/93)</h1>
+</pre>
 
-This version was distributed only to beta testers.  It adds Type 0 font
+<hr>
+
+<h2><a name="Version2.8b"></a>Version 2.8-beta (11/10/93)</h2>
+
+<p>This version was distributed only to beta testers.  It adds Type 0
+font
 support.  It also includes extensive redesign of streams (to eventually
 support procedure streams) and device properties (to eventually support
 get/setpagedevice and get/setdevparams).
 
-<h2><a name="V2.8b_Documentation"></a>Documentation</h2>
+<h3><a name="V2.8b_Documentation"></a>Documentation</h3>
 
+<pre>
 Notes the change in X11 foreground/background handling.
 
 Changes README so it no longer claims that Ghostscript works with X11R3.
@@ -1752,8 +1730,7 @@ Changes README so it no longer claims that Ghostscript works with X11R3.
 Notes (in devs.mak) that the cdjmono driver is the best one to use for the
 DeskJet 510.
 
-<h2><a name="V2.8b_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V2.8b_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- echogs wasn't always invoked with ./ on Unix systems.
 
@@ -1767,14 +1744,12 @@ only external file needed at run time is Fontmap.  Note that you must have
 a working version of Ghostscript already in order to create a version that
 uses the ccinit feature, just as for ccfonts.
 
-<h2><a name="V2.8b_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.8b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- the ps2image utility didn't put a %! on the first line of the
 output.
 
-<h2><a name="V2.8b_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.8b_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The Hercules display driver didn't include definitions for
 outport2 and PAGE_HEIGHT_INCHES, which it uses.
@@ -1804,8 +1779,7 @@ devices that implemented their own get_props and put_props procedures (the
 H-P color printers, and the three window systems -- X Windows, MS Windows,
 and OS/2 PM).
 
-<h2><a name="V2.8b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.8b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- The meaning of the -p switch for the Watcom compile-and-link
 program was changed between Watcom C/386 versions 8.5 and 9.5, causing the
@@ -1818,8 +1792,7 @@ Adds user-contributed code for OS/2.
 Removes the assumption that an 80486 CPU implies the presence of hardware
 floating point, since the 486SX and Cyrix 486SLC don't have it.
 
-<h2><a name="V2.8b_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.8b_Fonts"></a>Fonts</h3><pre>
 Fixes bugs:
 *	- The GS_FONTPATH scanner didn't recognize .PFB fonts beginning
 with %!PS-AdobeFont.
@@ -1831,8 +1804,7 @@ implementations do.)
 	- DISKFONTS didn't work, because of the change in the Ghostscript
 fonts to do a systemdict begin/end (in version 2.7.1).
 
-<h2><a name="V2.8b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.8b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- == didn't produce exactly the same output as the Adobe
 interpreters.  (Some automated debugging and testing programs care.)
@@ -1872,8 +1844,7 @@ Adds an eexecEncode filter.
 
 Implements setcolorscreen, which was accidentally omitted from 2.7.
 
-<h2><a name="V2.8b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.8b_Library"></a>Library</h3><pre>
 Fixes bugs:
 *	- In colorimage, if the color space of the image was different
 from the current color space, and the first data values on a scan line
@@ -1894,19 +1865,21 @@ ensure that they cover device pixel centers.
 
 Adds support for composite fonts (no new client procedures).
 
-<h1><a name="Version2.7.2b"></a>Version 2.7.2-beta (10/11/93)</h1>
+</pre>
 
-This version was distributed only to alpha testers.
+<hr>
 
-<h2><a name="V2.7.2b_Utilities"></a>Utilities</h2>
+<h2><a name="Version2.7.2b"></a>Version 2.7.2-beta (10/11/93)</h2>
 
+<p>This version was distributed only to alpha testers.
+
+<h3><a name="V2.7.2b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- prfont.ps didn't print unencoded characters.
 
 Improves mergeini.ps to remove embedded comments.
 
-<h2><a name="V2.7.2b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.7.2b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- An error occurring within the scope of an internal .stopped
 didn't pop the command and error name off the stack.
@@ -1915,8 +1888,7 @@ didn't pop the command and error name off the stack.
 * Adds a .writecvs operator that does a cvs to an internal string followed
 by a writestring.
 
-<h2><a name="V2.7.2b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.7.2b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- grestore freed the path and the clip path in an order that
 was likely to lead to memory sandbars.
@@ -1928,14 +1900,16 @@ former beginning) of the last subpath.
 
 Adds a "planar" memory device.
 
-<h1><a name="Version2.7.1b"></a>Version 2.7.1-beta (10/4/93, not distributed to the public)</h1>
+</pre>
 
-Like 2.7, this version was created to satisfy a contractual requirement,
+<h2><a name="Version2.7.1b"></a>Version 2.7.1-beta (10/4/93, not distributed to the public)</h2>
+
+<p>Like 2.7, this version was created to satisfy a contractual
+requirement,
 and will never be distributed to anyone other than the other party to the
 contract.
 
-<h2><a name="V2.7.1b_Documentation"></a>Documentation</h2>
-
+<h3><a name="V2.7.1b_Documentation"></a>Documentation</h3><pre>
 Documents the GS_OPTIONS environment variable.
 
 Adds a summary of all environment variables to the documentation
@@ -1943,8 +1917,7 @@ Adds a summary of all environment variables to the documentation
 
 Documents the existence of a third free viewer built on Ghostscript.
 
-<h2><a name="V2.7.1b_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.7.1b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- wrfont didn't wrap a systemdict begin / end around the body of
 the font.
@@ -1957,8 +1930,7 @@ Changes bdftops so that it uses 'show' for unknown ligatures, rather than
 executing the characters as subroutines; this makes such ligatures work
 properly with xfonts.
 
-<h2><a name="V2.7.1b_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.7.1b_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The PCL drivers sent a printer reset (&lt;ESC&gt;E) at the beginning
 of every page, instead of only before the first page.
@@ -1969,8 +1941,7 @@ number of bytes.
 Adds a new map_rgb_alpha_color procedure.  This is a backward-compatible
 change; this procedure defaults to calling map_rgb_color.
 
-<h2><a name="V2.7.1b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.7.1b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- On Unix platforms, the value of the TEMP environment variable
 had to end with a '/'.
@@ -1985,8 +1956,7 @@ since the problem no longer exists.
 Changes the order of X Windows libraries from Xt X11 Xext to Xt Xext X11.
 This makes the OSF/1 linker happier.
 
-<h2><a name="V2.7.1b_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.7.1b_Fonts"></a>Fonts</h3><pre>
 Fixes bugs:
 	- All the fonts originated by Aladdin, and the shareware fonts,
 had UniqueIDs in the 4xxxxxx range, which is only supposed to be used for
@@ -2023,8 +1993,7 @@ Replaces many of the Hershey fonts with new ones (mostly Type 1) created
 by Thomas Wolff, who added accents, accented characters, and other
 non-alphabetics.  These too now have proper UniqueIDs.
 
-<h2><a name="V2.7.1b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.7.1b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 *	- imagemask interpreted the Decode array incorrectly (inverted).
 	- Running out of memory when constructing a path incorrectly
@@ -2043,8 +2012,7 @@ page needs to be erased.  With this change, operators that erase the page
 always call erasepage at the interpreter level rather than calling
 gs_erasepage directly.
 
-<h2><a name="V2.7.1b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.7.1b_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- The null device allowed its size to be reset.
 	- clippath didn't establish a current point if the clipping
@@ -2087,15 +2055,17 @@ special code.
 Changes the Type 1 interpreter so that it uses the current point, rather
 than (0,0), as the character origin.
 
-<h1><a name="Version2.7b"></a>Version 2.7-beta (9/20/93, not distributed to the public)</h1>
+</pre>
 
-This is the first of a series of beta-only versions planned for release
+<h2><a name="Version2.7b"></a>Version 2.7-beta (9/20/93, not distributed to the public)</h2>
+
+<p>This is the first of a series of beta-only versions planned for
+release
 between 2.6.n and 3.0.  This version, in particular, was created to
 satisfy a contractual requirement, and will never be distributed to anyone
 other than the other party to the contract.
 
-<h2><a name="V2.7b_Documentation"></a>Documentation</h2>
-
+<h3><a name="V2.7b_Documentation"></a>Documentation</h3><pre>
 Fixes bugs:
 	- The "HP XLFD extensions" to X11R5 are not specific to H-P
 platforms.
@@ -2128,8 +2098,7 @@ gs_init.ps.
 
 Documents the use of WMAKEL rather than WMAKE with the Watcom compiler.
 
-<h2><a name="V2.7b_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V2.7b_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 *	- The Unix install script used gs rather than $(GS) as the name of
 the executable.
@@ -2165,8 +2134,7 @@ built in.
 Changes -d and -D so that if no value is supplied, the default is
 true rather than null.
 
-<h2><a name="V2.7b_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.7b_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 *	- The ps2ascii script still referenced ps2ascii.ps under its
 old name gs_2asc.ps.
@@ -2193,8 +2161,7 @@ requested to do so and systemdict is writable.
 
 Adds a printafm utility for printing the metrics of fonts in AFM format.
 
-<h2><a name="V2.7b_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.7b_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The cdj driver was missing a few type casts that were needed to
 satisfy pedantic compilers.
@@ -2262,8 +2229,7 @@ Allows window granularities smaller than 64K in the VESA driver.
 
 Changes the LaserJet margins again.
 
-<h2><a name="V2.7b_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.7b_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- Platforms where stat doesn't return a st_blocks value
 computed the block count wrong.
@@ -2290,7 +2256,7 @@ Adds documentation for compiling Ghostscript on the Intergraph Clipper.
 Updates the documentation to add a better list of X Windows font
 names for the Sun platform.
 
-<h2><a name="V2.7b_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V2.7b_Fonts"></a>Fonts</h3><pre>
 
 Creates an external file (gs_dbt_e.ps) with the ZapfDingbats encoding
 (actually in 2.6.1, but not documented there).
@@ -2309,8 +2275,7 @@ that should be scanned automatically for fonts.
 * Gets rid of the Ugly font, and changes the default to the IBM Courier
 font, which is freely distributable.
 
-<h2><a name="V2.7b_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.7b_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- cvs didn't check for stack underflow.
 *	- zht2.c didn't include alloc.h.
@@ -2368,8 +2333,7 @@ the operand stack, to avoid recursive errors.
 
 Implements setcolorscreen/currentcolorscreen.
 
-<h2><a name="V2.7b_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.7b_Library"></a>Library</h3><pre>
 Fixes bugs:
 *	- Rectangles with vertices specified in clockwise order were
 drawn as 0-width lines.
@@ -2429,17 +2393,20 @@ Implements a hack to make zero-width rectangles display as one pixel wide,
 to work around a bug in the Microsoft Windows PostScript driver.
 Currently the hack only works for vertical lines, not horizontal ones.
 
-<h1><a name="Version2.6.1"></a>Version 2.6.1 (5/28/93)</h1>
+</pre>
 
-This is primarily a bug-fix release for 2.6, with a couple of minor
+<hr>
+
+<h2><a name="Version2.6.1"></a>Version 2.6.1 (5/28/93)</h2>
+
+<p>This is primarily a bug-fix release for 2.6, with a couple of minor
 additions.
 
-<h2><a name="V2.6.1_Documentation"></a>Documentation</h2>
+<h3><a name="V2.6.1_Documentation"></a>Documentation</h3><pre>
 
 Adds proper `man' pages ansi2knr.1 and gs.1.
 
-<h2><a name="V2.6.1_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V2.6.1_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- The Unix makefile produced an incorrect linker command if
 EXTRALIBS was not empty.
@@ -2453,8 +2420,7 @@ NeXTStep systems.
 Changes the configuration procedure to use a C program rather than
 complex shell scripts.
 
-<h2><a name="V2.6.1_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.6.1_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- The boilerplate produced by ps2image used the 'max'
 operator, which is not a standard PostScript operator.
@@ -2467,8 +2433,7 @@ Changes the name of the dicttomark procedure to .dicttomark.
 Renames gs_2asc.ps as ps2ascii.ps, so it matches the names of the
 script files.
 
-<h2><a name="V2.6.1_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.6.1_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The pbmraw driver was writing out RGG instead of RGB values.
 	- The X11 driver used NULL in a place where it should have
@@ -2493,8 +2458,7 @@ language, such as the Stylus 800.
 Adds a new get_xfont_device driver procedure.  This is a
 backward-compatible change, since there is a sensible default.
 
-<h2><a name="V2.6.1_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.6.1_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- On VMS, gconfig.h didn't have #include "gsconfig.h" as its
 first line.
@@ -2513,7 +2477,7 @@ files in either GSEXE.ZIP or GSFILES.ZIP.
 On PC platforms, adds an option (FPU_TYPE=-1) to optimize for
 machines lacking a floating point processor.
 
-<h2><a name="V2.6.1_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V2.6.1_Fonts"></a>Fonts</h3><pre>
 
 Adds 4 new fonts contributed by URW.  These have a URW copyright and
 are governed by the GNU License.
@@ -2524,8 +2488,7 @@ only names.
 Adds DingbatsEncoding as a predefined encoding (in addition to
 Standard, ISOLatin1, and Symbol).
 
-<h2><a name="V2.6.1_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.6.1_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- memchr (used in zfile.c) isn't available on all platforms.
 	- languagelevel was defined as an operator rather than an
@@ -2544,8 +2507,7 @@ type1decrypt, type1encrypt.
 
 Adds a real implementation of glyphshow.
 
-<h2><a name="V2.6.1_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.6.1_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- Discarding fractional character coordinates in the Type 1
 rasterizer led to some rendering anomalies (e.g., characters 1 pixel
@@ -2567,12 +2529,14 @@ changed), xfonts would not be used.
 
 Adds gs_glyphshow.
 
-<h1><a name="Version2.6"></a>Version 2.6 (5/9/93)</h1>
+</pre>
 
-The main new feature in this release is the ability to use platform
+<h2><a name="Version2.6"></a>Version 2.6 (5/9/93)</h2>
+
+<p>The main new feature in this release is the ability to use platform
 fonts.  It also adds many more Level 2 PostScript facilities.
 
-<h2><a name="V2.6_Documentation"></a>Documentation</h2>
+<h3><a name="V2.6_Documentation"></a>Documentation</h3><pre>
 
 Corrects some errors in the documentation of the makeimagedevice operator.
 
@@ -2620,8 +2584,7 @@ that have less than 6 Mb of RAM.
 Consolidates documentation on compiler switches in make.doc (some of
 it had been in the unix*.mak files).
 
-<h2><a name="V2.6_Procedures"></a>Procedures</h2>
-
+</pre><h3><a name="V2.6_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- \'s in arguments following -- were doubled.
 
@@ -2659,8 +2622,7 @@ Moves the "product" string from gs_init.ps to iinit.c.
 Adds a GS macro to the makefiles, to allow choosing the name of the
 executable.
 
-<h2><a name="V2.6_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.6_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 *	- font2c did the wrong thing (still) for fonts that didn't
 use StandardEncoding, ISOLatin1Encoding, or SymbolEncoding.
@@ -2708,8 +2670,7 @@ Changes the compression scheme used in ps2image to a much more
 effective one.  Writing images is much slower than with the previous
 scheme, but reading is not.
 
-<h2><a name="V2.6_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.6_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- SCFDTAB and SCFTAB were omitted from the VMS module lists.
 	- Function prototypes were not being used with the Watcom
@@ -2766,8 +2727,7 @@ Adds a %pipe% file device under Unix.
 Adds a makefile for Watcom C under MS Windows.  This is very preliminary;
 in particular, NO display output is supported.
 
-<h2><a name="V2.6_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.6_Fonts"></a>Fonts</h3><pre>
 Fixes bugs:
 	- fonts.mak referred to ncri and puti rather than ncrri and
 putri.
@@ -2792,8 +2752,7 @@ Adds a new Fontmap for VAX/VMS with DECWindows/Motif.
 Changes MakeHersheyFont so it takes the encoding as an additional
 parameter, and changes the Hershey-Symbol font to use SymbolEncoding.
 
-<h2><a name="V2.6_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.6_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The !@*&amp;^%#@$ PCL drivers *still* didn't do the right thing
 about vertical spacing: the &lt;ESC&gt;*p+&lt;n&gt;Y command works on all PCL 3,
@@ -2898,8 +2857,7 @@ rather than with the origin of the printable area.
 Removes the EIZO MDB-10 driver, since it caused complications for the
 EGA and VGA drivers and is not a widely used device.
 
-<h2><a name="V2.6_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.6_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- The entry for the copydevice operator in the operator table
 was initialized incorrectly.
@@ -3076,8 +3034,7 @@ Changes the allocator (ialloc) to fill all allocated and/or freed
 blocks with a marker if gs_alloc_debug is set, as gs_malloc and
 gs_free already do.
 
-<h2><a name="V2.6_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.6_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- 16-bit memory devices stored the bytes of each pixel in the
 wrong order.
@@ -3177,13 +3134,16 @@ font machinery.
 Changes all empty argument lists from () to (void), which is the ANSI
 C syntax.
 
-<h1><a name="Version2.5.2"></a>Version 2.5.2 (9/20/92)</h1>
+</pre>
 
-This is yet another bug fix release to (finally!) get the PCL drivers
+<hr>
+
+<h2><a name="Version2.5.2"></a>Version 2.5.2 (9/20/92)</h2>
+
+<p>This is yet another bug fix release to (finally!) get the PCL drivers
 working again.
 
-<h2><a name="V2.5.2_Procedures"></a>Procedures</h2>
-
+<h3><a name="V2.5.2_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- The comment in devs.mak for cdjcolor said it used 8 bits
 per pixel, rather than the correct 24.
@@ -3195,19 +3155,22 @@ Removes dps.dev and level2.dev from the standard configurations on
 all platforms, since the presence of the setcolor operator was
 causing the output of some common applications to fail.
 
-<h2><a name="V2.5.2_Utilities"></a>Utilities</h2>
+</pre>
 
+<h3><a name="V2.5.2_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- font2c produced invalid output for any font that didn't use
 StandardEncoding or ISOLatin1Encoding.
 
-<h2><a name="V2.5.2_Platforms"></a>Platforms</h2>
+</pre>
 
+<h3><a name="V2.5.2_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- gp_sysv.c required an extern long timezone.
 
-<h2><a name="V2.5.2_Drivers"></a>Drivers</h2>
+</pre>
 
+<h3><a name="V2.5.2_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The PCL drivers were *still* doing the wrong thing about
 zeroing the seed row for Mode 3 compression.
@@ -3219,8 +3182,9 @@ correctly.
 
 Adds the eps9high device to the standard MS-DOS makefiles.
 
-<h2><a name="V2.5.2_Interpreter"></a>Interpreter</h2>
+</pre>
 
+<h3><a name="V2.5.2_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- gs_run_string used gs_user_errors (a global) rather than
 user_errors (its argument) to control error handling.  (This does not
@@ -3240,8 +3204,7 @@ of the interpreter.
 
 Adds the .knownget operator.
 
-<h2><a name="V2.5.2_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.5.2_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- The raster computation in clist_render_init, and the
 computation of state_size in clist_open, didn't widen an operand to
@@ -3270,12 +3233,13 @@ characters.  (This is the beginning of compression for the cache.)
 Changes the arguments of memswab2/4 from char * to byte *, for more
 accurate type conformance.
 
-<h1><a name="Version2.5.1"></a>Version 2.5.1 (9/11/92)</h1>
+</pre>
 
-This is the usual bug fix re-release.
+<h2><a name="Version2.5.1"></a>Version 2.5.1 (9/11/92)</h2>
 
-<h2><a name="V2.5.1_Procedures"></a>Procedures</h2>
+<p>This is the usual bug fix re-release.
 
+<h3><a name="V2.5.1_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- The makefile rules for compiled fonts had a circular
 dependency.
@@ -3286,8 +3250,7 @@ newline was confusing the GNU diff program.)
 
 Documents the fact that the -dASCIIOUT switch no longer exists.
 
-<h2><a name="V2.5.1_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.5.1_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- pstoppm didn't `bind' its internal procedures.
 	- grestoreall would undo the output device selected by
@@ -3302,8 +3265,9 @@ the distribution.
 
 Adds a gslj utility to parallel gslp and gsdj.
 
-<h2><a name="V2.5.1_Platforms"></a>Platforms</h2>
+</pre><h3><a name="V2.5.1_Platforms"></a>Platforms</h3>
 
+<pre>
 Adds the DeskJet 500C drivers (cdeskjet/cdj*) to the MS-DOS / Borland
 C++, MS-DOS / Watcom C/386, and MS-Windows configurations.
 
@@ -3313,8 +3277,7 @@ the static data segment exceeded 64K.
 Makes some changes in the Unix System V platform file (gp_sysv.c) and
 in time_.h and unixtail.mak to accommodate the 3B1.
 
-<h2><a name="V2.5.1_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.5.1_Fonts"></a>Fonts</h3><pre>
 Fixes bugs:
 	- The Charter-Italic font was named bchi.pfa rather than
 bchri.pfa.
@@ -3328,8 +3291,7 @@ get errors because the first eexec byte would be whitespace.
 Changes font2c and its supporting code so that compiled fonts are
 location-independent.
 
-<h2><a name="V2.5.1_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.5.1_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The margins for the H-P printers were still wrong.
 	- The H-P drivers accidentally cleared the compression seed
@@ -3359,8 +3321,7 @@ only).
 Changes all Aladdin-supported drivers to clip drawing requests to the
 ((0,0), (width,height)) rectangle of device space.
 
-<h2><a name="V2.5.1_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.5.1_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- Closing a NullEncode filter always gave an ioerror.
 	- If a single-character name occurred 1 character before the
@@ -3384,8 +3345,7 @@ status 1 rather than 0.
 Changes the interpreter interface so the caller explicitly passes a
 pointer for storing an error object.
 
-<h2><a name="V2.5.1_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.5.1_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- The automatic adjustment of the scaling for variant paper
 sizes caused the image to get expanded when it should have been
@@ -3406,14 +3366,15 @@ non-negative quadrant of device space.  (This was causing problems
 for Ghostview, but removing it required adding the extra clipping
 step to the drawing routines in the drivers.)
 
-<h1><a name="Version2.5"></a>Version 2.5 (8/18/92)</h1>
+</pre>
 
-This version adds Type 1 hinting, CCITTFax encoding and decoding, and
+<h2><a name="Version2.5"></a>Version 2.5 (8/18/92)</h2>
+
+<p>This version adds Type 1 hinting, CCITTFax encoding and decoding, and
 Microsoft Windows support, as well as the usual minor improvements
 and bug fixes.
 
-<h2><a name="V2.5_Procedures"></a>Procedures</h2>
-
+<h3><a name="V2.5_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- GSIMPATH, SLZWD, and SLZWE were omitted from the VMS
 makefiles, and GSIM2OUT was not removed.
@@ -3443,10 +3404,11 @@ used in the middle of the command line as well as at the beginning).
 
 Renames the history.doc file as NEWS.
 
-<h2><a name="V2.5_Utilities"></a>Utilities</h2>
+</pre>
 
-<h2><a name="V2.5_Platforms"></a>Platforms</h2>
+<h3><a name="V2.5_Utilities"></a>Utilities</h3>
 
+<h3><a name="V2.5_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- The stack size was not getting increased on the Watcom
 platform.
@@ -3465,8 +3427,7 @@ Changes std.h so that the VMS C compiler uses function prototypes and
 
 Changes the VMS cc makefile so it doesn't use ansi2knr.
 
-<h2><a name="V2.5_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.5_Fonts"></a>Fonts</h3><pre>
 Fixes bugs:
 	- findfont left an extra entry on the stack if it couldn't
 find the default font.
@@ -3497,8 +3458,7 @@ Changes definefont for Type 1 fonts to insert UnderlinePosition and
 UnderlineThickness entries in FontInfo if they are absent, because
 many word processors incorrectly assume these entries are present.
 
-<h2><a name="V2.5_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.5_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The documentation in use.doc said that the densities for
 9-pin Epson printers were 60x60 to 240x60, rather than 60x72 to
@@ -3563,8 +3523,7 @@ passes on 9-pin printers for higher resolution.
 
 Adds user-supplied code for the PaintJet XL to the PaintJet driver.
 
-<h2><a name="V2.5_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.5_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- zdps1.c didn't include alloc.h.
 	- On 32-bit systems, if maxlength of a dictionary was less
@@ -3663,8 +3622,7 @@ required to load .PFB fonts.)
 
 Splits off `copydevice' as a separate operator again.
 
-<h2><a name="V2.5_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.5_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- In the VMS environment, string_.h used its own prototypes
 for the str... and mem... functions instead of &lt;string.h&gt;
@@ -3720,16 +3678,21 @@ using very small regions.
 
 Implements stroke adjustment.
 
-<h1><a name="Version2.4.2"></a>Version 2.4.2 (5/8/92)</h1>
+</pre>
 
+<hr>
+
+<h2><a name="Version2.4.2"></a>Version 2.4.2 (5/8/92)</h2>
+
+<p>
 This is another quick release.  It finally fixes rotated halftone
 screens, and cleans up a few minor problems from 2.4.1.
 
+<p>
 This release is being distributed only to beta testers and commercial
 licensees, since I don't want to be distracted from working on 2.5.
 
-<h2><a name="V2.4.2_Procedures"></a>Procedures</h2>
-
+<h3><a name="V2.4.2_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- UTRACE still appeared in the VMS makefiles.
 	- The support files (*.bat, *.doc, *.gsf, *.ps, Fontmap,
@@ -3741,8 +3704,7 @@ type1ops.ps) based on the new .imagepath operator.
 
 Renames LICENSE as COPYING.
 
-<h2><a name="V2.4.2_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.4.2_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- pcharstr.ps had an occurrence of Subrs rather than /Subrs,
 causing it to not print the Subrs, or to get an error if there were
@@ -3756,8 +3718,7 @@ exceeded its internal buffer size.
 	- Compiled fonts would get processed by ansi2knr, which
 messed them up.
 
-<h2><a name="V2.4.2_Platforms"></a>Platforms</h2>
-
+</pre><h3><a name="V2.4.2_Platforms"></a>Platforms</h3><pre>
 Fixes bugs:
 	- Ghostscript didn't supply equivalents for rename and
 gettimeofday, which some System V platforms lack.
@@ -3767,8 +3728,9 @@ diff.
 Changes the Borland makefiles so that stack checking is only enabled
 if DEBUG or TDEBUG is set.
 
-<h2><a name="V2.4.2_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V2.4.2_Fonts"></a>Fonts</h3>
 
+<pre>
 Changes the names of the Utopia fonts from utrg/utb/utbi/uti to
 putr/putb/putbi/puti, for consistency with the rest of the font names.
 Changes cour/courb/courbi/couri to ncrr/ncrb/ncrbi/ncri likewise.
@@ -3782,8 +3744,7 @@ Courier-[Bold]Oblique and ZapfChancery-MediumItalic by aliases.
 Changes the FontBBox of the Hershey fonts to be an executable, rather
 than a literal, array.
 
-<h2><a name="V2.4.2_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.4.2_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The GIF driver omitted a `private' on the definition of
 gif_print_page.
@@ -3799,8 +3760,7 @@ affected, since they don't implement these routines.)
 
 Adds a driver for the Trident TVGA.
 
-<h2><a name="V2.4.2_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.4.2_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- alloc_free sometimes incorrectly chose to put an unaligned
 block in an old segment on a freelist.
@@ -3844,8 +3804,7 @@ Changes BlueShift in the Type 1 font Private dictionary to allow real
 numbers.  (This differs from the Adobe specification, but at least
 one commercial font has a real number for BlueShift.)
 
-<h2><a name="V2.4.2_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.4.2_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- The doubling check in init_ht (gxht.c) still sometimes
 thought there was enough room to double the tile when there actually
@@ -3863,14 +3822,15 @@ Adds 'const' in many places.
 
 Replaces all uses of stdin/out/err with gs_stdin/out/err.
 
-<h1><a name="Version2.4.1"></a>Version 2.4.1 (4/21/92)</h1>
+</pre>
 
-This is a quick release to fix minor problems discovered in 2.4, and
+<h2><a name="Version2.4.1"></a>Version 2.4.1 (4/21/92)</h2>
+
+<p>This is a quick release to fix minor problems discovered in 2.4, and
 to add a few improvements that didn't quite make it into 2.4.  It
 also adds GIF and PCX file support.
 
-<h2><a name="V2.4.1_Procedures"></a>Procedures</h2>
-
+<h3><a name="V2.4.1_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- Some makefile dependencies, and the ccgs script, caused trouble
 for parallel versions of `make'.
@@ -3888,8 +3848,7 @@ Gets rid of gs_ccfnt.ps, merging its function into gs_fonts.ps.
 
 Gets rid of gconfig.ps; this information is now compiled in gconfig.c.
 
-<h2><a name="V2.4.1_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.4.1_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- The palette for pstoppm in 8-bit mode didn't contain all 8
 primary colors.
@@ -3898,8 +3857,7 @@ couldn't handle this.
 
 Makes font2c insert `const' in many appropriate places.
 
-<h2><a name="V2.4.1_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.4.1_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The SunView driver had not been updated properly for 2.4 and was
 pretty thoroughly broken.
@@ -3928,12 +3886,10 @@ file formats.
 
 Adds drivers for monochrome and 256-color GIF file formats.
 
-<h2><a name="V2.4.1_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.4.1_Fonts"></a>Fonts</h3><pre>
 Adds ZapfChancery-MediumItalic as a copy of ZapfChancery-Oblique.
 
-<h2><a name="V2.4.1_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.4.1_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- A value with l_new set could 'escape' to save level 0 on a
 stack; if stored, it prevented the slot from being saved and restored
@@ -3968,8 +3924,7 @@ scramble the index.
 Changes the handling of currentfile to do "shallow binding" so stack
 searching is almost never required.
 
-<h2><a name="V2.4.1_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.4.1_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- arc and arcn got a numeric exception if the radius was zero.
 	- The undocumented 15 opcode in Type 1 fonts wasn't ignored.
@@ -3995,15 +3950,17 @@ Adds 'const' in many places.
 
 Adds support for 2- and 4-bit-per-pixel memory devices.
 
-<h1><a name="Version2.4"></a>Version 2.4 (3/25/92)</h1>
+</pre>
 
-This is a major release that adds SuperVGA support, support for Metrics,
+<h2><a name="Version2.4"></a>Version 2.4 (3/25/92)</h2>
+
+<p>This is a major release that adds SuperVGA support, support for
+Metrics,
 settable device properties, and incremental font loading.  It also
 includes important performance improvements, based on rewrites of some key
 algorithms, and quite a few new Level 2 / Display PostScript facilities.
 
-<h2><a name="V2.4_Procedures"></a>Procedures</h2>
-
+<h3><a name="V2.4_Procedures"></a>Procedures</h3><pre>
 Fixes bugs:
 	- The rule for compiling gconfig.c didn't include the -I switches.
 	- .bat files were being distributed with a \n line terminator
@@ -4055,8 +4012,7 @@ Adds -sOUTPUTFILE= to set the output file or pipe.
 
 Adds -dWRITESYSTEMDICT to leave systemdict writable.
 
-<h2><a name="V2.4_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.4_Utilities"></a>Utilities</h3><pre>
 Fixes bugs:
 	- pcharstr.ps insisted on having Subrs be present in the font.
 	- pcharstr.ps decoded negative numbers between -108 and -1131
@@ -4079,8 +4035,7 @@ claimed to be better for printers.
 Adds the font2c utility for compiling Type 1 fonts into C, so they can be
 linked into an executable rather than loaded dynamically.
 
-<h2><a name="V2.4_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.4_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- gdev_prn_copy_scan_lines was erroneously masking the last byte
 of data even on color printers, as was paintjet_print_page.
@@ -4153,8 +4108,9 @@ Changes gdev_mem_bytes_per_scan_line to gdev_prn_bytes_per_scan_line.
 
 Adds a user-contributed driver for DigiBoard, Inc.'s fax software.
 
-<h2><a name="V2.4_Fonts"></a>Fonts</h2>
+</pre><h3><a name="V2.4_Fonts"></a>Fonts</h3>
 
+<pre>
 Changes Type1BuildChar so it uses the information from the Metrics
 dictionary in the font, if Metrics is present.
 
@@ -4162,8 +4118,7 @@ Changes findfont (.loadfont) so it recognizes .PFB fonts and can load them
 directly.  Also changes .loadfont to disable packing temporarily, because
 some fonts rely on procedures being writable (!).
 
-<h2><a name="V2.4_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.4_Interpreter"></a>Interpreter</h3><pre>
 Fixes bugs:
 	- The hypot function is not available on some Unix systems.
 	- Ghostscript didn't flush and close files when exiting.
@@ -4287,8 +4242,7 @@ CPU_TYPE was set to 286 or above.
 multiply/divide routines under Turbo C++ or Borland C++, only under the
 original Turbo C.
 
-<h2><a name="V2.4_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.4_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- A curve whose first and last points were the same wouldn't get
 drawn at all.
@@ -4360,18 +4314,19 @@ gs_makedevice.
 Changes setscreen to ensure that the cell is always at least 4x4 pixels in
 size.
 
-<h1><a name="Version2.3"></a>Version 2.3 (8/28/91)</h1>
+</pre>
 
-This is a minor release to fix two bugs and add the PaintJet driver, which
+<h2><a name="Version2.3"></a>Version 2.3 (8/28/91)</h2>
+
+<p>This is a minor release to fix two bugs and add the PaintJet driver,
+which
 didn't make it into 2.2.
 
-<h2><a name="V2.3_Utilities"></a>Utilities</h2>
-
+<h3><a name="V2.3_Utilities"></a>Utilities</h3><pre>
 Changes the pstoppm utility so it counts pages correctly even in the
 presence of arbitrary saves and restores.
 
-<h2><a name="V2.3_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.3_Drivers"></a>Drivers</h3><pre>
 Adds a new, "supported" PaintJet driver.
 
 Changes the Epson driver to use ESC+D rather than ESC+\ for horizontal
@@ -4381,15 +4336,19 @@ Adds horizontal double-density (two-pass) printing to the Epson driver, so
 it can do 240 x 60 and 360 x 180 densities.  (Vertical double density is
 not supported yet.)
 
-<h1><a name="Version2.2"></a>Version 2.2 (6/1/91)</h1>
+</pre>
 
+<hr>
+
+<h2><a name="Version2.2"></a>Version 2.2 (6/1/91)</h2>
+
+<p>
 The purpose of this release is to add save/restore, and a few
 miscellaneous Level 2 P*stScr*pt features such as undef.  It also includes
 major improvements in graphics quality and in handling of high-resolution
 printers.
 
-<h2><a name="V2.2_Procedures"></a>Procedures</h2>
-
+<h3><a name="V2.2_Procedures"></a>Procedures</h3><pre>
 Changes the version numbering to M.mpp rather than M.m.p, so that
 `version' can be a real number for those programs that insist on it.
 
@@ -4474,8 +4433,9 @@ VMS-specific changes
 
 Repairs the omission of ZPACKED from the VMS build lists.
 
-<h2><a name="V2.2_Drivers"></a>Drivers</h2>
+</pre>
 
+<h3><a name="V2.2_Drivers"></a>Drivers</h3><pre>
 Fixes bugs:
 	- The SunView driver produced semi-garbage on little-endian
 platforms (Sun-386i) because it didn't swap the bit order.
@@ -4529,8 +4489,11 @@ control of the BGI driver.
 Changes the x/y_pixels_per_inch member of the device structure from int to
 float.
 
-<h2><a name="V2.2_Fonts"></a>Fonts</h2>
+</pre>
 
+<h3><a name="V2.2_Fonts"></a>Fonts</h3>
+
+<pre>
 Patches gs_fonts.ps so definefont will add an isFixedPitch entry to
 FontInfo if there isn't one there.
 
@@ -4546,8 +4509,7 @@ punctuation marks, and accented characters using seac.)  The results
 aren't all that good, but they're a lot better than having characters
 missing out of the font.
 
-<h2><a name="V2.2_Utilities"></a>Utilities</h2>
-
+</pre><h3><a name="V2.2_Utilities"></a>Utilities</h3><pre>
 Adds a pfbtops utility for converting .PFB fonts to standard Ghostscript
 fonts.
 
@@ -4555,8 +4517,7 @@ Fixes bugs:
 	- ps2image didn't reset things properly between pages for
 multi-page documents.
 
-<h2><a name="V2.2_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.2_Interpreter"></a>Interpreter</h3><pre>
 Makes Ghostscript recognize `-' alone as meaning that it should read from
 standard input as though it were a file.  This allows Ghostscript to
 accept a pipe as input.
@@ -4651,8 +4612,7 @@ operators being bound by `bind' will work properly.
 Adds a new NOPAUSE flag to suppress the prompt and pause at copypage and
 showpage.
 
-<h2><a name="V2.2_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.2_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- gs_type1_interpret didn't store the encryption state or the skip
 count before returning to let the client handle a seac or an endchar in
@@ -4733,48 +4693,49 @@ Renames gx_device_memory_bitmap_size as gdev_mem_bitmap_size,
 mem_copy_scan_lines as gdev_mem_copy_scan_lines, and
 mem_bytes_per_scan_line as gdev_mem_bytes_per_scan_line.
 
-<h1><a name="Version2.1.1"></a>Version 2.1.1 (1/15/91)</h1>
+</pre>
 
-This is a sub-release distributed to fix a few early bugs in 2.1, just in
+<hr>
+
+<h2><a name="Version2.1.1"></a>Version 2.1.1 (1/15/91)</h2>
+
+<p>This is a sub-release distributed to fix a few early bugs in 2.1,
+just in
 time for the new GNU master tape.
 
-<h2><a name="V2.1.1_Build_procedures"></a>Build procedures</h2>
-
+<h3><a name="V2.1.1_Build_procedures"></a>Build procedures</h3><pre>
 Removes all of the (undebugged) Level 2 code from the fileset, as well as
 the (unused) file gdevvga.c.
 
 Changes the tar file so that the files are stored in the directory
 gs&lt;version&gt; rather than simply gs, e.g., gs211.
 
-<h2><a name="V2.1.1_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.1.1_Interpreter"></a>Interpreter</h3><pre>
 Changes the scanner so that \ is recognized within strings regardless of
 whether the scanner is reading from a string or from a file.  This is
 compatible with newer P*stScr*pt interpreters, and with the newer
 P*stSc*pt language specification, but not with the older specification in
 the original PostScript Language Reference Manual.
 
-<h2><a name="V2.1.1_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.1.1_Drivers"></a>Drivers</h3><pre>
 Fixes the max_value macro in gdevmem.c so that compilers won't complain
 about a left shift by 32.
 
 Adds 'byte' to the list of types that gdevx.c must sidestep because header
 files use them.
 
-<h2><a name="V2.1.1_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.1.1_Library"></a>Library</h3><pre>
 Changes the computation of penum-&gt;unpack in gsimage.c so as not to upset
 compilers that don't treat procedures and pointers to procedures as
 compatible types for conditional expressions.
 
-<h1><a name="Version2.1"></a>Version 2.1 (12/31/90)</h1>
+</pre>
+<h2><a name="Version2.1"></a>Version 2.1 (12/31/90)</h2>
 
-This is primarily a bug fix release to clean up problems in 2.0.  It also
-implements a first cut at the new color operators.
+<p>This is primarily a bug fix release to clean up problems in 2.0.  It
+also implements a first cut at the new color operators.
 
-<h2><a name="V2.1_Build_procedures"></a>Build procedures</h2>
-
+<h3><a name="V2.1_Build_procedures"></a>Build procedures</h3><pre>
 Changes the separator for multiple directories in MS-DOS from ';' to '|',
 since there is no way to include a ';' in a command line.
 
@@ -4787,8 +4748,11 @@ Changes the PROCTYPE and USE8087 options in MSDOS.MAK to CPU_TYPE and
 FPU_TYPE.  The latter now indicates the type of FPU to generate code for,
 if any.
 
-<h2><a name="V2.1_Drivers"></a>Drivers</h2>
+</pre>
 
+<h3><a name="V2.1_Drivers"></a>Drivers</h3>
+
+<pre>
 Adds a driver for the Canon BubbleJet BJ10e.
 
 Modifies the EGA driver to handle (non-standard) frame buffers larger than
@@ -4803,8 +4767,7 @@ Unix as well as MS-DOS.
 
 Adds support for 120 X DPI mode, and for the LQ-1500, to the Epson driver.
 
-<h2><a name="V2.1_Fonts"></a>Fonts</h2>
-
+</pre><h3><a name="V2.1_Fonts"></a>Fonts</h3><pre>
 Fixes bugs in bdftops:
 	- It was using /UniqueId instead of /UniqueID as the key for the
 font unique ID.  This effectively disabled the font cache.
@@ -4820,8 +4783,7 @@ Extends bdftops so that if certain easily synthesized characters are
 missing from a font, it will attempt to synthesize them using available
 characters.
 
-<h2><a name="V2.1_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.1_Interpreter"></a>Interpreter</h3><pre>
 Extends the -T switch to allow specifying a printf template for the
 arguments of the procedure being traced.
 
@@ -4901,8 +4863,7 @@ Renames currentcolor and setcolor as currentgscolor and setgscolor, to
 avoid conflict with the Level 2 PostScript names.  Removes colorhsb,
 colorrgb, hsbcolor, and rgbcolor.
 
-<h2><a name="V2.1_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.1_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- In a couple of places, a 0 was being passed as a pointer
 argument without casting, which confused the Microsoft C compiler.
@@ -4969,16 +4930,20 @@ Renames gs_currentcolor and gs_setcolor as gs_currentgscolor and
 gs_setgscolor.  Removes gs_colorhsb, gs_colorrgb, gs_hsbcolor, and
 gs_rgbcolor.
 
-<h1><a name="Version2.0"></a>Version 2.0 (9/12/90)</h1>
+</pre>
 
-The main purpose of this release is to add fonts, support for multiple
+<hr>
+
+<h2><a name="Version2.0"></a>Version 2.0 (9/12/90)</h2>
+
+<p>The main purpose of this release is to add fonts, support for
+multiple
 devices, and imaging into memory.  It also fixes a number of miscellaneous
 bugs.  (Unfortunately, accurate records of the bugs fixed are not
 available.)  The changes were so extensive that we chose to increment the
 major version number.
 
-<h2><a name="V2.0_Miscellaneous"></a>Miscellaneous</h2>
-
+<h3><a name="V2.0_Miscellaneous"></a>Miscellaneous</h3><pre>
 Doesn't attempt to open the .MAP file on Unix systems.
 
 Adds mention of statusd.ps to interp.doc.
@@ -4994,8 +4959,7 @@ recognizes.
 Adds three PostScript masters to the fileset: chess.ps (+ cheq.ps),
 golfer.ps, and escher.ps.
 
-<h2><a name="V2.0_Drivers"></a>Drivers</h2>
-
+</pre><h3><a name="V2.0_Drivers"></a>Drivers</h3><pre>
 Changes the names of all the device drivers.  See gdevs.mak for the
 updated list.
 
@@ -5029,8 +4993,7 @@ Extends the tile_rectangle and tile_trapezoid driver procedures to
 interpret color0 = color1 = gx_no_color_index as meaning that the tile is
 actually colored, not a mask.
 
-<h2><a name="V2.0_Build_procedures"></a>Build procedures</h2>
-
+</pre><h3><a name="V2.0_Build_procedures"></a>Build procedures</h3><pre>
 Changes the tar file so it puts everything in a directory called gs.
 
 Removes the -ansi switch for gcc (this was causing problems with &lt;math.h&gt;
@@ -5064,8 +5027,7 @@ Updates drivers.doc to describe how to add new drivers in gdevs.mak.
 Removes gdevs.ps: the drivers are now responsible for specifying the size
 of the imaging region.
 
-<h2><a name="V2.0_Interpreter"></a>Interpreter</h2>
-
+</pre><h3><a name="V2.0_Interpreter"></a>Interpreter</h3><pre>
 Adds a makefile macro GS_LIB_DEFAULT and an environment variable GS_LIB to
 define a search path for the library (initialization and font) files, and
 implements the -I switch for the same purpose (replacing -sLIB=, which was
@@ -5182,8 +5144,7 @@ encoding.
 Adds the type1decryptfile operator for reading Adobe Type 1 encrypted
 fonts.
 
-<h2><a name="V2.0_Library"></a>Library</h2>
-
+</pre><h3><a name="V2.0_Library"></a>Library</h3><pre>
 Fixes bugs:
 	- curveto and lineto didn't check for the current point being
 defined.
@@ -5243,24 +5204,24 @@ std.h.
 
 Makes Ghostscript work even when the &gt;&gt; operator doesn't sign-extend
 negative numbers.  (This has not been tested.)
+
 </pre>
 
 <!-- [3.0 begin visible trailer] =========================================== -->
 <hr>
 
-<font size=2>
-
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
-
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>
+<small>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.
+All rights reserved.</small>
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+<small>This file is part of AFPL Ghostscript.  See the
+<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
+full details of the terms of using, copying, modifying, and redistributing
+AFPL Ghostscript.</small>
 
-</font>
+<p>
+<small>Ghostscript version 7.04, 31 January 2002
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

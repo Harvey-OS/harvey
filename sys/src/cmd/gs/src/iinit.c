@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 1995, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: iinit.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: iinit.c,v 1.3 2000/12/26 04:25:54 lpd Exp $ */
 /* Initialize internally known objects for Ghostscript interpreter */
 #include "string_.h"
 #include "ghost.h"
@@ -53,6 +53,9 @@
 #endif
 #ifndef SYSTEMDICT_LEVEL2_SIZE
 #  define SYSTEMDICT_LEVEL2_SIZE 983
+#endif
+#ifndef SYSTEMDICT_LL3_SIZE
+#  define SYSTEMDICT_LL3_SIZE 1123
 #endif
 /* The size of level2dict, if applicable, can be set in the makefile. */
 #ifndef LEVEL2DICT_SIZE
@@ -157,24 +160,34 @@ const char *const initial_dstack[] =
 #define MIN_DSTACK_SIZE (countof(initial_dstack) + 1)	/* +1 for systemdict */
 
 
-/* Detect whether we have any Level 2 operators. */
-/* We export this for gs_init1 in imain.c. */
-/* This is very slow, but we only call it a couple of times. */
-bool
-gs_have_level2(void)
+/*
+ * Detect whether we have any Level 2 or LanguageLevel 3 operators.
+ * We export this for gs_init1 in imain.c.
+ * This is slow, but we only call it a couple of times.
+ */
+private int
+gs_op_language_level(void)
 {
     const op_def *const *tptr;
+    int level = 1;
 
     for (tptr = op_defs_all; *tptr != 0; ++tptr) {
 	const op_def *def;
 
 	for (def = *tptr; def->oname != 0; ++def)
-	    if (op_def_is_begin_dict(def) &&
-		!strcmp(def->oname, "level2dict")
-		)
-		return true;
+	    if (op_def_is_begin_dict(def)) {
+		if (!strcmp(def->oname, "level2dict"))
+		    level = max(level, 2);
+		else if (!strcmp(def->oname, "ll3dict"))
+		    level = max(level, 3);
+	    }
     }
-    return false;
+    return level;
+}
+bool
+gs_have_level2(void)
+{
+    return (gs_op_language_level() >= 2);
 }
 
 /* Create an initial dictionary if necessary. */
@@ -218,7 +231,7 @@ make_initial_dict(i_ctx_t *i_ctx_p, const char *iname, ref idicts[])
 int
 obj_init(i_ctx_t **pi_ctx_p, gs_dual_memory_t *idmem)
 {
-    bool level2 = gs_have_level2();
+    int level = gs_op_language_level();
     ref system_dict;
     i_ctx_t *i_ctx_p;
     int code;
@@ -228,7 +241,8 @@ obj_init(i_ctx_t **pi_ctx_p, gs_dual_memory_t *idmem)
      * we do this before initializing the interpreter.
      */
     code = dict_alloc(idmem->space_global,
-		      (level2 ? SYSTEMDICT_LEVEL2_SIZE : SYSTEMDICT_SIZE),
+		      (level >= 3 ? SYSTEMDICT_LL3_SIZE :
+		       level >= 2 ? SYSTEMDICT_LEVEL2_SIZE : SYSTEMDICT_SIZE),
 		      &system_dict);
     if (code < 0)
 	return code;
@@ -250,7 +264,7 @@ obj_init(i_ctx_t **pi_ctx_p, gs_dual_memory_t *idmem)
 	refset_null(idicts, icount);
 
 	/* Put systemdict on the dictionary stack. */
-	if (level2) {
+	if (level >= 2) {
 	    dsp += 2;
 	    /*
 	     * For the moment, let globaldict be an alias for systemdict.

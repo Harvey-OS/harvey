@@ -92,7 +92,7 @@ enc64(char *out, int lim, uchar *in, int n)
 		b24 = (*in++)<<16;
 		b24 |= (*in++)<<8;
 		b24 |= *in++;
-		if(out + 5 >= e)
+		if(out + 4 >= e)
 			goto exhausted;
 		*out++ = t64e[(b24>>18)];
 		*out++ = t64e[(b24>>12)&0x3f];

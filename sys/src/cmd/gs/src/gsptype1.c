@@ -1,22 +1,22 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsptype1.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsptype1.c,v 1.3 2001/08/07 22:13:29 dancoby Exp $ */
 /* PatternType 1 pattern implementation */
 #include "math_.h"
 #include "gx.h"
@@ -384,29 +384,50 @@ image_PaintProc(const gs_client_color * pcolor, gs_state * pgs)
     const pixmap_info *ppmap = gs_getpattern(pcolor)->client_data;
     const gs_depth_bitmap *pbitmap = &(ppmap->bitmap);
     gs_image_enum *pen =
-    gs_image_enum_alloc(gs_state_memory(pgs), "image_PaintProc");
+        gs_image_enum_alloc(gs_state_memory(pgs), "image_PaintProc");
     const gs_color_space *pcspace =
-    (ppmap->pcspace == 0 ?
-     gs_cspace_DeviceGray((const gs_imager_state *)pgs) :
-     ppmap->pcspace);
+    	(ppmap->pcspace == 0 ?
+     	    gs_cspace_DeviceGray((const gs_imager_state *)pgs) :
+     	    ppmap->pcspace);
     gx_image_enum_common_t *pie;
-    gs_image4_t image;
+    /*
+     * If the image is transparent then we want to do image type4 processing.
+     * Otherwise we want to use image type 1 processing.
+     */
+    int transparent = ppmap->white_index < (1 << (pbitmap->num_comps * pbitmap->pix_depth));
+
+    /*
+     * Note: gs_image1_t and gs_image4_t sre nearly identical structure
+     * definitions.  From our point of view, the only significant difference
+     * is MaskColor in gs_image4_t.  The fields are generally loaded using
+     * the gs_image1_t version of the union and then used for either type
+     * of image processing.
+     */
+    union {
+        gs_image1_t i1;
+	gs_image4_t i4;
+    } image;
     int code;
 
     if (pen == 0)
 	return_error(gs_error_VMerror);
-    gs_image4_t_init(&image, pcspace);
-    image.Width = pbitmap->size.x;
-    image.Height = pbitmap->size.y;
-    image.MaskColor_is_range = false;
-    image.MaskColor[0] = ppmap->white_index;
-    image.Decode[0] = 0;
-    image.Decode[1] = (1 << pbitmap->pix_depth) - 1;
-    image.BitsPerComponent = pbitmap->pix_depth;
+    if (transparent)
+        gs_image4_t_init( (gs_image4_t *) &image, pcspace);
+    else
+        gs_image_t_init_adjust( (gs_image_t *) &image, pcspace, 0);
+    image.i1.Width = pbitmap->size.x;
+    image.i1.Height = pbitmap->size.y;
+    if (transparent) {
+        image.i4.MaskColor_is_range = false;
+        image.i4.MaskColor[0] = ppmap->white_index;
+    }
+    image.i1.Decode[0] = 0;
+    image.i1.Decode[1] = (1 << pbitmap->pix_depth) - 1;
+    image.i1.BitsPerComponent = pbitmap->pix_depth;
     /* backwards compatibility */
     if (ppmap->pcspace == 0) {
-	image.Decode[0] = 1.0;
-	image.Decode[1] = 0.0;
+	image.i1.Decode[0] = 1.0;
+	image.i1.Decode[1] = 0.0;
     }
     code = gs_image_begin_typed((const gs_image_common_t *)&image, pgs,
 				false, &pie);

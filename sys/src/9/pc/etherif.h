@@ -15,10 +15,12 @@ struct Ether {
 	uchar	ea[Eaddrlen];
 
 	void	(*attach)(Ether*);	/* filled in by reset routine */
+	void	(*detach)(Ether*);
 	void	(*transmit)(Ether*);
 	void	(*interrupt)(Ureg*, void*);
 	long	(*ifstat)(Ether*, void*, long, ulong);
 	long 	(*ctl)(Ether*, void*, long); /* custom ctl messages */
+	void	(*power)(Ether*, int);	/* power on/off */
 	void	(*shutdown)(Ether*);	/* shutdown hardware before reboot */
 	void	*ctlr;
 
