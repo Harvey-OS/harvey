@@ -5091,7 +5091,7 @@ sys/src/9/mtx/main.c - 664 sys sys 1018721287 8344
 sys/src/9/mtx/mem.h - 664 sys sys 1026848200 5959
 sys/src/9/mtx/mkfile - 664 sys sys 1055825923 1508
 sys/src/9/mtx/mmu.c - 664 sys sys 1018721287 4388
-sys/src/9/mtx/mtx - 664 sys sys 1039753441 413
+sys/src/9/mtx/mtx - 664 sys sys 1056336297 416
 sys/src/9/mtx/mtxcpu - 664 sys sys 1039753442 421
 sys/src/9/mtx/pci.c - 664 sys sys 1018721287 16662
 sys/src/9/mtx/random.c - 664 sys sys 1036813598 1983
@@ -5145,7 +5145,7 @@ sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1015014518 15079
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1026847642 3722
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
-sys/src/9/pc/fns.h - 664 sys sys 1026847643 4216
+sys/src/9/pc/fns.h - 664 sys sys 1056299506 4215
 sys/src/9/pc/hcwAMC.h - 664 sys sys 1026860163 166004
 sys/src/9/pc/i8253.c - 664 sys sys 1055689890 6219
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
@@ -5157,7 +5157,7 @@ sys/src/9/pc/l.s - 664 sys sys 1055700610 20868
 sys/src/9/pc/main.c - 664 sys sys 1055700611 14507
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1032303986 12994
-sys/src/9/pc/mkfile - 664 sys sys 1055825916 3100
+sys/src/9/pc/mkfile - 664 sys sys 1056336303 3092
 sys/src/9/pc/mmu.c - 664 sys sys 1049509456 10014
 sys/src/9/pc/mouse.c - 664 sys sys 1020369766 6315
 sys/src/9/pc/mp.c - 664 sys sys 1048644112 16928
@@ -5186,8 +5186,8 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1055087706 49704
 sys/src/9/pc/sdmylex.c - 664 sys sys 1015014523 27750
 sys/src/9/pc/sdscsi.c - 664 sys sys 1055689892 7406
-sys/src/9/pc/trap.c - 664 sys sys 1047261661 18991
-sys/src/9/pc/uarti8250.c - 664 sys sys 1020369766 12671
+sys/src/9/pc/trap.c - 664 sys sys 1056299507 19012
+sys/src/9/pc/uarti8250.c - 664 sys sys 1056299508 12605
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
 sys/src/9/pc/usb.h - 664 sys sys 1015014524 3505
 sys/src/9/pc/usbuhci.c - 664 sys sys 1026847653 30686
@@ -5215,7 +5215,7 @@ sys/src/9/pc/vgatvp3020.c - 664 sys sys 1015014528 4491
 sys/src/9/pc/vgatvp3026.c - 664 sys sys 1015014528 3940
 sys/src/9/pc/vgavmware.c - 664 sys sys 1020284822 6334
 sys/src/9/pc/vgax.c - 664 sys sys 1015014528 1655
-sys/src/9/pc/wavelan.c - 664 sys sys 1055689894 27253
+sys/src/9/pc/wavelan.c - 664 sys sys 1056299581 27253
 sys/src/9/pc/wavelan.h - 664 sys sys 1055700615 6151
 sys/src/9/port - 20000000775 sys sys 1018469625 0
 sys/src/9/port/alarm.c - 664 sys sys 1026847545 1733
@@ -9300,7 +9300,7 @@ sys/src/cmd/mk/mk.h - 664 sys sys 1055698812 3735
 sys/src/cmd/mk/mkconv - 775 sys sys 944961025 555
 sys/src/cmd/mk/mkfile - 664 sys sys 1055698812 376
 sys/src/cmd/mk/parse.c - 664 sys sys 944961025 5310
-sys/src/cmd/mk/plan9.c - 664 sys sys 1055698813 6818
+sys/src/cmd/mk/plan9.c - 664 sys sys 1056337347 6921
 sys/src/cmd/mk/rc.c - 664 sys sys 944961025 3206
 sys/src/cmd/mk/recipe.c - 664 sys sys 1014926074 2551
 sys/src/cmd/mk/rule.c - 664 sys sys 944961025 1970
@@ -10829,7 +10829,7 @@ sys/src/lib9p/tpost.c - 664 sys sys 1044429939 324
 sys/src/lib9p/uid.c - 664 sys sys 1015023311 517
 sys/src/lib9p/util.c - 664 sys sys 1017679319 465
 sys/src/libString - 20000000775 sys sys 984754301 0
-sys/src/libString/mkfile - 664 sys sys 1035389776 415
+sys/src/libString/mkfile - 664 sys sys 1056299302 432
 sys/src/libString/s_alloc.c - 664 sys sys 1014930579 1277
 sys/src/libString/s_append.c - 664 sys sys 984754296 270
 sys/src/libString/s_array.c - 664 sys sys 985037746 319
@@ -11064,7 +11064,7 @@ sys/src/libc/9sys/syslog.c - 664 sys sys 1014927339 1951
 sys/src/libc/9sys/sysname.c - 664 sys sys 944961713 238
 sys/src/libc/9sys/time.c - 664 sys sys 1014927340 871
 sys/src/libc/9sys/times.c - 664 sys sys 944961712 995
-sys/src/libc/9sys/tm2sec.c - 664 sys sys 1045502952 3192
+sys/src/libc/9sys/tm2sec.c - 664 sys sys 1056331608 3059
 sys/src/libc/9sys/truerand.c - 664 sys sys 1014927340 306
 sys/src/libc/9sys/wait.c - 664 sys sys 1014927340 565
 sys/src/libc/9sys/waitpid.c - 664 sys sys 1014927340 313

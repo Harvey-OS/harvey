@@ -12,12 +12,13 @@ OFILES=\
 	s_memappend.$O\
 	s_nappend.$O\
 	s_parse.$O\
+	s_putc.$O\
+	s_rdinstack.$O\
 	s_read.$O\
 	s_read_line.$O\
 	s_reset.$O\
-	s_tolower.$O\
-	s_putc.$O\
 	s_terminate.$O\
+	s_tolower.$O\
 	s_unique.$O\
 
 HFILES=/sys/include/String.h

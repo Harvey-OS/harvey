@@ -12345,3 +12345,12 @@
 1056171697 2 c sys/src/cmd/ndb/cs.c - 664 sys sys 1056171180 32752
 1056171697 3 c sys/src/cmd/ndb/dnstcp.c - 664 sys sys 1056171180 7066
 1056214978 0 d sys/src/cmd/mk/xyz - 775 sys sys 1055698814 0
+1056299553 0 c sys/src/9/pc/fns.h - 664 sys sys 1056299506 4215
+1056299553 1 c sys/src/9/pc/trap.c - 664 sys sys 1056299507 19012
+1056299553 2 c sys/src/9/pc/uarti8250.c - 664 sys sys 1056299508 12605
+1056299553 3 c sys/src/9/pc/wavelan.c - 664 sys sys 1056299581 27253
+1056299553 4 c sys/src/libString/mkfile - 664 sys sys 1056299302 432
+1056331863 0 c sys/src/libc/9sys/tm2sec.c - 664 sys sys 1056331608 3059
+1056337267 0 c sys/src/9/mtx/mtx - 664 sys sys 1056336297 416
+1056337267 1 c sys/src/9/pc/mkfile - 664 sys sys 1056336303 3092
+1056339068 0 c sys/src/cmd/mk/plan9.c - 664 sys sys 1056337347 6921

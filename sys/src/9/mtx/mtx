@@ -42,5 +42,6 @@ boot
 
 bootdir
 	bootmtx.out boot
-	ipconfig.hack ipconfig
-	factotum.hack factotum
+	/power/bin/ip/ipconfig
+	/power/bin/auth/factotum
+

@@ -64,7 +64,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	iunlock(&vctllock);
 }
 
-void
+int
 intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 {
 	Vctl **pv, *v;
@@ -76,7 +76,7 @@ intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 	 * is pretty meaningless.
 	 */
 	if(arch->intrvecno == nil)
-		return;
+		return -1;
 	vno = arch->intrvecno(irq);
 	ilock(&vctllock);
 	pv = &vctl[vno];
@@ -93,6 +93,7 @@ intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 		arch->intrdisable(irq);
 	iunlock(&vctllock);
 	xfree(v);
+	return 0;
 }
 
 static long
@@ -456,6 +457,7 @@ _dumpstack(Ureg *ureg)
 	ulong l, v, i, estack;
 	extern ulong etext;
 
+return;
 	print("ktrace /kernel/path %.8lux %.8lux\n", ureg->pc, ureg->sp);
 	i = 0;
 	if(up
