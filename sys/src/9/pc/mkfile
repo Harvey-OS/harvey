@@ -1,5 +1,5 @@
 CONF=pc
-CONFLIST=pc pccpu pcdisk pcauth pcblast
+CONFLIST=pc pccpu pcdisk pcauth
 
 objtype=386
 </$objtype/mkfile

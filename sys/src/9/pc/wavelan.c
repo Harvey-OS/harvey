@@ -1005,7 +1005,7 @@ w_option(Ctlr* ctlr, char* buf, long n)
 			ctlr->ptype = WPTypeWDS;
 		else if(cistrcmp(cb->f[1], "adhoc") == 0)
 			ctlr->ptype = WPTypeAdHoc;
-		else if((i = atoi(cb->f[1])) >= 1 && i <= 3)
+		else if((i = atoi(cb->f[1])) >= 0 && i <= 3)
 			ctlr->ptype = i;
 		else
 			r = -1;
