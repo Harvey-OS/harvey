@@ -396,8 +396,11 @@ main(int argc, char **argv)
 		attachment(a, &out);
 	}
 
-	if(first != nil)
+	if(first != nil){
+		if(lastchar != '\n')
+			Bprint(&out, "\n");
 		Bprint(&out, "--%s--\n", boundary);
+	}
 
 	Bterm(&out);
 	close(fd);
@@ -524,7 +527,7 @@ readheaders(Biobuf *in, int *fp, String **sp, Addr **top)
 	return Ok;
 }
 
-// pass the body to sendmail, make sure body starts with a newline
+// pass the body to sendmail, make sure body starts and ends with a newline
 void
 body(Biobuf *in, Biobuf *out, int docontenttype)
 {
@@ -562,7 +565,7 @@ body(Biobuf *in, Biobuf *out, int docontenttype)
 				break;
 			n += i;
 			for(; i > 0; i--)
-				if(*p++ & 0x80 && docontenttype){
+				if((*p++ & 0x80) && docontenttype){
 					Bprint(out, "Content-Type: text/plain; charset=\"UTF-8\"\n");
 					Bprint(out, "Content-Transfer-Encoding: 8bit\n");
 					docontenttype = 0;

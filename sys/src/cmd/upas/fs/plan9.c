@@ -268,7 +268,7 @@ retry:
 			m->header = x + 1;
 		m->mheader = m->mhend = m->header;
 		parseunix(m);
-		parse(m, 0, mb);
+		parse(m, 0, mb, 0);
 		logmsg("new", m);
 
 		/* chain in */

@@ -454,7 +454,7 @@ imap4fetchheader(Imap *imap, Mailbox *mb, Message *m)
 	imap->base = nil;
 	imap->data = nil;
 
-	parseheaders(m, 0, mb);
+	parseheaders(m, 0, mb, 1);
 
 	// digest headers
 	sha1((uchar*)m->start, m->hend - m->start, m->digest, nil);
@@ -524,7 +524,7 @@ imap4fetch(Mailbox *mb, Message *m)
 	imap->base = nil;
 	imap->data = nil;
 
-	parse(m, 0, mb);
+	parse(m, 0, mb, 1);
 
 	// digest headers
 	sha1((uchar*)m->start, m->end - m->start, m->digest, nil);

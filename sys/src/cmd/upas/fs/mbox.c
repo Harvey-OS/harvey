@@ -232,7 +232,7 @@ parseunix(Message *m)
  *  parse a message
  */
 void
-parseheaders(Message *m, int justmime, Mailbox *mb)
+parseheaders(Message *m, int justmime, Mailbox *mb, int addfrom)
 {
 	String *hl;
 	Header *h;
@@ -318,6 +318,16 @@ parseheaders(Message *m, int justmime, Mailbox *mb)
 
 	if(m->unixheader != nil)
 		s_free(m->unixheader);
+
+	// only fake header for top-level messages for pop3 and imap4
+	// clients (those protocols don't include the unix header).
+	// adding the unix header all the time screws up mime-attached
+	// rfc822 messages.
+	if(!addfrom && !m->unixfrom){
+		m->unixheader = nil;
+		return;
+	}
+
 	m->unixheader = s_copy("From ");
 	if(m->unixfrom)
 		s_append(m->unixheader, s_to_c(m->unixfrom));
@@ -374,9 +384,9 @@ parsebody(Message *m, Mailbox *mb)
 }
 
 void
-parse(Message *m, int justmime, Mailbox *mb)
+parse(Message *m, int justmime, Mailbox *mb, int addfrom)
 {
-	parseheaders(m, justmime, mb);
+	parseheaders(m, justmime, mb, addfrom);
 	parsebody(m, mb);
 }
 
@@ -425,7 +435,7 @@ parseattachments(Message *m, Mailbox *mb)
 			l = &nm->next;
 		}
 		for(nm = m->part; nm != nil; nm = nm->next)
-			parse(nm, 1, mb);
+			parse(nm, 1, mb, 0);
 		return;
 	}
 
@@ -435,7 +445,7 @@ parseattachments(Message *m, Mailbox *mb)
 		m->part = nm;
 		nm->start = nm->header = nm->body = nm->rbody = m->body;
 		nm->end = nm->bend = nm->rbend = m->bend;
-		parse(nm, 0, mb);
+		parse(nm, 0, mb, 0);
 	}
 }
 
@@ -1515,14 +1525,16 @@ nullsqueeze(Message *m)
 {
 	char *p, *q;
 
-	for(p = m->body; p < m->end; p = q){
-		q = memchr(p, 0, m->end-p);
-		if(q == nil)
-			break;
-		memmove(q, q+1, m->end - q - 1);
-		m->end--;
+	q = memchr(m->body, 0, m->end-m->body);
+	if(q == nil)
+		return;
+
+	for(p = m->body; q < m->end; q++){
+		if(*q == 0)
+			continue;
+		*p++ = *q;
 	}
-	m->bend = m->rbend = m->bend;
+	m->bend = m->rbend = m->end = p;
 }
 
 
