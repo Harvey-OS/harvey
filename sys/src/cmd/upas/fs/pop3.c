@@ -136,13 +136,17 @@ pop3capa(Pop *pop)
 		// conn.trace = pop3log;
 		fd = tlsClient(pop->fd, &conn);
 		if(fd < 0)
-			sysfatal("tlsClient: %r");
-		if(conn.cert==nil || conn.certlen <= 0)
-			sysfatal("server did not provide TLS certificate");
+			return "tls error";
+		if(conn.cert==nil || conn.certlen <= 0){
+			close(fd);
+			return "server did not provide TLS certificate";
+		}
 		sha1(conn.cert, conn.certlen, digest, nil);
 		if(!pop->thumb || !okThumbprint(digest, pop->thumb)){
 			fmtinstall('H', encodefmt);
-			sysfatal("server certificate %.*H not recognized", SHA1dlen, digest);
+			close(fd);
+			fprint(2, "upas/fs pop3: server certificate %.*H not recognized\n", SHA1dlen, digest);
+			return "bad server certificate";
 		}
 		free(conn.cert);
 		close(pop->fd);
