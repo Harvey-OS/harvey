@@ -232,9 +232,9 @@
 386/bin/fortune - 775 sys sys 1085077045 65146
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
-386/bin/fossil/flchk - 775 sys sys 1085077053 230558
-386/bin/fossil/flfmt - 775 sys sys 1085077054 243617
-386/bin/fossil/fossil - 775 sys sys 1085077055 343534
+386/bin/fossil/flchk - 775 sys sys 1085368183 230615
+386/bin/fossil/flfmt - 775 sys sys 1085368184 243674
+386/bin/fossil/fossil - 775 sys sys 1085368185 343639
 386/bin/freq - 775 sys sys 1085077056 59766
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1085077056 92357
@@ -544,7 +544,7 @@
 386/lib/libmach.a - 664 sys sys 1085077145 735256
 386/lib/libmemdraw.a - 664 sys sys 1085077145 287684
 386/lib/libmemlayer.a - 664 sys sys 1085077145 47360
-386/lib/libmp.a - 664 sys sys 1085195219 76502
+386/lib/libmp.a - 664 sys sys 1085368185 80226
 386/lib/libndb.a - 664 sys sys 1085077146 60772
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1085077146 37440
@@ -12427,7 +12427,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/fossil/flchk - 775 sys sys 1085368183 230615
-386/bin/fossil/flfmt - 775 sys sys 1085368184 243674
-386/bin/fossil/fossil - 775 sys sys 1085368185 343639
-386/lib/libmp.a - 664 sys sys 1085368185 80226
