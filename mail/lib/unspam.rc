@@ -1,0 +1,18 @@
+#!/bin/rc
+
+rfork en
+TMP=/tmp/spam.$sysname.$pid
+sed '/^$/,$ s/^From / From /' >$TMP.msg
+upas/fs -f $TMP.msg
+{
+	echo '# hash table'
+upas/msgcat $TMP.msg | upas/msgtok |
+	grep -v '^....................(.*)	'|
+		sed 's/$/	1/'
+} >$TMP.tok
+cd /mail/box/$user
+#cp $TMP.tok /tmp/_prof.mbox
+upas/addhash -o _prof.mbox _prof.mbox 1 $TMP.tok 1
+upas/addhash -o _prof.spam _prof.spam 1 $TMP.tok -1
+rm -f $TMP.*
+

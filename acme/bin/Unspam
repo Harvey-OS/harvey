@@ -1,0 +1,13 @@
+#!/bin/rc
+
+if(! ~ $#* 0){
+	echo usage: Unspam >[1=2]
+	exit usage
+}
+
+if(! ~ `{pwd} /mail/fs/*/[0-9]* || ! test -f raw || ! test -f unixheader){
+	echo must run in mail directory >[1=2]
+	exit 'bad dir'
+}
+
+cat unixheader raw | upas/unspam
