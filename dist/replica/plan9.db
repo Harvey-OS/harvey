@@ -264,8 +264,8 @@
 386/bin/ip/httpd/wikipost - 775 sys sys 1056364282 111370
 386/bin/ip/imap4d - 775 sys sys 1056364283 233876
 386/bin/ip/ipconfig - 775 sys sys 1056364284 102995
-386/bin/ip/ping - 775 sys sys 1056364285 74035
-386/bin/ip/ppp - 775 sys sys 1056364286 215444
+386/bin/ip/ping - 775 sys sys 1056550716 74040
+386/bin/ip/ppp - 775 sys sys 1056551099 215626
 386/bin/ip/pppoe - 775 sys sys 1056364286 75503
 386/bin/ip/pptp - 775 sys sys 1056364287 124043
 386/bin/ip/pptpd - 775 sys sys 1056364288 124298
@@ -410,7 +410,7 @@
 386/bin/upas/aliasmail - 775 sys sys 1056364372 101747
 386/bin/upas/deliver - 775 sys sys 1056397816 98261
 386/bin/upas/filter - 775 sys sys 1056364374 145705
-386/bin/upas/fs - 775 sys sys 1056364375 331545
+386/bin/upas/fs - 775 sys sys 1056550611 332282
 386/bin/upas/list - 775 sys sys 1056364376 81442
 386/bin/upas/marshal - 775 sys sys 1056364377 129414
 386/bin/upas/ml - 775 sys sys 1056364378 118225
@@ -560,7 +560,8 @@
 960/include - 20000000775 sys sys 948037594 0
 960/include/u.h - 664 sys sys 1042604328 959
 960/mkfile - 664 sys sys 948141303 52
-LICENSE - 666 sys sys 1032615845 35386
+LICENSE - 444 sys sys 1056572182 12740
+LICENSE.gpl - 664 sys sys 1056572448 15081
 NOTICE - 444 sys sys 1018803063 63
 acme - 20000000775 sys sys 1020896383 0
 acme/acid - 20000000775 sys sys 1015011246 0
@@ -2078,7 +2079,7 @@ lib/font/bit/lucida/MathOps1.8.0 - 664 sys sys 944943776 4187
 lib/font/bit/lucida/MathOps1.8.1 - 664 sys sys 944943765 6176
 lib/font/bit/lucida/MathOps1.9.0 - 664 sys sys 944943776 4838
 lib/font/bit/lucida/MathOps1.9.1 - 664 sys sys 944943765 7147
-lib/font/bit/lucida/NOTICE - 444 sys sys 960135958 894
+lib/font/bit/lucida/NOTICE - 444 sys sys 1056572305 816
 lib/font/bit/lucida/Phonetic.10.0 - 664 sys sys 944943776 2984
 lib/font/bit/lucida/Phonetic.10.1 - 664 sys sys 944943765 4167
 lib/font/bit/lucida/Phonetic.12.0 - 664 sys sys 944943776 3373
@@ -3466,7 +3467,7 @@ sys/lib/ghostscript/errpage.ps - 664 sys sys 1032057298 8774
 sys/lib/ghostscript/font - 20000000775 sys sys 956275314 0
 sys/lib/ghostscript/font/Fontmap - 664 sys sys 984721439 14126
 sys/lib/ghostscript/font/Fontmap.GS - 664 sys sys 956343661 6541
-sys/lib/ghostscript/font/README - 664 sys sys 960092869 346
+sys/lib/ghostscript/font/README - 444 sys sys 1056572274 350
 sys/lib/ghostscript/font/a010013l.afm - 664 sys sys 956343661 31658
 sys/lib/ghostscript/font/a010013l.pfb - 664 sys sys 956343661 34871
 sys/lib/ghostscript/font/a010013l.pfm - 664 sys sys 956343661 4679
@@ -3808,7 +3809,7 @@ sys/lib/postscript/font/LucidaSans-Demi - 664 sys sys 954644148 55110
 sys/lib/postscript/font/LucidaSans-Italic - 664 sys sys 954644166 55183
 sys/lib/postscript/font/LucidaSans-Typewriter83 - 664 sys sys 954949417 54590
 sys/lib/postscript/font/LucidaTypewriter - 664 sys sys 954644142 61207
-sys/lib/postscript/font/NOTICE - 444 sys sys 960135977 894
+sys/lib/postscript/font/NOTICE - 444 sys sys 1056572331 816
 sys/lib/postscript/font/ams - 20000000775 sys sys 955402660 0
 sys/lib/postscript/font/ams/READ.ME - 664 sys sys 955402660 3723
 sys/lib/postscript/font/ams/cmbsy5.pfa - 664 sys sys 954644908 53732
@@ -5034,6 +5035,7 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1032053196 390
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
+sys/src/9/boot/libboot.a8 - 664 sys sys 1056568081 54780
 sys/src/9/boot/local.c - 664 sys sys 1039763718 2041
 sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
@@ -5168,7 +5170,7 @@ sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
 sys/src/9/pc/pc - 664 sys sys 1055700612 1360
 sys/src/9/pc/pcauth - 664 sys sys 1055700612 609
 sys/src/9/pc/pccd - 664 sys sys 1055090302 1302
-sys/src/9/pc/pccpu - 664 sys sys 1055090302 803
+sys/src/9/pc/pccpu - 664 sys sys 1056568059 803
 sys/src/9/pc/pccpuf - 664 sys sys 1056503364 909
 sys/src/9/pc/pcdisk - 664 sys sys 1055700613 1432
 sys/src/9/pc/pcf - 664 sys sys 1056503364 1457
@@ -9074,7 +9076,7 @@ sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
 sys/src/cmd/ip/ipconfig.c - 664 sys sys 1051023520 27439
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1038443023 1222
-sys/src/cmd/ip/ping.c - 664 sys sys 1032059854 5046
+sys/src/cmd/ip/ping.c - 664 sys sys 1056550715 5076
 sys/src/cmd/ip/ppp - 20000000775 sys sys 988249980 0
 sys/src/cmd/ip/ppp/block.c - 664 sys sys 1015090266 5353
 sys/src/cmd/ip/ppp/compress.c - 664 sys sys 1015090266 11743
