@@ -4788,7 +4788,7 @@ sys/man/5/error - 664 sys sys 1015024830 505
 sys/man/5/flush - 664 sys sys 1015024830 1688
 sys/man/5/open - 664 sys sys 1015024830 4739
 sys/man/5/read - 664 sys sys 1015024830 2358
-sys/man/5/remove - 664 sys sys 1015024830 624
+sys/man/5/remove - 664 sys sys 1046704639 1078
 sys/man/5/stat - 664 sys sys 1015024830 6218
 sys/man/5/version - 664 sys sys 1015024830 2657
 sys/man/5/walk - 664 sys sys 1015024830 3622
@@ -9767,7 +9767,7 @@ sys/src/cmd/rtstats/resproc.c - 664 sys sys 1037669163 2287
 sys/src/cmd/rtstats/rtstats.c - 664 sys sys 1037669162 13204
 sys/src/cmd/rtstats/time.c - 664 sys sys 1038425433 2094
 sys/src/cmd/rtstats/time.h - 664 sys sys 1038425434 164
-sys/src/cmd/rx.c - 664 sys sys 1025393134 3044
+sys/src/cmd/rx.c - 664 sys sys 1046668081 3266
 sys/src/cmd/sam - 20000000775 sys sys 944961629 0
 sys/src/cmd/sam/address.c - 664 sys sys 944961628 3985
 sys/src/cmd/sam/buff.c - 664 sys sys 1014926937 5161
@@ -9914,7 +9914,6 @@ sys/src/cmd/ssh - 20000000775 sys sys 1016927305 0
 sys/src/cmd/ssh/agent.c - 664 sys sys 1038371941 9079
 sys/src/cmd/ssh/authpasswd.c - 664 sys sys 1016466378 758
 sys/src/cmd/ssh/authrsa.c - 664 sys sys 1016466378 2649
-sys/src/cmd/ssh/authrsafile.c - 664 sys sys 1016466378 3002
 sys/src/cmd/ssh/authsrvpasswd.c - 664 sys sys 1016466379 296
 sys/src/cmd/ssh/authsrvtis.c - 664 sys sys 1016466379 726
 sys/src/cmd/ssh/authtis.c - 664 sys sys 1016466379 1013

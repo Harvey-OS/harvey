@@ -6,7 +6,7 @@ int	eof;		/* send an eof if true */
 char	*note = "die: yankee dog";
 char	*ruser;
 
-void	rex(int, char*);
+void	rex(int, char*, char*);
 void	tcpexec(int, char*, char*);
 int	call(char *, char*, char*, char**);
 char	*buildargs(char*[]);
@@ -48,10 +48,15 @@ main(int argc, char *argv[])
 	if(fd >= 0)
 		tcpexec(fd, addr, args);
 
-	/* generic attempts */
+	/* generic attempts: try p9any then dial again with p9sk2 */
 	fd = call(0, host, "rexexec", &addr);
 	if(fd >= 0)
-		rex(fd, args);
+		rex(fd, args, "p9any");
+	close(fd);
+	fd = call(0, host, "rexexec", &addr);
+	if(fd >= 0)
+		rex(fd, args, "p9sk2");
+	close(fd);
 
 	error("can't dial", host);
 	exits(0);
@@ -65,15 +70,18 @@ call(char *net, char *host, char *service, char **na)
 }
 
 void
-rex(int fd, char *cmd)
+rex(int fd, char *cmd, char *proto)
 {
 	char buf[4096];
 	int kid, n;
 	AuthInfo *ai;
 
-	ai = auth_proxy(fd, auth_getkey, "proto=p9any role=client");
-	if(ai == nil)
+	ai = auth_proxy(fd, auth_getkey, "proto=%s role=client", proto);
+	if(ai == nil){
+		if(strcmp(proto, "p9any") == 0)
+			return;
 		error("auth_proxy", nil);
+	}
 	write(fd, cmd, strlen(cmd)+1);
 
 	kid = send(fd);
