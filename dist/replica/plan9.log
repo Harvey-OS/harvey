@@ -17111,3 +17111,17 @@
 1043681548 0 c sys/man/4/mntgen - 664 sys sys 1043680799 473
 1043683350 0 c sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1043681702 1133
 1043697767 0 c sys/games/lib/fortunes - 664 sys sys 1043697004 238254
+1043766108 0 c sys/src/cmd/vnc/vncs.c - 664 sys sys 1043764390 21001
+1043768569 0 a sys/src/cmd/unix/u9fs/authp9any.c - 664 sys sys 1043768484 28109
+1043768569 1 c sys/src/cmd/unix/u9fs/fcallconv.c - 664 sys sys 1043768485 5467
+1043768569 2 c sys/src/cmd/unix/u9fs/makefile - 664 sys sys 1043768488 1055
+1043768569 3 c sys/src/cmd/unix/u9fs/plan9.h - 664 sys sys 1043768487 5327
+1043768569 4 a sys/src/cmd/unix/u9fs/safecpy.c - 664 sys sys 1043768486 212
+1043768569 5 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1043768544 30795
+1043768569 6 c sys/src/cmd/unix/u9fs/u9fs.h - 664 sys sys 1043768488 649
+1043769710 0 c sys/man/4/u9fs - 664 sys sys 1043769139 4748
+1043769710 1 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1043769157 30784
+1043769710 2 d sys/src/cmd/unix/u9fs/auth9p1.c - 664 sys sys 1015092350 0
+1043789528 0 c sys/src/libthread/id.c - 664 sys sys 1043788754 1330
+1043789528 1 c sys/src/libthread/ioproc.c - 664 sys sys 1043788755 928
+1043805300 0 a sys/src/cmd/venti/printarena.c - 664 sys sys 1043805294 2557

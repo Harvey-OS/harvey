@@ -15,7 +15,7 @@ iointerrupt(Ioproc *io)
 {
 	if(!io->inuse)
 		return;
-	postnote(PNPROC, io->pid, "interrupt");
+	postnote(PNPROC, io->pid, "threadint");
 }
 
 static void

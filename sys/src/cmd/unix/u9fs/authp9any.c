@@ -1,3 +1,8 @@
+/*
+ * 4th Edition p9any/p9sk1 authentication based on auth9p1.c
+ * Nigel Roles (nigel@9fs.org) 2003
+ */
+
 #include <plan9.h>
 #include <fcall.h>
 #include <u9fs.h>
@@ -12,6 +17,16 @@ enum
 	DOMLEN=		48,		/* length of an authentication domain name */
 	DESKEYLEN=	7,		/* length of a des key for encrypt/decrypt */
 	CHALLEN=	8		/* length of a challenge */
+};
+
+enum {
+	HaveProtos,
+	NeedProto,
+	NeedChal,
+	HaveTreq,
+	NeedTicket,
+	HaveAuth,
+	Established,
 };
 
 /* encryption numberings (anti-replay) */
@@ -90,6 +105,8 @@ static	long	ip_high(char [8]);
 static	void	fp(long, long, char[8]);
 static	void	key_setup(char[DESKEYLEN], char[128]);
 static	void	block_cipher(char[128], char[8], int);
+
+extern int chatty9p;
 
 /*
  * destructively encrypt the buffer, which
@@ -492,6 +509,23 @@ key_setup(char key[DESKEYLEN], char *ek)
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 static int
+convTR2M(Ticketreq *f, char *ap)
+{
+	int n;
+	uchar *p;
+
+	p = (uchar*)ap;
+	CHAR(type);
+	STRING(authid, NAMELEN);
+	STRING(authdom, DOMLEN);
+	STRING(chal, CHALLEN);
+	STRING(hostid, NAMELEN);
+	STRING(uid, NAMELEN);
+	n = p - (uchar*)ap;
+	return n;
+}
+
+static int
 convT2M(Ticket *f, char *ap, char *key)
 {
 	int n;
@@ -608,14 +642,14 @@ passtokey(char *key, char *p)
 static char authkey[DESKEYLEN];
 static char *authid;
 static char *authdom;
-static char cchal[CHALLEN];
-static char schal[CHALLEN];
+static char *haveprotosmsg;
+static char *needprotomsg;
 
 static void
-a9p1init(void)
+p9anyinit(void)
 {
 	int n, fd;
-	static char abuf[200];
+	char abuf[200];
 	char *af, *f[4];
 
 	af = autharg;
@@ -627,77 +661,235 @@ a9p1init(void)
 
 	if((n = readn(fd, abuf, sizeof(abuf)-1)) < 0)
 		sysfatal("can't read key file '%s'", af);
+	if (n > 0 && abuf[n - 1] == '\n')
+		n--;
 	abuf[n] = '\0';
 
 	if(getfields(abuf, f, nelem(f), 0, "\n") != 3)
 		sysfatal("key file '%s' not exactly 3 lines", af);
 
 	passtokey(authkey, f[0]);
-	authid = f[1];
-	authdom = f[2];
+	authid = strdup(f[1]);
+	authdom = strdup(f[2]);
+	haveprotosmsg = malloc(strlen("p9sk1") + 1 + strlen(authdom) + 1);
+	sprint(haveprotosmsg, "p9sk1@%s", authdom);
+	needprotomsg = malloc(strlen("p9sk1") + 1 + strlen(authdom) + 1);
+	sprint(needprotomsg, "p9sk1 %s", authdom);
+}
+
+typedef struct AuthSession {
+	int state;
+	char *uname;
+	char *aname;
+	char cchal[CHALLEN];
+	Ticketreq tr;
+	Ticket t;
+} AuthSession;
+
+static char*
+p9anyauth(Fcall *rx, Fcall *tx)
+{
+	AuthSession *sp;
+	int result;
+	Fid *f;
+	char *ep;
+
+	sp = malloc(sizeof(AuthSession));
+	f = newauthfid(rx->afid, sp, &ep);
+	if (f == nil) {
+		free(sp);
+		return ep;
+	}
+	if (chatty9p)
+		fprint(2, "p9anyauth: afid %d\n", rx->afid);
+	sp->state = HaveProtos;
+	sp->uname = strdup(rx->uname);
+	sp->aname = strdup(rx->aname);
+	tx->aqid.type = QTAUTH;
+	tx->aqid.path = 1;
+	tx->aqid.vers = 0;
+	return nil;
+}
+
+static char *
+p9anyattach(Fcall *rx, Fcall *tx)
+{
+	AuthSession *sp;
+	Fid *f;
+	char *ep;
+
+	f = oldauthfid(rx->afid, (void **)&sp, &ep);
+	if (f == nil)
+		return ep;
+	if (chatty9p)
+		fprint(2, "p9anyattach: afid %d state %d\n", rx->afid, sp->state);
+	if (sp->state == Established && strcmp(rx->uname, sp->uname) == 0
+		&& strcmp(rx->aname, sp->aname) == 0)
+		return nil;
+	return "authentication failed";
 }
 
 static int
-a9p1session(Fcall *rx, Fcall *tx)
+readstr(Fcall *rx, Fcall *tx, char *s, int len)
 {
-	if(rx->nchal != CHALLEN)
-		return -1;
-
-	memmove(cchal, rx->chal, CHALLEN);
-	randombytes((uchar*)schal, CHALLEN);
-	memset(tx->chal, 0, CHALLEN+NAMELEN+DOMLEN);
-	memmove(tx->chal, schal, CHALLEN);
-	tx->nchal = CHALLEN;
-	tx->authid = authid;
-	tx->authdom = authdom;
-	return 0;
+	if (rx->offset >= len)
+		return 0;
+	tx->count = len - rx->offset;
+	if (tx->count > rx->count)
+		tx->count = rx->count;
+	memcpy(tx->data, s + rx->offset, tx->count);
+	return tx->count;
 }
 
-static int
-a9p1attach(Fcall *rx, Fcall *tx)
+static char *
+p9anyread(Fcall *rx, Fcall *tx)
 {
-	static Ticket t;
-	Authenticator a;
+	AuthSession *sp;
+	char *ep;
+	char buf[100];
 
-	if(rx->nauth != TICKETLEN+AUTHENTLEN){
-		fprint(2, "bad length in attach\n");
-		return -1;
+	Fid *f;
+	f = oldauthfid(rx->afid, (void **)&sp, &ep);
+	if (f == nil)
+		return ep;
+	if (chatty9p)
+		fprint(2, "p9anyread: afid %d state %d\n", rx->fid, sp->state);
+	switch (sp->state) {
+	case HaveProtos:
+		readstr(rx, tx, haveprotosmsg, strlen(haveprotosmsg) + 1);
+		if (rx->offset + tx->count == strlen(haveprotosmsg) + 1)
+			sp->state = NeedProto;
+		return nil;
+	case HaveTreq:
+		if (rx->count != TICKREQLEN)
+			goto botch;
+		convTR2M(&sp->tr, tx->data);
+		tx->count = TICKREQLEN;
+		sp->state = NeedTicket;
+		return nil;
+	case HaveAuth: {
+		Authenticator a;
+		if (rx->count != AUTHENTLEN)
+			goto botch;
+		a.num = AuthAs;
+		memmove(a.chal, sp->cchal, CHALLEN);
+		a.id = 0;
+		convA2M(&a, (char*)tx->data, sp->t.key);
+		memset(sp->t.key, 0, sizeof(sp->t.key));
+		tx->count = rx->count;
+		sp->state = Established;
+		return nil;
 	}
-
-	convM2T((char*)rx->auth, &t, authkey);
-	if(t.num != AuthTs){
-		fprint(2, "bad AuthTs in attach\n");
-		return -1;
+	default:
+	botch:
+		return "protocol botch";
 	}
-	if(memcmp(t.chal, schal, CHALLEN) != 0){
-		fprint(2, "bad challenge in attach\n");
-		return -1;
-	}
-
-	if(strcmp(t.cuid, rx->uname) != 0){
-		fprint(2, "bad uid %s %s\n", t.cuid, rx->uname);
-		return -1;
-	}
-
-	rx->uname = t.suid;
-
-	convM2A((char*)rx->auth+TICKETLEN, &a, t.key);
-	if(a.num != AuthAc)
-		return -1;
-	if(memcmp(a.chal, schal, CHALLEN) != 0)
-		return -1;
-
-	a.num = AuthAs;
-	memmove(a.chal, cchal, CHALLEN);
-	convA2M(&a, (char*)tx->rauth, t.key);
-	memset(t.key, 0, sizeof t.key);
-	tx->nrauth = AUTHENTLEN;
-	return 0;
 }
 
-Auth auth9p1 = {
-	"9p1",
-	a9p1session,
-	a9p1attach,
-	a9p1init,
+static char *
+p9anywrite(Fcall *rx, Fcall *tx)
+{
+	AuthSession *sp;
+	char *ep;
+
+	Fid *f;
+
+	f = oldauthfid(rx->afid, (void **)&sp, &ep);
+	if (f == nil)
+		return ep;
+	if (chatty9p)
+		fprint(2, "p9anywrite: afid %d state %d\n", rx->fid, sp->state);
+	switch (sp->state) {
+	case NeedProto:
+		if (rx->count != strlen(needprotomsg) + 1)
+			return "protocol response wrong length";
+		if (memcmp(rx->data, needprotomsg, rx->count) != 0)
+			return "unacceptable protocol";
+		sp->state = NeedChal;
+		tx->count = rx->count;
+		return nil;
+	case NeedChal:
+		if (rx->count != CHALLEN)
+			goto botch;
+		memmove(sp->cchal, rx->data, CHALLEN);
+		sp->tr.type = AuthTreq;
+		safecpy(sp->tr.authid, authid, sizeof(sp->tr.authid));
+		safecpy(sp->tr.authdom, authdom, sizeof(sp->tr.authdom));
+		randombytes((uchar *)sp->tr.chal, CHALLEN);
+		safecpy(sp->tr.hostid, "", sizeof(sp->tr.hostid));
+		safecpy(sp->tr.uid, "", sizeof(sp->tr.uid));
+		tx->count = rx->count;
+		sp->state = HaveTreq;
+		return nil;
+	case NeedTicket: {
+		Authenticator a;
+
+		if (rx->count != TICKETLEN + AUTHENTLEN) {
+			fprint(2, "bad length in attach");
+			goto botch;
+		}
+		convM2T((char*)rx->data, &sp->t, authkey);
+		if (sp->t.num != AuthTs) {
+			fprint(2, "bad AuthTs in attach\n");
+			goto botch;
+		}
+		if (memcmp(sp->t.chal, sp->tr.chal, CHALLEN) != 0) {
+			fprint(2, "bad challenge in attach\n");
+			goto botch;
+		}
+		convM2A((char*)rx->data + TICKETLEN, &a, sp->t.key);
+		if (a.num != AuthAc) {
+			fprint(2, "bad AuthAs in attach\n");
+			goto botch;
+		}
+		if(memcmp(a.chal, sp->tr.chal, CHALLEN) != 0) {
+			fprint(2, "bad challenge in attach 2\n");
+			goto botch;
+		}
+		sp->state = HaveAuth;
+		tx->count = rx->count;
+		return nil;
+	}
+	default:
+	botch:
+		return "protocol botch";
+	}
+}
+
+static void
+safefree(char *p)
+{
+	if (p) {
+		memset(p, 0, strlen(p));
+		free(p);
+	}
+}
+
+static char *
+p9anyclunk(Fcall *rx, Fcall *tx)
+{
+	Fid *f;
+	AuthSession *sp;
+	char *ep;
+
+	f = oldauthfid(rx->afid, (void **)&sp, &ep);
+	if (f == nil)
+		return ep;
+	if (chatty9p)
+		fprint(2, "p9anyclunk: afid %d\n", rx->fid);
+	safefree(sp->uname);
+	safefree(sp->aname);
+	memset(sp, 0, sizeof(sp));
+	free(sp);
+	return nil;
+}
+
+Auth authp9any = {
+	"p9any",
+	p9anyauth,
+	p9anyattach,
+	p9anyinit,
+	p9anyread,
+	p9anywrite,
+	p9anyclunk,
 };

@@ -57,12 +57,23 @@ threadgetgrp(void)
 void
 threadsetname(char *name)
 {
+	int fd;
+	char buf[40];
+	Proc *p;
 	Thread *t;
 
-	t = _threadgetproc()->thread;
+	p = _threadgetproc();
+	t = p->thread;
 	if (t->cmdname)
 		free(t->cmdname);
 	t->cmdname = strdup(name);
+	if(p->nthreads == 1){
+		snprint(buf, sizeof buf, "#p/%d/args", getpid());
+		if((fd = open(buf, OWRITE)) >= 0){
+			write(fd, name, strlen(name));
+			close(fd);
+		}
+	}
 }
 
 char*
