@@ -6774,9 +6774,9 @@ sys/src/cmd/acme/acme.c - 664 sys sys 1035591507 18969
 sys/src/cmd/acme/addr.c - 664 sys sys 1018553456 4787
 sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
 sys/src/cmd/acme/cols.c - 664 sys sys 1032462024 11122
-sys/src/cmd/acme/dat.h - 664 sys sys 1067723164 10956
+sys/src/cmd/acme/dat.h - 664 sys sys 1073566949 10976
 sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
-sys/src/cmd/acme/ecmd.c - 664 sys sys 1067723163 24152
+sys/src/cmd/acme/ecmd.c - 664 sys sys 1073566949 24288
 sys/src/cmd/acme/edit.c - 664 sys sys 1015701171 12055
 sys/src/cmd/acme/edit.h - 664 sys sys 969500816 2466
 sys/src/cmd/acme/elog.c - 664 sys sys 1067723163 7241
@@ -6791,8 +6791,8 @@ sys/src/cmd/acme/rows.c - 664 sys sys 1068140772 14637
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
 sys/src/cmd/acme/text.c - 664 sys sys 1072729041 26813
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
-sys/src/cmd/acme/util.c - 664 sys sys 1072972297 6436
-sys/src/cmd/acme/wind.c - 664 sys sys 1016833877 11063
+sys/src/cmd/acme/util.c - 664 sys sys 1073566950 6456
+sys/src/cmd/acme/wind.c - 664 sys sys 1073566950 11094
 sys/src/cmd/acme/xfid.c - 664 sys sys 1067723165 19180
 sys/src/cmd/ar.c - 664 sys sys 1046643027 23717
 sys/src/cmd/archfs.c - 664 sys sys 1014925694 3871

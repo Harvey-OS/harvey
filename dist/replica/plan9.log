@@ -13277,3 +13277,7 @@
 1073325731 0 c sys/src/9/port/portclock.c - 664 sys sys 1073323995 4758
 1073325731 1 c sys/src/9/port/portdat.h - 664 sys sys 1073324006 22707
 1073491355 0 c sys/man/4/lnfs - 664 sys sys 1073491345 1219
+1073566966 0 c sys/src/cmd/acme/dat.h - 664 sys sys 1073566949 10976
+1073566966 1 c sys/src/cmd/acme/ecmd.c - 664 sys sys 1073566949 24288
+1073566966 2 c sys/src/cmd/acme/util.c - 664 sys sys 1073566950 6456
+1073566966 3 c sys/src/cmd/acme/wind.c - 664 sys sys 1073566950 11094
