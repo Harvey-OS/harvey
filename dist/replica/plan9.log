@@ -12335,3 +12335,8 @@
 1056074484 5 c sys/src/boot/pc/l.s - 664 sys sys 1056073258 12963
 1056074484 6 c sys/src/boot/pc/load.c - 664 sys sys 1056073257 7908
 1056074484 7 c sys/src/boot/pc/mkfile - 664 sys sys 1056073256 2926
+1056088900 0 c sys/src/boot/pc/load.c - 664 sys sys 1056087197 7987
+1056143143 0 c mail/lib/pipeto.lib - 664 upas upas 1056143135 2024
+1056155485 0 c sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1056155537 16374
+1056155485 1 c sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1056155538 11716
+1056164491 0 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1056163716 30830

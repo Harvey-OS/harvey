@@ -469,7 +469,7 @@ pop3read(Pop *pop, Mailbox *mb, int doplumb)
 	if(pop->pipeline)
 		waitpid();
 
-	if(nnew) {
+	if(nnew || mb->vers == 0) {
 		mb->vers++;
 		henter(PATH(0, Qtop), mb->name,
 			(Qid){PATH(mb->id, Qmbox), mb->vers, QTDIR}, nil, mb);

@@ -5,7 +5,7 @@ bind -c /mail/tmp /tmp
 # caller should set KEY and USER
 
 if(! ~ $#USER 1)
-	exit 'bad pipeto: no USER variable'
+	USER=`{echo $1 | sed 's/local!//;s/[+\-].*//'}
 if(! ~ $#KEY 1)
 	KEY=plan9
 
@@ -90,29 +90,6 @@ fn tokenreply {
 # add addresses in message to white list
 fn listupdate {
 	$BIN/list add $PF $D/from $D/to $D/cc $D/sender
-}
-
-# alternative to token-based approach
-# bayesian classification.  run /mail/lib/setup.bayes to start.
-fn isspam {
-	for(i in _prof.mbox _prof.spam _bounced){
-		if(! test -f $i){
-			echo 'need '^$i >[1=2]
-			exit 'need '^$i
-		}
-	}
-	upas/msgcat $TMP.msg |upas/msgtok |grep -v '^....................(.*)	' >$TMP.tok
-	x=`{upas/bayes -k _prof.mbox _prof.spam ~ $TMP.tok | sed 's/_prof.//'}
-	where=$x(1)
-	prob=$x(2)
-	prob1000=`{echo $prob '*1000' | hoc | sed 's/\..*//'}
-	echo `{sed 's/^From ([^ ]+) (.*)/\2 from \1/' $D/unixheader} $x >>_bounced
-	if(~ $where spam && test $prob1000 -lt 999)
-		where=mbox
-	upas/addhash -o _prof.$where _prof.$where 1 $TMP.tok 1
-	if(~ $where spam)
-		where=''
-	status=$where
 }
 
 # save and parse the mail file

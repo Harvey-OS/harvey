@@ -2735,7 +2735,7 @@ mail/lib/lazyqmail - 775 upas upas 999900927 116
 mail/lib/namefiles - 664 upas upas 960222586 63
 mail/lib/names.local - 664 upas upas 960222620 92
 mail/lib/patterns - 664 upas upas 957549063 602
-mail/lib/pipeto.lib - 664 upas upas 1053275597 2715
+mail/lib/pipeto.lib - 664 upas upas 1056143135 2024
 mail/lib/qmail - 775 upas upas 954266750 180
 mail/lib/remotemail - 775 upas upas 959722371 180
 mail/lib/rewrite - 664 upas upas 964036209 295
@@ -6173,7 +6173,7 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1056073258 12963
 sys/src/boot/pc/lib.h - 664 sys sys 1015007952 3485
-sys/src/boot/pc/load.c - 664 sys sys 1056073257 7908
+sys/src/boot/pc/load.c - 664 sys sys 1056087197 7987
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1015007953 3407
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
@@ -10339,7 +10339,7 @@ sys/src/cmd/unix/u9fs/safecpy.c - 664 sys sys 1043768486 212
 sys/src/cmd/unix/u9fs/strecpy.c - 664 sys sys 1015092353 193
 sys/src/cmd/unix/u9fs/sun-inttypes.h - 664 sys sys 1039110816 441
 sys/src/cmd/unix/u9fs/tokenize.c - 664 sys sys 1015092353 602
-sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1055699455 30811
+sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1056163716 30830
 sys/src/cmd/unix/u9fs/u9fs.h - 664 sys sys 1043768488 649
 sys/src/cmd/unix/u9fs/u9fsauth.h - 664 sys sys 1015092354 126
 sys/src/cmd/unix/u9fs/utfrune.c - 664 sys sys 1015092354 387
@@ -10376,11 +10376,11 @@ sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1018549521 1312
 sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1047490337 4267
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1045505917 27332
-sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1047490338 16071
+sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1056155537 16374
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1047490342 28282
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1047490343 7464
-sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1055699607 11699
+sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1056155538 11716
 sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
 sys/src/cmd/upas/fs/tester.c - 664 sys sys 985037420 1418
