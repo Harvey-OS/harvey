@@ -150,7 +150,7 @@
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1045537962 102172
 386/bin/aux/write - 775 sys sys 1038443108 4198
-386/bin/aux/zerotrunc - 775 sys sys 1056634437 58154
+386/bin/aux/zerotrunc - 775 sys sys 1057551514 58154
 386/bin/awd - 775 sys sys 1038443108 5033
 386/bin/awk - 775 sys sys 1048745031 316908
 386/bin/basename - 775 sys sys 1039758547 38375
@@ -265,7 +265,7 @@
 386/bin/ip/httpd/wikipost - 775 sys sys 1056364282 111370
 386/bin/ip/imap4d - 775 sys sys 1056364283 233876
 386/bin/ip/ipconfig - 775 sys sys 1056364284 102995
-386/bin/ip/ping - 775 sys sys 1056550716 74040
+386/bin/ip/ping - 775 sys sys 1057551515 74064
 386/bin/ip/ppp - 775 sys sys 1056551099 215626
 386/bin/ip/pppoe - 775 sys sys 1056364286 75503
 386/bin/ip/pptp - 775 sys sys 1056364287 124043
@@ -413,7 +413,7 @@
 386/bin/upas/filter - 775 sys sys 1056364374 145705
 386/bin/upas/fs - 775 sys sys 1056550611 332282
 386/bin/upas/list - 775 sys sys 1056364376 81442
-386/bin/upas/marshal - 775 sys sys 1057333568 129392
+386/bin/upas/marshal - 775 sys sys 1057551516 129418
 386/bin/upas/ml - 775 sys sys 1056364378 118225
 386/bin/upas/mlmgr - 775 sys sys 1056364379 101122
 386/bin/upas/mlowner - 775 sys sys 1056364379 90420
@@ -425,7 +425,7 @@
 386/bin/upas/scanmail - 775 sys sys 1056364384 127737
 386/bin/upas/send - 775 sys sys 1056364385 189233
 386/bin/upas/smtp - 775 sys sys 1056364386 269559
-386/bin/upas/smtpd - 775 sys sys 1056364388 312832
+386/bin/upas/smtpd - 775 sys sys 1057583374 313014
 386/bin/upas/testscan - 775 sys sys 1056364389 82401
 386/bin/upas/token - 775 sys sys 1056364389 76198
 386/bin/upas/vf - 775 sys sys 1056364390 90554
