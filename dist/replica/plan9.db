@@ -544,7 +544,7 @@
 386/lib/libmach.a - 664 sys sys 1085077145 735256
 386/lib/libmemdraw.a - 664 sys sys 1085077145 287684
 386/lib/libmemlayer.a - 664 sys sys 1085077145 47360
-386/lib/libmp.a - 664 sys sys 1085368185 80226
+386/lib/libmp.a - 664 sys sys 1085541057 76502
 386/lib/libndb.a - 664 sys sys 1085077146 60772
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1085077146 37440
