@@ -5,7 +5,7 @@
 Display	*display;
 Font	*font;
 Image	*screen;
-int	_drawdebug;
+int	_drawdebug = 0;
 
 static char deffontname[] = "*default*";
 Screen	*_screen;
@@ -400,15 +400,15 @@ static
 int
 doflush(Display *d)
 {
-	int n;
+	int n, nn;
 
 	n = d->bufp-d->buf;
 	if(n <= 0)
 		return 1;
 
-	if(write(d->fd, d->buf, n) != n){
+	if((nn=write(d->fd, d->buf, n)) != n){
 		if(_drawdebug)
-			fprint(2, "flushimage fail: d=%p: %r\n", d); /**/
+			fprint(2, "flushimage fail: d=%p: n=%d nn=%d %r\n", d, n, nn); /**/
 		d->bufp = d->buf;	/* might as well; chance of continuing */
 		return -1;
 	}

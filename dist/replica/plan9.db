@@ -5996,6 +5996,7 @@ sys/src/ape/lib/ap/mips/vlrt.c - 664 sys sys 1014921989 9001
 sys/src/ape/lib/ap/mkfile - 664 sys sys 1014921988 244
 sys/src/ape/lib/ap/plan9 - 20000000775 sys sys 1014921986 0
 sys/src/ape/lib/ap/plan9/9errstr.c - 664 sys sys 1070330880 31
+sys/src/ape/lib/ap/plan9/9iounit.c - 664 sys sys 1070660696 981
 sys/src/ape/lib/ap/plan9/9mallocz.c - 664 sys sys 1070330880 148
 sys/src/ape/lib/ap/plan9/9read.c - 664 sys sys 1014921986 169
 sys/src/ape/lib/ap/plan9/9readn.c - 664 sys sys 1070330880 221
@@ -6064,7 +6065,7 @@ sys/src/ape/lib/ap/plan9/link.c - 664 sys sys 1014921984 168
 sys/src/ape/lib/ap/plan9/lseek.c - 664 sys sys 1038237526 358
 sys/src/ape/lib/ap/plan9/malloc.c - 664 sys sys 1014921985 1957
 sys/src/ape/lib/ap/plan9/mkdir.c - 664 sys sys 1014921984 353
-sys/src/ape/lib/ap/plan9/mkfile - 664 sys sys 1070330880 1357
+sys/src/ape/lib/ap/plan9/mkfile - 664 sys sys 1070660696 1370
 sys/src/ape/lib/ap/plan9/nan.c - 664 sys sys 1014921985 614
 sys/src/ape/lib/ap/plan9/open.c - 664 sys sys 1048644335 1088
 sys/src/ape/lib/ap/plan9/opendir.c - 664 sys sys 1014921984 1881
@@ -6260,7 +6261,7 @@ sys/src/ape/lib/bsd/strncasecmp.c - 664 sys sys 1051635385 385
 sys/src/ape/lib/bsd/writev.c - 664 sys sys 1014921995 908
 sys/src/ape/lib/draw - 20000000775 sys sys 1070327097 0
 sys/src/ape/lib/draw/colors.c - 664 sys sys 1070327097 3607
-sys/src/ape/lib/draw/libc.h - 664 sys sys 1070327097 3476
+sys/src/ape/lib/draw/libc.h - 664 sys sys 1070660715 3456
 sys/src/ape/lib/draw/mkfile - 664 sys sys 1070327097 1176
 sys/src/ape/lib/fmt - 20000000775 sys sys 1070327381 0
 sys/src/ape/lib/fmt/charstod.c - 664 sys sys 1070327066 1995
@@ -11772,7 +11773,7 @@ sys/src/libdraw/getrect.c - 664 sys sys 1014927875 3046
 sys/src/libdraw/getsubfont.c - 664 sys sys 1014927875 757
 sys/src/libdraw/icossin.c - 664 sys sys 944961724 2117
 sys/src/libdraw/icossin2.c - 664 sys sys 944961724 4587
-sys/src/libdraw/init.c - 664 sys sys 1018288156 9046
+sys/src/libdraw/init.c - 664 sys sys 1070660683 9077
 sys/src/libdraw/keyboard.c - 664 sys sys 1030970091 1703
 sys/src/libdraw/line.c - 664 sys sys 1040442973 731
 sys/src/libdraw/loadimage.c - 664 sys sys 1014927876 983
