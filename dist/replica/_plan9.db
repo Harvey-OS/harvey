@@ -193,7 +193,7 @@
 386/bin/dial/drain - 775 sys sys 1068385869 4120
 386/bin/dial/expect - 775 sys sys 1085077029 58049
 386/bin/dial/pass - 775 sys sys 1085077030 38786
-386/bin/dict - 775 sys sys 1085077031 183178
+386/bin/dict - 775 sys sys 1100924601 185420
 386/bin/diff - 775 sys sys 1099800611 81711
 386/bin/disk - 20000000775 sys sys 984788664 0
 386/bin/disk/dump9660 - 775 sys sys 1085077032 150298
@@ -356,7 +356,7 @@
 386/bin/ps - 775 sys sys 1085077090 63831
 386/bin/pwd - 775 sys sys 1085077091 36869
 386/bin/ramfs - 775 sys sys 1085077091 86527
-386/bin/rc - 775 sys sys 1085077091 140758
+386/bin/rc - 775 sys sys 1100924601 141176
 386/bin/rdbfs - 775 sys sys 1089397315 166357
 386/bin/read - 775 sys sys 1085077092 56014
 386/bin/replica - 20000000775 sys sys 1018321168 0
@@ -450,7 +450,7 @@
 386/bin/upas/scanmail - 775 sys sys 1085077115 126758
 386/bin/upas/send - 775 sys sys 1098848045 189497
 386/bin/upas/smtp - 775 sys sys 1098848046 270306
-386/bin/upas/smtpd - 775 sys sys 1098848047 326493
+386/bin/upas/smtpd - 775 sys sys 1100924602 326474
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1085077117 81626
 386/bin/upas/token - 775 sys sys 1085077117 75518
@@ -10314,7 +10314,7 @@ sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1032060572 11501
 sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1032060571 5904
 sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1014926325 37608
 sys/src/cmd/scuzz/sense.c - 664 sys sys 969510790 3901
-sys/src/cmd/sed.c - 664 sys sys 1024754756 27001
+sys/src/cmd/sed.c - 664 sys sys 1100962924 27001
 sys/src/cmd/seq.c - 664 sys sys 1063854922 1484
 sys/src/cmd/sh.C - 664 sys sys 1055701754 10303
 sys/src/cmd/sha1sum.c - 664 sys sys 1014926229 1017
@@ -12394,6 +12394,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/dict - 775 sys sys 1100924601 185420
-386/bin/rc - 775 sys sys 1100924601 141176
-386/bin/upas/smtpd - 775 sys sys 1100924602 326474
+386/bin/sed - 775 sys sys 1101010294 87484
