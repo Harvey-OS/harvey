@@ -7,7 +7,7 @@ cd $1
 while(! ~ $#* 0 1){
 	diff -n $2/index.txt $1/index.txt | awk  -F'[\/ :]' '
 	$1 ~/^[0-9]+$/ {  
-		getA = "cat "$1"/current | sed -n -e ''1d; /^A/s/^A//p; /^#/q''"
+		getA = "cat "$5"/current | sed -n -e ''1d; /^A/s/^A//p; /^#/q''"
 		getA | getline A; close getA
 		$1 = t2d($1)
 		$5 = t2d($5)

@@ -1830,7 +1830,7 @@ cribbios(Controller *c)
 {
 	c->bios.scntl3 = c->n->scntl3;
 	c->bios.stest2 = c->n->stest2;
-	print(PRINTPREFIX "bios scntl3(%.2x) stest2(%.2x)\n", c->bios.scntl3, c->bios.stest2);
+	KPRINT(PRINTPREFIX "bios scntl3(%.2x) stest2(%.2x)\n", c->bios.scntl3, c->bios.stest2);
 }
 
 static int
