@@ -98,6 +98,7 @@ ls(char *s, int multi)
 		return 1;
 	}
 	if((db->qid.type&QTDIR) && dflag==0){
+		free(db);
 		output();
 		fd = open(s, OREAD);
 		if(fd == -1)
