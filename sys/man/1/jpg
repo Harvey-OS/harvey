@@ -206,7 +206,7 @@ an alpha channel to the converted image.
 displays a Windows icon (.ico) file.  If no file is
 specified,
 .I ico
-reads from standad input.
+reads from standard input.
 Icon files
 contain sets of icons represeted by an image and a mask.
 Clicking the right button pops up a menu that lets you

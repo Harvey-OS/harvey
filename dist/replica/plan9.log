@@ -15110,3 +15110,6 @@
 1084543307 0 c sys/src/cmd/acme/rows.c - 664 sys sys 1084542482 14664
 1084543307 1 c sys/src/cmd/acme/text.c - 664 sys sys 1084542489 27383
 1084766548 0 c sys/src/cmd/8c/machcap.c - 664 sys sys 1084766030 957
+1084892422 0 c sys/src/9/ip/tcp.c - 664 sys sys 1084890717 65643
+1084892422 1 c sys/src/9/port/devmnt.c - 664 sys sys 1084890727 21594
+1084933830 0 c sys/man/1/jpg - 664 sys sys 1084933809 4759

@@ -4680,7 +4680,7 @@ sys/man/1/history - 664 sys sys 1044909169 1709
 sys/man/1/hoc - 664 sys sys 944959676 2357
 sys/man/1/idiff - 664 sys sys 1018386774 927
 sys/man/1/join - 664 sys sys 957920006 2562
-sys/man/1/jpg - 664 sys sys 1074280543 4758
+sys/man/1/jpg - 664 sys sys 1084933809 4759
 sys/man/1/kbmap - 664 sys sys 1079969760 845
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
@@ -5275,7 +5275,7 @@ sys/src/9/ip/nullmedium.c - 664 sys sys 1022588099 491
 sys/src/9/ip/pktmedium.c - 664 sys sys 1084331746 1314
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1055700790 21415
-sys/src/9/ip/tcp.c - 664 sys sys 1084331800 65642
+sys/src/9/ip/tcp.c - 664 sys sys 1084890717 65643
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1077376216 13146
 sys/src/9/mkfile - 664 sys sys 1063857477 205
@@ -5452,7 +5452,7 @@ sys/src/9/port/devfs.c - 664 sys sys 1081864735 10779
 sys/src/9/port/devkbmap.c - 644 sys sys 1079463756 2774
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1076612248 14573
-sys/src/9/port/devmnt.c - 664 sys sys 1067953214 21594
+sys/src/9/port/devmnt.c - 664 sys sys 1084890727 21594
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1067722758 12203
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738

@@ -49,7 +49,7 @@ enum
 	DEF_MSS		= 1460,		/* Default mean segment */
 	DEF_MSS6	= 1280,		/* Default mean segment (min) for v6 */
 	DEF_RTT		= 500,		/* Default round trip */
-	DEF_KAT		= 120000,	/* Default time ms) between keep alives */
+	DEF_KAT		= 120000,	/* Default time (ms) between keep alives */
 	TCP_LISTEN	= 0,		/* Listen connection */
 	TCP_CONNECT	= 1,		/* Outgoing connection */
 	SYNACK_RXTIMER	= 250,		/* ms between SYNACK retransmits */

@@ -874,7 +874,7 @@ mntrpcread(Mnt *m, Mntrpc *r)
 		return -1;
 	nb = pullupqueue(m->q, BIT32SZ+BIT8SZ+BIT16SZ);
 
-	/* read in the rest of the message, avoid rediculous (for now) message sizes */
+	/* read in the rest of the message, avoid ridiculous (for now) message sizes */
 	len = GBIT32(nb->rp);
 	if(len > m->msize){
 		qdiscard(m->q, qlen(m->q));
