@@ -224,15 +224,13 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 		devdir(c, qid, up->genbuf, 0, p->user, DMDIR|0555, dp);
 		return 1;
 	}
-
 	if(c->qid.path == Qtrace){
 		strcpy(up->genbuf, "trace");
 		mkqid(&qid, Qtrace, -1, QTFILE);
 		devdir(c, qid, up->genbuf, 0, eve, 0444, dp);
 		return 1;
 	}
-
-	if(--s >= nelem(procdir))
+	if(s >= nelem(procdir))
 		return -1;
 	if(tab)
 		panic("procgen");

@@ -14151,3 +14151,7 @@
 1067805086 5 c rc/bin/patch/undo - 775 sys sys 1067804405 549
 1067805086 6 a sys/man/1/patch - 664 sys sys 1067804449 2176
 1067810488 0 c sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
+1067873478 0 c lib/face/48x48x4/.dict - 664 sys sys 1067873122 2032
+1067880679 0 c sys/src/9/port/devproc.c - 664 sys sys 1067880146 28269
+1067891482 0 c sys/src/9/pc/ether2114x.c - 664 sys sys 1067891102 41253
+1067911286 0 c dist/replica/network - 775 sys sys 1067910574 466
