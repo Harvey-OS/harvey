@@ -327,14 +327,14 @@ mmukmapsync(ulong va)
 
 	mach0 = MACHP(0);
 
-	lock(&mmukmaplock);
+	ilock(&mmukmaplock);
 
 	if((pte = mmuwalk(mach0->pdb, va, 1, 0)) == nil){
-		unlock(&mmukmaplock);
+		iunlock(&mmukmaplock);
 		return 0;
 	}
 	if(!(*pte & PTESIZE) && mmuwalk(mach0->pdb, va, 2, 0) == nil){
-		unlock(&mmukmaplock);
+		iunlock(&mmukmaplock);
 		return 0;
 	}
 	entry = *pte;
@@ -349,7 +349,7 @@ mmukmapsync(ulong va)
 	else
 		mmuflushtlb(PADDR(m->pdb));
 
-	unlock(&mmukmaplock);
+	iunlock(&mmukmaplock);
 
 	return 1;
 }
@@ -376,7 +376,7 @@ mmukmap(ulong pa, ulong va, int size)
 	ova = va;
 
 	pae = pa + size;
-	lock(&mmukmaplock);
+	ilock(&mmukmaplock);
 	while(pa < pae){
 		table = &mach0->pdb[PDX(va)];
 		/*
@@ -457,7 +457,7 @@ mmukmap(ulong pa, ulong va, int size)
 		va += pgsz;
 		sync++;
 	}
-	unlock(&mmukmaplock);
+	iunlock(&mmukmaplock);
 
 	/*
 	 * If something was added

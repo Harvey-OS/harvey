@@ -5159,7 +5159,7 @@ sys/src/9/pc/main.c - 664 sys sys 1048644107 14454
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1032303986 12994
 sys/src/9/pc/mkfile - 664 sys sys 1040002514 2995
-sys/src/9/pc/mmu.c - 664 sys sys 1018553449 10008
+sys/src/9/pc/mmu.c - 664 sys sys 1049509456 10014
 sys/src/9/pc/mouse.c - 664 sys sys 1020369766 6315
 sys/src/9/pc/mp.c - 664 sys sys 1048644112 16928
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
