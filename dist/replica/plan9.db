@@ -5174,7 +5174,7 @@ sys/src/9/pc/ether83815.c - 664 sys sys 1026847640 23050
 sys/src/9/pc/ether8390.c - 664 sys sys 1015014517 17548
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherec2t.c - 664 sys sys 1020284820 4038
-sys/src/9/pc/etherelnk3.c - 664 sys sys 1026847641 48003
+sys/src/9/pc/etherelnk3.c - 664 sys sys 1059064966 48481
 sys/src/9/pc/etherga620.c - 664 sys sys 1032052917 28786
 sys/src/9/pc/etherga620fw.h - 644 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1045063564 961
