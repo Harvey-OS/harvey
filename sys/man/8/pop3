@@ -83,7 +83,7 @@ CRAM-MD5 or
 .IR securenet (8)
 challenge/response authentication.
 .TP
-.B p
+.B c
 Allow plan 9 challenge response authentication.
 .TP
 .B p
