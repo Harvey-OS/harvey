@@ -377,7 +377,7 @@
 386/bin/scat - 775 sys sys 1085077095 281706
 386/bin/scp - 775 sys sys 1094218814 149872
 386/bin/scuzz - 775 sys sys 1085077096 109619
-386/bin/sed - 775 sys sys 1085077096 87471
+386/bin/sed - 775 sys sys 1101010294 87484
 386/bin/seq - 775 sys sys 1085077096 38178
 386/bin/sha1sum - 775 sys sys 1085077096 59101
 386/bin/size - 775 sys sys 1091936094 72436
@@ -10314,7 +10314,7 @@ sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1032060572 11501
 sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1032060571 5904
 sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1014926325 37608
 sys/src/cmd/scuzz/sense.c - 664 sys sys 969510790 3901
-sys/src/cmd/sed.c - 664 sys sys 1024754756 27001
+sys/src/cmd/sed.c - 664 sys sys 1100962924 27001
 sys/src/cmd/seq.c - 664 sys sys 1063854922 1484
 sys/src/cmd/sh.C - 664 sys sys 1055701754 10303
 sys/src/cmd/sha1sum.c - 664 sys sys 1014926229 1017

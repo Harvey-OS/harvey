@@ -296,7 +296,7 @@ comploop:
 				cp++;
 				address(&rep->ad2);
 				if (rep->ad2.type == A_LAST) {
-					rep->ad1.type = A_RE;
+					rep->ad2.type = A_RE;
 					rep->ad2.rp = lastre;
 				}
 			} else
