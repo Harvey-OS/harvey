@@ -15,7 +15,8 @@ mntgen  \-  automatically generate mount points for file systems
 mounts itself on
 .I mnt
 (default
-.BR /n ),
+.BR /n )
+after the current contents,
 creating subdirectories on demand as they are accessed.
 It is intended to supply mount points automatically.
 .PP

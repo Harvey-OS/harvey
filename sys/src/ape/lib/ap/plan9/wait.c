@@ -32,6 +32,7 @@ waitpid(int pid, int *stat_loc, int options)
 		w = _WAIT();
 		if(w == 0){
 			_syserrno();
+			n = -1;
 		}else{
 			wpid = w->pid;
 			if(pid>0 && wpid!=pid){
