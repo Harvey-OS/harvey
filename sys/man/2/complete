@@ -16,7 +16,8 @@ struct Completion{
 	uchar advance;		/* whether forward progress has been made */
 	uchar complete;	/* whether the completion now represents a file or directory */
 	char *string;		/* the string to advance, suffixed " " or "/" for file or directory */
-	int nfile;			/* number of files that matched */
+	int nmatch;		/* number of files that matched */
+	int nfile;			/* number of files returned */
 	char **filename;	/* their names */
 };
 
@@ -41,12 +42,22 @@ and a string
 .IR s ,
 it returns an analysis of the file names in that directory that begin with the string
 .IR s .
-The field
+The fields
+.B nmatch
+and
 .B nfile
 will be set to the number of files that match the prefix and
 .B filename
 will be filled in with their names.
 If the file named is a directory, a slash character will be appended to it.
+.PP
+If no files match the string,
+.B nmatch
+will be zero, but
+.I complete
+will return the full set of files in the directory, with
+.I nfile
+set to their number.
 .PP
 The flag
 .B advance

@@ -13798,3 +13798,7 @@
 1075689090 0 c sys/games/lib/fortunes - 664 sys sys 1075688069 247488
 1076130039 0 c sys/src/cmd/vac/fs.c - 664 sys sys 1076129457 2934
 1076176846 0 c sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1076176207 14301
+1076277660 0 c sys/include/complete.h - 664 sys sys 1076276516 562
+1076277660 1 c sys/man/2/complete - 664 sys sys 1076276513 2396
+1076277660 2 c sys/src/cmd/rio/wind.c - 664 sys sys 1076276532 32785
+1076277660 3 c sys/src/libcomplete/complete.c - 664 sys sys 1076276513 2697
