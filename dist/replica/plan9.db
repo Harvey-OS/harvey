@@ -190,6 +190,11 @@
 386/bin/dc - 775 sys sys 1056364238 97891
 386/bin/dd - 775 sys sys 1056364238 46261
 386/bin/deroff - 775 sys sys 1056364239 73222
+386/bin/dial - 20000000775 sys sys 1058790015 0
+386/bin/dial/at - 775 sys sys 1058790014 59165
+386/bin/dial/drain - 775 sys sys 1058790014 4122
+386/bin/dial/expect - 775 sys sys 1058790015 58571
+386/bin/dial/pass - 775 sys sys 1058790016 39133
 386/bin/dict - 775 sys sys 1056364240 168338
 386/bin/diff - 775 sys sys 1056364240 82287
 386/bin/disk - 20000000775 sys sys 984788664 0
@@ -2929,6 +2934,11 @@ rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1015701359 2390
 rc/bin/fedex - 775 sys sys 1048862253 1122
 rc/bin/homespool - 775 sys sys 945617207 339
+rc/bin/ipconf - 20000000775 sys sys 1058791152 0
+rc/bin/ipconf/inside - 775 sys sys 1058790955 427
+rc/bin/ipconf/lra - 775 sys sys 1058791152 1558
+rc/bin/ipconf/outside - 775 sys sys 1058790951 550
+rc/bin/ipconf/theworld - 775 sys sys 1058790940 1212
 rc/bin/ipso - 775 sys sys 1035591514 2304
 rc/bin/iwhois - 775 sys sys 1032057928 435
 rc/bin/kill - 775 sys sys 1018387014 132
@@ -4492,6 +4502,7 @@ sys/man/1/echo - 664 sys sys 944959673 279
 sys/man/1/ed - 664 sys sys 961259286 13916
 sys/man/1/emacs - 664 sys sys 944959673 199
 sys/man/1/eqn - 664 sys sys 944959675 5655
+sys/man/1/expect - 664 sys sys 1058791094 3023
 sys/man/1/faces - 664 sys sys 1045501346 2052
 sys/man/1/factor - 664 sys sys 957920005 1019
 sys/man/1/file - 664 sys sys 1015024739 1578
@@ -6954,6 +6965,12 @@ sys/src/cmd/db/trcrun.c - 664 sys sys 1016731556 4432
 sys/src/cmd/dc.c - 664 sys sys 1014926693 36570
 sys/src/cmd/dd.c - 664 sys sys 1055693435 11721
 sys/src/cmd/deroff.c - 664 sys sys 1017679319 14611
+sys/src/cmd/dial - 20000000775 sys sys 1058789955 0
+sys/src/cmd/dial/at.c - 664 sys sys 1058789951 2011
+sys/src/cmd/dial/drain.c - 664 sys sys 1058789952 241
+sys/src/cmd/dial/expect.c - 664 sys sys 1058789952 1595
+sys/src/cmd/dial/mkfile - 664 sys sys 1058789952 191
+sys/src/cmd/dial/pass.c - 664 sys sys 1058789955 891
 sys/src/cmd/dict - 20000000775 sys sys 944960882 0
 sys/src/cmd/dict/ahd.c - 664 sys sys 944960882 2082
 sys/src/cmd/dict/canonind.awk - 664 sys sys 944960880 665
