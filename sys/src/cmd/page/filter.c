@@ -99,3 +99,9 @@ inittroff(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 {
 	return initfilt(b, argc, argv, buf, nbuf, "troff", "lp -dstdout", 1);
 }
+
+Document*
+initmsdoc(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
+{
+	return initfilt(b, argc, argv, buf, nbuf, "microsoft office", "doc2ps", 1);
+}

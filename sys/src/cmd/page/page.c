@@ -192,6 +192,8 @@ main(int argc, char **argv)
 		doc = initps(b, argc, argv, buf, Ninput);
 	else if(strcmp((char*)buf, "\xF7\x02\x01\x83\x92\xC0\x1C;") == 0)
 		doc = initdvi(b, argc, argv, buf, Ninput);
+	else if(strncmp((char*)buf, "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1", 8) == 0)
+		doc = initmsdoc(b, argc, argv, buf, Ninput);
 	else if(strncmp((char*)buf, "x T ", 4) == 0)
 		doc = inittroff(b, argc, argv, buf, Ninput);
 	else {

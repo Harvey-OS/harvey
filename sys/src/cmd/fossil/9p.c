@@ -243,19 +243,19 @@ rTwstat(Msg* m)
 	}
 
 	if(dir.length != ~0){
-		/*
-		 * Cannot change length on append-only files.
-		 * If we're changing the append bit, it's okay.
-		 */
-		if(de.mode & oldmode & ModeAppend){
-			vtSetError("wstat -- attempt to change length of append-only file");
-			goto error;
-		}
-		if(de.mode & ModeDir){
-			vtSetError("wstat -- attempt to change length of directory");
-			goto error;
-		}
 		if(dir.length != de.size){
+			/*
+			 * Cannot change length on append-only files.
+			 * If we're changing the append bit, it's okay.
+			 */
+			if(de.mode & oldmode & ModeAppend){
+				vtSetError("wstat -- attempt to change length of append-only file");
+				goto error;
+			}
+			if(de.mode & ModeDir){
+				vtSetError("wstat -- attempt to change length of directory");
+				goto error;
+			}
 			de.size = dir.length;
 			op = 1;
 		}

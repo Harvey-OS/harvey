@@ -24,15 +24,12 @@ myipaddr(uchar *ip, char *net)
 	Iplifc *lifc;
 	static Ipifc *ifc;
 	uchar mynet[IPaddrlen];
-	int haveloopback = 0;
 
 	ifc = readipifc(net, ifc, -1);
 	for(nifc = ifc; nifc; nifc = nifc->next)
 		for(lifc = nifc->lifc; lifc; lifc = lifc->next){
 			maskip(lifc->ip, loopbackmask, mynet);
 			if(ipcmp(mynet, loopbacknet) == 0){
-				ipmove(ip, lifc->ip);
-				haveloopback = 1;
 				continue;
 			}
 			if(ipcmp(lifc->ip, IPnoaddr) != 0){
@@ -40,8 +37,6 @@ myipaddr(uchar *ip, char *net)
 				return 0;
 			}
 		}
-	if(haveloopback)
-		return 0;
 	ipmove(ip, IPnoaddr);
 	return -1;
 }
