@@ -333,6 +333,12 @@ the caret is deleted.
 If
 .I eof-marker
 is quoted, no substitution occurs.
+The standard input file
+may also be redirected from a file by the sequence
+.BI <> file \f1,
+which opens
+.I file
+exactly once, for reading and writing.
 .PP
 Redirections may be applied to a file-descriptor other than standard input
 or output by qualifying the redirection operator
@@ -342,7 +348,8 @@ may be redirected by writing
 .BR "cc junk.c >[2]junk" .
 .PP
 A file descriptor may be redirected to an already open descriptor by writing
-.BI >[ fd0 = fd1 ]
+.BI >[ fd0 = fd1 ],
+.BI <>[ fd0 = fd1 ],
 or
 .BI <[ fd0 = fd1 ]\f1.
 .I Fd1
@@ -366,6 +373,15 @@ have different effects: the first puts standard output in
 and then puts diagnostic output in the same place, where the second
 directs diagnostic output to the terminal and sends standard output to
 .BR /dev/null .
+.PP
+.B newconn <>/net/tcp/clone >[1=0]
+opens
+.B /net/tcp/clone
+exactly once for reading and writing and puts it on standard input and output.
+.B lpd <>[3]/net/tcp/42/data
+opens
+.B /net/tcp/42/data
+exactly once for reading and writing and puts it on file descriptor 3.
 .SS Compound Commands
 A pair of commands separated by a pipe operator
 .RB ( | )

@@ -219,6 +219,7 @@ main(int argc, char *argv[])
  * Xpipefd[type]{... Xreturn}		connect {} to pipe (input or output,
  * 					depending on type), push /dev/fd/??
  * Xpopm(value)				pop value from stack
+ * Xrdwr(file)[fd]			open file for reading and writing
  * Xread(file)[fd]			open file to read
  * Xsettraps(names){... Xreturn}		define trap functions
  * Xshowtraps				print trap list
@@ -365,6 +366,33 @@ Xread(void)
 	}
 	file = runq->argv->words->word;
 	if((f = open(file, 0))<0){
+		pfmt(err, "%s: ", file);
+		Xerror("can't open");
+		return;
+	}
+	pushredir(ROPEN, f, runq->code[runq->pc].i);
+	runq->pc++;
+	poplist();
+}
+
+void
+Xrdwr(void)
+{
+	char *file;
+	int f;
+
+	switch(count(runq->argv->words)){
+	default:
+		Xerror1("<> requires singleton\n");
+		return;
+	case 0:
+		Xerror1("<> requires file\n");
+		return;
+	case 1:
+		break;
+	}
+	file = runq->argv->words->word;
+	if((f = open(file, ORDWR))<0){
 		pfmt(err, "%s: ", file);
 		Xerror("can't open");
 		return;

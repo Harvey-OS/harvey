@@ -5,6 +5,7 @@ extern void Xappend(void), Xasync(void), Xbackq(void), Xbang(void), Xclose(void)
 extern void Xconc(void), Xcount(void), Xdelfn(void), Xdol(void), Xqdol(void), Xdup(void);
 extern void Xexit(void), Xfalse(void), Xfn(void), Xfor(void), Xglob(void);
 extern void Xjump(void), Xmark(void), Xmatch(void), Xpipe(void), Xread(void);
+extern void Xrdwr(void);
 extern void Xrdfn(void), Xunredir(void), Xstar(void), Xreturn(void), Xsubshell(void);
 extern void Xtrue(void), Xword(void), Xwrite(void), Xpipefd(void), Xcase(void);
 extern void Xlocal(void), Xunlocal(void), Xassign(void), Xsimple(void), Xpopm(void);

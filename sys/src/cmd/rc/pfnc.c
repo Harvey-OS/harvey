@@ -18,6 +18,7 @@ struct{
 	Xjump, "Xjump",
 	Xmark, "Xmark",
 	Xpopm, "Xpopm",
+	Xrdwr, "Xrdwr",
 	Xread, "Xread",
 	Xreturn, "Xreturn",
 	Xtrue, "Xtrue",
