@@ -152,13 +152,13 @@ main(int argc, char *argv[])
 				else{
 					print("[%s] ", d.muid);
 					print("(%.16llux %lud %.2ux) ", d.qid.path, d.qid.vers, d.qid.type);
-					print("%M ", d.mode);
+					print("%M (%luo) ", d.mode, d.mode);
 					print("%c %d ", d.type, d.dev);
 					print("%s %s ", d.uid, d.gid);
 					print("%lld ", d.length);
 					print("%s ", lstime(d.mtime));
 					print("%s\n", d.name);
-					print("\tmtime: %s; atime: %s\n", xctime(d.mtime), xctime(d.atime));
+					print("\tmtime: %s\n\tatime: %s\n", xctime(d.mtime), xctime(d.atime));
 				}
 			}
 			exits(ebuf);

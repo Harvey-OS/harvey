@@ -316,7 +316,7 @@ found:
 			goto found;
 	}
 
-	/* if mail is from a trusted IP addr, allow it to forward*/
+	/* if mail is from a trusted IP addr, allow it to forward */
 	if(trusted) {
 		s_free(lpath);
 		return 0;
@@ -457,4 +457,31 @@ recipok(char *user)
 	}
 	Bterm(bp);
 	return 1;
+}
+
+/*
+ *  a user can opt out of spam filtering by creating
+ *  a file in his mail directory named 'nospamfiltering'.
+ */
+int
+optoutofspamfilter(char *addr)
+{
+	char *p, *f;
+	int rv;
+
+	p = strchr(addr, '!');
+	if(p)
+		p++;
+	else
+		p = addr;
+
+
+	rv = 0;
+	f = smprint("/mail/box/%s/nospamfiltering", p);
+	if(f != nil){
+		rv = access(f, 0)==0;
+		free(f);
+	}
+
+	return rv;
 }

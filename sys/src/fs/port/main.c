@@ -36,7 +36,6 @@ confinit(void)
 	conf.nfile = 30000;
 	conf.nlgmsg = 100;
 	conf.nsmmsg = 500;
-	conf.wcpsize = 1024*1024;
 	localconfinit();
 
 	conf.nwpath = conf.nfile*8;
@@ -89,6 +88,7 @@ main(void)
 		gidspace = ialloc(conf.gidspace * sizeof(*gidspace), 0);
 		authinit();
 
+		print("Plan 9 v4 file server: IDE, mirror, wormcopy, allow, pcihinv, memory\n");
 		print("iobufinit\n");
 		iobufinit();
 
@@ -235,8 +235,10 @@ exit(void)
 	print("cpu %d exiting\n", m->machno);
 	while(active.machs)
 		delay(1);
-	delay(300);	/* time to drain print q */
+	print("halted. press a key to reboot sooner than 5 mins.\n");
+	delay(300);		/* time to drain print q */
 	splhi();
+	rawchar(5*60);		/* reboot in 5 mins or at key press */
 	consreset();
 	firmware();
 }

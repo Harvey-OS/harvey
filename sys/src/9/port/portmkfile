@@ -75,7 +75,7 @@ latin1.$O:	../port/latin1.h
 thwack.$O:	../port/thwack.h
 unthwack.$O:	../port/thwack.h
 devsdp.$O:	../port/thwack.h
-devrealtime.$O edf.$O: ../port/edf.h
+devrealtime.$O edf.$O realtime.$O: ../port/edf.h
 
 nkfs.root.s:	/$objtype/bin/disk/nkfs
 	cp $prereq nkfs.out

@@ -33,8 +33,8 @@ char *msgnames[] =
 	"SSH_MSG_CHANNEL_OPEN_CONFIRMATION",
 	"SSH_MSG_CHANNEL_OPEN_FAILURE",
 	"SSH_MSG_CHANNEL_DATA",
-	"SSH_MSG_CHANNEL_CLOSE",
-	"SSH_MSG_CHANNEL_CLOSE_CONFIRMATION",
+	"SSH_MSG_CHANNEL_INPUT_EOF",
+	"SSH_MSG_CHANNEL_OUTPUT_CLOSED",
 	"SSH_MSG_UNIX_DOMAIN_X11_FORWARDING (obsolete)",
 	"SSH_SMSG_X11_OPEN",
 	"SSH_CMSG_PORT_FORWARD_REQUEST",
@@ -208,13 +208,16 @@ sendmsg(Msg *m)
 	p += 4;
 
 	c = m->c;
+	qlock(c);
 	if(c->cstate)
 		c->cipher->encrypt(c->cstate, m->bp+4, len+pad);
 
 	if(write(c->fd[1], m->bp, p - m->bp) != p-m->bp){
+		qunlock(c);
 		free(m);
 		return -1;
 	}
+	qunlock(c);
 	free(m);
 	return 0;
 }

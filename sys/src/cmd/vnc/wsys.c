@@ -90,16 +90,16 @@ mouseevent(Vnc *v, Mouse m)
 	vncunlock(v);
 }
 
-void mousewarp(Point pt)
+void
+mousewarp(Point pt)
 {
-	char buf[49];
-
 	pt = addpt(pt, screen->r.min);
-	snprint(buf, sizeof buf, "m%11d %11d ", pt.x, pt.y);
-	write(mousefd, buf, 25);
+	if(fprint(mousefd, "m%d %d", pt.x, pt.y) < 0)
+		fprint(2, "mousefd write: %r\n");
 }
 
-void initmouse(void)
+void
+initmouse(void)
 {
 	char buf[1024];
 

@@ -1,10 +1,16 @@
 typedef struct Source Source;
 typedef struct VacFile VacFile;
-typedef struct VacDirSource VacDirSource;
 typedef struct MetaBlock MetaBlock;
+typedef struct MetaEntry MetaEntry;
 typedef struct Lump Lump;
 typedef struct Cache Cache;
 typedef struct Super Super;
+
+enum {
+	NilBlock	= (~0UL),
+	MaxBlock	= (1UL<<31),
+};
+
 
 struct VacFS {
 	int ref;
@@ -21,48 +27,40 @@ struct VacFS {
 	Cache *cache;
 };
 
-struct VacFile {
-	int ref;
-	VtLock *lk;
-	VacFS *fs;		/* immutable */
-
-	int	used;
-	int	removed;
-
-	Source *source;
-	Source *msource;	/* meta source: only for directories */
-	
-	VacDir dir;		/* meta data for this file */
-
-	VacFile *up;	/* parent file */
-	VacFile *down;	/* children */
-	VacFile *next;	/* sibling */
-};
 
 struct Source {
 	VtLock *lk;
 
 	Cache *cache;	/* immutable */
 	int readOnly;	/* immutable */
+
 	Lump *lump;	/* lump containing venti dir entry */
+	ulong block;	/* block number within parent: immutable */
 	int entry;	/* which entry in the block: immutable */
 
-	/* unpacked VtDirEntry */
+	/* most of a VtEntry, except the score */
 	ulong gen;	/* generation: immutable */
 	int dir;	/* dir flags: immutable */
 	int depth;	/* number of levels of pointer blocks */
 	int psize;	/* pointer block size: immutable */
 	int dsize;	/* data block size: immutable */
-	uvlong size2;	/* size in bytes of file */
+	uvlong size;	/* size in bytes of file */
 
-	int epb;	/* dir entries per block = dize/VtDirEntrySize: immutable */
+	int epb;	/* dir entries per block = dize/VtEntrySize: immutable */
+};
+
+struct MetaEntry {
+	uchar *p;
+	ushort size;
 };
 
 struct MetaBlock {
-	int size;
-	int free;
-	int maxindex;
-	int nindex;
+	int maxsize;		/* size of block */
+	int size;		/* size used */
+	int free;		/* free space within used size */
+	int maxindex;		/* entries allocated for table */
+	int nindex;		/* amount of table used */
+	int unbotch;
 	uchar *buf;
 };
 
@@ -77,7 +75,6 @@ struct VacDirEnum {
 	ulong block;	/* current block */
 	MetaBlock mb;	/* parsed version of block */
 	int index;	/* index in block */
-	uchar *buf;	/* raw data of block */
 };
 
 /* Lump states */
@@ -100,8 +97,8 @@ enum {
  * The following invariants are maintained
  * 	Each lump has no more than than one parent per generation
  * 	For Active*, no child has a parent of a greater generation
- *	For Snap*, there is a parent of given generation and there are
- *		no parents of greater gen - implies no children of a less gen
+ *	For Snap*, there is a snap parent of given generation and there are
+ *		no parents of greater gen - implies no children of a greater gen
  *	For *RO, the lump is fixed - no change ca be made - all pointers
  *		are valid venti addresses
  *	For *A, the lump is on the venti server
@@ -114,8 +111,8 @@ enum {
  *	Want to modify a lump
  *		Venti: create new Active(h)
  *		Active(x): x == h: do nothing
- *		Acitve(x): x < h: change to Snap(h) + add Active(h)
- *		ActiveRO(x): change to SnapRO(h) + add Active(h)
+ *		Acitve(x): x < h: change to Snap(h-1) + add Active(h)
+ *		ActiveRO(x): change to SnapRO(h-1) + add Active(h)
  *		ActiveA(x): add Active(h)
  *		Snap*(x): should not occur
  *		Zombie(x): should not occur
@@ -147,7 +144,7 @@ struct Lump {
 	uchar	vscore[VtScoreSize];	/* venti score - when archived */
 	u8int	type;			/* type of packet */
 	int	dir;			/* part of a directory - extension of type */
-	u16int	size;			/* amount of data allocated */
+	u16int	asize;			/* allocated size of block */
 	Lump	*next;			/* doubly linked hash chains */
 	Lump	*prev;
 	u32int	heap;			/* index in heap table */

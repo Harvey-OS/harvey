@@ -22,6 +22,11 @@ typedef unsigned long long int  uint64_t;
 #endif /* IRIX5X */
 #endif /* sgi */
 
+
+#ifdef sun	/* sparc and __svr4__ are also defined on the offending machine */
+#define __EXTENSIONS__	1	/* for struct timeval */
+#endif
+
 #include <inttypes.h>	/* for int64_t et al. */
 #include <stdarg.h>		/* for va_list, vararg macros */
 #include <sys/types.h>

@@ -313,10 +313,9 @@ getchal(State *s, Fsstate *fss)
 {
 	char trbuf[TICKREQLEN];
 	int n;
+
 	safecpy(s->tr.hostid, _str_findattr(s->key->attr, "user"), sizeof(s->tr.hostid));
-	safecpy(s->tr.authid, _str_findattr(s->key->attr, "user"), sizeof(s->tr.authid));
 	safecpy(s->tr.authdom, _str_findattr(s->key->attr, "dom"), sizeof(s->tr.authdom));
-	memrandom(s->tr.chal, sizeof s->tr.chal);
 	s->tr.type = s->astype;
 	convTR2M(&s->tr, trbuf);
 

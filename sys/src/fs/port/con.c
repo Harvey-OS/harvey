@@ -544,6 +544,18 @@ cmd_clri(int argc, char *argv[])
 	}
 }
 
+static void
+cmd_allow(int, char**)
+{
+	wstatallow = writeallow = 1;
+}
+
+static void
+cmd_disallow(int, char**)
+{
+	wstatallow = writeallow = 0;
+}
+
 void
 ckblock(Device *d, long a, int typ, long qpath)
 {
@@ -808,12 +820,14 @@ static
 void
 installcmds(void)
 {
+	cmd_install("allow", "-- disable permission checking", cmd_allow);
 	cmd_install("cfs", "[file] -- set current filesystem", cmd_cfs);
 	cmd_install("clean", "file [bno [addr]] -- block print/fix", cmd_clean);
 	cmd_install("check", "[options]", cmd_check);
 	cmd_install("clri", "[file ...] -- purge files/dirs", cmd_clri);
 	cmd_install("create", "path uid gid perm [lad] -- make a file/dir", cmd_create);
 	cmd_install("date", "[[+-]seconds] -- print/set date", cmd_date);
+	cmd_install("disallow", "-- enable permission checking", cmd_disallow);
 	cmd_install("duallow", "uid -- duallow", cmd_duallow);
 	cmd_install("flag", "-- print set flags", cmd_flag);
 	cmd_install("fstat", "path -- print info on a file/dir", cmd_fstat);
@@ -840,7 +854,7 @@ installcmds(void)
 	errorflag = flag_install("error", "-- on errors");
 	whoflag = flag_install("allchans", "-- on who");
 	authdebugflag = flag_install("authdebug", "-- report authentications");
-//	authdisableflag = flag_install("authdisable", "-- disable authentication");
+	authdisableflag = flag_install("authdisable", "-- disable authentication");
 }
 
 int

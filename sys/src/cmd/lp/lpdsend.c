@@ -44,25 +44,37 @@ alarmhandler(int sig) {
 #define WARNPC	5
 
 int
-copyfile(int in, int out, int tosend) {
+copyfile(int in, int out, long tosend) {
 	int n;
 	int sent = 0;
 	int percent = 0;
 
+	if (debugflag)
+		fprintf(stderr, "lpdsend: copyfile(%d,%d,%ld)\n",
+			in, out, tosend);
 	while ((n=read(in, sendbuf, SBSIZE)) > 0) {
+		if (debugflag)
+			fprintf(stderr, "lpdsend: copyfile read %d bytes from %d\n",
+				n, in);
 		alarm(TIMEOUT); alarmstate = 1;
 		if (write(out, sendbuf, n) != n) {
 			alarm(0);
-			fprintf(stderr, "write failed\n");
+			fprintf(stderr, "write to fd %d failed\n", out);
 			return(0);
 		}
 		alarm(0);
+		if (debugflag)
+			fprintf(stderr, "lpdsend: copyfile wrote %d bytes to %d\n",
+				n, out);
 		sent += n;
 		if (tosend && ((sent*100/tosend)>=(percent+WARNPC))) {
 			percent += WARNPC;
 			fprintf(stderr, ": %5.2f%% sent\n", sent*100.0/tosend);
 		}
 	}
+	if (debugflag)
+		fprintf(stderr, "lpdsend: copyfile read %d bytes from %d\n",
+			n, in);
 	return(!n);
 }
 
@@ -94,7 +106,7 @@ killjob(int printerfd) {
 		fprintf(stderr, "write(printer) error\n");
 		exit(1);
 	}
-	copyfile(printerfd, 2, 0);
+	copyfile(printerfd, 2, 0L);
 }
 
 void
@@ -108,7 +120,7 @@ checkqueue(int printerfd) {
 		fprintf(stderr, "write(printer) error\n");
 		exit(1);
 	}
-	copyfile(printerfd, 2, 0);
+	copyfile(printerfd, 2, 0L);
 /*
 	while ((n=read(printerfd, sendbuf, 1)) > 0) {
 		write(2, sendbuf, n);
@@ -158,7 +170,7 @@ sendctrl(int printerfd) {
 
 /* send data file */
 void
-senddata(int inputfd, int printerfd, int size) {
+senddata(int inputfd, int printerfd, long size) {
 	int strlength;
 
 	sprintf(strbuf, "%c%d dfA%3.3d%s\n", '\3', size, seqno, hostname);
@@ -200,7 +212,53 @@ sendjob(int inputfd, int printerfd) {
 	senddata(inputfd, printerfd, statbuf.st_size);
 	debug("send control info\n");
 	sendctrl(printerfd);
-	fprintf(stderr, "%d bytes sent, status: end of job\n", statbuf.st_size);
+	fprintf(stderr, "%ld bytes sent, status: end of job\n", statbuf.st_size);
+}
+
+/*
+ *  make an address, add the defaults
+ */
+char *
+netmkaddr(char *linear, char *defnet, char *defsrv)
+{
+	static char addr[512];
+	char *cp;
+
+	/*
+	 *  dump network name
+	 */
+	cp = strchr(linear, '!');
+	if(cp == 0){
+		if(defnet==0){
+			if(defsrv)
+				sprintf(addr, "net!%s!%s", linear, defsrv);
+			else
+				sprintf(addr, "net!%s", linear);
+		}
+		else {
+			if(defsrv)
+				sprintf(addr, "%s!%s!%s", defnet, linear, defsrv);
+			else
+				sprintf(addr, "%s!%s", defnet, linear);
+		}
+		return addr;
+	}
+
+	/*
+	 *  if there is already a service, use it
+	 */
+	cp = strchr(cp+1, '!');
+	if(cp)
+		return linear;
+
+	/*
+	 *  add default service
+	 */
+	if(defsrv == 0)
+		return linear;
+	sprintf(addr, "%s!%s", linear, defsrv);
+
+	return addr;
 }
 
 main(int argc, char *argv[]) {
@@ -310,20 +368,22 @@ main(int argc, char *argv[]) {
 				exit(1);
 			}
 			atexit(cleanup);
-			debug("copy input to temp file\n");
-			if (!copyfile(0, inputfd, 0)) {
+			debug("copy input to temp file ");
+			debug(tmpfilename);
+			debug("\n");
+			if (!copyfile(0, inputfd, 0L)) {
 				fprintf(stderr, "failed to copy file to temporary file\n");
 				exit(1);
 			}
-			if (lseek(inputfd, 0, 0) < 0) {
+			if (lseek(inputfd, 0L, 0) < 0) {
 				fprintf(stderr, "failed to seek back to the beginning of the temporary file\n");
 				exit(1);
 			}
 		}
 	}
 
-	fprintf(stderr, "connecting to port 515 on remote host\n");
-	sprintf(strbuf, "tcp!%s!515", desthostname);
+	sprintf(strbuf, "%s", netmkaddr(desthostname, "tcp", "printer"));
+	fprintf(stderr, "connecting to %s\n", strbuf);
 	for (sendport=721; sendport<=731; sendport++) {
 		sprintf(portstr, "%3.3d", sendport);
 		fprintf(stderr, " trying from port %s...", portstr);

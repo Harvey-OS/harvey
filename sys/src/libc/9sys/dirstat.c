@@ -25,7 +25,7 @@ dirstat(char *name)
 			free(d);
 			return nil;
 		}
-		nd = GBIT16((uchar*)buf);	/* size needed to store whole stat buffer */
+		nd = GBIT16((uchar*)buf);	/* upper bound on size of Dir + strings */
 		if(nd <= n){
 			convM2D(buf, n, d, (char*)&d[1]);
 			return d;

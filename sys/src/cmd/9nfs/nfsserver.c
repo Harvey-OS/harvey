@@ -151,6 +151,7 @@ nfssetattr(int n, Rpccall *cmd, Rpccall *reply)
 	}else if(sattr.size != NOATTR)
 		return error(reply, NFSERR_PERM);
 	r = 0;
+	nulldir(&dir);
 	if(sattr.mode != NOATTR)
 		++r, dir.mode = (dir.mode & ~0777) | (sattr.mode & 0777);
 	if(sattr.atime != NOATTR)
@@ -490,6 +491,7 @@ nfsrename(int n, Rpccall *cmd, Rpccall *reply)
 
 	if(xp->parent == xp && toelem.s[0] == '#')
 		return error(reply, NFSERR_PERM);
+	nulldir(&dir);
 	dir.name = toelem.s;
 	if(xfwstat(newxf, &dir) < 0)
 		return error(reply, NFSERR_PERM);

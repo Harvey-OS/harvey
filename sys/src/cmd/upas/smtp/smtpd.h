@@ -37,7 +37,7 @@ extern	List	ourdoms;
 extern	ulong	peerip;
 extern	int	trusted;
 
-void	auth(String *);
+void	auth(String *, String *);
 int	blocked(String*);
 int	cidrcheck(char*);
 void	data(void);
@@ -49,6 +49,7 @@ void	help(String *);
 void	listadd(List*, String*);
 void	listfree(List*);
 void	noop(void);
+int	optoutofspamfilter(char*);
 void	quit(void);
 void	parseinit(void);
 void	receiver(String*);

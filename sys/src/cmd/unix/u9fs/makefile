@@ -8,6 +8,12 @@
 # To correctly handle 64-bit files and offsets, add -64 to CFLAGS and LDFLAGS
 # On Irix 5.X, add -DIRIX5X to hack around their own #include problems (see plan9.h).
 #
+# SunOS
+#
+# SunOS 5.5.1 does not provide inttypes.h; add -lsunos to CFLAGS and
+# change CC and LD to gcc.  Add -lsocket, -lnsl to LDTAIL.
+# If you need <inttypes.h> copy sun-inttypes.h to inttypes.h.
+#
 CC=cc
 CFLAGS=-g -I.
 LD=cc

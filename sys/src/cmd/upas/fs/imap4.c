@@ -290,15 +290,15 @@ imap4login(Imap *imap)
 
 	imap->tag = 0;
 	s = imap4resp(imap);
-	if(!isokay(s) || strstr(s, "IMAP4")==0)
-		return "error in initial handshake";
+	if(!isokay(s))
+		return "error in initial IMAP handshake";
 
 	if(imap->user != nil)
 		up = auth_getuserpasswd(auth_getkey, "proto=pass service=imap server=%q user=%q", imap->host, imap->user);
 	else
 		up = auth_getuserpasswd(auth_getkey, "proto=pass service=imap server=%q", imap->host);
 	if(up == nil)
-		return "cannot find password";
+		return "cannot find IMAP password";
 
 	imap->tag = 1;
 	imap4cmd(imap, "LOGIN %Z %Z", up->user, up->passwd);

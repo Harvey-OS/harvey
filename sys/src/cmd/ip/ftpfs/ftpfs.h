@@ -56,7 +56,7 @@ int	fileisdirty(Node*);
 void	hello(char*);
 void	quit(void);
 void	preamble(char*);
-void	rlogin(void);
+void	rlogin(char*);
 void	clogin(char *, char *);
 void	nop(void);
 int	readdir(Node*);

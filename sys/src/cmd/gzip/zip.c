@@ -210,7 +210,7 @@ zipDir(Biobuf *bout, int fd, ZipHead *zh, int stdout)
 	file = malloc(nf);
 	if(file == nil)
 		error("out of memory");
-	while((nd = dirread(fd, &dirs)) >= 0){
+	while((nd = dirread(fd, &dirs)) > 0){
 		for(i = 0; i < nd; i++){
 			snprint(file, nf, "%s%s", pfile, dirs[i].name);
 			zip(bout, file, stdout);

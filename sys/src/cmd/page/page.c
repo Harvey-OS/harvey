@@ -6,7 +6,7 @@
 #include "page.h"
 
 int resizing;
-int newwindow;
+int mknewwindow;
 int doabort;
 int chatty;
 int reverse = -1;
@@ -116,7 +116,7 @@ main(int argc, char **argv)
 		truetoboundingbox = 1;
 		break;
 	case 'w':
-		newwindow = 1;
+		mknewwindow = 1;
 		resizing = 1;
 		break;
 	case 'i':
@@ -157,7 +157,7 @@ main(int argc, char **argv)
 
 	fmtinstall('R', Rfmt);
 	fmtinstall('P', Pfmt);
-	if(newwindow)
+	if(mknewwindow)
 		newwin();
 
 	if(readstdin){
@@ -227,7 +227,7 @@ main(int argc, char **argv)
 void
 wexits(char *s)
 {
-	if(s && *s && strcmp(s, "note") != 0 && newwindow)
+	if(s && *s && strcmp(s, "note") != 0 && mknewwindow)
 		sleep(10*1000);
 	postnote(PNPROC, notewatcher, "die");
 	exits(s);

@@ -615,9 +615,10 @@ nntppost(Netbuf *n, char *msg)
 		if(p[0]=='.')
 			Bputc(&n->bw, '.');
 		Bwrite(&n->bw, p, strlen(p));
+		Bputc(&n->bw, '\r');
 		Bputc(&n->bw, '\n');
 	}
-	Bprint(&n->bw, ".\n");
+	Bprint(&n->bw, ".\r\n");
 
 	if(nntpresponse(n, 0, nil) < 0)
 		return n->response;

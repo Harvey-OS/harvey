@@ -47,6 +47,22 @@ ialloc(ulong n, int align)
 	return 0;
 }
 
+void
+prbanks(void)
+{
+	Mbank *mbp;
+
+	for(mbp = mconf.bank; mbp < &mconf.bank[mconf.nbank]; mbp++)
+		print("bank[%ld]: base 0x%8.8lux, limit 0x%8.8lux\n",
+			mbp - mconf.bank, mbp->base, mbp->limit);
+}
+
+static void
+cmd_memory(int, char *[])
+{
+	prbanks();
+}
+
 /*
  * allocate rest of mem
  * for io buffers.
@@ -64,6 +80,7 @@ iobufinit(void)
 	wlock(&mainlock);	/* init */
 	wunlock(&mainlock);
 
+	prbanks();
 	m = 0;
 	for(mbp = mconf.bank; mbp < &mconf.bank[mconf.nbank]; mbp++) {
 		m += mbp->limit - mbp->base;
@@ -121,6 +138,8 @@ iobufinit(void)
 		i += mbp->limit - mbp->base;
 	print("	mem left = %d\n", i);
 	print("		out of = %ld\n", conf.mem);
+	/* paranoia: add this command as late as is easy */
+	cmd_install("memory", "-- print ranges of memory banks", cmd_memory);
 }
 
 void*

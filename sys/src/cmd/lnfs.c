@@ -377,6 +377,7 @@ rreaddir(Fid *f)
 		f->diroff = 0;
 		if(f->ndir < 0)
 			return passerror();
+		readnames();
 		for(i = 0; i < f->ndir; i++)
 			f->dir[i].name = short2long(f->dir[i].name);
 	}

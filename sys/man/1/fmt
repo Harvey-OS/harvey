@@ -14,6 +14,9 @@ fmt, htmlfmt \- simple text formatters
 [
 .B -a
 ] [
+.B -c
+.I charset
+] [
 .B -u
 .I url
 ] [
@@ -62,6 +65,12 @@ Normally
 .I htmlfmt
 suppresses the contents of form fields and anchors (URLs and image files); this flag
 causes it to print them, in square brackets.
+.TP
+.BI -c " charset
+change the default character set from iso-8859-1 to
+.IR charset .
+This is the character set assumed if there isn't one
+specified by the html itself in a <meta> directive.
 .TP
 .BI -u " url
 Use

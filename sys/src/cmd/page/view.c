@@ -616,10 +616,13 @@ translate(Point delta)
 	drawdiff(screen, insetrect(r, -2), r, display->black, nil, ZP);
 
 	/* fill in image where it used to be off the screen. */
-	if(rectclip(&or, screen->r))
+	if(rectclip(&or, screen->r)){
+		drawdiff(screen, r, rectaddpt(or, delta), display->white, nil, im->r.min);
 		drawdiff(screen, r, rectaddpt(or, delta), im, nil, im->r.min);
-	else
+	}else{
+		draw(screen, r, display->white, nil, im->r.min);
 		draw(screen, r, im, nil, im->r.min);
+	}
 	flushimage(display, 1);
 }
 

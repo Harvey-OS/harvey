@@ -474,6 +474,7 @@ penmousetrack(int b, int x, int y)
 	}
 	wakeup(&mouse.r);
 	drawactive(1);
+	resetsuspendtimer();
 }
 
 int

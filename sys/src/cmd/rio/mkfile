@@ -2,28 +2,25 @@
 BIN=/$objtype/bin
 
 TARG=rio
-FILES=\
-	rio\
-	data\
-	fsys\
-	scrl\
-	time\
-	util\
-	wctl\
-	wind\
-	xfid\
+OFILES=\
+	rio.$O\
+	data.$O\
+	fsys.$O\
+	scrl.$O\
+	time.$O\
+	util.$O\
+	wctl.$O\
+	wind.$O\
+	xfid.$O\
 
 HFILES=dat.h\
 	fns.h\
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/bin/$TARG\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/%}\
 
 </sys/src/cmd/mkone
 

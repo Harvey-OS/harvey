@@ -15,10 +15,8 @@ PORT=\
 	cache.$O\
 	chan.$O\
 	dev.$O\
-	edf.$O\
 	fault.$O\
 	latin1.$O\
-	nulledf.$O\
 	rebootcmd.$O\
 	page.$O\
 	parse.$O\
@@ -26,6 +24,7 @@ PORT=\
 	portclock.$O\
 	print.$O\
 	proc.$O\
+	nulledf.$O\
 	qio.$O\
 	qlock.$O\
 	segment.$O\
@@ -64,6 +63,7 @@ LIB=\
 
 size:VQ: $p$CONF
 	ls -l $p$CONF|sed 's/^[^ ]+ [^ ]+ [^ ]+ [^ ]+ [^ ]+ ([^ ]+).*/load ram 0xc0008000 \1/'
+	echo load kernel
 	echo !xms /sys/src/9/bitsy/^$p$CONF
 	echo jump 0xc0008010
 
@@ -80,8 +80,14 @@ $p$CONF:	$OBJ $CONF.c $LIB /arm/inflate
 	rm $target.gz
 
 install:V:	$p$CONF paqdisk
-	cp $p$CONF /$objtype/$p$CONF
+	test -d /n/once/arm && cp $p$CONF /n/once/arm/$p$CONF
+	test -d /n/once/arm && cp s$p$CONF /n/once/arm/s$p$CONF
+	test -d /n/once/arm && cp paqdisk /n/once/arm/paqdisk
 	9fs lookout && cp $p$CONF /n/lookout/$objtype/$p$CONF
+
+installkern:V:	$p$CONF
+	cp $p$CONF /$objtype/$p$CONF
+	cp s$p$CONF /$objtype/s$p$CONF
 
 <../boot/bootmkfile
 <../port/portmkfile
@@ -97,7 +103,7 @@ init.h:	initcode /sys/src/libc/9syscall/sys.h
 clock.$O:	/$objtype/include/ureg.h
 
 devether.$O: ../port/netif.h
-wavelan.$O: wavelan.c ../pc/wavelan.c wavelan.h ../pc/wavelan.h
+wavelan.$O: wavelan.c wavelan.h ../pc/wavelan.h
 
 fpi.$O: fpi.h
 fpiarm.$O: fpi.h
@@ -109,8 +115,12 @@ paqdisk:V:
 	rm -fr armpaq
 	mkdir armpaq
 	cd armpaq
-	disk/mkfs -a ../armpaq.proto|disk/mkext -d .
+	disk/mkfs -a /sys/lib/sysconfig/proto/armpaqproto|disk/mkext -d .
 	mkpaqfs -o ../paqdisk
 	cd ..
 	echo load ramdisk
 	echo !xms /sys/src/9/bitsy/paqdisk
+
+bitsy.clean:
+	rm -rf armpaq $p$CONF s$p$CONF paqdisk $CONF.c boot$CONF.c ../boot/libboot.a5
+

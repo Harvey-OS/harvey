@@ -69,11 +69,12 @@ f_session(Chan *cp, Oldfcall *in, Oldfcall *ou)
 		print("c_session %d\n", cp->chan);
 
 	memmove(cp->rchal, in->chal, sizeof(cp->rchal));
-	memmove(ou->chal, cp->chal, sizeof(ou->chal));
 	if(wstatallow || cp == cons.srvchan){
+		memset(ou->chal, 0, sizeof(ou->chal));
 		memset(ou->authid, 0, sizeof(ou->authid));
 	}else{
 		mkchallenge(cp);
+		memmove(ou->chal, cp->chal, sizeof(ou->chal));
 		memmove(ou->authid, nvr.authid, sizeof(ou->authid));
 	}
 	sprint(ou->authdom, "%s.%s", service, nvr.authdom);

@@ -57,16 +57,18 @@ fcallfmt(Fmt *fmt)
 		break;
 	case Twalk:	/* 110 */
 		p = seprint(buf, e, "Twalk tag %ud fid %d newfid %d nwname %d ", tag, fid, f->newfid, f->nwname);
+		if(f->nwname <= MAXWELEM)
 			for(i=0; i<f->nwname; i++)
 				p = seprint(p, e, "%d:%s ", i, f->wname[i]);
 		break;
 	case Rwalk:
 		p = seprint(buf, e, "Rwalk tag %ud nwqid %ud ", tag, f->nwqid);
-		for(i=0; i<f->nwqid; i++){
-			q = &f->wqid[i];
-			p = seprint(p, e, "%d:" QIDFMT " ", i,
-				q->path, q->vers, qidtype(tmp, q->type));
-		}
+		if(f->nwqid <= MAXWELEM)
+			for(i=0; i<f->nwqid; i++){
+				q = &f->wqid[i];
+				p = seprint(p, e, "%d:" QIDFMT " ", i,
+					q->path, q->vers, qidtype(tmp, q->type));
+			}
 		break;
 	case Topen:	/* 112 */
 		seprint(buf, e, "Topen tag %ud fid %ud mode %d", tag, fid, f->mode);

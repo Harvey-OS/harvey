@@ -9,6 +9,7 @@ ALLOFILES=\
 	atof.$O\
 	atoi.$O\
 	atol.$O\
+	atoll.$O\
 	bsearch.$O\
 	calloc.$O\
 	clock.$O\
@@ -48,7 +49,9 @@ ALLOFILES=\
 	strtod.$O\
 	strtok.$O\
 	strtol.$O\
+	strtoll.$O\
 	strtoul.$O\
+	strtoull.$O\
 	strxfrm.$O\
 	toupper.$O\
 

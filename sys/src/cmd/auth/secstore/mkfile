@@ -13,12 +13,21 @@ OFILES =\
 
 
 TARG = secstore secstored secuser aescbc
+DEBUG = secacct secchk
 
-UPDATE=`{echo *.[ch] mkfile} `{echo $TARG |sed 's/([^ $]*)( |$)/\/386\/bin\/auth\/\1 /g'}
+UPDATE=\
+	$HFILES\
+	dirls.$O\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/auth/%}\
+	${DEBUG:%=%.c}\
+	mkfile\
+	/sys/man/1/secstore\
 
 default:V: $O.aescbc $O.secstore $O.secstored $O.secuser
 
-$O.aescbc: aescbc.$O
+$O.aescbc: aescbc.$O util.$O
 	$LD -o $target $prereq
 
 $O.secstore: secstore.$O  $OFILES

@@ -13,7 +13,6 @@ TARG = 	dhcpclient\
 	rexexec\
 	rip\
 	rlogind\
-	sniffer\
 	telnet\
 	telnetd\
 	tftpd\
@@ -22,8 +21,14 @@ TARG = 	dhcpclient\
 
 DIRS=ftpfs dhcpd httpd ppp imap4d snoopy
 
-
 BIN=/$objtype/bin/ip
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/ip/%}\
 
 </sys/src/cmd/mkmany
 
@@ -43,6 +48,14 @@ installdirs:V:
 		echo mk $i
 		cd $i
 		mk install
+	}
+
+update:V:
+	update $UPDATEFLAGS $UPDATE
+	for (i in $DIRS) @{
+		echo update $i
+		cd $i
+		mk 'UPDATEFLAGS='$"UPDATEFLAGS update
 	}
 
 clean:V:

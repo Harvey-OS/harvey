@@ -1,13 +1,38 @@
 .TH SRV 4 
 .SH NAME
-srv, srvold9p, 9fs \- start network file service
+srv, srvold9p, 9fs, srvssh \- start network file service
 .SH SYNOPSIS
 .B srv
 [
-.B -abcCmq
+.B -abceCmq
+]
+[
+.B -s
+.I seconds
 ]
 .RI [ net !] system\c
 .RI [! service ]
+[
+.I srvname
+[
+.I mtpt
+] ]
+.PP
+.B srvssh
+[
+.B -r
+]
+[
+.B -R
+]
+[
+.B -s
+]
+[
+.B -u
+.I u9fspath
+]
+.I system
 [
 .I srvname
 [
@@ -62,7 +87,7 @@ to access the files provided by the remote machine.
 If
 .I srvname
 is omitted, the first argument to
-.B srv
+.I srv
 is used.
 Option
 .B m
@@ -86,6 +111,23 @@ and
 .B C 
 flags are used to control the mount flag as in
 .IR bind (1).
+The
+.B e
+flag causes
+.I srv
+to treat
+.I system
+as a shell command to be executed rather than
+an address to be dialed.
+The
+.B s
+flag causes
+.I srv
+to sleep for the specified number of seconds
+after establishing the connection
+before posting and mounting it.
+This is sometimes needed by
+.IR srvssh .
 .PP
 The specified
 .I service
@@ -132,6 +174,30 @@ to make the dump file system available on
 is an
 .IR rc (1)
 script; examine it to see what local conventions apply.
+.PP
+.I Srvssh
+is an
+.IR rc (1)
+connects to a remote Unix system via 
+.IR ssh (1)
+and starts
+.IR u9fs (4).
+The
+.B -u
+option specifies the path to the
+.B u9fs
+binary on the remote system.
+(By default, an unrooted path of
+.B u9fs
+is used; if the binary is in the path of
+the remote SSH server, you don't need the
+.B -u
+option.)
+For information about the other options,
+see the introductory comment in
+.BR /rc/bin/srvssh .
+The arguments are the same as
+.IR srv .
 .PP
 .I Srvold9p
 is a compatibilty hack to allow Fourth Edition Plan 9 systems
@@ -215,6 +281,15 @@ Other windows may then mount the connection directly:
 .EX
 mount /srv/kgbsun /n/kgbsun
 .EE
+.PP
+To connect to an instance of the Unix server
+.IR u9fs (4)
+started via
+.IR ssh (1):
+.IP
+.EX
+srvssh unix
+.EE
 .SH NOTE
 The TCP port used for 9P is 564.
 .SH FILES
@@ -230,8 +305,11 @@ and
 .br
 .B /rc/bin/9fs
 .br
+.B /rc/bin/srvssh
+.br
 .SH "SEE ALSO"
 .IR bind (1),
 .IR dial (2),
 .IR srv (3),
-.IR ftpfs (4)
+.IR ftpfs (4),
+.IR u9fs (4)

@@ -36,7 +36,7 @@ A user may filter all incoming mail by creating
 a world readable/executable file
 .BI /mail/box/ username /pipeto.
 If the file is a shell script, it can use the
-commands described here to aid in
+commands described here to implement a filter.
 .PP
 .I Filter
 provides simple mail filtering.

@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <ndb.h>
+#include <fcall.h>
 
 enum
 {
@@ -19,6 +20,7 @@ struct Endpoints
 };
 
 void		xfer(int, int);
+void		xfer9p(int, int);
 Endpoints*	getendpoints(char*);
 void		freeendpoints(Endpoints*);
 char*		iptomac(char*, char*);
@@ -31,10 +33,15 @@ main(int argc, char **argv)
 	int checkmac = 0;
 	Endpoints *ep;
 	char *mac;
+	void (*x)(int, int);
 
+	x = xfer;
 	ARGBEGIN{
 	case 'm':
 		checkmac = 1;
+		break;
+	case '9':
+		x = xfer9p;
 		break;
 	}ARGEND;
 
@@ -62,10 +69,10 @@ main(int argc, char **argv)
 		fprint(2, "%s: fork: %r\n", argv0);
 		exits("dial");
 	case 0:
-		xfer(0, fd);
+		(*x)(0, fd);
 		break;
 	default:
-		xfer(fd, 1);
+		(*x)(fd, 1);
 		break;
 	}
 	postnote(PNGROUP, getpid(), "die yankee pig dog");
@@ -81,6 +88,37 @@ xfer(int from, int to)
 	while((n = read(from, buf, sizeof buf)) > 0)
 		if(write(to, buf, n) < 0)
 			break;
+}
+
+void
+xfer9p(int from, int to)
+{
+	uchar *buf;
+	uint nbuf;
+	int n;
+
+	nbuf = 256;
+	buf = malloc(nbuf);
+	if(buf == nil)
+		sysfatal("xfer: malloc %ud: %r", nbuf);
+
+	for(;;){
+		if(readn(from, buf, 4) != 4)
+			break;
+		n = GBIT32(buf);
+		if(n > nbuf){
+			nbuf = n+8192;
+			buf = realloc(buf, nbuf);
+			if(buf == nil)
+				sysfatal("xfer: realloc %ud: %r", nbuf);
+		}
+		if(readn(from, buf+4, n-4) != n-4)
+			break;
+		if(write(to, buf, n) != n){
+			sysfatal("oops: %r");
+			break;
+		}
+	}
 }
 
 void
@@ -185,3 +223,4 @@ macok(char *mac)
 	ndbfree(tp);
 	return 1;
 }
+

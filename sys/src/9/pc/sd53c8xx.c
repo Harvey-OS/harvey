@@ -1004,8 +1004,7 @@ calcblockdma(Dsa *d, ulong base, ulong count)
 	d->dmaaddr[2] = base >> 16;
 	d->dmaaddr[3] = base >> 24;
 	setmovedata(&d->data_buf, base + blocks * A_BSIZE, count - blocks * A_BSIZE);
-	if (legetl(d->data_buf.dbc) == 0)
-		d->flag = 1;
+	d->flag = legetl(d->data_buf.dbc) == 0;
 }
 
 static ulong
@@ -1337,12 +1336,13 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				/* back up one in the data transfer */
 				IPRINT(PRINTPREFIX "%d/%d: ignore wide residue %d, WSR = %d\n",
 				    dsa->target, dsa->lun, n->scratcha[1], n->scntl2 & 1);
-				if (dsa->dmablks == 0 && dsa->flag)
+				if (dsa->flag == 2)
 					IPRINT(PRINTPREFIX "%d/%d: transfer over; residue ignored\n",
 					    dsa->target, dsa->lun);
-				else
+				else {
 					calcblockdma(dsa, legetl(dsa->dmaaddr) - 1,
 					    dsa->dmablks * A_BSIZE + legetl(dsa->data_buf.dbc) + 1);
+				}
 				cont = -2;
 				break;
 			case A_SIR_ERROR_NOT_MSG_IN_AFTER_RESELECT:
@@ -1730,10 +1730,14 @@ docheck:
 	 * adjust datalen
 	 */
 	r->rlen = r->dlen;
-	if (d->dmablks > 0)
+	if (DEBUG(0))
+		KPRINT(PRINTPREFIX "%d/%d: exec: before rlen adjust: dmablks %d flag %d dbc %lud\n",
+		    target, r->lun, d->dmablks, d->flag, legetl(d->data_buf.dbc));
+	r->rlen = r->dlen;
+	if (d->flag != 2) {
 		r->rlen -= d->dmablks * A_BSIZE;
-	else if (d->flag == 0)
 		r->rlen -= legetl(d->data_buf.dbc);
+	}
 	if(!r->write)
 		dumpreaddata(r->data, r->rlen);
 	if (DEBUG(0))

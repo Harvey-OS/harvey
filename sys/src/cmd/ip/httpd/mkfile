@@ -9,12 +9,7 @@ TARG=\
 	imagemap\
 	man2html\
 	save\
-	netlib_find\
-	netlib_history\
-	P\
-	to\
 	wikipost\
-	echo\
 
 LIB=libhttps.a.$O
 
@@ -31,6 +26,12 @@ LIBSOFILES=\
 	authorize.$O\
 
 BIN=/$objtype/bin/ip/httpd
+
+UPDATE=\
+	$HFILES\
+	${LIBSOFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/ip/httpd/%}\
 
 </sys/src/cmd/mkmany
 
@@ -55,6 +56,15 @@ re:N: v.re
 none:VQ:
 	echo usage: mk all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
 	echo usage: mk safeinstall, safeinstallall, cmd.safeinstallall, or cmd.safeinstallall
+
+$O.9down: 9down.$O whois.$O classify.$O $LIB
+	$LD -o $target $prereq
+
+$O.9down4e: 9down4e.$O whois.$O classify.$O $LIB
+	$LD -o $target $prereq
+
+$O.test9down: 9down4e.$O whois.$O classify.$O $LIB
+	$LD -o $target $prereq
 
 $O.testclassify: testclassify.$O whois.$O classify.$O $LIB
 	$LD -o $target $prereq

@@ -11,6 +11,9 @@ import \- import a name space from a remote system
 ] [
 .B "-e 'enc auth'"
 ] [
+.B -k
+.I keypattern
+] [
 .B -p
 ] [
 .B "-s \f2srvname\fP
@@ -93,6 +96,12 @@ The
 option posts the connection's mountable file descriptor in
 .B /srv
 under the given name.
+.PP
+The
+.B -k
+option specifies a key pattern suffix to be used in the
+.B auth_proxy
+call that authenticates to the remote side.
 .SH EXAMPLE
 Assume a machine
 .B kremvax

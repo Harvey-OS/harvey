@@ -328,7 +328,10 @@ xfroot(char *name, int n)
 	for(s=head; s; s=s->next){
 		if(strncmp(name, s->service, n) == 0)
 			return s->root;
-		p = strrchr(s->service, '!');
+		p = strrchr(s->service, '!');	/* for -a il!foo */
+		if(p && strncmp(name, p+1, n) == 0)
+			return s->root;
+		p = strrchr(s->service, '/');	/* for -a /srv/foo */
 		if(p && strncmp(name, p+1, n) == 0)
 			return s->root;
 	}

@@ -1,36 +1,33 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libhttpd.a
-FILES=\
-	alloc\
-	checkcontent\
-	date\
-	fail\
-	gethead\
-	hio\
-	httpfmt\
-	httpunesc\
-	lower\
-	okheaders\
-	parse\
-	parsereq\
-	query\
-	redirected\
-	unallowed\
-	urlfmt\
-	urlunesc\
+OFILES=\
+	alloc.$O\
+	checkcontent.$O\
+	date.$O\
+	fail.$O\
+	gethead.$O\
+	hio.$O\
+	httpfmt.$O\
+	httpunesc.$O\
+	lower.$O\
+	okheaders.$O\
+	parse.$O\
+	parsereq.$O\
+	query.$O\
+	redirected.$O\
+	unallowed.$O\
+	urlfmt.$O\
+	urlunesc.$O\
 
 HFILES=\
 	/sys/include/httpd.h\
 	escape.h\
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/libhttpd.a\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib

@@ -238,12 +238,14 @@ consopen(Chan *c, int omode)
 }
 
 void
-setsnarf(char *buf, int n)
+setsnarf(char *buf, int n, int *vers)
 {
 	int i;
 
 	qlock(&snarf);
 	snarf.vers++;
+	if(vers)
+		*vers = snarf.vers;	
 	for(i = 0; i < nelem(consdir); i++){
 		if(consdir[i].qid.type == Qsnarf){
 			consdir[i].qid.vers = snarf.vers;
@@ -276,7 +278,7 @@ consclose(Chan *c)
 		t = c->aux;
 		if(t == nil)
 			break;
-		setsnarf(t->buf, t->n);
+		setsnarf(t->buf, t->n, 0);
 		break;
 	}
 }

@@ -19,10 +19,10 @@ BIN=/$objtype/bin/upas
 
 UPDATE=\
 	mkfile\
-	${TARG:%=/386/bin/upas/%}\
-	${TARG:%=%.c}\
 	$HFILES\
+	${TARG:%=%.c}\
 	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/upas/%}\
 
 </sys/src/cmd/mkone
 CFLAGS=$CFLAGS -I/sys/include -I../common

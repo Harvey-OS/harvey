@@ -323,3 +323,14 @@ struct Gpclkregs
 	ulong	r3;
 };
 extern Gpclkregs *gpclkregs;
+
+/*
+ * Dont use this on bitsy drivers.
+ * This is for compat with code compiled
+ * from the ../pc directory
+ */
+
+typedef struct Pcidev	Pcidev;
+typedef struct ISAConf	ISAConf;
+struct Pcidev { int dummy; };
+struct ISAConf{ int port; int irq; };

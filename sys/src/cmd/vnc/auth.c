@@ -113,8 +113,6 @@ vnchandshake_srv(Vnc *v)
 	char msg[VerLen+1];
 
 	strcpy(msg, version);
-	if(v->extended)
-		msg[0] = 'E';
 	if(verbose)
 		fprint(2, "server version: %s\n", msg);
 	vncwrbytes(v, msg, VerLen);
@@ -132,19 +130,13 @@ vnchandshake(Vnc *v)
 	char msg[VerLen+1];
 
 	vncrdbytes(v, msg, VerLen);
-	if(strncmp(msg, "RFB ", 4) == 0)
-		v->extended = 0;
-	else if(strncmp(msg, "EFB ", 4) == 0)
-		v->extended = 1;
-	else{
+	if(strncmp(msg, "RFB ", 4) != 0){
 		werrstr("bad rfb version \"%s\"", msg);
 		return -1;
 	}
 	if(verbose)
 		fprint(2, "server version %s\n", msg);
 	strcpy(msg, version);
-	if(v->extended)
-		msg[0] = 'E';
 	vncwrbytes(v, msg, VerLen);
 	vncflush(v);
 	return 0;
@@ -156,6 +148,7 @@ vncauth(Vnc *v)
 	char pw[128], *reason;
 	uchar chal[VncChalLen];
 	ulong auth;
+	char *p, *server;
 
 	auth = vncrdlong(v);
 	switch(auth) {
@@ -179,14 +172,18 @@ vncauth(Vnc *v)
 
 	case AVncAuth:
 		vncrdbytes(v, chal, VncChalLen);
-
+		server = strdup(serveraddr);
+		p = strrchr(server, ':');
+		if(p)
+			*p = 0;
 		if(auth_respond(chal, VncChalLen, nil, 0, chal, VncChalLen, auth_getkey,
-			"proto=vnc role=client server=%s", serveraddr) != VncChalLen){
+			"proto=vnc role=client server=%s", server) != VncChalLen){
 			/* BUG: rip this out once people have new kernels */
 			readln("password: ", pw, sizeof(pw));
 			vncencrypt(chal, VncChalLen, pw);
 			memset(pw, 0, sizeof pw);
 		}
+		free(server);
 		vncwrbytes(v, chal, VncChalLen);
 		vncflush(v);
 

@@ -206,8 +206,8 @@ void outcode(tree *t, int eflag)
 		break;
 	case WHILE:
 		q=codep;
-		emitf(Xsettrue);
 		outcode(c0, 0);
+		if(q==codep) emitf(Xsettrue);	/* empty condition == while(true) */
 		emitf(Xtrue);
 		p=emiti(0);
 		outcode(c1, eflag);

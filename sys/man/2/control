@@ -1817,10 +1817,10 @@ with this:
 .SH SOURCE
 .B /sys/src/libcontrol
 .SH SEE ALSO
-.IR draw (2)
-.IR frame (2)
-.IR graphics (2)
-.IR quote (2)
+.IR draw (2),
+.IR frame (2),
+.IR graphics (2),
+.IR quote (2),
 .IR thread (2)
 .SH BUGS
 The library is strict about matters of formatting, argument count in messages,

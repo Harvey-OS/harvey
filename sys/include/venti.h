@@ -5,28 +5,23 @@ typedef struct VtSession	VtSession;
 typedef struct VtSha1		VtSha1;
 typedef struct Packet		Packet;
 typedef struct VtLock 		VtLock;
+typedef struct VtRWLock 	VtRWLock;
 typedef struct VtRendez		VtRendez;
-typedef struct VtRootLump	VtRootLump;
-typedef struct VtDirEntry1	VtDirEntry1;
-typedef struct VtDirEntry2	VtDirEntry2;
+typedef struct VtRoot		VtRoot;
+typedef struct VtEntry		VtEntry;
 typedef struct VtServerVtbl	VtServerVtbl;
-typedef VtDirEntry2	VtDirEntry;
 
 enum {
 	VtScoreSize	= 20, /* Venti */
 	VtMaxLumpSize	= 56*1024,
 	VtPointerDepth	= 7,	
-	VtDirEntrySize1	= 32,
-	VtDirEntrySize2	= 40,
-	VtDirEntrySize	= VtDirEntrySize2,
+	VtEntrySize	= 40,
 	VtRootSize 	= 300,
 	VtMaxStringSize	= 1000,
 	VtAuthSize 	= 1024,  /* size of auth group - in bits - must be multiple of 8 */
 	MaxFragSize 	= 9*1024,
 	VtMaxFileSize	= (1ULL<<48) - 1,
-	VtRootVersion1	= 1,
-	VtRootVersion2	= 2,
-	VtRootVersion	= VtRootVersion2,
+	VtRootVersion	= 2,
 };
 
 /* crypto strengths */
@@ -74,49 +69,34 @@ enum {
 	VtPointerType9,		/* not used */
 	VtDataType,
 
-	VtMaxType,
-
-	VtPrivateTypes = 0xf0,	/* for interal use - not to go over protocol */
+	VtMaxType
 };
 
 /* Dir Entry flags */
 enum {
-	VtDirEntryActive = (1<<0),	/* entry is in use */
-	VtDirEntryDir = (1<<1),		/* a directory */
-	VtDirEntryDepthShift = 2,	/* shift for pointer depth */
-	VtDirEntryDepthMask = (0x7<<2),	/* mask for pointer depth */
+	VtEntryActive = (1<<0),		/* entry is in use */
+	VtEntryDir = (1<<1),		/* a directory */
+	VtEntryDepthShift = 2,		/* shift for pointer depth */
+	VtEntryDepthMask = (0x7<<2),	/* mask for pointer depth */
+	VtEntryLocal = (1<<5),		/* used for local storage: should not be set for Venti blocks */
 };
 
-/*
- * VtRootLump & VtDirEntry perhaps need to be more portable
- */
-struct VtRootLump {
-	uchar version[2];
+struct VtRoot {
+	ushort version;
 	char name[128];
 	char type[128];
 	uchar score[VtScoreSize];	/* to a Dir block */
-	uchar blockSize[2];		/* maximum block size */
+	ushort blockSize;		/* maximum block size */
 	uchar prev[VtScoreSize];	/* last root block */
 };
 
-
-/* the old directory structure - should go away */
-struct VtDirEntry1 {
-	uchar psize[2];			/* pointer block size */
-	uchar dsize[2];			/* data block size */
-	uchar flag;
-	uchar gen;
-	uchar size[6];
-	uchar score[VtScoreSize];
-};
-
-struct VtDirEntry2 {
-	uchar gen[4];			/* generation number */
-	uchar psize[2];			/* pointer block size */
-	uchar dsize[2];			/* data block size */
-	uchar flag;
-	uchar reserved[5];
-	uchar size[6];
+struct VtEntry {
+	ulong gen;			/* generation number */
+	ushort psize;			/* pointer block size */
+	ushort dsize;			/* data block size */
+	uchar depth;			/* unpacked from flags */
+	uchar flags;
+	uvlong size;
 	uchar score[VtScoreSize];
 };
 
@@ -124,6 +104,7 @@ struct VtServerVtbl {
 	Packet *(*read)(VtSession*, uchar score[VtScoreSize], int type, int n);
 	int (*write)(VtSession*, uchar score[VtScoreSize], int type, Packet *p);
 	void (*closing)(VtSession*, int clean);
+	void (*sync)(VtSession*);
 };
 
 /* versions */
@@ -163,7 +144,8 @@ void vtDebugMesg(VtSession *z, Packet *p, char *s);
 
 /* client side */
 VtSession *vtClientAlloc(void);
-VtSession *vtDial(char *server);
+VtSession *vtDial(char *server, int canfail);
+int vtRedial(VtSession*, char *server);
 VtSession *vtStdioServer(char *server);
 int vtPing(VtSession *s);
 int vtSetUid(VtSession*, char *uid);
@@ -171,9 +153,15 @@ int vtRead(VtSession*, uchar score[VtScoreSize], int type, uchar *buf, int n);
 int vtWrite(VtSession*, uchar score[VtScoreSize], int type, uchar *buf, int n);
 Packet *vtReadPacket(VtSession*, uchar score[VtScoreSize], int type, int n);
 int vtWritePacket(VtSession*, uchar score[VtScoreSize], int type, Packet *p);
+int vtSync(VtSession *s);
 
 int vtZeroExtend(int type, uchar *buf, int n, int nn);
-int vtZeroRetract(int type, uchar *buf, int n);
+int vtZeroTruncate(int type, uchar *buf, int n);
+
+void vtRootPack(VtRoot*, uchar*);
+int vtRootUnpack(VtRoot*, uchar*);
+void vtEntryPack(VtEntry*, uchar*, int index);
+int vtEntryUnpack(VtEntry*, uchar*, int index);
 
 /* server side */
 VtSession *vtServerAlloc(VtServerVtbl*);
@@ -223,29 +211,28 @@ void *vtMemBrk(int n);
 char *vtStrDup(char *);
 void vtFatal(char *, ...);
 char *vtGetError(void);
-char *vtSetError(char *);
+char *vtSetError(char *, ...);
 char *vtOSError(void);
-
-int	vtGetUint16(uchar *p);
-ulong	vtGetUint32(uchar *p);
-uvlong	vtGetUint48(uchar *p);
-uvlong	vtGetUint64(uchar *p);
-void	vtPutUint16(uchar *p, int x);
-void	vtPutUint32(uchar *p, ulong x);
-void	vtPutUint48(uchar *p, uvlong x);
-void	vtPutUint64(uchar *p, uvlong x);
 
 /* locking/threads */
 int vtThread(void (*f)(void*), void *rock);
+void vtThreadSetName(char*);
+
 VtLock *vtLockAlloc(void);
 void vtLockInit(VtLock**);
-void vtLock(VtLock *);
-void vtUnlock(VtLock *);
-void vtLockFree(VtLock *);
+void vtLock(VtLock*);
+int vtCanLock(VtLock*);
+void vtRLock(VtLock*);
+int vtCanRLock(VtLock*);
+void vtUnlock(VtLock*);
+void vtRUnlock(VtLock*);
+void vtLockFree(VtLock*);
+
 VtRendez *vtRendezAlloc(VtLock*);
 void vtRendezFree(VtRendez*);
 int vtSleep(VtRendez*);
 int vtWakeup(VtRendez*);
+int vtWakeupAll(VtRendez*);
 
 /* fd functions - really network (socket) functions */
 void vtFdClose(int);
@@ -263,3 +250,5 @@ int vtFdWrite(int, uchar*, int);
  */
 #pragma	varargck	type	"V"		uchar*
 #pragma	varargck	type	"R"		void
+
+#pragma	varargck	argpos	vtSetError	1

@@ -3,7 +3,7 @@
 #define	SCSInone	SCSIread
 #define	MAXDRIVE	10
 #define	MAXSIDE		300
-#define	FIXEDSIZE	1
+
 #define	TWORM		MINUTE(10)
 #define	THYSTER		SECOND(10)
 
@@ -57,6 +57,8 @@ enum
 	Sunload,	/* on the shelf */
 	Sstart,		/* loaded and spinning */
 };
+
+extern int FIXEDSIZE;
 
 static	Side*	wormunit(Device*);
 static	void	shelves(void);
@@ -281,6 +283,22 @@ out:
 	if(d->type == Devlworm)
 		return size-1;
 	return size;
+}
+
+long
+wormsizeside(Device *d, int side)
+{
+	USED(d, side);
+	return DSIZE;
+}
+
+/* returns starts of side #side and #(side+1) in *stp */
+void
+wormsidestarts(Device *dev, int side, Sidestarts *stp)
+{
+	USED(dev, side);
+	stp->sstart = side*DSIZE;
+	stp->s1start = stp->sstart + DSIZE;
 }
 
 static

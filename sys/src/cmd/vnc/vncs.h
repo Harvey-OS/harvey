@@ -7,8 +7,9 @@ struct Vncs {
 
 	int		preferredencoding;
 	int		usecopyrect;
-	int		canmousewarp;
-	int		mousewarpneeded;
+	int		canwarp;
+	int		needwarp;
+	Point		warppt;
 	int		updaterequested;
 	Region		updateregion;
 	int		ndeadprocs;

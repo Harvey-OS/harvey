@@ -16,6 +16,7 @@ static char *encprotos[] = {
 				nil,
 };
 
+char		*keyspec = "";
 char		*filterp;
 char		*ealgs = "rc4_256 sha1";
 int		encproto = Encnone;
@@ -98,18 +99,18 @@ main(int argc, char **argv)
 			usage();
 		break;
 	case 'e':
-		ealgs = ARGF();
-		if(ealgs == nil)
-			usage();
+		ealgs = EARGF(usage());
 		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
 			ealgs = nil;
 		break;
-
+	case 'k':
+		keyspec = EARGF(usage());
+		break;
 	case 'p':
 		filterp = aan;
 		break;
 	case 's':
-		srvpost = ARGF();
+		srvpost = EARGF(usage());
 		break;
 	default:
 		usage();
@@ -244,7 +245,7 @@ connect(char *system, char *tree, int oldserver)
 	else
 		authp = "p9any";
 
-	ai = auth_proxy(fd, auth_getkey, "proto=%q role=client", authp);
+	ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s", authp, keyspec);
 	if(ai == nil)
 		sysfatal("%r: %s", system);
 
@@ -268,7 +269,7 @@ connect(char *system, char *tree, int oldserver)
 void
 usage(void)
 {
-	print("Usage: import [-abcC] [-E clear|ssl|tls] [-e 'crypt auth'|clear] [-p] host remotefs [mountpoint]\n");
+	fprint(2, "usage: import [-abcC] [-E clear|ssl|tls] [-e 'crypt auth'|clear] [-k keypattern] [-p] host remotefs [mountpoint]\n");
 	exits("usage");
 }
 

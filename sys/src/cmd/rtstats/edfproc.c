@@ -14,12 +14,20 @@ int		nproc = 1;
 uvlong v;
 
 char *clonedev = "#R/realtime/clone";
+char missstr[] = "sys: deadline miss: runtime";
 
 int notefd;
 int
-rthandler(void*, char*)
+rthandler(void*, char *s)
 {
-	/* On any note */
+	static int umpteenth;
+
+	if (!umpteenth++)
+		fprint(2, "note received: %s\n", s);
+	if (strncmp(missstr, s, strlen(missstr)) == 0)
+		return 1;
+
+	/* On any other note */
 	if (fprint(notefd, "remove") < 0)
 		sysfatal("Could not remove task: %r");
 	sysfatal("Removed task");

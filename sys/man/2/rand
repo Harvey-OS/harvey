@@ -30,12 +30,6 @@ ulong	truerand(void)
 .PP
 .B
 ulong	ntruerand(ulong val)
-.PP
-.B
-ulong	fastrand(void)
-.PP
-.B
-ulong	nfastrand(ulong val)
 .sp
 .B #include <mp.h>
 .br
@@ -46,6 +40,12 @@ void	genrandom(uchar *buf, int nbytes)
 .PP
 .B
 void	prng(uchar *buf, int nbytes)
+.PP
+.B
+ulong	fastrand(void)
+.PP
+.B
+ulong	nfastrand(ulong val)
 .SH DESCRIPTION
 .I Rand
 returns a uniform pseudo-random
@@ -117,25 +117,6 @@ returns a uniform random integer
 .IR x ,
 .RI 0≤ x < val ≤ 2\u\s732\s10\d-1.
 .PP
-.I Fastrand
-is a pseudo random number generator which is seeded
-and periodically scrambled using
-.IR truerand .
-It returns a uniform random integer
-.IR x ,
-.RI 0≤ x < 2\u\s731\s10\d-1.
-It is approximately 1000 times faster than
-.I truerand
-and is intended for security software that requires a
-larger stream of unguessable data.
-.PP
-.I Nfastrand
-returns a uniform pseudo random integer
-.IR x ,
-.RI 0≤ x < val ≤ 2\u\s731\s10\d-1,
-using
-.IR fastrand .
-.PP
 .I Genrandom
 fills a buffer with bytes from the X9.17 pseudo-random
 number generator.  The X9.17 generator is seeded by 24
@@ -150,18 +131,40 @@ pseudo-random number generator to fill the buffer.  Used with
 this function can produce a reproducible stream of pseudo random
 numbers useful in testing.
 .PP
-Both functions may be passed to
+Both
+.I genrandom
+and
+.I prng
+may be passed to
 .I mprand
 (see
 .IR mp (2)).
+.PP
+.I Fastrand
+uses
+.I genrandom
+to return a uniform
+.B "unsigned long
+.IR x ,
+.RI 0≤ x < 2\u\s732\s10\d-1.
+.PP
+.I Nfastrand
+uses
+.I genrandom
+to return a uniform
+.B "unsigned long
+.IR x ,
+.RI 0≤ x < val ≤ 2\u\s732\s10\d-1.
 .SH SOURCE
-.B /sys/src/libc/port/rand.c
+.B /sys/src/libc/port/*rand.c
 .br
 .B /sys/src/libc/9sys/truerand.c
 .br
 .B /sys/src/libsec/port/genrandom.c
 .br
 .B /sys/src/libsec/port/prng.c
+.br
+.B /sys/src/libsec/port/*fastrand.c
 .SH "SEE ALSO
 .IR cons (3),
 .IR mp (2),

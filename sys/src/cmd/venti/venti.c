@@ -6,12 +6,14 @@ int debug;
 
 static Packet	*srvRead(VtSession *z, uchar score[VtScoreSize], int type, int n);
 static int	srvWrite(VtSession *z, uchar score[VtScoreSize], int type, Packet *p);
+static void	srvSync(VtSession *z);
 static void	srvClosing(VtSession *z, int clean);
 static void	daemon(char *vaddr);
 
 static VtServerVtbl serverVtbl = {
 .read	srvRead,
 .write	srvWrite,
+.sync	srvSync,
 .closing srvClosing,
 };
 
@@ -171,6 +173,14 @@ srvWrite(VtSession *z, uchar score[VtScoreSize], int type, Packet *p)
 	USED(z);
 	ok = writeLump(p, score, type, 0);
 	return ok;
+}
+
+static void
+srvSync(VtSession *z)
+{
+	USED(z);
+	if(queueWrites)
+		queueFlush();
 }
 
 static void

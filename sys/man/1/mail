@@ -9,10 +9,10 @@ mail \-  mail and mailboxes
 .SH DESCRIPTION
 .PP
 Mail is a shell script that invokes
-.IR upas/nedmail (1),
+.IR nedmail (1),
 the mail reader,
 when no recipients appear on the command line and
-.IR upas/marshal (1),
+.IR marshal (1),
 the mail preparer,
 otherwise.
 All command line options are passed through.

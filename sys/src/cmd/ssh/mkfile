@@ -34,8 +34,15 @@ BIN=/$objtype/bin
 
 UPDATE=\
 	mkfile\
+	agent.c\
+	cmsg.c\
+	smsg.c\
+	pubkey.c\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
+	${AUTHOFILES:%.$O=%.c}\
+	${AUTHSRVOFILES:%.$O=%.c}\
+	${CIPHEROFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
 	/386/bin/scp\
 	/386/bin/ssh\
@@ -49,6 +56,7 @@ UPDATE=\
 $O.ssh: \
 	$AUTHOFILES\
 	$CIPHEROFILES\
+	agent.$O\
 	cmsg.$O\
 	pubkey.$O\
 

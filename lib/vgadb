@@ -22,6 +22,7 @@ ctlr
 	vid=0x8086 did=0x1132		# Intel 82815 chipset, fully featured, internal graphics
 	vid=0x8086 did=0x1112		# Intel 82815 chipset, internal graphics only
 	vid=0x8086 did=0x1102		# Intel 82815 chipset, internal graphics (100MHz dram limit)
+	vid=0x8086 did=0x3577		# Intel 830M chipset (IBM R31 notebook))
 	link=vga
 	ctlr=i81x linear=1
 	hwgc=i81xhwgc
@@ -121,10 +122,12 @@ ctlr
 	0xC0000-0xC0100="S3 86C775/86C785 Video BIOS."	# marcello.magnifico@rccr.cremona.it
 	0xC0044="Phoenix S3 TRIO64V+ Enhanced VGA BIOS. Version 1."
 	0xC0044="S3 86C325 Video BIOS. Version 1.00-05"
+	0xC0044="S3 TRIO64V+ 40MHz V1.01-01"
 	0xC0094="#9-764 BIOS Version 1.02.00u"
 	0xC0094="#9-764 BIOS Version 1.02.01u"
 	0xC0044="S3 86C765 Video BIOS"
 	0xC0044="Stealth64 Video 2001"
+	0xC993F="S3 86C765 Video BIOS. Version 1.03-08"
 	link=vga
 	hwgc=s3hwgc
 	ctlr=trio64 linear=1
@@ -279,6 +282,7 @@ ctlr
 	0xC0078="Trident CYBER 8620"			# Acer TravelMate 350
 	0xC0093="Trident TGUI96xx"
 	0xC0044="GL A6.00E"
+	0xC68A5="TVGA BIOS LS  6.0 (08)"		# Sharp Actius A250, Cyber 9525/DVD
 	link=vga
 	ctlr=cyber938x linear=1
 	hwgc=cyber938xhwgc
@@ -383,6 +387,7 @@ ctlr
 ctlr
 	0xC002D="MATROX/Matrox G400"
 	0xC002D="MATROX/Matrox G450"
+	0xC002D="MATROX/MGA-G200 VGA"
 	link=vga
 	ctlr=mga4xx linear=1
 	hwgc=mga4xxhwgc
@@ -584,6 +589,28 @@ vs17x = 1024x768					# ??Hz, ??.?KHz
 dell21te
 	videobw=135
 	alias=multisync				# this will do for now
+
+#
+# Dell 2000FP at 1600x1200 with geforce2 DVI card
+#
+dell2000fp
+	videobw=200
+	alias=multisync
+dell2000fp = 1600x1200
+	defaultclock=200
+	shb=1664 ehb=1864 ht=2136
+	vrs=1202 vre=1207 vt=1251
+
+#
+# EIZO (Nanao) FlexScan 6600 (greyscale)
+#
+eizo6600
+	videobw=230
+	alias=multisync
+eizo6600 = 1600x1200			# 85Hz, 106.25KHz
+	defaultclock=230
+	ht=2160 shb=1696 ehb=1888
+	vt=1250 vrs=1201 vre=1204
 
 #
 # Hitachi CM751U
@@ -1101,3 +1128,18 @@ planar = 1280x1024
 	shb=1376 ehb=1544 ht=1712
 	shs=1392
 	vrs=1072 vre=1073 vt=1075
+
+
+#
+# QVGA		320x240		Quarter Video Graphics Array
+# VGA		640x480		Video Graphics Array
+# SVGA		800x600		Super Video Graphics Array
+# XGA		1024x768	eXtended Graphics Array
+# SXGA		1280x1024	Super eXtended Graphics Array
+# SXGA+		1400x1050
+# UXGA		1600x1200	Ultra eXtended Graphics Array
+# QXGA		2048x1536	Quad XGA 
+# QSXGA		2560x2048	Quad SXGA 
+# QUXGA		3200x2400	Quad UXGA
+# QUXGA-W	3840x2400	Wide-QUXGA
+#

@@ -15,7 +15,6 @@ PORT=\
 	cache.$O\
 	chan.$O\
 	dev.$O\
-	edf.$O\
 	fault.$O\
 	latin1.$O\
 	log.$O\

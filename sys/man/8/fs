@@ -8,6 +8,8 @@ fs, exsort \- file server maintenance
 .I command ...
 ]
 .PP
+.B allow
+.PP
 .B arp
 .I subcommand
 .PP
@@ -34,10 +36,15 @@ fs, exsort \- file server maintenance
 .RB [[ +- ]
 .IR seconds ]
 .PP
+.B disallow
+.PP
 .B duallow
 .RI [ uid ]
 .PP
 .B dump
+[
+.I filesystem
+]
 .PP
 .B files
 .PP
@@ -75,6 +82,8 @@ fs, exsort \- file server maintenance
 .PP
 .B route
 .I subcommand
+.PP
+.B "sntp kick"
 .PP
 .BR stat [ adesw ]
 .PP
@@ -118,11 +127,11 @@ Except for
 these commands are available only on the console of an
 .IR fs (4)
 file server.
-.PP
-The console requires the machine's password to be supplied before
-accepting commands.  Typing a control-D will cause
-the server to request
-the password again.
+.\" .PP
+.\" The console requires the machine's password to be supplied before
+.\" accepting commands.  Typing a control-D will cause
+.\" the server to request
+.\" the password again.
 .PP
 .I Help
 prints a `usage string' for the named
@@ -130,6 +139,12 @@ prints a `usage string' for the named
 by default all commands.
 Also, many commands print menus of their options if given
 incorrect or incomplete parameters.
+.PP
+.I Allow
+disables permission checking and allows
+.BR wstat .
+This may help in initializing a file system.
+Use this with caution.
 .PP
 .I Arp
 has two
@@ -145,6 +160,8 @@ commands
 .RB ( check ,
 .BR clri ,
 .BR create ,
+.BR cwcmd ,
+.BR dump ,
 .BR newuser ,
 .BR profile ,
 .BR remove ,
@@ -266,7 +283,9 @@ or
 creates a locked file, append-only file, or directory.
 .PP
 .I Cwcmd
-controls the cached WORM file systems.  The subcommands are:
+controls the cached WORM file systems,
+specifically the current file system.
+The subcommands are:
 .TP
 .BI mvstate " state1 state2 " [ platter ]
 States are
@@ -313,6 +332,15 @@ roots of the dumped file systems, starting at block number
 .B back
 is supplied).
 .TP
+.BR searchtag " [\fIstart\fP] [\fItag\fP] [\fIblocks\fP]
+Reads the WORM device starting at block
+.I start
+and proceeding for
+.I blocks
+blocks (default 1000)
+until it finds a block with numeric tag
+.IR tag .
+.TP
 .BR savecache " [\fIpercent\fP]
 Copy the block numbers, in native endian longwords, of blocks in the
 .B read
@@ -327,14 +355,26 @@ is copied.
 .BR loadcache " [\fIdskno\fP]
 Read
 .B /adm/cache
-and for every block there on WORM disk
-.IR dskno ,
+and for every block there on WORM disk side
+.I dskno
+(zero-origin),
 read the block from WORM to the cache.
 If
 .I dskno
 is not supplied, all blocks in
 .B /adm/cache
 are read.
+.TP
+.BR morecache " dskno [\fIcount\fP]
+Read
+.I count
+blocks from the beginning of WORM disk side
+.I dskno
+to the cache.
+If no count is given,
+read all of side
+.IR dskno
+into the cache.
 .TP
 .BR startdump \ [ 01 ]
 Suspend
@@ -345,6 +385,13 @@ the background dump process.
 .TP
 .B touchsb
 Verify that the superblock on the WORM is readable, ignoring the cached copy.
+.TP
+.BR blockcmp " [\fIwbno\fP] [\fIcbno\fP]
+Compares the WORM block
+.I wbno
+with the cache block
+.I cbno
+and prints the first 10 differences, if any.
 .TP
 .B acct
 Prints how many times each user has caused the system to allocate new space on the WORM;
@@ -362,6 +409,10 @@ With no sign, it sets the date to the absolute number of seconds
 since 00:00 Jan 1, 1970 GMT; with a sign it trims the current
 time.
 .PP
+.I Disallow
+restores permission checking back to normal after a file system
+has been initialized.
+.PP
 .I Duallow
 sets permissions such that
 the named
@@ -372,8 +423,9 @@ This is the permission necessary to do a
 command anywhere in the file system to discover disk usage.
 .PP
 .I Dump
-starts a dump to WORM immediately for all file systems that have
-a WORM associated.
+starts a dump to WORM immediately for
+the named filesystem,
+or the current filesystem if none is named.
 File service is suspended while the cache is scanned;
 service resumes when the copy to WORM starts.
 .PP
@@ -388,7 +440,12 @@ size, qid, and disk addresses.
 .PP
 .I Flag
 toggles flags, initially all off:
-.TF attachxx
+.TF authdisablexx
+.TP
+.B allchans
+Print channels in
+.I who
+output.
 .TP
 .B arp
 Report ARP activity.
@@ -396,14 +453,29 @@ Report ARP activity.
 .B attach
 Report as connections are made to the file server.
 .TP
+.B authdebug
+Report authentications.
+.TP
+.B authdisable
+Disable authentication.
+.TP
 .B chat
 (Very noisy.)  Print all 9P messages to and from the server.
+.TP
+.B error
+Report 9P errors.
+.TP
+.B il
+Report IL errors.
 .TP
 .B route
 Report received RIP packets.
 .TP
 .B ro
 Report I/O on the WORM device.
+.TP
+.B sntp
+Report SNTP activity.
 .PD
 .PP
 If given a second numeric
@@ -544,6 +616,13 @@ Enables the table to be filled from RIP packets.
 .B ripoff
 Disables the table from being updated by RIP packets.
 .PD
+.PP
+.I Sntp
+.I kick
+queries the SNTP server
+(see
+.IR fsconfig (8))
+and sets the time with its response.
 .PP
 The
 .I stat

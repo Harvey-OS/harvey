@@ -1,34 +1,31 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libndb.a
-FILES=\
-	ndbhash\
-	ndbopen\
-	ndbparse\
-	ndbcache\
-	ndbcat\
-	ndbgetval\
-	ndbaux\
-	ndbfree\
-	ipattr\
-	ndbipinfo\
-	ndblookval\
-	csgetval\
-	csipinfo\
-	dnsquery\
+OFILES=\
+	ndbhash.$O\
+	ndbopen.$O\
+	ndbparse.$O\
+	ndbcache.$O\
+	ndbcat.$O\
+	ndbgetval.$O\
+	ndbaux.$O\
+	ndbfree.$O\
+	ipattr.$O\
+	ndbipinfo.$O\
+	ndblookval.$O\
+	csgetval.$O\
+	csipinfo.$O\
+	dnsquery.$O\
 
 HFILES=\
 	/sys/include/ndb.h\
 	ndbhf.h
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/libndb.a\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib
 

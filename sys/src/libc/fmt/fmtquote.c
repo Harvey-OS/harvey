@@ -65,6 +65,13 @@ _quotesetup(char *s, Rune *r, int nin, int nout, Quoteinfo *q, int sharp, int ru
 				q->quoted = 1;
 			}
 			if(c == '\'')	{
+				if(runesout){
+					if(1+q->nrunesout+1 > nout)	/* no room for quotes */
+						break;
+				}else{
+					if(1+q->nbytesout+w > nout)	/* no room for quotes */
+						break;
+				}
 				q->nbytesout++;
 				q->nrunesout++;	/* quotes reproduce as two characters */
 			}

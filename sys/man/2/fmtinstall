@@ -151,7 +151,7 @@ Then call
 or
 .IR fmtvprint
 to generate the output.
-These behave just like
+These behave like
 .B fprint
 (see
 .IR print (2))
@@ -159,7 +159,7 @@ or
 .B vfprint
 except that the characters are buffered until
 .I fmtfdflush
-is called.
+is called and the return value is either 0 or \-1.
 A typical example of this sequence appears in the Examples section.
 .PP
 The same basic sequence applies when outputting to an allocated string:
@@ -251,8 +251,7 @@ If
 .IB fp ->r
 is a flag,
 .I fn
-should return a negative value:
-the negation of one of the above flag values, or some otherwise unused power of two.
+should return one.
 All interpretation of
 .IB fp ->width\f1,
 .IB fp ->prec\f1,
@@ -268,6 +267,8 @@ and
 may be called to
 help prepare output in custom conversion routines.
 However, these functions clear the width, precision, and flags.
+Both functions return 0 for success and \-1 for failure.
+.PP
 The functions
 .I dofmt
 and
@@ -276,7 +277,7 @@ are the underlying formatters; they
 use the existing contents of
 .B Fmt
 and should be called only by sophisticated conversion routines.
-All these routines return the number of characters (bytes of UTF or runes)
+These routines return the number of characters (bytes of UTF or runes)
 produced.
 .PP
 Some internal functions may be useful to format primitive types.

@@ -377,6 +377,8 @@ p9skaddkey(Key *k)
 	k->priv = emalloc(DESKEYLEN);
 	if(s = _str_findattr(k->privattr, "!hex")){
 		if(hexparse(s, k->priv, 7) < 0){
+			free(k->priv);
+			k->priv = nil;
 			werrstr("malformed key data");
 			return -1;
 		}
@@ -384,6 +386,8 @@ p9skaddkey(Key *k)
 		passtokey((char*)k->priv, s);
 	}else{
 		werrstr("no key data");
+		free(k->priv);
+		k->priv = nil;
 		return -1;
 	}
 	return replacekey(k);

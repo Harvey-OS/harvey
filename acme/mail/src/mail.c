@@ -77,6 +77,9 @@ threadmain(int argc, char *argv[])
 	char err[ERRMAX], cmd[256];
 	int i, newdir;
 
+	doquote = needsrcquote;
+	quotefmtinstall();
+
 	/* open these early so we won't miss notification of new mail messages while we read mbox */
 	plumbsendfd = plumbopen("send", OWRITE|OCEXEC);
 	plumbseemailfd = plumbopen("seemail", OREAD|OCEXEC);
@@ -333,7 +336,7 @@ plumbsendthread(void*)
 
 	threadsetname("plumbsendthread");
 	while((m = recvp(cplumbsend)) != nil){
-		mkreply(nil, "Mail", m->data, m->attr);
+		mkreply(nil, "Mail", m->data, m->attr, nil);
 		plumbfree(m);
 	}
 	threadexits(nil);
@@ -352,9 +355,9 @@ mboxcommand(Window *w, char *s)
 		return 0;
 	if(strcmp(args[0], "Mail") == 0){
 		if(nargs == 1)
-			mkreply(nil, "Mail", "", nil);
+			mkreply(nil, "Mail", "", nil, nil);
 		else
-			mkreply(nil, "Mail", args[1], nil);
+			mkreply(nil, "Mail", args[1], nil, nil);
 		return 1;
 	}
 	if(strcmp(s, "Del") == 0){
@@ -401,6 +404,8 @@ mboxcommand(Window *w, char *s)
 			}
 		}
 		s = winselection(w);
+		if(s == nil)
+			return 1;
 		nargs = 1;
 		for(i=0; s[i]; i++)
 			if(s[i] == '\n')

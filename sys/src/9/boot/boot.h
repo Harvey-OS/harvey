@@ -41,7 +41,7 @@ extern int	readfile(char*, char*, int);
 extern long	readn(int, void*, long);
 extern int	sendmsg(int, char*);
 extern void	setenv(char*, char*);
-extern void	settime(int, int);
+extern void	settime(int, int, char*);
 extern void	srvcreate(char*, int);
 extern void	setusername(int, Method*);
 extern void	warning(char*);

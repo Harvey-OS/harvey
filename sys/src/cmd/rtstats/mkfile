@@ -11,10 +11,20 @@ OFILES = \
 	rtstats.$O\
 	time.$O
 
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	edfproc.c resproc.c\
+	${TARG:%=/386/bin/%}\
+
+</sys/src/cmd/mkone
+
 $O.edfproc:	edfproc.$O time.$O
 	$LD -o $O.edfproc edfproc.$O time.$O
 
-</sys/src/cmd/mkone
+$O.resproc:	resproc.$O time.$O
+	$LD -o $O.resproc resproc.$O time.$O
 
 dep:
 	mkdep $INCLUDES $CFILES

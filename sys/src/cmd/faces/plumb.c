@@ -130,35 +130,103 @@ getline(char *buf, int n)
 	return buf;
 }
 
-/* achille Jul 23 14:05:15 delivered jmk From ms.com!bub Fri Jul 23 14:05:14 EDT 1999 (plan9.bell-labs.com!jmk) 1352 */
-int
-parselog(char *s, char **sender, char **date)
-{
-	char *t, *sp, *dp;
+static char* months[] = {
+	"jan", "feb", "mar", "apr",
+	"may", "jun", "jul", "aug", 
+	"sep", "oct", "nov", "dec"
+};
 
-	t = strstr(s, logtag);
-	if(t == nil)
+static int
+getmon(char *s)
+{
+	int i;
+
+	for(i=0; i<nelem(months); i++)
+		if(cistrcmp(months[i], s) == 0)
+			return i;
+	return -1;
+}
+
+/* Fri Jul 23 14:05:14 EDT 1999 */
+ulong
+parsedatev(char **a)
+{
+	char *p;
+	Tm tm;
+
+	memset(&tm, 0, sizeof tm);
+	if((tm.mon=getmon(a[1])) == -1)
+		goto Err;
+	tm.mday = strtol(a[2], &p, 10);
+	if(*p != '\0')
+		goto Err;
+	tm.hour = strtol(a[3], &p, 10);
+	if(*p != ':')
+		goto Err;
+	tm.min = strtol(p+1, &p, 10);
+	if(*p != ':')
+		goto Err;
+	tm.sec = strtol(p+1, &p, 10);
+	if(*p != '\0')
+		goto Err;
+	if(strlen(a[4]) != 3)
+		goto Err;
+	strcpy(tm.zone, a[4]);
+	if(strlen(a[5]) != 4)
+		goto Err;
+	tm.year = strtol(a[5], &p, 10);
+	if(*p != '\0')
+		goto Err;
+	tm.year -= 1900;
+	return tm2sec(&tm);
+Err:
+	return time(0);
+}
+
+ulong
+parsedate(char *s)
+{
+	char *f[10];
+	int nf;
+
+	nf = getfields(s, f, nelem(f), 1, " ");
+	if(nf < 6)
+		return time(0);
+	return parsedatev(f);
+}
+
+/* achille Jul 23 14:05:15 delivered jmk From ms.com!bub Fri Jul 23 14:05:14 EDT 1999 (plan9.bell-labs.com!jmk) 1352 */
+/* achille Oct 26 13:45:42 remote local!rsc From rsc Sat Oct 26 13:45:41 EDT 2002 (rsc) 170 */
+int
+parselog(char *s, char **sender, ulong *xtime)
+{
+	char *f[20];
+	int nf;
+
+	nf = getfields(s, f, nelem(f), 1, " ");
+	if(nf < 14)
 		return 0;
-	dp = t-8;
-	dp[5] = '\0';
-	sp = t+strlen(logtag);
-	for(t=sp; *t!='\0' && *t!=' '; t++)
-		;
-	*t = '\0';
-	*sender = estrdup(sp);
-	*date = estrdup(dp);
+	if(strcmp(f[4], "delivered") == 0 && strcmp(f[5], user) == 0)
+		goto Found;
+	if(strcmp(f[4], "remote") == 0 && strncmp(f[5], "local!", 6) == 0 && strcmp(f[5]+6, user) == 0)
+		goto Found;
+	return 0;
+
+Found:
+	*sender = estrdup(f[7]);
+	*xtime = parsedatev(&f[8]);
 	return 1;
 }
 
 int
-logrecv(char **sender, char **date)
+logrecv(char **sender, ulong *xtime)
 {
 	char buf[4096];
 
 	for(;;){
 		if(getline(buf, sizeof buf) == nil)
 			return 0;
-		if(parselog(buf, sender, date))
+		if(parselog(buf, sender, xtime))
 			return 1;
 	}
 	return -1;
@@ -185,7 +253,8 @@ nextface(void)
 {
 	Face *f;
 	Plumbmsg *m;
-	char *t, *senderp, *datep, *showmailp, *digestp;
+	char *t, *senderp, *showmailp, *digestp;
+	ulong xtime;
 
 	f = emalloc(sizeof(Face));
 	for(;;){
@@ -208,11 +277,10 @@ nextface(void)
 				plumbfree(m);
 				continue;
 			}
-			datep = tweakdate(value(m->attr, "date", date));
+			xtime = parsedate(value(m->attr, "date", date));
 			digestp = value(m->attr, "digest", nil);
-			if(alreadyseen(m->data, datep, digestp)){
+			if(alreadyseen(digestp)){
 				/* duplicate upas/fs can send duplicate messages */
-				free(datep);
 				plumbfree(m);
 				continue;
 			}
@@ -222,13 +290,14 @@ nextface(void)
 				digestp = estrdup(digestp);
 			plumbfree(m);
 		}else{
-			if(logrecv(&senderp, &datep) <= 0)
+			if(logrecv(&senderp, &xtime) <= 0)
 				killall("error reading log file");
 			showmailp = estrdup("");
 			digestp = nil;
 		}
 		setname(f, senderp);
-		f->str[Stime] = datep;
+		f->time = xtime;
+		f->tm = *localtime(xtime);
 		f->str[Sshow] = showmailp;
 		f->str[Sdigest] = digestp;
 		return f;
@@ -288,7 +357,8 @@ dirface(char *dir, char *num)
 	iline(p, &p);	/* replyto */
 	date = iline(p, &p);	/* date */
 	setname(f, estrdup(from));
-	f->str[Stime] = tweakdate(date);
+	f->time = parsedate(date);
+	f->tm = *localtime(f->time);
 	sprint(buf, "%s/%s", dir, num);
 	f->str[Sshow] = estrdup(buf);
 	iline(p, &p);	/* subject */

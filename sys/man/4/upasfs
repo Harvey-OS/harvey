@@ -279,6 +279,10 @@ cleartext IMAP
 TLS-encrypted IMAP
 .PD
 .PP
+The two IMAP protocols allow an optional fourth field
+specifying a mailbox name, for example
+.BR /imap/server/user/stored .
+.PP
 .B Poptls
 and
 .B apoptls

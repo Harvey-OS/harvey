@@ -1,32 +1,28 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/lib9p.a
-FILES=\
-	_post\
-	dirread\
-	fid\
-	file\
-	intmap\
-	mem\
-	req\
-	parse\
-	post\
-	srv\
-	tpost\
-	uid\
-	util\
+OFILES=\
+	_post.$O\
+	dirread.$O\
+	fid.$O\
+	file.$O\
+	intmap.$O\
+	mem.$O\
+	req.$O\
+	parse.$O\
+	post.$O\
+	srv.$O\
+	tpost.$O\
+	uid.$O\
+	util.$O\
 
 HFILES=/sys/include/9p.h post.h
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/lib9p.a\
-	/sys/src/lib9p/ramfs.c\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib
 

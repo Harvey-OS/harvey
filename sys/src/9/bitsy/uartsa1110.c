@@ -465,7 +465,7 @@ sa1110_uartsetup(int console)
 
 	/* external serial port (eia0) */
 	p = &sa1110uart[0];
-	p->regs = mapspecial(UART3REGS, 64);
+	p->regs = mapspecial(UART3REGS, sizeof(Uartregs));
 	p->saveregs = xalloc(sizeof(Uartregs));
 	/* set eia0 up as a console */
 	if(console){
@@ -477,11 +477,11 @@ sa1110_uartsetup(int console)
 	intrenable(IRQ, IRQuart3, sa1110_uartintr, p, p->name);
 
 	/* port for talking to microcontroller (eia1) */
-	gpclkregs = mapspecial(GPCLKREGS, 64);
+	gpclkregs = mapspecial(GPCLKREGS, sizeof(Gpclkregs));
 	gpclkregs->r0 = Gpclk_sus;	/* set uart mode */
 
 	p = &sa1110uart[1];
-	p->regs = mapspecial(UART1REGS, 64);
+	p->regs = mapspecial(UART1REGS, sizeof(Uartregs));
 	p->saveregs = xalloc(sizeof(Uartregs));
 	uartctl(p, "b115200 l8 pn s1");
 	µcuart = p;

@@ -6,8 +6,8 @@
 #include "io.h"
 #include "ureg.h"
 #include "../port/error.h"
-#include	"../port/devrealtime.h"
-#include "../port/edf.h"
+#include	"realtime.h"
+#include	"../port/edf.h"
 
 #pragma	varargck	type	"T"		vlong
 
@@ -22,10 +22,6 @@ static QLock elock;
 static Ref logopens;
 static Ref debugopens;
 static uvlong fasthz;	
-static int taskno;
-
-static int		timeconv(Fmt *);
-static char *	parsetime(Time *, char *);
 
 enum {
 	Qistask = 0x10000,
@@ -73,69 +69,7 @@ static char *schedstatename[] = {
 	[SExpel] =		"Expel",
 };
 
-Task *
-findtask(int taskno)
-{
-	List *l;
-	Task *t;
-
-	for (l = tasks.next; l; l = l->next)
-		if ((t = l->i) && t->taskno == taskno)
-			return t;
-	return nil;
-}
-
-static char*
-dumptask(char *p, char *e, Task *t, Ticks now)
-{
-	vlong n;
-	char c;
-
-	p = seprint(p, e, "{%s, D%U, Δ%U,T%U, C%U, S%U",
-		edfstatename[t->state], t->D, t->Delta, t->T, t->C, t->S);
-	n = t->r - now;
-	if (n >= 0)
-		c = ' ';
-	else {
-		n = -n;
-		c = '-';
-	}
-	p = seprint(p, e, ", r%c%U", c, (uvlong)n);
-	n = t->d - now;
-	if (n >= 0)
-		c = ' ';
-	else {
-		n = -n;
-		c = '-';
-	}
-	p = seprint(p, e, ", d%c%U", c, (uvlong)n);
-	n = t->t - now;
-	if (n >= 0)
-		c = ' ';
-	else {
-		n = -n;
-		c = '-';
-	}
-	p = seprint(p, e, ", t%c%U}", c, (uvlong)n);
-	return p;
-}
-
-static char*
-dumpq(char *p, char *e, Taskq *q, Ticks now)
-{
-	Task *t;
-
-	t = q->head;
-	for(;;){
-		if (t == nil)
-			return seprint(p, e, "\n");
-		p = dumptask(p, e, t, now);
-		t = t->rnext;
-		if (t)
-			seprint(p, e, ", ");
-	}
-	return nil;
-}
+static int taskno;
 
 static Task *
 taskinit(void)
@@ -168,7 +102,7 @@ taskfree(Task *t)
 	if (decref(t))
 		return;
 	assert(t->procs.n == 0);
-	assert(t->res.n == 0);
+	assert(t->csns.n == 0);
 	free(t->user);
 	free(t);
 }
@@ -381,7 +315,6 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 	Ticks now;
 	Time tim;
 	List *l;
-	Resource *r;
 
 	n0 = n;
 //	print("schedread 0x%lux\n", (ulong)c->qid.path);
@@ -450,29 +383,7 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 			qunlock(&edfschedlock);
 			nexterror();
 		}
-		p = buf;
-		e = p + sizeof(buf);
-		for (l = resources.next; l; l = l->next){
-			r = l->i;
-			assert(r);
-			p = seprint(p, e, "name=%s", r->name);
-			if (r->tasks.n){
-				List *l;
-
-				p = seprint(p, e, " tasks='");
-				for (l = r->tasks.next; l; l = l->next) {
-					if (l != r->tasks.next)
-						p = seprint(p, e, " ");
-					p = seprint(p, e, "%d", ((Task *)l->i)->taskno);
-				}
-				p = seprint(p, e, "'");
-			}
-			if (r->Delta)
-				p = seprint(p, e, " Δ=%T", ticks2time(r->Delta));
-			else if (r->testDelta)
-				p = seprint(p, e, " testΔ=%T", ticks2time(r->testDelta));
-			p = seprint(p, e, "\n");
-		}
+		seprintresources(buf, buf + sizeof(buf));
 		qunlock(&edfschedlock);
 		poperror();
 		return readstr(offs, v, n, buf);
@@ -482,7 +393,7 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 		e = p + sizeof(buf);
 		qlock(&edfschedlock);
 		qunlock(&edfschedlock);
-		p = seprint(p, e, "\n");
+		seprint(p, e, "\n");
 		return readstr(offs, v, n, buf);
 	case Qdebug:
 		p = buf;
@@ -530,15 +441,9 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 		else if (t->testDelta)
 			p = seprint(p, e, " testΔ=%T", ticks2time(t->testDelta));
 		p = seprint(p, e, " yieldonblock=%d", (t->flags & Verbose) != 0);
-		if (t->res.n){
+		if (t->csns.n){
 			p = seprint(p, e, " resources='");
-			for (l = t->res.next; l; l = l->next){
-				r = l->i;
-				assert(r);
-				if (l != t->res.next)
-					p = seprint(p, e, " ");
-				p = seprint(p, e, "%s", r->name);
-			}
+			p = seprintcsn(p, e, &t->csns);
 			p = seprint(p, e, "'");
 		}
 		if (t->procs.n){
@@ -569,72 +474,6 @@ devrtread(Chan *c, void *v, long n, vlong offs)
 	return n0 - n;
 }
 
-static Resource *
-resource(char *name, int add)
-{
-	Resource *r;
-	List *l;
-
-	for (l = resources.next; l; l = l->next)
-		if ((r = l->i) && strcmp(r->name, name) == 0)
-			return r;
-	if (add < 0)
-		return nil;
-	r = malloc(sizeof(Resource));
-	if (r == nil)
-		error("resource: malloc");
-	kstrdup(&r->name, name);
-	enlist(&resources, r);
-	return r;
-}
-
-void
-resourcefree(Resource *r)
-{
-	if (decref(r))
-		return;
-	delist(&resources, r);
-	assert(r->tasks.n == 0);
-	free(r->name);
-	free(r);
-}
-
-static void
-removetask(Task *t)
-{
-	Proc *p;
-	Resource *r;
-	List *l;
-
-	edf->edfexpel(t);
-	while (l = t->procs.next){
-		p = l->i;
-		assert(p);
-		p->task = nil;
-		delist(&t->procs, p);
-	}
-	while (p = t->runq.head){
-		/* put runnable procs on regular run queue */
-		t->runq.head = p->rnext;
-		ready(p);
-		t->runq.n--;
-	}
-	t->runq.tail = nil;
-	assert(t->runq.n == 0);
-	while (l = t->res.next){
-		r = l->i;
-		if (delist(&r->tasks, t))
-			taskfree(t);
-		if (delist(&t->res, r))
-			resourcefree(r);
-	}
-	free(t->user);
-	t->user = nil;
-	t->state = EdfUnused;
-	if (delist(&tasks, t))
-		taskfree(t);
-}
-
 static long
 devrtwrite(Chan *c, void *va, long n, vlong)
 {
@@ -646,6 +485,7 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 	Time time;
 	long pid;
 	Proc *p;
+	CSN *l;
 
 	a = va;
 	if (c->mode == OREAD)
@@ -707,6 +547,7 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 				}
 				if (t->T < time2ticks(10000000/HZ))
 					error("period too short");
+				DEBUG("Task %d, T=%T\n", t->taskno, ticks2time(t->T));
 			}else if (strcmp(a, "D") == 0){
 				if (e=parsetime(&time, v))
 					error(e);
@@ -726,6 +567,7 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 					t->D += ticks;
 					break;
 				}
+				DEBUG("Task %d, D=%T\n", t->taskno, ticks2time(t->D));
 			}else if (strcmp(a, "C") == 0){
 				if (e=parsetime(&time, v))
 					error(e);
@@ -747,40 +589,54 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 				}
 				if (t->C < time2ticks(10000000/HZ))
 					error("cost too small");
+				DEBUG("Task %d, C=%T\n", t->taskno, ticks2time(t->C));
 			}else if (strcmp(a, "resources") == 0){
 				if (v == nil)
 					error("resources: value missing");
 				edf->edfexpel(t);
+				if (add < 0)
+					error("can't remove resources yet");
 				if (add == 0){
 					List *l;
-
-					while (l = t->res.next) {
+	
+					while (l = t->csns.next) {
 						r = l->i;
 						assert(r);
 						if (delist(&r->tasks, t))
 							taskfree(t);
-						if (delist(&t->res, r))
+						if (delist(&t->csns, r))
 							resourcefree(r);
 					}
-					assert(t->res.n == 0);
+					assert(t->csns.n == 0);
 					add = 1;
+					USED(add);
 				}
-				nrargs = tokenize(v, rargs, nelem(rargs));
-				for (j = 0; j < nrargs; j++)
-					if (r = resource(rargs[j], add)){
-						if (add > 0){
-							if (enlist(&r->tasks, t))
-								incref(t);
-							if (enlist(&t->res, r))
-								incref(r);
-						}else{
-							if (delist(&r->tasks, t))
-								taskfree(t);
-							if (delist(&t->res, r))
-								resourcefree(r);
-						}
-					}else
-						error("resource not found");
+				v = parseresource(&t->csns, nil, v);
+				if (v && *v)
+					error("resources: parse error");
+			}else if (strcmp(a, "acquire") == 0){
+				if (v == nil)
+					error("acquire: value missing");
+				if ((r = resource(v, 0)) == nil)
+					error("acquire: no such resource");
+				for (l = (CSN*)t->csns.next; l; l = (CSN*)l->next){
+					if (l->i == r){
+DEBUG("l->p (0x%p) == t->curcsn (0x%p) && l->S (%T) != 0\n", l->p, t->curcsn, ticks2time(l->S));
+						if(l->p == t->curcsn && l->S != 0)
+						break;
+					}
+				}
+				if (l == nil)
+					error("acquire: no access or resource exhausted");
+				edf->resacquire(t, l);
+			}else if (strcmp(a, "release") == 0){
+				if (v == nil)
+					error("release: value missing");
+				if ((r = resource(v, 0)) == nil)
+					error("release: no such resource");
+				if (t->curcsn->i != r)
+					error("release: release not held or illegal release order");
+				edf->resrelease(t);
 			}else if (strcmp(a, "procs") == 0){
 				if (v == nil)
 					error("procs: value missing");
@@ -904,129 +760,3 @@ Dev realtimedevtab = {
 	devrtremove,
 	devwstat,
 };
-
-static int
-timeconv(Fmt *f)
-{
-	char buf[128], *sign;
-	Time t;
-	Ticks ticks;
-
-	buf[0] = 0;
-	switch(f->r) {
-	case 'U':
-		ticks = va_arg(f->args, Ticks);
-		t = ticks2time(ticks);
-		break;
-	case 'T':		// Time in nanoseconds
-		t = va_arg(f->args, Time);
-		break;
-	default:
-		return fmtstrcpy(f, "(timeconv)");
-	}
-	if (t < 0) {
-		sign = "-";
-		t = -t;
-	}
-	else
-		sign = "";
-	if (t > Onesecond)
-		sprint(buf, "%s%d.%.3ds", sign, (int)(t / Onesecond), (int)(t % Onesecond)/1000000);
-	else if (t > Onemillisecond)
-		sprint(buf, "%s%d.%.3dms", sign, (int)(t / Onemillisecond), (int)(t % Onemillisecond)/1000);
-	else if (t > Onemicrosecond)
-		sprint(buf, "%s%d.%.3dµs", sign, (int)(t / Onemicrosecond), (int)(t % Onemicrosecond));
-	else
-		sprint(buf, "%s%dns", sign, (int)t);
-	return fmtstrcpy(f, buf);
-}
-
-static char *
-parsetime(Time *rt, char *s)
-{
-	uvlong ticks;
-	ulong l;
-	char *e, *p;
-	static int p10[] = {100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1};
-
-	if (s == nil)
-		return("missing value");
-	ticks=strtoul(s, &e, 10);
-	if (*e == '.'){
-		p = e+1;
-		l = strtoul(p, &e, 10);
-		if(e-p > nelem(p10))
-			return "too many digits after decimal point";
-		if(e-p == 0)
-			return "ill-formed number";
-		l *= p10[e-p-1];
-	}else
-		l = 0;
-	if (*e){
-		if(strcmp(e, "s") == 0)
-			ticks = 1000000000 * ticks + l;
-		else if (strcmp(e, "ms") == 0)
-			ticks = 1000000 * ticks + l/1000;
-		else if (strcmp(e, "µs") == 0 || strcmp(e, "us") == 0)
-			ticks = 1000 * ticks + l/1000000;
-		else if (strcmp(e, "ns") != 0)
-			return "unrecognized unit";
-	}
-	*rt = ticks;
-	return nil;
-}
-
-int
-putlist(Head *h, List *l)
-{
-	l->next = h->next;
-	h->next = l;
-	h->n++;
-	return 1;
-}
-
-int
-enlist(Head *h, void *i)
-{
-	List *l;
-
-	for (l = h->next; l; l = l->next)
-		if (l->i == i){
-			/* already on the list */
-			return 0;
-		}
-	l = malloc(sizeof(List));
-	if (l == nil)
-		panic("malloc in enlist");
-	l->i = i;
-	l->next = h->next;
-	h->next = l;
-	h->n++;
-	return 1;
-}
-
-int
-delist(Head *h, void *i)
-{
-	List *l, **p;
-
-	for (p = &h->next; l = *p; p = &l->next)
-		if (l->i == i){
-			*p = l->next;
-			free(l);
-			h->n--;
-			return 1;
-		}
-	return 0;
-}
-
-void *
-findlist(Head *h, void *i)
-{
-	List *l;
-
-	for (l = h->next; l; l = l->next)
-		if (l->i == i)
-			return i;
-	return nil;
-}

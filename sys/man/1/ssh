@@ -4,7 +4,7 @@ ssh, sshnet, scp, sshserve, ssh_genkey \- secure login and file copy from/to Uni
 .SH SYNOPSIS
 .B ssh
 [
-.B -CiImPpRrw
+.B -CfiImPpRrw
 ]
 [
 .B -A
@@ -37,6 +37,10 @@ ssh, sshnet, scp, sshserve, ssh_genkey \- secure login and file copy from/to Uni
 [
 .B -m
 .I mtpt
+]
+[
+.B -s
+.I service
 ]
 .RI [ user\fB@ ] host
 .PP
@@ -72,6 +76,16 @@ Command-line options are:
 .B -C
 force input to be read in cooked mode:
 ``line at a time'' with local echo.
+.TP
+.B -f
+diable agent forwarding.
+By default,
+.I ssh
+uses SSH's agent forwarding protocol to allow
+programs running on the remote server to
+interact with
+.IR factotum (4)
+to perform RSA authentication.
 .TP
 .B -i
 force interactive mode.
@@ -241,7 +255,10 @@ presents the remote server's TCP stack as a network stack
 mounted at
 .I mtpt
 (default
-.BR /net ).
+.BR /net ),
+optionally posting a 9P service
+descriptor for the new file system as
+.IB /srv/ service \fR.
 The
 .B -A
 and

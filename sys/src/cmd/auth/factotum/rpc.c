@@ -261,14 +261,26 @@ rpcread(Req *r)
 		break;
 
 	case Vstart:
+		if(fss->phase != Notstarted){
+			flog("%d: implicit close due to second start; old attr '%A'", fss->seqnum, fss->attr);
+			if(fss->proto && fss->ps)
+				(*fss->proto->close)(fss);
+			fss->ps = nil;
+			fss->proto = nil;
+			_freeattr(fss->attr);
+			fss->attr = nil;
+			fss->phase = Notstarted;
+		}	
 		attr = _parseattr(fss->rpc.arg);
 		if((p = _str_findattr(attr, "proto")) == nil){
 			retstring(r, fss, "error did not specify proto");
+			_freeattr(attr);
 			break;
 		}
 		if((proto = findproto(p)) == nil){
 			snprint(fss->rpc.buf, Maxrpc, "error unknown protocol %q", p);
 			retstring(r, fss, fss->rpc.buf);
+			_freeattr(attr);
 			break;
 		}
 		fss->attr = attr;
@@ -326,7 +338,7 @@ rpcread(Req *r)
 			break;
 		}
 		memmove(r->ofcall.data, "ok ", 3);
-		fss->ai.cap = mkcap(r->fid->uid, fss->ai.cuid);
+		fss->ai.cap = mkcap(r->fid->uid, fss->ai.suid);
 		e = convAI2M(&fss->ai, (uchar*)r->ofcall.data+3, r->ifcall.count-3);
 		free(fss->ai.cap);
 		fss->ai.cap = nil;
@@ -381,6 +393,20 @@ ctlwrite(char *a)
 	if(a[0] == '#' || a[0] == '\0')
 		return 0;
 
+	/*
+	 * it would be nice to emit a warning of some sort here.
+	 * we ignore all but the first line of the write.  this helps
+	 * both with things like "echo delkey >/mnt/factotum/ctl"
+	 * and writes that (incorrectly) contain multiple key lines.
+	 */
+	if(p = strchr(a, '\n')){
+		if(p[1] != '\0'){
+			werrstr("multiline write not allowed");
+			return -1;
+		}
+		*p = '\0';
+	}
+
 	if((p = strchr(a, ' ')) == nil)
 		p = "";
 	else
@@ -395,9 +421,16 @@ ctlwrite(char *a)
 		return 0;
 	case Vdelkey:
 		nmatch = 0;
-		attr = _parseattr(p);		
+		attr = _parseattr(p);
+		for(pa=attr; pa; pa=pa->next){
+			if(pa->type != AttrQuery && s_to_c(pa->name)[0]=='!'){
+				werrstr("only !private? patterns are allowed for private fields");
+				_freeattr(attr);
+				return -1;
+			}
+		}
 		for(i=0; i<ring->nkey; ){
-			if(matchattr(attr, ring->key[i]->attr, nil)){
+			if(matchattr(attr, ring->key[i]->attr, ring->key[i]->privattr)){
 				nmatch++;
 				closekey(ring->key[i]);
 				ring->nkey--;
@@ -459,6 +492,7 @@ ctlwrite(char *a)
 			k->attr = _mkattr(AttrNameval, "proto", proto->name, _copyattr(attr));
 			k->privattr = _copyattr(priv);
 			k->ref = 1;
+			k->proto = proto;
 			if(proto->addkey(k) < 0){
 				ret = -1;
 				closekey(k);

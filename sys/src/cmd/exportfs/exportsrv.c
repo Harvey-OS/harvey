@@ -398,7 +398,7 @@ Xwstat(Fsrpc *t)
 	}
 	else {
 		/* wstat may really be rename */
-		if(strcmp(d.name, f->f->name)!=0){
+		if(strcmp(d.name, f->f->name)!=0 && strcmp(d.name, "")!=0){
 			free(f->f->name);
 			f->f->name = estrdup(d.name);
 		}

@@ -22,6 +22,9 @@ void
 main(int argc, char *argv[])
 {
 	int justinterfaces = 0;
+	int i, tot, fd;
+	Dir *d;
+	char buf[128];
 
 	ARGBEGIN{
 	case 'n':
@@ -52,10 +55,18 @@ main(int argc, char *argv[])
 		exits(0);
 	}
 
-	nstat("tcp", pip);
-	nstat("udp", pip);
-	nstat("rudp", pip);
-	nstat("il", pip);
+	fd = open(netroot, OREAD);
+	if(fd < 0)
+		sysfatal("open %s: %r", netroot);
+
+	tot = dirreadall(fd, &d);
+	for(i=0; i<tot; i++){
+		if(strcmp(d[i].name, "ipifc") == 0)
+			continue;
+		snprint(buf, sizeof buf, "%s/%s/0/local", netroot, d[i].name);
+		if(access(buf, 0) >= 0)
+			nstat(d[i].name, pip);
+	}
 
 	exits(0);
 }

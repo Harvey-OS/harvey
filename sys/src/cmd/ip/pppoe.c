@@ -12,7 +12,7 @@ uchar *findtag(uchar*, int, int*, int);
 void hexdump(uchar*, int);
 int malformed(uchar*, int, int);
 int pppoe(char*);
-void pushppp(int);
+void execppp(int);
 
 int alarmed;
 int debug;
@@ -97,8 +97,7 @@ main(int argc, char **argv)
 
 	atnotify(catchalarm, 1);
 	fd = pppoe(dev);
-	pushppp(fd);
-	exits(nil);
+	execppp(fd);
 }
 
 typedef struct Etherhdr Etherhdr;
@@ -504,7 +503,7 @@ pppoe(char *ether)
 }
 
 void
-pushppp(int fd)
+execppp(int fd)
 {
 	char *argv[16];
 	int argc;
@@ -529,17 +528,10 @@ pushppp(int fd)
 	}
 	argv[argc] = nil;
 
-	switch(fork()){
-	case -1:
-		sysfatal("fork: %r");
-	default:
-		return;
-	case 0:
-		dup(fd, 0);
-		dup(fd, 1);
-		exec(pppname, argv);
-		sysfatal("exec: %r");
-	}
+	dup(fd, 0);
+	dup(fd, 1);
+	exec(pppname, argv);
+	sysfatal("exec: %r");
 }
 
 uchar*

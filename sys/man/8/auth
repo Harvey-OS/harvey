@@ -1,6 +1,6 @@
 .TH AUTH 8
 .SH NAME
-changeuser, wrkey, convkeys, convkeys2, printnetkey, status, auth.srv, guard.srv, login, disable, enable \- maintain authentication databases
+changeuser, wrkey, convkeys, convkeys2, printnetkey, status, authsrv, guard.srv, login, disable, enable \- maintain authentication databases
 .SH SYNOPSIS
 .B auth/changeuser
 .RB [ -np ]
@@ -28,7 +28,7 @@ changeuser, wrkey, convkeys, convkeys2, printnetkey, status, auth.srv, guard.srv
 .B auth/disable
 .I user
 .PP
-.B auth/auth.srv
+.B auth/authsrv
 .PP
 .B auth/guard.srv
 .PP
@@ -151,14 +151,14 @@ a user and the user's key status.
 are shell scripts that enable/disable both the Plan 9 and
 Netkey keys for individual users.
 .PP
-.I Auth.srv
+.I Authsrv
 is the program, run only on the authentication server, that handles ticket requests
 on IL port 566.
 It is started
 by an incoming call to the server
 requesting a conversation ticket; its standard input and output
 are the network connection.
-.I Auth.srv
+.I Authsrv
 executes the authentication server's end of the appropriate protocol as
 described in
 .IR authsrv (6).
@@ -178,6 +178,10 @@ and exec's
 under the new id.
 .SH FILES
 .TF /sys/lib/httppasswords
+.TP
+.B /lib/ndb/auth
+Speaksfor relationships and mappings for
+rasius server id's.
 .TP
 .B /adm/keys.who
 List of users in the Plan 9 database.

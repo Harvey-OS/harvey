@@ -9,11 +9,14 @@
 
 /* Power management for the bitsy */
 
+#define TODFREQ	1000000000LL
+
 /* saved state during power down. 
  * it's only used up to 164/4.
  * it's only used by routines in l.s
  */
 ulong	power_state[200/4];
+
 ulong	resumeaddr[1];
 Rendez	powerr;
 ulong	powerflag = 0;	/* set to start power-off sequence */
@@ -166,6 +169,8 @@ deepsleep(void) {
 	static int power_pl;
 	ulong xsp, xlink;
 //	ulong mecr;
+	ulong clkd;
+	vlong savedtod;
 	extern void power_resume(void);
 
 	power_pl = splhi();
@@ -199,8 +204,10 @@ deepsleep(void) {
 			gpioregs->edgestatus = (1<<IRQgpio0);
 			intrregs->icip = (1<<IRQgpio0);
 		}
-		clockpower(1);
+		clkd = clockpower(1);
 		gpclkregs->r0 = 1<<0;
+		todset(savedtod + clkd * TODFREQ, 0LL, 0);
+		resetsuspendtimer();
 		rs232power(1);
 		uartpower(1);
 		delay(100);
@@ -218,6 +225,7 @@ deepsleep(void) {
 	}
 	cacheflush();
 	delay(100);
+	savedtod = todget(nil);
 	power_down();
 	/* no return */
 }
@@ -273,6 +281,37 @@ blanktimer(void)
 	drawactive(0);
 }
 
+static ulong suspendtime = 120 * HZ;
+static int lastsuspend;
+
+void
+resetsuspendtimer(void)
+{
+	suspendtime = 60 * HZ;
+}
+
+static void
+suspendtimer(void)
+{
+	uvlong	now;
+
+	return;	// does not work well.
+
+	if (suspendtime > 0)
+		suspendtime--;
+	if (suspendtime == 0){
+		now = seconds();
+		if (now < lastsuspend + 10){
+			resetsuspendtimer();
+			return;
+		}
+		lastsuspend = seconds();
+		deepsleep();
+		lastsuspend = seconds();
+		return;
+	}
+}
+
 void
 powerinit(void)
 {
@@ -291,7 +330,8 @@ powerinit(void)
 		*p++ = *q++;
 
 	*resumeaddr = (ulong) power_resume;
-	addclock0link(blanktimer);
+	addclock0link(blanktimer, 1000/HZ);
+	addclock0link(suspendtimer, 1000/HZ);
 	intrenable(GPIOrising, bitno(GPIO_PWR_ON_i), onoffintr, nil, "on/off");
 }
 
@@ -311,3 +351,4 @@ idlehands(void)
 		spllo();
 	}
 }
+

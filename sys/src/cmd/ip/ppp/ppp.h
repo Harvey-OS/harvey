@@ -250,7 +250,8 @@ struct PPP
 
 	int		ipfd;		/* fd to ip stack */
 	int		ipcfd;		/* fd to control channel of ip stack */
-	int		mediafd;	/* fd to media */
+	int		mediain;	/* fd to media */
+	int		mediaout;	/* fd to media */
 	char		*net;		/* ip stack to use */
 	int		framing;	/* non-zero to use framing characters */
 	Ipaddr		local;
@@ -288,8 +289,8 @@ struct PPP
 	int		sendencrypted;
 
 	/* authentication */
-	char		secret[64];	/* md5 key */
-	char		chapname[32];	/* chap system name */
+	char		secret[256];	/* md5 key */
+	char		chapname[256];	/* chap system name */
 
 	/* link quality monitoring */
 	int		period;	/* lqm period */
@@ -321,7 +322,7 @@ struct PPP
 
 extern Block*	pppread(PPP*);
 extern int	pppwrite(PPP*, Block*);
-extern void	pppopen(PPP*, int, char*, Ipaddr, Ipaddr, int, int, char*);
+extern void	pppopen(PPP*, int, int, char*, Ipaddr, Ipaddr, int, int, char*);
 
 struct Lcpmsg
 {

@@ -26,7 +26,7 @@ killgs(void)
 	/*
 	 * from ghostscript's use.txt:
 	 * ``Ghostscript currently doesn't do a very good job of deleting temporary
-	 * files when it wexits; you may have to delete them manually from time to
+	 * files when it exits; you may have to delete them manually from time to
 	 * time.''
 	 */
 	sprint(tmpfile, "/tmp/gs_%.5da", (gspid+300000)%100000);
@@ -251,8 +251,10 @@ gscmd(GSInfo *gs, char *fmt, ...)
  * set the dimensions of the bitmap we expect to get back from GS.
  */
 void
-setdim(GSInfo *gs, Rectangle bbox, int ppi)
+setdim(GSInfo *gs, Rectangle bbox, int ppi, int landscape)
 {
+	Rectangle pbox;
+
 	if(chatty)
 		fprint(2, "setdim: bbox=%R\n", bbox);
 
@@ -262,15 +264,34 @@ setdim(GSInfo *gs, Rectangle bbox, int ppi)
 	gscmd(gs, "mark\n");
 	if(ppi)
 		gscmd(gs, "/HWResolution [%d %d]\n", ppi, ppi);
-	if(Dx(bbox))
-		gscmd(gs, "/PageSize [%d %d]\n", Dx(bbox), Dy(bbox));
-	else
-		gscmd(gs, "/PageSize [%d %d]\n", 612, 792);	/* 8½×11 */
+
+	if(!Dx(bbox))
+		bbox = Rect(0, 0, 612, 792);	/* 8½×11 */
+
+	switch(landscape){
+	case 0:
+		pbox = bbox;
+		break;
+	case 1:
+		pbox = Rect(bbox.min.y, bbox.min.x, bbox.max.y, bbox.max.x);
+		break;
+	}
+	gscmd(gs, "/PageSize [%d %d]\n", Dx(pbox), Dy(pbox));
+	gscmd(gs, "/Margins [%d %d]\n", -pbox.min.x, -pbox.min.y);
 	gscmd(gs, "currentdevice putdeviceprops pop\n");
 	gscmd(gs, "/#copies 1 store\n");
 
 	if(!eqpt(bbox.min, ZP))
 		gscmd(gs, "%d %d translate\n", -bbox.min.x, -bbox.min.y);
+
+	switch(landscape){
+	case 0:
+		break;
+	case 1:
+		gscmd(gs, "%d 0 translate\n", Dy(bbox));
+		gscmd(gs, "90 rotate\n");
+		break;
+	}
 
 	waitgs(gs);
 }

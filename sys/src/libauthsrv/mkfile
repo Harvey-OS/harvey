@@ -1,33 +1,30 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libauthsrv.a
-FILES=\
-	_asgetticket\
-	_asrdresp\
-	authdial\
-	convA2M\
-	convM2A\
-	convM2PR\
-	convM2T\
-	convM2TR\
-	convPR2M\
-	convT2M\
-	convTR2M\
-	nvcsum\
-	opasstokey\
-	passtokey\
-	readnvram\
+OFILES=\
+	_asgetticket.$O\
+	_asrdresp.$O\
+	authdial.$O\
+	convA2M.$O\
+	convM2A.$O\
+	convM2PR.$O\
+	convM2T.$O\
+	convM2TR.$O\
+	convPR2M.$O\
+	convT2M.$O\
+	convTR2M.$O\
+	nvcsum.$O\
+	opasstokey.$O\
+	passtokey.$O\
+	readnvram.$O\
 
 HFILES=\
 	/sys/include/authsrv.h\
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/libauthsrv.a\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib

@@ -32,6 +32,7 @@ main(int argc, char *argv[])
 	char buf[256];
 
 	ARGBEGIN {
+	case 'l':
 	case 'n':
 		n=atoi(EARGF(usage()));
 		break;

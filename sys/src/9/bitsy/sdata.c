@@ -7,7 +7,7 @@
 #include "ureg.h"
 #include "../port/error.h"
 
-#include "sd.h"
+#include "../port/sd.h"
 
 
 extern SDifc sdataifc;
@@ -253,11 +253,6 @@ typedef struct Drive {
 } Drive;
 
 
-char*
-getconf(char*)
-{
-	return nil;
-}
 
 static void
 atadumpstate(Drive* drive, uchar* cmd, int lba, int count)
@@ -2036,7 +2031,7 @@ struct Try {
 };
 
 static SDev*
-ataconfig(int on, char *, DevConf *cf)
+ataprobew(DevConf *cf)
 {
 	int	cmdport;
 	int	ctlport;
@@ -2044,21 +2039,50 @@ ataconfig(int on, char *, DevConf *cf)
 	SDev*	rc;
 	struct Try *try;
 
-	if(on == 0)
-		return nil;
 	rc = nil;
 	for (try = &tries[0]; try->p != 0 || try->c != 0; try++){
 		ataitype = cf->itype;
-		atairq  = cf->irq;
-		cmdport = cf->port + try->p;
+		atairq  = cf->intnum;
+		cmdport = cf->ports[0].port + try->p;
 		ctlport = cmdport + try->c;
-		irq = cf->irq;
+		irq = cf->intnum;
 		rc = ataprobe(cmdport, ctlport, irq);
 		if (rc)
 			break;
 	}
 	return rc;
 }
+
+static void
+ataclear(SDev *sdev)
+{
+	Ctlr* ctlr;
+
+	ctlr = sdev->ctlr;
+
+	if (ctlr->drive[0])
+		free(ctlr->drive[0]);
+	if (ctlr->drive[1])
+		free(ctlr->drive[1]);
+	if (sdev->name)
+		free(sdev->name);
+	if (sdev->unitflg)
+		free(sdev->unitflg);
+	if (sdev->unit)
+		free(sdev->unit);
+	free(ctlr);
+	free(sdev);
+}
+
+static char *
+atastat(SDev *sdev, char *p, char *e)
+{
+	Ctlr *ctlr = sdev->ctlr;
+
+	return seprint(p, e, "%s ata port %X ctl %X irq %d\n", 
+		    	       sdev->name, ctlr->cmdport, ctlr->ctlport, ctlr->irq);
+}
+
 
 SDifc sdataifc = {
 	"ata",				/* name */
@@ -2075,7 +2099,9 @@ SDifc sdataifc = {
 	atarctl,			/* rctl */
 	atawctl,			/* wctl */
 
-	atabio,			/* bio */
-	ataconfig,		/* config */
+	atabio,				/* bio */
+	ataprobew,			/* probew */
+	ataclear,			/* clear */
+	atastat,			/* stat */
 };
 

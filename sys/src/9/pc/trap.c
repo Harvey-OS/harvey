@@ -534,7 +534,7 @@ fault386(Ureg* ureg, void*)
 		return;
 	read = !(ureg->ecode & 2);
 	if(up == nil)
-		panic("what? up is zero pc 0x%8.8lux\n", ureg->pc);
+		panic("fault but up is zero; pc 0x%8.8lux addr 0x%8.8lux\n", ureg->pc, addr);
 	insyscall = up->insyscall;
 	up->insyscall = 1;
 	n = fault(addr, read);

@@ -62,7 +62,7 @@ getfile(SConn *conn, char *id, char *gf)
 
 	/* send file size */
 	if(strchr(gf,'/') != nil || strcmp(gf,"..")==0){
-		fprint(2, "no slashes allowed: %s\n", gf);
+		syslog(0, LOG, "no slashes allowed: %s\n", gf);
 		conn->write(conn, (uchar*)"-2", 2);
 		return -1;
 	}
@@ -70,14 +70,14 @@ getfile(SConn *conn, char *id, char *gf)
 	snprint(s, Maxmsg, "%s/store/%s/%s", SECSTORE_DIR, id, gf);
 	gd = open(s, OREAD);
 	if(gd < 0){
-		fprint(2, "can't open %s: %r\n", s);
+		syslog(0, LOG, "can't open %s: %r\n", s);
 		free(s);
 		conn->write(conn, (uchar*)"-1", 2);
 		return -1;
 	}
 	len = seek(gd, 0, 2);
 	if(len < 0 || len > MAXFILESIZE){//assert
-		fprint(2, "implausible filesize %d for %s\n", len, gf);
+		syslog(0, LOG, "implausible filesize %d for %s\n", len, gf);
 		free(s);
 		conn->write(conn, (uchar*)"-3", 2);
 		return -1;
@@ -90,7 +90,7 @@ getfile(SConn *conn, char *id, char *gf)
 	while(len > 0){
 		n = read(gd, s, Maxmsg);
 		if(n <= 0){
-			fprint(2, "read error on %s: %r\n", gf);
+			syslog(0, LOG, "read error on %s: %r\n", gf);
 			free(s);
 			return -1;
 		}
@@ -112,38 +112,38 @@ putfile(SConn *conn, char *id, char *pf)
 	/* get file size */
 	n = readstr(conn, s);
 	if(n < 0){//assert
-		fprint(2, "remote: %s: %r\n", s);
+		syslog(0, LOG, "remote: %s: %r\n", s);
 		return -1;
 	}
 	len = atoi(s);
 	if(len == -1){
-		fprint(2, "remote file %s does not exist\n", pf);
+		syslog(0, LOG, "remote file %s does not exist\n", pf);
 		return -1;
 	}else if(len < 0 || len > MAXFILESIZE){//assert
-		fprint(2, "implausible filesize %ld for %s\n", len, pf);
+		syslog(0, LOG, "implausible filesize %ld for %s\n", len, pf);
 		return -1;
 	}
 
 	/* get file in Maxmsg chunks */
 	if(strchr(pf,'/') != nil || strcmp(pf,"..")==0){
-		fprint(2, "no slashes allowed: %s\n", pf);
+		syslog(0, LOG, "no slashes allowed: %s\n", pf);
 		return -1;
 	}
 	snprint(s, Maxmsg, "%s/store/%s/%s", SECSTORE_DIR, id, pf);
 	pd = create(s, OWRITE, 0660);
 	if(pd < 0){//assert
-		fprint(2, "can't open %s: %r\n", s);
+		syslog(0, LOG, "can't open %s: %r\n", s);
 		return -1;
 	}
 	while(len > 0){
 		n = conn->read(conn, (uchar*)s, Maxmsg);
 		if(n <= 0){//assert
-			fprint(2, "empty file chunk\n");
+			syslog(0, LOG, "empty file chunk\n");
 			return -1;
 		}
 		nw = write(pd, s, n);
 		if(nw != n){//assert
-			fprint(2, "write error on %s: %r", pf);
+			syslog(0, LOG, "write error on %s: %r", pf);
 			return -1;
 		}
 		len -= n;
@@ -256,18 +256,24 @@ dologin(int fd, char *S, int forceSTA)
 			file = msg+4;
 			if(nl = strchr(file, '\n'))
 				*nl = 0;
-			if(putfile(conn, pw->id, file) < 0)
+			if(putfile(conn, pw->id, file) < 0){
+				writerr(conn, "write error");
+				syslog(0, LOG, "failed PUT %s/%s", pw->id, file);
 				goto Out;
+			}
 			syslog(0, LOG, "PUT %s/%s", pw->id, file);
 		}else if(strncmp(msg, "RM ", 3) == 0){
 			file = msg + 3;
 			if(nl = strchr(file, '\n'))
 				*nl = 0;
-			if(removefile(conn, pw->id, file) < 0)
+			if(removefile(conn, pw->id, file) < 0){
+				syslog(0, LOG, "failed RM %s/%s", pw->id, file);
 				goto Out;
+			}
 			syslog(0, LOG, "RM %s/%s", pw->id, file);
 		}else if(strncmp(msg, "CHPASS", 6) == 0){
 			if(readstr(conn, msg) < 0){
+				syslog(0, LOG, "protocol botch CHPASS for %s", pw->id);
 				writerr(conn, "protocol botch while setting PAK");
 				goto Out;
 			}

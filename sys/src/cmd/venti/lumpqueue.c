@@ -15,11 +15,13 @@ struct WLump
 	Lump	*u;
 	Packet	*p;
 	int	creator;
+	int	gen;
 };
 
 struct LumpQueue
 {
 	VtLock		*lock;
+	VtRendez *flush;
 	VtRendez	*full;
 	VtRendez	*empty;
 	WLump		q[MaxLumpQ];
@@ -29,6 +31,9 @@ struct LumpQueue
 
 static LumpQueue	*lumpqs;
 static int		nqs;
+
+static VtLock	*glk;
+static int		gen;
 
 static void	doQueue(void *vq);
 
@@ -40,6 +45,7 @@ initLumpQueues(int nq)
 	int i;
 	nqs = nq;
 
+	glk = vtLockAlloc();
 	lumpqs = MKNZ(LumpQueue, nq);
 
 	for(i = 0; i < nq; i++){
@@ -47,6 +53,7 @@ initLumpQueues(int nq)
 		q->lock = vtLockAlloc();
 		q->full = vtRendezAlloc(q->lock);
 		q->empty = vtRendezAlloc(q->lock);
+		q->flush = vtRendezAlloc(q->lock);
 
 		if(vtThread(doQueue, q) < 0){
 			setErr(EOk, "can't start write queue slave: %R");
@@ -81,6 +88,7 @@ queueWrite(Lump *u, Packet *p, int creator)
 	q->q[q->w].u = u;
 	q->q[q->w].p = p;
 	q->q[q->w].creator = creator;
+	q->q[q->w].gen = gen;
 	q->w = (q->w + 1) & (MaxLumpQ - 1);
 
 	vtWakeup(q->empty);
@@ -90,6 +98,25 @@ queueWrite(Lump *u, Packet *p, int creator)
 	return 1;
 }
 
+void
+queueFlush(void)
+{
+	int i;
+	LumpQueue *q;
+
+	vtLock(glk);
+	gen++;
+	vtUnlock(glk);
+
+	for(i=0; i<mainIndex->nsects; i++){
+		q = &lumpqs[i];
+		vtLock(q->lock);
+		while(q->w != q->r && gen - q->q[q->r].gen > 0)
+			vtSleep(q->flush);
+		vtUnlock(q->lock);
+	}
+}
+		
 static void
 doQueue(void *vq)
 {
@@ -103,10 +130,10 @@ doQueue(void *vq)
 		vtLock(q->lock);
 		while(q->w == q->r)
 			vtSleep(q->empty);
+
 		u = q->q[q->r].u;
 		p = q->q[q->r].p;
 		creator = q->q[q->r].creator;
-		q->r = (q->r + 1) & (MaxLumpQ - 1);
 
 		vtWakeup(q->full);
 
@@ -114,6 +141,11 @@ doQueue(void *vq)
 
 		if(!writeQLump(u, p, creator))
 			fprint(2, "failed to write lump for %V: %R", u->score);
+
+		vtLock(q->lock);
+		q->r = (q->r + 1) & (MaxLumpQ - 1);
+		vtWakeup(q->flush);
+		vtUnlock(q->lock);
 
 		putLump(u);
 	}

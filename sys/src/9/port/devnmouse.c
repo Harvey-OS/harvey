@@ -50,7 +50,8 @@ mousereset(void)
 
 	curs = arrow;
 	Cursortocursor(&arrow);
-	addclock0link(mouseclock);
+	/* redraw cursor about 30 times per second */
+	addclock0link(mouseclock, 33);
 }
 
 static void

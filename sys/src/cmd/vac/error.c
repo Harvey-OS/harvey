@@ -14,4 +14,7 @@ char EBadOffset[] = "illegal offset";
 char ETooBig[] = "file too big";
 char EReadOnly[] = "read only";
 char ERemoved[] = "file has been removed";
-
+char ENilBlock[] = "illegal block address";
+char ENotEmpty[] = "directory not empty";
+char EExists[] = "file already exists";
+char ERoot[] = "cannot remove root";

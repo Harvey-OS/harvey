@@ -121,7 +121,7 @@ static void	freeints(Ints* b);
 static Bits*	newbits(int len);
 static Bits*	makebits(uchar* buf, int len, int unusedbits);
 static void	freebits(Bits* b);
-static Elist*	makeelist(Elem e, Elist* tail);
+static Elist*	mkel(Elem e, Elist* tail);
 static void	freeelist(Elist* el);
 static int	elistlen(Elist* el);
 static int	is_seq(Elem* pe, Elist** pseq);
@@ -160,6 +160,33 @@ static int enc(uchar** pp, Elem e, int lenonly);
 static int val_enc(uchar** pp, Elem e, int *pconstr, int lenonly);
 static void uint7_enc(uchar** pp, int num, int lenonly);
 static void int_enc(uchar** pp, int num, int unsgned, int lenonly);
+
+static void *
+emalloc(int n)
+{
+	void *p;
+	if(n==0)
+		n=1;
+	p = malloc(n);
+	if(p == nil){
+		exits("out of memory");
+	}
+	memset(p, 0, n);
+	return p;
+}
+
+static char*
+estrdup(char *s)
+{
+	char *d, *d0;
+
+	if(!s)
+		return 0;
+	d = d0 = emalloc(strlen(s)+1);
+	while(*d++ = *s++)
+		;
+	return d0;
+}
 
 
 /*
@@ -503,7 +530,7 @@ value_decode(uchar** pp, uchar* pend, int length, int kind, int isconstr, Value*
 		err = octet_decode(&p, pend, length, isconstr, &va);
 		if(err == ASN_OK) {
 			pval->tag = VString;
-			pval->u.stringval = (char*)malloc(va->len+1);
+			pval->u.stringval = (char*)emalloc(va->len+1);
 			memmove(pval->u.stringval, va->data, va->len);
 			pval->u.stringval[va->len] = 0;
 			free(va);
@@ -703,7 +730,7 @@ seq_decode(uchar** pp, uchar* pend, int length, int isconstr, Elist** pelist)
 				break;
 			}
 			else
-				lve = makeelist(elem, lve);
+				lve = mkel(elem, lve);
 		}
 		if(err == ASN_OK) {
 			/* reverse back to original order */
@@ -1003,7 +1030,7 @@ val_enc(uchar** pp, Elem e, int *pconstr, int lenonly)
 			s = e.val.u.stringval;
 			if(s != nil) {
 				v = strlen(s);
-				if(!lenonly && bb != nil)
+				if(!lenonly)
 					memmove(p, s, v);
 				p += v;
 			}
@@ -1252,14 +1279,13 @@ is_time(Elem* pe, char** ptime)
 /*
  * malloc and return a new Bytes structure capable of
  * holding len bytes. (len >= 0)
- * Used to use crypt_malloc, which aborts if malloc fails.
  */
 static Bytes*
 newbytes(int len)
 {
 	Bytes* ans;
 
-	ans = (Bytes*)malloc(OFFSETOF(data[0], Bytes) + len);
+	ans = (Bytes*)emalloc(OFFSETOF(data[0], Bytes) + len);
 	ans->len = len;
 	return ans;
 }
@@ -1319,7 +1345,7 @@ newints(int len)
 {
 	Ints* ans;
 
-	ans = (Ints*)malloc(OFFSETOF(data[0], Ints) + len*sizeof(int));
+	ans = (Ints*)emalloc(OFFSETOF(data[0], Ints) + len*sizeof(int));
 	ans->len = len;
 	return ans;
 }
@@ -1348,7 +1374,7 @@ newbits(int len)
 {
 	Bits* ans;
 
-	ans = (Bits*)malloc(OFFSETOF(data[0], Bits) + len);
+	ans = (Bits*)emalloc(OFFSETOF(data[0], Bits) + len);
 	ans->len = len;
 	ans->unusedbits = 0;
 	return ans;
@@ -1373,11 +1399,11 @@ freebits(Bits* b)
 }
 
 static Elist*
-makeelist(Elem e, Elist* tail)
+mkel(Elem e, Elist* tail)
 {
 	Elist* el;
 
-	el = (Elist*)malloc(sizeof(Elist));
+	el = (Elist*)emalloc(sizeof(Elist));
 	el->hd = e;
 	el->tl = tail;
 	return el;
@@ -1630,7 +1656,7 @@ parse_name(Elem* e)
 		el = el->tl;
 	}
 	if(i > 0) {
-		ans = (char*)malloc(plen);
+		ans = (char*)emalloc(plen);
 		*ans = '\0';
 		while(--i >= 0) {
 			s = parts[i];
@@ -1688,7 +1714,7 @@ decode_cert(Bytes* a)
 	if(decode(a->data, a->len, &ecert) != ASN_OK)
 		goto errret;
 
-	c = (CertX509*)malloc(sizeof(CertX509));
+	c = (CertX509*)emalloc(sizeof(CertX509));
 	c->serial = -1;
 	c->issuer = nil;
 	c->validity_start = nil;
@@ -1920,6 +1946,27 @@ asn1mpint(Elem *e)
 	return nil;
 }
 
+static mpint*
+pkcs1pad(Bytes *b, mpint *modulus)
+{
+	int n = (mpsignif(modulus)+7)/8;
+	int pm1, i;
+	uchar *p;
+	mpint *mp;
+
+	pm1 = n - 1 - b->len;
+	p = (uchar*)emalloc(n);
+	p[0] = 0;
+	p[1] = 1;
+	for(i = 2; i < pm1; i++)
+		p[i] = 0xFF;
+	p[pm1] = 0;
+	memcpy(&p[pm1+1], b->data, b->len);
+	mp = betomp(p, n, nil);
+	free(p);
+	return mp;
+}
+
 RSApriv*
 asn1toRSApriv(uchar *kd, int kn)
 {
@@ -1957,7 +2004,6 @@ digest_certinfo(Bytes *cert, DigestFun digestfun, uchar *digest)
 	if(ber_decode(&p, pend, &elem) != ASN_OK || elem.tag.num != SEQUENCE)
 		return;
 	infolen = p - info;
-	fprint(2, "info [%lud] %2ux %2ux %2ux...\n", infolen, info[0], info[1], info[2]);
 	(*digestfun)(info, infolen, digest, nil);
 }
 
@@ -2035,4 +2081,331 @@ X509verify(uchar *cert, int ncert, RSApub *pk)
 	e = verify_signature(c->signature, pk, digest);
 	freecert(c);
 	return e;
+}
+
+/* ------- Elem constructors ---------- */
+static Elem
+Null(void)
+{
+	Elem e;
+
+	e.tag.class = Universal;
+	e.tag.num = NULLTAG;
+	e.val.tag = VNull;
+	return e;
+}
+
+static Elem
+mkint(int j)
+{
+	Elem e;
+
+	e.tag.class = Universal;
+	e.tag.num = INTEGER;
+	e.val.tag = VInt;
+	e.val.u.intval = j;
+	return e;
+}
+
+static Elem
+mkbigint(mpint *p)
+{
+	Elem e;
+	uchar *buf;
+	int buflen;
+
+	e.tag.class = Universal;
+	e.tag.num = INTEGER;
+	e.val.tag = VBigInt;
+	buflen = mptobe(p, nil, 0, &buf);
+	e.val.u.bigintval = makebytes(buf, buflen);
+	free(buf);
+	return e;
+}
+
+static Elem
+mkstring(char *s)
+{
+	Elem e;
+
+	e.tag.class = Universal;
+	e.tag.num = IA5String;
+	e.val.tag = VString;
+	e.val.u.stringval = estrdup(s);
+	return e;
+}
+
+static Elem
+mkoctet(uchar *buf, int buflen)
+{
+	Elem e;
+
+	e.tag.class = Universal;
+	e.tag.num = OCTET_STRING;
+	e.val.tag = VOctets;
+	e.val.u.octetsval = makebytes(buf, buflen);
+	return e;
+}
+
+static Elem
+mkbits(uchar *buf, int buflen)
+{
+	Elem e;
+
+	e.tag.class = Universal;
+	e.tag.num = BIT_STRING;
+	e.val.tag = VBitString;
+	e.val.u.bitstringval = makebits(buf, buflen, 0);
+	return e;
+}
+
+static Elem
+mkutc(long t)
+{
+	Elem e;
+	char utc[50];
+	Tm *tm = gmtime(t);
+
+	e.tag.class = Universal;
+	e.tag.num = UTCTime;
+	e.val.tag = VString;
+	snprint(utc, 50, "%.2d%.2d%.2d%.2d%.2d%.2dZ",
+		tm->year % 100, tm->mon+1, tm->mday, tm->hour, tm->min, tm->sec);
+	e.val.u.stringval = estrdup(utc);
+	return e;
+}
+
+static Elem
+mkoid(Ints *oid)
+{
+	Elem e;
+
+	e.tag.class = Universal;
+	e.tag.num = OBJECT_ID;
+	e.val.tag = VObjId;
+	e.val.u.objidval = makeints(oid->data, oid->len);
+	return e;
+}
+
+static Elem
+mkseq(Elist *el)
+{
+	Elem e;
+
+	e.tag.class = Universal;
+	e.tag.num = SEQUENCE;
+	e.val.tag = VSeq;
+	e.val.u.seqval = el;
+	return e;
+}
+
+static Elem
+mkset(Elist *el)
+{
+	Elem e;
+
+	e.tag.class = Universal;
+	e.tag.num = SETOF;
+	e.val.tag = VSet;
+	e.val.u.setval = el;
+	return e;
+}
+
+static Elem
+mkalg(int alg)
+{
+	return mkseq(mkel(mkoid(alg_oid_tab[alg]), mkel(Null(), nil)));
+}
+
+typedef struct Ints4pref {
+	int		len;
+	int		data[4];
+	char	prefix[4];
+} Ints4pref;
+Ints4pref DN_oid[] = {
+	{4, 2, 5, 4, 6,  "C="},
+	{4, 2, 5, 4, 8,  "ST="},
+	{4, 2, 5, 4, 7,  "L="},
+	{4, 2, 5, 4, 10, "O="},
+	{4, 2, 5, 4, 11, "OU="},
+	{4, 2, 5, 4, 3,  "CN="},
+};
+
+static Elem
+mkname(Ints4pref *oid, char *subj)
+{
+	return mkset(mkel(mkseq(mkel(mkoid((Ints*)oid), mkel(mkstring(subj), nil))), nil));
+}
+
+static Elem
+mkDN(char *dn)
+{
+	int i, j, nf;
+	char *f[20], *prefix, *d2 = estrdup(dn);
+	Elist* el = nil;
+
+	nf = tokenize(d2, f, nelem(f));
+	for(i=nf-1; i>=0; i--){
+		for(j=0; j<nelem(DN_oid); j++){
+			prefix = DN_oid[j].prefix;
+			if(strncmp(f[i],prefix,strlen(prefix))==0){
+				el = mkel(mkname(&DN_oid[j],f[i]+strlen(prefix)), el);
+				break;
+			}
+		}
+	}
+	free(d2);
+	return mkseq(el);
+}
+
+
+uchar*
+X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen)
+{
+	int serial = 0;
+	uchar *cert = nil;
+	RSApub *pk = rsaprivtopub(priv);
+	Bytes *certbytes, *pkbytes, *certinfobytes, *sigbytes;
+	Elem e, certinfo, issuer, subject, pubkey, validity, sig;
+	uchar digest[MD5dlen], *buf;
+	int buflen;
+	mpint *pkcs1;
+
+	e.val.tag = VInt;  /* so freevalfields at errret is no-op */
+	issuer = mkDN(subj);
+	subject = mkDN(subj);
+	pubkey = mkseq(mkel(mkbigint(pk->n),mkel(mkint(mptoi(pk->ek)),nil)));
+	if(encode(pubkey, &pkbytes) != ASN_OK)
+		goto errret;
+	freevalfields(&pubkey.val);
+	pubkey = mkseq(
+		mkel(mkalg(ALG_rsaEncryption),
+		mkel(mkbits(pkbytes->data, pkbytes->len),
+		nil)));
+	freebytes(pkbytes);
+	validity = mkseq(
+		mkel(mkutc(valid[0]),
+		mkel(mkutc(valid[1]),
+		nil)));
+	certinfo = mkseq(
+		mkel(mkint(serial),
+		mkel(mkalg(ALG_md5WithRSAEncryption),
+		mkel(issuer,
+		mkel(validity,
+		mkel(subject,
+		mkel(pubkey,
+		nil)))))));
+	if(encode(certinfo, &certinfobytes) != ASN_OK)
+		goto errret;
+	md5(certinfobytes->data, certinfobytes->len, digest, 0);
+	freebytes(certinfobytes);
+	sig = mkseq(
+		mkel(mkalg(ALG_md5WithRSAEncryption),
+		mkel(mkoctet(digest, MD5dlen),
+		nil)));
+	if(encode(sig, &sigbytes) != ASN_OK)
+		goto errret;
+	pkcs1 = pkcs1pad(sigbytes, pk->n);
+	freebytes(sigbytes);
+	rsadecrypt(priv, pkcs1, pkcs1);
+	buflen = mptobe(pkcs1, nil, 0, &buf);
+	mpfree(pkcs1);
+	e = mkseq(
+		mkel(certinfo,
+		mkel(mkalg(ALG_md5WithRSAEncryption),
+		mkel(mkbits(buf, buflen),
+		nil))));
+	free(buf);
+	if(encode(e, &certbytes) != ASN_OK)
+		goto errret;
+	if(certlen)
+		*certlen = certbytes->len;
+	cert = certbytes->data;
+errret:
+	freevalfields(&e.val);
+	return cert;
+}
+
+static char*
+tagdump(Tag tag)
+{
+	if(tag.class != Universal)
+		return smprint("class%d,num%d", tag.class, tag.num);
+	switch(tag.num){
+		case BOOLEAN: return "BOOLEAN"; break;
+		case INTEGER: return "INTEGER"; break;
+		case BIT_STRING: return "BIT STRING"; break;
+		case OCTET_STRING: return "OCTET STRING"; break;
+		case NULLTAG: return "NULLTAG"; break;
+		case OBJECT_ID: return "OID"; break;
+		case ObjectDescriptor: return "OBJECT_DES"; break;
+		case EXTERNAL: return "EXTERNAL"; break;
+		case REAL: return "REAL"; break;
+		case ENUMERATED: return "ENUMERATED"; break;
+		case EMBEDDED_PDV: return "EMBEDDED PDV"; break;
+		case SEQUENCE: return "SEQUENCE"; break;
+		case SETOF: return "SETOF"; break;
+		case NumericString: return "NumericString"; break;
+		case PrintableString: return "PrintableString"; break;
+		case TeletexString: return "TeletexString"; break;
+		case VideotexString: return "VideotexString"; break;
+		case IA5String: return "IA5String"; break;
+		case UTCTime: return "UTCTime"; break;
+		case GeneralizedTime: return "GeneralizedTime"; break;
+		case GraphicString: return "GraphicString"; break;
+		case VisibleString: return "VisibleString"; break;
+		case GeneralString: return "GeneralString"; break;
+		case UniversalString: return "UniversalString"; break;
+		case BMPString: return "BMPString"; break;
+		default:
+			return smprint("Universal,num%d", tag.num);
+	}
+}
+
+static void
+edump(Elem e)
+{
+	Value v;
+	Elist *el;
+	int i;
+
+	print("%s{", tagdump(e.tag));
+	v = e.val;
+	switch(v.tag){
+	case VBool: print("Bool %d",v.u.boolval); break;
+	case VInt: print("Int %d",v.u.intval); break;
+	case VOctets: print("Octets[%d] %.2x%.2x...",v.u.octetsval->len,v.u.octetsval->data[0],v.u.octetsval->data[1]); break;
+	case VBigInt: print("BigInt[%d] %.2x%.2x...",v.u.bigintval->len,v.u.bigintval->data[0],v.u.bigintval->data[1]); break;
+	case VReal: print("Real..."); break;
+	case VOther: print("Other..."); break;
+	case VBitString: print("BitString..."); break;
+	case VNull: print("Null"); break;
+	case VEOC: print("EOC..."); break;
+	case VObjId: print("ObjId");
+		for(i = 0; i<v.u.objidval->len; i++)
+			print(" %d", v.u.objidval->data[i]);
+		break;
+	case VString: print("String \"%s\"",v.u.stringval); break;
+	case VSeq: print("Seq\n");
+		for(el = v.u.seqval; el!=nil; el = el->tl)
+			edump(el->hd);
+		break;
+	case VSet: print("Set\n");
+		for(el = v.u.setval; el!=nil; el = el->tl)
+			edump(el->hd);
+		break;
+	}
+	print("}\n");
+}
+
+void
+asn1dump(uchar *der, int len)
+{
+	Elem e;
+
+	if(decode(der, len, &e) != ASN_OK){
+		fprint(2,"didn't parse\n");
+		exits("didn't parse");
+	}
+	edump(e);
 }

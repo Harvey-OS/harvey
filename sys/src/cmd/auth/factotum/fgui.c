@@ -72,8 +72,11 @@ threadmain(int argc, char *argv[])
 	RequestType *p;
 	Font *invis;
 
+	
 	ARGBEGIN{
 	}ARGEND;
+
+	newwindow("-hide");
 
 	fmtinstall('A', _attrfmt);
 
@@ -86,7 +89,7 @@ threadmain(int argc, char *argv[])
 	}
 
 	/* gui initialization */
-	initdraw(0, 0, "factotum_gui");
+	initdraw(0, 0, "auth/fgui");
 	initcontrols();
 	hide();
 
@@ -604,8 +607,8 @@ setupneedkey(Request *r)
 	chanprint(cs->ctl, "b_done border 1");
 	chanprint(cs->ctl, "b_done align center");
 	chanprint(cs->ctl, "b_done text DONE");
-	chanprint(cs->ctl, "b_done image i_white");
-	chanprint(cs->ctl, "b_done light i_black");
+	chanprint(cs->ctl, "b_done image green");
+	chanprint(cs->ctl, "b_done light green");
 
 	/* wire controls for input */
 	c = chancreate(sizeof(char*), 0);
@@ -731,11 +734,9 @@ needkey(Request *r)
 	for(;;){
 		val = recvp(c);
 		n = tokenize(val, args, nelem(args));
-		if(n==3 && strcmp(args[1], "value")==0){
-			if(strcmp(args[0], "b_done:") == 0){
-				free(val);
-				break;
-			}
+		if(n==3 && strcmp(args[1], "value")==0){	/* user hit 'enter' */
+			free(val);
+			break;
 		}
 		free(val);
 	}

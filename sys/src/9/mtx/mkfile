@@ -15,10 +15,10 @@ PORT=\
 	cache.$O\
 	chan.$O\
 	dev.$O\
-	edf.$O\
 	fault.$O\
 	latin1.$O\
 	log.$O\
+	nulledf.$O\
 	rebootcmd.$O\
 	page.$O\
 	parse.$O\

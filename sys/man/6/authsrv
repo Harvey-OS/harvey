@@ -113,23 +113,23 @@ beginning of the session within a
 message
 (see
 .IR attach (5)):
-.TF "Client→Server"
+.TF "Client->Server"
 .TP
-.IR Client → Server
+.IR Client -> Server
 Tsession( \fICHc\fP )
 .TP
-.IR Server → Client
+.IR Server -> Client
 Rsession( \fICHs\fP, \fIIDs\fP, \fIDNs\fP )
 .PD
 .PP
 Each time a user mounts a file server connection, an attach
 message is sent identifying/authenticating the user:
-.TF "Client→Server"
+.TF "Client->Server"
 .TP
-.IR Client → Server
+.IR Client -> Server
 Tattach( \fIKs\fP{ \fIAuthTs\fP, \fICHs\fP, \fIUIDc\fP, \fIUIDs\fP, \fIKn\fP }, \fIKn\fP{ \fIAuthAc\fP, \fICHs\fP, \fIcount\fP } )
 .TP
-.IR Server → Client
+.IR Server -> Client
 Rattach( \fIKn\fP{ AuthAs, \fICHc\fP, \fIcount\fP } )
 .PD
 .PP
@@ -155,19 +155,19 @@ it sends as a reply to the attach.
 Tickets are created by the AS at the request of a user process.
 The AS contains a database of which \fIIDc\fP's may speak for which \fIUIDc\fP's.
 If the \fIIDc\fP may speak for the \fIUIDc\fP, two tickets are returned.
-.TF "UserProc→AS"
+.TF "UserProc->AS"
 .TP
-.IR UserProc → AS
+.IR UserProc -> AS
 \fIAuthTreq\fP, \fICHs\fP, \fIIDs\fP, \fIDNs\fP, \fIIDc\fP, \fIUIDc\fP
 .TP
-.IR AS → UserProc
+.IR AS -> UserProc
 \fIAuthOK\fP, \fIKc\fP{ \fIAuthTc\fP, \fICHs\fP, \fIUIDc\fP, \fIUIDs\fP, \fIKn\fP }, \fIKs\fP{ \fIAuthTs\fP, \fICHs\fP, \fIUIDc\fP, \fIUIDs\fP, \fIKn\fP }
 .PD
 .PP
 Otherwise an error message is returned.
-.TF "UserProc→AS"
+.TF "UserProc->AS"
 .TP
-.IR AS → UserProc
+.IR AS -> UserProc
 \fIAuthErr\fP, 64-byte error string
 .PD
 .PP
@@ -194,9 +194,9 @@ Examples are
 and
 .IR exportfs (4).
 The called process replies to the connection with a ticket request.
-.TF "Server→UserProc"
+.TF "Server->UserProc"
 .TP
-.IR Server → UserProc
+.IR Server -> UserProc
 \fIAuthTreq\fP, \fICHs\fP, \fIIDs\fP, \fIDNs\fP, xxx, xxx
 .PD
 .PP
@@ -220,12 +220,12 @@ to the kernel along with the
 \fIKc\fP
 encrypted ticket to confirm the server's identity (see
 .IR cons (3)).
-.TF "UserProc→Server"
+.TF "UserProc->Server"
 .TP
-.IR UserProc → Server
+.IR UserProc -> Server
 \fIKs\fP{ \fIAuthTs\fP, \fICHs\fP, \fIUIDc\fP, \fIUIDs\fP, \fIKn\fP }, \fIKn\fP{ \fIAuthAc\fP, \fICHs\fP, 0 } 
 .TP
-.IR Server → UserProc
+.IR Server -> UserProc
 \fIKn\fP{ \fIAuthAs\fP, \fICHs\fP, 0 }
 .PD
 .SS "Challenge Box"
@@ -245,21 +245,21 @@ The telnet or FTP daemon first sends a ticket request to the
 authentication server.
 If the AS has keys for both the \fIIDc\fP and \fIUIDc\fP in the ticket
 request it returns a challenge as a hexadecimal number.
-.TF "Daemon→AS"
+.TF "Daemon->AS"
 .TP
-.IR Daemon → AS
+.IR Daemon -> AS
 \fIAuthChal\fP, \fICHc\fP, \fIIDc\fP, \fIDNs\fP, \fIIDc\fP, \fIUIDc\fP 
 .TP
-.IR AS → Daemon
+.IR AS -> Daemon
 \fIAuthOK\fP, 16-byte
 .SM ASCII
 challenge
 .PD
 .PP
 Otherwise, it returns a null-terminated 64-byte error string.
-.TF "Daemon→AS"
+.TF "Daemon->AS"
 .TP
-.IR AS → Daemon
+.IR AS -> Daemon
 \fIAuthErr\fP, 64-byte error string
 .PD
 .PP
@@ -269,21 +269,21 @@ The user encrypts it and types in the
 result, which is relayed back to the AS.
 The AS checks it against the expected response and returns
 either a ticket or an error.
-.TF "Daemon→AS"
+.TF "Daemon->AS"
 .TP
-.IR Daemon → AS
+.IR Daemon -> AS
 16-byte
 .SM ASCII
 response
 .TP
-.IR AS → Daemon
+.IR AS -> Daemon
 \fIAuthOK\fP, \fIKc\fP{ \fIAuthTs\fP, \fICHc\fP, \fIUIDc\fP, \fIUIDc\fP, \fIKn\fP }
 .PD
 .PP
 or
-.TF "Daemon→AS"
+.TF "Daemon->AS"
 .TP
-.IR AS → Daemon
+.IR AS -> Daemon
 \fIAuthErr\fP, 64-byte error string
 .PD
 .PP
@@ -300,25 +300,25 @@ The user encrypts both the old and new keys with the
 \fIKn\fP from the returned ticket and sends that back to the AS.
 The AS checks the reply for validity and replies with an
 \fIAuthOK\fP byte or an error message.
-.TF "UserProc→AS"
+.TF "UserProc->AS"
 .TP
-.IR UserProc → AS
+.IR UserProc -> AS
 \fIAuthPass\fP, xxx, xxx, xxx, xxx, \fIUIDc\fP
 .TP
-.IR AS → UserProc
+.IR AS -> UserProc
 \fIAuthOK\fP, \fIKc\fP{ \fIAuthTp\fR, xxx, xxx, xxx, \fIKn\fP }
 .TP
-.IR UserProc → AS
+.IR UserProc -> AS
 \fIKn\fP{ \fIAuthPass\fP, "old password", "new password" }
 .TP
-.IR AS → UserProc
+.IR AS -> UserProc
 \fIAuthOK\fP
 .PD
 .PP
 or
-.TF "UserProc→AS"
+.TF "UserProc->AS"
 .TP
-.IR AS → UserProc
+.IR AS -> UserProc
 \fIAuthErr\fP, 64-byte error string
 .PD
 .PP
@@ -326,6 +326,9 @@ or
 An
 .IR ndb (2)
 database file exists for the authentication server.
+This database maintains ``speaks for'' relationships, i.e.,
+it lists which users may speak for other users when
+authtenticating.
 The attribute types used by the AS are
 .B hostid
 and
@@ -345,6 +348,7 @@ A uid value of
 means the host ID may not speak for
 .IR user .
 For example:
+.PP
 .EX
 hostid=bootes
 	uid=!sys uid=!adm uid=*
@@ -356,6 +360,43 @@ may speak for any user except
 .B sys
 and
 .BR adm .
+This property is used heavily on cpu servers.
+.PP
+The
+.I ndb
+database is also used when talking to Lucent Radius
+servers to check SecureID authentications.  The database
+file provides the Radius server's secret key and
+to mappings from local uid's to those known by the server.
+The attribute type
+.B radius
+identifies the Radius server.
+The attribute
+.B secret
+provides the hash key used in talking to the
+server.
+The attributes
+.B uid
+and 
+.B rid
+profile the local and remote user id's when verifying
+a SecureID login.
+For example:
+.PP
+.EX
+radius=lra-radius secret=xyzzy
+	uid=bob		rid=roberttheworkstation
+.EE
+.PP
+says that when verifying SecureID's on server
+.BR lra-radius ,
+use the hash key
+.BR xyzzy .
+Local user
+.B bob
+is known as
+.B roberttheworkstation
+on the radius server.
 .SH FILES
 .TF /lib/ndb/auth.*xxx
 .TP

@@ -9,7 +9,7 @@ static long lusertime(char*);
 char *timeserver = "#s/boot";
 
 void
-settime(int islocal, int afd)
+settime(int islocal, int afd, char *rp)
 {
 	int n, f;
 	int timeset;
@@ -41,7 +41,7 @@ settime(int islocal, int afd)
 		f = open(timeserver, ORDWR);
 		if(f < 0)
 			return;
-		if(mount(f, afd, "/tmp", MREPL, "") < 0){
+		if(mount(f, afd, "/tmp", MREPL, rp) < 0){
 			warning("settime mount");
 			close(f);
 			return;

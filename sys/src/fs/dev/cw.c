@@ -122,7 +122,7 @@ cmd_statw(int, char*[])
 	Centry *c, *ce;
 	long m, nw, bw, state[Onone];
 	long sbfsize, sbcwraddr, sbroraddr, sblast, sbnext;
-	long hmsize, hmaddr;
+	long hmsize, hmaddr, dsize, dsizepct;
 	Device *dev;
 	Cw *cw;
 	int s;
@@ -186,17 +186,24 @@ cmd_statw(int, char*[])
 	print("		sbaddr = %8ld\n", h->sbaddr);
 	print("		craddr = %8ld %8ld\n", h->cwraddr, sbcwraddr);
 	print("		roaddr = %8ld %8ld\n", h->roraddr, sbroraddr);
+	/* print stats in terms of (first-)disc sides */
+	dsize = wormsizeside(dev, 0);
+	if (dsize < 1) {
+		print("wormsizeside returned a size of %ld for %Z side 0\n",
+			dsize, dev);	/* mainly debugging */
+		dsize = h->wsize;	/* it's probably a fake worm */
+		if (dsize < 1)
+			dsize = 1000;	/* don't divide by zero */
+	}
+	dsizepct = dsize/100;
 	print("		fsize  = %8ld %8ld %2ld+%2ld%%\n", h->fsize, sbfsize,
-				h->fsize/DSIZE,
-				(h->fsize%DSIZE)/(DSIZE/100));
+				h->fsize/dsize, (h->fsize%dsize)/dsizepct);
 	print("		slast  =          %8ld\n", sblast);
 	print("		snext  =          %8ld\n", sbnext);
 	print("		wmax   = %8ld          %2ld+%2ld%%\n", h->wmax,
-				h->wmax/DSIZE,
-				(h->wmax%DSIZE)/(DSIZE/100));
+				h->wmax/dsize, (h->wmax%dsize)/dsizepct);
 	print("		wsize  = %8ld          %2ld+%2ld%%\n", h->wsize,
-				h->wsize/DSIZE,
-				(h->wsize%DSIZE)/(DSIZE/100));
+				h->wsize/dsize, (h->wsize%dsize)/dsizepct);
 	putbuf(p);
 
 	bw = 0;	/* max filled bucket */
@@ -729,11 +736,15 @@ bad:
 	return Cerror;
 }
 
+extern Filsys* dev2fs(Device *dev);
+
 int
 cwgrow(Device *dev, Superb *sb, int uid)
 {
+	char str[NAMELEN];
 	Iobuf *cb;
 	Cache *h;
+	Filsys *filsys;
 	long fs, nfs, ws;
 
 	cb = getbuf(CDEV(dev), CACHE_ADDR, Bread|Bmod|Bres);
@@ -749,7 +760,14 @@ cwgrow(Device *dev, Superb *sb, int uid)
 	putbuf(cb);
 
 	sb->fsize = nfs;
-	print("%Z grow from %ld to %ld limit %ld uid=%d\n", dev, fs, nfs, ws, uid);
+	filsys = dev2fs(dev);
+	if (filsys == nil)
+		print("%Z", dev);
+	else
+		print("%s", filsys->name);
+	uidtostr(str, uid, 1);
+	print(" grow from %ld to %ld limit %ld by %s uid=%d\n",
+		fs, nfs, ws, str, uid);
 	for(nfs--; nfs>=fs; nfs--) {
 		switch(cwio(dev, nfs, 0, Ogrow)) {
 		case Cerror:
@@ -1626,7 +1644,7 @@ bad:
 }
 
 void
-mvstates(Device *dev, int s1, int s2, int drive)
+mvstates(Device *dev, int s1, int s2, int side)
 {
 	Iobuf *p, *cb;
 	Cache *h;
@@ -1637,10 +1655,14 @@ mvstates(Device *dev, int s1, int s2, int drive)
 
 	cw = dev->private;
 	lo = 0;
-	hi = lo + 500*DSIZE;	// BOTCH arbitrary large number
-	if(drive >= 0) {
-		lo = drive * DSIZE;
-		hi = lo + DSIZE;
+	hi = lo + devsize(dev->cw.w);	/* size of all sides totalled */
+	if(side >= 0) {
+		/* operate on only a single disc side */
+		Sidestarts ss;
+
+		wormsidestarts(dev, side, &ss);
+		lo = ss.sstart;
+		hi = ss.s1start;
 	}
 	cb = getbuf(cw->cdev, CACHE_ADDR, Bread|Bres);
 	if(!cb || checktag(cb, Tcache, QPSUPER))
@@ -1868,6 +1890,7 @@ loadcache(Device *dev, int dskno)
 {
 	Iobuf *p, *cb;
 	long m, nbyte, *longp, count;
+	Sidestarts ss;
 
 	if(walkto("/adm/cache"))
 		goto bad;
@@ -1878,6 +1901,8 @@ loadcache(Device *dev, int dskno)
 	cons.offset = 0;
 	count = 0;
 
+	if (dskno >= 0)
+		wormsidestarts(dev, dskno, &ss);
 	for(;;) {
 		memset(cb->iobuf, 0, BUFSIZE);
 		nbyte = con_read(FID2, cb->iobuf, cons.offset, 100) / sizeof(long);
@@ -1890,8 +1915,8 @@ loadcache(Device *dev, int dskno)
 			nbyte--;
 			if(m == 0)
 				continue;
-			if(dskno < 0 ||
-			   m >= dskno*DSIZE && m < (dskno+1)*DSIZE) {
+			/* if given a diskno, restrict to just that disc side */
+			if(dskno < 0 || m >= ss.sstart && m < ss.s1start) {
 				p = getbuf(dev, m, Bread);
 				if(p)
 					putbuf(p);
@@ -1913,6 +1938,7 @@ morecache(Device *dev, int dskno, long size)
 	Iobuf *p;
 	long m, ml, mh, mm, count;
 	Cache *h;
+	Sidestarts ss;
 
 	p = getbuf(CDEV(dev), CACHE_ADDR, Bread|Bres);
 	if(!p || checktag(p, Tcache, QPSUPER))
@@ -1921,7 +1947,8 @@ morecache(Device *dev, int dskno, long size)
 	mm = h->wmax;
 	putbuf(p);
 
-	ml = dskno*DSIZE;
+	wormsidestarts(dev, dskno, &ss);
+	ml = ss.sstart;		/* start at beginning of disc side #dskno */
 	mh = ml + size;
 	if(mh > mm) {
 		mh = mm;
@@ -2090,7 +2117,7 @@ cmd_cwcmd(int argc, char *argv[])
 	if(argc <= 1) {
 		print("	cwcmd mvstate state1 state2 [platter]\n");
 		print("	cwcmd prchain [start] [bakflg]\n");
-		print("	cwcmd searchtag [start] [tag]\n");
+		print("	cwcmd searchtag [start] [tag] [blocks]\n");
 		print("	cwcmd touchsb\n");
 		print("	cwcmd savecache\n");
 		print("	cwcmd loadcache [dskno]\n");
@@ -2192,9 +2219,10 @@ cmd_cwcmd(int argc, char *argv[])
 			goto out;
 		}
 		s1 = number(argv[2], 0, 10);
-		s2 = DSIZE;
 		if(argc > 3)
 			s2 = number(argv[3], 0, 10);
+		else
+			s2 = wormsizeside(dev, s1); /* default to 1 disc side */
 		morecache(dev, s1, s2);
 		goto out;
 	}

@@ -1075,6 +1075,8 @@ emalloc(size_t n)
 {
 	void *p;
 
+	if(n == 0)
+		n = 1;
 	p = malloc(n);
 	if(p == 0)
 		sysfatal("malloc(%ld) fails", (long)n);
@@ -1214,7 +1216,10 @@ fidstat(Fid *fid, char **ep)
 int
 userchange(User *u, char **ep)
 {
-	if(!defaultuser && setreuid(0, 0) < 0){
+	if(defaultuser)
+		return 0;
+
+	if(setreuid(0, 0) < 0){
 		fprint(2, "setreuid(0, 0) failed\n");
 		*ep = "cannot setuid back to root";
 		return -1;

@@ -95,6 +95,7 @@ int
 readPart(Part *part, u64int addr, u8int *buf, u32int n)
 {
 	long m, mm, nn;
+	int i;
 
 	vtLock(stats.lock);
 	stats.diskReads++;
@@ -109,7 +110,12 @@ readPart(Part *part, u64int addr, u8int *buf, u32int n)
 		mm = n - nn;
 		if(mm > MaxIo)
 			mm = MaxIo;
-		m = pread(part->fd, &buf[nn], mm, addr + nn);
+		m = -1;
+		for(i=0; i<4; i++) {
+			m = pread(part->fd, &buf[nn], mm, addr + nn);
+			if(m == mm)
+				break;
+		}
 		if(m != mm){
 			if(m < 0){
 				setErr(EOk, "can't read partition='%s': %r", part->name);

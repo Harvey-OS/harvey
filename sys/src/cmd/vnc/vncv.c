@@ -1,7 +1,7 @@
 #include "vnc.h"
 #include "vncv.h"
 
-char*		encodings = "copyrect hextile corre rre raw mousewarp";
+char*	encodings = "copyrect hextile corre rre raw mousewarp";
 int		bpp12;
 int		shared;
 int		verbose;
@@ -60,7 +60,7 @@ netmkvncaddr(char *inserver)
 }
 
 void
-vnchungup(Vnc *)
+vnchungup(Vnc*)
 {
 	sysfatal("connection closed");
 }
@@ -110,13 +110,8 @@ main(int argc, char **argv)
 
 	if(vnchandshake(vnc) < 0)
 		sysfatal("handshake failure: %r");
-	if(vnc->extended){
-		if(vncnegotiate(vnc) < 0)
-			sysfatal("negotiation failure: %r");
-	}else{
-		if(vncauth(vnc) < 0)
-			sysfatal("authentication failure: %r");
-	}
+	if(vncauth(vnc) < 0)
+		sysfatal("authentication failure: %r");
 	if(vncstart(vnc, shared) < 0)
 		sysfatal("init failure: %r");
 

@@ -23,17 +23,19 @@ CFILES=\
 	execl.c\
 	exp.c\
 	fabs.c\
-	fastrand.c\
 	floor.c\
 	fmod.c\
+	frand.c\
 	frexp.c\
 	getcallerpc.c\
 	getfields.c\
 	getuser.c\
 	hangup.c\
 	hypot.c\
+	lnrand.c\
 	lock.c\
 	log.c\
+	lrand.c\
 	malloc.c\
 	memccpy.c\
 	memchr.c\
@@ -43,9 +45,10 @@ CFILES=\
 	mktemp.c\
 	muldiv.c\
 	nan.c\
+	needsrcquote.c\
 	netcrypt.c\
 	netmkaddr.c\
-	nfastrand.c\
+	nrand.c\
 	ntruerand.c\
 	perror.c\
 	pool.c\

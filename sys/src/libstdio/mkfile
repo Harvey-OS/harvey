@@ -1,68 +1,63 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libstdio.a
-FILES=\
-	_IO_getc\
-	_IO_putc\
-	clearerr\
-	dtoa\
-	fclose\
-	fdopen\
-	feof\
-	ferror\
-	fflush\
-	fgetc\
-	fgetpos\
-	fgets\
-	fileno\
-	fopen\
-	fprintf\
-	fputc\
-	fputs\
-	fread\
-	freopen\
-	fscanf\
-	fseek\
-	fsetpos\
-	ftell\
-	fwrite\
-	getc\
-	gets\
-	printf\
-	putc\
-	puts\
-	rewind\
-	scanf\
-	sclose\
-	setbuf\
-	setvbuf\
-	snprintf\
-	sopenr\
-	sopenw\
-	sprintf\
-	sscanf\
-	tmpfile\
-	tmpnam\
-	ungetc\
-	vfprintf\
-	vfscanf\
-	vprintf\
-	vsnprintf\
-	vsprintf\
+OFILES=\
+	_IO_getc.$O\
+	_IO_putc.$O\
+	clearerr.$O\
+	dtoa.$O\
+	fclose.$O\
+	fdopen.$O\
+	feof.$O\
+	ferror.$O\
+	fflush.$O\
+	fgetc.$O\
+	fgetpos.$O\
+	fgets.$O\
+	fileno.$O\
+	fopen.$O\
+	fprintf.$O\
+	fputc.$O\
+	fputs.$O\
+	fread.$O\
+	freopen.$O\
+	fscanf.$O\
+	fseek.$O\
+	fsetpos.$O\
+	ftell.$O\
+	fwrite.$O\
+	getc.$O\
+	gets.$O\
+	printf.$O\
+	putc.$O\
+	puts.$O\
+	rewind.$O\
+	scanf.$O\
+	sclose.$O\
+	setbuf.$O\
+	setvbuf.$O\
+	snprintf.$O\
+	sopenr.$O\
+	sopenw.$O\
+	sprintf.$O\
+	sscanf.$O\
+	tmpfile.$O\
+	tmpnam.$O\
+	ungetc.$O\
+	vfprintf.$O\
+	vfscanf.$O\
+	vprintf.$O\
+	vsnprintf.$O\
+	vsprintf.$O\
 
 HFILES=/sys/include/stdio.h\
 	iolib.h\
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/libstdio.a\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	Stdio.h\
-	$CFILES\
-
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib
 # this code really can't handle any flow-analysis warnings

@@ -1,9 +1,29 @@
+#
+# This proto includes into armpaq enough tools to make the bitsy
+# useful without mounting a file server.
+# 
+# This should probably go to /sys/lib/sysconfig/proto/armpaqproto
+# so that each Plan 9 site could choose what to download by default into
+# their handhelds.
+
+acme
+	bin
+		guide
+		arm
+			*
+	mail
+		readme
+		arm
+			*
+	wiki
+		guide
 adm
 	timezone	d775
 		*	664
 	users
 arm
 	bin
+		acme
 		acid
 		auth
 			factotum
@@ -13,17 +33,28 @@ arm
 			listen
 			mkflashfs
 			flashfs
+		basename
 		bind
 		bitsy
 			*
+		calendar
 		cat
 		chmod
+		clock
+		stats
 		cp
 		cpu
 		exportfs
+		date
+		dc
 		ftpfs
 		grep
 		dd
+		disk
+			fdisk
+			kfs
+			kfscmd
+			prep
 		du
 		echo
 		ed
@@ -45,14 +76,16 @@ arm
 			dnsdebug
 		netkey
 		netstat
+		plumber
 		ps
+		pwd
 		ramfs
 		rc
+		read
 		rio
 		rm
 		sed
 		sleep
-		snoopy
 		srv
 		srvold9p
 		ssh
@@ -60,10 +93,15 @@ arm
 		test
 		unmount
 		winwatch
+		upas
+			*
 		xd
 		xmr
 		xms
 	init
+mail
+	lib
+		*
 bin
 fd
 lib
@@ -127,6 +165,10 @@ n - sys sys /tmp
 	brzr - sys sys /tmp
 	fs - sys sys /tmp
 	tmp - sys sys /tmp
+	music - sys sys /tmp
+	nautilus - sys sys /tmp
+	sargazos - sys sys /tmp
+	kfs - sys sys /tmp
 rc
 	lib
 		rcmain
@@ -138,8 +180,8 @@ rc
 		reboot
 		mfs 775 sys sys /sys/src/9/bitsy/paqfiles/mfs
 		slay
-		startip 775 sys sys /sys/src/9/bitsy/paqfiles/startip
 		window
+		wloc
 net
 proc
 srv
@@ -151,4 +193,6 @@ sys
 		acid
 			arm
 			port
+		plumb
+			*
 tmp

@@ -38,5 +38,8 @@ size_t fread(void *p, size_t recl, size_t nrec, FILE *f){
 		n-=d;
 	}
     ret:
-	return (s-(char *)p)/(recl?recl:1);
+	if(recl)
+		return (s-(char*)p)/recl;
+	else
+		return s-(char*)p;
 }

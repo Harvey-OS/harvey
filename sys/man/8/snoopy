@@ -62,6 +62,7 @@ expr	: protocol
 	| '(' expr ')'
 	| expr '||' expr
 	| expr '&&' expr
+	| '!' expr
 .EE
 .PP
 The values for <protocol> and <field> can
@@ -83,6 +84,8 @@ ether's subprotos:
 	arp
 	rarp
 	ip6
+	pppoe_disc
+	pppoe_sess
 .EE
 .PP
 The format of <value> depends on context.  In general,
@@ -120,7 +123,7 @@ data bytes per packet.  The default is 32.
 .TP
 .B -f
 use
-.I filter-exression
+.I filter-expression
 to filter the packet stream.  The default is
 to match all packets.
 .TP

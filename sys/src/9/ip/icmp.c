@@ -195,12 +195,12 @@ icmpttlexceeded(Fs *f, uchar *ia, Block *bp)
 	Icmp	*p, *np;
 
 	p = (Icmp *)bp->rp;
-	p->vihl = IP_VER4;
 
 	netlog(f, Logicmp, "sending icmpttlexceeded -> %V\n", p->src);
 	nbp = allocb(ICMP_IPSIZE + ICMP_HDRSIZE + ICMP_IPSIZE + 8);
 	nbp->wp += ICMP_IPSIZE + ICMP_HDRSIZE + ICMP_IPSIZE + 8;
 	np = (Icmp *)nbp->rp;
+	np->vihl = IP_VER4;
 	memmove(np->dst, p->src, sizeof(np->dst));
 	v6tov4(np->src, ia);
 	memmove(np->data, bp->rp, ICMP_IPSIZE + 8);
@@ -215,8 +215,8 @@ icmpttlexceeded(Fs *f, uchar *ia, Block *bp)
 
 }
 
-extern void
-icmpnoconv(Fs *f, Block *bp)
+static void
+icmpunreachable(Fs *f, Block *bp, int code, int seq)
 {
 	Block	*nbp;
 	Icmp	*p, *np;
@@ -224,7 +224,6 @@ icmpnoconv(Fs *f, Block *bp)
 	uchar	addr[IPaddrlen];
 
 	p = (Icmp *)bp->rp;
-	p->vihl = IP_VER4;
 
 	/* only do this for unicast sources and destinations */
 	v4tov6(addr, p->dst);
@@ -240,17 +239,30 @@ icmpnoconv(Fs *f, Block *bp)
 	nbp = allocb(ICMP_IPSIZE + ICMP_HDRSIZE + ICMP_IPSIZE + 8);
 	nbp->wp += ICMP_IPSIZE + ICMP_HDRSIZE + ICMP_IPSIZE + 8;
 	np = (Icmp *)nbp->rp;
+	np->vihl = IP_VER4;
 	memmove(np->dst, p->src, sizeof(np->dst));
 	memmove(np->src, p->dst, sizeof(np->src));
 	memmove(np->data, bp->rp, ICMP_IPSIZE + 8);
 	np->type = Unreachable;
-	np->code = 3;
+	np->code = code;
 	np->proto = IP_ICMPPROTO;
 	hnputs(np->icmpid, 0);
-	hnputs(np->seq, 0);
+	hnputs(np->seq, seq);
 	memset(np->cksum, 0, sizeof(np->cksum));
 	hnputs(np->cksum, ptclcsum(nbp, ICMP_IPSIZE, blocklen(nbp) - ICMP_IPSIZE));
 	ipoput4(f, nbp, 0, MAXTTL, DFLTTOS);
+}
+
+extern void
+icmpnoconv(Fs *f, Block *bp)
+{
+	icmpunreachable(f, bp, 3, 0);
+}
+
+extern void
+icmpcantfrag(Fs *f, Block *bp, int mtu)
+{
+	icmpunreachable(f, bp, 4, mtu);
 }
 
 static void

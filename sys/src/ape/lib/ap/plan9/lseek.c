@@ -9,7 +9,7 @@
 off_t
 lseek(int d, off_t offset, int whence)
 {
-	int n;
+	long long n;
 	int flags;
 
 	flags = _fdinfo[d].flags;
@@ -17,7 +17,7 @@ lseek(int d, off_t offset, int whence)
 		errno = ESPIPE;
 		return -1;
 	}
-	n = _OSEEK(d, offset, whence);
+	n = _SEEK(d, offset, whence);
 	if(n < 0)
 		_syserrno();
 	return n;

@@ -580,7 +580,7 @@ Cell *matchop(Node **a, int n)	/* ~ and match() */
 		i = match(p, s, s);
 	tempfree(x);
 	if (n == MATCHFCN) {
-		int start = patbeg - s + 1;
+		int start = countposn(s, patbeg-s)+1;
 		if (patlen < 0)
 			start = 0;
 		setfval(rstartloc, (Awkfloat) start);

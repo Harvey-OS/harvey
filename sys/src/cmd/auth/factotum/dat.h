@@ -115,6 +115,7 @@ struct Proto
 	char *keyprompt;
 };
 
+extern char *invoker;
 extern char *owner;
 extern char *authdom;
 

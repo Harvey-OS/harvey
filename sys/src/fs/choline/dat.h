@@ -1,5 +1,9 @@
 #define RBUFSIZE	(16*1024)	/* raw buffer size */
-#define	DSIZE		(79563-1)	/* worm size */
+/*
+ * verify that the kernel reports the right size when you
+ * first boot this kernel.
+ */
+/* #define	DSIZE		(79563-1)	/* worm size */
 
 #include "../port/portdat.h"
 

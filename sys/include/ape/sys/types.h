@@ -3,7 +3,7 @@
 
 typedef	unsigned short	ino_t;
 typedef	unsigned short	dev_t;
-typedef	long		off_t;
+typedef	long long		off_t;
 typedef unsigned short	mode_t;
 typedef short		uid_t;
 typedef short		gid_t;

@@ -22,7 +22,7 @@ havesecstore(void)
 	int m, n, fd;
 	uchar buf[500];
 
-	n = snprint((char*)buf, sizeof buf, testmess, owner);
+	n = snprint((char*)buf, sizeof buf, testmess, invoker);
 	hnputs(buf, 0x8000+n-2);
 
 	fd = secdial();
@@ -365,6 +365,7 @@ getfile(SConn *conn, uchar *key, int nkey)
 			fprint(2, "secstore(%s) line %d: %r\n", gf, n);
 		p = q;
 	}
+	free(buf);
 	return 0;
 }
 
@@ -585,7 +586,7 @@ secstorefetch(char *password)
 		goto Out;
 	if((conn = newSConn(fd)) == nil)
 		goto Out;
-	if(PAKclient(conn, owner, s_to_c(pass), nil) < 0){
+	if(PAKclient(conn, invoker, s_to_c(pass), nil) < 0){
 		werrstr("password mistyped?");
 		goto Out;
 	}

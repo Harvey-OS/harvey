@@ -263,8 +263,10 @@ p9anywrite(Fsstate *fss, void *va, uint n)
 		m = tokenize(a, token, nelem(token));
 		if(m > 0 && strncmp(token[0], "v.", 2) == 0){
 			s->version = atoi(token[0]+2);
-			if(s->version != 2)
+			if(s->version != 2){
+				free(a);
 				return failure(fss, "unknown version of p9any");
+			}
 		}
 	
 		/*
@@ -290,8 +292,10 @@ p9anywrite(Fsstate *fss, void *va, uint n)
 				ret = findkey(&k, fss, Kuser, 0, anew,
 					"proto=%q dom=%q role=client %s",
 					p->name, dom, p->keyprompt);
-			if(ret == RpcConfirm)
+			if(ret == RpcConfirm){
+				free(a);
 				return ret;
+			}
 			if(ret == RpcOk)
 				break;
 		}
@@ -346,14 +350,18 @@ p9anywrite(Fsstate *fss, void *va, uint n)
 			return toosmall(fss, n+1);
 		a = estrdup(a);
 		m = tokenize(a, token, nelem(token));
-		if(m != 2)
+		if(m != 2){
+			free(a);
 			return failure(fss, Ebadarg);
-
+		}
 		p = findneg(token[0]);
-		if(p == nil)
+		if(p == nil){
+			free(a);
 			return failure(fss, Enegotiation);
+		}
 		attr = _delattr(_copyattr(fss->attr), "proto");
 		ret = findkey(&k, fss, Kowner, 0, attr, "proto=%q dom=%q role=server", token[0], token[1]);
+		free(a);
 		_freeattr(attr);
 		if(ret == RpcConfirm)
 			return ret;

@@ -3,7 +3,7 @@
 #define	SCSInone	SCSIread
 #define	MAXDRIVE	10
 #define	MAXSIDE		500
-#define	FIXEDSIZE	1
+
 #define	TWORM		MINUTE(10)
 #define	THYSTER		SECOND(10)
 
@@ -55,6 +55,8 @@ enum
 	Sunload,	/* on the shelf */
 	Sstart,		/* loaded and spinning */
 };
+
+extern int FIXEDSIZE;
 
 static	int	wormsense(Device*);
 static	Side*	wormunit(Device*);
@@ -279,12 +281,221 @@ wormsize(Device *d)
 		return 0;
 	size = v->max;
 	qunlock(v);
-	if(FIXEDSIZE)
+	if(FIXEDSIZE)	// TODO? push FIXEDSIZE into Device or Juke struct
 		w->fixedsize = size;
 out:
 	if(d->type == Devlworm)
 		return size-1;
 	return size;
+}
+
+/*
+ * return a Devjuke or an mcat (normally of sides) from within d (or nil).
+ * if it's an mcat, the caller must walk it.
+ */
+static Device *
+devtojuke(Device *d, Device *top)
+{
+	while (d != nil)
+		switch(d->type) {
+		default:
+			print("devtojuke: type of device %Z of %Z unknown\n",
+				d, top);
+			return nil;
+
+		case Devjuke:
+			/* jackpot!  d->private is a (Juke *) with nside, &c. */
+			/* FALL THROUGH */
+		case Devmcat:
+		case Devmlev:
+		case Devmirr:
+			/* squint hard & call an mlev or a mirr an mcat */
+			return d;
+
+		case Devworm:
+		case Devlworm:
+			/*
+			 * d->private is a (Juke *) with nside, etc.,
+			 * but we're not supposed to get here.
+			 */
+			print("devtojuke: (l)worm %Z of %Z encountered\n",
+				d, top);
+			/* FALL THROUGH */
+		case Devwren:
+		case Devide:
+			return nil;
+
+		case Devcw:
+			d = d->cw.w;			/* usually juke */
+			break;
+		case Devro:
+			d = d->ro.parent;		/* cw */
+			break;
+		case Devfworm:
+			d = d->fw.fw;
+			break;
+		case Devpart:
+			d = d->part.d;
+			break;
+		case Devswab:
+			d = d->swab.d;
+			break;
+		}
+	return d;
+}
+
+static int
+devisside(Device *d)
+{
+	return d->type == Devworm || d->type == Devlworm;
+}
+
+static Device *
+findside(Device *juke, int side, Device *top)
+{
+	int i = 0;
+	Device *mcat = juke->j.m, *x;
+	Juke *w = juke->private;
+
+	for (x = mcat->cat.first; x != nil; x = x->link) {
+		if (!devisside(x)) {
+			print("wormsizeside: %Z of %Z of %Z type not (l)worm\n",
+				x, mcat, top);
+			return nil;
+		}
+		i = x->wren.targ;
+		if (i < 0 || i >= w->nside)
+			panic("wormsizeside: side %d in %Z out of range",
+				i, mcat);
+		if (i == side)
+			break;
+	}
+	if (x == nil)
+		return nil;
+	if (w->side[i].time == 0) {
+		print("wormsizeside: side %d not in jukebox %Z\n", i, juke);
+		return nil;
+	}
+	return x;
+}
+
+typedef struct {
+	int	sleft;		/* sides still to visit to reach desired side */
+	int	starget;	/* side of topdev we want */
+	Device	*topdev;
+	int	sized;		/* flag: asked wormsize for size of starget */
+} Visit;
+
+/*
+ * walk the Device tree from d looking for Devjukes, counting sides.
+ * the main complication is mcats and the like with Devjukes in them.
+ * use Devjuke's d->private as Juke* and see sides.
+ */
+static long
+visitsides(Device *d, Device *parentj, Visit *vp)
+{
+	long size = 0;
+	Device *x;
+	Juke *w;
+
+	/*
+	 * find the first juke or mcat.
+	 * d==nil means we couldn't find one; typically harmless, due to a
+	 * mirror of dissimilar devices.
+	 */
+	d = devtojuke(d, vp->topdev);
+	if (d == nil || vp->sleft < 0)
+		return 0;
+	if (d->type == Devjuke) {    /* jackpot!  d->private is a (Juke *) */
+		w = d->private;
+		/*
+		 * if there aren't enough sides in this jukebox to reach
+		 * the desired one, subtract these sides and pass.
+		 */
+		if (vp->sleft >= w->nside) {
+			vp->sleft -= w->nside;
+			return 0;
+		}
+		/* else this is the right juke, paw through mcat of sides */
+		return visitsides(d->j.m, d, vp);
+	}
+
+	/*
+	 * d will usually be an mcat of sides, but it could be an mcat of
+	 * jukes, for example.  in that case, we need to walk the mcat,
+	 * recursing as needed, until we find the right juke, then stop at
+	 * the right side within its mcat of sides, by comparing side
+	 * numbers, not just by counting (to allow for unused slots).
+	 */
+	x = d->cat.first;
+	if (x == nil) {
+		print("visitsides: %Z of %Z: empty mcat\n", d, vp->topdev);
+		return 0;
+	}
+	if (!devisside(x)) {
+		for (; x != nil && !vp->sized; x = x->link)
+			size = visitsides(x, parentj, vp);
+		return size;
+	}
+
+	/* the side we want is in this jukebox, thus this mcat (d) */
+	if (parentj == nil) {
+		print("visitsides: no parent juke for sides mcat %Z\n", d);
+		vp->sleft = -1;
+		return 0;
+	}
+	if (d != parentj->j.m)
+		panic("visitsides: mcat mismatch %Z vs %Z", d, parentj->j.m);
+	x = findside(parentj, vp->sleft, vp->topdev);
+	if (x == nil) {
+		vp->sleft = -1;
+		return 0;
+	}
+
+	/* we've turned vp->starget into the right Device* */
+	vp->sleft = 0;
+	vp->sized = 1;
+	return wormsize(x);
+}
+
+/*
+ * d must be, or be within, a filesystem config that also contains
+ * the jukebox that `side' resides on.
+ * d is normally a Devcw, but could be Devwren, Devide, Devpart, Devfworm,
+ * etc. if called from chk.c Ctouch code.  Note too that the worm part of
+ * the Devcw might be other than a Devjuke.
+ */
+long
+wormsizeside(Device *d, int side)
+{
+	long size;
+	Visit visit;
+
+	visit.starget = visit.sleft = side;
+	visit.topdev = d;
+	visit.sized = 0;
+	size = visitsides(d, nil, &visit);
+	if (visit.sleft != 0 || !visit.sized) {
+		print("wormsizeside: fewer than %d sides in %Z\n", side, d);
+		return 0;
+	}
+	return size;
+}
+
+/*
+ * returns starts (in blocks) of side #side and #(side+1) of dev in *stp.
+ * dev should be a Devcw.
+ */
+void
+wormsidestarts(Device *dev, int side, Sidestarts *stp)
+{
+	int s;
+	long dstart;
+
+	for (dstart = s = 0; s < side; s++)
+		dstart += wormsizeside(dev, s);
+	stp->sstart = dstart;
+	stp->s1start = dstart + wormsizeside(dev, side);
 }
 
 static
@@ -581,15 +792,21 @@ void
 jinit(Juke *w, Device *d, int o)
 {
 	int p;
+	Device *dev = d;
 
 	switch(d->type) {
 	default:
-		print("juke platter not devworm: %Z\n", d);
+		print("juke platter not (devmcat of) dev(l)worm: %Z\n", d);
 		goto bad;
 
 	case Devmcat:
+		/*
+		 * we don't call mcatinit(d) here, so we have to set d->cat.ndev
+		 * ourselves.
+		 */
 		for(d=d->cat.first; d; d=d->link)
 			jinit(w, d, o++);
+		dev->cat.ndev = o;
 		break;
 
 	case Devlworm:

@@ -39,35 +39,3 @@ estrdup(char *s)
 	return t;
 }
 
-Face*
-faceunpack(Plumbmsg *m)
-{
-	char *p, *q;
-	char *ep;
-	int nstr;
-	Face *f;
-
-	if(m == nil)
-		return nil;
-
-	f = emalloc(sizeof *f);
-	p = m->data;
-	ep = p+m->ndata;
-
-	for(nstr=0; nstr<Nstring; nstr++) {
-		if((q = memchr(p, '\n', ep-p)) == nil)
-			break;
-
-		*q++ = 0;
-		f->str[nstr] = estrdup(p);
-		p = q;
-	}
-
-	if(nstr < Nstring)
-		while(nstr < Nstring)
-			f->str[nstr++] = estrdup("");
-
-	f->ntimes = 1;
-	return f;			
-}
-

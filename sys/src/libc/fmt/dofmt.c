@@ -221,6 +221,7 @@ _charfmt(Fmt *f)
 	char x[1];
 
 	x[0] = va_arg(f->args, int);
+	f->prec = 1;
 	return _fmtcpy(f, x, 1, 1);
 }
 
@@ -287,6 +288,7 @@ _percentfmt(Fmt *f)
 	Rune x[1];
 
 	x[0] = f->r;
+	f->prec = 1;
 	return _fmtrcpy(f, x, 1);
 }
 
@@ -496,6 +498,7 @@ _badfmt(Fmt *f)
 	x[0] = '%';
 	x[1] = f->r;
 	x[2] = '%';
+	f->prec = 3;
 	_fmtcpy(f, x, 3, 3);
 	return 0;
 }

@@ -737,7 +737,7 @@ newwindowthread(void*)
 	for(;;){
 		/* only fsysproc is talking to us, so synchronization is trivial */
 		recvp(cnewwindow);
-		w = newwindow(nil);
+		w = makenewwindow(nil);
 		winsettag(w);
 		sendp(cnewwindow, w);
 	}

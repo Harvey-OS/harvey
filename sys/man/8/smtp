@@ -5,13 +5,16 @@ smtp, smtpd \-  mail transport
 .PP
 .B upas/smtp
 [
-.B -df
+.B -dfas
 ][
 .B -g
 .I gateway
 ][
 .B -h
 .I host
+][
+.B -u
+.I user
 ][
 .I .domain
 ]
@@ -45,6 +48,25 @@ using the Simple Mail Transfer Protocol.
 .TP
 .B -d
 turn on debugging to standard error.
+.TP
+.B -a
+authenticate ourself to the server if the server
+supports PLAIN authentication and allows us to first
+start up an encrypted TLS connection
+.TP
+.B -s
+if the server supports the ESMTP extension to use TLS encryption, turn it on for
+this session.  See RFC3207 for details.
+.TP
+.B -a
+if the server supports the ESMTP extension to use TLS encryption, turn it
+on.  If the server also supports the PLAIN (user + password) authentication,
+authenticate to the server using a password from
+.IR factotum (4).  See RFC's 3207 and 2554.
+.TP
+.B -u
+specify a user name to be used in authentication.  The default name is
+the current login id.
 .TP
 .B -h
 use

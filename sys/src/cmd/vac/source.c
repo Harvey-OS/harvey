@@ -22,52 +22,31 @@ sizeToDepth(uvlong s, int psize, int dsize)
 
 /* assumes u is lock? */
 Source *
-sourceAlloc(Cache *c, Lump *u, int entry, int readOnly)
+sourceAlloc(Cache *c, Lump *u, ulong block, int entry, int readOnly)
 {
 	Source *r;
-	int psize, dsize;
-	uvlong size;
-	int depth;
-	VtDirEntry2 *d;
+	VtEntry d;
 
-	if(u->size < (entry+1)*VtDirEntrySize2) {
-fprint(2, "bad bad block size: %d\n", u->size);
+	if(u->asize < (entry+1)*VtEntrySize) {
+		vtSetError(ENoDir);
+		return nil;
+	}
+
+	if(!vtEntryUnpack(&d, u->data, entry))
+		return nil;
+	
+	if(!(d.flags & VtEntryActive)) {
 		vtSetError(ENoDir);
 		return nil;
 	}
 	
-	d = (VtDirEntry2*)(u->data + entry*VtDirEntrySize2);
-	if(!(d->flag & VtDirEntryActive)) {
-		vtSetError(ENoDir);
-		return nil;
-	}
-	
-	psize = vtGetUint16(d->psize);
-	if(psize < 512 || psize > VtMaxLumpSize) {
-fprint(2, "bad psize: %d\n", psize);
-		vtSetError(EBadDir);
-		return nil;
-	}
-
-	dsize = vtGetUint16(d->dsize);
-	if(dsize < 512 || dsize > VtMaxLumpSize) {
-fprint(2, "bad dsize: %d\n", dsize);
-		vtSetError(EBadDir);
-		return nil;
-	}
-//fprint(2, "psize = %d dsize = %d\n", psize, dsize);	
-	size = vtGetUint48(d->size);
-
-	depth = (d->flag & VtDirEntryDepthMask) >> VtDirEntryDepthShift;
-
 	/* HACK for backwards compatiblity - should go away at some point */
-	if(depth == 0) {
-if(size > dsize) fprint(2, "depth == 0! size = %ulld\n", size);
-		depth = sizeToDepth(size, psize, dsize);
+	if(d.depth == 0) {
+if(d.size > d.dsize) fprint(2, "depth == 0! size = %ulld\n", d.size);
+		d.depth = sizeToDepth(d.size, d.psize, d.dsize);
 	}
 
-	if(depth < sizeToDepth(size, psize, dsize)) {
-fprint(2, "bad depth: %d %llud\n", depth, size);
+	if(d.depth < sizeToDepth(d.size, d.psize, d.dsize)) {
 		vtSetError(EBadDir);
 		return nil;
 	}
@@ -77,14 +56,16 @@ fprint(2, "bad depth: %d %llud\n", depth, size);
 	r->cache = c;
 	r->readOnly = readOnly;
 	r->lump = lumpIncRef(u);
+	r->block = block;
 	r->entry = entry;
-	r->gen = vtGetUint32(d->gen);
-	r->psize = psize;
-	r->dsize = dsize;
-	r->dir = (d->flag & VtDirEntryDir) != 0;
-	r->depth = depth;
-	r->size2 = size;
-	r->epb = r->dsize/VtDirEntrySize;
+	r->gen = d.gen;
+	r->dir = (d.flags & VtEntryDir) != 0;
+	r->depth = d.depth;
+	r->psize = d.psize;
+	r->dsize = d.dsize;
+	r->size = d.size;
+
+	r->epb = r->dsize/VtEntrySize;
 
 	return r;
 }
@@ -103,36 +84,37 @@ if(0)fprint(2, "sourceOpen: %V:%d: %lud\n", r->lump->score, r->entry, entry);
 
 	bn = entry/r->epb;
 
-	u = sourceGetLump(r, bn, readOnly, 0);
+	u = sourceGetLump(r, bn, readOnly, 1);
 	if(u == nil)
 		return nil;
 
-	r = sourceAlloc(r->cache, u, entry%r->epb, readOnly);
-	lumpDecRef(u, 0);
+	r = sourceAlloc(r->cache, u, bn, entry%r->epb, readOnly);
+	lumpDecRef(u, 1);
 	return r;
 }
 
 Source *
-sourceCreate(Source *r, int psize, int dsize, int isdir)
+sourceCreate(Source *r, int psize, int dsize, int isdir, ulong entry)
 {
 	Source *rr;
-	int i, j;
-	ulong entry;
+	int i;
 	Lump *u;
 	ulong bn;
-	VtDirEntry2 *dir;
-	ulong gen;
+	VtEntry dir;
 
 	if(r->readOnly) {
 		vtSetError(EReadOnly);
 		return nil;
 	}
 
-	/*
-	 * first look at a random block to see if we can find an empty entry
-	 */
-	entry = sourceGetDirSize(r);
-	entry = r->epb*lnrand(entry/r->epb+1);
+	if(entry == 0) {
+		/*
+		 * look at a random block to see if we can find an empty entry
+		 */
+		entry = sourceGetDirSize(r);
+		entry = r->epb*lnrand(entry/r->epb+1);
+	}
+
 	/*
 	 * need to loop since multiple threads could be trying to allocate
 	 */
@@ -143,9 +125,8 @@ sourceCreate(Source *r, int psize, int dsize, int isdir)
 		if(u == nil)
 			return nil;
 		for(i=entry%r->epb; i<r->epb; i++) {
-			dir = (VtDirEntry*)(u->data + i*VtDirEntrySize);
-			gen = vtGetUint32(dir->gen);
-			if((dir->flag&VtDirEntryActive) == 0 && gen != ~0)
+			vtEntryUnpack(&dir, u->data, i);
+			if((dir.flags&VtEntryActive) == 0 && dir.gen != ~0)
 				goto Found;
 		}
 		lumpDecRef(u, 1);
@@ -153,21 +134,18 @@ sourceCreate(Source *r, int psize, int dsize, int isdir)
 	}
 Found:
 	/* found an entry */
-for(j=4; j<VtDirEntrySize; j++)
-if(u->data[i*VtDirEntrySize + j] != 0) {
-fprint(2, "nonzero dir entry!! %V %d %d %x %d\n", u->score, i, j, dir->flag, vtGetUint16(dir->psize));
-break;
-}
-	memset(dir, 0, VtDirEntrySize);
-	vtPutUint32(dir->gen, gen);
-	vtPutUint16(dir->psize, psize);
-	vtPutUint16(dir->dsize, dsize);
-	dir->flag |= VtDirEntryActive;
+	dir.psize = psize;
+	dir.dsize = dsize;
+	dir.flags = VtEntryActive;
 	if(isdir)
-		dir->flag |= VtDirEntryDir;
-	memmove(dir->score, vtZeroScore, VtScoreSize);
+		dir.flags |= VtEntryDir;
+	dir.depth = 0;
+	dir.size = 0;
+	memmove(dir.score, vtZeroScore, VtScoreSize);
+	vtEntryPack(&dir, u->data, i);
+
 	sourceSetDirSize(r, bn*r->epb + i + 1);
-	rr = sourceAlloc(r->cache, u, i, 0);
+	rr = sourceAlloc(r->cache, u, bn, i, 0);
 	
 	lumpDecRef(u, 1);
 	return rr;
@@ -184,7 +162,7 @@ int
 sourceSetDepth(Source *r, uvlong size)
 {
 	Lump *u, *v;
-	VtDirEntry2 *dir;
+	VtEntry dir;
 	int depth;
 
 	if(r->readOnly){
@@ -202,37 +180,48 @@ sourceSetDepth(Source *r, uvlong size)
 	}
 
 	vtLock(r->lk);
+
+	if(r->depth >= depth) {
+		vtUnlock(r->lk);
+		return 1;
+	}
 	
 	u = r->lump;
 	vtLock(u->lk);
-	dir = (VtDirEntry2*)(u->data + r->entry*VtDirEntrySize2);
-	while(r->depth < depth) {
+	if(!vtEntryUnpack(&dir, u->data, r->entry)) {
+		vtUnlock(u->lk);
+		vtUnlock(r->lk);
+		return 0;
+	}
+	while(dir.depth < depth) {
 		v = cacheAllocLump(r->cache, VtPointerType0+r->depth, r->psize, r->dir);
-		if(v == nil) {
-			vtUnlock(u->lk);
-			vtUnlock(r->lk);
-			return 0;
-		}
-		memmove(v->data, dir->score, VtScoreSize);
-		memmove(dir->score, v->score, VtScoreSize);
-		r->depth++;
-		dir->flag &= ~VtDirEntryDepthMask;
-		dir->flag |= r->depth << VtDirEntryDepthShift;
+		if(v == nil)
+			break;
+		memmove(v->data, dir.score, VtScoreSize);
+		memmove(dir.score, v->score, VtScoreSize);
+		dir.depth++;
 		vtUnlock(v->lk);
 	}
+	vtEntryPack(&dir, u->data, r->entry);
 	vtUnlock(u->lk);
+
+	r->depth = dir.depth;
 	vtUnlock(r->lk);
-	return 1;
+
+	return dir.depth == depth;
 }
 
 int
-sourceGetVtDirEntry(Source *r, VtDirEntry *dir)
+sourceGetVtEntry(Source *r, VtEntry *dir)
 {
 	Lump *u;
-	memset(dir, 0, sizeof(*dir));
+
 	u = r->lump;
 	vtLock(u->lk);
-	memmove(dir, u->data + r->entry*VtDirEntrySize, VtDirEntrySize);
+	if(!vtEntryUnpack(dir, u->data, r->entry)) {
+		vtUnlock(u->lk);
+		return 0;
+	}
 	vtUnlock(u->lk);
 	return 1;
 }
@@ -243,7 +232,7 @@ sourceGetSize(Source *r)
 	uvlong size;
 
 	vtLock(r->lk);
-	size = r->size2;
+	size = r->size;
 	vtUnlock(r->lk);
 
 	return size;
@@ -254,7 +243,7 @@ int
 sourceSetSize(Source *r, uvlong size)
 {
 	Lump *u;
-	VtDirEntry2 *dir;
+	VtEntry dir;
 	int depth;
 
 	if(r->readOnly) {
@@ -262,14 +251,14 @@ sourceSetSize(Source *r, uvlong size)
 		return 0;
 	}
 
-	if(size > VtMaxFileSize) {
+	if(size > VtMaxFileSize || size > ((uvlong)MaxBlock)*r->dsize) {
 		vtSetError(ETooBig);
 		return 0;
 	}
 
 	vtLock(r->lk);
 	depth = sizeToDepth(size, r->psize, r->dsize);
-	if(size < r->size2) {
+	if(size < r->size) {
 		vtUnlock(r->lk);
 		return 1;
 	}
@@ -281,10 +270,11 @@ sourceSetSize(Source *r, uvlong size)
 	
 	u = r->lump;
 	vtLock(u->lk);
-	dir = (VtDirEntry2*)(u->data + r->entry*VtDirEntrySize2);
-	vtPutUint48(dir->size, size);
-	r->size2 = size;
+	vtEntryUnpack(&dir, u->data, r->entry);
+	dir.size = size;
+	vtEntryPack(&dir, u->data, r->entry);
 	vtUnlock(u->lk);
+	r->size = size;
 	vtUnlock(r->lk);
 	return 1;
 }
@@ -295,7 +285,7 @@ sourceSetDirSize(Source *r, ulong ds)
 	uvlong size;
 
 	size = (uvlong)r->dsize*(ds/r->epb);
-	size += VtDirEntrySize*(ds%r->epb);
+	size += VtEntrySize*(ds%r->epb);
 	return sourceSetSize(r, size);
 }
 
@@ -307,8 +297,14 @@ sourceGetDirSize(Source *r)
 
 	size = sourceGetSize(r);
 	ds = r->epb*(size/r->dsize);
-	ds += (size%r->dsize)/VtDirEntrySize;
+	ds += (size%r->dsize)/VtEntrySize;
 	return ds;
+}
+
+ulong
+sourceGetNumBlocks(Source *r)
+{
+	return (sourceGetSize(r)+r->dsize-1)/r->dsize;
 }
 
 Lump *
@@ -362,6 +358,10 @@ sourceGetLump(Source *r, ulong block, int readOnly, int lock)
 
 	if(r->readOnly && !readOnly) {
 		vtSetError(EReadOnly);
+		return nil;
+	}
+	if(block == NilBlock) {
+		vtSetError(ENilBlock);
 		return nil;
 	}
 if(0)fprint(2, "sourceGetLump: %V:%d %lud\n", r->lump->score, r->entry, block);

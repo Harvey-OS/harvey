@@ -7,7 +7,6 @@ void usage(void);
 int unvac(VacFS *fs);
 int readScore(int fd, uchar score[VtScoreSize]);
 static void warn(char *fmt, ...);
-static void debug(char *fmt, ...);
 void dirlist(VacFS *fs, char *path);
 
 static	int	nwant;
@@ -94,9 +93,9 @@ main(int argc, char *argv[])
 	vtSetDebug(z, 0);
 	if(!vtConnect(z, 0))
 		vtFatal("vtConnect: %s", vtGetError());
-	fs = vacFSOpen(z, zfile, 1, ncache);
+	fs = vfsOpen(z, zfile, 1, ncache);
 	if(fs == nil)
-		vtFatal("vacFSOpen: %s", vtGetError());
+		vtFatal("vfsOpen: %s", vtGetError());
 	ok = unvac(fs);
 	vtClose(z);
 	vtDetach();
@@ -141,25 +140,25 @@ dirlist(VacFS *fs, char *path)
 	VacDirEnum *ds;
 	int i, n;
 
-	ds = vacDirEnumOpen(fs, path);
+	ds = vdeOpen(fs, path);
 	if(ds == nil) {
 		fprint(2, "could not open: %s: %s\n", path, vtGetError());
 		return;
 	}
 	for(;;) {
-		n = vacDirEnumRead(ds, vd, sizeof(vd)/sizeof(VacDir));
+		n = vdeRead(ds, vd, sizeof(vd)/sizeof(VacDir));
 		if(n < 0) {
-			warn("vacDirRead failed: %s: %s", path, vtGetError());
+			warn("vdRead failed: %s: %s", path, vtGetError());
 			return;
 		}
 		if(n == 0)
 			break;
 		for(i=0; i<n; i++) {
 			vacfile(fs, path, &vd[i]);
-			vacDirCleanup(&vd[i]);
+			vdCleanup(&vd[i]);
 		}
 	}
-	vacDirEnumFree(ds);
+	vdeFree(ds);
 }
 
 int
@@ -176,23 +175,8 @@ warn(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	fprintf(stderr, "%s: ", argv0);
-	vfprintf(stderr, fmt, arg);
-	fprintf(stderr, "\n");
-	fflush(stderr);
-	va_end(arg);
-}
-
-static void
-debug(char *fmt, ...)
-{
-	va_list arg;
-	
-	if(!dflag)
-		return;
-
-	va_start(arg, fmt);
-	vfprintf(stderr, fmt, arg);
-	fflush(stderr);
+	fprint(2, "%s: ", argv0);
+	vfprint(2, fmt, arg);
+	fprint(2, "\n");
 	va_end(arg);
 }

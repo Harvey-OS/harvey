@@ -127,7 +127,7 @@ int	structure;		/* file structure */
 char	data[64];		/* data address */
 int	pid;			/* transfer process */
 int	encryption;		/* encryption state */
-int	isnone, nonone;
+int	isnone, anon_ok, anon_only;
 char	cputype[Maxpath];	/* the environment variable of the same name */
 char	bindir[Maxpath];	/* bin directory for this architecture */
 char	mailaddr[Maxpath];
@@ -180,14 +180,16 @@ main(int argc, char **argv)
 	Biobuf in;
 	int i;
 
-	nonone = 1;
-
 	ARGBEGIN{
 	case 'd':
 		debug++;
 		break;
-	case 'a':
-		nonone = 0;
+	case 'a':		/* anonymous OK */
+		anon_ok = 1;
+		break;
+	case 'A':
+		anon_ok = 1;
+		anon_only = 1;
 		break;
 	case 'n':
 		namespace = ARGF();
@@ -519,15 +521,17 @@ usercmd(char *name)
 	if(strcmp(user, "anonymous") == 0 || strcmp(user, "ftp") == 0)
 		strcpy(user, "none");
 	if(strcmp(user, "*none") == 0){
-		if(nonone)
+		if(!anon_ok)
 			return reply("530 Not logged in: anonymous disallowed");
 		return loginuser("none", namespace, 1);
 	}
 	if(strcmp(user, "none") == 0){
-		if(nonone)
+		if(!anon_ok)
 			return reply("530 Not logged in: anonymous disallowed");
 		return reply("331 Send email address as password");
 	}
+	if(anon_only)
+		return reply("530 Not logged in: anonymous access only");
 	isnoworld = noworld(name);
 	if(isnoworld)
 		return reply("331 OK");

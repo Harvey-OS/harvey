@@ -29,8 +29,17 @@ TARG=\
 	trampoline\
 	typepasswd\
 	write\
+	X509gen\
 
 BIN=/$objtype/bin/aux
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/aux/%}\
+
 </sys/src/cmd/mkmany
 
 DIRS=mnihongo\
@@ -71,4 +80,12 @@ nukedirs:V:
 		echo nuke $i
 		cd $i
 		mk nuke
+	}
+
+update:V:
+	update $UPDATEFLAGS $UPDATE
+	for (i in $DIRS) @{
+		echo update $i
+		cd $i
+		mk 'UPDATEFLAGS='$"UPDATEFLAGS update
 	}

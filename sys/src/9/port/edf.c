@@ -5,7 +5,7 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
-#include	"../port/devrealtime.h"
+#include	"realtime.h"
 #include	"../port/edf.h"
 
 /* debugging */
@@ -30,7 +30,6 @@ static Timer	deadlinetimer[MAXMACH];	/* Time of next deadline */
 static Timer	releasetimer[MAXMACH];		/* Time of next release */
 
 static int		initialized;
-static uvlong	fasthz;	
 static Ticks	now;
 /* Edfschedlock protects modification of sched params, including resources */
 QLock		edfschedlock;
@@ -62,14 +61,17 @@ Taskq		qextratime;
 /* Running/Preempted EDF tasks, head running, one stack per processor */
 Taskq		edfstack[MAXMACH];
 
+static Task *qschedulability;
+
 void (*devrt)(Task*, Ticks, int);
 
-static void		edfresched(Task *t);
+static void		edfresched(Task*);
 static void		setdelta(void);
-static void		testdelta(Task *thetask);
-static void		edfreleaseintr(Ureg *, Timer *cy);
+static void		testdelta(Task*);
+static void		edfreleaseintr(Ureg*, Timer*);
 static void		edfdeadlineintr(Ureg*, Timer*);
-static char *	edftestschedulability(Task *thetask);
+static char *	edftestschedulability(Task*);
+static void		resrelease(Task*);
 
 static void
 edfinit(void)
@@ -83,7 +85,6 @@ edfinit(void)
 		iunlock(&edflock);
 		return;
 	}
-	fastticks(&fasthz);
 	for (i = 0; i < conf.nmach; i++){
 		deadlinetimer[i].f = edfdeadlineintr;
 		deadlinetimer[i].a = &deadlinetimer[i];
@@ -298,7 +299,9 @@ edfdeadline(Proc *p)
 static char *
 edfadmit(Task *t)
 {
-	char *err;
+	char *err, *p;
+	static char csndump[512];
+	CSN *c;
 
 	/* Called with edfschedlock held */
 	if (t->state != EdfExpelled)
@@ -316,11 +319,19 @@ edfadmit(Task *t)
 	if (t->C > t->D)
 		return "C > D";
 
+	resourcetimes(t, &t->csns);
+
+	DEBUG("task %d: T %T, C %T, D %T, tΔ %T\n",
+		t->taskno, ticks2time(t->T), ticks2time(t->C),
+		ticks2time(t->D), ticks2time(t->testDelta));
+	p = seprintresources(csndump, csndump+sizeof csndump);
+	seprintcsn(p, csndump+sizeof csndump, &t->csns);
+	DEBUG("%s\n", csndump);
+
 	if (err = edftestschedulability(t)){
 		return err;
 	}
 	ilock(&edflock);
-	qunlock(&edfschedlock);
 	DPRINT("%d edfadmit, %s, %d\n", m->machno, edfstatename[t->state], t->runq.n);
 	now = fastticks(nil);
 
@@ -339,6 +350,10 @@ edfadmit(Task *t)
 		t->periods++;
 		if(devrt) devrt(t, now, SRun);
 		setdelta();
+		for (c = (CSN*)t->csns.next; c; c = (CSN*)c->next){
+			DEBUG("admit csn: C=%T\n", ticks2time(c->C));
+			c->S = c->C;
+		}
 		assert(t->runq.n > 0 || (up && up->task == t));
 		edfpush(t);
 		if (deadlinetimer[m->machno].when)
@@ -357,7 +372,6 @@ edfadmit(Task *t)
 		}
 	}
 	iunlock(&edflock);
-	qlock(&edfschedlock);
 	return nil;
 }
 
@@ -413,13 +427,14 @@ static void
 edfreleaseintr(Ureg*, Timer*)
 {
 	Task *t;
+	extern int panicking;
 
 	DPRINT("%d edfreleaseintr\n", m->machno);
 
 	timerdel(&releasetimer[m->machno]);
 	releasetimer[m->machno].when = 0;
 
-	if(active.exiting)
+	if(panicking || active.exiting)
 		return;
 
 	ilock(&edflock);
@@ -436,24 +451,29 @@ edfreleaseintr(Ureg*, Timer*)
 }
 
 static void
-edfdeadlineintr(Ureg*, Timer*)
+edfdeadlineintr(Ureg*, Timer *timer)
 {
 	/* Task reached deadline */
 
 	Ticks used;
 	Task *t;
+	Resource *r;
+	char buf[128];
+	int noted;
+	extern int panicking;
 
 	DPRINT("%d edfdeadlineintr\n", m->machno);
 
-	timerdel(&deadlinetimer[m->machno]);
-	deadlinetimer[m->machno].when = 0;
+	if (timer)
+		timer->when = 0;
 
-	if(active.exiting)
+	if(panicking || active.exiting)
 		return;
 
 	ilock(&edflock);
 	// If up is not set, we're running inside the scheduler
-	// for non-real-time processes. 
+	// for non-real-time processes.
+	noted = 0;
 	if (up && isedf(up)) {
 		now = fastticks(nil);
 
@@ -465,18 +485,34 @@ edfdeadlineintr(Ureg*, Timer*)
 		t->total += used;
 
 		if (t->r < now){
-			if (t->S <= used)
+			if (t->curcsn){
+				if (t->curcsn->S <= used){
+					t->curcsn->S = 0LL;
+					resrelease(t);
+					r = t->curcsn->i;
+					noted++;
+					snprint(buf, sizeof buf, "sys: deadline miss: resource %s", r->name);
+				}else
+					t->curcsn->S -= used;
+			}
+
+			if (t->S <= used){
 				t->S = 0LL;
-			else
+				if (!noted){
+					noted++;
+					snprint(buf, sizeof buf, "sys: deadline miss: runtime");
+				}
+			}else
 				t->S -= used;
-	
-			if (t->d <= now || t->S == 0LL){
+
+			if (t->d <= now || t->S == 0LL || t->curcsn == 0LL){
 				/* Task has reached its deadline/slice, remove from queue */
 				if (t->d <= now){
 					t->missed++;
 					misseddeadlines++;
 				}
 				deadline(up, SSlice);
+
 				while (t = edfstack[m->machno].head){
 					if (now < t->d)
 						break;
@@ -486,6 +522,8 @@ edfdeadlineintr(Ureg*, Timer*)
 		}
 	}
 	iunlock(&edflock);
+	if (noted)
+		postnote(up, 1, buf, NUser);
 	sched();
 	splhi();
 }
@@ -667,12 +705,18 @@ edfresched(Task *t)
 static void
 edfrelease(Task *t)
 {
+	CSN *c;
+
 	DPRINT("%d edfrelease, %s, %d\n", m->machno, edfstatename[t->state], t->runq.n);
 	assert(t->runq.n > 0 || (up && up->task == t));
 	t->t = t->r + t->T;
 	t->d = t->r + t->D;
 	if(devrt) devrt(t, t->d, SDeadline);
 	t->S = t->C;
+	for (c = (CSN*)t->csns.next; c; c = (CSN*)c->next){
+		DEBUG("release csn: C=%T\n", ticks2time(c->C));
+		c->S = c->C;
+	}
 	t->state = EdfReleased;
 	edfenqueue(&qreleased, t);
 	if(devrt) devrt(t, now, SRelease);
@@ -781,29 +825,44 @@ setdelta(void)
 {
 	Resource *r;
 	Task *t;
-	List *lr, *lt;
+	int R;
+	List *lr, *l;
+	TaskLink *lt;
+	CSN *c;
 
 	for (lr = resources.next; lr; lr = lr->next){
 		r = lr->i;
 		assert(r);
-		r->Delta = ~0LL;
-		for (lt = r->tasks.next; lt; lt = lt->next){
+		r->Delta = Infinity;
+		R = 1;
+		for (lt = (TaskLink*)r->tasks.next; lt; lt = (TaskLink*)lt->next){
 			t = lt->i;
 			assert(t);
-			if (t->D < r->Delta)
+			if (t->D < r->Delta){
 				r->Delta = t->D;
+			}
+			if (lt->R == 0){
+				R = 0;
+			}
 		}
+		if (R)
+			r->Delta = Infinity;	/* Read-only resource, no exclusion */
 	}
-	for (lt = tasks.next; lt ; lt = lt->next){
-		t = lt->i;
+
+	/* Enumerate the critical sections */
+	for (l = tasks.next; l ; l = l->next){
+		t = l->i;
 		assert(t);
-		if (t->state < EdfIdle)
+		if (t->state <= EdfExpelled)
 			continue;
-		t->Delta = t->D;
-		for (lr = t->res.next; lr; lr = lr->next){
-			r = lr->i;
+		t->Delta = Infinity;
+		for (c = (CSN*)t->csns.next; c; c = (CSN*)c->next){
+			r = c->i;
 			assert(r);
-			if (r->Delta < t->Delta)
+			c->Delta = r->Delta;
+			if (c->p && c->p->Delta < c->Delta)
+				c->Delta = c->p->Delta;
+			if (c->C == t->C && r->Delta < t->Delta)
 				t->Delta = r->Delta;
 		}
 	}
@@ -814,54 +873,103 @@ testdelta(Task *thetask)
 {
 	Resource *r;
 	Task *t;
-	List *lr, *lt;
+	int R;
+	List *lr, *l;
+	TaskLink *lt;
+	CSN *c;
 
 	for (lr = resources.next; lr; lr = lr->next){
 		r = lr->i;
 		assert(r);
-		r->testDelta = ~0ULL;
-		for (lt = r->tasks.next; lt; lt = lt->next){
+		DEBUG("Resource %s: ", r->name);
+		r->testDelta = Infinity;
+		R = 1;
+		for (lt = (TaskLink*)r->tasks.next; lt; lt = (TaskLink*)lt->next){
 			t = lt->i;
 			assert(t);
-			if (t->D < r->testDelta)
+			if (t->D < r->testDelta){
 				r->testDelta = t->D;
+				DEBUG("%d→%T ", t->taskno, ticks2time(t->D));
+			}
+			if (lt->R == 0){
+				DEBUG("%d→X ", t->taskno);
+				R = 0;
+			}
 		}
+		if (R)
+			r->testDelta = Infinity;	/* Read-only resource, no exclusion */
+		DEBUG("tΔ = %T\n", ticks2time(r->testDelta));
 	}
-	for (lt = tasks.next; lt ; lt = lt->next){
-		t = lt->i;
+
+	/* Enumerate the critical sections */
+	for (l = tasks.next; l ; l = l->next){
+		t = l->i;
 		assert(t);
 		if (t->state <= EdfExpelled && t != thetask)
 			continue;
-		t->testDelta = t->D;
-		for (lr = t->res.next; lr; lr = lr->next){
-			r = lr->i;
+		t->testDelta = Infinity;
+		for (c = (CSN*)t->csns.next; c; c = (CSN*)c->next){
+			r = c->i;
 			assert(r);
-			if (r->testDelta < t->testDelta)
+			c->testDelta = r->testDelta;
+			if (c->p && c->p->testDelta < c->testDelta)
+				c->testDelta = c->p->testDelta;
+			if (c->C == t->C && r->testDelta < t->testDelta)
 				t->testDelta = r->testDelta;
+			DEBUG("Task %d Resource %s: tΔ = %T\n",
+				t->taskno, r->name, ticks2time(r->testDelta));
 		}
 	}
 }
 
 static Ticks
-blockcost(Ticks ticks, Task *thetask)
+blockcost(Ticks ticks, Task *task, Task *thetask)
 {
+	Ticks Cb, Cbt;
+	List *l;
+	Resource *r;
+	CSN *c, *lc;
+	int R;
 	Task *t;
-	Ticks Cb;
-	List *lt;
 
 	Cb = 0;
-	for (lt = tasks.next; lt ; lt = lt->next){
-		t = lt->i;
-		assert(t);
-		if (t->state <= EdfExpelled && t != thetask)
-			continue;
-		if (t->testDelta <= ticks && ticks < t->D && Cb < t->C)
-			Cb = t->C;
+	/* for each resource in task t, find all CSNs that refer to the
+	 * resource.  If their Δ <= ticks < D and c->C > current CB
+	 * Cb = c->C
+	 */
+	DEBUG("blockcost task %d: ", task->taskno);
+	for (c = (CSN*)task->csns.next; c; c = (CSN*)c->next){
+		r = c->i;
+		assert(r);
+
+		DEBUG("%s ", r->name);
+		Cbt = Cb;
+		R = 1;	/* R == 1: resource is only used in read-only mode  */
+		for (l = tasks.next; l; l = l->next){
+			t = l->i;
+			if (t->state <= EdfExpelled && t != thetask)
+				continue;	/* csn belongs to an irrelevant task */
+			for (lc = (CSN*)t->csns.next; lc; lc = (CSN*)lc->next){
+				if (lc->i != r)
+					continue;	/* wrong resource */
+				if (lc->R == 0)
+					R = 0;	/* Resource is used in exclusive mode */
+				DEBUG("(%T≤%T<%T: %T) ",
+					ticks2time(lc->testDelta), ticks2time(ticks), ticks2time(t->D),
+					ticks2time(lc->C));
+				if (lc->testDelta <= ticks && ticks < t->D && Cbt < lc->C)
+					Cbt = lc->C;
+			}
+		}
+		if (R == 0){
+			DEBUG("%T, ", ticks2time(Cbt));
+			Cb = Cbt;
+		}
+		DEBUG("ro, ");
 	}
+	DEBUG("Cb = %T\n", ticks2time(Cb));
 	return Cb;
 }
-
-static Task *qschedulability;
 
 static void
 testenq(Task *t)
@@ -898,7 +1006,7 @@ edftestschedulability(Task *thetask)
 	/* initialize */
 	testdelta(thetask);
 	if (thetask && (thetask->flags & Verbose))
-		pprint("schedulability test\n");
+		pprint("schedulability test for task %d\n", thetask->taskno);
 	qschedulability = nil;
 	for (l = tasks.next; l; l = l->next){
 		t = l->i;
@@ -908,7 +1016,7 @@ edftestschedulability(Task *thetask)
 		t->testtype = Release;
 		t->testtime = 0;
 		if (thetask && (thetask->flags & Verbose))
-			pprint("\tInit: enqueue task %lud\n", t->taskno);
+			pprint("\tInit: enqueue task %d\n", t->taskno);
 		testenq(t);
 	}
 	H=0;
@@ -920,24 +1028,32 @@ edftestschedulability(Task *thetask)
 		switch (t->testtype){
 		case Deadline:
 			H += t->C;
-			Cb = blockcost(ticks, thetask);
+			Cb = blockcost(ticks, t, thetask);
 			if (thetask && (thetask->flags & Verbose))
-				pprint("\tStep %3d, Ticks %T, task %lud, deadline, H += %T → %T, Cb = %T\n",
+				pprint("\tStep %3d, Ticks %T, task %d, deadline, H += %T → %T, Cb = %T\n",
 					steps, ticks2time(ticks), t->taskno,
 					ticks2time(t->C), ticks2time(H), ticks2time(Cb));
-			if (H+Cb>ticks)
+			if (H+Cb>ticks){
+				if (thetask && (thetask->flags & Verbose))
+					pprint("task %d not schedulable: H=%T + Cb=%T > ticks=%T\n",
+						thetask->taskno, ticks2time(H), ticks2time(Cb), ticks2time(ticks));
 				return "not schedulable";
+			}
 			t->testtime += t->T - t->D;
 			t->testtype = Release;
 			testenq(t);
 			break;
 		case Release:
 			if (thetask && (thetask->flags & Verbose))
-				pprint("\tStep %3d, Ticks %T, task %lud, release, G  %T, C%T\n",
+				pprint("\tStep %3d, Ticks %T, task %d, release, G  %T, C%T\n",
 					steps, ticks2time(ticks), t->taskno,
 					ticks2time(t->C), ticks2time(G));
-			if(ticks && G <= ticks)
+			if(ticks && G <= ticks){
+				if (thetask && (thetask->flags & Verbose))
+					pprint("task %d schedulable: G=%T <= ticks=%T\n",
+						thetask->taskno, ticks2time(G), ticks2time(ticks));
 				return nil;
+			}
 			G += t->C;
 			t->testtime += t->D;
 			t->testtype = Deadline;
@@ -950,32 +1066,66 @@ edftestschedulability(Task *thetask)
 	return "probably not schedulable";
 }
 
-static uvlong
-uvmuldiv(uvlong x, ulong num, ulong den)
+static void
+resacquire(Task *t, CSN *c)
 {
-	/* multiply, then divide, avoiding overflow */
-	uvlong hi;
+	Ticks now, when, used;
 
-	hi = (x & 0xffffffff00000000LL) >> 32;
-	x &= 0xffffffffLL;
-	hi *= num;
-	return (x*num + (hi%den << 32)) / den + (hi/den << 32);
+	now = fastticks(nil);
+	used = now - t->scheduled;
+	t->scheduled = now;
+	t->total += used;
+	t->S -= used;
+	if (t->curcsn)
+		t->curcsn->S -= used;
+	when = now + c->S;
+	if (when < deadlinetimer[m->machno].when){
+		timerdel(&deadlinetimer[m->machno]);
+		deadlinetimer[m->machno].when = when;
+		timeradd(&deadlinetimer[m->machno]);
+	}
+	t->Delta = c->Delta;
+	t->curcsn = c;
+	if(devrt) devrt(t, now, SResacq);
+	/* priority is going up, no need to reschedule */
 }
 
-Time
-ticks2time(Ticks ticks)
+static void
+resrelease(Task *t)
 {
-	assert(ticks >= 0);
-	if (fasthz == 0)
-		fastticks(&fasthz);
-	return uvmuldiv(ticks, Onesecond, fasthz);
-}
+	Ticks now, when, used;
+	CSN *c;
 
-Ticks
-time2ticks(Time time)
-{
-	assert(time >= 0);
-	return uvmuldiv(time, fasthz, Onesecond);
+	c = t->curcsn;
+	assert(c);
+	t->curcsn = c->p;
+	now = fastticks(nil);
+	used = now - t->scheduled;
+	t->scheduled = now;
+	t->total += used;
+	t->S -= used;
+	c->S -= used;
+	if (now + t->S > t->d)
+		when = t->d;
+	else
+		when = now + t->S;
+	if (t->curcsn){
+		t->curcsn->S -= c->S;	/* the sins of the fathers shall be visited upon the children */
+		t->Delta = t->curcsn->Delta;
+		if (when > now + t->curcsn->S)
+			when = now + t->curcsn->S;
+	}else
+		t->Delta = Infinity;
+	c->S = 0LL;	/* don't allow reuse */
+	if(devrt) devrt(t, now, SResrel);
+	if (deadlinetimer[m->machno].when)
+		timerdel(&deadlinetimer[m->machno]);
+	deadlinetimer[m->machno].when = when;
+	timeradd(&deadlinetimer[m->machno]);
+
+	qunlock(&edfschedlock);
+	sched();	/* reschedule */
+	qlock(&edfschedlock);
 }
 
 Edfinterface realedf = {
@@ -989,4 +1139,6 @@ Edfinterface realedf = {
 	.edfexpel		= edfexpel,
 	.edfadmit		= edfadmit,
 	.edfdeadline	= edfdeadline,
+	.resacquire	= resacquire,
+	.resrelease	= resrelease,
 };

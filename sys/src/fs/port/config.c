@@ -1,6 +1,8 @@
 #include	"all.h"
 #include	"io.h"
 
+static void	dowormcopy(void);
+
 /*
  * This is needed for IP configuration.
  */
@@ -22,6 +24,7 @@ struct
 } f;
 
 static Device* confdev;
+static int copyworm = 0;
 
 int
 devcmpr(Device *d1, Device *d2)
@@ -41,6 +44,7 @@ loop:
 
 	case Devmcat:
 	case Devmlev:
+	case Devmirr:
 		d1 = d1->cat.first;
 		d2 = d2->cat.first;
 		while(d1 && d2) {
@@ -75,6 +79,7 @@ loop:
 	case Devwren:
 	case Devworm:
 	case Devlworm:
+	case Devide:
 		if(d1->wren.ctrl == d2->wren.ctrl)
 		if(d1->wren.targ == d2->wren.targ)
 		if(d1->wren.lun == d2->wren.lun)
@@ -180,6 +185,10 @@ config1(int c)
 			d->type = Devmlev;
 			break;
 		}
+		if(c == '{' && m == '}') {
+			d->type = Devmirr;
+			break;
+		}
 	}
 	f.charp++;
 	if(d->cat.first == d->cat.last)
@@ -209,6 +218,7 @@ config(void)
 
 	case '(':	/* (d+) one or multiple cat */
 	case '[':	/* [d+] one or multiple interleave */
+	case '{':	/* {d+} a mirrored device and optional mirrors */
 		return config1(c);
 
 	case 'f':	/* fd fake worm */
@@ -220,11 +230,15 @@ config(void)
 		d->type = Devnone;
 		break;
 
-	case 'w':	/* w[#.]# wren [ctrl] unit [part] */
-	case 'r':	/* r[#.]#[.#] worm [ctrl] unit [part] */
-	case 'l':	/* l[#.]#[.#] worm [ctrl] unit [part] */
+	case 'w':	/* w[#.]#[.#] wren [ctrl] unit [lun] */
+	case 'h':	/* h[#.]# ide [ctlr] unit */
+	case 'r':	/* r# worm side */
+	case 'l':	/* l# labelled-worm side */
 		icp = f.charp;
-		d->type = Devwren;
+		if(c == 'h')
+			d->type = Devide;
+		else
+			d->type = Devwren;
 		d->wren.ctrl = 0;
 		d->wren.targ = cnumb();
 		d->wren.lun = 0;
@@ -594,6 +608,7 @@ loop:
 	 * part 4 -- initialize the devices
 	 */
 	for(fs=filsys; fs->name; fs++) {
+		delay(3000);
 		print("sysinit: %s\n", fs->name);
 		if(fs->flags & FREAM)
 			devream(fs->dev, 1);
@@ -601,6 +616,90 @@ loop:
 			devrecover(fs->dev);
 		devinit(fs->dev);
 	}
+
+	if (copyworm)
+		dowormcopy();		/* no return */
+}
+
+extern int devatadebug, devataidedebug;
+
+/* copy worm fs from "main" to "output" */
+static void
+dowormcopy(void)
+{
+	Filsys *f1, *f2;
+	Device *from, *to;
+	Iobuf *p;
+	long a, lim;
+
+	/* find source and target file systems */
+	f1 = fsstr("main");
+	if(f1 == nil)
+		panic("main file system missing");
+	f2 = fsstr("output");
+	if(f2 == nil)
+		print("no output file system - check only");
+	from = f1->dev;
+	if(from->type == Devcw)
+		from = from->cw.w;
+	if (f2) {
+		to = f2->dev;
+		print("copying worm from %Z to %Z, starting in 8 seconds\n",
+			from, to);
+		delay(8000);
+	} else {
+		to = nil;
+		print("reading worm from %Z\n", from);
+	}
+
+	/* ream target file system; initialise both fs's */
+	devinit(from);
+	if(to) {
+		print("reaming %Z in 8 seconds\n", to);
+		delay(8000);
+		devream(to, 0);
+		devinit(to);
+	}
+
+	/* find last valid block in case fworm */
+	for (lim = devsize(from); lim != 0; lim--) {
+		p = getbuf(from, lim-1, Bread);
+		if (p != 0) {
+			putbuf(p);
+			break;
+		}
+	}
+	if(lim == 0)
+		panic("no blocks to copy on %Z", from);
+	print("limit %ld\n", lim);
+
+	/* copy written fs blocks from source to target */
+	if (to)
+		print("copying worm\n");
+// devatadebug = 1;
+// devataidedebug = 1;
+	for (a = 0; a < lim; a++) {
+		p = getbuf(from, a, Bread);
+		if (p == 0) {
+			print("%ld not written\n", a);
+			continue;
+		}
+		if (to != 0 && devwrite(to, p->addr, p->iobuf)) {
+			print("out block %ld: write error; bailing", a);
+			break;
+		}
+		putbuf(p);
+		if(a % 20000 == 0)
+			print("block %ld %T\n", a, time());
+	}
+
+	/* sync target, loop */
+	print("copied %ld blocks from %Z to %Z\n", a, from, to);
+	sync("wormcopy");
+	delay(1000);
+	print("looping; reset the machine at any time.\n");
+	for (; ; )
+		continue;		/* await reset */
 }
 
 void
@@ -655,7 +754,10 @@ loop:
 		writeallow = 1;
 		goto loop;
 	}
-
+	if(strcmp(word, "copyworm") == 0) {
+		copyworm = 1;
+		goto loop;
+	}
 	if(strcmp(word, "noauth") == 0) {
 		noauth = !noauth;
 		goto loop;
@@ -720,6 +822,7 @@ loop:
 		verb = 4;
 		goto ipname;
 	}
+
 	print("unknown config command\n");
 	print("	type end to get out\n");
 	goto loop;

@@ -12,7 +12,9 @@ file system onto the bitsy.
 1) go to
 ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/stable/install.html Get
 the latest version of the Linux "osloader" and "bootldr" programs
-(current versions are 1.3.0 and 0000-2.14.8, respectively).
+(we have tried versions 1.3.0 and 0000-2.14.8, respectively; newest
+ versions seem not to allow you to suspend your bitsy due to a bug
+ which is probably ours).
 
 2.  Use ActiveSync to copy osloader to the bitsy.
 

@@ -49,11 +49,11 @@ _iotlsdial(va_list *arg)
 	int *cfdp, fd, tfd, usetls;
 	TLSconn conn;
 
-	addr = va_arg(arg, char*);
-	local = va_arg(arg, char*);
-	dir = va_arg(arg, char*);
-	cfdp = va_arg(arg, int*);
-	usetls = va_arg(arg, int);
+	addr = va_arg(*arg, char*);
+	local = va_arg(*arg, char*);
+	dir = va_arg(*arg, char*);
+	cfdp = va_arg(*arg, int*);
+	usetls = va_arg(*arg, int);
 
 	fd = dial(addr, local, dir, cfdp);
 	if(fd < 0)

@@ -16,9 +16,9 @@ UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
+	smtpd.y\
 	${TARG:%=%.c}\
 	${TARG:%=/386/bin/upas/%}\
-	smtpd.y\
 
 </sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common -D'SPOOL="/mail"'

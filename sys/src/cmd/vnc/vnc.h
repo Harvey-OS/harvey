@@ -27,7 +27,6 @@ struct Vnc {
 	QLock;
 	int		datafd;			/* for network connection */
 	int		ctlfd;			/* control for network connection */
-	int		extended;
 
 	Biobuf		in;
 	Biobuf		out;

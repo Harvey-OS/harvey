@@ -150,6 +150,7 @@ int	isenglish(void);
 int	ishp(void);
 int	ishtml(void);
 int	isrfc822(void);
+int	ismbox(void);
 int	islimbo(void);
 int	ismung(void);
 int	isp9bit(void);
@@ -169,6 +170,7 @@ int	(*call[])(void) =
 	istring,	/* recognizable by first string */
 	ishtml,		/* html keywords */
 	isrfc822,	/* email file */
+	ismbox,		/* mail box */
 	iscint,		/* compiler/assembler intermediate */
 	islimbo,	/* limbo source */
 	isc,		/* c & alef compiler key words */
@@ -570,7 +572,6 @@ struct	FILE_STRING
 	"GIF",			"GIF image", 			3,	"image/gif",
 	"\0PC Research, Inc\0",	"ghostscript fax file",		18,	"application/ghostscript",
 	"%PDF",			"PDF",				4,	"application/pdf",
-	"From ",		"mail box",			5, "text/plain",
 	"<html>\n",		"HTML file",			7,	"text/html",
 	"<HTML>\n",		"HTML file",			7,	"text/html",
 	"compressed\n",		"Compressed image or subfont",	11,	"application/octet-stream",
@@ -674,6 +675,8 @@ char*	rfc822_string[] =
 	"to:",
 	"subject:",
 	"received:",
+	"reply to:",
+	"sender:",
 	0,
 };
 
@@ -690,6 +693,14 @@ isrfc822(void)
 		q = strchr(p, '\n');
 		if(q == nil)
 			break;
+		*q = 0;
+		if(p == (char*)buf && strncmp(p, "From ", 5) == 0 && strstr(p, " remote from ")){
+			count++;
+			*q = '\n';
+			p = q+1;
+			continue;
+		}
+		*q = '\n';
 		if(*p != '\t' && *p != ' '){
 			r = strchr(p, ':');
 			if(r == 0 || r > q)
@@ -707,6 +718,24 @@ isrfc822(void)
 		print(mime ? "message/rfc822\n" : "email file\n");
 		return 1;
 	}
+	return 0;
+}
+
+int
+ismbox(void)
+{
+	char *p, *q;
+
+	p = (char*)buf;
+	q = strchr(p, '\n');
+	if(q == nil)
+		return 0;
+	*q = 0;
+	if(strncmp(p, "From ", 5) == 0 && strstr(p, " remote from ") == nil){
+		print(mime ? "text/plain\n" : "mail box\n");
+		return 1;
+	}
+	*q = '\n';
 	return 0;
 }
 

@@ -14,6 +14,8 @@ last cipertext block decryptable.  Hence the random prefix to file.
 #include <mp.h>
 #include <libsec.h>
 
+int getpasswd(char*, char*, int);
+
 enum{ CHK = 16, BUF = 4096 };
 
 uchar v2hdr[AESbsize+1] = "AES CBC SHA1  2\n";
@@ -46,30 +48,46 @@ void
 main(int argc, char **argv)
 {
 	int encrypt = 0;  /* 0=decrypt, 1=encrypt */
-	int n, nkey;
-	char *hex;
-	uchar key[AESmaxkey], key2[MD5dlen];
+	int n, nkey, pass_stdin = 0;
+	uchar key[AESmaxkey], key2[SHA1dlen];
 	uchar buf[BUF+SHA1dlen];    /* assumption: CHK <= SHA1dlen */
 	AESstate aes;
 	DigestState *dstate;
 
-	if(argc!=2 || argv[1][0]!='-'){
-		fprint(2,"usage: HEX=key %s -d < cipher.aes > clear.txt\n", argv[0]);
-		fprint(2,"   or: HEX=key %s -e < clear.txt > cipher.aes\n", argv[0]);
+	ARGBEGIN{
+	case 'e':
+		encrypt = 1;
+		break;
+	case 'i':
+		pass_stdin = 1;
+		break;
+	}ARGEND;
+	if(argc!=0){
+		fprint(2,"usage: %s -d < cipher.aes > clear.txt\n", argv[0]);
+		fprint(2,"   or: %s -e < clear.txt > cipher.aes\n", argv[0]);
 		exits("usage");
 	}
-	if(argv[1][1] == 'e')
-		encrypt = 1;
 	Binit(&bin, 0, OREAD);
 	Binit(&bout, 1, OWRITE);
 
-	hex = getenv("HEX");
-	nkey = strlen(hex);
-	if((nkey&1) || nkey>2*AESmaxkey){
-		fprint(2,"key should be 32 hex digits\n");
+	if(pass_stdin){
+		n = readn(3, buf, (sizeof buf)-1);
+		if(n < 1)
+			exits("usage: echo password |[3=1] auth/aescbc -i ...");
+		buf[n] = 0;
+		while(buf[n-1] == '\n')
+			buf[--n] = 0;
+	}else{
+		n = getpasswd("password:", (char*)buf, sizeof buf);
+	}
+	if(n <= 0){
+		fprint(2,"no key\n");
 		exits("key");
 	}
-	nkey = dec16(key, sizeof key, hex, nkey);
+	dstate = sha1((uchar*)"aescbc file", 11, nil, nil);
+	sha1(buf, n, key2, dstate);
+	memcpy(key, key2, 16);
+	nkey = 16;
 	md5(key, nkey, key2, 0);  /* so even if HMAC_SHA1 is broken, encryption key is protected */
 
 	if(encrypt){
@@ -94,7 +112,7 @@ main(int argc, char **argv)
 		hmac_sha1(0, 0, key2, MD5dlen, buf, dstate);
 		safewrite(buf, SHA1dlen);
 	}else{ /* decrypt */
-		Bread(&bin, buf, AESbsize);
+		saferead(buf, AESbsize);
 		if(memcmp(buf, v2hdr, AESbsize) == 0){
 			saferead(buf, 2*AESbsize);  /* read IV and random initial plaintext */
 			setupAESstate(&aes, key, nkey, buf);
@@ -109,14 +127,14 @@ main(int argc, char **argv)
 			}
 			hmac_sha1(0, 0, key2, MD5dlen, buf+SHA1dlen, dstate);
 			if(memcmp(buf, buf+SHA1dlen, SHA1dlen) != 0){
-				fprint(2,"decrypted file failed to authenticate!\n");
-				exits("decrypted file failed to authenticate!");
+				fprint(2,"decrypted file failed to authenticate\n");
+				exits("decrypted file failed to authenticate");
 			}
 		}else{ /* compatibility with past mistake */
 			// if file was encrypted with bad aescbc use this:
 			//         memset(key, 0, AESmaxkey);
 			//    else assume we're decrypting secstore files
-			setupAESstate(&aes, key, 0, buf);
+			setupAESstate(&aes, key, AESbsize, buf);
 			saferead(buf, CHK);
 			aesCBCdecrypt(buf, CHK, &aes);
 			while((n = Bread(&bin, buf+CHK, BUF)) > 0){

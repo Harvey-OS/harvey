@@ -5,6 +5,7 @@ char		*authaddr;
 int		debug;
 int		gflag;
 char		*owner;
+char		*invoker;
 int		kflag;
 char		*mtpt = "/mnt";
 Keyring	*ring;
@@ -42,7 +43,7 @@ prototab[] =
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-DdkStu] [-s service] [-a authaddr] [-m mtpt]\n", argv0);
+	fprint(2, "usage: %s [-DdkSun] [-s service] [-a authaddr] [-m mtpt]\n", argv0);
 	fprint(2, "or    %s -g 'params'\n", argv0);
 	exits("usage");
 }
@@ -86,14 +87,21 @@ main(int argc, char **argv)
 	case 'n':
 		trysecstore = 0;
 		break;
+	case 'o':
+		owner = EARGF(usage());
+		break;
 	case 's':		/* set service name */
 		service = EARGF(usage());
 		break;
 	case 'u':		/* user: set hostowner */
 		uflag = 1;
 		break;
+	default:
+		usage();
 	}ARGEND
 
+	if(argc != 0 && !gflag)
+		usage();
 	if(!debug)
 		private();
 
@@ -137,9 +145,13 @@ main(int argc, char **argv)
 			fprint(2, "factotum warning: cannot add nvram key: %r\n");
 		if(secstorepw != nil)
 			trysecstore = 1;
+		memset(s, 0, strlen(s));
+		free(s);
 	} else if(uflag)
 		promptforhostowner();
-	owner = getuser();
+	invoker = getuser();
+	if(owner == nil)
+		owner = invoker;
 	notify(notifyf);
 
 	if(trysecstore){
@@ -150,6 +162,7 @@ main(int argc, char **argv)
 					break;
 				fprint(2, "secstorefetch: %r\n");
 				fprint(2, "Enter an empty password to quit.\n");
+				free(secstorepw);
 				secstorepw = nil; /* just try nvram pw once */
 			}
 		}else{
@@ -258,8 +271,8 @@ static void
 fillstat(Dir *dir, char *name, int type, int path, ulong perm)
 {
 	dir->name = estrdup(name);
-	dir->uid = estrdup(owner);
-	dir->gid = estrdup(owner);
+	dir->uid = estrdup(invoker);
+	dir->gid = estrdup(invoker);
 	dir->mode = perm;
 	dir->length = 0;
 	dir->qid = mkqid(type, path);
@@ -361,7 +374,7 @@ fsopen(Req *r)
 	if(i < nelem(dirtab)){
 		if(dirtab[i].perm & DMEXCL)
 			p = &inuse[i];
-		if(strcmp(r->fid->uid, owner) == 0)
+		if(strcmp(r->fid->uid, invoker) == 0)
 			perm = dirtab[i].perm>>6;
 		else
 			perm = dirtab[i].perm;
@@ -381,6 +394,7 @@ fsopen(Req *r)
 	}
 
 	r->fid->aux = fss = emalloc(sizeof(Fsstate));
+	fss->phase = Notstarted;
 	fss->sysuser = r->fid->uid;
 	fss->attr = nil;
 	strcpy(fss->err, "factotum/fs.c no error");

@@ -18,14 +18,12 @@ struct Source
 
 int bsize;
 Biobuf *bout;
-VtRootLump root;
+VtRoot root;
 int ver;
 int cmp;
 int all;
 int find;
 uchar fscore[VtScoreSize];
-int dirSize;
-void (*parse)(Source*, uchar*);
 VtSession *z;
 
 int vtGetUint16(uchar *p);
@@ -33,9 +31,7 @@ ulong vtGetUint32(uchar *p);
 uvlong vtGetUint48(uchar *p);
 void usage(void);
 int parseScore(uchar *score, char *buf, int n);
-void readRoot(VtRootLump*, uchar *score, char *file);
-void parse1(Source*, uchar*);
-void parse2(Source*, uchar*);
+void readRoot(VtRoot*, uchar *score, char *file);
 int dumpDir(Source*, int indent);
 
 void
@@ -79,7 +75,7 @@ main(int argc, char *argv[])
 	fmtinstall('V', vtScoreFmt);
 	fmtinstall('R', vtErrFmt);
 
-	z = vtDial(host);
+	z = vtDial(host, 0);
 	if(z == nil)
 		vtFatal("could not connect to server: %s", vtGetError());
 
@@ -87,8 +83,8 @@ main(int argc, char *argv[])
 		sysfatal("vtConnect: %r");
 
 	readRoot(&root, score, argv[0]);
-	ver = vtGetUint16(root.version);
-	bsize = vtGetUint16(root.blockSize);
+	ver = root.version;
+	bsize = root.blockSize;
 	if(!find) {
 		Bprint(bout, "score: %V\n", score);
 		Bprint(bout, "version: %d\n", ver);
@@ -101,13 +97,7 @@ main(int argc, char *argv[])
 	switch(ver) {
 	default:
 		sysfatal("unknown version");
-	case VtRootVersion1:
-		dirSize = VtDirEntrySize1;
-		parse = parse1;
-		break;
-	case VtRootVersion2:
-		dirSize = VtDirEntrySize2;
-		parse = parse2;
+	case VtRootVersion:
 		break;
 	}
 
@@ -147,8 +137,8 @@ sourcePrint(Source *s, int indent, int entry)
 	if(s->active) {
 		/* dir size in directory entries */
 		if(s->dir) {
-			ne = s->dsize/dirSize;
-			size = ne*(s->size/s->dsize) + (s->size%s->dsize)/dirSize;
+			ne = s->dsize/VtEntrySize;
+			size = ne*(s->size/s->dsize) + (s->size%s->dsize)/VtEntrySize;
 		} else 
 			size = s->size;
 		if(cmp) {
@@ -169,74 +159,29 @@ sourcePrint(Source *s, int indent, int entry)
 	Bprint(bout, "\n");
 }
 
-void
-parse1(Source *s, uchar *p)
+int
+parse(Source *s, uchar *p)
 {
-	VtDirEntry1 *dir;
-	int i;
+	VtEntry dir;
 
 	memset(s, 0, sizeof(*s));
-	dir = (VtDirEntry1*)p;
-	if(!(dir->flag & VtDirEntryActive)) {
-		for(i = 0; i < VtDirEntrySize1; i++) {
-			if(p[i]) {
-				s->reserved++;
-				break;
-			}
-		}
-		return;
-	}
+	if(!vtEntryUnpack(&dir, p, 0))
+		return 0;
+
+	if(!(dir.flags & VtEntryActive))
+		return 1;
 
 	s->active = 1;
-	s->psize = vtGetUint16(dir->psize);
-	s->dsize = vtGetUint16(dir->dsize);
-	s->size = vtGetUint48(dir->size);
-	memmove(s->score, dir->score, VtScoreSize);
-	if(dir->flag & VtDirEntryDir)
+	s->gen = dir.gen;
+	s->psize = dir.psize;
+	s->dsize = dir.size;
+	s->size = dir.size;
+	memmove(s->score, dir.score, VtScoreSize);
+	if(dir.flags & VtEntryDir)
 		s->dir = 1;
-	s->depth = (dir->flag & VtDirEntryDepthMask) >> VtDirEntryDepthShift;
+	s->depth = dir.depth;
+	return 1;
 
-	if(dir->flag & ~0x1f)
-		s->reserved++;
-}
-
-void
-parse2(Source *s, uchar *p)
-{
-	VtDirEntry2 *dir;
-	int i;
-
-	memset(s, 0, sizeof(*s));
-	dir = (VtDirEntry2*)p;
-	if(!(dir->flag & VtDirEntryActive)) {
-		/* check everything but gen is zero */
-		for(i = 4; i < VtDirEntrySize2; i++) {
-			if(p[i]) {
-				s->reserved++;
-				break;
-			}
-		}
-		return;
-	}
-
-	s->active = 1;
-	s->gen = vtGetUint32(dir->gen);
-	s->psize = vtGetUint16(dir->psize);
-	s->dsize = vtGetUint16(dir->dsize);
-	s->size = vtGetUint48(dir->size);
-	memmove(s->score, dir->score, VtScoreSize);
-	if(dir->flag & VtDirEntryDir)
-		s->dir = 1;
-	s->depth = (dir->flag & VtDirEntryDepthMask) >> VtDirEntryDepthShift;
-
-	if(dir->flag & ~0x1f)
-		s->reserved++;
-	for(i = 0; i < sizeof(dir->reserved); i++) {
-		if(dir->reserved[i]) {
-			s->reserved++;
-			break;
-		}
-	}
 }
 
 int
@@ -339,8 +284,8 @@ dumpDir(Source *s, int indent)
 	uchar buf[VtMaxLumpSize];
 	Source ss;
 
-	pb = s->dsize/dirSize;
-	ne = pb*(s->size/s->dsize) + (s->size%s->dsize)/dirSize;
+	pb = s->dsize/VtEntrySize;
+	ne = pb*(s->size/s->dsize) + (s->size%s->dsize)/VtEntrySize;
 	nb = (s->size + s->dsize - 1)/s->dsize;
 	for(i=0; i<nb; i++) {
 		memset(buf, 0, s->dsize);
@@ -353,7 +298,7 @@ dumpDir(Source *s, int indent)
 			entry = i*pb + j;
 			if(entry >= ne)
 				break;
-			parse(&ss, buf + j * dirSize);
+			parse(&ss, buf + j * VtEntrySize);
 
 			if(!find)
 				sourcePrint(&ss, indent, entry);
@@ -408,10 +353,10 @@ parseScore(uchar *score, char *buf, int n)
 }
 
 void
-readRoot(VtRootLump *root, uchar *score, char *file)
+readRoot(VtRoot *root, uchar *score, char *file)
 {
 	int fd;
-	char buf[100];
+	uchar buf[VtRootSize];
 	int i, n, nn;
 
 	if(file == 0)
@@ -428,17 +373,16 @@ readRoot(VtRootLump *root, uchar *score, char *file)
 	close(fd);
 
 	for(i=0; i<n; i++) {
-		if(!parseScore(score, buf+i, n-i))
+		if(!parseScore(score, (char*)(buf+i), n-i))
 			continue;
-		nn = vtRead(z, score, VtRootType, (uchar*)root, VtRootSize);
+		nn = vtRead(z, score, VtRootType, buf, VtRootSize);
 		if(nn >= 0) {
 			if(nn != VtRootSize)
 				sysfatal("vtRead on root too short");
-	
-			if(!vtSha1Check(score, (uchar*)root, VtRootSize))
+			if(!vtSha1Check(score, buf, VtRootSize))
 				sysfatal("vtSha1Check failed on root block");
-			root->name[sizeof(root->name)-1] = 0;
-			root->type[sizeof(root->type)-1] = 0;
+			if(!vtRootUnpack(root, buf))
+				sysfatal("could not parse root: %r");
 			return;
 		}
 	}

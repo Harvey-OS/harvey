@@ -44,11 +44,27 @@ pcibarsize(Pcidev *p, int rno)
 	return -(size & ~0x0F);
 }
 
+static void
+cmd_pcihinv(int argc, char *argv[])
+{
+	int i, flags = 0;
+
+	for (i = 1; i < argc; i++)
+		if (strcmp(argv[i], "-v") == 0)
+			flags |= 1;
+		else {
+			print("unknown pcihinv option %s; options are: -v\n", argv[i]);
+			return;
+		}
+	pcihinv(nil, flags);		/* print the whole device tree */
+}
+
 static int
 pciscan(int bno, Pcidev** list)
 {
 	Pcidev *p, *head, *tail;
 	int dno, fno, i, hdt, l, maxfno, maxubn, rno, sbn, tbdf, ubn;
+	static int first = 1;
 
 	maxubn = bno;
 	head = nil;
@@ -171,7 +187,11 @@ pciscan(int bno, Pcidev** list)
 			pciscan(sbn, &p->bridge);
 		}
 	}
-
+	if (first) {
+		first = 0;
+		cmd_install("pcihinv", "-- print PCI bus device inventory",
+			cmd_pcihinv);
+	}
 	return maxubn;
 }
 
@@ -426,20 +446,120 @@ pcimatchtbdf(int tbdf)
 	return pcidev;
 }
 
+static char *
+ccru2name(int ccru)
+{
+	switch (ccru>>8) {
+	case 0x01:		/* mass storage controller */
+		return "disks";
+	case 0x02:		/* network controller */
+		return "net";	/* probably ether */
+	case 0x03:		/* display controller */
+		return "video";
+	case 0x04:		/* multimedia device */
+		return "audio";
+	case 0x07:		/* simple communication controllers */
+		return "serial";
+	case 0x08:		/* base system peripherals */
+		return "basic";
+	case 0x09:		/* input devices */
+		return "input";
+	case 0x0A:		/* docking stations */
+		return "dock";
+	case 0x0B:		/* processors */
+		return "cpu";
+	case 0x0C:		/* serial bus controllers */
+		return "usb";
+	case 0x00:
+	case 0x05:		/* memory controller */
+		return "memctl";
+	case 0x06:		/* bridge device */
+		return "bridge";
+	default:
+		return "*GOK*";
+	}
+}
+
+static char *
+vid2name(int vid)
+{
+	switch (vid) {
+	case 0x1000:
+		return "ncr";
+	case 0x1002:
+		return "ati";
+	case 0x100b:
+		return "natsemi";
+	case 0x1011:
+		return "dec";
+	case 0x1013:
+		return "cirrus";
+	case 0x1022:
+		return "amd";
+	case 0x1023:
+		return "cyber?";
+	case 0x102b:
+		return "matrox";
+	case 0x102c:
+		return "hiq";
+	case 0x1039:
+		return "sis";
+	case 0x104b:
+		return "mylex";
+	case 0x105d:
+		return "number9";
+	case 0x10a9:
+		return "sgi";
+	case 0x10b7:
+		return "3com";
+	case 0x10c8:
+		return "neomagic";	/* or magicgraph */
+	case 0x10de:
+		return "nvidia";
+	case 0x11ad:
+		return "(pnic?)";
+	case 0x121a:
+		return "voodoo";
+	case 0x12ae:
+		return "alteon";
+	case 0x1385:
+		return "netgear";
+	case 0x15ad:
+		return "vmware";
+	case 0x5333:			/* "S" "3".  har, har. */
+		return "s3";
+	case 0x8086:
+		return "intel";
+	default:
+		return "*GOK*";
+	}
+}
+
 void
-pcihinv(Pcidev* p)
+pcihinv(Pcidev* p, ulong flags)
 {
 	int i;
 	Pcidev *t;
 
 	if(p == nil) {
 		p = pciroot;
-		print("bus dev type vid  did intl memory\n");
+		print("bus dev type ");
+		if (flags)
+			print("%7s", "");
+		print("vid  ");
+		if (flags)
+			print("%8s", "");
+		print("did intl memory\n");
 	}
 	for(t = p; t != nil; t = t->link) {
-		print("%d  %2d/%d %.4ux %.4ux %.4ux %2d  ",
-			BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
-			t->ccru, t->vid, t->did, t->intl);
+		print("%d  %2d/%d %.4ux", BUSBNO(t->tbdf), BUSDNO(t->tbdf),
+			BUSFNO(t->tbdf), t->ccru);
+		if (flags)
+			print(" %-6s", ccru2name(t->ccru));
+		print(" %.4ux", t->vid);
+		if (flags)
+			print(" %-7s", vid2name(t->vid));
+		print(" %.4ux %2d  ", t->did, t->intl);
 
 		for(i = 0; i < nelem(p->mem); i++) {
 			if(t->mem[i].size == 0)
@@ -451,7 +571,7 @@ pcihinv(Pcidev* p)
 	}
 	while(p != nil) {
 		if(p->bridge != nil)
-			pcihinv(p->bridge);
+			pcihinv(p->bridge, flags);
 		p = p->link;
 	}
 }

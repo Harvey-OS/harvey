@@ -21,7 +21,7 @@ pop3, imap4d \-  mail servers
 ]
 .PP
 .B ip/imap4d
-.RB [ -ap ]
+.RB [ -acpv ]
 .RB [ -d
 .IR smtpdomain ]
 .RB [ -s
@@ -84,12 +84,18 @@ CRAM-MD5 or
 challenge/response authentication.
 .TP
 .B p
+Allow plan 9 challenge response authentication.
+.TP
+.B p
 Allow login authentication.  This option
 should only be enabled for servers using
 an encrypted connection, such as SSL,
 and when enabled, all non-encrypted connections should be disallowed.
 .I Imap4d
 does not enforce this policy.
+.TP
+.B v
+Turn on verbose output to the debug file.
 .TP
 .B s
 The server's name.
@@ -116,6 +122,9 @@ secret held by
 .IR keyfs (4)
 running on the authentication server.
 .SH FILES
+.TP
+.B /sys/log/imap4d
+\- debugging output
 .SH SOURCE
 .TP
 .B /sys/src/cmd/upas/pop3

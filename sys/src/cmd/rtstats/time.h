@@ -1,5 +1,3 @@
-typedef vlong Time;
-typedef uvlong Ticks;
 
 #pragma	varargck	type	"T"		vlong
 

@@ -428,7 +428,7 @@ refuse(dest *list, message *mp, char *cp, int status, int outofresources)
 	if(rmail){
 		/* accept it or request a retry */
 		if(outofresources){
-			fprint(2, "%s\n", s_to_c(errstring));
+			fprint(2, "Mail %s\n", s_to_c(errstring));
 			rv = 1;					/* try again later */
 		} else if(mp->bulk)
 			rv = 0;					/* silently discard bulk */
@@ -445,7 +445,7 @@ refuse(dest *list, message *mp, char *cp, int status, int outofresources)
 			if(!outofresources && !mp->bulk)
 				replymsg(errstring, mp, dp);
 		} else {
-			fprint(2, "%s\n", s_to_c(errstring));
+			fprint(2, "Mail %s\n", s_to_c(errstring));
 			savemail = 1;
 			rv = 1;
 		}
@@ -466,34 +466,51 @@ mkerrstring(String *errstring, message *mp, dest *dp, dest *list, char *cp, int 
 	sender = unescapespecial(s_clone(mp->sender));
 
 	/* list all aliases */
-	s_append(errstring, "\nMail to `");
+	s_append(errstring, " from '");
+	s_append(errstring, s_to_c(sender));
+	s_append(errstring, "'\nto '");
 	appaddr(errstring, dp);
 	for(next = d_rm(&list); next != 0; next = d_rm(&list)) {
-		s_append(errstring, "', '");
+		s_append(errstring, "'\nand '");
 		appaddr(errstring, next);
 		d_insert(&dp, next);
 	}
-	s_append(errstring, "' from '");
-	s_append(errstring, s_to_c(sender));
-	s_append(errstring, "' failed.\n");
+	s_append(errstring, "'\nfailed with error '");
+	s_append(errstring, cp);
+	s_append(errstring, "'.\n");
 
 	/* >> and | deserve different flavored messages */
 	switch(dp->status) {
 	case d_pipe:
 		s_append(errstring, "The mailer `");
 		s_append(errstring, s_to_c(dp->repl1));
-		sprint(smsg, "' returned error status %x.\n", status);
+		sprint(smsg, "' returned error status %x.\n\n", status);
 		s_append(errstring, smsg);
-		s_append(errstring, "The error message was:\n");
-		s_append(errstring, cp);
-		break;
-	default:
-		s_append(errstring, "The error message was:\n");
-		s_append(errstring, cp);
 		break;
 	}
 
 	s_free(sender);
+}
+
+/*
+ *  create a new boundary
+ */
+static String*
+mkboundary(void)
+{
+	char buf[32];
+	int i;
+	static int already;
+
+	if(already == 0){
+		srand((time(0)<<16)|getpid());
+		already = 1;
+	}
+	strcpy(buf, "upas-");
+	for(i = 5; i < sizeof(buf)-1; i++)
+		buf[i] = 'a' + nrand(26);
+	buf[i] = 0;
+	return s_copy(buf);
 }
 
 /*
@@ -507,6 +524,9 @@ replymsg(String *errstring, message *mp, dest *dp)
 	dest *ndp;
 	char *rcvr;
 	int rv;
+	String *boundary;
+
+	boundary = mkboundary();
 
 	refp->bulk = 1;
 	rcvr = dp->status==d_eloop ? "postmaster" : s_to_c(mp->replyaddr);
@@ -514,9 +534,35 @@ replymsg(String *errstring, message *mp, dest *dp)
 	s_append(refp->sender, "postmaster");
 	s_append(refp->replyaddr, "/dev/null");
 	s_append(refp->date, thedate());
+	s_append(refp->body, "From: postmaster\n");
+	s_append(refp->body, "Subject: bounced mail\n");
+	s_append(refp->body, "MIME-Version: 1.0\n");
+	s_append(refp->body, "Content-Type: multipart/mixed;\n");
+	s_append(refp->body, "\tboundary=\"");
+	s_append(refp->body, s_to_c(boundary));
+	s_append(refp->body, "\"\n");
+	s_append(refp->body, "Content-Disposition: inline\n");
+	s_append(refp->body, "\n");
+	s_append(refp->body, "This is a multi-part message in MIME format.\n");
+	s_append(refp->body, "--");
+	s_append(refp->body, s_to_c(boundary));
+	s_append(refp->body, "\n");
+	s_append(refp->body, "Content-Disposition: inline\n");
+	s_append(refp->body, "Content-Type: text/plain; charset=\"US-ASCII\"\n");
+	s_append(refp->body, "Content-Transfer-Encoding: 7bit\n");
+	s_append(refp->body, "\n");
+	s_append(refp->body, "The attached mail");
 	s_append(refp->body, s_to_c(errstring));
-	s_append(refp->body, "\nThe message began:\n");
-	s_nappend(refp->body, s_to_c(mp->body), 8*1024);
+	s_append(refp->body, "--");
+	s_append(refp->body, s_to_c(boundary));
+	s_append(refp->body, "\n");
+	s_append(refp->body, "Content-Type: message/rfc822\n");
+	s_append(refp->body, "Content-Disposition: inline\n\n");
+	s_append(refp->body, s_to_c(mp->body));
+	s_append(refp->body, "--");
+	s_append(refp->body, s_to_c(boundary));
+	s_append(refp->body, "--\n");
+
 	refp->size = s_len(refp->body);
 	rv = send(ndp, refp, 0);
 	m_free(refp);

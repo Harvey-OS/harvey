@@ -1,29 +1,55 @@
 .TH SECSTORE 1
 .SH NAME
-aescbc, secstore \- secstore commands
+aescbc, secstore, ipso \- secstore commands
 .SH SYNOPSIS
 .B auth/secstore
-[-c] [-s
+[
+.B -s
 .I server
-] [ -(g|G)
+]
+[
+.B -(g|G)
 .I getfile
-] [ -p
+]
+[
+.B -p
 .I putfile
-] [ -r
+]
+[
+.B -r
 .I rmfile
-] [ -u
+]
+[
+.B -c
+]
+[
+.B -u
 .I user
 ]
-.br
+[
+.B -v
+]
+[
+.B -i
+]
+.PP
 .B auth/aescbc
 -e
 .I <cleartext
-.I >cryptext
+.I >ciphertext
 .br
 .B auth/aescbc
 -d
-.I <cryptext
+.I <ciphertext
 .I >cleartext
+.PP
+.B ipso
+[
+.B -as
+] [
+.I file
+\&...
+]
 .PP
 .SH DESCRIPTION
 .PP
@@ -54,47 +80,98 @@ Option
 removes a file from the secstore.
 .PP
 Option
+.B -c
+prompts for a password change.
+.PP
+Option
 .B -v
 produces more verbose output, in particular providing a few
 bits of feedback to help the user detect mistyping.
 .PP
 Option
-.B -c
-prompts for a password change.
+.B -i
+says that the password should be read from standard input
+instead of from
+.BR /dev/cons .
 .PP
 The server is
 .BR tcp!$auth!5356 ,
 or the server specified by option
 .BR -s .
 .PP
-For example, to add a secret to the default file read by
+For example, to add a secret to the file read by
 .IR factotum (4)
-at startup, open a new window and 
+at startup, open a new window, type
 .sp
 .EX
   % ramfs -p; cd /tmp
   % auth/secstore -g factotum
   secstore password:
-  % echo 'key proto=apop dom=x.com user=ehg !password=y~1' >> factotum
+  % echo 'key proto=apop dom=x.com user=ehg !password=hi' >> factotum
   % auth/secstore -p factotum
   secstore password:
   % read -m factotum > /mnt/factotum/ctl
 .EE
+.PP
 and delete the window.
-The first line an ephemeral memory-resident workspace,
+The first line creates an ephemeral memory-resident workspace,
 invisible to others and automatically removed when the window is deleted.
 The next three commands fetch the persistent copy of the secrets,
 append a new secret,
 and save the updated file back to secstore.
 The final command loads the new secret into the running factotum.
 .PP
+The
+.I ipso
+command packages this sequence into a convenient script to simplify editing of
+.I files
+stored on a secure store.
+It copies the named
+.I files
+into a local
+.IR ramfs (4)
+and invokes
+.IR acme (1)
+on them.  When the editor exits,
+.I ipso
+prompts the user to confirm copying modifed or newly created files back to
+.I secstore.
+If no
+.I file
+is mentioned,
+.I ipso
+grabs all the user's files from
+.I secstore
+for editing.
+.PP
+.PP
+The
+.B -s
+option of
+.I ipso
+invokes
+.IR sam (1)
+as the editor insted of
+.BR acme ;
+the
+.B -a
+option provides a similar service for files encrypted by
+.I aescbc
+.RI ( q.v. ).
+With the
+.B -a
+option, the full rooted pathname of the
+.I file
+must be specified and all
+.I files
+must be encrypted with the same key.
+Also with
+.BR -a ,
+newly created files are ignored.
+.PP
 .I Aescbc
 encrypts and decrypts using AES (Rijndael) in cipher
-block chaining (CBC) mode.  This is the file encryption
-used internally by
-.IR secstore .
-The encryption key is passed to the command as 32 hex digits in
-.I /env/HEX .
+block chaining (CBC) mode.
 .SH SOURCE
 .B /sys/src/cmd/auth/secstore
 .SH SEE ALSO
@@ -105,3 +182,8 @@ There is deliberately no backup of files on the secstore, so
 .B -r
 (or a disk crash) is irrevocable.  You are advised to store
 important secrets in a second location.
+.PP
+When using
+.IR ipso ,
+secrets will appear as plain text in the editor window,
+so use the command in private.

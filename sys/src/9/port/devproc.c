@@ -55,7 +55,7 @@ enum
  */
 Dirtab procdir[] =
 {
-	"args",	{Qargs},		0,			0440,
+	"args",		{Qargs},	0,			0660,
 	"ctl",		{Qctl},		0,			0000,
 	"fd",		{Qfd},		0,			0444,
 	"fpregs",	{Qfpregs},	sizeof(FPsave),		0000,
@@ -76,21 +76,21 @@ Dirtab procdir[] =
 
 static
 Cmdtab proccmd[] = {
-	CMclose,		"close",		2,
+	CMclose,	"close",	2,
 	CMclosefiles,	"closefiles",	1,
-	CMfixedpri,	"fixedpri",		2,
+	CMfixedpri,	"fixedpri",	2,
 	CMhang,		"hang",		1,
-	CMnohang,	"nohang",		1,
-	CMnoswap,	"noswap",		1,
+	CMnohang,	"nohang",	1,
+	CMnoswap,	"noswap",	1,
 	CMkill,		"kill",		1,
-	CMpri,		"pri",			2,
-	CMprivate,	"private",		1,
-	CMprofile,	"profile",		1,
-	CMstart,		"start",		1,
+	CMpri,		"pri",		2,
+	CMprivate,	"private",	1,
+	CMprofile,	"profile",	1,
+	CMstart,	"start",	1,
 	CMstartstop,	"startstop",	1,
 	CMstop,		"stop",		1,
 	CMwaitstop,	"waitstop",	1,
-	CMwired,		"wired",		2,
+	CMwired,	"wired",	2,
 };
 
 /* Segment type from portdat.h */
@@ -506,9 +506,13 @@ procargs(Proc *p, char *buf, int nbuf)
 	int n;
 
 	a = p->args;
-	n = p->nargs;	
+	if(p->setargs){
+		snprint(buf, nbuf, "%s [%s]", p->text, p->args);
+		return strlen(buf);
+	}
+	n = p->nargs;
 	for(j = 0; j < nbuf - 1; j += m){
-		if(n == 0)
+		if(n <= 0)
 			break;
 		if(j != 0)
 			buf[j++] = ' ';
@@ -545,7 +549,9 @@ procread(Chan *c, void *va, long n, vlong off)
 
 	switch(QID(c->qid)){
 	case Qargs:
+		qlock(&p->debug);
 		j = procargs(p, p->genbuf, sizeof p->genbuf);
+		qunlock(&p->debug);
 		if(offset >= j)
 			return 0;
 		if(offset+n > j)
@@ -835,9 +841,9 @@ mntscan(Mntwalk *mw, Proc *p)
 static long
 procwrite(Chan *c, void *va, long n, vlong off)
 {
-	int id;
+	int id, m;
 	Proc *p, *t, *et;
-	char *a, buf[ERRMAX];
+	char *a, *arg, buf[ERRMAX];
 	ulong offset = off;
 
 	a = va;
@@ -863,6 +869,24 @@ procwrite(Chan *c, void *va, long n, vlong off)
 		error(Eprocdied);
 
 	switch(QID(c->qid)){
+	case Qargs:
+		if(n == 0)
+			error(Eshort);
+		if(n >= ERRMAX)
+			error(Etoobig);
+		arg = malloc(n+1);
+		if(arg == nil)
+			error(Enomem);
+		memmove(arg, va, n);
+		m = n;
+		if(arg[m-1] != 0)
+			arg[m++] = 0;
+		free(p->args);
+		p->nargs = m;
+		p->args = arg;
+		p->setargs = 1;
+		break;
+
 	case Qmem:
 		if(p->state != Stopped)
 			error(Ebadctl);

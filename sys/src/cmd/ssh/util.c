@@ -49,6 +49,17 @@ emalloc(long n)
 	return a;
 }
 
+void*
+erealloc(void *v, long n)
+{
+	v = realloc(v, n);
+	if(v == nil)
+		error(Ememory);
+	setrealloctag(v, getcallerpc(&v));
+	return v;
+}
+
+
 static int killpid[16];
 static int nkillpid;
 void
@@ -282,6 +293,7 @@ setaliases(Conn *c, char *name)
 	c->host = emalloc(strlen(name)+1);
 	strcpy(c->host, name);
 
+	c->aliases = c->host;
 	attr[0] = "dom";
 	attr[1] = "ip";
 	t = csipinfo(nil, ipattr(name), name, attr, 2);

@@ -241,6 +241,8 @@ freeArenaPart(ArenaPart *ap, int freeArenas)
 		return;
 	if(freeArenas){
 		for(i = 0; i < ap->narenas; i++){
+			if(ap->arenas[i] == nil)
+				continue;
 			delArena(ap->arenas[i]);
 			freeArena(ap->arenas[i]);
 		}

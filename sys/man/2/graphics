@@ -26,6 +26,9 @@ int	geninitdraw(char *devdir, void(*errfun)(Display*, char*),
 	   int ref)
 .PP
 .B
+int	newwindow(char *str)
+.PP
+.B
 void	drawerror(Display *d, char *msg)
 .PP
 .B
@@ -373,6 +376,24 @@ specifies the refresh function to be used to create the window, if running under
 .IR rio (1)
 (see
 .IR window (2)).
+.PP
+The function
+.I newwindow
+may be called before
+.I initdraw
+or
+.IR geninitdraw
+to cause the program to occupy a newly created window rather than take over the one in
+which it is running when it starts.
+The
+.I str
+argument, if non-null, is concatenated to the string \f5\&"new\ "\fP
+that is used to create the window (see
+.IR rio (4)).
+For example,
+.B newwindow("-hide -dy 100")
+will cause the program to run in a newly created, hidden window
+100 pixels high.
 .PP
 .I Initdisplay
 is part of

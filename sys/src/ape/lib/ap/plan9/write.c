@@ -13,7 +13,7 @@ write(int d, const void *buf, size_t nbytes)
 		return -1;
 	}
 	if(_fdinfo[d].oflags&O_APPEND)
-		_OSEEK(d, 0, 2);
+		_SEEK(d, 0, 2);
 	n = _WRITE(d, buf, nbytes);
 	if(n < 0)
 		_syserrno();

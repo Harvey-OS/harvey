@@ -1,5 +1,5 @@
 void		accounttime(void);
-void		addclock0link(void (*)(void));
+void		addclock0link(void (*)(void), int);
 int		addphysseg(Physseg*);
 void		addrootfile(char*, uchar*, ulong);
 Block*		adjustblock(Block*, int);

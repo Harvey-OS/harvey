@@ -519,6 +519,7 @@ returnmail(char **av, char *name, char *msg)
 	Waitmsg *wm;
 	int fd;
 	char buf[256];
+	char attachment[256];
 	int i;
 	long n;
 	String *s;
@@ -550,8 +551,9 @@ returnmail(char **av, char *name, char *msg)
 		dup(pfd[0], 0);
 		close(pfd[0]);
 		putenv("upasname", "/dev/null");
-		snprint(buf, sizeof(buf), "%s/send", UPASBIN); 
-		execl(buf, "send", "-r", sender, 0);
+		snprint(buf, sizeof(buf), "%s/marshal", UPASBIN);
+		snprint(attachment, sizeof(attachment), "%s", file(name, 'D'));
+		execl(buf, "send", "-A", attachment, "-s", "permanent failure", sender, 0);
 		error("can't exec", 0);
 		break;
 	default:
@@ -569,20 +571,6 @@ returnmail(char **av, char *name, char *msg)
 	fd = open(file(name, 'E'), OREAD);
 	if(fd >= 0){
 		for(;;){
-			n = read(fd, buf, sizeof(buf));
-			if(n <= 0)
-				break;
-			if(write(pfd[1], buf, n) != n){
-				close(fd);
-				goto out;
-			}
-		}
-		close(fd);
-	}
-	fprint(pfd[1], "\nThe request began:\n\n");
-	fd = open(file(name, 'D'), OREAD);
-	if(fd >= 0){
-		for(i=0; i<4*16; i++){
 			n = read(fd, buf, sizeof(buf));
 			if(n <= 0)
 				break;

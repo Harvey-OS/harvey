@@ -15,6 +15,9 @@ cpu \- connection to cpu server
 .B -e
 .I encryption-hash-algs
 ] [
+.B -k
+.I keypattern
+] [
 .B -c
 .I cmd args ...
 ]
@@ -121,6 +124,13 @@ It is used on TCP connections, and is set automatically by
 the TCP receive script for incoming CPU calls
 (see
 .IR listen (8)).
+.PP
+The
+.B -k
+flag specifies a key pattern to use to restrict the keys
+selected by the
+.I auth_proxy
+call used for authentication.
 .PP
 The name space is built by running
 .B /usr/$user/lib/profile

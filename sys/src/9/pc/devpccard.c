@@ -17,6 +17,7 @@ enum {
 	TI_1250_did = 0xAC16,
 	TI_1450_did = 0xAC1B,
 	TI_1251A_did = 0xAC1D,
+	TI_1420_did = 0xAC51,
 
 	Ricoh_vid = 0x1180,
 	Ricoh_476_did = 0x0476,
@@ -57,7 +58,7 @@ static Variant variant[] = {
 {	TI_vid,		TI_1250_did,		"TI PCI-1250 Cardbus Controller",	},
 {	TI_vid,		TI_1450_did,		"TI PCI-1450 Cardbus Controller",	},
 {	TI_vid,		TI_1251A_did,		"TI PCI-1251A Cardbus Controller",	},
-{	TI_vid,		0xAC51,			"TI 0xAC51 Cardbus Controller", },
+{	TI_vid,		TI_1420_did,		"TI PCI-1420 Cardbus Controller", },
 };
 
 /* Cardbus registers */
@@ -85,6 +86,8 @@ enum {
 	PciPCR_IO = 1 << 0,
 	PciPCR_MEM = 1 << 1,
 	PciPCR_Master = 1 << 2,
+
+	PciPMC = 0xa4,
 
 	Nbars = 6,
 	Ncmd = 10,
@@ -325,7 +328,7 @@ static char *states[] = {
 static void
 engine(Cardbus *cb, int message)
 {
-	// print("engine(%d): %s(%s)\n", 
+	//print("engine(%d): %s(%s)\n", 
 	//	 (int)(cb - cbslots), states[cb->state], messages[message]);
 	switch (cb->state) {
 	case SlotEmpty:
@@ -338,8 +341,8 @@ engine(Cardbus *cb, int message)
 		case CardEjected:
 			break;
 		default:
-			print("#Y%d: Invalid message %s in SlotEmpty state\n",
-				(int)(cb - cbslots), messages[message]);
+			//print("#Y%d: Invalid message %s in SlotEmpty state\n",
+			//	(int)(cb - cbslots), messages[message]);
 			break;
 		}
 		break;
@@ -374,8 +377,8 @@ engine(Cardbus *cb, int message)
 			powerdown(cb);
 			break;
 		default:
-			print("#Y%d: Invalid message %s in SlotPowered state\n",
-				(int)(cb - cbslots), messages[message]);
+			//print("#Y%d: Invalid message %s in SlotPowered state\n",
+			//	(int)(cb - cbslots), messages[message]);
 			break;
 		}
 		break;
@@ -389,8 +392,8 @@ engine(Cardbus *cb, int message)
 			powerdown(cb);
 			break;
 		default:
-			print("#Y%d: Invalid message %s in SlotConfigured state\n",
-				(int)(cb - cbslots), messages[message]);
+			//print("#Y%d: Invalid message %s in SlotConfigured state\n",
+			//	(int)(cb - cbslots), messages[message]);
 			break;
 		}
 		break;
@@ -475,8 +478,8 @@ cbinterrupt(Ureg *, void *)
 		state = cb->regs[SocketState];
 		rdreg(cb, Rcsc);	/* Ack the interrupt */
 
-		// print("interrupt: slot %d, event %.8lX, state %.8lX, (%s)\n", 
-		//		(int)(cb - cbslots), event, state, states[cb->state]);
+		//print("interrupt: slot %d, event %.8lX, state %.8lX, (%s)\n", 
+		//	(int)(cb - cbslots), event, state, states[cb->state]);
 
 		if (event & SE_CCD) {
 			cb->regs[SocketEvent] |= SE_CCD;	/* Ack interrupt */
@@ -599,6 +602,13 @@ devpccardlink(void)
 			else if (pci->did == TI_1250_did) {
 				print("No support yet for the TI_1250_did, prod pb\n");
 			}
+			else if (pci->did == TI_1420_did) {
+				// Disable Vcc protection
+				pcicfgw32(cb->pci, 0x80, 
+					pcicfgr32(cb->pci, 0x80) | (1 << 21));
+			}
+			
+			pcicfgw16(cb->pci, PciPMC, pcicfgr16(cb->pci, PciPMC) & ~3);
 		}
 
 		if (intl != -1 && intl != pci->intl)
@@ -659,7 +669,8 @@ powerup(Cardbus *cb)
 	ulong state;
 	ushort bcr;
 
-	if ((state = cb->regs[SocketState]) & SS_PC16) {
+	state = cb->regs[SocketState];
+	if (state & SS_PC16) {
 	
 		// print("#Y%ld: Probed a PC16 card, powering up card\n", cb - cbslots);
 		cb->type = PC16;
@@ -671,6 +682,7 @@ powerup(Cardbus *cb)
 		wrreg(cb, Rigc, 0);
 		delay(100);
 		wrreg(cb, Rigc, Fnotreset);
+		delay(500);
 
 		return 1;
 	}
@@ -678,8 +690,8 @@ powerup(Cardbus *cb)
 	if (state & SS_CCD)
 		return 0;
 
-	if ((state & SS_CBC) == 0 || (state & SS_NOTCARD)) {
-		print("#Y%ld: No cardbus card inserted\n", cb - cbslots);
+	if (state & SS_NOTCARD) {
+		print("#Y%ld: Not a card inserted\n", cb - cbslots);
 		return 0;
 	}
 
@@ -704,7 +716,7 @@ powerup(Cardbus *cb)
 	pcicfgw16(cb->pci, PciBCR, bcr);
 	delay(100);
 
-	cb->type = PC32;
+	cb->type = (state & SS_PC16)? PC16: PC32;
 	return 1;
 }
 
@@ -1124,7 +1136,7 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 	pi->irq = isa->irq;
 	unlock(cb);
 
-//	print("#Y%d: %s irq %ld, port %lX\n", (int)(cb - cbslots), pi->verstr, isa->irq, isa->port);
+	print("#Y%d: %s irq %ld, port %lX\n", (int)(cb - cbslots), pi->verstr, isa->irq, isa->port);
 	return (int)(cb - cbslots);
 }
 
@@ -1301,6 +1313,7 @@ pccardread(Chan *c, void *a, long n, vlong offset)
 {
 	Cardbus *cb;
 	char *buf, *p, *e;
+	int i;
 
 	switch(TYPE(c)){
 	case Qdir:
@@ -1349,19 +1362,19 @@ pccardread(Chan *c, void *a, long n, vlong offset)
 				p = seprint(p, e, "%s port %X; irq %d;\n",
 						  pi->verstr, pi->port,
 						  pi->irq);
-				for (n = 0; n != pi->nctab; n++) {
+				for (i = 0; i != pi->nctab; i++) {
 					PCMconftab *ct;
-					int i;
+					int j;
 
-					ct = &pi->ctab[n];
+					ct = &pi->ctab[i];
 					p = seprint(p, e, 
 						"\tconfiguration[%ld] irqs %.4uX; vpp %d, %d; %s\n",
 							  n, ct->irqs, ct->vpp1, ct->vpp2,
 							  (ct == pi->defctab)? "(default);": "");
-					for (i = 0; i != ct->nio; i++)
-						if (ct->io[i].len > 0)
+					for (j = 0; j != ct->nio; j++)
+						if (ct->io[j].len > 0)
 							p = seprint(p, e, "\t\tio[%d] %.8ulX %uld\n",
-									  i, ct->io[i].start, ct->io[i].len);
+									  i, ct->io[j].start, ct->io[j].len);
 				}
 			}
 			break;

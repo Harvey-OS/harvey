@@ -296,11 +296,18 @@ parseheaders(Message *m, int justmime, Mailbox *mb)
 		// it's likely to be the right time zone (it's
 	 	// the local system) and in a convenient format.
 		if(cistrncmp(m->header, "received:", 9)==0){
-			if((q = strchr(m->header, ';'))
-			&& (p = strchr(q, '\n'))){
-				*p = '\0';
-				m->unixdate = date822tounix(q+1);
-				*p = '\n';
+			if((q = strchr(m->header, ';')) != nil){
+				p = q;
+				while((p = strchr(p, '\n')) != nil){
+					if(p[1] != ' ' && p[1] != '\t' && p[1] != '\n')
+						break;
+					p++;
+				}
+				if(p){
+					*p = '\0';
+					m->unixdate = date822tounix(q+1);
+					*p = '\n';
+				}
 			}
 		}
 
@@ -1068,6 +1075,15 @@ convert(Message *m)
 		}
 	} else if(cistrcmp(s_to_c(m->charset), "iso-8859-2") == 0){
 		len = xtoutf("8859-2", &x, m->body, m->bend);
+		if(len != 0){
+			if(m->ballocd)
+				free(m->body);
+			m->body = x;
+			m->bend = x + len;
+			m->ballocd = 1;
+		}
+	} else if(cistrcmp(s_to_c(m->charset), "iso-8859-15") == 0){
+		len = xtoutf("8859-15", &x, m->body, m->bend);
 		if(len != 0){
 			if(m->ballocd)
 				free(m->body);

@@ -51,12 +51,12 @@ enum {
 
 Dirtab µcdir[]={
 	".",			{ Qdir, 0, QTDIR },	0,	DMDIR|0755,
-	"backlight",	{ Qbacklight, 0 },	0,	0664,
+	"backlight",		{ Qbacklight, 0 },	0,	0664,
 	"battery",		{ Qbattery, 0 },		0,	0664,
 	"buttons",		{ Qbuttons, 0 },		0,	0664,
 	"cruft",		{ Qcruft, 0 },		0,	0664,
 	"kbdin",		{ Qkbdin, 0 },		0,	0664,
-	"led",		{ Qled, 0 },			0,	0664,
+	"led",			{ Qled, 0 },			0,	0664,
 	"version",		{ Qversion, 0 },		0,	0664,
 	"power",		{ Qpower, 0 },		0,	0600,
 };
@@ -345,6 +345,8 @@ static long
 
 #define PUTBCD(n,o) bcdclock[o] = (n % 10) | (((n / 10) % 10)<<4)
 
+static uchar lightdata[16];
+
 static long	 
 µcwrite(Chan* c, void* a, long n, vlong)
 {
@@ -352,6 +354,7 @@ static long
 	uchar data[16];
 	char str[64];
 	int i, j;
+	ulong l;
 	Rune r;
 	extern ulong resumeaddr[];
 	extern void power_resume(void);
@@ -374,7 +377,14 @@ static long
 			*resumeaddr = (ulong)power_resume;
 		else if(strncmp(a, "halt", 4) == 0)
 			*resumeaddr = 0;
-		else
+		else if(strncmp(a, "wakeup", 6) == 0){
+			cmd = parsecmd(a, n);
+			if (cmd->nf != 2)
+				error(Ebadarg);
+			l = strtoul(cmd->f[1], 0, 0);
+			rtcalarm(l);
+			return n;
+		} else
 			error(Ebadarg);
 		deepsleep();
 		return n;
@@ -391,6 +401,7 @@ static long
 		sendmsgwithack(BLled, data, cmd->nf);
 		break;
 	case Qbacklight:
+		memmove(lightdata, data, 16);
 		sendmsgwithack(BLbacklight, data, cmd->nf);
 		break;
 	case Qcruft:
@@ -409,9 +420,12 @@ void
 	if (on == 0)
 		return;
 	/* maybe dangerous, not holding the lock */
-	data[0]= 2;
-	data[1]= 1;
-	data[2]= 0x80;
+	if (lightdata[0] == 0){
+		data[0]= 2;
+		data[1]= 1;
+		data[2]= 0;
+	} else
+		memmove(data, lightdata, 16);
 	_sendmsg(0xd, data, 3);
 	wakeup(&ctlr.r);
 }

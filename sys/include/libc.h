@@ -231,6 +231,7 @@ extern	int	quotestrfmt(Fmt*);
 extern	int	quoterunestrfmt(Fmt*);
 extern	void	quotefmtinstall(void);
 extern	int	(*doquote)(int);
+extern	int	needsrcquote(int);
 
 /*
  * random number
@@ -243,8 +244,6 @@ extern	long	lnrand(long);
 extern	double	frand(void);
 extern	ulong	truerand(void);			/* uses /dev/random */
 extern	ulong	ntruerand(ulong);		/* uses /dev/random */
-extern	ulong	fastrand(void);			/* uses /dev/random extended by a prng */
-extern ulong	nfastrand(ulong);		/* uses /dev/random extended by a prng */
 
 /*
  * math

@@ -7,6 +7,17 @@
 #include	"ureg.h"
 #include	"../port/error.h"
 
+
+enum {
+	RTCREGS	=	0x90010000,	/* real time clock registers */
+	RTSR_al	=	0x01,		/* alarm detected */
+	RTSR_hz	=	0x02,		/* 1Hz tick */
+	RTSR_ale=	0x04,		/* alarm interrupt enable */
+	RTSR_hze=	0x08,		/* 1Hz tick enable */
+
+	Never	=	0xffffffff,
+};
+
 typedef struct OSTimer
 {
 	ulong		osmr[4];	/* match registers */
@@ -16,10 +27,21 @@ typedef struct OSTimer
 	ulong		oier;		/* timer interrupt enable register */
 } OSTimer;
 
+typedef struct RTCregs 
+{
+	ulong	rtar;	/* alarm */
+	ulong	rcnr;	/* count */
+	ulong	rttr;	/* trim */
+	ulong	dummy;	/* hole */
+	ulong	rtsr;	/* status */
+} RTCregs;
+
 OSTimer *timerregs = (OSTimer*)OSTIMERREGS;
+RTCregs *rtcregs = (RTCregs*)RTCREGS;
 static int clockinited;
 
-static void		clockintr(Ureg*, void*);
+static void	clockintr(Ureg*, void*);
+static void	rtcintr(Ureg*, void*);
 static uvlong	when;	/* scheduled time of next interrupt */
 
 long	timeradjust;
@@ -30,16 +52,28 @@ enum
 	Maxfreq = ClockFreq/10000,	/* At most one interrupt every 100 µs */
 };
 
-void
+ulong
 clockpower(int on)
 {
+	static ulong savedtime;
 
 	if (on){
 		timerregs->ossr |= 1<<0;
 		timerregs->oier = 1<<0;
 		timerregs->osmr[0] = timerregs->oscr + Minfreq;
-	}
+		if (rtcregs->rttr == 0){
+			rtcregs->rttr = 0x8000; // nominal frequency.
+			rtcregs->rcnr = 0;
+			rtcregs->rtar = 0xffffffff;
+			rtcregs->rtsr |= RTSR_ale;
+			rtcregs->rtsr |= RTSR_hze;
+		}
+		if (rtcregs->rcnr > savedtime)
+			return rtcregs->rcnr - savedtime;
+	} else
+		savedtime = rtcregs->rcnr;
 	clockinited = on;
+	return 0L;
 }
 
 void
@@ -49,7 +83,8 @@ clockinit(void)
 	ulong id;
 
 	/* map the clock registers */
-	timerregs = mapspecial(OSTIMERREGS, 32);
+	timerregs = mapspecial(OSTIMERREGS, sizeof(OSTimer));
+	rtcregs   = mapspecial(RTCREGS, sizeof(RTCregs));
 
 	/* enable interrupts on match register 0, turn off all others */
 	timerregs->ossr |= 1<<0;
@@ -70,6 +105,13 @@ clockinit(void)
 	/* post interrupt 1/HZ secs from now */
 	when = timerregs->oscr + Minfreq;
 	timerregs->osmr[0] = when;
+
+	/* enable RTC interrupts and alarms */
+	intrenable(IRQ, IRQrtc, rtcintr, nil, "rtc");
+	rtcregs->rttr = 0x8000; 	// make rcnr   1Hz
+	rtcregs->rcnr = 0;		// reset counter
+	rtcregs->rtsr |= RTSR_al;
+	rtcregs->rtsr |= RTSR_ale;
 
 	timersinit();
 
@@ -122,6 +164,38 @@ clockintr(Ureg *ureg, void*)
 	timerregs->osmr[0] = when;	/* insurance */
 
 	timerintr(ureg, when);
+}
+
+void
+rtcalarm(ulong secs)
+{
+	vlong t;
+
+	if (t == 0){
+		iprint("RTC alarm cancelled\n");
+		rtcregs->rtsr &= ~RTSR_ale;
+		rtcregs->rtar = 0xffffffff;
+	} else {
+		t = todget(nil);
+		t = t / 1000000000ULL; // nsec to secs
+		if (secs < t)
+			return;
+		secs -= t;
+		iprint("RTC alarm set to %uld seconds from now\n", secs);
+		rtcregs->rtar = rtcregs->rcnr + secs;
+		rtcregs->rtsr|= RTSR_ale;
+	}
+}
+
+static void
+rtcintr(Ureg*, void*)
+{
+	/* reset interrupt */
+	rtcregs->rtsr&= ~RTSR_ale;
+	rtcregs->rtsr&= ~RTSR_al;
+
+	rtcregs->rtar = 0;
+	iprint("RTC alarm: %lud\n", rtcregs->rcnr);
 }
 
 void

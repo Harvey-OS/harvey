@@ -1,34 +1,31 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libauth.a
-FILES=\
-	amount\
-	amount_getkey\
-	attr\
-	auth_attr\
-	auth_challenge\
-	auth_chuid\
-	auth_getkey\
-	auth_getuserpasswd\
-	auth_proxy\
-	auth_respond\
-	auth_rpc\
-	auth_userpasswd\
-	login\
-	newns\
-	noworld\
+OFILES=\
+	amount.$O\
+	amount_getkey.$O\
+	attr.$O\
+	auth_attr.$O\
+	auth_challenge.$O\
+	auth_chuid.$O\
+	auth_getkey.$O\
+	auth_getuserpasswd.$O\
+	auth_proxy.$O\
+	auth_respond.$O\
+	auth_rpc.$O\
+	auth_userpasswd.$O\
+	login.$O\
+	newns.$O\
+	noworld.$O\
 
 HFILES=\
 	/sys/include/auth.h\
 	authlocal.h\
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/libauth.a\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib

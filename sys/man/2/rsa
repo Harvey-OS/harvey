@@ -1,6 +1,19 @@
 .TH RSA 2
 .SH NAME
- - 
+asn1dump,
+asn1toRSApriv,
+decodepem,
+rsadecrypt,
+rsaencrypt,
+rsagen,
+rsaprivalloc,
+rsaprivfree,
+rsaprivtopub,
+rsapuballoc,
+rsapubfree,
+X509toRSApub,
+X509gen,
+X509verify \- RSA encryption algorithm
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -38,13 +51,19 @@ RSApub*	rsaprivtopub(RSApriv*)
 RSApub*	X509toRSApub(uchar *cert, int ncert, char *name, int nname)
 .PP
 .B
-char* X509verify(uchar *cert, int ncert, RSApub *pk)
-.PP
-.B
 RSApriv*	asn1toRSApriv(uchar *priv, int npriv)
 .PP
 .B
+void		asn1dump(uchar *der, int len)
+.PP
+.B
 uchar*	decodepem(char *s, char *type, int *len)
+.PP
+.B
+uchar*	X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen);
+.PP
+.B
+char* X509verify(uchar *cert, int ncert, RSApub *pk)
 .SH DESCRIPTION
 .PP
 RSA is a public key encryption algorithm.  The owner of a key publishes
@@ -126,10 +145,29 @@ checks the signature on
 .IR cert .
 It returns nil if successful, else an error string.
 .PP
+.I X509gen
+creates a self-signed X.509 certificate, given an RSA keypair
+.IR priv ,
+a issuer/subject string
+.IR subj ,
+and the starting and ending validity dates,
+.IR valid .
+Length of the allocated binary certificate is stored in
+.IR certlen .
+The subject line is conventionally of the form
+.EX
+   "C=US ST=NJ L=07922 O=Lucent OU='Bell Labs' CN=Eric"
+.EE
+using the quoting conventions of
+.IR tokenize (2).
+.PP
 .I Asn1toRSApriv
 converts an ASN1 formatted RSA private key into the corresponding
 .B RSApriv
 structure.
+.PP
+.I Asn1dump
+prints an ASN1 object to standard output.
 .PP
 .I Decodepem
 takes a zero terminated string,
@@ -157,4 +195,5 @@ is undefined.
 .IR rc4 (2),
 .IR sechash (2),
 .IR prime (2),
-.IR rand (2)
+.IR rand (2),
+.IR x509 (8)

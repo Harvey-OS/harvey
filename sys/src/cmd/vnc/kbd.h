@@ -19,4 +19,4 @@ long			latin1(Rune *k, int n);
 void			kbdputc(int c);
 void			screenputs(char*, int);
 void			vncputc(int, int);
-void			setsnarf(char *buf, int n);
+void			setsnarf(char *buf, int n, int *vers);

@@ -9,6 +9,9 @@ extern int etherga620reset(Ether*);
 extern int ether21140reset(Ether*);
 extern int etherelnk3reset(Ether*);
 extern int etheri82557reset(Ether*);
+extern int dp83815reset(Ether*);
+extern int dp83820pnp(Ether*);
+extern int rtl8139pnp(Ether*);
 
 static struct
 {
@@ -20,8 +23,11 @@ static struct
 	{ "21140", ether21140reset, },
 	{ "2114x", ether21140reset, },
 	{ "3C509", etherelnk3reset, },
+	{ "83815",  dp83815reset, },
+	{ "dp83820", dp83820pnp, },
 	{ "elnk3", etherelnk3reset, },
 	{ "i82557", etheri82557reset, },
+	{ "rtl8139", rtl8139pnp, },
 	{ 0, },
 };
 
@@ -47,6 +53,8 @@ isinput(void* arg)
 {
 	return ((Ether*)arg)->rqhead != 0;
 }
+
+#include "compat.h"
 
 static void
 etheri(void)

@@ -7,6 +7,12 @@
 #include "secstore.h"
 enum{ CHK = 16, MAXFILES = 100 };
 
+typedef struct AuthConn{
+	SConn *conn;
+	char pass[64];
+	int passlen;
+} AuthConn;
+
 int verbose;
 
 void
@@ -130,7 +136,7 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 }
 
 // This sends a file to the secstore disk that can, in an emergency, be
-// decrypted by the program aescbc.c with HEX=sha1("aescbc file"+passphrase).
+// decrypted by the program aescbc.c.
 static int
 putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 {
@@ -206,7 +212,6 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 		conn->write(conn, b, n);
 	}
 
-
 	if(buf == nil)
 		close(fd);
 	fprint(2, "saved %ld bytes\n", len);
@@ -231,154 +236,125 @@ removefile(SConn *conn, char *rf)
 }
 
 static int
-login(char *id, char *dest, int chpass, char **gf, int *Gflag, char **pf, char **rf)
+cmd(AuthConn *c, char **gf, int *Gflag, char **pf, char **rf)
 {
-	char pass[64];
 	ulong len;
-	int rv = -1, fd, passlen, newpasslen = 0, ntry = 0;
+	int rv = -1;
 	uchar *memfile, *memcur, *memnext;
-	char *S, *list, *cur, *next, *newpass = nil, *hexHi;
-	char *f[8], s[Maxmsg+1], prompt[128], buf[Maxmsg];
-	mpint *H = mpnew(0), *Hi = mpnew(0);
-	SConn *conn;
 
-	if(dest == nil){
-		fprint(2, "tried to login with nil dest\n");
-		exits("nil dest");
-	}
-	while(1){
-		if((fd = dial(dest, nil, nil, nil)) < 0){
-			fprint(2, "can't dial %s\n", dest);
-			return -1;
-		}
-		if((conn = newSConn(fd)) == nil)
-			return -1;
-		ntry++;
-		getpasswd("secstore password: ", pass, sizeof pass);
-		if(pass[0]==0){
-			fprint(2, "null password, skipping secstore login\n");
-			exits("no password");
-			return -1;
-		}
-		if(PAKclient(conn, id, pass, &S) >= 0)
-			break;
-		conn->free(conn);
-		// and let user try retyping the password
-		if(ntry==3)
-			fprint(2, "Enter an empty password to quit.\n");
-	}
-	passlen = strlen(pass);
-	fprint(2, "%s\n", S);
-	if(readstr(conn, s) < 0)
-		goto Out;
-	if(strcmp(s, "STA") == 0){
-		long sn;
-		getpasswd("STA PIN+SecureID: ", s+3, (sizeof s)-3);
-		sn = strlen(s+3);
+	while(*gf != nil){
 		if(verbose)
-			fprint(2, "%ld\n", sn);
-		conn->write(conn, (uchar*)s, sn+3);
-		readstr(conn, s);
-	}
-	if(strcmp(s, "OK") !=0){
-		fprint(2, "%s\n", s);
-		goto Out;
-	}
-
-	if(chpass == 0){ // normal case
-		while(*gf != nil){
-			if(verbose)
-				fprint(2, "get %s\n", *gf);
-			if(getfile(conn, *gf, *Gflag ? &memfile : nil, &len, (uchar*)pass, passlen) < 0)
-				goto Out;
-			if(*Gflag){
-				// write one line at a time, as required by /mnt/factotum/ctl
-				memcur = memfile;
-				while(len>0){
-					memnext = (uchar*)strchr((char*)memcur, '\n');
-					if(memnext){
-						write(1, memcur, memnext-memcur+1);
-						len -= memnext-memcur+1;
-						memcur = memnext+1;
-					}else{
-						write(1, memcur, len);
-						break;
-					}
+			fprint(2, "get %s\n", *gf);
+		if(getfile(c->conn, *gf, *Gflag ? &memfile : nil, &len, (uchar*)c->pass, c->passlen) < 0)
+			goto Out;
+		if(*Gflag){
+			// write one line at a time, as required by /mnt/factotum/ctl
+			memcur = memfile;
+			while(len>0){
+				memnext = (uchar*)strchr((char*)memcur, '\n');
+				if(memnext){
+					write(1, memcur, memnext-memcur+1);
+					len -= memnext-memcur+1;
+					memcur = memnext+1;
+				}else{
+					write(1, memcur, len);
+					break;
 				}
-				free(memfile);
 			}
-			gf++;
-			Gflag++;
-		}
-		while(*pf != nil){
-			if(verbose)
-				fprint(2, "put %s\n", *pf);
-			if(putfile(conn, *pf, nil, 0, (uchar*)pass, passlen) < 0)
-				goto Out;
-			pf++;
-		}
-		while(*rf != nil){
-			if(verbose)
-				fprint(2, "rm  %s\n", *rf);
-			if(removefile(conn, *rf) < 0)
-				goto Out;
-			rf++;
-		}
-	}else{	// changing our password is vulnerable to connection failure
-		for(;;){
-			snprint(prompt, sizeof(prompt), "new password for %s: ", id);
-			if(getpasswd(prompt, buf, sizeof(buf)) < 0)
-				goto Out;
-			if(strlen(buf) >= 7)
-				break;
-			else if(strlen(buf) == 0){
-				fprint(2, "!password change aborted\n");
-				goto Out;
-			}
-			print("!password must be at least 7 characters\n");
-		}
-		newpass = estrdup(buf);
-		newpasslen = strlen(newpass);
-		snprint(prompt, sizeof(prompt), "retype password: ");
-		if(getpasswd(prompt, buf, sizeof(buf)) < 0){
-			fprint(2, "getpasswd failed\n");
-			goto Out;
-		}
-		if(strcmp(buf, newpass) != 0){
-			fprint(2, "passwords didn't match\n");
-			goto Out;
-		}
-
-		conn->write(conn, (uchar*)"CHPASS", strlen("CHPASS"));
-		hexHi = PAK_Hi(id, newpass, H, Hi);
-		conn->write(conn, (uchar*)hexHi, strlen(hexHi));
-		free(hexHi);
-		mpfree(H);
-		mpfree(Hi);
-
-		if(getfile(conn, ".", (uchar **) &list, &len, nil, 0) < 0){
-			fprint(2, "directory listing failed.\n");
-			goto Out;
-		}
-
-		/* Loop over files and reencrypt them; try to keep going after error */
-		for(cur=list; (next=strchr(cur, '\n')) != nil; cur=next+1){
-			*next = '\0';
-			if(tokenize(cur, f, nelem(f))< 1)
-				break;
-			fprint(2, "reencrypting '%s'\n", f[0]);
-			if(getfile(conn, f[0], &memfile, &len, (uchar*)pass, passlen) < 0){
-				fprint(2, "getfile of '%s' failed\n", f[0]);
-				continue;
-			}
-			if(putfile(conn, f[0], memfile, len, (uchar*)newpass, newpasslen) < 0)
-				fprint(2, "putfile of '%s' failed\n", f[0]);
 			free(memfile);
 		}
-		free(list);
+		gf++;
+		Gflag++;
+	}
+	while(*pf != nil){
+		if(verbose)
+			fprint(2, "put %s\n", *pf);
+		if(putfile(c->conn, *pf, nil, 0, (uchar*)c->pass, c->passlen) < 0)
+			goto Out;
+		pf++;
+	}
+	while(*rf != nil){
+		if(verbose)
+			fprint(2, "rm  %s\n", *rf);
+		if(removefile(c->conn, *rf) < 0)
+			goto Out;
+		rf++;
 	}
 
-	conn->write(conn, (uchar*)"BYE", 3);
+	c->conn->write(c->conn, (uchar*)"BYE", 3);
+	rv = 0;
+
+Out:
+	c->conn->free(c->conn);
+	return rv;
+}
+
+static int
+chpasswd(AuthConn *c, char *id)
+{
+	ulong len;
+	int rv = -1, newpasslen = 0;
+	mpint *H, *Hi;
+	uchar *memfile;
+	char *newpass = nil;
+	char *list, *cur, *next, *hexHi;
+	char *f[8], prompt[128], buf[Maxmsg];
+
+	H = mpnew(0);
+	Hi = mpnew(0);
+	// changing our password is vulnerable to connection failure
+	for(;;){
+		snprint(prompt, sizeof(prompt), "new password for %s: ", id);
+		if(getpasswd(prompt, buf, sizeof(buf)) < 0)
+			goto Out;
+		if(strlen(buf) >= 7)
+			break;
+		else if(strlen(buf) == 0){
+			fprint(2, "!password change aborted\n");
+			goto Out;
+		}
+		print("!password must be at least 7 characters\n");
+	}
+	newpass = estrdup(buf);
+	newpasslen = strlen(newpass);
+	snprint(prompt, sizeof(prompt), "retype password: ");
+	if(getpasswd(prompt, buf, sizeof(buf)) < 0){
+		fprint(2, "getpasswd failed\n");
+		goto Out;
+	}
+	if(strcmp(buf, newpass) != 0){
+		fprint(2, "passwords didn't match\n");
+		goto Out;
+	}
+
+	c->conn->write(c->conn, (uchar*)"CHPASS", strlen("CHPASS"));
+	hexHi = PAK_Hi(id, newpass, H, Hi);
+	c->conn->write(c->conn, (uchar*)hexHi, strlen(hexHi));
+	free(hexHi);
+	mpfree(H);
+	mpfree(Hi);
+
+	if(getfile(c->conn, ".", (uchar **) &list, &len, nil, 0) < 0){
+		fprint(2, "directory listing failed.\n");
+		goto Out;
+	}
+
+	/* Loop over files and reencrypt them; try to keep going after error */
+	for(cur=list; (next=strchr(cur, '\n')) != nil; cur=next+1){
+		*next = '\0';
+		if(tokenize(cur, f, nelem(f))< 1)
+			break;
+		fprint(2, "reencrypting '%s'\n", f[0]);
+		if(getfile(c->conn, f[0], &memfile, &len, (uchar*)c->pass, c->passlen) < 0){
+			fprint(2, "getfile of '%s' failed\n", f[0]);
+			continue;
+		}
+		if(putfile(c->conn, f[0], memfile, len, (uchar*)newpass, newpasslen) < 0)
+			fprint(2, "putfile of '%s' failed\n", f[0]);
+		free(memfile);
+	}
+	free(list);
+	c->conn->write(c->conn, (uchar*)"BYE", 3);
 	rv = 0;
 
 Out:
@@ -386,17 +362,107 @@ Out:
 		memset(newpass, 0, newpasslen);
 		free(newpass);
 	}
-	conn->free(conn);
+	c->conn->free(c->conn);
 	return rv;
+}
+
+static AuthConn*
+login(char *id, char *dest, int pass_stdin)
+{
+	AuthConn *c;
+	int fd, n, ntry = 0;
+	char *S, *PINSTA = nil, *nl, s[Maxmsg+1];
+
+	if(dest == nil){
+		fprint(2, "tried to login with nil dest\n");
+		exits("nil dest");
+	}
+	c = emalloc(sizeof(*c));
+	if(pass_stdin){
+		n = readn(0, s, Maxmsg-2);  // so len(PINSTA)<Maxmsg-3
+		if(n < 1)
+			exits("no password on standard input");
+		s[n] = 0;
+		nl = strchr(s, '\n');
+		if(nl){
+			*nl++ = 0;
+			PINSTA = estrdup(nl);
+			nl = strchr(PINSTA, '\n');
+			if(nl)
+				*nl = 0;
+		}
+		strncpy(c->pass, s, sizeof c->pass);
+	}
+	while(1){
+		if(verbose)
+			fprint(2, "dialing %s\n", dest);
+		if((fd = dial(dest, nil, nil, nil)) < 0){
+			fprint(2, "can't dial %s\n", dest);
+			free(c);
+			return nil;
+		}
+		if((c->conn = newSConn(fd)) == nil){
+			free(c);
+			return nil;
+		}
+		ntry++;
+		if(!pass_stdin)
+			getpasswd("secstore password: ", c->pass, sizeof c->pass);
+		if(c->pass[0]==0){
+			fprint(2, "null password, skipping secstore login\n");
+			exits("no password");
+		}
+		if(PAKclient(c->conn, id, c->pass, &S) >= 0)
+			break;
+		c->conn->free(c->conn);
+		if(pass_stdin)
+			exits("invalid password on standard input");
+		// and let user try retyping the password
+		if(ntry==3)
+			fprint(2, "Enter an empty password to quit.\n");
+	}
+	c->passlen = strlen(c->pass);
+	fprint(2, "%s\n", S);
+	free(S);
+	if(readstr(c->conn, s) < 0){
+		c->conn->free(c->conn);
+		free(c);
+		return nil;
+	}
+	if(strcmp(s, "STA") == 0){
+		long sn;
+		if(pass_stdin){
+			if(PINSTA)
+				strncpy(s+3, PINSTA, (sizeof s)-3);
+			else
+				exits("missing PIN+SecureID on standard input");
+			free(PINSTA);
+		}else{
+			getpasswd("STA PIN+SecureID: ", s+3, (sizeof s)-3);
+		}
+		sn = strlen(s+3);
+		if(verbose)
+			fprint(2, "%ld\n", sn);
+		c->conn->write(c->conn, (uchar*)s, sn+3);
+		readstr(c->conn, s);
+	}
+	if(strcmp(s, "OK") != 0){
+		fprint(2, "%s\n", s);
+		c->conn->free(c->conn);
+		free(c);
+		return nil;
+	}
+	return c;
 }
 
 int
 main(int argc, char **argv)
 {
-	int chpass = 0, rc;
+	int chpass = 0, pass_stdin = 0, rc;
 	int ngfile = 0, npfile = 0, nrfile = 0, Gflag[MAXFILES+1];
 	char *gfile[MAXFILES], *pfile[MAXFILES], *rfile[MAXFILES];
 	char *serve, *tcpserve, *user;
+	AuthConn *c;
 
 	serve = "$auth";
 	user = getenv("user");
@@ -415,6 +481,9 @@ main(int argc, char **argv)
 		gfile[ngfile++] = ARGF();
 		if(gfile[ngfile-1] == nil)
 			usage();
+		break;
+	case 'i':
+		pass_stdin = 1;
 		break;
 	case 'p':
 		if(npfile >= MAXFILES)
@@ -461,11 +530,19 @@ main(int argc, char **argv)
 		strcpy(tcpserve, serve);
 	else
 		snprint(tcpserve, rc, "tcp!%s!5356", serve);
-	rc = login(user, tcpserve, chpass, gfile, Gflag, pfile, rfile);
+	c = login(user, tcpserve, pass_stdin);
 	free(tcpserve);
+	if(c == nil){
+		fprint(2, "secstore authentication failed\n");
+		exits("secstore authentication failed");
+	}
+	if(chpass)
+		rc = chpasswd(c, user);
+	else
+		rc = cmd(c, gfile, Gflag, pfile, rfile);
 	if(rc < 0){
-		fprint(2, "secstore failed\n");
-		exits("secstore failed");
+		fprint(2, "secstore cmd failed\n");
+		exits("secstore cmd failed");
 	}
 	exits("");
 	return 0;

@@ -21,13 +21,8 @@ static Image*	pdfdrawpage(Document *d, int page);
 static char*	pdfpagename(Document*, int);
 
 char *pdfprolog = 
-	"/Page null def\n"
-	"/Page# 0 def\n"
-	"/PDFSave null def\n"
-	"/DSCPageCount 0 def\n"
-	"/DoPDFPage {dup /Page# exch store pdfgetpage pdfshowpage } def\n"
-	"GS_PDF_ProcSet begin\n"
-	"pdfdict begin\n";
+#include "pdfprolog.c"
+	;
 
 Rectangle
 pdfbbox(GSInfo *gs)
@@ -40,9 +35,10 @@ pdfbbox(GSInfo *gs)
 	waitgs(gs);
 	gscmd(gs, "/CropBox knownoget {} {[0 0 0 0]} ifelse PAGE==\n");
 	p = Brdline(&gs->gsrd, '\n');
+	p[Blinelen(&gs->gsrd)-1] ='\0';
 	if(p[0] != '[')
 		return r;
-	if(tokenize(p, f, 4) != 4)
+	if(tokenize(p+1, f, 4) != 4)
 		return r;
 	r = Rect(atoi(f[0]), atoi(f[1]), atoi(f[2]), atoi(f[3]));
 	waitgs(gs);
@@ -107,7 +103,7 @@ initpdf(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 	gscmd(pdf, "%s", pdfprolog);
 	waitgs(pdf);
 
-	setdim(pdf, Rect(0,0,0,0), ppi);
+	setdim(pdf, Rect(0,0,0,0), ppi, 0);
 	gscmd(pdf, "(%s) (r) file pdfopen begin\n", fn);
 	gscmd(pdf, "pdfpagecount PAGE==\n");
 	p = Brdline(&pdf->gsrd, '\n');
@@ -139,7 +135,6 @@ pdfdrawpage(Document *doc, int page)
 	PDFInfo *pdf = doc->extra;
 	Image *im;
 
-	setdim(pdf, pdf->pagebbox[page], 0);
 	gscmd(pdf, "%d DoPDFPage\n", page+1);
 	im = readimage(display, pdf->gsdfd, 0);
 	if(im == nil) {

@@ -1,5 +1,5 @@
 objtype=mips
-</power/mkfile
+</mips/mkfile
 
 LIB=/$objtype/lib/libmp.a
 SFILES=\

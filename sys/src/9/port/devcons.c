@@ -17,6 +17,8 @@ Queue*	kprintoq;		/* console output, for /dev/kprint */
 ulong	kprintinuse;		/* test and set whether /dev/kprint is open */
 int		iprintscreenputs = 1;
 
+int		panicking;
+
 static struct
 {
 	QLock;
@@ -31,7 +33,7 @@ static struct
 
 	/* a place to save up characters at interrupt time before dumping them in the queue */
 	Lock	lockputc;
-	char	istage[512];
+	char	istage[1024];
 	char	*iw;
 	char	*ir;
 	char	*ie;
@@ -198,7 +200,6 @@ panic(char *fmt, ...)
 	int n;
 	va_list arg;
 	char buf[PRINTSIZE];
-	static int panicking;
 
 	kprintoq = nil;	/* don't try to write to /dev/kprint */
 
@@ -381,8 +382,7 @@ echo(char *buf, int n)
 			scheddump();
 			return;
 		case 'k':
-			if(!cpuserver)
-				killbig();
+			killbig();
 			return;
 		case 'r':
 			exit(0);
@@ -564,7 +564,11 @@ consinit(void)
 {
 	todinit();
 	randominit();
-	addclock0link(kbdputcclock);
+	/*
+	 * at 115200 baud, the 1024 char buffer takes 56 ms to process,
+	 * processing it every 22 ms should be fine
+	 */
+	addclock0link(kbdputcclock, 22);
 }
 
 static Chan*

@@ -105,6 +105,8 @@ struct Conv
 	Queue*	rq;			/* queued data waiting to be read */
 	Queue*	wq;			/* queued data waiting to be written */
 	Queue*	eq;			/* returned error packets */
+	Queue*	sq;			/* snooping queue */
+	Ref	snoopers;		/* number of processes with snoop open */
 
 	QLock	car;
 	Rendez	cr;
@@ -612,6 +614,7 @@ extern long	ipgateread6(Fs *f, char *cp, ulong offset, int n);
 extern void	iprouting(Fs*, int);
 extern void	closeifcconv(Ifcconv*);
 extern void	icmpnoconv(Fs*, Block*);
+extern void	icmpcantfrag(Fs*, Block*, int);
 extern void	icmpttlexceeded(Fs*, uchar*, Block*);
 extern ushort	ipcsum(uchar*);
 extern void	ipiput4(Fs*, Ipifc*, Block*);

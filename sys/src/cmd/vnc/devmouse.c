@@ -67,7 +67,7 @@ static uchar buttonmap[8] = {
 static int mouseswap;
 
 extern	Memimage*	gscreen;
-extern	mousewarpnote(void);
+extern	mousewarpnote(Point);
 
 static void
 mousereset(void)
@@ -314,7 +314,7 @@ mousewrite(Chan *c, void *va, long n, vlong)
 		qlock(&mouse);
 		if(ptinrect(pt, gscreen->r)) {
 			mousetrack(pt.x, pt.y, mouse.buttons, nsec()/(1000*1000LL));
-			mousewarpnote();
+			mousewarpnote(pt);
 		}
 		qunlock(&mouse);
 		return n;

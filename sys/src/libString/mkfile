@@ -2,32 +2,30 @@
 
 LIB=/$objtype/lib/libString.a
 
-FILES=	s_alloc\
-	s_append\
-	s_array\
-	s_copy\
-	s_getline\
-	s_grow\
-	s_memappend\
-	s_nappend\
-	s_parse\
-	s_read\
-	s_read_line\
-	s_reset\
-	s_tolower\
-	s_putc\
-	s_terminate\
-	s_unique\
+OFILES=\
+	s_alloc.$O\
+	s_append.$O\
+	s_array.$O\
+	s_copy.$O\
+	s_getline.$O\
+	s_grow.$O\
+	s_memappend.$O\
+	s_nappend.$O\
+	s_parse.$O\
+	s_read.$O\
+	s_read_line.$O\
+	s_reset.$O\
+	s_tolower.$O\
+	s_putc.$O\
+	s_terminate.$O\
+	s_unique.$O\
 
 HFILES=/sys/include/String.h
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/libString.a\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib

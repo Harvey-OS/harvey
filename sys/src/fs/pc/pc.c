@@ -169,7 +169,9 @@ getconf(char *name)
 }
 
 /* memory map */
-#define MAXMEG 512
+/* the file server kernel will only see MAXMEG megabytes of RAM at most.  */
+#define MAXMEG 1024
+
 char mmap[MAXMEG+2];
 Mconf mconf;
 

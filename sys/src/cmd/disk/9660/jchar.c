@@ -28,7 +28,7 @@ jolietstring(uchar *buf, int len)
 /*
  * Joliet name validity check 
  * 
- * Joliet names have length at most 128 (not a problem),
+ * Joliet names have length at most 128 bytes (64 runes),
  * and cannot contain '*', '/', ':', ';', '?', or '\'.
  */
 int
@@ -41,8 +41,10 @@ isjolietfrog(Rune r)
 int
 isbadjoliet(char *s)
 {
-	Rune r[256], *p;	/* BUG */
+	Rune r[256], *p;
 
+	if(utflen(s) > 64)
+		return 1;
 	strtorune(r, s);
 	for(p=r; *p; p++)
 		if(isjolietfrog(*p))

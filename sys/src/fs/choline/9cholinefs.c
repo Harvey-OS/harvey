@@ -5,6 +5,13 @@
 
 #include "../pc/dosfs.h"
 
+/*
+ * setting this to zero permits the use of discs of different sizes, but
+ * can make jukeinit() quite slow while the robotics work through each disc
+ * twice (once per side).
+ */
+int FIXEDSIZE = 1;
+
 #ifndef	DATE
 #define	DATE	568011600L+4*3600
 #endif
@@ -23,7 +30,7 @@ struct
 {
 	char	*name;
 	long	(*read)(int, void*, long);
-	long	(*seek)(int, long);
+	vlong	(*seek)(int, vlong);
 	long	(*write)(int, void*, long);
 	int	(*part)(int, char*);
 } nvrdevs[] =
@@ -153,7 +160,6 @@ void
 localconfinit(void)
 {
 	conf.nfile = 60000;
-	conf.wcpsize = 10;
 	conf.nodump = 0;
 	conf.firstsb = 12565379;
 	conf.recovsb = 0;

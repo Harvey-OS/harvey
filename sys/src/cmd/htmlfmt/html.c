@@ -289,20 +289,22 @@ charset(char *s)
 {
 	char *meta, *emeta, *charset;
 
+	if(defcharset == 0)
+		defcharset = ISO_8859_1;
 	meta = cistrstr(s, "<meta");
 	if(meta == nil)
-		return ISO_8859_1;
+		return defcharset;
 	for(emeta=meta; *emeta!='>' && *emeta!='\0'; emeta++)
 		;
 	charset = cistrstr(s, "charset=");
 	if(charset == nil)
-		return ISO_8859_1;
+		return defcharset;
 	charset += 8;
 	if(*charset == '"')
 		charset++;
 	if(cistrncmp(charset, "utf-8", 5) || cistrncmp(charset, "utf8", 4))
 		return UTF_8;
-	return ISO_8859_1;
+	return defcharset;
 }
 
 void

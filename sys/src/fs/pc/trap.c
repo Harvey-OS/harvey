@@ -260,6 +260,8 @@ trap(Ureg *ur)
 		MACHP(0)->intrp = 0;
 		/* there may be multiple handlers on one interrupt level */
 		do {
+			if (h->r == 0)
+				panic("trap: nil h->r");
 			(*h->r)(ur, h->arg);
 			h = h->next;
 		} while(h);

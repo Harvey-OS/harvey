@@ -28,7 +28,6 @@ void	mschap(Ticketreq*);
 void	http(Ticketreq*);
 void	vnc(Ticketreq*);
 int	speaksfor(char*, char*);
-void	translate(char*, char*, int);
 void	replyerror(char*, ...);
 void	getraddr(char*);
 void	mkkey(char*);
@@ -46,7 +45,6 @@ main(int argc, char *argv[])
 {
 	char buf[TICKREQLEN];
 	Ticketreq tr;
-	Ndb *db2;
 
 	ARGBEGIN{
 	case 'd':
@@ -62,11 +60,7 @@ main(int argc, char *argv[])
 	db = ndbopen("/lib/ndb/auth");
 	if(db == 0)
 		syslog(0, AUTHLOG, "no /lib/ndb/auth");
-	db2 = ndbopen(0);
-	if(db2 == 0)
-		syslog(0, AUTHLOG, "no /lib/ndb/local");
-	db = ndbcat(db, db2);
-	
+
 	srand(time(0)*getpid());
 	for(;;){
 		if(readn(0, buf, TICKREQLEN) <= 0)
@@ -135,9 +129,13 @@ ticketrequest(Ticketreq *tr)
 	strcpy(t.cuid, tr->uid);
 	if(speaksfor(tr->hostid, tr->uid))
 		strcpy(t.suid, tr->uid);
-	else
-		strcpy(t.suid, "none");
-	translate(tr->authdom, t.suid, sizeof t.suid);
+	else {
+		mkkey(akey);
+		mkkey(hkey);
+		if(debug)
+			syslog(0, AUTHLOG, "tr-fail %s@%s(%s) -> %s@%s no speaks for",
+				tr->uid, tr->hostid, raddr, tr->uid, tr->authid);
+	}
 
 	mkkey(t.key);
 
@@ -816,43 +814,6 @@ speaksfor(char *speaker, char *user)
 		}
 	ndbfree(tp);
 	return ok;
-}
-
-/*
- *  translate a userid for the destination domain
- */
-void
-translate(char *domain, char *user, int len)
-{
-	Ndbtuple *tp, *ntp, *mtp;
-	Ndbs s;
-	
-	if(*domain == 0)
-		return;
-
-	if(db == 0)
-		return;
-	
-	tp = ndbsearch(db, &s, "authdom", domain);
-	if(tp == 0)
-		return;
-
-	for(ntp = tp; ntp; ntp = ntp->entry)
-		if(strcmp(ntp->attr, "cuid") == 0 && strcmp(ntp->val, user) == 0)
-			break;
-
-	if(ntp == 0){
-		ndbfree(tp);
-		return;
-	}
-
-	for(mtp = ntp->line; mtp != ntp; mtp = mtp->line)
-		if(strcmp(mtp->attr, "suid") == 0){
-			memset(user, 0, len);
-			strncpy(user, mtp->val, len-1);
-			break;
-		}
-	ndbfree(tp);
 }
 
 /*

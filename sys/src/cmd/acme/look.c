@@ -207,7 +207,7 @@ plumbshow(Plumbmsg *m)
 	Runestr rs;
 	char *name, *p, namebuf[16];
 
-	w = newwindow(nil);
+	w = makenewwindow(nil);
 	name = plumblookup(m->attr, "filename");
 	if(name == nil){
 		name = namebuf;
@@ -690,7 +690,7 @@ openfile(Text *t, Expand *e)
 		ow = nil;
 		if(t)
 			ow = t->w;
-		w = newwindow(t);
+		w = makenewwindow(t);
 		t = &w->body;
 		winsetname(w, e->name, e->nname);
 		textload(t, 0, e->bname, 1);

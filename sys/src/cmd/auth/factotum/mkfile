@@ -27,10 +27,15 @@ HFILES=\
 
 LIB=/$objtype/lib/libauth.a /$objtype/lib/libauthsrv.a
 BIN=/$objtype/bin/auth
-</sys/src/cmd/mkmany
 
-UPDATE=`{echo *.[ch] mkfile} `{echo $TARG |sed 's/([^ $]*)( |$)/\/386\/bin\/auth\/\1 /g'}
-UPDATEFLAGS=-n
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${FOFILES:%.$O=%.c}\
+	secretpem.c fgui.c\
+	${TARG:%=/386/bin/auth/%}\
+
+</sys/src/cmd/mkmany
 
 $O.factotum: $FOFILES
 	$LD -o $target $prereq

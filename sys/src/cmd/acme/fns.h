@@ -77,7 +77,7 @@ char	*estrdup(char*);
 Range		address(Mntdir*, Text*, Range, Range, void*, uint, uint, int (*)(void*, uint),  int*, uint*);
 int		rxexecute(Text*, Rune*, uint, uint, Rangeset*);
 int		rxbexecute(Text*, uint, Rangeset*);
-Window*	newwindow(Text *t);
+Window*	makenewwindow(Text *t);
 int	expand(Text*, uint, uint, Expand*);
 Rune*	skipbl(Rune*, int, int*);
 Rune*	findbl(Rune*, int, int*);

@@ -9,7 +9,7 @@
 #include "../port/error.h"
 #include "../port/netif.h"
 #include "etherif.h"
-#include "wavelan.h"
+#include "../pc/wavelan.h"
 
 static int
 wavelanpcmciareset(Ether *ether)
@@ -22,9 +22,15 @@ wavelanpcmciareset(Ether *ether)
 	ilock(ctlr);
 	ctlr->ctlrno = ether->ctlrno;
 
-	if (ether->port==0)
-		ether->port=WDfltIOB;
-	ctlr->iob = ether->port;
+	if (ether->ports == nil){
+		ether->ports = malloc(sizeof(port_t));
+		ether->ports[0].port = 0;
+		ether->ports[0].size = 0;
+		ether->nports= 1;
+	}
+	if (ether->ports[0].port==0)
+		ether->ports[0].port=WDfltIOB;
+	ctlr->iob = ether->ports[0].port;
 
 	if(wavelanreset(ether, ctlr) < 0){
 		iunlock(ctlr);

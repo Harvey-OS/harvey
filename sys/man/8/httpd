@@ -1,11 +1,13 @@
 .TH HTTPD 8
 .SH NAME
-httpd, echo, save, imagemap, man2html \- HTTP server
+httpd, mirror, save, imagemap, man2html \- HTTP server
 .SH SYNOPSIS
 .PP
 .B ip/httpd/httpd
 .RB [ -a
 .IR srvaddr ]
+.RB [ -c
+.IR cert ]
 .RB [ -d
 .IR domain ]
 .RB [ -n
@@ -13,7 +15,7 @@ httpd, echo, save, imagemap, man2html \- HTTP server
 .RB [ -w
 .IR webroot ]
 .PP
-.B ip/httpd/echo
+.B ip/httpd/mirror
 .RB [ -b
 .IR inbuf ]
 .RB [ -d
@@ -81,6 +83,12 @@ It announces the service
 (default
 .BR tcp!*!http ),
 and listens for incoming calls.
+If an X.509 certificate is supplied with the
+.B -c
+option, then the service is instead
+.BR tcp!*!https .
+There should already be a factotum
+holding the corresponding private key.
 .PP
 .I Httpd
 supports only the GET and HEAD methods of the HTTP protocol;
@@ -144,7 +152,7 @@ See
 .B httpd.h
 in that directory and existing magic commands for more details.
 .PP
-.I Echo
+.I Mirror
 is a trivial server that just returns the method, URI, any search,
 the headers, and the message body sent by the client.
 .PP
@@ -193,4 +201,5 @@ redirection file
 .I newns
 in
 .IR auth (2),
-.IR listen (8)
+.IR listen (8),
+.IR x509 (8)

@@ -177,7 +177,7 @@ found:
 	else if(fmt->flags & FmtSign)
 		s2[d++] = '+';
 	else if(fmt->flags & FmtSpace)
-		s2[d++] = '0';
+		s2[d++] = ' ';
 
 	/*
 	 * copy into final place

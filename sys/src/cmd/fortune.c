@@ -52,7 +52,7 @@ main(int argc, char *argv[])
 		}
 	}
 	if(oldindex){
-		seek(ix, fastrand()%(ixbuf->length/sizeof(offs))*sizeof(offs), 0);
+		seek(ix, truerand()%(ixbuf->length/sizeof(offs))*sizeof(offs), 0);
 		read(ix, off, sizeof(off));
 		Bseek(f, off[0]|(off[1]<<8)|(off[2]<<16)|(off[3]<<24), 0);
 		p = Brdline(f, '\n');
@@ -63,6 +63,7 @@ main(int argc, char *argv[])
 			strcpy(choice, "Misfortune!");
 	}else{
 		Binit(&g, ix, 1);
+		srand(truerand());
 		for(i=1;;i++){
 			if(newindex)
 				offs = Boffset(f);
@@ -77,7 +78,7 @@ main(int argc, char *argv[])
 				off[3] = offs>>24;
 				Bwrite(&g, off, sizeof(off));
 			}
-			if(fastrand()%i==0)
+			if(lrand()%i==0)
 				strcpy(choice, p);
 		}
 	}

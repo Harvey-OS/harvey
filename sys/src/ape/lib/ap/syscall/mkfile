@@ -6,7 +6,7 @@ SYSH=/sys/src/libc/9syscall/sys.h
 all:V: install
 
 install:V:
-	SYS=`{sed '/^#define._X/d; s/#define.([A-Z0-9_]*).*/\1/' $SYSH}
+	SYS=`{sed '/^#define._/d; s/#define.([A-Z0-9_]*).*/\1/' $SYSH}
 	for(I in $SYS) {
 		i=$I
 		i=_^$i
@@ -109,7 +109,9 @@ install:V:
 			echo RETURN
 		case alpha
 			j=$i
-		#why?	if(~ $i _SEEK) j=_SEEK
+		# /sys/src/libc/9syscall/mkfile uses:
+		#	if(~ $i seek) j=_seek
+			if(~ $i _SEEK) j=__SEEK
 			echo TEXT $j'(SB)', 1, '$0'
 			echo MOVL R0, '0(FP)'
 			echo MOVQ '$'$n, R0

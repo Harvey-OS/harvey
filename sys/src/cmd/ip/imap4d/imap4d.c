@@ -181,6 +181,7 @@ static	ParseCmd	*imapState;
 static	jmp_buf		parseJmp;
 static	char		*parseMsg;
 static	int		allowPass;
+static	int		allowCR;
 static	int		exiting;
 static	QLock		imaplock;
 static	int		idlepid = -1;
@@ -207,12 +208,16 @@ main(int argc, char *argv[])
 
 	preauth = 0;
 	allowPass = 0;
+	allowCR = 0;
 	ARGBEGIN{
 	case 'a':
 		preauth = 1;
 		break;
 	case 'd':
 		site = ARGF();
+		break;
+	case 'c':
+		allowCR = 1;
 		break;
 	case 'p':
 		allowPass = 1;
@@ -228,10 +233,15 @@ main(int argc, char *argv[])
 		debuglog("imap4d debugging enabled\n");
 		break;
 	default:
-		fprint(2, "usage: ip/imap4d [-ap] [-d site] [-r remotehost] [-s servername]\n");
+		fprint(2, "usage: ip/imap4d [-acpv] [-d site] [-r remotehost] [-s servername]\n");
 		bye("usage");
 		break;
 	}ARGEND
+
+	if(allowPass && allowCR){
+		fprint(2, "%s: -c and -p are mutually exclusive\n", argv0);
+		bye("usage");
+	}
 
 	if(preauth)
 		setupuser(nil);
@@ -281,7 +291,7 @@ imap4(int preauth)
 		Bprint(&bout, "* preauth %s IMAP4rev1 server ready user %s authenticated\r\n", servername, username);
 		imapState = SAuthed;
 	}else{
-		Bprint(&bout, "* ok %s IMAP4rev1 server ready\r\n", servername);
+		Bprint(&bout, "* OK %s IMAP4rev1 server ready\r\n", servername);
 		imapState = SNonAuthed;
 	}
 	if(Bflush(&bout) < 0)
@@ -295,9 +305,9 @@ imap4(int preauth)
 		if(tg == nil)
 			Bprint(&bout, "* bad empty command line: %s\r\n", parseMsg);
 		else if(cmd == nil)
-			Bprint(&bout, "%s bad no command: %s\r\n", tg, parseMsg);
+			Bprint(&bout, "%s BAD no command: %s\r\n", tg, parseMsg);
 		else
-			Bprint(&bout, "%s bad %s %s\r\n", tg, cmd, parseMsg);
+			Bprint(&bout, "%s BAD %s %s\r\n", tg, cmd, parseMsg);
 		clearcmd();
 		if(Bflush(&bout) < 0)
 			writeErr();
@@ -324,7 +334,7 @@ imap4(int preauth)
 		}
 		if(st->name == nil){
 			clearcmd();
-			Bprint(&bout, "%s bad %s illegal command\r\n", tg, cmd);
+			Bprint(&bout, "%s BAD %s illegal command\r\n", tg, cmd);
 		}
 
 		if(Bflush(&bout) < 0)
@@ -499,12 +509,12 @@ appendCmd(char *tg, char *cmd)
 	mbox = mboxName(mbox);
 	if(mbox == nil || !okMbox(mbox)){
 		check();
-		Bprint(&bout, "%s no %s bad mailbox\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
 	if(!cdExists(mboxDir, mbox)){
 		check();
-		Bprint(&bout, "%s no [TRYCREATE] %s mailbox does not exist\r\n", tg, cmd);
+		Bprint(&bout, "%s NO [TRYCREATE] %s mailbox does not exist\r\n", tg, cmd);
 		return;
 	}
 
@@ -513,9 +523,9 @@ appendCmd(char *tg, char *cmd)
 	crnl();
 	check();
 	if(ok)
-		Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
+		Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 	else
-		Bprint(&bout, "%s no %s message save failed\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s message save failed\r\n", tg, cmd);
 }
 
 static void
@@ -531,12 +541,12 @@ authenticateCmd(char *tg, char *cmd)
 	if(cistrcmp(s, "cram-md5") == 0){
 		t = cramauth();
 		if(t == nil){
-			Bprint(&bout, "%s ok %s\r\n", tg, cmd);
+			Bprint(&bout, "%s OK %s\r\n", tg, cmd);
 			imapState = SAuthed;
 		}else
-			Bprint(&bout, "%s no %s failed %s\r\n", tg, cmd, t);
+			Bprint(&bout, "%s NO %s failed %s\r\n", tg, cmd, t);
 	}else
-		Bprint(&bout, "%s no %s unsupported authentication protocol\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s unsupported authentication protocol\r\n", tg, cmd);
 }
 
 static void
@@ -544,8 +554,8 @@ capabilityCmd(char *tg, char *cmd)
 {
 	crnl();
 	check();
-	Bprint(&bout, "* capability IMAP4rev1 idle namespace auth=cram-md5\r\n");
-	Bprint(&bout, "%s ok %s\r\n", tg, cmd);
+	Bprint(&bout, "* CAPABILITY IMAP4REV1 IDLE NAMESPACE AUTH=CRAM-MD5\r\n");
+	Bprint(&bout, "%s OK %s\r\n", tg, cmd);
 }
 
 static void
@@ -555,7 +565,7 @@ closeCmd(char *tg, char *cmd)
 	imapState = SAuthed;
 	closeBox(selected, 1);
 	selected = nil;
-	Bprint(&bout, "%s ok %s mailbox closed, now in authenticated state\r\n", tg, cmd);
+	Bprint(&bout, "%s OK %s mailbox closed, now in authenticated state\r\n", tg, cmd);
 }
 
 /*
@@ -588,12 +598,12 @@ copyUCmd(char *tg, char *cmd, int uids)
 	mbox = mboxName(mbox);
 	if(mbox == nil || !okMbox(mbox)){
 		status(1, uids);
-		Bprint(&bout, "%s no %s%s bad mailbox\r\n", tg, uid, cmd);
+		Bprint(&bout, "%s NO %s%s bad mailbox\r\n", tg, uid, cmd);
 		return;
 	}
 	if(!cdExists(mboxDir, mbox)){
 		check();
-		Bprint(&bout, "%s no [TRYCREATE] %s mailbox does not exist\r\n", tg, cmd);
+		Bprint(&bout, "%s NO [TRYCREATE] %s mailbox does not exist\r\n", tg, cmd);
 		return;
 	}
 
@@ -605,9 +615,9 @@ copyUCmd(char *tg, char *cmd, int uids)
 
 	status(1, uids);
 	if(ok)
-		Bprint(&bout, "%s ok %s%s completed\r\n", tg, uid, cmd);
+		Bprint(&bout, "%s OK %s%s completed\r\n", tg, uid, cmd);
 	else
-		Bprint(&bout, "%s no %s%s failed\r\n", tg, uid, cmd);
+		Bprint(&bout, "%s NO %s%s failed\r\n", tg, uid, cmd);
 }
 
 static void
@@ -625,24 +635,24 @@ createCmd(char *tg, char *cmd)
 	slash = m != mbox && m[-1] == '/';
 	mbox = mboxName(mbox);
 	if(mbox == nil || !okMbox(mbox)){
-		Bprint(&bout, "%s no %s bad mailbox\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
 	if(cistrcmp(mbox, "inbox") == 0){
-		Bprint(&bout, "%s no %s cannot remotely create INBOX\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s cannot remotely create INBOX\r\n", tg, cmd);
 		return;
 	}
 	if(access(mbox, AEXIST) >= 0){
-		Bprint(&bout, "%s no %s mailbox already exists\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s mailbox already exists\r\n", tg, cmd);
 		return;
 	}
 
 	fd = createBox(mbox, slash);
 	close(fd);
 	if(fd < 0)
-		Bprint(&bout, "%s no %s cannot create mailbox %s\r\n", tg, cmd, mbox);
+		Bprint(&bout, "%s NO %s cannot create mailbox %s\r\n", tg, cmd, mbox);
 	else
-		Bprint(&bout, "%s ok %s %s completed\r\n", tg, mbox, cmd);
+		Bprint(&bout, "%s OK %s %s completed\r\n", tg, mbox, cmd);
 }
 
 static void
@@ -657,7 +667,7 @@ deleteCmd(char *tg, char *cmd)
 
 	mbox = mboxName(mbox);
 	if(mbox == nil || !okMbox(mbox)){
-		Bprint(&bout, "%s no %s bad mailbox\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
 
@@ -665,9 +675,9 @@ deleteCmd(char *tg, char *cmd)
 	if(cistrcmp(mbox, "inbox") == 0
 	|| imp != nil && cdRemove(mboxDir, imp) < 0 && cdExists(mboxDir, imp)
 	|| cdRemove(mboxDir, mbox) < 0)
-		Bprint(&bout, "%s no %s cannot delete mailbox %s\r\n", tg, cmd, mbox);
+		Bprint(&bout, "%s NO %s cannot delete mailbox %s\r\n", tg, cmd, mbox);
 	else
-		Bprint(&bout, "%s ok %s %s completed\r\n", tg, mbox, cmd);
+		Bprint(&bout, "%s OK %s %s completed\r\n", tg, mbox, cmd);
 }
 
 static void
@@ -679,9 +689,9 @@ expungeCmd(char *tg, char *cmd)
 	ok = deleteMsgs(selected);
 	check();
 	if(ok)
-		Bprint(&bout, "%s ok %s messages erased\r\n", tg, cmd);
+		Bprint(&bout, "%s OK %s messages erased\r\n", tg, cmd);
 	else
-		Bprint(&bout, "%s no %s some messages not expunged\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s some messages not expunged\r\n", tg, cmd);
 }
 
 static void
@@ -716,9 +726,9 @@ fetchUCmd(char *tg, char *cmd, int uids)
 	ok = ml != nil && forMsgs(selected, ms, max, uids, fetchMsg, f);
 	status(uids, uids);
 	if(ok)
-		Bprint(&bout, "%s ok %s%s completed\r\n", tg, uid, cmd);
+		Bprint(&bout, "%s OK %s%s completed\r\n", tg, uid, cmd);
 	else
-		Bprint(&bout, "%s no %s%s failed\r\n", tg, uid, cmd);
+		Bprint(&bout, "%s NO %s%s failed\r\n", tg, uid, cmd);
 }
 
 static void
@@ -790,7 +800,7 @@ _exits("rob4");
 	resetCurDir();
 
 	check();
-	Bprint(&bout, "%s ok %s terminated\r\n", tg, cmd);
+	Bprint(&bout, "%s OK %s terminated\r\n", tg, cmd);
 }
 
 static void
@@ -808,7 +818,7 @@ listCmd(char *tg, char *cmd)
 	ref = mutf7str(s);
 	mbox = mutf7str(t);
 	if(ref == nil || mbox == nil){
-		Bprint(&bout, "%s bad %s mailbox name not in modified utf-7\r\n", tg, cmd);
+		Bprint(&bout, "%s BAD %s mailbox name not in modified utf-7\r\n", tg, cmd);
 		return;
 	}
 
@@ -826,7 +836,7 @@ listCmd(char *tg, char *cmd)
 		else
 			s[1] = '\0';
 		Bprint(&bout, "* %s (\\Noselect) \"/\" \"%s\"\r\n", cmd, ref);
-		Bprint(&bout, "%s ok %s\r\n", tg, cmd);
+		Bprint(&bout, "%s OK %s\r\n", tg, cmd);
 		return;
 	}
 
@@ -879,7 +889,7 @@ listCmd(char *tg, char *cmd)
 	 * only allow activity in /mail/box
 	 */
 	if(s[0] == '/' || isdotdot(s)){
-		Bprint(&bout, "%s no illegal mailbox pattern\r\n", tg);
+		Bprint(&bout, "%s NO illegal mailbox pattern\r\n", tg);
 		return;
 	}
 
@@ -887,7 +897,37 @@ listCmd(char *tg, char *cmd)
 		lsubBoxes(cmd, s, ss);
 	else
 		listBoxes(cmd, s, ss);
-	Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
+	Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
+}
+
+static char*
+passCR(char*u, char*p)
+{
+	static char Ebadch[] = "can't get challenge";
+	static char nchall[64];
+	static char response[64];
+	static Chalstate *ch = nil;
+	AuthInfo *ai;
+
+again:
+	if (ch == nil){
+		if(!(ch = auth_challenge("proto=p9cr role=server user=%q", u)))
+			return Ebadch;
+		snprint(nchall, 64, " encrypt challenge: %s", ch->chal);
+		return nchall;
+	} else {
+		strncpy(response, p, 64);
+		ch->resp = response;
+		ch->nresp = strlen(response);
+		ai = auth_response(ch);
+		auth_freechal(ch);
+		ch = nil;
+		if (ai == nil)
+			goto again;
+		setupuser(ai);
+		return nil;
+	}
+		
 }
 
 static void
@@ -895,22 +935,32 @@ loginCmd(char *tg, char *cmd)
 {
 	char *s, *t;
 	AuthInfo *ai;
-
+	char*r;
 	mustBe(' ');
 	s = astring();	/* uid */
 	mustBe(' ');
 	t = astring();	/* password */
 	crnl();
-	if(allowPass){
-		if(ai = passLogin(s, t)){
-			setupuser(ai);
-			Bprint(&bout, "%s ok %s succeeded\r\n", tg, cmd);
+	if(allowCR){
+		if ((r = passCR(s, t)) == nil){
+			Bprint(&bout, "%s OK %s succeeded\r\n", tg, cmd);
 			imapState = SAuthed;
-		}else
-			Bprint(&bout, "%s no %s failed check\r\n", tg, cmd);
+		} else {
+			Bprint(&bout, "* NO [ALERT] %s\r\n", r);
+			Bprint(&bout, "%s NO %s succeeded\r\n", tg, cmd);
+		}
 		return;
 	}
-	Bprint(&bout, "%s no %s plaintext passwords disallowed\r\n", tg, cmd);
+	else if(allowPass){
+		if(ai = passLogin(s, t)){
+			setupuser(ai);
+			Bprint(&bout, "%s OK %s succeeded\r\n", tg, cmd);
+			imapState = SAuthed;
+		}else
+			Bprint(&bout, "%s NO %s failed check\r\n", tg, cmd);
+		return;
+	}
+	Bprint(&bout, "%s NO %s plaintext passwords disallowed\r\n", tg, cmd);
 }
 
 /*
@@ -926,7 +976,7 @@ logoutCmd(char *tg, char *cmd)
 		selected = nil;
 	}
 	Bprint(&bout, "* bye\r\n");
-	Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
+	Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 exits("rob6");
 	exits(0);
 }
@@ -942,7 +992,7 @@ namespaceCmd(char *tg, char *cmd)
 	 * send back nil or descriptions of (prefix heirarchy-delim) for each case
 	 */
 	Bprint(&bout, "* namespace ((\"\" \"/\")) nil nil\r\n");
-	Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
+	Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 }
 
 static void
@@ -950,7 +1000,7 @@ noopCmd(char *tg, char *cmd)
 {
 	crnl();
 	check();
-	Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
+	Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 	enableForwarding();
 }
 
@@ -974,16 +1024,16 @@ renameCmd(char *tg, char *cmd)
 
 	to = mboxName(to);
 	if(to == nil || !okMbox(to) || cistrcmp(to, "inbox") == 0){
-		Bprint(&bout, "%s no %s bad mailbox destination name\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s bad mailbox destination name\r\n", tg, cmd);
 		return;
 	}
 	if(access(to, AEXIST) >= 0){
-		Bprint(&bout, "%s no %s mailbox already exists\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s mailbox already exists\r\n", tg, cmd);
 		return;
 	}
 	from = mboxName(from);
 	if(from == nil || !okMbox(from)){
-		Bprint(&bout, "%s no %s bad mailbox destination name\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s bad mailbox destination name\r\n", tg, cmd);
 		return;
 	}
 	if(cistrcmp(from, "inbox") == 0)
@@ -992,9 +1042,9 @@ renameCmd(char *tg, char *cmd)
 		ok = moveBox(from, to);
 
 	if(ok)
-		Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
+		Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 	else
-		Bprint(&bout, "%s no %s failed\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s failed\r\n", tg, cmd);
 }
 
 static void
@@ -1021,7 +1071,7 @@ searchUCmd(char *tg, char *cmd, int uids)
 	if(rock.next != nil && rock.next->key == SKCharset){
 		if(cistrstr(rock.next->s, "utf-8") != 0
 		&& cistrcmp(rock.next->s, "us-ascii") != 0){
-			Bprint(&bout, "%s no [BADCHARSET] (\"US-ASCII\" \"UTF-8\") %s%s failed\r\n", tg, uid, cmd);
+			Bprint(&bout, "%s NO [BADCHARSET] (\"US-ASCII\" \"UTF-8\") %s%s failed\r\n", tg, uid, cmd);
 			checkBox(selected, 0);
 			status(uids, uids);
 			return;
@@ -1043,7 +1093,7 @@ searchUCmd(char *tg, char *cmd, int uids)
 	Bprint(&bout, "\r\n");
 	checkBox(selected, 0);
 	status(uids, uids);
-	Bprint(&bout, "%s ok %s%s completed\r\n", tg, uid, cmd);
+	Bprint(&bout, "%s OK %s%s completed\r\n", tg, uid, cmd);
 }
 
 static void
@@ -1064,36 +1114,36 @@ selectCmd(char *tg, char *cmd)
 
 	mbox = mboxName(mbox);
 	if(mbox == nil || !okMbox(mbox)){
-		Bprint(&bout, "%s no %s bad mailbox\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
 
 	selected = openBox(mbox, "imap", cistrcmp(cmd, "select") == 0);
 	if(selected == nil){
-		Bprint(&bout, "%s no %s can't open mailbox %s: %r\r\n", tg, cmd, mbox);
+		Bprint(&bout, "%s NO %s can't open mailbox %s: %r\r\n", tg, cmd, mbox);
 		return;
 	}
 
 	imapState = SSelected;
 
-	Bprint(&bout, "* flags (\\Seen \\Answered \\Flagged \\Deleted \\Draft)\r\n");
+	Bprint(&bout, "* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft)\r\n");
 	Bprint(&bout, "* %lud exists\r\n", selected->max);
 	selected->toldMax = selected->max;
 	Bprint(&bout, "* %lud recent\r\n", selected->recent);
 	selected->toldRecent = selected->recent;
 	for(m = selected->msgs; m != nil; m = m->next){
 		if(!m->expunged && (m->flags & MSeen) != MSeen){
-			Bprint(&bout, "* ok [UNSEEN %ld]\r\n", m->seq);
+			Bprint(&bout, "* OK [UNSEEN %ld]\r\n", m->seq);
 			break;
 		}
 	}
-	Bprint(&bout, "* ok [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Draft)]\r\n");
-	Bprint(&bout, "* ok [UIDNEXT %ld]\r\n", selected->uidnext);
-	Bprint(&bout, "* ok [UIDVALIDITY %ld]\r\n", selected->uidvalidity);
+	Bprint(&bout, "* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Draft)]\r\n");
+	Bprint(&bout, "* OK [UIDNEXT %ld]\r\n", selected->uidnext);
+	Bprint(&bout, "* OK [UIDVALIDITY %ld]\r\n", selected->uidvalidity);
 	s = "READ-ONLY";
 	if(selected->writable)
 		s = "READ-WRITE";
-	Bprint(&bout, "%s ok [%s] %s %s completed\r\n", tg, s, cmd, mbox);
+	Bprint(&bout, "%s OK [%s] %s %s completed\r\n", tg, s, cmd, mbox);
 }
 
 static NamedInt	statusItems[] =
@@ -1136,14 +1186,14 @@ statusCmd(char *tg, char *cmd)
 	mbox = mboxName(mbox);
 	if(mbox == nil || !okMbox(mbox)){
 		check();
-		Bprint(&bout, "%s no %s bad mailbox\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
 
 	box = openBox(mbox, "status", 1);
 	if(box == nil){
 		check();
-		Bprint(&bout, "%s no [TRYCREATE] %s can't open mailbox %s: %r\r\n", tg, cmd, mbox);
+		Bprint(&bout, "%s NO [TRYCREATE] %s can't open mailbox %s: %r\r\n", tg, cmd, mbox);
 		return;
 	}
 
@@ -1184,7 +1234,7 @@ statusCmd(char *tg, char *cmd)
 	closeBox(box, 1);
 
 	check();
-	Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
+	Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 }
 
 static void
@@ -1217,9 +1267,9 @@ storeUCmd(char *tg, char *cmd, int uids)
 	closeImp(selected, ml);
 	status(uids, uids);
 	if(ok)
-		Bprint(&bout, "%s ok %s%s completed\r\n", tg, uid, cmd);
+		Bprint(&bout, "%s OK %s%s completed\r\n", tg, uid, cmd);
 	else
-		Bprint(&bout, "%s no %s%s failed\r\n", tg, uid, cmd);
+		Bprint(&bout, "%s NO %s%s failed\r\n", tg, uid, cmd);
 }
 
 /*
@@ -1248,9 +1298,9 @@ subscribeCmd(char *tg, char *cmd)
 		}
 	}
 	if(!ok)
-		Bprint(&bout, "%s no %s bad mailbox\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s bad mailbox\r\n", tg, cmd);
 	else
-		Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
+		Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 }
 
 static void
@@ -1270,7 +1320,7 @@ uidCmd(char *tg, char *cmd)
 		storeUCmd(tg, sub, 1);
 	else{
 		clearcmd();
-		Bprint(&bout, "%s bad %s illegal uid command %s\r\n", tg, cmd, sub);
+		Bprint(&bout, "%s BAD %s illegal uid command %s\r\n", tg, cmd, sub);
 	}
 }
 
@@ -1285,9 +1335,9 @@ unsubscribeCmd(char *tg, char *cmd)
 	check();
 	mbox = mboxName(mbox);
 	if(mbox == nil || !okMbox(mbox) || !subscribe(mbox, 'u'))
-		Bprint(&bout, "%s no %s can't unsubscribe\r\n", tg, cmd);
+		Bprint(&bout, "%s NO %s can't unsubscribe\r\n", tg, cmd);
 	else
-		Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
+		Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 }
 
 static void
@@ -1483,13 +1533,13 @@ fetchAtt(char *s, Fetch *f)
 		return mkFetch(FFlags, f);
 	if(cistrcmp(s, "internaldate") == 0)
 		return mkFetch(FInternalDate, f);
-	if(cistrcmp(s, "rfc822") == 0)
+	if(cistrcmp(s, "RFC822") == 0)
 		return mkFetch(FRfc822, f);
-	if(cistrcmp(s, "rfc822.header") == 0)
+	if(cistrcmp(s, "RFC822.header") == 0)
 		return mkFetch(FRfc822Head, f);
-	if(cistrcmp(s, "rfc822.size") == 0)
+	if(cistrcmp(s, "RFC822.size") == 0)
 		return mkFetch(FRfc822Size, f);
-	if(cistrcmp(s, "rfc822.text") == 0)
+	if(cistrcmp(s, "RFC822.text") == 0)
 		return mkFetch(FRfc822Text, f);
 	if(cistrcmp(s, "bodystructure") == 0)
 		return mkFetch(FBodyStruct, f);
@@ -2032,3 +2082,4 @@ peekc(void)
 	Bungetc(&bin);
 	return c;
 }
+

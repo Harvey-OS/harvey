@@ -2,7 +2,23 @@ Plan 9 Wiki
 D1018335352
 Arsc
 #
-#WELCOME TO THE PLAN 9 WIKI
+#WELCOME TO A COPY OF THE PLAN 9 WIKI
+#
+# Note that this is not the Plan 9 wiki.  It is a local
+# copy intended to demonstrate what the wiki data files look like.
+# To get at the real Plan 9 wiki, execute:
+#
+# Local srv net!plan9.bell-labs.com!wiki wiki /mnt/wiki
+# 
+# and then restart the wiki reader:
+#
+# Wiki /mnt/wiki
+#
+# Do not run the command
+#
+# Local wikifs /sys/lib/wiki
+#
+# which brings up this local copy instead.
 #
 #This collection of pages contains information pertinent to
 #installing, configuring, and using the operating system [Plan 9 from

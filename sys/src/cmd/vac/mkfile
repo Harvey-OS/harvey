@@ -2,24 +2,26 @@
 
 LIBFILES=\
 	cache\
-	fs\
-	file\
-	source\
 	error\
+	file\
+	fs\
+	source\
+	pack\
 
 LIB=${LIBFILES:%=%.$O}
 
 HFILES=\
 	/sys/include/venti.h\
 	stdinc.h\
+	error.h\
 	vac.h\
 	dat.h\
 	fns.h\
 
-TARG=vacfs vac
+TARG=vacfs vac vtdump
 BIN=/$objtype/bin
 
-CFILES=${TARG:%=%.c} ${LIBFILES:%=%.c}
+CFILES=${TARG:%=%.c} ${LIBFILES:%=%.c} srcload.c vactest.c
 
 UPDATE=\
 	mkfile\
@@ -27,7 +29,7 @@ UPDATE=\
 	$HFILES\
 	${TARG:%=/386/bin/%}
 
-default:V: all test
+default:V: all
 
 test:V: $O.srcload $O.wtest $O.rtest $O.vtdump $O.vtread
 

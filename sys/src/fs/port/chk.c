@@ -160,10 +160,14 @@ cmd_check(int argc, char *argv[])
 	maxdepth = 0;
 
 	if(flags & Ctouch) {
-		oldblock = fsize/DSIZE;
-		oldblock *= DSIZE;
-		if(oldblock < 0)
-			oldblock = 0;
+		/* round fsize down to start of current side */
+		int s;
+		long dsize;
+
+		oldblock = 0;
+		for (s = 0; dsize = wormsizeside(dev, s),
+		     dsize > 0 && oldblock + dsize < fsize; s++)
+			oldblock += dsize;
 		print("oldblock = %ld\n", oldblock);
 	}
 	amark(sbaddr);

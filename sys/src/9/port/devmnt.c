@@ -36,6 +36,13 @@ struct Mntrpc
 	Mntrpc*	flushed;	/* message this one flushes */
 };
 
+enum
+{
+	TAGSHIFT = 5,			/* ulong has to be 32 bits */
+	TAGMASK = (1<<TAGSHIFT)-1,
+	NMASK = (64*1024)>>TAGSHIFT,
+};
+
 struct Mntalloc
 {
 	Lock;
@@ -45,7 +52,7 @@ struct Mntalloc
 	int	nrpcfree;
 	int	nrpcused;
 	ulong	id;
-	int	rpctag;
+	ulong	tagmask[NMASK];
 }mntalloc;
 
 void	mattach(Mnt*, Chan*, char*);
@@ -69,21 +76,18 @@ Chan*	mntchan(void);
 char	Esbadstat[] = "invalid directory entry received from server";
 char Enoversion[] = "version not established for mount channel";
 
-void (*mntstats)(int, Chan*, uvlong, ulong);
 
-enum
-{
-	Tagspace	= 1,
-};
+void (*mntstats)(int, Chan*, uvlong, ulong);
 
 static void
 mntreset(void)
 {
 	mntalloc.id = 1;
-	mntalloc.rpctag = Tagspace;
+	mntalloc.tagmask[0] = 1;			/* don't allow 0 as a tag */
+	mntalloc.tagmask[NMASK-1] = 0x80000000UL;	/* don't allow NOTAG */
 	fmtinstall('F', fcallfmt);
 	fmtinstall('D', dirfmt);
-/*	fmtinstall('M', dirmodefmt);  No!  Clashes with eipfmt [sape] */
+/* We can't install %M since eipfmt does and is used in the kernel [sape] */
 
 	cinit();
 }
@@ -997,6 +1001,32 @@ mntflushfree(Mnt *m, Mntrpc *r)
 	}
 }
 
+int
+alloctag(void)
+{
+	int i, j;
+	ulong v;
+
+	for(i = 0; i < NMASK; i++){
+		v = mntalloc.tagmask[i];
+		if(v == ~0UL)
+			continue;
+		for(j = 0; j < 1<<TAGSHIFT; j++)
+			if((v & (1<<j)) == 0){
+				mntalloc.tagmask[i] |= 1<<j;
+				return (i<<TAGSHIFT) + j;
+			}
+	}
+	panic("no friggin tags left");
+	return NOTAG;
+}
+
+void
+freetag(int t)
+{
+	mntalloc.tagmask[t>>TAGSHIFT] &= ~(1<<(t&TAGMASK));
+}
+
 Mntrpc*
 mntralloc(Chan *c, ulong msize)
 {
@@ -1021,7 +1051,7 @@ mntralloc(Chan *c, ulong msize)
 			exhausted("mount rpc buffer");
 		}
 		new->rpclen = msize;
-		new->request.tag = mntalloc.rpctag++;
+		new->request.tag = alloctag();
 	}
 	else {
 		mntalloc.rpcfree = new->list;
@@ -1056,6 +1086,7 @@ mntfree(Mntrpc *r)
 	if(mntalloc.nrpcfree >= 10){
 		free(r->rpc);
 		free(r);
+		freetag(r->request.tag);
 	}
 	else{
 		r->list = mntalloc.rpcfree;

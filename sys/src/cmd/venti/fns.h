@@ -91,6 +91,7 @@ void		printIndex(int fd, Index *ix);
 void		printStats(void);
 void		putDBlock(DBlock *b);
 void		putLump(Lump *b);
+void		queueFlush(void);
 int		queueWrite(Lump *b, Packet *p, int creator);
 u32int		readArena(Arena *arena, u64int aa, u8int *buf, long n);
 int		readArenaMap(AMapN *amn, Part *part, u64int base, u32int size);

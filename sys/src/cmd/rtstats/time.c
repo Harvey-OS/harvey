@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
+#include "realtime.h"
 #include "time.h"
-#include "devrealtime.h"
 
 Ticks	fasthz;
 

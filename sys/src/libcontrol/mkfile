@@ -2,22 +2,22 @@
 
 LIB=/$objtype/lib/libcontrol.a
 
-FILES=\
-	box\
-	button\
-	cache\
-	control\
-	entry\
-	group\
-	keyboard\
-	label\
-	menu\
-	radiobutton\
-	scribble\
-	slider\
-	tabs\
-	text\
-	textbutton\
+OFILES=\
+	box.$O\
+	button.$O\
+	cache.$O\
+	control.$O\
+	entry.$O\
+	group.$O\
+	keyboard.$O\
+	label.$O\
+	menu.$O\
+	radiobutton.$O\
+	scribble.$O\
+	slider.$O\
+	tabs.$O\
+	text.$O\
+	textbutton.$O\
 
 HFILES=/sys/include/draw.h\
 	/sys/include/mouse.h\
@@ -25,14 +25,11 @@ HFILES=/sys/include/draw.h\
 	/sys/include/control.h\
 	group.h
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/libcontrol.a\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib
 

@@ -91,10 +91,12 @@ schedinit(void)		/* never returns */
 void
 sched(void)
 {
+	int x[1];
+
 	if(m->ilockdepth)
-		panic("ilockdepth %d, last lock 0x%p at 0x%lux",
+		panic("ilockdepth %d, last lock 0x%p at 0x%lux, sched called from 0x%lux",
 			m->ilockdepth, up?up->lastilock:nil,
-			(up && up->lastilock)?up->lastilock->pc:0);
+			(up && up->lastilock)?up->lastilock->pc:0, getcallerpc(x+3));
 
 	if(up){
 		if(up->nlocks && up->state != Moribund){
@@ -382,6 +384,7 @@ newproc(void)
 	kstrdup(&p->text, "*notext");
 	kstrdup(&p->args, "");
 	p->nargs = 0;
+	p->setargs = 0;
 	memset(p->seg, 0, sizeof p->seg);
 	p->pid = incref(&pidalloc);
 	pidhash(p);
@@ -1249,9 +1252,9 @@ accounttime(void)
 	n = perfticks();
 	per = n - m->perf.last;
 	m->perf.last = n;
-	if(per == 0)
-		per = 1;
-	m->perf.period = (m->perf.period*(HZ-1)+per)/HZ;
+	per = (m->perf.period*(HZ-1) + per)/HZ;
+	if(per != 0)
+		m->perf.period = per;
 
 	m->perf.avg_inidle = (m->perf.avg_inidle*(HZ-1)+m->perf.inidle)/HZ;
 	m->perf.inidle = 0;

@@ -71,15 +71,10 @@ main(int argc, char *argv[])
 	if(ap == nil)
 		fatal("can't initialize arena: %R");
 
-	n = (ap->size - ap->arenaBase + asize - 1) / asize;
-	if(n * asize - (ap->size - ap->arenaBase) < MinArenaSize)
-		n--;
-	if(n < 0)
-		n = 0;
-
-	apsize = asize * n;
-	if(apsize > ap->size)
-		apsize = ap->size;
+	apsize = ap->size - ap->arenaBase;
+	n = apsize / asize;
+	if(apsize - (n * asize) >= MinArenaSize)
+		n++;
 	
 	fprint(2, "configuring %s with arenas=%d for a total storage of bytes=%lld and directory bytes=%d\n",
 		file, n, apsize, ap->tabSize);

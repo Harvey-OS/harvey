@@ -17,7 +17,8 @@ FILE *freopen(const char *name, const char *mode, FILE *f){
 
 	if(f->state!=CLOSED){
 		fclose(f);
-		f->state=OPEN;
+/* premature; fall through and see what happens */
+/*		f->state=OPEN; */
 	}
 
 	m = *mode++;
@@ -29,21 +30,26 @@ FILE *freopen(const char *name, const char *mode, FILE *f){
 	default:
 		return NULL;
 	case 'r':
-		m = O_RDONLY;
-		if(*mode == '+') m = O_RDWR;
-		f->fd=open(name, m);
+		f->fd=open(name, (*mode == '+'? O_RDWR: O_RDONLY));
 		break;
 	case 'w':
-		m = O_WRONLY;
-		if(*mode == '+') m = O_RDWR;
-		f->fd=creat(name, 0666);
+		f->fd=creat(name, 0666);	/* implicitly O_WRONLY */
+		/* for O_RDWR, have to creat, close, open */
+		if(*mode == '+' && f->fd >= 0) {
+			close(f->fd);
+			f->fd=open(name, O_RDWR);
+		}
 		break;
 	case 'a':
-		m = O_WRONLY;
-		if(*mode == '+') m = O_RDWR;
-		f->fd=open(name, m);
-		if(f->fd<0)
+		f->fd=open(name, (*mode == '+'? O_RDWR: O_WRONLY));
+		if(f->fd<0) {
 			f->fd=creat(name, 0666);
+			/* for O_RDWR, have to creat, close, open */
+			if(*mode == '+' && f->fd >= 0) {
+				close(f->fd);
+				f->fd=open(name, O_RDWR);
+			}
+		}
 		lseek(f->fd, 0L, 2);
 		break;
 	}

@@ -69,6 +69,9 @@ errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
 	n += 7;
 	w = lookfile(r, n);
 	if(w == nil){
+		if(row.ncol == 0)
+			if(rowadd(&row, nil, -1) == nil)
+				error("can't create column to make error window");
 		w = coladd(row.col[row.ncol-1], nil, nil, -1);
 		w->filemenu = FALSE;
 		winsetname(w, r, n);
@@ -310,7 +313,7 @@ erealloc(void *p, uint n)
  * Heuristic city.
  */
 Window*
-newwindow(Text *t)
+makenewwindow(Text *t)
 {
 	Column *c;
 	Window *w, *bigw, *emptyw;

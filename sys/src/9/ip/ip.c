@@ -312,9 +312,12 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
 		return;
 	}
 
+if((eh->frag[0] & (IP_DF>>8)) && !gating) print("%V: DF set\n", eh->dst);
+
 	if(eh->frag[0] & (IP_DF>>8)){
 		ip->stats[FragFails]++;
 		ip->stats[OutDiscards]++;
+		icmpcantfrag(f, bp, medialen);
 		netlog(f, Logip, "%V: eh->frag[0] & (IP_DF>>8)\n", eh->dst);
 		goto raise;
 	}
@@ -524,6 +527,10 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 			return;
 		h = (Ip4hdr*)(bp->rp);
 	}
+
+	/* don't let any frag info go up the stack */
+	h->frag[0] = 0;
+	h->frag[1] = 0;
 
 	proto = h->proto;
 	p = Fsrcvpcol(f, proto);

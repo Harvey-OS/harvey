@@ -30,6 +30,8 @@ HFILES=rc.h\
 
 YFILES=syn.y
 
+UPDATE=`{echo *.[chy] mkfile} `{echo $TARG |sed 's/([^ $]*)( |$)/\/386\/bin\/\1 /g'}
+
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
 

@@ -26,7 +26,7 @@ boot(int argc, char *argv[])
 	char *cmd, cmdbuf[64], *iargv[16];
 	char rootbuf[64];
 	int islocal, ishybrid;
-	char *rp;
+	char *rp, *rsp;
 	int iargc, n;
 	char buf[32];
 	AuthInfo *ai;
@@ -115,6 +115,7 @@ boot(int argc, char *argv[])
 	}
 	if(mount(fd, afd, "/root", MREPL|MCREATE, rp) < 0)
 		fatal("mount /");
+	rsp = rp;
 	rp = getenv("rootdir");
 	if(rp == nil)
 		rp = rootdir;
@@ -139,7 +140,7 @@ boot(int argc, char *argv[])
 	close(fd);
 	setenv("rootdir", rp);
 
-	settime(islocal, afd);
+	settime(islocal, afd, rsp);
 	swapproc();
 
 	cmd = getenv("init");

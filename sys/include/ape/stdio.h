@@ -38,7 +38,7 @@ typedef struct{
 	size_t bufl;	/* actual length of buffer */
 	char unbuf[1];	/* tiny buffer for unbuffered io (used for ungetc?) */
 }FILE;
-typedef long fpos_t;
+typedef long long fpos_t;
 #ifndef NULL
 #define	NULL	0
 #endif
@@ -110,9 +110,9 @@ extern int ungetc(int, FILE *);
 extern size_t fread(void *, size_t, size_t, FILE *);
 extern size_t fwrite(const void *, size_t, size_t, FILE *);
 extern int fgetpos(FILE *, fpos_t *);
-extern int fseek(FILE *, long int, int);
+extern long long fseek(FILE *, long long, int);
 extern int fsetpos(FILE *, const fpos_t *);
-extern long int ftell(FILE *);
+extern long long ftell(FILE *);
 extern void rewind(FILE *);
 extern void clearerr(FILE *);
 extern int feof(FILE *);

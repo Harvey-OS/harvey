@@ -8,11 +8,12 @@
 char *url = "";
 int aflag;
 int width = 70;
+int defcharset;
 
 void
 usage(void)
 {
-	fprint(2, "usage: htmlfmt [-u URL] [-a] [-l length] [file ...]\n");
+	fprint(2, "usage: htmlfmt [-c charset] [-u URL] [-a] [-l length] [file ...]\n");
 	exits("usage");
 }
 
@@ -20,25 +21,26 @@ void
 main(int argc, char *argv[])
 {
 	int i, fd;
-	char *err, *file;
+	char *p, *err, *file;
 	char errbuf[ERRMAX];
 
 	ARGBEGIN{
 	case 'a':
 		aflag++;
 		break;
+	case 'c':
+		p = smprint("<meta charset=\"%s\">", EARGF(usage()));
+		defcharset = charset(p);
+		free(p);
+		break;
 	case 'l': case 'w':
-		err = ARGF();
-		if(err == nil)
-			usage();
+		err = EARGF(usage());
 		width = atoi(err);
 		if(width <= 0)
 			usage();
 		break;
 	case 'u':
-		url = ARGF();
-		if(url == nil)
-			usage();
+		url = EARGF(usage());
 		aflag++;
 		break;
 	default:

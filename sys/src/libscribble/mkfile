@@ -2,10 +2,10 @@
 
 LIB=/$objtype/lib/libscribble.a
 
-FILES = \
-	li_recognizer\
-	hre_api\
-	graffiti\
+OFILES=\
+	li_recognizer.$O\
+	hre_api.$O\
+	graffiti.$O\
 
 HFILES = \
 	li_recognizer_internal.h\
@@ -13,14 +13,11 @@ HFILES = \
 	graffiti.h\
 	scribbleimpl.h\
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/libscribble.a\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
 
 all:V:	$LIB syms
 

@@ -47,8 +47,8 @@ enum		/* protocol packet types */
 	SSH_MSG_CHANNEL_OPEN_CONFIRMATION,
 	SSH_MSG_CHANNEL_OPEN_FAILURE,
 	SSH_MSG_CHANNEL_DATA,
-	SSH_MSG_CHANNEL_CLOSE,
-	SSH_MSG_CHANNEL_CLOSE_CONFIRMATION,
+	SSH_MSG_CHANNEL_INPUT_EOF,
+	SSH_MSG_CHANNEL_OUTPUT_CLOSED,
 	SSH_MSG_UNIX_DOMAIN_X11_FORWARDING,	/* obsolete */
 	SSH_SMSG_X11_OPEN,
 	SSH_CMSG_PORT_FORWARD_REQUEST,
@@ -78,6 +78,19 @@ enum		/* protocol flags */
 {
 	SSH_PROTOFLAG_SCREEN_NUMBER=1<<0,
 	SSH_PROTOFLAG_HOST_IN_FWD_OPEN=1<<1,
+};
+
+enum		/* agent protocol packet types */
+{
+	SSH_AGENTC_NONE = 0,
+	SSH_AGENTC_REQUEST_RSA_IDENTITIES,
+	SSH_AGENT_RSA_IDENTITIES_ANSWER,
+	SSH_AGENTC_RSA_CHALLENGE,
+	SSH_AGENT_RSA_RESPONSE,
+	SSH_AGENT_FAILURE,
+	SSH_AGENT_SUCCESS,
+	SSH_AGENTC_ADD_RSA_IDENTITY,
+	SSH_AGENTC_REMOVE_RSA_IDENTITY,
 };
 
 enum		/* protocol constants */
@@ -146,6 +159,7 @@ struct Cipher
 
 struct Conn
 {
+	QLock;
 	int fd[2];
 	CipherState *cstate;
 	uchar cookie[COOKIELEN];
@@ -259,9 +273,17 @@ int		appendkey(char*, char*, RSApub*);
 int		findkey(char*, char*, RSApub*);
 int		replacekey(char*, char*, RSApub*);
 
+/* agent.c */
+int		startagent(Conn*);
+void		handleagentmsg(Msg*);
+void		handleagentopen(Msg*);
+void		handleagentieof(Msg*);
+void		handleagentoclose(Msg*);
+
 /* util.c */
 void		debug(int, char*, ...);
 void*	emalloc(long);
+void*	erealloc(void*, long);
 void		error(char*, ...);
 RSApriv*	readsecretkey(char*);
 int		readstrnl(int, char*, int);

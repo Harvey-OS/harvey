@@ -251,7 +251,7 @@ hello(String *himp, int extended)
 	reply("250%c%s you are %s\r\n", extended ? '-' : ' ', dom, him);
 	if (extended) {
 		if (passwordinclear)		
-			reply("250 AUTH CRAM-MD5 LOGIN\r\n");
+			reply("250 AUTH CRAM-MD5 PLAIN LOGIN\r\n");
 		else
 			reply("250 AUTH CRAM-MD5\r\n");
 	}
@@ -525,6 +525,24 @@ logmsg(char *action)
 			s_to_c(senders.last->p), him, nci->rsys, s_to_c(l->p));
 }
 
+static int
+optoutall(int filterstate)
+{
+	Link *l;
+
+	switch(filterstate){
+	case ACCEPT:
+	case TRUSTED:
+		return filterstate;
+	}
+
+	for(l = rcvers.first; l; l = l->next)
+		if(!optoutofspamfilter(s_to_c(l->p)))
+			return filterstate;
+
+	return ACCEPT;
+}
+
 String*
 startcmd(void)
 {
@@ -533,6 +551,11 @@ startcmd(void)
 	char **av;
 	String *cmd;
 	char *filename;
+
+	/*
+	 *  ignore the filterstate if the all the receivers prefer it.
+	 */
+	filterstate = optoutall(filterstate);
 
 	switch (filterstate){
 	case BLOCKED:
@@ -913,7 +936,7 @@ s_dec64(String *sin)
 }
 
 void
-auth(String *mech)
+auth(String *mech, String *resp)
 {
 	Chalstate *chs = nil;
 	AuthInfo *ai = nil;
@@ -922,6 +945,7 @@ auth(String *mech)
 	String *s_resp1 = nil;
 	String *s_resp2 = nil;
 	char *scratch = nil;
+	char *user, *pass;
 
 	if (rejectcheck())
 		goto bomb_out;
@@ -932,17 +956,48 @@ auth(String *mech)
 		reply("503 Bad sequence of commands\r\n");
 		goto bomb_out;
 	}
-	if (cistrcmp(s_to_c(mech), "login") == 0) {
+	if (cistrcmp(s_to_c(mech), "plain") == 0) {
 
 		if (!passwordinclear) {
 			rejectcount++;
 			reply("538 Encryption required for requested authentication mechanism\r\n");
 			goto bomb_out;
 		}
-		reply("334 VXNlcm5hbWU6\r\n");
-		s_resp1_64 = s_new();
-		if (getcrnl(s_resp1_64, &bin) <= 0)
-			goto bad_sequence;
+		s_resp1_64 = resp;
+		if (s_resp1_64 == nil) {
+			reply("334 \r\n");
+			s_resp1_64 = s_new();
+			if (getcrnl(s_resp1_64, &bin) <= 0) {
+				goto bad_sequence;
+			}
+		}
+		s_resp1 = s_dec64(s_resp1_64);
+		if (s_resp1 == nil) {
+			rejectcount++;
+			reply("501 Cannot decode base64\r\n");
+			goto bomb_out;
+		}
+		memset(s_to_c(s_resp1_64), 'X', s_len(s_resp1_64));
+		user = (s_to_c(s_resp1) + strlen(s_to_c(s_resp1)) + 1);
+		pass = user + (strlen(user) + 1);
+		ai = auth_userpasswd(user, pass);
+		authenticated = ai != nil;
+		memset(pass, 'X', strlen(pass));
+		goto windup;
+	}
+	else if (cistrcmp(s_to_c(mech), "login") == 0) {
+
+		if (!passwordinclear) {
+			rejectcount++;
+			reply("538 Encryption required for requested authentication mechanism\r\n");
+			goto bomb_out;
+		}
+		if (resp == nil) {
+			reply("334 VXNlcm5hbWU6\r\n");
+			s_resp1_64 = s_new();
+			if (getcrnl(s_resp1_64, &bin) <= 0)
+				goto bad_sequence;
+		}
 		reply("334 UGFzc3dvcmQ6\r\n");
 		s_resp2_64 = s_new();
 		if (getcrnl(s_resp2_64, &bin) <= 0)

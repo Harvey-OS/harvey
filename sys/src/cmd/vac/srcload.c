@@ -111,14 +111,14 @@ Source *
 mkroot(Cache *c)
 {
 	Lump *u;
-	VtDirEntry *dir;
+	VtEntry *dir;
 	Source *r;
 
 	u = cacheAllocLump(c, VtDirType, cacheGetBlockSize(c), 1);
-	dir = (VtDirEntry*)u->data;
+	dir = (VtEntry*)u->data;
 	vtPutUint16(dir->psize, cacheGetBlockSize(c));
 	vtPutUint16(dir->dsize, cacheGetBlockSize(c));
-	dir->flag = VtDirEntryActive|VtDirEntryDir;
+	dir->flag = VtEntryActive|VtEntryDir;
 	memmove(dir->score, vtZeroScore, VtScoreSize);
 	
 	r = sourceAlloc(c, u, 0, 0);
@@ -155,7 +155,7 @@ new(Source *s, int trace, int depth)
 		}
 		sourceFree(ss);
 	}
-	ss = sourceCreate(s, s->psize, s->dsize, 1+frand()>.5);
+	ss = sourceCreate(s, s->psize, s->dsize, 1+frand()>.5, 0);
 	if(ss == nil)
 		fprint(2, "could not create directory: %R\n");
 	if(trace) {
@@ -213,7 +213,7 @@ dumpone(Source *s)
 
 	Bprint(bout, "gen %4lud depth %d %V", s->gen, s->depth, s->lump->score);
 	if(!s->dir) {
-		Bprint(bout, " data size: %llud\n", s->size2);
+		Bprint(bout, " data size: %llud\n", s->size);
 		return;
 	}
 	n = sourceGetDirSize(s);
@@ -224,7 +224,7 @@ dumpone(Source *s)
 fprint(2, "%lud: %R\n", i);
 			continue;
 		}
-		Bprint(bout, "\t%lud %d %llud %V\n", i, ss->dir, ss->size2, ss->lump->score);
+		Bprint(bout, "\t%lud %d %llud %V\n", i, ss->dir, ss->size, ss->lump->score);
 		sourceFree(ss);
 	}
 	return;
@@ -241,7 +241,7 @@ dump(Source *s, int ident, ulong entry)
 		Bprint(bout, " ");
 	Bprint(bout, "%4lud: gen %4lud depth %d", entry, s->gen, s->depth);
 	if(!s->dir) {
-		Bprint(bout, " data size: %llud\n", s->size2);
+		Bprint(bout, " data size: %llud\n", s->size);
 		return;
 	}
 	n = sourceGetDirSize(s);

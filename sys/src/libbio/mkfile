@@ -1,35 +1,32 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libbio.a
-FILES=\
-	bbuffered\
-	bfildes\
-	bflush\
-	bgetrune\
-	bgetc\
-	bgetd\
-	binit\
-	boffset\
-	bprint\
-	bputrune\
-	bputc\
-	brdline\
-	brdstr\
-	bread\
-	bseek\
-	bwrite\
-	bvprint\
+OFILES=\
+	bbuffered.$O\
+	bfildes.$O\
+	bflush.$O\
+	bgetrune.$O\
+	bgetc.$O\
+	bgetd.$O\
+	binit.$O\
+	boffset.$O\
+	bprint.$O\
+	bputrune.$O\
+	bputc.$O\
+	brdline.$O\
+	brdstr.$O\
+	bread.$O\
+	bseek.$O\
+	bwrite.$O\
+	bvprint.$O\
 
 HFILES=/sys/include/bio.h
 
-CFILES=${FILES:%=%.c}
-
-OFILES=${FILES:%=%.$O}
-
-UPDATE=mkfile\
-	/386/lib/libbio.a\
+UPDATE=\
+	mkfile\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib
 

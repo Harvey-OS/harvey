@@ -67,17 +67,20 @@ int		ndown;
 char		date[64];
 Face		**faces;
 char		*maildir = "/mail/fs/mbox";
+ulong	now;
 
 Point	datep = { 8, 6 };
 Point	facep = { 8, 6+0+4 };	/* 0 updated to datefont->height in init() */
 Point	enddate;			/* where date ends on display; used to place arrows */
 Rectangle	leftr;			/* location of left arrow on display */
 Rectangle	rightr;		/* location of right arrow on display */
+void updatetimes(void);
 
 void
 setdate(void)
 {
-	strcpy(date, ctime(time(nil)));
+	now = time(nil);
+	strcpy(date, ctime(now));
 	date[4+4+3+5] = '\0';	/* change from Thu Jul 22 14:28:43 EDT 1999\n to Thu Jul 22 14:28 */
 }
 
@@ -142,6 +145,7 @@ timeproc(void)
 	for(;;){
 		lockdisplay(display);
 		drawtime();
+		updatetimes();
 		flushimage(display, 1);
 		unlockdisplay(display);
 		sleep(60000);
@@ -149,31 +153,19 @@ timeproc(void)
 	}
 }
 
-/*
- * imperfect test because names can collide, but with date check too it's probably enough
- */
 int
-alreadyseen(char *show, char *time, char *digest)
+alreadyseen(char *digest)
 {
 	int i;
 	Face *f;
 
-	if(strcmp(show, "/mail/fs/mbox/XXX")==0)	/* vwhois */
+	if(!digest)
 		return 0;
 
-	if(digest != nil){
-		/* can do accurate check */
-		for(i=0; i<nfaces; i++){
-			f = faces[i];
-			if(f->str[Sdigest]!=nil && strcmp(digest, f->str[Sdigest])==0)
-				return 1;
-		}
-		return 0;
-	}
-
+	/* can do accurate check */
 	for(i=0; i<nfaces; i++){
 		f = faces[i];
-		if(strcmp(show, f->str[Sshow])==0 && strcmp(time, f->str[Stime])==0)
+		if(f->str[Sdigest]!=nil && strcmp(digest, f->str[Sdigest])==0)
 			return 1;
 	}
 	return 0;
@@ -232,9 +224,27 @@ facerect(int index)	/* index is geometric; 0 is always upper left face */
 	return r;
 }
 
+static char *mon = "JanFebMarAprMayJunJulAugSepOctNovDec";
+char*
+facetime(Face *f, int *recent)
+{
+	static char buf[30];
+
+	if((long)(now - f->time) > 23*60*60){
+		*recent = 0;
+		sprint(buf, "%.3s %2d", mon+3*f->tm.mon, f->tm.mday);
+		return buf;
+	}else{
+		*recent = 1;
+		sprint(buf, "%02d:%02d", f->tm.hour, f->tm.min);
+		return buf;
+	}
+}
+
 void
 drawface(Face *f, int i)
 {
+	char *tstr;
 	Rectangle r;
 	Point p;
 
@@ -248,7 +258,8 @@ drawface(Face *f, int i)
 	r.min.y += Facesize;
 	center(mediumfont, r.min, f->str[Suser], display->black);
 	r.min.y += mediumfont->height;
-	center(mediumfont, r.min, f->str[Stime], display->black);
+	tstr = facetime(f, &f->recent);
+	center(mediumfont, r.min, tstr, display->black);
 	if(f->unknown){
 		r.min.y -= mediumfont->height + tinyfont->height + 2;
 		for(p.x=-1; p.x<=1; p.x++)
@@ -256,6 +267,21 @@ drawface(Face *f, int i)
 				center(tinyfont, addpt(r.min, p), f->str[Sdomain], display->white);
 		center(tinyfont, r.min, f->str[Sdomain], display->black);
 	}
+}
+
+void
+updatetimes(void)
+{
+	int i;
+	Face *f;
+
+	for(i=0; i<nfaces; i++){
+		f = faces[i];
+		if(f == nil)
+			continue;
+		if(((long)(now - f->time) <= 23*60*60) != f->recent)
+			drawface(f, i);
+	}	
 }
 
 void

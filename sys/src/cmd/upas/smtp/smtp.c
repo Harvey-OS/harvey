@@ -1,9 +1,14 @@
 #include "common.h"
 #include "smtp.h"
 #include <ctype.h>
+#include <mp.h>
+#include <libsec.h>
+#include <auth.h>
 
 static	char*	connect(char*);
-char*	hello(char*);
+static	char*	dotls(char*);
+static	char*	doauth(void);
+char*	hello(char*, int);
 char*	mailfrom(char*);
 char*	rcptto(char*);
 char*	data(String*, Biobuf*);
@@ -30,12 +35,15 @@ String	*reply;		/* last reply */
 String	*toline;
 int	last = 'n';	/* last character sent by putcrnl() */
 int	filter;
+int	trysecure;	/* Try to use TLS if the other side supports it */
+int	tryauth;	/* Try to authenticate, if supported */
 int	quitting;	/* when error occurs in quit */
 char	*quitrv;	/* deferred return value when in quit */
 char	ddomain[1024];	/* domain name of destination machine */
 char	*gdomain;	/* domain name of gateway */
 char	*uneaten;	/* first character after rfc822 headers */
 char	*farend;	/* system we are trying to send to */
+char	*user;		/* user we are authenticating as, if authenticating */
 char	hostdomain[256];
 Biobuf	bin;
 Biobuf	bout;
@@ -45,7 +53,7 @@ Biobuf	bfile;
 void
 usage(void)
 {
-	fprint(2, "usage: smtp [-du] [-hhost] [.domain] net!host[!service] sender rcpt-list\n");
+	fprint(2, "usage: smtp [-ads] [-uuser] [-hhost] [.domain] net!host[!service] sender rcpt-list\n");
 	exits(Giveup); 
 }
 
@@ -89,6 +97,10 @@ main(int argc, char **argv)
 	reply = s_new();
 	host = 0;
 	ARGBEGIN{
+	case 'a':
+		tryauth = 1;
+		trysecure = 1;
+		break;
 	case 'f':
 		filter = 1;
 		break;
@@ -100,6 +112,12 @@ main(int argc, char **argv)
 		break;
 	case 'h':
 		host = ARGF();
+		break;
+	case 's':
+		trysecure = 1;
+		break;
+	case 'u':
+		user = ARGF();
 		break;
 	default:
 		usage();
@@ -164,7 +182,7 @@ main(int argc, char **argv)
 	if((rv = connect(addr)) != 0)
 		exits(rv);
 	alarm(10*60*1000);
-	if((rv = hello(hellodomain)) != 0)
+	if((rv = hello(hellodomain, 0)) != 0)
 		goto error;
 	alarm(10*60*1000);
 	if((rv = mailfrom(s_to_c(from))) != 0)
@@ -250,28 +268,145 @@ connect(char* net)
 }
 
 /*
- *  exchange names with remote host
+ *  exchange names with remote host, possibly
+ *  enable encryption and do authentication.
  */
-char *
-hello(char *me)
+static char *
+dotls(char *me)
 {
-	switch(getreply()){
+	TLSconn *c;
+	Thumbprint *goodcerts;
+	char *h;
+	int fd;
+	uchar hash[SHA1dlen];
+
+	c = mallocz(sizeof(*c), 1);	/* Note: not freed on success */
+	if (c == nil)
+		return Giveup;
+	dBprint("STARTTLS\r\n");
+	getreply();
+	fd = tlsClient(Bfildes(&bout), c);
+	if (fd < 0)
+		return Giveup;
+	goodcerts = initThumbprints("/sys/lib/tls/smtp", "/sys/lib/tls/smtp.exclude");
+	if (goodcerts == nil) {
+		free(c);
+		return Giveup;
+	}
+	sha1(c->cert, c->certlen, hash, nil);
+	if (!okThumbprint(hash, goodcerts)) {
+		h = malloc(2 * sizeof hash + 1);
+		if (h != nil) {
+			enc16(h, 2 * sizeof hash + 1, hash, sizeof hash);
+			print("x509 sha1=%s", h);
+			free(h);
+		}
+		return Giveup;
+	}
+	freeThumbprints(goodcerts);
+	Bterm(&bin);
+	Bterm(&bout);
+	Binit(&bin, fd, OREAD);
+	fd = dup(fd, -1);
+	Binit(&bout, fd, OWRITE);
+	return(hello(me, 1));
+}
+
+static char *
+doauth(void)
+{
+	char *buf, *base64;
+	UserPasswd *p;
+	int n;
+
+	if(user != nil)
+		p = auth_getuserpasswd(nil,
+	  	  "proto=pass service=smtp server=%q user=%q",
+	 	   ddomain, user);
+	else
+		p = auth_getuserpasswd(nil,
+	  	  "proto=pass service=smtp server=%q",
+	 	   ddomain);
+	if (p == nil)
+		return Giveup;
+	n = strlen(p->user) + strlen(p->passwd) + 3;
+	buf = malloc(n);
+	if (buf == nil)
+		return Retry;	/* Out of memory */
+	base64 = malloc(2 * n);
+	if (base64 == nil) {
+		free(buf);
+		return Retry;	/* Out of memory */
+	}
+	snprint(buf, n, "%c%s%c%s", 0, p->user, 0, p->passwd);
+	enc64(base64, 2 * n, (uchar *)buf, n - 1);
+	free(buf);
+	dBprint("AUTH PLAIN %s\r\n", base64);
+	free(base64);
+	if (getreply() != 2)
+		return Retry;
+	return(0);
+}
+
+char *
+hello(char *me, int encrypted)
+{
+	int ehlo;
+	String *r;
+	char *s, *t;
+
+	if (!encrypted)
+		switch(getreply()){
+		case 2:
+			break;
+		case 5:
+			return Giveup;
+		default:
+			return Retry;
+		}
+
+	ehlo = 1;
+  Again:
+	if(ehlo)
+		dBprint("EHLO %s\r\n", me);
+	else
+		dBprint("HELO %s\r\n", me);
+	switch (getreply()) {
 	case 2:
 		break;
 	case 5:
+		if(ehlo){
+			ehlo = 0;
+			goto Again;
+		}
 		return Giveup;
 	default:
 		return Retry;
 	}
-	dBprint("HELO %s\r\n", me);
-	switch(getreply()){
-	case 2:
-		break;
-	case 5:
-		return Giveup;
-	default:
-		return Retry;
+	r = s_clone(reply);
+	if(r == nil)
+		return Retry;	/* Out of memory or couldn't get string */
+
+	/* Invariant: every line has a newline, a result of getcrlf() */
+	for(s = s_to_c(r); (t = strchr(s, '\n')) != nil; s = t + 1){
+		*t = '\0';
+		for (t = s; *t != '\0'; t++)
+			*t = toupper(*t);
+		if(!encrypted && trysecure &&
+		    (strcmp(s, "250-STARTTLS") == 0 ||
+		     strcmp(s, "250 STARTTLS") == 0)){
+			s_free(r);
+			return(dotls(me));
+		}
+		if(tryauth && encrypted &&
+		    (strncmp(s, "250 AUTH", strlen("250 AUTH")) == 0 ||
+		     strncmp(s, "250-AUTH", strlen("250 AUTH")) == 0) &&
+		    strstr(s, "PLAIN") != nil){
+			s_free(r);
+			return(doauth());
+		}
 	}
+	s_free(r);
 	return 0;
 }
 
@@ -408,9 +543,10 @@ data(String *from, Biobuf *b)
 	fromline = convertheader(from);
 	uneaten = buf;
 
+	srand(truerand());
 	if(messageid == 0){
 		for(i=0; i<16; i++){
-			r = fastrand()&0xFF;
+			r = rand()&0xFF;
 			id[2*i] = hex[r&0xF];
 			id[2*i+1] = hex[(r>>4)&0xF];
 		}

@@ -1609,6 +1609,9 @@ elnk3reset(Ether* ether)
 	case 0x9050:
 	case 0x9051:
 	case 0x9055:
+	case 0x4500:		/* 3C450 HomePNA Tornado */
+	case 0x6056:
+	case 0x9200:		/* 3C905C-TX */
 	case 0x7646:		/* 3CSOHO100-TX */
 	case 0x5157:		/* 3C575 Cyclone */
 		if(BUSTYPE(ether->tbdf) != BusPCI)

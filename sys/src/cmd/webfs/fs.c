@@ -271,10 +271,9 @@ fsread(Req *r)
 	case Qfragment:
 	case Qftptype:
 		c = client[NUM(path)];
-		s = *(char**)((ulong)c->url+tab[TYPE(path)].offset);
-		if(s == nil)
-			r->ofcall.count = 0;
-		else
+		r->ofcall.count = 0;
+		if(c->url != nil
+		&& (s = *(char**)((ulong)c->url+tab[TYPE(path)].offset)) != nil)
 			readstr(r, s);
 		respond(r, nil);
 		break;

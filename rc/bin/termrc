@@ -28,7 +28,7 @@ sysname=`{cat /dev/sysname}
 # Otherwise use
 #
 #if(! test -e /net/ipifc/0/ctl)
-#	ip/ipconfig -g your-gateway your-ip-address your-subnet-mask >/dev/null >[2=1]
+#	ip/ipconfig -g your-gateway ether /net/ether0 your-ip-address your-subnet-mask >/dev/null >[2=1]
 
 if(test -e /net/ipifc/0/ctl)
 	ndb/dns -rf $NDBFILE

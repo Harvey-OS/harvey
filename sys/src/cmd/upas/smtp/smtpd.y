@@ -36,6 +36,8 @@ cmd		: error
 			{ hello($6.s, 1); }
 		| 'm' 'a' 'i' 'l' spaces 'f' 'r' 'o' 'm' ':' spath CRLF
 			{ sender($11.s); }
+		| 'm' 'a' 'i' 'l' spaces 'f' 'r' 'o' 'm' ':' spath spaces 'a' 'u' 't' 'h' '=' sauth CRLF
+			{ sender($11.s); }
 		| 'r' 'c' 'p' 't' spaces 't' 'o' ':' spath CRLF
 			{ receiver($9.s); }
 		| 'd' 'a' 't' 'a' CRLF
@@ -62,8 +64,10 @@ cmd		: error
 			{ quit(); }
 		| 't' 'u' 'r' 'n' CRLF
 			{ turn(); }
+		| 'a' 'u' 't' 'h' spaces name spaces string CRLF
+			{ auth($6.s, $8.s); }
 		| 'a' 'u' 't' 'h' spaces name CRLF
-			{ auth($6.s); }
+			{ auth($6.s, nil); }
 		| CRLF
 			{ reply("501 illegal command or bad syntax\r\n"); }
 		;
@@ -73,6 +77,13 @@ path		: '<' '>'			={ $$ = anonymous(); }
 		;
 spath		: path			={ $$ = $1; }
 		| spaces path		={ $$ = $2; }
+		;
+auth		: path			={ $$ = $1; }
+		| mailbox		={ $$ = $1; }
+		;
+sauth		: auth			={ $$ = $1; }
+		| spaces auth		={ $$ = $2; }
+		;
 		;
 a_d_l		: at_domain		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		| at_domain ',' a_d_l	={ $$ = cat(&$1, bang, &$3, 0, 0, 0, 0); }

@@ -2,9 +2,12 @@
 #include "io.h"
 #include "mem.h"
 
-#define DEBUG	0
+enum {
+	DEBUG =  0,
+	IDEBUG = 0,
+	Sectsize = 512,
+};
 #define DPRINT	if(DEBUG)print
-#define IDEBUG	0
 #define IDPRINT if(IDEBUG)print
 
 typedef	struct Drive		Drive;
@@ -77,7 +80,7 @@ struct Ident
 /* 10 */
 	ushort	serial[10];	/* serial number */
 	ushort	type;		/* buffer type */
-	ushort	bsize;		/* buffer size/512 */
+	ushort	bsize;		/* buffer size/Sectsize */
 	ushort	ecc;		/* ecc bytes returned by read long */
 	ushort	firm[4];	/* firmware revision */
 	ushort	model[20];	/* model number */
@@ -119,7 +122,7 @@ typedef struct {
 	int	online;
 	int	npart;		/* number of real partitions */
 	Partition p[Npart];
-	ulong	offset;
+	uvlong	offset;
 	Partition *current;	/* current partition */
 
 	ulong	cap;		/* total sectors */
@@ -154,6 +157,7 @@ struct Drive
  */
 struct Controller
 {
+	QLock;
 	int	pbase;		/* base port */
 	uchar	ctlrno;
 
@@ -189,7 +193,7 @@ static int defirq[NCtlr] = {
 };
 
 static void	ataintr(Ureg*, void*);
-static long	ataxfer(Drive*, Partition*, int, ulong, long);
+static long	ataxfer(Drive*, Partition*, int, uvlong, long);
 static int	ataident(Drive*);
 static Drive*	atapart(Drive*);
 static int	ataparams(Drive*);
@@ -263,6 +267,7 @@ atadriveprobe(int driveno)
 	}
 
 	drive = atadrive[driveno];
+	drive->driveno = driveno;
 	if(drive->online == 0){
 		if(atadrivemask & (1<<driveno))
 			return 0;
@@ -301,12 +306,13 @@ atainit(void)
 	return 0xFF;
 }
 
-long
-ataseek(int driveno, long offset)
+vlong
+ataseek(int driveno, vlong offset)
 {
 	Drive *drive;
 
-	if((drive = atadriveprobe(driveno)) == 0)
+	drive = atadrive[driveno];
+	if (drive == nil || !drive->online)
 		return -1;
 	drive->offset = offset;
 	return offset;
@@ -357,20 +363,24 @@ long
 ataread(int driveno, void *a, long n)
 {
 	Drive *dp;
-	long rv, i;
+	vlong rv, i;
 	int skip;
 	uchar *aa = a;
 	Partition *pp;
 	Controller *cp;
 
-	if((dp = atadriveprobe(driveno)) == 0)
+	dp = atadrive[driveno];
+	if(dp == nil || !dp->online)
 		return 0;
 
 	pp = dp->current;
-	if(pp == 0)
+	//  can ide leave pp as nil? yes
+	if(0 && pp == 0)
 		return -1;
 	cp = dp->cp;
 
+	if (dp->bytes == 0)
+		panic("ataread: zero dp->bytes");
 	skip = dp->offset % dp->bytes;
 	for(rv = 0; rv < n; rv += i){
 		i = ataxfer(dp, pp, Cread, dp->offset+rv-skip, n-rv+skip);
@@ -393,16 +403,18 @@ long
 atawrite(int driveno, void *a, long n)
 {
 	Drive *dp;
-	long rv, i, partial;
+	vlong rv, i, partial;
 	uchar *aa = a;
 	Partition *pp;
 	Controller *cp;
 
-	if((dp = atadriveprobe(driveno)) == 0)
+	dp = atadrive[driveno];
+	if(dp == nil || !dp->online)
 		return 0;
 
 	pp = dp->current;
-	if(pp == 0)
+	// pp can legitimately be nil
+	if(0 && pp == 0)
 		return -1;
 	cp = dp->cp;
 
@@ -411,9 +423,12 @@ atawrite(int driveno, void *a, long n)
 	 *  read in the first sector before writing
 	 *  it out.
 	 */
+	if (dp->bytes == 0)
+		panic("atawrite: readin zero dp->bytes");
 	partial = dp->offset % dp->bytes;
 	if(partial){
-		ataxfer(dp, pp, Cread, dp->offset-partial, dp->bytes);
+		if (ataxfer(dp, pp, Cread, dp->offset-partial, dp->bytes) < 0)
+			return -1;
 		if(partial+n > dp->bytes)
 			rv = dp->bytes - partial;
 		else
@@ -427,6 +442,8 @@ atawrite(int driveno, void *a, long n)
 	/*
 	 *  write out the full sectors
 	 */
+	if (dp->bytes == 0)
+		panic("atawrite: write full zero dp->bytes");
 	partial = (n - rv) % dp->bytes;
 	n -= partial;
 	for(; rv < n; rv += i){
@@ -469,9 +486,9 @@ cmdreadywait(Drive *drive)
 	Controller *ctlr;
 
 	ctlr = drive->cp;
-	end = m->ticks+MS2TK(10)+1;
+	end = m->ticks+MS2TK(100)+1;
 	dh = (inb(ctlr->pbase+Pdh) & DHslave)^(drive->dh & DHslave);
-	
+
 	status = 0;
 	while(m->ticks < end){
 		status = inb(ctlr->pbase+Pstatus);
@@ -486,8 +503,7 @@ cmdreadywait(Drive *drive)
 			return 0;
 	}
 	USED(status);
-
-	DPRINT("hd%d: cmdreadywait failed 0x%ux\n", drive->driveno, status);
+	DPRINT("h%d: cmdreadywait failed 0x%ux\n", drive->driveno, status);
 	outb(ctlr->pbase+Pdh, DHmagic);
 	return -1;
 }
@@ -497,7 +513,7 @@ cmdreadywait(Drive *drive)
  *  parts.
  */
 static long
-ataxfer(Drive *dp, Partition *pp, int cmd, ulong start, long len)
+ataxfer(Drive *dp, Partition *pp, int cmd, uvlong start, long len)
 {
 	Controller *cp;
 	long lsec;
@@ -511,7 +527,9 @@ ataxfer(Drive *dp, Partition *pp, int cmd, ulong start, long len)
 	/*
 	 *  cut transfer size down to disk buffer size
 	 */
-	start = start / dp->bytes;
+	if (dp->bytes == 0)
+		panic("ataxfer: zero dp->bytes");
+	start /= dp->bytes;
 	if(len > Maxxfer)
 		len = Maxxfer;
 	len = (len + dp->bytes - 1) / dp->bytes;
@@ -520,16 +538,24 @@ ataxfer(Drive *dp, Partition *pp, int cmd, ulong start, long len)
 	 *  calculate physical address
 	 */
 	cp = dp->cp;
-	lsec = start + pp->start;
-	if(lsec >= pp->end){
-		DPRINT("hd%d: read past end of partition\n", dp->driveno);
-		return 0;
-	}
-	if(dp->lba){
+	if (pp) {	// ide did not check; was assumed non-nil by 3rd ed fs.
+		lsec = start + pp->start;
+		if(lsec >= pp->end){
+			print("hd%d: read past end of partition\n", dp->driveno);
+			return 0;
+		}
+	} else
+		lsec = start;
+
+	if(dp->lba) {
 		cp->tsec = lsec & 0xff;
 		cp->tcyl = (lsec>>8) & 0xffff;
 		cp->thead = (lsec>>24) & 0xf;
 	} else {
+		if (dp->sectors == 0)
+			panic("ataxfer: zero dp->sectors");
+		if (dp->heads == 0)
+			panic("ataxfer: zero dp->heads");
 		cp->tcyl = lsec/(dp->sectors*dp->heads);
 		cp->tsec = (lsec % dp->sectors) + 1;
 		cp->thead = (lsec/dp->sectors) % dp->heads;
@@ -538,6 +564,7 @@ ataxfer(Drive *dp, Partition *pp, int cmd, ulong start, long len)
 	/*
 	 *  can't xfer past end of disk
 	 */
+	if (pp) 		// ide did not check
 	if(lsec+len > pp->end)
 		len = pp->end - lsec;
 	cp->nsecs = len;
@@ -553,8 +580,11 @@ ataxfer(Drive *dp, Partition *pp, int cmd, ulong start, long len)
 		return atapiio(dp, lsec);
 	}
 
-	if(cmdreadywait(dp) < 0)
+	if(cmdreadywait(dp) < 0){
+		print("h%d: cmdreadywait failed (%s)\n",
+			dp->driveno, (cmd==Cwrite? "write": "read"));
 		return -1;
+	}
 
 	/*
 	 *  start the transfer
@@ -610,7 +640,7 @@ isatapi(Drive *drive)
 		return 0;
 	}
 	drive->atapi = 0;
-	drive->bytes = 512;
+	drive->bytes = Sectsize;
 	microdelay(1);
 	if(inb(cp->pbase+Pstatus)){
 		IDPRINT("hd%d: isatapi status 0x%ux\n",
@@ -638,7 +668,7 @@ ataident(Drive *dp)
 	ulong lbasecs;
 	char id[21];
 
-	dp->bytes = 512;
+	dp->bytes = Sectsize;
 	cp = dp->cp;
 
 retryatapi:
@@ -666,7 +696,7 @@ retryatapi:
 		}
 		return -1;
 	}
-	
+
 	atawait(cp, ATAtimo);
 
 	ip = (Ident*)cp->buf;
@@ -676,19 +706,27 @@ retryatapi:
 	IDPRINT("hd%d: config 0x%ux capabilities 0x%ux\n",
 		dp->driveno, ip->config, ip->capabilities);
 	if(dp->atapi){
-		if((ip->config & 0x0060) == 0x0020)
+		if((ip->config & 0x60) == 0x20)
 			dp->drqintr = 1;
-		if((ip->config & 0x1F00) == 0x0000)
+		if((ip->config & 0x1F00) == 0)
 			dp->atapi = 2;
 	}
 
 	lbasecs = (ip->lbasecs[0]) | (ip->lbasecs[1]<<16);
+	/* NB: the `& 0xf0000000' limits LBA IDE disks to 128GB */
 	if((ip->capabilities & (1<<9)) && (lbasecs & 0xf0000000) == 0){
 		dp->lba = 1;
 		dp->cap = lbasecs;
+//		dp->lba = 0;
+//		dp->cyl = 16383;
+//		dp->heads=16;
+//		dp->sectors=63;
+//		dp->cap = lbasecs;
+//		if (lbasecs > 0xffff * 16 * 63)
+//			dp->cap = 0xffff * 16 * 63;
 	} else {
 		dp->lba = 0;
-	
+
 		if(ip->cvalid&(1<<0)){
 			/* use current settings */
 			dp->cyl = ip->ccyls;
@@ -766,7 +804,7 @@ ataparams(Drive *dp)
 	 *  first try the easy way, ask the drive and make sure it
 	 *  isn't lying.
 	 */
-	dp->bytes = 512;
+	dp->bytes = Sectsize;
 	if(ataident(dp) < 0)
 		return -1;
 	if(dp->atapi)
@@ -795,10 +833,10 @@ ataparams(Drive *dp)
 		if(ataprobe(dp, 0, i, 0) < 0)
 			break;
 	dp->sectors = i;
-	for(i = 512; ; i += 512)
+	for(i = Sectsize; ; i += Sectsize)
 		if(ataprobe(dp, i, dp->sectors-1, dp->heads-1) < 0)
 			break;
-	lo = i - 512;
+	lo = i - Sectsize;
 	hi = i;
 	for(; hi-lo > 1;){
 		i = lo + (hi - lo)/2;
@@ -810,6 +848,8 @@ ataparams(Drive *dp)
 	dp->cyl = lo + 1;
 	dp->cap = dp->cyl * dp->heads * dp->sectors;
 
+	print("hd%d: ataparam: cyl %ld sectors %d heads %d\n",
+		dp->driveno, dp->cyl, dp->sectors, dp->heads);
 	if(dp->cyl == 0 || dp->heads == 0 || dp->sectors == 0)
 		return -1;
 
@@ -932,7 +972,7 @@ atapiexec(Drive *dp)
 	if(cmdreadywait(dp))
 		return -1;
 
-	s = splhi();	
+	s = splhi();
 	cp->sofar = 0;
 	cp->error = 0;
 	cp->cmd = Cpktcmd;
@@ -1097,7 +1137,7 @@ atapiintr(Controller *cp)
 			if(cp->status & Serr)
 				cp->error = inb(pbase+Perror);
 			cp->cmd = 0;
-			break;	
+			break;
 		}
 		loop = 0;
 		while((cp->status & (Serr|Sdrq)) == 0){
@@ -1131,5 +1171,119 @@ atapiintr(Controller *cp)
 		if(cp->status & Serr)
 			cp->error = inb(cp->pbase+Perror);
 		break;
+	}
+}
+
+static int
+ideblkvfy(Device *d, long b, char *buff)
+{
+	long *lp = (long *)buff;	// lp never changes
+
+	*lp = b;
+	idewrite(d, b, buff);
+	// TODO: invalidate controller & drive caches
+	ideread (d, b, buff);
+	return *lp == b;
+}
+
+void
+idecheck(Device *d)
+{
+	static char buff[RBUFSIZE];
+	long *lp = (long *)buff;	// lp never changes
+	long b, start, max;
+	Drive *dp;
+
+	max = atasize(d);
+	dp = d->private;
+	// write the block # to each block
+	// read it back and check that things match
+	print("Drive check: %lud cap, %d bytes, %d sec %d hd %ld cyl\n",
+		dp->cap, dp->bytes, dp->sectors, dp->heads, dp->cyl);
+	for (start = 0; start < max; start += 1000) {
+		print("Write to %lud - %lud blocks...\n", start, start + 1000);
+		for (b = start; b < start+ 1000 && b < max; b+= 10)
+			if (!ideblkvfy(d, b, buff)) {
+				print("block %lux (%lud) : %lux (%lud)\n",
+					b, b, *lp, *lp);
+				print("immediate check failed\n");
+				if (!ideblkvfy(d, b, buff))
+					print("failed twice\n");
+			}
+		print("Checking block numbers...\n");
+		for(b = start; b < start+1000 && b < max; b+=10) {
+			ideread(d, b, buff);
+			if (*lp != b) {
+				print("block %lux (%lud) : %lux (%lud)\n",
+					b, b, *lp, *lp);
+				print("check failed\n");
+				return;
+			}
+		}
+	}
+}
+
+ideread(Device *d, long b, void *c)
+{
+	int x;
+	Drive *dp;
+	Controller *cp;
+
+	dp = d->private;
+	cp = dp->cp;
+
+	qlock(cp);
+	IDPRINT("ideread(dev %ux, %ld, %ux, %d): %ux\n",
+		(int)d, b, (int)c, dp->driveno, (int)dp);
+	ataseek(dp->driveno, (vlong)b * (vlong)RBUFSIZE);
+	x = ataread(dp->driveno, c, RBUFSIZE) == 0;
+	qunlock(cp);
+	return x;
+}
+
+idewrite(Device *d, long b, void *c)
+{
+	int x;
+	Drive *dp;
+	Controller *cp;
+
+	dp = d->private;
+	cp = dp->cp;
+
+	qlock(cp);
+	IDPRINT("idewrite(%ux, %ld, %ux): driveno %d\n",
+		(int)d, b, (int)c, dp->driveno);
+	ataseek(dp->driveno, (vlong)b * (vlong)RBUFSIZE);
+	x = atawrite(dp->driveno, c, RBUFSIZE) == 0;
+	qunlock(cp);
+	return x;
+}
+
+// result is size of d in blocks of RBUFSIZE bytes
+long
+atasize(Device *d)
+{
+	Drive *dp;
+	long blocks;
+
+	dp = d->private;
+	// dividing first is sloppy but reduces the range of intermediate values
+	blocks = (dp->cap / RBUFSIZE) * Sectsize;
+	print("atasize(%ux):  %lud -> %lud\n", (int)d, dp->cap, blocks);
+	return blocks;
+}
+
+void
+ideinit(Device *d)
+{
+	Drive *dp;
+
+	if (d->private)
+		return;
+	if ((dp = atadriveprobe(d->wren.ctrl * 2 + d->wren.targ))) {
+		print("ideinit(device %ux ctrl %d targ %d) driveno %d dp %ux\n",
+			(int)d, d->wren.ctrl, d->wren.targ, dp->driveno,
+			(int)dp);
+		d->private = dp;
 	}
 }

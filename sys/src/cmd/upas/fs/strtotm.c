@@ -47,7 +47,9 @@ strtotm(char *p, Tm *tmp)
 	char *q, *r;
 	int j;
 	Tm tm;
+	int delta;
 
+	delta = 0;
 	memset(&tm, 0, sizeof(tm));
 	tm.mon = -1;
 	tm.hour = -1;
@@ -85,6 +87,13 @@ strtotm(char *p, Tm *tmp)
 			continue;
 		}
 
+		if(p[0]=='+'||p[0]=='-')
+		if(q-p==5 && strspn(p+1, "0123456789") == 4){
+			delta = (((p[1]-'0')*10+p[2]-'0')*60+(p[3]-'0')*10+p[4]-'0')*60;
+			if(p[0] == '-')
+				delta = -delta;
+			continue;
+		}
 		if(strspn(p, "0123456789") == q-p){
 			j = atoi(p);
 			if(1 <= j && j <= 31)
@@ -99,6 +108,6 @@ strtotm(char *p, Tm *tmp)
 	|| tm.mday<0)
 		return -1;
 
-	*tmp = *localtime(tm2sec(&tm));
+	*tmp = *localtime(tm2sec(&tm)-delta);
 	return 0;
 }

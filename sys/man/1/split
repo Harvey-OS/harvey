@@ -25,10 +25,16 @@ and so on to
 .BR xzz .
 The options are
 .TP
-.BI - n
+.BI -n " n"
 Split into
 .IR n -line
 pieces.
+.TP
+.BI -l " n"
+Synonym for
+.B -n
+.IR n ,
+a nod to Unix's syntax.
 .TP
 .BI -e " expression"
 File divisions occur at each line

@@ -145,16 +145,9 @@ actual TCP port numbers.)
 .B /rc/bin/tlsclienttunnel
 .SH "SEE ALSO"
 .IR factotum (4),
-.IR listen (8)
+.IR listen (8),
+.IR x509 (8)
 .br
 Unix's
 .I stunnel
-.SH BUGS
-There is not yet a Plan 9 tool to generate X.509 certificates and public keys.
-Instead, use the Unix
-.B openssl
-toolkit:
-.IP
-.EX
-openssl req -x509 -nodes -newkey rsa:1024 -keyout key.pem -out cert.pem
 .EE

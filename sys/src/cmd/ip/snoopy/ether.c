@@ -21,6 +21,8 @@ static Mux p_mux[] =
 	{"arp",		0x0806,	} ,
 	{"rarp",	0x0806,	} ,
 	{"ip6", 	0x86dd, } ,
+	{"pppoe_disc",	0x8863, },
+	{"pppoe_sess",	0x8864, },
 	{0}
 };
 

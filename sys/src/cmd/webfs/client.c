@@ -75,6 +75,14 @@ clientbodyopen(Client *c, Req *r)
 
 	next = nil;
 	for(i=0; i<=c->ctl.redirectlimit; i++){
+		if(c->url == nil){
+			werrstr("nil url");
+			goto Error;
+		}
+		if(c->url->open == nil){
+			werrstr("unsupported url type");
+			goto Error;
+		}
 		if(fsdebug)
 			fprint(2, "try %s\n", c->url->url);
 		if(c->url->open(c, c->url) < 0){
@@ -140,10 +148,15 @@ clientbodyread(Client *c, Req *r)
 {
 	char e[ERRMAX];
 
+	if(c->url->read == nil){
+		respond(r, "unsupported url type");
+		return;
+	}
 	if(c->url->read(c, r) < 0){
 		rerrstr(e, sizeof e);
 		c->iobusy = 0;
 		respond(r, e);
+		return;
 	}
 	c->iobusy = 0;
 	respond(r, nil);

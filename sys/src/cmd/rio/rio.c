@@ -225,7 +225,7 @@ threadmain(int argc, char *argv[])
 			if(wkeyboard == nil)
 				error("can't create keyboard window");
 		}
-//		notify(shutdown);
+		threadnotify(shutdown, 1);
 		recv(exitchan, nil);
 	}
 	killprocs();
@@ -302,7 +302,7 @@ char *oknotes[] =
 	nil
 };
 
-void
+int
 shutdown(void *, char *msg)
 {
 	int i;
@@ -314,6 +314,7 @@ shutdown(void *, char *msg)
 	fprint(2, "rio %d: abort: %s\n", getpid(), msg);
 	abort();
 	exits(msg);
+	return 0;
 }
 
 void

@@ -21,11 +21,9 @@ isdosfs(uchar *buf)
 
 	/*
 	 * Check if the jump displacement (magic[1]) is too short for a FAT.
-	 * DOS 4.0 MBR has a displacement of 8.
 	 */
-	if(buf[0] == 0xEB && buf[2] == 0x90 && buf[1] != 0x08)
+	if(buf[0] == 0xEB && buf[2] == 0x90 && buf[1] >= 0x30)
 		return 1;
-
 
 	return 0;
 }
@@ -71,8 +69,7 @@ dosfs(Xfs *xf)
 		return -1;
 
 	b = (Dosboot*)p->iobuf;
-
-	if(isdosfs(p->iobuf) == 0){
+	if(b->clustsize == 0 || isdosfs(p->iobuf) == 0){
 		putsect(p);
 		return -1;
 	}

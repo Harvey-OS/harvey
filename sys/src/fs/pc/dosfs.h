@@ -56,7 +56,7 @@ struct Dosfile{
 struct Dos{
 	int	dev;				/* device id */
 	long	(*read)(int, void*, long);	/* read routine */
-	long	(*seek)(int, long);		/* seek routine */
+	vlong	(*seek)(int, vlong);		/* seek routine */
 	long	(*write)(int, void*, long);	/* write routine */
 
 	int	start;		/* start of file system (sector no.) */

@@ -84,6 +84,8 @@ main(int argc, char *argv[])
 	char home[2*ANAMELEN];
 	char *user, *sysname, *tz, *cputype, *service;
 
+	rfork(RFENVG|RFNAMEG);
+
 	service = getenv("service");
 	if(strcmp(service, "cpu") == 0){
 		fprint(2, "not from a cpu server!\n");

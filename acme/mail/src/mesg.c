@@ -619,16 +619,17 @@ mesgcommand(Message *m, char *cmd)
 	}
 	if(strcmp(args[0], "Reply")==0){
 		if(nargs>=2 && strcmp(args[1], "all")==0)
-			mkreply(m, "Replyall", nil, nil);
+			mkreply(m, "Replyall", nil, nil, nil);
 		else
-			mkreply(m, "Reply", nil, nil);
+			mkreply(m, "Reply", nil, nil, nil);
 		goto Return;
 	}
 	if(strcmp(args[0], "Q") == 0){
+		s = winselection(m->w);	/* will be freed by mkreply */
 		if(nargs>=3 && strcmp(args[1], "Reply")==0 && strcmp(args[2], "all")==0)
-			mkreply(m, "QReplyall", nil, nil);
+			mkreply(m, "QReplyall", nil, nil, s);
 		else
-			mkreply(m, "QReply", nil, nil);
+			mkreply(m, "QReply", nil, nil, s);
 		goto Return;
 	}
 	if(strcmp(args[0], "Del") == 0){
@@ -946,7 +947,7 @@ mimedisplay(Message *m, char *name, char *rootdir, Window *w, int fileonly)
 			dest = estrdup(m->filename);
 		if(m->filename[0] != '/')
 			dest = egrow(estrdup(home), "/", dest);
-		Bprint(w->body, "\tcp %s%sbody%s %s\n", rootdir, name, ext(m->type), dest);
+		Bprint(w->body, "\tcp %s%sbody%s %q\n", rootdir, name, ext(m->type), dest);
 		free(dest);
 	}else if(!fileonly)
 		Bprint(w->body, "\tfile is %s%sbody%s\n", rootdir, name, ext(m->type));

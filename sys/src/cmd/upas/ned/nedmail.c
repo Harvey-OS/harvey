@@ -1222,8 +1222,9 @@ printhtml(Message *m)
 {
 	Cmd c;
 
-	c.an = 2;
+	c.an = 3;
 	c.av[1] = "/bin/htmlfmt";
+	c.av[2] = "-cutf-8";
 	Bprint(&out, "!%s\n", c.av[1]);
 	Bflush(&out);
 	pipecmd(&c, m);

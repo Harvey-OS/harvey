@@ -236,6 +236,7 @@ struct PCMslot
 	/* status */
 	uchar	occupied;	/* card in the slot */
 	uchar	configed;	/* card configured */
+	uchar	inserted;	/* card just inserted */
 
 	Dev		*dev;	/* set in ctlwrite `configure' */
 
@@ -256,13 +257,19 @@ struct PCMslot
 /*
  *  hardware info about a device
  */
+typedef struct {
+	ulong	port;	
+	int	size;
+} port_t;
+
 struct DevConf
 {
 	RWlock;			/* write: configure/unconfigure/suspend; read: normal access */
-	ulong	mem;	/* mapped memory address */
-	ulong	port;		/* mapped i/o regs */
-	int		size;		/* access size */
-	int		itype;	/* type of interrupt */
-	ulong	irq;		/* interrupt number */
-	char		*type;	/* card type, mallocated */
+	ulong	mem;		/* mapped memory address */
+	port_t	*ports;		/* ports[0]: mapped i/o regs, access size */
+	int	nports;		/* always 1 for the bitsy */
+	int	itype;		/* type of interrupt */
+	ulong	intnum;		/* interrupt number */
+	char	*type;		/* card type, mallocated */
 };
+

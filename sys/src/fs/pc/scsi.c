@@ -11,6 +11,7 @@ static struct {
 } scsictlr[] = {
 	{ "aha1542", buslogic, },
 	{ "buslogic", buslogic, },
+	{ "mylex", buslogic, },		/* the name 9load knows */
 	{ "ncr53c8xx", ncr53c8xxreset, },
 	{ 0, },
 };
