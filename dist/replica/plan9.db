@@ -26,7 +26,7 @@
 386/bin/8l - 775 sys sys 1087527915 106966
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
-386/bin/acid - 775 sys sys 1085076972 371882
+386/bin/acid - 775 sys sys 1088737562 371928
 386/bin/acme - 775 sys sys 1086836655 424880
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
@@ -191,7 +191,7 @@
 386/bin/cpu - 775 sys sys 1085077026 135690
 386/bin/crop - 775 sys sys 1085077026 115107
 386/bin/date - 775 sys sys 1085077026 43216
-386/bin/db - 775 sys sys 1085077028 318180
+386/bin/db - 775 sys sys 1088737563 318226
 386/bin/dc - 775 sys sys 1085077028 96997
 386/bin/dd - 775 sys sys 1085077028 45322
 386/bin/deroff - 775 sys sys 1085077029 72249
@@ -301,8 +301,8 @@
 386/bin/join - 775 sys sys 1085077074 114267
 386/bin/jpg - 775 sys sys 1085077075 172573
 386/bin/kbmap - 775 sys sys 1085077075 140375
-386/bin/kprof - 775 sys sys 1085077075 99239
-386/bin/ktrace - 775 sys sys 1085077076 113171
+386/bin/kprof - 775 sys sys 1088737563 99266
+386/bin/ktrace - 775 sys sys 1088737563 113198
 386/bin/lens - 775 sys sys 1085077076 122322
 386/bin/lex - 775 sys sys 1085077076 96662
 386/bin/lnfs - 775 sys sys 1085077076 97466
@@ -335,7 +335,7 @@
 386/bin/netstat - 775 sys sys 1085077084 81935
 386/bin/news - 775 sys sys 1085077084 69654
 386/bin/nfs - 775 sys sys 1086923029 313626
-386/bin/nm - 775 sys sys 1085077085 119507
+386/bin/nm - 775 sys sys 1088737563 119534
 386/bin/nntpfs - 775 sys sys 1086923029 159031
 386/bin/ns - 775 sys sys 1085077086 63226
 386/bin/p - 775 sys sys 1085077086 62948
@@ -353,7 +353,7 @@
 386/bin/ppm - 775 sys sys 1085077089 147104
 386/bin/pr - 775 sys sys 1085077089 75383
 386/bin/primes - 775 sys sys 1085077090 38765
-386/bin/prof - 775 sys sys 1085077090 103992
+386/bin/prof - 775 sys sys 1088737564 104019
 386/bin/proof - 775 sys sys 1085077090 175785
 386/bin/ps - 775 sys sys 1085077090 63831
 386/bin/pwd - 775 sys sys 1085077091 36869
@@ -386,8 +386,8 @@
 386/bin/sha1sum - 775 sys sys 1085077096 59101
 386/bin/size - 775 sys sys 1085077097 74163
 386/bin/sleep - 775 sys sys 1085077097 3413
-386/bin/snap - 775 sys sys 1085077097 285793
-386/bin/snapfs - 775 sys sys 1086923030 354625
+386/bin/snap - 775 sys sys 1088737564 285839
+386/bin/snapfs - 775 sys sys 1088737565 354671
 386/bin/sniffer - 775 sys sys 1038443185 99028
 386/bin/snoopy - 775 sys sys 1085077098 152766
 386/bin/sort - 775 sys sys 1085077099 80213
@@ -420,7 +420,7 @@
 386/bin/topng - 775 sys sys 1085077107 137101
 386/bin/toppm - 775 sys sys 1085077107 164405
 386/bin/touch - 775 sys sys 1085077107 61742
-386/bin/tprof - 775 sys sys 1085077108 271255
+386/bin/tprof - 775 sys sys 1088737566 271301
 386/bin/tr - 775 sys sys 1085077108 60009
 386/bin/trace - 775 sys sys 1085077109 178355
 386/bin/troff - 775 sys sys 1088263705 357256
@@ -542,7 +542,7 @@
 386/lib/libhttpd.a - 664 sys sys 1085077143 99392
 386/lib/libip.a - 664 sys sys 1085077143 34002
 386/lib/libl.a - 664 sys sys 1085077143 5384
-386/lib/libmach.a - 664 sys sys 1085077145 735256
+386/lib/libmach.a - 664 sys sys 1088737568 735540
 386/lib/libmemdraw.a - 664 sys sys 1085077145 287684
 386/lib/libmemlayer.a - 664 sys sys 1085077145 47360
 386/lib/libmp.a - 664 sys sys 1085713909 80458
@@ -9681,7 +9681,7 @@ sys/src/cmd/lp/lpdsend.c - 664 sys sys 1039145206 9527
 sys/src/cmd/lp/lpsend.c - 664 sys sys 1015090024 6180
 sys/src/cmd/lp/lpsend.rc - 775 sys sys 953344615 361
 sys/src/cmd/lp/mkfile - 664 sys sys 953344616 535
-sys/src/cmd/ls.c - 664 sys sys 1072793234 5388
+sys/src/cmd/ls.c - 664 sys sys 1088735544 5400
 sys/src/cmd/map - 20000000775 sys sys 944961024 0
 sys/src/cmd/map/index.c - 664 sys sys 956282376 4345
 sys/src/cmd/map/iplot.h - 664 sys sys 944961024 1398
@@ -12013,7 +12013,7 @@ sys/src/libmach/7.c - 664 sys sys 964540515 3267
 sys/src/libmach/7db.c - 644 sys sys 1014929543 17320
 sys/src/libmach/7obj.c - 644 sys sys 964540515 2296
 sys/src/libmach/8.c - 664 sys sys 964540515 2020
-sys/src/libmach/8db.c - 664 sys sys 1084468475 39110
+sys/src/libmach/8db.c - 664 sys sys 1088653064 39144
 sys/src/libmach/8obj.c - 664 sys sys 964540515 2129
 sys/src/libmach/9.c - 664 sys sys 964540515 2743
 sys/src/libmach/9db.c - 664 sys sys 1014929544 9095
@@ -12034,7 +12034,7 @@ sys/src/libmach/qdb.c - 664 sys sys 1014929544 27188
 sys/src/libmach/qobj.c - 664 sys sys 964540517 2245
 sys/src/libmach/setmach.c - 664 sys sys 964540517 2878
 sys/src/libmach/swap.c - 664 sys sys 964540518 1026
-sys/src/libmach/sym.c - 664 sys sys 1068478065 26516
+sys/src/libmach/sym.c - 664 sys sys 1088653081 26582
 sys/src/libmach/v.c - 664 sys sys 964540518 3403
 sys/src/libmach/vcodas.c - 664 sys sys 1014929545 10253
 sys/src/libmach/vdb.c - 664 sys sys 1014929545 22248

@@ -90,7 +90,7 @@
 386/bin/aux/LOCK - 775 sys sys 1085076988 57919
 386/bin/aux/X509gen - 775 sys sys 1048341826 129186
 386/bin/aux/accupoint - 775 sys sys 1085076988 40013
-386/bin/aux/acidleak - 775 sys sys 1064598060 67816
+386/bin/aux/acidleak - 775 sys sys 1088651143 67380
 386/bin/aux/antiword - 775 sys sys 1070288096 511478
 386/bin/aux/apm - 775 sys sys 1086923025 172135
 386/bin/aux/astarld - 775 sys sys 1085076989 62660
@@ -9681,7 +9681,7 @@ sys/src/cmd/lp/lpdsend.c - 664 sys sys 1039145206 9527
 sys/src/cmd/lp/lpsend.c - 664 sys sys 1015090024 6180
 sys/src/cmd/lp/lpsend.rc - 775 sys sys 953344615 361
 sys/src/cmd/lp/mkfile - 664 sys sys 953344616 535
-sys/src/cmd/ls.c - 664 sys sys 1072793234 5388
+sys/src/cmd/ls.c - 664 sys sys 1088735544 5400
 sys/src/cmd/map - 20000000775 sys sys 944961024 0
 sys/src/cmd/map/index.c - 664 sys sys 956282376 4345
 sys/src/cmd/map/iplot.h - 664 sys sys 944961024 1398
@@ -12013,7 +12013,7 @@ sys/src/libmach/7.c - 664 sys sys 964540515 3267
 sys/src/libmach/7db.c - 644 sys sys 1014929543 17320
 sys/src/libmach/7obj.c - 644 sys sys 964540515 2296
 sys/src/libmach/8.c - 664 sys sys 964540515 2020
-sys/src/libmach/8db.c - 664 sys sys 1084468475 39110
+sys/src/libmach/8db.c - 664 sys sys 1088653064 39144
 sys/src/libmach/8obj.c - 664 sys sys 964540515 2129
 sys/src/libmach/9.c - 664 sys sys 964540515 2743
 sys/src/libmach/9db.c - 664 sys sys 1014929544 9095
@@ -12034,7 +12034,7 @@ sys/src/libmach/qdb.c - 664 sys sys 1014929544 27188
 sys/src/libmach/qobj.c - 664 sys sys 964540517 2245
 sys/src/libmach/setmach.c - 664 sys sys 964540517 2878
 sys/src/libmach/swap.c - 664 sys sys 964540518 1026
-sys/src/libmach/sym.c - 664 sys sys 1068478065 26516
+sys/src/libmach/sym.c - 664 sys sys 1088653081 26582
 sys/src/libmach/v.c - 664 sys sys 964540518 3403
 sys/src/libmach/vcodas.c - 664 sys sys 1014929545 10253
 sys/src/libmach/vdb.c - 664 sys sys 1014929545 22248
@@ -12431,4 +12431,13 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/acidleak - 775 sys sys 1088651143 67380
+386/bin/acid - 775 sys sys 1088737562 371928
+386/bin/db - 775 sys sys 1088737563 318226
+386/bin/snap - 775 sys sys 1088737564 285839
+386/bin/snapfs - 775 sys sys 1088737565 354671
+386/bin/kprof - 775 sys sys 1088737563 99266
+386/bin/ktrace - 775 sys sys 1088737563 113198
+386/bin/nm - 775 sys sys 1088737563 119534
+386/bin/prof - 775 sys sys 1088737564 104019
+386/bin/tprof - 775 sys sys 1088737566 271301
+386/lib/libmach.a - 664 sys sys 1088737568 735540
