@@ -12730,3 +12730,16 @@
 1056504706 1 c sys/src/9/alphapc/trap.c - 664 sys sys 1056503355 17893
 1056504706 2 a sys/src/9/pc/pcf - 664 sys sys 1056503364 1457
 1056504706 3 a sys/src/9/pc/pccpuf - 664 sys sys 1056503364 909
+1056551571 0 c 386/bin/ip/ping - 775 sys sys 1056550716 74040
+1056551571 1 c 386/bin/ip/ppp - 775 sys sys 1056551099 215626
+1056551571 2 c 386/bin/upas/fs - 775 sys sys 1056550611 332282
+1056551571 3 c sys/src/cmd/ip/ping.c - 664 sys sys 1056550715 5076
+1056569469 0 a sys/src/9/boot/libboot.a8 - 664 sys sys 1056568081 54780
+1056569469 1 c sys/src/9/pc/pccpu - 664 sys sys 1056568059 803
+1056573071 0 c LICENSE - 444 sys sys 1056572182 12740
+1056573071 1 m LICENSE - 444 sys sys 1056572182 12740
+1056573071 2 a LICENSE.gpl - 664 sys sys 1056572448 15081
+1056573071 3 c lib/font/bit/lucida/NOTICE - 444 sys sys 1056572305 816
+1056573071 4 c sys/lib/ghostscript/font/README - 444 sys sys 1056572274 350
+1056573071 5 m sys/lib/ghostscript/font/README - 444 sys sys 1056572274 350
+1056573071 6 c sys/lib/postscript/font/NOTICE - 444 sys sys 1056572331 816

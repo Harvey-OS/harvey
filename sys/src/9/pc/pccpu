@@ -74,4 +74,4 @@ boot cpu
 bootdir
 	bootpccpu.out boot
 	/386/bin/ip/ipconfig ipconfig
-	factotum.hack factotum
+	/386/bin/auth/factotum

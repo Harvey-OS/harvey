@@ -277,7 +277,7 @@ main(int argc, char **argv)
 	default:
 		sender(fd, msglen, interval, nmsg);
 		wait();
-		exits(0);
+		exits(lostmsgs ? "lost messages" : "");
 	}
 }
 
