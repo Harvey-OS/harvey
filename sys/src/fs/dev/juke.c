@@ -38,12 +38,17 @@ struct	Juke
 	long	fixedsize;		/* one size fits all */
 	int	probeok;		/* wait for init to probe */
 
-	/* geometry returned by mode sense */
-	int	mt0,	nmt;
-	int	se0,	nse;
-	int	ie0,	nie;
-	int	dt0,	ndt;
-	int	rot;
+	/*
+	 * geometry returned by mode sense.
+	 * a *0 number (such as mt0) is the `element number' of the
+	 * first element of that type (e.g., mt, or motor transport).
+	 * an n* number is the quantity of them.
+	 */
+	int	mt0,	nmt;	/* motor transports (robot pickers) */
+	int	se0,	nse;	/* storage elements (discs, slots) */
+	int	ie0,	nie;	/* interchange elements (mailbox slots) */
+	int	dt0,	ndt;	/* drives (data transfer?) */
+	int	rot;		/* if true, discs are double-sided */
 
 	Juke*	link;
 };
@@ -383,6 +388,7 @@ typedef struct {
 	int	sleft;		/* sides still to visit to reach desired side */
 	int	starget;	/* side of topdev we want */
 	Device	*topdev;
+	int	sawjuke;	/* passed by a jukebox */
 	int	sized;		/* flag: asked wormsize for size of starget */
 } Visit;
 
@@ -407,6 +413,7 @@ visitsides(Device *d, Device *parentj, Visit *vp)
 	if (d == nil || vp->sleft < 0)
 		return 0;
 	if (d->type == Devjuke) {    /* jackpot!  d->private is a (Juke *) */
+		vp->sawjuke = 1;
 		w = d->private;
 		/*
 		 * if there aren't enough sides in this jukebox to reach
@@ -471,11 +478,11 @@ wormsizeside(Device *d, int side)
 	long size;
 	Visit visit;
 
+	memset(&visit, 0, sizeof visit);
 	visit.starget = visit.sleft = side;
 	visit.topdev = d;
-	visit.sized = 0;
 	size = visitsides(d, nil, &visit);
-	if (visit.sleft != 0 || !visit.sized) {
+	if (visit.sawjuke && (visit.sleft != 0 || !visit.sized)) {
 		print("wormsizeside: fewer than %d sides in %Z\n", side, d);
 		return 0;
 	}
@@ -587,7 +594,8 @@ mmove(Juke *w, int trans, int from, int to, int rot)
 	s = scsiio(w->juke, SCSInone, cmd, sizeof(cmd), buf, 0);
 	if(s) {
 		print("scsio status #%x\n", s);
-		print("move medium t=%d fr=%d to=%d rot=%d", trans, from, to, rot);
+		print("move medium t=%d fr=%d to=%d rot=%d\n",
+			trans, from, to, rot);
 //		panic("mmove");
 		if(recur == 0) {
 			recur = 1;
@@ -730,6 +738,21 @@ element(Juke *w, int e)
 			(buf[8+8+9]>>6) & 1);
 		if(buf[8+8+2] & 1) {
 			t = ((buf[8+8+10]<<8) | buf[8+8+11]) - w->se0;
+			if (t < 0 || t >= w->nse || t >= MAXSIDE ||
+			    s >= MAXDRIVE) {
+				print(
+		"element: juke %Z lies; claims side %d is in drive %d\n",
+					w->juke, t, s);	/* lying sack of ... */
+				/*
+				 * at minimum, we've avoided corrupting our
+				 * data structures.  if we know that numbers
+				 * like w->nside are valid here, we could use
+				 * them in more stringent tests.
+				 * perhaps should whack the jukebox upside the
+				 * head here to knock some sense into it.
+				 */
+				goto bad;
+			}
 			print("r%d in drive %d\n", t, s);
 			if(mmove(w, w->mt0, w->dt0+s, w->se0+t, (buf[8+8+9]>>6) & 1)) {
 				print("mmove initial unload\n");
