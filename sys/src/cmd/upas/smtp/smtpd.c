@@ -1,7 +1,9 @@
 #include "common.h"
 #include "smtpd.h"
 #include "smtp.h"
+#include <ctype.h>
 #include <ip.h>
+#include <ndb.h>
 #include <mp.h>
 #include <libsec.h>
 #include <auth.h>
@@ -340,10 +342,127 @@ sender(String *path)
 	reply("250 sender is %s\r\n", s_to_c(path));
 }
 
+enum { Rcpt, Domain, Ntoks };
+
+typedef struct Sender Sender;
+struct Sender {
+	Sender	*next;
+	char	*rcpt;
+	char	*domain;
+};
+static Sender *sendlist, *sendlast;
+static uchar rsysip[IPaddrlen];
+
+static int
+rdsenders(void)
+{
+	int lnlen, nf, ok = 1;
+	char *line, *senderfile;
+	char *toks[Ntoks];
+	Biobuf *sf;
+	Sender *snd;
+	static int beenhere = 0;
+
+	if (beenhere)
+		return 1;
+	beenhere = 1;
+
+	fmtinstall('I', eipfmt);
+	parseip(rsysip, nci->rsys);
+
+	/*
+	 * we're sticking with a system-wide sender list because
+	 * per-user lists would require fully resolving recipient
+	 * addresses to determine which users they correspond to
+	 * (barring syntactic conventions).
+	 */
+	senderfile = smprint("%s/senders", UPASLIB);
+	sf = Bopen(senderfile, OREAD);
+	free(senderfile);
+	if (sf == nil)
+		return 1;
+	while ((line = Brdline(sf, '\n')) != nil) {
+		if (line[0] == '#' || line[0] == '\n')
+			continue;
+		lnlen = Blinelen(sf);
+		line[lnlen-1] = '\0';		/* clobber newline */
+		nf = tokenize(line, toks, nelem(toks));
+		if (nf != nelem(toks))
+			continue;		/* malformed line */
+
+		snd = malloc(sizeof *snd);
+		if (snd == nil)
+			sysfatal("out of memory: %r");
+		memset(snd, 0, sizeof *snd);
+		snd->next = nil;
+
+		if (sendlast == nil)
+			sendlist = snd;
+		else
+			sendlast->next = snd;
+		sendlast = snd;
+		snd->rcpt = strdup(toks[Rcpt]);
+		snd->domain = strdup(toks[Domain]);
+	}
+	Bterm(sf);
+	return ok;
+}
+
+/*
+ * read (recipient, sender's DNS) pairs from /mail/lib/senders.
+ * Only allow mail to recipient from any of sender's IPs.
+ * A recipient not mentioned in the file is always permitted.
+ */
+static int
+senderok(char *rcpt)
+{
+	int mentioned = 0, matched = 0;
+	uchar dnsip[IPaddrlen];
+	Sender *snd;
+	Ndbtuple *nt, *next, *first;
+
+	/* internal mail is exempt from this checking */
+	if (strcmp(nci->root, "/net") == 0)
+		return 1;
+	rdsenders();
+	for (snd = sendlist; snd != nil; snd = snd->next) {
+		if (strcmp(rcpt, snd->rcpt) != 0)
+			continue;
+		/*
+		 * see if this domain's ips match nci->rsys.
+		 * if not, perhaps a later entry's domain will.
+		 */
+		mentioned = 1;
+		if (parseip(dnsip, snd->domain) != -1 &&
+		    memcmp(rsysip, dnsip, IPaddrlen) == 0)
+			return 1;
+		/*
+		 * NB: nt->line links form a circular list(!).
+		 * we need to make one complete pass over it to free it all.
+		 */
+		first = nt = dnsquery(nci->root, snd->domain, "ip");
+		if (first == nil)
+			continue;
+		do {
+			if (strcmp(nt->attr, "ip") == 0 &&
+			    parseip(dnsip, nt->val) != -1 &&
+			    memcmp(rsysip, dnsip, IPaddrlen) == 0)
+				matched = 1;
+			next = nt->line;
+			free(nt);
+			nt = next;
+		} while (nt != first);
+	}
+	if (matched)
+		return 1;
+	else
+		return !mentioned;
+}
+
 void
 receiver(String *path)
 {
-	char *sender;
+	char *sender, *rcpt;
 
 	if(rejectcheck())
 		return;
@@ -359,9 +478,17 @@ receiver(String *path)
 
 	if(!recipok(s_to_c(path))){
 		rejectcount++;
-		syslog(0, "smtpd", "Disallowed %s (%s/%s) to %s",
+		syslog(0, "smtpd", "Disallowed %s (%s/%s) to blocked name %s",
 				sender, him, nci->rsys, s_to_c(path));
 		reply("550 %s ... user unknown\r\n", s_to_c(path));
+		return;
+	}
+	rcpt = s_to_c(path);
+	if (!senderok(rcpt)) {
+		rejectcount++;
+		syslog(0, "smtpd", "Disallowed sending IP of %s (%s/%s) to %s",
+				sender, him, nci->rsys, rcpt);
+		reply("550 %s ... sending system not allowed\r\n", rcpt);
 		return;
 	}
 
@@ -804,7 +931,7 @@ pipemsg(int *byteswritten)
 		nbytes += forgedheaderwarnings();
 
 	/*
-	 *  add  an orginator and/or destination if either is missing
+	 *  add an orginator and/or destination if either is missing
 	 */
 	if(originator == 0){
 		if(senders.last == nil)
@@ -879,6 +1006,20 @@ pipemsg(int *byteswritten)
 	return status;
 }
 
+char*
+firstline(char *x)
+{
+	static char buf[128];
+	char *p;
+
+	strncpy(buf, x, sizeof(buf));
+	buf[sizeof(buf)-1] = 0;
+	p = strchr(buf, '\n');
+	if(p)
+		*p = 0;
+	return buf;
+}
+
 void
 data(void)
 {
@@ -940,10 +1081,12 @@ data(void)
 		int code;
 
 		if(strstr(s_to_c(err), "mail refused")){
-			syslog(0, "smtpd", "++[%s/%s] %s refused %d", him, nci->rsys, s_to_c(cmd), status);
+			syslog(0, "smtpd", "++[%s/%s] %s %s refused: %s", him, nci->rsys,
+				s_to_c(senders.first->p), s_to_c(cmd), firstline(s_to_c(err)));
 			code = 554;
 		} else {
-			syslog(0, "smtpd", "++[%s/%s] %s returned %d", him, nci->rsys, s_to_c(cmd), status);
+			syslog(0, "smtpd", "++[%s/%s] %s %s returned %s", him, nci->rsys,
+				s_to_c(senders.first->p), s_to_c(cmd), firstline(s_to_c(err)));
 			code = 450;
 		}
 		for(cp = s_to_c(err); ep = strchr(cp, '\n'); cp = ep){
@@ -1058,8 +1201,12 @@ starttls(void)
 	if (fd < 0) {
 		free(cert);
 		free(conn);
-if(debug)fprint(2, "tlsServer failed: %r\n");
-		return;	/*  XXX  We should really force the client to hang up here.  */
+		syslog(0, "smtpd", "TLS start-up failed with %s", him);
+
+		/* force the client to hang up */
+		close(Bfildes(&bin));		/* probably fd 0 */
+		close(1);
+		exits("tls failed");
 	}
 	Bterm(&bin);
 	Binit(&bin, fd, OREAD);

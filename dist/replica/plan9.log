@@ -14646,3 +14646,5 @@
 1079103607 3 c sys/src/cmd/acme/util.c - 664 sys sys 1079102916 7412
 1079105409 0 c lib/face/48x48x8/.dict - 664 sys sys 1079103826 2117
 1079116211 0 c sys/src/cmd/acme/text.c - 664 sys sys 1079115968 27284
+1079323248 0 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1079323038 27764
+1079323248 1 c sys/src/cmd/upas/vf/vf.c - 664 sys sys 1079323044 17391
