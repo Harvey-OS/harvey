@@ -2,8 +2,8 @@
 #include <ip.h>
 
 enum {
-	Maxdoms	=	10,	/* max domains in a path */
-	Timeout =	15*60,	/* seconds until temporarily trusted addr times out */
+	Maxdoms	=	10,		/* max domains in a path */
+	Timeout =	2*60*60,	/* seconds until temporarily trusted addr times out */
 };
 
 static	int	accountmatch(char*, char**, int, char*);

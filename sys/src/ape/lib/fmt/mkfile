@@ -1,0 +1,59 @@
+APE=/sys/src/ape
+<$APE/config
+
+LIB=/$objtype/lib/ape/libfmt.a
+
+NUM=\
+	charstod.$O\
+	pow10.$O\
+
+OFILES=\
+	dofmt.$O\
+	errfmt.$O\
+	fltfmt.$O\
+	fmt.$O\
+	fmtfd.$O\
+	fmtfdflush.$O\
+	fmtlock.$O\
+	fmtprint.$O\
+	fmtquote.$O\
+	fmtrune.$O\
+	fmtstr.$O\
+	fmtvprint.$O\
+	fprint.$O\
+	nan64.$O\
+	print.$O\
+	runefmtstr.$O\
+	runeseprint.$O\
+	runesmprint.$O\
+	runesnprint.$O\
+	runesprint.$O\
+	runevseprint.$O\
+	runevsmprint.$O\
+	runevsnprint.$O\
+	seprint.$O\
+	smprint.$O\
+	snprint.$O\
+	sprint.$O\
+	strtod.$O\
+	vfprint.$O\
+	vseprint.$O\
+	vsmprint.$O\
+	vsnprint.$O\
+	werrstr.$O\
+	$NUM\
+
+HFILES=\
+	fmtdef.h\
+	/sys/include/ape/fmt.h\
+
+</sys/src/cmd/mksyslib
+
+$NAN.$O: nan.h
+strtod.$O: nan.h
+
+test: $LIB test.$O
+	$CC -o test test.$O $LIB -L$PLAN9/lib -lutf
+
+
+CFLAGS=-c -D_POSIX_SOURCE -D_PLAN9_SOURCE -D_BSD_EXTENSION
