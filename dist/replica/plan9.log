@@ -12035,3 +12035,4 @@
 1054089063 0 c sys/src/9/pc/sdata.c - 664 sys sys 1054088388 46387
 1054391577 0 c sys/src/9/ip/devip.c - 664 sys sys 1054391399 24207
 1054391577 1 c sys/src/9/ip/ip.h - 664 sys sys 1054391400 16066
+1054479750 0 c sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1054479635 12043
