@@ -69,7 +69,7 @@ words given on the command line.
 .PP
 .B Sig
 prints the signature (i.e. C definition) of the
-.IR function 's
+.IR functions
 given on the command line.
 .SH FILES
 .TF /sys/lib/man/lookman/index
