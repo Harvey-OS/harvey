@@ -508,9 +508,12 @@
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
 386/lib/ape/libap.a - 664 sys sys 1070342464 810262
 386/lib/ape/libbsd.a - 664 sys sys 1070342465 179718
+386/lib/ape/libdraw.a - 664 sys sys 1070519111 574426
+386/lib/ape/libfmt.a - 664 sys sys 1070519112 148600
 386/lib/ape/libl.a - 664 sys sys 1068558290 9450
 386/lib/ape/libnet.a - 664 sys sys 1068558291 16996
 386/lib/ape/libregexp.a - 664 sys sys 1068558291 47642
+386/lib/ape/libutf.a - 664 sys sys 1070519112 81400
 386/lib/ape/libv.a - 664 sys sys 1068558291 19718
 386/lib/lib9p.a - 664 sys sys 1068385833 80602
 386/lib/libString.a - 664 sys sys 1068385833 22324
@@ -521,7 +524,7 @@
 386/lib/libc.a - 664 sys sys 1068385836 506616
 386/lib/libcontrol.a - 664 sys sys 1068385837 243448
 386/lib/libdisk.a - 664 sys sys 1068385837 43692
-386/lib/libdraw.a - 664 sys sys 1068385838 372606
+386/lib/libdraw.a - 664 sys sys 1070519127 372960
 386/lib/libflate.a - 664 sys sys 1068385839 77880
 386/lib/libframe.a - 664 sys sys 1068385839 65832
 386/lib/libgeometry.a - 664 sys sys 1068385839 50806
