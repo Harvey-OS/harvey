@@ -419,6 +419,10 @@ _aamloop:
 
 /*
  * Floating point.
+ * Note: the encodings for the FCLEX, FINIT, FSAVE, FSTCW, FSENV and FSTSW
+ * instructions do NOT have the WAIT prefix byte (i.e. they act like their
+ * FNxxx variations) so WAIT instructions must be explicitly placed in the
+ * code as necessary.
  */
 #define	FPOFF								;\
 	WAIT								;\
@@ -468,6 +472,12 @@ TEXT fpstatus(SB), $0				/* get floating point status */
 TEXT fpenv(SB), $0				/* save state without waiting */
 	MOVL	p+0(FP), AX
 	FSTENV	0(AX)
+	RET
+
+TEXT fpclear(SB), $0				/* clear pending exceptions */
+	FPON
+	FCLEX					/* no WAIT */
+	FPOFF
 	RET
 
 /*

@@ -79,7 +79,7 @@
 386/bin/auth/rsagen - 775 sys sys 1085076985 152588
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
 386/bin/auth/secstore - 775 sys sys 1085076985 188566
-386/bin/auth/secstored - 775 sys sys 1085076986 195420
+386/bin/auth/secstored - 775 sys sys 1089058015 194372
 386/bin/auth/secuser - 775 sys sys 1085076986 151623
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1085076986 61081
@@ -5360,7 +5360,7 @@ sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1071245461 15103
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1026847642 3722
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
-sys/src/9/pc/fns.h - 664 sys sys 1086987325 4352
+sys/src/9/pc/fns.h - 664 sys sys 1089046996 4372
 sys/src/9/pc/hcwAMC.h - 664 sys sys 1026860163 166004
 sys/src/9/pc/i8253.c - 664 sys sys 1084475127 6272
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
@@ -5368,8 +5368,8 @@ sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1087657448 8029
 sys/src/9/pc/kbd.c - 664 sys sys 1079617269 11655
-sys/src/9/pc/l.s - 664 sys sys 1086960172 22732
-sys/src/9/pc/main.c - 664 sys sys 1084475127 14675
+sys/src/9/pc/l.s - 664 sys sys 1089046996 23078
+sys/src/9/pc/main.c - 664 sys sys 1089046997 14677
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
@@ -6964,7 +6964,7 @@ sys/src/cmd/auth/secstore/secacct.c - 644 sys sys 1015008431 755
 sys/src/cmd/auth/secstore/secchk.c - 664 sys sys 1055698993 560
 sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1062277640 12269
 sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1041890053 841
-sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1074559798 7998
+sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1089058000 8328
 sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1064667494 4971
 sys/src/cmd/auth/secstore/util.c - 664 sys sys 1021579985 1498
 sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1078840013 9007
@@ -7149,7 +7149,7 @@ sys/src/cmd/aux/vga/main.c - 664 sys sys 1014925010 8154
 sys/src/cmd/aux/vga/mga2164w.c - 664 sys sys 1014925010 13196
 sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1048636613 905
-sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1014925010 8801
+sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1089055692 8888
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
 sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1088204577 23412
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
@@ -7175,7 +7175,7 @@ sys/src/cmd/aux/vga/tvp3026.c - 664 sys sys 1014925013 3580
 sys/src/cmd/aux/vga/tvp3026clock.c - 664 sys sys 1014925013 1960
 sys/src/cmd/aux/vga/vga.c - 664 sys sys 1014925013 9305
 sys/src/cmd/aux/vga/vga.h - 664 sys sys 1025416295 10154
-sys/src/cmd/aux/vga/virge.c - 664 sys sys 1061565169 18440
+sys/src/cmd/aux/vga/virge.c - 664 sys sys 1089055693 18540
 sys/src/cmd/aux/vga/vision864.c - 664 sys sys 1014925014 2325
 sys/src/cmd/aux/vga/vision964.c - 664 sys sys 1014925014 3426
 sys/src/cmd/aux/vga/vision968.c - 664 sys sys 1014925014 3959
@@ -12432,3 +12432,12 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/9loaddebug - 775 sys sys 1089084070 271141
+386/9loadlitedebug - 775 sys sys 1089084070 184248
+386/9pc - 775 sys sys 1089084073 1812596
+386/9pccpu - 775 sys sys 1089084075 1466770
+386/9pcdisk - 775 sys sys 1089084079 2015046
+386/9pcf - 775 sys sys 1089084083 2347033
+386/bin/auth/secstored - 775 sys sys 1089084068 194348
+386/bin/aux/vga - 775 sys sys 1089084069 300531
+sys/man/2/9p - 664 sys sys 1089084170 15221

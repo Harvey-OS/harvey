@@ -74,7 +74,9 @@ static int
 getfile(SConn *conn, char *id, char *gf)
 {
 	int n, gd, len;
+	ulong mode;
 	char *s;
+	Dir *st;
 
 	if(strcmp(gf,".")==0)
 		return getdir(conn, id);
@@ -89,14 +91,28 @@ getfile(SConn *conn, char *id, char *gf)
 		conn->write(conn, (uchar*)"-1", 2);
 		return -1;
 	}
-	len = seek(gd, 0, 2);
+	st = dirfstat(gd);
+	if(st == nil){
+		syslog(0, LOG, "can't stat %s: %r\n", s);
+		free(s);
+		conn->write(conn, (uchar*)"-1", 2);
+		return -1;
+	}
+	mode = st->mode;
+	len = st->length;
+	free(st);
+	if(mode & DMDIR) {
+		syslog(0, LOG, "%s should be a plain file, not a directory\n", s);
+		free(s);
+		conn->write(conn, (uchar*)"-1", 2);
+		return -1;
+	}
 	if(len < 0 || len > MAXFILESIZE){
 		syslog(0, LOG, "implausible filesize %d for %s\n", len, gf);
 		free(s);
 		conn->write(conn, (uchar*)"-3", 2);
 		return -1;
 	}
-	seek(gd, 0, 0);
 	snprint(s, Maxmsg, "%d", len);
 	conn->write(conn, (uchar*)s, strlen(s));
 

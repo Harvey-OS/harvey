@@ -82,6 +82,11 @@ snarf(Vga* vga, Ctlr* ctlr)
 		if((p = pcimatch(0, 0x10C8, 0)) == nil)
 			error("%s: not found\n", ctlr->name);
 		switch(p->did){
+		case 0x0003:			/* MagicGraph 128 ZV */
+			vga->f[1] = 80000000;
+			vga->vmz = 2048*1024;
+			vga->apz = 4*1024*1024;
+			break;
 		case 0x0004:			/* MagicGraph 128 XD */
 			vga->f[1] = 90000000;
 			vga->vmz = 2048*1024;
@@ -99,7 +104,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 			break;
 		case 0x0001:			/* MagicGraph 128 */
 		case 0x0002:			/* MagicGraph 128 V */
-		case 0x0003:			/* MagicGraph 128 ZV */
 		case 0x0083:			/* MagicGraph 128 ZV+ */
 		default:
 			error("%s: DID %4.4uX unsupported\n",
