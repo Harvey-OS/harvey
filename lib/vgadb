@@ -920,7 +920,7 @@ sm17GLsi=1024x768						# 70Hz, 57.2KHz
 	hsync=- vsync=-
 
 # Samsung SyncMaster 753DF
-sm753DF = 1024x768
+sm753DF=1024x768
 	defaultclock=94.5
 	shb=1072 ehb=1168 ht=1376
 	shs=1072
