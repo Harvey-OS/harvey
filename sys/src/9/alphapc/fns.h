@@ -48,7 +48,7 @@ void		icflush(void);
 void		illegal0(void);
 void		intr0(void);
 void		intrenable(int, void (*)(Ureg*, void*), void*, int, char*);
-void		intrdisable(int, void (*)(Ureg *, void *), void*, int, char*);
+int		intrdisable(int, void (*)(Ureg *, void *), void*, int, char*);
 int		ioalloc(int, int, int, char*);
 void		iofree(int);
 void		ioinit(void);

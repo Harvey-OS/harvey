@@ -12725,3 +12725,8 @@
 1056366156 85 c sys/man/3/usb - 664 sys sys 1056364534 6670
 1056391380 0 c sys/src/9/port/devsdp.c - 664 sys sys 1055688405 0
 1056398466 0 c 386/bin/upas/deliver - 775 sys sys 1056397816 98261
+1056475879 0 c sys/src/9/pc/sdata.c - 664 sys sys 1056475678 50230
+1056504706 0 c sys/src/9/alphapc/fns.h - 664 sys sys 1056503356 3888
+1056504706 1 c sys/src/9/alphapc/trap.c - 664 sys sys 1056503355 17893
+1056504706 2 a sys/src/9/pc/pcf - 664 sys sys 1056503364 1457
+1056504706 3 a sys/src/9/pc/pccpuf - 664 sys sys 1056503364 909
