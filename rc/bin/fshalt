@@ -1,0 +1,55 @@
+#!/bin/rc
+# halt - sync (flush) and, if possible, halt all file servers
+rfork e
+path=(/bin)
+builtin cd /
+
+f=`{ls /srv/fscons*>[2]/dev/null}
+k=`{ls /srv/kfs*cmd >[2]/dev/null|sort -r}
+
+echo -n syncing...
+for(i in $f){
+	echo -n $i...
+	{
+		echo fsys all sync
+		if(! dial/expect -qt 120 ': ')
+			echo -n 'not synced...' > /dev/cons
+	} < $f >> $f
+}
+
+echo -n venti...
+venti/sync >[2]/dev/null
+
+for (i in $k){
+	echo -n $i
+	disk/kfscmd -n `{echo $i | sed 's%/srv/kfs.(.*).cmd%\1%'} sync
+	sleep 2
+}
+
+# halting (binaries we run can't be on the fs we're halting)
+ramfs
+builtin cd /tmp
+cp /bin/dial/expect /tmp
+cp /bin/echo /tmp
+cp /bin/disk/kfscmd /tmp
+cp /bin/rc /tmp
+cp /bin/sed /tmp
+bind /tmp /bin
+
+echo
+echo -n halting...
+for(i in $f){
+	echo -n $i...
+	{
+		echo fsys all halt
+		if(! expect -qt 120 ': ')
+			echo -n 'not halted...' > /dev/cons
+	} < $f >> $f
+}
+
+for (i in $k){
+	echo -n $i...
+	kfscmd -n `{echo $i | sed 's%/srv/kfs.(.*).cmd%\1%'} halt
+}
+echo
+echo done

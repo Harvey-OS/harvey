@@ -2974,6 +2974,7 @@ rc/bin/dosmnt - 775 sys sys 958526437 285
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1015701359 2390
 rc/bin/fedex - 775 sys sys 1060187356 1244
+rc/bin/fshalt - 775 sys sys 1067991211 958
 rc/bin/homespool - 775 sys sys 945617207 339
 rc/bin/ipconf - 20000000775 sys sys 1058791152 0
 rc/bin/ipconf/inside - 775 sys sys 1058790955 427
@@ -5344,7 +5345,7 @@ sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
 sys/src/9/port/devfs.c - 664 sys sys 1067722764 10760
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1067722759 14670
-sys/src/9/port/devmnt.c - 664 sys sys 1067722762 21601
+sys/src/9/port/devmnt.c - 664 sys sys 1067953214 21594
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1067722758 12203
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
@@ -5394,7 +5395,7 @@ sys/src/9/port/portfns.h - 664 sys sys 1067722759 11369
 sys/src/9/port/portmkfile - 664 sys sys 1067722766 2098
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1067722762 24755
-sys/src/9/port/qio.c - 664 sys sys 1063857200 23407
+sys/src/9/port/qio.c - 664 sys sys 1067953182 23406
 sys/src/9/port/qlock.c - 664 sys sys 1067722765 3196
 sys/src/9/port/rdb.c - 664 sys sys 1018721202 1698
 sys/src/9/port/realtimesub.c - 664 sys sys 1055688540 9185
@@ -7052,7 +7053,7 @@ sys/src/cmd/cpp/mkfile - 664 sys sys 944960879 178
 sys/src/cmd/cpp/nlist.c - 664 sys sys 944960879 4631
 sys/src/cmd/cpp/test.c - 664 sys sys 944960879 47
 sys/src/cmd/cpp/tokens.c - 664 sys sys 944960879 6755
-sys/src/cmd/cpu.c - 664 sys sys 1048644441 20353
+sys/src/cmd/cpu.c - 664 sys sys 1067953662 20525
 sys/src/cmd/crop.c - 664 sys sys 1039753034 4136
 sys/src/cmd/date.c - 664 sys sys 944961351 449
 sys/src/cmd/db - 20000000775 sys sys 988249965 0

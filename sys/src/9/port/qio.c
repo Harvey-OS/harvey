@@ -1330,7 +1330,7 @@ qiwrite(Queue *q, void *vp, int len)
 			freeb(b);
 			break;
 		}
-	
+
 		QDEBUG checkb(b, "qiwrite");
 		if(q->bfirst)
 			q->blast->next = b;
