@@ -5273,7 +5273,7 @@ sys/src/9/ip/loopbackmedium.c - 664 sys sys 1055701769 1671
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
 sys/src/9/ip/netlog.c - 664 sys sys 1026847568 4003
 sys/src/9/ip/nudp.c - 664 sys sys 1050756592 13069
-sys/src/9/ip/nullmedium.c - 664 sys sys 1022588099 491
+sys/src/9/ip/nullmedium.c - 664 sys sys 1086406910 492
 sys/src/9/ip/pktmedium.c - 664 sys sys 1084331746 1314
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1055700790 21415
@@ -5321,7 +5321,7 @@ sys/src/9/pc/dat.h - 664 sys sys 1084475127 6256
 sys/src/9/pc/devarch.c - 664 sys sys 1085777737 18478
 sys/src/9/pc/devether.c - 664 sys sys 1078928204 10183
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
-sys/src/9/pc/devi82365.c - 664 sys sys 1020284820 19987
+sys/src/9/pc/devi82365.c - 664 sys sys 1086406910 19989
 sys/src/9/pc/devlm78.c - 664 sys sys 1026847635 6038
 sys/src/9/pc/devlml.c - 664 sys sys 1026847636 7486
 sys/src/9/pc/devlml.h - 664 sys sys 1026847636 2948
@@ -5406,7 +5406,7 @@ sys/src/9/pc/trap.c - 664 sys sys 1084475212 20378
 sys/src/9/pc/uarti8250.c - 664 sys sys 1067722686 13859
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
 sys/src/9/pc/usb.h - 664 sys sys 1063857246 3566
-sys/src/9/pc/usbuhci.c - 664 sys sys 1072972271 30738
+sys/src/9/pc/usbuhci.c - 664 sys sys 1086406909 30740
 sys/src/9/pc/vga.c - 664 sys sys 1039753497 4963
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1071247360 4867
 sys/src/9/pc/vgaark2000pv.c - 664 sys sys 1015014524 3416
@@ -5447,14 +5447,14 @@ sys/src/9/port/devaudio.c - 664 sys sys 1067722761 21130
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
 sys/src/9/port/devcap.c - 664 sys sys 1048644215 4113
 sys/src/9/port/devcons.c - 664 sys sys 1084475350 22380
-sys/src/9/port/devdraw.c - 664 sys sys 1039753332 41987
+sys/src/9/port/devdraw.c - 664 sys sys 1086406909 41991
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
 sys/src/9/port/devfs.c - 664 sys sys 1081864735 10779
 sys/src/9/port/devkbmap.c - 644 sys sys 1079463756 2774
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1076612248 14573
-sys/src/9/port/devmnt.c - 664 sys sys 1084890727 21594
+sys/src/9/port/devmnt.c - 664 sys sys 1086406908 21595
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1067722758 12203
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
@@ -5465,10 +5465,10 @@ sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
 sys/src/9/port/devsd.c - 664 sys sys 1071245428 28564
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
 sys/src/9/port/devsegment.c - 664 sys sys 1017679394 9600
-sys/src/9/port/devsrv.c - 664 sys sys 1063856594 5197
+sys/src/9/port/devsrv.c - 664 sys sys 1086406908 5198
 sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
-sys/src/9/port/devtls.c - 664 sys sys 1066737478 45222
+sys/src/9/port/devtls.c - 664 sys sys 1086406907 45225
 sys/src/9/port/devuart.c - 664 sys sys 1077055016 11683
 sys/src/9/port/edf.c - 664 sys sys 1084475128 12684
 sys/src/9/port/edf.h - 664 sys sys 1084475128 1156
