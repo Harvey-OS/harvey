@@ -3,13 +3,13 @@
 386/9loaddebug - 775 sys sys 1109477747 309905
 386/9loadlite - 775 sys sys 1100269949 132260
 386/9loadlitedebug - 775 sys sys 1109477747 198992
-386/9pc - 775 sys sys 1109132016 1833270
+386/9pc - 775 sys sys 1111119465 1833271
 386/9pc.gz - 664 sys sys 1077049336 635727
 386/9pccpu - 775 sys sys 1109132020 1487821
 386/9pccpu.gz - 664 sys sys 1077049387 519909
-386/9pcdisk - 775 sys sys 1109132025 2038972
+386/9pcdisk - 775 sys sys 1111119470 2038973
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
-386/9pcf - 775 sys sys 1109132030 2381804
+386/9pcf - 775 sys sys 1111119476 2381805
 386/9pcf.gz - 664 sys sys 1077049490 872650
 386/9pxeload - 775 sys sys 1109598590 215716
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -6808,7 +6808,7 @@ sys/src/cmd/acme - 20000000775 sys sys 969511023 0
 sys/src/cmd/acme/acme.c - 664 sys sys 1104430286 19613
 sys/src/cmd/acme/addr.c - 664 sys sys 1018553456 4787
 sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
-sys/src/cmd/acme/cols.c - 664 sys sys 1079102914 11126
+sys/src/cmd/acme/cols.c - 664 sys sys 1111119425 11229
 sys/src/cmd/acme/dat.h - 664 sys sys 1107154481 11165
 sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
 sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
@@ -6823,7 +6823,7 @@ sys/src/cmd/acme/look.c - 664 sys sys 1077376257 14213
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
 sys/src/cmd/acme/rows.c - 664 sys sys 1103565437 14702
-sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
+sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
 sys/src/cmd/acme/text.c - 664 sys sys 1103606882 27652
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1107154483 7984
@@ -11347,7 +11347,7 @@ sys/src/games/music/jukebox/colors.c - 664 sys sys 1103793918 3819
 sys/src/games/music/jukebox/colors.h - 664 sys sys 1103793918 692
 sys/src/games/music/jukebox/mk.dep - 664 sys sys 1103793918 653
 sys/src/games/music/jukebox/mkfile - 664 sys sys 1103793918 234
-sys/src/games/music/jukebox/music.c - 664 sys sys 1103793919 28890
+sys/src/games/music/jukebox/music.c - 664 sys sys 1111074158 28912
 sys/src/games/music/jukebox/playlist.c - 664 sys sys 1103793919 6456
 sys/src/games/music/jukebox/playlist.h - 664 sys sys 1103793919 505
 sys/src/games/music/jukefs - 20000000775 sys sys 1103793922 0
