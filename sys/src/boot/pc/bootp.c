@@ -139,7 +139,7 @@ ip_csum(uchar *addr)
 void
 printea(uchar *ea)
 {
-	print("%2ux%2ux%2ux%2ux%2ux%2ux",
+	print("%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 		ea[0], ea[1], ea[2], ea[3], ea[4], ea[5]);
 }
 
@@ -395,11 +395,19 @@ tftpread(int ctlrno, Netaddr *a, Tftp *tftp, int dlen)
 
 		udpsend(ctlrno, a, buf, sizeof(buf));
 		len = udprecv(ctlrno, a, tftp, dlen);
-		if(len <= sizeof(tftp->header))
+		if(len <= sizeof(tftp->header)){
+			if(debug)
+				print("tftpread: too short %d <= %d\n",
+					len, sizeof(tftp->header));
 			continue;
+		}
 		blockno = (tftp->header[2]<<8)|tftp->header[3];
-		if(blockno <= tftpblockno)
+		if(blockno <= tftpblockno){
+			if(debug)
+				print("tftpread: blkno %d <= %d\n",
+					blockno, tftpblockno);
 			continue;
+		}
 
 		if(blockno == tftpblockno+1) {
 			tftpblockno++;

@@ -455,8 +455,10 @@ putfile(char *dir, char *longname, char *sname)
 		fprint(2, "tar: %s: name too long (max %d)\n", sname, sizeof shortname - 3);
 		return;
 	}
-	
-	snprint(shortname, sizeof shortname, "./%s", sname);
+	if (sname[0] != '/')		/* protect relative names like #foo */
+		snprint(shortname, sizeof shortname, "./%s", sname);
+	else
+		strcpy(shortname, sname);
 	infile = open(shortname, OREAD);
 	if (infile < 0) {
 		fprint(2, "tar: %s: cannot open file - %r\n", longname);

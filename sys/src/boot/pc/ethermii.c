@@ -169,14 +169,10 @@ miistatus(Mii* mii)
 	 */
 	bmsr = mii->mir(mii, phyno, Bmsr);
 	if(!(bmsr & (BmsrAnc|BmsrAna)))
-{
-print("miistatus 1\n");
 		return -1;
-}
 
 	bmsr = mii->mir(mii, phyno, Bmsr);
 	if(!(bmsr & BmsrLs)){
-print("miistatus 2\n");
 		phy->link = 0;
 		return -1;
 	}
@@ -209,10 +205,7 @@ print("miistatus 2\n");
 			phy->speed = 10;
 	}
 	if(phy->speed == 0)
-{
-print("miistatus 3\n");
 		return -1;
-}
 
 	if(phy->fd){
 		p = phy->fc;
