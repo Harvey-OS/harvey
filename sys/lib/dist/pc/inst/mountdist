@@ -67,7 +67,6 @@ case checkready
 	}
 		
 case go
-	kfs=()
 	fat=()
 	ext2=()
 	x9660=()
@@ -81,15 +80,13 @@ case go
 		n=`{echo $i | sed 's;/;_;g'}
 		if(! test -f /tmp/localpart.$n)
 			dd -if $i -bs 2048 -count 32 -of /tmp/localpart.$n >[2]/dev/null
-		if(iskfs /tmp/localpart.$n)
-			kfs=($kfs $i)
 		if(isfat /tmp/localpart.$n)
 			fat=($fat $i)
-	#	if(isext2 /tmp/localpart.$n)
-	#		ext2=($ext2 $i)
+		if(isext2 /tmp/localpart.$n)
+			ext2=($ext2 $i)
 		if(is9660 /tmp/localpart.$n)
 			x9660=($x9660 $i)
-		if(isfossil /tmp/localpart.$n)
+		if(isfossil $i)
 			fossil=($fossil $i)
 		echo
 	}
@@ -99,8 +96,6 @@ case go
 	echo
 	for(i in $parts){
 		switch($i){
-		case $kfs
-			echo	'	'^$i^' (plan9 kfs)'
 		case $fat
 			echo 	'	'^$i^' (microsoft fat)'
 		case $ext2
@@ -123,10 +118,6 @@ case go
 		switch($disk){
 		case $fs
 			mountmedia=(bind /n/newfs /n/distmedia)
-		case $kfs
-			kname=`{kfsname $disk}
-			srvmedia=(disk/kfs -f $disk -n $kname)
-			mountmedia=(mount /srv/kfs.$kname /n/distmedia)
 		case $fat
 			srvmedia=(dossrv)
 			mountmedia=(mount /srv/dos /n/distmedia $disk)

@@ -4,7 +4,7 @@ ftpfs  \- file transfer protocol (FTP) file system
 .SH SYNOPSIS
 .B ftpfs
 [
-.B -/dqn
+.B -/dqnt
 ]
 [
 .B -m
@@ -93,6 +93,12 @@ for a given period.  The
 option causes ftp to send a NOP command every 15 seconds to attempt
 to keep the connection open.  This command can cause some servers to
 hangup, so you'll have to feel your way.
+.PP
+The
+.B -t
+option causes
+.I ftpfs
+to negotiate TLS encryption with the server.
 .PP
 To terminate the connection,
 .B unmount
