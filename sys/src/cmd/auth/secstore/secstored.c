@@ -16,7 +16,7 @@ Ndb *db;
 static void
 usage(void)
 {
-	fprint(2, "secstored: [-S servername] [-s tcp!*!5356] [-v] [-x netmtpt]\n");
+	fprint(2, "usage: secstored [-R] [-S servername] [-s tcp!*!5356] [-v] [-x netmtpt]\n");
 	exits("usage");
 }
 
@@ -327,6 +327,9 @@ main(int argc, char **argv)
 
 	setnetmtpt(net, sizeof(net), nil);
 	ARGBEGIN{
+	case 'R':
+		forceSTA = 1;
+		break;
 	case 's':
 		serve = EARGF(usage());
 		break;
@@ -338,7 +341,6 @@ main(int argc, char **argv)
 		if(p == nil)
 			usage();
 		setnetmtpt(net, sizeof(net), p);
-		forceSTA = 1;  // for any non-standard network setting, be paranoid
 		break;
 	case 'v':
 		verbose++;
