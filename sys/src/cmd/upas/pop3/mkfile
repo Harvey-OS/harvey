@@ -10,7 +10,6 @@ LIB=../common/libcommon.a$O
 UPDATE=\
 	mkfile\
 	${OFILES:%.$O=%.c}\
-	${TARG:%=/386/bin/upas/%}\
 
 </sys/src/cmd/mkone
 

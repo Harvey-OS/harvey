@@ -295,7 +295,7 @@ struct OSTimerRegs
 	ulong	osmr[4];	/* match registers */
 	ulong	oscr;		/* counter register */
 	ulong	ossr;		/* status register */
-	ulong	ower;		/* watchdog enable register */
+	ulong	ower;	/* watchdog enable register */
 	ulong	oier;		/* timer interrupt enable register */
 };
 extern OSTimerRegs* timerregs;
@@ -334,3 +334,4 @@ typedef struct Pcidev	Pcidev;
 typedef struct ISAConf	ISAConf;
 struct Pcidev { int dummy; };
 struct ISAConf{ int port; int irq; };
+int pcmspecial(char*, ISAConf*);
