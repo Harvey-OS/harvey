@@ -34,6 +34,8 @@ changeuser, wrkey, convkeys, convkeys2, printnetkey, status, authsrv, guard.srv,
 .PP
 .B auth/login
 .I user
+.PP
+.B auth/none
 .SH DESCRIPTION
 These administrative commands run only on the authentication server.
 .IR Changeuser
@@ -176,6 +178,13 @@ sets up a new namespace from
 and exec's
 .IR rc (1)
 under the new id.
+.PP
+.I None
+sets up a new namespace from
+.B /lib/namespace
+and exec's its arguments
+under the new id.  It's
+an easy way to run a command as none.
 .SH FILES
 .TF /sys/lib/httppasswords
 .TP

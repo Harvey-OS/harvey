@@ -517,17 +517,15 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 			v6addroute(f, tifc, v6allnodesN, v6allnodesNmask, v6allnodesN, Rmulti);
 		}
 
-		else if(memcmp(ip, v6linklocal, v6linklocalprefix) == 0) {
-			/* add link-local mcast address */
-			addselfcache(f, ifc, lifc, v6allnodesL, Rmulti);
-			
-			/* add route for all link multicast */
-			v6addroute(f, tifc, v6allnodesL, v6allnodesLmask, v6allnodesL, Rmulti);
-			
-			/* add solicited-node multicast address */
-			ipv62smcast(bcast, ip);
-			addselfcache(f, ifc, lifc, bcast, Rmulti);
-		}
+		/* add all nodes multicast address */
+		addselfcache(f, ifc, lifc, v6allnodesL, Rmulti);
+		
+		/* add route for all nodes multicast */
+		v6addroute(f, tifc, v6allnodesL, v6allnodesLmask, v6allnodesL, Rmulti);
+		
+		/* add solicited-node multicast address */
+		ipv62smcast(bcast, ip);
+		addselfcache(f, ifc, lifc, bcast, Rmulti);
 
 		sendnbrdisc = 1;
 	}
@@ -578,7 +576,7 @@ ipifcremlifc(Ipifc *ifc, Iplifc *lifc)
 		if(ipcmp(lifc->local, v6loopback) == 0)
 			/* remove route for all node multicast */
 			v6delroute(f, v6allnodesN, v6allnodesNmask, 1);
-		else if(memcmp(lifc->local, v6linklocal, v6linklocalprefix) == 0)
+		else if(memcmp(lifc->local, v6linklocal, v6llpreflen) == 0)
 			/* remove route for all link multicast */
 			v6delroute(f, v6allnodesL, v6allnodesLmask, 1);
 	}
@@ -823,8 +821,6 @@ ipifcctl(Conv* c, char**argv, int argc)
 		iprouting(c->p->f, i);
 		return nil;
 	}
-	else if(strcmp(argv[0], "gate6") == 0)
-		return ipifcaddgate6(c->p->f, ifc, argv, argc);
 	else if(strcmp(argv[0], "addpref6") == 0)
 		return ipifcaddpref6(ifc, argv, argc);
 	else if(strcmp(argv[0], "setpar6") == 0)
@@ -1065,7 +1061,7 @@ out:
 	qunlock(f->self);
 }
 
-static char *stformat = "%-32.32I %2.2d %4.4s\n";
+static char *stformat = "%-44.44I %2.2d %4.4s\n";
 enum
 {
 	Nstformat= 41,
@@ -1659,116 +1655,6 @@ enum
 };
 
 char*
-ipifcaddgate6(Fs *f, Ipifc *ifc, char**argv, int argc)
-{
-	v6router	*r = f->v6p->v6rlist;
-	uchar	routeraddr[IPaddrlen];
-	int	mflag = f->v6p->rp.mflag;
-	int	oflag = f->v6p->rp.oflag;
-	int	reachtime = f->v6p->rp.reachtime;
-	int	rxmitra = f->v6p->rp.rxmitra;
-	int	ttl = MAXTTL;
-	int	routerlt = f->v6p->rp.routerlt;
-	int	force;		// force == 1 forces argv[1] to
-				// be the default router.
-	int	i, j;
-	int	found = 0;
-
-	if((argc<3)||(argc>9)) 
-		return Ebadarg;
-	if( (parseip(routeraddr, argv[1])!=6) || !(islinklocal(routeraddr)) ) 
-		return Ebadarg;
-
-	force = (atoi(argv[2])!=0);
-
-	switch(argc){
-	case 9:
-		rxmitra = atoi(argv[8]);
-		/* fall through */
-	case 8:
-		reachtime = atoi(argv[7]);
-		/* fall through */
-	case 7:
-		routerlt =  atoi(argv[6]);
-		/* fall through */
-	case 6:
-		oflag = atoi(argv[5]);
-		/* fall through */
-	case 5:
-		mflag = atoi(argv[4]);
-		/* fall through */
-	case 4:
-		ttl = atoi(argv[3]);
-		/* fall through */
-	}
-
-	if((force) && (routerlt < 0))
-		return Ebadarg;
-	if((ttl < 0) || (255 < ttl))
-		return Ebadarg;
-
-	j = -1;
-	for(i=0; i<Ngates; i++) {
-		if(r[i].inuse) {
-			if((ipcmp(routeraddr, r[i].routeraddr)==0) &&
-			(r[i].ifc==ifc)) {
-				j = i;
-				found = 1;
-				break;
-			}
-		}
-		else {
-			j = i;
-		}
-	}
-
-	if(found==0) {
-		if(routerlt <= 0)
-			return nil;
-		else if((force) && (j<0)) {
-			j = f->v6p->cdrouter;
-			f->v6p->cdrouter = -1;
-		}
-	}
-
-	// assert((found && (j>=0))||(!found && routerlt>0));
-	if(routerlt > 0) {
-		memset(&r[j], 0, sizeof(v6router));
-		r[j].inuse = 1;
-		r[j].ifc = ifc;
-		r[j].ifcid = ifc->ifcid;
-		ipmove(r[j].routeraddr, routeraddr);
-		r[j].ltorigin = NOW / 10^3;
-		r[j].rp.mflag = (mflag!=0);
-		r[j].rp.oflag = (oflag!=0);
-		r[j].rp.rxmitra = rxmitra;
-		r[j].rp.reachtime = reachtime;
-		r[j].rp.routerlt = routerlt;
-		r[j].rp.ttl = ttl;
-
-		if((f->v6p->cdrouter < 0) || (force==1)) {
-			f->v6p->cdrouter = j;
-			adddefroute6(f, routeraddr, force);
-		}
-	}
-	else if(j >= 0) {		// remove router
-		r[j].inuse = 0;
-		if(f->v6p->cdrouter==j) {
-			f->v6p->cdrouter = -1;
-			v6delroute(f, v6Unspecified, v6Unspecified, 1);
-			for(i=0; i<Ngates; i++) {
-				if(r[i].inuse) {
-					f->v6p->cdrouter = i;
-					adddefroute6(f, r[i].routeraddr, 1);
-					break;
-				}
-			}
-		}
-	}
-	return nil;
-}
-
-char*
 ipifcaddpref6(Ipifc *ifc, char**argv, int argc)
 {
 	uchar	onlink = 1;
@@ -1779,7 +1665,7 @@ ipifcaddpref6(Ipifc *ifc, char**argv, int argc)
 	uchar	prefix[IPaddrlen];
 	int	plen = 64;
 	Iplifc	*lifc;
-	char	addr[40];
+	char	addr[40], preflen[6];
 	char	*params[3];
 
 	switch(argc) {
@@ -1805,7 +1691,7 @@ ipifcaddpref6(Ipifc *ifc, char**argv, int argc)
 
 	if((parseip(prefix, argv[1])!=6) ||
 	 	(validlt < preflt) ||
-		(plen > 64) ||
+		(plen < 0) || (plen > 64) ||
 		(islinklocal(prefix))
 	)
 		return Ebadarg;
@@ -1823,61 +1709,11 @@ ipifcaddpref6(Ipifc *ifc, char**argv, int argc)
 		return Ebadarg;
 	
 	sprint(addr, "%I", prefix);
+	sprint(preflen, "/%d", plen);
 	params[0] = "add";
 	params[1] = addr;
-	params[2] = "/64";
+	params[2] = preflen;
 
 	return ipifcadd(ifc, params, 3, 0, lifc);
 }
 
-static char *gateformat = "%-1.1s %-40.40I %20ld %10d %-40.40s\n";
-enum
-{
-	Ngateformat= 116,
-};
-
-static char *rtrstat[] =
-{
-[0]	"*",
-[1]	"-",
-};
-
-/* line corresponding to current default router, if in f->v6p->v6rlist, 
-   starts with a "*", others with a "-". */
-
-long
-ipgateread6(Fs *f, char *cp, ulong offset, int n)
-{
-	v6router	*r = f->v6p->v6rlist;
-	int	i, j, k, l;
-	long	m;
-
-
-	if(offset % Ngateformat)
-		return 0;
-
-	offset = offset/Ngateformat;
-	n = n/Ngateformat;
-
-	i = f->v6p->cdrouter;
-	k = i;
-	if((i<0)||(i>2))
-		i = 0;
-	m = 0;
-	for(j = 0; (n > 0) && (j < Ngates) ; j++){
-		if(offset > 0){
-			offset--;
-			i = (i+1) % Ngates;
-			continue;
-		}
-		n--;
-		if(r[i].inuse) {
-			l = (i==k) ? 0 : 1;				
-			m += sprint(cp + m, gateformat, 
-				rtrstat[l], r[i].routeraddr, r[i].ltorigin,  
-				r[i].rp.routerlt, r[i].ifc->dev);
-		}
-		i = (i+1) % Ngates;
-	}
-	return m;
-}

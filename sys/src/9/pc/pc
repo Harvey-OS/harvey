@@ -22,6 +22,7 @@ dev
 	draw		screen vga vgax
 	mouse		mouse
 	vga
+	kbmap
 
 	sd
 	floppy		dma
