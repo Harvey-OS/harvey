@@ -137,7 +137,7 @@ main(int argc, char **argv)
 		srv = "/";
 		break;
 
-	case 'p':
+	case 'P':
 		patternfile = EARGF(usage());
 		break;
 

@@ -21,7 +21,7 @@ exportfs, srvfs \- network file server plumbing
 .B -A announce
 ]
 [
-.B -p
+.B -P
 .I patternfile
 ]
 .PP
@@ -36,6 +36,10 @@ exportfs, srvfs \- network file server plumbing
 [
 .B -p
 .I perm
+]
+[
+.B -P
+.I patternfile
 ]
 .I name
 .I path
@@ -110,7 +114,7 @@ to log all 9P traffic to
 .BR /tmp/exportdb ).
 .PP
 The
-.BI  -p patternfile
+.BI  -P patternfile
 option restricts the set of exported files.
 .I Patternfile
 contains one regular expression per line,
@@ -176,6 +180,8 @@ mounting
 .BR /srv ).
 If the
 .B -d
+or
+.B -P
 option is given,
 .I srvfs
 passes it to
