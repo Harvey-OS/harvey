@@ -3866,9 +3866,10 @@ sys/lib/ghostscript/zeroline.ps - 664 sys sys 1032057362 2643
 sys/lib/grap.defines - 664 sys sys 944956052 375
 sys/lib/httpd.rewrite - 664 sys sys 954262980 825
 sys/lib/kbmap - 20000000775 sys sys 1079535430 0
-sys/lib/kbmap/ascii - 664 sys sys 1079475826 18944
+sys/lib/kbmap/ascii - 664 sys sys 1080219252 23680
 sys/lib/kbmap/azerty - 644 sys sys 1079473812 735
 sys/lib/kbmap/bgmap - 664 sys sys 1079475826 561
+sys/lib/kbmap/ee - 644 sys sys 1080222237 429
 sys/lib/kbmap/es - 664 sys sys 1079535430 1360
 sys/lib/kbmap/fi - 664 sys sys 1079617317 369
 sys/lib/kbmap/uk - 664 sys sys 1079473812 55
@@ -4809,7 +4810,7 @@ sys/man/2/dup - 664 sys sys 950593489 827
 sys/man/2/elgamal - 664 sys sys 1027629189 2152
 sys/man/2/encode - 664 sys sys 1071289168 1572
 sys/man/2/encrypt - 664 sys sys 951229670 1885
-sys/man/2/errstr - 664 sys sys 1015091519 1518
+sys/man/2/errstr - 664 sys sys 1080218022 1705
 sys/man/2/event - 664 sys sys 1015091520 7512
 sys/man/2/exec - 664 sys sys 984709630 3453
 sys/man/2/exits - 664 sys sys 944959695 1652
@@ -4997,7 +4998,7 @@ sys/man/5/INDEX - 664 sys sys 1041971550 193
 sys/man/5/INDEX.html - 664 sys sys 1019918564 1409
 sys/man/5/attach - 664 sys sys 1017337812 2857
 sys/man/5/clunk - 664 sys sys 1015024830 701
-sys/man/5/error - 664 sys sys 1015024830 505
+sys/man/5/error - 664 sys sys 1080218022 513
 sys/man/5/flush - 664 sys sys 1063855755 2309
 sys/man/5/open - 664 sys sys 1015024830 4739
 sys/man/5/read - 664 sys sys 1015024830 2358
@@ -7433,7 +7434,7 @@ sys/src/cmd/disk/kfs/print.c - 664 sys sys 944960882 3573
 sys/src/cmd/disk/kfs/sub.c - 664 sys sys 1022008488 10804
 sys/src/cmd/disk/kfs/uid.c - 664 sys sys 1071335904 6791
 sys/src/cmd/disk/kfscmd.c - 664 sys sys 1015009135 1109
-sys/src/cmd/disk/mbr.c - 664 sys sys 1063855285 4325
+sys/src/cmd/disk/mbr.c - 664 sys sys 1080218150 4325
 sys/src/cmd/disk/mkext.c - 664 sys sys 1072729311 5727
 sys/src/cmd/disk/mkfile - 664 sys sys 1022385851 500
 sys/src/cmd/disk/mkfs.c - 664 sys sys 1032059493 14298

@@ -20,8 +20,9 @@ It replaces the corresponding reply message
 that would accompany a successful call; its tag is that
 of the failing request.
 .PP
-By convention, clients may truncate error messages after 255 bytes,
-defined as
+By convention, clients may truncate error messages after
+.B ERRMAX-1
+bytes;
 .B ERRMAX
-in
+is defined in
 .BR <libc.h> .
