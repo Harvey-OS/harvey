@@ -7,7 +7,7 @@ fileserver=kfs
 cpu=CPU
 # replace FACEDOM with the local domain to be used in the faces database
 facedom=FACEDOM
-TIMESYNCACCURACY=1000000	# accuracy in nanosec
+TIMESYNCARGS=-rLa1000000
 NDBFILE=/lib/ndb/local
 
 if(test -e /rc/bin/termrc.local)
@@ -33,7 +33,7 @@ sysname=`{cat /dev/sysname}
 if(test -e /net/ipifc/0/ctl)
 	ndb/dns -rf $NDBFILE
 
-aux/timesync -rLa $TIMESYNCACCURACY
+aux/timesync $TIMESYNCARGS
 
 switch($terminal){
 case carrera*
