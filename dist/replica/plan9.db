@@ -31,7 +31,7 @@
 386/bin/ape/expr - 775 sys sys 1038443080 144796
 386/bin/ape/kill - 775 sys sys 1038443080 140422
 386/bin/ape/make - 775 sys sys 1038443081 205157
-386/bin/ape/psh - 775 sys sys 1042088844 34
+386/bin/ape/psh - 775 sys sys 1042220689 34
 386/bin/ape/sed - 775 sys sys 1038443081 160382
 386/bin/ape/sh - 775 sys sys 1038443082 477550
 386/bin/ape/stty - 775 sys sys 1039758529 41577
@@ -199,9 +199,9 @@
 386/bin/fmt - 775 sys sys 1039758560 63811
 386/bin/fortune - 775 sys sys 1039758560 66329
 386/bin/fossil - 20000000775 sys sys 1042005470 0
-386/bin/fossil/flchk - 775 sys sys 1042005470 226919
-386/bin/fossil/flfmt - 775 sys sys 1042005471 225502
-386/bin/fossil/fossil - 775 sys sys 1042005469 329196
+386/bin/fossil/flchk - 775 sys sys 1042220704 227245
+386/bin/fossil/flfmt - 775 sys sys 1042220705 225830
+386/bin/fossil/fossil - 775 sys sys 1042220706 329526
 386/bin/freq - 775 sys sys 1039758560 60443
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1039758560 96155
@@ -3742,7 +3742,7 @@ sys/lib/man - 20000000775 sys sys 960356011 0
 sys/lib/man/checkman.awk - 664 sys sys 1017679304 6277
 sys/lib/man/colophon - 664 sys sys 956337727 545
 sys/lib/man/lookman - 20000000775 sys sys 956337764 0
-sys/lib/man/lookman/index - 664 sys sys 1041446757 1380093
+sys/lib/man/lookman/index - 664 sys sys 1042220693 1397584
 sys/lib/man/lookman/junkwords - 664 sys sys 956337764 3059
 sys/lib/man/lookman/mkindex - 775 sys sys 1017679307 306
 sys/lib/man/mkhtmlindex - 775 sys sys 959447575 1235
@@ -4721,7 +4721,7 @@ sys/man/3/usb - 664 sys sys 1019866708 6648
 sys/man/3/vga - 664 sys sys 1020356225 4827
 sys/man/4 - 20000000775 sys sys 1018581459 0
 sys/man/4/0intro - 664 sys sys 944959699 472
-sys/man/4/INDEX - 664 sys sys 1041971550 953
+sys/man/4/INDEX - 664 sys sys 1042220690 967
 sys/man/4/INDEX.html - 664 sys sys 1026846913 4513
 sys/man/4/acme - 664 sys sys 1015024813 9642
 sys/man/4/archfs - 664 sys sys 960000712 533
@@ -4818,7 +4818,7 @@ sys/man/8 - 20000000775 sys sys 1018384448 0
 sys/man/8/0intro - 664 sys sys 944959679 247
 sys/man/8/9load - 664 sys sys 1015024984 8340
 sys/man/8/9pcon - 664 sys sys 1018973955 2226
-sys/man/8/INDEX - 664 sys sys 1041971551 2472
+sys/man/8/INDEX - 664 sys sys 1042220690 2494
 sys/man/8/INDEX.html - 664 sys sys 1026847121 7728
 sys/man/8/aliasmail - 664 sys sys 1026847121 1203
 sys/man/8/apm - 664 sys sys 1017679308 1811
