@@ -1818,3 +1818,9 @@ deadheads(Node *c)
 {
 	return deadhead(c->left, 0) && deadhead(c->right, 0);
 }
+
+int
+mixedasop(Type *l, Type *r)
+{
+	return !typefd[l->etype] && typefd[r->etype];
+}

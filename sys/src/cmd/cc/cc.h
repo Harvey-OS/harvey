@@ -636,6 +636,7 @@ void	gethunk(void);
 Node*	invert(Node*);
 int	bitno(long);
 void	makedot(Node*, Type*, long);
+int	mixedasop(Type*, Type*);
 Node*	new(int, Node*, Node*);
 Node*	new1(int, Node*, Node*);
 int	nilcast(Type*, Type*);
