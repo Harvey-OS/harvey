@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1108354539 103973
 386/bin/aan - 775 sys sys 1108354539 130710
 386/bin/acid - 775 sys sys 1108960003 355983
-386/bin/acme - 775 sys sys 1111205297 428543
+386/bin/acme - 775 sys sys 1111464452 428542
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1104121958 70291
@@ -5592,7 +5592,7 @@ sys/src/9/ppc/main.c - 664 sys sys 1097073343 9041
 sys/src/9/ppc/mcc.c - 664 sys sys 1059490752 9667
 sys/src/9/ppc/mem.h - 664 sys sys 1091021860 7002
 sys/src/9/ppc/mkfile - 664 sys sys 1067722849 1813
-sys/src/9/ppc/mmu.c - 664 sys sys 1059490753 4865
+sys/src/9/ppc/mmu.c - 664 sys sys 1111504133 4864
 sys/src/9/ppc/msaturn.c - 664 sys sys 1072705482 2801
 sys/src/9/ppc/msaturn.h - 664 sys sys 1059490753 99
 sys/src/9/ppc/mtx.c - 664 sys sys 1059490753 177
@@ -11369,7 +11369,7 @@ sys/src/games/music/mkfile - 664 sys sys 1103793915 723
 sys/src/games/music/mkinc - 664 sys sys 1103793915 92
 sys/src/games/music/playlistfs - 20000000775 sys sys 1103794221 0
 sys/src/games/music/playlistfs/boilerplate.c - 664 sys sys 1105531426 1362
-sys/src/games/music/playlistfs/fs.c - 664 sys sys 1111156578 17544
+sys/src/games/music/playlistfs/fs.c - 664 sys sys 1111504109 17985
 sys/src/games/music/playlistfs/main.c - 664 sys sys 1103793922 1636
 sys/src/games/music/playlistfs/mk.dep - 664 sys sys 1103793923 594
 sys/src/games/music/playlistfs/mkfile - 664 sys sys 1103793923 187
@@ -12482,4 +12482,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acme - 775 sys sys 1111464452 428542

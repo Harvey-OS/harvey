@@ -13975,3 +13975,5 @@
 1111293022 0 c 386/bin/replica/applylog - 775 sys sys 1111291584 116748
 1111381241 0 c sys/src/cmd/acme/look.c - 664 sys sys 1111381048 14210
 1111465860 0 c 386/bin/acme - 775 sys sys 1111464452 428542
+1111505409 0 c sys/src/9/ppc/mmu.c - 664 sys sys 1111504133 4864
+1111505409 1 c sys/src/games/music/playlistfs/fs.c - 664 sys sys 1111504109 17985
