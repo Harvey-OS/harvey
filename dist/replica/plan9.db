@@ -23,7 +23,7 @@
 386/bin/9660srv - 775 sys sys 1045537932 105209
 386/bin/aan - 775 sys sys 1045537933 128318
 386/bin/acid - 775 sys sys 1046265116 378280
-386/bin/acme - 775 sys sys 1045665593 416883
+386/bin/acme - 775 sys sys 1050435573 417767
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1048744993 132430
 386/bin/ape/cc - 775 sys sys 1045537935 68930
@@ -241,7 +241,7 @@
 386/bin/history - 775 sys sys 1045538014 72138
 386/bin/hoc - 775 sys sys 1045538014 98958
 386/bin/html2ms - 775 sys sys 1039758564 64730
-386/bin/htmlfmt - 775 sys sys 1045538015 158912
+386/bin/htmlfmt - 775 sys sys 1050435574 159132
 386/bin/iconv - 775 sys sys 1046656908 112829
 386/bin/idiff - 775 sys sys 1045538015 75495
 386/bin/import - 775 sys sys 1048745047 87897
@@ -262,9 +262,9 @@
 386/bin/ip/imap4d - 775 sys sys 1048799694 233020
 386/bin/ip/ipconfig - 775 sys sys 1045538022 103751
 386/bin/ip/ping - 775 sys sys 1039758569 74005
-386/bin/ip/ppp - 775 sys sys 1048799695 212203
-386/bin/ip/pppoe - 775 sys sys 1039758570 75475
-386/bin/ip/pptp - 775 sys sys 1045538023 123280
+386/bin/ip/ppp - 775 sys sys 1050419687 215306
+386/bin/ip/pppoe - 775 sys sys 1050419688 75481
+386/bin/ip/pptp - 775 sys sys 1050419688 123946
 386/bin/ip/pptpd - 775 sys sys 1045538024 123603
 386/bin/ip/rarpd - 775 sys sys 1045538024 107221
 386/bin/ip/rexexec - 775 sys sys 1048799695 86880
@@ -370,7 +370,7 @@
 386/bin/srv - 775 sys sys 1048745069 80743
 386/bin/srvfs - 775 sys sys 1039758592 39914
 386/bin/srvold9p - 775 sys sys 1045538056 130539
-386/bin/ssh - 775 sys sys 1048745070 209031
+386/bin/ssh - 775 sys sys 1050419689 209848
 386/bin/sshnet - 775 sys sys 1048745072 283049
 386/bin/stats - 775 sys sys 1048745073 187146
 386/bin/strings - 775 sys sys 1039758593 60879
@@ -488,7 +488,7 @@
 386/lib/libauthsrv.a - 664 sys sys 1048622923 33706
 386/lib/libbin.a - 664 sys sys 1045538115 2556
 386/lib/libbio.a - 664 sys sys 1045538115 28390
-386/lib/libc.a - 664 sys sys 1050020464 499588
+386/lib/libc.a - 664 sys sys 1050419691 499500
 386/lib/libcontrol.a - 664 sys sys 1045538117 243448
 386/lib/libdisk.a - 664 sys sys 1048622925 43692
 386/lib/libdraw.a - 664 sys sys 1045538119 372606
@@ -6634,7 +6634,7 @@ sys/src/cmd/auth/wrkey.c - 664 sys sys 1019058717 176
 sys/src/cmd/aux - 20000000775 sys sys 1015008975 0
 sys/src/cmd/aux/9pcon.c - 664 sys sys 1032059259 6283
 sys/src/cmd/aux/accupoint.c - 664 sys sys 985124882 2166
-sys/src/cmd/aux/acidleak.c - 664 sys sys 1048644418 5919
+sys/src/cmd/aux/acidleak.c - 664 sys sys 1050441591 5931
 sys/src/cmd/aux/apm.c - 664 sys sys 1046654953 20263
 sys/src/cmd/aux/astarld.c - 664 sys sys 1015008684 4638
 sys/src/cmd/aux/cddb.c - 664 sys sys 1032059267 4303
@@ -11104,7 +11104,7 @@ sys/src/libc/fmt/runesmprint.c - 664 sys sys 1014927316 176
 sys/src/libc/fmt/runesnprint.c - 664 sys sys 1014927316 203
 sys/src/libc/fmt/runesprint.c - 664 sys sys 1014927316 192
 sys/src/libc/fmt/runevseprint.c - 664 sys sys 1014927316 313
-sys/src/libc/fmt/runevsmprint.c - 664 sys sys 1050360307 1030
+sys/src/libc/fmt/runevsmprint.c - 664 sys sys 1050433061 1043
 sys/src/libc/fmt/runevsnprint.c - 664 sys sys 1014927316 330
 sys/src/libc/fmt/seprint.c - 664 sys sys 1014927317 196
 sys/src/libc/fmt/smprint.c - 664 sys sys 1014927317 168

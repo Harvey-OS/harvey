@@ -13,7 +13,7 @@ runeFmtStrFlush(Fmt *f)
 	n = (int)f->farg;
 	n *= 2;
 	s = f->start;
-	f->start = realloc(s, n);
+	f->start = realloc(s, sizeof(Rune)*n);
 	if(f->start == nil){
 		f->farg = nil;
 		f->to = nil;

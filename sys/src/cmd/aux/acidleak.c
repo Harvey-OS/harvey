@@ -266,7 +266,7 @@ main(int argc, char **argv)
 //fprint(2, "\tblock %lux %lux %d\n", b->addr, b->addr+b->size, b->mark);
 				if(rXr(b->addr, b->addr+hdr, u, u+resolution)
 				|| rXr(b->addr+b->size-8, b->addr+b->size, u, u+resolution)){
-					if(b->mark == 0)
+					if(b->mark == 0 && !b->free)
 						nlhdr++;
 					else
 						nhdr++;
