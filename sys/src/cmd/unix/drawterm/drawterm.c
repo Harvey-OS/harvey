@@ -1,8 +1,8 @@
 #include "lib9.h"
 #include "auth.h"
 
-char	*cpuaddr = "anna.cs.bell-labs.com";
-char	*authaddr = "dinar.cs.bell-labs.com";
+char	*cpuaddr = "plan9cpu";
+char	*authaddr = "plan9auth";
 
 static char *pbmsg = "AS protocol botch";
 static char *ccmsg = "can't connect to AS";
@@ -74,13 +74,17 @@ main(int argc, char *argv[])
 		break;
 	case 'o':
 		/* from the outside */
+/*
 		cpuaddr = "achille.cs.bell-labs.com";
 		authaddr = "achille.cs.bell-labs.com";
+*/
 		break;
 	case '@':
 		/* from Comcast @Home */
+/*
 		cpuaddr = "10.252.0.122";
 		authaddr = "10.252.0.122";
+*/
 		break;
 	default:
 		usage();

@@ -2875,7 +2875,7 @@ rc/bin/leak - 775 sys sys 1032057948 1005
 rc/bin/lookman - 775 sys sys 1017679344 686
 rc/bin/lp - 775 sys sys 962679927 5357
 rc/bin/mail - 775 sys sys 1028233408 142
-rc/bin/man - 775 sys sys 1021579956 2011
+rc/bin/man - 775 sys sys 1040698721 2088
 rc/bin/map - 775 sys sys 945617207 1576
 rc/bin/mapdemo - 775 sys sys 945617207 4075
 rc/bin/membername - 775 sys sys 945617207 89
@@ -2944,7 +2944,7 @@ rc/bin/service/telcofax - 775 sys sys 945617224 93
 rc/bin/slay - 775 sys sys 1018387014 123
 rc/bin/spell - 775 sys sys 964540791 312
 rc/bin/src - 775 sys sys 1015089596 869
-rc/bin/srvssh - 775 sys sys 1039069779 2289
+rc/bin/srvssh - 775 sys sys 1040696716 2289
 rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1015089701 289
 rc/bin/stop - 775 sys sys 945617209 110
@@ -4401,7 +4401,7 @@ sys/man/1/comm - 664 sys sys 944959675 665
 sys/man/1/con - 664 sys sys 1022049386 4259
 sys/man/1/cp - 664 sys sys 1015024738 1390
 sys/man/1/cpp - 664 sys sys 944959674 2105
-sys/man/1/cpu - 664 sys sys 1034195345 3469
+sys/man/1/cpu - 664 sys sys 1040673168 3226
 sys/man/1/crop - 664 sys sys 984709627 2596
 sys/man/1/date - 664 sys sys 969499884 996
 sys/man/1/db - 664 sys sys 1015024738 17862
@@ -4799,7 +4799,7 @@ sys/man/8/INDEX.html - 664 sys sys 1026847121 7728
 sys/man/8/aliasmail - 664 sys sys 1026847121 1203
 sys/man/8/apm - 664 sys sys 1017679308 1811
 sys/man/8/auth - 664 sys sys 1035838620 4062
-sys/man/8/boot - 664 sys sys 1021579978 5708
+sys/man/8/boot - 664 sys sys 1040698789 6482
 sys/man/8/booting - 664 sys sys 1015024984 4136
 sys/man/8/checkarenas - 664 sys sys 1019866709 669
 sys/man/8/cpurc - 664 sys sys 971455510 1275
@@ -4826,7 +4826,7 @@ sys/man/8/newuser - 664 sys sys 954305551 2343
 sys/man/8/nfsserver - 664 sys sys 1017251291 3397
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/ping - 664 sys sys 1028233565 2789
-sys/man/8/plan9.ini - 664 sys sys 1021579978 20464
+sys/man/8/plan9.ini - 664 sys sys 1040698791 20588
 sys/man/8/pop3 - 664 sys sys 1037397443 2444
 sys/man/8/ppp - 664 sys sys 1032058843 4344
 sys/man/8/prep - 664 sys sys 1018802868 12910
@@ -9930,7 +9930,7 @@ sys/src/cmd/unix/drawterm/bin - 20000000775 sys sys 959090509 0
 sys/src/cmd/unix/drawterm/bin/drawterm-freebsd.gz - 775 sys sys 1022046828 259893
 sys/src/cmd/unix/drawterm/bin/drawterm-linux - 775 sys sys 1020313487 875368
 sys/src/cmd/unix/drawterm/bin/drawterm-macosx.gz - 775 sys sys 1022046829 330048
-sys/src/cmd/unix/drawterm/bin/drawterm-win.exe - 775 sys sys 1015702551 336384
+sys/src/cmd/unix/drawterm/bin/drawterm-win.exe - 775 sys sys 1040673060 307270
 sys/src/cmd/unix/drawterm/canlock-power-gcc.c - 664 sys sys 1019839861 985
 sys/src/cmd/unix/drawterm/canlock-x86-gcc.c - 664 sys sys 1020313486 308
 sys/src/cmd/unix/drawterm/canlock.c - 644 sys sys 954098604 92
@@ -9959,7 +9959,7 @@ sys/src/cmd/unix/drawterm/devunixfs.c - 664 sys sys 954098616 9548
 sys/src/cmd/unix/drawterm/dial.c - 664 sys sys 954098617 3640
 sys/src/cmd/unix/drawterm/dirfstat.c - 664 sys sys 954098617 179
 sys/src/cmd/unix/drawterm/doprint.c - 664 sys sys 954098618 11749
-sys/src/cmd/unix/drawterm/drawterm.c - 664 sys sys 1015702545 11506
+sys/src/cmd/unix/drawterm/drawterm.c - 664 sys sys 1040672905 11492
 sys/src/cmd/unix/drawterm/error.c - 664 sys sys 954098619 2515
 sys/src/cmd/unix/drawterm/error.h - 664 sys sys 954098619 3075
 sys/src/cmd/unix/drawterm/exportfs.c - 664 sys sys 964798439 13405
