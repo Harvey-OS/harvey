@@ -14807,3 +14807,6 @@
 1081204245 0 a rc/bin/patch/applied - 775 sys sys 1081204295 110
 1081204245 1 c rc/bin/patch/list - 775 sys sys 1081204287 644
 1081204245 2 a rc/bin/patch/move - 775 sys sys 1081204288 547
+1081359072 0 c sys/src/9/pc/vganvidia.c - 664 sys sys 1081358011 12205
+1081359072 1 c sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1081358076 23145
+1081386076 0 a sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943

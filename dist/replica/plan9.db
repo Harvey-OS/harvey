@@ -5371,6 +5371,7 @@ sys/src/9/pc/mmu.c - 664 sys sys 1049509456 10014
 sys/src/9/pc/mouse.c - 664 sys sys 1065717607 6625
 sys/src/9/pc/mp.c - 664 sys sys 1048644112 16928
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
+sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1079575705 1367
 sys/src/9/pc/pcauth - 664 sys sys 1073851852 657
 sys/src/9/pc/pccd - 664 sys sys 1055090302 1302
@@ -5417,7 +5418,7 @@ sys/src/9/pc/vgamach64xx.c - 664 sys sys 1071245447 29146
 sys/src/9/pc/vgamga2164w.c - 664 sys sys 1015014527 5654
 sys/src/9/pc/vgamga4xx.c - 664 sys sys 1015014527 11122
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1071245447 10719
-sys/src/9/pc/vganvidia.c - 664 sys sys 1060269772 6545
+sys/src/9/pc/vganvidia.c - 664 sys sys 1081358011 12205
 sys/src/9/pc/vgargb524.c - 664 sys sys 1015014527 4235
 sys/src/9/pc/vgas3.c - 664 sys sys 1068129423 12143
 sys/src/9/pc/vgasavage.c - 664 sys sys 1064679984 16251
@@ -7144,7 +7145,7 @@ sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1048636613 905
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1014925010 8801
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
-sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1060012272 12142
+sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1081358076 23145
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
 sys/src/cmd/aux/vga/pci.c - 664 sys sys 1014925011 8659
 sys/src/cmd/aux/vga/pci.h - 664 sys sys 1014925011 3290
