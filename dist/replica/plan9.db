@@ -6729,7 +6729,7 @@ sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1048636613 905
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1014925010 8801
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
-sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1048636618 11638
+sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1054479635 12043
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
 sys/src/cmd/aux/vga/pci.c - 664 sys sys 1014925011 8659
 sys/src/cmd/aux/vga/pci.h - 664 sys sys 1014925011 3290

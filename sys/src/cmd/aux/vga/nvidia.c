@@ -107,6 +107,24 @@ snarf(Vga* vga, Ctlr* ctlr)
 		vga->m[1] = 13;
 	}
 
+	switch(nv->pci->did & 0x0ff0) {
+	case 0x0170:
+	case 0x0180:
+	case 0x01F0:
+	case 0x0250:
+	case 0x0280:
+	case 0x0300:
+	case 0x0310:
+	case 0x0320:
+	case 0x0330:
+	case 0x0340:
+		if(nv->pextdev[0x00000000] & (1 << 22))
+			nv->crystalfreq = 27000000;
+		break;
+	default:
+		break;
+	}
+
 	if (nv->arch == 4) {
 		tmp = nv->pfb[0x00000000];
 		if (tmp & 0x0100) {
@@ -437,26 +455,31 @@ load(Vga* vga, Ctlr* ctlr)
 	} 
 	if(nv->arch == 20) {
 		for(i = 0; i < 4; i++)
+			nv->pgraph[0x864/4+i] = 0x01ffffff;
+		for(i = 0; i < 4; i++)
 			nv->pgraph[0x820/4+i] = nv->offset[i];
-		for(i = 0; i < 6; i++)
+		for(i = 0; i < 4; i++)
 			nv->pgraph[0x850/4+i] = nv->pitch[i];
 
 		nv->pgraph[0x9A4/4] = nv->pfb[0x200/4];
 		nv->pgraph[0x9A8/4] = nv->pfb[0x204/4];
-		nv->pramdac[0x052C/4] = 0x101;
-		nv->pramdac[0x252C/4] = 0x1;
 	}
 		
 
-
-	nv->pmc[0x8704/4] = 1;
-	nv->pmc[0x8140/4] = 0;
-	nv->pmc[0x8920/4] = 0;
-	nv->pmc[0x8924/4] = 0;
-	nv->pmc[0x8908/4] = 0x01FFFFFF;
-	nv->pmc[0x890C/4] = 0x01FFFFFF;
-
 	if(nv->arch == 10 || nv->arch == 20){
+		nv->pramdac[0x00000404/4] |= (1 << 25);
+
+		nv->pmc[0x8704/4] = 1;
+		nv->pmc[0x8140/4] = 0;
+		nv->pmc[0x8920/4] = 0;
+		nv->pmc[0x8924/4] = 0;
+		nv->pmc[0x8908/4] = 0x01FFFFFF;
+		nv->pmc[0x890C/4] = 0x01FFFFFF;
+		nv->pmc[0x1588/4] = 0;
+
+		for(i=0; i<8; i++)
+			nv->pfb[0x240/4+(i * 4)] = 0;
+
 		for(i=0; i<0x7C/4; i++)
 			nv->pgraph[0xB00/4+i] = nv->pfb[0x240/4+i];
 
@@ -554,4 +577,3 @@ Ctlr nvidiahwgc = {
 	0,				/* load */
 	0,				/* dump */
 };
-
