@@ -232,9 +232,10 @@
 386/bin/fortune - 775 sys sys 1085077045 65146
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
-386/bin/fossil/flchk - 775 sys sys 1085368183 230615
-386/bin/fossil/flfmt - 775 sys sys 1085368184 243674
-386/bin/fossil/fossil - 775 sys sys 1085368185 343639
+386/bin/fossil/flchk - 775 sys sys 1087009454 235694
+386/bin/fossil/flfmt - 775 sys sys 1087009455 243794
+386/bin/fossil/fossil - 775 sys sys 1087009456 358640
+386/bin/fossil/last - 775 sys sys 1087009456 61307
 386/bin/freq - 775 sys sys 1085077056 59766
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1085077056 92357
@@ -12429,7 +12430,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/fossil/flchk - 775 sys sys 1087009454 235694
-386/bin/fossil/flfmt - 775 sys sys 1087009455 243794
-386/bin/fossil/fossil - 775 sys sys 1087009456 358640
-386/bin/fossil/last - 775 sys sys 1087009456 61307
