@@ -9951,7 +9951,7 @@ sys/src/cmd/ssh/msg.c - 664 sys sys 1048179596 7876
 sys/src/cmd/ssh/pubkey.c - 664 sys sys 1019928902 3974
 sys/src/cmd/ssh/scp.c - 664 sys sys 1048644598 13757
 sys/src/cmd/ssh/smsg.c - 664 sys sys 1048644598 6167
-sys/src/cmd/ssh/ssh.c - 664 sys sys 1046654892 9615
+sys/src/cmd/ssh/ssh.c - 664 sys sys 1050286125 9634
 sys/src/cmd/ssh/ssh.h - 664 sys sys 1048179595 6054
 sys/src/cmd/ssh/sshnet.c - 664 sys sys 1046655072 17660
 sys/src/cmd/ssh/sshserve.c - 664 sys sys 1048639835 5784
