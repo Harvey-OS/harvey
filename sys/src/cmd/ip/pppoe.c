@@ -72,7 +72,7 @@ main(int argc, char **argv)
 	case 'm':
 		mtu = atoi(EARGF(usage()));
 		break;
-	case 's':
+	case 'k':
 		namesecret = EARGF(usage());
 		break;
 	case 'x':
@@ -523,7 +523,7 @@ execppp(int fd)
 		argv[argc++] = pppnetmtpt;
 	}
 	if(namesecret){
-		argv[argc++] = "-s";
+		argv[argc++] = "-k";
 		argv[argc++] = namesecret;
 	}
 	argv[argc] = nil;

@@ -19087,3 +19087,10 @@
 1050082274 0 c sys/man/2/thread - 664 sys sys 1050082251 11641
 1050152445 0 c 386/bin/nfs - 775 sys sys 1050152289 317016
 1050287470 0 c sys/src/cmd/ssh/ssh.c - 664 sys sys 1050286125 9634
+1050361270 0 c sys/man/8/ppp - 664 sys sys 1050361032 4424
+1050361270 1 c sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1050360942 59111
+1050361270 2 c sys/src/cmd/ip/ppp/ppp.h - 664 sys sys 1050360942 8225
+1050361270 3 c sys/src/cmd/ip/pppoe.c - 664 sys sys 1050360937 12507
+1050361270 4 c sys/src/cmd/ip/pptp.c - 664 sys sys 1050360938 16575
+1050361270 5 c sys/src/libc/fmt/runevsmprint.c - 664 sys sys 1050360307 1030
+1050364874 0 c sys/src/cmd/aux/mkfile - 664 sys sys 1050364303 946
