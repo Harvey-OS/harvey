@@ -57,8 +57,8 @@ the con program:
 	partition define params 0x040000 0x040000 0
 	partition define kernel 0x080000 0x0c0000 0
 	partition define user 0x140000 0x0c0000 0
-	partition define ramdisk 0x200000 0x600000 0
-	partition define fs 0x800000 0x800000 0
+	partition define ramdisk 0x200000 0xa00000 0
+	partition define fs 0xc00000 0x400000 0
 	params save
 After each line you'll get a message like `defining partition: params'.
 Different versions of the bootloader predefine different partitions.
@@ -66,7 +66,7 @@ The bootldr partitions is usually predefined, so you don't have to remake
 that.  You may have to delete one or two partitions.  The command is
 	partition delete <name>
 Make sure the partition layout is as given above; some of this knowledge is
-built into the kernel.
+built into the kernel (/sys/src/9/boot/paq.c and /sys/src/9/bitsy/paqfiles/cpurc).
 
 10. Before you can fill the new partitions with a kernel and a read-only
 file system, you'll have to make them.  In the directory /sys/src/9/bitsy,
@@ -99,7 +99,7 @@ Just wait a while or hit enter in the con window and it'll continue.
 14.  The bitsy will now want to calibrate the screen.  It'll put up a
 series of crosses that you should press the center of.  Hold the pen
 down over each cross for a second or so; aim carefully.  Hold the
-machine in your hand the way you'ld normally use it or the calibration
+machine in your hand the way you'd normally use it or the calibration
 could be off since there is depth to the glass in the screen.
 
 15.  You'll get a new screen with a single line at the top and a

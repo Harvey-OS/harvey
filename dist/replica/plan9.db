@@ -4969,7 +4969,7 @@ sys/src/9/alphapc/vgasavage.c - 664 sys sys 1015012788 29
 sys/src/9/alphapc/vgatvp3026.c - 664 sys sys 1015012788 30
 sys/src/9/alphapc/vgax.c - 664 sys sys 1015012788 24
 sys/src/9/bitsy - 20000000775 sys sys 1018721429 0
-sys/src/9/bitsy/Booting101 - 664 sys sys 1037028993 6820
+sys/src/9/bitsy/Booting101 - 664 sys sys 1053021020 6879
 sys/src/9/bitsy/bitsy - 664 sys sys 1043922351 450
 sys/src/9/bitsy/bitsyreset.s - 664 sys sys 1017695510 2352
 sys/src/9/bitsy/clock.c - 664 sys sys 1037028998 4835
@@ -4981,7 +4981,7 @@ sys/src/9/bitsy/devpcmcia.c - 664 sys sys 1037029005 12962
 sys/src/9/bitsy/devpenmouse.c - 664 sys sys 1037029008 9289
 sys/src/9/bitsy/devuda1341.c - 664 sys sys 1037029011 30326
 sys/src/9/bitsy/devµc.c - 664 sys sys 1037029014 8141
-sys/src/9/bitsy/errstr.h - 664 sys sys 1017695512 2100
+sys/src/9/bitsy/errstr.h - 664 sys sys 1053021020 2137
 sys/src/9/bitsy/etherif.h - 664 sys sys 1045501788 913
 sys/src/9/bitsy/etherwavelan.c - 664 sys sys 1037029016 869
 sys/src/9/bitsy/fns.h - 664 sys sys 1037029018 3348
@@ -5018,7 +5018,7 @@ sys/src/9/bitsy/sdata.c - 664 sys sys 1037029041 44666
 sys/src/9/bitsy/tar.c - 664 sys sys 1017695521 1375
 sys/src/9/bitsy/trap.c - 664 sys sys 1037029044 18951
 sys/src/9/bitsy/uartsa1110.c - 664 sys sys 1037029045 8530
-sys/src/9/bitsy/wavelan.c - 664 sys sys 1047298972 27107
+sys/src/9/bitsy/wavelan.c - 664 sys sys 1053021020 27267
 sys/src/9/bitsy/wavelan.h - 664 sys sys 1037029076 27
 sys/src/9/boot - 20000000775 sys sys 1018556557 0
 sys/src/9/boot/aux.c - 664 sys sys 1015012529 2520
