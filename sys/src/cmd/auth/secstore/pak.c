@@ -257,7 +257,7 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	mpmod(m, pak->p, m);
 
 	// lookup client
-	if((pw = getPW(C)) == nil) {
+	if((pw = getPW(C,0)) == nil) {
 		snprint(mess2, sizeof mess2, "%r");
 		writerr(conn, mess2);
 		goto done;

@@ -16888,3 +16888,14 @@
 1041481459 1 c acme/mail/src/mesg.c - 664 sys sys 1041481453 26236
 1041481703 0 c acme/mail/386/Mail - 775 sys sys 1041481688 175845
 1041627193 0 c sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1041568440 28988
+1041890558 0 c 386/bin/auth/aescbc - 775 sys sys 1041890056 120602
+1041890558 1 c 386/bin/auth/secstore - 775 sys sys 1041890054 185946
+1041890558 2 c 386/bin/auth/secstored - 775 sys sys 1041890055 192691
+1041890558 3 c 386/bin/auth/secuser - 775 sys sys 1041890056 149092
+1041890558 4 c sys/man/1/secstore - 664 sys sys 1041890056 3434
+1041890558 5 c sys/src/cmd/auth/secstore/SConn.c - 664 sys sys 1041890053 4381
+1041890558 6 c sys/src/cmd/auth/secstore/pak.c - 664 sys sys 1041890053 9353
+1041890558 7 c sys/src/cmd/auth/secstore/password.c - 664 sys sys 1041890053 2698
+1041890558 8 c sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1041890054 12213
+1041890558 9 c sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1041890053 841
+1041890558 10 c sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1041890054 4351
