@@ -487,8 +487,9 @@ v4lookup(Fs *f, uchar *a, Conv *c)
 	Route *p, *q;
 	ulong la;
 	uchar gate[IPaddrlen];
+	Ipifc *ifc;
 
-	if(c != nil && c->r != nil && c->rgen == v4routegeneration)
+	if(c != nil && c->r != nil && c->r->ifc != nil && c->rgen == v4routegeneration)
 		return c->r;
 
 	la = nhgetl(a);
@@ -509,11 +510,13 @@ v4lookup(Fs *f, uchar *a, Conv *c)
 			memmove(gate, v4prefix, IPv4off);
 		} else
 			v4tov6(gate, q->v4.gate);
-		q->ifc = findipifc(f, gate, q->type);
-		if(q->ifc == nil)
+		ifc = findipifc(f, gate, q->type);
+		if(ifc == nil)
 			return nil;
-		q->ifcid = q->ifc->ifcid;
+		q->ifc = ifc;
+		q->ifcid = ifc->ifcid;
 	}
+
 	if(c != nil){
 		c->r = q;
 		c->rgen = v4routegeneration;
@@ -530,6 +533,7 @@ v6lookup(Fs *f, uchar *a, Conv *c)
 	int h;
 	ulong x, y;
 	uchar gate[IPaddrlen];
+	Ipifc *ifc;
 
 	if(memcmp(a, v4prefix, IPv4off) == 0){
 		q = v4lookup(f, a+IPv4off, c);
@@ -537,7 +541,7 @@ v6lookup(Fs *f, uchar *a, Conv *c)
 			return q;
 	}
 
-	if(c != nil && c->r != nil && c->rgen == v6routegeneration)
+	if(c != nil && c->r != nil && c->r->ifc != nil && c->rgen == v6routegeneration)
 		return c->r;
 
 	for(h = 0; h < IPllen; h++)
@@ -576,12 +580,13 @@ next:		;
 		if(q->type & Rifc) {
 			for(h = 0; h < IPllen; h++)
 				hnputl(gate+4*h, q->v6.address[h]);
-			q->ifc = findipifc(f, gate, q->type);
+			ifc = findipifc(f, gate, q->type);
 		} else
-			q->ifc = findipifc(f, q->v6.gate, q->type);
-		if(q->ifc == nil)
+			ifc = findipifc(f, q->v6.gate, q->type);
+		if(ifc == nil)
 			return nil;
-		q->ifcid = q->ifc->ifcid;
+		q->ifc = ifc;
+		q->ifcid = ifc->ifcid;
 	}
 	if(c != nil){
 		c->r = q;

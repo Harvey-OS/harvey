@@ -486,7 +486,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 		/* don't forward to source's network */
 		conv.r = nil;
 		r = v4lookup(f, h->dst, &conv);
-		if(r != nil && r->ifc == ifc){
+		if(r == nil || r->ifc == ifc){
 			ip->stats[OutDiscards]++;
 			freeblist(bp);
 			return;
@@ -502,6 +502,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 		}
 
 		/* reassemble if the interface expects it */
+if(r->ifc == nil) panic("nil route rfc");
 		if(r->ifc->reassemble){
 			frag = nhgets(h->frag);
 			if(frag) {

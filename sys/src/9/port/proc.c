@@ -259,55 +259,16 @@ ready(Proc *p)
 	splx(s);
 }
 
-Proc*
-runproc(void)
+/*
+ *  remove a process from a scheduling queue (called splhi)
+ */
+static Proc*
+dequeueproc(Schedq *rq, Proc *tp)
 {
-	Schedq *rq;
-	Proc *p, *l, *tp;
-	ulong start, now;
-	int i;
+	Proc *l, *p;
 
-	start = perfticks();
-
-	if ((p = edf->edfrunproc()) != nil)
-		return p;
-
-loop:
-	/*
-	 *  find a process that last ran on this processor (affinity),
-	 *  or one that hasn't moved in a while (load balancing).  Every
-	 *  time around the loop affinity goes down.
-	 */
-	spllo();
-	for(i = 0;; i++){
-		/*
-		 *  find the highest priority target process that this
-		 *  processor can run given affinity constraints
-		 */
-		for(rq = &runq[Nrq-1]; rq >= runq; rq--){
-			tp = rq->head;
-			if(tp == 0)
-				continue;
-			for(; tp; tp = tp->rnext){
-				if(tp->mp == nil || tp->mp == MACHP(m->machno)
-				|| (!tp->wired && i > 0))
-					goto found;
-			}
-		}
-
-		/* waste time or halt the CPU */
-		idlehands();
-
-		/* remember how much time we're here */
-		now = perfticks();
-		m->perf.inidle += now-start;
-		start = now;
-	}
-
-found:
-	splhi();
 	if(!canlock(runq))
-		goto loop;
+		return nil;
 
 	/*
 	 *  the queue may have changed before we locked runq,
@@ -325,7 +286,7 @@ found:
 	 */
 	if(p == 0 || p->mach){
 		unlock(runq);
-		goto loop;
+		return nil;
 	}
 	if(p->rnext == 0)
 		rq->tail = l;
@@ -338,8 +299,109 @@ found:
 	rq->n--;
 	nrdy--;
 	if(p->state != Ready)
-		print("runproc %s %lud %s\n", p->text, p->pid, statename[p->state]);
+		print("dequeueproc %s %lud %s\n", p->text, p->pid, statename[p->state]);
+
 	unlock(runq);
+	return p;
+}
+
+/*
+ *  yield the processor and drop our priority
+ */
+void
+yield(void)
+{
+	if(anyready()){
+		up->quanta = 0;	/* act like you used them all up */
+		sched();
+	}
+}
+
+/*
+ *  move up any process waiting more than its quanta
+ */
+static void
+rebalance(void)
+{
+	Schedq *rq;
+	Proc *p;
+
+	for(rq = runq; rq < &runq[Nrq]; rq++){
+		p = rq->head;
+		if(p == nil)
+			continue;
+		if(p->mp != MACHP(m->machno))
+			continue;
+		if(p->priority == p->basepri)
+			continue;
+		if(m->ticks - p->readytime < quanta[p->priority]/4)
+			continue;
+		splhi();
+		p = dequeueproc(rq, p);
+		spllo();
+		if(p == nil)
+			continue;
+		p->quanta = quanta[p->priority];	/* act like we used none */
+		ready(p);
+	}
+}
+
+/*
+ *  pick a process to run
+ */
+Proc*
+runproc(void)
+{
+	Schedq *rq;
+	Proc *p;
+	ulong start, now;
+	int i;
+
+	start = perfticks();
+
+	if ((p = edf->edfrunproc()) != nil)
+		return p;
+
+	if(m->fairness++ == 10){
+		m->fairness = 0;
+		rebalance();
+	}
+
+loop:
+	/*
+	 *  find a process that last ran on this processor (affinity),
+	 *  or one that hasn't moved in a while (load balancing).  Every
+	 *  time around the loop affinity goes down.
+	 */
+	spllo();
+	for(i = 0;; i++){
+		/*
+		 *  find the highest priority target process that this
+		 *  processor can run given affinity constraints.
+		 *
+		 */
+		for(rq = &runq[Nrq-1]; rq >= runq; rq--){
+			for(p = rq->head; p; p = p->rnext){
+				if(p->mp == nil || p->mp == MACHP(m->machno)
+				|| (!p->wired && i > 0))
+					goto found;
+			}
+		}
+
+		/* waste time or halt the CPU */
+		idlehands();
+
+		/* remember how much time we're here */
+		now = perfticks();
+		m->perf.inidle += now-start;
+		start = now;
+	}
+
+found:
+	splhi();
+	p = dequeueproc(rq, p);
+	if(p == nil)
+		goto loop;
 
 	p->state = Scheding;
 	p->mp = MACHP(m->machno);

@@ -125,7 +125,7 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 
 	memmove(a->ip, ip, sizeof(a->ip));
 	a->utime = NOW;
-	a->ctime = a->utime;
+	a->ctime = 0;
 	a->type = m;
 
 	a->rtime = NOW + ReTransTimer;
@@ -354,14 +354,16 @@ arpenter(Fs *fs, int version, uchar *ip, uchar *mac, int n, int refresh)
 				}
 			}
 
-			a->hold = nil;
 			a->ifc = ifc;
 			a->ifcid = ifc->ifcid;
 			bp = a->hold;
 			a->hold = nil;
 			if(version == V4)
 				ip += IPv4off;
+			a->utime = NOW;
+			a->ctime = a->utime;
 			qunlock(arp);
+
 			while(bp){
 				next = bp->list;
 				if(ifc != nil){
@@ -380,8 +382,6 @@ arpenter(Fs *fs, int version, uchar *ip, uchar *mac, int n, int refresh)
 					freeb(bp);
 				bp = next;
 			}
-			a->utime = NOW;
-			a->ctime = a->utime;
 			return;
 		}
 	}
@@ -390,6 +390,7 @@ arpenter(Fs *fs, int version, uchar *ip, uchar *mac, int n, int refresh)
 		a = newarp6(arp, ip, ifc, 0);
 		a->state = AOK;
 		a->type = type;
+		a->ctime = NOW;
 		memmove(a->mac, mac, type->maclen);
 	}
 

@@ -173,7 +173,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	}
 
 	if(len >= IP_MAX){
-		print("len > IP_MAX, free\n");
+//		print("len > IP_MAX, free\n");
 		ip->stats[OutDiscards]++;
 		netlog(f, Logip, "exceeded ip max size %I\n", eh->dst);
 		goto free;

@@ -5027,7 +5027,7 @@ sys/src/9/boot/sac.c - 664 sys sys 1015012530 802
 sys/src/9/boot/settime.c - 664 sys sys 1036813626 2473
 sys/src/9/boot/testboot.c - 664 sys sys 1039763734 496
 sys/src/9/ip - 20000000775 sys sys 1015278450 0
-sys/src/9/ip/arp.c - 664 sys sys 1047260560 10677
+sys/src/9/ip/arp.c - 664 sys sys 1047951324 10671
 sys/src/9/ip/chandial.c - 664 sys sys 1022588098 2276
 sys/src/9/ip/devip.c - 664 sys sys 1047260561 24089
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
@@ -5039,13 +5039,13 @@ sys/src/9/ip/icmp6.c - 664 sys sys 1047260563 18098
 sys/src/9/ip/igmp.c - 664 sys sys 1047260564 5190
 sys/src/9/ip/il.c - 664 sys sys 1047260564 26943
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
-sys/src/9/ip/ip.c - 664 sys sys 1047260565 15243
+sys/src/9/ip/ip.c - 664 sys sys 1047951326 15285
 sys/src/9/ip/ip.h - 664 sys sys 1047260722 16078
 sys/src/9/ip/ipaux.c - 664 sys sys 1022588098 12656
-sys/src/9/ip/ipifc.c - 664 sys sys 1047260565 37717
+sys/src/9/ip/ipifc.c - 664 sys sys 1047951327 37830
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
-sys/src/9/ip/iproute.c - 664 sys sys 1047260566 14689
-sys/src/9/ip/ipv6.c - 664 sys sys 1047260567 14431
+sys/src/9/ip/iproute.c - 664 sys sys 1047951327 14767
+sys/src/9/ip/ipv6.c - 664 sys sys 1047951328 14433
 sys/src/9/ip/ipv6.h - 664 sys sys 1022588099 4304
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1045063513 1651
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
@@ -5232,7 +5232,7 @@ sys/src/9/port/devmouse.c - 664 sys sys 1036827459 11420
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
 sys/src/9/port/devpipe.c - 664 sys sys 1032640439 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1019864265 13027
-sys/src/9/port/devproc.c - 664 sys sys 1047260622 23418
+sys/src/9/port/devproc.c - 664 sys sys 1047952847 23450
 sys/src/9/port/devrealtime.c - 664 sys sys 1044630510 15975
 sys/src/9/port/devroot.c - 664 sys sys 1042304978 3593
 sys/src/9/port/devsd.c - 664 sys sys 1026847547 28679
@@ -5272,7 +5272,7 @@ sys/src/9/port/portdat.h - 664 sys sys 1047260623 21132
 sys/src/9/port/portfns.h - 664 sys sys 1047260622 10601
 sys/src/9/port/portmkfile - 664 sys sys 1039753335 2372
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
-sys/src/9/port/proc.c - 664 sys sys 1047260621 23241
+sys/src/9/port/proc.c - 664 sys sys 1047952847 24170
 sys/src/9/port/qio.c - 664 sys sys 1047260594 23281
 sys/src/9/port/qlock.c - 664 sys sys 1026847551 3246
 sys/src/9/port/rdb.c - 664 sys sys 1018721202 1698
