@@ -3755,7 +3755,7 @@ sys/lib/lp/process/g3post - 775 sys sys 954037459 2348
 sys/lib/lp/process/generic - 775 sys sys 1015700868 4064
 sys/lib/lp/process/gifpost - 775 sys sys 1015012079 2317
 sys/lib/lp/process/gspipe - 775 sys sys 1015012079 434
-sys/lib/lp/process/hpost - 775 sys sys 1056903195 3224
+sys/lib/lp/process/hpost - 775 sys sys 1057868801 3247
 sys/lib/lp/process/jpgpost - 775 sys sys 1015012079 2313
 sys/lib/lp/process/noproc - 775 sys sys 954037459 62
 sys/lib/lp/process/p9bitpost - 775 sys sys 954037459 2436
@@ -5291,7 +5291,7 @@ sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
 sys/src/9/port/latin1.h - 664 sys sys 1015278339 3524
 sys/src/9/port/lib.h - 664 sys sys 1014931175 5676
 sys/src/9/port/log.c - 664 sys sys 1014931175 2860
-sys/src/9/port/master - 664 sys sys 1045531976 348
+sys/src/9/port/master - 664 sys sys 1057838456 479
 sys/src/9/port/mkbootrules - 775 sys sys 1055700518 923
 sys/src/9/port/mkdevc - 775 sys sys 1055700518 3446
 sys/src/9/port/mkdevlist - 775 sys sys 1055700519 510

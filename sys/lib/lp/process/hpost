@@ -32,7 +32,7 @@ FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
-	facedom=`{awk '/^'$LPMACHID'	/{print $2}' /lib/face/.machinelist}
+	facedom=`{awk '{ if(match("'$LPMACHID'", $1)) {print $2; exit}}' /lib/face/.machinelist}
 	if (~ $#facedom 0) facedom=$LPMACHID
 
 	facefile=`{awk '/^'$facedom'\/'$LPUSERID' /{print $2}' /lib/face/48x48x4/.dict}
