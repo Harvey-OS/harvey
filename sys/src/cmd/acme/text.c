@@ -668,7 +668,7 @@ texttype(Text *t, Rune r)
 		n = 2*t->maxlines/3;
 	case_Down:
 		q0 = t->org+frcharofpt(t, Pt(t->r.min.x, t->r.min.y+n*t->font->height));
-		textsetorigin(t, q0, FALSE);
+		textsetorigin(t, q0, TRUE);
 		return;
 	case Kup:
 		n = t->maxlines/3;
@@ -680,7 +680,7 @@ texttype(Text *t, Rune r)
 		n = 2*t->maxlines/3;
 	case_Up:
 		q0 = textbacknl(t, t->org, n);
-		textsetorigin(t, q0, FALSE);
+		textsetorigin(t, q0, TRUE);
 		return;
 	case Khome:
 		textshow(t, 0, 0, FALSE);

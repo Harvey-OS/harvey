@@ -128,11 +128,22 @@ ps2mouseputc(int c, int shift)
 				nb = 1;
 				/* fall through to emit previous packet */
 			}else{
-				/* the AccuPoint on the Toshiba 34[48]0CT encodes extra buttons as 4 and 5 */
-				/* they repeat and don't release, however, so user-level timing code is required */
-				if(msg[3] == 0xFF) 
+				/* The AccuPoint on the Toshiba 34[48]0CT
+				 * encodes extra buttons as 4 and 5. They repeat
+				 * and don't release, however, so user-level
+				 * timing code is required. Furthermore,
+				 * intellimice with 3buttons + scroll give a
+				 * two's complement number in the lower 4 bits
+				 * (bit 4 is sign extension) that describes
+				 * the amount the scroll wheel has moved during
+				 * the last sample. Here we use only the sign to
+				 * decide whether the wheel is moving up or down
+				 * and generate a single button 4 or 5 click
+				 * accordingly.
+				 */
+				if((msg[3] >> 3) & 1) 
 					buttons |= 1<<3;
-				if(msg[3] == 0x01) 
+				else if(msg[3] & 0x7) 
 					buttons |= 1<<4;
 			}
 		}
@@ -271,6 +282,7 @@ mousectl(Cmdbuf *cb)
 		setlinear();
 		break;
 	case CMps2:
+		intellimouse = 0;
 		ps2mouse();
 		break;
 	case CMps2intellimouse:
