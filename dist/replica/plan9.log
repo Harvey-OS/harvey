@@ -13786,3 +13786,12 @@
 1075131067 0 c sys/src/cmd/ssh/scp.c - 664 sys sys 1075130172 13886
 1075185075 0 c 386/bin/scp - 775 sys sys 1075184164 151804
 1075212079 0 c sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1075211327 6300
+1075271487 0 c 386/bin/upas/smtpd - 775 sys sys 1075270538 320985
+1075348899 0 a sys/man/1/trace - 664 sys sys 1075347661 1758
+1075348899 1 d sys/src/cmd/rtstats/time.h - 664 sys sys 1038425434 0
+1075348899 2 d sys/src/cmd/rtstats/time.c - 664 sys sys 1038425433 0
+1075348899 3 d sys/src/cmd/rtstats/rtstats.c - 664 sys sys 1048644563 0
+1075348899 4 d sys/src/cmd/rtstats/resproc.c - 664 sys sys 1037669163 0
+1075348899 5 d sys/src/cmd/rtstats/mkfile - 664 sys sys 1038425447 0
+1075348899 6 d sys/src/cmd/rtstats/edfproc.c - 664 sys sys 1055699325 0
+1075348899 7 d sys/src/cmd/rtstats - 20000000775 sys sys 1018897680 0
