@@ -196,8 +196,8 @@ cursordraw(Memimage *dst, Rectangle r)
 		loadmemimage(cursorclear, cursorr, clr, CURSORDIM*CURSORDIM/8);
 	}else
 		unlock(&cursor);
-	memimagedraw(dst, r, memwhite, ZP, cursorclear, ZP, S);
-	memimagedraw(dst, r, curscol, ZP, cursorset, ZP, S);
+	memimagedraw(dst, r, memwhite, ZP, cursorclear, ZP, SoverD);
+	memimagedraw(dst, r, curscol, ZP, cursorset, ZP, SoverD);
 }
 
 /*

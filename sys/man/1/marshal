@@ -21,6 +21,9 @@ marshal \- formatting and sending mail
 .I copyaddr
 ]
 [
+.B -R
+.I reply-msg
+[
 .B -nrx#
 ]
 [
@@ -30,7 +33,7 @@ marshal \- formatting and sending mail
 .I Marshal
 builds a mail message from standard input and passes it
 for transmission or delivery to
-.B /bin/myupassend
+.BI /mail/box/ username /pipefrom
 if it exists, otherwise to
 .BR /bin/upas/send .
 The message format is both RFC 822 and
@@ -107,6 +110,25 @@ and also adds
 .I copyaddr
 as a recipient.
 .TP
+.BI -R replymsg
+tells marshal what message this one is in reply to.
+.I Replymsg
+is an
+.IR upas/fs (1)
+directory containing the message.
+.I Marshal
+uses any message id in this message in its
+.B In-Reply-To
+field.  It also passes the directory to
+.BI /mail/box/ username /pipefrom
+in the
+.B replymsg
+environment variable.  Thus,
+.B pipefrom
+can alter the message to somehow match
+the reply to the message it is replying to.
+.TP
+.BI -n
 intentionally no standard input
 .TP
 .B -#xr

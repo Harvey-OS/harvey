@@ -95,6 +95,7 @@ int	printfrom(Biobuf*);
 int	printto(Biobuf*, Addr*);
 int	printcc(Biobuf*, Addr*);
 int	printsubject(Biobuf*, char*);
+int	printinreplyto(Biobuf*, char*);
 int	sendmail(Addr*, Addr*, int*, char*);
 void	attachment(Attach*, Biobuf*);
 int	cistrncmp(char*, char*, int);
@@ -125,6 +126,7 @@ char *login;
 Alias *aliases;
 int rfc822syntaxerror;
 char lastchar;
+char *replymsg;
 
 enum
 {
@@ -139,7 +141,7 @@ enum
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-Fr#xn] [-s subject] [-c ccrecipient] [-t type] [-aA attachment] [-p[es]] -8 | recipient-list\n",
+	fprint(2, "usage: %s [-Fr#xn] [-s subject] [-c ccrecipient] [-t type] [-aA attachment] [-p[es]] [-R replymsg] -8 | recipient-list\n",
 		argv0);
 	exits("usage");
 }
@@ -214,6 +216,9 @@ main(int argc, char **argv)
 		if(ccargv[ccargc] == nil)
 			usage();
 		ccargc++;
+		break;
+	case 'R':
+		replymsg = ARGF();
 		break;
 	case 's':
 		subject = ARGF();
@@ -348,6 +353,9 @@ main(int argc, char **argv)
 			fatal("writing");
 	if((flags & (1<<Hsubject)) == 0 && subject != nil)
 		if(printsubject(&out, subject) < 0)
+			fatal("writing");
+	if(replymsg != nil)
+		if(printinreplyto(&out, replymsg) < 0)
 			fatal("writing");
 	Bprint(&out, "MIME-Version: 1.0\n");
 
@@ -743,6 +751,27 @@ printsubject(Biobuf *b, char *subject)
 	return Bprint(b, "Subject: %s\n", subject);
 }
 
+int
+printinreplyto(Biobuf *out, char *dir)
+{
+	String *s = s_copy(dir);
+	char buf[256];
+	int fd;
+	int n;
+
+	s_append(s, "/messageid");
+	fd = open(s_to_c(s), OREAD);
+	s_free(s);
+	if(fd < 0)
+		return 0;
+	n = read(fd, buf, sizeof(buf)-1);
+	close(fd);
+	if(n <= 0)
+		return 0;
+	buf[n] = 0;
+	return Bprint(out, "In-Reply-To: %s\n", buf);
+}
+
 Attach*
 mkattach(char *file, char *type, int inline)
 {
@@ -937,7 +966,7 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 
 	if(pipe(pfd) < 0)
 		fatal("%r");
-	switch(*pid = fork()){
+	switch(*pid = rfork(RFFDG|RFREND|RFPROC|RFENVG)){
 	case -1:
 		fatal("%r");
 		break;
@@ -969,6 +998,9 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 				break;
 			}
 		}
+
+		if(replymsg != nil)
+			putenv("replymsg", replymsg);
 
 		cmd = mboxpath("pipefrom", user, s_new(), 0);
 		exec(s_to_c(cmd), av);
