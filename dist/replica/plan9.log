@@ -13234,3 +13234,4 @@
 1105799458 0 c sys/src/9/port/devfs.c - 664 sys sys 1105799131 10783
 1105799458 1 c sys/src/cmd/kl/asm.c - 664 sys sys 1105798985 26122
 1105799458 2 c sys/src/cmd/kl/optab.c - 664 sys sys 1105798985 7369
+1105912881 0 c sys/src/9/pc/ether8169.c - 664 sys sys 1105912215 22703

@@ -260,6 +260,7 @@ typedef struct Ctlr {
 	int	rdt;			/* tail - consumer index (host) */
 	int	nrdfree;
 
+	int	tcr;			/* receive configuration register */
 	int	rcr;			/* receive configuration register */
 
 	QLock	slock;			/* statistics */
@@ -450,6 +451,7 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 	l += snprint(p+l, READSTR-l, "punlc: %ud\n", ctlr->punlc);
 	l += snprint(p+l, READSTR-l, "fovw: %ud\n", ctlr->fovw);
 
+	l += snprint(p+l, READSTR-l, "tcr: %8.8uX\n", ctlr->tcr);
 	l += snprint(p+l, READSTR-l, "rcr: %8.8uX\n", ctlr->rcr);
 
 	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
@@ -622,6 +624,7 @@ rtl8169init(Ether* edev)
 	 * Set configuration.
 	 */
 	csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
+	ctlr->tcr = csr32r(ctlr, Tcr);
 	csr32w(ctlr, Rcr, ctlr->rcr);
 	csr16w(ctlr, 0xE2, 0);			/* magic */
 
@@ -924,6 +927,7 @@ static struct {
 	int	id;
 } rtl8169pci[] = {
 	{ "rtl8169",	(0x8169<<16)|0x10EC, },	/* generic */
+	{ "CG-LAPCIGT",	(0xC107<<16)|0x1259, },	/* Corega CG-LAPCIGT */
 	{ nil },
 };
 

@@ -5373,7 +5373,7 @@ sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1071245466 14094
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
-sys/src/9/pc/ether8169.c - 664 sys sys 1105109291 22498
+sys/src/9/pc/ether8169.c - 664 sys sys 1105912215 22703
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
 sys/src/9/pc/ether82557.c - 664 sys sys 1098848151 30040
 sys/src/9/pc/ether83815.c - 664 sys sys 1081706477 23479
