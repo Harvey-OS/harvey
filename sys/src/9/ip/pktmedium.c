@@ -17,8 +17,8 @@ Medium pktmedium =
 {
 .name=		"pkt",
 .hsize=		14,
-.minmtu=	40,
-.maxmtu=	4*1024,
+.mintu=	40,
+.maxtu=	4*1024,
 .maclen=	6,
 .bind=		pktbind,
 .unbind=	pktunbind,

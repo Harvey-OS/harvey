@@ -21,8 +21,8 @@ static void	tripares(Fs*, int, uchar*, uchar*, int, int);
 Medium tripmedium =
 {
 .name=		"trip",
-.minmtu=	20,
-.maxmtu=	64*1024,
+.mintu=	20,
+.maxtu=	64*1024,
 .maclen=	LCIMACSIZE,
 .bind=		tripbind,
 .unbind=	tripunbind,
@@ -140,7 +140,7 @@ tripread(void *a)
 	er->readp = up;	/* hide identity under a rock for unbind */
 
 	for(;;) {
-		bp = devtab[er->mchan->type]->bread(er->mchan, ifc->maxmtu, 0);
+		bp = devtab[er->mchan->type]->bread(er->mchan, ifc->maxtu, 0);
 		ifc->in++;
 		ipiput4(er->fs, ifc, bp);
 	}
@@ -255,8 +255,8 @@ sendifcinfo(Ipifc *dest)
 			continue;
 
 		mtc.type = T_CTLIFADMIN;
-		mtc.maxtu = ifc->maxmtu;
-		mtc.mintu = ifc->minmtu;
+		mtc.maxtu = ifc->maxtu;
+		mtc.mintu = ifc->mintu;
 
 		mtc.port = 0;
 		if(ifc->m == &tripmedium) {

@@ -1177,6 +1177,7 @@ main(int argc, char *argv[])
 	char *s;
 	long v, vmax, nargs;
 	char args[100];
+	int sleeptime = 1000;
 
 	nmach = 1;
 	mysysname = getenv("sysname");
@@ -1188,6 +1189,14 @@ main(int argc, char *argv[])
 
 	nargs = 0;
 	ARGBEGIN{
+	case 'T':
+		s = ARGF();
+		if(s == nil)
+			usage();
+		i = atoi(s);
+		if(i > 0)
+			sleeptime = 1000*i;
+		break;
 	case 'S':
 		s = ARGF();
 		if(s == nil)
@@ -1307,6 +1316,6 @@ main(int argc, char *argv[])
 		}
 		flushimage(display, 1);
 		unlockdisplay(display);
-		sleep(1000);
+		sleep(sleeptime);
 	}
 }

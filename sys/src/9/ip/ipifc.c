@@ -140,8 +140,8 @@ ipifcbind(Conv *c, char **argv, int argc)
 
 	/* set up parameters */
 	ifc->m = m;
-	ifc->minmtu = ifc->m->minmtu;
-	ifc->maxmtu = ifc->m->maxmtu;
+	ifc->mintu = ifc->m->mintu;
+	ifc->maxtu = ifc->m->maxtu;
 	if(ifc->m->unbindonclose == 0)
 		ifc->conv->inuse++;
 	ifc->rp.mflag	= 0;		// default not managed
@@ -226,7 +226,7 @@ ipifcunbind(Ipifc *ifc)
 
 
 
-char sfixedformat[] = "device %s maxmtu %d sendra %d recvra %d mflag %d oflag %d maxraint %d minraint %d linkmtu %d reachtime %d rxmitra %d ttl %d routerlt %d pktin %lud pktout %lud errin %lud errout %lud\n";
+char sfixedformat[] = "device %s maxtu %d sendra %d recvra %d mflag %d oflag %d maxraint %d minraint %d linkmtu %d reachtime %d rxmitra %d ttl %d routerlt %d pktin %lud pktout %lud errin %lud errout %lud\n";
 
 char slineformat[] = "	%-40.40I %-10.10M %-40.40I %-12lud %-12lud\n";
 
@@ -241,7 +241,7 @@ ipifcstate(Conv *c, char *state, int n)
 	ifc = (Ipifc*)c->ptcl;
 
 	m = snprint(state, n, sfixedformat, 
-		ifc->dev, ifc->maxmtu, ifc->sendra6, ifc->recvra6,
+		ifc->dev, ifc->maxtu, ifc->sendra6, ifc->recvra6,
 		ifc->rp.mflag, ifc->rp.oflag, ifc->rp.maxraint,
 		ifc->rp.minraint, ifc->rp.linkmtu, ifc->rp.reachtime,
 		ifc->rp.rxmitra, ifc->rp.ttl, ifc->rp.routerlt,
@@ -358,9 +358,9 @@ ipifcsetmtu(Ipifc *ifc, char **argv, int argc)
 	if(ifc->m == nil)
 		return Ebadarg;
 	mtu = strtoul(argv[1], 0, 0);
-	if(mtu < ifc->m->minmtu || mtu > ifc->m->maxmtu)
+	if(mtu < ifc->m->mintu || mtu > ifc->m->maxtu)
 		return Ebadarg;
-	ifc->maxmtu = mtu;
+	ifc->maxtu = mtu;
 	return nil;
 }
 
@@ -393,8 +393,8 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 		/* fall through */
 	case 5:
 		mtu = strtoul(argv[4], 0, 0);
-		if(mtu >= ifc->m->minmtu && mtu <= ifc->m->maxmtu)
-			ifc->maxmtu = mtu;
+		if(mtu >= ifc->m->mintu && mtu <= ifc->m->maxtu)
+			ifc->maxtu = mtu;
 		/* fall through */
 	case 4:
 		parseip(ip, argv[1]);

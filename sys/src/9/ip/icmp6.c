@@ -543,7 +543,7 @@ icmppkttoobig6(Fs *f, Ipifc *ifc, Block *bp)
 	memmove(np->dst, p->src, IPaddrlen);
 	np->type = PacketTooBigV6;
 	np->code = 0;
-	hnputl(np->icmpid, ifc->maxmtu - ifc->m->hsize);
+	hnputl(np->icmpid, ifc->maxtu - ifc->m->hsize);
 	memmove(nbp->rp + sizeof(IPICMP), bp->rp, sz - sizeof(IPICMP));
 	set_cksum(nbp);
 	np->ttl = HOP_LIMIT;

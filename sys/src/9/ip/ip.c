@@ -294,7 +294,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
 		goto raise;
 
 	/* If we dont need to fragment just send it */
-	medialen = ifc->maxmtu - ifc->m->hsize;
+	medialen = ifc->maxtu - ifc->m->hsize;
 	if(len <= medialen) {
 		if(!gating)
 			hnputs(eh->id, incref(&ip->id4));

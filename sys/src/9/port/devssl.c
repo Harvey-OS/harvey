@@ -591,19 +591,6 @@ sslbread(Chan *c, long n, ulong)
 		}
 		ensure(s, &s->unprocessed, toconsume+len);
 
-		/*
-		 * Now we have a full SSL packet in the unprocessed list.
-		 * Start processing.  We can't get Eintr's here.
-		 * The only cause for errors from here until the end of the
-		 * loop is allocation failures in the block manipulation.
-		 * We'll worry about that when we come across it.
-		 */
-
-		if(waserror()){
-			print("devssl: unhandled allocation failure\n");
-			nexterror();
-		}
-
 		/* skip header */
 		consume(&s->unprocessed, consumed, toconsume);
 
@@ -652,7 +639,6 @@ sslbread(Chan *c, long n, ulong)
 		b = nil;
 		s->in.mid++;
 		qunlock(&s->in.ctlq);
-		poperror();
 		poperror();
 	}
 

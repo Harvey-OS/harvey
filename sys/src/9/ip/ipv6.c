@@ -222,7 +222,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos)
 	}
 
 	/* If we dont need to fragment just send it */
-	medialen = ifc->maxmtu - ifc->m->hsize;
+	medialen = ifc->maxtu - ifc->m->hsize;
 	if(len <= medialen) {
 		hnputs(eh->ploadlen, len-IPV6HDR_LEN);
 		ifc->m->bwrite(ifc, bp, V6, gate);
