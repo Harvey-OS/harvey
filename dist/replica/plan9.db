@@ -542,7 +542,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1083466781 78536
+386/lib/libmp.a - 664 sys sys 1083553423 77700
 386/lib/libndb.a - 664 sys sys 1079451578 61344
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -550,7 +550,7 @@
 386/lib/libsec.a - 664 sys sys 1081564249 646502
 386/lib/libstdio.a - 664 sys sys 1073851276 127052
 386/lib/libsunrpc.a - 664 sys sys 1073851277 357030
-386/lib/libthread.a - 664 sys sys 1073851277 71296
+386/lib/libthread.a - 664 sys sys 1083553423 71456
 386/lib/libventi.a - 664 sys sys 1081564249 98178
 386/mbr - 775 sys sys 1022125974 407
 386/mkfile - 664 sys sys 948141303 46
@@ -3442,7 +3442,7 @@ sys/include/regexp.h - 664 sys sys 1014929066 1308
 sys/include/scribble.h - 664 sys sys 1014929066 679
 sys/include/stdio.h - 664 sys sys 1055700381 4199
 sys/include/sunrpc.h - 664 sys sys 1046367129 7219
-sys/include/thread.h - 664 sys sys 1045504289 3562
+sys/include/thread.h - 664 sys sys 1083523466 3566
 sys/include/tos.h - 664 sys sys 1067718947 562
 sys/include/trace.h - 664 sys sys 1074827800 647
 sys/include/venti.h - 664 sys sys 1072705708 7049
@@ -5342,7 +5342,7 @@ sys/src/9/pc/ether82557.c - 664 sys sys 1081706477 29736
 sys/src/9/pc/ether83815.c - 664 sys sys 1081706477 23479
 sys/src/9/pc/ether8390.c - 664 sys sys 1071245462 17557
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
-sys/src/9/pc/etherdp83820.c - 664 sys sys 1083430754 31574
+sys/src/9/pc/etherdp83820.c - 664 sys sys 1083469193 29134
 sys/src/9/pc/etherec2t.c - 664 sys sys 1020284820 4038
 sys/src/9/pc/etherelnk3.c - 664 sys sys 1081706477 48724
 sys/src/9/pc/etherga620.c - 664 sys sys 1074785126 28754
@@ -12350,7 +12350,7 @@ sys/src/libthread/debug.c - 664 sys sys 1014928157 832
 sys/src/libthread/example.c - 664 sys sys 1041440306 1402
 sys/src/libthread/exec.c - 664 sys sys 1014928157 1844
 sys/src/libthread/exit.c - 664 sys sys 1055700450 1318
-sys/src/libthread/id.c - 664 sys sys 1065139502 1772
+sys/src/libthread/id.c - 664 sys sys 1083523466 1840
 sys/src/libthread/iocall.c - 664 sys sys 1044429928 877
 sys/src/libthread/ioclose.c - 664 sys sys 1030537962 242
 sys/src/libthread/iodial.c - 664 sys sys 1030537988 438
