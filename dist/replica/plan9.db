@@ -4880,7 +4880,7 @@ sys/man/8/newuser - 664 sys sys 954305551 2343
 sys/man/8/nfsserver - 664 sys sys 1017251291 3397
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/ping - 664 sys sys 1028233565 2789
-sys/man/8/plan9.ini - 664 sys sys 1040698791 20588
+sys/man/8/plan9.ini - 664 sys sys 1053576234 20536
 sys/man/8/pop3 - 664 sys sys 1037397443 2444
 sys/man/8/ppp - 664 sys sys 1050361032 4424
 sys/man/8/prep - 664 sys sys 1050689607 13172
