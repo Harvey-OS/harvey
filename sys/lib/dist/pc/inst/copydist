@@ -10,7 +10,7 @@ case checkready
 		export copydist
 		exit
 	}
-	if(test -f /n/kfs/dist/replica/didplan9){
+	if(test -f /n/newfs/dist/replica/didplan9){
 		copydist=done
 		export copydist
 		exit
@@ -18,13 +18,13 @@ case checkready
 case go
 	inst/watchfd applylog 0 `{ls -l /n/dist/dist/replica/plan9.log | awk '{print $6}'} 'Installing file system' &
 	replica/pull -c /rc/bin/inst/replcfg
-	if(~ $status '' *conflicts || test -f /n/kfs/dist/replica/didplan9witherrors)
-		>/n/kfs/dist/replica/didplan9
+	if(~ $status '' *conflicts || test -f /n/newfs/dist/replica/didplan9witherrors)
+		>/n/newfs/dist/replica/didplan9
 	if not
-		>/n/kfs/dist/replica/didplan9witherrors
+		>/n/newfs/dist/replica/didplan9witherrors
 
 case checkdone
-	if(! test -f /n/kfs/dist/replica/didplan9){
+	if(! test -f /n/newfs/dist/replica/didplan9){
 		copydist=notdone
 		export copydist
 	}

@@ -243,6 +243,8 @@ main(int argc, char **argv)
 	case 'f':
 		fontname = EARGF(usage());
 		break;
+	default:
+		usage();
 	}ARGEND
 
 	if(argc)

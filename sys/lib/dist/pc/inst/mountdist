@@ -1,11 +1,5 @@
 #!/bin/rc
 
-# We don't support ext2 because I'm not motivated enough
-# to convert ext2srv, a server that only half works to begin with,
-# to 9P2000.  If someone else wants to update ext2srv, I'll be happy
-# to put back support for installing from ext2 partitions back.
-#			- rsc
-
 # prereq: mountfs configdist
 # desc: locate and mount the distribution
 
@@ -36,11 +30,11 @@ fn trycdimage{
 
 fn trycdimagebz2 {
 	if(test -f $1){
-		echo -n 'bunzip2 < '^$1^' >/n/kfs/dist/plan9.iso'
-		bunzip2 < $1 >/n/kfs/dist/_plan9.iso &&
-		mv /n/kfs/dist/_plan9.iso /n/kfs/dist/plan9.iso
+		echo -n 'bunzip2 < '^$1^' >/n/newfs/dist/plan9.iso'
+		bunzip2 < $1 >/n/newfs/dist/_plan9.iso &&
+		mv /n/newfs/dist/_plan9.iso /n/newfs/dist/plan9.iso
 		echo
-		trycdimage /n/kfs/dist/plan9.iso
+		trycdimage /n/newfs/dist/plan9.iso
 		mountdist=notdone
 		export mountdist
 		exit notdone
@@ -74,9 +68,10 @@ case checkready
 		
 case go
 	kfs=()
-	ext2=()
 	fat=()
+	ext2=()
 	x9660=()
+	fossil=()
 
 	echo Please wait... Scanning storage devices...
 
@@ -94,6 +89,8 @@ case go
 	#		ext2=($ext2 $i)
 		if(is9660 /tmp/localpart.$n)
 			x9660=($x9660 $i)
+		if(isfossil /tmp/localpart.$n)
+			fossil=($fossil $i)
 		echo
 	}
 	echo
@@ -104,39 +101,48 @@ case go
 		switch($i){
 		case $kfs
 			echo	'	'^$i^' (plan9 kfs)'
-	#	case $ext2
-	#		echo '	'^$i^' (linux ext2)'
 		case $fat
-			echo '	'^$i^' (microsoft fat)'
+			echo 	'	'^$i^' (microsoft fat)'
+		case $ext2
+			echo 	'	'^$i^' (linux ext2)'
 		case $x9660
-			echo '	'^$i^' (iso9660 cdrom)'
+			echo 	'	'^$i^' (iso9660 cdrom)'
+		case $fossil
+			echo 	'	'^$i^' (plan9 fossil)'
 		}
 	}
 	echo
 
 	mountstatus=x
 	while(! ~ $mountstatus ''){
-		prompt -w '' 'Distribution disk' $kfs $fat $x9660 #$ext2
+		prompt -w '' 'Distribution disk' $fat $x9660 $fossil
 		disk=$rd
 
 		srvmedia=()
 		mountmedia=()
 		switch($disk){
 		case $fs
-			mountmedia=(bind /n/kfs /n/distmedia)
+			mountmedia=(bind /n/newfs /n/distmedia)
 		case $kfs
 			kname=`{kfsname $disk}
 			srvmedia=(disk/kfs -f $disk -n $kname)
 			mountmedia=(mount /srv/kfs.$kname /n/distmedia)
-	#	case $ext2
-	#		srvmedia=(ext2srv -r)
-	#		mountmedia=(mount /srv/ext2 /n/distmedia $disk)
 		case $fat
 			srvmedia=(dossrv)
 			mountmedia=(mount /srv/dos /n/distmedia $disk)
+		case $ext2
+			srvmedia=(ext2srv -r)
+			mountmedia=(mount /srv/ext2 /n/distmedia $disk)
 		case $x9660
 			srvmedia=(9660srv)
 			mountmedia=(mount /srv/9660 /n/distmedia $disk)
+		case $fossil
+			echo 'srv fossil.mountdist' > /tmp/fossi.conf
+			echo 'fsys main config '^$disk >> /tmp/fossil.conf
+			echo 'fsys main open -AWVP' >> /tmp/fossil.conf
+			echo 'fsys main' >> /tmp/fossil.conf
+			srvmedia=(fossil/fossil -c '. /tmp/fossil.conf')
+			mountmedia=(mount /srv/fossil.mountdist /n/distmedia)
 		case *
 			echo Unknown disk type '(cannot happen)'
 			exit oops
@@ -185,6 +191,7 @@ case go
 		if(! havedist /n/distmedia/$dir)
 			echo 'No distribution found in '^`{cleanname /$dir}
 	}
+
 	distmediadir=$dir
 	export distmediadir
 
@@ -194,7 +201,7 @@ case checkdone
 		export mountdist
 		exit notdone
 	}
-	if(! havedist /n/distmedia/$distmediadir && ! havedist /n/kfs/dist){
+	if(! havedist /n/distmedia/$distmediadir && ! havedist /n/newfs/dist){
 		mountdist=notdone
 		export mountdist
 		exit notdone
@@ -204,6 +211,8 @@ case checkdone
 
 	if(test -f /n/distmedia/$distmediadir/dist/replica/plan9.db){
 		bind /n/distmedia/$distmediadir /n/dist
+		bind -a /n/dist/386/bin /bin
+		bind -a /n/dist/rc/bin /bin
 		exitifdone
 		mountdist=notdone
 		export mountdist
@@ -211,10 +220,10 @@ case checkdone
 	}
 
 	trycdimage /n/distmedia/$distmediadir/plan9.iso
-	trycdimage /n/kfs/dist/plan9.iso
+	trycdimage /n/newfs/dist/plan9.iso
 
 	trycdimagebz2 /n/distmedia/$distmediadir/plan9.iso.bz2
-	trycdimagebz2 /n/kfs/dist/plan9.iso.bz2
+	trycdimagebz2 /n/newfs/dist/plan9.iso.bz2
 
 	mountdist=notdone
 	export mountdist

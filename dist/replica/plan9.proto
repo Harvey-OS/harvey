@@ -7,7 +7,7 @@ adm	- adm adm
 
 # upas owns mail
 mail	- upas upas
-	box	- upas upas
+	box	d777 upas upas
 		glenda	- glenda glenda
 			L.mbox	l666 glenda glenda
 			mbox	a662 glenda glenda

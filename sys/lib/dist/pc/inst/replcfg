@@ -8,8 +8,8 @@ fn servermount { status='' }
 fn serverupdate { status='' }
 
 fn clientmount { status='' }
-c=/n/kfs/dist/replica
-clientroot=/n/kfs
+c=/n/newfs/dist/replica
+clientroot=/n/newfs
 clientproto=$c/plan9.proto
 clientdb=$c/client/plan9.db
 clientexclude=(dist/replica/client)

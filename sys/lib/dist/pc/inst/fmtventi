@@ -1,7 +1,7 @@
 #!/bin/rc
 
 # desc: initialize disks for a venti server
-# prereq: choosefs
+# prereq: mountdist
 
 switch($1){
 case checkready checkdone
@@ -10,25 +10,42 @@ case checkready checkdone
 		export fmtventi
 		exit
 	}
-	ff=`{ls /dev/sd*/v.arenas* /dev/fs/v.arenas* >[2]/dev/null}
+	if(! test -e /bin/venti/fmtarenas || ! test -e /bin/venti/fmtisect || ! test -e /bin/venti/fmtindex){
+		bind -a /n/dist/386/bin/venti /bin/venti
+		if(! test -e /bin/venti/fmtarenas || ! test -e /bin/venti/fmtisect || ! test -e /bin/venti/fmtindex){
+			fmtventi=notdone
+			export fmtventi
+			exit
+		}
+	}
+	ff=`{ls /dev/sd*/arenas* /dev/fs/arenas* >[2]/dev/null}
+	if(~ $#ff 0){
+		fmtventi=notdone
+		export fmtventi
+		exit
+	}
 	gg=()
 	for(f in $ff)
 		if(isventi $f)
 			gg=($gg $f)
 	if(~ $#gg 0){
-		fmtventi=notdone
+		fmtventi=ready
 		export fmtventi
 		exit
 	}
+
+	ventiarena=$gg(1)
+	export ventiarena
+
 	fmtventi=done
 	export fmtventi
 	exit
 
 case go
-	ff=`{ls /dev/sd*/v.arenas* /dev/fs/v.arenas* >[2]/dev/null}
+	ff=`{ls /dev/sd*/arenas* /dev/fs/arenas* >[2]/dev/null}
 	if(~ $#ff 0){
 		echo 'You need to create a partition or partitions to hold the Venti arenas.'
-		echo 'The arena partition names must begin with "v.arenas".'
+		echo 'The arena partition names must begin with "arenas".'
 		echo
 		fmtventi=notdone
 		export fmtventi
@@ -56,10 +73,10 @@ case go
 	ventiarena=$aa
 	export ventiarena
 
-	gg=`{ls /dev/sd*/v.index* /dev/fs/v.index* >[2]/dev/null}
+	gg=`{ls /dev/sd*/isect* /dev/fs/isect* >[2]/dev/null}
 	if(~ $#gg 0){
 		echo 'You need to create a partition or partitions to hold the Venti indices.'
-		echo 'The index partition names must begin with "v.index".'
+		echo 'The index partition names must begin with "isect".'
 		echo
 		fmtventi=notdone
 		export fmtventi
@@ -123,7 +140,7 @@ case go
 	for(a in $fmta $fmti){
 		d=`{echo $a | sed 's!.*:(/.*/).*!\1!'}
 		if(! ~ $d $dd)
-			$dd=($dd $d)
+			dd=($dd $d)
 	}
 	for(d in $dd){
 		{
@@ -139,7 +156,7 @@ case go
 				i=`{echo $a | sed 's!(.*):(/.*/)(.*)!\1 \2 \2\3!'}
 				if(~ $i(2) $d){
 					echo $i(3) ...
-					venti/isect $i(1) $i(3) || echo bad >/tmp/fmt
+					venti/fmtisect $i(1) $i(3) || echo bad >/tmp/fmt
 					echo done with $i(3)
 				}
 			}
@@ -162,11 +179,11 @@ case go
 		for(i in $ventiindex)
 			echo isect $i
 		for(a in $ventiarena)
-			echo arenas $i
+			echo arenas $a
 	} | venti/conf -w $v
 
 	echo Initializing index...
-	venti/fmtindex -c $v
+	venti/fmtindex $v
 
 	echo Done with Venti!
 }

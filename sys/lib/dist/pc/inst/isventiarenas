@@ -6,7 +6,7 @@ if(! ~ $#* 1){
 }
 
 arg=$1
-if(! cmp -s <{dd -quiet 1 -if $arg -bs 1024 -iseek 128 |
+if(! cmp -s <{dd -quiet 1 -if $arg -bs 1024 -iseek 256 |
 	dd -quiet 1 -bs 4 -count 1 | xd -b | sed 1q} <{echo '0000000  a9 e4 a5 e7'})
 	exit notarenas
 exit 0

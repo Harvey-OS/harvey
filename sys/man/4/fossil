@@ -410,7 +410,7 @@ fsys main open -AWP
 fsys main
 create /active/adm adm sys d775
 create /active/adm/users adm sys 664
-users -w /active/adm/users
+users -w
 srv -p fscons
 srv fossil
 EOF

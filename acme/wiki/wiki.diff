@@ -4,9 +4,24 @@ rfork n
 cd $1
 *=(`{ls -drp [0-9]*})
 
-diff -n index.txt $1/index.txt | sed 's/^(.*)index.txt:(.*)index.txt:/\1current:\2:/g'
 while(! ~ $#* 0 1){
-	diff -n $1/index.txt $2/index.txt | sed 's/^(.*)index.txt:(.*)index.txt:/\1:\2:/g'
+	diff -n $2/index.txt $1/index.txt | awk  -F'[\/ :]' '
+	$1 ~/^[0-9]+$/ {  
+		getA = "cat "$1"/current | sed -n -e ''1d; /^A/s/^A//p; /^#/q''"
+		getA | getline A; close getA
+		$1 = t2d($1)
+		$5 = t2d($5)
+		print "\n" A ":\n" $1":"$3" "$4" "$5":"$7
+		next
+	} 
+	{ print }
+
+	function t2d(t) {
+		c = "date "t; c|getline l; close c
+		split(l, a, "[ :]+")
+		return  a[1]" "a[2]" "a[3]" "a[4]":"a[5]" "a[8]"("t")"
+	}'
 	shift
-}
+}  
+
 echo clean >/dev/ctl >[2]/dev/null

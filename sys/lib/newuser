@@ -47,6 +47,8 @@ case cpu
 	if (! test -e /mnt/term/mnt/wsys) {
 		# cpu call from drawterm
 		font=/lib/font/bit/pelm/latin1.8.font
+		plumber
+		auth/factotum
 		exec rio
 	}
 case con
