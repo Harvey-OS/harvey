@@ -6713,7 +6713,7 @@ sys/src/cmd/8c/cgen64.c - 664 sys sys 1084472147 43289
 sys/src/cmd/8c/enam.c - 664 sys sys 944960730 3215
 sys/src/cmd/8c/gc.h - 664 sys sys 1084472147 6102
 sys/src/cmd/8c/list.c - 664 sys sys 1067720660 3975
-sys/src/cmd/8c/machcap.c - 664 sys sys 1084500824 944
+sys/src/cmd/8c/machcap.c - 664 sys sys 1084766030 957
 sys/src/cmd/8c/mkenam - 664 sys sys 944960730 112
 sys/src/cmd/8c/mkfile - 664 sys sys 1084472148 304
 sys/src/cmd/8c/peep.c - 664 sys sys 1084472147 11142
