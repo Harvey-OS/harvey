@@ -26,15 +26,11 @@ usr	- sys sys
 		+	- glenda glenda
 
 # architectures owned by sys
-29000	- sys sys
-	+	- sys sys
 386	- sys sys
 	+	- sys sys
 68000	- sys sys
 	+	- sys sys
 68020	- sys sys
-	+	- sys sys
-960	- sys sys
 	+	- sys sys
 alpha	- sys sys
 	+	- sys sys
