@@ -3383,6 +3383,7 @@ sys/include/authsrv.h - 664 sys sys 1014929062 4542
 sys/include/bin.h - 664 sys sys 1014929062 215
 sys/include/bio.h - 664 sys sys 1014929062 1854
 sys/include/bootexec.h - 664 sys sys 1014929062 3144
+sys/include/complete.h - 664 sys sys 1072904891 517
 sys/include/control.h - 664 sys sys 1045419238 4801
 sys/include/ctype.h - 664 sys sys 1014929062 951
 sys/include/cursor.h - 664 sys sys 1014929062 102
@@ -4756,6 +4757,7 @@ sys/man/2/cachechars - 664 sys sys 944959696 7061
 sys/man/2/chdir - 664 sys sys 944959694 552
 sys/man/2/cleanname - 664 sys sys 950593488 709
 sys/man/2/color - 664 sys sys 944959697 1335
+sys/man/2/complete - 664 sys sys 1072905221 2175
 sys/man/2/control - 664 sys sys 1037465511 42782
 sys/man/2/cputime - 664 sys sys 1015091518 713
 sys/man/2/ctime - 664 sys sys 954378853 2547
@@ -11734,6 +11736,9 @@ sys/src/libc/sparc/strcpy.s - 664 sys sys 944961720 1115
 sys/src/libc/sparc/tas.s - 664 sys sys 944961721 67
 sys/src/libc/sparc/vlop.s - 664 sys sys 944961720 2423
 sys/src/libc/sparc/vlrt.c - 664 sys sys 1067723054 9066
+sys/src/libcomplete - 20000000775 sys sys 1072904881 0
+sys/src/libcomplete/complete.c - 664 sys sys 1072904881 2673
+sys/src/libcomplete/mkfile - 664 sys sys 1072904881 208
 sys/src/libcontrol - 20000000775 sys sys 1016857569 0
 sys/src/libcontrol/box.c - 664 sys sys 1015095043 3276
 sys/src/libcontrol/button.c - 664 sys sys 1015095044 4508
