@@ -30,7 +30,7 @@ memimagestring(Memimage *b, Point p, Memimage *color, Point cp, Memsubfont *f, c
 		i = f->info+c;
 		width = i->width;
 		memdraw(b, Rect(p.x+i->left, p.y+i->top, p.x+i->left+(i[1].x-i[0].x), p.y+i->bottom),
-			color, cp, f->bits, Pt(i->x, i->top));
+			color, cp, f->bits, Pt(i->x, i->top), SoverD);
 	}
 	return p;
 }

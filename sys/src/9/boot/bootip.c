@@ -60,7 +60,7 @@ configip(void)
 	case -1:
 		fatal("configuring ip: %r");
 	case 0:
-		exec("/ipconfig", arg);
+		exec("/boot/ipconfig", arg);
 		fatal("execing /ipconfig");
 	default:
 		break;

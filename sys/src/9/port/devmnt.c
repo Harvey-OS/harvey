@@ -829,6 +829,24 @@ mountio(Mnt *m, Mntrpc *r)
 	mntflushfree(m, r);
 }
 
+static int
+doread(Mnt *m, int len)
+{
+	Block *b;
+
+	while(qlen(m->q) < len){
+		b = devtab[m->c->type]->bread(m->c, m->msize, 0);
+		if(b == nil)
+			return -1;
+		if(BLEN(b) == 0){
+			freeblist(b);
+			return -1;
+		}
+		qaddlist(m->q, b);
+	}
+	return 0;
+}
+
 int
 mntrpcread(Mnt *m, Mntrpc *r)
 {
@@ -839,22 +857,18 @@ mntrpcread(Mnt *m, Mntrpc *r)
 	r->reply.tag = 0;
 
 	/* read at least length, type, and tag and pullup to a single block */
-	while(qlen(m->q) < BIT32SZ+BIT8SZ+BIT16SZ){
-		b = devtab[m->c->type]->bread(m->c, m->msize, 0);
-		if(b == nil)
-			return -1;
-		qaddlist(m->q, b);
-	}
+	if(doread(m, BIT32SZ+BIT8SZ+BIT16SZ) < 0)
+		return -1;
 	nb = pullupqueue(m->q, BIT32SZ+BIT8SZ+BIT16SZ);
-	len = GBIT32(nb->rp);
 
-	/* read in the rest of the message */
-	while(qlen(m->q) < len){
-		b = devtab[m->c->type]->bread(m->c, m->msize, 0);
-		if(b == nil)
-			return -1;
-		qaddlist(m->q, b);
+	/* read in the rest of the message, avoid rediculous (for now) message sizes */
+	len = GBIT32(nb->rp);
+	if(len > m->msize){
+		qdiscard(m->q, qlen(m->q));
+		return -1;
 	}
+	if(doread(m, len) < 0)
+		return -1;
 
 	/* pullup the header (i.e. everything except data) */
 	t = nb->rp[BIT32SZ];

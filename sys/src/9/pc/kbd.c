@@ -383,7 +383,7 @@ i8042intr(Ureg*, void*)
 			 * come back into focus, Plan 9 thinks you want to type
 			 * a compose sequence (you just typed alt). 
 			 *
-			 * As a clusmy hack around this, we look for ctl-alt
+			 * As a clumsy hack around this, we look for ctl-alt
 			 * and don't treat it as the start of a compose sequence.
 			 */
 			if(!ctl){

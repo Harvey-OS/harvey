@@ -30,6 +30,7 @@ struct Param {
 	int			t;
 	Point			sp;
 	Memimage	*disc;
+	int			op;
 };
 
 /*
@@ -104,7 +105,7 @@ step(State *s)
 }
 
 void
-memellipse(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp)
+memellipse(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp, int op)
 {
 	State in, out;
 	int y, inb, inx, outx, u;
@@ -120,6 +121,7 @@ memellipse(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp)
 	p.t = t;
 	p.sp = subpt(sp, c);
 	p.disc = nil;
+	p.op = op;
 
 	u = (t<<1)*(a-b);
 	if(b<a && u>b*b || a<b && -u>a*a) {
@@ -178,7 +180,7 @@ bellipse(int y, State *s, Param *p)
 	if(p->disc == nil)
 		return;
 	memfillcolor(p->disc, DTransparent);
-	memellipse(p->disc, p00, t, t, -1, memopaque, p00);
+	memellipse(p->disc, p00, t, t, -1, memopaque, p00, p->op);
 	oy = y;
 	ox = 0;
 	nx = x = step(s);
@@ -209,7 +211,7 @@ erect(int x0, int y0, int x1, int y1, Param *p)
 
 /*	print("R %d,%d %d,%d\n", x0, y0, x1, y1); /**/
 	r = Rect(p->c.x+x0, p->c.y+y0, p->c.x+x1+1, p->c.y+y1+1);
-	memdraw(p->dst, r, p->src, addpt(p->sp, r.min), memopaque, p00);
+	memdraw(p->dst, r, p->src, addpt(p->sp, r.min), memopaque, p00, p->op);
 }
 
 /*
@@ -225,7 +227,7 @@ epoint(int x, int y, Param *p)
 /*	print("P%d %d,%d\n", p->t, x, y);	/**/
 	p0 = Pt(p->c.x+x, p->c.y+y);
 	r = Rpt(addpt(p0, p->disc->r.min), addpt(p0, p->disc->r.max));
-	memdraw(p->dst, r, p->src, addpt(p->sp, r.min), p->disc, p->disc->r.min);
+	memdraw(p->dst, r, p->src, addpt(p->sp, r.min), p->disc, p->disc->r.min, p->op);
 }
 
 /* 

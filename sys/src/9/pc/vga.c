@@ -54,9 +54,9 @@ vgascroll(VGAscr* scr)
 	o = 8*h;
 	r = Rpt(window.min, Pt(window.max.x, window.max.y-o));
 	p = Pt(window.min.x, window.min.y+o);
-	memimagedraw(scr->gscreen, r, scr->gscreen, p, nil, p);
+	memimagedraw(scr->gscreen, r, scr->gscreen, p, nil, p, S);
 	r = Rpt(Pt(window.min.x, window.max.y-o), window.max);
-	memimagedraw(scr->gscreen, r, back, ZP, nil, ZP);
+	memimagedraw(scr->gscreen, r, back, ZP, nil, ZP, S);
 
 	curpos.y -= o;
 }
@@ -99,7 +99,7 @@ vgascreenputc(VGAscr* scr, char* buf, Rectangle *flushr)
 		pos = 4-(pos%4);
 		*xp++ = curpos.x;
 		r = Rect(curpos.x, curpos.y, curpos.x+pos*w, curpos.y + h);
-		memimagedraw(scr->gscreen, r, back, back->r.min, nil, back->r.min);
+		memimagedraw(scr->gscreen, r, back, back->r.min, nil, back->r.min, S);
 		curpos.x += pos*w;
 		break;
 
@@ -108,7 +108,7 @@ vgascreenputc(VGAscr* scr, char* buf, Rectangle *flushr)
 			break;
 		xp--;
 		r = Rect(*xp, curpos.y, curpos.x, curpos.y+h);
-		memimagedraw(scr->gscreen, r, back, back->r.min, nil, ZP);
+		memimagedraw(scr->gscreen, r, back, back->r.min, nil, ZP, S);
 		combinerect(flushr, r);
 		curpos.x = *xp;
 		break;
@@ -125,7 +125,7 @@ vgascreenputc(VGAscr* scr, char* buf, Rectangle *flushr)
 
 		*xp++ = curpos.x;
 		r = Rect(curpos.x, curpos.y, curpos.x+w, curpos.y+h);
-		memimagedraw(scr->gscreen, r, back, back->r.min, nil, back->r.min);
+		memimagedraw(scr->gscreen, r, back, back->r.min, nil, back->r.min, S);
 		memimagestring(scr->gscreen, curpos, conscol, ZP, scr->memdefont, buf);
 		combinerect(flushr, r);
 		curpos.x += w;
@@ -248,7 +248,7 @@ cornerstring(char *s)
 	h = scr->memdefont->height;
 
 	r = Rect(0, 0, w, h);
-	memimagedraw(scr->gscreen, r, back, back->r.min, nil, back->r.min);
+	memimagedraw(scr->gscreen, r, back, back->r.min, nil, back->r.min, S);
 	memimagestring(scr->gscreen, r.min, conscol, ZP, scr->memdefont, s);
 //	flushmemscreen(r);
 }

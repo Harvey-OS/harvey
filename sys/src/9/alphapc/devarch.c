@@ -401,13 +401,49 @@ PCArch archgeneric = {
 
 static char	*sysnames[] =
 {
-// [26]		"EB164",
-[26]		"AlphaPC 164",
+[1]		"Alpha Demo. Unit",
+[2]		"DEC 4000; Cobra",
+[3]		"DEC 7000; Ruby",
+[4]		"DEC 3000/500; Flamingo family (TC)",
+[6]		"DEC 2000/300; Jensen (EISA/ISA)",
+[7]		"DEC 3000/300; Pelican (TC)",
+[8]		"Avalon A12; Avalon Multicomputer",
+[9]		"DEC 2100/A500; Sable",
+[10]		"DEC APXVME/64; AXPvme (VME?)",
+[11]		"DEC AXPPCI/33; NoName (PCI/ISA)",
+[12]		"DEC 21000; TurboLaser (PCI/EISA)",
+[13]		"DEC 2100/A50; Avanti (PCI/ISA)",
+[14]		"DEC MUSTANG; Mustang",
+[15]		"DEC KN20AA; kn20aa (PCI/EISA)",
+[17]		"DEC 1000; Mikasa (PCI/ISA?)",
+[19]		"EB66; EB66 (PCI/ISA?)",		// DEC?
+[20]		"EB64P; EB64+ (PCI/ISA?)",		// DEC?
+[21]		"Alphabook1; Alphabook",
+[22]		"DEC 4100; Rawhide (PCI/EISA)",
+[23]		"DEC EV45/PBP; Lego",
+[24]		"DEC 2100A/A500; Lynx",
+[26]		"DEC AlphaPC 164",	// only supported one: "EB164 (PCI/ISA)"
+[27]		"DEC 1000A; Noritake",
+[28]		"DEC AlphaVME/224; Cortex",
+[30]		"DEC 550; Miata (PCI/ISA)",
+[32]		"DEC EV56/PBP; Takara",
+[33]		"DEC AlphaVME/320; Yukon (VME?)",
+[34]		"DEC 6600; MonetGoldrush",
+// 200 and up is Alpha Processor Inc. machines
+// [201]	"API UP1000; Nautilus",
 };
 
 static char	*cpunames[] =
 {
-[7]		"21164A",
+[1]		"EV3",
+[2]		"EV4: 21064",
+[3]		"Simulation",
+[4]		"LCA4: 2106[68]",
+[5]		"EV5: 21164",
+[6]		"EV45: 21064A",
+[7]		"21164A",		/* only supported one: EV56 */
+[8]		"EV6: 21264",
+[9]		"PCA256: 21164PC",
 };
 
 void
@@ -430,7 +466,7 @@ cpuidprint(void)
 		s = "<unknown>";
 		if (hwrpb->systype < nelem(sysnames))
 			s = sysnames[hwrpb->systype];
-		print("DEC %s (%llux, %llux, %llux)\n", s, hwrpb->systype, hwrpb->sysvar, hwrpb->sysrev);
+		print("%s (%llux, %llux, %llux)\n", s, hwrpb->systype, hwrpb->sysvar, hwrpb->sysrev);
 	}
 
 	for (i = 0; i < hwrpb->ncpu; i++) {

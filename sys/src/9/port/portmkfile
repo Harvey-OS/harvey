@@ -30,7 +30,7 @@ all:V:
 		mk 'CONF='$i
 
 clean:V:
-	rm -f *.[$OS] *.root.s cfs.h fs.h init.h conf.h *.out
+	rm -f *.[$OS] *.root.s cfs.h fs.h init.h conf.h *.out factotum.hack ipconfig.hack
 	for(i in $CONFLIST)
 		mk $i.clean
 
@@ -77,54 +77,15 @@ unthwack.$O:	../port/thwack.h
 devsdp.$O:	../port/thwack.h
 devrealtime.$O edf.$O realtime.$O: ../port/edf.h
 
-nkfs.root.s:	/$objtype/bin/disk/nkfs
-	cp $prereq nkfs.out
-	../port/mkroot nkfs kfs
-
-dossrv.root.s:	/$objtype/bin/dossrv
-	cp $prereq dossrv.out
-	../port/mkroot dossrv kfs
-
-bzfs.root.s: /sys/lib/dist/bin/$objtype/bzfs
-	cp $prereq bzfs.out
-	../port/mkroot bzfs kfs
-
-bzroot.root.s: /sys/lib/dist/pc/root.bz2
-	aux/data2s bzroot < /sys/lib/dist/pc/root.bz2 > bzroot.root.s
-
-9660srv.root.s: /$objtype/bin/9660srv
-	cp $prereq 9660srv.out	
-	../port/mkroot 9660srv kfs
-
-factotum.root.s:	/$objtype/bin/auth/factotum
-	cp $prereq factotum.out
-	../port/mkroot factotum factotum
-
-nfactotum.root.s: /$objtype/bin/auth/nfactotum
-	cp $prereq nfactotum.out
-	../port/mkroot nfactotum factotum
-
-rcmain.root.s: /rc/lib/rcmain
-	cp /rc/lib/rcmain rcmain.out
-	../port/mkroot rcmain rcmain
-
-%.root.s:	/$objtype/bin/%
-	cp $prereq $stem.out
-	../port/mkroot $stem $stem
-
-%.root.s:	/$objtype/bin/disk/%
-	cp $prereq $stem.out
-	../port/mkroot $stem $stem
-
-%.root.s:	/$objtype/bin/ip/%
-	cp $prereq $stem.out
-	../port/mkroot $stem $stem
-
-%.embed.root.s: ../embed/%
-	aux/data2s $stem < $prereq > $target
-
-boot$CONF.root.s: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
+boot$CONF.out: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
 	$BOOTDIR/mkboot $CONF > boot$CONF.c
 	$CC $CFLAGS boot$CONF.c
 	$LD -o boot$CONF.out boot$CONF.$O $BOOTLIB print.$O
-	../port/mkroot boot$CONF boot
+
+# this lets us say "factotum.hack factotum" instead of "/386/bin/auth/factotum factotum"
+# in the kernel config files.  the latter won't work until we have long file names.
+factotum.hack: /$objtype/bin/auth/factotum
+	cp $prereq $target
+
+ipconfig.hack: /$objtype/bin/ip/ipconfig
+	cp $prereq $target

@@ -60,9 +60,6 @@ link
 misc
 	archmp		mp apic
 
-	ipconfig.root
-	factotum.root
-
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
@@ -105,3 +102,8 @@ port
 
 boot
 	il
+
+bootdir
+	bootpc.out boot
+	/386/bin/ip/ipconfig
+	factotum.hack factotum

@@ -5,7 +5,7 @@
 #include <memlayer.h>
 
 void
-mempoly(Memimage *dst, Point *vert, int nvert, int end0, int end1, int radius, Memimage *src, Point sp)
+mempoly(Memimage *dst, Point *vert, int nvert, int end0, int end1, int radius, Memimage *src, Point sp, int op)
 {
 	int i, e0, e1;
 	Point d;
@@ -19,6 +19,6 @@ mempoly(Memimage *dst, Point *vert, int nvert, int end0, int end1, int radius, M
 			e0 = end0;
 		if(i == nvert-1)
 			e1 = end1;
-		memline(dst, vert[i-1], vert[i], e0, e1, radius, src, addpt(d, vert[i-1]));
+		memline(dst, vert[i-1], vert[i], e0, e1, radius, src, addpt(d, vert[i-1]), op);
 	}
 }

@@ -6,6 +6,9 @@
 #include "screen.h"
 #include "kbd.h"
 
+#include <mp.h>
+#include <libsec.h>
+
 enum
 {
 	MaxCorreDim	= 48,
@@ -270,7 +273,7 @@ sendupdate(Vncs *v, int dowarp, Point warppt)
 	for(i = 0; i < updateregion.nrects; i++){
 		if(!docursor)
 			docursor = rectXrect(v->cursorr, updateregion.rects[i]);
-		memimagedraw(v->clientimage, updateregion.rects[i], gscreen, updateregion.rects[i].min, memopaque, ZP);
+		memimagedraw(v->clientimage, updateregion.rects[i], gscreen, updateregion.rects[i].min, memopaque, ZP, S);
 	}
 
 	if(docursor){
@@ -694,7 +697,7 @@ vnc_newclient(int dfd, int cfd)
 	Vncs * v;
 
 	/* caller returns to listen */
-	switch(rfork(RFPROC|RFMEM)){
+	switch(rfork(RFPROC|RFMEM|RFNAMEG)){
 	case -1:
 		close(dfd);
 		close(cfd);
@@ -834,15 +837,15 @@ noteshut(void*, char *msg)
  * auto:	/net | nil
  */
 int
-vncannounce(char *netmt, char * darg, char * adir)
+vncannounce(char *netmt, char * darg, char * adir, int bport)
 {
 	int port, eport, fd;
 	char portstr[NETPATHLEN];
 
-	port = 5900;
-	eport = port + 50;
+	port = bport;
+	eport = bport + 50;
 	if( darg != nil && darg[0] == ':' ) {
-		port = 5900 + strtol(&darg[1], nil, 10);
+		port = bport + strtol(&darg[1], nil, 10);
 		eport = port;
 	}
 
@@ -850,7 +853,7 @@ vncannounce(char *netmt, char * darg, char * adir)
 		snprint(portstr, NETPATHLEN, "%s/tcp!*!%d", netmt, port);
 		fd = announce(portstr, adir);
 		if( fd >= 0 ) {
-			fprint(2, "server started on display :%d\n", port-5900);
+			fprint(2, "server started on display :%d\n", port-bport);
 			return fd;
 		}
 	}
@@ -861,7 +864,7 @@ vncannounce(char *netmt, char * darg, char * adir)
 /* the user wants to kill the sever on a specified port 
 */
 static void
-vnckillsrv(char * netroot, char * portstr)
+vnckillsrv(char * netroot, char * portstr, int bport)
 {
 	int port, fd, lport;
 	char * p;
@@ -871,7 +874,7 @@ vnckillsrv(char * netroot, char * portstr)
 
 	port = atoi(portstr);
 	
-	port += 5900;
+	port += bport;
 	/* find the listener in /net/tcp/ */
 	snprint(buf, sizeof buf, "%s/tcp", netroot);
 	fdir = open(buf, OREAD);
@@ -924,9 +927,12 @@ void
 main(int argc, char * argv[])
 {
 	static char *defargv[] = { "/bin/rc", "-i", nil };
-	char *addr, netmt[NETPATHLEN], adir[NETPATHLEN], ldir[NETPATHLEN], *p, *darg, *karg;
-	int cfd, s, n, fd, w, h;
+	char *addr, netmt[NETPATHLEN], adir[NETPATHLEN], ldir[NETPATHLEN], *p, *darg, *karg, *pem;
+	int cfd, s, n, fd, w, h, vncport;
+	TLSconn *conn;
 
+	vncport = 5900;
+	pem = nil;
 	w = 1024;
 	h = 768;
 	addr = nil;
@@ -934,6 +940,12 @@ main(int argc, char * argv[])
 	karg = nil;
 	setnetmtpt(netmt, NETPATHLEN, nil);
 	ARGBEGIN{
+	case 'c':
+		pem = ARGF();
+		if(pem == nil)
+			usage();
+		vncport = 35729;	/* base port# for vnc/tls */
+		break;
 	case 'd':
 		darg = ARGF();
 		if(darg == nil || *darg != ':')
@@ -970,7 +982,7 @@ main(int argc, char * argv[])
 	if(karg != nil){
 		if(argc ||  darg != nil )
 			usage();
-		vnckillsrv(netmt, &karg[1]);
+		vnckillsrv(netmt, &karg[1], vncport);
 		exits(nil);
 	}
 
@@ -1045,7 +1057,7 @@ main(int argc, char * argv[])
 	/*
 	 * run the service
 	 */
-	srvfd = vncannounce(netmt, darg, adir);
+	srvfd = vncannounce(netmt, darg, adir, vncport);
 	if(srvfd < 0)
 		sysfatal("announce %s: %r", addr);
 
@@ -1063,6 +1075,19 @@ main(int argc, char * argv[])
 			fprint(2, "received call at %s\n", ldir);
 
 		s = accept(cfd, ldir);
+		if(pem != nil) {
+			/* this code requires the user's own
+				factotum running on the cpuserver
+			*/
+			conn = (TLSconn*)mallocz(sizeof *conn, 1);
+			conn->cert = readcert(pem, &conn->certlen);
+			s = tlsServer(s, conn);
+			if(conn->certlen) 
+				free(conn->cert);
+			if(conn->sessionIDlen)
+				free(conn->sessionID);
+			free(conn);
+		}
 		if(s < 0){
 			close(cfd);
 			continue;

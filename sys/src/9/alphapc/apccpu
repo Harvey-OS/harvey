@@ -31,9 +31,6 @@ link
 misc
 	arch164
 
-	ipconfig.root
-	factotum.root
-
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 
@@ -54,3 +51,9 @@ port
 
 boot cpu
 	il
+
+bootdir
+	bootapccpu.out boot
+	ipconfig.hack ipconfig
+	factotum.hack factotum
+

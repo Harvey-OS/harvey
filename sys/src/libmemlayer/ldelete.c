@@ -21,7 +21,7 @@ memldelete(Memimage *i)
 	s = i->layer->screen;
 	if(s->fill){
 		i->clipr = i->r;
-		memdraw(i, i->r, s->fill, i->r.min, nil, i->r.min);
+		memdraw(i, i->r, s->fill, i->r.min, nil, i->r.min, S);
 	}
 	if(l->front){
 		l->front->layer->rear = nil;

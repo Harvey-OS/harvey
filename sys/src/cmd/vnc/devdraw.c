@@ -77,6 +77,7 @@ struct Client
 	int		slot;
 	int		refreshme;
 	int		infoid;
+	int		op;
 };
 
 struct Refresh
@@ -774,8 +775,19 @@ drawnewclient(void)
 	memset(cl, 0, sizeof(Client));
 	cl->slot = i;
 	cl->clientid = ++sdraw.clientid;
+	cl->op = SoverD;
 	sdraw.client[i] = cl;
 	return cl;
+}
+
+static int
+drawclientop(Client *cl)
+{
+	int op;
+
+	op = cl->op;
+	cl->op = SoverD;
+	return op;
 }
 
 int
@@ -844,7 +856,7 @@ drawpoint(Point *p, uchar *a)
 }
 
 Point
-drawchar(Memimage *dst, Point p, Memimage *src, Point *sp, DImage *font, int index)
+drawchar(Memimage *dst, Point p, Memimage *src, Point *sp, DImage *font, int index, int op)
 {
 	FChar *fc;
 	Rectangle r;
@@ -857,7 +869,7 @@ drawchar(Memimage *dst, Point p, Memimage *src, Point *sp, DImage *font, int ind
 	r.max.y = r.min.y+(fc->maxy-fc->miny);
 	sp1.x = sp->x+fc->left;
 	sp1.y = sp->y+fc->miny;
-	memdraw(dst, r, src, sp1, font->image, Pt(fc->minx, fc->miny));
+	memdraw(dst, r, src, sp1, font->image, Pt(fc->minx, fc->miny), op);
 	p.x += fc->width;
 	sp->x += fc->width;
 	return p;
@@ -1299,7 +1311,7 @@ printmesg(char *fmt, uchar *a, int plsprnt)
 void
 drawmesg(Client *client, void *av, int n)
 {
-	int c, repl, m, y, dstid, scrnid, ni, ci, j, nw, e0, e1, ox, oy, esize, doflush;
+	int c, repl, m, y, dstid, scrnid, ni, ci, j, nw, e0, e1, op, ox, oy, oesize, esize, doflush;
 	uchar *u, *a, refresh;
 	char *fmt;
 	ulong value, chan;
@@ -1454,7 +1466,8 @@ drawmesg(Client *client, void *av, int n)
 			drawrectangle(&r, a+13);
 			drawpoint(&p, a+29);
 			drawpoint(&q, a+37);
-			memdraw(dst, r, src, p, mask, q);
+			op = drawclientop(client);
+			memdraw(dst, r, src, p, mask, q, op);
 			dstflush(dstid, dst, r);
 			continue;
 
@@ -1491,13 +1504,14 @@ drawmesg(Client *client, void *av, int n)
 				c = -1;
 			ox = BGLONG(a+37);
 			oy = BGLONG(a+41);
+			op = drawclientop(client);
 			/* high bit indicates arc angles are present */
 			if(ox & (1<<31)){
 				if((ox & (1<<30)) == 0)
 					ox &= ~(1<<31);
-				memarc(dst, p, e0, e1, c, src, sp, ox, oy);
+				memarc(dst, p, e0, e1, c, src, sp, ox, oy, op);
 			}else
-				memellipse(dst, p, e0, e1, c, src, sp);
+				memellipse(dst, p, e0, e1, c, src, sp, op);
 			dstflush(dstid, dst, Rect(p.x-e0-j, p.y-e1-j, p.x+e0+j+1, p.y+e1+j+1));
 			continue;
 
@@ -1564,7 +1578,7 @@ drawmesg(Client *client, void *av, int n)
 				error(Eindex);
 			drawrectangle(&r, a+11);
 			drawpoint(&p, a+27);
-			memdraw(font->image, r, src, p, memopaque, p);
+			memdraw(font->image, r, src, p, memopaque, p, S);
 			fc = &font->fchar[ci];
 			fc->minx = r.min.x;
 			fc->maxx = r.max.x;
@@ -1591,7 +1605,8 @@ drawmesg(Client *client, void *av, int n)
 				error("negative line width");
 			src = drawimage(client, a+33);
 			drawpoint(&sp, a+37);
-			memline(dst, p, q, e0, e1, j, src, sp);
+			op = drawclientop(client);
+			memline(dst, p, q, e0, e1, j, src, sp, op);
 			/* avoid memlinebbox if possible */
 			if(dstid==0 || dst->layer!=nil){
 				/* BUG: this is terribly inefficient: update maximal containing rect*/
@@ -1697,6 +1712,15 @@ drawmesg(Client *client, void *av, int n)
 			}
 			continue;
 
+		/* set compositing operator for next draw operation: 'O' op */
+		case 'O':
+			printmesg(fmt="b", a, 0);
+			m = 1+1;
+			if(n < m)
+				error(Eshortdraw);
+			client->op = a[1];
+			continue;
+
 		/* filled polygon: 'P' dstid[4] n[2] wind[4] ignore[2*4] srcid[4] sp[2*4] p0[2*4] dp[2*2*n] */
 		/* polygon: 'p' dstid[4] n[2] end0[4] end1[4] radius[4] srcid[4] sp[2*4] p0[2*4] dp[2*2*n] */
 		case 'p':
@@ -1729,8 +1753,11 @@ drawmesg(Client *client, void *av, int n)
 			if(dstid==0 || (dst->layer && dst->layer->screen->image->data == screenimage->data))
 				doflush = 1;	/* simplify test in loop */
 			ox = oy = 0;
+			esize = 0;
 			u = a+m;
 			for(y=0; y<ni; y++){
+				q = p;
+				oesize = esize;
 				u = drawcoord(u, a+n, ox, &p.x);
 				u = drawcoord(u, a+n, oy, &p.y);
 				ox = p.x;
@@ -1751,16 +1778,22 @@ drawmesg(Client *client, void *av, int n)
 					}
 					if(*a=='P' && e0!=1 && e0 !=~0)
 						r = dst->clipr;
-					else
-						r = Rect(p.x-esize, p.y-esize, p.x+esize+1, p.y+esize+1);
-					dstflush(dstid, dst, r);
+					else if(y > 0){
+						r = Rect(q.x-oesize, q.y-oesize, q.x+oesize+1, q.y+oesize+1);
+						combinerect(&r, Rect(p.x-esize, p.y-esize, p.x+esize+1, p.y+esize+1));
+					}
+					if(rectclip(&r, dst->clipr))		/* should perhaps be an arg to dstflush */
+						dstflush(dstid, dst, r);
 				}
 				pp[y] = p;
 			}
+			if(y == 1)
+				dstflush(dstid, dst, Rect(p.x-esize, p.y-esize, p.x+esize+1, p.y+esize+1));
+			op = drawclientop(client);
 			if(*a == 'p')
-				mempoly(dst, pp, ni, e0, e1, j, src, sp);
+				mempoly(dst, pp, ni, e0, e1, j, src, sp, op);
 			else
-				memfillpoly(dst, pp, ni, e0, src, sp);
+				memfillpoly(dst, pp, ni, e0, src, sp, op);
 			free(pp);
 			m = u-a;
 			continue;
@@ -1820,6 +1853,7 @@ drawmesg(Client *client, void *av, int n)
 				error(Eshortdraw);
 			clipr = dst->clipr;
 			dst->clipr = r;
+			op = drawclientop(client);
 			if(*a == 'x'){
 				/* paint background */
 				l = drawimage(client, a+47);
@@ -1838,7 +1872,7 @@ drawmesg(Client *client, void *av, int n)
 					r.max.x += font->fchar[ci].width;
 					u += 2;
 				}
-				memdraw(dst, r, l, q, memopaque, ZP);
+				memdraw(dst, r, l, q, memopaque, ZP, op);
 				u -= 2*ni;
 			}
 			q = p;
@@ -1848,7 +1882,7 @@ drawmesg(Client *client, void *av, int n)
 					dst->clipr = clipr;
 					error(Eindex);
 				}
-				q = drawchar(dst, q, src, &sp, font, ci);
+				q = drawchar(dst, q, src, &sp, font, ci, op);
 				u += 2;
 			}
 			dst->clipr = clipr;

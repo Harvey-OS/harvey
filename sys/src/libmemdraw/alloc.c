@@ -95,6 +95,7 @@ allocmemimage(Rectangle r, ulong chan)
 
 	i = allocmemimaged(r, chan, md);
 	if(i == nil){
+		poolfree(imagmem, md->base);
 		free(md);
 		return nil;
 	}

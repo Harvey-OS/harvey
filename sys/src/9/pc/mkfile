@@ -50,7 +50,6 @@ OBJ=\
 	trap.$O\
 	$DEVS\
 	$PORT\
-	boot$CONF.root.$O\
 
 LIB=\
 	/$objtype/lib/libmemlayer.a\
@@ -77,6 +76,7 @@ install:V: $p$CONF $p$CONF.gz
 
 <../boot/bootmkfile
 <../port/portmkfile
+<|../port/mkbootrules $CONF
 
 $ETHER: 			etherif.h ../port/netif.h
 ether8003.$O ether8390.$O:	ether8390.h
@@ -94,11 +94,11 @@ devusb.$O usbuhci.$O usbohci.$O:	usb.h
 sd53c8xx.i:	sd53c8xx.n
 	aux/na $prereq > $target
 
-init.h:	initcode.s /sys/src/libc/9syscall/sys.h
-	$AS initcode.s
-	$LD -l -R4 -o init.out initcode.$O
+init.h:	../port/initcode.c /sys/src/libc/9syscall/sys.h
+	$CC ../port/initcode.c
+	$LD -l -R1 -o init.out initcode.$O /386/lib/libc.a
 	{echo 'uchar initcode[]={'
-	 xd -1x init.out |
+	 strip < init.out | xd -1x |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
 

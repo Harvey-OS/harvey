@@ -32,12 +32,9 @@ link
 	ether82557	pci
 	ethermedium
 	netdevmedium
+	loopbackmedium
 
 misc
-	factotum.root
-	ipconfig.root
-	kfs.root
-
 	sdata		pci sdscsi
 
 	uarti8250
@@ -59,3 +56,9 @@ port
 boot cpu boot #S/sdC0/
 	il
 	local
+
+bootdir
+	bootpcauth.out boot
+	/386/bin/ip/ipconfig
+	factotum.hack factotum
+	/386/bin/disk/kfs

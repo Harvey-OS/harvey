@@ -47,6 +47,7 @@ enum {
 	Pwhite		= 0xFF,
 };
 
+#define VGAMEM()	0xA0000
 #define vgai(port)		inb(port)
 #define vgao(port, data)	outb(port, data)
 
@@ -114,6 +115,7 @@ struct VGAscr {
 	int	(*scroll)(VGAscr*, Rectangle, Rectangle);
 	void	(*blank)(VGAscr*, int);
 	ulong	id;	/* internal identifier for driver use */
+	int isblank;
 };
 
 extern VGAscr vgascreen[];
@@ -146,6 +148,7 @@ extern int		drawhasclients(void);
 extern ulong	blanktime;
 extern void	setscreenimageclipr(Rectangle);
 extern void	drawflush(void);
+extern int drawidletime(void);
 
 /* vga.c */
 extern void	vgascreenwin(VGAscr*);

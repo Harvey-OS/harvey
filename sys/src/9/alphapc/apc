@@ -35,10 +35,6 @@ link
 misc
 	arch164
 
-	ipconfig.root
-	kfs.root
-	factotum.root
-
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 
@@ -62,3 +58,9 @@ port
 
 boot
 	il
+
+bootdir
+	bootapc.out boot
+	/alpha/bin/disk/kfs
+	factotum.hack factotum
+	ipconfig.hack ipconfig

@@ -13,7 +13,7 @@ authentication(int cpuflag)
 	char *argv[16], **av;
 	int ac;
 
-	if(access("/factotum", AEXEC) < 0){
+	if(access("/boot/factotum", AEXEC) < 0){
 		glenda();
 		return;
 	}
@@ -38,8 +38,8 @@ authentication(int cpuflag)
 	case -1:
 		fatal("starting factotum: %r");
 	case 0:
-		exec("/factotum", av);
-		fatal("execing /factotum");
+		exec("/boot/factotum", av);
+		fatal("execing /boot/factotum");
 	default:
 		break;
 	}

@@ -2,6 +2,7 @@
 
 awk -v 'objtype='$objtype '
 BEGIN{
+		nfs = 0;
 		if(ARGC < 2)
 			exit
 }
@@ -50,14 +51,28 @@ collect && section ~ "misc"{
 				x = "kfs";
 			if(x ~ "nfactotum")
 				x = "factotum";
+			fsname[nfs] = x;
 			fs[nfs++] = x;
 		}
 }
+collect && section ~ "bootdir"{
+		if(NF >= 2)
+			x = $2;
+		else{
+			x = $1;
+			sub(/.*\//, "", x);
+		}
+		fsname[nfs] = x;
+		x = $1;
+		gsub(/[^a-zA-Z0-9_]/, "_", x);
+		fs[nfs++] = x;
+}
+
 collect && section ~ "port"{
 		port[nport++] = $0;
 }
 $0 ~ /^[^ \t]/{
-		if($0 ~ "(dev|ip|link|misc|port)"){
+		if($0 ~ "(bootdir|dev|ip|link|misc|port)"){
 			section = $0;
 			collect = 1;
 		}
@@ -93,7 +108,7 @@ END{
 
 		printf "void links(void){\n";
 		for(i = 0; i < nfs; i++)
-			printf "\taddrootfile(\"%s\", %scode, %slen);\n", fs[i], fs[i], fs[i];
+			printf "\taddbootfile(\"%s\", %scode, %slen);\n", fsname[i], fs[i], fs[i];
 		for(i = 0; i < nlink; i++)
 			printf "\t%slink();\n", link[i];
 		printf "}\n\n";

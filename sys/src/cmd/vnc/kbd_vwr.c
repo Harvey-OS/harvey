@@ -113,8 +113,12 @@ readkbd(Vnc *v)
 				keyevent(v, Xctl, 1);
 				keyevent(v, r+0x60, 1);	/* 0x60: make capital letter */
 				keyevent(v, Xctl, 0);
-			} else
+			} else	{
 				keyevent(v, ks, 1);
+				keyevent(v, ks, 0);	/* vmware does autorepeat,
+							   shut it up with an UP
+							*/
+			}
 
 			if(alt) {
 				keyevent(v, Xalt, 0);

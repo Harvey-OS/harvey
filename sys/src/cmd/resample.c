@@ -304,14 +304,14 @@ main(int argc, char *argv[])
 		t1 = allocmemimage(m->r, tchan);
 		if(t1 == nil)
 			sysfatal("can't allocate temporary image: %r");
-		memimagedraw(t1, t1->r, m, m->r.min, nil, ZP);
+		memimagedraw(t1, t1->r, m, m->r.min, nil, ZP, S);
 		t2 = resample(xsize, ysize, t1);
 		freememimage(t1);
 		new = allocmemimage(Rect(0, 0, xsize, ysize), m->chan);
 		if(new == nil)
 			sysfatal("can't allocate new image: %r");
 		/* should do error diffusion here */
-		memimagedraw(new, new->r, t2, t2->r.min, nil, ZP);
+		memimagedraw(new, new->r, t2, t2->r.min, nil, ZP, S);
 		freememimage(t2);
 		break;
 

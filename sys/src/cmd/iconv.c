@@ -93,7 +93,7 @@ main(int argc, char *argv[])
 	if(n == nil)
 		sysfatal("can't allocate new image: %r");
 
-	memimagedraw(n, n->r, m, m->r.min, nil, ZP);
+	memimagedraw(n, n->r, m, m->r.min, nil, ZP, S);
 	if(uncompressed)
 		writeuncompressed(1, n);
 	else

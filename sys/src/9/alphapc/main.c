@@ -32,6 +32,7 @@ options(void)
 	cp = bootargs;
 	strncpy(cp, bootconf->bootargs, BOOTARGSLEN);
 	cp[BOOTARGSLEN-1] = 0;
+	/* can't print in this routine, see below in main() */
 
 	/*
 	 * Strip out '\r', change '\t' -> ' '.
@@ -60,6 +61,18 @@ options(void)
 	}
 }
 
+/* debugging only */
+static void
+dumpopts(void)
+{
+	int i;
+
+	print("dumpopts: found /alpha/conf options at 0x%lux\n",
+		bootconf->bootargs);
+	for(i = 0; i < nconf; i++)
+		print("dumpopts: read %s=%s\n", confname[i], confval[i]);
+}
+
 void
 main(void)
 {
@@ -80,6 +93,8 @@ main(void)
 	trapinit();
 	screeninit();
 	printinit();
+	/* it's now safe to print */
+	/* dumpopts();			/* DEBUG */
 	kbdinit();
 	i8250console();
 	quotefmtinstall();
@@ -102,6 +117,26 @@ initfp.fpstatus = 0x68028000;
 	schedinit();
 }
 
+/* cpu->state bits */
+enum {
+	Cpubootinprog	= 1,	/* boot in progress */
+	Cpucanrestart	= 2,	/* restart possible */
+	Cpuavail	= 4,	/* processor available */
+	Cpuexists 	= 8,	/* processor present */
+	Cpuuserhalted	= 0x10,	/* user halted */
+	Cpuctxtokay	= 0x20,	/* context valid */
+	Cpupalokay	= 0x40,	/* PALcode valid */
+	Cpupalmemokay	= 0x80,	/* PALcode memory valid */
+	Cpupalloaded	= 0x100, /* PALcode loaded */
+	Cpuhaltmask	= 0xff0000, /* halt request mask */
+	Cpuhaltdflt	= 0,
+	Cpuhaltsaveexit = 0x10000,
+	Cpuhaltcoldboot = 0x20000,
+	Cpuhaltwarmboot = 0x30000,
+	Cpuhaltstayhalted = 0x40000,
+	Cpumustbezero = 0xffffffffff000000,	/* 24:63 -- must be zero */
+};
+
 /*
  *  initialize a processor's mach structure.  each processor does this
  *  for itself.
@@ -121,15 +156,16 @@ machinit(void)
 	active.machs = 1;
 
 	cpu = (Hwcpu*) ((ulong)hwrpb + hwrpb->cpuoff + n*hwrpb->cpulen);
-	cpu->state &= ~1;			/* boot in progress - not */
-/*	cpu->state |= (4<<16);		/* stay halted */
+	cpu->state &= ~Cpubootinprog;
+	if (0)
+		cpu->state |= Cpuhaltstayhalted;
 }
 
 void
 init0(void)
 {
 	int i;
-	char tstr[32];
+	char buf[2*KNAMELEN];
 
 	up->nerrlab = 0;
 
@@ -147,9 +183,9 @@ init0(void)
 	chandevinit();
 
 	if(!waserror()){
+		snprint(buf, sizeof(buf), "alpha %s alphapc", conffile);
+		ksetenv("terminal", buf, 0);
 		ksetenv("cputype", "alpha", 0);
-		sprint(tstr, "alpha %s alphapc", conffile);
-		ksetenv("terminal", tstr, 0);
 		if(cpuserver)
 			ksetenv("service", "cpu", 0);
 		else
@@ -254,15 +290,104 @@ procsave(Proc *p)
 	mmupark();
 }
 
-/* still to do */
 void
-reboot(void*, void*, ulong)
+setupboot(int halt)
 {
+	int n = 0;		// cpu id of primary cpu, not just m->machno
+	Hwcpu *cpu = (Hwcpu*)((ulong)hwrpb + hwrpb->cpuoff + n*hwrpb->cpulen);
+
+	cpu->state &= ~(Cpucanrestart | Cpuhaltmask);
+	cpu->state |= (halt? Cpuhaltstayhalted: Cpuhaltwarmboot);
+}
+
+/* from ../pc */
+static void
+shutdown(int ispanic)
+{
+	int ms, once;
+
+	lock(&active);
+	if(ispanic)
+		active.ispanic = ispanic;
+	else if(m->machno == 0 && (active.machs & (1<<m->machno)) == 0)
+		active.ispanic = 0;
+	once = active.machs & (1<<m->machno);
+	active.machs &= ~(1<<m->machno);
+	active.exiting = 1;
+	unlock(&active);
+
+	if(once)
+		print("cpu%d: exiting\n", m->machno);
+	spllo();
+	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
+		delay(TK2MS(2));
+		if(active.machs == 0 && consactive() == 0)
+			break;
+	}
+
+	if(active.ispanic && m->machno == 0) {
+		if(cpuserver)
+			delay(10000);
+		else
+			for (;;)
+				continue;
+	} else
+		delay(1000);
+}
+
+/* from ../pc: */
+void
+reboot(void *entry, void *code, ulong size)
+{
+	// writeconf();		// pass kernel environment to next kernel
+	shutdown(0);
+
+	/*
+	 * should be the only processor running now
+	 */
+	print("shutting down...\n");
+	delay(200);
+
+	splhi();
+
+	/* turn off buffered serial console */
+	serialoq = nil;
+
+	/* shutdown devices */
+	chandevshutdown();
+
+#ifdef FUTURE
+{
+	ulong *pdb;
+	/*
+	 * Modify the machine page table to directly map the low 4MB of memory
+	 * This allows the reboot code to turn off the page mapping
+	 */
+	pdb = m->pdb;
+	pdb[PDX(0)] = pdb[PDX(KZERO)];
+	mmuflushtlb(PADDR(pdb));
+}
+	/* setup reboot trampoline function */
+{
+	void (*f)(ulong, ulong, ulong) = (void*)REBOOTADDR;
+
+	memmove(f, rebootcode, sizeof(rebootcode));
+#else
+	USED(entry, code, size);
+#endif
+
+	print("rebooting...\n");
+#ifdef FUTURE
+	/* off we go - never to return */
+	(*f)(PADDR(entry), PADDR(code), size);
+}
+#endif
+	setupboot(0);		// reboot, don't halt
 	exit(0);
 }
 
 void
-exit(int)
+exit(int ispanic)
 {
 	canlock(&active);
 	active.machs &= ~(1<<m->machno);
@@ -277,9 +402,21 @@ exit(int)
 
 	splhi();
 	delay(1000);	/* give serial fifo time to finish flushing */
+	if (getconf("*debug") != nil) {
+		USED(ispanic);
+		delay(60*1000);		/* give us time to read the screen */
+	}
 	if(arch->coredetach)
 		arch->coredetach();
-	firmware();
+	setupboot(1);			// set up to halt
+	for (; ; )
+		firmware();
+
+	// on PC is just:
+	if (0) {
+		shutdown(ispanic);
+		// arch->reset();
+	}
 }
 
 void
@@ -414,7 +551,7 @@ void
 memholes(void)
 {
 	Bank *b, *eb;
-	
+
 	b = bootconf->bank;
 	eb = b+bootconf->nbank;
 	while(b < eb) {
@@ -453,10 +590,10 @@ getconf(char *name)
 {
 	int n;
 
-	for(n = 0; n < nconf; n++){
-		if(cistrcmp(confname[n], name) == 0)
+	for(n = 0; n < nconf; n++)
+		if(cistrcmp(confname[n], name) == 0) {
 			return confval[n];
-	}
+		}
 	return 0;
 }
 
@@ -501,7 +638,7 @@ cistrcmp(char *a, char *b)
 	for(;;){
 		ac = *a++;
 		bc = *b++;
-	
+
 		if(ac >= 'A' && ac <= 'Z')
 			ac = 'a' + (ac - 'A');
 		if(bc >= 'A' && bc <= 'Z')
