@@ -32,8 +32,10 @@ for(i in $*){
 			echo from `{cat $i/email}
 		cat $i/files | awk '{print "	" $1}'
 		cat $i/readme | sed 's/^/	/' | $trunc
-		if(test -f $i/notes)
+		if(test -f $i/notes){
+			echo
 			cat $i/notes
+		}
 	}
 	if not
 		echo '	'bad patch: $status >[2=1]

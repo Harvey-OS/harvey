@@ -13983,3 +13983,14 @@
 1111608031 2 c sys/src/cmd/acme/ecmd.c - 664 sys sys 1111606460 24205
 1111608031 3 c sys/src/cmd/acme/elog.c - 664 sys sys 1111607796 7294
 1111638638 0 c 386/bin/acme - 775 sys sys 1111637282 428512
+1111726858 0 a sys/src/9/pc/uartisa.c - 664 sys sys 1111725178 1775
+1111766466 0 c rc/bin/patch/list - 775 sys sys 1111765301 729
+1111766466 1 c sys/man/4/wikifs - 664 sys sys 1111765301 7505
+1111773667 0 c sys/lib/dist/pc/inst/defs - 664 sys sys 1111771991 2743
+1111773667 1 c sys/lib/dist/pc/inst/fmtfossil - 775 sys sys 1111771991 1982
+1111773667 2 c sys/lib/dist/pc/inst/main - 775 sys sys 1111771992 1941
+1111773667 3 c sys/lib/dist/pc/inst/mountfs - 775 sys sys 1111771992 182
+1111773667 4 c sys/lib/dist/pc/inst/partdisk - 775 sys sys 1111771992 1820
+1111773667 5 c sys/lib/dist/pc/inst/prepdisk - 775 sys sys 1111771992 1462
+1111786270 0 c sys/src/cmd/file.c - 664 sys sys 1111784964 22934
+1111811481 0 c 386/bin/file - 775 sys sys 1111810171 112495

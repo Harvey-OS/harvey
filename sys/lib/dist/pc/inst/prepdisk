@@ -4,8 +4,6 @@
 # prereq: partdisk
 
 fn autotype {
-	if(~ $fstype kfs)
-		echo -a 9fat -a nvram -a fs -a swap
 	if(~ $fstype fossil)
 		echo -a 9fat -a nvram -a fossil -a swap
 	if(~ $fstype fossil+venti)
@@ -49,9 +47,6 @@ case checkdone
 	if(! ~ $prepdisk ready){
 		prepdisk=done
 		switch($fstype){
-		case kfs
-			if(! test -f /dev/sd*/fs* && ! test -f /dev/fs/fs*)
-				prepdisk=ready
 		case fossil
 			if(! test -f /dev/sd*/fossil* && ! test -f /dev/fs/fossil*)
 				prepdisk=ready

@@ -118,6 +118,7 @@ takes the form
 This page's contents were submitted but rejected due to a
 conflicting write.
 .PD
+.PP
 After the metadata comes the actual page contents; each line of
 page contents is prefixed with a
 .B #
