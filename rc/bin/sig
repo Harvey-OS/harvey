@@ -10,11 +10,18 @@ if(~ $#* 0){
 }
 
 for (i) {
-	files=`{grep -l '[ 	]\*?'$i'\(' /sys/man/2/*}
+	files=`{grep -il '[ 	]\*?'$i'\(' /sys/man/2/*}
 	for(j in $files) {
 		{echo .nr LL 20i; sed -n '/^.SH SYNOPSIS/,/^.SH.*DESCR/p'  $j } |
-			sed 's/[ 	]+/ /g;s/^ +//;/^\.nf/d' |
 			nroff -man |
+			sed '
+				:a
+				/,$/ {
+					N
+					s/\n//
+				}
+				ta
+				s/[ 	]+/ /g' |
 			grep -i -e '[ 	]\*?'$i'\(' | sed 's/^[ +]/	/'
 	}
 }

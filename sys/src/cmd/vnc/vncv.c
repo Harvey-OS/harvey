@@ -79,7 +79,7 @@ usage(void)
 void
 main(int argc, char **argv)
 {
-	int p, dfd, cfd, shared;
+	int p, fd, dfd, cfd, shared;
 	char *addr;
 	Point d;
 	TLSconn conn;
@@ -168,6 +168,11 @@ main(int argc, char **argv)
 	}
 	pids[2] = p;
 
+	fd = open("/dev/label", OWRITE);
+	if(fd >= 0){
+		fprint(fd, "vnc %s", serveraddr);
+		close(fd);
+	}
 	if(access("/dev/snarf", AEXIST) >= 0){
 		switch(p = rfork(RFPROC|RFMEM)){
 		case -1:

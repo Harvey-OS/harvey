@@ -229,9 +229,6 @@ struct	Wpath
 	Wpath	*list;		/* link in free chain */
 	long	addr;		/* directory entry addr of parent */
 	long	slot;		/* directory entry slot of parent */
-	long faddr;		/* directory entry addr */
-	long fslot;			/* directory entry slot */
-	Qid qid;			/* qid of current */
 	short	refs;		/* number of files using this structure */
 };
 
