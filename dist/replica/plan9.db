@@ -376,7 +376,7 @@
 386/bin/snap - 775 sys sys 1056364346 288744
 386/bin/snapfs - 775 sys sys 1056364347 360229
 386/bin/sniffer - 775 sys sys 1038443185 99028
-386/bin/snoopy - 775 sys sys 1057752843 154138
+386/bin/snoopy - 775 sys sys 1063306815 154146
 386/bin/sort - 775 sys sys 1056364349 81316
 386/bin/spin - 775 sys sys 1048745068 649685
 386/bin/split - 775 sys sys 1056364349 74247
@@ -9224,7 +9224,7 @@ sys/src/cmd/ip/snoopy/icmp6.c - 664 sys sys 1045505383 7727
 sys/src/cmd/ip/snoopy/il.c - 664 sys sys 1055699197 2246
 sys/src/cmd/ip/snoopy/ip.c - 664 sys sys 1055699194 4291
 sys/src/cmd/ip/snoopy/ip6.c - 664 sys sys 1032060069 5394
-sys/src/cmd/ip/snoopy/main.c - 664 sys sys 1045505326 14337
+sys/src/cmd/ip/snoopy/main.c - 664 sys sys 1063306798 14371
 sys/src/cmd/ip/snoopy/mkfile - 664 sys sys 1045505384 775
 sys/src/cmd/ip/snoopy/ninep.c - 664 sys sys 1032059933 704
 sys/src/cmd/ip/snoopy/ospf.c - 664 sys sys 1032059934 7516
