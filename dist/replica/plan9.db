@@ -54,7 +54,7 @@
 386/bin/auth/debug - 775 sys sys 1045537941 98167
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1046656931 305986
+386/bin/auth/factotum - 775 sys sys 1048341823 305986
 386/bin/auth/fgui - 775 sys sys 1045537942 211917
 386/bin/auth/guard.srv - 775 sys sys 1045537943 139879
 386/bin/auth/iam - 775 sys sys 1039758534 51077
@@ -62,9 +62,9 @@
 386/bin/auth/login - 775 sys sys 1045537944 100738
 386/bin/auth/printnetkey - 775 sys sys 1039758534 40969
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
-386/bin/auth/secstore - 775 sys sys 1046656932 186912
-386/bin/auth/secstored - 775 sys sys 1045537945 193098
-386/bin/auth/secuser - 775 sys sys 1045537946 149562
+386/bin/auth/secstore - 775 sys sys 1048341824 186912
+386/bin/auth/secstored - 775 sys sys 1048341825 193098
+386/bin/auth/secuser - 775 sys sys 1048341825 149562
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1039758536 61773
 386/bin/auth/warning - 775 sys sys 1045537946 97726
@@ -72,7 +72,7 @@
 386/bin/aux - 20000000775 sys sys 1016920817 0
 386/bin/aux/9pcon - 775 sys sys 1039758536 96151
 386/bin/aux/LOCK - 775 sys sys 1045537946 58692
-386/bin/aux/X509gen - 775 sys sys 1047763602 129186
+386/bin/aux/X509gen - 775 sys sys 1048341826 129186
 386/bin/aux/accupoint - 775 sys sys 1039758537 41111
 386/bin/aux/acidleak - 775 sys sys 1039758537 67904
 386/bin/aux/apm - 775 sys sys 1046656928 174552
@@ -126,11 +126,11 @@
 386/bin/aux/searchfs - 775 sys sys 1045537956 90977
 386/bin/aux/sprog - 775 sys sys 1039758545 77768
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
-386/bin/aux/sshserve - 775 sys sys 1045537958 246584
+386/bin/aux/sshserve - 775 sys sys 1048312077 246795
 386/bin/aux/stub - 775 sys sys 1045537958 135076
 386/bin/aux/tcpostio - 775 sys sys 1045537959 199727
 386/bin/aux/text2post - 775 sys sys 1039758546 77253
-386/bin/aux/timesync - 775 sys sys 1047847239 127070
+386/bin/aux/timesync - 775 sys sys 1048341826 127070
 386/bin/aux/tr2post - 775 sys sys 1045537960 175522
 386/bin/aux/trampoline - 775 sys sys 1045537960 81157
 386/bin/aux/typepasswd - 775 sys sys 1045537960 68154
@@ -217,7 +217,7 @@
 386/bin/fs/tpfs - 775 sys sys 1039758561 94691
 386/bin/fs/v10fs - 775 sys sys 1039758561 96202
 386/bin/fs/v6fs - 775 sys sys 1039758562 96121
-386/bin/ftpfs - 775 sys sys 1045537980 149042
+386/bin/ftpfs - 775 sys sys 1048341827 149203
 386/bin/getmap - 775 sys sys 1039758562 63678
 386/bin/gif - 775 sys sys 1045537981 156120
 386/bin/grap - 775 sys sys 1045537981 278460
@@ -227,7 +227,7 @@
 386/bin/gunzip - 775 sys sys 1045538012 79921
 386/bin/gzip - 775 sys sys 1045538013 84018
 386/bin/hayes - 775 sys sys 1045538013 63555
-386/bin/hget - 775 sys sys 1047763603 218958
+386/bin/hget - 775 sys sys 1048341828 218958
 386/bin/history - 775 sys sys 1045538014 72138
 386/bin/hoc - 775 sys sys 1045538014 98958
 386/bin/html2ms - 775 sys sys 1039758564 64730
@@ -343,7 +343,7 @@
 386/bin/rx - 775 sys sys 1046779554 78861
 386/bin/sam - 775 sys sys 1045538049 156896
 386/bin/scat - 775 sys sys 1045538050 282041
-386/bin/scp - 775 sys sys 1046656918 159647
+386/bin/scp - 775 sys sys 1048312079 159786
 386/bin/scuzz - 775 sys sys 1039758589 110998
 386/bin/sed - 775 sys sys 1039758589 88430
 386/bin/seq - 775 sys sys 1039758589 38817
@@ -360,8 +360,8 @@
 386/bin/srv - 775 sys sys 1045538056 80168
 386/bin/srvfs - 775 sys sys 1039758592 39914
 386/bin/srvold9p - 775 sys sys 1045538056 130539
-386/bin/ssh - 775 sys sys 1046656921 209700
-386/bin/sshnet - 775 sys sys 1046656922 283799
+386/bin/ssh - 775 sys sys 1048312080 209839
+386/bin/sshnet - 775 sys sys 1048312081 283938
 386/bin/stats - 775 sys sys 1045538058 186569
 386/bin/strings - 775 sys sys 1039758593 60879
 386/bin/strip - 775 sys sys 1045538058 60829
@@ -377,8 +377,8 @@
 386/bin/telnet - 775 sys sys 1045538061 80803
 386/bin/test - 775 sys sys 1045538061 63916
 386/bin/time - 775 sys sys 1039758596 59810
-386/bin/tlsclient - 775 sys sys 1047763605 194650
-386/bin/tlssrv - 775 sys sys 1047763605 194978
+386/bin/tlsclient - 775 sys sys 1048341828 194650
+386/bin/tlssrv - 775 sys sys 1048341829 194978
 386/bin/togif - 775 sys sys 1046656904 189087
 386/bin/topng - 775 sys sys 1046656905 137971
 386/bin/toppm - 775 sys sys 1046656905 164524
@@ -492,7 +492,7 @@
 386/lib/libmach.a - 664 sys sys 1045538123 743792
 386/lib/libmemdraw.a - 664 sys sys 1046656926 292604
 386/lib/libmemlayer.a - 664 sys sys 1046182506 47256
-386/lib/libmp.a - 664 sys sys 1045538125 77064
+386/lib/libmp.a - 664 sys sys 1048341830 77064
 386/lib/libndb.a - 664 sys sys 1045538125 52836
 386/lib/libplumb.a - 664 sys sys 1045538125 19000
 386/lib/libregexp.a - 664 sys sys 1045538126 37356
@@ -8981,8 +8981,8 @@ sys/src/cmd/ip/ftpd.c - 664 sys sys 1046643070 32813
 sys/src/cmd/ip/ftpfs - 20000000775 sys sys 1014925642 0
 sys/src/cmd/ip/ftpfs/file.c - 664 sys sys 1014925642 4208
 sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1048285493 13555
-sys/src/cmd/ip/ftpfs/ftpfs.h - 664 sys sys 1035122891 2319
-sys/src/cmd/ip/ftpfs/mkfile - 664 sys sys 1048285492 158
+sys/src/cmd/ip/ftpfs/ftpfs.h - 664 sys sys 1048312051 2328
+sys/src/cmd/ip/ftpfs/mkfile - 664 sys sys 1048312050 173
 sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1048285496 29321
 sys/src/cmd/ip/glob.c - 664 sys sys 1015013111 2968
 sys/src/cmd/ip/glob.h - 664 sys sys 1015090252 270
