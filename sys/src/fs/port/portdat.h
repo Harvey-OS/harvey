@@ -597,6 +597,7 @@ struct	User
 
 	struct
 	{
+		ulong	pc[NHAS];	/* list of pcs for locks this process has */
 		QLock*	q[NHAS];/* list of locks this process has */
 		QLock*	want;	/* lock waiting */
 	} has;

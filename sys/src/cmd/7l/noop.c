@@ -660,35 +660,35 @@ initdiv(void)
 				prog_modlu = p;
 		}
 	if(prog_divq == P) {
-		diag("undefined: %s\n", s1->name);
+		diag("undefined: %s", s1->name);
 		prog_divq = curtext;
 	}
 	if(prog_divqu == P) {
-		diag("undefined: %s\n", s2->name);
+		diag("undefined: %s", s2->name);
 		prog_divqu = curtext;
 	}
 	if(prog_modq == P) {
-		diag("undefined: %s\n", s3->name);
+		diag("undefined: %s", s3->name);
 		prog_modq = curtext;
 	}
 	if(prog_modqu == P) {
-		diag("undefined: %s\n", s4->name);
+		diag("undefined: %s", s4->name);
 		prog_modqu = curtext;
 	}
 	if(prog_divl == P) {
-		diag("undefined: %s\n", s5->name);
+		diag("undefined: %s", s5->name);
 		prog_divl = curtext;
 	}
 	if(prog_divlu == P) {
-		diag("undefined: %s\n", s6->name);
+		diag("undefined: %s", s6->name);
 		prog_divlu = curtext;
 	}
 	if(prog_modl == P) {
-		diag("undefined: %s\n", s7->name);
+		diag("undefined: %s", s7->name);
 		prog_modl = curtext;
 	}
 	if(prog_modlu == P) {
-		diag("undefined: %s\n", s8->name);
+		diag("undefined: %s", s8->name);
 		prog_modlu = curtext;
 	}
 }

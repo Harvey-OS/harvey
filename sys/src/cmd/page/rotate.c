@@ -51,7 +51,7 @@ moveup(Image *im, Image *tmp, int a, int b, int c, int axis)
 	if(a == b || b == c)
 		return;
 
-	draw(tmp, tmp->r, im, nil, im->r.min);
+	drawop(tmp, tmp->r, im, nil, im->r.min, S);
 
 	switch(axis){
 	case Xaxis:
@@ -75,8 +75,8 @@ moveup(Image *im, Image *tmp, int a, int b, int c, int axis)
 		p1 = Pt(im->r.min.x, a);
 		break;
 	}
-	draw(im, dr0, tmp, nil, p0);
-	draw(im, dr1, tmp, nil, p1);
+	drawop(im, dr0, tmp, nil, p0, S);
+	drawop(im, dr1, tmp, nil, p1, S);
 }
 
 void
@@ -102,9 +102,9 @@ interlace(Image *im, Image *tmp, int axis, int n, Image *mask, int gran)
 		break;
 	}
 
-	draw(tmp, im->r, im, display->opaque, im->r.min);
-	gendraw(im, r0, tmp, p0, mask, mask->r.min);
-	gendraw(im, r0, tmp, p1, mask, p1);
+	drawop(tmp, im->r, im, display->opaque, im->r.min, S);
+	gendrawop(im, r0, tmp, p0, mask, mask->r.min, S);
+	gendrawop(im, r0, tmp, p1, mask, p1, S);
 }
 
 /*
@@ -132,8 +132,8 @@ nextmask(Image *mask, int axis, int maskdim)
 	Point δ;
 
 	δ = axis==Xaxis ? Pt(maskdim,0) : Pt(0,maskdim);
-	draw(mtmp, mtmp->r, mask, nil, mask->r.min);
-	gendraw(mask, mask->r, mtmp, δ, mtmp, divpt(δ,-2));
+	drawop(mtmp, mtmp->r, mask, nil, mask->r.min, S);
+	gendrawop(mask, mask->r, mtmp, δ, mtmp, divpt(δ,-2), S);
 //	writefile("mask", mask, maskdim/2);
 	return maskdim/2;
 }
@@ -170,7 +170,7 @@ rot180(Image *im)
 	if(chantodepth(im->chan) < 8){
 		/* this speeds things up dramatically; draw is too slow on sub-byte pixel sizes */
 		tmp0 = xallocimage(display, im->r, CMAP8, 0, DNofill);
-		draw(tmp0, tmp0->r, im, nil, im->r.min);
+		drawop(tmp0, tmp0->r, im, nil, im->r.min, S);
 	}else
 		tmp0 = im;
 
@@ -190,7 +190,7 @@ rot180(Image *im)
 	mask = xallocimage(display, rmask, GREY1, 1, DTransparent);
 	mtmp = xallocimage(display, rmask, GREY1, 1, DTransparent);
 	rmask.max.x = gran;
-	draw(mask, rmask, display->opaque, nil, ZP);
+	drawop(mask, rmask, display->opaque, nil, ZP, S);
 //	writefile("mask", mask, gran);
 	shuffle(im, tmp, Xaxis, Dx(im->r), mask, gran, 0);
 	freeimage(mask);
@@ -203,7 +203,7 @@ rot180(Image *im)
 	mask = xallocimage(display, rmask, GREY1, 1, DTransparent);
 	mtmp = xallocimage(display, rmask, GREY1, 1, DTransparent);
 	rmask.max.y = gran;
-	draw(mask, rmask, display->opaque, nil, ZP);
+	drawop(mask, rmask, display->opaque, nil, ZP, S);
 	shuffle(im, tmp, Yaxis, Dy(im->r), mask, gran, 0);
 	freeimage(mask);
 	freeimage(mtmp);

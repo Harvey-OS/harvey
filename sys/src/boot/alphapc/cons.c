@@ -4,6 +4,24 @@
 #include	"fns.h"
 #include	"lib.h"
 
+enum {
+	/* prom operations */
+	Promop_getc   = 1,
+	Promop_puts   = 2,
+	Promop_open   = 0x10,
+	Promop_close  = 0x11,
+	Promop_read   = 0x13,
+	Promop_write  = 0x14,
+	Promop_getenv = 0x22,
+
+	/* environment variable indices for getenv */
+	/* auto_action might be 1; it looks that way. */
+	Promenv_booted_dev	= 4,
+	Promenv_booted_file	= 6,
+	Promenv_booted_osflags	= 8,
+	Promenv_tty_dev		= 0xf,
+};
+
 Hwrpb	*hwrpb;
 
 static uvlong	dispatchf;
@@ -90,12 +108,17 @@ dumpenv(void)
 	int id, n;
 	static char buf[256];
 
-	for (id = 1; id < 0x100; id++) {
-		n = dispatch(0x22, id, (uvlong)buf, sizeof(buf), 0);
-		if (n <= 0)
+	/* old upper bound was 0x100, which blows up on my 164LX. 50 works. */
+	for (id = 1; id < 50; id++) {
+		n = dispatch(Promop_getenv, id, (uvlong)buf, sizeof(buf)-1, 0);
+		if (n == 0)
 			continue;
+		if (n < 0) {
+			print("dispatch failed at id %d\n", id);
+			break;
+		}
 		buf[n] = 0;
-		print("env[%x]: %s\n", id, buf);
+		print("env[0x%x]: %s\n", id, buf);
 	}
 }
 
@@ -106,10 +129,10 @@ getenv(char *name)
 	static char buf[256];
 
 	if (strcmp(name, "booted_dev") == 0)
-		id = 4;
+		id = Promenv_booted_dev;
 	else
 		return 0;
-	n = dispatch(0x22, id, (uvlong)buf, sizeof(buf), 0);
+	n = dispatch(Promop_getenv, id, (uvlong)buf, sizeof(buf), 0);
 	if (n < 0)
 		return 0;
 	buf[n] = 0;

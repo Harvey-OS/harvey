@@ -30,6 +30,7 @@ Biobuf	*opencopy(char*);
 Biobuf	*opendump(char*);
 char	*qmail(char**, char*, int, Biobuf*);
 void	saveline(char*, char*, Resub*);
+int	optoutofspamfilter(char*);
 
 void
 usage(void)
@@ -61,12 +62,13 @@ Realloc(void *p, ulong n)
 void
 main(int argc, char *argv[])
 {
-	int i, n, nolines;
+	int i, n, nolines, optout;
 	char **args, **a, *cp, *buf;
 	char body[Bodysize+2];
 	Resub match[1];
 	Biobuf *bp;
 
+	optout = 1;
 	a = args = Malloc((argc+1)*sizeof(char*));
 	sprint(patfile, "%s/patterns", UPASLIB);
 	sprint(linefile, "%s/lines", UPASLOG);
@@ -149,6 +151,8 @@ main(int argc, char *argv[])
 		else
 			recips = s_new();
 		s_append(recips, argv[i]);
+		if(optout && !optoutofspamfilter(argv[i]))
+			optout = 0;
 	}
 	*a = 0;
 		/* construct a command string for matching */
@@ -167,6 +171,13 @@ main(int argc, char *argv[])
 	buf = canon(&bin, header+1, body+1, &n);
 	if (buf == 0)
 		exits("read");
+
+		/* if all users opt out, don't try matches */
+	if(optout){
+		if(cflag)
+			cout = opencopy(sender);
+		exits(qmail(args, buf, n, cout));
+	}
 
 		/* Turn off line logging, if command line matches */
 	nolines = matchaction(Lineoff, cmd, match);
@@ -434,4 +445,26 @@ opencopy(char *sender)
 			return b;
 	}
 	return 0;
+}
+
+int
+optoutofspamfilter(char *addr)
+{
+	char *p, *f;
+	int rv;
+
+	p = strchr(addr, '!');
+	if(p)
+		p++;
+	else
+		p = addr;
+
+	rv = 0;
+	f = smprint("/mail/box/%s/nospamfiltering", p);
+	if(f != nil){
+		rv = access(f, 0)==0;
+		free(f);
+	}
+
+	return rv;
 }

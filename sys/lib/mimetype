@@ -24,6 +24,7 @@
 .class		application	java		-		y # Java bytecodes
 .cpio		application	x-cpio		-		y
 .cpp		text		plain		-		y # DOS C++ program
+.crt		application	x-x509-ca-cert	-		y # DER X.509 CA certificate
 .csv		application	vnd.ms-excel	-		y # Microsoft Excel comma-separated-values
 .dat		text		plain		-		y # AMPL et al.
 .diff		text		plain		-		y

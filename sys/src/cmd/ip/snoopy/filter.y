@@ -12,6 +12,7 @@ char	*yyend;		/* end of buffer to be parsed */
 %term LOR
 %term LAND
 %term WORD
+%right '!'
 %left '|'
 %left '&'
 %left LOR
@@ -34,6 +35,8 @@ expr		: WORD
 			{ $2->l = $1; $2->r = $3; $$ = $2; }
 		| expr LAND expr
 			{ $2->l = $1; $2->r = $3; $$ = $2; }
+		| '!' expr
+			{ $1->l = $2; $$ = $1; }
 		;
 %%
 
@@ -59,7 +62,7 @@ yylex(void)
 
 	yylval = newfilter();
 
-	p = strpbrk(yylp, "|&()= ");
+	p = strpbrk(yylp, "!|&()= ");
 	if(p == 0){
 		yylval->op = WORD;
 		yylval->s = strdup(yylp);

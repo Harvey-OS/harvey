@@ -48,7 +48,8 @@ if ( $BIN/token $KEY $D/subject )
 # return the message with instructions
 TOKEN=`{upas/token $KEY}
 upasname=/dev/null
-{{cat; cat $D/raw} | mail `{cat $D/replyto}}<<EOF
+{{cat; cat $D/raw} | upas/send `{cat $D/replyto}}<<EOF
+Subject: $USER's mail filter
 I've been getting so much junk mail that I'm resorting to
 a draconian mechanism to avoid the mail.  In order
 to make sure that there's a real person sending mail, I'm

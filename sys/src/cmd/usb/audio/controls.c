@@ -23,6 +23,7 @@ char *controlname[Ncontrol] =
 	[Delay_control]	"delay",
 	[Bassboost_control]	"bassboost",
 	[Loudness_control]	"loudness",
+	[Mixer_control]	"mixer",
 	[Channel_control]	"channels",
 	[Resolution_control]	"resolution",
 };
@@ -259,27 +260,58 @@ set1(Nexus *nx, int ctl, int req, int i, int val)
 	byte buf[2];
 	int type, count, id;
 
-	if(nx->feat == nil || nx->s == nil)
+	if(nx->s == nil)
 		return Undef;
 	d = nx->s->intf->d;
-	id = nx->feat->id<<8;
+	if(ctl == Mixer_control){
+		if (nx->mixer == nil)
+			return Undef;
+		id = nx->mixer->id<<8;
+	}else{
+		if (nx->feat == nil)
+			return Undef;
+		id = nx->feat->id<<8;
+	}
 	type = RH2D|Rclass|Rinterface;
 	switch(ctl) {
-	default:
-		count = 1;
-		break;
-	case Volume_control:
-	case Delay_control:
-		count = 2;
-		break;
 	case Speed_control:
 	case Channel_control:
 	case Resolution_control:
 		return Undef;
+	case Mixer_control:
+		ctl = 1;	/* hack */
+	case Volume_control:
+	case Delay_control:
+		count = 2;
+		break;
+	default:
+		count = 1;
+		break;
 	}
 	buf[0] = val;
 	buf[1] = val>>8;
-	if(setupreq(d, type, req, (ctl<<8) | i, id, buf, count) < 0)
+	if(setupreq(d, type, req, ((ctl*i)<<8) | i, id, buf, count) < 0)
+		return Undef;
+	return 0;
+}
+
+static int
+set2(Nexus *nx, int ctl, int req, int i, int val)
+{
+	Device *d;
+	byte buf[2];
+	int type, id;
+
+	if(nx->mixer == nil || nx->s == nil)
+		return Undef;
+	d = nx->s->intf->d;
+	id = nx->mixer->id<<8;
+	type = RH2D|Rclass|Rinterface;
+	if (ctl != Mixer_control)
+		return Undef;
+	buf[0] = val;
+	buf[1] = val>>8;
+	if(setupreq(d, type, req, (1<<8) | i, id, buf, 2) < 0)
 		return Undef;
 	return 0;
 }
@@ -349,6 +381,7 @@ setcontrol(Nexus *nx, char *name, long *value)
 		/* not implemented */
 		return -1;
 	case Volume_control:
+	case Mixer_control:
 	case Delay_control:
 	case Mute_control:
 	case Bass_control:
@@ -390,15 +423,26 @@ get1(Nexus *nx, int ctl, int req, int i)
 	byte buf[2];
 	int type, count, id;
 
-	if(nx->feat == nil || nx->s == nil)
+	if(nx->s == nil)
 		return Undef;
 	d = nx->s->intf->d;
-	id = nx->feat->id<<8;
+	if(ctl == Mixer_control){
+		if (nx->mixer == nil)
+			return Undef;
+		id = nx->mixer->id<<8;
+	}else{
+		if (nx->feat == nil)
+			return Undef;
+		id = nx->feat->id<<8;
+	}
 	type = RD2H|Rclass|Rinterface;
 	switch(ctl) {
 	default:
 		count = 1;
 		break;
+	case Mixer_control:
+		ctl = 1;	/* see set1() */
+		/* fall through */
 	case Volume_control:
 	case Delay_control:
 		count = 2;
@@ -408,8 +452,9 @@ get1(Nexus *nx, int ctl, int req, int i)
 	case Resolution_control:
 		return Undef;
 	}
-	if(setupreq(d, type, req, (ctl<<8) | i, id, buf, count) != count)
+	if(setupreq(d, type, req, ((ctl*i)<<8) | i, id, buf, count) != count){
 		return Undef;
+	}
 	switch(count) {
 	case 1:
 		return buf[0];
@@ -442,6 +487,7 @@ getspecialcontrol(Nexus *nx, int ctl, int req, long *value)
 		else
 			value[0] = Undef;
 		return 0;
+	case Mixer_control:
 	case Volume_control:
 	case Delay_control:
 	case Mute_control:

@@ -68,7 +68,6 @@ CFILES=${TARG:%=%.c} $LIBCFILES
 
 UPDATE=mkfile\
 	mkxml\
-	${TARG:%=/386/bin/venti/%}\
 	$HFILES\
 	$CFILES\
 

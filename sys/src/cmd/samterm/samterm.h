@@ -56,10 +56,11 @@ enum Resource
 	NRes,
 };
 
-extern Text	*text[];
-extern uchar	*name[];
-extern ushort	tag[];
+extern Text	**text;
+extern uchar	**name;
+extern ushort	*tag;
 extern int	nname;
+extern int	mname;
 extern Cursor	bullseye;
 extern Cursor	deadmouse;
 extern Cursor	lockarrow;

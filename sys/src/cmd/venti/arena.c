@@ -15,7 +15,6 @@ static int	okArena(Arena *arena);
 static int	loadArena(Arena *arena);
 static CIBlock	*getCIB(Arena *arena, int clump, int writing, CIBlock *rock);
 static void	putCIB(Arena *arena, CIBlock *cib);
-static int	flushCIEntry(Arena *arena, int i);
 static void	doASum(void *);
 
 static VtLock	*sumLock;

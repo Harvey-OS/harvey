@@ -12,7 +12,7 @@ adisk=/dev/sdD0/cdboot
 cdboot=yes
 
 [install]
-nobootprompt=local!/bzroot
+nobootprompt=local!/boot/bzroot
 bootfile=sdD0!cdboot!9pcflop.gz
 
 [cdboot]

@@ -41,7 +41,7 @@ asmb(void)
 		if(p->pc != pc) {
 			if(!debug['a'])
 				print("%P\n", curp);
-			diag("phase error %.4lux sb %.4lux in %s\n", p->pc, pc, TNAME);
+			diag("phase error %.4lux sb %.4lux in %s", p->pc, pc, TNAME);
 			pc = p->pc;
 		}
 		curp = p;
@@ -552,7 +552,7 @@ asmins(Prog *p)
 		if(p->as != ATEXT && p->as != ANOP) {
 			if(!debug['a'])
 				print("%P\n", p);
-			diag("unimplemented instruction in %s\n", TNAME);
+			diag("unimplemented instruction in %s", TNAME);
 			return;
 		}
 		op = opa;
@@ -1101,7 +1101,7 @@ asmins(Prog *p)
 bad:
 	if(!debug['a'])
 		print("%P\n", p);
-	diag("bad combination of addressing in %s\n", TNAME);
+	diag("bad combination of addressing in %s", TNAME);
 	opa[0] = 0;
 }
 
@@ -1161,7 +1161,7 @@ asmea(Prog *p, Adr *a)
 	case I_ADDR|D_EXTERN:
 		t = a->sym->type;
 		if(t == 0 || t == SXREF) {
-			diag("undefined external: %s in %s\n",
+			diag("undefined external: %s in %s",
 				a->sym->name, TNAME);
 			a->sym->type = SDATA;
 		}
@@ -1181,7 +1181,7 @@ asmea(Prog *p, Adr *a)
 			break;
 
 		default:
-			diag("unknown srcsp asmea in %s\n", TNAME);
+			diag("unknown srcsp asmea in %s", TNAME);
 		}
 		return (7<<3) | 4;
 
@@ -1220,7 +1220,7 @@ asmea(Prog *p, Adr *a)
 	case D_EXTERN:
 		t = a->sym->type;
 		if(t == 0 || t == SXREF) {
-			diag("undefined external: %s in %s\n",
+			diag("undefined external: %s in %s",
 				a->sym->name, TNAME);
 			a->sym->type = SDATA;
 		}
@@ -1331,7 +1331,7 @@ datblk(long s, long n)
 		for(j=l+(c-i)-1; j>=l; j--)
 			if(buf.dbuf[j]) {
 				print("%P\n", p);
-				diag("multiple initialization\n");
+				diag("multiple initialization");
 				break;
 			}
 		switch(p->to.type) {
@@ -1394,7 +1394,7 @@ datblk(long s, long n)
 			cast = (char*)&fl;
 			switch(c) {
 			default:
-				diag("bad nuxi %d %d\n%P\n", c, i, curp);
+				diag("bad nuxi %d %d\n%P", c, i, curp);
 				break;
 			case 1:
 				if(debug['a'] && i == 0) {
@@ -1493,7 +1493,7 @@ gnuxi(Ieee *d, int i, int c)
 
 	switch(c) {
 	default:
-		diag("bad nuxi %d %d\n%P\n", c, i, curp);
+		diag("bad nuxi %d %d\n%P", c, i, curp);
 		return 0;
 	
 		/*

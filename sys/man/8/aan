@@ -1,4 +1,4 @@
-.TH AAN 1
+.TH AAN 8
 .SH NAME
 aan \- always available network
 .SH SYNOPSIS
@@ -14,7 +14,7 @@ aan \- always available network
 ]
 .I dialstring
 |
-handle
+.I dir
 .SH DESCRIPTION
 .I Aan
 tunnels traffic between a client and a server through a persistent
@@ -47,8 +47,9 @@ The client side (option
 calls the server by its
 .IR dialstring ,
 while
-the server side listens on
-.IR handle .
+the server side listens for connections in the 
+already-announced network directory
+.IR devdir .
 .PP
 .I Aan
 is usually run automatically through the
@@ -75,7 +76,7 @@ name space can be imported through
 using this command:
 .IP
 .EX
-import -p /net/tcp!astro6 / /mnt/term
+import -p astro6 / /mnt/term
 .EE
 .SH FILES
 .TP

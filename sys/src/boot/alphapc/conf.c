@@ -33,12 +33,16 @@ setconf(char *buf)
 	 * string, then it only gets done once.
 	 */
 	strcpy(bootargs, buf);
+	/* print("boot: stashing /alpha/conf boot args at 0x%lux\n",
+		bootargs);			/* DEBUG */
 	conf.bootargs = bootargs;
 
 	n = getcfields(buf, line, MAXCONF, "\n");
 	for(i = 0; i < n; i++){
+		if(*line[i] == '#')
+			continue;
 		cp = strchr(line[i], '=');
-		if(cp == 0)
+		if(cp == nil)
 			continue;
 		*cp++ = 0;
 		if(cp - line[i] >= NAMELEN+1)

@@ -39,8 +39,7 @@ if it exists, otherwise to
 The message format is both RFC 822 and
 MIME conformant, so
 .I marshal
-adds any required headers not already in the message.
-Before adding any necessary header lines, it prepends
+adds any required headers not already in the message, prefixed by
 the contents of
 .BI /mail/box/ username /headers\f1.
 This allows the addition of personal headers like

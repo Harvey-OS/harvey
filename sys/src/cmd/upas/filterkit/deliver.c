@@ -13,7 +13,7 @@ void
 main(int argc, char **argv)
 {
 	int fd;
-	char *now;
+	char now[30];
 	char buf[1024];
 	int n, bytes;
 	Addr *a;
@@ -41,7 +41,7 @@ main(int argc, char **argv)
 	if(fd < 0)
 		sysfatal("opening mailbox: %r");
 	seek(fd, 0, 2);
-	now = ctime(time(0));
+	strncpy(now, ctime(time(0)), sizeof(now));
 	now[28] = 0;
 	if(fprint(fd, "From %s %s\n", a->val, now) < 0)
 		sysfatal("writing mailbox: %r");
@@ -69,6 +69,5 @@ main(int argc, char **argv)
 	/* log it */
 	syslog(0, "mail", "delivered %s From %s %s (%s) %d", deliveredto,
 		a->val, now, argv[0], bytes);
-
 	exits(0);
 }

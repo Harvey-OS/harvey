@@ -427,6 +427,11 @@ psdrawpage(Document *d, int page)
 		pswritepage(d, ps->gsfd, page);
 		pswritepage(d, ps->gsfd, d->npage);
 	}
+	/*
+	 * If last line terminator is \r, gs will read ahead to check for \n
+	 * so send one to avoid deadlock.
+	 */
+	write(ps->gsfd, "\n", 1);
 	im = readimage(display, ps->gsdfd, 0);
 	if(im == nil) {
 		fprint(2, "fatal: readimage error %r\n");

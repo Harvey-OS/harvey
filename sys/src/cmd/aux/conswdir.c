@@ -23,7 +23,7 @@ usage(void)
 void
 setpath(char *s)
 {
-	switch(rfork(RFPROC|RFNOWAIT)){
+	switch(rfork(RFPROC|RFFDG|RFNOWAIT)){
 	case 0:
 		execl(prog, prog, s, nil);
 		_exits(nil);

@@ -69,6 +69,7 @@ int	echo;
 int	wstatallow;		/* set to circumvent wstat permissions */
 int	writeallow;		/* set to circumvent write permissions */
 int	duallow;		/* single user to allow du */
+int	readonly;		/* disable writes if true */
 
 int	noauth;			/* Debug */
 

@@ -65,7 +65,7 @@ void globdir(char *p, char *namep)
 	*namep='\0';
 	if((f=Opendir(globname[0]?globname:"."))<0) return;
 	while(*newp!='/' && *newp!='\0') newp++;
-	while(Readdir(f, namep)){
+	while(Readdir(f, namep, *newp=='/')){
 		if(matchfn(namep, p)){
 			for(t=namep;*t;t++);
 			globdir(newp, t);

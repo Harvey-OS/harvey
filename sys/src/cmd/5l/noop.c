@@ -420,7 +420,7 @@ sdiv(Sym *s)
 	if(s->type == STEXT)
 		undefsym(s);
 	else
-		diag("undefined: %s\n", s->name);
+		diag("undefined: %s", s->name);
 	return s;
 }
 
@@ -457,19 +457,19 @@ initdiv(void)
 				prog_modu = p;
 		}
 	if(prog_div == P) {
-		diag("undefined: %s\n", s2->name);
+		diag("undefined: %s", s2->name);
 		prog_div = curtext;
 	}
 	if(prog_divu == P) {
-		diag("undefined: %s\n", s3->name);
+		diag("undefined: %s", s3->name);
 		prog_divu = curtext;
 	}
 	if(prog_mod == P) {
-		diag("undefined: %s\n", s4->name);
+		diag("undefined: %s", s4->name);
 		prog_mod = curtext;
 	}
 	if(prog_modu == P) {
-		diag("undefined: %s\n", s5->name);
+		diag("undefined: %s", s5->name);
 		prog_modu = curtext;
 	}
 }

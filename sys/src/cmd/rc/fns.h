@@ -13,7 +13,7 @@ void	Memcpy(char*, char*, long);
 void	Noerror(void);
 int	Opendir(char*);
 long	Read(int, char*, long);
-int	Readdir(int, char*);
+int	Readdir(int, char*, int);
 long	Seek(int, long, long);
 void	Trapinit(void);
 void	Unlink(char*);

@@ -15,20 +15,6 @@ fsconfig \- configuring a file server
 .I name
 .I device
 .PP
-.B ream
-.I name
-.PP
-.B recover
-.I name
-.PP
-.B allow
-.PP
-.B noauth
-.PP
-.B noattach
-.PP
-.B copyworm
-.PP
 .B ip
 .I ipaddr
 .PP
@@ -44,6 +30,22 @@ fsconfig \- configuring a file server
 .B ipsntp
 .I ipaddr
 .PP
+.B ream
+.I name
+.PP
+.B recover
+.I name
+.PP
+.B allow
+.PP
+.B readonly
+.PP
+.B noauth
+.PP
+.B noattach
+.PP
+.B copyworm
+.PP
 .B halt
 .PP
 .B end
@@ -56,7 +58,7 @@ apply only in that mode.  They establish configuration constants
 that are typically valid for the life of the server, and therefore
 need be run only once.  If the non-volatile RAM on the server
 gets erased, it will be necessary to recreate the configuration.
-.PP
+.SS Syntax
 In these commands,
 .I ipaddr
 is an IP address in the form
@@ -208,7 +210,7 @@ is the cache, the second the WORM.
 .BI o
 (Letter o) The read-only (dump) file system
 of the most-recently defined cached WORM file system.
-.PP
+.SS Configuration
 The
 .B service
 command sets the textual name of the server as known in
@@ -241,6 +243,29 @@ messages to connect to that file system.
 .B main
 is the one attached to if the specifier is null; see
 .IR attach (5)).
+.PP
+The rest of the configuration commands record IP addresses:
+the file server's address
+.RI ( ip ),
+the local gateway's
+.RI ( ipgw ),
+the local authentication server's
+.RI ( ipauth ),
+the local subnet mask
+.RI ( ipmask ),
+and the address of a system running an SNTP server
+.RI ( ipsntp ).
+.I Ipauth
+is no longer used.
+If the server has more than one network interface,
+a digit may be appended to the keywords
+.BR ip ,
+.B ipgw
+and
+.B ipmask
+to indicate the interface number;
+zero is the default.
+.SS "One-time actions"
 .PP
 The
 .I ream
@@ -275,6 +300,10 @@ system, effectively resetting its contents to the last dump.
 .I Allow
 turns off all permission checking; use with caution.
 .PP
+.I Readonly
+disables all writing to all devices.
+This is useful for trying dangerous experiments.
+.PP
 .I Noauth
 disables authentication.
 .PP
@@ -290,26 +319,10 @@ block by block,
 and loop.
 It knows how to read a fake worm file system.
 .PP
-The rest of the commands record IP addresses: the file server's address
-.RI ( ip ),
-the local gateway's
-.RI ( ipgw ),
-the local authentication server's
-.RI ( ipauth ),
-the local subnet mask
-.RI ( ipmask ),
-and the address of a system running an SNTP server
-.RI ( ipsntp ).
-.I Ipauth
-is no longer used.
-If the server has more than one network interface,
-a digit may be appended to the keywords
-.BR ip ,
-.B ipgw
-and
-.B ipmask
-to indicate the interface number;
-zero is the default.
+.I Halt
+will cause the server to
+.I immediately
+exit and reboot.
 .PP
 The various configuration commands only record what to do; they write
 no data to disk.  The command
@@ -317,11 +330,6 @@ no data to disk.  The command
 exits config mode and begins running the file server proper.
 The server will then perform whatever I/O is required to establish
 the configuration.
-.PP
-.I Halt
-will cause the server to
-.I immediately
-exit and reboot.
 .SH EXAMPLE
 Initialize a file server
 .B kgbsun

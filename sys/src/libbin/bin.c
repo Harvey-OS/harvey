@@ -4,8 +4,8 @@
 
 enum
 {
-	StructAlign = sizeof(union {vlong v; double d; ulong p; void *v;
-				struct{vlong v;}vs; struct{double d;}ds; struct{ulong p;}ss; struct{void *v;}vs;})
+	StructAlign = sizeof(union {vlong vl; double d; ulong p; void *v;
+				struct{vlong v;}vs; struct{double d;}ds; struct{ulong p;}ss; struct{void *v;}xs;})
 };
 
 enum

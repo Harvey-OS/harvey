@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	} ARGEND
 	USED(argc);
 	if(*argv == 0) {
-		diag("usage: 6l [-options] objects\n");
+		diag("usage: 6l [-options] objects");
 		errorexit();
 	}
 	if(!debug['9'] && !debug['U'] && !debug['B'])
@@ -145,7 +145,7 @@ main(int argc, char *argv[])
 	Bflush(&bso);
 	for(i=1; optab[i].as; i++)
 		if(i != optab[i].as) {
-			diag("phase error in optab: %d\n", i);
+			diag("phase error in optab: %d", i);
 			errorexit();
 		}
 	maxop = i;
@@ -182,7 +182,7 @@ main(int argc, char *argv[])
 	pc = 0;
 	cout = create(outfile, 1, 0775);
 	if(cout < 0) {
-		diag("cannot create %s\n", outfile);
+		diag("cannot create %s", outfile);
 		errorexit();
 	}
 	version = 0;
@@ -281,7 +281,7 @@ objfile(char *file)
 	Bflush(&bso);
 	f = open(file, 0);
 	if(f < 0) {
-		diag("cannot open file: %s\n", file);
+		diag("cannot open file: %s", file);
 		errorexit();
 	}
 	l = read(f, magbuf, SARMAG);
@@ -298,11 +298,11 @@ objfile(char *file)
 		Bprint(&bso, "%5.2f ldlib: %s\n", cputime(), file);
 	l = read(f, &arhdr, SAR_HDR);
 	if(l != SAR_HDR) {
-		diag("%s: short read on archive file symbol header\n", file);
+		diag("%s: short read on archive file symbol header", file);
 		goto out;
 	}
 	if(strncmp(arhdr.name, symname, strlen(symname))) {
-		diag("%s: first entry not symbol header\n", file);
+		diag("%s: first entry not symbol header", file);
 		goto out;
 	}
 
@@ -350,7 +350,7 @@ objfile(char *file)
 			l = atolwhex(arhdr.size);
 			ldobj(f, l, pname);
 			if(s->type == SXREF) {
-				diag("%s: failed to load: %s\n", file, s->name);
+				diag("%s: failed to load: %s", file, s->name);
 				errorexit();
 			}
 			work = 1;
@@ -359,7 +359,7 @@ objfile(char *file)
 	return;
 
 bad:
-	diag("%s: bad or out of date archive\n", file);
+	diag("%s: bad or out of date archive", file);
 out:
 	close(f);
 }
@@ -636,7 +636,7 @@ loop:
 	if(o <= 0 || o >= maxop) {
 		if(o < 0)
 			goto eof;
-		diag("%s: opcode out of range %d\n", pn, o);
+		diag("%s: opcode out of range %d", pn, o);
 		print("	probably not a .8 file\n");
 		errorexit();
 	}
@@ -743,7 +743,7 @@ loop:
 			s->value = 0;
 		}
 		if(s->type != SBSS) {
-			diag("%s: redefinition: %s in %s\n",
+			diag("%s: redefinition: %s in %s",
 				pn, s->name, TNAME);
 			s->type = SBSS;
 			s->value = 0;
@@ -762,7 +762,7 @@ loop:
 		goto loop;
 
 	case AGOK:
-		diag("%s: GOK opcode in %s\n", pn, TNAME);
+		diag("%s: GOK opcode in %s", pn, TNAME);
 		pc++;
 		goto loop;
 
@@ -778,11 +778,11 @@ loop:
 		p->pc = pc;
 		s = p->from.sym;
 		if(s == S) {
-			diag("%s: no TEXT symbol: %P\n", pn, p);
+			diag("%s: no TEXT symbol: %P", pn, p);
 			errorexit();
 		}
 		if(s->type != 0 && s->type != SXREF)
-			diag("%s: redefinition: %s\n", pn, s->name);
+			diag("%s: redefinition: %s", pn, s->name);
 		s->type = STEXT;
 		s->value = p->pc;
 		pc++;
@@ -841,7 +841,7 @@ loop:
 	goto loop;
 
 eof:
-	diag("truncated object file: %s\n", pn);
+	diag("truncated object file: %s", pn);
 }
 
 Sym*
@@ -933,7 +933,7 @@ gethunk(void)
 	}
 	h = sbrk(nh);
 	if(h == (char*)-1) {
-		diag("out of memory\n");
+		diag("out of memory");
 		errorexit();
 	}
 	hunk = h;
@@ -1035,7 +1035,7 @@ ieeedtof(Ieee *e)
 		}
 	}
 	if(exp <= -126 || exp >= 130)
-		diag("double fp to single fp overflow\n");
+		diag("double fp to single fp overflow");
 	v |= ((exp + 126) & 0xffL) << 23;
 	v |= e->h & 0x80000000L;
 	return v;

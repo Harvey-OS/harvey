@@ -749,6 +749,7 @@ strtotime(char *s)
 		return -1;
 	}
 	strcpy(tm.zone, "GMT");
+	tm.yday = 0;
 	return tm2sec(&tm);
 }
 

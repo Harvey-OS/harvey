@@ -110,9 +110,9 @@ ioinit(void)
 	ioalloc(0x10000, 1, 0, "dummy");
 	/*
 	 * Someone needs to explain why this was here...
-	 */
 	ioalloc(0x0fff, 1, 0, "dummy");	// i82557 is at 0x1000, the dummy
 					// entry is needed for swappable devs.
+	 */
 
 	if ((excluded = getconf("ioexclude")) != nil) {
 		char *s;
@@ -391,8 +391,7 @@ archread(Chan *c, void *a, long n, vlong offset)
 		break;
 	}
 
-	/* allocate a buffer to avoid page faults in the loop */
-	if((buf = malloc(n+1)) == nil)	/* +1 for the NUL */
+	if((buf = malloc(n)) == nil)
 		error(Enomem);
 	p = buf;
 	n = n/Linelen;
@@ -404,7 +403,7 @@ archread(Chan *c, void *a, long n, vlong offset)
 			continue;
 		if(strcmp(m->tag, "dummy") == 0)
 			break;
-		snprint(p, Linelen+1, "%8lux %8lux %-12.12s\n", m->start, m->end-1, m->tag);
+		sprint(p, "%8lux %8lux %-12.12s\n", m->start, m->end-1, m->tag);
 		p += Linelen;
 		n--;
 	}
@@ -624,9 +623,11 @@ cpuidprint(void)
  *  figure out:
  *	- cpu type
  *	- whether or not we have a TSC (cycle counter)
- *	- whether or not is supports page size extensions
+ *	- whether or not it supports page size extensions
  *		(if so turn it on)
- *	- whether or not is supports machine check exceptions
+ *	- whether or not it supports machine check exceptions
+ *		(if so turn it on)
+ *	- whether or not it supports the page global flag
  *		(if so turn it on)
  */
 int
@@ -669,11 +670,11 @@ cpuidentify(void)
 	guesscpuhz(t->aalcycles);
 
 	/*
-	 * If machine check exception or page size extensions are supported
-	 * enable them in CR4 and clear any other set extensions.
+	 * If machine check exception, page size extensions or page global bit
+	 * are supported enable them in CR4 and clear any other set extensions.
 	 * If machine check was enabled clear out any lingering status.
 	 */
-	if(m->cpuiddx & 0x88){
+	if(m->cpuiddx & 0x2088){
 		cr4 = 0;
 		if(m->cpuiddx & 0x08)
 			cr4 |= 0x10;		/* page size extensions */
@@ -688,36 +689,30 @@ cpuidentify(void)
 				rdmsr(0x01, &mct);
 			}
 		}
+	
+		/*
+		 * Detect whether the chip supports the global bit
+		 * in page directory and page table entries.  When set
+		 * in a particular entry, it means ``don't bother removing
+		 * this from the TLB when CR3 changes.''  
+		 * 
+		 * We flag all kernel pages with this bit.  Doing so lessens the
+		 * overhead of switching processes on bare hardware,
+		 * even more so on VMware.  See mmu.c:/^memglobal.
+		 *
+		 * For future reference, should we ever need to do a
+		 * full TLB flush, it can be accomplished by clearing
+		 * the PGE bit in CR4, writing to CR3, and then
+		 * restoring the PGE bit.
+		 */
+		if(m->cpuiddx & 0x2000){
+			cr4 |= 0x80;		/* page global enable bit */
+			m->havepge = 1;
+		}
+
 		putcr4(cr4);
 		if(m->cpuiddx & 0x80)
 			rdmsr(0x01, &mct);
-	}
-
-	/*
-	 * Detect whether the chip supports the global bit
-	 * in page directory and page table entries.  When set
-	 * in a particular entry, it means ``don't bother removing
-	 * this from the TLB when CR3 changes.''  
-	 * 
-	 * We flag all kernel pages with this bit.  Doing so lessens the
-	 * overhead of switching processes on bare hardware,
-	 * even more so on VMware.  See mmu.c:/^memglobal.
-	 *
-	 * This feature exists on Intel Pentium Pro and later
-	 * processors.  Presumably the AMD processors have
-	 * a similar notion, but I can't find it in the meager
-	 * documentation I've tried.
-	 *
-	 * For future reference, should we ever need to do a
-	 * full TLB flush, it can be accomplished by clearing
-	 * the PGE bit in CR4, writing to CR3, and then
-	 * restoring the PGE bit.
-	 */
-	if(tab==x86intel && t->family >= 6){
-		cr4 = getcr4();
-		cr4 |= 0x80;		/* page global enable bit */
-		putcr4(cr4);
-		m->havepge = 1;
 	}
 
 	cputype = t;

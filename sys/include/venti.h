@@ -141,6 +141,15 @@ int vtErrFmt(Fmt *fmt);
 void vtDebug(VtSession*, char *, ...);
 void vtDebugMesg(VtSession *z, Packet *p, char *s);
 
+/* internal */
+VtSession *vtAlloc(void);
+void vtReset(VtSession*);
+int vtAddString(Packet*, char*);
+int vtGetString(Packet*, char**);
+int vtSendPacket(VtSession*, Packet*);
+Packet *vtRecvPacket(VtSession*);
+void vtDisconnect(VtSession*, int);
+int vtHello(VtSession*);
 
 /* client side */
 VtSession *vtClientAlloc(void);
@@ -157,6 +166,7 @@ int vtSync(VtSession *s);
 
 int vtZeroExtend(int type, uchar *buf, int n, int nn);
 int vtZeroTruncate(int type, uchar *buf, int n);
+int vtParseScore(char*, uint, uchar[VtScoreSize]);
 
 void vtRootPack(VtRoot*, uchar*);
 int vtRootUnpack(VtRoot*, uchar*);
@@ -219,7 +229,7 @@ int vtThread(void (*f)(void*), void *rock);
 void vtThreadSetName(char*);
 
 VtLock *vtLockAlloc(void);
-void vtLockInit(VtLock**);
+/* void vtLockInit(VtLock**); */
 void vtLock(VtLock*);
 int vtCanLock(VtLock*);
 void vtRLock(VtLock*);
@@ -252,3 +262,4 @@ int vtFdWrite(int, uchar*, int);
 #pragma	varargck	type	"R"		void
 
 #pragma	varargck	argpos	vtSetError	1
+

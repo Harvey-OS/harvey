@@ -98,7 +98,7 @@ asmout(Prog *p, Optab *o, int aflag)
 	default:
 		if(aflag)
 			return 0;
-		diag("unknown type %d\n", o->type);
+		diag("unknown type %d", o->type);
 		if(!debug['a'])
 			prasm(p);
 		break;
@@ -331,7 +331,7 @@ asmout(Prog *p, Optab *o, int aflag)
 	case 22:	/* add $lcon,r1,r2 ==> cau+or+add */	/* could do add/sub more efficiently */
 		v = regoff(&p->from);
 		if(p->to.reg == REGTMP || p->reg == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
+			diag("cant synthesize large constant\n%P", p);
 		o1 = AOP_IRR(OP_ADDIS, REGTMP, REGZERO, v>>16);
 		o2 = LOP_IRR(OP_ORI, REGTMP, REGTMP, v);
 		r = p->reg;
@@ -343,7 +343,7 @@ asmout(Prog *p, Optab *o, int aflag)
 	case 23:	/* and $lcon,r1,r2 ==> cau+or+and */	/* masks could be done using rlnm etc. */
 		v = regoff(&p->from);
 		if(p->to.reg == REGTMP || p->reg == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
+			diag("cant synthesize large constant\n%P", p);
 		o1 = AOP_IRR(OP_ADDIS, REGTMP, REGZERO, v>>16);
 		o2 = LOP_IRR(OP_ORI, REGTMP, REGTMP, v);
 		r = p->reg;
@@ -358,7 +358,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(v & 0x8000L)
 			v += 0x10000L;
 		if(p->to.reg == REGTMP)
-			diag("can't synthesize large constant\n%P\n", p);
+			diag("can't synthesize large constant\n%P", p);
 		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
@@ -375,7 +375,7 @@ asmout(Prog *p, Optab *o, int aflag)
 	case 28:	/* subc r1,$lcon,r2 ==> cau+or+subfc */
 		v = regoff(&p->from3);
 		if(p->to.reg == REGTMP || p->from.reg == REGTMP)
-			diag("can't synthesize large constant\n%P\n", p);
+			diag("can't synthesize large constant\n%P", p);
 		o1 = AOP_IRR(OP_ADDIS, REGTMP, REGZERO, v>>16);
 		o2 = LOP_IRR(OP_ORI, REGTMP, REGTMP, v);
 		o3 = AOP_RRR(oprrr(p->as), p->to.reg, p->from.reg, REGTMP);
@@ -954,7 +954,7 @@ oprrr(int a)
 
 	case AXOR:	return OPVCC(31,316,0,0);
 	}
-	diag("bad r/r opcode %A\n", a);
+	diag("bad r/r opcode %A", a);
 	return 0;
 }
 
@@ -1011,7 +1011,7 @@ opirr(int a)
 	case AXOR:	return OPVCC(26,0,0,0);		/* XORIL */
 	case AXOR+AEND:	return OPVCC(27,0,0,0);		/* XORIU */
 	}
-	diag("bad opcode i/r %A\n", a);
+	diag("bad opcode i/r %A", a);
 	return 0;
 }
 
@@ -1038,7 +1038,7 @@ opload(int a)
 	case AMOVHZU:	return OPVCC(41,0,0,0);
 	case AMOVMW:	return OPVCC(46,0,0,0);	/* lmw */
 	}
-	diag("bad load opcode %A\n", a);
+	diag("bad load opcode %A", a);
 	return 0;
 }
 
@@ -1069,7 +1069,7 @@ oploadx(int a)
 	case ALWAR:	return OPVCC(31,20,0,0);	/* lwarx */
 	case ALSW:	return OPVCC(31,533,0,0);	/* lswx */
 	}
-	diag("bad loadx opcode %A\n", a);
+	diag("bad loadx opcode %A", a);
 	return 0;
 }
 

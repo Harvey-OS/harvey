@@ -129,16 +129,50 @@ static Mux p_mux[] =
 	{0},
 };
 
+enum
+{
+	OOproto,
+};
 
 static void
 p_compile(Filter *f)
 {
-	sysfatal("unknown bootp field: %s", f->s);
+	Mux *m;
+
+	for(m = p_mux; m->name != nil; m++)
+		if(strcmp(f->s, m->name) == 0){
+			f->pr = m->pr;
+			f->ulv = m->val;
+			f->subop = OOproto;
+			return;
+		}
+
+	sysfatal("unknown ppp field or protocol: %s", f->s);
 }
 
 static int
-p_filter(Filter *, Msg *)
+p_filter(Filter *f, Msg *m)
 {
+	int proto;
+	int len;
+
+	if(f->subop != OOproto)
+		return 0;
+
+	len = m->pe - m->ps;
+	if(len < 3)
+		return -1;
+
+	if(m->ps[0] == PPP_addr && m->ps[1] == PPP_ctl)
+		m->ps += 2;
+
+	proto = *m->ps++;
+	if((proto&1) == 0)
+		proto = (proto<<8) | *m->ps++;
+
+	if(proto == f->ulv)
+		return 1;
+
 	return 0;
 }
 

@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 			break;
 		default:
 			syslog(0, AUTHLOG, "unknown ticket request type: %d", buf[0]);
-			break;
+			exits(0);
 		}
 	}
 	exits(0);
@@ -570,7 +570,6 @@ chap(Ticketreq *tr)
 	uchar digest[MD5dlen];
 	char chal[CHALLEN];
 	OChapreply reply;
-	uchar md5buf[512];
 	int n;
 
 	/*
@@ -603,14 +602,6 @@ chap(Ticketreq *tr)
 	s = md5(&reply.id, 1, 0, 0);
 	md5((uchar*)secret, strlen(secret), 0, s);
 	md5((uchar*)chal, sizeof(chal), digest, s);
-
-	md5buf[0] = reply.id;
-	n = 1;
-	memmove(md5buf+n, secret, strlen(secret));
-	n += strlen(secret);
-	memmove(md5buf+n, chal, sizeof(chal));
-	n += sizeof(chal);
-	md5(md5buf, n, digest, 0);
 
 	if(memcmp(digest, reply.resp, MD5dlen) != 0){
 		replyerror("chap-fail bad response %s", raddr);

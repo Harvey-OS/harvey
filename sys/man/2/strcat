@@ -111,7 +111,7 @@ bytes.
 .I Cistrcmp
 and
 .I cistrncmp
-ignore ASCII case distictions when comparing strings.
+ignore ASCII case distinctions when comparing strings.
 The comparisons are made with unsigned bytes.
 .PP
 .I Strcpy

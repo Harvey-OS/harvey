@@ -14,7 +14,8 @@ int verbose;
 char **match;
 int nmatch;
 int resolve;
-int notempspool;
+int tempspool = 1;
+int safeinstall = 1;
 char *lroot;
 char *rroot;
 Db *clientdb;
@@ -23,7 +24,7 @@ int douid;
 char *mkname(char*, int, char*, char*);
 char localbuf[10240];
 char remotebuf[10240];
-int copyfile(char*, char*, Dir*, int, int*);
+int copyfile(char*, char*, char*, Dir*, int, int*);
 ulong maxnow;
 int maxn;
 char *timefile;
@@ -100,7 +101,7 @@ chat(char *f, ...)
 void
 usage(void)
 {
-	fprint(2, "usage: replica/applylog [-cnsuv] [-T timefile] clientdb clientroot serverroot [path ...]\n");
+	fprint(2, "usage: replica/applylog [-cnSstuv] [-T timefile] clientdb clientroot serverroot [path ...]\n");
 	exits("usage");
 }
 
@@ -142,11 +143,14 @@ main(int argc, char **argv)
 		donothing = 1;
 		verbose = 1;
 		break;
+	case 'S':
+		safeinstall = 0;
+		break;
 	case 'T':
 		timefile = EARGF(usage());
 		break;
 	case 't':
-		notempspool = 1;
+		tempspool = 0;
 		break;
 	case 'u':
 		douid = 1;
@@ -312,7 +316,7 @@ main(int argc, char **argv)
 				close(fd);
 				rd.mtime = now;
 			}else{
-				if(copyfile(local, remote, &rd, 1, &k) < 0){
+				if(copyfile(local, remote, name, &rd, 1, &k) < 0){
 					if(k)
 						addce(local);
 					skip = 1;
@@ -381,7 +385,7 @@ main(int argc, char **argv)
 			chat("c %q\n", name);
 			if(donothing)
 				break;
-			if(copyfile(local, remote, &rd, 0, &k) < 0){
+			if(copyfile(local, remote, name, &rd, 0, &k) < 0){
 				if(k)
 					addce(local);
 				skip = 1;
@@ -658,12 +662,12 @@ opentemp(char *template)
 }
 
 int
-copyfile(char *local, char *remote, Dir *d, int dowstat, int *printerror)
+copyfile(char *local, char *remote, char *name, Dir *d, int dowstat, int *printerror)
 {
 	Dir *d0, *d1, *dl;
 	Dir nd;
 	int rfd, tfd, wfd, didcreate;
-	char tmp[32];
+	char tmp[32], *p, *safe;
 	char err[ERRMAX];
 
 Again:
@@ -677,7 +681,7 @@ Again:
 		return -1;
 	}
 	*printerror = 1;
-	if(notempspool){
+	if(!tempspool){
 		tfd = rfd;
 		goto DoCopy;
 	}
@@ -711,7 +715,32 @@ Again:
 		free(d0);
 		return -1;
 	}
+
 DoCopy:
+	/*
+	 * clumsy but important hack to do safeinstall-like installs.
+	 */
+	p = strchr(name, '/');
+	if(safeinstall && p && strncmp(p, "/bin/", 5) == 0 && access(local, AEXIST) >= 0){
+		/* 
+		 * remove bin/_targ
+		 */
+		safe = emalloc(strlen(local)+2);
+		strcpy(safe, local);
+		p = strrchr(safe, '/')+1;
+		memmove(p+1, p, strlen(p)+1);
+		p[0] = '_';
+		remove(safe);	/* ignore failure */
+
+		/*
+		 * rename bin/targ to bin/_targ
+		 */
+		nulldir(&nd);
+		nd.name = p;
+		if(dirwstat(local, &nd) < 0)
+			fprint(2, "warning: rename %s to %s: %r\n", local, p);
+	}
+
 	didcreate = 0;
 	if((dl = dirstat(local)) == nil){
 		if((wfd = create(local, OWRITE, 0)) >= 0){
@@ -786,8 +815,9 @@ okay:
 	nd.mtime = d->mtime;
 	if(dirfwstat(wfd, &nd) < 0)
 		fprint(2, "warning: cannot set mtime on %s\n", local);
-	close(wfd);
 	free(d0);
+
+	close(wfd);
 	return 0;
 }
 

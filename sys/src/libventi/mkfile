@@ -2,14 +2,25 @@
 
 LIB=/$objtype/lib/libventi.a
 
+SYS=plan9
+
 OFILES=\
-	packet.$O\
-	plan9.$O\
-	score.$O\
-	sha1-plan9.$O\
-	venti.$O\
+	client.$O\
+	debug.$O\
 	errfmt.$O\
+	fatal.$O\
 	pack.$O\
+	packet.$O\
+	parsescore.$O\
+	readfully.$O\
+	rpc.$O\
+	scorefmt.$O\
+	server.$O\
+	strdup.$O\
+	zero.$O\
+	$SYS-io.$O\
+	$SYS-sha1.$O\
+	$SYS-thread.$O\
 
 HFILES=\
 	packet.h\

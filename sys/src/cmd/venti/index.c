@@ -9,8 +9,6 @@ static ISect	*initISect1(ISect *is);
 
 static VtLock	*indexLock;	//ZZZ
 
-static char	indexMagic[] = "venti index";
-
 static char IndexMagic[] = "venti index configuration";
 
 Index*

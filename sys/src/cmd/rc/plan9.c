@@ -318,18 +318,43 @@ int Opendir(char *name)
 	close(f);
 	return -1;
 }
-int Readdir(int f, char *p)
+
+static int
+trimdirs(Dir *d, int nd)
+{
+	int r, w;
+
+	for(r=w=0; r<nd; r++)
+		if(d[r].mode&DMDIR)
+			d[w++] = d[r];
+	return w;
+}
+
+/*
+ * onlydirs is advisory -- it means you only
+ * need to return the directories.  it's okay to
+ * return files too (e.g., on unix where you can't
+ * tell during the readdir), but that just makes 
+ * the globber work harder.
+ */
+int Readdir(int f, char *p, int onlydirs)
 {
 	int n;
 	if(f<0 || f>=NFD)
 		return 0;
+Again:
 	if(dir[f].i==dir[f].n){	/* read */
 		free(dir[f].dbuf);
 		dir[f].dbuf=0;
 		n=dirread(f, &dir[f].dbuf);
-		if(n>=0)
+		if(n>0){
+			if(onlydirs){
+				n=trimdirs(dir[f].dbuf, n);
+				if(n==0)
+					goto Again;
+			}	
 			dir[f].n=n;
-		else
+		}else
 			dir[f].n=0;
 		dir[f].i=0;
 	}

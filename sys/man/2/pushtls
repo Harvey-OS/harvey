@@ -154,7 +154,10 @@ be freed by the application whenever convenient.
 .SH FILES
 .TP 
 .B /sys/lib/tls
-thumbprints of trusted services, maintained manually
+thumbprints of trusted services
+.TP 
+.B /sys/lib/ssl
+PEM certificate files
 .SH SOURCE
 .B /sys/src/libc/9sys/pushtls.c
 .br

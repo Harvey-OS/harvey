@@ -60,7 +60,8 @@ vtSha1(uchar sha1[VtScoreSize], uchar *p, int n)
 	vtSha1Final(&s, sha1);
 }
 
-int vtSha1Check(uchar score[VtScoreSize], uchar *p, int n)
+int
+vtSha1Check(uchar score[VtScoreSize], uchar *p, int n)
 {
 	VtSha1 s;
 	uchar score2[VtScoreSize];

@@ -727,7 +727,7 @@ PP = p;
 				break;
 		case C_ADDR:
 			if(p->to.offset < 0 || p->to.offset >= (1 << UIXSHIFT))
-				diag("reloc offset out of range: %s %ld\n", p->to.sym->name, p->to.offset);
+				diag("reloc offset out of range: %s %ld", p->to.sym->name, p->to.offset);
 			undefpc(p->pc);
 		}
 		o1 = instoffset;

@@ -1,27 +1,28 @@
 </$objtype/mkfile
 
 TARG=rc
-FILES=code.c\
-	exec.c\
-	getflags.c\
-	glob.c\
-	here.c\
-	io.c\
-	lex.c\
-	pcmd.c\
-	pfnc.c\
-	simple.c\
-	subr.c\
-	trap.c\
-	tree.c\
-	var.c\
+COMMONOFILES=\
+	code.$O\
+	exec.$O\
+	getflags.$O\
+	glob.$O\
+	here.$O\
+	io.$O\
+	lex.$O\
+	pcmd.$O\
+	pfnc.$O\
+	simple.$O\
+	subr.$O\
+	trap.$O\
+	tree.$O\
+	var.$O\
 
-FILES9=plan9.c\
+PLAN9OFILES=plan9.$O\
 
-FILESUNIX=unix.c\
+UNIXOFILES=unix.$O\
 
-CFILES=$FILES $FILES9 y.tab.c
-OFILES=${CFILES:%.c=%.$O}
+OFILES=$COMMONOFILES $PLAN9OFILES y.tab.$O
+
 HFILES=rc.h\
 	x.tab.h\
 	io.h\
@@ -30,15 +31,22 @@ HFILES=rc.h\
 
 YFILES=syn.y
 
-UPDATE=`{echo *.[chy] mkfile} `{echo $TARG |sed 's/([^ $]*)( |$)/\/386\/bin\/\1 /g'}
-
 BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${COMMONOFILES:%.$O=%.c}\
+	${UNIXOFILES:%.$O=%.c}\
+	${PLAN9OFILES:%.$O=%.c}\
+	$YFILES\
+
 </sys/src/cmd/mkone
 
 x.tab.h: y.tab.h
 	cmp -s x.tab.h y.tab.h || cp y.tab.h x.tab.h
 
-clean:V:
+clean nuke:V:
 	rm -f [$OS].out *.[$OS] [xy].tab.? y.debug $TARG
 
 regress: $O.out

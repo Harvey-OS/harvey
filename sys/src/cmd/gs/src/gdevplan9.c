@@ -222,6 +222,7 @@ plan9_put_params(gx_device * pdev, gs_param_list * plist)
  * plan9_open() is supposed to initialize the device.
  * there's not much to do.
  */
+extern void init_p9color();	/* in gdevifno.c */
 private int
 plan9_open(P1(gx_device *dev))
 {

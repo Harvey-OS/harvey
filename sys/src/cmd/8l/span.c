@@ -502,7 +502,7 @@ bas:
 	*andptr++ = i;
 	return;
 bad:
-	diag("asmidx: bad address %D\n", a);
+	diag("asmidx: bad address %D", a);
 	*andptr++ = 0;
 	return;
 }
@@ -722,7 +722,7 @@ asmand(Adr *a, int r)
 	asmand(&aa, r);
 	return;
 bad:
-	diag("asmand: bad address %D\n", a);
+	diag("asmand: bad address %D", a);
 	return;
 }
 
@@ -885,7 +885,7 @@ doasm(Prog *p)
 	tt = oclass(&p->to) * Ymax;
 	t = o->ytab;
 	if(t == 0) {
-		diag("asmins: noproto %P\n", p);
+		diag("asmins: noproto %P", p);
 		return;
 	}
 	for(z=0; *t; z+=t[3],t+=4)
@@ -916,7 +916,7 @@ found:
 	op = o->op[z];
 	switch(t[2]) {
 	default:
-		diag("asmins: unknown z %d %P\n", t[2], p);
+		diag("asmins: unknown z %d %P", t[2], p);
 		return;
 
 	case Zpseudo:
@@ -1123,7 +1123,7 @@ found:
 		if(q) {
 			v = q->pc - p->pc - 2;
 			if(v < -128 && v > 127)
-				diag("loop too far: %P\n", p);
+				diag("loop too far: %P", p);
 			*andptr++ = op;
 			*andptr++ = v;
 		}
@@ -1194,13 +1194,13 @@ bad:
 		}
 		return;
 	}
-	diag("doasm: notfound t2=%lux from=%lux to=%lux %P\n", t[2], p->from.type, p->to.type, p);
+	diag("doasm: notfound t2=%lux from=%lux to=%lux %P", t[2], p->from.type, p->to.type, p);
 	return;
 
 mfound:
 	switch(t[3]) {
 	default:
-		diag("asmins: unknown mov %d %P\n", t[3], p);
+		diag("asmins: unknown mov %d %P", t[3], p);
 		break;
 
 	case 0:	/* lit */

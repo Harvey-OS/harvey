@@ -65,7 +65,7 @@ span(void)
 				otxt = c;
 				continue;
 			}
-			diag("zero-width instruction\n%P\n", p);
+			diag("zero-width instruction\n%P", p);
 			continue;
 		}
 		c += m;
@@ -120,7 +120,7 @@ span(void)
 						p->from.sym->value = c;
 					continue;
 				}
-				diag("zero-width instruction\n%P\n", p);
+				diag("zero-width instruction\n%P", p);
 				continue;
 			}
 			c += m;
@@ -211,7 +211,7 @@ aclass(Adr *a)
 			}
 			t = a->sym->type;
 			if(t == 0 || t == SXREF) {
-				diag("undefined external: %s in %s\n",
+				diag("undefined external: %s in %s",
 					a->sym->name, TNAME);
 				a->sym->type = SDATA;
 			}
@@ -252,7 +252,7 @@ aclass(Adr *a)
 			s = a->sym;
 			t = s->type;
 			if(t == 0 || t == SXREF) {
-				diag("undefined external: %s in %s\n",
+				diag("undefined external: %s in %s",
 					s->name, TNAME);
 				s->type = SDATA;
 			}
@@ -295,7 +295,7 @@ aclass(Adr *a)
 			switch(t) {
 			case 0:
 			case SXREF:
-				diag("undefined external: %s in %s\n",
+				diag("undefined external: %s in %s",
 					s->name, TNAME);
 				s->type = SDATA;
 				break;
@@ -379,7 +379,7 @@ oplook(Prog *p)
 			p->optab = (o-optab)+1;
 			return o;
 		}
-	diag("illegal combination %A %d %d %d\n",
+	diag("illegal combination %A %d %d %d",
 		p->as, a1, a2, a3);
 	if(!debug['a'])
 		prasm(p);
@@ -499,7 +499,7 @@ buildop(void)
 		switch(r)
 		{
 		default:
-			diag("unknown op in build: %A\n", r);
+			diag("unknown op in build: %A", r);
 			errorexit();
 		case AABSF:
 			oprange[AMOVFD] = oprange[r];

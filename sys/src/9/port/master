@@ -1,38 +1,47 @@
-	root	/
-	audio	A
-	bridge	B
-	sac	C
-	ssl	D
-	sdp	E
-	tinyfs	F
-	astar	G
-	ip	I
-	kprof	K
-	lpt	L
-	mnt	M
-	arch	P
-	realtime	R
-	sd	S
-	lm78	T
-	usb	U
-	lml	V
-	loopback	X
-	cardbus	Y
-	tls	a
-	cons	c
-	dup	d
-	env	e
-	floppy	f
-	draw	i
-	fs	k
-	ether	l
-	mouse	m
-	proc	p
-	rtc	r
-	srv	s
-	uart	t
-	vga	v
-	pcmcia	y
-	i82365	y
-	mntstats	z
-	pipe	|
+$	pnp
+/	root
+A	audio
+A	uda1341
+B	bridge
+D	ssl
+E	sdp
+F	flash
+F	tinyfs
+I	ip
+K	kprof
+L	lpt
+M	mnt
+P	arch
+R	realtime
+S	sd
+T	lm78
+U	usb
+V	lml
+V	tv
+V	tvnew
+X	loopback
+Y	pccard
+a	tls
+b	irq
+c	cons
+d	dup
+e	env
+f	floppy
+g	segment
+i	draw
+k	fs
+l	ether
+m	mouse
+m	nmouse
+m	penmouse
+p	proc
+r	rtc
+r	µc
+s	srv
+t	uart
+v	vga
+y	i82365
+y	pcmcia
+z	mntstats
+|	pipe
+¤	cap

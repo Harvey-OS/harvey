@@ -1,14 +1,13 @@
 #include "stdinc.h"
 #include "dat.h"
 #include "fns.h"
-#include "libsec.h"
 
 u8int zeroScore[VtScoreSize];
 
 void
 scoreMem(u8int *score, u8int *buf, int n)
 {
-	sha1(buf, n, score, nil);
+	vtSha1(score, buf, n);
 }
 
 static int

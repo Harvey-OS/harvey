@@ -127,12 +127,12 @@ Srv fs = {
 .write=	fswrite,
 .flush=	fsflush,
 .destroyfid=	fsdestroyfid,
+.leavefdsopen=	1,
 };
 
 void
 mountcons(void)
 {
-//chatty9p=1;
 	fschan = chancreate(sizeof(Fsevent), 0);
 	writechan = chancreate(sizeof(void*), 0);
 	fs.tree = alloctree("win", "win", DMDIR|0555, nil);

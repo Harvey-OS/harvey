@@ -98,6 +98,9 @@ int		threadpid(int);
 int		threadsetgrp(int);	/* set thread group, return old */
 void		threadsetname(char *name);
 Channel*	threadwaitchan(void);
+int	tprivalloc(void);
+void	tprivfree(int);
+void	**tprivaddr(int);
 void		yield(void);
 
 extern	int		mainstacksize;

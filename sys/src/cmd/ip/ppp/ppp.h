@@ -182,8 +182,8 @@ enum {
 	Fipcompress=	1<<Oipcompress,
 	Fipaddr=	1<<Oipaddr,
 
-	Period=		3*1000,	/* period of retransmit process (in ms) */
-	Timeout=	10,	/* xmit timeout (in Periods) */
+	Period=		5*1000,	/* period of retransmit process (in ms) */
+	Timeout=	20,	/* xmit timeout (in Periods) */
 	Buflen=		4096,
 
 	MAX_STATES=	16,		/* van jacobson compression states */
@@ -255,8 +255,10 @@ struct PPP
 	char		*net;		/* ip stack to use */
 	int		framing;	/* non-zero to use framing characters */
 	Ipaddr		local;
+	Ipaddr		curlocal;
 	int		localfrozen;
 	Ipaddr		remote;
+	Ipaddr		curremote;
 	int		remotefrozen;
 
 	Ipaddr		dns[2];		/* dns servers */

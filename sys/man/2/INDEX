@@ -13,6 +13,11 @@ readstr 9p
 respond 9p
 srv 9p
 threadpostmountsrv 9p
+9pcmdbuf 9pcmdbuf
+Cmdbuf 9pcmdbuf
+lookupcmd 9pcmdbuf
+parsecmd 9pcmdbuf
+respondcmderror 9pcmdbuf
 9pfid 9pfid
 Fid 9pfid
 Fidpool 9pfid

@@ -85,6 +85,7 @@ Message*	ucmd(Cmd*, Message*);
 Message*	wcmd(Cmd*, Message*);
 Message*	xcmd(Cmd*, Message*);
 Message*	pipecmd(Cmd*, Message*);
+Message*	rpipecmd(Cmd*, Message*);
 Message*	bangcmd(Cmd*, Message*);
 Message*	Pcmd(Cmd*, Message*);
 Message*	mcmd(Cmd*, Message*);
@@ -121,7 +122,8 @@ struct {
 	{ "w",	1,	wcmd,	"w file   store message contents as file" },
 	{ "x",	0,	xcmd,	"x        exit with mailbox unchanged" },
 	{ "=",	1,	eqcmd,	"=        print current message number" },
-	{ "|",	1,	pipecmd, "|cmd     pipe raw message to a command" },
+	{ "|",	1,	pipecmd, "|cmd     pipe message body to a command" },
+	{ "||",	1,	rpipecmd, "|cmd     pipe raw message to a command" },
 	{ "!",	1,	bangcmd, "!cmd     run a command" },
 	{ nil,	0,	nil, 	nil },
 };
@@ -277,7 +279,10 @@ main(int argc, char **argv)
 			mkid(prompt, cur);
 			s_append(prompt, ": ");
 		}
-		if(readline(s_to_c(prompt), cmdline, sizeof(cmdline)) == nil)
+
+		// leave space at the end of cmd line in case parsecmd needs to
+		// add a space after a '|' or '!'
+		if(readline(s_to_c(prompt), cmdline, sizeof(cmdline)-1) == nil)
 			break;
 		err = parsecmd(cmdline, &cmd, top.child, cur);
 		if(err != nil){
@@ -950,6 +955,7 @@ parsecmd(char *p, Cmd *cmd, Message *first, Message *cur)
 	char buf[256];
 	char *err;
 	int i, c;
+	char *q;
 	static char errbuf[Errlen];
 
 	cmd->delete = 0;
@@ -1056,19 +1062,19 @@ parsecmd(char *p, Cmd *cmd, Message *first, Message *cur)
 		}
 	}
 
+	// insert a space after '!'s and '|'s
+	for(q = p; *q; q++)
+		if(*q != '!' && *q != '|')
+			break;
+	if(q != p && *q != ' '){
+		memmove(q+1, q, strlen(q)+1);
+		*q = ' ';
+	}
+
 	cmd->an = getfields(p, cmd->av, nelem(cmd->av) - 1, 1, " \t\r\n");
 	if(cmd->an == 0 || *cmd->av[0] == 0)
 		cmd->f = pcmd;
 	else {
-		// hack to avoid space after '|' or '!'
-		if((*p == '!' || *p == '|') && *(p+1) != 0){
-			for(i = cmd->an; i > 0 ; i--)
-				cmd->av[i] = cmd->av[i-1];
-			cmd->av[0] = *p == '!' ? "!" : "|";
-			cmd->av[1]++;
-			cmd->an++;
-		}
-
 		// hack to allow all messages to start with 'd'
 		if(*(cmd->av[0]) == 'd' && *(cmd->av[0]+1) != 0){
 			cmd->delete = 1;
@@ -1924,26 +1930,82 @@ wcmd(Cmd *c, Message *m)
 	return m;
 }
 
-// find the recipient account name
-static void
-foldername(char *folder, char *rcvr)
+char *specialfile[] =
+{
+	"pipeto",
+	"pipefrom",
+	"L.mbox",
+	"forward",
+	"names"
+};
+
+// return 1 if this is a special file
+static int
+special(String *s)
 {
 	char *p;
-	char *e = folder+Elemlen-1;
+	int i;
+
+	p = strrchr(s_to_c(s), '/');
+	if(p == nil)
+		p = s_to_c(s);
+	else
+		p++;
+	for(i = 0; i < nelem(specialfile); i++)
+		if(strcmp(p, specialfile[i]) == 0)
+			return 1;
+	return 0;
+}
+
+// open the folder using the recipients account name
+static String*
+foldername(char *rcvr)
+{
+	char *p;
+	int c;
+	String *file;
+	Dir *d;
+	int scarey;
+
+	file = s_new();
+	mboxpath("f", user, file, 0);
+	d = dirstat(s_to_c(file));
+
+	// if $mail/f exists, store there, otherwise in $mail
+	s_restart(file);
+	if(d && d->qid.type == QTDIR){
+		scarey = 0;
+		s_append(file, "f/");
+	} else {
+		scarey = 1;
+	}
+	free(d);
 
 	p = strrchr(rcvr, '!');
 	if(p != nil)
 		rcvr = p+1;
 
-	while(folder < e && *rcvr && *rcvr != '@')
-		*folder++ = *rcvr++;
-	*folder = 0;
+	while(*rcvr && *rcvr != '@'){
+		c = *rcvr++;
+		if(c == '/')
+			c = '_';
+		s_putc(file, c);
+	}
+	s_terminate(file);
+
+	if(scarey && special(file)){
+		fprint(2, "!won't overwrite %s\n", s_to_c(file));
+		s_free(file);
+		return nil;
+	}
+
+	return file;
 }
 
 Message*
 fcmd(Cmd *c, Message *m)
 {
-	char folder[Elemlen];
+	String *folder;
 
 	if(c->an > 1){
 		fprint(2, "!usage: f takes no arguments\n");
@@ -1955,10 +2017,15 @@ fcmd(Cmd *c, Message *m)
 		return nil;
 	}
 
-	foldername(folder, m->from);
-
-	if(appendtofile(m, "raw", folder, 1) < 0)
+	folder = foldername(m->from);
+	if(folder == nil)
 		return nil;
+
+	if(appendtofile(m, "raw", s_to_c(folder), 1) < 0){
+		s_free(folder);
+		return nil;
+	}
+	s_free(folder);
 
 	m->stored = 1;
 	return m;
@@ -2019,7 +2086,7 @@ bangcmd(Cmd *c, Message *m)
 }
 
 Message*
-pipecmd(Cmd *c, Message *m)
+xpipecmd(Cmd *c, Message *m, char *part)
 {
 	char cmd[128];
 	char *p, *e;
@@ -2037,9 +2104,14 @@ pipecmd(Cmd *c, Message *m)
 		return nil;
 	}
 
-	path = extendpath(m->path, "body");
+	path = extendpath(m->path, part);
 	fd = open(s_to_c(path), OREAD);
 	s_free(path);
+	if(fd < 0){	// compatibility with older upas/fs
+		path = extendpath(m->path, "raw");
+		fd = open(s_to_c(path), OREAD);
+		s_free(path);
+	}
 	if(fd < 0){
 		fprint(2, "!message disappeared\n");
 		return nil;
@@ -2057,6 +2129,18 @@ pipecmd(Cmd *c, Message *m)
 	system("/bin/rc", av, fd);	/* system closes fd */
 	Bprint(&out, "!\n");
 	return m;
+}
+
+Message*
+pipecmd(Cmd *c, Message *m)
+{
+	return xpipecmd(c, m, "body");
+}
+
+Message*
+rpipecmd(Cmd *c, Message *m)
+{
+	return xpipecmd(c, m, "rawunix");
 }
 
 void

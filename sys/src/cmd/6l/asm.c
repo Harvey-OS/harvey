@@ -41,7 +41,7 @@ asmb(void)
 		if(p->pc != pc) {
 			if(!debug['a'])
 				print("%P\n", curp);
-			diag("phase error %lux sb %lux in %s\n", p->pc, pc, TNAME);
+			diag("phase error %lux sb %lux in %s", p->pc, pc, TNAME);
 			pc = p->pc;
 		}
 		curp = p;
@@ -68,7 +68,7 @@ asmb(void)
 	cflush();
 	switch(HEADTYPE) {
 	default:
-		diag("unknown header type %d\n", HEADTYPE);
+		diag("unknown header type %d", HEADTYPE);
 	case 0:
 		seek(cout, rnd(HEADR+textsize, 8192), 0);
 		break;
@@ -297,7 +297,7 @@ datblk(long s, long n)
 		for(j=l+(c-i)-1; j>=l; j--)
 			if(buf.dbuf[j]) {
 				print("%P\n", p);
-				diag("multiple initialization\n");
+				diag("multiple initialization");
 				break;
 			}
 		switch(p->to.type) {
@@ -350,7 +350,7 @@ datblk(long s, long n)
 			fl = p->to.offset;
 			if(p->to.type == D_ADDR) {
 				if(p->to.index != D_STATIC && p->to.index != D_EXTERN)
-					diag("DADDR type%P\n", p);
+					diag("DADDR type%P", p);
 				if(p->to.sym) {
 					fl += p->to.sym->value;
 					if(p->to.sym->type != STEXT && p->to.sym->type != SLEAF)
@@ -360,7 +360,7 @@ datblk(long s, long n)
 			cast = (char*)&fl;
 			switch(c) {
 			default:
-				diag("bad nuxi %d %d\n%P\n", c, i, curp);
+				diag("bad nuxi %d %d\n%P", c, i, curp);
 				break;
 			case 1:
 				if(debug['a'] && i == 0) {

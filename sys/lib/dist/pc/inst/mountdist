@@ -171,7 +171,7 @@ case go
 			echo '	exit			- exit shell'
 			echo 
 			echo 'Move to the directory containing the distribution'
-			echo 'and and then exit.'
+			echo 'and then exit.'
 			echo
 			oifs=$ifs
 			ifs=$nl

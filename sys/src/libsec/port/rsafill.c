@@ -27,7 +27,7 @@ rsafill(mpint *n, mpint *e, mpint *d, mpint *p, mpint *q)
 	mpmul(e, d, c2);
 	mpmod(c2, x, x);
 	if(mpcmp(x, mpone) != 0){
-		werrstr("rsafill: e*d != (p-1)*(q-1) mod n");
+		werrstr("rsafill: e*d != 1 mod (p-1)*(q-1)");
 		mpfree(x);
 		mpfree(c2);
 		return nil;

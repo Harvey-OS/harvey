@@ -16,11 +16,11 @@ dodata(void)
 		if(s->type == SBSS)
 			s->type = SDATA;
 		if(s->type != SDATA)
-			diag("initialize non-data (%d): %s\n%P\n",
+			diag("initialize non-data (%d): %s\n%P",
 				s->type, s->name, p);
 		t = p->from.offset + p->width;
 		if(t > s->value)
-			diag("initialize bounds (%ld): %s\n%P\n",
+			diag("initialize bounds (%ld): %s\n%P",
 				s->value, s->name, p);
 	}
 
@@ -33,7 +33,7 @@ dodata(void)
 			continue;
 		t = s->value;
 		if(t == 0) {
-			diag("%s: no size\n", s->name);
+			diag("%s: no size", s->name);
 			t = 1;
 		}
 		t = rnd(t, 4);;
@@ -236,7 +236,7 @@ relinv(int a)
 	case ABO:	return ABNO;
 	case ABNO:	return ABO;
 	}
-	diag("unknown relation: %s in %s\n", anames[a], TNAME);
+	diag("unknown relation: %s in %s", anames[a], TNAME);
 	return a;
 }
 
@@ -253,7 +253,7 @@ doinit(void)
 			continue;
 		s = p->to.sym;
 		if(s->type == 0 || s->type == SXREF)
-			diag("undefined %s initializer of %s\n",
+			diag("undefined %s initializer of %s",
 				s->name, p->from.sym->name);
 		p->to.offset += s->value;
 		p->to.type = D_CONST;
@@ -286,7 +286,7 @@ patch(void)
 			s = p->to.sym;
 			if(s) {
 				if(s->type != STEXT && s->type != SLEAF) {
-					diag("undefined: %s in %s\n", s->name, TNAME);
+					diag("undefined: %s in %s", s->name, TNAME);
 					s->type = STEXT;
 					s->value = vexit;
 				}
@@ -308,7 +308,7 @@ patch(void)
 			q = q->link;
 		}
 		if(q == P) {
-			diag("branch out of range in %s\n%P\n", TNAME, p);
+			diag("branch out of range in %s\n%P", TNAME, p);
 			p->to.type = D_NONE;
 		}
 		p->cond = q;
@@ -427,5 +427,5 @@ undef(void)
 	for(i=0; i<NHASH; i++)
 	for(s = hash[i]; s != S; s = s->link)
 		if(s->type == SXREF)
-			diag("%s: not defined\n", s->name);
+			diag("%s: not defined", s->name);
 }

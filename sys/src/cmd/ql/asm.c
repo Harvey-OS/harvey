@@ -62,7 +62,7 @@ asmb(void)
 			}
 		}
 		if(p->pc != pc) {
-			diag("phase error %lux sb %lux\n",
+			diag("phase error %lux sb %lux",
 				p->pc, pc);
 			if(!debug['a'])
 				prasm(curp);
@@ -517,13 +517,13 @@ datblk(long s, long n)
 			for(j=l+(c-i)-1; j>=l; j--)
 				if(buf.dbuf[j]) {
 					print("%P\n", p);
-					diag("multiple initialization\n");
+					diag("multiple initialization");
 					break;
 				}
 		}
 		switch(p->to.type) {
 		default:
-			diag("unknown mode in initialization\n%P\n", p);
+			diag("unknown mode in initialization\n%P", p);
 			break;
 
 		case D_FCONST:
@@ -568,7 +568,7 @@ datblk(long s, long n)
 			cast = (char*)&d;
 			switch(c) {
 			default:
-				diag("bad nuxi %d %d\n%P\n", c, i, curp);
+				diag("bad nuxi %d %d\n%P", c, i, curp);
 				break;
 			case 1:
 				for(; i<c; i++) {

@@ -55,6 +55,7 @@ struct Msg
 	char	*p;	/* buffer start */
 	char	*e;	/* buffer end */
 
+	int	needroot;	/* pr is root, need to see in expression */
 	Proto	*pr;	/* current/next protocol */	
 };
 

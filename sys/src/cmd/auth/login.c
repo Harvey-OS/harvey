@@ -76,32 +76,118 @@ setenv(char *var, char *val)
 	}
 }
 
+/*
+ *  become the authenticated user
+ */
+void
+chuid(AuthInfo *ai)
+{
+	int rv, fd;
+
+	/* change uid */
+	fd = open("#¤/capuse", OWRITE);
+	if(fd < 0)
+		sysfatal("can't change uid: %r");
+	rv = write(fd, ai->cap, strlen(ai->cap));
+	close(fd);
+	if(rv < 0)
+		sysfatal("can't change uid: %r");
+}
+
+/*
+ *  mount a factotum
+ */
+void
+mountfactotum(char *srvname)
+{
+	int fd;
+
+	/* mount it */
+	fd = open(srvname, ORDWR);
+	if(fd < 0)
+		sysfatal("opening factotum: %r");
+	mount(fd, -1, "/mnt", MBEFORE, "");
+	close(fd);
+}
+
+/*
+ *  start a new factotum and pass it the username and password
+ */
+void
+startfactotum(char *user, char *password, char *srvname)
+{
+	int fd;
+
+	strcpy(srvname, "/srv/factotum.XXXXXXXXXXX");
+	mktemp(srvname);
+
+	switch(fork()){
+	case -1:
+		sysfatal("can't start factotum: %r");
+	case 0:
+		execl("/factotum", "loginfactotum", "-dns", srvname+5, 0);
+		sysfatal("starting factotum: %r");
+		break;
+	}
+
+	/* wait for agent to really be there */
+	while(access(srvname, 0) < 0)
+		sleep(250);
+
+	/* mount it */
+	mountfactotum(srvname);
+
+	/* write in new key */
+	fd = open("/mnt/factotum/ctl", ORDWR);
+	if(fd < 0)
+		sysfatal("opening factotum: %r");
+	fprint(fd, "key proto=p9sk1 dom=cs.bell-labs.com user=%q !password=%q", user, password);
+	close(fd);
+}
+
 void
 main(int argc, char *argv[])
 {
 	char pass[ANAMELEN];
 	char buf[2*ANAMELEN];
 	char home[2*ANAMELEN];
+	char srvname[2*ANAMELEN];
 	char *user, *sysname, *tz, *cputype, *service;
+	AuthInfo *ai;
+
+	ARGBEGIN{
+	}ARGEND;
 
 	rfork(RFENVG|RFNAMEG);
 
 	service = getenv("service");
-	if(strcmp(service, "cpu") == 0){
-		fprint(2, "not from a cpu server!\n");
-		exits("fail");
-	}
-	if(argc != 2){
+	if(strcmp(service, "cpu") == 0)
+		sysfatal("not from a cpu server!");
+	if(argc != 1){
 		fprint(2, "usage: login username\n");
 		exits("usage");
 	}
-	user = argv[1];
+	user = argv[0];
 	memset(pass, 0, sizeof(pass));
 	readln("Password: ", pass, sizeof(pass), 1);
-	if(login(argv[1], pass, nil) < 0){
-		fprint(2, "login failed: %r\n");
-		exits("fail");
-	}
+
+	/* authenticate */
+	ai = auth_userpasswd(user, pass);
+	if(ai == nil || ai->cap == nil)
+		sysfatal("login incorrect");
+
+	/* change uid */
+	chuid(ai);
+
+	/* start a new factotum and hand it a new key */
+	startfactotum(user, pass, srvname);
+
+	/* set up new namespace */
+	newns(ai->cuid, nil);
+	auth_freeAI(ai);
+
+	/* remount the factotum */
+	mountfactotum(srvname);
 
 	/* set up a new environment */
 	cputype = getenv("cputype");

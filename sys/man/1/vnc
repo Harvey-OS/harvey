@@ -4,124 +4,190 @@ vncs, vncv \- remote frame buffer server and viewer for Virtual Network Computin
 .SH SYNOPSIS
 .B vncs
 [
-.B -v ] [ -g
-.I width
-.B X
-.I height
-.B ]
-.B [ -d
-.I :display
-.B ] 
-.B [command [args ...]]
+.B -v
+]
+[
+.B -c
+.I cert
+]
+[
+.B -d
+.BI : display
+]
+[
+.B -g
+.IB width x height
+]
+[
+.B -p
+.I pixfmt
+]
+[
+.B -x
+.I net
+]
+[
+.I cmd
+[
+.I args
+...
+]
+]
 .PP
-.B vncs -k
-.I :display
+.B vncs
+.B -k
+.BI : display
+[
+.B -x
+.I net
+]
 .PP
 .B vncv
+[
+.B -cstv
+]
 [
 .B -e
 .I encodings
 ]
-[
-.B -csv
-]
 .IR host [\fL: n ]
 .SH DESCRIPTION
-.I vncs
-starts a new virtual frame buffer in memory and waits for connections from remote viewers.
-Each viewer is authenticated using challenge and response. APOP password is used as the
-private key. A display number 
-.I :n
-in the global name space is printed to stderr. A viewer must use the same display number 
-in order to contact the desired server. Multiple VNC servers can co-exist on the same host,
-each with a unique display number.
+VNC is a lightweight protocol
+for accessing graphical applications
+remotely.  The protocol allows one or more
+clients to connect to a server.
+While connected, clients display the frame buffer
+presented by the server and can send mouse events,
+keyboard events, and exchange snarf buffers.
+The server persists across viewer sessions, so that
+the virtual application can be accessed from various locations
+as its owner moves around.
 .PP
-One frame buffer can have simultaneous viewers if the viewers are started with the -s option,
-see below. Otherwise, starting a new viewer would cause the server to disconnect from all 
-existing viewers. Killing the viewers will not affect the remote server. Therefore, the same desktop
-can migrate from one location to another without restarting the window system.
+VNC displays have names of the form
+.IB host : n \fR,
+where
+.I host
+is the machine's network name and
+.I n
+is a small integer identifier; display
+.I n
+is served on TCP port
+.RI 5900+ n .
 .PP
-The server options are:
+.I Vncs
+starts a new virtual frame buffer in memory, simulating
+a Plan 9 terminal running
+.I cmd
+.IR args ,
+by default an interactive shell.
+As viewers connect, each is authenticated using a 
+(rather breakable) challenge-response protocol using
+the user's Inferno/POP password.
+.PP
+The options are:
+.TP
+.B -c \fIcert
+start TLS on each viewer connection using the certificate
+in the file
+.IR cert .
+The corresponding private key must be loaded into
+the server's
+.IR factotum (4).
+When serving TLS connections, the base port is
+35729 rather than 5900.
+.TP
+.B -d :\fIn
+run on display
+.I n ;
+without this option, the server searches
+for an unused display.
+.TP
+.B -g \fIwidth\fBx\fIheight\fR
+set the virtual frame buffer to be
+.IB width x height
+(default
+1024x768)
+pixels.
+.TP
+.B -p \fIpixfmt
+set the virtual frame buffer's internal pixel format to
+.I pixfmt
+(default
+.BR r5g6b5 ).
 .TP
 .B -v
-causes verbose output to stderr.
+print verbose output to standard error.
 .TP
-.B -g " widthXheight
-specifies the frame buffer geometry. Default is 1024x768. The depth is fixed
-at 16 bits per pixel (r5g6b5).
-.TP
-.B -d 
-chooses a display number
-.RI : n .
-The server aborts if the display is not available. If not specified, the server hunts for 
-the first available on that host interface.
-.TP
-.I command [args ...]
-By default, the server starts with a terminal similar to that of drawterm. RC is
-executed on behalf of the owner of the vncs process. The user can specify any program
-to start the VNC server, e.g. rio.
-.TP
-.B -k " :display
-shutdown the VNC server and all of its connected clients on 
-.RI : display .
-Note, kill vncs | rc will kill ALL servers running on that host.
+.B -x \fInet
+announce on an alternate network interface.
+Because of the weak authentication protocol and
+default lack of encryption, this option must
+be accompanied by
+.BR -c .
+.PD
+.PP
+The command
+.B vncs
+.B -k
+.BI : n
+kills the VNC server running on display
+.IR n .
 .PP
 .I Vncv
-provides access to remote frame buffer
-.I n
-on 
-.I host
-using the VNC (Virtual Network Computing)
-protocol.
+provides access to remote display
+.IB host : n \fR.
 It resizes its window to be the smaller of the
 remote frame buffer size and the local screen.
 .PP
-The 
-.B -e
-option specifies an ordered list of rectangle
-encodings to allow in the protocol.
-The default (and full set) is 
-.IP
-.EX
-copyrect corre hextile rre raw
-.EE
-.PP
-By default, connecting to a display closes 
-any other connections to that display.
-The
-.B -s
-option allows the other connections to share the display.
-.PP
-The
-.B -v
-option causes verbose output.
-.PP
-.I Vncv
-negotiates with the VNC server to settle on a true-color pixel format.
-For true-color displays, this is the native display pixel format.
-On eight bit color-mapped displays,
-.I vncv
-requests 
-.B r3g3b2
-pixels and upon receipt translates them to the nearest
-color in the map.
-This does not cover the color map particularly well.
-When invoked with the
+The options are:
+.TP
 .B -c
-option,
-.I vncv
-requests
+when connecting to 8-bit displays, request
 .B r4g4b4
-pixels instead.  This consumes more bandwidth
-but results in better matching to the available colors.
+pixels rather than 
+.B r3g3b2
+pixels.
+This takes up more bandwidth but usually gives
+significantly better matching to the Plan 9 color map.
+.TP
+.B -e \fIencodings
+set the ordered list of allowed frame buffer update encodings.
+The default (and full) set is
+.B copyrect
+.B corre
+.B hextile
+.B rre
+.BR raw .
+The encodings should be given as a single space-separated argument
+(quoted when using the shell).
+.TP
+.B -s
+share the display with extant viewers;
+by default extant viewers are closed
+when a new viewer connects.
+.TP
+.B -t
+start TLS on the connection.
+.TP
+.B -v
+print verbose output to standard error.
+.PD
 .PP
+The VNC protocol represents keyboard input as
+key up/down events.
+Plan 9 does not expose the state of the
+Ctl and Shift keys except as it can be inferred
+from receipt of control or shifted characters.
+It does not expose the state of the Alt key at all,
+since the Alt key is used to compose Unicode characters
+(see
+.IR keyboard (6)).
 .I Vncv
-correctly handles the typing of control characters
-and shifted keystrokes.
-To support systems that require the use
-of modifiers like Alt, Ctl, and Shift on
-things like mouse events,
-typing the sequences
+correctly handles the sending of control and shifted
+characters.
+To support systems that use key sequences like Alt-X
+(or worse, Alt-mouse-click), typing the Plan 9 compose
+sequences
 .B Alt
 .B Z
 .B A
@@ -136,8 +202,7 @@ and
 .B S
 (for Shift)
 will send a ``key down'' message for
-the given key (see
-.IR keyboard (6)).
+the given key.
 A corresponding ``key up'' message
 will be sent after the next key is pressed,
 or when the sequence is retyped,
@@ -151,3 +216,7 @@ whichever happens first.
 .SH BUGS
 If the remote frame buffer is larger than the local screen,
 only the upper left corner can be accessed.
+.PP
+.I Vncv
+does no verification of the TLS certificate presented
+by the server.

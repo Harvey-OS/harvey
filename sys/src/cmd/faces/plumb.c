@@ -284,7 +284,7 @@ nextface(void)
 				continue;
 			}
 			for(i=0; i<nmaildirs; i++)
-				if(strncmp(m->data, maildirs[i], strlen(maildirs[i])) != 0)
+				if(strncmp(m->data, maildirs[i], strlen(maildirs[i])) == 0)
 					goto Found;
 			plumbfree(m);
 			continue;

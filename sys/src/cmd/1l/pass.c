@@ -16,11 +16,11 @@ dodata(void)
 		if(s->type == SBSS)
 			s->type = SDATA;
 		if(s->type != SDATA)
-			diag("initialize non-data (%d): %s\n%P\n",
+			diag("initialize non-data (%d): %s\n%P",
 				s->type, s->name, p);
 		t = p->from.offset + p->from.displace;
 		if(t > s->value)
-			diag("initialize bounds (%ld): %s\n%P\n",
+			diag("initialize bounds (%ld): %s\n%P",
 				s->value, s->name, p);
 	}
 
@@ -33,7 +33,7 @@ dodata(void)
 			continue;
 		t = s->value;
 		if(t == 0) {
-			diag("%s: no size\n", s->name);
+			diag("%s: no size", s->name);
 			t = 1;
 		}
 		t = rnd(t, 4);;
@@ -262,7 +262,7 @@ relinv(int a)
 	case AFBNE:	return AFBEQ;
 	case AFBT:	return AFBF;
 	}
-	diag("unknown relation: %s in %s\n", anames[a], TNAME);
+	diag("unknown relation: %s in %s", anames[a], TNAME);
 	return a;
 }
 
@@ -289,7 +289,7 @@ patch(void)
 		if((p->as == ABSR || p->as == ARTS) && p->to.sym != S) {
 			s = p->to.sym;
 			if(s->type != STEXT) {
-				diag("undefined: %s in %s\n", s->name, TNAME);
+				diag("undefined: %s in %s", s->name, TNAME);
 				s->type = STEXT;
 				s->value = vexit;
 			}
@@ -310,7 +310,7 @@ patch(void)
 			q = q->link;
 		}
 		if(q == P) {
-			diag("branch out of range in %s\n%P\n", TNAME, p);
+			diag("branch out of range in %s\n%P", TNAME, p);
 			p->to.type = D_NONE;
 		}
 		p->pcond = q;
@@ -411,7 +411,7 @@ dostkoff(void)
 				break;
 			if(q->stkoff >= 0)
 				if(q->stkoff != s)
-					diag("stack offset %ld is %ld sb %ld in %s\n%P\n",
+					diag("stack offset %ld is %ld sb %ld in %s\n%P",
 						q->pc, q->stkoff, s, q, TNAME, p);
 			q->stkoff = s;
 			if(t++ > 100) {
@@ -619,7 +619,7 @@ undef(void)
 	for(i=0; i<NHASH; i++)
 	for(s = hash[i]; s != S; s = s->link)
 		if(s->type == SXREF)
-			diag("%s: not defined\n", s->name);
+			diag("%s: not defined", s->name);
 }
 
 void
@@ -655,19 +655,19 @@ initmuldiv2(void)
 				prog_ccr = p;
 		}
 	if(prog_mull == P) {
-		diag("undefined: %s\n", s1->name);
+		diag("undefined: %s", s1->name);
 		prog_mull = curtext;
 	}
 	if(prog_divsl == P) {
-		diag("undefined: %s\n", s2->name);
+		diag("undefined: %s", s2->name);
 		prog_divsl = curtext;
 	}
 	if(prog_divul == P) {
-		diag("undefined: %s\n", s3->name);
+		diag("undefined: %s", s3->name);
 		prog_divul = curtext;
 	}
 	if(prog_ccr == P) {
-		diag("undefined: %s\n", s4->name);
+		diag("undefined: %s", s4->name);
 		prog_ccr = curtext;
 	}
 }

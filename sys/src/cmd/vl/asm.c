@@ -70,7 +70,7 @@ asmb(void)
 			autosize = p->to.offset + 4;
 		}
 		if(p->pc != pc) {
-			diag("phase error %lux sb %lux\n",
+			diag("phase error %lux sb %lux",
 				p->pc, pc);
 			if(!debug['a'])
 				prasm(curp);
@@ -627,13 +627,13 @@ datblk(long s, long n, int str)
 			for(j=l+(c-i)-1; j>=l; j--)
 				if(buf.dbuf[j]) {
 					print("%P\n", p);
-					diag("multiple initialization\n");
+					diag("multiple initialization");
 					break;
 				}
 		}
 		switch(p->to.type) {
 		default:
-			diag("unknown mode in initialization\n%P\n", p);
+			diag("unknown mode in initialization\n%P", p);
 			break;
 
 		case D_FCONST:
@@ -682,7 +682,7 @@ datblk(long s, long n, int str)
 			cast = (char*)&d;
 			switch(c) {
 			default:
-				diag("bad nuxi %d %d\n%P\n", c, i, curp);
+				diag("bad nuxi %d %d\n%P", c, i, curp);
 				break;
 			case 1:
 				for(; i<c; i++) {
@@ -751,7 +751,7 @@ asmout(Prog *p, Optab *o, int aflag)
 	o7 = 0;
 	switch(o->type) {
 	default:
-		diag("unknown type %d\n", o->type);
+		diag("unknown type %d", o->type);
 		if(!debug['a'])
 			prasm(p);
 		break;
@@ -818,7 +818,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		else
 			v = (p->cond->pc - pc-4) >> 2;
 		if(((v << 16) >> 16) != v)
-			diag("short branch too far: %d\n%P\n", v, p);
+			diag("short branch too far: %d\n%P", v, p);
 		o1 = OP_IRR(opirr(p->as), v, p->from.reg, p->reg);
 		break;
 
@@ -944,7 +944,7 @@ asmout(Prog *p, Optab *o, int aflag)
 	case 23:	/* add $lcon,r1,r2 ==> lu+or+add */
 		v = regoff(&p->from);
 		if(p->to.reg == REGTMP || p->reg == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
+			diag("cant synthesize large constant\n%P", p);
 		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
 		o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
 		r = p->reg;
@@ -970,7 +970,7 @@ asmout(Prog *p, Optab *o, int aflag)
 	case 26:	/* mov $lsext/auto/oreg,,r2 ==> lu+or+add */
 		v = regoff(&p->from);
 		if(p->to.reg == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
+			diag("cant synthesize large constant\n%P", p);
 		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
 		o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
 		r = p->from.reg;
@@ -1016,7 +1016,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		switch(o->size) {
 		case 20:
 			if(r == REGTMP)
-				diag("cant synthesize large constant\n%P\n", p);
+				diag("cant synthesize large constant\n%P", p);
 			o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
 			o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
 			o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
@@ -1025,7 +1025,7 @@ asmout(Prog *p, Optab *o, int aflag)
 			break;
 		case 16:
 			if(r == REGTMP)
-				diag("cant synthesize large constant\n%P\n", p);
+				diag("cant synthesize large constant\n%P", p);
 			o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
 			o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
 			o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
@@ -1084,7 +1084,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(r == NREG)
 			r = o->param;
 		if(r == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
+			diag("cant synthesize large constant\n%P", p);
 		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
 		o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
 		o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
@@ -1097,7 +1097,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(r == NREG)
 			r = o->param;
 		if(r == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
+			diag("cant synthesize large constant\n%P", p);
 		o1 = OP_IRR(opirr(ALAST), v>>16, REGZERO, REGTMP);
 		o2 = OP_IRR(opirr(AOR), v, REGTMP, REGTMP);
 		o3 = OP_RRR(oprrr(AADDU), r, REGTMP, REGTMP);
@@ -1311,7 +1311,7 @@ oprrr(int a)
 	case AADDV:	return OP(5,4);
 	case AADDVU:	return OP(5,5);
 	}
-	diag("bad rrr %d\n", a);
+	diag("bad rrr %d", a);
 	return 0;
 }
 
@@ -1382,6 +1382,6 @@ opirr(int a)
 	case AADDV:		return SP(3,0);
 	case AADDVU:		return SP(3,1);
 	}
-	diag("bad irr %d\n", a);
+	diag("bad irr %d", a);
 	return 0;
 }

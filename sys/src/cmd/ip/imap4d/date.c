@@ -90,6 +90,7 @@ imap4DateTime(char *date)
 	tm.sec = strtol(sflds[2], nil, 10);
 
 	strcpy(tm.zone, "GMT");
+	tm.yday = 0;
 	t = tm2sec(&tm);
 	zone2tm(&tm, flds[2]);
 	t -= tm.tzoff;

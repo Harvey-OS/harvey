@@ -35,6 +35,11 @@ main(int argc, char **argv)
 		break;
 	}ARGEND;
 
+	if(aflag + rflag + cflag > 1){
+		fprint(2, "%s: -a, -r, and -c are mutually exclusive\n", argv0);
+		exits("usage");
+	}
+
 	if(argc < 1)
 		usage();
 

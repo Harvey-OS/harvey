@@ -124,8 +124,8 @@ $TARG.$O:	$TARG.c
 
 install:V: $TARG
 	cp $TARG /$objtype/
-	9fs dinar && cp $TARG /n/dinar/$objtype/
-	import lookout / /n/lookout && cp $TARG /n/lookout/$objtype/
+	#9fs dinar && cp $TARG /n/dinar/$objtype/
+	#import lookout / /n/lookout && cp $TARG /n/lookout/$objtype/
 
 $TARG.$O:	../pc/dosfs.h
 

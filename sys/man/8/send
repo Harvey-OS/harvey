@@ -21,7 +21,9 @@ send \- mail routing and delivery
 .I Send
 is not normally run directly by the user.  Instead, mail protocol
 agents like
-.IR smtpd (8)
+.I smtpd
+(see
+.IR smtp (8))
 and mail preparers like
 .IR marshal (1)
 fork and execute

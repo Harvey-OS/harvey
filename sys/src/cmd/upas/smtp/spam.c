@@ -287,12 +287,26 @@ getline(Biobuf *bp)
 	return buf;
 }
 
+static int
+isourdom(char *s)
+{
+	Link *l;
+
+	if(strchr(s, '.') == nil)
+		return 1;
+
+	for(l = ourdoms.first; l; l = l->next){
+		if(dommatch(s, s_to_c(l->p)) == 0)
+			return 1;
+	}
+	return 0;
+}
+
 int
 forwarding(String *path)
 {
 	char *cp, *s;
 	String *lpath;
-	Link *l;
 
 	if(debug)
 		fprint(2, "forwarding(%s)\n", s_to_c(path));
@@ -328,21 +342,52 @@ found:
 
 	for(s = s_to_c(lpath); cp = strchr(s, '!'); s = cp+1){
 		*cp = 0;
-		if(strchr(s, '.')){
-			for(l = ourdoms.first; l; l = l->next){
-				if(dommatch(s, s_to_c(l->p)) == 0)
-					break;
-			}
-			if(l == 0){
-				*cp = '!';
-				s_free(lpath);
-				return 1;
-			}
+		if(!isourdom(s)){
+			s_free(lpath);
+			return 1;
 		}
-		*cp = '!';
 	}
 	s_free(lpath);
 	return 0;
+}
+
+int
+masquerade(String *path, char *him)
+{
+	char *cp, *s;
+	String *lpath;
+	int rv = 0;
+
+	if(debug)
+		fprint(2, "masquerade(%s)\n", s_to_c(path));
+
+	if(trusted)
+		return 0;
+	if(path == nil)
+		return 0;
+
+	lpath = s_copy(s_to_c(path));
+
+	/* sender is untrusted; ensure receiver is in one of our domains */
+	for(cp = s_to_c(lpath); *cp; cp++)		/* convert receiver lc */
+		*cp = tolower(*cp);
+
+	/* scan first element of ! or last element of @ paths */
+	s = s_to_c(lpath);
+	if((cp = strchr(s, '!')) != nil){
+		*cp = 0;
+		if(isourdom(s))
+			rv = 1;
+	} else if((cp = strrchr(s, '@')) != nil){
+		if(isourdom(cp+1))
+			rv = 1;
+	} else {
+		if(isourdom(him))
+			rv = 1;
+	}
+
+	s_free(lpath);
+	return rv;
 }
 
 int

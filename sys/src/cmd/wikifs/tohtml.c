@@ -7,7 +7,7 @@
 
 /*
  * Get HTML and text templates from underlying file system.
- * Caches them, so that changes don't take effect for
+ * Caches them, which means changes don't take effect for
  * up to Tcache seconds after they are made.
  * 
  * If the files are deleted, we keep returning the last
@@ -265,6 +265,10 @@ pagehtml(String *s, Wpage *wtxt, int ty)
 			break;
 
 		case Wplain:
+			if(inpre){
+				inpre = 0;
+				s = s_append(s, "</pre>\n");
+			}
 			if(inpara)
 				inpara = 0;
 			s = s_escappend(s, w->text, 0);

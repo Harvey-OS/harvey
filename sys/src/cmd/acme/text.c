@@ -474,6 +474,13 @@ textdelete(Text *t, uint q0, uint q1, int tofile)
 	}
 }
 
+void
+textconstrain(Text *t, uint q0, uint q1, uint *p0, uint *p1)
+{
+	*p0 = min(q0, t->file->nc);
+	*p1 = min(q1, t->file->nc);
+}
+
 Rune
 textreadc(Text *t, uint q)
 {

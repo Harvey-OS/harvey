@@ -25,7 +25,8 @@ loop:
 	}
 	l->sbsem = 0;
 
-	print("lock loop 0x%lux held by pc 0x%lux\n", (ulong)l, l->pc);
+	print("lock loop 0x%lux called by 0x%lux held by pc 0x%lux\n", (ulong)l,
+		getcallerpc(&l), l->pc);
 	goto loop;
 }
 
@@ -74,6 +75,15 @@ qlock(QLock *q)
 		unlock(q);
 		goto out;
 	}
+	if(1 && u) {
+		for(i=0; i<NHAS; i++)
+			if(u->has.q[i] == q) {
+				print("circular qlock by %d at 0x%lux (other 0x%lux, 0x%lux)\n",
+					u->pid, getcallerpc(&q), u->has.pc[i], q->pc);
+				dumpstack(u);
+				break;
+			}
+	}
 	p = q->tail;
 	if(p == 0)
 		q->head = u;
@@ -92,6 +102,7 @@ out:
 		for(i=0; i<NHAS; i++)
 			if(u->has.q[i] == 0) {
 				u->has.q[i] = q;
+				u->has.pc[i] = getcallerpc(&q);
 				return;
 			}
 		print("NHAS(%d) too small\n", NHAS);
@@ -115,6 +126,7 @@ canqlock(QLock *q)
 		for(i=0; i<NHAS; i++)
 			if(u->has.q[i] == 0) {
 				u->has.q[i] = q;
+				u->has.pc[i] = getcallerpc(&q);
 				return 1;
 			}
 		print("NHAS(%d) too small\n", NHAS);
@@ -170,6 +182,27 @@ rlock(RWlock *l)
 	unlock(q);
 
 	qunlock(&l->wr);
+
+	if(1 && u) {
+		int i;
+		int found;
+
+		found = 0;
+		for(i=0; i<NHAS; i++){
+			if(u->has.q[i] == q){
+				print("circular rlock by %d at 0x%lux (other 0x%lux)\n",
+					u->pid, getcallerpc(&l), u->has.pc[i]);
+				dumpstack(u);
+			}
+			if(!found && u->has.q[i] == 0) {
+				u->has.q[i] = q;
+				u->has.pc[i] = getcallerpc(&l);
+				found = 1;
+			}
+		}
+		if(!found)
+			print("NHAS(%d) too small\n", NHAS);
+	}
 }
 
 void
@@ -191,11 +224,23 @@ runlock(RWlock *l)
 				q->tail = 0;
 			unlock(q);
 			ready(p);
-			return;
+			goto accounting;
 		} 
 		q->locked = 0;
 	}
 	unlock(q);
+
+accounting:
+	if(1 && u) {
+		int i;
+		for(i=0; i<NHAS; i++)
+			if(u->has.q[i] == q) {
+				u->has.q[i] = 0;
+				return;
+			}
+		panic("runlock: not there %lux, called from %lux\n",
+			(ulong)q, getcallerpc(&l));
+	}
 }
 
 void

@@ -111,6 +111,7 @@ char *dirtab[] =
 [Qmimeheader]	"mimeheader",
 [Qmessageid]	"messageid",
 [Qraw]		"raw",
+[Qrawunix]	"rawunix",
 [Qrawbody]	"rawbody",
 [Qrawheader]	"rawheader",
 [Qreplyto]	"replyto",
@@ -339,6 +340,10 @@ fileinfo(Message *m, int t, char **pp)
 			else
 				p++;
 		}
+		len = m->end - p;
+		break;
+	case Qrawunix:
+		p = m->start;
 		len = m->end - p;
 		break;
 	case Qrawbody:
