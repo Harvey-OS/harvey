@@ -171,6 +171,7 @@
 386/bin/cal - 775 sys sys 1056364226 66698
 386/bin/calendar - 775 sys sys 1056364227 78213
 386/bin/cat - 775 sys sys 1039758550 37944
+386/bin/cb - 775 sys sys 1062860430 75704
 386/bin/cdfs - 775 sys sys 1056364228 163188
 386/bin/cfs - 775 sys sys 1056364229 129790
 386/bin/chgrp - 775 sys sys 1056364229 58515
@@ -6928,6 +6929,12 @@ sys/src/cmd/bzip2/mkfile - 664 sys sys 969510789 881
 sys/src/cmd/cal.c - 664 sys sys 944961619 4206
 sys/src/cmd/calendar.c - 664 sys sys 1034213625 3571
 sys/src/cmd/cat.c - 664 sys sys 1014926693 532
+sys/src/cmd/cb - 20000000775 sys sys 1062860425 0
+sys/src/cmd/cb/cb.c - 664 sys sys 1062860425 17924
+sys/src/cmd/cb/cb.h - 664 sys sys 1062860425 3382
+sys/src/cmd/cb/cbtype.c - 664 sys sys 1062860425 674
+sys/src/cmd/cb/cbtype.h - 664 sys sys 1062860425 794
+sys/src/cmd/cb/mkfile - 664 sys sys 1062860425 172
 sys/src/cmd/cc - 20000000775 sys sys 1018556175 0
 sys/src/cmd/cc/acid.c - 664 sys sys 944960808 5314
 sys/src/cmd/cc/bits.c - 664 sys sys 944960873 850

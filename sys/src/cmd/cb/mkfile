@@ -1,0 +1,18 @@
+</$objtype/mkfile
+
+TARG=cb
+OFILES=\
+	cb.$O\
+	cbtype.$O\
+
+HFILES=cb.h\
+	cbtype.h\
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+< /sys/src/cmd/mkone

@@ -13128,3 +13128,10 @@
 1062721914 2 c sys/src/9/port/systab.h - 664 sys sys 1062721698 3044
 1062761471 0 c 386/bin/ramfs - 775 sys sys 1062759946 90119
 1062761471 1 c sys/src/cmd/ramfs.c - 664 sys sys 1062759940 15377
+1062860489 0 a 386/bin/cb - 775 sys sys 1062860430 75704
+1062860489 1 a sys/src/cmd/cb - 20000000775 sys sys 1062860425 0
+1062860489 2 a sys/src/cmd/cb/cb.c - 664 sys sys 1062860425 17924
+1062860489 3 a sys/src/cmd/cb/cb.h - 664 sys sys 1062860425 3382
+1062860489 4 a sys/src/cmd/cb/cbtype.c - 664 sys sys 1062860425 674
+1062860489 5 a sys/src/cmd/cb/cbtype.h - 664 sys sys 1062860425 794
+1062860489 6 a sys/src/cmd/cb/mkfile - 664 sys sys 1062860425 172
