@@ -14724,3 +14724,5 @@
 1079971270 5 a sys/src/cmd/jpg/bmp.h - 664 sys sys 1079970081 975
 1079971270 6 c sys/src/cmd/jpg/mkfile - 664 sys sys 1079970080 1056
 1079971270 7 a sys/src/cmd/jpg/readbmp.c - 664 sys sys 1079970079 13697
+1080050484 0 c lib/vgadb - 664 sys sys 1080049879 27670
+1080059487 0 c sys/src/cmd/ip/telnet.c - 664 sys sys 1080058033 8535
