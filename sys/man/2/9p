@@ -67,6 +67,8 @@ ulong	readstr(Req *r, char *src)
 ulong	readbuf(Req *r, void *src, ulong nsrc)
 typedef int Dirgen(int n, Dir *dir, void *aux)
 void		dirread9p(Req *r, Dirgen *gen, void *aux)
+void	walkandclone(Req *r, char *(*walk1)(Fid *old, char *name, void *v),
+          char *(*clone)(Fid *old, Fid *new, void *v), void *v)
 .fi
 .PP
 .nf
@@ -385,13 +387,14 @@ demands an error
 .RI ( e.g. ,
 in the case of a short walk);
 the library detects error conditions and handles them appropriately.
-.TP
-.I Walk1\fR, \fPClone
-Because implementing the full walk message is 
-intricate and prone to error, the client may instead provide functions
-.IB srv -> walk1
+.IP
+Because implementing the full walk message is intricate and
+prone to error, the helper routine
+.I walkandclone
+will handle the request given pointers to two functions
+.I walk1
 and (optionally)
-.IB srv -> clone \fR.
+.I clone .
 .IR Clone ,
 if non-nil, is called to signal the creation of
 .I newfid
@@ -408,15 +411,33 @@ should walk
 .I fid
 to
 .IR name ,
-initializing both
+initializing
+.IB fid -> qid
+to the new path's qid.
+Both should return nil
+on success or an error message on error.
+.I Walkandclone
+will call
+.I respond
+after handling the request.
+.TP
+.I Walk1\fR, \fPClone
+If the client provides functions
+.IB srv -> walk1
+and (optionally)
+.IB srv -> clone \fR,
+the 9P service loop will call
+.I walkandclone
+with these functions to handle the request.
+Unlike the
+.I walk1
+above,
+.IB srv -> walk1
+must fill in both
 .IB fid -> qid
 and
 .BI * qid
-to the new path's qid.
-Rather than calling 
-.IR respond ,
-both should return nil
-on success or an error message on error.
+with the new qid on a successful walk.
 .TP
 .I Open
 If file trees are in use, the file

@@ -43,11 +43,11 @@ con /srv/fscons
 ]
 .PP
 .B uname
-.I uname
+.I name
 [
-.I uid
+.I id
 |
-.BI : uid
+.BI : id
 |
 .BI % newname
 |
@@ -326,75 +326,112 @@ and
 options set the two variables.
 .PP
 .I Uname
-displays or edits one entry the in-memory user table.
-If the in-memory table was read from a file
-(see the
-.I users
-command below),
-the new table is written to that file.
+manipulates entries in the user table.
 There is no distinction between users and groups:
 a user is a group with one member.
-The user table records a mapping between
-uids and unames, as well as recording the
-leader and members of each group.
-A
-.I uid
-is a string naming a user or group
-and stored in the on-disk data structures.
-A
-.I uname
-is the string naming a user or group and
-used in 9P protocol messages.
-There is a distinction so that unames can be
-safely reused, even though uids cannot.
+For each user, the user table records:
+.TP
+.I id
+the string used to represent this user in the on-disk structures
+.TP
+.I name
+the string used to represent this user in the 9P protocol
+.TP
+.I leader
+the group's leader (see
+.IR stat (5)
+for a description of the special privileges held by a group leader)
+.TP
+.I members
+a comma-separated list of members in this group
+.PP
+The
+.I id
+and
+.I name
+are usually the same string, but need not be.
+Once an
+.I id
+is used in file system structures archived to Venti,
+it is impossible to change those disk structures,
+and thus impossible to rename the
+.IR id .
+The translation from
+.I name
+to
+.I id
+allows the appearance of renaming the user even
+though the on-disk structures still record the old name.
+(In a conventional Unix file system, the
+.I id
+is stored as a small integer rather than a string.)
+.I Leader
+and
+.I members
+are names, not ids.
+.PP
 The first argument to
 .I uname
-is (confusingly) a
-uname
-.RI ` uname .'
-The second argument is an optional verb, one of:
+is the
+.I name
+of a user.
+The second argument is a verb, one of:
 .TP
-.I uid
-add the user with uname
-.RI ` uname '
-and uid
-.RI ` uid ,'
-creating a home directory
-.BI /active/usr/ uname \fR.
+.I id
+create a user with name
+.RI ` name '
+and id
+.RI ` id ;'
+also create a home directory
+.BI /active/usr/ uname \fR
 .TP
-.BI : uid
-add the user but do not create the home directory
+.BI : id
+create a user with name
+.RI ` name '
+and id
+.RI ` id ,'
+but do not create a home directory
 .TP
 .BI % newname
-rename
-.RI ` uname '
+rename user
+.RI ` name '
 to
 .RI ` newname ,'
 throughout the user table
 .TP
 .BI = leader
-set the group leader to the uname
+set
+.IR name 's
+group leader
+to
 .IR leader .
 .TP
+.BI =
+remove
+.IR name 's
+group leader; then all members will be
+considered leaders
+.TP
 .BI + member
-add the uname
-.RI ` member '
-to the group
+add
+.I member
+to
+.IR name 's
+list of members
 .TP
 .BI - member
-remove the uname
-.RI ` member '
-from the group
+remove
+.I member
+from
+.IR name 's
+list of members
 .LP
 If the verb is omitted, the entire entry for
-.I uname
-is printed, in the form:
-.IP
-.IB uid : uname : leader :\fImembers
+.I name
+is printed, in the form
+`\fIid\fL:\fIname\fL:\fIleader\fL:\fImembers\fR.'
 .LP
-where
-.I members
-is a comma-separated list of unames.
+The end of this manual page gives examples.
 .PP
 .I Users
 reads
@@ -774,7 +811,7 @@ or
 bits in the
 .I perm
 are silently ignored.
-.SH EXAMPLE
+.SH EXAMPLES
 .IR Sources ,
 the Plan 9 distribution file server,
 uses the following configuration file:
@@ -794,3 +831,26 @@ snaptime -a 0000 -s 15
 .LP
 The second console is used by the daemon
 that creates new accounts.
+.PP
+To add a new user with
+.I name
+and
+.I id
+.B rob
+and create his home directory:
+.IP
+.EX
+uname rob rob
+.EE
+.PP
+To create a new group
+.B sys
+(with no home directory)
+and add
+.B rob
+to it:
+.IP
+.EX
+uname sys :sys
+uname sys +rob
+.EE
