@@ -139,22 +139,23 @@ newtmp(int num)
 	return fd;
 }
 
-int
+char*
 waitfor(int pid)
 {
-	int msg;
 	Waitmsg *w;
+	static char msg[ERRMAX];
 
 	while((w = wait()) != nil){
 		if(w->pid != pid){
 			free(w);
 			continue;
 		}
-		msg = (w->msg[0] != '\0');
+		strecpy(msg, msg+sizeof msg, w->msg);
 		free(w);
 		return msg;
 	}
-	return -1;
+	rerrstr(msg, sizeof msg);
+	return msg;
 }
 
 void

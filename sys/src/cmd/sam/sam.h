@@ -323,7 +323,7 @@ void	trytoclose(File*);
 void	trytoquit(void);
 int	undo(int);
 void	update(void);
-int	waitfor(int);
+char	*waitfor(int);
 void	warn(Warn);
 void	warn_s(Warn, char*);
 void	warn_SS(Warn, String*, String*);

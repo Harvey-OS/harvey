@@ -15,6 +15,7 @@ plan9(File *f, int type, String *s, int nest)
 	int m;
 	int pid, fd;
 	int retcode;
+	char *retmsg;
 	int pipe1[2], pipe2[2];
 
 	if(s->s[0]==0 && plan9cmd.s[0]==0)
@@ -115,15 +116,15 @@ plan9(File *f, int type, String *s, int nest)
 		bpipeok = 0;
 		closeio((Posn)-1);
 	}
-	retcode = waitfor(pid);
+	retmsg = waitfor(pid);
 	if(type=='|' || type=='<')
-		if(retcode!=0)
-			warn(Wbadstatus);
+		if(retmsg[0]!=0)
+			warn_s(Wbadstatus, retmsg);
 	if(downloaded)
 		checkerrs();
 	if(!nest)
 		dprint("!\n");
-	return retcode;
+	return retmsg[0] ? -1 : 0;
 }
 
 void
