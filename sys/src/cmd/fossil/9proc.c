@@ -79,11 +79,11 @@ conFree(Con* con)
 			vtMemFree(con->name);
 		vtLockFree(con->fidlock);
 		vtMemFree(con->data);
-		vtRendezAlloc(con->wrendez);
+		vtRendezFree(con->wrendez);
 		vtLockFree(con->wlock);
-		vtRendezAlloc(con->mrendez);
+		vtRendezFree(con->mrendez);
 		vtLockFree(con->mlock);
-		vtRendezAlloc(con->rendez);
+		vtRendezFree(con->rendez);
 		vtLockFree(con->lock);
 		vtMemFree(con);
 		cbox.ncon--;
@@ -730,7 +730,6 @@ fidMergeSort(Fid *f)
 
 	return fidMerge(a, b);
 }
-
 
 static int
 cmdWho(int argc, char* argv[])
