@@ -19042,3 +19042,4 @@
 1049250615 8 c sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1049249332 8333
 1049250615 9 c sys/src/cmd/ndb/mkfile - 664 sys sys 1049249334 1835
 1049250615 10 c sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1049249402 18227
+1049304670 0 c sys/man/8/ndb - 664 sys sys 1049303346 9367
