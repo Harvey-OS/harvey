@@ -54,7 +54,7 @@
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
 386/bin/auth/factotum - 775 sys sys 1089397308 307187
-386/bin/auth/fgui - 775 sys sys 1088823721 216032
+386/bin/auth/fgui - 775 sys sys 1092021259 215754
 386/bin/auth/guard.srv - 775 sys sys 1089257528 140762
 386/bin/auth/iam - 775 sys sys 1085076981 50791
 386/bin/auth/keyfs - 775 sys sys 1085076981 113215
@@ -157,11 +157,11 @@
 386/bin/bind - 775 sys sys 1085077012 57577
 386/bin/bitsy - 20000000775 sys sys 1018721039 0
 386/bin/bitsy/bitsyload - 775 sys sys 1085077012 61374
-386/bin/bitsy/keyboard - 775 sys sys 1091936089 303224
+386/bin/bitsy/keyboard - 775 sys sys 1092021260 303328
 386/bin/bitsy/light - 775 sys sys 1020319072 242
 386/bin/bitsy/params - 775 sys sys 1085077013 56744
 386/bin/bitsy/pencal - 775 sys sys 1085077014 115252
-386/bin/bitsy/prompter - 775 sys sys 1091936089 283514
+386/bin/bitsy/prompter - 775 sys sys 1092021260 283618
 386/bin/bmp - 775 sys sys 1085077015 155439
 386/bin/bunzip2 - 775 sys sys 1085077016 95409
 386/bin/bzip2 - 775 sys sys 1085077016 111665
@@ -205,7 +205,7 @@
 386/bin/disk/ksync - 775 sys sys 1020319074 302
 386/bin/disk/mbr - 775 sys sys 1085077035 71844
 386/bin/disk/mk9660 - 775 sys sys 1020319074 144
-386/bin/disk/mkext - 775 sys sys 1085077035 76503
+386/bin/disk/mkext - 775 sys sys 1092021261 79266
 386/bin/disk/mkfs - 775 sys sys 1085077036 85397
 386/bin/disk/mksacfs - 775 sys sys 1020319074 71451
 386/bin/disk/prep - 775 sys sys 1085077037 95880
@@ -243,7 +243,7 @@
 386/bin/gif - 775 sys sys 1085077060 155975
 386/bin/grap - 775 sys sys 1089985360 279641
 386/bin/graph - 775 sys sys 1085077060 127266
-386/bin/grep - 775 sys sys 1085077060 77099
+386/bin/grep - 775 sys sys 1092021261 77012
 386/bin/gs - 775 sys sys 1089985382 11124337
 386/bin/gunzip - 775 sys sys 1085077061 78252
 386/bin/gview - 775 sys sys 1087873351 235313
@@ -524,7 +524,7 @@
 386/lib/libbio.a - 664 sys sys 1089397326 26078
 386/lib/libc.a - 664 sys sys 1091936102 495436
 386/lib/libcomplete.a - 664 sys sys 1089397327 6370
-386/lib/libcontrol.a - 664 sys sys 1091936103 274152
+386/lib/libcontrol.a - 664 sys sys 1092021262 274922
 386/lib/libdisk.a - 664 sys sys 1091936103 42234
 386/lib/libdraw.a - 664 sys sys 1091936104 372096
 386/lib/libflate.a - 664 sys sys 1089397329 76872
@@ -5079,7 +5079,7 @@ sys/man/8/nfsserver - 664 sys sys 1017251291 3397
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1084473185 3436
-sys/man/8/plan9.ini - 664 sys sys 1063855903 20744
+sys/man/8/plan9.ini - 664 sys sys 1092082105 20930
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1050361032 4424
 sys/man/8/prep - 664 sys sys 1079705872 13820
@@ -5394,7 +5394,7 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1088795302 50581
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
-sys/src/9/pc/trap.c - 664 sys sys 1091733403 20380
+sys/src/9/pc/trap.c - 664 sys sys 1092080705 20458
 sys/src/9/pc/uarti8250.c - 664 sys sys 1067722686 13859
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
 sys/src/9/pc/usb.h - 664 sys sys 1063857246 3566
@@ -12337,9 +12337,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/bitsy/keyboard - 775 sys sys 1092021260 303328
-386/bin/bitsy/prompter - 775 sys sys 1092021260 283618
-386/bin/grep - 775 sys sys 1092021261 77012
-386/bin/auth/fgui - 775 sys sys 1092021259 215754
-386/bin/disk/mkext - 775 sys sys 1092021261 79266
-386/lib/libcontrol.a - 664 sys sys 1092021262 274922
