@@ -308,14 +308,40 @@ nullrr(Ndbtuple *entry, Ndbtuple *pair)
 	rp->null->dlen = strlen((char*)rp->null->data);
 	return rp;
 }
+/*
+ *  txt rr strings are at most 255 bytes long.  one
+ *  can represent longer strings by multiple concatenated
+ *  <= 255 byte ones.
+ */
 static RR*
 txtrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
+	Txt *t, **l;
+	int i, len, sofar;
 
 	USED(entry);
 	rp = rralloc(Ttxt);
-	rp->txt = dnlookup(pair->val, Cin, 1);
+	l = &rp->txt;
+	rp->txt = nil;
+	len = strlen(pair->val);
+	sofar = 0;
+	while(len > sofar){
+		t = emalloc(sizeof(*t));
+		t->next = nil;
+
+		i = len-sofar;
+		if(i > 255)
+			i = 255;
+
+		t->p = emalloc(i+1);
+		memmove(t->p, pair->val+sofar, i);
+		t->p[i] = 0;
+		sofar += i;
+
+		*l = t;
+		l = &t->next;
+	}
 	return rp;
 }
 static RR*

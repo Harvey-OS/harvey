@@ -13044,3 +13044,11 @@
 1060270370 0 c sys/src/9/pc/vganvidia.c - 664 sys sys 1060269772 6545
 1060354970 0 c lib/namespace - 664 sys sys 1060354451 590
 1060360372 0 c sys/games/lib/fortunes - 664 sys sys 1060359152 244377
+1060612338 0 c 386/bin/ndb/dns - 775 sys sys 1060612191 218227
+1060612338 1 c sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1060612175 6862
+1060612338 2 c sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
+1060612338 3 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1060612175 17896
+1060612338 4 c sys/src/cmd/ndb/dn.c - 664 sys sys 1060612174 26553
+1060612338 5 c sys/src/cmd/ndb/dns.h - 664 sys sys 1060612174 8957
+1060651964 0 c 386/bin/ndb/dns - 775 sys sys 1060651817 218244
+1060651964 1 c sys/src/cmd/ndb/dn.c - 664 sys sys 1060651816 26571
