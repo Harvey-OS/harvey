@@ -27,6 +27,9 @@ case sourcesdump
 case sourcessnap
 	9fs sources
 	mount /srv/sources /n/sourcessnap main/snapshot
+case wiki
+	srv 'net!plan9.bell-labs.com!wiki' wiki	
+	mount /srv/wiki /mnt/wiki
 case *
 	switch($#*){
 	case 1

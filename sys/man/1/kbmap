@@ -8,15 +8,15 @@ kbmap \- show a list of available keyboard maps and switch between them.
 ]
 .SH DESCRIPTION
 .I Kbmap
-shows a single column consisting of the names keyboard maps for different
+shows a single column consisting of the names of keyboard maps for different
 alphabets available on the system. With no arguments 
 .B kbmap
 will look for files in 
-.B /lib/kbmap/.
+.BR /sys/lib/kbmap .
 .PP
-Clicking the right mouse button will highlight the name and force the
+Clicking the right mouse button will highlight the entry and force the
 keyboard mapping defined in the corresponding file to become current
-one for the system.  Typing 'q' quits.
+for the system; typing 'q' quits.
 .PP
 .I Kbmap
 requires that the file

@@ -14714,3 +14714,13 @@
 1079811022 0 c sys/src/cmd/vnc/kbds.c - 664 sys sys 1079809881 3256
 1079877634 0 c sys/src/cmd/ramfs.c - 664 sys sys 1079877660 15377
 1079919045 0 c sys/src/cmd/ndb/dn.c - 664 sys sys 1079918815 26961
+1079969469 0 c rc/bin/patch/create - 775 sys sys 1079969485 1126
+1079969469 1 c sys/src/cmd/wikifs/parse.c - 664 sys sys 1079969446 4989
+1079971270 0 c rc/bin/9fs - 775 sys sys 1079969823 948
+1079971270 1 c sys/man/1/echo - 664 sys sys 1079969656 430
+1079971270 2 c sys/man/1/kbmap - 664 sys sys 1079969760 845
+1079971270 3 c sys/man/1/marshal - 664 sys sys 1079970326 3150
+1079971270 4 a sys/src/cmd/jpg/bmp.c - 664 sys sys 1079970078 4217
+1079971270 5 a sys/src/cmd/jpg/bmp.h - 664 sys sys 1079970081 975
+1079971270 6 c sys/src/cmd/jpg/mkfile - 664 sys sys 1079970080 1056
+1079971270 7 a sys/src/cmd/jpg/readbmp.c - 664 sys sys 1079970079 13697

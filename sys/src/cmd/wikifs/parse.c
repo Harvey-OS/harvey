@@ -211,8 +211,19 @@ wman(Wpage *wtxt)
 	return wtxt;	
 }
 
-static char *lower = "abcdefghijklmnopqrstuvwxyz";
-static char *upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static int isheading(char *p) {
+	Rune r;
+	int hasupper=0;
+	while(*p) {
+		p+=chartorune(&r,p);
+		if(isupperrune(r))
+			hasupper=1;
+		else if(islowerrune(r))
+			return 0;
+	}
+	return hasupper;
+}
+
 Wpage*
 Brdpage(char *(*rdline)(void*,int), void *b)
 {
@@ -247,7 +258,7 @@ Brdpage(char *(*rdline)(void*,int), void *b)
 			pw = &(*pw)->next;
 			break;
 		default:
-			if(strpbrk(p, lower)==nil && strpbrk(p, upper)){
+			if(isheading(p)){
 				*pw = mkwtxt(Wheading, estrdup(p));
 				pw = &(*pw)->next;
 				continue;

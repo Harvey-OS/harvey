@@ -2974,7 +2974,7 @@ power/mkfile - 664 sys sys 948141304 46
 rc - 20000000775 sys sys 944959447 0
 rc/bin - 20000000775 sys sys 1018637942 0
 rc/bin/9fat: - 775 sys sys 1015089559 354
-rc/bin/9fs - 775 sys sys 1042305252 869
+rc/bin/9fs - 775 sys sys 1079969823 948
 rc/bin/B - 775 sys sys 945617206 645
 rc/bin/C - 775 sys sys 1045493437 788
 rc/bin/Kill - 775 sys sys 1018637942 115
@@ -3030,7 +3030,7 @@ rc/bin/mousereset - 775 sys sys 1015089542 37
 rc/bin/nroff - 775 sys sys 945617208 27
 rc/bin/patch - 20000000775 sys sys 1067803227 0
 rc/bin/patch/apply - 775 sys sys 1067804403 1234
-rc/bin/patch/create - 775 sys sys 1067804404 1129
+rc/bin/patch/create - 775 sys sys 1079969485 1126
 rc/bin/patch/diff - 775 sys sys 1067804404 466
 rc/bin/patch/list - 775 sys sys 1067804541 321
 rc/bin/patch/note - 664 sys sys 1067804405 593
@@ -4650,7 +4650,7 @@ sys/man/1/diff - 664 sys sys 969499884 2793
 sys/man/1/doc2txt - 664 sys sys 954089516 1095
 sys/man/1/doctype - 664 sys sys 944959673 849
 sys/man/1/du - 664 sys sys 1017166323 1410
-sys/man/1/echo - 664 sys sys 944959673 279
+sys/man/1/echo - 664 sys sys 1079969656 430
 sys/man/1/ed - 664 sys sys 961259286 13916
 sys/man/1/emacs - 664 sys sys 944959673 199
 sys/man/1/eqn - 664 sys sys 944959675 5655
@@ -4675,7 +4675,7 @@ sys/man/1/hoc - 664 sys sys 944959676 2357
 sys/man/1/idiff - 664 sys sys 1018386774 927
 sys/man/1/join - 664 sys sys 957920006 2562
 sys/man/1/jpg - 664 sys sys 1074280543 4758
-sys/man/1/kbmap - 664 sys sys 1079545417 841
+sys/man/1/kbmap - 664 sys sys 1079969760 845
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
 sys/man/1/leak - 664 sys sys 1017423522 2871
@@ -4686,7 +4686,7 @@ sys/man/1/lp - 664 sys sys 1015024739 3304
 sys/man/1/ls - 664 sys sys 1079372922 2897
 sys/man/1/mail - 664 sys sys 1050078464 2158
 sys/man/1/man - 664 sys sys 1059484724 1740
-sys/man/1/marshal - 664 sys sys 1050078464 3307
+sys/man/1/marshal - 664 sys sys 1079970326 3150
 sys/man/1/mc - 664 sys sys 1045501392 508
 sys/man/1/mk - 664 sys sys 964455061 13154
 sys/man/1/mkdir - 664 sys sys 944959673 443
@@ -9560,17 +9560,20 @@ sys/src/cmd/ip/traceroute.c - 664 sys sys 1032060124 9370
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1050714674 855
 sys/src/cmd/join.c - 664 sys sys 944961364 7488
 sys/src/cmd/jpg - 20000000775 sys sys 988249983 0
+sys/src/cmd/jpg/bmp.c - 664 sys sys 1079970078 4217
+sys/src/cmd/jpg/bmp.h - 664 sys sys 1079970081 975
 sys/src/cmd/jpg/close.c - 664 sys sys 944961292 1930
 sys/src/cmd/jpg/gif.c - 664 sys sys 1045505400 8844
 sys/src/cmd/jpg/ico.c - 664 sys sys 1072107030 8799
 sys/src/cmd/jpg/imagefile.h - 664 sys sys 988225303 2246
 sys/src/cmd/jpg/jpegdump.c - 664 sys sys 1018802871 7161
 sys/src/cmd/jpg/jpg.c - 664 sys sys 1014926432 7389
-sys/src/cmd/jpg/mkfile - 664 sys sys 1072107030 1014
+sys/src/cmd/jpg/mkfile - 664 sys sys 1079970080 1056
 sys/src/cmd/jpg/multichan.c - 664 sys sys 1039753047 825
 sys/src/cmd/jpg/onechan.c - 664 sys sys 1039753044 3732
 sys/src/cmd/jpg/png.c - 664 sys sys 1014926432 4655
 sys/src/cmd/jpg/ppm.c - 664 sys sys 944961292 4190
+sys/src/cmd/jpg/readbmp.c - 664 sys sys 1079970079 13697
 sys/src/cmd/jpg/readgif.c - 664 sys sys 1014926433 10306
 sys/src/cmd/jpg/readjpg.c - 664 sys sys 1032060302 33009
 sys/src/cmd/jpg/readpng.c - 664 sys sys 1068773222 6914
@@ -11171,7 +11174,7 @@ sys/src/cmd/wikifs/io.c - 664 sys sys 1018387004 11469
 sys/src/cmd/wikifs/lookup.c - 664 sys sys 1018211093 182
 sys/src/cmd/wikifs/map.c - 664 sys sys 1018211093 109
 sys/src/cmd/wikifs/mkfile - 664 sys sys 1045503591 468
-sys/src/cmd/wikifs/parse.c - 664 sys sys 1018211093 4929
+sys/src/cmd/wikifs/parse.c - 664 sys sys 1079969446 4989
 sys/src/cmd/wikifs/parsehist.c - 664 sys sys 1018211093 1906
 sys/src/cmd/wikifs/testwrite.c - 664 sys sys 1018211093 818
 sys/src/cmd/wikifs/tohtml.c - 664 sys sys 1079380577 13998
