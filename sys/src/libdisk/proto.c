@@ -211,7 +211,7 @@ setname(Mkaux *mkaux, Name *name, char *s1, char *s2)
 	int l;
 
 	l = strlen(s1)+strlen(s2)+1;
-	if(name->n < l) {
+	if(name->n < l+SLOP/2) {
 		free(name->s);
 		name->s = emalloc(mkaux, l+SLOP);
 		name->n = l+SLOP;

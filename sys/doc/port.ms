@@ -168,7 +168,7 @@ The PowerPC compiler
 .PP
 The PowerPC compiler supports the 32-bit PowerPC architecture only;
 it does not support either the 64-bit extensions or the POWER compatibility instructions.
-It has been used for production operating system work on the 603, 603e, 821, 823, and 860.
+It has been used for production operating system work on the 603, 603e, 604e, 821, 823, and 860.
 On the 8xx floating-point instructions must be emulated.
 Instruction scheduling is not implemented; otherwise the code generated
 is similar to that for the other load-store architectures.
@@ -180,7 +180,8 @@ used by assembly language routines in the libraries.
 The Acorn ARM compiler
 .PP
 The ARM compiler is fairly solid; it has been used for some production
-operating system work, although there is no Plan 9 kernel for the machine.
+operating system work including Inferno and the Plan 9 kernel
+for the iPAQ, which uses a StrongArm SA1.
 The compiler supports the ARMv4 architecture;
 it does not support the Thumb instruction set.
 It has been used on ARM7500FE processors and the Strongarm SA1 core machines.
@@ -205,7 +206,7 @@ or directly from a disk created by the
 .CW format
 command; see
 .I prep (8).
-Plan 9 runs in 32-bit mode\(emwhich requires a 386 or later\(emand
+Plan 9 runs in 32-bit mode\(emwhich requires a 386 or later model x86 processor\(emand
 has an interrupt-driven I/O system, so it does not
 use the BIOS (except for a small portion of the boot program and floppy boot block).
 This helps performance but limits the set of I/O devices that it can support without
@@ -269,7 +270,7 @@ There is also user-level support for USB audio devices; see
 .I usb (4).
 .PP
 Finally, it's important to have a three-button mouse with Plan 9.
-The system currently works only with PS/2 mice.
+The system currently works only with mice on the PS/2 port or USB.
 Serial mouse support should return before long.
 .PP
 Once you have Plan 9 installed (see the wiki's installation document)
@@ -303,12 +304,39 @@ for details.
 .SH
 The PowerPC operating system
 .PP
-We have a version of the system that runs on the PowerPC,
-but only on a home-grown machine called Viaduct.
+We have a version of the system that runs on the PowerPC
+on a home-grown machine called Viaduct.
 The Viaduct minibrick is a small (12x9x3 cm) low-cost embedded
 computer consisting of a 50Mhz MPC850, 16MB sdram, 2MB flash,
 and two 10Mb Ethernet ports.  It is designed for home/SOHO
 networking applications such as VPN, firewalls, NAT, etc.
+.PP
+The kernel has also been ported to the Motorola MTX embedded motherboard;
+that port is included in the distribution.
+The port only works with a 604e processor (the 603e is substantially different)
+and at present only a single CPU is permitted.
+.SH
+The Compaq iPAQ operating system
+.PP
+Plan 9 was ported to Compaq's iPAQ Pocket PC,
+which uses the StrongArm SA1 processor.
+The model we have is a 3630; neighboring models also work.
+The kernel can drive a PCMCIA sleeve with a WaveLAN card, but no other PCMCIA
+devices have been ported yet.
+.PP
+The iPAQ runs
+.CW rio
+with a small keyboard application that allows Palm-style handwriting
+input as well as typing with the stylus on a miniature keyboard.
+.PP
+Fco. J. Ballesteros
+.CW nemo@plan9.escet.urjc.es ) (
+added support for hibernation, but we haven't been able to
+get that to work again in the new kernel; the code is there, however,
+for volunteers to play with.
+See the file
+.CW /sys/src/9/bitsy/Booting101
+for information about installing Plan 9 on the iPAQ.
 .SH
 The file server
 .PP

@@ -124,7 +124,7 @@ loop:
 			if(p >= ep)
 				p = proctab(0);
 	
-			if(p->state == Dead || p->kp)
+			if(p->state == Dead || p->noswap)
 				continue;
 
 			if(!canqlock(&p->seglock))

@@ -133,7 +133,7 @@ _newcontrol(Controlset *cs, uint n, char *name, char *type)
 	c->type = _ctllookup(type, ctltypenames, Ntypes);
 	if (c->type < 0)
 		ctlerror("unknown type: %s", type);
-	c->event = chancreate(sizeof(char*), 5);
+	c->event = chancreate(sizeof(char*), 64);
 	c->data = chancreate(sizeof(char*), 0);
 	c->size = Rect(1, 1, _Ctlmaxsize, _Ctlmaxsize);
 	c->hidden = 0;
@@ -761,7 +761,7 @@ newcontrolset(Image *im, Channel *kbdc, Channel *mousec, Channel *resizec)
 	}
 	cs->mousec = mousec;
 	cs->resizec = resizec;
-	cs->ctl = chancreate(sizeof(char*), 5);
+	cs->ctl = chancreate(sizeof(char*), 64);	/* buffer to prevent deadlock */
 	cs->data = chancreate(sizeof(char*), 0);
 	cs->resizeexitc = chancreate(sizeof(int), 0);
 	cs->csexitc = chancreate(sizeof(int), 0);

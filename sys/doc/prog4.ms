@@ -417,7 +417,7 @@ sufficient to provide
 as the value of
 .CW afd:
 .P1
-if(mount(fd, -1, "/mnt/wsys", MREPL
+if(mount(fd, -1, "/mnt/wsys", MREPL,
    "new -dx 250 -dy 250 -pid 1234") < 0)
 	error("mount failed: %r");
 .P2

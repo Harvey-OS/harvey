@@ -26,6 +26,8 @@
  *	5950 PCI	3C595-TX	Fast Etherlink Shared 10BASE-T/100BASE-TX
  *	5951 PCI	3C595-T4	Fast Etherlink Shared 10BASE-T/100BASE-T4
  *	5952 PCI	3C595-MII	Fast Etherlink 10BASE-T/MII
+
+ *	7646 PCI   3CSOHO100-TX Fast Etherlink Small Office Connect (9050 downsized clone)
  *
  *	9000 PCI	3C900-TPO	Etherlink III XL PCI 10BASE-T
  *	9001 PCI	3C900-COMBO	Etherlink III XL PCI 10BASE-T/10BASE-2/AUI

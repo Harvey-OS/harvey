@@ -73,7 +73,7 @@ enum {					/* Imr/Isr */
 	PunLc		= 0x0020,	/* Packet Underrun or Link Change */
 	Fovw		= 0x0040,	/* Receive FIFO Overflow */
 	Clc		= 0x2000,	/* Cable Length Change */
-	Timer		= 0x4000,	/* Timer */
+	Timerbit		= 0x4000,	/* Timer */
 	Serr		= 0x8000,	/* System Error */
 };
 
@@ -352,7 +352,7 @@ rtl8139init(Ether* edev)
 	 * Interrupts.
 	 */
 	csr32w(ctlr, TimerInt, 0);
-	csr16w(ctlr, Imr, Serr|Timer|Fovw|PunLc|Rxovw|Ter|Tok|Rer|Rok);
+	csr16w(ctlr, Imr, Serr|Timerbit|Fovw|PunLc|Rxovw|Ter|Tok|Rer|Rok);
 	csr32w(ctlr, Mpc, 0);
 
 	/*
@@ -585,7 +585,7 @@ rtl8139interrupt(Ureg*, void* arg)
 		if(isr != 0){
 			iprint("rtl8139interrupt: imr %4.4uX isr %4.4uX\n",
 				csr16r(ctlr, Imr), isr);
-			if(isr & Timer)
+			if(isr & Timerbit)
 				csr32w(ctlr, TimerInt, 0);
 			if(isr & Serr)
 				rtl8139init(edev);

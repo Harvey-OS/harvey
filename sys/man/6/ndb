@@ -172,6 +172,15 @@ Internet gateway
 .B auth
 authentication server to be used
 .TP
+.B authdom
+authentication domain.  Plan 9 supports multiple authentication
+domains.  To specify an authentication server for a particular domain,
+add a tuple containing both
+.B auth
+and
+.B authdom
+attributes and values.
+.TP
 .B fs
 file server to be used
 .TP

@@ -27,7 +27,7 @@ typedef struct Tdfx {
 	ulong	io;
 	Pcidev*	pci;
 
-	ulong	r[Nior/4];
+	ulong	r[Nior];
 } Tdfx;
 
 static ulong

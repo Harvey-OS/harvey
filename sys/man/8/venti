@@ -32,7 +32,7 @@ venti \- an archival block storage server
 ]
 .SH DESCRIPTION
 .I Venti
-is a block storage server intended for archvial data.
+is a block storage server intended for archival data.
 In a Venti server,
 the Sha1 hash of a block's contents acts as the block
 identifier for read and write operations.

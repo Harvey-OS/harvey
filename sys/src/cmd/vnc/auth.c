@@ -2,6 +2,8 @@
 #include <libsec.h>
 #include <auth.h>
 
+char *serveraddr;
+
 /*
  * Encrypt n bytes using the password
  * as key, padded with zeros to 8 bytes.
@@ -178,10 +180,13 @@ vncauth(Vnc *v)
 	case AVncAuth:
 		vncrdbytes(v, chal, VncChalLen);
 
-		readln("password: ", pw, sizeof(pw));
-
-		vncencrypt(chal, VncChalLen, pw);
-		memset(pw, 0, sizeof pw);
+		if(auth_respond(chal, VncChalLen, nil, 0, chal, VncChalLen, auth_getkey,
+			"proto=vnc role=client server=%s", serveraddr) != VncChalLen){
+			/* BUG: rip this out once people have new kernels */
+			readln("password: ", pw, sizeof(pw));
+			vncencrypt(chal, VncChalLen, pw);
+			memset(pw, 0, sizeof pw);
+		}
 		vncwrbytes(v, chal, VncChalLen);
 		vncflush(v);
 

@@ -564,12 +564,12 @@ i8250enable(Uart* uart, int ie)
 
 
 	/*
-	 * During startup, the i8259 interrupt controler is reset.
+	 * During startup, the i8259 interrupt controller is reset.
 	 * This may result in a lost interrupt from the i8250 uart.
 	 * The i8250 thinks the interrupt is still outstanding and does not
-	 * generate any further interrupts. To work around this we call the
-	 * interrupt handler to clear any pending inerrupt events.
-	 * Note this must be done after setting Ier.
+	 * generate any further interrupts. The workaround is to call the
+	 * interrupt handler to clear any pending interrupt events.
+	 * Note: this must be done after setting Ier.
 	 */
 	if(ie)
 		i8250interrupt(nil, uart);
@@ -670,4 +670,16 @@ i8250console(void)
 
 	consuart = uart;
 	uart->console = 1;
-} 
+}
+
+void
+i8250mouse(char* which, int (*putc)(Queue*, int), int setb1200)
+{
+	char *p;
+	int port;
+
+	port = strtol(which, &p, 0);
+	if(p == which || port < 0 || port > 1)
+		error(Ebadarg);
+	uartmouse(&i8250uart[port], putc, setb1200);
+}

@@ -65,6 +65,8 @@ fs, exsort \- file server maintenance
 .PP
 .B passwd
 .PP
+.B printconf
+.PP
 .B profile
 .RB [ 01 ]
 .PP
@@ -495,6 +497,9 @@ will enable normal behavior.
 .PP
 .I Passwd
 sets the machine's password and writes it in non-volatile RAM.
+.PP
+.I Printconf
+prints the system configuration information.
 .PP
 .I Profile
 .B 1

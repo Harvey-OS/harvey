@@ -910,6 +910,7 @@ add	/sys/man/4/factotum
 add	/sys/man/4/snap
 add	/sys/man/4/u9fs
 add	/sys/man/4/wikifs
+add	/sys/man/6/ndb
 add	/sys/man/6/plumb
 add	/sys/man/6/vgadb
 add	/sys/man/7/scat
@@ -1645,6 +1646,7 @@ allocates	/sys/man/2/scribble
 allocates	/sys/man/2/thread
 allocates	/sys/man/2/window
 allocates	/sys/man/3/pipe
+allocates	/sys/man/3/vga
 allocates	/sys/man/4/dossrv
 allocating	/sys/man/2/allocimage
 allocating	/sys/man/2/bio
@@ -2455,7 +2457,6 @@ archives	/sys/man/1/bundle
 archives	/sys/man/1/mk
 archives	/sys/man/1/vac
 archives	/sys/man/6/ar
-archvial	/sys/man/8/venti
 arcrad	/sys/man/1/pic
 arcs	/sys/man/1/pic
 arcs	/sys/man/1/plot
@@ -3264,6 +3265,7 @@ authdial	/sys/man/2/authsrv
 authdom	/sys/man/1/passwd
 authdom	/sys/man/2/authsrv
 authdom	/sys/man/2/fcall
+authdom	/sys/man/6/ndb
 authdom	/sys/man/8/boot
 authdomsum	/sys/man/2/authsrv
 authenticate	/sys/man/1/ssh
@@ -3480,6 +3482,7 @@ automatically	/sys/man/8/mouse
 automatically	/sys/man/8/plan9.ini
 automatically	/sys/man/8/prep
 automatically	/sys/man/8/scuzz
+autoprobing	/sys/man/8/plan9.ini
 aux	/sys/man/1/aan
 aux	/sys/man/1/doc2txt
 aux	/sys/man/1/leak
@@ -5868,6 +5871,7 @@ can't	/sys/man/2/arith3
 can't	/sys/man/2/dial
 can't	/sys/man/2/graphics
 can't	/sys/man/2/matrix
+can't	/sys/man/3/proc
 can't	/sys/man/6/mpictures
 canada	/sys/man/7/map
 canal	/sys/man/7/map
@@ -5969,6 +5973,7 @@ care	/sys/man/6/image
 care	/sys/man/6/smtpd
 careful	/sys/man/1/replica
 carefully	/sys/man/1/mail
+carefully	/sys/man/3/proc
 carelessly	/sys/man/2/lock
 caret	/sys/man/1/rc
 carets	/sys/man/1/rc
@@ -6992,7 +6997,6 @@ clears	/sys/man/8/fsconfig
 clears	/sys/man/8/nfsserver
 cleartag	/sys/man/4/acme
 cleartext	/sys/man/1/secstore
-clgd54	/sys/man/3/vga
 clgd542x	/sys/man/3/vga
 clgd542x	/sys/man/6/vgadb
 clgd542xhwgc	/sys/man/3/vga
@@ -7167,6 +7171,7 @@ clones	/sys/man/8/mk9660
 clones	/sys/man/8/plan9.ini
 closecontrol	/sys/man/2/control
 closecontrolset	/sys/man/2/control
+closectl	/sys/man/3/vga
 closed	/sys/man/1/con
 closed	/sys/man/1/db
 closed	/sys/man/1/mail
@@ -7382,6 +7387,7 @@ cmd	/sys/man/1/wc
 cmd	/sys/man/1/xd
 cmd	/sys/man/1/yacc
 cmd	/sys/man/2/scsi
+cmd	/sys/man/3/realtime
 cmd	/sys/man/4/acme
 cmd	/sys/man/4/archfs
 cmd	/sys/man/4/cdfs
@@ -7703,6 +7709,7 @@ combined	/sys/man/1/crop
 combined	/sys/man/1/mail
 combined	/sys/man/1/spin
 combined	/sys/man/1/test
+combined	/sys/man/3/vga
 combined	/sys/man/5/0intro
 combined	/sys/man/8/fmtisect
 combined	/sys/man/8/replica
@@ -8358,6 +8365,7 @@ configurations	/sys/man/8/plan9.ini
 configure	/sys/man/1/bitsyload
 configure	/sys/man/1/vt
 configure	/sys/man/3/usb
+configure	/sys/man/3/vga
 configure	/sys/man/8/booting
 configure	/sys/man/8/ipconfig
 configure	/sys/man/8/mouse
@@ -10792,6 +10800,7 @@ data	/sys/man/3/ssl
 data	/sys/man/3/tls
 data	/sys/man/3/uart
 data	/sys/man/3/usb
+data	/sys/man/3/vga
 data	/sys/man/4/acme
 data	/sys/man/4/cdfs
 data	/sys/man/4/cfs
@@ -11099,6 +11108,7 @@ debugging	/sys/man/8/ipserv
 debugging	/sys/man/8/mk9660
 debugging	/sys/man/8/nfsserver
 debugging	/sys/man/8/ping
+debugging	/sys/man/8/plan9.ini
 debugging	/sys/man/8/ppp
 debugging	/sys/man/8/prep
 debugging	/sys/man/8/qer
@@ -13514,10 +13524,10 @@ disable	/sys/man/4/rio
 disable	/sys/man/8/apm
 disable	/sys/man/8/auth
 disable	/sys/man/8/kfscmd
+disable	/sys/man/8/plan9.ini
 disable	/sys/man/8/stats
 disable	/sys/man/8/vga
 disabled	/sys/man/2/control
-disabled	/sys/man/3/mouse
 disabled	/sys/man/3/pnp
 disabled	/sys/man/3/sd
 disabled	/sys/man/3/vga
@@ -14140,6 +14150,7 @@ domain	/sys/man/8/ipserv
 domain	/sys/man/8/ndb
 domain	/sys/man/8/scanmail
 domainname	/sys/man/2/ndb
+domains	/sys/man/6/ndb
 domains	/sys/man/6/smtpd
 domlen	/sys/man/2/authsrv
 don''t	/sys/man/2/quote
@@ -14163,6 +14174,7 @@ don't	/sys/man/2/html
 don't	/sys/man/2/quote
 don't	/sys/man/2/stat
 don't	/sys/man/3/mouse
+don't	/sys/man/3/proc
 don't	/sys/man/4/factotum
 don't	/sys/man/4/ftpfs
 don't	/sys/man/5/stat
@@ -14383,6 +14395,7 @@ drawing	/sys/man/2/memlayer
 drawing	/sys/man/2/scribble
 drawing	/sys/man/2/window
 drawing	/sys/man/3/draw
+drawing	/sys/man/3/vga
 drawing	/sys/man/6/plot
 drawing	/sys/man/7/map
 drawinit	/sys/man/3/vga
@@ -14396,6 +14409,7 @@ drawn	/sys/man/2/scribble
 drawn	/sys/man/2/stringsize
 drawn	/sys/man/2/subfont
 drawn	/sys/man/3/draw
+drawn	/sys/man/3/vga
 drawn	/sys/man/6/plot
 drawn	/sys/man/7/map
 drawn	/sys/man/7/scat
@@ -15166,6 +15180,7 @@ enables	/sys/man/3/apm
 enables	/sys/man/3/cap
 enables	/sys/man/3/ether
 enables	/sys/man/3/ssl
+enables	/sys/man/3/vga
 enables	/sys/man/4/keyfs
 enables	/sys/man/4/paqfs
 enables	/sys/man/4/u9fs
@@ -15234,6 +15249,7 @@ encoded	/sys/man/2/symbol
 encoded	/sys/man/3/ip
 encoded	/sys/man/3/ssl
 encoded	/sys/man/3/tls
+encoded	/sys/man/3/vga
 encoded	/sys/man/4/telco
 encoded	/sys/man/5/0intro
 encoded	/sys/man/6/a.out
@@ -20558,6 +20574,7 @@ graphical	/sys/man/2/control
 graphical	/sys/man/2/memlayer
 graphical	/sys/man/2/scribble
 graphical	/sys/man/2/stringsize
+graphical	/sys/man/4/factotum
 graphical	/sys/man/8/drawterm
 graphical	/sys/man/8/ping
 graphically	/sys/man/1/leak
@@ -20591,7 +20608,6 @@ graphics	/sys/man/3/cons
 graphics	/sys/man/3/draw
 graphics	/sys/man/3/mouse
 graphics	/sys/man/3/vga
-graphics	/sys/man/4/factotum
 graphics	/sys/man/4/rio
 graphics	/sys/man/6/color
 graphics	/sys/man/6/font
@@ -21466,6 +21482,7 @@ host	/sys/man/2/rsa
 host	/sys/man/3/cap
 host	/sys/man/3/cons
 host	/sys/man/3/env
+host	/sys/man/3/mouse
 host	/sys/man/3/usb
 host	/sys/man/4/keyfs
 host	/sys/man/4/vacfs
@@ -22199,6 +22216,7 @@ implementations	/sys/man/3/tls
 implementations	/sys/man/5/read
 implementing	/sys/man/2/9p
 implementing	/sys/man/3/ip
+implementing	/sys/man/3/proc
 implementing	/sys/man/3/ssl
 implementing	/sys/man/8/scanmail
 implements	/sys/man/2/control
@@ -23249,6 +23267,7 @@ inside	/sys/man/2/html
 inside	/sys/man/2/matrix
 inside	/sys/man/2/thread
 inside	/sys/man/3/draw
+inside	/sys/man/3/vga
 inside	/sys/man/4/import
 inside	/sys/man/5/0intro
 inside	/sys/man/7/map
@@ -28086,6 +28105,7 @@ meanings	/sys/man/1/lex
 meanings	/sys/man/1/rc
 meanings	/sys/man/1/sort
 meanings	/sys/man/2/fprintf
+meant	/sys/man/3/proc
 meant	/sys/man/4/ftpfs
 measure	/sys/man/4/iostats
 measured	/sys/man/1/lp
@@ -30740,6 +30760,7 @@ nodebug	/sys/man/4/ratfs
 nodes	/sys/man/3/usb
 nodummyrr	/sys/man/8/plan9.ini
 noerror	/sys/man/1/dd
+noetherprobe	/sys/man/8/plan9.ini
 nofid	/sys/man/5/attach
 nofill	/sys/man/6/man
 nogrey	/sys/man/7/scat
@@ -30964,6 +30985,7 @@ noscroll	/sys/man/4/acme
 noscroll	/sys/man/4/rio
 noscsireset	/sys/man/8/plan9.ini
 noshade	/sys/man/2/html
+noswap	/sys/man/3/proc
 notable	/sys/man/1/acid
 notably	/sys/man/2/0intro
 notably	/sys/man/3/mouse
@@ -31099,6 +31121,7 @@ notion	/sys/man/3/usb
 notion	/sys/man/8/scuzz
 notions	/sys/man/3/usb
 noun	/sys/man/1/spell
+nousbprobe	/sys/man/8/plan9.ini
 novga	/sys/man/8/plan9.ini
 nowait	/sys/man/4/u9fs
 noworld	/sys/man/1/ssh
@@ -31757,6 +31780,7 @@ ones	/sys/man/1/tweak
 ones	/sys/man/2/control
 ones	/sys/man/2/flate
 ones	/sys/man/2/memdraw
+ones	/sys/man/3/proc
 ones	/sys/man/4/srv
 ones	/sys/man/5/0intro
 ones	/sys/man/7/map
@@ -31806,6 +31830,7 @@ opaque	/sys/man/2/draw
 opaque	/sys/man/2/graphics
 opaque	/sys/man/6/color
 opaque	/sys/man/8/9pcon
+openctl	/sys/man/3/vga
 opendirfile	/sys/man/2/9pfile
 opendisk	/sys/man/2/disk
 opened	/sys/man/1/awk
@@ -31830,6 +31855,7 @@ opened	/sys/man/2/pushssl
 opened	/sys/man/2/tmpfile
 opened	/sys/man/3/cons
 opened	/sys/man/3/ip
+opened	/sys/man/3/mouse
 opened	/sys/man/3/proc
 opened	/sys/man/3/realtime
 opened	/sys/man/3/sd
@@ -31892,6 +31918,7 @@ opens	/sys/man/2/ndb
 opens	/sys/man/2/open
 opens	/sys/man/2/plumb
 opens	/sys/man/2/pushssl
+opens	/sys/man/3/vga
 opens	/sys/man/4/consolefs
 opens	/sys/man/4/iostats
 opens	/sys/man/5/open
@@ -32786,6 +32813,7 @@ overlaps	/sys/man/2/segattach
 overlaps	/sys/man/8/prep
 overlay	/sys/man/1/graph
 overlay	/sys/man/2/exec
+overlay	/sys/man/3/vga
 overlay	/sys/man/7/map
 overlayed	/sys/man/2/control
 overloading	/sys/man/2/graphics
@@ -32858,6 +32886,7 @@ owner	/sys/man/2/window
 owner	/sys/man/3/cap
 owner	/sys/man/3/cons
 owner	/sys/man/3/env
+owner	/sys/man/3/mouse
 owner	/sys/man/5/0intro
 owner	/sys/man/5/open
 owner	/sys/man/5/stat
@@ -32922,6 +32951,7 @@ packard	/sys/man/2/scribble
 packed	/sys/man/2/allocimage
 packed	/sys/man/2/control
 packed	/sys/man/3/tls
+packed	/sys/man/3/vga
 packed	/sys/man/5/walk
 packed	/sys/man/6/color
 packet	/sys/man/1/cpu
@@ -33376,6 +33406,7 @@ particular	/sys/man/5/stat
 particular	/sys/man/6/authsrv
 particular	/sys/man/6/image
 particular	/sys/man/6/keyboard
+particular	/sys/man/6/ndb
 particular	/sys/man/6/venti.conf
 particular	/sys/man/6/vgadb
 particular	/sys/man/8/9load
@@ -33679,6 +33710,7 @@ pcc	/sys/man/1/2c
 pcc	/sys/man/1/pcc
 pcc	/sys/man/3/ip
 pcc.c	/sys/man/1/pcc
+pccard0	/sys/man/8/plan9.ini
 pcertlen	/sys/man/2/pushtls
 pcfile	/sys/man/1/acid
 pcharstr	/sys/man/1/gs
@@ -33704,6 +33736,7 @@ pcmcia	/sys/man/8/apm
 pcmcia	/sys/man/8/pcmcia
 pcmcia	/sys/man/8/plan9.ini
 pcmcia.c	/sys/man/8/pcmcia
+pcmcia0	/sys/man/8/plan9.ini
 pcmciax	/sys/man/8/plan9.ini
 pcmpc100	/sys/man/8/plan9.ini
 pcnet	/sys/man/8/plan9.ini
@@ -34368,6 +34401,7 @@ plan	/sys/man/6/ar
 plan	/sys/man/6/authsrv
 plan	/sys/man/6/color
 plan	/sys/man/6/keyboard
+plan	/sys/man/6/ndb
 plan	/sys/man/6/thumbprint
 plan	/sys/man/6/utf
 plan	/sys/man/7/0intro
@@ -35689,6 +35723,7 @@ printable	/sys/man/2/scribble
 printable	/sys/man/5/0intro
 printable	/sys/man/6/map
 printable	/sys/man/6/users
+printconf	/sys/man/8/fs
 printed	/sys/man/1/ascii
 printed	/sys/man/1/basename
 printed	/sys/man/1/bc
@@ -37028,6 +37063,7 @@ purposes	/sys/man/2/html
 purposes	/sys/man/3/draw
 purposes	/sys/man/3/sd
 purposes	/sys/man/6/color
+purposes	/sys/man/8/plan9.ini
 purview	/sys/man/4/iostats
 push	/sys/man/1/dc
 push	/sys/man/1/replica
@@ -40046,6 +40082,7 @@ resources	/sys/man/2/graphics
 resources	/sys/man/3/draw
 resources	/sys/man/3/pnp
 resources	/sys/man/3/realtime
+resources	/sys/man/3/vga
 resp	/sys/man/1/ed
 resp	/sys/man/2/auth
 respect	/sys/man/1/ed
@@ -41764,7 +41801,6 @@ sanity	/sys/man/8/fs
 sans	/sys/man/1/bundle
 sao	/sys/man/7/scat
 sao12345	/sys/man/7/scat
-sape	/sys/man/3/realtime
 sar_hdr	/sys/man/6/ar
 sarmag	/sys/man/6/ar
 sarname	/sys/man/2/object
@@ -42721,7 +42757,6 @@ sending	/sys/man/2/thread
 sending	/sys/man/3/ip
 sending	/sys/man/3/pnp
 sending	/sys/man/3/usb
-sending	/sys/man/4/factotum
 sending	/sys/man/5/flush
 sending	/sys/man/6/face
 sending	/sys/man/6/plumb
@@ -42756,6 +42791,7 @@ sensible	/sys/man/2/control
 sensible	/sys/man/2/fversion
 sensible	/sys/man/8/newuser
 sensitive	/sys/man/1/gs
+sensitive	/sys/man/3/proc
 sensitive	/sys/man/6/color
 sensitive	/sys/man/8/plan9.ini
 sent	/sys/man/1/acme
@@ -43664,6 +43700,7 @@ similar	/sys/man/2/thread
 similar	/sys/man/3/ip
 similar	/sys/man/3/proc
 similar	/sys/man/4/dossrv
+similar	/sys/man/4/factotum
 similar	/sys/man/4/fs
 similar	/sys/man/4/ratfs
 similar	/sys/man/4/wikifs
@@ -44878,6 +44915,7 @@ sparc	/sys/man/4/namespace
 sparc	/sys/man/6/a.out
 sparc	/sys/man/8/dhcpd
 sparcstation	/sys/man/6/keyboard
+sparingly	/sys/man/3/proc
 speak	/sys/man/2/pushtls
 speak	/sys/man/4/factotum
 speak	/sys/man/6/authsrv
@@ -45085,6 +45123,7 @@ specify	/sys/man/4/telco
 specify	/sys/man/4/u9fs
 specify	/sys/man/5/0intro
 specify	/sys/man/6/a.out
+specify	/sys/man/6/ndb
 specify	/sys/man/6/plot
 specify	/sys/man/6/plumb
 specify	/sys/man/6/smtpd
@@ -47629,6 +47668,7 @@ supports	/sys/man/3/ip
 supports	/sys/man/3/rtc
 supports	/sys/man/3/sd
 supports	/sys/man/4/factotum
+supports	/sys/man/6/ndb
 supports	/sys/man/6/vgadb
 supports	/sys/man/7/map
 supports	/sys/man/8/9load
@@ -47718,12 +47758,14 @@ swab	/sys/man/1/xd
 swap	/sys/man/1/dd
 swap	/sys/man/3/cons
 swap	/sys/man/3/mouse
+swap	/sys/man/3/proc
 swap	/sys/man/3/sd
 swap	/sys/man/8/prep
 swap	/sys/man/8/stats
 swap	/sys/man/8/swap
 swap.c	/sys/man/8/swap
 swapped	/sys/man/2/mach
+swapped	/sys/man/3/proc
 swapping	/sys/man/3/cons
 swapping	/sys/man/8/cpurc
 swapping	/sys/man/8/swap
@@ -48960,6 +49002,7 @@ terminates	/sys/man/2/thread
 terminates	/sys/man/2/tmpfile
 terminates	/sys/man/3/kprof
 terminates	/sys/man/3/pipe
+terminates	/sys/man/3/vga
 terminates	/sys/man/6/plumb
 termination	/sys/man/1/0intro
 termination	/sys/man/1/acid
@@ -52165,7 +52208,6 @@ usr	/sys/man/1/history
 usr	/sys/man/1/page
 usr	/sys/man/1/plumb
 usr	/sys/man/1/ssh
-usr	/sys/man/3/realtime
 usr	/sys/man/4/plumber
 usr	/sys/man/4/u9fs
 usr	/sys/man/4/wikifs
@@ -52617,6 +52659,7 @@ values	/sys/man/3/draw
 values	/sys/man/3/ip
 values	/sys/man/3/pnp
 values	/sys/man/3/uart
+values	/sys/man/3/vga
 values	/sys/man/4/consolefs
 values	/sys/man/4/factotum
 values	/sys/man/4/usb
@@ -53079,6 +53122,8 @@ vgactl	/sys/man/3/vga
 vgactl	/sys/man/6/vgadb
 vgadb	/sys/man/6/vgadb
 vgadb	/sys/man/8/vga
+vgaovl	/sys/man/3/vga
+vgaovlctl	/sys/man/3/vga
 vgasize	/sys/man/6/vgadb
 vgasize	/sys/man/8/plan9.ini
 vi	/sys/man/1/emacs
@@ -54236,6 +54281,7 @@ written	/sys/man/3/proc
 written	/sys/man/3/srv
 written	/sys/man/3/ssl
 written	/sys/man/3/usb
+written	/sys/man/3/vga
 written	/sys/man/4/acme
 written	/sys/man/4/factotum
 written	/sys/man/4/iostats
@@ -54453,6 +54499,7 @@ yourmachine	/sys/man/4/ftpfs
 yourname	/sys/man/4/ftpfs
 yourself	/sys/man/1/mail
 yourself	/sys/man/2/mp
+yuyv	/sys/man/3/vga
 yy	/sys/man/8/dhcpd
 yydebug	/sys/man/1/yacc
 yyerror	/sys/man/1/yacc

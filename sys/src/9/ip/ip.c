@@ -354,6 +354,7 @@ ipiput(Fs *f, Ipifc *ifc, Block *bp)
 	uchar *dp, v6dst[IPaddrlen];
 	IP *ip;
 	Route *r, *sr;
+	int olen;
 
 	ip = f->ip;
 	ip->stats[InReceives]++;
@@ -401,11 +402,13 @@ ipiput(Fs *f, Ipifc *ifc, Block *bp)
 		}
 		/* If this is not routed strip off the options */
 		if(notforme == 0) {
+			olen = nhgets(h->length);
 			dp = bp->rp + (hl - (IP_HLEN<<2));
 			memmove(dp, h, IP_HLEN<<2);
 			bp->rp = dp;
 			h = (Iphdr *)(bp->rp);
 			h->vihl = (IP_VER|IP_HLEN);
+			hnputs(h->length, olen-hl+(IP_HLEN<<2));
 		}
 	}
 

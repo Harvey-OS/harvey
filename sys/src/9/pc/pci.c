@@ -672,11 +672,11 @@ pcirouting(void)
 	uchar *p, *m, pin, irq;
 
 	// Search for PCI interrupt routing table in BIOS
-	for (p = (uchar *)KADDR(0xf0000); p < (uchar *)KADDR(0xfffff); p += 16)
-		if (p[0] == '$' && p[1] == 'P' && p[2] == 'I' && p[3] == 'R')
+	for(p = (uchar *)KADDR(0xf0000); p < (uchar *)KADDR(0xfffff); p += 16)
+		if(p[0] == '$' && p[1] == 'P' && p[2] == 'I' && p[3] == 'R')
 			break;
 
-	if (p >= (uchar *)KADDR(0xfffff))
+	if(p >= (uchar *)KADDR(0xfffff))
 		return;
 
 	r = (router_t *)p;
@@ -691,20 +691,20 @@ pcirouting(void)
 		return;
 	}
 
-	for (i = 0; i != nelem(southbridges); i++)
-		if (sbpci->vid == southbridges[i].vid && sbpci->did == southbridges[i].did)
+	for(i = 0; i != nelem(southbridges); i++)
+		if(sbpci->vid == southbridges[i].vid && sbpci->did == southbridges[i].did)
 			break;
 
-	if (i == nelem(southbridges)) {
-		print("pcirouting: South bridge %.4uX/%.4uX unknown\n", sbpci->vid, sbpci->did);
+	if(i == nelem(southbridges)) {
+		print("pcirouting: south bridge %.4uX/%.4uX (unknown type)\n", sbpci->vid, sbpci->did);
 		return;
 	}
 	southbridge = &southbridges[i];
-	
+
 	pciirqs = (r->rt_pciirqs[1] << 8)|r->rt_pciirqs[0];
 
 	size = (r->rt_size[1] << 8)|r->rt_size[0];
-	for (e = (slot_t *)&r[1]; (uchar *)e < p + size; e++) {
+	for(e = (slot_t *)&r[1]; (uchar *)e < p + size; e++) {
 		// print("%.2uX/%.2uX %.2uX: ", e->e_bus, e->e_dev, e->e_slot);
 		// for (i = 0; i != 4; i++) {
 		// 	uchar *m = &e->e_maps[i * 3];
@@ -713,20 +713,20 @@ pcirouting(void)
 		// }
 		// print("\n");
 
-		for (fn = 0; fn != 8; fn++) {
+		for(fn = 0; fn != 8; fn++) {
 			tbdf = (BusPCI << 24)|(e->e_bus << 16)|((e->e_dev | fn) << 8);
 			pci = pcimatchtbdf(tbdf);
 			if(pci == nil)
 				continue;
 			pin = pcicfgr8(pci, PciINTP);
-			if (pin == 0 || pin == 0xff) 
+			if(pin == 0 || pin == 0xff) 
 				continue;
 
 			m = &e->e_maps[(pin - 1) * 3];
 			irq = southbridge->get(sbpci, m[0]);
 			if(irq == 0 || irq == pci->intl)
 				continue;
-			if (pci->intl != 0 && pci->intl != 0xFF) {
+			if(pci->intl != 0 && pci->intl != 0xFF) {
 				print("pcirouting: BIOS workaround: %T at pin %d irq %d -> %d\n",
 					  tbdf, pin, irq, pci->intl);
 				southbridge->set(sbpci, m[0], pci->intl);

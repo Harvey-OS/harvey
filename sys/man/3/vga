@@ -6,6 +6,10 @@ vga \- VGA controller device
 .B bind #v /dev
 
 .B /dev/vgactl
+
+.B /dev/vgaovlctl
+
+.B /dev/vgaovl
 .fi
 .SH DESCRIPTION
 The VGA device allows configuration of a graphics controller
@@ -188,11 +192,51 @@ This must be sent after setting the
 Reading
 .B vgactl
 returns the current settings, one per line.
+.PP
+Some VGA cards support overlay graphics.
+Writing strings to
+.B vgaovlctl
+configures such cards.
+The following are valid overlay control commands:
+.TP
+.BI openctl
+opens the overlay device.
+.TP
+.BI configure " w h format"
+allocates resources inside the driver to support an overlay area
+of width
+.I w
+and height
+.I h
+pixels.  Currently, the only supported
+.I format
+is
+.B YUYV
+packed.
+In
+.B YUYV
+two pixels are encoded by their separate Y values
+and their combined U and V values.
+The size of the two pixels is 32 bits.
+.TP
+.BI enable " x y w h"
+enables drawing data on the display through the overlay mode.  The data
+is drawn at position
+.IR x , y
+and has a width and height of
+.IR w , h
+respectively.
+.TP
+.BI closectl
+terminates overlay control.
+.PP
+Overlay data can be written to
+.BR vgaovl .
 .SH EXAMPLES
 The following disables hardware acceleration.
 .IP
 .EX
-echo -n 'hwaccel off' >/dev/vgactl
+echo hwaccel off > /dev/vgactl
 .EE
 .SH SOURCE
 .B /sys/src/9/pc/devvga.c
@@ -200,10 +244,6 @@ echo -n 'hwaccel off' >/dev/vgactl
 .IR arch (3),
 .IR vga (8)
 .SH BUGS
-There should be support for the hardware graphics cursor on the
-.B clgd54[23]x
-VGA controller chips.
-.PP
 The hardware graphics cursor on the
 .B et4000
 does not work in 2x8-bit mode.

@@ -62,7 +62,7 @@ Security has been a focus of attention.
 A new security agent,
 .I factotum (4),
 manages passwords and other secrets and, coupled with a new secure file store
-.I secstore (4),
+.I secstore (8),
 enables secure single sign-on.
 .Xx
 .CW Cpu ,

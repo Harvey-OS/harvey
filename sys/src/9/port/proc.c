@@ -355,6 +355,7 @@ newproc(void)
 	p->wired = 0;
 	p->ureg = 0;
 	p->privatemem = 0;
+	p->noswap = 0;
 	p->lockwait = nil;
 	p->errstr = p->errbuf0;
 	p->syserrstr = p->errbuf1;
@@ -809,8 +810,10 @@ pexit(char *exitstr, int freemem)
 		poperror();
 
 		wq->w.pid = up->pid;
-		wq->w.time[TUser] = utime = up->time[TUser] + up->time[TCUser];
-		wq->w.time[TSys] = stime = up->time[TSys] + up->time[TCSys];
+		utime = up->time[TUser] + up->time[TCUser];
+		stime = up->time[TSys] + up->time[TCSys];
+		wq->w.time[TUser] = TK2MS(utime);
+		wq->w.time[TSys] = TK2MS(stime);
 		wq->w.time[TReal] = TK2MS(MACHP(0)->ticks - up->time[TReal]);
 		if(exitstr && exitstr[0])
 			snprint(wq->w.msg, sizeof(wq->w.msg), "%s %lud: %s", up->text, up->pid, exitstr);
@@ -1054,6 +1057,7 @@ kproc(char *name, void (*func)(void *), void *arg)
 	p->psstate = 0;
 	p->procmode = 0640;
 	p->kp = 1;
+	p->noswap = 1;
 
 	p->fpsave = up->fpsave;
 	p->scallnr = up->scallnr;

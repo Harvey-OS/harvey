@@ -135,10 +135,11 @@ main(int argc, char *argv[])
 	Ram *r;
 	char *defmnt;
 	int p[2];
-	char buf[32];
 	int fd;
 	int stdio = 0;
+	char *service;
 
+	service = "ramfs";
 	defmnt = "/tmp";
 	ARGBEGIN{
 	case 'D':
@@ -159,6 +160,10 @@ main(int argc, char *argv[])
 	case 'p':
 		private++;
 		break;
+	case 'S':
+		defmnt = 0;
+		service = EARGF(usage());
+		break;
 	default:
 		usage();
 	}ARGEND
@@ -169,12 +174,14 @@ main(int argc, char *argv[])
 		mfd[0] = p[0];
 		mfd[1] = p[0];
 		if(defmnt == 0){
-			fd = create("#s/ramfs", OWRITE, 0666);
+			char buf[64];
+			snprint(buf, sizeof buf, "#s/%s", service);
+			fd = create(buf, OWRITE, 0666);
 			if(fd < 0)
-				error("create of /srv/ramfs failed");
+				error("create failed");
 			sprint(buf, "%d", p[1]);
 			if(write(fd, buf, strlen(buf)) < 0)
-				error("writing /srv/ramfs");
+				error("writing service file");
 		}
 	}
 

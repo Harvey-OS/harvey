@@ -28,6 +28,8 @@ struct State
 	Ticketreq tr;
 	char	chal[Maxchal];
 	int	challen;
+	char	resp[Maxchal];
+	int	resplen;
 };
 
 enum
@@ -71,11 +73,10 @@ p9crinit(Proto *p, Fsstate *fss)
 	int iscli, ret;
 	char *user;
 	State *s;
+	Attr *attr;
 
 	if((iscli = isclient(_str_findattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
-	if(iscli)
-		return failure(fss, "%s client not implemented", p->name);
 	
 	s = emalloc(sizeof(*s));
 	s->asfd = -1;
@@ -88,27 +89,43 @@ p9crinit(Proto *p, Fsstate *fss)
 	}else
 		abort();
 
-	if((ret = findp9authkey(&s->key, fss)) != RpcOk){
-		free(s);
-		return ret;
+	if(iscli){
+		fss->phase = CNeedChal;
+		if(p == &p9cr)
+			attr = setattr(_copyattr(fss->attr), "proto=p9sk1");
+		else
+			attr = nil;
+		ret = findkey(&s->key, fss, Kuser, 0, attr ? attr : fss->attr,
+			"role=client %s", p->keyprompt);
+		_freeattr(attr);
+		if(ret != RpcOk){
+			free(s);
+			return ret;
+		}
+		fss->ps = s;
+	}else{
+		if((ret = findp9authkey(&s->key, fss)) != RpcOk){
+			free(s);
+			return ret;
+		}
+		if((user = _str_findattr(fss->attr, "user")) == nil){
+			free(s);
+			return failure(fss, "no user name specified in start msg");
+		}
+		if(strlen(user) >= sizeof s->tr.uid){
+			free(s);
+			return failure(fss, "user name too long");
+		}
+		fss->ps = s;
+		strcpy(s->tr.uid, user);
+		ret = getchal(s, fss);
+		if(ret != RpcOk){
+			p9crclose(fss);	/* frees s */
+			fss->ps = nil;
+		}
 	}
 	fss->phasename = phasenames;
 	fss->maxphase = Maxphase;
-	if((user = _str_findattr(fss->attr, "user")) == nil){
-		free(s);
-		return failure(fss, "no user name specified in start msg");
-	}
-	if(strlen(user) >= sizeof s->tr.uid){
-		free(s);
-		return failure(fss, "user name too long");
-	}
-	fss->ps = s;
-	strcpy(s->tr.uid, user);
-	ret = getchal(s, fss);
-	if(ret != RpcOk){
-		p9crclose(fss);	/* frees s */
-		fss->ps = nil;
-	}
 	return ret;
 }
 
@@ -122,6 +139,13 @@ p9crread(Fsstate *fss, void *va, uint *n)
 	switch(fss->phase){
 	default:
 		return phaseerror(fss, "read");
+
+	case CHaveResp:
+		if(s->resplen < *n)
+			*n = s->resplen;
+		memmove(va, s->resp, *n);
+		fss->phase = Established;
+		return RpcOk;
 
 	case SHaveChal:
 		if(s->astype == AuthChal)
@@ -138,6 +162,88 @@ p9crread(Fsstate *fss, void *va, uint *n)
 }
 
 static int
+p9response(Fsstate *fss, State *s)
+{
+	char key[DESKEYLEN];
+	uchar buf[8];
+	ulong chal;
+	char *pw;
+
+	pw = _str_findattr(s->key->privattr, "!password");
+	if(pw == nil)
+		return failure(fss, "vncresponse cannot happen");
+	passtokey(key, pw);
+	memset(buf, 0, 8);
+	sprint((char*)buf, "%d", atoi(s->chal));
+	if(encrypt(key, buf, 8) < 0)
+		return failure(fss, "can't encrypt response");
+	chal = (buf[0]<<24)+(buf[1]<<16)+(buf[2]<<8)+buf[3];
+	s->resplen = snprint(s->resp, sizeof s->resp, "%.8lux", chal);
+	return RpcOk;
+}
+
+static uchar tab[256];
+
+/* VNC reverses the bits of each byte before using as a des key */
+static void
+mktab(void)
+{
+	int i, j, k;
+	static int once;
+
+	if(once)
+		return;
+	once = 1;
+
+	for(i=0; i<256; i++) {
+		j=i;
+		tab[i] = 0;
+		for(k=0; k<8; k++) {
+			tab[i] = (tab[i]<<1) | (j&1);
+			j >>= 1;
+		}
+	}
+}
+
+static int
+vncaddkey(Key *k)
+{
+	uchar *p;
+	char *s;
+
+	k->priv = emalloc(8+1);
+	if(s = _str_findattr(k->privattr, "!password")){
+		mktab();
+		memset(k->priv, 0, 8+1);
+		strncpy((char*)k->priv, s, 8);
+		for(p=k->priv; *p; p++)
+			*p = tab[*p];
+	}else{
+		werrstr("no key data");
+		return -1;
+	}
+	return replacekey(k);
+}
+
+static void
+vncclosekey(Key *k)
+{
+	free(k->priv);
+}
+
+static int
+vncresponse(Fsstate*, State *s)
+{
+	DESstate des;
+
+	memmove(s->resp, s->chal, sizeof s->chal);
+	setupDESstate(&des, s->key->priv, nil);
+	desECBencrypt((uchar*)s->resp, s->challen, &des);
+	s->resplen = s->challen;
+	return RpcOk;
+}
+
+static int
 p9crwrite(Fsstate *fss, void *va, uint n)
 {
 	char tbuf[TICKETLEN+AUTHENTLEN];
@@ -145,11 +251,28 @@ p9crwrite(Fsstate *fss, void *va, uint n)
 	char *data = va;
 	Authenticator a;
 	char resp[Maxchal];
+	int ret;
 
 	s = fss->ps;
 	switch(fss->phase){
 	default:
 		return phaseerror(fss, "write");
+
+	case CNeedChal:
+		if(n >= sizeof(s->chal))
+			return failure(fss, Ebadarg);
+		memset(s->chal, 0, sizeof s->chal);
+		memmove(s->chal, data, n);
+		s->challen = n;
+
+		if(s->astype == AuthChal)
+			ret = p9response(fss, s);
+		else
+			ret = vncresponse(fss, s);
+		if(ret != RpcOk)
+			return ret;
+		fss->phase = CHaveResp;
+		return RpcOk;
 
 	case SNeedResp:
 		/* send response to auth server and get ticket */
@@ -221,6 +344,7 @@ Proto p9cr =
 .write=		p9crwrite,
 .read=		p9crread,
 .close=		p9crclose,
+.keyprompt=	"user? !password?",
 };
 
 Proto vnc =
@@ -230,4 +354,6 @@ Proto vnc =
 .write=		p9crwrite,
 .read=		p9crread,
 .close=		p9crclose,
+.keyprompt=	"!password?",
+.addkey=	vncaddkey,
 };

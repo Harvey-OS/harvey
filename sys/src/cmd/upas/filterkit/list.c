@@ -157,7 +157,6 @@ readpatterns(char *path)
 	int n;
 	int bang;
 
-	bang = 0;
 	b = Bopen(path, OREAD);
 	if(b == nil)
 		return -1;
@@ -172,7 +171,8 @@ readpatterns(char *path)
 		if(*p == '!'){
 			p++;
 			bang = 1;
-		}
+		} else
+			bang = 0;
 
 		if(*p == '='){
 			if(newpattern(Texact, p+1, bang) < 0)

@@ -78,9 +78,8 @@ $p$CONF:	$OBJ $CONF.c $LIB /arm/inflate
 	echo the boot loader misses the last 12 bytes >> $target
 	rm $target.gz
 
-install:V:	$p$CONF
+install:V:	$p$CONF paqdisk
 	cp $p$CONF /$objtype/$p$CONF
-	9fs lookout && cp $p$CONF /n/lookout/$objtype/$p$CONF
 
 <../boot/bootmkfile
 <../port/portmkfile

@@ -26,12 +26,13 @@ main(int argc, char *argv[])
 	int ream, fsok;
 	int newbufsize, nocheck;
 	char buf[NAMELEN];
+	int pid, ctl;
 
 	progname = "kfs";
 	procname = "init";
 
 	/*
-	 * insulate from invokers environment
+	 * insulate from invoker's environment and keep it from swapping
 	 */
 	rfork(RFNAMEG|RFNOTEG|RFREND);
 
@@ -41,7 +42,15 @@ main(int argc, char *argv[])
 	newbufsize = 0;
 	nocheck = 0;
 	wrenfile = "/dev/sdC0/fs";
+
+	pid = getpid();
+	snprint(buf, sizeof buf, "/proc/%d/ctl", pid);
+	ctl = open(buf, OWRITE);
+	fprint(ctl, "noswap\n");
+	close(ctl);
+
 	buf[0] = '\0';
+
 	ARGBEGIN{
 	case 'b':
 		newbufsize = atol(ARGF());

@@ -109,6 +109,7 @@ sysrfork(ulong *arg)
 
 	memmove(p->note, up->note, sizeof(p->note));
 	p->privatemem = up->privatemem;
+	p->noswap = up->noswap;
 	p->nnote = up->nnote;
 	p->notified = 0;
 	p->lastnote = up->lastnote;

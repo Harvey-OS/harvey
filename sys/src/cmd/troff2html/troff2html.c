@@ -563,6 +563,12 @@ process(Biobuf *b, char *name)
 			r = getc(b);
 			emithtmlchar(r);
 			break;
+		case 'D':
+			/* draw line; ignore */
+			do
+				c = getc(b);
+			while(c!='\n' && c!= Beof);
+			break;
 		case 'f':
 			v = setnum(b, "font", 0, Nfont);
 			switchfont(v);

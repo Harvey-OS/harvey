@@ -605,6 +605,7 @@ struct Proc
 	Proc	*palarm;	/* Next alarm time */
 	ulong	alarm;		/* Time of call */
 	int	newtlb;		/* Pager has changed my pte's, I must flush */
+	int	noswap;		/* process is not swappable */
 
 	ulong	rendtag;	/* Tag for rendezvous */
 	ulong	rendval;	/* Value for rendezvous */
@@ -622,10 +623,10 @@ struct Proc
 	Sargs	s;		/* address of this is known by db */
 	int	nerrlab;
 	Label	errlab[NERR];
-	char *syserrstr;			/* last error from a system call, errbuf0 or 1 */
-	char *errstr;			/* reason we're unwinding the error stack, errbuf1 or 0 */
-	char errbuf0[ERRMAX];
-	char errbuf1[ERRMAX];
+	char	*syserrstr;	/* last error from a system call, errbuf0 or 1 */
+	char	*errstr;	/* reason we're unwinding the error stack, errbuf1 or 0 */
+	char	errbuf0[ERRMAX];
+	char	errbuf1[ERRMAX];
 	char	genbuf[128];	/* buffer used e.g. for last name element from namec */
 	Chan	*slash;
 	Chan	*dot;

@@ -31,7 +31,7 @@ struct Nvidia {
 	ulong	config;
 
 	ulong	offset[4];
-	ulong	pitch[5];
+	ulong	pitch[6];
 };
 
 static int extcrts[] = {
@@ -71,8 +71,12 @@ snarf(Vga* vga, Ctlr* ctlr)
 		case 0x0151:		/* GeForce2 GTS (rev 1) */
 		case 0x0152:		/* GeForce2 Ultra */
 		case 0x0153:		/* Quadro 2 Pro */
-		case 0x0200:		/* GeForce3 */
 			nv->arch = 10;
+			break;
+		case 0x0200:		/* GeForce3 */
+		case 0x0201:		/* some other geforce3's */
+		case 0x0202:
+			nv->arch = 20;
 			break;
 		default:
 			error("%s: DID %4.4uX unsupported\n",
@@ -129,16 +133,17 @@ snarf(Vga* vga, Ctlr* ctlr)
 				vga->vmz = 1024*1024*32;
 		}
 	}
-	if (nv->arch == 10) {
+	if (nv->arch == 10 || nv->arch == 20) {
 		tmp = (nv->pfb[0x0000020C/4] >> 20) & 0xFF;
 		if (tmp == 0)
 			tmp = 16;
+
 		vga->vmz = 1024*1024*tmp;
 	}
 
 	for(i=0; i<4; i++)
 		nv->offset[i] = nv->pgraph[0x640/4+i];
-	for(i=0; i<5; i++)
+	for(i=0; i<6; i++)
 		nv->pitch[i] = nv->pgraph[0x670/4+i];
 
 	for(i = 0x19; i < 0x100; i++)
@@ -234,20 +239,17 @@ init(Vga* vga, Ctlr* ctlr)
 		nv->general = 0x00001100;
 	else
 		nv->general = 0x00000100;
-	if(nv->arch != 10)
+	if(nv->arch == 4)
 		nv->config  = 0x00001114;
+	else if(nv->arch == 10 || nv->arch == 20)
+		nv->config = nv->pfb[0x200/4];
 
 	pixeldepth = (mode->z +1)/8;
 	tmp = pixeldepth * mode->x;
-	nv->pitch[0] = tmp;
-	nv->pitch[1] = tmp;
-	nv->pitch[2] = tmp;
-	nv->pitch[3] = tmp;
-	nv->pitch[4] = tmp;
-	nv->offset[0] = 0;
-	nv->offset[1] = 0;
-	nv->offset[2] = 0;
-	nv->offset[3] = 0;
+	for(i=0; i<nelem(nv->pitch); i++)
+		nv->pitch[i] = tmp;
+	for(i=0; i<nelem(nv->offset); i++)
+		nv->offset[i] = 0;
 
 	vga->attribute[0x10] &= ~0x40;
 	vga->attribute[0x11] = Pblack;
@@ -368,7 +370,7 @@ static void
 load(Vga* vga, Ctlr* ctlr)
 {
 	Nvidia *nv;
-	int i, j;
+	int i, j = 0;
 
 	nv = vga->private;
 
@@ -401,6 +403,7 @@ load(Vga* vga, Ctlr* ctlr)
 		}
 		break;
 	case 10:
+	case 20:
 		loadtable(nv->pfifo, nv10TablePFIFO);
 		loadtable(nv->pramin, nv10TablePRAMIN);
 		loadtable(nv->pgraph, nv10TablePGRAPH);
@@ -420,15 +423,30 @@ load(Vga* vga, Ctlr* ctlr)
 		}
 		break;
 	}
+	
+	if(nv->arch == 4 || nv->arch == 10) {
+		for(i=0; i<4; i++)
+			nv->pgraph[0x640/4+i] = nv->offset[i];
+		if(nv->arch == 10)
+			j = 5;
+		else if(nv->arch == 4)
+			j = 4;
+		for(i=0; i<j; i++)
+			nv->pgraph[0x670/4+i] = nv->pitch[i];	
+	} 
+	if(nv->arch == 20) {
+		for(i = 0; i < 4; i++)
+			nv->pgraph[0x820/4+i] = nv->offset[i];
+		for(i = 0; i < 6; i++)
+			nv->pgraph[0x850/4+i] = nv->pitch[i];
 
-	for(i=0; i<4; i++)
-		nv->pgraph[0x640/4+i] = nv->offset[i];
-	if(nv->arch == 10)
-		j = 5;
-	else
-		j = 4;
-	for(i=0; i<j; i++)
-		nv->pgraph[0x670/4+i] = nv->pitch[i];
+		nv->pgraph[0x9A4/4] = nv->pfb[0x200/4];
+		nv->pgraph[0x9A8/4] = nv->pfb[0x204/4];
+		nv->pramdac[0x052C/4] = 0x101;
+		nv->pramdac[0x252C/4] = 0x1;
+	}
+		
+
 
 	nv->pmc[0x8704/4] = 1;
 	nv->pmc[0x8140/4] = 0;
@@ -437,7 +455,7 @@ load(Vga* vga, Ctlr* ctlr)
 	nv->pmc[0x8908/4] = 0x01FFFFFF;
 	nv->pmc[0x890C/4] = 0x01FFFFFF;
 
-	if(nv->arch == 10){
+	if(nv->arch == 10 || nv->arch == 20){
 		for(i=0; i<0x7C/4; i++)
 			nv->pgraph[0xB00/4+i] = nv->pfb[0x240/4+i];
 
@@ -453,6 +471,7 @@ load(Vga* vga, Ctlr* ctlr)
 		loadtable(nv->fifo, nv4TableFIFO);
 		break;
 	case 10:
+	case 20:
 		loadtable(nv->fifo, nv10TableFIFO);
 		break;
 	}

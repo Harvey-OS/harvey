@@ -414,6 +414,26 @@ getastickets(State *s, char *trbuf, char *tbuf)
 }
 
 static int
+mkserverticket(State *s, char *tbuf)
+{
+	Ticketreq *tr = &s->tr;
+	Ticket t;
+
+	if(strcmp(tr->authid, tr->hostid) != 0 || strcmp(tr->authid, tr->uid) != 0)
+		return -1;
+	memset(&t, 0, sizeof(t));
+	memmove(t.chal, tr->chal, CHALLEN);
+	strcpy(t.cuid, tr->uid);
+	strcpy(t.suid, tr->uid);
+	memrandom(t.key, DESKEYLEN);
+	t.num = AuthTc;
+	convT2M(&t, tbuf, s->key->priv);
+	t.num = AuthTs;
+	convT2M(&t, tbuf+TICKETLEN, s->key->priv);
+	return 0;
+}
+
+static int
 gettickets(State *s, char *trbuf, char *tbuf)
 {
 /*
@@ -422,6 +442,8 @@ gettickets(State *s, char *trbuf, char *tbuf)
 */
 	if(getastickets(s, trbuf, tbuf) >= 0)
 		return 0;
+	if(sflag)
+		return mkserverticket(s, tbuf);
 	return -1;
 }
 

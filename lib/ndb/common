@@ -81,6 +81,8 @@ tcp=vgen port=17029
 tcp=alefnslook port=17030
 tcp=411 port=17031
 tcp=flyboy port=17032
+tcp=venti port=17034
+tcp=wiki port=17035
 
 il=echo port=7
 il=discard port=9

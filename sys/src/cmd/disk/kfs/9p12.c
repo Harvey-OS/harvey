@@ -51,7 +51,7 @@ readmsg(Chan *c, void *abuf, int n, int *ninep)
 void
 startserveproc(void (*f)(Chan*, uchar*, int), char *name, Chan *c, uchar *b, int nb)
 {
-	switch(rfork(RFMEM|RFFDG|RFPROC)){
+	switch(rfork(RFMEM|RFPROC)){
 	case -1:
 		panic("can't fork");
 	case 0:

@@ -42,7 +42,7 @@ prototab[] =
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-Ddkstu] [-S service] [-a authaddr] [-m mtpt]\n", argv0);
+	fprint(2, "usage: %s [-DdkStu] [-s service] [-a authaddr] [-m mtpt]\n", argv0);
 	fprint(2, "or    %s -g 'params'\n", argv0);
 	exits("usage");
 }
@@ -172,6 +172,7 @@ main(int argc, char **argv)
 }
 
 char *pmsg = "Warning! %s can't protect itself from debugging: %r\n";
+char *smsg = "Warning! %s can't turn off swapping: %r\n";
 
 /* don't allow other processes to debug us and steal keys */
 static void
@@ -188,6 +189,8 @@ private(void)
 	}
 	if(fprint(fd, "private") < 0)
 		fprint(2, pmsg, argv0);
+	if(fprint(fd, "noswap") < 0)
+		fprint(2, smsg, argv0);
 	close(fd);
 }
 

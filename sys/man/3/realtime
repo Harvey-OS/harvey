@@ -305,7 +305,7 @@ processvideo(){
 .SH "SEE ALSO
 .IR rtstats (1)
 .SH FILES
-.B /usr/sape/src/realtime/edfproc.c
+.B /sys/src/cmd/rtstats/edfproc.c
 as an example of using the scheduler for a trivial test run.
 .SH SOURCE
 .B /sys/src/9/port/devrealtime.c

@@ -1,3 +1,6 @@
+.de SS
+.NH 2
+..
 .EQ
 delim $#
 .EN
@@ -16,13 +19,6 @@ Sean Quinlan, Bell Labs
 .br
 .CW {rsc,ehg,rob,presotto,seanq}@plan9.bell-labs.com
 .AB
-Abstract
-.FS
-To appear, in a slightly different form, in
-.I
-Proc. of the 2002 Usenix Security Symposium,
-San Francisco.
-.FE
 The security architecture of the Plan 9™
 operating system has recently been redesigned
 to address some technical shortcomings.
@@ -49,6 +45,13 @@ applications.
 .CW  Factotum
 has an unusual architecture: it is implemented
 as a Plan 9 file server.
+.FS
+To appear, in a slightly different form, in
+.I
+Proc. of the 2002 Usenix Security Symposium,
+.R
+San Francisco.
+.FE
 .AE
 .NH 1
 Introduction

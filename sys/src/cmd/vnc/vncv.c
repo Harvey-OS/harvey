@@ -54,7 +54,7 @@ netmkvncaddr(char *inserver)
 	}
 
 	snprint(portstr, sizeof portstr, "%d", port);
-	p = netmkaddr(server, nil, portstr);
+	p = netmkaddr(server, "tcp", portstr);
 	free(server);
 	return p;
 }
@@ -101,6 +101,7 @@ main(int argc, char **argv)
 		usage();
 
 	addr = netmkvncaddr(argv[0]);
+	serveraddr = argv[0];
 	dfd = dial(addr, nil, nil, &cfd);
 	if(dfd < 0)
 		sysfatal("cannot dial %s: %r", addr);

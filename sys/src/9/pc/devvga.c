@@ -97,7 +97,7 @@ vgaopen(Chan* c, int omode)
 
 	scr = &vgascreen[0];
 	if ((ulong)c->qid.path == Qvgaovlctl) {
-		if (scr->dev->ovlctl)
+		if (scr->dev && scr->dev->ovlctl)
 			scr->dev->ovlctl(scr, c, openctl, strlen(openctl));
 		else 
 			error(Enonexist);
@@ -113,7 +113,7 @@ vgaclose(Chan* c)
 
 	scr = &vgascreen[0];
 	if((ulong)c->qid.path == Qvgaovlctl)
-		if(scr->dev->ovlctl){
+		if(scr->dev && scr->dev->ovlctl){
 			if(waserror()){
 				print("ovlctl error: %s\n", up->errstr);
 				return;
@@ -418,7 +418,7 @@ vgawrite(Chan* c, void* a, long n, vlong off)
 
 	case Qvgaovl:
 		scr = &vgascreen[0];
-		if (scr->dev->ovlwrite == nil) {
+		if (scr->dev == nil || scr->dev->ovlwrite == nil) {
 			error(Enooverlay);
 			break;
 		}
@@ -426,7 +426,7 @@ vgawrite(Chan* c, void* a, long n, vlong off)
 
 	case Qvgaovlctl:
 		scr = &vgascreen[0];
-		if (scr->dev->ovlctl == nil) {
+		if (scr->dev == nil || scr->dev->ovlctl == nil) {
 			error(Enooverlay);
 			break;
 		}

@@ -116,6 +116,8 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 		cd->nextblock = start;
 	} else {
 		direc->block = start;
+		if(chatty)
+			fprint(2, "lookup %.16H %lud (%s) failed\n", digest, length, direc->name);
 		insertmd5(d, atom(direc->name), digest, start, length);
 	}
 }

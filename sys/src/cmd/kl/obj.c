@@ -14,6 +14,7 @@ char	*thestring 	= "sparc";
 /*
  *	-H0 -T0x200000 -R0		is boot
  *	-H2 -T4128 -R4096		is plan9 format
+ *	-H3 -T0xE0004000 -R4		is javastation boot format
  */
 
 void
@@ -116,6 +117,15 @@ main(int argc, char *argv[])
 		if(INITRND == -1)
 			INITRND = 4096;
 		break;
+	case 3:	/* javastation boot */
+		HEADR = 32L;
+		if(INITTEXT == -1)
+			INITTEXT = 0xE0004020L;
+		if(INITDAT == -1)
+			INITDAT = 0;
+		if(INITRND == -1)
+			INITRND = 4;
+		break;
 	}
 	if(INITDAT != 0 && INITRND != 0)
 		print("warning: -D0x%lux is ignored because of -R0x%lux\n",
@@ -162,7 +172,7 @@ main(int argc, char *argv[])
 	while(*argv)
 		objfile(*argv++);
 	if(!debug['l'])
-		loadlib(0, libraryp);
+		loadlib();
 	firstp = firstp->link;
 	if(firstp == P)
 		goto out;
@@ -192,18 +202,24 @@ out:
 }
 
 void
-loadlib(int beg, int end)
+loadlib(void)
 {
-	int i, t;
+	int i;
+	long h;
+	Sym *s;
 
-	for(i=end-1; i>=beg; i--) {
-		t = libraryp;
+loop:
+	xrefresolv = 0;
+	for(i=0; i<libraryp; i++) {
 		if(debug['v'])
 			Bprint(&bso, "%5.2f autolib: %s\n", cputime(), library[i]);
 		objfile(library[i]);
-		if(t != libraryp)
-			loadlib(t, libraryp);
 	}
+	if(xrefresolv)
+	for(h=0; h<nelem(hash); h++)
+	for(s = hash[h]; s != S; s = s->link)
+		if(s->type == SXREF)
+			goto loop;
 }
 
 void
@@ -315,6 +331,7 @@ objfile(char *file)
 				errorexit();
 			}
 			work = 1;
+			xrefresolv = 1;
 		}
 	}
 	return;

@@ -319,11 +319,16 @@ _ifmt(Fmt *f)
 			u = va_arg(f->args, ulong);
 		else
 			u = va_arg(f->args, long);
+	}else if(fl & FmtByte){
+		if(fl & FmtUnsigned)
+			u = (uchar)va_arg(f->args, int);
+		else
+			u = (char)va_arg(f->args, int);
 	}else if(fl & FmtShort){
 		if(fl & FmtUnsigned)
-			u = va_arg(f->args, ushort);
+			u = (ushort)va_arg(f->args, int);
 		else
-			u = va_arg(f->args, short);
+			u = (short)va_arg(f->args, int);
 	}else{
 		if(fl & FmtUnsigned)
 			u = va_arg(f->args, uint);

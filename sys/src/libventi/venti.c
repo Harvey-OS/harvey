@@ -938,8 +938,10 @@ vtRPC(VtSession *z, int op, Packet *p)
 	hdr[1] = 0;	/* tid */
 	vtDebug(z, "client send: ");
 	vtDebugMesg(z, p, "\n");
-	if(!vtSendPacket(z, p))
+	if(!vtSendPacket(z, p)) {
+		p = nil;
 		goto Err;
+	}
 	p = vtRecvPacket(z);
 	if(p == nil)
 		goto Err;

@@ -330,6 +330,7 @@ vmwarefill(VGAscr*, Rectangle r, ulong sval)
 static void
 vmwaredrawinit(VGAscr *scr)
 {
+	ulong offset;
 	ulong mmiobase, mmiosize;
 
 	if(scr->mmio==nil){
@@ -353,6 +354,9 @@ vmwaredrawinit(VGAscr *scr)
 
 	scr->scroll = vmwarescroll;
 	scr->fill = vmwarefill;
+
+	offset = vmrd(vm, Rfboffset);
+	scr->gscreendata->bdata += offset;
 }
 
 VGAdev vgavmwaredev = {

@@ -9,6 +9,7 @@ FILES = \
 	acidpaper.ps \
 	ape.ps \
 	asm.ps \
+	auth.ps \
 	comp.ps \
 	compiler.ps \
 	lexnames.ps \
@@ -32,6 +33,7 @@ DIRS = \
 	8½ \
 	acme \
 	fs \
+	venti \
 	il \
 	net \
 	sam \
@@ -45,6 +47,7 @@ print:V: \
 	9.ps \
 	names.ps \
 	net/net.ps \
+	auth.ps \
 	comp.ps \
 	prog4.ps \
 	ape.ps \
@@ -62,6 +65,7 @@ print:V: \
 	compiler.ps \
 	libmach.ps \
 	fs/fs.ps \
+	vent/venti.ps \
 	il/il.ps \
 	sleep.ps \
 	lexnames.ps \
@@ -210,6 +214,10 @@ sam/sam.html:
 acme/acme.html:
 	cd acme
 	mk acme.html
+
+venti/venti.html:
+	cd venti
+	mk venti.html
 
 il/il.html:
 	cd il

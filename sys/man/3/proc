@@ -242,6 +242,13 @@ Close all open file descriptors in the process.
 .B nohang
 Clear the hang bit.
 .TP 10n
+.B noswap
+Don't allow this process to be swapped out.  This should
+be used carefully and sparingly or the system could run
+out of memory.  It is meant for processes that can't be
+swapped, like the ones implementing the swap device and for
+processes containing sensitive data.
+.TP 10n
 .B kill
 Kill the process the next time it crosses the user/kernel boundary.
 .TP 10n

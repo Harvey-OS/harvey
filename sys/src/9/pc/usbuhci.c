@@ -1480,10 +1480,13 @@ reset(Usbhost *uh)
 	t->link = PCIWADDR(t);
 	ctlr->bwsop->entries = PCIWADDR(t);
 
-	ctlr->ctlq->head = PCIWADDR(ctlr->bwsop) | IsQH;
-	ctlr->bwsop->head = PCIWADDR(ctlr->bulkq) | IsQH;
+	ctlr->ctlq->head = PCIWADDR(ctlr->bulkq) | IsQH;
 	ctlr->bulkq->head = PCIWADDR(ctlr->recvq) | IsQH;
-	ctlr->recvq->head = PCIWADDR(ctlr->bwsop) | IsQH;	/* loop back */
+	ctlr->recvq->head = PCIWADDR(ctlr->bwsop) | IsQH;
+	if (1)	/* don't use loop back */
+ 		ctlr->bwsop->head = Terminate;
+	else	/* set up loop back */
+		ctlr->bwsop->head = PCIWADDR(ctlr->bwsop) | IsQH;
 
 	ctlr->frames = xspanalloc(FRAMESIZE, FRAMESIZE, 0);
 	ctlr->frameld = xallocz(FRAMESIZE, 1);

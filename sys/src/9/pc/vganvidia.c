@@ -43,6 +43,8 @@ static ushort nvidiadid[] = {
 	0x0152,		/* GeForce2 Ultra */
 	0x0153,		/* Quadro 2 Pro */
 	0x0200,		/* GeForce3 */
+	0x0201,
+	0x0202,
 	0,
 };
 
@@ -219,11 +221,11 @@ nvidiacurenable(VGAscr* scr)
 }
 
 enum {
-	RopFifo = 0x00000000, 
-	ClipFifo = 0x00002000,
-	PattFifo = 0x00004000,
-	BltFifo = 0x00008000,
-	BitmapFifo = 0x0000A000,
+	RopFifo 		= 0x00000000, 
+	ClipFifo 		= 0x00002000,
+	PattFifo 		= 0x00004000,
+	BltFifo 		= 0x00008000,
+	BitmapFifo 	= 0x0000A000,
 };
 
 enum {

@@ -94,7 +94,6 @@ int qdiff;
 char *exclude[MaxExclude];
 int nexclude;
 int nowrite;
-char *prefix;
 int merge;
 
 void
@@ -146,11 +145,6 @@ main(int argc, char *argv[])
 		break;
 	case 'm':
 		merge++;
-		break;
-	case 'p':
-		prefix = ARGF();
-		if(prefix == nil)
-			usage();
 		break;
 	case 'q':
 		qdiff++;
@@ -299,12 +293,9 @@ vac(VtSession *z, char *argv[])
 			cp2++;
 			cd = 1;
 		}
-		if(fs) {
-			if(prefix == nil)
-				vff = vacFileOpen(fs, cp2);
-			else
-				vff = vacFileOpen(fs, prefix);
-		} else
+		if(fs)
+			vff = vacFileOpen(fs, cp2);
+		else
 			vff = nil;
 		vacFile(dsink, argv[0], cp2, vff);
 		if(vff)

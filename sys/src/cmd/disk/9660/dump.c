@@ -99,6 +99,9 @@ addfile(Cdimg *cd, Dump *d, char *name, Direc *dir)
 	}
 
 	md5cd(cd, dir->block, dir->length, md5);
+	if(chatty){
+		fprint(2, "note file %.16H %lud (%s)\n", md5, dir->length, dir->name);
+	}
 	insertmd5(d, name, md5, dir->block, dir->length);
 }
 

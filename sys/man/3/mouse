@@ -62,7 +62,8 @@ the
 file.
 The
 .B mousein
-file, which is exclusive-use, is intended for controlling devices, such as USB mice,
+file, which is exclusive-use and may be opened
+only by the host owner, is intended for controlling devices, such as USB mice,
 that are managed by user-level software.
 Each event should consist of
 the letter
@@ -207,7 +208,3 @@ shift key is pressed, the right mouse button generates middle-button events.
 .SH BUGS
 The cursor format is big endian while the
 rest of the graphics interface is little endian.
-.PP
-The
-.B mousein
-file is disabled.

@@ -34,6 +34,7 @@ enum {
 	Rcursorx,
 	Rcursory,
 	Rcursoron,
+	Rhostbpp,
 	Nreg,
 
 	Crectfill = 1<<0,
@@ -94,6 +95,7 @@ rname[Nreg] = {
 	"CursorX",
 	"CursorY",
 	"CursorOn",
+	"HostBpp",
 };
 
 static ulong
@@ -124,7 +126,7 @@ bits(ulong a)
 static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
-	int i;
+	int extra, i;
 	Pcidev *p;
 	Vmware *vm;
 
@@ -157,20 +159,22 @@ snarf(Vga* vga, Ctlr* ctlr)
 	 * Figure out color channel.  Delay errors until init,
 	 * which is after the register dump.
 	 */
+	vm->depth = vm->r[Rbpp];
+	extra = vm->r[Rbpp] - vm->r[Rdepth];
 	if(vm->r[Rrmask] > vm->r[Rgmask] && vm->r[Rgmask] > vm->r[Rbmask]){
-		sprint(vm->chan, "r%dg%db%d", bits(vm->r[Rrmask]),
+		if(extra)
+			sprint(vm->chan, "x%d", extra);
+		else
+			vm->chan[0] = '\0';
+		sprint(vm->chan+strlen(vm->chan), "r%dg%db%d", bits(vm->r[Rrmask]),
 			bits(vm->r[Rgmask]), bits(vm->r[Rbmask]));
-		if(strcmp(vm->chan, "r5g5b5") == 0)
-			strcpy(vm->chan, "x1r5g5b5");
-	}else if(vm->r[Rbmask] > vm->r[Rgmask] && vm->r[Rgmask] > vm->r[Rrmask])
+	}else if(vm->r[Rbmask] > vm->r[Rgmask] && vm->r[Rgmask] > vm->r[Rrmask]){
 		sprint(vm->chan, "b%dg%dr%d", bits(vm->r[Rbmask]),
 			bits(vm->r[Rgmask]), bits(vm->r[Rrmask]));
-	else
+		if(extra)
+			sprint(vm->chan+strlen(vm->chan), "x%d", extra);
+	}else
 		sprint(vm->chan, "unknown");
-
-	vm->depth = bits(vm->r[Rrmask])
-		  + bits(vm->r[Rgmask])
-		  + bits(vm->r[Rbmask]);
 
 	/* Record the frame buffer start, size */
 	vga->vmb = vm->r[Rfbstart];
@@ -211,9 +215,7 @@ init(Vga* vga, Ctlr* ctlr)
 		error("couldn't translate color masks into channel");
 
 	/* Always use the screen depth, and clip the screen size */
-	vga->mode->z = vm->r[Rdepth];
-	if(vga->mode->z == 15)
-		vga->mode->z = 16;
+	vga->mode->z = vm->r[Rbpp];
 	if(vga->mode->x > vm->r[Rmaxwidth])
 		vga->mode->x = vm->r[Rmaxwidth];
 	if(vga->mode->y > vm->r[Rmaxheight])
@@ -232,6 +234,8 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr *ctlr)
 {
+	char buf[64];
+	int x;
 	Vmware *vm;
 
 	vm = vga->private;
@@ -240,6 +244,13 @@ load(Vga* vga, Ctlr *ctlr)
 	vmwr(vm, Renable, 1);
 	vmwr(vm, Rguestid, 0x5010);	/* OS type is "Other" */
 
+	x = vmrd(vm, Rbpl)/(vm->depth/8);
+	if(x != vga->mode->x){
+		vga->virtx = x;
+		sprint(buf, "%ludx%ludx%d %s", vga->virtx, vga->virty,
+			vga->mode->z, vga->mode->chan);
+		vgactlw("size", buf);
+	}
 	ctlr->flag |= Fload;
 }
 

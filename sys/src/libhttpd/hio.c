@@ -457,7 +457,7 @@ hwrite(Hio *h, void *vbuf, int len)
 		}
 		m = n % Hsize;
 		n -= m;
-		if(write(h->fd, buf, n) != n){
+		if(n != 0 && write(h->fd, buf, n) != n){
 			h->state = Herr;
 			h->stop = h->pos;
 			return -1;

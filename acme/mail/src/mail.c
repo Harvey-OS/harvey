@@ -153,7 +153,7 @@ threadmain(int argc, char *argv[])
 				break;
 			err[0] = '\0';
 			errstr(err, sizeof err);
-			if(strstr(err, "mbox name in use") != nil)
+			if(strstr(err, "mbox name in use") == nil)
 				error("Mail: can't create directory %s for mail: %s\n", name, err);
 			free(fsname);
 			fsname = emalloc(strlen(name)+10);

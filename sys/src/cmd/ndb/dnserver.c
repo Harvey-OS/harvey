@@ -106,10 +106,10 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req)
 	if(repp->an == nil){
 		if(myarea != nil){
 			rrcopy(myarea->soarr, &tp);
-			rrcat(&repp->an, tp);
+			rrcat(&repp->ns, tp);
 		} else if(neg != nil) {
 			if(neg->negsoaowner != nil)
-				rrcat(&repp->an, rrlookup(neg->negsoaowner, Tsoa, NOneg));
+				rrcat(&repp->ns, rrlookup(neg->negsoaowner, Tsoa, NOneg));
 			repp->flags |= neg->negrcode;
 		}
 	}

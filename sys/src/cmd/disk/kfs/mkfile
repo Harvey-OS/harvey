@@ -39,3 +39,12 @@ $O.out:	devwren.$O
 $O.gfs:	$OFILES devmulti.$O
 	$LD $LDFLAGS -o $target $prereq
 
+
+test:VQ:
+	echo rm -fr /srv/il!$sysname!11111
+	echo 'kill 8.out|rc'
+	echo rm /srv/il!$sysname!11111
+	echo 8.out -Crf /tmp/disk
+	echo disk/kfscmd ''''listen il!*!11111''''
+	echo srv il!$sysname!11111
+	echo mount /srv/il!$sysname!11111 /n/emelie

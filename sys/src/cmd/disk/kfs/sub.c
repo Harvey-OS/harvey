@@ -170,6 +170,7 @@ freefp(File *fp)
 
 	if(!fp || !(cp = fp->cp))
 		return;
+	authfree(fp);
 	lock(&cp->flock);
 	for(prev=0,f=cp->flist; f; prev=f,f=f->next) {
 		if(f != fp)

@@ -451,6 +451,9 @@ usbreset(void)
 		usbhost[ctlrno] = uh;
 	}
 
+	if(getconf("*nousbprobe"))
+		return;
+
 	cardno = ctlrno = 0;
 	while(usbtypes[cardno].type != nil && ctlrno < MaxUsb){
 		if(usbhost[ctlrno] != nil){

@@ -1699,6 +1699,7 @@ atapnp(void)
 			pcicfgw32(p, 0x40, r);
 			break;
 		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
+		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
 			pi = 0x85;
 			break;
 		case (0x0640<<16)|0x1095:	/* CMD 640B */

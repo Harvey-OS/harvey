@@ -209,6 +209,7 @@ init(Vga* vga, Ctlr* ctlr)
 		/*FALLTHROUGH*/
 	case 0x33:				/* Cyber9385 */
 	case 0x35:				/* Cyber9385 */
+	case 0x3A:				/* Cyber9385 */
 		vga->graphics[0x0F] |= 0x07;
 		break;
 	case 0x4A:				/* Cyber9388 */

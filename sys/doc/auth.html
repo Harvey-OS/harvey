@@ -154,7 +154,7 @@ Transport Layer Security (TLS)
 and began using encryption for all communications within the system.
 The overall architecture is illustrated in Figure 1a.
 <DL><DT><DD><TT><PRE>
-<br><img src="-.22122.gif"><br>
+<br><img src="-.2669382.gif"><br>
 </PRE></TT></DL>
 <br>&#32;<br>
 Figure 1a.  Components of the security architecture.
@@ -250,7 +250,8 @@ The next few sections describe the design of
 <TT>factotum</TT>
 and how it operates with the other pieces of Plan 9 to provide
 security services.
-Logging in
+<H4>2.1 Logging in
+</H4>
 <br>&#32;<br>
 To make the discussions that follow more concrete,
 we begin with a couple of examples showing how the
@@ -323,7 +324,8 @@ will hear from
 <TT>factotum</TT>
 unless an attempt is made to contact
 a system for which no key is kept in the secure store.
-The factotum
+<H4>2.2 The factotum
+</H4>
 <br>&#32;<br>
 Each computer running Plan 9 has one user id that owns all the
 resources on that system &#173; the scheduler, local disks,
@@ -471,7 +473,8 @@ modules for the Plan 9 shared key protocol (p9sk1), for
 SSH's RSA authentication, passwords in the clear, APOP, CRAM, PPP's CHAP,
 Microsoft PPP's MSCHAP, and VNC's challenge/response.  We're
 in the process of adding support for TLS handshakes.
-Local capabilities
+<H4>2.3 Local capabilities
+</H4>
 <br>&#32;<br>
 A capability system, managed by the kernel, is used to empower
 <TT>factotum</TT>
@@ -523,7 +526,8 @@ Hence a
 <TT>factotum</TT>
 running on one system cannot pass capabilities
 to processes on another and expect them to work.
-Keys
+<H4>2.4 Keys
+</H4>
 <br>&#32;<br>
 We define the word
 <I>key</I>
@@ -661,7 +665,8 @@ Things
 will likely get messier, however,
 when we grapple with public
 keys and their myriad components.
-Protecting keys
+<H4>2.5 Protecting keys
+</H4>
 <br>&#32;<br>
 Secrets must be prevented from escaping
 <TT>factotum</TT>.
@@ -773,7 +778,8 @@ and reboot it with a debugger instead of a kernel,
 allowing them to examine the contents of memory
 and find keys.  We have not found a satisfactory
 solution to this problem.
-Factotum transactions
+<H4>2.6 Factotum transactions
+</H4>
 <br>&#32;<br>
 External programs manage
 <TT>factotum</TT>'s
@@ -1174,7 +1180,8 @@ reduces
 <I>priori</I>
 the need for special interfaces.
 <br>&#32;<br>
-Plan 9 shared key protocol
+<H4>3.1 Plan 9 shared key protocol
+</H4>
 <br>&#32;<br>
 In addition to the various standard protocols supported by
 <TT>factotum</TT>,
@@ -1205,7 +1212,7 @@ We summarize it here:
          <I>K</I><I>n</I>{<I>nonce</I><I>S</I>,<I>counter</I>}
 <I>S</I>-&gt;<I>C</I>:  <I>K</I><I>n</I>{<I>nonce</I><I>C</I>,<I>counter</I>}
 </PRE></TT></DL>
-(Here <I>K</I>{<I>x</I>}0 indicates <I>x</I> encrypted with
+(Here <I>K</I>{<I>x</I>} indicates <I>x</I> encrypted with
 DES key <I>K</I>.)
 The first two messages exchange nonces and server identification.
 After this initial exchange, the client contacts the authentication
@@ -1234,7 +1241,8 @@ In the future we hope to introduce a public key version of
 p9sk1,
 which would allow authentication even
 when the authentication server is not available.
-The authentication server
+<H4>3.2 The authentication server
+</H4>
 <br>&#32;<br>
 Each Plan 9 security domain has an authentication server (AS)
 that all users trust to keep the complete set of shared keys.
@@ -1308,7 +1316,8 @@ To avoid replay attacks, the pre-encryption
 clear text for each of the protocols (as well as for p9sk1) includes
 a tag indicating the encryption's role in the
 protocol.  We elided them in these outlines.
-Protocol negotiation
+<H4>3.3 Protocol negotiation
+</H4>
 <br>&#32;<br>
 Rather than require particular protocols for particular services,
 we implemented a negotiation metaprotocol,
@@ -1320,7 +1329,7 @@ is used now by all native services on Plan 9.
 The metaprotocol is simple.  The callee sends a
 null-terminated string of the form:
 <DL><DT><DD><TT><PRE>
-v<I></I><I>n</I> <I>proto</I>10@<I>domain</I>10 <I>proto</I>20@<I>domain</I>20 ...
+v<I></I><I>n</I> <I>proto</I>1@<I>domain</I>1 <I>proto</I>2@<I>domain</I>2 ...
 </PRE></TT></DL>
 where
 <I>n</I>
@@ -1782,8 +1791,8 @@ capable of using any protocol supported by
 <TT>factotum</TT>,
 without that program knowing anything about the protocols.
 Traditionally each program needs to implement each
-authentication protocol for itself, an <I>O</I>(<I>n</I>^2)0 coding
-problem that reduces to an <I>O</I>(<I>n</I>)0 coding problem with
+authentication protocol for itself, an <I>O</I>(<I>n</I>^2) coding
+problem that reduces to an <I>O</I>(<I>n</I>) coding problem with
 <TT>factotum</TT>.
 <br>&#32;<br>
 Previous work on agents has concentrated on their use by clients
@@ -2010,15 +2019,15 @@ Ylonen, T.,
 </H4>
 <br>&#32;<br>
 Let <I>q&gt;</I>2^160 and <I>p&gt;</I>2^1024 be primes
-such that <I>p=rq+</I>1 with <I>r</I> not a multiple of <I>q</I>.
-^<I>*</I>h'-w'<I>*</I>'u+w'<I>*</I>'u'
+such that <I>p=rq+</I> with <I>r</I> not a multiple of <I>q</I>.
+^<I>*</I>h'-0w'<I>*</I>'u+0w'<I>*</I>'u'
 Take <I>h</I><I>&#191;</I><I>Z</I><I>p</I>h'-0w'<I>p</I>'u' such that <I>g</I>==<I>h</I>^<I>r</I> is not 1.
 These parameters may be chosen by the NIST algorithm for DSA,
 and are public, fixed values.
 The client <I>C</I> knows a secret PI
 and computes <I>H</I>==(<I>H</I>1(<I>C</I>, PI)<I></I>)^<I>r</I> and <I>H</I>^<I>-</I>1,
 ^<I>*</I>h'-0w'<I>*</I>'u+0w'<I>*</I>'u'
-where <I>H</I>10 is a hash function yielding a random element of <I>Z</I><I>p</I>h'-0w'<I>p</I>'u',
+where <I>H</I>1 is a hash function yielding a random element of <I>Z</I><I>p</I>h'-0w'<I>p</I>'u',
 and <I>H</I>^<I>-</I>1 may be computed by gcd.
 (All arithmetic is modulo <I>p</I>.)
 The client gives <I>H</I>^<I>-</I>1 to the server <I>S</I> ahead of time by a private channel.
@@ -2029,7 +2038,7 @@ The server checks <I>m</I>!=0 mod <I>p</I>,
 generates random <I>y</I>,
 computes MU==<I>g</I>^<I>y</I>,
 &#191;==(<I>m</I><I>H</I>^<I>-</I>1)^<I>y</I>,
-and sends <I>S</I>, MU0, <I>k</I>==<I>sha1</I>("server",<I>C</I>,<I>S</I>,<I>m</I>,MU,&#191;,<I>H</I>^<I>-</I>1).
+and sends <I>S</I>, MU, <I>k</I>==<I>sha1</I>("server",<I>C</I>,<I>S</I>,<I>m</I>,MU,&#191;,<I>H</I>^<I>-</I>1).
 Next the client computes &#191;<I>=</I>MU^<I>x</I>,
 verifies <I>k</I>,
 and sends <I>k&#180;</I>==<I>sha1</I>("client",<I>C</I>,<I>S</I>,<I>m</I>,MU,&#191;,<I>H</I>^<I>-</I>1).
@@ -2045,7 +2054,7 @@ MacKenzie has shown
 that the
 equivalence proof [Boyk00]
 can be adapted to cover our version.
-&#191;<br>&#32;<br>
+<br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
 Copyright</A> &#169; 2002 Lucent Technologies Inc.  All rights reserved.
 </body></html>

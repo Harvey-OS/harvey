@@ -251,21 +251,25 @@ defn up() {
 
 print("/sys/lib/acid/kernel");
 
+defn needacid(s){
+	print("\trc(\"cd /sys/src/9/", kdir, "; mk ", s, ".acid\")\n");
+	print("\tinclude(\"/sys/src/9/", kdir, "/", s, ".acid\")\n");
+}
+
 if (map()[2]) != {} then {	// map has more than two elements -> active proc
+	kdir = "unknown";
+
 	if objtype == "386" then {
 		map({"*data", 0x80000000, 0xffffffff, 0x80000000});
-		print("\trc(\"cd /sys/src/9/pc; mk proc.acid\");");
-		print("\tinclude(\"/sys/src/9/pc/proc.acid\")");
+		kdir="pc";
 	}
-	
 	if (objtype == "mips" || objtype == "mips2") then {
-		print("\trc(\"cd /sys/src/9/ch; mk proc.acid\");");
-		print("\tinclude(\"/sys/src/9/ch/proc.acid\")");
+		kdir = "ch";
 	}
 	if objtype == "alpha" then {
 		map({"*data", 0x80000000, 0xffffffff, 0x80000000});
-		print("\trc(\"cd /sys/src/9/alphapc; mk proc.acid\");");
-		print("\tinclude(\"/sys/src/9/alphapc/proc.acid\")");
+		kdir = "alpha";
 	}
+	needacid("proc");
 }
 

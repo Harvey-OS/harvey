@@ -1,7 +1,7 @@
 .TL
 Preface to the Fourth (2002) Edition
 .LP
-Plan 9 continues to grown and adapt.
+Plan 9 continues to grow and adapt.
 The fourth major release of the system
 incorporates a number of changes, but the most central
 is the conversion to a new version of the 9P file system

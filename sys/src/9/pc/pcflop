@@ -79,16 +79,18 @@ misc
 	vgacyber938x	+cur
 	vgaet4000	+cur
 	vgahiqvideo	+cur
+	vgai81x	+cur
 	vgamach64xx	+cur
 	vgamga2164w	+cur
+	vgamga4xx	+cur
 	vganeomagic	+cur
+	vganvidia	+cur
 	vgargb524	=cur
 	vgas3		+cur vgasavage
 	vgat2r4		+cur
 	vgatvp3020	=cur
 	vgatvp3026	=cur
 	vgavmware	+cur
-	vganvidia	+cur
 
 ip
 	il

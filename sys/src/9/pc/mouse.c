@@ -21,6 +21,8 @@ enum
 	Mouseserial=	1,
 	MousePS2=	2,
 };
+
+static QLock mousectlqlock;
 static int mousetype;
 static int intellimouse;
 static int packetsize;
@@ -53,34 +55,6 @@ static Cmdtab mousectlmsg[] =
 	CMreset,		"reset",		1,
 	CMserial,		"serial",		0,
 };
-
-/*
- *  setup a serial mouse
- */
-static void
-serialmouse(int port, char *type, int setspeed)
-{
-#ifdef notdef
-	if(mousetype == Mouseserial)
-		error(Emouseset);
-
-	if(port >= 3 || port < 0)
-		error(Ebadarg);
-
-	/* set up /dev/eia? as the mouse */
-	if(setspeed)
-		setspeed = 1200;
-	if(type && *type == 'M')
-		uartspecial(port, setspeed, 0, 0, m3mouseputc);
-	else
-		uartspecial(port, setspeed, 0, 0, mouseputc);
-	mousetype = Mouseserial;
-	packetsize = 3;
-#else
-	error("serial mouse not supported yet");
-	USED(port, type, setspeed);
-#endif /* notdef */
-}
 
 /*
  *  ps/2 mouse message is three bytes
@@ -275,6 +249,12 @@ mousectl(Cmdbuf *cb)
 {
 	Cmdtab *ct;
 
+	qlock(&mousectlqlock);
+	if(waserror()){
+		qunlock(&mousectlqlock);
+		nexterror();
+	}
+
 	ct = lookupcmd(cb, mousectlmsg, nelem(mousectlmsg));
 	switch(ct->index){
 	case CMaccelerated:
@@ -309,18 +289,16 @@ mousectl(Cmdbuf *cb)
 			setintellimouse();
 		break;
 	case CMserial:
-		switch(cb->nf){
-		case 1:
-			serialmouse(atoi(cb->f[0]+6), 0, 1);
-			break;
-		case 2:
-			serialmouse(atoi(cb->f[1]), 0, 0);
-			break;
-		case 3:
-		default:
-			serialmouse(atoi(cb->f[1]), cb->f[2], 0);
-			break;
-		}
+		if(mousetype == Mouseserial)
+			error(Emouseset);
+
+		if(cb->nf > 2 && *cb->f[2] == 'M')
+			i8250mouse(cb->f[1], m3mouseputc, 0);
+		else
+			i8250mouse(cb->f[1], mouseputc, cb->nf == 1);
+
+		mousetype = Mouseserial;
+		packetsize = 3;
 		break;
 	case CMhwaccel:
 		if(strcmp(cb->f[1], "on")==0)
@@ -330,4 +308,7 @@ mousectl(Cmdbuf *cb)
 		else
 			cmderror(cb, "bad mouse control message");
 	}
+
+	qunlock(&mousectlqlock);
+	poperror();
 }

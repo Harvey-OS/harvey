@@ -152,7 +152,6 @@ C structure.
 .B Tauth
 .IR tag [2]
 .IR afid [4]
-.IR afid [4]
 .IR uname [ s ]
 .IR aname [ s ]
 .br

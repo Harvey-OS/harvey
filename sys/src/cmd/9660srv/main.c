@@ -125,7 +125,7 @@ main(int argc, char **argv)
 		if(pipe(pipefd) < 0)
 			panic(1, "pipe");
 		sprint(srvfile, "/srv/%s", srvname);
-		srvfd = create(srvfile, OWRITE|ORCLOSE, 0666);
+		srvfd = create(srvfile, OWRITE|ORCLOSE, 0600);
 		if(srvfd < 0)
 			panic(1, srvfile);
 		fprint(srvfd, "%d", pipefd[0]);

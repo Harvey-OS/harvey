@@ -1,5 +1,6 @@
 #include	"all.h"
-#include	"/sys/include/fcall.h"
+#include	<fcall.h>
+#include	<auth.h>
 
 #define MSIZE	(MAXDAT+128)
 
@@ -34,12 +35,16 @@ fsversion(Chan* chan, Fcall* f, Fcall* r)
 	return 0;
 }
 
+char *keyspec = "proto=p9any role=server";
+
 static int
 fsauth(Chan *chan, Fcall *f, Fcall *r)
 {
 	int err, fd;
 	char *aname;
 	File *file;
+	int afd;
+	AuthRpc *rpc;
 
 	err = 0;
 	if(chan == cons.srvchan)
@@ -47,15 +52,29 @@ fsauth(Chan *chan, Fcall *f, Fcall *r)
 	file = filep(chan, f->afid, 1);
 	if(file == nil)
 		return Efidinuse;
-	file->authokay = 0;
+	file->uid = -1;
+
 	if(access("/mnt/factotum", 0) < 0)
 		if((fd = open("/srv/factotum", ORDWR)) >= 0)
 			mount(fd, -1, "/mnt", MBEFORE, "");
-	file->ffd = open("/mnt/factotum/p9any/server", ORDWR);
-	if(file->ffd < 0){
+
+	afd = open("/mnt/factotum/rpc", ORDWR);
+	if(afd < 0){
 		err = Esystem;
 		goto out;
 	}
+	rpc = auth_allocrpc(afd);
+	if(rpc == nil){
+		close(afd);
+		err = Esystem;
+		goto out;
+	}
+	file->rpc = rpc;
+	if(auth_rpc(rpc, "start", keyspec, strlen(keyspec)) != ARok){
+		err = Esystem;
+		goto out;
+	}
+
 	aname = f->aname;
 	if(!aname[0])
 		aname = "main";
@@ -83,6 +102,51 @@ out:
 	return err;
 }
 
+int
+authread(File *file, uchar *data, int count)
+{
+	AuthInfo *ai;
+	AuthRpc *rpc;
+	int rv;
+
+	rpc = file->rpc;
+	rv = auth_rpc(rpc, "read", nil, 0);
+	switch(rv){
+	case ARdone:
+		ai = auth_getinfo(rpc);
+		if(ai == nil)
+			return -1;
+		if(chat)
+			print("authread identifies user as %s\n", ai->cuid);
+		file->cuid = strtouid(ai->cuid);
+		if(file->cuid == 0)
+			return -1;
+		if(chat)
+			print("%s is a known user\n", ai->cuid);
+		return 0;
+	case ARok:
+		if(count < rpc->narg)
+			return -1;
+		memmove(data, rpc->arg, rpc->narg);
+		return rpc->narg;
+	case ARphase:
+		return -1;
+	default:
+		return -1;
+	}
+}
+
+int
+authwrite(File *file, uchar *data, int count)
+{
+	int ret;
+
+	ret = auth_rpc(file->rpc, "write", data, count);
+	if(ret != ARok)
+		return -1;
+	return count;
+}
+
 void
 mkqid9p1(Qid9p1* qid9p1, Qid* qid)
 {
@@ -92,6 +156,16 @@ mkqid9p1(Qid9p1* qid9p1, Qid* qid)
 	if(qid->type & QTDIR)
 		qid9p1->path |= QPDIR;
 	qid9p1->version = qid->vers;
+}
+
+void
+authfree(File *fp)
+{
+	if(fp->rpc != nil){
+		close(fp->rpc->afd);
+		free(fp->rpc);
+		fp->rpc = nil;
+	}
 }
 
 void
@@ -111,29 +185,35 @@ mkqid9p2(Qid* qid, Qid9p1* qid9p1, int mode)
 static int
 checkattach(Chan *chan, File *afile, File *file, Filsys *fs)
 {
-	char buf[1];
+	uchar buf[1];
 
 	if(chan == cons.srvchan || chan == cons.chan)
 		return 0;
-	if(file->uid == 0){
-		if(!allownone && !chan->authed)
-			return Eauth;
-		return 0;
-	}
-	if(afile == nil)
+
+	/* if no afile, this had better be none */
+	if(afile == nil){
+		if(file->uid == 0){
+			if(!allownone && !chan->authed)
+				return Eauth;
+			return 0;
+		}
 		return Eauth;
+	}
+
+	/* otherwise, we'ld better have a usable cuid */
 	if(!(afile->qid.type&QTAUTH))
 		return Eauth;
 	if(afile->uid != file->uid || afile->fs != fs)
 		return Eauth;
-	if(afile->ffd >= 0){
-		afile->authokay = (read(afile->ffd, buf, 1) == 0);
-		close(afile->ffd);
-		afile->ffd = -1;
+	if(afile->cuid <= 0){
+		if(authread(afile, buf, 0) != 0)
+			return Eauth;
+		if(afile->cuid <= 0)
+			return Eauth;
 	}
-	if(!afile->authokay)
-		return Eauth;
+	file->uid = afile->cuid;
 	chan->authed = 1;
+
 	return 0;
 }		
 
@@ -162,12 +242,6 @@ fsattach(Chan* chan, Fcall* f, Fcall* r)
 
 	u = -1;
 	if(chan != cons.chan){
-/*
-		if(noattach && strcmp(f->uname, "none")) {
-			error = Enoattach;
-			goto out;
-		}
-*/
 		if(strcmp(f->uname, "adm") == 0){
 			error = Eauth;
 			goto out;
@@ -947,10 +1021,11 @@ fsread(Chan* chan, Fcall* f, Fcall* r)
 		goto out;
 	}
 	if(file->qid.type & QTAUTH){
-		error = 0;
-		nread = pread(file->ffd, data, count, offset);
+		nread = authread(file, data, count);
 		if(nread < 0)
 			error = Esystem;
+		else
+			error = 0;
 		goto out;
 	}
 	if(!(file->open & FREAD)){
@@ -1139,10 +1214,11 @@ fswrite(Chan* chan, Fcall* f, Fcall* r)
 		goto out;
 	}
 	if(file->qid.type & QTAUTH){
-		error = 0;
-		nwrite = pwrite(file->ffd, f->data, count, offset);
+		nwrite = authwrite(file, (uchar*)f->data, count);
 		if(nwrite < 0)
 			error = Esystem;
+		else
+			error = 0;
 		goto out;
 	}
 	if(!(file->open & FWRITE)){
@@ -1779,3 +1855,4 @@ serve9p2(Chan *chan, uchar *ib, int nib)
 	if(chan == cons.srvchan || chan == cons.chan)
 		print("console chan read error");
 }
+
