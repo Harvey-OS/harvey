@@ -128,6 +128,23 @@ _cd () {
 }
 alias cd=_cd
 .EE
+.PP
+The examples described so far only help for relative
+path names.  Add this plumbing rule to handle rooted names
+like
+.BR /usr/include/stdio.h :
+.IP
+.EX
+# remote rooted path names
+type is text
+wdir matches '/n/unix(/.*)?'
+data matches '/([.a-zA-Z¡-￿0-9_/\e-]*[a-zA-Z¡-￿0-9_/\e-])('$addr')?'
+arg isfile /n/unix/$1
+data set $file
+attr add addr=$3
+plumb to edit
+plumb client window $editor
+.EE
 .SH SOURCE
 .B /rc/bin/rwd
 .br
@@ -139,8 +156,6 @@ alias cd=_cd
 .SH BUGS
 This mechanism is clunky, but Unix and SSH
 make it hard to build a better one.
-.PP
-This doesn't handle rooted path names.
 .PP
 The escape sequence was chosen because
 it changes the title on xterm windows.

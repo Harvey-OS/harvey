@@ -157,9 +157,13 @@ diskWriteRaw(Disk *disk, int part, u32int addr, uchar *buf)
 	}
 
 	offset = ((u64int)(addr + start))*disk->h.blockSize;
-	n = disk->h.blockSize;
-	if(pwrite(disk->fd, buf, n, offset) < n){
+	n = pwrite(disk->fd, buf, disk->h.blockSize, offset);
+	if(n < 0){
 		vtOSError();
+		return 0;
+	}
+	if(n < disk->h.blockSize) {
+		vtSetError("short write");
 		return 0;
 	}
 
@@ -296,7 +300,7 @@ if(0)fprint(2, "diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 			abort();
 		case BioReading:
 			if(!diskReadRaw(disk, b->part, b->addr, b->data)){
-fprint(2, "diskReadRaw failed: part=%d addr=%ux: %r", b->part, b->addr);
+fprint(2, "diskReadRaw failed: part=%d addr=%ux: %r\n", b->part, b->addr);
 				blockSetIOState(b, BioReadError);
 			}else
 				blockSetIOState(b, BioClean);
@@ -304,7 +308,7 @@ fprint(2, "diskReadRaw failed: part=%d addr=%ux: %r", b->part, b->addr);
 		case BioWriting:
 			p = blockRollback(b, buf);
 			if(!diskWriteRaw(disk, b->part, b->addr, p)){
-fprint(2, "diskWriteRaw failed: part=%d addr=%ux: %r", b->part, b->addr);
+fprint(2, "diskWriteRaw failed: date=%s part=%d addr=%ux: %r\n", ctime(times(0)), b->part, b->addr);
 				break;
 			}
 			if(p != buf)

@@ -77,7 +77,7 @@
 386/bin/aux/cddb - 775 sys sys 1039758537 70432
 386/bin/aux/clog - 775 sys sys 1039758538 65408
 386/bin/aux/consolefs - 775 sys sys 1039758538 152994
-386/bin/aux/conswdir - 775 sys sys 1042425147 38855
+386/bin/aux/conswdir - 775 sys sys 1042440488 38855
 386/bin/aux/cropmarks - 775 sys sys 1020319062 1808
 386/bin/aux/data2s - 775 sys sys 1039758538 59178
 386/bin/aux/depend - 775 sys sys 1039758538 145132
@@ -200,9 +200,9 @@
 386/bin/fmt - 775 sys sys 1039758560 63811
 386/bin/fortune - 775 sys sys 1039758560 66329
 386/bin/fossil - 20000000775 sys sys 1042005470 0
-386/bin/fossil/flchk - 775 sys sys 1042352737 227864
-386/bin/fossil/flfmt - 775 sys sys 1042352739 226447
-386/bin/fossil/fossil - 775 sys sys 1042352736 330877
+386/bin/fossil/flchk - 775 sys sys 1042440488 228190
+386/bin/fossil/flfmt - 775 sys sys 1042440489 226775
+386/bin/fossil/fossil - 775 sys sys 1042440490 331207
 386/bin/freq - 775 sys sys 1039758560 60443
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1039758560 96155
@@ -354,7 +354,7 @@
 386/bin/srv - 775 sys sys 1039758591 80150
 386/bin/srvfs - 775 sys sys 1039758592 39914
 386/bin/srvold9p - 775 sys sys 1039758592 130502
-386/bin/ssh - 775 sys sys 1042424645 209316
+386/bin/ssh - 775 sys sys 1042440491 209672
 386/bin/sshnet - 775 sys sys 1039758593 281010
 386/bin/stats - 775 sys sys 1039758593 184849
 386/bin/strings - 775 sys sys 1039758593 60879
@@ -434,7 +434,7 @@
 386/bin/venti/wrarena - 775 sys sys 1039758612 181345
 386/bin/venti/write - 775 sys sys 1039758613 102982
 386/bin/vncs - 775 sys sys 1041143646 440998
-386/bin/vncv - 775 sys sys 1039914698 174139
+386/bin/vncv - 775 sys sys 1042440492 174563
 386/bin/vt - 775 sys sys 1039758614 169349
 386/bin/vtdump - 775 sys sys 1039914698 163327
 386/bin/wc - 775 sys sys 1039758615 42416
@@ -4400,7 +4400,7 @@ sys/man/1/0intro - 664 sys sys 958249499 9623
 sys/man/1/2a - 664 sys sys 944959673 1032
 sys/man/1/2c - 664 sys sys 1016731553 7349
 sys/man/1/2l - 664 sys sys 944959675 4074
-sys/man/1/INDEX - 664 sys sys 1041971548 2895
+sys/man/1/INDEX - 664 sys sys 1042440492 2916
 sys/man/1/INDEX.html - 664 sys sys 1026845791 15882
 sys/man/1/aan - 664 sys sys 1019856818 1622
 sys/man/1/acid - 664 sys sys 1016833872 9422
@@ -4499,7 +4499,7 @@ sys/man/1/resample - 664 sys sys 1015024740 1083
 sys/man/1/rio - 664 sys sys 1015024740 14087
 sys/man/1/rm - 664 sys sys 944959673 515
 sys/man/1/rtstats - 664 sys sys 1018897631 2108
-sys/man/1/rwd - 664 sys sys 1042428060 2601
+sys/man/1/rwd - 664 sys sys 1042469992 2958
 sys/man/1/sam - 664 sys sys 984709628 18107
 sys/man/1/secstore - 664 sys sys 1041890056 3434
 sys/man/1/sed - 664 sys sys 944959674 6884
@@ -5157,7 +5157,7 @@ sys/src/9/pc/screen.c - 664 sys sys 1039753497 7266
 sys/src/9/pc/screen.h - 664 sys sys 1039753497 3742
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1033134905 51568
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1032487085 44555
+sys/src/9/pc/sdata.c - 664 sys sys 1042497924 44703
 sys/src/9/pc/sdmylex.c - 664 sys sys 1015014523 27750
 sys/src/9/pc/sdscsi.c - 664 sys sys 1015014523 7412
 sys/src/9/pc/trap.c - 664 sys sys 1040002517 19364
@@ -7017,7 +7017,7 @@ sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
 sys/src/cmd/fossil/cache.c - 664 sys sys 1042311688 41291
 sys/src/cmd/fossil/dat.h - 664 sys sys 1042311689 7790
 sys/src/cmd/fossil/deadlock - 775 sys sys 1042005506 413
-sys/src/cmd/fossil/disk.c - 664 sys sys 1042005506 5634
+sys/src/cmd/fossil/disk.c - 664 sys sys 1042497769 5736
 sys/src/cmd/fossil/dump.c - 664 sys sys 1042005506 1340
 sys/src/cmd/fossil/error.c - 664 sys sys 1042005507 1367
 sys/src/cmd/fossil/error.h - 664 sys sys 1042005507 744
