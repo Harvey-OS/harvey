@@ -3,14 +3,12 @@
 #	get AP news headline list or the given story
 #
 
-tmp=/tmp/tmp.$pid
 wire='http://www.newsday.com/news/nationworld/wire'
 if ( ~ $#* 0 )
-	hget $wire | tee /tmp/ap.tmp |
+	hget $wire | #tee /tmp/ap.$pid |
+		sed -n '/LAST 7 DAYS/,/end last 7 days/p' |
 		htmlfmt -a -w 100 |
 		sed -n '
-			1,/On Wall Street/d
-			/AP News Wire/,$d
 			/^• / {
 				N
 				s/^• / /g
