@@ -37,20 +37,22 @@ PORT=\
 
 OBJ=\
 	l.$O\
-	main.$O\
-	trap.$O\
 	clock.$O\
+	defont.$O\
+	fpi.$O\
+	fpiarm.$O\
+	fpimem.$O\
+	main.$O\
 	mmu.$O\
 	power.$O\
 	random.$O\
 	sa1110dma.$O\
 	screen.$O\
+	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
 	$DEVS\
 	$PORT\
-	fpi.$O\
-	fpiarm.$O\
-	fpimem.$O\
-	defont.$O\
 
 LIB=\
 	/$objtype/lib/libmemlayer.a\

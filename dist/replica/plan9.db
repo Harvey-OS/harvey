@@ -4949,7 +4949,7 @@ sys/src/9/alphapc/main.c - 664 sys sys 1039753420 13626
 sys/src/9/alphapc/mem.h - 664 sys sys 1017166326 3132
 sys/src/9/alphapc/memmove.s - 664 sys sys 1015012786 2936
 sys/src/9/alphapc/memset.s - 664 sys sys 1015012786 844
-sys/src/9/alphapc/mkfile - 664 sys sys 1039753423 1985
+sys/src/9/alphapc/mkfile - 664 sys sys 1055825921 2018
 sys/src/9/alphapc/mmu.c - 664 sys sys 1015012786 4872
 sys/src/9/alphapc/mouse.c - 664 sys sys 1015012786 25
 sys/src/9/alphapc/pci.c - 664 sys sys 1039753420 7868
@@ -4996,7 +4996,7 @@ sys/src/9/bitsy/l.s - 664 sys sys 1055700934 18211
 sys/src/9/bitsy/main.c - 664 sys sys 1039753387 8929
 sys/src/9/bitsy/map - 664 sys sys 1017695515 236
 sys/src/9/bitsy/mem.h - 664 sys sys 1055700932 8049
-sys/src/9/bitsy/mkfile - 664 sys sys 1043922405 2438
+sys/src/9/bitsy/mkfile - 664 sys sys 1055825921 2471
 sys/src/9/bitsy/mmu.c - 664 sys sys 1055700931 11228
 sys/src/9/bitsy/mouse.c - 664 sys sys 1017695516 962
 sys/src/9/bitsy/paqfiles - 20000000775 sys sys 1020011250 0
@@ -5088,7 +5088,7 @@ sys/src/9/mtx/kbd.c - 664 sys sys 1018721286 8358
 sys/src/9/mtx/l.s - 664 sys sys 1032053280 10389
 sys/src/9/mtx/main.c - 664 sys sys 1018721287 8344
 sys/src/9/mtx/mem.h - 664 sys sys 1026848200 5959
-sys/src/9/mtx/mkfile - 664 sys sys 1039753441 1475
+sys/src/9/mtx/mkfile - 664 sys sys 1055825923 1508
 sys/src/9/mtx/mmu.c - 664 sys sys 1018721287 4388
 sys/src/9/mtx/mtx - 664 sys sys 1039753441 413
 sys/src/9/mtx/mtxcpu - 664 sys sys 1039753442 421
@@ -5156,7 +5156,7 @@ sys/src/9/pc/l.s - 664 sys sys 1055700610 20868
 sys/src/9/pc/main.c - 664 sys sys 1055700611 14507
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1032303986 12994
-sys/src/9/pc/mkfile - 664 sys sys 1040002514 2995
+sys/src/9/pc/mkfile - 664 sys sys 1055825916 3100
 sys/src/9/pc/mmu.c - 664 sys sys 1049509456 10014
 sys/src/9/pc/mouse.c - 664 sys sys 1020369766 6315
 sys/src/9/pc/mp.c - 664 sys sys 1048644112 16928

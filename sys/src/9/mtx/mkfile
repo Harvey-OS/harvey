@@ -48,6 +48,8 @@ OBJ=\
 	random.$O\
 	raven.$O\
 	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
 	$DEVS\
 	$PORT\
 
