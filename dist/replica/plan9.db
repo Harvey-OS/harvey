@@ -224,7 +224,7 @@
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
 386/bin/fcp - 775 sys sys 1110859785 82162
-386/bin/file - 775 sys sys 1108008333 112495
+386/bin/file - 775 sys sys 1111810171 112495
 386/bin/fmt - 775 sys sys 1104122009 65301
 386/bin/fortune - 775 sys sys 1104122009 67136
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -3056,7 +3056,7 @@ rc/bin/patch/apply - 775 sys sys 1109511606 1285
 rc/bin/patch/create - 775 sys sys 1107957505 1404
 rc/bin/patch/diff - 775 sys sys 1109511606 474
 rc/bin/patch/email - 775 sys sys 1109511607 409
-rc/bin/patch/list - 775 sys sys 1110722754 716
+rc/bin/patch/list - 775 sys sys 1111765301 729
 rc/bin/patch/move - 775 sys sys 1109511607 573
 rc/bin/patch/note - 664 sys sys 1109511607 663
 rc/bin/patch/okay - 775 sys sys 1109511608 250
@@ -3610,10 +3610,10 @@ sys/lib/dist/pc/inst/configip - 775 sys sys 1018469719 1132
 sys/lib/dist/pc/inst/confignet - 775 sys sys 1019322596 1301
 sys/lib/dist/pc/inst/configppp - 775 sys sys 1019058714 1402
 sys/lib/dist/pc/inst/copydist - 775 sys sys 1019917500 703
-sys/lib/dist/pc/inst/defs - 664 sys sys 1063856187 2728
+sys/lib/dist/pc/inst/defs - 664 sys sys 1111771991 2743
 sys/lib/dist/pc/inst/download - 775 sys sys 1063856193 1237
 sys/lib/dist/pc/inst/finish - 775 sys sys 1032990669 266
-sys/lib/dist/pc/inst/fmtfossil - 775 sys sys 1063856193 1990
+sys/lib/dist/pc/inst/fmtfossil - 775 sys sys 1111771991 1982
 sys/lib/dist/pc/inst/fmtventi - 775 sys sys 1063856189 3345
 sys/lib/dist/pc/inst/gui - 775 sys sys 1032539034 79
 sys/lib/dist/pc/inst/halt - 775 sys sys 1063856192 497
@@ -3627,16 +3627,16 @@ sys/lib/dist/pc/inst/iskfs - 775 sys sys 1018469719 183
 sys/lib/dist/pc/inst/isventi - 775 sys sys 1063856189 228
 sys/lib/dist/pc/inst/isventiarenas - 775 sys sys 1063856189 258
 sys/lib/dist/pc/inst/isventiisect - 775 sys sys 1063856190 256
-sys/lib/dist/pc/inst/main - 775 sys sys 1063856189 1952
+sys/lib/dist/pc/inst/main - 775 sys sys 1111771992 1941
 sys/lib/dist/pc/inst/mainloop - 775 sys sys 1019058715 532
 sys/lib/dist/pc/inst/mkini.awk - 664 sys sys 1019917495 1163
 sys/lib/dist/pc/inst/mountdist - 775 sys sys 1045504304 4889
 sys/lib/dist/pc/inst/mountfossil - 775 sys sys 1063856193 3556
-sys/lib/dist/pc/inst/mountfs - 775 sys sys 1063856188 217
+sys/lib/dist/pc/inst/mountfs - 775 sys sys 1111771992 182
 sys/lib/dist/pc/inst/mountkfs - 775 sys sys 1063856188 2481
 sys/lib/dist/pc/inst/moveoldfs - 775 sys sys 1089300756 1347
-sys/lib/dist/pc/inst/partdisk - 775 sys sys 1063856191 1828
-sys/lib/dist/pc/inst/prepdisk - 775 sys sys 1063856190 1604
+sys/lib/dist/pc/inst/partdisk - 775 sys sys 1111771992 1820
+sys/lib/dist/pc/inst/prepdisk - 775 sys sys 1111771992 1462
 sys/lib/dist/pc/inst/replcfg - 775 sys sys 1019533019 395
 sys/lib/dist/pc/inst/startether - 775 sys sys 1018640315 513
 sys/lib/dist/pc/inst/startppp - 775 sys sys 1019058715 577
@@ -5053,7 +5053,7 @@ sys/man/4/usbd - 664 sys sys 1018386778 731
 sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
 sys/man/4/webfs - 664 sys sys 1019828742 6455
-sys/man/4/wikifs - 664 sys sys 1018581459 7501
+sys/man/4/wikifs - 664 sys sys 1111765301 7505
 sys/man/5 - 20000000775 sys sys 1015024846 0
 sys/man/5/0intro - 664 sys sys 1072793193 14106
 sys/man/5/INDEX - 664 sys sys 1104736382 193
@@ -5450,6 +5450,7 @@ sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
 sys/src/9/pc/trap.c - 664 sys sys 1105109602 20537
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
+sys/src/9/pc/uartisa.c - 664 sys sys 1111725178 1775
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
 sys/src/9/pc/usb.h - 664 sys sys 1099760881 3650
 sys/src/9/pc/usbuhci.c - 664 sys sys 1099760881 30955
@@ -7558,7 +7559,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 644 sys sys 1110816880 3780
-sys/src/cmd/file.c - 664 sys sys 1104849659 22939
+sys/src/cmd/file.c - 664 sys sys 1111784964 22934
 sys/src/cmd/fmt.c - 664 sys sys 1070032009 4088
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0

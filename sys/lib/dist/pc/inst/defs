@@ -175,3 +175,5 @@ fn runkfs {
 	disk/kfscmd -n$1 allow
 }
 
+fstype=fossil
+
