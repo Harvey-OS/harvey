@@ -542,7 +542,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1081564247 81428
+386/lib/libmp.a - 664 sys sys 1081652367 77700
 386/lib/libndb.a - 664 sys sys 1079451578 61344
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -4694,7 +4694,7 @@ sys/man/1/man - 664 sys sys 1059484724 1740
 sys/man/1/marshal - 664 sys sys 1079970326 3150
 sys/man/1/mc - 664 sys sys 1045501392 508
 sys/man/1/mk - 664 sys sys 964455061 13154
-sys/man/1/mkdir - 664 sys sys 944959673 443
+sys/man/1/mkdir - 664 sys sys 1081621073 597
 sys/man/1/mlmgr - 664 sys sys 1045501403 2427
 sys/man/1/ms2html - 664 sys sys 960001562 856
 sys/man/1/nedmail - 664 sys sys 1055704205 11322
@@ -6699,7 +6699,6 @@ sys/src/cmd/7l/optab.c - 774 sys sys 944961630 5087
 sys/src/cmd/7l/pass.c - 774 sys sys 1045503945 8694
 sys/src/cmd/7l/sched.c - 774 sys sys 944961630 244
 sys/src/cmd/7l/span.c - 774 sys sys 1045503946 12041
-sys/src/cmd/8._cp - 775 sys sys 1077049220 62444
 sys/src/cmd/8a - 20000000775 sys sys 944960730 0
 sys/src/cmd/8a/a.h - 664 sys sys 944960730 3017
 sys/src/cmd/8a/a.y - 664 sys sys 1032101906 6399
@@ -9407,7 +9406,7 @@ sys/src/cmd/gzip/mkfile - 664 sys sys 984758036 125
 sys/src/cmd/gzip/unzip.c - 664 sys sys 1050689595 13603
 sys/src/cmd/gzip/zip.c - 664 sys sys 1033183074 7054
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
-sys/src/cmd/hget.c - 664 sys sys 1081199967 24671
+sys/src/cmd/hget.c - 664 sys sys 1081651071 24671
 sys/src/cmd/history.c - 664 sys sys 1073079763 6117
 sys/src/cmd/hoc - 20000000775 sys sys 954036932 0
 sys/src/cmd/hoc/code.c - 664 sys sys 944961000 10041
@@ -9755,7 +9754,7 @@ sys/src/cmd/mk/symtab.c - 664 sys sys 944961025 1581
 sys/src/cmd/mk/var.c - 664 sys sys 944961025 539
 sys/src/cmd/mk/varsub.c - 664 sys sys 944961025 4438
 sys/src/cmd/mk/word.c - 664 sys sys 944961025 2595
-sys/src/cmd/mkdir.c - 664 sys sys 1014926614 422
+sys/src/cmd/mkdir.c - 664 sys sys 1081621076 868
 sys/src/cmd/mkfile - 664 sys sys 1045534751 2205
 sys/src/cmd/mklib - 664 sys sys 1022112159 599
 sys/src/cmd/mkmany - 664 sys sys 1022112160 1196

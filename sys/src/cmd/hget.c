@@ -69,7 +69,7 @@ int	readline(int, char*, int);
 int	readibuf(int, char*, int);
 int	dfprint(int, char*, ...);
 void	unreadline(char*);
-int	output(Out*, void*, int);
+int	output(Out*, char*, int);
 void	setoffset(Out*, int);
 
 int	verbose;
