@@ -195,13 +195,13 @@
 386/bin/dial/expect - 775 sys sys 1104122000 60081
 386/bin/dial/pass - 775 sys sys 1104122001 38814
 386/bin/dict - 775 sys sys 1104122001 187459
-386/bin/diff - 775 sys sys 1106799173 84923
+386/bin/diff - 775 sys sys 1106971478 85101
 386/bin/disk - 20000000775 sys sys 984788664 0
 386/bin/disk/dump9660 - 775 sys sys 1104122002 152246
 386/bin/disk/exsort - 775 sys sys 1104122002 60210
 386/bin/disk/fdisk - 775 sys sys 1104122003 103794
 386/bin/disk/format - 775 sys sys 1104122003 89534
-386/bin/disk/kfs - 775 sys sys 1106107677 248770
+386/bin/disk/kfs - 775 sys sys 1106971479 248849
 386/bin/disk/kfscmd - 775 sys sys 1104122004 38222
 386/bin/disk/ksync - 775 sys sys 1020319074 302
 386/bin/disk/mbr - 775 sys sys 1104122004 73689
@@ -297,7 +297,7 @@
 386/bin/ip/rip - 775 sys sys 1104122029 91232
 386/bin/ip/rlogind - 775 sys sys 1104122029 67402
 386/bin/ip/telnetd - 775 sys sys 1104122030 121992
-386/bin/ip/tftpd - 775 sys sys 1106799176 129444
+386/bin/ip/tftpd - 775 sys sys 1106971479 129489
 386/bin/ip/traceroute - 775 sys sys 1104122030 73497
 386/bin/ip/udpecho - 775 sys sys 1104122030 43159
 386/bin/join - 775 sys sys 1104122031 116241
@@ -3903,7 +3903,7 @@ sys/lib/httpd.rewrite - 664 sys sys 954262980 825
 sys/lib/kbmap - 20000000775 sys sys 1079535430 0
 sys/lib/kbmap/ascii - 664 sys sys 1082221421 6248
 sys/lib/kbmap/azerty - 644 sys sys 1079473812 735
-sys/lib/kbmap/bgmap - 664 sys sys 1079475826 561
+sys/lib/kbmap/bg - 664 sys sys 1106924292 561
 sys/lib/kbmap/de - 664 sys sys 1100894012 6265
 sys/lib/kbmap/ee - 644 sys sys 1080222237 429
 sys/lib/kbmap/es - 664 sys sys 1079535430 1360
@@ -4687,7 +4687,7 @@ sys/man/1/db - 664 sys sys 1015024738 17862
 sys/man/1/dc - 664 sys sys 944959674 4834
 sys/man/1/dd - 664 sys sys 1055693436 3346
 sys/man/1/deroff - 664 sys sys 1017423524 1826
-sys/man/1/diff - 664 sys sys 1106723601 2907
+sys/man/1/diff - 664 sys sys 1106938097 2960
 sys/man/1/doc2txt - 664 sys sys 1105020018 2077
 sys/man/1/doctype - 664 sys sys 944959673 849
 sys/man/1/du - 664 sys sys 1017166323 1410
@@ -7364,9 +7364,9 @@ sys/src/cmd/dict/world.c - 664 sys sys 944960882 4264
 sys/src/cmd/diff - 20000000775 sys sys 944960882 0
 sys/src/cmd/diff/diff.h - 664 sys sys 1106723609 794
 sys/src/cmd/diff/diffdir.c - 664 sys sys 1014925333 1791
-sys/src/cmd/diff/diffio.c - 664 sys sys 1106723609 6378
+sys/src/cmd/diff/diffio.c - 664 sys sys 1106938096 6599
 sys/src/cmd/diff/diffreg.c - 664 sys sys 1106723609 8842
-sys/src/cmd/diff/main.c - 664 sys sys 1106151067 4325
+sys/src/cmd/diff/main.c - 664 sys sys 1106938096 4338
 sys/src/cmd/diff/mkfile - 664 sys sys 944960882 141
 sys/src/cmd/disk - 20000000775 sys sys 1018468546 0
 sys/src/cmd/disk/9660 - 20000000775 sys sys 1017681443 0
@@ -7411,7 +7411,7 @@ sys/src/cmd/disk/kfs/errno.h - 664 sys sys 1015009189 1317
 sys/src/cmd/disk/kfs/fns.h - 664 sys sys 1019058719 1010
 sys/src/cmd/disk/kfs/ialloc.c - 664 sys sys 944960883 103
 sys/src/cmd/disk/kfs/iobuf.c - 664 sys sys 1015009189 3769
-sys/src/cmd/disk/kfs/main.c - 664 sys sys 1022112155 9420
+sys/src/cmd/disk/kfs/main.c - 664 sys sys 1106924274 9515
 sys/src/cmd/disk/kfs/misc.c - 664 sys sys 1015009189 1182
 sys/src/cmd/disk/kfs/mkfile - 664 sys sys 1065916865 717
 sys/src/cmd/disk/kfs/ofcallfmt.c - 664 sys sys 1015009189 4674
@@ -9547,7 +9547,7 @@ sys/src/cmd/ip/snoopy/udp.c - 664 sys sys 1089299190 1990
 sys/src/cmd/ip/telnet.c - 664 sys sys 1080058033 8535
 sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
 sys/src/cmd/ip/telnetd.c - 664 sys sys 1032060109 11731
-sys/src/cmd/ip/tftpd.c - 664 sys sys 1106624712 7642
+sys/src/cmd/ip/tftpd.c - 664 sys sys 1106943821 7646
 sys/src/cmd/ip/traceroute.c - 664 sys sys 1032060124 9370
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1050714674 855
 sys/src/cmd/join.c - 664 sys sys 944961364 7488

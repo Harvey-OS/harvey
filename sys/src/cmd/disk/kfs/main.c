@@ -97,6 +97,9 @@ main(int argc, char *argv[])
 
 	cmdfd = 2;
 
+	if (access(wrenfile, AREAD|AWRITE) == -1)
+		sysfatal("%s cannot access device\n", wrenfile);
+
 	formatinit();
 	sublockinit();
 
