@@ -5,5 +5,6 @@ fn sigterm{}
 HOME=$home
 bind -b /rc/bin/ape /bin
 bind -b /$cputype/bin/ape /bin
-bind -a /$cputype/bin/pub /bin
+if(test -d /$cputype/bin/pub)
+	bind -a /$cputype/bin/pub /bin
 /bin/sh $*

@@ -2848,7 +2848,7 @@ rc/bin/ape/chown - 775 sys sys 945617285 43
 rc/bin/ape/false - 775 sys sys 945617285 17
 rc/bin/ape/grep - 775 sys sys 1023738308 60
 rc/bin/ape/install - 775 sys sys 1015089725 572
-rc/bin/ape/psh - 775 sys sys 945617286 209
+rc/bin/ape/psh - 775 sys sys 1040481105 240
 rc/bin/ape/rmdir - 775 sys sys 945617286 16
 rc/bin/ape/true - 775 sys sys 945617286 17
 rc/bin/ape/umask - 775 sys sys 945617286 34
@@ -4105,6 +4105,7 @@ sys/lib/postscript/troff/PB - 664 sys sys 955403668 28
 sys/lib/postscript/troff/PI - 664 sys sys 955403669 30
 sys/lib/postscript/troff/PX - 664 sys sys 955403669 34
 sys/lib/postscript/troff/R - 664 sys sys 955403669 366
+sys/lib/postscript/troff/R.nomath - 664 sys sys 1040521371 366
 sys/lib/postscript/troff/S - 664 sys sys 955403669 356
 sys/lib/postscript/troff/S1 - 664 sys sys 955403669 357
 sys/lib/postscript/troff/Syntax - 664 sys sys 955403669 27
@@ -4251,6 +4252,7 @@ sys/lib/troff/font/devutf/PB - 664 sys sys 944957518 2779
 sys/lib/troff/font/devutf/PI - 664 sys sys 944957518 2778
 sys/lib/troff/font/devutf/PX - 664 sys sys 944957518 2783
 sys/lib/troff/font/devutf/R - 664 sys sys 944957518 31277
+sys/lib/troff/font/devutf/R.nomath - 664 sys sys 1040521261 25129
 sys/lib/troff/font/devutf/S - 664 sys sys 1015088529 2854
 sys/lib/troff/font/devutf/S1 - 664 sys sys 944957518 414
 sys/lib/troff/font/devutf/Syntax - 664 sys sys 944957518 1025
@@ -4599,8 +4601,8 @@ sys/man/2/lock - 664 sys sys 1017435044 3244
 sys/man/2/mach - 664 sys sys 944959696 7994
 sys/man/2/malloc - 664 sys sys 1032238537 4397
 sys/man/2/matrix - 664 sys sys 950892861 6090
-sys/man/2/memdraw - 664 sys sys 985023077 10067
-sys/man/2/memlayer - 664 sys sys 985124880 6952
+sys/man/2/memdraw - 664 sys sys 1040484074 10144
+sys/man/2/memlayer - 664 sys sys 1040484074 6963
 sys/man/2/memory - 664 sys sys 944959694 2139
 sys/man/2/mktemp - 664 sys sys 950892862 669
 sys/man/2/mouse - 664 sys sys 971455512 4966
