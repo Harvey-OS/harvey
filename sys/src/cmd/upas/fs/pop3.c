@@ -14,14 +14,16 @@ struct Pop {
 
 	char *host;
 	char *user;
+	char *port;
 
 	int ppop;
 	int refreshtime;
 	int debug;
 	int pipeline;
-	int hastls;
+	int encrypted;
 	int needtls;
 	int notls;
+	int needssl;
 
 	// open network connection
 	Biobuf bin;
@@ -108,6 +110,38 @@ pop3log(char *fmt, ...)
 	return 0;
 }
 
+static char*
+pop3pushtls(Pop *pop)
+{
+	int fd;
+	uchar digest[SHA1dlen];
+	TLSconn conn;
+
+	memset(&conn, 0, sizeof conn);
+	// conn.trace = pop3log;
+	fd = tlsClient(pop->fd, &conn);
+	if(fd < 0)
+		return "tls error";
+	if(conn.cert==nil || conn.certlen <= 0){
+		close(fd);
+		return "server did not provide TLS certificate";
+	}
+	sha1(conn.cert, conn.certlen, digest, nil);
+	if(!pop->thumb || !okThumbprint(digest, pop->thumb)){
+		fmtinstall('H', encodefmt);
+		close(fd);
+		free(conn.cert);
+		fprint(2, "upas/fs pop3: server certificate %.*H not recognized\n", SHA1dlen, digest);
+		return "bad server certificate";
+	}
+	free(conn.cert);
+	close(pop->fd);
+	pop->fd = fd;
+	pop->encrypted = 1;
+	Binit(&pop->bin, pop->fd, OREAD);
+	Binit(&pop->bout, pop->fd, OWRITE);
+	return nil;
+}
 
 //
 // get capability list, possibly start tls
@@ -115,11 +149,8 @@ pop3log(char *fmt, ...)
 static char*
 pop3capa(Pop *pop)
 {
-	int fd;
 	char *s;
-	uchar digest[SHA1dlen];
 	int hastls;
-	TLSconn conn;
 
 	pop3cmd(pop, "CAPA");
 	if(!isokay(pop3resp(pop)))
@@ -140,28 +171,8 @@ pop3capa(Pop *pop)
 		pop3cmd(pop, "STLS");
 		if(!isokay(s = pop3resp(pop)))
 			return s;
-		memset(&conn, 0, sizeof conn);
-		// conn.trace = pop3log;
-		fd = tlsClient(pop->fd, &conn);
-		if(fd < 0)
-			return "tls error";
-		if(conn.cert==nil || conn.certlen <= 0){
-			close(fd);
-			return "server did not provide TLS certificate";
-		}
-		sha1(conn.cert, conn.certlen, digest, nil);
-		if(!pop->thumb || !okThumbprint(digest, pop->thumb)){
-			fmtinstall('H', encodefmt);
-			close(fd);
-			fprint(2, "upas/fs pop3: server certificate %.*H not recognized\n", SHA1dlen, digest);
-			return "bad server certificate";
-		}
-		free(conn.cert);
-		close(pop->fd);
-		pop->fd = fd;
-		Binit(&pop->bin, fd, OREAD);
-		Binit(&pop->bout, fd, OWRITE);
-		pop->hastls = 1;
+		if((s = pop3pushtls(pop)) != nil)
+			return s;
 	}
 	return nil;
 }
@@ -211,7 +222,7 @@ pop3login(Pop *pop)
 		if(s = pop3capa(pop))
 			return s;
 
-		if(pop->needtls && !pop->hastls)
+		if(pop->needtls && !pop->encrypted)
 			return "could not negotiate TLS";
 
 		up = auth_getuserpasswd(auth_getkey, "proto=pass service=pop dom=%q%s",
@@ -241,11 +252,16 @@ pop3dial(Pop *pop)
 {
 	char *err;
 
-	if((pop->fd = dial(netmkaddr(pop->host, "net", "pop3"), 0, 0, 0)) < 0)
+	if((pop->fd = dial(netmkaddr(pop->host, "net", pop->needssl ? "pop3s" : "pop3"), 0, 0, 0)) < 0)
 		return geterrstr();
 
-	Binit(&pop->bin, pop->fd, OREAD);
-	Binit(&pop->bout, pop->fd, OWRITE);
+	if(pop->needssl){
+		if((err = pop3pushtls(pop)) != nil)
+			return err;
+	}else{
+		Binit(&pop->bin, pop->fd, OREAD);
+		Binit(&pop->bout, pop->fd, OWRITE);
+	}
 
 	if(err = pop3login(pop)) {
 		close(pop->fd);
@@ -615,17 +631,19 @@ char*
 pop3mbox(Mailbox *mb, char *path)
 {
 	char *f[10];
-	int nf, apop, ppop, apoptls, popnotls, apopnotls, poptls;
+	int nf, apop, ppop, popssl, apopssl, apoptls, popnotls, apopnotls, poptls;
 	Pop *pop;
 
 	quotefmtinstall();
+	popssl = strncmp(path, "/pops/", 6) == 0;
+	apopssl = strncmp(path, "/apops/", 7) == 0;
 	poptls = strncmp(path, "/poptls/", 8) == 0;
 	popnotls = strncmp(path, "/popnotls/", 10) == 0;
-	ppop = poptls || popnotls || strncmp(path, "/pop/", 5) == 0;
+	ppop = popssl || poptls || popnotls || strncmp(path, "/pop/", 5) == 0;
 	apoptls = strncmp(path, "/apoptls/", 9) == 0;
 	apopnotls = strncmp(path, "/apopnotls/", 11) == 0;
-	apop = apoptls || apopnotls || strncmp(path, "/apop/", 6) == 0;
-	
+	apop = apopssl || apoptls || apopnotls || strncmp(path, "/apop/", 6) == 0;
+
 	if(!ppop && !apop)
 		return Enotme;
 
@@ -636,7 +654,7 @@ pop3mbox(Mailbox *mb, char *path)
 	nf = getfields(path, f, nelem(f), 0, "/");
 	if(nf != 3 && nf != 4) {
 		free(path);
-		return "bad pop3 path syntax /[a]pop[tls]/system[/user]";
+		return "bad pop3 path syntax /[a]pop[tls|ssl]/system[/user]";
 	}
 
 	pop = emalloc(sizeof(*pop));
@@ -647,6 +665,7 @@ pop3mbox(Mailbox *mb, char *path)
 	else
 		pop->user = f[3];
 	pop->ppop = ppop;
+	pop->needssl = popssl || apopssl;
 	pop->needtls = poptls || apoptls;
 	pop->refreshtime = 60;
 	pop->notls = popnotls || apopnotls;
