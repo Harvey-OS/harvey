@@ -148,6 +148,7 @@ tcp=sysmon port=401
 tcp=proxy port=402
 tcp=proxyd port=404
 tcp=https port=443
+tcp=cifs port=445
 tcp=ssmtp port=465
 tcp=rexec port=512 restricted=
 tcp=login port=513 restricted=
