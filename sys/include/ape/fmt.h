@@ -99,7 +99,7 @@ extern	int	fmtstrcpy(Fmt*, char*);
 extern	double	fmtstrtod(const char *, char **);
 extern	double	fmtcharstod(int(*)(void*), void*);
 
-extern	int	werrstr(const char*, ...);
+extern	void	werrstr(const char*, ...);
 
 #if defined(__cplusplus)
 }

@@ -23,6 +23,7 @@ int	isdir(char *);
 int	isreg(char *);
 int	isatty(int);
 int	isint(char *, int *);
+int	isolder(char *, char *);
 int	hasmode(char *, ulong);
 int	tio(char *, int);
 int	e(void), e1(void), e2(void), e3(void);
@@ -165,6 +166,9 @@ e3(void) {
 	if(EQ(p2, "!="))
 		return(!EQ(nxtarg(0), a));
 
+	if(EQ(p2, "-older"))
+		return(isolder(nxtarg(0), a));
+
 	if(!isint(a, &int1))
 		return(!EQ(a,""));
 
@@ -300,4 +304,49 @@ isint(char *s, int *pans)
 
 	*pans = strtol(s, &ep, 0);
 	return (*ep == 0);
+}
+
+int
+isolder(char *pin, char *f)
+{
+	char *p = pin;
+	ulong n, m;
+	Dir dir;
+
+	if(localstat(f,&dir)<0)
+		return(0);
+
+	/* parse time */
+	n = 0;
+	while(*p){
+		m = strtoul(p, &p, 0);
+		switch(*p){
+		case 0:
+			n = m;
+			break;
+		case 'y':
+			m *= 12;
+			/* fall through */
+		case 'M':
+			m *= 30;
+			/* fall through */
+		case 'd':
+			m *= 24;
+			/* fall through */
+		case 'h':
+			m *= 60;
+			/* fall through */
+		case 'm':
+			m *= 60;
+			/* fall through */
+		case 's':
+			n += m;
+			p++;
+			break;
+		default:
+			synbad("bad time syntax, ", pin);
+		}
+	}
+
+	return(dir.mtime+n < time(0));
 }
