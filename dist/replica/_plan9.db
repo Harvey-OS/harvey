@@ -144,7 +144,7 @@
 386/bin/aux/tr2post - 775 sys sys 1085077009 174655
 386/bin/aux/trampoline - 775 sys sys 1085077009 81287
 386/bin/aux/typepasswd - 775 sys sys 1085077010 67426
-386/bin/aux/vga - 775 sys sys 1089084069 300531
+386/bin/aux/vga - 775 sys sys 1090465582 299379
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1045537962 102172
@@ -315,10 +315,10 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1089257536 147261
 386/bin/ndb/csquery - 775 sys sys 1085077080 59444
-386/bin/ndb/dns - 775 sys sys 1089257537 218031
-386/bin/ndb/dnsdebug - 775 sys sys 1089257537 192630
+386/bin/ndb/dns - 775 sys sys 1090465583 217891
+386/bin/ndb/dnsdebug - 775 sys sys 1090465583 192507
 386/bin/ndb/dnsquery - 775 sys sys 1085077082 61758
-386/bin/ndb/dnstcp - 775 sys sys 1089257537 191267
+386/bin/ndb/dnstcp - 775 sys sys 1090465584 191144
 386/bin/ndb/ipquery - 775 sys sys 1089257538 93556
 386/bin/ndb/mkdb - 775 sys sys 1085077082 61950
 386/bin/ndb/mkhash - 775 sys sys 1085077083 81983
@@ -12339,7 +12339,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/vga - 775 sys sys 1090465582 299379
-386/bin/ndb/dns - 775 sys sys 1090465583 217891
-386/bin/ndb/dnsdebug - 775 sys sys 1090465583 192507
-386/bin/ndb/dnstcp - 775 sys sys 1090465584 191144
