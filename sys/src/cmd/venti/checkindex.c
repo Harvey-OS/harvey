@@ -178,7 +178,7 @@ main(int argc, char *argv[])
 
 	part = initPart(argv[1], 1);
 	if(part == nil)
-		fatal("can't initialize temporary parition: %R");
+		fatal("can't initialize temporary partition: %R");
 
 	clumps = sortRawIEntries(mainIndex, part, &base);
 	if(clumps == TWID64)

@@ -2,6 +2,8 @@
 #include "smtpd.h"
 #include "smtp.h"
 #include "ip.h"
+#include <mp.h>
+#include <libsec.h>
 #include <auth.h>
 
 char	*me;
@@ -250,6 +252,7 @@ hello(String *himp, int extended)
 
 	reply("250%c%s you are %s\r\n", extended ? '-' : ' ', dom, him);
 	if (extended) {
+		reply("250-STARTTLS\r\n");
 		if (passwordinclear)		
 			reply("250 AUTH CRAM-MD5 PLAIN LOGIN\r\n");
 		else
@@ -936,6 +939,38 @@ s_dec64(String *sin)
 }
 
 void
+starttls(void)
+{
+	uchar *cert;
+	int certlen, fd;
+	TLSconn *conn;
+
+	conn = mallocz(sizeof *conn, 1);
+	cert = readcert("/sys/lib/ssl/smtpd-cert.pem", &certlen);
+	if (conn == nil || cert == nil) {
+		if (conn != nil)
+			free(conn);
+		reply("454 TLS not available\r\n");
+		return;
+	}
+	reply("220 Go ahead make my day\r\n");
+	conn->cert = cert;
+	conn->certlen = certlen;
+	fd = tlsServer(Bfildes(&bin), conn);
+	if (fd < 0) {
+		free(cert);
+		free(conn);
+if(debug)fprint(2, "tlsServer failed: %r\n");
+		return;	/*  XXX  We should really force the client to hang up here.  */
+	}
+	Bterm(&bin);
+	Binit(&bin, fd, OREAD);
+	dup(fd, 1);
+	passwordinclear = 1;
+if(debug)fprint(2, "tlsServer suceeded\n");
+}
+
+void
 auth(String *mech, String *resp)
 {
 	Chalstate *chs = nil;
@@ -1080,3 +1115,5 @@ bomb_out:
 	if (s_resp2_64)
 		s_free(s_resp2_64);
 }
+
+

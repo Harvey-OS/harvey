@@ -64,6 +64,8 @@ cmd		: error
 			{ quit(); }
 		| 't' 'u' 'r' 'n' CRLF
 			{ turn(); }
+		| 's' 't' 'a' 'r' 't' 't' 'l' 's' CRLF
+			{ starttls(); }
 		| 'a' 'u' 't' 'h' spaces name spaces string CRLF
 			{ auth($6.s, $8.s); }
 		| 'a' 'u' 't' 'h' spaces name CRLF

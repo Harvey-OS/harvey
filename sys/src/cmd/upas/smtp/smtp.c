@@ -287,9 +287,12 @@ dotls(char *me)
 	getreply();
 	fd = tlsClient(Bfildes(&bout), c);
 	if (fd < 0)
+{if(debug)fprint(2, "error starting tlsClient: %r\n");
 		return Giveup;
+}
 	goodcerts = initThumbprints("/sys/lib/tls/smtp", "/sys/lib/tls/smtp.exclude");
 	if (goodcerts == nil) {
+if(debug)fprint(2, "bad cert\n");
 		free(c);
 		return Giveup;
 	}
