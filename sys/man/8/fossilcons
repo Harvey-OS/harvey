@@ -44,7 +44,7 @@ con /srv/fscons
 .PP
 .B srv
 [
-.B -dp
+.B -APWdp
 ]
 .I name
 .PP
@@ -359,6 +359,11 @@ With the
 flag, 
 .I srv 
 edits a list of console services rather than 9P services.
+See the
+.I [fsys] open
+command below for a description of the
+.B -APW
+options.
 .PP
 .I Uname
 manipulates entries in the user table.
@@ -612,6 +617,13 @@ allocate an in-memory cache of
 .I ncache
 (by default, 1000)
 blocks
+.PP
+The
+.I -APW
+settings can be overridden on a per-connection basis
+by the
+.I srv
+command above.
 .PP
 .I Close
 flushes all dirty file system blocks to disk
