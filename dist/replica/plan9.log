@@ -13893,3 +13893,17 @@
 1066318374 3 c sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 1066327268 0 c sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1066325855 11762
 1066327268 1 c sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1066325859 40675
+1066516291 0 c 386/bin/ssh - 775 sys sys 1066515694 210438
+1066516291 1 c 386/bin/stats - 775 sys sys 1066515228 188651
+1066516291 2 c 386/bin/ip/ipconfig - 775 sys sys 1066515194 128650
+1066516291 3 c 386/bin/ip/rarpd - 775 sys sys 1066515202 107640
+1066516291 4 c 386/bin/ndb/cs - 775 sys sys 1066515212 144290
+1066516291 5 c 386/lib/libip.a - 664 sys sys 1066515140 34340
+1066516291 6 a sys/src/9/boot/libboot.a8 - 664 sys sys 1066515074 62658
+1066516291 7 c sys/src/9/ip/ethermedium.c - 664 sys sys 1066514880 15124
+1066516291 8 c sys/src/9/pc/ether82557.c - 664 sys sys 1066514925 29683
+1066516291 9 c sys/src/9/port/netif.c - 664 sys sys 1066514951 13421
+1066516291 10 c sys/src/9/port/netif.h - 664 sys sys 1066514947 2975
+1066516291 11 c sys/src/cmd/ssh/ssh.c - 664 sys sys 1066515693 9667
+1066516291 12 c sys/src/cmd/stats.c - 664 sys sys 1066515220 27952
+1066516291 13 c sys/src/libip/myetheraddr.c - 664 sys sys 1066515138 837

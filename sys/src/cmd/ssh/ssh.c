@@ -328,6 +328,10 @@ rawon(void)
 {
 	if(raw)
 		return;
+	if(cooked)
+		return;
+	if(consctl < 0)
+		consctl = open("/dev/consctl", OWRITE);
 	if(consctl < 0)
 		return;
 	if(write(consctl, "rawon", 5) != 5)
@@ -347,6 +351,8 @@ rawoff(void)
 		return;
 	if(write(consctl, "rawoff", 6) != 6)
 		return;
+	close(consctl);
+	consctl = -1;
 	raw = 0;
 }
 
@@ -521,12 +527,8 @@ fromstdin(Conn *c)
 	}
 
 	atexit(atexitkiller);
-	if(interactive){
-		consctl = open("/dev/consctl", OWRITE);
-		if(!cooked)
-			rawon();
-	}else
-		consctl = -1;
+	if(interactive)
+		rawon();
 
 	notify(cookedcatchint);
 

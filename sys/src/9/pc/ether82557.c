@@ -36,6 +36,7 @@ enum {					/* CSR */
 	Fcr		= 0x0C,		/* Flash control register */
 	Ecr		= 0x0E,		/* EEPROM control register */
 	Mcr		= 0x10,		/* MDI control register */
+	Gstatus		= 0x1D,		/* General status register */
 };
 
 enum {					/* Status */
