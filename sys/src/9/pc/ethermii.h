@@ -43,7 +43,7 @@ enum {					/* Bmsr */
 	BmsrEs		= 0x0100,	/* Extended Status */
 	Bmsr100T2HD	= 0x0200,	/* 100BASE-T2 HD Capable */
 	Bmsr100T2FD	= 0x0400,	/* 100BASE-T2 FD Capable */
-	Bmsr10THD	= 0x0800,	/* 100BASE-T HD Capable */
+	Bmsr10THD	= 0x0800,	/* 10BASE-T HD Capable */
 	Bmsr10TFD	= 0x1000,	/* 10BASE-T FD Capable */
 	Bmsr100TXHD	= 0x2000,	/* 100BASE-TX HD Capable */
 	Bmsr100TXFD	= 0x4000,	/* 100BASE-TX FD Capable */
