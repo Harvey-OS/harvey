@@ -3,7 +3,7 @@
 386/9loaddebug - 775 sys sys 1098933169 299545
 386/9loadlite - 775 sys sys 1097716797 131864
 386/9loadlitedebug - 775 sys sys 1097744361 194456
-386/9pc - 775 sys sys 1099545481 1820993
+386/9pc - 775 sys sys 1099839482 1822047
 386/9pc.gz - 664 sys sys 1077049336 635727
 386/9pccpu - 775 sys sys 1099800621 1477040
 386/9pccpu.gz - 664 sys sys 1077049387 519909
@@ -5207,7 +5207,7 @@ sys/src/9/bitsy/Booting101 - 664 sys sys 1054798506 8841
 sys/src/9/bitsy/bitsy - 664 sys sys 1067722592 424
 sys/src/9/bitsy/bitsyreset.s - 664 sys sys 1017695510 2352
 sys/src/9/bitsy/clock.c - 664 sys sys 1037028998 4835
-sys/src/9/bitsy/dat.h - 664 sys sys 1091904418 5790
+sys/src/9/bitsy/dat.h - 664 sys sys 1099805278 5857
 sys/src/9/bitsy/defont.c - 664 sys sys 1017695511 21570
 sys/src/9/bitsy/devether.c - 664 sys sys 1037029002 10675
 sys/src/9/bitsy/devflash.c - 664 sys sys 1018386999 16832
