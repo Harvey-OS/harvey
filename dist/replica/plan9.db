@@ -22,18 +22,18 @@
 386/bin/8l - 775 sys sys 1045537932 107923
 386/bin/9660srv - 775 sys sys 1045537932 105209
 386/bin/aan - 775 sys sys 1045537933 128318
-386/bin/acid - 775 sys sys 1045537934 377954
+386/bin/acid - 775 sys sys 1046265116 378280
 386/bin/acme - 775 sys sys 1045665593 416883
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1038443079 135228
 386/bin/ape/cc - 775 sys sys 1045537935 68930
-386/bin/ape/diff - 775 sys sys 1046198795 345686
-386/bin/ape/diff3 - 775 sys sys 1046198796 187364
+386/bin/ape/diff - 775 sys sys 1046265117 345686
+386/bin/ape/diff3 - 775 sys sys 1046265118 187364
 386/bin/ape/dirname - 775 sys sys 1039673023 135007
 386/bin/ape/expr - 775 sys sys 1038443080 144796
 386/bin/ape/kill - 775 sys sys 1038443080 140422
 386/bin/ape/make - 775 sys sys 1045537935 205170
-386/bin/ape/patch - 775 sys sys 1046198797 298449
+386/bin/ape/patch - 775 sys sys 1046265119 298449
 386/bin/ape/psh - 775 sys sys 1042220689 34
 386/bin/ape/sed - 775 sys sys 1038443081 160382
 386/bin/ape/sh - 775 sys sys 1045537937 477563
@@ -108,13 +108,13 @@
 386/bin/aux/ms2 - 775 sys sys 1045537953 84053
 386/bin/aux/mswordstrings - 775 sys sys 1039758542 64268
 386/bin/aux/na - 775 sys sys 1045537953 152774
-386/bin/aux/nfsmount - 775 sys sys 1046182497 231137
+386/bin/aux/nfsmount - 775 sys sys 1046265120 231230
 386/bin/aux/nfsserver - 775 sys sys 1045537954 171046
 386/bin/aux/olefs - 775 sys sys 1045537954 144352
 386/bin/aux/p9bitpost - 775 sys sys 1039758543 127979
 386/bin/aux/pcmcia - 775 sys sys 1039758543 46790
 386/bin/aux/pcnfsd - 775 sys sys 1045537955 126750
-386/bin/aux/portmap - 775 sys sys 1046182498 140690
+386/bin/aux/portmap - 775 sys sys 1046265121 140783
 386/bin/aux/portmapper - 775 sys sys 1045537955 125638
 386/bin/aux/postgif - 775 sys sys 1038443100 177440
 386/bin/aux/postprint - 775 sys sys 1038443101 161939
@@ -134,7 +134,7 @@
 386/bin/aux/tr2post - 775 sys sys 1045537960 175522
 386/bin/aux/trampoline - 775 sys sys 1045537960 81157
 386/bin/aux/typepasswd - 775 sys sys 1045537960 68154
-386/bin/aux/vga - 775 sys sys 1045537961 299475
+386/bin/aux/vga - 775 sys sys 1046265122 299547
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1045537961 298
 386/bin/aux/vmwarefs - 775 sys sys 1045537962 102172
@@ -299,7 +299,7 @@
 386/bin/netkey - 775 sys sys 1039758579 70753
 386/bin/netstat - 775 sys sys 1045538036 81379
 386/bin/news - 775 sys sys 1045538036 70512
-386/bin/nfs - 775 sys sys 1046182499 315491
+386/bin/nfs - 775 sys sys 1046265123 315584
 386/bin/nm - 775 sys sys 1045538037 123227
 386/bin/nntpfs - 775 sys sys 1045538038 161729
 386/bin/ns - 775 sys sys 1039758580 63830
@@ -439,7 +439,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1045538088 105156
 386/bin/venti/wrarena - 775 sys sys 1045538089 178907
 386/bin/venti/write - 775 sys sys 1045538089 100592
-386/bin/vncs - 775 sys sys 1046182501 438050
+386/bin/vncs - 775 sys sys 1046265125 438048
 386/bin/vncv - 775 sys sys 1045776649 266165
 386/bin/vt - 775 sys sys 1045538092 170883
 386/bin/vtdump - 775 sys sys 1045538093 160937
@@ -456,7 +456,7 @@
 386/include - 20000000775 sys sys 953243048 0
 386/include/ape - 20000000775 sys sys 944946041 0
 386/include/ape/float.h - 664 sys sys 969656988 1643
-386/include/ape/math.h - 664 sys sys 1022624465 1902
+386/include/ape/math.h - 664 sys sys 1046282351 2123
 386/include/ape/stdarg.h - 664 sys sys 944946040 276
 386/include/ape/ureg.h - 664 sys sys 944946041 812
 386/include/u.h - 664 sys sys 1042604326 1450
@@ -499,7 +499,7 @@
 386/lib/libscribble.a - 664 sys sys 1045538126 108138
 386/lib/libsec.a - 664 sys sys 1045538128 635686
 386/lib/libstdio.a - 664 sys sys 1045538128 125144
-386/lib/libsunrpc.a - 664 sys sys 1046182507 355304
+386/lib/libsunrpc.a - 664 sys sys 1046265131 355574
 386/lib/libthread.a - 664 sys sys 1045538129 71494
 386/lib/libventi.a - 664 sys sys 1045538129 97938
 386/mbr - 775 sys sys 1022125974 407
@@ -532,7 +532,7 @@
 68020/include - 20000000775 sys sys 944946363 0
 68020/include/ape - 20000000775 sys sys 944946347 0
 68020/include/ape/float.h - 664 sys sys 969656988 1639
-68020/include/ape/math.h - 664 sys sys 1022624466 1901
+68020/include/ape/math.h - 664 sys sys 1046282351 2123
 68020/include/ape/stdarg.h - 664 sys sys 944946347 324
 68020/include/ape/ureg.h - 664 sys sys 944946347 741
 68020/include/dac.h - 664 sys sys 944946363 154
@@ -756,7 +756,7 @@ alpha/conf/10.0.0.2 - 644 sys sys 954267393 128
 alpha/include - 20000000775 sys sys 944946362 0
 alpha/include/ape - 20000000775 sys sys 944946346 0
 alpha/include/ape/float.h - 664 sys sys 969656988 1674
-alpha/include/ape/math.h - 664 sys sys 1022624467 1900
+alpha/include/ape/math.h - 664 sys sys 1046282352 2123
 alpha/include/ape/stdarg.h - 664 sys sys 958591172 413
 alpha/include/ape/ureg.h - 664 sys sys 944946346 1241
 alpha/include/u.h - 664 sys sys 1042604328 1536
@@ -783,7 +783,7 @@ arm/bin/venti - 20000000775 sys sys 1019679272 0
 arm/include - 20000000775 sys sys 985642212 0
 arm/include/ape - 20000000775 sys sys 985642227 0
 arm/include/ape/float.h - 664 sys sys 985642226 1643
-arm/include/ape/math.h - 664 sys sys 1022624468 1902
+arm/include/ape/math.h - 664 sys sys 1046282352 2123
 arm/include/ape/stdarg.h - 664 sys sys 985642227 276
 arm/include/ape/ureg.h - 664 sys sys 985642227 617
 arm/include/u.h - 664 sys sys 1042604329 1419
@@ -2753,7 +2753,7 @@ mips/bin/venti - 20000000775 sys sys 1019679272 0
 mips/include - 20000000775 sys sys 953243035 0
 mips/include/ape - 20000000775 sys sys 944946346 0
 mips/include/ape/float.h - 664 sys sys 969656988 1608
-mips/include/ape/math.h - 664 sys sys 1022624469 1900
+mips/include/ape/math.h - 664 sys sys 1046282353 2123
 mips/include/ape/stdarg.h - 664 sys sys 944946346 324
 mips/include/ape/ureg.h - 664 sys sys 944946346 991
 mips/include/mips2ureg.h - 664 sys sys 952879416 886
@@ -2848,7 +2848,7 @@ power/bin/venti - 20000000775 sys sys 1019679272 0
 power/include - 20000000775 sys sys 945275835 0
 power/include/ape - 20000000775 sys sys 944946355 0
 power/include/ape/float.h - 664 sys sys 969656988 1608
-power/include/ape/math.h - 664 sys sys 1032057792 1900
+power/include/ape/math.h - 664 sys sys 1046282353 2123
 power/include/ape/stdarg.h - 664 sys sys 944946355 324
 power/include/ape/ureg.h - 664 sys sys 944946362 1025
 power/include/u.h - 664 sys sys 1042604330 2764
@@ -3008,7 +3008,7 @@ sparc/bin/venti - 20000000775 sys sys 1019679272 0
 sparc/include - 20000000775 sys sys 944946363 0
 sparc/include/ape - 20000000775 sys sys 944946348 0
 sparc/include/ape/float.h - 664 sys sys 969656988 1624
-sparc/include/ape/math.h - 664 sys sys 1022624470 1901
+sparc/include/ape/math.h - 664 sys sys 1046282354 2123
 sparc/include/ape/stdarg.h - 664 sys sys 944946348 324
 sparc/include/ape/ureg.h - 664 sys sys 944946348 1048
 sparc/include/u.h - 664 sys sys 1042604330 1423

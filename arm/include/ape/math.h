@@ -37,12 +37,6 @@ extern int isNaN(double);
 extern double Inf(int);
 extern int isInf(double, int);
 
-
-#ifdef __cplusplus
-}
-#endif
-
-
 #ifdef _RESEARCH_SOURCE
 /* does >> treat left operand as unsigned ? */
 #define Unsigned_Shifts 1
@@ -60,7 +54,21 @@ extern int isInf(double, int);
 #define	M_SQRT2		1.41421356237309504880	/* sqrt(2) */
 #define	M_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
 
-
 extern double hypot(double, double);
+extern double erf(double);
+extern double erfc(double);
+extern double j0(double);
+extern double y0(double);
+extern double j1(double);
+extern double y1(double);
+extern double jn(int, double);
+extern double yn(int, double);
+
 #endif
+
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __MATH */
