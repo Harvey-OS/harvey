@@ -116,10 +116,6 @@ enum {					/* type 0 and type 1 pre-defined header */
 };
 
 enum {					/* type 0 pre-defined header */
-	PciBAR2		= 0x18,
-	PciBAR3		= 0x1C,
-	PciBAR4		= 0x20,
-	PciBAR5		= 0x24,
 	PciCIS		= 0x28,		/* cardbus CIS pointer */
 	PciSVID		= 0x2C,		/* subsystem vendor ID */
 	PciSID		= 0x2E,		/* cardbus CIS pointer */

@@ -320,21 +320,21 @@ pcibusmap(Pcidev *root, ulong *pmema, ulong *pioa, int wrreg)
 
 		base = p->ioa.bar;
 		limit = base+p->ioa.size-1;
-		v = pcicfgrw32(p->tbdf, PciBAR3, 0, 1);
+		v = pcicfgrw32(p->tbdf, PciIBR, 0, 1);
 		v = (v&0xFFFF0000)|(limit & 0xF000)|((base & 0xF000)>>8);
-		pcicfgrw32(p->tbdf, PciBAR3, v, 0);
+		pcicfgrw32(p->tbdf, PciIBR, v, 0);
 		v = (limit & 0xFFFF0000)|(base>>16);
-		pcicfgrw32(p->tbdf, 0x30, v, 0);
+		pcicfgrw32(p->tbdf, PciIUBR, v, 0);
 
 		base = p->mema.bar;
 		limit = base+p->mema.size-1;
 		v = (limit & 0xFFF00000)|((base & 0xFFF00000)>>16);
-		pcicfgrw32(p->tbdf, PciBAR4, v, 0);
+		pcicfgrw32(p->tbdf, PciMBR, v, 0);
 
 		/*
 		 * Disable memory prefetch
 		 */
-		pcicfgrw32(p->tbdf, PciBAR5, 0x0000FFFF, 0);
+		pcicfgrw32(p->tbdf, PciPMBR, 0x0000FFFF, 0);
 		pcicfgrw8(p->tbdf, PciLTR, 64, 0);
 
 		/*
