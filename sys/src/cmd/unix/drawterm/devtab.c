@@ -4,7 +4,7 @@
 
 Ref     mountid;
 
-Rune    devchar[] = { '/', 'U', 'M', 'I', 'c', 'i', 'm', '|', 0 };
+Rune    devchar[] = { '/', 'U', 'M', 'I', 'c', 'i', 'm', '|', 'D', 0 };
 Dev     devtab[] =
 {
 	/* Root File System */
@@ -62,5 +62,12 @@ Dev     devtab[] =
 		pipestat,	pipeopen,	pipecreate,      pipeclose,
 		piperead,	pipebread,	pipewrite,       pipebwrite,
 		piperemove,	pipewstat
+	},
+	/* SSL */
+	{
+		sslinit, 	sslattach,	devclone,		sslwalk,
+		sslstat,	sslopen,	devcreate,		sslclose,
+		sslread,	sslbread,	sslwrite,		sslbwrite,
+		devremove,	sslwstat
 	},
 };

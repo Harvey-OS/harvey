@@ -48,6 +48,7 @@ typedef unsigned short	Rune;
 #define uchar	p9_uchar
 #define ushort	p9_ushort
 #define uint	p9_uint
+#define u32int	p9_ulong
 
 /* #define long int rather than p9_long so that "unsigned long" is valid */
 #define long	int

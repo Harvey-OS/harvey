@@ -527,7 +527,7 @@ cconv(va_list *arg, Fconv *fp)
 	char s[10];
 	Rune rune;
 
-	rune = va_arg(*arg, Rune);
+	rune = va_arg(*arg, unsigned int);
 	if(fp->chr == 'c')
 		rune &= 0xff;
 	s[runetochar(s, &rune)] = 0;

@@ -26,8 +26,7 @@ p_seprint(Msg *m)
 	memset(&f, 0, sizeof(f));
 	f.type = 0;
 	f.data = 0;	/* protection for %F */
-	convM2S(m->ps, m->pe-m->ps, &f);
-	if(f.type){
+	if(convM2S(m->ps, m->pe-m->ps, &f)){
 		p = m->p;
 		m->p = seprint(m->p, m->e, "%F", &f);
 		while(p < m->p){

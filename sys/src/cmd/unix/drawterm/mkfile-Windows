@@ -46,3 +46,5 @@ md-%.$O:	$DSRC/libmemdraw/%.c
 d-%.$O:	$DSRC/libdraw/%.c
 	$CC $CFLAGS -Fod-$stem $DSRC/libdraw/$stem.c
 
+s-%.$O:	$DSRC/libsec/%.c
+	$CC $CFLAGS -Fos-$stem $DSRC/libsec/$stem.c
