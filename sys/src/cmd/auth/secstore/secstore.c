@@ -3,6 +3,7 @@
 #include <libc.h>
 #include <mp.h>
 #include <libsec.h>
+#include <authsrv.h>
 #include "SConn.h"
 #include "secstore.h"
 enum{ CHK = 16, MAXFILES = 100 };
@@ -14,11 +15,12 @@ typedef struct AuthConn{
 } AuthConn;
 
 int verbose;
+Nvrsafe nvr;
 
 void
 usage(void)
 {
-	fprint(2, "usage: secstore [-c] [-g getfile] [-p putfile] [-r rmfile] [-s tcp!server!5356] [-u user] [-v]\n");
+	fprint(2, "usage: secstore [-cin] [-g getfile] [-p putfile] [-r rmfile] [-s tcp!server!5356] [-u user] [-v]\n");
 	exits("usage");
 }
 
@@ -367,7 +369,7 @@ Out:
 }
 
 static AuthConn*
-login(char *id, char *dest, int pass_stdin)
+login(char *id, char *dest, int pass_stdin, int pass_nvram)
 {
 	AuthConn *c;
 	int fd, n, ntry = 0;
@@ -378,6 +380,11 @@ login(char *id, char *dest, int pass_stdin)
 		exits("nil dest");
 	}
 	c = emalloc(sizeof(*c));
+	if(pass_nvram){
+		if(readnvram(&nvr, 0) < 0)
+			exits("readnvram: %r");
+		strecpy(c->pass, c->pass+sizeof c->pass, nvr.config);
+	}
 	if(pass_stdin){
 		n = readn(0, s, Maxmsg-2);  // so len(PINSTA)<Maxmsg-3
 		if(n < 1)
@@ -391,7 +398,7 @@ login(char *id, char *dest, int pass_stdin)
 			if(nl)
 				*nl = 0;
 		}
-		strncpy(c->pass, s, sizeof c->pass);
+		strecpy(c->pass, c->pass+sizeof c->pass, s);
 	}
 	while(1){
 		if(verbose)
@@ -406,7 +413,7 @@ login(char *id, char *dest, int pass_stdin)
 			return nil;
 		}
 		ntry++;
-		if(!pass_stdin)
+		if(!pass_stdin && !pass_nvram)
 			getpasswd("secstore password: ", c->pass, sizeof c->pass);
 		if(c->pass[0]==0){
 			fprint(2, "null password, skipping secstore login\n");
@@ -417,6 +424,8 @@ login(char *id, char *dest, int pass_stdin)
 		c->conn->free(c->conn);
 		if(pass_stdin)
 			exits("invalid password on standard input");
+		if(pass_nvram)
+			exits("invalid password in nvram");
 		// and let user try retyping the password
 		if(ntry==3)
 			fprint(2, "Enter an empty password to quit.\n");
@@ -458,7 +467,7 @@ login(char *id, char *dest, int pass_stdin)
 int
 main(int argc, char **argv)
 {
-	int chpass = 0, pass_stdin = 0, rc;
+	int chpass = 0, pass_stdin = 0, pass_nvram = 0, rc;
 	int ngfile = 0, npfile = 0, nrfile = 0, Gflag[MAXFILES+1];
 	char *gfile[MAXFILES], *pfile[MAXFILES], *rfile[MAXFILES];
 	char *serve, *tcpserve, *user;
@@ -484,6 +493,9 @@ main(int argc, char **argv)
 		break;
 	case 'i':
 		pass_stdin = 1;
+		break;
+	case 'n':
+		pass_nvram = 1;
 		break;
 	case 'p':
 		if(npfile >= MAXFILES)
@@ -530,7 +542,7 @@ main(int argc, char **argv)
 		strcpy(tcpserve, serve);
 	else
 		snprint(tcpserve, rc, "tcp!%s!5356", serve);
-	c = login(user, tcpserve, pass_stdin);
+	c = login(user, tcpserve, pass_stdin, pass_nvram);
 	free(tcpserve);
 	if(c == nil){
 		fprint(2, "secstore authentication failed\n");

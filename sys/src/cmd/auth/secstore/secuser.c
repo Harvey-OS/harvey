@@ -32,9 +32,9 @@ main(int argc, char **argv)
 	id = argv[0];
 	if(verbose)
 		fprint(2,"secuser %s\n", id);
-	if((pw = getPW(id)) == nil){
+	if((pw = getPW(id,1)) == nil){
 		isnew = 1;
-		print("new account for %s\n", id);
+		print("new account (because %s/%s %r)\n", SECSTORE_DIR, id);
 		pw = emalloc(sizeof(*pw));
 		pw->id = estrdup(id);
 		snprint(home, sizeof(home), "%s/store/%s", SECSTORE_DIR, id);

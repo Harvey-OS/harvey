@@ -94,6 +94,14 @@ says that the password should be read from standard input
 instead of from
 .BR /dev/cons .
 .PP
+Option
+.B -n
+says that the password should be read from NVRAM
+(see
+.IR authsrv (2))
+instead of from
+.BR /dev/cons .
+.PP
 The server is
 .BR tcp!$auth!5356 ,
 or the server specified by option
