@@ -333,8 +333,8 @@ secureidcheck(char *user, char *response)
 	Packet *req = nil, *resp = nil;
 	ulong u[4];
 	uchar x[16];
-	char radiussecret[Ndbvlen];
-	char ruser[Ndbvlen];
+	char *radiussecret;
+	char ruser[ 64];
 	char dest[3*IPaddrlen+20];
 	Secret shared, pass;
 	char *rv = "authentication failed";
@@ -351,8 +351,8 @@ secureidcheck(char *user, char *response)
 		goto out;
 
 	/* get radius secret */
-	t = ndbgetval(db, &s, "radius", "lra-radius", "secret", radiussecret);
-	if(t == nil){
+	radiussecret = ndbgetvalue(db, &s, "radius", "lra-radius", "secret", &t);
+	if(radiussecret == nil){
 		syslog(0, AUTHLOG, "secureidcheck: nil radius secret: %r");
 		goto out;
 	}
@@ -437,7 +437,7 @@ secureidcheck(char *user, char *response)
 		break; // we have a proper reply, no need to ask again
 	}
 	ndbfree(t);
-
+	free(radiussecret);
 out:
 	freePacket(req);
 	freePacket(resp);

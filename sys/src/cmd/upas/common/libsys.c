@@ -457,14 +457,14 @@ sysnames_read(void)
 {
 	static char **namev;
 	Ndbtuple *t, *nt;
-	char domain[Ndbvlen];
 	int n;
 	char *cp;
 
 	if(namev)
 		return namev;
 
-	t = csgetval(0, "sys", alt_sysname_read(), "dom", domain);
+	free(csgetvalue(0, "sys", alt_sysname_read(), "dom", &t));
+
 	n = 0;
 	for(nt = t; nt; nt = nt->entry)
 		if(strcmp(nt->attr, "dom") == 0)

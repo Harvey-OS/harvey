@@ -467,11 +467,9 @@ struct Cs
 static int
 ndbfindport(char *p)
 {
-	char *s, port[Ndbvlen];
+	char *s, *port;
 	int n;
 	static Ndb *db;
-	Ndbtuple *t;
-	Ndbs ndbs;
 
 	if(*p == '\0')
 		return -1;
@@ -486,11 +484,13 @@ ndbfindport(char *p)
 			return -1;
 	}
 
-	t = ndbgetval(db, &ndbs, "tcp", p, "port", port);
-	if(t == nil)
+	port = ndbgetvalue(db, nil, "tcp", p, "port", nil);
+	if(port == nil)
 		return -1;
-	ndbfree(t);
-	return atoi(port);
+	n = atoi(port);
+	free(port);
+
+	return n;
 }	
 
 static void

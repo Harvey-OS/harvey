@@ -2,7 +2,6 @@
 
 TARG = 	dhcpclient\
 	ftpd\
-	gizzard\
 	gping\
 	hogports\
 	ipconfig\

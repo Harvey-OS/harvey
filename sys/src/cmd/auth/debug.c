@@ -143,8 +143,7 @@ void
 authdialfutz(char *dom, char *user)
 {
 	int fd;
-	Ndbtuple *nt;
-	char server[Ndbvlen];
+	char *server;
 	char *addr;
 
 	fd = authdial(nil, dom);
@@ -155,20 +154,22 @@ authdialfutz(char *dom, char *user)
 		return;
 	}
 	print("\tcannot dial auth server: %r\n");
-	nt = csgetval(nil, "authdom", dom, "auth", server);
-	if(nt){
+	server = csgetvalue(nil, "authdom", dom, "auth", nil);
+	if(server){
 		print("\tcsquery authdom=%q auth=%s\n", dom, server);
+		free(server);
 		return;
 	}
 	print("\tcsquery authdom=%q auth=* failed\n", dom);
-	nt = csgetval(nil, "dom", dom, "auth", server);
-	if(nt){
+	server = csgetvalue(nil, "dom", dom, "auth", nil);
+	if(server){
 		print("\tcsquery dom=%q auth=%q\n", dom, server);
+		free(server);
 		return;
 	}
-	print("\tcsquery dom=%q auth=%q\n", dom, server);
+	print("\tcsquery dom=%q auth=*\n", dom);
 
-	fd = dial(addr=netmkaddr(server, nil, "ticket"), 0, 0, 0);
+	fd = dial(addr=netmkaddr("$auth", nil, "ticket"), 0, 0, 0);
 	if(fd >= 0){
 		print("\tdial %s succeeded\n", addr);
 		close(fd);

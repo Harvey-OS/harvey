@@ -1006,14 +1006,13 @@ ipid(void)
 		if(mysysname == 0){
 			t = nil;
 			if(isvalidip(ipa))
-				t = ndbgetvalue(db, &s, "ip", ipaddr, "sys", nil, 0);
+				free(ndbgetvalue(db, &s, "ip", ipaddr, "sys", &t));
 			if(t == nil){
 				for(f = 0; f < 3; f++){
 					snprint(buf, sizeof buf, "%s/ether%d", mntpt, f);
 					if(myetheraddr(addr, buf) >= 0){
 						snprint(eaddr, sizeof(eaddr), "%E", addr);
-						t = ndbgetvalue(db, &s, "ether", eaddr, "sys",
-							nil, 0);
+						free(ndbgetvalue(db, &s, "ether", eaddr, "sys", &t));
 						if(t != nil)
 							break;
 					}
@@ -1271,19 +1270,18 @@ ipserv(Network *np, char *name, char *buf, int blen)
 		else 
 			return 0;
 	}
+	t = nil;
+	p = nil;
 	if(alpha){
-		t = ndbgetvalue(db, &s, np->net, name, "port", port, sizeof(port));
-		if(t == 0)
-			return 0;
+		p = ndbgetvalue(db, &s, np->net, name, "port", &t);
 	} else {
 		/* look up only for tcp ports < 1024 to get the restricted
 		 * attribute
 		 */
-		t = nil;
 		if(atoi(name) < 1024 && strcmp(np->net, "tcp") == 0)
-			t = ndbgetvalue(db, &s, "port", name, "port", port, sizeof(port));
-		if(t == nil)
-			nstrcpy(port, name, sizeof(port));
+			p = ndbgetvalue(db, &s, "port", name, "port", &t);
+		if(p == nil)
+			p = strdup(name);
 	}
 
 	if(t){
@@ -1292,7 +1290,9 @@ ipserv(Network *np, char *name, char *buf, int blen)
 				restr = 1;
 		ndbfree(t);
 	}
-	snprint(buf, blen, "%s%s", port, restr ? "!r" : ""); 
+	snprint(buf, blen, "%s%s", p, restr ? "!r" : "");
+	free(p);
+
 	return buf;
 }
 
@@ -1333,7 +1333,6 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	Ndbtuple *t, *nt;
 	Ndbs s;
 	char ts[Maxservice];
-	char th[Maxhost];
 	char dollar[Maxhost];
 	uchar ip[IPaddrlen];
 	uchar net[IPaddrlen];
@@ -1396,7 +1395,7 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	if(strcmp(attr, "dom") == 0)
 		t = dnsiplookup(host, &s);
 	if(t == 0)
-		t = ndbgetvalue(db, &s, attr, host, "ip", th, sizeof(th));
+		free(ndbgetvalue(db, &s, attr, host, "ip", &t));
 	if(t == 0)
 		t = dnsiplookup(host, &s);
 	if(t == 0)
@@ -1473,12 +1472,11 @@ telcolookup(Network *np, char *host, char *serv, int nolookup)
 {
 	Ndbtuple *t;
 	Ndbs s;
-	char th[Maxhost];
 
 	USED(np, nolookup, serv);
 
 	werrstr("can't translate address");
-	t = ndbgetvalue(db, &s, "sys", host, "telco", th, sizeof(th));
+	free(ndbgetvalue(db, &s, "sys", host, "telco", &t));
 	if(t == 0)
 		return ndbnew("telco", host);
 
