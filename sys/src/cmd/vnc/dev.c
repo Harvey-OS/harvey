@@ -19,7 +19,7 @@ devno(int c, int user)
 {
 	int i;
 
-	for(i = 0; devtab[i] != nil; i++) {
+	for(i = 0; devtab[i] != nil; i++){
 		if(devtab[i]->dc == c)
 			return i;
 	}
@@ -149,7 +149,7 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen
 			nc->qid = dir.qid;
 			goto Accept;
 		}
-		for(i=0;; i++) {
+		for(i=0;; i++){
 			switch((*gen)(nc, tab, ntab, i, &dir)){
 			case -1:
 				if(j == 0)
@@ -212,7 +212,7 @@ devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 		case 0:
 			break;
 		case 1:
-			if(c->qid.path == dir.qid.path) {
+			if(c->qid.path == dir.qid.path){
 				return convD2M(&dir, db, n);
 			}
 			break;
@@ -230,7 +230,7 @@ devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
 	}dir;
 
 	k = c->offset;
-	for(m=0; m<n; k++) {
+	for(m=0; m<n; k++){
 		switch((*gen)(c, tab, ntab, k, &dir)){
 		case -1:
 			return m;
@@ -283,14 +283,14 @@ devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 	int i;
 	Dir dir;
 
-	for(i=0;; i++) {
+	for(i=0;; i++){
 		switch((*gen)(c, tab, ntab, i, &dir)){
 		case -1:
 			goto Return;
 		case 0:
 			break;
 		case 1:
-			if(c->qid.path == dir.qid.path) {
+			if(c->qid.path == dir.qid.path){
 				devpermcheck(dir.uid, dir.mode, omode);
 				goto Return;
 			}

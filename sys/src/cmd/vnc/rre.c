@@ -32,35 +32,42 @@ static void	sendtraw(Vnc *v, uchar *raw, int pixb, int stride, int w, int h);
 /*
  * default routine, no compression, just the pixels
  */
-void
+int
 sendraw(Vncs *v, Rectangle r)
 {
 	int pixb, stride;
 	uchar *raw;
 
-	if(!rectinrect(r, v->clientimage->r))
+	if(!rectinrect(r, v->image->r))
 		sysfatal("sending bad rectangle");
 
 	pixb = v->bpp >> 3;
 	if((pixb << 3) != v->bpp)
 		sysfatal("bad pixel math in sendraw");
-	stride = v->clientimage->width*sizeof(ulong);
+	stride = v->image->width*sizeof(ulong);
 	if(((stride / pixb) * pixb) != stride)
 		sysfatal("bad pixel math in sendraw");
 	stride /= pixb;
 
-	raw = byteaddr(v->clientimage, r.min);
+	raw = byteaddr(v->image, r.min);
 
 	vncwrrect(v, r);
 	vncwrlong(v, EncRaw);
 	sendtraw(v, raw, pixb, stride, Dx(r), Dy(r));
+	return 1;
+}
+
+int
+countraw(Vncs*, Rectangle)
+{
+	return 1;
 }
 
 /*
  * grab the image for the entire rectangle,
  * then encode each tile
  */
-void
+int
 sendhextile(Vncs *v, Rectangle r)
 {
 	uchar *(*putr)(uchar*, uchar*, int, int, int, int, int, int);
@@ -71,8 +78,8 @@ sendhextile(Vncs *v, Rectangle r)
 
 	h = Dy(r);
 	w = Dx(r);
-	if(h == 0 || w == 0 || !rectinrect(r, v->clientimage->r))
-		sysfatal("bad rectangle in sendhextile");
+	if(h == 0 || w == 0 || !rectinrect(r, v->image->r))
+		sysfatal("bad rectangle %R in sendhextile %R", r, v->image->r);
 
 	switch(v->bpp){
 	case  8:	pixlg = 0;	eq = eqpix8;	break;
@@ -80,13 +87,13 @@ sendhextile(Vncs *v, Rectangle r)
 	case 32:	pixlg = 2;	eq = eqpix32;	break;
 	default:
 		sendraw(v, r);
-		return;
+		return 1;
 	}
 	pixb = 1 << pixlg;
-	stride = v->clientimage->width*sizeof(ulong);
+	stride = v->image->width*sizeof(ulong);
 	if(((stride >> pixlg) << pixlg) != stride){
 		sendraw(v, r);
-		return;
+		return 1;
 	}
 	stride >>= pixlg;
 
@@ -96,9 +103,9 @@ sendhextile(Vncs *v, Rectangle r)
 		free(buf);
 		free(done);
 		sendraw(v, r);
-		return;
+		return 1;
 	}
-	raw = byteaddr(v->clientimage, r.min);
+	raw = byteaddr(v->image, r.min);
 
 	vncwrrect(v, r);
 	vncwrlong(v, EncHextile);
@@ -173,6 +180,13 @@ sendhextile(Vncs *v, Rectangle r)
 	}
 	free(buf);
 	free(done);
+	return 1;
+}
+
+int
+counthextile(Vncs*, Rectangle)
+{
+	return 1;
 }
 
 static int
@@ -229,14 +243,32 @@ sendtraw(Vnc *v, uchar *raw, int pixb, int stride, int w, int h)
 		vncwrbytes(v, &raw[y * stride * pixb], w * pixb);
 }
 
-int
+static int
 rrerects(Rectangle r, int split)
 {
 	return ((Dy(r) + split - 1) / split) * ((Dx(r) + split - 1) / split);
 }
 
+enum
+{
+	MaxCorreDim	= 48,
+	MaxRreDim	= 64,
+};
+
 int
-sendrre(Vncs *v, Rectangle r, int split, int compact)
+countrre(Vncs*, Rectangle r)
+{
+	return rrerects(r, MaxRreDim);
+}
+
+int
+countcorre(Vncs*, Rectangle r)
+{
+	return rrerects(r, MaxCorreDim);
+}
+
+static int
+_sendrre(Vncs *v, Rectangle r, int split, int compact)
 {
 	uchar *raw, *buf, *done;
 	int w, h, stride, pixb, pixlg, nraw, nr, bpr, back, totr;
@@ -247,7 +279,7 @@ sendrre(Vncs *v, Rectangle r, int split, int compact)
 	while(h > split){
 		h = r.max.y;
 		r.max.y = r.min.y + split;
-		totr += sendrre(v, r, split, compact);
+		totr += _sendrre(v, r, split, compact);
 		r.min.y = r.max.y;
 		r.max.y = h;
 		h = Dy(r);
@@ -256,12 +288,12 @@ sendrre(Vncs *v, Rectangle r, int split, int compact)
 	while(w > split){
 		w = r.max.x;
 		r.max.x = r.min.x + split;
-		totr += sendrre(v, r, split, compact);
+		totr += _sendrre(v, r, split, compact);
 		r.min.x = r.max.x;
 		r.max.x = w;
 		w = Dx(r);
 	}
-	if(h == 0 || w == 0 || !rectinrect(r, v->clientimage->r))
+	if(h == 0 || w == 0 || !rectinrect(r, v->image->r))
 		sysfatal("bad rectangle in sendrre");
 
 	switch(v->bpp){
@@ -273,7 +305,7 @@ sendrre(Vncs *v, Rectangle r, int split, int compact)
 		return totr + 1;
 	}
 	pixb = 1 << pixlg;
-	stride = v->clientimage->width*sizeof(ulong);
+	stride = v->image->width*sizeof(ulong);
 	if(((stride >> pixlg) << pixlg) != stride){
 		sendraw(v, r);
 		return totr + 1;
@@ -291,7 +323,7 @@ sendrre(Vncs *v, Rectangle r, int split, int compact)
 	}
 	memset(done, 0, w * h);
 
-	raw = byteaddr(v->clientimage, r.min);
+	raw = byteaddr(v->image, r.min);
 
 	if(compact)
 		bpr = 4 * 1 + pixb;
@@ -323,8 +355,22 @@ sendrre(Vncs *v, Rectangle r, int split, int compact)
 	return totr + 1;
 }
 
+int
+sendrre(Vncs *v, Rectangle r)
+{
+	return _sendrre(v, r, MaxRreDim, 0);
+}
+
+int
+sendcorre(Vncs *v, Rectangle r)
+{
+	return _sendrre(v, r, MaxCorreDim, 1);
+}
+
 static int
-encrre(uchar *raw, int stride, int w, int h, int back, int pixb, uchar *buf, int maxr, uchar *done, int (*eqpix)(uchar*, int, int), uchar *(*putr)(uchar*, uchar*, int, int, int, int, int, int))
+encrre(uchar *raw, int stride, int w, int h, int back, int pixb, uchar *buf,
+	int maxr, uchar *done, int (*eqpix)(uchar*, int, int),
+	uchar *(*putr)(uchar*, uchar*, int, int, int, int, int, int))
 {
 	int s, es, sx, esx, sy, syx, esyx, rh, rw, y, nr, dsy, dp;
 

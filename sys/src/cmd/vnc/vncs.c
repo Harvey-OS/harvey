@@ -9,12 +9,6 @@
 #include <mp.h>
 #include <libsec.h>
 
-enum
-{
-	MaxCorreDim	= 48,
-	MaxRreDim	= 64,
-};
-
 extern	Dev	drawdevtab;
 extern	Dev	mousedevtab;
 extern	Dev	consdevtab;
@@ -26,13 +20,6 @@ Dev	*devtab[] =
 	&consdevtab,
 	nil
 };
-
-int            shared;
-int		verbose = 0;
-static int	worker = -1;			/* pid of command we ran */
-static int	srvfd;
-static int	exportfd;
-static Vncs	**vncpriv;
 
 static char *msgname[] = {
 	[MPixFmt] = "MPixFmt",
@@ -57,84 +44,826 @@ static char *encname[] = {
 
 };
 
-static void shutdown_clients(Vncs *);
-
 /* 
  * list head. used to hold the list, the lock, dim, and pixelfmt
  */
-Vnc clients;
+struct {
+	QLock;
+	Vncs *head;
+} clients;
 
-static void	vnccsexiting(void);
+int	shared;
+int	sleeptime = 5;
+int	verbose = 0;
+char *cert;
+char *pixchan = "r5g6b5";
+static int	cmdpid;
+static int	srvfd;
+static int	exportfd;
+static Vncs	**vncpriv;
+
+static int parsedisplay(char*);
+static void vnckill(char*, int, int);
+static int vncannounce(char *net, int display, char *adir, int base);
+static void noteshutdown(void*, char*);
+static void vncaccept(Vncs*);
+static int vncsfmt(Fmt*);
+static void getremote(char*, char*);
+static void vncname(char*, ...);
+#pragma varargck argpos vncname 1
+
+#pragma varargck type "V" Vncs*
+
+void
+usage(void)
+{
+	fprint(2, "usage: vncs [-nv] [-c cert] [-d :display] [-g widthXheight] [-p pixelfmt] [cmd [args]...]\n");
+	fprint(2, "\tto kill a server: vncs [-v] -k :display\n");
+	exits("usage");
+}
+
+void
+main(int argc, char **argv)
+{
+	int altnet, baseport, cfd, display, exnum, fd, h, killing, w;
+	char adir[NETPATHLEN], ldir[NETPATHLEN];
+	char net[NETPATHLEN], *p;
+	char *rc[] = { "/bin/rc", "-i", nil };
+	Vncs *v;
+
+	fmtinstall('V', vncsfmt);
+	display = -1;
+	killing = 0;
+	altnet = 0;
+	w = 1024;
+	h = 768;
+	baseport = 5900;
+	setnetmtpt(net, sizeof net, nil);
+	ARGBEGIN{
+	default:
+		usage();
+	case 'c':
+		cert = EARGF(usage());
+		baseport = 35729;
+		break;
+	case 'd':
+		if(display != -1)
+			usage();
+		display = parsedisplay(EARGF(usage()));
+		break;
+	case 'g':
+		p = EARGF(usage());
+		w = strtol(p, &p, 10);
+		if(*p != 'x' && *p != 'X' && *p != ' ' && *p != '	')
+			usage();
+		h = strtol(p+1, &p, 10);
+		if(*p != 0)
+			usage();
+		break;
+	case 'k':
+		if(display != -1)
+			usage();
+		display = parsedisplay(EARGF(usage()));
+		killing = 1;
+		break;
+	case 'p':
+		pixchan = EARGF(usage());
+		break;
+/* DEBUGGING
+	case 's':
+		sleeptime = atoi(EARGF(usage()));
+		break;
+*/
+	case 'v':
+		verbose++;
+		break;
+	case 'x':
+		p = EARGF(usage());
+		setnetmtpt(net, sizeof net, p);
+		altnet = 1;
+		break;
+	}ARGEND
+
+	if(killing){
+		vnckill(net, display, baseport);
+		exits(nil);
+	}
+
+	if(altnet && !cert)
+		sysfatal("announcing on alternate network requires TLS (-c)");
+
+	if(argc == 0)
+		argv = rc;
+
+	/* easy exit */
+	if(access(argv[0], AEXEC) < 0)
+		sysfatal("access %s for exec: %r", argv[0]);
+
+	/* background ourselves */
+	switch(rfork(RFPROC|RFNAMEG|RFFDG|RFNOTEG)){
+	case -1:
+		sysfatal("rfork: %r");
+	default:
+		exits(nil);
+	case 0:
+		break;
+	}
+
+	vncpriv = privalloc();
+	if(vncpriv == nil)
+		sysfatal("privalloc: %r");
+
+	/* start screen */
+	initcompat();
+	if(waserror())
+		sysfatal("screeninit %dx%d %s: %s\n", w, h, pixchan, up->error);
+	if(verbose)
+		fprint(2, "geometry is %dx%d\n", w, h);
+	screeninit(w, h, pixchan);
+	poperror();
+
+	/* start file system device slaves */
+	exnum = exporter(devtab, &fd, &exportfd);
+
+	/* rebuild /dev because the underlying connection might go away (ick) */
+	unmount(nil, "/dev");
+	bind("#c", "/dev", MREPL);
+
+	/* run the command */
+	switch(cmdpid = rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG|RFREND)){
+	case -1:
+		sysfatal("rfork: %r");
+		break;
+	case 0:
+		if(mounter("/dev", MBEFORE, fd, exnum) < 0)
+			sysfatal("mounter: %r");
+		close(exportfd);
+		close(0);
+		close(1);
+		close(2);
+		open("/dev/cons", OREAD);
+		open("/dev/cons", OWRITE);
+		open("/dev/cons", OWRITE);
+		exec(argv[0], argv);
+		fprint(2, "exec %s: %r\n", argv[0]);
+		_exits(nil);
+	default:
+		close(fd);
+		break;
+	}
+
+	/* run the service */
+	srvfd = vncannounce(net, display, adir, baseport);
+	if(srvfd < 0)
+		sysfatal("announce failed");
+	if(verbose)
+		fprint(2, "announced in %s\n", adir);
+
+	atexit(shutdown);
+	notify(noteshutdown);
+	for(;;){
+		vncname("listener");
+		cfd = listen(adir, ldir);
+		if(cfd < 0)
+			break;
+		if(verbose)
+			fprint(2, "call in %s\n", ldir);
+		fd = accept(cfd, ldir);
+		if(fd < 0){
+			close(cfd);
+			continue;
+		}
+		v = mallocz(sizeof(Vncs), 1);
+		if(v == nil){
+			close(cfd);
+			close(fd);
+			continue;
+		}
+		v->ctlfd = cfd;
+		v->datafd = fd;
+		v->nproc = 1;
+		v->ndead = 0;
+		getremote(ldir, v->remote);
+		strcpy(v->netpath, ldir);
+		qlock(&clients);
+		v->next = clients.head;
+		clients.head = v;
+		qunlock(&clients);
+		vncaccept(v);
+	}
+	exits(0);
+}
+
+static int
+parsedisplay(char *p)
+{
+	int n;
+
+	if(*p != ':')
+		usage();
+	if(*p == 0)
+		usage();
+	n = strtol(p+1, &p, 10);
+	if(*p != 0)
+		usage();
+	return n;
+}
+
+static void
+getremote(char *ldir, char *remote)
+{
+	char buf[NETPATHLEN];
+	int fd, n;
+
+	snprint(buf, sizeof buf, "%s/remote", ldir);
+	strcpy(remote, "<none>");
+	if((fd = open(buf, OREAD)) < 0)
+		return;
+	n = readn(fd, remote, NETPATHLEN-1);
+	close(fd);
+	if(n < 0)
+		return;
+	remote[n] = 0;
+	if(n>0 && remote[n-1] == '\n')
+		remote[n-1] = 0;
+}
+
+static int
+vncsfmt(Fmt *fmt)
+{
+	Vncs *v;
+
+	v = va_arg(fmt->args, Vncs*);
+	return fmtprint(fmt, "[%d] %s %s", getpid(), v->remote, v->netpath);
+}
+
+/*
+ * We register exiting as an atexit handler in each proc, so that 
+ * client procs need merely exit when something goes wrong.
+ */
+static void
+vncclose(Vncs *v)
+{
+	Vncs **l;
+
+	v = *vncpriv;
+
+	/* remove self from client list if there */
+	qlock(&clients);
+	for(l=&clients.head; *l; l=&(*l)->next)
+		if(*l == v){
+			*l = v->next;
+			break;
+		}
+	qunlock(&clients);
+
+	/* if last proc, free v */
+	vnclock(v);
+	if(++v->ndead < v->nproc){
+		vncunlock(v);
+		return;
+	}
+
+	freerlist(&v->rlist);
+	vncterm(v);
+	if(v->ctlfd >= 0)
+		close(v->ctlfd);
+	if(v->datafd >= 0)
+		close(v->datafd);
+	if(v->image)
+		freememimage(v->image);
+	free(v);
+}
+
+static void
+exiting(void)
+{
+	vncclose(*vncpriv);
+}
+
+void
+vnchungup(Vnc *v)
+{
+	if(verbose)
+		fprint(2, "%V: hangup\n", (Vncs*)v);
+	exits(0);	/* atexit and exiting() will take care of everything */
+}
+
+/*
+ * Kill all clients except safe.
+ * Used to start a non-shared client and at shutdown. 
+ */
+static void
+killclients(Vncs *safe)
+{
+	Vncs *v;
+
+	qlock(&clients);
+	for(v=clients.head; v; v=v->next){
+		if(v == safe)
+			continue;
+		if(v->ctlfd >= 0){
+			hangup(v->ctlfd);
+			close(v->ctlfd);
+			v->ctlfd = -1;
+			close(v->datafd);
+			v->datafd = -1;
+		}
+	}
+	qunlock(&clients);
+}
+
+/*
+ * Kill the executing command and then kill everyone else.
+ * Called to close up shop at the end of the day
+ * and also if we get an unexpected note.
+ */
+static char killkin[] = "die vnc kin";
+static void
+killall(void)
+{
+	postnote(PNGROUP, cmdpid, "hangup");
+	close(srvfd);
+	srvfd = -1;
+	close(exportfd);
+	exportfd = -1;
+	postnote(PNGROUP, getpid(), killkin);
+}
+
+void
+shutdown(void)
+{
+	if(verbose)
+		fprint(2, "vnc server shutdown\n");
+	killall();
+}
+
+static void
+noteshutdown(void*, char *msg)
+{
+	if(strcmp(msg, killkin) == 0)	/* already shutting down */
+		noted(NDFLT);
+	killall();
+	noted(NDFLT);
+}
+
+/*
+ * Kill a specific instance of a server.
+ */
+static void
+vnckill(char *net, int display, int baseport)
+{
+	int fd, i, n, port;
+	char buf[NETPATHLEN], *p;
+
+	for(i=0;; i++){
+		snprint(buf, sizeof buf, "%s/tcp/%d/local", net, i);
+		if((fd = open(buf, OREAD)) < 0)
+			sysfatal("did not find display");
+		n = read(fd, buf, sizeof buf-1);
+		close(fd);
+		if(n <= 0)
+			continue;
+		buf[n] = 0;
+		p = strchr(buf, '!');
+		if(p == 0)
+			continue;
+		port = atoi(p+1);
+		if(port != display+baseport)
+			continue;
+		snprint(buf, sizeof buf, "%s/tcp/%d/ctl", net, i);
+		fd = open(buf, OWRITE);
+		if(fd < 0)
+			sysfatal("cannot open %s: %r", buf);
+		if(write(fd, "hangup", 6) != 6)
+			sysfatal("cannot hangup %s: %r", buf);
+		close(fd);
+		break;
+	}
+}
+
+/*
+ * Look for a port on which to announce.
+ * If display != -1, we only try that one.
+ * Otherwise we hunt.
+ *
+ * Returns the announce fd.
+ */
+static int
+vncannounce(char *net, int display, char *adir, int base)
+{
+	int port, eport, fd;
+	char addr[NETPATHLEN];
+
+	if(display == -1){
+		port = base;
+		eport = base+50;
+	}else{
+		port = base+display;
+		eport = port;
+	}
+
+	for(; port<=eport; port++){
+		snprint(addr, sizeof addr, "%s/tcp!*!%d", net, port);
+		if((fd = announce(addr, adir)) >= 0){
+			fprint(2, "server started on display :%d\n", port-base);
+			return fd;
+		}
+	}
+	if(display == -1)
+		fprint(2, "could not find any ports to announce\n");
+	else
+		fprint(2, "announce: %r\n");
+	return -1;
+}
+
+/*
+ * Handle a new connection.
+ */
+static void clientreadproc(Vncs*);
+static void clientwriteproc(Vncs*);
+static void chan2fmt(Pixfmt*, ulong);
+static ulong fmt2chan(Pixfmt*);
+
+static void
+vncaccept(Vncs *v)
+{
+	char buf[32];
+	int fd;
+	TLSconn conn;
+
+	/* caller returns to listen */
+	switch(rfork(RFPROC|RFMEM|RFNAMEG)){
+	case -1:
+		fprint(2, "%V: fork failed: %r\n", v);
+		vncclose(v);
+		return;
+	default:
+		return;
+	case 0:
+		break;
+	}
+	*vncpriv = v;
+
+	if(!atexit(exiting)){
+		fprint(2, "%V: could not register atexit handler: %r; hanging up\n", v);
+		exiting();
+		exits(nil);
+	}
+
+	if(cert != nil){
+		memset(&conn, 0, sizeof conn);
+		conn.cert = readcert(cert, &conn.certlen);
+		if(conn.cert == nil){
+			fprint(2, "%V: could not read cert %s: %r; hanging up\n", v, cert);
+			exits(nil);
+		}
+		fd = tlsServer(v->datafd, &conn);
+		if(fd < 0){
+			fprint(2, "%V: tlsServer: %r; hanging up\n", v);
+			free(conn.cert);
+			if(conn.sessionID)
+				free(conn.sessionID);
+			exits(nil);
+		}
+		close(v->datafd);
+		v->datafd = fd;
+		free(conn.cert);
+		free(conn.sessionID);
+	}
+	vncinit(v->datafd, v->ctlfd, v);
+
+	if(verbose)
+		fprint(2, "%V: handshake\n", v);
+	if(vncsrvhandshake(v) < 0){
+		fprint(2, "%V: handshake failed; hanging up\n", v);
+		exits(0);
+	}
+	if(verbose)
+		fprint(2, "%V: auth\n", v);
+	if(vncsrvauth(v) < 0){
+		fprint(2, "%V: auth failed; hanging up\n", v);
+		exits(0);
+	}
+
+	shared = vncrdchar(v);
+
+	if(verbose)
+		fprint(2, "%V: %sshared\n", v, shared ? "" : "not ");
+	if(!shared)
+		killclients(v);
+
+	v->dim = (Point){Dx(gscreen->r), Dy(gscreen->r)};
+	vncwrpoint(v, v->dim);
+	if(verbose)
+		fprint(2, "%V: send screen size %P (rect %R)\n", v, v->dim, gscreen->r);
+
+	v->bpp = gscreen->depth;
+	v->depth = gscreen->depth;
+	v->truecolor = 1;
+	v->bigendian = 0;
+	chan2fmt(v, gscreen->chan);
+	if(verbose)
+		fprint(2, "%V: bpp=%d, depth=%d, chan=%s\n", v,
+			v->bpp, v->depth, chantostr(buf, gscreen->chan));
+	vncwrpixfmt(v, v);
+	vncwrlong(v, 14);
+	vncwrbytes(v, "Plan9 Desktop", 14);
+	vncflush(v);
+
+	if(verbose)
+		fprint(2, "%V: handshaking done\n", v);
+
+	switch(rfork(RFPROC|RFMEM)){
+	case -1:
+		fprint(2, "%V: cannot fork: %r; hanging up\n", v);
+		vnchungup(v);
+	default:
+		clientreadproc(v);
+		exits(nil);
+	case 0:
+		*vncpriv = v;
+		v->nproc++;
+		if(atexit(exiting) == 0){
+			exiting();
+			fprint(2, "%V: could not register atexit handler: %r; hanging up\n", v);
+			exits(nil);
+		}
+		clientwriteproc(v);
+		exits(nil);
+	}
+}
+
+static void
+vncname(char *fmt, ...)
+{
+	int fd;
+	char name[64], buf[32];
+	va_list arg;
+
+	va_start(arg, fmt);
+	vsnprint(name, sizeof name, fmt, arg);
+	va_end(arg);
+
+	sprint(buf, "/proc/%d/args", getpid());
+	if((fd = open(buf, OWRITE)) >= 0){
+		write(fd, name, strlen(name));
+		close(fd);
+	}
+}
+
+/*
+ * Set the pixel format being sent.  Can only happen once.
+ * (Maybe a client would send this again if the screen changed
+ * underneath it?  If we want to support this we need a way to
+ * make sure the current image is no longer in use, so we can free it. 
+ */
+static void
+setpixelfmt(Vncs *v)
+{
+	char buf[32], buf2[32];
+	ulong chan;
+
+	if(v->image)
+		fprint(2, "%V: client already has image (leaking memory!)\n", v);
+
+	vncgobble(v, 3);
+	v->Pixfmt = vncrdpixfmt(v);
+	chan = fmt2chan(v);
+	if(chan == 0){
+		fprint(2, "%V: bad pixel format; hanging up\n", v);
+		vnchungup(v);
+	}
+
+	v->image = allocmemimage(Rpt(ZP, v->dim), chan);
+	if(v->image == nil){
+		fprint(2, "%V: allocmemimage: %r; hanging up\n", v);
+		vnchungup(v);
+	}
+if(verbose)fprint(2, "v %R g %R\n", v->image->r, gscreen->r);
+
+	if(verbose)
+		fprint(2, "%V: translating image from chan=%s to chan=%s\n",
+			v, chantostr(buf, gscreen->chan), chantostr(buf2, chan));
+}
+
+/*
+ * Set the preferred encoding list.  Can only happen once.
+ * If we want to support changing this more than once then
+ * we need to put a lock around the encoding functions
+ * so as not to conflict with updateimage.
+ */
+static void
+setencoding(Vncs *v)
+{
+	int n, x;
+
+	vncrdchar(v);
+	n = vncrdshort(v);
+	while(n-- > 0){
+		x = vncrdlong(v);
+		switch(x){
+		case EncCopyRect:
+			v->copyrect = 1;
+			continue;
+		case EncMouseWarp:
+			v->canwarp = 1;
+			continue;
+		}
+		if(v->countrect != nil)
+			continue;
+		switch(x){
+		case EncRaw:
+			v->encname = "raw";
+			v->countrect = countraw;
+			v->sendrect = sendraw;
+			break;
+		case EncRre:
+			v->encname = "rre";
+			v->countrect = countrre;
+			v->sendrect = sendrre;
+			break;
+		case EncCorre:
+			v->encname = "corre";
+			v->countrect = countcorre;
+			v->sendrect = sendcorre;
+			break;
+		case EncHextile:
+			v->encname = "hextile";
+			v->countrect = counthextile;
+			v->sendrect = sendhextile;
+			break;
+		}
+	}
+
+	if(v->countrect == nil){
+		v->encname = "raw";
+		v->countrect = countraw;
+		v->sendrect = sendraw;
+	}
+
+	if(verbose)
+		fprint(2, "Encoding with %s%s%s\n", v->encname,
+			v->copyrect ? ", copyrect" : "",
+			v->canwarp ? ", canwarp" : "");
+}
+
+/*
+ * Continually read updates from one client.
+ */
+static void
+clientreadproc(Vncs *v)
+{
+	int incremental, key, keydown, buttons, type, x, y, n;
+	char *buf;
+	Rectangle r;
+
+	vncname("read %V", v);
+
+	for(;;){
+		type = vncrdchar(v);
+		switch(type){
+		default:
+			fprint(2, "%V: unknown vnc message type %d; hanging up\n", v, type);
+			vnchungup(v);
+
+		/* set pixel format */
+		case MPixFmt:
+			setpixelfmt(v);
+			break;
+
+		/* ignore color map changes */
+		case MFixCmap:
+			vncgobble(v, 3);
+			n = vncrdshort(v);
+			vncgobble(v, n*6);
+			break;
+
+		/* set encoding list */
+		case MSetEnc:
+			setencoding(v);
+			break;
+
+		/* request image update in rectangle */
+		case MFrameReq:
+			incremental = vncrdchar(v);
+			r = vncrdrect(v);
+			if(incremental){
+				vnclock(v);
+				v->updaterequest = 1;
+				vncunlock(v);
+			}else{
+				drawlock();	/* protects rlist */
+				vnclock(v);	/* protects updaterequest */
+				v->updaterequest = 1;
+				addtorlist(&v->rlist, r);
+				vncunlock(v);
+				drawunlock();
+			}
+			break;
+
+		/* send keystroke */
+		case MKey:
+			keydown = vncrdchar(v);
+			vncgobble(v, 2);
+			key = vncrdlong(v);
+			vncputc(!keydown, key);
+			break;
+
+		/* send mouse event */
+		case MMouse:
+			buttons = vncrdchar(v);
+			x = vncrdshort(v);
+			y = vncrdshort(v);
+			mousetrack(x, y, buttons, nsec()/(1000*1000LL));
+			break;
+
+		/* send cut text */
+		case MCCut:
+			vncgobble(v, 3);
+			n = vncrdlong(v);
+			buf = malloc(n+1);
+			if(buf){
+				vncrdbytes(v, buf, n);
+				buf[n] = 0;
+				vnclock(v);	/* for snarfvers */
+				setsnarf(buf, n, &v->snarfvers);
+				vncunlock(v);
+			}
+			break;
+		}
+	}
+}
 
 static int
 nbits(ulong mask)
 {
-	int bit;
+	int n;
 
-	if (mask == 0)
-		sysfatal("nbits: invalid mask 0x%lx", mask);
-
-	mask = ~mask;
-	for (bit = 0; !(mask & 1); bit++)
-		mask >>= 1;
-
-	return bit;
+	n = 0;
+	for(; mask; mask>>=1)
+		n += mask&1;
+	return n;
 }
 
-struct _chan {
-	uchar type;
-	uchar nbits;
-	Colorfmt * fmt;
+typedef struct Col Col;
+struct Col {
+	int type;
+	int nbits;
+	int shift;
 };
-#define SORT(x, y) if(x.fmt->shift < y.fmt->shift) do { chan = x; x = y; y = chan; } while(0)
 
 static ulong
-fmt2chan(Pixfmt * fmt)
+fmt2chan(Pixfmt *fmt)
 {
-	struct _chan chans[4];
-	struct _chan chan;
-	int i, depth, n;
-	ulong mask = 0xffffffff;
-	Colorfmt xfmt;
+	Col c[4], t;
+	int i, j, depth, n, nc;
+	ulong mask, u;
 
-	chans[0] = (struct _chan){CRed,0,&fmt->red};
-	chans[1] = (struct _chan){CGreen,0,&fmt->green};
-	chans[2] = (struct _chan){CBlue,0,&fmt->blue};
+	/* unpack the Pixfmt channels */
+	c[0] = (Col){CRed, nbits(fmt->red.max), fmt->red.shift};
+	c[1] = (Col){CGreen, nbits(fmt->green.max), fmt->green.shift};
+	c[2] = (Col){CBlue, nbits(fmt->blue.max), fmt->blue.shift};
+	nc = 3;
 
-	SORT(chans[0], chans[1]);
-	SORT(chans[0], chans[2]);
-	SORT(chans[1], chans[2]);
-
-	depth = 0;
-	for(i = 0; i < 3; i++) {
-		n = chans[i].nbits = nbits(chans[i].fmt->max);
-		depth += n;
-		mask &= ~(chans[i].fmt->max<<chans[i].fmt->shift);
+	/* add an ignore channel if necessary */
+	depth = c[0].nbits+c[1].nbits+c[2].nbits;
+	if(fmt->bpp != depth){
+		/* BUG: assumes only one run of ignored bits */
+		if(fmt->bpp == 32)
+			mask = ~0;
+		else
+			mask = (1<<fmt->bpp)-1;
+		mask ^= fmt->red.max << fmt->red.shift;
+		mask ^= fmt->green.max << fmt->green.shift;
+		mask ^= fmt->blue.max << fmt->blue.shift;
+		if(mask == 0)
+			abort();
+		n = 0;
+		for(; !(mask&1); mask>>=1)
+			n++;
+		c[3] = (Col){CIgnore, nbits(mask), n};
+		nc++;
 	}
 
-	if(fmt->bpp != depth && mask) {
-		xfmt.shift = 0;
-		while(!(mask & 1)) {
-			xfmt.shift++;
-			mask >>= 1;
-		}
-		xfmt.max = mask;
-		chans[3] = (struct _chan){CIgnore, fmt->bpp-depth, &xfmt};
+	/* sort the channels, largest shift (leftmost bits) first */
+	for(i=1; i<nc; i++)
+		for(j=i; j>0; j--)
+			if(c[j].shift > c[j-1].shift){
+				t = c[j];
+				c[j] = c[j-1];
+				c[j-1] = t;
+			}
 
-		SORT(chans[2], chans[3]);
-		SORT(chans[1], chans[2]);
-		SORT(chans[0], chans[1]);
+	/* build the channel descriptor */
+	u = 0;
+	for(i=0; i<nc; i++){
+		u <<= 8;
+		u |= CHAN1(c[i].type, c[i].nbits);
+	}
 
-		return (CHAN4(chans[0].type, chans[0].nbits,
-		    chans[1].type, chans[1].nbits,
-		    chans[2].type, chans[2].nbits,
-		    chans[3].type, chans[3].nbits));
-	} else
-		return (CHAN3(chans[0].type, chans[0].nbits,
-		    chans[1].type, chans[1].nbits,
-		    chans[2].type, chans[2].nbits));
+	return u;
 }
-#undef SORT
 
 static void
 chan2fmt(Pixfmt *fmt, ulong chan)
@@ -142,7 +871,7 @@ chan2fmt(Pixfmt *fmt, ulong chan)
 	ulong c, rc, shift;
 
 	shift = 0;
-	for(rc = chan; rc; rc >>=8) {
+	for(rc = chan; rc; rc >>=8){
 		c = rc & 0xFF;
 		switch(TYPE(c)){
 		case CRed:
@@ -159,74 +888,33 @@ chan2fmt(Pixfmt *fmt, ulong chan)
 	}
 }
 
+/*
+ * Note that r has changed on the screen.
+ * Updating the rlists is okay because they are protected by drawlock.
+ */
 void
-srvchoosecolor(Vnc *v)
-{
-	int bpp, depth;
-	ulong chan;
-
-	bpp = gscreen->depth;
-	depth = gscreen->depth;
-	chan = gscreen->chan;
-
-	v->bpp = bpp;
-	v->depth = depth;
-	v->truecolor = 1;
-	v->bigendian = 0;
-	chan2fmt(v, chan);
-	if(verbose)
-		fprint(2, "%d bpp, %d depth, 0x%lx chan, %d truecolor, %d bigendian\n",
-		    v->bpp, v->depth, chan, v->truecolor, v->bigendian);
-
-	vncwrpixfmt(v, &v->Pixfmt);
-	vncflush(v);
-}
-
-void
-settranslation(Vncs * v)
-{
-	ulong chan;
-
-	chan = fmt2chan(&v->Pixfmt);
-	if(verbose)
-		fprint(2, "display chan 0x%lx, client chan 0x%lx\n", gscreen->chan, chan);
-
-	v->clientimage = allocmemimage(Rpt(ZP, v->dim), chan);
-	if(v->clientimage == nil)
-		sysfatal("allocmemimage %r");
-	if(verbose)
-		fprint(2, "\ttranslating image format\n");
-}
-
-void
-senddim(Vnc *v)
-{
-	v->dim = (Point){Dx(gscreen->r), Dy(gscreen->r)};
-	vncwrpoint(v, v->dim);
-
-	if(verbose)
-		fprint(2, "screen is %d x %d %R\n", v->dim.x, v->dim.y, gscreen->r);
-}
-
-void flushmemscreen(Rectangle r)
+flushmemscreen(Rectangle r)
 {
 	Vncs *v;
 
-	vnclock(&clients);
-	for(v = (Vncs*)clients.next; v; v = (Vncs*)v->next)
-		region_union(&v->updateregion, r, Rpt(ZP, v->dim));
-	vncunlock(&clients);
+	if(!rectclip(&r, gscreen->r))
+		return;
+	qlock(&clients);
+	for(v=clients.head; v; v=v->next)
+		addtorlist(&v->rlist, r);
+	qunlock(&clients);
 }
 
-// do lazy mouse warp. without it, we would cause
-// a warp message in each update.
+/*
+ * Queue a mouse warp note for the next update to each client.
+ */
 void
 mousewarpnote(Point p)
 {
 	Vncs *v;
 
-	vnclock(&clients);
-	for(v = (Vncs*)clients.next; v; v = (Vncs*)v->next) {
+	qlock(&clients);
+	for(v=clients.head; v; v=v->next){
 		if(v->canwarp){
 			vnclock(v);
 			v->needwarp = 1;
@@ -234,889 +922,180 @@ mousewarpnote(Point p)
 			vncunlock(v);
 		}
 	}
-	vncunlock(&clients);
+	qunlock(&clients);
 }
 
-static void
-sendcopyrect(Vncs *v, Rectangle r)
-{
-	sendraw(v, r);
-}
-
+/*
+ * Send a client his changed screen image.
+ * v is locked on entrance, locked on exit, but released during.
+ */
 static int
-sendupdate(Vncs *v, int dowarp, Point warppt)
+updateimage(Vncs *v)
 {
-	int nrects, i, snrects, docursor;
-	Rectangle nr, cr;
-	Region updateregion;
+	int i, ncount, nsend, docursor, needwarp;
+	vlong ooffset;
+	Point warppt;
+	Rectangle cr;
+	Rlist rlist;
 	vlong t1;
+	int (*count)(Vncs*, Rectangle);
+	int (*send)(Vncs*, Rectangle);
 
+	/* warping info and unlock v so that updates can proceed */
+	needwarp = v->canwarp && v->needwarp;
+	warppt = v->warppt;
+	v->needwarp = 0;
+	vncunlock(v);
+
+	/* copy the screen bits and then unlock the screen so updates can proceed */
 	drawlock();
+	rlist = v->rlist;
+	memset(&v->rlist, 0, sizeof v->rlist);
 
-	/* we make a snapshot so that new screen updates can overlap with us */
-	region_init(&updateregion);
-	region_copy(&updateregion, &v->updateregion);
-	region_reset(&v->updateregion);
-
-	docursor = 0;
+	/* if the cursor has moved or changed shape, we need to redraw its square */
 	lock(&cursor);
 	if(v->cursorver != cursorver || !eqpt(v->cursorpos, cursorpos)){
 		docursor = 1;
 		v->cursorver = cursorver;
 		v->cursorpos = cursorpos;
 		cr = cursorrect();
-	}else
+	}else{
+		docursor = 0;
 		cr = v->cursorr;
+	}
 	unlock(&cursor);
-	if(docursor)
-		region_union(&updateregion, v->cursorr, Rpt(ZP, v->dim));
-	for(i = 0; i < updateregion.nrects; i++){
+
+	if(docursor){
+		addtorlist(&rlist, v->cursorr);
+		if(!rectclip(&cr, gscreen->r))
+			cr.max = cr.min;
+		addtorlist(&rlist, cr);
+	}
+
+	/* copy changed screen parts, also check for parts overlapping cursor location */
+	for(i=0; i<rlist.nrect; i++){
 		if(!docursor)
-			docursor = rectXrect(v->cursorr, updateregion.rects[i]);
-		memimagedraw(v->clientimage, updateregion.rects[i], gscreen, updateregion.rects[i].min, memopaque, ZP, S);
+			docursor = rectXrect(v->cursorr, rlist.rect[i]);
+		memimagedraw(v->image, rlist.rect[i], gscreen, rlist.rect[i].min, memopaque, ZP, S);
 	}
 
 	if(docursor){
-		cursordraw(v->clientimage, cr);
-		region_union(&updateregion, cr, Rpt(ZP, v->dim));
+		cursordraw(v->image, cr);
+		addtorlist(&rlist, v->cursorr);
 		v->cursorr = cr;
 	}
+
 	drawunlock();
-	if(REGION_EMPTY(&updateregion) && dowarp == 0){
-		region_reset(&updateregion);
-		return 1;
+
+	ooffset = Boffset(&v->out);
+	/* no more locks are held; talk to the client */
+
+	if(rlist.nrect == 0 && needwarp == 0){
+		vnclock(v);
+		return 0;
 	}
 
-	if(v->preferredencoding == EncCorre) {
-		nrects = 0;
-		for(i = 0; i < updateregion.nrects; i++)
-			nrects += rrerects(updateregion.rects[i], MaxCorreDim);
-	} else if(v->preferredencoding == EncRre) {
-		nrects = 0;
-		for(i = 0; i < updateregion.nrects; i ++)
-			nrects += rrerects(updateregion.rects[i], MaxRreDim);
-	} else
-		nrects = updateregion.nrects;
+	count = v->countrect;
+	send = v->sendrect;
+	if(count == nil || send == nil){
+		count = countraw;
+		send = sendraw;
+	}
+
+	ncount = 0;
+	for(i=0; i<rlist.nrect; i++)
+		ncount += (*count)(v, rlist.rect[i]);
 
 	if(verbose > 1)
-		fprint(2, "sendupdate: %d rects, %d region rects..", nrects, updateregion.nrects);
+		fprint(2, "sendupdate: rlist.nrect=%d, ncount=%d", rlist.nrect, ncount);
+
 	t1 = nsec();
 	vncwrchar(v, MFrameUpdate);
 	vncwrchar(v, 0);
-	if(v->canwarp)
-		vncwrshort(v, nrects+dowarp);
-	else
-		vncwrshort(v, nrects);
+	vncwrshort(v, ncount+needwarp);
 
-	snrects = 0;
-	for(i = 0; i < updateregion.nrects; i++) {
-		nr = updateregion.rects[i];
+	nsend = 0;
+	for(i=0; i<rlist.nrect; i++)
+		nsend += (*send)(v, rlist.rect[i]);
 
-		switch(v->preferredencoding) {
-		default:
-			sysfatal("don't know about encoding %d\n", v->preferredencoding);
-			break;
-		case EncRaw:
-			sendraw(v, nr);
-			snrects++;
-			break;
-		case EncRre:
-			snrects += sendrre(v, nr, MaxRreDim, 0);
-			break;
-		case EncCorre:
-			snrects += sendrre(v, nr, MaxCorreDim, 1);
-			break;
-		case EncHextile:
-			sendhextile(v, nr);
-			snrects++;
-			break;
-		}
+	if(ncount != nsend){
+		fprint(2, "%V: ncount=%d, nsend=%d; hanging up\n", v, ncount, nsend);
+		vnchungup(v);
 	}
-	if(snrects != nrects)
-		sysfatal("bad number of rectangles sent; %d expexted %d\n", snrects, nrects);
-	region_reset(&updateregion);
-	if(dowarp){
-		// four shorts and an int (x, y, w, h, enctype)
-		vncwrrect(v, rectaddpt(Rect(0,0,1,1), warppt));
+
+	if(needwarp){
+		vncwrrect(v, Rect(warppt.x, warppt.y, warppt.x+1, warppt.y+1));
 		vncwrlong(v, EncMouseWarp);
 	}
-	if(verbose > 1) 
-		fprint(2, " in %lld msecs\n", (nsec()-t1)/(1000*1000LL));
 
-	return 0;
+	t1 = nsec() - t1;
+	if(verbose > 1)
+		fprint(2, " in %lldms, %lld bytes\n", t1/1000000, Boffset(&v->out) - ooffset);
+
+	freerlist(&rlist);
+	vnclock(v);
+	return 1;
 }
 
+/*
+ * Update the snarf buffer if it has changed.
+ */
 static void
-vnc_update(Vncs *v)
+updatesnarf(Vncs *v)
 {
 	char *buf;
-	int n, notsent, needwarp;
-	Point p;
+	int len;
 
-	while(1) {
+	if(v->snarfvers == snarf.vers)
+		return;
+	vncunlock(v);
+	qlock(&snarf);
+	len = snarf.n;
+	buf = malloc(len);
+	if(buf == nil){
+		qunlock(&snarf);
 		vnclock(v);
-		if( v->ndeadprocs )
-			break;
-		notsent = 1;
-		if( v->updaterequested ) {
-			v->updaterequested = 0;
-			vncunlock(v);
-			qlock(&snarf);
-			if(v->snarfvers != snarf.vers) {
-				n = snarf.n;
-				buf = malloc(n);
-				if(buf != nil)
-					memmove(buf, snarf.buf, n);
-				v->snarfvers = snarf.vers;
-				qunlock(&snarf);
+		return;
+	}
+	memmove(buf, snarf.buf, len);
+	v->snarfvers = snarf.vers;
+	qunlock(&snarf);
 
-				if(buf != nil){
-					vncwrchar(v, MSCut);
-					vncwrbytes(v, "pad", 3);
-					vncwrlong(v, n);
-					vncwrbytes(v, buf, n);
-					free(buf);
-				}
-			}else
-				qunlock(&snarf);
-			vnclock(v);
-			needwarp = v->needwarp;
-			v->needwarp = 0;
-			p = v->warppt;
-			vncunlock(v);
-			notsent = sendupdate(v, needwarp, p);
-			vnclock(v);
-			v->updaterequested |= notsent;
+	vncwrchar(v, MSCut);
+	vncwrbytes(v, "pad", 3);
+	vncwrlong(v, len);
+	vncwrbytes(v, buf, len);
+	free(buf);
+	vnclock(v);
+}
+
+/*
+ * Continually update one client.
+ */
+static void
+clientwriteproc(Vncs *v)
+{
+	int sent;
+
+	vncname("write %V", v);
+	for(;;){
+		vnclock(v);
+		if(v->ndead)
+			break;
+		sent = 0;
+		if(v->updaterequest){
+			v->updaterequest = 0;
+			updatesnarf(v);
+			sent = updateimage(v);
+			if(!sent)
+				v->updaterequest = 1;
 		}
 		vncunlock(v);
 		vncflush(v);
-		if(notsent)
-			sleep(40);
+		if(!sent)
+			sleep(sleeptime);
 	}
 	vncunlock(v);
 	vnchungup(v);
 }
 
-static int
-srvtlscrypt(Vnc *v)
-{
-	int p[2], netfd;
-
-	if(pipe(p) < 0){
-		fprint(2, "pipe: %r\n");
-		return -1;
-	}
-
-	netfd = v->datafd;
-	switch(rfork(RFMEM|RFPROC|RFFDG|RFNOWAIT)){
-	case -1:
-		fprint(2, "fork: %r\n");
-		return -1;
-	case 0:
-		dup(p[0], 0);
-		dup(netfd, 1);
-		close(v->ctlfd);
-		close(netfd);
-		close(p[0]);
-		close(p[1]);
-		execl("/bin/ntlssrv", "tlssrv", "-Dlvnc", "-k/tmp", nil);
-		fprint(2, "exec: %r\n");
-		_exits(nil);
-	default:
-		close(netfd);
-		v->datafd = p[1];
-		close(p[0]);
-		Binit(&v->in, v->datafd, OREAD);
-		Binit(&v->out, v->datafd, OWRITE);
-		return 0;
-	}
-}
-
-static int
-srvnocrypt(Vnc*)
-{
-	return 0;
-}
-
-static int
-srvvncauth(Vnc *v)
-{
-	return vncauth_srv(v);
-}
-
-static int
-srvnoauth(Vnc*)
-{
-	return 0;
-}
-
-typedef struct Option Option;
-typedef struct Choice Choice;
-
-struct Choice {
-	char *s;
-	int (*fn)(Vnc*);
-};
-
-struct Option {
-	char *s;
-	int required;
-	Choice *c;
-	int nc;
-};
-
-static Choice srvcryptchoice[] = {
-	"tlsv1",	srvtlscrypt,
-//	"none",	srvnocrypt,
-};
-
-static Choice srvauthchoice[] = {
-	"vnc",	srvvncauth,
-//	"none",	srvnoauth,
-};
-
-static Option options[] = {
-	"crypt",	1,	srvcryptchoice,	nelem(srvcryptchoice),
-	"auth",	1,	srvauthchoice,	nelem(srvauthchoice),
-};
-
-static int
-vncnegotiate_srv(Vnc *v)
-{
-	char opts[256], *eopts, *p, *resp;
-	int i, j;
-
-	for(i=0; i<nelem(options); i++){
-		if(verbose)
-			fprint(2, "%s...", options[i].s);
-		eopts = opts+sizeof opts;
-		p = seprint(opts, eopts, "%s", options[i].s);
-		for(j=0; j<options[i].nc; j++)
-			p = seprint(p, eopts, " %s", options[i].c[j].s);
-		vncwrstring(v, opts);
-		vncflush(v);
-		resp = vncrdstringx(v);
-		p = strchr(resp, ' ');
-		if(p == nil){
-			fprint(2, "malformed response in negotiation\n");
-			free(resp);
-			return -1;
-		}
-		*p++ = '\0';
-		if(strcmp(resp, "error")==0){
-			fprint(2, "negotiating %s: %s\n", options[i].s, p);
-			if(options[i].required){
-				free(resp);
-				return -1;
-			}
-		}else if(strcmp(resp, options[i].s)==0){
-			for(j=0; j<options[i].nc; i++)
-				if(strcmp(options[i].c[j].s, p)==0)
-					break;
-			if(j==options[i].nc){
-				fprint(2, "negotiating %s: unknown choice: %s\n",
-					options[i].s, p);
-				free(resp);
-				return -1;
-			}
-			if(verbose)
-				fprint(2, "(%s)...", p);
-			if(options[i].c[j].fn(v) < 0){
-				fprint(2, "%s %s failed: %r\n", resp, p);
-				free(resp);
-				return -1;
-			}
-		}else{
-			p[-1] = ' ';
-			fprint(2, "negotiating %s: bad response: %s\n", options[i].s, resp);
-			free(resp);
-			return -1;
-		}
-		free(resp);
-	}
-	vncwrstring(v, "start");
-	if(verbose)
-		fprint(2, "start...");
-	vncflush(v);
-	return 0;
-}
-
-static int
-encoding_ok(int x)
-{
-	switch(x) {
-	default:
-		return 0;
-	case EncRaw:
-	case EncRre:
-	case EncCorre:
-	case EncHextile:
-		return 1;
-	}
-}
-
-static void
-vnc_srv(Vncs *v, int dfd, int cfd)
-{
-	Rectangle r;
-	char msg[12+1], *sn;
-	uchar type, keydown;
-	ushort n;
-	ulong incremental, x, key;
-	int y, buttons;
-
-	if(verbose)
-		fprint(2, "init...");
-
-	vncinit(dfd, cfd, v);
-	v->preferredencoding = -1;
-	v->usecopyrect = 0;
-	v->canwarp = 0;
-	v->ndeadprocs = 0;
-	v->nprocs = 1;
-
-	if(verbose)
-		fprint(2, "handshake...");
-	if(vnchandshake_srv(v) < 0){
-		if(verbose)
-			fprint(2, "vnc handshake failed\n");
-		vnchungup(v);
-	}
-
-	if(verbose)
-		fprint(2, "auth...");
-	if(vncauth_srv(v) < 0){
-		if(verbose)
-			fprint(2, "vnc authentication failed\n");
-		vnchungup(v);
-	}
-
-	shared = vncrdchar(v);
-	if(verbose)
-		fprint(2, "client is %sshared\n", shared?"":"not ");
-	if(!shared){
-		shutdown_clients(v);
-	}
-
-	senddim(v);
-	srvchoosecolor(v);
-	vncwrlong(v, 14);
-	vncwrbytes(v, "Plan9 Desktop", 14);
-	vncflush(v);
-
-	if(verbose)
-		fprint(2, "handshaking done\n");
-
-	/* start the update process */
-	switch(rfork(RFPROC|RFMEM)){
-	case -1:
-		sysfatal("can't make update process: %r");
-	default:
-		break;
-	case 0:
-		v->nprocs++;
-		*vncpriv = v;
-		if(!atexit(vnccsexiting)){
-			vnccsexiting();
-			sysfatal("too many clients");
-		}
-		vnc_update(v);
-		exits(nil);
-	}
-
-	region_init(&v->updateregion);
-
-	for(;;){
-		type = vncrdchar(v);
-		switch(type){
-		default:
-			sysfatal("unknown vnc message type=%d\n", type);
-			break;
-
-		case MPixFmt:
-			vncrdbytes(v, msg, 3);
-			v->Pixfmt = vncrdpixfmt(v);
-			settranslation(v);
-			break;
-
-		case MFixCmap:
-			vncrdbytes(v, msg, 3);
-			n = vncrdshort(v);
-			vncgobble(v, n*6);
-			break;
-
-		case MSetEnc:
-			vncrdchar(v);
-			n = vncrdshort(v);
-			while(n--){
-				x = vncrdlong(v);
-				if(x == EncCopyRect)
-					v->usecopyrect = 1;
-				else if (x == EncMouseWarp)
-					v->canwarp = 1;
-				else if(v->preferredencoding == -1 &&
-					encoding_ok(x))
-					v->preferredencoding = x;
-			}
-			if(v->preferredencoding == -1)
-				v->preferredencoding = EncRaw;
-			if(verbose)
-				fprint(2, "encoding is %s %s copyrect\n", encname[v->preferredencoding], v->usecopyrect?"with":"without");
-			break;
-
-		case MFrameReq:
-			incremental = vncrdchar(v);
-			r = vncrdrect(v);
-			drawlock();  // must hold drawlock first
-			vnclock(v);
-			v->updaterequested = 1;
-			if(!incremental) 
-				region_union(&v->updateregion, r, Rpt(ZP, v->dim));
-			vncunlock(v);
-			drawunlock();
-			break;
-
-		case MKey:
-			keydown = vncrdchar(v);
-			vncgobble(v, 2);
-			key = vncrdlong(v);
-			vncputc(!keydown, key);
-			break;
-
-		case MMouse:
-			buttons = vncrdchar(v);
-			x = vncrdshort(v);
-			y = vncrdshort(v);
-			mousetrack(x, y, buttons, nsec()/(1000*1000LL));
-			break;
-
-		case MCCut:
-			vncrdbytes(v, msg, 3);
-			x = vncrdlong(v);
-			sn = malloc(x + 1);
-			if(sn == nil)
-				vncgobble(v, x);
-			else{
-				vncrdbytes(v, sn, x);
-				sn[x] = '\0';
-				setsnarf(sn, x, &v->snarfvers);
-			}
-			break;
-		}
-	}
-}
-
-void
-vnc_newclient(int dfd, int cfd)
-{
-	Vncs * v;
-
-	/* caller returns to listen */
-	switch(rfork(RFPROC|RFMEM|RFNAMEG)){
-	case -1:
-		close(dfd);
-		close(cfd);
-		return;
-	default:
-		return;
-	case 0:
-		break;
-	}
-
-	v = mallocz(sizeof(Vncs), 1);
-	vnclock(&clients);
-	v->next = clients.next;
-	clients.next = v;
-	vncunlock(&clients);
-	*vncpriv = v;
-	if(!atexit(vnccsexiting)){
-		vnccsexiting();
-		sysfatal("too many clients");
-	}
-	vnc_srv(v, dfd, cfd);
-}
-
-/* here is where client procs exit.
- * vnclock(v) must not be held.
- */
-void
-vnchungup(Vnc *)
-{
-	exits(nil);
-}
-
-static void
-vnccsexiting(void)
-{
-	Vncs *v;
-	Vnc **vp;
-
-	v = *vncpriv;
-	vnclock(&clients);
-	for(vp = &clients.next; *vp != nil; vp = &(*vp)->next)
-		if(*vp == v)
-			break;
-
-	/* check for shut down */
-	if(*vp == nil){
-		vncunlock(&clients);
-		return;
-	}
-
-	/* wait for all of this client's procs to die */
-	vnclock(v);
-	if( ++v->ndeadprocs < v->nprocs ) {
-		vncunlock(v);
-		vncunlock(&clients);
-		return;
-	}
-
-	*vp = v->next;
-	vncunlock(&clients);
-
-	region_reset(&v->updateregion);
-	vncterm(v);
-	close(v->ctlfd);
-	close(v->datafd);
-	freememimage(v->clientimage);
-
-	free(v);
-}
-
-/*
- * kill all clients except nv.
- *
- * called by:
- *	the listener before a non-shared client starts
- *	shutdown
- */
-void static
-shutdown_clients(Vncs * nv)
-{
-	Vncs *v;
-
-	vnclock(&clients);
-	for(v = (Vncs*)clients.next; v != nil; v = (Vncs*)v->next){
-		if(v == nv)
-			continue;
-
-		if(v->ctlfd >= 0){
-			hangup(v->ctlfd);
-			close(v->ctlfd);
-			v->ctlfd = -1;
-			close(v->datafd);
-			v->datafd = -1;
-		}
-	}
-	vncunlock(&clients);
-}
-
-static char killkin[] = "die vnc kin";
-
-void
-killall(void)
-{
-	int pid;
-
-	postnote(PNGROUP, worker, "kill");
-	close(srvfd);
-	srvfd = -1;
-	close(exportfd);
-	exportfd = -1;
-	pid = getpid();
-	postnote(PNGROUP, pid, killkin);
-}
-
-/*
- * called by the exporter when unmounted
- * and the main listener when hung up.
- */
-void
-shutdown(void)
-{
-	if(verbose)
-		fprint(2, "vnc server shutdown\n");
-	killall();
-}
-
-static void
-noteshut(void*, char *msg)
-{
-	if(strcmp(msg, killkin) != 0)
-		killall();
-	noted(NDFLT);
-}
-
-/* try once if the user passed us the address, or hunt for one 
- * explicit:	tcp!*!5900
- * auto:	/net | nil
- */
-int
-vncannounce(char *netmt, char * darg, char * adir, int bport)
-{
-	int port, eport, fd;
-	char portstr[NETPATHLEN];
-
-	port = bport;
-	eport = bport + 50;
-	if( darg != nil && darg[0] == ':' ) {
-		port = bport + strtol(&darg[1], nil, 10);
-		eport = port;
-	}
-
-	for(; port <= eport; port++) {
-		snprint(portstr, NETPATHLEN, "%s/tcp!*!%d", netmt, port);
-		fd = announce(portstr, adir);
-		if( fd >= 0 ) {
-			fprint(2, "server started on display :%d\n", port-bport);
-			return fd;
-		}
-	}
-
-	return -1;
-}
-
-/* the user wants to kill the sever on a specified port 
-*/
-static void
-vnckillsrv(char * netroot, char * portstr, int bport)
-{
-	int port, fd, lport;
-	char * p;
-	int fdir, i, tot, n;
-	Dir *dir, * db;
-	char buf[NETPATHLEN];
-
-	port = atoi(portstr);
-	
-	port += bport;
-	/* find the listener in /net/tcp/ */
-	snprint(buf, sizeof buf, "%s/tcp", netroot);
-	fdir = open(buf, OREAD);
-	if(fdir < 0)
-		return;
-
-	tot = dirreadall(fdir, &dir);
-	for(i = 0; i < tot; i++) {
-		db = & dir[i];
-
-		/* read in the local port number */
-		sprint(buf, "%s/tcp/%s/local", netroot, db->name);
-		fd = open(buf, OREAD);
-		if(fd < 0) 
-			sysfatal("can't open file %s", buf);
-		n = read(fd, buf, sizeof(buf));
-		if(n < 0) 
-			sysfatal("can't read file %s", buf);
-		buf[n-1] = 0;
-		close(fd);
-		p = strchr(buf, '!');
-		if(p == 0) 
-			sysfatal("can't parse string %s", buf);
-		lport = atoi(p+1);
-		if(lport != port)
-			continue;
-
-		sprint(buf, "%s/tcp/%s/ctl", netroot, db->name);
-		fd = open(buf, OWRITE);
-		if( fd < 0 )
-			sysfatal("can't open file %s", buf);
-		if( write(fd, "hangup", 6) != 6 )
-			sysfatal("can't write to file %s", buf);
-		close(fd);
-		break;
-	}
-	free(dir);
-	close(fdir);
-}
-
-void
-usage(void)
-{
-	fprint(2, "usage:\tvncs [-v] [-g widthXheight] [-d :display] [command [args ...]]\n");
-	fprint(2, "\tvncs [-v] [-k :display]\n");
-	exits("usage");
-}
-
-void
-main(int argc, char * argv[])
-{
-	static char *defargv[] = { "/bin/rc", "-i", nil };
-	char *addr, netmt[NETPATHLEN], adir[NETPATHLEN], ldir[NETPATHLEN], *p, *darg, *karg, *pem;
-	int cfd, s, n, fd, ffd, w, h, vncport;
-	TLSconn *conn;
-
-	vncport = 5900;
-	pem = nil;
-	w = 1024;
-	h = 768;
-	addr = nil;
-	darg = nil;
-	karg = nil;
-	setnetmtpt(netmt, NETPATHLEN, nil);
-	ARGBEGIN{
-	case 'c':
-		pem = ARGF();
-		if(pem == nil)
-			usage();
-		vncport = 35729;	/* base port# for vnc/tls */
-		break;
-	case 'd':
-		darg = ARGF();
-		if(darg == nil || *darg != ':')
-			usage();
-		break;
-	case 'g':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		w = strtol(p, &p, 10);
-		h = atoi(++p);
-		break;
-	case 'k':
-		karg = ARGF();
-		if(karg == nil || *karg != ':')
-			usage();
-		break;
-	case 'v':
-		verbose++;
-		break;
-	case 'x':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		usage();	/* NO /net.alt LISTENERS */
-		setnetmtpt(netmt, NETPATHLEN, p);
-		break;
-	default:
-		usage();
-		break;
-	}ARGEND
-
-	
-	if(karg != nil){
-		if(argc ||  darg != nil )
-			usage();
-		vnckillsrv(netmt, &karg[1], vncport);
-		exits(nil);
-	}
-
-	if(argc == 0)
-		argv = defargv;
-
-	if(access(argv[0], AEXEC) < 0)
-		sysfatal("can't exec %s: %r", argv[0]);
-
-	/*
-	 * background the server
-	 */
-	switch(rfork(RFPROC|RFNAMEG|RFFDG|RFNOTEG)){
-	case -1:
-		sysfatal("rfork: %r");
-	default:
-		exits(nil);
-	case 0:
-		break;
-	}
-
-	vncpriv = privalloc();
-	if(vncpriv == nil)
-		sysfatal("can't allocate private storage for vnc threads");
-
-	initcompat();
-	if(waserror())
-		sysfatal("can't initialize screen: %s", up->error);
-
-	fprint(2, "geometry is %dx%d\n", w, h);
-	screeninit(w, h, "r5g6b5");
-	poperror();
-
-	/*
-	 * fork the plan 9 file system device slaves
-	 */
-	n = exporter(devtab, &fd, &exportfd);
-
-	/*
-	 * scummy: we have to rebuild all of /dev because the
-	 * underlying connection may go away, ripping out the old /dev/cons, etc.
-	 */
-	unmount(nil, "/dev");
-	bind("#c", "/dev", MREPL);
-
-	/*
-	 * run the command
-	 */
-	switch(worker = rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG|RFREND)){
-	case -1:
-		sysfatal("can't fork: %r");
-		break;
-	case 0:
-		/* On a cpuserver, we need to use bootes factotum
-		 * to talk to the auth server.
-		*/
-		ffd = open("/srv/factotum", ORDWR);
-		if(ffd < 0) 
-			sysfatal("can't open bootes factotum: %r\n");
-		mount(ffd, -1, "/mnt", MBEFORE, "");
-
-		if(!mounter("/dev", MBEFORE, fd, n))
-			exits("errors");
-		close(exportfd);
-		close(0);
-		close(1);
-		close(2);
-		open("/dev/cons", OREAD);
-		open("/dev/cons", OWRITE);
-		open("/dev/cons", OWRITE);
-		fprint(2, "execing %s...\n", argv[0]);
-		exec(argv[0], argv);
-		fprint(2, "can't exec %s: %r\n", argv[0]);
-		_exits(0);
-	default:
-		close(fd);
-		break;
-	}
-
-	/*
-	 * run the service
-	 */
-	srvfd = vncannounce(netmt, darg, adir, vncport);
-	if(srvfd < 0)
-		sysfatal("announce %s: %r", addr);
-
-	if(verbose)
-		fprint(2, "announced %s\n", adir);
-
-	atexit(shutdown);
-	notify(noteshut);
-	while(1){
-		cfd = listen(adir, ldir);
-		if(cfd < 0)
-			break;
-
-		if(verbose)
-			fprint(2, "received call at %s\n", ldir);
-
-		s = accept(cfd, ldir);
-		if(pem != nil) {
-			/* this code requires the user's own
-				factotum running on the cpuserver
-			*/
-			conn = (TLSconn*)mallocz(sizeof *conn, 1);
-			conn->cert = readcert(pem, &conn->certlen);
-			s = tlsServer(s, conn);
-			if(conn->certlen) 
-				free(conn->cert);
-			if(conn->sessionIDlen)
-				free(conn->sessionID);
-			free(conn);
-		}
-		if(s < 0){
-			close(cfd);
-			continue;
-		}
-
-		vnc_newclient(s, cfd);
-	}
-	exits(0);
-}

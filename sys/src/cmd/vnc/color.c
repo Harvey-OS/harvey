@@ -15,7 +15,7 @@ chan2fmt(Pixfmt *fmt, ulong chan)
 	ulong c, rc, shift;
 
 	shift = 0;
-	for(rc = chan; rc; rc >>=8) {
+	for(rc = chan; rc; rc >>=8){
 		c = rc & 0xFF;
 		switch(TYPE(c)){
 		case CRed:
@@ -42,7 +42,7 @@ cvt32to24(uchar *dst, uchar *src, int npixel)
 {
 	int i;
 
-	for(i=0; i<npixel; i++) {
+	for(i=0; i<npixel; i++){
 		*dst++ = *src++;
 		*dst++ = *src++;
 		*dst++ = *src++;
@@ -70,7 +70,7 @@ cvtrgb12tocmap8(uchar *dst, uchar *src, int npixel)
 {
 	int i, s;
 
-	for(i=0; i<npixel; i++) {
+	for(i=0; i<npixel; i++){
 		s = (src[0] | (src[1]<<8)) & 0xFFF;
 		*dst++ = rgb12[s];
 		src += 2;
@@ -87,7 +87,7 @@ mkbgrtab(void)
 {
 	int i, r, g, b;
 
-	for(i=0; i<256; i++) {
+	for(i=0; i<256; i++){
 		b = i>>6;
 		b = (b<<6)|(b<<4)|(b<<2)|b;
 		g = (i>>3) & 7;
@@ -121,15 +121,15 @@ choosecolor(Vnc *v)
 	depth = screen->depth;
 	chan = screen->chan;
 
-	if(bpp == 24) {
+	if(bpp == 24){
 		if(verbose)
 			fprint(2, "24bit emulation using 32bpp\n");
 		bpp = 32;
 		cvtpixels = cvt32to24;
 	}
 
-	if(chan == CMAP8) {
-		if(bpp12) {
+	if(chan == CMAP8){
+		if(bpp12){
 			if(verbose)
 				fprint(2, "8bit emulation using 12bpp\n");
 			bpp = 16;
@@ -137,7 +137,7 @@ choosecolor(Vnc *v)
 			chan = RGB12;
 			cvtpixels = cvtrgb12tocmap8;
 			mkrgbtab();
-		} else {
+		}else{
 			if(verbose)
 				fprint(2, "8bit emulation using 6bpp\n");	/* 6: we throw away 1 r, g bit */
 			bpp = 8;

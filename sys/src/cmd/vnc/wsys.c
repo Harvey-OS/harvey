@@ -135,14 +135,14 @@ readmouse(Vnc *v)
 	requestupdate(vnc, 0);
 	start = end = buf;
 	len = 0;
-	for(;;) {
+	for(;;){
 		if((n = read(mousefd, end, sizeof(buf) - (end - buf))) < 0)
 			sysfatal("read mouse failed");
 
 		len += n;
 		end += n;
-		while(len >= EventSize) {
-			if(*start == 'm') {
+		while(len >= EventSize){
+			if(*start == 'm'){
 				m.xy.x = atoi(start+1);
 				m.xy.y = atoi(start+1+12);
 				m.buttons = atoi(start+1+2*12) & 7;
@@ -155,7 +155,7 @@ readmouse(Vnc *v)
 			start += EventSize;
 			len -= EventSize;
 		}
-		if(start - buf > sizeof(buf) - EventSize) {
+		if(start - buf > sizeof(buf) - EventSize){
 			memmove(buf, start, len);
 			start = buf;
 			end = start+len;
@@ -173,12 +173,12 @@ writesnarf(Vnc *v, long n)
 	long m;
 	Biobuf * fd;
 
-	if( (fd = Bopen("/dev/snarf", OWRITE)) == nil ) {
+	if( (fd = Bopen("/dev/snarf", OWRITE)) == nil ){
 		vncgobble(v, n);
 		return;
 	}
 
-	while(n > 0) {
+	while(n > 0){
 		m = n;
 		if(m > sizeof(buf))
 			m = sizeof(buf);
@@ -202,11 +202,11 @@ getsnarf(int * sz)
 	p = snarf = malloc(n);
 
 	seek(snarffd, 0, 0);
-	while ((c = read(snarffd, p, n)) > 0) {
+	while ((c = read(snarffd, p, n)) > 0){
 		p += c;
 		n -= c;
 		*sz += c;
-		if ( n == 0 ) {
+		if ( n == 0 ){
 			snarf = realloc(snarf, *sz + 8192);
 			n = 8192;
 		}
@@ -227,13 +227,13 @@ checksnarf(Vnc *v)
 			sysfatal("can't open /dev/snarf: %r");
 	}
 
-	while(1) {
+	for(;;){
 		sleep(1000);
 
 		dir = dirstat("/dev/snarf");
 		if(dir == nil)	/* this happens under old drawterm */
 			continue;
-		if(dir->qid.vers > snarf_vers) {
+		if(dir->qid.vers > snarf_vers){
 			snarf = getsnarf(&len);
 
 			vnclock(v);

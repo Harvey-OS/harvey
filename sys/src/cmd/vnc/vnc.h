@@ -33,9 +33,7 @@ struct Vnc {
 
 	Point		dim;
 	Pixfmt;
-	char		*name;
-
-	Vnc		*next;
+	char		*name;	/* client only */
 };
 
 enum {
@@ -55,6 +53,7 @@ enum {
 	MSetCmap,
 	MBell,
 	MSCut,
+	MSAck,
 
 	/* client to server */
 	MPixFmt		= 0,
@@ -94,9 +93,9 @@ typedef ulong Color;
 
 /* auth.c */
 extern	int		vncauth(Vnc*);
-extern	int		vncauth_srv(Vnc*);
-extern	int		vnchandshake_srv(Vnc*);
 extern	int		vnchandshake(Vnc*);
+extern	int		vncsrvauth(Vnc*);
+extern	int		vncsrvhandshake(Vnc*);
 
 /* proto.c */
 extern	Vnc*		vncinit(int, int, Vnc*);

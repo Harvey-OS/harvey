@@ -36,11 +36,11 @@ sendencodings(Vnc *v)
 
 	nf = tokenize(encodings, f, nelem(f));
 	nenc = 0;
-	for(i=0; i<nf; i++) {
+	for(i=0; i<nf; i++){
 		for(j=0; j<nelem(enctab); j++)
 			if(strcmp(f[i], enctab[j].name) == 0)
 				break;
-		if(j == nelem(enctab)) {
+		if(j == nelem(enctab)){
 			print("warning: unknown encoding %s\n", f[i]);
 			continue;
 		}
@@ -200,7 +200,7 @@ dohextile(Vnc *v, Rectangle r, int stride)
 
 			sr = Rect(sx, sy, sx + tw, sy + th);
 			enc = vncrdchar(v);
-			if(enc & HextileRaw) {
+			if(enc & HextileRaw){
 				loadbuf(v, sr, stride);
 				continue;
 			}
@@ -212,10 +212,10 @@ dohextile(Vnc *v, Rectangle r, int stride)
 			if(enc & HextileFore)
 				vncrdcolor(v, (uchar*)&fg);
 
-			if(enc & HextileRects) {
+			if(enc & HextileRects){
 				nsub = vncrdchar(v);
 				(*pixcp)((uchar*)&c, (uchar*)&fg);
-				while(nsub-- > 0) {
+				while(nsub-- > 0){
 					if(enc & HextileCols)
 						vncrdcolor(v, (uchar*)&c);
 					ssr = rectaddpt(hexrect(vncrdshort(v)), sr.min);
@@ -242,7 +242,7 @@ dorectangle(Vnc *v)
 		sysfatal("bad rectangle from server: %R not in %R", r, Rpt(ZP, v->dim));
 	stride = Dx(r) * pixb;
 	type = vncrdlong(v);
-	switch(type) {
+	switch(type){
 	default:
 		sysfatal("bad rectangle encoding from server");
 		break;
@@ -266,7 +266,7 @@ dorectangle(Vnc *v)
 		n = vncrdlong(v);
 		vncrdcolor(v, (uchar*)&color);
 		fillrect(maxr, stride, (uchar*)&color);
-		while(n-- > 0) {
+		while(n-- > 0){
 			vncrdcolor(v, (uchar*)&color);
 			if(type == EncRre)
 				subr = vncrdrect(v);
@@ -353,9 +353,9 @@ readfromserver(Vnc *v)
 	pixbuf = malloc(v->dim.x * pixb * v->dim.y);
 	if(linebuf == nil || pixbuf == nil)
 		sysfatal("can't allocate pix decompression storage");
-	for(;;) {
+	for(;;){
 		type = vncrdchar(v);
-		switch(type) {
+		switch(type){
 		default:
 			sysfatal("bad message from server");
 			break;
@@ -375,6 +375,9 @@ readfromserver(Vnc *v)
 			break;
 
 		case MBell:
+			break;
+
+		case MSAck:
 			break;
 
 		case MSCut:

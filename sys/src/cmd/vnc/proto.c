@@ -27,7 +27,7 @@ vncterm(Vnc *v)
 void
 vncflush(Vnc *v)
 {
-	if(Bflush(&v->out) < 0) {
+	if(Bflush(&v->out) < 0){
 		if(verbose > 1)
 			fprint(2, "hungup while sending flush: %r\n");
 		vnchungup(v);
@@ -98,7 +98,7 @@ vncrdcorect(Vnc *v)
 void
 vncrdbytes(Vnc *v, void *a, int n)
 {
-	if(Bread(&v->in, a, n) != n) {
+	if(Bread(&v->in, a, n) != n){
 		if(verbose > 1)
 			fprint(2, "hungup while reading\n");
 		vnchungup(v);
@@ -186,7 +186,7 @@ vncwrstring(Vnc *v, char *s)
 void
 vncwrbytes(Vnc *v, void *a, int n)
 {
-	if(Bwrite(&v->out, a, n) < 0) {
+	if(Bwrite(&v->out, a, n) < 0){
 		if(verbose > 1) 
 			fprint(2, "hungup while writing bytes\n");
 		vnchungup(v);
@@ -284,7 +284,7 @@ vncgobble(Vnc *v, long n)
 	uchar buf[8192];
 	long m;
 
-	while(n > 0) {
+	while(n > 0){
 		m = n;
 		if(m > sizeof(buf))
 			m = sizeof(buf);

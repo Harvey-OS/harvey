@@ -199,7 +199,7 @@ mouseread(Chan *c, void *va, long n, vlong off)
 		 * is degenerate and already violates the calling
 		 * conventions for sleep above.
 		 */
-		if(mouse.ri != mouse.wi) {
+		if(mouse.ri != mouse.wi){
 			m = mouse.queue[mouse.ri];
 			if(++mouse.ri == nelem(mouse.queue))
 				mouse.ri = 0;
@@ -312,7 +312,7 @@ mousewrite(Chan *c, void *va, long n, vlong)
 			error(Eshort);
 		pt.y = strtoul(p, 0, 0);
 		qlock(&mouse);
-		if(ptinrect(pt, gscreen->r)) {
+		if(ptinrect(pt, gscreen->r)){
 			mousetrack(pt.x, pt.y, mouse.buttons, nsec()/(1000*1000LL));
 			mousewarpnote(pt);
 		}

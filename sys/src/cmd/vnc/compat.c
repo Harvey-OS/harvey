@@ -147,7 +147,7 @@ _rendsleep(ulong tag)
 {
 	ulong value;
 
-	for(;;) {
+	for(;;){
 		value = rendezvous(tag, 0x22a891b8);
 		if(value == 0x7f7713f9)
 			break;
@@ -161,7 +161,7 @@ _rendwakeup(ulong tag)
 {
 	ulong value;
 
-	for(;;) {
+	for(;;){
 		value = rendezvous(tag, 0x7f7713f9);
 		if(value == 0x22a891b8)
 			break;
@@ -201,7 +201,7 @@ rendsleep(Rendez *r, int (*f)(void*), void *arg)
 Done:
 	lock(&up->rlock);
 	up->r = 0;
-	if(up->intr) {
+	if(up->intr){
 		up->intr = 0;
 		unlock(&up->rlock);
 		error(Eintr);
@@ -218,7 +218,7 @@ rendwakeup(Rendez *r)
 	lock(r);
 	p = r->p;
 	rv = 0;
-	if(p) {
+	if(p){
 		r->p = nil;
 		_rendwakeup((ulong)r);
 		rv = 1;

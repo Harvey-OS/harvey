@@ -288,7 +288,7 @@ filter(int fd, char *cmd, char *host)
 	if ((s = strchr(newport, '!')) == nil)
 		sysfatal("filter: illegally formatted port %s\n", newport);
 
-	strcpy(buf, netmkaddr(host, "il", "0"));
+	strcpy(buf, netmkaddr(host, "tcp", "0"));
 	pbuf = strrchr(buf, '!');
 	strcpy(pbuf, s);
 

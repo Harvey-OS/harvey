@@ -22,6 +22,9 @@ usbaudio
 .B -m
 .I mountpoint
 ] [
+.B -s
+.I srvname
+] [
 .I ctrlno
 .I n
 ]
@@ -39,7 +42,7 @@ The script
 .B usbstart
 checks whether a USB driver is present, and if so, starts usbd
 followed by the support programs listed below.
-.SS USB MICE
+.SS Mice
 .B Usbmouse
 sends mouse events from a USB mouse to
 .B #m/mousein
@@ -54,7 +57,7 @@ The
 flag runs
 .B usbmouse
 in the foreground.
-.SS USB AUDIO DEVICES
+.SS Audio devices
 .B Usbaudio
 configures and manages a usb audio device.  It implements a file system,
 normally mounted in
@@ -72,6 +75,11 @@ The names
 and
 .I /audio
 maintain backward compatibility with the soundblaster driver.
+.PP
+The
+.B \-s
+flag specifies a name for a file descriptor to be posted in
+.CW /srv .
 .PP
 Reading
 .I /volume
