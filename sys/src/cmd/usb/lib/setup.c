@@ -2,72 +2,103 @@
 #include <libc.h>
 #include <thread.h>
 #include "usb.h"
-#include "usbproto.h"
 
-static int
-setupcmd(int fd, uchar *data, int count)
+int
+setupcmd(Endpt *e, int type, int req, int value, int index, byte *data, int count)
 {
-	int n;
+	byte *wp;
+	int n, i, fd;
 
-	n = write(fd, data, count);
-	if(n < 0) {
-		werrstr("setupcmd: write err: %r");
-		return -1;
-	}
-	if(n != count) {
-		werrstr("setupcmd: short write: %d of %d", n, count);
-		return -1;
-	}
-	return n;
-}
-
-static int
-setupout(int fd, uchar *req, uchar *data, int count)
-{
-	int n;
-	uchar *wp;
-
-	if(count == 0)
-		return setupcmd(fd, req, 8);
-
-	wp = emalloc(8+count);
-	memmove(wp, req, 8);
+	if (e == nil)
+		abort();
+	fd = e->dev->setup;
+	if(fd < 0)
+		sysfatal("RSC: this used to use the global usbsetup0\n");
+	wp = malloc(8+count);
+	if (wp == nil) sysfatal("setupcmd: malloc");
+	wp[0] = type;
+	wp[1] = req;
+	PUT2(wp+2, value);
+	PUT2(wp+4, index);
+	PUT2(wp+6, count);
 	memmove(wp+8, data, count);
-	n = setupcmd(fd, wp, 8+count);
-	free(wp);
-	return n;
-}
-
-static int
-setupin(int fd, uchar *req, uchar *data, int count)
-{
-	int n;
-
-	n = setupcmd(fd, req, 8);
-	if(n < 0)
-		return n;
-	n = read(fd, data, count);
-	if(n < 0)
-		werrstr("setupin: read err: %r");
-	else if(n != count)
-		werrstr("setupin: short read (%d < %d)", n, count);
+	if (debugdebug) {
+		fprint(2, "out\t%d\t[%d]", fd, 8+count);
+		for(i=0; i<8+count; i++)
+			fprint(2, " %.2ux", wp[i]);
+		fprint(2, "\n");
+	}
+	n = write(fd, wp, 8+count);
+	if (n < 0) {
+		fprint(2, "setupreq: write err: %r\n");
+		return -1;
+	}
+	if (n != 8+count) {
+		fprint(2, "setupcmd: short write: %d\n", n);
+		return -1;
+	}
 	return n;
 }
 
 int
-setupreq(Device *d, int type, int request, int value, int index, uchar *data, int count)
+setupreq(Endpt *e, int type, int req, int value, int index, int count)
 {
-	int fd;
-	uchar req[8];
+	byte *wp, buf[8];
+	int n, i, fd;
 
-	fd = d->setup;
-	req[0] = type;
-	req[1] = request;
-	PUT2(req+2, value);
-	PUT2(req+4, index);
-	PUT2(req+6, count);
-	if((type&RD2H) != 0)
-		return setupin(fd, req, data, count);
-	else
-		return setupout(fd, req, data, count);
+	if (e == nil)
+		abort();
+	fd = e->dev->setup;
+	if(fd < 0)
+		sysfatal("RSC: this used to use the global usbsetup0\n");
+	wp = buf;
+	wp[0] = type;
+	wp[1] = req;
+	PUT2(wp+2, value);
+	PUT2(wp+4, index);
+	PUT2(wp+6, count);
+	if (debugdebug) {
+		fprint(2, "out\t%d\t[8]", fd);
+		for(i=0; i<8; i++)
+			fprint(2, " %.2ux", buf[i]);
+		fprint(2, "\n");
+	}
+	n = write(fd, buf, 8);
+	if (n < 0) {
+		fprint(2, "setupreq: write err: %r\n");
+		return -1;
+	}
+	if (n != 8) {
+		fprint(2, "setupreq: short write: %d\n", n);
+		return -1;
+	}
+	return n;
+}
+
+int
+setupreply(Endpt *e, void *buf, int nb)
+{
+	uchar *p;
+	int i, fd;
+	char err[32];
+
+	fd = e->dev->setup;
+	if(fd < 0)
+		sysfatal("RSC: this used to use the global usbsetup0\n");
+	for(;;){
+		nb = read(fd, buf, nb);
+		if (nb >= 0)
+			break;
+		rerrstr(err, sizeof err);
+		if (strcmp(err, "interrupted") != 0)
+			break;
+	}
+	p = buf;
+	if (debugdebug) {
+		fprint(2, "in\t%d\t[%d]", fd, nb);
+		for(i=0; i<nb; i++)
+			fprint(2, " %.2ux", p[i]);
+		fprint(2, "\n");
+	}
+	return nb;
 }

@@ -2,28 +2,25 @@
 
 TARG=usbaudio
 OFILES=\
-	config.$O\
-	dump.$O\
-	controls.$O\
-	fs.$O\
-	main.$O\
+	audiofs.$O\
+	audiosub.$O\
+	usbaudio.$O\
+	usbaudioctl.$O\
 
 HFILES=\
-	dat.h\
-	fns.h\
-	audioclass.h\
+	usbaudio.h\
+	usbaudioctl.h\
 	../lib/usb.h\
-	../lib/usbproto.h\
+
+UPDATE=\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	mkfile\
+	/sys/man/3/usb\
 
 LIB=../lib/usb.a$O
 
 BIN=/$objtype/bin/usb
-
-UPDATE=\
-	mkfile\
-	$HFILES\
-	${OFILES:%.$O=%.c}\
-
 </sys/src/cmd/mkone
 
 CFLAGS=-I../lib $CFLAGS
