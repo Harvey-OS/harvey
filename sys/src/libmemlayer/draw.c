@@ -150,6 +150,12 @@ if(drawdebug)	iprint("drawclip dstcr %R srccr %R maskcr %R\n", dst->clipr, src->
 	if(sl){
 		if(sl->clear){
 			src = sl->screen->image;
+			if(dl != nil){
+				r.min.x -= dl->delta.x;
+				r.min.y -= dl->delta.y;
+				r.max.x -= dl->delta.x;
+				r.max.y -= dl->delta.y;
+			}
 			goto Top;
 		}
 		/* relatively rare case; use save area */
