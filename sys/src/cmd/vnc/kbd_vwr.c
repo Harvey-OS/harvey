@@ -112,6 +112,7 @@ readkbd(Vnc *v)
 			if(r == ks && r < 0x1A) {	/* control key */
 				keyevent(v, Xctl, 1);
 				keyevent(v, r+0x60, 1);	/* 0x60: make capital letter */
+				keyevent(v, r+0x60, 0);
 				keyevent(v, Xctl, 0);
 			} else	{
 				keyevent(v, ks, 1);

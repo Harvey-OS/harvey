@@ -83,7 +83,7 @@ install:V:	$p$CONF paqdisk
 	test -d /n/once/arm && cp $p$CONF /n/once/arm/$p$CONF
 	test -d /n/once/arm && cp s$p$CONF /n/once/arm/s$p$CONF
 	test -d /n/once/arm && cp paqdisk /n/once/arm/paqdisk
-	9fs lookout && cp $p$CONF /n/lookout/$objtype/$p$CONF
+	# 9fs lookout && cp $p$CONF /n/lookout/$objtype/$p$CONF
 
 installkern:V:	$p$CONF
 	cp $p$CONF /$objtype/$p$CONF
