@@ -846,11 +846,12 @@ configure(Cardbus *cb)
 		}
 
 		/* Set the basic PCI registers for the device */
-		pcicfgw16(pci, PciPCR, 
-				 pcicfgr16(pci, PciPCR) | 
-				 	PciPCR_IO|PciPCR_MEM|PciPCR_Master);
-		pcicfgw8(pci, PciCLS, 8);
-		pcicfgw8(pci, PciLTR, 64);
+		pci->pcr = pcicfgr16(pci, PciPCR) | PciPCR_IO|PciPCR_MEM|PciPCR_Master;
+		pci->cls = 8;
+		pci->ltr = 64;
+		pcicfgw16(pci, PciPCR, pci->pcr);
+		pcicfgw8(pci, PciCLS, pci->cls);
+		pcicfgw8(pci, PciLTR, pci->ltr);
 
 		if (pcicfgr8(pci, PciINTP)) {
 			pci->intl = pcicfgr8(cb->pci, PciINTL);
