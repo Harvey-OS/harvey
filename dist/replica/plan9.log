@@ -13228,3 +13228,6 @@
 1105590616 1 c 386/bin/games/jukefs - 775 sys sys 1105589129 165320
 1105590616 2 c 386/bin/games/playlistfs - 775 sys sys 1105589129 148484
 1105590616 3 c 386/bin/troff2html - 775 sys sys 1105589129 79914
+1105632024 0 c sys/src/cmd/troff2html/mkfile - 664 sys sys 1105631961 242
+1105632024 1 c sys/src/cmd/troff2html/troff2html.c - 664 sys sys 1105631971 14160
+1105677032 0 c 386/bin/troff2html - 775 sys sys 1105675429 85684

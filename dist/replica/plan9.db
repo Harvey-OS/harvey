@@ -424,7 +424,7 @@
 386/bin/tr - 775 sys sys 1104122066 61851
 386/bin/trace - 775 sys sys 1104122067 180734
 386/bin/troff - 775 sys sys 1094040114 357714
-386/bin/troff2html - 775 sys sys 1105589129 79914
+386/bin/troff2html - 775 sys sys 1105675429 85684
 386/bin/tweak - 775 sys sys 1104122068 191750
 386/bin/unicode - 775 sys sys 1104122068 62523
 386/bin/uniq - 775 sys sys 1104122068 61900
@@ -10557,8 +10557,8 @@ sys/src/cmd/troff/tdef.h - 664 sys sys 984718894 18334
 sys/src/cmd/troff/unansi - 664 sys sys 944961294 1221
 sys/src/cmd/troff2html - 20000000775 sys sys 961257241 0
 sys/src/cmd/troff2html/chars.h - 664 sys sys 1105584129 3957
-sys/src/cmd/troff2html/mkfile - 664 sys sys 1105584066 111
-sys/src/cmd/troff2html/troff2html.c - 664 sys sys 1105584129 14152
+sys/src/cmd/troff2html/mkfile - 664 sys sys 1105631961 242
+sys/src/cmd/troff2html/troff2html.c - 664 sys sys 1105631971 14160
 sys/src/cmd/tweak.c - 664 sys sys 1018721441 38987
 sys/src/cmd/unicode.c - 664 sys sys 944961351 1953
 sys/src/cmd/uniq.c - 664 sys sys 944961351 2236
