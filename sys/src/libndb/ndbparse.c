@@ -39,7 +39,7 @@ ndbparse(Ndb *db)
 			break;
 		if(first && !ISWHITE(*line) && *line != '#'){
 			Bseek(&db->b, -len, 1);
-			return first;
+			break;
 		}
 		t = _ndbparseline(line);
 		if(t == 0)
@@ -52,5 +52,6 @@ ndbparse(Ndb *db)
 		while(last->entry)
 			last = last->entry;
 	}
+	setmalloctag(first, getcallerpc(&db));
 	return first;
 }

@@ -46,22 +46,34 @@ Consoles are defined by entries of the form:
 .PP
 Each
 .IR console / dev
-pair represents the name of a console and the serial line device
+pair represents the name of a console and the device
 associated with it.
 .I Consolefs
-presents a single level directory with two files
+presents a single level directory with up to three files
 per console:
-.I console
+.IR console ,
+.IB console ctl\f1,
 and
-.IB console ctl\f1.
+.IB console stat\f1.
 Writes of
 .I console
 are equivalent to writes of
 .I dev
 and reads and writes of
 .IB console ctl
+and 
+.IB console stat
 are equivalent to reads and writes of
-.IB dev ctl\f1.
+.IB dev ctl
+and
+.IB dev stat
+respectively.
+.IB Console ctl
+and
+.IB console stat
+will not exist if the underlying
+.I dev
+does not provide them.
 .I Consolefs
 broadcasts anything it reads from
 .I dev

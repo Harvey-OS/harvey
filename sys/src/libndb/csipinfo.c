@@ -63,5 +63,6 @@ csipinfo(char *netroot, char *attr, char *val, char **list, int n)
 	}
 	close(fd);
 
+	setmalloctag(first, getcallerpc(&netroot));
 	return first;
 }

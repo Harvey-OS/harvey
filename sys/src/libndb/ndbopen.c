@@ -54,6 +54,7 @@ ndbopen(char *file)
 		last->next = db;
 		last = db;
 	}
+	ndbfree(t);
 	return first;
 }
 
