@@ -2764,7 +2764,7 @@ lib/gettysburg - 664 sys sys 944943772 1555
 lib/hiragana - 664 sys sys 944943772 737
 lib/kana - 664 sys sys 944943772 1061
 lib/katakana - 664 sys sys 944943772 982
-lib/keyboard - 664 sys sys 1102429231 26026
+lib/keyboard - 664 sys sys 1102595267 26057
 lib/mammals - 664 sys sys 944943772 27760
 lib/namespace - 664 sys sys 1060354451 590
 lib/namespace.ftp - 664 sys sys 1020313578 373
@@ -4016,7 +4016,7 @@ sys/lib/man/secindex - 775 sys sys 956337727 322
 sys/lib/man/title - 664 sys sys 1019915894 746
 sys/lib/man/trademarks - 664 sys sys 958527089 1838
 sys/lib/mimetype - 664 sys sys 1102352651 6153
-sys/lib/newuser - 775 sys sys 1097900388 1259
+sys/lib/newuser - 775 sys sys 1102595253 1200
 sys/lib/plumb - 20000000775 sys sys 944957365 0
 sys/lib/plumb/basic - 664 sys sys 1070330856 2930
 sys/lib/plumb/fileaddr - 664 sys sys 944957365 88
