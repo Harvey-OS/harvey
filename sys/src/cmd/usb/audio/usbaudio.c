@@ -366,7 +366,7 @@ threadmain(int argc, char **argv)
 		sysfatal("Can't set play speed\n");
 	value[0] = defaultspeed[Record];
 	if (endpt[Record] >= 0 && setcontrol(Record, "speed", value) < 0)
-		sysfatal("Can't set record speed\n");
+		fprint(2, "Can't set record speed\n");
 	value[0] = 0;
 	setcontrol(Play, "mute", value);
 
