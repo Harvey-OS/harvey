@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <String.h>
 
 extern	vlong	du(char*, Dir*);
 extern	vlong	k(vlong);
@@ -74,7 +75,7 @@ du(char *name, Dir *dir)
 {
 	int fd, i, n;
 	Dir *buf, *d;
-	char file[256];
+	String *file;
 	vlong nk, t;
 
 	if(dir == nil)
@@ -95,7 +96,9 @@ du(char *name, Dir *dir)
 					t = k(d->length);
 					nk += t;
 					if(aflag) {
-						sprint(file, "%s/%s", name, d->name);
+						file = s_copy(name);
+						s_append(file, "/");
+						s_append(file, d->name);
 						if(tflag) {
 							t = d->mtime;
 							if(uflag)
@@ -103,7 +106,8 @@ du(char *name, Dir *dir)
 						}
 						if(qflag)
 							t = d->qid.path;
-						print(fmt, t, file);
+						print(fmt, t, s_to_c(file));
+						s_free(file);
 					}
 					continue;
 				}
@@ -111,8 +115,10 @@ du(char *name, Dir *dir)
 				   strcmp(d->name, "..") == 0 ||
 				   seen(d))
 					continue;
-				sprint(file, "%s/%s", name, d->name);
-				t = du(file, d);
+				file = s_copy(name);
+				s_append(file, "/");
+				s_append(file, d->name);
+				t = du(s_to_c(file), d);
 				nk += t;
 				if(tflag) {
 					t = d->mtime;
@@ -122,7 +128,8 @@ du(char *name, Dir *dir)
 				if(qflag)
 					t = d->qid.path;
 				if(!sflag)
-					print(fmt, t, file);
+					print(fmt, t, s_to_c(file));
+				s_free(file);
 			}
 			free(buf);
 		}
