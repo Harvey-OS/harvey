@@ -7569,7 +7569,7 @@ sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
 sys/src/cmd/fossil/9.h - 664 sys sys 1084461821 4267
 sys/src/cmd/fossil/9auth.c - 664 sys sys 1061530721 3393
-sys/src/cmd/fossil/9dir.c - 664 sys sys 1072705704 2075
+sys/src/cmd/fossil/9dir.c - 664 sys sys 1085333382 2219
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
 sys/src/cmd/fossil/9fid.c - 664 sys sys 1045600016 5521
 sys/src/cmd/fossil/9fsys.c - 664 sys sys 1083039532 30218
@@ -7596,7 +7596,7 @@ sys/src/cmd/fossil/dump.c - 664 sys sys 1042005506 1340
 sys/src/cmd/fossil/epoch.c - 664 sys sys 1045600021 997
 sys/src/cmd/fossil/error.c - 664 sys sys 1073851927 1450
 sys/src/cmd/fossil/error.h - 664 sys sys 1073851928 796
-sys/src/cmd/fossil/file.c - 664 sys sys 1073140359 30215
+sys/src/cmd/fossil/file.c - 664 sys sys 1085333383 30291
 sys/src/cmd/fossil/flchk.c - 664 sys sys 1061530720 14296
 sys/src/cmd/fossil/flfmt.c - 664 sys sys 1080586881 10753
 sys/src/cmd/fossil/flfmt9660.c - 664 sys sys 1080586883 12314
@@ -12427,3 +12427,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/fossil/flchk - 775 sys sys 1085368183 230615
+386/bin/fossil/flfmt - 775 sys sys 1085368184 243674
+386/bin/fossil/fossil - 775 sys sys 1085368185 343639
+386/lib/libmp.a - 664 sys sys 1085368185 80226
