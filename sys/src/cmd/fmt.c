@@ -7,15 +7,17 @@
  * block up paragraphs, possibly with indentation
  */
 
-int extraindent = 0;			/* how many spaces to indent all lines */
+int extraindent = 0;		/* how many spaces to indent all lines */
 int indent = 0;			/* current value of indent, before extra indent */
 int length = 70;		/* how many columns per output line */
+int join = 1;			/* can lines be joined? */
 int maxtab = 8;
 Biobuf bin;
 Biobuf bout;
 
 typedef struct Word Word;
 struct Word{
+	int	bol;
 	int	indent;
 	char	text[1];
 };
@@ -38,6 +40,9 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	case 'i':
 		extraindent = atoi(EARGF(usage()));
+		break;
+	case 'j':
+		join = 0;
 		break;
 	case 'w':
 	case 'l':
@@ -106,7 +111,7 @@ indentof(char **linep)
 }
 
 Word**
-addword(Word **words, int *nwordp, char *s, int l, int indent)
+addword(Word **words, int *nwordp, char *s, int l, int indent, int bol)
 {
 	Word *w;
 
@@ -114,6 +119,7 @@ addword(Word **words, int *nwordp, char *s, int l, int indent)
 	memmove(w->text, s, l);
 	w->text[l] = '\0';
 	w->indent = indent;
+	w->bol = bol;
 	words = realloc(words, (*nwordp+1)*sizeof(Word*));
 	words[(*nwordp)++] = w;
 	return words;
@@ -122,26 +128,26 @@ addword(Word **words, int *nwordp, char *s, int l, int indent)
 Word**
 parseline(char *line, Word **words, int *nwordp)
 {
-	int ind, l, blankline;
+	int ind, l, bol;
 
 	ind = indentof(&line);
 	indent = ind;
-	blankline = 1;
+	bol = 1;
 	for(;;){
 		/* find next word */
 		while(*line==' ' || *line=='\t')
 			line++;
 		if(*line == '\0'){
-			if(blankline)
-				return addword(words, nwordp, "", 0, -1);
+			if(bol)
+				return addword(words, nwordp, "", 0, -1, bol);
 			break;
 		}
-		blankline = 0;
 		/* how long is this word? */
 		for(l=0; line[l]; l++)
 			if(line[l]==' ' || line[l]=='\t')
 				break;
-		words = addword(words, nwordp, line, l, indent);
+		words = addword(words, nwordp, line, l, indent, bol);
+		bol = 0;
 		line += l;
 	}
 	return words;
@@ -169,6 +175,8 @@ nspaceafter(char *s)
 	n = strlen(s);
 	if(n < 2)
 		return 1;
+	if(isupper(s[0]) && n < 4)
+		return 1;
 	if(strchr(".!?", s[n-1]) != nil)
 		return 2;
 	return 1;
@@ -178,7 +186,7 @@ nspaceafter(char *s)
 void
 printwords(Word **w, int nw)
 {
-	int i, j, col, nsp;
+	int i, j, n, col, nsp;
 
 	/* one output line per loop */
 	for(i=0; i<nw; ){
@@ -192,7 +200,7 @@ printwords(Word **w, int nw)
 		col = extraindent+w[i]->indent;
 		printindent(col);
 		/* emit words until overflow; always emit at least one word */
-		for(;;){
+		for(n=0;; n++){
 			Bprint(&bout, "%s", w[i]->text);
 			col += utflen(w[i]->text);
 			if(++i == nw)
@@ -202,6 +210,8 @@ printwords(Word **w, int nw)
 			nsp = nspaceafter(w[i-1]->text);
 			if(col+nsp+utflen(w[i]->text) > extraindent+length)
 				break;	/* fold line */
+			if(!join && n != 0 && w[i]->bol)
+				break;
 			for(j=0; j<nsp; j++)
 				Bputc(&bout, ' ');	/* emit space; another word will follow */
 			col += nsp;

@@ -43,6 +43,9 @@ A synonym for
 Indent
 .I n
 spaces (default 0).
+.TP
+.BI -j
+Do not join short lines: only fold long lines.
 .PP
 Empty lines and initial white space in input lines are preserved.
 Empty lines are inserted between input files.
@@ -79,6 +82,8 @@ as the base URL for the document when displaying anchors; sets
 .BI -a .
 .SH SOURCE
 .B /sys/src/cmd/fmt.c
+.PP
+.B /sys/src/cmd/htmlfmt
 .SH BUGS
 .I Htmlfmt
 makes no attempt to render the two-dimensional geometry of tables;
