@@ -13178,3 +13178,5 @@
 1072130430 0 c sys/lib/man/mkhtmlindex - 775 sys sys 1072129593 1235
 1072146632 0 c sys/src/cmd/cmp.c - 664 sys sys 1072145760 2379
 1072227643 0 c sys/games/lib/fortunes - 664 sys sys 1072227105 247401
+1072562490 0 c sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1072561144 18914
+1072562490 1 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1072561144 24496

@@ -804,7 +804,7 @@ pipemsg(int *byteswritten)
 		nbytes += forgedheaderwarnings();
 
 	/*
-	 *  add an orginator and/or destination if either is missing
+	 *  add  an orginator and/or destination if either is missing
 	 */
 	if(originator == 0){
 		if(senders.last == nil)
@@ -1063,9 +1063,10 @@ if(debug)fprint(2, "tlsServer failed: %r\n");
 	}
 	Bterm(&bin);
 	Binit(&bin, fd, OREAD);
-	dup(fd, 1);
+	if (dup(fd, 1) < 0)
+		fprint(2, "dup of %d failed: %r\n", fd);
 	passwordinclear = 1;
-if(debug)fprint(2, "tlsServer suceeded\n");
+	syslog(0, "smtpd", "started TLS with %s", him);
 }
 
 void

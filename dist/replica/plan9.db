@@ -10858,9 +10858,9 @@ sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1067722781 746
 sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1055703150 4887
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
-sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1049249402 18227
+sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1072561144 18914
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1064589597 1084
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1067722780 24439
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1072561144 24496
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1061836986 6949
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1067722785 9661
