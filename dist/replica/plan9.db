@@ -11135,7 +11135,7 @@ sys/src/cmd/vnc/exportfs.c - 664 sys sys 1045529366 13666
 sys/src/cmd/vnc/kbd.h - 664 sys sys 1044880749 301
 sys/src/cmd/vnc/kbds.c - 664 sys sys 1082221522 3379
 sys/src/cmd/vnc/kbdv.c - 664 sys sys 1082221523 3735
-sys/src/cmd/vnc/ksym2utf.h - 664 sys sys 1082221523 13289
+sys/src/cmd/vnc/ksym2utf.h - 664 sys sys 1082326667 18402
 sys/src/cmd/vnc/latin1.c - 664 sys sys 1044880749 1410
 sys/src/cmd/vnc/latin1.h - 664 sys sys 1044880750 3524
 sys/src/cmd/vnc/mkfile - 664 sys sys 1082221524 702
@@ -11144,7 +11144,7 @@ sys/src/cmd/vnc/rlist.c - 664 sys sys 1044880750 5300
 sys/src/cmd/vnc/rre.c - 664 sys sys 1044880750 11496
 sys/src/cmd/vnc/screen.c - 664 sys sys 1044880750 7537
 sys/src/cmd/vnc/screen.h - 664 sys sys 1044880750 880
-sys/src/cmd/vnc/utf2ksym.h - 664 sys sys 1082221524 13585
+sys/src/cmd/vnc/utf2ksym.h - 664 sys sys 1082326667 18024
 sys/src/cmd/vnc/vnc.h - 664 sys sys 1044880750 2626
 sys/src/cmd/vnc/vncs.c - 664 sys sys 1046184848 21022
 sys/src/cmd/vnc/vncs.h - 664 sys sys 1046200146 908
