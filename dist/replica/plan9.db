@@ -273,6 +273,7 @@
 386/bin/ip/httpd/imagemap - 775 sys sys 1064598228 113413
 386/bin/ip/httpd/man2html - 775 sys sys 1064598229 121681
 386/bin/ip/httpd/save - 775 sys sys 1064598231 130742
+386/bin/ip/httpd/webls - 775 sys sys 1064887865 129644
 386/bin/ip/httpd/wikipost - 775 sys sys 1064598232 111102
 386/bin/ip/imap4d - 775 sys sys 1064598233 234268
 386/bin/ip/ipconfig - 775 sys sys 1064598234 128285
@@ -511,7 +512,7 @@
 386/lib/libauth.a - 664 sys sys 1064598464 56258
 386/lib/libauthsrv.a - 664 sys sys 1056364449 33962
 386/lib/libbin.a - 664 sys sys 1045538115 2556
-386/lib/libbio.a - 664 sys sys 1045538115 28390
+386/lib/libbio.a - 664 sys sys 1064846011 28408
 386/lib/libc.a - 664 sys sys 1064598466 499658
 386/lib/libcontrol.a - 664 sys sys 1045538117 243448
 386/lib/libdisk.a - 664 sys sys 1048622925 43692
@@ -4953,7 +4954,7 @@ sys/man/8/drawterm - 664 sys sys 958419689 2458
 sys/man/8/fossilcons - 664 sys sys 1063855784 14700
 sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1045501600 8142
-sys/man/8/httpd - 664 sys sys 1037690024 4516
+sys/man/8/httpd - 664 sys sys 1064887873 6230
 sys/man/8/init - 664 sys sys 944959679 1430
 sys/man/8/ipconfig - 664 sys sys 1060189415 5050
 sys/man/8/ipserv - 664 sys sys 1063855796 4337
@@ -4982,7 +4983,7 @@ sys/man/8/replica - 664 sys sys 1021579979 6239
 sys/man/8/rsa - 664 sys sys 1057955511 4628
 sys/man/8/scanmail - 664 sys sys 969499895 10803
 sys/man/8/scuzz - 664 sys sys 984709640 7916
-sys/man/8/secstore - 664 sys sys 1064789017 1294
+sys/man/8/secstore - 664 sys sys 1064807283 1306
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
 sys/man/8/smtp - 664 sys sys 1049408388 4111
@@ -9185,12 +9186,14 @@ sys/src/cmd/ip/httpd/imagemap.c - 664 sys sys 984773808 5229
 sys/src/cmd/ip/httpd/init.c - 664 sys sys 1015090171 2182
 sys/src/cmd/ip/httpd/log.c - 664 sys sys 1015090171 1391
 sys/src/cmd/ip/httpd/man2html.c - 664 sys sys 1015090172 8789
-sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1038443005 1384
+sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1064887854 1615
 sys/src/cmd/ip/httpd/netlib_find.c - 664 sys sys 1015090172 6247
 sys/src/cmd/ip/httpd/netlib_history.c - 664 sys sys 1015096252 4744
 sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1042522766 2978
 sys/src/cmd/ip/httpd/save.c - 664 sys sys 1015090172 3175
 sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1017679317 12134
+sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1064887840 6940
+sys/src/cmd/ip/httpd/webls.denied - 664 sys sys 1064887847 3
 sys/src/cmd/ip/httpd/wikipost.c - 664 sys sys 1019678647 5917
 sys/src/cmd/ip/imap4d - 20000000775 sys sys 988249981 0
 sys/src/cmd/ip/imap4d/auth.c - 664 sys sys 1015013075 3510
@@ -11054,7 +11057,7 @@ sys/src/libbio - 20000000775 sys sys 1014927637 0
 sys/src/libbio/bbuffered.c - 664 sys sys 950315725 309
 sys/src/libbio/bfildes.c - 664 sys sys 944961707 100
 sys/src/libbio/bflush.c - 664 sys sys 964455730 479
-sys/src/libbio/bgetc.c - 664 sys sys 944961707 924
+sys/src/libbio/bgetc.c - 664 sys sys 1064846001 948
 sys/src/libbio/bgetd.c - 664 sys sys 944961707 401
 sys/src/libbio/bgetrune.c - 664 sys sys 944961707 634
 sys/src/libbio/binit.c - 664 sys sys 944961707 1859

@@ -13828,3 +13828,11 @@
 1064790103 1 c sys/src/cmd/auth/secstore/SConn.c - 664 sys sys 1064789003 4419
 1064790103 2 c sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1064789004 7955
 1064799112 0 c 386/bin/auth/secstored - 775 sys sys 1064798342 194075
+1064808005 0 c sys/man/8/secstore - 664 sys sys 1064807283 1306
+1064847673 0 c 386/lib/libbio.a - 664 sys sys 1064846011 28408
+1064847673 1 c sys/src/libbio/bgetc.c - 664 sys sys 1064846001 948
+1064889121 0 a 386/bin/ip/httpd/webls - 775 sys sys 1064887865 129644
+1064889121 1 c sys/man/8/httpd - 664 sys sys 1064887873 6230
+1064889121 2 c sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1064887854 1615
+1064889121 3 a sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1064887840 6940
+1064889121 4 a sys/src/cmd/ip/httpd/webls.denied - 664 sys sys 1064887847 3

@@ -1,6 +1,6 @@
 .TH HTTPD 8
 .SH NAME
-httpd, mirror, save, imagemap, man2html \- HTTP server
+httpd, mirror, save, imagemap, man2html, webls \- HTTP server
 .SH SYNOPSIS
 .PP
 .B ip/httpd/httpd
@@ -57,6 +57,20 @@ httpd, mirror, save, imagemap, man2html \- HTTP server
 .I method version uri
 .PP
 .B ip/httpd/man2html
+.RB [ -b
+.IR inbuf ]
+.RB [ -d
+.IR domain ]
+.RB [ -r
+.IR remoteip ]
+.RB [ -w
+.IR webroot ]
+.RB [ -N
+.IR netdir ]
+.I method version uri
+.RI [ search ]
+.PP
+.B ip/httpd/webls
 .RB [ -b
 .IR inbuf ]
 .RB [ -d
@@ -184,6 +198,64 @@ converts
 .IR man (6)
 format manual pages into html.
 It includes some abilities to search the manuals.
+.PP
+.I Webls
+produces directory listings on the fly, with
+output in the style of
+.IR ls (1).
+If
+.B /sys/lib/webls.allowed
+and/or
+.B /sys/lib/webls.denied
+exist, they contain regular expressions describing
+what parts of
+.I httpd's
+namespace may and may not be listed, respectively.
+Security conscious sites will always want
+.B webls.denied
+to contain `.*', limiting access to only those
+directories described in
+.BR webls.allowed .
+This is the default configuration.
+.PP
+Other sites will note that if neither
+.B webls.denied
+nor
+.B webls.allowed
+exist, any portion of
+.I httpd's
+namespace can be listed (however,
+.I webls
+will always endeavor to prevent listing of `.' and `..').
+If
+.B webls.allowed
+exists but
+.B webls.denied
+does not, any directory to be listed must be described
+by a regular expression in
+.BR webls.allowed .
+Similarly, if
+.B webls.denied
+exists but
+.B webls.allowed
+does not, any directory to be listed must
+.I not
+be described by a regular expression in
+.BR webls.denied .
+If both exist, a directory is listable if either
+it doesn't appear in
+.BR webls.denied ,
+or it appears in both
+.B webls.denied
+and
+.BR webls.allowed .
+In other words,
+.B webls.allowed
+overrides
+.BR webls.denied .
+If a listing for a directory is requested and access
+is denied, or another error occurs, a simple error
+page is returned.
 .SH FILES
 .TF /lib/namespace.httpd
 .TP
@@ -195,6 +267,12 @@ default namespace file for httpd
 .TP
 .B /sys/lib/httpd.rewrite
 redirection file
+.TP
+.B /sys/lib/webls.allowed
+regular expressions describing explicitly listable pathnames; overrides webls.denied
+.TP
+.B /sys/lib/webls.denied
+regular expressions describing explicitly unlistable pathnames
 .SH SOURCE
 .B /sys/src/cmd/ip/httpd
 .SH "SEE ALSO"
