@@ -13052,3 +13052,5 @@
 1060612338 5 c sys/src/cmd/ndb/dns.h - 664 sys sys 1060612174 8957
 1060651964 0 c 386/bin/ndb/dns - 775 sys sys 1060651817 218244
 1060651964 1 c sys/src/cmd/ndb/dn.c - 664 sys sys 1060651816 26571
+1060664570 0 c 386/bin/ndb/dnsdebug - 775 sys sys 1060663186 190607
+1060664570 1 c sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1060663185 8430

@@ -310,7 +310,7 @@
 386/bin/ndb/cs - 775 sys sys 1060173545 144252
 386/bin/ndb/csquery - 775 sys sys 1056364307 60158
 386/bin/ndb/dns - 775 sys sys 1060651817 218244
-386/bin/ndb/dnsdebug - 775 sys sys 1056364309 188863
+386/bin/ndb/dnsdebug - 775 sys sys 1060663186 190607
 386/bin/ndb/dnsquery - 775 sys sys 1056364309 62464
 386/bin/ndb/dnstcp - 775 sys sys 1056364310 187648
 386/bin/ndb/ipquery - 775 sys sys 1056364311 91700
@@ -9441,7 +9441,7 @@ sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1055701929 3062
 sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1055701926 15331
 sys/src/cmd/ndb/dns.c - 664 sys sys 1055701923 15221
 sys/src/cmd/ndb/dns.h - 664 sys sys 1060612174 8957
-sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1055701923 8359
+sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1060663185 8430
 sys/src/cmd/ndb/dnserver.c - 664 sys sys 1021579994 3687
 sys/src/cmd/ndb/dnsquery.c - 664 sys sys 1014926160 2108
 sys/src/cmd/ndb/dnstcp.c - 664 sys sys 1056171180 7066
