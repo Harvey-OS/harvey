@@ -15,20 +15,20 @@
 #define	BI2BY		8			/* bits per byte */
 #define	BI2WD		32			/* bits per word */
 #define	BY2WD		4			/* bytes per word */
-#define 	BY2V		8			/* bytes per vlong */
-#define	BY2PG		4096		/* bytes per page */
-#define	WD2PG		(BY2PG/BY2WD)	/* words per page */
+#define BY2V		8			/* bytes per vlong */
+#define	BY2PG		4096			/* bytes per page */
+#define	WD2PG		(BY2PG/BY2WD)		/* words per page */
 #define	PGSHIFT		12			/* log(BY2PG) */
-#define 	ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
-#define 	PGROUND(s)	ROUND(s, BY2PG)
+#define ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
+#define PGROUND(s)	ROUND(s, BY2PG)
 #define	CACHELINELOG	5
 #define	CACHELINESZ	(1<<CACHELINELOG)
 #define	BLOCKALIGN	CACHELINESZ
 
-#define	MHz	1000000
+#define	MHz		1000000
 
-#define	BY2PTE		8				/* bytes per pte entry */
-#define	BY2PTEG		64				/* bytes per pte group */
+#define	BY2PTE		8			/* bytes per pte entry */
+#define	BY2PTEG		64			/* bytes per pte group */
 
 #define	MAXMACH	1				/* max # cpus system can run */
 #define	MACHSIZE	BY2PG
@@ -77,11 +77,11 @@
 /*
  * PPC604e-specific Special Purpose Registers (OEA)
  */
-#define MMCR0	952		/* Monitor Control Register 0 */
+#define MMCR0		952		/* Monitor Control Register 0 */
 #define PMC1		953		/* Performance Monitor Counter 1 */
 #define PMC2		954		/* Performance Monitor Counter 2 */
 #define SIA		955		/* Sampled Instruction Address */
-#define MMCR1	956		/* Monitor Control Register 0 */
+#define MMCR1		956		/* Monitor Control Register 0 */
 #define PMC3		957		/* Performance Monitor Counter 3 */
 #define PMC4		958		/* Performance Monitor Counter 4 */
 #define SDA		959		/* Sampled Data Address */
@@ -102,15 +102,15 @@
  */
 #define HID2		1011	/* Hardware Implementation Dependent Register 2 */
 
-#define	BIT(i)	(1<<(31-(i)))	/* Silly backwards register bit numbering scheme */
-#define	SBIT(n)	((ushort)1<<(15-(n)))
+#define	BIT(i)		(1<<(31-(i)))	/* Silly backwards register bit numbering scheme */
+#define	SBIT(n)		((ushort)1<<(15-(n)))
 #define	RBIT(b,n)	(1<<(8*sizeof(n)-1-(b)))
 
 /*
  * Bit encodings for Machine State Register (MSR)
  */
 #define MSR_POW		BIT(13)		/* Enable Power Management */
-#define MSR_TGPR		BIT(14)		/* Temporary GPR Registers in use (603e) */
+#define MSR_TGPR	BIT(14)		/* Temporary GPR Registers in use (603e) */
 #define MSR_ILE		BIT(15)		/* Interrupt Little-Endian enable */
 #define MSR_EE		BIT(16)		/* External Interrupt enable */
 #define MSR_PR		BIT(17)		/* Supervisor/User privilege */
@@ -129,9 +129,9 @@
 /* SRR1 bits for TLB operations */
 #define MSR_SR0		0xf0000000	/* Saved bits from CR register */
 #define MSR_KEY		BIT(12)		/* Copy of Ks or Kp bit */
-#define MSR_IMISS		BIT(13)		/* It was an I miss */
+#define MSR_IMISS	BIT(13)		/* It was an I miss */
 #define MSR_WAY		BIT(14)		/* TLB set to be replaced */
-#define MSR_STORE		BIT(15)		/* Miss caused by a store */
+#define MSR_STORE	BIT(15)		/* Miss caused by a store */
 
 /*
  * Exception codes (trap vectors)
@@ -141,27 +141,27 @@
 #define CDSI		0x03
 #define CISI		0x04
 #define CEI		0x05
-#define CALIGN	0x06
+#define CALIGN		0x06
 #define CPROG		0x07
 #define CFPU		0x08
 #define CDEC		0x09
 #define CSYSCALL	0x0C
-#define CTRACE	0x0D	/* optional */
-#define CFPA		0x0E		/* not implemented in 603e */
+#define CTRACE		0x0D	/* optional */
+#define CFPA		0x0E	/* not implemented in 603e */
 
 /* PPC603e-specific: */
 #define CIMISS		0x10	/* Instruction TLB miss */
-#define CLMISS	0x11	/* Data load TLB miss */
-#define CSMISS	0x12	/* Data store TLB miss */
-#define CIBREAK	0x13
+#define CLMISS		0x11	/* Data load TLB miss */
+#define CSMISS		0x12	/* Data store TLB miss */
+#define CIBREAK		0x13
 #define CSMI		0x14
 
 /*
  * Magic registers
  */
 
-#define	MACH	30		/* R30 is m-> */
-#define	USER		29		/* R29 is up-> */
+#define	MACH		30	/* R30 is m-> */
+#define	USER		29	/* R29 is up-> */
 
 
 /*
@@ -181,25 +181,25 @@
 /*
  *  Second pte word; WIMG & PP(RW/RO) common to page table and BATs
  */
-#define	PTE1_R	BIT(23)
-#define	PTE1_C	BIT(24)
+#define	PTE1_R		BIT(23)
+#define	PTE1_C		BIT(24)
 
-#define	PTE1_W	BIT(25)
-#define	PTE1_I	BIT(26)
-#define	PTE1_M	BIT(27)
-#define	PTE1_G	BIT(28)
+#define	PTE1_W		BIT(25)
+#define	PTE1_I		BIT(26)
+#define	PTE1_M		BIT(27)
+#define	PTE1_G		BIT(28)
 
-#define	PTE1_RW	BIT(30)
-#define	PTE1_RO	BIT(31)
+#define	PTE1_RW		BIT(30)
+#define	PTE1_RO		BIT(31)
 
 /* HID0 register bits */
 #define	HID_ICE		BIT(16)
 #define	HID_DCE		BIT(17)
 #define	HID_ILOCK	BIT(18)
 #define	HID_DLOCK	BIT(19)
-#define	HID_ICFI		BIT(20)
-#define	HID_DCFI		BIT(21)
-#define	HID_IFEM		BIT(24)
+#define	HID_ICFI	BIT(20)
+#define	HID_DCFI	BIT(21)
+#define	HID_IFEM	BIT(24)
 
 /*
  * Address spaces
@@ -207,16 +207,16 @@
 
 #define	KZERO		0x80000000		/* base of kernel address space */
 #define	KTZERO		0x80100000		/* first address in kernel text */
-#define	UZERO		0				/* base of user address space */
-#define	UTZERO		(UZERO+BY2PG)	/* first address in user text */
+#define	UZERO		0			/* base of user address space */
+#define	UTZERO		(UZERO+BY2PG)		/* first address in user text */
 #define	USTKTOP		(TSTKTOP-TSTKSIZ*BY2PG)	/* byte just beyond user stack */
 #define	TSTKTOP		KZERO			/* top of temporary stack */
 #define	TSTKSIZ		100
-#define	USTKSIZE		(4*1024*1024)		/* size of user stack */
-#define	UREGSIZE		((8+40)*4)
+#define	USTKSIZE	(4*1024*1024)		/* size of user stack */
+#define	UREGSIZE	((8+40)*4)
 #define	MACHADDR	(KTZERO-MAXMACH*MACHSIZE)
 #define	MACHPADDR	(MACHADDR&~KZERO)
-#define	MACHP(n)		((Mach *)(MACHADDR+(n)*MACHSIZE))
+#define	MACHP(n)	((Mach *)(MACHADDR+(n)*MACHSIZE))
 
 #define isphys(x) (((ulong)x&KZERO)!=0)
 

@@ -374,8 +374,14 @@ threadmain(int argc, char **argv)
 			sysfatal("Can't set play resolution");
 		getcontrols(nx);	/* Get the initial value of all controls */
 		value[0] = 44100;
-		if(setcontrol(nx, "speed", value) < 0)
-			fprint(2, "warning: Can't set play speed\n");
+		if(setcontrol(nx, "speed", value) < 0){
+			fprint(2, "warning: Can't set play speed to %d\n", value[0]);
+			value[0] = 48000;
+			if(setcontrol(nx, "speed", value) < 0)
+				fprint(2, "warning: Can't set play speed to %d\n", value[0]);
+			else
+				fprint(2, "warning: Play speed set to %d\n", value[0]);
+		}
 		value[0] = 0;
 		setcontrol(nx, "mute", value);
 		if(volume[0] != Undef) {
@@ -399,7 +405,7 @@ threadmain(int argc, char **argv)
 		getcontrols(nx);	/* Get the initial value of all controls */
 		value[0] = 44100;
 		if(setcontrol(nx, "speed", value) < 0)
-			sysfatal("Can't set record speed");
+			fprint(2, "Can't set record speed\n");
 		if(volume[0] != Undef) {
 			c = &nx->control[Volume_control];
 			if(c->settable)

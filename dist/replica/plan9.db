@@ -453,7 +453,7 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1087873352 90619
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1085077118 172912
+386/bin/usb/usbaudio - 775 sys sys 1091071249 172909
 386/bin/usb/usbd - 775 sys sys 1085077118 122174
 386/bin/usb/usbmouse - 775 sys sys 1085077119 138047
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
@@ -3107,7 +3107,7 @@ rc/bin/thesaurus - 775 sys sys 1068054167 246
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
 rc/bin/troff2gif - 775 sys sys 1045504085 178
-rc/bin/ups - 775 sys sys 1051028686 889
+rc/bin/ups - 775 sys sys 1091021981 806
 rc/bin/uptime - 775 sys sys 1074730712 234
 rc/bin/usbstart - 775 sys sys 1044894155 81
 rc/bin/usps - 775 sys sys 1016826030 450
@@ -3327,7 +3327,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1089299186 248807
+sys/games/lib/fortunes - 664 sys sys 1091022704 248857
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1055701304 1291
@@ -5534,7 +5534,7 @@ sys/src/9/ppc/m8260.c - 664 sys sys 1077376312 14480
 sys/src/9/ppc/m8260.h - 664 sys sys 1068135488 20913
 sys/src/9/ppc/main.c - 664 sys sys 1072705483 9044
 sys/src/9/ppc/mcc.c - 664 sys sys 1059490752 9667
-sys/src/9/ppc/mem.h - 664 sys sys 1072705482 6998
+sys/src/9/ppc/mem.h - 664 sys sys 1091021860 7002
 sys/src/9/ppc/mkfile - 664 sys sys 1067722849 1813
 sys/src/9/ppc/mmu.c - 664 sys sys 1059490753 4865
 sys/src/9/ppc/msaturn.c - 664 sys sys 1072705482 2801
@@ -10896,7 +10896,7 @@ sys/src/cmd/usb/audio/dat.h - 664 sys sys 1045503798 3603
 sys/src/cmd/usb/audio/dump.c - 664 sys sys 1045503798 7065
 sys/src/cmd/usb/audio/fns.h - 664 sys sys 1018387004 474
 sys/src/cmd/usb/audio/fs.c - 664 sys sys 1045503799 18550
-sys/src/cmd/usb/audio/main.c - 664 sys sys 1045503799 9312
+sys/src/cmd/usb/audio/main.c - 664 sys sys 1091021907 9533
 sys/src/cmd/usb/audio/mkfile - 664 sys sys 1045503800 351
 sys/src/cmd/usb/lib - 20000000775 sys sys 1018369393 0
 sys/src/cmd/usb/lib/config.c - 664 sys sys 1018462834 6210
