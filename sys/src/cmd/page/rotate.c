@@ -211,3 +211,250 @@ rot180(Image *im)
 	if(tmp0 != im)
 		freeimage(tmp0);
 }
+
+/* rotates an image 90 degrees clockwise */
+Image *
+rot90(Image *im)
+{
+	Image *tmp;
+	int i, j, dx, dy;
+
+	dx = Dx(im->r);
+	dy = Dy(im->r);
+	tmp = xallocimage(display, Rect(0, 0, dy, dx), im->chan, 0, DCyan);
+
+	for(j = 0; j < dx; j++) {
+		for(i = 0; i < dy; i++) {
+			draw(tmp, Rect(i, j, i+1, j+1), im, nil, Pt(j, dy-(i+1)));
+		}
+	}
+	freeimage(im);
+
+	return(tmp);
+}
+
+/* from resample.c -- resize from → to using interpolation */
+
+
+#define K2 7	/* from -.7 to +.7 inclusive, meaning .2 into each adjacent pixel */
+#define NK (2*K2+1)
+double K[NK];
+
+double
+fac(int L)
+{
+	int i, f;
+
+	f = 1;
+	for(i=L; i>1; --i)
+		f *= i;
+	return f;
+}
+
+/* 
+ * i0(x) is the modified Bessel function, Σ (x/2)^2L / (L!)²
+ * There are faster ways to calculate this, but we precompute
+ * into a table so let's keep it simple.
+ */
+double
+i0(double x)
+{
+	double v;
+	int L;
+
+	v = 1.0;
+	for(L=1; L<10; L++)
+		v += pow(x/2., 2*L)/pow(fac(L), 2);
+	return v;
+}
+
+double
+kaiser(double x, double τ, double α)
+{
+	if(fabs(x) > τ)
+		return 0.;
+	return i0(α*sqrt(1-(x*x/(τ*τ))))/i0(α);
+}
+
+
+void
+resamplex(uchar *in, int off, int d, int inx, uchar *out, int outx)
+{
+	int i, x, k;
+	double X, xx, v, rat;
+
+
+	rat = (double)inx/(double)outx;
+	for(x=0; x<outx; x++){
+		if(inx == outx){
+			/* don't resample if size unchanged */
+			out[off+x*d] = in[off+x*d];
+			continue;
+		}
+		v = 0.0;
+		X = x*rat;
+		for(k=-K2; k<=K2; k++){
+			xx = X + rat*k/10.;
+			i = xx;
+			if(i < 0)
+				i = 0;
+			if(i >= inx)
+				i = inx-1;
+			v += in[off+i*d] * K[K2+k];
+		}
+		out[off+x*d] = v;
+	}
+}
+
+void
+resampley(uchar **in, int off, int iny, uchar **out, int outy)
+{
+	int y, i, k;
+	double Y, yy, v, rat;
+
+	rat = (double)iny/(double)outy;
+	for(y=0; y<outy; y++){
+		if(iny == outy){
+			/* don't resample if size unchanged */
+			out[y][off] = in[y][off];
+			continue;
+		}
+		v = 0.0;
+		Y = y*rat;
+		for(k=-K2; k<=K2; k++){
+			yy = Y + rat*k/10.;
+			i = yy;
+			if(i < 0)
+				i = 0;
+			if(i >= iny)
+				i = iny-1;
+			v += in[i][off] * K[K2+k];
+		}
+		out[y][off] = v;
+	}
+
+}
+
+Image*
+resample(Image *from, Image *to)
+{
+	int i, j, bpl, nchan;
+	uchar **oscan, **nscan;
+	char tmp[20];
+	int xsize, ysize;
+	double v;
+	Image *t1, *t2;
+	ulong tchan;
+
+	for(i=-K2; i<=K2; i++){
+		K[K2+i] = kaiser(i/10., K2/10., 4.);
+	}
+
+	/* normalize */
+	v = 0.0;
+	for(i=0; i<NK; i++)
+		v += K[i];
+	for(i=0; i<NK; i++)
+		K[i] /= v;
+
+	switch(from->chan){
+
+	case GREY8:
+	case RGB24:
+	case RGBA32:
+	case ARGB32:
+	case XRGB32:
+		break;
+
+	case CMAP8:
+	case RGB15:
+	case RGB16:
+		tchan = RGB24;
+		goto Convert;
+
+	case GREY1:
+	case GREY2:
+	case GREY4:
+		tchan = GREY8;
+	Convert:
+		/* use library to convert to byte-per-chan form, then convert back */
+		t1 = allocimage(display, from->r, tchan, 0, DNofill);
+		if(t1 == nil)
+			sysfatal("can't allocate temporary image: %r");
+		draw(t1, t1->r, from, nil, ZP);
+		t2 = allocimage(display, to->r, tchan, 0, DNofill);
+		if(t2 == nil)
+			sysfatal("can't allocate temporary image: %r");
+		resample(t1, t2);
+		draw(to, to->r, t2, nil, ZP);
+		freeimage(t1);
+		freeimage(t2);
+		return to;
+
+	default:
+		sysfatal("can't handle channel type %s", chantostr(tmp, from->chan));
+	}
+
+	xsize = Dx(to->r);
+	ysize = Dy(to->r);
+	oscan = malloc(Dy(from->r)*sizeof(uchar*));
+	nscan = malloc(max(ysize, Dy(from->r))*sizeof(uchar*));
+	if(oscan == nil || nscan == nil)
+		sysfatal("can't allocate: %r");
+
+	/* unload original image into scan lines */
+	bpl = bytesperline(from->r, from->depth);
+	for(i=0; i<Dy(from->r); i++){
+		oscan[i] = malloc(bpl);
+		if(oscan[i] == nil)
+			sysfatal("can't allocate: %r");
+		j = unloadimage(from, Rect(from->r.min.x, from->r.min.y+i, from->r.max.x, from->r.min.y+i+1), oscan[i], bpl);
+		if(j != bpl)
+			sysfatal("unloadimage");
+	}
+
+	/* allocate scan lines for destination. we do y first, so need at least Dy(from->r) lines */
+	bpl = bytesperline(Rect(0, 0, xsize, Dy(from->r)), from->depth);
+	for(i=0; i<max(ysize, Dy(from->r)); i++){
+		nscan[i] = malloc(bpl);
+		if(nscan[i] == nil)
+			sysfatal("can't allocate: %r");
+	}
+
+	/* resample in X */
+	nchan = from->depth/8;
+	for(i=0; i<Dy(from->r); i++){
+		for(j=0; j<nchan; j++){
+			if(j==0 && from->chan==XRGB32)
+				continue;
+			resamplex(oscan[i], j, nchan, Dx(from->r), nscan[i], xsize);
+		}
+		free(oscan[i]);
+		oscan[i] = nscan[i];
+		nscan[i] = malloc(bpl);
+		if(nscan[i] == nil)
+			sysfatal("can't allocate: %r");
+	}
+
+	/* resample in Y */
+	for(i=0; i<xsize; i++)
+		for(j=0; j<nchan; j++)
+			resampley(oscan, nchan*i+j, Dy(from->r), nscan, ysize);
+
+	/* pack data into destination */
+	bpl = bytesperline(to->r, from->depth);
+	for(i=0; i<ysize; i++){
+		j = loadimage(to, Rect(0, i, xsize, i+1), nscan[i], bpl);
+		if(j != bpl)
+			sysfatal("loadimage: %r");
+	}
+
+	for(i=0; i<Dy(from->r); i++){
+		free(oscan[i]);
+		free(nscan[i]);
+	}
+	free(oscan);
+	free(nscan);
+
+	return to;
+}

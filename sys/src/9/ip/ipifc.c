@@ -1387,10 +1387,10 @@ ipv6anylocal(Ipifc *ifc, uchar *addr)
 	for(lifc = ifc->lifc; lifc; lifc = lifc->next){
 		if(!isv4(lifc->local)){
 			ipmove(addr, lifc->local);
-			return 1;
+			return SRC_UNI;
 		}
 	}
-	return 0;
+	return SRC_UNSPEC;
 }
 
 /*

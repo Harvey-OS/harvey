@@ -924,6 +924,8 @@ createptrs(void)
 			net[IPv4off+3] = atoi(f[0]);
 			sprint(ipa, "%I", net);
 			t = ndbipinfo(db, "ip", ipa, attribs, 1);
+			if(t == nil) /* could be a reverse with no forward */
+				continue;
 			nt = look(t, t, "ipmask");
 			if(nt == nil){	/* we're confused */
 				ndbfree(t);
