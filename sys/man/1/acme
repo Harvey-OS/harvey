@@ -627,7 +627,7 @@ binds the directories
 .B /acme/bin
 and
 .B /acme/bin/$cputype
-to the end of
+to the beginning of
 .B /bin
 when it starts; this is where
 .IR acme -specific
