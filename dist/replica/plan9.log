@@ -17614,3 +17614,5 @@
 1103382020 0 c sys/src/cmd/usb/lib/dump.c - 664 sys sys 1103381265 12921
 1103382020 1 c sys/src/cmd/usb/lib/usb.h - 664 sys sys 1103381265 7036
 1103391021 0 c rc/bin/replica/defs - 664 sys sys 1103390458 778
+1103517045 0 c 386/bin/usb/usbaudio - 775 sys sys 1103515801 185428
+1103517045 1 c 386/bin/usb/usbd - 775 sys sys 1103515801 129811

@@ -458,8 +458,8 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1102171775 92588
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1102171775 185327
-386/bin/usb/usbd - 775 sys sys 1102171776 129710
+386/bin/usb/usbaudio - 775 sys sys 1103515801 185428
+386/bin/usb/usbd - 775 sys sys 1103515801 129811
 386/bin/usb/usbmouse - 775 sys sys 1102171776 140210
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
 386/bin/vac - 775 sys sys 1102171777 169357
