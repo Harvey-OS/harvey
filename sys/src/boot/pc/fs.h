@@ -1,5 +1,5 @@
 typedef struct File File;
-typedef struct Fs	Fs;
+typedef struct Fs Fs;
 
 #include "dosfs.h"
 #include "kfs.h"
@@ -8,8 +8,10 @@ struct File{
 	union{
 		Dosfile	dos;
 		Kfsfile	kfs;
+		int walked;
 	};
 	Fs	*fs;
+	char	*path;
 };
 
 struct Fs{
@@ -19,7 +21,7 @@ struct Fs{
 	};
 	int	dev;				/* device id */
 	long	(*diskread)(Fs*, void*, long);	/* disk read routine */
-	vlong	(*diskseek)(Fs*, vlong);		/* disk seek routine */
+	vlong	(*diskseek)(Fs*, vlong);	/* disk seek routine */
 	long	(*read)(File*, void*, long);
 	int	(*walk)(File*, char*);
 	File	root;

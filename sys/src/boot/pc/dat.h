@@ -45,6 +45,7 @@ typedef struct IOQ {
 
 enum {
 	Eaddrlen	= 6,
+	/* next two exclude 4-byte ether CRC */
 	ETHERMINTU	= 60,		/* minimum transmit size */
 	ETHERMAXTU	= 1514,		/* maximum transmit size */
 	ETHERHDRSIZE	= 14,		/* size of an ethernet header */
@@ -161,6 +162,8 @@ typedef struct Type {
 	void	(*addconf)(int);
 	int	(*boot)(int, char*, Boot*);
 	void	(*printdevs)(int);
+	char**	parts;
+	char**	inis;
 	int	mask;
 	Medium*	media;
 } Type;
@@ -202,3 +205,4 @@ extern int	debug;
 extern Apminfo	apm;
 extern char	*defaultpartition;
 extern int	iniread;
+extern int	pxe;

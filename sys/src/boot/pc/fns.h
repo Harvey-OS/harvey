@@ -4,7 +4,7 @@ Alarm*	alarm(int, void (*)(Alarm*), void*);
 void	alarminit(void);
 Block*	allocb(int);
 void	apminit(void);
-int	bootp(int, char*, Boot*);
+int	bootpboot(int, char*, Boot*);
 int	bootpass(Boot*, void*, int);
 void	cancel(Alarm*);
 int	cdinit(void);
@@ -23,6 +23,7 @@ uchar*	etheraddr(int);
 int	etherinit(void);
 void	etherinitdev(int, char*);
 void	etherprintdevs(int);
+int	etherrxflush(int);
 int	etherrxpkt(int, Etherpkt*, int);
 int	ethertxpkt(int, Etherpkt*, int, int);
 #define	evenaddr(x)		/* 386 doesn't care */
@@ -30,7 +31,7 @@ int	floppyboot(int, char*, Boot*);
 int	floppyinit(void);
 void	floppyinitdev(int, char*);
 void	floppyprintdevs(int);
-void* floppygetfspart(int, char*, int);
+void*	floppygetfspart(int, char*, int);
 void	freeb(Block*);
 char*	getconf(char*);
 ulong	getcr0(void);
@@ -61,7 +62,7 @@ void	meminit(ulong);
 void	microdelay(int);
 void	mmuinit(void);
 #define	nelem(x)	(sizeof(x)/sizeof(x[0]))
-char *nextelem(char*, char*);
+char*	nextelem(char*, char*);
 uchar	nvramread(int);
 void	outb(int, int);
 void	outs(int, ushort);
@@ -77,9 +78,9 @@ void	pcicfgw8(Pcidev*, int, int);
 void	pcicfgw16(Pcidev*, int, int);
 void	pcicfgw32(Pcidev*, int, int);
 void	pcihinv(Pcidev*);
-Pcidev* pcimatch(Pcidev*, int, int);
-uchar pciintl(Pcidev *);
-uchar pciipin(Pcidev *, uchar);
+Pcidev*	pcimatch(Pcidev*, int, int);
+uchar	pciintl(Pcidev *);
+uchar	pciipin(Pcidev *, uchar);
 void	pcireset(void);
 void	pcisetbme(Pcidev*);
 int	pcmcistuple(int, int, void*, int);
@@ -89,6 +90,7 @@ void	pcmunmap(int, PCMmap*);
 void	ptcheck(char*);
 void	putcr3(ulong);
 void	putidt(Segdesc*, int);
+void*	pxegetfspart(int, char*, int);
 void	qinit(IOQ*);
 void	readlsconf(void);
 void	sdaddconf(int);
@@ -119,7 +121,7 @@ void*	xspanalloc(ulong, int, ulong);
 
 #define malloc(n)	ialloc(n, 0)
 #define mallocz(n, c)	ialloc(n, 0)
-#define free(v) while(0)
+#define free(v)		while(0)
 
 #define	GSHORT(p)	(((p)[1]<<8)|(p)[0])
 #define	GLONG(p)	((GSHORT(p+2)<<16)|GSHORT(p))
@@ -134,7 +136,7 @@ void*	xspanalloc(ulong, int, ulong);
 
 
 #define xalloc(n)	ialloc(n, 0)
-#define xfree(v) while(0)
+#define xfree(v)	while(0)
 #define lock(l)		if(l){/* nothing to do */;}else{/* nothing to do */;}
 #define unlock(l)	if(l){/* nothing to do */;}else{/* nothing to do */;}
 

@@ -113,12 +113,6 @@ extern SDev* scsiid(SDev*, SDifc*);
 #define IrqATA1 15
 #define qlock(i)	while(0)
 #define qunlock(i)	while(0)
-#undef va_start
-#undef va_end
-#define va_list void**
-#define va_start(a, b) (a=(&(b)+1))
-#define va_end(x) 
-#define doprint donprint
 
 #define putstrn consputs
 

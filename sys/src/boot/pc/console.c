@@ -179,25 +179,17 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 }
 
 int
-sprint(char *s, char *fmt, ...)
-{
-	return donprint(s, s+PRINTSIZE, fmt, (&fmt+1)) - s;
-}
-
-int
-snprint(char *s, int n, char *fmt, ...)
-{
-	return donprint(s, s+n, fmt, (&fmt+1)) - s;
-}
-
-int
 print(char *fmt, ...)
 {
-	char buf[PRINTSIZE];
 	int n;
+	va_list arg;
+	char buf[PRINTSIZE];
 
-	n = donprint(buf, buf+sizeof(buf), fmt, (&fmt+1)) - buf;
+	va_start(arg, fmt);
+	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	va_end(arg);
 	consputs(buf, n);
+
 	return n;
 }
 
@@ -205,12 +197,15 @@ void
 panic(char *fmt, ...)
 {
 	int n;
+	va_list arg;
 	char buf[PRINTSIZE];
 
-	consputs("panic: ", 7);
-	n = donprint(buf, buf+sizeof(buf), fmt, (&fmt+1)) - buf;
-	consputs(buf, n);
-	consputs("\n", 1);
+	strcpy(buf, "panic: ");
+	va_start(arg, fmt);
+	n = vseprint(buf+7, buf+sizeof(buf), fmt, arg) - buf;
+	va_end(arg);
+	buf[n] = '\n';
+	consputs(buf, n+1);
 
 //floppymemwrite();
 //splhi(); for(;;);
