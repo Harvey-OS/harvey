@@ -1147,9 +1147,10 @@ procctlreq(Proc *p, char *va, int n)
 		procpriority(p, pri, 0);
 		break;
 	case CMfixedpri:
-		if(!iseve())
+		pri = atoi(cb->f[1]);
+		if(pri > PriNormal && !iseve())
 			error(Eperm);
-		procpriority(p, atoi(cb->f[1]), 1);
+		procpriority(p, pri, 1);
 		break;
 	case CMprivate:
 		p->privatemem = 1;
