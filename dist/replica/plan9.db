@@ -2793,7 +2793,7 @@ mail/lib/isspam.rc - 775 upas upas 1063950954 600
 mail/lib/justqmail - 775 upas upas 960055415 100
 mail/lib/kickqueue - 775 upas upas 960106166 89
 mail/lib/lazyqmail - 775 upas upas 999900927 116
-mail/lib/msgcat.rc - 775 upas upas 1063950954 697
+mail/lib/msgcat.rc - 775 upas upas 1064322955 678
 mail/lib/namefiles - 664 upas upas 960222586 63
 mail/lib/names.local - 664 upas upas 960222620 92
 mail/lib/patterns - 664 upas upas 957549063 602
