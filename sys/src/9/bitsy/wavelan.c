@@ -562,7 +562,6 @@ w_scaninfo(Ether* ether, Ctlr *ctlr, int len)
 	scanbuf = malloc(len*2);
 	if(scanbuf == nil)
 		return;
-	
 	for (i = 0; i < len ; i++)
 		scanbuf[i] = csr_ins(ctlr, WR_Data1);
 
@@ -690,7 +689,7 @@ w_timer(void* arg)
 
 	ctlr->timerproc = up;
 	for(;;){
-		tsleep(&up->sleep, return0, 0, MSperTick);
+		tsleep(&ctlr->timer, return0, 0, MSperTick);
 		ctlr = (Ctlr*)ether->ctlr;
 		if(ctlr == 0)
 			break;
@@ -1208,7 +1207,7 @@ wavelanreset(Ether* ether, Ctlr *ctlr)
 	ether->scanbs = w_scanbs;
 	ether->arg = ether;
 
-	DEBUG("#l%d: irq %lud port %lx type %s",
+	DEBUG("#l%d: irq %ld port %lx type %s",
 		ether->ctlrno, ether->intnum, ether->ports[0].port,	ether->type);
 	DEBUG(" %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX\n",
 		ether->ea[0], ether->ea[1], ether->ea[2],
