@@ -42,8 +42,8 @@ flag makes
 .B trace
 open a new window for its display.
 .PP
-To enable process tracing echo the string "trace on" into 
-/proc/<pid>/ctl.  To disable tracing of a process echo "trace off"
+To enable process tracing echo the string "traceon" into 
+/proc/<pid>/ctl.  To disable tracing of a process echo "traceoff"
 in the control file.  Trace enables tracing on all processes as specified
 by their
 .B pids 

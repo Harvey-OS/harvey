@@ -130,7 +130,11 @@ extern int
 icmpstate(Conv *c, char *state, int n)
 {
 	USED(c);
-	return snprint(state, n, "%s", "Datagram");
+	return snprint(state, n, "%s qin %d qout %d",
+		"Datagram",
+		c->rq ? qlen(c->rq) : 0,
+		c->wq ? qlen(c->wq) : 0
+	);
 }
 
 extern char*

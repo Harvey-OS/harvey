@@ -6,6 +6,7 @@
 #include	"ureg.h"
 #include	"../port/error.h"
 #include	"tos.h"
+#include	<trace.h>
 
 static Lock vctllock;
 static Vctl *vctl[256];
@@ -385,19 +386,12 @@ intr(Ureg *ureg)
 {
 	int vno;
 	Vctl *ctl, *v;
+	void (*pt)(Proc*, int, vlong);
 
-#ifdef notdef
-	if (inintr > 4){
-		int i;
-		for(i = 0; i != inintr; i++)
-			iprint("intr[%d] %d %.lld\n", i, intrstack[i], intrtime[i]);
-		iprint("current vector %d, lastoffset %lld, %.lld\n", intvec(), lastoffset,
-				fastticks(nil));
-		panic("recursing");
-	}
-	inintr++;
-#endif
 	vno = intvec();
+	pt = proctrace;
+	if(up && up->trace && pt)
+		pt(up, (vno << 16) | SInts, 0);
 
 //	intrstack[inintr - 1] = vno;
 
@@ -413,6 +407,9 @@ intr(Ureg *ureg)
 	}
 
 	intend(vno);	/* reenable the interrupt */
+	pt = proctrace;
+	if(up && up->trace && pt)
+		pt(up, (vno << 16) | SInte, 0);
 //	inintr--;
 	preempted();
 }

@@ -605,10 +605,11 @@ textcomplete(Text *t)
 	}
 
 	if(!c->advance){
-		warning(nil, "%.*S%s%.*S*\n",
+		warning(nil, "%.*S%s%.*S*%s\n",
 			dir.nr, dir.r,
 			dir.nr>0 && dir.r[dir.nr-1]!='/' ? "/" : "",
-			nstr, str);
+			nstr, str,
+			c->nmatch? "" : ": no matches in:");
 		for(i=0; i<c->nfile; i++)
 			warning(nil, " %s\n", c->filename[i]);
 	}
@@ -751,6 +752,21 @@ texttype(Text *t, Rune r)
 		for(i=0; i<t->file->ntext; i++)
 			textfill(t->file->text[i]);
 		return;
+	case '\n':
+		if(t->w->autoindent){
+			/* find beginning of previous line using backspace code */
+			nnb = textbswidth(t, 0x15); /* ^U case */
+			rp = runemalloc(nnb + 1);
+			nr = 0;
+			rp[nr++] = r;
+			for(i=0; i<nnb; i++){
+				r = textreadc(t, t->q0-nnb+i);
+				if(r != ' ' && r != '\t')
+					break;
+				rp[nr++] = r;
+			}
+		}
+		break; /* fall through to normal code */
 	}
 	/* otherwise ordinary character; just insert, typically in caches of all texts */
 	for(i=0; i<t->file->ntext; i++){

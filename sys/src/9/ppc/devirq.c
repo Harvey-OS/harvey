@@ -91,7 +91,7 @@ irqenable(Irqconfig *ic, int irq)
 	if (ic->intenable)
 		return;
 	if (irq == Qmstimer){
-		if (ic->tstatus == Tidle)
+		if (ic->tnext == nil)
 			ic->tns = MS2NS(ic->mode);
 		ic->tmode = Tperiodic;
 		timeradd(&ic->Timer);

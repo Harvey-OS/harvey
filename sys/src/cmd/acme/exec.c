@@ -22,6 +22,7 @@ void	fontx(Text*, Text*, Text*, int, int, Rune*, int);
 void	get(Text*, Text*, Text*, int, int, Rune*, int);
 void	id(Text*, Text*, Text*, int, int, Rune*, int);
 void	incl(Text*, Text*, Text*, int, int, Rune*, int);
+void	indent(Text*, Text*, Text*, int, int, Rune*, int);
 void	kill(Text*, Text*, Text*, int, int, Rune*, int);
 void	local(Text*, Text*, Text*, int, int, Rune*, int);
 void	look(Text*, Text*, Text*, int, int, Rune*, int);
@@ -56,6 +57,7 @@ Exectab exectab[] = {
 	{ L"Get",		get,		FALSE,	TRUE,	XXX		},
 	{ L"ID",		id,		FALSE,	XXX,		XXX		},
 	{ L"Incl",		incl,		FALSE,	XXX,		XXX		},
+	{ L"Indent",	indent,	FALSE,	XXX,		XXX		},
 	{ L"Kill",		kill,		FALSE,	XXX,		XXX		},
 	{ L"Load",		dump,	FALSE,	FALSE,	XXX		},
 	{ L"Local",		local,	FALSE,	XXX,		XXX		},
@@ -398,7 +400,7 @@ getname(Text *t, Text *argt, Rune *arg, int narg, int isput)
 		dir.nr = 0;
 		if(n>0 && arg[0]!='/'){
 			dir = dirname(t, nil, 0);
-			if(n==1 && dir.r[0]=='.'){	/* sigh */
+			if(dir.nr==1 && dir.r[0]=='.'){	/* sigh */
 				free(dir.r);
 				dir.r = nil;
 				dir.nr = 0;
@@ -534,15 +536,15 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 			f->qidpath = d->qid.path;
 			f->mtime = d->mtime;
 			if(f->unread)
-				warningew(w, nil, "%s not written; file already exists\n", name);
+				warning(nil, "%s not written; file already exists\n", name);
 			else
-				warningew(w, nil, "%s modified%s%s since last read\n", name, d->muid[0]?" by ":"", d->muid);
+				warning(nil, "%s modified%s%s since last read\n", name, d->muid[0]?" by ":"", d->muid);
 			goto Rescue1;
 		}
 	}
 	fd = create(name, OWRITE, 0666);
 	if(fd < 0){
-		warningew(w, nil, "can't create file %s: %r\n", name);
+		warning(nil, "can't create file %s: %r\n", name);
 		goto Rescue1;
 	}
 	r = fbufalloc();
@@ -551,7 +553,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 	d = dirfstat(fd);
 	isapp = (d!=nil && d->length>0 && (d->qid.type&QTAPPEND));
 	if(isapp){
-		warningew(w, nil, "%s not written; file is append only\n", name);
+		warning(nil, "%s not written; file is append only\n", name);
 		goto Rescue2;
 	}
 
@@ -562,7 +564,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 		bufread(f, q, r, n);
 		m = snprint(s, BUFSIZE+1, "%.*S", n, r);
 		if(write(fd, s, m) != m){
-			warningew(w, nil, "can't write file %s: %r\n", name);
+			warning(nil, "can't write file %s: %r\n", name);
 			goto Rescue2;
 		}
 	}
@@ -625,7 +627,7 @@ put(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 	f = w->body.file;
 	name = getname(&w->body, argt, arg, narg, TRUE);
 	if(name == nil){
-		warningew(w, nil, "no file name\n");
+		warning(nil, "no file name\n");
 		return;
 	}
 	namer = bytetorune(name, &nname);
@@ -1015,6 +1017,47 @@ incl(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 			warning(nil, "%S ", w->incl[n]);
 		warning(nil, "\n");
 	}
+}
+
+static int indentval(Rune *s, int n){
+	if(n < 2)
+		return -1;
+	if(runestrncmp(s, L"ON", n) == 0){
+		globalautoindent = TRUE;
+		warning(nil, "Indent ON\n");
+		return -2;
+	}
+	if(runestrncmp(s, L"OFF", n) == 0){
+		globalautoindent = FALSE;
+		warning(nil, "Indent OFF\n");
+		return -2;
+	}
+	return runestrncmp(s, L"on", n) == 0;
+}
+
+void
+indent(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
+{
+	Rune *a, *r;
+	Window *w;
+	int na, len, autoindent;
+
+	if(et==nil || et->w==nil)
+		return;
+	w = et->w;
+	autoindent = -1;
+	getarg(argt, FALSE, TRUE, &r, &len);
+	if(r!=nil && len>0)
+		autoindent = indentval(r, len);
+	else{
+		a = findbl(arg, narg, &na);
+		if(a != arg)
+			autoindent = indentval(arg, narg-na);
+	}
+	if(autoindent >= 0)
+		w->autoindent = autoindent;
+	if(autoindent != -2)
+		warning(nil, "%.*S: Indent %s\n", w->body.file->nname, w->body.file->name, w->autoindent? "on" : "off");
 }
 
 void

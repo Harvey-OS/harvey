@@ -61,6 +61,7 @@
 .jpe		image		jpeg		-		y
 .jpeg		image		jpeg		-		y
 .jpg		image		jpeg		-		y
+.jpg		image		pjpeg		-		y
 .latex		application	x-latex		-		y
 .ltx		application	x-latex		-		y
 .man		application	x-troff-man	-		y
@@ -147,7 +148,7 @@
 .xwd		image		x-xwindowdump	-		y
 .z		-		-		compress	m
 .Z		-		-		compress	m
-.zip		application	zip		-		m
+.zip		application	zip		-		n
 .zzz		application	sleep		-		n # testing
 -		application	x-gunzip	-		p # type for .tar.gz
 -		message		delivery-status	-		y # mail bounces
