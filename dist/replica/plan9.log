@@ -16815,3 +16815,4 @@
 1040484167 1 c sys/man/2/memlayer - 664 sys sys 1040484074 6963
 1040522506 0 a sys/lib/postscript/troff/R.nomath - 664 sys sys 1040521371 366
 1040522506 1 a sys/lib/troff/font/devutf/R.nomath - 664 sys sys 1040521261 25129
+1040567473 0 c sys/src/fs/dev/juke.c - 664 sys sys 1040567254 22891

@@ -10472,7 +10472,7 @@ sys/src/fs/choline/mkfile - 664 sys sys 1037805081 1671
 sys/src/fs/dev - 20000000775 sys sys 1015109978 0
 sys/src/fs/dev/cw.c - 664 sys sys 1037880292 42010
 sys/src/fs/dev/fworm.c - 664 sys sys 1015109971 1737
-sys/src/fs/dev/juke.c - 664 sys sys 1037805087 21928
+sys/src/fs/dev/juke.c - 664 sys sys 1040567254 22891
 sys/src/fs/dev/mkfile - 664 sys sys 1015109974 132
 sys/src/fs/dev/mworm.c - 664 sys sys 1037805087 4138
 sys/src/fs/dev/sony.c - 664 sys sys 1037805088 17049
