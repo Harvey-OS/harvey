@@ -13851,3 +13851,10 @@
 1065641510 2 c sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1065640769 7232
 1065646915 0 c 386/bin/ip/httpd/webls - 775 sys sys 1065646626 129996
 1065646915 1 c sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1065646625 7233
+1065718912 0 c 386/bin/upas/send - 775 sys sys 1065717666 190471
+1065718912 1 c sys/src/9/pc/devpccard.c - 664 sys sys 1065717606 39976
+1065718912 2 c sys/src/9/pc/mouse.c - 664 sys sys 1065717607 6625
+1065718912 3 c sys/src/cmd/upas/send/dest.c - 664 sys sys 1065717617 4732
+1065718912 4 c sys/src/cmd/upas/send/main.c - 664 sys sys 1065717618 11856
+1065718912 5 c sys/src/cmd/upas/send/message.c - 664 sys sys 1065717617 11064
+1065753032 0 c sys/games/lib/fortunes - 664 sys sys 1065751340 245757

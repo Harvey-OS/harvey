@@ -3980,3 +3980,8 @@ That doesn't make sense to me.  But then, you are very small.  Perhaps you're ri
 A company is only as good as its least imaginative manager.
 Thank you for ordering from MEDCO SUPPLY COMPANY, INC., where 100% satisfaction is gu
 (mozilla-bin:3115): Gtk-WARNING **: A floating object was finalized. This means that someone called g_object_unref() on an object that had only a floating reference; the initial floating reference is not owned by anyone and must be removed with gtk_object_sink() after a normal reference is obtained with g_object_ref(). - exit message from Mozilla
+Hurray! We have successfully exploited a buffer overflow on the plan9 operating system! And most importantly, we did the most useful thing possible: we exited the shell. If you ever gain access to a plan9 box, remember that the smartest thing you can do is logout. - phrack article
+You have synapses?  I wish I did.  My neurons communicate by shouting.  It gets pretty noisy in my head.  Some times all six of them are shouting at the same time.  - presotto
+Failed silent installation. May be failed to allocate Memory.!
+An extended error was returned from the server. This is typically a string or buffer containing a verbose error message. Call InternetGetLastResponseInfo to retrieve the error text.
+If you're not living on the edge, you're taking up too much space.

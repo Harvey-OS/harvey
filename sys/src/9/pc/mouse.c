@@ -307,7 +307,7 @@ mousectl(Cmdbuf *cb)
 			i8250mouse(cb->f[1], mouseputc, cb->nf == 1);
 
 		mousetype = Mouseserial;
-		strncmp(mouseport, cb->f[1], sizeof(mouseport)-1);
+		strncpy(mouseport, cb->f[1], sizeof(mouseport)-1);
 		packetsize = 3;
 		break;
 	case CMhwaccel:

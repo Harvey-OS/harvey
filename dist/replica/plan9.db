@@ -441,7 +441,7 @@
 386/bin/upas/ratfs - 775 sys sys 1064598359 112146
 386/bin/upas/runq - 775 sys sys 1064598360 111212
 386/bin/upas/scanmail - 775 sys sys 1064598361 127497
-386/bin/upas/send - 775 sys sys 1064598362 189555
+386/bin/upas/send - 775 sys sys 1065717666 190471
 386/bin/upas/smtp - 775 sys sys 1064598364 269362
 386/bin/upas/smtpd - 775 sys sys 1064598366 313618
 386/bin/upas/spam - 775 sys sys 1064598366 36
@@ -3288,7 +3288,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1063856231 244987
+sys/games/lib/fortunes - 664 sys sys 1065751340 245757
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1055701304 1291
@@ -5208,7 +5208,7 @@ sys/src/9/pc/devlm78.c - 664 sys sys 1026847635 6038
 sys/src/9/pc/devlml.c - 664 sys sys 1026847636 7486
 sys/src/9/pc/devlml.h - 664 sys sys 1026847636 2948
 sys/src/9/pc/devlpt.c - 664 sys sys 1015014514 4420
-sys/src/9/pc/devpccard.c - 664 sys sys 1048644060 39977
+sys/src/9/pc/devpccard.c - 664 sys sys 1065717606 39976
 sys/src/9/pc/devrtc.c - 664 sys sys 1015014515 7167
 sys/src/9/pc/devtv.c - 664 sys sys 1032052915 45652
 sys/src/9/pc/devusb.c - 664 sys sys 1063857423 18352
@@ -5251,7 +5251,7 @@ sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1032303986 12994
 sys/src/9/pc/mkfile - 664 sys sys 1056336303 3092
 sys/src/9/pc/mmu.c - 664 sys sys 1049509456 10014
-sys/src/9/pc/mouse.c - 664 sys sys 1060266650 6625
+sys/src/9/pc/mouse.c - 664 sys sys 1065717607 6625
 sys/src/9/pc/mp.c - 664 sys sys 1048644112 16928
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
 sys/src/9/pc/pc - 664 sys sys 1055700612 1360
@@ -10595,14 +10595,14 @@ sys/src/cmd/upas/send/authorize.c - 664 sys sys 944961322 569
 sys/src/cmd/upas/send/bind.c - 664 sys sys 944961322 3252
 sys/src/cmd/upas/send/cat_mail.c - 664 sys sys 1016904916 1190
 sys/src/cmd/upas/send/date - 664 sys sys 944961326 4665
-sys/src/cmd/upas/send/dest.c - 664 sys sys 956275873 4728
+sys/src/cmd/upas/send/dest.c - 664 sys sys 1065717617 4732
 sys/src/cmd/upas/send/filter.c - 664 sys sys 988225293 2292
 sys/src/cmd/upas/send/gateway.c - 664 sys sys 944961322 499
 sys/src/cmd/upas/send/local.c - 664 sys sys 1031707305 2584
 sys/src/cmd/upas/send/log.c - 664 sys sys 944961322 2090
-sys/src/cmd/upas/send/main.c - 664 sys sys 1038186966 11767
+sys/src/cmd/upas/send/main.c - 664 sys sys 1065717618 11856
 sys/src/cmd/upas/send/makefile - 664 sys sys 944961322 1247
-sys/src/cmd/upas/send/message.c - 664 sys sys 1016731559 11089
+sys/src/cmd/upas/send/message.c - 664 sys sys 1065717617 11064
 sys/src/cmd/upas/send/mkfile - 664 sys sys 1064589602 706
 sys/src/cmd/upas/send/regtest.c - 664 sys sys 944961322 566
 sys/src/cmd/upas/send/rewrite.c - 664 sys sys 1031707304 6294

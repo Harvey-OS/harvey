@@ -1368,13 +1368,13 @@ pccardread(Chan *c, void *a, long n, vlong offset)
 
 					ct = &pi->ctab[i];
 					p = seprint(p, e, 
-						"\tconfiguration[%ld] irqs %.4uX; vpp %d, %d; %s\n",
-							  n, ct->irqs, ct->vpp1, ct->vpp2,
+						"\tconfiguration[%d] irqs %.4uX; vpp %d, %d; %s\n",
+							  i, ct->irqs, ct->vpp1, ct->vpp2,
 							  (ct == pi->defctab)? "(default);": "");
 					for (j = 0; j != ct->nio; j++)
 						if (ct->io[j].len > 0)
 							p = seprint(p, e, "\t\tio[%d] %.8ulX %uld\n",
-									  i, ct->io[j].start, ct->io[j].len);
+									  j, ct->io[j].start, ct->io[j].len);
 				}
 			}
 			break;
