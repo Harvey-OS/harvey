@@ -1,5 +1,6 @@
 #!/bin/rc
 
+rfork e
 if(~ $#* 0 1){
 	echo 'usage: patch/move dst patch-name...' >[1=2]
 	exit usage

@@ -147,7 +147,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1104121988 83293
 386/bin/aux/typepasswd - 775 sys sys 1104121988 69503
-386/bin/aux/vga - 775 sys sys 1104562494 301461
+386/bin/aux/vga - 775 sys sys 1109563697 301643
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -439,7 +439,7 @@
 386/bin/upas/aliasmail - 775 sys sys 1104122069 104752
 386/bin/upas/bayes - 775 sys sys 1064598344 70530
 386/bin/upas/deliver - 775 sys sys 1104122069 99781
-386/bin/upas/filter - 775 sys sys 1104122070 147311
+386/bin/upas/filter - 775 sys sys 1109563698 147311
 386/bin/upas/fs - 775 sys sys 1109132005 332256
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1104122071 82776
@@ -455,7 +455,7 @@
 386/bin/upas/ratfs - 775 sys sys 1108354565 111342
 386/bin/upas/runq - 775 sys sys 1104122074 113086
 386/bin/upas/scanmail - 775 sys sys 1104122075 128749
-386/bin/upas/send - 775 sys sys 1104122075 191536
+386/bin/upas/send - 775 sys sys 1109563698 191536
 386/bin/upas/smtp - 775 sys sys 1109132007 273564
 386/bin/upas/smtpd - 775 sys sys 1109132008 328719
 386/bin/upas/spam - 775 sys sys 1064598366 36
@@ -3042,16 +3042,17 @@ rc/bin/mousereset - 775 sys sys 1015089542 37
 rc/bin/nroff - 775 sys sys 945617208 27
 rc/bin/patch - 20000000775 sys sys 1067803227 0
 rc/bin/patch/applied - 775 sys sys 1081204295 110
-rc/bin/patch/apply - 775 sys sys 1089299188 1276
+rc/bin/patch/apply - 775 sys sys 1109511606 1285
 rc/bin/patch/create - 775 sys sys 1107957505 1404
-rc/bin/patch/diff - 775 sys sys 1106151131 466
-rc/bin/patch/email - 775 sys sys 1107836219 401
-rc/bin/patch/list - 775 sys sys 1107957885 696
-rc/bin/patch/move - 775 sys sys 1104430337 565
-rc/bin/patch/note - 664 sys sys 1089299189 655
-rc/bin/patch/okay - 775 sys sys 1087487682 242
+rc/bin/patch/diff - 775 sys sys 1109511606 474
+rc/bin/patch/email - 775 sys sys 1109511607 409
+rc/bin/patch/list - 775 sys sys 1109511607 704
+rc/bin/patch/move - 775 sys sys 1109511607 573
+rc/bin/patch/note - 664 sys sys 1109511607 663
+rc/bin/patch/okay - 775 sys sys 1109511608 250
+rc/bin/patch/remove - 775 sys sys 1109511608 285
 rc/bin/patch/sorry - 775 sys sys 1081200166 107
-rc/bin/patch/undo - 775 sys sys 1067804405 549
+rc/bin/patch/undo - 775 sys sys 1109511608 557
 rc/bin/pc - 20000000775 sys sys 960857447 0
 rc/bin/pc/bootfloppy - 775 sys sys 964455816 439
 rc/bin/pc/bootplan9 - 775 sys sys 960857446 1639
@@ -3078,7 +3079,7 @@ rc/bin/replica/defs - 664 sys sys 1103390458 778
 rc/bin/replica/pull - 775 sys sys 1045504036 1445
 rc/bin/replica/push - 775 sys sys 1043865725 361
 rc/bin/replica/scan - 775 sys sys 1089299188 472
-rc/bin/replica/setupdirs - 775 sys sys 1018321122 408
+rc/bin/replica/setupdirs - 775 sys sys 1109511315 411
 rc/bin/rwd - 775 sys sys 1042418590 349
 rc/bin/seemail - 775 sys sys 945617208 59
 rc/bin/service - 20000000775 sys sys 1018831800 0
@@ -3570,7 +3571,7 @@ sys/lib/dist/cmd/touchfs.c - 664 sys sys 1018469727 1120
 sys/lib/dist/cmd/unbflz.c - 664 sys sys 1018469727 1688
 sys/lib/dist/logcompress.awk - 664 sys sys 1068558028 298
 sys/lib/dist/logtime.awk - 664 sys sys 1019526213 38
-sys/lib/dist/mkfile - 664 sys sys 1104430715 3693
+sys/lib/dist/mkfile - 664 sys sys 1109511736 3842
 sys/lib/dist/pc - 20000000775 sys sys 1018721419 0
 sys/lib/dist/pc/empty - 20000000775 sys sys 1018469720 0
 sys/lib/dist/pc/emptyfile - 664 sys sys 1018469722 0
@@ -5528,7 +5529,7 @@ sys/src/9/port/page.c - 664 sys sys 1102133425 8281
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
 sys/src/9/port/portclock.c - 664 sys sys 1102093397 4556
-sys/src/9/port/portdat.h - 664 sys sys 1102093399 22207
+sys/src/9/port/portdat.h - 664 sys sys 1109541435 22233
 sys/src/9/port/portfns.h - 664 sys sys 1102093388 11474
 sys/src/9/port/portmkfile - 664 sys sys 1109202242 2043
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
@@ -7123,7 +7124,7 @@ sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1048636613 905
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1104430499 8975
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
-sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1088204577 23412
+sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1109511456 23718
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
 sys/src/cmd/aux/vga/pci.c - 664 sys sys 1014925011 8659
 sys/src/cmd/aux/vga/pci.h - 664 sys sys 1014925011 3290
@@ -10905,7 +10906,7 @@ sys/src/cmd/upas/send/authorize.c - 664 sys sys 944961322 569
 sys/src/cmd/upas/send/bind.c - 664 sys sys 944961322 3252
 sys/src/cmd/upas/send/cat_mail.c - 664 sys sys 1016904916 1190
 sys/src/cmd/upas/send/date - 664 sys sys 944961326 4665
-sys/src/cmd/upas/send/dest.c - 664 sys sys 1065717617 4732
+sys/src/cmd/upas/send/dest.c - 664 sys sys 1109511268 4789
 sys/src/cmd/upas/send/filter.c - 664 sys sys 988225293 2292
 sys/src/cmd/upas/send/gateway.c - 664 sys sys 944961322 499
 sys/src/cmd/upas/send/local.c - 664 sys sys 1031707305 2584
@@ -11049,7 +11050,7 @@ sys/src/cmd/venti/mkxml - 775 sys sys 1019678879 1078
 sys/src/cmd/venti/mkxml.elems - 775 sys sys 1019678880 786
 sys/src/cmd/venti/notes - 664 sys sys 1068500911 4032
 sys/src/cmd/venti/part.c - 664 sys sys 1036389637 2532
-sys/src/cmd/venti/printarena.c - 664 sys sys 1043805294 2557
+sys/src/cmd/venti/printarena.c - 664 sys sys 1109511493 2675
 sys/src/cmd/venti/rdarena.c - 664 sys sys 1055707432 1621
 sys/src/cmd/venti/read.c - 664 sys sys 1055707434 1723
 sys/src/cmd/venti/score.c - 664 sys sys 1045503655 588

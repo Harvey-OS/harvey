@@ -1,5 +1,6 @@
 #!/bin/rc
 
+rfork e
 if(! ~ $#* 2){
 	echo 'usage: patch/email name email-address' >[1=2]
 	exit usage

@@ -14,7 +14,7 @@ cd-dist:V: /n/fsother/dist/plan9.iso.bz2
 contrib-cd:V:	/n/fsother/dist/contrib.iso.bz2
 
 /n/fsother/dist/%.iso:D: /n/sources/plan9/dist/replica/plan9.log
-	#@{cd pc; mk cddisk; cd ..}
+	@{cd pc; mk cddisk; cd ..}
 	rm -f $target
 	bind pc/cddisk cdstub/bootdisk.img
 	if(! test -f $d/bootdisk.img)
@@ -91,6 +91,7 @@ reencode:V:
 	{mv /n/fsother/dist/$stem.iso.bz2 /n/fsother/dist/_$stem.iso.bz2
 	mv /n/fsother/dist/n$stem.iso.bz2 /n/fsother/dist/$stem.iso.bz2
 	}
+	echo `{date} md5 `{md5sum </n/fsother/dist/$stem.iso.bz2} sha1 `{sha1sum </n/fsother/dist/$stem.iso.bz2} $stem.iso.bz2 >>/usr/web/plan9checksums.txt
 
 /n/fsother/dist/contrib.iso:DV:
 	rm -f $target
