@@ -14006,3 +14006,10 @@
 1077840088 0 c sys/src/cmd/con/con.c - 664 sys sys 1077839879 15213
 1077854490 0 c 386/bin/con - 775 sys sys 1077854442 76224
 1077854490 1 c 386/lib/libmp.a - 664 sys sys 1077854442 78536
+1077897698 0 c sys/src/9/port/dev.c - 664 sys sys 1077896125 8247
+1077897698 1 c sys/src/cmd/fossil/9.h - 664 sys sys 1077896806 4268
+1077897698 2 c sys/src/cmd/fossil/9p.c - 664 sys sys 1077896346 21766
+1077897698 3 c sys/src/cmd/fossil/9srv.c - 664 sys sys 1077896346 3879
+1077897698 4 c sys/src/cmd/fossil/fossil.c - 664 sys sys 1077896345 2435
+1077942706 0 c 386/bin/fossil/fossil - 775 sys sys 1077940925 349367
+1077942706 1 c 386/lib/libmp.a - 664 sys sys 1077940925 77700

@@ -6,8 +6,6 @@
 int Dflag;
 char* none = "none";
 
-int stdfd[2];
-
 static void
 usage(void)
 {

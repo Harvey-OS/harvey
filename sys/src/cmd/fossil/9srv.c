@@ -77,6 +77,7 @@ srvFree(Srv* srv)
 static Srv*
 srvAlloc(char* service, int mode, int fd)
 {
+	Dir *dir;
 	Srv *srv;
 	int srvfd;
 	char *mntpnt;
@@ -85,9 +86,18 @@ srvAlloc(char* service, int mode, int fd)
 	for(srv = sbox.head; srv != nil; srv = srv->next){
 		if(strcmp(srv->service, service) != 0)
 			continue;
-		vtSetError("srv: already serving '%s'", service);
-		vtUnlock(sbox.lock);
-		return nil;
+		/*
+		 * If the service exists, but is stale,
+		 * free it up and let the name be reused.
+		 */
+		if((dir = dirfstat(srv->srvfd)) != nil){
+			free(dir);
+			vtSetError("srv: already serving '%s'", service);
+			vtUnlock(sbox.lock);
+			return nil;
+		}
+		srvFree(srv);
+		break;
 	}
 
 	if((srvfd = srvFd(service, mode, fd, &mntpnt)) < 0){
