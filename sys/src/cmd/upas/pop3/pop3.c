@@ -667,8 +667,10 @@ static void
 hello(void)
 {
 	fmtinstall('H', encodefmt);
-	if((chs = auth_challenge("proto=apop role=server")) == nil)
+	if((chs = auth_challenge("proto=apop role=server")) == nil){
 		senderr("auth server not responding, try later");
+		exits(nil);
+	}
 
 	sendok("POP3 server ready %s", chs->chal);
 }

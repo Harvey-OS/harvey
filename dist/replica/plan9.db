@@ -10829,7 +10829,7 @@ sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
 sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1075069148 43120
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1015009816 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1064589604 186
-sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1063854524 14283
+sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1076176207 14301
 sys/src/cmd/upas/q - 20000000775 sys sys 988250019 0
 sys/src/cmd/upas/q/mkfile - 664 sys sys 1064589601 262
 sys/src/cmd/upas/q/qer.c - 664 sys sys 1014926528 3179
@@ -10927,7 +10927,7 @@ sys/src/cmd/vac/error.c - 664 sys sys 1036006057 633
 sys/src/cmd/vac/error.h - 664 sys sys 1036024048 327
 sys/src/cmd/vac/file.c - 664 sys sys 1048645298 18984
 sys/src/cmd/vac/fns.h - 664 sys sys 1036006061 1746
-sys/src/cmd/vac/fs.c - 664 sys sys 1036006058 2880
+sys/src/cmd/vac/fs.c - 664 sys sys 1076129457 2934
 sys/src/cmd/vac/mkfile - 664 sys sys 1036024045 434
 sys/src/cmd/vac/pack.c - 664 sys sys 1036006059 10126
 sys/src/cmd/vac/rtest.c - 664 sys sys 1019678787 1116

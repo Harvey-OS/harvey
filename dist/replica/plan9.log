@@ -13796,3 +13796,5 @@
 1075348899 6 d sys/src/cmd/rtstats/edfproc.c - 664 sys sys 1055699325 0
 1075348899 7 d sys/src/cmd/rtstats - 20000000775 sys sys 1018897680 0
 1075689090 0 c sys/games/lib/fortunes - 664 sys sys 1075688069 247488
+1076130039 0 c sys/src/cmd/vac/fs.c - 664 sys sys 1076129457 2934
+1076176846 0 c sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1076176207 14301
