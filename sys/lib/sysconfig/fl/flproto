@@ -1,0 +1,7 @@
+srv -p fscons
+srv boot
+fsys main config /dev/sdC0/fossil
+fsys main open
+fsys main
+users /active/adm/users
+snaptime -s 60 -a 0500

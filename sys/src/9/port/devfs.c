@@ -173,6 +173,8 @@ mconfig(char* a, long n)	// "name idev0 idev1"
 	char	*c;
 	vlong	size, start;
 
+	size = 0;
+	start = 0;
 	if (confstr[0] == 0)
 		seprint(confstr, confstr+sizeof(confstr), Cfgstr);
 	mp = nil;
@@ -395,7 +397,6 @@ catio(Fsdev *mp, int isread, void *a, long n, vlong off)
 	int	i;
 	Chan*	mc;
 	long	l, wl, res;
-	char*	s;
 	//print("catio %d %p %ld %lld\n", isread, a, n, off);
 	res = n;
 	for (i = 0; n >= 0 && i < mp->ndevs ; i++){
@@ -409,7 +410,6 @@ catio(Fsdev *mp, int isread, void *a, long n, vlong off)
 		else
 			l = n;
 		//print("\tdev %d %p %ld %lld\n", i, a, l, off);
-		s = a;
 
 		if (isread)
 			wl = devtab[mc->type]->read(mc, a, l, off);

@@ -1,0 +1,96 @@
+</$objtype/mkfile
+BIN=/$objtype/bin/fossil
+
+TARG=fossil flchk flfmt
+
+LIBFILES=\
+	9p\
+	9auth\
+	9dir\
+	9excl\
+	9fid\
+	9fsys\
+	9lstn\
+	9proc\
+	9srv\
+	9user\
+	Ccmd\
+	Ccli\
+	Ccons\
+	Clog\
+	archive\
+	nobwatch\
+	cache\
+	disk\
+	error\
+	file\
+	fs\
+	pack\
+	periodic\
+	source\
+	vac\
+	walk\
+
+LIBCFILES=${LIBFILES:%=%.c}
+LIBOFILES=${LIBFILES:%=%.$O}
+LIB=libfs.a.$O
+
+HFILES=\
+	/sys/include/venti.h\
+	stdinc.h\
+	vac.h\
+	dat.h\
+	fns.h\
+	fs.h\
+	error.h\
+	9.h\
+
+UPDATE=\
+	mkfile\
+	$CFILES\
+	$HFILES\
+	${TARG:%=/386/bin/%}
+
+default:V: all
+
+CFILES=${TARG:%=%.c} $LIBCFILES
+
+default:V: all
+
+test:V: all
+	rm -f /srv/test.fossil /srv/test.fscons
+	slay 8.flfmt | rc
+	slay 8.fossil | rc
+	unmount /n/fossil || status=''
+	8.flfmt -y /tmp/fossil
+	8.fossil -c '. flproto' && mount -c /srv/test.fossil /n/fossil
+#	cp /env/timezone /n/fossil/tmp
+#	cp /lib/words /n/fossil/tmp
+	dircp /sys/src/cmd/aux /n/fossil/tmp
+#	@{cd /n/fossil/tmp && time tar xTf /sys/src/cmd/fossil/test.tar}
+#	unmount /n/fossil
+#	rm /srv/fossil
+
+</sys/src/cmd/mkmany
+
+$LIB(%.$O):N: %.$O
+$LIB:	${LIBOFILES:%=$LIB(%)}
+	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$LIB'\(([^)]+)\)/\1/gp'}
+	ar vu $LIB $names
+#	rm $names
+
+%.page:V: %.ps
+	page -w $stem.ps
+
+%.ps:D: %.ms
+	tbl $stem.ms | pic | eqn | troff -ms | lp -dstdout >$target
+
+bundle:V:
+	rfork n
+	ramfs -m /n/kremvax >[2]/dev/null
+	bind -a /n/kremvax .
+	cp /sys/doc/fossil.ms /sys/doc/fossil.ps /n/kremvax
+	cp /sys/man/4/fossil /n/kremvax/fossil.4.man
+	cp /sys/man/8/fossilcons /n/kremvax/fossilcons.8.man
+	x=`{ls |grep -v 'TODO|test.tar|fossil.tar.gz'}
+	tar c $x | gzip > fossil.tar.gz
