@@ -13,7 +13,7 @@ void	(*coherence)(void);
 void	cpuid(char*, int*, int*);
 int	cpuidentify(void);
 void	cpuidprint(void);
-void	cycles(uvlong*);
+void	(*cycles)(uvlong*);
 void	delay(int);
 int	dmacount(int);
 int	dmadone(int);

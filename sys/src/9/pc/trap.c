@@ -7,6 +7,7 @@
 #include	"io.h"
 #include	"ureg.h"
 #include	"../port/error.h"
+#include	<trace.h>
 
 void	noted(Ureg*, ulong);
 
@@ -284,10 +285,8 @@ kexit(Ureg*)
 
 	/* precise time accounting, kernel exit */
 	tos = (Tos*)(USTKTOP-sizeof(Tos));
-	if(m->havetsc){
-		cycles(&t);
-		tos->kcycles += t - up->kentry;
-	}
+	cycles(&t);
+	tos->kcycles += t - up->kentry;
 	tos->pcycles = up->pcycles;
 	tos->pid = up->pid;
 }
@@ -306,18 +305,21 @@ trap(Ureg* ureg)
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 	Mach *mach;
+	void (*pt)(Proc*, int, vlong);
 
 	m->perf.intrts = perfticks();
 	user = (ureg->cs & 0xFFFF) == UESEL;
 	if(user){
 		up->dbgreg = ureg;
-		if(m->havetsc)
-			cycles(&up->kentry);
+		cycles(&up->kentry);
 	}
 
 	vno = ureg->trap;
 	if(ctl = vctl[vno]){
 		if(ctl->isintr){
+			pt = proctrace;
+			if(up && up->trace && pt)
+				pt(up, (vno << 16) | SInts, 0);
 			m->intr++;
 			if(vno >= VectorPIC && vno != VectorSYSCALL)
 				m->lastintr = ctl->irq;
@@ -334,6 +336,10 @@ trap(Ureg* ureg)
 
 		if(ctl->isintr){
 			intrtime(m, vno);
+			pt = proctrace;
+			if(up && up->trace && pt)
+				pt(up, (vno << 16) | SInte, 0);
+
 			if(up && ctl->irq != IrqTIMER && ctl->irq != IrqCLOCK)
 				preempted();
 		}
@@ -611,8 +617,7 @@ syscall(Ureg* ureg)
 	if((ureg->cs & 0xFFFF) != UESEL)
 		panic("syscall: cs 0x%4.4luX\n", ureg->cs);
 
-	if (m->havetsc)
-		cycles(&up->kentry);
+	cycles(&up->kentry);
 
 	m->syscall++;
 	up->insyscall = 1;

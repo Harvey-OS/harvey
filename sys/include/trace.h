@@ -1,5 +1,5 @@
 typedef enum Tevent {
-	SAdmit,		/* Edf admit */
+	SAdmit = 0,	/* Edf admit */
 	SRelease,	/* Edf release, waiting to be scheduled */
 	SEdf,		/* running under EDF */
 	SRun,		/* running best effort */
@@ -10,6 +10,8 @@ typedef enum Tevent {
 	SDeadline,	/* proc's deadline */
 	SExpel,		/* Edf expel */
 	SDead,		/* proc dies */
+	SInts,		/* Interrupt start */
+	SInte,		/* Interrupt end */
 	SUser,		/* user event */
 	Nevent,
 } Tevent;
@@ -17,6 +19,6 @@ typedef enum Tevent {
 typedef struct Traceevent	Traceevent;
 struct Traceevent {
 	ulong	pid;	
-	Tevent	etype;		/* Event type */
+	ulong	etype;		/* Event type */
 	vlong	time;		/* time stamp (ns)  */
 };
