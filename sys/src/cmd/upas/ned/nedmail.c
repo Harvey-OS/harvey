@@ -1620,6 +1620,7 @@ rcmd(Cmd *c, Message *m)
 	Message *nm;
 	char *addr;
 	String *path = nil;
+	String *rpath;
 	String *subject = nil;
 	String *from;
 
@@ -1654,6 +1655,10 @@ rcmd(Cmd *c, Message *m)
 		}
 	}
 
+	av[ai++] = "-R";
+	rpath = rooted(s_clone(m->path));
+	av[ai++] = s_to_c(rpath);
+
 	if(strchr(c->av[0], 'f') != nil){
 		fcmd(c, m);
 		av[ai++] = "-F";
@@ -1675,6 +1680,7 @@ rcmd(Cmd *c, Message *m)
 	if(tomailer(av) < 0)
 		m = nil;
 	s_free(path);
+	s_free(rpath);
 	s_free(subject);
 	s_free(from);
 	return m;

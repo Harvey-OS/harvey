@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <bio.h>
 #include <ip.h>
+#include <libsec.h>
 
 typedef struct URL URL;
 struct URL
@@ -27,6 +28,7 @@ struct Range
 enum
 {
 	Http,
+	Https,
 	Ftp,
 	Other
 };
@@ -66,6 +68,7 @@ struct {
 	int	(*f)(URL*, Range*, int, long);
 } method[] = {
 	[Http]	{ "http",	dohttp },
+	[Https]	{ "https",	dohttp },
 	[Ftp]	{ "ftp",	doftp },
 	[Other]	{ "_______",	nil },
 };
@@ -306,6 +309,24 @@ dohttp(URL *u, Range *r, int out, long mtime)
 		fd = dial(netmkaddr(u->host, tcpdir, u->port), 0, 0, 0);
 		if(fd < 0)
 			return Error;
+
+		if(u->method == Https){
+			int tfd;
+			TLSconn conn;
+
+			memset(&conn, 0, sizeof conn);
+			tfd = tlsClient(fd, &conn);
+			if(tfd < 0){
+				fprint(2, "tlsClient: %r\n");
+				close(fd);
+				return Error;
+			}
+			/* BUG: check cert here? */
+			if(conn.cert)
+				free(conn.cert);
+			close(fd);
+			fd = tfd;
+		}
 
 		/* write request, use range if not start of file */
 		if(u->postbody == nil){

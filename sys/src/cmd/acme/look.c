@@ -634,7 +634,7 @@ lookfile(Rune *s, int n)
 			w = c->w[i];
 			t = &w->body;
 			k = t->file->nname;
-			if(k>0 && t->file->name[k-1] == '/')
+			if(k>1 && t->file->name[k-1] == '/')
 				k--;
 			if(runeeq(t->file->name, k, s, n)){
 				w = w->body.file->curtext->w;

@@ -1,6 +1,6 @@
 .TH FILTER 1
 .SH NAME
-filter, list, deliver, token, vf \-  filterng mail
+filter, list, deliver, token, vf \-  filtering mail
 .SH SYNOPSIS
 .PP
 .B upas/filter
@@ -159,8 +159,8 @@ using the filter kit can be found in
 .BR /sys/src/cmd/upas/filterkit/pipeto.sample .
 .PP
 A sample
-.BR myupassend ,
-.BR /sys/src/cmd/upas/filterkit/myupassend.sample ,
+.BR pipefrom ,
+.BR /sys/src/cmd/upas/filterkit/pipefrom.sample ,
 is provided which adds all addresses of your outgoing
 mail to your pattern file.
 You should copy it into a directory that normally gets

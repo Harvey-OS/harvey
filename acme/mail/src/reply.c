@@ -483,10 +483,14 @@ mesgsend(Message *m)
 	e->p[0] = p[0];
 	e->p[1] = p[1];
 	e->prog = "/bin/upas/marshal";
-	e->argv = emalloc((1+1+4*natt+1)*sizeof(char*));
+	e->argv = emalloc((1+1+2+4*natt+1)*sizeof(char*));
 	e->argv[0] = estrdup("marshal");
 	e->argv[1] = estrdup("-8");
 	j = 2;
+	if(m->replyname){
+		e->argv[j++] = estrdup("-R");
+		e->argv[j++] = estrstrdup(mbox.name, m->replyname);
+	}
 	for(i=0; i<natt; i++){
 		if(included[i])
 			e->argv[j++] = estrdup("-A");

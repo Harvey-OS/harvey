@@ -928,7 +928,7 @@ main(int argc, char * argv[])
 {
 	static char *defargv[] = { "/bin/rc", "-i", nil };
 	char *addr, netmt[NETPATHLEN], adir[NETPATHLEN], ldir[NETPATHLEN], *p, *darg, *karg, *pem;
-	int cfd, s, n, fd, w, h, vncport;
+	int cfd, s, n, fd, ffd, w, h, vncport;
 	TLSconn *conn;
 
 	vncport = 5900;
@@ -1036,6 +1036,14 @@ main(int argc, char * argv[])
 		sysfatal("can't fork: %r");
 		break;
 	case 0:
+		/* On a cpuserver, we need to use bootes factotum
+		 * to talk to the auth server.
+		*/
+		ffd = open("/srv/factotum", ORDWR);
+		if(ffd < 0) 
+			sysfatal("can't open bootes factotum: %r\n");
+		mount(ffd, -1, "/mnt", MBEFORE, "");
+
 		if(!mounter("/dev", MBEFORE, fd, n))
 			exits("errors");
 		close(exportfd);
