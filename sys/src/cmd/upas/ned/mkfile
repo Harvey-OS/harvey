@@ -14,7 +14,6 @@ UPDATE=\
 	mkfile\
 	${OFILES:%.$O=%.c}\
 	$HFILES\
-	${TARG:%=/386/bin/upas/%}\
 
 </sys/src/cmd/mkone
 CFLAGS=$CFLAGS -I../common

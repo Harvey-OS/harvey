@@ -148,7 +148,7 @@
 386/bin/aux/tr2post - 775 sys sys 1056364217 176207
 386/bin/aux/trampoline - 775 sys sys 1056364218 81185
 386/bin/aux/typepasswd - 775 sys sys 1056364218 68176
-386/bin/aux/vga - 775 sys sys 1056364219 300334
+386/bin/aux/vga - 775 sys sys 1060012301 300350
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1045537962 102172
@@ -6824,7 +6824,7 @@ sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1048636613 905
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1014925010 8801
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
-sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1054479635 12043
+sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1060012272 12142
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
 sys/src/cmd/aux/vga/pci.c - 664 sys sys 1014925011 8659
 sys/src/cmd/aux/vga/pci.h - 664 sys sys 1014925011 3290
@@ -10511,8 +10511,8 @@ sys/src/cmd/upas/ml/ml.c - 664 sys sys 1031707314 2703
 sys/src/cmd/upas/ml/mlmgr.c - 664 sys sys 1045505888 2332
 sys/src/cmd/upas/ml/mlowner.c - 664 sys sys 1015096763 1142
 sys/src/cmd/upas/ned - 20000000775 sys sys 1015013194 0
-sys/src/cmd/upas/ned/mkfile - 664 sys sys 1031707295 261
-sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1055703158 42722
+sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
+sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1060041739 42848
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1015009816 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1031707311 214
 sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1021579996 14144
