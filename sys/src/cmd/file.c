@@ -157,6 +157,7 @@ int	isp9bit(void);
 int	isp9font(void);
 int	isrtf(void);
 int	ismsdos(void);
+int	iself(void);
 int	istring(void);
 int	long0(void);
 int	p9bitnum(uchar*);
@@ -183,6 +184,7 @@ int	(*call[])(void) =
 	isenglish,	/* char frequency English */
 	isrtf,		/* rich text format */
 	ismsdos,	/* msdos exe (virus file attachement) */
+	iself,		/* ELF (foreign) executable */
 	0
 };
 
@@ -1130,5 +1132,47 @@ ismsdos(void)
 		print(mime ? "application/x-msdownload\n" : "MSDOS executable\n");
 		return 1;
 	}
+	return 0;
+}
+
+int
+iself(void)
+{
+	char *cpu[] = {		/* NB: incomplete and arbitary list */
+	[1]	"WE32100",
+	[2]	"SPARC",
+	[3]	"i386",
+	[4]	"M68000",
+	[5]	"M88000",
+	[6]	"i486",
+	[7]	"i860",
+	[8]	"R3000",
+	[9]	"S370",
+	[10]	"R4000",
+	[15]	"HP-PA",
+	[18]	"sparc v8+",
+	[19]	"i960",
+	[20]	"PPC-32",
+	[21]	"PPC-64",
+	[40]	"ARM",
+	[41]	"Alpha",
+	[43]	"sparc v9",
+	[50]	"IA-46",
+	[62]	"AMD x86-64",
+	[75]	"VAX",
+	};
+
+
+	if (memcmp(buf, "\x7fELF", 4) == 0){
+		if (!mime){
+			int n = (buf[19] << 8) | buf[18];
+			char *p = (n > 0 && n < nelem(cpu) && cpu[n])? cpu[n]: "unknown";
+			print("%s ELF executable\n", p);
+		}
+		else
+			print("application/x-elf-executable");
+		return 1;
+	}
+
 	return 0;
 }

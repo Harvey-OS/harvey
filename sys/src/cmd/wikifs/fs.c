@@ -19,6 +19,7 @@ enum {
 	Qedithtml,
 	Qwerrorhtml,
 	Qwerrortxt,
+	Qhttplogin,
 	Nfile,
 };
 
@@ -32,6 +33,7 @@ static char *filelist[] = {
 	"edit.html",
 	"werror.html",
 	"werror.txt",
+	".httplogin",
 };
 
 static int needhist[Nfile] = {
@@ -110,6 +112,23 @@ fsattach(Req *r)
 	r->ofcall.qid = (Qid){mkqid(Droot, 0, 0, 42), 0, QTDIR};
 	r->fid->qid = r->ofcall.qid;
 	respond(r, nil);
+}
+
+static String *
+httplogin(void)
+{
+	String *s=s_new();
+	Biobuf *b;
+
+	if((b = wBopen(".httplogin", OREAD)) == nil)
+		goto Return;
+
+	while(s_read(b, s, Bsize) > 0)
+		;
+	Bterm(b);
+
+Return:
+	return s;
 }
 
 static char*
@@ -251,6 +270,9 @@ Gotfile:
 		break;
 	case Qwerrortxt:
 		s = totext(a->w, a->w->doc+a->n, Twerror);
+		break;
+	case Qhttplogin:
+		s = httplogin();
 		break;
 	default:
 		return "internal error";

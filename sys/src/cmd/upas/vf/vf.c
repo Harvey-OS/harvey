@@ -340,7 +340,7 @@ save(Part *p)
 	seek(fd, 0, 2);
 	Binit(&out, fd, OWRITE);
 	cp = ctime(time(0));
-	cp[20] = 0;
+	cp[28] = 0;
 	Bprint(&out, "From virusfilter %s\n", cp);
 	writeheader(p);
 	passbody(p, 1);

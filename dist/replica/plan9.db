@@ -702,7 +702,7 @@ acme/mail/src/win.c - 664 sys sys 1033936955 5428
 acme/mkfile - 775 sys sys 1035390142 242
 acme/news - 20000000775 sys sys 1015011247 0
 acme/news/guide - 444 sys sys 1015011247 32
-acme/news/src - 20000000777 sys sys 1015011247 0
+acme/news/src - 20000000775 sys sys 1039727911 0
 acme/news/src/mkfile - 664 sys sys 1032639303 198
 acme/news/src/news.c - 664 sys sys 1032639277 17987
 acme/news/src/util.c - 664 sys sys 1015097408 1385
@@ -860,7 +860,7 @@ dist/replica - 20000000775 sys sys 1019277119 0
 dist/replica/cd - 664 sys sys 1019527959 390
 dist/replica/kfs - 664 sys sys 1019527929 237
 dist/replica/network - 775 sys sys 1071079179 996
-dist/replica/plan9.proto - 664 sys sys 1022112985 1209
+dist/replica/plan9.proto - 664 sys sys 1079376335 2533
 env - 20000000775 sys sys 1015094872 0
 fd - 20000000775 sys sys 947958544 0
 lib - 20000000775 sys sys 958504315 0
@@ -2780,7 +2780,7 @@ lib/ndb/local - 664 sys sys 1077723747 292
 lib/ndb/local.complicated - 664 sys sys 1032354376 2740
 lib/ndb/nfs - 664 sys sys 954036707 113
 lib/news - 20000000775 sys sys 944943954 0
-lib/sky - 20000000777 sys sys 954015749 0
+lib/sky - 20000000775 sys sys 1079376081 0
 lib/sky/abell.scat - 444 sys sys 954015738 86784
 lib/sky/bayer.scat - 444 sys sys 954015738 12136
 lib/sky/con.scat - 444 sys sys 954015746 213476
@@ -2790,7 +2790,7 @@ lib/sky/estartab - 444 sys sys 954015747 159692
 lib/sky/here - 444 sys sys 954015747 32
 lib/sky/mindex.scat - 444 sys sys 954015747 488
 lib/sky/name.scat - 444 sys sys 954023446 17580
-lib/sky/ngc2000.scat - 666 sys sys 954015747 0
+lib/sky/ngc2000.scat - 664 sys sys 954015747 0
 lib/sky/ngc2000type.scat - 444 sys sys 954015747 13226
 lib/sky/patch.scat - 444 sys sys 954015749 1298280
 lib/sky/patchindex.scat - 444 sys sys 954015749 92054
@@ -3418,7 +3418,7 @@ sys/include/flate.h - 664 sys sys 1014929063 1245
 sys/include/frame.h - 664 sys sys 1014929063 2666
 sys/include/geometry.h - 664 sys sys 1014929063 2632
 sys/include/html.h - 664 sys sys 1017679304 15157
-sys/include/httpd.h - 664 sys sys 1014929064 5726
+sys/include/httpd.h - 664 sys sys 1079372798 5747
 sys/include/ip.h - 664 sys sys 1050702405 2908
 sys/include/keyboard.h - 664 sys sys 1071725439 790
 sys/include/libc.h - 664 sys sys 1072792615 19430
@@ -4624,7 +4624,7 @@ sys/man/1/calendar - 664 sys sys 1032058542 1144
 sys/man/1/cat - 664 sys sys 1022048090 1335
 sys/man/1/cb - 664 sys sys 1063855627 896
 sys/man/1/chgrp - 664 sys sys 944959673 710
-sys/man/1/chmod - 664 sys sys 944959673 1276
+sys/man/1/chmod - 664 sys sys 1079372922 1299
 sys/man/1/cleanname - 664 sys sys 944959674 580
 sys/man/1/cmp - 664 sys sys 944959673 1092
 sys/man/1/colors - 664 sys sys 954523212 1443
@@ -4675,7 +4675,7 @@ sys/man/1/lens - 664 sys sys 1029431866 1230
 sys/man/1/lex - 664 sys sys 1032058565 1520
 sys/man/1/look - 664 sys sys 944959673 1348
 sys/man/1/lp - 664 sys sys 1015024739 3304
-sys/man/1/ls - 664 sys sys 1049813576 2791
+sys/man/1/ls - 664 sys sys 1079372922 2897
 sys/man/1/mail - 664 sys sys 1050078464 2158
 sys/man/1/man - 664 sys sys 1059484724 1740
 sys/man/1/marshal - 664 sys sys 1050078464 3307
@@ -4735,7 +4735,7 @@ sys/man/1/tbl - 664 sys sys 944959674 4308
 sys/man/1/tcs - 664 sys sys 952627441 2575
 sys/man/1/tee - 664 sys sys 969499886 351
 sys/man/1/tel - 664 sys sys 1045501423 941
-sys/man/1/test - 664 sys sys 1070459150 3475
+sys/man/1/test - 664 sys sys 1079372544 3535
 sys/man/1/thesaurus - 664 sys sys 1068121775 222
 sys/man/1/time - 664 sys sys 944959673 380
 sys/man/1/touch - 664 sys sys 1018369246 461
@@ -5594,7 +5594,7 @@ sys/src/ape/cmd/expr/mkfile - 664 sys sys 1014921975 144
 sys/src/ape/cmd/expr/regexp.h - 664 sys sys 1014921975 5958
 sys/src/ape/cmd/kill.c - 664 sys sys 1014921975 1605
 sys/src/ape/cmd/make - 20000000775 sys sys 1014921974 0
-sys/src/ape/cmd/make-3.79 - 20000000777 sys sys 1014921978 0
+sys/src/ape/cmd/make-3.79 - 20000000775 sys sys 1039727530 0
 sys/src/ape/cmd/make-3.79/tests - 20000000775 sys sys 1014921978 0
 sys/src/ape/cmd/make-3.79/tests/scripts - 20000000755 sys sys 1014921981 0
 sys/src/ape/cmd/make-3.79/tests/scripts/features - 20000000755 sys sys 1014921979 0
@@ -7277,7 +7277,7 @@ sys/src/cmd/cfs/mkfile - 664 sys sys 1032457443 663
 sys/src/cmd/cfs/notes - 664 sys sys 944960876 570
 sys/src/cmd/cfs/stats.h - 664 sys sys 1014925220 918
 sys/src/cmd/chgrp.c - 664 sys sys 1014926580 624
-sys/src/cmd/chmod.c - 664 sys sys 1072793234 1903
+sys/src/cmd/chmod.c - 664 sys sys 1079372923 1904
 sys/src/cmd/cleanname.c - 664 sys sys 944960760 715
 sys/src/cmd/clock.c - 664 sys sys 1014925410 1881
 sys/src/cmd/cmp.c - 664 sys sys 1072145760 2379
@@ -7541,7 +7541,7 @@ sys/src/cmd/fax/receive.c - 664 sys sys 944960990 1097
 sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
-sys/src/cmd/file.c - 664 sys sys 1071719684 20614
+sys/src/cmd/file.c - 664 sys sys 1079372472 21344
 sys/src/cmd/fmt.c - 664 sys sys 1070032009 4088
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
@@ -9749,7 +9749,7 @@ sys/src/cmd/mv.c - 664 sys sys 1014926695 4276
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1060612175 6862
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
-sys/src/cmd/ndb/cs.c - 664 sys sys 1078840015 33033
+sys/src/cmd/ndb/cs.c - 664 sys sys 1079357413 33069
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1078927860 18090
@@ -10511,7 +10511,7 @@ sys/src/cmd/telco/mkfile - 664 sys sys 944961290 201
 sys/src/cmd/telco/telco.c - 664 sys sys 1021579996 26253
 sys/src/cmd/telco/telcodata - 775 sys sys 944961290 95
 sys/src/cmd/telco/telcofax - 664 sys sys 944961289 30
-sys/src/cmd/test.c - 664 sys sys 1070459150 5319
+sys/src/cmd/test.c - 664 sys sys 1079372543 5409
 sys/src/cmd/time.c - 664 sys sys 1014926662 1546
 sys/src/cmd/tlsclient.c - 664 sys sys 1024375149 1631
 sys/src/cmd/tlssrv.c - 664 sys sys 1018720167 3254
@@ -10929,7 +10929,7 @@ sys/src/cmd/upas/unesc/mkfile - 664 sys sys 1075080255 164
 sys/src/cmd/upas/unesc/unesc.c - 664 sys sys 1075080255 789
 sys/src/cmd/upas/vf - 20000000775 sys sys 1015096796 0
 sys/src/cmd/upas/vf/mkfile - 664 sys sys 1064393881 241
-sys/src/cmd/upas/vf/vf.c - 664 sys sys 1079323044 17391
+sys/src/cmd/upas/vf/vf.c - 664 sys sys 1079357412 17391
 sys/src/cmd/usb - 20000000775 sys sys 1017802022 0
 sys/src/cmd/usb/audio - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/audio/audioclass.h - 664 sys sys 1017802021 5463
@@ -11931,7 +11931,7 @@ sys/src/libhttpd/date.c - 664 sys sys 1045502928 3507
 sys/src/libhttpd/escape.h - 664 sys sys 1014930784 2728
 sys/src/libhttpd/fail.c - 664 sys sys 1014930784 2794
 sys/src/libhttpd/gethead.c - 664 sys sys 1014930784 733
-sys/src/libhttpd/hio.c - 664 sys sys 1032633473 7300
+sys/src/libhttpd/hio.c - 664 sys sys 1079372798 7482
 sys/src/libhttpd/httpfmt.c - 664 sys sys 1014930784 472
 sys/src/libhttpd/httpunesc.c - 664 sys sys 1014930784 888
 sys/src/libhttpd/lower.c - 664 sys sys 1014930784 226

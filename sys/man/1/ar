@@ -119,7 +119,7 @@ showing
 .IP
 .B
 	mode uid/gid size date name
-.TP
+.\" .TP
 .\" .B c
 .\" Create.
 .\" Normally

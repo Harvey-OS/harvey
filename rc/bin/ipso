@@ -11,6 +11,9 @@ editor = (acme -c1)
 name = secstore
 get = secstoreget
 put = secstoreput
+edit = no
+load = no
+flush = no
 
 fn secstoreget{
 	auth/secstore -i -g $1 <_password
@@ -50,11 +53,29 @@ while(~ $1 -*){
 		name = aescbc
 		get = aesget
 		put = aesput
+	case -f
+		flush = yes
+	case -e
+		edit = yes
+	case -l
+		load = yes
 	case *
-		echo >[2=1] 'usage: ipso [-s] [file ...]'
+		echo >[2=1] 'usage: ipso [-a -f -e -l] [-s] [file ...]'
 		exit usage
 	}
 	shift
+}
+
+if(~ $flush no && ~ $edit no && ~ $load no){
+	load = yes
+	edit = yes
+	flush = yes
+}
+
+if(~ $flush yes && ~ $edit no && ~ $load no){
+	echo flushing old keys
+	echo delkey > /mnt/factotum/ctl
+	exit 0
 }
 
 if(~ $get aesget && ~ $#* 0){
@@ -68,7 +89,7 @@ unmount /mnt/plumb
 bind -c /tmp /srv
 cd /tmp
 
-echo '
+if ( ~ $edit yes ) echo '
 	Warning: The editor will display the secret contents of
 	your '$name' files in the clear.
 '
@@ -103,7 +124,15 @@ for(i in $files){
 sleep 2; date > _timestamp	# so we can find which files have been edited.
 
 # edit the files
-$editor `{for(i in $files) basename $i}
+if(~ $edit yes) $editor `{for(i in $files) basename $i}
+if(~ $flush yes ){
+	echo flushing old keys
+	echo delkey > /mnt/factotum/ctl
+}
+if(~ $load yes){
+	echo loading factotum keys
+	if (~ factotum $files) read -m < factotum > /mnt/factotum/ctl
+}
 
 # copy the files back
 for(i in `{editedfiles}){
