@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1100269948 208708
-386/9loaddebug - 775 sys sys 1102478836 300021
+386/9loaddebug - 775 sys sys 1102998038 299841
 386/9loadlite - 775 sys sys 1100269949 132260
-386/9loadlitedebug - 775 sys sys 1102171794 194892
+386/9loadlitedebug - 775 sys sys 1102998039 194712
 386/9pc - 775 sys sys 1102825222 1832889
 386/9pc.gz - 664 sys sys 1077049336 635727
 386/9pccpu - 775 sys sys 1102825226 1487882
@@ -12394,5 +12394,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/9loaddebug - 775 sys sys 1102998038 299841
-386/9loadlitedebug - 775 sys sys 1102998039 194712
