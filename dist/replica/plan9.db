@@ -200,7 +200,7 @@
 386/bin/dial/expect - 775 sys sys 1068385869 58283
 386/bin/dial/pass - 775 sys sys 1068385869 39019
 386/bin/dict - 775 sys sys 1064598121 185384
-386/bin/diff - 775 sys sys 1064598122 82019
+386/bin/diff - 775 sys sys 1077163174 82769
 386/bin/disk - 20000000775 sys sys 984788664 0
 386/bin/disk/dump9660 - 775 sys sys 1064598123 151282
 386/bin/disk/exsort - 775 sys sys 1072729312 58501
@@ -7352,7 +7352,7 @@ sys/src/cmd/diff/diff.h - 664 sys sys 1014925333 769
 sys/src/cmd/diff/diffdir.c - 664 sys sys 1014925333 1791
 sys/src/cmd/diff/diffio.c - 664 sys sys 1014925334 5031
 sys/src/cmd/diff/diffreg.c - 664 sys sys 1014925334 8825
-sys/src/cmd/diff/main.c - 664 sys sys 1014925334 4270
+sys/src/cmd/diff/main.c - 664 sys sys 1077133741 4300
 sys/src/cmd/diff/mkfile - 664 sys sys 944960882 141
 sys/src/cmd/disk - 20000000775 sys sys 1018468546 0
 sys/src/cmd/disk/9660 - 20000000775 sys sys 1017681443 0
