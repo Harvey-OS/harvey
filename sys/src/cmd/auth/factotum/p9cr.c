@@ -206,7 +206,7 @@ mktab(void)
 }
 
 static int
-vncaddkey(Key *k)
+vncaddkey(Key *k, int before)
 {
 	uchar *p;
 	char *s;
@@ -222,7 +222,7 @@ vncaddkey(Key *k)
 		werrstr("no key data");
 		return -1;
 	}
-	return replacekey(k);
+	return replacekey(k, before);
 }
 
 static void

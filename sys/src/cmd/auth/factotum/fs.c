@@ -140,7 +140,7 @@ main(int argc, char **argv)
 		s = getnvramkey(kflag ? NVwrite : NVwriteonerr, &secstorepw);
 		if(s == nil)
 			fprint(2, "factotum warning: cannot read nvram: %r\n");
-		else if(ctlwrite(s) < 0)
+		else if(ctlwrite(s, 0) < 0)
 			fprint(2, "factotum warning: cannot add nvram key: %r\n");
 		if(secstorepw != nil)
 			trysecstore = 1;
@@ -546,7 +546,7 @@ fswrite(Req *r)
 			ret = confirmwrite(s);
 			break;
 		case Qctl:
-			ret = ctlwrite(s);
+			ret = ctlwrite(s, r->ifcall.offset==0);
 			break;
 		}
 		free(s);

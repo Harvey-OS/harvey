@@ -152,7 +152,7 @@ sshrsaclose(Fsstate *fss)
 }
 
 static int
-sshrsaaddkey(Key *k)
+sshrsaaddkey(Key *k, int before)
 {
 	fmtinstall('B', mpfmt);
 
@@ -160,7 +160,7 @@ sshrsaaddkey(Key *k)
 		werrstr("malformed key data");
 		return -1;
 	}
-	return replacekey(k);
+	return replacekey(k, before);
 }
 
 static void

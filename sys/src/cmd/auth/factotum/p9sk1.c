@@ -181,7 +181,7 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 {
 	int m, ret, sret;
 	char tbuf[2*TICKETLEN], trbuf[TICKREQLEN], *user;
-	Attr *attr;
+	Attr *attr, *ap;
 	Authenticator auth;
 	State *s;
 	Key *srvkey;
@@ -265,6 +265,11 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 
 		convM2T(tbuf, &s->t, (char*)s->key->priv);
 		if(s->t.num != AuthTc){
+			for(ap=s->key->attr; ap && ap->next; ap=ap->next)
+				;
+			if(ap)
+			if(ap->type != AttrNameval || strcmp(ap->name, "authsrv-mismatch") != 0 || strcmp(ap->val, "yes") != 0)
+				ap->next = _mkattr(AttrNameval, "authsrv-mismatch", "yes", nil);
 			if(askforkeys){
 				snprint(fss->keyinfo, sizeof fss->keyinfo, "%A %s", attr, p9sk1.keyprompt);
 				_freeattr(attr);
@@ -370,7 +375,7 @@ hexparse(char *hex, uchar *dat, int ndat)
 }
 
 static int
-p9skaddkey(Key *k)
+p9skaddkey(Key *k, int before)
 {
 	char *s;
 
@@ -390,7 +395,7 @@ p9skaddkey(Key *k)
 		k->priv = nil;
 		return -1;
 	}
-	return replacekey(k);
+	return replacekey(k, before);
 }
 
 static void
