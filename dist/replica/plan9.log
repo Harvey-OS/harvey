@@ -13131,3 +13131,15 @@
 1071342042 1 c sys/man/8/ipconfig - 664 sys sys 1071340739 6037
 1071415853 0 c lib/units - 664 sys sys 1071415518 9997
 1071459058 0 c sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1071458376 2672
+1071498664 0 a sys/src/cmd/9nfs/authhostowner.c - 664 sys sys 1071498519 4190
+1071498664 1 c sys/src/cmd/9nfs/dat.h - 664 sys sys 1071498518 4406
+1071498664 2 c sys/src/cmd/9nfs/fns.h - 664 sys sys 1071498519 1908
+1071498664 3 c sys/src/cmd/9nfs/mkfile - 664 sys sys 1071498518 640
+1071498664 4 c sys/src/cmd/9nfs/nfsmount.c - 664 sys sys 1071498520 6142
+1071498664 5 c sys/src/cmd/ip/ipconfig.c - 664 sys sys 1071498576 34555
+1071514866 0 c sys/src/9/pc/fns.h - 664 sys sys 1071514801 4296
+1071514866 1 c sys/src/9/pc/l.s - 664 sys sys 1071514801 23314
+1071516666 0 c sys/src/9/pc/etherelnk3.c - 664 sys sys 1071515332 48521
+1071536469 0 c sys/include/keyboard.h - 664 sys sys 1071535972 802
+1071538269 0 a sys/lib/lp/tmp - 20000000777 sys sys 1071536829 0
+1071540069 0 c sys/lib/lp/bin/lpscratch - 775 sys sys 1071539623 32

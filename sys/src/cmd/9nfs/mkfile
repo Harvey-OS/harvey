@@ -21,6 +21,7 @@ OFILES=chat.$O\
 
 NFSSERVER=9p.$O\
 	auth.$O\
+	authhostowner.$O\
 	nfs.$O\
 	nfsmount.$O\
 	xfile.$O

@@ -238,7 +238,6 @@ struct Session
 	char	schal[CHALLEN];		/* server challenge */
 	char	authid[ANAMELEN];	/* server encryption uid */
 	char	authdom[DOMLEN];	/* server encryption domain */
-	int	count;			/* number of attaches */
 	char *	spec;			/* for attach */
 	Xfile *	root;			/* to answer mount rpc */
 	ushort	tag;

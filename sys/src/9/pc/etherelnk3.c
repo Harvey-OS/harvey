@@ -1521,6 +1521,7 @@ tcm5XXpcmcia(Ether* ether)
 		ctlr->active = 1;
 		return ctlr;
 	}
+
 	return nil;
 }
 
@@ -2044,7 +2045,6 @@ etherelnk3reset(Ether* ether)
 	 * Allocate any receive buffers.
 	 */
 	switch(ctlr->busmaster){
-
 	case 2:
 		ctlr->dnenabled = 1;
 
@@ -2074,7 +2074,6 @@ etherelnk3reset(Ether* ether)
 		}
 		outl(port+TxFreeThresh, HOWMANY(ETHERMAXTU, 256));
 		break;
-
 	default:
 		ctlr->rbp = rbpalloc(iallocb);
 		if(ctlr->rbp == nil)

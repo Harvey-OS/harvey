@@ -16,6 +16,8 @@ int	nodhcpwatch;
 int	sendhostname;
 int	dondbconfig = 0;
 
+char	*ndboptions;
+
 Ipifc	*ifc;
 
 // possible verbs
@@ -69,46 +71,154 @@ struct {
 	ulong	timeout;		/* time to timeout - seconds */
 } conf;
 
+enum
+{
+	Taddr,
+	Taddrs,
+	Tstr,
+	Tbyte,
+	Tulong,
+	Tvec,
+};
+
+typedef struct Option Option;
+struct Option
+{
+	char	*name;
+	int	type;
+};
+
+// I was too lazy to look up the types for each of these
+// options.  If someone feels like it, please mail me a
+// corrected array -- presotto
+Option option[256] =
+{
+[OBmask]		{ "ipmask",		Taddr },
+[OBtimeoff]		{ "timeoff",		Tulong },
+[OBrouter]		{ "ipgw",		Taddrs },
+[OBtimeserver]		{ "time",		Taddrs },
+[OBnameserver]		{ "name",		Taddrs },
+[OBdnserver]		{ "dns",		Taddrs },
+[OBlogserver]		{ "log",		Taddrs },
+[OBcookieserver]	{ "cookie",		Taddrs },
+[OBlprserver]		{ "lpr",		Taddrs },
+[OBimpressserver]	{ "impress",		Taddrs },
+[OBrlserver]		{ "rl",			Taddrs },
+[OBhostname]		{ "sys",		Tstr },
+[OBbflen]		{ "bflen",		Tulong },
+[OBdumpfile]		{ "dumpfile",		Tstr },
+[OBdomainname]		{ "dom",		Tstr },
+[OBswapserver]		{ "swap",		Taddrs },
+[OBrootpath]		{ "rootpath",		Tstr },
+[OBextpath]		{ "extpath",		Tstr },
+[OBipforward]		{ "ipforward",		Taddrs },
+[OBnonlocal]		{ "nonlocal",		Taddrs },
+[OBpolicyfilter]	{ "policyfilter",	Taddrs },
+[OBmaxdatagram]		{ "maxdatagram",	Tulong },
+[OBttl]			{ "ttl",		Tulong },
+[OBpathtimeout]		{ "pathtimeout",	Taddrs },
+[OBpathplateau]		{ "pathplateau",	Taddrs },
+[OBmtu]			{ "mtu",		Tulong },
+[OBsubnetslocal]	{ "subnetslocal",	Taddrs },
+[OBbaddr]		{ "baddr",		Taddrs },
+[OBdiscovermask]	{ "discovermask",	Taddrs },
+[OBsupplymask]		{ "supplymask",		Taddrs },
+[OBdiscoverrouter]	{ "discoverrouter",	Taddrs },
+[OBrsserver]		{ "rs",			Taddrs },
+[OBstaticroutes]	{ "staticroutes",	Taddrs },
+[OBtrailerencap]	{ "trailerencap",	Taddrs },
+[OBarptimeout]		{ "arptimeout",		Tulong },
+[OBetherencap]		{ "etherencap",		Taddrs },
+[OBtcpttl]		{ "tcpttl",		Tulong },
+[OBtcpka]		{ "tcpka",		Tulong },
+[OBtcpkag]		{ "tcpkag",		Tulong },
+[OBnisdomain]		{ "nisdomain",		Tstr },
+[OBniserver]		{ "ni",			Taddrs },
+[OBntpserver]		{ "ntp",		Taddrs },
+[OBnetbiosns]		{ "netbiosns",		Taddrs },
+[OBnetbiosdds]		{ "netbiosdds",		Taddrs },
+[OBnetbiostype]		{ "netbiostype",	Taddrs },
+[OBnetbiosscope]	{ "netbiosscope",	Taddrs },
+[OBxfontserver]		{ "xfont",		Taddrs },
+[OBxdispmanager]	{ "xdispmanager",	Taddrs },
+[OBnisplusdomain]	{ "nisplusdomain",	Tstr },
+[OBnisplusserver]	{ "nisplus",		Taddrs },
+[OBhomeagent]		{ "homeagent",		Taddrs },
+[OBsmtpserver]		{ "smtp",		Taddrs },
+[OBpop3server]		{ "pop3",		Taddrs },
+[OBnntpserver]		{ "nntp",		Taddrs },
+[OBwwwserver]		{ "www",		Taddrs },
+[OBfingerserver]	{ "finger",		Taddrs },
+[OBircserver]		{ "irc",		Taddrs },
+[OBstserver]		{ "st",			Taddrs },
+[OBstdaserver]		{ "stdar",		Taddrs },
+
+[ODipaddr]		{ "ipaddr",		Taddr },
+[ODlease]		{ "lease",		Tulong },
+[ODoverload]		{ "overload",		Taddr },
+[ODtype]		{ "type",		Tbyte },
+[ODserverid]		{ "serverid",		Taddr },
+[ODparams]		{ "params",		Tvec },
+[ODmessage]		{ "message",		Tstr },
+[ODmaxmsg]		{ "maxmsg",		Tulong },
+[ODrenewaltime]		{ "renewaltime",	Tulong },
+[ODrebindingtime]	{ "rebindingtime",	Tulong },
+[ODvendorclass]		{ "vendorclass",	Tvec },
+[ODclientid]		{ "clientid",		Tvec },
+[ODtftpserver]		{ "tftp",		Taddr },
+[ODbootfile]		{ "bootfile",		Tstr },
+};
+
+uchar defrequested[] = {
+	OBmask, OBrouter, OBdnserver, OBhostname, OBdomainname, OBntpserver,
+};
+
+uchar requested[256];
+int nrequested;
+
 void	adddefroute(char*, uchar*);
+int	addoption(char*);
 void	binddevice(void);
-void	controldevice(void);
 void	bootprequest(void);
+void	controldevice(void);
+void	dhcpquery(int, int);
 void	dhcprecv(void);
 void	dhcpsend(int);
 int	dhcptimer(void);
-void	dhcpquery(int, int);
 void	dhcpwatch(int);
-int	getndb(void);
-int	ipconfig(void);
-void	lookforip(char*);
-uchar	*optadd(uchar*, int, void*, int);
-uchar	*optaddbyte(uchar*, int, int);
-uchar	*optaddulong(uchar*, int, ulong);
-uchar	*optaddaddr(uchar*, int, uchar*);
-uchar	*optaddstr(uchar*, int, char*);
-uchar	*optaddvec(uchar*, int, uchar*, int);
-uchar	*optget(uchar*, int, int*);
-int	optgetbyte(uchar*, int);
-ulong	optgetulong(uchar*, int);
-int	optgetaddr(uchar*, int, uchar*);
-int	optgetaddrs(uchar*, int, uchar*, int);
-int	optgetstr(uchar*, int, char*, int);
-int	optgetvec(uchar*, int, uchar*, int);
-void	mkclientid(void);
-int	nipifcs(char*);
-int	openlisten(void);
-int	parseoptions(uchar *p, int n);
-Bootp	*parsebootp(uchar*, int);
-void	putndb(void);
-void	tweakservers(void);
-void	writendb(char*, int, int);
-void	usage(void);
-int	validip(uchar*);
-int	parseverb(char*);
 void	doadd(int);
 void	doremove(void);
 void	dounbind(void);
+int	getndb(void);
+void	getoptions(uchar*);
+int	ipconfig(void);
+void	lookforip(char*);
+void	mkclientid(void);
 void	ndbconfig(void);
+int	nipifcs(char*);
+int	openlisten(void);
+uchar*	optadd(uchar*, int, void*, int);
+uchar*	optaddaddr(uchar*, int, uchar*);
+uchar*	optaddbyte(uchar*, int, int);
+uchar*	optaddstr(uchar*, int, char*);
+uchar*	optaddulong(uchar*, int, ulong);
+uchar*	optaddvec(uchar*, int, uchar*, int);
+uchar*	optget(uchar*, int, int*);
+int	optgetaddr(uchar*, int, uchar*);
+int	optgetaddrs(uchar*, int, uchar*, int);
+int	optgetbyte(uchar*, int);
+int	optgetstr(uchar*, int, char*, int);
+ulong	optgetulong(uchar*, int);
+int	optgetvec(uchar*, int, uchar*, int);
+char*	optgetx(uchar*, uchar);
+Bootp*	parsebootp(uchar*, int);
+int	parseoptions(uchar *p, int n);
+int	parseverb(char*);
+void	putndb(void);
+void	tweakservers(void);
+void	usage(void);
+int	validip(uchar*);
+void	writendb(char*, int, int);
 
 char optmagic[4] = { 0x63, 0x82, 0x53, 0x63 };
 
@@ -149,6 +259,10 @@ main(int argc, char **argv)
 
 	retry = 0;
 	ctll = &firstctl;
+
+	// init set of requested parameters with the default
+	nrequested = sizeof(defrequested);
+	memcpy(requested, defrequested, nrequested);
 
 	ARGBEGIN {
 	case 'D':
@@ -219,6 +333,10 @@ main(int argc, char **argv)
 		break;
 	case 'X':
 		nodhcpwatch = 1;
+		break;
+	case 'o':
+		if(addoption(ARGF()) < 0)
+			usage();
 		break;
 	} ARGEND;
 
@@ -764,10 +882,6 @@ err:
 	return -1;
 }
 
-uchar requested[] = {
-	OBmask, OBrouter, OBdnserver, OBhostname, OBdomainname, OBntpserver,
-};
-
 void
 dhcpsend(int type)
 {
@@ -804,7 +918,7 @@ dhcpsend(int type)
 			n = snprint((char*)vendor, sizeof(vendor), "plan9_%s", conf.cputype);
 			p = optaddvec(p, ODvendorclass, vendor, n);
 		}
-		p = optaddvec(p, ODparams, requested, sizeof(requested));
+		p = optaddvec(p, ODparams, requested, nrequested);
 		if(validip(conf.laddr))
 			p = optaddaddr(p, ODipaddr, conf.laddr);
 		break;
@@ -829,7 +943,7 @@ dhcpsend(int type)
 			n = snprint((char*)vendor, sizeof(vendor), "plan9_%s", conf.cputype);
 			p = optaddvec(p, ODvendorclass, vendor, n);
 		}
-		p = optaddvec(p, ODparams, requested, sizeof(requested));
+		p = optaddvec(p, ODparams, requested, nrequested);
 		if(*conf.hostname && sendhostname)
 			p = optaddstr(p, OBhostname, conf.hostname);
 		break;	
@@ -906,7 +1020,7 @@ dhcprecv(void)
 			fprint(2, "%s: Offer with %lud lease, using %d\n", argv0, lease, MinLease);
 			lease = MinLease;
 		}
-		DEBUG("lease %lud ", lease);
+		DEBUG("lease=%lud ", lease);
 		if(!optgetaddr(bp->optdata, ODserverid, conf.server)) {
 			fprint(2, "%s: Offer from server with invalid serverid\n", argv0);
 			break;
@@ -915,7 +1029,7 @@ dhcprecv(void)
 		v4tov6(conf.laddr, bp->yiaddr);
 		memmove(conf.sname, bp->sname, sizeof(conf.sname));
 		conf.sname[sizeof(conf.sname)-1] = 0;
-		DEBUG("server %I %s\n", conf.server, conf.sname);
+		DEBUG("server=%I sname=%s\n", conf.server, conf.sname);
 		conf.offered = lease;
 		conf.state = Srequesting;
 		dhcpsend(Request);
@@ -939,22 +1053,22 @@ dhcprecv(void)
 			fprint(2, "%s: Ack with %lud lease, using %d\n", argv0, lease, MinLease);
 			lease = MinLease;
 		}
-		DEBUG("lease %lud ", lease);
+		DEBUG("lease=%lud ", lease);
 
 		// address and mask
 		v4tov6(conf.laddr, bp->yiaddr);
 		if(!optgetaddr(bp->optdata, OBmask, conf.mask))
 			ipmove(conf.mask, IPnoaddr);
-		DEBUG("addr %I mask %M ", conf.laddr, conf.mask);
+		DEBUG("ipaddr=%I ipmask=%M ", conf.laddr, conf.mask);
 
 		// get a router address either from the router option
 		// or from the router that forwarded the dhcp packet
 		if(optgetaddr(bp->optdata, OBrouter, conf.gaddr)){
-			DEBUG("router %I ", conf.gaddr);
+			DEBUG("ipgw=%I ", conf.gaddr);
 		} else {
 			if(memcmp(bp->giaddr, IPnoaddr+IPv4off, IPv4addrlen) != 0){
 				v4tov6(conf.gaddr, bp->giaddr);
-				DEBUG("giaddr %I ", conf.gaddr);
+				DEBUG("giaddr=%I ", conf.gaddr);
 			}
 		}
 
@@ -963,18 +1077,21 @@ dhcprecv(void)
 		n = optgetaddrs(bp->optdata, OBdnserver, conf.dns,
 				sizeof(conf.dns)/IPaddrlen);
 		for(i = 0; i < n; i++)
-			DEBUG("dns %I ", conf.dns+i*IPaddrlen);
+			DEBUG("dns=%I ", conf.dns+i*IPaddrlen);
 
 		// get ntp servers
 		memset(conf.ntp, 0, sizeof(conf.ntp));
 		n = optgetaddrs(bp->optdata, OBntpserver, conf.ntp,
 				sizeof(conf.ntp)/IPaddrlen);
 		for(i = 0; i < n; i++)
-			DEBUG("ntp %I ", conf.ntp+i*IPaddrlen);
+			DEBUG("ntp=%I ", conf.ntp+i*IPaddrlen);
 
 		// get names
 		optgetstr(bp->optdata, OBhostname, conf.hostname, sizeof(conf.hostname));
 		optgetstr(bp->optdata, OBdomainname, conf.domainname, sizeof(conf.domainname));
+
+		// get anything else we asked for
+		getoptions(bp->optdata);
 
 		// get plan9 specific options
 		n = optgetvec(bp->optdata, OBvendorinfo, vopts, sizeof(vopts)-1);
@@ -982,15 +1099,16 @@ dhcprecv(void)
 			if(parseoptions(vopts, n) == 0){
 				n = optgetaddrs(vopts, OP9fs, conf.fs, 2);
 				for(i = 0; i < n; i++)
-					DEBUG("fs %I ", conf.fs+i*IPaddrlen);
+					DEBUG("fs=%I ", conf.fs+i*IPaddrlen);
 				n = optgetaddrs(vopts, OP9auth, conf.auth, 2);
 				for(i = 0; i < n; i++)
-					DEBUG("auth %I ", conf.auth+i*IPaddrlen);
+					DEBUG("auth=%I ", conf.auth+i*IPaddrlen);
 			}
 		}
+
 		conf.lease = lease;
 		conf.state = Sbound;
-		DEBUG("server %I %s\n", conf.server, conf.sname);
+		DEBUG("server=%I sname=%s\n", conf.server, conf.sname);
 		break;
 	case Nak:
 		conf.state = Sinit;
@@ -1355,6 +1473,8 @@ putndb(void)
 		p = putaddrs(p, e, "\tdns", conf.dns, sizeof(conf.dns));
 	if(validip(conf.ntp))
 		p = putaddrs(p, e, "\tntp", conf.ntp, sizeof(conf.ntp));
+	if(ndboptions)
+		p = seprint(p, e, "%s\n", ndboptions);
 	if(p > buf)
 		writendb(buf, p-buf, append);
 }
@@ -1512,4 +1632,100 @@ ndbconfig(void)
 	ndbfree(t);
 	if(!validip(conf.laddr))
 		sysfatal("address not found in ndb");
+}
+
+int
+addoption(char *opt)
+{
+	Option *o;
+
+	if(opt == nil)
+		return -1;
+	for(o = option; o < &option[nelem(option)]; o++){
+		if(o->name == nil)
+			continue;
+		if(strcmp(opt, o->name) == 0){
+			if(!memchr(requested, (int)opt, nrequested))
+				if(nrequested < nelem(requested))
+					requested[nrequested++] = o-option;
+			return 0;
+		}
+	}
+	return -1;
+}
+
+char*
+optgetx(uchar *p, uchar opt)
+{
+	Option *o;
+	int i, n;
+	ulong x;
+	char *s, *ns;
+	uchar ip[IPaddrlen];
+	uchar ips[16*IPaddrlen];
+	char str[256];
+	uchar vec[256];
+
+	o = &option[opt];
+	if(o->name == nil)
+		return nil;
+
+	s = nil;
+	switch(o->type){
+	case Taddr:
+		if(optgetaddr(p, opt, ip))
+			s = smprint("%s=%I", o->name, ip);
+		break;
+	case Taddrs:
+		n = optgetaddrs(p, opt, ips, 16);
+		if(n > 0)
+			s = smprint("%s=%I", o->name, ips);
+		for(i = 1; i < n; i++){
+			ns = smprint("%s %s=%I", s, o->name, &ips[i*IPaddrlen]);
+			free(s);
+			s = ns;
+		}
+		break;
+	case Tulong:
+		x = optgetulong(p, opt);
+		if(x != 0)
+			s = smprint("%s=%lud", o->name, x);
+		break;
+	case Tbyte:
+		x = optgetbyte(p, opt);
+		if(x != 0)
+			s = smprint("%s=%lud", o->name, x);
+		break;
+	case Tstr:
+		if(optgetstr(p, opt, str, sizeof(str)))
+			s = smprint("%s=%s", o->name, str);
+		break;
+	case Tvec:
+		n = optgetvec(p, opt, vec, sizeof(vec));
+		if(n > 0)
+			s = smprint("%s=%.*H", o->name, n, vec);
+		break;
+	}
+	return s;
+}
+
+void
+getoptions(uchar *p)
+{
+	int i;
+	char *s, *t;
+
+	for(i = nelem(defrequested); i < nrequested; i++){
+		s = optgetx(p, requested[i]);
+		if(s != nil)
+			DEBUG("%s ", s);
+		if(ndboptions == nil)
+			ndboptions = smprint("\t%s", s);
+		else{
+			t = ndboptions;
+			ndboptions = smprint("\t%s%s", s, ndboptions);
+			free(t);
+		}
+		free(s);
+	}
 }

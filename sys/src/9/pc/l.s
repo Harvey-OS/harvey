@@ -12,7 +12,6 @@
 #define WRMSR		BYTE $0x0F; BYTE $0x30	/* WRMSR, argument in AX/DX (lo/hi) */
 #define RDTSC 		BYTE $0x0F; BYTE $0x31	/* RDTSC, result in AX/DX (lo/hi) */
 #define RDMSR		BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
-#define WBINVD		BYTE $0x0F; BYTE $0x09
 #define HLT		BYTE $0xF4
 
 /*
@@ -352,10 +351,6 @@ TEXT wrmsr(SB), $0
 	WRMSR
 	RET
 
-TEXT wbinvd(SB), $0
-	WBINVD
-	RET
-
 /*
  * Try to determine the CPU type which requires fiddling with EFLAGS.
  * If the Id bit can be toggled then the CPUID instruciton can be used
@@ -542,7 +537,15 @@ _xdeclt:
 	DECL	AX
 	RET
 
-TEXT wbflush(SB), $0
+TEXT mb386(SB), $0
+	POPL	AX			/* return PC */
+	PUSHFL
+	PUSHL	CS
+	PUSHL	AX
+	IRETL
+
+TEXT mb586(SB), $0
+	XORL	AX, AX
 	CPUID
 	RET
 
@@ -930,4 +933,3 @@ TEXT vectortable(SB), $0
 	CALL _strayintr(SB); BYTE $0xFD
 	CALL _strayintr(SB); BYTE $0xFE
 	CALL _strayintr(SB); BYTE $0xFF
-
