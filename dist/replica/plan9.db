@@ -225,9 +225,9 @@
 386/bin/fortune - 775 sys sys 1102171701 67101
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
-386/bin/fossil/flchk - 775 sys sys 1103256369 237462
-386/bin/fossil/flfmt - 775 sys sys 1103256369 245611
-386/bin/fossil/fossil - 775 sys sys 1103256370 360277
+386/bin/fossil/flchk - 775 sys sys 1103261227 237462
+386/bin/fossil/flfmt - 775 sys sys 1103261228 245611
+386/bin/fossil/fossil - 775 sys sys 1103261228 360277
 386/bin/fossil/last - 775 sys sys 1102171703 63263
 386/bin/freq - 775 sys sys 1102171703 61767
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -370,7 +370,7 @@
 386/bin/replica/setupdirs - 775 sys sys 1020319083 44
 386/bin/replica/updatedb - 775 sys sys 1102171746 95860
 386/bin/resample - 775 sys sys 1102171746 120460
-386/bin/rio - 775 sys sys 1103256371 308789
+386/bin/rio - 775 sys sys 1103261229 308789
 386/bin/rm - 775 sys sys 1102171748 61298
 386/bin/rx - 775 sys sys 1102171748 82020
 386/bin/sam - 775 sys sys 1102171748 157506
