@@ -25,7 +25,7 @@ enum
 	SR1	= 1<<0,		/* r1 has been shifted */
 	SR0	= 1<<1,		/* r0 has been shifted */
 	UR1	= 1<<2,		/* r1 has not been used */
-	UR0	= 1<<3,		/* r0 has not been used */
+	UR0	= 1<<3		/* r0 has not been used */
 };
 
 Multab*

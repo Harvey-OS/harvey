@@ -1,10 +1,7 @@
-#include <u.h>
-#include <libc.h>
-#include <ctype.h>
-#include <bio.h>
-#include "../qc/q.out.h"
+#define	EXTERN
 #include "a.h"
 #include "y.tab.h"
+#include <ctype.h>
 
 void
 main(int argc, char *argv[])
@@ -48,10 +45,10 @@ main(int argc, char *argv[])
 		print("can't assemble multiple files on windows\n");
 		errorexit();
 	}
-	if(argc > 1 && !systemtype(Windows)) {
+	if(argc > 1) {
 		nproc = 1;
 		if(p = getenv("NPROC"))
-			nproc = atol(p);	/* */
+			nproc = atol(p);
 		c = 0;
 		nout = 0;
 		for(;;) {
@@ -99,25 +96,20 @@ assemble(char *file)
 	int i, of;
 
 	strcpy(ofile, file);
-	p = utfrrune(ofile, pathchar());
-	if(p) {
+	if(p = strrchr(ofile, pathchar())) {
 		include[0] = ofile;
 		*p++ = 0;
 	} else
 		p = ofile;
 	if(outfile == 0) {
 		outfile = p;
-		if(outfile){
-			p = utfrrune(outfile, '.');
-			if(p)
-				if(p[1] == 's' && p[2] == 0)
-					p[0] = 0;
-			p = utfrune(outfile, 0);
-			p[0] = '.';
-			p[1] = thechar;
-			p[2] = 0;
-		} else
-			outfile = "/dev/null";
+		if(p = strrchr(outfile, '.'))
+			if(p[1] == 's' && p[2] == 0)
+				p[0] = 0;
+		p = strrchr(outfile, 0);
+		p[0] = '.';
+		p[1] = thechar;
+		p[2] = 0;
 	}
 	p = getenv("INCLUDE");
 	if(p) {
@@ -137,6 +129,7 @@ assemble(char *file)
 	Binit(&obuf, of, OWRITE);
 
 	pass = 1;
+	nosched = 0;
 	pinit(file);
 	for(i=0; i<nDlist; i++)
 		dodefine(Dlist[i]);
@@ -147,6 +140,7 @@ assemble(char *file)
 	}
 
 	pass = 2;
+	nosched = 0;
 	outhist();
 	pinit(file);
 	for(i=0; i<nDlist; i++)
@@ -175,6 +169,7 @@ struct
 	"MSR",		LMSR,	D_MSR,
 	"FPSCR",	LFPSCR,	D_FPSCR,
 	"SPR",		LSPR,	D_SPR,
+	"DCR",		LSPR,	D_DCR,
 
 	"SEG",		LSEG,	D_SREG,
 
@@ -452,10 +447,97 @@ struct
 
 	"RETURN",	LRETRN, ARETURN,
 	"RFI",		LRETRN,	ARFI,
+	"RFCI",		LRETRN,	ARFCI,
 
 	"DATA",		LDATA, ADATA,
 	"END",		LEND, AEND,
 	"TEXT",		LTEXT, ATEXT,
+
+	/* IBM powerpc embedded  */
+	"MACCHW", LMA, AMACCHW,
+	"MACCHWCC", LMA, AMACCHWCC,
+	"MACCHWS", LMA, AMACCHWS,
+	"MACCHWSCC", LMA, AMACCHWSCC,
+	"MACCHWSU", LMA, AMACCHWSU,
+	"MACCHWSUCC", LMA, AMACCHWSUCC,
+	"MACCHWSUV", LMA, AMACCHWSUV,
+	"MACCHWSUVCC", LMA, AMACCHWSUVCC,
+	"MACCHWSV", LMA, AMACCHWSV,
+	"MACCHWSVCC", LMA, AMACCHWSVCC,
+	"MACCHWU", LMA, AMACCHWU,
+	"MACCHWUCC", LMA, AMACCHWUCC,
+	"MACCHWUV", LMA, AMACCHWUV,
+	"MACCHWUVCC", LMA, AMACCHWUVCC,
+	"MACCHWV", LMA, AMACCHWV,
+	"MACCHWVCC", LMA, AMACCHWVCC,
+	"MACHHW", LMA, AMACHHW,
+	"MACHHWCC", LMA, AMACHHWCC,
+	"MACHHWS", LMA, AMACHHWS,
+	"MACHHWSCC", LMA, AMACHHWSCC,
+	"MACHHWSU", LMA, AMACHHWSU,
+	"MACHHWSUCC", LMA, AMACHHWSUCC,
+	"MACHHWSUV", LMA, AMACHHWSUV,
+	"MACHHWSUVCC", LMA, AMACHHWSUVCC,
+	"MACHHWSV", LMA, AMACHHWSV,
+	"MACHHWSVCC", LMA, AMACHHWSVCC,
+	"MACHHWU", LMA, AMACHHWU,
+	"MACHHWUCC", LMA, AMACHHWUCC,
+	"MACHHWUV", LMA, AMACHHWUV,
+	"MACHHWUVCC", LMA, AMACHHWUVCC,
+	"MACHHWV", LMA, AMACHHWV,
+	"MACHHWVCC", LMA, AMACHHWVCC,
+	"MACLHW", LMA, AMACLHW,
+	"MACLHWCC", LMA, AMACLHWCC,
+	"MACLHWS", LMA, AMACLHWS,
+	"MACLHWSCC", LMA, AMACLHWSCC,
+	"MACLHWSU", LMA, AMACLHWSU,
+	"MACLHWSUCC", LMA, AMACLHWSUCC,
+	"MACLHWSUV", LMA, AMACLHWSUV,
+	"MACLHWSUVCC", LMA, AMACLHWSUVCC,
+	"MACLHWSV", LMA, AMACLHWSV,
+	"MACLHWSVCC", LMA, AMACLHWSVCC,
+	"MACLHWU", LMA, AMACLHWU,
+	"MACLHWUCC", LMA, AMACLHWUCC,
+	"MACLHWUV", LMA, AMACLHWUV,
+	"MACLHWUVCC", LMA, AMACLHWUVCC,
+	"MACLHWV", LMA, AMACLHWV,
+	"MACLHWVCC", LMA, AMACLHWVCC,
+	"MULCHW",	LLOGW, AMULCHW,
+	"MULCHWCC",	LLOGW, AMULCHWCC,
+	"MULCHWU",	LLOGW, AMULCHWU,
+	"MULCHWUCC",	LLOGW, AMULCHWUCC,
+	"MULHHW",	LLOGW, AMULHHW,
+	"MULHHWCC",	LLOGW, AMULHHWCC,
+	"MULHHWU",	LLOGW, AMULHHWU,
+	"MULHHWUCC",	LLOGW, AMULHHWUCC,
+	"MULLHW",	LLOGW, AMULLHW,
+	"MULLHWCC",	LLOGW, AMULLHWCC,
+	"MULLHWU",	LLOGW, AMULLHWU,
+	"MULLHWUCC",	LLOGW, AMULLHWUCC,
+	"NMACCHW", LMA, ANMACCHW,
+	"NMACCHWCC", LMA, ANMACCHWCC,
+	"NMACCHWS", LMA, ANMACCHWS,
+	"NMACCHWSCC", LMA, ANMACCHWSCC,
+	"NMACCHWSV", LMA, ANMACCHWSV,
+	"NMACCHWSVCC", LMA, ANMACCHWSVCC,
+	"NMACCHWV", LMA, ANMACCHWV,
+	"NMACCHWVCC", LMA, ANMACCHWVCC,
+	"NMACHHW", LMA, ANMACHHW,
+	"NMACHHWCC", LMA, ANMACHHWCC,
+	"NMACHHWS", LMA, ANMACHHWS,
+	"NMACHHWSCC", LMA, ANMACHHWSCC,
+	"NMACHHWSV", LMA, ANMACHHWSV,
+	"NMACHHWSVCC", LMA, ANMACHHWSVCC,
+	"NMACHHWV", LMA, ANMACHHWV,
+	"NMACHHWVCC", LMA, ANMACHHWVCC,
+	"NMACLHW", LMA, ANMACLHW,
+	"NMACLHWCC", LMA, ANMACLHWCC,
+	"NMACLHWS", LMA, ANMACLHWS,
+	"NMACLHWSCC", LMA, ANMACLHWSCC,
+	"NMACLHWSV", LMA, ANMACLHWSV,
+	"NMACLHWSVCC", LMA, ANMACLHWSVCC,
+	"NMACLHWV", LMA, ANMACLHWV,
+	"NMACLHWVCC", LMA, ANMACLHWVCC,
 
 /* special instructions */
 	"DCBF",		LXOP,	ADCBF,
@@ -516,9 +598,9 @@ cinit(void)
 		s->value = itab[i].value;
 	}
 	ALLOCN(pathname, 0, 100);
-	if(getwd(pathname, 99) == 0) {
+	if(mygetwd(pathname, 99) == 0) {
 		ALLOCN(pathname, 100, 900);
-		if(getwd(pathname, 999) == 0)
+		if(mygetwd(pathname, 999) == 0)
 			strcpy(pathname, "/???");
 	}
 }
@@ -706,23 +788,38 @@ outhist(void)
 {
 	Gen g;
 	Hist *h;
-	char *p, *q, *op;
+	char *p, *q, *op, c;
 	int n;
 
 	g = nullgen;
+	c = pathchar();
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		op = 0;
-		if(p && p[0] != '/' && h->offset == 0 && pathname && pathname[0] == '/') {
-			op = p;
-			p = pathname;
+		/* on windows skip drive specifier in pathname */
+		if(systemtype(Windows) && p && p[1] == ':'){
+			p += 2;
+			c = *p;
+		}
+		if(p && p[0] != c && h->offset == 0 && pathname){
+			/* on windows skip drive specifier in pathname */
+			if(systemtype(Windows) && pathname[1] == ':') {
+				op = p;
+				p = pathname+2;
+				c = *p;
+			} else if(pathname[0] == c){
+				op = p;
+				p = pathname;
+			}
 		}
 		while(p) {
-			q = strchr(p, '/');
+			q = strchr(p, c);
 			if(q) {
 				n = q-p;
-				if(n == 0)
+				if(n == 0){
 					n = 1;	/* leading "/" */
+					*p = '/';	/* don't emit "\" on windows */
+				}
 				q++;
 			} else {
 				n = strlen(p);

@@ -364,7 +364,7 @@ gextern(Sym *s, Node *a, long o, long w)
 		p->to.type = D_CONST;
 }
 
-void	zname(Biobuf*, char*, int, int);
+void	zname(Biobuf*, Sym*, int);
 void	zaddr(Biobuf*, Adr*, int);
 void	zwrite(Biobuf*, Prog*, int, int);
 void	outhist(Biobuf*);
@@ -405,8 +405,8 @@ outcode(void)
 			if(h[sf].type == t)
 			if(h[sf].sym == s)
 				break;
-			zname(&outbuf, s->name, t, sym);
 			s->sym = sym;
+			zname(&outbuf, s, t);
 			h[sym].sym = s;
 			h[sym].type = t;
 			sf = sym;
@@ -425,8 +425,8 @@ outcode(void)
 			if(h[st].type == t)
 			if(h[st].sym == s)
 				break;
-			zname(&outbuf, s->name, t, sym);
 			s->sym = sym;
+			zname(&outbuf, s, t);
 			h[sym].sym = s;
 			h[sym].type = t;
 			st = sym;
@@ -473,12 +473,17 @@ outhist(Biobuf *b)
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		op = 0;
+		/* on windows skip drive specifier in pathname */
+		if(systemtype(Windows) && p && p[1] == ':'){
+			p += 2;
+			c = *p;
+		}
 		if(p && p[0] != c && h->offset == 0 && pathname){
 			/* on windows skip drive specifier in pathname */
-			if(systemtype(Windows) && pathname[2] == c) {
+			if(systemtype(Windows) && pathname[1] == ':') {
 				op = p;
 				p = pathname+2;
-				*p = '/';
+				c = *p;
 			} else if(pathname[0] == c){
 				op = p;
 				p = pathname;
@@ -488,8 +493,10 @@ outhist(Biobuf *b)
 			q = utfrune(p, c);
 			if(q) {
 				n = q-p;
-				if(n == 0)
+				if(n == 0){
 					n = 1;	/* leading "/" */
+					*p = '/';	/* don't emit "\" on windows */
+				}
 				q++;
 			} else {
 				n = strlen(p);
@@ -520,12 +527,25 @@ outhist(Biobuf *b)
 }
 
 void
-zname(Biobuf *b, char *n, int t, int s)
+zname(Biobuf *b, Sym *s, int t)
 {
+	char *n;
+	ulong sig;
 
-	Bputc(b, ANAME);
-	Bputc(b, t);	/* type */
-	Bputc(b, s);	/* sym */
+	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
+		sig = sign(s);
+		Bputc(b, ASIGNAME);
+		Bputc(b, sig);
+		Bputc(b, sig>>8);
+		Bputc(b, sig>>16);
+		Bputc(b, sig>>24);
+		s->sig = SIGDONE;
+	}
+	else
+		Bputc(b, ANAME);	/* as */
+	Bputc(b, t);		/* type */
+	Bputc(b, s->sym);		/* sym */
+	n = s->name;
 	while(*n) {
 		Bputc(b, *n);
 		n++;

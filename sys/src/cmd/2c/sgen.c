@@ -310,13 +310,15 @@ usedset(Node *n, int o)
 	complex(n);
 	switch(n->op) {
 	case OADDR:	/* volatile */
-//		gins(ANOP, n, Z);
+		gopcode(OTST, types[TINT], D_TREE, n, D_NONE, Z);
+		p->as = ANOP;
 		break;
 	case ONAME:
-//		if(o == OSET)
-//			gins(ANOP, Z, n);
-//		else
-//			gins(ANOP, n, Z);
+		if(o == OSET)
+			gopcode(OTST, types[TINT], D_NONE, Z, D_TREE, n);
+		else
+			gopcode(OTST, types[TINT], D_TREE, n, D_NONE, Z);
+		p->as = ANOP;
 		break;
 	}
 }

@@ -18,12 +18,10 @@ typedef struct {
 		struct mips4kexec;
 		struct sparcexec;
 		struct nextexec;
-		struct i960exec;
 	} e;
 	long dummy;		/* padding to ensure extra long */
 } ExecHdr;
 
-static	int	i960boot(int, Fhdr*, ExecHdr*);
 static	int	nextboot(int, Fhdr*, ExecHdr*);
 static	int	sparcboot(int, Fhdr*, ExecHdr*);
 static	int	mipsboot(int, Fhdr*, ExecHdr*);
@@ -59,9 +57,6 @@ extern	Mach	mmips2be;
 extern	Mach	msparc;
 extern	Mach	m68020;
 extern	Mach	mi386;
-extern	Mach	mi960;
-extern	Mach	m3210;
-extern	Mach	m29000;
 extern	Mach	marm;
 extern	Mach	mpower;
 extern	Mach	malpha;
@@ -138,41 +133,6 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
-	{ I_MAGIC|DYN_MAGIC,	/* I386 dynamic load module */
-		"386 plan 9 dynamically loaded module",
-		FI386,
-		&mi386,
-		sizeof(Exec),
-		beswal,
-		common },
-	{ J_MAGIC,			/* I960 6.out (big-endian) */
-		"960 plan 9 executable",
-		FI960,
-		&mi960,
-		sizeof(Exec),
-		beswal,
-		adotout },
-	{ 0x61010200, 			/* I960 boot image (little endian) */
-		"960 plan 9 boot image",
-		FI960B,
-		&mi960,
-		sizeof(struct i960exec),
-		leswal,
-		i960boot },
-	{ X_MAGIC,			/* 3210 x.out */
-		"3210 plan 9 executable",
-		F3210,
-		&m3210,
-		sizeof(Exec),
-		beswal,
-		adotout },
-	{ D_MAGIC,			/* 29000 9.out */
-		"29000 plan 9 executable",
-		F29000,
-		&m29000,
-		sizeof(Exec),
-		beswal,
-		adotout },
 	{ Q_MAGIC,			/* PowerPC q.out & boot image */
 		"power plan 9 executable",
 		FPOWER,
@@ -240,7 +200,6 @@ couldbe4k(ExecTable *mp)
 		}
 	return mp;
 }
-
 
 int
 crackhdr(int fd, Fhdr *fp)
@@ -453,25 +412,6 @@ nextboot(int fd, Fhdr *fp, ExecHdr *hp)
 				hp->e.datas.offset, hp->e.bsss.size);
 	setsym(fp, hp->e.symc.nsyms, hp->e.symc.spoff, hp->e.symc.pcoff,
 					hp->e.symc.symoff);
-	fp->hdrsz = 0;		/* header stripped */
-	return 1;
-}
-
-/*
- *	I960 bootable image
- */
-static int
-i960boot(int fd, Fhdr *fp, ExecHdr *hp)
-{
-	/* long n = hp->e.i6comments.fptrlineno-hp->e.i6comments.fptrreloc; */
-
-	USED(fd);
-	settext(fp, hp->e.i6entry, hp->e.i6texts.virt, hp->e.i6texts.size,
-					hp->e.i6texts.fptr);
-	setdata(fp, hp->e.i6datas.virt, hp->e.i6datas.size,
-				hp->e.i6datas.fptr, hp->e.i6bsssize);
-	setsym(fp, 0, 0, 0, 0);
-	/*setsym(fp, n, 0, hp->e.i6comments.size-n, hp->e.i6comments.fptr); */
 	fp->hdrsz = 0;		/* header stripped */
 	return 1;
 }

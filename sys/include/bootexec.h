@@ -135,37 +135,3 @@ struct i386exec
 	struct coffsect ibsss;
 	struct coffsect icomments;
 };
-
-struct i960exec
-{
-	struct	i960coff{
-		ulong	i6sectmagic;
-		ulong	i6time;
-		ulong	i6syms;
-		ulong	i6nsyms;
-		ulong	i6opthdrflags;
-	};
-	struct	i960hdr{
-		ulong	i6magic;
-		ulong	i6textsize;
-		ulong	i6datasize;
-		ulong	i6bsssize;
-		ulong	i6entry;
-		ulong	i6textstart;
-		ulong	i6datastart;
-		ulong	i6tagentries;
-	};
-	struct i960sect{
-		char	name[8];
-		ulong	phys;
-		ulong	virt;
-		ulong	size;
-		ulong	fptr;
-		ulong	fptrreloc;
-		ulong	fptrlineno;
-		ulong	nrelocnlineno;
-		ulong	flags;
-		ulong	align;
-	}i6texts;
-	struct i960sect i6datas;
-};

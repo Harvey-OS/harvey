@@ -994,32 +994,101 @@ rsametype(Type *t1, Type *t2, int n, int f)
 	return 0;
 }
 
-ulong
-signature(Type *t, int n)
+typedef struct Typetab Typetab;
+
+struct Typetab{
+	int n;
+	Type **a;
+};
+
+static int
+sigind(Type *t, Typetab *tt)
 {
+	int n;
+	Type **a, **na, **p, **e;
+
+	n = tt->n;
+	a = tt->a;
+	e = a+n;
+	/* linear search seems ok */
+	for(p = a ; p < e; p++)
+		if(sametype(*p, t))
+			return p-a;
+	if((n&15) == 0){
+		na = malloc((n+16)*sizeof(Type*));
+		memmove(na, a, n*sizeof(Type*));
+		free(a);
+		a = tt->a = na;
+	}
+	a[tt->n++] = t;
+	return -1;
+}
+
+static ulong
+signat(Type *t, Typetab *tt)
+{
+	int i;
 	Type *t1;
 	long s;
 
 	s = 0;
-	if(n > 0)
 	for(; t; t=t->link) {
 		s = s*thash1 + thash[t->etype];
+		if(t->garb&GINCOMPLETE)
+			return s;
 		switch(t->etype) {
 		default:
 			return s;
 		case TARRAY:
-			s = s*thash2 + t->width;
+			s = s*thash2 + 0;	/* was t->width */
 			break;
 		case TFUNC:
+			for(t1=t->down; t1; t1=t1->down)
+				s = s*thash3 + signat(t1, tt);
+			break;
 		case TSTRUCT:
 		case TUNION:
-			for(t1=t; t1; t1=t1->down)
-				s = s*thash3 + signature(t1, n-1);
+			if((i = sigind(t, tt)) >= 0){
+				s = s*thash2 + i;
+				return s;
+			}
+			for(t1=t->link; t1; t1=t1->down)
+				s = s*thash3 + signat(t1, tt);
+			return s;
 		case TIND:
 			break;
 		}
 	}
 	return s;
+}
+
+ulong
+signature(Type *t)
+{
+	ulong s;
+	Typetab tt;
+
+	tt.n = 0;
+	tt.a = nil;
+	s = signat(t, &tt);
+	free(tt.a);
+	return s;
+}
+
+ulong
+sign(Sym *s)
+{
+	ulong v;
+	Type *t;
+
+	if(s->sig == SIGINTERN)
+		return SIGNINTERN;
+	if((t = s->type) == T)
+		return 0;
+	v = signature(t);
+	if(v == 0)
+		v = SIGNINTERN;
+	return v;
 }
 
 void

@@ -126,7 +126,7 @@ char*profdev = "/proc/trace";
 static void
 usage(void)
 {
-	fprint(2, "Usage: %s [-d profdev] [-w] [-b] [-v] [processes]\n", argv0);
+	fprint(2, "Usage: %s [-d profdev] [-w] [-v] [processes]\n", argv0);
 	exits(nil);
 }
 
@@ -162,7 +162,7 @@ threadmain(int argc, char **argv)
 			continue;
 		}
 
-		if(fprint(fd, "trace") < 0)
+		if(fprint(fd, "trace 1") < 0)
 			fprint(2, "%s: cannot enable tracing on %s: %r\n",
 						argv[0], fname);
 		close(fd);
@@ -223,7 +223,7 @@ redraw(int scaleno)
 	Point p, q;
 	Rectangle r, rtime;
 	Task *t;
-	vlong ts, oldestts, newestts, period, ppp, scale, s;
+	vlong ts, oldestts, newestts, period, ppp, scale, s, ss;
 
 #	define time2x(t)	((int)(((t) - oldestts) / ppp))
 
@@ -283,25 +283,21 @@ redraw(int scaleno)
 
 		/* Move part already drawn */
 		r = Rect(p.x, p.y + topmargin, p.x + x, p.y+Height);
-		draw(screen, r, screen, nil, 
-				Pt(p.x + Width - x, p.y + topmargin));
+		draw(screen, r, screen, nil, Pt(p.x + Width - x, p.y + topmargin));
 
 		r.max.x = screen->r.max.x;
 		r.min.x += x;
 		draw(screen, r, bg, nil, ZP);
 
-		line(screen, addpt(p, Pt(x, Height - lineht)), 
-				Pt(screen->r.max.x, p.y + Height - lineht),
-				Endsquare, Endsquare, 0, 
-				cols[n % Ncolor][1], ZP);
+		line(screen, addpt(p, Pt(x, Height - lineht)), Pt(screen->r.max.x, p.y + Height - lineht),
+			Endsquare, Endsquare, 0, cols[n % Ncolor][1], ZP);
 
 		for (i = 0; i < t->nevents-1; i++)
 			if (prevts < t->events[i + 1].time)
 				break;
 			
 		if (i > 0) {
-			memmove(t->events, t->events + i,
-					  (t->nevents - i) * sizeof(Event));
+			memmove(t->events, t->events + i, (t->nevents - i) * sizeof(Event));
 			t->nevents -= i;
 		}
 
@@ -436,11 +432,13 @@ redraw(int scaleno)
 	draw(screen, rtime, bg, nil, ZP);
 	ts = oldestts + scales[scaleno].bigtics - (oldestts % scales[scaleno].bigtics);
 	x = time2x(ts);
+	ss = 0;
 	while(x < Width){
-		snprint(buf, sizeof(buf), "%t", ts);
+		snprint(buf, sizeof(buf), "%t", ss);
 		string(screen, addpt(p, Pt(x - stringwidth(tinyfont, buf)/2, - tinyfont->height - 1)), 
 			fg, ZP, tinyfont, buf);
 		ts += scales[scaleno].bigtics;
+		ss += scales[scaleno].bigtics;
 		x = time2x(ts);
 	}
 

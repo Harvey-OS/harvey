@@ -214,6 +214,7 @@ struct Iimage
 	uchar	vspace;		// in pixels; buffer space on top and bottom
 	uchar	border;		// in pixels: border width to draw around image
 	Iimage*	nextimage;	// next in list of document's images
+	void*	aux;
 };
 
 

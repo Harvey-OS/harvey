@@ -216,7 +216,7 @@ int	bcomplex(Node*, Node*);
 /*
  * cgen.c
  */
-void	cgen(Node*, Node*);
+void	cgen(Node*, Node*, int);
 void	reglcgen(Node*, Node*, Node*);
 void	lcgen(Node*, Node*);
 void	bcgen(Node*, int);
@@ -250,6 +250,7 @@ void	raddr(Node*, Prog*);
 void	naddr(Node*, Adr*);
 void	gmovm(Node*, Node*, int);
 void	gmove(Node*, Node*);
+void	gmover(Node*, Node*);
 void	gins(int a, Node*, Node*);
 void	gopcode(int, Node*, Node*, Node*);
 int	samaddr(Node*, Node*);

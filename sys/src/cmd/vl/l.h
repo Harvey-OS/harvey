@@ -272,7 +272,6 @@ int	asmout(Prog*, Optab*, int);
 void	asmsym(void);
 long	atolwhex(char*);
 Prog*	brloop(Prog*);
-Biobuf	bso;
 void	buildop(void);
 void	buildrep(int, int);
 void	cflush(void);

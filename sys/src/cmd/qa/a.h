@@ -1,3 +1,11 @@
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include "../qc/q.out.h"
+
+#ifndef	EXTERN
+#define	EXTERN	extern
+#endif
 
 typedef	struct	Sym	Sym;
 typedef	struct	Gen	Gen;
@@ -97,38 +105,38 @@ enum
 	CLAST,
 	CMACARG,
 	CMACRO,
-	CPREPROC,
+	CPREPROC
 };
 
-char	debug[256];
-Sym*	hash[NHASH];
-char*	Dlist[30];
-int	nDlist;
-Hist*	ehist;
-int	newflag;
-Hist*	hist;
-char*	hunk;
-char*	include[NINCLUDE];
-Io*	iofree;
-Io*	ionext;
-Io*	iostack;
-long	lineno;
-int	nerrors;
-long	nhunk;
-int	nosched;
-int	ninclude;
-Gen	nullgen;
-char*	outfile;
-int	pass;
-char*	pathname;
-long	pc;
-int	peekc;
-int	sym;
-char	symb[NSYMB];
-int	thechar;
-char*	thestring;
-long	thunk;
-Biobuf	obuf;
+EXTERN	char	debug[256];
+EXTERN	Sym*	hash[NHASH];
+EXTERN	char*	Dlist[30];
+EXTERN	int	nDlist;
+EXTERN	Hist*	ehist;
+EXTERN	int	newflag;
+EXTERN	Hist*	hist;
+EXTERN	char*	hunk;
+EXTERN	char*	include[NINCLUDE];
+EXTERN	Io*	iofree;
+EXTERN	Io*	ionext;
+EXTERN	Io*	iostack;
+EXTERN	long	lineno;
+EXTERN	int	nerrors;
+EXTERN	long	nhunk;
+EXTERN	int	nosched;
+EXTERN	int	ninclude;
+EXTERN	Gen	nullgen;
+EXTERN	char*	outfile;
+EXTERN	int	pass;
+EXTERN	char*	pathname;
+EXTERN	long	pc;
+EXTERN	int	peekc;
+EXTERN	int	sym;
+EXTERN	char	symb[NSYMB];
+EXTERN	int	thechar;
+EXTERN	char*	thestring;
+EXTERN	long	thunk;
+EXTERN	Biobuf	obuf;
 
 void	errorexit(void);
 void	pushio(void);
@@ -178,7 +186,7 @@ enum				/* keep in synch with ../cc/cc.h */
 {
 	Plan9	= 1<<0,
 	Unix	= 1<<1,
-	Windows	= 1<<2,
+	Windows	= 1<<2
 };
 int	mywait(int*);
 int	mycreat(char*, int);

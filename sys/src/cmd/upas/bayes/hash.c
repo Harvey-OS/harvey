@@ -284,7 +284,7 @@ Bopenlock(char *file, int mode)
 		if((b = Bopen(file, mode)) != nil)
 			break;
 		rerrstr(err, sizeof err);
-		if(strstr(err, "file is locked") == nil)
+		if(strstr(err, "file is locked")==nil && strstr(err, "exclusive lock")==nil)
 			break;
 		sleep(1000);
 	}

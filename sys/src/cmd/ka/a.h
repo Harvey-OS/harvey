@@ -168,7 +168,7 @@ enum				/* keep in synch with ../cc/cc.h */
 {
 	Plan9	= 1<<0,
 	Unix	= 1<<1,
-	Windows	= 1<<2,
+	Windows	= 1<<2
 };
 int	mywait(int*);
 int	mycreat(char*, int);

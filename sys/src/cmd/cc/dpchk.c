@@ -51,12 +51,12 @@ argflag(int c, int v)
 		break;
 	case Fverb:
 		flagbits[c] = lastverb;
-//print("flag-v %c %d\n", c, lastadj);
+/*print("flag-v %c %d\n", c, lastadj);*/
 		lastverb++;
 		break;
 	case Fadj:
 		flagbits[c] = lastadj;
-//print("flag-l %c %d\n", c, lastadj);
+/*print("flag-l %c %d\n", c, lastadj);*/
 		lastadj++;
 		break;
 	}
@@ -144,8 +144,8 @@ arginit(void)
 {
 	int i;
 
-// debug['F'] = 1;
-// debug['w'] = 1;
+/* debug['F'] = 1;*/
+/* debug['w'] = 1;*/
 
 	lastadj = Fadj;
 	lastverb = Fverb;
@@ -191,7 +191,7 @@ pragvararg(void)
 	goto out;
 
 ckpos:
-//#pragma	varargck	argpos	warn	2
+/*#pragma	varargck	argpos	warn	2*/
 	s = getsym();
 	if(s == S)
 		goto bad;
@@ -202,7 +202,7 @@ ckpos:
 	goto out;
 
 ckflag:
-//#pragma	varargck	flag	'c'
+/*#pragma	varargck	flag	'c'*/
 	c = getnsc();
 	if(c != '\'')
 		goto bad;
@@ -219,7 +219,7 @@ ckflag:
 	goto out;
 
 cktype:
-//#pragma	varargck	type	O	int
+/*#pragma	varargck	type	O	int*/
 	c = getnsc();
 	if(c != '"')
 		goto bad;
@@ -268,7 +268,7 @@ nextarg(Node *n, Node **a)
 }
 
 void
-checkargs(Node *nn, char *s)
+checkargs(Node *nn, char *s, int pos)
 {
 	Node *a, *n;
 	Bits flag;
@@ -290,6 +290,7 @@ checkargs(Node *nn, char *s)
 		flag = getflag(s);
 		while(nstar > 0) {
 			n = nextarg(n, &a);
+			pos++;
 			nstar--;
 			if(a == Z) {
 				warn(nn, "more format than arguments %s",
@@ -300,8 +301,8 @@ checkargs(Node *nn, char *s)
 				continue;
 			if(!sametype(types[TINT], a->type) &&
 			   !sametype(types[TUINT], a->type))
-				warn(nn, "format mismatch '*' in %s %T",
-					fmtbuf, a->type);
+				warn(nn, "format mismatch '*' in %s %T, arg %d",
+					fmtbuf, a->type, pos);
 		}
 		for(l=tprot; l; l=l->link)
 			if(sametype(types[TVOID], l->type)) {
@@ -312,6 +313,7 @@ checkargs(Node *nn, char *s)
 			}
 
 		n = nextarg(n, &a);
+		pos++;
 		if(a == Z) {
 			warn(nn, "more format than arguments %s",
 				fmtbuf);
@@ -321,11 +323,11 @@ checkargs(Node *nn, char *s)
 			continue;
 		for(l=tprot; l; l=l->link)
 			if(sametype(a->type, l->type)) {
-//print("checking %T/%ulx %T/%ulx\n", a->type, flag.b[0], l->type, l->flag.b[0]);
+/*print("checking %T/%ulx %T/%ulx\n", a->type, flag.b[0], l->type, l->flag.b[0]);*/
 				if(beq(flag, l->flag))
 					goto loop;
 			}
-		warn(nn, "format mismatch %s %T", fmtbuf, a->type);
+		warn(nn, "format mismatch %s %T, arg %d", fmtbuf, a->type, pos);
 	loop:;
 	}
 }
@@ -365,11 +367,11 @@ dpcheck(Node *n)
 		return;
 	}
 	if(a->op != OADDR || a->left->op != ONAME || a->left->sym != symstring) {
-//		warn(n, "format arg not constant string");
+/*		warn(n, "format arg not constant string");*/
 		return;
 	}
 	s = a->left->cstring;
-	checkargs(b, s);
+	checkargs(b, s, l->param);
 }
 
 void
@@ -428,7 +430,7 @@ pragprofile(void)
 		profileflg = atoi(s->name+1);
 		if(strcmp(s->name, "on") == 0 ||
 		   strcmp(s->name, "yes") == 0)
-			fproundflg = 1;
+			profileflg = 1;
 	}
 	while(getnsc() != '\n')
 		;
@@ -437,4 +439,22 @@ pragprofile(void)
 			print("%4ld: profileflg %d\n", lineno, profileflg);
 		else
 			print("%4ld: profileflg off\n", lineno);
+}
+
+void
+pragincomplete(void)
+{
+	Sym *s;
+
+	s = getsym();
+	if(s){
+		if(s->type == T)
+			diag(Z, "unknown type %s in pragma incomplete", s->name);
+		else
+			s->type->garb |= GINCOMPLETE;
+	}
+	while(getnsc() != '\n')
+		;
+	if(debug['f'])
+		print("%s incomplete\n", s->name);
 }

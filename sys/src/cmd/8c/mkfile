@@ -13,6 +13,8 @@ OFILES=\
 	machcap.$O\
 	cgen64.$O\
 	bound.$O\
+	div.$O\
+	mul.$O\
 
 HFILES=\
 	gc.h\

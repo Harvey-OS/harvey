@@ -266,7 +266,6 @@ simplet(long b)
 int
 stcompat(Node *n, Type *t1, Type *t2, long ttab[])
 {
-
 	int i;
 	ulong b;
 
@@ -751,6 +750,146 @@ bad:
 	diag(n, "pointer addition not fully declared: %T", n->type->link);
 }
 
+/*
+ * try to rewrite shift & mask
+ */
+void
+simplifyshift(Node *n)
+{
+	ulong c3;
+	int o, s1, s2, c1, c2;
+
+	if(!typechlp[n->type->etype])
+		return;
+	switch(n->op) {
+	default:
+		return;
+	case OASHL:
+		s1 = 0;
+		break;
+	case OLSHR:
+		s1 = 1;
+		break;
+	case OASHR:
+		s1 = 2;
+		break;
+	}
+	if(n->right->op != OCONST)
+		return;
+	if(n->left->op != OAND)
+		return;
+	if(n->left->right->op != OCONST)
+		return;
+	switch(n->left->left->op) {
+	default:
+		return;
+	case OASHL:
+		s2 = 0;
+		break;
+	case OLSHR:
+		s2 = 1;
+		break;
+	case OASHR:
+		s2 = 2;
+		break;
+	}
+	if(n->left->left->right->op != OCONST)
+		return;
+
+	c1 = n->right->vconst;
+	c2 = n->left->left->right->vconst;
+	c3 = n->left->right->vconst;
+
+/*
+	if(debug['h'])
+		print("%.3o %ld %ld %d #%.lux\n",
+			(s1<<3)|s2, c1, c2, topbit(c3), c3);
+*/
+
+	o = n->op;
+	switch((s1<<3)|s2) {
+	case 000:	/* (((e <<u c2) & c3) <<u c1) */
+		c3 >>= c2;
+		c1 += c2;
+		if(c1 >= 32)
+			break;
+		goto rewrite1;
+
+	case 002:	/* (((e >>s c2) & c3) <<u c1) */
+		if(topbit(c3) >= (32-c2))
+			break;
+	case 001:	/* (((e >>u c2) & c3) <<u c1) */
+		if(c1 > c2) {
+			c3 <<= c2;
+			c1 -= c2;
+			o = OASHL;
+			goto rewrite1;
+		}
+		c3 <<= c1;
+		if(c1 == c2)
+			goto rewrite0;
+		c1 = c2-c1;
+		o = OLSHR;
+		goto rewrite2;
+
+	case 022:	/* (((e >>s c2) & c3) >>s c1) */
+		if(c2 <= 0)
+			break;
+	case 012:	/* (((e >>s c2) & c3) >>u c1) */
+		if(topbit(c3) >= (32-c2))
+			break;
+		goto s11;
+	case 021:	/* (((e >>u c2) & c3) >>s c1) */
+		if(topbit(c3) >= 31 && c2 <= 0)
+			break;
+		goto s11;
+	case 011:	/* (((e >>u c2) & c3) >>u c1) */
+	s11:
+		c3 <<= c2;
+		c1 += c2;
+		if(c1 >= 32)
+			break;
+		o = OLSHR;
+		goto rewrite1;
+
+	case 020:	/* (((e <<u c2) & c3) >>s c1) */
+		if(topbit(c3) >= 31)
+			break;
+	case 010:	/* (((e <<u c2) & c3) >>u c1) */
+		c3 >>= c1;
+		if(c1 == c2)
+			goto rewrite0;
+		if(c1 > c2) {
+			c1 -= c2;
+			goto rewrite2;
+		}
+		c1 = c2 - c1;
+		o = OASHL;
+		goto rewrite2;
+	}
+	return;
+
+rewrite0:	/* get rid of both shifts */
+if(debug['<'])prtree(n, "rewrite0");
+	*n = *n->left;
+	n->left = n->left->left;
+	n->right->vconst = c3;
+	return;
+rewrite1:	/* get rid of lower shift */
+if(debug['<'])prtree(n, "rewrite1");
+	n->left->left = n->left->left->left;
+	n->left->right->vconst = c3;
+	n->right->vconst = c1;
+	n->op = o;
+	return;
+rewrite2:	/* get rid of upper shift */
+if(debug['<'])prtree(n, "rewrite2");
+	*n = *n->left;
+	n->right->vconst = c3;
+	n->left->right->vconst = c1;
+	n->left->op = o;
+}
+
 int
 side(Node *n)
 {
@@ -1068,6 +1207,27 @@ yyerror(char *fmt, ...)
 		print("too many errors\n");
 		errorexit();
 	}
+}
+
+void
+fatal(Node *n, char *fmt, ...)
+{
+	char buf[STRINGSZ];
+	va_list arg;
+
+	va_start(arg, fmt);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
+	print("%L %s\n", (n==Z)? nearln: n->lineno, buf);
+
+	if(debug['X'])
+		abort();
+	if(n != Z)
+	if(debug['v'])
+		prtree(n, "diagnostic");
+
+	nerrors++;
+	errorexit();
 }
 
 ulong	thash1	= 0x2edab8c9;

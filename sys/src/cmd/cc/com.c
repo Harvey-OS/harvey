@@ -535,7 +535,7 @@ tcomo(Node *n, int f)
 		n->op = OCONST;
 		n->left = Z;
 		n->right = Z;
-		n->vconst = convvtox(signature(n->type, 10), TULONG);
+		n->vconst = convvtox(signature(n->type), TULONG);
 		n->type = types[TULONG];
 		break;
 
@@ -897,6 +897,7 @@ loop:
 	l = n->left;
 	r = n->right;
 	switch(n->op) {
+
 	case OAS:
 	case OASXOR:
 	case OASAND:

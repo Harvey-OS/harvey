@@ -205,6 +205,7 @@ extern	Rune*	runefmtstrflush(Fmt*);
 #pragma varargck	type	"<" void*
 #pragma varargck	type	"[" void*
 #pragma varargck	type	"H" void*
+#pragma varargck	type	"lH" void*
 
 extern	int	fmtinstall(int, int (*)(Fmt*));
 extern	int	dofmt(Fmt*, char*);

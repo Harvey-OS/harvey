@@ -19,6 +19,28 @@ char	*thestring 	= "arm";
  *	-H5 -T0xC0008010 -R1024		is ipaq
  */
 
+static int
+isobjfile(char *f)
+{
+	int n, v;
+	Biobuf *b;
+	char buf1[5], buf2[SARMAG];
+
+	b = Bopen(f, OREAD);
+	if(b == nil)
+		return 0;
+	n = Bread(b, buf1, 5);
+	if(n == 5 && (buf1[2] == 1 && buf1[3] == '<' || buf1[3] == 1 && buf1[4] == '<'))
+		v = 1;	/* good enough for our purposes */
+	else{
+		Bseek(b, 0, 0);
+		n = Bread(b, buf2, SARMAG);
+		v = n == SARMAG && strncmp(buf2, ARMAG, SARMAG) == 0;
+	}
+	Bterm(b);
+	return v;
+}
+
 void
 main(int argc, char *argv[])
 {
@@ -42,10 +64,6 @@ main(int argc, char *argv[])
 		c = ARGC();
 		if(c >= 0 && c < sizeof(debug))
 			debug[c]++;
-		break;
-	case 'u':
-		debug['r'] = 1;
-		undefs = ARGF();
 		break;
 	case 'o':
 		outfile = ARGF();
@@ -76,6 +94,16 @@ main(int argc, char *argv[])
 			HEADTYPE = atolwhex(a);
 		/* do something about setting INITTEXT */
 		break;
+	case 'x':	/* produce export table */
+		doexp = 1;
+		if(argv[1] != nil && argv[1][0] != '-' && !isobjfile(argv[1]))
+			readundefs(ARGF(), SEXPORT);
+		break;
+	case 'u':	/* produce dynamically loadable module */
+		dlm = 1;
+		if(argv[1] != nil && argv[1][0] != '-' && !isobjfile(argv[1]))
+			readundefs(ARGF(), SIMPORT);
+		break;
 	} ARGEND
 
 	USED(argc);
@@ -83,12 +111,6 @@ main(int argc, char *argv[])
 	if(*argv == 0) {
 		diag("usage: 5l [-options] objects");
 		errorexit();
-	}
-	if(!debug['9'] && debug['r']) {
-		if(INITTEXT == -1)
-			INITTEXT = 0x80000000;
-		if(INITRND == -1)
-			INITRND = 4;
 	}
 	if(!debug['9'] && !debug['U'] && !debug['B'])
 		debug[DEFAULT] = 1;
@@ -203,10 +225,6 @@ main(int argc, char *argv[])
 	} else
 		lookup(INITENTRY, 0)->type = SXREF;
 
-	if(debug['r']) {
-		if(undefs)
-			readundefs();
-	}
 	while(*argv)
 		objfile(*argv++);
 	if(!debug['l'])
@@ -214,7 +232,24 @@ main(int argc, char *argv[])
 	firstp = firstp->link;
 	if(firstp == P)
 		goto out;
-	reloc = debug['r'];
+	if(doexp || dlm){
+		EXPTAB = "_exporttab";
+		zerosig(EXPTAB);
+		zerosig("etext");
+		zerosig("edata");
+		zerosig("end");
+		if(dlm){
+			initdiv();
+			import();
+			HEADTYPE = 2;
+			INITTEXT = INITDAT = 0;
+			INITRND = 8;
+			INITENTRY = EXPTAB;
+		}
+		else
+			divsig();
+		export();
+	}
 	patch();
 	if(debug['p'])
 		if(debug['1'])
@@ -669,6 +704,18 @@ ldobj(int f, long c, char *pn)
 	uchar *bloc, *bsize, *stop;
 	Sym *h[NSYM], *s, *di;
 	int v, o, r, skip;
+	ulong sig;
+	static int files;
+	static char **filen;
+	char **nfilen;
+
+	if((files&15) == 0){
+		nfilen = malloc((files+16)*sizeof(char*));
+		memmove(nfilen, filen, files*sizeof(char*));
+		free(filen);
+		filen = nfilen;
+	}
+	filen[files++] = strdup(pn);
 
 	bsize = buf.xbuf;
 	bloc = buf.xbuf;
@@ -698,7 +745,13 @@ loop:
 		print("	probably not a .5 file\n");
 		errorexit();
 	}
-	if(o == ANAME) {
+	if(o == ANAME || o == ASIGNAME) {
+		sig = 0;
+		if(o == ASIGNAME){
+			sig = bloc[1] | (bloc[2]<<8) | (bloc[3]<<16) | (bloc[4]<<24);
+			bloc += 4;
+			c -= 4;
+		}
 		stop = memchr(&bloc[3], 0, bsize-&bloc[3]);
 		if(stop == 0){
 			bsize = readsome(f, buf.xbuf, bloc, bsize, c);
@@ -722,6 +775,13 @@ loop:
 		s = lookup((char*)bloc, r);
 		c -= &stop[1] - bloc;
 		bloc = stop + 1;
+
+		if(sig != 0){
+			if(s->sig != 0 && s->sig != sig)
+				diag("incompatible type signatures %lux(%s) and %lux(%s) for %s", s->sig, filen[s->file], sig, pn, s->name);
+			s->sig = sig;
+			s->file = files-1;
+		}
 
 		if(debug['W'])
 			print("	ANAME	%s\n", s->name);
@@ -1036,6 +1096,7 @@ lookup(char *symb, int v)
 	s->type = 0;
 	s->version = v;
 	s->value = 0;
+	s->sig = 0;
 	hash[h] = s;
 	return s;
 }
@@ -1266,8 +1327,14 @@ nuxiinit(void)
 			inuxi1[i] = c;
 		inuxi4[i] = c;
 		fnuxi4[i] = c;
-		fnuxi8[i] = c;
-		fnuxi8[i+4] = c+4;
+		if(debug['d'] == 0){
+			fnuxi8[i] = c;
+			fnuxi8[i+4] = c+4;
+		}
+		else{
+			fnuxi8[i] = c+4;		/* ms word first, then ls, even in little endian mode */
+			fnuxi8[i+4] = c;
+		}
 	}
 	if(debug['v']) {
 		Bprint(&bso, "inuxi = ");
@@ -1354,69 +1421,66 @@ ieeedtod(Ieee *ieeep)
 }
 
 void
-readundefs(void)
+undefsym(Sym *s)
 {
-	int i, n, z;
-	Sym *s, **t;
-	char *l;
-	char buf[256];
-	char *fields[64];
-	Biobuf *b;
+	int n;
 
-	b = Bopen(undefs, OREAD);
-	if(b == nil) {
-		diag("could not open %s: %r", undefs);
+	n = imports;
+	if(s->value != 0)
+		diag("value != 0 on SXREF");
+	if(n >= 1<<Rindex)
+		diag("import index %d out of range", n);
+	s->value = n<<Roffset;
+	s->type = SUNDEF;
+	imports++;
+}
+
+void
+zerosig(char *sp)
+{
+	Sym *s;
+
+	s = lookup(sp, 0);
+	s->sig = 0;
+}
+
+void
+readundefs(char *f, int t)
+{
+	int i, n;
+	Sym *s;
+	Biobuf *b;
+	char *l, buf[256], *fields[64];
+
+	if(f == nil)
+		return;
+	b = Bopen(f, OREAD);
+	if(b == nil){
+		diag("could not open %s: %r", f);
 		errorexit();
 	}
-	z = 64;
-	undefv = malloc(z * sizeof(Sym *));
-	while((l = Brdline(b, '\n')) != nil) {
+	while((l = Brdline(b, '\n')) != nil){
 		n = Blinelen(b);
-		if(n >= sizeof(buf)-1) {
-			diag("%s: line too long", undefs);
+		if(n >= sizeof(buf)){
+			diag("%s: line too long", f);
 			errorexit();
 		}
 		memmove(buf, l, n);
-		buf[n] = '\0';
+		buf[n-1] = '\0';
 		n = getfields(buf, fields, nelem(fields), 1, " \t\r\n");
-		if(n == nelem(fields)) {
-			diag("%s: bad format", undefs);
+		if(n == nelem(fields)){
+			diag("%s: bad format", f);
 			errorexit();
 		}
 		for(i = 0; i < n; i++) {
 			s = lookup(fields[i], 0);
-			s->type = STEXT;
-			s->value = -1;
-			if(undefn == z) {
-				z = 3 * z / 2;
-				t = malloc(z * sizeof(Sym *));
-				if(t == nil) {
-					diag("%s: no memory: %r", undefs);
-					errorexit();
-				}
-				memmove(t, undefv, undefn * sizeof(Sym *));
-				free(undefv);
-				undefv = t;
-			}
-			undefv[undefn++] = s;
+			s->type = SXREF;
+			s->subtype = t;
+			if(t == SIMPORT)
+				nimports++;
+			else
+				nexports++;
 		}
 	}
 	Bterm(b);
-}
-
-void
-undefpc(long pc)
-{
-	Bprint(&bso, "%lx\n", pc & 0x7FFFFFFF);
-}
-
-void
-undefsym(Sym *s)
-{
-	static int uix;
-
-	Bprint(&bso, "s%s\n", s->name);
-	s->value = 0x80000000 | (++uix << UIXSHIFT);
-	if(uix >= UIXLIM)
-		diag("%s: too many undefs", s->name);
 }

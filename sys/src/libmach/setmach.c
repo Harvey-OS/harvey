@@ -16,10 +16,10 @@ struct machtab
 	Machdata	*machdata;		/* machine functions */
 };
 
-extern	Mach		mmips, msparc, m68020, mi386, mi960, m29000,
+extern	Mach		mmips, msparc, m68020, mi386,
 			marm, mmips2be, mmips2le, mpower, malpha;
-extern	Machdata	mipsmach, sparcmach, m68020mach, i386mach, i960mach,
-			a29000mach, armmach, mipsmach2le, powermach, alphamach;
+extern	Machdata	mipsmach, sparcmach, m68020mach, i386mach,
+			armmach, mipsmach2le, powermach, alphamach;
 
 /*
  *	machine selection table.  machines with native disassemblers should
@@ -88,18 +88,6 @@ Machtab	machines[] =
 		AI8086,
 		&mi386,
 		&i386mach,	},
-	{	"960",				/*i960*/
-		FI960,
-		FI960B,
-		AI960,
-		&mi960,
-		&i960mach,	},
-	{	"29000",			/*29000*/
-		F29000,
-		FNONE,
-		A29000,
-		&m29000,
-		&a29000mach,	},
 	{	"arm",				/*ARM*/
 		FARM,
 		FNONE,
@@ -112,7 +100,7 @@ Machtab	machines[] =
 		APOWER,
 		&mpower,
 		&powermach,	},
-	{	"alpha",				/*Alpha*/
+	{	"alpha",			/*Alpha*/
 		FALPHA,
 		FALPHAB,
 		AALPHA,

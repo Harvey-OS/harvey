@@ -414,14 +414,41 @@ noops(void)
 	}
 }
 
-static Sym *
+static void
+sigdiv(char *n)
+{
+	Sym *s;
+
+	s = lookup(n, 0);
+	if(s->type == STEXT){
+		if(s->sig == 0)
+			s->sig = SIGNINTERN;
+	}
+	else if(s->type == 0 || s->type == SXREF)
+		s->type = SUNDEF;
+}
+
+void
+divsig(void)
+{
+	sigdiv("_div");
+	sigdiv("_divu");
+	sigdiv("_mod");
+	sigdiv("_modu");
+}
+
+static void
 sdiv(Sym *s)
 {
-	if(s->type == STEXT)
-		undefsym(s);
-	else
+	if(s->type == 0 || s->type == SXREF){
+		/* undefsym(s); */
+		s->type = SXREF;
+		if(s->sig == 0)
+			s->sig = SIGNINTERN;
+		s->subtype = SIMPORT;
+	}
+	else if(s->type != STEXT)
 		diag("undefined: %s", s->name);
-	return s;
 }
 
 void
@@ -430,20 +457,17 @@ initdiv(void)
 	Sym *s2, *s3, *s4, *s5;
 	Prog *p;
 
-	s2 = lookup("_div", 0);
-	s3 = lookup("_divu", 0);
-	s4 = lookup("_mod", 0);
-	s5 = lookup("_modu", 0);
-	if(reloc) {
-		sym_div = sdiv(s2);
-		sym_divu = sdiv(s3);
-		sym_mod = sdiv(s4);
-		sym_modu = sdiv(s5);
-		prog_div = UP;
-		prog_divu = UP;
-		prog_mod = UP;
-		prog_modu = UP;
+	if(prog_div != P)
 		return;
+	sym_div = s2 = lookup("_div", 0);
+	sym_divu = s3 = lookup("_divu", 0);
+	sym_mod = s4 = lookup("_mod", 0);
+	sym_modu = s5 = lookup("_modu", 0);
+	if(dlm) {
+		sdiv(s2); if(s2->type == SXREF) prog_div = UP;
+		sdiv(s3); if(s3->type == SXREF) prog_divu = UP;
+		sdiv(s4); if(s4->type == SXREF) prog_mod = UP;
+		sdiv(s5); if(s5->type == SXREF) prog_modu = UP;
 	}
 	for(p = firstp; p != P; p = p->link)
 		if(p->as == ATEXT) {

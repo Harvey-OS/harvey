@@ -88,6 +88,7 @@ fvn(char *name, int type)
 
 	n = new(ONAME, Z, Z);
 	n->sym = slookup(name);
+	n->sym->sig = SIGINTERN;
 	if(fntypes[type] == 0)
 		fntypes[type] = typ(TFUNC, types[type]);
 	n->type = fntypes[type];

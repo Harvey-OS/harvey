@@ -1230,7 +1230,7 @@ reader(void)
 
 			qlock(mb);
 			if(d->qid.path != mb->d->qid.path
-			   || d->qid.vers != mb->d->qid.vers){
+			   || mb->d && d->qid.vers != mb->d->qid.vers){
 				free(d);
 				break;
 			}

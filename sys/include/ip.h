@@ -114,8 +114,10 @@ int	equivip(uchar*, uchar*);
 
 Ipifc*	readipifc(char*, Ipifc*, int);
 
+void	hnputv(void*, uvlong);
 void	hnputl(void*, uint);
 void	hnputs(void*, ushort);
+uvlong	nhgetv(void*);
 uint	nhgetl(void*);
 ushort	nhgets(void*);
 ushort	ptclbsum(uchar*, int);

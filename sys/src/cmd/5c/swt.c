@@ -153,7 +153,7 @@ bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 		gopcode(OAS, n3, Z, n1);
 	} else {
 		regalloc(n1, l, nn);
-		cgen(l, n1);
+		cgen(l, n1, 0);
 	}
 	if(b->type->shift == 0 && typeu[b->type->etype]) {
 		v = ~0 + (1L << b->type->nbits);
@@ -297,7 +297,7 @@ mulcon(Node *n, Node *nn)
 	if(p[1] == 'i')
 		p += 2;
 	regalloc(&nod1, n, nn);
-	cgen(l, &nod1);
+	cgen(l, &nod1, 0);
 	vs = v;
 	regalloc(&nod2, n, Z);
 
@@ -355,9 +355,9 @@ nullwarn(Node *l, Node *r)
 {
 	warn(Z, "result of operation not used");
 	if(l != Z)
-		cgen(l, Z);
+		cgen(l, Z, 0);
 	if(r != Z)
-		cgen(r, Z);
+		cgen(r, Z, 0);
 }
 
 void
@@ -403,7 +403,7 @@ gextern(Sym *s, Node *a, long o, long w)
 		p->to.type = D_CONST;
 }
 
-void	zname(Biobuf*, char*, int, int);
+void	zname(Biobuf*, Sym*, int);
 char*	zaddr(char*, Adr*, int);
 void	zwrite(Biobuf*, Prog*, int, int);
 void	outhist(Biobuf*);
@@ -461,8 +461,8 @@ outcode(void)
 			if(h[sf].type == t)
 			if(h[sf].sym == s)
 				break;
-			zname(&outbuf, s->name, t, sym);
 			s->sym = sym;
+			zname(&outbuf, s, t);
 			h[sym].sym = s;
 			h[sym].type = t;
 			sf = sym;
@@ -481,8 +481,8 @@ outcode(void)
 			if(h[st].type == t)
 			if(h[st].sym == s)
 				break;
-			zname(&outbuf, s->name, t, sym);
 			s->sym = sym;
+			zname(&outbuf, s, t);
 			h[sym].sym = s;
 			h[sym].type = t;
 			st = sym;
@@ -513,12 +513,17 @@ outhist(Biobuf *b)
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		op = 0;
+		/* on windows skip drive specifier in pathname */
+		if(systemtype(Windows) && p && p[1] == ':'){
+			p += 2;
+			c = *p;
+		}
 		if(p && p[0] != c && h->offset == 0 && pathname){
 			/* on windows skip drive specifier in pathname */
-			if(systemtype(Windows) && pathname[2] == c) {
+			if(systemtype(Windows) && pathname[1] == ':') {
 				op = p;
 				p = pathname+2;
-				*p = '/';
+				c = *p;
 			} else if(pathname[0] == c){
 				op = p;
 				p = pathname;
@@ -528,8 +533,10 @@ outhist(Biobuf *b)
 			q = utfrune(p, c);
 			if(q) {
 				n = q-p;
-				if(n == 0)
+				if(n == 0){
 					n = 1;	/* leading "/" */
+					*p = '/';	/* don't emit "\" on windows */
+				}
 				q++;
 			} else {
 				n = strlen(p);
@@ -560,14 +567,30 @@ outhist(Biobuf *b)
 }
 
 void
-zname(Biobuf *b, char *n, int t, int s)
+zname(Biobuf *b, Sym *s, int t)
 {
-	char bf[3];
+	char *n, bf[7];
+	ulong sig;
 
-	bf[0] = ANAME;
-	bf[1] = t;	/* type */
-	bf[2] = s;	/* sym */
-	Bwrite(b, bf, 3);
+	n = s->name;
+	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
+		sig = sign(s);
+		bf[0] = ASIGNAME;
+		bf[1] = sig;
+		bf[2] = sig>>8;
+		bf[3] = sig>>16;
+		bf[4] = sig>>24;
+		bf[5] = t;
+		bf[6] = s->sym;
+		Bwrite(b, bf, 7);
+		s->sig = SIGDONE;
+	}
+	else{
+		bf[0] = ANAME;
+		bf[1] = t;	/* type */
+		bf[2] = s->sym;	/* sym */
+		Bwrite(b, bf, 3);
+	}
 	Bwrite(b, n, strlen(n)+1);
 }
 

@@ -105,7 +105,7 @@ enum
 	CLAST,
 	CMACARG,
 	CMACRO,
-	CPREPROC,
+	CPREPROC
 };
 
 EXTERN	char	debug[256];
@@ -183,7 +183,7 @@ enum				/* keep in synch with ../cc/cc.h */
 {
 	Plan9	= 1<<0,
 	Unix	= 1<<1,
-	Windows	= 1<<2,
+	Windows	= 1<<2
 };
 
 /*

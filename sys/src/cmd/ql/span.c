@@ -1,4 +1,5 @@
 #include	"l.h"
+#define	r0iszero	1
 
 void
 span(void)
@@ -70,9 +71,9 @@ long
 regoff(Adr *a)
 {
 
-	offset = 0;
+	instoffset = 0;
 	aclass(a);
-	return offset;
+	return instoffset;
 }
 
 int
@@ -103,6 +104,9 @@ aclass(Adr *a)
 			return C_CTR;
 		return C_SPR;
 
+	case D_DCR:
+		return C_SPR;
+
 	case D_SREG:
 		return C_SREG;
 
@@ -124,33 +128,46 @@ aclass(Adr *a)
 					a->sym->name, TNAME);
 				a->sym->type = SDATA;
 			}
-			offset = a->sym->value + a->offset - BIG;
-			if(offset >= -BIG && offset < BIG)
+			if(dlm){
+				instoffset = a->sym->value + a->offset;
+				switch(a->sym->type){
+				case STEXT:
+				case SLEAF:
+				case SCONST:
+				case SUNDEF:
+					break;
+				default:
+					instoffset += INITDAT;
+				}
+				return C_ADDR;
+			}
+			instoffset = a->sym->value + a->offset - BIG;
+			if(instoffset >= -BIG && instoffset < BIG)
 				return C_SEXT;
 			return C_LEXT;
 		case D_AUTO:
-			offset = autosize + a->offset;
-			if(offset >= -BIG && offset < BIG)
+			instoffset = autosize + a->offset;
+			if(instoffset >= -BIG && instoffset < BIG)
 				return C_SAUTO;
 			return C_LAUTO;
 
 		case D_PARAM:
-			offset = autosize + a->offset + 4L;
-			if(offset >= -BIG && offset < BIG)
+			instoffset = autosize + a->offset + 4L;
+			if(instoffset >= -BIG && instoffset < BIG)
 				return C_SAUTO;
 			return C_LAUTO;
 		case D_NONE:
-			offset = a->offset;
-			if(offset == 0)
+			instoffset = a->offset;
+			if(instoffset == 0)
 				return C_ZOREG;
-			if(offset >= -BIG && offset < BIG)
+			if(instoffset >= -BIG && instoffset < BIG)
 				return C_SOREG;
 			return C_LOREG;
 		}
 		return C_GOK;
 
 	case D_OPT:
-		offset = a->offset & 31L;
+		instoffset = a->offset & 31L;
 		if(a->name == D_NONE)
 			return C_SCON;
 		return C_GOK;
@@ -159,20 +176,22 @@ aclass(Adr *a)
 		switch(a->name) {
 
 		case D_NONE:
-			offset = a->offset;
+			instoffset = a->offset;
 		consize:
-			if(offset >= 0) {
-				if(offset <= 0x7fff)
+			if(instoffset >= 0) {
+				if(r0iszero && instoffset == 0)
+					return C_ZCON;
+				if(instoffset <= 0x7fff)
 					return C_SCON;
-				if(offset <= 0xffff)
+				if(instoffset <= 0xffff)
 					return C_ANDCON;
-				if((offset & 0xffff) == 0)
+				if((instoffset & 0xffff) == 0)
 					return C_UCON;
 				return C_LCON;
 			}
-			if(offset >= -0x8000)
+			if(instoffset >= -0x8000)
 				return C_ADDCON;
-			if((offset & 0xffff) == 0)
+			if((instoffset & 0xffff) == 0)
 				return C_UCON;
 			return C_LCON;
 
@@ -187,37 +206,43 @@ aclass(Adr *a)
 					s->name, TNAME);
 				s->type = SDATA;
 			}
-			if(s->type == STEXT || s->type == SLEAF) {
-				offset = s->value + a->offset;
+			if(s->type == STEXT || s->type == SLEAF || s->type == SUNDEF) {
+				instoffset = s->value + a->offset;
 				return C_LCON;
 			}
 			if(s->type == SCONST) {
-				offset = s->value + a->offset;
+				instoffset = s->value + a->offset;
+				if(dlm)
+					return C_LCON;
 				goto consize;
 			}
-			offset = s->value + a->offset - BIG;
-			if(offset >= -BIG && offset < BIG && offset != 0)
-				return C_SECON;
-			offset = s->value + a->offset + INITDAT;
+			if(!dlm){
+				instoffset = s->value + a->offset - BIG;
+				if(instoffset >= -BIG && instoffset < BIG && instoffset != 0)
+					return C_SECON;
+			}
+			instoffset = s->value + a->offset + INITDAT;
+			if(dlm)
+				return C_LCON;
 /* not sure why this barfs */
 return C_LCON;
-			if(offset == 0)
+			if(instoffset == 0)
 				return C_ZCON;
-			if(offset >= -0x8000 && offset <= 0xffff)
+			if(instoffset >= -0x8000 && instoffset <= 0xffff)
 				return C_SCON;
-			if((offset & 0xffff) == 0)
+			if((instoffset & 0xffff) == 0)
 				return C_UCON;
 			return C_LCON;
 
 		case D_AUTO:
-			offset = autosize + a->offset;
-			if(offset >= -BIG && offset < BIG)
+			instoffset = autosize + a->offset;
+			if(instoffset >= -BIG && instoffset < BIG)
 				return C_SACON;
 			return C_LACON;
 
 		case D_PARAM:
-			offset = autosize + a->offset + 4L;
-			if(offset >= -BIG && offset < BIG)
+			instoffset = autosize + a->offset + 4L;
+			if(instoffset >= -BIG && instoffset < BIG)
 				return C_SACON;
 			return C_LACON;
 		}
@@ -333,7 +358,7 @@ cmp(int a, int b)
 			return 1;
 		break;
 	case C_REG:
-		if(b == C_ZCON)
+		if(r0iszero && b == C_ZCON)
 			return 1;
 		break;
 	case C_LOREG:
@@ -453,6 +478,91 @@ buildop(void)
 			oprange[ACROR] = oprange[r];
 			oprange[ACRORN] = oprange[r];
 			oprange[ACRXOR] = oprange[r];
+			oprange[AMULCHW] = oprange[r];
+			oprange[AMULCHWCC] = oprange[r];
+			oprange[AMULCHWU] = oprange[r];
+			oprange[AMULCHWUCC] = oprange[r];
+			oprange[AMULHHW] = oprange[r];
+			oprange[AMULHHWCC] = oprange[r];
+			oprange[AMULHHWU] = oprange[r];
+			oprange[AMULHHWUCC] = oprange[r];
+			oprange[AMULLHW] = oprange[r];
+			oprange[AMULLHWCC] = oprange[r];
+			oprange[AMULLHWU] = oprange[r];
+			oprange[AMULLHWUCC] = oprange[r];
+			break;
+		case AMACCHW:	/* strictly 3 registers */
+			oprange[AMACCHWCC] = oprange[r];
+			oprange[AMACCHWS] = oprange[r];
+			oprange[AMACCHWSCC] = oprange[r];
+			oprange[AMACCHWSU] = oprange[r];
+			oprange[AMACCHWSUCC] = oprange[r];
+			oprange[AMACCHWSUV] = oprange[r];
+			oprange[AMACCHWSUVCC] = oprange[r];
+			oprange[AMACCHWSV] = oprange[r];
+			oprange[AMACCHWSVCC] = oprange[r];
+			oprange[AMACCHWU] = oprange[r];
+			oprange[AMACCHWUCC] = oprange[r];
+			oprange[AMACCHWUV] = oprange[r];
+			oprange[AMACCHWUVCC] = oprange[r];
+			oprange[AMACCHWV] = oprange[r];
+			oprange[AMACCHWVCC] = oprange[r];
+			oprange[AMACHHW] = oprange[r];
+			oprange[AMACHHWCC] = oprange[r];
+			oprange[AMACHHWS] = oprange[r];
+			oprange[AMACHHWSCC] = oprange[r];
+			oprange[AMACHHWSU] = oprange[r];
+			oprange[AMACHHWSUCC] = oprange[r];
+			oprange[AMACHHWSUV] = oprange[r];
+			oprange[AMACHHWSUVCC] = oprange[r];
+			oprange[AMACHHWSV] = oprange[r];
+			oprange[AMACHHWSVCC] = oprange[r];
+			oprange[AMACHHWU] = oprange[r];
+			oprange[AMACHHWUCC] = oprange[r];
+			oprange[AMACHHWUV] = oprange[r];
+			oprange[AMACHHWUVCC] = oprange[r];
+			oprange[AMACHHWV] = oprange[r];
+			oprange[AMACHHWVCC] = oprange[r];
+			oprange[AMACLHW] = oprange[r];
+			oprange[AMACLHWCC] = oprange[r];
+			oprange[AMACLHWS] = oprange[r];
+			oprange[AMACLHWSCC] = oprange[r];
+			oprange[AMACLHWSU] = oprange[r];
+			oprange[AMACLHWSUCC] = oprange[r];
+			oprange[AMACLHWSUV] = oprange[r];
+			oprange[AMACLHWSUVCC] = oprange[r];
+			oprange[AMACLHWSV] = oprange[r];
+			oprange[AMACLHWSVCC] = oprange[r];
+			oprange[AMACLHWU] = oprange[r];
+			oprange[AMACLHWUCC] = oprange[r];
+			oprange[AMACLHWUV] = oprange[r];
+			oprange[AMACLHWUVCC] = oprange[r];
+			oprange[AMACLHWV] = oprange[r];
+			oprange[AMACLHWVCC] = oprange[r];
+			oprange[ANMACCHW] = oprange[r];
+			oprange[ANMACCHWCC] = oprange[r];
+			oprange[ANMACCHWS] = oprange[r];
+			oprange[ANMACCHWSCC] = oprange[r];
+			oprange[ANMACCHWSV] = oprange[r];
+			oprange[ANMACCHWSVCC] = oprange[r];
+			oprange[ANMACCHWV] = oprange[r];
+			oprange[ANMACCHWVCC] = oprange[r];
+			oprange[ANMACHHW] = oprange[r];
+			oprange[ANMACHHWCC] = oprange[r];
+			oprange[ANMACHHWS] = oprange[r];
+			oprange[ANMACHHWSCC] = oprange[r];
+			oprange[ANMACHHWSV] = oprange[r];
+			oprange[ANMACHHWSVCC] = oprange[r];
+			oprange[ANMACHHWV] = oprange[r];
+			oprange[ANMACHHWVCC] = oprange[r];
+			oprange[ANMACLHW] = oprange[r];
+			oprange[ANMACLHWCC] = oprange[r];
+			oprange[ANMACLHWS] = oprange[r];
+			oprange[ANMACLHWSCC] = oprange[r];
+			oprange[ANMACLHWSV] = oprange[r];
+			oprange[ANMACLHWSVCC] = oprange[r];
+			oprange[ANMACLHWV] = oprange[r];
+			oprange[ANMACLHWVCC] = oprange[r];
 			break;
 /* floating point move *//*
 			oprange[AFMR] = oprange[r];
@@ -629,6 +739,7 @@ buildop(void)
 			break;
 		case ASYSCALL:	/* just the op; flow of control */
 			oprange[ARFI] = oprange[r];
+			oprange[ARFCI] = oprange[r];
 			break;
 		case AMOVHBR:
 			oprange[AMOVWBR] = oprange[r];
@@ -653,5 +764,165 @@ buildop(void)
 		case ATEXT:
 			break;
 		}
+	}
+}
+
+enum{
+	ABSD = 0,
+	ABSU = 1,
+	RELD = 2,
+	RELU = 3,
+};
+
+int modemap[8] = { 0, 1, -1, 2, 3, 4, 5, 6};
+
+typedef struct Reloc Reloc;
+
+struct Reloc
+{
+	int n;
+	int t;
+	uchar *m;
+	ulong *a;
+};
+
+Reloc rels;
+
+static void
+grow(Reloc *r)
+{
+	int t;
+	uchar *m, *nm;
+	ulong *a, *na;
+
+	t = r->t;
+	r->t += 64;
+	m = r->m;
+	a = r->a;
+	r->m = nm = malloc(r->t*sizeof(uchar));
+	r->a = na = malloc(r->t*sizeof(ulong));
+	memmove(nm, m, t*sizeof(uchar));
+	memmove(na, a, t*sizeof(ulong));
+	free(m);
+	free(a);
+}
+
+void
+dynreloc(Sym *s, long v, int abs, int split, int sext)
+{
+	int i, k, n;
+	uchar *m;
+	ulong *a;
+	Reloc *r;
+
+	if(v&3)
+		diag("bad relocation address");
+	v >>= 2;
+	if(s->type == SUNDEF)
+		k = abs ? ABSU : RELU;
+	else
+		k = abs ? ABSD : RELD;
+	if(split)
+		k += 4;
+	if(sext)
+		k += 2;
+	/* Bprint(&bso, "R %s a=%ld(%lx) %d\n", s->name, a, a, k); */
+	k = modemap[k];
+	r = &rels;
+	n = r->n;
+	if(n >= r->t)
+		grow(r);
+	m = r->m;
+	a = r->a;
+	for(i = n; i > 0; i--){
+		if(v < a[i-1]){	/* happens occasionally for data */
+			m[i] = m[i-1];
+			a[i] = a[i-1];
+		}
+		else
+			break;
+	}
+	m[i] = k;
+	a[i] = v;
+	r->n++;
+}
+
+static int
+sput(char *s)
+{
+	char *p;
+
+	p = s;
+	while(*s)
+		cput(*s++);
+	cput(0);
+	return s-p+1;
+}
+
+void
+asmdyn()
+{
+	int i, n, t, c;
+	Sym *s;
+	ulong la, ra, *a;
+	vlong off;
+	uchar *m;
+	Reloc *r;
+
+	cflush();
+	off = seek(cout, 0, 1);
+	lput(0);
+	t = 0;
+	lput(imports);
+	t += 4;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link)
+			if(s->type == SUNDEF){
+				lput(s->sig);
+				t += 4;
+				t += sput(s->name);
+			}
+	
+	la = 0;
+	r = &rels;
+	n = r->n;
+	m = r->m;
+	a = r->a;
+	lput(n);
+	t += 4;
+	for(i = 0; i < n; i++){
+		ra = *a-la;
+		if(*a < la)
+			diag("bad relocation order");
+		if(ra < 256)
+			c = 0;
+		else if(ra < 65536)
+			c = 1;
+		else
+			c = 2;
+		cput((c<<6)|*m++);
+		t++;
+		if(c == 0){
+			cput(ra);
+			t++;
+		}
+		else if(c == 1){
+			wput(ra);
+			t += 2;
+		}
+		else{
+			lput(ra);
+			t += 4;
+		}
+		la = *a++;
+	}
+
+	cflush();
+	seek(cout, off, 0);
+	lput(t);
+
+	if(debug['v']){
+		Bprint(&bso, "import table entries = %d\n", imports);
+		Bprint(&bso, "export table entries = %d\n", exports);
 	}
 }

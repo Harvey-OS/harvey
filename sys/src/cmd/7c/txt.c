@@ -248,7 +248,7 @@ void
 regalloc(Node *n, Node *tn, Node *o)
 {
 	int i, j;
-	static lasti;
+	static int lasti;
 
 	switch(tn->type->etype) {
 	case TCHAR:

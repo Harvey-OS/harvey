@@ -291,7 +291,7 @@ loop:
 				i--;
 				continue;
 			}
-			if(a == ABR || a == ARETURN || a == ARFI)
+			if(a == ABR || a == ARETURN || a == ARFI || a == ARFCI)
 				goto copy;
 			if(!q->cond || (q->cond->mark&FOLL))
 				continue;
@@ -313,7 +313,7 @@ loop:
 				}
 				lastp->link = r;
 				lastp = r;
-				if(a == ABR || a == ARETURN || a == ARFI)
+				if(a == ABR || a == ARETURN || a == ARFI || a == ARFCI)
 					return;
 				r->as = b;
 				r->cond = p->link;
@@ -338,7 +338,7 @@ loop:
 	p->mark |= FOLL;
 	lastp->link = p;
 	lastp = p;
-	if(a == ABR || a == ARETURN || a == ARFI){
+	if(a == ABR || a == ARETURN || a == ARFI || a == ARFCI){
 		if(p->mark & NOSCHED){
 			p = p->link;
 			goto loop;
@@ -377,15 +377,20 @@ patch(void)
 			curtext = p;
 		if((a == ABL || a == ARETURN) && p->to.sym != S) {
 			s = p->to.sym;
-			if(s->type != STEXT) {
+			if(s->type != STEXT && s->type != SUNDEF) {
 				diag("undefined: %s\n%P", s->name, p);
 				s->type = STEXT;
 				s->value = vexit;
 			}
-			p->to.offset = s->value;
+			if(s->type == SUNDEF){
+				p->to.offset = 0;
+				p->cond = UP;
+			}
+			else
+				p->to.offset = s->value;
 			p->to.type = D_BRANCH;
 		}
-		if(p->to.type != D_BRANCH)
+		if(p->to.type != D_BRANCH || p->cond == UP)
 			continue;
 		c = p->to.offset;
 		for(q = firstp; q != P;) {
@@ -408,7 +413,8 @@ patch(void)
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT)
 			curtext = p;
-		if(p->cond != P) {
+		p->mark = 0;	/* initialization for follow */
+		if(p->cond != P && p->cond != UP) {
 			p->cond = brloop(p->cond);
 			if(p->cond != P)
 			if(p->to.type == D_BRANCH)
@@ -523,4 +529,139 @@ rnd(long v, long r)
 		c += r;
 	v -= c;
 	return v;
+}
+
+void
+import(void)
+{
+	int i;
+	Sym *s;
+
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link)
+			if(s->sig != 0 && s->type == SXREF && (nimports == 0 || s->subtype == SIMPORT)){
+				undefsym(s);
+				Bprint(&bso, "IMPORT: %s sig=%lux v=%ld\n", s->name, s->sig, s->value);
+			}
+}
+
+void
+ckoff(Sym *s, long v)
+{
+	if(v < 0 || v >= 1<<Roffset)
+		diag("relocation offset %ld for %s out of range", v, s->name);
+}
+
+static Prog*
+newdata(Sym *s, int o, int w, int t)
+{
+	Prog *p;
+
+	p = prg();
+	p->link = datap;
+	datap = p;
+	p->as = ADATA;
+	p->reg = w;
+	p->from.type = D_OREG;
+	p->from.name = t;
+	p->from.sym = s;
+	p->from.offset = o;
+	p->to.type = D_CONST;
+	p->to.name = D_NONE;
+	return p;
+}
+
+void
+export(void)
+{
+	int i, j, n, off, nb, sv, ne;
+	Sym *s, *et, *str, **esyms;
+	Prog *p;
+	char buf[NSNAME], *t;
+
+	n = 0;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link)
+			if(s->sig != 0 && s->type != SXREF && s->type != SUNDEF && (nexports == 0 || s->subtype == SEXPORT))
+				n++;
+	esyms = malloc(n*sizeof(Sym*));
+	ne = n;
+	n = 0;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link)
+			if(s->sig != 0 && s->type != SXREF && s->type != SUNDEF && (nexports == 0 || s->subtype == SEXPORT))
+				esyms[n++] = s;
+	for(i = 0; i < ne-1; i++)
+		for(j = i+1; j < ne; j++)
+			if(strcmp(esyms[i]->name, esyms[j]->name) > 0){
+				s = esyms[i];
+				esyms[i] = esyms[j];
+				esyms[j] = s;
+			}
+
+	nb = 0;
+	off = 0;
+	et = lookup(EXPTAB, 0);
+	if(et->type != 0 && et->type != SXREF)
+		diag("%s already defined", EXPTAB);
+	et->type = SDATA;
+	str = lookup(".string", 0);
+	if(str->type == 0)
+		str->type = SDATA;
+	sv = str->value;
+	for(i = 0; i < ne; i++){
+		s = esyms[i];
+		Bprint(&bso, "EXPORT: %s sig=%lux t=%d\n", s->name, s->sig, s->type);
+
+		/* signature */
+		p = newdata(et, off, sizeof(long), D_EXTERN);
+		off += sizeof(long);
+		p->to.offset = s->sig;
+
+		/* address */
+		p = newdata(et, off, sizeof(long), D_EXTERN);
+		off += sizeof(long);
+		p->to.name = D_EXTERN;
+		p->to.sym = s;
+
+		/* string */
+		t = s->name;
+		n = strlen(t)+1;
+		for(;;){
+			buf[nb++] = *t;
+			sv++;
+			if(nb >= NSNAME){
+				p = newdata(str, sv-NSNAME, NSNAME, D_STATIC);
+				p->to.type = D_SCONST;
+				memmove(p->to.sval, buf, NSNAME);
+				nb = 0;
+			}
+			if(*t++ == 0)
+				break;
+		}
+
+		/* name */
+		p = newdata(et, off, sizeof(long), D_EXTERN);
+		off += sizeof(long);
+		p->to.name = D_STATIC;
+		p->to.sym = str;
+		p->to.offset = sv-n;
+	}
+
+	if(nb > 0){
+		p = newdata(str, sv-nb, nb, D_STATIC);
+		p->to.type = D_SCONST;
+		memmove(p->to.sval, buf, nb);
+	}
+
+	for(i = 0; i < 3; i++){
+		newdata(et, off, sizeof(long), D_EXTERN);
+		off += sizeof(long);
+	}
+	et->value = off;
+	if(sv == 0)
+		sv = 1;
+	str->value = sv;
+	exports = ne;
+	free(esyms);
 }

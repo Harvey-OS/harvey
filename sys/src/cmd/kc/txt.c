@@ -261,7 +261,7 @@ void
 regalloc(Node *n, Node *tn, Node *o)
 {
 	int i, j;
-	static lasti;
+	static int lasti;
 
 	switch(tn->type->etype) {
 	case TCHAR:
@@ -669,10 +669,14 @@ gmove(Node *f, Node *t)
 			a = AMOVW;
 			break;
 		case TUCHAR:
+			a = AMOVBU;
+			break;
 		case TCHAR:
 			a = AMOVB;
 			break;
 		case TUSHORT:
+			a = AMOVHU;
+			break;
 		case TSHORT:
 			a = AMOVH;
 			break;
@@ -1186,7 +1190,7 @@ sconst(Node *n)
 	if(n->op == OCONST) {
 		if(!typefd[n->type->etype]) {
 			vv = n->vconst;
-			if(vv >= -(1LL<<12) && vv < (1LL<<12))
+			if(vv >= -(vlong)(1<<12) && vv < (vlong)(1<<12))
 				return 1;
 		}
 	}

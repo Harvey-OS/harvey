@@ -35,9 +35,9 @@ installall:V:
 	for(objtype in $CPUS) mk $MKFLAGS install
 
 everything:V:
-	rm -f */*.[012456789kvx]
-	for(objtype in 29000 3210 386 68000 68020 alpha arm mips mips2 power sparc spim)@{
+	rm -f */*.[012456789kqvxz]
+	for(objtype in 68000 68020 arm alpha 386 sparc power mips)@{
 		echo $objtype
 		mk $MKFLAGS install
 	}
-	rm -f */*.[012456789kvx]
+	rm -f */*.[012456789kqvxz]

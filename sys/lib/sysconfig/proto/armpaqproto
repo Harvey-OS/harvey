@@ -24,7 +24,6 @@ adm
 arm
 	bin
 		acme
-		acid
 		auth
 			factotum
 			fgui
@@ -47,7 +46,6 @@ arm
 		exportfs
 		date
 		dc
-		ftpfs
 		grep
 		dd
 		disk
@@ -63,7 +61,6 @@ arm
 			ftpd
 			ipconfig
 			ping
-			traceroute
 		ls
 		mc
 		mkdir
@@ -87,7 +84,6 @@ arm
 		sed
 		sleep
 		srv
-		srvold9p
 		ssh
 		telnet
 		test

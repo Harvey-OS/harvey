@@ -1,6 +1,7 @@
 0intro 0intro
 intro 0intro
 9load 9load
+9pxeload 9load
 ld 9load
 9pcon 9pcon
 aan aan
@@ -38,6 +39,7 @@ imagemap httpd
 man2html httpd
 mirror httpd
 save httpd
+webls httpd
 init init
 ipconfig ipconfig
 rip ipconfig
@@ -108,6 +110,9 @@ nfsserver nfsserver
 pcnfsd nfsserver
 portmapper nfsserver
 pcmcia pcmcia
+pem pem
+pemdecode pem
+pemencode pem
 gping ping
 hogports ping
 ping ping
@@ -131,6 +136,13 @@ applylog replica
 compactdb replica
 replica replica
 updatedb replica
+asn12rsa rsa
+rsa rsa
+rsa2pub rsa
+rsa2ssh rsa
+rsa2x509 rsa
+rsafill rsa
+rsagen rsa
 scanmail scanmail
 testscan scanmail
 scuzz scuzz
@@ -150,6 +162,7 @@ tlsclient tlssrv
 tlsclienttunnel tlssrv
 tlssrv tlssrv
 tlssrvtunnel tlssrv
+trampoline trampoline
 udpecho udpecho
 bootfloppy update
 bootplan9 update
@@ -164,6 +177,7 @@ venti venti
 buildindex ventiaux
 checkarenas ventiaux
 checkindex ventiaux
+conf ventiaux
 copy ventiaux
 fmtarenas ventiaux
 fmtindex ventiaux
@@ -175,5 +189,3 @@ ventiaux ventiaux
 wrarenablocks ventiaux
 write ventiaux
 vga vga
-X509gen x509
-x509 x509

@@ -1,6 +1,6 @@
 #include "gc.h"
 
-static	uchar	resvreg[sizeof(reg)];
+static	int	resvreg[nelem(reg)];
 
 
 void
@@ -411,12 +411,10 @@ raddr(Node *n, Prog *p)
 	Adr a;
 
 	naddr(n, &a);
-/*
-	if(a.type == D_CONST && a.offset == 0) {
+	if(R0ISZERO && a.type == D_CONST && a.offset == 0) {
 		a.type = D_REG;
 		a.reg = REGZERO;
 	}
-*/
 	if(a.type != D_REG && a.type != D_FREG) {
 		if(n)
 			diag(n, "bad in raddr: %O", n->op);
@@ -545,7 +543,7 @@ void
 gmove(Node *f, Node *t)
 {
 	int ft, tt, a;
-	Node nod, fxc0, fxc1, fxc2;
+	Node nod, fxc0, fxc1, fxc2, fxrat;
 	Prog *p1;
 	double d;
 
@@ -652,10 +650,14 @@ gmove(Node *f, Node *t)
 			a = AMOVW;
 			break;
 		case TUCHAR:
+			a = AMOVBZ;
+			break;
 		case TCHAR:
 			a = AMOVB;
 			break;
 		case TUSHORT:
+			a = AMOVHZ;
+			break;
 		case TSHORT:
 			a = AMOVH;
 			break;
@@ -667,12 +669,10 @@ gmove(Node *f, Node *t)
 			a = AFMOVD;
 			break;
 		}
-/*
-		if(!typefd[ft] && vconst(f) == 0) {
+		if(R0ISZERO && !typefd[ft] && vconst(f) == 0) {
 			gins(a, f, t);
 			return;
 		}
-*/
 		if(ft == tt)
 			regalloc(&nod, t, f);
 		else
@@ -714,15 +714,15 @@ gmove(Node *f, Node *t)
 		case TUCHAR:
 			/* BUG: not right for unsigned long */
 			regalloc(&nod, f, Z);	/* should be type float */
+			regsalloc(&fxrat, f);
 			gins(AFCTIWZ, f, &nod);
-			gins(AFMOVD, &nod, nodrat);
+			gins(AFMOVD, &nod, &fxrat);
 			regfree(&nod);
-			nod = *nodrat;
-			nod.xoffset += 4;
-			gins(AMOVW, &nod, t);
+			fxrat.type = nodrat->type;
+			fxrat.etype = nodrat->etype;
+			fxrat.xoffset += 4;
+			gins(AMOVW, &fxrat, t);
 			gmove(t, t);
-			if(nrathole < SZ_DOUBLE)
-				nrathole = SZ_DOUBLE;
 			return;
 		}
 		break;
@@ -826,17 +826,20 @@ gmove(Node *f, Node *t)
 			 */
 			regalloc(&fxc0, f, Z);
 			regalloc(&fxc2, f, Z);
+			regsalloc(&fxrat, t);	/* should be type float */
 			gins(AMOVW, nodconst(0x43300000L), &fxc0);
 			gins(AMOVW, f, &fxc2);
-			gins(AMOVW, &fxc0, nodrat);
+			gins(AMOVW, &fxc0, &fxrat);
 			gins(AXOR, nodconst(0x80000000L), &fxc2);
-			fxc1 = *nodrat;
+			fxc1 = fxrat;
+			fxc1.type = nodrat->type;
+			fxc1.etype = nodrat->etype;
 			fxc1.xoffset += SZ_LONG;
 			gins(AMOVW, &fxc2, &fxc1);
 			regfree(&fxc2);
 			regfree(&fxc0);
 			regalloc(&nod, t, t);	/* should be type float */
-			gins(AFMOVD, nodrat, &nod);
+			gins(AFMOVD, &fxrat, &nod);
 			nodreg(&fxc1, t, NREG+FREGCVI);
 			gins(AFSUB, &fxc1, &nod);
 			a = AFMOVD;
@@ -844,8 +847,6 @@ gmove(Node *f, Node *t)
 				a = AFRSP;
 			gins(a, &nod, t);
 			regfree(&nod);
-			if(nrathole < SZ_DOUBLE)
-				nrathole = SZ_DOUBLE;
 			if(ft == TULONG) {
 				regalloc(&nod, t, Z);
 				if(tt == TFLOAT) {
@@ -1105,8 +1106,12 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 	if(f2 != Z) {
 		naddr(f2, &ta);
 		p->reg = ta.reg;
-		if(ta.type == D_CONST && ta.offset == 0)
-			diag(Z, "REGZERO in gopcode %O", o);/*p->reg = REGZERO;*/
+		if(ta.type == D_CONST && ta.offset == 0) {
+			if(R0ISZERO)
+				p->reg = REGZERO;
+			else
+				diag(Z, "REGZERO in gopcode %O", o);
+		}
 	}
 	if(t != Z)
 		naddr(t, &p->to);
@@ -1193,7 +1198,7 @@ sconst(Node *n)
 	if(n->op == OCONST) {
 		if(!typefd[n->type->etype]) {
 			vv = n->vconst;
-			if(vv >= -(1LL<<15) && vv < (1LL<<15))
+			if(vv >= -(((vlong)1)<<15) && vv < (((vlong)1)<<15))
 				return 1;
 		}
 	}
@@ -1208,7 +1213,7 @@ uconst(Node *n)
 	if(n->op == OCONST) {
 		if(!typefd[n->type->etype]) {
 			vv = n->vconst;
-			if(vv >= 0 && vv < (1LL<<16))
+			if(vv >= 0 && vv < (((vlong)1)<<16))
 				return 1;
 		}
 	}

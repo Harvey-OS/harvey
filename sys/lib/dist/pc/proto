@@ -23,8 +23,8 @@
 		disk	d555 sys sys
 			fdisk	555 sys sys
 			format	555 sys sys
-			kfs	555 sys sys
-			kfscmd	555 sys sys
+#			kfs	555 sys sys
+#			kfscmd	555 sys sys
 			mbr	555 sys sys
 			prep	555 sys sys
 		fossil	d555 sys sys

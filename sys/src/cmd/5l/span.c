@@ -346,14 +346,13 @@ aclass(Adr *a)
 					s->name, TNAME);
 				s->type = SDATA;
 			}
-			if(reloc) {
+			if(dlm) {
 				switch(t) {
 				default:
 					instoffset = s->value + a->offset + INITDAT;
 					break;
+				case SUNDEF:
 				case STEXT:
-					if(s->value == -1)
-						undefsym(s);
 				case SCONST:
 				case SLEAF:
 				case SSTRING:
@@ -432,11 +431,8 @@ aclass(Adr *a)
 				s->type = SDATA;
 			}
 			instoffset = s->value + a->offset + INITDAT;
-			if(s->type == STEXT || s->type == SLEAF) {
-				if(s->value == -1)
-					undefsym(s);
+			if(s->type == STEXT || s->type == SLEAF || s->type == SUNDEF)
 				instoffset = s->value + a->offset;
-			}
 			return C_LCON;
 		}
 		return C_GOK;
@@ -473,16 +469,15 @@ aclass(Adr *a)
 					s->name, TNAME);
 				s->type = SDATA;
 				break;
+			case SUNDEF:
 			case STEXT:
-				if(s->value == -1)
-					undefsym(s);
 			case SSTRING:
 			case SCONST:
 			case SLEAF:
 				instoffset = s->value + a->offset;
 				return C_LCON;
 			}
-			if(!reloc) {
+			if(!dlm) {
 				instoffset = s->value + a->offset - BIG;
 				t = immrot(instoffset);
 				if(t && instoffset != 0)
@@ -742,6 +737,8 @@ buildop(void)
 			break;
 		case AB:
 		case ABL:
+		case ABX:
+		case ABXRET:
 		case ASWI:
 		case AWORD:
 		case AMOVM:
@@ -823,3 +820,159 @@ buildrep(int x, int as)
 	oprange[as].start = 0;
 }
 */
+
+enum{
+	ABSD = 0,
+	ABSU = 1,
+	RELD = 2,
+	RELU = 3,
+};
+
+int modemap[4] = { 0, 1, -1, 2, };
+
+typedef struct Reloc Reloc;
+
+struct Reloc
+{
+	int n;
+	int t;
+	uchar *m;
+	ulong *a;
+};
+
+Reloc rels;
+
+static void
+grow(Reloc *r)
+{
+	int t;
+	uchar *m, *nm;
+	ulong *a, *na;
+
+	t = r->t;
+	r->t += 64;
+	m = r->m;
+	a = r->a;
+	r->m = nm = malloc(r->t*sizeof(uchar));
+	r->a = na = malloc(r->t*sizeof(ulong));
+	memmove(nm, m, t*sizeof(uchar));
+	memmove(na, a, t*sizeof(ulong));
+	free(m);
+	free(a);
+}
+
+void
+dynreloc(Sym *s, long v, int abs)
+{
+	int i, k, n;
+	uchar *m;
+	ulong *a;
+	Reloc *r;
+
+	if(v&3)
+		diag("bad relocation address");
+	v >>= 2;
+	if(s != S && s->type == SUNDEF)
+		k = abs ? ABSU : RELU;
+	else
+		k = abs ? ABSD : RELD;
+	/* Bprint(&bso, "R %s a=%ld(%lx) %d\n", s->name, a, a, k); */
+	k = modemap[k];
+	r = &rels;
+	n = r->n;
+	if(n >= r->t)
+		grow(r);
+	m = r->m;
+	a = r->a;
+	for(i = n; i > 0; i--){
+		if(v < a[i-1]){	/* happens occasionally for data */
+			m[i] = m[i-1];
+			a[i] = a[i-1];
+		}
+		else
+			break;
+	}
+	m[i] = k;
+	a[i] = v;
+	r->n++;
+}
+
+static int
+sput(char *s)
+{
+	char *p;
+
+	p = s;
+	while(*s)
+		cput(*s++);
+	cput(0);
+	return  s-p+1;
+}
+
+void
+asmdyn()
+{
+	int i, n, t, c;
+	Sym *s;
+	ulong la, ra, *a;
+	vlong off;
+	uchar *m;
+	Reloc *r;
+
+	cflush();
+	off = seek(cout, 0, 1);
+	lput(0);
+	t = 0;
+	lput(imports);
+	t += 4;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link)
+			if(s->type == SUNDEF){
+				lput(s->sig);
+				t += 4;
+				t += sput(s->name);
+			}
+	
+	la = 0;
+	r = &rels;
+	n = r->n;
+	m = r->m;
+	a = r->a;
+	lput(n);
+	t += 4;
+	for(i = 0; i < n; i++){
+		ra = *a-la;
+		if(*a < la)
+			diag("bad relocation order");
+		if(ra < 256)
+			c = 0;
+		else if(ra < 65536)
+			c = 1;
+		else
+			c = 2;
+		cput((c<<6)|*m++);
+		t++;
+		if(c == 0){
+			cput(ra);
+			t++;
+		}
+		else if(c == 1){
+			wput(ra);
+			t += 2;
+		}
+		else{
+			lput(ra);
+			t += 4;
+		}
+		la = *a++;
+	}
+
+	cflush();
+	seek(cout, off, 0);
+	lput(t);
+
+	if(debug['v']){
+		Bprint(&bso, "import table entries = %d\n", imports);
+		Bprint(&bso, "export table entries = %d\n", exports);
+	}
+}

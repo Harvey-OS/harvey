@@ -20,6 +20,7 @@ enum {
 	TI_1420_did = 0xAC51,
 
 	Ricoh_vid = 0x1180,
+	Ricoh_475_did = 0x0475,
 	Ricoh_476_did = 0x0476,
 	Ricoh_478_did = 0x0478,
 
@@ -53,13 +54,14 @@ struct Variant {
 };
 
 static Variant variant[] = {
+{	Ricoh_vid,	Ricoh_475_did,	"Ricoh 475 PCI/Cardbus bridge",	},
 {	Ricoh_vid,	Ricoh_476_did,	"Ricoh 476 PCI/Cardbus bridge",	},
 {	Ricoh_vid,	Ricoh_478_did,	"Ricoh 478 PCI/Cardbus bridge",	},
-{	TI_vid,		TI_1131_did,		"TI PCI-1131 Cardbus Controller",	},
-{	TI_vid,		TI_1250_did,		"TI PCI-1250 Cardbus Controller",	},
-{	TI_vid,		TI_1450_did,		"TI PCI-1450 Cardbus Controller",	},
-{	TI_vid,		TI_1251A_did,		"TI PCI-1251A Cardbus Controller",	},
-{	TI_vid,		TI_1420_did,		"TI PCI-1420 Cardbus Controller", },
+{	TI_vid,		TI_1131_did,	"TI PCI-1131 Cardbus Controller", },
+{	TI_vid,		TI_1250_did,	"TI PCI-1250 Cardbus Controller", },
+{	TI_vid,		TI_1450_did,	"TI PCI-1450 Cardbus Controller", },
+{	TI_vid,		TI_1251A_did,	"TI PCI-1251A Cardbus Controller", },
+{	TI_vid,		TI_1420_did,	"TI PCI-1420 Cardbus Controller", },
 };
 
 /* Cardbus registers */

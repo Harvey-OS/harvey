@@ -50,7 +50,7 @@ main(int argc, char **argv)
 			if((fd = create(out, OWRITE, 0666|DMEXCL)) >= 0)
 				break;
 			rerrstr(err, sizeof err);
-			if(strstr(err, "file is locked") == nil)
+			if(strstr(err, "file is locked")==nil && strstr(err, "exclusive lock")==nil)
 				break;
 			sleep(1000);
 		}

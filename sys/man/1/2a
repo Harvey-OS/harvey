@@ -1,6 +1,6 @@
 .TH 2A 1 
 .SH NAME
-0a, 1a, 2a, 4a, 5a, 6a, 7a, 8a, 9a, ka, qa, va, xa \- assemblers
+1a, 2a, 5a, 7a, 8a, ka, qa, va \- assemblers
 .SH SYNOPSIS
 .B 2a
 [
@@ -53,3 +53,8 @@ etc.
 .IR 2l (1).
 .PP
 Rob Pike, ``A manual for the Plan 9 assembler''
+.SH BUGS
+The list of assemblers given above is only partial,
+not all architectures are supported on all systems,
+some have been retired and some
+are provided by third parties.

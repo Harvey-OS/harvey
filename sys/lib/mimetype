@@ -90,6 +90,8 @@
 .ppm		image		x-portable-pixmap	-	y
 .ppt		application	vnd.ms-powerpoint	-	n # Microsoft PowerPoint
 .ps		application	postscript	-		m
+.qcp		audio		vnd.qcelp	-		y # Qualcomm CELP
+.qcp2		audio		qcp		-		y # Qualcomm CELP
 .qt		video		quicktime	-		y
 .r		text		plain		-		y # ratfor program
 .ra		audio		x-pn-realaudio	-		y # G2 RealAudio

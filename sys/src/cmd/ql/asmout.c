@@ -81,10 +81,17 @@ maskgen(Prog *p, uchar *m, ulong v)
 		diag("cannot generate mask #%lux\n%P", v, p);
 }
 
+static void
+reloc(Adr *a, long pc, int sext)
+{
+	if(a->name == D_EXTERN || a->name == D_STATIC)
+		dynreloc(a->sym, pc, 1, 1, sext);
+}
+	
 int
 asmout(Prog *p, Optab *o, int aflag)
 {
-	long o1, o2, o3, o4, o5, v;
+	long o1, o2, o3, o4, o5, v, t;
 	Prog *ct;
 	int r, a;
 	uchar mask[2];
@@ -122,6 +129,15 @@ asmout(Prog *p, Optab *o, int aflag)
 		break;
 
 	case 1:		/* mov r1,r2 ==> OR Rs,Rs,Ra */
+		if(p->to.reg == REGZERO && p->from.type == D_CONST) {
+			v = regoff(&p->from);
+			if(r0iszero && v != 0) {
+				nerrors--;
+				diag("literal operation on R0\n%P", p);
+			}
+			o1 = LOP_IRR(OP_ADDI, REGZERO, REGZERO, v);
+			break;
+		}
 		o1 = LOP_RRR(OP_OR, p->to.reg, p->from.reg, p->from.reg);
 		break;
 
@@ -142,6 +158,8 @@ asmout(Prog *p, Optab *o, int aflag)
 			a = OP_ADDIS;
 			v >>= 16;
 		}
+		if(r0iszero && p->to.reg == 0 && (r != 0 || v != 0))
+			diag("literal operation on R0\n%P", p);
 		o1 = AOP_IRR(a, p->to.reg, r, v);
 		break;
 
@@ -150,7 +168,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
-		else if(p->as == AADD && r == 0)
+		if(r0iszero && p->to.reg == 0)
 			diag("literal operation on R0\n%P", p);
 		o1 = AOP_IRR(opirr(p->as), p->to.reg, r, v);
 		break;
@@ -219,7 +237,13 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(aflag)
 			return 0;
 		v = 0;
-		if(p->cond)
+		if(p->cond == UP){
+			if(p->to.sym->type != SUNDEF)
+				diag("bad branch sym type");
+			v = (ulong)p->to.sym->value >> (Roffset-2);
+			dynreloc(p->to.sym, p->pc, 0, 0, 0);
+		}
+		else if(p->cond)
 			v = p->cond->pc - p->pc;
 		if(v & 03) {
 			diag("odd branch target address\n%P", p);
@@ -316,6 +340,8 @@ asmout(Prog *p, Optab *o, int aflag)
 		v = regoff(&p->from);
 		o1 = AOP_IRR(OP_ADDIS, p->to.reg, REGZERO, v>>16);
 		o2 = LOP_IRR(OP_ORI, p->to.reg, p->to.reg, v);
+		if(dlm)
+			reloc(&p->from, p->pc, 0);
 		break;
 
 	case 20:	/* add $ucon,,r */
@@ -323,7 +349,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
-		if(p->as == AADD && r == 0)
+		if(p->as == AADD && (!r0iszero && p->reg == 0 || r0iszero && p->to.reg == 0))
 			diag("literal operation on R0\n%P", p);
 		o1 = AOP_IRR(opirr(p->as+AEND), p->to.reg, r, v>>16);
 		break;
@@ -338,6 +364,8 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(r == NREG)
 			r = p->to.reg;
 		o3 = AOP_RRR(oprrr(p->as), p->to.reg, REGTMP, r);
+		if(dlm)
+			reloc(&p->from, p->pc, 0);
 		break;
 
 	case 23:	/* and $lcon,r1,r2 ==> cau+or+and */	/* masks could be done using rlnm etc. */
@@ -350,6 +378,8 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(r == NREG)
 			r = p->to.reg;
 		o3 = LOP_RRR(oprrr(p->as), p->to.reg, REGTMP, r);
+		if(dlm)
+			reloc(&p->from, p->pc, 0);
 		break;
 /*24*/
 
@@ -379,6 +409,8 @@ asmout(Prog *p, Optab *o, int aflag)
 		o1 = AOP_IRR(OP_ADDIS, REGTMP, REGZERO, v>>16);
 		o2 = LOP_IRR(OP_ORI, REGTMP, REGTMP, v);
 		o3 = AOP_RRR(oprrr(p->as), p->to.reg, p->from.reg, REGTMP);
+		if(dlm)
+			reloc(&p->from3, p->pc, 0);
 		break;
 
 /*29, 30, 31 */
@@ -497,9 +529,11 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
-		o1 = AOP_RRR(oprrr(p->as), REGTMP, r, p->from.reg);
+		v = oprrr(p->as);
+		t = v & ((1<<10)|1);	/* OE|Rc */
+		o1 = AOP_RRR(v&~t, REGTMP, r, p->from.reg);
 		o2 = AOP_RRR(OP_MULLW, REGTMP, REGTMP, p->from.reg);
-		o3 = AOP_RRR(OP_SUBF, p->to.reg, REGTMP, r);	/* BUG: check V, CC */
+		o3 = AOP_RRR(OP_SUBF|t, p->to.reg, REGTMP, r);
 		break;
 
 	case 52:	/* mtfsbNx cr(n) */
@@ -556,6 +590,12 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
+		if(v < 0 || v > 31)
+			diag("illegal shift %ld\n%P", v, p);
+		if(v < 0)
+			v = 0;
+		else if(v > 32)
+			v = 32;
 		if(p->as == ASRW || p->as == ASRWCC) {	/* shift right */
 			mask[0] = v;
 			mask[1] = 31;
@@ -623,15 +663,21 @@ asmout(Prog *p, Optab *o, int aflag)
 		o1 = OP_MTFSFI | ((p->to.reg&15L)<<23) | ((regoff(&p->from)&31L)<<12);
 		break;
 
-	case 66:	/* mov spr,r1; mov r1,spr */
+	case 66:	/* mov spr,r1; mov r1,spr, also dcr */
 		if(p->from.type == D_REG) {
 			r = p->from.reg;
 			v = p->to.offset;
-			o1 = OPVCC(31,467,0,0); /* mtspr */
+			if(p->to.type == D_DCR)
+				o1 = OPVCC(31,451,0,0);	/* mtdcr */
+			else
+				o1 = OPVCC(31,467,0,0); /* mtspr */
 		} else {
 			r = p->to.reg;
 			v = p->from.offset;
-			o1 = OPVCC(31,339,0,0);	/* mfspr */
+			if(p->from.type == D_DCR)
+				o1 = OPVCC(31,323,0,0);	/* mfdcr */
+			else
+				o1 = OPVCC(31,339,0,0);	/* mfspr */
 		}
 		o1 = AOP_RRR(o1, r, 0, 0) | ((v&0x1f)<<16) | (((v>>5)&0x1f)<<11);
 		break;
@@ -690,6 +736,33 @@ asmout(Prog *p, Optab *o, int aflag)
 		   p->to.type != D_CREG || p->to.reg == NREG)
 			diag("illegal FPSCR/CR field number\n%P", p);
 		o1 = AOP_RRR(OP_MCRFS, ((p->to.reg&7L)<<2), ((p->from.reg&7)<<2), 0);
+		break;
+
+	/* relocation operations */
+
+	case 74:
+		v = regoff(&p->to);
+		o1 = AOP_IRR(OP_ADDIS, REGTMP, REGZERO, v>>16);
+		o2 = AOP_IRR(opstore(p->as), p->from.reg, REGTMP, v);
+		if(dlm)
+			reloc(&p->to, p->pc, 1);
+		break;
+
+	case 75:
+		v = regoff(&p->from);
+		o1 = AOP_IRR(OP_ADDIS, REGTMP, REGZERO, v>>16);
+		o2 = AOP_IRR(opload(p->as), p->to.reg, REGTMP, v);
+		if(dlm)
+			reloc(&p->from, p->pc, 1);
+		break;
+
+	case 76:
+		v = regoff(&p->from);
+		o1 = AOP_IRR(OP_ADDIS, REGTMP, REGZERO, v>>16);
+		o2 = AOP_IRR(opload(p->as), p->to.reg, REGTMP, v);
+		o3 = LOP_RRR(OP_EXTSB, p->to.reg, p->to.reg, 0);
+		if(dlm)
+			reloc(&p->from, p->pc, 1);
 		break;
 
 	}
@@ -890,6 +963,92 @@ oprrr(int a)
 	case AMULLWV:	return OPVCC(31,235,1,0);
 	case AMULLWVCC:	return OPVCC(31,235,1,1);
 
+	/* the following group is only available on IBM embedded powerpc */
+	case AMACCHW:	return OPVCC(4,172,0,0);
+	case AMACCHWCC:	return OPVCC(4,172,0,1);
+	case AMACCHWS:	return OPVCC(4,236,0,0);
+	case AMACCHWSCC:	return OPVCC(4,236,0,1);
+	case AMACCHWSU:	return OPVCC(4,204,0,0);
+	case AMACCHWSUCC:	return OPVCC(4,204,0,1);
+	case AMACCHWSUV:	return OPVCC(4,204,1,0);
+	case AMACCHWSUVCC:	return OPVCC(4,204,1,1);
+	case AMACCHWSV:	return OPVCC(4,236,1,0);
+	case AMACCHWSVCC:	return OPVCC(4,236,1,1);
+	case AMACCHWU:	return OPVCC(4,140,0,0);
+	case AMACCHWUCC:	return OPVCC(4,140,0,1);
+	case AMACCHWUV:	return OPVCC(4,140,1,0);
+	case AMACCHWUVCC:	return OPVCC(4,140,1,1);
+	case AMACCHWV:	return OPVCC(4,172,1,0);
+	case AMACCHWVCC:	return OPVCC(4,172,1,1);
+	case AMACHHW:	return OPVCC(4,44,0,0);
+	case AMACHHWCC:	return OPVCC(4,44,0,1);
+	case AMACHHWS:	return OPVCC(4,108,0,0);
+	case AMACHHWSCC:	return OPVCC(4,108,0,1);
+	case AMACHHWSU:	return OPVCC(4,76,0,0);
+	case AMACHHWSUCC:	return OPVCC(4,76,0,1);
+	case AMACHHWSUV:	return OPVCC(4,76,1,0);
+	case AMACHHWSUVCC:	return OPVCC(4,76,1,1);
+	case AMACHHWSV:	return OPVCC(4,108,1,0);
+	case AMACHHWSVCC:	return OPVCC(4,108,1,1);
+	case AMACHHWU:	return OPVCC(4,12,0,0);
+	case AMACHHWUCC:	return OPVCC(4,12,0,1);
+	case AMACHHWUV:	return OPVCC(4,12,1,0);
+	case AMACHHWUVCC:	return OPVCC(4,12,1,1);
+	case AMACHHWV:	return OPVCC(4,44,1,0);
+	case AMACHHWVCC:	return OPVCC(4,44,1,1);
+	case AMACLHW:	return OPVCC(4,428,0,0);
+	case AMACLHWCC:	return OPVCC(4,428,0,1);
+	case AMACLHWS:	return OPVCC(4,492,0,0);
+	case AMACLHWSCC:	return OPVCC(4,492,0,1);
+	case AMACLHWSU:	return OPVCC(4,460,0,0);
+	case AMACLHWSUCC:	return OPVCC(4,460,0,1);
+	case AMACLHWSUV:	return OPVCC(4,460,1,0);
+	case AMACLHWSUVCC:	return OPVCC(4,460,1,1);
+	case AMACLHWSV:	return OPVCC(4,492,1,0);
+	case AMACLHWSVCC:	return OPVCC(4,492,1,1);
+	case AMACLHWU:	return OPVCC(4,396,0,0);
+	case AMACLHWUCC:	return OPVCC(4,396,0,1);
+	case AMACLHWUV:	return OPVCC(4,396,1,0);
+	case AMACLHWUVCC:	return OPVCC(4,396,1,1);
+	case AMACLHWV:	return OPVCC(4,428,1,0);
+	case AMACLHWVCC:	return OPVCC(4,428,1,1);
+	case AMULCHW:	return OPVCC(4,168,0,0);
+	case AMULCHWCC:	return OPVCC(4,168,0,1);
+	case AMULCHWU:	return OPVCC(4,136,0,0);
+	case AMULCHWUCC:	return OPVCC(4,136,0,1);
+	case AMULHHW:	return OPVCC(4,40,0,0);
+	case AMULHHWCC:	return OPVCC(4,40,0,1);
+	case AMULHHWU:	return OPVCC(4,8,0,0);
+	case AMULHHWUCC:	return OPVCC(4,8,0,1);
+	case AMULLHW:	return OPVCC(4,424,0,0);
+	case AMULLHWCC:	return OPVCC(4,424,0,1);
+	case AMULLHWU:	return OPVCC(4,392,0,0);
+	case AMULLHWUCC:	return OPVCC(4,392,0,1);
+	case ANMACCHW:	return OPVCC(4,174,0,0);
+	case ANMACCHWCC:	return OPVCC(4,174,0,1);
+	case ANMACCHWS:	return OPVCC(4,238,0,0);
+	case ANMACCHWSCC:	return OPVCC(4,238,0,1);
+	case ANMACCHWSV:	return OPVCC(4,238,1,0);
+	case ANMACCHWSVCC:	return OPVCC(4,238,1,1);
+	case ANMACCHWV:	return OPVCC(4,174,1,0);
+	case ANMACCHWVCC:	return OPVCC(4,174,1,1);
+	case ANMACHHW:	return OPVCC(4,46,0,0);
+	case ANMACHHWCC:	return OPVCC(4,46,0,1);
+	case ANMACHHWS:	return OPVCC(4,110,0,0);
+	case ANMACHHWSCC:	return OPVCC(4,110,0,1);
+	case ANMACHHWSV:	return OPVCC(4,110,1,0);
+	case ANMACHHWSVCC:	return OPVCC(4,110,1,1);
+	case ANMACHHWV:	return OPVCC(4,46,1,0);
+	case ANMACHHWVCC:	return OPVCC(4,46,1,1);
+	case ANMACLHW:	return OPVCC(4,430,0,0);
+	case ANMACLHWCC:	return OPVCC(4,430,0,1);
+	case ANMACLHWS:	return OPVCC(4,494,0,0);
+	case ANMACLHWSCC:	return OPVCC(4,494,0,1);
+	case ANMACLHWSV:	return OPVCC(4,494,1,0);
+	case ANMACLHWSVCC:	return OPVCC(4,494,1,1);
+	case ANMACLHWV:	return OPVCC(4,430,1,0);
+	case ANMACLHWVCC:	return OPVCC(4,430,1,1);
+
 	case ANAND:	return OPVCC(31,476,0,0);
 	case ANANDCC:	return OPVCC(31,476,0,1);
 	case ANEG:	return OPVCC(31,104,0,0);
@@ -904,6 +1063,7 @@ oprrr(int a)
 	case AORNCC:	return OPVCC(31,412,0,1);
 
 	case ARFI:	return OPVCC(19,50,0,0);
+	case ARFCI:	return OPVCC(19,51,0,0);
 
 	case ARLWMI:	return OPVCC(20,0,0,0);
 	case ARLWMICC: return OPVCC(20,0,0,1);
@@ -947,6 +1107,7 @@ oprrr(int a)
 	case ATW:	return OPVCC(31,4,0,0);
 
 	case AXOR:	return OPVCC(31,316,0,0);
+	case AXORCC:	return OPVCC(31,316,0,1);
 	}
 	diag("bad r/r opcode %A", a);
 	return 0;

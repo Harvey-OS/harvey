@@ -11,13 +11,16 @@
 #define	S		((Sym*)0)
 #define	TNAME		(curtext?curtext->from.sym->name:noname)
 
+#define	cput(c)\
+	{ *cbp++ = c;\
+	if(--cbc <= 0)\
+		cflush(); }
+
 typedef	struct	Adr	Adr;
 typedef	struct	Prog	Prog;
 typedef	struct	Sym	Sym;
 typedef	struct	Auto	Auto;
 typedef	struct	Optab	Optab;
-typedef	struct	Reloc	Reloc;
-typedef	struct	Relocsym	Relocsym;
 
 struct	Adr
 {
@@ -75,7 +78,10 @@ struct	Sym
 	short	version;
 	short	become;
 	short	frame;
+	uchar	subtype;
+	ushort	file;
 	long	value;
+	long	sig;
 	Sym*	link;
 };
 struct	Optab
@@ -84,18 +90,6 @@ struct	Optab
 	uchar*	ytab;
 	uchar	prefix;
 	uchar	op[10];
-};
-struct	Reloc
-{
-	char	type;
-	long	pc;
-	Reloc	*link;
-};
-struct	Relocsym
-{
-	Sym	*s;
-	Reloc	*reloc;
-	Relocsym	*link;
 };
 
 enum
@@ -108,6 +102,9 @@ enum
 	SFILE,
 	SCONST,
 	SUNDEF,
+
+	SIMPORT,
+	SEXPORT,
 
 	NHASH		= 10007,
 	NHUNK		= 100000,
@@ -183,6 +180,9 @@ enum
 	Pm		= 0x0f,	/* 2byte opcode escape */
 	Pq		= 0xff,	/* both escape */
 	Pb		= 0xfe,	/* byte operands */
+
+	Roffset	= 22,		/* no. bits for offset in relocation address */
+	Rindex	= 10,		/* no. bits for index in relocation address */
 };
 
 EXTERN union
@@ -265,11 +265,11 @@ EXTERN	int	version;
 EXTERN	Prog	zprg;
 EXTERN	int	dtype;
 
-EXTERN	int	reloc;
 EXTERN	Adr*	reloca;
-EXTERN	Relocsym*	relocs;
-EXTERN	char*	undefs[32];
-EXTERN	int	undefsp;
+EXTERN	int	doexp, dlm;
+EXTERN	int	imports, nimports;
+EXTERN	int	exports, nexports;
+EXTERN	char*	EXPTAB;
 EXTERN	Prog	undefp;
 
 #define	UP	(&undefp)
@@ -285,6 +285,7 @@ int	Sconv(Fmt*);
 void	addhist(long, int);
 Prog*	appendp(Prog*);
 void	asmb(void);
+void	asmdyn(void);
 void	asmins(Prog*);
 void	asmlc(void);
 void	asmsp(void);
@@ -293,6 +294,7 @@ long	atolwhex(char*);
 Prog*	brchain(Prog*);
 Prog*	brloop(Prog*);
 void	cflush(void);
+void	ckoff(Sym*, long);
 Prog*	copyp(Prog*);
 double	cputime(void);
 void	datblk(long, long);
@@ -302,8 +304,10 @@ void	doinit(void);
 void	doprof1(void);
 void	doprof2(void);
 void	dostkoff(void);
+void	dynreloc(Sym*, ulong, int);
 long	entryvalue(void);
 void	errorexit(void);
+void	export(void);
 int	find1(long, int);
 int	find2(long, int);
 void	follow(void);
@@ -311,12 +315,12 @@ void	gethunk(void);
 void	histtoauto(void);
 double	ieeedtod(Ieee*);
 long	ieeedtof(Ieee*);
+void	import(void);
 void	ldobj(int, long, char*);
 void	loadlib(void);
 void	listinit(void);
 Sym*	lookup(char*, int);
 void	lput(long);
-void	cput(int);
 void	lputl(long);
 void	main(int, char*[]);
 void	mkfwd(void);
@@ -326,18 +330,20 @@ void	objfile(char*);
 int	opsize(Prog*);
 void	patch(void);
 Prog*	prg(void);
-void	readundefs(void);
+void	readundefs(char*, int);
 int	relinv(int);
 long	reuse(Prog*, Sym*);
 long	rnd(long, long);
 void	s8put(char*);
 void	span(void);
 void	undef(void);
+void	undefsym(Sym*);
 long	vaddr(Adr*);
-void	wreloc(Sym*, long);
+void	wputb(ushort);
 void	xdefine(char*, int, long);
 void	xfol(Prog*);
 int	zaddr(uchar*, Adr*, Sym*[]);
+void	zerosig(char*);
 
 #pragma	varargck	type	"D"	Adr*
 #pragma	varargck	type	"P"	Prog*

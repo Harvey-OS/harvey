@@ -168,15 +168,6 @@ asmsym(void)
 	Auto *a;
 	Sym *s;
 	int h;
-	Relocsym *rs;
-	Reloc *r;
-
-	for(rs = relocs; rs != nil; rs = rs->link) {
-		if(rs->s != nil)
-			putsymb(rs->s->name, 'U', 0, 0);
-		for(r = rs->reloc; r != nil; r = r->link)
-			putsymb("", r->type, r->pc-INITTEXT, 0);
-	}
 
 	s = lookup("etext", 0);
 	if(s->type == STEXT)
@@ -494,6 +485,7 @@ bas:
 	case D_DX:
 	case D_BX:
 	case D_SP:
+	case D_BP:
 	case D_SI:
 	case D_DI:
 		i |= reg[base];
@@ -507,62 +499,11 @@ bad:
 	return;
 }
 
-static Relocsym *
-genrelocsym(Sym *s, Relocsym**l)
-{
-	Relocsym *r;
-
-	*l = r = malloc(sizeof(Relocsym));
-	r->s = s;
-	r->reloc = nil;
-	r->link = nil;
-	return r;
-}
-
-static void
-genreloc(Sym *s, long pc, int type)
-{
-	Reloc *r;
-	Relocsym *rs, **l;
-
-	if(relocs == nil)
-		genrelocsym(nil, &relocs);
-	l = &relocs;
-	for(rs = *l; rs != nil; rs = *l) {
-		l = &rs->link;
-		if(rs->s == s)
-			break;
-	}
-	if(rs == nil)
-		rs = genrelocsym(s, l);
-	r = malloc(sizeof(Reloc));
-	r->type = type;
-	r->pc = pc;
-	r->link = rs->reloc;
-	rs->reloc = r;
-}
-
-void
-wreloc(Sym *s, long pc)
-{
-	switch(s->type) {
-	case SCONST:
-		break;
-	case SUNDEF:
-		genreloc(s, pc, 'R');
-		break;
-	default:
-		genreloc(nil, pc, 'R');
-		break;
-	}
-}
-
 static void
 put4(long v)
 {
-	if(reloca) {
-		if(curp != P)
-			wreloc(reloca->sym, curp->pc + andptr - &and[0]);
+	if(dlm && curp != P && reloca != nil){
+		dynreloc(reloca->sym, curp->pc + andptr - &and[0], 1);
 		reloca = nil;
 	}
 	andptr[0] = v;
@@ -588,11 +529,11 @@ vaddr(Adr *a)
 	case D_EXTERN:
 		s = a->sym;
 		if(s != nil) {
-			if(reloc)
+			if(dlm && curp != P)
 				reloca = a;
 			switch(s->type) {
 			case SUNDEF:
-				break;
+				ckoff(s, v);
 			case STEXT:
 			case SCONST:
 				v += s->value;
@@ -623,7 +564,7 @@ asmand(Adr *a, int r)
 				put4(v);
 				return;
 			}
-			if(v == 0) {
+			if(v == 0 && t != D_BP) {
 				*andptr++ = (0 << 6) | (4 << 0) | (r << 3);
 				asmidx(a, t);
 				return;
@@ -1083,16 +1024,12 @@ found:
 		q = p->pcond;
 		if(q) {
 			v = q->pc - p->pc - 5;
-			if(reloc && curp != P) {
-				switch(p->to.sym->type) {
-				case SUNDEF:
-					v = 0;
-					genreloc(p->to.sym, p->pc, 'P');
-					break;
-				case SCONST:
-					diag("Zcall: %P", curp);
-					break;
-				}
+			if(dlm && curp != P && p->to.sym->type == SUNDEF){
+				/* v = 0 - p->pc - 5; */
+				v = 0;
+				ckoff(p->to.sym, v);
+				v += p->to.sym->value;
+				dynreloc(p->to.sym, p->pc+1, 0);
 			}
 			*andptr++ = op;
 			*andptr++ = v;
@@ -1294,4 +1231,157 @@ asmins(Prog *p)
 
 	andptr = and;
 	doasm(p);
+}
+
+enum{
+	ABSD = 0,
+	ABSU = 1,
+	RELD = 2,
+	RELU = 3,
+};
+
+int modemap[4] = { 0, 1, -1, 2, };
+
+typedef struct Reloc Reloc;
+
+struct Reloc
+{
+	int n;
+	int t;
+	uchar *m;
+	ulong *a;
+};
+
+Reloc rels;
+
+static void
+grow(Reloc *r)
+{
+	int t;
+	uchar *m, *nm;
+	ulong *a, *na;
+
+	t = r->t;
+	r->t += 64;
+	m = r->m;
+	a = r->a;
+	r->m = nm = malloc(r->t*sizeof(uchar));
+	r->a = na = malloc(r->t*sizeof(ulong));
+	memmove(nm, m, t*sizeof(uchar));
+	memmove(na, a, t*sizeof(ulong));
+	free(m);
+	free(a);
+}
+
+void
+dynreloc(Sym *s, ulong v, int abs)
+{
+	int i, k, n;
+	uchar *m;
+	ulong *a;
+	Reloc *r;
+
+	if(s->type == SUNDEF)
+		k = abs ? ABSU : RELU;
+	else
+		k = abs ? ABSD : RELD;
+	/* Bprint(&bso, "R %s a=%ld(%lx) %d\n", s->name, v, v, k); */
+	k = modemap[k];
+	r = &rels;
+	n = r->n;
+	if(n >= r->t)
+		grow(r);
+	m = r->m;
+	a = r->a;
+	for(i = n; i > 0; i--){
+		if(v < a[i-1]){	/* happens occasionally for data */
+			m[i] = m[i-1];
+			a[i] = a[i-1];
+		}
+		else
+			break;
+	}
+	m[i] = k;
+	a[i] = v;
+	r->n++;
+}
+
+static int
+sput(char *s)
+{
+	char *p;
+
+	p = s;
+	while(*s)
+		cput(*s++);
+	cput(0);
+	return s-p+1;
+}
+
+void
+asmdyn()
+{
+	int i, n, t, c;
+	Sym *s;
+	ulong la, ra, *a;
+	vlong off;
+	uchar *m;
+	Reloc *r;
+
+	cflush();
+	off = seek(cout, 0, 1);
+	lput(0);
+	t = 0;
+	lput(imports);
+	t += 4;
+	for(i = 0; i < NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link)
+			if(s->type == SUNDEF){
+				lput(s->sig);
+				t += 4;
+				t += sput(s->name);
+			}
+
+	la = 0;
+	r = &rels;
+	n = r->n;
+	m = r->m;
+	a = r->a;
+	lput(n);
+	t += 4;
+	for(i = 0; i < n; i++){
+		ra = *a-la;
+		if(*a < la)
+			diag("bad relocation order");
+		if(ra < 256)
+			c = 0;
+		else if(ra < 65536)
+			c = 1;
+		else
+			c = 2;
+		cput((c<<6)|*m++);
+		t++;
+		if(c == 0){
+			cput(ra);
+			t++;
+		}
+		else if(c == 1){
+			wputb(ra);
+			t += 2;
+		}
+		else{
+			lput(ra);
+			t += 4;
+		}
+		la = *a++;
+	}
+
+	cflush();
+	seek(cout, off, 0);
+	lput(t);
+
+	if(debug['v']){
+		Bprint(&bso, "import table entries = %d\n", imports);
+		Bprint(&bso, "export table entries = %d\n", exports);
+	}
 }
