@@ -430,21 +430,27 @@ chat("dosinit0a\n");
 		bootdump(b);
 
 	if(b->clustsize == 0) {
-badclustsize:
-		print("dos file system has incorrect cluster size\n");
-		for(i=0; i<3+8+2+1; i++)
-			print(" %.2ux", p->iobuf[i]);
-		print("\n");
+unreasonable:
+		if(chatty){
+			print("unreasonable FAT BPB: ");
+			for(i=0; i<3+8+2+1; i++)
+				print(" %.2ux", p->iobuf[i]);
+			print("\n");
+		}
 		return -1;
 	}
 
 chat("dosinit1\n");
 
 	/*
-	 *  determine the systems' wondersous properties
+	 * Determine the systems' wondrous properties.
+	 * There are heuristics here, but there's no real way
+	 * of knowing if this is a reasonable FAT.
 	 */
 	dos->fatbits = 0;
 	dos->sectsize = GSHORT(b->sectsize);
+	if(dos->sectsize & 0xFF)
+		goto unreasonable;
 	dos->clustsize = b->clustsize;
 	dos->clustbytes = dos->sectsize*dos->clustsize;
 	dos->nresrv = GSHORT(b->nresrv);
@@ -482,7 +488,7 @@ chat("dosinit1\n");
 	dos->freeptr = 2;
 
 	if(dos->clustbytes < 512 || dos->clustbytes > 64*1024)
-		goto badclustsize;
+		goto unreasonable;
 
 chat("dosinit2\n");
 

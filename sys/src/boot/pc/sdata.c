@@ -27,13 +27,16 @@ enum {					/* I/O ports */
 	Data		= 0,
 	Error		= 1,		/* (read) */
 	Features	= 1,		/* (write) */
-	Count		= 2,		/* sector count */
+	Count		= 2,		/* sector count<7-0>, sector count<15-8> */
 	Ir		= 2,		/* interrupt reason (PACKET) */
-	Sector		= 3,		/* sector number, LBA<7-0> */
-	Cyllo		= 4,		/* cylinder low, LBA<15-8> */
+	Sector		= 3,		/* sector number */
+	Lbalo		= 3,		/* LBA<7-0>, LBA<31-24> */
+	Cyllo		= 4,		/* cylinder low */
 	Bytelo		= 4,		/* byte count low (PACKET) */
-	Cylhi		= 5,		/* cylinder high, LBA<23-16> */
+	Lbamid		= 4,		/* LBA<15-8>, LBA<39-32> */
+	Cylhi		= 5,		/* cylinder high */
 	Bytehi		= 5,		/* byte count hi (PACKET) */
+	Lbahi		= 5,		/* LBA<23-16>, LBA<47-40> */
 	Dh		= 6,		/* Device/Head, LBA<32-14> */
 	Status		= 7,		/* (read) */
 	Command		= 7,		/* (write) */
@@ -89,7 +92,15 @@ enum {					/* Command */
 	Cnop		= 0x00,		/* NOP */
 	Cdr		= 0x08,		/* Device Reset */
 	Crs		= 0x20,		/* Read Sectors */
+	Crs48		= 0x24,		/* Read Sectors Ext */
+	Crd48		= 0x25,		/* Read w/ DMA Ext */
+	Crdq48		= 0x26,		/* Read w/ DMA Queued Ext */
+	Crsm48		= 0x29,		/* Read Multiple Ext */
 	Cws		= 0x30,		/* Write Sectors */
+	Cws48		= 0x34,		/* Write Sectors Ext */
+	Cwd48		= 0x35,		/* Write w/ DMA Ext */
+	Cwdq48		= 0x36,		/* Write w/ DMA Queued Ext */
+	Cwsm48		= 0x39,		/* Write Multiple Ext */
 	Cedd		= 0x90,		/* Execute Device Diagnostics */
 	Cpkt		= 0xA0,		/* Packet */
 	Cidpkt		= 0xA1,		/* Identify Packet Device */
@@ -100,6 +111,7 @@ enum {					/* Command */
 	Crd		= 0xC8,		/* Read DMA */
 	Cwd		= 0xCA,		/* Write DMA */
 	Cwdq		= 0xCC,		/* Write DMA queued */
+	Cstandby	= 0xE2,		/* Standby */
 	Cid		= 0xEC,		/* Identify Device */
 	Csf		= 0xEF,		/* Set Features */
 };
@@ -157,8 +169,7 @@ enum {					/* offsets into the identify info. */
 	Icsec		= 56,		/* sectors if (valid&0x01) */
 	Iccap		= 57,		/* capacity if (valid&0x01) */
 	Irwm		= 59,		/* read/write multiple */
-	Ilba0		= 60,		/* LBA size */
-	Ilba1		= 61,		/* LBA size */
+	Ilba		= 60,		/* LBA size */
 	Imwdma		= 63,		/* multiword DMA mode */
 	Iapiomode	= 64,		/* advanced PIO modes supported */
 	Iminmwdma	= 65,		/* min. multiword DMA cycle time */
@@ -170,18 +181,15 @@ enum {					/* offsets into the identify info. */
 	Iqdepth		= 75,		/* max. queue depth */
 	Imajor		= 80,		/* major version number */
 	Iminor		= 81,		/* minor version number */
-	Icmdset0	= 82,		/* command sets supported */
-	Icmdset1	= 83,		/* command sets supported */
-	Icmdset2	= 84,		/* command sets supported extension */
-	Icmdset3	= 85,		/* command sets enabled */
-	Icmdset4	= 86,		/* command sets enabled */
-	Icmdset5	= 87,		/* command sets enabled extension */
+	Icsfs		= 82,		/* command set/feature supported */
+	Icsfe		= 85,		/* command set/feature enabled */
 	Iudma		= 88,		/* ultra DMA mode */
 	Ierase		= 89,		/* time for security erase */
 	Ieerase		= 90,		/* time for enhanced security erase */
 	Ipower		= 91,		/* current advanced power management */
+	Ilba48		= 100,		/* 48-bit LBA size (64 bits in 100-103) */
 	Irmsn		= 127,		/* removable status notification */
-	Istatus		= 128,		/* security status */
+	Isecstat	= 128,		/* security status */
 };
 
 typedef struct Ctlr Ctlr;
@@ -227,7 +235,7 @@ typedef struct Drive {
 	int	c;			/* cylinder */
 	int	h;			/* head */
 	int	s;			/* sector */
-	int	sectors;		/* total */
+	vlong	sectors;		/* total */
 	int	secsize;		/* sector size */
 
 //	int	dma;			/* DMA R/W possible */
@@ -252,7 +260,13 @@ typedef struct Drive {
 	int	block;			/* R/W bytes per block */
 	int	status;
 	int	error;
+	int	flags;			/* internal flags */
 } Drive;
+
+enum {					/* internal flags */
+	Lba48		= 0x1,		/* LBA48 mode */
+	Lba48always	= 0x2,		/* ... */
+};
 
 static void
 pc87415ienable(Ctlr* ctlr)
@@ -356,7 +370,7 @@ atacsfenabled(Drive* drive, vlong csf)
 		x = (csf>>(16*i)) & 0xFFFF;
 		if(x == 0)
 			continue;
-		cmdset = drive->info[Icmdset3+i];
+		cmdset = drive->info[Icsfe+i];
 		if(cmdset == 0 || cmdset == 0xFFFF)
 			return 0;
 		return cmdset & x;
@@ -365,6 +379,7 @@ atacsfenabled(Drive* drive, vlong csf)
 	return 0;
 }
 
+/*
 static int
 atasf(int cmdport, int ctlport, int dev, uchar* command)
 {
@@ -382,6 +397,7 @@ atasf(int cmdport, int ctlport, int dev, uchar* command)
 		return -1;
 	return 0;
 }
+ */
 
 static int
 ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
@@ -420,7 +436,7 @@ ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
 		for(i = 0; i < 256; i++){
 			if(i && (i%16) == 0)
 				print("\n");
-			print("%4.4uX ", *sp);
+			print(" %4.4uX ", *sp);
 			sp++;
 		}
 		print("\n");
@@ -496,8 +512,16 @@ retry:
 			drive->s = drive->info[Ilsec];
 		}
 		if(drive->info[Icapabilities] & 0x0200){
-			drive->sectors = (drive->info[Ilba1]<<16)
-					 |drive->info[Ilba0];
+			if(drive->info[Icsfs+1] & 0x0400){
+				drive->sectors = drive->info[Ilba48]
+					|(drive->info[Ilba48+1]<<16)
+					|((vlong)drive->info[Ilba48+2]<<32);
+				drive->flags |= Lba48;
+			}
+			else{
+				drive->sectors = (drive->info[Ilba+1]<<16)
+					 |drive->info[Ilba];
+			}
 			drive->dev |= Lba;
 		}
 		else
@@ -512,7 +536,9 @@ retry:
 		print(" mwdma %4.4uX", drive->info[Imwdma]);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
-//		print(" dma %8.8uX rwm %ud\n", drive->dma, drive->rwm);
+//		print(" dma %8.8uX rwm %ud", drive->dma, drive->rwm);
+		if(drive->flags&Lba48)
+			print("\tLLBA sectors %lld", drive->sectors);
 		print("\n");
 	}
 
@@ -901,13 +927,31 @@ atageniodone(void* arg)
 	return ((Ctlr*)arg)->done;
 }
 
+static uchar cmd48[256] = {
+	[Crs]	Crs48,
+	[Crd]	Crd48,
+	[Crdq]	Crdq48,
+	[Crsm]	Crsm48,
+	[Cws]	Cws48,
+	[Cwd]	Cwd48,
+	[Cwdq]	Cwdq48,
+	[Cwsm]	Cwsm48,
+};
+
 static int
-atageniostart(Drive* drive, int lba)
+atageniostart(Drive* drive, vlong lba)
 {
 	Ctlr *ctlr;
-	int as, c, cmdport, ctlport, h, len, s;
+	uchar cmd;
+	int as, c, cmdport, ctlport, h, len, s, use48;
 
-	if(drive->dev & Lba){
+	use48 = 0;
+	if((drive->flags&Lba48always) || (lba>>28) || drive->count > 256){
+		if(!(drive->flags & Lba48))
+			return -1;
+		use48 = 1;
+		c = h = s = 0;
+	}else if(drive->dev & Lba){
 		c = (lba>>8) & 0xFFFF;
 		h = (lba>>24) & 0x0F;
 		s = lba & 0xFF;
@@ -933,16 +977,32 @@ atageniostart(Drive* drive, int lba)
 		drive->command = Crs;
 
 	drive->limit = drive->data + drive->count*drive->secsize;
+	cmd = drive->command;
+	if(use48){
+		outb(cmdport+Count, (drive->count>>8) & 0xFF);
+		outb(cmdport+Count, drive->count & 0XFF);
+		outb(cmdport+Lbalo, (lba>>24) & 0xFF);
+		outb(cmdport+Lbalo, lba & 0xFF);
+		outb(cmdport+Lbamid, (lba>>32) & 0xFF);
+		outb(cmdport+Lbamid, (lba>>8) & 0xFF);
+		outb(cmdport+Lbahi, (lba>>40) & 0xFF);
+		outb(cmdport+Lbahi, (lba>>16) & 0xFF);
+		outb(cmdport+Dh, drive->dev|Lba);
+		cmd = cmd48[cmd];
 
-	outb(cmdport+Count, drive->count);
-	outb(cmdport+Sector, s);
-	outb(cmdport+Dh, drive->dev|h);
-	outb(cmdport+Cyllo, c);
-	outb(cmdport+Cylhi, c>>8);
+		if(DEBUG & Dbg48BIT)
+			print("using 48-bit commands\n");
+	}else{
+		outb(cmdport+Count, drive->count);
+		outb(cmdport+Sector, s);
+		outb(cmdport+Cyllo, c);
+		outb(cmdport+Cylhi, c>>8);
+		outb(cmdport+Dh, drive->dev|h);
+	}
 	ctlr->done = 0;
 	ctlr->curdrive = drive;
 	ctlr->command = drive->command;	/* debugging */
-	outb(cmdport+Command, drive->command);
+	outb(cmdport+Command, cmd);
 
 	switch(drive->command){
 	case Cws:
@@ -980,7 +1040,8 @@ atagenio(Drive* drive, uchar* cmd, int)
 {
 	uchar *p;
 	Ctlr *ctlr;
-	int count, lba, len;
+	int count, max;
+	vlong lba, len;
 
 	/*
 	 * Map SCSI commands into ATA commands for discs.
@@ -1048,6 +1109,32 @@ atagenio(Drive* drive, uchar* cmd, int)
 		drive->data += 8;
 		return SDok;
 
+	case 0x9E:			/* long read capacity */
+		if((cmd[1] & 0x01) || cmd[2] || cmd[3])
+			return atasetsense(drive, SDcheck, 0x05, 0x24, 0);
+		if(drive->data == nil || drive->dlen < 8)
+			return atasetsense(drive, SDcheck, 0x05, 0x20, 1);
+		/*
+		 * Read capacity returns the LBA of the last sector.
+		 */
+		len = drive->sectors-1;
+		p = drive->data;
+		*p++ = len>>56;
+		*p++ = len>>48;
+		*p++ = len>>40;
+		*p++ = len>>32;
+		*p++ = len>>24;
+		*p++ = len>>16;
+		*p++ = len>>8;
+		*p++ = len;
+		len = drive->secsize;
+		*p++ = len>>24;
+		*p++ = len>>16;
+		*p++ = len>>8;
+		*p = len;
+		drive->data += 8;
+		return SDok;
+
 	case 0x28:			/* read */
 	case 0x2A:			/* write */
 		break;
@@ -1065,8 +1152,9 @@ atagenio(Drive* drive, uchar* cmd, int)
 		count = drive->dlen/drive->secsize;
 	qlock(ctlr);
 	while(count){
-		if(count > 256)
-			drive->count = 256;
+		max = (drive->flags&Lba48) ? 65536 : 256;
+		if(count > max)
+			drive->count = max;
 		else
 			drive->count = count;
 		if(atageniostart(drive, lba)){
@@ -1408,6 +1496,17 @@ atapnp(void)
 			pcicfgw8(p, 0x44, r|0x08);
 			r = pcicfgr8(p, 0x46);
 			pcicfgw8(p, 0x46, (r & 0x0C)|0xF0);
+			/*FALLTHROUGH*/
+		case (0x7469<<16)|0x1022:	/* AMD 3111 */
+			/*
+			 * This can probably be lumped in with the 768 above.
+			 */
+			/*FALLTHROUGH*/
+		case (0x00D5<<16)|0x10DE:	/* nVidia nForce3 */
+			/*
+			 * Ditto, although it may have a different base
+			 * address for the registers (0x50?).
+			 */
 			break;
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
