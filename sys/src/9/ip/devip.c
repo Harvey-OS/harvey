@@ -79,10 +79,10 @@ ip3gen(Chan *c, int i, Dir *dp)
 		devdir(c, q, "ctl", 0, cv->owner, cv->perm, dp);
 		return 1;
 	case Qdata:
-		devdir(c, q, "data", qlen(cv->rq), cv->owner, cv->perm, dp);
+		devdir(c, q, "data", 0, cv->owner, cv->perm, dp);
 		return 1;
 	case Qerr:
-		devdir(c, q, "err", qlen(cv->eq), cv->owner, cv->perm, dp);
+		devdir(c, q, "err", 0, cv->owner, cv->perm, dp);
 		return 1;
 	case Qlisten:
 		devdir(c, q, "listen", 0, cv->owner, cv->perm, dp);
@@ -96,7 +96,7 @@ ip3gen(Chan *c, int i, Dir *dp)
 	case Qsnoop:
 		if(strcmp(cv->p->name, "ipifc") != 0)
 			return -1;
-		devdir(c, q, "snoop", qlen(cv->sq), cv->owner, 0400, dp);
+		devdir(c, q, "snoop", 0, cv->owner, 0400, dp);
 		return 1;
 	case Qstatus:
 		p = "status";

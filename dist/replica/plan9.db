@@ -401,7 +401,7 @@
 386/bin/sum - 775 sys sys 1064598321 40087
 386/bin/swap - 775 sys sys 1064598322 60601
 386/bin/syscall - 775 sys sys 1064598322 72383
-386/bin/tail - 775 sys sys 1064598323 64637
+386/bin/tail - 775 sys sys 1076644755 64896
 386/bin/tar - 775 sys sys 1070342463 81040
 386/bin/tbl - 775 sys sys 1064598324 111550
 386/bin/tcs - 775 sys sys 1064598326 256771
@@ -5216,7 +5216,7 @@ sys/src/9/boot/testboot.c - 664 sys sys 1039763734 496
 sys/src/9/ip - 20000000775 sys sys 1015278450 0
 sys/src/9/ip/arp.c - 664 sys sys 1047951324 10671
 sys/src/9/ip/chandial.c - 664 sys sys 1022588098 2276
-sys/src/9/ip/devip.c - 664 sys sys 1074086743 24188
+sys/src/9/ip/devip.c - 664 sys sys 1076612254 24155
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
 sys/src/9/ip/ethermedium.c - 664 sys sys 1066514880 15124
@@ -5242,7 +5242,7 @@ sys/src/9/ip/nullmedium.c - 664 sys sys 1022588099 491
 sys/src/9/ip/pktmedium.c - 664 sys sys 1045063516 1355
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1055700790 21415
-sys/src/9/ip/tcp.c - 664 sys sys 1071335383 65391
+sys/src/9/ip/tcp.c - 664 sys sys 1076613357 65462
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1055700791 13069
 sys/src/9/mkfile - 664 sys sys 1063857477 205
@@ -5306,7 +5306,7 @@ sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1071245462 18026
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
 sys/src/9/pc/ether82557.c - 664 sys sys 1066514925 29683
-sys/src/9/pc/ether83815.c - 664 sys sys 1026847640 23050
+sys/src/9/pc/ether83815.c - 664 sys sys 1076594631 23182
 sys/src/9/pc/ether8390.c - 664 sys sys 1071245462 17557
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherec2t.c - 664 sys sys 1020284820 4038
@@ -5415,12 +5415,12 @@ sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
 sys/src/9/port/devfs.c - 664 sys sys 1067722764 10760
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
-sys/src/9/port/devloopback.c - 664 sys sys 1067722759 14670
+sys/src/9/port/devloopback.c - 664 sys sys 1076612248 14573
 sys/src/9/port/devmnt.c - 664 sys sys 1067953214 21594
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1067722758 12203
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
-sys/src/9/port/devpipe.c - 664 sys sys 1032640439 5825
+sys/src/9/port/devpipe.c - 664 sys sys 1076612247 5576
 sys/src/9/port/devpnp.c - 664 sys sys 1055688361 13021
 sys/src/9/port/devproc.c - 664 sys sys 1074785145 28636
 sys/src/9/port/devrealtime.c - 664 sys sys 1055688366 16209
@@ -5432,7 +5432,7 @@ sys/src/9/port/devsrv.c - 664 sys sys 1063856594 5197
 sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1066737478 45222
-sys/src/9/port/devuart.c - 664 sys sys 1067722718 11683
+sys/src/9/port/devuart.c - 664 sys sys 1076612247 11328
 sys/src/9/port/edf.c - 664 sys sys 1072704672 12331
 sys/src/9/port/edf.h - 664 sys sys 1074883055 1145
 sys/src/9/port/error.h - 664 sys sys 1055700517 2630
@@ -10390,7 +10390,7 @@ sys/src/cmd/swap.c - 664 sys sys 1014926662 1141
 sys/src/cmd/syscall - 20000000775 sys sys 944961236 0
 sys/src/cmd/syscall/mkfile - 664 sys sys 1037122264 549
 sys/src/cmd/syscall/syscall.c - 664 sys sys 1036972051 3927
-sys/src/cmd/tail.c - 664 sys sys 1014926615 5715
+sys/src/cmd/tail.c - 664 sys sys 1076614068 5990
 sys/src/cmd/tapefs - 20000000775 sys sys 944962012 0
 sys/src/cmd/tapefs/32vfs.c - 664 sys sys 1014926384 3688
 sys/src/cmd/tapefs/cpiofs.c - 664 sys sys 1014926384 2493
