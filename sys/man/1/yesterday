@@ -34,6 +34,13 @@ prints
 In fact, the implementation is to select the most recent dump in
 the current year, so the dump selected may not be from today.
 .PP
+When presented with a path of the form
+.BI /n/ fs / path \fR,
+.I yesterday
+will look for
+dump files of the form
+.BI /n/ fs dump/ yyyy / hhmm / path \fR.
+.PP
 By default, 
 .I yesterday
 prints the names of the dump files corresponding to the named files.

@@ -143,7 +143,7 @@ vncputc(int keyup, int c)
 		nk = 0;
 		collecting = 0;
 		return;
-	} else {
+	}else{
 		switch(c){
 		case Caps:
 			caps ^= 1;

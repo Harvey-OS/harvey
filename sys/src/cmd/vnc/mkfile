@@ -17,14 +17,14 @@ SOFILES=\
 	chan.$O\
 	compat.$O\
 	exportfs.$O\
-	kbd.$O\
+	kbds.$O\
 	latin1.$O\
 	rre.$O\
-	region.$O\
+	rlist.$O\
 
 COFILES=\
 	draw.$O\
-	kbd_vwr.$O\
+	kbdv.$O\
 	color.$O\
 	wsys.$O\
 
@@ -35,11 +35,18 @@ HFILES=\
 	errstr.h\
 	kbd.h\
 	latin1.h\
-	region.h\
 	vncv.h\
 	vncs.h\
 
-UPDATE=`{echo *.[ch] mkfile} `{echo $TARG |sed 's/([^ $]*)( |$)/\/386\/bin\/\1 /g'}
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${SOFILES:%.$O=%.c}\
+	${COFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/%}\
+
 
 default:V:	all
 

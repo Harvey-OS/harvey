@@ -29,7 +29,7 @@ chanfree(Chan *c)
 	c->flag = CFREE;
 
 	cnameclose(c->name);
-
+	free(c);
 }
 
 void
@@ -40,7 +40,7 @@ cclose(Chan *c)
 	if(decref(c))
 		return;
 
-	if(!waserror()) {
+	if(!waserror()){
 		devtab[c->type]->close(c);
 		poperror();
 	}

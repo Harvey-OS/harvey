@@ -83,7 +83,7 @@ readkbd(Vnc *v)
 
 	kn = 0;
 	shift = alt = ctl = 0;
-	for(;;) {
+	for(;;){
 		while(!fullrune(k, kn)){
 			kr = read(fd, k+kn, sizeof k - kn);
 			if(kr <= 0)
@@ -95,7 +95,7 @@ readkbd(Vnc *v)
 		memmove(k, &k[w], kn);
 		ks = runetoksym(r);
 
-		switch(r) {
+		switch(r){
 		case Kalt:
 			alt = !alt;
 			keyevent(v, Xalt, alt);
@@ -109,7 +109,7 @@ readkbd(Vnc *v)
 			keyevent(v, Xshift, shift);
 			break;
 		default:
-			if(r == ks && r < 0x1A) {	/* control key */
+			if(r == ks && r < 0x1A){	/* control key */
 				keyevent(v, Xctl, 1);
 				keyevent(v, r+0x60, 1);	/* 0x60: make capital letter */
 				keyevent(v, r+0x60, 0);
@@ -121,15 +121,15 @@ readkbd(Vnc *v)
 							*/
 			}
 
-			if(alt) {
+			if(alt){
 				keyevent(v, Xalt, 0);
 				alt = 0;
 			}
-			if(ctl) {
+			if(ctl){
 				keyevent(v, Xctl, 0);
 				ctl = 0;
 			}
-			if(shift) {
+			if(shift){
 				keyevent(v, Xshift, 0);
 				shift = 0;
 			}

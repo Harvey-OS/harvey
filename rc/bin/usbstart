@@ -1,0 +1,7 @@
+#!/bin/rc
+
+if (test -r '#U'/usb0) {
+	usb/usbd
+	usb/usbmouse -a 2
+	usb/usbaudio
+}

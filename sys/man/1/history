@@ -4,7 +4,7 @@ history \- print file names from the dump
 .SH SYNOPSIS
 .B history
 [
-.B -vDu
+.B -vDufN
 ] [
 .B -d
 .I dumpfilesystem
@@ -36,6 +36,14 @@ May 10 16:40:51 EDT 2001 /n/dump/2001/0511/adm/users 10476 [adm]
 	...
 .EE
 .PP
+When presented with a path of the form
+.BI /n/ fs / path \fR,
+.I history
+will use
+.IB fs dump
+as the name of the dump file system, and will print a history of
+.IR path .
+.PP
 The
 .B -v
 option enables verbose debugging printout.
@@ -57,8 +65,14 @@ option causes times to be printed in GMT (UT) rather than local time.
 .PP
 The
 .B -d
-option selects some other dump filesystem such as
+option selects some other dump file system such as
 .IR /n/bootesdump .
+.PP
+The
+.B -f
+option forces the search to continue even when the
+file in question does not exist (useful for files that only
+exist intermittently).
 .PP
 Finally, the
 .B -s

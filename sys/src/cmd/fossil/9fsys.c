@@ -108,7 +108,7 @@ fsysGet(char* name)
 }
 
 char*
-fsysGetName(Fsys *fsys)
+fsysGetName(Fsys* fsys)
 {
 	return fsys->name;
 }
@@ -202,7 +202,7 @@ fsysModeString(ulong mode, char *buf)
 }
 
 int
-fsysParseMode(char *s, ulong *mode)
+fsysParseMode(char* s, ulong* mode)
 {
 	ulong x, y;
 	char *p;
@@ -815,10 +815,7 @@ fsysEsearch1(File* f, char* s, u32int elo)
 			if((ff = fileWalk(f, de.elem)) == nil)
 				consPrint("\tcannot walk %s/%s: %R\n", s, de.elem);
 			else{
-				t = vtMemAlloc(strlen(s)+1+strlen(de.elem)+1);
-				strcpy(t, s);
-				strcat(t, "/");
-				strcat(t, de.elem);
+				t = smprint("%s/%s", s, de.elem);
 				n += fsysEsearch1(ff, t, elo);
 				vtMemFree(t);
 				fileDecRef(ff);
@@ -953,23 +950,38 @@ fsysCreate(Fsys* fsys, int argc, char* argv[])
 		p = "/";
 		elem = path;
 	}
+
 	r = 0;
-	if((parent = fileOpen(fsys->fs, p)) != nil){
-		file = fileCreate(parent, elem, mode, argv[1]);
-		fileDecRef(parent);
-		if(file != nil){
-			if(fileGetDir(file, &de)){
-				r = 1;
-				if(strcmp(de.gid, argv[2]) != 0){
-					vtMemFree(de.gid);
-					de.gid = vtStrDup(argv[2]);
-					r = fileSetDir(file, &de, argv[1]);
-				}
-				deCleanup(&de);
-			}
-			fileDecRef(file);
+	if((parent = fileOpen(fsys->fs, p)) == nil)
+		goto out;
+
+	file = fileCreate(parent, elem, mode, argv[1]);
+	fileDecRef(parent);
+	if(file == nil){
+		vtSetError("create %s/%s: %R", p, elem);
+		goto out;
+	}
+
+	if(!fileGetDir(file, &de)){
+		vtSetError("stat failed after create: %R");
+		goto out1;
+	}
+
+	if(strcmp(de.gid, argv[2]) != 0){
+		vtMemFree(de.gid);		
+		de.gid = vtStrDup(argv[2]);
+		if(!fileSetDir(file, &de, argv[1])){
+			vtSetError("wstat failed after create: %R");
+			goto out2;
 		}
 	}
+	r = 1;
+
+out2:
+	deCleanup(&de);
+out1:
+	fileDecRef(file);
+out:
 	vtMemFree(path);	
 	vtRUnlock(fsys->fs->elk);
 

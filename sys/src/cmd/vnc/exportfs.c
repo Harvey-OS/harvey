@@ -116,7 +116,7 @@ exportinit(void)
 {
 	lock(&exq.l);
 	exq.ref++;
-	if(fcalls[Tversion] != nil) {
+	if(fcalls[Tversion] != nil){
 		unlock(&exq.l);
 		return;
 	}
@@ -465,7 +465,7 @@ Exgetfid(Export *fs, int fid)
 
 	lock(&fs->fidlock);
 	h = fid % Nfidhash;
-	for(f = fs->fid[h]; f; f = f->next) {
+	for(f = fs->fid[h]; f; f = f->next){
 		if(f->fid == fid){
 			if(f->attached == 0)
 				break;
@@ -693,7 +693,7 @@ Exread(Export *fs, Fcall *rpc, uchar *buf)
 
 	c = f->chan;
 
-	if(waserror()) {
+	if(waserror()){
 		Exputfid(fs, f);
 		return up->error;
 	}
