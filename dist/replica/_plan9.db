@@ -136,7 +136,7 @@
 386/bin/aux/searchfs - 775 sys sys 1085077005 87587
 386/bin/aux/sprog - 775 sys sys 1085077006 77357
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
-386/bin/aux/sshserve - 775 sys sys 1085077007 251118
+386/bin/aux/sshserve - 775 sys sys 1092539157 249442
 386/bin/aux/stub - 775 sys sys 1089397310 132953
 386/bin/aux/tcpostio - 775 sys sys 1089985359 200148
 386/bin/aux/text2post - 775 sys sys 1085077008 76406
@@ -370,7 +370,7 @@
 386/bin/rx - 775 sys sys 1085077094 79893
 386/bin/sam - 775 sys sys 1085077095 155916
 386/bin/scat - 775 sys sys 1085077095 281706
-386/bin/scp - 775 sys sys 1085077096 151403
+386/bin/scp - 775 sys sys 1092539157 149860
 386/bin/scuzz - 775 sys sys 1085077096 109619
 386/bin/sed - 775 sys sys 1085077096 87471
 386/bin/seq - 775 sys sys 1085077096 38178
@@ -387,8 +387,8 @@
 386/bin/srv - 775 sys sys 1085077099 80398
 386/bin/srvfs - 775 sys sys 1085077099 39578
 386/bin/srvold9p - 775 sys sys 1085077100 128139
-386/bin/ssh - 775 sys sys 1085077100 210573
-386/bin/sshnet - 775 sys sys 1089397318 280607
+386/bin/ssh - 775 sys sys 1092539158 208978
+386/bin/sshnet - 775 sys sys 1092539158 280678
 386/bin/stats - 775 sys sys 1087442538 188279
 386/bin/strings - 775 sys sys 1085077101 60090
 386/bin/strip - 775 sys sys 1085077101 59994
@@ -12337,7 +12337,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/scp - 775 sys sys 1092539157 149860
-386/bin/ssh - 775 sys sys 1092539158 208978
-386/bin/aux/sshserve - 775 sys sys 1092539157 249442
-386/bin/sshnet - 775 sys sys 1092539158 280678
