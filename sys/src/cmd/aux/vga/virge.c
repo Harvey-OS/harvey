@@ -41,6 +41,11 @@ snarf(Vga* vga, Ctlr* ctlr)
 			(vga->crt[0x2D]<<8)|vga->crt[0x2E]);
 		/*FALLTHROUGH*/
 
+	case 0x8810:				/* MS Virtual PC 2004 */
+		/*
+		 * Until we know any better...
+		FALLTHROUGH
+		 */
 	case 0x8811:				/* Trio64+ */
 		vga->r[1] = 3;
 		vga->m[1] = 127;

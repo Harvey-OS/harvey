@@ -444,7 +444,7 @@ If file trees are in use, the file
 metadata will be consulted on open, create, remove, and wstat
 to see if the requester has the appropriate permissions.
 If not, an error will be sent back without consulting a service function.
-.PP
+.IP
 If not using file trees or the user has the appropriate permissions,
 .I open
 is called with

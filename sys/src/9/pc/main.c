@@ -578,7 +578,7 @@ procsave(Proc *p)
 	p->pcycles += t;
 	if(p->fpstate == FPactive){
 		if(p->state == Moribund)
-			fpoff();
+			fpclear();
 		else{
 			/*
 			 * Fpsave() stores without handling pending
