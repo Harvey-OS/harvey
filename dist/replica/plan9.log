@@ -17759,3 +17759,12 @@
 1103794299 53 a sys/src/games/music/readcd - 775 sys sys 1103793915 996
 1103819503 0 c sys/src/cmd/auth/factotum/chap.c - 664 sys sys 1103818824 8942
 1103862710 0 c 386/bin/auth/factotum - 775 sys sys 1103861395 313899
+1103931004 0 c sys/src/cmd/auth/secstore/aescbc.c - 664 sys sys 1103929625 4334
+1103931004 1 c sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1103929625 12531
+1103931004 2 c sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1103929624 830
+1103931004 3 c sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1103929625 5128
+1103931004 4 c sys/src/cmd/auth/secstore/util.c - 664 sys sys 1103929624 1478
+1103949008 0 c 386/bin/auth/aescbc - 775 sys sys 1103947526 133193
+1103949008 1 c 386/bin/auth/secstore - 775 sys sys 1103947527 189196
+1103949008 2 c 386/bin/auth/secstored - 775 sys sys 1103947527 196591
+1103949008 3 c 386/bin/auth/secuser - 775 sys sys 1103947528 152264
