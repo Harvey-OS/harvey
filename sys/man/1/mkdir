@@ -3,12 +3,22 @@
 mkdir \- make a directory
 .SH SYNOPSIS
 .B mkdir
+[
+.B -p
+]
 .I dirname ...
 .SH DESCRIPTION
 .I Mkdir
 creates the specified directories.
 It
 requires write permission in the parent directory.
+.PP
+If the
+.B -p
+flag is given,
+.I mkdir
+creates any necessary parent directories
+and does not complain if the target directory already exists.
 .SH "SEE ALSO"
 .IR rm (1)
 .br
