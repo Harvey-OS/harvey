@@ -1,0 +1,29 @@
+.TH WINWATCH 1
+.SH NAME
+winwatch \- monitor rio windows
+.SH SYNOPSIS
+.B winwatch
+[
+.B -f
+.I font
+]
+.SH DESCRIPTION
+.I Winwatch
+displays the labels of all current
+.IR rio (4)
+windows, refreshing the display every five seconds.
+Right clicking a window's label unhides, raises and gives focus to that window.
+Typing
+.B q
+or
+DEL
+quits
+.IR winwatch .
+.SH FILES
+.B /dev/wsys/*/label
+.SH SOURCE
+.B /sys/src/cmd/winwatch.c
+.SH SEE ALSO
+.IR rio (1),
+.IR window (1),
+.IR rio (4).

@@ -1,7 +1,7 @@
 #!/bin/rc
 
 # desc: edit partition tables (e.g., to create a plan 9 partition)
-# prereq: 
+# prereq: configfs
 
 switch($1){
 case go

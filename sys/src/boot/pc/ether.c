@@ -40,7 +40,7 @@ struct {
 	{ "3C589", ether589reset, 1, },
 	{ "3C562", ether589reset, 1, },
 	{ "589E", ether589reset, 1, },
-	{ "NE2000", ne2000reset, 1, },
+	{ "NE2000", ne2000reset, 0, },
 	{ "WD8003", wd8003reset, 1, },
 	{ "EC2T", ec2treset, 0, },
 	{ "AMD79C970", amd79c970reset, 0, },

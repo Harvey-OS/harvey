@@ -23,7 +23,7 @@ if(! test -d /n/c:/plan9 && ! mkdir /n/c:/plan9) {
 	exit bad
 }
 
-if(! cp /n/kfs/386/^(9load ld.com 9pcdisk) /tmp/plan9ini.bak /n/c:/plan9) {
+if(! cp /n/newfs/386/^(9load ld.com 9pcdisk) /tmp/plan9ini.bak /n/c:/plan9) {
 	echo 'Could not copy Plan 9 boot files into /n/c:/plan9.'
 	exit bad
 }

@@ -31,6 +31,10 @@ case go
 				echo bootfile'='$bootfs!/386/9pcdisk
 				echo 'bootdisk=local!'^$sfs
 			}
+			if(~ $fstype fossil+venti){
+				venti=`{echo $ventiarena | sed 's;/dev;#S;'}
+				echo venti'='^$venti
+			}
 			grep -v '(^\[)|menuitem|adisk|bootfile|bootdisk|bootargs|nobootprompt|mouseport|vgasize|monitor|cdboot' /tmp/plan9.orig
 			echo 'mouseport='^$mouseport
 			echo 'monitor='^$monitor
@@ -51,7 +55,7 @@ case go
 	if(~ $need9fatformat yes){
 		log Initializing Plan 9 FAT partition.
 		disk/format -r 2 -d -b /386/pbs \
-			/dev/$disk/9fat /n/kfs/386/9load
+			/dev/$disk/9fat /n/newfs/386/9load
 		# silently install pbslba if the partition is way into the disk.
 		# it''s our only hope.  only need this for >8.5GB into the disk.
 		# but...
@@ -73,8 +77,8 @@ case go
 	}
 
 	if(! test -f /n/9fat/4e){
-		logprog cp /n/kfs/386/9load /n/9fat/9load
-		logprog cp /n/kfs/386/9pcf /n/9fat/9pcf
+		logprog cp /n/newfs/386/9load /n/9fat/9load
+		logprog cp /n/newfs/386/9pcf /n/9fat/9pcf
 		if(test -f /n/9fat/plan9.ini && ! test -f /n/9fat/plan9-3e.ini)
 			logprog mv /n/9fat/plan9.ini /n/9fat/plan9-3e.ini
 		if(test -f /n/9fat/9pcdisk && ! test -f /n/9fat/9pc3e)

@@ -159,21 +159,4 @@ fn isipdevup {
 	grep -s $1 /net/ipifc/*/status >[2]/dev/null 
 }
 
-fn kfsname {
-	echo $1 | sed 's;/;_;g'
-}
-
-# make sure the kfs server for /dev/$1/fs is running.
-# we use /srv/kfs.$1
-#
-
-fn runkfs {
-	if(! test -f /srv/kfs.$1 || ! mount /srv/kfs.$1 /n/kremvax) {
-		rm -f /srv/kfs.$1 /srv/kfs.$1.cmd
-		disk/kfs -n$1 -f /dev/$1/fs
-	}
-	disk/kfscmd -n$1 allow
-}
-
-fstype=fossil
 

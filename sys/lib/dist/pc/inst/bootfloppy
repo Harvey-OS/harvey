@@ -33,7 +33,7 @@ if(! ~ `{ls -l $adisk | awk '{print $6}'} 1474560){
 
 log Formatting boot floppy
 disk/format -b /386/pbs \
-	-fd $adisk /n/kfs/386/9load /n/kfs/386/9pcdisk.gz \
+	-fd $adisk /n/newfs/386/9load /n/newfs/386/9pcdisk.gz \
 	/tmp/plan9ini.bak
 x=$status
 

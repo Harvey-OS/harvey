@@ -23,8 +23,8 @@
 		disk	d555 sys sys
 			fdisk	555 sys sys
 			format	555 sys sys
-#			kfs	555 sys sys
-#			kfscmd	555 sys sys
+			kfs	555 sys sys
+			kfscmd	555 sys sys
 			mbr	555 sys sys
 			prep	555 sys sys
 		fossil	d555 sys sys
@@ -46,11 +46,11 @@
 			compactdb	555 sys sys /sys/lib/dist/pc/sub/compactdb
 			pull		555 sys sys
 		venti	d555 sys sys
-#VENTI			venti	555 sys sys
-#VENTI			conf		555 sys sys
-#VENTI			fmtarenas	555 sys sys
-#VENTI			fmtindex	555 sys sys
-#VENTI			fmtisect	555 sys sys
+#			venti	555 sys sys
+#			conf		555 sys sys
+#			fmtarenas	555 sys sys
+#			fmtindex	555 sys sys
+#			fmtisect	555 sys sys
 		9660srv	555 sys sys
 # acme could go
 #		acme	555 sys sys
@@ -73,8 +73,8 @@
 		ed	555 sys sys
 # if cpu goes, exportfs could go
 #		exportfs	555 sys sys
-		ext2srv	555 sys sys
-		fcp 555 sys sys
+#		ext2srv	555 sys sys
+		fcp		555	sys	sys
 		grep	555 sys sys
 		hget	555 sys sys
 		hoc	555 sys sys
@@ -132,10 +132,8 @@ n	d777 sys sys
 	c:	d000 sys sys
 	c	d000 sys sys
 	9fat	d000 sys sys
-	9	d000 sys sys
-	kfs	d000 sys sys	/sys/lib/dist/pc/empty
 	kremvax	d000 sys sys	/sys/lib/dist/pc/empty
-	fossil	d000 sys sys
+	newfs	d000 sys sys
 	dist	d000 sys sys	/sys/lib/dist/pc/empty
 	distmedia	d000 sys sys	/sys/lib/dist/pc/empty
 rc	d555 sys sys

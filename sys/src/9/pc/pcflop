@@ -58,6 +58,7 @@ link
 	ethermedium
 	pcmciamodem
 	netdevmedium
+	loopbackmedium
 #	usbuhci
 
 misc
