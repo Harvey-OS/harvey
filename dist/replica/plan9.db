@@ -539,7 +539,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1073851273 77700
+386/lib/libmp.a - 664 sys sys 1074060976 78536
 386/lib/libndb.a - 664 sys sys 1073851273 54474
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -5208,7 +5208,7 @@ sys/src/9/boot/testboot.c - 664 sys sys 1039763734 496
 sys/src/9/ip - 20000000775 sys sys 1015278450 0
 sys/src/9/ip/arp.c - 664 sys sys 1047951324 10671
 sys/src/9/ip/chandial.c - 664 sys sys 1022588098 2276
-sys/src/9/ip/devip.c - 664 sys sys 1067722615 24186
+sys/src/9/ip/devip.c - 664 sys sys 1074086743 24188
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
 sys/src/9/ip/ethermedium.c - 664 sys sys 1066514880 15124
@@ -10380,7 +10380,7 @@ sys/src/cmd/ssh/ssh.h - 664 sys sys 1048179595 6054
 sys/src/cmd/ssh/sshnet.c - 664 sys sys 1062091019 17661
 sys/src/cmd/ssh/sshserve.c - 664 sys sys 1062091020 5786
 sys/src/cmd/ssh/util.c - 664 sys sys 1063858753 4478
-sys/src/cmd/stats.c - 664 sys sys 1067278458 28129
+sys/src/cmd/stats.c - 664 sys sys 1074086705 28191
 sys/src/cmd/strings.c - 664 sys sys 944961364 1216
 sys/src/cmd/strip.c - 664 sys sys 1014926661 3306
 sys/src/cmd/sum.c - 664 sys sys 1014926615 5548
