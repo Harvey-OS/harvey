@@ -394,6 +394,14 @@ sdgetfspart(int i, char *s, int chatty)
 	SDpart *p;
 	Scsicrud *crud;
 
+	if(cdmask&(1<<i)){
+		if(strcmp(s, "cdboot") != 0)
+			return nil;
+	}else if(sdmask&(1<<i)){
+		if(strcmp(s, "cdboot") == 0)
+			return nil;
+	}
+
 	unit = sdindex2unit(i);
 	if((p = sdfindpart(unit, s)) == nil){
 		if(chatty)

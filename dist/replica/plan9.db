@@ -6,17 +6,17 @@
 29000/mkfile - 664 sys sys 948141302 46
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1071175100 188380
-386/9loaddebug - 775 sys sys 1068385814 262014
-386/9loadlite - 775 sys sys 1066618055 124684
+386/9loaddebug - 775 sys sys 1077033686 271334
+386/9loadlite - 775 sys sys 1077033685 125344
 386/9loadlitedebug - 775 sys sys 1068385814 184444
-386/9pc - 775 sys sys 1068385819 1828006
-386/9pc.gz - 664 sys sys 1040006338 614078
-386/9pccpu - 775 sys sys 1068385822 1471511
-386/9pccpu.gz - 664 sys sys 1040006341 504177
+386/9pc - 775 sys sys 1077049334 1842517
+386/9pc.gz - 664 sys sys 1077049336 635727
+386/9pccpu - 775 sys sys 1077049386 1485859
+386/9pccpu.gz - 664 sys sys 1077049387 519909
 386/9pcdisk - 775 sys sys 1068385827 2037837
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
-386/9pcf - 775 sys sys 1068385833 2363147
-386/9pcf.gz - 664 sys sys 1064598456 862669
+386/9pcf - 775 sys sys 1077049487 2380610
+386/9pcf.gz - 664 sys sys 1077049490 872650
 386/9pxeload - 775 sys sys 1071320501 188380
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
@@ -401,7 +401,7 @@
 386/bin/sum - 775 sys sys 1064598321 40087
 386/bin/swap - 775 sys sys 1064598322 60601
 386/bin/syscall - 775 sys sys 1064598322 72383
-386/bin/tail - 775 sys sys 1076644755 64896
+386/bin/tail - 775 sys sys 1077076819 64685
 386/bin/tar - 775 sys sys 1070342463 81040
 386/bin/tbl - 775 sys sys 1064598324 111550
 386/bin/tcs - 775 sys sys 1064598326 256771
@@ -527,7 +527,7 @@
 386/lib/libauthsrv.a - 664 sys sys 1073851265 33806
 386/lib/libbin.a - 664 sys sys 1073851265 2556
 386/lib/libbio.a - 664 sys sys 1073851265 28338
-386/lib/libc.a - 664 sys sys 1076903525 504442
+386/lib/libc.a - 664 sys sys 1077076820 504454
 386/lib/libcomplete.a - 664 sys sys 1076817073 6312
 386/lib/libcontrol.a - 664 sys sys 1073851267 242856
 386/lib/libdisk.a - 664 sys sys 1073851267 43536
@@ -542,7 +542,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1076990357 81428
+386/lib/libmp.a - 664 sys sys 1077076820 77700
 386/lib/libndb.a - 664 sys sys 1073851273 54474
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -2983,7 +2983,7 @@ rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
 rc/bin/cpurc - 775 sys sys 1048777186 1338
 rc/bin/dial - 20000000775 sys sys 1059180057 0
-rc/bin/dircp - 775 sys sys 953344769 113
+rc/bin/dircp - 775 sys sys 1077038698 192
 rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
 rc/bin/doctype - 775 sys sys 945617206 1726
@@ -4568,7 +4568,7 @@ sys/log/httpd/url - 666 sys sys 958933934 0
 sys/log/imap4d - 10000000666 sys sys 958934039 0
 sys/log/ipboot - 10000000666 sys sys 958934040 0
 sys/log/listen - 10000000666 sys sys 958934040 0
-sys/log/mail - 10000000666 sys sys 1059490995 114
+sys/log/mail - 10000000666 sys sys 1077042805 229
 sys/log/nfs - 10000000666 sys sys 958934039 0
 sys/log/nfsserver - 10000000666 sys sys 958934040 0
 sys/log/pop3 - 10000000666 sys sys 958934040 0
@@ -5216,7 +5216,7 @@ sys/src/9/boot/testboot.c - 664 sys sys 1039763734 496
 sys/src/9/ip - 20000000775 sys sys 1015278450 0
 sys/src/9/ip/arp.c - 664 sys sys 1047951324 10671
 sys/src/9/ip/chandial.c - 664 sys sys 1022588098 2276
-sys/src/9/ip/devip.c - 664 sys sys 1076612254 24155
+sys/src/9/ip/devip.c - 664 sys sys 1077055047 24188
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
 sys/src/9/ip/ethermedium.c - 664 sys sys 1066514880 15124
@@ -5364,7 +5364,7 @@ sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1071615236 50538
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
-sys/src/9/pc/sdscsi.c - 664 sys sys 1055689892 7406
+sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
 sys/src/9/pc/trap.c - 664 sys sys 1074785126 20668
 sys/src/9/pc/uarti8250.c - 664 sys sys 1067722686 13859
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
@@ -5420,7 +5420,7 @@ sys/src/9/port/devmnt.c - 664 sys sys 1067953214 21594
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1067722758 12203
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
-sys/src/9/port/devpipe.c - 664 sys sys 1076612247 5576
+sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1055688361 13021
 sys/src/9/port/devproc.c - 664 sys sys 1074785145 28636
 sys/src/9/port/devrealtime.c - 664 sys sys 1055688366 16209
@@ -5432,7 +5432,7 @@ sys/src/9/port/devsrv.c - 664 sys sys 1063856594 5197
 sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1066737478 45222
-sys/src/9/port/devuart.c - 664 sys sys 1076612247 11328
+sys/src/9/port/devuart.c - 664 sys sys 1077055016 11683
 sys/src/9/port/edf.c - 664 sys sys 1072704672 12331
 sys/src/9/port/edf.h - 664 sys sys 1074883055 1145
 sys/src/9/port/error.h - 664 sys sys 1055700517 2630
@@ -5475,7 +5475,7 @@ sys/src/9/port/rebootcmd.c - 664 sys sys 1015278340 1561
 sys/src/9/port/sd.h - 664 sys sys 1055700523 2686
 sys/src/9/port/segment.c - 664 sys sys 1032990942 13776
 sys/src/9/port/swap.c - 664 sys sys 1055688551 6980
-sys/src/9/port/sysfile.c - 664 sys sys 1067722760 22127
+sys/src/9/port/sysfile.c - 664 sys sys 1077064173 22127
 sys/src/9/port/sysproc.c - 664 sys sys 1067722765 15396
 sys/src/9/port/systab.h - 664 sys sys 1062721698 3044
 sys/src/9/port/taslock.c - 664 sys sys 1068209643 3532
@@ -6433,7 +6433,7 @@ sys/src/boot/pc/devfloppy.c - 664 sys sys 1032215913 15505
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1019533020 23202
 sys/src/boot/pc/devpccard.c - 664 sys sys 1019533020 41357
-sys/src/boot/pc/devsd.c - 664 sys sys 1032215916 11120
+sys/src/boot/pc/devsd.c - 664 sys sys 1077033681 11262
 sys/src/boot/pc/dma.c - 664 sys sys 1015007949 4972
 sys/src/boot/pc/donprint.c - 664 sys sys 1019240172 4212
 sys/src/boot/pc/dosboot.c - 664 sys sys 1032215912 11014
@@ -6474,7 +6474,7 @@ sys/src/boot/pc/load.c - 664 sys sys 1056087197 7987
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1015007953 3407
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
-sys/src/boot/pc/mkfile - 664 sys sys 1071175087 3001
+sys/src/boot/pc/mkfile - 664 sys sys 1077033680 3061
 sys/src/boot/pc/noether.c - 664 sys sys 1018553453 300
 sys/src/boot/pc/part.c - 664 sys sys 1032215918 7505
 sys/src/boot/pc/pbs.s - 664 sys sys 1017854325 8279
@@ -6486,11 +6486,11 @@ sys/src/boot/pc/pbslba.s - 664 sys sys 1017854326 8147
 sys/src/boot/pc/pci.c - 664 sys sys 1065815736 17580
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1032215925 2404
-sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1015007954 52004
+sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1077033951 52135
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
 sys/src/boot/pc/sdata.c - 664 sys sys 1071615664 35424
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1015007955 28743
-sys/src/boot/pc/sdscsi.c - 664 sys sys 1018553454 6680
+sys/src/boot/pc/sdscsi.c - 664 sys sys 1077033682 7022
 sys/src/boot/pc/trap.c - 664 sys sys 1018462833 7098
 sys/src/boot/pc/ureg.h - 664 sys sys 1015007955 550
 sys/src/boot/pc/x16.h - 664 sys sys 1015007955 5265
@@ -6666,6 +6666,7 @@ sys/src/cmd/7l/optab.c - 774 sys sys 944961630 5087
 sys/src/cmd/7l/pass.c - 774 sys sys 1045503945 8694
 sys/src/cmd/7l/sched.c - 774 sys sys 944961630 244
 sys/src/cmd/7l/span.c - 774 sys sys 1045503946 12041
+sys/src/cmd/8._cp - 775 sys sys 1077049220 62444
 sys/src/cmd/8a - 20000000775 sys sys 944960730 0
 sys/src/cmd/8a/a.h - 664 sys sys 944960730 3017
 sys/src/cmd/8a/a.y - 664 sys sys 1032101906 6399
@@ -10406,7 +10407,7 @@ sys/src/cmd/swap.c - 664 sys sys 1014926662 1141
 sys/src/cmd/syscall - 20000000775 sys sys 944961236 0
 sys/src/cmd/syscall/mkfile - 664 sys sys 1037122264 549
 sys/src/cmd/syscall/syscall.c - 664 sys sys 1036972051 3927
-sys/src/cmd/tail.c - 664 sys sys 1076614068 5990
+sys/src/cmd/tail.c - 664 sys sys 1077054929 6004
 sys/src/cmd/tapefs - 20000000775 sys sys 944962012 0
 sys/src/cmd/tapefs/32vfs.c - 664 sys sys 1014926384 3688
 sys/src/cmd/tapefs/cpiofs.c - 664 sys sys 1014926384 2493

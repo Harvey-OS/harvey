@@ -1841,6 +1841,7 @@ bios_set_differential(Controller *c)
 #define SYM_885_DID	0x000d	/* ditto */
 #define SYM_875_DID	0x000f	/* ditto */
 #define SYM_1010_DID	0x0020
+#define SYM_1011_DID	0x0021
 #define SYM_875J_DID	0x008f
 
 static Variant variant[] = {
@@ -1860,6 +1861,7 @@ static Variant variant[] = {
 { SYM_895_DID,   0xff, "SYM53C895",	Burst128, 16, 24, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
 { SYM_896_DID,   0xff, "SYM53C896",	Burst128, 16, 64, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
 { SYM_1010_DID,   0xff, "SYM53C1010",	Burst128, 16, 64, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
+{ SYM_1011_DID,   0xff, "SYM53C1010",	Burst128, 16, 64, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
 };
 
 #define offsetof(s, t) ((ulong)&((s *)0)->t)
