@@ -3309,7 +3309,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1068558042 246774
+sys/games/lib/fortunes - 664 sys sys 1070982320 246889
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1055701304 1291
@@ -7526,7 +7526,7 @@ sys/src/cmd/fossil/archive.c - 664 sys sys 1061530723 9109
 sys/src/cmd/fossil/build - 664 sys sys 1042005505 449
 sys/src/cmd/fossil/buildsh - 775 sys sys 1042005505 561
 sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
-sys/src/cmd/fossil/cache.c - 664 sys sys 1069683862 43183
+sys/src/cmd/fossil/cache.c - 664 sys sys 1071007936 43090
 sys/src/cmd/fossil/conf.rc - 775 sys sys 1055703747 1407
 sys/src/cmd/fossil/dat.h - 664 sys sys 1061530727 7851
 sys/src/cmd/fossil/deadlock - 775 sys sys 1042005506 413

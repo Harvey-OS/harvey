@@ -12955,3 +12955,5 @@
 1070660725 2 c sys/src/ape/lib/draw/libc.h - 664 sys sys 1070660715 3456
 1070660725 3 c sys/src/libdraw/init.c - 664 sys sys 1070660683 9077
 1070911927 0 c dist/replica/network - 775 sys sys 1070911277 994
+1070983937 0 c sys/games/lib/fortunes - 664 sys sys 1070982320 246889
+1071009141 0 c sys/src/cmd/fossil/cache.c - 664 sys sys 1071007936 43090
