@@ -109,6 +109,7 @@ xfidopen(Xfid *x)
 			}
 			break;
 		case QWdata:
+		case QWxdata:
 			w->nopen[q]++;
 			break;
 		case QWevent:
@@ -213,12 +214,13 @@ xfidclose(Xfid *x)
 			}
 			break;
 		case QWdata:
+		case QWxdata:
 			w->nomark = FALSE;
 			/* fall through */
 		case QWaddr:
 		case QWevent:	/* BUG: do we need to shut down Xfid? */
 			if(--w->nopen[q] == 0){
-				if(q == QWdata)
+				if(q == QWdata || q == QWxdata)
 					w->nomark = FALSE;
 				if(q==QWevent && !w->isdir && w->col!=nil){
 					w->filemenu = TRUE;
@@ -330,6 +332,15 @@ xfidread(Xfid *x)
 		w->addr.q1 = w->addr.q0;
 		break;
 
+	case QWxdata:
+		/* BUG: what should happen if q1 > q0? */
+		if(w->addr.q0 > w->body.file->nc){
+			respond(x, &fc, Eaddr);
+			break;
+		}
+		w->addr.q0 += xfidruneread(x, &w->body, w->addr.q0, w->addr.q1);
+		break;
+
 	case QWtag:
 		xfidutfread(x, &w->tag, w->tag.file->nc, QWtag);
 		break;
@@ -431,6 +442,11 @@ xfidwrite(Xfid *x)
 		fc.count = x->count;
 		respond(x, &fc, nil);
 		break;
+
+	case QWerrors:
+		w = errorwinforwin(w);
+		t = &w->body;
+		goto BodyTag;
 
 	case QWbody:
 	case QWwrsel:

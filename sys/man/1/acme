@@ -4,6 +4,9 @@ acme, win, awd \- interactive text windows
 .SH SYNOPSIS
 .B acme
 [
+.B -ab
+]
+[
 .B -f
 .I varfont
 ]
@@ -14,9 +17,6 @@ acme, win, awd \- interactive text windows
 [
 .B -c
 .I ncol
-]
-[
-.B -b
 ]
 [
 .B -l
@@ -135,7 +135,7 @@ temporarily hiding other windows in the column.
 if any of them needs attention.)
 The layout box in a window is normally white; when it is black in the center,
 it records that the file is `dirty':
-.I Acme
+.I acme
 believes it is modified from its original
 contents.
 .PP
@@ -169,6 +169,16 @@ The only exception is that the command names to the
 left of the bar in a tag are maintained automatically; changes to them are repaired
 by
 .IR acme .
+.PP
+When a window is in autoindent mode
+(see the
+.B Indent
+command below) and a newline character is typed,
+acme copies leading white space on the current line to the new line.
+The option
+.B -a
+causes each window to start in 
+autoindent mode.
 .SS "Directory context
 Each window's tag names a directory: explicitly if the window
 holds a directory; implicitly if it holds a regular file
@@ -347,12 +357,32 @@ This command is largely superseded by plumbing
 (see
 .IR plumb (6)).
 .TP
+.B Indent
+Set the autoindent mode according to the argument:
+.B on
+and
+.B off
+set the mode for the current window;
+.B ON
+and
+.B OFF
+set the mode for the current window and all future windows.
+.TP
 .B Kill
 Send a
 .B kill
 note to
 .IR acme -initiated
 commands named as arguments.
+.TP
+.B Load
+Restore the state of
+.I acme
+from a file (default
+.BR $home/acme.dump )
+created by the
+.B Dump
+command.
 .TP
 .B Local
 When prefixed to a command
@@ -369,15 +399,6 @@ is restricted but is sufficient to run
 etc.,
 and to set environment variables such as
 .BR $objtype .
-.TP
-.B Load
-Restore the state of
-.I acme
-from a file (default
-.BR $home/acme.dump )
-created by the
-.B Dump
-command.
 .TP
 .B Look
 Search in body for occurrence of literal text indicated by the argument or,

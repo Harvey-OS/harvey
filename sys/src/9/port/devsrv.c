@@ -200,7 +200,19 @@ srvremove(Chan *c)
 	if(sp == 0)
 		error(Enonexist);
 
+	/*
+	 * Only eve can remove system services.
+	 * No one can remove #s/boot.
+	 */
+	if(strcmp(sp->owner, eve) == 0 && !iseve())
+		error(Eperm);
 	if(strcmp(sp->name, "boot") == 0)
+		error(Eperm);
+
+	/*
+	 * No removing personal services.
+	 */
+	if((sp->perm&7) != 7 && strcmp(sp->owner, up->user) && !iseve())
 		error(Eperm);
 
 	*l = sp->link;

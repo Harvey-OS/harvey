@@ -13352,3 +13352,14 @@
 1107064870 0 c sys/games/lib/fortunes - 664 sys sys 1107063227 252231
 1107070271 0 c sys/games/lib/fortunes - 664 sys sys 1107068927 252294
 1107072072 0 c sys/games/lib/fortunes - 664 sys sys 1107071255 252431
+1107154888 0 c 386/bin/acme - 775 sys sys 1107154493 428041
+1107154888 1 c sys/man/1/acme - 664 sys sys 1107154713 18033
+1107154888 2 c sys/man/4/acme - 664 sys sys 1107154713 9959
+1107154888 3 c sys/src/cmd/acme/dat.h - 664 sys sys 1107154481 11165
+1107154888 4 c sys/src/cmd/acme/fns.h - 664 sys sys 1107154481 2916
+1107154888 5 c sys/src/cmd/acme/fsys.c - 664 sys sys 1107154482 12881
+1107154888 6 c sys/src/cmd/acme/util.c - 664 sys sys 1107154483 7984
+1107154888 7 c sys/src/cmd/acme/xfid.c - 664 sys sys 1107154483 19555
+1107160289 0 c sys/games/lib/fortunes - 664 sys sys 1107160187 252674
+1107232303 0 c 386/bin/acme - 775 sys sys 1107230748 428041
+1107232303 1 c sys/src/9/port/devsrv.c - 664 sys sys 1107232208 5418
