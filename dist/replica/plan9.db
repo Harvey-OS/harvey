@@ -32,7 +32,7 @@
 386/bin/ape/dirname - 775 sys sys 1039673023 135007
 386/bin/ape/expr - 775 sys sys 1038443080 144796
 386/bin/ape/kill - 775 sys sys 1038443080 140422
-386/bin/ape/make - 775 sys sys 1045537935 205170
+386/bin/ape/make - 775 sys sys 1047057881 205097
 386/bin/ape/patch - 775 sys sys 1046265119 298449
 386/bin/ape/psh - 775 sys sys 1042220689 34
 386/bin/ape/sed - 775 sys sys 1038443081 160382
@@ -85,7 +85,7 @@
 386/bin/aux/data2s - 775 sys sys 1039758538 59178
 386/bin/aux/depend - 775 sys sys 1045537948 145890
 386/bin/aux/disksim - 775 sys sys 1045537949 144655
-386/bin/aux/download - 775 sys sys 1038443095 177930
+386/bin/aux/download - 775 sys sys 1047057882 177859
 386/bin/aux/faxreceive - 775 sys sys 1045537949 83421
 386/bin/aux/faxsend - 775 sys sys 1045537950 88819
 386/bin/aux/flashfs - 775 sys sys 1045537950 160526
@@ -118,7 +118,7 @@
 386/bin/aux/portmapper - 775 sys sys 1045537955 125638
 386/bin/aux/postgif - 775 sys sys 1038443100 177440
 386/bin/aux/postprint - 775 sys sys 1038443101 161939
-386/bin/aux/postreverse - 775 sys sys 1038443101 167452
+386/bin/aux/postreverse - 775 sys sys 1047057882 167379
 386/bin/aux/posttek - 775 sys sys 1038443101 165137
 386/bin/aux/rdwr - 775 sys sys 1039758544 38800
 386/bin/aux/reboot - 775 sys sys 1045537955 59052
@@ -207,7 +207,7 @@
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/flchk - 775 sys sys 1045665595 226777
 386/bin/fossil/flfmt - 775 sys sys 1045777851 225383
-386/bin/fossil/fossil - 775 sys sys 1045665597 333516
+386/bin/fossil/fossil - 775 sys sys 1047057884 333652
 386/bin/freq - 775 sys sys 1039758560 60443
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1039758560 96155
@@ -223,7 +223,7 @@
 386/bin/grap - 775 sys sys 1045537981 278460
 386/bin/graph - 775 sys sys 1045537982 127364
 386/bin/grep - 775 sys sys 1039758563 77890
-386/bin/gs - 775 sys sys 1045538012 11099657
+386/bin/gs - 775 sys sys 1047057912 11099179
 386/bin/gunzip - 775 sys sys 1045538012 79921
 386/bin/gzip - 775 sys sys 1045538013 84018
 386/bin/hayes - 775 sys sys 1045538013 63555
@@ -411,7 +411,7 @@
 386/bin/upas/scanmail - 775 sys sys 1046779562 127751
 386/bin/upas/send - 775 sys sys 1046779563 188632
 386/bin/upas/smtp - 775 sys sys 1046779565 264865
-386/bin/upas/smtpd - 775 sys sys 1046779566 307513
+386/bin/upas/smtpd - 775 sys sys 1047057913 307893
 386/bin/upas/testscan - 775 sys sys 1045538077 82381
 386/bin/upas/token - 775 sys sys 1039758605 76178
 386/bin/upas/vf - 775 sys sys 1045538077 90532
@@ -466,7 +466,7 @@
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 944969312 0
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
-386/lib/ape/libap.a - 664 sys sys 1046815884 780316
+386/lib/ape/libap.a - 664 sys sys 1047057916 780276
 386/lib/ape/libbsd.a - 664 sys sys 1038237542 171922
 386/lib/ape/libl.a - 664 sys sys 1038237542 8666
 386/lib/ape/libnet.a - 664 sys sys 1038237543 16604
