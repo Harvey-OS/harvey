@@ -74,7 +74,7 @@ Bgetbit(Biobufhdr *b)
 			return -1;
 	}
 	nbit--;
-	return (bitc >> (nbit-1)) & 0x1;
+	return (bitc >> nbit) & 0x1;
 }
 
 static

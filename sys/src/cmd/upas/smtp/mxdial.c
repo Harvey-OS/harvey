@@ -1,5 +1,6 @@
 #include "common.h"
 #include <ndb.h>
+#include <smtp.h>	/* to publish dial_string_parse */
 
 enum
 {
@@ -16,16 +17,6 @@ struct Mx
 };
 static Mx mx[Nmx];
 
-typedef struct DS	DS;
-struct DS {
-	/* dist string */
-	char	buf[128];
-	char	*netdir;
-	char	*proto;
-	char	*host;
-	char	*service;
-};
-
 Ndb *db;
 extern int debug;
 
@@ -33,7 +24,7 @@ static int	mxlookup(DS*, char*);
 static int	mxlookup1(DS*, char*);
 static int	compar(void*, void*);
 static int	callmx(DS*, char*, char*);
-static void	dial_string_parse(char*, DS*);
+static void expand_meta(DS *ds);
 extern int	cistrcmp(char*, char*);
 
 int
@@ -234,7 +225,7 @@ compar(void *a, void *b)
 }
 
 /* break up an address to its component parts */
-static void
+void
 dial_string_parse(char *str, DS *ds)
 {
 	char *p, *p2;
@@ -264,48 +255,59 @@ dial_string_parse(char *str, DS *ds)
 	ds->service = strchr(ds->host, '!');
 	if(ds->service)
 		*ds->service++ = 0;
+	if(*ds->host == '$')
+		expand_meta(ds);
 }
 
-char *
-expand_meta(char *addr)
+static void
+expand_meta(DS *ds)
 {
-	DS ds;
+	char buf[128], cs[128], *net, *p;
 	int fd, n;
-	char *p, cs[128];
-	static char buf[1024];
 
-	dial_string_parse(addr, &ds);
+	net = ds->netdir;
+	if(!net)
+		net = "/net";
 
-	if (*ds.host != '$')
-		return addr;
-	if (! ds.netdir)
-		ds.netdir = "/net";
-
-	snprint(cs, sizeof(cs), "%s/cs", ds.netdir);
-	if ((fd = open(cs, ORDWR)) == -1){
-		syslog(0, "smtp", "cannot open cs: %r", cs);
-		return addr;
+	if(debug)
+		fprint(2, "expanding %s!%s\n", net, ds->host);
+	snprint(cs, sizeof(cs), "%s/cs", net);
+	if((fd = open(cs, ORDWR)) == -1){
+		if(debug)
+			fprint(2, "open %s: %r\n", cs);
+		syslog(0, "smtp", "cannot open %s: %r", cs);
+		return;
 	}
 
-	snprint(buf, sizeof(buf), "!ipinfo %s", ds.host+1);	// +1 to skip $
+	snprint(buf, sizeof(buf), "!ipinfo %s", ds->host+1);	// +1 to skip $
 	if(write(fd, buf, strlen(buf)) <= 0){
+		if(debug)
+			fprint(2, "write %s: %r\n", cs);
 		syslog(0, "smtp", "%s to %s - write failed: %r", buf, cs);
 		close(fd);
-		return addr;
+		return;
 	}
 
 	seek(fd, 0, 0);
-	if((n = read(fd, buf, sizeof(buf)-1)) < 0){
+	if((n = read(fd, ds->expand, sizeof(ds->expand)-1)) < 0){
+		if(debug)
+			fprint(2, "read %s: %r\n", cs);
 		syslog(0, "smtp", "%s - read failed: %r", cs);
 		close(fd);
-		return addr;
+		return;
 	}
 	close(fd);
 
-	buf[n] = 0;
-	if((p = strchr(buf, '=')) == nil){
-		syslog(0, "smtp", "%q from %s - bad response: %r", buf, cs);
-		return addr;
+	ds->expand[n] = 0;
+	if((p = strchr(ds->expand, '=')) == nil){
+		if(debug)
+			fprint(2, "response %s: %s\n", cs, ds->expand);
+		syslog(0, "smtp", "%q from %s - bad response: %r", ds->expand, cs);
+		return;
 	}
-	return p+1; 	// +1 to skip =
+	ds->host = p+1;
+
+	/* take only first one returned (quasi-bug) */
+	if((p = strchr(ds->host, ' ')) != nil)
+		*p = 0;
 }

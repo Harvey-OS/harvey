@@ -37,7 +37,7 @@ eresized(int new)
 	r.max.x = r.min.x+Dx(image->r);
 	r.max.y = r.min.y+Dy(image->r);
 	border(screen, r, -Border, nil, ZP);
-	draw(screen, r, image, nil, image->r.min);
+	drawop(screen, r, image, nil, image->r.min, S);
 	flushimage(display, 1);
 }
 
@@ -163,9 +163,8 @@ show(int fd, char *name)
 	}
 	if(!dflag){
 		if(r->chandesc == CY)
-			i = allocimage(display, c->r, GREY8, 0, 0);
-		else
-			i = allocimage(display, c->r, outchan, 0, 0);
+			outchan = GREY8;
+		i = allocimage(display, c->r, outchan, 0, 0);
 		if(i == nil){
 			fprint(2, "ppm: allocimage %s failed: %r\n", name);
 			return "allocimage";
@@ -183,6 +182,8 @@ show(int fd, char *name)
 		freeimage(i);
 	}
 	if(nineflag){
+		if(r->chandesc == CY)
+			outchan = GREY8;
 		chantostr(buf, outchan);
 		print("%11s %11d %11d %11d %11d ", buf,
 			c->r.min.x, c->r.min.y, c->r.max.x, c->r.max.y);

@@ -138,6 +138,7 @@ show(int fd, char *name, int outc)
 	Rawimage **array, *r, *c;
 	static int inited;
 	Image *i;
+	Image *i2;
 	int j, ch, outchan;
 	Biobuf b;
 	char buf[32];
@@ -166,21 +167,28 @@ show(int fd, char *name, int outc)
 	if(outchan == CMAP8)
 		c = torgbv(r, !eflag);
 	else{
-		if(outchan==GREY8 || (r->chandesc==CY && threeflag==0)){
-			c = totruecolor(r, CY);
+		switch(r->chandesc){
+		case CY:
 			outchan = GREY8;
-		}else
-			c = totruecolor(r, CRGB24);
+			break;
+		case CYA16:
+			outchan = CHAN2(CGrey, 8, CAlpha, 8);
+			break;
+		case CRGB24:
+			outchan = RGB24;
+			break;
+		case CRGBA32:
+			outchan = RGBA32;
+			break;
+		}
+		c = r;
 	}
 	if(c == nil){
 		fprint(2, "png: conversion of %s failed: %r\n", name);
 		return "torgbv";
 	}
 	if(!dflag){
-		if(c->chandesc == CY)
-			i = allocimage(display, c->r, GREY8, 0, 0);
-		else
-			i = allocimage(display, c->r, outchan, 0, 0);
+		i = allocimage(display, c->r, outchan, 0, 0);
 		if(i == nil){
 			fprint(2, "png: allocimage %s failed: %r\n", name);
 			return "allocimage";
@@ -189,7 +197,10 @@ show(int fd, char *name, int outc)
 			fprint(2, "png: loadimage %s failed: %r\n", name);
 			return "loadimage";
 		}
-		image = i;
+		i2 = allocimage(display, c->r, outchan, 0, 0);
+		draw(i2, i2->r, display->white, nil, ZP);
+		draw(i2, i2->r, i, nil, i->r.min);
+		image = i2;
 		eresized(0);
 		if((ch=ekbd())=='q' || ch==0x7F || ch==0x04)
 			exits(nil);
@@ -216,7 +227,7 @@ show(int fd, char *name, int outc)
 	free(r->cmap);
 	free(r);
 	free(array);
-	if(c){
+	if(c && c != r){
 		free(c->chans[0]);
 		free(c);
 	}
