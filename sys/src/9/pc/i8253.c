@@ -140,14 +140,12 @@ guesscpuhz(int aalcycles)
 		 *
 		 */
 		outb(Tmode, Latch0);
-		if(m->havetsc)
-			cycles(&a);
+		cycles(&a);
 		x = inb(T0cntr);
 		x |= inb(T0cntr)<<8;
 		aamloop(loops);
 		outb(Tmode, Latch0);
-		if(m->havetsc)
-			cycles(&b);
+		cycles(&b);
 		y = inb(T0cntr);
 		y |= inb(T0cntr)<<8;
 		x -= y;
@@ -305,8 +303,6 @@ perfticks(void)
 {
 	uvlong x;
 
-	if(!m->havetsc)
-		return m->ticks;
 	cycles(&x);
 	return x;
 }

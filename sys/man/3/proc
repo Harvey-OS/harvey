@@ -270,9 +270,11 @@ Wire the process to processor
 .IR n .
 .TP 10n
 .B trace
-Toggle trace event generation for this process into
+Without an argument, toggle trace event generation for this process into
 .B /proc/trace
 (see below).
+With a zero argument, tracing for the proc is turned off, with a non-zero numeric
+argument, it is turned on.
 .TP 10n
 .B "period\ \fInu
 Set the real-time scheduling period of the process to

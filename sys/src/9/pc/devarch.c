@@ -621,6 +621,16 @@ static X86type x86sis[] =
 
 static X86type *cputype;
 
+static void	simplecycles(uvlong*);
+void	(*cycles)(uvlong*) = simplecycles;
+void	_cycles(uvlong*);	/* in l.s */
+
+static void
+simplecycles(uvlong*x)
+{
+	*x = m->ticks;
+}
+
 void
 cpuidprint(void)
 {
@@ -680,6 +690,7 @@ cpuidentify(void)
 	 */
 	if(m->cpuiddx & 0x10){
 		m->havetsc = 1;
+		cycles = _cycles;
 		if(m->cpuiddx & 0x20)
 			wrmsr(0x10, 0);
 	}

@@ -143,7 +143,7 @@
 386/bin/aux/searchfs - 775 sys sys 1064598087 90729
 386/bin/aux/sprog - 775 sys sys 1064598088 77816
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
-386/bin/aux/sshserve - 775 sys sys 1069592362 251177
+386/bin/aux/sshserve - 775 sys sys 1074752196 251439
 386/bin/aux/stub - 775 sys sys 1064598090 136225
 386/bin/aux/tcpostio - 775 sys sys 1071245296 199664
 386/bin/aux/text2post - 775 sys sys 1064598091 77005
@@ -3053,7 +3053,6 @@ rc/bin/service.auth/authsrv.il566 - 775 sys sys 1016832549 34
 rc/bin/service.auth/authsrv.tcp567 - 775 sys sys 1016832561 34
 rc/bin/service.auth/tcp110 - 775 sys sys 1016832647 85
 rc/bin/service.auth/tcp22 - 775 sys sys 1016832620 87
-rc/bin/service.auth/tcp993 - 775 sys sys 1018720071 151
 rc/bin/service.auth/tcp995 - 775 sys sys 1030586935 128
 rc/bin/service/_il17007 - 775 sys sys 1016832393 82
 rc/bin/service/_il17008 - 775 sys sys 945617221 32
@@ -3078,6 +3077,7 @@ rc/bin/service/tcp53 - 775 sys sys 945617223 29
 rc/bin/service/tcp565 - 775 sys sys 945617223 212
 rc/bin/service/tcp7 - 775 sys sys 945617224 19
 rc/bin/service/tcp9 - 775 sys sys 945617224 26
+rc/bin/service/tcp993 - 775 sys sys 1018720071 151
 rc/bin/service/telcodata - 775 sys sys 945617224 95
 rc/bin/service/telcofax - 775 sys sys 945617224 93
 rc/bin/sig - 775 sys sys 1059490402 491
@@ -3422,7 +3422,7 @@ sys/include/stdio.h - 664 sys sys 1055700381 4199
 sys/include/sunrpc.h - 664 sys sys 1046367129 7219
 sys/include/thread.h - 664 sys sys 1045504289 3562
 sys/include/tos.h - 664 sys sys 1067718947 562
-sys/include/trace.h - 664 sys sys 1068393680 585
+sys/include/trace.h - 664 sys sys 1074827800 647
 sys/include/venti.h - 664 sys sys 1072705708 7049
 sys/lib - 20000000775 sys sys 1018580948 0
 sys/lib/acid - 20000000775 sys sys 1016926088 0
@@ -4904,7 +4904,7 @@ sys/man/3/mnt - 664 sys sys 944959698 1994
 sys/man/3/mouse - 664 sys sys 1020313480 4276
 sys/man/3/pipe - 664 sys sys 1032640674 1145
 sys/man/3/pnp - 664 sys sys 1019864752 4645
-sys/man/3/proc - 664 sys sys 1069706068 11896
+sys/man/3/proc - 664 sys sys 1074785156 12026
 sys/man/3/root - 664 sys sys 1046958450 632
 sys/man/3/rtc - 664 sys sys 954378857 667
 sys/man/3/sd - 664 sys sys 1018386776 4805
@@ -5277,7 +5277,7 @@ sys/src/9/pc/archmp.c - 664 sys sys 1067722683 2323
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1071245548 6177
-sys/src/9/pc/devarch.c - 664 sys sys 1074350950 18361
+sys/src/9/pc/devarch.c - 664 sys sys 1074785125 18549
 sys/src/9/pc/devether.c - 664 sys sys 1048644042 10178
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1020284820 19987
@@ -5304,7 +5304,7 @@ sys/src/9/pc/ether8390.c - 664 sys sys 1071245462 17557
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherec2t.c - 664 sys sys 1020284820 4038
 sys/src/9/pc/etherelnk3.c - 664 sys sys 1071515332 48521
-sys/src/9/pc/etherga620.c - 664 sys sys 1067723192 28788
+sys/src/9/pc/etherga620.c - 664 sys sys 1074785126 28754
 sys/src/9/pc/etherga620fw.h - 644 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1045063564 961
 sys/src/9/pc/etherigbe.c - 664 sys sys 1071245461 42444
@@ -5315,16 +5315,16 @@ sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1071245461 15103
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1026847642 3722
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
-sys/src/9/pc/fns.h - 664 sys sys 1071514801 4296
+sys/src/9/pc/fns.h - 664 sys sys 1074785127 4299
 sys/src/9/pc/hcwAMC.h - 664 sys sys 1026860163 166004
-sys/src/9/pc/i8253.c - 664 sys sys 1071245560 6251
+sys/src/9/pc/i8253.c - 664 sys sys 1074785126 6179
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1072972600 8023
 sys/src/9/pc/kbd.c - 664 sys sys 1071726245 9135
-sys/src/9/pc/l.s - 664 sys sys 1072704796 22700
-sys/src/9/pc/main.c - 664 sys sys 1072704797 14685
+sys/src/9/pc/l.s - 664 sys sys 1074785126 22699
+sys/src/9/pc/main.c - 664 sys sys 1074785126 14644
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
@@ -5359,7 +5359,7 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1071615236 50538
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1055689892 7406
-sys/src/9/pc/trap.c - 664 sys sys 1072704797 20506
+sys/src/9/pc/trap.c - 664 sys sys 1074785126 20668
 sys/src/9/pc/uarti8250.c - 664 sys sys 1067722686 13859
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
 sys/src/9/pc/usb.h - 664 sys sys 1063857246 3566
@@ -5416,7 +5416,7 @@ sys/src/9/port/devmouse.c - 664 sys sys 1067722758 12203
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
 sys/src/9/port/devpipe.c - 664 sys sys 1032640439 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1055688361 13021
-sys/src/9/port/devproc.c - 664 sys sys 1068393158 28387
+sys/src/9/port/devproc.c - 664 sys sys 1074785145 28636
 sys/src/9/port/devrealtime.c - 664 sys sys 1055688366 16209
 sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
 sys/src/9/port/devsd.c - 664 sys sys 1071245428 28564
