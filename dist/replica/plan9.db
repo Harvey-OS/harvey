@@ -4767,7 +4767,7 @@ sys/man/4/kfs - 664 sys sys 1019058716 2159
 sys/man/4/lnfs - 664 sys sys 1048643973 1215
 sys/man/4/mntgen - 664 sys sys 1043680799 473
 sys/man/4/namespace - 664 sys sys 1018386777 6916
-sys/man/4/nfs - 664 sys sys 1046367663 2740
+sys/man/4/nfs - 664 sys sys 1049135219 2740
 sys/man/4/nntpfs - 664 sys sys 1032632346 2771
 sys/man/4/paqfs - 664 sys sys 1017723482 1541
 sys/man/4/plumber - 664 sys sys 944959699 2748
