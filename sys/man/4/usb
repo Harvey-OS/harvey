@@ -7,10 +7,7 @@ usbprinter
 .SH SYNOPSIS
 .B usb/usbmouse
 [
-.B \-s
-] [
-[
-.B \-f
+.B -f
 ] [
 .I ctrlno
 .I n
@@ -18,15 +15,15 @@ usbprinter
 .PP
 .B usb/usbaudio
 [
-.B \-V
+.B -V
 ] [
-.B \-v
+.B -v
 .I volume
 ] [
-.B \-m
+.B -m
 .I mountpoint
 ] [
-.B \-s
+.B -s
 .I srvname
 ] [
 .I ctrlno
@@ -52,11 +49,7 @@ and uses the first one it finds.  A pair of numeric arguments overrides this sea
 with a specific USB controller and device.
 .PP
 The
-.B \-s
-flag enables scroll-wheel or scroll-button, if present.
-.PP
-The
-.B \-f
+.B -f
 flag runs
 .B usbmouse
 in the foreground.
@@ -68,15 +61,15 @@ normally mounted in
 but this can be changed with the
 .B \-m
 flag, with files
-.IR /volume ,
-.IR /audioctl ,
-.IR /audio ,
+.BR volume ,
+.BR audioctl ,
+.BR audio ,
 and
-.IR /audioin .
+.BR audioin .
 The names
-.I /volume
+.B volume
 and
-.I /audio
+.B audio
 maintain backward compatibility with the soundblaster driver.
 .PP
 The
@@ -89,11 +82,11 @@ flag specifies a name for a file descriptor to be posted in
 .CW /srv .
 .PP
 Reading
-.I /volume
+.B volume
 or
-.I /audioctl
+.B audioctl
 yields the device's settings.  The data format of
-.I /volume
+.B volume
 is compatible with the soundblaster and
 produces something like
 .PP
@@ -109,7 +102,7 @@ This file can be written using the same syntax.  The keyword
 may be omitted.  Settings are given as percentages of the range.
 .PP
 The file
-.I /audioctl
+.B audioctl
 provides more information, using up to 6 columns of 12 characters each.
 From left to right, the fields are:
 .IR "control name" ,
@@ -129,19 +122,19 @@ is reported as 1 (one) if the sampling frequency is continuously variable.  It i
 if it is settable at a fixed number of discrete values only.
 .PP
 When all values from
-.I /audioctl
+.B audioctl
 have been read, a zero-sized buffer is returned (the usual end-of-file indication).
 A new read will then block until one of the settings changes and then report its new value.
 .PP
 The file
-.I /audioctl
+.B audioctl
 can be written like
-.IR /volume .
+.BR volume .
 .PP
 Audio data is written to
-.I /audio
+.B audio
 and read from
-.IR /audioin .
+.BR audioin .
 The data format is little endian, samples ordered primarily by time and
 secondarily by channel.  Samples occupy the minimum integral number
 of bytes.  Read and write operations of arbitrary size are allowed.

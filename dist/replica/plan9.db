@@ -5018,7 +5018,7 @@ sys/man/4/tapefs - 664 sys sys 944959699 1731
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
-sys/man/4/usb - 664 sys sys 1099760451 3518
+sys/man/4/usb - 664 sys sys 1101397021 3413
 sys/man/4/usbd - 664 sys sys 1018386778 731
 sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
