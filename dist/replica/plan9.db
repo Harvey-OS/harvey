@@ -405,7 +405,7 @@
 386/bin/unzip - 775 sys sys 1050868857 90110
 386/bin/upas - 20000000775 sys sys 1016857390 0
 386/bin/upas/aliasmail - 775 sys sys 1048745078 100889
-386/bin/upas/deliver - 775 sys sys 1048745079 96898
+386/bin/upas/deliver - 775 sys sys 1054925546 97154
 386/bin/upas/filter - 775 sys sys 1048745080 145569
 386/bin/upas/fs - 775 sys sys 1053200942 330787
 386/bin/upas/list - 775 sys sys 1045538069 81422
