@@ -2,6 +2,7 @@
 #include	<libc.h>
 #include	"compat.h"
 #include	"kbd.h"
+#include   "ksym2utf.h"
 
 enum
 {
@@ -99,8 +100,12 @@ vncputc(int keyup, int c)
 		c = vnckeys[c & 0xff];
 		if(c == No)
 			return;
-	}else if(c & ~0xff)
-		return;
+	}
+	/*
+	 * map an xkeysym onto a utf-8 char
+	 */
+	if((c & 0xff00) && c < nelem(ksym2utf) && ksym2utf[c] != 0)
+			c = ksym2utf[c];
 
 	/*
 	 *  keyup only important for shifts
