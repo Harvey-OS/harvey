@@ -8,7 +8,7 @@ LDFLAGS=
 YFLAGS=-d
 
 NOTSYS=sml|dup
-BUGGERED=gc|lmlvideo|dwb|unix|perl|celp|mosml
+BUGGERED=gc|lmlvideo|dwb|unix|perl|celp|mosml|ovac|vfs
 OUTOFDATE=old|ssls
 
 NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
@@ -47,10 +47,13 @@ all:V:	$PROGS dirs
 %.install:V: $BIN/%
 
 %.safeinstall:	$O.%
-	test -e $cpuobjtype._cp || cp /bin/cp $cpuobjtype._cp
-	test -e $cpuobjtype._mv || cp /bin/mv $cpuobjtype._mv
-	test -e $BIN/$stem && $cpuobjtype._mv $BIN/$stem $BIN/_$stem
-	$cpuobjtype._cp $prereq $BIN/$stem
+	test -e $BIN/$stem && mv $BIN/$stem $BIN/_$stem
+	cp $prereq $BIN/$stem
+
+cp.safeinstall:	$O.cp
+	cp /bin/cp $cpuobjtype._cp
+	test -e $BIN/cp && mv $BIN/cp $BIN/_cp
+	$cpuobjtype._cp $prereq $BIN/cp
 
 %.safeinstallall:
 	for(objtype in $CPUS)
@@ -58,8 +61,11 @@ all:V:	$PROGS dirs
 	mk $stem.clean
 
 $BIN/%:	$O.%
-	test -e $cpuobjtype._cp || cp /bin/cp $cpuobjtype._cp
-	$cpuobjtype._cp $prereq $BIN/$stem
+	cp $prereq $BIN/$stem
+
+$BIN/cp:	$O.cp
+	cp /bin/cp $cpuobjtype._cp
+	$cpuobjtype._cp $prereq $BIN/cp
 
 %.directories:V:
 	for(i in $DIRS) @{

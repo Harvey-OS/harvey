@@ -179,7 +179,7 @@ fileredoseq(File *f)
 
 	delta = &f->epsilon;
 	if(delta->nc == 0)
-		return ~0;
+		return 0;
 	bufread(delta, delta->nc-Undosize, (Rune*)&u, Undosize);
 	return u.seq;
 }

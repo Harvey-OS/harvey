@@ -181,7 +181,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos)
 
 	r = v6lookup(f, eh->dst);
 	if(r == nil){
-		print("no route for %I, src %I free\n", eh->dst, eh->src);
+//		print("no route for %I, src %I free\n", eh->dst, eh->src);
 		ip->stats[OutNoRoutes]++;
 		netlog(f, Logip, "no interface %I\n", eh->dst);
 		goto free;

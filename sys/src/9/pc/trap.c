@@ -265,8 +265,9 @@ intrtime(Mach*, int vno)
 		m->perf.inidle -= diff;
 
 	diff /= m->cpumhz;
-	if(diff >= Ntimevec)
+	if(diff >= Ntimevec){
 		diff = Ntimevec-1;
+	}
 	intrtimes[vno][diff]++;
 }
 
