@@ -68,6 +68,7 @@ p9skinit(Proto *p, Fsstate *fss)
 	State *s;
 	int iscli, ret;
 	Key *k;
+	Keyinfo ki;
 	Attr *attr;
 
 	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
@@ -96,7 +97,9 @@ p9skinit(Proto *p, Fsstate *fss)
 	}else{
 		s->tr.type = AuthTreq;
 		attr = setattr(_copyattr(fss->attr), "proto=p9sk1");
-		ret = findkey(&k, fss, nil, 0, 0, attr, "user? dom?");
+		mkkeyinfo(&ki, fss, attr);
+		ki.user = nil;
+		ret = findkey(&k, &ki, "user? dom?");
 		_freeattr(attr);
 		if(ret != RpcOk){
 			free(s);
@@ -181,10 +184,11 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 {
 	int m, ret, sret;
 	char tbuf[2*TICKETLEN], trbuf[TICKREQLEN], *user;
-	Attr *attr, *ap;
+	Attr *attr;
 	Authenticator auth;
 	State *s;
 	Key *srvkey;
+	Keyinfo ki;
 
 	s = fss->ps;
 	switch(fss->phase){
@@ -227,12 +231,16 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 		srvkey = nil;
 		s->speakfor = 0;
 		sret = RpcFailure;
-		if(user==nil || strcmp(user, fss->sysuser) == 0)
-			sret = findkey(&srvkey, fss, nil, 0, 0, attr,
+		if(user==nil || strcmp(user, fss->sysuser) == 0){
+			mkkeyinfo(&ki, fss, attr);
+			ki.user = nil;
+			sret = findkey(&srvkey, &ki,
 				"role=speakfor dom=%q user?", s->tr.authdom);
+		}
 		if(user != nil)
 			attr = setattr(attr, "user=%q", user);
-		ret = findkey(&s->key, fss, fss->sysuser, 0, 0, attr,
+		mkkeyinfo(&ki, fss, attr);
+		ret = findkey(&s->key, &ki,
 			"role=client dom=%q %s", s->tr.authdom, p9sk1.keyprompt);
 		if(ret == RpcOk)
 			closekey(srvkey);
@@ -265,11 +273,7 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 
 		convM2T(tbuf, &s->t, (char*)s->key->priv);
 		if(s->t.num != AuthTc){
-			for(ap=s->key->attr; ap && ap->next; ap=ap->next)
-				;
-			if(ap)
-			if(ap->type != AttrNameval || strcmp(ap->name, "authsrv-mismatch") != 0 || strcmp(ap->val, "yes") != 0)
-				ap->next = _mkattr(AttrNameval, "authsrv-mismatch", "yes", nil);
+			disablekey(s->key);
 			if(askforkeys){
 				snprint(fss->keyinfo, sizeof fss->keyinfo, "%A %s", attr, p9sk1.keyprompt);
 				_freeattr(attr);
@@ -300,8 +304,10 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 		convM2A((char*)a+TICKETLEN, &auth, s->t.key);
 		if(auth.num != AuthAc
 		|| memcmp(auth.chal, s->tr.chal, CHALLEN) != 0
-		|| auth.id != 0)
+		|| auth.id != 0){
+			disablekey(s->key);
 			return failure(fss, Easproto);
+		}
 		auth.num = AuthAs;
 		memmove(auth.chal, s->cchal, CHALLEN);
 		auth.id = 0;

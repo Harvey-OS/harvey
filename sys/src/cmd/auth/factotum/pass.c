@@ -28,9 +28,10 @@ passinit(Proto *p, Fsstate *fss)
 {
 	int ret;
 	Key *k;
+	Keyinfo ki;
 	State *s;
 
-	ret = findkey(&k, fss, fss->sysuser, 0, 0, fss->attr, "%s", p->keyprompt);
+	ret = findkey(&k, mkkeyinfo(&ki, fss, nil), "%s", p->keyprompt);
 	if(ret != RpcOk)
 		return ret;
 	setattrs(fss->attr, k->attr);

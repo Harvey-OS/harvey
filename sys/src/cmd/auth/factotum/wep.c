@@ -21,14 +21,16 @@ wepinit(Proto*, Fsstate *fss)
 {
 	int ret;
 	Key *k;
+	Keyinfo ki;
 	State *s;
 
 	/* find a key with at least one password */
-	ret = findkey(&k, fss, fss->sysuser, 0, 0, fss->attr, "!key1?");
+	mkkeyinfo(&ki, fss, nil);
+	ret = findkey(&k, &ki, "!key1?");
 	if(ret != RpcOk)
-		ret = findkey(&k, fss, fss->sysuser, 0, 0, fss->attr, "%s", "!key2?");
+		ret = findkey(&k, &ki, "!key2?");
 	if(ret != RpcOk)
-		ret = findkey(&k, fss, fss->sysuser, 0, 0, fss->attr, "%s", "!key3?");
+		ret = findkey(&k, &ki, "!key3?");
 	if(ret != RpcOk)
 		return ret;
 

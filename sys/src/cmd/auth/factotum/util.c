@@ -284,6 +284,7 @@ hasqueries(Attr *a)
 
 char *ignored[] = {
 	"role",
+	"disabled",
 };
 
 static int
@@ -297,17 +298,29 @@ ignoreattr(char *s)
 	return 0;
 }
 
+Keyinfo*
+mkkeyinfo(Keyinfo *k, Fsstate *fss, Attr *attr)
+{
+	memset(k, 0, sizeof *k);
+	k->fss = fss;
+	k->user = fss->sysuser;
+	k->attr = attr;
+	return k;
+}
+
 int
-findkey(Key **ret, Fsstate *fss, char *who, int noconf, int skip, Attr *attr0, char *fmt, ...)
+findkey(Key **ret, Keyinfo *ki, char *fmt, ...)
 {
 	int i, s, nmatch;
-	char buf[1024], *p;
+	char buf[1024], *p, *who;
 	va_list arg;
-	Attr *a, *attr1, *attr2, *attr3, **l;
+	Attr *a, *attr0, *attr1, *attr2, *attr3, **l;
 	Key *k;
 
 	*ret = nil;
 
+	who = ki->user;
+	attr0 = ki->attr;
 	if(fmt){
 		va_start(arg, fmt);
 		vseprint(buf, buf+sizeof buf, fmt, arg);
@@ -332,20 +345,22 @@ findkey(Key **ret, Fsstate *fss, char *who, int noconf, int skip, Attr *attr0, c
 	if(p && findproto(p) == nil){
 		werrstr("unknown protocol %s", p);
 		_freeattr(attr1);
-		return failure(fss, nil);
+		return failure(ki->fss, nil);
 	}
 
 	nmatch = 0; 
 	for(i=0; i<ring->nkey; i++){
 		k = ring->key[i];
+		if(_strfindattr(k->attr, "disabled") && !ki->usedisabled)
+			continue;
 		if(matchattr(attr0, k->attr, k->privattr) && matchattr(attr1, k->attr, k->privattr)){
 			/* check ownership */
 			if(!matchattr(attr2, k->attr, nil) && !matchattr(attr3, k->attr, nil))
 				continue;
-			if(nmatch++ < skip)
+			if(nmatch++ < ki->skip)
 				continue;
-			if(!noconf){
-				switch(canusekey(fss, k)){
+			if(!ki->noconf){
+				switch(canusekey(ki->fss, k)){
 				case -1:
 					_freeattr(attr1);
 					return RpcConfirm;
@@ -361,7 +376,7 @@ findkey(Key **ret, Fsstate *fss, char *who, int noconf, int skip, Attr *attr0, c
 			return RpcOk;
 		}
 	}
-	flog("%d: no key matches %A %A %A %A", fss->seqnum, attr0, attr1, attr2, attr3);
+	flog("%d: no key matches %A %A %A %A", ki->fss->seqnum, attr0, attr1, attr2, attr3);
 	werrstr("no key matches %A %A", attr0, attr1);
 	s = RpcFailure;
 	if(askforkeys && who==nil && (hasqueries(attr0) || hasqueries(attr1))){
@@ -380,16 +395,16 @@ findkey(Key **ret, Fsstate *fss, char *who, int noconf, int skip, Attr *attr0, c
 					l = &(*l)->next;
 			}
 			attr0 = sortattr(attr0);
-			snprint(fss->keyinfo, sizeof fss->keyinfo, "%A", attr0);
+			snprint(ki->fss->keyinfo, sizeof ki->fss->keyinfo, "%A", attr0);
 			_freeattr(attr0);
 			attr1 = nil;	/* attr1 was linked to attr0 */
 		}else
-			fss->keyinfo[0] = '\0';
+			ki->fss->keyinfo[0] = '\0';
 		s = RpcNeedkey;
 	}
 	_freeattr(attr1);
 	if(s == RpcFailure)
-		return failure(fss, nil);	/* loads error string */
+		return failure(ki->fss, nil);	/* loads error string */
 	return s;
 }
 
@@ -397,15 +412,19 @@ int
 findp9authkey(Key **k, Fsstate *fss)
 {
 	char *dom;
+	Keyinfo ki;
 
 	/*
 	 * We don't use fss->attr here because we don't
 	 * care about what the user name is set to, for instance.
 	 */
+	mkkeyinfo(&ki, fss, nil);
+	ki.attr = nil;
+	ki.user = nil;
 	if(dom = _strfindattr(fss->attr, "dom"))
-		return findkey(k, fss, nil, 0, 0, nil, "proto=p9sk1 dom=%q role=server user?", dom);
+		return findkey(k, &ki, "proto=p9sk1 dom=%q role=server user?", dom);
 	else
-		return findkey(k, fss, nil, 0, 0, nil, "proto=p9sk1 role=server dom? user?");
+		return findkey(k, &ki, "proto=p9sk1 role=server dom? user?");
 }
 
 Proto*
@@ -941,4 +960,21 @@ attrnamefmt(Fmt *fmt)
 		b = seprint(b, ebuf, " %q?", a->name);
 	}
 	return fmtstrcpy(fmt, buf+1);
+}
+
+void
+disablekey(Key *k)
+{
+	Attr *a;
+
+	for(a=k->attr; a; a=a->next){
+		if(a->type==AttrNameval && strcmp(a->name, "disabled") == 0)
+			return;
+		if(a->next == nil)
+			break;
+	}
+	if(a)
+		a->next = _mkattr(AttrNameval, "disabled", "by.factotum", nil);
+	else
+		k->attr = _mkattr(AttrNameval, "disabled", "by.factotum", nil);	/* not reached: always a proto attribute */
 }

@@ -2,6 +2,8 @@
 
 #define	Dbufslop	100
 
+#define PADDR(a)	((ulong)(a) & ~0x80000000)
+
 long
 entryvalue(void)
 {
@@ -27,17 +29,48 @@ entryvalue(void)
 }
 
 void
-wput(ushort w)
+wputl(ushort w)
 {
 	cput(w);
 	cput(w>>8);
 }
 
 void
-wputb(ushort w)
+wput(ushort w)
 {
 	cput(w>>8);
 	cput(w);
+}
+
+void
+lput(long l)
+{
+	cput(l>>24);
+	cput(l>>16);
+	cput(l>>8);
+	cput(l);
+}
+
+void
+lputl(long l)
+{
+	cput(l);
+	cput(l>>8);
+	cput(l>>16);
+	cput(l>>24);
+}
+
+void
+strnput(char *s, int n)
+{
+	for(; *s && n > 0; s++){
+		cput(*s);
+		n--;
+	}
+	while(n > 0){
+		cput(0);
+		n--;
+	}
 }
 
 void
@@ -98,6 +131,7 @@ asmb(void)
 		seek(cout, textsize+HEADR, 0);
 		break;
 	case 2:
+	case 5:
 		seek(cout, HEADR+textsize, 0);
 		break;
 	case 3:
@@ -140,6 +174,7 @@ asmb(void)
 			seek(cout, rnd(HEADR+textsize, INITRND)+datsize, 0);
 			break;
 		case 2:
+		case 5:
 			seek(cout, HEADR+textsize+datsize, 0);
 			break;
 		case 3:
@@ -179,7 +214,7 @@ asmb(void)
 		lput(symsize);			/* nsyms */
 		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
 		lput((0413<<16)|0437L);		/* magic and version */
-		lput(rnd(HEADR+textsize, 4096));	/* sizes */
+		lput(rnd(HEADR+textsize, 4096));/* sizes */
 		lput(datsize);
 		lput(bsssize);
 		lput(entryvalue());		/* va of entry */
@@ -216,7 +251,7 @@ asmb(void)
 		/*
 		 * text section header
 		 */
-		s8put(".text");
+		strnput(".text", 8);
 		lputl(HEADR);			/* pa */
 		lputl(HEADR);			/* va */
 		lputl(textsize);		/* text size */
@@ -228,7 +263,7 @@ asmb(void)
 		/*
 		 * data section header
 		 */
-		s8put(".data");
+		strnput(".data", 8);
 		lputl(INITDAT);			/* pa */
 		lputl(INITDAT);			/* va */
 		lputl(datsize);			/* data size */
@@ -240,7 +275,7 @@ asmb(void)
 		/*
 		 * bss section header
 		 */
-		s8put(".bss");
+		strnput(".bss", 8);
 		lputl(INITDAT+datsize);		/* pa */
 		lputl(INITDAT+datsize);		/* va */
 		lputl(bsssize);			/* bss size */
@@ -252,7 +287,7 @@ asmb(void)
 		/*
 		 * comment section header
 		 */
-		s8put(".comment");
+		strnput(".comment", 8);
 		lputl(0);			/* pa */
 		lputl(0);			/* va */
 		lputl(symsize+lcsize);		/* comment size */
@@ -266,7 +301,7 @@ asmb(void)
 		magic = 4*11*11+7;
 		if(dlm)
 			magic |= 0x80000000;
-		lput(magic);		/* magic */
+		lput(magic);			/* magic */
 		lput(textsize);			/* sizes */
 		lput(datsize);
 		lput(bsssize);
@@ -281,56 +316,74 @@ asmb(void)
 	case 4:
 		/* fake MS-DOS .EXE */
 		v = rnd(HEADR+textsize, INITRND)+datsize;
-		wput(0x5A4D);			/* 'MZ' */
-		wput(v % 512);			/* bytes in last page */
-		wput(rnd(v, 512)/512);		/* total number of pages */
-		wput(0x0000);			/* number of reloc items */
+		wputl(0x5A4D);			/* 'MZ' */
+		wputl(v % 512);			/* bytes in last page */
+		wputl(rnd(v, 512)/512);		/* total number of pages */
+		wputl(0x0000);			/* number of reloc items */
 		v = rnd(HEADR-(INITTEXT & 0xFFFF), 16);
-		wput(v/16);			/* size of header */
-		wput(0x0000);			/* minimum allocation */
-		wput(0xFFFF);			/* maximum allocation */
-		wput(0x0000);			/* initial ss value */
-		wput(0x0100);			/* initial sp value */
-		wput(0x0000);			/* complemented checksum */
+		wputl(v/16);			/* size of header */
+		wputl(0x0000);			/* minimum allocation */
+		wputl(0xFFFF);			/* maximum allocation */
+		wputl(0x0000);			/* initial ss value */
+		wputl(0x0100);			/* initial sp value */
+		wputl(0x0000);			/* complemented checksum */
 		v = entryvalue();
-		wput(v);			/* initial ip value (!) */
-		wput(0x0000);			/* initial cs value */
-		wput(0x0000);
-		wput(0x0000);
-		wput(0x003E);			/* reloc table offset */
-		wput(0x0000);			/* overlay number */
+		wputl(v);			/* initial ip value (!) */
+		wputl(0x0000);			/* initial cs value */
+		wputl(0x0000);
+		wputl(0x0000);
+		wputl(0x003E);			/* reloc table offset */
+		wputl(0x0000);			/* overlay number */
+		break;
+	case 5:
+		strnput("\177ELF", 4);		/* e_ident */
+		cput(1);			/* class = 32 bit */
+		cput(1);			/* data = LSB */
+		cput(1);			/* version = CURRENT */
+		strnput("", 9);
+		wputl(2);			/* type = EXEC */
+		wputl(3);			/* machine = 386 */
+		lputl(1L);			/* version = CURRENT */
+		lputl(PADDR(entryvalue()));	/* entry vaddr */
+		lputl(52L);			/* offset to first phdr */
+		lputl(0L);			/* offset to first shdr */
+		lputl(0L);			/* flags = 386 */
+		wputl(52);			/* Ehdr size */
+		wputl(32);			/* Phdr size */
+		wputl(3);			/* # of Phdrs */
+		wputl(0);			/* Shdr size */
+		wputl(0);			/* # of Shdrs */
+		wputl(0);			/* Shdr string size */
+
+		lputl(1L);			/* text - type = PT_LOAD */
+		lputl(HEADR);			/* file offset */
+		lputl(INITTEXT);		/* vaddr */
+		lputl(PADDR(INITTEXT));		/* paddr */
+		lputl(textsize);		/* file size */
+		lputl(textsize);		/* memory size */
+		lputl(0x05L);			/* protections = RX */
+		lputl(0x10000L);		/* alignment code?? */
+
+		lputl(1L);			/* data - type = PT_LOAD */
+		lputl(HEADR+textsize);		/* file offset */
+		lputl(INITDAT);			/* vaddr */
+		lputl(PADDR(INITDAT));		/* paddr */
+		lputl(datsize);			/* file size */
+		lputl(datsize);			/* memory size */
+		lputl(0x07L);			/* protections = RWX */
+		lputl(0x10000L);		/* alignment code?? */
+
+		lputl(0L);			/* data - type = PT_NULL */
+		lputl(HEADR+textsize+datsize);	/* file offset */
+		lputl(0L);
+		lputl(0L);
+		lputl(symsize);			/* symbol table size */
+		lputl(lcsize);			/* line number size */
+		lputl(0x04L);			/* protections = R */
+		lputl(0x04L);			/* alignment code?? */
 		break;
 	}
 	cflush();
-}
-
-void
-lput(long l)
-{
-	cput(l>>24);
-	cput(l>>16);
-	cput(l>>8);
-	cput(l);
-}
-
-void
-lputl(long l)
-{
-	cput(l);
-	cput(l>>8);
-	cput(l>>16);
-	cput(l>>24);
-}
-
-void
-s8put(char *n)
-{
-	char name[8];
-	int i;
-
-	strncpy(name, n, sizeof(name));
-	for(i=0; i<sizeof(name); i++)
-		cput(name[i]);
 }
 
 void

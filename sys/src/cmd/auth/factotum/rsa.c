@@ -8,8 +8,6 @@
  *	read response
  * all numbers are hexadecimal biginits parsable with strtomp.
  *
- * This is just SSH RSA by another name.  Eventually it will become
- * known as "rsa" rather than "sshrsa".
  */
 
 #include "dat.h"
@@ -89,6 +87,7 @@ rsaread(Fsstate *fss, void *va, uint *n)
 {
 	RSApriv *priv;
 	State *s;
+	Keyinfo ki;
 
 	s = fss->ps;
 	switch(fss->phase){
@@ -99,7 +98,10 @@ rsaread(Fsstate *fss, void *va, uint *n)
 			closekey(s->key);
 			s->key = nil;
 		}
-		if(findkey(&s->key, fss, fss->sysuser, 1, s->off, fss->attr, nil) != RpcOk)
+		mkkeyinfo(&ki, fss, nil);
+		ki.skip = s->off;
+		ki.noconf = 1;
+		if(findkey(&s->key, &ki, nil) != RpcOk)
 			return failure(fss, nil);
 		s->off++;
 		priv = s->key->priv;
