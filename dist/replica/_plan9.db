@@ -5351,7 +5351,7 @@ sys/src/9/pc/etherec2t.c - 664 sys sys 1086960044 4039
 sys/src/9/pc/etherelnk3.c - 664 sys sys 1081706477 48724
 sys/src/9/pc/etherga620.c - 664 sys sys 1074785126 28754
 sys/src/9/pc/etherga620fw.h - 644 sys sys 1026847642 222295
-sys/src/9/pc/etherif.h - 664 sys sys 1045063564 961
+sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
 sys/src/9/pc/etherigbe.c - 664 sys sys 1081706478 42962
 sys/src/9/pc/ethermii.c - 664 sys sys 1084331434 4612
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
@@ -6152,7 +6152,7 @@ sys/src/ape/lib/ap/plan9/umask.c - 664 sys sys 1014921985 182
 sys/src/ape/lib/ap/plan9/uname.c - 664 sys sys 1014921985 408
 sys/src/ape/lib/ap/plan9/unlink.c - 664 sys sys 1038237528 1505
 sys/src/ape/lib/ap/plan9/utime.c - 664 sys sys 1046643007 469
-sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1087406384 2131
+sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1088204173 2147
 sys/src/ape/lib/ap/plan9/write.c - 664 sys sys 1038237529 348
 sys/src/ape/lib/ap/posix - 20000000775 sys sys 1014921981 0
 sys/src/ape/lib/ap/posix/getgrent.c - 664 sys sys 1014921981 945
@@ -7151,7 +7151,7 @@ sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1048636613 905
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1014925010 8801
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
-sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1081358076 23145
+sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1088204577 23412
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
 sys/src/cmd/aux/vga/pci.c - 664 sys sys 1014925011 8659
 sys/src/cmd/aux/vga/pci.h - 664 sys sys 1014925011 3290
@@ -12431,3 +12431,18 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/awk - 775 sys sys 1088219073 320920
+386/bin/grap - 775 sys sys 1088219074 279678
+386/bin/gs - 775 sys sys 1088219096 11131720
+386/bin/pic - 775 sys sys 1088219097 304738
+386/bin/spin - 775 sys sys 1088219098 654809
+386/bin/ape/diff - 775 sys sys 1088219068 349087
+386/bin/ape/diff3 - 775 sys sys 1088219068 187503
+386/bin/ape/make - 775 sys sys 1088219069 208240
+386/bin/ape/patch - 775 sys sys 1088219069 301561
+386/bin/ape/sh - 775 sys sys 1088219071 476553
+386/bin/aux/lpdaemon - 775 sys sys 1088219071 167447
+386/bin/aux/tcpostio - 775 sys sys 1088219072 200192
+386/bin/aux/vga - 775 sys sys 1088219073 300474
+386/bin/troff - 775 sys sys 1088219099 357256
+386/lib/ape/libap.a - 664 sys sys 1088219101 806956
