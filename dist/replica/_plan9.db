@@ -3007,6 +3007,7 @@ rc/bin/broke - 775 sys sys 945617206 132
 rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
 rc/bin/cpurc - 775 sys sys 1048777186 1338
+rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/dircp - 775 sys sys 1107836261 193
 rc/bin/doc2ps - 775 sys sys 1069793831 244
@@ -3348,7 +3349,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1108743634 253142
+sys/games/lib/fortunes - 664 sys sys 1109471220 253178
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -3907,13 +3908,14 @@ sys/lib/grap.defines - 664 sys sys 944956052 375
 sys/lib/httpd.rewrite - 664 sys sys 954262980 825
 sys/lib/kbmap - 20000000775 sys sys 1079535430 0
 sys/lib/kbmap/ascii - 664 sys sys 1082221421 6248
-sys/lib/kbmap/azerty - 644 sys sys 1079473812 735
+sys/lib/kbmap/azerty - 664 sys sys 1079473812 735
 sys/lib/kbmap/bg - 664 sys sys 1106924292 561
 sys/lib/kbmap/de - 664 sys sys 1100894012 6265
-sys/lib/kbmap/ee - 644 sys sys 1080222237 429
+sys/lib/kbmap/ee - 664 sys sys 1080222237 429
 sys/lib/kbmap/es - 664 sys sys 1079535430 1360
 sys/lib/kbmap/fi - 664 sys sys 1079617317 369
 sys/lib/kbmap/jp - 664 sys sys 1106107712 317
+sys/lib/kbmap/n97 - 664 sys sys 1109430112 561
 sys/lib/kbmap/uk - 664 sys sys 1079473812 55
 sys/lib/kbmap/us - 664 sys sys 1082221421 6248
 sys/lib/lex - 20000000775 sys sys 945136651 0
@@ -4691,6 +4693,7 @@ sys/man/1/date - 664 sys sys 969499884 996
 sys/man/1/db - 664 sys sys 1015024738 17862
 sys/man/1/dc - 664 sys sys 944959674 4834
 sys/man/1/dd - 664 sys sys 1055693436 3346
+sys/man/1/delkey - 664 sys sys 1109429138 779
 sys/man/1/deroff - 664 sys sys 1017423524 1826
 sys/man/1/diff - 664 sys sys 1106938097 2960
 sys/man/1/doc2txt - 664 sys sys 1105020018 2077
@@ -4731,7 +4734,7 @@ sys/man/1/look - 664 sys sys 944959673 1348
 sys/man/1/lp - 664 sys sys 1015024739 3304
 sys/man/1/ls - 664 sys sys 1087406208 2898
 sys/man/1/mail - 664 sys sys 1050078464 2158
-sys/man/1/man - 664 sys sys 1059484724 1740
+sys/man/1/man - 664 sys sys 1109428285 1745
 sys/man/1/marshal - 664 sys sys 1079970326 3150
 sys/man/1/mc - 664 sys sys 1045501392 508
 sys/man/1/mk - 664 sys sys 964455061 13154
@@ -12459,3 +12462,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/9loaddebug - 775 sys sys 1109477747 309905
+386/9loadlitedebug - 775 sys sys 1109477747 198992
+386/bin/8c - 775 sys sys 1109477746 358000

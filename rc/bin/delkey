@@ -1,0 +1,52 @@
+#!/bin/rc
+
+rfork e
+
+ctl = /mnt/factotum/ctl
+if(test -r /mnt/term/mnt/factotum/ctl)
+	ctl = /mnt/term/mnt/factotum/ctl
+
+fn forceit {
+	switch($force){
+	case no
+		echo -n $* '? [y/n]' > /dev/cons
+		ok = `{read}
+		switch($ok){
+		case y* Y*
+			echo yes
+		case q* Q*
+			exit ''
+		case *
+			echo no
+		}
+	case *
+		echo yes
+	}
+}
+
+fn deleteit {
+	key = `{echo $* | sed 's/ ![0-9a-zA-Z_]+\??/ /g' | sed 's/ +$//'}
+	if(~ `{forceit del$key} yes)
+		if(! echo del$key > $ctl)
+			exit bad
+}
+
+force = no
+
+if(~ $1 '-f'){
+	force = yes
+	shift
+}
+
+ifs='
+'
+
+if(~ $#* 0){
+	for(i in `{cat $ctl})
+		deleteit $i
+	exit ''
+}
+
+for(i in `{grep $"* $ctl})
+	deleteit $i
+exit ''
