@@ -242,6 +242,11 @@ checks the fossil file system stored in
 .I file
 for inconsistencies.
 .I Flchk
+is deprecated in favor of the console
+.B check
+command (see
+.IR fossilcons (8)).
+.I Flchk
 prints fossil console commands that may be
 executed to take care of
 bad pointers

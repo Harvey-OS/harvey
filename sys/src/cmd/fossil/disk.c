@@ -134,7 +134,7 @@ diskReadRaw(Disk *disk, int part, u32int addr, uchar *buf)
 			return 0;
 		}
 		if(nn == 0){
-			vtSetError(EIO);
+			vtSetError("eof reading disk");
 			return 0;
 		}
 		n -= nn;

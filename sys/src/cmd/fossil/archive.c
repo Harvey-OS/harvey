@@ -160,7 +160,7 @@ copyBlock(Block *b, u32int blockSize)
  * Walk over the block tree, archiving it to Venti.
  *
  * We don't archive the snapshots. Instead we zero the
- * entries in a temporary copy and archive that.
+ * entries in a temporary copy of the block and archive that.
  *
  * Return value is:
  *
@@ -285,8 +285,22 @@ if(0) fprint(2, "falling\n");
 					memmove(data+(w.n-1)*VtScoreSize, p->score, VtScoreSize);
 				if(data == b->data){
 					blockDirty(b);
-					if(!(b->l.state & BsCopied))
-						blockRemoveLink(b, addr, p->l.type, p->l.tag);
+					/*
+					 * If b is in the active tree, then we need to note that we've
+					 * just removed addr from the active tree (replacing it with the 
+					 * copy we just stored to Venti).  If addr is in other snapshots,
+					 * this will close addr but not free it, since it has a non-empty
+					 * epoch range.
+					 *
+					 * If b is in the active tree but has been copied (this can happen
+					 * if we get killed at just the right moment), then we will
+					 * mistakenly leak its kids.  
+					 *
+					 * The children of an archive directory (e.g., /archive/2004/0604)
+					 * are not treated as in the active tree.
+					 */
+					if((b->l.state&BsCopied)==0 && (e==nil || e->snap==0))
+						blockRemoveLink(b, addr, p->l.type, p->l.tag, 0);
 				}
 				break;
 			}
@@ -304,7 +318,7 @@ if(0) fprint(2, "falling\n");
 			p->nreal++;
 			l = b->l;
 			l.state |= BsVenti;
-			if(!blockSetLabel(b, &l)){
+			if(!blockSetLabel(b, &l, 0)){
 				ret = ArchFailure;
 				goto Out;
 			}

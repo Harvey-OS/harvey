@@ -1985,7 +1985,7 @@ sd53c8xxpnp(void)
 			print("no match\n");
 			continue;
 		}
-		print(PRINTPREFIX "%s rev. 0x%2.2x intr=%d command=%4.4luX\n",
+		print(PRINTPREFIX "%s rev. 0x%2.2x intr=%d command=%4.4uX\n",
 			v->name, p->rid, p->intl, p->pcr);
 
 		regpa = p->mem[1].bar;

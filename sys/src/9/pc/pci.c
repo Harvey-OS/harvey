@@ -1,5 +1,6 @@
 /*
  * PCI support code.
+ * Needs a massive rewrite.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -67,6 +68,7 @@ static Pcidev* pcitail;
 static int nobios, nopcirouting;
 
 static int pcicfgrw32(int, int, int, int);
+static int pcicfgrw16(int, int, int, int);
 static int pcicfgrw8(int, int, int, int);
 
 static char* bustypes[] = {
@@ -320,7 +322,7 @@ pcibusmap(Pcidev *root, ulong *pmema, ulong *pioa, int wrreg)
 			pcicfgrw8(p->tbdf, PciLTR, 64, 0);
 
 			p->pcr |= MASen;
-			pcicfgrw32(p->tbdf, PciPCR, p->pcr, 0);
+			pcicfgrw16(p->tbdf, PciPCR, p->pcr, 0);
 			continue;
 		}
 
@@ -346,8 +348,8 @@ pcibusmap(Pcidev *root, ulong *pmema, ulong *pioa, int wrreg)
 		/*
 		 * Enable the bridge
 		 */
-		v = 0xFFFF0000 | IOen | MEMen | MASen;
-		pcicfgrw32(p->tbdf, PciPCR, v, 0);
+		p->pcr |= IOen|MEMen|MASen;
+		pcicfgrw32(p->tbdf, PciPCR, 0xFFFF0000|p->pcr , 0);
 
 		sioa = p->ioa.bar;
 		smema = p->mema.bar;
@@ -390,11 +392,13 @@ pcilscan(int bno, Pcidev** list)
 				pcilist = p;
 			pcitail = p;
 
+			p->pcr = pcicfgr16(p, PciPCR);
 			p->rid = pcicfgr8(p, PciRID);
 			p->ccrp = pcicfgr8(p, PciCCRp);
 			p->ccru = pcicfgr8(p, PciCCRu);
 			p->ccrb = pcicfgr8(p, PciCCRb);
-			p->pcr = pcicfgr32(p, PciPCR);
+			p->cls = pcicfgr8(p, PciCLS);
+			p->ltr = pcicfgr8(p, PciLTR);
 
 			p->intl = pcicfgr8(p, PciINTL);
 
@@ -485,7 +489,8 @@ pcilscan(int bno, Pcidev** list)
 			pcicfgw32(p, PciPBN, l);
 		}
 		else {
-			maxubn = ubn;
+			if(ubn > maxubn)
+				maxubn = ubn;
 			pcilscan(sbn, &p->bridge);
 		}
 	}
@@ -1179,39 +1184,133 @@ pcireset(void)
 void
 pcisetioe(Pcidev* p)
 {
-	int pcr;
-
-	pcr = pcicfgr16(p, PciPCR);
-	pcr |= IOen;
-	pcicfgw16(p, PciPCR, pcr);
+	p->pcr |= IOen;
+	pcicfgw16(p, PciPCR, p->pcr);
 }
 
 void
 pciclrioe(Pcidev* p)
 {
-	int pcr;
-
-	pcr = pcicfgr16(p, PciPCR);
-	pcr &= ~IOen;
-	pcicfgw16(p, PciPCR, pcr);
+	p->pcr &= ~IOen;
+	pcicfgw16(p, PciPCR, p->pcr);
 }
 
 void
 pcisetbme(Pcidev* p)
 {
-	int pcr;
-
-	pcr = pcicfgr16(p, PciPCR);
-	pcr |= MASen;
-	pcicfgw16(p, PciPCR, pcr);
+	p->pcr |= MASen;
+	pcicfgw16(p, PciPCR, p->pcr);
 }
 
 void
 pciclrbme(Pcidev* p)
 {
-	int pcr;
+	p->pcr &= ~MASen;
+	pcicfgw16(p, PciPCR, p->pcr);
+}
 
-	pcr = pcicfgr16(p, PciPCR);
-	pcr &= ~MASen;
-	pcicfgw16(p, PciPCR, pcr);
+static int
+pcigetpmrb(Pcidev* p)
+{
+	int ptr;
+
+	if(p->pmrb != 0)
+		return p->pmrb;
+	p->pmrb = -1;
+
+	/*
+	 * If there are no extended capabilities implemented,
+	 * (bit 4 in the status register) assume there's no standard
+	 * power management method.
+	 * Find the capabilities pointer based on PCI header type.
+	 */
+	if(!(p->pcr & 0x0010))
+		return -1;
+	switch(pcicfgr8(p, PciHDT)){
+	default:
+		return -1;
+	case 0:					/* all other */
+	case 1:					/* PCI to PCI bridge */
+		ptr = 0x34;
+		break;
+	case 2:					/* CardBus bridge */
+		ptr = 0x14;
+		break;
+	}
+	ptr = pcicfgr32(p, ptr);
+
+	while(ptr != 0){
+		/*
+		 * Check for validity.
+		 * Can't be in standard header and must be double
+		 * word aligned.
+		 */
+		if(ptr < 0x40 || (ptr & ~0xFC))
+			return -1;
+		if(pcicfgr8(p, ptr) == 0x01){
+			p->pmrb = ptr;
+			return ptr;
+		}
+
+		ptr = pcicfgr8(p, ptr+1);
+	}
+
+	return -1;
+}
+
+int
+pcigetpms(Pcidev* p)
+{
+	int pmcsr, ptr;
+
+	if((ptr = pcigetpmrb(p)) == -1)
+		return -1;
+
+	/*
+	 * Power Management Register Block:
+	 *  offset 0:	Capability ID
+	 *	   1:	next item pointer
+	 *	   2:	capabilities
+	 *	   4:	control/status
+	 *	   6:	bridge support extensions
+	 *	   7:	data
+	 */
+	pmcsr = pcicfgr16(p, ptr+4);
+
+	return pmcsr & 0x0003;
+}
+
+int
+pcisetpms(Pcidev* p, int state)
+{
+	int ostate, pmc, pmcsr, ptr;
+
+	if((ptr = pcigetpmrb(p)) == -1)
+		return -1;
+
+	pmc = pcicfgr16(p, ptr+2);
+	pmcsr = pcicfgr16(p, ptr+4);
+	ostate = pmcsr & 0x0003;
+	pmcsr &= ~0x0003;
+
+	switch(state){
+	default:
+		return -1;
+	case 0:
+		break;
+	case 1:
+		if(!(pmc & 0x0200))
+			return -1;
+		break;
+	case 2:
+		if(!(pmc & 0x0400))
+			return -1;
+		break;
+	case 3:
+		break;
+	}
+	pmcsr |= state;
+	pcicfgw16(p, ptr+4, pmcsr);
+
+	return ostate;
 }

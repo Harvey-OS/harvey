@@ -916,7 +916,7 @@ i82557pci(void)
 {
 	Pcidev *p;
 	Ctlr *ctlr;
-	int nop, port;
+	int i, nop, port;
 
 	p = nil;
 	nop = 0;
@@ -932,6 +932,17 @@ i82557pci(void)
 		case 0x1229:		/* Intel 8255[789] */
 		case 0x1030:		/* Intel 82559 InBusiness 10/100  */
 			break;
+		}
+
+		if(pcigetpms(p) > 0){
+			pcisetpms(p, 0);
+	
+			for(i = 0; i < 6; i++)
+				pcicfgw32(p, PciBAR0+i*4, p->mem[i].bar);
+			pcicfgw8(p, PciINTL, p->intl);
+			pcicfgw8(p, PciLTR, p->ltr);
+			pcicfgw8(p, PciCLS, p->cls);
+			pcicfgw16(p, PciPCR, p->pcr);
 		}
 
 		/*

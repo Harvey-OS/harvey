@@ -77,6 +77,8 @@ struct BList {
 	u32int epoch;
 	u32int vers;
 
+	int recurse;	/* for block unlink */
+
 	/* for roll back */
 	int index;			/* -1 indicates not valid */
 	union {
@@ -108,13 +110,17 @@ static Block *cacheBumpBlock(Cache *c);
 static void heapDel(Block*);
 static void heapIns(Block*);
 static void cacheCheck(Cache*);
-static int readLabel(Cache*, Label*, u32int addr);
 static void unlinkThread(void *a);
 static void flushThread(void *a);
 static void flushBody(Cache *c);
 static void unlinkBody(Cache *c);
 static int cacheFlushBlock(Cache *c);
 static void cacheSync(void*);
+static BList *blistAlloc(Block*);
+static void blistFree(Cache*, BList*);
+static void doRemoveLink(Cache*, BList*);
+static void doRemoveLinkList(Cache*, BList*);
+
 /*
  * Mapping from local block type to Venti type
  */
@@ -444,11 +450,11 @@ _cacheLocalLookup(Cache *c, int part, u32int addr, u32int vers,
 			break;
 		case BioVentiError:
 			blockPut(b);
-			vtSetError(EVentiIO);
+			vtSetError("venti i/o error block 0x%.8ux", addr);
 			return nil;
 		case BioReadError:
 			blockPut(b);
-			vtSetError(EIO);
+			vtSetError("i/o error block 0x%.8ux", addr);
 			return nil;
 		}
 	}
@@ -563,7 +569,7 @@ fprint(2, "_cacheLocal want epoch %ud got %ud\n", epoch, b->l.epoch);
 		case BioReadError:
 			blockSetIOState(b, BioEmpty);
 			blockPut(b);
-			vtSetError(EIO);
+			vtSetError("i/o error block 0x%.8ux", addr);
 			return nil;
 		}
 	}
@@ -667,7 +673,7 @@ if(0)fprint(2, "cacheGlobal %V %d\n", score, type);
 		if(n < 0 || !vtSha1Check(score, b->data, n)){
 			blockSetIOState(b, BioVentiError);
 			blockPut(b);
-			vtSetError(EIO);
+			vtSetError("venti i/o error block %V: %r", score);
 			return nil;
 		}
 		vtZeroExtend(vtType[type], b->data, n, c->size);
@@ -677,11 +683,11 @@ if(0)fprint(2, "cacheGlobal %V %d\n", score, type);
 		return b;
 	case BioVentiError:
 		blockPut(b);
-		vtSetError(EVentiIO);
+		vtSetError("venti i/o error block %V", score);
 		return nil;
 	case BioReadError:
 		blockPut(b);
-		vtSetError(EIO);
+		vtSetError("i/o error block %V", b->score);
 		return nil;
 	}
 	/* NOT REACHED */
@@ -740,7 +746,8 @@ cacheAllocBlock(Cache *c, int type, u32int tag, u32int epoch, u32int epochLow)
 			continue;
 		if(lab.state == BsFree)
 			goto Found;
-		if((lab.state&BsClosed) && lab.epochClose <= epochLow)
+		if(lab.state&BsClosed)
+		if(lab.epochClose <= epochLow || lab.epoch==lab.epochClose)
 			goto Found;
 	}
 Found:
@@ -757,7 +764,7 @@ assert(b->iostate == BioLabel || b->iostate == BioClean);
 	lab.state = BsAlloc;
 	lab.epoch = epoch;
 	lab.epochClose = ~(u32int)0;
-	if(!blockSetLabel(b, &lab)){
+	if(!blockSetLabel(b, &lab, 1)){
 		fprint(2, "cacheAllocBlock: xxx4 %R\n");
 		blockPut(b);
 		return nil;
@@ -807,7 +814,8 @@ cacheCountUsed(Cache *c, u32int epochLow, u32int *used, u32int *total, u32int *b
 			continue;
 		if(lab.state == BsFree)
 			continue;
-		if((lab.state&BsClosed) && lab.epochClose <= epochLow)
+		if(lab.state&BsClosed)
+		if(lab.epochClose <= epochLow || lab.epoch==lab.epochClose)
 			continue;
 		nused++;
 	}
@@ -845,66 +853,6 @@ u32int
 cacheLocalSize(Cache *c, int part)
 {
 	return diskSize(c->disk, part);
-}
-
-/*
- * Copy on write.  Copied blocks have to be marked BaCopy.
- * See the big comment near blockRemoveLink.
- */
-Block*
-blockCopy(Block *b, u32int tag, u32int ehi, u32int elo)
-{
-	Block *bb, *lb;
-	Label l;
-
-	assert((b->l.state&BsClosed)==0 && b->l.epoch < ehi);
-	bb = cacheAllocBlock(b->c, b->l.type, tag, ehi, elo);
-	if(bb == nil){
-		blockPut(b);
-		return nil;
-	}
-
-//fprint(2, "alloc %lux copy %V\n", bb->addr, b->score);
-	/*
-	 * Change label on b to mark that we've copied it.
-	 * This has to come after cacheAllocBlock, since we
-	 * can't hold any labels blocks (lb) while we try to
-	 * fetch others (in cacheAllocBlock).
-	 */
-	if(!(b->l.state&BsCopied) && b->part==PartData){
-		l = b->l;
-		l.state |= BsCopied;
-		lb = _blockSetLabel(b, &l);
-		if(lb == nil){
-			/* can't set label => can't copy block */
-			blockPut(b);
-			l.type = BtMax;
-			l.state = BsFree;
-			l.epoch = 0;
-			l.epochClose = 0;
-			l.tag = 0;
-			/* ignore error: block gets lost on error */
-			blockSetLabel(bb, &l);
-			blockPut(bb);
-			return nil;
-		}
-		blockDependency(bb, lb, -1, nil, nil);
-		blockPut(lb);
-	}
-
-	if(0){
-		if(b->addr != NilBlock)
-			fprint(2, "blockCopy %#ux/%ud => %#ux/%ud\n",
-				b->addr, b->l.epoch, bb->addr, bb->l.epoch);
-		else if(memcmp(b->score, vtZeroScore, VtScoreSize) != 0)
-			fprint(2, "blockCopy %V => %#ux/%ud\n",
-				b->score, bb->addr, bb->l.epoch);
-	}
-
-	memmove(bb->data, b->data, b->c->size);
-	blockDirty(bb);
-	blockPut(b);
-	return bb;
 }
 
 /*
@@ -982,182 +930,68 @@ if(0)fprint(2, "blockPut: %d: %d %x %d %s\n", getpid(), b->part, b->addr, c->nhe
 }
 
 /*
- * we're deleting a block; delete all the blocks it points to
- * that are still active (i.e., not needed by snapshots).
+ * set the label associated with a block.
  */
-static void
-blockCleanup(Block *b, u32int epoch)
+Block*
+_blockSetLabel(Block *b, Label *l)
 {
-	Cache *c;
+	int lpb;
 	Block *bb;
-	int i, n;
-	Label l;
 	u32int a;
-	int type;
-	int mode;
-
-	type = b->l.type;
-	c = b->c;
-
-	bwatchReset(b->score);
-
-	blockSetIOState(b, BioClean);
-
-	/* do not recursively free directories */
-	if(type == BtData || type == BtDir)
-		return;
-
-	n = c->size / VtScoreSize;
-	mode = OReadWrite;
-	if(type-1 == BtData || type-1 == BtDir)
-		mode = OOverWrite;
-	for(i=0; i<n; i++){
-		a = globalToLocal(b->data + i*VtScoreSize);
-		if(a == NilBlock || !readLabel(c, &l, a))
-			continue;
-		if((l.state&BsClosed) || l.epoch != epoch)
-			continue;
-		bb = cacheLocalData(c, a, type-1, b->l.tag, mode, 0);
-		if(bb == nil)
-			continue;
-		if((bb->l.state&BsClosed) || bb->l.epoch != epoch){
-			fprint(2, "cleanupBlock: block %ud changed underfoot! expected %L got %L\n",
-				a, &l, &bb->l);
-			blockPut(bb);
-			continue;
-		}
-		blockCleanup(bb, epoch);
-		l.type = BtMax;
-		l.epoch = epoch;
-		l.epochClose = 0;
-		l.state = BsFree;
-		l.tag = 0;
-		blockSetLabel(bb, &l);
-		blockPut(bb);
-	}
-}
-
-/*
- * We don't need the block at addr anymore for the active file system.
- * If we don't need it for the snapshots, remove it completely.
- * Epoch is the epoch during which we got rid of the block.
- * See blockRemoveLink for more.
- */
-static int
-unlinkBlock(Cache *c, u32int addr, int type, u32int tag, u32int epoch)
-{
-	Block *b;
-	Label l;
-
-	if(addr == NilBlock)
-		return 1;
-
-//fprint(2, "unlinkBlock %#ux\n", addr);
-	b = cacheLocalData(c, addr, type, tag, OReadOnly, 0);
-	if(b == nil)
-		return 0;
-	if(b->l.epoch > epoch){
-fprint(2, "unlinkBlock: strange epoch :%ud %ud\n", b->l.epoch, epoch);
-		blockPut(b);
-		return 0;
-	}
-
-	l = b->l;
-	if((b->l.state&BsClosed)==0 && b->l.epoch==epoch){
-		l.state = BsFree;
-		l.type = BtMax;
-		l.tag = 0;
-		l.epoch = 0;
-		l.epochClose = 0;
-		blockCleanup(b, epoch);
-	}else{
-		l.state |= BsClosed;
-		l.epochClose = epoch;
-	}
-	blockSetLabel(b, &l);
-	blockPut(b);
-	return 1;
-}
-
-/*
- * try to allocate a BList so we can record that b must
- * be written out before some other block.
- * if can't find a BList, write b out instead and return nil.
- */
-static BList *
-blistAlloc(Block *b)
-{
 	Cache *c;
-	BList *p;
 
-	/*
-	 * It's possible that when we marked b dirty, there were
-	 * too many dirty blocks so we just wrote b there and then.
-	 * So b might not be dirty.  If it's not, no need to worry
-	 * about recording the write constraint.
-	 *
-	 * BlockRemoveLink depends on the fact that if blistAlloc
-	 * returns non-nil, b really is dirty.
-	 */
-	if(b->iostate != BioDirty){
-		assert(b->iostate == BioClean);
-		return nil;
-	}
-
-	/*
-	 * Easy: maybe there's a free list left.
-	 */
 	c = b->c;
-	vtLock(c->lk);
-	if(c->blfree){
-	HaveBlFree:
-		p = c->blfree;
-		c->blfree = p->next;
-		vtUnlock(c->lk);
-assert(b->iostate == BioDirty);
-		return p;
-	}
-	vtUnlock(c->lk);
 
-	/*
-	 * No free BLists.  What are our options?
-	 */
-
-	/* Block has no priors? Just write it. */
-	if(b->prior == nil){
-		diskWriteAndWait(c->disk, b);
+	assert(b->part == PartData);
+	assert(b->iostate == BioLabel || b->iostate == BioClean || b->iostate == BioDirty);
+	lpb = c->size / LabelSize;
+	a = b->addr / lpb;
+	bb = cacheLocal(c, PartLabel, a, OReadWrite);
+	if(bb == nil){
+		blockPut(b);
 		return nil;
 	}
-
-	/*
-	 * Wake the flush thread, which will hopefully free up
-	 * some BLists for us.  We used to flush a block from
-	 * our own prior list and reclaim that BList, but this is
-	 * a no-no: some of the blocks on our prior list may
-	 * be locked by our caller.  Or maybe their label blocks
-	 * are locked by our caller.  In any event, it's too hard
-	 * to make sure we can do I/O for ourselves.  Instead,
-	 * we assume the flush thread will find something.
-	 * (The flush thread never blocks waiting for a block,
-	 * so it won't deadlock like we will.)
-	 */
-	vtLock(c->lk);
-	while(c->blfree == nil){
-		vtWakeup(c->flush);
-		vtSleep(c->blrend);
-	}
-	goto HaveBlFree;
+	b->l = *l;
+	labelPack(l, bb->data, b->addr%lpb);
+	blockDirty(bb);
+	return bb;
 }
 
-void
-blistFree(Cache *c, BList *bl)
+int
+blockSetLabel(Block *b, Label *l, int allocating)
 {
-	vtLock(c->lk);
-	bl->next = c->blfree;
-	c->blfree = bl;
-	vtWakeup(c->blrend);
-	vtUnlock(c->lk);
-cacheFlush(c, 0);
+	Block *lb;
+	Label oldl;
+
+	oldl = b->l;
+	lb = _blockSetLabel(b, l);
+	if(lb == nil)
+		return 0;
+
+	/*
+	 * If we're allocating the block, make sure the label (bl)
+	 * goes to disk before the data block (b) itself.  This is to help
+	 * the blocks that in turn depend on b.
+	 *
+	 * Suppose bx depends on (must be written out after) b.
+	 * Once we write b we'll think it's safe to write bx.
+	 * Bx can't get at b unless it has a valid label, though.
+	 *
+	 * Allocation is the only case in which having a current label
+	 * is vital because:
+	 *
+	 *	- l.type is set at allocation and never changes.
+	 *	- l.tag is set at allocation and never changes.
+	 *	- l.state is not checked when we load blocks.
+	 *	- the archiver cares deeply about l.state being
+	 *		BaActive vs. BaCopied, but that's handled
+	 *		by direct calls to _blockSetLabel.
+	 */
+
+	if(allocating)
+		blockDependency(b, lb, -1, nil, nil);
+	blockPut(lb);
+	return 1;
 }
 
 /*
@@ -1247,144 +1081,6 @@ blockDirty(Block *b)
 		vtWakeup(c->flush);
 	vtUnlock(c->lk);
 
-	return 1;
-}
-
-/*
- * Block b once pointed at the block bb at addr/type/tag, but no longer does.
- *
- * The file system maintains the following invariants (i-iv checked by flchk):
- *
- * (i) b.e in [bb.e, bb.eClose)
- * (ii) if b.e==bb.e,  then no other b' in e points at bb.
- * (iii) if !(b.state&Copied) and b.e==bb.e then no other b' points at bb.
- * (iv) if b is active then no other active b' points at bb.
- * (v) if b is a past life of b' then only one of b and b' is active (too hard to check)
- *
- * The file system initially satisfies these invariants, and we can verify that
- * the various file system operations maintain them.  See fossil.invariants.
- *
- * Condition (i) lets us reclaim blocks once the low epoch is greater
- * than epochClose.
- *
- * If the condition in (iii) is satisfied, then this is the only pointer to bb,
- * so bb can be reclaimed once b has been written to disk.  blockRemoveLink
- * checks !(b.state&Copied) as an optimization.  UnlinkBlock and blockCleanup
- * will check the conditions again for each block they consider.
- */
-int
-blockRemoveLink(Block *b, u32int addr, int type, u32int tag)
-{
-	BList *bl;
-	BList *p, **pp;
-	Cache *c;
-
-	c = b->c;
-
-	/* remove unlinked block from prior list */
-	pp = &b->prior;
-	for(p=*pp; p; p=*pp){
-		if(p->part != PartData || p->addr != addr){
-			pp = &p->next;
-			continue;
-		}
-		*pp = p->next;
-		blistFree(c, p);
-	}
-
-	/* if b has been copied, can't reclaim blocks it points at. */
-	if(b->l.state & BsCopied)
-		return 0;
-
-	bl = blistAlloc(b);
-	if(bl == nil)
-		return unlinkBlock(b->c, addr, type, tag, b->l.epoch);
-
-	/*
-	 * Because bl != nil, we know b is dirty.
-	 * (Linking b->uhead onto a clean block is
-	 * counterproductive, since we only look at
-	 * b->uhead when a block transitions from
-	 * dirty to clean.)
-	 */
-	assert(b->iostate == BioDirty);
-
-	bl->part = PartData;
-	bl->addr = addr;
-	bl->type = type;
-	bl->tag = tag;
-	bl->epoch = b->l.epoch;
-	if(b->uhead == nil)
-		b->uhead = bl;
-	else
-		b->utail->next = bl;
-	b->utail = bl;
-	bl->next = nil;
-	return 1;
-}
-
-/*
- * set the label associated with a block.
- */
-Block*
-_blockSetLabel(Block *b, Label *l)
-{
-	int lpb;
-	Block *bb;
-	u32int a;
-	Cache *c;
-
-	c = b->c;
-
-	assert(b->part == PartData);
-	assert(b->iostate == BioLabel || b->iostate == BioClean || b->iostate == BioDirty);
-	lpb = c->size / LabelSize;
-	a = b->addr / lpb;
-	bb = cacheLocal(c, PartLabel, a, OReadWrite);
-	if(bb == nil){
-		blockPut(b);
-		return nil;
-	}
-	b->l = *l;
-	labelPack(l, bb->data, b->addr%lpb);
-	blockDirty(bb);
-	return bb;
-}
-
-int
-blockSetLabel(Block *b, Label *l)
-{
-	Block *lb;
-	Label oldl;
-
-	oldl = b->l;
-	lb = _blockSetLabel(b, l);
-	if(lb == nil)
-		return 0;
-
-	/*
-	 * If we're allocating the block, make sure the label (bl)
-	 * goes to disk before the data block (b) itself.  This is to help
-	 * the blocks that in turn depend on b.
-	 *
-	 * Suppose bx depends on (must be written out after) b.
-	 * Once we write b we'll think it's safe to write bx.
-	 * Bx can't get at b unless it has a valid label, though.
-	 *
-	 * Allocation is the only case in which having a current label
-	 * is vital because:
-	 *
-	 *	- l.type is set at allocation and never changes.
-	 *	- l.tag is set at allocation and never changes.
-	 *	- l.state is not checked when we load blocks.
-	 *	- the archiver cares deeply about l.state being
-	 *		BaActive vs. BaCopied, but that's handled
-	 *		by direct calls to _blockSetLabel.
-	 */
-
-	if(oldl.state == BsFree)
-		blockDependency(b, lb, -1, nil, nil);
-	blockPut(lb);
 	return 1;
 }
 
@@ -1624,6 +1320,284 @@ if(0) fprint(2, "iostate part=%d addr=%x %s->%s\n", b->part, b->addr, bioStr(b->
 		vtWakeupAll(b->ioready);
 }
 
+/*
+ * The active file system is a tree of blocks. 
+ * When we add snapshots to the mix, the entire file system
+ * becomes a dag and thus requires a bit more care.
+ * 
+ * The life of the file system is divided into epochs.  A snapshot
+ * ends one epoch and begins the next.  Each file system block
+ * is marked with the epoch in which it was created (b.epoch).
+ * When the block is unlinked from the file system (closed), it is marked
+ * with the epoch in which it was removed (b.epochClose).  
+ * Once we have discarded or archived all snapshots up to 
+ * b.epochClose, we can reclaim the block.
+ *
+ * If a block was created in a past epoch but is not yet closed,
+ * it is treated as copy-on-write.  Of course, in order to insert the
+ * new pointer into the tree, the parent must be made writable,
+ * and so on up the tree.  The recursion stops because the root
+ * block is always writable.
+ *
+ * If blocks are never closed, they will never be reused, and
+ * we will run out of disk space.  But marking a block as closed
+ * requires some care about dependencies and write orderings.
+ *
+ * (1) If a block p points at a copy-on-write block b and we
+ * copy b to create bb, then p must be written out after bb and
+ * lbb (bb's label block).
+ *
+ * (2) We have to mark b as closed, but only after we switch
+ * the pointer, so lb must be written out after p.  In fact, we 
+ * can't even update the in-memory copy, or the cache might
+ * mistakenly give out b for reuse before p gets written.
+ *
+ * CacheAllocBlock's call to blockSetLabel records a "bb after lbb" dependency.
+ * The caller is expected to record a "p after bb" dependency
+ * to finish (1), and also expected to call blockRemoveLink
+ * to arrange for (2) to happen once p is written.
+ *
+ * Until (2) happens, some pieces of the code (e.g., the archiver)
+ * still need to know whether a block has been copied, so we 
+ * set the BsCopied bit in the label and force that to disk *before*
+ * the copy gets written out.
+ */
+Block*
+blockCopy(Block *b, u32int tag, u32int ehi, u32int elo)
+{
+	Block *bb, *lb;
+	Label l;
+
+	if((b->l.state&BsClosed) || b->l.epoch >= ehi)
+		fprint(2, "blockCopy %#ux %L but fs is [%ud,%ud]\n",
+			b->addr, &b->l, elo, ehi);
+
+	bb = cacheAllocBlock(b->c, b->l.type, tag, ehi, elo);
+	if(bb == nil){
+		blockPut(b);
+		return nil;
+	}
+
+	/*
+	 * Update label so we know the block has been copied.
+	 * (It will be marked closed once it has been unlinked from
+	 * the tree.)  This must follow cacheAllocBlock since we
+	 * can't be holding onto lb when we call cacheAllocBlock.
+	 */
+	if((b->l.state&BsCopied)==0)
+	if(b->part == PartData){	/* not the superblock */
+		l = b->l;
+		l.state |= BsCopied;
+		lb = _blockSetLabel(b, &l);
+		if(lb == nil){
+			/* can't set label => can't copy block */
+			blockPut(b);
+			l.type = BtMax;
+			l.state = BsFree;
+			l.epoch = 0;
+			l.epochClose = 0;
+			l.tag = 0;
+			blockSetLabel(bb, &l, 0);
+			blockPut(bb);
+			return nil;
+		}
+		blockDependency(bb, lb, -1, nil, nil);
+		blockPut(lb);
+	}
+
+	memmove(bb->data, b->data, b->c->size);
+	blockDirty(bb);
+	blockPut(b);
+	return bb;
+}
+
+/*
+ * Block b once pointed at the block bb at addr/type/tag, but no longer does.
+ * If recurse is set, we are unlinking all of bb's children as well.
+ *
+ * We can't reclaim bb (or its kids) until the block b gets written to disk.  We add
+ * the relevant information to b's list of unlinked blocks.  Once b is written,
+ * the list will be queued for processing.
+ *
+ * If b depends on bb, it doesn't anymore, so we remove bb from the prior list.
+ */
+void
+blockRemoveLink(Block *b, u32int addr, int type, u32int tag, int recurse)
+{
+	BList *p, **pp, bl;
+	
+	/* remove bb from prior list */
+	for(pp=&b->prior; (p=*pp)!=nil; ){
+		if(p->part == PartData && p->addr == addr){
+			*pp = p->next;
+			blistFree(b->c, p);
+		}else
+			pp = &p->next;
+	}
+
+	bl.part = PartData;
+	bl.addr = addr;
+	bl.type = type;
+	bl.tag = tag;
+	if(b->l.epoch == 0)
+		assert(b->part == PartSuper);
+	bl.epoch = b->l.epoch;
+	bl.next = nil;
+	bl.recurse = recurse;
+
+	p = blistAlloc(b);
+	if(p == nil){
+		/*
+		 * We were out of blists so blistAlloc wrote b to disk.
+		 */
+		doRemoveLink(b->c, &bl);
+		return;
+	}
+
+	/* Uhead is only processed when the block goes from Dirty -> Clean */
+	assert(b->iostate == BioDirty);
+
+	*p = bl;
+	if(b->uhead == nil)
+		b->uhead = p;
+	else
+		b->utail->next = p;
+	b->utail = p;
+}
+
+/* 
+ * Process removal of a single block and perhaps its children.
+ */
+static void
+doRemoveLink(Cache *c, BList *p)
+{
+	int i, n;
+	u32int a;
+	Block *b;
+	Label l;
+	BList bl;
+
+	b = cacheLocalData(c, p->addr, p->type, p->tag, OReadOnly, 0);
+	if(b == nil)
+		return;
+
+	/*
+	 * When we're unlinking from the superblock, close with the next epoch.
+	 */
+	if(p->epoch == 0)
+		p->epoch = b->l.epoch+1;
+
+	/* sanity check */
+	if(b->l.epoch > p->epoch){
+		fprint(2, "doRemoveLink: strange epoch %ud > %ud\n", b->l.epoch, p->epoch);
+		blockPut(b);
+		return;
+	}
+
+	if(p->recurse && p->type != BtData && p->type != BtDir){
+		n = c->size / VtScoreSize;
+		for(i=0; i<n; i++){
+			a = globalToLocal(b->data + i*VtScoreSize);
+			if(a == NilBlock || !readLabel(c, &l, a))
+				continue;
+			if(l.state&BsClosed)
+				continue;
+			/*
+			 * If stack space becomes an issue...
+			p->addr = a;
+			p->type = l.type;
+			p->tag = l.tag;
+			doRemoveLink(c, p);
+			 */
+
+			bl.part = PartData;
+			bl.addr = a;
+			bl.type = l.type;
+			bl.tag = l.tag;
+			bl.epoch = p->epoch;
+			bl.next = nil;
+			bl.recurse = 1;
+			doRemoveLink(c, &bl);
+		}
+	}
+
+	l = b->l;
+	l.state |= BsClosed;
+	l.epochClose = p->epoch;
+	blockSetLabel(b, &l, 0);
+	blockPut(b);
+}
+
+/*
+ * Allocate a BList so that we can record a dependency
+ * or queue a removal related to block b.
+ * If we can't find a BList, we write out b and return nil.
+ */
+static BList *
+blistAlloc(Block *b)
+{
+	Cache *c;
+	BList *p;
+
+	if(b->iostate != BioDirty){
+		/*
+		 * should not happen anymore -
+	 	 * blockDirty used to flush but no longer does.
+		 */
+		assert(b->iostate == BioClean);
+		fprint(2, "blistAlloc: called on clean block\n");
+		return nil;
+	}
+
+	c = b->c;
+	vtLock(c->lk);
+	if(c->blfree == nil){
+		/*
+		 * No free BLists.  What are our options?
+		 */
+	
+		/* Block has no priors? Just write it. */
+		if(b->prior == nil){
+			vtUnlock(c->lk);
+			diskWriteAndWait(c->disk, b);
+			return nil;
+		}
+
+		/*
+		 * Wake the flush thread, which will hopefully free up
+		 * some BLists for us.  We used to flush a block from
+		 * our own prior list and reclaim that BList, but this is
+		 * a no-no: some of the blocks on our prior list may
+		 * be locked by our caller.  Or maybe their label blocks
+		 * are locked by our caller.  In any event, it's too hard
+		 * to make sure we can do I/O for ourselves.  Instead,
+		 * we assume the flush thread will find something.
+		 * (The flush thread never blocks waiting for a block,
+		 * so it can't deadlock like we can.)
+		 */
+		vtLock(c->lk);
+		while(c->blfree == nil){
+			vtWakeup(c->flush);
+			vtSleep(c->blrend);
+		}
+	}
+
+	p = c->blfree;
+	c->blfree = p->next;
+	vtUnlock(c->lk);
+	return p;
+}
+
+static void
+blistFree(Cache *c, BList *bl)
+{
+	vtLock(c->lk);
+	bl->next = c->blfree;
+	c->blfree = bl;
+	vtWakeup(c->blrend);
+	vtUnlock(c->lk);
+}
+
 char*
 bsStr(int state)
 {
@@ -1821,7 +1795,7 @@ heapIns(Block *b)
 /*
  * Get just the label for a block.
  */
-static int
+int
 readLabel(Cache *c, Label *l, u32int addr)
 {
 	int lpb;
@@ -1857,11 +1831,7 @@ unlinkBody(Cache *c)
 		p = c->uhead;
 		c->uhead = p->next;
 		vtUnlock(c->lk);
-
-		if(!unlinkBlock(c, p->addr, p->type, p->tag, p->epoch))
-			fprint(2, "unlinkBlock failed: addr=%x type=%d tag = %ux: %r\n",
-				p->addr, p->type, p->tag);
-
+		doRemoveLink(c, p);
 		vtLock(c->lk);
 		p->next = c->blfree;
 		c->blfree = p;
