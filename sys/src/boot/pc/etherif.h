@@ -9,8 +9,8 @@ enum {
 	Host		= 0,		/* buffer owned by host */
 	Interface	= 1,		/* buffer owned by card */
 
-	Nrb		= 16,		/* default number of receive buffers */
-	Ntb		= 2,		/* default number of transmit buffers */
+	Nrb		= 32,		/* default number of receive buffers */
+	Ntb		= 8,		/* default number of transmit buffers */
 };
 
 typedef struct Ether Ether;

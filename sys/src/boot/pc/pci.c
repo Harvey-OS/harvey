@@ -306,6 +306,7 @@ enum {
 		Intel_82801AB_0 = 0x2420,
 		Intel_82801BA_0 = 0x2440,
 		Intel_82801BAM_0 = 0x244c,
+		Intel_82801ICH5R_0 = 0x24d0,	/* part # is a guess */
 	Viatech = 0x1106,
 		Via_82C586_0 = 0x0586,
 		Via_82C596 = 0x0596,
@@ -337,6 +338,7 @@ static bridge_t southbridges[] = {
 {	Intel, Intel_82801AB_0,		pIIx_link,	pIIx_init },
 {	Intel, Intel_82801BA_0,		pIIx_link,	pIIx_init },
 {	Intel, Intel_82801BAM_0,	pIIx_link,	pIIx_init },
+{	Intel, Intel_82801ICH5R_0,	pIIx_link,	pIIx_init },
 {	Viatech, Via_82C586_0,		via_link,	via_init },
 {	Viatech, Via_82C596,		via_link,	via_init },
 {	Viatech, Via_82C686,		via_link,	via_init },

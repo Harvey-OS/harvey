@@ -118,8 +118,8 @@ i8253init(void)
 void
 guesscpuhz(int aalcycles)
 {
-	int cpufreq, loops, incr, x, y;
-	uvlong a, b;
+	int loops, incr, x, y;
+	uvlong a, b, cpufreq;
 
 	/* find biggest loop that doesn't wrap */
 	incr = 16000000/(aalcycles*HZ*2);
@@ -160,7 +160,7 @@ guesscpuhz(int aalcycles)
  	 *  figure out clock frequency and a loop multiplier for delay().
 	 *  n.b. counter goes up by 2*Freq
 	 */
-	cpufreq = loops*((aalcycles*2*Freq)/x);
+	cpufreq = (vlong)loops*((aalcycles*2*Freq)/x);
 	m->loopconst = (cpufreq/1000)/aalcycles;	/* AAM+LOOP's for 1 ms */
 
 	if(m->havetsc){

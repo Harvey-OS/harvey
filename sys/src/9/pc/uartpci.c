@@ -69,7 +69,8 @@ uartpcipnp(void)
 		switch((p->did<<16)|p->vid){
 		default:
 			continue;
-		case (0x9050<<16)|0x10B5:	/* Perle PCI-Fast4 */
+		case (0x9050<<16)|0x10B5:	/* Perle PCI-Fast4 series */
+		case (0x9030<<16)|0x10B5:	/* Perle Ultraport series */
 			/*
 			 * These devices consists of a PLX bridge (the above
 			 * PCI VID+DID) behind which are some 16C654 UARTs.
@@ -92,6 +93,10 @@ uartpcipnp(void)
 			case (0x0031<<16)|0x12E0:	/* Perle PCI-Fast4 */
 				n = 4;
 				name = "PCI-Fast4";
+				break;
+			case (0x0021<<16)|0x155F:	/* Perle Ultraport8 */
+				n = 8;
+				name = "Ultraport8";	/* 16C754 UARTs */
 				break;
 			}
 			uart = uartpci(ctlrno, p, 2, n, 7372800, name);
