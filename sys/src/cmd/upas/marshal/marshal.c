@@ -34,6 +34,7 @@ enum {
 	Hbcc,
 	Hsender,
 	Hreplyto,
+	Hinreplyto,
 	Hdate,
 	Hsubject,
 	Hmime,
@@ -55,6 +56,7 @@ char *hdrs[Nhdr] = {
 [Hcc]		"cc:",
 [Hbcc]		"bcc:",
 [Hreplyto]	"reply-to:",
+[Hinreplyto]	"in-reply-to:",
 [Hsender]	"sender:",
 [Hdate]		"date:",
 [Hsubject]	"subject:",
@@ -443,6 +445,8 @@ readheaders(Biobuf *in, int *fp, String **sp, Addr **top)
 		if((p = Brdline(in, '\n')) != nil) {
 			seen = 1;
 			p[Blinelen(in)-1] = 0;
+
+			// coalesce multiline headers
 			if((*p == ' ' || *p == '\t') && sline){
 				s_append(sline, "\n");
 				s_append(sline, p);
@@ -451,6 +455,7 @@ readheaders(Biobuf *in, int *fp, String **sp, Addr **top)
 			}
 		}
 
+		// process the current header, it's all been read
 		if(sline) {
 			assert(hdrtype != -1);
 			if(top){
@@ -473,6 +478,7 @@ readheaders(Biobuf *in, int *fp, String **sp, Addr **top)
 		if(p == nil)
 			break;
 
+		// if no :, it's not a header, seek back and break
 		if(strchr(p, ':') == nil){
 			p[Blinelen(in)-1] = '\n';
 			Bseek(in, -Blinelen(in), 1);
@@ -481,6 +487,12 @@ readheaders(Biobuf *in, int *fp, String **sp, Addr **top)
 
 		sline = s_copy(p);
 
+		// classify the header.  If we don't recognize it, break.  This is
+		// to take care of user's that start messages with lines that contain
+		// ':'s but that aren't headers.  This is a bit hokey.  Since I decided
+		// to let users type headers, I need some way to distinguish.  Therefore,
+		// marshal tries to know all likely headers and will indeed screw up if
+		// the user types an unlikely one. -- presotto
 		hdrtype = -1;
 		for(i = 0; i < nelem(hdrs); i++){
 			if(cistrncmp(hdrs[i], p, strlen(hdrs[i])) == 0){
@@ -501,8 +513,12 @@ readheaders(Biobuf *in, int *fp, String **sp, Addr **top)
 	if(top)
 		*top = to;
 
-	if(seen == 0)
-		return Nomessage;
+	if(seen == 0){
+		if(Blinelen(in) == 0)
+			return Nomessage;
+		else
+			return Ok;
+	}
 	if(p == nil)
 		return Nobody;
 	return Ok;
@@ -909,20 +925,82 @@ printunixfrom(int fd)
 		tm->hour, tm->min, tm->sec, tz>0?"+":"", tz, 1900+tm->year);
 }
 
-// find the recipient account name
-static void
-foldername(char *folder, char *rcvr)
+char *specialfile[] =
+{
+	"pipeto",
+	"pipefrom",
+	"L.mbox",
+	"forward",
+	"names"
+};
+
+// return 1 if this is a special file
+static int
+special(String *s)
 {
 	char *p;
-	char *e = folder+Elemlen-1;
+	int i;
+
+	p = strrchr(s_to_c(s), '/');
+	if(p == nil)
+		p = s_to_c(s);
+	else
+		p++;
+	for(i = 0; i < nelem(specialfile); i++)
+		if(strcmp(p, specialfile[i]) == 0)
+			return 1;
+	return 0;
+}
+
+// open the folder using the recipients account name
+static int
+openfolder(char *rcvr)
+{
+	char *p;
+	int c;
+	String *file;
+	Dir *d;
+	int fd;
+	int scarey;
+
+	file = s_new();
+	mboxpath("f", user, file, 0);
+
+	// if $mail/f exists, store there, otherwise in $mail
+	d = dirstat(s_to_c(file));
+	if(d == nil || d->qid.type != QTDIR){
+		scarey = 1;
+		file->ptr -= 1;
+	} else {
+		s_putc(file, '/');
+		scarey = 0;
+	}
+	free(d);
 
 	p = strrchr(rcvr, '!');
 	if(p != nil)
 		rcvr = p+1;
 
-	while(folder < e && *rcvr && *rcvr != '@')
-		*folder++ = *rcvr++;
-	*folder = 0;
+	while(*rcvr && *rcvr != '@'){
+		c = *rcvr++;
+		if(c == '/')
+			c = '_';
+		s_putc(file, c);
+	}
+	s_terminate(file);
+
+	if(scarey && special(file)){
+		fprint(2, "%s: won't overwrite %s\n", argv0, s_to_c(file));
+		s_free(file);
+		return -1;
+	}
+
+	fd = open(s_to_c(file), OWRITE);
+	if(fd < 0)
+		fd = create(s_to_c(file), OWRITE, 0660);
+
+	s_free(file);
+	return fd;
 }
 
 // start up sendmail and return an fd to talk to it with
@@ -932,17 +1010,12 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 	char **av, **v;
 	int ac, fd;
 	int pfd[2];
-	char folder[Elemlen];
-	String *file, *cmd;
+	String *cmd;
 	Addr *a;
 
 	fd = -1;
-	if(rcvr != nil){
-		foldername(folder, rcvr);
-		file = s_new();
-		mboxpath(folder, user, file, 0);
-		fd = open(s_to_c(file), OWRITE);
-	}
+	if(rcvr != nil)
+		fd = openfolder(rcvr);
 
 	ac = 0;
 	for(a = to; a != nil; a = a->next)

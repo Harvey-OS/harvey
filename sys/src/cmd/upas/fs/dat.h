@@ -178,6 +178,7 @@ enum
 	Qraw,
 	Qrawbody,
 	Qrawheader,
+	Qrawunix,
 	Qreplyto,
 	Qsender,
 	Qsubject,

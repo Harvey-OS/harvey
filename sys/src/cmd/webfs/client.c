@@ -42,9 +42,11 @@ void
 closeclient(Client *c)
 {
 	if(--c->ref == 0){
-		if(c->bodyopened)
+		if(c->bodyopened){
 			if(c->url && c->url->close)
 				(*c->url->close)(c);
+			c->bodyopened = 0;
+		}
 		free(c->contenttype);
 		c->contenttype = nil;
 		free(c->postbody);

@@ -15,6 +15,7 @@ struct Hdr
 	uchar	win[2];
 	uchar	cksum[2];
 	uchar	urg[2];
+	uchar	opt[1];
 };
 
 typedef struct PseudoHdr{
@@ -54,6 +55,16 @@ static Mux p_mux[] =
 	{"ninep",	17010, },	/* ncpu */
 	{"ninep",	17013, },	/* cpu */
 	{0},
+};
+
+enum
+{
+	EOLOPT		= 0,
+	NOOPOPT		= 1,
+	MSSOPT		= 2,
+	MSS_LENGTH	= 4,		/* Mean segment size */
+	WSOPT		= 3,
+	WS_LENGTH	= 3,		/* Bits to scale window size by */
 };
 
 static void
@@ -136,7 +147,8 @@ p_seprint(Msg *m)
 {
 	Hdr *h;
 	int dport, sport;
-	int len, flag;
+	int len, flag, optlen;
+	uchar *optr;
 
 	if(m->pe - m->ps < TCPLEN)
 		return -1;
@@ -144,7 +156,7 @@ p_seprint(Msg *m)
 
 	/* get tcp header length */
 	flag = NetS(h->flag);
-	len = (flag>>10)&0x3f;
+	len = (flag>>10)&~3;
 	flag &= 0x3ff;
 	m->ps += len;
 
@@ -158,6 +170,37 @@ p_seprint(Msg *m)
 			(ulong)NetL(h->seq), (ulong)NetL(h->ack),
 			flags(flag), NetS(h->win),
 			NetS(h->cksum));
+
+	/* tcp options */
+	len -= TCPLEN;
+	optr = h->opt;
+	while(len > 0) {
+		if(*optr == EOLOPT){
+			m->p = seprint(m->p, m->e, " opt=EOL");
+			break;
+		}
+		if(*optr == NOOPOPT) {
+			m->p = seprint(m->p, m->e, " opt=NOOP");
+			len--;
+			optr++;
+			continue;
+		}
+		optlen = optr[1];
+		if(optlen < 2 || optlen > len)
+			break;
+		switch(*optr) {
+		case MSSOPT:
+			m->p = seprint(m->p, m->e, " opt%d=(mss %ud)", optlen, nhgets(optr+2));
+			break;
+		case WSOPT:
+			m->p = seprint(m->p, m->e, " opt%d=(wscale %ud)", optlen, *(optr+2));
+			break;
+		default:
+			m->p = seprint(m->p, m->e, " opt%d=(%ud %.*H)", optlen, *optr, optlen-2,optr+2);
+		}
+		len -= optlen;
+		optr += optlen;
+	}
 
 	if(Cflag){
 		// editing in progress by ehg

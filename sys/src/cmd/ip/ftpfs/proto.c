@@ -214,9 +214,16 @@ preamble(char *mountroot)
 
 	remrootpath = s_reset(remrootpath);
 	switch(os){
+	case NetWare:
+              /*
+               * Request long, rather than 8.3 filenames,
+               * where the Servers & Volume support them.
+               */
+              sendrequest("SITE LONG", nil);
+              getreply(&ctlin, msg, sizeof(msg), 0);
+              /* FALL THRU */
 	case Unix:
 	case Plan9:
-	case NetWare:
 		/*
 		 *  go to the remote root, if asked
 		 */
@@ -349,10 +356,12 @@ cracktime(char *month, char *day, char *yr, char *hms)
 	int i;
 	char *p;
 
+
 	/* default time */
 	if(now.year == 0)
 		now = *localtime(time(0));
 	tm = now;
+	tm.yday = 0;
 
 	/* convert ascii month to a number twixt 1 and 12 */
 	if(*month >= '0' && *month <= '9'){

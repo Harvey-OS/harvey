@@ -206,6 +206,13 @@ dumpaudiofunc(Audiofunc *af)
 				if(u->assoc != 0)
 					fprint(2, "\t\t\tassociated terminal id %d\n", u->assoc);
 				break;
+			case MIXER_UNIT:
+				fprint(2, "\t\t\tmixer controls (sources × channels = %d × %d)",
+					u->nsource, u->nchan);
+				for(i = 0; i < (u->nsource*u->nchan+31) >> 5; i++)
+					fprint(2, " %.8ux", u->hascontrol[i]);
+				fprint(2, "\n");
+				break;
 			case FEATURE_UNIT:
 				fprint(2, "\t\t\tmaster hascontrol %.4x ", u->hascontrol[0]);
 				dumpbits(featcontrols, u->hascontrol[0]);

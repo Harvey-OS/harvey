@@ -39,6 +39,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 			case 0x1102:
 			case 0x1112:
 			case 0x1132:
+			case 0x3577:	/* Intel 830M chipset (experimental) */
 				vga->f[1] = 230000000;
 				break;
 			}

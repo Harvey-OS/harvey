@@ -114,6 +114,8 @@ turns on forward DNS validation of non-trusted sender address.
 .TP
 .B -f
 prevents relaying from non-trusted networks.
+It also tags messages from non-trusted sites when they deliver mail
+from an address in a domain we believe we represent.
 .TP
 .B -n
 specifies the name of the network directory assigned to the incoming connection.

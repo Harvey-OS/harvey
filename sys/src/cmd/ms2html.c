@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <ctype.h>
 #include <bio.h>
 
 enum
@@ -21,6 +22,9 @@ enum
 	Ldef,
 	Lother,
 };
+
+char *delim = "$$";
+int eqnmode;
 
 int 	quiet;
 float	indent; /* from .in */
@@ -137,7 +141,7 @@ Goobie gtab[] =
 	{ "QE",	g_QE, },
 	{ "QP",	g_QS, },
 	{ "QS",	g_QS, },
-	{ "R",	g_R, },
+	{ "R",		g_R, },
 	{ "RE",	g_RE, },
 	{ "RP",	g_ignore, },
 	{ "RS",	g_RS, },
@@ -154,28 +158,28 @@ Goobie gtab[] =
 	{ "UL",	g_I, },
 	{ "UX",	g_ignore, },
 	{ "WH",	g_ignore, },
-	{ "RT", g_RT, },
+	{ "RT", 	g_RT, },
 
 	{ "br",	g_br, },
-	{ "ti",	g_br, },
+	{ "ti",		g_br, },
 	{ "nf",	g_P1, },
-	{ "fi",	g_P2, },
-	{ "ft",	g_ft, },
-	{ "sp", g_sp, },
-	{ "rm", g_rm, },
-	{ "de", g_de, },
-	{ "am", g_de, },
-	{ "lf", g_lf, },
-	{ "so", g_so, },
-	{ "ps", g_ignore },
-	{ "vs", g_ignore },
-	{ "nr", g_nr },
-	{ "in", g_in },
-	{ "ne", g_ignore },
-	{ "ig", g_ig },
-	{ "BS", g_BS },
-	{ "BE", g_BE },
-	{ "LB", g_LB },
+	{ "fi",		g_P2, },
+	{ "ft",		g_ft, },
+	{ "sp", 	g_sp, },
+	{ "rm", 	g_rm, },
+	{ "de", 	g_de, },
+	{ "am", 	g_de, },
+	{ "lf", 	g_lf, },
+	{ "so", 	g_so, },
+	{ "ps", 	g_ignore },
+	{ "vs", 	g_ignore },
+	{ "nr", 	g_nr },
+	{ "in", 	g_in },
+	{ "ne", 	g_ignore },
+	{ "ig", 	g_ig },
+	{ "BS", 	g_BS },
+	{ "BE", 	g_BE },
+	{ "LB", 	g_LB },
 	{ nil, nil },
 };
 
@@ -189,9 +193,9 @@ struct Entity
 Entity entity[] =
 {
 	{ "&#SPACE;",	L' ', },
-	{ "&#RS;",	L'\n', },
-	{ "&#RE;",	L'\r', },
-	{ "&quot;",	L'"', },
+	{ "&#RS;",		L'\n', },
+	{ "&#RE;",		L'\r', },
+	{ "&quot;",		L'"', },
 	{ "&AElig;",	L'Æ', },
 	{ "&Aacute;",	L'Á', },
 	{ "&Acirc;",	L'Â', },
@@ -200,15 +204,15 @@ Entity entity[] =
 	{ "&Atilde;",	L'Ã', },
 	{ "&Auml;",	L'Ä', },
 	{ "&Ccedil;",	L'Ç', },
-	{ "&ETH;",	L'Ð', },
+	{ "&ETH;",		L'Ð', },
 	{ "&Eacute;",	L'É', },
 	{ "&Ecirc;",	L'Ê', },
 	{ "&Egrave;",	L'È', },
 	{ "&Euml;",	L'Ë', },
 	{ "&Iacute;",	L'Í', },
-	{ "&Icirc;",	L'Î', },
+	{ "&Icirc;",		L'Î', },
 	{ "&Igrave;",	L'Ì', },
-	{ "&Iuml;",	L'Ï', },
+	{ "&Iuml;",		L'Ï', },
 	{ "&Ntilde;",	L'Ñ', },
 	{ "&Oacute;",	L'Ó', },
 	{ "&Ocirc;",	L'Ô', },
@@ -226,7 +230,7 @@ Entity entity[] =
 	{ "&acirc;",	L'â', },
 	{ "&aelig;",	L'æ', },
 	{ "&agrave;",	L'à', },
-	{ "&amp;",	L'&', },
+	{ "&amp;",		L'&', },
 	{ "&aring;",	L'å', },
 	{ "&atilde;",	L'ã', },
 	{ "&auml;",	L'ä', },
@@ -234,14 +238,14 @@ Entity entity[] =
 	{ "&eacute;",	L'é', },
 	{ "&ecirc;",	L'ê', },
 	{ "&egrave;",	L'è', },
-	{ "&eth;",	L'ð', },
+	{ "&eth;",		L'ð', },
 	{ "&euml;",	L'ë', },
-	{ "&gt;",	L'>', },
+	{ "&gt;",		L'>', },
 	{ "&iacute;",	L'í', },
-	{ "&icirc;",	L'î', },
+	{ "&icirc;",		L'î', },
 	{ "&igrave;",	L'ì', },
-	{ "&iuml;",	L'ï', },
-	{ "&lt;",	L'<', },
+	{ "&iuml;",		L'ï', },
+	{ "&lt;",		L'<', },
 	{ "&ntilde;",	L'ñ', },
 	{ "&oacute;",	L'ó', },
 	{ "&ocirc;",	L'ô', },
@@ -249,7 +253,7 @@ Entity entity[] =
 	{ "&oslash;",	L'ø', },
 	{ "&otilde;",	L'õ', },
 	{ "&ouml;",	L'ö', },
-	{ "&szlig;",	L'ß', },
+	{ "&szlig;",		L'ß', },
 	{ "&thorn;",	L'þ', },
 	{ "&uacute;",	L'ú', },
 	{ "&ucirc;",	L'û', },
@@ -289,35 +293,80 @@ Entity entity[] =
 	{ "&#190;",	L'¾', },
 	{ "&#191;",	L'¿', },
 
-	{ "*",		L'•', },
+	{ "*",			L'•', },
 	{ "&#164;",	L'□', },
 	{ "&#186;",	L'◊', },
-	{ "(tm)",	L'™', },
+	{ "(tm)",		L'™', },
+	{"&#913;",		L'Α',},
+	{"&#914;",		L'Β',},
+	{"&#915;",		L'Γ',},
+	{"&#916;",		L'Δ',},
+	{"&#917;",		L'Ε',},
+	{"&#918;",		L'Ζ',},
+	{"&#919;",		L'Η',},
+	{"&#920;",		L'Θ',},
+	{"&#921;",		L'Ι',},
+	{"&#922;",		L'Κ',},
+	{"&#923;",		L'Λ',},
+	{"&#924;",		L'Μ',},
+	{"&#925;",		L'Ν',},
+	{"&#926;",		L'Ξ',},
+	{"&#927;",		L'Ο',},
+	{"&#928;",		L'Π',},
+	{"&#929;",		L'Ρ',},
+	{"&#930;",		L'΢',},
+	{"&#931;",		L'Σ',},
+	{"&#932;",		L'Τ',},
+	{"&#933;",		L'Υ',},
+	{"&#934;",		L'Φ',},
+	{"&#935;",		L'Χ',},
+	{"&#936;",		L'Ψ',},
+	{"&#937;",		L'Ω',},
+	{"&#945;",		L'α',},
+	{"&#946;",		L'β',},
+	{"&#947;",		L'γ',},
+	{"&#948;",		L'δ',},
+	{"&#949;",		L'ε',},
+	{"&#950;",		L'ζ',},
+	{"&#951;",		L'η',},
+	{"&#952;",		L'θ',},
+	{"&#953;",		L'ι',},
+	{"&#954;",		L'κ',},
+	{"&#955;",		L'λ',},
+	{"&#956;",		L'μ',},
+	{"&#957;",		L'ν',},
+	{"&#958;",		L'ξ',},
+	{"&#959;",		L'ο',},
+	{"&#960;",		L'π',},
+	{"&#961;",		L'ρ',},
+	{"&#962;",		L'ς',},
+	{"&#963;",		L'σ',},
+	{"&#964;",		L'τ',},
+	{"&#965;",		L'υ',},
+	{"&#966;",		L'φ',},
+	{"&#967;",		L'χ',},
+	{"&#968;",		L'ψ',},
+	{"&#969;",		L'ω',},
 
-	{ "CAP-DELTA",	L'Δ', },
-	{ "ALPHA",	L'α', },
-	{ "BETA",	L'β', },
-	{ "DELTA",	L'δ', },
-	{ "EPSILON",	L'ε', },
-	{ "THETA",	L'θ', },
-	{ "MU",		L'μ', },
-	{ "PI",		L'π', },
-	{ "TAU",	L'τ', },
-	{ "CHI",	L'χ', },
+	{ "<-",		L'←', },
+	{ "^",			L'↑', },
+	{ "->",		L'→', },
+	{ "v",			L'↓', },
+	{ "!=",		L'≠', },
+	{ "<=",		L'≤', },
+	{ "...",		L'⋯', },
+	{"&isin;",		L'∈', },
+
+	{"&#8211;",	L'–', },
+	{"&#8212;",	L'—', },
 
 	{ "CYRILLIC XYZZY",	L'й', },
 	{ "CYRILLIC XYZZY",	L'ъ', },
-	{ "CYRILLIC Y",	L'ь', },
+	{ "CYRILLIC Y",		L'ь', },
 	{ "CYRILLIC YA",	L'я', },
 	{ "CYRILLIC YA",	L'ё', },
-	{ "&#191;",	L'ℱ', },
+	{ "&#191;",		L'ℱ', },
 
-	{ "<-",		L'←', },
-	{ "^",		L'↑', },
-	{ "->",		L'→', },
-	{ "v",		L'↓', },
-	{ "!=",		L'≠', },
-	{ "<=",		L'≤', },
 	{ nil, 0 },
 };
 
@@ -405,6 +454,7 @@ Troffspec tspec[] =
 	{ "ul", "_", },
 	{ "rn", " ", },
 	{ "**", "*", },
+	{ "tm", "&#153", },
 	{ nil, nil, },
 };
 
@@ -678,6 +728,31 @@ changefont(Font *f)
 	return token;
 }
 
+char*
+changesize(int amount)
+{
+	static int curamount;
+	static char buf[200];
+	int i;
+
+	buf[0] = 0;
+	if (curamount >= 0)
+		for (i = 0; i < curamount; i++)
+			strcat(buf, "</big>");
+	else
+		for (i = 0; i < -curamount; i++)
+			strcat(buf, "</small>");
+	curamount = 0;
+	if (amount >= 0)
+		for (i = 0; i < amount; i++)
+			strcat(buf, "<big>");
+	else
+		for (i = 0; i < -amount; i++)
+			strcat(buf, "<small>");
+	curamount = amount;
+	return buf;
+}
+
 /* get next logical character.  expand it with escapes */
 char*
 getnext(void)
@@ -687,6 +762,7 @@ getnext(void)
 	Troffspec *t;
 	Rune R;
 	char str[4];
+	static char buf[8];
 
 	r = getrune();
 	if(r < 0)
@@ -695,9 +771,18 @@ getnext(void)
 		for(e = entity; e->name; e++)
 			if(e->value == r)
 				return e->name;
-		return "&#191;";
+		sprint(buf, "&#%d;", r);
+		return buf;
 	}
 
+	if (r == delim[eqnmode]){
+		if (eqnmode == 0){
+			eqnmode = 1;
+			return changefont(&ifont);
+		}
+		eqnmode = 0;
+		return changefont(prevfont);
+	}
 	switch(r){
 	case '\\':
 		r = getrune();
@@ -845,9 +930,22 @@ getnext(void)
 
 		/* font size */
 		case 's':
-			getnext();	/* ignore size change */
+			r = getrune();
+			switch(r){
+			case '0':
+				return changesize(0);
+			case '-':
+				r = getrune();
+				if (!isdigit(r))
+					return getnext();
+				return changesize(-(r - '0'));
+			case '+':
+				r = getrune();
+				if (!isdigit(r))
+					return getnext();
+				return changesize(r - '0');
+			}
 			return getnext();
-
 		/* vertical movement */
 		case 'v':
 			r = getrune();
@@ -1248,13 +1346,27 @@ doconvert(void)
 	Bprint(&bout, "</body></html>\n");
 }
 
+static void
+usage(void)
+{
+	sysfatal("Usage: %s\n", argv0);
+}
+
 void
 main(int argc, char **argv)
 {
 	quiet = 1;
-	if(argc > 1)
-		if(strcmp(argv[1], "-v") == 0)
-			quiet = 0;
+	ARGBEGIN {
+	case 'q':
+		quiet = 0;
+		break;
+	case 'd':
+		delim = EARGF(usage());
+		break;
+	case '?':
+	default:
+		usage();
+	} ARGEND;
 
 	Binit(&bout, 1, OWRITE);
 
@@ -1974,15 +2086,17 @@ g_startgif(int, char **argv)
 		close(fd);
 		close(pfd[0]);
 		fprint(pfd[1], ".ll 7i\n");
+		fprint(pfd[1], ".EQ\ndelim %s\n.EN\n", delim);
+		fprint(pfd[1], ".%s\n", argv[0]);
 		for(;;){
 			p = Brdline(&ssp->in, '\n');
 			if(p == nil)
 				break;
 			ssp->lno++;
 			ssp->rlno++;
-			if(strncmp(p, e, 3) == 0)
-				break;
 			if(write(pfd[1], p, Blinelen(&ssp->in)) < 0)
+				break;
+			if(strncmp(p, e, 3) == 0)
 				break;
 		}
 		close(pfd[1]);

@@ -20,7 +20,7 @@ must clientmount
 n=`{ls -l $clientlog >[2]/dev/null |awk '{print $6}'}
 s=`{ls -l $serverlog >[2]/dev/null |awk '{print $6}'}
 if(~ $n 0 || ~ $#n 0 || test $s -lt $n){
-	must rm $clientlog
+	if(test -e $clientlog) must rm $clientlog
 	must cp $serverlog $clientlog
 }
 if not{

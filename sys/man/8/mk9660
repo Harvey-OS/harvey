@@ -219,7 +219,8 @@ Plan 9 extensions in the system use fields, and
 a Joliet directory tree.
 .IP
 .EX
-disk/mk9660 -9cj -s /n/bootes -p plan9proto cdimage
+disk/mk9660 -9cj -s /n/bootes \e
+	-p /sys/lib/sysconfig/srcproto cdimage
 .EE
 .SH SOURCE
 .B /sys/src/cmd/disk/9660

@@ -1,6 +1,6 @@
 *nomp=1
 partition=new
-nobootprompt=local!/bzroot
+nobootprompt=local!/boot/bzroot
 bootfile=fd0!9pcflop.gz
 mouseport=ps2
 monitor=xga

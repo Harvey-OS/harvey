@@ -48,6 +48,7 @@ void	hello(String*, int extended);
 void	help(String *);
 void	listadd(List*, String*);
 void	listfree(List*);
+int	masquerade(String*, char*);
 void	noop(void);
 int	optoutofspamfilter(char*);
 void	quit(void);

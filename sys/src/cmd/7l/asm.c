@@ -83,7 +83,7 @@ asmb(void)
 			autosize = p->to.offset + 8;
 		}
 		if(p->pc != pc) {
-			diag("phase error %lux sb %lux\n",
+			diag("phase error %lux sb %lux",
 				p->pc, pc);
 			if(!debug['a'])
 				prasm(curp);
@@ -482,13 +482,13 @@ datblk(long s, long n)
 			for(j=l+(c-i)-1; j>=l; j--)
 				if(buf.dbuf[j]) {
 					print("%P\n", p);
-					diag("multiple initialization\n");
+					diag("multiple initialization");
 					break;
 				}
 		}
 		switch(p->to.type) {
 		default:
-			diag("unknown mode in initialization\n%P\n", p);
+			diag("unknown mode in initialization\n%P", p);
 			break;
 
 		case D_FCONST:
@@ -533,7 +533,7 @@ datblk(long s, long n)
 			cast = (char*)&d;
 			switch(c) {
 			default:
-				diag("bad nuxi %d %d\n%P\n", c, i, curp);
+				diag("bad nuxi %d %d\n%P", c, i, curp);
 				break;
 			case 1:
 				for(; i<c; i++) {
@@ -595,7 +595,7 @@ asmout(Prog *p, Optab *o)
 	o6 = 0;
 	switch(o->type) {
 	default:
-		diag("unknown type %d\n", o->type);
+		diag("unknown type %d", o->type);
 		if(!debug['a'])
 			prasm(p);
 		break;
@@ -728,7 +728,7 @@ asmout(Prog *p, Optab *o)
 	case 13:	/* <op> $scon,[r2],r3 */
 		v = regoff(&p->from);
 		if(p->to.reg == REGTMP || p->reg == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
+			diag("cant synthesize large constant\n%P", p);
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
@@ -741,7 +741,7 @@ asmout(Prog *p, Optab *o)
 		if(v & 0x8000)
 			v += 0x10000;
 		if(p->to.reg == REGTMP || p->reg == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
+			diag("cant synthesize large constant\n%P", p);
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
@@ -850,7 +850,7 @@ asmout(Prog *p, Optab *o)
 
 	case 23:	/* <op> $qcon,r1 */
 		if(p->to.reg == REGTMP || p->reg == REGTMP)
-			diag("cant synthesize large constant\n%P\n", p);
+			diag("cant synthesize large constant\n%P", p);
 		v = regoff(&p->from);
 		r = p->reg;
 		if(r == NREG)
@@ -912,7 +912,7 @@ asmout(Prog *p, Optab *o)
 			r = o->param;
 		v = regoff(&p->to);
 		if (v < -0x800 || v >= 0x800)
-			diag("physical store out of range\n%P\n", p);
+			diag("physical store out of range\n%P", p);
 		v &= 0xfff;
 		o1 = OP_MEM(opcode(p->as+AEND), v, r, p->from.reg);
 		break;
@@ -923,7 +923,7 @@ asmout(Prog *p, Optab *o)
 			r = o->param;
 		v = regoff(&p->from);
 		if (v < -0x800 || v >= 0x800)
-			diag("physical load out of range\n%P\n", p);
+			diag("physical load out of range\n%P", p);
 		v &= 0xfff;
 		o1 = OP_MEM(opcode(p->as), v, r, p->to.reg);
 		break;
@@ -1214,7 +1214,7 @@ diag("opcode(AMOVW)");
 	case AADDQ+AEND:	return OP(25,0);	/* HW_MFPR */
 	case ASUBQ+AEND:	return OP(29,0);	/* HW_MTPR */
 	}
-	diag("bad op %A(%d)\n", a, a);
+	diag("bad op %A(%d)", a, a);
 	return 0;
 }
 

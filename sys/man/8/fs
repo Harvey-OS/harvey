@@ -19,6 +19,14 @@ fs, exsort \- file server maintenance
 .B check
 .RI [ options ]
 .PP
+.B clean
+.I file
+[
+.I bno
+[
+.I addr
+] ]
+.PP
 .B clri
 .RI [ file ...]
 .PP
@@ -158,6 +166,7 @@ flushes it.
 changes the current file system, that is, the file tree to which
 commands
 .RB ( check ,
+.BR clean ,
 .BR clri ,
 .BR create ,
 .BR cwcmd ,
@@ -249,6 +258,24 @@ to be advanced to the current WORM on the next dump.
 This is a discredited idea to try to keep operating
 on the knee of the cache working set.
 Buy more cache disk.
+.PP
+.I Clean
+prints the block numbers in
+.IR file 's
+directory entry (direct, indirect and doubly indirect)
+and checks the tags of the blocks cited.
+If
+.I bno
+is supplied, the
+.IR bno 'th
+block number (using zero origin)
+is set to
+.I addr
+(defaults to zero).
+Note that only the block numbers in the directory entry itself
+are examined;
+.I clean
+does not recurse through indirect blocks.
 .PP
 .I Clri
 clears the internal directory entry and abandons storage

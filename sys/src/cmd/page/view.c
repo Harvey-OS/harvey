@@ -522,7 +522,7 @@ Image *gray;
  */
 static void
 gendrawdiff(Image *dst, Rectangle bot, Rectangle top, 
-	Image *src, Point sp, Image *mask, Point mp)
+	Image *src, Point sp, Image *mask, Point mp, int op)
 {
 	Rectangle r;
 	Point origin;
@@ -537,7 +537,7 @@ gendrawdiff(Image *dst, Rectangle bot, Rectangle top,
 
 	/* bot - top ≡ bot */
 	if(Dx(top)*Dy(top)==0 || rectXrect(bot, top)==0){
-		gendraw(dst, bot, src, sp, mask, mp);
+		gendrawop(dst, bot, src, sp, mask, mp, op);
 		return;
 	}
 
@@ -547,7 +547,7 @@ gendrawdiff(Image *dst, Rectangle bot, Rectangle top,
 	if(bot.min.x < top.min.x){
 		r = Rect(bot.min.x, bot.min.y, top.min.x, bot.max.y);
 		delta = subpt(r.min, origin);
-		gendraw(dst, r, src, addpt(sp, delta), mask, addpt(mp, delta));
+		gendrawop(dst, r, src, addpt(sp, delta), mask, addpt(mp, delta), op);
 		bot.min.x = top.min.x;
 	}
 
@@ -555,7 +555,7 @@ gendrawdiff(Image *dst, Rectangle bot, Rectangle top,
 	if(bot.max.x > top.max.x){
 		r = Rect(top.max.x, bot.min.y, bot.max.x, bot.max.y);
 		delta = subpt(r.min, origin);
-		gendraw(dst, r, src, addpt(sp, delta), mask, addpt(mp, delta));
+		gendrawop(dst, r, src, addpt(sp, delta), mask, addpt(mp, delta), op);
 		bot.max.x = top.max.x;
 	}
 
@@ -563,7 +563,7 @@ gendrawdiff(Image *dst, Rectangle bot, Rectangle top,
 	if(bot.min.y < top.min.y){
 		r = Rect(bot.min.x, bot.min.y, bot.max.x, top.min.y);
 		delta = subpt(r.min, origin);
-		gendraw(dst, r, src, addpt(sp, delta), mask, addpt(mp, delta));
+		gendrawop(dst, r, src, addpt(sp, delta), mask, addpt(mp, delta), op);
 		bot.min.y = top.min.y;
 	}
 
@@ -571,15 +571,15 @@ gendrawdiff(Image *dst, Rectangle bot, Rectangle top,
 	if(bot.max.y > top.max.y){
 		r = Rect(bot.min.x, top.max.y, bot.max.x, bot.max.y);
 		delta = subpt(r.min, origin);
-		gendraw(dst, r, src, addpt(sp, delta), mask, addpt(mp, delta));
+		gendrawop(dst, r, src, addpt(sp, delta), mask, addpt(mp, delta), op);
 		bot.max.y = top.max.y;
 	}
 }
 
 static void
-drawdiff(Image *dst, Rectangle bot, Rectangle top, Image *src, Image *mask, Point p)
+drawdiff(Image *dst, Rectangle bot, Rectangle top, Image *src, Image *mask, Point p, int op)
 {
-	gendrawdiff(dst, bot, top, src, p, mask, p);
+	gendrawdiff(dst, bot, top, src, p, mask, p, op);
 }
 
 /*
@@ -606,23 +606,20 @@ translate(Point delta)
 	or = rectaddpt(Rpt(ZP, Pt(Dx(im->r), Dy(im->r))), ul);
 	r = rectaddpt(or, delta);
 
-	draw(screen, r, screen, nil, ul);
+	drawop(screen, r, screen, nil, ul, S);
 	ul = u;
 
 	/* fill in gray where image used to be but isn't. */
-	drawdiff(screen, insetrect(or, -2), insetrect(r, -2), gray, nil, ZP);
+	drawdiff(screen, insetrect(or, -2), insetrect(r, -2), gray, nil, ZP, S);
 
 	/* fill in black border */
-	drawdiff(screen, insetrect(r, -2), r, display->black, nil, ZP);
+	drawdiff(screen, insetrect(r, -2), r, display->black, nil, ZP, S);
 
 	/* fill in image where it used to be off the screen. */
-	if(rectclip(&or, screen->r)){
-		drawdiff(screen, r, rectaddpt(or, delta), display->white, nil, im->r.min);
-		drawdiff(screen, r, rectaddpt(or, delta), im, nil, im->r.min);
-	}else{
-		draw(screen, r, display->white, nil, im->r.min);
-		draw(screen, r, im, nil, im->r.min);
-	}
+	if(rectclip(&or, screen->r))
+		drawdiff(screen, r, rectaddpt(or, delta), im, nil, im->r.min, S);
+	else
+		drawop(screen, r, im, nil, im->r.min, S);
 	flushimage(display, 1);
 }
 
@@ -638,7 +635,7 @@ redraw(Image *screen)
 	ulrange.min = subpt(screen->r.min, Pt(Dx(im->r), Dy(im->r)));
 
 	ul = pclip(ul, ulrange);
-	draw(screen, screen->r, im, nil, subpt(im->r.min, subpt(ul, screen->r.min)));
+	drawop(screen, screen->r, im, nil, subpt(im->r.min, subpt(ul, screen->r.min)), S);
 
 	if(im->repl)
 		return;

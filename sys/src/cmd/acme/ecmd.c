@@ -111,6 +111,8 @@ cmdexec(Text *t, Cmd *cp)
 		if(cp->addr != nil)
 			dot = cmdaddress(cp->addr, dot, 0);
 		for(cp = cp->cmd; cp; cp = cp->next){
+			if(dot.r.q1 > t->file->nc)
+				editerror("dot extends past end of buffer during { command");
 			t->q0 = dot.r.q0;
 			t->q1 = dot.r.q1;
 			cmdexec(t, cp);
@@ -207,6 +209,8 @@ int
 c_cmd(Text *t, Cmd *cp)
 {
 	elogreplace(t->file, addr.r.q0, addr.r.q1, cp->text->r, cp->text->n);
+	t->q0 = addr.r.q0;
+	t->q1 = addr.r.q0+cp->text->n;
 	return TRUE;
 }
 
@@ -215,6 +219,8 @@ d_cmd(Text *t, Cmd*)
 {
 	if(addr.r.q1 > addr.r.q0)
 		elogdelete(t->file, addr.r.q0, addr.r.q1);
+	t->q0 = addr.r.q0;
+	t->q1 = addr.r.q0;
 	return TRUE;
 }
 
@@ -716,9 +722,10 @@ append(File *f, Cmd *cp, long p)
 {
 	if(cp->text->n > 0)
 		eloginsert(f, p, cp->text->r, cp->text->n);
+	f->curtext->q0 = p;
+	f->curtext->q1 = p+cp->text->n;
 	return TRUE;
 }
-
 
 int
 pdisplay(File *f)

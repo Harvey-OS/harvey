@@ -27,7 +27,6 @@ UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
 
 </sys/src/cmd/mksyslib
 

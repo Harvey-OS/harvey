@@ -173,7 +173,7 @@ logdelete(File *f, uint p0, uint p1)
 		return;
 	if(f->seq < seq)
 		filemark(f);
-	if(p1 < f->hiposn)
+	if(p0 < f->hiposn)
 		error(Esequence);
 
 	if(merge.f != f

@@ -121,6 +121,8 @@ pppopen(PPP *ppp, int mediain, int mediaout, char *net,
 	ppp->ipcfd = -1;
 	invalidate(ppp->remote);
 	invalidate(ppp->local);
+	invalidate(ppp->curremote);
+	invalidate(ppp->curlocal);
 	invalidate(ppp->dns[0]);
 	invalidate(ppp->dns[1]);
 	invalidate(ppp->wins[0]);
@@ -272,12 +274,12 @@ pinit(PPP *ppp, Pstate *p)
 
 	switch(p->proto){
 	case Plcp:
-		ppp->magic = times(nil);
+		ppp->magic = truerand();
 		ppp->xctlmap = 0xffffffff;
 		ppp->period = 0;
 		p->optmask = 0xffffffff;
 		if(!server)
-			p->optmask &=  ~Fauth;
+			p->optmask &=  ~(Fauth|Fmtu);
 		ppp->rctlmap = 0;
 		ppp->ipcp->state = Sclosed;
 		ppp->ipcp->optmask = 0xffffffff;
@@ -310,10 +312,6 @@ pinit(PPP *ppp, Pstate *p)
 		ppp->uncstate = nil;
 		break;
 	case Pipcp:
-		if(ppp->localfrozen == 0)
-			invalidate(ppp->local);
-		if(ppp->remotefrozen == 0)
-			invalidate(ppp->remote);
 		p->optmask = 0xffffffff;
 		ppp->ctcp = compress_init(ppp->ctcp);
 		break;
@@ -332,6 +330,10 @@ newstate(PPP *ppp, Pstate *p, int state)
 	char *err;
 
 	netlog("ppp: %ux %s->%s ctlmap %lux/%lux flags %lux mtu %ld mru %ld\n",
+		p->proto, snames[p->state], snames[state], ppp->rctlmap,
+		ppp->xctlmap, p->flags,
+		ppp->mtu, ppp->mru);
+	syslog(0, "ppp", "%ux %s->%s ctlmap %lux/%lux flags %lux mtu %ld mru %ld",
 		p->proto, snames[p->state], snames[state], ppp->rctlmap,
 		ppp->xctlmap, p->flags,
 		ppp->mtu, ppp->mru);
@@ -508,6 +510,8 @@ putframe(PPP *ppp, int proto, Block *b)
 		b->rptr += 4;
 	}
 
+	netlog("ppp: putframe 0x%ux %ld\n", proto, b->wptr-b->rptr);
+
 	/* add in the protocol and address, we'd better have left room */
 	from = b->rptr;
 	*--from = proto;
@@ -533,6 +537,10 @@ putframe(PPP *ppp, int proto, Block *b)
 		/* escape and checksum the body */
 		fcs = PPP_initfcs;
 		to = buf->rptr;
+	
+		/* add frame marker */
+		*to++ = HDLC_frame;
+
 		for(bp = b; bp; bp = bp->next){
 			if(bp != b)
 				from = bp->rptr;
@@ -647,7 +655,7 @@ config(PPP *ppp, Pstate *p, int newid)
 	int id;
 
 	if(newid){
-		id = ++(p->id);
+		id = p->id++;
 		p->confid = id;
 		p->timeout = Timeout;
 	} else
@@ -657,6 +665,8 @@ config(PPP *ppp, Pstate *p, int newid)
 
 	switch(p->proto){
 	case Plcp:
+		if(p->optmask & Fctlmap)
+			putlo(b, Octlmap, 0);	/* we don't want anything escaped */
 		if(p->optmask & Fmagic)
 			putlo(b, Omagic, ppp->magic);
 		if(p->optmask & Fmtu)
@@ -668,12 +678,10 @@ config(PPP *ppp, Pstate *p, int newid)
 			b->wptr += 2;
 			*b->wptr++ = ppp->chap->proto;
 		}
-		if(p->optmask & Fac)
-			puto(b, Oac);
 		if(p->optmask & Fpc)
 			puto(b, Opc);
-		if(p->optmask & Fctlmap)
-			putlo(b, Octlmap, 0);	/* we don't want anything escaped */
+		if(p->optmask & Fac)
+			puto(b, Oac);
 		break;
 	case Pccp:
 		if(p->optmask & Fcthwack)
@@ -689,7 +697,9 @@ config(PPP *ppp, Pstate *p, int newid)
 		break;
 	case Pipcp:
 		if(p->optmask & Fipaddr)
+{syslog(0, "ppp", "requesting %I", ppp->local);
 			putv4o(b, Oipaddr, ppp->local);
+}
 		/*
 		 * don't ask for header compression while data compression is still pending.
 		 * perhaps we should restart ipcp negotiation if compression negotiation fails.
@@ -992,6 +1002,13 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 	return rejecting || nacking;
 }
 
+static void
+dropoption(Pstate *p, Lcpopt *o)
+{
+	if(o->type < 8*sizeof(p->optmask))
+		p->optmask &= ~(1<<o->type);
+}
+
 /*
  *  parse configuration rejection, just stop sending anything that they
  *  don't like (except for ipcp address nak).
@@ -1001,6 +1018,7 @@ rejopts(PPP *ppp, Pstate *p, Block *b, int code)
 {
 	Lcpmsg *m;
 	Lcpopt *o;
+	uchar newip[IPaddrlen];
 
 	/* just give up trying what the other side doesn't like */
 	m = (Lcpmsg*)b->rptr;
@@ -1012,8 +1030,7 @@ rejopts(PPP *ppp, Pstate *p, Block *b, int code)
 		}
 
 		if(code == Lconfrej){
-			if(o->type < 8*sizeof(p->optmask))
-				p->optmask &= ~(1<<o->type);
+			dropoption(p, o);
 			netlog("ppp: %ux rejecting %d\n",
 					p->proto, o->type);
 			continue;
@@ -1040,22 +1057,41 @@ rejopts(PPP *ppp, Pstate *p, Block *b, int code)
 		case Pccp:
 			switch(o->type){
 			default:
-				if(o->type < 8*sizeof(p->optmask))
-					p->optmask &= ~(1<<o->type);
+				dropoption(p, o);
 				break;
 			}
 			break;
 		case Pipcp:
 			switch(o->type){
 			case Oipaddr:
-				if(!validv4(ppp->local))
+syslog(0, "ppp", "rejected addr %I with %V", ppp->local, o->data);
+				/* if we're a server, don't let other end change our addr */
+				v4tov6(ppp->local, o->data);
+				if(ppp->localfrozen){
+					dropoption(p, o);
+					break;
+				}
+
+				/* accept whatever server tells us */
+				if(!validv4(ppp->local)){
 					v4tov6(ppp->local, o->data);
-				if(o->type < 8*sizeof(p->optmask))
-					p->optmask &= ~(1<<o->type);
+					dropoption(p, o);
+					break;
+				}
+
+				/* if he didn't like our addr, ask for a generic one */
+				v4tov6(newip, o->data);
+				if(!validv4(newip)){
+					invalidate(ppp->local);
+					break;
+				}
+
+				/* if he gives us something different, use it anyways */
+				v4tov6(ppp->local, o->data);
+				dropoption(p, o);
 				break;
 			default:
-				if(o->type < 8*sizeof(p->optmask))
-					p->optmask &= ~(1<<o->type);
+				dropoption(p, o);
 				break;
 			}
 			break;
@@ -1181,6 +1217,7 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 		}
 		break;
 	case Ltermreq:
+fprint(2, "remreq\n");
 		m->code = Ltermack;
 		putframe(ppp, p->proto, b);
 
@@ -1197,6 +1234,7 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 	case Ltermack:
 		if(p->termid != m->id)	/* ignore if it isn't the message we're sending */
 			break;
+fprint(2, "remack\n");
 
 		if(p->proto == Plcp)
 			ppp->ipcp->state = Sclosed;
@@ -1359,15 +1397,28 @@ setdefroute(char *net, Ipaddr gate)
 	close(fd);
 }
 
+enum
+{
+	Mofd=	32,
+};
+struct
+{
+	Lock;
+
+	int	fd[Mofd];
+	int	cfd[Mofd];
+	int	n;
+} old;
+
 static char*
 ipopen(PPP *ppp)
 {
-	int n, cfd, fd, already;
-	char buf[128];
+	static int ipinprocpid;
+	int n, cfd, fd;
 	char path[128];
+	char buf[128];
 
-	already = ppp->ipfd >= 0;
-	if(!already){
+	if(ipinprocpid <= 0){
 		snprint(path, sizeof path, "%s/ipifc/clone", ppp->net);
 		cfd = open(path, ORDWR);
 		if(cfd < 0)
@@ -1389,35 +1440,21 @@ ipopen(PPP *ppp)
 
 		if(fprint(cfd, "bind pkt") < 0)
 			return "binding pkt to ip interface";
-	} else {
-		fd = ppp->ipfd;
-		cfd = ppp->ipcfd;
-	}
-
-	/* old kernels don't know about the proxy property, they set it automaticly */
-	snprint(buf, sizeof(buf), "add %I 255.255.255.255 %I %lud proxy", ppp->local,
-		ppp->remote, ppp->mtu-10);
-	if(fprint(cfd, "%s", buf) < 0){
-		snprint(buf, sizeof(buf), "add %I 255.255.255.255 %I %lud", ppp->local,
-			ppp->remote, ppp->mtu-10);
-		if(fprint(cfd, "%s", buf) < 0){
+		if(fprint(cfd, "add %I 255.255.255.255 %I %lud proxy", ppp->local,
+			ppp->remote, ppp->mtu-10) < 0){
 			close(cfd);
 			return "can't set addresses";
 		}
-	}
+		if(primary)
+			setdefroute(ppp->net, ppp->remote);
+		ppp->ipfd = fd;
+		ppp->ipcfd = cfd;
 
-	if(primary)
-		setdefroute(ppp->net, ppp->remote);
-
-	ppp->ipfd = fd;
-	ppp->ipcfd = cfd;
-
-	if(!already){
 		/* signal main() that ip is configured */
 		if(primary)
 			rendezvous(Rmagic, 0);
 
-		switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
+		switch(ipinprocpid = rfork(RFPROC|RFMEM|RFNOWAIT)){
 		case -1:
 			sysfatal("forking ipinproc");
 		case 0:
@@ -1425,7 +1462,24 @@ ipopen(PPP *ppp)
 			terminate(ppp, 1);
 			_exits(0);
 		}
+	} else {
+		/* we may have changed addresses */
+		if(ipcmp(ppp->local, ppp->curlocal) != 0 ||
+		   ipcmp(ppp->remote, ppp->curremote) != 0){
+			snprint(buf, sizeof buf, "remove %I 255.255.255.255",
+			    ppp->curremote);
+			if(fprint(ppp->ipcfd, "%s", buf) < 0)
+				syslog(0, "ppp", "can't %s: %r", buf);
+			snprint(buf, sizeof buf, "add %I 255.255.255.255 %I %lud proxy",
+			    ppp->local, ppp->remote, ppp->mtu-10);
+			if(fprint(ppp->ipcfd, "%s", buf) < 0)
+				syslog(0, "ppp", "can't %s: %r", buf);
+		}
+		syslog(0, "ppp", "%I/%I -> %I/%I", ppp->curlocal, ppp->curremote,
+		   ppp->local, ppp->remote);
 	}
+	ipmove(ppp->curlocal, ppp->local);
+	ipmove(ppp->curremote, ppp->remote);
 
 	return nil;
 }
@@ -1620,6 +1674,7 @@ ipinproc(PPP *ppp)
 	Iphdr *ip;
 
 	while(!dying){
+
 		b = allocb(Buflen);
 		n = read(ppp->ipfd, b->wptr, b->lim-b->wptr);
 		if(n < 0)
@@ -1711,8 +1766,8 @@ mediainproc(PPP *ppp)
 		freeb(b);
 	}
 
-	netlog(": remote=%I: ppp shuting down\n", ppp->remote);
-	syslog(0, LOG, ": remote=%I: ppp shuting down", ppp->remote);
+	netlog(": remote=%I: ppp shutting down\n", ppp->remote);
+	syslog(0, LOG, ": remote=%I: ppp shutting down", ppp->remote);
 	syslog(0, LOG, "\t\tppp send = %lud/%lud recv= %lud/%lud",
 		ppp->out.packets, ppp->out.uchars,
 		ppp->in.packets, ppp->in.uchars);
@@ -2496,7 +2551,7 @@ main(int argc, char **argv)
 	PPP *ppp;
 	char buf[128];
 
-	rfork(RFREND|RFMEM|RFNOTEG|RFNAMEG);
+	rfork(RFREND|RFNOTEG|RFNAMEG);
 
 	fmtinstall('I', eipfmt);
 	fmtinstall('V', eipfmt);
@@ -2670,12 +2725,12 @@ netlog(char *fmt, ...)
 	static long start;
 	long now;
 
+	if(debug == 0)
+		return;
+
 	now = time(0);
 	if(start == 0)
 		start = now;
-
-	if(debug == 0)
-		return;
 
 	va_start(arg, fmt);
 	m = vsmprint(fmt, arg);

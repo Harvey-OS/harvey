@@ -94,7 +94,7 @@ Worker *workers;
 char srvfile[64], mntdir[64];
 int mfd[2], p[2];
 char user[32];
-int srvpost;
+char *srvpost;
 
 Channel *procchan;
 Channel *replchan;
@@ -223,7 +223,7 @@ serve(void *)
 
 	close(p[0]);	/* don't deadlock if child fails */
 	if(srvpost){
-		sprint(srvfile, "/srv/usbaudio.%s", user);
+		sprint(srvfile, "/srv/%s", srvpost);
 		remove(srvfile);
 		post(srvfile, "usbaudio", p[1]);
 	}
@@ -603,6 +603,12 @@ rread(Fid *f)
 			c = &nx->control[Volume_control];
 			if (c->readable){
 				i = snprint(p, n, "audio %s %ld\n", rec?"in":"out", (c->min != Undef) ?
+					100*(c->value[0]-c->min)/(c->max-c->min) : c->value[0]);
+				p+=i; n-=i;
+			}
+			c = &nx->control[Mixer_control];
+			if (c->readable){
+				i = snprint(p, n, "mixer %s %ld\n", rec?"in":"out", (c->min != Undef) ?
 					100*(c->value[0]-c->min)/(c->max-c->min) : c->value[0]);
 				p+=i; n-=i;
 			}

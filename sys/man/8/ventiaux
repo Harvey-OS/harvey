@@ -396,8 +396,12 @@ last=`{cat last}
 venti/wrarena -h venti2 -o 335872 /dev/sdC0/arenas $last >output
 awk '/^end offset/ { print $3 }' offset >last
 .EE
-(Of course, one would need to add wrapper code to keep track
-of which arenas have been processed.)
+.LP
+Of course, one would need to add wrapper code to keep track
+of which arenas have been processed.
+See
+.B /sys/src/cmd/venti/backup.example
+for a version that does this.
 .PP
 .I Read
 and

@@ -572,7 +572,7 @@ mwrite(Chan *c, void *a, long n, vlong off)
 }
 
 Dev fsdevtab = {
-	L'k',
+	'k',
 	"devfs",
 
 	devreset,

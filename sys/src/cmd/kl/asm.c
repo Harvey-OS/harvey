@@ -56,7 +56,7 @@ asmb(void)
 			autosize = p->to.offset + 4;
 		}
 		if(p->pc != pc) {
-			diag("phase error %lux sb %lux\n",
+			diag("phase error %lux sb %lux",
 				p->pc, pc);
 			if(!debug['a'])
 				prasm(curp);
@@ -400,13 +400,13 @@ datblk(long s, long n)
 			for(j=l+(c-i)-1; j>=l; j--)
 				if(buf.dbuf[j]) {
 					print("%P\n", p);
-					diag("multiple initialization\n");
+					diag("multiple initialization");
 					break;
 				}
 		}
 		switch(p->to.type) {
 		default:
-			diag("unknown mode in initialization\n%P\n", p);
+			diag("unknown mode in initialization\n%P", p);
 			break;
 
 		case D_FCONST:
@@ -451,7 +451,7 @@ datblk(long s, long n)
 			cast = (char*)&d;
 			switch(c) {
 			default:
-				diag("bad nuxi %d %d\n%P\n", c, i, curp);
+				diag("bad nuxi %d %d\n%P", c, i, curp);
 				break;
 			case 1:
 				for(; i<c; i++) {
@@ -517,7 +517,7 @@ asmout(Prog *p, Optab *o, int aflag)
 	default:
 		if(aflag)
 			return 0;
-		diag("unknown type %d\n", o->type);
+		diag("unknown type %d", o->type);
 		if(!debug['a'])
 			prasm(p);
 		break;
@@ -774,7 +774,7 @@ asmout(Prog *p, Optab *o, int aflag)
 			v = p->cond->pc - p->pc;
 		r = p->reg;
 		if(r != NREG && r != 15)
-			diag("cant jmpl other than R15\n");
+			diag("cant jmpl other than R15");
 		o1 = 0x40000000 | ((v/4) & 0x3fffffffL);	/* call */
 		if(p->link && p->cond && isnop(p->link)) {
 			o2 = asmout(p->cond, oplook(p->cond), 1);
@@ -1232,6 +1232,6 @@ opcode(int a)
 
 	case AUNIMP:	return 0;
 	}
-	diag("bad opcode %A\n", a);
+	diag("bad opcode %A", a);
 	return 0;
 }

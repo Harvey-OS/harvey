@@ -48,6 +48,7 @@ connectcmd(char *cmd)
 		fprint(2, "fork failed: %r\n");
 		_exits("exec");
 	case 0:
+		rfork(RFNOTEG);
 		dup(p[0], 0);
 		dup(p[0], 1);
 		close(p[1]);

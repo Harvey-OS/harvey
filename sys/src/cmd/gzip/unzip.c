@@ -702,6 +702,7 @@ msdos2time(int time, int date)
 	tm.mon = ((date >> 5) & 15) - 1;
 	tm.mday = date & 31;
 	tm.zone[0] = '\0';
+	tm.yday = 0;
 
 	return tm2sec(&tm);
 }

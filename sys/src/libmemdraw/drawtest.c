@@ -395,7 +395,7 @@ verifyonemask(void)
 	memmove(savedstbits, dst->data->bdata, dst->width*sizeof(ulong)*Yrange);
 	
 	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
-	memimagedraw(dst, Rect(dp.x, dp.y, dp.x+1, dp.y+1), src, sp, mask, mp);
+	memimagedraw(dst, Rect(dp.x, dp.y, dp.x+1, dp.y+1), src, sp, mask, mp, SoverD);
 	memmove(mask->data->bdata, maskbits, mask->width*sizeof(ulong)*Yrange);
 
 	checkone(dp, sp, mp);
@@ -453,12 +453,12 @@ verifylinemask(void)
 	tp = sp;
 	up = mp;
 	for(x=dr.min.x; x<dr.max.x && tp.x<Xrange && up.x<Xrange; x++,tp.x++,up.x++)
-		memimagedraw(dst, Rect(x, dr.min.y, x+1, dr.min.y+1), src, tp, mask, up);
+		memimagedraw(dst, Rect(x, dr.min.y, x+1, dr.min.y+1), src, tp, mask, up, SoverD);
 	memmove(savedstbits, dst->data->bdata, dst->width*sizeof(ulong)*Yrange);
 
 	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
 
-	memimagedraw(dst, dr, src, sp, mask, mp);
+	memimagedraw(dst, dr, src, sp, mask, mp, SoverD);
 	checkline(dr, drawrepl(src->r, sp), drawrepl(mask->r, mp), dr.min.y, nil, nil);
 }
 
@@ -515,7 +515,7 @@ verifyrectmask(void)
 	up = mp;
 	for(y=dr.min.y; y<dr.max.y && tp.y<Yrange && up.y<Yrange; y++,tp.y++,up.y++){
 		for(x=dr.min.x; x<dr.max.x && tp.x<Xrange && up.x<Xrange; x++,tp.x++,up.x++)
-			memimagedraw(dst, Rect(x, y, x+1, y+1), src, tp, mask, up);
+			memimagedraw(dst, Rect(x, y, x+1, y+1), src, tp, mask, up, SoverD);
 		tp.x = sp.x;
 		up.x = mp.x;
 	}
@@ -523,7 +523,7 @@ verifyrectmask(void)
 
 	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
 
-	memimagedraw(dst, dr, src, sp, mask, mp);
+	memimagedraw(dst, dr, src, sp, mask, mp, SoverD);
 	for(y=0; y<Yrange; y++)
 		checkline(dr, drawrepl(src->r, sp), drawrepl(mask->r, mp), y, nil, nil);
 }
@@ -615,7 +615,7 @@ replicate(Memimage *i, Memimage *tmp)
 	/* copy from i to tmp so we have just the replicated bits */
 	nb = tmp->width*sizeof(ulong)*Yrange;
 	memset(tmp->data->bdata, 0, nb);
-	memimagedraw(tmp, r, i, r.min, ones, r.min);
+	memimagedraw(tmp, r, i, r.min, ones, r.min, SoverD);
 	memmove(i->data->bdata, tmp->data->bdata, nb);
 	/* i is now a non-replicated instance of the replication */
 	/* replicate it by hand through tmp */
@@ -629,7 +629,7 @@ replicate(Memimage *i, Memimage *tmp)
 			r1.min.y = y;
 			r1.max.x = r1.min.x+Dx(r);
 			r1.max.y = r1.min.y+Dy(r);
-			memimagedraw(tmp, r1, i, r.min, ones, r.min);
+			memimagedraw(tmp, r1, i, r.min, ones, r.min, SoverD);
 		}
 	}
 	i->flags |= Frepl;
@@ -694,13 +694,13 @@ verifyrectmaskrepl(int srcrepl, int maskrepl)
 DBG	print("smalldraws\n");
 	for(tp.y=sp.y,up.y=mp.y,y=dr.min.y; y<dr.max.y && tp.y<Yrange && up.y<Yrange; y++,tp.y++,up.y++)
 		for(tp.x=sp.x,up.x=mp.x,x=dr.min.x; x<dr.max.x && tp.x<Xrange && up.x<Xrange; x++,tp.x++,up.x++)
-			memimagedraw(dst, Rect(x, y, x+1, y+1), s, tp, m, up);
+			memimagedraw(dst, Rect(x, y, x+1, y+1), s, tp, m, up, SoverD);
 	memmove(savedstbits, dst->data->bdata, dst->width*sizeof(ulong)*Yrange);
 
 	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
 
 DBG	print("bigdraw\n");
-	memimagedraw(dst, dr, src, sp, mask, mp);
+	memimagedraw(dst, dr, src, sp, mask, mp, SoverD);
 	for(y=0; y<Yrange; y++)
 		checkline(dr, drawrepl(src->r, sp), drawrepl(mask->r, mp), y, srcrepl?stmp:nil, maskrepl?mtmp:nil);
 }

@@ -1941,7 +1941,7 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 
 		h4->Unused = 0;
 		hnputs(h4->tcplen, length-TCP4_PKT);
-		if((h4->tcpcksum[0] || h4->tcpcksum[1]) && 
+		if(!(bp->flag & Btcpck) && (h4->tcpcksum[0] || h4->tcpcksum[1]) && 
 			ptclcsum(bp, TCP4_IPLEN, length-TCP4_IPLEN)) {
 			tpriv->stats[CsumErrs]++;
 			tpriv->stats[InErrs]++;

@@ -52,7 +52,7 @@ eresized(int new)
 	border(screen, r, -Border, nil, ZP);
 	r.min.x += allims[which]->r.min.x - allims[0]->r.min.x;
 	r.min.y += allims[which]->r.min.y - allims[0]->r.min.y;
-	draw(screen, r, allims[which], allmasks[which], allims[which]->r.min);
+	drawop(screen, r, allims[which], allmasks[which], allims[which]->r.min, S);
 	flushimage(display, 1);
 }
 
@@ -241,9 +241,9 @@ whiteout(Rawimage *r, Rawimage *c)
 		for(i=0; i<r->chanlen; i++){
 			if(*rp == trindex){
 				*cp++ = 0x00;
-				*cp++ = 0x00;
-				*cp++ = 0x00;
-				*cp++ = 0x00;
+				*cp++ = 0xFF;
+				*cp++ = 0xFF;
+				*cp++ = 0xFF;
 			}else{
 				*cp++ = 0xFF;
 				cp += 3;
@@ -254,7 +254,7 @@ whiteout(Rawimage *r, Rawimage *c)
 		for(i=0; i<r->chanlen; i++){
 			if(*rp == trindex){
 				*cp++ = 0x00;
-				*cp++ = 0x00;
+				*cp++ = 0xFF;
 			}else{
 				*cp++ = 0xFF;
 				cp++;
@@ -373,7 +373,7 @@ show(int fd, char *name)
 		/* loop count has run out */
 		ekbd();
     Out:
-		draw(screen, screen->clipr, display->white, nil, ZP);
+		drawop(screen, screen->clipr, display->white, nil, ZP, S);
 	}
 	if(n>1 && output)
 		fprint(2, "gif: warning: only writing first image in %d-image GIF %s\n", n, name);

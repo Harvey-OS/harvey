@@ -267,6 +267,7 @@ and
 .BR 'sha1' .
 .SH "SEE ALSO"
 .IR listen (8),
-.IR dial (2)
+.IR dial (2),
+.IR pushtls (2)
 .SH SOURCE
 .B /sys/src/9/port/devtls.c

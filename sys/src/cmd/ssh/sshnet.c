@@ -820,10 +820,9 @@ fsflush(Req *r)
 	int i;
 
 	for(i=0; i<nclient; i++)
-		if(findreq(client[i], r->oldreq)){
-			closereq(r->oldreq);
-			respond(r, nil);
-		}
+		if(findreq(client[i], r->oldreq))
+			respond(r->oldreq, "flushed");
+	respond(r, nil);
 }
 
 static void

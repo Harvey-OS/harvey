@@ -766,6 +766,10 @@ loop:
 		noattach = !noattach;
 		goto loop;
 	}
+	if(strcmp(word, "readonly") == 0) {
+		readonly = 1;
+		goto loop;
+	}
 	if(strcmp(word, "ream") == 0) {
 		verb = FREAM;
 		goto gfsname;

@@ -18,11 +18,11 @@ dodata(void)
 		if(s->type == SBSS)
 			s->type = SDATA;
 		if(s->type != SDATA)
-			diag("initialize non-data (%d): %s\n%P\n",
+			diag("initialize non-data (%d): %s\n%P",
 				s->type, s->name, p);
 		v = p->from.offset + p->reg;
 		if(v > s->value)
-			diag("initialize bounds (%ld): %s\n%P\n",
+			diag("initialize bounds (%ld): %s\n%P",
 				s->value, s->name, p);
 	}
 
@@ -38,7 +38,7 @@ dodata(void)
 			continue;
 		v = s->value;
 		if(v == 0) {
-			diag("%s: no size\n", s->name);
+			diag("%s: no size", s->name);
 			v = 1;
 		}
 		while(v & 3)
@@ -122,7 +122,7 @@ undef(void)
 	for(i=0; i<NHASH; i++)
 	for(s = hash[i]; s != S; s = s->link)
 		if(s->type == SXREF)
-			diag("%s: not defined\n", s->name);
+			diag("%s: not defined", s->name);
 }
 
 void
@@ -273,7 +273,7 @@ patch(void)
 		   p->to.type != D_BRANCH && p->to.sym != S) {
 			s = p->to.sym;
 			if(s->type != STEXT) {
-				diag("undefined: %s\n%P\n", s->name, p);
+				diag("undefined: %s\n%P", s->name, p);
 				s->type = STEXT;
 				s->value = vexit;
 			}
@@ -294,7 +294,7 @@ patch(void)
 			q = q->link;
 		}
 		if(q == P) {
-			diag("branch out of range %ld\n%P\n", c, p);
+			diag("branch out of range %ld\n%P", c, p);
 			p->to.type = D_NONE;
 		}
 		p->cond = q;

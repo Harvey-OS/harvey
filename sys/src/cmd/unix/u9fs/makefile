@@ -28,6 +28,7 @@ OFILES=\
 	convM2D.o\
 	convM2S.o\
 	convS2M.o\
+	des.o\
 	dirmodeconv.o\
 	doprint.o\
 	fcallconv.o\

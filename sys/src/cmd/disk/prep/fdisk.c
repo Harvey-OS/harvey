@@ -214,6 +214,7 @@ enum {
 	TypeEXTHUGE	= 0x0F,		/* FAT 32 extended partition */
 	TypeUNFORMATTED	= 0x16,		/* unformatted primary partition (OS/2 FDISK)? */
 	TypeHPFS2	= 0x17,
+	TypeIBMRecovery = 0x1C,	/* really hidden fat */
 	TypeCPM0	= 0x52,
 	TypeDMDDO	= 0x54,		/* Disk Manager Dynamic Disk Overlay */
 	TypeGB		= 0x56,		/* ???? */
@@ -275,6 +276,7 @@ static Type types[256] = {
 	[TypeFAT32]		{ "FAT32", "dos" },
 	[TypeFAT32LBA]		{ "FAT32LBA", "dos" },
 	[TypeEXTHUGE]		{ "EXTHUGE", "" },
+	[TypeIBMRecovery]	{ "IBMRECOVERY", "ibm" },
 	[TypeEXTENDED]		{ "EXTENDED", "" },
 	[TypeFATHUGE]		{ "FATHUGE", "dos" },
 	[TypeBB]		{ "BB", "bb" },
@@ -445,10 +447,10 @@ recover(Edit *edit)
 	offset = edit->disk->offset;
 	if(ctlfd >= 0){
 		for(i=0; i<edit->npart; i++)
-			if(fprint(ctlfd, "delpart %s", edit->part[i]->ctlname)<0)
+			if(edit->part[i]->ctlname && fprint(ctlfd, "delpart %s", edit->part[i]->ctlname)<0)
 				fprint(2, "delpart failed: %s: %r", edit->part[i]->ctlname);
 		for(i=0; i<edit->nctlpart; i++)
-			if(fprint(ctlfd, "delpart %s", edit->ctlpart[i]->name)<0)
+			if(edit->part[i]->name && fprint(ctlfd, "delpart %s", edit->ctlpart[i]->name)<0)
 				fprint(2, "delpart failed: %s: %r", edit->ctlpart[i]->name);
 		for(i=0; i<edit->nctlpart; i++){
 			if(fprint(ctlfd, "part %s %lld %lld", edit->ctlpart[i]->name,
@@ -556,7 +558,7 @@ haveroom(Edit *edit, int primary, vlong start)
 	 * to a secondary partition no problem.
 	 */
 	n = 0;
-	for(i=0; i<=edit->npart; i++){
+	for(i=0; i<edit->npart; i++){
 		p = (Dospart*)edit->part[i];
 		if(p->primary)
 			n++;
@@ -785,8 +787,8 @@ cmdadd(Edit *edit, char *name, vlong start, vlong end)
 		return "no room for partition";
 	start *= sec2cyl;
 	end *= sec2cyl;
-	if(start == 0)
-		start = edit->disk->s;
+	if(start == 0 || name[0] != 'p')
+		start += edit->disk->s;
 	p = mkpart(name, name[0]=='p', start, end-start, nil);
 	p->changed = 1;
 	return addpart(edit, p);
@@ -808,6 +810,7 @@ cmdwrite(Edit *edit)
 static char *help = 
 	"A name - set partition active\n"
 	"P - print table in ctl format\n"
+	"R - restore disk back to initial configuration and exit\n"
 	"e - show empty dos partitions\n"
 	"t name [type] - set partition type\n";
 
@@ -1019,7 +1022,6 @@ wrextend(Edit *edit, int i, vlong xbase, vlong startlba, vlong *endlba)
 
 	ni = wrextend(edit, i+1, xbase, p->end*sec2cyl, endlba);
 
-	assert(p->start*sec2cyl == startlba);
 	*tp = p->Tentry;
 	wrtentry(disk, tp, p->type, startlba, startlba+disk->s, p->end*sec2cyl);
 	tp++;

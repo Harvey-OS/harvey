@@ -124,8 +124,8 @@ $TARG.$O:	$TARG.c
 
 install:V: $TARG
 	cp $TARG /$objtype/
-	import lookout / /n/lookout && cp $TARG /n/lookout/$objtype/
-	import boundary / /n/boundary && cp $TARG /n/boundary/$objtype/
+	#import lookout / /n/lookout && cp $TARG /n/lookout/$objtype/
+	#import boundary / /n/boundary && cp $TARG /n/boundary/$objtype/
 
 $TARG.$O:	../pc/dosfs.h
 

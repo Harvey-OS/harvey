@@ -162,7 +162,9 @@ Secure IMAP4rev1 port.
 .I Listen1
 is a lightweight listener intended for personal use,
 modeled from Inferno's
-.IR listen (1).
+.\" write out this way so automatic programs
+.\" don't try to make it into a real man page reference.
+\fIlisten\fR(1).
 announces on
 .IR address ,
 running

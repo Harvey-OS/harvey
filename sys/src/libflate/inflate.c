@@ -88,7 +88,6 @@ static int	dynamicblock(Input *in, History*);
 static int	sregfill(Input *in, int n);
 static int	sregunget(Input *in);
 static int	decode(Input*, History*, Huff*, Huff*);
-static void	mismatch(void);
 static int	hufftab(Huff*, char*, int, int);
 static int	hdecsym(Input *in, Huff *h, int b);
 

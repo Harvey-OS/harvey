@@ -3,10 +3,6 @@
 	16byte initialization vector,
 	AES-CBC(key, random | file),
     HMAC_SHA1(md5(key), AES-CBC(random | file))
-
-With CBC, if the first plaintext block is 0, the first ciphertext block is E(IV).
-Using the overflow technique adopted for compatibility with cryptolib makes the
-last cipertext block decryptable.  Hence the random prefix to file.
 */
 #include <u.h>
 #include <libc.h>

@@ -317,7 +317,7 @@ reply(char *fmt, ...)
 	char buf[8192], *s;
 
 	va_start(arg, fmt);
-	s = vseprint(buf, buf+sizeof(buf), fmt, arg);
+	s = vseprint(buf, buf+sizeof(buf)-3, fmt, arg);
 	va_end(arg);
 	if(debug){
 		*s = 0;
@@ -1630,9 +1630,6 @@ abspath(char *origpath)
 		if(p)
 			*p = 0;
 	}
-
-	if(*path == '-')
-		return path;
 
 	if(*path == '/')
 		rpath[0] = 0;

@@ -23,6 +23,7 @@ getdate(char *d)
 	date.mon = (d[0]-'0')*10 + d[1]-'0' - 1;
 	d += 2;
 	date.mday = (d[0]-'0')*10 + d[1]-'0';
+	date.yday = 0;
 	return date;
 }
 

@@ -77,7 +77,7 @@ main(int argc, char *argv[])
 	USED(argc);
 
 	if(*argv == 0) {
-		diag("usage: vl [-options] objects\n");
+		diag("usage: vl [-options] objects");
 		errorexit();
 	}
 	if(!debug['9'] && !debug['U'] && !debug['B'])
@@ -174,7 +174,7 @@ main(int argc, char *argv[])
 		outfile = "9.out";
 	cout = create(outfile, 1, 0775);
 	if(cout < 0) {
-		diag("%s: cannot create\n", outfile);
+		diag("%s: cannot create", outfile);
 		errorexit();
 	}
 	nuxiinit();
@@ -291,7 +291,7 @@ objfile(char *file)
 	Bflush(&bso);
 	f = open(file, 0);
 	if(f < 0) {
-		diag("cannot open file: %s\n", file);
+		diag("cannot open file: %s", file);
 		errorexit();
 	}
 	l = read(f, magbuf, SARMAG);
@@ -308,11 +308,11 @@ objfile(char *file)
 		Bprint(&bso, "%5.2f ldlib: %s\n", cputime(), file);
 	l = read(f, &arhdr, SAR_HDR);
 	if(l != SAR_HDR) {
-		diag("%s: short read on archive file symbol header\n", file);
+		diag("%s: short read on archive file symbol header", file);
 		goto out;
 	}
 	if(strncmp(arhdr.name, symname, strlen(symname))) {
-		diag("%s: first entry not symbol header\n", file);
+		diag("%s: first entry not symbol header", file);
 		goto out;
 	}
 
@@ -360,7 +360,7 @@ objfile(char *file)
 			l = atolwhex(arhdr.size);
 			ldobj(f, l, pname);
 			if(s->type == SXREF) {
-				diag("%s: failed to load: %s\n", file, s->name);
+				diag("%s: failed to load: %s", file, s->name);
 				errorexit();
 			}
 			work = 1;
@@ -369,7 +369,7 @@ objfile(char *file)
 	return;
 
 bad:
-	diag("%s: bad or out of date archive\n", file);
+	diag("%s: bad or out of date archive", file);
 out:
 	close(f);
 }
@@ -677,7 +677,7 @@ loop:
 	}
 	o = bloc[0];		/* as */
 	if(o <= AXXX || o >= ALAST) {
-		diag("%s: line %ld: opcode out of range %d\n", pn, pc-ipc, o);
+		diag("%s: line %ld: opcode out of range %d", pn, pc-ipc, o);
 		print("	probably not a .9 file\n");
 		errorexit();
 	}
@@ -743,7 +743,7 @@ loop:
 	c -= r;
 
 	if(p->reg < 0 || p->reg > NREG)
-		diag("register out of range %d\n", p->reg);
+		diag("register out of range %d", p->reg);
 
 	p->link = P;
 	p->cond = P;
@@ -808,7 +808,7 @@ if(p->reg != NREG) {
 	case AGLOBL:
 		s = p->from.sym;
 		if(s == S) {
-			diag("GLOBL must have a name\n%P\n", p);
+			diag("GLOBL must have a name\n%P", p);
 			errorexit();
 		}
 		if(s->type == 0 || s->type == SXREF) {
@@ -816,7 +816,7 @@ if(p->reg != NREG) {
 			s->value = 0;
 		}
 		if(s->type != SBSS) {
-			diag("redefinition: %s\n%P\n", s->name, p);
+			diag("redefinition: %s\n%P", s->name, p);
 			s->type = SBSS;
 			s->value = 0;
 		}
@@ -826,7 +826,7 @@ if(p->reg != NREG) {
 
 	case ADYNT:
 		if(p->to.sym == S) {
-			diag("DYNT without a sym\n%P\n", p);
+			diag("DYNT without a sym\n%P", p);
 			break;
 		}
 		di = p->to.sym;
@@ -844,7 +844,7 @@ if(p->reg != NREG) {
 		p->from.offset = di->value;
 		p->from.sym->type = SDATA;
 		if(curtext == P) {
-			diag("DYNT not in text: %P\n", p);
+			diag("DYNT not in text: %P", p);
 			break;
 		}
 		p->to.sym = curtext->from.sym;
@@ -855,11 +855,11 @@ if(p->reg != NREG) {
 
 	case AINIT:
 		if(p->from.sym == S) {
-			diag("INIT without a sym\n%P\n", p);
+			diag("INIT without a sym\n%P", p);
 			break;
 		}
 		if(di == S) {
-			diag("INIT without previous DYNT\n%P\n", p);
+			diag("INIT without previous DYNT\n%P", p);
 			break;
 		}
 		p->from.offset = di->value;
@@ -870,7 +870,7 @@ if(p->reg != NREG) {
 	
 	case ADATA:
 		if(p->from.sym == S) {
-			diag("DATA without a sym\n%P\n", p);
+			diag("DATA without a sym\n%P", p);
 			break;
 		}
 		p->link = datap;
@@ -878,7 +878,7 @@ if(p->reg != NREG) {
 		break;
 
 	case AGOK:
-		diag("unknown opcode\n%P\n", p);
+		diag("unknown opcode\n%P", p);
 		p->pc = pc;
 		pc++;
 		break;
@@ -896,7 +896,7 @@ if(p->reg != NREG) {
 		autosize += 4;
 		s = p->from.sym;
 		if(s == S) {
-			diag("TEXT must have a name\n%P\n", p);
+			diag("TEXT must have a name\n%P", p);
 			errorexit();
 		}
 		if(s->type != 0 && s->type != SXREF) {
@@ -904,7 +904,7 @@ if(p->reg != NREG) {
 				skip = 1;
 				goto casedef;
 			}
-			diag("redefinition: %s\n%P\n", s->name, p);
+			diag("redefinition: %s\n%P", s->name, p);
 		}
 		s->type = STEXT;
 		s->value = pc;
@@ -1017,7 +1017,7 @@ if(p->reg != NREG) {
 	goto loop;
 
 eof:
-	diag("truncated object file: %s\n", pn);
+	diag("truncated object file: %s", pn);
 }
 
 Sym*
@@ -1086,7 +1086,7 @@ gethunk(void)
 	}
 	h = sbrk(nh);
 	if(h == (char*)-1) {
-		diag("out of memory\n");
+		diag("out of memory");
 		errorexit();
 	}
 	hunk = h;
@@ -1194,7 +1194,7 @@ doprof2(void)
 	s2 = lookup("_profin", 0);
 	s4 = lookup("_profout", 0);
 	if(s2->type != STEXT || s4->type != STEXT) {
-		diag("_profin/_profout not defined\n");
+		diag("_profin/_profout not defined");
 		return;
 	}
 
@@ -1336,7 +1336,7 @@ ieeedtof(Ieee *ieee)
 		}
 	}
 	if(exp <= -126 || exp >= 130)
-		diag("double fp to single fp overflow\n");
+		diag("double fp to single fp overflow");
 	v |= ((exp + 126) & 0xffL) << 23;
 	v |= ieee->h & 0x80000000L;
 	return v;

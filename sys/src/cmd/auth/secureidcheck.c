@@ -341,6 +341,10 @@ secureidcheck(char *user, char *response)
 	Ndbs s;
 	Ndbtuple *t, *nt, *tt;
 	uchar *ip;
+	static Ndb *netdb;
+
+	if(netdb == nil)
+		netdb = ndbopen(0);
 
 	/* bad responses make them disable the fob, avoid silly checks */
 	if(strlen(response) < 4 || strpbrk(response,"abcdefABCDEF") != nil)
@@ -390,7 +394,7 @@ secureidcheck(char *user, char *response)
 	if(setAttribute(req, R_UserPassword, x, 16) < 0)
 		goto out;
 
-	t = ndbsearch(db, &s, "sys", "lra-radius");
+	t = ndbsearch(netdb, &s, "sys", "lra-radius");
 	if(t == nil){
 		syslog(0, AUTHLOG, "secureidcheck: nil radius sys search: %r\n");
 		goto out;

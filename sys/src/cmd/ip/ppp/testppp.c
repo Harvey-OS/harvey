@@ -183,9 +183,9 @@ main(int argc, char **argv)
 	pipe(pfd1);
 	pipe(pfd2);
 
+	bind("#I2", "/net.alt2", MCREATE);
 	bind("#I1", "/net.alt", MCREATE);
 	pppopen(pfd1[0], "/net.alt2", "135.104.99.1", "135.104.99.2");
-	bind("#I2", "/net.alt2", MCREATE);
 	pppopen(pfd2[0], "/net.alt", 0, 0);
 
 	close(pfd1[0]);

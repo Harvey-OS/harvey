@@ -45,7 +45,6 @@ UPDATE=\
 	${SOFILES:%.$O=%.c}\
 	${COFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
-	${TARG:%=/386/bin/%}\
 
 
 default:V:	all

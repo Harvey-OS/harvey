@@ -105,7 +105,7 @@ files created by
 list's mailbox directory
 .TP
 .B /mail/box/\fI<listname>\fP-owner
-owmer's mailbox directory
+owner's mailbox directory
 .TP
 .B  /mail/box/\fI<listname>\fP/address-list
 log of mailing list deletions and additions

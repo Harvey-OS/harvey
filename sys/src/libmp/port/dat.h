@@ -9,4 +9,4 @@
 // for converting between vlongs's and mpint's
 #define MAXUVLONG (~0ULL)
 #define MAXVLONG (MAXUVLONG>>1)
-#define MINVLONG (MAXUVLONG+1ULL)
+#define MINVLONG (MAXVLONG+1ULL)

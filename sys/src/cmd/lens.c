@@ -12,8 +12,6 @@ Point lastp;
 Image *red;
 Image *tmp;
 Image *grid;
-Image *gridmatte;
-Image *veil;
 Image *chequer;
 int	screenfd;
 int	mag = 4;
@@ -35,7 +33,6 @@ drawit(void)
 	flushimage(display, 1);
 }
 
-
 int bypp;
 
 void
@@ -53,7 +50,6 @@ main(int argc, char *argv[])
 	}
 	einit(Emouse|Ekeyboard);
 	red = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, DRed);
-	veil = allocimage(display, Rect(0, 0, 1, 1), GREY8, 1, 0x3f3f3fff);
 	chequer = allocimage(display, Rect(0, 0, 2, 2), GREY1, 1, DBlack);
 	draw(chequer, Rect(0, 0, 1, 1), display->white, nil, ZP);
 	draw(chequer, Rect(1, 1, 2, 2), display->white, nil, ZP);
@@ -140,22 +136,20 @@ main(int argc, char *argv[])
 void
 makegrid(void)
 {
+	int m;
 	if (grid != nil) {
 		freeimage(grid);
 		grid = nil;
 	}
 	if (showgrid) {
-		if (mag < 4) {
-			grid = allocimage(display, Rect(0, 0, mag*2, mag*2), GREY1, 1, DBlack);
-			draw(grid, Rect(0, 0, mag, mag), display->white, nil, ZP);
-			draw(grid, Rect(mag, mag, mag*2, mag*2), display->white, nil, ZP);
-			gridmatte = veil;
-		} else {
-			grid = allocimage(display, Rect(0, 0, mag, mag),
-				CHAN2(CGrey, 8, CAlpha, 8), 1, DTransparent);
-			draw(grid, Rect(0, 0, mag, 1), chequer, nil, ZP);
-			draw(grid, Rect(0, 1, 1, mag), chequer, nil, ZP);
-			gridmatte = nil;
+		m = mag;
+		if (m < 5)
+			m *= 10;
+		grid = allocimage(display, Rect(0, 0, m, m),
+			CHAN2(CGrey, 8, CAlpha, 8), 1, DTransparent);
+		if (grid != nil){
+			draw(grid, Rect(0, 0, m, 1), chequer, nil, ZP);
+			draw(grid, Rect(0, 1, 1, m), chequer, nil, ZP);
 		}
 	}
 }
@@ -229,6 +223,6 @@ magnify(void)
 			}
 		}
 	}
-	if (showgrid && mag)
-		draw(tmp, tmp->r, grid, gridmatte, ZP);
+	if (showgrid && mag && grid)
+		draw(tmp, tmp->r, grid, nil, mulpt(Pt(xoff, yoff), mag));
 }

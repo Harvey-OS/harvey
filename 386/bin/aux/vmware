@@ -1,6 +1,7 @@
 #!/bin/rc
 
 if(aux/isvmware -s){
+	echo -n on >'#P/pge'	# default, but set anyway.
 	echo -n off >'#P/i8253timerset'
 	for(i in '#S'/sd??)
 		if(test -f $i/ctl)

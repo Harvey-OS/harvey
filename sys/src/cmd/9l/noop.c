@@ -444,19 +444,19 @@ initmul(void)
 				prog_mulmul = p;
 		}
 	if(prog_mull == P) {
-		diag("undefined: %s\n", s1->name);
+		diag("undefined: %s", s1->name);
 		prog_mull = curtext;
 	}
 	if(prog_mulul == P) {
-		diag("undefined: %s\n", s2->name);
+		diag("undefined: %s", s2->name);
 		prog_mulul = curtext;
 	}
 	if(prog_mulml == P) {
-		diag("undefined: %s\n", s3->name);
+		diag("undefined: %s", s3->name);
 		prog_mulml = curtext;
 	}
 	if(prog_mulmul == P) {
-		diag("undefined: %s\n", s4->name);
+		diag("undefined: %s", s4->name);
 		prog_mulmul = curtext;
 	}
 }
@@ -477,11 +477,11 @@ initdiv(void)
 				prog_divul = p;
 		}
 	if(prog_divl == P) {
-		diag("undefined: %s\n", s5->name);
+		diag("undefined: %s", s5->name);
 		prog_divl = curtext;
 	}
 	if(prog_divul == P) {
-		diag("undefined: %s\n", s6->name);
+		diag("undefined: %s", s6->name);
 		prog_divul = curtext;
 	}
 }

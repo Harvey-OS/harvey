@@ -5,6 +5,9 @@ faces, seemail, vwhois \-  mailbox interface
 .B faces
 [
 .B -ih
+] [
+.B -m
+.I maildir
 ]
 .br
 .B seemail
@@ -61,7 +64,19 @@ flag causes
 .B faces
 to read the messages in
 .B /mail/fs/mbox
-or in the named mail directory upon startup.
+upon startup.
+.PP
+The
+.B -m
+option directs
+.I faces
+to watch for messages arriving in
+.I maildir
+as well as in
+.BR /mail/fs/mbox .
+However, only
+.BR /mail/fs/mbox
+is used to load the initial set of faces.
 .PP
 The
 .B -h

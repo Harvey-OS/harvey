@@ -18,11 +18,11 @@ HFILES=\
 LIB=../lib/usb.a$O
 
 BIN=/$objtype/bin/usb
+
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${TARG:%=/386/bin/usb/%}\
 
 </sys/src/cmd/mkone
 

@@ -87,7 +87,7 @@ struct Url
 
 enum
 {
-	STACK = 8192,
+	STACK = 16384,
 };
 
 extern	Client**	client;

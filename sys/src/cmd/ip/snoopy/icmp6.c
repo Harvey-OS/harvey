@@ -278,7 +278,7 @@ p_seprint(Msg *m)
 	char *e = m->e;
 	int i;
 	uchar *a;
-	ushort cksum2, cksum;
+//	ushort cksum2, cksum;
 
 	h = (Hdr*)m->ps;
 	m->ps += ICMP6LEN;

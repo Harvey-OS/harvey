@@ -17,7 +17,7 @@ mc \- multicolumn print
 splits the input into as many columns as will fit in
 .I N
 print positions.
-If run in an
+If run in a
 .IR rio (1)
 window, the default
 .I N

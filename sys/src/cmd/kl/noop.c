@@ -628,23 +628,23 @@ initmuldiv(void)
 				prog_modl = p;
 		}
 	if(prog_mul == P) {
-		diag("undefined: %s\n", s1->name);
+		diag("undefined: %s", s1->name);
 		prog_mul = curtext;
 	}
 	if(prog_div == P) {
-		diag("undefined: %s\n", s2->name);
+		diag("undefined: %s", s2->name);
 		prog_div = curtext;
 	}
 	if(prog_divl == P) {
-		diag("undefined: %s\n", s3->name);
+		diag("undefined: %s", s3->name);
 		prog_divl = curtext;
 	}
 	if(prog_mod == P) {
-		diag("undefined: %s\n", s4->name);
+		diag("undefined: %s", s4->name);
 		prog_mod = curtext;
 	}
 	if(prog_modl == P) {
-		diag("undefined: %s\n", s5->name);
+		diag("undefined: %s", s5->name);
 		prog_modl = curtext;
 	}
 }

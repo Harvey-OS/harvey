@@ -198,6 +198,7 @@ int		textclickmatch(Text*, int, int, int, uint*);
 void		textclose(Text*);
 void		textcolumnate(Text*, Dirlist**, int);
 void		textcommit(Text*, int);
+void		textconstrain(Text*, uint, uint, uint*, uint*);
 void		textdelete(Text*, uint, uint, int);
 void		textdoubleclick(Text*, uint*, uint*);
 void		textfill(Text*);

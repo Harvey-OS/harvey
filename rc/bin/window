@@ -73,7 +73,6 @@ if(~ $1 -m){
 	{
 		if(mount $srv $dir 'new -pid '^`{cat /dev/ppid}^' '$"*){
 			bind -b $dir /dev
-			echo -n `{basename $1} > /dev/label >[2] /dev/null
 			# toss geometry parameters to find command
 			while(~ $1 -*)
 				switch($1){
@@ -81,9 +80,12 @@ if(~ $1 -m){
 					shift 2
 				case -r
 					shift 5
+				case -hide
+					shift
 				}
 			if(~ $#* 0) cmd = rc
 			if not cmd = $*
+			echo -n `{basename $cmd(1)} > /dev/label >[2] /dev/null
 			exec $cmd < /dev/cons > /dev/cons >[2] /dev/cons
 		}
 	}&

@@ -212,6 +212,9 @@ init(Vga* vga, Ctlr* ctlr)
 	case 0x3A:				/* Cyber9385 */
 		vga->graphics[0x0F] |= 0x07;
 		break;
+	case 0x41:				/* Cyber9525/DVD */
+		vga->graphics[0x0F] |= 0x17;
+		break;
 	case 0x4A:				/* Cyber9388 */
 	case 0x5D:				/* CyberBlade */
 	case 0x7A:				/* CyberBlade */

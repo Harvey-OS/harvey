@@ -423,6 +423,25 @@ struct Dest
 	int	code;
 };
 
+
+/*
+ *  return multicast version if any
+ */
+int
+ipisbm(uchar *ip)
+{
+	if(isv4(ip)){
+		if(ip[IPv4off] >= 0xe0 && ip[IPv4off] < 0xf0)
+			return 4;
+		if(ipcmp(ip, IPv4bcast) == 0)
+			return 4;
+	} else {
+		if(ip[0] == 0xff)
+			return 6;
+	}
+	return 0;
+}
+
 /*
  *  Get next server address
  */
@@ -484,11 +503,14 @@ serveraddrs(RR *nsrp, Dest *dest, int nd, int depth, Request *reqp)
 	for(trp = arp; trp; trp = trp->next){
 		if(nd >= Maxdest)
 			break;
-		cur = &dest[nd++];
+		cur = &dest[nd];
 		parseip(cur->a, trp->ip->name);
+		if(ipisbm(cur->a))
+			continue;
 		cur->nx = 0;
 		cur->s = trp->owner;
 		cur->code = Rtimeout;
+		nd++;
 	}
 	rrfreelist(arp);
 	return nd;

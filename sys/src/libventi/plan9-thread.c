@@ -37,11 +37,6 @@ enum {
 	ERROR = 0,
 };
 
-enum {
-	IdealAlignment = 32,
-	ChunkSize 	= 128*1024,
-};
-
 static Thread **vtRock;
 
 static void	vtThreadInit(void);
@@ -152,59 +147,6 @@ vtSetError(char* fmt, ...)
 	return p->error;
 }
 
-char *
-vtOSError(void)
-{
-	Thread *p = threadLookup();
-	char s[100];
-
-	rerrstr(s, sizeof(s));
-	vtMemFree(p->error);
-	p->error = vtStrDup(s);
-
-	if(ERROR)
-		fprint(2, "vtOSError: %s\n", s);
-	return p->error;
-}
-
-int
-vtFdRead(int fd, uchar *buf, int n)
-{
-	n = read(fd, buf, n);
-	if(n < 0) {
-		vtOSError();
-		return -1;
-	}
-	if(n == 0) {
-		vtSetError("unexpected EOF");
-		return 0;
-	}
-	return n;
-}
-
-int
-vtFdWrite(int fd, uchar *buf, int n)
-{
-	int nn;
-	
-	nn = write(fd, buf, n);
-	if(nn < 0) {
-		vtOSError();
-		return 0;
-	}
-	if(n != nn) {
-		vtSetError("truncated write");
-		return 0;
-	}
-	return 1;
-}
-
-void
-vtFdClose(int fd)
-{
-	close(fd);
-}
-
 static void
 vtThreadInit(void)
 {
@@ -227,6 +169,9 @@ vtLockAlloc(void)
 	return vtMemAllocZ(sizeof(VtLock));
 }
 
+/*
+ * RSC: I think the test is backward.  Let's see who uses it. 
+ *
 void
 vtLockInit(VtLock **p)
 {
@@ -237,6 +182,7 @@ vtLockInit(VtLock **p)
 		*p = vtLockAlloc();
 	unlock(&lk);
 }
+ */
 
 void
 vtLockFree(VtLock *p)
@@ -518,93 +464,4 @@ threadWakeup(Thread *t)
 {
 	if(rendezvous((ulong)t, 0x44391f14) != 0x22bbdfd6)
 		sysfatal("threadWakeup: rendezvous failed: %r");
-}
-
-void
-vtMemFree(void *p)
-{
-	if(p == 0)
-		return;
-	free(p);
-}
-
-
-void *
-vtMemAlloc(int size)
-{
-	void *p;
-
-	p = malloc(size);
-	if(p == 0)
-		vtFatal("vtMemAlloc: out of memory");
-	return p;
-}
-
-void *
-vtMemAllocZ(int size)
-{
-	void *p = vtMemAlloc(size);
-	memset(p, 0, size);
-	return p;
-}
-
-void *
-vtMemRealloc(void *p, int size)
-{
-	if(p == nil)
-		return vtMemAlloc(size);
-	p = realloc(p, size);
-	if(p == 0)
-		vtFatal("vtRealloc: out of memory");
-	return p;
-}
-
-
-void *
-vtMemBrk(int n)
-{
-	static Lock lk;
-	static uchar *buf;
-	static int nbuf;
-	static int nchunk;
-	int align, pad;
-	void *p;
-
-	if(n >= IdealAlignment)
-		align = IdealAlignment;
-	else if(n > 8)
-		align = 8;
-	else	
-		align = 4;
-
-	lock(&lk);
-	pad = (align - (ulong)buf) & (align-1);
-	if(n + pad > nbuf) {
-		buf = vtMemAllocZ(ChunkSize);
-		nbuf = ChunkSize;
-		pad = (align - (ulong)buf) & (align-1);
-		nchunk++;
-	}
-
-	assert(n + pad <= nbuf);	
-	
-	p = buf + pad;
-	buf += pad + n;
-	nbuf -= pad + n;
-	unlock(&lk);
-
-	return p;
-}
-
-void
-vtThreadSetName(char *name)
-{
-	int fd;
-	char buf[32];
-
-	sprint(buf, "/proc/%d/args", getpid());
-	if((fd = open(buf, OWRITE)) >= 0){
-		write(fd, name, strlen(name));
-		close(fd);
-	}
 }

@@ -3,6 +3,7 @@ intro 0intro
 9load 9load
 ld 9load
 9pcon 9pcon
+aan aan
 aliasmail aliasmail
 apm apm
 auth auth
@@ -142,6 +143,7 @@ smtp smtp
 smtpd smtp
 snoopy snoopy
 stats stats
+stub stub
 swap swap
 timesync timesync
 tlsclient tlssrv

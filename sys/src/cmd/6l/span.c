@@ -417,7 +417,7 @@ dormem(int o, int r, Adr *a)
 	case D_EXTERN:
 		t = a->sym->type;
 		if(t == 0 || t == SXREF) {
-			diag("undefined external: %s in %s\n",
+			diag("undefined external: %s in %s",
 				a->sym->name, TNAME);
 			a->sym->type = SDATA;
 		}
@@ -474,7 +474,7 @@ asm:
 	i |= (r & 0x1f) << 19;
 	switch(t) {
 	default:
-		diag("dormem mode %lux %D\n", t, a);
+		diag("dormem mode %lux %D", t, a);
 		break;
 
 	case 0:
@@ -599,7 +599,7 @@ doir(Adr *a, int dst)
 				break;
 			t = a->sym->type;
 			if(t == 0 || t == SXREF) {
-				diag("undefined external: %s in %s\n",
+				diag("undefined external: %s in %s",
 					a->sym->name, TNAME);
 				a->sym->type = SDATA;
 			}
@@ -641,7 +641,7 @@ doasm(Prog *p)
 	tt = oclass(&p->to) * Ymax;
 	t = o->ytab;
 	if(t == 0) {
-		diag("asmins: noproto %P\n", p);
+		diag("asmins: noproto %P", p);
 		return;
 	}
 	for(z=0; *t; z+=t[4], t+=5)
@@ -650,14 +650,14 @@ doasm(Prog *p)
 		if(ycover[tt+t[2]])
 			goto found;
 
-	diag("asmins: notfound <%d,%d,%d> %P\n",
+	diag("asmins: notfound <%d,%d,%d> %P",
 		ft/Ymax, mt/Ymax, tt/Ymax, p);
 	return;
 
 found:
 	switch(t[3]) {
 	default:
-		diag("asmins: unknown z %d %P\n", t[3], p);
+		diag("asmins: unknown z %d %P", t[3], p);
 		return;
 
 	case Zpseudo:

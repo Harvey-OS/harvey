@@ -67,16 +67,24 @@ tm2sec(Tm *tm)
 	}
 
 	/*
-	 *  seconds per month
+	 *  use the day of the year or, if that
+	 *  isn't set, calculate it from the month
+	 *  and day of the month.
 	 */
-	d2m = yrsize(year);
-	for(i = 0; i < tm->mon; i++)
-		secs += d2m[i+1] * SEC2DAY;
-
-	/*
-	 * secs in last month
-	 */
-	secs += (tm->mday-1) * SEC2DAY;
+	if (tm->yday != 0)
+		secs += (tm->yday - 1) * SEC2DAY;
+	else {
+		/*
+		 *  seconds per month
+		 */
+		d2m = yrsize(year);
+		for(i = 0; i < tm->mon; i++)
+			secs += d2m[i+1] * SEC2DAY;
+		/*
+		 * secs in last month
+		 */
+		secs += (tm->mday-1) * SEC2DAY;
+	}
 
 	/*
 	 * hours, minutes, seconds

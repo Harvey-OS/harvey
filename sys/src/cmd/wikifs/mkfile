@@ -16,6 +16,11 @@ OFILES=fs.$O $COFILES
 BIN=/$objtype/bin
 LIB=/$objtype/lib/lib9p.a #/$objtype/lib/libdebugmalloc.a
 
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
 </sys/src/cmd/mkone
 
 $O.wiki2html: wiki2html.$O $COFILES
