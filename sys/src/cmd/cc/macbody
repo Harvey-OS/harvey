@@ -173,6 +173,7 @@ macdef(void)
 	Sym *s, *a;
 	char *args[NARG], *np, *base;
 	int n, i, c, len;
+	int ischr;
 
 	s = getsym();
 	if(s == S)
@@ -209,6 +210,7 @@ macdef(void)
 			c = getnsc();
 	base = hunk;
 	len = 1;
+	ischr = 0;
 	for(;;) {
 		if(isalpha(c) || c == '_') {
 			np = symb;
@@ -234,38 +236,54 @@ macdef(void)
 			base[len++] = 'a' + i;
 			continue;
 		}
-		if(c == '/') {
-			c = getc();
-			if(c == '/'){
+		if(ischr){
+			if(c == '\\'){ 
+				base = allocn(base, len, 1);
+				base[len++] = c;
 				c = getc();
-				for(;;) {
-					if(c == '\n')
-						break;
-					c = getc();
-				}
+			}else if(c == ischr)
+				ischr = 0;
+		}else{
+			if(c == '"' || c == '\''){
+				base = allocn(base, len, 1);
+				base[len++] = c;
+				ischr = c;
+				c = getc();
 				continue;
 			}
-			if(c == '*'){
+			if(c == '/') {
 				c = getc();
-				for(;;) {
-					if(c == '*') {
-						c = getc();
-						if(c != '/')
-							continue;
-						c = getc();
-						break;
-					}
-					if(c == '\n') {
-						yyerror("comment and newline in define: %s", s->name);
-						break;
-					}
+				if(c == '/'){
 					c = getc();
+					for(;;) {
+						if(c == '\n')
+							break;
+						c = getc();
+					}
+					continue;
 				}
+				if(c == '*'){
+					c = getc();
+					for(;;) {
+						if(c == '*') {
+							c = getc();
+							if(c != '/')
+								continue;
+							c = getc();
+							break;
+						}
+						if(c == '\n') {
+							yyerror("comment and newline in define: %s", s->name);
+							break;
+						}
+						c = getc();
+					}
+					continue;
+				}
+				base = allocn(base, len, 1);
+				base[len++] = '/';
 				continue;
 			}
-			base = allocn(base, len, 1);
-			base[len++] = '/';
-			continue;
 		}
 		if(c == '\\') {
 			c = getc();
