@@ -16,7 +16,7 @@ void rerrstr(char *err, uint nerr)
 void werrstr(char *fmt, ...)
 .SH DESCRIPTION
 When a system call fails it returns \-1 and
-records a string describing the error in a per-process buffer.
+records a null terminated string describing the error in a per-process buffer.
 .I Errstr
 swaps the contents of that buffer with the contents of the array
 .IR err .
@@ -34,6 +34,16 @@ will be called with an empty string,
 but the exchange property provides a mechanism for
 libraries to set the return value for the next call to
 .IR errstr .
+.PP
+The per-process buffer is
+.B ERRMAX
+bytes long.  Any error string provided by the user will
+be truncated at 
+.B ERRMAX-1
+bytes.
+.B ERRMAX
+is defined in
+.BR <libc.h> .
 .PP
 If no system call has generated an error since the last call to
 .I errstr
