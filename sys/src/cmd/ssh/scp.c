@@ -337,6 +337,7 @@ receivedir(char *dir, int exists, Dir *d, int settimes, ulong atime, ulong mtime
 {
 	Dir nd;
 	int setmodes;
+	int fd;
 
 	setmodes = pflag;
 	if(exists){
@@ -347,8 +348,15 @@ receivedir(char *dir, int exists, Dir *d, int settimes, ulong atime, ulong mtime
 	}else{
 		/* create it writeable; will fix later */
 		setmodes = 1;
-		if (create(dir, OREAD, DMDIR|mode|0700) < 0){
+		fd = create(dir, OREAD, DMDIR|mode|0700);
+		if (fd < 0){
 			scperror(0, "%s: can't create: %r", dir);
+			return d;
+		}
+		d = dirfstat(fd);
+		close(fd);
+		if(d == nil){
+			scperror(0, "%s: can't stat: %r", dir);
 			return d;
 		}
 	}

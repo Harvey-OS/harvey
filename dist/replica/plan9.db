@@ -431,9 +431,9 @@
 386/bin/upas/addhash - 775 sys sys 1064598343 67859
 386/bin/upas/aliasmail - 775 sys sys 1073851242 103819
 386/bin/upas/bayes - 775 sys sys 1064598344 70530
-386/bin/upas/deliver - 775 sys sys 1073851242 98459
+386/bin/upas/deliver - 775 sys sys 1075097689 98777
 386/bin/upas/filter - 775 sys sys 1073851243 146541
-386/bin/upas/fs - 775 sys sys 1073851244 334301
+386/bin/upas/fs - 775 sys sys 1075097690 334516
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1064598349 81216
 386/bin/upas/marshal - 775 sys sys 1073851244 131607
@@ -442,7 +442,7 @@
 386/bin/upas/mlowner - 775 sys sys 1064598353 90150
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1064598354 75149
-386/bin/upas/nedmail - 775 sys sys 1073851246 152649
+386/bin/upas/nedmail - 775 sys sys 1075097690 154056
 386/bin/upas/pop3 - 775 sys sys 1073851246 259903
 386/bin/upas/qer - 775 sys sys 1073851247 98840
 386/bin/upas/ratfs - 775 sys sys 1071245366 112106
@@ -454,6 +454,7 @@
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1064598366 82161
 386/bin/upas/token - 775 sys sys 1064598367 75930
+386/bin/upas/unesc - 775 sys sys 1075097691 133345
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1064598368 91313
 386/bin/usb - 20000000775 sys sys 1019538890 0
@@ -10377,7 +10378,7 @@ sys/src/cmd/ssh/cmsg.c - 664 sys sys 1071095546 8351
 sys/src/cmd/ssh/mkfile - 664 sys sys 1048179592 1045
 sys/src/cmd/ssh/msg.c - 664 sys sys 1062091016 8023
 sys/src/cmd/ssh/pubkey.c - 664 sys sys 1019928902 3974
-sys/src/cmd/ssh/scp.c - 664 sys sys 1048644598 13757
+sys/src/cmd/ssh/scp.c - 664 sys sys 1075130172 13886
 sys/src/cmd/ssh/smsg.c - 664 sys sys 1062091015 6135
 sys/src/cmd/ssh/ssh.c - 664 sys sys 1066515693 9667
 sys/src/cmd/ssh/ssh.h - 664 sys sys 1048179595 6054
