@@ -8,6 +8,8 @@
 #include "group.h"
 
 static int debug = 0;
+static int debugm = 0;
+static int debugr = 0;
 
 enum{
 	EAdd,
@@ -58,6 +60,7 @@ groupinit(Group *g)
 	g->mansize = 0;
 	g->separation = 0;
 	g->selected = -1;
+	g->lastkid = -1;
 	g->kids = nil;
 	g->separators = nil;
 	g->nkids = 0;
@@ -152,7 +155,7 @@ groupctl(Control *c, CParse *cp)
 		break;
 	case EReveal:
 		g->hidden = 0;
-		if (debug) fprint(2, "reveal %s\n", g->name);
+		if (debugr) fprint(2, "reveal %s\n", g->name);
 		if (g->type == Ctlstack){
 			if (cp->nargs == 2){
 				if (cp->iargs[1] < 0 || cp->iargs[1] >= g->nkids)
@@ -163,10 +166,10 @@ groupctl(Control *c, CParse *cp)
 			for (i = 0; i < g->nkids; i++)
 				if (g->kids[i]->ctl){
 					if (g->selected == i){
-						if (debug) fprint(2, "reveal %s: reveal kid %s\n", g->name, g->kids[i]->name);
+						if (debugr) fprint(2, "reveal %s: reveal kid %s\n", g->name, g->kids[i]->name);
 						_ctlprint(g->kids[i], "reveal");
 					}else{
-						if (debug) fprint(2, "reveal %s: hide kid %s\n", g->name, g->kids[i]->name);
+						if (debugr) fprint(2, "reveal %s: hide kid %s\n", g->name, g->kids[i]->name);
 						_ctlprint(g->kids[i], "hide");
 					}
 				}
@@ -256,22 +259,50 @@ static void
 groupmouse(Control *c, Mouse *m)
 {
 	Group *g;
-	int i;
+	int i, lastkid;
 
 	g = (Group*)c;
 	if (g->type == Ctlstack){
-		if (g->selected >= 0 && ptinrect(m->xy, g->kids[g->selected]->rect) && g->kids[g->selected]->mouse){
-			(g->kids[g->selected]->mouse)(g->kids[g->selected], m);
-			return;
+		i = g->selected;
+		if (i >= 0 && g->kids[i]->mouse &&
+                        ( ( ((m->buttons == 0) || (g->lastbut == 0)) &&
+                           ptinrect(m->xy, g->kids[i]->rect) ) ||
+                         ( ((m->buttons != 0) || (g->lastbut != 0)) &&
+		         (g->lastkid == i) ) ) ) {
+			if (debugm) fprint(2, "groupmouse %s mouse kid %s i=%d lastkid=%d buttons=%d lastbut=%d inrect=%d\n",
+						g->name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
+						ptinrect(m->xy, g->kids[i]->rect) ? 1 : 0);
+			(g->kids[i]->mouse)(g->kids[i], m);
+			g->lastkid = i;
+			g->lastbut = m->buttons;
+		} else {
+			if (debugm) fprint(2, "groupmouse %s skip kid %s i=%d lastkid=%d buttons=%d lastbut=%d inrect=%d\n",
+						g->name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
+						ptinrect(m->xy, g->kids[i]->rect) ? 1 : 0);
 		}
 		return;
 	}
 
-	for(i=0; i<g->nkids; i++)
-		if(ptinrect(m->xy, g->kids[i]->rect) && g->kids[i]->mouse){
+	lastkid = -1;
+	for(i=0; i<g->nkids; i++) {
+		if(g->kids[i]->mouse &&
+                      ( ( ((m->buttons == 0) || (g->lastbut == 0)) &&
+                           ptinrect(m->xy, g->kids[i]->rect) ) ||
+                        ( ((m->buttons != 0) || (g->lastbut != 0)) &&
+		         (g->lastkid == i) ) ) ) {
+			if (debugm) fprint(2, "groupmouse %s mouse kid %s i=%d lastkid=%d buttons=%d lastbut=%d inrect=%d\n",
+						g->name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
+						ptinrect(m->xy, g->kids[i]->rect) ? 1 : 0);
 			(g->kids[i]->mouse)(g->kids[i], m);
-			return;
+			lastkid = i;
+		} else {
+			if (debugm) fprint(2, "groupmouse %s skip kid %s i=%d lastkid=%d buttons=%d lastbut=%d inrect=%d\n",
+						g->name, g->kids[i]->name, i, g->lastkid, m->buttons, g->lastbut,
+						ptinrect(m->xy, g->kids[i]->rect) ? 1 : 0);
 		}
+	}
+	g->lastkid = lastkid;
+	g->lastbut = m->buttons;
 
 #ifdef notdef
 	if(m->buttons == 0){
