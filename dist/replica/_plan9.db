@@ -243,7 +243,7 @@
 386/bin/fs/v10fs - 775 sys sys 1109650120 94571
 386/bin/fs/v6fs - 775 sys sys 1109650121 94489
 386/bin/fs/zipfs - 775 sys sys 1109650121 109088
-386/bin/ftpfs - 775 sys sys 1109650121 154523
+386/bin/ftpfs - 775 sys sys 1112583961 270843
 386/bin/games - 20000000775 sys sys 1096298711 0
 386/bin/games/catclock - 775 sys sys 1110513961 140798
 386/bin/games/juggle - 775 sys sys 1110513961 125201
@@ -382,7 +382,7 @@
 386/bin/rio - 775 sys sys 1111205298 309212
 386/bin/rm - 775 sys sys 1104122051 61333
 386/bin/rx - 775 sys sys 1104122051 82055
-386/bin/sam - 775 sys sys 1111205299 158534
+386/bin/sam - 775 sys sys 1112583961 158368
 386/bin/scat - 775 sys sys 1106799180 283256
 386/bin/scp - 775 sys sys 1104122053 151911
 386/bin/scuzz - 775 sys sys 1104122053 111613
@@ -749,7 +749,7 @@ adm/timezone/Brazil_Acre - 664 adm adm 1020369287 1133
 adm/timezone/Brazil_DeNoronha - 664 adm adm 1020369287 1131
 adm/timezone/Brazil_East - 664 adm adm 1020369287 1132
 adm/timezone/Brazil_West - 664 adm adm 1020369287 1133
-adm/timezone/CET - 664 adm adm 1020313576 1163
+adm/timezone/CET - 664 adm adm 1112616249 1162
 adm/timezone/Canada_Atlantic - 664 adm adm 1020369287 1518
 adm/timezone/Canada_Central - 664 adm adm 1020369288 1518
 adm/timezone/Canada_East-Saskatchewan - 664 adm adm 1020313576 22
@@ -12482,5 +12482,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/ftpfs - 775 sys sys 1112583961 270843
-386/bin/sam - 775 sys sys 1112583961 158368
