@@ -128,7 +128,7 @@ dot_string	: string			={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		| string '.' dot_string		={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }
 		;
 
-string		: char
+string		: char	={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		| string char	={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
 		;
 

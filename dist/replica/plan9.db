@@ -433,7 +433,7 @@
 386/bin/upas/scanmail - 775 sys sys 1056364384 127737
 386/bin/upas/send - 775 sys sys 1057795515 189757
 386/bin/upas/smtp - 775 sys sys 1056364386 269559
-386/bin/upas/smtpd - 775 sys sys 1057795516 313560
+386/bin/upas/smtpd - 775 sys sys 1061837270 313594
 386/bin/upas/testscan - 775 sys sys 1056364389 82401
 386/bin/upas/token - 775 sys sys 1056364389 76198
 386/bin/upas/vf - 775 sys sys 1056364390 90554
@@ -6725,7 +6725,7 @@ sys/src/cmd/auth/secstore/secchk.c - 664 sys sys 1055698993 560
 sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1041890054 12213
 sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1041890053 841
 sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1034734162 8089
-sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1045504876 4367
+sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1061842567 4914
 sys/src/cmd/auth/secstore/util.c - 664 sys sys 1021579985 1498
 sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1045504896 8973
 sys/src/cmd/auth/status - 775 sys sys 1015008430 738
@@ -10557,9 +10557,9 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1018974179 12512
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1049249402 18227
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1015013151 1038
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1049408234 24269
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1061836981 24287
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1045505962 1063
-sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1043171647 6911
+sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1061836986 6949
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1055702858 9221
 sys/src/cmd/upas/vf - 20000000775 sys sys 1015096796 0
 sys/src/cmd/upas/vf/mkfile - 664 sys sys 1031707320 269

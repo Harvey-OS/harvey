@@ -13079,3 +13079,7 @@
 1061566266 0 c lib/vgadb - 664 sys sys 1061565169 27692
 1061566266 1 c sys/src/cmd/aux/vga/virge.c - 664 sys sys 1061565169 18440
 1061780481 0 c sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1061779754 18103
+1061838174 0 c 386/bin/upas/smtpd - 775 sys sys 1061837270 313594
+1061838174 1 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1061836981 24287
+1061838174 2 c sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1061836986 6949
+1061843576 0 c sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1061842567 4914

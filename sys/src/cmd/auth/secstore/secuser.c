@@ -9,6 +9,24 @@ int verbose;
 
 static void userinput(char *, int);
 
+static void
+ensure_exists(char *f, ulong perm)
+{
+	int fd;
+
+	if(access(f, AEXIST) >= 0)
+		return;
+	if(verbose)
+		fprint(2,"first time setup for secstore: create %s %lo\n", f, perm);
+	fd = create(f, OREAD, perm);
+	if(fd < 0){
+		fprint(2, "unable to create %s\n", f);
+		exits("secstored directories");
+	}
+	close(fd);
+}
+
+
 void
 main(int argc, char **argv)
 {
@@ -25,9 +43,15 @@ main(int argc, char **argv)
 		break;
 	}ARGEND;
 	if(argc!=1){
-		print("usage: secuser <user>\n");
+		print("usage: secuser [-v] <user>\n");
 		exits("usage");
 	}
+
+	ensure_exists(SECSTORE_DIR, DMDIR|0755L);
+	snprint(home, sizeof(home), "%s/who", SECSTORE_DIR);
+	ensure_exists(home, DMDIR|0755L);
+	snprint(home, sizeof(home), "%s/store", SECSTORE_DIR);
+	ensure_exists(home, DMDIR|0700L);
 
 	id = argv[0];
 	if(verbose)
