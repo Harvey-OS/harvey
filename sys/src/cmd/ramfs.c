@@ -14,7 +14,7 @@ enum
 {
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
 	Nram	= 2048,
-	Maxsize	= 512*1024*1024,
+	Maxsize	= 768*1024*1024,
 	Maxfdata	= 8192,
 };
 
