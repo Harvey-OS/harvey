@@ -14764,3 +14764,5 @@
 1080219716 2 c sys/man/5/error - 664 sys sys 1080218022 513
 1080219716 3 c sys/src/cmd/disk/mbr.c - 664 sys sys 1080218150 4325
 1080223318 0 a sys/lib/kbmap/ee - 644 sys sys 1080222237 429
+1080401431 0 c sys/src/cmd/aux/timesync.c - 664 sys sys 1080399717 24797
+1080401431 1 c sys/src/libdraw/stringwidth.c - 664 sys sys 1080400060 1589

@@ -267,8 +267,8 @@ main(int argc, char **argv)
 	// figure out our time interface and initial frequency
 	inittime();
 	gettime(0, 0, &hz);
-	minhz = hz - (hz>>2);
-	maxhz = hz + (hz>>2);
+	minhz = hz/10;
+	maxhz = hz*10;
 	myprec = getclockprecision(hz);
 
 	// convert the accuracy from nanoseconds to ticks
