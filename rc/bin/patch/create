@@ -1,5 +1,5 @@
 #!/bin/rc
-
+rfork e
 if(~ $#* 0 1){
 	echo 'usage: patch/create name file... [< description]' >[1=2]
 	exit usage
@@ -15,7 +15,8 @@ if(! test -d /n/sources/patch){
 	9fs sources
 }
 
-d=/n/sources/patch/$1
+patch=$1
+d=/n/sources/patch/$patch
 if(! mkdir $d){
 	echo mkdir $d failed >[1=2]
 	exit mkdir
@@ -69,7 +70,7 @@ if(! test -s $d/readme){
 }
 
 
-echo >[1=2] please run patch/email $1 your-email-address
+echo >[1=2] please run patch/email $patch your-email-address
 echo >[1=2] so that 9trouble can mail you if there are questions.  thanks.
 echo >[1=2] the email address will not be readable by other sources users.
 echo >[1=2]

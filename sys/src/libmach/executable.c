@@ -548,7 +548,7 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 	}
 
 	settext(fp, ep->elfentry, ph[it].vaddr, ph[it].memsz, ph[it].offset);
-	setdata(fp, ph[id].vaddr, ph[id].memsz, ph[id].offset, ph[id].memsz - ph[id].filesz);
+	setdata(fp, ph[id].vaddr, ph[id].filesz, ph[id].offset, ph[id].memsz - ph[id].filesz);
 	if(is != -1)
 		setsym(fp, ph[is].filesz, 0, ph[is].memsz, ph[is].offset);
 	free(ph);
