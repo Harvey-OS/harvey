@@ -133,7 +133,7 @@ typedef struct Bootp	Bootp;
 struct Bootp
 {
 	/* Udphdr (included because of structure alignment on the alpha) */
-	uchar	udphdr[Udphdrsize];
+	uchar	udphdr[OUdphdrsize];
 
 	uchar	op;			/* opcode */
 	uchar	htype;			/* hardware type */
