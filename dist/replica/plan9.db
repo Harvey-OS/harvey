@@ -224,7 +224,7 @@
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
 386/bin/fcp - 775 sys sys 1110859785 82162
-386/bin/file - 775 sys sys 1111810171 112495
+386/bin/file - 775 sys sys 1112155767 112780
 386/bin/fmt - 775 sys sys 1104122009 65301
 386/bin/fortune - 775 sys sys 1104122009 67136
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -468,9 +468,9 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1104122077 92623
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1108354566 185463
+386/bin/usb/usbaudio - 775 sys sys 1112155768 185541
 386/bin/usb/usbd - 775 sys sys 1104898010 129846
-386/bin/usb/usbmouse - 775 sys sys 1104122079 140245
+386/bin/usb/usbmouse - 775 sys sys 1112155768 140268
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
 386/bin/vac - 775 sys sys 1104122079 169392
 386/bin/vacfs - 775 sys sys 1108354566 174866
@@ -3130,7 +3130,7 @@ rc/bin/sig - 775 sys sys 1082221092 530
 rc/bin/slay - 775 sys sys 1018387014 123
 rc/bin/spell - 775 sys sys 964540791 312
 rc/bin/src - 775 sys sys 1084333365 916
-rc/bin/srvssh - 775 sys sys 1040696716 2289
+rc/bin/srvssh - 775 sys sys 1112039374 2296
 rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1055701355 288
 rc/bin/stop - 775 sys sys 945617209 110
@@ -3652,7 +3652,7 @@ sys/lib/dist/pc/plan9.ini - 664 sys sys 1020361168 512
 sys/lib/dist/pc/plan9.ini.blank - 664 sys sys 1018469720 512
 sys/lib/dist/pc/plan9.ini.cd - 664 sys sys 1092148201 357
 sys/lib/dist/pc/plan9.ini.vmware - 664 sys sys 1045500078 168
-sys/lib/dist/pc/proto - 664 sys sys 1089299188 4314
+sys/lib/dist/pc/proto - 664 sys sys 1112039934 4332
 sys/lib/dist/pc/sub - 20000000775 sys sys 1018640631 0
 sys/lib/dist/pc/sub/a: - 775 sys sys 1018469726 481
 sys/lib/dist/pc/sub/bind - 775 sys sys 1018469726 207
@@ -4477,7 +4477,7 @@ sys/lib/tmac/tmac.an - 664 sys sys 985023075 8258
 sys/lib/tmac/tmac.anhtml - 644 sys sys 984696197 105
 sys/lib/tmac/tmac.antimes - 664 sys sys 964454718 7809
 sys/lib/tmac/tmac.bits - 664 sys sys 944956202 1089
-sys/lib/tmac/tmac.cs - 664 sys sys 964454719 21324
+sys/lib/tmac/tmac.cs - 664 sys sys 1112039298 21324
 sys/lib/tmac/tmac.e - 664 sys sys 964454711 11992
 sys/lib/tmac/tmac.jsdisp - 664 sys sys 944956203 828
 sys/lib/tmac/tmac.m - 664 sys sys 944956203 87
@@ -5048,7 +5048,7 @@ sys/man/4/tapefs - 664 sys sys 1107543772 1811
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
-sys/man/4/usb - 664 sys sys 1105992038 4295
+sys/man/4/usb - 664 sys sys 1112038986 4430
 sys/man/4/usbd - 664 sys sys 1018386778 731
 sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
@@ -5202,7 +5202,7 @@ sys/src/9/alphapc/etherif.h - 664 sys sys 1045063621 1025
 sys/src/9/alphapc/faultalpha.c - 664 sys sys 1015012784 1257
 sys/src/9/alphapc/fdc37c93x.c - 664 sys sys 1015012785 1110
 sys/src/9/alphapc/floppy.h - 664 sys sys 1015012785 3783
-sys/src/9/alphapc/fns.h - 664 sys sys 1084331942 3901
+sys/src/9/alphapc/fns.h - 664 sys sys 1111851541 3572
 sys/src/9/alphapc/fptrap.c - 664 sys sys 1015012785 707
 sys/src/9/alphapc/i8259.c - 664 sys sys 1015012785 3409
 sys/src/9/alphapc/initcode - 664 sys sys 1039753419 779
@@ -5235,7 +5235,7 @@ sys/src/9/bitsy/devuda1341.c - 664 sys sys 1071245420 30346
 sys/src/9/bitsy/devµc.c - 664 sys sys 1068393562 8125
 sys/src/9/bitsy/etherif.h - 664 sys sys 1045501788 913
 sys/src/9/bitsy/etherwavelan.c - 664 sys sys 1071245513 870
-sys/src/9/bitsy/fns.h - 664 sys sys 1084475126 3383
+sys/src/9/bitsy/fns.h - 664 sys sys 1111851542 3018
 sys/src/9/bitsy/fpi.c - 664 sys sys 1017695513 5248
 sys/src/9/bitsy/fpi.h - 664 sys sys 1017695513 1679
 sys/src/9/bitsy/fpiarm.c - 664 sys sys 1017695513 9328
@@ -5333,7 +5333,7 @@ sys/src/9/mtx/devrtc.c - 664 sys sys 1018721285 6772
 sys/src/9/mtx/errstr.h - 664 sys sys 1089390059 2137
 sys/src/9/mtx/ether2114x.c - 664 sys sys 1026848191 37904
 sys/src/9/mtx/etherif.h - 664 sys sys 1045504432 785
-sys/src/9/mtx/fns.h - 664 sys sys 1084475126 3171
+sys/src/9/mtx/fns.h - 664 sys sys 1111851554 2722
 sys/src/9/mtx/i8259.c - 664 sys sys 1018721286 4695
 sys/src/9/mtx/inb.s - 664 sys sys 1018721286 1476
 sys/src/9/mtx/initcode - 664 sys sys 1039753442 444
@@ -5403,7 +5403,7 @@ sys/src/9/pc/ethersmc.c - 664 sys sys 1071245461 15103
 sys/src/9/pc/ethervt6102.c - 664 sys sys 1109202304 22569
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1107448246 3723
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
-sys/src/9/pc/fns.h - 664 sys sys 1089046996 4372
+sys/src/9/pc/fns.h - 664 sys sys 1111851554 4198
 sys/src/9/pc/hcwAMC.h - 664 sys sys 1026860163 166004
 sys/src/9/pc/i8253.c - 664 sys sys 1096379063 6279
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
@@ -5547,7 +5547,7 @@ sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
 sys/src/9/port/portclock.c - 664 sys sys 1102093397 4556
 sys/src/9/port/portdat.h - 664 sys sys 1109541435 22233
-sys/src/9/port/portfns.h - 664 sys sys 1102093388 11474
+sys/src/9/port/portfns.h - 664 sys sys 1111851541 10943
 sys/src/9/port/portmkfile - 664 sys sys 1109202242 2043
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1099760501 28207
@@ -5580,7 +5580,7 @@ sys/src/9/ppc/errstr.h - 664 sys sys 1059490751 2137
 sys/src/9/ppc/etherfcc.c - 664 sys sys 1100701674 19690
 sys/src/9/ppc/etherif.h - 664 sys sys 1059490751 785
 sys/src/9/ppc/ethersaturn.c - 664 sys sys 1059490751 4321
-sys/src/9/ppc/fns.h - 664 sys sys 1067722798 4211
+sys/src/9/ppc/fns.h - 664 sys sys 1111851554 3095
 sys/src/9/ppc/init9.s - 664 sys sys 1059490827 572
 sys/src/9/ppc/initcode - 664 sys sys 1059490754 444
 sys/src/9/ppc/io.h - 664 sys sys 1059490752 1017
@@ -7559,7 +7559,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 644 sys sys 1110816880 3780
-sys/src/cmd/file.c - 664 sys sys 1111784964 22934
+sys/src/cmd/file.c - 664 sys sys 1112038848 23285
 sys/src/cmd/fmt.c - 664 sys sys 1070032009 4088
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
@@ -10963,7 +10963,7 @@ sys/src/cmd/usb/audio - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1100568596 18166
 sys/src/cmd/usb/audio/audiosub.c - 664 sys sys 1100568596 6967
 sys/src/cmd/usb/audio/mkfile - 664 sys sys 1091204980 349
-sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1100619443 9818
+sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1112038987 9845
 sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1100568597 1861
 sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1101906325 17266
 sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1100568597 600
@@ -10977,7 +10977,7 @@ sys/src/cmd/usb/lib/usb.h - 664 sys sys 1103381265 7036
 sys/src/cmd/usb/lib/util.c - 664 sys sys 1091204978 523
 sys/src/cmd/usb/misc - 20000000775 sys sys 1091205037 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1091205037 274
-sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1099760451 3451
+sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1112038987 3468
 sys/src/cmd/usb/misc/usbprint - 775 sys sys 1101830683 256
 sys/src/cmd/usb/mkfile - 664 sys sys 1091327562 354
 sys/src/cmd/usb/mouse - 20000000775 sys sys 1017802022 0
