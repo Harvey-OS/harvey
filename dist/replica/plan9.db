@@ -3777,7 +3777,7 @@ sys/lib/man/preface4 - 664 sys sys 1020082276 1758
 sys/lib/man/secindex - 775 sys sys 956337727 322
 sys/lib/man/title - 664 sys sys 1019915894 746
 sys/lib/man/trademarks - 664 sys sys 958527089 1838
-sys/lib/mimetype - 664 sys sys 1045504324 5269
+sys/lib/mimetype - 664 sys sys 1045933187 5318
 sys/lib/newuser - 775 sys sys 1018386991 1229
 sys/lib/plumb - 20000000775 sys sys 944957365 0
 sys/lib/plumb/basic - 664 sys sys 1032058379 2908
@@ -11422,7 +11422,7 @@ sys/src/libmemdraw/times - 664 sys sys 944961742 586
 sys/src/libmemdraw/unload.c - 664 sys sys 944961742 435
 sys/src/libmemdraw/write.c - 664 sys sys 1014930217 4375
 sys/src/libmemlayer - 20000000775 sys sys 984710301 0
-sys/src/libmemlayer/draw.c - 664 sys sys 1039752978 3947
+sys/src/libmemlayer/draw.c - 664 sys sys 1045933975 4082
 sys/src/libmemlayer/lalloc.c - 664 sys sys 1039752979 1760
 sys/src/libmemlayer/layerop.c - 664 sys sys 1039752979 2641
 sys/src/libmemlayer/ldelete.c - 664 sys sys 1039752979 1183
@@ -11675,7 +11675,7 @@ sys/src/libstdio/vsprintf.c - 664 sys sys 1022112162 246
 sys/src/libsunrpc - 20000000775 sys sys 1045589225 0
 sys/src/libsunrpc/COPYING - 664 sys sys 1045589219 1269
 sys/src/libsunrpc/authunix.c - 664 sys sys 1045589219 1477
-sys/src/libsunrpc/client.c - 664 sys sys 1045674219 8858
+sys/src/libsunrpc/client.c - 664 sys sys 1045941140 8862
 sys/src/libsunrpc/emalloc.c - 664 sys sys 1045589220 397
 sys/src/libsunrpc/error.c - 664 sys sys 1045589221 819
 sys/src/libsunrpc/fd.c - 664 sys sys 1045589221 1734
