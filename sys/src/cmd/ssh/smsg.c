@@ -170,8 +170,17 @@ authsrvuser(Conn *c)
 
 	ai = authusername(c);
 	while(ai == nil){
+		/*
+		 * clumsy: if the client aborted the auth_tis early
+		 * we don't send a new failure.  we check this by
+		 * looking at c->unget, which is only used in that
+		 * case.
+		 */
+		if(c->unget != nil)
+			goto skipfailure;
 		sendmsg(allocmsg(c, SSH_SMSG_FAILURE, 0));
-		m = recvmsg(c, 0);
+	skipfailure:
+		m = recvmsg(c, -1);
 		for(i=0; i<c->nokauthsrv; i++)
 			if(c->okauthsrv[i]->firstmsg == m->type){
 				ai = (*c->okauthsrv[i]->fn)(c, m);
