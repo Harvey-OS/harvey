@@ -130,7 +130,7 @@
 386/bin/aux/stub - 775 sys sys 1045537958 135076
 386/bin/aux/tcpostio - 775 sys sys 1045537959 199727
 386/bin/aux/text2post - 775 sys sys 1039758546 77253
-386/bin/aux/timesync - 775 sys sys 1047751423 127657
+386/bin/aux/timesync - 775 sys sys 1047847239 127070
 386/bin/aux/tr2post - 775 sys sys 1045537960 175522
 386/bin/aux/trampoline - 775 sys sys 1045537960 81157
 386/bin/aux/typepasswd - 775 sys sys 1045537960 68154
