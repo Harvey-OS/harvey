@@ -18615,3 +18615,6 @@
 1047952838 4 c sys/src/9/ip/ipv6.c - 664 sys sys 1047951328 14433
 1047952838 5 c sys/src/9/port/devproc.c - 664 sys sys 1047952847 23450
 1047952838 6 c sys/src/9/port/proc.c - 664 sys sys 1047952847 24170
+1047996055 0 c sys/src/9/port/portdat.h - 664 sys sys 1047995947 21197
+1047996055 1 c sys/src/9/port/portfns.h - 664 sys sys 1047995955 10620
+1047996055 2 c sys/src/9/port/sysproc.c - 664 sys sys 1047995943 15125

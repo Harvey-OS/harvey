@@ -658,6 +658,7 @@ struct Proc
 	ulong	basepri;	/* base priority level */
 	uchar	fixedpri;	/* priority level deson't change */
 	int	quanta;		/* quanta left */
+	uchar	yield;		/* non-zero if the process just did a sleep(0) */
 	ulong	readytime;	/* time process came ready */
 	ulong	movetime;	/* last time process switched processors */
 	int	preempted;	/* true if this process hasn't finished the interrupt

@@ -5268,8 +5268,8 @@ sys/src/9/port/page.c - 664 sys sys 1014931177 8086
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1032052809 3925
 sys/src/9/port/portclock.c - 664 sys sys 1047260623 3835
-sys/src/9/port/portdat.h - 664 sys sys 1047260623 21132
-sys/src/9/port/portfns.h - 664 sys sys 1047260622 10601
+sys/src/9/port/portdat.h - 664 sys sys 1047995947 21197
+sys/src/9/port/portfns.h - 664 sys sys 1047995955 10620
 sys/src/9/port/portmkfile - 664 sys sys 1039753335 2372
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1047952847 24170
@@ -5282,7 +5282,7 @@ sys/src/9/port/sd.h - 664 sys sys 1018386997 2702
 sys/src/9/port/segment.c - 664 sys sys 1032990942 13776
 sys/src/9/port/swap.c - 664 sys sys 1020284484 6986
 sys/src/9/port/sysfile.c - 664 sys sys 1014931179 15822
-sys/src/9/port/sysproc.c - 664 sys sys 1026847551 15145
+sys/src/9/port/sysproc.c - 664 sys sys 1047995943 15125
 sys/src/9/port/systab.h - 664 sys sys 1014931179 3044
 sys/src/9/port/taslock.c - 664 sys sys 1036813005 2896
 sys/src/9/port/thwack.c - 664 sys sys 1014931179 7253
