@@ -1,0 +1,13 @@
+#
+# Test filesystem.
+#
+fsys main config /tmp/fossil
+fsys main open -AWP
+fsys main 
+uname rsc :rsc
+uname sys +rsc
+uname jmk :jmk
+uname sys +jmk
+srv -p test.fscons
+srv test.fossil
+create /active/tmp sys sys d777

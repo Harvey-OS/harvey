@@ -1,0 +1,40 @@
+#!/bin/rc
+
+rfork en
+9fs ehime
+
+# adapted from /lib/namespace
+
+root = /n/ehime/testplan9
+#root = /n/emelieother/seanq/testplan9
+echo setting up $root
+fn bind{
+	/$cputype/bin/bind $*
+}
+
+# pass terminal through
+bind /mnt/term $root/mnt/term
+# root
+bind  $root /
+bind -b '#/' /
+
+# kernel devices
+bind '#c' /dev
+bind '#d' /fd
+bind -c '#e' /env
+bind '#p' /proc
+bind -c '#s' /srv
+bind -a /mnt/term/dev/ /dev/
+bind /mnt/term/dev/draw /dev/draw
+
+# standard bin
+bind /$cputype/bin /bin
+bind -a /rc/bin /bin
+
+# ramfs
+cd /sys/src
+prompt=('test-ehime=; ' '	')
+fn cd
+rc -i
+
+
