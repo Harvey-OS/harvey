@@ -64,6 +64,7 @@ char*	runetobyte(Rune*, int);
 Rune*	bytetorune(char*, int*);
 void	fsysinit(void);
 Mntdir*	fsysmount(Rune*, int, Rune**, int);
+void		fsysincid(Mntdir*);
 void		fsysdelid(Mntdir*);
 Xfid*		respond(Xfid*, Fcall*, char*);
 int		rxcompile(Rune*);

@@ -196,6 +196,14 @@ fsysaddid(Rune *dir, int ndir, Rune **incl, int nincl)
 }
 
 void
+fsysincid(Mntdir *m)
+{
+	qlock(&mnt);
+	m->ref++;
+	qunlock(&mnt);
+}
+
+void
 fsysdelid(Mntdir *idm)
 {
 	Mntdir *m, *prev;
