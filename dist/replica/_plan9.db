@@ -445,7 +445,7 @@
 386/bin/upas/mlowner - 775 sys sys 1085077113 90099
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1064598354 75149
-386/bin/upas/nedmail - 775 sys sys 1085077114 152911
+386/bin/upas/nedmail - 775 sys sys 1085627355 153957
 386/bin/upas/pop3 - 775 sys sys 1085077114 259808
 386/bin/upas/qer - 775 sys sys 1085077114 97840
 386/bin/upas/ratfs - 775 sys sys 1085077115 108980
@@ -12113,7 +12113,7 @@ sys/src/libmp/port/crt.c - 664 sys sys 1014930532 2050
 sys/src/libmp/port/crttest.c - 664 sys sys 956279160 813
 sys/src/libmp/port/dat.h - 664 sys sys 1045502198 350
 sys/src/libmp/port/letomp.c - 664 sys sys 1055700222 432
-sys/src/libmp/port/mkfile - 664 sys sys 1032061350 629
+sys/src/libmp/port/mkfile - 664 sys sys 1085667604 620
 sys/src/libmp/port/mpadd.c - 664 sys sys 984710624 783
 sys/src/libmp/port/mpaux.c - 664 sys sys 1055700209 2650
 sys/src/libmp/port/mpcmp.c - 664 sys sys 1055700210 465
@@ -12427,4 +12427,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/upas/nedmail - 775 sys sys 1085627355 153957
+386/lib/libmp.a - 664 sys sys 1085713909 80458

@@ -544,7 +544,7 @@
 386/lib/libmach.a - 664 sys sys 1085077145 735256
 386/lib/libmemdraw.a - 664 sys sys 1085077145 287684
 386/lib/libmemlayer.a - 664 sys sys 1085077145 47360
-386/lib/libmp.a - 664 sys sys 1085583503 76502
+386/lib/libmp.a - 664 sys sys 1085713909 80458
 386/lib/libndb.a - 664 sys sys 1085077146 60772
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1085077146 37440
@@ -12113,7 +12113,7 @@ sys/src/libmp/port/crt.c - 664 sys sys 1014930532 2050
 sys/src/libmp/port/crttest.c - 664 sys sys 956279160 813
 sys/src/libmp/port/dat.h - 664 sys sys 1045502198 350
 sys/src/libmp/port/letomp.c - 664 sys sys 1055700222 432
-sys/src/libmp/port/mkfile - 664 sys sys 1032061350 629
+sys/src/libmp/port/mkfile - 664 sys sys 1085667604 620
 sys/src/libmp/port/mpadd.c - 664 sys sys 984710624 783
 sys/src/libmp/port/mpaux.c - 664 sys sys 1055700209 2650
 sys/src/libmp/port/mpcmp.c - 664 sys sys 1055700210 465

@@ -12,6 +12,7 @@ FILES=\
 	mpadd\
 	mpsub\
 	mpcmp\
+	mpfactorial\
 	mpmul\
 	mpleft\
 	mpright\
@@ -43,7 +44,6 @@ HFILES=\
 
 CFILES=${FILES:%=%.c}
 
-OFILES=${FILES:%=%.$O}
 
 UPDATE=mkfile\
 	$HFILES\
