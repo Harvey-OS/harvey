@@ -6141,7 +6141,7 @@ sys/src/ape/lib/ap/plan9/umask.c - 664 sys sys 1014921985 182
 sys/src/ape/lib/ap/plan9/uname.c - 664 sys sys 1014921985 408
 sys/src/ape/lib/ap/plan9/unlink.c - 664 sys sys 1038237528 1505
 sys/src/ape/lib/ap/plan9/utime.c - 664 sys sys 1046643007 469
-sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1088204173 2147
+sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1089859817 2162
 sys/src/ape/lib/ap/plan9/write.c - 664 sys sys 1038237529 348
 sys/src/ape/lib/ap/posix - 20000000775 sys sys 1014921981 0
 sys/src/ape/lib/ap/posix/getgrent.c - 664 sys sys 1014921981 945
@@ -6489,7 +6489,7 @@ sys/src/boot/pc/fs.h - 664 sys sys 1032215924 627
 sys/src/boot/pc/ilock.c - 664 sys sys 1015007952 303
 sys/src/boot/pc/inflate.c - 664 sys sys 1021579984 2802
 sys/src/boot/pc/io.h - 664 sys sys 1015007952 5420
-sys/src/boot/pc/ip.h - 664 sys sys 1015007952 2434
+sys/src/boot/pc/ip.h - 664 sys sys 1089814405 2435
 sys/src/boot/pc/kbd.c - 664 sys sys 1015007952 10188
 sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788

@@ -89,7 +89,8 @@ wait4 (pid_t wpid, int *status, int options, Waitmsg *waitmsg) {
 		if (wpid <= 0) {
 			waitmsg = w;
 			wpid = w->pid;
-			*status = 0;
+			if(status)
+				*status = 0;
 			return wpid;
 		}
 		if (w->pid == wpid) {
