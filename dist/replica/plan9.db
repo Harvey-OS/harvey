@@ -3333,7 +3333,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1097256226 250017
+sys/games/lib/fortunes - 664 sys sys 1098118045 250202
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -9624,11 +9624,11 @@ sys/src/cmd/lens.c - 664 sys sys 1045505408 4645
 sys/src/cmd/lex - 20000000775 sys sys 944961017 0
 sys/src/cmd/lex/header.c - 664 sys sys 1032060383 3368
 sys/src/cmd/lex/ldefs.h - 664 sys sys 944961017 4053
-sys/src/cmd/lex/lmain.c - 664 sys sys 1032060382 6031
+sys/src/cmd/lex/lmain.c - 664 sys sys 1098121111 6046
 sys/src/cmd/lex/mkfile - 664 sys sys 1032060382 328
 sys/src/cmd/lex/ncform - 664 sys sys 944961017 4060
 sys/src/cmd/lex/parser.y - 664 sys sys 1063855045 14194
-sys/src/cmd/lex/sub1.c - 664 sys sys 1063855044 9784
+sys/src/cmd/lex/sub1.c - 664 sys sys 1098121111 9795
 sys/src/cmd/lex/sub2.c - 664 sys sys 944961016 17125
 sys/src/cmd/lnfs.c - 664 sys sys 1094156765 13332
 sys/src/cmd/look.c - 664 sys sys 944961619 5994

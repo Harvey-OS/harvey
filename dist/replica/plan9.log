@@ -16840,3 +16840,6 @@
 1097974912 0 c sys/src/cmd/rio/dat.h - 664 sys sys 1097973839 6938
 1097974912 1 c sys/src/cmd/rio/wind.c - 664 sys sys 1097973839 32996
 1097974912 2 c sys/src/libdraw/event.c - 664 sys sys 1097973929 8983
+1098118842 0 c sys/games/lib/fortunes - 664 sys sys 1098118045 250202
+1098122442 0 c sys/src/cmd/lex/lmain.c - 664 sys sys 1098121111 6046
+1098122442 1 c sys/src/cmd/lex/sub1.c - 664 sys sys 1098121111 9795
