@@ -208,6 +208,7 @@ xfidattach(Xfid *x)
 	x->f->w = w;
 	if(w == nil){
 		qunlock(&all);
+		x->f->busy = FALSE;
 		filsysrespond(x->fs, x, &t, err);
 		return;
 	}

@@ -5365,6 +5365,7 @@ sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1071245466 14094
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
+sys/src/9/pc/ether8169.c - 664 sys sys 1103232343 22378
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
 sys/src/9/pc/ether82557.c - 664 sys sys 1098848151 30040
 sys/src/9/pc/ether83815.c - 664 sys sys 1081706477 23479
@@ -7581,7 +7582,7 @@ sys/src/cmd/fossil/mkfile - 664 sys sys 1087005592 2116
 sys/src/cmd/fossil/nobwatch.c - 664 sys sys 1042005509 329
 sys/src/cmd/fossil/pack.c - 664 sys sys 1061530726 4682
 sys/src/cmd/fossil/periodic.c - 664 sys sys 1061530726 1087
-sys/src/cmd/fossil/source.c - 664 sys sys 1087005596 20092
+sys/src/cmd/fossil/source.c - 664 sys sys 1103225456 20229
 sys/src/cmd/fossil/srcload.c - 664 sys sys 1042005510 4178
 sys/src/cmd/fossil/stdinc.h - 664 sys sys 1042005510 155
 sys/src/cmd/fossil/trunc.c - 664 sys sys 1042005511 280
@@ -10241,7 +10242,7 @@ sys/src/cmd/rio/time.c - 664 sys sys 1014926357 1829
 sys/src/cmd/rio/util.c - 664 sys sys 1014926357 2061
 sys/src/cmd/rio/wctl.c - 664 sys sys 1023206837 8808
 sys/src/cmd/rio/wind.c - 664 sys sys 1097973839 32996
-sys/src/cmd/rio/xfid.c - 664 sys sys 1032061723 17424
+sys/src/cmd/rio/xfid.c - 664 sys sys 1103205531 17446
 sys/src/cmd/rm.c - 664 sys sys 1014926615 1563
 sys/src/cmd/rx.c - 664 sys sys 1099760378 4382
 sys/src/cmd/sam - 20000000775 sys sys 944961629 0
@@ -12394,3 +12395,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/rio - 775 sys sys 1103256371 308789
+386/bin/fossil/flchk - 775 sys sys 1103256369 237462
+386/bin/fossil/flfmt - 775 sys sys 1103256369 245611
+386/bin/fossil/fossil - 775 sys sys 1103256370 360277
