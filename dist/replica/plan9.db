@@ -5200,6 +5200,7 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1032053196 390
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
+sys/src/9/boot/libboot.a8 - 664 sys sys 1074883206 62012
 sys/src/9/boot/local.c - 664 sys sys 1068835808 5355
 sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
@@ -5428,7 +5429,7 @@ sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1066737478 45222
 sys/src/9/port/devuart.c - 664 sys sys 1067722718 11683
 sys/src/9/port/edf.c - 664 sys sys 1072704672 12331
-sys/src/9/port/edf.h - 664 sys sys 1067722760 1124
+sys/src/9/port/edf.h - 664 sys sys 1074883055 1145
 sys/src/9/port/error.h - 664 sys sys 1055700517 2630
 sys/src/9/port/fault.c - 664 sys sys 1067722722 6628
 sys/src/9/port/initcode.c - 664 sys sys 1055688491 574
@@ -10485,6 +10486,7 @@ sys/src/cmd/tlssrv.c - 664 sys sys 1018720167 3254
 sys/src/cmd/touch.c - 664 sys sys 1018387005 893
 sys/src/cmd/tprof.c - 664 sys sys 1063858806 2716
 sys/src/cmd/tr.c - 664 sys sys 944961464 6008
+sys/src/cmd/trace.c - 664 sys sys 1074883076 17752
 sys/src/cmd/troff - 20000000775 sys sys 944961294 0
 sys/src/cmd/troff/FIXES - 644 sys sys 944961293 24982
 sys/src/cmd/troff/README - 644 sys sys 944961293 1168
