@@ -45,7 +45,7 @@ enum
 typedef struct Req Req;
 struct Req
 {
-	int	seq;	// sequence number
+	ushort	seq;	// sequence number
 	vlong	time;	// time sent
 	vlong	rtt;
 	int	ttl;
@@ -59,6 +59,7 @@ Lock	listlock;
 char *argv0;
 int debug;
 int quiet;
+int lostonly;
 int lostmsgs;
 int rcvdmsgs;
 int done;
@@ -67,18 +68,11 @@ ushort firstseq;
 int addresses;
 
 void usage(void);
-void lost(Req*);
+void lost(Req*, Icmp*);
 void reply(Req*, Icmp*);
 
 #define SECOND 1000000000LL
 #define MINUTE (60LL*SECOND)
-
-void
-usage(void)
-{
-	fprint(2, "usage: %s destination\n", argv0);
-	exits("usage");
-}
 
 static void
 catch(void *a, char *msg)
@@ -110,7 +104,7 @@ clean(ushort seq, vlong now, Icmp *ip)
 			r->rtt = now-r->time;
 			r->ttl = ip->ttl;
 			if(r->replied == 0)
-				lost(r);
+				lost(r, ip);
 			free(r);
 		} else {
 			last = r;
@@ -168,7 +162,7 @@ sender(int fd, int msglen, int interval, int n)
 }
 
 void
-rcvr(int fd, int msglen, int interval, int nmsg)
+rcvr(int fd, int msglen, int interval, int nmsg, int senderpid)
 {
 	uchar buf[64*1024+512];
 	Icmp *ip;
@@ -185,8 +179,10 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 		n = read(fd, buf, sizeof(buf));
 		alarm(0);
 		now = nsec();
-		if(n <= 0)
+		if(n <= 0){
+			print("read: %r\n");
 			break;
+		}
 		if(n < msglen){
 			print("bad len %d/%d\n", n, msglen);
 			continue;
@@ -214,6 +210,14 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 
 	if(lostmsgs)
 		print("%d out of %d messages lost\n", lostmsgs, lostmsgs+rcvdmsgs);
+	postnote(PNPROC, senderpid, "die");
+}
+
+void
+usage(void)
+{
+	fprint(2, "usage: %s [-alq] [-s msgsize] [-i millisecs] [-n #pings] destination\n", argv0);
+	exits("usage");
 }
 
 void
@@ -221,6 +225,7 @@ main(int argc, char **argv)
 {
 	int fd;
 	int msglen, interval, nmsg;
+	int pid;
 
 	nsec();		/* make sure time file is already open */
 
@@ -229,6 +234,9 @@ main(int argc, char **argv)
 	msglen = interval = 0;
 	nmsg = MAXMSG;
 	ARGBEGIN {
+	case 'l':
+		lostonly++;
+		break;
 	case 'd':
 		debug++;
 		break;
@@ -268,11 +276,12 @@ main(int argc, char **argv)
 
 	print("sending %d %d byte messages %d ms apart\n", nmsg, msglen, interval);
 
+	pid = getpid();
 	switch(rfork(RFPROC|RFMEM|RFFDG)){
 	case -1:
 		fprint(2, "%s: can't fork: %r\n", argv0);
 	case 0:
-		rcvr(fd, msglen, interval, nmsg);
+		rcvr(fd, msglen, interval, nmsg, pid);
 		exits(0);
 	default:
 		sender(fd, msglen, interval, nmsg);
@@ -282,18 +291,12 @@ main(int argc, char **argv)
 }
 
 void
-lost(Req *)
-{
-	lostmsgs++;
-}
-
-void
 reply(Req *r, Icmp *ip)
 {
 	rcvdmsgs++;
 	r->rtt /= 1000LL;
 	sum += r->rtt;
-	if(!quiet){
+	if(!quiet && !lostonly){
 		if(addresses)
 			print("%ud: %V->%V rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
 				r->seq-firstseq,
@@ -305,4 +308,21 @@ reply(Req *r, Icmp *ip)
 				r->rtt, sum/rcvdmsgs, r->ttl);
 	}
 	r->replied = 1;
+}
+
+void
+lost(Req *r, Icmp *ip)
+{
+	if(!quiet){
+		if(addresses)
+			print("lost %ud: %V->%V avg rtt %lld µs\n",
+				r->seq-firstseq,
+				ip->src, ip->dst,
+				sum/rcvdmsgs);
+		else
+			print("lost %ud: avg rtt %lld µs\n",
+				r->seq-firstseq,
+				sum/rcvdmsgs);
+	}
+	lostmsgs++;
 }
