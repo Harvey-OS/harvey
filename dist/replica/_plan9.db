@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
 386/bin/acid - 775 sys sys 1091936087 353717
-386/bin/acme - 775 sys sys 1098536527 425064
+386/bin/acme - 775 sys sys 1099368725 425143
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1085076973 68304
@@ -12392,4 +12392,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acme - 775 sys sys 1099368725 425143
