@@ -101,7 +101,7 @@
 386/bin/aux/cropmarks - 775 sys sys 1020319062 1808
 386/bin/aux/data2s - 775 sys sys 1064598064 58930
 386/bin/aux/depend - 775 sys sys 1064598065 146380
-386/bin/aux/disksim - 775 sys sys 1064598066 145867
+386/bin/aux/disksim - 775 sys sys 1073888255 146732
 386/bin/aux/download - 775 sys sys 1071245289 177517
 386/bin/aux/faxreceive - 775 sys sys 1064598066 83175
 386/bin/aux/faxsend - 775 sys sys 1064598067 88579
@@ -231,9 +231,9 @@
 386/bin/fortune - 775 sys sys 1073851220 66113
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1056364255 1497
-386/bin/fossil/flchk - 775 sys sys 1073851221 235407
-386/bin/fossil/flfmt - 775 sys sys 1073851222 249218
-386/bin/fossil/fossil - 775 sys sys 1073851223 348716
+386/bin/fossil/flchk - 775 sys sys 1073888256 235503
+386/bin/fossil/flfmt - 775 sys sys 1073888257 249314
+386/bin/fossil/fossil - 775 sys sys 1073888258 348812
 386/bin/freq - 775 sys sys 1064598145 60197
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1064598146 95907
