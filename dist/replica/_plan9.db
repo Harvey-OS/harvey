@@ -263,7 +263,7 @@
 386/bin/ip/dhcpclient - 775 sys sys 1089257531 92091
 386/bin/ip/dhcpd - 775 sys sys 1089257532 147194
 386/bin/ip/dhcpleases - 775 sys sys 1089257532 84202
-386/bin/ip/ftpd - 775 sys sys 1089257532 165934
+386/bin/ip/ftpd - 775 sys sys 1095910154 166038
 386/bin/ip/gizzard - 775 sys sys 1081480408 101521
 386/bin/ip/gping - 775 sys sys 1089257533 180180
 386/bin/ip/hogports - 775 sys sys 1085077067 42855
@@ -12377,4 +12377,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/ip/ftpd - 775 sys sys 1095910154 166038
