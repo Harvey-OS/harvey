@@ -13,6 +13,9 @@ man, lookman \- print or find pages of this manual
 .PP
 .B lookman
 .I key ...
+.PP
+.B sig
+.I function ...
 .SH DESCRIPTION
 .I Man
 locates and prints pages of this manual named
@@ -63,6 +66,11 @@ prints the names of all manual sections that contain
 all of the
 .I key
 words given on the command line.
+.PP
+.B Sig
+prints the signature (i.e. C definition) of the
+.IR function 's
+given on the command line.
 .SH FILES
 .TF /sys/lib/man/lookman/index
 .TP

@@ -1,0 +1,22 @@
+#!/bin/rc
+# Usage: sig key ...
+#	prints out function signatures by grepping the manual
+
+
+*=`{echo $*|tr A-Z a-z|tr -dc 'a-z0-9_ \012'}	# fold case, delete funny chars
+if(~ $#* 0){
+	echo Usage: sig function ... >/fd/2
+	exit 1
+}
+
+for (i) {
+	files=`{grep -l '[ 	]\*?'$i'\(' /sys/man/2/*}
+	for(j in $files) {
+		{echo .nr LL 20i; sed -n '/^.SH SYNOPSIS/,/^.SH.*DESCR/p'  $j } |
+			sed 's/[ 	]+/ /g;s/^ +//;/^\.nf/d' |
+			nroff -man |
+			grep -i -e '[ 	]\*?'$i'\(' | sed 's/^[ +]/	/'
+	}
+}
+
+exit 0

@@ -1,0 +1,25 @@
+#include "/sys/src/libc/9syscall/sys.h"
+
+/*
+ *  we pass in the argument of the exec parameters as 0(FP)
+ */
+
+TEXT	main(SB),$8
+
+	MOVW	$setSB(SB), R2
+	MOVW	$boot(SB), R3
+	ADD	$12, R1, R4	/* get a pointer to 0(FP) */
+	MOVW	R3, 4(R1)
+	MOVW	R4, 8(R1)
+	MOVW	$EXEC, R3
+	SYSCALL
+
+	/* should never get here */
+loop:
+	BR	loop
+
+DATA	boot+0(SB)/5,$"/boot"
+DATA	boot+5(SB)/5,$"/boot"
+DATA	bootv+0(SB)/4,$boot+6(SB)
+GLOBL	boot+0(SB),$11
+GLOBL	bootv+0(SB),$8
