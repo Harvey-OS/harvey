@@ -17,14 +17,25 @@ typedef struct HTMLfont HTMLfont;
 enum
 {
 	Italic	=	16,
-	Bold	=	17,
-	CW	=	18,
-	Indent1 =	19,
-	Indent2 =	20,
-	Indent3 =	21,
+	Bold,
+	CW,
+	Indent1,
+	Indent2,
+	Indent3,
 	Heading =	25,
 	Anchor =	26,	/* must be last */
 };
+
+enum	/* magic emissions */
+{
+	Estring = 0,
+	Epp = 1<<16,
+};
+
+int attrorder[] = { Indent1, Indent2, Indent3, Heading, Anchor, Italic, Bold, CW };
+
+int nest[10];
+int nnest;
 
 struct Troffchar
 {
@@ -34,8 +45,9 @@ struct Troffchar
 
 struct Htmlchar
 {
-	int value;
+	char *utf;
 	char *name;
+	int value;
 };
 
 #include "chars.h"
@@ -56,35 +68,49 @@ HTMLfont htmlfonts[] =
 {
 	"R",			nil,		0,
 	"LucidaSans",	nil,		0,
-	"I",			"EM",	Italic,
-	"LucidaSansI",	"EM",	Italic,
-	"CW",		"TT",		CW,
-	"LucidaCW",	"TT",		CW,
+	"I",			"i",	Italic,
+	"LucidaSansI",	"i",	Italic,
+	"CW",		"tt",		CW,
+	"LucidaCW",	"tt",		CW,
 	nil,	nil,
 };
 
+#define TABLE "<table border=0 cellpadding=0 cellspacing=0>"
+
 char*
-onattr[8*sizeof(ulong)] = {
-	[Italic]	=	"<EM>",
-	[Bold]	=	"<B>",
-	[CW]		=	"<TT>",
-	[Indent1]	=	"<DL><DT><DD>",
-	[Indent2]	=	"<DL><DT><DD>",
-	[Indent3]	=	"<DL><DT><DD>",
-	[Heading] =	"<H4>",
-	[Anchor] =	"<UNUSED>",
+onattr[8*sizeof(ulong)] =
+{
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	"<i>",	/* italic */
+	"<b>",	/* bold */
+	"<tt><font size=+1>",	/* cw */
+	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",	/* indent1 */
+	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",	/* indent2 */
+	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",	/* indent3 */
+	0,
+	0,
+	0,
+	"<p><font size=+1><b>",	/* heading 25 */
+	"<unused>",	/* anchor 26 */
 };
 
 char*
-offattr[8*sizeof(ulong)] = {
-	[Italic]	=	"</EM>",
-	[Bold]	=	"</B>",
-	[CW]		=	"</TT>",
-	[Indent1]	=	"</DL>",
-	[Indent2]	=	"</DL>",
-	[Indent3]	=	"</DL>",
-	[Heading] =	"</H4>",
-	[Anchor] =	"</A>",
+offattr[8*sizeof(ulong)] =
+{
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	"</i>",	/* italic */
+	"</b>",	/* bold */
+	"</font></tt>",	/* cw */
+	"<-/table>",	/* indent1 */
+	"<-/table>",	/* indent2 */
+	"<-/table>",	/* indent3 */
+	0,
+	0,
+	0,
+	"</b></font>",	/* heading 25 */
+	"</a>",	/* anchor 26 */
 };
 
 Font *font[Nfont];
@@ -158,8 +184,18 @@ estrdup(char *s)
 void
 usage(void)
 {
-	fprint(2, "usage: dhtml [-d] [-t title] [file ...]\n");
+	fprint(2, "usage: troff2html [-d] [-t title] [file ...]\n");
 	exits("usage");
+}
+
+int
+hccmp(const void *va, const void *vb)
+{
+	Htmlchar *a, *b;
+
+	a = (Htmlchar*)va;
+	b = (Htmlchar*)vb;
+	return a->value - b->value;
 }
 
 void
@@ -167,6 +203,13 @@ main(int argc, char *argv[])
 {
 	int i;
 	Biobuf in, *inp;
+	Rune r;
+
+	for(i=0; i<nelem(htmlchars); i++){
+		chartorune(&r, htmlchars[i].utf);
+		htmlchars[i].value = r;
+	}
+	qsort(htmlchars, nelem(htmlchars), sizeof(htmlchars[0]), hccmp);
 
 	ARGBEGIN{
 	case 't':
@@ -180,6 +223,7 @@ main(int argc, char *argv[])
 	default:
 		usage();
 	}ARGEND
+
 	Binit(&bout, 1, OWRITE);
 	if(argc == 0){
 		header(title);
@@ -216,84 +260,154 @@ void
 emit(Rune r)
 {
 	emitul(r | attr);
+	/*
+	 * Close man page references early, so that 
+	 * .IR proof (1),
+	 * doesn't make the comma part of the link.
+	 */
+	if(r == ')')
+		attr &= ~(1<<Anchor);
 }
 
 void
 emitstr(char *s)
 {
-	emitul(0);
+	emitul(Estring);
 	emitul((ulong)s);
+}
+
+int indentlevel;
+int linelen;
+
+void
+iputrune(Biobuf *b, Rune r)
+{
+	int i;
+
+	if(linelen++ > 60 && r == ' ')
+		r = '\n';
+	Bputrune(b, r);
+	if(r == '\n'){
+		for(i=0; i<indentlevel; i++)
+			Bprint(b, "    ");
+		linelen = 0;
+	}
+}
+
+void
+iputs(Biobuf *b, char *s)
+{
+	if(s[0]=='<' && s[1]=='+'){
+		iputrune(b, '\n');
+		Bprint(b, "<%s", s+2);
+		indentlevel++;
+		iputrune(b, '\n');
+	}else if(s[0]=='<' && s[1]=='-'){
+		indentlevel--;
+		iputrune(b, '\n');
+		Bprint(b, "<%s", s+2);
+		iputrune(b, '\n');
+	}else
+		Bprint(b, "%s", s);
+}
+
+void
+setattr(ulong a)
+{
+	int on, off, i, j;
+
+	on = a & ~attr;
+	off = attr & ~a;
+
+	/* walk up the nest stack until we reach something we need to turn off. */
+	for(i=0; i<nnest; i++)
+		if(off&(1<<nest[i]))
+			break;
+
+	/* turn off everything above that */
+	for(j=nnest-1; j>=i; j--)
+		iputs(&bout, offattr[nest[j]]);
+
+	/* turn on everything we just turned off but didn't want to */
+	for(j=i; j<nnest; j++)
+		if(a&(1<<nest[j]))
+			iputs(&bout, onattr[nest[j]]);
+		else
+			nest[j] = 0;
+
+	/* shift the zeros (turned off things) up */
+	for(i=j=0; i<nnest; i++)
+		if(nest[i] != 0)
+			nest[j++] = nest[i];
+	nnest = j;
+
+	/* now turn on the new attributes */
+	for(i=0; i<nelem(attrorder); i++){
+		j = attrorder[i];
+		if(on&(1<<j)){
+			if(j == Anchor)
+				onattr[j] = anchors[nanchors++];
+			iputs(&bout, onattr[j]);
+			nest[nnest++] = j;
+		}
+	}
+	attr = a;
 }
 
 void
 flush(void)
 {
-	int i, anchor;
-	ulong c, oattr, off, on, a, top;
+	int i;
+	ulong c, a;
 
-	anchor = 0;
-	oattr = 0;
+	nanchors = 0;
 	for(i=0; i<nchars; i++){
 		c = chars[i];
-		if(c == 0){
+		if(c == Estring){
 			/* next word is string to print */
-			Bprint(&bout, "%s", (char*)chars[++i]);
+			iputs(&bout, (char*)chars[++i]);
 			continue;
 		}
-		attr = c & ~0xFFFF;
-		/* clear old attributes */
-		off = (oattr^attr) & oattr;
-		if(off){
-			/* do fonts first, since they tend to nest best */
-			for(a=16; a<=Anchor; a++)
-				if(off & (1<<a))
-					Bprint(&bout, "%s", offattr[a]);
+		if(c == Epp){
+			iputrune(&bout, '\n');
+			iputs(&bout, TABLE "<tr height=5><td></table>");
+			iputrune(&bout, '\n');
+			continue;
 		}
-		/* set new attributes */
-		on = (oattr^attr) & attr;
-		if(on){
-			/* before we turn on an attribute, we need to hold off all lower ones to maintain nesting */
-			for(top=Anchor-1; top>=16; top--)
-				if(on & (1<<top))
-					break;
-			for(a=16; a<=top; a++)
-				if((oattr^off) & (1<<a))
-					Bprint(&bout, "%s", offattr[a]);
-			a = Anchor;
-			if(on & (1<<a))	/* anchors are special */
-				Bprint(&bout, "%s", anchors[anchor++]);
-			while(--a >= 16)
-				if(on & (1<<a))
-					Bprint(&bout, "%s", onattr[a]);
-			/* turn the 'held' ones back on */
-			for(a=top; a>=16; --a)
-				if((oattr^off) & (1<<a))
-					Bprint(&bout, "%s", onattr[a]);
-		}
-		oattr = attr;
-		Bputrune(&bout, c & 0xFFFF);
+		a = c & ~0xFFFF;
+		c &= 0xFFFF;
+		/*
+		 * If we're going to something off after a space,
+		 * let's just turn it off before.
+		 */
+		if(c == ' ' && i<nchars-1 && (chars[i+1]&0xFFFF) >= 32)
+			a ^= a & ~chars[i+1];
+		setattr(a);
+		iputrune(&bout, c & 0xFFFF);
 	}
 }
 
 void
 header(char *s)
 {
-	Bprint(&bout, "<HEAD>\n");
-	Bprint(&bout, "<TITLE>%s</TITLE>\n", s);
-	Bprint(&bout, "<META content=\"text/html; charset=utf-8\" http-equiv=Content-Type>\n");
-	Bprint(&bout, "</HEAD>\n");
-	Bprint(&bout, "<BODY BGCOLOR=WHITE>\n");
+	Bprint(&bout, "<head>\n");
+	Bprint(&bout, "<title>%s</title>\n", s);
+	Bprint(&bout, "<meta content=\"text/html; charset=utf-8\" http-equiv=Content-Type>\n");
+	Bprint(&bout, "</head>\n");
+	Bprint(&bout, "<body bgcolor=#ffffff>\n");
 }
 
 void
 trailer(void)
 {
-	Tm *t;
 
+#ifdef LUCENT
 	t = localtime(time(nil));
-	Bprint(&bout, "<BR><FONT size=1><A HREF=\"http://www.lucent.com/copyright.html\">\n");
-	Bprint(&bout, "Copyright</A> &#169; %d Lucent Technologies.  All rights reserved.</FONT>\n", t->year+1900);
-	Bprint(&bout, "\n</BODY></HTML>\n");
+	Bprint(&bout, TABLE "<tr height=20><td></table>\n");
+	Bprint(&bout, "<font size=-1><a href=\"http://www.lucent.com/copyright.html\">\n");
+	Bprint(&bout, "Copyright</A> &#169; %d Lucent Technologies.  All rights reserved.</font>\n", t->year+1900);
+#endif
+	Bprint(&bout, "</body></html>\n");
 }
 
 int
@@ -383,7 +497,8 @@ setnum(Biobuf *b, char *name, int min, int max)
 void
 xcmd(Biobuf *b)
 {
-	char *p, *fld[16], buf[256];
+	char *p, *fld[16], buf[1024];
+
 	int i, nfld;
 
 	p = getline(b);
@@ -435,7 +550,7 @@ xcmd(Biobuf *b)
 					/* set anchor attribute and remember string */
 					attr |= (1<<Anchor);
 					snprint(buf, sizeof buf,
-						"<A HREF=\"/magic/man2html/%c/%s\">",
+						"<a href=\"/magic/man2html/%c/%s\">",
 						fld[5][1], fld[4]);
 					nanchors++;
 					anchors = erealloc(anchors, nanchors*sizeof(char*));
@@ -443,6 +558,9 @@ xcmd(Biobuf *b)
 				}else if(strcmp(fld[3], "end") == 0)
 					attr &= ~(1<<Anchor);
 			}
+		}else if(strcmp(fld[2], "manPP") == 0){
+			didP = 1;
+			emitul(Epp);
 		}else if(nfld<4 || strcmp(fld[2], "manref")!=0){
 			if(nfld>2 && strcmp(fld[2], "<P>")==0){	/* avoid triggering extra <br> */
 				didP = 1;
@@ -523,7 +641,7 @@ indent(void)
 				attr |= (1<<Indent1);
 			if(nind >= 2)
 				attr |= (1<<Indent2);
-			if(nind >= 2)
+			if(nind >= 3)
 				attr |= (1<<Indent3);
 		}
 		atnewline = 0;

@@ -239,6 +239,17 @@ by a user program like
 srvfs nfs.boot /srv/boot
 aux/nfsserver -f /srv/nfs.boot
 .EE
+.LP
+Use
+.I srvfs
+to spy on all accesses to a particular subtree:
+.IP
+.EX
+srvfs -d spy /
+tail -f /tmp/exportdb &
+mount /srv/spy /n/spy
+cd /n/spy; ls
+.EE
 .SH SOURCE
 .B /sys/src/cmd/exportfs
 .br

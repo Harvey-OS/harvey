@@ -50,14 +50,24 @@ void
 bcastmsg(Channel *q, Wmsg *m)
 {
 	Worker *w;
+	Channel *c;
 	void *a;
 
 	a = m->arg;
-	while(w = nbrecvp(q)){
+	/*
+	 * Allocate a temp chan to prevent workers from getting the
+	 * broadcast and putting themselves back on the workers
+	 * queue before the broadcast has finished
+	 */
+	c = chancreate(sizeof(Worker*), 256);
+	while(w = nbrecvp(q))
+		sendp(c, w);
+	while(w = nbrecvp(c)){
 		if(a) m->arg = strdup(a);
 		send(w->eventc, m);
 	}
 	free(a);
+	chanfree(c);
 	m->arg = nil;
 }
 
