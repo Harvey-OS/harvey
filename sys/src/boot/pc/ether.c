@@ -264,12 +264,8 @@ ethertxpkt(int ctlrno, Etherpkt* pkt, int len, int)
 	}
 
 	memmove(pkt->s, ctlr->ea, Eaddrlen);
-if(debug) {
-	printea(pkt->s);
-	print(" to ");
-	printea(pkt->d);
-	print("...\n");
-}
+	if(debug)
+		print("%E to %E...\n", pkt->s, pkt->d);
 	memmove(ring->pkt, pkt, len);
 	if(len < ETHERMINTU){
 		memset(ring->pkt+len, 0, ETHERMINTU-len);

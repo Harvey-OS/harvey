@@ -44,5 +44,3 @@ extern void addethercard(char*, int(*)(Ether*));
 
 #define NEXT(x, l)	(((x)+1)%(l))
 #define PREV(x, l)	(((x) == 0) ? (l)-1: (x)-1)
-
-extern void printea(uchar*);
