@@ -279,7 +279,7 @@
 386/bin/ip/imap4d - 775 sys sys 1085077070 234217
 386/bin/ip/ipconfig - 775 sys sys 1089257533 135811
 386/bin/ip/ping - 775 sys sys 1089257533 75000
-386/bin/ip/ppp - 775 sys sys 1095825517 216624
+386/bin/ip/ppp - 775 sys sys 1096083839 216592
 386/bin/ip/pppoe - 775 sys sys 1089257534 75540
 386/bin/ip/pptp - 775 sys sys 1089257534 124731
 386/bin/ip/pptpd - 775 sys sys 1089257535 123832
@@ -389,7 +389,7 @@
 386/bin/srvold9p - 775 sys sys 1085077100 128139
 386/bin/ssh - 775 sys sys 1092539158 208978
 386/bin/sshnet - 775 sys sys 1092539158 280678
-386/bin/stats - 775 sys sys 1087442538 188279
+386/bin/stats - 775 sys sys 1096083840 187903
 386/bin/strings - 775 sys sys 1085077101 60090
 386/bin/strip - 775 sys sys 1085077101 59994
 386/bin/sum - 775 sys sys 1085077102 39447
@@ -12377,5 +12377,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/stats - 775 sys sys 1096081600 187903
-386/bin/ip/ppp - 775 sys sys 1096081599 216592
