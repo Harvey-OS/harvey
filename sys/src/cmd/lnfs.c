@@ -135,7 +135,7 @@ main(int argc, char *argv[])
 		usage();
 	defmnt = argv[0];
 	d = dirstat(defmnt);
-	if(d == nil || d->qid.type != QTDIR)
+	if(d == nil || !(d->qid.type & QTDIR))
 		sysfatal("mountpoint must be an accessible directory");
 	free(d);
 
@@ -403,7 +403,7 @@ rread(Fid *f)
 		return Enotexist;
 	if(thdr.count > messagesize-IOHDRSZ)
 		thdr.count = messagesize-IOHDRSZ;
-	if(f->qid.type == QTDIR)
+	if(f->qid.type & QTDIR)
 		return rreaddir(f);
 	n = pread(f->fd, rdata, thdr.count, thdr.offset);
 	if(n < 0)
@@ -418,7 +418,7 @@ rwrite(Fid *f)
 {
 	long n;
 
-	if(readonly || f->qid.type == QTDIR)
+	if(readonly || (f->qid.type & QTDIR))
 		return Eperm;
 	if(f->fd < 0)
 		return Enotexist;

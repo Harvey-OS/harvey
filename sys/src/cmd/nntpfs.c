@@ -903,7 +903,7 @@ fsstat(Req *r)
 	Aux *a;
 
 	a = r->fid->aux;
-	if(r->fid->qid.path == 0 && r->fid->qid.type == QTDIR)
+	if(r->fid->qid.path == 0 && (r->fid->qid.type & QTDIR))
 		nntprefreshall(net);
 	else if(a->g->isgroup)
 		nntprefresh(net, a->g);

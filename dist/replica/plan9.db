@@ -298,7 +298,7 @@
 386/bin/ktrace - 775 sys sys 1091936093 111408
 386/bin/lens - 775 sys sys 1085077076 122322
 386/bin/lex - 775 sys sys 1085077076 96662
-386/bin/lnfs - 775 sys sys 1085077076 97466
+386/bin/lnfs - 775 sys sys 1094180929 97410
 386/bin/look - 775 sys sys 1085077077 63516
 386/bin/ls - 775 sys sys 1088823722 80345
 386/bin/mc - 775 sys sys 1085077077 130848
@@ -329,7 +329,7 @@
 386/bin/news - 775 sys sys 1085077084 69654
 386/bin/nfs - 775 sys sys 1089397314 313346
 386/bin/nm - 775 sys sys 1091936093 113471
-386/bin/nntpfs - 775 sys sys 1089397315 158830
+386/bin/nntpfs - 775 sys sys 1094180930 158833
 386/bin/ns - 775 sys sys 1085077086 63226
 386/bin/p - 775 sys sys 1085077086 62948
 386/bin/page - 775 sys sys 1087442536 229962
@@ -370,7 +370,7 @@
 386/bin/rx - 775 sys sys 1085077094 79893
 386/bin/sam - 775 sys sys 1085077095 155916
 386/bin/scat - 775 sys sys 1085077095 281706
-386/bin/scp - 775 sys sys 1092539157 149860
+386/bin/scp - 775 sys sys 1094180930 149872
 386/bin/scuzz - 775 sys sys 1085077096 109619
 386/bin/sed - 775 sys sys 1085077096 87471
 386/bin/seq - 775 sys sys 1085077096 38178
@@ -5099,7 +5099,7 @@ sys/man/8/stub - 664 sys sys 1044830500 943
 sys/man/8/swap - 664 sys sys 944959679 880
 sys/man/8/timesync - 664 sys sys 1022590210 1629
 sys/man/8/tlssrv - 664 sys sys 1037580152 2594
-sys/man/8/trampoline - 664 sys sys 1081200125 0
+sys/man/8/trampoline - 664 sys sys 1094150519 1073
 sys/man/8/udpecho - 664 sys sys 954305553 303
 sys/man/8/update - 664 sys sys 961259288 2336
 sys/man/8/venti - 664 sys sys 1069101926 5422
@@ -9598,7 +9598,7 @@ sys/src/cmd/lex/ncform - 664 sys sys 944961017 4060
 sys/src/cmd/lex/parser.y - 664 sys sys 1063855045 14194
 sys/src/cmd/lex/sub1.c - 664 sys sys 1063855044 9784
 sys/src/cmd/lex/sub2.c - 664 sys sys 944961016 17125
-sys/src/cmd/lnfs.c - 664 sys sys 1033565778 13330
+sys/src/cmd/lnfs.c - 664 sys sys 1094156765 13332
 sys/src/cmd/look.c - 664 sys sys 944961619 5994
 sys/src/cmd/lp - 20000000775 sys sys 953344617 0
 sys/src/cmd/lp/LOCK.c - 664 sys sys 1015090023 1066
@@ -9733,7 +9733,7 @@ sys/src/cmd/netstat.c - 664 sys sys 1078839959 3846
 sys/src/cmd/news.c - 664 sys sys 1014926614 3778
 sys/src/cmd/nfs.c - 664 sys sys 1050068720 31096
 sys/src/cmd/nm.c - 664 sys sys 1073313392 4912
-sys/src/cmd/nntpfs.c - 664 sys sys 1055699250 18903
+sys/src/cmd/nntpfs.c - 664 sys sys 1094156765 18904
 sys/src/cmd/ns.c - 664 sys sys 984717934 3558
 sys/src/cmd/p.c - 664 sys sys 1043516305 1497
 sys/src/cmd/page - 20000000775 sys sys 956344628 0
@@ -10366,7 +10366,7 @@ sys/src/cmd/ssh/cmsg.c - 664 sys sys 1071095546 8351
 sys/src/cmd/ssh/mkfile - 664 sys sys 1048179592 1045
 sys/src/cmd/ssh/msg.c - 664 sys sys 1092516579 8102
 sys/src/cmd/ssh/pubkey.c - 664 sys sys 1019928902 3974
-sys/src/cmd/ssh/scp.c - 664 sys sys 1075130172 13886
+sys/src/cmd/ssh/scp.c - 664 sys sys 1094156297 13889
 sys/src/cmd/ssh/smsg.c - 664 sys sys 1092516575 6374
 sys/src/cmd/ssh/ssh.c - 664 sys sys 1066515693 9667
 sys/src/cmd/ssh/ssh.h - 664 sys sys 1091904420 6086
