@@ -4970,7 +4970,7 @@ sys/src/9/alphapc/vgasavage.c - 664 sys sys 1015012788 29
 sys/src/9/alphapc/vgatvp3026.c - 664 sys sys 1015012788 30
 sys/src/9/alphapc/vgax.c - 664 sys sys 1015012788 24
 sys/src/9/bitsy - 20000000775 sys sys 1018721429 0
-sys/src/9/bitsy/Booting101 - 664 sys sys 1053341743 7306
+sys/src/9/bitsy/Booting101 - 664 sys sys 1054798506 8841
 sys/src/9/bitsy/bitsy - 664 sys sys 1043922351 450
 sys/src/9/bitsy/bitsyreset.s - 664 sys sys 1017695510 2352
 sys/src/9/bitsy/clock.c - 664 sys sys 1037028998 4835
