@@ -7545,7 +7545,7 @@ sys/src/cmd/fossil/dump.c - 664 sys sys 1042005506 1340
 sys/src/cmd/fossil/epoch.c - 664 sys sys 1045600021 997
 sys/src/cmd/fossil/error.c - 664 sys sys 1072705707 1413
 sys/src/cmd/fossil/error.h - 664 sys sys 1072705710 772
-sys/src/cmd/fossil/file.c - 664 sys sys 1072705707 30231
+sys/src/cmd/fossil/file.c - 664 sys sys 1073140359 30215
 sys/src/cmd/fossil/flchk.c - 664 sys sys 1061530720 14296
 sys/src/cmd/fossil/flfmt.c - 664 sys sys 1072705703 10799
 sys/src/cmd/fossil/flfmt9660.c - 664 sys sys 1072830620 12304
@@ -9361,7 +9361,7 @@ sys/src/cmd/gzip/unzip.c - 664 sys sys 1050689595 13603
 sys/src/cmd/gzip/zip.c - 664 sys sys 1033183074 7054
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
 sys/src/cmd/hget.c - 664 sys sys 1070286807 22715
-sys/src/cmd/history.c - 664 sys sys 1071245583 5726
+sys/src/cmd/history.c - 664 sys sys 1073079763 6117
 sys/src/cmd/hoc - 20000000775 sys sys 954036932 0
 sys/src/cmd/hoc/code.c - 664 sys sys 944961000 10041
 sys/src/cmd/hoc/hoc.h - 664 sys sys 944960999 2358
