@@ -4450,6 +4450,7 @@ sys/lib/troff/term/tab.think - 664 sys sys 944957522 2162
 sys/lib/troff/term/tab.thinkbold - 664 sys sys 944957522 2166
 sys/lib/troff/term/tab.thinksmall - 664 sys sys 944957522 2199
 sys/lib/troff/term/tab.utf - 664 sys sys 944957523 1911
+sys/lib/webls.denied - 444 sys sys 1065280436 52
 sys/lib/wiki - 20000000775 sys sys 1018580960 0
 sys/lib/wiki/d - 20000000775 sys sys 1018580966 0
 sys/lib/wiki/d/0 - 664 sys sys 1018580965 1160
