@@ -136,6 +136,11 @@ A
 .IR kfs (4)
 file system.
 .TP
+.B fscfg
+A one-sector partition used to store an
+.IR fs (3)
+configuration.
+.TP
 .B isect
 A
 .IR venti (8)

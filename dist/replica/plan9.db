@@ -4615,7 +4615,7 @@ sys/man/1/nm - 664 sys sys 944959673 1539
 sys/man/1/ns - 664 sys sys 944959677 893
 sys/man/1/p - 664 sys sys 944959673 504
 sys/man/1/page - 664 sys sys 969499885 4870
-sys/man/1/passwd - 664 sys sys 1022163988 2053
+sys/man/1/passwd - 664 sys sys 1068823217 1377
 sys/man/1/patch - 664 sys sys 1067804449 2176
 sys/man/1/pcc - 664 sys sys 1015024740 3478
 sys/man/1/pic - 664 sys sys 1022625353 8229
@@ -4998,7 +4998,7 @@ sys/man/8/ping - 664 sys sys 1063855805 3309
 sys/man/8/plan9.ini - 664 sys sys 1063855903 20744
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1050361032 4424
-sys/man/8/prep - 664 sys sys 1063855909 13738
+sys/man/8/prep - 664 sys sys 1068820496 13817
 sys/man/8/qer - 664 sys sys 1067723129 4909
 sys/man/8/reboot - 664 sys sys 969499895 414
 sys/man/8/replica - 664 sys sys 1021579979 6239
@@ -5144,7 +5144,7 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1032053196 390
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
-sys/src/9/boot/local.c - 664 sys sys 1063857543 5325
+sys/src/9/boot/local.c - 664 sys sys 1068835808 5355
 sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
 sys/src/9/boot/paq.c - 664 sys sys 1067722601 1099
@@ -7190,7 +7190,7 @@ sys/src/cmd/disk/prep/edit.c - 664 sys sys 1017854327 9714
 sys/src/cmd/disk/prep/edit.h - 664 sys sys 1015009215 994
 sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1050689604 21894
 sys/src/cmd/disk/prep/mkfile - 664 sys sys 1022450200 250
-sys/src/cmd/disk/prep/prep.c - 664 sys sys 1055692957 10634
+sys/src/cmd/disk/prep/prep.c - 664 sys sys 1068820485 10636
 sys/src/cmd/disk/rd9660.c - 664 sys sys 1021579990 7446
 sys/src/cmd/disk/sacfs - 20000000775 sys sys 964815355 0
 sys/src/cmd/disk/sacfs/mkfile - 664 sys sys 964815354 204
@@ -9360,10 +9360,10 @@ sys/src/cmd/ki/float.c - 664 sys sys 944961014 7319
 sys/src/cmd/ki/icache.c - 664 sys sys 944961014 185
 sys/src/cmd/ki/ki.c - 664 sys sys 1014925952 8413
 sys/src/cmd/ki/mem.c - 664 sys sys 944961015 3832
-sys/src/cmd/ki/mkfile - 664 sys sys 944961015 194
+sys/src/cmd/ki/mkfile - 664 sys sys 1068859845 245
 sys/src/cmd/ki/run.c - 664 sys sys 944961015 22231
 sys/src/cmd/ki/sparc.h - 664 sys sys 944961015 4419
-sys/src/cmd/ki/stats.c - 664 sys sys 944961015 4516
+sys/src/cmd/ki/stats.c - 664 sys sys 1068859845 4536
 sys/src/cmd/ki/symbols.c - 664 sys sys 944961015 1744
 sys/src/cmd/ki/syscall.c - 664 sys sys 1014925953 14072
 sys/src/cmd/kl - 20000000775 sys sys 944961016 0
@@ -11839,7 +11839,6 @@ sys/src/libmp/power/placeholder.c - 664 sys sys 944961747 0
 sys/src/libmp/test.c - 664 sys sys 964798440 12260
 sys/src/libndb - 20000000775 sys sys 1015013466 0
 sys/src/libndb/csgetval.c - 664 sys sys 969511575 1277
-sys/src/libndb/csgetval.rc - 664 sys sys 944961749 2095
 sys/src/libndb/csipinfo.c - 664 sys sys 944961750 1130
 sys/src/libndb/dnsquery.c - 664 sys sys 1055700336 2759
 sys/src/libndb/ipattr.c - 664 sys sys 953844690 586
