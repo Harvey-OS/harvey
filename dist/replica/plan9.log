@@ -17192,3 +17192,4 @@
 1044660792 0 c sys/src/cmd/tcs/utf.c - 664 sys sys 1044660775 7929
 1044662471 0 c sys/src/cmd/tcs/tcs.c - 664 sys sys 1044661975 51805
 1044662471 1 c sys/src/cmd/tcs/utf.c - 664 sys sys 1044661976 7951
+1044725572 0 c sys/man/2/0intro - 664 sys sys 1044724217 11574
