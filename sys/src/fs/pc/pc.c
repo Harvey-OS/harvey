@@ -371,7 +371,7 @@ firmware(void)
 	 */
 	if((p = getconf("reset")) && cistrcmp(p, "manual") == 0){
 		predawn = 1;
-		print("\Hit Reset\n");
+		print("\nHit Reset\n");
 		for(;;);
 	}
 	pcireset();

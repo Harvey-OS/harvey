@@ -18583,3 +18583,9 @@
 1047502864 0 c sys/games/lib/fortunes - 664 sys sys 1047502111 238601
 1047513673 0 c sys/src/cmd/vnc/compat.h - 664 sys sys 1047512521 3425
 1047513673 1 c sys/src/cmd/vnc/kbdv.c - 664 sys sys 1047512524 3513
+1047664890 0 c sys/src/fs/dev/cw.c - 664 sys sys 1047663897 42252
+1047664890 1 c sys/src/fs/pc/floppy.c - 664 sys sys 1047663990 13993
+1047664890 2 c sys/src/fs/pc/pc.c - 664 sys sys 1047663991 7938
+1047664890 3 c sys/src/fs/port/chk.c - 664 sys sys 1047663951 14533
+1047664890 4 c sys/src/fs/port/config.c - 664 sys sys 1047663951 18054
+1047664890 5 c sys/src/fs/port/main.c - 664 sys sys 1047663952 5698

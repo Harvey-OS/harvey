@@ -1,4 +1,5 @@
 #include	"all.h"
+#include	"mem.h"		/* for KZERO for PADDR */
 
 static	char*	abits;
 static	long	sizabits;
@@ -45,17 +46,19 @@ static	void	qmark(long);
 static	void*	malloc(ulong);
 static	Iobuf*	xtag(long, int, long);
 
+/* copied from ../pc/etherif.h; should probably be in all.h */
+#define	HOWMANY(x, y)	(((x)+((y)-1))/(y))
+#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))
+
 static
 void*
 malloc(ulong n)
 {
 	char *p, *q;
 
-	p = calloc;
-	while((ulong)p & 3)
-		p++;
+	p = (char *)ROUNDUP((ulong)calloc, BY2WD);
 	q = p+n;
-	if(((ulong)q&0x0fffffffL) >= conf.mem)
+	if(PADDR(q) >= conf.mem)
 		panic("check: mem size");
 	calloc = q;
 	memset(p, 0, n);
@@ -76,6 +79,7 @@ enum
 	Cream	= (1<<6),	/* clear all bad tags */
 	Cbad	= (1<<7),	/* clear all bad blocks */
 	Ctouch	= (1<<8),	/* touch old dir and indir */
+	Ctrim	= (1<<9),   /* trim fsize back to fit when checking free list */
 };
 
 static
@@ -94,6 +98,7 @@ struct
 	"ream",		Cream,
 	"bad",		Cbad,
 	"touch",	Ctouch,
+	"trim",		Ctrim,
 	0,
 };
 
@@ -126,6 +131,12 @@ cmd_check(int argc, char *argv[])
 	cwflag = (dev->type == Devcw) | (dev->type == Devro);
 	if(!ronly)
 		wlock(&mainlock);		/* check */
+	/*
+	 * ialloc(0, 1) doesn't actually allocate any storage, and may
+	 * return the same address each time.  see iobufinit().
+	 * check assumes that the rest of memory, from ialloc(0, 1)
+	 * up, is available to it, but does at least check in malloc().
+	 */
 	calloc = (char*)ialloc(0, 1) + 100000;
 	flags = flag;
 
@@ -604,6 +615,11 @@ ckfreelist(Superb *sb)
 	}
 	if(p)
 		putbuf(p);
+	if (flags & Ctrim) {
+		sb->fsize = fsize = hi--;	/* fsize = hi + 1 */
+		mod++;
+		print("set fsize to %ld\n", fsize);
+	}
 	print("lo = %ld; hi = %ld\n", lo, hi);
 }
 
