@@ -319,7 +319,7 @@ gettokens(Tokenrow *trp, int reset)
 			s->inl = s->inb;
 			fillbuf(s);
 			ip = s->inp = s->inb;
-		} else if (ip >= s->inb+(3*INS/4)) {
+		} else if (ip >= s->inb+(3*s->ins/4)) {
 			memmove(s->inb, ip, 4+s->inl-ip);
 			s->inl = s->inb+(s->inl-ip);
 			ip = s->inp = s->inb;
@@ -445,7 +445,7 @@ gettokens(Tokenrow *trp, int reset)
 				state = COM2;
 				ip += runelen;
 				runelen = 1;
- 				if (ip >= s->inb+(7*INS/8)) { /* very long comment */
+ 				if (ip >= s->inb+(7*s->ins/8)) { /* very long comment */
 					memmove(tp->t, ip, 4+s->inl-ip);
 					s->inl -= ip-tp->t;
 					ip = tp->t+1;
@@ -537,9 +537,20 @@ fillbuf(Source *s)
 {
 	int n;
 
-	if ((char *)s->inl+INS/8 > (char *)s->inb+INS)
-		error(FATAL, "Input buffer overflow");
-	if (s->fd<0 || (n=read(s->fd, (char *)s->inl, INS/8)) <= 0)
+	while((char *)s->inl+s->ins/8 > (char *)s->inb+s->ins) {
+		uint l = s->inl - s->inb;
+		uint p = s->inp - s->inb;
+		if(l < 0) 
+			error(FATAL, "negative end of input!?");
+		if(p < 0)
+			error(FATAL, "negative input pointer!?");
+		/* double the buffer size and try again */
+		s->ins *= 2;
+		s->inb = dorealloc(s->inb, s->ins);
+		s->inl = s->inb + l;
+		s->inp = s->inb + p;
+	}
+	if (s->fd<0 || (n=read(s->fd, (char *)s->inl, s->ins/8)) <= 0)
 		n = 0;
 	if ((*s->inp&0xff) == EOB) /* sentinel character appears in input */
 		*s->inp = EOFC;
@@ -592,6 +603,8 @@ setsource(char *name, int fd, char *str)
 		s->inp = s->inb;
 		len = 0;
 	}
+
+	s->ins = INS;	
 	s->inl = s->inp+len;
 	s->inl[0] = s->inl[1] = EOB;
 	return s;

@@ -171,7 +171,7 @@ struct Screen
 
 struct Display
 {
-	QLock	qlock;
+	QLock		qlock;
 	int		locking;	/*program is using lockdisplay */
 	int		dirno;
 	int		fd;
@@ -190,13 +190,13 @@ struct Display
 	Image		*transparent;
 	Image		*image;
 	uchar		*buf;
-	int			bufsize;
+	int		bufsize;
 	uchar		*bufp;
 	Font		*defaultfont;
 	Subfont		*defaultsubfont;
 	Image		*windows;
 	Image		*screenimage;
-	int			_isnewdisplay;
+	int		_isnewdisplay;
 };
 
 struct Image
@@ -206,7 +206,7 @@ struct Image
 	Rectangle	r;		/* rectangle in data area, local coords */
 	Rectangle 	clipr;		/* clipping region */
 	int		depth;		/* number of bits per pixel */
-	ulong	chan;
+	ulong		chan;
 	int		repl;		/* flag: data replicates to tile clipr */
 	Screen		*screen;	/* 0 if not a window */
 	Image		*next;	/* next in list of windows */
@@ -313,6 +313,11 @@ struct Font
 
 #define	Dx(r)	((r).max.x-(r).min.x)
 #define	Dy(r)	((r).max.y-(r).min.y)
+
+/*
+ * One of a kind
+ */
+extern int		mousescrollsize(int);
 
 /*
  * Image management

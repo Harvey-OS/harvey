@@ -26,7 +26,6 @@ bcolor(char *s){
 		case 'k':  case 'z':	/* zero was old name for kblack */
 			return(DBlack);
 		case 'r':
-print("RED");
 			return(DRed);
 		case 'g': 
 			return(DGreen);

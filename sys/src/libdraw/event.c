@@ -406,7 +406,7 @@ emouse(void)
 	m.xy.x = atoi((char*)eb->buf+1+0*12);
 	m.xy.y = atoi((char*)eb->buf+1+1*12);
 	b = atoi((char*)eb->buf+1+2*12);
-	m.buttons = b&7;
+	m.buttons = b;
 	m.msec = atoi((char*)eb->buf+1+3*12);
 	if (logfid)
 		fprint(logfid, "b: %d xy: %P\n", m.buttons, m.xy);

@@ -238,6 +238,7 @@
 386/bin/fs/tpfs - 775 sys sys 1085077058 90951
 386/bin/fs/v10fs - 775 sys sys 1085077058 92404
 386/bin/fs/v6fs - 775 sys sys 1085077059 92322
+386/bin/fs/zipfs - 775 sys sys 1097900279 106783
 386/bin/ftpfs - 775 sys sys 1093489558 146386
 386/bin/games - 20000000775 sys sys 1096298711 0
 386/bin/games/juggle - 775 sys sys 1096341940 123161
@@ -1255,7 +1256,7 @@ lib/face/48x48x2/x - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/y - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/z - 20000000755 sys sys 944941683 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1081200610 2417
+lib/face/48x48x4/.dict - 664 sys sys 1097900894 2501
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -1366,7 +1367,7 @@ lib/face/48x48x4/x - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/y - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/z - 20000000775 sys sys 944941894 0
 lib/face/48x48x8 - 20000000775 sys sys 944941834 0
-lib/face/48x48x8/.dict - 664 sys sys 1081200562 2146
+lib/face/48x48x8/.dict - 664 sys sys 1097900803 2174
 lib/face/48x48x8/Z - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -1383,6 +1384,7 @@ lib/face/48x48x8/f - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/f/forsyth.1 - 644 sys sys 1056982111 1864
 lib/face/48x48x8/g - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/g/geoff.2 - 664 sys sys 1057029459 1082
+lib/face/48x48x8/g/gmail.1 - 664 sys sys 1097900774 1779
 lib/face/48x48x8/g/google.1 - 664 sys sys 1038967265 712
 lib/face/48x48x8/h - 20000000775 sys sys 945319632 0
 lib/face/48x48x8/h/harvard.1 - 664 sys sys 944941833 1195
@@ -3115,7 +3117,7 @@ rc/bin/ups - 775 sys sys 1091021981 806
 rc/bin/uptime - 775 sys sys 1074730712 234
 rc/bin/usbstart - 775 sys sys 1044894155 81
 rc/bin/usps - 775 sys sys 1016826030 450
-rc/bin/vwhois - 775 sys sys 1059484222 297
+rc/bin/vwhois - 775 sys sys 1097960228 298
 rc/bin/wdoc2txt - 755 sys sys 1017431153 277
 rc/bin/weather - 775 sys sys 1016825765 795
 rc/bin/who - 775 sys sys 945617210 61
@@ -3434,7 +3436,7 @@ sys/include/control.h - 664 sys sys 1084467622 4844
 sys/include/ctype.h - 664 sys sys 1014929062 951
 sys/include/cursor.h - 664 sys sys 1014929062 102
 sys/include/disk.h - 664 sys sys 1014929063 1096
-sys/include/draw.h - 664 sys sys 1091904420 15923
+sys/include/draw.h - 664 sys sys 1097972690 15982
 sys/include/event.h - 664 sys sys 1014929063 1426
 sys/include/fcall.h - 664 sys sys 1032058178 3062
 sys/include/flate.h - 664 sys sys 1014929063 1245
@@ -4009,7 +4011,7 @@ sys/lib/man/secindex - 775 sys sys 956337727 322
 sys/lib/man/title - 664 sys sys 1019915894 746
 sys/lib/man/trademarks - 664 sys sys 958527089 1838
 sys/lib/mimetype - 664 sys sys 1089299188 5778
-sys/lib/newuser - 775 sys sys 1087407313 1242
+sys/lib/newuser - 775 sys sys 1097900388 1259
 sys/lib/plumb - 20000000775 sys sys 944957365 0
 sys/lib/plumb/basic - 664 sys sys 1070330856 2930
 sys/lib/plumb/fileaddr - 664 sys sys 944957365 88
@@ -4763,7 +4765,7 @@ sys/man/1/strip - 664 sys sys 958580250 448
 sys/man/1/sum - 664 sys sys 984772442 1390
 sys/man/1/syscall - 664 sys sys 1016466457 1439
 sys/man/1/tail - 664 sys sys 1017679307 1413
-sys/man/1/tapefs - 664 sys sys 944959675 1731
+sys/man/1/tapefs - 664 sys sys 1097900346 1811
 sys/man/1/tar - 664 sys sys 1070371922 2538
 sys/man/1/tbl - 664 sys sys 944959674 4308
 sys/man/1/tcs - 664 sys sys 952627441 2575
@@ -6778,11 +6780,11 @@ sys/src/cmd/acid/print.c - 664 sys sys 984756705 6840
 sys/src/cmd/acid/proc.c - 664 sys sys 1014924908 4513
 sys/src/cmd/acid/util.c - 664 sys sys 944960738 4297
 sys/src/cmd/acme - 20000000775 sys sys 969511023 0
-sys/src/cmd/acme/acme.c - 664 sys sys 1082924469 19212
+sys/src/cmd/acme/acme.c - 664 sys sys 1097972699 19493
 sys/src/cmd/acme/addr.c - 664 sys sys 1018553456 4787
 sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
 sys/src/cmd/acme/cols.c - 664 sys sys 1079102914 11126
-sys/src/cmd/acme/dat.h - 664 sys sys 1079044030 11080
+sys/src/cmd/acme/dat.h - 664 sys sys 1097972700 11144
 sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
 sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
 sys/src/cmd/acme/edit.c - 664 sys sys 1015701171 12055
@@ -6797,7 +6799,7 @@ sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
 sys/src/cmd/acme/rows.c - 664 sys sys 1084542482 14664
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
-sys/src/cmd/acme/text.c - 664 sys sys 1084542489 27383
+sys/src/cmd/acme/text.c - 664 sys sys 1097972739 27552
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1079102916 7412
 sys/src/cmd/acme/wind.c - 664 sys sys 1096388102 11187
@@ -7100,7 +7102,7 @@ sys/src/cmd/aux/vga/ics534x.c - 664 sys sys 1014925009 5319
 sys/src/cmd/aux/vga/io.c - 664 sys sys 1014925009 6222
 sys/src/cmd/aux/vga/mach32.c - 664 sys sys 1014925009 6004
 sys/src/cmd/aux/vga/mach64.c - 664 sys sys 1014925009 8279
-sys/src/cmd/aux/vga/mach64xx.c - 664 sys sys 1014925009 30254
+sys/src/cmd/aux/vga/mach64xx.c - 664 sys sys 1097900455 30266
 sys/src/cmd/aux/vga/main.c - 664 sys sys 1014925010 8154
 sys/src/cmd/aux/vga/mga2164w.c - 664 sys sys 1014925010 13196
 sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
@@ -7276,12 +7278,12 @@ sys/src/cmd/con/xmr.c - 664 sys sys 984789977 2884
 sys/src/cmd/con/xms.c - 664 sys sys 1022049386 3530
 sys/src/cmd/cp.c - 664 sys sys 1021580000 2928
 sys/src/cmd/cpp - 20000000775 sys sys 954036076 0
-sys/src/cmd/cpp/cpp.c - 664 sys sys 1014925274 6065
-sys/src/cmd/cpp/cpp.h - 664 sys sys 1014925275 4594
+sys/src/cmd/cpp/cpp.c - 664 sys sys 1097900425 6211
+sys/src/cmd/cpp/cpp.h - 664 sys sys 1097900426 4660
 sys/src/cmd/cpp/eval.c - 664 sys sys 1014925275 9892
 sys/src/cmd/cpp/hideset.c - 664 sys sys 944960879 1936
 sys/src/cmd/cpp/include.c - 664 sys sys 959299274 2845
-sys/src/cmd/cpp/lex.c - 664 sys sys 1014925275 13283
+sys/src/cmd/cpp/lex.c - 664 sys sys 1097900427 13595
 sys/src/cmd/cpp/macro.c - 664 sys sys 1014925275 10893
 sys/src/cmd/cpp/mkfile - 664 sys sys 944960879 178
 sys/src/cmd/cpp/nlist.c - 664 sys sys 944960879 4631
@@ -9842,12 +9844,12 @@ sys/src/cmd/plot/libplot/rvec.c - 664 sys sys 944961623 118
 sys/src/cmd/plot/libplot/save.c - 664 sys sys 944961623 68
 sys/src/cmd/plot/libplot/sbox.c - 664 sys sys 944961623 398
 sys/src/cmd/plot/libplot/spline.c - 664 sys sys 944961623 1364
-sys/src/cmd/plot/libplot/subr.c - 664 sys sys 944961623 2157
+sys/src/cmd/plot/libplot/subr.c - 664 sys sys 1097901034 2143
 sys/src/cmd/plot/libplot/text.c - 664 sys sys 944961623 1032
 sys/src/cmd/plot/libplot/vec.c - 664 sys sys 944961623 916
 sys/src/cmd/plot/libplot/whoami.c - 664 sys sys 944961623 60
 sys/src/cmd/plot/mkfile - 664 sys sys 944961624 277
-sys/src/cmd/plot/plot.c - 664 sys sys 944961624 12212
+sys/src/cmd/plot/plot.c - 664 sys sys 1097900218 12237
 sys/src/cmd/plot/plot.h - 664 sys sys 944961624 1002
 sys/src/cmd/plumb - 20000000775 sys sys 952201377 0
 sys/src/cmd/plumb/fsys.c - 664 sys sys 1014926837 18491
@@ -10223,7 +10225,7 @@ sys/src/cmd/replica/updatedb.c - 664 sys sys 1068497831 3045
 sys/src/cmd/replica/util.c - 664 sys sys 1022274716 1997
 sys/src/cmd/resample.c - 664 sys sys 1039753039 6268
 sys/src/cmd/rio - 20000000775 sys sys 1015343453 0
-sys/src/cmd/rio/dat.h - 664 sys sys 1023206836 6875
+sys/src/cmd/rio/dat.h - 664 sys sys 1097973839 6938
 sys/src/cmd/rio/data.c - 664 sys sys 1014926356 6169
 sys/src/cmd/rio/fns.h - 664 sys sys 1039133251 1065
 sys/src/cmd/rio/fsys.c - 664 sys sys 1019678647 13259
@@ -10233,7 +10235,7 @@ sys/src/cmd/rio/scrl.c - 664 sys sys 1014926357 3245
 sys/src/cmd/rio/time.c - 664 sys sys 1014926357 1829
 sys/src/cmd/rio/util.c - 664 sys sys 1014926357 2061
 sys/src/cmd/rio/wctl.c - 664 sys sys 1023206837 8808
-sys/src/cmd/rio/wind.c - 664 sys sys 1084470068 32802
+sys/src/cmd/rio/wind.c - 664 sys sys 1097973839 32996
 sys/src/cmd/rio/xfid.c - 664 sys sys 1032061723 17424
 sys/src/cmd/rm.c - 664 sys sys 1014926615 1563
 sys/src/cmd/rx.c - 664 sys sys 1071155928 4188
@@ -10403,7 +10405,7 @@ sys/src/cmd/ssh/ssh.h - 664 sys sys 1091904420 6086
 sys/src/cmd/ssh/sshnet.c - 664 sys sys 1078840016 17641
 sys/src/cmd/ssh/sshserve.c - 664 sys sys 1062091020 5786
 sys/src/cmd/ssh/util.c - 664 sys sys 1063858753 4478
-sys/src/cmd/stats.c - 664 sys sys 1096061397 27827
+sys/src/cmd/stats.c - 664 sys sys 1097899820 27862
 sys/src/cmd/strings.c - 664 sys sys 944961364 1216
 sys/src/cmd/strip.c - 664 sys sys 1014926661 3306
 sys/src/cmd/sum.c - 664 sys sys 1014926615 5548
@@ -10416,7 +10418,7 @@ sys/src/cmd/tapefs - 20000000775 sys sys 944962012 0
 sys/src/cmd/tapefs/32vfs.c - 664 sys sys 1014926384 3688
 sys/src/cmd/tapefs/cpiofs.c - 664 sys sys 1014926384 2493
 sys/src/cmd/tapefs/fs.c - 664 sys sys 1032060630 9777
-sys/src/cmd/tapefs/mkfile - 664 sys sys 1032060649 258
+sys/src/cmd/tapefs/mkfile - 664 sys sys 1097914131 254
 sys/src/cmd/tapefs/tapefs.h - 664 sys sys 1014926384 1609
 sys/src/cmd/tapefs/tapfs.c - 664 sys sys 1063854819 1938
 sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1071458376 2672
@@ -10424,6 +10426,8 @@ sys/src/cmd/tapefs/tpfs.c - 664 sys sys 1071322722 2012
 sys/src/cmd/tapefs/util.c - 664 sys sys 1014926385 2653
 sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1014926385 3754
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1014926385 3971
+sys/src/cmd/tapefs/zip.h - 664 sys sys 1097914153 1428
+sys/src/cmd/tapefs/zipfs.c - 664 sys sys 1097900277 6803
 sys/src/cmd/tar.c - 664 sys sys 1094598836 15585
 sys/src/cmd/tbl - 20000000775 sys sys 954038038 0
 sys/src/cmd/tbl/mkfile - 664 sys sys 944961243 268
@@ -10906,7 +10910,7 @@ sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1067722781 746
 sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1055703150 4887
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
-sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1072561144 18914
+sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1097901337 19565
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1064589597 1084
 sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1087421671 27665
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
@@ -11287,7 +11291,7 @@ sys/src/games/sokoban/graphics.c - 664 sys sys 1095792097 1846
 sys/src/games/sokoban/level.c - 664 sys sys 1095792097 1654
 sys/src/games/sokoban/mkfile - 664 sys sys 1095792097 236
 sys/src/games/sokoban/move.c - 664 sys sys 1095792097 2671
-sys/src/games/sokoban/sokoban.c - 664 sys sys 1095792097 4760
+sys/src/games/sokoban/sokoban.c - 664 sys sys 1097901017 4783
 sys/src/games/sokoban/sokoban.h - 664 sys sys 1095792097 1197
 sys/src/lib9p - 20000000775 sys sys 1015023311 0
 sys/src/lib9p/_post.c - 664 sys sys 1044836326 1641
@@ -11835,7 +11839,7 @@ sys/src/libdraw/drawrepl.c - 664 sys sys 944961725 314
 sys/src/libdraw/egetrect.c - 664 sys sys 1014927874 2612
 sys/src/libdraw/ellipse.c - 664 sys sys 1040442971 1936
 sys/src/libdraw/emenuhit.c - 664 sys sys 1014927874 7136
-sys/src/libdraw/event.c - 664 sys sys 1014927875 8985
+sys/src/libdraw/event.c - 664 sys sys 1097973929 8983
 sys/src/libdraw/fmt.c - 664 sys sys 1070344369 270
 sys/src/libdraw/font.c - 664 sys sys 1082924457 7594
 sys/src/libdraw/freesubfont.c - 664 sys sys 984709664 259
@@ -11850,7 +11854,7 @@ sys/src/libdraw/line.c - 664 sys sys 1040442973 731
 sys/src/libdraw/loadimage.c - 664 sys sys 1014927876 983
 sys/src/libdraw/makefile - 664 sys sys 944961725 648
 sys/src/libdraw/menuhit.c - 664 sys sys 1014927876 7263
-sys/src/libdraw/mkfile - 664 sys sys 1070394450 1022
+sys/src/libdraw/mkfile - 664 sys sys 1097972686 1034
 sys/src/libdraw/mkfont.c - 664 sys sys 944961725 1283
 sys/src/libdraw/mouse.c - 664 sys sys 1030970092 2559
 sys/src/libdraw/newwindow.c - 664 sys sys 1035232036 424
@@ -11862,6 +11866,7 @@ sys/src/libdraw/readsubfont.c - 664 sys sys 1082924458 1053
 sys/src/libdraw/rectclip.c - 664 sys sys 944961725 571
 sys/src/libdraw/replclipr.c - 664 sys sys 944961725 363
 sys/src/libdraw/rgb.c - 664 sys sys 984709666 1679
+sys/src/libdraw/scroll.c - 664 sys sys 1097972686 444
 sys/src/libdraw/string.c - 664 sys sys 1040442975 2978
 sys/src/libdraw/stringbg.c - 664 sys sys 1040442975 1611
 sys/src/libdraw/stringsubfont.c - 664 sys sys 944961725 960

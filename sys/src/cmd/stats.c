@@ -1259,6 +1259,8 @@ main(int argc, char *argv[])
 			if (addmachine(argv[i]))
 				readmach(&mach[j++], 1);
 		}
+		if (j == 0)
+			exits("connect");
 	}
 
 	for(i=0; i<nargs; i++)

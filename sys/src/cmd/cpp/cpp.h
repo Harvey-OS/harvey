@@ -55,6 +55,7 @@ typedef struct source {
 	uchar	*inb;		/* input buffer */
 	uchar	*inp;		/* input pointer */
 	uchar	*inl;		/* end of input */
+	int 	ins;		/* input buffer size */
 	int	fd;		/* input source */
 	int	ifdepth;	/* conditional nesting in include */
 	struct	source *next;	/* stack for #include */
@@ -93,6 +94,7 @@ Source	*setsource(char *, int, char *);
 void	unsetsource(void);
 void	puttokens(Tokenrow *);
 void	process(Tokenrow *);
+void	*dorealloc(void *, int);
 void	*domalloc(int);
 void	dofree(void *);
 void	error(enum errtype, char *, ...);
