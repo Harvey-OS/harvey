@@ -1645,8 +1645,14 @@ wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
 	 */
 	if(dir.name != d->name){
 		/*
-		 * Get parent.
+		 * First get parent.
+		 * Must drop current entry to prevent
+		 * deadlock when searching that new name
+		 * already exists below.
 		 */
+		putbuf(p);
+		p = nil;
+
 		if(file->wpath == nil){
 			error = Ephase;
 			goto out;
@@ -1663,10 +1669,8 @@ wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
 		}
 
 		/*
-		 * Drop entry to prevent lock, then
-		 * check that destination name is unique.
+		 * Check entries in parent for new name.
 		 */
-		putbuf(p);
 		for(addr = 0; ; addr++){
 			if((p = dnodebuf(p1, d1, addr, 0, file->uid)) == nil)
 				break;
