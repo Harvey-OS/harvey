@@ -207,7 +207,7 @@ rpcMuxThread(void *v)
 			o->st = msec();
 			o->nresend = 0;
 			o->t = o->st + twait(cli->rtt.avg, 0);
-if(cli->chatty) print("send %lux %lud %lud\n", o->xid, o->st, o->t);
+if(cli->chatty) fprint(2, "send %lux %lud %lud\n", o->xid, o->st, o->t);
 			out[nout++] = o;
 			a[1].op = CHANRCV;
 			break;
@@ -217,7 +217,7 @@ if(cli->chatty) print("send %lux %lud %lud\n", o->xid, o->st, o->t);
 			for(i=0; i<nout; i++){
 				o = out[i];
 				if((int)(t - o->t) > 0){
-if(cli->chatty) print("resend %lux %lud %lud\n", o->xid, t, o->t);
+if(cli->chatty) fprint(2, "resend %lux %lud %lud\n", o->xid, t, o->t);
 					if(cli->maxwait && t - o->st >= cli->maxwait){
 						free(o->p);
 						o->p = nil;
@@ -263,14 +263,14 @@ if(cli->chatty) print("resend %lux %lud %lud\n", o->xid, t, o->t);
 			p += 4;
 			ep = p+n;
 			if(sunRpcUnpack(p, ep, &p, &rpc) < 0){
-				print("in: %.*H unpack failed\n", n, buf+4);
+				fprint(2, "in: %.*H unpack failed\n", n, buf+4);
 				free(buf);
 				break;
 			}
 			if(cli->chatty)
-				print("in: %B\n", &rpc);
+				fprint(2, "in: %B\n", &rpc);
 			if(rpc.iscall){
-				print("did not get reply\n");
+				fprint(2, "did not get reply\n");
 				free(buf);
 				break;
 			}
@@ -278,7 +278,7 @@ if(cli->chatty) print("resend %lux %lud %lud\n", o->xid, t, o->t);
 				if(o->xid == rpc.xid)
 					break;
 			if(i==nout){
-				if(cli->chatty) print("did not find waiting request\n");
+				if(cli->chatty) fprint(2, "did not find waiting request\n");
 				free(buf);
 				break;
 			}
@@ -402,8 +402,8 @@ sunClientRpc(SunClient *cli, ulong tag, SunCall *tx, SunCall *rx, uchar **tofree
 	prog = cli->prog[i];
 
 	if(cli->chatty){
-		print("out: %B\n", &tx->rpc);
-		print("\t%C\n", tx);
+		fprint(2, "out: %B\n", &tx->rpc);
+		fprint(2, "\t%C\n", tx);
 	}
 
 	n1 = sunRpcSize(&tx->rpc);
@@ -466,8 +466,8 @@ sunClientRpc(SunClient *cli, ulong tag, SunCall *tx, SunCall *rx, uchar **tofree
 	}
 
 	if(cli->chatty){
-		print("in: %B\n", &rx->rpc);
-		print("in:\t%C\n", rx);
+		fprint(2, "in: %B\n", &rx->rpc);
+		fprint(2, "in:\t%C\n", rx);
 	}
 
 	if(tofree)

@@ -33,6 +33,7 @@ keywds[] =
 	"delete",	Tdelete,
 	"whatis",	Twhat,
 	"eval",		Teval,
+	"builtin",	Tbuiltin,
 	0,		0
 };
 

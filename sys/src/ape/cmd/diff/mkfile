@@ -1,0 +1,47 @@
+</$objtype/mkfile
+
+OFILES=
+HFILES=\
+	system.h\
+	config.h\
+
+TARG=diff diff3
+
+DIFFO=\
+	analyze.$O\
+	cmpbuf.$O\
+	dir.$O\
+	io.$O\
+	util.$O\
+	context.$O\
+	ed.$O\
+	ifdef.$O\
+	normal.$O\
+	side.$O\
+	fnmatch.$O\
+	getopt.$O\
+	getopt1.$O\
+	regex.$O\
+	version.$O\
+	prepend_args.$O\
+
+DIFF3O=\
+	getopt.$O\
+	getopt1.$O\
+	version.$O\
+
+SDIFFO=\
+	getopt.$O\
+	getopt1.$O\
+	version.$O\
+
+BIN=/$objtype/bin/ape
+
+</sys/src/cmd/mkmany
+
+CC=pcc -c
+CFLAGS=-B -p -D_POSIX_SOURCE -DREGEX_MALLOC -I. \
+	-DHAVE_CONFIG_H -DDIFF_PROGRAM="/bin/ape/diff" \
+
+$O.diff: $DIFFO
+$O.diff3: $DIFF3O

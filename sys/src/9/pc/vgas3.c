@@ -18,6 +18,8 @@ enum {
 	SAVAGE3D	= 0x8A20,	/* PCI DID */
 	SAVAGE3DMV	= 0x8A21,
 	SAVAGE4		= 0x8A22,
+	PROSAVAGEP	= 0x8A25,
+	PROSAVAGEK	= 0x8A26,
 	SAVAGEMXMV	= 0x8C10,
 	SAVAGEMX	= 0x8C11,
 	SAVAGEIXMV	= 0x8C12,
@@ -127,6 +129,8 @@ s3linear(VGAscr* scr, int* size, int* align)
 		id = (vgaxi(Crtx, 0x2D)<<8)|vgaxi(Crtx, 0x2E);
 		switch(id){			/* find mmio */
 		case SAVAGE4:
+		case PROSAVAGEP:
+		case PROSAVAGEK:
 		case SUPERSAVAGEIXC16:
 			/*
 			 * We could assume that the MMIO registers
@@ -227,6 +231,8 @@ s3load(VGAscr* scr, Cursor* curs)
 	case SAVAGEMXMV:
 	case SAVAGEIXMV:
 	case SAVAGE4:
+	case PROSAVAGEP:
+	case PROSAVAGEK:
 	case SUPERSAVAGEIXC16:
 		dolock = 0;
 		p += scr->storage;
@@ -577,6 +583,8 @@ s3drawinit(VGAscr *scr)
 		break;
 	case SUPERSAVAGEIXC16:
 	case SAVAGE4:
+	case PROSAVAGEP:
+	case PROSAVAGEK:
 		/* scr->mmio is set by s3linear */
 		savageinit(scr);
 		break;
