@@ -13931,3 +13931,5 @@
 1067005874 0 c sys/games/lib/fortunes - 664 sys sys 1067005891 246404
 1067106682 0 c sys/src/9/port/lib.h - 664 sys sys 1067105741 5736
 1067120173 0 c sys/src/9/bitsy/mkfile - 664 sys sys 1067120164 2454
+1067279475 0 c 386/bin/stats - 775 sys sys 1067278459 188751
+1067279475 1 c sys/src/cmd/stats.c - 664 sys sys 1067278458 28129
