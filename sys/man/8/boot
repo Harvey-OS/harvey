@@ -2,7 +2,7 @@
 .SH NAME
 boot \- connect to the root file server
 .SH SYNOPSIS
-.B /boot
+.B /boot/boot
 [
 .B -fkm
 ]
@@ -11,6 +11,9 @@ boot \- connect to the root file server
 ]
 [
 .IB method ! fs-addr
+]
+[
+.I args
 ]
 .SH DESCRIPTION
 .PP
@@ -41,7 +44,7 @@ onto
 .B /
 and crafts an initial process whose sole function is to
 .IR exec (2)
-.BR /boot ,
+.BR /boot/boot ,
 a binary which is compiled into
 .IR root (3).
 .PP
@@ -232,16 +235,29 @@ The methods available to any system depend on what was
 compiled into the kernel.
 The complete list of booting methods are listed below.
 .TP 8
-.B il
-connect via Ethernet using the IL protocol.
-.TP 8
-.B tcp
-connect via Ethernet using the TCP protocol.
-This method is used only if the initial file server
-is on a Unix system.
+.BR il " or " tcp
+connect via Ethernet using the IL or TCP protocols.
+The
+.I args
+are passed to
+.IR ipconfig (8)
+when configuring the IP stack.
+The 
+.IR plan9.ini (8)
+variables
+.B fs
+and
+.B auth
+override the file server and authentication server IP addresses
+obtained (if any) from DHCP during
+.IR ipconfig (8).
 .TP 8
 .B local
 connect to the local file system.
+The
+.I args
+are passed to
+.IR kfs (4).
 .PP
 For the
 .B il
@@ -253,8 +269,39 @@ If no address is specified,
 a file server address will be found from another
 system on the network using the BOOTP protocol and
 the Plan 9 vendor-specific fields.
+.SH EXAMPLES
+On PCs, the default arguments to boot are constructed using
+the 
+.B bootargs
+variable in
+.IR plan9.ini (8).
+.PP
+Start 
+.IR kfs (4)
+with extra disk buffers:
+.IP
+.EX
+bootargs=local!#S/sdC0/fs -B 4096
+.EE
+.LP
+Use an IP stack on an alternate ethernet interface
+with a static address and fixed file server and authentication
+server addresses.
+.IP
+.EX
+fs=192.168.0.2
+auth=192.168.0.3
+bootargs=il -g 192.168.0.1 ether /net/ether1 \e
+    192.168.0.50 255.255.255.0
+.EE
+.LP
+(The 
+.B bootargs
+line is split only for presentation; it is one line in the file.)
 .SH FILES
 .B #s/boot
+.br
+.B #//boot/boot
 .SH SOURCE
 .B /sys/src/9/boot
 .SH "SEE ALSO"

@@ -7,8 +7,6 @@ cpu \- connection to cpu server
 .B -h
 .I server
 ] [
-.B -f
-] [
 .B -a
 .I auth-method
 ] [
@@ -115,15 +113,6 @@ specifies no encryption algorithm and can be used to talk
 to older versions of the
 .B cpu
 service.
-.PP
-The
-.B -f
-flag inserts a filter in the data stream to coalesce
-9P packet fragments into full packets.
-It is used on TCP connections, and is set automatically by
-the TCP receive script for incoming CPU calls
-(see
-.IR listen (8)).
 .PP
 The
 .B -k

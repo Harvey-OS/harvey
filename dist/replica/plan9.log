@@ -16816,3 +16816,10 @@
 1040522506 0 a sys/lib/postscript/troff/R.nomath - 664 sys sys 1040521371 366
 1040522506 1 a sys/lib/troff/font/devutf/R.nomath - 664 sys sys 1040521261 25129
 1040567473 0 c sys/src/fs/dev/juke.c - 664 sys sys 1040567254 22891
+1040673685 0 c sys/man/1/cpu - 664 sys sys 1040673168 3226
+1040673685 1 c sys/src/cmd/unix/drawterm/drawterm.c - 664 sys sys 1040672905 11492
+1040673685 2 c sys/src/cmd/unix/drawterm/bin/drawterm-win.exe - 775 sys sys 1040673060 307270
+1040696727 0 c rc/bin/srvssh - 775 sys sys 1040696716 2289
+1040698912 0 c rc/bin/man - 775 sys sys 1040698721 2088
+1040698912 1 c sys/man/8/boot - 664 sys sys 1040698789 6482
+1040698912 2 c sys/man/8/plan9.ini - 664 sys sys 1040698791 20588

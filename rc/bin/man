@@ -40,6 +40,14 @@ fn roff {
 	}
 }
 
+fn page {
+	if(test -d /mnt/wsys/acme)
+		/bin/page -w
+	if not
+		/bin/page
+}
+
+
 while(~ $d 0) {
 	if(~ $#* 0) {
 		echo 'Usage: man [-ntp] [-s sec] [0-9] [0-9] ... name1 name2 ...' >[1=2]
