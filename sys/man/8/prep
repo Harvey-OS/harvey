@@ -296,6 +296,13 @@ are omitted,
 and
 .I fdisk
 will prompt for them.
+In
+.IR fdisk ,
+the newly created partition has type
+.RB `` PLAN9 ;''
+to set a different type, use the
+.B t
+command (q.v.).
 .I Start
 and
 .I end
@@ -415,7 +422,7 @@ again will quit the program.
 .I Fdisk
 also has the following commands.
 .TP
-.BI A " name"
+.BI A " name
 Set the named partition active.
 The active partition is the one whose boot block is used
 when booting a PC from disk.
@@ -423,6 +430,11 @@ when booting a PC from disk.
 .B e
 Print the names of empty slots in the partition table, i.e., the
 valid names to use when creating a new partition.
+.TP
+.BI t " \fR[\fI type \fR]
+Set the partition type.  If it is not given, 
+.I fdisk
+will display a list of choices and then prompt for it.
 .PD
 .PP
 .I Format

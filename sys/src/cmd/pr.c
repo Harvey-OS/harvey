@@ -24,7 +24,7 @@
 #define PROMPT()	fprint(2, "\a") /* BEL */
 #define TABS(N,C)	if((N = intopt(argv, &C)) < 0) N = DEFTAB
 #define ETABS		(Inpos % Etabn)
-#define ITABS		(Itabn > 0 && Nspace >= (nc = Itabn - Outpos % Itabn))
+#define ITABS		(Itabn > 0 && Nspace > 1 && Nspace >= (nc = Itabn - Outpos % Itabn))
 #define NSEPC		'\t'
 #define EMPTY		14	/* length of " -- empty file" */
 

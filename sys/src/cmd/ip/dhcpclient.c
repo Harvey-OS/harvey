@@ -220,12 +220,12 @@ void
 dhcpsend(int type)
 {
 	Bootp bp;
-	Udphdr *up;
+	OUdphdr *up;
 	uchar *p;
 	int n;
 
 	memset(&bp, 0, sizeof(bp));
-	up = (Udphdr*)bp.udphdr;
+	up = (OUdphdr*)bp.udphdr;
 
 	hnputs(up->rport, 67);
 	bp.op = Bootrequest;
@@ -369,6 +369,7 @@ openlisten(char *net)
 
 	if(fprint(cfd, "headers") < 0)
 		myfatal("can't set header mode: %r");
+	fprint(cfd, "oldheaders");
 
 	sprint(data, "%s/data", devdir);
 
@@ -543,11 +544,11 @@ void
 bootpdump(uchar *p, int n)
 {
 	Bootp *bp;
-	Udphdr *up;
+	OUdphdr *up;
 	int len, i, code;
 
 	bp = (Bootp*)p;
-	up = (Udphdr*)bp->udphdr;
+	up = (OUdphdr*)bp->udphdr;
 
 	if(n < bp->optmagic - p) {
 		fprint(2, "dhcpclient: short bootp packet");

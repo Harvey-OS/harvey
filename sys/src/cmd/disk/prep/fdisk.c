@@ -793,6 +793,7 @@ cmdadd(Edit *edit, char *name, vlong start, vlong end)
 		start += edit->disk->s;
 	p = mkpart(name, name[0]=='p', start, end-start, nil);
 	p->changed = 1;
+	p->type = Type9;
 	return addpart(edit, p);
 }
 

@@ -1,9 +1,9 @@
 /*
- * pANS stdio -- ftell
+ * pANS stdio -- ftello
  */
 #include "iolib.h"
-long ftell(FILE *f){
-	long seekp=lseek(f->fd, 0L, 1);
+off_t ftello(FILE *f){
+	off_t seekp=lseek(f->fd, 0L, 1);
 	if(seekp<0) return -1;		/* enter error state? */
 	switch(f->state){
 	default:

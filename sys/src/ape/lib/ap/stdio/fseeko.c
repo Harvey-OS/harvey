@@ -1,8 +1,8 @@
 /*
- * pANS stdio -- fseek
+ * pANS stdio -- fseeko
  */
 #include "iolib.h"
-int fseek(FILE *f, long offs, int type){
+int fseeko(FILE *f, off_t offs, int type){
 	switch(f->state){
 	case ERR:
 	case CLOSED:

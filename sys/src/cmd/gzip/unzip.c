@@ -371,7 +371,8 @@ unzipEntry(Biobuf *bin, ZipHead *czh)
 			isdir = czh->eattr & ZDDir;
 			if(isdir && zh.uncsize != 0)
 				fprint(2, "unzip: ignoring directory data for %s\n", zh.file);
-		}else if(zh.meth == 0 && zh.uncsize == 0){
+		}
+		if(zh.meth == 0 && zh.uncsize == 0){
 			p = strchr(zh.file, '\0');
 			if(p > zh.file && p[-1] == '/')
 				isdir = 1;

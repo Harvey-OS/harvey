@@ -144,7 +144,7 @@ gbytes(Scan *sp, uchar **p, int n)
 {
 	if(sp->err)
 		return 0;
-	if(sp->p+n > sp->ep){
+	if(sp->p+n > sp->ep || n < 0){
 		sp->err = toolong;
 		return 0;
 	}
@@ -246,6 +246,8 @@ retry:
 	USHORT(len);
 	data = sp->p;
 
+	if(sp->p + len > sp->ep)
+		sp->err = toolong;
 	if(sp->err){
 		rrfree(rp);
 		return 0;
