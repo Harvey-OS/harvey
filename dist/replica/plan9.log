@@ -16752,3 +16752,7 @@
 1095793295 37 a sys/src/games/sokoban/sokoban.c - 664 sys sys 1095792097 4760
 1095793295 38 a sys/src/games/sokoban/sokoban.h - 664 sys sys 1095792097 1197
 1095823901 0 c 386/bin/ip/ppp - 775 sys sys 1095822523 216624
+1095825701 0 c 386/bin/ip/ppp - 775 sys sys 1095825517 216624
+1095863509 0 c sys/man/8/ipserv - 664 sys sys 1095862383 4375
+1095863509 1 c sys/src/cmd/ip/ftpd.c - 664 sys sys 1095862384 32934
+1095910317 0 c 386/bin/ip/ftpd - 775 sys sys 1095910154 166038
