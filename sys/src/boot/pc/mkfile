@@ -19,13 +19,13 @@ CORE=\
 	clock.$O\
 	console.$O\
 	dosboot.$O\
-	donprint.$O\
 	devfloppy.$O\
 	dma.$O\
 	fs.$O\
 	ilock.$O\
 	kbd.$O\
 	kfsboot.$O\
+	print.$O\
 	queue.$O\
 	trap.$O\
 
@@ -61,6 +61,7 @@ ETHER=\
 	ether8390.$O\
 	etherec2t.$O\
 	etherelnk3.$O\
+	etherigbe.$O\
 	ethermii.$O\
 	etherrhine.$O\
 
@@ -86,15 +87,15 @@ CFLAGS=-FVw -I.
 all:V:	$TARG
 
 9load:	l.$O $CORE $LOAD $ETHER
-	$LD -o $target -H3 -T0x80010000 -l $prereq -lflate -lc
+	$LD -o $target -H3 -T0x80010000 -l $prereq -lflate -lc -lip
 	ls -l $target
 
 9pxeload:	lpxe.$O $CORE $LOAD $ETHER
-	$LD -o $target -H3 -T0x80007C00 -l $prereq -lflate -lc
+	$LD -o $target -H3 -T0x80007C00 -l $prereq -lflate -lc -lip
 	ls -l $target
 
 9loaddebug:	l.$O $CORE $LOAD $ETHER
-	$LD -o $target -T0x80010000 -l $prereq -lflate -lc
+	$LD -o $target -T0x80010000 -l $prereq -lflate -lc -lip
 	ls -l $target
 	# acid $target
 	# map({"text", 0x80010000, 0x80090000, 0x00000020})

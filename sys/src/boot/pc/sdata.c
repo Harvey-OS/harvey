@@ -285,7 +285,7 @@ atadebug(int cmdport, int ctlport, char* fmt, ...)
 	}
 
 	va_start(arg, fmt);
-	n = doprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 
 	if(cmdport){

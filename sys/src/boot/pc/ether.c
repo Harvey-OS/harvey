@@ -4,6 +4,7 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
+#include "ip.h"
 
 #include "etherif.h"
 
@@ -12,6 +13,7 @@ static Ether ether[MaxEther];
 extern int ether2114xreset(Ether*);
 extern int elnk3reset(Ether*);
 extern int i82557reset(Ether*);
+extern int igbepnp(Ether *);
 extern int elnk3reset(Ether*);
 extern int ether589reset(Ether*);
 extern int ne2000reset(Ether*);
@@ -30,6 +32,7 @@ struct {
 	{ "21140", ether2114xreset, 0, },
 	{ "2114x", ether2114xreset, 0, },
 	{ "i82557", i82557reset, 0, },
+	{ "igbe",  igbepnp, 0, },
 	{ "elnk3", elnk3reset, 0, },
 	{ "3C509", elnk3reset, 0, },
 	{ "3C575", elnk3reset, 0, },
@@ -54,6 +57,8 @@ etherinit(void)
 {
 	Ether *ctlr;
 	int ctlrno, i, mask, n, x;
+
+	fmtinstall('E', eipfmt);
 
 	etherdetach = xetherdetach;
 	mask = 0;
@@ -95,10 +100,7 @@ etherinit(void)
 				print(" addr 0x%luX", ctlr->mem & ~KZERO);
 			if(ctlr->size)
 				print(" size 0x%luX", ctlr->size);
-			print(": ");
-			for(i = 0; i < sizeof(ctlr->ea); i++)
-				print("%2.2uX", ctlr->ea[i]);
-			print("\n");
+			print(": %E\n", ctlr->ea);
 		
 			if(ctlr->nrb == 0)
 				ctlr->nrb = Nrb;
@@ -216,6 +218,30 @@ etherrxpkt(int ctlrno, Etherpkt* pkt, int timo)
 	memmove(pkt, ring->pkt, n);
 	ring->owner = Interface;
 	ctlr->rh = NEXT(ctlr->rh, ctlr->nrb);
+
+	return n;
+}
+
+int
+etherrxflush(int ctlrno)
+{
+	int n;
+	Ether *ctlr;
+	RingBuf *ring;
+
+	if((ctlr = attach(ctlrno)) == 0)
+		return 0;
+
+	n = 0;
+	for(;;){
+		ring = &ctlr->rb[ctlr->rh];
+		if(wait(ring, Interface, 100) == 0)
+			break;
+
+		ring->owner = Interface;
+		ctlr->rh = NEXT(ctlr->rh, ctlr->nrb);
+		n++;
+	}
 
 	return n;
 }

@@ -383,6 +383,22 @@ the disk.
 See 
 .IR dossrv (4)
 for information on ensuring this.
+.PP
+.I 9pxeload
+differs slightly in operation from
+.IR 9load .
+It is initially loaded by the PXE BIOS at physical address 0x7C00.
+Only devices which can be automatically configured,
+e.g. most PCI ethernet adapters,
+will be recognised.
+If the file
+.IB /cfg/pxe/ XXXXXXXXXXXX
+can be located via a DHCP server,
+where
+.B XXXXXXXXXXXX
+is the MAC address of a recognised ethernet adapter,
+the contents are obtained and used as a
+.IR plan9.ini .
 .SH FILES
 .RI [ drive :]
 [
@@ -415,3 +431,11 @@ it attempts to de-install it, but the technique
 used may not always work.
 It is safer not to install the Extended Memory Manager before running
 .IR ld .
+.PP
+The way
+.I 9pxeload
+obtains the information normally found in a disc
+.I plan9.ini
+file,
+and thereby the kernel to load and boot,
+is not ideal and may change in the future.

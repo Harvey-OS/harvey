@@ -807,3 +807,10 @@ TEXT hello(SB), $0
 
 TEXT rock(SB), $0
 	BYTE $0; BYTE $0; BYTE $0; BYTE $0;
+
+GLOBL pxe(SB), $4
+#ifdef PXE
+DATA	pxe+0(SB)/4, $1
+#else
+DATA	pxe+0(SB)/4, $0
+#endif /* PXE */
