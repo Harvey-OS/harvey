@@ -77,7 +77,7 @@ authuser(Conn *c)
 	putstring(m, c->user);
 	sendmsg(m);
 
-	m = recvmsg(c, 0);
+	m = recvmsg(c, -1);
 	switch(m->type){
 	case SSH_SMSG_SUCCESS:
 		free(m);

@@ -138,7 +138,7 @@ unlock(Lock *lk)
 }
 
 int
-_tas(int *p)
+tas(int *p)
 {
 	int *hwsem;
 	int hash;
