@@ -1099,7 +1099,6 @@ rejopts(PPP *ppp, Pstate *p, Block *b, int code)
 			case Oipaddr:
 syslog(0, "ppp", "rejected addr %I with %V", ppp->local, o->data);
 				/* if we're a server, don't let other end change our addr */
-				v4tov6(ppp->local, o->data);
 				if(ppp->localfrozen){
 					dropoption(p, o);
 					break;
