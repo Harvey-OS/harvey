@@ -13846,3 +13846,8 @@
 1065571217 0 c lib/ndb/common - 664 sys sys 1065569740 5261
 1065576622 0 c 386/lib/libip.a - 664 sys sys 1065576349 33976
 1065576622 1 c sys/src/libip/mkfile - 664 sys sys 1065576347 320
+1065641510 0 c 386/bin/ip/httpd/webls - 775 sys sys 1065640770 129752
+1065641510 1 c sys/man/8/httpd - 664 sys sys 1065640802 6426
+1065641510 2 c sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1065640769 7232
+1065646915 0 c 386/bin/ip/httpd/webls - 775 sys sys 1065646626 129996
+1065646915 1 c sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1065646625 7233

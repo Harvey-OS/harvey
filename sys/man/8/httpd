@@ -203,20 +203,27 @@ It includes some abilities to search the manuals.
 produces directory listings on the fly, with
 output in the style of
 .IR ls (1).
-If
 .B /sys/lib/webls.allowed
-and/or
+and
 .B /sys/lib/webls.denied
-exist, they contain regular expressions describing
+contain regular expressions describing
 what parts of
 .I httpd's
 namespace may and may not be listed, respectively.
-Security conscious sites will always want
+.B Webls.denied
+is first searched to see if access is by default
+denied.  If so
+.B webls.allowed
+is then searched to see if access is explicitly allowed.
+Thus one can have very general expressions in the
+denied list (like
+.BR .* ),
+yet still allow exceptions.  If
 .B webls.denied
-to contain `.*', limiting access to only those
-directories described in
-.BR webls.allowed .
-This is the default configuration.
+does not exist or is unreadable, 
+all accesses are assumed to be denied unless
+explicitly allowed in
+.B webls.allowed.
 .PP
 Other sites will note that if neither
 .B webls.denied
