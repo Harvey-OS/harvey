@@ -572,4 +572,5 @@ contains a full example program.
 .SH SOURCE
 .B /sys/src/libthread
 .SH SEE ALSO
-.IR intro (2)
+.IR intro (2),
+.IR ioproc (2)

@@ -840,8 +840,7 @@ readmap(char *passwd, char *group)
 				continue;
 			}
 			if(u->ng >= nelem(u->g)){
-				if(verbose)
-					fprint(2, "%s:%d: user %s is in too many groups; ignoring %s\n", group, line, p, name);
+				fprint(2, "%s:%d: user %s is in too many groups; ignoring %s\n", group, line, p, name);
 				continue;
 			}
 			u->g[u->ng++] = gid;
@@ -1044,6 +1043,10 @@ fsopen(Req *r)
 	|| (!have && nfsGetattr(aux->auth, r->tag, &aux->handle, &attr) < 0)){
     Error:
 		responderrstr(r);
+		return;
+	}
+	if(a != b){
+		respond(r, "permission denied");
 		return;
 	}
 	if(r->ifcall.mode&OTRUNC){

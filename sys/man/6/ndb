@@ -75,7 +75,7 @@ knowledge specific to the network.
 The internet is made up of networks which can be subnetted
 multiple times.  A network must have an
 .B ipnet
-attribute and is uniquely identified by the values of it's
+attribute and is uniquely identified by the values of its
 .B ip
 and
 .B ipmask

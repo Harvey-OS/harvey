@@ -137,7 +137,7 @@ set the maximum transfer unit (default 1450)
 .TP
 .B P
 use this as the primary IP interface; set the default
-route through this interface and write it's configuration
+route through this interface and write its configuration
 to
 .B /net/ndb
 .TP

@@ -158,7 +158,7 @@ for system aliases, see
 uses the login name as the reply address.  This
 can be overriden using the environment variable
 .BR upasname .
-It's value will become both the envelope
+Its value will become both the envelope
 and
 .B From:
 mailbox name.  For example:

@@ -4488,9 +4488,9 @@ sys/man/1/lex - 664 sys sys 1032058565 1520
 sys/man/1/look - 664 sys sys 944959673 1348
 sys/man/1/lp - 664 sys sys 1015024739 3304
 sys/man/1/ls - 664 sys sys 1049813576 2791
-sys/man/1/mail - 664 sys sys 1035832988 2159
+sys/man/1/mail - 664 sys sys 1050078464 2158
 sys/man/1/man - 664 sys sys 954378836 1611
-sys/man/1/marshal - 664 sys sys 1045501381 3308
+sys/man/1/marshal - 664 sys sys 1050078464 3307
 sys/man/1/mc - 664 sys sys 1045501392 508
 sys/man/1/mk - 664 sys sys 964455061 13154
 sys/man/1/mkdir - 664 sys sys 944959673 443
@@ -4657,7 +4657,7 @@ sys/man/2/mouse - 664 sys sys 971455512 4966
 sys/man/2/mp - 664 sys sys 1027253880 10580
 sys/man/2/muldiv - 664 sys sys 984709633 639
 sys/man/2/nan - 664 sys sys 975084242 937
-sys/man/2/ndb - 664 sys sys 1032652213 7687
+sys/man/2/ndb - 664 sys sys 1050078464 7686
 sys/man/2/notify - 664 sys sys 1032058674 6376
 sys/man/2/object - 664 sys sys 944959695 3864
 sys/man/2/open - 664 sys sys 1015091524 3404
@@ -4704,7 +4704,7 @@ sys/man/2/string - 664 sys sys 985555632 5180
 sys/man/2/stringsize - 664 sys sys 952627482 1409
 sys/man/2/subfont - 664 sys sys 956345937 5140
 sys/man/2/symbol - 664 sys sys 950892874 9423
-sys/man/2/thread - 664 sys sys 1032058675 11625
+sys/man/2/thread - 664 sys sys 1050082251 11641
 sys/man/2/time - 664 sys sys 1015091527 739
 sys/man/2/tmpfile - 664 sys sys 1048637161 1157
 sys/man/2/wait - 664 sys sys 1015091528 2481
@@ -4820,7 +4820,7 @@ sys/man/6/map - 664 sys sys 944959678 1892
 sys/man/6/mpictures - 664 sys sys 944959678 2899
 sys/man/6/ms - 664 sys sys 958249504 6815
 sys/man/6/namespace - 664 sys sys 1048637182 1576
-sys/man/6/ndb - 664 sys sys 1032354298 6081
+sys/man/6/ndb - 664 sys sys 1050078465 6080
 sys/man/6/plot - 664 sys sys 944959679 6739
 sys/man/6/plumb - 664 sys sys 969499892 10918
 sys/man/6/regexp - 664 sys sys 954089523 2050
@@ -4881,7 +4881,7 @@ sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/ping - 664 sys sys 1028233565 2789
 sys/man/8/plan9.ini - 664 sys sys 1040698791 20588
 sys/man/8/pop3 - 664 sys sys 1037397443 2444
-sys/man/8/ppp - 664 sys sys 1032058843 4344
+sys/man/8/ppp - 664 sys sys 1050078465 4343
 sys/man/8/prep - 664 sys sys 1018802868 12910
 sys/man/8/qer - 664 sys sys 960837925 4785
 sys/man/8/reboot - 664 sys sys 969499895 414
@@ -9328,7 +9328,7 @@ sys/src/cmd/ndb/query.c - 664 sys sys 957402054 1133
 sys/src/cmd/ndb/time.c - 664 sys sys 957402055 321
 sys/src/cmd/netstat.c - 664 sys sys 1038237140 3796
 sys/src/cmd/news.c - 664 sys sys 1014926614 3778
-sys/src/cmd/nfs.c - 664 sys sys 1049859688 31052
+sys/src/cmd/nfs.c - 664 sys sys 1050068720 31096
 sys/src/cmd/nm.c - 664 sys sys 1014926696 4908
 sys/src/cmd/nntpfs.c - 664 sys sys 1048644540 18869
 sys/src/cmd/ns.c - 664 sys sys 984717934 3558

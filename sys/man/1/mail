@@ -52,7 +52,7 @@ The message will be piped to it rather
 than appended to his/her mail box.
 The file is run as user
 .BR none .
-It's two arguments are the 
+Its two arguments are the 
 with arguments of the destination address
 (e.g.
 .BR local!gremlin )

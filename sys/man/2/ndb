@@ -190,7 +190,7 @@ is like
 .I ndbgetval
 but queries the connection server
 instead of looking directly at the database.
-It's first argument specifies the network root to use.
+Its first argument specifies the network root to use.
 If the argument is 0, it defaults to
 \f5"/net"\f1.
 .PP
