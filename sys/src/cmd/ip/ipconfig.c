@@ -11,6 +11,7 @@ int	myifc = -1;
 int	plan9 = 1;
 int	beprimary;
 int	nodhcpwatch;
+int	sendhostname;
 
 Ipifc	*ifc;
 
@@ -21,6 +22,7 @@ enum
 	Vremove,
 	Vunbind,
 	Vether,
+	Vloopback,
 };
 
 struct {
@@ -186,6 +188,7 @@ main(int argc, char **argv)
 		if(p == nil)
 			usage();
 		snprint(conf.hostname, sizeof(conf.hostname), "%s", p);
+		sendhostname = 1;
 		break;
 	case 'n':
 		noconfig = 1;
@@ -210,6 +213,15 @@ main(int argc, char **argv)
 		break;
 	} ARGEND;
 
+	// default to any host name we already have
+	if(*conf.hostname == 0){
+		p = getenv("sysname");
+		if(p == nil || *p == 0)
+			p = sysname();
+		if(p != nil)
+			strncpy(conf.hostname, p, sizeof(conf.hostname)-1);
+	}		
+
 	// default
 	conf.type = "ether";
 	conf.dev = "/net/ether0";
@@ -225,6 +237,7 @@ main(int argc, char **argv)
 			action = verb;
 			break;
 		case Vether:
+		case Vloopback:
 			conf.type = argv[0];
 			if(argc > 1){
 				conf.dev = argv[1];
@@ -755,7 +768,7 @@ dhcpsend(int type)
 		sysfatal("dhcpsend: unknown message type: %d", type);
 	case Discover:
 		ipmove(up->raddr, IPv4bcast);	// broadcast
-		if(*conf.hostname)
+		if(*conf.hostname && sendhostname)
 			p = optaddstr(p, OBhostname, conf.hostname);
 		if(plan9){
 			n = snprint((char*)vendor, sizeof(vendor), "plan9_%s", conf.cputype);
@@ -787,7 +800,7 @@ dhcpsend(int type)
 			p = optaddvec(p, ODvendorclass, vendor, n);
 		}
 		p = optaddvec(p, ODparams, requested, sizeof(requested));
-		if(*conf.hostname)
+		if(*conf.hostname && sendhostname)
 			p = optaddstr(p, OBhostname, conf.hostname);
 		break;	
 	case Release:
@@ -1402,6 +1415,7 @@ char *verbs[] = {
 [Vremove]	"remove",
 [Vunbind]	"unbind",
 [Vether]	"ether",
+[Vloopback]	"loopback",
 };
 
 // look for an action

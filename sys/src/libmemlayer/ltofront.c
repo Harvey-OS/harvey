@@ -10,7 +10,7 @@
 */
 static
 void
-_memltofront(Memimage *i, Memimage *front)
+_memltofront(Memimage *i, Memimage *front, int fill)
 {
 	Memlayer *l;
 	Memscreen *s;
@@ -43,15 +43,22 @@ _memltofront(Memimage *i, Memimage *front)
 		l->rear = f;
 		f->layer->front = i;
 		f->layer->rear = rr;
-		if(overlap)
+		if(overlap && fill)
 			memlexpose(i, x);
 	}
 }
 
 void
+_memltofrontfill(Memimage *i, int fill)
+{
+	_memltofront(i, nil, fill);
+	_memlsetclear(i->layer->screen);
+}
+
+void
 memltofront(Memimage *i)
 {
-	_memltofront(i, nil);
+	_memltofront(i, nil, 1);
 	_memlsetclear(i->layer->screen);
 }
 
@@ -66,7 +73,7 @@ memltofrontn(Memimage **ip, int n)
 	front = nil;
 	while(--n >= 0){
 		i = *ip++;
-		_memltofront(i, front);
+		_memltofront(i, front, 1);
 		front = i;
 	}
 	s = front->layer->screen;

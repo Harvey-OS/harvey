@@ -10,6 +10,7 @@ bind -c #e /env
 bind #p /proc
 bind -c #s /srv
 bind -a #¤ /dev
+bind -a #S /dev
 
 # mount points
 mount /srv/slashn /n

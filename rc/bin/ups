@@ -1,9 +1,9 @@
 #!/bin/rc
 
 # lucent web proxy caches the page; defeat it
-# rfork n
-# if(! test -d /net.alt/tcp) import achille /net.alt
-# bind /net.alt /net
+#LU rfork n
+#LU if(! test -d /net.alt/tcp) import achille /net.alt
+#LU bind /net.alt /net
 
 
 if(! ~ $#* 1) {
@@ -22,16 +22,21 @@ x=$"x
 x=`{echo $x | sed 's/ /\&/g'}
 x=$"x
 x=$x^'&tdts1.x=19&tdts1.y=7'
-hget -p $x http://wwwapps.ups.com/etracking/tracking.cgi | htmlfmt >/tmp/ups.2
+hget -p $x http://wwwapps.ups.com/etracking/tracking.cgi >/tmp/ups.2
 
-# to first blank line, output is a simple two-column table, followed by a blank line
-# after that it's a five column table followed by a blank line
-# after that it's UPS stuff starting 'Tracking results'
-sam -d /tmp/ups.2 >[2] /dev/null <<'!'
-/^Tracking results.*\n/p
-!echo
+sed 's/<[Tt][Dd]>/& «TD»/g; s/<[Tt][Rr]>/&<td> «TR» /g' /tmp/ups.2 |
+	htmlfmt >/tmp/ups.3
+sam -d /tmp/ups.3 >[2] /dev/null <<'!'
+/^Tracking results.*/p
 .,$d
-1,/^$/ s/:\n/: /g
-/^PACKAGE/,$y/(Activity|SCAN|RECEIVED|DELIVERED|DELIVERY)\n/ g/./ s/\n/ /g
+/View Details/d
+1,.d
+,s/\n/ /g
+,s/«TR»/\n/g
+,s/«TD»/	/g
+,s/ *	 */	/g
+,s/^[ 	]*//g
+,s/[ 	]*$//g
+,s/\n\n+/\n\n/g
 ,p
 !

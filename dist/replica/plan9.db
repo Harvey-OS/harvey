@@ -260,7 +260,7 @@
 386/bin/ip/httpd/save - 775 sys sys 1045538021 130989
 386/bin/ip/httpd/wikipost - 775 sys sys 1045538021 111347
 386/bin/ip/imap4d - 775 sys sys 1048799694 233020
-386/bin/ip/ipconfig - 775 sys sys 1050868852 102454
+386/bin/ip/ipconfig - 775 sys sys 1051028319 103751
 386/bin/ip/ping - 775 sys sys 1039758569 74005
 386/bin/ip/ppp - 775 sys sys 1050419687 215306
 386/bin/ip/pppoe - 775 sys sys 1050419688 75481
@@ -2675,7 +2675,7 @@ lib/kana - 664 sys sys 944943772 1061
 lib/katakana - 664 sys sys 944943772 982
 lib/keyboard - 664 sys sys 984694514 25842
 lib/mammals - 664 sys sys 944943772 27760
-lib/namespace - 664 sys sys 1048777128 590
+lib/namespace - 664 sys sys 1051022248 606
 lib/namespace.ftp - 664 sys sys 1020313578 373
 lib/namespace.httpd - 664 sys sys 984695868 1209
 lib/ndb - 20000000775 sys sys 959260770 0
@@ -2988,7 +2988,7 @@ rc/bin/termrc - 775 sys sys 1038278927 2637
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
 rc/bin/troff2gif - 775 sys sys 1045504085 178
-rc/bin/ups - 775 sys sys 1042567965 989
+rc/bin/ups - 775 sys sys 1051028686 889
 rc/bin/usbstart - 775 sys sys 1044894155 81
 rc/bin/usps - 775 sys sys 1016826030 450
 rc/bin/vwhois - 775 sys sys 953999875 294
@@ -3290,7 +3290,7 @@ sys/include/libc.h - 664 sys sys 1049426002 18829
 sys/include/libsec.h - 664 sys sys 1048616895 8914
 sys/include/mach.h - 664 sys sys 1032058231 8101
 sys/include/memdraw.h - 664 sys sys 1039752978 5616
-sys/include/memlayer.h - 664 sys sys 1014929065 1810
+sys/include/memlayer.h - 664 sys sys 1051031022 1851
 sys/include/mouse.h - 664 sys sys 1035232010 1003
 sys/include/mp.h - 664 sys sys 1014929065 4610
 sys/include/ndb.h - 664 sys sys 1032058245 3781
@@ -9051,7 +9051,7 @@ sys/src/cmd/ip/imap4d/nodes.c - 664 sys sys 1015013077 3173
 sys/src/cmd/ip/imap4d/search.c - 664 sys sys 1015013077 4520
 sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1015013077 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
-sys/src/cmd/ip/ipconfig.c - 664 sys sys 1050714671 27099
+sys/src/cmd/ip/ipconfig.c - 664 sys sys 1051023520 27439
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1038443023 1222
 sys/src/cmd/ip/ping.c - 664 sys sys 1032059854 5046
@@ -11532,7 +11532,7 @@ sys/src/libmemdraw/unload.c - 664 sys sys 944961742 435
 sys/src/libmemdraw/write.c - 664 sys sys 1014930217 4375
 sys/src/libmemlayer - 20000000775 sys sys 984710301 0
 sys/src/libmemlayer/draw.c - 664 sys sys 1045933975 4082
-sys/src/libmemlayer/lalloc.c - 664 sys sys 1039752979 1760
+sys/src/libmemlayer/lalloc.c - 664 sys sys 1051031021 1781
 sys/src/libmemlayer/layerop.c - 664 sys sys 1039752979 2641
 sys/src/libmemlayer/ldelete.c - 664 sys sys 1039752979 1183
 sys/src/libmemlayer/lhide.c - 664 sys sys 1039752980 1693
@@ -11540,7 +11540,7 @@ sys/src/libmemlayer/line.c - 664 sys sys 1039752980 2587
 sys/src/libmemlayer/load.c - 664 sys sys 1039752980 1032
 sys/src/libmemlayer/lorigin.c - 664 sys sys 1039752981 2507
 sys/src/libmemlayer/lsetrefresh.c - 664 sys sys 944961743 703
-sys/src/libmemlayer/ltofront.c - 664 sys sys 952290597 1170
+sys/src/libmemlayer/ltofront.c - 664 sys sys 1051031021 1307
 sys/src/libmemlayer/ltorear.c - 664 sys sys 944961743 1062
 sys/src/libmemlayer/makefile - 664 sys sys 944961743 821
 sys/src/libmemlayer/mkfile - 664 sys sys 1039752977 365

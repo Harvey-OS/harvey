@@ -19201,3 +19201,11 @@
 1050868866 22 c 386/lib/libip.a - 664 sys sys 1050868861 32560
 1050868866 23 c 386/lib/libndb.a - 664 sys sys 1050868862 52836
 1050868866 24 c 386/lib/libsunrpc.a - 664 sys sys 1050868863 357292
+1051023538 0 c lib/namespace - 664 sys sys 1051022248 606
+1051023538 1 c sys/src/cmd/ip/ipconfig.c - 664 sys sys 1051023520 27439
+1051025465 0 c 386/bin/ip/ipconfig - 775 sys sys 1051024784 102973
+1051029069 0 c 386/bin/ip/ipconfig - 775 sys sys 1051028319 103751
+1051029069 1 c rc/bin/ups - 775 sys sys 1051028686 889
+1051032672 0 c sys/include/memlayer.h - 664 sys sys 1051031022 1851
+1051032672 1 c sys/src/libmemlayer/lalloc.c - 664 sys sys 1051031021 1781
+1051032672 2 c sys/src/libmemlayer/ltofront.c - 664 sys sys 1051031021 1307

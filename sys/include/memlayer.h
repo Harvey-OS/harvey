@@ -40,6 +40,7 @@ void			memldelete(Memimage*);
 void			memlfree(Memimage*);
 void			memltofront(Memimage*);
 void			memltofrontn(Memimage**, int);
+void			_memltofrontfill(Memimage*, int);
 void			memltorear(Memimage*);
 void			memltorearn(Memimage**, int);
 int			memlsetrefresh(Memimage*, Refreshfn, void*);
