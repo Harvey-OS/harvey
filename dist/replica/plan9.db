@@ -3829,7 +3829,7 @@ sys/lib/postscript/font/LucidaSans-Demi - 664 sys sys 954644148 55110
 sys/lib/postscript/font/LucidaSans-Italic - 664 sys sys 954644166 55183
 sys/lib/postscript/font/LucidaSans-Typewriter83 - 664 sys sys 954949417 54590
 sys/lib/postscript/font/LucidaTypewriter - 664 sys sys 954644142 61207
-sys/lib/postscript/font/NOTICE - 444 sys sys 1056572331 816
+sys/lib/postscript/font/NOTICE - 444 sys sys 1057155648 805
 sys/lib/postscript/font/ams - 20000000775 sys sys 955402660 0
 sys/lib/postscript/font/ams/READ.ME - 664 sys sys 955402660 3723
 sys/lib/postscript/font/ams/cmbsy5.pfa - 664 sys sys 954644908 53732
