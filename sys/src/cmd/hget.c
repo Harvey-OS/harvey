@@ -25,6 +25,16 @@ struct Range
 	long	end;
 };
 
+typedef struct Out Out;
+struct Out
+{
+	int fd;
+	int offset;				/* notional current offset in output */
+	int written;			/* number of bytes successfully transferred to output */
+	DigestState *curr;		/* digest state up to offset (if known) */
+	DigestState *hiwat;		/* digest state of all bytes written */
+};
+
 enum
 {
 	Http,
@@ -44,8 +54,9 @@ enum
 int debug;
 char *ofile;
 
-int	doftp(URL*, URL*, Range*, int, long);
-int	dohttp(URL*, URL*,  Range*, int, long);
+
+int	doftp(URL*, URL*, Range*, Out*, long);
+int	dohttp(URL*, URL*,  Range*, Out*, long);
 int	crackurl(URL*, char*);
 Range*	crackrange(char*);
 int	getheader(int, char*, int);
@@ -58,15 +69,17 @@ int	readline(int, char*, int);
 int	readibuf(int, char*, int);
 int	dfprint(int, char*, ...);
 void	unreadline(char*);
+int	output(Out*, void*, int);
+void	setoffset(Out*, int);
 
 int	verbose;
 char	*net;
-char	tcpdir[64];
+char	tcpdir[NETPATHLEN];
 int	headerprint;
 
 struct {
 	char	*name;
-	int	(*f)(URL*, URL*, Range*, int, long);
+	int	(*f)(URL*, URL*, Range*, Out*, long);
 } method[] = {
 	[Http]	{ "http",	dohttp },
 	[Https]	{ "https",	dohttp },
@@ -86,11 +99,12 @@ main(int argc, char **argv)
 {
 	URL u;
 	Range r;
-	int fd, errs, n;
+	int errs, n;
 	ulong mtime;
 	Dir *d;
 	char postbody[4096], *p, *e, *t, *hpx;
 	URL px; // Proxy
+	Out out;
 
 	ofile = nil;
 	p = postbody;
@@ -145,16 +159,21 @@ main(int argc, char **argv)
 	if(argc != 1)
 		usage();
 
-	fd = 1;
+	
+	out.fd = 1;
+	out.written = 0;
+	out.offset = 0;
+	out.curr = nil;
+	out.hiwat = nil;
 	if(ofile != nil){
 		d = dirstat(ofile);
 		if(d == nil){
-			fd = create(ofile, OWRITE, 0664);
-			if(fd < 0)
+			out.fd = create(ofile, OWRITE, 0664);
+			if(out.fd < 0)
 				sysfatal("creating %s: %r", ofile);
 		} else {
-			fd = open(ofile, OWRITE);
-			if(fd < 0)
+			out.fd = open(ofile, OWRITE);
+			if(out.fd < 0)
 				sysfatal("can't open %s: %r", ofile);
 			r.start = d->length;
 			mtime = d->mtime;
@@ -170,10 +189,10 @@ main(int argc, char **argv)
 		sysfatal("%r");
 
 	for(;;){
+		setoffset(&out, 0);
 		/* transfer data */
 		werrstr("");
-		seek(fd, 0, 0);
-		n = (*method[u.method].f)(&u, &px, &r, fd, mtime);
+		n = (*method[u.method].f)(&u, &px, &r, &out, mtime);
 
 		switch(n){
 		case Eof:
@@ -294,7 +313,7 @@ catch(void*, char*)
 }
 
 int
-dohttp(URL *u, URL *px, Range *r, int out, long mtime)
+dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 {
 	int fd, cfd;
 	int redirect, loop;
@@ -414,7 +433,7 @@ dohttp(URL *u, URL *px, Range *r, int out, long mtime)
 			sysfatal("No Content");
 
 		case 206:	/* Partial Content */
-			seek(out, r->start, 0);
+			setoffset(out, r->start);
 			break;
 
 		case 301:	/* Moved Permanently */
@@ -478,7 +497,7 @@ dohttp(URL *u, URL *px, Range *r, int out, long mtime)
 
 	/* transfer whatever you get */
 	if(ofile != nil && u->mtime != 0){
-		note.fd = out;
+		note.fd = out->fd;
 		note.mtime = u->mtime;
 		notify(catch);
 	}
@@ -489,7 +508,7 @@ dohttp(URL *u, URL *px, Range *r, int out, long mtime)
 		n = readibuf(fd, buf, sizeof(buf));
 		if(n <= 0)
 			break;
-		if(write(out, buf, n) != n)
+		if(output(out, buf, n) != n)
 			break;
 		tot += n;
 		if(verbose && vtime != time(0)) {
@@ -506,7 +525,7 @@ dohttp(URL *u, URL *px, Range *r, int out, long mtime)
 		rerrstr(err, sizeof err);
 		nulldir(&d);
 		d.mtime = u->mtime;
-		if(dirfwstat(out, &d) < 0)
+		if(dirfwstat(out->fd, &d) < 0)
 			fprint(2, "couldn't set mtime: %r\n");
 		errstr(err, sizeof err);
 	}
@@ -765,13 +784,13 @@ int logon(int);
 int xfertype(int, char*);
 int passive(int, URL*);
 int active(int, URL*);
-int ftpxfer(int, int, Range*);
+int ftpxfer(int, Out*, Range*);
 int terminateftp(int, int);
 int getaddrport(char*, uchar*, uchar*);
-int ftprestart(int, int, URL*, Range*, long);
+int ftprestart(int, Out*, URL*, Range*, long);
 
 int
-doftp(URL *u, URL *px, Range *r, int out, long mtime)
+doftp(URL *u, URL *px, Range *r, Out *out, long mtime)
 {
 	int pid, ctl, data, rv;
 	Waitmsg *w;
@@ -937,7 +956,7 @@ getdec(char *p, int n)
 }
 
 int
-ftprestart(int ctl, int out, URL *u, Range *r, long mtime)
+ftprestart(int ctl, Out *out, URL *u, Range *r, long mtime)
 {
 	Tm tm;
 	char msg[1024];
@@ -978,9 +997,9 @@ ftprestart(int ctl, int out, URL *u, Range *r, long mtime)
 	/* seek to restart point */
 	if(r->start > 0){
 		ftpcmd(ctl, "REST %lud", r->start);
-		if(ftprcode(ctl, msg, sizeof(msg)) == Incomplete)
-			seek(out, r->start, 0);
-		else
+		if(ftprcode(ctl, msg, sizeof(msg)) == Incomplete){
+			setoffset(out, r->start);
+		}else
 			r->start = 0;
 	}
 
@@ -1134,7 +1153,7 @@ active(int ctl, URL *u)
 }
 
 int
-ftpxfer(int in, int out, Range *r)
+ftpxfer(int in, Out *out, Range *r)
 {
 	char buf[1024];
 	long vtime;
@@ -1147,7 +1166,7 @@ ftpxfer(int in, int out, Range *r)
 			break;
 		if(i < 0)
 			return Error;
-		if(write(out, buf, i) != i)
+		if(output(out, buf, i) != i)
 			return Error;
 		r->start += i;
 		if(verbose && vtime != time(0)) {
@@ -1321,4 +1340,84 @@ getaddrport(char *dir, uchar *ipaddr, uchar *port)
 	port[0] = i>>8;
 	port[1] = i;
 	return 0;
+}
+
+void
+md5free(DigestState *state)
+{
+	uchar x[MD5dlen];
+	md5(nil, 0, x, state);
+}
+
+DigestState*
+md5dup(DigestState *state)
+{
+	char *p;
+
+	p = md5pickle(state);
+	if(p == nil)
+		sysfatal("md5pickle: %r");
+	state = md5unpickle(p);
+	if(state == nil)
+		sysfatal("md5unpickle: %r");
+	free(p);
+	return state;
+}
+
+void
+setoffset(Out *out, int offset)
+{
+	md5free(out->curr);
+	if(offset == 0)
+		out->curr = md5(nil, 0, nil, nil);
+	else
+		out->curr = nil;
+	out->offset = offset;
+}
+
+/*
+ * write some output, discarding it (but keeping track)
+ * if we've already written it. if we've gone backwards,
+ * verify that everything previously written matches
+ * that which would have been written from the current
+ * output.
+ */
+int
+output(Out *out, char *buf, int nb)
+{
+	int n, d;
+	uchar m0[MD5dlen], m1[MD5dlen];
+
+	n = nb;
+	d = out->written - out->offset;
+	assert(d >= 0);
+	if(d > 0){
+		if(n < d){
+			if(out->curr != nil)
+				md5((uchar*)buf, n, nil, out->curr);
+			out->offset += n;
+			return n;
+		}
+		if(out->curr != nil){
+			md5((uchar*)buf, d, m0, out->curr);
+			out->curr = nil;
+			md5(nil, 0, m1, md5dup(out->hiwat));
+			if(memcmp(m0, m1, MD5dlen) != 0){
+				fprint(2, "integrity check failure at offset %d\n", out->written);
+				return -1;
+			}
+		}
+		buf += d;
+		n -= d;
+		out->offset += d;
+	}
+	if(n > 0){
+		out->hiwat = md5((uchar*)buf, n, nil, out->hiwat);
+		n = write(out->fd, buf, n);
+		if(n > 0){
+			out->offset += n;
+			out->written += n;
+		}
+	}
+	return n + d;
 }

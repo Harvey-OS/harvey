@@ -919,6 +919,14 @@ sm17GLsi=1024x768						# 70Hz, 57.2KHz
 	vrs=771 vre=777 vt=806
 	hsync=- vsync=-
 
+# Samsung SyncMaster 753DF
+sm753DF = 1024x768
+	defaultclock=94.5
+	shb=1072 ehb=1168 ht=1376
+	shs=1072
+	vrs=769 vre=772 vt=808
+	hsync=+ vsync=+
+
 #
 # Sony CPD-1304
 # Horizontal timing:
@@ -1123,6 +1131,13 @@ planar=1280x1024
 	shs=1392
 	vrs=1072 vre=1073 vt=1075
 
+#
+# Samsung 213T
+#
+213t=1600x1200
+	defaultclock=200
+	shb=1664 ehb=1864 ht=2136
+	vrs=1202 vre=1207 vt=1251
 
 #
 # QVGA		320x240		Quarter Video Graphics Array

@@ -4,7 +4,7 @@ exportfs, srvfs \- network file server plumbing
 .SH SYNOPSIS
 .B exportfs
 [
-.B -adsR
+.B -adnsR
 ] [
 .B -f
 .I dbgfile
@@ -22,6 +22,9 @@ exportfs, srvfs \- network file server plumbing
 ] [
 .B -e
 .I "'enc auth'"
+] [
+.B -N
+.I nsfile
 ] [
 .B -P
 .I patternfile
@@ -62,6 +65,15 @@ then acts as a relay file server: operations in the imported file
 tree are executed on the remote server and the results returned.  This
 gives the appearance of exporting a name space from a remote machine
 into a local file tree.
+.PP
+.I Exportfs
+creates a new name space for each connection, using
+.B /lib/namespace
+by default (see
+.IR namespace (6)).
+The
+.B -n
+option gives an alternative name space file.
 .PP
 The
 .B -R

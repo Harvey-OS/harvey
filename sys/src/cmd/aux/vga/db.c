@@ -228,7 +228,7 @@ dbmonitor(Ndb* db, Mode* mode, char* type, char* size)
 	Ndbs s;
 	Ndbtuple *t, *tuple;
 	char *p, attr[Namelen+1], val[Namelen+1], buf[2*Namelen+1];
-	int clock, x;
+	int clock, x, i;
 
 	/*
 	 * Clock rate hack.
@@ -262,6 +262,7 @@ dbmonitor(Ndb* db, Mode* mode, char* type, char* size)
 		return 0;
 	if(mode->y == 0 && (mode->y = strtol(p, &p, 0)) == 0)
 		return 0;
+	i = 0;
 buggery:
 	if((tuple = ndbsearch(db, &s, attr, val)) == 0)
 		return 0;
@@ -297,6 +298,8 @@ buggery:
 			strcpy(attr, t->attr);
 			strcpy(val, t->val);
 			ndbfree(tuple);
+			if(i++ > 5)
+				error("dbmonitor: implausible include depth at %s=%s\n", attr, val);
 			goto buggery;
 		}
 		else if(strcmp(t->attr, "include") == 0){

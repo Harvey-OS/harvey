@@ -1260,7 +1260,7 @@ lib/face/48x48x2/x - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/y - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/z - 20000000755 sys sys 944941683 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1079017691 2391
+lib/face/48x48x4/.dict - 664 sys sys 1081200610 2417
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -1371,7 +1371,7 @@ lib/face/48x48x4/x - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/y - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/z - 20000000775 sys sys 944941894 0
 lib/face/48x48x8 - 20000000775 sys sys 944941834 0
-lib/face/48x48x8/.dict - 664 sys sys 1079103826 2117
+lib/face/48x48x8/.dict - 664 sys sys 1081200562 2146
 lib/face/48x48x8/Z - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -1405,6 +1405,7 @@ lib/face/48x48x8/m/michael.1 - 664 sys sys 1057005144 1806
 lib/face/48x48x8/n - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/n/nemo.1 - 664 sys sys 1056982242 2364
 lib/face/48x48x8/n/nigel.1 - 644 sys sys 1056981488 1611
+lib/face/48x48x8/n/noah.1 - 664 sys sys 1081200582 7065
 lib/face/48x48x8/o - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/p - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/q - 20000000775 sys sys 944941833 0
@@ -2800,7 +2801,7 @@ lib/tftpd - 20000000775 sys sys 944944178 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1071415518 9997
-lib/vgadb - 664 sys sys 1080049879 27670
+lib/vgadb - 664 sys sys 1081200818 27920
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
 lp - 20000000775 sys sys 958199268 0
@@ -2979,7 +2980,7 @@ rc/bin/B - 775 sys sys 945617206 645
 rc/bin/C - 775 sys sys 1045493437 788
 rc/bin/Kill - 775 sys sys 1018637942 115
 rc/bin/a: - 775 sys sys 1063856406 255
-rc/bin/ap - 775 sys sys 1080159225 665
+rc/bin/ap - 775 sys sys 1081200030 675
 rc/bin/ape - 20000000775 sys sys 954039414 0
 rc/bin/ape/ar89 - 775 sys sys 945617285 308
 rc/bin/ape/c89 - 775 sys sys 945617285 39
@@ -3029,12 +3030,15 @@ rc/bin/membername - 775 sys sys 945617207 89
 rc/bin/mousereset - 775 sys sys 1015089542 37
 rc/bin/nroff - 775 sys sys 945617208 27
 rc/bin/patch - 20000000775 sys sys 1067803227 0
+rc/bin/patch/applied - 775 sys sys 1081204295 110
 rc/bin/patch/apply - 775 sys sys 1067804403 1234
 rc/bin/patch/create - 775 sys sys 1079969485 1126
 rc/bin/patch/diff - 775 sys sys 1067804404 466
-rc/bin/patch/list - 775 sys sys 1067804541 321
+rc/bin/patch/list - 775 sys sys 1081204287 644
+rc/bin/patch/move - 775 sys sys 1081204288 547
 rc/bin/patch/note - 664 sys sys 1067804405 593
 rc/bin/patch/okay - 775 sys sys 1067803227 240
+rc/bin/patch/sorry - 775 sys sys 1081200166 107
 rc/bin/patch/undo - 775 sys sys 1067804405 549
 rc/bin/pc - 20000000775 sys sys 960857447 0
 rc/bin/pc/bootfloppy - 775 sys sys 964455816 439
@@ -3422,7 +3426,7 @@ sys/include/httpd.h - 664 sys sys 1079372798 5747
 sys/include/ip.h - 664 sys sys 1050702405 2908
 sys/include/keyboard.h - 664 sys sys 1079577798 815
 sys/include/libc.h - 664 sys sys 1072792615 19430
-sys/include/libsec.h - 664 sys sys 1068129557 8966
+sys/include/libsec.h - 664 sys sys 1081199854 9024
 sys/include/mach.h - 664 sys sys 1068478049 8194
 sys/include/memdraw.h - 664 sys sys 1039752978 5616
 sys/include/memlayer.h - 664 sys sys 1051031022 1851
@@ -4958,7 +4962,7 @@ sys/man/4/cfs - 664 sys sys 1015024813 1758
 sys/man/4/consolefs - 664 sys sys 1069179473 3920
 sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
-sys/man/4/exportfs - 664 sys sys 1080922547 4454
+sys/man/4/exportfs - 664 sys sys 1081200463 4652
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1053127875 14460
 sys/man/4/fossil - 664 sys sys 1073853397 9333
@@ -5103,6 +5107,7 @@ sys/man/8/stub - 664 sys sys 1044830500 943
 sys/man/8/swap - 664 sys sys 944959679 880
 sys/man/8/timesync - 664 sys sys 1022590210 1629
 sys/man/8/tlssrv - 664 sys sys 1037580152 2594
+sys/man/8/trampoline - 664 sys sys 1081200125 0
 sys/man/8/udpecho - 664 sys sys 954305553 303
 sys/man/8/update - 664 sys sys 961259288 2336
 sys/man/8/venti - 664 sys sys 1069101926 5422
@@ -6829,7 +6834,7 @@ sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
 sys/src/cmd/acme/rows.c - 664 sys sys 1068140772 14637
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
-sys/src/cmd/acme/text.c - 664 sys sys 1079115968 27284
+sys/src/cmd/acme/text.c - 664 sys sys 1081200110 27335
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1079102916 7412
 sys/src/cmd/acme/wind.c - 664 sys sys 1073566950 11094
@@ -7117,9 +7122,9 @@ sys/src/cmd/aux/vga/ch9294.c - 664 sys sys 1014925007 2120
 sys/src/cmd/aux/vga/clgd542x.c - 664 sys sys 1014925007 6916
 sys/src/cmd/aux/vga/clgd546x.c - 664 sys sys 1014925007 7996
 sys/src/cmd/aux/vga/ct65540.c - 664 sys sys 1014925007 5355
-sys/src/cmd/aux/vga/cyber938x.c - 664 sys sys 1045505008 6440
+sys/src/cmd/aux/vga/cyber938x.c - 664 sys sys 1081200864 6502
 sys/src/cmd/aux/vga/data.c - 664 sys sys 1019498850 2200
-sys/src/cmd/aux/vga/db.c - 664 sys sys 1078840016 9331
+sys/src/cmd/aux/vga/db.c - 664 sys sys 1081201695 9430
 sys/src/cmd/aux/vga/error.c - 664 sys sys 1014925008 745
 sys/src/cmd/aux/vga/et4000.c - 664 sys sys 1014925008 6720
 sys/src/cmd/aux/vga/et4000hwgc.c - 664 sys sys 1014925008 552
@@ -7511,7 +7516,7 @@ sys/src/cmd/execnet/main.c - 664 sys sys 1019861330 657
 sys/src/cmd/execnet/mkfile - 664 sys sys 1032059543 208
 sys/src/cmd/execnet/note.c - 664 sys sys 1019855740 2315
 sys/src/cmd/exportfs - 20000000775 sys sys 988249971 0
-sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1081082332 16169
+sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1081200487 16198
 sys/src/cmd/exportfs/exportfs.h - 664 sys sys 1066823091 2800
 sys/src/cmd/exportfs/exportsrv.c - 664 sys sys 1081082332 11914
 sys/src/cmd/exportfs/mkfile - 664 sys sys 1066825703 194
@@ -9401,7 +9406,7 @@ sys/src/cmd/gzip/mkfile - 664 sys sys 984758036 125
 sys/src/cmd/gzip/unzip.c - 664 sys sys 1050689595 13603
 sys/src/cmd/gzip/zip.c - 664 sys sys 1033183074 7054
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
-sys/src/cmd/hget.c - 664 sys sys 1070286807 22715
+sys/src/cmd/hget.c - 664 sys sys 1081199967 24671
 sys/src/cmd/history.c - 664 sys sys 1073079763 6117
 sys/src/cmd/hoc - 20000000775 sys sys 954036932 0
 sys/src/cmd/hoc/code.c - 664 sys sys 944961000 10041
@@ -10243,9 +10248,9 @@ sys/src/cmd/replica/avl.c - 664 sys sys 1068497830 6242
 sys/src/cmd/replica/compactdb.c - 664 sys sys 1018323475 652
 sys/src/cmd/replica/db.c - 664 sys sys 1019340165 2989
 sys/src/cmd/replica/mkfile - 664 sys sys 1032060527 647
-sys/src/cmd/replica/proto.c - 664 sys sys 1019525024 8716
+sys/src/cmd/replica/proto.c - 664 sys sys 1081202238 8724
 sys/src/cmd/replica/revdump.c - 664 sys sys 1018321112 651
-sys/src/cmd/replica/revproto.c - 664 sys sys 1018321112 8922
+sys/src/cmd/replica/revproto.c - 664 sys sys 1081202241 8932
 sys/src/cmd/replica/updatedb.c - 664 sys sys 1068497831 3045
 sys/src/cmd/replica/util.c - 664 sys sys 1022274716 1997
 sys/src/cmd/resample.c - 664 sys sys 1039753039 6268
@@ -12233,7 +12238,7 @@ sys/src/libsec/port/md4.c - 664 sys sys 1015013579 4260
 sys/src/libsec/port/md4test.c - 664 sys sys 984710522 537
 sys/src/libsec/port/md5.c - 664 sys sys 985124885 3298
 sys/src/libsec/port/md5block.c - 664 sys sys 985124885 5015
-sys/src/libsec/port/md5pickle.c - 664 sys sys 988225292 657
+sys/src/libsec/port/md5pickle.c - 664 sys sys 1081199854 716
 sys/src/libsec/port/mkfile - 664 sys sys 1044931345 879
 sys/src/libsec/port/nfastrand.c - 664 sys sys 1063853595 354
 sys/src/libsec/port/primetest.c - 664 sys sys 984710523 2486
