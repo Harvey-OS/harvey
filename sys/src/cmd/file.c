@@ -168,9 +168,9 @@ int	(*call[])(void) =
 {
 	long0,		/* recognizable by first 4 bytes */
 	istring,	/* recognizable by first string */
-	ishtml,		/* html keywords */
 	isrfc822,	/* email file */
 	ismbox,		/* mail box */
+	ishtml,		/* html keywords */
 	iscint,		/* compiler/assembler intermediate */
 	islimbo,	/* limbo source */
 	isc,		/* c & alef compiler key words */

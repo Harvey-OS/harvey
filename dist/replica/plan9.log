@@ -17161,3 +17161,5 @@
 1044477173 0 a sys/src/cmd/venti/ventifs.c - 664 sys sys 1044475553 6160
 1044478974 0 c sys/man/8/fossilcons - 664 sys sys 1044478450 13360
 1044500463 0 c sys/src/cmd/history.c - 664 sys sys 1044498757 5157
+1044561782 0 c 386/bin/file - 775 sys sys 1044560286 117769
+1044561782 1 c sys/src/cmd/file.c - 664 sys sys 1044560289 20196
