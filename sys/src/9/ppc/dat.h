@@ -145,7 +145,8 @@ struct Mach
 	ulong	loopconst;
 	Perf	perf;				/* performance counters */
 
-	ulong	fairness;		/* for runproc */
+	Proc*	readied;		/* for runproc */
+	ulong	schedticks;	/* next forced context switch */
 
 	ulong	clkin;		/* basic clock frequency */
 	ulong	vco_out;

@@ -77,22 +77,30 @@ ysearch(char *file, char *ndump)
 	ulong otime, dt;
 	int toggle, started, missing;
 
-	if(ndump == nil){
-		if(slashnhack && memcmp(file, "/n/", 3) == 0){
-			p = strchr(file+3, '/');
-			if(p == nil)
-				p = file+strlen(file);
-			if(p-file >= sizeof nbuf-10){
-				fprint(2, "%s: dump name too long", file);
+	fil[0] = 0;
+	if(file[0] != '/') {
+		getwd(strchr(fil, 0), 100);
+		strcat(fil, "/");
+	}
+	strcat(fil, file);
+	if(slashnhack && memcmp(fil, "/n/", 3) == 0){
+		p = strchr(fil+3, '/');
+		if(p == nil)
+			p = fil+strlen(fil);
+		if(ndump == nil){
+			if(p-fil >= sizeof nbuf-10){
+				fprint(2, "%s: dump name too long", fil);
 				return;
 			}
-			memmove(nbuf, file+3, p-(file+3));
-			nbuf[p-(file+3)] = 0;
+			memmove(nbuf, fil+3, p-(fil+3));
+			nbuf[p-(fil+3)] = 0;
 			strcat(nbuf, "dump");
 			ndump = nbuf;
-		}else
-			ndump = "dump";
+		}
+		memmove(fil, p, strlen(p)+1);
 	}
+	if(ndump == nil)
+		ndump = "dump";
 
 	tm = localtime(time(0));
 	sprint(buf, "/n/%s/%.4d/", ndump, tm->year+1900);
@@ -125,17 +133,6 @@ ysearch(char *file, char *ndump)
 		strcpy(pair[1], file);
 	}
 	free(dir);
-	fil[0] = 0;
-	if(file[0] != '/') {
-		getwd(strchr(fil, 0), 100);
-		strcat(fil, "/");
-	}
-	strcat(fil, file);
-	if(slashnhack && memcmp(fil, "/n/", 3) == 0){
-		p = strchr(fil+3, '/');
-		if(p)
-			memmove(fil, p, strlen(p)+1);
-	}
 	otime = starttime(sflag);
 	toggle = 0;
 	for(;;) {

@@ -66,7 +66,8 @@ enum {					/* CSR15 */
 	Prom		= 0x8000,	/* promiscuous mode */
 };
 
-typedef struct {			/* Initialisation Block */
+typedef struct Iblock Iblock;
+struct Iblock {			/* Initialisation Block */
 	ushort	mode;
 	uchar	rlen;			/* upper 4 bits */
 	uchar	tlen;			/* upper 4 bits */
@@ -75,14 +76,15 @@ typedef struct {			/* Initialisation Block */
 	uchar	ladr[8];
 	ulong	rdra;
 	ulong	tdra;
-} Iblock;
+};
 
-typedef struct {			/* descriptor ring entry */
+typedef struct Dre Dre;
+struct Dre {			/* descriptor ring entry */
 	ulong	addr;
 	ulong	md1;			/* status|bcnt */
 	ulong	md2;			/* rcc|rpc|mcnt */
 	Block*	bp;
-} Dre;
+};
 
 enum {					/* md1 */
 	Enp		= 0x01000000,	/* end of packet */

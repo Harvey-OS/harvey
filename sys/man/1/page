@@ -2,8 +2,8 @@
 .SH NAME
 page \- view 
 FAX, 
-image, graphic, PostScript, PDF,
-and typesetter output
+image, graphic, PostScript, PDF, and
+typesetter output
 files
 .SH SYNOPSIS
 .B page

@@ -355,7 +355,7 @@ pcmctlwrite(char *p, long n, ulong, PCMslot *sp)
 	int index, i, dtx;
 	Rune r;
 	DevConf cf;
-	port_t port;
+	Devport port;
 
 	cmd = parsecmd(p, n);
 	if(strcmp(cmd->f[0], "configure") == 0){

@@ -122,7 +122,8 @@ struct Mach
 	void*	alarm;			/* alarms bound to this clock */
 	int	inclockintr;
 
-	ulong	fairness;		/* for runproc */
+	Proc*	readied;		/* for runproc */
+	ulong	schedticks;	/* next forced context switch */
 
 	/* stats */
 	int	tlbfault;
@@ -261,13 +262,13 @@ struct PCMslot
 typedef struct {
 	ulong	port;	
 	int	size;
-} port_t;
+} Devport;
 
 struct DevConf
 {
 	RWlock;			/* write: configure/unconfigure/suspend; read: normal access */
 	ulong	mem;		/* mapped memory address */
-	port_t	*ports;		/* ports[0]: mapped i/o regs, access size */
+	Devport	*ports;		/* ports[0]: mapped i/o regs, access size */
 	int	nports;		/* always 1 for the bitsy */
 	int	itype;		/* type of interrupt */
 	ulong	intnum;		/* interrupt number */

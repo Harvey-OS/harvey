@@ -359,7 +359,8 @@ enum {					/* Rd errors */
 	Rxe		= 0x80,		/* RX Data Error */
 };
 
-typedef struct {			/* Transmit Descriptor */
+typedef struct Td Td;
+struct Td {			/* Transmit Descriptor */
 	union {
 		uint	addr[2];	/* Data */
 		struct {		/* Context */
@@ -373,7 +374,7 @@ typedef struct {			/* Transmit Descriptor */
 	};
 	uint	control;
 	uint	status;
-} Td;
+};
 
 enum {					/* Td control */
 	LenMASK		= 0x000FFFFF,	/* Data/Packet Length Field */

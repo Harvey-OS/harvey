@@ -56,7 +56,10 @@ to print encoded representations of byte arrays.
 The verbs are
 .TP
 .B H
-base 16 (i.e. hexadecimal)
+base 16 (i.e. hexadecimal). The default encoding is
+in upper case.  The
+.B l
+flag forces lower case.
 .TP
 .B <
 base 32

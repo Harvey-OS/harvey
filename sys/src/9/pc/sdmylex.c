@@ -72,18 +72,20 @@ enum {					/* Rinterrupt */
 	Intv		= 0x80,		/* Interrupt Valid */
 };
 
-typedef struct {
+typedef struct Mbox24 Mbox24;
+struct Mbox24 {
 	uchar	code;			/* action/completion code */
 	uchar	ccb[3];			/* CCB pointer (MSB, ..., LSB) */
-} Mbox24;
+};
 
-typedef struct {
+typedef struct Mbox32 Mbox32;
+struct Mbox32 {
 	uchar	ccb[4];			/* CCB pointer (LSB, ..., MSB) */
 	uchar	btstat;			/* BT-7[45]7[SD] status */
 	uchar	sdstat;			/* SCSI device status */
 	uchar	pad;
 	uchar	code;			/* action/completion code */
-} Mbox32;
+};
 
 enum {					/* mailbox commands */
 	Mbfree		= 0x00,		/* Mailbox not in use */
@@ -185,7 +187,8 @@ enum {					/* CCB control */
 	NoIntr		= 0x80,		/* No Interrupts */
 };
 
-typedef struct {
+typedef struct Ctlr Ctlr;
+struct Ctlr {
 	int	port;			/* I/O port */
 	int	id;			/* adapter SCSI id */
 	int	bus;			/* 24 or 32 -bit */
@@ -209,7 +212,7 @@ typedef struct {
 	Lock	cachelock;
 	Ccb*	ccb;			/* list of free Ccb's */
 	Ccb**	cache;			/* last completed Ccb */
-} Ctlr;
+};
 
 /*
  * The number of mailboxes should be a multiple of 8 (4 for Mbox32)

@@ -73,8 +73,11 @@ char *sys_errlist[] = {
 };
 #define	_IO_nerr	(sizeof sys_errlist/sizeof sys_errlist[0])
 int sys_nerr = _IO_nerr;
+extern char _plan9err[];
 
 char *strerror(int n){
+	if(n == EPLAN9)
+		return _plan9err;
 	if(n >= 0 && n < _IO_nerr)
 		return sys_errlist[n];
 	if(n == EDOM)

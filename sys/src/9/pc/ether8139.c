@@ -145,12 +145,13 @@ enum {					/* Media Status Register */
 	Txfce		= 0x80,		/* Transmit Flow Control Enable */
 };
 
-typedef struct {			/* Soft Transmit Descriptor */
+typedef struct Td Td;
+struct Td {			/* Soft Transmit Descriptor */
 	int	tsd;
 	int	tsad;
 	uchar*	data;
 	Block*	bp;
-} Td;
+};
 
 enum {					/* Tsd0 */
 	SizeSHIFT	= 0,		/* Descriptor Size */
