@@ -5,6 +5,7 @@
 #define Extern extern
 #include "mips.h"
 
+#define prof profvi
 #define Percent(num, max)	(((num)*100)/(max))
 
 extern Inst itab[], ispec[], cop1[];

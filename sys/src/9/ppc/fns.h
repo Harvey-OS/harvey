@@ -9,6 +9,7 @@ void	clockintr(Ureg*);
 void	clockintrsched(void);
 void	cpuidentify(void);
 void	cpuidprint(void);
+void	cycles(uvlong*);
 void	dbgputc(int c);
 void	dcacheenb(void);
 void	dcflush(void*, ulong);
@@ -160,4 +161,10 @@ void pciclrbme(Pcidev*);
 uchar pciipin(Pcidev *, uchar);
 Pcidev* pcimatch(Pcidev*, int, int);
 Pcidev* pcimatchtbdf(int);
-#define procrestore(p)
+void	procrestore(Proc*);
+
+#ifdef ucuconf
+extern ulong getpll(void);
+extern ulong getl2cr(void);
+extern void putl2cr(ulong);
+#endif

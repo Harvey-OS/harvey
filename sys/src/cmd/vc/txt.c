@@ -1332,6 +1332,7 @@ gpseudo(int a, Sym *s, Node *n)
 	p->as = a;
 	p->from.type = D_OREG;
 	p->from.sym = s;
+	p->reg = (profileflg ? 0 : NOPROF);
 	p->from.name = D_EXTERN;
 	if(s->class == CSTATIC)
 		p->from.name = D_STATIC;

@@ -1,14 +1,18 @@
 #include	"u.h"
+#include	<trace.h>
+#include	"tos.h"
 #include	"../port/lib.h"
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
 #include	"ureg.h"
+#include	"edf.h"
 
 enum
 {
 	Qdir,
+	Qtrace,
 	Qargs,
 	Qctl,
 	Qfd,
@@ -42,11 +46,26 @@ enum
 	CMprofile,
 	CMstart,
 	CMstartstop,
+	CMstartsyscall,
 	CMstop,
 	CMwaitstop,
 	CMwired,
 	CMfair,
 	CMunfair,
+	CMtrace,
+	/* real time */
+	CMperiod,
+	CMdeadline,
+	CMcost,
+	CMsporadic,
+	CMdeadlinenotes,
+	CMadmit,
+	CMexpel,
+};
+
+enum{
+	Nevents = 0x4000,
+	Emask = Nevents - 1,
 };
 
 #define	STATSIZE	(2*KNAMELEN+12+9*12)
@@ -78,23 +97,32 @@ Dirtab procdir[] =
 
 static
 Cmdtab proccmd[] = {
-	CMclose,	"close",	2,
-	CMclosefiles,	"closefiles",	1,
-	CMfixedpri,	"fixedpri",	2,
-	CMhang,		"hang",		1,
-	CMnohang,	"nohang",	1,
-	CMnoswap,	"noswap",	1,
-	CMkill,		"kill",		1,
-	CMpri,		"pri",		2,
-	CMprivate,	"private",	1,
-	CMprofile,	"profile",	1,
-	CMstart,	"start",	1,
-	CMstartstop,	"startstop",	1,
-	CMstop,		"stop",		1,
-	CMwaitstop,	"waitstop",	1,
-	CMwired,	"wired",	2,
-	CMfair,	"fair",	1,
-	CMunfair,	"unfair",	1,
+	CMclose,		"close",		2,
+	CMclosefiles,		"closefiles",		1,
+	CMfixedpri,		"fixedpri",		2,
+	CMhang,			"hang",			1,
+	CMnohang,		"nohang",		1,
+	CMnoswap,		"noswap",		1,
+	CMkill,			"kill",			1,
+	CMpri,			"pri",			2,
+	CMprivate,		"private",		1,
+	CMprofile,		"profile",		1,
+	CMstart,		"start",		1,
+	CMstartstop,		"startstop",		1,
+	CMstartsyscall,		"startsyscall",		1,
+	CMstop,			"stop",			1,
+	CMwaitstop,		"waitstop",		1,
+	CMwired,		"wired",		2,
+	CMfair,			"fair",			1,
+	CMunfair,		"unfair",		1,
+	CMtrace,		"trace",		1,
+	CMperiod,		"period",		2,
+	CMdeadline,		"deadline",		2,
+	CMcost,			"cost",			2,
+	CMsporadic,		"sporadic",		1,
+	CMdeadlinenotes,	"deadlinenotes",	1,
+	CMadmit,		"admit",		1,
+	CMexpel,		"expel",		1,
 };
 
 /* Segment type from portdat.h */
@@ -122,7 +150,30 @@ Segment* txt2data(Proc*, Segment*);
 int	procstopped(void*);
 void	mntscan(Mntwalk*, Proc*);
 
+static Traceevent *tevents;
+static Lock tlock;
+static int topens;
+static int tproduced, tconsumed;
+static Rendez teventr;
+void	(*proctrace)(Proc*, int); 
+
 extern int unfair;
+
+static void
+profclock(Ureg *ur, Timer *)
+{
+	Tos *tos;
+
+	if(up == 0 || up->state != Running)
+		return;
+
+	/* user profiling clock */
+	if(userureg(ur)){
+		tos = (Tos*)(USTKTOP-sizeof(Tos));
+		tos->clock += TK2MS(1);
+		segclock(ur->pc);
+	}
+}
 
 static int
 procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
@@ -140,6 +191,13 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 	}
 
 	if(c->qid.path == Qdir){
+		if(s == 0){
+			strcpy(up->genbuf, "trace");
+			mkqid(&qid, Qtrace, -1, QTFILE);
+			devdir(c, qid, up->genbuf, 0, eve, 0444, dp);
+			return 1;
+		}
+
 		if(name != nil){
 			/* ignore s and use name to find pid */
 			pid = strtol(name, &ename, 10);
@@ -148,9 +206,10 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 			s = procindex(pid);
 			if(s < 0)
 				return -1;
-		}else
-			if(s >= conf.nproc)
-				return -1;
+		}
+		else if(--s >= conf.nproc)
+			return -1;
+
 		p = proctab(s);
 		pid = p->pid;
 		if(pid == 0)
@@ -165,7 +224,15 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 		devdir(c, qid, up->genbuf, 0, p->user, DMDIR|0555, dp);
 		return 1;
 	}
-	if(s >= nelem(procdir))
+
+	if(c->qid.path == Qtrace){
+		strcpy(up->genbuf, "trace");
+		mkqid(&qid, Qtrace, -1, QTFILE);
+		devdir(c, qid, up->genbuf, 0, eve, 0444, dp);
+		return 1;
+	}
+
+	if(--s >= nelem(procdir))
 		return -1;
 	if(tab)
 		panic("procgen");
@@ -200,10 +267,33 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 }
 
 static void
+_proctrace(Proc*p, Tevent etype)
+{
+	Traceevent *te;
+
+	if (p->trace == 0 || topens == 0 || 
+			(tproduced - tconsumed >= Nevents))
+		return;
+
+	te = &tevents[tproduced&Emask];
+	te->pid = p->pid;
+	te->etype = etype;
+	te->time = todget(nil);
+	tproduced++;
+
+	/* To avoid circular wakeup when used in combination with 
+	 * EDF scheduling.
+	 */
+	if (teventr.p && teventr.p->state == Wakeme)
+		wakeup(&teventr);
+}
+
+static void
 procinit(void)
 {
 	if(conf.nproc >= (1<<(16-QSHIFT))-1)
 		print("warning: too many procs for devproc\n");
+	addclock0link((void (*)(void))profclock, 113);	/* Relative prime to HZ */
 }
 
 static Chan*
@@ -253,6 +343,33 @@ procopen(Chan *c, int omode)
 	if(c->qid.type & QTDIR)
 		return devopen(c, omode, 0, 0, procgen);
 
+	if(QID(c->qid) == Qtrace){
+		if (omode != OREAD) 
+			error(Eperm);
+		lock(&tlock);
+		if (waserror()){
+			unlock(&tlock);
+			nexterror();
+		}
+		if (topens > 0)
+			error("already open");
+		topens++;
+		if (tevents == nil){
+			tevents = (Traceevent*)malloc(sizeof(Traceevent) * Nevents);
+			if(tevents == nil)
+				error(Enomem);
+			tproduced = tconsumed = 0;
+		}
+		proctrace = _proctrace;
+		unlock(&tlock);
+		poperror();
+
+		c->mode = openmode(omode);
+		c->flag |= COPEN;
+		c->offset = 0;
+		return c;
+	}
+		
 	p = proctab(SLOT(c->qid));
 	qlock(&p->debug);
 	if(waserror()){
@@ -346,6 +463,9 @@ procwstat(Chan *c, uchar *db, int n)
 	if(c->qid.type&QTDIR)
 		error(Eperm);
 
+	if(QID(c->qid) == Qtrace)
+		return devwstat(c, db, n);
+		
 	p = proctab(SLOT(c->qid));
 	nonone(p);
 	d = nil;
@@ -481,6 +601,14 @@ procfds(Proc *p, char *va, int count, long offset)
 static void
 procclose(Chan * c)
 {
+	if(QID(c->qid) == Qtrace){
+		lock(&tlock);
+		if(topens > 0)
+			topens--;
+		if(topens == 0)
+			proctrace = nil;
+		unlock(&tlock);
+	}
 	if(QID(c->qid) == Qns && c->aux != 0)
 		free(c->aux);
 }
@@ -530,10 +658,16 @@ procargs(Proc *p, char *buf, int nbuf)
 	return j;
 }
 
+static int
+eventsavailable(void *)
+{
+	return tproduced > tconsumed;
+}
+
 static long
 procread(Chan *c, void *va, long n, vlong off)
 {
-	int m;
+	int m, navail, ne;
 	long l;
 	Proc *p;
 	Waitq *wq;
@@ -548,6 +682,27 @@ procread(Chan *c, void *va, long n, vlong off)
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, procgen);
+
+	if(QID(c->qid) == Qtrace){
+		if(!eventsavailable(nil))
+			return 0;
+
+		rptr = (uchar*)va;
+		navail = tproduced - tconsumed;
+		if(navail > n / sizeof(Traceevent))
+			navail = n / sizeof(Traceevent);
+		while(navail > 0) {
+			ne = ((tconsumed & Emask) + navail > Nevents)? 
+						Nevents - (tconsumed & Emask): navail;
+			memmove(rptr, &tevents[tconsumed & Emask], 
+						ne * sizeof(Traceevent));
+
+			tconsumed += ne;
+			rptr += ne * sizeof(Traceevent);
+			navail -= ne;
+		}
+		return rptr - (uchar*)va;
+	}
 
 	p = proctab(SLOT(c->qid));
 	if(p->pid != PID(c->qid))
@@ -1090,6 +1245,39 @@ procctlclosefiles(Proc *p, int all, int fd)
 	closefgrp(f);
 }
 
+static char *
+parsetime(vlong *rt, char *s)
+{
+	uvlong ticks;
+	ulong l;
+	char *e, *p;
+	static int p10[] = {100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1};
+
+	if (s == nil)
+		return("missing value");
+	ticks=strtoul(s, &e, 10);
+	if (*e == '.'){
+		p = e+1;
+		l = strtoul(p, &e, 10);
+		if(e-p > nelem(p10))
+			return "too many digits after decimal point";
+		if(e-p == 0)
+			return "ill-formed number";
+		l *= p10[e-p-1];
+	}else
+		l = 0;
+	if (*e == '\0' || strcmp(e, "s") == 0){
+		ticks = 1000000000 * ticks + l;
+	}else if (strcmp(e, "ms") == 0){
+		ticks = 1000000 * ticks + l/1000;
+	}else if (strcmp(e, "µs") == 0 || strcmp(e, "us") == 0){
+		ticks = 1000 * ticks + l/1000000;
+	}else if (strcmp(e, "ns") != 0)
+		return "unrecognized unit";
+	*rt = ticks;
+	return nil;
+}
+
 void
 procctlreq(Proc *p, char *va, int n)
 {
@@ -1097,6 +1285,8 @@ procctlreq(Proc *p, char *va, int n)
 	int npc, pri;
 	Cmdbuf *cb;
 	Cmdtab *ct;
+	vlong time;
+	char *e;
 
 	if(p->kp)	/* no ctl requests to kprocs */
 		error(Eperm);
@@ -1178,6 +1368,13 @@ procctlreq(Proc *p, char *va, int n)
 		ready(p);
 		procstopwait(p, Proc_traceme);
 		break;
+	case CMstartsyscall:
+		if(p->state != Stopped)
+			error(Ebadctl);
+		p->procctl = Proc_tracesyscall;
+		ready(p);
+		procstopwait(p, Proc_tracesyscall);
+		break;
 	case CMstop:
 		procstopwait(p, Proc_stopme);
 		break;
@@ -1186,6 +1383,54 @@ procctlreq(Proc *p, char *va, int n)
 		break;
 	case CMwired:
 		procwired(p, atoi(cb->f[1]));
+		break;
+	case CMtrace:
+		p->trace = (p->trace + 1) & 1;
+		break;
+	/* real time */
+	case CMperiod:
+		if(p->edf == nil)
+			edfinit(p);
+		if(e=parsetime(&time, cb->f[1]))
+			error(e);
+		edfstop(p);
+		p->edf->T = time;
+		break;
+	case CMdeadline:
+		if(p->edf == nil)
+			edfinit(p);
+		if(e=parsetime(&time, cb->f[1]))
+			error(e);
+		edfstop(p);
+		p->edf->D = time;
+		break;
+	case CMcost:
+		if(p->edf == nil)
+			edfinit(p);
+		if(e=parsetime(&time, cb->f[1]))
+			error(e);
+		edfstop(p);
+		p->edf->C = time;
+		break;
+	case CMsporadic:
+		if(p->edf == nil)
+			edfinit(p);
+		p->edf->flags |= Sporadic;
+		break;
+	case CMdeadlinenotes:
+		if(p->edf == nil)
+			edfinit(p);
+		p->edf->flags |= Sendnotes;
+		break;
+	case CMadmit:
+		if(p->edf == 0)
+			error("edf params");
+		if(e = edfadmit(p))
+			error(e);
+		break;
+	case CMexpel:
+		if(p->edf)
+			edfstop(p);
 		break;
 	}
 

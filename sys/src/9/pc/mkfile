@@ -1,5 +1,6 @@
 CONF=pc
-CONFLIST=pc pccpu pcdisk pcauth
+CONFLIST=pc pccpu pcf pccpuf pcdisk pcauth
+CRAPLIST=pccd pccpud pccpusape pcext pcf pcflop pcglenda pcgr pclml pcmartha pcsape pcblast
 
 objtype=386
 </$objtype/mkfile
@@ -17,7 +18,7 @@ PORT=\
 	dev.$O\
 	fault.$O\
 	latin1.$O\
-	nulledf.$O\
+	edf.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\
@@ -74,7 +75,7 @@ $p$CONF.gz: $p$CONF
 
 install:V: $p$CONF $p$CONF.gz
 	cp $p$CONF $p$CONF.gz /$objtype/
-	# import lookout / /n/lookout && cp $p$CONF $p$CONF.gz /n/lookout/$objtype/
+	import lookout / /n/lookout && cp $p$CONF $p$CONF.gz /n/lookout/$objtype/
 
 <../boot/bootmkfile
 <../port/portmkfile
@@ -92,6 +93,7 @@ main.$O:			init.h reboot.h
 wavelan.$O:	wavelan.c ../pc/wavelan.c ../pc/wavelan.h
 etherwavelan.$O:	etherwavelan.c  ../pc/wavelan.h
 devusb.$O usbuhci.$O usbohci.$O:	usb.h
+trap.$O:	/sys/include/tos.h
 
 sd53c8xx.i:	sd53c8xx.n
 	aux/na $prereq > $target

@@ -1,5 +1,5 @@
 CONF=ucu
-CONFLIST=ucu
+CONFLIST=blast ucu
 
 loadaddr = 0x80100000
 
@@ -17,11 +17,11 @@ PORT=\
 	cache.$O\
 	chan.$O\
 	dev.$O\
+	edf.$O\
 	fault.$O\
 	latin1.$O\
 	log.$O\
 	rebootcmd.$O\
-	nulledf.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\

@@ -2,6 +2,34 @@
  * common code for all the assemblers
  */
 
+void
+praghjdicks(void)
+{
+	while(getnsc() != '\n')
+		;
+}
+
+void
+pragvararg(void)
+{
+	while(getnsc() != '\n')
+		;
+}
+
+void
+pragfpround(void)
+{
+	while(getnsc() != '\n')
+		;
+}
+
+void
+pragprofile(void)
+{
+	while(getnsc() != '\n')
+		;
+}
+
 /*
  * real allocs
  */

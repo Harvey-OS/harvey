@@ -7,6 +7,7 @@ TARG=jpg\
 	toppm\
 	png\
 	topng\
+	yuv\
 
 IMFILES=\
 	torgbv.$O\
@@ -33,7 +34,6 @@ UPDATE=\
 	rgbycc.c\
 	rgbrgbv.c\
 	${TARG:%=%.c}\
-	${TARG:%=/386/bin/%}\
 
 </sys/src/cmd/mkmany
 c=`{sed -n 's/^O=//p' /$cputype/mkfile}
@@ -45,6 +45,7 @@ $O.ppm:		$IMFILES readppm.$O ppm.$O
 $O.toppm:	writeppm.$O multichan.$O toppm.$O
 $O.png:		$IMFILES readpng.$O png.$O
 $O.topng:	writepng.$O topng.$O
+$O.yuv:		$IMFILES readyuv.$O yuv.$O
 
 torgbv.$O:	ycbcr.h rgbv.h
 

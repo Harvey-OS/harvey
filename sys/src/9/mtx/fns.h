@@ -8,10 +8,9 @@ void	clockinit(void);
 void	clockintr(Ureg*);
 void	clockintrsched(void);
 #define coherence()	eieio()
-void	timeradd(Timer *);
-void	timerdel(Timer *);
 void	cpuidentify(void);
 void	cpuidprint(void);
+#define cycles(x)
 void	dcflush(void*, ulong);
 void	delay(int);
 void	dumpregs(Ureg*);
@@ -109,6 +108,8 @@ int	screenprint(char*, ...);			/* debugging */
 int	segflush(void*, ulong);
 void	sync(void);
 int	tas(void*);
+void	timeradd(Timer *);
+void	timerdel(Timer *);
 void	touser(void*);
 void	trapinit(void);
 void	trapvec(void);

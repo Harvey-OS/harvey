@@ -221,6 +221,13 @@ rootread(Chan *c, void *buf, long n, vlong off)
 		return 0;
 	if(offset+n > d->length)
 		n = d->length - offset;
+#ifdef asdf
+print("[%d] kaddr %.8ulx base %.8ulx offset %ld (%.8ulx), n %d %.8ulx %.8ulx %.8ulx\n", 
+		t, buf, data, offset, offset, n,
+		((ulong*)(data+offset))[0],
+		((ulong*)(data+offset))[1],
+		((ulong*)(data+offset))[2]);
+#endif asdf
 	memmove(buf, data+offset, n);
 	return n;
 }

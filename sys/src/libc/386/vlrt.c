@@ -28,18 +28,7 @@ struct	Vlong
 
 void	abort(void);
 
-void
-_subv(Vlong *r, Vlong a, Vlong b)
-{
-	ulong lo, hi;
-
-	lo = a.lo - b.lo;
-	hi = a.hi - b.hi;
-	if(lo > a.lo)
-		hi--;
-	r->lo = lo;
-	r->hi = hi;
-}
+void _subv(Vlong*, Vlong, Vlong);
 
 void
 _d2v(Vlong *y, double d)

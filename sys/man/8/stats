@@ -93,12 +93,15 @@ a midrange value represents a strong signal.
 .PD
 .PP
 The graphs are plotted with time on the horizontal axis.
-The vertical axes range from 0 to 1000, multiplied by the number of processors on the machine
+The vertical axes range from 0 to 1000*sleepsecs, 
+multiplied by the number of processors on the machine
 when appropriate.
 The only exceptions are
-memory
+memory,
 and swap space,
-which display fractions of the total available, and the Ethernet error count,
+which display fractions of the total available, 
+system load, which displays a number between 0 and 1000, 
+idle and intr, which display percentages and the Ethernet error count,
 which goes from 0 to 10..
 If the value of the parameter is too large for the visible range, its value is shown
 in decimal in the upper left corner of the graph.

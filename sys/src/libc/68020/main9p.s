@@ -2,7 +2,7 @@
 
 TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 	MOVL	$a6base(SB), A6
-	MOVL	R0, _clock(SB)		/* return value of sys exec!! */
+	MOVL	R0, _tos(SB)		/* return value of sys exec!! */
 	LEA	p-64(SP),A0
 	MOVL	A0,_privates+0(SB)
 	MOVL	$16,R0

@@ -6,6 +6,14 @@
 #define	SAVELR	SPRG2
 #define	SAVEXX	SPRG3
 
+#ifdef ucuconf
+/* These only exist on the PPC 755: */
+#define	SAVER4	SPRG4
+#define	SAVER5	SPRG5
+#define	SAVER6	SPRG6
+#define	SAVER7	SPRG7
+#endif /* ucuconf */
+
 /* special instruction definitions */
 #define	BDNZ	BC	16,0,
 #define	BDNE	BC	0,2,
@@ -30,9 +38,8 @@
 	 * enable machine check
 	 */
 	MOVW	MSR, R3
-	MOVW	$(MSR_EE|MSR_IP), R4
+	MOVW	$(MSR_ME|MSR_EE|MSR_IP), R4
 	ANDN	R4, R3
-	OR		$(MSR_ME), R3
 	SYNC
 	MOVW	R3, MSR
 	MSRSYNC
@@ -45,7 +52,46 @@
 	MOVW	$KZERO, R3
 	ANDN	R3, R2
 
+	/* before this we're not running above KZERO */
 	BL		mmuinit0(SB)
+	/* after this we are */
+
+#ifdef ucuconf
+	MOVW	$0x2000000, R4		/* size */
+	MOVW	$0, R3			/* base address */
+	RLWNM	$0, R3, $~(CACHELINESZ-1), R5
+	CMP		R4, $0
+	BLE		_dcf1
+	SUB		R5, R3
+	ADD		R3, R4
+	ADD		$(CACHELINESZ-1), R4
+	SRAW	$CACHELINELOG, R4
+	MOVW	R4, CTR
+_dcf0:	DCBF	(R5)
+	ADD		$CACHELINESZ, R5
+	BDNZ	_dcf0
+_dcf1:
+	SYNC
+
+	/* BAT0,3 unused, copy of BAT2 */
+	MOVW	SPR(IBATL(2)), R3
+	MOVW	R3, SPR(IBATL(0))
+	MOVW	SPR(IBATU(2)), R3
+	MOVW	R3, SPR(IBATU(0))
+	MOVW	SPR(DBATL(2)), R3
+	MOVW	R3, SPR(DBATL(0))
+	MOVW	SPR(DBATU(2)), R3
+	MOVW	R3, SPR(DBATU(0))
+
+	MOVW	SPR(IBATL(2)), R3
+	MOVW	R3, SPR(IBATL(3))
+	MOVW	SPR(IBATU(2)), R3
+	MOVW	R3, SPR(IBATU(3))
+	MOVW	SPR(DBATL(2)), R3
+	MOVW	R3, SPR(DBATL(3))
+	MOVW	SPR(DBATU(2)), R3
+	MOVW	R3, SPR(DBATU(3))
+#endif /* ucuconf */
 
 	/* running with MMU on!! */
 
@@ -63,12 +109,85 @@
 
 	RETURN		/* not reached */
 
-#ifdef ucuconf
-#include "lucu.h"
-#endif
-#ifdef blastconf
-#include "lblast.h"
-#endif
+/*
+ * on return from this function we will be running in virtual mode.
+ * We set up the Block Address Translation (BAT) registers thus:
+ * 1) first 3 BATs are 256M blocks, starting from KZERO->0
+ * 2) remaining BAT maps last 256M directly
+ */
+TEXT	mmuinit0(SB), $0
+	/* reset all the tlbs */
+	MOVW	$64, R3
+	MOVW	R3, CTR
+	MOVW	$0, R4
+
+tlbloop:
+	TLBIE	R4
+	SYNC
+	ADD		$BIT(19), R4
+	BDNZ	tlbloop
+	TLBSYNC
+
+#ifndef ucuconf
+	/* BATs 0 and 1 cover memory from 0x00000000 to 0x20000000 */
+
+	/* KZERO -> 0, IBAT and DBAT, 256 MB */
+	MOVW	$(KZERO|(0x7ff<<2)|2), R3
+	MOVW	$(PTEVALID|PTEWRITE), R4	/* PTEVALID => Cache coherency on */
+	MOVW	R3, SPR(IBATU(0))
+	MOVW	R4, SPR(IBATL(0))
+	MOVW	R3, SPR(DBATU(0))
+	MOVW	R4, SPR(DBATL(0))
+
+	/* KZERO+256M -> 256M, IBAT and DBAT, 256 MB */
+	ADD		$(1<<28), R3
+	ADD		$(1<<28), R4
+	MOVW	R3, SPR(IBATU(1))
+	MOVW	R4, SPR(IBATL(1))
+	MOVW	R3, SPR(DBATU(1))
+	MOVW	R4, SPR(DBATL(1))
+
+	/* FPGABASE -> FPGABASE, DBAT, 16 MB */
+	MOVW	$(FPGABASE|(0x7f<<2)|2), R3
+	MOVW	$(FPGABASE|PTEWRITE|PTEUNCACHED), R4	/* FPGA memory, don't cache */
+	MOVW	R3, SPR(DBATU(2))
+	MOVW	R4, SPR(DBATL(2))
+
+	/* IBAT 2 unused */
+	MOVW	R0, SPR(IBATU(2))
+	MOVW	R0, SPR(IBATL(2))
+
+	/* direct map last block, uncached, (not guarded, doesn't work for BAT), DBAT only */
+	MOVW	$(INTMEM|(0x7ff<<2)|2), R3
+	MOVW	$(INTMEM|PTEWRITE|PTEUNCACHED), R4	/* Don't set PTEVALID here */
+	MOVW	R3, SPR(DBATU(3))
+	MOVW	R4, SPR(DBATL(3))
+
+	/* IBAT 3 unused */
+	MOVW	R0, SPR(IBATU(3))
+	MOVW	R0, SPR(IBATL(3))
+#else /* ucuconf */
+	/* BAT 2 covers memory from 0x00000000 to 0x10000000 */
+
+	/* KZERO -> 0, IBAT2 and DBAT2, 256 MB */
+	MOVW	$(KZERO|(0x7ff<<2)|2), R3
+	MOVW	$(PTEVALID|PTEWRITE), R4	/* PTEVALID => Cache coherency on */
+	MOVW	R3, SPR(DBATU(2))
+	MOVW	R4, SPR(DBATL(2))
+	MOVW	R3, SPR(IBATU(2))
+	MOVW	R4, SPR(IBATL(2))
+#endif /* ucuconf */
+
+	/* enable MMU */
+	MOVW	LR, R3
+	OR		$KZERO, R3
+	MOVW	R3, SPR(SRR0)	/* Stored PC for RFI instruction */
+	MOVW	MSR, R4
+	OR		$(MSR_IR|MSR_DR|MSR_RI|MSR_FP), R4
+	MOVW	R4, SPR(SRR1)
+	RFI		/* resume in kernel mode in caller */
+
+	RETURN
 
 TEXT	kfpinit(SB), $0
 	MOVFL	$0,FPSCR(7)
@@ -184,7 +303,8 @@ TEXT	dczap(SB), $-4	/* dczap(virtaddr, count) */
 	ADD		$(CACHELINESZ-1), R4
 	SRAW	$CACHELINELOG, R4
 	MOVW	R4, CTR
-dcz0:	DCBI	(R5)
+dcz0:
+	DCBI	(R5)
 	ADD		$CACHELINESZ, R5
 	BDNZ	dcz0
 dcz1:
@@ -239,6 +359,26 @@ tas1:
 	EIEIO
 tas0:
 	SYNC
+	RETURN
+
+TEXT	_xinc(SB),$0	/* void _xinc(long *); */
+	MOVW	R3, R4
+xincloop:
+	DCBF	(R4)	/* fix for 603x bug */
+	LWAR	(R4), R3
+	ADD		$1, R3
+	STWCCC	R3, (R4)
+	BNE		xincloop
+	RETURN
+
+TEXT	_xdec(SB),$0	/* long _xdec(long *); */
+	MOVW	R3, R4
+xdecloop:
+	DCBF	(R4)	/* fix for 603x bug */
+	LWAR	(R4), R3
+	ADD		$-1, R3
+	STWCCC	R3, (R4)
+	BNE		xdecloop
 	RETURN
 
 TEXT	tlbflushall(SB), $0
@@ -324,7 +464,7 @@ TEXT	dmiss(SB), $-4
 	MOVW	R3, 0xc(R1)
 	MOVW	0x14(R1), R3		/* count m->dmiss */
 	ADD		$1, R3
-	MOVW	R3, 0x20(R1)
+	MOVW	R3, 0x14(R1)
 	/* Real work */
 	MOVW	SPR(HASH1), R1	/* (phys) pointer into the hash table */
 	ADD		$BY2PTEG, R1, R2	/* end pointer */
@@ -354,7 +494,7 @@ dmiss2:
 	RFI
 
 /*
- * When a trap sets the TGPR bit (TLB miss traps on the 8260 do this),
+ * When a trap sets the TGPR bit (TLB miss traps do this),
  * registers get remapped: R0-R31 are temporarily inaccessible,
  * and Temporary Registers TR0-TR3 are mapped onto R0-R3.
  * While this bit is set, R4-R31 cannot be used.
@@ -765,6 +905,12 @@ TEXT	icacheenb(SB), $0
 	SYNC
 	RETURN
 
+#ifdef ucuconf
+TEXT getpll(SB),$0
+	MOVW	SPR(1009),R3
+	ISYNC
+	RETURN
+
 TEXT getl2pm(SB),$0
 	MOVW	SPR(1016),R3
 	RETURN
@@ -838,4 +984,73 @@ TEXT setdbat0(SB),$0
 	MOVW	R4,SPR(DBATU(0))
 	MOVW	4(R3),R4
 	MOVW	R4,SPR(DBATL(0))
+	RETURN
+#endif /* ucuconf */
+
+TEXT mmudisable(SB),$0
+	/* disable MMU */
+	MOVW	LR, R4
+	MOVW	$KZERO, R5
+	ANDN	R5, R4
+	MOVW	R4, SPR(SRR0)			/* Stored PC for RFI instruction */
+
+	MOVW	MSR, R4
+	MOVW	$(MSR_IR|MSR_DR|MSR_RI|MSR_FP), R5
+	ANDN	R5, R4
+	MOVW	R4, SPR(SRR1)
+
+	MOVW	SPR(HID0), R4			/* Get HID0 and clear unwanted bits */
+	MOVW	$(HID_ICE|HID_DCE), R5
+	ANDN	R5, R4
+	MOVW	R4, SPR(HID0)			/* Cache disable */
+	RFI		/* resume caller with MMU off */
+	RETURN
+
+TEXT kreboot(SB),$0
+	BL		mmudisable(SB)
+	MOVW	R3, LR
+	RETURN
+
+/* mul64fract(uvlong*r, uvlong a, uvlong b)
+ *
+ * multiply uvlong a by uvlong b and return a uvlong result.
+ *
+ * One of the input arguments is a uvlong integer,
+ * the other represents a fractional number with
+ * the integer portion in the most significant word and
+ * the fractional portion in the least significant word.
+ *
+ * Example: mul64fract(&r, 2ULL, 3ULL << 31) returns 1ULL
+ *
+ * The uvlong integer result is returned through r
+ *
+ *	ignored			r0 = lo(a0*b0)
+ *	lsw of result	r1 = hi(a0*b0) +lo(a0*b1) +	lo(a1*b0)
+ *	msw of result	r2 = 			hi(a0*b1) +	hi(a1*b0) +	lo(a1*b1)
+ *	ignored			r3 =									hi(a1*b1)
+ */
+
+TEXT	mul64fract(SB), $0
+	MOVW	a0+8(FP), R9
+	MOVW	a1+4(FP), R10
+	MOVW	b0+16(FP), R4
+	MOVW	b1+12(FP), R5
+
+	MULLW	R10,R5,R13	/* c2 = lo(a1*b1) */
+
+	MULLW	R10,R4,R12	/* c1 = lo(a1*b0) */
+	MULHWU	R10,R4,R7	/* hi(a1*b0) */
+	ADD		R7, R13		/* c2 += hi(a1*b0) */
+
+	MULLW	R9,R5,R6	/* lo(a0*b1) */
+	MULHWU	R9,R5,R7	/* hi(a0*b1) */
+	ADDC	R6, R12		/* c1 += lo(a0*b1) */
+	ADDE	R7, R13		/* c2 += hi(a0*b1) + carry */
+
+	MULHWU	R9,R4,R7	/* hi(a0*b0) */
+	ADDC	R7, R12		/* c1 += hi(a0*b0) */
+	ADDE	R0,	R13		/* c2 += carry */
+
+	MOVW	R12, 4(R3)
+	MOVW	R13, 0(R3)
 	RETURN

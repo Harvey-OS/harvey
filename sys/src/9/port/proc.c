@@ -1,9 +1,11 @@
-#include	"u.h"
+#include	<u.h>
 #include	"../port/lib.h"
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
+#include	"edf.h"
+#include	<trace.h>
 
 int	nrdy;
 Ref	noteidalloc;
@@ -26,9 +28,9 @@ enum
 	DQ=((HZ-Q)/40)*2,
 };
 
-static Schedq	runq[Nrq];
-static ulong	runvec;
-static int	quanta[Nrq] =
+Schedq	runq[Nrq];
+ulong	runvec;
+static int	quanta[Npriq] =
 {
 	Q+19*DQ, Q+18*DQ, Q+17*DQ, Q+16*DQ,
 	Q+15*DQ, Q+14*DQ, Q+13*DQ, Q+12*DQ,
@@ -36,10 +38,6 @@ static int	quanta[Nrq] =
 	Q+ 7*DQ, Q+ 6*DQ, Q+ 5*DQ, Q+ 4*DQ,
 	Q+ 3*DQ, Q+ 2*DQ, Q+ 1*DQ, Q+ 0*DQ,
 };
-
-extern Edfinterface	nulledf;
-
-Edfinterface *edf = &nulledf;
 
 char *statename[] =
 {	/* BUG: generate automatically */
@@ -55,7 +53,7 @@ char *statename[] =
 	"Broken",
 	"Stopped",
 	"Rendez",
-	"Released",
+	"Waitrelease",
 };
 
 static void pidhash(Proc*);
@@ -67,8 +65,12 @@ static void pidunhash(Proc*);
 void
 schedinit(void)		/* never returns */
 {
+	Edf *e;
+
 	setlabel(&m->sched);
 	if(up) {
+		if((e = up->edf) && (e->flags & Admitted))
+			edfrecord(up);
 		m->proc = 0;
 		switch(up->state) {
 		case Running:
@@ -76,8 +78,10 @@ schedinit(void)		/* never returns */
 			break;
 		case Moribund:
 			up->state = Dead;
-			if(edf->isedf(up))
-				edf->edfbury(up);
+			edfstop(up);
+			if (up->edf)
+				free(up->edf);
+			up->edf = nil;
 
 			/*
 			 * Holding locks from pexit:
@@ -114,10 +118,12 @@ sched(void)
 			(up && up->lastilock)?up->lastilock->pc:0, getcallerpc(x+3));
 
 	if(up){
-		if(up->nlocks && up->state != Moribund){
+		if(up->nlocks.ref && up->state != Moribund && up->delaysched < 20){
+			up->delaysched++;
  			delayedscheds++;
 			return;
 		}
+		up->delaysched = 0;
 
 		splhi();
 
@@ -143,7 +149,7 @@ sched(void)
 int
 anyready(void)
 {
-	return runvec || edf->edfanyready();
+	return runvec;
 }
 
 int
@@ -160,10 +166,6 @@ hzsched(void)
 {
 	/* another cycle, another quantum */
 	up->quanta--;
-
-	/* edf scheduler always gets first chance */
-	if(edf->isedf(up))
-		return;
 
 	/* don't bother unless someone is elegible */
 	if(anyhigher() || (!up->fixedpri && anyready())){
@@ -211,11 +213,11 @@ ready(Proc *p)
 {
 	int s, pri;
 	Schedq *rq;
+	void (*pt)(Proc*, int);
 
 	s = splhi();
 
-	if(edf->isedf(p)){
-		edf->edfready(p);
+	if(edfready(p)){
 		splx(s);
 		return;
 	}
@@ -255,6 +257,8 @@ ready(Proc *p)
 	runvec |= 1<<pri;
 	p->readytime = m->ticks;
 	p->state = Ready;
+	pt = proctrace;
+	if(pt) pt(p, SReady);
 	unlock(runq);
 	splx(s);
 }
@@ -262,7 +266,7 @@ ready(Proc *p)
 /*
  *  remove a process from a scheduling queue (called splhi)
  */
-static Proc*
+Proc*
 dequeueproc(Schedq *rq, Proc *tp)
 {
 	Proc *l, *p;
@@ -326,7 +330,7 @@ rebalance(void)
 	Schedq *rq;
 	Proc *p;
 
-	for(rq = runq; rq < &runq[Nrq]; rq++){
+	for(rq = runq; rq < &runq[Npriq]; rq++){
 		p = rq->head;
 		if(p == nil)
 			continue;
@@ -359,11 +363,9 @@ runproc(void)
 	Proc *p;
 	ulong start, now;
 	int i;
+	void (*pt)(Proc*, int);
 
 	start = perfticks();
-
-	if((p = edf->edfrunproc()) != nil)
-		return p;
 
 	/* 10 is completely arbitrary - it interacts with the comparison in rebalance */
 	/* presotto */
@@ -411,6 +413,13 @@ found:
 	p->state = Scheding;
 	p->mp = MACHP(m->machno);
 
+	if(p->edf && (p->edf->flags & Admitted)){
+		edflock();
+		edfrun(p, rq == &runq[PriEdf]);	/* start deadline timer and do admin */
+		edfunlock();
+	}
+	pt = proctrace;
+	if(pt) pt(p, SRun);
 	return p;
 }
 
@@ -473,7 +482,7 @@ newproc(void)
 	p->syserrstr = p->errbuf1;
 	p->errbuf0[0] = '\0';
 	p->errbuf1[0] = '\0';
-	p->nlocks = 0;
+	p->nlocks.ref = 0;
 	p->delaysched = 0;
 	kstrdup(&p->user, "*nouser");
 	kstrdup(&p->text, "*notext");
@@ -494,7 +503,7 @@ newproc(void)
 	p->wired = 0;
 	procpriority(p, PriNormal, 0);
 
-	p->task = nil;
+	p->edf = nil;
 
 	return p;
 }
@@ -536,8 +545,8 @@ procwired(Proc *p, int bm)
 void
 procpriority(Proc *p, int pri, int fixed)
 {
-	if(pri >= Nrq)
-		pri = Nrq - 1;
+	if(pri >= Npriq)
+		pri = Npriq - 1;
 	else if(pri < 0)
 		pri = 0;
 	p->basepri = pri;
@@ -580,16 +589,17 @@ void
 sleep(Rendez *r, int (*f)(void*), void *arg)
 {
 	int s;
+	void (*pt)(Proc*, int);
 
 	s = splhi();
 
-	if(up->nlocks)
+	if(up->nlocks.ref)
 		print("process %lud sleeps with %lud locks held, last lock 0x%p locked at pc 0x%lux\n",
-			up->pid, up->nlocks, up->lastlock, up->lastlock->pc);
+			up->pid, up->nlocks.ref, up->lastlock, up->lastlock->pc);
 	lock(r);
 	lock(&up->rlock);
 	if(r->p){
-		print("double sleep %lud %lud\n", r->p->pid, up->pid);
+		print("double sleep called from 0x%lux, %lud %lud\n", getcallerpc(&r), r->p->pid, up->pid);
 		dumpstack();
 	}
 
@@ -614,6 +624,8 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		 *  now we are committed to
 		 *  change state and call scheduler
 		 */
+		pt = proctrace;
+		if(pt) pt(up, SSleep);
 		up->state = Wakeme;
 		up->r = r;
 
@@ -633,10 +645,6 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 			 */
 			unlock(&up->rlock);
 			unlock(r);
-
-			if(edf->isedf(up))
-				edf->edfblock(up);
-
 			gotolabel(&m->sched);
 		}
 	}
@@ -657,44 +665,61 @@ tfn(void *arg)
 }
 
 void
-tsleep(Rendez *r, int (*fn)(void*), void *arg, int ms)
+twakeup(Ureg*, Timer *t)
 {
-	ulong when;
-	Proc *f, **l;
+	Proc *p;
 
-	when = ms2tk(ms) + MACHP(0)->ticks;
+	p = t->ta;
+	if(p->trend){
+		wakeup(p->trend);
+		p->trend = 0;
+	}
+}
 
-	lock(&talarm);
-	/* take out of list if checkalarm didn't */
-	if(up->trend) {
-		l = &talarm.list;
-		for(f = *l; f; f = f->tlink) {
-			if(f == up) {
-				*l = up->tlink;
-				break;
-			}
-			l = &f->tlink;
-		}
-	}
-	/* insert in increasing time order */
-	l = &talarm.list;
-	for(f = *l; f; f = f->tlink) {
-		if(f->twhen >= when)
-			break;
-		l = &f->tlink;
-	}
+void
+tnsleep(Rendez *r, int (*fn)(void*), void *arg, vlong ns)
+{
+	if (up->tt)
+		timerdel(up);
+	up->tns = ns;
+	up->tf = twakeup;
+	up->tmode = Trelative;
+	up->ta = up;
 	up->trend = r;
-	up->twhen = when;
 	up->tfn = fn;
-	up->tlink = *l;
-	*l = up;
-	unlock(&talarm);
+	timeradd(up);
 
 	if(waserror()){
-		up->twhen = 0;
+		timerdel(up);
 		nexterror();
 	}
 	sleep(r, tfn, arg);
+	if (up->tt)
+		timerdel(up);
+	up->twhen = 0;
+	poperror();
+}
+
+void
+tsleep(Rendez *r, int (*fn)(void*), void *arg, ulong ms)
+{
+	if (up->tt)
+		timerdel(up);
+	up->tns = MS2NS(ms);
+	up->tf = twakeup;
+	up->tmode = Trelative;
+	up->ta = up;
+	up->trend = r;
+	up->tfn = fn;
+	timeradd(up);
+
+	if(waserror()){
+		timerdel(up);
+		nexterror();
+	}
+	sleep(r, tfn, arg);
+	if (up->tt)
+		timerdel(up);
 	up->twhen = 0;
 	poperror();
 }
@@ -835,8 +860,7 @@ addbroken(Proc *p)
 	broken.p[broken.n++] = p;
 	qunlock(&broken);
 
-	if(edf->isedf(up))
-		edf->edfbury(up);
+	edfstop(up);
 	p->state = Broken;
 	p->psstate = 0;
 	sched();
@@ -887,8 +911,13 @@ pexit(char *exitstr, int freemem)
 	Rgrp *rgrp;
 	Pgrp *pgrp;
 	Chan *dot;
+	void (*pt)(Proc*, int);
 
 	up->alarm = 0;
+	if (up->tt)
+		timerdel(up);
+	pt = proctrace;
+	if(pt) pt(up, SDead);
 
 	/* nil out all the resources under lock (free later) */
 	qlock(&up->debug);
@@ -1006,8 +1035,7 @@ pexit(char *exitstr, int freemem)
 	lock(&procalloc);
 	lock(&palloc);
 
-	if(edf->isedf(up))
-		edf->edfbury(up);
+	edfstop(up);
 	up->state = Moribund;
 	sched();
 	panic("pexit");
@@ -1085,7 +1113,7 @@ dumpaproc(Proc *p)
 		s = statename[p->state];
 	print("%3lud:%10s pc %8lux dbgpc %8lux  %8s (%s) ut %ld st %ld bss %lux qpc %lux nl %lud nd %lud lpc %lux pri %lud\n",
 		p->pid, p->text, p->pc, dbgpc(p),  s, statename[p->state],
-		p->time[0], p->time[1], bss, p->qpc, p->nlocks, p->delaysched, p->lastlock ? p->lastlock->pc : 0, p->priority);
+		p->time[0], p->time[1], bss, p->qpc, p->nlocks.ref, p->delaysched, p->lastlock ? p->lastlock->pc : 0, p->priority);
 }
 
 void
@@ -1259,8 +1287,6 @@ procctl(Proc *p)
 		qunlock(&p->debug);
 		splhi();
 		p->state = Stopped;
-		if(edf->isedf(up))
-			edf->edfblock(up);
 		sched();
 		p->psstate = state;
 		splx(s);

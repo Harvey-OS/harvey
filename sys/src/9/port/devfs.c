@@ -267,17 +267,20 @@ rdconf(void)
 	cc = nil;
 	USED(cc); // on errors
 	if (strncmp(confstr, Cfgstr, strlen(Cfgstr)) != 0)
-		error("Bad config");
+		error("Bad config: should begin with: fsdev\\n");
 	kstrdup(&c, confstr + strlen(Cfgstr));
 	memset(confstr, 0, sizeof(confstr));
 	for (p = c; p != nil && *p != 0; p = e){
 		e = strchr(p, '\n');
 		if (e == nil)
 			e = p + strlen(p);
+		if (e == p) {
+			e++;
+			continue;
+		}
 		mconfig(p, e - p);
 	}
 	poperror();
-	free(s);	
 }
 
 

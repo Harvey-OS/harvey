@@ -416,7 +416,7 @@ xfidwrite(Xfid *x)
 	case QWeditout:
 		r = bytetorune(x->data, &nr);
 		if(w)
-			err = edittext(w->body.file, w->wrselrange.q1, r, nr);
+			err = edittext(w, w->wrselrange.q1, r, nr);
 		else
 			err = edittext(nil, 0, r, nr);
 		free(r);

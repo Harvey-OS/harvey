@@ -48,7 +48,7 @@ enum {					/* Iir */
 	Irls		= 0x06,		/* Receiver Line Status */
 	Ictoi		= 0x0C,		/* Character Time-out Indication */
 	IirMASK		= 0x3F,
-	Ife		= 0xC0,		/* FIFOs enabled */
+	Ifena		= 0xC0,		/* FIFOs enabled */
 };
 
 enum {					/* Fcr */
@@ -114,7 +114,8 @@ typedef struct Ctlr {
 	uchar	sticky[8];
 
 	Lock;
-	int	fifo;
+	int	hasfifo;
+	int	checkfifo;
 	int	fena;
 } Ctlr;
 
@@ -194,36 +195,50 @@ i8250status(Uart* uart, void* buf, long n, long offset)
 }
 
 static void
-i8250fifo(Uart* uart, int on)
+i8250fifo(Uart* uart, int level)
 {
-	int i;
 	Ctlr *ctlr;
 
-	/*
-	 * Toggle FIFOs:
-	 * if none, do nothing;
-	 * reset the Rx and Tx FIFOs;
-	 * empty the Rx buffer and clear any interrupt conditions;
-	 * if enabling, try to turn them on.
-	 */
 	ctlr = uart->regs;
+	if(ctlr->hasfifo == 0)
+		return;
 
+	/*
+	 * Changing the FIFOena bit in Fcr flushes data
+	 * from both receive and transmit FIFOs; there's
+	 * no easy way to guarantee not losing data on
+	 * the receive side, but it's possible to wait until
+	 * the transmitter is really empty.
+	 */
 	ilock(ctlr);
-	if(!ctlr->fifo){
-		csr8w(ctlr, Fcr, FIFOtclr|FIFOrclr);
-		for(i = 0; i < 16; i++){
-			csr8r(ctlr, Iir);
-			csr8r(ctlr, Rbr);
-		}
-  
-		ctlr->fena = 0;
-		if(on){
-			csr8w(ctlr, Fcr, FIFO1|FIFOena);
-			if(!(csr8r(ctlr, Iir) & Ife))
-				ctlr->fifo = 1;
-			ctlr->fena = 1;
-		}
+	while(!(csr8r(ctlr, Lsr) & Temt))
+		;
+
+	/*
+	 * Set the trigger level, default is the max.
+	 * value.
+	 * Some UARTs require FIFOena to be set before
+	 * other bits can take effect, so set it twice.
+	 */
+	ctlr->fena = level;
+	switch(level){
+	case 0:
+		break;
+	case 1:
+		level = FIFO1|FIFOena;
+		break;
+	case 4:
+		level = FIFO4|FIFOena;
+		break;
+	case 8:
+		level = FIFO8|FIFOena;
+		break;
+	default:
+		level = FIFO14|FIFOena;
+		break;
 	}
+	csr8w(ctlr, Fcr, level);
+	csr8w(ctlr, Fcr, level);
 	iunlock(ctlr);
 }
 
@@ -533,13 +548,40 @@ i8250enable(Uart* uart, int ie)
 {
 	Ctlr *ctlr;
 
+	ctlr = uart->regs;
+
+	/*
+	 * Check if there is a FIFO.
+	 * Changing the FIFOena bit in Fcr flushes data
+	 * from both receive and transmit FIFOs; there's
+	 * no easy way to guarantee not losing data on
+	 * the receive side, but it's possible to wait until
+	 * the transmitter is really empty.
+	 * Also, reading the Iir outwith i8250interrupt()
+	 * can be dangerous, but this should only happen
+	 * once, before interrupts are enabled.
+	 */
+	ilock(ctlr);
+	if(!ctlr->checkfifo){
+		/*
+		 * Wait until the transmitter is really empty.
+		 */
+		while(!(csr8r(ctlr, Lsr) & Temt))
+			;
+		csr8w(ctlr, Fcr, FIFOena);
+		if(csr8r(ctlr, Iir) & Ifena)
+			ctlr->hasfifo = 1;
+		csr8w(ctlr, Fcr, 0);
+		ctlr->checkfifo = 1;
+	}
+	iunlock(ctlr);
+
 	/*
  	 * Enable interrupts and turn on DTR and RTS.
 	 * Be careful if this is called to set up a polled serial line
 	 * early on not to try to enable interrupts as interrupt-
 	 * -enabling mechanisms might not be set up yet.
 	 */
-	ctlr = uart->regs;
 	if(ie){
 		if(ctlr->iena == 0){
 			intrenable(ctlr->irq, i8250interrupt, uart, ctlr->tbdf, uart->name);
@@ -557,7 +599,6 @@ i8250enable(Uart* uart, int ie)
 
 	(*uart->phys->dtr)(uart, 1);
 	(*uart->phys->rts)(uart, 1);
-
 
 	/*
 	 * During startup, the i8259 interrupt controller is reset.
@@ -659,10 +700,10 @@ i8250console(void)
 		break;	
 	}
 
+	(*uart->phys->enable)(uart, 0);
 	uartctl(uart, "b9600 l8 pn s1");
 	if(*cmd != '\0')
 		uartctl(uart, cmd);
-	(*uart->phys->enable)(uart, 0);
 
 	consuart = uart;
 	uart->console = 1;

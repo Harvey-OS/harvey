@@ -730,7 +730,7 @@ setladdr(Conv* c)
 /*
  *  set a local port making sure the quad of raddr,rport,laddr,lport is unique
  */
-static char*
+char*
 setluniqueport(Conv* c, int lport)
 {
 	Proto *p;
@@ -764,7 +764,7 @@ setluniqueport(Conv* c, int lport)
 /*
  *  pick a local port and set it
  */
-static void
+void
 setlport(Conv* c)
 {
 	Proto *p;
@@ -813,7 +813,7 @@ setlport(Conv* c)
  *  set a local address and port from a string of the form
  *	[address!]port[!r]
  */
-static char*
+char*
 setladdrport(Conv* c, char* str, int announcing)
 {
 	char *p;

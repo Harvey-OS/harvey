@@ -14,7 +14,6 @@ dev
 	tls
 	cap
 	kprof
-	realtime	realtimesub edf
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
@@ -24,7 +23,6 @@ dev
 	vga
 
 	sd
-	fs
 	floppy		dma
 	lpt
 

@@ -1,6 +1,6 @@
 .TH QUOTE 2
 .SH NAME
-quotestrdup, quoterunestrdup, unquotestrdup, unquoterunestrdup, quotestrfmt, quoterunestrfmt, quotefmtinstall, doquote \- quoted character strings
+quotestrdup, quoterunestrdup, unquotestrdup, unquoterunestrdup, quotestrfmt, quoterunestrfmt, quotefmtinstall, doquote, needsrcquote \- quoted character strings
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -29,6 +29,9 @@ void quotefmtinstall(void)
 .PP
 .B
 int (*doquote)(int c)
+.PP
+.B
+int needsrcquote(int c)
 .PP
 .SH DESCRIPTION
 These routines manipulate character strings, either adding or removing
@@ -117,6 +120,11 @@ characters other than blanks, control characters, or quotes be quoted.
 Regardless of the return value of
 .IR *doquote ,
 blanks, control characters, and quotes are always quoted.
+.I Needsrcquote
+is provided as a
+.I doquote
+function that flags any character special to
+.IR rc (1).
 .PP
 .I Quotestrfmt
 and

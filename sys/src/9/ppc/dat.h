@@ -98,7 +98,6 @@ struct PMMU
 {
 	int		mmupid;
 	Ureg	*	mmureg;		/* pointer to ureg structure */
-	ulong	mmuinstr;	/* last miss was an instruction miss */
 };
 
 /*
@@ -125,33 +124,33 @@ typedef	void		KMap;
 struct Mach
 {
 	/* OFFSETS OF THE FOLLOWING KNOWN BY l.s */
-/*0x00*/	int		machno;			/* physical id of processor */
-/*0x04*/	ulong	splpc;			/* pc that called splhi() */
-/*0x08*/	Proc	*	proc;			/* current process on this processor */
+/*0x00*/	int		machno;	/* physical id of processor */
+/*0x04*/	ulong	splpc;	/* pc that called splhi() */
+/*0x08*/	Proc	*	proc;	/* current process on this processor */
 	/* Debugging/statistics for software TLB in l.s (therefore, also known by l.s) */
-/*0x0c*/	ulong	tlbfault;			/* type of last miss */
-/*0x10*/	ulong	imiss;			/* number of instruction misses */
-/*0x14*/	ulong	dmiss;			/* number of data misses */
+/*0x0c*/	ulong	tlbfault;	/* type of last miss */
+/*0x10*/	ulong	imiss;	/* number of instruction misses */
+/*0x14*/	ulong	dmiss;	/* number of data misses */
 
 	/* ordering from here on irrelevant */
 
 	Imap*	imap;
-	uchar*	flash;
 
-	ulong	ticks;			/* of the clock since boot time */
-	Label	sched;			/* scheduler wakeup */
-	Lock		alarmlock;		/* access to alarm list */
-	void	*	alarm;			/* alarms bound to this clock */
+	ulong	ticks;		/* of the clock since boot time */
+	Label	sched;		/* scheduler wakeup */
+	Lock		alarmlock;	/* access to alarm list */
+	void	*	alarm;		/* alarms bound to this clock */
 	int		inclockintr;
 	int		cputype;
 	ulong	loopconst;
-	Perf	perf;			/* performance counters */
+	Perf	perf;				/* performance counters */
 
 	ulong	fairness;		/* for runproc */
 
 	ulong	clkin;		/* basic clock frequency */
 	ulong	vco_out;
 	vlong	cpuhz;
+	uvlong	cyclefreq;		/* Frequency of user readable cycle counter */
 	ulong	bushz;
 	ulong	dechz;
 	ulong	tbhz;

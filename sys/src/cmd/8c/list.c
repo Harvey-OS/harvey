@@ -49,6 +49,9 @@ Pconv(Fmt *fp)
 	if(p->as == ADATA)
 		sprint(str, "	%A	%D/%d,%D",
 			p->as, &p->from, p->from.scale, &p->to);
+	else if(p->as == ATEXT)
+		sprint(str, "	%A	%D,%d,%D",
+			p->as, &p->from, p->from.scale, &p->to);
 	else
 		sprint(str, "	%A	%D,%D",
 			p->as, &p->from, &p->to);

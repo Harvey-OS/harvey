@@ -282,10 +282,11 @@ if known.
 .PP
 The
 .B sysstat
-file holds 8 numbers:
+file holds 10 numbers:
 processor number, context switches, interrupts, system calls, page faults,
-TLB faults, TLB purges, and load average.
+TLB faults, TLB purges, load average, idle time and time spent servicing interrupts.
 The load average is in units of milli-CPUs and is decayed over time;
+idle time and interrupt time are percentage units;
 the others are total counts from boot time.
 If the machine is a multiprocessor,
 .B sysstat

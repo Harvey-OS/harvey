@@ -708,14 +708,14 @@ snprintheader(char *buf, int len, Message *m)
 
 	if(*m->from == 0){
 		// no from
-		snprint(buf, len, "%-3s    %s %5d  %s",
+		snprint(buf, len, "%-3s    %s %6d  %s",
 			s_to_c(id),
 			m->type,
 			m->len,
 			m->filename);
 	} else if(*m->subject){
 		cracktime(m->date, timebuf, sizeof(timebuf));
-		snprint(buf, len, "%-3s %c%c%c %5d  %11.11s %s  %s",
+		snprint(buf, len, "%-3s %c%c%c %6d  %11.11s %-32.32s %-32.32s",
 			s_to_c(id),
 			m->child ? 'H' : ' ',
 			m->deleted ? 'd' : ' ',
@@ -726,7 +726,7 @@ snprintheader(char *buf, int len, Message *m)
 			m->subject);
 	} else {
 		cracktime(m->date, timebuf, sizeof(timebuf));
-		snprint(buf, len, "%-3s %c%c%c %5d  %11.11s %s",
+		snprint(buf, len, "%-3s %c%c%c %6d  %11.11s %s",
 			s_to_c(id),
 			m->child ? 'H' : ' ',
 			m->deleted ? 'd' : ' ',

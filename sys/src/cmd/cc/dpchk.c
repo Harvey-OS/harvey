@@ -416,3 +416,25 @@ pragfpround(void)
 		else
 			print("%4ld: fproundflg off\n", lineno);
 }
+
+void
+pragprofile(void)
+{
+	Sym *s;
+
+	profileflg = 0;
+	s = getsym();
+	if(s) {
+		profileflg = atoi(s->name+1);
+		if(strcmp(s->name, "on") == 0 ||
+		   strcmp(s->name, "yes") == 0)
+			fproundflg = 1;
+	}
+	while(getnsc() != '\n')
+		;
+	if(debug['f'])
+		if(profileflg)
+			print("%4ld: profileflg %d\n", lineno, profileflg);
+		else
+			print("%4ld: profileflg off\n", lineno);
+}

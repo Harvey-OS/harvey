@@ -382,15 +382,35 @@ unionrewind(Chan *c)
 	qunlock(&c->umqlock);
 }
 
-static void
-dirqid(uchar *p, Qid *q)
+static int
+dirfixed(uchar *p, uchar *e, Dir *d)
 {
-	p += BIT16SZ+BIT16SZ+BIT32SZ;
-	q->type = GBIT8(p);
-	p += BIT8SZ;
-	q->vers = GBIT32(p);
+	int len;
+
+	len = GBIT16(p)+BIT16SZ;
+	if(p + len > e)
+		return -1;
+
+	p += BIT16SZ;	/* ignore size */
+	d->type = devno(GBIT16(p), 1);
+	p += BIT16SZ;
+	d->dev = GBIT32(p);
 	p += BIT32SZ;
-	q->path = GBIT64(p);
+	d->qid.type = GBIT8(p);
+	p += BIT8SZ;
+	d->qid.vers = GBIT32(p);
+	p += BIT32SZ;
+	d->qid.path = GBIT64(p);
+	p += BIT64SZ;
+	d->mode = GBIT32(p);
+	p += BIT32SZ;
+	d->atime = GBIT32(p);
+	p += BIT32SZ;
+	d->mtime = GBIT32(p);
+	p += BIT32SZ;
+	d->length = GBIT64(p);
+
+	return len;
 }
 
 static char*
@@ -530,30 +550,28 @@ mountfix(Chan *c, uchar *op, long n, long maxn)
 	uchar *p;
 	int dirlen, rest;
 	long l;
-	Qid q;
 	uchar *buf, *e;
+	Dir d;
 
 	p = op;
 	buf = nil;
 	nbuf = 0;
 	for(e=&p[n]; p+BIT16SZ<e; p+=dirlen){
-		dirlen = BIT16SZ+GBIT16(p);
-		if(p+dirlen > e)
+		dirlen = dirfixed(p, e, &d);
+		if(dirlen < 0)
 			break;
-		dirqid(p, &q);
 		nc = nil;
 		mh = nil;
-		if(findmount(&nc, &mh, c->type, c->dev, q)){
+		if(findmount(&nc, &mh, d.type, d.dev, d.qid)){
 			/*
 			 * If it's a union directory and the original is
 			 * in the union, don't rewrite anything.
 			 */
 			for(m=mh->mount; m; m=m->next)
-				if(eqchantdqid(m->to, c->type, c->dev, q, 1))
+				if(eqchantdqid(m->to, d.type, d.dev, d.qid, 1))
 					goto Norewrite;
 
 			name = dirname(p, &nname);
-		//	print("mnted %.*s\n", utfnlen(name, nname), name);
 			/*
 			 * Do the stat but fix the name.  If it fails, leave old entry.
 			 * BUG: If it fails because there isn't room for the entry,
@@ -1136,17 +1154,19 @@ sysremove(ulong *arg)
 
 	validaddr(arg[0], 1, 0);
 	c = namec((char*)arg[0], Aremove, 0, 0);
+	/*
+	 * Removing mount points is disallowed to avoid surprises
+	 * (which should be removed: the mount point or the mounted Chan?).
+	 */
+	if(c->ismtpt){
+		cclose(c);
+		error(Eismtpt);
+	}
 	if(waserror()){
 		c->type = 0;	/* see below */
 		cclose(c);
 		nexterror();
 	}
-	/*
-	 * Removing mount points is disallowed to avoid surprises
-	 * (which should be removed: the mount point or the mounted Chan?).
-	 */
-	if(c->ismtpt)
-		error(Eismtpt);
 	devtab[c->type]->remove(c);
 	/*
 	 * Remove clunks the fid, but we need to recover the Chan

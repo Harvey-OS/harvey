@@ -28,11 +28,15 @@ usage(void)
 	threadexitsall("usage");
 }
 
+#include <pool.h>
 void
 threadmain(int argc, char **argv)
 {
 	rfork(RFNOTEG);
 	ARGBEGIN{
+	case 'd':
+		mainmem->flags |= POOL_PARANOIA|POOL_ANTAGONISM;
+		break;
 	case 'D':
 		chatty9p++;
 		break;

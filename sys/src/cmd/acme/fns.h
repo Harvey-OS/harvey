@@ -83,7 +83,7 @@ Window*	makenewwindow(Text *t);
 int	expand(Text*, uint, uint, Expand*);
 Rune*	skipbl(Rune*, int, int*);
 Rune*	findbl(Rune*, int, int*);
-char*	edittext(File*, int, Rune*, int);	
+char*	edittext(Window*, int, Rune*, int);	
 
 #define	runemalloc(a)		(Rune*)emalloc((a)*sizeof(Rune))
 #define	runerealloc(a, b)	(Rune*)erealloc((a), (b)*sizeof(Rune))

@@ -603,7 +603,7 @@ waitaudio(void)
 
 	audio.intr = 0;
 	pokeaudio();
-	tsleep(&audio.vous, anybuf, 0, 10*1000);
+	tsleep(&audio.vous, anybuf, 0, 10000);
 	if(audio.intr == 0) {
 /*		print("#A: audio timeout\n");	/**/
 		audio.active = 0;

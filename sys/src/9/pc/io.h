@@ -7,6 +7,7 @@ enum {
 	VectorBPT	= 3,		/* breakpoint */
 	VectorUD	= 6,		/* invalid opcode exception */
 	VectorCNA	= 7,		/* coprocessor not available */
+	Vector2F	= 8,		/* double fault */
 	VectorCSO	= 9,		/* coprocessor segment overrun */
 	VectorPF	= 14,		/* page fault */
 	VectorCERR	= 16,		/* coprocessor error */

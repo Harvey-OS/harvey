@@ -50,6 +50,7 @@ struct Mousestate
 
 struct Mouseinfo
 {
+	Lock;
 	Mousestate;
 	ulong	lastcounter;	/* value when /dev/mouse read */
 	Rendez	r;

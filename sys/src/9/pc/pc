@@ -1,6 +1,7 @@
 dev
 	root
 	cons
+
 	arch
 	pnp		pci
 	env
@@ -14,7 +15,6 @@ dev
 	tls
 	cap
 	kprof
-	realtime	realtimesub edf
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
@@ -29,7 +29,7 @@ dev
 
 	audio		dma
 	pccard
-	i82365		cis	
+	i82365		cis
 	uart
 	usb
 	tv
@@ -63,7 +63,7 @@ misc
 	archmp		mp apic
 
 	sdata		pci sdscsi
-	sd53c8xx	pci sdscsi
+	sd53c8xx		pci sdscsi
 	sdmylex		pci sdscsi
 
 	uarti8250
@@ -81,6 +81,7 @@ misc
 	vgai81x	+cur
 	vgamach64xx	+cur
 	vgamga2164w	+cur
+	vgamga4xx	+cur
 	vganeomagic	+cur
 	vganvidia	+cur
 	vgargb524	=cur
@@ -89,7 +90,6 @@ misc
 	vgatvp3020	=cur
 	vgatvp3026	=cur
 	vgavmware	+cur
-	vgamga4xx	+cur
 
 ip
 	il

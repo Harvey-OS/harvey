@@ -67,6 +67,12 @@ Option
 writes progress lines to standard output once a second.
 Each line contains two numbers, the bytes transferred so
 far and the total length to be transferred.
+.PP
+If the environment variable
+.B httpproxy
+is set, it is used as a URL denoting an HTTP proxy server.
+All HTTP accesses use this server to get the page instead of
+calling the destination server.
 .SH SOURCE
 .B /sys/src/cmd/hget.c
 .SH "SEE ALSO"

@@ -4,6 +4,7 @@ objtype=power
 LIB=/$objtype/lib/libc.a
 SFILES=\
 	argv0.s\
+	cycles.s\
 	getcallerpc.s\
 	getfcr.s\
 	main9.s\

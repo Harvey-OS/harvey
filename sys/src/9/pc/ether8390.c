@@ -28,9 +28,9 @@ enum {					/* NIC core registers */
 	Crda0		= 0x08,		/* current remote DMA address 0 */
 	Crda1		= 0x09,		/* current remote DMA address 1 */
 	Rsr		= 0x0C,		/* receive status register */
-	Cntr0		= 0x0D,		/* frame alignment errors */
-	Cntr1		= 0x0E,		/* CRC errors */
-	Cntr2		= 0x0F,		/* missed packet errors */
+	Ref0		= 0x0D,		/* frame alignment errors */
+	Ref1		= 0x0E,		/* CRC errors */
+	Ref2		= 0x0F,		/* missed packet errors */
 
 					/* Page 0, write */
 	Pstart		= 0x01,		/* page start register */
@@ -594,9 +594,9 @@ interrupt(Ureg*, void* arg)
 		}
 
 		if(isr & Cnt){
-			ether->frames += regr(ctlr, Cntr0);
-			ether->crcs += regr(ctlr, Cntr1);
-			ether->buffs += regr(ctlr, Cntr2);
+			ether->frames += regr(ctlr, Ref0);
+			ether->crcs += regr(ctlr, Ref1);
+			ether->buffs += regr(ctlr, Ref2);
 			regw(ctlr, Isr, Cnt);
 		}
 	}
@@ -719,7 +719,7 @@ attach(Ether* ether)
 	regw(ctlr, Isr, 0xFF);
 	regw(ctlr, Imr, Cnt|Ovw|Txe|Rxe|Ptx|Prx);
 	regw(ctlr, Rcr, r);
-	r = regr(ctlr, Cntr2);
+	r = regr(ctlr, Ref2);
 	regw(ctlr, Tcr, LpbkNORMAL);
 	iunlock(ctlr);
 	USED(r);

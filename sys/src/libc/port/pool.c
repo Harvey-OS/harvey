@@ -210,10 +210,10 @@ checklist(Free *t)
 static void
 checktree(Free *t, int a, int b)
 {
-	assert(t->next==nil || t->next->prev==t);
-	assert(t->prev==nil || t->prev->next==t);
 	assert(t->magic==FREE_MAGIC);
 	assert(a < t->size && t->size < b);
+	assert(t->next==nil || t->next->prev==t);
+	assert(t->prev==nil || t->prev->next==t);
 	checklist(t);
 	if(t->left)
 		checktree(t->left, a, t->size);
@@ -940,8 +940,7 @@ D2B(Pool *p, void *v)
 	Alloc *a;
 	a = _D2B(v);
 	if(a->magic != KEMPT_MAGIC)
-		p->panic(p, "D2B called on non-block %p (double-free?) (magic %.8luX)", 
-					v, a->magic);
+		p->panic(p, "D2B called on non-block %p (double-free?)", v);
 	return a;
 }
 
@@ -1243,10 +1242,10 @@ poolcheckl(Pool *p)
 {
 	Arena *a;
 
-	if(p->freeroot)
-		checktree(p->freeroot, 0, 1<<30);
 	for(a=p->arenalist; a; a=a->down)
 		poolcheckarena(p, a);
+	if(p->freeroot)
+		checktree(p->freeroot, 0, 1<<30);
 }
 
 void
