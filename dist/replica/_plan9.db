@@ -688,7 +688,7 @@ acme/bin/unind - 755 sys sys 1015011256 27
 acme/bin/wnew - 775 sys sys 1046184422 84
 acme/mail - 20000000775 sys sys 1015011265 0
 acme/mail/386 - 20000000775 sys sys 1015011538 0
-acme/mail/386/Mail - 775 sys sys 1107920771 179076
+acme/mail/386/Mail - 775 sys sys 1112270166 179119
 acme/mail/Mail - 775 sys sys 1015011264 202
 acme/mail/alpha - 20000000775 sys sys 1015011521 0
 acme/mail/arm - 20000000775 sys sys 1015011525 0
@@ -704,7 +704,7 @@ acme/mail/src/html.c - 664 sys sys 1058463659 1348
 acme/mail/src/mail.c - 664 sys sys 1107894665 11277
 acme/mail/src/mesg.c - 664 sys sys 1043463888 26266
 acme/mail/src/mkfile - 664 sys sys 1037034918 364
-acme/mail/src/reply.c - 664 sys sys 1041137203 11326
+acme/mail/src/reply.c - 664 sys sys 1112270143 11373
 acme/mail/src/util.c - 664 sys sys 1022112164 1391
 acme/mail/src/win.c - 664 sys sys 1033936955 5428
 acme/mkfile - 775 sys sys 1035390142 242
@@ -3083,7 +3083,7 @@ rc/bin/ps2gif - 775 sys sys 1055701384 107
 rc/bin/ps2pdf - 775 sys sys 1048636764 646
 rc/bin/psfax - 775 sys sys 945617208 1738
 rc/bin/psu - 775 sys sys 1019769762 333
-rc/bin/reboot - 775 sys sys 1020011207 36
+rc/bin/reboot - 775 sys sys 1112276658 39
 rc/bin/replica - 20000000775 sys sys 1018321122 0
 rc/bin/replica/changes - 775 sys sys 1022177304 276
 rc/bin/replica/defs - 664 sys sys 1103390458 778
@@ -3100,11 +3100,11 @@ rc/bin/service.auth/authsrv.tcp567 - 775 sys sys 1016832561 34
 rc/bin/service.auth/tcp110 - 775 sys sys 1016832647 85
 rc/bin/service.auth/tcp22 - 775 sys sys 1016832620 87
 rc/bin/service.auth/tcp995 - 775 sys sys 1030586935 128
-rc/bin/service/_il17007 - 775 sys sys 1016832393 82
-rc/bin/service/_il17008 - 775 sys sys 945617221 32
-rc/bin/service/_il17031 - 775 sys sys 945617222 25
-rc/bin/service/_tcp515 - 775 sys sys 960144427 120
-rc/bin/service/_tcp564 - 775 sys sys 1018831800 32
+rc/bin/service/!il17007 - 775 sys sys 1016832393 82
+rc/bin/service/!il17008 - 775 sys sys 945617221 32
+rc/bin/service/!il17031 - 775 sys sys 945617222 25
+rc/bin/service/!tcp515 - 775 sys sys 960144427 120
+rc/bin/service/!tcp564 - 775 sys sys 1018831800 32
 rc/bin/service/startnfs - 775 sys sys 1016832368 283
 rc/bin/service/tcp113 - 775 sys sys 1032057986 90
 rc/bin/service/tcp143 - 775 sys sys 959192998 51
@@ -12483,3 +12483,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+acme/mail/386/Mail - 775 sys sys 1112328581 179119
