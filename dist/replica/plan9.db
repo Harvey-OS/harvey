@@ -389,7 +389,7 @@
 386/bin/sort - 775 sys sys 1064598313 81046
 386/bin/spin - 775 sys sys 1071245348 654328
 386/bin/split - 775 sys sys 1064598314 74007
-386/bin/srv - 775 sys sys 1071245348 80563
+386/bin/srv - 775 sys sys 1074492965 80673
 386/bin/srvfs - 775 sys sys 1069592375 39735
 386/bin/srvold9p - 775 sys sys 1064598316 130962
 386/bin/ssh - 775 sys sys 1071245349 210501
@@ -539,7 +539,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1074320139 81428
+386/lib/libmp.a - 664 sys sys 1074492965 77700
 386/lib/libndb.a - 664 sys sys 1073851273 54474
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -6916,10 +6916,10 @@ sys/src/cmd/auth/secstore/secacct.c - 644 sys sys 1015008431 755
 sys/src/cmd/auth/secstore/secchk.c - 664 sys sys 1055698993 560
 sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1062277640 12269
 sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1041890053 841
-sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1064789004 7955
+sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1074559798 7998
 sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1064667494 4971
 sys/src/cmd/auth/secstore/util.c - 664 sys sys 1021579985 1498
-sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1045504896 8973
+sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1074559811 8985
 sys/src/cmd/auth/status - 775 sys sys 1015008430 738
 sys/src/cmd/auth/uniq.c - 664 sys sys 1015008430 1429
 sys/src/cmd/auth/userpasswd.c - 664 sys sys 1015008432 591
