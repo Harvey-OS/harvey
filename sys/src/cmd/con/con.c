@@ -534,7 +534,7 @@ dosystem(int fd, char *cmd)
 	char *p;
 
 	p = system(fd, cmd);
-	if(*p){
+	if(p){
 		print("con: %s terminated with %s\n", cmd, p);
 		exits(p);
 	}

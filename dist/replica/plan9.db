@@ -184,7 +184,7 @@
 386/bin/cmp - 775 sys sys 1073851217 41271
 386/bin/colors - 775 sys sys 1071245301 147903
 386/bin/comm - 775 sys sys 1064598111 59755
-386/bin/con - 775 sys sys 1064598112 76255
+386/bin/con - 775 sys sys 1077854442 76224
 386/bin/cp - 775 sys sys 1064598112 62444
 386/bin/cpp - 775 sys sys 1064598113 148797
 386/bin/cpu - 775 sys sys 1076990352 138646
@@ -542,7 +542,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1077751659 77700
+386/lib/libmp.a - 664 sys sys 1077854442 78536
 386/lib/libndb.a - 664 sys sys 1077636970 54474
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -7270,7 +7270,7 @@ sys/src/cmd/cmp.c - 664 sys sys 1072145760 2379
 sys/src/cmd/colors.c - 664 sys sys 951763912 3186
 sys/src/cmd/comm.c - 664 sys sys 944961350 2140
 sys/src/cmd/con - 20000000775 sys sys 944961996 0
-sys/src/cmd/con/con.c - 664 sys sys 1046654774 15214
+sys/src/cmd/con/con.c - 664 sys sys 1077839879 15213
 sys/src/cmd/con/hayes.c - 664 sys sys 1014925263 3865
 sys/src/cmd/con/mkfile - 664 sys sys 1046654774 204
 sys/src/cmd/con/rufilio.h - 664 sys sys 944960877 595
