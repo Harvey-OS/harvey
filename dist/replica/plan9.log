@@ -16823,3 +16823,10 @@
 1040698912 0 c rc/bin/man - 775 sys sys 1040698721 2088
 1040698912 1 c sys/man/8/boot - 664 sys sys 1040698789 6482
 1040698912 2 c sys/man/8/plan9.ini - 664 sys sys 1040698791 20588
+1040952686 0 c sys/src/cmd/9nfs/nfsserver.c - 664 sys sys 1040952455 15576
+1040952686 1 c sys/src/cmd/9nfs/portmapper.c - 664 sys sys 1040952456 3179
+1040952686 2 c sys/src/cmd/9nfs/server.c - 664 sys sys 1040952456 11027
+1040952686 3 c sys/src/cmd/9nfs/unixnames.c - 664 sys sys 1040952457 5974
+1040970707 0 c 386/bin/aux/nfsserver - 775 sys sys 1040969002 171040
+1040970707 1 c 386/bin/aux/pcnfsd - 775 sys sys 1040969003 126744
+1040970707 2 c 386/bin/aux/portmapper - 775 sys sys 1040969003 125632
