@@ -73,7 +73,6 @@ enum {					/* Device/Head */
 	Dev1		= 0xB0,		/* Slave */
 	Lba		= 0x40,		/* LBA mode */
 	Lba48	= 0x100,		/* LBA48 mode (internal use only) */
-	Lba48always	= 0x200,	/* LBA48 mode always (internal use only) */
 };
 
 enum {					/* Status, Alternate Status */
@@ -608,17 +607,11 @@ retry:
 			drive->sectors = (drive->info[Ilba1]<<16)
 					 |drive->info[Ilba0];
 			drive->dev |= Lba;
+			print("LBA %llux\n", drive->sectors);
 			if(drive->info[Icapabilities] & 0x0400){
 				sectors = drive->info[Ilba48]
 					| (drive->info[Ilba48+1]<<16)
 					| ((vlong)drive->info[Ilba48+2]<<32);
-				/*
-				 * BUG: I'm not convinced that Icap & 0x0400
-				 * is the right bit to check for Lba48, because
-				 * most drives seem to have it set, and the ones
-				 * that are smaller than 137GB have sectors == 0.
-				 * Let's ignore those.
-				 */
 				if(sectors){
 					drive->sectors = sectors;
 					drive->dev |= Lba48|Lba;
@@ -1231,7 +1224,7 @@ atageniostart(Drive* drive, ulong lba)
 	int as, c, cmdport, ctlport, h, len, s, use48;
 
 	use48 = 0;
-	if((drive->dev&Lba48always) || (lba>>28)){
+	if(lba>>28){
 		if(!(drive->dev & Lba48))
 			return -1;
 		use48 = 1;
@@ -2036,20 +2029,6 @@ atawctl(SDunit* unit, Cmdbuf* cb)
 		}
 		if(atastandby(drive, period) != SDok)
 			error(Ebadctl);
-	}
-	else if(strcmp(cb->f[0], "48always") == 0){
-		switch(cb->nf){
-		default:
-			error(Ebadctl);
-		case 2:
-			if(strcmp(cb->f[1], "on") == 0)
-				drive->dev |= Lba48always;
-			else if(strcmp(cb->f[1], "off") == 0)
-				drive->dev &= ~Lba48always;
-			else
-				error(Ebadctl);
-			break;
-		}
 	}
 	else
 		error(Ebadctl);

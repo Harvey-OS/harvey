@@ -140,7 +140,7 @@
 386/bin/aux/stub - 775 sys sys 1053200910 136360
 386/bin/aux/tcpostio - 775 sys sys 1048745028 196997
 386/bin/aux/text2post - 775 sys sys 1039758546 77253
-386/bin/aux/timesync - 775 sys sys 1053200911 127815
+386/bin/aux/timesync - 775 sys sys 1054017074 127890
 386/bin/aux/tr2post - 775 sys sys 1045537960 175522
 386/bin/aux/trampoline - 775 sys sys 1045537960 81157
 386/bin/aux/typepasswd - 775 sys sys 1045537960 68154
@@ -338,7 +338,7 @@
 386/bin/read - 775 sys sys 1039758585 56544
 386/bin/replica - 20000000775 sys sys 1018321168 0
 386/bin/replica/applychanges - 775 sys sys 1045538045 99047
-386/bin/replica/applylog - 775 sys sys 1045538046 99757
+386/bin/replica/applylog - 775 sys sys 1054017074 99904
 386/bin/replica/changes - 775 sys sys 1020319082 42
 386/bin/replica/compactdb - 775 sys sys 1039758586 77913
 386/bin/replica/pull - 775 sys sys 1020319083 39
@@ -350,7 +350,7 @@
 386/bin/rio - 775 sys sys 1046368790 302875
 386/bin/rm - 775 sys sys 1045538047 60036
 386/bin/rtstats - 775 sys sys 1048745063 177363
-386/bin/rx - 775 sys sys 1053200931 79568
+386/bin/rx - 775 sys sys 1054017075 79737
 386/bin/sam - 775 sys sys 1045538049 156896
 386/bin/scat - 775 sys sys 1045538050 282041
 386/bin/scp - 775 sys sys 1053200932 150552
@@ -3207,7 +3207,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1053573344 243317
+sys/games/lib/fortunes - 664 sys sys 1054049159 243650
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1014929061 1133
@@ -5186,7 +5186,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1048644129 3760
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1033134905 51568
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1053837290 46979
+sys/src/9/pc/sdata.c - 664 sys sys 1054088388 46387
 sys/src/9/pc/sdmylex.c - 664 sys sys 1015014523 27750
 sys/src/9/pc/sdscsi.c - 664 sys sys 1015014523 7412
 sys/src/9/pc/trap.c - 664 sys sys 1047261661 18991
