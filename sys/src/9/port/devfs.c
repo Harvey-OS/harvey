@@ -20,7 +20,6 @@ enum {
 	Fcat,		// catenation of others
 	Finter,		// interleaving of others
 	Fpart,		// part of others
-	Fconf,		// configuration command, not a device.
 
 	Blksize	= 8*1024,	// for Finter only
 	Maxconf	= 1024,		// max length for config
@@ -65,12 +64,10 @@ static Cmdtab configs[] = {
 	Fcat,	"cat",		0,
 	Finter,	"inter",	0,
 	Fpart,	"part",		5,
-	Fconf,	"config",	3,
 };
 
 static char	confstr[Maxconf];
 static int	configed;
-static int	bootconfig;	// true while configuring from fscfg
 
 
 static Fsdev*
@@ -163,21 +160,6 @@ mpshut(Fsdev *mp)
 	memset(mp, 0, sizeof(*mp));
 }
 
-static void
-wrconf(Fsdev *mp)
-{
-	Chan	*cc;
-
-	cc = mp->idev[0];
-	if (waserror()){
-		print("#k: can't write config\n");
-		nexterror();
-	}
-	devtab[cc->type]->write(cc, confstr, strlen(confstr)+1, 0);
-	mpshut(mp);
-	poperror();
-}
-
 
 static void
 mconfig(char* a, long n)	// "name idev0 idev1"
@@ -191,8 +173,6 @@ mconfig(char* a, long n)	// "name idev0 idev1"
 	char	*c;
 	vlong	size, start;
 
-	size = 0;
-	start = 0;
 	if (confstr[0] == 0)
 		seprint(confstr, confstr+sizeof(confstr), Cfgstr);
 	mp = nil;
@@ -243,10 +223,7 @@ mconfig(char* a, long n)	// "name idev0 idev1"
 			error(Egreg);
 		mp->ndevs++;
 	}
-	if (ct->index == Fconf && !bootconfig)
-		wrconf(mp);
-	else
-		setdsize(mp);
+	setdsize(mp);
 	poperror();
 	configed = 1;
 	qunlock(&lck);
@@ -264,7 +241,6 @@ rdconf(void)
 	char	*e;
 	Chan	*cc;
 
-	bootconfig = 1;
 	s = getconf("fsconfig");
 	if (s == nil){
 		mustrd = 0;
@@ -274,7 +250,6 @@ rdconf(void)
 	cc = nil;
 	c = nil;
 	if (waserror()){
-		bootconfig = 0;
 		configed = 1;
 		if (cc != nil)
 			cclose(cc);
@@ -300,7 +275,6 @@ rdconf(void)
 		mconfig(p, e - p);
 	}
 	poperror();
-	bootconfig = 0;
 	free(s);	
 }
 
@@ -421,6 +395,7 @@ catio(Fsdev *mp, int isread, void *a, long n, vlong off)
 	int	i;
 	Chan*	mc;
 	long	l, wl, res;
+	char*	s;
 	//print("catio %d %p %ld %lld\n", isread, a, n, off);
 	res = n;
 	for (i = 0; n >= 0 && i < mp->ndevs ; i++){
@@ -434,6 +409,7 @@ catio(Fsdev *mp, int isread, void *a, long n, vlong off)
 		else
 			l = n;
 		//print("\tdev %d %p %ld %lld\n", i, a, l, off);
+		s = a;
 
 		if (isread)
 			wl = devtab[mc->type]->read(mc, a, l, off);

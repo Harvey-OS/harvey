@@ -16899,3 +16899,17 @@
 1041890558 8 c sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1041890054 12213
 1041890558 9 c sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1041890053 841
 1041890558 10 c sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1041890054 4351
+1041971572 0 c 386/bin/ftpfs - 775 sys sys 1041971509 148902
+1041971572 1 c 386/bin/auth/secstore - 775 sys sys 1041971507 186269
+1041971572 2 c 386/bin/auth/secstored - 775 sys sys 1041971507 193006
+1041971572 3 c 386/bin/auth/secuser - 775 sys sys 1041971508 149458
+1041971572 4 c acme/mail/386/Mail - 775 sys sys 1041971510 175845
+1041971572 5 c sys/man/1/INDEX - 664 sys sys 1041971548 2895
+1041971572 6 c sys/man/2/INDEX - 664 sys sys 1041971549 20120
+1041971572 7 c sys/man/3/INDEX - 664 sys sys 1041971549 369
+1041971572 8 c sys/man/4/INDEX - 664 sys sys 1041971550 953
+1041971572 9 c sys/man/5/INDEX - 664 sys sys 1041971550 193
+1041971572 10 c sys/man/6/INDEX - 664 sys sys 1041971551 410
+1041971572 11 c sys/man/7/INDEX - 664 sys sys 1041971551 89
+1041971572 12 c sys/man/8/INDEX - 664 sys sys 1041971551 2472
+1041973373 0 c sys/src/9/port/devfs.c - 664 sys sys 1041971958 10698
