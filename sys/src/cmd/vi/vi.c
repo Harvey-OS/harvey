@@ -7,7 +7,7 @@
 
 char	*file = "v.out";
 int	datasize;
-int	textbase;
+ulong	textbase;
 Biobuf	bp, bi;
 Fhdr	fhdr;
 

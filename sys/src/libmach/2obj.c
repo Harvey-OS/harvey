@@ -43,7 +43,9 @@ _read2(Biobuf *bp, Prog *p)
 		return 0;
 	as |= ((c & 0xff) << 8);
 	p->kind = aNone;
-	if(as == ANAME){
+	if(as == ANAME || as == ASIGNAME){
+		if(as == ASIGNAME)
+			skip(bp, 4);	/* signature */
 		p->kind = aName;
 		p->type = type2char(Bgetc(bp));		/* type */
 		p->sym = Bgetc(bp);			/* sym */

@@ -15,7 +15,7 @@ Ref	noteidalloc;
 void updatecpu(Proc*);
 int reprioritize(Proc*);
 
-long	delayedscheds;	/* statistics */
+ulong	delayedscheds;	/* statistics */
 long skipscheds;
 long preempts;
 ulong load;

@@ -805,7 +805,7 @@ tvopen(Chan *c, int omode)
 	c->offset = 0;
 
 	if (TYPE(c->qid) == Qadata)
-		c->session = (Session *)0;
+		c->aux = nil;
 	return c;
 }
 
@@ -865,7 +865,7 @@ tvread(Chan *c, void *a, long n, vlong offset)
 	}
 
 	case Qadata: {
-		ulong uablock = (ulong)c->session, bnum, tvablock;
+		ulong uablock = (ulong)c->aux, bnum, tvablock;
 		int boffs, nbytes;
 
 		tv = &tvs[DEV(c->qid)];
@@ -905,7 +905,7 @@ tvread(Chan *c, void *a, long n, vlong offset)
 		decref(&tv->aref);
 		
 		uablock += (boffs + nbytes) % tv->absize;
-		c->session = (Session *)uablock;
+		c->aux = (void*)uablock;
 
 		return nbytes;
 	}

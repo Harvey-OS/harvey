@@ -640,7 +640,7 @@ cpuidprint(void)
 
 	i = sprint(buf, "cpu%d: %dMHz ", m->machno, m->cpumhz);
 	if(m->cpuidid[0])
-		i += sprint(buf+i, "%s ", m->cpuidid);
+		i += sprint(buf+i, "%12.12s ", m->cpuidid);
 	sprint(buf+i, "%s (cpuid: AX 0x%4.4uX DX 0x%4.4uX)\n",
 		m->cpuidtype, m->cpuidax, m->cpuiddx);
 	print(buf);

@@ -81,6 +81,4 @@ devproc.$O edf.$O proc.$O: /sys/include/trace.h
 boot$CONF.out: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
 	$BOOTDIR/mkboot $CONF > boot$CONF.c
 	$CC $CFLAGS boot$CONF.c
-	$LD -o boot$CONF.out boot$CONF.$O $BOOTLIB print.$O
-
-
+	$LD -o boot$CONF.out boot$CONF.$O $BOOTLIB

@@ -329,7 +329,7 @@ TEXT putcr4(SB), $0
 	MOVL	AX, CR4
 	RET
 
-TEXT _cycles(SB), $0				/* time stamp counter; cycles since power up */
+TEXT _cycles(SB), $0				/* time stamp counter */
 	RDTSC
 	MOVL	vlong+0(FP), CX			/* &vlong */
 	MOVL	AX, 0(CX)			/* lo */
