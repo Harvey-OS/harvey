@@ -4724,7 +4724,7 @@ sys/man/3/pipe - 664 sys sys 1032640674 1145
 sys/man/3/pnp - 664 sys sys 1019864752 4645
 sys/man/3/proc - 664 sys sys 1020313480 8076
 sys/man/3/realtime - 664 sys sys 1037718180 13104
-sys/man/3/root - 664 sys sys 958419690 689
+sys/man/3/root - 664 sys sys 1046958450 632
 sys/man/3/rtc - 664 sys sys 954378857 667
 sys/man/3/sd - 664 sys sys 1018386776 4805
 sys/man/3/segment - 664 sys sys 1017423721 2378
@@ -10127,7 +10127,7 @@ sys/src/cmd/unix/drawterm/crypt.c - 664 sys sys 954098609 17813
 sys/src/cmd/unix/drawterm/dev.c - 664 sys sys 954098610 5006
 sys/src/cmd/unix/drawterm/devcon.c - 664 sys sys 985124883 7006
 sys/src/cmd/unix/drawterm/devdraw.c - 664 sys sys 958504757 39499
-sys/src/cmd/unix/drawterm/devip-unix.c - 664 sys sys 1022047027 15038
+sys/src/cmd/unix/drawterm/devip-unix.c - 664 sys sys 1046970237 15063
 sys/src/cmd/unix/drawterm/devip-win.c - 664 sys sys 1015701212 15055
 sys/src/cmd/unix/drawterm/devmnt.c - 664 sys sys 954098613 14492
 sys/src/cmd/unix/drawterm/devmouse.c - 664 sys sys 954098613 3982
