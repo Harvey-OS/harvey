@@ -9093,7 +9093,7 @@ sys/src/cmd/hoc/tests.a - 664 sys sys 944961000 1782
 sys/src/cmd/html2ms.c - 664 sys sys 1014926694 10030
 sys/src/cmd/htmlfmt - 20000000775 sys sys 1016466464 0
 sys/src/cmd/htmlfmt/dat.h - 664 sys sys 1034015651 845
-sys/src/cmd/htmlfmt/html.c - 664 sys sys 1034015651 5954
+sys/src/cmd/htmlfmt/html.c - 664 sys sys 1060876449 6032
 sys/src/cmd/htmlfmt/main.c - 664 sys sys 1034015651 1108
 sys/src/cmd/htmlfmt/mkfile - 664 sys sys 1034015650 297
 sys/src/cmd/htmlfmt/util.c - 664 sys sys 1015364025 1765
