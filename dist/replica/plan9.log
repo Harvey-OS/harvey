@@ -16784,3 +16784,4 @@
 1096389071 0 c sys/src/cmd/acme/exec.c - 664 sys sys 1096388101 28104
 1096389071 1 c sys/src/cmd/acme/wind.c - 664 sys sys 1096388102 11187
 1096428678 0 c 386/bin/acme - 775 sys sys 1096427265 424088
+1096468295 0 c sys/src/9/pc/sdata.c - 664 sys sys 1096467467 50899

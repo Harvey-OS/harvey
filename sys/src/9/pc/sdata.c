@@ -1855,6 +1855,7 @@ atapnp(void)
 		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
 		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
 		case (0x4D68<<16)|0x105A:	/* Promise PDC20268 */
+		case (0x4D69<<16)|0x105A:	/* Promise Ultra/133 TX2 */
 		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
 		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
 			pi = 0x85;
@@ -1890,7 +1891,17 @@ atapnp(void)
 			pcicfgw8(p, 0x44, r|0x08);
 			r = pcicfgr8(p, 0x46);
 			pcicfgw8(p, 0x46, (r & 0x0C)|0xF0);
+			/*FALLTHROUGH*/
 		case (0x7469<<16)|0x1022:	/* AMD 3111 */
+			/*
+			 * This can probably be lumped in with the 768 above.
+			 */
+			/*FALLTHROUGH*/
+		case (0x00D5<<16)|0x10DE:	/* nVidia nForce3 */
+			/*
+			 * Ditto, although it may have a different base
+			 * address for the registers (0x50?).
+			 */
 			break;
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
