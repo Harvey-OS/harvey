@@ -1,8 +1,8 @@
-PFILES=`{builtin cd ../port;echo *.c | sed 's/ /|/g; s/\.c//g'}
-^($PFILES)\.$O:R:	'../port/\1.c'
+PORTFILES=`{../port/mkfilelist ../port}
+^($PORTFILES)\.$O:R:	'../port/\1.c'
 	$CC $CFLAGS -I. ../port/$stem1.c
 
-IPFILES=`{builtin cd ../ip;echo *.c | sed 's/ /|/g; s/\.c//g'}
+IPFILES=`{../port/mkfilelist ../ip}
 ^($IPFILES)\.$O:R:	'../ip/\1.c' ../ip/ip.h
 	$CC $CFLAGS -I. ../ip/$stem1.c
 
@@ -30,7 +30,7 @@ all:V:
 		mk 'CONF='$i
 
 clean:V:
-	rm -f *.[$OS] *.root.s *.rootc.c cfs.h fs.h init.h conf.h *.out
+	rm -f *.[$OS] *.root.s *.rootc.c cfs.h fs.h init.h conf.h *.out *.m
 	for(i in $CONFLIST)
 		mk $i.clean
 

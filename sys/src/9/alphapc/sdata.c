@@ -1,1 +1,0 @@
-#include "../pc/sdata.c"

@@ -1,0 +1,3 @@
+PCFILES=`{../port/mkfilelist ../pc}
+^($PCFILES)\.$O:R:	'../pc/\1.c'
+	$CC $CFLAGS -OI. ../pc/$stem1.c
