@@ -160,8 +160,8 @@ later display those to/from TCP port 80:
 .sp
 .EX
 % ramfs
-% snoopy -df 'ip(s=135.104.9.2&d=135.104.9.6)||\\
-	ip(s=135.104.9.6&d=135.104.9.2)' > /tmp/quux
+% snoopy -df 'ip(s=135.104.9.2 && d=135.104.9.6) ||\\
+	ip(s=135.104.9.6 && d=135.104.9.2)' > /tmp/quux
 <interrupt from the keyboard>
 % snoopy -tf 'tcp(sd=80)' /tmp/quux
 .EE

@@ -23,5 +23,7 @@ for(i){
 		ls -ldp /n/sources/patch/$i >/n/sources/patch/$i/origls &&
 		mkdir /n/sources/patch/$dst/$j && 
 		dircp /n/sources/patch/$i /n/sources/patch/$dst/$j &&
-		rm -rf /n/sources/patch/$i
+		rm -rf /n/sources/patch/$i &&
+		test -s /n/sources/patch/$dst/$j/email &&
+		patch/notify $dst/$j
 }
