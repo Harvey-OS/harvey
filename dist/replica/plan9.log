@@ -13276,3 +13276,4 @@
 1073314930 0 c sys/src/cmd/nm.c - 664 sys sys 1073313392 4912
 1073325731 0 c sys/src/9/port/portclock.c - 664 sys sys 1073323995 4758
 1073325731 1 c sys/src/9/port/portdat.h - 664 sys sys 1073324006 22707
+1073491355 0 c sys/man/4/lnfs - 664 sys sys 1073491345 1219
