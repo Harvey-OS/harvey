@@ -16280,3 +16280,5 @@
 1089419462 0 m sys/src/cmd/8c/div.c - 664 sys sys 1089382812 3313
 1089419462 1 m sys/src/cmd/8c/mul.c - 664 sys sys 1089382812 5535
 1089496876 0 c lib/vgadb - 664 sys sys 1089495677 28511
+1089739922 0 c sys/src/cmd/ip/mkfile - 664 sys sys 1089739069 1232
+1089739922 1 d sys/src/cmd/ip/bootp.h - 664 sys sys 944961013 0
