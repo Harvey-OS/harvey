@@ -1,6 +1,6 @@
 .TH NDB 2
 .SH NAME
-ndbopen, ndbcat, ndbchanged, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetval, ndbfree, ipattr, ndbgetipaddr, ndbipinfo, csipinfo, ndbhash, ndbparse, csgetval, ndblookval, dnsquery, ndbdiscard, ndbconcatenate, ndbreorder, ndbsubstitute \- network database
+ndbopen, ndbcat, ndbchanged, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetvalue, ndbfree, ipattr, ndbgetipaddr, ndbipinfo, csipinfo, ndbhash, ndbparse, csgetvalue, ndblookvalue, dnsquery, ndbdiscard, ndbconcatenate, ndbreorder, ndbsubstitute, ndbgetval, csgetval, ndblookval \- network database
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -33,13 +33,14 @@ Ndbtuple*	ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 Ndbtuple*	ndbsnext(Ndbs *s, char *attr, char *val)
 .PP
 .B
-Ndbtuple*	ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val,
+Ndbtuple*	ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val,
 .br
 .B
-		char *rattr, char *buf)
+		char *rattr, char *buf, int buflen)
 .PP
 .B
-Ndbtuple*	csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
+Ndbtuple*	csgetvalue(char *netroot, char *attr, char *val, char *rattr,
+		char *buf, int buflen)
 .PP
 .B
 char*	ipattr(char *name)
@@ -67,7 +68,8 @@ Ndbtuple*	ndbparse(Ndb *db)
 Ndbtuple*	dnsquery(char *netroot, char *domainname, char *type)
 .PP
 .B
-Ndbtuple*	ndblookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
+Ndbtuple*	ndblookvalue(Ndbtuple *entry, Ndbtuple *line, char *attr,
+		char *to, int tolen)
 .PP
 .B
 void	ndbfree(Ndbtuple *db)
@@ -136,10 +138,11 @@ On failure they return zero.
 typedef struct Ndbtuple Ndbtuple;
 struct Ndbtuple {
         char      attr[Ndbalen];
-        char      val[Ndbvlen];
+        char      *val;
         Ndbtuple  *entry;
         Ndbtuple  *line;
         ulong     ptr;    /* for the application; starts 0 */
+        char      valbuf[Ndbvlen];  /* initial allocation for val */
 };
 .EE
 .LP
@@ -186,23 +189,21 @@ field points to the pair within the entry matched by the
 or
 .IR ndbsnext .
 .PP
-.I Ndbgetval
+.I Ndbgetvalue
 searches the database for an entry containing not only an
 attribute/value pair,
 .IR attr = val ,
 but also a pair with the attribute
 .IR rattr .
-If successful, it copies the value associated with
+If successful, it copies up to
+.I buflen
+bytes of the value associated with
 .I rattr
 into
 .IR buf .
-.I Buf
-must point to an area at least
-.I Ndbvlen
-long.
-.I Csgetval
+.I Csgetvalue
 is like
-.I ndbgetval
+.I ndbgetvalue
 but queries the connection server
 instead of looking directly at the database.
 Its first argument specifies the network root to use.
@@ -373,13 +374,15 @@ name servers.  Returns domain name
 and name server
 .RI ( ns )
 .PP
-.I Ndblookval
+.I Ndblookvalue
 searches 
 .I entry
 for the tuple
 with attribute
 .IR attr ,
-copies the value into
+copies up to
+.I tolen
+bytes of the value into
 .IR to ,
 and returns a pointer to the tuple.
 If
@@ -452,3 +455,28 @@ is freed.
 .SH DIAGNOSTICS
 These routines set
 .IR errstr .
+.IR Ndbgetvalue ,
+.IR csgetvalue ,
+and
+.I ndblookvalue
+set
+.I errstr
+to
+.B "return value truncated"
+if the buffer provided isn't long enough for the
+returned value.
+.SH BUGS
+.IR Ndbgetval ,
+.IR csgetval ,
+and
+.I ndblookval
+are deprecated versions of
+.IR ndbgetvalue ,
+.IR csgetvalue ,
+and
+.IR ndblookvalue .
+They expect a fixed 64 byte long result
+buffer and existed when the values of a
+.I Ndbtuple
+structure where fixed length.
+

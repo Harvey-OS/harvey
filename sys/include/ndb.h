@@ -43,11 +43,12 @@ struct Ndb
  */
 struct Ndbtuple
 {
-	char		attr[Ndbalen];	/* attribute name */
-	char		val[Ndbvlen];	/* value(s) */
-	Ndbtuple	*entry;		/* next tuple in this entry */
-	Ndbtuple	*line;		/* next tuple on this line */
-	ulong		ptr;		/* (for the application - starts 0) */
+	char		attr[Ndbalen];		/* attribute name */
+	char		*val;			/* value(s) */
+	Ndbtuple	*entry;			/* next tuple in this entry */
+	Ndbtuple	*line;			/* next tuple on this line */
+	ulong		ptr;			/* (for the application - starts 0) */
+	char		valbuf[Ndbvlen];	/* initial allocation for value */
 };
 
 /*
@@ -121,6 +122,7 @@ struct Ndbs
 #define NDB_IPlen 16
 
 Ndbtuple*	csgetval(char*, char*, char*, char*, char*);
+Ndbtuple*	csgetvalue(char*, char*, char*, char*, char*, int);
 Ndbtuple*	csipinfo(char*, char*, char*, char**, int);
 Ndbtuple*	dnsquery(char*, char*, char*);
 char*		ipattr(char*);
@@ -132,14 +134,18 @@ Ndbtuple*	ndbdiscard(Ndbtuple*, Ndbtuple*);
 void		ndbfree(Ndbtuple*);
 Ndbtuple*	ndbgetipaddr(Ndb*, char*);
 Ndbtuple*	ndbgetval(Ndb*, Ndbs*, char*, char*, char*, char*);
+Ndbtuple*	ndbgetvalue(Ndb*, Ndbs*, char*, char*, char*, char*, int);
 ulong		ndbhash(char*, int);
 Ndbtuple*	ndbipinfo(Ndb*, char*, char*, char**, int);
 Ndbtuple*	ndblookval(Ndbtuple*, Ndbtuple*, char*, char*);
+Ndbtuple*	ndblookvalue(Ndbtuple*, Ndbtuple*, char*, char*, int);
+Ndbtuple*	ndbnew(char*, char*);
 Ndb*		ndbopen(char*);
 Ndbtuple*	ndbparse(Ndb*);
 int		ndbreopen(Ndb*);
 Ndbtuple*	ndbreorder(Ndbtuple*, Ndbtuple*);
 Ndbtuple*	ndbsearch(Ndb*, Ndbs*, char*, char*);
 long		ndbseek(Ndb*, long);
+void		ndbsetval(Ndbtuple*, char*, int);
 Ndbtuple*	ndbsnext(Ndbs*, char*, char*);
 Ndbtuple*	ndbsubstitute(Ndbtuple*, Ndbtuple*, Ndbtuple*);

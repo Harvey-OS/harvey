@@ -4,8 +4,8 @@
 #include <ndb.h>
 #include <ndbhf.h>
 
-static void nstrcpy(char*, char*);
-static void mkptrname(char*, char*);
+static void nstrcpy(char*, char*, int);
+static void mkptrname(char*, char*, int);
 static Ndbtuple *doquery(int, char *dn, char *type);
 
 /*
@@ -17,7 +17,7 @@ static Ndbtuple *doquery(int, char *dn, char *type);
 Ndbtuple*
 dnsquery(char *net, char *val, char *type)
 {
-	char rip[Ndbvlen];
+	char rip[128];
 	char *p;
 	Ndbtuple *t;
 	int fd;
@@ -57,7 +57,7 @@ dnsquery(char *net, char *val, char *type)
 
 	/* if this is a reverse lookup, first lookup the domain name */
 	if(strcmp(type, "ptr") == 0){
-		mkptrname(val, rip);
+		mkptrname(val, rip, sizeof rip);
 		t = doquery(fd, rip, "ptr");
 	} else
 		t = doquery(fd, val, type);
@@ -70,18 +70,18 @@ dnsquery(char *net, char *val, char *type)
  *  convert address into a reverse lookup address
  */
 static void
-mkptrname(char *ip, char *rip)
+mkptrname(char *ip, char *rip, int rlen)
 {
-	char buf[Ndbvlen];
+	char buf[128];
 	char *p, *np;
 	int len;
 
 	if(strstr(ip, "in-addr.arpa") || strstr(ip, "IN-ADDR.ARPA")){
-		nstrcpy(rip, ip);
+		nstrcpy(rip, ip, rlen);
 		return;
 	}
 
-	nstrcpy(buf, ip);
+	nstrcpy(buf, ip, sizeof buf);
 	for(p = buf; *p; p++)
 		;
 	*p = '.';
@@ -102,10 +102,10 @@ mkptrname(char *ip, char *rip)
 }
 
 static void
-nstrcpy(char *to, char *from)
+nstrcpy(char *to, char *from, int len)
 {
-	strncpy(to, from, Ndbvlen-1);
-	to[Ndbvlen-1] = 0;
+	strncpy(to, from, len);
+	to[len-1] = 0;
 }
 
 static Ndbtuple*
