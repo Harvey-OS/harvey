@@ -9,6 +9,7 @@ secstored, secuser \- secstore commands
 [-x]
 .br
 .B auth/secuser
+[-v]
 username
 .br
 .PP
@@ -36,6 +37,14 @@ The
 .B /adm/secstore
 directory should be created mode 770 for the userid
 or groupid of the secstored process.
+.PP
+By default,
+.I secstored
+warns the client if no account exists.
+If you prefer to obscure this information, use
+.I secuser
+to create an account
+.BR FICTITIOUS .
 .SH FILES
 .B /adm/secstore/who/$uid
 secstore account name, expiration date, verifier

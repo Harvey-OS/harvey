@@ -81,26 +81,7 @@ dirls(char *path)
 		list = erealloc(list, len+n+1);
 		len += snprint(list+len, n+1, "%-*s\t%s %s\n", nmwid, dirbuf[i].name, buf, dig);
 	}
+	free(dirbuf);
 	return list;
 }
 
-#ifdef NOTDEF
-char *dirls(char *);
-void
-main(int argc, char *argv[])
-{
-	int i;
-	char *s;
-
-	for(i=1; i<argc; i++){
-		if((s = dirls(argv[i])) == nil)
-			sysfatal("dirls: %r");
-		write(1, s, strlen(s));
-		if(i != (argc-1))
-			write(1, "\n", 1);
-		free(s);
-	}
-
-	exits(nil);
-}
-#endif

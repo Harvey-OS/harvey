@@ -190,7 +190,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 	memset(hexsigma, 0, strlen(hexsigma));
 	n = conn->secret(conn, digest, 0);
 	memset(digest, 0, SHA1dlen);
-	if(n < 0){//assert
+	if(n < 0){
 		writerr(conn, "can't set secret");
 		goto done;
 	}
@@ -239,7 +239,7 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 
 	// parse first message into C, m
 	eol = strchr(mess, '\n');
-	if(strncmp("C=", mess, 2) != 0 || !eol){//assert
+	if(strncmp("C=", mess, 2) != 0 || !eol){
 		fprint(2,"mess[1]=%s\n", mess);
 		writerr(conn, "PAK version mismatch");
 		goto done;
@@ -248,7 +248,7 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	*eol = 0;
 	hexm = eol+3;
 	eol = strchr(hexm, '\n');
-	if(strncmp("m=", hexm-2, 2) != 0 || !eol){//assert
+	if(strncmp("m=", hexm-2, 2) != 0 || !eol){
 		writerr(conn, "PAK version mismatch");
 		goto done;
 	}
@@ -273,7 +273,7 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	// random y, mu=g**y, sigma=g**xy
 	y = mprand(240, genrandom, nil);
 	mpmod(y, pak->q, y);
-	if(mpcmp(y, mpzero) == 0){//assert
+	if(mpcmp(y, mpzero) == 0){
 		mpassign(mpone, y);
 	}
 	mpexp(pak->g, y, pak->p, mu);
@@ -290,12 +290,12 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	conn->write(conn, (uchar*)mess2, strlen(mess2));
 
 	// recv hash2(g**xy)
-	if(readstr(conn, mess2) < 0){//assert
+	if(readstr(conn, mess2) < 0){
 		writerr(conn, "couldn't read verifier");
 		goto done;
 	}
 	eol = strchr(mess2, '\n');
-	if(strncmp("k'=", mess2, 3) != 0 || !eol){//assert
+	if(strncmp("k'=", mess2, 3) != 0 || !eol){
 		writerr(conn, "verifier syntax error");
 		goto done;
 	}
@@ -311,7 +311,7 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	// set session key
 	shorthash("session", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	n = conn->secret(conn, digest, 1);
-	if(n < 0){//assert
+	if(n < 0){
 		writerr(conn, "can't set secret");
 		goto done;
 	}
