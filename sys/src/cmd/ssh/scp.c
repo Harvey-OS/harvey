@@ -14,11 +14,11 @@ isatty(int fd)
 	return 0;
 }
 
-#define	OK		0x00
+#define	OK	0x00
 #define	ERROR	0x01
 #define	FATAL	0x02
 
-char *progname;
+char	*progname;
 
 int	dflag;
 int	fflag;
@@ -28,13 +28,13 @@ int	rflag;
 int	tflag;
 int	vflag;
 
-int remote;
+int	remote;
 
-char *exitflag = nil;
+char	*exitflag = nil;
 
 void	scperror(int, char*, ...);
 void	mustbedir(char*);
-void receive(char*);
+void	receive(char*);
 char	*fileaftercolon(char*);
 void	destislocal(char *cmd, int argc, char *argv[], char *dest);
 void	destisremote(char *cmd, int argc, char *argv[], char *host, char *dest);
@@ -43,9 +43,9 @@ void	send(char*);
 void	senddir(char*, int, Dir*);
 int 	getresponse(void);
 
-char theuser[32];
+char	theuser[32];
 
-char ssh[] = "/bin/ssh";
+char	ssh[] = "/bin/ssh";
 
 int	remotefd0;
 int	remotefd1;
@@ -341,7 +341,7 @@ receivedir(char *dir, int exists, Dir *d, int settimes, ulong atime, ulong mtime
 
 	setmodes = pflag;
 	if(exists){
-		if(d->qid.type != QTDIR) {
+		if(!(d->qid.type & QTDIR)) {
 			scperror(0, "%s: protocol botch: directory requrest for non-directory", dir);
 			return d;
 		}
@@ -398,7 +398,7 @@ receive(char *dest)
 	atime = 0L;
 	settimes = 0;
 	isdir = 0;
-	if ((d = dirstat(dest)) && d->qid.type == QTDIR) {
+	if ((d = dirstat(dest)) && (d->qid.type & QTDIR)) {
 		isdir = 1;
 	}
 	if(dflag && !isdir)
@@ -568,7 +568,7 @@ send(char *file)
 		goto Return;
 	}
 
-	if(d->qid.type == QTDIR){
+	if(d->qid.type & QTDIR){
 		if(rflag)
 			senddir(file, fd, d);
 		else
@@ -793,7 +793,7 @@ mustbedir(char *file)
 		scperror(1, "%s: %r", file);
 		return;
 	}
-	if(d->qid.type != QTDIR)
+	if(!(d->qid.type & QTDIR))
 		scperror(1, "%s: Not a directory", file);
 	free(d);
 }

@@ -437,7 +437,7 @@
 386/bin/upas/mlowner - 775 sys sys 1085077113 90099
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1064598354 75149
-386/bin/upas/nedmail - 775 sys sys 1093489559 153913
+386/bin/upas/nedmail - 775 sys sys 1094094462 154219
 386/bin/upas/pop3 - 775 sys sys 1085077114 259808
 386/bin/upas/qer - 775 sys sys 1085077114 97840
 386/bin/upas/ratfs - 775 sys sys 1089257539 109406
@@ -5099,7 +5099,7 @@ sys/man/8/stub - 664 sys sys 1044830500 943
 sys/man/8/swap - 664 sys sys 944959679 880
 sys/man/8/timesync - 664 sys sys 1022590210 1629
 sys/man/8/tlssrv - 664 sys sys 1037580152 2594
-sys/man/8/trampoline - 664 sys sys 1081200125 0
+sys/man/8/trampoline - 664 sys sys 1094150519 1073
 sys/man/8/udpecho - 664 sys sys 954305553 303
 sys/man/8/update - 664 sys sys 961259288 2336
 sys/man/8/venti - 664 sys sys 1069101926 5422
@@ -9598,7 +9598,7 @@ sys/src/cmd/lex/ncform - 664 sys sys 944961017 4060
 sys/src/cmd/lex/parser.y - 664 sys sys 1063855045 14194
 sys/src/cmd/lex/sub1.c - 664 sys sys 1063855044 9784
 sys/src/cmd/lex/sub2.c - 664 sys sys 944961016 17125
-sys/src/cmd/lnfs.c - 664 sys sys 1033565778 13330
+sys/src/cmd/lnfs.c - 664 sys sys 1094156765 13332
 sys/src/cmd/look.c - 664 sys sys 944961619 5994
 sys/src/cmd/lp - 20000000775 sys sys 953344617 0
 sys/src/cmd/lp/LOCK.c - 664 sys sys 1015090023 1066
@@ -9733,7 +9733,7 @@ sys/src/cmd/netstat.c - 664 sys sys 1078839959 3846
 sys/src/cmd/news.c - 664 sys sys 1014926614 3778
 sys/src/cmd/nfs.c - 664 sys sys 1050068720 31096
 sys/src/cmd/nm.c - 664 sys sys 1073313392 4912
-sys/src/cmd/nntpfs.c - 664 sys sys 1055699250 18903
+sys/src/cmd/nntpfs.c - 664 sys sys 1094156765 18904
 sys/src/cmd/ns.c - 664 sys sys 984717934 3558
 sys/src/cmd/p.c - 664 sys sys 1043516305 1497
 sys/src/cmd/page - 20000000775 sys sys 956344628 0
@@ -10366,7 +10366,7 @@ sys/src/cmd/ssh/cmsg.c - 664 sys sys 1071095546 8351
 sys/src/cmd/ssh/mkfile - 664 sys sys 1048179592 1045
 sys/src/cmd/ssh/msg.c - 664 sys sys 1092516579 8102
 sys/src/cmd/ssh/pubkey.c - 664 sys sys 1019928902 3974
-sys/src/cmd/ssh/scp.c - 664 sys sys 1075130172 13886
+sys/src/cmd/ssh/scp.c - 664 sys sys 1094156297 13889
 sys/src/cmd/ssh/smsg.c - 664 sys sys 1092516575 6374
 sys/src/cmd/ssh/ssh.c - 664 sys sys 1066515693 9667
 sys/src/cmd/ssh/ssh.h - 664 sys sys 1091904420 6086
@@ -12337,4 +12337,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/upas/nedmail - 775 sys sys 1094094462 154219
+386/bin/lnfs - 775 sys sys 1094180929 97410
+386/bin/nntpfs - 775 sys sys 1094180930 158833
+386/bin/scp - 775 sys sys 1094180930 149872
