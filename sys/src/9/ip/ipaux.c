@@ -282,13 +282,16 @@ eipfmt(Fmt *f)
 	switch(f->r) {
 	case 'E':		/* Ethernet address */
 		p = va_arg(f->args, uchar*);
-		return fmtprint(f, efmt, p[0], p[1], p[2], p[3], p[4], p[5]);
+		snprint(buf, sizeof buf, efmt, p[0], p[1], p[2], p[3], p[4], p[5]);
+		return fmtstrcpy(f, buf);
 
 	case 'I':		/* Ip address */
 		p = va_arg(f->args, uchar*);
 common:
-		if(memcmp(p, v4prefix, 12) == 0)
-			return fmtprint(f, ifmt, p[12], p[13], p[14], p[15]);
+		if(memcmp(p, v4prefix, 12) == 0){
+			snprint(buf, sizeof buf, ifmt, p[12], p[13], p[14], p[15]);
+			return fmtstrcpy(f, buf);
+		}
 
 		/* find longest elision */
 		eln = eli = -1;
@@ -326,7 +329,8 @@ common:
 
 	case 'V':		/* v4 ip address */
 		p = va_arg(f->args, uchar*);
-		return fmtprint(f, ifmt, p[0], p[1], p[2], p[3]);
+		snprint(buf, sizeof buf, ifmt, p[0], p[1], p[2], p[3]);
+		return fmtstrcpy(f, buf);
 
 	case 'M':		/* ip mask */
 		p = va_arg(f->args, uchar*);
@@ -346,10 +350,10 @@ common:
 			n = 8*16;
 
 		/* got one, use /xx format */
-		return fmtprint(f, "/%d", n);
-
+		snprint(buf, sizeof buf, "/%d", n);
+		return fmtstrcpy(f, buf);
 	}
-	return fmtprint(f, "(eipfmt)");
+	return fmtstrcpy(f, "(eipfmt)");
 }
 
 #define CLASS(p) ((*(uchar*)(p))>>6)

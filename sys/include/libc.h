@@ -429,6 +429,17 @@ extern	void	wlock(RWLock*);
 extern	void	wunlock(RWLock*);
 extern	int		canwlock(RWLock*);
 
+typedef
+struct Rendez
+{
+	QLock *l;
+	QLp	*head;
+	QLp	*tail;
+} Rendez;
+
+extern	void	rsleep(Rendez*);	/* unlocks r->l, sleeps, locks r->l again */
+extern	int	rwakeup(Rendez*);
+extern	int	rwakeupall(Rendez*);
 extern	void**	privalloc(void);
 extern	void	privfree(void**);
 

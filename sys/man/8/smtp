@@ -34,6 +34,9 @@ smtp, smtpd \-  mail transport
 ][
 .B -k
 .I evilipaddr
+][
+.B -c
+.I certfile
 ]
 .SH DESCRIPTION
 .PP
@@ -142,6 +145,10 @@ it is intended to lessen the effects of denial of
 service attacks or broken mailers which continually
 connect.  The connections are not logged and the
 remote system is not notified via the protocol.
+.TP
+.B -c
+specifies a certificate to use for TLS.  Without this
+option, the capability to start TLS will not be advertised.
 .TP
 .B -a
 requires that all clients authenticate to be able to send mail.

@@ -1448,7 +1448,7 @@ syslog(0, logfile, "looking for things in %s %I %I", dom, net, mask);
 	for(i = 0; i < HTLEN; i++){
 		for(dp = ht[i]; dp; dp = dp->next){
 			for(rp = dp->rr; rp; rp = rp->next){
-				if(rp->type != Ta)
+				if(rp->type != Ta || rp->negative)
 					continue;
 				parseip(ip, rp->ip->name);
 				maskip(ip, mask, nnet);
