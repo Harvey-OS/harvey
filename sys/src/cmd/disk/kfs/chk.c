@@ -282,8 +282,10 @@ static
 int
 fsck(Dentry *d)
 {
+	char *s;
+	Rune r;
 	Iobuf *p;
-	int i, ns, dmod;
+	int l, i, ns, dmod;
 	long a, qpath;
 
 	depth++;
@@ -310,6 +312,15 @@ fsck(Dentry *d)
 	if(ns >= sizname){
 		cprint("%s->name (%s) name too large\n", name, d->name);
 		return 0;
+	}
+	for (s = d->name; *s; s += l){
+		l = chartorune(&r, s);
+		if (r == Runeerror)
+			for (i = 0; i < l; i++){
+				s[i] = '_';
+				cprint("%s->name (%s) bad UTF\n", name, d->name);
+				dmod++;
+			}
 	}
 	strcat(name, d->name);
 

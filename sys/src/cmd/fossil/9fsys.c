@@ -1350,7 +1350,13 @@ fsysOpen(char* name, int argc, char* argv[])
 		return 0;
 	}
 
-	if(fsys->session == nil){
+	if(noventi){
+		if(fsys->session){
+			vtClose(fsys->session);
+			fsys->session = nil;
+		}
+	}
+	else if(fsys->session == nil){
 		if(fsys->venti && fsys->venti[0])
 			host = fsys->venti;
 		else
