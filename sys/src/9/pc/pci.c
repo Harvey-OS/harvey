@@ -634,6 +634,7 @@ static Bridge southbridges[] = {
 	{ 0x8086, 0x2420, pIIxget, pIIxset },	// Intel 82801AB
 	{ 0x8086, 0x2440, pIIxget, pIIxset },	// Intel 82801BA
 	{ 0x8086, 0x244c, pIIxget, pIIxset },	// Intel 82801BAM
+	{ 0x8086, 0x24d0, pIIxget, pIIxset },	// Intel ICH5R, as found in 875P chipset
 	{ 0x1106, 0x0586, viaget, viaset },	// Viatech 82C586
 	{ 0x1106, 0x0596, viaget, viaset },	// Viatech 82C596
 	{ 0x1106, 0x0686, viaget, viaset },	// Viatech 82C686
@@ -655,9 +656,9 @@ struct Slot {
 
 typedef struct Router Router;
 struct Router {
-	uchar	signature[4];	// Routing table signature
+	uchar	signature[4];		// Routing table signature
 	uchar	version[2];		// Version number
-	uchar	size[2];			// Total table size
+	uchar	size[2];		// Total table size
 	uchar	bus;			// Interrupt router bus number
 	uchar	devfn;			// Router's devfunc
 	uchar	pciirqs[2];		// Exclusive PCI irqs
@@ -668,7 +669,7 @@ struct Router {
 };
 
 static ushort pciirqs;			// Exclusive PCI irqs
-static Bridge *southbridge;	// Which southbridge to use.
+static Bridge *southbridge;		// Which southbridge to use.
 
 static void
 pcirouting(void)

@@ -240,9 +240,9 @@
 386/bin/fs/v6fs - 775 sys sys 1085077059 92322
 386/bin/ftpfs - 775 sys sys 1093489558 146386
 386/bin/games - 20000000775 sys sys 1096298711 0
-386/bin/games/juggle - 775 sys sys 1096307527 123161
-386/bin/games/mahjongg - 775 sys sys 1096298712 161454
-386/bin/games/sokoban - 775 sys sys 1096298711 157093
+386/bin/games/juggle - 775 sys sys 1096341940 123161
+386/bin/games/mahjongg - 775 sys sys 1096341940 161454
+386/bin/games/sokoban - 775 sys sys 1096341940 157093
 386/bin/getmap - 775 sys sys 1085077059 63150
 386/bin/gif - 775 sys sys 1085077060 155975
 386/bin/grap - 775 sys sys 1094040086 280301
@@ -5339,7 +5339,7 @@ sys/src/9/pc/archmp.c - 664 sys sys 1084475127 2311
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1091904418 6281
-sys/src/9/pc/devarch.c - 664 sys sys 1091733724 18481
+sys/src/9/pc/devarch.c - 664 sys sys 1096379063 18517
 sys/src/9/pc/devether.c - 664 sys sys 1078928204 10183
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1086406910 19989
@@ -5381,7 +5381,7 @@ sys/src/9/pc/etherwavelan.c - 664 sys sys 1026847642 3722
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
 sys/src/9/pc/fns.h - 664 sys sys 1089046996 4372
 sys/src/9/pc/hcwAMC.h - 664 sys sys 1026860163 166004
-sys/src/9/pc/i8253.c - 664 sys sys 1084475127 6272
+sys/src/9/pc/i8253.c - 664 sys sys 1096379063 6279
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
@@ -5406,7 +5406,7 @@ sys/src/9/pc/pcdisk - 664 sys sys 1073851851 1427
 sys/src/9/pc/pcf - 664 sys sys 1079575654 1462
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1067722894 1383
-sys/src/9/pc/pci.c - 664 sys sys 1087657460 25736
+sys/src/9/pc/pci.c - 664 sys sys 1096379063 25817
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1048635123 1545
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1091129037 5230
 sys/src/9/pc/plan9l.s - 664 sys sys 1015014521 910
@@ -5425,7 +5425,7 @@ sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
 sys/src/9/pc/trap.c - 664 sys sys 1092080705 20458
 sys/src/9/pc/uarti8250.c - 664 sys sys 1067722686 13859
-sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
+sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
 sys/src/9/pc/usb.h - 664 sys sys 1063857246 3566
 sys/src/9/pc/usbuhci.c - 664 sys sys 1091287613 30721
 sys/src/9/pc/vga.c - 664 sys sys 1039753497 4963
@@ -6480,7 +6480,7 @@ sys/src/boot/pc/boot.c - 664 sys sys 1021579983 3353
 sys/src/boot/pc/bootld.c - 664 sys sys 1015007948 1801
 sys/src/boot/pc/bootp.c - 664 sys sys 1094674486 12069
 sys/src/boot/pc/cga.c - 664 sys sys 1015007948 1362
-sys/src/boot/pc/clock.c - 664 sys sys 1088089722 5783
+sys/src/boot/pc/clock.c - 664 sys sys 1096379794 5819
 sys/src/boot/pc/conf.c - 664 sys sys 1094674484 10217
 sys/src/boot/pc/console.c - 664 sys sys 1094674483 3388
 sys/src/boot/pc/dat.h - 664 sys sys 1094674488 3518
@@ -6508,8 +6508,8 @@ sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392
 sys/src/boot/pc/etherec2t.c - 664 sys sys 1015007951 3598
 sys/src/boot/pc/etherelnk3.c - 664 sys sys 1034454878 44068
 sys/src/boot/pc/etherelnk3x.c - 664 sys sys 1015007951 24989
-sys/src/boot/pc/etherif.h - 664 sys sys 1015007951 1285
-sys/src/boot/pc/etherigbe.c - 664 sys sys 1094674487 39270
+sys/src/boot/pc/etherif.h - 664 sys sys 1096379797 1285
+sys/src/boot/pc/etherigbe.c - 664 sys sys 1096379796 39825
 sys/src/boot/pc/ethermii.c - 664 sys sys 1071175087 4493
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
 sys/src/boot/pc/etherrhine.c - 664 sys sys 1071175087 12403
@@ -6538,13 +6538,13 @@ sys/src/boot/pc/pbsdisk.s - 664 sys sys 1017854325 6371
 sys/src/boot/pc/pbsdisklba - 775 sys sys 1015007954 509
 sys/src/boot/pc/pbsdisklba.s - 664 sys sys 1015007954 6022
 sys/src/boot/pc/pbslba.s - 664 sys sys 1017854326 8147
-sys/src/boot/pc/pci.c - 664 sys sys 1065815736 17580
+sys/src/boot/pc/pci.c - 664 sys sys 1096379795 17688
 sys/src/boot/pc/print.c - 664 sys sys 1094674483 219
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1094674489 2271
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1077033951 52135
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
-sys/src/boot/pc/sdata.c - 664 sys sys 1094674485 35425
+sys/src/boot/pc/sdata.c - 664 sys sys 1096379795 35481
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1015007955 28743
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1077033682 7022
 sys/src/boot/pc/trap.c - 664 sys sys 1018462833 7098
@@ -6788,7 +6788,7 @@ sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
 sys/src/cmd/acme/edit.c - 664 sys sys 1015701171 12055
 sys/src/cmd/acme/edit.h - 664 sys sys 969500816 2466
 sys/src/cmd/acme/elog.c - 664 sys sys 1078839859 7236
-sys/src/cmd/acme/exec.c - 664 sys sys 1086809679 28158
+sys/src/cmd/acme/exec.c - 664 sys sys 1096388101 28104
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1079102913 2883
 sys/src/cmd/acme/fsys.c - 664 sys sys 1079102915 12799
@@ -6800,7 +6800,7 @@ sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
 sys/src/cmd/acme/text.c - 664 sys sys 1084542489 27383
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1079102916 7412
-sys/src/cmd/acme/wind.c - 664 sys sys 1082924470 11115
+sys/src/cmd/acme/wind.c - 664 sys sys 1096388102 11187
 sys/src/cmd/acme/xfid.c - 664 sys sys 1079044030 19175
 sys/src/cmd/ar.c - 664 sys sys 1046643027 23717
 sys/src/cmd/archfs.c - 664 sys sys 1014925694 3871
@@ -12382,6 +12382,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/games/juggle - 775 sys sys 1096341940 123161
-386/bin/games/mahjongg - 775 sys sys 1096341940 161454
-386/bin/games/sokoban - 775 sys sys 1096341940 157093
+386/bin/acme - 775 sys sys 1096427265 424088

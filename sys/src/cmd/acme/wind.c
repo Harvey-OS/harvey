@@ -74,10 +74,12 @@ wininit(Window *w, Window *clone, Rectangle r)
 	draw(screen, br, button, nil, button->r.min);
 	w->filemenu = TRUE;
 	w->maxlines = w->body.maxlines;
+	w->autoindent = globalautoindent;
 	if(clone){
 		w->dirty = clone->dirty;
 		textsetselect(&w->body, clone->body.q0, clone->body.q1);
 		winsettag(w);
+		w->autoindent = clone->autoindent;
 	}
 }
 

@@ -6,11 +6,12 @@
  * is made to handle the older chip although it should be possible.
  *
  * updated just enough to cope with the
- * Intel 8254[340]NN Gigabit Ethernet Controller
+ * Intel 8254[0347]NN Gigabit Ethernet Controller
  * as found on the Intel PRO/1000 series of adapters:
+ *	82540EM Intel PRO/1000 MT
  *	82543GC	Intel PRO/1000 T
  *	82544EI Intel PRO/1000 XT
- *	82540EM Intel PRO/1000 MT
+ *	82547EI built-in
  *
  * The datasheet is not very clear about running on a big-endian system
  * and this driver assumes little-endian throughout.
@@ -863,6 +864,7 @@ igbeinit(Ether* edev)
 		break;
 	case (0x1004<<16)|0x8086:	/* 82543GC */
 	case (0x1008<<16)|0x8086:	/* 82544EI */
+	case (0x1019<<16)|0x8086:	/* 82547EI */
 	case (0x100E<<16)|0x8086:	/* 82440EM */
 	case (0x101E<<16)|0x8086:	/* 82540EPLP */
 		r = 8;
@@ -1078,9 +1080,10 @@ igbemiimiw(Mii* mii, int pa, int ra, int data)
 static int
 igbemii(Ctlr* ctlr)
 {
-	MiiPhy *phy;
+	MiiPhy *phy = (MiiPhy *)1;
 	int ctrl, p, r;
 
+	USED(phy);
 	r = csr32r(ctlr, Status);
 	if(r & Tbimode)
 		return -1;
@@ -1120,6 +1123,7 @@ igbemii(Ctlr* ctlr)
 		ctlr->mii->miw = i82543miimiw;
 		break;
 	case (0x1008<<16)|0x8086:		/* 82544EI*/
+	case (0x1019<<16)|0x8086:		/* 82547EI*/
 	case (0x100E<<16)|0x8086:		/* 82540EM */
 	case (0x101E<<16)|0x8086:		/* 82540EPLP */
 		ctrl &= ~(Frcdplx|Frcspd);
@@ -1134,6 +1138,8 @@ igbemii(Ctlr* ctlr)
 	}
 
 	if(mii(ctlr->mii, ~0) == 0 || (phy = ctlr->mii->curphy) == nil){
+		if (0)
+			print("phy trouble: phy = 0x%lux\n", (ulong)phy);
 		free(ctlr->mii);
 		ctlr->mii = nil;
 		return -1;
@@ -1326,10 +1332,13 @@ detach(Ctlr *ctlr)
 	delay(10);
 
 	csr32w(ctlr, Ctrl, Devrst);
+	/* apparently needed on multi-GHz processors to avoid infinite loops */
+	delay(1);
 	while(csr32r(ctlr, Ctrl) & Devrst)
 		;
 
 	csr32w(ctlr, Ctrlext, Eerst);
+	delay(1);
 	while(csr32r(ctlr, Ctrlext) & Eerst)
 		;
 
@@ -1345,6 +1354,7 @@ detach(Ctlr *ctlr)
 	}
 
 	csr32w(ctlr, Imc, ~0);
+	delay(1);
 	while(csr32r(ctlr, Icr))
 		;
 }
@@ -1373,7 +1383,9 @@ igbereset(Ctlr* ctlr)
 	 * Read the EEPROM, validate the checksum
 	 * then get the device back to a power-on state.
 	 */
-	if((r = at93c46r(ctlr)) != 0xBABA){
+	r = at93c46r(ctlr);
+	/* zero return means no SPI EEPROM access */
+	if (r != 0 && r != 0xBABA){
 		print("igbe: bad EEPROM checksum - 0x%4.4uX\n", r);
 		return -1;
 	}
@@ -1489,6 +1501,12 @@ igbepci(void)
 	int port, cls;
 	Pcidev *p;
 	Ctlr *ctlr;
+	static int first = 1;
+
+	if (first)
+		first = 0;
+	else
+		return;
 
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){
@@ -1503,14 +1521,17 @@ igbepci(void)
 			break;
 		case (0x1004<<16)|0x8086:	/* 82543GC - copper (PRO/1000 T) */
 		case (0x1008<<16)|0x8086:	/* 82544EI - copper */
+		case (0x1019<<16)|0x8086:	/* 82547EI - copper */
 		case (0x100E<<16)|0x8086:	/* 82540EM - copper */
 		case (0x101E<<16)|0x8086:	/* 82540EPLP - copper */
 			break;
 		}
 
+		/* the 82547EI is on the CSA bus, whatever that is */
 		port = upamalloc(p->mem[0].bar & ~0x0F, p->mem[0].size, 0);
 		if(port == 0){
-			print("igbe: can't map %8.8luX\n", p->mem[0].bar);
+			print("igbe: can't map %d @ 0x%8.8luX\n",
+				p->mem[0].size, p->mem[0].bar);
 			continue;
 		}
 

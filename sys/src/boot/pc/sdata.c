@@ -1372,6 +1372,7 @@ atapnp(void)
 		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
 		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
 		case (0x4D68<<16)|0x105A:	/* Promise PDC20268 */
+		case (0x4D69<<16)|0x105A:	/* Promise Ultra/133 TX2 */
 		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
 		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
 			pi = 0x85;

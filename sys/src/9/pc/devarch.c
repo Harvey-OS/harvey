@@ -558,6 +558,7 @@ static X86type x86intel[] =
 	{ 6,	8,	16,	"PentiumIII/Xeon", },
 	{ 6,	0xB,	16,	"PentiumIII/Xeon", },
 	{ 0xF,	1,	16,	"P4", },	/* P4 */
+	{ 0xF,	2,	16,	"PentiumIV/Xeon", },
 
 	{ 3,	-1,	32,	"386", },	/* family defaults */
 	{ 4,	-1,	22,	"486", },
