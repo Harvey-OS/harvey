@@ -129,6 +129,25 @@ strupr(char *s)
 			*s += 'A'-'a';
 }
 
+static void
+imapgrow(Imap *imap, int n)
+{
+	int i;
+
+	if(imap->data == nil){
+		imap->base = emalloc(n+1);	
+		imap->data = imap->base;
+		imap->size = n+1;
+	}
+	if(n >= imap->size){
+		// friggin microsoft - reallocate
+		i = imap->data - imap->base;
+		imap->base = erealloc(imap->base, i+n+1);
+		imap->data = imap->base + i;
+		imap->size = n+1;
+	}
+}
+
 
 //
 // get imap4 response line.  there might be various 
@@ -197,6 +216,46 @@ imap4resp(Imap *imap)
 				break;
 
 			case FETCH:
+				// * 1 FETCH (uid 8889 RFC822.SIZE 3031 body[] {3031}
+				// <3031 bytes of data>
+ 				// )
+				if(strstr(p, "RFC822.SIZE") && strstr(p, "BODY[]")){
+					if((q = strchr(p, '{')) 
+					&& (n=strtol(q+1, &en, 0), *en=='}')){
+						if(imap->data == nil || n >= imap->size)
+							imapgrow(imap, n);
+						if((i = Bread(&imap->bin, imap->data, n)) != n){
+							snprint(error, sizeof error,
+								"short read %d != %d: %r\n",
+								i, n);
+							return error;
+						}
+						if(imap->debug)
+							fprint(2, "<- read %d bytes\n", n);
+						imap->data[n] = '\0';
+						if(imap->debug)
+							fprint(2, "<- %s\n", imap->data);
+						imap->data += n;
+						imap->size -= n;
+						p = Brdline(&imap->bin, '\n');
+						if(imap->debug)
+							fprint(2, "<- ignoring %.*s\n",
+								Blinelen(&imap->bin), p);
+					}else if((q = strchr(p, '"')) && (r = strchr(q+1, '"'))){
+						*r = '\0';
+						q++;
+						n = r-q;
+						if(imap->data == nil || n >= imap->size)
+							imapgrow(imap, n);
+						memmove(imap->data, q, n);
+						imap->data[n] = '\0';
+						imap->data += n;
+						imap->size -= n;
+					}else
+						return "confused about FETCH response";
+					break;
+				}
+
 				// * 1 FETCH (UID 1 RFC822.SIZE 511)
 				if(q=strstr(p, "RFC822.SIZE")){
 					imap->size = atoi(q+11);
@@ -210,37 +269,31 @@ imap4resp(Imap *imap)
 				if(strstr(p, "RFC822.HEADER") || strstr(p, "RFC822.TEXT")){
 					if((q = strchr(p, '{')) 
 					&& (n=strtol(q+1, &en, 0), *en=='}')){
-						if(imap->data == nil){
-							imap->base = emalloc(n+1);	
-							imap->data = imap->base;
-							imap->size = n+1;
-						}
-						if(n >= imap->size){
-							// friggin microsoft - reallocate
-							i = imap->data - imap->base;
-							imap->base = erealloc(imap->base, i+n+1);
-							imap->data = imap->base + i;
-							imap->size = n+1;
-						}
+						if(imap->data == nil || n >= imap->size)
+							imapgrow(imap, n);
 						if((i = Bread(&imap->bin, imap->data, n)) != n){
-							snprint(error, sizeof error, "short read from server %d != %d\n", i, n);
+							snprint(error, sizeof error,
+								"short read %d != %d: %r\n",
+								i, n);
 							return error;
 						}
+						if(imap->debug)
+							fprint(2, "<- read %d bytes\n", n);
 						imap->data[n] = '\0';
+						if(imap->debug)
+							fprint(2, "<- %s\n", imap->data);
 						imap->data += n;
 						imap->size -= n;
-						Brdline(&imap->bin, '\n');
+						p = Brdline(&imap->bin, '\n');
+						if(imap->debug)
+							fprint(2, "<- ignoring %.*s\n",
+								Blinelen(&imap->bin), p);
 					}else if((q = strchr(p, '"')) && (r = strchr(q+1, '"'))){
 						*r = '\0';
 						q++;
 						n = r-q;
-						if(imap->data == nil){
-							imap->base = emalloc(n+1);
-							imap->data = imap->base;
-							imap->size = n+1;
-						}
-						if(n >= imap->size)
-							return Eio;
+						if(imap->data == nil || n >= imap->size)
+							imapgrow(imap, n);
 						memmove(imap->data, q, n);
 						imap->data[n] = '\0';
 						imap->data += n;
@@ -278,7 +331,8 @@ imap4resp(Imap *imap)
 			fprint(2, "unexpected line: %s\n", p);
 		}
 	}
-	return Eio;
+	snprint(error, sizeof error, "i/o error: %r\n");
+	return error;
 }
 
 static int
@@ -395,6 +449,19 @@ imap4dial(Imap *imap)
 		free(conn.cert);
 		close(imap->fd);
 		imap->fd = sfd;
+
+		if(imap->debug){
+			char fn[128];
+			int fd;
+
+			snprint(fn, sizeof fn, "%s/ctl", conn.dir);
+			fd = open(fn, ORDWR);
+			if(fd < 0)
+				fprint(2, "opening ctl: %r\n");
+			if(fprint(fd, "debug") < 0)
+				fprint(2, "writing ctl: %r\n");
+			close(fd);
+		}
 	}
 	Binit(&imap->bin, imap->fd, OREAD);
 	Binit(&imap->bout, imap->fd, OWRITE);
@@ -479,9 +546,10 @@ imap4fetchheader(Imap *imap, Mailbox *mb, Message *m)
 static char*
 imap4fetch(Mailbox *mb, Message *m)
 {
-	int i, sz;
+	int i;
 	char *p, *s, sdigest[2*SHA1dlen+1];
 	Imap *imap;
+//	int sz;
 
 	imap = mb->aux;
 
@@ -495,32 +563,34 @@ imap4fetch(Mailbox *mb, Message *m)
 //		return "uids changed underfoot";
 
 	imap->size = 0;
-	/* SIZE */
-	if(!isokay(s = imap4resp(imap)))
-		return s;
-	if(imap->size == 0)
-		return "didn't get size from size command";
 
-	sz = imap->size;
-	p = emalloc(sz+1);
-	free(imap->base);
-	imap->base = p;
-	imap->data = p;
-	imap->size = sz;
+	/* SIZE */
+//	if(!isokay(s = imap4resp(imap)))
+//		return s;
+//	if(imap->size == 0)
+//		return "didn't get size from size command";
+
+//	sz = imap->size;
+//	p = emalloc(sz+1);
+//	free(imap->base);
+//	imap->base = p;
+//	imap->data = p;
+//	imap->size = sz;
 
 	/* HEADER */
-	if(!isokay(s = imap4resp(imap)))
-		return s;
-	if(imap->size == sz){
-		free(p);
-		imap->data = nil;
-		return "didn't get header";
-	}
+//	if(!isokay(s = imap4resp(imap)))
+//		return s;
+//	if(imap->size == sz){
+//		free(p);
+//		imap->data = nil;
+//		return "didn't get header";
+//	}
 
 	/* TEXT */
 	if(!isokay(s = imap4resp(imap)))
 		return s;
 
+	p = imap->base;
 	removecr(p);
 	free(m->start);
 	m->start = p;
@@ -619,9 +689,11 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 		for(m = mb->root->part; m != nil; m = m->next){
 			if(m->start != nil)
 				continue;
-			Bprint(&imap->bout, "9X%d UID FETCH %lud RFC822.SIZE\r\n", t++, (ulong)m->imapuid);
-			Bprint(&imap->bout, "9X%d UID FETCH %lud RFC822.HEADER\r\n", t++, (ulong)m->imapuid);
-			Bprint(&imap->bout, "9X%d UID FETCH %lud RFC822.TEXT\r\n", t++, (ulong)m->imapuid);
+			if(imap->debug)
+				fprint(2, "9X%d UID FETCH %lud (UID RFC822.SIZE BODY[])\r\n",
+					t, (ulong)m->imapuid);
+			Bprint(&imap->bout, "9X%d UID FETCH %lud (UID RFC822.SIZE BODY[])\r\n",
+				t++, (ulong)m->imapuid);
 		}
 		Bflush(&imap->bout);
 		_exits(nil);
@@ -768,6 +840,8 @@ imap4close(Mailbox *mb)
 	free(imap->freep);
 	free(imap->base);
 	free(imap->uid);
+	if(imap->fd >= 0)
+		close(imap->fd);
 	free(imap);
 }
 
