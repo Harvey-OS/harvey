@@ -13,13 +13,14 @@ if(! test -d /n/sources/patch){
 dst=$1
 shift
 for(i){
+	j=`{basename $i}
 	if(! test -d /n/sources/patch/$i)
 		echo 'no such patch' /n/sources/patch/$i >[1=2]
-	if not if(test -d /n/sources/patch/$dst/$i)
-		echo 'already have' /n/sources/patch/$dst/$i >[1=2]
+	if not if(test -d /n/sources/patch/$dst/$j)
+		echo 'already have' /n/sources/patch/$dst/$j >[1=2]
 	if not
 		ls -ldp /n/sources/patch/$i >/n/sources/patch/$i/origls &&
-		mkdir /n/sources/patch/$dst/$i && 
-		dircp /n/sources/patch/$i /n/sources/patch/$dst/$i &&
+		mkdir /n/sources/patch/$dst/$j && 
+		dircp /n/sources/patch/$i /n/sources/patch/$dst/$j &&
 		rm -rf /n/sources/patch/$i
 }

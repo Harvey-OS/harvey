@@ -995,7 +995,7 @@ Computing Science Technical Report No. \\*(MN
 .lt \\n(LLu
 .pc %
 .nr PN \\n%
-.if \\n%-1 .tl '\\*(LH'\\*(CH'\\*(RH'
+.if \\n%-1 .tl \\*(LH\\*(CH\\*(RH
 .lt \\n(.lu
 ..
 .	\"FO - footer of page
