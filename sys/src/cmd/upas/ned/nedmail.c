@@ -128,7 +128,7 @@ struct {
 	{ "y",	0,	ycmd,	"y        synchronize with mail box" },
 	{ "=",	1,	eqcmd,	"=        print current message number" },
 	{ "|",	1,	pipecmd, "|cmd     pipe message body to a command" },
-	{ "||",	1,	rpipecmd, "|cmd     pipe raw message to a command" },
+	{ "||",	1,	rpipecmd, "||cmd     pipe raw message to a command" },
 	{ "!",	1,	bangcmd, "!cmd     run a command" },
 	{ nil,	0,	nil, 	nil },
 };

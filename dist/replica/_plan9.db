@@ -3327,7 +3327,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1091904422 249281
+sys/games/lib/fortunes - 664 sys sys 1093455199 249409
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1091904420 4392
 sys/include/String.h - 664 sys sys 1091904425 1319
@@ -4932,7 +4932,7 @@ sys/man/3/mnt - 664 sys sys 944959698 1994
 sys/man/3/mouse - 664 sys sys 1020313480 4276
 sys/man/3/pipe - 664 sys sys 1032640674 1145
 sys/man/3/pnp - 664 sys sys 1088560895 4547
-sys/man/3/proc - 664 sys sys 1074785156 12026
+sys/man/3/proc - 664 sys sys 1093452918 12027
 sys/man/3/root - 664 sys sys 1046958450 632
 sys/man/3/rtc - 664 sys sys 954378857 667
 sys/man/3/sd - 664 sys sys 1018386776 4805
@@ -7016,8 +7016,8 @@ sys/src/cmd/aux/flashfs/testld.c - 664 sys sys 1015009082 1043
 sys/src/cmd/aux/flashfs/utils.c - 664 sys sys 1019498850 1097
 sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
-sys/src/cmd/aux/listen.c - 664 sys sys 1015008684 8139
-sys/src/cmd/aux/listen1.c - 664 sys sys 1024375142 2016
+sys/src/cmd/aux/listen.c - 664 sys sys 1093452954 8142
+sys/src/cmd/aux/listen1.c - 664 sys sys 1093452955 2018
 sys/src/cmd/aux/mkfile - 664 sys sys 1084415958 946
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
 sys/src/cmd/aux/mnihongo - 20000000775 sys sys 944960789 0
@@ -9388,7 +9388,7 @@ sys/src/cmd/ip/dhcpd/testping.c - 664 sys sys 950389141 352
 sys/src/cmd/ip/ftpd.c - 664 sys sys 1046643070 32813
 sys/src/cmd/ip/ftpfs - 20000000775 sys sys 1014925642 0
 sys/src/cmd/ip/ftpfs/file.c - 664 sys sys 1014925642 4208
-sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1048285493 13555
+sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1093452873 13584
 sys/src/cmd/ip/ftpfs/ftpfs.h - 664 sys sys 1091904423 2353
 sys/src/cmd/ip/ftpfs/mkfile - 664 sys sys 1048312050 173
 sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1089920400 29348
@@ -9500,7 +9500,7 @@ sys/src/cmd/ip/snoopy/udp.c - 664 sys sys 1089299190 1990
 sys/src/cmd/ip/telnet.c - 664 sys sys 1080058033 8535
 sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
 sys/src/cmd/ip/telnetd.c - 664 sys sys 1032060109 11731
-sys/src/cmd/ip/tftpd.c - 664 sys sys 1084470760 7223
+sys/src/cmd/ip/tftpd.c - 664 sys sys 1093453000 7604
 sys/src/cmd/ip/traceroute.c - 664 sys sys 1032060124 9370
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1050714674 855
 sys/src/cmd/join.c - 664 sys sys 944961364 7488
@@ -10835,7 +10835,7 @@ sys/src/cmd/upas/ml/mlmgr.c - 664 sys sys 1045505888 2332
 sys/src/cmd/upas/ml/mlowner.c - 664 sys sys 1015096763 1142
 sys/src/cmd/upas/ned - 20000000775 sys sys 1015013194 0
 sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
-sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1085599621 44170
+sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1093453042 44171
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1015009816 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1064589604 186
 sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1076176207 14301
@@ -12324,7 +12324,7 @@ usr/glenda/bin - 20000000775 glenda glenda 953406597 0
 usr/glenda/bin/386 - 20000000775 glenda glenda 953406597 0
 usr/glenda/bin/mips - 20000000775 glenda glenda 953406597 0
 usr/glenda/bin/rc - 20000000775 glenda glenda 954101780 0
-usr/glenda/bin/rc/pull - 775 glenda glenda 1034220451 172
+usr/glenda/bin/rc/pull - 775 glenda glenda 1093453255 224
 usr/glenda/bin/rc/riostart - 775 glenda glenda 1018974192 341
 usr/glenda/bin/rc/screensize - 775 glenda glenda 1019273896 145
 usr/glenda/lib - 20000000775 glenda glenda 959740302 0
@@ -12337,3 +12337,8 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/ftpfs - 775 sys sys 1093489558 146386
+386/bin/aux/listen - 775 sys sys 1093489557 104845
+386/bin/aux/listen1 - 775 sys sys 1093489557 91380
+386/bin/ip/tftpd - 775 sys sys 1093489558 127405
+386/bin/upas/nedmail - 775 sys sys 1093489559 153913

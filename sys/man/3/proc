@@ -265,7 +265,7 @@ and is not otherwise resettable.
 Set the base priority for the process to the integer
 .IR n .
 .TP 10n
-.B "wire\ \fIn
+.B "wired\ \fIn
 Wire the process to processor
 .IR n .
 .TP 10n
