@@ -3063,7 +3063,7 @@ rc/bin/psu - 775 sys sys 1019769762 333
 rc/bin/reboot - 775 sys sys 1020011207 36
 rc/bin/replica - 20000000775 sys sys 1018321122 0
 rc/bin/replica/changes - 775 sys sys 1022177304 276
-rc/bin/replica/defs - 664 sys sys 1019058724 782
+rc/bin/replica/defs - 664 sys sys 1103390458 778
 rc/bin/replica/pull - 775 sys sys 1045504036 1445
 rc/bin/replica/push - 775 sys sys 1043865725 361
 rc/bin/replica/scan - 775 sys sys 1089299188 472
@@ -10939,11 +10939,11 @@ sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1101906325 17266
 sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1100568597 600
 sys/src/cmd/usb/lib - 20000000775 sys sys 1018369393 0
 sys/src/cmd/usb/lib/device.c - 664 sys sys 1099760882 2968
-sys/src/cmd/usb/lib/dump.c - 664 sys sys 1101906317 12757
+sys/src/cmd/usb/lib/dump.c - 664 sys sys 1103381265 12921
 sys/src/cmd/usb/lib/fmt.c - 664 sys sys 1091204978 291
 sys/src/cmd/usb/lib/mkfile - 664 sys sys 1091204979 204
 sys/src/cmd/usb/lib/setup.c - 664 sys sys 1091204978 1953
-sys/src/cmd/usb/lib/usb.h - 664 sys sys 1099760882 6816
+sys/src/cmd/usb/lib/usb.h - 664 sys sys 1103381265 7036
 sys/src/cmd/usb/lib/util.c - 664 sys sys 1091204978 523
 sys/src/cmd/usb/misc - 20000000775 sys sys 1091205037 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1091205037 274
