@@ -224,7 +224,7 @@
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
 386/bin/fcp - 775 sys sys 1110859785 82162
-386/bin/file - 775 sys sys 1111810171 112495
+386/bin/file - 775 sys sys 1112155767 112780
 386/bin/fmt - 775 sys sys 1104122009 65301
 386/bin/fortune - 775 sys sys 1104122009 67136
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -468,9 +468,9 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1104122077 92623
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1108354566 185463
+386/bin/usb/usbaudio - 775 sys sys 1112155768 185541
 386/bin/usb/usbd - 775 sys sys 1104898010 129846
-386/bin/usb/usbmouse - 775 sys sys 1104122079 140245
+386/bin/usb/usbmouse - 775 sys sys 1112155768 140268
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
 386/bin/vac - 775 sys sys 1104122079 169392
 386/bin/vacfs - 775 sys sys 1108354566 174866
@@ -3057,7 +3057,7 @@ rc/bin/patch/create - 775 sys sys 1107957505 1404
 rc/bin/patch/diff - 775 sys sys 1109511606 474
 rc/bin/patch/email - 775 sys sys 1109511607 409
 rc/bin/patch/list - 775 sys sys 1111765301 729
-rc/bin/patch/move - 775 sys sys 1109511607 573
+rc/bin/patch/move - 775 sys sys 1112166652 643
 rc/bin/patch/note - 664 sys sys 1109511607 663
 rc/bin/patch/okay - 775 sys sys 1109511608 250
 rc/bin/patch/remove - 775 sys sys 1109511608 285
@@ -3362,7 +3362,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1111012774 253406
+sys/games/lib/fortunes - 664 sys sys 1112166661 253478
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -5161,7 +5161,7 @@ sys/man/8/secstore - 664 sys sys 1105016705 1954
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
 sys/man/8/smtp - 664 sys sys 1091126310 4724
-sys/man/8/snoopy - 664 sys sys 1057752980 3802
+sys/man/8/snoopy - 664 sys sys 1112238597 3809
 sys/man/8/stats - 664 sys sys 1067722908 4291
 sys/man/8/stub - 664 sys sys 1044830500 943
 sys/man/8/swap - 664 sys sys 944959679 880
@@ -12483,6 +12483,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/usb/usbaudio - 775 sys sys 1112155768 185541
-386/bin/usb/usbmouse - 775 sys sys 1112155768 140268
-386/bin/file - 775 sys sys 1112155767 112780
