@@ -54,10 +54,10 @@ stripfilt(int in, int out)
 		return 1;
 	}
 	i = ben(exec.magic);
-	for (j = 8; j < 24; j++)
+	for (j = MIN_MAGIC; j <= MAX_MAGIC; j++)
 		if (i == _MAGIC(j))
 			break;
-	if (j >= 24) {
+	if (j > MAX_MAGIC) {
 		fprint(2, "strip: not a recognizable binary\n");
 		return 1;
 	}
@@ -129,10 +129,10 @@ strip(char *file)
 		return 1;
 	}
 	i = ben(exec.magic);
-	for (j = 8; j < 24; j++)
+	for (j = MIN_MAGIC; j <= MAX_MAGIC; j++)
 		if (i == _MAGIC(j))
 			break;
-	if (j >= 24) {
+	if (j > MAX_MAGIC) {
 		fprint(2, "strip: %s is not a recognizable binary\n", file);
 		close(fd);
 		free(d);

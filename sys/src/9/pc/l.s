@@ -31,6 +31,24 @@ TEXT _start0x80100020(SB), $0
 	MOVL	$_start0x00100020(SB), AX
 	ANDL	$~KZERO, AX
 	JMP*	AX
+
+/*
+ * Must be 4-byte aligned.
+ */
+TEXT _multibootheader(SB), $0
+	LONG	$0x1BADB002			/* magic */
+	LONG	$0x00010003			/* flags */
+	LONG	$-(0x1BADB002 + 0x00010003)	/* checksum */
+	LONG	$_multibootheader-KZERO(SB)	/* header_addr */
+	LONG	$_start0x80100020-KZERO(SB)	/* load_addr */
+	LONG	$edata-KZERO(SB)		/* load_end_addr */
+	LONG	$end-KZERO(SB)			/* bss_end_addr */
+	LONG	$_start0x80100020-KZERO(SB)	/* entry_addr */
+	LONG	$0				/* mode_type */
+	LONG	$0				/* width */
+	LONG	$0				/* height */
+	LONG	$0				/* depth */
+
 /*
  * In protected mode with paging turned off and segment registers setup to linear map all memory.
  * Entered via a jump to 0x00100020, the physical address of the virtual kernel entry point of 0x80100020
