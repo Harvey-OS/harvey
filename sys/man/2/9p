@@ -247,7 +247,7 @@ similarly,
 is the
 .B Req
 structure corresponding to
-.IB r -> ifcall.oldreq \fR.
+.IB r -> ifcall.oldtag \fR.
 The outgoing response data should be stored in 
 .IB r -> ofcall \fR.
 The one exception to this rule is that 
@@ -627,23 +627,32 @@ which arrange for
 .I respond
 to be called asynchronously.
 .I Flush
-must ensure that once
-.I respond
-has been called on
-.BR r ,
-.I respond
-will 
-.I never
-be called on 
-.IB r -> oldreq \fR,
-and in fact that 
+should cause the request
 .IB r -> oldreq
-and the pointers it contains
-will never be accessed again (consider them freed).
+to be cancelled or hurried along.
+If
+.I oldreq
+is cancelled, this should be signalled by calling
+.I respond
+on
+.I oldreq
+with error string
+.RB ` interrupted '.
 .I Flush
-must 
-.I not
-call respond with a non-nil error string.
+must respond to
+.I r
+with a nil error string.
+.I Flush
+may respond to
+.I r
+before forcing a response to
+.IB r -> oldreq \fR.
+In this case, the library will delay sending
+the
+.I Rflush
+message until the response to 
+.IB r -> oldreq
+has been sent.
 .PD
 .PP
 .IR Destroyfid ,
@@ -672,7 +681,7 @@ reference count drops to zero
 .RI ( i.e. ,
 it has been handled via
 .I respond
-or has been successfully flushed),
+and other outstanding pointers to it have been closed),
 .I destroyreq
 is called to allow the program to dispose of the
 .IB r -> aux
