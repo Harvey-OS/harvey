@@ -1140,7 +1140,7 @@ Fossil does not have any way to concatenate, stripe, or
 mirror disk files.  For functionality similar to the old file server's
 configuration strings, use the experimental file stack device 
 (see
-.I devfs (3)).
+.I fs (3)).
 .PP
 Fossil speaks only 9P2000.  Old 9P (aka 9P1) is not supported.
 .PP

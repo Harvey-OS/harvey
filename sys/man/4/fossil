@@ -164,7 +164,7 @@ Any user belonging to
 .B noworld
 has attenuated access privileges.
 Specifically, when checking such a user's access to files,
-the file's permission buts are first ANDed
+the file's permission bits are first ANDed
 with 0770 for normal files and 0771 for directories.
 The effect is to deny world access permissions to
 .B noworld
