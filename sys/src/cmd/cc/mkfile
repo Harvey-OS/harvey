@@ -41,7 +41,7 @@ everything:V:
 		mk install
 	}
 	# mk all the others with those
-	for(DIR in cc 0c 1c 2c 4c 5c 6c 7c 8c 9c kc qc vc xc){
+	for(DIR in cc 1c 2c 5c 7c 8c kc qc vc){
 		cd ../$DIR
 		mk nuke
 		mk installall

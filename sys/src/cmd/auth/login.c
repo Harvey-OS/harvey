@@ -162,7 +162,7 @@ main(int argc, char *argv[])
 
 	service = getenv("service");
 	if(strcmp(service, "cpu") == 0)
-		sysfatal("not from a cpu server!");
+		fprint(2, "warning: running on a cpu server!\n");
 	if(argc != 1){
 		fprint(2, "usage: login username\n");
 		exits("usage");

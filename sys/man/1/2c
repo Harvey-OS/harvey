@@ -311,15 +311,27 @@ A
 .B #pragma
 of the form
 .EX
-    #pragma incomplete type
+    #pragma incomplete \fItype\fP
 .EE
 tells the compiler that
-.B type
+.I type
 should have its signature calculated as an incomplete type
 even when it is fully defined.
 This allows the type signature mechanism to work in the presence
-of opaque types declared in header files while their full definitions
-are known only to the code which manipulates them.
+of opaque types declared in header files, with their full definitions
+visible only to the code which manipulates them.
+With some imported software it might be necessary to turn off the
+signature generation completely for a large body of code (typically
+at the start and end of a particular include file).
+If
+.I type
+is the word
+.BR _off_ ,
+signature generation is turned off; if
+.I type
+is the word
+.BR _on_ ,
+the compiler will generate signatures.
 .TP
 \-
 The C++ comment
