@@ -5,10 +5,10 @@
 29000/lib - 20000000775 sys sys 948037563 0
 29000/mkfile - 664 sys sys 948141302 46
 386 - 20000000775 sys sys 1010957353 0
-386/9load - 775 sys sys 1071175100 188380
-386/9loaddebug - 775 sys sys 1085583486 270508
-386/9loadlite - 775 sys sys 1077033685 125344
-386/9loadlitedebug - 775 sys sys 1085583486 183619
+386/9load - 775 sys sys 1088089726 187660
+386/9loaddebug - 775 sys sys 1088089728 270580
+386/9loadlite - 775 sys sys 1088089727 124624
+386/9loadlitedebug - 775 sys sys 1088089728 183691
 386/9pc - 775 sys sys 1087618546 1811884
 386/9pc.gz - 664 sys sys 1077049336 635727
 386/9pccpu - 775 sys sys 1087618551 1466062
@@ -17,7 +17,7 @@
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
 386/9pcf - 775 sys sys 1087618560 2346321
 386/9pcf.gz - 664 sys sys 1077049490 872650
-386/9pxeload - 775 sys sys 1071320501 188380
+386/9pxeload - 775 sys sys 1088089727 187660
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/1c - 775 sys sys 1063639729 306762
@@ -511,7 +511,7 @@
 386/include/u.h - 664 sys sys 1042604326 1450
 386/include/ureg.h - 664 sys sys 944946012 523
 386/init - 775 sys sys 1085077133 98033
-386/ld.com - 775 sys sys 1071340494 65192
+386/ld.com - 775 sys sys 1088089728 64448
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 944969312 0
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
@@ -4889,7 +4889,7 @@ sys/man/2/quaternion - 664 sys sys 950892867 3421
 sys/man/2/quote - 664 sys sys 1067719062 3072
 sys/man/2/rand - 664 sys sys 1035836606 2881
 sys/man/2/rc4 - 664 sys sys 1032058674 1138
-sys/man/2/read - 664 sys sys 1017423721 1879
+sys/man/2/read - 664 sys sys 1088107191 1883
 sys/man/2/readcolmap - 664 sys sys 950892803 1529
 sys/man/2/readv - 664 sys sys 1017423721 1454
 sys/man/2/regexp - 664 sys sys 988225293 3548
@@ -6461,7 +6461,7 @@ sys/src/boot/pc/boot.c - 664 sys sys 1021579983 3353
 sys/src/boot/pc/bootld.c - 664 sys sys 1015007948 1801
 sys/src/boot/pc/bootp.c - 664 sys sys 1015007948 9417
 sys/src/boot/pc/cga.c - 664 sys sys 1015007948 1362
-sys/src/boot/pc/clock.c - 664 sys sys 1015007948 5648
+sys/src/boot/pc/clock.c - 664 sys sys 1088089722 5783
 sys/src/boot/pc/conf.c - 664 sys sys 1063855536 10128
 sys/src/boot/pc/console.c - 664 sys sys 1068158999 3487
 sys/src/boot/pc/dat.h - 664 sys sys 1056073257 3432

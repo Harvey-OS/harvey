@@ -81,13 +81,16 @@ X86type x86intel[] =
 	{ 6,	6,	16,	"Celeron", },
 	{ 6,	7,	16,	"PentiumIII/Xeon", },
 	{ 6,	8,	16,	"PentiumIII/Xeon", },
+	{ 6,	0xB,	16,	"PentiumIII/Xeon", },
+	{ 0xF,	1,	16,	"P4", },	/* P4 */
 
 	{ 3,	-1,	32,	"386", },	/* family defaults */
 	{ 4,	-1,	22,	"486", },
-	{ 5,	-1,	23,	"Pentium", },
-	{ 6,	-1,	16,	"PentiumPro", },
+	{ 5,	-1,	23,	"P5", },
+	{ 6,	-1,	16,	"P6", },
+	{ 0xF,	-1,	16,	"P4", },	/* P4 */
 
-	{ -1,	-1,	23,	"unknown", },	/* total default */
+	{ -1,	-1,	16,	"unknown", },	/* total default */
 };
 
 
@@ -118,8 +121,9 @@ static X86type x86amd[] =
 	{ 4,	-1,	22,	"Am486", },	/* guesswork */
 	{ 5,	-1,	23,	"AMD-K5/K6", },	/* guesswork */
 	{ 6,	-1,	11,	"AMD-Athlon", },/* guesswork */
+	{ 0xF,	-1,	11,	"AMD64", },	/* guesswork */
 
-	{ -1,	-1,	23,	"unknown", },	/* total default */
+	{ -1,	-1,	11,	"unknown", },	/* total default */
 };
 
 static X86type	*cputype;

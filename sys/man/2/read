@@ -64,7 +64,7 @@ if this is not the same as requested.
 .I Pread
 and
 .I Pwrite
-equivalent to a
+are equivalent to a
 .IR seek (2)
 to
 .I offset
