@@ -15,6 +15,8 @@
 386/9pccpu.gz - 664 sys sys 1040006341 504177
 386/9pcdisk - 775 sys sys 1056364442 2049101
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
+386/9pcf - 775 sys sys 1058635394 2362604
+386/9pcf.gz - 664 sys sys 1058635397 862669
 386/9pxeload - 775 sys sys 1056364444 180364
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
@@ -5196,6 +5198,7 @@ sys/src/9/pc/pccpu - 664 sys sys 1056568059 803
 sys/src/9/pc/pccpuf - 664 sys sys 1056503364 909
 sys/src/9/pc/pcdisk - 664 sys sys 1055700613 1432
 sys/src/9/pc/pcf - 664 sys sys 1056503364 1457
+sys/src/9/pc/pcf.c - 664 sys sys 1058659039 5110
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1055700671 1410
 sys/src/9/pc/pci.c - 664 sys sys 1032052921 23359
