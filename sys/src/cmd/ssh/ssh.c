@@ -544,7 +544,7 @@ fromstdin(Conn *c)
 				break;
 		}
 		if(n == 0){
-			if(++eofs > 32)
+			if(!c->interactive || ++eofs > 32)
 				break;
 		}else
 			eofs = 0;
