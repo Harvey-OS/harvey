@@ -1,0 +1,10 @@
+#!/bin/rc
+
+# standard library
+. /mail/lib/pipeto.lib $*
+
+if(isspam)
+	spool-tagged-spam
+if not
+	spool /mail/box/$USER/mbox
+exit 0

@@ -1,0 +1,23 @@
+#!/bin/rc
+
+cd /mail/box/$user
+>>_bounced
+chmod +arw _bounced
+>>_prof.mbox
+>>_prof.spam
+if(! test -s _prof.mbox)
+	cp /mail/lib/prof.mbox _prof.mbox
+if(! test -s _prof.spam)
+	cp /mail/lib/prof.spam _prof.spam
+chmod +lrw _prof.mbox _prof.spam
+>>spam
+chmod +alrw spam
+i=0
+if(test -f pipeto){
+	while(test -f pipeto.$i)
+		i=`{echo 1+$i |hoc}
+	mv pipeto pipeto.$i
+	echo saved pipeto as pipeto.$i
+}
+cp /mail/lib/pipeto.bayes pipeto
+chmod 775 pipeto

@@ -36,6 +36,20 @@ fn spool {
 	$BIN/deliver $RECIP $D/from $_mbox < $D/raw || exit $status
 }
 
+# spool but change the subject line to note spam
+fn spool-tagged-spam {
+	if(~ $#* 0)
+		_mbox=$MBOX
+	if not
+		_mbox=$1
+	{
+		cat $D/rawheader | sed 's/^[Ss][Uu][Bb][Jj][Ee][Cc][Tt]:/& SPAM:/'
+		echo
+		cat $D/rawbody
+	} | $BIN/deliver $RECIP $D/from $_mbox || exit $status
+}
+
+
 # forward mail to a list of addresses
 fn forward {
 	upasname=`{awk '{print $2}' $D/unixheader} cat $D/raw | upas/send $* || exit $status
@@ -91,6 +105,34 @@ fn tokenreply {
 fn listupdate {
 	$BIN/list add $PF $D/from $D/to $D/cc $D/sender
 }
+
+# bayesian spam filter.  alternative to token.  see /mail/lib/bayes.setup
+fn isspam {
+	for(i in _prof.mbox _prof.spam _bounced){
+		if(! test -f $i){
+			echo 'need '^$i >[1=2]
+			exit 'need '^$i
+		}
+	}
+	{
+		echo '# hash table'
+		upas/msgcat $TMP.msg | upas/msgtok |
+			grep -v '^....................(.*)	' |
+			sed 's/$/	1/'
+	} >$TMP.tok
+	x=`{upas/bayes -k _prof.mbox _prof.spam ~ $TMP.tok | sed 's/_prof.//'}
+	where=$x(1)
+	prob=$x(2)
+	prob1000=`{echo $prob '*1000' | hoc | sed 's/\..*//'}
+	echo `{sed 's/^From ([^ ]+) (.*)/\2 from \1/' $D/unixheader} $x >>_bounced
+	if(~ $where spam && test $prob1000 -lt 999)
+		where=mbox
+	upas/addhash -o _prof.$where _prof.$where 1 $TMP.tok 1
+	if(~ $where spam)
+		where=''
+	status=$where
+}
+
 
 # save and parse the mail file
 sed '/^$/,$ s/^From / From /' >$TMP.msg

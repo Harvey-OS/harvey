@@ -1,0 +1,50 @@
+#!/bin/rc
+
+rfork ne
+
+if(~ $1 /mail/fs/mbox*){
+	dir=$*
+}
+if not{
+	upas/fs -f $1
+	dir=/mail/fs/mbox/[0-9]*
+}
+
+fn catmsg {
+	t=`{cat type}
+	switch($t){
+	case text/html
+		cp body /tmp/xxx
+		echo '
+			,x/<!--(-?[^\-]|--[^>]|\n)*-->/ c//
+			,x/<[^>]+>/d
+			,p
+			u
+			,y/<[^>]+>/d
+			,p
+		' | sam -d body |[2] sed '1d;/^\?/d'
+	case text/*
+		cat body
+	case message/*
+		cat body
+	case multipart/alternative
+		if(~ `{cat 1/type} text/plain)
+			cd 1 && {catmsg; cd ..}
+		if not if (~ `{cat 2/type >[2]/dev/null} text/plain)
+			cd 2 && {catmsg; cd ..}
+		if not {
+			for (i in [0-9]*)
+				cd $i && {catmsg; cd ..}
+		}
+	case *
+		echo $t
+	}
+}
+
+for(i in $dir){
+	cd $i
+	cat unixheader header
+	echo
+	catmsg
+	echo
+}
