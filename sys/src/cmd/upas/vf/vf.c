@@ -28,6 +28,7 @@ static Part*	problemchild(Part *p);
 static void	readheader(Part *p);
 static Hline*	readhl(void);
 static void	readmtypes(void);
+static void	save(Part *p);
 static void	setfilename(Part *p, char *name);
 static char*	skiptosemi(char *p);
 static char*	skipwhite(char *p);
@@ -108,6 +109,7 @@ struct Mtype {
 Mtype *mtypes;
 
 int justreject;
+char *savefile;
 
 /*
  *  this is a filter that changes mime types and names of
@@ -120,6 +122,11 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	case 'r':
 		justreject = 1;
+		break;
+	case 's':
+		savefile = ARGF();
+		if(savefile == nil)
+			exits("usage");
 		break;
 	}ARGEND;
 
@@ -188,12 +195,14 @@ part(Part *pp)
 			 */
 			if(p->badtype || p->badfile){
 				if(p->badfile == 2){
+					if(savefile != nil)
+						save(p);
 					syslog(0, "vf", "vf rejected %s %s", p->type?s_to_c(p->type):"?",
 						p->filename?s_to_c(p->filename):"?");
-					fprint(2, "The mail contained an attachment which was a DOS/Windows\n");
-					fprint(2, "executable file.  We refuse all mail containing such.\n");
+					fprint(2, "The mail contained an executable attachment.\n");
+					fprint(2, "We refuse all mail containing such.\n");
 					postnote(PNGROUP, getpid(), "mail refused: we don't accept executable attachments");
-					exits("we don't accept executable attachments");
+					exits("mail refused: we don't accept executable attachments");
 				}
 				return problemchild(p);
 			} else {
@@ -311,6 +320,33 @@ passbody(Part *p, int dobound)
 		Bwrite(&out, cp, Blinelen(&in));
 	}
 	return nil;
+}
+
+/*
+ *  save the message somewhere
+ */
+static void
+save(Part *p)
+{
+	int fd;
+	char *cp;
+
+	Bterm(&out);
+	memset(&out, 0, sizeof(out));
+
+	fd = open(savefile, OWRITE);
+	if(fd < 0)
+		return;
+	seek(fd, 0, 2);
+	Binit(&out, fd, OWRITE);
+	cp = ctime(time(0));
+	cp[20] = 0;
+	Bprint(&out, "From virusfilter %s\n", cp);
+	writeheader(p);
+	passbody(p, 1);
+	Bprint(&out, "\n");
+	Bterm(&out);
+	close(fd);
 }
 
 /*

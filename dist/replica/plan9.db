@@ -10920,7 +10920,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1072561144 18914
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1064589597 1084
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1072561144 24496
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1079323038 27764
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1061836986 6949
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1067722785 9661
@@ -10929,7 +10929,7 @@ sys/src/cmd/upas/unesc/mkfile - 664 sys sys 1075080255 164
 sys/src/cmd/upas/unesc/unesc.c - 664 sys sys 1075080255 789
 sys/src/cmd/upas/vf - 20000000775 sys sys 1015096796 0
 sys/src/cmd/upas/vf/mkfile - 664 sys sys 1064393881 241
-sys/src/cmd/upas/vf/vf.c - 664 sys sys 1064589607 16851
+sys/src/cmd/upas/vf/vf.c - 664 sys sys 1079323044 17391
 sys/src/cmd/usb - 20000000775 sys sys 1017802022 0
 sys/src/cmd/usb/audio - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/audio/audioclass.h - 664 sys sys 1017802021 5463
