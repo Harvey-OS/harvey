@@ -90,6 +90,18 @@ pop3resp(Pop *pop)
 	return s;
 }
 
+static int
+pop3log(char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap,fmt);
+	syslog(0, "/sys/log/pop3", fmt, ap);
+	va_end(ap);
+	return 0;
+}
+
+
 //
 // get capability list, possibly start tls
 //
@@ -121,6 +133,7 @@ pop3capa(Pop *pop)
 		if(!isokay(s = pop3resp(pop)))
 			return s;
 		memset(&conn, 0, sizeof conn);
+		// conn.trace = pop3log;
 		fd = tlsClient(pop->fd, &conn);
 		if(fd < 0)
 			sysfatal("tlsClient: %r");
@@ -441,7 +454,7 @@ pop3read(Pop *pop, Mailbox *mb, int doplumb)
 			continue;
 		}
 		nnew++;
-		parse(m, 0, mb);
+		parse(m, 0, mb, 1);
 
 		if(doplumb)
 			mailplumb(mb, m, 0);

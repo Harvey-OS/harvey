@@ -1,3 +1,5 @@
+#define Rendez KRendez
+
 typedef struct Block	Block;
 typedef struct Chan	Chan;
 typedef struct Cname	Cname;

@@ -12,10 +12,8 @@ BIN=/$objtype/bin/upas
 
 UPDATE=\
 	mkfile\
-	${TARG:%=%.c}\
-	${OFILES:%.$O=%.c}\
-	${TARG:%=/386/bin/upas/%}\
 	$HFILES\
+	${OFILES:%.$O=%.c}\
 	
 </sys/src/cmd/mkone
 CFLAGS=$CFLAGS -I../common
