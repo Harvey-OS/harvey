@@ -13019,3 +13019,4 @@
 1060012960 1 c sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1060012272 12142
 1060041774 0 c sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
 1060041774 1 c sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1060041739 42848
+1060092160 0 c lib/face/48x48x4/.dict - 664 sys sys 1060092065 2010
