@@ -14017,3 +14017,15 @@
 1078279247 0 c sys/games/lib/fortunes - 664 sys sys 1078279274 247590
 1078281047 0 c sys/games/lib/fortunes - 664 sys sys 1078279900 247772
 1078455619 0 c sys/games/lib/fortunes - 664 sys sys 1078453847 248109
+1078468222 0 c sys/src/cmd/acme/util.c - 664 sys sys 1078466661 7312
+1078468222 1 c sys/src/libdraw/font.c - 664 sys sys 1078466654 7542
+1078468222 2 c sys/src/libdraw/stringwidth.c - 664 sys sys 1078466654 1587
+1078468222 3 c sys/src/libframe/frbox.c - 664 sys sys 1078466650 3028
+1078488026 0 m sys/lib/lp/log - 20000000777 sys sys 1071620128 0
+1078497028 0 c 386/include/ape/math.h - 664 sys sys 1078495286 2176
+1078497028 1 c 68020/include/ape/math.h - 664 sys sys 1078495286 2176
+1078497028 2 c alpha/include/ape/math.h - 664 sys sys 1078495286 2176
+1078497028 3 c arm/include/ape/math.h - 664 sys sys 1078495287 2176
+1078497028 4 c mips/include/ape/math.h - 664 sys sys 1078495287 2176
+1078497028 5 c power/include/ape/math.h - 664 sys sys 1078495287 2176
+1078497028 6 c sparc/include/ape/math.h - 664 sys sys 1078495288 2176
