@@ -3206,7 +3206,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1049903231 240008
+sys/games/lib/fortunes - 664 sys sys 1051533798 240058
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1014929061 1133

@@ -19296,3 +19296,4 @@
 1051207300 9 a sys/src/cmd/ip/dhcpd/ping.8 - 664 sys sys 1051207140 2472
 1051207300 10 a sys/src/cmd/ip/ipconfig.8 - 664 sys sys 1051207027 53527
 1051207300 11 d sys/src/cmd/ip/dhcpd/7.dhcpd - 775 sys sys 1051203213 0
+1051534827 0 c sys/games/lib/fortunes - 664 sys sys 1051533798 240058
