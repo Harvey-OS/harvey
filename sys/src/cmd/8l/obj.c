@@ -984,22 +984,6 @@ loop:
 		}
 		goto casdef;
 
-	case AADDL:
-		if(p->from.type == D_CONST)
-		if(p->from.offset < 0) {
-			p->as = ASUBL;
-			p->from.offset = -p->from.offset;
-		}
-		goto casdef;
-
-	case ASUBL:
-		if(p->from.type == D_CONST)
-		if(p->from.offset < 0) {
-			p->as = AADDL;
-			p->from.offset = -p->from.offset;
-		}
-		goto casdef;
-
 	casdef:
 	default:
 		if(skip)

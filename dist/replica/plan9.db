@@ -3396,7 +3396,7 @@ sys/include/geometry.h - 664 sys sys 1014929063 2632
 sys/include/html.h - 664 sys sys 1017679304 15157
 sys/include/httpd.h - 664 sys sys 1014929064 5726
 sys/include/ip.h - 664 sys sys 1050702405 2908
-sys/include/keyboard.h - 664 sys sys 1071535972 802
+sys/include/keyboard.h - 664 sys sys 1071725439 790
 sys/include/libc.h - 664 sys sys 1067718922 19305
 sys/include/libsec.h - 664 sys sys 1068129557 8966
 sys/include/mach.h - 664 sys sys 1068478049 8194
@@ -4649,6 +4649,7 @@ sys/man/1/lex - 664 sys sys 1032058565 1520
 sys/man/1/look - 664 sys sys 944959673 1348
 sys/man/1/lp - 664 sys sys 1015024739 3304
 sys/man/1/ls - 664 sys sys 1049813576 2791
+sys/man/1/lsof - 664 sys sys 1071802922 620
 sys/man/1/mail - 664 sys sys 1050078464 2158
 sys/man/1/man - 664 sys sys 1059484724 1740
 sys/man/1/marshal - 664 sys sys 1050078464 3307
@@ -5314,7 +5315,7 @@ sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1067722633 7991
-sys/src/9/pc/kbd.c - 664 sys sys 1039753498 9134
+sys/src/9/pc/kbd.c - 664 sys sys 1071726245 9135
 sys/src/9/pc/l.s - 664 sys sys 1071514801 23314
 sys/src/9/pc/main.c - 664 sys sys 1067722634 14685
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
@@ -6666,7 +6667,7 @@ sys/src/cmd/8c/gc.h - 664 sys sys 1018556084 5708
 sys/src/cmd/8c/list.c - 664 sys sys 1067720660 3975
 sys/src/cmd/8c/mkenam - 664 sys sys 944960730 112
 sys/src/cmd/8c/mkfile - 664 sys sys 1016938025 251
-sys/src/cmd/8c/peep.c - 664 sys sys 1016938025 9887
+sys/src/cmd/8c/peep.c - 664 sys sys 1071778501 10636
 sys/src/cmd/8c/reg.c - 664 sys sys 1016938025 20464
 sys/src/cmd/8c/sgen.c - 664 sys sys 1019058717 12203
 sys/src/cmd/8c/swt.c - 664 sys sys 1018556085 10693
@@ -6677,8 +6678,8 @@ sys/src/cmd/8l/compat.c - 664 sys sys 944960733 445
 sys/src/cmd/8l/l.h - 664 sys sys 1016938032 5590
 sys/src/cmd/8l/list.c - 664 sys sys 1045503947 4185
 sys/src/cmd/8l/mkfile - 664 sys sys 1032102046 363
-sys/src/cmd/8l/obj.c - 664 sys sys 1045503948 24392
-sys/src/cmd/8l/optab.c - 664 sys sys 1016938032 16328
+sys/src/cmd/8l/obj.c - 664 sys sys 1071778472 24102
+sys/src/cmd/8l/optab.c - 664 sys sys 1071778472 16231
 sys/src/cmd/8l/pass.c - 664 sys sys 1045503949 10682
 sys/src/cmd/8l/span.c - 664 sys sys 1045503950 22035
 sys/src/cmd/9660srv - 20000000775 sys sys 944960735 0
