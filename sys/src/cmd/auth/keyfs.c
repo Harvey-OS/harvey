@@ -24,14 +24,17 @@ enum{
 	Qmax,
 
 	Nuser	= 512,
-	MAXBAD	= 50,			/* max number of bad attempts before disabling the account */
+	MAXBAD	= 10,			/* max number of bad attempts before disabling the account */
 	Namelen	= ANAMELEN,		/* file must be randomly addressible, so names have fixed length */
 };
 
 enum{
 	Sok,
 	Sdisabled,
+	Stempdisabled,
 	Smax,
+
+	PurgatorySecs=	MAXBAD,		/* averages out to 1 attempt a second */
 };
 
 struct Fid{
@@ -52,6 +55,7 @@ struct User{
 	int	ref;
 	char	removed;
 	uchar	warnings;
+	long	purgatory;		/* time purgatory ends */
 	ulong	uniq;
 	User	*link;
 };
@@ -395,6 +399,8 @@ Read(Fid *f)
 	case Qkey:
 		if(f->user->status != Sok)
 			return "user disabled";
+		if(f->user->purgatory > time(0))
+			return "user in purgatory";
 		if(f->user->expire != 0 && f->user->expire < time(0))
 			return "user expired";
 		if(off != 0)
@@ -407,6 +413,8 @@ Read(Fid *f)
 	case Qsecret:
 		if(f->user->status != Sok)
 			return "user disabled";
+		if(f->user->purgatory > time(0))
+			return "user in purgatory";
 		if(f->user->expire != 0 && f->user->expire < time(0))
 			return "user expired";
 		if(off != 0)
@@ -528,8 +536,8 @@ Write(Fid *f)
 		else
 			f->user->bad++;
 		if(f->user->bad >= MAXBAD){
-			f->user->status = Sdisabled;
-			break;
+			f->user->purgatory = time(0) + PurgatorySecs;
+			f->user->bad = 0;
 		}
 		return 0;
 	case Qwarnings:
@@ -836,6 +844,7 @@ installuser(char *name)
 		error("malloc failed: %r");
 	u->removed = 0;
 	u->ref = 0;
+	u->purgatory = 0;
 	u->expire = 0;
 	u->status = Sok;
 	u->bad = 0;
