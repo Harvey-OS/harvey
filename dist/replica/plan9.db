@@ -10658,7 +10658,7 @@ sys/src/fs/choline/io.h - 664 sys sys 1037805081 6576
 sys/src/fs/choline/mem.h - 664 sys sys 1015110108 2865
 sys/src/fs/choline/mkfile - 664 sys sys 1045536422 1673
 sys/src/fs/dev - 20000000775 sys sys 1015109978 0
-sys/src/fs/dev/cw.c - 664 sys sys 1045502886 41997
+sys/src/fs/dev/cw.c - 664 sys sys 1047663897 42252
 sys/src/fs/dev/fworm.c - 664 sys sys 1015109971 1737
 sys/src/fs/dev/juke.c - 664 sys sys 1040567254 22891
 sys/src/fs/dev/mkfile - 664 sys sys 1015109974 132
@@ -10705,7 +10705,7 @@ sys/src/fs/pc/etherif.c - 664 sys sys 1037805117 6324
 sys/src/fs/pc/etherif.h - 664 sys sys 1015110057 730
 sys/src/fs/pc/ethermii.c - 664 sys sys 1037805117 1247
 sys/src/fs/pc/ethermii.h - 664 sys sys 1037805117 980
-sys/src/fs/pc/floppy.c - 664 sys sys 1037805117 13814
+sys/src/fs/pc/floppy.c - 664 sys sys 1047663990 13993
 sys/src/fs/pc/kbd.c - 664 sys sys 1015110060 6030
 sys/src/fs/pc/l.s - 664 sys sys 1032062001 10656
 sys/src/fs/pc/lock.c - 664 sys sys 1045502910 3591
@@ -10713,7 +10713,7 @@ sys/src/fs/pc/malloc.c - 664 sys sys 1037805118 2854
 sys/src/fs/pc/mkfile - 664 sys sys 1037805118 369
 sys/src/fs/pc/mmu.c - 664 sys sys 1015110065 8414
 sys/src/fs/pc/nvr.c - 664 sys sys 1015110066 669
-sys/src/fs/pc/pc.c - 664 sys sys 1037805118 7937
+sys/src/fs/pc/pc.c - 664 sys sys 1047663991 7938
 sys/src/fs/pc/pci.c - 664 sys sys 1037805118 11638
 sys/src/fs/pc/script.i - 664 sys sys 1015110072 27323
 sys/src/fs/pc/scsi.c - 664 sys sys 1037805118 8667
@@ -10728,10 +10728,10 @@ sys/src/fs/port/9p1lib.c - 664 sys sys 1015109996 7629
 sys/src/fs/port/9p2.c - 664 sys sys 1044290935 36142
 sys/src/fs/port/all.h - 664 sys sys 1045502862 1927
 sys/src/fs/port/auth.c - 664 sys sys 1041361345 7608
-sys/src/fs/port/chk.c - 664 sys sys 1037805158 13882
+sys/src/fs/port/chk.c - 664 sys sys 1047663951 14533
 sys/src/fs/port/clock.c - 664 sys sys 1015110006 4033
 sys/src/fs/port/con.c - 664 sys sys 1037805158 16254
-sys/src/fs/port/config.c - 664 sys sys 1045502863 15760
+sys/src/fs/port/config.c - 664 sys sys 1047663951 18054
 sys/src/fs/port/console.c - 664 sys sys 1015110011 4821
 sys/src/fs/port/data.c - 664 sys sys 1041361346 4411
 sys/src/fs/port/dentry.c - 664 sys sys 1015110013 3801
@@ -10739,7 +10739,7 @@ sys/src/fs/port/devcons.c - 664 sys sys 1015110014 4329
 sys/src/fs/port/fcmd.c - 664 sys sys 1015110015 1266
 sys/src/fs/port/iobuf.c - 664 sys sys 1045502864 4845
 sys/src/fs/port/lib.h - 664 sys sys 1015110017 3335
-sys/src/fs/port/main.c - 664 sys sys 1037805158 5694
+sys/src/fs/port/main.c - 664 sys sys 1047663952 5698
 sys/src/fs/port/mkfile - 664 sys sys 1015110018 189
 sys/src/fs/port/portdat.h - 664 sys sys 1045502865 16642
 sys/src/fs/port/portfns.h - 664 sys sys 1037805159 7454

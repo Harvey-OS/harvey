@@ -225,6 +225,18 @@ floppystop(Floppy *dp)
 	outb(Pdor, fl.motor | Fintena | Fena | dp->dev);
 }
 
+void
+floppyhalt(void)
+{
+	Floppy *dp;
+
+	for(dp = fl.d; dp < &fl.d[Maxfloppy]; dp++)
+		if((fl.motor&MOTORBIT(dp->dev)) && canqlock(&fl)){
+			floppystop(dp);
+			qunlock(&fl);
+		}
+}
+
 static void
 floppyalarm(Alarm* a, void *arg)
 {

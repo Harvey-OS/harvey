@@ -88,7 +88,7 @@ main(void)
 		gidspace = ialloc(conf.gidspace * sizeof(*gidspace), 0);
 		authinit();
 
-		print("Plan 9 v4 file server: IDE, mirror, wormcopy, allow, pcihinv, memory\n");
+		print("Plan 9 v4 file server: allow copyworm IDE memory mirror pcihinv readonly\n");
 		print("iobufinit\n");
 		iobufinit();
 
