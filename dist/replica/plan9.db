@@ -3095,6 +3095,7 @@ rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
 rc/bin/troff2gif - 775 sys sys 1045504085 178
 rc/bin/ups - 775 sys sys 1051028686 889
+rc/bin/uptime - 775 sys sys 1074730712 234
 rc/bin/usbstart - 775 sys sys 1044894155 81
 rc/bin/usps - 775 sys sys 1016826030 450
 rc/bin/vwhois - 775 sys sys 1059484222 297
@@ -4723,6 +4724,7 @@ sys/man/1/troff2html - 664 sys sys 964455062 1871
 sys/man/1/tweak - 664 sys sys 957920008 4762
 sys/man/1/uniq - 664 sys sys 944959674 995
 sys/man/1/units - 664 sys sys 944959673 2049
+sys/man/1/uptime - 664 sys sys 1074733782 380
 sys/man/1/vac - 664 sys sys 1021579977 3227
 sys/man/1/vi - 664 sys sys 1015024741 2920
 sys/man/1/vnc - 664 sys sys 1045501432 4186
@@ -10361,7 +10363,7 @@ sys/src/cmd/ssh/agent.c - 664 sys sys 1062091014 9053
 sys/src/cmd/ssh/authpasswd.c - 664 sys sys 1062091016 728
 sys/src/cmd/ssh/authrsa.c - 664 sys sys 1062091017 2582
 sys/src/cmd/ssh/authsrvpasswd.c - 664 sys sys 1016466379 296
-sys/src/cmd/ssh/authsrvtis.c - 664 sys sys 1062091018 876
+sys/src/cmd/ssh/authsrvtis.c - 664 sys sys 1074731315 928
 sys/src/cmd/ssh/authtis.c - 664 sys sys 1062091017 1004
 sys/src/cmd/ssh/cipher3des.c - 664 sys sys 1016466379 836
 sys/src/cmd/ssh/cipherblowfish.c - 664 sys sys 1016466379 631
