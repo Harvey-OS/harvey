@@ -6794,7 +6794,7 @@ sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
 sys/src/cmd/acme/edit.c - 664 sys sys 1015701171 12055
 sys/src/cmd/acme/edit.h - 664 sys sys 969500816 2466
 sys/src/cmd/acme/elog.c - 664 sys sys 1078839859 7236
-sys/src/cmd/acme/exec.c - 664 sys sys 1096388101 28104
+sys/src/cmd/acme/exec.c - 664 sys sys 1099329953 28183
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1079102913 2883
 sys/src/cmd/acme/fsys.c - 664 sys sys 1079102915 12799
@@ -12392,3 +12392,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/acme - 775 sys sys 1099368725 425143
