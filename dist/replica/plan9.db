@@ -15,7 +15,7 @@
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1089397305 112804
-386/bin/8c - 775 sys sys 1089397306 357675
+386/bin/8c - 775 sys sys 1095478055 357637
 386/bin/8l - 775 sys sys 1095170407 114895
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
@@ -478,7 +478,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1085077125 102330
 386/bin/venti/wrarena - 775 sys sys 1091936100 174140
 386/bin/venti/write - 775 sys sys 1085077126 100504
-386/bin/vncs - 775 sys sys 1091849701 469227
+386/bin/vncs - 775 sys sys 1095478056 469284
 386/bin/vncv - 775 sys sys 1085077128 518402
 386/bin/vt - 775 sys sys 1085077128 170967
 386/bin/vtdump - 775 sys sys 1085077129 157507
@@ -6672,7 +6672,7 @@ sys/src/cmd/8c/bound.c - 664 sys sys 1084472146 16274
 sys/src/cmd/8c/bound.h - 664 sys sys 1084472146 903
 sys/src/cmd/8c/cgen.c - 664 sys sys 1089299180 32120
 sys/src/cmd/8c/cgen64.c - 664 sys sys 1089299182 45852
-sys/src/cmd/8c/div.c - 664 sys sys 1089382812 3313
+sys/src/cmd/8c/div.c - 664 sys sys 1095443855 3297
 sys/src/cmd/8c/enam.c - 664 sys sys 1089299181 3227
 sys/src/cmd/8c/gc.h - 664 sys sys 1089299181 6418
 sys/src/cmd/8c/list.c - 664 sys sys 1067720660 3975
@@ -11065,7 +11065,7 @@ sys/src/cmd/vnc/draw.c - 664 sys sys 1044880749 6974
 sys/src/cmd/vnc/error.h - 664 sys sys 1044880749 2482
 sys/src/cmd/vnc/errstr.h - 664 sys sys 1044880749 2018
 sys/src/cmd/vnc/exporter.c - 664 sys sys 1044880749 1312
-sys/src/cmd/vnc/exportfs.c - 664 sys sys 1045529366 13666
+sys/src/cmd/vnc/exportfs.c - 664 sys sys 1095444302 13667
 sys/src/cmd/vnc/kbd.h - 664 sys sys 1044880749 301
 sys/src/cmd/vnc/kbds.c - 664 sys sys 1082221522 3379
 sys/src/cmd/vnc/kbdv.c - 664 sys sys 1082221523 3735
