@@ -11,7 +11,7 @@
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
 386/9pcf - 775 sys sys 1109132030 2381804
 386/9pcf.gz - 664 sys sys 1077049490 872650
-386/9pxeload - 775 sys sys 1108397372 213184
+386/9pxeload - 775 sys sys 1109598590 215716
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1108285260 115096
@@ -147,7 +147,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1104121988 83293
 386/bin/aux/typepasswd - 775 sys sys 1104121988 69503
-386/bin/aux/vga - 775 sys sys 1104562494 301461
+386/bin/aux/vga - 775 sys sys 1109563697 301643
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -439,7 +439,7 @@
 386/bin/upas/aliasmail - 775 sys sys 1104122069 104752
 386/bin/upas/bayes - 775 sys sys 1064598344 70530
 386/bin/upas/deliver - 775 sys sys 1104122069 99781
-386/bin/upas/filter - 775 sys sys 1104122070 147311
+386/bin/upas/filter - 775 sys sys 1109563698 147311
 386/bin/upas/fs - 775 sys sys 1109132005 332256
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1104122071 82776
@@ -455,7 +455,7 @@
 386/bin/upas/ratfs - 775 sys sys 1108354565 111342
 386/bin/upas/runq - 775 sys sys 1104122074 113086
 386/bin/upas/scanmail - 775 sys sys 1104122075 128749
-386/bin/upas/send - 775 sys sys 1104122075 191536
+386/bin/upas/send - 775 sys sys 1109563698 191536
 386/bin/upas/smtp - 775 sys sys 1109132007 273564
 386/bin/upas/smtpd - 775 sys sys 1109132008 328719
 386/bin/upas/spam - 775 sys sys 1064598366 36
@@ -515,7 +515,7 @@
 386/include/u.h - 664 sys sys 1042604326 1450
 386/include/ureg.h - 664 sys sys 944946012 523
 386/init - 775 sys sys 1104122095 100110
-386/ld.com - 775 sys sys 1108397371 72076
+386/ld.com - 775 sys sys 1109598589 72076
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 944969312 0
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
@@ -9393,7 +9393,7 @@ sys/src/cmd/gzip/unzip.c - 664 sys sys 1050689595 13603
 sys/src/cmd/gzip/zip.c - 664 sys sys 1033183074 7054
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
 sys/src/cmd/hget.c - 664 sys sys 1091129591 25650
-sys/src/cmd/history.c - 664 sys sys 1084471627 6117
+sys/src/cmd/history.c - 664 sys sys 1109607291 6008
 sys/src/cmd/hoc - 20000000775 sys sys 954036932 0
 sys/src/cmd/hoc/code.c - 664 sys sys 944961000 10041
 sys/src/cmd/hoc/hoc.h - 664 sys sys 944960999 2358
@@ -9437,7 +9437,7 @@ sys/src/cmd/ip/dhcpd/testping.c - 664 sys sys 950389141 352
 sys/src/cmd/ip/ftpd.c - 664 sys sys 1101155057 33054
 sys/src/cmd/ip/ftpfs - 20000000775 sys sys 1014925642 0
 sys/src/cmd/ip/ftpfs/file.c - 664 sys sys 1014925642 4208
-sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1093452873 13584
+sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1109607513 13700
 sys/src/cmd/ip/ftpfs/ftpfs.h - 664 sys sys 1091904423 2353
 sys/src/cmd/ip/ftpfs/mkfile - 664 sys sys 1048312050 173
 sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1103565527 29470
@@ -10188,7 +10188,7 @@ sys/src/cmd/ql/optab.c - 664 sys sys 1089299167 13392
 sys/src/cmd/ql/pass.c - 664 sys sys 1089299168 11868
 sys/src/cmd/ql/sched.c - 664 sys sys 1089299166 12776
 sys/src/cmd/ql/span.c - 664 sys sys 1089299167 19882
-sys/src/cmd/ramfs.c - 664 sys sys 1079877660 15377
+sys/src/cmd/ramfs.c - 664 sys sys 1109607491 15506
 sys/src/cmd/ratfs - 20000000775 sys sys 1016943965 0
 sys/src/cmd/ratfs/ctlfiles.c - 664 sys sys 1016943964 6694
 sys/src/cmd/ratfs/main.c - 664 sys sys 1016943964 6516
@@ -10434,7 +10434,7 @@ sys/src/cmd/tail.c - 664 sys sys 1077054929 6004
 sys/src/cmd/tapefs - 20000000775 sys sys 944962012 0
 sys/src/cmd/tapefs/32vfs.c - 664 sys sys 1014926384 3688
 sys/src/cmd/tapefs/cpiofs.c - 664 sys sys 1014926384 2493
-sys/src/cmd/tapefs/fs.c - 664 sys sys 1032060630 9777
+sys/src/cmd/tapefs/fs.c - 664 sys sys 1109607563 9754
 sys/src/cmd/tapefs/mkfile - 664 sys sys 1097914131 254
 sys/src/cmd/tapefs/tapefs.h - 664 sys sys 1014926384 1609
 sys/src/cmd/tapefs/tapfs.c - 664 sys sys 1063854819 1938
@@ -12463,6 +12463,14 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/vga - 775 sys sys 1109563697 301643
-386/bin/upas/filter - 775 sys sys 1109563698 147311
-386/bin/upas/send - 775 sys sys 1109563698 191536
+386/bin/fs/32vfs - 775 sys sys 1109650119 94507
+386/bin/fs/cpiofs - 775 sys sys 1109650119 93427
+386/bin/fs/tapfs - 775 sys sys 1109650120 95980
+386/bin/fs/tarfs - 775 sys sys 1109650120 94328
+386/bin/fs/tpfs - 775 sys sys 1109650120 93183
+386/bin/fs/v10fs - 775 sys sys 1109650120 94571
+386/bin/fs/v6fs - 775 sys sys 1109650121 94489
+386/bin/fs/zipfs - 775 sys sys 1109650121 109088
+386/bin/history - 775 sys sys 1109650122 74891
+386/bin/ftpfs - 775 sys sys 1109650121 154523
+386/bin/ramfs - 775 sys sys 1109650122 89167

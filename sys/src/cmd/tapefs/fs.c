@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 		usage();
 	}ARGEND
 
-	if (argc==0)
+	if(argc==0)
 		error("no file to mount");
 	user = getuser();
 	if(user == nil)
@@ -255,7 +255,7 @@ rwalk(Fid *f)
  				thdr.wqid[thdr.nwqid++] = r->qid;
 				continue;
 			}
-			if (!dir->replete)
+			if(!dir->replete)
 				popdir(dir);
 			for(r=dir->child; r; r=r->next)
 				if(r->busy && strcmp(name, r->name)==0)
@@ -354,7 +354,7 @@ rread(Fid *f)
 		cnt = messagesize-IOHDRSZ;
 	buf = thdr.data;
 	if(f->ram->qid.type & QTDIR){
-		if (!f->ram->replete)
+		if(!f->ram->replete)
 			popdir(f->ram);
 		for(i=0,r=f->ram->child; r!=nil && i<end; r=r->next){
 			if(!r->busy)
@@ -389,7 +389,7 @@ rwrite(Fid *f)
 	int cnt;
 
 	r = f->ram;
-	if (dopermw(f->ram)==0)
+	if(dopermw(f->ram)==0)
 		return Eperm;
 	if(r->busy == 0)
 		return Enotexist;
@@ -504,10 +504,10 @@ io(void)
 		 * so we wait for the error
 		 */
 		n = read9pmsg(mfd[0], mdata, sizeof mdata);
-		if (n==0)
+		if(n==0)
 			continue;
 		if(n < 0){
-			if (buf[0]=='\0')
+			if(buf[0]=='\0')
 				errstr(buf, sizeof buf);
 			continue;
 		}
@@ -541,7 +541,7 @@ io(void)
 		if(write(mfd[1], mdata, n) != n)
 			error("mount write");
 	}
-	if (buf[0]=='\0' || strncmp(buf, "write to hung", 13)==0)
+	if(buf[0]=='\0' || strstr(buf, "hungup"))
 		exits("");
 	fprint(2, "%s: mount read: %s\n", argv0, buf);
 	exits(buf);
@@ -550,7 +550,7 @@ io(void)
 int
 perm(int p)
 {
-	if (p==Pwrite)
+	if(p==Pwrite)
 		return 0;
 	return 1;
 }

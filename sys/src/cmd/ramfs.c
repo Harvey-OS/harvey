@@ -745,7 +745,7 @@ newfid(int fid)
 void
 io(void)
 {
-	char *err, buf[20];
+	char *err, buf[40];
 	int n, pid, ctl;
 
 	pid = getpid();
@@ -771,6 +771,12 @@ io(void)
 		 * so we wait for the error.
 		 */
 		n = read9pmsg(mfd[0], mdata, messagesize);
+		if(n < 0){
+			errstr(buf, sizeof buf);
+			if(buf[0]=='\0' || strstr(buf, "hungup"))
+				exits("");
+			error("mount read");
+		}
 		if(n < 0)
 			error("mount read");
 		if(n == 0)

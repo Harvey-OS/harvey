@@ -154,7 +154,7 @@ main(int argc, char *argv[])
 
 	/* initial handshakes with remote side */
 	hello(*argv);
-	if (cpassword == 0)
+	if(cpassword == 0)
 		rlogin(*argv, keyspec);
 	else
 		clogin("anonymous", cpassword);
@@ -247,15 +247,19 @@ kaproc(void)
 void
 io(void)
 {
-	char *err;
+	char *err, buf[ERRMAX];
 	int n;
 
 	kapid = kaproc();
 
 	while(!dying){
 		n = read9pmsg(mfd, mdata, messagesize);
-		if(n <= 0)
-			fatal("mount read");
+		if(n <= 0){
+			errstr(buf, sizeof buf);
+			if(buf[0]=='\0' || strstr(buf, "hungup"))
+				exits("");
+			fatal("mount read: %s\n", buf);
+		}
 		if(convM2S(mdata, n, &thdr) == 0)
 			continue;
 
