@@ -5106,7 +5106,7 @@ sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1084473185 3436
 sys/man/8/plan9.ini - 664 sys sys 1094650551 20806
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
-sys/man/8/ppp - 664 sys sys 1050361032 4424
+sys/man/8/ppp - 664 sys sys 1096036494 4424
 sys/man/8/prep - 664 sys sys 1079705872 13820
 sys/man/8/qer - 664 sys sys 1067723129 4909
 sys/man/8/reboot - 664 sys sys 969499895 414
@@ -9477,7 +9477,7 @@ sys/src/cmd/ip/ppp/dotest - 775 sys sys 944961006 152
 sys/src/cmd/ip/ppp/ipaux.c - 664 sys sys 1015090266 2326
 sys/src/cmd/ip/ppp/mkfile - 664 sys sys 1063897576 352
 sys/src/cmd/ip/ppp/mppc.c - 664 sys sys 1015090267 16624
-sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1095775907 59692
+sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1096060213 59659
 sys/src/cmd/ip/ppp/ppp.h - 664 sys sys 1091904423 8284
 sys/src/cmd/ip/ppp/testppp.c - 664 sys sys 1045505281 3011
 sys/src/cmd/ip/ppp/thw.c - 664 sys sys 1015090268 5962
@@ -10399,7 +10399,7 @@ sys/src/cmd/ssh/ssh.h - 664 sys sys 1091904420 6086
 sys/src/cmd/ssh/sshnet.c - 664 sys sys 1078840016 17641
 sys/src/cmd/ssh/sshserve.c - 664 sys sys 1062091020 5786
 sys/src/cmd/ssh/util.c - 664 sys sys 1063858753 4478
-sys/src/cmd/stats.c - 664 sys sys 1087406219 27828
+sys/src/cmd/stats.c - 664 sys sys 1096061397 27827
 sys/src/cmd/strings.c - 664 sys sys 944961364 1216
 sys/src/cmd/strip.c - 664 sys sys 1014926661 3306
 sys/src/cmd/sum.c - 664 sys sys 1014926615 5548
@@ -12377,3 +12377,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/stats - 775 sys sys 1096081600 187903
+386/bin/ip/ppp - 775 sys sys 1096081599 216592

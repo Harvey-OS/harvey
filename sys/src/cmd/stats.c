@@ -8,7 +8,7 @@
 
 #define	MAXNUM	10	/* maximum number of numbers on data line */
 
-typedef struct Graph		Graph;
+typedef struct Graph	Graph;
 typedef struct Machine	Machine;
 
 struct Graph
@@ -20,9 +20,9 @@ struct Graph
 	char		*label;
 	void		(*newvalue)(Machine*, ulong*, ulong*, int);
 	void		(*update)(Graph*, ulong, ulong);
-	Machine	*mach;
+	Machine		*mach;
 	int		overflow;
-	Image	*overtmp;
+	Image		*overtmp;
 };
 
 enum
@@ -85,13 +85,13 @@ enum
 
 enum
 {
-	Ncolor	= 6,
+	Ncolor		= 6,
 	Ysqueeze	= 2,	/* vertical squeezing of label text */
 	Labspace	= 2,	/* room around label */
 	Dot		= 2,	/* height of dot */
-	Opwid	= 5,	/* strlen("add  ") or strlen("drop ") */
+	Opwid		= 5,	/* strlen("add  ") or strlen("drop ") */
 	Nlab		= 3,	/* max number of labels on y axis */
-	Lablen	= 16,	/* max length of label */
+	Lablen		= 16,	/* max length of label */
 	Lx		= 4,	/* label tick length */
 };
 
@@ -158,8 +158,8 @@ void	contextval(Machine*, ulong*, ulong*, int),
 	signalval(Machine*, ulong*, ulong*, int);
 
 Menu	menu2 = {menu2str, nil};
-int		present[Nmenu2];
-void		(*newvaluefn[Nmenu2])(Machine*, ulong*, ulong*, int init) = {
+int	present[Nmenu2];
+void	(*newvaluefn[Nmenu2])(Machine*, ulong*, ulong*, int init) = {
 	batteryval,
 	contextval,
 	etherval,
@@ -182,20 +182,20 @@ void		(*newvaluefn[Nmenu2])(Machine*, ulong*, ulong*, int init) = {
 Image	*cols[Ncolor][3];
 Graph	*graph;
 Machine	*mach;
-Font		*mediumfont;
-char		*mysysname;
-char		argchars[] = "8bceEfiImlnpstw";
-int		pids[NPROC];
-int 		parity;	/* toggled to avoid patterns in textured background */
-int		nmach;
-int		ngraph;	/* totaly number is ngraph*nmach */
+Font	*mediumfont;
+char	*mysysname;
+char	argchars[] = "8bceEfiImlnpstw";
+int	pids[NPROC];
+int 	parity;	/* toggled to avoid patterns in textured background */
+int	nmach;
+int	ngraph;	/* totaly number is ngraph*nmach */
 double	scale = 1.0;
-int		logscale = 0;
-int		ylabels = 0;
-int		oldsystem = 0;
+int	logscale = 0;
+int	ylabels = 0;
+int	oldsystem = 0;
 int 	sleeptime = 1000;
 
-char		*procnames[NPROC] = {"main", "mouse"};
+char	*procnames[NPROC] = {"main", "mouse"};
 
 void
 killall(char *s)
@@ -377,7 +377,7 @@ drawdatum(Graph *g, int x, ulong prev, ulong v, ulong vmax)
 }
 
 void
-redraw(Graph *g, int vmax)
+redraw(Graph *g, ulong vmax)
 {
 	int i, c;
 
@@ -392,7 +392,7 @@ redraw(Graph *g, int vmax)
 void
 update1(Graph *g, ulong v, ulong vmax)
 {
-	char buf[32];
+	char buf[48];
 	int overflow;
 
 	if(g->overflow && g->overtmp!=nil)
@@ -409,7 +409,7 @@ update1(Graph *g, ulong v, ulong vmax)
 	if(overflow && g->overtmp!=nil){
 		g->overflow = 1;
 		draw(g->overtmp, g->overtmp->r, screen, nil, g->overtmp->r.min);
-		sprint(buf, "%ld", v);
+		sprint(buf, "%lud", v);
 		string(screen, g->overtmp->r.min, display->black, ZP, mediumfont, buf);
 	}
 }
@@ -1128,7 +1128,7 @@ resize(void)
 			g->overflow = 0;
 			r = g->r;
 			r.max.y = r.min.y+mediumfont->height;
-			r.max.x = r.min.x+stringwidth(mediumfont, "9999999");
+			r.max.x = r.min.x+stringwidth(mediumfont, "999999999999");
 			freeimage(g->overtmp);
 			g->overtmp = nil;
 			if(r.max.x <= g->r.max.x)

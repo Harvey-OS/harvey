@@ -130,7 +130,7 @@ communicate over
 instead of standard I/O
 .TP
 .B u
-before starting the PPP porotcol with the remote end, shuttle
+before starting the PPP protocol with the remote end, shuttle
 bytes between the device and standard I/O until an EOF on standard
 input.  This allows a user to start
 .I ppp
