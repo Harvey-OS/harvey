@@ -164,6 +164,9 @@ localconfinit(void)
 	conf.firstsb = 0;
 	conf.recovsb = 0;
 	conf.ripoff = 1;
+
+	conf.minuteswest = 5*60;
+	conf.dsttime = 1;
 }
 
 int (*fsprotocol[])(Msgbuf*) = {

@@ -45,6 +45,7 @@ char	*errstr9p[MAXERR] =
 	[Eversion]	"version conversion",
 	[Eauthnone]	"auth -- user 'none' requires no authentication",
 	[Eauthdisabled]	"auth -- authentication disabled",	/* development */
+	[Eauthfile]	"auth -- out of auth files",
 	[Eedge]		"at the bleeding edge",		/* development */
 };
 
