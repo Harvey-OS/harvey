@@ -22,7 +22,18 @@ authsrvtisfn(Conn *conn, Msg *m)
 	sendmsg(m);
 	free(s);
 
-	m = recvmsg(conn, SSH_CMSG_AUTH_TIS_RESPONSE);
+	m = recvmsg(conn, 0);
+	if(m == nil)
+		badmsg(m, SSH_CMSG_AUTH_TIS_RESPONSE);
+	if(m->type != SSH_CMSG_AUTH_TIS_RESPONSE){
+		/*
+		 * apparently you can just give up on
+		 * this protocol and start a new one.
+		 */
+		unrecvmsg(conn, m);
+		return nil;
+	}
+
 	c->resp = getstring(m);
 	c->nresp = strlen(c->resp);
 	ai = auth_response(c);

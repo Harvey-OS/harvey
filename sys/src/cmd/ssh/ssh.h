@@ -179,6 +179,7 @@ struct Conn
 	char *host;
 	char *aliases;
 	int interactive;
+	Msg *unget;
 
 	RSApriv *serverpriv;		/* server only */
 	RSApriv *hostpriv;
@@ -231,6 +232,7 @@ extern Cipher ciphertwiddle;
 Msg*	allocmsg(Conn*, int, int);
 void		badmsg(Msg*, int);
 Msg*	recvmsg(Conn*, int);
+void		unrecvmsg(Conn*, Msg*);
 int		sendmsg(Msg*);
 uchar	getbyte(Msg*);
 ushort	getshort(Msg*);
