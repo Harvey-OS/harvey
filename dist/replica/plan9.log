@@ -12745,3 +12745,5 @@
 1056573071 6 c sys/lib/postscript/font/NOTICE - 444 sys sys 1056572331 816
 1056636155 0 a 386/bin/aux/zerotrunc - 775 sys sys 1056634437 58154
 1056636155 1 a sys/src/cmd/aux/zerotrunc.c - 664 sys sys 1056634403 300
+1056855687 0 a LICENSE.afpl - 664 sys sys 1056855682 14333
+1056857488 0 c LICENSE - 444 sys sys 1056856036 12895

@@ -13,6 +13,10 @@ with the following exceptions:
 2. The printer fonts identified in subdirectory /sys/lib/ghostscript/font
    are subject to the GNU GPL, reproduced in the file /LICENSE.gpl.
 
+3. The ghostscript program in the subdirectory /sys/src/cmd/gs is
+   covered by the Aladdin Free Public License, reproduced in the file
+   /LICENSE.afpl.
+
 ===================================================================
 
 Lucent Public License Version 1.02
