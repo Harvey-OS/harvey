@@ -490,7 +490,7 @@ main(int argc, char **argv)
 	AuthConn *c;
 
 	serve = "$auth";
-	user = getenv("user");
+	user = getuser();
 	memset(Gflag, 0, sizeof Gflag);
 
 	ARGBEGIN{
