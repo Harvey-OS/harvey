@@ -230,6 +230,7 @@ ctlr
 	vid=0x1002 did=0x4C50		# LP
 	vid=0x1002 did=0x5654		# VT
 	vid=0x1002 did=0x5656		# VV
+	vid=0x1002 did=0x4755		# 3D Rage II+
 	0xC00DC="MACH64CTPCIU"				# ATI Graphics Xpression
 	0xC00E7="MACH64GPPCIM"				# ATI xpert@work
 	0xC00E7="MACH64GBPCIM"				# ATI xpert@work
@@ -452,6 +453,12 @@ include=1024x768					# 70Hz, 57.2KHz
 	vrs=771 vre=777 vt=806
 	hsync=- vsync=-
 
+include=1280x768@60Hz					# 60Hz (VAIO pcg tr1mp vmware)
+	defaultclock=80.1
+	shb=1280 ehb=1344 ht=1480
+	vrs=768 vre=769 vt=772
+	hsync=- vsync=-
+
 include=1280x1024i					# 87Hz, 48KHz
 	defaultclock=80
 	shb=1312 ehb=1528 ht=1576
@@ -480,6 +487,13 @@ include=1152x900@70Hz						# 72Hz, 67.9KHz
 	vrs=900 vre=902 vt=940
 	#hsync=- vsync=-
 
+include=1152x768					#Apple titanium 550 (virtualpc)
+	defaultclock=75
+	shb=1096 ehb=1232 ht=1344
+	shs=1072
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
 #
 # VGA.
 #
@@ -495,6 +509,14 @@ svga=640x480
 	include=640x480
 svga=800x600
 	include=800x600
+
+
+cinema=1280x768						# VAIO (pcg tr1mp in vmware).
+	include=1280x768@60Hz
+cinema=1152x768						# Titanium 550 (in virtual pc)
+	include=1152x768
+cinema
+	alias=multisync
 
 #
 # XGA (Laptop).
