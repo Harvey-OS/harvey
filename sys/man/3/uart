@@ -60,10 +60,20 @@ is non-zero;
 else clear it.
 .TP
 .BI i n
-Enable input FIFO if
+Enable/disable the FIFOs.
+If
 .I n
-is non-zero;
-else disable.
+is zero the FIFOs are disabled;
+otherwise
+.I n
+is taken as a trigger level for the FIFOs.
+The trigger levels supported are device dependant,
+but usually include 1, 4 and 8.
+An unrecognised,
+but non-zero,
+value of
+.I n
+causes the maximum-supported trigger level to be set.
 .TP
 .BI p c
 Set parity to odd if

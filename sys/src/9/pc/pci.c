@@ -1174,6 +1174,26 @@ pcireset(void)
 }
 
 void
+pcisetioe(Pcidev* p)
+{
+	int pcr;
+
+	pcr = pcicfgr16(p, PciPCR);
+	pcr |= IOen;
+	pcicfgw16(p, PciPCR, pcr);
+}
+
+void
+pciclrioe(Pcidev* p)
+{
+	int pcr;
+
+	pcr = pcicfgr16(p, PciPCR);
+	pcr &= ~IOen;
+	pcicfgw16(p, PciPCR, pcr);
+}
+
+void
 pcisetbme(Pcidev* p)
 {
 	int pcr;

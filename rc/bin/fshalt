@@ -14,7 +14,7 @@ for(i in $f){
 		echo fsys all sync
 		if(! dial/expect -qt 120 ': ')
 			echo -n 'not synced...' > /dev/cons
-	} < $f >> $f
+	} < $i >> $i
 }
 
 echo -n venti...
@@ -49,7 +49,7 @@ for(i in $f){
 		echo fsys all halt
 		if(! expect -qt 120 ': ')
 			echo -n 'not halted...' > /dev/cons
-	} < $f >> $f
+	} < $i >> $i
 }
 
 for (i in $k){

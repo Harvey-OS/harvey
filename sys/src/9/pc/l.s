@@ -10,11 +10,10 @@
 #define DELAY		BYTE $0xEB; BYTE $0x00	/* JMP .+2 */
 #define CPUID		BYTE $0x0F; BYTE $0xA2	/* CPUID, argument in AX */
 #define WRMSR		BYTE $0x0F; BYTE $0x30	/* WRMSR, argument in AX/DX (lo/hi) */
-#define RDMSR		BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
 #define RDTSC 		BYTE $0x0F; BYTE $0x31	/* RDTSC, result in AX/DX (lo/hi) */
+#define RDMSR		BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
 #define WBINVD		BYTE $0x0F; BYTE $0x09
 #define HLT		BYTE $0xF4
-#define SFENCE		BYTE $0x0F; BYTE $0xAE; BYTE $0xF8
 
 /*
  * Macros for calculating offsets within the page directory base
@@ -29,7 +28,7 @@
  * 9load currently sets up the mmu, however the first 16MB of memory is identity
  * mapped, so behave as if the mmu was not setup
  */
-TEXT _start0x80100020(SB),$0
+TEXT _start0x80100020(SB), $0
 	MOVL	$_start0x00100020(SB), AX
 	ANDL	$~KZERO, AX
 	JMP*	AX
@@ -44,7 +43,7 @@ TEXT _start0x80100020(SB),$0
  * identity mapping is removed once the MMU is going and the JMP has been made
  * to virtual memory.
  */
-TEXT _start0x00100020(SB),$0
+TEXT _start0x00100020(SB), $0
 	CLI					/* make sure interrupts are off */
 
 	/* set up the gdt so we have sane plan 9 style gdts. */
@@ -52,24 +51,52 @@ TEXT _start0x00100020(SB),$0
 	ANDL	$~KZERO, AX
 	MOVL	(AX), GDTR
 	MOVW	$1, AX
-	MOVW	AX,MSW
+	MOVW	AX, MSW
 
 	/* clear prefetch queue (weird code to avoid optimizations) */
 	DELAY
 
 	/* set segs to something sane (avoid traps later) */
-	MOVW	$(1<<3),AX
-	MOVW	AX,DS
-	MOVW	AX,SS
-	MOVW	AX,ES
-	MOVW	AX,FS
-	MOVW	AX,GS
+	MOVW	$(1<<3), AX
+	MOVW	AX, DS
+	MOVW	AX, SS
+	MOVW	AX, ES
+	MOVW	AX, FS
+	MOVW	AX, GS
 
 /*	JMP	$(2<<3):$mode32bit(SB) /**/
 	 BYTE	$0xEA
 	 LONG	$mode32bit-KZERO(SB)
 	 WORD	$(2<<3)
-TEXT	mode32bit(SB),$0
+
+/*
+ *  gdt to get us to 32-bit/segmented/unpaged mode
+ */
+TEXT tgdt(SB), $0
+
+	/* null descriptor */
+	LONG	$0
+	LONG	$0
+
+	/* data segment descriptor for 4 gigabytes (PL 0) */
+	LONG	$(0xFFFF)
+	LONG	$(SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(0)|SEGDATA|SEGW)
+
+	/* exec segment descriptor for 4 gigabytes (PL 0) */
+	LONG	$(0xFFFF)
+	LONG	$(SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(0)|SEGEXEC|SEGR)
+
+/*
+ *  pointer to initial gdt
+ *  Note the -KZERO which puts the physical address in the gdtptr. 
+ *  that's needed as we start executing in physical addresses. 
+ */
+TEXT tgdtptr(SB), $0
+
+	WORD	$(3*8)
+	LONG	$tgdt-KZERO(SB)
+
+TEXT mode32bit(SB), $0
 	/* At this point, the GDT setup is done. */
 
 	MOVL	$PADDR(CPU0PDB), DI		/* clear 4 pages for the tables etc. */
@@ -118,33 +145,6 @@ _setpte:
 	MOVL	$_startpg(SB), AX		/* this is a virtual address */
 	MOVL	DX, CR0				/* turn on paging */
 	JMP*	AX				/* jump to the virtual nirvana */
-
-/*
- *  gdt to get us to 32-bit/segmented/unpaged mode
- */
-TEXT	tgdt(SB),$0
-
-	/* null descriptor */
-	LONG	$0
-	LONG	$0
-
-	/* data segment descriptor for 4 gigabytes (PL 0) */
-	LONG	$(0xFFFF)
-	LONG	$(SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(0)|SEGDATA|SEGW)
-
-	/* exec segment descriptor for 4 gigabytes (PL 0) */
-	LONG	$(0xFFFF)
-	LONG	$(SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(0)|SEGEXEC|SEGR)
-
-/*
- *  pointer to initial gdt
- *  Note the -KZERO which puts the physical address in the gdtptr. 
- *  that's needed as we start executing in physical addresses. 
- */
-TEXT	tgdtptr(SB),$0
-
-	WORD	$(3*8)
-	LONG	$tgdt-KZERO(SB)
 
 /*
  * Basic machine environment set, can clear BSS and create a stack.
@@ -248,7 +248,7 @@ TEXT outb(SB), $0
 	OUTB
 	RET
 
-TEXT outsb(SB),$0
+TEXT outsb(SB), $0
 	MOVL	port+0(FP), DX
 	MOVL	address+4(FP), SI
 	MOVL	count+8(FP), CX
@@ -332,29 +332,15 @@ TEXT putcr4(SB), $0
 
 TEXT cycles(SB), $0				/* time stamp counter; cycles since power up */
 	RDTSC
-	MOVL	vlong+0(FP), CX	/* &vlong */
+	MOVL	vlong+0(FP), CX			/* &vlong */
 	MOVL	AX, 0(CX)			/* lo */
 	MOVL	DX, 4(CX)			/* hi */
-	RET
-
-TEXT rd0(SB), $0
-	MOVL	vlong+0(FP), CX
-	MOVL	$0, 0(CX)
-	MOVL	$0, 4(CX)
-	RET
-
-TEXT rdmsr10(SB), $0
-	MOVL	$0x10, CX
-	RDMSR
-	MOVL	vlong+0(FP), CX
-	MOVL	AX, 0(CX)
-	MOVL	DX, 4(CX)
 	RET
 
 TEXT rdmsr(SB), $0				/* model-specific register */
 	MOVL	index+0(FP), CX
 	RDMSR
-	MOVL	vlong+4(FP), CX	/* &vlong */
+	MOVL	vlong+4(FP), CX			/* &vlong */
 	MOVL	AX, 0(CX)			/* lo */
 	MOVL	DX, 4(CX)			/* hi */
 	RET
@@ -368,10 +354,6 @@ TEXT wrmsr(SB), $0
 
 TEXT wbinvd(SB), $0
 	WBINVD
-	RET
-
-TEXT sfence(SB), $0
-	SFENCE
 	RET
 
 /*
@@ -515,7 +497,7 @@ TEXT splx(SB), $0
 	MOVL	$(MACHADDR+0x04), AX 		/* save PC in m->splpc */
 	MOVL	(SP), BX
 	MOVL	BX, (AX)
-	/* fall through */
+	/*FALLTHROUGH*/
 
 TEXT splxpc(SB), $0				/* for iunlock */
 	MOVL	s+0(FP), AX
@@ -541,21 +523,23 @@ TEXT tas(SB), $0
 	XCHGL	AX, (BX)			/* lock->key */
 	RET
 
-TEXT	_xinc(SB),$0	/* void _xinc(long *); */
-	MOVL	l+0(FP),AX
-	LOCK
-	INCL	0(AX)
+TEXT _xinc(SB), $0				/* void _xinc(long*); */
+	MOVL	l+0(FP), AX
+	LOCK;	INCL 0(AX)
 	RET
 
-TEXT	_xdec(SB),$0	/* long _xdec(long *); */
-	MOVL	l+0(FP),AX
-	LOCK
-	DECL	0(AX)
-	JZ	iszero
-	MOVL	$1, AX
+TEXT _xdec(SB), $0				/* long _xdec(long*); */
+	MOVL	l+0(FP), BX
+	XORL	AX, AX
+	LOCK;	DECL 0(BX)
+	JLT	_xdeclt
+	JGT	_xdecgt
 	RET
-iszero:
-	MOVL	$0, AX
+_xdecgt:
+	INCL	AX
+	RET
+_xdeclt:
+	DECL	AX
 	RET
 
 TEXT wbflush(SB), $0
@@ -569,54 +553,46 @@ TEXT xchgw(SB), $0
 	RET
 
 /*
-TEXT xchgl(SB), $0
-	MOVL	v+4(FP), AX
-	MOVL	p+0(FP), BX
-	XCHGL	AX, (BX)
-	RET
+ * mul64fract(uvlong* r, uvlong a, uvlong b)
+ *
+ * multiply uvlong a by uvlong b and return a uvlong result.
+ *
+ * One of the input arguments is a uvlong integer,
+ * the other represents a fractional number with
+ * the integer portion in the most significant word and
+ * the fractional portion in the least significant word.
+ *
+ * Example: mul64fract(&r, 2ULL, 3ULL << 31) returns 1ULL
+ *
+ * The uvlong integer result is returned through r
+ *
+ *	ignored		r0 = lo(a0*b0)
+ *	lsw of result	r1 = hi(a0*b0) +lo(a0*b1) +lo(a1*b0)
+ *	msw of result	r2 = 		hi(a0*b1) +hi(a1*b0) +lo(a1*b1)
+ *	ignored		r3 = hi(a1*b1)
  */
-
-TEXT	mul64fract(SB), $0
-	/* mul64fract(uvlong*r, uvlong a, uvlong b)
-	 *
-	 * multiply uvlong a by uvlong b and return a uvlong result.
-	 *
-	 * One of the input arguments is a uvlong integer,
-	 * the other represents a fractional number with
-	 * the integer portion in the most significant word and
-	 * the fractional portion in the least significant word.
-	 *
-	 * Example: mul64fract(&r, 2ULL, 3ULL << 31) returns 1ULL
-	 *
-	 * The uvlong integer result is returned through r
-	 *
-	 *	ignored		r0 = lo(a0*b0)
-	 *	lsw of result	r1 = hi(a0*b0) +lo(a0*b1) +	lo(a1*b0)
-	 *	msw of result	r2 = 		hi(a0*b1) +	hi(a1*b0) +	lo(a1*b1)
-	 *	ignored		r3 =						hi(a1*b1)
-	 */
-
+TEXT mul64fract(SB), $0
 	MOVL	r+0(FP), CX
-	XORL	BX, BX		/* BX = 0 */
-
-	MOVL	a+8(FP),AX
-	MULL	b+16(FP)	/* a1*b1 */
-	MOVL	AX, 4(CX)	/* r2 = lo(a1*b1) */
+	XORL	BX, BX				/* BX = 0 */
 
 	MOVL	a+8(FP), AX
-	MULL	b+12(FP)	/* a1*b0 */
-	MOVL	AX, 0(CX)	/* r1 = lo(a1*b0) */
-	ADDL	DX, 4(CX)	/* r2 += hi(a1*b0) */
+	MULL	b+16(FP)			/* a1*b1 */
+	MOVL	AX, 4(CX)			/* r2 = lo(a1*b1) */
+
+	MOVL	a+8(FP), AX
+	MULL	b+12(FP)			/* a1*b0 */
+	MOVL	AX, 0(CX)			/* r1 = lo(a1*b0) */
+	ADDL	DX, 4(CX)			/* r2 += hi(a1*b0) */
 
 	MOVL	a+4(FP), AX
-	MULL	b+16(FP)	/* a0*b1 */
-	ADDL	AX, 0(CX)	/* r1 += lo(a0*b1) */
-	ADCL	DX, 4(CX)	/* r2 += hi(a0*b1) + carry */
+	MULL	b+16(FP)			/* a0*b1 */
+	ADDL	AX, 0(CX)			/* r1 += lo(a0*b1) */
+	ADCL	DX, 4(CX)			/* r2 += hi(a0*b1) + carry */
 
 	MOVL	a+4(FP), AX
-	MULL	b+12(FP)	/* a0*b0 */
-	ADDL	DX, 0(CX)	/* r1 += hi(a0*b0) */
-	ADCL	BX, 4(CX)	/* r2 += carry */
+	MULL	b+12(FP)			/* a0*b0 */
+	ADDL	DX, 0(CX)			/* r1 += hi(a0*b0) */
+	ADCL	BX, 4(CX)			/* r2 += carry */
 	RET
 
 /*
@@ -694,7 +670,7 @@ TEXT forkret(SB), $0
 	POPL	FS
 	POPL	ES
 	POPL	DS
-	ADDL	$8, SP				/* pop error code and trap type */
+	ADDL	$8, SP			/* pop error code and trap type */
 	IRETL
 
 TEXT vectortable(SB), $0

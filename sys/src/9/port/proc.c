@@ -486,6 +486,7 @@ newproc(void)
 	p->errbuf1[0] = '\0';
 	p->nlocks.ref = 0;
 	p->delaysched = 0;
+	p->trace = 0;
 	kstrdup(&p->user, "*nouser");
 	kstrdup(&p->text, "*notext");
 	kstrdup(&p->args, "");
