@@ -47,7 +47,7 @@
 386/bin/auth - 20000000775 sys sys 1016920815 0
 386/bin/auth/aescbc - 775 sys sys 1045537938 120957
 386/bin/auth/asn12rsa - 775 sys sys 1048622916 117753
-386/bin/auth/authsrv - 775 sys sys 1045537939 161978
+386/bin/auth/authsrv - 775 sys sys 1051128396 162707
 386/bin/auth/changeuser - 775 sys sys 1045537939 96090
 386/bin/auth/convkeys - 775 sys sys 1046656929 86221
 386/bin/auth/convkeys2 - 775 sys sys 1046656929 86237
@@ -500,8 +500,8 @@
 386/lib/libip.a - 664 sys sys 1050868861 32560
 386/lib/libl.a - 664 sys sys 1045538121 5412
 386/lib/libmach.a - 664 sys sys 1045538123 743792
-386/lib/libmemdraw.a - 664 sys sys 1046656926 292604
-386/lib/libmemlayer.a - 664 sys sys 1046182506 47256
+386/lib/libmemdraw.a - 664 sys sys 1051110557 292604
+386/lib/libmemlayer.a - 664 sys sys 1051110558 47650
 386/lib/libmp.a - 664 sys sys 1048622926 77064
 386/lib/libndb.a - 664 sys sys 1050868862 52836
 386/lib/libplumb.a - 664 sys sys 1045538125 19000
@@ -6547,7 +6547,7 @@ sys/src/cmd/astro/venust.c - 664 sys sys 944960761 739
 sys/src/cmd/auth - 20000000775 sys sys 1015008432 0
 sys/src/cmd/auth/asn12rsa.c - 664 sys sys 1048614959 1192
 sys/src/cmd/auth/authcmdlib.h - 664 sys sys 1032497636 1438
-sys/src/cmd/auth/authsrv.c - 664 sys sys 1045504853 18391
+sys/src/cmd/auth/authsrv.c - 664 sys sys 1051128389 18428
 sys/src/cmd/auth/challenge.c - 664 sys sys 1015008432 980
 sys/src/cmd/auth/changeuser.c - 664 sys sys 1015008431 2933
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212

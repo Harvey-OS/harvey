@@ -19209,3 +19209,7 @@
 1051032672 0 c sys/include/memlayer.h - 664 sys sys 1051031022 1851
 1051032672 1 c sys/src/libmemlayer/lalloc.c - 664 sys sys 1051031021 1781
 1051032672 2 c sys/src/libmemlayer/ltofront.c - 664 sys sys 1051031021 1307
+1051111902 0 c 386/lib/libmemdraw.a - 664 sys sys 1051110557 292604
+1051111902 1 c 386/lib/libmemlayer.a - 664 sys sys 1051110558 47650
+1051129920 0 c 386/bin/auth/authsrv - 775 sys sys 1051128396 162707
+1051129920 1 c sys/src/cmd/auth/authsrv.c - 664 sys sys 1051128389 18428
