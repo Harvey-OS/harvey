@@ -12312,7 +12312,7 @@ sys/src/libventi/session.h - 664 sys sys 1063853749 936
 sys/src/libventi/strdup.c - 664 sys sys 1045502096 203
 sys/src/libventi/venti.txt - 664 sys sys 1045502097 4347
 sys/src/libventi/zero.c - 664 sys sys 1045502097 1509
-sys/src/mkfile - 664 sys sys 1045589241 992
+sys/src/mkfile - 664 sys sys 1073061130 1006
 sys/src/mkfile.proto - 664 sys sys 1045502130 269
 tmp - 20000000555 sys sys 953999902 0
 usr - 20000000775 sys sys 953406542 0

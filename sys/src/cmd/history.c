@@ -198,6 +198,7 @@ lastbefore(ulong t, char *f, char *b, char *ndump)
 	Dir *dir;
 	int vers, try;
 	ulong t0, mtime;
+	int i, n, fd;
 
 	t0 = t;
 	if(verb)
@@ -218,24 +219,41 @@ lastbefore(ulong t, char *f, char *b, char *ndump)
 			t -= HOUR(24);
 			continue;
 		}
-		for(vers=0;; vers++) {
-			sprint(b, "/n/%s/%.4d/%.2d%.2d%d", ndump,
-				tm->year+1900, tm->mon+1, tm->mday, vers+1);
-			dir = dirstat(b);
-			if(dir){
-				mtime = dir->mtime;
-				free(dir);
+		if(strstr(ndump, "snap")){
+			fd = open(b, OREAD);
+			if(fd < 0)
+				continue;
+			n = dirreadall(fd, &dir);
+			close(fd);
+			if(n == 0)
+				continue;
+			for(i = n-1; i > 0; i--){
+				if(dir[i].mtime > t0)
+					break;
 			}
-			if(dir==nil || mtime > t0)
-				break;
-			if(verb)
-				print("%ld later %s\n", mtime, b);
+			sprint(b, "/n/%s/%.4d/%.2d%.2d/%s%s", ndump,
+				tm->year+1900, tm->mon+1, tm->mday, dir[i].name, f);
+			free(dir);
+		} else {
+			for(vers=0;; vers++) {
+				sprint(b, "/n/%s/%.4d/%.2d%.2d%d", ndump,
+					tm->year+1900, tm->mon+1, tm->mday, vers+1);
+				dir = dirstat(b);
+				if(dir){
+					mtime = dir->mtime;
+					free(dir);
+				}
+				if(dir==nil || mtime > t0)
+					break;
+				if(verb)
+					print("%ld later %s\n", mtime, b);
+			}
+			sprint(b, "/n/%s/%.4d/%.2d%.2d%s", ndump,
+				tm->year+1900, tm->mon+1, tm->mday, f);
+			if(vers)
+				sprint(b, "/n/%s/%.4d/%.2d%.2d%d%s", ndump,
+					tm->year+1900, tm->mon+1, tm->mday, vers, f);
 		}
-		sprint(b, "/n/%s/%.4d/%.2d%.2d%s", ndump,
-			tm->year+1900, tm->mon+1, tm->mday, f);
-		if(vers)
-			sprint(b, "/n/%s/%.4d/%.2d%.2d%d%s", ndump,
-				tm->year+1900, tm->mon+1, tm->mday, vers, f);
 		return;
 	}
 	strcpy(b, "XXX");	/* error */

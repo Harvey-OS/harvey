@@ -13269,3 +13269,4 @@
 1073008876 0 a sys/src/cmd/usb/print - 20000000775 sys sys 1073007760 0
 1073008876 1 a sys/src/cmd/usb/print/mkfile - 664 sys sys 1073007760 197
 1073008876 2 a sys/src/cmd/usb/print/usbprint - 775 sys sys 1073007760 222
+1073061099 0 c sys/src/mkfile - 664 sys sys 1073061130 1006
