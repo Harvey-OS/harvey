@@ -12395,3 +12395,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/usb/usbaudio - 775 sys sys 1103515801 185428
+386/bin/usb/usbd - 775 sys sys 1103515801 129811
