@@ -94,7 +94,6 @@ sys	- sys sys
 		lex	- sys sys
 			+	- sys sys
 		lp	- sys sys
-			*	- sys sys
 			bin	- sys sys
 				+	- sys sys
 			daemon	- sys sys
@@ -113,6 +112,7 @@ sys	- sys sys
 			stat	- sys sys
 				+	- sys sys
 			tmp	d777 sys sys
+			*	- sys sys
 		man	- sys sys
 			+	- sys sys
 		plumb	- sys sys
@@ -137,7 +137,6 @@ sys	- sys sys
 			+	- sys sys
 	log	- sys sys
 		*	a666 sys sys 
-		timesync.d	d775 sys sys
 		httpd	- sys sys
 			*	666 sys sys
 	man	- sys sys

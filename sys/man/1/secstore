@@ -45,7 +45,7 @@ aescbc, secstore, ipso \- secstore commands
 .PP
 .B ipso
 [
-.B -as
+.B -a -e -l -f -s
 ] [
 .I file
 \&...
@@ -152,6 +152,22 @@ grabs all the user's files from
 .I secstore
 for editing.
 .PP
+By default, ipso will edit the
+.I secstore
+files and, if
+one of them is named
+.BR factotum ,
+flush your current keys from factotum and load
+the new ones from the file.
+If you supply any of the
+.BR -e ,
+.BR -f ,
+or
+.BR -l
+options,
+.I ipso
+will just perform the operations you requested, i.e.,
+edit, flush, and/or load.
 .PP
 The
 .B -s

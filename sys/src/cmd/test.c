@@ -6,6 +6,7 @@
  * Plan 9 additions:
  *	-A file exists and is append-only
  *	-L file exists and is exclusive-use
+ *	-T file exists and is temporary
  */
 
 #include <u.h>
@@ -114,6 +115,9 @@ e3(void) {
 
 	if(EQ(a, "-L"))
 		return(hasmode(nxtarg(0), DMEXCL));
+
+	if(EQ(a, "-T"))
+		return(hasmode(nxtarg(0), DMTMP));
 
 	if(EQ(a, "-f"))
 		return(isreg(nxtarg(0)));

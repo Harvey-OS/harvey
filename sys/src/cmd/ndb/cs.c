@@ -1018,11 +1018,12 @@ ipid(void)
 					}
 				}
 			}
-			for(tt = t; tt != nil; tt = tt->entry)
-				if(strcmp(t->attr, "sys") == 0){
-					mysysname = strdup(t->val);
+			for(tt = t; tt != nil; tt = tt->entry){
+				if(strcmp(tt->attr, "sys") == 0){
+					mysysname = strdup(tt->val);
 					break;
 				}
+			}
 			ndbfree(t);
 		}
 
@@ -1274,6 +1275,8 @@ ipserv(Network *np, char *name, char *buf, int blen)
 	p = nil;
 	if(alpha){
 		p = ndbgetvalue(db, &s, np->net, name, "port", &t);
+		if(p == nil)
+			return 0;
 	} else {
 		/* look up only for tcp ports < 1024 to get the restricted
 		 * attribute

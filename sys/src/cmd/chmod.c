@@ -19,7 +19,7 @@ main(int argc, char *argv[])
 	char *p;
 
 	if(argc < 3){
-		fprint(2, "usage: chmod 0777 file ... or chmod [who]op[rwxal] file ...\n");
+		fprint(2, "usage: chmod 0777 file ... or chmod [who]op[rwxalt] file ...\n");
 		exits("usage");
 	}
 	mode = strtol(argv[1], &p, 8);
