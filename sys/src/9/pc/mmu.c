@@ -87,6 +87,7 @@ mmuinit(void)
 
 	m->tss = malloc(sizeof(Tss));
 	memset(m->tss, 0, sizeof(Tss));
+	m->tss->iomap = 0xDFFF<<16;
 
 	/*
 	 * We used to keep the GDT in the Mach structure, but it

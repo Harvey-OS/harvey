@@ -16,45 +16,45 @@ enum
 	// SMBus configuration registers (function 3)
 	SMBbase=	0x90,		// 4 byte base address (bit 0 == 1, bit 3:1 == 0)
 	SMBconfig=	0xd2,
-	 SMBintrselect=	(7<<1),
-	  SMIenable=	(0<<1),		//  interrupts sent to SMI#
-	  IRQ9enable=	(4<<1),		//  intettupts sent to IRQ9
-	 SMBenable=	(1<<0),		//  1 enables
+	SMBintrselect=	(7<<1),
+	SMIenable=	(0<<1),		//  interrupts sent to SMI#
+	IRQ9enable=	(4<<1),		//  intettupts sent to IRQ9
+	SMBenable=	(1<<0),		//  1 enables
 
 	// SMBus IO space registers
 	Hoststatus=	0x0,		//  (writing 1 bits reset the interrupt bits)
-	 Failed=	(1<<4),	 	//  transaction terminated by KILL
-	 Bus_error=	(1<<3),		//  transactio collision
-	 Dev_error=	(1<<2),		//  device error interrupt
-	 Host_complete=	(1<<1),		//  host command completion interrupt 
-	 Host_busy=	(1<<0),		//
+	Failed=		(1<<4),	 	//  transaction terminated by KILL
+	Bus_error=	(1<<3),		//  transactio collision
+	Dev_error=	(1<<2),		//  device error interrupt
+	Host_complete=	(1<<1),		//  host command completion interrupt 
+	Host_busy=	(1<<0),		//
 	Slavestatus=	0x1,		//  (writing 1 bits reset)
-	 Alert_sts=	(1<<5),		//  someone asserted SMBALERT#
-	 Shdw2_sts=	(1<<4),		//  slave accessed shadow 2 port
-	 Shdw1_sts=	(1<<3),		//  slave accessed shadow 1 port
-	 Slv_sts=	(1<<2),		//  slave accessed shadow 1 port
-	 Slv_bsy=	(1<<0),
+	Alert_sts=	(1<<5),		//  someone asserted SMBALERT#
+	Shdw2_sts=	(1<<4),		//  slave accessed shadow 2 port
+	Shdw1_sts=	(1<<3),		//  slave accessed shadow 1 port
+	Slv_sts=	(1<<2),		//  slave accessed shadow 1 port
+	Slv_bsy=	(1<<0),
 	Hostcontrol=	0x2,
-	 Start=		(1<<6),		//  start execution
-	 Cmd_prot=	(7<<2),		//  command protocol mask
-	  Quick=	(0<<2),		//   address only
-	  Byte=		(1<<2),		//   address + cmd
-	  ByteData=	(2<<2),		//   address + cmd + data
-	  WordData=	(3<<2),		//   address + cmd + data + data
-	 Kill=		(1<<1),		//  abort in progress command
-	 Ienable=	(1<<0),		//  enable completion interrupts
+	Start=		(1<<6),		//  start execution
+	Cmd_prot=	(7<<2),		//  command protocol mask
+	Quick=		(0<<2),		//   address only
+	Byte=		(1<<2),		//   address + cmd
+	ByteData=	(2<<2),		//   address + cmd + data
+	WordData=	(3<<2),		//   address + cmd + data + data
+	Kill=		(1<<1),		//  abort in progress command
+	Ienable=	(1<<0),		//  enable completion interrupts
 	Hostcommand=	0x3,
 	Hostaddress=	0x4,
-	 AddressMask=	(0x7f<<1),	//  target address
-	 Read=		(1<<0),		//  1 == read, 0 == write
+	AddressMask=	(0x7f<<1),	//  target address
+	Read=		(1<<0),		//  1 == read, 0 == write
 	Hostdata0=	0x5,
 	Hostdata1=	0x6,
 	Blockdata=	0x7,
 	Slavecontrol=	0x8,
-	 Alert_en=	(1<<3),		//  enable inter on SMBALERT#
-	 Shdw2_en=	(1<<2),		//  enable inter on external shadow 2 access
-	 Shdw1_en=	(1<<1),		//  enable inter on external shadow 1 access
-	 Slv_en=	(1<<0),		//  enable inter on access of host ctlr slave port
+	Alert_en=	(1<<3),		//  enable inter on SMBALERT#
+	Shdw2_en=	(1<<2),		//  enable inter on external shadow 2 access
+	Shdw1_en=	(1<<1),		//  enable inter on external shadow 1 access
+	Slv_en=		(1<<0),		//  enable inter on access of host ctlr slave port
 	Shadowcommand=	0x9,
 	Slaveevent=	0xa,
 	Slavedata=	0xc,
@@ -81,7 +81,7 @@ static void
 transact(SMBus *s, int type, int addr, int cmd, uchar *data)
 {
 	int tries, status;
-	char err[ERRLEN];
+	char err[256];
 
 	if(type < 0 || type > nelem(proto))
 		panic("piix4smbus: illegal transaction type %d", type);
@@ -96,7 +96,7 @@ transact(SMBus *s, int type, int addr, int cmd, uchar *data)
 	for(tries = 0; tries < 1000000; tries++){
 		if((inb(s->base+Hoststatus) & Host_busy) == 0)
 			break;
-		sched(nil);
+		sched();
 	}
 	if(tries >= 1000000){
 		// try aborting current transaction
@@ -104,7 +104,7 @@ transact(SMBus *s, int type, int addr, int cmd, uchar *data)
 		for(tries = 0; tries < 1000000; tries++){
 			if((inb(s->base+Hoststatus) & Host_busy) == 0)
 				break;
-			sched(nil);
+			sched();
 		}
 		if(tries >= 1000000){
 			snprint(err, sizeof(err), "SMBus jammed: %2.2ux", inb(s->base+Hoststatus));
@@ -138,7 +138,7 @@ transact(SMBus *s, int type, int addr, int cmd, uchar *data)
 		status = inb(s->base+Hoststatus);
 		if(status & (Failed|Bus_error|Dev_error|Host_complete))
 			break;
-		sched(nil);
+		sched();
 	}
 	if((status & Host_complete) == 0){
 		snprint(err, sizeof(err), "SMBus request failed: %2.2ux", status);

@@ -3,6 +3,7 @@
 #include "smtp.h"
 #include <ctype.h>
 #include <ip.h>
+#include <ndb.h>
 
 typedef struct {
 	int	existed;	/* these two are distinct to cope with errors */
@@ -240,6 +241,7 @@ isrcptrecent(char *rcpt)
 void
 vfysenderhostok(void)
 {
+	char *fqdn;
 	int recent = 0;
 	Link *l;
 
@@ -256,7 +258,10 @@ vfysenderhostok(void)
 
 		if (fd >= 0) {
 			seek(fd, 0, 2);			/* paranoia */
-			fprint(fd, "%s\n", nci->rsys);
+			if ((fqdn = csgetvalue(nil, "ip", nci->rsys, "dom", nil)) != nil)
+				fprint(fd, "# %s\n%s\n\n", fqdn, nci->rsys);
+			else
+				fprint(fd, "# unknown\n%s\n\n", nci->rsys);
 			close(fd);
 		}
 	} else {
