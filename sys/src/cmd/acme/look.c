@@ -466,7 +466,7 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 			q1 = colon;
 			if(colon<t->file->nc-1 && isaddrc(textreadc(t, colon+1))){
 				q1 = colon+1;
-				while(q1<t->file->nc-1 && isaddrc(textreadc(t, q1)))
+				while(q1<t->file->nc && isaddrc(textreadc(t, q1)))
 					q1++;
 			}
 		}
