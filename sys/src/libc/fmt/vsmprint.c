@@ -8,15 +8,20 @@ fmtStrFlush(Fmt *f)
 	char *s;
 	int n;
 
+	if(f->start == nil)
+		return 0;
 	n = (int)f->farg;
-	n += 256;
-	f->farg = (void*)n;
+	n *= 2;
 	s = f->start;
 	f->start = realloc(s, n);
 	if(f->start == nil){
-		f->start = s;
+		f->farg = nil;
+		f->to = nil;
+		f->stop = nil;
+		free(s);
 		return 0;
 	}
+	f->farg = (void*)n;
 	f->to = (char*)f->start + ((char*)f->to - s);
 	f->stop = (char*)f->start + n - 1;
 	return 1;
@@ -27,6 +32,7 @@ fmtstrinit(Fmt *f)
 {
 	int n;
 
+	memset(f, 0, sizeof *f);
 	f->runes = 0;
 	n = 32;
 	f->start = malloc(n);
@@ -53,8 +59,12 @@ vsmprint(char *fmt, va_list args)
 		return nil;
 	f.args = args;
 	n = dofmt(&f, fmt);
-	if(n < 0)
+	if(f.start == nil)
 		return nil;
+	if(n < 0){
+		free(f.start);
+		return nil;
+	}
 	*(char*)f.to = '\0';
 	return f.start;
 }
