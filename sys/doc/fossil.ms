@@ -186,11 +186,11 @@ of 8180 bytes (409 pointers),
 this gives a maximum stream size of approximately 10 zettabytes
 (2\s-2\u73\d\s+2 or 10\s-2\u22\d\s+2 bytes).
 .PP
-Data block are truncated to remove trailing runs of zeros before
+Data blocks are truncated to remove trailing runs of zeros before
 storage to Venti; they are zero-filled back to
 .I dsize
 bytes after retrieval from Venti.
-SImilarly, trailing runs of pointers to zero-length blocks are
+Similarly, trailing runs of pointers to zero-length blocks are
 removed from and added back to pointer blocks.
 These simple rules happen to make it particularly efficient to store
 large runs of zeros, as might occur in a data stream with ``holes:''
@@ -227,8 +227,6 @@ Integers are stored in big-endian order.
 really is a 48-bit field.)
 .CW Flags
 is made up of the following bit fields.
-.I or ' `
-of the following flags:
 .P1
 .ta +\w'      'u +\w'                      'u
 0x01	VtEntryActive	\fRentry is allocated\fP
@@ -1072,7 +1070,7 @@ Because there is only one
 process, only one console command may be executing at a time.
 A
 .CW consO
-process copies this ring buffer to the each console file.
+process copies this ring buffer to each console file.
 .PP
 The
 .CW periodic

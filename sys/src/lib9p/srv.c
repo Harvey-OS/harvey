@@ -668,7 +668,7 @@ swstat(Srv *srv, Req *r)
 		respond(r, "wstat -- attempt to change muid");
 		return;
 	}
-	if((ulong)~r->d.mode && (r->d.mode&DMDIR) != (r->fid->qid.type&DMDIR)){
+	if((ulong)~r->d.mode && ((r->d.mode&DMDIR)>>24) != (r->fid->qid.type&QTDIR)){
 		respond(r, "wstat -- attempt to change DMDIR bit");
 		return;
 	}
