@@ -22,8 +22,8 @@
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/1c - 775 sys sys 1063639729 306762
 386/bin/8a - 775 sys sys 1085076970 112621
-386/bin/8c - 775 sys sys 1086577386 340969
-386/bin/8l - 775 sys sys 1085076970 106872
+386/bin/8c - 775 sys sys 1087527915 341009
+386/bin/8l - 775 sys sys 1087527915 106966
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
 386/bin/acid - 775 sys sys 1085076972 371882
@@ -3040,7 +3040,7 @@ rc/bin/patch/diff - 775 sys sys 1067804404 466
 rc/bin/patch/list - 775 sys sys 1081204287 644
 rc/bin/patch/move - 775 sys sys 1081204288 547
 rc/bin/patch/note - 664 sys sys 1067804405 593
-rc/bin/patch/okay - 775 sys sys 1067803227 240
+rc/bin/patch/okay - 775 sys sys 1087487682 242
 rc/bin/patch/sorry - 775 sys sys 1081200166 107
 rc/bin/patch/undo - 775 sys sys 1067804405 549
 rc/bin/pc - 20000000775 sys sys 960857447 0
@@ -5319,7 +5319,7 @@ sys/src/9/pc/archmp.c - 664 sys sys 1084475127 2311
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1084475127 6256
-sys/src/9/pc/devarch.c - 664 sys sys 1085777737 18478
+sys/src/9/pc/devarch.c - 664 sys sys 1087496483 18476
 sys/src/9/pc/devether.c - 664 sys sys 1078928204 10183
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1086406910 19989
@@ -6733,7 +6733,7 @@ sys/src/cmd/8l/mkfile - 664 sys sys 1032102046 363
 sys/src/cmd/8l/obj.c - 664 sys sys 1071778472 24102
 sys/src/cmd/8l/optab.c - 664 sys sys 1071778472 16231
 sys/src/cmd/8l/pass.c - 664 sys sys 1045503949 10682
-sys/src/cmd/8l/span.c - 664 sys sys 1045503950 22035
+sys/src/cmd/8l/span.c - 664 sys sys 1087498045 22199
 sys/src/cmd/9660srv - 20000000775 sys sys 944960735 0
 sys/src/cmd/9660srv/9660srv.c - 664 sys sys 1014924873 17018
 sys/src/cmd/9660srv/dat.h - 664 sys sys 1019425186 2069
@@ -7258,7 +7258,7 @@ sys/src/cmd/cb/mkfile - 664 sys sys 1062860425 172
 sys/src/cmd/cc - 20000000775 sys sys 1018556175 0
 sys/src/cmd/cc/acid.c - 664 sys sys 944960808 5314
 sys/src/cmd/cc/bits.c - 664 sys sys 944960873 850
-sys/src/cmd/cc/cc.h - 664 sys sys 1084472047 11820
+sys/src/cmd/cc/cc.h - 664 sys sys 1087505577 11838
 sys/src/cmd/cc/cc.y - 664 sys sys 1076969746 15801
 sys/src/cmd/cc/com.c - 664 sys sys 1084472047 18912
 sys/src/cmd/cc/com64.c - 664 sys sys 1084472047 9949
@@ -7275,7 +7275,7 @@ sys/src/cmd/cc/macbody - 664 sys sys 1067720644 11182
 sys/src/cmd/cc/machcap.c - 664 sys sys 1084472048 78
 sys/src/cmd/cc/mkfile - 664 sys sys 1084472048 577
 sys/src/cmd/cc/pickle.c - 664 sys sys 1063855374 4829
-sys/src/cmd/cc/sub.c - 664 sys sys 1084472048 31049
+sys/src/cmd/cc/sub.c - 664 sys sys 1087505577 31090
 sys/src/cmd/cdfs - 20000000775 sys sys 959922196 0
 sys/src/cmd/cdfs/buf.c - 664 sys sys 964456822 1848
 sys/src/cmd/cdfs/dat.h - 664 sys sys 1014925665 2334

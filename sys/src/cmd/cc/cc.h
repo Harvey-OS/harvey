@@ -660,6 +660,7 @@ void	typeext(Type*, Node*);
 void	typeext1(Type*, Node*);
 int	side(Node*);
 int	vconst(Node*);
+int	log2(uvlong);
 int	vlog(Node*);
 int	topbit(ulong);
 long	typebitor(long, long);
