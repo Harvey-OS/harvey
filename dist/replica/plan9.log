@@ -15569,3 +15569,10 @@
 1085668245 0 c sys/src/libmp/port/mkfile - 664 sys sys 1085667604 620
 1085715053 0 c 386/lib/libmp.a - 664 sys sys 1085713909 80458
 1085778086 0 c sys/src/9/pc/devarch.c - 664 sys sys 1085777737 18478
+1086408107 0 c sys/src/9/ip/nullmedium.c - 664 sys sys 1086406910 492
+1086408107 1 c sys/src/9/pc/devi82365.c - 664 sys sys 1086406910 19989
+1086408107 2 c sys/src/9/pc/usbuhci.c - 664 sys sys 1086406909 30740
+1086408107 3 c sys/src/9/port/devdraw.c - 664 sys sys 1086406909 41991
+1086408107 4 c sys/src/9/port/devmnt.c - 664 sys sys 1086406908 21595
+1086408107 5 c sys/src/9/port/devsrv.c - 664 sys sys 1086406908 5198
+1086408107 6 c sys/src/9/port/devtls.c - 664 sys sys 1086406907 45225
