@@ -450,7 +450,7 @@
 386/bin/upas/scanmail - 775 sys sys 1073851248 127943
 386/bin/upas/send - 775 sys sys 1073851248 190699
 386/bin/upas/smtp - 775 sys sys 1073851249 271626
-386/bin/upas/smtpd - 775 sys sys 1073851250 320788
+386/bin/upas/smtpd - 775 sys sys 1075270538 320985
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1064598366 82161
 386/bin/upas/token - 775 sys sys 1064598367 75930
@@ -4721,6 +4721,7 @@ sys/man/1/thesaurus - 664 sys sys 1068121775 222
 sys/man/1/time - 664 sys sys 944959673 380
 sys/man/1/touch - 664 sys sys 1018369246 461
 sys/man/1/tr - 664 sys sys 944959675 1730
+sys/man/1/trace - 664 sys sys 1075347661 1758
 sys/man/1/troff - 664 sys sys 944959675 3102
 sys/man/1/troff2html - 664 sys sys 964455062 1871
 sys/man/1/tweak - 664 sys sys 957920008 4762
@@ -10211,13 +10212,6 @@ sys/src/cmd/rio/wctl.c - 664 sys sys 1023206837 8808
 sys/src/cmd/rio/wind.c - 664 sys sys 1073268477 32704
 sys/src/cmd/rio/xfid.c - 664 sys sys 1032061723 17424
 sys/src/cmd/rm.c - 664 sys sys 1014926615 1563
-sys/src/cmd/rtstats - 20000000775 sys sys 1018897680 0
-sys/src/cmd/rtstats/edfproc.c - 664 sys sys 1055699325 3109
-sys/src/cmd/rtstats/mkfile - 664 sys sys 1038425447 425
-sys/src/cmd/rtstats/resproc.c - 664 sys sys 1037669163 2287
-sys/src/cmd/rtstats/rtstats.c - 664 sys sys 1048644563 13224
-sys/src/cmd/rtstats/time.c - 664 sys sys 1038425433 2094
-sys/src/cmd/rtstats/time.h - 664 sys sys 1038425434 164
 sys/src/cmd/rx.c - 664 sys sys 1071155928 4188
 sys/src/cmd/sam - 20000000775 sys sys 944961629 0
 sys/src/cmd/sam/address.c - 664 sys sys 944961628 3985
