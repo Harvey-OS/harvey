@@ -2800,7 +2800,7 @@ lib/tftpd - 20000000775 sys sys 944944178 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1071415518 9997
-lib/vgadb - 664 sys sys 1065961653 27832
+lib/vgadb - 664 sys sys 1080049879 27670
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
 lp - 20000000775 sys sys 958199268 0
@@ -9552,7 +9552,7 @@ sys/src/cmd/ip/snoopy/pppoe_sess.c - 664 sys sys 1033797942 36
 sys/src/cmd/ip/snoopy/rarp.c - 664 sys sys 1015090062 50
 sys/src/cmd/ip/snoopy/tcp.c - 664 sys sys 1055699196 3593
 sys/src/cmd/ip/snoopy/udp.c - 664 sys sys 1055699195 1718
-sys/src/cmd/ip/telnet.c - 664 sys sys 1015013113 8547
+sys/src/cmd/ip/telnet.c - 664 sys sys 1080058033 8535
 sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
 sys/src/cmd/ip/telnetd.c - 664 sys sys 1032060109 11731
 sys/src/cmd/ip/tftpd.c - 664 sys sys 1063897567 7186

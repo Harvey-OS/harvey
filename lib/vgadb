@@ -415,64 +415,64 @@ ctlr
 # An attribute 'alias=val' means continue using another monitor type. It can
 # be used to chain classes together. (bad explanation, i know).
 #
-include = 640x480					# 60Hz, 31.5KHz
+include=640x480					# 60Hz, 31.5KHz
 	clock=25.175
 	shb=664 ehb=760 ht=800
 	vrs=491 vre=493 vt=525
 
-include = 640x480@72Hz					# 72Hz, 38.5KHz
+include=640x480@72Hz					# 72Hz, 38.5KHz
 	clock=32
 	shb=664 ehb=704 ht=832
 	vrs=489 vre=492 vt=520 
 
-include = 800x600					# 60Hz, 37.9KHz
+include=800x600					# 60Hz, 37.9KHz
 	defaultclock=40
 	shb=840 ehb=1000 ht=1056
 	vrs=605 vre=607 vt=633
 
-include = 1024x768i					# 87Hz, 35.5KHz
+include=1024x768i					# 87Hz, 35.5KHz
 	defaultclock=44.9
 	shb=1048 ehb=1208 ht=1264
 	vrs=776 vre=784 vt=817
 	interlace=v
 
-include = 1024x768@60Hz					# 60Hz, 48.4KHz
+include=1024x768@60Hz					# 60Hz, 48.4KHz
 	defaultclock=65
 	shb=1032 ehb=1176 ht=1344
 	shs=1056
 	vrs=771 vre=777 vt=806
 	hsync=- vsync=-
 
-include = 1024x768					# 70Hz, 57.2KHz
+include=1024x768					# 70Hz, 57.2KHz
 	defaultclock=75
 	shb=1096 ehb=1232 ht=1344
 	shs=1072
 	vrs=771 vre=777 vt=806
 	hsync=- vsync=-
 
-include = 1280x1024i					# 87Hz, 48KHz
+include=1280x1024i					# 87Hz, 48KHz
 	defaultclock=80
 	shb=1312 ehb=1528 ht=1576
 	vrs=1028 vre=1034 vt=1105
 	interlace=v
 
-include = 1280x1024@60Hz				# 60Hz, 63.9KHz
+include=1280x1024@60Hz				# 60Hz, 63.9KHz
 	defaultclock=110
 	shb=1312 ehb=1496 ht=1720			# All from xvidtune
 	vrs=1025 vre=1028 vt=1074
 
-include = 1280x1024					# 74Hz, 79.6KHz
+include=1280x1024					# 74Hz, 79.6KHz
 	defaultclock=135
 	shb=1376 ehb=1544 ht=1712
 	shs=1392
 	vrs=1028 vre=1034 vt=1075
 
-include = 1376x1024					# 70Hz, 75.3KHz
+include=1376x1024					# 70Hz, 75.3KHz
 	defaultclock=135
 	shb=1440 ehb=1616 ht=1792
 	vrs=1032 vre=1040 vt=1075
 
-include = 1152x900@70Hz						# 72Hz, 67.9KHz
+include=1152x900@70Hz						# 72Hz, 67.9KHz
 	clock=100
 	shb=1184 ehb=1376 ht=1472
 	vrs=900 vre=902 vt=940
@@ -481,23 +481,23 @@ include = 1152x900@70Hz						# 72Hz, 67.9KHz
 #
 # VGA.
 #
-vga = 640x480							# 60Hz, 31.5KHz
+vga=640x480							# 60Hz, 31.5KHz
 	include=640x480
-vga = 800x600							# 60Hz, 37.9KHz
+vga=800x600							# 60Hz, 37.9KHz
 	include=800x600
 
 #
 # SVGA (Laptop).
 #
-svga = 640x480
+svga=640x480
 	include=640x480
-svga = 800x600
+svga=800x600
 	include=800x600
 
 #
 # XGA (Laptop).
 #
-xga = 1024x768
+xga=1024x768
 	include=1024x768
 xga
 	alias=svga
@@ -515,7 +515,7 @@ lcd
 multisync65
 	videobw=65
 	alias=multisync
-multisync65 = 1024x768					# 60Hz, 48.4KHz
+multisync65=1024x768					# 60Hz, 48.4KHz
 	include=1024x768@60Hz
 
 #
@@ -531,7 +531,7 @@ multisync75
 multisync110
 	videobw=110
 	alias=multisync
-multisync110 = 1280x1024
+multisync110=1280x1024
 	include=1280x1024@60Hz
 
 #
@@ -547,17 +547,17 @@ multisync135
 #
 multisync
 	alias=vga
-multisync = 1024x768
+multisync=1024x768
 	include=1024x768
-multisync = 1024x768i
+multisync=1024x768i
 	include=1024x768i
-multisync = 1152x900
+multisync=1152x900
 	include=1152x900@70Hz
-multisync = 1280x1024
+multisync=1280x1024
 	include=1280x1024
-multisync = 1280x1024i
+multisync=1280x1024i
 	include=1280x1024i
-multisync = 1376x1024
+multisync=1376x1024
 	include=1376x1024
 
 #
@@ -566,7 +566,7 @@ multisync = 1376x1024
 vs17x
 	videobw=86
 	alias=multisync
-vs17x = 1024x768					# ??Hz, ??.?KHz
+vs17x=1024x768					# ??Hz, ??.?KHz
 	defaultclock=86
 	shb=1128 ehb=1232 ht=1328
 	vrs=771 vre=777 vt=806
@@ -588,7 +588,7 @@ dell21te
 dell2000fp
 	videobw=200
 	alias=multisync
-dell2000fp = 1600x1200
+dell2000fp=1600x1200
 	defaultclock=200
 	shb=1664 ehb=1864 ht=2136
 	vrs=1202 vre=1207 vt=1251
@@ -599,7 +599,7 @@ dell2000fp = 1600x1200
 eizo6600
 	videobw=230
 	alias=multisync
-eizo6600 = 1600x1200			# 85Hz, 106.25KHz
+eizo6600=1600x1200			# 85Hz, 106.25KHz
 	defaultclock=230
 	ht=2160 shb=1696 ehb=1888
 	vt=1250 vrs=1201 vre=1204
@@ -621,7 +621,7 @@ eizo6600 = 1600x1200			# 85Hz, 106.25KHz
 cm751u
 	videobw=200
 	alias=multisync
-cm751u = 1600x1200					# 75Hz, 93.75 kHz
+cm751u=1600x1200					# 75Hz, 93.75 kHz
 	defaultclock=200
 	shb=1664 ehb=1864 ht=2136
 	vrs=1202 vre=1207 vt=1260
@@ -638,12 +638,12 @@ cm751u = 1600x1200					# 75Hz, 93.75 kHz
 cm801u
 	videobw=200
 	alias=multisync
-cm801u = 1600x1200						# 75Hz, 93.3KHz
+cm801u=1600x1200						# 75Hz, 93.3KHz
 	defaultclock=200
 	shb=1792 ehb=1896 ht=2032
 	shs=1680
 	vrs=1202 vre=1205 vt=1232
-cm801u = 1376x1024						# ??Hz, ??.?KHz
+cm801u=1376x1024						# ??Hz, ??.?KHz
 	defaultclock=150
 	shb=1456 ehb=1616 ht=1864
 	shs=1424
@@ -658,13 +658,13 @@ cm801u = 1376x1024						# ??Hz, ??.?KHz
 # Using a clock of 75 produces noticeable refresh pulsing on the LCD,
 # a clock of 100 seems okay.  I'd like to go higher.
 # If only we had documentation.  -rsc
-t23 = 1400x1050							# 50Hz, ??.?KHz
+t23=1400x1050							# 50Hz, ??.?KHz
 	clock=100
 	shb=1460 ehb=1644 ht=1820
 	vrs=1060 vre=1068 vt=1100
-t23 = 1280x1024
+t23=1280x1024
 	include=1280x1024@60Hz
-t23 = 1024x768
+t23=1024x768
 	noclockset=1
 	include=1024x768
 t23
@@ -675,7 +675,7 @@ t23
 mf5421
 	videobw=135
 	alias=multisync
-mf5421 = 1376x1024						# 72Hz, 90.4KHz
+mf5421=1376x1024						# 72Hz, 90.4KHz
 	defaultclock=135
 	shb=1544 ehb=1616 ht=1792
 	vrs=1028 vre=1034 vt=1075
@@ -705,12 +705,12 @@ ms8617
 mf8221e
 	videobw=200
 	alias=multisync
-mf8221e = 1600x1200					# 75Hz, 93.3KHz
+mf8221e=1600x1200					# 75Hz, 93.3KHz
 	defaultclock=200
 	shb=1664 ehb=2088 ht=2144
 	shs=1648
 	vrs=1202 vre=1208 vt=1240
-mf8221e = 1376x1024					# ??Hz, ??.?KHz
+mf8221e=1376x1024					# ??Hz, ??.?KHz
 	defaultclock=150
 	shb=1456 ehb=1616 ht=1864
 	shs=1424
@@ -723,17 +723,17 @@ mf8221e = 1376x1024					# ??Hz, ??.?KHz
 pro502
  	videobw=240
  	alias=multisync
-pro502 = 1800x1350					# 60Hz, 89.4KHz
+pro502=1800x1350					# 60Hz, 89.4KHz
 	defaultclock=220				# 219.5MHz @ 1800x1440
 	shb=1872 ehb=2128 ht=2248
 	shs=1824 ehs=1896
 	vrs=1356 vre=1368 vt=1394
-pro502 = 1600x1200					# 72Hz, 90.0KHz
+pro502=1600x1200					# 72Hz, 90.0KHz
 	defaultclock=200				# 195.9MHz
 	shb=1664 ehb=2088 ht=2144
 	shs=1648
 	vrs=1202 vre=1208 vt=1240
-pro502 = 1024x768
+pro502=1024x768
 	clock=79
 	include=1024x768
 
@@ -749,7 +749,7 @@ pro502 = 1024x768
 micron-17FGx
 	videobw=75
 	alias=multisync
-micron-17FGx = 1024x768
+micron-17FGx=1024x768
 	defaultclock=75
 	shb=1072 ehb=1232 ht=1296
 	shs=1072
@@ -762,7 +762,7 @@ micron-17FGx = 1024x768
 nanao6500
 	videobw=135
 	alias=multisync
-nanao6500 = 1376x1024					# ??Hz, ??.?KHz
+nanao6500=1376x1024					# ??Hz, ??.?KHz
 	defaultclock=135
 	shb=1448 ehb=1616 ht=1760
 	shs=1536
@@ -794,12 +794,12 @@ nec4fg
 nec5fg
 	videobw=135
 	alias=multisync
-nec5fg = 1280x1024
+nec5fg=1280x1024
 	defaultclock=135
 	shb=1352 ehb=1544 ht=1712
 	shs=1328
 	vrs=1028 vre=1034 vt=1075
-nec5fg = 1024x768					# 70Hz, 57.2KHz
+nec5fg=1024x768					# 70Hz, 57.2KHz
 	defaultclock=75
 	shb=1080 ehb=1232 ht=1328
 	shs=1072
@@ -811,28 +811,28 @@ nec5fg = 1024x768					# 70Hz, 57.2KHz
 # These use a C&T 65550 and a native panel size of 1024x768.
 # The clock isn't actually programmed.
 #
-versa6xxx = 1024x768
+versa6xxx=1024x768
 	clock=63
 	include=1024x768@60Hz
-versa6xxx = 800x600
+versa6xxx=800x600
 	clock=63
 	include=800x600@60Hz
-versa6xxx = 640x480
+versa6xxx=640x480
 	clock=63
 	include=640x480@60Hz
 
 #
 # NEC Versa LX Laptop, 13.3" 1024x768 screen.
 #
-versalx = 1024x768
+versalx=1024x768
 	clock=65
 	include=1024x768
 
 # smaller modes require programming centering, which i don't have right yet. -rsc
-# versalx = 800x600
+# versalx=800x600
 # 	clock=15
 # 	include=800x600
-# versalx = 640x480
+# versalx=640x480
 # 	clock=15
 # 	shb=832 ehb=1264 ht=1344
 # 	shs=872
@@ -855,16 +855,16 @@ versalx = 1024x768
 445x
 	videobw=200
 	alias=multisync
-445x = 1280x1024					# 74Hz, 79.6KHz
+445x=1280x1024					# 74Hz, 79.6KHz
 	defaultclock=135
 	shb=1352 ehb=1544 ht=1712
 	shs=1392
 	vrs=1028 vre=1034 vt=1075
-445x = 1600x1200					# 72Hz, 90.4KHz
+445x=1600x1200					# 72Hz, 90.4KHz
 	defaultclock=200
 	shb=1664 ehb=2088 ht=2208
 	vrs=1202 vre=1208 vt=1256
-445x = 640x480						# 72Hz, 38.5KHz
+445x=640x480						# 72Hz, 38.5KHz
 	defaultclock=32
 	shb=664 ehb=760 ht=800
 	vrs=491 vre=493 vt=525
@@ -876,7 +876,7 @@ versalx = 1024x768
 e70i
 	videobw=135
 	alias=multisync
-e70i = 1280x1024
+e70i=1280x1024
 	defaultclock=110
 	shb=1328 ehb=1520 ht=1712
 	vrs=1025 vre=1028 vt=1054
@@ -907,12 +907,12 @@ kdm-1788
 sm17GLsi
 	videobw=135
 	alias=multisync
-sm17GLsi = 1280x1024					# 74Hz, 79.6KHz
+sm17GLsi=1280x1024					# 74Hz, 79.6KHz
 	defaultclock=135
 	shb=1344 ehb=1544 ht=1616
 	shs=1304
 	vrs=1028 vre=1034 vt=1064
-sm17GLsi = 1024x768						# 70Hz, 57.2KHz
+sm17GLsi=1024x768						# 70Hz, 57.2KHz
 	defaultclock=75
 	shb=1080 ehb=1232 ht=1328
 	shs=1072
@@ -947,7 +947,7 @@ cpd-1304
 vs1782
 	videobw=135
 	alias=multisync135
-vs1782 = 1280x1024
+vs1782=1280x1024
 	defaultclock=135
 	shb=1360 ehb=1544 ht=1632
 	shs=1312
@@ -960,7 +960,7 @@ vs1782 = 1280x1024
 g790
 	videobw=135
 	alias=multisync
-g790 = 1280x1024
+g790=1280x1024
 	defaultclock=135
 	shb=1360 ehb=1544 ht=1632
 	shs=1312 ehs=1542
@@ -972,34 +972,34 @@ g790 = 1280x1024
 p815
 	videobw=220
 	alias=multisync
-p815 = 1800x1350					# 70Hz, xx.xKHz
+p815=1800x1350					# 70Hz, xx.xKHz
 	defaultclock=220
 	shb=1872 ehb=2128 ht=2248
 	shs=1824 ehs=1896
 	vrs=1356 vre=1368 vt=1394
-p815 = 1792x1350					# 70Hz, xx.xKHz
+p815=1792x1350					# 70Hz, xx.xKHz
 	defaultclock=220
 	shb=1872 ehb=2128 ht=2248
 	shs=1824 ehs=1896
 	vrs=1356 vre=1368 vt=1394
-p815 = 1600x1200					# 75.4Hz, 93.5KHz
+p815=1600x1200					# 75.4Hz, 93.5KHz
 	defaultclock=200
 	shb=1664 ehb=2088 ht=2144
 	shs=1648
 	vrs=1202 vre=1208 vt=1240
-p815 = 1024x768
+p815=1024x768
 	clock=79
 	include=1024x768
 #
 # SGI 1600SW Flat Panel
 # Usually coupled with a #9 Ticket to Ride IV.
 #
-sgi1600sw = 1600x1024
+sgi1600sw=1600x1024
 	clock=103.125
 	shb=1608 ehb=1624 ht=1632
 	vrs=1024 vre=1029 vt=1030
 	hsync=+ vsync=+
-sgi1600sw = 800x512
+sgi1600sw=800x512
 	#clock=103.125
 	clock=54.375
 	shb=800 ehb=840 ht=848
@@ -1009,7 +1009,7 @@ sgi1600sw = 800x512
 #
 # SGI 1600SW Flat Panel with Multilink Adapter.
 #
-multilink = 1600x1024
+multilink=1600x1024
 	defaultclock=108
 	shb=1608 ehb=1624 ht=1712
 	shs=1608 ehs=1624
@@ -1018,7 +1018,7 @@ multilink = 1600x1024
 #
 # IBM X20
 #
-x20 = 1024x768
+x20=1024x768
 	clock=100
 	shb=1096 ehb=1232 ht=1328
 	shs=1072
@@ -1028,29 +1028,29 @@ x20 = 1024x768
 # Viewsonic VPD150
 # Usually coupled with an ATI Xpert LCD PCI/AGP.
 #
-vpd150 = 1280x1024
+vpd150=1280x1024
 	clock=65.14
 	shb=1096 ehb=1232 ht=1344
 	shs=1064 ehs=1200
 	vrs=770 vre=776 vt=806
 	hsync=- vsync=-
-vpd150 = 1024x768
+vpd150=1024x768
 	clock=65.14
 	shb=1096 ehb=1232 ht=1344
 	shs=1064 ehs=1200
 	vrs=770 vre=776 vt=806
 	hsync=- vsync=-
-vpd150 = 800x600
+vpd150=800x600
 	clock=65.14
 	include=800x600
-vpd150 = 640x480
+vpd150=640x480
 	clock=65.14
 	include=640x480
 #
 # NEC Multisync LCD1525X
 # Usually coupled with an ATI Xpert LCD PCI/AGP.
 #
-lcd1525x = 1024x768
+lcd1525x=1024x768
 	clock=78.82
 	shb=1096 ehb=1232 ht=1344
 	shs=1064 ehs=1200
@@ -1061,29 +1061,29 @@ lcd1525x = 1024x768
 # This uses an ATI Rage Mobility and a native panel size of 800x600.
 # The clock value is a guess.
 #
-e500 = 800x600
+e500=800x600
 	clock=40
 	include=800x600
-e500 = 640x480
+e500=640x480
 	clock=40
 	include=640x480
 
-raptop = 1024x768
+raptop=1024x768
 	clock=65
 	include=1024x768
 
-xga@99 = 1024x768
+xga@99=1024x768
 	clock=99
 	include=1024x768
 
-xga@101 = 1024x768
+xga@101=1024x768
 	clock=101
 	include=1024x768
 
 #
 # Viglen VL700
 #
-vl700 = 1280x1024
+vl700=1280x1024
 	defaultclock=110
 	shb=1328 ehb=1520 ht=1712
 	vrs=1025 vre=1028 vt=1054
@@ -1094,30 +1094,30 @@ vl700 = 1280x1024
 a901ht
 videobw=300
 	alias=multisync
-a901ht = 1920x1440
+a901ht=1920x1440
 	defaultclock=297
 	shb=2064 ehb=2288 ht=2640
 	shs=2030
 	vrs=1441 vre=1444 vt=1500
 	hsync=- vsync=-
-a901ht = 1800x1350     # 60Hz, 89.4KHz
+a901ht=1800x1350     # 60Hz, 89.4KHz
 	defaultclock=220# 219.5MHz @ 1800x1440
 	shb=1872 ehb=2128 ht=2248
 	shs=1824 ehs=1896
 	vrs=1356 vre=1368 vt=1394
-a901ht = 1600x1200     # 72Hz, 90.0KHz
+a901ht=1600x1200     # 72Hz, 90.0KHz
 	defaultclock=200# 195.9MHz
 	shb=1664 ehb=2088 ht=2144
 	shs=1648
 	vrs=1202 vre=1208 vt=1240
-a901ht = 1024x768
+a901ht=1024x768
 	clock=79
 	include=1024x768
 
 #
 # Planar PT1704A flat panel.
 #
-planar = 1280x1024
+planar=1280x1024
 	defaultclock=135
 	shb=1376 ehb=1544 ht=1712
 	shs=1392
