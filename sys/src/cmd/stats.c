@@ -45,6 +45,7 @@ enum
 	InIntr,
 	/* /net/ether0/stats */
 	In		= 0,
+	Link,
 	Out,
 	Err0,
 };
@@ -627,11 +628,6 @@ initmach(Machine *m, char *name)
 
 	snprint(buf, sizeof buf, "%s/net/ether0/stats", mpt);
 	m->etherfd = open(buf, OREAD);
-	if(m->etherfd < 0){
-		/* try the old place - this code will disappear on Nov 18th - presotto */
-		snprint(buf, sizeof buf, "%s/net/ether0/0/stats", mpt);
-		m->etherfd = open(buf, OREAD);
-	}
 	if(loadbuf(m, &m->etherfd) && readnums(m, nelem(m->netetherstats), a, 1))
 		memmove(m->netetherstats, a, sizeof m->netetherstats);
 
@@ -709,12 +705,6 @@ readmach(Machine *m, int init)
 	char buf[32];
 
 	if(m->remote && (m->disable || setjmp(catchalarm))){
-		if(m->disable == 0){
-			snprint(buf, sizeof buf, "%s(dead)", m->name);
-			m->name = estrdup(buf);
-			if(display != nil)	/* else we're still initializing */
-				eresized(0);
-		}
 		if (m->disable++ >= 5)
 			m->disable = 0; /* give it another chance */
 		memmove(m->devsysstat, m->prevsysstat, sizeof m->devsysstat);

@@ -163,7 +163,11 @@ Displays the next page.
 .B Prev
 Displays the previous page.
 .TP
-.B Reverse
+.B Zerox
+Displays the current image in a new page window. 
+Useful for selecting important pages from lare documents.
+.TP
+..B Reverse
 Reverses the order in which pages are displayed.
 .TP
 .B Write

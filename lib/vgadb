@@ -290,6 +290,7 @@ ctlr
 	0xC0093="Trident TGUI96xx"
 	0xC0044="GL A6.00E"
 	0xC68A5="TVGA BIOS LS  6.0 (08)"		# Sharp Actius A250, Cyber 9525/DVD
+	0xC7E5F="TVGA BIOS 1.14"				# iTuner 
 	link=vga
 	ctlr=cyber938x linear=1
 	hwgc=cyber938xhwgc
@@ -320,15 +321,16 @@ ctlr
 ctlr
 	# vid=0x10C8 did=0x0001		# MagicGraph 128, not supported
 	# vid=0x10C8 did=0x0002		# MagicGraph 128 V, not supported
-	# vid=0x10C8 did=0x0003		# MagicGraph 128 ZV, not supported
+	vid=0x10C8 did=0x0003		# MagicGraph 128 ZV, presotto orking on it
 	# vid=0x10C8 did=0x0083		# MagicGraph 128 ZV+, not supported
 	vid=0x10C8 did=0x0004		# MagicGraph 128 XD
 	vid=0x10C8 did=0x0005		# MagicMedia 256 AV
 	vid=0x10C8 did=0x0006		# MagicMedia 256 ZX
-	0xC0048="MagicGraph 128XD"			# IBM Thinkpad 560X
-	0xC0048="MagicMedia 256AV"			# IBM Thinkpad 600E
-	0xC0048="MagicGraph 256 AV"			# IBM Thinkpad 570, 600E
-	0xC0048="MagicMedia 256ZX"			# IBM Thinkpad 600X
+	0xC0048="MagicGraph 128XD"	# IBM Thinkpad 560X
+	0xC0048="MagicMedia 256AV"	# IBM Thinkpad 600E
+	0xC0048="MagicGraph 256 AV"	# IBM Thinkpad 570, 600E
+	0xC0048="MagicMedia 256ZX"	# IBM Thinkpad 600X
+	0xC0048="MagicMedia 128 V/ZV"	# Micron Transport VLX
 	ctlr=neomagic linear=1
 	hwgc=neomagichwgc
 ctlr

@@ -1,8 +1,11 @@
 #define MIN(a, b) ((a) <= (b) ? (a) : (b))
-#define isv6mcast(addr) ((addr)[0] == 0xff)
-#define islinklocal(addr) ( ((addr)[0] == 0xfe) && ((addr)[1] == 0x80) )
-#define issitelocal(addr) ( ((addr)[0] == 0xfe) && ((addr)[1] == 0xc0) )
-#define isv6global(addr) ( (addr)[0] == 0x20 )
+
+/* rfc 3513 defines the address prefices */
+#define isv6mcast(addr)	  ((addr)[0] == 0xff)
+#define islinklocal(addr) ((addr)[0] == 0xfe && ((addr)[1] & 0xc0) == 0x80)
+#define issitelocal(addr) ((addr)[0] == 0xfe && ((addr)[1] & 0xc0) == 0xc0)
+#define isv6global(addr) (((addr)[0] & 0xe0) == 0x20)
+
 #define optexsts(np) (nhgets((np)->ploadlen) > 24)
 #define issmcast(addr) (memcmp((addr), v6solicitednode, 13) == 0)
 

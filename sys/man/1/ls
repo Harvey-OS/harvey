@@ -4,13 +4,13 @@ ls, lc \- list contents of directory
 .SH SYNOPSIS
 .B ls
 [
-.B -dlmnpqrstuFQ
+.B -dlmnpqrstuFQT
 ]
 .I name ...
 .PP
 .B lc
 [
-.B -dlmnqrstuFQ
+.B -dlmnqrstuFQT
 ]
 .I name ...
 .SH DESCRIPTION
@@ -90,7 +90,7 @@ and the character
 .B *
 after all executable files.
 .TP
-.B -L
+.B -T
 Print the character
 .B t
 before each file if it has the temporary flag set, and
@@ -159,4 +159,3 @@ if none of the above permissions is granted.
 .SH SEE ALSO
 .IR stat (2)
 .IR mc (1)
-

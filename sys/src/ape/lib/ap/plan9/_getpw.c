@@ -94,8 +94,12 @@ _getpw(int *pnum, char **pname, char **plist)
 			f4++;
 			if(matchnum)
 				matched = (atoi(f1) == *pnum);
-			else
-				matched = (memcmp(*pname, f2, (f3-f2)-1)==0);
+			else{
+				int length;
+
+				length = f3-f2-1;
+				matched = length==strlen(*pname) && memcmp(*pname, f2, length)==0;
+			}
 			if(matched){
 				/* allocate and fill in a Memo structure */
 				mem = (Memo*)malloc(sizeof(struct Memo));

@@ -47,7 +47,7 @@ to the users
 on the host at network address
 .I address 
 using the Simple Mail Transfer Protocol.
-.The options are:
+The options are:
 .TP
 .B -d
 turn on debugging to standard error.
@@ -105,7 +105,7 @@ and
 protocols is supported; authenticated connections are permitted to relay.
 .PP
 The options are:
-.TP 1.1i
+.TP
 .B -d
 turns on debugging output to standard error.
 .TP

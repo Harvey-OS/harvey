@@ -536,7 +536,7 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 	if(sign) putc('-', f);
 	else if(flags&SIGN) putc('+', f);
 	else if(flags&SPACE) putc(' ', f);
-	if(flags&ZPAD)
+	if((flags&ZPAD) && !(flags&LEFT))
 		while(nout < width){
 			putc('0', f);
 			nout++;

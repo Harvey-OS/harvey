@@ -71,7 +71,4 @@ extern double yn(int, double);
 }
 #endif
 
-#define isnan(x) isNaN(x)
-#define isinf(x) isInf(x)
-
 #endif /* __MATH */

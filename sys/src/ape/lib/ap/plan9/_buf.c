@@ -284,8 +284,8 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 
 	/* make sure all requested rfds and efds are buffered */
 	if(nfds >= OPEN_MAX)
-		nfds = OPEN_MAX-1;
-	for(i = 0; i<= nfds; i++)
+		nfds = OPEN_MAX;
+	for(i = 0; i < nfds; i++)
 		if((rfds && FD_ISSET(i, rfds)) || (efds && FD_ISSET(i, efds))){
 			f = &_fdinfo[i];
 			if(!(f->flags&FD_BUFFERED))

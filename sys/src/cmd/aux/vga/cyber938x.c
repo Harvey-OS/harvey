@@ -219,6 +219,7 @@ init(Vga* vga, Ctlr* ctlr)
 		break;
 	case 0x4A:				/* Cyber9388 */
 	case 0x5D:				/* CyberBlade */
+	case 0x6A:				/* CyberBlade (iTuner) */
 	case 0x7A:				/* CyberBlade */
 		vga->crt[0x2F] = 0x3F;
 		vga->graphics[0x0F] |= 0x17;

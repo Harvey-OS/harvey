@@ -862,7 +862,7 @@ domainlist(int class)
 }
 
 char *v4ptrdom = ".in-addr.arpa";
-char *v6ptrdom = ".ip6.int";
+char *v6ptrdom = ".ip6.arpa";		/* ip6.int deprecated, rfc 3152 */
 
 char *attribs[] = {
 	"ipmask",
