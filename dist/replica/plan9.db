@@ -309,7 +309,7 @@
 386/bin/netkey - 775 sys sys 1039758579 70753
 386/bin/netstat - 775 sys sys 1045538036 81379
 386/bin/news - 775 sys sys 1045538036 70512
-386/bin/nfs - 775 sys sys 1049840990 316945
+386/bin/nfs - 775 sys sys 1049974626 316954
 386/bin/nm - 775 sys sys 1045538037 123227
 386/bin/nntpfs - 775 sys sys 1048745059 162301
 386/bin/ns - 775 sys sys 1039758580 63830
@@ -488,7 +488,7 @@
 386/lib/libauthsrv.a - 664 sys sys 1048622923 33706
 386/lib/libbin.a - 664 sys sys 1045538115 2556
 386/lib/libbio.a - 664 sys sys 1045538115 28390
-386/lib/libc.a - 664 sys sys 1048802354 497778
+386/lib/libc.a - 664 sys sys 1050020464 499588
 386/lib/libcontrol.a - 664 sys sys 1045538117 243448
 386/lib/libdisk.a - 664 sys sys 1048622925 43692
 386/lib/libdraw.a - 664 sys sys 1045538119 372606
