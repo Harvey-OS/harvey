@@ -264,6 +264,11 @@ hostproc(void *arg)
 		i = 1-i;	/* toggle */
 		n = read(0, hostbuf[i].data, sizeof hostbuf[i].data);
 		if(n <= 0){
+			if(n==0){
+				if(exiting)
+					threadexits(nil);
+				werrstr("unexpected eof");
+			}
 			fprint(2, "samterm: host read error: %r\n");
 			threadexitsall("host");
 		}

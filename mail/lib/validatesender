@@ -27,17 +27,17 @@ if(~ $dom swtch.com && ~ $addr glenda && ! ~ $sysname olive)
 # Sites that we have to special case
 # Lucent only - use external network when mail from external domains
 # is delivered to us internally.  Assume that local domains are fine.
-netroot=/net
-if(~ $dom *.lucent.com lucent.com *.bell-labs.com bell-labs.com)
-	exit ''
-if(! ~ $sysname ethel)
-	exit ''
-if(~ $sysname ethel){
-	if(! test -d /net.alt/tcp)
-		import outside /net.alt
-	if(test -d /net.alt/tcp)
-		netroot=/net.alt
-}
+#netroot=/net
+#if(~ $dom *.lucent.com lucent.com *.bell-labs.com bell-labs.com)
+#	exit ''
+#if(! ~ $sysname ethel)
+#	exit ''
+#if(~ $sysname ethel){
+#	if(! test -d /net.alt/tcp)
+#		import outside /net.alt
+#	if(test -d /net.alt/tcp)
+#		netroot=/net.alt
+#}
 
 if(x=`{upas/smtp -p $netroot/tcp!$dom /dev/null $addr >[2=1] | 
 		tee >{sed 's/^/'$sysname' '$pid' /' >> /sys/log/smtpd.mx} |

@@ -195,7 +195,7 @@
 386/bin/dial/expect - 775 sys sys 1104122000 60081
 386/bin/dial/pass - 775 sys sys 1104122001 38814
 386/bin/dict - 775 sys sys 1104122001 187459
-386/bin/diff - 775 sys sys 1106107676 84031
+386/bin/diff - 775 sys sys 1106194001 84036
 386/bin/disk - 20000000775 sys sys 984788664 0
 386/bin/disk/dump9660 - 775 sys sys 1104122002 152246
 386/bin/disk/exsort - 775 sys sys 1104122002 60210
@@ -2847,7 +2847,7 @@ mail/lib/smtpd.conf.ext - 664 upas upas 1089299188 1032
 mail/lib/spam.rc - 775 upas upas 1063950954 400
 mail/lib/unspam.rc - 775 upas upas 1063950954 400
 mail/lib/validateaddress - 775 upas upas 1098803974 48
-mail/lib/validatesender - 775 upas upas 1102429113 1117
+mail/lib/validatesender - 775 upas upas 1106233741 1128
 mail/lib/white.starter - 664 upas upas 1067739606 326
 mail/queue - 20000000777 upas upas 953302652 0
 mail/tmp - 20000000777 upas upas 953302655 0
@@ -10288,11 +10288,11 @@ sys/src/cmd/samterm/icons.c - 664 sys sys 1014926592 1627
 sys/src/cmd/samterm/io.c - 664 sys sys 952627627 4226
 sys/src/cmd/samterm/main.c - 664 sys sys 1066572812 10009
 sys/src/cmd/samterm/menu.c - 664 sys sys 1045502822 6528
-sys/src/cmd/samterm/mesg.c - 664 sys sys 1014926592 12558
+sys/src/cmd/samterm/mesg.c - 664 sys sys 1106263089 12586
 sys/src/cmd/samterm/mkfile - 664 sys sys 1066572811 595
-sys/src/cmd/samterm/plan9.c - 664 sys sys 1014926592 4675
+sys/src/cmd/samterm/plan9.c - 664 sys sys 1106263089 4763
 sys/src/cmd/samterm/rasp.c - 664 sys sys 944961350 4433
-sys/src/cmd/samterm/samterm.h - 664 sys sys 1045502822 3730
+sys/src/cmd/samterm/samterm.h - 664 sys sys 1106263089 3750
 sys/src/cmd/samterm/scroll.c - 664 sys sys 1014926593 3302
 sys/src/cmd/samterm/syms - 664 sys sys 944961351 17698
 sys/src/cmd/scat - 20000000775 sys sys 964307379 0
@@ -12457,4 +12457,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/diff - 775 sys sys 1106194001 84036
+386/bin/aux/samterm - 775 sys sys 1106280481 247878

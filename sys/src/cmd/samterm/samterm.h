@@ -84,6 +84,7 @@ extern Channel *plumbc;
 extern Channel *hostc;
 extern int	hversion;
 extern int	plumbfd;
+extern int	exiting;
 
 Rune	*gettext(Flayer*, long, ulong*);
 void	*alloc(ulong n);

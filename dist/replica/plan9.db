@@ -133,7 +133,7 @@
 386/bin/aux/posttek - 775 sys sys 1087442508 163239
 386/bin/aux/rdwr - 775 sys sys 1104121984 38303
 386/bin/aux/reboot - 775 sys sys 1104121984 60321
-386/bin/aux/samterm - 775 sys sys 1104121985 247786
+386/bin/aux/samterm - 775 sys sys 1106280481 247878
 386/bin/aux/searchfs - 775 sys sys 1104121985 89556
 386/bin/aux/sprog - 775 sys sys 1104121985 79349
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
@@ -2847,7 +2847,7 @@ mail/lib/smtpd.conf.ext - 664 upas upas 1089299188 1032
 mail/lib/spam.rc - 775 upas upas 1063950954 400
 mail/lib/unspam.rc - 775 upas upas 1063950954 400
 mail/lib/validateaddress - 775 upas upas 1098803974 48
-mail/lib/validatesender - 775 upas upas 1102429113 1117
+mail/lib/validatesender - 775 upas upas 1106233741 1128
 mail/lib/white.starter - 664 upas upas 1067739606 326
 mail/queue - 20000000777 upas upas 953302652 0
 mail/tmp - 20000000777 upas upas 953302655 0
@@ -10288,11 +10288,11 @@ sys/src/cmd/samterm/icons.c - 664 sys sys 1014926592 1627
 sys/src/cmd/samterm/io.c - 664 sys sys 952627627 4226
 sys/src/cmd/samterm/main.c - 664 sys sys 1066572812 10009
 sys/src/cmd/samterm/menu.c - 664 sys sys 1045502822 6528
-sys/src/cmd/samterm/mesg.c - 664 sys sys 1014926592 12558
+sys/src/cmd/samterm/mesg.c - 664 sys sys 1106263089 12586
 sys/src/cmd/samterm/mkfile - 664 sys sys 1066572811 595
-sys/src/cmd/samterm/plan9.c - 664 sys sys 1014926592 4675
+sys/src/cmd/samterm/plan9.c - 664 sys sys 1106263089 4763
 sys/src/cmd/samterm/rasp.c - 664 sys sys 944961350 4433
-sys/src/cmd/samterm/samterm.h - 664 sys sys 1045502822 3730
+sys/src/cmd/samterm/samterm.h - 664 sys sys 1106263089 3750
 sys/src/cmd/samterm/scroll.c - 664 sys sys 1014926593 3302
 sys/src/cmd/samterm/syms - 664 sys sys 944961351 17698
 sys/src/cmd/scat - 20000000775 sys sys 964307379 0
