@@ -17575,3 +17575,15 @@
 1102354204 3 d sys/src/9/boot/libboot.a8 - 664 sys sys 1089299185 0
 1102393811 0 c 386/bin/auth/cron - 775 sys sys 1102393465 142855
 1102393811 1 c 386/bin/auth/factotum - 775 sys sys 1102393465 313832
+1102429818 0 c mail/lib/validatesender - 775 upas upas 1102429113 1117
+1102429818 1 c lib/keyboard - 664 sys sys 1102429231 26026
+1102429818 2 c sys/src/9/port/latin1.h - 664 sys sys 1102429178 3559
+1102429818 3 c sys/src/boot/pc/ether8139.c - 664 sys sys 1102429126 14806
+1102429818 4 c sys/src/cmd/vnc/wsys.c - 664 sys sys 1102429521 4052
+1102440620 0 a sys/src/games/sokoban/README - 664 sys sys 1102439103 781
+1102440620 1 c sys/src/games/sokoban/mkfile - 664 sys sys 1102439103 247
+1102440620 2 a sys/src/games/sokoban/route.c - 664 sys sys 1102439103 3684
+1102440620 3 c sys/src/games/sokoban/sokoban.c - 664 sys sys 1102439104 5540
+1102440620 4 c sys/src/games/sokoban/sokoban.h - 664 sys sys 1102439105 1876
+1102480228 0 c 386/9loaddebug - 775 sys sys 1102478836 300021
+1102480228 1 c 386/bin/vncv - 775 sys sys 1102478835 518549

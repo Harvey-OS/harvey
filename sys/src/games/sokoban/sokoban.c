@@ -24,6 +24,7 @@ char *buttons[] =
 	"restart",
 	"easy",
 	"hard",
+	"noanimate", /* this menu string initialized in main */
 	"exit",
 	0
 };
@@ -113,23 +114,50 @@ key2move(int key)
 
 	return k;
 }
-int
-mousemove(Mouse m)
+
+static Route*
+mouse2route(Mouse m)
 {
-	Point p;
+	Point p, q;
+	Route *r, *rr;
 
 	p = subpt(m.xy, screen->r.min);
 	p.x /= BoardX;
 	p.y /= BoardY;
 
-	if(eqpt(p, addpt(level.glenda, Pt(0, -1))))
-		return Up;
-	if(eqpt(p, addpt(level.glenda, Pt(0, 1))))
-		return Down;
-	if(eqpt(p, addpt(level.glenda, Pt(-1, 0))))
-		return Left;
-	if(eqpt(p, addpt(level.glenda, Pt(1, 0))))
-		return Right;
+	q = subpt(p, level.glenda);
+	// fprint(2, "x=%d y=%d\n", q.x, q.y);
+
+	if (q.x == 0 && q.y ==  0)
+		return newroute();
+
+	r = newroute();
+	if (q.x < 0)
+		pushstep(r, Left, -q.x);
+	if (q.x > 0)
+		pushstep(r, Right, q.x);
+
+	if (q.y < 0)
+		pushstep(r, Up, -q.y);
+	if (q.y > 0)
+		pushstep(r, Down, q.y);
+
+	if ((q.x == 0 || q.y ==  0) && isvalid(level.glenda, r, validpush))
+		return r;
+
+	if (isvalid(level.glenda, r, validwalk))
+		return r;
+	reverseroute(r);
+	if (isvalid(level.glenda, r, validwalk))
+		return r;
+	freeroute(r);
+
+	rr = newroute();
+	if (findwalk(level.glenda, p, rr))
+		return rr;
+	freeroute(rr);
+
+	return newroute();
 }
 
 char *
@@ -176,6 +204,7 @@ main(int argc, char **argv)
 {
 	Mouse m;
 	Event e;
+	Route *r;
 
 	if(argc == 2) 
 		levelfile = argv[1];
@@ -186,6 +215,9 @@ main(int argc, char **argv)
 		fprint(2, "usage: %s [levelfile]\n", argv[0]);
 		exits("usage");
 	}
+
+	animate = 0;
+	buttons[3] = animate ? "noanimate" : "animate";
 
 	if(initdraw(nil, nil, "sokoban") < 0)
 		sysfatal("initdraw failed: %r");
@@ -200,7 +232,9 @@ main(int argc, char **argv)
 		case Emouse:
 			m = e.mouse;
 			if(m.buttons&1) {
-				move(mousemove(m));
+				r = mouse2route(m);
+				applyroute(r);
+				freeroute(r);
 				drawscreen();
 			}
 			if(m.buttons&2) {
@@ -232,6 +266,10 @@ main(int argc, char **argv)
 					drawscreen();
 					break;
 				case 3:
+					animate = !animate;
+					buttons[3] = animate ? "noanimate" : "animate";
+					break;
+				case 4:
 					exits(nil);
 				}
 			break;
@@ -274,6 +312,9 @@ main(int argc, char **argv)
 			case ' ':
 				move(key2move(e.kbdc));
 				drawscreen();
+				break;
+			default:
+				// fprint(2, "key: %d]\n", e.kbdc);
 				break;
 			}
 			break;

@@ -1,0 +1,22 @@
+If you click with mouse button 1
+on a (destination) square then the following may happen.
+
+If
+ - the destination square is on the same row or column as glenda, and
+ - there is a ball next to glenda
+   (in the direction of the destination square), and
+ - all squares between the ball and the destination square
+   (where glenda will move) are empty, and
+ - the square next to the destination square where glenda will
+   push the ball is empty too, 
+then glenda will move to the destination square, pushing the
+ball while moving.
+
+Otherwise, if glenda can go to the destination square
+without touching anything, it will do so.
+
+Otherwise, nothing will happen.
+
+The search algorithm is pretty simplistic;
+it can be seen in action by toggling the 'animate'
+entry in the button 3 menu.

@@ -145,7 +145,7 @@ readmouse(Vnc *v)
 			if(*start == 'm'){
 				m.xy.x = atoi(start+1);
 				m.xy.y = atoi(start+1+12);
-				m.buttons = atoi(start+1+2*12) & 7;
+				m.buttons = atoi(start+1+2*12) & 0x1F;
 				m.xy = subpt(m.xy, screen->r.min);
 				if(ptinrect(m.xy, Rpt(ZP, v->dim)))
 					mouseevent(v, m);

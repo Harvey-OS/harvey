@@ -554,6 +554,11 @@
 265D  bb          ♝	black chess bishop
 265E  bn          ♞	black chess knight
 265F  bp          ♟	black chess pawn
+2669  M4          ♩	music quarter note
+266a  M8          ♪	music eighth note
+266d  Mb          ♭	music flat
+266e  M#          ♮	music natural
+266f  Ms          ♯	music sharp
 F015  ZA          	raw alt (plan 9 specific)
 F016  ZS          	raw shift (plan 9 specific)
 F017  ZC          	raw ctl (plan 9 specific)
