@@ -52,7 +52,7 @@
 386/bin/auth - 20000000775 sys sys 1016920815 0
 386/bin/auth/aescbc - 775 sys sys 1064598032 121372
 386/bin/auth/asn12rsa - 775 sys sys 1064598033 118015
-386/bin/auth/authsrv - 775 sys sys 1069592357 164066
+386/bin/auth/authsrv - 775 sys sys 1074579384 164076
 386/bin/auth/changeuser - 775 sys sys 1064598034 95843
 386/bin/auth/convkeys - 775 sys sys 1064598035 86037
 386/bin/auth/convkeys2 - 775 sys sys 1064598036 86053
@@ -62,7 +62,7 @@
 386/bin/auth/enable - 775 sys sys 1020319057 134
 386/bin/auth/factotum - 775 sys sys 1069592358 310160
 386/bin/auth/fgui - 775 sys sys 1071245288 212496
-386/bin/auth/guard.srv - 775 sys sys 1069592359 141153
+386/bin/auth/guard.srv - 775 sys sys 1074579385 141165
 386/bin/auth/iam - 775 sys sys 1064598041 50807
 386/bin/auth/keyfs - 775 sys sys 1064598042 116509
 386/bin/auth/login - 775 sys sys 1064598043 101787
@@ -79,7 +79,7 @@
 386/bin/auth/rsagen - 775 sys sys 1064598052 152733
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
 386/bin/auth/secstore - 775 sys sys 1068385793 188789
-386/bin/auth/secstored - 775 sys sys 1069592359 195132
+386/bin/auth/secstored - 775 sys sys 1074579385 195266
 386/bin/auth/secuser - 775 sys sys 1068385794 151909
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1064598056 61525
