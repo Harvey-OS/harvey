@@ -1,0 +1,24 @@
+#!/bin/rc
+ip/ipconfig -dDG
+
+# supply unknowns with outside addresses
+if( ! grep -s 'auth=' /net/ndb){
+	echo '	auth=204.178.31.3'>>/net/ndb
+	echo '	authdom=cs.bell-labs.com'>>/net/ndb
+}
+if( ! grep -s 'ntp=' /net/ndb)
+	echo '	ntp=204.178.31.2'>>/net/ndb
+if( ! grep -s 'dns=' /net/ndb){
+	echo '	dns=204.178.31.3'>>/net/ndb
+	echo '	dns=204.178.31.4'>>/net/ndb
+}
+
+# set ndbfile for termrc touse
+NDBFILE=/lib/ndb/external
+
+# start dns if it isn't already going
+if(! test -e /srv/dns )
+	ndb/dns -r
+
+# just in case we can't find achille
+cpu=tcp!204.178.31.2
