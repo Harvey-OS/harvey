@@ -2,7 +2,7 @@
 .SH NAME
 font, subfont \- external format for fonts and subfonts
 .SH SYNOPSIS
-.B #include <libg.h>
+.B #include <draw.h>
 .SH DESCRIPTION
 Fonts and subfonts are described in
 .IR cachechars (2).
