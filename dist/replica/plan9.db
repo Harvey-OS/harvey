@@ -181,7 +181,7 @@
 386/bin/cmp - 775 sys sys 1104121995 40565
 386/bin/colors - 775 sys sys 1106799173 149453
 386/bin/comm - 775 sys sys 1104121996 61360
-386/bin/con - 775 sys sys 1104121996 78163
+386/bin/con - 775 sys sys 1109909287 78211
 386/bin/cp - 775 sys sys 1104121996 63215
 386/bin/cpp - 775 sys sys 1104121997 150308
 386/bin/cpu - 775 sys sys 1108354550 137694
@@ -617,7 +617,7 @@ acme/acid/sparc - 20000000775 sys sys 1015011246 0
 acme/bin - 20000000775 sys sys 1017457907 0
 acme/bin/386 - 20000000775 sys sys 1015011570 0
 acme/bin/386/News - 775 sys sys 1108960019 128813
-acme/bin/386/Wiki - 775 sys sys 1108960019 126913
+acme/bin/386/Wiki - 775 sys sys 1109909287 126953
 acme/bin/386/acd - 775 sys sys 1032232412 137068
 acme/bin/386/adict - 775 sys sys 1015011247 99806
 acme/bin/386/mkwnew - 775 sys sys 1104122115 38959
@@ -718,7 +718,7 @@ acme/wiki/src/awiki.h - 664 sys sys 1018288159 2140
 acme/wiki/src/main.c - 664 sys sys 1018387015 848
 acme/wiki/src/mkfile - 664 sys sys 1015011266 138
 acme/wiki/src/util.c - 664 sys sys 1016901956 1176
-acme/wiki/src/wiki.c - 664 sys sys 1106096758 10631
+acme/wiki/src/wiki.c - 664 sys sys 1109869230 10727
 acme/wiki/src/win.c - 664 sys sys 1016901957 5106
 acme/wiki/wiki.diff - 775 sys sys 1015011266 283
 adm - 20000000775 adm adm 1017438729 0
@@ -5345,7 +5345,7 @@ sys/src/9/pc/archmp.c - 664 sys sys 1084475127 2311
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1091904418 6281
-sys/src/9/pc/devarch.c - 664 sys sys 1096379063 18517
+sys/src/9/pc/devarch.c - 664 sys sys 1109854210 18553
 sys/src/9/pc/devether.c - 664 sys sys 1078928204 10183
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1099761153 20505
@@ -7283,7 +7283,7 @@ sys/src/cmd/cmp.c - 664 sys sys 1072145760 2379
 sys/src/cmd/colors.c - 664 sys sys 951763912 3186
 sys/src/cmd/comm.c - 664 sys sys 1093979717 2140
 sys/src/cmd/con - 20000000775 sys sys 944961996 0
-sys/src/cmd/con/con.c - 664 sys sys 1077839879 15213
+sys/src/cmd/con/con.c - 664 sys sys 1109869228 15231
 sys/src/cmd/con/hayes.c - 664 sys sys 1014925263 3865
 sys/src/cmd/con/mkfile - 664 sys sys 1046654774 204
 sys/src/cmd/con/rufilio.h - 664 sys sys 944960877 595
