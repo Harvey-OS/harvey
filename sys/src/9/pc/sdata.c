@@ -694,8 +694,7 @@ retry:
 
 	if(DEBUG & DbgCONFIG){
 		print("dev %2.2uX port %uX config %4.4uX capabilities %4.4uX",
-			dev, cmdport,
-			drive->info[Iconfig], drive->info[Icapabilities]);
+			dev, cmdport, iconfig, drive->info[Icapabilities]);
 		print(" mwdma %4.4uX", drive->info[Imwdma]);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
@@ -1852,6 +1851,7 @@ atapnp(void)
 		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
 		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
 		case (0x4D68<<16)|0x105A:	/* Promise PDC20268 */
+		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
 			pi = 0x85;
 			break;
 		case (0x0004<<16)|0x1103:	/* HighPoint HPT-370 */

@@ -14199,3 +14199,6 @@
 1068238928 0 c sys/src/9/pc/trap.c - 664 sys sys 1068237910 20045
 1068238928 1 c sys/src/9/port/devproc.c - 664 sys sys 1068237926 28403
 1068246130 0 a sys/src/9/pc/etherrhine.c - 664 sys sys 1068244865 13437
+1068336140 0 c sys/src/9/pc/sdata.c - 664 sys sys 1068336178 50325
+1068350543 0 c sys/src/cmd/upas/fs/fs.c - 664 sys sys 1068350246 27381
+1068350543 1 c sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1068350247 28726
