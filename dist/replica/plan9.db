@@ -15,7 +15,7 @@
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1104121953 114832
-386/bin/8c - 775 sys sys 1104121954 357649
+386/bin/8c - 775 sys sys 1107403546 357746
 386/bin/8l - 775 sys sys 1104121955 114930
 386/bin/9660srv - 775 sys sys 1104121955 103973
 386/bin/aan - 775 sys sys 1104121955 130710
@@ -58,7 +58,7 @@
 386/bin/auth/guard.srv - 775 sys sys 1104121964 142850
 386/bin/auth/iam - 775 sys sys 1085076981 50791
 386/bin/auth/keyfs - 775 sys sys 1106107675 115351
-386/bin/auth/login - 775 sys sys 1104121965 103362
+386/bin/auth/login - 775 sys sys 1107403546 103379
 386/bin/auth/newns - 775 sys sys 1104121965 87950
 386/bin/auth/none - 775 sys sys 1104121966 87699
 386/bin/auth/pemdecode - 775 sys sys 1104121966 61457
@@ -437,7 +437,7 @@
 386/bin/upas/bayes - 775 sys sys 1064598344 70530
 386/bin/upas/deliver - 775 sys sys 1104122069 99781
 386/bin/upas/filter - 775 sys sys 1104122070 147311
-386/bin/upas/fs - 775 sys sys 1104122070 332354
+386/bin/upas/fs - 775 sys sys 1107403547 332387
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1104122071 82776
 386/bin/upas/marshal - 775 sys sys 1104122071 132491
@@ -3343,7 +3343,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1107160187 252674
+sys/games/lib/fortunes - 664 sys sys 1107321348 252719
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -4652,7 +4652,7 @@ sys/man - 20000000775 sys sys 1012278794 0
 sys/man/1 - 20000000775 sys sys 1018897631 0
 sys/man/1/0intro - 664 sys sys 1101668050 9625
 sys/man/1/2a - 664 sys sys 1101668050 1188
-sys/man/1/2c - 664 sys sys 1101668050 7700
+sys/man/1/2c - 664 sys sys 1107365037 8034
 sys/man/1/2l - 664 sys sys 1101668051 4365
 sys/man/1/INDEX - 664 sys sys 1104811679 3004
 sys/man/1/INDEX.html - 664 sys sys 1104736360 16403
@@ -6905,7 +6905,7 @@ sys/src/cmd/auth/lib/readln.c - 664 sys sys 1015008430 2040
 sys/src/cmd/auth/lib/readn.c - 664 sys sys 1015008430 247
 sys/src/cmd/auth/lib/readwrite.c - 664 sys sys 1015008430 1424
 sys/src/cmd/auth/lib/wrbio.c - 664 sys sys 1015008430 755
-sys/src/cmd/auth/login.c - 664 sys sys 1048614961 3963
+sys/src/cmd/auth/login.c - 664 sys sys 1107370153 3977
 sys/src/cmd/auth/mkfile - 664 sys sys 1071334970 1979
 sys/src/cmd/auth/netkey.c - 664 sys sys 1015008431 741
 sys/src/cmd/auth/newns.c - 664 sys sys 1048614962 486
@@ -7237,14 +7237,14 @@ sys/src/cmd/cc/com64.c - 664 sys sys 1089299182 9975
 sys/src/cmd/cc/compat - 664 sys sys 1014925177 684
 sys/src/cmd/cc/compat.c - 664 sys sys 1084472048 417
 sys/src/cmd/cc/dcl.c - 664 sys sys 1089299183 26723
-sys/src/cmd/cc/dpchk.c - 664 sys sys 1098463305 7033
+sys/src/cmd/cc/dpchk.c - 664 sys sys 1107365037 7152
 sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
 sys/src/cmd/cc/lex.c - 664 sys sys 1089299182 23826
 sys/src/cmd/cc/lexbody - 664 sys sys 1098499731 9014
 sys/src/cmd/cc/mac.c - 664 sys sys 944960808 36
 sys/src/cmd/cc/macbody - 664 sys sys 1098463324 11358
 sys/src/cmd/cc/machcap.c - 664 sys sys 1084472048 78
-sys/src/cmd/cc/mkfile - 664 sys sys 1089299182 578
+sys/src/cmd/cc/mkfile - 664 sys sys 1107365240 563
 sys/src/cmd/cc/pickle.c - 664 sys sys 1063855374 4829
 sys/src/cmd/cc/scon.c - 664 sys sys 1089343502 8606
 sys/src/cmd/cc/sub.c - 664 sys sys 1089299183 33811
@@ -10854,7 +10854,7 @@ sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1075069146 16233
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1071334860 28493
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1071334861 7465
-sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1101154341 12864
+sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1107358653 12930
 sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
 sys/src/cmd/upas/fs/tester.c - 664 sys sys 985037420 1418

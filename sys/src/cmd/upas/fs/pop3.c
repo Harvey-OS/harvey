@@ -29,6 +29,7 @@ struct Pop {
 	Biobuf bin;
 	Biobuf bout;
 	int fd;
+	char *lastline;	// from Brdstr
 
 	Thumbprint *thumb;
 };
@@ -82,7 +83,7 @@ pop3resp(Pop *pop)
 	char *p;
 
 	alarm(60*1000);
-	if((s = Brdline(&pop->bin, '\n')) == nil){
+	if((s = Brdstr(&pop->bin, '\n', 0)) == nil){
 		close(pop->fd);
 		pop->fd = -1;
 		alarm(0);
@@ -90,12 +91,14 @@ pop3resp(Pop *pop)
 	}
 	alarm(0);
 
-	p = s+Blinelen(&pop->bin)-1;
+	p = s+strlen(s)-1;
 	while(p >= s && (*p == '\r' || *p == '\n'))
 		*p-- = '\0';
 
 	if(pop->debug)
 		fprint(2, "-> %s\n", s);
+	free(pop->lastline);
+	pop->lastline = s;
 	return s;
 }
 
