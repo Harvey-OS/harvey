@@ -18340,3 +18340,7 @@
 1105194679 0 c lib/vgadb - 664 sys sys 1105192978 28703
 1105194679 1 c sys/src/9/pc/devusb.c - 664 sys sys 1105193103 18364
 1105407037 0 c sys/games/lib/fortunes - 664 sys sys 1105406030 251918
+1105455647 0 c sys/src/cmd/jpg/bmp.h - 664 sys sys 1105455271 1034
+1105455647 1 c sys/src/cmd/jpg/readbmp.c - 664 sys sys 1105455271 13691
+1105462848 0 c lib/ndb/local.complicated - 664 sys sys 1105461604 2976
+1105504262 0 c 386/bin/bmp - 775 sys sys 1105502893 157210
