@@ -55,7 +55,7 @@ int narchdir = Qbase;
 int (*_pcmspecial)(char*, ISAConf*);
 void (*_pcmspecialclose)(int);
 
-static int dotimerset = 1;
+static int doi8253set = 1;
 
 /*
  * Add a file to the #P listing.  Once added, you can't delete it.
@@ -218,7 +218,7 @@ ioalloc(int port, int size, int align, char *tag)
 		}
 	} else {
 		// Only 64KB I/O space on the x86.
-		if((port+size) >= 0x10000){
+		if((port+size) > 0x10000){
 			unlock(&iomap);
 			return -1;
 		}
@@ -497,13 +497,13 @@ nop(void)
 
 /*
  * On a uniprocessor, you'd think that coherence could be nop,
- * but it can't.  We still need wbflush when using coherence() in
+ * but it can't.  We still need a barrier when using coherence() in
  * device drivers.
  *
  * On VMware, it's safe (and a huge win) to set this to nop.
  * Aux/vmware does this via the #P/archctl file.
  */
-void (*coherence)(void) = wbflush;
+void (*coherence)(void) = nop;
 
 PCArch* arch;
 extern PCArch* knownarch[];
@@ -525,12 +525,13 @@ PCArch archgeneric = {
 .timerset=	i8253timerset,
 };
 
-typedef struct {
+typedef struct X86type X86type;
+struct X86type {
 	int	family;
 	int	model;
 	int	aalcycles;
 	char*	name;
-} X86type;
+};
 
 static X86type x86intel[] =
 {
@@ -721,6 +722,12 @@ cpuidentify(void)
 		if(m->cpuiddx & 0x80)
 			rdmsr(0x01, &mct);
 	}
+if(m->cpuiddx & 0x20){
+    vlong apicbase;
+
+    rdmsr(0x1B, &apicbase);
+    print("apicbase 0x%lluX\n", apicbase);
+}
 
 	cputype = t;
 	return t->family;
@@ -748,9 +755,16 @@ archctlread(Chan*, void *a, long nn, vlong offset)
 		cputype->name, (ulong)(m->cpuhz+999999)/1000000,
 		m->havepge ? " pge" : "");
 	n += snprint(buf+n, sizeof buf-n, "pge %s\n", getcr4()&0x80 ? "on" : "off");
-	n += snprint(buf+n, sizeof buf-n, "coherence %s\n",
-		coherence==wbflush ? "wbflush" : "nop");
-	n += snprint(buf+n, sizeof buf-n, "timerset %s\n", dotimerset ? "on" : "off");
+	n += snprint(buf+n, sizeof buf-n, "coherence ");
+	if(coherence == mb386)
+		n += snprint(buf+n, sizeof buf-n, "mb386\n");
+	else if(coherence == mb586)
+		n += snprint(buf+n, sizeof buf-n, "mb586\n");
+	else if(coherence == nop)
+		n += snprint(buf+n, sizeof buf-n, "nop\n");
+	else
+		n += snprint(buf+n, sizeof buf-n, "0x%p\n", coherence);
+	n += snprint(buf+n, sizeof buf-n, "i8253set %s\n", doi8253set ? "on" : "off");
 	buf[n] = 0;
 	return readstr(offset, a, nn, buf);
 }
@@ -793,8 +807,13 @@ archctlwrite(Chan*, void *a, long n, vlong)
 			cmderror(cb, "invalid pge ctl");
 		break;
 	case CMcoherence:
-		if(strcmp(cb->f[1], "wbflush") == 0)
-			coherence = wbflush;
+		if(strcmp(cb->f[1], "mb386") == 0)
+			coherence = mb386;
+		else if(strcmp(cb->f[1], "mb586") == 0){
+			if(X86FAMILY(m->cpuidax) < 5)
+				error("invalid coherence ctl on this cpu family");
+			coherence = mb586;
+		}
 		else if(strcmp(cb->f[1], "nop") == 0){
 			/* only safe on vmware */
 			if(conf.nmach > 1)
@@ -805,9 +824,9 @@ archctlwrite(Chan*, void *a, long n, vlong)
 		break;
 	case CMi8253set:
 		if(strcmp(cb->f[1], "on") == 0)
-			dotimerset = 1;
+			doi8253set = 1;
 		else if(strcmp(cb->f[1], "off") == 0){
-			dotimerset = 0;
+			doi8253set = 0;
 			(*arch->timerset)(0);
 		}else
 			cmderror(cb, "invalid i2853set ctl");
@@ -855,6 +874,9 @@ archinit(void)
 	if(X86FAMILY(m->cpuidax) == 3)
 		conf.copymode = 1;
 
+	if(X86FAMILY(m->cpuidax) >= 5)
+		coherence = mb586;
+
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("archctl", 0664, archctlread, archctlwrite);
 }
@@ -893,6 +915,6 @@ fastticks(uvlong *hz)
 void
 timerset(uvlong x)
 {
-	if(dotimerset)
+	if(doi8253set)
 		(*arch->timerset)(x);
 }

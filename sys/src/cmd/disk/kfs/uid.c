@@ -151,19 +151,20 @@ cmd_user(void)
 	int c, n, o, u, g, i;
 	char name[NAMELEN];
 
+	if(con_clone(FID1, FID2))
+		goto ainitu;
+	if(con_path(FID2, "/adm/users"))
+		goto ainitu;
+	if(con_open(FID2, 0)){
+		goto ainitu;
+	}
+
 	wlock(&uidgc.uidlock);
 	uidgc.uidbuf = malloc(MAXDAT);
 
 	memset(uid, 0, conf.nuid * sizeof(*uid));
 	memset(uidspace, 0, conf.uidspace * sizeof(*uidspace));
 	memset(gidspace, 0, conf.gidspace * sizeof(*gidspace));
-
-	if(con_clone(FID1, FID2))
-		goto initu;
-	if(con_path(FID2, "/adm/users"))
-		goto initu;
-	if(con_open(FID2, 0))
-		goto initu;
 
 	uidgc.flen = 0;
 	uidgc.find = 0;
@@ -301,6 +302,10 @@ gskip:
 		cprint("\n");
 	}
 	goto out;
+
+ainitu:
+	wlock(&uidgc.uidlock);
+	uidgc.uidbuf = malloc(MAXDAT);
 
 initu:
 	cprint("initializing minimal user table\n");

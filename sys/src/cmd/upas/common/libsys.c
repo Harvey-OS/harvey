@@ -46,7 +46,7 @@ getlog(void)
 }
 
 /*
- *  return the lock name
+ *  return the lock name (we use one lock per directory)
  */
 static String *
 lockname(char *path)
@@ -59,15 +59,9 @@ lockname(char *path)
 	 */
 	lp = s_new();
 	cp = strrchr(path, '/');
-	if(cp){
-		cp++;
-		s_nappend(lp, path, cp - path);
-	} else {
-		
-		cp = path;
-	}
-	s_append(lp, "L.");
-	s_nappend(lp, cp, Elemlen-3);
+	if(cp)
+		s_nappend(lp, path, cp - path + 1);
+	s_append(lp, "L.mbox");
 
 	return lp;
 }
@@ -116,7 +110,12 @@ openlockfile(Mlock *l)
 		if(fd >= 0){
 			nulldir(&nd);
 			nd.mode = DMEXCL|0666;
-			dirfwstat(fd, &nd);
+			if(dirfwstat(fd, &nd) < 0){
+				/* if we can't chmod, don't bother */
+				/* live without the lock but log it */
+				syslog(0, "mail", "lock error: %s: %r", s_to_c(l->name));
+				remove(s_to_c(l->name));
+			}
 			l->fd = fd;
 			return 0;
 		}
@@ -128,12 +127,18 @@ openlockfile(Mlock *l)
 			*p = 0;
 			fd = access(s_to_c(l->name), 2);
 			*p = '/';
-			if(fd < 0)
-				return -1;	/* give up */
+			if(fd < 0){
+				/* live without the lock but log it */
+				syslog(0, "mail", "lock error: %s: %r", s_to_c(l->name));
+				return 0;
+			}
 		} else {
 			fd = access(".", 2);
-			if(fd < 0)
-				return -1;	/* give up */
+			if(fd < 0){
+				/* live without the lock but log it */
+				syslog(0, "mail", "lock error: %s: %r", s_to_c(l->name));
+				return 0;
+			}
 		}
 	} else
 		free(d);

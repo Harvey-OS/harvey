@@ -412,14 +412,9 @@ dofile(Dir *dp)
 	av[ac] = 0;
 
 	if(!Eflag &&time(0) - dtime > giveup){
-		if(returnmail(av, dp->name, "Giveup") == 0)
-			remmatch(dp->name);
-		else {
-			if(time(0) - dtime < giveup + 2*60*60)
-				logit("returnmail failed", dp->name, av);
-			if(time(0) - dtime > giveup + 24*60*60)
-				remmatch(dp->name);
-		}
+		if(returnmail(av, dp->name, "Giveup") != 0)
+			logit("returnmail failed", dp->name, av);
+		remmatch(dp->name);
 		goto done;
 	}
 
@@ -474,7 +469,8 @@ dofile(Dir *dp)
 			if(!Rflag && strstr(wm->msg, "Retry")==0){
 				/* return the message and remove it */
 				if(returnmail(av, dp->name, wm->msg) == 0)
-					remmatch(dp->name);
+					logit("returnmail failed", dp->name, av);
+				remmatch(dp->name);
 			} else {
 				/* add sys to bad list and try again later */
 				nbad++;

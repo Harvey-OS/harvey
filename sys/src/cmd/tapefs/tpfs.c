@@ -57,6 +57,8 @@ populate(char *name)
 		f.mdate = (tpp->tmod[2]<<0) + (tpp->tmod[3]<<8)
 		     +(tpp->tmod[0]<<16) + (tpp->tmod[1]<<24);
 		f.mode = tpp->mode[0]&0777;
+		f.uid = tpp->uid[0];
+		f.gid = tpp->gid[0];
 		isabs = tpp->name[0]=='/';
 		f.name = (char *)tpp->name+isabs;
 		poppath(f, 1);
