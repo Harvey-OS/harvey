@@ -629,7 +629,8 @@ import(void)
 				if(s->value != 0)
 					diag("value != 0 on SXREF");
 				undefsym(s);
-				Bprint(&bso, "IMPORT: %s sig=%lux v=%ld\n", s->name, s->sig, s->value);
+				if(debug['X'])
+					Bprint(&bso, "IMPORT: %s sig=%lux v=%ld\n", s->name, s->sig, s->value);
 				if(debug['S'])
 					s->sig = 0;
 			}
