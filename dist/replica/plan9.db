@@ -5,7 +5,7 @@
 29000/lib - 20000000775 sys sys 948037563 0
 29000/mkfile - 664 sys sys 948141302 46
 386 - 20000000775 sys sys 1010957353 0
-386/9load - 775 sys sys 1068156766 181788
+386/9load - 775 sys sys 1071175100 188380
 386/9loaddebug - 775 sys sys 1068385814 262014
 386/9loadlite - 775 sys sys 1066618055 124684
 386/9loadlitedebug - 775 sys sys 1068385814 184444
@@ -232,7 +232,7 @@
 386/bin/fossil/conf - 775 sys sys 1056364255 1497
 386/bin/fossil/flchk - 775 sys sys 1070288097 232862
 386/bin/fossil/flfmt - 775 sys sys 1070288098 230827
-386/bin/fossil/fossil - 775 sys sys 1070288099 345606
+386/bin/fossil/fossil - 775 sys sys 1071179084 345532
 386/bin/freq - 775 sys sys 1064598145 60197
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1064598146 95907
@@ -4601,7 +4601,7 @@ sys/man/1/cleanname - 664 sys sys 944959674 580
 sys/man/1/cmp - 664 sys sys 944959673 1092
 sys/man/1/colors - 664 sys sys 954523212 1443
 sys/man/1/comm - 664 sys sys 944959675 665
-sys/man/1/con - 664 sys sys 1022049386 4259
+sys/man/1/con - 664 sys sys 1071156278 4318
 sys/man/1/cp - 664 sys sys 1015024738 1390
 sys/man/1/cpp - 664 sys sys 944959674 2105
 sys/man/1/cpu - 664 sys sys 1040673168 3226
@@ -6002,7 +6002,7 @@ sys/src/ape/lib/ap/plan9/9read.c - 664 sys sys 1014921986 169
 sys/src/ape/lib/ap/plan9/9readn.c - 664 sys sys 1070330880 221
 sys/src/ape/lib/ap/plan9/9wait.c - 664 sys sys 1014921986 1517
 sys/src/ape/lib/ap/plan9/9write.c - 664 sys sys 1014921986 171
-sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1048644332 9661
+sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1071178644 9850
 sys/src/ape/lib/ap/plan9/_dirconv.c - 664 sys sys 1014921985 1419
 sys/src/ape/lib/ap/plan9/_envsetup.c - 664 sys sys 1048644333 2198
 sys/src/ape/lib/ap/plan9/_errno.c - 664 sys sys 1014921985 3909
@@ -6423,7 +6423,7 @@ sys/src/boot/pc/dosboot.c - 664 sys sys 1032215912 11014
 sys/src/boot/pc/dosfs.h - 664 sys sys 1032215924 1467
 sys/src/boot/pc/eoffs - 664 sys sys 1015007950 0
 sys/src/boot/pc/error.h - 664 sys sys 1015007950 3081
-sys/src/boot/pc/ether.c - 664 sys sys 1056073258 4670
+sys/src/boot/pc/ether.c - 664 sys sys 1071175087 4727
 sys/src/boot/pc/ether2000.c - 664 sys sys 1015007950 2609
 sys/src/boot/pc/ether2114x.c - 664 sys sys 1066618033 37048
 sys/src/boot/pc/ether589.c - 664 sys sys 1015007950 4628
@@ -6438,6 +6438,9 @@ sys/src/boot/pc/etherec2t.c - 664 sys sys 1015007951 3598
 sys/src/boot/pc/etherelnk3.c - 664 sys sys 1034454878 44068
 sys/src/boot/pc/etherelnk3x.c - 664 sys sys 1015007951 24989
 sys/src/boot/pc/etherif.h - 664 sys sys 1015007951 1285
+sys/src/boot/pc/ethermii.c - 664 sys sys 1071175087 4493
+sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
+sys/src/boot/pc/etherrhine.c - 664 sys sys 1071175087 12403
 sys/src/boot/pc/fns.h - 664 sys sys 1032215922 4081
 sys/src/boot/pc/fs.c - 664 sys sys 1032215914 1487
 sys/src/boot/pc/fs.h - 664 sys sys 1032215924 627
@@ -6454,7 +6457,7 @@ sys/src/boot/pc/load.c - 664 sys sys 1056087197 7987
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1015007953 3407
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
-sys/src/boot/pc/mkfile - 664 sys sys 1063855535 2971
+sys/src/boot/pc/mkfile - 664 sys sys 1071175087 3001
 sys/src/boot/pc/noether.c - 664 sys sys 1018553453 300
 sys/src/boot/pc/part.c - 664 sys sys 1032215918 7505
 sys/src/boot/pc/pbs.s - 664 sys sys 1017854325 8279
@@ -7517,7 +7520,7 @@ sys/src/cmd/fossil/9p.c - 664 sys sys 1069818231 21498
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
 sys/src/cmd/fossil/9proc.c - 664 sys sys 1069683861 14521
 sys/src/cmd/fossil/9srv.c - 664 sys sys 1066098097 3682
-sys/src/cmd/fossil/9user.c - 664 sys sys 1066098098 17239
+sys/src/cmd/fossil/9user.c - 664 sys sys 1071179088 17260
 sys/src/cmd/fossil/Ccli.c - 664 sys sys 1042005504 1624
 sys/src/cmd/fossil/Ccmd.c - 664 sys sys 1066098098 7244
 sys/src/cmd/fossil/Ccons.c - 664 sys sys 1055703737 6620
@@ -10194,7 +10197,7 @@ sys/src/cmd/rtstats/resproc.c - 664 sys sys 1037669163 2287
 sys/src/cmd/rtstats/rtstats.c - 664 sys sys 1048644563 13224
 sys/src/cmd/rtstats/time.c - 664 sys sys 1038425433 2094
 sys/src/cmd/rtstats/time.h - 664 sys sys 1038425434 164
-sys/src/cmd/rx.c - 664 sys sys 1066572585 3657
+sys/src/cmd/rx.c - 664 sys sys 1071155928 4188
 sys/src/cmd/sam - 20000000775 sys sys 944961629 0
 sys/src/cmd/sam/address.c - 664 sys sys 944961628 3985
 sys/src/cmd/sam/buff.c - 664 sys sys 1014926937 5161
