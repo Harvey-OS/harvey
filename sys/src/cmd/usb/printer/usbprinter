@@ -1,0 +1,13 @@
+#!/bin/rc
+
+if (! test -e /dev/usb)
+	bind -b '#U' /dev
+
+for(i in /dev/usb?/[0-9]*){
+	if (grep -s 'Enabled 0x020107' $i/status){
+		echo -n 'ep 2 bulk w 64 32' >$i/ctl
+		bind $i/ep2data /n/lp
+		exit ''
+	}
+}
+exit 'no printer'

@@ -6,7 +6,7 @@ none:VQ:
 	echo mk all, install, installall, clean, or nuke
 
 install installall safeinstall:V:
-	cp usbprint $bin
+	cp usbprinter $BIN
 
 all safeinstall clean nuke:V:
-	echo usbprint
+	echo usbprinter
