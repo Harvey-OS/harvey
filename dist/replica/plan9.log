@@ -14711,3 +14711,4 @@
 1079748010 2 c sys/src/cmd/ndb/dns.c - 664 sys sys 1079747686 15333
 1079748010 3 c sys/src/cmd/ndb/dns.h - 664 sys sys 1079747686 8980
 1079748010 4 c sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1079747685 8488
+1079811022 0 c sys/src/cmd/vnc/kbds.c - 664 sys sys 1079809881 3256
