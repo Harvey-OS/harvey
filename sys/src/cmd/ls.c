@@ -21,6 +21,7 @@ int	Qflag;
 int	rflag;
 int	sflag;
 int	tflag;
+int	Tflag;
 int	uflag;
 int	Fflag;
 int	ndirbuf;
@@ -62,8 +63,9 @@ main(int argc, char *argv[])
 	case 'r':	rflag++; break;
 	case 's':	sflag++; break;
 	case 't':	tflag++; break;
+	case 'T':	Tflag++; break;
 	case 'u':	uflag++; break;
-	default:	fprint(2, "usage: ls [-dlmnpqrstuFQ] [file ...]\n");
+	default:	fprint(2, "usage: ls [-dlmnpqrstuFQT] [file ...]\n");
 			exits("usage");
 	}ARGEND
 
@@ -216,6 +218,9 @@ format(Dir *db, char *name)
 			db->qid.path,
 			qwidth, db->qid.vers,
 			db->qid.type);
+	if(Tflag)
+		Bprint(&bin, "%c ", (db->mode&DMTMP) ? 't' : '-');
+
 	if(lflag)
 		Bprint(&bin,
 			Qflag? "%M %C %*ud %*s %s %*llud %s %s\n" : "%M %C %*ud %*s %s %*llud %s %q\n",

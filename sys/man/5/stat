@@ -105,7 +105,11 @@ this file is a directory),
 append only),
 .B 0x20000000
 .RB ( DMEXCL ,
-exclusive use); these are echoed in
+exclusive use),
+.B 0x04000000
+.RB ( DMTMP ,
+temporary);
+these are echoed in
 .BR Qid.type .
 Writes to append-only files always place their data at the
 end of the file; the
@@ -122,6 +126,9 @@ on an exclusive use file: if the fid holding the file open has
 been unused for an extended period (of order at least minutes),
 it is reasonable to break the lock and deny the initial fid
 further I/O.
+Temporary files are not included in nightly archives
+(see
+.IR fossil (4)).
 .PP
 The two time fields are measured in seconds since the epoch
 (Jan 1 00:00 1970 GMT).

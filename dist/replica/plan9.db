@@ -506,7 +506,7 @@
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 944969312 0
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
-386/lib/ape/libap.a - 664 sys sys 1071873689 815578
+386/lib/ape/libap.a - 664 sys sys 1072835459 812790
 386/lib/ape/libbsd.a - 664 sys sys 1070342465 179718
 386/lib/ape/libdraw.a - 664 sys sys 1071245377 574556
 386/lib/ape/libfmt.a - 664 sys sys 1070519112 148600
@@ -3397,7 +3397,7 @@ sys/include/html.h - 664 sys sys 1017679304 15157
 sys/include/httpd.h - 664 sys sys 1014929064 5726
 sys/include/ip.h - 664 sys sys 1050702405 2908
 sys/include/keyboard.h - 664 sys sys 1071725439 790
-sys/include/libc.h - 664 sys sys 1067718922 19305
+sys/include/libc.h - 664 sys sys 1072792615 19430
 sys/include/libsec.h - 664 sys sys 1068129557 8966
 sys/include/mach.h - 664 sys sys 1068478049 8194
 sys/include/memdraw.h - 664 sys sys 1039752978 5616
@@ -4953,7 +4953,7 @@ sys/man/4/webcookies - 664 sys sys 1019828742 3525
 sys/man/4/webfs - 664 sys sys 1019828742 6455
 sys/man/4/wikifs - 664 sys sys 1018581459 7501
 sys/man/5 - 20000000775 sys sys 1015024846 0
-sys/man/5/0intro - 664 sys sys 1027270581 13984
+sys/man/5/0intro - 664 sys sys 1072793193 14106
 sys/man/5/INDEX - 664 sys sys 1041971550 193
 sys/man/5/INDEX.html - 664 sys sys 1019918564 1409
 sys/man/5/attach - 664 sys sys 1017337812 2857
@@ -4963,7 +4963,7 @@ sys/man/5/flush - 664 sys sys 1063855755 2309
 sys/man/5/open - 664 sys sys 1015024830 4739
 sys/man/5/read - 664 sys sys 1015024830 2358
 sys/man/5/remove - 664 sys sys 1046704639 1078
-sys/man/5/stat - 664 sys sys 1015024830 6218
+sys/man/5/stat - 664 sys sys 1072793160 6333
 sys/man/5/version - 664 sys sys 1015024830 2657
 sys/man/5/walk - 664 sys sys 1015024830 3622
 sys/man/6 - 20000000775 sys sys 1015092163 0
@@ -6005,7 +6005,7 @@ sys/src/ape/lib/ap/plan9/9read.c - 664 sys sys 1014921986 169
 sys/src/ape/lib/ap/plan9/9readn.c - 664 sys sys 1070330880 221
 sys/src/ape/lib/ap/plan9/9wait.c - 664 sys sys 1014921986 1517
 sys/src/ape/lib/ap/plan9/9write.c - 664 sys sys 1014921986 171
-sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1071872236 9869
+sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1072835434 9924
 sys/src/ape/lib/ap/plan9/_dirconv.c - 664 sys sys 1014921985 1419
 sys/src/ape/lib/ap/plan9/_envsetup.c - 664 sys sys 1048644333 2198
 sys/src/ape/lib/ap/plan9/_errno.c - 664 sys sys 1014921985 3909
@@ -6063,7 +6063,7 @@ sys/src/ape/lib/ap/plan9/getpwuid.c - 664 sys sys 1014921984 527
 sys/src/ape/lib/ap/plan9/getuid.c - 664 sys sys 1014921984 199
 sys/src/ape/lib/ap/plan9/isatty.c - 664 sys sys 1014921984 471
 sys/src/ape/lib/ap/plan9/kill.c - 664 sys sys 1071872236 874
-sys/src/ape/lib/ap/plan9/lib.h - 664 sys sys 1014921984 2061
+sys/src/ape/lib/ap/plan9/lib.h - 664 sys sys 1072835434 2071
 sys/src/ape/lib/ap/plan9/link.c - 664 sys sys 1014921984 168
 sys/src/ape/lib/ap/plan9/lseek.c - 664 sys sys 1038237526 358
 sys/src/ape/lib/ap/plan9/malloc.c - 664 sys sys 1014921985 1957
@@ -7246,7 +7246,7 @@ sys/src/cmd/cfs/mkfile - 664 sys sys 1032457443 663
 sys/src/cmd/cfs/notes - 664 sys sys 944960876 570
 sys/src/cmd/cfs/stats.h - 664 sys sys 1014925220 918
 sys/src/cmd/chgrp.c - 664 sys sys 1014926580 624
-sys/src/cmd/chmod.c - 664 sys sys 1014926580 1858
+sys/src/cmd/chmod.c - 664 sys sys 1072793234 1903
 sys/src/cmd/cleanname.c - 664 sys sys 944960760 715
 sys/src/cmd/clock.c - 664 sys sys 1014925410 1881
 sys/src/cmd/cmp.c - 664 sys sys 1072145760 2379
@@ -7546,6 +7546,8 @@ sys/src/cmd/fossil/error.h - 664 sys sys 1072705710 772
 sys/src/cmd/fossil/file.c - 664 sys sys 1072705707 30231
 sys/src/cmd/fossil/flchk.c - 664 sys sys 1061530720 14296
 sys/src/cmd/fossil/flfmt.c - 664 sys sys 1072705703 10799
+sys/src/cmd/fossil/flfmt9660.c - 664 sys sys 1072830620 12304
+sys/src/cmd/fossil/flfmt9660.h - 664 sys sys 1072830621 134
 sys/src/cmd/fossil/flproto - 664 sys sys 1042005508 210
 sys/src/cmd/fossil/fns.h - 664 sys sys 1072705709 3168
 sys/src/cmd/fossil/fossil-acid - 664 sys sys 1042005508 3965
@@ -7554,7 +7556,7 @@ sys/src/cmd/fossil/fs.c - 664 sys sys 1072705707 21071
 sys/src/cmd/fossil/fs.h - 664 sys sys 1072705709 1489
 sys/src/cmd/fossil/history - 664 sys sys 1055703793 1400
 sys/src/cmd/fossil/invariants - 664 sys sys 1042005509 4073
-sys/src/cmd/fossil/mkfile - 664 sys sys 1072705702 2077
+sys/src/cmd/fossil/mkfile - 664 sys sys 1072830618 2103
 sys/src/cmd/fossil/nobwatch.c - 664 sys sys 1042005509 329
 sys/src/cmd/fossil/pack.c - 664 sys sys 1061530726 4682
 sys/src/cmd/fossil/periodic.c - 664 sys sys 1061530726 1087
@@ -9617,7 +9619,7 @@ sys/src/cmd/lp/lpdsend.c - 664 sys sys 1039145206 9527
 sys/src/cmd/lp/lpsend.c - 664 sys sys 1015090024 6180
 sys/src/cmd/lp/lpsend.rc - 775 sys sys 953344615 361
 sys/src/cmd/lp/mkfile - 664 sys sys 953344616 535
-sys/src/cmd/ls.c - 664 sys sys 1055699219 5284
+sys/src/cmd/ls.c - 664 sys sys 1072793234 5388
 sys/src/cmd/map - 20000000775 sys sys 944961024 0
 sys/src/cmd/map/index.c - 664 sys sys 956282376 4345
 sys/src/cmd/map/iplot.h - 664 sys sys 944961024 1398
@@ -10991,7 +10993,7 @@ sys/src/cmd/venti/syncindex.c - 664 sys sys 1055707433 983
 sys/src/cmd/venti/syncindex0.c - 664 sys sys 1036470283 3044
 sys/src/cmd/venti/unittoull.c - 664 sys sys 1019678881 398
 sys/src/cmd/venti/unwhack.c - 664 sys sys 1019678881 3191
-sys/src/cmd/venti/utils.c - 664 sys sys 1063854196 4526
+sys/src/cmd/venti/utils.c - 664 sys sys 1072816049 4528
 sys/src/cmd/venti/venti.c - 664 sys sys 1069101830 4626
 sys/src/cmd/venti/venti.conf - 664 sys sys 1019867537 397
 sys/src/cmd/venti/ventifs.c - 664 sys sys 1063854129 6157

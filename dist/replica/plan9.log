@@ -13239,3 +13239,15 @@
 1072729906 20 c sys/src/cmd/rio/wind.c - 664 sys sys 1072729026 32762
 1072729906 21 c sys/src/cmd/usb/audio/controls.c - 664 sys sys 1072729649 13371
 1072729906 22 c sys/src/cmd/usb/mkfile - 664 sys sys 1072728986 219
+1072792914 0 c sys/include/libc.h - 664 sys sys 1072792615 19430
+1072794714 0 c sys/man/5/0intro - 664 sys sys 1072793193 14106
+1072794714 1 c sys/man/5/stat - 664 sys sys 1072793160 6333
+1072794714 2 c sys/src/cmd/chmod.c - 664 sys sys 1072793234 1903
+1072794714 3 c sys/src/cmd/ls.c - 664 sys sys 1072793234 5388
+1072816317 0 c sys/src/cmd/venti/utils.c - 664 sys sys 1072816049 4528
+1072830716 0 a sys/src/cmd/fossil/flfmt9660.c - 664 sys sys 1072830620 12304
+1072830716 1 a sys/src/cmd/fossil/flfmt9660.h - 664 sys sys 1072830621 134
+1072830716 2 c sys/src/cmd/fossil/mkfile - 664 sys sys 1072830618 2103
+1072836117 0 c 386/lib/ape/libap.a - 664 sys sys 1072835459 812790
+1072836117 1 c sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1072835434 9924
+1072836117 2 c sys/src/ape/lib/ap/plan9/lib.h - 664 sys sys 1072835434 2071

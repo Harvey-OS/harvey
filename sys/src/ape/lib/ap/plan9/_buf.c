@@ -14,13 +14,13 @@
 #include "sys9.h"
 
 typedef struct Muxseg {
-	Lock		lock;				/* for mutual exclusion access to buffer variables */
-	int		curfds;			/* number of fds currently buffered */
-	int		selwait;			/* true if selecting process is waiting */
-	int		waittime;			/* time for timer process to wait */
+	Lock	lock;			/* for mutual exclusion access to buffer variables */
+	int	curfds;			/* number of fds currently buffered */
+	int	selwait;		/* true if selecting process is waiting */
+	int	waittime;		/* time for timer process to wait */
 	fd_set	rwant;			/* fd's that select wants to read */
 	fd_set	ewant;			/* fd's that select wants to know eof info on */
-	Muxbuf	bufs[INITBUFS];	/* can grow, via segbrk() */
+	Muxbuf	bufs[INITBUFS];		/* can grow, via segbrk() */
 } Muxseg;
 
 #define MUXADDR ((void*)0x6000000)
@@ -29,7 +29,7 @@ static Muxseg *mux = 0;			/* shared memory segment */
 /* _muxsid and _killmuxsid are known in libbsd's listen.c */
 int _muxsid = -1;			/* group id of copy processes */
 static int _mainpid = -1;
-static int timerpid = -1;			/* pid of a timer process */
+static int timerpid = -1;		/* pid of a timer process */
 
 void _killmuxsid(void);
 static void _copyproc(int, Muxbuf*);
@@ -40,7 +40,6 @@ static int copynotehandler(void *, char *);
 
 /* assume FD_SETSIZE is 96 */
 #define FD_ANYSET(p)	((p)->fds_bits[0] || (p)->fds_bits[1] || (p)->fds_bits[2])
-
 
 /*
  * Start making fd read-buffered: make the shared segment, if necessary,
@@ -70,10 +69,12 @@ _startbuf(int fd)
 	if(fd == -1)
 		return 0;
 
+	lock(&mux->lock);
 	slot = mux->curfds++;
 	if(mux->curfds > INITBUFS) {
 		if(_SEGBRK(mux, mux->bufs+mux->curfds) < 0){
 			_syserrno();
+			unlock(&mux->lock);
 			return -1;
 		}
 	}
@@ -106,6 +107,7 @@ _startbuf(int fd)
 	b->copypid = pid;
 	f->buf = b;
 	f->flags |= FD_BUFFERED;
+	unlock(&mux->lock);
 	_muxsid = _RENDEZVOUS(0, 0);
 	/* leave fd open in parent so system doesn't reuse it */
 	return 0;
