@@ -13,13 +13,16 @@
 #include "../port/netif.h"
 
 #include "etherif.h"
+#include "ethermii.h"
+
+#define DBG 1
 
 enum {
-	Nrdre		= 128,	/* receive descriptor ring entries */
-	Ntdre		= 128,	/* transmit descriptor ring entries */
+	Nrdre		= 128,			/* receive descriptor ring entries */
+	Ntdre		= 128,			/* transmit descriptor ring entries */
 
 	Rbsize		= ETHERMAXTU+4,		/* ring buffer size (+4 for CRC) */
-	Bufsize		= (Rbsize+7)&~7,		/* aligned */
+	Bufsize		= Rbsize+CACHELINESZ,	/* extra room for alignment */
 };
 
 enum {
@@ -32,7 +35,7 @@ enum {
 	RxeCR=		SBIT(13),
 	RxeOV=		SBIT(14),
 	RxeCL=		SBIT(15),
-	RxError=		(RxeLG|RxeNO|RxeSH|RxeCR|RxeOV|RxeCL),	/* various error flags */
+	RxError=	(RxeLG|RxeNO|RxeSH|RxeCR|RxeOV|RxeCL),	/* various error flags */
 
 	/* ether-specific Tx BD bits */
 	TxPad=		SBIT(1),	/* pad short frames */
@@ -45,21 +48,22 @@ enum {
 	TxeCSL=		SBIT(15),
 
 	/* psmr */
-	PRO=		BIT(9),	/* promiscuous mode */
-	LPB=			BIT(3),	/* local protect bit */
-	FDE=		BIT(5),	/* full duplex ethernet */
 	CRCE=		BIT(24),	/* Ethernet CRC */
+	FCE=		BIT(10),	/* flow control */
+	PRO=		BIT(9),		/* promiscuous mode */
+	FDE=		BIT(5),		/* full duplex ethernet */
+	LPB=		BIT(3),		/* local protect bit */
 
 	/* gfmr */
 	ENET=		0xc,		/* ethernet mode */
 	ENT=		BIT(27),
 	ENR=		BIT(26),
-	TCI=			BIT(2),
+	TCI=		BIT(2),
 
 	/* FCC function code register */
 	GBL=		0x20,
-	BO=			0x18,
-	EB=			0x10,	/* Motorola byte order */
+	BO=		0x18,
+	EB=		0x10,		/* Motorola byte order */
 	TC2=		0x04,
 	DTB=		0x02,
 	BDB=		0x01,
@@ -68,11 +72,16 @@ enum {
 	GRA=		SBIT(8),
 	RXC=		SBIT(9),
 	TXC=		SBIT(10),
-	TXE=			SBIT(11),
-	RXF=			SBIT(12),
-	BSY=			SBIT(13),
+	TXE=		SBIT(11),
+	RXF=		SBIT(12),
+	BSY=		SBIT(13),
 	TXB=		SBIT(14),
 	RXB=		SBIT(15),
+};
+
+enum {		/* Mcr */
+	MDIread	=	0x60020000,	/* read opcode */
+	MDIwrite =	0x50020000,	/* write opcode */
 };
 
 typedef struct Etherparam Etherparam;
@@ -130,19 +139,24 @@ struct Etherparam {
 /*0x100*/
 };
 
-typedef struct {
+typedef struct Ctlr Ctlr;
+struct Ctlr {
 	Lock;
-	int		fccid;
-	int		port;
+	int	fccid;
+	int	port;
 	ulong	pmdio;
 	ulong	pmdck;
-	int		init;
-	int		active;
-	FCC*		fcc;
+	int	init;
+	int	active;
+	int	duplex;		/* 1 == full */
+	FCC*	fcc;
 
 	Ring;
+	Block*	rcvbufs[Nrdre];
+	Mii*	mii;
+	Timer;
 
-	ulong	interrupts;			/* statistics */
+	ulong	interrupts;	/* statistics */
 	ulong	deferred;
 	ulong	heartbeat;
 	ulong	latecoll;
@@ -151,12 +165,22 @@ typedef struct {
 	ulong	overrun;
 	ulong	carrierlost;
 	ulong	retrycount;
-} Ctlr;
+};
 
 static	int	fccirq[] = {0x20, 0x21, 0x22};
 static	int	fccid[] = {FCC1ID, FCC2ID, FCC3ID};
 
-int	ioringinit(Ring* r, int nrdre, int ntdre, int bufsize);
+#ifdef DBG
+ulong fccrhisto[16];
+ulong fccthisto[16];
+ulong fccrthisto[16];
+ulong fcctrhisto[16];
+ulong ehisto[0x80];
+#endif
+
+static int fccmiimir(Mii*, int, int);
+static int fccmiimiw(Mii*, int, int, int);
+static void fccltimer(Ureg*, Timer*);
 
 static void
 attach(Ether *ether)
@@ -164,9 +188,15 @@ attach(Ether *ether)
 	Ctlr *ctlr;
 
 	ctlr = ether->ctlr;
+	ilock(ctlr);
 	ctlr->active = 1;
 	ctlr->fcc->gfmr |= ENR|ENT;
-	eieio();
+	iunlock(ctlr);
+	ctlr->tmode = Tperiodic;
+	ctlr->tf = fccltimer;
+	ctlr->ta = ether;
+	ctlr->tns = 5000000000LL;	/* 5 seconds */
+	timeradd(ctlr);
 }
 
 static void
@@ -255,7 +285,7 @@ txstart(Ether *ether)
 		dcflush(dre, sizeof(BD));
 		dre->status = (dre->status & BDWrap) | BDReady|TxPad|BDInt|BDLast|TxTC;
 		dcflush(dre, sizeof(BD));
-		ctlr->fcc->ftodr = 1<<15;	/* transmit now */
+/*		ctlr->fcc->ftodr = 1<<15;	/* transmit now; Don't do this according to errata */
 		ctlr->ntq++;
 		ctlr->tdrh = NEXT(ctlr->tdrh, Ntdre);
 	}
@@ -275,11 +305,11 @@ transmit(Ether* ether)
 static void
 interrupt(Ureg*, void *arg)
 {
-	int len, status;
+	int len, status, rcvd, xmtd, restart;
 	ushort events;
 	Ctlr *ctlr;
 	BD *dre;
-	Block *b;
+	Block *b, *nb;
 	Ether *ether = arg;
 
 	ctlr = ether->ctlr;
@@ -291,25 +321,32 @@ interrupt(Ureg*, void *arg)
 	 * happen.
 	 */
 	events = ctlr->fcc->fcce;
-	eieio();
 	ctlr->fcc->fcce = events;		/* clear events */
-	eieio();
+
+#ifdef DBG
+	ehisto[events & 0x7f]++;
+#endif
+
 	ctlr->interrupts++;
 
-	if(events & RXB)
+	if(events & BSY)
 		ctlr->overrun++;
 	if(events & TXE)
 		ether->oerrs++;
 
+#ifdef DBG
+	rcvd = xmtd = 0;
+#endif
 	/*
 	 * Receiver interrupt: run round the descriptor ring logging
 	 * errors and passing valid receive data up to the higher levels
 	 * until we encounter a descriptor still owned by the chip.
 	 */
-	if(events & (RXF|RXB)){
+	if(events & RXF){
 		dre = &ctlr->rdr[ctlr->rdrx];
 		dczap(dre, sizeof(BD));
 		while(((status = dre->status) & BDEmpty) == 0){
+			rcvd++;
 			if(status & RxError || (status & (BDFirst|BDLast)) != (BDFirst|BDLast)){
 				if(status & (RxeLG|RxeSH))
 					ether->buffs++;
@@ -320,17 +357,22 @@ interrupt(Ureg*, void *arg)
 				if(status & RxeOV)
 					ether->overflows++;
 				print("eth rx: %ux\n", status);
-			}
-			else{
+			}else{
 				/*
 				 * We have a packet. Read it in.
 				 */
 				len = dre->length-4;
-				dczap(KADDR(dre->addr), len);
-				if((b = iallocb(len)) != 0){
-					memmove(b->wp, KADDR(dre->addr), len);
+				b = ctlr->rcvbufs[ctlr->rdrx];
+				assert(dre->addr == PADDR(b->rp));
+				dczap(b->rp, len);
+				if(nb = iallocb(Bufsize)){
 					b->wp += len;
 					etheriq(ether, b, 1);
+					b = nb;
+					b->rp = (uchar*)(((ulong)b->rp + CACHELINESZ-1) & ~(CACHELINESZ-1));
+					b->wp = b->rp;
+					ctlr->rcvbufs[ctlr->rdrx] = b;
+					ctlr->rdr[ctlr->rdrx].addr = PADDR(b->wp);
 				}else
 					ether->soverflows++;
 			}
@@ -353,7 +395,8 @@ interrupt(Ureg*, void *arg)
 	 * Transmitter interrupt: handle anything queued for a free descriptor.
 	 */
 	if(events & (TXB|TXE)){
-		lock(ctlr);
+		ilock(ctlr);
+		restart = 0;
 		while(ctlr->ntq){
 			dre = &ctlr->tdr[ctlr->tdri];
 			dczap(dre, sizeof(BD));
@@ -372,6 +415,8 @@ interrupt(Ureg*, void *arg)
 				ctlr->underrun++;
 			if(status & TxeCSL)
 				ctlr->carrierlost++;
+			if(status & (TxeLC|TxeRL|TxeUN))
+				restart = 1;
 			ctlr->retrycount += (status>>2)&0xF;
 			b = ctlr->txb[ctlr->tdri];
 			if(b == nil)
@@ -380,38 +425,76 @@ interrupt(Ureg*, void *arg)
 			freeb(b);
 			ctlr->ntq--;
 			ctlr->tdri = NEXT(ctlr->tdri, Ntdre);
+			xmtd++;
 		}
 
-		if(events & TXE)
+		if(restart){
+			ctlr->fcc->gfmr &= ~ENT;
+			delay(10);
+			ctlr->fcc->gfmr |= ENT;
 			cpmop(RestartTx, ctlr->fccid, 0xc);
-
+		}
 		txstart(ether);
-		unlock(ctlr);
+		iunlock(ctlr);
 	}
+#ifdef DBG
+	if(rcvd >= nelem(fccrhisto))
+		rcvd = nelem(fccrhisto) - 1;
+	if(xmtd >= nelem(fccthisto))
+		xmtd = nelem(fccthisto) - 1;
+	if(rcvd)
+		fcctrhisto[xmtd]++;
+	else
+		fccthisto[xmtd]++;
+	if(xmtd)
+		fccrthisto[rcvd]++;
+	else
+		fccrhisto[rcvd]++;
+#endif
 }
 
 static long
 ifstat(Ether* ether, void* a, long n, ulong offset)
 {
 	char *p;
-	int len;
+	int len, i, r;
 	Ctlr *ctlr;
+	MiiPhy *phy;
 
 	if(n == 0)
 		return 0;
 
 	ctlr = ether->ctlr;
 
-	p = malloc(READSTR);
-	len = snprint(p, READSTR, "interrupts: %lud\n", ctlr->interrupts);
-	len += snprint(p+len, READSTR-len, "carrierlost: %lud\n", ctlr->carrierlost);
-	len += snprint(p+len, READSTR-len, "heartbeat: %lud\n", ctlr->heartbeat);
-	len += snprint(p+len, READSTR-len, "retrylimit: %lud\n", ctlr->retrylim);
-	len += snprint(p+len, READSTR-len, "retrycount: %lud\n", ctlr->retrycount);
-	len += snprint(p+len, READSTR-len, "latecollisions: %lud\n", ctlr->latecoll);
-	len += snprint(p+len, READSTR-len, "rxoverruns: %lud\n", ctlr->overrun);
-	len += snprint(p+len, READSTR-len, "txunderruns: %lud\n", ctlr->underrun);
-	snprint(p+len, READSTR-len, "framesdeferred: %lud\n", ctlr->deferred);
+	p = malloc(2*READSTR);
+	len = snprint(p, 2*READSTR, "interrupts: %lud\n", ctlr->interrupts);
+	len += snprint(p+len, 2*READSTR-len, "carrierlost: %lud\n", ctlr->carrierlost);
+	len += snprint(p+len, 2*READSTR-len, "heartbeat: %lud\n", ctlr->heartbeat);
+	len += snprint(p+len, 2*READSTR-len, "retrylimit: %lud\n", ctlr->retrylim);
+	len += snprint(p+len, 2*READSTR-len, "retrycount: %lud\n", ctlr->retrycount);
+	len += snprint(p+len, 2*READSTR-len, "latecollisions: %lud\n", ctlr->latecoll);
+	len += snprint(p+len, 2*READSTR-len, "rxoverruns: %lud\n", ctlr->overrun);
+	len += snprint(p+len, 2*READSTR-len, "txunderruns: %lud\n", ctlr->underrun);
+	len += snprint(p+len, 2*READSTR-len, "framesdeferred: %lud\n", ctlr->deferred);
+	miistatus(ctlr->mii);
+	phy = ctlr->mii->curphy;
+	len += snprint(p+len, 2*READSTR-len, "phy: link=%d, tfc=%d, rfc=%d, speed=%d, fd=%d\n",
+		phy->link, phy->tfc, phy->rfc, phy->speed, phy->fd);
+
+#ifdef DBG
+	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
+		len += snprint(p+len, 2*READSTR, "phy:   ");
+		for(i = 0; i < NMiiPhyr; i++){
+			if(i && ((i & 0x07) == 0))
+				len += snprint(p+len, 2*READSTR-len, "\n       ");
+			r = miimir(ctlr->mii, i);
+			len += snprint(p+len, 2*READSTR-len, " %4.4uX", r);
+		}
+		snprint(p+len, 2*READSTR-len, "\n");
+	}
+#endif
+	snprint(p+len, 2*READSTR-len, "\n");
+
 	n = readstr(offset, a, n, p);
 	free(p);
 
@@ -421,11 +504,12 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 /*
  * This follows the MPC8260 user guide: section28.9's initialisation sequence.
  */
-static void
+static int
 fccsetup(Ctlr *ctlr, FCC *fcc, uchar *ea)
 {
 	int i;
 	Etherparam *p;
+	MiiPhy *phy;
 
 	/* Turn Ethernet off */
 	fcc->gfmr &= ~(ENR | ENT);
@@ -434,7 +518,7 @@ fccsetup(Ctlr *ctlr, FCC *fcc, uchar *ea)
 	switch(ctlr->port) {
 	default:
 		iopunlock();
-		return;
+		return -1;
 	case 0:
 		/* Step 1 (Section 28.9), write the parallel ports */
 		ctlr->pmdio = 0x01000000;
@@ -509,12 +593,11 @@ fccsetup(Ctlr *ctlr, FCC *fcc, uchar *ea)
 	memset(p, 0, sizeof(Etherparam));
 
 	/* Step 4 */
-//	fcc->gfmr |= (TCI | ENET);
 	fcc->gfmr |= ENET;
 
 	/* Step 5 */
-	fcc->fpsmr = CRCE | FDE | LPB;		/* full duplex operation */
-//	fcc->fpsmr = CRCE;		/* half duplex operation */
+	fcc->fpsmr = CRCE | FDE | LPB;	/* full duplex operation */
+	ctlr->duplex = ~0;
 
 	/* Step 6 */
 	fcc->fdsr = 0xd555;
@@ -530,11 +613,11 @@ fccsetup(Ctlr *ctlr, FCC *fcc, uchar *ea)
 
 	p->retlim = 15;	/* retry limit */
 
-	p->mrblr = Bufsize;
+	p->mrblr = (Rbsize+0x1f)&~0x1f;		/* multiple of 32 */
 	p->mflr = Rbsize;
-	p->minflr = ETHERMINTU + 4;
-	p->maxd1 = (Rbsize+3) & ~3;
-	p->maxd2 = (Rbsize+3) & ~3;
+	p->minflr = ETHERMINTU;
+	p->maxd1 = (Rbsize+7) & ~7;
+	p->maxd2 = (Rbsize+7) & ~7;
 
 	for(i=0; i<Eaddrlen; i+=2)
 		p->paddr[2-i/2] = (ea[i+1]<<8)|ea[i];
@@ -558,7 +641,33 @@ fccsetup(Ctlr *ctlr, FCC *fcc, uchar *ea)
 	/* Step 13, Issue the Init Tx and Rx command, specifying 0xc for ethernet*/
 	cpmop(InitRxTx, fccid[ctlr->port], 0xc);
 
-	// Step 14, Enable ethernet: done at attach time
+	/* Step 14, Link management */
+	if((ctlr->mii = malloc(sizeof(Mii))) == nil)
+		return -1;
+	ctlr->mii->mir = fccmiimir;
+	ctlr->mii->miw = fccmiimiw;
+	ctlr->mii->ctlr = ctlr;
+
+	if(mii(ctlr->mii, ~0) == 0 || (phy = ctlr->mii->curphy) == nil){
+		free(ctlr->mii);
+		ctlr->mii = nil;
+		return -1;
+	}
+	miiane(ctlr->mii, ~0, ~0, ~0);
+#ifdef DBG
+	print("oui=%X, phyno=%d, ", phy->oui, phy->phyno);
+	print("anar=%ux, ", phy->anar);
+	print("fc=%ux, ", phy->fc);
+	print("mscr=%ux, ", phy->mscr);
+
+	print("link=%ux, ", phy->link);
+	print("speed=%ux, ", phy->speed);
+	print("fd=%ux, ", phy->fd);
+	print("rfc=%ux, ", phy->rfc);
+	print("tfc=%ux\n", phy->tfc);
+#endif
+	/* Step 15, Enable ethernet: done at attach time */
+	return 0;
 }
 
 static int
@@ -567,6 +676,8 @@ reset(Ether* ether)
 	uchar ea[Eaddrlen];
 	Ctlr *ctlr;
 	FCC *fcc;
+	Block *b;
+	int i;
 
 	if(m->cpuhz < 24000000){
 		print("%s ether: system speed must be >= 24MHz for ether use\n", ether->type);
@@ -593,8 +704,15 @@ reset(Ether* ether)
 	 * PowerQUICC II manual (Section 28.6).  When they are allocated
 	 * in DPram and the Dcache is enabled, the processor will hang
 	 */
-	if(ioringinit(ctlr, Nrdre, Ntdre, Bufsize) < 0)
+	if(ioringinit(ctlr, Nrdre, Ntdre, 0) < 0)
 		panic("etherfcc init");
+	for(i = 0; i < Nrdre; i++){
+		b = iallocb(Bufsize);
+		b->rp = (uchar*)(((ulong)b->rp + CACHELINESZ-1) & ~(CACHELINESZ-1));
+		b->wp = b->rp;
+		ctlr->rcvbufs[i] = b;
+		ctlr->rdr[i].addr = PADDR(b->wp);
+	}
 
 	fccsetup(ctlr, fcc, ether->ea);
 
@@ -625,4 +743,149 @@ void
 etherfcclink(void)
 {
 	addethercard("fcc", reset);
+}
+
+static void
+nanodelay(void)
+{
+	static int count;
+	int i;
+
+	for(i = 0; i < 500; i++)
+		count++;
+	return;
+}
+
+static
+void miiwriteloop(Ctlr *ctlr, Port *port, int cnt, ulong cmd)
+{
+	int i;
+
+	for(i = 0; i < cnt; i++){
+		port->pdat &= ~ctlr->pmdck;
+		if(cmd & BIT(i))
+			port->pdat |= ctlr->pmdio;
+		else
+			port->pdat &= ~ctlr->pmdio;
+		nanodelay();
+		port->pdat |= ctlr->pmdck;
+		nanodelay();
+	}
+}
+
+static int
+fccmiimiw(Mii *mii, int pa, int ra, int data)
+{
+	int x;
+	Port *port;
+	ulong cmd;
+	Ctlr *ctlr;
+
+	/*
+	 * MII Management Interface Write.
+	 */
+
+	ctlr = mii->ctlr;
+	port = iomem->port + 3;
+	cmd = MDIwrite | (pa<<(5+2+16))| (ra<<(2+16)) | (data & 0xffff);
+
+	x = splhi();
+
+	port->pdir |= (ctlr->pmdio|ctlr->pmdck);
+	nanodelay();
+
+	miiwriteloop(ctlr, port, 32, ~0);
+	miiwriteloop(ctlr, port, 32, cmd);
+
+	port->pdir |= (ctlr->pmdio|ctlr->pmdck);
+	nanodelay();
+
+	miiwriteloop(ctlr, port, 32, ~0);
+
+	splx(x);
+	return 1;
+}
+
+static int
+fccmiimir(Mii *mii, int pa, int ra)
+{
+	int data, i, x;
+	Port *port;
+	ulong cmd;
+	Ctlr *ctlr;
+
+	ctlr = mii->ctlr;
+	port = iomem->port + 3;
+
+	cmd = MDIread | pa<<(5+2+16) | ra<<(2+16);
+
+	x = splhi();
+	port->pdir |= (ctlr->pmdio|ctlr->pmdck);
+	nanodelay();
+
+	miiwriteloop(ctlr, port, 32, ~0);
+
+	/* Clock out the first 14 MS bits of the command */
+	miiwriteloop(ctlr, port, 14, cmd);
+
+	/* Turn-around */
+	port->pdat &= ~ctlr->pmdck;
+	port->pdir &= ~ctlr->pmdio;
+	nanodelay();
+
+	/* For read, clock in 18 bits, use 16 */
+	data = 0;
+	for(i=0; i<18; i++){
+		data <<= 1;
+		if(port->pdat & ctlr->pmdio)
+			data |= 1;
+		port->pdat |= ctlr->pmdck;
+		nanodelay();
+		port->pdat &= ~ctlr->pmdck;
+		nanodelay();
+	}
+	port->pdir |= (ctlr->pmdio|ctlr->pmdck);
+	nanodelay();
+	miiwriteloop(ctlr, port, 32, ~0);
+	splx(x);
+	return data & 0xffff;
+}
+
+static void
+fccltimer(Ureg*, Timer *t)
+{
+	Ether *ether;
+	Ctlr *ctlr;
+	MiiPhy *phy;
+	ulong gfmr;
+
+	ether = t->ta;
+	ctlr = ether->ctlr;
+	if(ctlr->mii == nil || ctlr->mii->curphy == nil)
+		return;
+	phy = ctlr->mii->curphy;
+	if(miistatus(ctlr->mii) < 0){
+		print("miistatus failed\n");
+		return;
+	}
+	if(phy->link == 0){
+		print("link lost\n");
+		return;
+	}
+	ether->mbps = phy->speed;
+
+	if(phy->fd != ctlr->duplex)
+		print("set duplex\n");
+	ilock(ctlr);
+	gfmr = ctlr->fcc->gfmr;
+	if(phy->fd != ctlr->duplex){
+		ctlr->fcc->gfmr &= ~(ENR|ENT);
+		if(phy->fd)
+			ctlr->fcc->fpsmr |= FDE | LPB;		/* full duplex operation */
+		else
+			ctlr->fcc->fpsmr &= ~(FDE | LPB);	/* half duplex operation */
+		ctlr->duplex = phy->fd;
+	}
+	ctlr->fcc->gfmr = gfmr;
+	iunlock(ctlr);
 }

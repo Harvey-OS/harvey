@@ -26,26 +26,26 @@ struct {
 	ulong	hi;
 	ulong	lo;
 } vec2mask[64]	= {
-[0]	= {0,			0	},	/* Error,			No interrupt */
-[1]	= {0,			BIT(16)},	/* I2C */
-[2]	= {0,			BIT(17)},	/* SPI */
-[3]	= {0,			BIT(18)},	/* Risc Timers */
-[4]	= {0,			BIT(19)},	/* SMC1 */
-[5]	= {0,			BIT(20)},	/* SMC2 */
-[6]	= {0,			BIT(21)},	/* IDMA1 */
-[7]	= {0,			BIT(22)},	/* IDMA2 */
-[8]	= {0,			BIT(23)},	/* IDMA3 */
-[9]	= {0,			BIT(24)},	/* IDMA4 */
-[10]	= {0,			BIT(25)},	/* SDMA */
-[11]	= {0,			0	},	/* Reserved */
-[12]	= {0,			BIT(27)},	/* Timer1 */
-[13]	= {0,			BIT(28)},	/* Timer2 */
-[14]	= {0,			BIT(29)},	/* Timer3 */
-[15]	= {0,			BIT(30)},	/* Timer4 */
+[0]	= {0,		0	},	/* Error, No interrupt */
+[1]	= {0,		BIT(16)	},	/* I2C */
+[2]	= {0,		BIT(17)	},	/* SPI */
+[3]	= {0,		BIT(18)	},	/* Risc Timers */
+[4]	= {0,		BIT(19)	},	/* SMC1 */
+[5]	= {0,		BIT(20)	},	/* SMC2 */
+[6]	= {0,		BIT(21)	},	/* IDMA1 */
+[7]	= {0,		BIT(22)	},	/* IDMA2 */
+[8]	= {0,		BIT(23)	},	/* IDMA3 */
+[9]	= {0,		BIT(24)	},	/* IDMA4 */
+[10]	= {0,		BIT(25)	},	/* SDMA */
+[11]	= {0,		0	},	/* Reserved */
+[12]	= {0,		BIT(27)	},	/* Timer1 */
+[13]	= {0,		BIT(28)	},	/* Timer2 */
+[14]	= {0,		BIT(29)	},	/* Timer3 */
+[15]	= {0,		BIT(30)	},	/* Timer4 */
 
 [16]	= {BIT(29),	0	},	/* TMCNT */
 [17]	= {BIT(30),	0	},	/* PIT */
-[18]	= {0,			0	},	/* Reserved */
+[18]	= {0,		0	},	/* Reserved */
 [19]	= {BIT(17),	0	},	/* IRQ1 */
 [20]	= {BIT(18),	0	},	/* IRQ2 */
 [21]	= {BIT(19),	0	},	/* IRQ3 */
@@ -53,29 +53,29 @@ struct {
 [23]	= {BIT(21),	0	},	/* IRQ5 */
 [24]	= {BIT(22),	0	},	/* IRQ6 */
 [25]	= {BIT(23),	0	},	/* IRQ7 */
-[26]	= {0,			0	},	/* Reserved */
-[27]	= {0,			0	},	/* Reserved */
-[28]	= {0,			0	},	/* Reserved */
-[29]	= {0,			0	},	/* Reserved */
-[30]	= {0,			0	},	/* Reserved */
-[31]	= {0,			0	},	/* Reserved */
+[26]	= {0,		0	},	/* Reserved */
+[27]	= {0,		0	},	/* Reserved */
+[28]	= {0,		0	},	/* Reserved */
+[29]	= {0,		0	},	/* Reserved */
+[30]	= {0,		0	},	/* Reserved */
+[31]	= {0,		0	},	/* Reserved */
 
-[32]	= {0,			BIT(0)},	/* FCC1 */
-[33]	= {0,			BIT(1)},	/* FCC2 */
-[34]	= {0,			BIT(2)},	/* FCC3 */
-[35]	= {0,			0	},	/* Reserved */
-[36]	= {0,			BIT(4)},	/* MCC1 */
-[37]	= {0,			BIT(5)},	/* MCC2 */
-[38]	= {0,			0	},	/* Reserved */
-[39]	= {0,			0	},	/* Reserved */
-[40]	= {0,			BIT(8)},	/* SCC1 */
-[41]	= {0,			BIT(9)},	/* SCC2 */
-[42]	= {0,			BIT(10)},	/* SCC3 */
-[43]	= {0,			BIT(11)},	/* SCC4 */
-[44]	= {0,			0	},	/* Reserved */
-[45]	= {0,			0	},	/* Reserved */
-[46]	= {0,			0	},	/* Reserved */
-[47]	= {0,			0	},	/* Reserved */
+[32]	= {0,		BIT(0)	},	/* FCC1 */
+[33]	= {0,		BIT(1)	},	/* FCC2 */
+[34]	= {0,		BIT(2)	},	/* FCC3 */
+[35]	= {0,		0	},	/* Reserved */
+[36]	= {0,		BIT(4)	},	/* MCC1 */
+[37]	= {0,		BIT(5)	},	/* MCC2 */
+[38]	= {0,		0	},	/* Reserved */
+[39]	= {0,		0	},	/* Reserved */
+[40]	= {0,		BIT(8)	},	/* SCC1 */
+[41]	= {0,		BIT(9)	},	/* SCC2 */
+[42]	= {0,		BIT(10)	},	/* SCC3 */
+[43]	= {0,		BIT(11)	},	/* SCC4 */
+[44]	= {0,		0	},	/* Reserved */
+[45]	= {0,		0	},	/* Reserved */
+[46]	= {0,		0	},	/* Reserved */
+[47]	= {0,		0	},	/* Reserved */
 
 [48]	= {BIT(15),	0	},	/* PC15 */
 [49]	= {BIT(14),	0	},	/* PC14 */
@@ -83,16 +83,16 @@ struct {
 [51]	= {BIT(12),	0	},	/* PC12 */
 [52]	= {BIT(11),	0	},	/* PC11 */
 [53]	= {BIT(10),	0	},	/* PC10 */
-[54]	= {BIT(9),		0	},	/* PC9 */
-[55]	= {BIT(8),		0	},	/* PC8 */
-[56]	= {BIT(7),		0	},	/* PC7 */
-[57]	= {BIT(6),		0	},	/* PC6 */
-[58]	= {BIT(5),		0	},	/* PC5 */
-[59]	= {BIT(4),		0	},	/* PC4 */
-[60]	= {BIT(3),		0	},	/* PC3 */
-[61]	= {BIT(2),		0	},	/* PC2 */
-[62]	= {BIT(1),		0	},	/* PC1 */
-[63]	= {BIT(0),		0	},	/* PC0 */
+[54]	= {BIT(9),	0	},	/* PC9 */
+[55]	= {BIT(8),	0	},	/* PC8 */
+[56]	= {BIT(7),	0	},	/* PC7 */
+[57]	= {BIT(6),	0	},	/* PC6 */
+[58]	= {BIT(5),	0	},	/* PC5 */
+[59]	= {BIT(4),	0	},	/* PC4 */
+[60]	= {BIT(3),	0	},	/* PC3 */
+[61]	= {BIT(2),	0	},	/* PC2 */
+[62]	= {BIT(1),	0	},	/* PC1 */
+[63]	= {BIT(0),	0	},	/* PC0 */
 };
 
 /* Blast memory layout:
@@ -556,7 +556,7 @@ bdalloc(int n)
 
 /*
  * Initialise receive and transmit buffer rings.  Only used for FCC
- * EThernet now.
+ * Ethernet now.
  *
  * Ioringinit will allocate the buffer descriptors in normal memory
  * and NOT in Dual-Ported Ram, as prescribed by the MPC8260
@@ -582,11 +582,14 @@ ioringinit(Ring* r, int nrdre, int ntdre, int bufsize)
 	r->nrdre = nrdre;
 	if(r->rdr == nil)
 		r->rdr = xspanalloc(nrdre*sizeof(BD), 0, 8);
-	if(r->rrb == nil)
-		r->rrb = xspanalloc(nrdre*bufsize, 0, CACHELINESZ);
-	if(r->rdr == nil || r->rrb == nil)
+	if(r->rdr == nil)
 		return -1;
-	x = PADDR(r->rrb);
+	if(r->rrb == nil && bufsize){
+		r->rrb = xspanalloc(nrdre*bufsize, 0, CACHELINESZ);
+		if(r->rrb == nil)
+			return -1;
+	}
+	x = bufsize ? PADDR(r->rrb) : 0;
 	for(i = 0; i < nrdre; i++){
 		r->rdr[i].length = 0;
 		r->rdr[i].addr = x;

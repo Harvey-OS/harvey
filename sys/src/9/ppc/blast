@@ -18,9 +18,10 @@ dev
 	ip		arp chandial ip ipv6 ipaux iproute netif netlog nullmedium pktmedium ptclbsum inferno
 
 link
-	etherfcc
+	etherfcc		ethermii
 	ethermedium
 	netdevmedium
+	loopbackmedium
 
 misc
 	uartsmc

@@ -30,7 +30,7 @@ void
 clockinit(void)
 {
 	m->dechz = m->bushz/4;	/* true for all 604e */
-	m->tbhz = m->dechz;		/* conjecture; manual doesn't say */
+	m->tbhz = m->dechz;	/* conjecture; manual doesn't say */
 
 	delayloopinit();
 
@@ -44,7 +44,7 @@ clockintr(Ureg *)
 	long v;
 
 	v = -getdec();
-	if(v > clkreload/2){
+	if(v > (clkreload >> 1)){
 		if(v > clkreload)
 			m->ticks += v/clkreload;
 		v = 0;
