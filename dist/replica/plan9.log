@@ -13879,3 +13879,11 @@
 1065963704 1 c sys/src/cmd/aux/olefs.c - 664 sys sys 1065963681 9630
 1065965509 0 c sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1065963776 16849
 1065965509 1 c sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1065963823 59455
+1066098627 0 c 386/bin/fossil/fossil - 775 sys sys 1066098149 345764
+1066098627 1 c sys/man/8/fossilcons - 664 sys sys 1066098118 14880
+1066098627 2 c sys/src/cmd/fossil/9.h - 664 sys sys 1066098099 4163
+1066098627 3 c sys/src/cmd/fossil/9p.c - 664 sys sys 1066098096 21486
+1066098627 4 c sys/src/cmd/fossil/9srv.c - 664 sys sys 1066098097 3682
+1066098627 5 c sys/src/cmd/fossil/9user.c - 664 sys sys 1066098098 17239
+1066098627 6 c sys/src/cmd/fossil/Ccmd.c - 664 sys sys 1066098098 7244
+1066098627 7 c sys/src/cmd/fossil/file.c - 664 sys sys 1066098099 28004

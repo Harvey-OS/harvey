@@ -1541,6 +1541,12 @@ fileWAccess(File* f, char *mid)
 	f->dir.mcount++;
 	f->dirty = 1;
 	fileMetaUnlock(f);
+
+/*RSC: let's try this */
+/*presotto - lets not
+	if(f->up)
+		fileWAccess(f->up, mid);
+*/
 }
 
 static void

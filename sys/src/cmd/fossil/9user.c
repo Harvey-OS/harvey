@@ -864,7 +864,7 @@ cmdUname(int argc, char* argv[])
 				p = smprint(createfmt, uname, uname, uname);
 				r = cliExec(p);
 				vtMemFree(p);
-				if(r != 0){
+				if(r == 0){
 					vtUnlock(ubox.lock);
 					return 0;
 				}

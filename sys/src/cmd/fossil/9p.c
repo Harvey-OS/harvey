@@ -12,8 +12,6 @@ enum {
 	PermR		= 4,
 };
 
-int fixFid;	/* clumsy hack to debug fid-in-use problems */
-
 static char EPermission[] = "permission denied";
 
 static int
@@ -285,7 +283,7 @@ rTwstat(Msg* m)
 	gl = groupLeader(gid, fid->uname) != 0;
 	gl += groupLeader(de.gid, fid->uname) != 0;
 
-	if(op && !fsysWstatAllow(fid->fsys)){
+	if(op && !(fsysWstatAllow(fid->fsys) || m->con->wstatallow)){
 		if(strcmp(fid->uid, de.uid) != 0 && !gl){
 			vtSetError("wstat -- not owner or group leader");
 			goto error;
@@ -298,7 +296,7 @@ rTwstat(Msg* m)
 	 * If gid is nil here then
 	 */
 	if(strcmp(gid, de.gid) != 0){
-		if(!fsysWstatAllow(fid->fsys)
+		if(!(fsysWstatAllow(fid->fsys) || m->con->wstatallow)
 		&& !(strcmp(fid->uid, de.uid) == 0 && groupMember(gid, fid->uname))
 		&& !(gl == 2)){
 			vtSetError("wstat -- not owner and not group leaders");
@@ -338,7 +336,7 @@ rTwstat(Msg* m)
 			goto error;
 		}
 		if(strcmp(uid, de.uid) != 0){
-			if(!fsysWstatAllow(fid->fsys)){
+			if(!(fsysWstatAllow(fid->fsys) || m->con->wstatallow)){
 				vtSetError("wstat -- not owner");
 				goto error;
 			}
@@ -802,18 +800,9 @@ rTwalk(Msg* m)
 	 */
 	nfid = nil;
 	if(t->fid != t->newfid){
-again:
 		nfid = fidGet(m->con, t->newfid, FidFWlock|FidFCreate);
 		if(nfid == nil){
-			if(fixFid && fixFid == t->newfid){
-				fixFid = 0;
-				nfid = fidGet(m->con, t->newfid, FidFWlock);
-				if(nfid){
-					fprint(2, "clunking in-use fid %d to appease client\n", t->newfid);
-					_rTclunk(nfid, 0);
-				}
-				goto again;
-			}
+			vtSetError("fid in use");
 			fidPut(ofid);
 			return 0;
 		}
