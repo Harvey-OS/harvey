@@ -53,6 +53,7 @@ authWrite(Fid* afid, void* data, int count)
 int
 authCheck(Fcall* t, Fid* fid, Fs* fsys)
 {
+	Con *con;
 	Fid *afid;
 	uchar buf[1];
 
@@ -61,6 +62,7 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 	 * protocol to do. Use a separate lock to protect altering
 	 * the auth information inside afid.
 	 */
+	con = fid->con;
 	if(t->afid == NOFID){
 		/*
 		 * If no authentication is asked for, allow
@@ -70,11 +72,14 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 		 * The console is allowed to attach without
 		 * authentication.
 		 */
-		if(!fid->con->isconsole &&
-		(strcmp(fid->uname, unamenone) != 0 || !fid->con->aok)){
+		vtRLock(con->alock);
+		if(!con->isconsole &&
+		(strcmp(fid->uname, unamenone) != 0 || !con->aok)){
+			vtRUnlock(con->alock);
 			consPrint("attach %s as %s: connection not authenticated, not console\n", fsysGetName(fsys), fid->uname);
 			return 0;
 		}
+		vtRUnlock(con->alock);
 
 		if((fid->uid = uidByUname(fid->uname)) == nil){
 			consPrint("attach %s as %s: unknown uname\n", fsysGetName(fsys), fid->uname);
@@ -83,7 +88,7 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 		return 1;
 	}
 
-	if((afid = fidGet(fid->con, t->afid, 0)) == nil){
+	if((afid = fidGet(con, t->afid, 0)) == nil){
 		consPrint("attach %s as %s: bad afid\n", fsysGetName(fsys), fid->uname);
 		return 0;
 	}
@@ -128,7 +133,9 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 	/*
 	 * Allow "none" once the connection has been authenticated.
 	 */
-	fid->con->aok = 1;
+	vtLock(con->alock);
+	con->aok = 1;
+	vtUnlock(con->alock);
 
 	return 1;
 }

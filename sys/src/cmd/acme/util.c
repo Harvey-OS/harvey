@@ -201,7 +201,7 @@ runetobyte(Rune *r, int n)
 {
 	char *s;
 
-	if(n == 0)
+	if(r == nil)
 		return nil;
 	s = emalloc(n*UTFmax+1);
 	setmalloctag(s, getcallerpc(&r));

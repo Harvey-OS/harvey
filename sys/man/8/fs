@@ -124,6 +124,14 @@ fs, exsort \- file server maintenance
 [
 .I tunit
 ]
+.PP
+.B wormoffline
+.I drive
+.PP
+.B wormonline
+.I drive
+.PP
+.B wormreset
 .PD
 .PP
 .B disk/exsort
@@ -742,12 +750,22 @@ are given the output selects connections owned by those users.
 .I Wormeject
 moves the WORM disk in slot
 .I tunit
-to the output shelf.
+of the first jukebox to the output shelf.
 .PP
 .I Wormingest
-moves the WORM disk from the input shelf to
-slot
+moves the WORM disk from the input shelf of the first jukebox to slot
 .IR tunit .
+.PP
+.I Wormoffline
+takes
+.I drive
+of the first jukebox out of service;
+.I wormonline
+puts it back in service.
+.PP
+.I Wormreset
+put discs back where the jukebox thinks they belong,
+and does this for all jukeboxes.
 .PP
 When the file server boots, it prints the message
 .IP
@@ -778,12 +796,16 @@ With option
 .B -w
 it writes the sorted data back to
 .IR file .
-.SH SOURCE
-.B /sys/src/fs
-.br
-.B /sys/src/cmd/disk/exsort.c
 .SH SEE ALSO
 .IR fs (4)
 .br
 Ken Thompson,
 ``The Plan 9 File Server''.
+.SH SOURCE
+.B /sys/src/fs
+.br
+.B /sys/src/cmd/disk/exsort.c
+.SH BUGS
+The
+.B worm*
+commands should accept an argument identifying a jukebox.

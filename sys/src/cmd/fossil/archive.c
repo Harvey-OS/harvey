@@ -390,7 +390,7 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 		/* tie up vac root */
 		memset(&root, 0, sizeof root);
 		root.version = VtRootVersion;
-		strcpy(root.type, "vac");
+		strecpy(root.type, root.type+sizeof root.type, "vac");
 		strecpy(root.name, root.name+sizeof root.name, "fossil");
 		memmove(root.score, p.score, VtScoreSize);
 		memmove(root.prev, super.last, VtScoreSize);

@@ -627,6 +627,8 @@ rTcreate(Msg* m)
 	}
 	fileDecRef(fid->file);
 
+	fid->qid.vers = fileGetMcount(file);
+	fid->qid.path = fileGetId(file);
 	fid->file = file;
 	mode = fileGetMode(fid->file);
 	if(mode & ModeDir)
@@ -639,8 +641,6 @@ rTcreate(Msg* m)
 		fid->qid.type |= QTEXCL;
 		assert(exclAlloc(fid) != 0);
 	}
-	fid->qid.vers = fileGetMcount(file);
-	fid->qid.path = fileGetId(file);
 	if(m->t.mode & ORCLOSE)
 		open |= FidORclose;
 	fid->open = open;
@@ -883,23 +883,8 @@ rTwalk(Msg* m)
 static int
 rTflush(Msg* m)
 {
-	Msg *mp;
-	Con *con;
-	u32int oldtag;
-
-	if((oldtag = m->t.oldtag) == NOTAG)
-		return 1;
-
-	con = m->con;
-	vtLock(con->lock);
-	for(mp = con->mhead; mp != nil; mp = mp->next){
-		if(mp->t.tag == oldtag){
-			mp->flush = 1;
-			break;
-		}
-	}
-	vtUnlock(con->lock);
-
+	if(m->t.oldtag != NOTAG)
+		msgFlush(m);
 	return 1;
 }
 
@@ -1038,7 +1023,6 @@ rTversion(Msg* m)
 {
 	int v;
 	Con *con;
-	Fid *fid;
 	Fcall *r, *t;
 
 	t = &m->t;
@@ -1046,21 +1030,19 @@ rTversion(Msg* m)
 	con = m->con;
 
 	vtLock(con->lock);
-	if(con->state != CsInit){
+	if(con->state != ConInit){
 		vtUnlock(con->lock);
 		vtSetError("Tversion: down");
 		return 0;
 	}
-	con->state = CsNew;
+	con->state = ConNew;
 
 	/*
 	 * Release the karma of past lives and suffering.
+	 * Should this be done before or after checking the
+	 * validity of the Tversion?
 	 */
-	while(con->fhead != nil){
-		fid = fidGet(con, con->fhead->fidno, FidFWlock);
-		assert(fid == con->fhead);
-		fidClunk(fid);
-	}
+	fidClunkAll(con);
 
 	if(t->tag != NOTAG){
 		vtUnlock(con->lock);
@@ -1088,12 +1070,12 @@ rTversion(Msg* m)
 		if(v >= 2000){
 			r->version = VERSION9P;
 			con->msize = r->msize;
-			con->state = CsUp;
+			con->state = ConUp;
 		}
 		else if(strcmp(t->version, "9PEoF") == 0){
 			r->version = "9PEoF";
 			con->msize = r->msize;
-			con->state = CsMoribund;
+			con->state = ConMoribund;
 		}
 	}
 	vtUnlock(con->lock);

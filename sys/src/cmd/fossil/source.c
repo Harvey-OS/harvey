@@ -786,7 +786,14 @@ sourceLoadBlock(Source *r, int mode)
 		assert(0);
 	case OReadWrite:
 		assert(r->mode == OReadWrite);
+		/*
+		 * This needn't be true -- we might bump the low epoch
+		 * to reclaim some old blocks, but since this score is 
+		 * OReadWrite, the blocks must all still be open, so none
+		 * are reclaimed.  Thus it's okay that the epoch is so low.
+		 * Proceed.
 		assert(r->epoch >= r->fs->elo);
+		 */
 		if(r->epoch == r->fs->ehi){
 			b = cacheGlobal(r->fs->cache, r->score, BtDir, r->tag, OReadWrite);
 			assert(r->epoch == b->l.epoch);
