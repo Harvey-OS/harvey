@@ -127,7 +127,7 @@ int	structure;		/* file structure */
 char	data[64];		/* data address */
 int	pid;			/* transfer process */
 int	encryption;		/* encryption state */
-int	isnone, anon_ok, anon_only;
+int	isnone, anon_ok, anon_only, anon_everybody;
 char	cputype[Maxpath];	/* the environment variable of the same name */
 char	bindir[Maxpath];	/* bin directory for this architecture */
 char	mailaddr[Maxpath];
@@ -190,6 +190,10 @@ main(int argc, char **argv)
 	case 'A':
 		anon_ok = 1;
 		anon_only = 1;
+		break;
+	case 'e':
+		anon_ok = 1;
+		anon_everybody = 1;
 		break;
 	case 'n':
 		namespace = ARGF();
@@ -520,6 +524,8 @@ usercmd(char *name)
 	user[sizeof(user)-1] = 0;
 	if(strcmp(user, "anonymous") == 0 || strcmp(user, "ftp") == 0)
 		strcpy(user, "none");
+	else if(anon_everybody)
+		strcpy(user,"none");
 	if(strcmp(user, "*none") == 0){
 		if(!anon_ok)
 			return reply("530 Not logged in: anonymous disallowed");
