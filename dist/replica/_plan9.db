@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1104121955 103973
 386/bin/aan - 775 sys sys 1104121955 130710
 386/bin/acid - 775 sys sys 1106453224 355754
-386/bin/acme - 775 sys sys 1107154493 428041
+386/bin/acme - 775 sys sys 1107230748 428041
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1104121958 70291
@@ -5500,7 +5500,7 @@ sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
 sys/src/9/port/devsd.c - 664 sys sys 1071245428 28564
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
 sys/src/9/port/devsegment.c - 664 sys sys 1017679394 9600
-sys/src/9/port/devsrv.c - 664 sys sys 1104243965 5149
+sys/src/9/port/devsrv.c - 664 sys sys 1107232208 5418
 sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1086406907 45225
@@ -12456,5 +12456,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acme - 775 sys sys 1107230748 428041
-sys/src/9/port/devsrv.c - 664 sys sys 1107232208 5418
