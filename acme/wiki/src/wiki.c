@@ -96,15 +96,14 @@ wikiput(Wiki *w)
 		return -1;
 	}
 	seek(fd, 0, 0);
-	if((n = read(fd, buf, 40)) < 0){
+	if((n = read(fd, buf, 300)) < 0){
 		fprint(2, "Wiki readback: %r\n");
 		close(fd);
 		return -1;
 	}
 	close(fd);
 	buf[n] = '\0';
-	n = atoi(buf);
-	sprint(buf, "%d/", n);
+	sprint(buf, "%s/", buf);
 	free(w->arg);
 	w->arg = estrdup(buf);
 	w->isnew = 0;

@@ -37,6 +37,9 @@ typedef struct Req
 	Fcall	ofcall;
 	Req	*oldreq;
 	void	*aux;
+	Fid	*fid;
+	Fid	*afid;
+	Fid	*newfid;
 	\fI...\fP
 } Req;
 .fi

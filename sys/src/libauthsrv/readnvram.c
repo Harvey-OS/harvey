@@ -29,6 +29,8 @@ static struct {
 	"pc", "#S/sdC0/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#S/sdC1/nvram", 0, sizeof(Nvrsafe),
 	"pc", "#S/sdC1/9fat", -1, sizeof(Nvrsafe),
+	"pc", "#S/sdD0/nvram", 0, sizeof(Nvrsafe),
+	"pc", "#S/sdD0/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#S/sd00/nvram", 0, sizeof(Nvrsafe),
 	"pc", "#S/sd00/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#S/sd01/nvram", 0, sizeof(Nvrsafe),
