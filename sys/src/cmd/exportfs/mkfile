@@ -4,6 +4,7 @@ TARG=exportfs
 OFILES=\
 	exportfs.$O\
 	exportsrv.$O\
+	pattern.$O\
 
 HFILES=exportfs.h\
 
@@ -13,6 +14,5 @@ UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${TARG:%=/386/bin/%}\
 
 </sys/src/cmd/mkone

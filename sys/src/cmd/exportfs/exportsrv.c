@@ -592,6 +592,7 @@ slaveopen(Fsrpc *p)
 
 	DEBUG(DFD, "\topen: fd %d\n", f->fid);
 	f->mode = work->mode;
+	f->offset = 0;
 	rhdr.iounit = getiounit(f->fid);
 	rhdr.qid = f->f->qid;
 	reply(work, &rhdr, 0);
@@ -622,7 +623,10 @@ slaveread(Fsrpc *p)
 		fatal(Enomem);
 
 	/* can't just call pread, since directories must update the offset */
-	r = pread(f->fid, data, n, work->offset);
+	if(patternfile != nil && (f->f->qid.type&QTDIR))
+		r = preaddir(f, (uchar*)data, n, work->offset);
+	else
+		r = pread(f->fid, data, n, work->offset);
 	p->canint = 0;
 	if(r < 0) {
 		free(data);

@@ -20,6 +20,10 @@ exportfs, srvfs \- network file server plumbing
 ] [
 .B -A announce
 ]
+[
+.B -p
+.I patternfile
+]
 .PP
 .B srvfs
 [
@@ -31,7 +35,7 @@ exportfs, srvfs \- network file server plumbing
 ]
 [
 .B -p
-.I filter
+.I perm
 ]
 .I name
 .I path
@@ -106,6 +110,21 @@ to log all 9P traffic to
 .BR /tmp/exportdb ).
 .PP
 The
+.BI  -p patternfile
+option restricts the set of exported files.
+.I Patternfile
+contains one regular expression per line,
+to be matched against path names
+relative to the current working directory
+and starting with
+.BR ./ .
+For a file to be exported, all lines with a prefix
+.B +
+must match and all those with prefix
+.B -
+must not match.
+.PP
+The
 .B -e
 option specifies the encryption and authentication algorithms to use for
 encrypting the wire traffic.  The defaults are
@@ -169,6 +188,15 @@ filter specifies an announce string when exportfs is used in combination
 with aan.  The announce string identifies the network and network 
 protocol to use for aan connections.
 .SH EXAMPLES
+To export the archive of one user for one month, except for secrets,
+.IP
+.EX
+cd /n/dump
+echo '+ ^\.(/2003(/10..(/usr(/glenda/?)?)?)?)?' > /tmp/pattern
+echo '- \.(aes|pgp)$' >> /tmp/pattern
+exportfs -p /tmp/pattern
+.EE
+.LP
 Use
 .I srvfs
 to enable mounting of an FTP file system (see

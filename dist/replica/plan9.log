@@ -13917,3 +13917,14 @@
 1066618935 2 c sys/src/9/pc/ether2114x.c - 664 sys sys 1066618082 41227
 1066618935 3 c sys/src/boot/pc/ether2114x.c - 664 sys sys 1066618033 37048
 1066737677 0 c sys/src/9/port/devtls.c - 664 sys sys 1066737478 45222
+1066824077 0 c 386/bin/exportfs - 775 sys sys 1066823148 161831
+1066824077 1 c sys/man/4/exportfs - 664 sys sys 1066823072 4333
+1066824077 2 c sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1066823092 15669
+1066824077 3 c sys/src/cmd/exportfs/exportfs.h - 664 sys sys 1066823091 2800
+1066824077 4 c sys/src/cmd/exportfs/exportsrv.c - 664 sys sys 1066823092 11325
+1066824077 5 c sys/src/cmd/exportfs/mkfile - 664 sys sys 1066823091 194
+1066824077 6 a sys/src/cmd/exportfs/pattern.c - 664 sys sys 1066823092 2960
+1066825879 0 c sys/src/cmd/exportfs/mkfile - 664 sys sys 1066825703 194
+1066827680 0 c sys/man/4/exportfs - 664 sys sys 1066826682 4336
+1066849305 0 c 386/bin/fossil/fossil - 775 sys sys 1066848944 345758
+1066849305 1 c sys/src/cmd/fossil/file.c - 664 sys sys 1066848926 28000
