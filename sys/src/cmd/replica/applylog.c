@@ -274,6 +274,8 @@ main(int argc, char **argv)
 			if(dbd.mtime >= rd.mtime)	/* already created this file; ignore */
 				break;
 			if(havelocal){
+				if((ld.mode&DMDIR) && (rd.mode&DMDIR))
+					break;
 				if(dbd.mtime==ld.mtime && dbd.length==ld.length)
 					goto DoCreate;
 				if(resolve=='s')

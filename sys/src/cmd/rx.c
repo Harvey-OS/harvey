@@ -5,6 +5,7 @@
 int	eof;		/* send an eof if true */
 char	*note = "die: yankee dog";
 char	*ruser;
+char *key;
 
 void	rex(int, char*, char*);
 void	tcpexec(int, char*, char*);
@@ -16,7 +17,7 @@ void	error(char*, char*);
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-e] net!host command...\n", argv0);
+	fprint(2, "usage: %s [-e] [-k keypattern] [-l user] net!host command...\n", argv0);
 	exits("usage");
 }
 
@@ -26,13 +27,17 @@ main(int argc, char *argv[])
 	char *host, *addr, *args;
 	int fd;
 
+	key = "";
 	eof = 1;
 	ARGBEGIN{
 	case 'e':
 		eof = 0;
 		break;
+	case 'k':
+		key = EARGF(usage());
+		break;
 	case 'l':
-		ruser = ARGF();
+		ruser = EARGF(usage());
 		break;
 	default:
 		usage();
@@ -43,11 +48,6 @@ main(int argc, char *argv[])
 	host = argv[0];
 	args = buildargs(&argv[1]);
 
-	/* specific attempts */
-	fd = call("tcp", host, "shell", &addr);
-	if(fd >= 0)
-		tcpexec(fd, addr, args);
-
 	/* generic attempts: try p9any then dial again with p9sk2 */
 	fd = call(0, host, "rexexec", &addr);
 	if(fd >= 0)
@@ -57,6 +57,11 @@ main(int argc, char *argv[])
 	if(fd >= 0)
 		rex(fd, args, "p9sk2");
 	close(fd);
+
+	/* specific attempts */
+	fd = call("tcp", host, "shell", &addr);
+	if(fd >= 0)
+		tcpexec(fd, addr, args);
 
 	error("can't dial", host);
 	exits(0);
@@ -76,7 +81,7 @@ rex(int fd, char *cmd, char *proto)
 	int kid, n;
 	AuthInfo *ai;
 
-	ai = auth_proxy(fd, auth_getkey, "proto=%s role=client", proto);
+	ai = auth_proxy(fd, auth_getkey, "proto=%s role=client %s", proto, key);
 	if(ai == nil){
 		if(strcmp(proto, "p9any") == 0)
 			return;

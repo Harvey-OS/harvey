@@ -37,6 +37,7 @@ int stratum = 14;
 vlong mydisp, rootdisp;
 vlong mydelay, rootdelay;
 vlong avgdelay;
+vlong lastutc;
 uchar rootid[4];
 char *sysid;
 
@@ -1038,7 +1039,8 @@ utcsample(void)
 		gettime(&s, nil, nil);
 		s -= atoll(v[1]);
 	}
-	return(atoll(v[0]) + s);
+	lastutc = atoll(v[0]) + s;
+	return(lastutc);
 }
 
 //
@@ -1113,6 +1115,7 @@ ntpserver(char *servenet)
 		ntp->stratum = stratum;
 		hnputfp(ntp->rootdelay, rootdelay + mydelay);
 		hnputfp(ntp->rootdisp, rootdisp + mydisp);
+		hnputts(ntp->refts, lastutc);
 		memmove(ntp->origts, ntp->xmitts, sizeof(ntp->origts));
 		hnputts(ntp->recvts, recvts);
 		memmove(ntp->rootid, rootid, sizeof(ntp->rootid));
