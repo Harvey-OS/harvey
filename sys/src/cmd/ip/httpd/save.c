@@ -12,6 +12,7 @@
 #include <libc.h>
 #include <bio.h>
 #include "httpd.h"
+#include "httpsrv.h"
 
 enum
 {
@@ -63,7 +64,7 @@ openLocked(char *file, int mode)
 void
 main(int argc, char **argv)
 {
-	Connect *c;
+	HConnect *c;
 	Dir dir;
 	Hio *hin, *hout;
 	char *s, *t, *fn;
@@ -71,13 +72,18 @@ main(int argc, char **argv)
 
 	c = init(argc, argv);
 
-	if(dangerous(c->req.uri))
-		fail(c, Syntax);
+	if(dangerous(c->req.uri)){
+		hfail(c, HSyntax);
+		exits("failed");
+	}
 
-	httpheaders(c);
+	if(hparseheaders(c, HSTIMEOUT) < 0)
+		exits("failed");
 	hout = &c->hout;
-	if(c->head.expectother)
-		fail(c, ExpectFail, nil);
+	if(c->head.expectother){
+		hfail(c, HExpectFail, nil);
+		exits("failed");
+	}
 	if(c->head.expectcont){
 		hprint(hout, "100 Continue\r\n");
 		hprint(hout, "\r\n");
@@ -88,51 +94,60 @@ main(int argc, char **argv)
 	if(strcmp(c->req.meth, "POST") == 0){
 		hin = hbodypush(&c->hin, c->head.contlen, c->head.transenc);
 		if(hin != nil){
-			alarm(15*60*1000);
+			alarm(HSTIMEOUT);
 			s = hreadbuf(hin, hin->pos);
 			alarm(0);
 		}
-		if(s == nil)
-			fail(c, BadReq, nil);
+		if(s == nil){
+			hfail(c, HBadReq, nil);
+			exits("failed");
+		}
 		t = strchr(s, '\n');
 		if(t != nil)
 			*t = '\0';
-	}else if(strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0)
-		unallowed(c, "GET, HEAD, PUT");
-	else
+	}else if(strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0){
+		hunallowed(c, "GET, HEAD, PUT");
+		exits("unallowed");
+	}else
 		s = c->req.search;
-	if(s == nil)
-		fail(c, NoData, "save");
+	if(s == nil){
+		hfail(c, HNoData, "save");
+		exits("failed");
+	}
 
 	if(strlen(s) > MaxLog)
 		s[MaxLog] = '\0';
-	n = snprint(c->xferbuf, BufSize, "at %ld %s\n", time(0), s);
+	n = snprint(c->xferbuf, HBufSize, "at %ld %s\n", time(0), s);
 
 
 	nfn = strlen(c->req.uri) + 4 * NAMELEN;
-	fn = halloc(nfn);
+	fn = halloc(c, nfn);
 
 	/*
 	 * open file descriptors & write log line
 	 */
 	snprint(fn, nfn, "/usr/web/save/%s.html", c->req.uri);
 	htmlfd = open(fn, OREAD);
-	if(htmlfd < 0 || dirfstat(htmlfd, &dir) < 0)
-		fail(c, NotFound, c->req.uri);
+	if(htmlfd < 0 || dirfstat(htmlfd, &dir) < 0){
+		hfail(c, HNotFound, c->req.uri);
+		exits("failed");
+	}
 
 	snprint(fn, nfn, "/usr/web/save/%s.data", c->req.uri);
 	datafd = openLocked(fn, OWRITE);
 	if(datafd < 0){
 		errstr(c->xferbuf);
 		if(strstr(c->xferbuf, "locked") != nil)
-			fail(c, TempFail, c->req.uri);
-		fail(c, NotFound, c->req.uri);
+			hfail(c, HTempFail, c->req.uri);
+		else
+			hfail(c, HNotFound, c->req.uri);
+		exits("failed");
 	}
 	seek(datafd, 0, 2);
 	write(datafd, c->xferbuf, n);
 	close(datafd);
 
-	sendfd(c, htmlfd, &dir, mkcontent("text", "html", nil), nil);
+	sendfd(c, htmlfd, &dir, hmkcontent(c, "text", "html", nil), nil);
 
 	exits(nil);
 }

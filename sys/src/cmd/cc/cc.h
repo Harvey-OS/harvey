@@ -12,6 +12,7 @@
 typedef	struct	Node	Node;
 typedef	struct	Sym	Sym;
 typedef	struct	Type	Type;
+typedef	struct	Funct	Funct;
 typedef	struct	Decl	Decl;
 typedef	struct	Io	Io;
 typedef	struct	Hist	Hist;
@@ -105,6 +106,7 @@ struct	Type
 {
 	Sym*	sym;
 	Sym*	tag;
+	Funct*	funct;
 	Type*	link;
 	Type*	down;
 	long	width;
@@ -115,6 +117,7 @@ struct	Type
 	char	etype;
 	char	garb;
 };
+
 #define	T	((Type*)0)
 #define	NODECL	((void(*)(int, Type*, Sym*))0)
 
@@ -273,6 +276,7 @@ enum
 	OXOR,
 	ONEG,
 	OCOM,
+	OPOS,
 	OELEM,
 
 	OTST,		/* used in some compilers */
@@ -309,6 +313,7 @@ enum
 	TEXTERN,
 	TSTATIC,
 	TTYPEDEF,
+	TTYPESTR,
 	TREGISTER,
 	TCONSTNT,
 	TVOLATILE,
@@ -328,6 +333,7 @@ enum
 	CSTATIC,
 	CLOCAL,
 	CTYPEDEF,
+	CTYPESTR,
 	CPARAM,
 	CSELEM,
 	CLABEL,
@@ -363,7 +369,6 @@ enum
 	BUNION		= 1L<<TUNION,
 	BENUM		= 1L<<TENUM,
 	BFILE		= 1L<<TFILE,
-	BOLD		= 1L<<TOLD,
 	BDOT		= 1L<<TDOT,
 	BCONSTNT	= 1L<<TCONSTNT,
 	BVOLATILE	= 1L<<TVOLATILE,
@@ -373,6 +378,7 @@ enum
 	BEXTERN		= 1L<<TEXTERN,
 	BSTATIC		= 1L<<TSTATIC,
 	BTYPEDEF	= 1L<<TTYPEDEF,
+	BTYPESTR	= 1L<<TTYPESTR,
 	BREGISTER	= 1L<<TREGISTER,
 
 	BINTEGER	= BCHAR|BUCHAR|BSHORT|BUSHORT|BINT|BUINT|
@@ -381,9 +387,15 @@ enum
 
 /* these can be overloaded with complex types */
 
-	BCLASS		= BAUTO|BEXTERN|BSTATIC|BTYPEDEF|BREGISTER,
-
+	BCLASS		= BAUTO|BEXTERN|BSTATIC|BTYPEDEF|BTYPESTR|BREGISTER,
 	BGARB		= BCONSTNT|BVOLATILE,
+};
+
+struct	Funct
+{
+	Sym*	sym[OEND];
+	Sym*	castto[NTYPE];
+	Sym*	castfr[NTYPE];
 };
 
 EXTERN struct
@@ -485,6 +497,7 @@ int	mywait(int*);
 int	mycreat(char*, int);
 int	systemtype(int);
 int	pathchar(void);
+int	myaccess(char*);
 char*	mygetwd(char*, int);
 int	myexec(char*, char*[]);
 int	mydup(int, int);
@@ -606,10 +619,16 @@ int	addo(Node*);
 void	evconst(Node*);
 
 /*
+ * funct.c
+ */
+int	isfunct(Node*);
+void	dclfunct(Type*, Sym*);
+
+/*
  * sub.c
  */
 void	arith(Node*, int);
-Type*	dotsearch(Sym*, Type*, Node*);
+Type*	dotsearch(Sym*, Type*, Node*, long*);
 long	dotoffset(Type*, Type*, Node*);
 void	gethunk(void);
 Node*	invert(Node*);
@@ -631,6 +650,7 @@ int	stcompat(Node*, Type*, Type*, long[]);
 int	tcompat(Node*, Type*, Type*, long[]);
 void	tinit(void);
 Type*	typ(int, Type*);
+Type*	copytyp(Type*);
 void	typeext(Type*, Node*);
 void	typeext1(Type*, Node*);
 int	side(Node*);
@@ -647,6 +667,11 @@ void	yyerror(char*, ...);
  */
 void	acidtype(Type*);
 void	acidvar(Sym*);
+
+/*
+ * pickle.c
+ */
+void	pickletype(Type*);
 
 /*
  * bits.c

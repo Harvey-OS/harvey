@@ -1,6 +1,6 @@
 .TH STRCAT 2
 .SH NAME
-strcat, strncat, strcmp, strncmp, strcpy, strncpy, strecpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, strstr \- string operations
+strcat, strncat, strcmp, strncmp, cistrcmp, cistrncmp, strcpy, strncpy, strecpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, strstr, cistrstr \- string operations
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -18,6 +18,12 @@ int	strcmp(char *s1, char *s2)
 .PP
 .B
 int	strncmp(char *s1, char *s2, long n)
+.PP
+.B
+int	cistrcmp(char *s1, char *s2)
+.PP
+.B
+int	cistrncmp(char *s1, char *s2, long n)
 .PP
 .B
 char*	strcpy(char *s1, char *s2)
@@ -54,6 +60,9 @@ char*	strdup(char *s)
 .PP
 .B
 char*	strstr(char *s1, char *s2)
+.PP
+.B
+char*	cistrstr(char *s1, char *s2)
 .SH DESCRIPTION
 The arguments
 .I s1, s2
@@ -98,6 +107,10 @@ greater than
 makes the same comparison but examines at most
 .I n
 bytes.
+.I Cistrcmp
+and
+.I cistrncmp
+ignore ASCII case distictions when comparing strings.
 The comparisons are made with unsigned bytes.
 .PP
 .I Strcpy
@@ -225,6 +238,8 @@ is the null string,
 .I strstr
 returns
 .IR s1 .
+.I Cistrstr
+operates analogously, but ignores ASCII case differences when comparing strings.
 .SH SOURCE
 All these routines have portable C implementations in
 .BR /sys/src/libc/port .

@@ -90,6 +90,8 @@ freePacket(Packet *p)
 {
 	Attribute *a, *x;
 
+	if(!p)
+		return;
 	a = p->first.next;
 	while(a){
 		x = a;
@@ -141,7 +143,7 @@ rpc(char *dest, Secret *shared, Packet *req)
 	}
 	atnotify(ding, 1);
 	m = -1;
-	for(try = 0; try < 4; try++){
+	for(try = 0; try < 2; try++){
 		alarm(2000);
 		m = write(fd, buf, n);
 		if(m != n){
@@ -301,6 +303,7 @@ secureidcheck(char *user, char *response)
 	uchar x[16];
 	char radiussecret[Ndbvlen];
 	char ruser[Ndbvlen];
+ 	char dest[3*IPaddrlen+20];
 	Secret shared, pass;
 	Ipifc *nifc;
 	int rv;
@@ -308,7 +311,7 @@ secureidcheck(char *user, char *response)
 	Ndbtuple *t, *nt, *tt;
 
 	/* bad responses make them disable the fob, avoid silly checks */
-	if(strlen(response) < 4)
+	if(strlen(response) < 4 || strpbrk(response,"abcdefABCDEF") != nil)
 		return 0;
 
 	rv = 0;
@@ -356,26 +359,42 @@ secureidcheck(char *user, char *response)
 	if(setAttribute(req, R_UserPassword, x, 16) < 0)
 		goto out;
 
-	resp = rpc("udp!$radius!oradius", &shared, req);
-	if(resp == nil){
-		syslog(0, AUTHLOG, "radius nil response");
+	t = ndbsearch(db, &s, "sys", "lra-radius");
+	if(t == nil){
+		syslog(0, AUTHLOG, "secureidcheck: nil radius sys search\n");
 		goto out;
 	}
-	if(resp->ID != req->ID){
-		syslog(0, AUTHLOG, "radius mismatched ID  req=%d resp=%d", req->ID, resp->ID);
-		goto out;
-	}
+	for(nt = t; nt; nt = nt->entry){
+		if(strcmp(nt->attr, "ip") != 0)
+			continue;
 
-	switch(resp->code){
-	case R_AccessAccept:
-		rv = 1;
-		break;
-	case R_AccessReject:
-		break;
-	default:
-		syslog(0, AUTHLOG, " radius code=%d\n", resp->code);
-		break;
+		snprint(dest,sizeof dest,"udp!%s!oradius", nt->val);
+		resp = rpc(dest, &shared, req);
+		if(resp == nil){
+			syslog(0, AUTHLOG, "%s nil response", dest);
+			continue;
+		}
+		if(resp->ID != req->ID){
+			syslog(0, AUTHLOG, "%s mismatched ID  req=%d resp=%d",
+				dest, req->ID, resp->ID);
+			freePacket(resp);
+			resp = nil;
+			continue;
+		}
+	
+		switch(resp->code){
+		case R_AccessAccept:
+			rv = 1;
+			break;
+		case R_AccessReject:
+			break;
+		default:
+			syslog(0, AUTHLOG, "%s code=%d\n", dest, resp->code);
+			break;
+		}
+		break; // we have a proper reply, no need to ask again
 	}
+	ndbfree(t);
 
 out:
 	freePacket(req);

@@ -575,6 +575,9 @@ Dconv(Op *o)
 	case Devpart:
 		sprint(s, "p%ld.%ld", d->part.base, d->part.size);
 		break;
+	case Devswab:
+		sprint(s, "x%D", d->swab.d);
+		break;
 	}
 out:
 	strconv(s, o, o->f1, o->f2);
@@ -657,7 +660,7 @@ formatinit(void)
 	fmtinstall('C', Cconv);	/* print channels */
 	fmtinstall('D', Dconv);	/* print devices */
 	fmtinstall('F', Fconv);	/* print filters */
-	fmtinstall('G', Fconv);	/* print tags */
+	fmtinstall('G', Gconv);	/* print tags */
 	fmtinstall('T', Tconv);	/* print times */
 	fmtinstall('E', Econv);	/* print ether addresses */
 	fmtinstall('I', Iconv);	/* print ip addresses */
@@ -1004,6 +1007,7 @@ no(void*)
 int
 devread(Device *d, long b, void *c)
 {
+	int e;
 
 loop:
 	switch(d->type)
@@ -1036,6 +1040,12 @@ loop:
 
 	case Devpart:
 		return partread(d, b, c);
+
+	case Devswab:
+		e = devread(d->swab.d, b, c);
+		if(e == 0)
+			swab(c, 0);
+		return e;
 	}
 	panic("illegal device in read: %D %ld", d, b);
 	return 1;
@@ -1044,6 +1054,7 @@ loop:
 int
 devwrite(Device *d, long b, void *c)
 {
+	int e;
 
 loop:
 	switch(d->type)
@@ -1077,6 +1088,12 @@ loop:
 
 	case Devpart:
 		return partwrite(d, b, c);
+
+	case Devswab:
+		swab(c, 1);
+		e = devwrite(d->swab.d, b, c);
+		swab(c, 0);
+		return e;
 	}
 	panic("illegal device in write: %D %ld", d, b);
 	return 1;
@@ -1115,6 +1132,10 @@ loop:
 
 	case Devpart:
 		return partsize(d);
+
+	case Devswab:
+		d = d->swab.d;
+		goto loop;
 	}
 	panic("illegal device in dev_size: %D", d);
 	return 0;
@@ -1124,6 +1145,7 @@ long
 superaddr(Device *d)
 {
 
+loop:
 	switch(d->type) {
 	default:
 		return SUPER_ADDR;
@@ -1131,6 +1153,10 @@ superaddr(Device *d)
 	case Devcw:
 	case Devro:
 		return cwsaddr(d);
+
+	case Devswab:
+		d = d->swab.d;
+		goto loop;
 	}
 }
 
@@ -1138,6 +1164,7 @@ long
 getraddr(Device *d)
 {
 
+loop:
 	switch(d->type) {
 	default:
 		return ROOT_ADDR;
@@ -1145,6 +1172,10 @@ getraddr(Device *d)
 	case Devcw:
 	case Devro:
 		return cwraddr(d);
+
+	case Devswab:
+		d = d->swab.d;
+		goto loop;
 	}
 }
 
@@ -1153,6 +1184,7 @@ devream(Device *d, int top)
 {
 	Device *l;
 
+loop:
 	print("	devream: %D %d\n", d, top);
 	switch(d->type) {
 	default:
@@ -1190,6 +1222,10 @@ devream(Device *d, int top)
 	case Devlworm:
 	case Devwren:
 		break;
+
+	case Devswab:
+		d = d->swab.d;
+		goto loop;
 	}
 	devinit(d);
 	if(top) {
@@ -1204,6 +1240,7 @@ void
 devrecover(Device *d)
 {
 
+loop:
 	print("recover: %D\n", d);
 	switch(d->type) {
 	default:
@@ -1215,6 +1252,10 @@ devrecover(Device *d)
 		cwrecover(d);
 		wunlock(&mainlock);
 		break;
+
+	case Devswab:
+		d = d->swab.d;
+		goto loop;
 	}
 }
 
@@ -1222,6 +1263,7 @@ void
 devinit(Device *d)
 {
 
+loop:
 	if(d->init)
 		return;
 	d->init = 1;
@@ -1266,5 +1308,175 @@ devinit(Device *d)
 	case Devpart:
 		partinit(d);
 		break;
+
+	case Devswab:
+		d = d->swab.d;
+		goto loop;
+	}
+}
+
+void
+swab2(void *c)
+{
+	uchar *p;
+	int t;
+
+	p = c;
+
+	t = p[0];
+	p[0] = p[1];
+	p[1] = t;
+}
+
+void
+swab4(void *c)
+{
+	uchar *p;
+	int t;
+
+	p = c;
+
+	t = p[0];
+	p[0] = p[3];
+	p[3] = t;
+
+	t = p[1];
+	p[1] = p[2];
+	p[2] = t;
+}
+
+/*
+ * swab a block
+ *	flag = 0 -- convert from foreign to native
+ *	flag = 1 -- convert from native to foreign
+ */
+void
+swab(void *c, int flag)
+{
+	uchar *p;
+	Tag *t;
+	int i, j;
+	Dentry *d;
+	Cache *h;
+	Bucket *b;
+	Superb *s;
+	Fbuf *f;
+	long *l;
+
+	/* swab the tag */
+	p = (uchar*)c;
+	t = (Tag*)(p + BUFSIZE);
+	if(!flag) {
+		swab2(&t->pad);
+		swab2(&t->tag);
+		swab4(&t->path);
+	}
+
+	/* swab each block type */
+	switch(t->tag) {
+
+	default:
+		print("no swab for tag=%G rw=%d\n", t->tag, flag);
+		for(j=0; j<16; j++)
+			print(" %.2x", p[BUFSIZE+j]);
+		print("\n");
+		for(i=0; i<16; i++) {
+			print("%.4x", i*16);
+			for(j=0; j<16; j++)
+				print(" %.2x", p[i*16+j]);
+			print("\n");
+		}
+		break;
+
+	case Tsuper:
+		s = (Superb*)p;
+		swab4(&s->fbuf.nfree);
+		for(i=0; i<FEPERBUF; i++)
+			swab4(&s->fbuf.free[i]);
+		swab4(&s->fstart);
+		swab4(&s->fsize);
+		swab4(&s->tfree);
+		swab4(&s->qidgen);
+		swab4(&s->cwraddr);
+		swab4(&s->roraddr);
+		swab4(&s->last);
+		swab4(&s->next);
+		break;
+
+	case Tdir:
+		for(i=0; i<DIRPERBUF; i++) {
+			d = (Dentry*)p + i;
+			swab2(&d->uid);
+			swab2(&d->gid);
+			swab2(&d->mode);
+			swab2(&d->wuid);
+			swab4(&d->qid.path);
+			swab4(&d->qid.version);
+			swab4(&d->size);
+			for(j=0; j<NDBLOCK; j++)
+				swab4(&d->dblock[j]);
+			swab4(&d->iblock);
+			swab4(&d->diblock);
+			swab4(&d->atime);
+			swab4(&d->mtime);
+		}
+		break;
+
+	case Tind1:
+	case Tind2:
+		l = (long*)p;
+		for(i=0; i<INDPERBUF; i++) {
+			swab4(l);
+			l++;
+		}
+		break;
+
+	case Tfree:
+		f = (Fbuf*)p;
+		swab4(&f->nfree);
+		for(i=0; i<FEPERBUF; i++)
+			swab4(&f->free[i]);
+		break;
+
+	case Tbuck:
+		for(i=0; i<BKPERBLK; i++) {
+			b = (Bucket*)p + i;
+			swab4(&b->agegen);
+			for(j=0; j<CEPERBK; j++) {
+				swab2(&b->entry[j].age);
+				swab2(&b->entry[j].state);
+				swab4(&b->entry[j].waddr);
+			}
+		}
+		break;
+
+	case Tcache:
+		h = (Cache*)p;
+		swab4(&h->maddr);
+		swab4(&h->msize);
+		swab4(&h->caddr);
+		swab4(&h->csize);
+		swab4(&h->fsize);
+		swab4(&h->wsize);
+		swab4(&h->wmax);
+		swab4(&h->sbaddr);
+		swab4(&h->cwraddr);
+		swab4(&h->roraddr);
+		swab4(&h->toytime);
+		swab4(&h->time);
+		break;
+
+	case Tnone:	// unitialized
+	case Tfile:	// someone elses problem
+	case Tvirgo:	// bit map -- all bytes
+	case Tconfig:	// configuration string -- all bytes
+		break;
+	}
+
+	/* swab the tag */
+	if(flag) {
+		swab2(&t->pad);
+		swab2(&t->tag);
+		swab4(&t->path);
 	}
 }

@@ -611,7 +611,7 @@ sendoffer(Req *rp, uchar *ip, int offer)
 	bp->hops = 0;
 	hnputs(bp->secs, 0);
 	memset(bp->ciaddr, 0, sizeof(bp->ciaddr));
-	memset(bp->giaddr, 0, sizeof(bp->giaddr));
+	v6tov4(bp->giaddr, rp->giaddr);
 	v6tov4(bp->yiaddr, ip);
 	setsiaddr(bp->siaddr, ip, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
@@ -678,7 +678,7 @@ sendack(Req *rp, uchar *ip, int offer, int sendlease)
 	bp->op = Bootreply;
 	bp->hops = 0;
 	hnputs(bp->secs, 0);
-	memset(bp->giaddr, 0, sizeof(bp->giaddr));
+	v6tov4(bp->giaddr, rp->giaddr);
 	v6tov4(bp->yiaddr, ip);
 	setsiaddr(bp->siaddr, ip, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
@@ -739,7 +739,7 @@ sendnak(Req *rp, char *msg)
 	bp->op = Bootreply;
 	bp->hops = 0;
 	hnputs(bp->secs, 0);
-	memset(bp->giaddr, 0, sizeof(bp->giaddr));
+	v6tov4(bp->giaddr, rp->giaddr);
 	memset(bp->ciaddr, 0, sizeof(bp->ciaddr));
 	memset(bp->yiaddr, 0, sizeof(bp->yiaddr));
 	memset(bp->siaddr, 0, sizeof(bp->siaddr));
@@ -929,7 +929,7 @@ parseoptions(Req *rp)
 			break;
 		case ODlease:	/* requested lease time */
 			rp->leasetime = nhgetl(o);
-			if(rp->leasetime > MaxLease)
+			if(rp->leasetime > MaxLease || rp->leasetime < 0)
 				rp->leasetime = MaxLease;
 			break;
 		case ODtype:

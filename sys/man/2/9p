@@ -1,9 +1,10 @@
 .TH 9P 2
 .SH NAME
 Fid, File, Req, Srv, Tree,
-fcreate, fremove, fwalk, mktree,
-fdirread, srv, postmountsrv, 
-readbuf, readstr,
+allocmap, allocfid, allocfidpool, allocreq, allocreqpool, caninsertkey, closefid,
+deletekey, fcreate, freefid, freemap, freereq, fremove, fwalk, mktree,
+fdirread, insertkey, lookupfid, lookupkey, lookupreq, srv, postmountsrv, 
+readbuf, readstr, respond, threadpostmountsrv,
 _lib9p_emalloc, _lib9p_erealloc, _lib9p_estrdup \- 9P file server functions
 .SH SYNOPSIS
 .PP
@@ -128,7 +129,6 @@ Intmap*	allocmap(void (*inc)(void*))
 void	freemap(Intmap *map)
 void*	lookupkey(Intmap *map, ulong key)
 void*	insertkey(Intmap *map, ulong key, void *val)
-void*	lookupkey(Intmap *map, ulong key)
 int	caninsertkey(Intmap *map, ulong key, void *val)
 void*	deletekey(Intmap *map, ulong key)
 .fi
@@ -151,6 +151,7 @@ Reqpool*	allocreqpool(void)
 void	freereqpool(Reqpool *p)
 Req*	allocreq(Reqpool *p, ulong tag)
 void	freereq(Req *r)
+void	closereq(Req *r)
 Req*	lookupreq(Reqpool *p, ulong tag)
 .fi
 .SH DESCRIPTION

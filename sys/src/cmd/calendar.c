@@ -15,7 +15,7 @@ enum{
 };
 
 Biobuf in;
-int debug;
+int debug, matchyear;
 
 Date *dates(Date**, Tm*);
 void upper2lower(char*, char*, int);
@@ -32,6 +32,9 @@ main(int argc, char *argv[])
 	char buf[1024];
 
 	ARGBEGIN{
+	case 'y':
+		matchyear = 1;
+		break;
 	case 'd':
 		debug = 1;
 		break;
@@ -118,9 +121,14 @@ dates(Date **last, Tm *tm)
 			months[tm->mon], months[tm->mon]+3);
 	else
 		snprint(mo, sizeof mo, "%3.3s", months[tm->mon]);
-	snprint(buf, sizeof buf,
-		"(^| |\t)((%s( |\t)+)|(%d/))%d( |\t|$)",
-		mo, tm->mon+1, tm->mday);
+	if (matchyear)
+		snprint(buf, sizeof buf,
+			"(^| |\t)((%s( |\t)+)|(%d/))%d( |\t|$)(((%d|%d)( |\t|$))|[^0-9]|([0-9]+[^0-9 \t]))",
+			mo, tm->mon+1, tm->mday, tm->year+1900, tm->year%100);
+	else
+		snprint(buf, sizeof buf,
+			"(^| |\t)((%s( |\t)+)|(%d/))%d( |\t|$)",
+			mo, tm->mon+1, tm->mday);
 	if(debug)
 		print("%s\n", buf);
 
@@ -129,9 +137,14 @@ dates(Date **last, Tm *tm)
 		(*last)->next = first;
 	first->p = regcomp(buf);	
 
-	snprint(buf, sizeof buf,
-		"(^| |\t)%d( |\t)+(%s)( |\t|$)",
-		tm->mday, mo);
+	if (matchyear)
+		snprint(buf, sizeof buf,
+			"(^| |\t)%d( |\t)+(%s)( |\t|$)(((%d|%d)( |\t|$))|[^0-9]|([0-9]+[^0-9 \t]))",
+			tm->mday, mo, tm->year+1900, tm->year%100);
+	else
+		snprint(buf, sizeof buf,
+			"(^| |\t)%d( |\t)+(%s)( |\t|$)",
+			tm->mday, mo);
 	if(debug)
 		print("%s\n", buf);
 	nd = alloc(sizeof(Date));

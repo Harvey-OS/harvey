@@ -4,49 +4,75 @@
 
 enum
 {
-	IDIGIT	= 40,
-	MAXCONV	= 40,
 	FDIGIT	= 30,
 	FDEFLT	= 6,
 	NONE	= -1000,
-	MAXFMT	= 512,
 	NSIGNIF	= 17,
 
 	FPLUS	= 1<<0,
-	FMINUS	= 1<<1,
 	FSHARP	= 1<<2,
-	FLONG	= 1<<3,
-	FUNSIGN	= 1<<5,
-	FVLONG	= 1<<6,
-	FPOINTER= 1<<7,
 };
 
-static	int	xadd(char*, int, int);
-static	int	xsub(char*, int, int);
 
-int
-fltconv(va_list *arg, Fconv *fp)
+static int
+xadd(char *a, int n, int v)
 {
-	char s1[NSIGNIF+10], s2[FDIGIT+10];
-	double f, g, h;
-	int e, d, i, n;
-	int c1, c2, c3, c4, f2, ucase, sign;
+	char *b;
+	int c;
 
-	f2 = fp->f2;
-	fp->f2 = NONE;
-
-	f = va_arg(*arg, double);
-	if(isNaN(f)) {
-		strconv("NaN", fp);
+	if(n < 0 || n >= NSIGNIF)
 		return 0;
+	for(b = a+n; b >= a; b--) {
+		c = *b + v;
+		if(c <= '9') {
+			*b = c;
+			return 0;
+		}
+		*b = '0';
+		v = 1;
+	}
+	*a = '1';	// overflow adding
+	return 1;
+}
+
+static int
+xsub(char *a, int n, int v)
+{
+	char *b;
+	int c;
+
+	for(b = a+n; b >= a; b--) {
+		c = *b - v;
+		if(c >= '0') {
+			*b = c;
+			return 0;
+		}
+		*b = '9';
+		v = 1;
+	}
+	*a = '9';	// underflow subtracting
+	return 1;
+}
+
+static void
+xdtoa(char *s2, double f, int chr, int f2, int f3)
+{
+	char s1[NSIGNIF+10];
+	double g, h;
+	int e, d, i, n;
+	int c1, c2, c3, c4, ucase, sign;
+
+	if(isNaN(f)) {
+		strcpy(s2, "NaN");
+		return;
 	}
 	if(isInf(f, 1)) {
-		strconv("+Inf", fp);
-		return 0;
+		strcpy(s2, "+Inf");
+		return;
 	}
 	if(isInf(f, -1)) {
-		strconv("-Inf", fp);
-		return 0;
+		strcpy(s2, "-Inf");
+		return;
 	}
 	sign = 0;
 	if(f < 0) {
@@ -54,9 +80,9 @@ fltconv(va_list *arg, Fconv *fp)
 		sign++;
 	}
 	ucase = 0;
-	if(isupper(fp->chr)) {
+	if(isupper(chr)) {
 		ucase = 1;
-		fp->chr = tolower(fp->chr);
+		chr = tolower(chr);
 	}
 
 	e = 0;
@@ -94,10 +120,10 @@ fltconv(va_list *arg, Fconv *fp)
 	s1[i] = 0;
 
 	/*
-	 * try decimal rounding to solve 9s problems
+	 * try decimal rounding to eliminate 9s
 	 */
 	c2 = f2 + 1;
-	if(fp->chr == 'f')
+	if(chr == 'f')
 		c2 += e;
 	if(c2 >= NSIGNIF-2) {
 		strcpy(s2, s1);
@@ -152,7 +178,7 @@ found:
 	if(sign)
 		s2[d++] = '-';
 	else
-	if(fp->f3 & FPLUS)
+	if(f3 & FPLUS)
 		s2[d++] = '+';
 
 	/*
@@ -166,7 +192,7 @@ found:
 	c2 = f2 + 1;
 	c3 = 0;
 	c4 = f2;
-	switch(fp->chr) {
+	switch(chr) {
 	default:
 		if(xadd(s1, c2, 5))
 			e++;
@@ -180,7 +206,7 @@ found:
 		if(e >= -5 && e <= f2) {
 			c1 = -e - 1;
 			c4 = f2 - e;
-			fp->chr = 'h';	// flag for 'f' style
+			chr = 'h';	// flag for 'f' style
 		}
 		break;
 	case 'f':
@@ -230,11 +256,11 @@ found:
 	/*
 	 * strip trailing '0' on g conv
 	 */
-	if(fp->f3 & FSHARP) {
+	if(f3 & FSHARP) {
 		if(0 == c4)
 			s2[d++] = '.';
 	} else
-	if(fp->chr == 'g' || fp->chr == 'h') {
+	if(chr == 'g' || chr == 'h') {
 		for(n=d-1; n>=0; n--)
 			if(s2[n] != '0')
 				break;
@@ -246,7 +272,7 @@ found:
 				break;
 			}
 	}
-	if(fp->chr == 'e' || fp->chr == 'g') {
+	if(chr == 'e' || chr == 'g') {
 		if(ucase)
 			s2[d++] = 'E';
 		else
@@ -265,46 +291,17 @@ found:
 		s2[d++] = c1%10 + '0';
 	}
 	s2[d] = 0;
-	strconv(s2, fp);
+}
+
+int
+fltconv(va_list *arg, Fconv *fp)
+{
+	char s[FDIGIT+10];
+	double f;
+
+	f = va_arg(*arg, double);
+	xdtoa(s, f, fp->chr, fp->f2, fp->f3);
+	fp->f2 = NONE;
+	strconv(s, fp);
 	return 0;
-}
-
-static int
-xadd(char *a, int n, int v)
-{
-	char *b;
-	int c;
-
-	if(n < 0 || n >= NSIGNIF)
-		return 0;
-	for(b = a+n; b >= a; b--) {
-		c = *b + v;
-		if(c <= '9') {
-			*b = c;
-			return 0;
-		}
-		*b = '0';
-		v = 1;
-	}
-	*a = '1';	// overflow adding
-	return 1;
-}
-
-static int
-xsub(char *a, int n, int v)
-{
-	char *b;
-	int c;
-
-	for(b = a+n; b >= a; b--) {
-		c = *b - v;
-		if(c >= '0') {
-			*b = c;
-			return 0;
-		}
-		*b = '9';
-		v = 1;
-	}
-	*a = '9';	// underflow subtracting
-	return 1;
 }

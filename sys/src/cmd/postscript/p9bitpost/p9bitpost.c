@@ -11,6 +11,9 @@ int debug = 0;
 int landscape = 0;
 char *file = "<stdin>";
 
+int paperlength = 11*72;
+int paperwidth = 612;	/* 8.5*72 */
+
 void
 error(void)
 {
@@ -57,8 +60,21 @@ main(int argc, char *argv[]) {
 			else
 				Patch = &(argv[i][2]);
 			break;
+		case 'p':
+			optstr = argv[++i];
+			if(optstr == nil)
+				goto Usage;
+			paperlength = 72*atoi(optstr);
+			optstr = argv[++i];
+			if(optstr == nil)
+				goto Usage;
+			paperwidth = 72*atoi(optstr);
+			if(paperlength < 72 || paperwidth < 72)
+				goto Usage;
+			break;
 		default:
-			fprint(2, "usage: %s [-b dpi] [-m magnification] [-L] [-P postscript_patch_string] inputfile\n", argv[0]);
+		Usage:
+			fprint(2, "usage: %s [-b dpi] [-m magnification] [-L] [-P postscript_patch_string] [-p paperwidth paperlength (in inches)] inputfile\n", argv[0]);
 			exits("usage");
 		}
 	}

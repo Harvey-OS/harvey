@@ -219,7 +219,6 @@ startfsys(void*)
 	close(p[0]);
 	if(mount(p[1], "/mnt/plumb", MREPL, "") < 0)
 		error("can't mount /mnt/plumb: %r");
-	threadhack = 0;
 	close(p[1]);
 }
 
@@ -444,6 +443,7 @@ flushqueue(Dirtab *d, int oldtag)
 			else
 				d->readq = r->next;
 			free(r->fcall);
+			free(r->buf);
 			free(r);
 			return;
 		}

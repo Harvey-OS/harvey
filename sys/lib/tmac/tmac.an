@@ -259,13 +259,15 @@
 .ft1
 .fi
 ..
-.dePP
-\Xhtml <P>
+.de}p
 .sp\\n(PDu
 .ne1.1v
 .}E
 .nr)I \\n()Mu
 .ns
+..
+.dePP  \"indirect PP so we can attach html - see tmac.anhtml
+.}p
 ..
 .deP
 .PP
@@ -496,7 +498,7 @@
 .if\nm10 .ds ]m November
 .if\nm11 .ds ]m December
 .ifn \{.nr m \nm+1
-.nr yD (\\n(yr%100
+.nr yD (\n(yr%100
 .af yD 01
 .ie\nd .ds ]W (last mod. \nm/\nd/\ny)
 .el.ds ]W (printed \n(mo/\n(dy/\n(yD)

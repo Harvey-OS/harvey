@@ -23,6 +23,6 @@ getauthkey(char *authkey)
 	if(getkey(authkey) == 0)
 		return 1;
 	print("can't read /dev/key, please enter machine key\n");
-	getpass(authkey, nil, 0);
+	getpass(authkey, nil, 0, 1);
 	return 1;
 }

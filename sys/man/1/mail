@@ -1,6 +1,6 @@
 .TH MAIL 1
 .SH NAME
-mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, fs, biff, pop3 \-  mail commands
+mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, filter, fs, biff, pop3 \-  mail commands
 .SH SYNOPSIS
 .B mail
 [
@@ -91,6 +91,17 @@ mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, fs, biff, pop3 \- 
 ]
 .PP
 .B upas/biff
+.PP
+.B upas/filter
+[
+.B -bh
+]
+.I rcvr
+.I mailbox
+.I "regexp file
+[
+.I "regexp file
+]*
 .PP
 .B upas/pop3
 .SH DESCRIPTION
@@ -562,6 +573,37 @@ with arguments of the resolved address of
 (e.g.
 .BR local!presotto )
 and his/her mail box name.
+.PP
+.I Filter
+provides simple mail filtering.
+The first two arguments are the recipient's address and mailbox, i.e.,
+the same arguments provided to
+.BR pipeto .
+The remaining arguments are all paired; a regular expression and a file name.
+With no flags, the sender's address is matched against each
+regular expression starting with the first.  If the expression
+matches, then the message is delivered to the file whose name
+follows the expression.  The file must be world writable and should
+be append only.
+A message that matches none of the expressions is delivered into
+the user's standard mail box.
+The flags are:
+.TP
+.B h
+the regular expression is matched against the message header
+rather than the address.
+.TP
+.B b
+the regular expression is matched against both the header and the body
+of the message.
+.PP
+For example, to delete any messages of precedence bulk, place in
+your
+.B pipeto
+file:
+.EX
+/bin/upas/filter -h $1 $2 'Precedence: bulk' /dev/null
+.EE
 .SS "Mime File system
 .PP
 .I Fs
@@ -716,7 +758,7 @@ to open/close new mailboxes or to delete groups of messages atomically.
 The messages that can be written to this file are:
 .TP 2i
 .PD 0
-.B "open \fImboxname path\fP
+.B "open \fIpath mboxname\fP
 opens a new mailbox.
 .I path
 is the file to open, and
@@ -772,6 +814,18 @@ and
 .IR length = "<message length in bytes>" .
 The contents of the message is the full path
 name of the directory representing the message.
+.TP
+.B -s
+causes
+.I fs
+to put itself in
+.B /srv
+with a name of the form
+.BR /srv/upasfs.\fIuser\fB .
+.TP
+.B -m
+specifies a mount point other than
+.BR /mail/fs .
 .PD
 .PP
 .I Fs

@@ -38,10 +38,9 @@ boot(int argc, char *argv[])
 {
 	int fd;
 	Method *mp;
-	char cmd[64];
+	char *cmd, cmdbuf[64], *iargv[16];
 	char rootbuf[64];
-	char flags[6];
-	int islocal, ishybrid;
+	int islocal, ishybrid, iargc;
 	char *rp;
 
 	sleep(1000);
@@ -156,6 +155,7 @@ boot(int argc, char *argv[])
 		for(mp = method; mp->name; mp++){
 			if(strcmp(mp->name, "local") != 0)
 				continue;
+			bargc = 1;
 			(*mp->config)(mp);
 			fd = (*mp->connect)();
 			if(fd < 0)
@@ -169,9 +169,24 @@ boot(int argc, char *argv[])
 	settime(islocal);
 	swapproc();
 
-	sprint(cmd, "/%s/init", cputype);
-	sprint(flags, "-%s%s", cpuflag ? "c" : "t", mflag ? "m" : "");
-	execl(cmd, "init", flags, 0);
+	cmd = getenv("init");
+	if(cmd == nil){
+		sprint(cmdbuf, "/%s/init -%s%s", cputype,
+			cpuflag ? "c" : "t", mflag ? "m" : "");
+		cmd = cmdbuf;
+	}
+	iargc = tokenize(cmd, iargv, nelem(iargv)-1);
+	cmd = iargv[0];
+
+	/* make iargv[0] basename(iargv[0]) */
+	if(iargv[0] = strrchr(iargv[0], '/'))
+		iargv[0]++;
+	else
+		iargv[0] = cmd;
+
+	iargv[iargc] = nil;
+
+	exec(cmd, iargv);
 	fatal(cmd);
 }
 
@@ -196,6 +211,34 @@ findmethod(char *a)
 	if(mp->name)
 		return mp;
 	return 0;
+}
+
+int
+parsecmd(char *s, char **av, int n)
+{
+	int ac;
+
+	n--;
+	for(ac = 0; ac < n; ac++){
+		while(*s == ' ' || *s == '\t')
+			s++;
+		if(*s == 0 || *s == '\n' || *s == '\r')
+			break;
+		if(*s == '\''){
+			s++;
+			av[ac] = s;
+			while(*s && *s != '\'')
+				s++;
+		} else {
+			av[ac] = s;
+			while(*s && *s != ' ' && *s != '\t')
+				s++;
+		}
+		if(*s != 0)
+			*s++ = 0;
+	}
+	av[ac] = 0;
+	return ac;
 }
 
 /*
@@ -233,7 +276,7 @@ rootserver(char *arg)
 		outin(prompt, reply, sizeof(reply));
 		mp = findmethod(reply);
 		if(mp){
-			bargc = getfields(reply, bargv, Nbarg-1, 1, " ");
+			bargc = parsecmd(reply, bargv, Nbarg);
 			cp = strchr(reply, '!');
 			if(cp)
 				strcpy(sys, cp+1);

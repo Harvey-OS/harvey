@@ -129,13 +129,22 @@ typ(int et, Type *d)
 }
 
 Type*
+copytyp(Type *t)
+{
+	Type *nt;
+
+	nt = typ(TXXX, T);
+	*nt = *t;
+	return nt;
+}
+
+Type*
 garbt(Type *t, long b)
 {
 	Type *t1;
 
 	if(b & BGARB) {
-		t1 = typ(TXXX, T);
-		*t1 = *t;
+		t1 = copytyp(t);
 		t1->garb = simpleg(b);
 		return t1;
 	}
@@ -178,6 +187,8 @@ simplec(long b)
 		return CSTATIC;
 	case BTYPEDEF:
 		return CTYPEDEF;
+	case BTYPESTR:
+		return CTYPESTR;
 	}
 	diag(Z, "illegal combination of classes %Q", b);
 	return CXXX;
@@ -255,6 +266,7 @@ simplet(long b)
 int
 stcompat(Node *n, Type *t1, Type *t2, long ttab[])
 {
+
 	int i;
 	ulong b;
 
@@ -343,9 +355,9 @@ makedot(Node *n, Type *t, long o)
 }
 
 Type*
-dotsearch(Sym *s, Type *t, Node *n)
+dotsearch(Sym *s, Type *t, Node *n, long *off)
 {
-	Type *t1, *xt;
+	Type *t1, *xt, *rt;
 
 	xt = T;
 
@@ -358,32 +370,36 @@ dotsearch(Sym *s, Type *t, Node *n)
 				goto ambig;
 			xt = t1;
 		}
-	if(xt != T)
-		return xt;
 
 	/*
 	 * look it up by type
 	 */
-	for(t1 = t; t1 != T; t1 = t1->down)
-		if(t1->sym == S && typesu[t1->etype])
-			if(sametype(s->type, t1)) {
-				if(xt != T)
-					goto ambig;
-				xt = t1;
-			}
-	if(xt != T)
+	if(s->class == CTYPEDEF || s->class == CTYPESTR)
+		for(t1 = t; t1 != T; t1 = t1->down)
+			if(t1->sym == S && typesu[t1->etype])
+				if(sametype(s->type, t1)) {
+					if(xt != T)
+						goto ambig;
+					xt = t1;
+				}
+	if(xt != T) {
+		*off = xt->offset;
 		return xt;
+	}
 
 	/*
 	 * look it up in unnamed substructures
 	 */
 	for(t1 = t; t1 != T; t1 = t1->down)
-		if(t1->sym == S && typesu[t1->etype])
-			if(dotsearch(s, t1->link, n) != T) {
+		if(t1->sym == S && typesu[t1->etype]){
+			rt = dotsearch(s, t1->link, n, off);
+			if(rt != T) {
 				if(xt != T)
 					goto ambig;
-				xt = t1;
+				xt = rt;
+				*off += t1->offset;
 			}
+		}
 	return xt;
 
 ambig:
@@ -677,9 +693,14 @@ arith(Node *n, int f)
 			n->op = ODIV;
 			n->left = n1;
 			n1 = new1(OCONST, Z, Z);
-			n1->vconst = n->right->type->link->width;
+			n1->vconst = w;
 			n1->type = n->type;
 			n->right = n1;
+			w = vlog(n1);
+			if(w >= 0) {
+				n->op = OASHR;
+				n1->vconst = w;
+			}
 		}
 		n->type = types[TLONG];
 		return;
@@ -1157,6 +1178,7 @@ Init	qnamesinit[] =
 	TEXTERN,	0,	"EXTERN",
 	TSTATIC,	0,	"STATIC",
 	TTYPEDEF,	0,	"TYPEDEF",
+	TTYPESTR,	0,	"TYPESTR",
 	TREGISTER,	0,	"REGISTER",
 	TCONSTNT,	0,	"CONSTNT",
 	TVOLATILE,	0,	"VOLATILE",
@@ -1177,6 +1199,7 @@ Init	cnamesinit[] =
 	CSTATIC,	0,	"STATIC",
 	CLOCAL,		0,	"LOCAL",
 	CTYPEDEF,	0,	"TYPEDEF",
+	CTYPESTR,	0,	"TYPESTR",
 	CPARAM,		0,	"PARAM",
 	CSELEM,		0,	"SELEM",
 	CLABEL,		0,	"LABEL",
@@ -1272,6 +1295,7 @@ Init	onamesinit[] =
 	OUSED,		0,	"USED",
 	OWHILE,		0,	"WHILE",
 	OXOR,		0,	"XOR",
+	OPOS,		0,	"POS",
 	ONEG,		0,	"NEG",
 	OCOM,		0,	"COM",
 	OELEM,		0,	"ELEM",

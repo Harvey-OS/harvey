@@ -501,8 +501,9 @@ closeconv(Conv *cv)
 	while((mp = cv->multi) != nil)
 		ipifcremmulti(cv, mp->ma, mp->ia);
 
-	/* The close routine will unlock the conv */
 	cv->p->close(cv);
+	cv->state = Idle;
+	qunlock(cv);
 }
 
 static void
@@ -647,6 +648,40 @@ setladdr(Conv* c)
 }
 
 /*
+ *  set a local port making sure the quad of raddr,rport,laddr,lport is unique
+ */
+static char*
+setluniqueport(Conv* c, int lport)
+{
+	Proto *p;
+	Conv *xp;
+	int x;
+
+	p = c->p;
+
+	qlock(p);
+	for(x = 0; x < p->nc; x++){
+		xp = p->conv[x];
+		if(xp == nil)
+			break;
+		if(xp == c)
+			continue;
+		if((xp->state == Connected || xp->state == Announced)
+		&& xp->lport == lport
+		&& xp->rport == c->rport
+		&& ipcmp(xp->raddr, c->raddr) == 0
+		&& ipcmp(xp->laddr, c->laddr) == 0){
+			qunlock(p);
+			return "address in use";
+		}
+	}
+	c->lport = lport;
+	qunlock(p);
+	return nil;
+}
+
+
+/*
  *  pick a local port and set it
  */
 static void
@@ -696,38 +731,55 @@ setlport(Conv* c)
 
 /*
  *  set a local address and port from a string of the form
- *	address!port
- *  if address is missing and not announcing, pick one
- *  if address is missing and announcing, leave address as zero (i.e. matches anything)
- *  if port is 0, pick a free one
- *  if port is '*', leave port as zero (i.e. matches anything)
+ *	[address!]port[!r]
  */
-static void
+static char*
 setladdrport(Conv* c, char* str, int announcing)
 {
 	char *p;
+	char *rv;
+	ushort lport;
+
+	rv = nil;
 
 	/*
 	 *  ignore restricted part if it exists.  it's
 	 *  meaningless on local ports.
 	 */
 	p = strchr(str, '!');
-	if(p == nil || strcmp(p, "!r") == 0) {
-		p = str;
-		memset(c->laddr, 0, sizeof(c->laddr));
-		if(!announcing)
-			setladdr(c);
-	} else {
+	if(p != nil){
 		*p++ = 0;
-		parseip(c->laddr, str);
+		if(strcmp(p, "r") == 0)
+			p = nil;
 	}
 
 	c->lport = 0;
-	if(*p != '*'){
-		c->lport = atoi(p);
-		if(c->lport == 0)
-			setlport(c);
+	if(p == nil){
+		if(announcing)
+			ipmove(c->laddr, IPnoaddr);
+		else
+			setladdr(c);
+		p = str;
+	} else {
+		if(strcmp(str, "*") == 0)
+			ipmove(c->laddr, IPnoaddr);
+		else
+			parseip(c->laddr, str);
 	}
+
+	/* one process can get all connections */
+	if(announcing && strcmp(p, "*") == 0){
+		if(!iseve())
+			error(Eperm);
+		return setluniqueport(c, 0);
+	}
+
+	lport = atoi(p);
+	if(lport <= 0)
+		setlport(c);
+	else
+		rv = setluniqueport(c, lport);
+	return rv;
 }
 
 static char*
@@ -743,7 +795,7 @@ setraddrport(Conv* c, char* str)
 	c->rport = atoi(p);
 	p = strchr(p, '!');
 	if(p){
-		if(strcmp(p, "!r") == 0)
+		if(strstr(p, "!r") != nil)
 			c->restricted = 1;
 	}
 	return nil;
@@ -771,8 +823,7 @@ Fsstdconnect(Conv *c, char *argv[], int argc)
 		p = setraddrport(c, argv[1]);
 		if(p != nil)
 			return p;
-		setladdrport(c, argv[2], 0);
-		break;
+		return setladdrport(c, argv[2], 0);
 	}
 	return nil;
 }
@@ -789,6 +840,8 @@ connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
 	char *p;
 
+	if(c->state != 0)
+		error(Econinuse);
 	c->state = Connecting;
 	c->cerr[0] = '\0';
 	if(x->connect == nil)
@@ -796,7 +849,16 @@ connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 	p = x->connect(c, cb->f, cb->nf);
 	if(p != nil)
 		error(p);
+
+	qunlock(c);
+	if(waserror()){
+		qlock(c);
+		nexterror();
+	}
 	sleep(&c->cr, connected, c);
+	qlock(c);
+	poperror();
+
 	if(c->cerr[0] != '\0')
 		error(c->cerr);
 }
@@ -807,12 +869,13 @@ connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 char*
 Fsstdannounce(Conv* c, char* argv[], int argc)
 {
+	memset(c->raddr, 0, sizeof(c->raddr));
+	c->rport = 0;
 	switch(argc){
 	default:
 		return "bad args to announce";
 	case 2:
-		setladdrport(c, argv[1], 1);
-		break;
+		return setladdrport(c, argv[1], 1);
 	}
 	return nil;
 }
@@ -830,6 +893,8 @@ announcectlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
 	char *p;
 
+	if(c->state != 0)
+		error(Econinuse);
 	c->state = Announcing;
 	c->cerr[0] = '\0';
 	if(x->announce == nil)
@@ -837,13 +902,22 @@ announcectlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 	p = x->announce(c, cb->f, cb->nf);
 	if(p != nil)
 		error(p);
+
+	qunlock(c);
+	if(waserror()){
+		qlock(c);
+		nexterror();
+	}
 	sleep(&c->cr, announced, c);
+	qlock(c);
+	poperror();
+
 	if(c->cerr[0] != '\0')
 		error(c->cerr);
 }
 
 /*
- *  called by protocol bide routine to set addresses
+ *  called by protocol bind routine to set addresses
  */
 char*
 Fsstdbind(Conv* c, char* argv[], int argc)
@@ -852,8 +926,7 @@ Fsstdbind(Conv* c, char* argv[], int argc)
 	default:
 		return "bad args to bind";
 	case 2:
-		setladdrport(c, argv[1], 0);
-		break;
+		return setladdrport(c, argv[1], 0);
 	}
 	return nil;
 }
@@ -915,7 +988,7 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 			error(Eperm);
 
 		qwrite(c->wq, a, n);
-		x->kick(c, n);
+		x->kick(c);
 		break;
 	case Qarp:
 		return arpwrite(f, a, n);
@@ -934,12 +1007,9 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 		c = x->conv[CONV(ch->qid)];
 		cb = parsecmd(a, n);
 
-		if(canqlock(&c->car) == 0){
-			free(cb);
-			error("connect/announce in progress");
-		}
+		qlock(c);
 		if(waserror()) {
-			qunlock(&c->car);
+			qunlock(c);
 			free(cb);
 			nexterror();
 		}
@@ -983,7 +1053,7 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 				error(p);
 		} else
 			error("unknown control request");
-		qunlock(&c->car);
+		qunlock(c);
 		free(cb);
 		poperror();
 	}
@@ -1011,7 +1081,7 @@ ipbwrite(Chan* ch, Block* bp, ulong offset)
 			bp = concatblock(bp);
 		n = BLEN(bp);
 		qbwrite(c->wq, bp);
-		x->kick(c, n);
+		x->kick(c);
 		return n;
 	default:
 		return devbwrite(ch, bp, offset);
@@ -1129,7 +1199,7 @@ retry:
 	c->inuse = 1;
 	strcpy(c->owner, user);
 	c->perm = 0660;
-	c->state = 0;
+	c->state = Idle;
 	ipmove(c->laddr, IPnoaddr);
 	ipmove(c->raddr, IPnoaddr);
 	c->lport = 0;
@@ -1211,6 +1281,7 @@ Fsnewcall(Conv *c, uchar *raddr, ushort rport, uchar *laddr, ushort lport)
 	nc->lport = lport;
 	nc->next = nil;
 	*l = nc;
+	nc->state = Connected;
 	qunlock(c);
 
 	wakeup(&c->listenr);

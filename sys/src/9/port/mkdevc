@@ -44,7 +44,7 @@ collect && section ~ "misc"{
 		}
 		else if($1 ~ ".*\.root"){
 			x = substr($1, 1, index($1, ".")-1);
-			if(x ~ "(dossrv|kfs|vdfs|bzfs)")
+			if(x ~ "(9660srv|dossrv|kfs|vdfs|bzfs)")
 				x = "kfs";
 			fs[nfs++] = x;
 		}
@@ -104,7 +104,7 @@ END{
 		}
 
 		if(nsdifc){
-			printf "#include \"sd.h\"\n";
+			printf "#include \"../port/sd.h\"\n";
 			for(i = 0; i < nsdifc; i++)
 				printf "extern SDifc %sifc;\n", sdifc[i];
 			printf "SDifc* sdifc[] = {\n";

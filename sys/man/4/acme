@@ -181,6 +181,9 @@ address to that of the user's selected text in the window.
 .B clean
 Mark the window clean as though it has just been written.
 .TP
+.B dirty
+Mark the window dirty, the opposite of clean.
+.TP
 .B cleartag
 Remove all text in the tag after the vertical bar.
 .TP

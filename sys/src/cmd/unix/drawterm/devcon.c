@@ -36,6 +36,8 @@ Dirtab contab[] =
 	"user",		{Quser},	NAMELEN,	0666,
 };
 
+Dirtab *snarftab = &contab[9];
+
 #define Ncontab	(sizeof(contab)/sizeof(contab[0]))
 
 void (*screenputs)(char*, int);
@@ -322,6 +324,7 @@ conwrite(Chan *c, void *va, long count, ulong offset)
 	case Qsnarf:
 		if(offset+count >= SnarfSize)
 			error(Etoobig);
+		snarftab->qid.vers++;
 		memmove((uchar*)(c->u.aux)+offset, va, count);
 		return count;
 	}

@@ -1,22 +1,22 @@
-/* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxshade1.c,v 1.2 2000/03/17 08:17:55 lpd Exp $ */
+/*$Id: gxshade1.c,v 1.5.2.2 2000/10/30 22:15:05 raph Exp $ */
 /* Rendering for non-mesh shadings */
 #include "math_.h"
 #include "memory_.h"
@@ -69,17 +69,22 @@ shade_fill_device_rectangle(const shading_fill_state_t * pfs,
 	ymin = p0->y, ymax = p1->y;
     else
 	ymin = p1->y, ymax = p0->y;
-    /****** NOT QUITE RIGHT FOR PIXROUND ******/
+
+    /* See gx_default_fill_path for an explanation of the tweak below. */
     xmin -= pis->fill_adjust.x;
+    if (pis->fill_adjust.x == fixed_half)
+	xmin += fixed_epsilon;
     xmax += pis->fill_adjust.x;
     ymin -= pis->fill_adjust.y;
+    if (pis->fill_adjust.y == fixed_half)
+	ymin += fixed_epsilon;
     ymax += pis->fill_adjust.y;
-    x = fixed2int_var(xmin);
-    y = fixed2int_var(ymin);
+    x = fixed2int_var_pixround(xmin);
+    y = fixed2int_var_pixround(ymin);
     return
 	gx_fill_rectangle_device_rop(x, y,
-				     fixed2int_var(xmax) - x,
-				     fixed2int_var(ymax) - y,
+				     fixed2int_var_pixround(xmax) - x,
+				     fixed2int_var_pixround(ymax) - y,
 				     pdevc, pfs->dev, pis->log_op);
 }
 
@@ -306,7 +311,7 @@ typedef struct A_fill_state_s {
     shading_fill_state_common;
     const gs_shading_A_t *psh;
     bool orthogonal;		/* true iff ctm is xxyy or xyyx */
-    gs_rect rect;
+    gs_rect rect;		/* bounding rectangle in user space */
     gs_point delta;
     double length, dd;
     int depth;
@@ -337,31 +342,55 @@ A_fill_stripe(const A_fill_state_t * pfs, gs_client_color *pcc,
     (*pcs->type->remap_color)(pcc, pcs, &dev_color, pis,
 			      pfs->dev, gs_color_select_texture);
     if (x0 == x1 && pfs->orthogonal) {
-	/* Stripe is horizontal in both user and device space. */
+	/*
+	 * Stripe is horizontal in user space and horizontal or vertical
+	 * in device space.
+	 */
 	x0 = pfs->rect.p.x;
 	x1 = pfs->rect.q.x;
     } else if (y0 == y1 && pfs->orthogonal) {
-	/* Stripe is vertical in both user and device space space. */
+	/*
+	 * Stripe is vertical in user space and horizontal or vertical
+	 * in device space.
+	 */
 	y0 = pfs->rect.p.y;
 	y1 = pfs->rect.q.y;
     } else {
 	/*
-	 * Stripe is neither horizontal nor vertical.
-	 * Extend it to the edges of the rectangle.
+	 * Stripe is neither horizontal nor vertical in user space.
+	 * Extend it to the edges of the (user-space) rectangle.
 	 */
 	gx_path *ppath = gx_path_alloc(pis->memory, "A_fill");
-	double dist = max(pfs->rect.q.x - pfs->rect.p.x,
-			  pfs->rect.q.y - pfs->rect.p.y);
-	double denom = hypot(pfs->delta.x, pfs->delta.y);
-	double dx = dist * pfs->delta.y / denom,
-	    dy = -dist * pfs->delta.x / denom;
+	if (fabs(pfs->delta.x) < fabs(pfs->delta.y)) {
+	    /*
+	     * Calculate intersections with vertical sides of rect.
+	     */
+	    double slope = pfs->delta.x / pfs->delta.y;
+	    double yi = y0 - slope * (pfs->rect.p.x - x0);
 
-	if_debug6('|', "[|]p0=(%g,%g), p1=(%g,%g), dxy=(%g,%g)\n",
-		  x0, y0, x1, y1, dx, dy);
-	gs_point_transform2fixed(&pis->ctm, x0 - dx, y0 - dy, &pts[0]);
-	gs_point_transform2fixed(&pis->ctm, x0 + dx, y0 + dy, &pts[1]);
-	gs_point_transform2fixed(&pis->ctm, x1 + dx, y1 + dy, &pts[2]);
-	gs_point_transform2fixed(&pis->ctm, x1 - dx, y1 - dy, &pts[3]);
+	    gs_point_transform2fixed(&pis->ctm, pfs->rect.p.x, yi, &pts[0]);
+	    yi = y1 - slope * (pfs->rect.p.x - x1);
+	    gs_point_transform2fixed(&pis->ctm, pfs->rect.p.x, yi, &pts[1]);
+	    yi = y1 - slope * (pfs->rect.q.x - x1);
+	    gs_point_transform2fixed(&pis->ctm, pfs->rect.q.x, yi, &pts[2]);
+	    yi = y0 - slope * (pfs->rect.q.x - x0);
+	    gs_point_transform2fixed(&pis->ctm, pfs->rect.q.x, yi, &pts[3]);
+	}
+	else {
+	    /*
+	     * Calculate intersections with horizontal sides of rect.
+	     */
+	    double slope = pfs->delta.y / pfs->delta.x;
+	    double xi = x0 - slope * (pfs->rect.p.y - y0);
+
+	    gs_point_transform2fixed(&pis->ctm, xi, pfs->rect.p.y, &pts[0]);
+	    xi = x1 - slope * (pfs->rect.p.y - y1);
+	    gs_point_transform2fixed(&pis->ctm, xi, pfs->rect.p.y, &pts[1]);
+	    xi = x1 - slope * (pfs->rect.q.y - y1);
+	    gs_point_transform2fixed(&pis->ctm, xi, pfs->rect.q.y, &pts[2]);
+	    xi = x0 - slope * (pfs->rect.q.y - y0);
+	    gs_point_transform2fixed(&pis->ctm, xi, pfs->rect.q.y, &pts[3]);
+	}
 	gx_path_add_point(ppath, pts[0].x, pts[0].y);
 	gx_path_add_lines(ppath, pts + 1, 3);
 	code = shade_fill_path((const shading_fill_state_t *)pfs,

@@ -8,10 +8,6 @@ typedef	long long	vlong;
 typedef	unsigned long long uvlong;
 typedef	ushort		Rune;
 typedef 	union FPdbleword FPdbleword;
-typedef	union
-{
-	vlong	length;
-} Length;
 typedef long	jmp_buf[2];
 #define	JMPBUFSP	0
 #define	JMPBUFPC	1

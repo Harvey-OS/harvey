@@ -2,9 +2,13 @@
 .SH NAME
 alt,
 chancreate,
+chanfree,
 chaninit,
 proccreate,
 procdata,
+procexec,
+procexecl,
+procrfork,
 recv,
 recvp,
 recvul,
@@ -17,11 +21,9 @@ nbrecvul,
 nbsend,
 nbsendp,
 nbsendul,
-chanfree,
-procexec,
-procexecl,
 threadchdir,
 threadcreate,
+threaddata,
 threadexits,
 threadexitsall,
 threadgetgrp,
@@ -29,6 +31,8 @@ threadgetname,
 threadkill,
 threadkillgrp,
 threadmain,
+threadnonotes,
+threadpid,
 threadprint,
 threadsetgrp,
 threadsetname,
@@ -62,6 +66,9 @@ void  threadmain(int argc, char *argv[])
 .ift .sp 0.2
 int   proccreate(void (*f)(void *arg), void *arg,
 			uint stacksize)
+.ift .sp 0.2
+int   procrfork(void (*f)(void *arg), void *arg,
+			uint stacksize, int rforkflag)
 .ift .sp 0.2
 int   threadcreate(void (*f)(void *arg), void *arg,
 			uint stacksize)
@@ -110,6 +117,8 @@ char  *threadgetname(void)
 .ift .sp 0.2
 ulong *procdata(void)
 .ift .sp 0.2
+ulong *threaddata(void)
+.ift .sp 0.2
 int   threadgetgrp(void)
 .ift .sp 0.2
 int   threadsetgrp(int group)
@@ -117,6 +126,8 @@ int   threadsetgrp(int group)
 void threadkill(int id)
 .ift .sp 0.2
 void  threadkillgrp(int group)
+.ift .sp 0.2
+int threadpid(int id)
 .ift .sp 0.2
 void  procexecl(Channel *pidc, char *file, ...)
 .ift .sp 0.2
@@ -210,7 +221,25 @@ argument to be called in the new proc, the argument
 .I arg
 to that function, and the size of the stack for the new proc.
 .I Proccreate
+.\" returns the thread id of the (single) thread in the newly created proc.
 returns the pid of the newly created proc.
+Processes are created by calling
+.I rfork
+(see 
+.IR fork (2))
+with flags
+.B RFPROC
+and
+.BR RFMEM .
+.I Procrfork
+is like
+.I proccreate
+but uses
+.I rforkflags
+or'ed with
+.B RFPROC
+and
+.BR RFMEM .
 .PP
 .I Arg
 can be used to pass arbitrary data to
@@ -265,7 +294,7 @@ initializes an already allocated channel;
 and
 .B elemcnt
 are as in
-.B chancreate.
+.BR chancreate .
 .PP
 .I Recv
 receives an element from the channel named by its first argument and
@@ -427,6 +456,17 @@ returns the group of the current thread.
 .I Threadkillgrp
 can be used to kill all threads in a group.
 .PP
+.I Threadpid
+returns the
+.I pid
+of the proc of the thread whose
+.I id
+is given.  If
+.I id
+equals zero, the pid of the proc of the current thread is returned and if
+.I id
+does not correspond to an existing thread, \-1 is returned.
+.PP
 .I Procexecl
 and
 .I procexec
@@ -499,6 +539,42 @@ maintains its list of handlers in shared memory.  This implies that,
 if one thread (on proc) installs a handler with
 .IR atnotify ,
 all other procs automatically do so too.
+.PP
+It is safe to use 
+.IR rfork
+(see
+.IR fork (2))
+to manage the namespace, file descriptors, or environment of a
+single process.
+That is, it is safe to call
+.I rfork
+with the flags
+.BR RFENVG ,
+.BR RFCENVG ,
+.BR RFNAMEG ,
+.BR RFCNAMEG ,
+.BR RFFDG ,
+and
+.BR RFCDFG .
+To create new processes, use
+.I proccreate
+and 
+.IR procrfork .
+Because the thread library depends on all procs
+being in the same note and rendezvous groups,
+these groups should not be changed with
+.IR rfork .
+To deafen a threaded program to notes
+for the parent process's group, call
+.I threadnonotes
+instead of using
+.BR rfork(RFNOTEG) .
+.PP
+.I Procdata
+and
+.I threaddata
+return pointers to a single 
+ulong that may be used to store per-proc or per-thread data.
 .SH EXAMPLE
 .PP
 A complete example follows.

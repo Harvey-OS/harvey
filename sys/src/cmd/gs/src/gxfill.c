@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxfill.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxfill.c,v 1.5 2000/09/19 19:00:36 lpd Exp $ */
 /* Lower-level path filling procedures */
 #include "gx.h"
 #include "gserrors.h"
@@ -71,21 +71,28 @@ struct active_line_s {
     (alp)->num_adjust =\
       ((alp)->diff.x >= 0 ? 0 : -(alp)->diff.y + fixed_epsilon)
 #  define ADD_NUM_ADJUST(num, alp) ((num) + (alp)->num_adjust)
+#  define MAX_MINUS_NUM_ADJUST(alp) ADD_NUM_ADJUST(max_fixed, alp)
 #else
     /* neg/pos takes the floor, no special action is needed. */
 #  define SET_NUM_ADJUST(alp) DO_NOTHING
 #  define ADD_NUM_ADJUST(num, alp) (num)
+#  define MAX_MINUS_NUM_ADJUST(alp) max_fixed
 #endif
 #define set_al_points(alp, startp, endp)\
   BEGIN\
     (alp)->diff.y = (endp).y - (startp).y;\
     (alp)->diff.x = (endp).x - (startp).x;\
     SET_NUM_ADJUST(alp);\
-    (alp)->y_fast_max = max_fixed /\
+    (alp)->y_fast_max = MAX_MINUS_NUM_ADJUST(alp) /\
       (((alp)->diff.x >= 0 ? (alp)->diff.x : -(alp)->diff.x) | 1) +\
       (startp).y;\
     (alp)->start = startp, (alp)->end = endp;\
   END
+    /*
+     * We know that alp->start.y <= yv <= alp->end.y, because the fill loop
+     * guarantees that the only lines being considered are those with this
+     * property.
+     */
 #define al_x_at_y(alp, yv)\
   ((yv) == (alp)->end.y ? (alp)->end.x :\
    ((yv) <= (alp)->y_fast_max ?\
@@ -123,7 +130,7 @@ struct active_line_s {
  * Y value, or, of the x_current values are equal, greater Y values
  * (if any: this Y value might be the end of both lines).
  */
-private bool
+private int
 x_order(const active_line *lp1, const active_line *lp2)
 {
     bool s1;
@@ -1394,10 +1401,13 @@ fill_loop_by_trapezoids(ll_ptr ll, gx_device * dev,
 		/* We just went from inside to outside, so fill the region. */
 		wtop = xtop - xltop;
 		INCR(band_fill);
-		/* If lines are temporarily out of */
-		/* order, wtop might be negative. */
-		/* Patch this up now. */
-		if (wtop < 0) {
+		/*
+		 * If lines are temporarily out of order, we might have
+		 * xtop < xltop.  Patch this up now if necessary.  Note that
+		 * we can't test wtop < 0, because the subtraction might
+		 * overflow.
+		 */
+		if (xtop < xltop) {
 		    if_debug2('f', "[f]patch %g,%g\n",
 			      fixed2float(xltop), fixed2float(xtop));
 		    xtop = xltop += arith_rshift(wtop, 1);

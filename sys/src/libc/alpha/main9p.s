@@ -1,7 +1,14 @@
+#define NPRIVATES	16
+
 TEXT	_mainp(SB), 1, $16
 
 	MOVQ	$setSB(SB), R29
 	MOVL	R0, _clock(SB)
+
+	MOVQ	$p-64(SP),R1
+	MOVL	R1,_privates+0(SB)
+	MOVQ	$16,R1
+	MOVL	R1,_nprivates+0(SB)
 	JSR	_profmain(SB)
 	MOVL	__prof+4(SB), R0
 	MOVL	R0, __prof+0(SB)

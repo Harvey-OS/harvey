@@ -18,6 +18,7 @@ buildfont(Display *d, char *buf, char *name)
 	char *s, *t;
 	ulong min, max;
 	int offset;
+	char badform[] = "bad font format: number expected (char position %d)";
 
 	s = buf;
 	fnt = malloc(sizeof(Font));
@@ -44,7 +45,7 @@ buildfont(Display *d, char *buf, char *name)
 	fnt->ascent = strtol(s, &s, 0);
 	s = skip(s);
 	if(fnt->height<=0 || fnt->ascent<=0){
-		werrstr("bad format for font file");
+		werrstr("bad height or ascent in font file");
 		goto Err2;
 	}
 	fnt->width = 0;
@@ -55,8 +56,18 @@ buildfont(Display *d, char *buf, char *name)
 	memset(fnt->cache, 0, fnt->ncache*sizeof(fnt->cache[0]));
 	fnt->age = 1;
 	do{
+		/* must be looking at a number now */
+		if(*s<'0' || '9'<*s){
+			werrstr(badform, s-buf);
+			goto Err3;
+		}
 		min = strtol(s, &s, 0);
 		s = skip(s);
+		/* must be looking at a number now */
+		if(*s<'0' || '9'<*s){
+			werrstr(badform, s-buf);
+			goto Err3;
+		}
 		max = strtol(s, &s, 0);
 		s = skip(s);
 		if(*s==0 || min>=65536 || max>=65536 || min>max){

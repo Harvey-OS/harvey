@@ -10,6 +10,8 @@ BOOTFILES=\
 	doauthenticate.$O\
 	bootip.$O\
 	key.$O\
+	glendakey.$O\
+	fcall.$O\
 	local.$O\
 	settime.$O\
 	userpasswd.$O\

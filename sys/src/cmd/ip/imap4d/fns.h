@@ -32,6 +32,7 @@ int	decmutf7(char *out, int nout, char *in);
 int	deleteMsgs(Box *box);
 void	*emalloc(ulong);
 int	emptyImp(char *mbox);
+void	enableForwarding(void);
 int	encmutf7(char *out, int nout, char *in);
 void	*erealloc(void*, ulong);
 char	*estrdup(char*);

@@ -63,6 +63,11 @@
 #define	UDSEG	3	/* user data/stack */
 #define	UESEG	4	/* user executable */
 #define TSSSEG	5	/* task segment */
+#define	APMCSEG		6	/* APM code segment */
+#define	APMCSEG16	7	/* APM 16-bit code segment */
+#define	APMDSEG		8	/* APM data segment */
+#define NGDT		10	/* number of GDT entries required */
+/* #define	APM40SEG	8	/* APM segment 0x40 */
 
 #define SELGDT	(0<<2)	/* selector is in gdt */
 #define	SELLDT	(1<<2)	/* selector is in ldt */
@@ -75,6 +80,10 @@
 #define UESEL	SELECTOR(UESEG, SELGDT, 3)
 #define UDSEL	SELECTOR(UDSEG, SELGDT, 3)
 #define TSSSEL	SELECTOR(TSSSEG, SELGDT, 0)
+#define APMCSEL 	SELECTOR(APMCSEG, SELGDT, 0)
+#define APMCSEL16	SELECTOR(APMCSEG16, SELGDT, 0)
+#define APMDSEL		SELECTOR(APMDSEG, SELGDT, 0)
+/* #define APM40SEL	SELECTOR(APM40SEG, SELGDT, 0) */
 
 /*
  *  fields in segment descriptors

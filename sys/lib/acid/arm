@@ -31,19 +31,18 @@ defn lstk()				// trace with locals
 	_stk(*PC, *SP, 0, 1);
 }
 
-defn gpr()				// print general purpose registers
+defn gpr()			// print general purpose registers
 {
-	return 0;
-}
-
-defn spr()				// print special processor registers
-{
-	return 0;
+	print("R0\t", *R0, " R1\t", *R1, " R2\t", *R2, "\n");
+	print("R3\t", *R3, " R4\t", *R4, " R5\t", *R5, "\n");
+	print("R6\t", *R6, " R7\t", *R7, " R8\t", *R8, "\n");
+	print("R9\t", *R9, " R10\t", *R10, " R11\t", *R11, "\n");
+	print("R12\t", *R12, " R13\t", *R13, " R14\t", *R14, "\n");
+	print("R15\t", *R15, "\n");
 }
 
 defn regs()				// print all registers
 {
-	spr();
 	gpr();
 }
 
@@ -69,10 +68,9 @@ aggr Ureg
 	'U' 48 r12;
 	'U' 52 r13;
 	'U' 56 r14;
-	'U' 60 link;
-	'U' 64 type;
-	'U' 68 psr;
-	'U' 72 pc;
+	'U' 60 type;
+	'U' 64 psr;
+	'U' 68 pc;
 };
 
 defn
@@ -93,7 +91,6 @@ Ureg(addr) {
 	print("	r12	", addr.r12, "\n");
 	print("	r13	", addr.r13, "\n");
 	print("	r14	", addr.r14, "\n");
-	print("	link	", addr.link, "\n");
 	print("	type	", addr.type, "\n");
 	print("	psr	", addr.psr, "\n");
 	print("	pc	", addr.pc, "\n");

@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxdevcli.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxdevcli.h,v 1.3 2000/09/19 19:00:35 lpd Exp $ */
 /* Definitions for device clients */
 
 #ifndef gxdevcli_INCLUDED
@@ -685,6 +685,13 @@ typedef struct gs_param_list_s gs_param_list;
 
      /* ... text_begin ... see gxtext.h for definition */
 
+		/* Added in release 6.23 */
+
+#define dev_t_proc_finish_copydevice(proc, dev_t)\
+  int proc(P2(dev_t *dev, const gx_device *from_dev))
+#define dev_proc_finish_copydevice(proc)\
+  dev_t_proc_finish_copydevice(proc, gx_device)
+
 /* Define the device procedure vector template proper. */
 
 #define gx_device_proc_struct(dev_t)\
@@ -731,6 +738,7 @@ typedef struct gs_param_list_s gs_param_list;
 	dev_t_proc_create_compositor((*create_compositor), dev_t);\
 	dev_t_proc_get_hardware_params((*get_hardware_params), dev_t);\
 	dev_t_proc_text_begin((*text_begin), dev_t);\
+	dev_t_proc_finish_copydevice((*finish_copydevice), dev_t);\
 }
 /*
  * Provide procedures for passing image data.  image_data and end_image

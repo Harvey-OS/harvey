@@ -1,0 +1,4 @@
+TEXT _READ9P(SB), 1, $-4
+MOVW $38, R0
+SWI 0
+RET

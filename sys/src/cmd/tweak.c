@@ -1888,10 +1888,11 @@ copy(void)
 	rectclip(&sr, st->r);
 	p1 = realpt(st, sr.min);
 	p2 = realpt(st, Pt(sr.min.x, sr.max.y));
+	up = 0;
 	if(p1.x != p2.x){	/* swept across a fold */
    onafold:
 		mesg("sweep spans a fold");
-		return;
+		goto Return;
 	}
 	p2 = realpt(st, sr.max);
 	sr.min = p1;
@@ -1903,7 +1904,6 @@ copy(void)
 		return;
 	border(screen, fr, -1, values[Blue], ZP);
 	esetcursor(&box);
-	up = 0;
 	for(; mouse.buttons==0; mouse=emouse()){
 		for(dt=thing; dt; dt=dt->next)
 			if(ptinrect(mouse.xy, dt->er))

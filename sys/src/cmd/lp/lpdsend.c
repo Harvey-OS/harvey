@@ -26,7 +26,7 @@ cleanup(void) {
 }
 
 #define SBSIZE 8192
-char sendbuf[SBSIZE];
+unsigned char sendbuf[SBSIZE];
 
 void
 debug(char *str) {
@@ -99,7 +99,7 @@ killjob(int printerfd) {
 void
 checkqueue(int printerfd) {
 	int n, strlength;
-	char sendbuf[1];
+	unsigned char sendbuf[1];
 
 	sprintf(strbuf, "%c%s\n", '\4', printername);
 	strlength = strlen(strbuf);

@@ -16,7 +16,7 @@ main(int argc, char *argv[])
 	uchar *p, *q;
 	uchar buf1[BUF], buf2[BUF];
 	int f1, f2;
-	long nc = 1, o, l = 1;
+	vlong nc = 1, o, l = 1;
 	char *name1, *name2;
 	uchar *b1s, *b1e, *b2s, *b2e;
 
@@ -37,14 +37,14 @@ main(int argc, char *argv[])
 		exits("open");
 	}
 	if(*argv){
-		o = strtol(*argv++, 0, 0);
+		o = strtoll(*argv++, 0, 0);
 		if(seek(f1, o, 0) < 0){
 			if(!sflag) perror("cmp: seek by offset1");
 			exits("seek 1");
 		}
 	}
 	if(*argv){
-		o = strtol(*argv++, 0, 0);
+		o = strtoll(*argv++, 0, 0);
 		if(seek(f2, o, 0) < 0){
 			if(!sflag) perror("cmp: seek by offset2");
 			exits("seek 2");
@@ -80,12 +80,12 @@ main(int argc, char *argv[])
 					l++;
 				if(*p != *q){
 					if(!lflag){
-						print("%s %s differ: char %ld",
+						print("%s %s differ: char %lld",
 						    name1, name2, nc+i);
-						print(Lflag?" line %d\n":"\n", l);
+						print(Lflag?" line %lld\n":"\n", l);
 						exits("differ");
 					}
-					print("%6ld 0x%.2x 0x%.2x\n", nc+i, *p, *q);
+					print("%6lld 0x%.2x 0x%.2x\n", nc+i, *p, *q);
 				}
 			}
 		}		

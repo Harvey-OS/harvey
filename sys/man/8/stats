@@ -26,10 +26,15 @@ The right mouse button presents a menu to enable and disable the display
 of various statistics; by default,
 .I stats
 begins by showing the load average on the executing machine.
+.PP
 The
+lower-case
 .I options
 choose the initial set to display:
 .TF [t]tlbpurge
+.TP
+.B "b battery
+percentage battery life remaining.
 .TP
 .B "c context
 number of process context switches per second.
@@ -86,6 +91,42 @@ which display fractions of the total available, and the Ethernet error count,
 which goes from 0 to 10.
 If the value of the parameter is too large for the visible range, its value is shown
 in decimal in the upper left corner of the graph.
+.PP
+Upper-case options control details of the display.
+All graphs are affected; there is no mechanism to
+affect only one graph.
+.TP
+.BI -S " scale
+Sets a scale factor for the displays.  A value of 2, for example,
+means that the highest value plotted will be twice as large as the default.
+.TP
+.B -L
+Plot all graphs with logarithmic
+.I y
+axes.
+The graph is plotted so the maximum value that would be displayed on
+a linear graph is 2/3 of the way up the
+.I y
+axis and the total range of the graph is a factor of 1000; thus the
+.I y
+origin is 1/100 of the default maximum value and the top of the graph is
+10 times the default maximum.
+.TP
+.B -Y
+If the display is large enough to show them,
+place value markers along the
+.I y
+axes of the graphs.
+Since one set of markers serves for all machines across the display,
+the values in the markers disregard scaling factors due to multiple processors
+on the machines. On a graph for a multiprocessor,
+the displayed values will be larger
+than the markers indicate.
+The markers appear along the right, and the markers
+show values appropriate to the rightmost machine; this only
+matters for graphs such as memory that have machine-specific
+maxima.
+.PD
 .SH FILES
 .B /net/ether0/0/stats
 .br

@@ -41,6 +41,10 @@ loop:
 		(buf[5]<<16) |
 		(buf[6]<<8) |
 		(buf[7]<<0);
+	if(dr->block <= 0 || dr->block >= 16*1024) {
+		print("	wreninit %D block size %ld setting to 512\n", d, dr->block);
+		dr->block = 512;
+	}
 	dr->mult =
 		(RBUFSIZE + dr->block - 1) /
 		dr->block;

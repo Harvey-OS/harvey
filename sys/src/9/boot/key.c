@@ -39,6 +39,17 @@ key(int islocal, Method *mp)
 		safeoff = 1024+850;
 	} else if(strcmp(cputype, "386") == 0 || strcmp(cputype, "alpha") == 0){
 		fd = open("#S/sdC0/nvram", ORDWR);
+		if(fd < 0){
+			fd = open("#S/sdC0/9fat", ORDWR);
+			if(fd >= 0){
+				safeoff = finddosfile(fd, "plan9.nvr");
+				if(safeoff < 0){
+					close(fd);
+					fd = -1;
+				}
+				safelen = 512;
+			}
+		}
 		if(fd < 0)
 			fd = open("#S/sd00/nvram", ORDWR);
 		if(fd < 0){
@@ -196,12 +207,12 @@ finddosfile(int fd, char *file)
 	sectsize = GETSHORT(b->sectsize);
 	if(sectsize != 512)
 		return -1;
-	rootoff = (1 + b->nfats*GETSHORT(b->fatsize)) * sectsize;
+	rootoff = (GETSHORT(b->nresrv) + b->nfats*GETSHORT(b->fatsize)) * sectsize;
 	if(seek(fd, rootoff, 0) < 0)
 		return -1;
 	nroot = GETSHORT(b->rootsize);
 	rootsects = (nroot*sizeof(Dosdir)+sectsize-1)/sectsize;
-	if(rootsects <= 0 || rootsects > 20)
+	if(rootsects <= 0 || rootsects > 64)
 		return -1;
 
 	/* 

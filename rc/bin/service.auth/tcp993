@@ -1,0 +1,21 @@
+#!/bin/rc
+
+#imap4d service net dir
+
+#new ssl server, conversation logging -- DEBUGGING only
+#exec /$cputype/bin/tlssrv -k/sys/lib/ssl -r`{cat $3/remote} /usr/sean/bin/$cputype/relay /$cputype/bin/ip/imap4d -pdplan9.bell-labs.com -r`{cat $3/remote}>[2]/usr/sean/tmp/imap4d
+
+#new ssl server, no conversation logging -- DEBUGGING only
+exec /$cputype/bin/tlssrv -k/sys/lib/ssl -r`{cat $3/remote} /$cputype/bin/ip/imap4d -pdplan9.bell-labs.com -r`{cat $3/remote}>[2]/usr/sean/tmp/imap4d
+
+#new ssl server, conversation logging
+#exec /$cputype/bin/tlssrv -k/sys/lib/ssl -r`{cat $3/remote} /usr/sean/bin/$cputype/relay /$cputype/bin/ip/imap4d -pdplan9.bell-labs.com -r`{cat $3/remote}>[2]/sys/log/imap4d
+
+#new ssl server, no conversation logging
+#exec /$cputype/bin/tlssrv -k/sys/lib/ssl -r`{cat $3/remote} /$cputype/bin/ip/imap4d -pdplan9.bell-labs.com -r`{cat $3/remote}>[2]/sys/log/imap4d
+
+#old ssl server, conversation logging
+#exec aux/ssls -c/sys/lib/ssl/cert.pem -k/sys/lib/ssl/key.pem /usr/sean/bin/$cputype/relay /$cputype/bin/ip/imap4d -pdplan9.bell-labs.com -r`{cat $3/remote}>[2]/sys/log/imap4d
+
+#old ssl server, no conversation logging
+#exec aux/ssls -c/sys/lib/ssl/cert.pem -k/sys/lib/ssl/key.pem /$cputype/bin/ip/imap4d -pdplan9.bell-labs.com -r`{cat $3/remote}>[2]/sys/log/imap4d

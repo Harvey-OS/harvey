@@ -1,0 +1,51 @@
+#!/bin/rc
+# convert PDF output to PCL
+if (! ~ $DEBUG '') flag x +
+switch ($LPCLASS) {
+case *hpdeskjet*;
+	GSDEVICE=cdj670
+case *;
+	echo no or unknown printer type given in class field of 'devices' file >[1=2]
+	exit 'unknown printer type'
+}
+
+GSTMPFILE=/tmp/pdfhpcl^$pid
+GSOPT=('-sDEVICE='^$GSDEVICE '-sOutputFile='^$GSTMPFILE -dSAFER -dNOPAUSE -dQUIET -dBATCH -dNOPAUSE)
+if(~ $OLIST '')
+	gs $GSOPT $1
+if not {
+	PGLIST=`{echo $OLIST | sed 's/-o//;s/,/ /g;s/	/ /g' | tr -cd '0-9 -'}
+	GSPGLIST=()
+	for(i in $PGLIST){
+		switch($i){
+		case *-*
+			GSPGLIST=($GSPGLIST `{seq `{echo $i|tr '-' ' '}})
+		case *
+			GSPGLIST=($GSPGLIST $i)
+		}
+	}
+	GSPGLIST=$"GSPGLIST
+	echo '
+		/Page null def
+		/Page# 0 def
+		/PDFSave null def
+		/DSCPageCount 0 def
+		/DoPDFPage {dup /Page# exch store pdfgetpage pdfshowpage} def
+		GS_PDF_ProcSet begin
+		pdfdict begin
+		('^$1^') (r) file pdfopen begin
+		/npage pdfpagecount def
+		['^$GSPGLIST^']
+		{
+			dup dup
+				1 ge exch npage le and 
+				{ DoPDFPage }
+				{ pop }
+			ifelse
+		} forall
+	' | gs $GSOPT - >/dev/null >[2=1]
+}
+
+cat $GSTMPFILE
+rm -f $GSTMPFILE
+exit ''

@@ -1,6 +1,7 @@
 0intro 0intro
 intro 0intro
 acme acme
+agent agent
 archfs archfs
 authfs authfs
 cdfs cdfs
@@ -27,10 +28,10 @@ keyfs keyfs
 warning keyfs
 kfs kfs
 namespace namespace
+nntpfs nntpfs
 plumber plumber
 ramfs ramfs
 rdbfs rdbfs
-recover recover
 rio rio
 sacfs sacfs
 snap snap
@@ -52,6 +53,3 @@ telco telco
 telcodata telco
 telcofax telco
 u9fs u9fs
-usb usb
-usbd usb
-usbmouse usb

@@ -110,7 +110,11 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 		if(pagedout(*pg))
 			pio(s, addr, soff, pg);
 
-		if(read && conf.copymode == 0) {
+		/*
+		 *  It's only possible to copy on write if
+		 *  we're the only user of the segment.
+		 */
+		if(read && conf.copymode == 0 && s->ref == 1) {
 			mmuphys = PPN((*pg)->pa)|PTERONLY|PTEVALID;
 			(*pg)->modref |= PG_REF;
 			break;
@@ -146,7 +150,7 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 
 			unlock(lkp);
 		}
-		mmuphys = PPN((*pg)->pa) | PTEWRITE|PTEVALID;
+		mmuphys = PPN((*pg)->pa) | PTEWRITE | PTEVALID;
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
 

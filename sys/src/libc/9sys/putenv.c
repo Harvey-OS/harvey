@@ -5,10 +5,14 @@ int
 putenv(char *name, char *val)
 {
 	int f;
-	char ename[NAMELEN+6];
+	char ename[100];
 	long s;
 
-	sprint(ename, "/env/%s", name);
+	if(strchr(name, '/') != nil)
+		return -1;
+	snprint(ename, sizeof ename, "/env/%s", name);
+	if(strcmp(ename+5, name) != 0)
+		return -1;
 	f = create(ename, OWRITE, 0664);
 	if(f < 0)
 		return -1;

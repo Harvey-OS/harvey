@@ -38,7 +38,7 @@ and stores the integer part indirectly
 through
 .IR iptr .
 .SH SOURCE
-.B /sys/src/libc/$objtype/frexp.c
+.B /sys/src/libc/port/frexp.c
 .SH SEE ALSO
 .IR intro (2)
 .SH DIAGNOSTICS

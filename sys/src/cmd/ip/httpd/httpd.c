@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <auth.h>
 #include "httpd.h"
-#include "can.h"
+#include "httpsrv.h"
 
 typedef struct Endpoints	Endpoints;
 typedef struct Strings		Strings;
@@ -21,35 +21,22 @@ struct Strings
 	char	*s2;
 };
 
-/*
- * import from parse.c
- */
-extern	Can		*httpcan;
+char	*netdir;
+char	*webroot;
+char	*HTTPLOG = "httpd/log";
 
-static	char*		abspath(char*, char*);
+static	char		netdirb[256];
+static	char		*namespace;
+
 static	void		becomenone(char*);
 static	char		*csquery(char*, char*, char*);
 static	void		dolisten(char*);
-static	int		getc(Connect*);
-static	char*		getword(Connect*);
-static	Strings		parseuri(char*);
-static	int		send(Connect*);
-static	Strings		stripmagic(char*);
+static	int		doreq(HConnect*);
+static	int		send(HConnect*);
+static	Strings		stripmagic(HConnect*, char*);
 static	char*		stripprefix(char*, char*);
-static	Strings		stripsearch(char*);
 static	char*		sysdom(void);
 static	Endpoints*	getendpoints(char*);
-static	int		parsereq(Connect *c);
-
-/*
- * these should be done better; see the reponse codes in /lib/rfc/rfc2616 for
- * more info on what should be included.
- */
-#define UNAUTHED	"You are not authorized to see this area.\n"
-#define NOCONTENT	"No acceptable type of data is available.\n"
-#define NOENCODE	"No acceptable encoding of the contents is available.\n"
-#define UNMATCHED	"The entity requested does not match the existing entity.\n"
-#define BADRANGE	"No bytes are avaible for the range you requested.\n"
 
 void
 usage(void)
@@ -65,11 +52,11 @@ main(int argc, char **argv)
 
 	namespace = nil;
 	address = nil;
-	mydomain = nil;
-	strcpy(netdir, "/net");
-	fmtinstall('D', dateconv);
+	hmydomain = nil;
+	netdir = "/net";
+	fmtinstall('D', hdateconv);
 	fmtinstall('H', httpconv);
-	fmtinstall('U', urlconv);
+	fmtinstall('U', hurlconv);
 	ARGBEGIN{
 	case 'n':
 		namespace = ARGF();
@@ -78,7 +65,7 @@ main(int argc, char **argv)
 		address = ARGF();
 		break;
 	case 'd':
-		mydomain = ARGF();
+		hmydomain = ARGF();
 		break;
 	case 'w':
 		webroot = ARGF();
@@ -116,8 +103,8 @@ main(int argc, char **argv)
 	 * open all files we might need before castrating namespace
 	 */
 	time(nil);
-	if(mydomain == nil)
-		mydomain = sysdom();
+	if(hmydomain == nil)
+		hmydomain = sysdom();
 	syslog(0, HTTPLOG, nil);
 	logall[0] = open("/sys/log/httpd/0", OWRITE);
 	logall[1] = open("/sys/log/httpd/1", OWRITE);
@@ -146,41 +133,53 @@ becomenone(char *namespace)
 		sysfatal("can't build httpd namespace");
 }
 
-static Connect*
+static HConnect*
 mkconnect(void)
 {
-	Connect *c;
+	HConnect *c;
 
-	c = ezalloc(sizeof(Connect));
+	c = ezalloc(sizeof(HConnect));
 	c->hpos = c->header;
 	c->hstop = c->header;
+	c->replog = writelog;
 	return c;
+}
+
+static HSPriv*
+mkhspriv(void)
+{
+	HSPriv *p;
+
+	p = ezalloc(sizeof(HSPriv));
+	return p;
 }
 
 static void
 dolisten(char *address)
 {
-	Connect *c;
+	HSPriv *hp;
+	HConnect *c;
 	Endpoints *ends;
 	char ndir[NETPATHLEN], dir[NETPATHLEN], *p;
-	int ctl, nctl, data;
-	int spotchk = 0;
+	int ctl, nctl, data, t, ok, spotchk;
 
+	spotchk = 0;
 	syslog(0, HTTPLOG, "httpd starting");
 	ctl = announce(address, dir);
 	if(ctl < 0){
 		syslog(0, HTTPLOG, "can't announce on %s: %r", address);
 		return;
 	}
-	strcpy(netdir, dir);
+	strcpy(netdirb, dir);
 	p = nil;
 	if(netdir[0] == '/'){
-		p = strchr(netdir+1, '/');
+		p = strchr(netdirb+1, '/');
 		if(p != nil)
 			*p = '\0';
 	}
 	if(p == nil)
-		strcpy(netdir, "/net");
+		strcpy(netdirb, "/net");
+	netdir = netdirb;
 
 	for(;;){
 
@@ -191,7 +190,6 @@ dolisten(char *address)
 		if(nctl < 0){
 			syslog(0, HTTPLOG, "can't listen on %s: %r", address);
 			syslog(0, HTTPLOG, "ctls = %d", ctl);
-			for(;;)sleep(1000);
 			return;
 		}
 
@@ -220,12 +218,29 @@ dolisten(char *address)
 
 			ends = getendpoints(ndir);
 			c = mkconnect();
-			c->remotesys = ends->rsys;
+			hp = mkhspriv();
+			hp->remotesys = ends->rsys;
+			hp->remoteserv = ends->rserv;
+			c->private = hp;
 
 			hinit(&c->hin, 0, Hread);
 			hinit(&c->hout, 1, Hwrite);
 
-			parsereq(c);
+			/*
+			 * serve requests until a magic request.
+			 * later requests have to come quickly.
+			 * only works for http/1.1 or later.
+			 */
+			for(t = 15*60*1000; ; t = 15*1000){
+				if(hparsereq(c, t) <= 0)
+					exits(nil);
+				ok = doreq(c);
+
+				if(c->head.closeit || ok < 0)
+					exits(nil);
+
+				hreqcleanup(c);
+			}
 
 			exits(nil);
 		default:
@@ -244,209 +259,83 @@ dolisten(char *address)
 }
 
 static int
-parsereq(Connect *c)
+doreq(HConnect *c)
 {
+	HSPriv *hp;
 	Strings ss;
-	char *vs, *v, *magic, *search, *uri, *origuri, *extra, *newpath;
-	char virtualhost[100], logfd0[10], logfd1[10];
-	int t, n, ok;
-
-	if(httpcan != nil){
-		logit(c, "starting request with request data allocated");
-		fail(c, Internal);
-	}
+	char *magic, *uri, *origuri, *newpath, *hb;
+	char virtualhost[100], logfd0[10], logfd1[10], vers[16];
+	int n;
 
 	/*
-	 * serve requests until a magic request.
-	 * later requests have to come quickly.
-	 * only works for http/1.1 or later.
+	 * munge uri for magic
 	 */
-	for(t = 15*60*1000; ; t = 15*1000){
-		alarm(t);
-		if(!gethead(c, 0))
-			return 0;
-		alarm(0);
-		c->reqtime = time(nil);
-		c->req.meth = getword(c);
-		if(c->req.meth == nil)
-			return fail(c, Syntax);
-		uri = getword(c);
-		if(uri == nil || strlen(uri) == 0)
-			return fail(c, Syntax);
-		v = getword(c);
-		if(v == nil){
-			if(strcmp(c->req.meth, "GET") != 0)
-				return fail(c, Unimp, c->req.meth);
-			c->req.vermaj = 0;
-			c->req.vermin = 9;
-		}else{
-			vs = v;
-			if(strncmp(vs, "HTTP/", 5) != 0)
-				return fail(c, UnkVers, vs);
-			vs += 5;
-			c->req.vermaj = strtoul(vs, &vs, 10);
-			if(*vs != '.' || c->req.vermaj != 1)
-				return fail(c, UnkVers, vs);
-			vs++;
-			c->req.vermin = strtoul(vs, &vs, 10);
-			if(*vs != '\0')
-				return fail(c, UnkVers, vs);
-
-			extra = getword(c);
-			if(extra != nil)
-				return fail(c, Syntax);
-		}
-
-		/*
-		 * the fragment is not supposed to be sent
-		 * strip it 'cause some clients send it
-		 */
-		origuri = uri;
-		uri = strchr(origuri, '#');
-		if(uri != nil)
-			*uri = 0;
-
-		/*
-		 * http/1.1 requires the server to accept absolute
-		 * or relative uri's.  convert to relative with an absolute path
-		 */
-		if(http11(c)){
-			ss = parseuri(origuri);
-			uri = ss.s1;
-			c->req.urihost = ss.s2;
-			if(uri == nil)
-				return fail(c, BadReq, uri);
-			origuri = uri;
-		}
-
-		/*
-		 * munge uri for search, protection, and magic
-		 */
-		ss = stripsearch(origuri);
-		origuri = ss.s1;
-		search = ss.s2;
-		uri = urlunesc(origuri);
-		uri = abspath(uri, "/");
-		if(uri == nil || uri[0] == 0)
-			return fail(c, NotFound, "no object specified");
-		ss = stripmagic(uri);
-		uri = ss.s1;
-		magic = ss.s2;
-
-		c->req.uri = uri;
-		c->req.search = search;
-		if(magic != nil && strcmp(magic, "httpd") != 0)
-			break;
-
-		/*
-		 * normal case is just file transfer
-		 */
-		origuri = uri;
-		httpheaders(c);
-		if(!http11(c) && !c->head.persist)
-			c->head.closeit = 1;
-
-		if(origuri[0]=='/' && origuri[1]=='~'){
-			n = strlen(origuri) + 4 + UTFmax;
-			newpath = halloc(n);
-			snprint(newpath, n, "/who/%s", origuri+2);
-			c->req.uri = newpath;
-			uri = newpath;
-		}else if(origuri[0]=='/' && origuri[1]==0){
-			snprint(virtualhost, sizeof virtualhost, "http://%s/", c->head.host);
-			uri = redirect(virtualhost);
-			if(uri == nil)
-				uri = redirect(origuri);
-		}else
-			uri = redirect(origuri);
-		if(uri == nil)
-			ok = send(c);
-		else
-			ok = moved(c, uri);
-
-		if(c->head.closeit || ok < 0)
-			exits(nil);
-
-		/*
-		 * clean up all of the junk from that request
-		 */
-		hxferenc(&c->hout, 0);
-		hflush(&c->hout);
-		reqcleanup(c);
-	}
+	uri = c->req.uri;
+	ss = stripmagic(c, uri);
+	uri = ss.s1;
+	magic = ss.s2;
 
 	/*
 	 * for magic we exec a new program and serve no more requests
 	 */
-	snprint(c->xferbuf, BufSize, "/bin/ip/httpd/%s", magic);
-	snprint(logfd0, sizeof(logfd0), "%d", logall[0]);
-	snprint(logfd1, sizeof(logfd1), "%d", logall[1]);
-	execl(c->xferbuf, magic, "-d", mydomain, "-w", webroot, "-r", c->remotesys, "-N", netdir, "-b", hunload(&c->hin),
-		"-L", logfd0, logfd1, "-R", c->header,
-		c->req.meth, v, uri, search, nil);
-	logit(c, "no magic %s uri %s", magic, uri);
-	return fail(c, NotFound, origuri);
-}
-
-static Strings
-parseuri(char *uri)
-{
-	Strings ss;
-	char *urihost, *p;
-
-	urihost = nil;
-	if(uri[0] != '/'){
-		if(cistrncmp(uri, "http://", 7) != 0){
-			ss.s1 = nil;
-			ss.s2 = nil;
-			return ss;
-		}
-		uri += 5;	/* skip http: */
+	if(magic != nil && strcmp(magic, "httpd") != 0){
+		snprint(c->xferbuf, HBufSize, "/bin/ip/httpd/%s", magic);
+		snprint(logfd0, sizeof(logfd0), "%d", logall[0]);
+		snprint(logfd1, sizeof(logfd1), "%d", logall[1]);
+		snprint(vers, sizeof(vers), "HTTP/%d.%d", c->req.vermaj, c->req.vermin);
+		hb = hunload(&c->hin);
+		if(hb == nil)
+			hfail(c, HInternal);
+		hp = c->private;
+		execl(c->xferbuf, magic, "-d", hmydomain, "-w", webroot, "-r", hp->remotesys, "-N", netdir, "-b", hb,
+			"-L", logfd0, logfd1, "-R", c->header,
+			c->req.meth, vers, uri, c->req.search, nil);
+		logit(c, "no magic %s uri %s", magic, uri);
+		hfail(c, HNotFound, uri);
+		return -1;
 	}
 
 	/*
-	 * anything starting with // is a host name or number
-	 * hostnames constists of letters, digits, - and .
-	 * for now, just ignore any port given
+	 * normal case is just file transfer
 	 */
-	if(uri[0] == '/' && uri[1] == '/'){
-		urihost = uri + 2;
-		p = strchr(urihost, '/');
-		if(p == nil)
-			uri = hstrdup("/");
-		else{
-			uri = hstrdup(p);
-			*p = '\0';
-		}
-		p = strchr(urihost, ':');
-		if(p != nil)
-			*p = '\0';
-	}
+	origuri = uri;
+	if(hparseheaders(c, 15*60*1000) < 0)
+		exits("failed");
+	if(!http11(c) && !c->head.persist)
+		c->head.closeit = 1;
 
-	if(uri[0] != '/' || uri[1] == '/'){
-		ss.s1 = nil;
-		ss.s2 = nil;
-		return ss;
-	}
+	if(origuri[0]=='/' && origuri[1]=='~'){
+		n = strlen(origuri) + 4 + UTFmax;
+		newpath = halloc(c, n);
+		snprint(newpath, n, "/who/%s", origuri+2);
+		c->req.uri = newpath;
+		uri = newpath;
+	}else if(origuri[0]=='/' && origuri[1]==0){
+		snprint(virtualhost, sizeof virtualhost, "http://%s/", c->head.host);
+		uri = redirect(c, virtualhost);
+		if(uri == nil)
+			uri = redirect(c, origuri);
+	}else
+		uri = redirect(c, origuri);
 
-	ss.s1 = uri;
-	ss.s2 = lower(urihost);
-	return ss;
+	if(uri != nil)
+		return hmoved(c, uri);
+	return send(c);
 }
 
 static int
-send(Connect *c)
+send(HConnect *c)
 {
 	Dir dir;
 	char *w, *p;
 	int fd, fd1, n, force301, ok;
 
 	if(c->req.search)
-		return fail(c, NoSearch, c->req.uri);
+		return hfail(c, HNoSearch, c->req.uri);
 	if(strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0)
-		return unallowed(c, "GET, HEAD");
+		return hunallowed(c, "GET, HEAD");
 	if(c->head.expectother || c->head.expectcont)
-		return fail(c, ExpectFail);
+		return hfail(c, HExpectFail);
 
 	ok = authcheck(c);
 	if(ok <= 0)
@@ -457,7 +346,7 @@ send(Connect *c)
 	 * and send any redirections.
 	 */
 	n = strlen(webroot) + strlen(c->req.uri) + STRLEN("/index.html") + 1;
-	w = halloc(n);
+	w = halloc(c, n);
 	strcpy(w, webroot);
 	strcat(w, c->req.uri);
 	fd = open(w, OREAD);
@@ -465,7 +354,7 @@ send(Connect *c)
 		return notfound(c, c->req.uri);
 	if(dirfstat(fd, &dir) < 0){
 		close(fd);
-		return fail(c, Internal);
+		return hfail(c, HInternal);
 	}
 	p = strchr(w, '\0');
 	if(dir.mode & CHDIR){
@@ -485,28 +374,25 @@ send(Connect *c)
 		if(force301 && c->req.vermaj){
 			close(fd);
 			close(fd1);
-			return moved(c, c->req.uri);
+			return hmoved(c, c->req.uri);
 		}
 		close(fd);
 		fd = fd1;
 		if(dirfstat(fd, &dir) < 0){
 			close(fd);
-			return fail(c, Internal);
+			return hfail(c, HInternal);
 		}
 	}else if(p > w && p[-1] == '/'){
 		close(fd);
 		*strrchr(c->req.uri, '/') = '\0';
-		return moved(c, c->req.uri);
+		return hmoved(c, c->req.uri);
 	}
-
-	if(verbose)
-		logit(c, "%s %s %lld", c->req.meth, c->req.uri, dir.length);
 
 	return sendfd(c, fd, &dir, nil, nil);
 }
 
 static Strings
-stripmagic(char *uri)
+stripmagic(HConnect *hc, char *uri)
 {
 	Strings ss;
 	char *newuri, *prog, *s;
@@ -522,7 +408,7 @@ stripmagic(char *uri)
 	if(s == nil)
 		newuri = "";
 	else{
-		newuri = hstrdup(s);
+		newuri = hstrdup(hc, s);
 		*s = 0;
 		s = strrchr(s, '/');
 		if(s != nil && s[1] == 0)
@@ -540,119 +426,6 @@ stripprefix(char *pre, char *str)
 		if(*str++ != *pre++)
 			return nil;
 	return str;
-}
-
-static Strings
-stripsearch(char *uri)
-{
-	Strings ss;
-	char *search;
-
-	search = strchr(uri, '?');
-	if(search != nil)
-		*search++ = 0;
-	ss.s1 = uri;
-	ss.s2 = search;
-	return ss;
-}
-
-/*
- *  to circumscribe the accessible files we have to eliminate ..'s
- *  and resolve all names from the root.
- */
-static char*
-abspath(char *origpath, char *curdir)
-{
-	char *p, *sp, *path, *work, *rpath;
-	int len, n, c;
-
-	if(curdir == nil)
-		curdir = "/";
-	if(origpath == nil)
-		origpath = "";
-	work = hstrdup(origpath);
-	path = work;
-
-	/*
-	 * remove any really special characters
-	 */
-	for(sp = "`;| "; *sp; sp++){
-		p = strchr(path, *sp);
-		if(p)
-			*p = 0;
-	}
-
-	len = strlen(curdir) + strlen(path) + 2 + UTFmax;
-	if(len < 10)
-		len = 10;
-	rpath = halloc(len);
-	if(*path == '/')
-		rpath[0] = 0;
-	else
-		strcpy(rpath, curdir);
-	n = strlen(rpath);
-
-	while(path){
-		p = strchr(path, '/');
-		if(p)
-			*p++ = 0;
-		if(strcmp(path, "..") == 0){
-			while(n > 1){
-				n--;
-				c = rpath[n];
-				rpath[n] = 0;
-				if(c == '/')
-					break;
-			}
-		} else if(strcmp(path, ".") == 0)
-			;
-		else if(n == 1)
-			n += snprint(rpath+n, len-n, "%s", path);
-		else
-			n += snprint(rpath+n, len-n, "/%s", path);
-		path = p;
-	}
-
-	if(strncmp(rpath, "/bin/", 5) == 0)
-		strcpy(rpath, "/");
-	return rpath;
-}
-
-static char*
-getword(Connect *c)
-{
-	char buf[MaxWord];
-	int ch, n;
-
-	while((ch = getc(c)) == ' ' || ch == '\t' || ch == '\r')
-		;
-	buf[0] = '\0';
-	if(ch == '\n')
-		return nil;
-	n = 0;
-	for(;;){
-		switch(ch){
-		case ' ':
-		case '\t':
-		case '\r':
-		case '\n':
-			buf[n] = '\0';
-			return hstrdup(buf);
-		}
-
-		if(n < MaxWord-1)
-			buf[n++] = ch;
-		ch = getc(c);
-	}
-	return nil;
-}
-
-static int
-getc(Connect *c)
-{
-	if(c->hpos < c->hstop)
-		return *c->hpos++;
-	return '\n';
 }
 
 static char*

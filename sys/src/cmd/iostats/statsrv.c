@@ -663,7 +663,7 @@ slavewrite(Fsrpc *p)
 }
 
 void
-fileseek(Fid *f, ulong offset)
+fileseek(Fid *f, vlong offset)
 {
 	char chunk[DIRCHUNK];
 	int n, nbytes, r;

@@ -1,6 +1,6 @@
 .TH SUM 1
 .SH NAME
-sum, md5sum \- sum and count blocks in a file
+sum, md5sum, sha1sum \- sum and count blocks in a file
 .SH SYNOPSIS
 .B sum
 [
@@ -11,6 +11,11 @@ sum, md5sum \- sum and count blocks in a file
 ]
 .PP
 .B md5sum
+[
+.I file ...
+]
+.PP
+.B sha1sum
 [
 .I file ...
 ]
@@ -52,10 +57,21 @@ If no
 are given,
 the standard input is
 summed.
+.PP
+.B Sha1sum
+computes the 40 hex digit National Institute of Standards and Technology SHA1 secure hash algorithm
+described in FIPS PUB 180-1.
+If no
+.I files
+are given,
+the standard input is
+summed.
 .SH SOURCE
 .B /sys/src/cmd/sum.c
 .br
 .B /sys/src/cmd/md5sum.c
+.br
+.B /sys/src/cmd/sha1sum.c
 .SH "SEE ALSO"
 .IR cmp (1),
 .IR wc (1)

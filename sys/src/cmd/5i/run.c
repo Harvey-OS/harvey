@@ -27,6 +27,7 @@ void	Idp3(ulong);
 
 void	Imul(ulong);
 void	Imula(ulong);
+void	Imull(ulong);
 
 void	Iswap(ulong);
 void	Imem1(ulong);
@@ -38,107 +39,113 @@ void	Ibl(ulong);
 
 void	Ssyscall(ulong);
 
-Inst itab[89] =
+Inst itab[] =
 {
-	{ Idp0,		"AND" },	/* 00 - r,r,r */
-	{ Idp0,		"EOR" },	/* 01 */
-	{ Idp0,		"SUB" },	/* 02 */
-	{ Idp0,		"RSB" },	/* 03 */
-	{ Idp0,		"ADD" },	/* 04 */
-	{ Idp0,		"ADC" },	/* 05 */
-	{ Idp0,		"SBC" },	/* 06 */
-	{ Idp0,		"RSC" },	/* 07 */
-	{ Idp0,		"TST" },	/* 08 */
-	{ Idp0,		"TEQ" },	/* 09 */
+	{ Idp0,		"AND",	Iarith },	/* 00 - r,r,r */
+	{ Idp0,		"EOR",	Iarith },	/* 01 */
+	{ Idp0,		"SUB",	Iarith },	/* 02 */
+	{ Idp0,		"RSB",	Iarith },	/* 03 */
+	{ Idp0,		"ADD",	Iarith },	/* 04 */
+	{ Idp0,		"ADC",	Iarith },	/* 05 */
+	{ Idp0,		"SBC",	Iarith },	/* 06 */
+	{ Idp0,		"RSC",	Iarith },	/* 07 */
+	{ Idp0,		"TST",	Iarith },	/* 08 */
+	{ Idp0,		"TEQ",	Iarith },	/* 09 */
 
-	{ Idp0,		"CMP" },	/* 10 */
-	{ Idp0,		"CMN" },	/* 11 */
-	{ Idp0,		"ORR" },	/* 12 */
-	{ Idp0,		"MOV" },	/* 13 */
-	{ Idp0,		"BIC" },	/* 14 */
-	{ Idp0,		"MVN" },	/* 15 */
-	{ Idp1,		"AND" },	/* 16 */
-	{ Idp1,		"EOR" },	/* 17 */
-	{ Idp1,		"SUB" },	/* 18 */
-	{ Idp1,		"RSB" },	/* 19 */
+	{ Idp0,		"CMP",	Iarith },	/* 10 */
+	{ Idp0,		"CMN",	Iarith },	/* 11 */
+	{ Idp0,		"ORR",	Iarith },	/* 12 */
+	{ Idp0,		"MOV",	Iarith },	/* 13 */
+	{ Idp0,		"BIC",	Iarith },	/* 14 */
+	{ Idp0,		"MVN",	Iarith },	/* 15 */
+	{ Idp1,		"AND",	Iarith },	/* 16 */
+	{ Idp1,		"EOR",	Iarith },	/* 17 */
+	{ Idp1,		"SUB",	Iarith },	/* 18 */
+	{ Idp1,		"RSB",	Iarith },	/* 19 */
 
-	{ Idp1,		"ADD" },	/* 20 */
-	{ Idp1,		"ADC" },	/* 21 */
-	{ Idp1,		"SBC" },	/* 22 */
-	{ Idp1,		"RSC" },	/* 23 */
-	{ Idp1,		"TST" },	/* 24 */
-	{ Idp1,		"TEQ" },	/* 25 */
-	{ Idp1,		"CMP" },	/* 26 */
-	{ Idp1,		"CMN" },	/* 27 */
-	{ Idp1,		"ORR" },	/* 28 */
-	{ Idp1,		"MOV" },	/* 29 */
+	{ Idp1,		"ADD",	Iarith },	/* 20 */
+	{ Idp1,		"ADC",	Iarith },	/* 21 */
+	{ Idp1,		"SBC",	Iarith },	/* 22 */
+	{ Idp1,		"RSC",	Iarith },	/* 23 */
+	{ Idp1,		"TST",	Iarith },	/* 24 */
+	{ Idp1,		"TEQ",	Iarith },	/* 25 */
+	{ Idp1,		"CMP",	Iarith },	/* 26 */
+	{ Idp1,		"CMN",	Iarith },	/* 27 */
+	{ Idp1,		"ORR",	Iarith },	/* 28 */
+	{ Idp1,		"MOV",	Iarith },	/* 29 */
 
-	{ Idp1,		"BIC" },	/* 30 */
-	{ Idp1,		"MVN" },	/* 31 */
-	{ Idp2,		"AND" },	/* 32 */
-	{ Idp2,		"EOR" },	/* 33 */
-	{ Idp2,		"SUB" },	/* 34 */
-	{ Idp2,		"RSB" },	/* 35 */
-	{ Idp2,		"ADD" },	/* 36 */
-	{ Idp2,		"ADC" },	/* 37 */
-	{ Idp2,		"SBC" },	/* 38 */
-	{ Idp2,		"RSC" },	/* 39 */
+	{ Idp1,		"BIC",	Iarith },	/* 30 */
+	{ Idp1,		"MVN",	Iarith },	/* 31 */
+	{ Idp2,		"AND",	Iarith },	/* 32 */
+	{ Idp2,		"EOR",	Iarith },	/* 33 */
+	{ Idp2,		"SUB",	Iarith },	/* 34 */
+	{ Idp2,		"RSB",	Iarith },	/* 35 */
+	{ Idp2,		"ADD",	Iarith },	/* 36 */
+	{ Idp2,		"ADC",	Iarith },	/* 37 */
+	{ Idp2,		"SBC",	Iarith },	/* 38 */
+	{ Idp2,		"RSC",	Iarith },	/* 39 */
 
-	{ Idp2,		"TST" },	/* 40 */
-	{ Idp2,		"TEQ" },	/* 41 */
-	{ Idp2,		"CMP" },	/* 42 */
-	{ Idp2,		"CMN" },	/* 43 */
-	{ Idp2,		"ORR" },	/* 44 */
-	{ Idp2,		"MOV" },	/* 45 */
-	{ Idp2,		"BIC" },	/* 46 */
-	{ Idp2,		"MVN" },	/* 47 */
-	{ Idp3,		"AND" },	/* 48 - i,r,r */
-	{ Idp3,		"EOR" },	/* 49 */
+	{ Idp2,		"TST",	Iarith },	/* 40 */
+	{ Idp2,		"TEQ",	Iarith },	/* 41 */
+	{ Idp2,		"CMP",	Iarith },	/* 42 */
+	{ Idp2,		"CMN",	Iarith },	/* 43 */
+	{ Idp2,		"ORR",	Iarith },	/* 44 */
+	{ Idp2,		"MOV",	Iarith },	/* 45 */
+	{ Idp2,		"BIC",	Iarith },	/* 46 */
+	{ Idp2,		"MVN",	Iarith },	/* 47 */
+	{ Idp3,		"AND",	Iarith },	/* 48 - i,r,r */
+	{ Idp3,		"EOR",	Iarith },	/* 49 */
 
-	{ Idp3,		"SUB" },	/* 50 */
-	{ Idp3,		"RSB" },	/* 51 */
-	{ Idp3,		"ADD" },	/* 52 */
-	{ Idp3,		"ADC" },	/* 53 */
-	{ Idp3,		"SBC" },	/* 54 */
-	{ Idp3,		"RSC" },	/* 55 */
-	{ Idp3,		"TST" },	/* 56 */
-	{ Idp3,		"TEQ" },	/* 57 */
-	{ Idp3,		"CMP" },	/* 58 */
-	{ Idp3,		"CMN" },	/* 59 */
+	{ Idp3,		"SUB",	Iarith },	/* 50 */
+	{ Idp3,		"RSB",	Iarith },	/* 51 */
+	{ Idp3,		"ADD",	Iarith },	/* 52 */
+	{ Idp3,		"ADC",	Iarith },	/* 53 */
+	{ Idp3,		"SBC",	Iarith },	/* 54 */
+	{ Idp3,		"RSC",	Iarith },	/* 55 */
+	{ Idp3,		"TST",	Iarith },	/* 56 */
+	{ Idp3,		"TEQ",	Iarith },	/* 57 */
+	{ Idp3,		"CMP",	Iarith },	/* 58 */
+	{ Idp3,		"CMN",	Iarith },	/* 59 */
 
-	{ Idp3,		"ORR" },	/* 60 */
-	{ Idp3,		"MOV" },	/* 61 */
-	{ Idp3,		"BIC" },	/* 62 */
-	{ Idp3,		"MVN" },	/* 63 */
-	{ Imul,		"MUL" },	/* 64 */
-	{ Imula,	"MULA" },	/* 65 */
+	{ Idp3,		"ORR",	Iarith },	/* 60 */
+	{ Idp3,		"MOV",	Iarith },	/* 61 */
+	{ Idp3,		"BIC",	Iarith },	/* 62 */
+	{ Idp3,		"MVN",	Iarith },	/* 63 */
+	{ Imul,		"MUL",	Iarith },	/* 64 */
+	{ Imula,	"MULA",	Iarith },	/* 65 */
 
-	{ Iswap,	"SWPW" },	/* 66 */
-	{ Iswap,	"SWPBU" },	/* 67 */
+	{ Iswap,	"SWPW",	Imem },	/* 66 */
+	{ Iswap,	"SWPBU",	Imem },	/* 67 */
 
-	{ Imem2,	"MOV" },	/* 68 load/store h/sb */
-	{ Imem2,	"MOV" },	/* 69 */
-	{ Imem2,	"MOV" },	/* 70 */
-	{ Imem2,	"MOV" },	/* 71 */
+	{ Imem2,	"MOV",	Imem },	/* 68 load/store h/sb */
+	{ Imem2,	"MOV",	Imem },	/* 69 */
+	{ Imem2,	"MOV",	Imem },	/* 70 */
+	{ Imem2,	"MOV",	Imem },	/* 71 */
 
-	{ Imem1,	"MOVW" },	/* 72 load/store w/ub i,r */
-	{ Imem1,	"MOVB" },	/* 73 */
-	{ Imem1,	"MOVW" },	/* 74 */
-	{ Imem1,	"MOVB" },	/* 75 */
-	{ Imem1,	"MOVW" },	/* 76 load/store r,r */
-	{ Imem1,	"MOVB" },	/* 77 */
-	{ Imem1,	"MOVW" },	/* 78 */
-	{ Imem1,	"MOVB" },	/* 79 */
+	{ Imem1,	"MOVW",	Imem },	/* 72 load/store w/ub i,r */
+	{ Imem1,	"MOVB",	Imem },	/* 73 */
+	{ Imem1,	"MOVW",	Imem },	/* 74 */
+	{ Imem1,	"MOVB",	Imem },	/* 75 */
+	{ Imem1,	"MOVW",	Imem },	/* 76 load/store r,r */
+	{ Imem1,	"MOVB",	Imem },	/* 77 */
+	{ Imem1,	"MOVW",	Imem },	/* 78 */
+	{ Imem1,	"MOVB",	Imem },	/* 79 */
 
-	{ Ilsm,		"LDM" },	/* 80 block move r,r */
-	{ Ilsm,		"STM" },	/* 81 */
-	{ Ib,		"B" },		/* 82 branch */
-	{ Ibl,		"BL" },		/* 83 */
-	{ Ssyscall,	"SWI" },	/* 84 co processor */
-	{ undef },			/* 85 */
-	{ undef },			/* 86 */
-	{ undef },			/* 87 */
-	{ undef },			/* 88 */
+	{ Ilsm,		"LDM",	Imem },	/* 80 block move r,r */
+	{ Ilsm,		"STM",	Imem },	/* 81 */
+	{ Ib,		"B",	Ibranch },		/* 82 branch */
+	{ Ibl,		"BL",	Ibranch },		/* 83 */
+	{ Ssyscall,	"SWI",	Isyscall },	/* 84 co processor */
+	{ undef,	"undef" },	/* 85 */
+	{ undef,	"undef" },	/* 86 */
+	{ undef,	"undef"  },	/* 87 */
+	{ Imull,	"MULLU",	Iarith },	/* 88 */
+	{ Imull,	"MULALU",	Iarith },	/* 89 */
+	{ Imull,	"MULL",	Iarith  },	/* 90 */
+	{ Imull,	"MULAL",	Iarith  },	/* 91 */
+	{ undef,	"undef"  },	/* 92 */
+
+	{ 0 }
 };
 
 int
@@ -149,6 +156,8 @@ runcmp(void)
 	case 0x1:	/* ne */	return (reg.cc1 != reg.cc2);
 	case 0x2:	/* hs */	return ((ulong)reg.cc1 >= (ulong)reg.cc2);
 	case 0x3:	/* lo */	return ((ulong)reg.cc1 < (ulong)reg.cc2);
+	case 0x4:	/* mi */	return (reg.cc1 - reg.cc2 < 0);
+	case 0x5:	/* pl */	return (reg.cc1 - reg.cc2 >= 0);
 	case 0x8:	/* hi */	return ((ulong)reg.cc1 > (ulong)reg.cc2);
 	case 0x9:	/* ls */	return ((ulong)reg.cc1 <= (ulong)reg.cc2);
 	case 0xa:	/* ge */	return (reg.cc1 >= reg.cc2);
@@ -261,6 +270,13 @@ dpex(long inst, long o1, long o2, int rd)
 		}
 		return;
 	case  4:	/* add */
+		if(calltree && rd == REGPC && o2 == 0) {
+			Symbol s;
+
+			findsym(o1 + o2, CTEXT, &s);
+			Bprint(bioout, "%8lux return to %lux %s r0=%lux\n",
+						reg.r[REGPC], o1 + o2, s.name, reg.r[REGRET]);
+		}
 		reg.r[rd] = o1 + o2;
 		if(inst & Sbit) {
 			reg.cc1 = -o2;
@@ -481,6 +497,39 @@ Imul(ulong inst)
 		itrace("%s%s\tR%d,R%d,R%d =#%x",
 			reg.ip->name, cond[reg.cond], rs, rm, rd,
 			reg.r[rd]);
+}
+
+void
+Imull(ulong inst)
+{
+	vlong v;
+	int rs, rd, rm, rn;
+
+	rd = (inst>>16) & 0xf;
+	rn = (inst>>12) & 0xf;
+	rs = (inst>>8) & 0xf;
+	rm = inst & 0xf;
+
+	if(rd == REGPC || rn == REGPC || rs == REGPC || rm == REGPC
+	|| rd == rm || rn == rm || rd == rn)
+		undef(inst);
+
+	if(inst & (1<<22)){
+		v = (vlong)reg.r[rm] * (vlong)reg.r[rs];
+		if(inst & (1 << 21))
+			v += reg.r[rn];
+	}else{
+		v = (uvlong)(ulong)reg.r[rm] * (uvlong)(ulong)reg.r[rs];
+		if(inst & (1 << 21))
+			v += (ulong)reg.r[rn];
+	}
+	reg.r[rd] = v >> 32;
+	reg.r[rn] = v;
+
+	if(trace)
+		itrace("%s%s\tR%d,R%d,(R%d,R%d) =#%llx",
+			reg.ip->name, cond[reg.cond], rs, rm, rn, rd,
+			v);
 }
 
 void

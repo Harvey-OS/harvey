@@ -186,7 +186,7 @@ char *negstr = "negotiating authentication method";
 void
 remoteside(void)
 {
-	char user[NAMELEN], home[128], buf[128], xdir[128], cmd[128];
+	char user[NAMELEN], home[128], buf[128], xdir[128], cmd[128], err[128];
 	int i, n, fd, badchdir, gotcmd;
 
 	fd = 0;
@@ -196,7 +196,8 @@ remoteside(void)
 	if(n < 0)
 		fatal(1, "authenticating");
 	if(setamalg(cmd) < 0){
-		writestr(fd, "unsupported auth method", nil, 0);
+		snprint(err, sizeof err, "unsupported auth method '%s'", cmd);
+		writestr(fd, err, nil, 0);
 		fatal(1, "bad auth method %s", cmd);
 	} else
 		writestr(fd, "", "", 1);
@@ -240,8 +241,6 @@ remoteside(void)
 	n = read(fd, buf, sizeof(buf));
 	if(n != 2 || buf[0] != 'O' || buf[1] != 'K')
 		exits("remote tree");
-
-	fd = dup(fd, -1);
 
 	/* push fcall and note proc */
 	if(fflag)
@@ -301,12 +300,13 @@ rexcall(int *fd, char *host, char *service)
 		return negstr;
 	}
 
+	if(strstr(dir, "tcp"))
+		fflag = 1;
+
 	/* authenticate */
 	*fd = (*am->cf)(*fd);
 	if(*fd < 0)
 		return "can't authenticate";
-	if(strstr(dir, "tcp"))
-		fflag = 1;
 	return 0;
 }
 
@@ -433,6 +433,7 @@ p9auth(int fd)
 
 	if(authnonce(fd, key+4) < 0)
 		return -1;
+
 	if(ealgs == nil)
 		return fd;
 
@@ -449,6 +450,8 @@ p9auth(int fd)
 	sha1(key, sizeof(key), digest, nil);
 	mksecret(fromclientsecret, digest);
 	mksecret(fromserversecret, digest+10);
+
+	fflag = 0;
 
 	/* set up encryption */
 	return pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
@@ -482,6 +485,8 @@ srvp9auth(int fd, char *user)
 	sha1(key, sizeof(key), digest, nil);
 	mksecret(fromclientsecret, digest);
 	mksecret(fromserversecret, digest+10);
+
+	fflag = 0;
 
 	/* set up encryption */
 	return pushssl(fd, ealgs, fromserversecret, fromclientsecret, nil);
@@ -754,14 +759,17 @@ fsread(int fd, Fid *fid, Fcall *f)
 	default:
 		return -1;
 	case Qdir:
-		if(f->offset == 0 && f->count == DIRLEN){
+		if(f->offset == 0 && f->count >= DIRLEN){
 			memset(&d, 0, sizeof(d));
+			strcpy(d.name, fstab[Qcpunote].name);
+			strcpy(d.uid, getuser());
+			strcpy(d.gid, d.uid);
 			d.qid = fstab[Qcpunote].qid;
 			d.mode = fstab[Qcpunote].perm;
 			d.atime = d.mtime = time(0);
 			convD2M(&d, buf);
 			f->data = buf;
-			f->count = 0;
+			f->count = DIRLEN;
 		} else
 			f->count = 0;
 		return fsreply(fd, f);
@@ -867,6 +875,7 @@ nofids:
 				f.type = Rerror;
 				strcpy(f.ename, Eperm);
 			}
+			f.qid = fstab[fid->file].qid;
 			break;
 		case Tcreate:
 			f.type = Rerror;

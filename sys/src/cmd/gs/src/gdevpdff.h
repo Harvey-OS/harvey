@@ -1,22 +1,22 @@
-/* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevpdff.h,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevpdff.h,v 1.4 2000/09/19 19:00:17 lpd Exp $ */
 /* Font-related definitions for PDF-writing driver. */
 
 #ifndef gdevpdff_INCLUDED
@@ -32,41 +32,20 @@
  *	- Synthesized Type 3 bitmap fonts are identified by num_chars != 0 (or
  *	equivalently PDF_FONT_IS_SYNTHESIZED = true).  They have index < 0,
  *	FontDescriptor == 0.  All other fonts have num_chars == 0 and
- *	(currently) FontDescriptor != 0.
+ *	FontDescriptor != 0.
  *
  *	- The base 14 fonts (when not embedded) have num_chars == 0, index
  *	>= 0, FontDescriptor != 0, FontDescriptor->base_font == 0.  All
  *	other fonts have index < 0.
  *
- *	- All other fonts (Type 1 or TrueType, embedded or not) have
- *	num_chars == 0, index < 0, FontDescriptor != 0,
- *	FontDescriptor->base_font != 0.  A font is embedded iff
- *	FontDescriptor->FontFile_id != 0.
+ *	- All other fonts, embedded or not, have num_chars == 0, index < 0,
+ *	FontDescriptor != 0, FontDescriptor->base_font != 0.  A font is
+ *	embedded iff FontDescriptor->FontFile_id != 0.
  *
  * For non-synthesized fonts, the structure representation is designed to
  * represent directly the information that will be written in the font
  * resource, Encoding, and FontDescriptor dictionaries.  See the comments
  * on the pdf_font_t structure below for more detail.
- */
-
-/*
- * A FontDescriptor refers to an unscaled, possibly built-in base_font.
- * Multiple pdf_fonts with the same outlines (but possibly different
- * encodings, metrics, and scaling) may share a single FontDescriptor.
- * Each such pdf_font refers to a corresponding gs_font object, and
- * the gs_fonts of all such pdf_fonts will have the base_font of the
- * FontDescriptor as their eventual base font (through a chain of 0 or
- * more base pointers).
- *
- * Since gs_font objects may be freed at any time, we register a procedure
- * to be called when that happens.  The (gs_)font of a pdf_font may be freed
- * either before or after the base_font in the FontDescriptor.  Therefore, a
- * pdf_font copies enough information from its gs_font that when the gs_font
- * is freed, the pdf_font still has enough information to write the Font
- * resource dictionary at a later time.  When a gs_font referenced from a
- * pdf_font, we only clear the pointer to it from its referencing pdf_font.
- * However, when the base_font of a FontDescriptor is about to be freed, we
- * must write the FontDescriptor, and, if relevant, the FontFile data.
  */
 
 /*
@@ -82,8 +61,31 @@ typedef struct pdf_font_name_s {
     uint size;
 } pdf_font_name_t;
 
+/* ---------------- Font descriptor (pseudo-resource) ---------------- */
+
 /*
- * Font descriptors (handled as pseudo-resources).  Multiple pdf_fonts
+ * A FontDescriptor refers to an unscaled, possibly built-in base_font.
+ * Multiple pdf_fonts with the same outlines (but possibly different
+ * encodings, metrics, and scaling) may share a single FontDescriptor.
+ * Each such pdf_font refers to a corresponding gs_font object, and
+ * the gs_fonts of all such pdf_fonts will have the base_font of the
+ * FontDescriptor as their eventual base font (through a chain of 0 or
+ * more base pointers).
+ *
+ * Since gs_font objects may be freed at any time, we register a procedure
+ * to be called when that happens.  The (gs_)font of a pdf_font may be freed
+ * either before or after the base_font in the FontDescriptor.  Therefore, a
+ * pdf_font copies enough information from its gs_font that when the gs_font
+ * is freed, the pdf_font still has enough information to write the Font
+ * resource dictionary at a later time.  When freeing a gs_font referenced
+ * from a pdf_font, we only clear the pointer to it from its referencing
+ * pdf_font.  However, when the base_font of a FontDescriptor is about to be
+ * freed, we must write the FontDescriptor, and, if the font is embedded,
+ * the FontFile data.
+ */
+
+/*
+ * Font descriptors are handled as pseudo-resources.  Multiple pdf_fonts
  * may share a descriptor.  We don't need to use reference counting to
  * keep track of this, since all descriptors persist until the device
  * is closed, even though the base_font they reference may have been
@@ -98,13 +100,19 @@ typedef struct pdf_font_descriptor_values_s {
     /* Optional elements (default to 0) */
     int AvgWidth, Leading, MaxWidth, MissingWidth, StemH, XHeight;
 } pdf_font_descriptor_values_t;
+
+#ifndef pdf_font_descriptor_DEFINED
+#  define pdf_font_descriptor_DEFINED
 typedef struct pdf_font_descriptor_s pdf_font_descriptor_t;
+#endif
+
 struct pdf_font_descriptor_s {
     pdf_resource_common(pdf_font_descriptor_t);
     pdf_font_name_t FontName;
     pdf_font_descriptor_values_t values;
     gs_matrix orig_matrix;	/* unscaled font matrix */
-    byte chars_used[32];	/* 1 bit per character code */
+    gs_string chars_used;	/* 1 bit per character code or CID */
+    gs_string glyphs_used;	/* 1 bit per glyph, for TrueType fonts */
     bool subset_ok;		/* if false, don't subset the font -- */
 				/* see gdevpdft.c */
     long FontFile_id;		/* non-0 iff the font is embedded */
@@ -115,7 +123,7 @@ struct pdf_font_descriptor_s {
     bool written;		/* if true, descriptor has been written out */
 };
 /* Flag bits */
-/*#define FONT_IS_FIXED_WIDTH (1<<0)*/  /* define in gxfont.h */
+/*#define FONT_IS_FIXED_WIDTH (1<<0)*/  /* defined in gxfont.h */
 #define FONT_IS_SERIF (1<<1)
 #define FONT_IS_SYMBOLIC (1<<2)
 #define FONT_IS_SCRIPT (1<<3)
@@ -139,12 +147,18 @@ struct pdf_font_descriptor_s {
  * Font descriptors are pseudo-resources, so their GC descriptors
  * must be public.
  */
-#define public_st_pdf_font_descriptor()\
-  gs_public_st_suffix_add1(st_pdf_font_descriptor, pdf_font_descriptor_t,\
-    "pdf_font_descriptor_t", pdf_font_desc_enum_ptrs,\
-    pdf_font_desc_reloc_ptrs, st_pdf_resource, base_font)
+#define public_st_pdf_font_descriptor()	/* in gdevpdff.c */\
+  BASIC_PTRS(pdf_font_descriptor_ptrs) {\
+    GC_STRING_ELT(pdf_font_descriptor_t, chars_used),\
+    GC_STRING_ELT(pdf_font_descriptor_t, glyphs_used),\
+    GC_OBJ_ELT(pdf_font_descriptor_t, base_font)\
+  };\
+  gs_public_st_basic_super(st_pdf_font_descriptor, pdf_font_descriptor_t,\
+    "pdf_font_descriptor_t", pdf_font_descriptor_ptrs,\
+    pdf_font_descriptor_data, &st_pdf_resource, 0)
 
-/* Font resources */
+/* ---------------- Font (resource) ---------------- */
+
 typedef struct pdf_char_proc_s pdf_char_proc_t;	/* forward reference */
 /*typedef struct pdf_font_s pdf_font_t;*/
 typedef struct pdf_encoding_element_s {
@@ -156,7 +170,7 @@ typedef struct pdf_encoding_element_s {
     "pdf_encoding_element_t[]", pdf_encoding_elt_enum_ptrs,\
     pdf_encoding_elt_reloc_ptrs)
 /*
- * Structure elements beginning with a capital latter correspond directly
+ * Structure elements beginning with a capital letter correspond directly
  * to keys in the font or Encoding dictionary.  Currently these are:
  *	(font) FontType, FirstChar, LastChar, Widths, FontDescriptor
  *	(Encoding) BaseEncoding, Differences
@@ -270,11 +284,11 @@ pdf_font_embed_t pdf_font_embed_status(P4(gx_device_pdf *pdev, gs_font *font,
 					  int *pindex, int *psame));
 
 /*
- * Allocate a font resource.  If descriptor_id is gs_no_id, no
- * FontDescriptor is allocated.
+ * Allocate a font resource.  If pfd != 0, a FontDescriptor is allocated,
+ * with its id, values, and chars_used.size taken from *pfd.
  */
 int pdf_alloc_font(P4(gx_device_pdf *pdev, gs_id rid, pdf_font_t **ppfres,
-		      gs_id descriptor_id));
+		      const pdf_font_descriptor_t *pfd));
 
 /*
  * Determine whether a font is a subset font by examining the name.
@@ -324,5 +338,23 @@ int pdf_register_font(P3(gx_device_pdf *pdev, gs_font *font, pdf_font_t *ppf));
 
 /* Write out the font resources when wrapping up the output. */
 int pdf_write_font_resources(P1(gx_device_pdf *pdev));
+
+/*
+ * Write a font descriptor.
+ * (Exported only for gdevpdfe.c.)
+ */
+int pdf_write_FontDescriptor(P2(gx_device_pdf *pdev,
+				const pdf_font_descriptor_t *pfd));
+
+
+/* ---------------- Exported by gdevpdfe.c ---------------- */
+
+/*
+ * Write the FontDescriptor and FontFile* data for an embedded font.
+ * Return a rangecheck error if the font can't be embedded.
+ * (Exported only for gdevpdfw.c.)
+ */
+int pdf_write_embedded_font(P2(gx_device_pdf *pdev,
+			       pdf_font_descriptor_t *pfd));
 
 #endif /* gdevpdff_INCLUDED */

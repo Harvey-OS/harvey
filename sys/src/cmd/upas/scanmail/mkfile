@@ -3,14 +3,12 @@
 TARG=scanmail\
 	testscan
 
-OFILES=
+OFILES=	common.$O
 
-HFILES=	../common/common.h\
+HFILES=	spam.h\
 	../common/sys.h\
-	../libString/String.h\
 
-LIB=../common/libcommon.a$O\
-	../libString/libString.a$O\
+LIB=	../common/libcommon.a$O\
 
 BIN=/$objtype/bin/upas
 </sys/src/cmd/mkmany

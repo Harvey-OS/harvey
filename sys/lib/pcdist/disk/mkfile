@@ -28,11 +28,17 @@ root.bz2:Q: boot.bz2
 	} >$target
 	ls -l $target
 
-ndisk: root.bz2 plan9.nvr /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
+/sys/src/9/pc/9pcflop.gz: root.bz2
+	@{
+		cd /sys/src/9/pc
+		mk 'CONF=pcflop' 9pcflop.gz
+	}
+
+ndisk: plan9.nvr /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
 	dd -if /dev/zero -of ndisk -bs 1024 -count 1440 >[2]/dev/null
 	disk/format -f -b $s/bin/386/pbs -d ndisk \
 		/386/9load plan9.nvr \
-		/sys/src/9/pc/9pcflop.gz plan9.ini root.bz2 /lib/vgadb
+		/sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
 	ls -l ndisk
 	# rm -f boot.bz2 root.bz2 9pcflop
 

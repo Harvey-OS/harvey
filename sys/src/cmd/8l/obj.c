@@ -490,12 +490,11 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 }
 
 void
-addlib(long line)
+addlib(char *obj)
 {
 	char name[MAXHIST*NAMELEN], comp[4*NAMELEN], *p;
 	int i;
 
-	USED(line);
 	if(histfrogp <= 0)
 		return;
 
@@ -541,14 +540,20 @@ addlib(long line)
 		strcat(name, "/");
 		strcat(name, comp);
 	}
-
 	for(i=0; i<libraryp; i++)
 		if(strcmp(name, library[i]) == 0)
 			return;
+	if(libraryp == nelem(library)){
+		diag("too many autolibs; skipping %s", name);
+		return;
+	}
 
 	p = malloc(strlen(name) + 1);
 	strcpy(p, name);
 	library[libraryp] = p;
+	p = malloc(strlen(obj) + 1);
+	strcpy(p, obj);
+	libraryobj[libraryp] = p;
 	libraryp++;
 }
 
@@ -758,7 +763,7 @@ loop:
 	switch(p->as) {
 	case AHISTORY:
 		if(p->to.offset == -1) {
-			addlib(p->line);
+			addlib(pn);
 			histfrogp = 0;
 			goto loop;
 		}

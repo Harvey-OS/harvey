@@ -4,7 +4,7 @@
 #include <mach.h>
 #include "arm.h"
 
-#define Percent(num, max)	(((num)*100)/(max))
+#define Percent(num, max)	((max)?((num)*100)/(max):0)
 
 extern	Inst	itab[];
 Inst *tables[] = { itab, 0 };
@@ -13,44 +13,27 @@ void
 isum(void)
 {
 	Inst *i;
-	int total, loads, stores, arith, branch, realarith;
-	int useddelay, taken, mipreg, syscall;
-	int ldsunused, ldsused, ltotal;
+	int total, mems, arith, branch;
+	int useddelay, taken, syscall;
 	int pct, j;
 
 	total = 0;
-	loads = 0;
-	stores = 0;
+	mems = 0;
 	arith = 0;
 	branch = 0;
 	useddelay = 0;
 	taken = 0;
-	mipreg = 0;
 	syscall = 0;
-	realarith = 0;
 
 	/* Compute the total so we can have percentages */
 	for(i = itab; i->func; i++)
 		if(i->name && i->count)
 			total += i->count;
 
-	/* Compute the total so we can have percentages */
-	for(j = 0; tables[j]; j++) {
-		for(i = tables[j]; i->func; i++) {
-			if(i->name && i->count) {
-				/* Dont count floating point twice */
-				if(strcmp(i->name, "cop1") == 0)	
-					i->count = 0;
-				else
-					total += i->count;
-			}
-		}
-	}
-
 	Bprint(bioout, "\nInstruction summary.\n\n");
 
 	for(j = 0; tables[j]; j++) {
-		for(i =tables[j]; i->func; i++) {
+		for(i = tables[j]; i->func; i++) {
 			if(i->name) {
 				/* This is gross */
 				if(i->count == 0)
@@ -68,11 +51,8 @@ isum(void)
 				switch(i->type) {
 				default:
 					fatal(0, "isum bad stype %d\n", i->type);
-				case Iload:
-					loads += i->count;
-					break;
-				case Istore:
-					stores += i->count;
+				case Imem:
+					mems += i->count;
 					break;
 				case Iarith:
 					arith += i->count;
@@ -82,14 +62,8 @@ isum(void)
 					taken += i->taken;
 					useddelay += i->useddelay;
 					break;
-				case Ireg:
-					mipreg += i->count;
-					break;
 				case Isyscall:
 					syscall += i->count;
-					break;
-				case Ifloat:
-					realarith += i->count;
 					break;
 				}
 		
@@ -97,33 +71,14 @@ isum(void)
 		}
 	}
 
-	Bprint(bioout, "\n%-8ud      Memory cycles\n", loads+stores+total);	
+	Bprint(bioout, "\n%-8ud      Memory cycles\n", mems+total);	
 	Bprint(bioout, "%-8ud %3d%% Instruction cycles\n",
-			total, Percent(total, loads+stores+total));
+			total, Percent(total, mems+total));
 	Bprint(bioout, "%-8ud %3d%% Data cycles\n\n",
-			loads+stores, Percent(loads+stores, loads+stores+total));	
-
-	Bprint(bioout, "%-8ud %3d%% Stores\n", stores, Percent(stores, total));
-	Bprint(bioout, "%-8ud %3d%% Loads\n", loads, Percent(loads, total));
-
-	/* Delay slots for loads/stores */
-	ldsunused = nopcount-(branch-useddelay);
-	ldsused = loads-ldsunused;
-	ltotal = ldsused + ldsunused;
-	Bprint(bioout, "   %-8ud %3d%% Delay slots\n",
-			ldsused, Percent(ldsused, ltotal));
-
-	Bprint(bioout, "   %-8ud %3d%% Unused delay slots\n", 
-			ldsunused, Percent(ldsunused, ltotal));
+			mems, Percent(mems, mems+total));	
 
 	Bprint(bioout, "%-8ud %3d%% Arithmetic\n",
 			arith, Percent(arith, total));
-
-	Bprint(bioout, "%-8ud %3d%% Floating point\n",
-			realarith, Percent(realarith, total));
-
-	Bprint(bioout, "%-8ud %3d%% Mips special register load/stores\n",
-			mipreg, Percent(mipreg, total));
 
 	Bprint(bioout, "%-8ud %3d%% System calls\n",
 			syscall, Percent(syscall, total));

@@ -25,6 +25,7 @@ Dirtab dirtab[]=
 	{ "consctl",	Qconsctl,		0200 },
 	{ "winid",		Qwinid,		0400 },
 	{ "winname",	Qwinname,	0400 },
+	{ "kbdin",		Qkbdin,		0200 },
 	{ "label",		Qlabel,		0600 },
 	{ "mouse",	Qmouse,		0600 },
 	{ "screen",		Qscreen,		0400 },
@@ -633,7 +634,10 @@ dostat(Filsys *fs, int id, Dirtab *dir, char *buf, uint clock)
 	Dir d;
 
 	d.qid.path = QID(id, dir->qid);
-	d.qid.vers = 0;
+	if(dir->qid == Qsnarf)
+		d.qid.vers = snarfversion;
+	else
+		d.qid.vers = 0;
 	d.mode = dir->perm;
 	d.length = 0;	/* would be nice to do better */
 	strncpy(d.name, dir->name, NAMELEN);

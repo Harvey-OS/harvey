@@ -152,6 +152,14 @@ execproc(void *v)
 	dup(p[0], 0);
 	close(p[1]);
 	procexec(nil, "/bin/upas/marshal", argv);
+//threadprint(2, "exec: /bin/upas/marshal");
+//{int i;
+//for(i=0; argv[i]; i++) print(" '%s'", argv[i]);
+//print("\n");
+//}
+//argv[0] = "cat";
+//argv[1] = nil;
+//procexec(nil, "/bin/cat", argv);
 	threadprint(2, "Mail: can't exec %s: %r\n", argv[0]);
 	threadexits("can't exec");
 }
@@ -295,7 +303,7 @@ mesgsend(Message *m)
 		switch(h = whichheader(fld[0])){
 		case TO:
 		case FROM:
-			delit = (h == FROM);
+			delit = 1;
 			commas(to+strlen(fld[0]), s-1);
 			for(i=1; i<nfld && nto<nelem(tolist); i++)
 				if(!addressed(fld[i]))
@@ -309,7 +317,7 @@ mesgsend(Message *m)
 					bcclist[nbcc++] = estrdup(fld[i]);
 			break;
 		case CC:
-			delit = 0;
+			delit = 1;
 			commas(to+strlen(fld[0]), s-1);
 			for(i=1; i<nfld && ncc<nelem(cclist); i++)
 				if(!addressed(fld[i]))
@@ -346,9 +354,10 @@ mesgsend(Message *m)
 		error("Mail: can't create pipe\n");
 	e->p[0] = p[0];
 	e->p[1] = p[1];
-	e->argv = emalloc((1+4*natt+nto+ncc+nbcc+1)*sizeof(char*));
+	e->argv = emalloc((1+1+4*natt+1)*sizeof(char*));
 	e->argv[0] = estrdup("marshal");
-	j = 1;
+	e->argv[1] = estrdup("-8");
+	j = 2;
 	for(i=0; i<natt; i++){
 		if(rfc822[i]){
 			e->argv[j++] = estrdup("-t");
@@ -358,17 +367,31 @@ mesgsend(Message *m)
 			e->argv[j++] = estrdup("-a");
 		e->argv[j++] = attlist[i];
 	}
-	for(i=0; i<nto; i++)
-		e->argv[j++] = tolist[i];
-	for(i=0; i<ncc; i++)
-		e->argv[j++] = cclist[i];
-	for(i=0; i<nbcc; i++)
-		e->argv[j++] = bcclist[i];
 	sync = chancreate(sizeof(int), 0);
 	e->sync = sync;
 	proccreate(execproc, e, EXECSTACK);
 	recvul(sync);
 	close(p[0]);
+
+	/* using marshal -8, so generate rfc822 headers */
+	if(nto > 0){
+		threadprint(p[1], "To: ");
+		for(i=0; i<nto-1; i++)
+			threadprint(p[1], "%s, ", tolist[i]);
+		threadprint(p[1], "%s\n", tolist[i]);
+	}
+	if(ncc > 0){
+		threadprint(p[1], "CC: ");
+		for(i=0; i<ncc-1; i++)
+			threadprint(p[1], "%s, ", cclist[i]);
+		threadprint(p[1], "%s\n", cclist[i]);
+	}
+	if(nbcc > 0){
+		threadprint(p[1], "BCC: ");
+		for(i=0; i<nbcc-1; i++)
+			threadprint(p[1], "%s, ", bcclist[i]);
+		threadprint(p[1], "%s\n", bcclist[i]);
+	}
 
 	i = strlen(body);
 	if(i > 0)

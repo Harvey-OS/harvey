@@ -1,6 +1,6 @@
 .TH ALLOCIMAGE 2
 .SH NAME
-allocimage, allocimagemix, freeimage, nameimage, namedimage, loadimage, unloadimage, readimage, writeimage, bytesperline, wordsperline \- allocating, freeing, reading, writing images
+allocimage, allocimagemix, freeimage, nameimage, namedimage, setalpha, loadimage, cloadimage, unloadimage, readimage, writeimage, bytesperline, wordsperline \- allocating, freeing, reading, writing images
 .SH SYNOPSIS
 .nf
 .PP
@@ -31,7 +31,13 @@ int	nameimage(Image *i, char *name, int in)
 Image	*namedimage(Display *d, char *name)
 .PP
 .B
+ulong	setalpha(ulong color, uchar alpha)
+.PP
+.B
 int	loadimage(Image *i, Rectangle r, uchar *data, int ndata)
+.PP
+.B
+int	cloadimage(Image *i, Rectangle r, uchar *data, int ndata)
 .PP
 .B
 int	unloadimage(Image *i, Rectangle r, uchar *data, int ndata)
@@ -187,6 +193,22 @@ for example they provide the mechanism behind
 (see
 .IR graphics (2)).
 .PP
+The RGB values in a color are
+.I premultiplied
+by the alpha value; for example, a 50% red is
+.B 0x7F00007F
+not
+.BR 0xFF00007F .
+The function
+.I setalpha
+performs the alpha computation on a given
+.BR color ,
+ignoring its initial alpha value, multiplying the components by the supplied
+.BR alpha .
+For example, to make a 50% red color value, one could execute
+.B setalpha(DRed,
+.BR 0x7F) .
+.PP
 The remaining functions deal with moving groups of pixel
 values between image and user space or external files.
 There is a fixed format for the exchange and storage of
@@ -205,7 +227,7 @@ It is an error if
 .I ndata
 is too small to accommodate the pixels.
 .PP
-.B Loadimage
+.I Loadimage
 replaces the specified rectangle in image
 .I i
 with the
@@ -241,8 +263,26 @@ rectangle: 165 mod 8 equals 5, and
 equals
 .BR 0x04 .
 .PP
-Both
-.I loadimage
+.B Cloadimage
+does the same as
+.IR loadimage ,
+bu tfor
+.I ndata
+bytes of compressed image
+.I data
+(see
+.IR image (6)).
+On each call to
+.IR cloadimage,
+the
+.I data
+must be at the beginning of a compressed data block, in particular,
+it should start with the
+.B y
+coordinate and data length for the block. 
+.PP
+.IR Loadimage ,
+.IR cloadimage ,
 and
 .I unloadimage
 return the number of bytes copied.

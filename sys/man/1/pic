@@ -139,6 +139,7 @@ each attribute consists of a keyword, perhaps followed by a value.
 	dotted \f2opt-expr\fP	dashed \f2opt-expr\fP
 	chop \f2opt-expr\fP	->  <-  <->
 	invis	same
+	fill \f2opt-expr\fP
 	\f2text-list\fP	\f2expr\fP
 .EE
 Missing attributes and values are filled in from defaults.

@@ -27,6 +27,11 @@ ALLOFILES=\
 	mpinvert.$O\
 	mprand.$O\
 	crt.$O\
+	mptoi.$O\
+	mptoui.$O\
+	mptov.$O\
+	mptouv.$O\
+
 
 # cull things in the per-machine directories from this list
 OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}

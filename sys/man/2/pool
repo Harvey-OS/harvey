@@ -28,7 +28,7 @@ void	poolcompact(Pool* pool)
 void	poolcheck(Pool *pool)
 .PP
 .B
-void	poolblockcheck(Pool *pool, void *ptr);
+void	poolblockcheck(Pool *pool, void *ptr)
 .PP
 .B
 void pooldump(Pool *pool);

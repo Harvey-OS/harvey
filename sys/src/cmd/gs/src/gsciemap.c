@@ -1,22 +1,22 @@
-/* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsciemap.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsciemap.c,v 1.3.2.1 2000/10/26 13:06:34 igorm Exp $ */
 /* CIE color rendering */
 #include "math_.h"
 #include "gx.h"
@@ -100,19 +100,28 @@ gx_concretize_CIEDEFG(const gs_client_color * pc, const gs_color_space * pcs,
 	      pc->paint.values[2], pc->paint.values[3]);
     CIE_CHECK_RENDERING(pcs, pconc, pis, return 0);
 
-    /* Apply DecodeDEFG (including restriction to RangeHIJK). */
+    /*
+     * Apply DecodeDEFG, including restriction to RangeHIJK and scaling to
+     * the Table dimensions.
+     */
     for (i = 0; i < 4; ++i) {
-	int tmax = pcie->Table.dims[i] - 1;
-	float value = (pc->paint.values[i] - pcie->RangeDEFG.ranges[i].rmin) *
-	    tmax /
-	    (pcie->RangeDEFG.ranges[i].rmax - pcie->RangeDEFG.ranges[i].rmin);
+	int tdim = pcie->Table.dims[i] - 1;
+	double factor = pcie->caches_defg.DecodeDEFG[i].floats.params.factor;
+	double v0 = pc->paint.values[i];
+	const gs_range *const rangeDEFG = &pcie->RangeDEFG.ranges[i];
+	double value =
+	    (v0 < rangeDEFG->rmin ? 0.0 :
+	     v0 > rangeDEFG->rmax ? factor :
+	     (v0 - rangeDEFG->rmin) * factor /
+	       (rangeDEFG->rmax - rangeDEFG->rmin));
 	int vi = (int)value;
-	float vf = value - vi;
-	float v = pcie->caches_defg.DecodeDEFG[i].floats.values[vi];
+	double vf = value - vi;
+	double v = pcie->caches_defg.DecodeDEFG[i].floats.values[vi];
 
-	if (vf != 0 && vi < tmax)
+	if (vf != 0 && vi < factor)
 	    v += vf *
 		(pcie->caches_defg.DecodeDEFG[i].floats.values[vi + 1] - v);
+	v = (v < 0 ? 0 : v > tdim ? tdim : v);
 	hijk[i] = float2fixed(v);
     }
     /* Apply Table. */
@@ -144,19 +153,28 @@ gx_concretize_CIEDEF(const gs_client_color * pc, const gs_color_space * pcs,
 	      pc->paint.values[2]);
     CIE_CHECK_RENDERING(pcs, pconc, pis, return 0);
 
-    /* Apply DecodeDEF (including restriction to RangeHIJ). */
+    /*
+     * Apply DecodeDEF, including restriction to RangeHIJ and scaling to
+     * the Table dimensions.
+     */
     for (i = 0; i < 3; ++i) {
-	int tmax = pcie->Table.dims[i] - 1;
-	float value = (pc->paint.values[i] - pcie->RangeDEF.ranges[i].rmin) *
-	    tmax /
-	    (pcie->RangeDEF.ranges[i].rmax - pcie->RangeDEF.ranges[i].rmin);
+	int tdim = pcie->Table.dims[i] - 1;
+	double factor = pcie->caches_def.DecodeDEF[i].floats.params.factor;
+	double v0 = pc->paint.values[i];
+	const gs_range *const rangeDEF = &pcie->RangeDEF.ranges[i];
+	double value =
+	    (v0 < rangeDEF->rmin ? 0.0 :
+	     v0 > rangeDEF->rmax ? factor :
+	     (v0 - rangeDEF->rmin) * factor /
+	       (rangeDEF->rmax - rangeDEF->rmin));
 	int vi = (int)value;
-	float vf = value - vi;
-	float v = pcie->caches_def.DecodeDEF[i].floats.values[vi];
+	double vf = value - vi;
+	double v = pcie->caches_def.DecodeDEF[i].floats.values[vi];
 
-	if (vf != 0 && vi < tmax)
+	if (vf != 0 && vi < factor)
 	    v += vf *
 		(pcie->caches_def.DecodeDEF[i].floats.values[vi + 1] - v);
+	v = (v < 0 ? 0 : v > tdim ? tdim : v);
 	hij[i] = float2fixed(v);
     }
     /* Apply Table. */

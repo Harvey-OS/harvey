@@ -571,8 +571,10 @@ rread(Mfile *mf)
 			s.thdr.tag = c.thdr.tag;
 			s.thdr.offset = off;
 			s.thdr.count = n;
-			if(askserver() < 0)
+			if(askserver() < 0){
 				sendreply(s.rhdr.ename);
+				return;
+			}
 			if(s.rhdr.count != n)
 				done = 1;
 			n = s.rhdr.count;

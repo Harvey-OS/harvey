@@ -16,7 +16,7 @@ enum
 void
 usage(void)
 {
-	fprint(2, "usage: crop [-c rgb] [-i ±inset | -r R | -x ±inset | -y ±inset] [-b rgb ] [imagefile]\n");
+	fprint(2, "usage: crop [-c rgb] [-i ±inset | -r R | -x ±inset | -y ±inset] [-t tx ty] [-b rgb ] [imagefile]\n");
 	fprint(2, "\twhere R is a rectangle minx miny maxx maxy\n");
 	fprint(2, "\twhere rgb is a color red green blue\n");
 	exits("usage");
@@ -87,14 +87,17 @@ main(int argc, char *argv[])
 {
 	int fd, mode, red, green, blue;
 	Rectangle r, rparam;
+	Point t;
 	Memimage *m, *new;
 	char *file;
 	ulong bg, cropval;
+	long dw;
 
 	memimageinit();
 	mode = None;
 	bg = 0;
 	cropval = 0;
+	t = ZP;
 	memset(&rparam, 0, sizeof rparam);
 
 	ARGBEGIN{
@@ -141,11 +144,15 @@ main(int argc, char *argv[])
 		rparam.max.x = getint(ARGF());
 		rparam.max.y = getint(ARGF());
 		break;
+	case 't':
+		t.x = getint(ARGF());
+		t.y = getint(ARGF());
+		break;
 	default:
 		usage();
 	}ARGEND
 
-	if(mode == None && cropval == 0)
+	if(mode == None && cropval == 0 && eqpt(ZP, t))
 		usage();
 
 	file = "<stdin>";
@@ -193,7 +200,11 @@ main(int argc, char *argv[])
 		memfillcolor(new, bg);
 	else
 		memfillcolor(new, 0x000000FF);
+
 	memimagedraw(new, m->clipr, m, m->clipr.min, nil, ZP);
+	dw = byteaddr(new, ZP) - byteaddr(new, t);
+	new->r = rectaddpt(new->r, t);
+	new->zero += dw;
 	if(writememimage(1, new) < 0)
 		sysfatal("write error on output: %r");
 	exits(nil);

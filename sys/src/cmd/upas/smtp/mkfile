@@ -4,7 +4,6 @@ TARG = smtpd\
 	smtp\
 
 LIB=../common/libcommon.a$O\
-	../libString/libString.a$O\
 
 HFILES=../common/common.h\
 	../common/sys.h\
@@ -33,10 +32,5 @@ clean:V:
 ../common/libcommon.a$O:
 	@{ 	
 		cd ../common
-		mk
-	}
-../libString/libString.a$O:
-	@{ 	
-		cd ../libString
 		mk
 	}

@@ -72,6 +72,7 @@ main(void)
 
 		mbinit();
 
+		sntpinit();
 		otherinit();
 
 		files = ialloc(conf.nfile * sizeof(*files), 0);

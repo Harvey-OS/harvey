@@ -30,7 +30,7 @@ static char *binop[] =
 };
 
 static char *tabs = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
-char *typestr[] =
+char *typenames[] =
 {
 	[TINT]		"integer",
 	[TFLOAT]	"float",
@@ -105,7 +105,7 @@ whatis(Lsym *l)
 	def = 0;
 	if(l->v->set) {
 		t = l->v->type;
-		Bprint(bout, "%s variable", typestr[t]);
+		Bprint(bout, "%s variable", typenames[t]);
 		if(t == TINT || t == TFLOAT)
 			Bprint(bout, " format %c", l->v->fmt);
 		if(l->v->comt)

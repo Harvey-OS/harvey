@@ -20,10 +20,15 @@ static struct
 	int	x;		/* index into line */
 	char	line[1024];	/* current input line */
 
-	Rune	c;
 	int	count;
-	int	repeat;
 	int	ctlpoff;
+
+	/* a place to save up characters at interrupt time before dumping them in the queue */
+	Lock	lockputc;
+	char	istage[512];
+	char	*iw;
+	char	*ir;
+	char	*ie;
 } kbd;
 
 char	sysname[NAMELEN];
@@ -55,8 +60,12 @@ consactive(void)
 void
 prflush(void)
 {
+	ulong now;
+
+	now = m->ticks;
 	while(consactive())
-		;
+		if(m->ticks - now >= HZ)
+			break;
 }
 
 /*
@@ -70,7 +79,6 @@ putstrn0(char *str, int n, int usewrite)
 {
 	int m;
 	char *t;
-	char buf[PRINTSIZE+2];
 
 	/*
 	 *  if there's an attached bit mapped display,
@@ -89,17 +97,17 @@ putstrn0(char *str, int n, int usewrite)
 
 	while(n > 0) {
 		t = memchr(str, '\n', n);
-		if(t) {
-			m = t - str;
-			memmove(buf, str, m);
-			buf[m] = '\r';
-			buf[m+1] = '\n';
-			if(usewrite)
-				qwrite(printq, buf, m+2);
-			else
-				qiwrite(printq, buf, m+2);
-			str = t + 1;
-			n -= m + 1;
+		if(t && !kbd.raw) {
+			m = t-str;
+			if(usewrite){
+				qwrite(printq, str, m);
+				qwrite(printq, "\r\n", 2);
+			} else {
+				qiwrite(printq, str, m);
+				qiwrite(printq, "\r\n", 2);
+			}
+			n -= m+1;
+			str = t+1;
 		} else {
 			if(usewrite)
 				qwrite(printq, str, n);
@@ -205,9 +213,9 @@ panic(char *fmt, ...)
 	serialputs(buf, n+1);
 	if(consdebug)
 		consdebug();
-	putstrn(buf, n+1);
 	spllo();
 	prflush();
+	putstrn(buf, n+1);
 	dumpstack();
 
 	exit(1);
@@ -250,30 +258,91 @@ pprint(char *fmt, ...)
 	return n;
 }
 
+static void
+echoscreen(char *buf, int n)
+{
+	char *e, *p;
+	char ebuf[128];
+	int x;
+
+	p = ebuf;
+	e = ebuf + sizeof(ebuf) - 4;
+	while(n-- > 0){
+		if(p >= e){
+			screenputs(ebuf, p - ebuf);
+			p = ebuf;
+		}
+		x = *buf++;
+		if(x == 0x15){
+			*p++ = '^';
+			*p++ = 'U';
+			*p++ = '\n';
+		} else
+			*p++ = x;
+	}
+	if(p != ebuf)
+		screenputs(ebuf, p - ebuf);
+}
+
+static void
+echoprintq(char *buf, int n)
+{
+	char *e, *p;
+	char ebuf[128];
+	int x;
+
+	p = ebuf;
+	e = ebuf + sizeof(ebuf) - 4;
+	while(n-- > 0){
+		if(p >= e){
+			qiwrite(printq, ebuf, p - ebuf);
+			p = ebuf;
+		}
+		x = *buf++;
+		if(x == '\n'){
+			*p++ = '\r';
+			*p++ = '\n';
+		} else if(x == 0x15){
+			*p++ = '^';
+			*p++ = 'U';
+			*p++ = '\n';
+		} else
+			*p++ = x;
+	}
+	if(p != ebuf)
+		qiwrite(printq, ebuf, p - ebuf);
+}
+
 void
-echo(Rune r, char *buf, int n)
+echo(char *buf, int n)
 {
 	static int ctrlt, pid;
 	extern ulong etext;
 	int x;
+	char *e, *p;
 
-	/*
-	 * ^p hack
-	 */
-	if(r==0x10 && cpuserver && !kbd.ctlpoff){
-		lock(&active);
-		active.exiting = 1;
-		unlock(&active);
-	}
+	e = buf+n;
+	for(p = buf; p < e; p++){
+		switch(*p){
+		case 0x10:	/* ^P */
+			if(cpuserver && !kbd.ctlpoff){
+				active.exiting = 1;
+				return;
+			}
+			break;
+		case 0x14:	/* ^T */
+			ctrlt++;
+			if(ctrlt > 2)
+				ctrlt = 2;
+			continue;
+		}
 
-	/*
-	 * ^t hack BUG
-	 */
-	if(ctrlt == 2){
+		if(ctrlt != 2)
+			continue;
+
+		/* ^T escapes */
 		ctrlt = 0;
-		switch(r){
-		case 0x14:
-			break;	/* pass it on */
+		switch(*p){
 		case 's':
 			dumpstack();
 			break;
@@ -312,27 +381,13 @@ echo(Rune r, char *buf, int n)
 			break;
 		}
 	}
-	else if(r == 0x14){
-		ctrlt++;
-		return;
-	}
-	ctrlt = 0;
+
+	qproduce(kbdq, buf, n);
 	if(kbd.raw)
 		return;
-
-	/*
-	 *  finally, the actual echoing
-	 */
-	if(r == '\n'){
-		if(printq)
-			qiwrite(printq, "\r", 1);
-	} else if(r == 0x15){
-		buf = "^U\n";
-		n = 3;
-	}
-	screenputs(buf, n);
+	echoscreen(buf, n);
 	if(printq)
-		qiwrite(printq, buf, n);
+		echoprintq(buf, n);
 }
 
 /*
@@ -341,11 +396,22 @@ echo(Rune r, char *buf, int n)
  *  turn '\r' into '\n' before putting it into the queue.
  */
 int
-kbdcr2nl(Queue *q, int ch)
+kbdcr2nl(Queue*, int ch)
 {
-	if(ch == '\r')
+	char *next;
+
+	ilock(&kbd.lockputc);		/* just a mutex */
+	if(ch == '\r' && !kbd.raw)
 		ch = '\n';
-	return kbdputc(q, ch);
+	next = kbd.iw+1;
+	if(next >= kbd.ie)
+		next = kbd.istage;
+	if(next != kbd.ir){
+		*kbd.iw = ch;
+		kbd.iw = next;
+	}
+	iunlock(&kbd.lockputc);
+	return 0;
 }
 
 /*
@@ -355,39 +421,54 @@ kbdcr2nl(Queue *q, int ch)
 int
 kbdputc(Queue*, int ch)
 {
-	int n;
+	int i, n;
 	char buf[3];
 	Rune r;
+	char *next;
 
+	ilock(&kbd.lockputc);		/* just a mutex */
 	r = ch;
 	n = runetochar(buf, &r);
-	if(n == 0)
-		return 0;
-	echo(r, buf, n);
-	kbd.c = r;
-	qproduce(kbdq, buf, n);
+	for(i = 0; i < n; i++){
+		next = kbd.iw+1;
+		if(next >= kbd.ie)
+			next = kbd.istage;
+		if(next == kbd.ir)
+			break;
+		*kbd.iw = buf[i];
+		kbd.iw = next;
+	}
+	iunlock(&kbd.lockputc);
 	return 0;
 }
 
-void
-kbdrepeat(int rep)
+/*
+ *  we save up input characters till clock time to reduce
+ *  per character interrupt overhead.
+ */
+static void
+kbdputcclock(void)
 {
-	kbd.repeat = rep;
-	kbd.count = 0;
+	char *iw;
+
+	/* this amortizes cost of qproduce */
+	if(kbd.iw != kbd.ir){
+		iw = kbd.iw;
+		if(iw < kbd.ir){
+			echo(kbd.ir, kbd.ie-kbd.ir);
+			kbd.ir = kbd.istage;
+		}
+		echo(kbd.ir, iw-kbd.ir);
+		kbd.ir = iw;
+	}
 }
 
-void
-kbdclock(void)
+static void
+kbdputcinit(void)
 {
-	if(kbd.repeat == 0)
-		return;
-	if(kbd.repeat==1 && ++kbd.count>HZ){
-		kbd.repeat = 2;
-		kbd.count = 0;
-		return;
-	}
-	if(++kbd.count&1)
-		kbdputc(kbdq, kbd.c);
+	kbd.ir = kbd.iw = kbd.istage;
+	kbd.ie = kbd.istage + sizeof(kbd.istage);
+	addclock0link(kbdputcclock);
 }
 
 enum{
@@ -482,6 +563,7 @@ consinit(void)
 {
 	todinit();
 	randominit();
+	kbdputcinit();
 }
 
 static Chan*
@@ -577,11 +659,6 @@ consread(Chan *c, void *buf, long n, vlong off)
 			while(!qcanread(lineq)) {
 				qread(kbdq, &kbd.line[kbd.x], 1);
 				ch = kbd.line[kbd.x];
-				if(kbd.raw){
-					qiwrite(lineq, kbd.line, kbd.x+1);
-					kbd.x = 0;
-					continue;
-				}
 				eol = 0;
 				switch(ch){
 				case '\b':
@@ -753,7 +830,7 @@ conswrite(Chan *c, void *va, long n, vlong off)
 			if(bp > sizeof buf)
 				bp = sizeof buf;
 			memmove(buf, a, bp);
-			putstrn0(a, bp, 1);
+			putstrn0(buf, bp, 1);
 			a += bp;
 			l -= bp;
 		}
@@ -774,8 +851,10 @@ conswrite(Chan *c, void *va, long n, vlong off)
 				kbd.raw = 1;
 				qunlock(&kbd);
 			} else if(strncmp(a, "rawoff", 6) == 0){
+				qlock(&kbd);
 				kbd.raw = 0;
 				kbd.x = 0;
+				qunlock(&kbd);
 			} else if(strncmp(a, "ctlpon", 6) == 0){
 				kbd.ctlpoff = 0;
 			} else if(strncmp(a, "ctlpoff", 7) == 0){
@@ -1014,7 +1093,6 @@ readtime(ulong off, char *buf, int n)
 	vlong	nsec, ticks;
 	long sec;
 	char str[7*NUMSIZE];
-				// char
 
 	nsec = todget(&ticks);
 	if(fasthz == 0LL)

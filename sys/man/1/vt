@@ -4,7 +4,7 @@ vt \- emulate a VT-100 or VT-220 terminal
 .SH SYNOPSIS
 .B vt
 [
-.B -2s
+.B -2sa
 ]
 .SH DESCRIPTION
 .I Vt
@@ -13,9 +13,11 @@ replaces a rio window with a fresh instance of the shell
 running within an emulation of a DEC VT-100 terminal.
 The
 .B -2
-option configures
+and
+.B -a
+options configure
 .I vt
-to emulate a VT-220 instead.
+to emulate a VT-220 and Ansi terimal respectively.
 The
 .B -s
 options forces a saner color scheme, i.e, black text on white
@@ -43,10 +45,14 @@ Print a carriage return after receiving a newline from the host.
 Do not print a carriage return after newline.
 .TP
 .B raw
-Enter `raw' (no echo, no interpretation) character mode for input.
+Enter raw (no echo, no interpretation) character mode for input.
 .TP
 .B cooked
-Leave `raw' mode.
+Leave raw mode.
+.TP
+.B exit
+Exits
+.IR vt .
 .PD
 .PP
 The middle button has a menu with the following entries:

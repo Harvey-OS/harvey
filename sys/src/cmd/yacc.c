@@ -28,14 +28,14 @@ enum
  * the following are adjustable
  * according to memory size
  */
-	ACTSIZE		= 30000,
-	MEMSIZE		= 30000,
+	ACTSIZE		= 40000,
+	MEMSIZE		= 40000,
 	NSTATES		= 2000,
-	NTERMS		= 255,
+	NTERMS		= 511,
 	NPROD		= 1600,
-	NNONTERM	= 300,
+	NNONTERM	= 600,
 	TEMPSIZE	= 2000,
-	CNAMSZ		= 5000,
+	CNAMSZ		= 10000,
 	LSETSIZE	= 2400,
 	WSETSIZE	= 350,
 

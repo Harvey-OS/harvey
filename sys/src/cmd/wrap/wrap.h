@@ -32,28 +32,27 @@ char *Bsearch(Biobuf*, char*);	/* binary search */
 Biobuf *Bopengz(char*);
 
 enum {
-	PKG = 1,
-	UPD = 2
+	FULL = 1<<0,		/* do we have a full package at this point? */
+	UPD = 1<<1,		/* is this an update to a previous package? */
 };
 
 /* wrap management */
 typedef struct Update Update;
 struct Update {
-	char *desc;
-	char *dir;
-	vlong time;
-	vlong utime;
-	Biobuf *bmd5;	/* a cache for getfileinfo */
-	int type;
+	char *desc;		/* textual description */
+	char *dir;			/* "/n/kfs/wrap/plan9/12345678" */
+	vlong time;		/* time of update */
+	vlong utime;		/* time of required prerequisite */
+	Biobuf *bmd5;		/* a cache for getfileinfo */
+	int type;			/* FULL, UPD, FULL|UPD */
 };
 
 typedef struct Wrap Wrap;
 struct Wrap {
-	char *name;
-	char *root;
-	vlong time;	/* not necessarily u[0].time, if there are package updates */
-
-	Update *u;	/* u[0] is base package, others are package updates, then updates */
+	char *name;	/* name of package */
+	char *root;	/* "/n/kfs" */
+	vlong tfull;	/* last time we had all files up-to-date */
+	Update *u;	/* sorted by increasing time: u[0] is base package */
 	int nu;
 };
 
@@ -62,7 +61,7 @@ Wrap *openwraphdr(char*, char*, char**, int);
 void closewrap(Wrap*);
 void Bputwrap(Biobuf*, char*, vlong, char*, vlong, int);
 void Bputwrapfile(Biobuf*, char*, vlong, char*, char*);
-int getfileinfo(Wrap*, char*, vlong*, uchar*);
+int getfileinfo(Wrap*, char*, vlong*, uchar *tomatch, uchar *towrite);
 
 /* one of a kind */
 char *mkpath(char *a, char *b);
@@ -71,6 +70,7 @@ int waserrstr(void);
 int strprefix(char*, char*);
 char *readfile(char*);
 int opentemp(char*);
+int genopentemp(char*, int, int);
 int fsort(int fd, char *fil);	/* write sorted file to fd */
 vlong filelength(char*);
 int match(char*, char**, int);

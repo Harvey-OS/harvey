@@ -265,8 +265,6 @@ and
 For audio, Plan 9 supports the Sound Blaster 16 and compatibles.
 (Note that audio doesn't work under Plan 9 with 8-bit Sound Blasters.)
 .PP
-Plan 9 uses GMT as its time base, while DOS uses local time, so unless you live on the
-prime meridian you'll need to reset your DOS clock after running Plan 9.
 Finally, it's important to have a three-button mouse with Plan 9.
 The system works with either a PS/2 or serial mouse.
 .PP

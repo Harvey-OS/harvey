@@ -26,6 +26,7 @@ struct Message
 	char	hallocd;	// header is malloce'd
 
 	// mail info
+	String	*unixheader;
 	String	*unixfrom;
 	String	*unixdate;
 	String	*from822;
@@ -55,9 +56,14 @@ struct Message
 
 	Message	*next;		// same level
 	Message	*part;		// down a level
-	Message *whole;		// up a level
+	Message	*whole;		// up a level
 
 	uchar	digest[SHA1dlen];
+
+	vlong	imapuid;	// used by imap4
+
+	char		uidl[80];	// used by pop3
+	int		mesgno;
 };
 
 enum
@@ -90,11 +96,24 @@ struct Mailbox
 	Dir	d;
 	Message	*root;
 	int	vers;		// goes up each time mailbox is read
+
+	ulong waketime;
+	char	*(*sync)(Mailbox*, int);
+	void	(*close)(Mailbox*);
+	char	*(*fetch)(Mailbox*, Message*);
+	char	*(*ctl)(Mailbox*, int, char**);
+	void	*aux;		// private to Mailbox implementation
 };
 
+typedef char *Mailboxinit(Mailbox*, char*);
+
 extern Message	*root;
+extern Mailboxinit	plan9mbox;
+extern Mailboxinit	pop3mbox;
+extern Mailboxinit	imap4mbox;
 
 char*		syncmbox(Mailbox*, int);
+char*		geterrstr(void);
 void*		emalloc(ulong);
 void*		erealloc(void*, ulong);
 Message*	newmessage(Message*);
@@ -119,6 +138,11 @@ int		decquoted(char*, char*, char*);
 int		xtoutf(char*, char**, char*, char*);
 void		countlines(Message*);
 int		headerlen(Message*);
+void		parse(Message*, int, Mailbox*);
+void		parseheaders(Message*, int, Mailbox*);
+void		parsebody(Message*, Mailbox*);
+void		parseunix(Message*);
+String*	date822tounix(char*);
 int		fidmboxrefs(Mailbox*);
 int		hashmboxrefs(Mailbox*);
 
@@ -126,11 +150,13 @@ extern int	debug;
 extern int	fflag;
 extern int	logging;
 extern char	user[NAMELEN];
+extern char	stdmbox[4*NAMELEN];
 extern QLock	mbllock;
 extern Mailbox	*mbl;
 extern char	*mntpt;
 extern int	biffing;
 extern int	plumbing;
+extern char*	Enotme;
 
 enum
 {
@@ -163,6 +189,7 @@ enum
 	Qmbox,
 	Qdir,
 	Qctl,
+	Qmboxctl,
 };
 
 #define PATH(id, f)	((((id)&0xfffff)<<10) | (f))

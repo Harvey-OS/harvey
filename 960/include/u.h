@@ -10,10 +10,6 @@ typedef	long		vlong;
 typedef	unsigned long	uvlong;
 typedef	ushort		Rune;
 typedef 	union FPdbleword FPdbleword;
-typedef	union
-{
-	vlong	length;
-} Length;
 typedef long	jmp_buf[2];
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
 typedef unsigned int	u32int;

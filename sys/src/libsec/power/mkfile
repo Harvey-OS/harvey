@@ -1,0 +1,9 @@
+objtype=power
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libsec.a
+OFILES=	\
+
+HFILES=/sys/include/libsec.h
+
+</sys/src/cmd/mksyslib

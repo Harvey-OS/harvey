@@ -228,6 +228,8 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush, char **subfontname)
 	subf->cf = nil;
 	subf->f = cf2subfont(cf, f);
 	if(subf->f == nil){
+		if(cf->subfontname == nil)
+			goto TryPJW;
 		*subfontname = cf->subfontname;
 		return -1;
 	}

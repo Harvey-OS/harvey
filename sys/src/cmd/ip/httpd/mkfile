@@ -1,8 +1,8 @@
 </$objtype/mkfile
 
 HFILES=\
-	httpd.h\
-	escape.h\
+	/sys/include/httpd.h\
+	httpsrv.h\
 
 TARG=\
 	httpd\
@@ -14,16 +14,16 @@ TARG=\
 	P\
 	to\
 
-LIB=libhttpd.a.$O
-LIBOFILES=\
-	can.$O\
+LIB=libhttps.a.$O
+
+LIBS=libhttps.a.$O
+LIBSOFILES=\
+	anonymous.$O\
 	content.$O\
-	date.$O\
+	emem.$O\
 	hints.$O\
-	hio.$O\
 	init.$O\
-	parse.$O\
-	query.$O\
+	log.$O\
 	redirect.$O\
 	sendfd.$O\
 
@@ -35,10 +35,10 @@ trial: v.netlib_find
 	echo "\n" | v.netlib_find GET HTTP/1.0 xxx 'db=1&pat=Hearing' > /tmp/search
 	sed 17q /tmp/search
 
-$LIB(%.$O):N: %.$O
-$LIB:	${LIBOFILES:%=$LIB(%)}
-	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$LIB'\(([^)]+)\)/\1/gp'}
-	ar vu $LIB $names
+$LIBS(%.$O):N: %.$O
+$LIBS:	${LIBSOFILES:%=$LIBS(%)}
+	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$LIBS'\(([^)]+)\)/\1/gp'}
+	ar vu $LIBS $names
 	rm $names
 
 re:N: v.re
@@ -49,4 +49,10 @@ none:VQ:
 	echo usage: mk safeinstall, safeinstallall, cmd.safeinstallall, or cmd.safeinstallall
 
 $O.9down: 9down.$O whois.$O classify.$O $LIB
+	$LD -o $target $prereq
+
+$O.test9down: 9down.$O whois.$O classify.$O $LIB
+	$LD -o $target $prereq
+
+$O.testclassify: testclassify.$O whois.$O classify.$O $LIB
 	$LD -o $target $prereq

@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1995, 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gximage1.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gximage1.c,v 1.5 2000/09/19 19:00:38 lpd Exp $ */
 /* ImageType 1 initialization */
 #include "gx.h"
 #include "gserrors.h"
@@ -25,7 +25,7 @@
 #include "stream.h"
 
 /* Structure descriptor */
-private_st_gs_image1();
+public_st_gs_image1();
 
 /*
  * Define the image types for ImageType 1 images.
@@ -100,6 +100,10 @@ gx_begin_image1(gx_device * dev,
 
 /* Serialization */
 
+/*
+ * We add the Alpha value to the control word.
+ */
+
 private int
 gx_image1_sput(const gs_image_common_t *pic, stream *s,
 	       const gs_color_space **ppcs)
@@ -127,33 +131,45 @@ gx_image1_sget(gs_image_common_t *pic, stream *s,
 
 /*
  * Masks have different parameters, so we use a different encoding:
- *	ABCDEE00
+ *	FFFFEEDCBA
  *	    A = 0 if standard ImageMatrix, 1 if explicit ImageMatrix
  *	    B = 0 if Decode=[0 1], 1 if Decode=[1 0]
  *	    C = Interpolate
  *	    D = adjust
  *	    EE = Alpha
- *	Width, 7 bits per byte, low-order bits first, 0x80 = more bytes
+ *	    FFFF = BitsPerComponent - 1 (only needed for soft masks)
+ *	Width, encoded as a variable-length uint
  *	Height, encoded like Width
  *	ImageMatrix (if A = 1), per gs_matrix_store/fetch
  */
+#define MI_ImageMatrix 0x01
+#define MI_Decode 0x02
+#define MI_Interpolate 0x04
+#define MI_adjust 0x08
+#define MI_Alpha_SHIFT 4
+#define MI_Alpha_MASK 0x3
+#define MI_BPC_SHIFT 6
+#define MI_BPC_MASK 0xf
+#define MI_BITS 10
 
 private int
 gx_image1_mask_sput(const gs_image_common_t *pic, stream *s,
 		    const gs_color_space **ignore_ppcs)
 {
     const gs_image_t *pim = (const gs_image_t *)pic;
-    byte b =
-	(gx_image_matrix_is_default((const gs_data_image_t *)pim) ? 0 : 0x80) |
-	(pim->Decode[0] != 0 ? 0x40 : 0) |
-	(pim->Interpolate ? 0x20 : 0) |
-	(pim->adjust ? 0x10 : 0) |
-	(pim->Alpha << 2);
+    uint control =
+	(gx_image_matrix_is_default((const gs_data_image_t *)pim) ? 0 :
+	 MI_ImageMatrix) |
+	(pim->Decode[0] != 0 ? MI_Decode : 0) |
+	(pim->Interpolate ? MI_Interpolate : 0) |
+	(pim->adjust ? MI_adjust : 0) |
+	(pim->Alpha << MI_Alpha_SHIFT) |
+	((pim->BitsPerComponent - 1) << MI_BPC_SHIFT);
 
-    sputc(s, b);
+    sput_variable_uint(s, control);
     sput_variable_uint(s, (uint)pim->Width);
     sput_variable_uint(s, (uint)pim->Height);
-    if (b & 0x80)
+    if (control & MI_ImageMatrix)
 	sput_matrix(s, &pim->ImageMatrix);
     return 0;
 }
@@ -163,22 +179,25 @@ gx_image1_mask_sget(gs_image_common_t *pic, stream *s,
 		    const gs_color_space *ignore_pcs)
 {
     gs_image1_t *const pim = (gs_image1_t *)pic;
-    byte b = sgetc(s);
     int code;
+    uint control;
 
-    gs_image_t_init_mask(pim, (b & 0x40) != 0);
+    if ((code = sget_variable_uint(s, &control)) < 0)
+	return code;
+    gs_image_t_init_mask(pim, (control & MI_Decode) != 0);
     if ((code = sget_variable_uint(s, (uint *)&pim->Width)) < 0 ||
 	(code = sget_variable_uint(s, (uint *)&pim->Height)) < 0
 	)
 	return code;
-    if (b & 0x80) {
+    if (control & MI_ImageMatrix) {
 	if ((code = sget_matrix(s, &pim->ImageMatrix)) < 0)
 	    return code;
     } else
 	gx_image_matrix_set_default((gs_data_image_t *)pim);
-    pim->Interpolate = (b & 0x20) != 0;
-    pim->adjust = (b & 0x10) != 0;
-    pim->Alpha = (b >> 2) & 3;
+    pim->Interpolate = (control & MI_Interpolate) != 0;
+    pim->adjust = (control & MI_adjust) != 0;
+    pim->Alpha = (control >> MI_Alpha_SHIFT) & MI_Alpha_MASK;
+    pim->BitsPerComponent = ((control >> MI_BPC_SHIFT) & MI_BPC_MASK) + 1;
     return 0;
 }
 

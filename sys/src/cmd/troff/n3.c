@@ -779,7 +779,7 @@ void casedi(void)
 			numtabp[DL].val = dip->maxl;
 			FINDDIV(j);
 			if ((contabp[j].divsiz = (Divsiz *) malloc(sizeof(Divsiz))) == NULL) {
-				ERROR "Cannot alloc diversion (%s) size" WARN;
+				ERROR "Cannot alloc diversion size" WARN;
 				done2(1);
 			} else {
 				contabp[j].divsiz->dix = numtabp[DN].val;

@@ -1,6 +1,6 @@
 .TH LISTEN 8
 .SH NAME
-listen, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il17031, tcp2, tcp7, tcp9, tcp19, tcp21, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp6000, tcp6667, tcp17007, tcp17009, tcp17013 \- listen for calls on a network device
+listen, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il17031, tcp7, tcp9, tcp19, tcp21, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp17007, tcp17009, tcp17013 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
 .RB [ -q ]
@@ -92,9 +92,6 @@ FTP daemon
 LP daemon; see
 .IR lp (8).
 .TP
-.B tcp6000
-X-window callback
-.TP
 .B tcp23
 .B telnet
 terminal connection.
@@ -105,9 +102,6 @@ mail delivery.
 .B tcp513
 .B rlogin
 terminal connection.
-.TP
-.B tcp2
-hold the connection open; sleep for a long time
 .TP
 .B il7 tcp7
 echo any bytes received (bit mirror)
@@ -124,16 +118,10 @@ POP3 port.
 .B tcp143
 IMAP4rev1 port.
 .TP
-.B tcp993
-Secure IMAP4rev1 port.
-.TP
 .B tcp113
 .B Ident
 port (always reports
 .BR none ).
-.TP
-.B tcp6667
-Inferno (Styx) port.
 .TP
 .B tcp567
 Plan 9 ticket service.
@@ -148,6 +136,9 @@ check a SecureNet box.
 .TP
 .B il566
 authentication requests.
+.TP
+.B tcp993
+Secure IMAP4rev1 port.
 .SH FILES
 .TF /env/sysname
 .TP

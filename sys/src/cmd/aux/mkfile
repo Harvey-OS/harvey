@@ -2,6 +2,8 @@
 
 TARG=\
 	accupoint\
+	acidleak\
+	apm\
 	astarld\
 	clog\
 	consolefs\
@@ -15,6 +17,7 @@ TARG=\
 	mouse\
 	olefs\
 	pcmcia\
+	rdwr\
 	reboot\
 	searchfs\
 	timesync\

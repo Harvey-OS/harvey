@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 #include "httpd.h"
+#include "httpsrv.h"
 
 typedef struct Suffix	Suffix;
 struct Suffix 
@@ -17,7 +18,7 @@ Suffix	*suffixes = nil;
 
 static	Suffix*			parsesuffix(char*, Suffix*);
 static	char*			skipwhite(char*);
-static	Contents		suffixclass(char*);
+static	HContents		suffixclass(char*);
 static	char*			towhite(char*);
 
 int
@@ -103,12 +104,12 @@ parsesuffix(char *line, Suffix *suffix)
 /*
  * classify by file name extensions
  */
-Contents
-uriclass(char *name)
+HContents
+uriclass(HConnect *hc, char *name)
 {
-	Contents conts;
+	HContents conts;
 	Suffix *s;
-	Content *type, *enc;
+	HContent *type, *enc;
 	char buf[3*NAMELEN+1], *p;
 
 	type = nil;
@@ -121,9 +122,9 @@ uriclass(char *name)
 		for(s = suffixes; s; s = s->next){
 			if(strcmp(p, s->suffix) == 0){
 				if(s->generic != nil && type == nil)
-					type = mkcontent(s->generic, s->specific, nil);
+					type = hmkcontent(hc, s->generic, s->specific, nil);
 				if(s->encoding != nil && enc == nil)
-					enc = mkcontent(s->encoding, nil, nil);
+					enc = hmkcontent(hc, s->encoding, nil, nil);
 			}
 		}
 		*p = 0;
@@ -136,10 +137,10 @@ uriclass(char *name)
 /*
  * classify by initial contents of file
  */
-Contents
-dataclass(char *buf, int n)
+HContents
+dataclass(HConnect *hc, char *buf, int n)
 {
-	Contents conts;
+	HContents conts;
 	Rune r;
 	int c, m;
 
@@ -162,50 +163,7 @@ dataclass(char *buf, int n)
 		}
 		buf += m;
 	}
-	conts.type = mkcontent("text", "plain", nil);
+	conts.type = hmkcontent(hc, "text", "plain", nil);
 	conts.encoding = nil;
 	return conts;
-}
-
-int
-checkcontent(Content *me, Content *oks, char *list, int size)
-{
-	Content *ok;
-
-	if(oks == nil || me == nil)
-		return 1;
-	for(ok = oks; ok != nil; ok = ok->next){
-		if((cistrcmp(ok->generic, me->generic) == 0 || strcmp(ok->generic, "*") == 0)
-		&& (me->specific == nil || cistrcmp(ok->specific, me->specific) == 0 || strcmp(ok->specific, "*") == 0)){
-			if(ok->mxb > 0 && size > ok->mxb)
-				return 0;
-			return 1;
-		}
-	}
-
-	USED(list);
-	if(0){
-		fprint(2, "list: %s/%s not found\n", me->generic, me->specific);
-		for(; oks != nil; oks = oks->next){
-			if(oks->specific)
-				fprint(2, "\t%s/%s\n", oks->generic, oks->specific);
-			else
-				fprint(2, "\t%s\n", oks->generic);
-		}
-	}
-	return 0;
-}
-
-Content*
-mkcontent(char *generic, char *specific, Content *next)
-{
-	Content *c;
-
-	c = halloc(sizeof(Content));
-	c->generic = generic;
-	c->specific = specific;
-	c->next = next;
-	c->q = 1;
-	c->mxb = 0;
-	return c;
 }

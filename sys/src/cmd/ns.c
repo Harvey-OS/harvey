@@ -68,6 +68,10 @@ main(int argc, char **argv)
 
 	for(line=1; ; line++) {
 		n = read(fd, buf, sizeof(buf));
+		if(n == sizeof(buf)) {
+			fprint(2, "ns: ns string too long\n");
+			exits("read ns");
+		}
 		if(n < 0) {
 			fprint(2, "ns: read %r\n");
 			exits("read ns");

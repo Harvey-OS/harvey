@@ -1,0 +1,12 @@
+</$objtype/mkfile
+
+TARG=News
+OFILES=\
+	news.$O\
+	util.$O\
+	win.$O\
+
+HFILES=news.h
+
+BIN=/acme/bin/$objtype
+</sys/src/cmd/mkone

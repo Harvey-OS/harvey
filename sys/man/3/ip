@@ -158,10 +158,10 @@ medium-specific headers.
 .TP
 .BI iprouting\  n
 Allow
+.RI ( n is missing
+or non-zero) or disallow
 .RI ( n
-is non-zero) or disallow
-.RI ( n
-is missing or 0) forwarding packets between this interface and
+is 0) forwarding packets between this interface and
 others.
 .TP
 .BI addmulti\  addr

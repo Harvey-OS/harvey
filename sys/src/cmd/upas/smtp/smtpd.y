@@ -32,6 +32,8 @@ conversation	: cmd
 cmd		: error
 		| 'h' 'e' 'l' 'o' spaces sdomain CRLF
 			{ hello($6.s); }
+		| 'e' 'h' 'l' 'o' spaces sdomain CRLF
+			{ hello($6.s); }
 		| 'm' 'a' 'i' 'l' spaces 'f' 'r' 'o' 'm' ':' spath CRLF
 			{ sender($11.s); }
 		| 'r' 'c' 'p' 't' spaces 't' 'o' ':' spath CRLF
@@ -60,8 +62,6 @@ cmd		: error
 			{ quit(); }
 		| 't' 'u' 'r' 'n' CRLF
 			{ turn(); }
-		| 'e' 'h' 'l' 'o' spaces strings CRLF
-			{ reply("502 ehlo not implemented\r\n"); }
 		| CRLF
 			{ reply("501 illegal command or bad syntax\r\n"); }
 		;
@@ -115,10 +115,6 @@ dot_string	: string			={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 
 string		: char
 		| string char	={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
-		;
-
-strings		: string
-		| strings spaces string
 		;
 
 quoted_string	: '"' qtext '"'	={ $$ = cat(&$1, &$2, &$3, 0, 0 ,0, 0); }

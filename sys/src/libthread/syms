@@ -10,6 +10,39 @@ _1_(addr) {
 	print("	length	", addr.length, "\n");
 };
 
+sizeof_2_ = 8;
+aggr _2_
+{
+	'D' 0 lo;
+	'D' 4 hi;
+};
+
+defn
+_2_(addr) {
+	complex _2_ addr;
+	print("	lo	", addr.lo, "\n");
+	print("	hi	", addr.hi, "\n");
+};
+
+sizeofFPdbleword = 8;
+aggr FPdbleword
+{
+	'F' 0 x;
+	{
+	'D' 0 lo;
+	'D' 4 hi;
+	};
+};
+
+defn
+FPdbleword(addr) {
+	complex FPdbleword addr;
+	print("	x	", addr.x, "\n");
+	print("_2_ {\n");
+		_2_(addr+0);
+	print("}\n");
+};
+
 UTFmax = 3;
 Runesync = 128;
 Runeself = 128;
@@ -68,7 +101,7 @@ Tm(addr) {
 
 PNPROC = 1;
 PNGROUP = 2;
-sizeofLock = 4;
+sizeofLock = 8;
 aggr Lock
 {
 	'D' 0 val;
@@ -80,7 +113,7 @@ Lock(addr) {
 	print("	val	", addr.val, "\n");
 };
 
-sizeofQLp = 12;
+sizeofQLp = 16;
 aggr QLp
 {
 	'D' 0 inuse;
@@ -96,13 +129,13 @@ QLp(addr) {
 	print("	state	", addr.state, "\n");
 };
 
-sizeofQLock = 16;
+sizeofQLock = 24;
 aggr QLock
 {
 	Lock 0 lock;
-	'D' 4 locked;
-	'A' QLp 8 $head;
-	'A' QLp 12 $tail;
+	'D' 8 locked;
+	'A' QLp 12 $head;
+	'A' QLp 16 $tail;
 };
 
 defn
@@ -116,14 +149,14 @@ QLock(addr) {
 	print("	$tail	", addr.$tail\X, "\n");
 };
 
-sizeofRWLock = 20;
+sizeofRWLock = 24;
 aggr RWLock
 {
 	Lock 0 lock;
-	'D' 4 readers;
-	'D' 8 writer;
-	'A' QLp 12 $head;
-	'A' QLp 16 $tail;
+	'D' 8 readers;
+	'D' 12 writer;
+	'A' QLp 16 $head;
+	'A' QLp 20 $tail;
 };
 
 defn
@@ -164,21 +197,21 @@ Qid(addr) {
 	print("	vers	", addr.vers, "\n");
 };
 
-sizeofDir = 116;
+sizeofDir = 128;
 aggr Dir
 {
 	'a' 0 name;
 	'a' 28 uid;
 	'a' 56 gid;
-	Qid 84 qid;
-	'U' 92 mode;
-	'D' 96 atime;
-	'D' 100 mtime;
+	Qid 88 qid;
+	'U' 96 mode;
+	'D' 100 atime;
+	'D' 104 mtime;
 	{
-	'V' 104 length;
+	'V' 112 length;
 	};
-	'u' 112 type;
-	'u' 114 dev;
+	'u' 120 type;
+	'u' 122 dev;
 };
 
 defn
@@ -194,7 +227,7 @@ Dir(addr) {
 	print("	atime	", addr.atime, "\n");
 	print("	mtime	", addr.mtime, "\n");
 	print("_1_ {\n");
-		_1_(addr+104);
+		_1_(addr+112);
 	print("}\n");
 	print("	type	", addr.type, "\n");
 	print("	dev	", addr.dev, "\n");
@@ -216,13 +249,39 @@ Waitmsg(addr) {
 	print("	msg	", addr.msg, "\n");
 };
 
-sizeofAlt = 20;
+sizeofChannel = 160;
+aggr Channel
+{
+	'D' 0 s;
+	'U' 4 f;
+	'U' 8 n;
+	'D' 12 e;
+	'D' 16 freed;
+	'U' 20 qused;
+	'a' 24 qentry;
+	'a' 152 v;
+};
+
+defn
+Channel(addr) {
+	complex Channel addr;
+	print("	s	", addr.s, "\n");
+	print("	f	", addr.f, "\n");
+	print("	n	", addr.n, "\n");
+	print("	e	", addr.e, "\n");
+	print("	freed	", addr.freed, "\n");
+	print("	qused	", addr.qused, "\n");
+	print("	qentry	", addr.qentry, "\n");
+	print("	v	", addr.v, "\n");
+};
+
+sizeofAlt = 24;
 aggr Alt
 {
-	'X' 0 c;
+	'A' Channel 0 c;
 	'X' 4 v;
 	'D' 8 op;
-	'X' 12 tag;
+	'A' Channel 12 tag;
 	'U' 16 q;
 };
 
@@ -236,7 +295,7 @@ Alt(addr) {
 	print("	q	", addr.q, "\n");
 };
 
-sizeofRef = 4;
+sizeofRef = 8;
 aggr Ref
 {
 	'D' 0 ref;
@@ -258,12 +317,12 @@ Callrcv = 3;
 DOEXEC = 1;
 DOEXIT = 2;
 DOPROC = 3;
-sizeofTqueue = 12;
+sizeofTqueue = 16;
 aggr Tqueue
 {
 	Lock 0 lock;
-	'X' 4 $head;
-	'X' 8 $tail;
+	'X' 8 $head;
+	'X' 12 $tail;
 };
 
 defn
@@ -276,26 +335,26 @@ Tqueue(addr) {
 	print("	$tail	", addr.$tail\X, "\n");
 };
 
-sizeofThread = 72;
+sizeofThread = 80;
 aggr Thread
 {
 	Lock 0 lock;
-	'D' 4 id;
-	'D' 8 grp;
-	'D' 12 state;
-	'D' 16 exiting;
-	'D' 20 call;
-	'X' 24 cmdname;
-	'A' Thread 28 next;
-	'A' Thread 32 nextt;
-	'X' 36 proc;
-	'U' 40 tag;
-	'A' Alt 44 alt;
-	'U' 48 value;
-	'A' Thread 52 garbage;
-	'a' 56 env;
-	'X' 64 stk;
-	'U' 68 stksize;
+	'D' 8 id;
+	'D' 12 grp;
+	'D' 16 state;
+	'D' 20 exiting;
+	'D' 24 call;
+	'X' 28 cmdname;
+	'A' Thread 32 next;
+	'A' Thread 36 nextt;
+	'X' 40 proc;
+	'U' 44 tag;
+	'A' Alt 48 alt;
+	'U' 52 value;
+	'A' Thread 56 garbage;
+	'a' 60 env;
+	'X' 68 stk;
+	'U' 72 stksize;
 };
 
 defn
@@ -322,22 +381,22 @@ Thread(addr) {
 	print("	stksize	", addr.stksize, "\n");
 };
 
-sizeofProc = 132;
+sizeofProc = 144;
 aggr Proc
 {
 	Lock 0 lock;
-	'D' 4 pid;
-	'a' 8 oldenv;
-	'D' 16 nthreads;
-	Tqueue 20 threads;
-	Tqueue 32 runnable;
-	'A' Thread 44 curthread;
-	'D' 48 blocked;
-	'U' 52 nextID;
-	'A' Proc 56 next;
-	'X' 60 arg;
-	'a' 64 str;
-	'U' 128 udata;
+	'D' 8 pid;
+	'a' 12 oldenv;
+	'D' 20 nthreads;
+	Tqueue 24 threads;
+	Tqueue 40 runnable;
+	'A' Thread 56 curthread;
+	'D' 60 blocked;
+	'U' 64 nextID;
+	'A' Proc 68 next;
+	'X' 72 arg;
+	'a' 76 str;
+	'U' 140 udata;
 };
 
 defn
@@ -364,7 +423,7 @@ Proc(addr) {
 	print("	udata	", addr.udata, "\n");
 };
 
-sizeofNewproc = 20;
+sizeofNewproc = 24;
 aggr Newproc
 {
 	'X' 0 stack;
@@ -384,7 +443,7 @@ Newproc(addr) {
 	print("	grp	", addr.grp, "\n");
 };
 
-sizeofExecproc = 4108;
+sizeofExecproc = 4112;
 aggr Execproc
 {
 	'A' Proc 0 procp;
@@ -402,12 +461,12 @@ Execproc(addr) {
 	print("	data	", addr.data, "\n");
 };
 
-sizeofPqueue = 12;
+sizeofPqueue = 16;
 aggr Pqueue
 {
 	Lock 0 lock;
-	'A' Proc 4 $head;
-	'A' Proc 8 $tail;
+	'A' Proc 8 $head;
+	'A' Proc 12 $tail;
 };
 
 defn
@@ -425,6 +484,7 @@ complex Proc procp;
 complex Thread dontkill;
 complex Tqueue rendez;
 complex Lock rendezlock;
+complex Channel thewaitchan;
 complex Pqueue pq;
 complex Proc procp;
 complex Proc notehandler:p;
@@ -432,23 +492,28 @@ complex Thread notehandler:t;
 complex Thread threadexits:t;
 complex Thread threadexits:new;
 complex Proc threadexits:p;
+complex Channel threadexits:c;
 complex Waitmsg threadexits:w;
+complex Channel threadexitsall:c;
 complex Thread yield:new;
 complex Thread yield:t;
 complex Proc yield:p;
-complex Proc threadrendezvous:p;
-complex Thread threadrendezvous:this;
-complex Thread threadrendezvous:that;
-complex Thread threadrendezvous:new;
+complex Proc _threadrendezvous:p;
+complex Thread _threadrendezvous:this;
+complex Thread _threadrendezvous:that;
+complex Thread _threadrendezvous:new;
 complex Waitmsg main:w;
 complex Thread threadsetname:t;
 complex Newproc proccreate:np;
 complex Proc proccreate:p;
 complex Thread threadcreate:child;
 complex Proc threadcreate:p;
+complex Channel procexecl:pidc;
+complex Channel procexec:pidc;
 complex Proc procexec:p;
 complex Dir procexec:d;
 complex Execproc procexec:ep;
+complex Channel procexec:c;
 complex Waitmsg procexec:w;
 complex Proc runproc:p;
 complex Proc runproc:pp;
@@ -490,6 +555,39 @@ _1_(addr) {
 	print("	length	", addr.length, "\n");
 };
 
+sizeof_2_ = 8;
+aggr _2_
+{
+	'D' 0 lo;
+	'D' 4 hi;
+};
+
+defn
+_2_(addr) {
+	complex _2_ addr;
+	print("	lo	", addr.lo, "\n");
+	print("	hi	", addr.hi, "\n");
+};
+
+sizeofFPdbleword = 8;
+aggr FPdbleword
+{
+	'F' 0 x;
+	{
+	'D' 0 lo;
+	'D' 4 hi;
+	};
+};
+
+defn
+FPdbleword(addr) {
+	complex FPdbleword addr;
+	print("	x	", addr.x, "\n");
+	print("_2_ {\n");
+		_2_(addr+0);
+	print("}\n");
+};
+
 UTFmax = 3;
 Runesync = 128;
 Runeself = 128;
@@ -548,7 +646,7 @@ Tm(addr) {
 
 PNPROC = 1;
 PNGROUP = 2;
-sizeofLock = 4;
+sizeofLock = 8;
 aggr Lock
 {
 	'D' 0 val;
@@ -560,7 +658,7 @@ Lock(addr) {
 	print("	val	", addr.val, "\n");
 };
 
-sizeofQLp = 12;
+sizeofQLp = 16;
 aggr QLp
 {
 	'D' 0 inuse;
@@ -576,13 +674,13 @@ QLp(addr) {
 	print("	state	", addr.state, "\n");
 };
 
-sizeofQLock = 16;
+sizeofQLock = 24;
 aggr QLock
 {
 	Lock 0 lock;
-	'D' 4 locked;
-	'A' QLp 8 $head;
-	'A' QLp 12 $tail;
+	'D' 8 locked;
+	'A' QLp 12 $head;
+	'A' QLp 16 $tail;
 };
 
 defn
@@ -596,14 +694,14 @@ QLock(addr) {
 	print("	$tail	", addr.$tail\X, "\n");
 };
 
-sizeofRWLock = 20;
+sizeofRWLock = 24;
 aggr RWLock
 {
 	Lock 0 lock;
-	'D' 4 readers;
-	'D' 8 writer;
-	'A' QLp 12 $head;
-	'A' QLp 16 $tail;
+	'D' 8 readers;
+	'D' 12 writer;
+	'A' QLp 16 $head;
+	'A' QLp 20 $tail;
 };
 
 defn
@@ -644,21 +742,21 @@ Qid(addr) {
 	print("	vers	", addr.vers, "\n");
 };
 
-sizeofDir = 116;
+sizeofDir = 128;
 aggr Dir
 {
 	'a' 0 name;
 	'a' 28 uid;
 	'a' 56 gid;
-	Qid 84 qid;
-	'U' 92 mode;
-	'D' 96 atime;
-	'D' 100 mtime;
+	Qid 88 qid;
+	'U' 96 mode;
+	'D' 100 atime;
+	'D' 104 mtime;
 	{
-	'V' 104 length;
+	'V' 112 length;
 	};
-	'u' 112 type;
-	'u' 114 dev;
+	'u' 120 type;
+	'u' 122 dev;
 };
 
 defn
@@ -674,7 +772,7 @@ Dir(addr) {
 	print("	atime	", addr.atime, "\n");
 	print("	mtime	", addr.mtime, "\n");
 	print("_1_ {\n");
-		_1_(addr+104);
+		_1_(addr+112);
 	print("}\n");
 	print("	type	", addr.type, "\n");
 	print("	dev	", addr.dev, "\n");
@@ -696,13 +794,39 @@ Waitmsg(addr) {
 	print("	msg	", addr.msg, "\n");
 };
 
-sizeofAlt = 20;
+sizeofChannel = 160;
+aggr Channel
+{
+	'D' 0 s;
+	'U' 4 f;
+	'U' 8 n;
+	'D' 12 e;
+	'D' 16 freed;
+	'U' 20 qused;
+	'a' 24 qentry;
+	'a' 152 v;
+};
+
+defn
+Channel(addr) {
+	complex Channel addr;
+	print("	s	", addr.s, "\n");
+	print("	f	", addr.f, "\n");
+	print("	n	", addr.n, "\n");
+	print("	e	", addr.e, "\n");
+	print("	freed	", addr.freed, "\n");
+	print("	qused	", addr.qused, "\n");
+	print("	qentry	", addr.qentry, "\n");
+	print("	v	", addr.v, "\n");
+};
+
+sizeofAlt = 24;
 aggr Alt
 {
-	'X' 0 c;
+	'A' Channel 0 c;
 	'X' 4 v;
 	'D' 8 op;
-	'X' 12 tag;
+	'A' Channel 12 tag;
 	'U' 16 q;
 };
 
@@ -716,7 +840,7 @@ Alt(addr) {
 	print("	q	", addr.q, "\n");
 };
 
-sizeofRef = 4;
+sizeofRef = 8;
 aggr Ref
 {
 	'D' 0 ref;
@@ -738,12 +862,12 @@ Callrcv = 3;
 DOEXEC = 1;
 DOEXIT = 2;
 DOPROC = 3;
-sizeofTqueue = 12;
+sizeofTqueue = 16;
 aggr Tqueue
 {
 	Lock 0 lock;
-	'X' 4 $head;
-	'X' 8 $tail;
+	'X' 8 $head;
+	'X' 12 $tail;
 };
 
 defn
@@ -756,26 +880,26 @@ Tqueue(addr) {
 	print("	$tail	", addr.$tail\X, "\n");
 };
 
-sizeofThread = 72;
+sizeofThread = 80;
 aggr Thread
 {
 	Lock 0 lock;
-	'D' 4 id;
-	'D' 8 grp;
-	'D' 12 state;
-	'D' 16 exiting;
-	'D' 20 call;
-	'X' 24 cmdname;
-	'A' Thread 28 next;
-	'A' Thread 32 nextt;
-	'X' 36 proc;
-	'U' 40 tag;
-	'A' Alt 44 alt;
-	'U' 48 value;
-	'A' Thread 52 garbage;
-	'a' 56 env;
-	'X' 64 stk;
-	'U' 68 stksize;
+	'D' 8 id;
+	'D' 12 grp;
+	'D' 16 state;
+	'D' 20 exiting;
+	'D' 24 call;
+	'X' 28 cmdname;
+	'A' Thread 32 next;
+	'A' Thread 36 nextt;
+	'X' 40 proc;
+	'U' 44 tag;
+	'A' Alt 48 alt;
+	'U' 52 value;
+	'A' Thread 56 garbage;
+	'a' 60 env;
+	'X' 68 stk;
+	'U' 72 stksize;
 };
 
 defn
@@ -802,22 +926,22 @@ Thread(addr) {
 	print("	stksize	", addr.stksize, "\n");
 };
 
-sizeofProc = 132;
+sizeofProc = 144;
 aggr Proc
 {
 	Lock 0 lock;
-	'D' 4 pid;
-	'a' 8 oldenv;
-	'D' 16 nthreads;
-	Tqueue 20 threads;
-	Tqueue 32 runnable;
-	'A' Thread 44 curthread;
-	'D' 48 blocked;
-	'U' 52 nextID;
-	'A' Proc 56 next;
-	'X' 60 arg;
-	'a' 64 str;
-	'U' 128 udata;
+	'D' 8 pid;
+	'a' 12 oldenv;
+	'D' 20 nthreads;
+	Tqueue 24 threads;
+	Tqueue 40 runnable;
+	'A' Thread 56 curthread;
+	'D' 60 blocked;
+	'U' 64 nextID;
+	'A' Proc 68 next;
+	'X' 72 arg;
+	'a' 76 str;
+	'U' 140 udata;
 };
 
 defn
@@ -844,7 +968,7 @@ Proc(addr) {
 	print("	udata	", addr.udata, "\n");
 };
 
-sizeofNewproc = 20;
+sizeofNewproc = 24;
 aggr Newproc
 {
 	'X' 0 stack;
@@ -864,7 +988,7 @@ Newproc(addr) {
 	print("	grp	", addr.grp, "\n");
 };
 
-sizeofExecproc = 4108;
+sizeofExecproc = 4112;
 aggr Execproc
 {
 	'A' Proc 0 procp;
@@ -882,12 +1006,12 @@ Execproc(addr) {
 	print("	data	", addr.data, "\n");
 };
 
-sizeofPqueue = 12;
+sizeofPqueue = 16;
 aggr Pqueue
 {
 	Lock 0 lock;
-	'A' Proc 4 $head;
-	'A' Proc 8 $tail;
+	'A' Proc 8 $head;
+	'A' Proc 12 $tail;
 };
 
 defn
@@ -902,32 +1026,6 @@ Pqueue(addr) {
 
 complex Pqueue pq;
 complex Proc procp;
-sizeofChannel = 156;
-aggr Channel
-{
-	'D' 0 s;
-	'U' 4 f;
-	'U' 8 n;
-	'D' 12 e;
-	'D' 16 freed;
-	'U' 20 qused;
-	'a' 24 qentry;
-	'a' 152 v;
-};
-
-defn
-Channel(addr) {
-	complex Channel addr;
-	print("	s	", addr.s, "\n");
-	print("	f	", addr.f, "\n");
-	print("	n	", addr.n, "\n");
-	print("	e	", addr.e, "\n");
-	print("	freed	", addr.freed, "\n");
-	print("	qused	", addr.qused, "\n");
-	print("	qentry	", addr.qentry, "\n");
-	print("	v	", addr.v, "\n");
-};
-
 complex Lock chanlock;
 complex Channel chanfree:c;
 complex Channel chaninit:c;

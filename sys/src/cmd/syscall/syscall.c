@@ -41,7 +41,11 @@ main(int argc, char *argv[])
 		arg[i-1]=parse(argv[i]);
 	for(i=0; tab[i].name; i++)
 		if(strcmp(tab[i].name, argv[0])==0){
-			r=(*tab[i].func)(arg[0], arg[1], arg[2], arg[3], arg[4]);
+			/* special case for seek; vlongs are problematic */
+			if(strcmp(argv[0], "seek") == 0)
+				r=seek(arg[0], arg[1], arg[2]);
+			else
+				r=(*tab[i].func)(arg[0], arg[1], arg[2], arg[3], arg[4]);
 			if(r == -1){
 				errstr(ebuf);
 				fprint(2, "syscall: return %d, error:%s\n", r, ebuf);

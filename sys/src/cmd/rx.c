@@ -43,15 +43,15 @@ main(int argc, char *argv[])
 	host = argv[0];
 	args = buildargs(&argv[1]);
 
+	/* specific attempts (more likely to work) */
+	fd = call("tcp", host, "shell", &addr);
+	if(fd >= 0)
+		tcpexec(fd, addr, args);
+
 	/* generic attempts */
 	fd = call(0, host, "rexexec", &addr);
 	if(fd >= 0)
 		rex(fd, args);
-
-	/* specific attempts */
-	fd = call("tcp", host, "shell", &addr);
-	if(fd >= 0)
-		tcpexec(fd, addr, args);
 
 	error("can't dial", host);
 	exits(0);

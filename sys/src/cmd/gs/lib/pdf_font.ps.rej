@@ -1,0 +1,18 @@
+***************
+*** 219,224 ****
+                % We should look at the fixed flag, too.
+                % Stack: font-res fontname fontdesc properties
+        1 index /FontName oget exch
+                % Rebind the default font name to Helvetica so that
+                % fonts with no properties are handled correctly.
+        //.pdfdfndict begin .substitutefontname end
+--- 219,227 ----
+                % We should look at the fixed flag, too.
+                % Stack: font-res fontname fontdesc properties
+        1 index /FontName oget exch
++               % Analyzes font name and extract "Narrow" property
++               % which is not described by the FontDescriptor Flags.
++       0 2 index .fontnameproperties 4 and or
+                % Rebind the default font name to Helvetica so that
+                % fonts with no properties are handled correctly.
+        //.pdfdfndict begin .substitutefontname end

@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 				newkey = 0;
 		}
 		if(newkey)
-			getpass(key, p9pass, 1);
+			getpass(key, p9pass, 1, 1);
 		dosecret = getsecret(newkey, p9pass);
 		t = getexpiration(f->keys, u);
 		install(f->keys, u, key, t, newkey);

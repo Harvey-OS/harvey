@@ -4,6 +4,9 @@ calendar \- print upcoming events
 .SH SYNOPSIS
 .B calendar
 [
+.B \-y
+]
+[
 .I file ...
 ]
 .SH DESCRIPTION
@@ -20,6 +23,13 @@ Examples of recognized date formats are
 and
 "11 Apr".
 All comparisons are case insensitive.
+.PP
+If the
+.B \-y
+flag is given, an attempt is made to match on year too.  In this case,
+dates of the forms listed above will be accepted if they are followed
+by the current year (or last two digits thereof) or not a year —
+digits not followed by white space or non-digits.
 .PP
 On Friday and Saturday, events through Monday are printed.
 .PP

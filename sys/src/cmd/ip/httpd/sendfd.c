@@ -2,8 +2,9 @@
 #include <libc.h>
 #include <auth.h>
 #include "httpd.h"
+#include "httpsrv.h"
 
-static	void		printtype(Hio *hout, Content *type, Content *enc);
+static	void		printtype(Hio *hout, HContent *type, HContent *enc);
 
 /*
  * these should be done better; see the reponse codes in /lib/rfc/rfc2616 for
@@ -26,18 +27,18 @@ static	void		printtype(Hio *hout, Content *type, Content *enc);
  * returns 1 if authorized, 0 if unauthorized, -1 for io failure.
  */
 int
-authcheck(Connect *c)
+authcheck(HConnect *c)
 {
 	char *p;
 	Hio *hout;
 
-	p = authrealm(c->req.uri);
+	p = authrealm(c, c->req.uri);
 	if(p == nil
 	|| c->head.authuser != nil && httpauth(p, c->head.authpass) >= 0)
 		return 1;
 
 	hout = &c->hout;
-	hprint(hout, "%s 401 Unauthorized\r\n", version);
+	hprint(hout, "%s 401 Unauthorized\r\n", hversion);
 	hprint(hout, "Server: Plan9\r\n");
 	hprint(hout, "Date: %D\r\n", time(nil));
 	hprint(hout, "WWW-Authenticate: Basic realm=\"%s\"\r\n", p);
@@ -62,10 +63,10 @@ authcheck(Connect *c)
  * includes checks for conditional requests & ranges.
  */
 int
-sendfd(Connect *c, int fd, Dir *dir, Content *type, Content *enc)
+sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 {
-	Range *r;
-	Contents conts;
+	HRange *r;
+	HContents conts;
 	Hio *hout;
 	char *boundary, etag[32];
 	ulong tr;
@@ -83,21 +84,21 @@ sendfd(Connect *c, int fd, Dir *dir, Content *type, Content *enc)
 	boundary = nil;
 	if(c->req.vermaj){
 		if(type == nil && enc == nil){
-			conts = uriclass(c->req.uri);
+			conts = uriclass(c, c->req.uri);
 			type = conts.type;
 			enc = conts.encoding;
 			if(type == nil && enc == nil){
-				n = read(fd, c->xferbuf, BufSize-1);
+				n = read(fd, c->xferbuf, HBufSize-1);
 				if(n > 0){
 					c->xferbuf[n] = '\0';
-					conts = dataclass(c->xferbuf, n);
+					conts = dataclass(c, c->xferbuf, n);
 					type = conts.type;
 					enc = conts.encoding;
 				}
 			}
 		}
 		if(type == nil)
-			type = mkcontent("application", "octet-stream", nil);
+			type = hmkcontent(c, "application", "octet-stream", nil);
 
 		snprint(etag, sizeof(etag), "\"%luxv%lux\"", dir->qid.path, dir->qid.vers);
 		ok = checkreq(c, type, enc, dir->mtime, etag);
@@ -121,7 +122,7 @@ sendfd(Connect *c, int fd, Dir *dir, Content *type, Content *enc)
 			c->head.range = fixrange(c->head.range, dir->length);
 			if(c->head.range == nil){
 				if(c->head.ifrangeetag == nil && c->head.ifrangedate == 0){
-					hprint(hout, "%s 416 Request range not satisfiable\r\n", version);
+					hprint(hout, "%s 416 Request range not satisfiable\r\n", hversion);
 					hprint(hout, "Date: %D\r\n", time(nil));
 					hprint(hout, "Server: Plan9\r\n");
 					hprint(hout, "Content-Range: bytes */%lld\r\n", dir->length);
@@ -142,9 +143,9 @@ sendfd(Connect *c, int fd, Dir *dir, Content *type, Content *enc)
 			}
 		}
 		if(c->head.range == nil)
-			hprint(hout, "%s 200 OK\r\n", version);
+			hprint(hout, "%s 200 OK\r\n", hversion);
 		else
-			hprint(hout, "%s 206 Partial Content\r\n", version);
+			hprint(hout, "%s 206 Partial Content\r\n", hversion);
 
 		hprint(hout, "Server: Plan9\r\n");
 		hprint(hout, "Date: %D\r\n", time(nil));
@@ -161,7 +162,7 @@ sendfd(Connect *c, int fd, Dir *dir, Content *type, Content *enc)
 			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, dir->length);
 		else{
 			multir = 1;
-			boundary = mkmimeboundary();
+			boundary = hmkmimeboundary(c);
 			hprint(hout, "Content-Type: multipart/byteranges; boundary=%s\r\n", boundary);
 		}
 		if(c->head.ifrangeetag == nil){
@@ -169,7 +170,7 @@ sendfd(Connect *c, int fd, Dir *dir, Content *type, Content *enc)
 			if(!multir)
 				printtype(hout, type, enc);
 			if(c->head.fresh_thresh)
-				hintprint(hout, c->req.uri, c->head.fresh_thresh, c->head.fresh_have);
+				hintprint(c, hout, c->req.uri, c->head.fresh_thresh, c->head.fresh_have);
 		}
 
 		if(c->head.closeit)
@@ -197,7 +198,7 @@ sendfd(Connect *c, int fd, Dir *dir, Content *type, Content *enc)
 		if(n > 0)
 			wrote = write(1, c->xferbuf, n);
 		if(n <= 0 || wrote == n){
-			while((n = read(fd, c->xferbuf, BufSize)) > 0){
+			while((n = read(fd, c->xferbuf, HBufSize)) > 0){
 				nw = write(1, c->xferbuf, n);
 				if(nw != n){
 					if(nw > 0)
@@ -236,8 +237,8 @@ sendfd(Connect *c, int fd, Dir *dir, Content *type, Content *enc)
 		}
 		for(tr = r->stop - r->start + 1; tr; tr -= n){
 			n = tr;
-			if(n > BufSize)
-				n = BufSize;
+			if(n > HBufSize)
+				n = HBufSize;
 			if(read(fd, c->xferbuf, n) != n){
 				ok = -1;
 				goto breakout;
@@ -266,7 +267,7 @@ breakout:;
 }
 
 static void
-printtype(Hio *hout, Content *type, Content *enc)
+printtype(Hio *hout, HContent *type, HContent *enc)
 {
 	hprint(hout, "Content-Type: %s/%s", type->generic, type->specific);
 /*
@@ -279,7 +280,7 @@ printtype(Hio *hout, Content *type, Content *enc)
 }
 
 int
-etagmatch(int strong, ETag *tags, char *e)
+etagmatch(int strong, HETag *tags, char *e)
 {
 	char *s, *t;
 
@@ -305,7 +306,7 @@ etagmatch(int strong, ETag *tags, char *e)
 }
 
 static char *
-acceptcont(char *s, char *e, Content *ok, char *which)
+acceptcont(char *s, char *e, HContent *ok, char *which)
 {
 	char *sep;
 
@@ -329,13 +330,13 @@ acceptcont(char *s, char *e, Content *ok, char *which)
  * and turn off Show Friendly HTTP Error Messages under the Browsing category
  */
 static int
-notaccept(Connect *c, Content *type, Content *enc, char *which)
+notaccept(HConnect *c, HContent *type, HContent *enc, char *which)
 {
 	Hio *hout;
 	char *s, *e;
 
 	hout = &c->hout;
-	e = &c->xferbuf[BufSize];
+	e = &c->xferbuf[HBufSize];
 	s = c->xferbuf;
 	s = seprint(s, e, "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">\n");
 	s = seprint(s, e, "<html>\n<title>Unacceptable %s</title>\n<body>\n", which);
@@ -349,7 +350,7 @@ notaccept(Connect *c, Content *type, Content *enc, char *which)
 	s = acceptcont(s, e, c->head.okencode, "Content-Encoding");
 	s = seprint(s, e, "</body>\n</html>\n");
 
-	hprint(hout, "%s 406 Not Acceptable\r\n", version);
+	hprint(hout, "%s 406 Not Acceptable\r\n", hversion);
 	hprint(hout, "Server: Plan9\r\n");
 	hprint(hout, "Date: %D\r\n", time(nil));
 	hprint(hout, "Content-Type: text/html\r\n");
@@ -369,15 +370,15 @@ notaccept(Connect *c, Content *type, Content *enc, char *which)
  * check time and entity tag conditions.
  */
 int
-checkreq(Connect *c, Content *type, Content *enc, long mtime, char *etag)
+checkreq(HConnect *c, HContent *type, HContent *enc, long mtime, char *etag)
 {
 	Hio *hout;
 	int m;
 
 	hout = &c->hout;
-	if(c->req.vermaj >= 1 && c->req.vermin >= 1 && !checkcontent(type, c->head.oktype, "Content-Type", 0))
+	if(c->req.vermaj >= 1 && c->req.vermin >= 1 && !hcheckcontent(type, c->head.oktype, "Content-Type", 0))
 		return notaccept(c, type, enc, "Content-Type");
-	if(c->req.vermaj >= 1 && c->req.vermin >= 1 && !checkcontent(enc, c->head.okencode, "Content-Encoding", 0))
+	if(c->req.vermaj >= 1 && c->req.vermin >= 1 && !hcheckcontent(enc, c->head.okencode, "Content-Encoding", 0))
 		return notaccept(c, type, enc, "Content-Encoding");
 
 	/*
@@ -389,7 +390,7 @@ checkreq(Connect *c, Content *type, Content *enc, long mtime, char *etag)
 	if(m && strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0
 	|| c->head.ifunmodsince && c->head.ifunmodsince < mtime
 	|| c->head.ifmatch != nil && !etagmatch(1, c->head.ifmatch, etag)){
-		hprint(hout, "%s 412 Precondition Failed\r\n", version);
+		hprint(hout, "%s 412 Precondition Failed\r\n", hversion);
 		hprint(hout, "Server: Plan9\r\n");
 		hprint(hout, "Date: %D\r\n", time(nil));
 		hprint(hout, "Content-Type: text/html\r\n");
@@ -411,7 +412,7 @@ checkreq(Connect *c, Content *type, Content *enc, long mtime, char *etag)
 		 * can only send back Date, ETag, Content-Location,
 		 * Expires, Cache-Control, and Vary entity-headers
 		 */
-		hprint(hout, "%s 304 Not Modified\r\n", version);
+		hprint(hout, "%s 304 Not Modified\r\n", hversion);
 		hprint(hout, "Server: Plan9\r\n");
 		hprint(hout, "Date: %D\r\n", time(nil));
 		hprint(hout, "ETag: %s\r\n", etag);
@@ -432,10 +433,10 @@ checkreq(Connect *c, Content *type, Content *enc, long mtime, char *etag)
  * ie start after the end, or have stop before start.
  * rewrite suffix requests
  */
-Range*
-fixrange(Range *h, long length)
+HRange*
+fixrange(HRange *h, long length)
 {
-	Range *r, *rr;
+	HRange *r, *rr;
 
 	if(length == 0)
 		return nil;
@@ -495,17 +496,15 @@ fixrange(Range *h, long length)
  * figure out why and return and error message
  */
 int
-notfound(Connect *c, char *url)
+notfound(HConnect *c, char *url)
 {
 	char buf[ERRLEN];
 
 	buf[0] = 0;
 	errstr(buf);
 	if(strstr(buf, "file does not exist") != nil)
-		return fail(c, NotFound, url);
+		return hfail(c, HNotFound, url);
 	if(strstr(buf, "permission denied") != nil)
-		return fail(c, Unauth, url);
-	if(verbose)
-		logit(c, "failing %s: %s", url, buf);
-	return fail(c, NotFound, url);
+		return hfail(c, HUnauth, url);
+	return hfail(c, HNotFound, url);
 }

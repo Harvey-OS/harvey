@@ -1,27 +1,28 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: iscanbin.c,v 1.2 2000/03/10 03:38:50 lpd Exp $ */
+/*$Id: iscanbin.c,v 1.5 2000/09/19 19:00:46 lpd Exp $ */
 /* Ghostscript binary token scanner and writer */
 #include "math_.h"
 #include "memory_.h"
 #include "ghost.h"
 #include "gsutil.h"
+#include "gxalloc.h"		/* for names_array in allocator */
 #include "stream.h"
 #include "strimpl.h"		/* for sfilter.h */
 #include "sfilter.h"		/* for iscan.h */
@@ -130,6 +131,7 @@ typedef enum {
 #define SIZEOF_BIN_SEQ_OBJ ((uint)8)
 
 /* Forward references */
+private int scan_bin_get_name(P3(const ref *, int, ref *));
 private int scan_bin_num_array_continue(P4(i_ctx_t *, stream *, ref *, scanner_state *));
 private int scan_bin_string_continue(P4(i_ctx_t *, stream *, ref *, scanner_state *));
 private int scan_bos_continue(P4(i_ctx_t *, stream *, ref *, scanner_state *));
@@ -300,13 +302,13 @@ scan_binary_token(i_ctx_t *i_ctx_p, stream *s, ref *pref,
 		return code;
 	    }
 	case BT_LITNAME_SYSTEM:
-	    code = array_get(system_names_p, p[1], pref);
+	    code = scan_bin_get_name(system_names_p, p[1], pref);
 	    goto lname;
 	case BT_EXECNAME_SYSTEM:
-	    code = array_get(system_names_p, p[1], pref);
+	    code = scan_bin_get_name(system_names_p, p[1], pref);
 	    goto xname;
 	case BT_LITNAME_USER:
-	    code = array_get(user_names_p, p[1], pref);
+	    code = scan_bin_get_name(user_names_p, p[1], pref);
 	  lname:
 	    if (code < 0)
 		return code;
@@ -315,7 +317,7 @@ scan_binary_token(i_ctx_t *i_ctx_p, stream *s, ref *pref,
 	    s_end_inline(s, p + 1, rlimit);
 	    return 0;
 	case BT_EXECNAME_USER:
-	    code = array_get(user_names_p, p[1], pref);
+	    code = scan_bin_get_name(user_names_p, p[1], pref);
 	  xname:
 	    if (code < 0)
 		return code;
@@ -347,6 +349,15 @@ scan_binary_token(i_ctx_t *i_ctx_p, stream *s, ref *pref,
 	    return code;
     }
     return_error(e_syntaxerror);
+}
+
+/* Get a system or user name. */
+private int
+scan_bin_get_name(const ref *pnames /*t_array*/, int index, ref *pref)
+{
+    if (pnames == 0)
+	return_error(e_rangecheck);
+    return array_get(pnames, (long)index, pref);
 }
 
 /* Continue collecting a binary string. */

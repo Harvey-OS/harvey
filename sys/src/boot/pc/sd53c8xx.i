@@ -424,7 +424,7 @@ unsigned long na_script[] = {
 /* 05a8 */ 0x00000000L,
 /* 05ac */ 0x80840003L, /*		jump	find_dsa_next, if not STATE_DISCONNECTED */
 /* 05b0 */ 0x00000038L,
-/* 05b4 */ 0x740a0700L, /*		move	ssid & 7 to sfbr */
+/* 05b4 */ 0x740a0f00L, /*		move	ssid & 15 to sfbr */
 /* 05b8 */ 0x00000000L,
 /* 05bc */ 0xc0000001L, /*		move	memory 1, targ, find_dsa_smc1 */
 /* 05c0 */ 0x00000680L,

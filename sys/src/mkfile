@@ -1,14 +1,19 @@
 </$objtype/mkfile
 
 LIBS=lib9p\
+	libString\
 	libauth\
+	libbin\
 	libbio\
 	libc\
+	libcontrol\
 	libdebugmalloc\
 	libdisk\
 	libdraw\
+	libflate\
 	libframe\
 	libgeometry\
+	libhttpd\
 	libip\
 	liblex\
 	libmach\
@@ -18,10 +23,11 @@ LIBS=lib9p\
 	libndb\
 	libplumb\
 	libregexp\
+	libscribble\
 	libsec\
 	libstdio\
 	libthread\
-	ape/lib\
+
 
 CMDS=cmd\
 #	games\

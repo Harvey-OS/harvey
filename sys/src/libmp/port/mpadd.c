@@ -48,6 +48,7 @@ mpadd(mpint *b1, mpint *b2, mpint *sum)
 	} else {
 		sign = b1->sign;
 		mpmagadd(b1, b2, sum);
-		sum->sign = sign;
+		if(sum->top != 0)
+			sum->sign = sign;
 	}
 }

@@ -28,19 +28,49 @@ usercmd(char *arg)
 	return sendok("");
 }
 
+static void
+enableaddr(void)
+{
+	int fd;
+	char *peeraddr;
+	char buf[64];
+
+	/* hide the peer IP address under a rock in the ratifier FS */
+	peeraddr = remoteaddr(0,0);
+	if(peeraddr == 0 || *peeraddr == 0)
+		return;
+
+	sprint(buf, "/mail/ratify/trusted/%s#32", peeraddr);
+
+	/*
+	 * if the address is already there and the user owns it,
+	 * remove it and recreate it to give him a new time quanta.
+	 */
+
+	
+	if(access(buf, 0) >= 0  && remove(buf) < 0)
+		return;
+
+	fd = create(buf, OREAD, 0666);
+	if(fd >= 0){
+		close(fd);
+		syslog(0, "pop3", "ratified %s", peeraddr);
+	}
+}
+
 static int
 dologin(char *user, char *box, char *response)
 {
 	int rv;
 	static int tries;
 
-	syslog(0, "pop3", "user %s login", user);
 	rv = apopreply(&chs, user, response);
 	syslog(0, "pop3", "user %s response %d %s", user, rv, response);
 	switch(rv){
 	case 0:
 		loggedin = 1;
 		newns(user, 0);
+		enableaddr();
 		mailfile = s_new();
 		mboxname(box, mailfile);
 		if(P(s_to_c(mailfile))){

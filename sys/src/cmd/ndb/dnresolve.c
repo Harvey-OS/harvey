@@ -61,6 +61,12 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth, int
 			rp = dnresolve1(name, class, Tcname, req, depth, recurse);
 			if(rp == nil)
 				break;
+
+			if(rp->negative){
+				rrfreelist(rp);
+				rp = nil;
+				break;
+			}
 	
 			name = rp->host->name;
 			if(cn)

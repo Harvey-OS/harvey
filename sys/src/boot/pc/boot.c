@@ -61,9 +61,9 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			/* check for gzipped kernel */
 			if(b->bp[0] == 0x1F && (uchar)b->bp[1] == 0x8B && b->bp[2] == 0x08) {
 				b->state = READGZIP;
-				b->bp = (char*)malloc(1024*1024);
+				b->bp = (char*)malloc(1440*1024);
 				b->wp = b->bp;
-				b->ep = b->wp + 1024*1024;
+				b->ep = b->wp + 1440*1024;
 				memmove(b->bp, &b->exec, sizeof(Exec));
 				b->wp += sizeof(Exec);
 				print("gz...");
@@ -147,7 +147,7 @@ Endofinput:
 		}
 
 		/* relocate data to start at page boundary */
-		memmove((void*)PGROUND(entry+text), (void*)PADDR(entry+text), data);
+		memmove((void*)PGROUND(entry+text), (void*)(entry+text), data);
 
 		print("entry: %lux\n", entry);
 		warp9(PADDR(entry));

@@ -31,6 +31,7 @@ enum {
 	Hfrom,
 	Hto,
 	Hcc,
+	Hbcc,
 	Hsender,
 	Hreplyto,
 	Hdate,
@@ -40,12 +41,14 @@ enum {
 	Hmsgid,
 	Hcontent,
 	Hx,
+	Nhdr,
 };
 
-char *hdrs[] = {
+char *hdrs[Nhdr] = {
 [Hfrom]		"from:",
 [Hto]		"to:",
 [Hcc]		"cc:",
+[Hbcc]		"bcc:",
 [Hreplyto]	"reply-to:",
 [Hsender]	"sender:",
 [Hdate]		"date:",
@@ -55,7 +58,6 @@ char *hdrs[] = {
 [Hmime]		"mime-",
 [Hcontent]	"content-",
 [Hx]		"x-",
-		0,
 };
 
 struct Ctype {
@@ -85,7 +87,7 @@ Ctype ctype[] = {
 int pid = -1;
 
 Attach*	mkattach(char*, char*, int);
-int	headers(Biobuf*, Biobuf*, int*);
+int	readheaders(Biobuf*, int*, String**, Addr**);
 void	body(Biobuf*, Biobuf*, int);
 char*	mkboundary(void);
 int	printdate(Biobuf*);
@@ -100,10 +102,13 @@ char*	waitforsendmail(int);
 int	enc64(char*, int, uchar*, int);
 Addr*	expand(int, char**);
 Alias*	readaliases(void);
+Addr*	expandline(String**, Addr*);
+void	Bdrain(Biobuf*);
 
-int rflag, lbflag, xflag, holding, nflag, Fflag;
+int rflag, lbflag, xflag, holding, nflag, Fflag, eightflag;
 char *user;
 Alias *aliases;
+int rfc822syntaxerror;
 
 enum
 {
@@ -116,7 +121,7 @@ enum
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-F] [-s subject] [-t type] [-aA attachment] recipient-list\n",
+	fprint(2, "usage: %s [-Fr#xn] [-s subject] [-t type] [-aA attachment] -8 | recipient-list\n",
 		argv0);
 	exits("usage");
 }
@@ -146,7 +151,7 @@ main(int argc, char **argv)
 	int flags, fd;
 	Biobuf in, out, *b;
 	Addr *to;
-	String *file;
+	String *file, *hdrstring;
 	int noinput, headersrv;
 
 	noinput = 0;
@@ -154,6 +159,7 @@ main(int argc, char **argv)
 	first = nil;
 	l = &first;
 	type = nil;
+	hdrstring = nil;
 	ARGBEGIN{
 	case 't':
 		type = ARGF();
@@ -191,6 +197,12 @@ main(int argc, char **argv)
 	case 'n':			// no standard input
 		nflag = 1;
 		break;
+	case '8':			// read recipients from rfc822 header
+		eightflag = 1;
+		break;
+	default:
+		usage();
+		break;
 	}ARGEND;
 
 	user = getenv("upasname");
@@ -202,11 +214,46 @@ main(int argc, char **argv)
 	if(Binit(&in, 0, OREAD) < 0)
 		sysfatal("can't Binit 0: %r");
 
-	if(argc < 1)
+	if(nflag && eightflag)
+		sysfatal("can't use both -n and -8");
+	if(eightflag && argc >= 1)
+		usage();
+	else if(!eightflag && argc < 1)
 		usage();
 
 	aliases = readaliases();
-	to = expand(argc, argv);
+	if(!eightflag)
+		to = expand(argc, argv);
+	else
+		to = nil;
+
+	flags = 0;
+	headersrv = Nomessage;
+	if(!nflag && !xflag && !lbflag) {
+		// pass through headers, keeping track of which we've seen,
+		// perhaps building to list.
+		holding = holdon();
+		headersrv = readheaders(&in, &flags, &hdrstring, eightflag ? &to : nil);
+		if(rfc822syntaxerror){
+			Bdrain(&in);
+			fatal("rfc822 syntax error, message not sent");
+		}
+		if(to == nil){
+			Bdrain(&in);
+			fatal("no addresses found, message not sent");
+		}
+
+		switch(headersrv){
+		case Error:		// error
+			fatal("reading");
+			break;
+		case Nomessage:		// no message, just exit mimicking old behavior
+			noinput = 1;
+			if(first == nil)
+				exits(0);
+			break;
+		}
+	}
 
 	fd = sendmail(to, &pid, Fflag ? argv[0] : nil);
 	if(fd < 0)
@@ -219,35 +266,26 @@ main(int argc, char **argv)
 	if(Binit(&out, fd, OWRITE) < 0)
 		fatal("can't Binit 1: %r");
 
-	flags = 0;
-	headersrv = Nomessage;
 	if(!nflag){
-		// pass through headers, keeping track of which we've seen
-		holding = holdon();
-		headersrv = headers(&in, &out, &flags);
-		switch(headersrv){
-		case Error:		// error
-			fatal("reading");
-			break;
-		case Nomessage:		// no message, just exit mimicking old behavior
-			noinput = 1;
-			if(first == nil){
-				postnote(PNPROC, pid, "die");
-				exits(0);
-			}
-			break;
-		}
+		if(Bwrite(&out, s_to_c(hdrstring), s_len(hdrstring)) != s_len(hdrstring))
+			fatal("write error");
+		s_free(hdrstring);
+		hdrstring = nil;
 
 		// read user's standard headers
 		file = s_new();
 		mboxpath("headers", user, file, 0);
 		b = Bopen(s_to_c(file), OREAD);
 		if(b != nil){
-			switch(headers(b, &out, &flags)){
+			switch(readheaders(b, &flags, &hdrstring, nil)){
 			case Error:	// error
 				fatal("reading");
 			}
 			Bterm(b);
+			if(Bwrite(&out, s_to_c(hdrstring), s_len(hdrstring)) != s_len(hdrstring))
+				fatal("write error");
+			s_free(hdrstring);
+			hdrstring = nil;
 		}
 	}
 
@@ -299,48 +337,88 @@ main(int argc, char **argv)
 	exits(waitforsendmail(pid));
 }
 
-// pass headers to sendmail and keep track of which ones are really there
+// read headers from stdin into a String, expanding local aliases,
+// keep track of which headers are there, which addresses we have
+// remove Bcc: line.
 int
-headers(Biobuf *in, Biobuf *out, int *fp)
+readheaders(Biobuf *in, int *fp, String **sp, Addr **top)
 {
-	int i, inheader, seen;
+	Addr *to;
+	String *s, *sline;
 	char *p;
+	int i, seen, hdrtype;
 
-	inheader = 0;
+	s = s_new();
+	sline = nil;
+	to = nil;
+	hdrtype = -1;
 	seen = 0;
-	while((p = Brdline(in, '\n')) != nil){
-		seen = 1;
-		p[Blinelen(in)-1] = 0;
-		if((*p == ' ' || *p == '\t') && inheader){
-			if(Bprint(out, "%s\n", p) < 0)
-				return Error;
-			continue;
+	for(;;) {
+		if((p = Brdline(in, '\n')) != nil) {
+			seen = 1;
+			p[Blinelen(in)-1] = 0;
+			if((*p == ' ' || *p == '\t') && sline){
+				s_append(sline, "\n");
+				s_append(sline, p);
+				p[Blinelen(in)-1] = '\n';
+				continue;
+			}
 		}
+
+		if(sline) {
+			assert(hdrtype != -1);
+			if(top){
+				switch(hdrtype){
+				case Hto:
+				case Hcc:
+				case Hbcc:
+					to = expandline(&sline, to);
+					break;
+				}
+			}
+			if(top==nil || hdrtype!=Hbcc){
+				s_append(s, s_to_c(sline));
+				s_append(s, "\n");
+			}
+			s_free(sline);
+			sline = nil;
+		}
+
+		if(p == nil)
+			break;
+
 		if(strchr(p, ':') == nil){
 			p[Blinelen(in)-1] = '\n';
 			Bseek(in, -Blinelen(in), 1);
 			break;
 		}
-		inheader = 1;
-		for(i = 0; hdrs[i]; i++){
+
+		sline = s_copy(p);
+
+		hdrtype = -1;
+		for(i = 0; i < nelem(hdrs); i++){
 			if(cistrncmp(hdrs[i], p, strlen(hdrs[i])) == 0){
 				*fp |= 1<<i;
+				hdrtype = i;
 				break;
 			}
 		}
-		if(hdrs[i] == 0){
+		if(hdrtype == -1){
 			p[Blinelen(in)-1] = '\n';
 			Bseek(in, -Blinelen(in), 1);
 			break;
 		}
-		if(Bprint(out, "%s\n", p) < 0)
-			return Error;
 		p[Blinelen(in)-1] = '\n';
 	}
-	if(p == nil && seen)
-		return Nobody;
+
+	*sp = s;
+	if(top)
+		*top = to;
+
 	if(seen == 0)
 		return Nomessage;
+	if(p == nil)
+		return Nobody;
 	return Ok;
 }
 
@@ -367,7 +445,7 @@ body(Biobuf *in, Biobuf *out, int docontenttype)
 
 	// read into memory
 	if(docontenttype){
-		for(;;){
+		while(docontenttype){
 			if(n == len){
 				len += len>>2;
 				buf = realloc(buf, len);
@@ -382,7 +460,7 @@ body(Biobuf *in, Biobuf *out, int docontenttype)
 				break;
 			n += i;
 			for(; i > 0; i--)
-				if(*p++ & 0x80){
+				if(*p++ & 0x80 && docontenttype){
 					Bprint(out, "Content-Type: text/plain; charset=\"UTF-8\"\n");
 					Bprint(out, "Content-Transfer-Encoding: 8bit\n");
 					docontenttype = 0;
@@ -529,9 +607,9 @@ printdate(Biobuf *b)
 	tm = localtime(time(0));
 	tz = (tm->tzoff/3600)*100 + ((tm->tzoff/60)%60);
 
-	return Bprint(b, "Date: %s, %d %s %d %2.2d:%2.2d:%2.2d %.4d\n",
+	return Bprint(b, "Date: %s, %d %s %d %2.2d:%2.2d:%2.2d %s%.4d\n",
 		ascwday[tm->wday], tm->mday, ascmon[tm->mon], 1900+tm->year,
-		tm->hour, tm->min, tm->sec, tz);
+		tm->hour, tm->min, tm->sec, tz>0?"+":"", tz);
 }
 
 int
@@ -676,10 +754,10 @@ printunixfrom(int fd)
 	tm = localtime(time(0));
 	tz = (tm->tzoff/3600)*100 + ((tm->tzoff/60)%60);
 
-	return fprint(fd, "From %s %s %s %d %2.2d:%2.2d:%2.2d %.4d %d\n",
+	return fprint(fd, "From %s %s %s %d %2.2d:%2.2d:%2.2d %s%.4d %d\n",
 		user,
 		ascwday[tm->wday], ascmon[tm->mon], tm->mday,
-		tm->hour, tm->min, tm->sec, tz, 1900+tm->year);
+		tm->hour, tm->min, tm->sec, tz>0?"+":"", tz, 1900+tm->year);
 }
 
 // find the recipient account name
@@ -1031,10 +1109,24 @@ _expand(Addr *old, int *changedp)
 }
 
 Addr*
+rexpand(Addr *old)
+{
+	int i, changed;
+
+	changed = 0;
+	for(i=0; i<32; i++){
+		old = _expand(old, &changed);
+		if(changed == 0)
+			break;
+	}
+	return old;
+}
+
+Addr*
 expand(int ac, char **av)
 {
 	Addr *first, **l;
-	int i, changed;
+	int i;
 
 	// make a list of the starting addresses
 	l = &first;
@@ -1046,11 +1138,272 @@ expand(int ac, char **av)
 	}
 
 	// recurse till we don't change any more
-	for(i = 0; i < 32; i++){
-		first = _expand(first, &changed);
-		if(changed == 0)
-			break;
+	return rexpand(first);
+}
+
+Addr*
+concataddr(Addr *a, Addr *b)
+{
+	Addr *oa;
+
+	if(a == nil)
+		return b;
+
+	oa = a;
+	for(; a->next; a=a->next)
+		;
+	a->next = b;
+	return oa;
+}
+
+void
+freeaddrs(Addr *ap)
+{
+	Addr *next;
+
+	for(; ap; ap=next) {
+		next = ap->next;
+		free(ap);
+	}
+}
+
+String*
+s_copyn(char *s, int n)
+{
+	return s_nappend(s_reset(nil), s, n);
+}
+
+// fetch the next token from an RFC822 address string
+// we assume the header is RFC822-conformant in that
+// we recognize escaping anywhere even though it is only
+// supposed to be in quoted-strings, domain-literals, and comments.
+//
+// i'd use yylex or yyparse here, but we need to preserve 
+// things like comments, which i think it tosses away.
+//
+// we're not strictly RFC822 compliant.  we misparse such nonsense as
+//
+//	To: gre @ (Grace) plan9 . (Emlin) bell-labs.com
+//
+// make sure there's no whitespace in your addresses and 
+// you'll be fine.
+//
+enum {
+	Twhite,
+	Tcomment,
+	Twords,
+	Tcomma,
+	Tleftangle,
+	Trightangle,
+	Terror,
+	Tend,
+};
+//char *ty82[] = {"white", "comment", "words", "comma", "<", ">", "err", "end"};
+#define ISWHITE(p) ((p)==' ' || (p)=='\t' || (p)=='\n' || (p)=='\r')
+int
+get822token(String **tok, char *p, char **pp)
+{
+	char *op;
+	int type;
+	int quoting;
+
+	op = p;
+	switch(*p){
+	case '\0':
+		*tok = nil;
+		*pp = nil;
+		return Tend;
+
+	case ' ':	// get whitespace
+	case '\t':
+	case '\n':
+	case '\r':
+		type = Twhite;
+		while(ISWHITE(*p))
+			p++;
+		break;
+
+	case '(':	// get comment
+		type = Tcomment;
+		for(p++; *p && *p != ')'; p++)
+			if(*p == '\\') {
+				if(*(p+1) == '\0') {
+					*tok = nil;
+					return Terror;
+				}
+				p++;
+			}
+
+		if(*p != ')') {
+			*tok = nil;
+			return Terror;
+		}
+		p++;
+		break;
+	case ',':
+		type = Tcomma;
+		p++;
+		break;
+	case '<':
+		type = Tleftangle;
+		p++;
+		break;
+	case '>':
+		type = Trightangle;
+		p++;
+		break;
+	default:	// bunch of letters, perhaps quoted strings tossed in
+		type = Twords;
+		quoting = 0;
+		for(; *p && (quoting || (!ISWHITE(*p) && *p != '>' && *p != '<' && *p != ',')); p++) {
+			if(*p == '"') 
+				quoting = !quoting;
+			if(*p == '\\') {
+				if(*(p+1) == '\0') {
+					*tok = nil;
+					return Terror;
+				}
+				p++;
+			}
+		}
+		break;
 	}
 
-	return first;
+	if(pp)
+		*pp = p;
+	*tok = s_copyn(op, p-op);
+//print("822tok %s %s\n", ty82[type], s_to_c(*tok));
+	return type;
+}	
+
+// expand local aliases in an RFC822 mail line
+// add list of expanded addresses to to.
+Addr*
+expandline(String **s, Addr *to)
+{
+	Addr *na, *nto, *ap;
+	char *p;
+	int tok, inangle, hadangle, nword;
+	String *os, *ns, *stok, *lastword, *sinceword;
+
+//print("in %s\n", s_to_c(*s));
+	os = s_copy(s_to_c(*s));
+	p = strchr(s_to_c(*s), ':');
+	assert(p != nil);
+	p++;
+
+	ns = s_copyn(s_to_c(*s), p-s_to_c(*s));
+	stok = nil;
+	nto = nil;
+	//
+	// the only valid mailbox namings are word
+	// and word* < addr >
+	// without comments this would be simple.
+	// we keep the following:
+	//	lastword - current guess at the address
+	//	sinceword - whitespace and comment seen since lastword
+	//
+	lastword = s_new();
+	sinceword = s_new();
+	inangle = 0;
+	nword = 0;
+	hadangle = 0;
+	for(;;) {
+		stok = nil;
+		switch(tok = get822token(&stok, p, &p)){
+		default:
+			abort();
+		case Tcomma:
+		case Tend:
+			if(inangle)
+				goto Error;
+			if(nword != 1)
+				goto Error;
+			na = rexpand(newaddr(strdup(s_to_c(lastword))));	// small mem leak
+//print("addr %s\n", na->v);
+			s_append(ns, na->v);
+			s_append(ns, s_to_c(sinceword));
+			for(ap=na->next; ap; ap=ap->next) {
+				s_append(ns, ", ");
+				s_append(ns, ap->v);
+//print("addr %s\n", ap->v);
+			}
+			nto = concataddr(na, nto);
+			if(tok == Tcomma){
+				s_append(ns, ",");
+				s_free(stok);
+			}
+			if(tok == Tend)
+				goto Break2;
+			inangle = 0;
+			nword = 0;
+			hadangle = 0;
+			s_reset(sinceword);
+			s_reset(lastword);
+			break;
+		case Twhite:
+		case Tcomment:
+			s_append(sinceword, s_to_c(stok));
+			s_free(stok);
+			break;
+		case Trightangle:
+			if(!inangle)
+				goto Error;
+			inangle = 0;
+			hadangle = 1;
+			s_append(sinceword, s_to_c(stok));
+			s_free(stok);
+			break;
+		case Twords:
+		case Tleftangle:
+			if(hadangle)
+				goto Error;
+			if(tok != Tleftangle && inangle && s_len(lastword))
+				goto Error;
+			if(tok == Tleftangle) {
+				inangle = 1;
+				nword = 1;
+			}
+			s_append(ns, s_to_c(lastword));
+			s_append(ns, s_to_c(sinceword));
+			s_reset(sinceword);
+			if(tok == Tleftangle) {
+				s_append(ns, "<");
+				s_reset(lastword);
+			} else {
+				s_free(lastword);
+				lastword = stok;
+			}
+			if(!inangle)
+				nword++;
+			break;
+		case Terror:	// give up, use old string, addrs
+		Error:
+			ns = os;
+			os = nil;
+			freeaddrs(nto);
+			nto = nil;
+			werrstr("rfc822 syntax error");
+			rfc822syntaxerror = 1;
+			goto Break2;			
+		}
+	}
+Break2:
+	s_free(*s);
+	s_free(os);
+	*s = ns;
+//print("out %s\n", s_to_c(*s));
+	nto = concataddr(nto, to);
+//for(ap=nto; ap; ap=ap->next)
+//	print("->addr %s\n", ap->v);
+	return nto;
+}
+
+void
+Bdrain(Biobuf *b)
+{
+	char buf[8192];
+
+	while(Bread(b, buf, sizeof buf) > 0)
+		;
 }

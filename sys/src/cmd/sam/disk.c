@@ -102,9 +102,7 @@ diskwrite(Disk *d, Block **bp, Rune *r, uint n)
 		b = disknewblock(d, n);
 		*bp = b;
 	}
-	if(seek(d->fd, b->addr, 0) < 0)
-		panic("seek error in temp file");
-	if(write(d->fd, r, n*sizeof(Rune)) != n*sizeof(Rune))
+	if(pwrite(d->fd, r, n*sizeof(Rune), b->addr) != n*sizeof(Rune))
 		panic("write error to temp file");
 	b->n = n;
 }
@@ -115,9 +113,7 @@ diskread(Disk *d, Block *b, Rune *r, uint n)
 	if(n > b->n)
 		panic("internal error: diskread");
 
-	ntosize(b->n, nil);
-	if(seek(d->fd, b->addr, 0) < 0)
-		panic("seek error in temp file");
-	if(read(d->fd, r, n*sizeof(Rune)) != n*sizeof(Rune))
+	ntosize(b->n, nil);	/* called only for sanity check on Maxblock */
+	if(pread(d->fd, r, n*sizeof(Rune), b->addr) != n*sizeof(Rune))
 		panic("read error from temp file");
 }

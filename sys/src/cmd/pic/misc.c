@@ -320,7 +320,7 @@ obj *getlast(int n, int t)	/* find n-th previous occurrence of type t */
 		dprintf("got a last of x,y= %g,%g\n", p->o_x, p->o_y);
 		return(p);
 	}
-	ERROR "there is no %dth last", n WARNING;
+	ERROR "there is no %dth last", n FATAL;
 	return(NULL);
 }
 
@@ -343,7 +343,7 @@ obj *getfirst(int n, int t)	/* find n-th occurrence of type t */
 		dprintf("got a first of x,y= %g,%g\n", p->o_x, p->o_y);
 		return(p);
 	}
-	ERROR "there is no %dth ", n WARNING;
+	ERROR "there is no %dth ", n FATAL;
 	return(NULL);
 }
 

@@ -7,7 +7,7 @@
 #include "ureg.h"
 #include "../port/error.h"
 
-#include "sd.h"
+#include "../port/sd.h"
 
 static int
 scsitest(SDreq* r)

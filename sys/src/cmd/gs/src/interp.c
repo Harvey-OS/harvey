@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: interp.c,v 1.2 2000/03/10 04:04:38 lpd Exp $ */
+/*$Id: interp.c,v 1.6 2000/09/19 19:00:45 lpd Exp $ */
 /* Ghostscript language interpreter */
 #include "memory_.h"
 #include "string_.h"
@@ -41,6 +41,7 @@
 #include "iddict.h"
 #include "isave.h"
 #include "istack.h"
+#include "itoken.h"
 #include "iutil.h"		/* for array_get */
 #include "ivmspace.h"
 #include "dstack.h"
@@ -70,9 +71,6 @@ extern_st(st_ref_stack);
 public_st_dict_stack();
 public_st_exec_stack();
 public_st_op_stack();
-
-/* Other imported procedures */
-extern int ztokenexec_continue(P1(i_ctx_t *));
 
 /* 
  * The procedure to call if an operator requests rescheduling.
@@ -139,6 +137,8 @@ private void set_gc_signal(P3(i_ctx_t *, int *, int));
 private int copy_stack(P3(i_ctx_t *, const ref_stack_t *, ref *));
 private int oparray_pop(P1(i_ctx_t *));
 private int oparray_cleanup(P1(i_ctx_t *));
+private int zsetstackprotect(P1(i_ctx_t *));
+private int zcurrentstackprotect(P1(i_ctx_t *));
 
 /* Stack sizes */
 
@@ -270,6 +270,8 @@ const op_def interp_op_defs[] = {
     /*
      * The remaining entries are internal operators.
      */
+    {"0.currentstackprotect", zcurrentstackprotect},
+    {"1.setstackprotect", zsetstackprotect},
     {"0%interp_exit", interp_exit},
     {"0%oparray_pop", oparray_pop},
     op_def_end(0)
@@ -1265,11 +1267,13 @@ remap:		    if (iesp + 2 >= estop) {
 		scanner_state sstate;
 
 		check_read_known_file(s, IREF, return_with_error_iref);
-	      rt:if (iosp >= ostop)	/* check early */
+	    rt:
+		if (iosp >= ostop)	/* check early */
 		    return_with_stackoverflow_iref();
 		osp = iosp;	/* scan_token uses ostack */
-		scanner_state_init(&sstate, false);
-	      again:code = scan_token(i_ctx_p, s, &token, &sstate);
+		scanner_state_init_options(&sstate, i_ctx_p->scanner_options);
+	    again:
+		code = scan_token(i_ctx_p, s, &token, &sstate);
 		iosp = osp;	/* ditto */
 		switch (code) {
 		    case 0:	/* read a token */
@@ -1326,6 +1330,7 @@ remap:		    if (iesp + 2 >= estop) {
 			code = scan_handle_refill(i_ctx_p, &token, &sstate,
 						  true, true,
 						  ztokenexec_continue);
+		scan_cont:
 			iosp = osp;
 			iesp = esp;
 			switch (code) {
@@ -1340,6 +1345,26 @@ remap:		    if (iesp + 2 >= estop) {
 			}
 			/* must be an error */
 			iesp--;	/* don't push the file */
+			return_with_code_iref();
+		    case scan_Comment:
+		    case scan_DSC_Comment: {
+			/* See scan_Refill above for comments. */
+			ref file_token;
+
+			store_state(iesp);
+			ref_assign_inline(&file_token, IREF);
+			if (iesp >= estop)
+			    return_with_error_iref(e_execstackoverflow);
+			++iesp;
+			ref_assign_inline(iesp, &file_token);
+			esp = iesp;
+			osp = iosp;
+			code = ztoken_handle_comment(i_ctx_p, &file_token,
+						     &sstate, &token,
+						     code, true, true,
+						     ztokenexec_continue);
+		    }
+			goto scan_cont;
 		    default:	/* error */
 			return_with_code_iref();
 		}
@@ -1349,7 +1374,7 @@ remap:		    if (iesp + 2 >= estop) {
 		stream ss;
 		scanner_state sstate;
 
-		scanner_state_init(&sstate, true);
+		scanner_state_init_options(&sstate, SCAN_FROM_STRING);
 		sread_string(&ss, IREF->value.bytes, r_size(IREF));
 		osp = iosp;	/* scan_token uses ostack */
 		code = scan_token(i_ctx_p, &ss, &token, &sstate);
@@ -1686,5 +1711,61 @@ oparray_cleanup(i_ctx_t *i_ctx_p)
 	ref_stack_pop(&d_stack, dcount - dcount_old);
 	dict_set_top();
     }
+    return 0;
+}
+
+/* Don't restore the stack pointers. */
+private int
+oparray_no_cleanup(i_ctx_t *i_ctx_p)
+{
+    return 0;
+}
+
+/* Find the innermost oparray. */
+private ref *
+oparray_find(i_ctx_t *i_ctx_p)
+{
+    long i;
+    ref *ep;
+
+    for (i = 0; (ep = ref_stack_index(&e_stack, i)) != 0; ++i) {
+	if (r_is_estack_mark(ep) &&
+	    (ep->value.opproc == oparray_cleanup ||
+	     ep->value.opproc == oparray_no_cleanup)
+	    )
+	    return ep;
+    }
+    return 0;
+}
+
+/* <bool> .setstackprotect - */
+/* Set whether to protect the stack for the innermost oparray. */
+private int
+zsetstackprotect(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+    ref *ep = oparray_find(i_ctx_p);
+
+    check_type(*op, t_boolean);
+    if (ep == 0)
+	return_error(e_rangecheck);
+    ep->value.opproc =
+	(op->value.boolval ? oparray_cleanup : oparray_no_cleanup);
+    pop(1);
+    return 0;
+}
+
+/* - .currentstackprotect <bool> */
+/* Return the stack protection status. */
+private int
+zcurrentstackprotect(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+    ref *ep = oparray_find(i_ctx_p);
+
+    if (ep == 0)
+	return_error(e_rangecheck);
+    push(1);
+    make_bool(op, ep->value.opproc == oparray_cleanup);
     return 0;
 }

@@ -60,7 +60,8 @@ main(int argc, char **argv)
 {
 	Document *doc;
 	Biobuf *b;
-	uchar buf[16];
+	enum { Ninput = 16 };
+	uchar buf[Ninput+1];
 	int readstdin;
 
 	ARGBEGIN{
@@ -136,7 +137,7 @@ main(int argc, char **argv)
 
 	if(readstdin){
 		b = nil;
-		if(readn(stdinfd, buf, sizeof buf) != sizeof buf){
+		if(readn(stdinfd, buf, Ninput) != Ninput){
 			fprint(2, "page: short read reading %s\n", argv[0]);
 			wexits("read");
 		}
@@ -146,29 +147,34 @@ main(int argc, char **argv)
 			wexits("open");
 		}	
 
-		if(Bread(b, buf, sizeof buf) != sizeof buf) {
+		if(Bread(b, buf, Ninput) != Ninput) {
 			fprint(2, "page: short read reading %s\n", argv[0]);
 			wexits("read");
 		}
 	}else
 		b = nil;
 
+	buf[Ninput] = '\0';
 	if(imagemode)
 		doc = initgfx(nil, 0, nil, nil, 0);
 	else if(strncmp((char*)buf, "%PDF-", 5) == 0)
-		doc = initpdf(b, argc, argv, buf, sizeof buf);
+		doc = initpdf(b, argc, argv, buf, Ninput);
+	else if(strncmp((char*)buf, "\x04%!", 2) == 0)
+		doc = initps(b, argc, argv, buf, Ninput);
+	else if(buf[0] == '\x1B' && strstr((char*)buf, "@PJL"))
+		doc = initps(b, argc, argv, buf, Ninput);
 	else if(strncmp((char*)buf, "%!", 2) == 0)
-		doc = initps(b, argc, argv, buf, sizeof buf);
+		doc = initps(b, argc, argv, buf, Ninput);
 	else if(strcmp((char*)buf, "\xF7\x02\x01\x83\x92\xC0\x1C;") == 0)
-		doc = initdvi(b, argc, argv, buf, sizeof buf);
+		doc = initdvi(b, argc, argv, buf, Ninput);
 	else if(strncmp((char*)buf, "x T ", 4) == 0)
-		doc = inittroff(b, argc, argv, buf, sizeof buf);
+		doc = inittroff(b, argc, argv, buf, Ninput);
 	else {
 		if(ppi != 100) {
 			fprint(2, "page: you can't specify -p with graphic files\n");
 			wexits("-p and graphics");
 		}
-		doc = initgfx(b, argc, argv, buf, sizeof buf);
+		doc = initgfx(b, argc, argv, buf, Ninput);
 	}
 
 	if(doc == nil) {

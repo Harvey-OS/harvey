@@ -1,7 +1,6 @@
 </$objtype/mkfile
 
 HFILES=\
-	deflate.h\
 	gzip.h\
 	zip.h\
 
@@ -11,18 +10,6 @@ TARG=\
 	zip\
 	unzip\
 
-LIB=libdeflate.a.$O
-LIBOFILES=\
-	crc.$O\
-	deflate.$O\
-	inflate.$O\
-
 BIN=/$objtype/bin/
 
 </sys/src/cmd/mkmany
-
-$LIB(%.$O):N: %.$O
-$LIB:	${LIBOFILES:%=$LIB(%)}
-	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$LIB'\(([^)]+)\)/\1/gp'}
-	ar vu $LIB $names
-	rm $names

@@ -23,7 +23,7 @@ case go
 		disk/fdisk -p $i >$ctl >[2]/dev/null
 	}
 	
-	parts=`{ls /dev/sd??/* >[2]/dev/null | grep -v '/(ctl|raw)$'}
+	parts=`{ls /dev/sd??/* >[2]/dev/null | grep -v '/(ctl|log|raw)$'}
 	for (i in $parts) {
 		dd -if $i -bs 2048 -count 32 -of /tmp/localpart >[2]/dev/null
 #		if(iskfs /tmp/localpart)

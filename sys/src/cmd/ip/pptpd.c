@@ -122,6 +122,7 @@ struct {
 	int	recvwindow;
 
 	char	*pppdir;
+	char	*pppexec;
 
 	double	rcvtime;	/* time at which last request was received */
 	int	echoid;		/* id of last echo request */
@@ -205,6 +206,7 @@ main(int argc, char *argv[])
 	ARGBEGIN{
 	case 'd': debug++; break;
 	case 'p': srv.pppdir = ARGF(); break;
+	case 'P': srv.pppexec = ARGF(); break;
 	case 'w': srv.recvwindow = argatoi(ARGF()); break;
 	case 'D': drop = atof(ARGF()); break;
 	default:
@@ -658,10 +660,7 @@ callalloc(int id)
 	close(fd);
 
 	p = argv;
-	if(!debug)
-		*p++ = "/bin/ip/ppp";
-	else
-		*p++ = "/sys/src/cmd/ip/ppp/8.out";
+	*p++ = srv.pppexec;
 	*p++ = "-SC";
 	*p++ = "-x";
 	*p++ = srv.pppdir;
@@ -776,6 +775,7 @@ srvinit(void)
 {
 	char buf[100];
 	int fd, n;
+	Ipifc *ifcs;
 
 	sprint(buf, "%s/local", srv.tcpdir);
 	if((fd = open(buf, OREAD)) < 0)
@@ -798,9 +798,13 @@ srvinit(void)
 	if(srv.pppdir == 0)
 		srv.pppdir = "/net";
 
-	if(myipaddr(srv.ipaddr, "tcp") < 0)
-		myfatal("could not read local ip addr: %r");
+	if(srv.pppexec == 0)
+		srv.pppexec = "/bin/ip/ppp";
 
+	ifcs = readipifc(srv.pppdir, nil);
+	if(ifcs == nil)
+		myfatal("could not read local ip addr: %r");
+	ipmove(srv.ipaddr, ifcs->ip);
 	if(srv.recvwindow == 0)
 		srv.recvwindow = Window;
 }

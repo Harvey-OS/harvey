@@ -5,7 +5,9 @@ image \- external format for images
 .B #include <draw.h>
 .SH DESCRIPTION
 Images are described in
-.IR graphics (2).
+.IR graphics (2),
+and the definition of pixel values is in
+.IR color (6).
 Fonts and images are stored in external files
 in machine-independent formats.
 .PP
@@ -14,7 +16,12 @@ Image files are read and written using
 and
 .B writeimage
 (see
-.IR allocimage (2)).
+.IR allocimage (2)), or
+.B readmemimage
+and
+.B writememimage
+(see
+.IR memdraw (2)).
 An uncompressed image file starts with 5
 strings:
 .BR chan ,
@@ -179,9 +186,11 @@ Software that reads these files must deduce the image size from
 the input; there is no header.
 These formats reflect history rather than design.
 .SH "SEE ALSO"
+.IR jpg (1),
 .IR tweak (1),
 .IR graphics (2),
 .IR draw (2),
 .IR allocimage (2),
+.IR color (6),
 .IR face (6),
 .IR font (6)

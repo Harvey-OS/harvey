@@ -1,6 +1,6 @@
 .TH GRAPHICS 2
 .SH NAME
-Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, flushimage, bufimage, lockdisplay, unlockdisplay, cursorswitch, cursorset, openfont, buildfont, freefont, Pconv, Rconv, strtochan, chantostr, chantodepth \- interactive graphics
+Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, gengetwindow, flushimage, bufimage, lockdisplay, unlockdisplay, cursorswitch, cursorset, openfont, buildfont, freefont, Pconv, Rconv, strtochan, chantostr, chantodepth \- interactive graphics
 .SH SYNOPSIS
 .nf
 .PP
@@ -53,6 +53,12 @@ int	unlockdisplay(Display *d)
 int	getwindow(Display *d, int ref)
 .PP
 .B
+int	gengetwindow(Display *d, char *winname,
+.br
+.B
+	   Image **ip, Screen **sp, int ref)
+.PP
+.B
 void	cursorswitch(Cursor *curs)
 .PP
 .B
@@ -87,6 +93,9 @@ extern Display *display
 .PP
 .B
 extern Image   *screen
+.PP
+.B
+extern Screen   *_screen
 .PP
 .B
 extern Font    *font
@@ -411,7 +420,9 @@ automatically by
 .I initdraw
 to establish the
 .B screen
-pointer.  If
+pointer but must be called after each resizing of the window to restore
+the library's connection to the window.
+If
 .B rio
 is not running, it returns
 .BR display->image ;
@@ -432,6 +443,45 @@ this should almost always be
 because
 .B rio
 provides backing store for the window.
+.PP
+.I Getwindow
+overwrites the global variables
+.BR screen ,
+a pointer to the
+.B Image
+defining the window (or the overall display, if no window system is running); and
+.BR _screen ,
+a pointer to the
+.B Screen
+representing the root of the window's hierarchy. (See
+.IR window (2).
+The overloading of the
+.B screen
+word is an unfortunate historical accident.)
+.I Getwindow
+arranges that
+.B screen
+point to the portion of the window inside the border;
+sophisticated clients may use
+.B _screen
+to make further subwindows.
+Programs desiring multiple independent windows
+may use the mechanisms of
+.IR rio (4)
+to create more windows (usually by a fresh mount of the window sytem
+in a directory other than
+.BR /dev ),
+then use
+.I gengetwindow
+to connect to them.
+.IR Gengetwindow 's
+extra arguments are the full path of the window's
+.B winname
+file, and pointers to be overwritten with the values of the `global'
+.B Image
+and
+.B Screen
+variables for the new window.
 .PP
 The mouse cursor is always displayed.
 The initial cursor is an arrow.
@@ -510,11 +560,47 @@ and
 .B strtochan
 return 0 when presented
 with bad input.
+.SH EXAMPLES
+To reconnect to the window after a resize event,
+.IP
+.EX
+if(getwindow(display, Refnone) < 0)
+	sysfatal("resize failed: %r");
+.EE
+.PP
+To create and set up a new
+.IR rio (1)
+window,
+.IP
+.EX
+Image *screen2;
+Screen *_screen2;
+
+srvwsys = getenv("wsys");
+if(srvwsys == nil)
+	sysfatal("can't find $wsys: %r");
+rfork(RFNAMEG); /* keep mount of rio private */
+
+fd = open(srvwsys, ORDWR);
+if(fd < 0)
+	sysfatal("can't open $wsys: %r");
+
+/* mount creates window; see \f2rio\fP(4) */
+if(mount(fd, "/tmp", MREPL, "new -dx 300-dy 200") < 0)
+	sysfatal("can't mount new window: %r");
+if(gengetwindow(display, "/tmp/winname",
+   &screen2, &_screen2, Refnone) < 0)
+	sysfatal("resize failed: %r");
+
+/* now open /tmp/cons, /tmp/mouse */
+\&...
+.EE
 .SH FILES
 .BR /lib/font/bit "    directory of fonts
 .SH SOURCE
 .B /sys/src/libdraw
 .SH "SEE ALSO"
+.IR rio (1),
 .IR addpt (2),
 .IR allocimage (2),
 .IR cachechars (2),
@@ -523,8 +609,9 @@ with bad input.
 .IR event (2),
 .IR frame (2),
 .IR print (2),
-.IR draw (3),
 .IR window (2),
+.IR draw (3),
+.IR rio (4),
 .IR image (6),
 .IR font (6)
 .SH DIAGNOSTICS

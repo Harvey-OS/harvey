@@ -1,22 +1,22 @@
-/* Copyright (C) 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxalloc.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gxalloc.h,v 1.5 2000/09/19 19:00:33 lpd Exp $ */
 /* Structure definitions for standard allocator */
 /* Requires gsmemory.h, gsstruct.h */
 
@@ -26,7 +26,6 @@
 #ifndef gs_ref_memory_DEFINED
 #  define gs_ref_memory_DEFINED
 typedef struct gs_ref_memory_s gs_ref_memory_t;
-
 #endif
 
 #include "gsalloc.h"
@@ -299,7 +298,18 @@ struct alloc_change_s;
 #ifndef stream_DEFINED
 #  define stream_DEFINED
 typedef struct stream_s stream;
+#endif
 
+/*
+ * Ref (PostScript object) type, only needed for the binary_token_names
+ * member of the state.  This really shouldn't be visible at this level at
+ * all: we include it here only to avoid splitting gs_ref_memory_t two
+ * levels, which would be architecturally better but would involve too much
+ * work at this point.
+ */
+#ifndef ref_DEFINED
+typedef struct ref_s ref;
+#  define ref_DEFINED
 #endif
 
 /*
@@ -365,6 +375,7 @@ struct gs_ref_memory_s {
     uint new_mask;		/* l_new or 0 (default) */
     uint test_mask;		/* l_new or ~0 (default) */
     stream *streams;		/* streams allocated at current level */
+    ref *names_array;		/* system_names or user_names, if needed */
     /* Garbage collector information */
     gs_gc_root_t *roots;	/* roots for GC */
     /* Sharing / saved state information */
@@ -375,6 +386,7 @@ struct gs_ref_memory_s {
     struct alloc_save_s *reloc_saved;	/* for GC */
     gs_memory_status_t previous_status;		/* total allocated & used */
 				/* in outer save levels */
+    uint largest_free_size;	/* largest (aligned) size on large block list */
     /* We put the freelists last to keep the scalar offsets small. */
     obj_header_t *freelists[num_freelists];
 };
@@ -385,7 +397,7 @@ extern_st(st_ref_memory);
 #define public_st_ref_memory()	/* in gsalloc.c */\
   gs_public_st_composite(st_ref_memory, gs_ref_memory_t,\
     "gs_ref_memory", ref_memory_enum_ptrs, ref_memory_reloc_ptrs)
-#define st_ref_memory_max_ptrs 3	/* streams, changes, saved */
+#define st_ref_memory_max_ptrs 4  /* streams, names_array, changes, saved */
 
 /* Define the procedures for the standard allocator. */
 /* We export this for subclasses. */

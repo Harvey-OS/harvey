@@ -54,7 +54,7 @@ int	readarg(int, char*, int);
 long	readn(int, void*, long);
 void	readln(char*, char*, int, int);
 long	getexpiration(char *db, char *u);
-void	getpass(char*, char*, int);
+void	getpass(char*, char*, int, int);
 int	getsecret(int, char*);
 int	getauthkey(char*);
 int	keyconv(va_list *, Fconv *);

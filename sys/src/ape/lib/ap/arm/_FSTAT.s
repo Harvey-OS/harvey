@@ -1,0 +1,4 @@
+TEXT _FSTAT(SB), 1, $-4
+MOVW $11, R0
+SWI 0
+RET

@@ -1,22 +1,22 @@
-/* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: spsdf.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: spsdf.c,v 1.4 2000/09/19 19:00:51 lpd Exp $ */
 /* Common utilities for PostScript and PDF format printing */
 #include "stdio_.h"		/* for stream.h */
 #include "string_.h"
@@ -102,7 +102,8 @@ s_write_ps_string(stream * s, const byte * str, uint size, int print_ok)
 	r.limit = r.ptr + size;
 	w.limit = buf + sizeof(buf) - 1;
 	do {
-	    w.ptr = buf - 1;
+	    /* One picky compiler complains if we initialize to buf - 1. */
+	    w.ptr = buf;  w.ptr--;
 	    status = (*template->process) (st, &r, &w, true);
 	    pwrite(s, buf, (uint) (w.ptr + 1 - buf));
 	}
@@ -146,8 +147,8 @@ int
 s_init_param_printer(printer_param_list_t *prlist,
 		     const param_printer_params_t * ppp, stream * s)
 {
-    prlist->procs = &printer_param_list_procs;
-    prlist->memory = 0;
+    gs_param_list_init((gs_param_list *)prlist, &printer_param_list_procs,
+		       NULL);
     prlist->strm = s;
     prlist->params = *ppp;
     prlist->any = false;

@@ -61,6 +61,7 @@ struct {
 
 void	adddefroute(char*, uchar*);
 void	binddevice(void);
+void	controldevice(void);
 void	bootprequest(void);
 void	dhcprecv(void);
 void	dhcpsend(int);
@@ -102,10 +103,18 @@ char optmagic[4] = { 0x63, 0x82, 0x53, 0x63 };
 
 #define DEBUG if(debug)print
 
+typedef struct Ctl Ctl;
+struct Ctl
+{
+	Ctl	*next;
+	char	*ctl;
+};
+Ctl *firstctl, **ctll;
+
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-ndDrG] [-x netmtpt] [-m mtu] [-b baud] [-g gateway] [-h hostname] type device [verb] [localaddr [mask [remoteaddr [fsaddr [authaddr]]]]]\n", argv0);
+	fprint(2, "usage: %s [-ndDrG] [-x netmtpt] [-m mtu] [-b baud] [-g gateway] [-h hostname] [-c control-string]* type device [verb] [localaddr [mask [remoteaddr [fsaddr [authaddr]]]]]\n", argv0);
 	exits("usage");
 }
 
@@ -114,6 +123,7 @@ main(int argc, char **argv)
 {
 	char *p;
 	int retry, verb;
+	Ctl *cp;
 
 	srand(truerand());
 	fmtinstall('E', eipconv);
@@ -127,8 +137,21 @@ main(int argc, char **argv)
 		conf.cputype = "386";
 
 	retry = 0;
+	ctll = &firstctl;
 
 	ARGBEGIN {
+	case 'c':
+		p = ARGF();
+		if(p == nil)
+			usage();
+		cp = malloc(sizeof(*cp));
+		if(cp == nil)
+			sysfatal("%r");
+		*ctll = cp;
+		ctll = &cp->next;
+		cp->next = nil;
+		cp->ctl = p;
+		break;
 	case 'D':
 		debug = 1;
 		break;
@@ -257,6 +280,7 @@ doadd(int retry)
 	// get ipifc into name space and condition device for ip
 	if(!noconfig){
 		lookforip(conf.mpoint);
+		controldevice();
 		binddevice();
 	}
 
@@ -399,6 +423,33 @@ lookforip(char *net)
 	sysfatal("no ip stack bound onto %s\n", net);
 }
 
+// send some ctls to a device
+void
+controldevice(void)
+{
+	char ctlfile[256];
+	int fd;
+	Ctl *cp;
+
+	if(firstctl == nil)
+		return;
+
+	if(strcmp(conf.type, "ether") == 0)
+		snprint(ctlfile, sizeof(ctlfile), "%s/clone", conf.dev);
+	else
+		return;
+
+	fd = open(ctlfile, ORDWR);
+	if(fd < 0)
+		sysfatal("can't open %s", ctlfile);
+
+	for(cp = firstctl; cp != nil; cp = cp->next){
+		if(write(fd, cp->ctl, strlen(cp->ctl)) < 0)
+			sysfatal("ctl message %s: %r", cp->ctl);
+		seek(fd, 0, 0);
+	}
+}
+
 // bind an ip stack to a device, leave the control channel open
 void
 binddevice(void)
@@ -463,7 +514,7 @@ binddevice(void)
 
 		// specify the medium as an ethernet, and bind the interface to it
 		if(fprint(conf.cfd, "bind %s %s", conf.type, conf.dev) < 0)
-			sysfatal("binding device");
+			sysfatal("binding device: %r");
 	} else {
 		// open the old interface
 		snprint(buf, sizeof(buf), "%s/ipifc/%d/ctl", conf.mpoint, myifc->index);
@@ -932,7 +983,7 @@ dhcprecv(void)
 		break;
 	case Nak:
 		conf.state = Sinit;
-		fprint(2, "%s: recved nak\n", argv0);
+		fprint(2, "%s: recved dhcpnak on %s\n", argv0, conf.mpoint);
 		break;
 	}
 
@@ -946,7 +997,11 @@ openlisten()
 	char devdir[40];
 	int n;
 
-	sprint(data, "%s/udp!*!68", conf.mpoint);
+	if(validip(conf.laddr)
+	&& (conf.state == Srenewing || conf.state == Srebinding))
+		sprint(data, "%s/udp!%I!68", conf.mpoint, conf.laddr);
+	else
+		sprint(data, "%s/udp!*!68", conf.mpoint);
 	for(n=0;;n++) {
 		cfd = announce(data, devdir);
 		if(cfd >= 0)
@@ -954,7 +1009,7 @@ openlisten()
 
 		// might be another client - wait and try again
 		fprint(2, "%s: can't announce: %r\n", argv0);
-		sleep(1000);
+		sleep((nrand(10)+1)*1000);
 		if(n > 10)
 			return -1;
 	}

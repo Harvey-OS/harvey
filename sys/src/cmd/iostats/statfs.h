@@ -62,7 +62,7 @@ struct Fsrpc
 struct Fid
 {
 	int	fid;			/* system fd for i/o */
-	int	offset;			/* current file offset */
+	vlong	offset;			/* current file offset */
 	File	*f;			/* File attached to this fid */
 	int	mode;
 	int	nr;			/* fid number */
@@ -140,7 +140,7 @@ void	slaveread(Fsrpc*);
 void	slavewrite(Fsrpc*);
 void	blockingslave(void);
 void	reopen(Fid *f);
-void	fileseek(Fid*, ulong);
+void	fileseek(Fid*, vlong);
 void	noteproc(int, char*);
 void	flushaction(void*, char*);
 void	catcher(void*, char*);

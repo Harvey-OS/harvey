@@ -28,6 +28,7 @@ char Enowindow[] = 	"window has no image";
 char Ebadmouse[] = 	"bad format on /dev/mouse";
 char Ebadwrect[] = 	"rectangle outside screen";
 char Ebadoffset[] = 	"window read not on scan line boundary";
+extern char Eperm[];
 
 static	Xfid	*xfidfree;
 static	Xfid	*xfid;
@@ -60,6 +61,7 @@ xfidallocthread(void*)
 			else{
 				x = emalloc(sizeof(Xfid));
 				x->c = chancreate(sizeof(void(*)(Xfid*)), 0);
+				x->flushc = chancreate(sizeof(int), 0);	/* notification only; no data */
 				x->flushtag = -1;
 				x->next = xfid;
 				xfid = x;
@@ -120,9 +122,6 @@ xfidflush(Xfid *x)
 {
 	Fcall t;
 	Xfid *xf;
-	Mousereadmesg mrm;
-	Consreadmesg crm;
-	Conswritemesg cwm;
 
 	for(xf=xfid; xf; xf=xf->next)
 		if(xf->flushtag == x->oldtag){
@@ -133,42 +132,7 @@ xfidflush(Xfid *x)
 				error("ref 1 in flush");
 			if(canqlock(&xf->active)){
 				qunlock(&xf->active);
-				switch(xf->flushtype){
-				default:
-					error("unknown flushtype");
-				case Fmouseread:
-					mrm.cm = chancreate(sizeof(Mouse), 0);
-					mrm.isflush = TRUE;
-					send(xf->flushw->mouseread, &mrm);
-					chanfree(mrm.cm);
-					break;
-
-				case Fconsread:
-					crm.c1 = chancreate(sizeof(Stringpair), 0);
-					crm.c2 = chancreate(sizeof(Stringpair), 0);
-					crm.isflush = TRUE;
-					send(xf->flushw->consread, &crm);
-					chanfree(crm.c1);
-					chanfree(crm.c2);
-					break;
-
-				case Fconswrite:
-					cwm.cw = chancreate(sizeof(Stringpair), 0);
-					cwm.isflush = TRUE;
-					send(xf->flushw->conswrite, &cwm);
-					chanfree(cwm.cw);
-					break;
-
-				case Fwctlread:
-					crm.c1 = chancreate(sizeof(Stringpair), 0);
-					crm.c2 = chancreate(sizeof(Stringpair), 0);
-					crm.isflush = TRUE;
-					send(xf->flushw->wctlread, &crm);
-					chanfree(crm.c1);
-					chanfree(crm.c2);
-					break;
-
-				}
+				sendul(xf->flushc, 0);
 			}else{
 				qlock(&xf->active);	/* wait for him to finish */
 				qunlock(&xf->active);
@@ -231,7 +195,7 @@ xfidattach(Xfid *x)
 	}else if(strncmp(x->aname, "new", 3) == 0){	/* new -dx -dy - new syntax, as in wctl */
 		x->aname[sizeof x->aname -1] = '\0';
 		pid = 0;
-		if(parsewctl(nil, ZR, &r, &pid, &dir, x->aname, errbuf) < 0)
+		if(parsewctl(nil, ZR, &r, &pid, nil, &dir, x->aname, errbuf) < 0)
 			err = errbuf;
 		else
 			goto Allocate;
@@ -269,6 +233,12 @@ xfidopen(Xfid *x)
 			return;
 		}
 		w->ctlopen = TRUE;
+		break;
+	case Qkbdin:
+		if(w !=  wkeyboard){
+			filsysrespond(x->fs, x, &t, Eperm);
+			return;
+		}
 		break;
 	case Qmouse:
 		if(w->mouseopen){
@@ -357,7 +327,7 @@ xfidclose(Xfid *x)
 		}
 		break;
 	case Qwctl:
-		if(x->mode==OREAD || x->mode==ORDWR)
+		if(x->f->mode==OREAD || x->f->mode==ORDWR)
 			w->wctlopen = FALSE;
 		break;
 	}
@@ -376,6 +346,8 @@ xfidwrite(Xfid *x)
 	Rune *r;
 	Conswritemesg cwm;
 	Stringpair pair;
+	enum { CWdata, CWflush, NCW };
+	Alt alts[NCW+1];
 
 	w = x->f->w;
 	if(w->deleted){
@@ -408,18 +380,28 @@ xfidwrite(Xfid *x)
 			memmove(x->f->rpart, x->data+nb, cnt-nb);
 			x->f->nrpart = cnt-nb;
 		}
-		x->flushtype = Fconswrite;
 		x->flushtag = x->tag;
-		x->flushw = w;
-		recv(w->conswrite, &cwm);
-		if(cwm.isflush){
-if(x->flushtag != -1) error("flushtag in conswrite");
+
+		alts[CWdata].c = w->conswrite;
+		alts[CWdata].v = &cwm;
+		alts[CWdata].op = CHANRCV;
+		alts[CWflush].c = x->flushc;
+		alts[CWflush].v = nil;
+		alts[CWflush].op = CHANRCV;
+		alts[NCW].op = CHANEND;
+	
+		switch(alt(alts)){
+		case CWdata:
+			break;
+		case CWflush:
 			filsyscancel(x);
 			return;
 		}
+
+		/* received data */
 		x->flushtag = -1;
 		if(x->flushing){
-			recv(w->conswrite, nil);	/* wake up flushing xfid */
+			recv(x->flushc, nil);	/* wake up flushing xfid */
 			pair.s = runemalloc(1);
 			pair.ns = 0;
 			send(cwm.cw, &pair);		/* wake up window with empty data */
@@ -507,6 +489,7 @@ if(x->flushtag != -1) error("flushtag in conswrite");
 		tsnarf = erealloc(tsnarf, ntsnarf+cnt+1);	/* room for NUL */
 		memmove(tsnarf+ntsnarf, x->data, cnt);
 		ntsnarf += cnt;
+		snarfversion++;
 		break;
 
 	case Qwdir:
@@ -518,16 +501,24 @@ if(x->flushtag != -1) error("flushtag in conswrite");
 			x->data[cnt-1] = '\0';
 		}
 		/* assume data comes in a single write */
-		if(x->data[0] == '/'){
+		/*
+		  * Problem: programs like dossrv, ftp produce illegal UTF;
+		  * we must cope by converting it first.
+		  */
+		snprint(buf, sizeof buf, "%.*s", cnt, x->data);
+		if(buf[0] == '/'){
 			free(w->dir);
-			w->dir = emalloc(cnt+1);
-			memmove(w->dir, x->data, cnt);
+			w->dir = estrdup(buf);
 		}else{
-			p = emalloc(strlen(w->dir) + 1 + cnt + 1);
-			sprint(p, "%s/%.*s", w->dir, utfnlen(x->data, cnt), x->data);
+			p = emalloc(strlen(w->dir) + 1 + strlen(buf) + 1);
+			sprint(p, "%s/%s", w->dir, buf);
 			free(w->dir);
 			w->dir = cleanname(p);
 		}
+		break;
+
+	case Qkbdin:
+		keyboardsend(x->data, cnt);
 		break;
 
 	case Qwctl:
@@ -548,12 +539,12 @@ if(x->flushtag != -1) error("flushtag in conswrite");
 }
 
 int
-readwindow(char *t, Rectangle r, int offset, int n)
+readwindow(Image *w, char *t, Rectangle r, int offset, int n)
 {
 	int ww, y;
 
 	offset -= 5*12;
-	ww = bytesperline(r, display->depth);
+	ww = bytesperline(r, w->depth);
 	r.min.y += offset/ww;
 	if(r.min.y >= r.max.y)
 		return 0;
@@ -562,14 +553,14 @@ readwindow(char *t, Rectangle r, int offset, int n)
 		r.max.y = y;
 	if(r.max.y <= r.min.y)
 		return 0;
-	return unloadimage(display->image, r, (uchar*)t, n);
+	return unloadimage(w, r, (uchar*)t, n);
 }
 
 void
 xfidread(Xfid *x)
 {
 	Fcall fc;
-	int n, off, cnt, isflush, c;
+	int n, off, cnt, c;
 	uint qid;
 	char buf[128], *t;
 	char cbuf[30];
@@ -578,11 +569,14 @@ xfidread(Xfid *x)
 	Rectangle r;
 	Image *i;
 	Channel *c1, *c2;	/* chan (tuple(char*, int)) */
-	Channel *cm;		/* chan(Mouse) */
 	Consreadmesg crm;
 	Mousereadmesg mrm;
 	Consreadmesg cwrm;
 	Stringpair pair;
+	enum { CRdata, CRflush, NCR };
+	enum { MRdata, MRflush, NMR };
+	enum { WCRdata, WCRflush, NWCR };
+	Alt alts[NCR+1];
 
 	w = x->f->w;
 	if(w->deleted){
@@ -594,25 +588,34 @@ xfidread(Xfid *x)
 	cnt = x->count;
 	switch(qid){
 	case Qcons:
-		x->flushtype = Fconsread;
 		x->flushtag = x->tag;
-		x->flushw = w;
-		recv(w->consread, &crm);
-		c1 = crm.c1;
-		c2 = crm.c2;
-		isflush = crm.isflush;
-		if(isflush){
-if(x->flushtag != -1) error("flushtag in consread");
+
+		alts[CRdata].c = w->consread;
+		alts[CRdata].v = &crm;
+		alts[CRdata].op = CHANRCV;
+		alts[CRflush].c = x->flushc;
+		alts[CRflush].v = nil;
+		alts[CRflush].op = CHANRCV;
+		alts[NMR].op = CHANEND;
+
+		switch(alt(alts)){
+		case CRdata:
+			break;
+		case CRflush:
 			filsyscancel(x);
 			return;
 		}
+
+		/* received data */
+		x->flushtag = -1;
+		c1 = crm.c1;
+		c2 = crm.c2;
 		t = malloc(cnt+UTFmax+1);	/* room to unpack partial rune plus */
 		pair.s = t;
 		pair.ns = cnt;
 		send(c1, &pair);
-		x->flushtag = -1;
 		if(x->flushing){
-			recv(w->consread, nil);	/* wake up flushing xfid */
+			recv(x->flushc, nil);	/* wake up flushing xfid */
 			recv(c2, nil);			/* wake up window and toss data */
 			free(t);
 			filsyscancel(x);
@@ -639,26 +642,34 @@ if(x->flushtag != -1) error("flushtag in consread");
 		break;
 
 	case Qmouse:
-		x->flushtype = Fmouseread;
 		x->flushtag = x->tag;
-		x->flushw = w;
-		recv(w->mouseread, &mrm);
-		cm = mrm.cm;
-		isflush = mrm.isflush;
-		if(isflush){
-if(x->flushtag != -1) error("flushtag in mouseread");
+
+		alts[MRdata].c = w->mouseread;
+		alts[MRdata].v = &mrm;
+		alts[MRdata].op = CHANRCV;
+		alts[MRflush].c = x->flushc;
+		alts[MRflush].v = nil;
+		alts[MRflush].op = CHANRCV;
+		alts[NMR].op = CHANEND;
+
+		switch(alt(alts)){
+		case MRdata:
+			break;
+		case MRflush:
 			filsyscancel(x);
 			return;
 		}
+
+		/* received data */
 		x->flushtag = -1;
 		if(x->flushing){
-			recv(w->mouseread, nil);	/* wake up flushing xfid */
-			recv(cm, nil);			/* wake up window and toss data */
+			recv(x->flushc, nil);		/* wake up flushing xfid */
+			recv(mrm.cm, nil);			/* wake up window and toss data */
 			filsyscancel(x);
 			return;
 		}
 		qlock(&x->active);
-		recv(cm, &ms);
+		recv(mrm.cm, &ms);
 		c = 'm';
 		if(w->resized)
 			c = 'r';
@@ -676,6 +687,7 @@ if(x->flushtag != -1) error("flushtag in mouseread");
 
 	/* The algorithm for snarf and text is expensive but easy and rarely used */
 	case Qsnarf:
+		getsnarf();
 		if(nsnarf)
 			t = runetobyte(snarf, nsnarf, &n);
 		else {
@@ -723,7 +735,7 @@ if(x->flushtag != -1) error("flushtag in mouseread");
 
 	case Qwindow:
 		i = w->i;
-		if(i == nil){
+		if(i == nil || Dx(w->screenr)<=0){
 			filsysrespond(x->fs, x, &fc, Enowindow);
 			return;
 		}
@@ -745,7 +757,7 @@ if(x->flushtag != -1) error("flushtag in mouseread");
 		}
 		t = malloc(cnt);
 		fc.data = t;
-		fc.count = readwindow(t, r, off, cnt);
+		fc.count = readwindow(i, t, r, off, cnt);
 		if(fc.count < 0){
 			buf[0] = 0;
 			errstr(buf);
@@ -760,25 +772,34 @@ if(x->flushtag != -1) error("flushtag in mouseread");
 			filsysrespond(x->fs, x, &fc, Etooshort);
 			break;
 		}
-		x->flushtype = Fwctlread;
 		x->flushtag = x->tag;
-		x->flushw = w;
-		recv(w->wctlread, &cwrm);
-		c1 = cwrm.c1;
-		c2 = cwrm.c2;
-		isflush = cwrm.isflush;
-		if(isflush){
-if(x->flushtag != -1) error("flushtag in wctlwrite");
+
+		alts[WCRdata].c = w->wctlread;
+		alts[WCRdata].v = &cwrm;
+		alts[WCRdata].op = CHANRCV;
+		alts[WCRflush].c = x->flushc;
+		alts[WCRflush].v = nil;
+		alts[WCRflush].op = CHANRCV;
+		alts[NMR].op = CHANEND;
+
+		switch(alt(alts)){
+		case WCRdata:
+			break;
+		case WCRflush:
 			filsyscancel(x);
 			return;
 		}
-		t = malloc(cnt);
-		pair.s = t;
-		pair.ns = cnt;
-		send(c1, &pair);
+
+		/* received data */
 		x->flushtag = -1;
+		c1 = cwrm.c1;
+		c2 = cwrm.c2;
+		t = malloc(cnt+1);	/* be sure to have room for NUL */
+		pair.s = t;
+		pair.ns = cnt+1;
+		send(c1, &pair);
 		if(x->flushing){
-			recv(w->wctlread, nil);	/* wake up flushing xfid */
+			recv(x->flushc, nil);	/* wake up flushing xfid */
 			recv(c2, nil);			/* wake up window and toss data */
 			free(t);
 			filsyscancel(x);
@@ -787,6 +808,8 @@ if(x->flushtag != -1) error("flushtag in wctlwrite");
 		qlock(&x->active);
 		recv(c2, &pair);
 		fc.data = pair.s;
+		if(pair.ns > cnt)
+			pair.ns = cnt;
 		fc.count = pair.ns;
 		filsysrespond(x->fs, x, &fc, nil);
 		free(t);

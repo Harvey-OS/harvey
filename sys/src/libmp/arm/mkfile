@@ -1,0 +1,9 @@
+objtype=arm
+</arm/mkfile
+
+LIB=/$objtype/lib/libmp.a
+OFILES=	\
+
+HFILES=/$objtype/include/u.h /sys/include/mp.h ../port/dat.h
+
+</sys/src/cmd/mksyslib

@@ -1,0 +1,23 @@
+#!/bin/rc
+
+# usage: gspipe [dev]
+# assumes postscript on stdin
+
+switch($#*) {
+case 0
+	GSDEVICE=`{echo $LPCLASS | sed 's/(.*\+)?gs!([^+]*)(\+.*)?/\2/'}
+case 1
+	GSDEVICE=$1
+case *
+	echo 'usage: gspipe [dev]' >[1=2]
+	exit gspipe
+}
+
+GSTMPFILE=/tmp/gsp^$pid
+GSOPT=('-sDEVICE='^$GSDEVICE '-sOutputFile='$GSTMPFILE -dSAFER -dNOPAUSE -dQUIET -dBATCH)
+
+gs $GSOPT - >/dev/null >[2=1]
+
+cat $GSTMPFILE
+rm -f $GSTMPFILE
+exit

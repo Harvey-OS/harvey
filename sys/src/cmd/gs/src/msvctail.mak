@@ -1,31 +1,42 @@
-#    Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: msvctail.mak,v 1.1 2000/03/09 08:40:44 lpd Exp $
+# $Id: msvctail.mak,v 1.5 2000/09/21 15:14:37 rayjj Exp $
 # Common tail section for Microsoft Visual C++ 4.x/5.x,
 # Windows NT or Windows 95 platform.
 # Created 1997-05-22 by L. Peter Deutsch from msvc4/5 makefiles.
 # edited 1997-06-xx by JD to factor out interpreter-specific sections
+# edited 2000-06-05 by lpd to handle empty INCDIR specially.
 
 
 # -------------------------- Auxiliary programs --------------------------- #
 
+!if "$(INCDIR)"==""
+IINCDIR=
+!else
+IINCDIR=/I$(INCDIR)
+!endif
+
+# This also creates the subdirectories since this (hopefully) will be the
+# first need. Too bad nmake doesn't have .BEFORE symbolic target.
 $(GLGENDIR)\ccf32.tr: $(TOP_MAKEFILES)
-	echo $(GENOPT) /I$(INCDIR) -DCHECK_INTERRUPTS -D_Windows -D__WIN32__ > $(GLGENDIR)\ccf32.tr
+	-mkdir $(GLGENDIR)
+	-mkdir $(BINDIR)
+	echo $(GENOPT) $(IINCDIR) -DCHECK_INTERRUPTS -D_Windows -D__WIN32__ > $(GLGENDIR)\ccf32.tr
 
 $(ECHOGS_XE): $(GLSRC)echogs.c
 	$(CCAUX_SETUP)
@@ -64,11 +75,11 @@ $(GENINIT_XE): $(PSSRCDIR)$(D)geninit.c $(GENINIT_DEPS)
 LIBCTR=$(GLGEN)libc32.tr
 
 $(LIBCTR): $(TOP_MAKEFILES)
-        echo $(LIBDIR)\shell32.lib >$(LIBCTR)
-        echo $(LIBDIR)\comdlg32.lib >>$(LIBCTR)
-        echo $(LIBDIR)\gdi32.lib >>$(LIBCTR)
-        echo $(LIBDIR)\user32.lib >>$(LIBCTR)
-        echo $(LIBDIR)\winspool.lib >>$(LIBCTR)
-	echo $(LIBDIR)\advapi32.lib >>$(LIBCTR)
+        echo $(LIBD)shell32.lib >$(LIBCTR)
+        echo $(LIBD)comdlg32.lib >>$(LIBCTR)
+        echo $(LIBD)gdi32.lib >>$(LIBCTR)
+        echo $(LIBD)user32.lib >>$(LIBCTR)
+        echo $(LIBD)winspool.lib >>$(LIBCTR)
+	echo $(LIBD)advapi32.lib >>$(LIBCTR)
 
 # end of msvctail.mak

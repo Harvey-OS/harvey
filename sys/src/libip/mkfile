@@ -4,7 +4,6 @@ LIB=/$objtype/lib/libip.a
 OFILES = eipconv.$O\
 	parseip.$O\
 	parseether.$O\
-	myipaddr.$O\
 	myetheraddr.$O\
 	classmask.$O\
 	bo.$O\

@@ -152,7 +152,7 @@ reset(Ether* ether)
 	 */
 	memset(ea, 0, sizeof ea);
 	if(memcmp(ea, ether->ea, 6) == 0 && strcmp(type, "3C562") == 0) {
-		if(pcmcistuple(slot, 0x88, ea, 6) == 6) {
+		if(pcmcistuple(slot, 0x88, -1, ea, 6) == 6) {
 			for(i = 0; i < 6; i += 2){
 				t = ea[i];
 				ea[i] = ea[i+1];

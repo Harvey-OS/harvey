@@ -10,15 +10,17 @@ main(int argc, char *argv[])
 {
 	int fd, n, len, domount;
 	Biobuf in;
-	char line[1024], *lp, *p, *np, *mtpt, *srv;
+	char line[1024], *lp, *p, *np, *mtpt, *srv, *dns;
 	char buf[1024];
 
-	mtpt = "/net/dns";
+	dns = "/net/dns";
+	mtpt = "/net";
 	srv = "/srv/dns";
 	domount = 1;
 	ARGBEGIN {
 	case 'x':
-		mtpt = "/net.alt/dns";
+		dns = "/net.alt/dns";
+		mtpt = "/net.alt";
 		srv = "/srv/dns_net.alt";
 		break;
 	default:
@@ -31,7 +33,7 @@ main(int argc, char *argv[])
 		mtpt = argv[0];
 	}
 
-	fd = open(mtpt, ORDWR);
+	fd = open(dns, ORDWR);
 	if(fd < 0){
 		if(domount == 0){
 			fprint(2, "can't open %s: %r\n", mtpt);

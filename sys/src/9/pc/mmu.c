@@ -5,6 +5,26 @@
 #include	"fns.h"
 #include	"io.h"
 
+/*
+ *  There are 2 coherence calls in this file, before each putcr3() (mmuflushtlb
+ *  is really a putcr3() call).  They are there because of my IBM 570 and ehg's
+ *  IBM 600E.  We found that when the coherence() instructions were removed from
+ *  unlock and iunlock, the processors would hang and/or get spurious interrupts.
+ *  I posited that we were getting hit by some interaction between the tlb,
+ *  cache flushing, and tlb flushing, so I moved the calls here and it seems
+ *  to work.
+ *
+ *  I don't really understand why they'ld change anything since the putcr3 is
+ *  supposed to be a serializing instruction.  Also, reads and writes are supposed
+ *  to be ordered in the view of the processing core.  This is just desperation.
+ *  I can only believe that the coherence() is fixing something else.
+ *
+ *  The 570 is a Celeron and the 600E is a PentiumII/Xeon.  Both screw up when
+ *  pounding on PCMCIA devices.
+ *
+ *  -- presotto
+ */
+
 #define	DATASEGM(p) 	{ 0xFFFF, SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(p)|SEGDATA|SEGW }
 #define	EXECSEGM(p) 	{ 0xFFFF, SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(p)|SEGEXEC|SEGR }
 #define	TSSSEGM(b,p)	{ ((b)<<16)|sizeof(Tss),\
@@ -36,6 +56,7 @@ taskswitch(ulong pdb, ulong stack)
 	tss->ss2 = KDSEL;
 	tss->esp2 = stack;
 	tss->cr3 = pdb;
+	coherence();	// *** See note at beginning of file ***
 	putcr3(pdb);
 }
 
@@ -226,6 +247,7 @@ putmmu(ulong va, ulong pa, Page*)
 
 	s = splhi();
 	pdb[PDX(MACHADDR)] = m->pdb[PDX(MACHADDR)];
+	coherence();	// *** See note at beginning of file ***
 	mmuflushtlb(up->mmupdb->pa);
 	splx(s);
 }

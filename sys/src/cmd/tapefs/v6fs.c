@@ -197,7 +197,7 @@ bmap(Ram *r, long bno)
 {
 	unsigned char indbuf[LNINDIR][2];
 
-	if (r->ndata < V6NADDR*BLSIZE) {	/* assume size predicts largeness of file */
+	if (r->ndata <= V6NADDR*BLSIZE) {	/* assume size predicts largeness of file */
 		if (bno < V6NADDR)
 			return ((ushort*)r->data)[bno];
 		return 0;

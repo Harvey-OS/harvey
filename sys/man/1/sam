@@ -629,6 +629,11 @@ The only commands for which u is ineffective are
 .B w
 and
 .BR D .
+If
+.I n
+is negative,
+.B u
+`redoes,' undoing the undo, going forwards in time again.
 .TP
 (empty)
 If the range is explicit, set dot to the range.

@@ -5,7 +5,6 @@ TARG=aliasmail
 OFILES=aliasmail.$O\
 
 LIB=../common/libcommon.a$O\
-	 ../libString/libString.a$O\
 
 HFILES=../common/common.h\
 	 ../common/sys.h\

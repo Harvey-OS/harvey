@@ -1,0 +1,4 @@
+TEXT _OSEEK(SB), 1, $-4
+MOVW $16, R0
+SWI 0
+RET

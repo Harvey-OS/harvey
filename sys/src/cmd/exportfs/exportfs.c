@@ -54,12 +54,12 @@ main(int argc, char **argv)
 {
 	char buf[128];
 	Fsrpc *r;
-	int n, srv;
-	char *dbfile;
+	int n;
+	char *dbfile, *srv;
 	char user[NAMELEN];
 
 	dbfile = "/tmp/exportdb";
-	srv = 0;
+	srv = nil;
 
 	ARGBEGIN{
 	case 'a':
@@ -77,15 +77,19 @@ main(int argc, char **argv)
 		break;
 
 	case 'f':
-		dbfile = ARGF();
+		dbfile = EARGF(usage());
 		break;
 
 	case 'F':
 		fflag++;
 		break;
 
+	case 'r':
+		srv = EARGF(usage());
+		break;
+
 	case 's':
-		srv++;
+		srv = "/";
 		break;
 
 	default:
@@ -117,8 +121,8 @@ main(int argc, char **argv)
 	 * check we can get there and ack the connection
  	 */
 	if(srv) {
-		chdir("/");
-		DEBUG(DFD, "invoked as server for /");
+		chdir(srv);
+		DEBUG(DFD, "invoked as server for %s", srv);
 	}
 	else {
 		buf[0] = 0;
@@ -144,7 +148,7 @@ main(int argc, char **argv)
 
 	DEBUG(DFD, "exportfs: %s\n", buf);
 
-	if(srv == 0 && write(0, "OK", 2) != 2)
+	if(srv == nil && write(0, "OK", 2) != 2)
 		fatal("open ack write");
 
 	/*
@@ -168,7 +172,6 @@ main(int argc, char **argv)
 
 		if(n < 0)
 			fatal("server read");
-
 
 		if(convM2S(r->buf, &r->work, n) == 0)
 			fatal("format error");

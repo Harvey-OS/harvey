@@ -368,10 +368,6 @@ endloop:
 				return MACRODEF;
 				}
 
-
-if(!strncmp(text, "include", 7) && isinclude(text+7))
-	goto again;
-
 /* substitute for macros on dependency line up to the semicolon if any */
 
 for(t = yytext ; *t!='\0' && *t!=';' ; ++t)
@@ -390,6 +386,12 @@ if(lastch)	/* copy the stuff after the semicolon */
 	}
 
 strcpy(yytext, templin);
+
+/* process include files after macro substitution */
+if(strncmp(text, "include", 7) == 0) {
+ 	if (isinclude(text+7))
+		goto again;
+}
 
 for(p = zznextc = text ; *p ; ++p )
 	if(*p!=' ' && *p!='\t')

@@ -280,6 +280,8 @@ transmit(Ether* ether)
 			control = Ic|Set|BLEN(bp);
 		}
 		else{
+			if(ether->ntb == 0)
+				break;
 			tb = &ether->tb[ether->ti];
 			if(tb->owner != Interface)
 				break;

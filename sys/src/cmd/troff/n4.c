@@ -210,7 +210,7 @@ void nnspace(void)
 	ncnt = sizeof(numtab)/sizeof(Numtab) + NDELTA;
 	numtabp = (Numtab *) grow((char *)numtabp, ncnt, sizeof(Numtab));
 	if (numtabp == NULL) {
-		ERROR "not enough memory for registers", ncnt WARN;
+		ERROR "not enough memory for registers (%d)", ncnt WARN;
 		exit(1);
 	}
 	numtabp = (Numtab *) memcpy((char *)numtabp, (char *)numtab,

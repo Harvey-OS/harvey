@@ -92,6 +92,7 @@ void		trapinit(void);
 void		unaligned(void);
 ulong	upamalloc(ulong, int, int);
 void	upafree(ulong, int);
+#define		userureg(ur) ((ur)->status & UMODE)
 void		wrent(int, void*);
 void		wrvptptr(uvlong);
 

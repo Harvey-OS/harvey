@@ -1,7 +1,7 @@
 .TH MP 2
 .SH NAME
 
-mpsetminbits, mpnew, mpfree, mpbits, mpnorm, mpcopy, mpassign, mprand, strtomp, mpconv,mptoa, betomp, mptobe, letomp, mptole, mptoui, uitomp, mptoi, itomp, mpdigdiv, mpadd, mpsub, mpleft, mpright, mpmul, mpexp, mpmod, mpdiv, mpcmp, mpextendedgcd, mpinvert, mpsignif, mplowbits0, mpvecdigmuladd, mpvecdigmulsub, mpvecadd, mpvecsub, mpveccmp, mpvecmul, mpmagcmp, mpmagadd, mpmagsub, crtpre, crtin, crtout, crtprefree, crtresfree \- extended precision arithmetic
+mpsetminbits, mpnew, mpfree, mpbits, mpnorm, mpcopy, mpassign, mprand, strtomp, mpconv,mptoa, betomp, mptobe, letomp, mptole, mptoui, uitomp, mptoi, itomp, uvtomp, mptouv, vtomp, mptov, mpdigdiv, mpadd, mpsub, mpleft, mpright, mpmul, mpexp, mpmod, mpdiv, mpcmp, mpextendedgcd, mpinvert, mpsignif, mplowbits0, mpvecdigmuladd, mpvecdigmulsub, mpvecadd, mpvecsub, mpveccmp, mpvecmul, mpmagcmp, mpmagadd, mpmagsub, crtpre, crtin, crtout, crtprefree, crtresfree \- extended precision arithmetic
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -10,148 +10,160 @@ mpsetminbits, mpnew, mpfree, mpbits, mpnorm, mpcopy, mpassign, mprand, strtomp, 
 .B #include <mp.h>
 .PP
 .B
-mpint*	mpnew(int n);
+mpint*	mpnew(int n)
 .PP
 .B
-void	mpfree(mpint *b);
+void	mpfree(mpint *b)
 .PP
 .B
-void	mpsetminbits(int n);
+void	mpsetminbits(int n)
 .PP
 .B
-void	mpbits(mpint *b, int n);
+void	mpbits(mpint *b, int n)
 .PP
 .B
-void	mpnorm(mpint *b);
+void	mpnorm(mpint *b)
 .PP
 .B
-mpint*	mpcopy(mpint *b);
+mpint*	mpcopy(mpint *b)
 .PP
 .B
-void	mpassign(mpint *old, mpint *new);
+void	mpassign(mpint *old, mpint *new)
 .PP
 .B
-mpint*	mprand(int bits, void (*gen)(uchar*, int), mpint *b);
+mpint*	mprand(int bits, void (*gen)(uchar*, int), mpint *b)
 .PP
 .B
-mpint*	strtomp(char *buf, char **rptr, int base, mpint *b);
+mpint*	strtomp(char *buf, char **rptr, int base, mpint *b)
 .PP
 .B
-char*	mptoa(mpint *b, int base, char *buf, int blen);
+char*	mptoa(mpint *b, int base, char *buf, int blen)
 .PP
 .B
-int	mpconv(va_list*, Fconv*);
+int	mpconv(va_list*, Fconv*)
 .PP
 .B
-mpint*	betomp(uchar *buf, uint blen, mpint *b);
+mpint*	betomp(uchar *buf, uint blen, mpint *b)
 .PP
 .B
-int	mptobe(mpint *b, uchar *buf, uint blen, uchar **bufp);
+int	mptobe(mpint *b, uchar *buf, uint blen, uchar **bufp)
 .PP
 .B
-mpint*	letomp(uchar *buf, uint blen, mpint *b);
+mpint*	letomp(uchar *buf, uint blen, mpint *b)
 .PP
 .B
-int	mptole(mpint *b, uchar *buf, uint blen, uchar **bufp);
+int	mptole(mpint *b, uchar *buf, uint blen, uchar **bufp)
 .PP
 .B
-uint	mptoui(mpint*);	
+uint	mptoui(mpint*)
 .PP
 .B
-mpint*	uitomp(uint, mpint*);
+mpint*	uitomp(uint, mpint*)
 .PP
 .B
-int	mptoi(mpint*);
+int	mptoi(mpint*)
 .PP
 .B
-mpint*	itomp(int, mpint*);
+mpint*	itomp(int, mpint*)
 .PP
 .B
-void	mpadd(mpint *b1, mpint *b2, mpint *sum);
+mpint*	vtomp(vlong, mpint*)
 .PP
 .B
-void	mpmagadd(mpint *b1, mpint *b2, mpint *sum);
+vlong	mptov(mpint*)
 .PP
 .B
-void	mpsub(mpint *b1, mpint *b2, mpint *diff);
+mpint*	uvtomp(uvlong, mpint*)
 .PP
 .B
-void	mpmagsub(mpint *b1, mpint *b2, mpint *diff);
+uvlong	mptouv(mpint*)
 .PP
 .B
-void	mpleft(mpint *b, int shift, mpint *res);
+void	mpadd(mpint *b1, mpint *b2, mpint *sum)
 .PP
 .B
-void	mpright(mpint *b, int shift, mpint *res);
+void	mpmagadd(mpint *b1, mpint *b2, mpint *sum)
 .PP
 .B
-void	mpmul(mpint *b1, mpint *b2, mpint *prod);
+void	mpsub(mpint *b1, mpint *b2, mpint *diff)
 .PP
 .B
-void	mpexp(mpint *b, mpint *e, mpint *m, mpint *res);
+void	mpmagsub(mpint *b1, mpint *b2, mpint *diff)
 .PP
 .B
-void	mpmod(mpint *b, mpint *m, mpint *remainder);
+void	mpleft(mpint *b, int shift, mpint *res)
 .PP
 .B
-void	mpdiv(mpint *dividend, mpint *divisor,  mpint *quotient, mpint *remainder);
+void	mpright(mpint *b, int shift, mpint *res)
 .PP
 .B
-int	mpcmp(mpint *b1, mpint *b2);
+void	mpmul(mpint *b1, mpint *b2, mpint *prod)
 .PP
 .B
-int	mpmagcmp(mpint *b1, mpint *b2);
+void	mpexp(mpint *b, mpint *e, mpint *m, mpint *res)
 .PP
 .B
-void	mpextendedgcd(mpint *a, mpint *b, mpint *d, mpint *x, mpint *y);
+void	mpmod(mpint *b, mpint *m, mpint *remainder)
 .PP
 .B
-void	mpinvert(mpint *b, mpint *m, mpint *res);
+void	mpdiv(mpint *dividend, mpint *divisor,  mpint *quotient, mpint *remainder)
 .PP
 .B
-int	mpsignif(mpint *b);
+int	mpcmp(mpint *b1, mpint *b2)
 .PP
 .B
-int	mplowbits0(mpint *b);
+int	mpmagcmp(mpint *b1, mpint *b2)
 .PP
 .B
-void	mpdigdiv(mpdigit *dividend, mpdigit divisor, mpdigit *quotient);
+void	mpextendedgcd(mpint *a, mpint *b, mpint *d, mpint *x, mpint *y)
 .PP
 .B
-void	mpvecadd(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *sum);
+void	mpinvert(mpint *b, mpint *m, mpint *res)
 .PP
 .B
-void	mpvecsub(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *diff);
+int	mpsignif(mpint *b)
 .PP
 .B
-void	mpvecdigmuladd(mpdigit *b, int n, mpdigit m, mpdigit *p);
+int	mplowbits0(mpint *b)
 .PP
 .B
-int	mpvecdigmulsub(mpdigit *b, int n, mpdigit m, mpdigit *p);
+void	mpdigdiv(mpdigit *dividend, mpdigit divisor, mpdigit *quotient)
 .PP
 .B
-void	mpvecmul(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *p);
+void	mpvecadd(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *sum)
 .PP
 .B
-int	mpveccmp(mpdigit *a, int alen, mpdigit *b, int blen);
+void	mpvecsub(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *diff)
 .PP
 .B
-CRTpre*	crtpre(int nfactors, mpint **factors);
+void	mpvecdigmuladd(mpdigit *b, int n, mpdigit m, mpdigit *p)
 .PP
 .B
-CRTres*	crtin(CRTpre *crt, mpint *x);	
+int	mpvecdigmulsub(mpdigit *b, int n, mpdigit m, mpdigit *p)
 .PP
 .B
-void	crtout(CRTpre *crt, CRTres *r, mpint *x);
+void	mpvecmul(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *p)
 .PP
 .B
-void	crtprefree(CRTpre *cre);
+int	mpveccmp(mpdigit *a, int alen, mpdigit *b, int blen)
 .PP
 .B
-void	crtresfree(CRTres *res);
+CRTpre*	crtpre(int nfactors, mpint **factors)
 .PP
 .B
-mpint	*mpzero, *mpone, *mptwo;
+CRTres*	crtin(CRTpre *crt, mpint *x)
+.PP
+.B
+void	crtout(CRTpre *crt, CRTres *r, mpint *x)
+.PP
+.B
+void	crtprefree(CRTpre *cre)
+.PP
+.B
+void	crtresfree(CRTres *res)
+.PP
+.B
+mpint	*mpzero, *mpone, *mptwo
 .SH DESCRIPTION
 .PP
 These routines perform extended precision integer arithmetic.
@@ -172,6 +184,8 @@ struct mpint
 	char	flags;
 };
 .EE
+.PP
+The sign of 0 is +1.
 .PP
 The size of
 .B mpdigit
@@ -274,6 +288,10 @@ convert between
 and
 .B mpint
 representations using the base indicated.
+Only the bases 10, 16, 32, and 64 are
+supported.  Anything else defaults to 16.
+.IR Strtomp
+skips any leading spaces or tabs.
 .IR Strtomp 's
 scan stops when encountering a digit not valid in the
 base.  If
@@ -282,6 +300,10 @@ is not zero,
 .I *rptr
 is set to point to the character immediately after the
 string converted.
+If the parse pterminates before any digits are found,
+.I strtomp
+return
+.BR nil .
 .I Mptoa
 returns a pointer to the filled buffer.
 If the parameter
@@ -344,24 +366,37 @@ is
 .BR nil ,
 a new integer is allocated and returned as the result.
 .PP
-.I Mptoui
-and
+The integer conversions are:
+.TF Mptouv
+.TP
+.I mptoui
+.BR mpint -> "unsigned int"
+.TP
 .I uitomp
-convert between
-.BR "unsigned int" s
-and
-.BR mpint s.
-If the number doesn't fit the representation, the maximum unsigned
-integer is returned, that is, all ones.
-.I Mptoi
-and
+.BR "unsigned int" -> mpint
+.TP
+.I mptoi
+.BR mpint -> "int"
+.TP
 .I itomp
-convert between
-.BR int s
-and
-.BR mpint s.
-If the integer is too large, the largest integer of the appropriate sign
-is returned.
+.BR "int" -> mpint
+.TP
+.I mptouv
+.BR mpint -> "unsigned vlong"
+.TP
+.I uvtomp
+.BR "unsigned vlong" -> mpint
+.TP
+.I mptov
+.BR mpint -> "vlong"
+.TP
+.I vtomp
+.BR "vlong" -> mpint
+.PD
+.PP
+When converting to the base integer types, if the integer is too large,
+the largest integer of the appropriate sign
+and size is returned.
 .PP
 The mathematical functions are:
 .TF mpmagadd
@@ -477,8 +512,8 @@ We assume p has room for n+1 digits.  It returns +1 is the result is positive an
 -1 if negative.
 .TP
 .I mpvecmul
-.BR "p[0:alen*blen-1] = a[0:alen-1] * b[0:blen-1]" .
-We assume alen >= blen and p has room for m*n digits.
+.BR "p[0:alen*blen] = a[0:alen-1] * b[0:blen-1]" .
+We assume that p has room for alen*blen+1 digits.
 .TP
 .I mpveccmp
 This returns -1, 0, or +1 as a - b is negative, 0, or positive.

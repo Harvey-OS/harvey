@@ -38,7 +38,7 @@ main(int argc, char *argv[]) {
 	}
 
 	for(;;) {
-		if (dirfstat(fd, &statbuf) == -1 || statbuf.Length.length == 0)
+		if (dirfstat(fd, &statbuf) == -1 || statbuf.length == 0)
 			break;
 		if (write(fd, "", 0) < 0)
 			break;

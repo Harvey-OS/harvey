@@ -98,7 +98,7 @@ chopframe(Frame *f, Point pt, ulong p, int bn)
 void
 frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 {
-	Point pt0, pt1, ppt0, ppt1, pt;
+	Point pt0, pt1, opt0, ppt0, ppt1, pt;
 	Frbox *b;
 	int n, n0, nn0, y;
 	ulong cn0;
@@ -117,6 +117,7 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 	nn0 = n0;
 	pt0 = _frptofcharnb(f, p0, n0);
 	ppt0 = pt0;
+	opt0 = pt0;
 	pt1 = bxscan(f, sp, ep, &ppt0);
 	ppt1 = pt1;
 	if(n0 < f->nbox){
@@ -208,7 +209,22 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 			r.max.x += b->wid;
 			r.max.y += f->font->height;
 			draw(f->b, r, f->b, nil, pts[npts].pt0);
-			if(pt.y < y){	/* clear bit hanging off right */
+			/* clear bit hanging off right */
+			if(npts==0 && pt.y>pt0.y){
+				/*
+				 * first new char is bigger than first char we're
+				 * displacing, causing line wrap. ugly special case.
+				 */
+				r.min = opt0;
+				r.max = opt0;
+				r.max.x = f->r.max.x;
+				r.max.y += f->font->height;
+				if(f->p0<=cn0 && cn0<f->p1)	/* b+1 is inside selection */
+					col = f->cols[HIGH];
+				else
+					col = f->cols[BACK];
+				draw(f->b, r, col, nil, r.min);
+			}else if(pt.y < y){
 				r.min = pt;
 				r.max = pt;
 				r.min.x += b->wid;

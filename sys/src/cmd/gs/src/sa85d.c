@@ -1,22 +1,22 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: sa85d.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: sa85d.c,v 1.2.2.1 2000/11/09 22:57:10 rayjj Exp $ */
 /* ASCII85Decode filter */
 #include "std.h"
 #include "strimpl.h"
@@ -56,13 +56,17 @@ s_A85D_process(stream_state * st, stream_cursor_read * pr,
 	uint ccode = ch - '!';
 
 	if (ccode < 85) {	/* catches ch < '!' as well */
-	    if (wlimit - q < 4) {
-		p--;
-		status = 1;
-		break;
-	    }
-	    word = word * 85 + ccode;
-	    if (++ccount == 5) {
+	    if (ccount == 4) {
+		/*
+		 * We've completed a 32-bit group.  Make sure we have
+		 * room for it in the output.
+		 */
+		if (wlimit - q < 4) {
+		    p--;
+		    status = 1;
+		    break;
+		}
+		word = word * 85 + ccode;
 		q[1] = (byte) (word >> 24);
 		q[2] = (byte) (word >> 16);
 		q[3] = (byte) ((uint) word >> 8);
@@ -70,6 +74,9 @@ s_A85D_process(stream_state * st, stream_cursor_read * pr,
 		q += 4;
 		word = 0;
 		ccount = 0;
+	    } else {
+		word = word * 85 + ccode;
+		++ccount;
 	    }
 	} else if (ch == 'z' && ccount == 0) {
 	    if (wlimit - q < 4) {

@@ -118,8 +118,8 @@ uchar	ymovl[] =
 {
 	Yrl,	Yml,	Zr_m,	1,
 	Yml,	Yrl,	Zm_r,	1,
-	Yi0,	Yrl,	Zclr,	1,
-	Yi0,	Yml,	Zibo_m,	2,
+	Yi0,	Yrl,	Zclr,	1+2,
+//	Yi0,	Yml,	Zibo_m,	2,	// shorter but slower AND $0,dst
 	Yi32,	Yrl,	Zil_rp,	1,
 	Yi32,	Yml,	Zilo_m,	2,
 	Yiauto,	Yrl,	Zaut_r,	2,

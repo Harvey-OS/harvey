@@ -15,14 +15,14 @@
 00AF  __          ¯	spacing macron
 00B0  de          °	degree sign
 00B1  +-          ±	plus-or-minus sign
-00B2  s2          ²	superscript digit two
-00B3  s3          ³	superscript digit three
+00B2  S2          ²	superscript digit two
+00B3  S3          ³	superscript digit three
 00B4  ''          ´	spacing acute
 00B5  mi          µ	micro sign
 00B6  pg          ¶	paragraph sign
 00B7  ..          ·	middle dot
 00B8  ,,          ¸	spacing cedilla
-00B9  s1          ¹	superscript digit one
+00B9  S1          ¹	superscript digit one
 00BA  so          º	masculine ordinal indicator
 00BB  >>          »	right pointing guillemet
 00BC  14          ¼	fraction one quarter
@@ -394,6 +394,9 @@
 2022  bu          •	bullet
 203D  !? ?!       ‽	interrobang
 2070  s0          ⁰	superscript digit zero
+2071  s1          ⁱ	superscript digit one
+2072  s2          ⁲	superscript digit two
+2073  s3          ⁳	superscript digit three
 2074  s4          ⁴	superscript digit four
 2075  s5          ⁵	superscript digit five
 2076  s6          ⁶	superscript digit six
@@ -423,6 +426,7 @@
 208C  b=          ₌	subscript equals sign
 208D  b(          ₍	subscript opening parenthesis
 208E  b)          ₎	subscript closing parenthesis
+20AC  e$          €	euro symbol
 2102  CC          ℂ	double-struck capital c
 210A  $g          ℊ	script small g
 210B  $H          ℋ	script capital h

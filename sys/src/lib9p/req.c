@@ -33,6 +33,8 @@ allocreq(Reqpool *pool, ulong tag)
 		return nil;
 	}
 
+if(lib9p_chatty)
+	fprint(2,"allocreq %p tag %lud\n", r, tag);
 	return r;
 }
 
@@ -46,19 +48,33 @@ closereq(Req *r)
 		free(r->rbuf);
 		free(r);
 	}
-//print("closereq %p: %d refs\n", r, n ? r->ref.ref : n);
+if(lib9p_chatty)
+	fprint(2,"closereq %p: %lud refs\n", r, n ? r->ref.ref : n);
 	return n;
 }
 
 void
 freereq(Req *r)
 {
+	int tag;
 	Req *nr;
 
 	if(r == nil)
 		return;
 
-	nr = deletekey(r->pool->map, r->tag);
+	lock(&r->taglock);
+	tag = r->tag;
+	r->tag = -1;
+	unlock(&r->taglock);
+	if(tag == -1)
+		return;
+
+	nr = deletekey(r->pool->map, tag);
+	if(nr == 0){
+		closereq(r);
+		return;
+	}
+
 if(r != nr)
 	fprint(2, "r %p nr %p\n", r, nr);
 

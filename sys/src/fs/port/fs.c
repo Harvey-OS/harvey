@@ -788,6 +788,7 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 		addr = 0;
 		goto dread;
 	}
+
 	if(offset+count > d->size)
 		count = d->size - offset;
 	while(count > 0) {

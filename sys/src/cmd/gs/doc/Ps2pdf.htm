@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>ps2pdf: PostScript-to-PDF converter</title>
-<!-- $Id: Ps2pdf.htm,v 1.2 2000/03/10 04:16:09 lpd Exp $ -->
+<!-- $Id: Ps2pdf.htm,v 1.18.2.2 2000/11/28 01:31:25 raph Exp $ -->
 <!-- Originally: ps2pdf.txt -->
 </head>
 
@@ -28,7 +28,7 @@
 <li><a href="#Options">Options</a>
 <li><a href="#Limitations">Limitations</a>
 <li><a href="#Problems">Known problems</a>
-<li><a href="#Benefits">Benefits of using <b><tt>ps2pdf</tt></b></a>
+<li><a href="#Ps2pdf_vs_AD">Comparison of <b><tt>ps2pdf</tt></b> and Acrobat Distiller</a>
 <li><a href="#Acknowledgments">Acknowledgments</a>
 </ul></blockquote>
 
@@ -72,25 +72,25 @@ Ghostscript as we distribute it.
 The usage for <b><tt>ps2pdf</tt></b> is
 
 <blockquote><b><tt>
-ps2pdf</tt></b> <em>[options] input.ps output.pdf</em>
+ps2pdf</tt></b> <em>[options] input.[e]ps output.pdf</em>
 </blockquote>
 
 <p>
 or, on Unix systems and some versions of Windows NT and OS/2
 
 <blockquote><b><tt>
-ps2pdf</tt></b> <em>input.ps</em>
+ps2pdf</tt></b> <em>input.[e]ps</em>
 </blockquote>
 
 <p>
 which is equivalent to
 
 <blockquote><b><tt>
-ps2pdf</tt></b> <em>input.ps input.pdf</em>
+ps2pdf</tt></b> <em>input.[e]ps input.pdf</em>
 </blockquote>
 
 <p>
-There are actually three different <b><tt>ps2pdf</tt></b><em>*</em> scripts:
+There are actually several different <b><tt>ps2pdf</tt></b><em>*</em> scripts:
 the name <b><tt>ps2pdf</tt></b> above refers to any of them.
 
 <ul>
@@ -101,34 +101,30 @@ the name <b><tt>ps2pdf</tt></b> above refers to any of them.
 <li><b><tt>ps2pdf13</tt></b> will always produce PDF 1.3 output (Acrobat
 4-and-later compatible).
 
+<li><b><tt>ps2pdf14</tt></b> will always produce PDF 1.4 output (Acrobat
+5-and-later compatible).
+
 <li><b><tt>ps2pdf</tt></b> per se currently produces PDF 1.2 output (Acrobat
 3-and-later compatible).  However, this may change in the future.  If you
 care about the compatibility level of the output, use
-<b><tt>ps2pdf12</tt></b> or <b><tt>ps2pdf13</tt></b>, or use the
-<b><tt>-dCompatibility=</tt></b><em>1.x</em> switch in the command line.
+<b><tt>ps2pdf12</tt></b>, <b><tt>ps2pdf13</tt></b>, or
+<b><tt>ps2pdf14</tt></b>, or use the
+<b><tt>-dCompatibilityLevel=</tt></b><em>1.x</em> switch in the command
+line.
 
 </ul>
 
 <p>
-All of these scripts actually call a script named <b><tt>ps2pdfwr</tt></b>.
-Normally, you will not need to do anything with this script.  The Unix
-<b><tt>ps2pdfwr</tt></b> script assumes that the Ghostscript executable is
-named <b><tt>gs</tt></b>; the DOS and MS Windows
-<b><tt>ps2pdfwr.bat</tt></b> script assumes the executable is named
-<b><tt>gswin32c</tt></b>.  On DOS or MS Windows, if the executable has a
-different name, you must edit the <b><tt>ps2pdfwr.bat</tt></b> script file:
-look for the line that says
-
-<blockquote><b><tt>
-set PS2PDFGS=gswin32c
-</tt></b></blockquote>
-
-<p>
-and change it to
-
-<blockquote><b><tt>
-set PS2PDFGS=</tt></b><em>executable_name</em>
-</blockquote>
+All of these scripts actually call a script named <b><tt>ps2pdfwr</tt></b>
+or <b><tt>ps2pdfxx</tt></b>.  The Unix <b><tt>ps2pdfwr</tt></b> script
+assumes that the Ghostscript executable is named <b><tt>gs</tt></b>; it is
+unlikely that you will need to change this.  The DOS and MS Windows
+<b><tt>ps2pdfxx.bat</tt></b> script uses the value of the
+<b><tt>GSC</tt></b> environment variable, if defined, as the name of the
+executable; otherwise the script assumes the executable is named
+<b><tt>gswin32c</tt></b>.  So in these environments, if the executable has a
+different name, you must set <b><tt>GSC</tt></b> to the name of the
+executable.
 
 <hr>
 
@@ -138,8 +134,25 @@ set PS2PDFGS=</tt></b><em>executable_name</em>
 The <em>options</em> in the command line may include any switches that may
 be used with Ghostscript's PostScript and PDF interpreter (see <a
 href="Use.htm#Switches">here</a> for a complete list), although almost none
-of them are useful with <b><tt>ps2pdf</tt></b>.  More importantly,
-<em>options</em> may include
+of them are useful with <b><tt>ps2pdf</tt></b>.  The following may be
+useful:
+
+<dl>
+
+<dt><b><tt>-r</tt></b><em>resolution</em>
+<dd>Sets the resolution for pattern fills and for fonts that must be
+converted to bitmaps.
+
+<dt><b><tt>-dProcessColorModel=</tt></b><em>device_color_space</em> <dd>Sets
+the color space to be used for device-dependent colors in the
+output. <em>device_color_space</em> may be <b><tt>/DeviceGray</tt></b>,
+<b><tt>/DeviceRGB</tt></b>, or <b><tt>/DeviceCMYK</tt></b>; the default
+value is <b><tt>/DeviceRGB</tt></b>.
+
+</dl>
+
+<p>
+More importantly, <em>options</em> may include
 <b><tt>-d</tt></b><em>parameter</em>=<em>value</em> or
 <b><tt>-s</tt></b><em>parameter</em>=<em>string</em> switches for setting
 "distiller parameters", Adobe's documented parameters for controlling the
@@ -149,11 +162,36 @@ running <b><tt>ps2pdf</tt></b>, and provide an equivalent way to set these
 parameters from within the PostScript input file.
 
 <p>
-<b><tt>ps2pdf</tt></b> recognizes all of the Acrobat Distiller 3 parameters
+<b><tt>ps2pdf</tt></b> also recognizes the following switches:
+
+<dl>
+<dt><b><tt>-dPDFSETTINGS=</tt></b><em>configuration</em>
+<dd>Presets the "distiller parameters" to one of four predefined settings:
+
+<ul>
+
+<li><b><tt>/screen</tt></b> selects low-resolution output similar to the
+Acrobat Distiller "Screen Optimized" setting.
+
+<li><b><tt>/printer</tt></b> selects output similar to the Acrobat Distiller
+"Print Optimized" setting.
+
+<li><b><tt>/prepress</tt></b> selects output similar to Acrobat Distiller
+"Prepress Optimized" setting.
+
+<li><b><tt>/default</tt></b> selects output intended to be useful across a
+wide variety of uses, possibly at the expense of a larger output file.
+
+</ul>
+
+</dl>
+
+<p>
+<b><tt>ps2pdf</tt></b> recognizes all of the Acrobat Distiller 4 parameters
 documented in
 <a href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/distparm.pdf">
-Adobe Technical Note #5151</a> except for the <b><tt>ImageDict</tt></b>
-parameters, but only a subset have an effect:
+Adobe Technical Note #5151</a>.  The following have their proper effect,
+except as noted:
 
 <blockquote><table cellpadding=0 cellspacing=0>
 <tr valign=bottom>
@@ -167,13 +205,18 @@ parameters, but only a subset have an effect:
 <tr valign=top><td><b><tt>AlwaysEmbed</tt></b><td><td>[]
 <tr valign=top><td><b><tt>AutoFilterColorImages</tt></b><td><td>true<td><td>1
 <tr valign=top><td><b><tt>AutoFilterGrayImages</tt></b><td><td>true<td><td>1
+<tr valign=top><td><b><tt>AutoRotatePages</tt></b><td><td>/None<td><td>
+<tr valign=top><td><b><tt>ColorACSImageDict</tt></b><td><td><< >>
+<tr valign=top><td><b><tt>ColorDownsampleThreshold</tt></b><td><td>1.5
 <tr valign=top><td><b><tt>ColorImageDepth</tt></b><td><td>-1
+<tr valign=top><td><b><tt>ColorImageDict</tt></b><td><td><< >>
 <tr valign=top><td><b><tt>ColorImageDownsampleType</tt></b><td><td>/Subsample<td><td>3
 <tr valign=top><td><b><tt>ColorImageResolution</tt></b><td><td>72
 <tr valign=top><td><b><tt>CompatibilityLevel</tt></b><td><td>1.3
 <tr valign=top><td><b><tt>CompressPages</tt></b><td><td>true
 <tr valign=top><td><b><tt>ConvertCMYKImagesToRGB</tt></b><td><td>true
-<tr valign=top><td><b><tt>CoreDistVersion</tt></b><td><td>3000
+<tr valign=top><td><b><tt>CoreDistVersion</tt></b><td><td>4000
+<tr valign=top><td><b><tt>DefaultRenderingIntent</tt></b><td><td>/Default
 <tr valign=top><td><b><tt>DownsampleColorImages</tt></b><td><td>false
 <tr valign=top><td><b><tt>DownsampleGrayImages</tt></b><td><td>false
 <tr valign=top><td><b><tt>DownsampleMonoImages</tt></b><td><td>false
@@ -181,31 +224,42 @@ parameters, but only a subset have an effect:
 <tr valign=top><td><b><tt>EncodeColorImages</tt></b><td><td>true
 <tr valign=top><td><b><tt>EncodeGrayImages</tt></b><td><td>true
 <tr valign=top><td><b><tt>EncodeMonoImages</tt></b><td><td>true
+<tr valign=top><td><b><tt>GrayACSImageDict</tt></b><td><td><< >>
+<tr valign=top><td><b><tt>GrayDownsampleThreshold</tt></b><td><td>1.5
 <tr valign=top><td><b><tt>GrayImageDepth</tt></b><td><td>-1
+<tr valign=top><td><b><tt>GrayImageDict</tt></b><td><td><< >>
 <tr valign=top><td><b><tt>GrayImageDownsampleType</tt></b><td><td>/Subsample<td><td>3
 <tr valign=top><td><b><tt>GrayImageResolution</tt></b><td><td>72
+<tr valign=top><td><b><tt>LockDistillerParams</tt></b><td><td>false
 <tr valign=top><td><b><tt>LZWEncodePages</tt></b><td><td>false<td><td>2
 <tr valign=top><td><b><tt>MaxSubsetPct</tt></b><td><td>35
+<tr valign=top><td><b><tt>MonoDownsampleThreshold</tt></b><td><td>1.5
 <tr valign=top><td><b><tt>MonoImageDepth</tt></b><td><td>-1
 <tr valign=top><td><b><tt>MonoImageDict</tt></b><td><td><< >>
 <tr valign=top><td><b><tt>MonoImageDownsampleType</tt></b><td><td>/Subsample
 <tr valign=top><td><b><tt>MonoImageFilter</tt></b><td><td>/CCITTFaxEncode
 <tr valign=top><td><b><tt>MonoImageResolution</tt></b><td><td>300
 <tr valign=top><td><b><tt>NeverEmbed</tt></b><td><td>[]
+<tr valign=top><td><b><tt>OPM</tt></b><td><td>0
+<tr valign=top><td><b><tt>PreserveHalftoneInfo</tt></b><td><td>false
+<tr valign=top><td><b><tt>PreserveOverprintSettings</tt></b><td><td>false
+<tr valign=top><td><b><tt>TransferFunctionInfo</tt></b><td><td>/Apply<td><td>4
 <tr valign=top><td><b><tt>SubsetFonts</tt></b><td><td>true
+<tr valign=top><td><b><tt>UCRandBGInfo</tt></b><td><td>/Remove
 <tr valign=top><td><b><tt>UseFlateCompression</tt></b><td><td>true
 </table></blockquote>
 
 <p>
 (note 1) <b><tt>AutoFilterxxxImages</tt></b> doesn't examine the image to
-decide between JPEG and <b><tt>LZW/Flate</tt></b> compression: it always
-uses <b><tt>LZW/Flate</tt></b> compression.
+decide between JPEG and LZW or Flate compression: it uses JPEG compression
+if the image has 8 bits per component and does not use an Indexed color
+space, and LZW or Flate compression otherwise.
 
 <p>
 (note 2) Because of Unisys's threats regarding the Welch patent,
 <b><tt>ps2pdf</tt></b> cannot actually use LZW compression: instead, it
-treats all requests for LZW compression as calling for <b><tt>Flate</tt></b>
-compression if <b><tt>UseFlateCompression</tt></b> is true and
+treats all requests for LZW compression as calling for Flate compression if
+<b><tt>UseFlateCompression</tt></b> is true and
 <b><tt>CompatibilityLevel</tt></b> &gt;= 1.2, and ignores them otherwise.
 
 <p>
@@ -214,8 +268,60 @@ value /Bicubic (a Distiller 4 feature), which is currently treated as
 equivalent to /Average.
 
 <p>
-The remaining Distiller 3 parameters are defined and can be set and queried,
-but do not have any effect:
+(note 4) Currently, the transfer function is always applied.  If the
+corresponding parameter is set to <b><tt>/Preserve</tt></b>, the function
+setting is also copied into the PDF file.
+
+<p>
+The following are defined and can be set and queried, but do not have any
+effect:
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr valign=bottom>
+	<th align=left>Parameter name
+	<td>&nbsp;&nbsp;
+	<th align=left>Initial value
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;
+	<th align=left>Notes
+<tr>	<td colspan=5><hr>
+<tr valign=top><td><b><tt>AntiAliasColorImages</tt></b><td><td>false
+<tr valign=top><td><b><tt>AntiAliasGrayImages</tt></b><td><td>false
+<tr valign=top><td><b><tt>AntiAliasMonoImages</tt></b><td><td>false
+<tr valign=top><td><b><tt>Binding</tt></b><td><td>/Left
+<tr valign=top><td><b><tt>CalCMYKProfile</tt></b><td><td>()
+<tr valign=top><td><b><tt>CalGrayProfile</tt></b><td><td>()
+<tr valign=top><td><b><tt>CalRGBProfile</tt></b><td><td>()
+<tr valign=top><td><b><tt>CannotEmbedFontPolicy</tt></b><td><td>/OK
+<tr valign=top><td><b><tt>ColorConversionStrategy</tt></b><td><td>/LeaveColorUnchanged
+<tr valign=top><td><b><tt>ConvertImagesToIndexed</tt></b><td><td>false
+<tr valign=top><td><b><tt>DetectBlends</tt></b><td><td>true
+<tr valign=top><td><b><tt>DoThumbnails</tt></b><td><td>false
+<tr valign=top><td><b><tt>EndPage</tt></b><td><td>-1
+<tr valign=top><td><b><tt>ImageMemory</tt></b><td><td>500000
+<tr valign=top><td><b><tt>Optimize</tt></b><td><td>false<td><td>5
+<tr valign=top><td><b><tt>PreserveOPIComments</tt></b><td><td>false
+<tr valign=top><td><b><tt>sRGBProfile</tt></b><td><td>()
+<tr valign=top><td><b><tt>StartPage</tt></b><td><td>1
+</table></blockquote>
+
+<p>
+(note 5) Optimization (linearization) is implemented with a separate
+program, <b><tt>pdfopt</tt></b> <em>input.pdf</em> <em>output.pdf</em>.
+
+<p>
+(note 6) Currently, colors for images and shadings are left in the color
+space specified in the PostScript input, except for
+<b><tt>ConvertCMYKImagesToRGB</tt></b>; the current color in the graphics
+state (used for fill, stroke, text, and imagemask) is always converted to
+the color space specified by the current value of
+<b><tt>ProcessColorModel</tt></b>. The intended behavior is the same as for
+Acrobat Distiller, except that if <b><tt>ColorConversionStrategy</tt></b> is
+set to <b><tt>/UseDeviceDependentColor</tt></b>, colors are converted to the
+color space specified by <b><tt>ProcessColorModel</tt></b> rather than
+always to <b><tt>/DeviceRGB</tt></b>.
+
+<p>
+The following "job control" parameters are recognized, but have no effect:
 
 <blockquote><table cellpadding=0 cellspacing=0>
 <tr valign=bottom>
@@ -223,46 +329,35 @@ but do not have any effect:
 	<td>&nbsp;&nbsp;
 	<th align=left>Initial value
 <tr>	<td colspan=5><hr>
-<tr valign=top><td><b><tt>AntiAliasColorImages</tt></b><td><td>false
-<tr valign=top><td><b><tt>AntiAliasGrayImages</tt></b><td><td>false
-<tr valign=top><td><b><tt>AntiAliasMonoImages</tt></b><td><td>false
-<tr valign=top><td><b><tt>AutoRotatePages</tt></b><td><td>/None
-<tr valign=top><td><b><tt>ColorACSImageDict</tt></b><td><td><< >>
-<tr valign=top><td><b><tt>ColorConversionStrategy</tt></b><td><td>/LeaveColorUnchanged
-<tr valign=top><td><b><tt>ColorImageDict</tt></b><td><td><< >>
-<tr valign=top><td><b><tt>ConvertImagesToIndexed</tt></b><td><td>false
-<tr valign=top><td><b><tt>GrayACSImageDict</tt></b><td><td><< >>
-<tr valign=top><td><b><tt>GrayImageDict</tt></b><td><td><< >>
-<tr valign=top><td><b><tt>ImageMemory</tt></b><td><td>250000
-<tr valign=top><td><b><tt>PreserveHalftoneInfo</tt></b><td><td>false
-<tr valign=top><td><b><tt>PreserveOPIComments</tt></b><td><td>false
-<tr valign=top><td><b><tt>PreserveOverprintSettings</tt></b><td><td>false
-<tr valign=top><td><b><tt>TransferFunctionInfo</tt></b><td><td>/Apply
-<tr valign=top><td><b><tt>UCRandBGInfo</tt></b><td><td>/Remove
+<tr valign=top><td><b><tt>AutoPositionEPSFiles</tt></b><td><td>false
+<tr valign=top><td><b><tt>CreateJobTicket</tt></b><td><td>false
+<tr valign=top><td><b><tt>EmitDSCWarnings</tt></b><td><td>false
+<tr valign=top><td><b><tt>ParseDSCComments</tt></b><td><td>false
+<tr valign=top><td><b><tt>ParseDSCCommentsForDocInfo</tt></b><td><td>false
+<tr valign=top><td><b><tt>PreserveCopyPage</tt></b><td><td>false
+<tr valign=top><td><b><tt>PreserveEPSInfo</tt></b><td><td>false
+<tr valign=top><td><b><tt>UsePrologue</tt></b><td><td>false
 </table></blockquote>
-
-<p>
-<b><tt>ps2pdf</tt></b> does not implement the Acrobat Distiller 4
-parameters.  Settings for these parameters will be ignored, except that
-setting the <b><tt>EndPage</tt></b> parameter will cause an error.
 
 <hr>
 
 <h1><a name="Limitations"></a>Limitations</h1>
 
 <p>
-In some situations, <b><tt>ps2pdf</tt></b> will convert text to
-high-resolution bitmapped fonts rather than to embedded outline fonts.
-Currently, this will always occur when the PostScript file uses CID-keyed or
-double-byte fonts, or in some cases if it uses fonts with non-standard
-encodings; it may occur in other cases as well.
+<b><tt>ps2pdf</tt></b> will sometimes convert text to high-resolution
+bitmapped fonts rather than to embedded outline fonts.  Currently, this will
+always occur when the PostScript file uses CID-keyed or double-byte fonts,
+when the input file uses <b><tt>kshow</tt></b>, or in some cases if it uses
+fonts with non-standard encodings; it may occur in other cases as well.
 
 <p>
 The PDF output always represents the colors of text and graphics in
-DeviceGray or DeviceRGB color space; all other color spaces are converted to
-these.  However, for images, it will retain the original color space for
-DeviceGray, DeviceRGB, DeviceCMYK, certain CIEBased spaces, and Indexed
-spaces based on these.
+DeviceGray or DeviceRGB color space (or DeviceCMYK if the
+<b><tt>ProcessColorModel</tt></b> parameter has been set to
+<b><tt>/DeviceCMYK</tt></b>); all other color spaces are converted to these.
+However, for images, it will retain the original color space for DeviceGray,
+DeviceRGB, DeviceCMYK, certain CIEBased spaces, and Indexed spaces based on
+these.
 
 <p>
 <b><tt>ps2pdf</tt></b> will sometimes convert PostScript constructs to
@@ -286,13 +381,21 @@ document content structure: <b><tt>StRoleMap</tt></b>,
 omitted from the output file, the displayed and printed output are normally
 not affected.
 
+<p>
+<b><tt>ps2pdf</tt></b> currently has only very limited support for PDF 1.4.
+It writes out the blend mode, constant alpha, and text knockout graphics
+state parameters, and it handles images with soft masks, but it does not
+handle transparency groups, or soft masks in the graphics state.  (Note that
+there is no standard way to specify any of these things in PostScript, so
+these statements only apply when the input file is already a PDF 1.4 file.)
+
 <hr>
 
 <h1><a name="Problems"></a>Known problems</h1>
 
 <p>
 Distiller parameters should only be saved by <b><tt>save</tt></b> and
-restored by <b><tt>restore</tt></b>, but they are also saved
+restored by <b><tt>restore</tt></b>, but they are also saved by
 <b><tt>gsave</tt></b> and restored by <b><tt>grestore</tt></b>.
 
 <p>
@@ -300,13 +403,22 @@ Changing the value of the <b><tt>CompressPages</tt></b> parameter after any
 marks have been made on the page may cause a crash.
 
 <p>
-Setting a value for the <b><tt>ColorACSImageDict</tt></b>,
-<b><tt>ColorImageDict</tt></b>, <b><tt>GrayACSImageDict</tt></b>, or
-<b><tt>GrayImageDict</tt></b> parameter will probably cause a crash.
+If you select the <b><tt>pdfwrite</tt></b> driver from the command line
+(<b><tt>-sDEVICE=pdfwrite</tt></b>), rather than using one of the
+<b><tt>ps2pdf</tt></b> scripts, the output may contain embedded fonts that
+are lacking some required information and that Acrobat Reader will not
+accept.
+
+<p>
+If the input file downloads Type 1 fonts incrementally, the output file may
+contain embedded fonts with some information missing from the
+FontDescriptor, which may crash Acrobat Reader 4 or produce incorrect
+character spacing.
 
 <hr>
 
-<h1><a name="Benefits"></a>Benefits of using <b><tt>ps2pdf</tt></b></h1>
+<h1><a name="Ps2pdf_vs_AD"></a>Comparison of <b><tt>ps2pdf</tt></b> and
+Acrobat Distiller</h1>
 
 <p>
 According to users, the greatest benefit of <b><tt>ps2pdf</tt></b> is that
@@ -331,6 +443,11 @@ as a post-processor during routine document creation.
 <p>
 On the other hand, there are some documents for which <b><tt>ps2pdf</tt></b>
 may be much slower than Acrobat Distiller.  Caveat user.
+
+<p>
+<b><tt>ps2pdf</tt></b> usually produces output that is comparable in size to
+the output of Acrobat Distiller; however, it sometimes produces much larger
+output, especially if the input file involves pattern fills.
 
 <p>
 Many users report that the combination of <b><tt>ps2pdf</tt></b> with
@@ -364,13 +481,13 @@ href="http://www.sil.org">http://www.sil.org</a>&gt; for help with testing
 
 <p>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights reserved.
 
-<p>This file is part of Aladdin Ghostscript.  See the
+<p>This file is part of AFPL Ghostscript.  See the
 <a href="Public.htm">Aladdin Free Public License</a> (the "License") for
 full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+AFPL Ghostscript.
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+Ghostscript version 6.32, 27 November 2000
 
 </font>
 

@@ -41,7 +41,8 @@ _kproftimer(ulong pc)
 	 */
 	if(pc>=(ulong)spllo && pc<=(ulong)spldone)
 		pc = m->splpc;
-
+	if(up && up->kppc)
+		pc = up->kppc;
 	kprof.buf[0] += TK2MS(1);
 	if(kprof.minpc<=pc && pc<kprof.maxpc){
 		pc -= kprof.minpc;

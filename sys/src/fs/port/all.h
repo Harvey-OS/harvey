@@ -61,6 +61,7 @@ int	mballocs[MAXCAT];
 Filsys	filsys[10];		/* named file systems -- from config block */
 char	service[50];		/* my name -- from config block */
 uchar 	authip[Pasize];		/* ip address of server - from config block */
+uchar	sntpip[Pasize];		/* ip address of sntp server */
 struct
 {
 	uchar	sysip[Pasize];	/* my ip - from config block */

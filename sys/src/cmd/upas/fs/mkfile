@@ -4,7 +4,6 @@ TARG=	fs\
 	biff\
 
 LIB=../common/libcommon.a$O\
-	../libString/libString.a$O\
 
 HFILES= ../common/common.h\
 	dat.h
@@ -13,7 +12,14 @@ BIN=/$objtype/bin/upas
 </sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common
 
-$O.fs:	mbox.$O fs.$O
+FSOFILES=\
+	imap4.$O\
+	mbox.$O\
+	plan9.$O\
+	pop3.$O\
+	strtotm.$O\
+
+$O.fs:	$FSOFILES
 
 safeinstallall:V:
 	for(objtype in $CPUS)

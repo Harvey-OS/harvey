@@ -1,0 +1,4 @@
+TEXT _FAUTH(SB), 1, $-4
+MOVW $10, R0
+SWI 0
+RET

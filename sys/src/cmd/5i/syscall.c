@@ -178,7 +178,7 @@ sysdup(void)
 	n = dup(oldfd, newfd);
 	if(n < 0)
 		errstr(errbuf);
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -210,14 +210,15 @@ sysopen(void)
 	name = getmem_w(reg.r[13]+4);
 	mode = getmem_w(reg.r[13]+8);
 	memio(file, name, sizeof(file), MemReadstring);
-	if(sysdbg)
-		itrace("open(0x%lux='%s', 0x%lux)", name, file, mode);
 	
 	n = open(file, mode);
 	if(n < 0)
 		errstr(errbuf);
 
-	reg.r[1] = n;
+	if(sysdbg)
+		itrace("open(0x%lux='%s', 0x%lux) = %d", name, file, mode, n);
+
+	reg.r[REGRET] = n;
 };
 
 void
@@ -261,7 +262,7 @@ sysread(void)
 		itrace("read(%d, 0x%lux, %d) = %d", fd, a, size, n);
 
 	free(buf);
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -280,7 +281,7 @@ sysseek(void)
 	if(n < 0)
 		errstr(errbuf);	
 
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -297,7 +298,7 @@ syssleep(void)
 	if(n < 0)
 		errstr(errbuf);	
 
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -320,7 +321,7 @@ sysstat(void)
 	else
 		memio(buf, edir, DIRLEN, MemWrite);
 
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -341,7 +342,7 @@ sysfstat(void)
 	else
 		memio(buf, edir, DIRLEN, MemWrite);
 
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -363,7 +364,7 @@ syswrite(void)
 		errstr(errbuf);	
 	free(buf);
 
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -383,7 +384,7 @@ syspipe(void)
 		putmem_w(fd, p[0]);
 		putmem_w(fd+4, p[1]);
 	}
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -404,7 +405,7 @@ syscreate(void)
 	if(n < 0)
 		errstr(errbuf);
 
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -417,7 +418,7 @@ sysbrk_(void)
 	if(sysdbg)
 		itrace("brk_(0x%lux)", addr);
 
-	reg.r[1] = -1;
+	reg.r[REGRET] = -1;
 	if(addr < memory.seg[Data].base+datasize) {
 		strcpy(errbuf, "address below segment");
 		return;
@@ -435,7 +436,7 @@ sysbrk_(void)
 		s->table = erealloc(s->table, osize, nsize);
 	}	
 
-	reg.r[1] = 0;	
+	reg.r[REGRET] = 0;	
 }
 
 void
@@ -453,7 +454,7 @@ sysremove(void)
 	n = remove(nambuf);
 	if(n < 0)
 		errstr(errbuf);
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -463,109 +464,109 @@ sysnotify(void)
 	if(sysdbg)
 		itrace("notify(0x%lux)\n", nofunc);
 
-	reg.r[1] = 0;
+	reg.r[REGRET] = 0;
 }
 
 void
 syswait(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 sysrfork(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 syswstat(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 sysfwstat(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 sysnoted(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 syssegattach(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 syssegdetach(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 syssegfree(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 syssegflush(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 sysrendezvous(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 sysunmount(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 sysfork(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 sysforkpgrp(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 syssegbrk(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 sysmount(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 sysalarm(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
 }
 void
 sysexec(void)
 {
-	Bprint(bioout, "No system call %s\n", sysctab[reg.r[1]]);
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
  	exits(0);
 }
 
@@ -614,7 +615,7 @@ Ssyscall(ulong)
 {
 	int call;
 
-	call = reg.r[0];
+	call = reg.r[REGARG];
 	if(call < 0 || call > UNMOUNT) {
 		Bprint(bioout, "bad system call\n");
 		dumpreg();

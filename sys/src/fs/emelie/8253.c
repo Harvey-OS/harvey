@@ -25,9 +25,11 @@ enum
 };
 
 static int cpufreq	= 66000000;
+static int cpuhz;
 static int cpumhz	= 66;
 static int loopconst	= 100;
 /*static*/ int cpuidax, cpuiddx;
+static char cpuidid[16];
 
 static void
 clockintr(Ureg *ur, void *v)
@@ -56,7 +58,7 @@ typedef struct
 	char *name;
 } X86type;
 
-X86type x86type[] =
+static X86type x86intel[] =
 {
 	{ 4,	0,	22,	"486DX", },	/* known chips */
 	{ 4,	1,	22,	"486DX50", },
@@ -73,14 +75,48 @@ X86type x86type[] =
 	{ 5,	3,	23,	"P24T", },
 	{ 5,	4,	23,	"P55C MMX", },
 	{ 5,	7,	23,	"P54C VRT", },
-	{ 6,	1,	16,	"PentiumPro", },/* determined by trial and error */
+	{ 6,	1,	16,	"PentiumPro", },/* trial and error */
 	{ 6,	3,	16,	"PentiumII", },
 	{ 6,	5,	16,	"PentiumII/Xeon", },
+	{ 6,	6,	16,	"Celeron", },
+	{ 6,	7,	16,	"PentiumIII/Xeon", },
+	{ 6,	8,	16,	"PentiumIII/Xeon", },
 
 	{ 3,	-1,	32,	"386", },	/* family defaults */
 	{ 4,	-1,	22,	"486", },
 	{ 5,	-1,	23,	"P5", },
 	{ 6,	-1,	16,	"P6", },
+
+	{ -1,	-1,	23,	"unknown", },	/* total default */
+};
+
+/*
+ * The AMD processors all implement the CPUID instruction.
+ * The later ones also return the processor name via functions
+ * 0x80000002, 0x80000003 and 0x80000004 in registers AX, BX, CX
+ * and DX:
+ *	K5	"AMD-K5(tm) Processor"
+ *	K6	"AMD-K6tm w/ multimedia extensions"
+ *	K6 3D	"AMD-K6(tm) 3D processor"
+ *	K6 3D+	?
+ */
+static X86type x86amd[] =
+{
+	{ 5,	0,	23,	"AMD-K5", },	/* guesswork */
+	{ 5,	1,	23,	"AMD-K5", },	/* guesswork */
+	{ 5,	2,	23,	"AMD-K5", },	/* guesswork */
+	{ 5,	3,	23,	"AMD-K5", },	/* guesswork */
+	{ 5,	6,	11,	"AMD-K6", },	/* trial and error */
+	{ 5,	7,	11,	"AMD-K6", },	/* trial and error */
+	{ 5,	8,	11,	"AMD-K6-2", },	/* trial and error */
+	{ 5,	9,	11,	"AMD-K6-III", },/* trial and error */
+
+	{ 6,	1,	11,	"AMD-Athlon", },/* trial and error */
+	{ 6,	2,	11,	"AMD-Athlon", },/* trial and error */
+
+	{ 4,	-1,	22,	"Am486", },	/* guesswork */
+	{ 5,	-1,	23,	"AMD-K5/K6", },	/* guesswork */
+	{ 6,	-1,	11,	"AMD-Athlon", },/* guesswork */
 
 	{ -1,	-1,	23,	"unknown", },	/* total default */
 };
@@ -123,16 +159,24 @@ microdelay(int l)
 void
 printcpufreq(void)
 {
-	print("CPU is a %d MHz %s (cpuid: AX 0x%4.4ux DX 0x%4.4ux)\n",
-		cpumhz, cputype->name, cpuidax, cpuiddx);
+	int i;
+	char buf[128];
+
+	i = sprint(buf, "cpu%d: %dMHz ", 0, cpumhz);
+	if(cpuidid[0])
+		i += sprint(buf+i, "%s ", cpuidid);
+	sprint(buf+i, "%s (cpuid: AX 0x%4.4ux DX 0x%4.4ux)\n",
+		cputype->name, cpuidax, cpuiddx);
+	print(buf);
 }
 
 void
 clockinit(void)
 {
 	int x, y;	/* change in counter */
-	int family, model, loops, incr;
+	int family, model, loops, incr, havecycleclock;
 	X86type *t;
+	vlong a, b;
 
 	/*
 	 *  set vector for clock interrupts
@@ -142,18 +186,28 @@ clockinit(void)
 	/*
 	 *  figure out what we are
 	 */
-	x86cpuid(&cpuidax, &cpuiddx);
+	cpuid(cpuidid, &cpuidax, &cpuiddx);
+	if(strncmp(cpuidid, "AuthenticAMD", 12) == 0)
+		t = x86amd;
+	else
+		t = x86intel;
 	family = FAMILY(cpuidax);
 	model = MODEL(cpuidax);
-	for(t = x86type; t->name; t++)
+	while(t->name){
 		if((t->family == family && t->model == model)
 		|| (t->family == family && t->model == -1)
 		|| (t->family == -1))
 			break;
+		t++;
+	}
 	cputype = t;
 
-	if(family >= 5)
+	if(family >= 5){
+		havecycleclock = 1;
 		coherence = wbflush;
+	}
+	else
+		havecycleclock = 0;
 
 	/*
 	 *  set clock for 1/HZ seconds
@@ -195,10 +249,14 @@ clockinit(void)
 		 *
 		 */
 		outb(Tmode, Latch0);
+		if(havecycleclock)
+			rdmsr(0x10, &a);
 		x = inb(T0cntr);
 		x |= inb(T0cntr)<<8;
 		aamloop(loops);
 		outb(Tmode, Latch0);
+		if(havecycleclock)
+			rdmsr(0x10, &b);
 		y = inb(T0cntr);
 		y |= inb(T0cntr)<<8;
 		x -= y;
@@ -211,21 +269,31 @@ clockinit(void)
 	}
 
 	/*
-	 *  counter  goes at twice the frequency, once per transition,
-	 *  i.e., twice per square wave
-	 */
-	x >>= 1;
-
-	/*
  	 *  figure out clock frequency and a loop multiplier for delay().
+	 *  n.b. counter goes up by 2*Freq
 	 */
-	cpufreq = loops*((t->aalcycles*Freq)/x);
+	cpufreq = loops*((t->aalcycles*2*Freq)/x);
 	loopconst = (cpufreq/1000)/t->aalcycles;	/* AAM+LOOP's for 1 ms */
 
-	/*
-	 *  add in possible .2% error and convert to MHz
-	 */
-	cpumhz = (cpufreq + cpufreq/500)/1000000;
+	if(havecycleclock){
+
+		/* counter goes up by 2*Freq */
+		b = (b-a)<<1;
+		b *= Freq;
+		b /= x;
+
+		/*
+		 *  round to the nearest megahz
+		 */
+		cpumhz = (b+500000)/1000000L;
+		cpuhz = b;
+	} else {
+		/*
+		 *  add in possible 0.5% error and convert to MHz
+		 */
+		cpumhz = (cpufreq + cpufreq/200)/1000000;
+		cpuhz = cpufreq;
+	}
 }
 
 void

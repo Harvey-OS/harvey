@@ -462,6 +462,8 @@ mpstartap(Apic* apic)
 void
 mpinit(void)
 {
+	int ncpu;
+	char *cp;
 	PCMP *pcmp;
 	uchar *e, *p;
 	Apic *apic, *bpapic;
@@ -562,11 +564,22 @@ mpinit(void)
 	/*
 	 * Initialise the application processors.
 	 */
+	if(cp = getconf("*ncpu")){
+		ncpu = strtol(cp, 0, 0);
+		if(ncpu < 1)
+			ncpu = 1;
+	}
+	else
+		ncpu = MaxAPICNO;
 	memmove((void*)APBOOTSTRAP, apbootstrap, sizeof(apbootstrap));
 	for(apic = mpapic; apic <= &mpapic[MaxAPICNO]; apic++){
+		if(ncpu <= 1)
+			break;
 		if((apic->flags & (PcmpBP|PcmpEN)) == PcmpEN
-		&& apic->type == PcmpPROCESSOR)
+		&& apic->type == PcmpPROCESSOR){
 			mpstartap(apic);
+			ncpu--;
+		}
 	}
 
 	/*

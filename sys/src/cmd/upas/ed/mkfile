@@ -13,7 +13,6 @@ POP3OFILES=	pop3.$O\
 		plan9pop3auth.$O\
 
 LIB=../common/libcommon.a$O\
-	../libString/libString.a$O\
 
 HFILES=../ed/print.h\
 	../common/common.h\

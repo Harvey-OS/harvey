@@ -15,7 +15,7 @@ ndbopen, ndbcat, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetval, ndbfree, i
 Ndb*	ndbopen(char *file)
 .PP
 .B
-Ndb*	ndbcat(char *file)
+Ndb*	ndbcat(Ndb *db1, Ndb *db2)
 .PP
 .B
 int	ndbreopen(Ndb *db)

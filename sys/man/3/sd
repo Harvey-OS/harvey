@@ -154,6 +154,20 @@ For example, to enable DMA on a unit that supports it:
 % echo 'dma on'>/dev/sd00/ctl
 .EE
 .PP
+If supported by the unit,
+the standby timer may be enabled:
+.IP
+.EX
+% echo 'standby \f2T\fP'>/dev/sdC0/ctl
+.EE
+.PP
+where
+.I T
+is the standby timer period in seconds.
+.I T
+must be between 30 and 1200,
+or can be 0 to disable the timer.
+.PP
 The
 .B raw
 file is used to execute an arbitrary command on the unit at

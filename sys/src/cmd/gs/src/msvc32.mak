@@ -1,21 +1,21 @@
 #    Copyright (C) 1991-2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: msvc32.mak,v 1.2 2000/03/10 15:48:58 lpd Exp $
+# $Id: msvc32.mak,v 1.6 2000/09/25 15:06:28 lpd Exp $
 # makefile for 32-bit Microsoft Visual C++, Windows NT or Windows 95 platform.
 #
 # All configurable options are surrounded by !ifndef/!endif to allow 
@@ -185,7 +185,7 @@ JVERSION=6
 
 !ifndef PSRCDIR
 PSRCDIR=libpng
-PVERSION=10005
+PVERSION=10008
 !endif
 
 # Define the directory where the zlib sources are stored.
@@ -261,16 +261,49 @@ COMPBASE=$(DEVSTUDIO)\VC98
 SHAREDBASE=$(DEVSTUDIO)\Common\MSDev98
 !endif
 
+# Some environments don't want to specify the path names for the tools at all.
+# Typical definitions for such an environment would be:
+#   INCDIR= LIBDIR= COMP=cl COMPAUX=cl RCOMP=rc LINK=link
+# COMPDIR, LINKDIR, and RCDIR are irrelevant, since they are only used to
+# define COMP, LINK, and RCOMP respectively, but we allow them to be
+# overridden anyway for completeness.
+!ifndef COMPDIR
 COMPDIR=$(COMPBASE)\bin
+!endif
+!ifndef LINKDIR
 LINKDIR=$(COMPBASE)\bin
+!endif
+!ifndef RCDIR
 RCDIR=$(SHAREDBASE)\bin
+!endif
+!ifndef INCDIR
 INCDIR=$(COMPBASE)\include
+!endif
+!ifndef LIBDIR
 LIBDIR=$(COMPBASE)\lib
+!endif
+!ifndef COMP
 COMP=$(COMPDIR)\cl
+!endif
+!ifndef COMPCPP
 COMPCPP=$(COMP)
+!endif
+!ifndef COMPAUX
 COMPAUX=$(COMPDIR)\cl
+!endif
+!ifndef RCOMP
 RCOMP=$(RCDIR)\rc
+!endif
+!ifndef LINK
 LINK=$(LINKDIR)\link
+!endif
+
+# The other MSVC makefiles should use LIBD, not LIBDIR.
+!if "$(LIBDIR)"==""
+LIBD=
+!else
+LIBD=$(LIBDIR)\$(NUL)
+!endif
 
 # Define the processor architecture. (i386, ppc, alpha)
 
@@ -306,7 +339,7 @@ CPU_TYPE=486
 # at runtime.
 
 ! ifndef FPU_TYPE
-FPU_TYPE=0
+FPU_TYPE=387
 ! endif
 
 !endif
@@ -423,7 +456,7 @@ GSDLL_DLL=$(BINDIR)\$(GSDLL).dll
 
 $(GLGEN)lib32.rsp: $(TOP_MAKEFILES)
 	echo /NODEFAULTLIB:LIBC.lib > $(GLGEN)lib32.rsp
-	echo $(LIBDIR)\libcmt.lib >> $(GLGEN)lib32.rsp
+	echo $(LIBD)libcmt.lib >> $(GLGEN)lib32.rsp
 
 !if $(MAKEDLL)
 # The graphical small EXE loader
@@ -483,8 +516,8 @@ $(SETUP_XE): $(GLOBJ)dwsetup.obj $(GLOBJ)dwinst.obj $(GLOBJ)dwsetup.res $(GLSRC)
 	echo /DEF:$(GLSRC)dwsetup.def /OUT:$(SETUP_XE) > $(GLGEN)dwsetup.rsp
 	echo $(GLOBJ)dwsetup.obj $(GLOBJ)dwinst.obj >> $(GLGEN)dwsetup.rsp
 	copy $(LIBCTR) $(GLGEN)dwsetup.tr
-        echo $(LIBDIR)\ole32.lib >> $(GLGEN)dwsetup.tr
-        echo $(LIBDIR)\uuid.lib >> $(GLGEN)dwsetup.tr
+        echo $(LIBD)ole32.lib >> $(GLGEN)dwsetup.tr
+        echo $(LIBD)uuid.lib >> $(GLGEN)dwsetup.tr
 	$(LINK_SETUP)
         $(LINK) $(LCT) @$(GLGEN)dwsetup.rsp @$(GLGEN)dwsetup.tr $(GLOBJ)dwsetup.res
 	del $(GLGEN)dwsetup.rsp
@@ -494,8 +527,8 @@ $(UNINSTALL_XE): $(GLOBJ)dwuninst.obj $(GLOBJ)dwuninst.res $(GLSRC)dwuninst.def
 	echo /DEF:$(GLSRC)dwuninst.def /OUT:$(UNINSTALL_XE) > $(GLGEN)dwuninst.rsp
 	echo $(GLOBJ)dwuninst.obj >> $(GLGEN)dwuninst.rsp
 	copy $(LIBCTR) $(GLGEN)dwuninst.tr
-        echo $(LIBDIR)\ole32.lib >> $(GLGEN)dwuninst.tr
-        echo $(LIBDIR)\uuid.lib >> $(GLGEN)dwuninst.tr
+        echo $(LIBD)ole32.lib >> $(GLGEN)dwuninst.tr
+        echo $(LIBD)uuid.lib >> $(GLGEN)dwuninst.tr
 	$(LINK_SETUP)
         $(LINK) $(LCT) @$(GLGEN)dwuninst.rsp @$(GLGEN)dwuninst.tr $(GLOBJ)dwuninst.res
 	del $(GLGEN)dwuninst.rsp

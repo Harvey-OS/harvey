@@ -229,6 +229,10 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 					lit = (lit - 64) & 0xff;
 				}
 			}
+			if(d >= dmax){
+				snprint(ut->err, ThwErrLen, "too much output");
+				return -1;
+			}
 			*d++ = lit;
 			lithist = (lithist << 1) | (lit < 32) | (lit > 127);
 			blocks->maxoff++;

@@ -27,6 +27,11 @@ static Ether etherif[MaxEther];
 void
 etheriq(Ether* ether, Msgbuf* mb)
 {
+	if(predawn) {
+		mbfree(mb);
+		return;
+	}
+
 	ilock(&ether->rqlock);
 	if(ether->rqhead)
 		ether->rqtail->next = mb;

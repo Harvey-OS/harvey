@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <draw.h>
 #include <memdraw.h>
+#include <memlayer.h>
 
 void
 mempoly(Memimage *dst, Point *vert, int nvert, int end0, int end1, int radius, Memimage *src, Point sp)

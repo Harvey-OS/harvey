@@ -1,22 +1,22 @@
-/* Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxcpath.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxcpath.c,v 1.3 2000/09/19 19:00:35 lpd Exp $ */
 /* Implementation of clipping paths, other than actual clipping */
 #include "gx.h"
 #include "gserrors.h"
@@ -100,8 +100,10 @@ private const gx_clip_list clip_list_empty = {
 private rc_free_proc(rc_free_cpath_list);
 private rc_free_proc(rc_free_cpath_list_local);
 
-/* Initialize those parts of the contents of a clip path that aren't */
-/* part of the path. */
+/*
+ * Initialize those parts of the contents of a clip path that aren't
+ * part of the path.
+ */
 private void
 cpath_init_rectangle(gx_clip_path * pcpath, gs_fixed_rect * pbox)
 {
@@ -114,7 +116,7 @@ cpath_init_rectangle(gx_clip_path * pcpath, gs_fixed_rect * pbox)
 }
 private void
 cpath_init_own_contents(gx_clip_path * pcpath)
-{				/* We could make null_rect static, but then it couldn't be const. */
+{    /* We could make null_rect static, but then it couldn't be const. */
     gs_fixed_rect null_rect;
 
     null_rect.p.x = null_rect.p.y = null_rect.q.x = null_rect.q.y = 0;
@@ -507,7 +509,7 @@ gx_cpath_intersect(gx_clip_path *pcpath, /*const*/ gx_path *ppath_orig,
 	((code = gx_path_is_rectangle(ppath, &new_box)) ||
 	 gx_path_is_void(ppath))
 	) {
-	bool changed = false;
+	int changed = 0;
 
 	if (!code) {
 	    /* The new path is void. */
@@ -517,31 +519,34 @@ gx_cpath_intersect(gx_clip_path *pcpath, /*const*/ gx_path *ppath_orig,
 		new_box.p.y = float2fixed(pis->ctm.ty);
 	    }
 	    new_box.q = new_box.p;
-	    changed = true;
+	    changed = 1;
 	} else {
 	    /* Intersect the two rectangles if necessary. */
 	    if (old_box.p.x > new_box.p.x)
-		new_box.p.x = old_box.p.x, changed = true;
+		new_box.p.x = old_box.p.x, ++changed;
 	    if (old_box.p.y > new_box.p.y)
-		new_box.p.y = old_box.p.y, changed = true;
+		new_box.p.y = old_box.p.y, ++changed;
 	    if (old_box.q.x < new_box.q.x)
-		new_box.q.x = old_box.q.x, changed = true;
+		new_box.q.x = old_box.q.x, ++changed;
 	    if (old_box.q.y < new_box.q.y)
-		new_box.q.y = old_box.q.y, changed = true;
+		new_box.q.y = old_box.q.y, ++changed;
 	    /* Check for a degenerate rectangle. */
 	    if (new_box.q.x < new_box.p.x || new_box.q.y < new_box.p.y)
-		new_box.p = new_box.q, changed = true;
+		new_box.p = new_box.q, changed = 1;
 	}
-	if (changed) {
-	    /* Defer constructing the path. */
-	    gx_path_new(&pcpath->path);
-	    pcpath->path_valid = false;
-	} else {
+	if (changed == 4) {
+	    /* The new box/path is the same as the old. */
+	    return 0;
+	}
+	/* Release the existing path. */
+	gx_path_new(&pcpath->path);
+	ppath->bbox = new_box;
+	cpath_set_rectangle(pcpath, &new_box);
+	if (changed == 0) {
+	    /* The path is valid; otherwise, defer constructing it. */
 	    gx_path_assign_preserve(&pcpath->path, ppath);
 	    pcpath->path_valid = true;
 	}
-	ppath->bbox = new_box;
-	cpath_set_rectangle(pcpath, &new_box);
     } else {
 	/* Existing clip path is not a rectangle.  Intersect the slow way. */
 	bool path_valid =

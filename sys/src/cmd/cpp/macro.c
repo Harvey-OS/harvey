@@ -189,7 +189,8 @@ expand(Tokenrow *trp, Nlist *np)
 	else {
 		ntokc = gatherargs(trp, atr, &narg);
 		if (narg<0) {			/* not actually a call (no '(') */
-			trp->tp++;
+/* error(WARNING, "%d %r\n", narg, trp); */
+			/* gatherargs has already pushed trp->tr to the next token */
 			return;
 		}
 		if (narg != rowlen(np->ap)) {
@@ -244,8 +245,10 @@ gatherargs(Tokenrow *trp, Tokenrow **atr, int *narg)
 		if (trp->tp >= trp->lp) {
 			gettokens(trp, 0);
 			if ((trp->lp-1)->type==END) {
+/* error(WARNING, "reach END\n"); */
 				trp->lp -= 1;
-				trp->tp -= ntok;
+				if (*narg>=0)
+					trp->tp -= ntok;
 				return ntok;
 			}
 		}

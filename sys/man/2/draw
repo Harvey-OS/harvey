@@ -677,7 +677,7 @@ if positive, the border goes inside the rectangle; negative, outside.
 The source is aligned so
 .I sp
 corresponds to
-.IB dst .r .
+.IB r .min .
 .TP
 .BI string( dst\fP,\fP\ p\fP,\fP\ src\fP,\fP\ sp\fP,\fP\ font\fP,\fP\ s )
 .I String

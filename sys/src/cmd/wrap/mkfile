@@ -18,5 +18,7 @@ HFILES=\
 	wrap.h\
 
 BIN=/$objtype/bin/wrap
+LIB=/$objtype/lib/libdisk.a
+
 </sys/src/cmd/mkmany
 

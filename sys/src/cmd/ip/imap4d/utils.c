@@ -3,71 +3,6 @@
 #include <bio.h>
 #include "imap4d.h"
 
-int
-cistrcmp(char *s1, char *s2)
-{
-	int c1, c2;
-
-	while(*s1){
-		c1 = *s1++;
-		c2 = *s2++;
-
-		if(c1 >= 'A' && c1 <= 'Z')
-			c1 -= 'A' - 'a';
-
-		if(c2 >= 'A' && c2 <= 'Z')
-			c2 -= 'A' - 'a';
-
-		if(c1 != c2)
-			return c1 - c2;
-	}
-	return -*s2;
-}
-
-int
-cistrncmp(char *s1, char *s2, int n)
-{
-	int c1, c2;
-
-	while(*s1 && n-- > 0){
-		c1 = *s1++;
-		c2 = *s2++;
-
-		if(c1 >= 'A' && c1 <= 'Z')
-			c1 -= 'A' - 'a';
-
-		if(c2 >= 'A' && c2 <= 'Z')
-			c2 -= 'A' - 'a';
-
-		if(c1 != c2)
-			return c1 - c2;
-	}
-	if(n == 0)
-		return 0;
-	return -*s2;
-}
-
-char*
-cistrstr(char *s, char *sub)
-{
-	int c, csub, n;
-
-	csub = *sub;
-	if(csub == '\0')
-		return s;
-	if(csub >= 'A' && csub <= 'Z')
-		csub -= 'A' - 'a';
-	sub++;
-	n = strlen(sub);
-	for(; c = *s; s++){
-		if(c >= 'A' && c <= 'Z')
-			c -= 'A' - 'a';
-		if(c == csub && cistrncmp(s+1, sub, n) == 0)
-			return s;
-	}
-	return nil;
-}
-
 /*
  * reverse string [s:e) in place
  */
@@ -120,17 +55,16 @@ readFile(int fd)
 
 	if(dirfstat(fd, &d) < 0)
 		return nil;
-	s = canAlloc(&parseCan, d.length + 1, 0);
-	if(s == nil)
+	s = binalloc(&parseBin, d.length + 1, 0);
+	if(s == nil || read(fd, s, d.length) != d.length)
 		return nil;
-	if(read(fd, s, d.length) != d.length)
-		return 0;
 	s[d.length] = '\0';
 	return s;
 }
 
 /*
- * create the imap tmp file
+ * create the imap tmp file.
+ * it just happens that we don't need multiple temporary files.
  */
 int
 imapTmp(void)

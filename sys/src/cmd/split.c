@@ -73,6 +73,7 @@ main(int argc, char *argv[])
 			badexp();
 		while((line=Brdline(b,'\n')) != 0) {
 			Resub match[2];
+			memset(match, 0, sizeof match);
 			line[Blinelen(b)-1] = 0;
 			if(regexec(exp,iflag?fold(line,Blinelen(b)-1):line,match,2)) {
 				if(matchfile(match) && xflag)
@@ -139,9 +140,11 @@ matchfile(Resub *match)
 void
 openf(void)
 {
-	int fd;
+	static int fd = 0;
 	Bflush(output);
 	Bterm(output);
+	if(fd > 0)
+		close(fd);
 	fd = create(name,OWRITE,0666);
 	if(fd < 0) {
 		fprint(2, "grep: can't create %s: %r\n", name);

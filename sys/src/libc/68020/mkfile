@@ -6,7 +6,6 @@ OFILES=\
 	main9.$O\
 	main9p.$O\
 	argv0.$O\
-	frexp.$O\
 	getfcr.$O\
 	memccpy.$O\
 	memchr.$O\

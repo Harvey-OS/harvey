@@ -13,7 +13,6 @@ char *desc;
 char *proto;
 int verbose;
 int update;
-int pkgupdate;
 int debug;
 int listonly;
 
@@ -28,19 +27,16 @@ Biobuf bstdout;
 static void
 mkarch(char *new, char *old, Dir *d, void*)
 {
-	uchar digest[MD5dlen], odigest[MD5dlen];
+	uchar digest[MD5dlen];
 	vlong t;
 
 	if(match(new, prefix, nprefix) == 0)
 		return;
 
-	memset(odigest, 0xFF, MD5dlen);
-	if(getfileinfo(w, new, &t, odigest) >= 0) {
-		if(md5file(old, digest) < 0)
-			sysfatal("cannot open %s: %r", old);
-		if(memcmp(digest, odigest, MD5dlen) == 0)
-			return;
-	}
+	if(md5file(old, digest) < 0)
+		sysfatal("cannot open %s: %r", old);
+	if(getfileinfo(w, new, &t, digest, nil) >= 0)
+		return;
 
 	if(listonly) {
 		if((d->mode & CHDIR) == 0) 
@@ -52,7 +48,7 @@ mkarch(char *new, char *old, Dir *d, void*)
 	if((d->mode & CHDIR) == 0) {
 		Bprint(&bmd5, "%s %M\n", new, digest);
 		if(Bcopyfile(&barch, old, d->length) < 0)
-			sysfatal("error copying %s\n", old);
+			sysfatal("error copying %lld %s: %r\n", d->length, old);
 	}
 }
 
@@ -60,8 +56,7 @@ void
 usage(void)
 {
 	fprint(2, "usage: wrap/create [-d desc] [-p proto] [-r root] [-t time] [-lv] name\n");
-	fprint(2, "or  wrap/create -u [-d desc] [-p proto] [-r root] [-t time] [-lv] package [prefix...]\n");
-	fprint(2, "or  wrap/create -U [-d desc] [-p proto] [-r root] [-t time] [-lv] package\n");
+	fprint(2, "or  wrap/create -u [-d desc] [-p proto] [-r root] [-t time] [-lv] old-package [prefix...]\n");
 	exits("usage");
 }
 
@@ -113,9 +108,6 @@ main(int argc, char **argv)
 	case 't':
 		t = strtoll(ARGF(), 0, 10);
 		break;
-	case 'U':
-		pkgupdate = 1;
-		break;
 	case 'u':
 		update = 1;
 		break;
@@ -129,10 +121,7 @@ main(int argc, char **argv)
 	rfork(RFNAMEG);
 	fmtinstall('M', md5conv);
 
-	if(update && pkgupdate)
-		usage();
-
-	if((update && argc < 1) || (!update && argc != 1))
+	if(!update && argc != 1)
 		usage();
 
 	if(update) {
@@ -140,7 +129,7 @@ main(int argc, char **argv)
 		nprefix = argc-1;
 	}
 
-	if(update || pkgupdate) { 
+	if(update) { 
 		w = openwraphdr(argv[0], root, nil, 0);
 		if(w == nil)
 			sysfatal("no such package found");
@@ -191,7 +180,7 @@ main(int argc, char **argv)
 	fd = opentemp(md5sort);
 	fsort(fd, md5file);
 
-	if(update || pkgupdate) {
+	if(update) {
 		strcpy(rmfile, "/tmp/wrap.rm.XXXXXX");
 		fd = opentemp(rmfile);
 		Bseek(w->u->bmd5, 0, 0);
@@ -209,8 +198,8 @@ main(int argc, char **argv)
 	}
 
 	Binit(&bout, 1, OWRITE);
-	if(update || pkgupdate)
-		Bputwrap(&bout, name, t, desc, w->time, pkgupdate);
+	if(update)
+		Bputwrap(&bout, name, t, desc, w->tfull, nprefix==0);
 	else
 		Bputwrap(&bout, name, t, desc, 0, 1);
 	Bputwrapfile(&bout, name, t, "proto", proto);

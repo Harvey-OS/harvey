@@ -209,21 +209,6 @@ struct Pcidev
 #define ISAWINDOW	0
 #define ISAWADDR(va)	(PADDR(va)+ISAWINDOW)
 
-/*
- * PCMCIA support code.
- */
-/*
- * Map between ISA memory space and PCMCIA card memory space.
- */
-struct PCMmap {
-	ulong	ca;			/* card address */
-	ulong	cea;			/* card end address */
-	ulong	isa;			/* ISA address */
-	int	len;			/* length of the ISA area */
-	int	attr;			/* attribute memory */
-	int	ref;
-};
-
 /* SMBus transactions */
 enum
 {
@@ -248,4 +233,93 @@ struct SMBus {
 	ulong	base;	/* port or memory base of smbus */
 	int	busy;
 	void	(*transact)(SMBus*, int, int, int, uchar*);
+};
+
+/*
+ * PCMCIA support code.
+ */
+
+typedef struct PCMslot		PCMslot;
+typedef struct PCMconftab	PCMconftab;
+typedef struct Cisdat 		Cisdat;
+
+/*
+ * Map between ISA memory space and PCMCIA card memory space.
+ */
+struct PCMmap {
+	ulong	ca;			/* card address */
+	ulong	cea;			/* card end address */
+	ulong	isa;			/* ISA address */
+	int	len;			/* length of the ISA area */
+	int	attr;			/* attribute memory */
+	int	ref;
+};
+
+/* configuration table entry */
+struct PCMconftab
+{
+	int	index;
+	ushort	irqs;		/* legal irqs */
+	uchar	irqtype;
+	uchar	bit16;		/* true for 16 bit access */
+	struct {
+		ulong	start;
+		ulong	len;
+	} io[16];
+	int	nio;
+	uchar	vpp1;
+	uchar	vpp2;
+	uchar	memwait;
+	ulong	maxwait;
+	ulong	readywait;
+	ulong	otherwait;
+};
+
+/* cis memory walking */
+struct Cisdat
+{
+	uchar	*cisbase;
+	int	cispos;
+	int	cisskip;
+	int	cislen;
+};
+
+/* a card slot */
+struct PCMslot
+{
+	Lock;
+	int	ref;
+
+	void	*cp;		/* controller for this slot */
+	long	memlen;		/* memory length */
+	uchar	base;		/* index register base */
+	uchar	slotno;		/* slot number */
+
+	/* status */
+	uchar	special;	/* in use for a special device */
+	uchar	already;	/* already inited */
+	uchar	occupied;
+	uchar	battery;
+	uchar	wrprot;
+	uchar	powered;
+	uchar	configed;
+	uchar	enabled;
+	uchar	busy;
+
+	/* cis info */
+	ulong	msec;		/* time of last slotinfo call */
+	char	verstr[512];	/* version string */
+	uchar	cpresent;	/* config registers present */
+	ulong	caddr;		/* relative address of config registers */
+	int	nctab;		/* number of config table entries */
+	PCMconftab	ctab[8];
+	PCMconftab	*def;		/* default conftab */
+
+	/* for walking through cis */
+	Cisdat;
+
+	/* memory maps */
+	Lock	mlock;		/* lock down the maps */
+	int	time;
+	PCMmap	mmap[4];	/* maps, last is always for the kernel */
 };

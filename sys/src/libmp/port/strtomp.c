@@ -54,6 +54,8 @@ from16(char *a, mpint *b)
 	for(p = a; *p; p++)
 		if(tab.t16[*p] == INVAL)
 			break;
+	mpbits(b, (p-a)*4);
+	b->top = 0;
 	next = p;
 	while(p > a){
 		x = 0;
@@ -119,6 +121,7 @@ from64(char *a, mpint *b)
 	for(; tab.t64[*a] != INVAL; a++)
 		;
 	n = a-buf;
+	mpbits(b, n*6);
 	p = malloc(n);
 	if(p == nil)
 		return a;
@@ -138,6 +141,7 @@ from32(char *a, mpint *b)
 	for(; tab.t64[*a] != INVAL; a++)
 		;
 	n = a-buf;
+	mpbits(b, n*5);
 	p = malloc(n);
 	if(p == nil)
 		return a;
@@ -159,6 +163,9 @@ strtomp(char *a, char **pp, int base, mpint *b)
 	if(tab.inited == 0)
 		init();
 
+	while(*a==' ' || *a=='\t')
+		a++;
+
 	sign = 1;
 	for(;; a++){
 		switch(*a){
@@ -168,8 +175,6 @@ strtomp(char *a, char **pp, int base, mpint *b)
 		}
 		break;
 	}
-
-	mpbits(b, strlen(a)*8);
 
 	switch(base){
 	case 10:
@@ -186,6 +191,11 @@ strtomp(char *a, char **pp, int base, mpint *b)
 		e = from64(a, b);
 		break;
 	}
+
+	// if no characters parsed, there wasn't a number to convert
+	if(e == a)
+		return nil;
+
 	mpnorm(b);
 	b->sign = sign;
 	if(pp != nil)

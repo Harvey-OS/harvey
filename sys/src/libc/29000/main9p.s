@@ -1,10 +1,17 @@
+#define NPRIVATES	16
+
 arg=69
 sp=65
 
-TEXT	_mainp(SB), 1, $16
+TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 
 	MOVL	$setR67(SB), R67
 	MOVL	R(arg), _clock(SB)
+
+	MOVL	$p-64(SP),R(arg)
+	MOVL	R(arg),_privates+0(SB)
+	MOVL	$16,R(arg)
+	MOVL	R(arg),_nprivates+0(SB)
 
 	CALL	_profmain(SB)
 	MOVL	__prof+4(SB), R(arg)

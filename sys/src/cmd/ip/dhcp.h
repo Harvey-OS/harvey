@@ -101,7 +101,7 @@ enum
 	ODoverload=		52,
 	ODtype=			53,	/* 0x35 */
 	ODserverid=		54,	/* 0x36 */
-	ODparams=		55,
+	ODparams=		55,	/* 0x37 */
 	ODmessage=		56,
 	ODmaxmsg=		57,
 	ODrenewaltime=		58,

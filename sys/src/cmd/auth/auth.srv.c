@@ -46,6 +46,7 @@ main(int argc, char *argv[])
 {
 	char buf[TICKREQLEN];
 	Ticketreq tr;
+	Ndb *db2;
 
 	ARGBEGIN{
 	case 'd':
@@ -60,7 +61,11 @@ main(int argc, char *argv[])
 
 	db = ndbopen("/lib/ndb/auth");
 	if(db == 0)
-		syslog(0, AUTHLOG, "can't open database");
+		syslog(0, AUTHLOG, "no /lib/ndb/auth");
+	db2 = ndbopen("/lib/ndb/local");
+	if(db2 == 0)
+		syslog(0, AUTHLOG, "no /lib/ndb/local");
+	db = ndbcat(db, db2);
 	
 	srand(time(0)*getpid());
 	for(;;){

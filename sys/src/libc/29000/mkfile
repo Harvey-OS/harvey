@@ -13,7 +13,6 @@ OFILES=\
 	vlrt.$O\
 	vlop.$O\
 	nan.$O\
-	frexp.$O\
 
 HFILES=/sys/include/libc.h
 

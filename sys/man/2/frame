@@ -26,7 +26,7 @@ void  frsetrects(Frame *f, Rectangle r, Image *b)
 void  frinittick(Frame *f)
 .PP
 .B
-void  frclear(Frame *f, int)
+void  frclear(Frame *f, int resize)
 .PP
 .B
 ulong frcharofpt(Frame *f, Point pt)
@@ -220,6 +220,11 @@ is to be deallocated, the associated
 and
 .B Image
 must be freed separately.
+The
+.B resize
+argument should be non-zero if the frame is to be redrawn with
+a different font; otherwise the frame will maintain some
+data structures associated with the font.
 .PP
 To resize a
 .BR Frame ,

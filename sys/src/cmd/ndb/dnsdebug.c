@@ -44,8 +44,9 @@ main(int argc, char *argv[])
 {
 	int n;
 	Biobuf in;
-	char buf[1024], *p;
+	char *p;
 	char *f[4];
+	Ipifc *ifcs;
 
 	strcpy(mntpt, "/net");
 
@@ -62,9 +63,10 @@ main(int argc, char *argv[])
 	now = time(0);
 	dninit();
 	fmtinstall('R', prettyrrconv);
-	snprint(buf, sizeof(buf), "%s/ipifc", mntpt);
-	if(myipaddr(ipaddr, buf) < 0)
+	ifcs = readipifc(mntpt, nil);
+	if(ifcs == nil)
 		sysfatal("can't read my ip address");
+	ipmove(ipaddr, ifcs->ip);
 	opendatabase();
 
 	if(resolver)

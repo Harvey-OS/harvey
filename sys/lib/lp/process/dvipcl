@@ -1,0 +1,19 @@
+#!/bin/rc
+if (~ $DEBUG 1) flag x +
+# convert Tex dvi to PCL
+switch ($LPCLASS) {
+case *hpdeskjet*;
+	GSDEVICE=cdj670
+case *;
+	echo no or unknown printer type given in class field of 'devices' file >[1=2]
+	exit 'unknown printer type'
+}
+
+GSTMPFILE=/tmp/dvihpcl^$pid
+GSOPT=('-sDEVICE='^$GSDEVICE '-sOutputFile='^$GSTMPFILE -dSAFER -dNOPAUSE -dQUIET -dBATCH -dNOPAUSE)
+
+$LPLIB/process/dvipost $1 | gs $GSOPT - >/dev/null >[2=1]
+
+cat $GSTMPFILE
+rm -f $GSTMPFILE
+exit ''

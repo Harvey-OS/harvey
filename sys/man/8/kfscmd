@@ -44,6 +44,9 @@ Turn permission checking on.
 .B halt
 Write all changed blocks and stop the file system.
 .TP
+.B start
+The opposite of halt; restart the file system.
+.TP
 .B help
 Print the list of commands.
 .TP

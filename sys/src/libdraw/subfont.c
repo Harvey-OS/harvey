@@ -17,6 +17,7 @@ allocsubfont(char *name, int n, int height, int ascent, Fontchar *info, Image *i
 	f->ascent = ascent;
 	f->info = info;
 	f->bits = i;
+	f->ref = 1;
 	if(name){
 		f->name = strdup(name);
 		if(lookupsubfont(i->display, name) == 0)

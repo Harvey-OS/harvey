@@ -11,6 +11,19 @@ struct {
 	ulong	inglare;
 } lockstats;
 
+static void
+dumplockmem(char *tag, Lock *l)
+{
+	uchar *cp;
+	int i;
+
+	iprint("%s: ", tag);
+	cp = (uchar*)l;
+	for(i = 0; i < 64; i++)
+		iprint("%2.2ux ", cp[i]);
+	iprint("\n");
+}
+
 void
 lockloop(Lock *l, ulong pc)
 {
@@ -110,7 +123,10 @@ ilock(Lock *l)
 	} else
 		oldpri = 0;
 	if(conf.nmach < 2)
+{
+dumplockmem("ilock:", l);
 		panic("ilock: no way out: pc %uX\n", pc);
+}
 
 	for(;;){
 		lockstats.inglare++;

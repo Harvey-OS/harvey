@@ -11,8 +11,10 @@ typedef struct Objtype {
 } Objtype;
 
 Objtype objtype[] = {
+	{"arm",	"5c", "5l", "5", "5.out"},
 	{"mips2",	"4c", "4l", "4", "4.out"},
 	{"mips",	"vc", "vl", "v", "v.out"},
+	{"68000",	"1c", "1l", "1", "1.out"},
 	{"68020",	"2c", "2l", "2", "2.out"},
 	{"sparc",	"kc", "kl", "k", "k.out"},
 	{"386",		"8c", "8l", "8", "8.out"},

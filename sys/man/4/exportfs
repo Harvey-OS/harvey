@@ -4,11 +4,10 @@ exportfs, srvfs \- network file server plumbing
 .SH SYNOPSIS
 .B exportfs
 [
-.B -a
+.B -asF
 ] [
-.B -s
-] [
-.B -F
+.B -r
+.I root
 ]
 .PP
 .B srvfs
@@ -25,11 +24,8 @@ than file servers, to export portions of a name space across networks.
 The service is started either by the
 .IR cpu (1)
 command or by a network listener process.  An initial protocol
-establishes a root directory for the exported name space; the
-.B -s
-option instead instructs
-.I exportfs
-to serve the root.  The
+establishes a root directory for the exported name space.
+The
 connection to
 .I exportfs
 is then mounted, typically on
@@ -39,6 +35,20 @@ then acts as a relay file server: operations in the imported file
 tree are executed on the remote server and the results returned.  This
 gives the appearance of exporting a name space from a remote machine
 into a local file tree.
+.PP
+The 
+.B -r
+option bypasses the initial protocol, instead immediately
+serving the namespace rooted at 
+.IR root .
+The
+.B -s
+option is equivalent to
+.B -r 
+.BR / ,
+but predates
+.B -r
+and remains for compatibility.
 .PP
 The
 .B -a

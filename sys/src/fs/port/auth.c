@@ -158,7 +158,7 @@ getstring(char *str, int n, int doecho)
 	int c;
 	char *p, *e;
 
-	memset(str, 0, sizeof(n));
+	memset(str, 0, n);
 	p = str;
 	e = str+n-1;
 	echo = doecho;

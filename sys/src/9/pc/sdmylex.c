@@ -18,7 +18,7 @@
 #include "ureg.h"
 #include "../port/error.h"
 
-#include "sd.h"
+#include "../port/sd.h"
 
 #define K2BPA(va, tbdf)	PADDR(va)
 #define BPA2K(pa, tbdf)	KADDR(pa)
@@ -630,16 +630,8 @@ mylex32rio(SDreq* r)
 	 */
 	while(waserror())
 		;
-	tsleep(ccb, done32, ccb, 30*1000);
+	sleep(ccb, done32, ccb);
 	poperror();
-
-	if(!done32(ccb)){
-		print("%s: %d/%d: sd32rio timeout\n",
-			ctlr->sdev->name, target, r->lun);
-		ccbfree(ctlr, (Ccb*)ccb);
-
-		return SDtimeout;
-	}
 
 	/*
 	 * Save the status and patch up the number of
@@ -847,7 +839,10 @@ mylexprobe(int port, int irq)
 	 * it isn't a compatible board or it's broken.
 	 * If the controller has SCAM set this can take a while.
 	 */
-	outb(port+Rcontrol, Rhard|Rsbus);
+	if(getconf("*noscsireset") != nil)
+		outb(port+Rcontrol, Rhard);
+	else
+		outb(port+Rcontrol, Rhard|Rsbus);
 	for(timeo = 0; timeo < 100; timeo++){
 		if(inb(port+Rstatus) == (Inreq|Hardy))
 			break;

@@ -1,5 +1,10 @@
-TEXT	_mainp(SB), 1, $4
+#define NPRIVATES	16
+
+TEXT	_mainp(SB), 1, $(8+NPRIVATES*4)
 	MOVL	AX, _clock(SB)
+	LEAL	8(SP), AX
+	MOVL	AX, _privates(SB)
+	MOVL	$NPRIVATES, _nprivates(SB)
 	CALL	_profmain(SB)
 	MOVL	__prof+4(SB), AX
 	MOVL	AX, __prof+0(SB)

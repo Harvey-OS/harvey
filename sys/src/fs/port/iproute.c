@@ -362,6 +362,9 @@ udprecv(Msgbuf *mb, Ifc *ifc)
 	case 520:
 		riprecv(mb, ifc);
 		break;
+	case SNTP_LOCAL:
+		sntprecv(mb, ifc);
+		break;
 	default:
 		mbfree(mb);
 		break;

@@ -9,6 +9,7 @@ typedef struct Cmd Cmd;
 char	root[3*NAMELEN];
 char	mbname[NAMELEN];
 int	rootlen;
+int	didopen;
 char	*user;
 char	wd[2048];
 String	*mbpath;
@@ -85,6 +86,7 @@ Message*	bangcmd(Cmd*, Message*);
 Message*	Pcmd(Cmd*, Message*);
 Message*	mcmd(Cmd*, Message*);
 Message*	fcmd(Cmd*, Message*);
+Message*	quotecmd(Cmd*, Message*);
 
 struct {
 	char		*cmd;
@@ -104,6 +106,7 @@ struct {
 	{ "M",		1,	mcmd,		"M addr   forward mail with message" },
 	{ "p",		0,	pcmd,		"p        print the processed message" },
 	{ "P",		0,	Pcmd,		"P        print the raw message" },
+	{ "\"",		0,	quotecmd,	"\"        print a quoted version of msg" },
 	{ "q",		0,	qcmd,		"q        exit and remove all deleted mail" },
 	{ "r",		1,	rcmd,		"r [addr] reply to sender plus any addrs specified" },
 	{ "rf",		1,	rcmd,		"rf [addr]reply/file message and reply" },
@@ -165,7 +168,7 @@ void		exitfs(char*);
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-f mboxdir]\n", argv0);
+	fprint(2, "usage: %s [-cr] [-f mboxdir] [-s singleton]\n", argv0);
 	exits("usage");
 }
 
@@ -193,7 +196,7 @@ main(int argc, char **argv)
 
 	Binit(&out, 1, OWRITE);
 
-	file = "mbox";
+	file = nil;
 	singleton = nil;
 	reverse = 1;
 	cflag = 0;
@@ -202,17 +205,20 @@ main(int argc, char **argv)
 		cflag = 1;
 		break;
 	case 'f':
-		file = ARGF();
-		if(file == nil)
-			usage();
+		file = EARGF(usage());
 		break;
 	case 's':
-		singleton = ARGF();
+		singleton = EARGF(usage());
 		break;
 	case 'r':
 		reverse = 0;
 		break;
+	default:
+		usage();
+		break;
 	} ARGEND;
+	if(argc)
+		usage();
 
 	user = getlog();
 	if(user == nil || *user == 0)
@@ -460,7 +466,7 @@ file2string(String *dir, char *file)
 	for(;;){
 		n = s->end - s->ptr;
 		if(n == 0){
-			s_simplegrow(s, 128);
+			s_grow(s, 128);
 			continue;
 		}
 		n = read(fd, s->ptr, n);
@@ -802,6 +808,8 @@ parseaddr(char **pp, Message *first, Message *cur, Message *unspec, Message **mp
 
 	if(*mp != nil && **pp == '.'){
 		(*pp)++;
+		if((*mp)->child == nil)
+			return "no sub parts";
 		return parseaddr(pp, (*mp)->child, (*mp)->child, (*mp)->child, mp);
 	}
 	if(**pp == '+' || **pp == '-' || **pp == '/' || **pp == '%')
@@ -1135,7 +1143,7 @@ pcmd(Cmd*, Message *m)
 	} else if(strcmp(m->type, "multipart/alternative") == 0){
 		for(nm = m->child; nm != nil; nm = nm->next){
 			cp = findctype(nm->type);
-			if(strncmp(cp->ext, "txt", 3) == 0)
+			if(cp->ext != nil && strncmp(cp->ext, "txt", 3) == 0)
 				break;
 		}
 		if(nm == nil)
@@ -1186,6 +1194,70 @@ pcmd(Cmd*, Message *m)
 	return m;
 }
 
+void
+printpartindented(String *s, char *part, char *indent)
+{
+	char *p;
+	String *path;
+	Biobuf *b;
+
+	path = extendpath(s, part);
+	b = Bopen(s_to_c(path), OREAD);
+	s_free(path);
+	if(b == nil){
+		fprint(2, "!message dissappeared\n");
+		return;
+	}
+	while((p = Brdline(b, '\n')) != nil){
+		if(interrupted)
+			break;
+		p[Blinelen(b)-1] = 0;
+		if(Bprint(&out, "%s%s\n", indent, p) <= 0)
+			break;
+	}
+	Bprint(&out, "\n");
+	Bterm(b);
+}
+
+Message*
+quotecmd(Cmd*, Message *m)
+{
+	Message *nm;
+	Ctype *cp;
+
+	if(m == &top)
+		return &top;
+	Bprint(&out, "\n");
+	if(m->from != nil && *m->from)
+		Bprint(&out, "On %s, %s wrote:\n", m->date, m->from);
+	cp = findctype(m->type);
+	if(cp->display){
+		printpartindented(m->path, "body", "> ");
+	} else if(strcmp(m->type, "multipart/alternative") == 0){
+		for(nm = m->child; nm != nil; nm = nm->next){
+			cp = findctype(nm->type);
+			if(cp->ext != nil && strncmp(cp->ext, "txt", 3) == 0)
+				break;
+		}
+		if(nm == nil)
+			for(nm = m->child; nm != nil; nm = nm->next){
+				cp = findctype(nm->type);
+				if(cp->display)
+					break;
+			}
+		if(nm != nil)
+			quotecmd(nil, nm);
+	} else if(strncmp(m->type, "multipart/", 10) == 0){
+		nm = m->child;
+		if(nm != nil){
+			cp = findctype(nm->type);
+			if(cp->display || strncmp(m->type, "multipart/", 10) == 0)
+				quotecmd(nil, nm);
+		}
+	}
+	return m;
+}
+
 Message*
 qcmd(Cmd*, Message*)
 {
@@ -1223,7 +1295,9 @@ qcmd(Cmd*, Message*)
 	if(n)
 		write(fd, buf, p-buf);
 	close(fd);
-	closemb();
+
+	if(didopen)
+		closemb();
 
 	switch(deld){
 	case 0:
@@ -1558,7 +1632,7 @@ relpath(char *path, String *to)
 	if (*path=='/' || strncmp(path, "./", 2) == 0
 			      || strncmp(path, "../", 3) == 0) {
 		to = s_append(to, path);
-	} else {
+	} else if(mbpath) {
 		to = s_append(to, s_to_c(mbpath));
 		to->ptr = strrchr(to->base, '/')+1;
 		s_append(to, path);
@@ -1858,63 +1932,79 @@ switchmb(char *file, char *singleton)
 	String *path;
 	char buf[256];
 
-	// close current mailbox
-	closemb();
+	// if the user didn't say anything and there
+	// is an mbox mounted already, use that one
+	// so that the upas/fs -fdefault default is honored.
+	if(file 
+	|| (singleton && access(singleton, 0)<0)
+	|| (!singleton && access("/mail/fs/mbox", 0)<0)){
+		if(file == nil)
+			file = "mbox";
 
-	fd = open("/mail/fs/ctl", ORDWR);
-	if(fd < 0)
-		sysfatal("can't open /mail/fs/ctl: %r\n");
+		// close current mailbox
+		closemb();
+		didopen = 1;
 
-	path = s_new();
-
-	// get an absolute path to the mail box
-	if(strncmp(file, "./", 2) == 0){
-		// resolve path here since upas/fs doesn't know
-		// our working directory
-		if(getwd(buf, sizeof(buf)-strlen(file)) == nil){
-			fprint(2, "!can't get working directory: %s\n", buf);
+		fd = open("/mail/fs/ctl", ORDWR);
+		if(fd < 0)
+			sysfatal("can't open /mail/fs/ctl: %r\n");
+	
+		path = s_new();
+	
+		// get an absolute path to the mail box
+		if(strncmp(file, "./", 2) == 0){
+			// resolve path here since upas/fs doesn't know
+			// our working directory
+			if(getwd(buf, sizeof(buf)-strlen(file)) == nil){
+				fprint(2, "!can't get working directory: %s\n", buf);
+				return -1;
+			}
+			s_append(path, buf);
+			s_append(path, file+1);
+		} else {
+			mboxpath(file, user, path, 0);
+		}
+	
+		// make up a handle to use when talking to fs
+		p = strrchr(file, '/');
+		if(p == nil){
+			// if its in the mailbox directory, just use the name
+			strncpy(mbname, file, sizeof(mbname));
+			mbname[sizeof(mbname)-1] = 0;
+		} else {
+			// make up a mailbox name
+			p = strrchr(s_to_c(path), '/');
+			p++;
+			if(*p == 0){
+				fprint(2, "!bad mbox name");
+				return -1;
+			}
+			strncpy(mbname, p, sizeof(mbname));
+			mbname[sizeof(mbname)-1] = 0;
+			n = strlen(mbname);
+			if(n > NAMELEN-12)
+				n = NAMELEN-12;
+			sprint(mbname+n, "%ld", time(0));
+		}
+	
+		if(fprint(fd, "open %s %s", s_to_c(path), mbname) < 0){
+			fprint(2, "!can't 'open %s %s': %r\n", file, mbname);
+			s_free(path);
 			return -1;
 		}
-		s_append(path, buf);
-		s_append(path, file+1);
-	} else {
-		mboxpath(file, user, path, 0);
+		close(fd);
+	}else{
+		path = s_reset(nil);
+		mboxpath("mbox", user, path, 0);
+		strcpy(mbname, "mbox");
 	}
 
-	// make up a handle to use when talking to fs
-	p = strrchr(file, '/');
-	if(p == nil){
-		// if its in the mailbox directory, just use the name
-		strncpy(mbname, file, sizeof(mbname));
-		mbname[sizeof(mbname)-1] = 0;
-	} else {
-		// make up a mailbox name
-		p = strrchr(s_to_c(path), '/');
-		p++;
-		if(*p == 0){
-			fprint(2, "!bad mbox name");
-			return -1;
-		}
-		strncpy(mbname, p, sizeof(mbname));
-		mbname[sizeof(mbname)-1] = 0;
-		n = strlen(mbname);
-		if(n > NAMELEN-12)
-			n = NAMELEN-12;
-		sprint(mbname+n, "%ld", time(0));
-	}
-
-	if(fprint(fd, "open %s %s", s_to_c(path), mbname) < 0){
-		fprint(2, "!can't 'open %s %s': %r\n", file, mbname);
-		s_free(path);
-		return -1;
-	}
 	sprint(root, "/mail/fs/%s", mbname);
 	if(getwd(wd, sizeof(wd)) == 0)
 		wd[0] = 0;
 	if(singleton == nil && chdir(root) >= 0)
 		strcpy(root, ".");
 	rootlen = strlen(root);
-	close(fd);
 
 	if(mbpath != nil)
 		s_free(mbpath);

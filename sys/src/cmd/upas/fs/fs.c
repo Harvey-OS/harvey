@@ -53,6 +53,7 @@ void		reader(void);
 int		readheader(Message*, char*, int, int);
 int		cistrncmp(char*, char*, int);
 int		tokenconvert(String*, char*, int);
+void		post(char*, char*, int);
 
 char	*rflush(Fid*), *rnop(Fid*), *rsession(Fid*),
 	*rattach(Fid*), *rclone(Fid*), *rwalk(Fid*),
@@ -117,6 +118,7 @@ char *dirtab[] =
 [Qtype]		"type",
 [Qunixheader]	"unixheader",
 [Qctl]		"ctl",
+[Qmboxctl]	"ctl",
 };
 
 enum
@@ -153,12 +155,15 @@ main(int argc, char *argv[])
 	char maildir[128];
 	char mbox[128];
 	char *mboxfile, *err;
+	char srvfile[64];
+	int srvpost;
 
 	mntpt = nil;
 	fflag = 0;
 	mboxfile = nil;
 	std = 0;
 	nodflt = 0;
+	srvpost = 0;
 
 	ARGBEGIN{
 	case 'b':
@@ -176,6 +181,9 @@ main(int argc, char *argv[])
 		break;
 	case 'p':
 		plumbing = 0;
+		break;
+	case 's':
+		srvpost = 1;
 		break;
 	case 'l':
 		logging = 1;
@@ -225,8 +233,13 @@ main(int argc, char *argv[])
 		break;
 	default:
 		close(p[0]);	/* don't deadlock if child fails */
-		if(mount(p[1], mntpt, MREPL, "") < 0)
-			error("mount failed");
+		if(srvpost){
+			sprint(srvfile, "/srv/upasfs.%s", user);
+			post(srvfile, "upasfs", p[1]);
+		} else {
+			if(mount(p[1], mntpt, MREPL, "") < 0)
+				error("mount failed");
+		}
 	}
 	exits(0);
 }
@@ -384,8 +397,10 @@ fileinfo(Message *m, int t, char **pp)
 		}
 		break;
 	case Qunixheader:
-		p = m->start;
-		len = m->header - m->start;
+		if(m->unixheader){
+			p = s_to_c(m->unixheader);
+			len = s_len(m->unixheader);
+		}
 		break;
 	case Qdigest:
 		if(m->sdigest){
@@ -499,6 +514,13 @@ mkstat(Dir *d, Mailbox *mb, Message *m, int t)
 		d->atime = d->mtime = time(0);
 		d->length = 0;
 		d->qid.path = PATH(0, Qctl);
+		break;
+	case Qmboxctl:
+		strncpy(d->name, dirtab[t], NAMELEN);
+		d->mode = 0222;
+		d->atime = d->mtime = time(0);
+		d->length = 0;
+		d->qid.path = PATH(mb->id, Qmboxctl);
 		break;
 	case Qinfo:
 		strncpy(d->name, dirtab[t], NAMELEN);
@@ -617,8 +639,10 @@ retry:
 				mboxincref(f->mb);
 			break;
 		case Qmbox:
-			msgincref(f->m);
-			f->mtop = f->m;
+			if(f->m){
+				msgincref(f->m);
+				f->mtop = f->m;
+			}
 			break;
 		}
 		f->qid = h->qid;
@@ -708,15 +732,18 @@ rclwalk(Fid *f)
 char *
 ropen(Fid *f)
 {
+	int file;
+
 	if(f->open)
 		return Eisopen;
 
+	file = FILE(f->qid.path);
 	if(rhdr.mode != OREAD)
-		if(FILE(f->qid.path) != Qctl)
+		if(file != Qctl && file != Qmboxctl)
 			return Eperm;
 
 	// make sure we've decoded
-	if(FILE(f->qid.path) == Qbody){
+	if(file == Qbody){
 		if(f->m->decoded == 0)
 			decode(f->m);
 		if(f->m->converted == 0)
@@ -773,6 +800,17 @@ readmboxdir(Fid *f, char *buf, long off, int cnt)
 	Message *m;
 	long pos;
 
+	n = 0;
+	if(f->mb->ctl){
+		if(off == 0){
+			mkstat(&d, f->mb, nil, Qmboxctl);
+			convD2M(&d, &buf[n]);
+			n += DIRLEN;
+			cnt--;
+		} else
+			off--;
+	}
+
 	// to avoid n**2 reads of the directory, use a saved finger pointer
 	if(f->mb->vers == f->fvers && off >= f->foff && f->foff > 0){
 		m = f->fptr;
@@ -782,7 +820,6 @@ readmboxdir(Fid *f, char *buf, long off, int cnt)
 		pos = 0;
 	} 
 
-	n = 0;
 	for(; cnt > 0 && m != nil; m = m->next){
 		// act like deleted files aren't there
 		if(m->deleted)
@@ -871,6 +908,8 @@ rread(Fid *f)
 				syncmbox(f->mb, 1);
 			n = readmboxdir(f, buf, off, cnt);
 			qunlock(f->mb);
+		} else if(t == Qmboxctl) {
+			n = 0;
 		} else {
 			n = readmsgdir(f, buf, off, cnt);
 		}
@@ -931,7 +970,10 @@ rwrite(Fid *f)
 				break;
 			default:
 				mboxpath(token[1], getlog(), file, 0);
-				err = newmbox(s_to_c(file), token[2], 0);
+				if(strchr(token[2], '/') != nil)
+					err = "/ not allowed in mailbox name";
+				else
+					err = newmbox(s_to_c(file), token[2], 0);
 				break;
 			}
 			s_free(file);
@@ -957,6 +999,19 @@ rwrite(Fid *f)
 //			return nil;
 //		}
 		return Ebadctl;
+	case Qmboxctl:
+		if(f->mb && f->mb->ctl){
+			if(rhdr.count == 0)
+				return Ebadctl;
+			if(rhdr.data[rhdr.count-1] == '\n')
+				rhdr.data[rhdr.count-1] = 0;
+			else
+				rhdr.data[rhdr.count] = 0;
+			n = tokenize(rhdr.data, token, nelem(token));
+			if(n == 0)
+				return Ebadctl;
+			return (*f->mb->ctl)(f->mb, n, token);
+		}
 	}
 	return Eperm;
 }
@@ -1113,13 +1168,21 @@ io(void)
 void
 reader(void)
 {
+	ulong t;
 	Dir d;
 	Mailbox *mb;
 
 	sleep(15*1000);
 	for(;;){
+		t = time(0);
 		qlock(&mbllock);
 		for(mb = mbl; mb != nil; mb = mb->next){
+			if(mb->waketime != 0 && t > mb->waketime){
+				qlock(mb);
+				mb->waketime = 0;
+				break;
+			}
+
 			if(dirstat(mb->path, &d) < 0)
 				continue;
 
@@ -1536,4 +1599,20 @@ hashmboxrefs(Mailbox *mb)
 	}
 	qunlock(&hashlock);
 	return refs;
+}
+
+void
+post(char *name, char *envname, int srvfd)
+{
+	int fd;
+	char buf[32];
+
+	fd = create(name, OWRITE, 0600);
+	if(fd < 0)
+		return;
+	sprint(buf, "%d",srvfd);
+	if(write(fd, buf, strlen(buf)) != strlen(buf))
+		error("srv write");
+	close(fd);
+	putenv(envname, name);
 }

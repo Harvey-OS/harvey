@@ -59,39 +59,86 @@ unthwackinit(Unthwack *ut)
 		ut->blocks[i].data = ut->data[i];
 }
 
-int
-unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
+ulong
+unthwackstate(Unthwack *ut, uchar *mask)
 {
-	UnthwBlock blocks[CompBlocks], *b, *eblocks;
-	uchar *s, *d, *dmax, *smax, lit;
-	ulong cmask, cseq, bseq, utbits, lithist;
-	int i, off, len, bits, slot, tslot, use, code, utnbits, overbits;
+	ulong bseq, seq;
+	int slot, m;
 
-	if(nsrc < 4 || nsrc > ThwMaxBlock)
-		return -1;
+	seq = ~0UL;
+	m = 0;
+	slot = ut->slot;
+	for(;;){
+		slot--;
+		if(slot < 0)
+			slot += DWinBlocks;
+		if(slot == ut->slot)
+			break;
+		if(ut->blocks[slot].maxoff == 0)
+			continue;
+		bseq = ut->blocks[slot].seq;
+		if(seq == ~0UL)
+			seq = bseq;
+		else if(seq - bseq > MaxSeqMask)
+			break;
+		else
+			m |= 1 << (seq - bseq - 1);
+	}
+	*mask = m;
+	return seq;
+}
 
-	/*
-	 * insert this block in it's correct sequence number order.
-	 * replace the oldest block, which is always pointed to by ut->slot.
-	 * the encoder doesn't use a history at wraparound,
-	 * so don't worry about that case.
-	 */
+/*
+ * insert this block in it's correct sequence number order.
+ * replace the oldest block, which is always pointed to by ut->slot.
+ * the encoder doesn't use a history at wraparound,
+ * so don't worry about that case.
+ */
+static int
+unthwackinsert(Unthwack *ut, int len, ulong seq)
+{
+	uchar *d;
+	int slot, tslot;
+
 	tslot = ut->slot;
 	for(;;){
 		slot = tslot - 1;
 		if(slot < 0)
 			slot += DWinBlocks;
-		if(ut->blocks[slot].seq <= seq)
+		if(ut->blocks[slot].seq <= seq || ut->blocks[slot].maxoff == 0)
 			break;
 		d = ut->blocks[tslot].data;
 		ut->blocks[tslot] = ut->blocks[slot];
 		ut->blocks[slot].data = d;
 		tslot = slot;
 	}
-	b = blocks;
 	ut->blocks[tslot].seq = seq;
-	ut->blocks[tslot].maxoff = 0;
-	*b = ut->blocks[tslot];
+	ut->blocks[tslot].maxoff = len;
+
+	ut->slot++;
+	if(ut->slot >= DWinBlocks)
+		ut->slot = 0;
+
+	ut->blocks[ut->slot].seq = ~0UL;
+	ut->blocks[ut->slot].maxoff = 0;
+
+	return tslot;
+}
+
+int
+unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
+{
+	UnthwBlock blocks[CompBlocks], *b, *eblocks;
+	uchar *s, *d, *dmax, *smax, lit;
+	ulong cmask, cseq, bseq, utbits;
+	int i, off, len, bits, slot, use, code, utnbits, overbits, lithist;
+
+	if(nsrc < 4 || nsrc > ThwMaxBlock)
+		return -1;
+
+	slot = ut->slot;
+	b = blocks;
+	*b = ut->blocks[slot];
 	d = b->data;
 	dmax = d + ndst;
 
@@ -101,7 +148,6 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 	cseq = seq - src[0];
 	cmask = src[1];
 	b++;
-	slot = tslot;
 	while(cseq != seq && b < blocks + CompBlocks){
 		slot--;
 		if(slot < 0)
@@ -125,8 +171,8 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 	}
 	eblocks = b;
 	if(cseq != seq){
-		print("blocks not in decompression window: cseq=%ld seq=%ld cmask=%lx nb=%ld\n", cseq, seq, cmask, eblocks - blocks);
-		return -1;
+		print("blocks dropped: seq=%ld cseq=%ld %d cmask=%#lx %#x\n", seq, cseq, src[0], cmask, src[1]);
+		return -2;
 	}
 
 	smax = src + nsrc;
@@ -168,6 +214,8 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 					lit = (lit - 64) & 0xff;
 				}
 			}
+			if(d >= dmax)
+				return -1;
 			*d++ = lit;
 			lithist = (lithist << 1) | (lit < 32) | (lit > 127);
 			blocks->maxoff++;
@@ -242,11 +290,8 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 
 	len = d - blocks->data;
 	memmove(dst, blocks->data, len);
-	ut->blocks[tslot].maxoff = len;
 
-	ut->slot++;
-	if(ut->slot >= DWinBlocks)
-		ut->slot = 0;
+	unthwackinsert(ut, len, seq);
 
 	return len;
 }

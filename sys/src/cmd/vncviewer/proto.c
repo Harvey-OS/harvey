@@ -6,165 +6,151 @@
 uchar zero[64];
 
 Vnc*
-openvnc(int fd)
+openvnc(int fd, Vnc *v)
 {
-	Vnc *v;
-
-	v = mallocz(sizeof(*v), 1);
+        if(v == nil)
+		v = mallocz(sizeof(*v), 1);
 	Binit(&v->in, fd, OREAD);
 	Binit(&v->out, fd, OWRITE);
 	return v;
 }
 
 void
-Verror(char *fmt, ...)
+vncclose(Vnc *v)
 {
-	char buf[1024];
-	va_list va;
-
-	va_start(va, fmt);
-	doprint(buf, buf+sizeof buf, fmt, va);
-	va_end(va);
-	fprint(2, "%s: error talking with server: %s\n", argv0, buf);
-	sysfatal(buf);
+	Bterm(&v->out);
+	Bterm(&v->in);
 }
 
 void
-Vflush(Vnc *v)
+vncflush(Vnc *v)
 {
-	if(Bflush(&v->out) < 0)
-		Verror("flush: %r");
-}
-
-static void
-eBread(Biobuf *b, void *a, int n, char *what)
-{
-	if(Bread(b, a, n) != n)
-		Verror("short read reading %s", what);
+	if(Bflush(&v->out) < 0) {
+		if(verbose > 1)
+			sysfatal("hungup while sending flush: %r");
+		vnchungup(v);
+	}
 }
 
 uchar
-Vrdchar(Vnc *v)
+vncrdchar(Vnc *v)
 {
 	uchar buf[1];
 
-	eBread(&v->in, buf, sizeof buf, "char");
+	vncrdbytes(v, buf, 1);
 	return buf[0];
 }
 
 ushort
-Vrdshort(Vnc *v)
+vncrdshort(Vnc *v)
 {
 	uchar buf[2];
 
-	eBread(&v->in, buf, sizeof buf, "short");
+	vncrdbytes(v, buf, 2);
 	return SHORT(buf);
 }
 
 ulong
-Vrdlong(Vnc *v)
+vncrdlong(Vnc *v)
 {
 	uchar buf[4];
 
-	eBread(&v->in, buf, sizeof buf, "long");
+	vncrdbytes(v, buf, 4);
 	return LONG(buf);
 }
 
 Point
-Vrdpoint(Vnc *v)
+vncrdpoint(Vnc *v)
 {
 	Point p;
 
-	p.x = Vrdshort(v);
-	p.y = Vrdshort(v);
+	p.x = vncrdshort(v);
+	p.y = vncrdshort(v);
 	return p;
 }
 
 Rectangle
-Vrdrect(Vnc *v)
+vncrdrect(Vnc *v)
 {
 	Rectangle r;
 
-	r.min.x = Vrdshort(v);
-	r.min.y = Vrdshort(v);
-	r.max.x = r.min.x + Vrdshort(v);
-	r.max.y = r.min.y + Vrdshort(v);
+	r.min.x = vncrdshort(v);
+	r.min.y = vncrdshort(v);
+	r.max.x = r.min.x + vncrdshort(v);
+	r.max.y = r.min.y + vncrdshort(v);
 	return r;
 }
 
 Rectangle
-Vrdcorect(Vnc *v)
+vncrdcorect(Vnc *v)
 {
 	Rectangle r;
 
-	r.min.x = Vrdchar(v);
-	r.min.y = Vrdchar(v);
-	r.max.x = r.min.x + Vrdchar(v);
-	r.max.y = r.min.y + Vrdchar(v);
+	r.min.x = vncrdchar(v);
+	r.min.y = vncrdchar(v);
+	r.max.x = r.min.x + vncrdchar(v);
+	r.max.y = r.min.y + vncrdchar(v);
 	return r;
 }
 
 void
-Vrdbytes(Vnc *v, void *a, int n)
+vncrdbytes(Vnc *v, void *a, int n)
 {
-	Vflush(v);
-	eBread(&v->in, a, n, "rdbytes");
-}
-
-Color
-Vrdcolor(Vnc *v)
-{
-	Color c;
-
-	c = 0;
-	Vrdbytes(v, (uchar*)&c, v->bpp/8);
-	return c;
+	if(Bread(&v->in, a, n) != n) {
+		if(verbose > 1)
+			sysfatal("hungup while reading");
+		vnchungup(v);
+	}
 }
 
 Pixfmt
-Vrdpixfmt(Vnc *v)
+vncrdpixfmt(Vnc *v)
 {
 	Pixfmt fmt;
 	uchar pad[3];
 
-	fmt.bpp = Vrdchar(v);
-	fmt.depth = Vrdchar(v);
-	fmt.bigendian = Vrdchar(v);
-	fmt.truecolor = Vrdchar(v);
-	fmt.red.max = Vrdshort(v);
-	fmt.green.max = Vrdshort(v);
-	fmt.blue.max = Vrdshort(v);
-	fmt.red.shift = Vrdchar(v);
-	fmt.green.shift = Vrdchar(v);
-	fmt.blue.shift = Vrdchar(v);
-	eBread(&v->in, pad, 3, "padding");
+	fmt.bpp = vncrdchar(v);
+	fmt.depth = vncrdchar(v);
+	fmt.bigendian = vncrdchar(v);
+	fmt.truecolor = vncrdchar(v);
+	fmt.red.max = vncrdshort(v);
+	fmt.green.max = vncrdshort(v);
+	fmt.blue.max = vncrdshort(v);
+	fmt.red.shift = vncrdchar(v);
+	fmt.green.shift = vncrdchar(v);
+	fmt.blue.shift = vncrdchar(v);
+	vncrdbytes(v, pad, 3);
 	return fmt;
 }
 
 char*
-Vrdstring(Vnc *v)
+vncrdstring(Vnc *v)
 {
 	ulong len;
 	char *s;
 
-	len = Vrdlong(v);
+	len = vncrdlong(v);
 	s = malloc(len+1);
 	assert(s != nil);
 
-	Vrdbytes(v, s, len);
+	vncrdbytes(v, s, len);
 	s[len] = '\0';
 	return s;
 }
 
 void
-Vwrbytes(Vnc *v, void *a, int n)
+vncwrbytes(Vnc *v, void *a, int n)
 {
-	if(Bwrite(&v->out, a, n) < 0)
-		Verror("wrbytes: %r");
+	if(Bwrite(&v->out, a, n) < 0) {
+		if(verbose > 1) 
+			sysfatal("hungup while writing bytes");
+		vnchungup(v);
+		return;
+	}
 }
 
 void
-Vwrlong(Vnc *v, ulong u)
+vncwrlong(Vnc *v, ulong u)
 {
 	uchar buf[4];
 
@@ -172,65 +158,65 @@ Vwrlong(Vnc *v, ulong u)
 	buf[1] = u>>16;
 	buf[2] = u>>8;
 	buf[3] = u;
-	Vwrbytes(v, buf, 4);
+	vncwrbytes(v, buf, 4);
 }
 
 void
-Vwrshort(Vnc *v, ushort u)
+vncwrshort(Vnc *v, ushort u)
 {
 	uchar buf[2];
 
 	buf[0] = u>>8;
 	buf[1] = u;
-	Vwrbytes(v, buf, 2);
+	vncwrbytes(v, buf, 2);
 }
 
 void
-Vwrchar(Vnc *v, uchar c)
+vncwrchar(Vnc *v, uchar c)
 {
-	Vwrbytes(v, &c, 1);
+	vncwrbytes(v, &c, 1);
 }
 
 void
-Vwrpixfmt(Vnc *v, Pixfmt *fmt)
+vncwrpixfmt(Vnc *v, Pixfmt *fmt)
 {
-	Vwrchar(v, fmt->bpp);
-	Vwrchar(v, fmt->depth);
-	Vwrchar(v, fmt->bigendian);
-	Vwrchar(v, fmt->truecolor);
-	Vwrshort(v, fmt->red.max);
-	Vwrshort(v, fmt->green.max);
-	Vwrshort(v, fmt->blue.max);
-	Vwrchar(v, fmt->red.shift);
-	Vwrchar(v, fmt->green.shift);
-	Vwrchar(v, fmt->blue.shift);
-	Vwrbytes(v, zero, 3);
+	vncwrchar(v, fmt->bpp);
+	vncwrchar(v, fmt->depth);
+	vncwrchar(v, fmt->bigendian);
+	vncwrchar(v, fmt->truecolor);
+	vncwrshort(v, fmt->red.max);
+	vncwrshort(v, fmt->green.max);
+	vncwrshort(v, fmt->blue.max);
+	vncwrchar(v, fmt->red.shift);
+	vncwrchar(v, fmt->green.shift);
+	vncwrchar(v, fmt->blue.shift);
+	vncwrbytes(v, zero, 3);
 }
 
 void
-Vwrrect(Vnc *v, Rectangle r)
+vncwrrect(Vnc *v, Rectangle r)
 {
-	Vwrshort(v, r.min.x);
-	Vwrshort(v, r.min.y);
-	Vwrshort(v, r.max.x);
-	Vwrshort(v, r.max.y);
+	vncwrshort(v, r.min.x);
+	vncwrshort(v, r.min.y);
+	vncwrshort(v, r.max.x-r.min.x);
+	vncwrshort(v, r.max.y-r.min.y);
 }
 
 void
-Vwrpoint(Vnc *v, Point p)
+vncwrpoint(Vnc *v, Point p)
 {
-	Vwrshort(v, p.x);
-	Vwrshort(v, p.y);
+	vncwrshort(v, p.x);
+	vncwrshort(v, p.y);
 }
 
 void
-Vlock(Vnc *v)
+vnclock(Vnc *v)
 {
 	qlock(v);
 }
 
 void
-Vunlock(Vnc *v)
+vncunlock(Vnc *v)
 {
 	qunlock(v);
 }
@@ -246,4 +232,19 @@ hexdump(void *a, int n)
 	for(; p<ep; p++) 
 		print("%.2ux ", *p);
 	print("\n");
+}
+
+void
+vncgobble(Vnc *v, long n)
+{
+	uchar buf[8192];
+	long m;
+
+	while(n > 0) {
+		m = n;
+		if(m > sizeof(buf))
+			m = sizeof(buf);
+		vncrdbytes(v, buf, m);
+		n -= m;
+	}
 }

@@ -80,7 +80,6 @@ Error1:
 		_drawprint(2, "initkeyboard: can't open %s: %r\n", t);
 Error2:
 		close(kc->consfd);
-		free(kc);
 		free(t);
 		goto Error1;
 	}

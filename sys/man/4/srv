@@ -49,7 +49,7 @@ if it is given.
 Option
 .B q
 suppresses complaints if the
-B /srv
+.B /srv
 file already exists.
 The 
 .BR a ,

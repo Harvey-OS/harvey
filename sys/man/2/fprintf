@@ -1,6 +1,6 @@
 .TH FPRINTF 2
 .SH NAME
-fprintf, printf, sprintf, vfprintf, vprintf,  vsprintf \- print formatted output
+fprintf, printf, sprintf, snprintf, vfprintf, vprintf, vsprintf, vsnprintf \- print formatted output
 .SH SYNOPSIS
 .B #include <stdio.h>
 .PP
@@ -14,13 +14,19 @@ int printf(char *format, ...)
 int sprintf(char *s, char *format, ...)
 .PP
 .B
-int vfprintf(FILE *f, char *format, char *args)
+int snprintf(char *s, int n, char *format, ...)
 .PP
 .B
-int vprintf(char *format, char *args)
+int vfprintf(FILE *f, char *format, va_list args)
 .PP
 .B
-int vsprintf(char *s, char *format, char *args)
+int vprintf(char *format, va_list args)
+.PP
+.B
+int vsprintf(char *s, char *format, va_list args)
+.PP
+.B
+int vsnprintf(char *s, int n, char *format, va_list args)
 .SH DESCRIPTION
 .I Fprintf
 places output on the named output stream
@@ -38,13 +44,22 @@ in consecutive bytes starting at
 .IR s ;
 it is the user's responsibility to ensure that
 enough storage is available.
+.I Snprintf
+is like 
+.I sprintf
+but writes at most 
+.I n
+bytes (including the null character)
+into 
+.IR s .
 .IR Vfprintf ,
 .IR vprintf ,
+.IR vsnprintf ,
 and
 .I vsprintf
 are the same, except the
 .I args
-argument is a pointer to an argument in an argument list of the
+argument is the argument list of the
 calling function, and the effect is as if the calling function's
 argument list from that point on is passed to the
 .I printf
@@ -54,7 +69,8 @@ Each function returns the number of characters
 transmitted (not including the
 .B \e0
 in the case of
-.IR sprintf ),
+.IR sprintf 
+and friends),
 or
 a negative value if an output error was encountered.
 .PP

@@ -10,11 +10,12 @@ cd $home
 x='$'
 mkdir bin bin/rc bin/mips bin/386
 mkdir lib tmp
-bind -c tmp /tmp
+bind -c $home/tmp /tmp
+
 cat > lib/profile <<!
 bind -a $x^home/bin/rc /bin
 bind -a $x^home/bin/$x^cputype /bin
-bind -c tmp /tmp
+bind -c $x^home/tmp /tmp
 font = /lib/font/bit/pelm/euro.9.font
 switch($x^service){
 case terminal
@@ -28,6 +29,7 @@ case terminal
 case cpu
 	if (test -e /mnt/term/mnt/wsys) {
 		# rio already running
+		wsys = /mnt/term^`{cat /mnt/term/env/wsys}
 		bind -a /mnt/term/mnt/wsys /dev
 		echo -n $x^sysname > /dev/label
 	}

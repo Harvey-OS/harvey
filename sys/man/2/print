@@ -143,10 +143,11 @@ Each interprets the flags
 .BR h ,
 .BR l ,
 .BR u ,
-.BR # ,
+.BR + ,
+.BR - ,
 and
-.B -
-to mean short, long, unsigned, alternate format, and left justified.
+.B #
+to mean short, long, unsigned, always print a sign, left justified, and alternate format.
 If neither
 short nor long is specified,
 then the argument is an

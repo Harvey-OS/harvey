@@ -19,7 +19,7 @@
 %left	'<' '>'
 %left	'+' '-'
 %left	'*' '/' '%'
-%token	<lval>	LMOVW LMOVB LABS LLOGW LADDW LCMP LCROP
+%token	<lval>	LMOVW LMOVB LABS LLOGW LSHW LADDW LCMP LCROP
 %token	<lval>	LBRA LFMOV LFCONV LFCMP LFADD LFMA LTRAP LXORW
 %token	<lval>	LNOP LEND LRETT LWORD LTEXT LDATA LRETRN
 %token	<lval>	LCONST LSP LSB LFP LPC LCREG LFLUSH
@@ -201,6 +201,7 @@ inst:
  * integer operations
  * logical instructions
  * shift instructions
+ * unary instructions
  */
 |	LADDW rreg ',' sreg ',' rreg
 	{
@@ -227,6 +228,22 @@ inst:
 		outcode($1, &$2, $4, &$6);
 	}
 |	LLOGW rreg ',' rreg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LSHW rreg ',' sreg ',' rreg
+	{
+		outcode($1, &$2, $4, &$6);
+	}
+|	LSHW rreg ',' rreg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LSHW imm ',' sreg ',' rreg
+	{
+		outcode($1, &$2, $4, &$6);
+	}
+|	LSHW imm ',' rreg
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -326,6 +343,18 @@ inst:
 |	LBRA '(' xlreg ')'
 	{
 		outcode($1, &nullgen, NREG, &$3);
+	}
+|	LBRA ',' rel
+	{
+		outcode($1, &nullgen, NREG, &$3);
+	}
+|	LBRA ',' addr
+	{
+		outcode($1, &nullgen, NREG, &$3);
+	}
+|	LBRA ',' '(' xlreg ')'
+	{
+		outcode($1, &nullgen, NREG, &$4);
 	}
 |	LBRA creg ',' rel
 	{

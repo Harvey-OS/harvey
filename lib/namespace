@@ -27,9 +27,3 @@ bind -c /n/termrc.tmp/mail /mail
 
 bind -c /usr/$user/tmp /tmp
 cd /usr/$user
-
-# local fs
-mount -c /srv/kfs /n/kfs
-
-bind -c /usr/$user/tmp /tmp
-cd /usr/$user

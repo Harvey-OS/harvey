@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevvec.h,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevvec.h,v 1.4 2000/09/19 19:00:23 lpd Exp $ */
 /* Common definitions for "vector" devices */
 
 #ifndef gdevvec_INCLUDED
@@ -89,6 +89,8 @@ typedef enum {
     gx_path_type_clip = 4,
     gx_path_type_winding_number = 0,
     gx_path_type_even_odd = 8,
+    gx_path_type_optimize = 16,	/* OK to optimize paths by merging seg.s */
+    gx_path_type_always_close = 32, /* include final closepath even if not stroke */
     gx_path_type_rule = gx_path_type_winding_number | gx_path_type_even_odd
 } gx_path_type_t;
 typedef enum {
@@ -162,6 +164,7 @@ int gdev_vector_dorect(P6(gx_device_vector * vdev, fixed x0, fixed y0,
 	gs_id no_clip_path_id;	/* indicates no clipping */\
 	gs_id clip_path_id;\
 		/* Other state */\
+	gx_path_type_t fill_options, stroke_options;  /* optimize */\
 	gs_point scale;		/* device coords / scale => output coords */\
 	bool in_page;		/* true if any marks on this page */\
 	gx_device_bbox *bbox_device;	/* for tracking bounding box */\
@@ -183,6 +186,7 @@ int gdev_vector_dorect(P6(gx_device_vector * vdev, fixed x0, fixed y0,
 	 { 0 },		/* stroke_color ****** WRONG ****** */\
 	gs_no_id,	/* clip_path_id */\
 	gs_no_id,	/* no_clip_path_id */\
+	0, 0,		/* fill/stroke_options */\
 	 { X_DPI/72.0, Y_DPI/72.0 },	/* scale */\
 	0/*false*/,	/* in_page */\
 	0,		/* bbox_device */\

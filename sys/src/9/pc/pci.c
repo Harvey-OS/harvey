@@ -44,8 +44,6 @@ enum
 
 	MaxFNO		= 7,
 	MaxUBN		= 255,
-
-	NOBIOS		= 0,		/* initialise if the BIOS didn't */
 };
 
 enum
@@ -66,6 +64,7 @@ static int pcimaxdno;
 static Pcidev* pciroot;
 static Pcidev* pcilist;
 static Pcidev* pcitail;
+static int nobios;
 
 static int pcicfgrw32(int, int, int, int);
 static int pcicfgrw8(int, int, int, int);
@@ -180,7 +179,7 @@ pcibusmap(Pcidev *root, ulong *pmema, ulong *pioa, int wrreg)
 	Pcisiz *table, *tptr, *mtb, *itb;
 	extern void qsort(void*, long, long, int (*)(void*, void*));
 
-	if(!NOBIOS)
+	if(!nobios)
 		return;
 
 	ioa = *pioa;
@@ -469,7 +468,7 @@ pciscan(int bno, Pcidev** list)
 		sbn = pcicfgr8(p, PciSBN);
 		ubn = pcicfgr8(p, PciUBN);
 
-		if(sbn == 0 || ubn == 0 || NOBIOS) {
+		if(sbn == 0 || ubn == 0 || nobios) {
 			sbn = maxubn+1;
 			/*
 			 * Make sure memory, I/O and master enables are
@@ -509,6 +508,8 @@ pcicfginit(void)
 	if(pcicfgmode != -1)
 		goto out;
 
+	if (getconf("*nobios"))
+		nobios = 1;
 	/*
 	 * Try to determine which PCI configuration mode is implemented.
 	 * Mode2 uses a byte at 0xCF8 and another at 0xCFA; Mode1 uses
@@ -550,7 +551,7 @@ pcicfginit(void)
 	if(pciroot == nil)
 		goto out;
 
-	if(NOBIOS) {
+	if(nobios) {
 		/*
 		 * Work out how big the top bus is
 		 */

@@ -1,0 +1,4 @@
+TEXT _CLOSE(SB), 1, $-4
+MOVW $4, R0
+SWI 0
+RET

@@ -5,6 +5,55 @@
 #include <bio.h>
 #include "imap4d.h"
 
+/*
+ * hack to allow smtp forwarding.
+ * hide the peer IP address under a rock in the ratifier FS.
+ */
+void
+enableForwarding(void)
+{
+	char buf[64], peer[64], *p;
+	static ulong last;
+	ulong now;
+	int fd;
+
+	if(remote == nil)
+		return;
+
+	now = time(0);
+	if(now < last + 5*60)
+		return;
+	last = now;
+
+	fd = open("/srv/ratify", ORDWR);
+	if(fd < 0)
+		return;
+	if(!mount(fd, "/mail/ratify", MBEFORE, "")){
+		close(fd);
+		return;
+	}
+	close(fd);
+
+	strncpy(peer, remote, sizeof(peer));
+	peer[sizeof(peer) - 1] = '\0';
+	p = strchr(peer, '!');
+	if(p != nil)
+		*p = '\0';
+
+	snprint(buf, sizeof(buf), "/mail/ratify/trusted/%s#32", peer);
+
+	/*
+	 * if the address is already there and the user owns it,
+	 * remove it and recreate it to give him a new time quanta.
+	 */
+	if(access(buf, 0) >= 0 && remove(buf) < 0)
+		return;
+
+	fd = create(buf, OREAD, 0666);
+	if(fd >= 0)
+		close(fd);
+}
+
 void
 setupuser(void)
 {
@@ -13,6 +62,12 @@ setupuser(void)
 
 	if(newns(username, 0) < 0)
 		bye("user login failed: %r");
+
+	/*
+	 * hack to allow access to outgoing smtp forwarding
+	 */
+	enableForwarding();
+
 	snprint(mboxDir, 3 * NAMELEN, "/mail/box/%s", username);
 	if(myChdir(mboxDir) < 0)
 		bye("can't open user's mailbox");
@@ -67,7 +122,7 @@ authresp(void)
 	if(n == 0 || strcmp(t, "*") == 0)
 		return nil;
 
-	s = canAlloc(&parseCan, n + 1, 0);
+	s = binalloc(&parseBin, n + 1, 0);
 	n = dec64((uchar*)s, n, t, n);
 	s[n] = '\0';
 	return s;
@@ -87,7 +142,7 @@ cramauth(void)
 		return "couldn't get cram challenge";
 
 	n = strlen(acs.chal);
-	s = canAlloc(&parseCan, n * 2, 0);
+	s = binalloc(&parseBin, n * 2, 0);
 	n = enc64(s, n * 2, (uchar*)acs.chal, n);
 	Bprint(&bout, "+ ");
 	Bwrite(&bout, s, n);

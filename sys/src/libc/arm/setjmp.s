@@ -5,7 +5,7 @@ sp=13
 TEXT	setjmp(SB), 1, $-4
 	MOVW	R(sp), (R(arg+0))
 	MOVW	R(link), 4(R(arg+0))
-	MOVW	$0, R1
+	MOVW	$0, R0
 	RET
 
 TEXT	longjmp(SB), 1, $-4

@@ -64,8 +64,9 @@ cat <<'---'
 
 awk '
 	BEGIN	{ cpuflag = 0; bootprog = "boot"; bootdisk = "#S/sdC0/"; rootdir = "/root"; }
-	$0 ~ "^boot" && $2=="cpu"\
+	$0 ~ "^boot" && ($2=="cpu" || $2=="glenda")\
 		{ cpuflag = 1
+		  glendaflag = $2=="glenda"
 		  if(NF == 4 && $3 == "boot")
 			bootdisk = $4
 		}
@@ -76,7 +77,9 @@ awk '
 	$0 ~ "^boot" && $2=="boot" && NF==3\
 		{ bootdisk = $3 }
 	END 	{ print "int cpuflag = " cpuflag ";"
-		  if(cpuflag)
+		  if(glendaflag)
+			print "void (*pword)(int, Method*) = glendakey;"
+		  else if(cpuflag)
 			print "void (*pword)(int, Method*) = key;"
 		  else
 			print "void (*pword)(int, Method*) = userpasswd;"

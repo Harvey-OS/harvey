@@ -76,7 +76,7 @@ main(int argc, char **argv)
 	if(getsafe(safe.authdom, DOMLEN, &safe.authdomsum, "#c/hostdomain") < 0)
 		fprint(2, "wrkey: bad authentication domain\n");
 
-	getpass(safe.machkey, nil, 1);
+	getpass(safe.machkey, nil, 1, 1);
 	outin("config", safe.config, sizeof(safe.config));
 	outin("authid", safe.authid, sizeof(safe.authid));
 	outin("authdom", safe.authdom, sizeof(safe.authdom));

@@ -94,7 +94,7 @@ grestate(Conv *c, char *state, int n)
 static void
 grecreate(Conv *c)
 {
-	c->rq = qopen(64*1024, 0, 0, c);
+	c->rq = qopen(64*1024, 1, 0, c);
 	c->wq = qopen(64*1024, 0, 0, 0);
 }
 
@@ -114,20 +114,16 @@ greclose(Conv *c)
 	ipmove(c->raddr, IPnoaddr);
 	c->lport = 0;
 	c->rport = 0;
-
-	qunlock(c);
 }
 
 int drop;
 
 static void
-grekick(Conv *c, int l)
+grekick(Conv *c)
 {
 	GREhdr *ghp;
 	Block *bp;
 	uchar laddr[IPaddrlen], raddr[IPaddrlen];
-
-	USED(l);
 
 	bp = qget(c->wq);
 	if(bp == nil)

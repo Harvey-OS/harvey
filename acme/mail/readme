@@ -6,6 +6,10 @@ Subject: line, that is shown indented on the following line.
 Multipart MIME-encoded messages are presented in the obvious
 hierarchical format.
 
+Mail uses upas/fs to access the mail box.  By default it reads "mbox",
+the standard user mail box.  If Mail is given an argument, it is
+passed to upas/fs as the name of the mail box to open.
+
 Although Mail works if the plumber is not running, it's designed to be
 run with plumbing enabled and many of its features work best if it is.
 

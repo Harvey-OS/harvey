@@ -65,10 +65,10 @@ struct Qidtab
 
 enum
 {
-	MAXPROC		= 16,
+	MAXPROC		= 50,
 	DIRCHUNK	= (50*DIRLEN),
 	FHASHSIZE	= 64,
-	Nr_workbufs 	= 16,
+	Nr_workbufs 	= 50,
 	Fidchunk	= 1000,
 	Npsmpt		= 32,
 	Nqidbits		= 5,

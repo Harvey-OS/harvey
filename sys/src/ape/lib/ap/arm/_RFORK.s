@@ -1,0 +1,4 @@
+TEXT _RFORK(SB), 1, $-4
+MOVW $19, R0
+SWI 0
+RET

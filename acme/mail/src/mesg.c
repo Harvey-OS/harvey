@@ -28,6 +28,7 @@ struct{
 	"application/postscript",	"postscript",	"ps",
 	"application/pdf",	"postscript",	"pdf",
 	"application/msword",	"msword",	"doc",
+	"application/rtf",	"msword",	"rtf",
 	nil,	nil
 };
 
@@ -574,7 +575,7 @@ mesgcommand(Message *m, char *cmd)
 		mkreply(m, s, nil);
 		goto Return;
 	}
-	if(strcmp(s, "Reply all") == 0 || strcmp(s, "Replyall") == 0){
+	if(strncmp(s, "Reply all", 9) == 0 || strcmp(s, "Replyall") == 0){
 		mkreply(m, "Replyall", nil);
 		goto Return;
 	}
@@ -1038,7 +1039,7 @@ rewritembox(Window *w, Message *mbox)
 	char *deletestr, *t;
 	int nopen;
 
-	deletestr = estrstrdup("delete ", mboxname);
+	deletestr = estrstrdup("delete ", fsname);
 
 	nopen = 0;
 	for(m=mbox->head; m!=nil; m=next){

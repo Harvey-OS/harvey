@@ -11,6 +11,7 @@ int	cmdfd;
 int	writeallow;	/* never on; for compatibility with fs */
 int	wstatallow;
 int	noauth;
+int	nosync;
 Nvrsafe	nvr;
 int	srvfd(char*, int, int);
 void	usage(void);
@@ -66,7 +67,10 @@ main(int argc, char *argv[])
 		break;
 	case 's':
 		sfd = 0;
-		rfd = 1;
+		rfd = dup(1, -1);
+		close(1);
+		if(open("/dev/cons", OWRITE) < 0)
+			open("#c/cons", OWRITE);
 		break;
 	case 'B':
 		conf.niobuf = strtoul(ARGF(), 0, 0);
@@ -322,7 +326,10 @@ syncproc(void)
 
 	t = time(nil);
 	for(;;){
-		i = syncblock();
+		if(nosync)
+			i = 0;	/* sleep longer */
+		else
+			i = syncblock();
 		alarmed = 0;
 		alarm(i ? 1000: 10000);
 		n = read(cmdfd, buf, sizeof buf - 1);

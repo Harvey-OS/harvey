@@ -120,6 +120,7 @@ fmtinstall(int c, int (*f)(va_list*, Fconv*))
 		unlock(&fmtalloc);
 		return -1;
 	}
+
 	fmtalloc.conv[fmtalloc.convcount] = f;
 	fmtalloc.index[c] = fmtalloc.convcount;
 	fmtalloc.convcount++;
@@ -383,6 +384,9 @@ numbconv(va_list *arg, Fconv *fp)
 	}
 	if(f)
 		s[--i] = '-';
+	else if(fp->f3 & FPLUS)
+		s[--i] = '+';
+
 	fp->f2 = NONE;
 	strconv(s+i, fp);
 	return 0;

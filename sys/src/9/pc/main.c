@@ -759,3 +759,14 @@ cistrncmp(char *a, char *b, int n)
 
 	return 0;
 }
+
+/*
+ *  put the processor in the halt state if we've no processes to run.
+ *  an interrupt will get us going again.
+ */
+void
+idlehands(void)
+{
+	if(conf.nmach == 1)
+		halt();
+}

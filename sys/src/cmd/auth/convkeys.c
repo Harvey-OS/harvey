@@ -38,12 +38,12 @@ main(int argc, char *argv[])
 	/* get original key */
 	if(usepass){
 		print("enter password file is encoded with\n");
-		getpass(authkey, nil, 0);
+		getpass(authkey, nil, 0, 1);
 	} else
 		getauthkey(authkey);
 	if(!verb){
 		print("enter password to reencode with\n");
-		getpass(key, nil, 0);
+		getpass(key, nil, 0, 1);
 	}
 
 	fd = open(file, ORDWR);

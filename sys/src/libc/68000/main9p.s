@@ -1,6 +1,12 @@
-TEXT	_mainp(SB), 1, $16
+#define NPRIVATES	16
+
+TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 	MOVL	$a6base(SB), A6
 	MOVL	R0, _clock(SB)		/* return value of sys exec!! */
+	LEA	p-64(SP),A0
+	MOVL	A0,_privates+0(SB)
+	MOVL	$16,R0
+	MOVL	R0,_nprivates+0(SB)
 	BSR	_profmain(SB)
 	MOVL	__prof+4(SB), __prof+0(SB)
 	PEA	inargv+0(FP)

@@ -87,7 +87,7 @@ match(char *s, char **pre, int npre)
 }
 
 int
-opentemp(char *template)
+genopentemp(char *template, int mode, int perm)
 {
 	int fd, i;
 	char *p;	
@@ -96,7 +96,7 @@ opentemp(char *template)
 	fd = -1;
 	for(i=0; i<10; i++){
 		mktemp(p);
-		if(access(p, 0) < 0 && (fd=create(p, ORDWR|ORCLOSE, 0400)) >= 0)
+		if(access(p, 0) < 0 && (fd=create(p, mode, perm)) >= 0)
 			break;
 		strcpy(p, template);
 	}
@@ -107,6 +107,12 @@ opentemp(char *template)
 	free(p);
 
 	return fd;
+}
+
+int
+opentemp(char *template)
+{
+	return genopentemp(template, ORDWR|ORCLOSE, 0400);
 }
 
 int

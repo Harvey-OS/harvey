@@ -15,6 +15,7 @@ OFILES=\
 	gethostname.$O\
 	getopt.$O\
 	getpeername.$O\
+	getprotobyname.$O\
 	getservbyname.$O\
 	getsockname.$O\
 	gettimeofday.$O\

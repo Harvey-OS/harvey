@@ -521,4 +521,5 @@ main(int argc, char **argv)
 	checktoc(drive);
 
 	postmountsrv(&cdsrv, nil, mtpt, MREPL|MCREATE);
+	exits(nil);
 }

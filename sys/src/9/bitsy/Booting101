@@ -1,0 +1,112 @@
+The bitsy comes with Wince.  To get to Plan 9, you will need a serial cable,
+a Windows machine with a serial interface, the CDROM that comes with the bitsy,
+and a Plan 9 machine with a serial interface.  The Windows machine is used to
+get the Linux boot loader onto the bitsy (and to save away wince, if you so
+desire).  The Plan 9 machine is used to get the plan 9 kernel and a read only
+file system onto the bitsy.
+
+0) charge up the bitsy.
+
+1) go to ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/stable/install.html
+   and go through the steps to get the linux boot loader into the flash.
+   This is where you'll need the CDROM and the Windows machine.  Roughly
+   the steps are:
+
+	a) install activesync from the cdrom
+	b) use activesync to copy osloader-1.3.0.exe to wince's fs.
+	c) use activesync to copy bootldr-c002-2.9.5 to wince's root
+	   directory and rename it to bootldr.
+	d) run osloader-1.3.0.exe (now called bootldr).  This is a RAM
+	   version of the boot loader whose only real function is to
+	   put the final version of the boot loader into the flash.
+	e) optionally, use osloader to save the contents of flash to
+	   your pc should you ever want to reload it.
+	f) use osloader to load the ram bootldr into ram and jump to it.
+	g) use the ram version of the bootldr to load the flash version
+	   of the bootldr into the flash.
+
+   This is more than a bit convoluted.  Windows runs its applications
+   from flash.  The odd dance is to get a windows program (osloader)
+   running from flash to then load a bootldr into ram and jump to it.
+   That bootldr can then destroy the flash since it isn't running there.
+   Finally you copy into the beginning of flash a copy of bootldr that
+   knows it is being started in flash.  When you power up the bitsy it
+   starts executing at location 0 in the flash so the `real' bootldr
+   has to live there.  The only difference between the first and second
+   bootldr is in initialization.  Still, they are different files (at the moment
+	bootldr-c002-2.9.5
+   and
+	bootldr-0000-2.9.5
+    in that order). Naming them both bootldr is just unfortunate.
+
+2) You are now done with wince.  Connect the serial cable to a Plan 9 machine.
+
+3) In a plan 9 window (turn on scrolling)
+
+	con -b115200 /dev/eia[01]
+
+   You'll have to figure out whether it's 0 or 1 on your machine.
+
+4) Reboot the bitsy by cycling power using the dip switch under the sliding door
+   at the bottom of the bitsy.  As soon as you see characters in your con window,
+   hit any alphanumeric key on your plan 9 system to get the bitsy's attention.
+   Otherwise, it'll try to boot a Linux kernel that isn't there.  Do not hit carriage
+   return (Enter)!
+
+5) In the con window type
+
+	load kernel
+
+6) in the con window type
+
+	ctl-\
+
+   to get con's >>> prompt.  Then
+
+	!xms /sys/src/9/bitsy/9bitsy
+
+   This does an xmodem load of the kernel
+
+7) In the con window type
+
+	load ramdisk
+
+8) in the con window type
+
+	ctl-\
+
+   to get con's >>> prompt.  Then
+
+	!xms /sys/src/9/bitsy/ramdisk
+
+   This does an xmodem load of the read only file system
+
+9) Cycle power again to reboot.  A screen will come up that says
+
+	root is from [sac]:
+
+   Just wait a while or hit enter in the con window and it'll continue.
+
+10) The bitsy will now want to calibrate the screen.  It'll put up
+   a series of crosses that you should tap the center of.  Hold the
+   machine in your hand the way you'ld normally use it or the calibration
+  could be off since there is depth to the glass in the screen.
+
+11)  You'll get a new screen with a blank top
+  and a keyboard/scribble area at the bottom.  This is a simple
+  one file editor.  This file is similar to plan9.ini on PC's.
+  You need to enter a few things:
+
+	user=your-user-name
+	wavelankey='thekey'
+
+  When you're done, hit the quit key on the simulated keyboard.
+	
+  The system will now come up as you.
+
+12)  To get your password into the system:
+
+	# auth/iam
+	password:
+
+    After this you can run cpu, 9fs, whatever...

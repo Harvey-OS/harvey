@@ -149,6 +149,11 @@ armclass(long w)
 					op++;	/* swap */
 				break;
 			}
+			if(w & (1<<23)) {	/* mullu */
+				op = (48+24+4+4+2+2+4);
+				if(w & (1<<22))	/* mull */
+					op += 2;
+			}
 			if(w & (1<<21))
 				op++;		/* mla */
 			break;
@@ -184,7 +189,7 @@ armclass(long w)
 		op = (48+24+4+4+2+2) + ((w >> 3) & 0x2) + ((w >> 20) & 0x1);
 		break;
 	default:
-		op = (48+24+4+4+2+2+4);
+		op = (48+24+4+4+2+2+4+4);
 		break;
 	}
 	return op;
@@ -775,8 +780,8 @@ static Opcode opcodes[] =
 	"MVN%C%S",	armdpi, 0,	"$#%i,R%d",
 
 /* 48+16 */
-	"MUL%C%S",	armdpi, 0,	"R%s,R%M,R%n",
-	"MULA%C%S",	armdpi, 0,	"R%s,R%M,R%n,R%d",
+	"MUL%C%S",	armdpi, 0,	"R%M,R%s,R%n",
+	"MULA%C%S",	armdpi, 0,	"R%M,R%s,R%n,R%d",
 	"SWPW",		armdpi, 0,	"R%s,(R%n),R%d",
 	"SWPB",		armdpi, 0,	"R%s,(R%n),R%d",
 
@@ -808,6 +813,13 @@ static Opcode opcodes[] =
 	"MCR%C",	armco, 0,		"",
 	"MRC%C",	armco, 0,		"",
 
+/* 48+24+4+4+2+2+4 */
+	"MULLU%C%S",	armdpi, 0,	"R%M,R%s,(R%n,R%d)",
+	"MULALU%C%S",	armdpi, 0,	"R%M,R%s,(R%n,R%d)",
+	"MULL%C%S",	armdpi, 0,	"R%M,R%s,(R%n,R%d)",
+	"MULAL%C%S",	armdpi, 0,	"R%M,R%s,(R%n,R%d)",
+
+/* 48+24+4+4+2+2+4+4 */
 	"UNK",		armunk, 0,	"",
 };
 

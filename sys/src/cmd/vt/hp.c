@@ -49,7 +49,7 @@ emulate(void)
 
 				case 'a':
 					for (;;) {
-						n = number(buf);
+						n = number(buf, nil);
 						switch(buf[0]) {
 
 						case 'r':

@@ -50,7 +50,7 @@ mkStore(int sign, int op, int flags)
 {
 	Store *st;
 
-	st = canAlloc(&parseCan, sizeof(Store), 1);
+	st = binalloc(&parseBin, sizeof(Store), 1);
 	if(st == nil)
 		parseErr("out of memory");
 	st->sign = sign;
@@ -64,7 +64,7 @@ mkFetch(int op, Fetch *next)
 {
 	Fetch *f;
 
-	f = canAlloc(&parseCan, sizeof(Fetch), 1);
+	f = binalloc(&parseBin, sizeof(Fetch), 1);
 	if(f == nil)
 		parseErr("out of memory");
 	f->op = op;
@@ -91,7 +91,7 @@ mkNList(ulong n, NList *next)
 {
 	NList *nl;
 
-	nl = canAlloc(&parseCan, sizeof(NList), 0);
+	nl = binalloc(&parseBin, sizeof(NList), 0);
 	if(nl == nil)
 		parseErr("out of memory");
 	nl->n = n;
@@ -118,7 +118,7 @@ mkSList(char *s, SList *next)
 {
 	SList *sl;
 
-	sl = canAlloc(&parseCan, sizeof(SList), 0);
+	sl = binalloc(&parseBin, sizeof(SList), 0);
 	if(sl == nil)
 		parseErr("out of memory");
 	sl->s = s;

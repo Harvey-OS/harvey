@@ -5,6 +5,7 @@
 char	*me;
 char	*him="";
 char	*hisaddr="";
+char	*netroot="/net";
 char	*dom;
 process	*pp;
 
@@ -80,7 +81,11 @@ main(int argc, char **argv)
 		debug++;
 		break;
 	case 'n':				/* log peer ip address */
-		hisaddr = remoteaddr(-1, ARGF());
+		p = ARGF();
+		if(p && *p){
+			netroot = p;
+			hisaddr = remoteaddr(-1, p);
+		}
 		break;
 	case 'f':				/* disallow relaying */
 		fflag = 1;
@@ -220,7 +225,7 @@ hello(String *himp)
 	if(rejectcheck())
 		return;
 	him = s_to_c(himp);
-	reply("250 you are %s\r\n", him);
+	reply("250 %s you are %s\r\n", dom, him);
 }
 
 void
@@ -276,7 +281,7 @@ sender(String *path)
 	 * perform DNS lookup to see if sending domain exists
 	 */
 	if(filterstate == ACCEPT && rflag && !trusted && returnable(s_to_c(path))){
-		if(rmtdns(s_to_c(path)) < 0){
+		if(rmtdns(netroot, s_to_c(path)) < 0){
 			filterstate = REFUSED;
 			lastsender = strdup(s_to_c(path));
 			cp = strrchr(lastsender, '!');
@@ -292,6 +297,8 @@ sender(String *path)
 void
 receiver(String *path)
 {
+	char *sender;
+
 	if(rejectcheck())
 		return;
 	if(him == 0 || *him == 0){
@@ -299,15 +306,24 @@ receiver(String *path)
 		reply("503 Start by saying HELO, please\r\n");
 		return;
 	}
+	if(senders.last)
+		sender = s_to_c(senders.last->p);
+	else
+		sender = "<unknown>";
+
+	if(!recipok(s_to_c(path))){
+		rejectcount++;
+		syslog(0, "smtpd", "Disallowed %s (%s/%s) to %s",
+				sender, him, hisaddr, s_to_c(path));
+		reply("550 %s ... user unknown\r\n", s_to_c(path));
+		return;
+	}
+
 	logged = 0;
-		/* forwarding() can modify path on loopback request */
+		/* forwarding() can modify 'path' on loopback request */
 	if(filterstate == ACCEPT && fflag && forwarding(path)) {
-		if(senders.last)
-			syslog(0, "smtpd", "Bad Forward %s (%s/%s) (%s)",
-				s_to_c(senders.last->p), him, hisaddr, s_to_c(path));
-		else
-			syslog(0, "smtpd", "Bad Forward <unknown> (%s/%s) (%s)",
-				him, hisaddr, s_to_c(path));
+		syslog(0, "smtpd", "Bad Forward %s (%s/%s) (%s)",
+			s_to_c(senders.last->p), him, hisaddr, s_to_c(path));
 		rejectcount++;
 		reply("550 we don't relay.  send to your-path@[] for loopback.\r\n");
 		return;
@@ -485,7 +501,7 @@ startcmd(void)
 
 	switch (filterstate){
 	case BLOCKED:
-	case RELAY:
+	case DELAY:
 		rejectcount++;
 		if(!logged){
 			logged = 1;
@@ -708,10 +724,9 @@ data(void)
 		if(filterstate == BLOCKED)
 			reply("554 we believe this is spam.  we don't accept it.\r\n");
 		else
-		if(filterstate == RELAY) {
-			reply("554-this system relays too much spam; we can't accept mail from it.\r\n");
-			reply("554 please notify your system administrator.\r\n");
-		} else {
+		if(filterstate == DELAY)
+			reply("554 There will be a delay in delivery of this message.\r\n");
+		else {
 			reply("250 sent\r\n");
 			logcall(nbytes);
 		}

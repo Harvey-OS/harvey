@@ -1,4 +1,4 @@
-#pragma	src	"/usr/presotto/b"
+#pragma	src	"/sys/src/libmp"
 #pragma	lib	"libmp.a"
 
 #define _MPINT 1
@@ -49,6 +49,10 @@ uint	mptoui(mpint*);			// unsigned int
 mpint*	uitomp(uint, mpint*);
 int	mptoi(mpint*);			// int
 mpint*	itomp(int, mpint*);
+uvlong	mptouv(mpint*);			// unsigned vlong
+mpint*	uvtomp(uvlong, mpint*);
+vlong	mptov(mpint*);			// vlong
+mpint*	vtomp(vlong, mpint*);
 
 // divide 2 digits by one
 void	mpdigdiv(mpdigit *dividend, mpdigit divisor, mpdigit *quotient);

@@ -15,6 +15,7 @@ extern int	cpuflag;
 extern char	cputype[];
 extern int	fflag;
 extern int	kflag;
+extern int pushfcall(int);
 extern Method	method[];
 extern void	(*pword)(int, Method*);
 extern char	sys[];
@@ -22,7 +23,7 @@ extern uchar	hostkey[];
 extern char	username[NAMELEN];
 enum
 {
-	Nbarg=	16,
+	Nbarg=	32,
 };
 extern int	bargc;
 extern char	*bargv[Nbarg];
@@ -33,6 +34,7 @@ extern char*	checkkey(Method*, char*, char*);
 extern void	fatal(char*);
 extern void	getpasswd(char*, int);
 extern void	key(int, Method*);
+extern void glendakey(int, Method*);
 extern int	nop(int);
 extern int	outin(char*, char*, int);
 extern int	plumb(char*, char*, int*, char*);

@@ -1,3 +1,5 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
 #include "iplot.h"
 void putnum(int num[], double *ff[]){

@@ -105,8 +105,9 @@ etherwstat(Chan* chan, char* dp)
 static void
 etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 {
-	int i, n;
+	int n;
 	Block *bp;
+	uvlong ts;
 
 	if(qwindow(f->in) <= 0)
 		return;
@@ -114,18 +115,22 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 		n = 58;
 	else
 		n = len;
-	bp = iallocb(64);
+	bp = iallocb(68);
 	if(bp == nil)
 		return;
 	memmove(bp->wp, pkt->d, n);
-	i = TK2MS(MACHP(0)->ticks);
+	ts = fastticks(nil);
 	bp->wp[58] = len>>8;
 	bp->wp[59] = len;
-	bp->wp[60] = i>>24;
-	bp->wp[61] = i>>16;
-	bp->wp[62] = i>>8;
-	bp->wp[63] = i;
-	bp->wp += 64;
+	bp->wp[60] = ts>>56;
+	bp->wp[61] = ts>>48;
+	bp->wp[62] = ts>>40;
+	bp->wp[63] = ts>>32;
+	bp->wp[64] = ts>>24;
+	bp->wp[65] = ts>>16;
+	bp->wp[66] = ts>>8;
+	bp->wp[67] = ts;
+	bp->wp += 68;
 	qpass(f->in, bp);
 }
 
@@ -382,7 +387,7 @@ etherreset(void)
 			snprint(name, sizeof(name), "ether%d", ctlrno);
 
 			/* If ether->irq is less than 0, it is a hack to indicate no interrupt
-			 * used for the seocnd logical ethernet for the wavelan card
+			 * used for the second logical ethernet for the wavelan card
 			 */
 			if(ether->irq >= 0)
 				intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);

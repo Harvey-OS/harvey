@@ -7,16 +7,16 @@ OFILES=\
 	main9p.$O\
 	argv0.$O\
 	setjmp.$O\
+	notejmp.$O\
 	div.$O\
 	vlrt.$O\
 	vlop.$O\
-	frexp.$O\
 	memmove.$O\
 	memset.$O\
 	strchr.$O\
 	strcmp.$O\
-	strcpy.$O\
 	tas.$O\
+	getfcr.$O\
 
 HFILES=/sys/include/libc.h
 

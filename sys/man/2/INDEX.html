@@ -12,7 +12,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/9p">9p</A>
 -  9P file server functions
-<DD><TT> Fid, File, Req, Srv, Tree, fcreate, fremove, fwalk, mktree, fdirread, srv, postmountsrv, readbuf, readstr, _lib9p_emalloc, _lib9p_erealloc, _lib9p_estrdup</TT>
+<DD><TT> Fid, File, Req, Srv, Tree, allocmap, allocfid, allocfidpool, allocreq, allocreqpool, caninsertkey, closefid, deletekey, fcreate, freefid, freemap, freereq, fremove, fwalk, mktree, fdirread, insertkey, lookupfid, lookupkey, lookupreq, srv, postmountsrv, readbuf, readstr, respond, threadpostmountsrv, _lib9p_emalloc, _lib9p_erealloc, _lib9p_estrdup</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/abort">abort</A>
 -  generate a fault
@@ -32,7 +32,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/allocimage">allocimage</A>
 -  allocating, freeing, reading, writing images
-<DD><TT> allocimage, allocimagemix, freeimage, nameimage, namedimage, loadimage, unloadimage, readimage, writeimage, bytesperline, wordsperline</TT>
+<DD><TT> allocimage, allocimagemix, freeimage, nameimage, namedimage, setalpha, loadimage, cloadimage, unloadimage, readimage, writeimage, bytesperline, wordsperline</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/arg">arg</A>
 -  process option letters from argv
@@ -53,6 +53,10 @@
 <DT><A HREF="/magic/man2html/2/auth">auth</A>
 -  network authentication
 <DD><TT> auth, amount, srvauth, authnonce, srvauthnonce, authenticate, getchal, chalreply, vncchal, vncreply, apopchal, apopreply, cramchal, cramreply, newns, addns, authdial, passtokey, nvcsum, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR, login, httpauth, noworld</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/bin">bin</A>
+-  grouped memory allocation
+<DD><TT> binalloc, bingrow, binfree</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/bind">bind</A>
 -  change name space
@@ -81,6 +85,10 @@
 <DT><A HREF="/magic/man2html/2/color">color</A>
 -  colors and color maps
 <DD><TT> cmap2rgb, cmap2rgba, rgb2cmap</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/control">control</A>
+-  interactive graphical controls
+<DD><TT> Control, Controlset, activate, closecontrol, closecontrolset, controlcalled, controlwire, createbox, createbutton, createentry, createkeyboard, createlabel, createradiobutton, createscribble, createslider, createtext, createtextbutton, ctlerror, ctlmalloc, ctlrealloc, ctlstrdup, deactivate, freectlfont, freectlimage, initcontrols, namectlfont, namectlimage, newcontrolset, printctl, resizecontrolset</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/cputime">cputime</A>
 -  cpu time in this process and children
@@ -136,7 +144,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/exec">exec</A>
 -  execute a file
-<DD><TT> exec, execl, _clock</TT>
+<DD><TT> exec, execl, _clock, _privates, _nprivates</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/exits">exits</A>
 -  terminate process, process cleanup
@@ -158,6 +166,10 @@
 -  Stdio input and output
 <DD><TT> fgetc, getc, getchar, fputc, putc, putchar, ungetc, fgets, gets, fputs, puts, fread, fwrite</TT>
 </DT>
+<DT><A HREF="/magic/man2html/2/flate">flate</A>
+-  deflate compression
+<DD><TT> deflateinit, deflate, deflatezlib, deflateblock, deflatezlibblock, inflateinit, inflate, inflatezlib, inflateblock, inflatezlibblock, flateerr, mkcrctab, blockcrc, adler32</TT>
+</DT>
 <DT><A HREF="/magic/man2html/2/floor">floor</A>
 -  absolute value, remainder, floor, ceiling functions
 <DD><TT> fabs, fmod, floor, ceil</TT>
@@ -172,7 +184,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/fprintf">fprintf</A>
 -  print formatted output
-<DD><TT> fprintf, printf, sprintf, vfprintf, vprintf, vsprintf</TT>
+<DD><TT> fprintf, printf, sprintf, snprintf, vfprintf, vprintf, vsprintf, vsnprintf</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/frame">frame</A>
 -  frames of text
@@ -220,7 +232,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/graphics">graphics</A>
 -  interactive graphics
-<DD><TT> Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, flushimage, bufimage, lockdisplay, unlockdisplay, cursorswitch, cursorset, openfont, buildfont, freefont, Pconv, Rconv, strtochan, chantostr, chantodepth</TT>
+<DD><TT> Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, gengetwindow, flushimage, bufimage, lockdisplay, unlockdisplay, cursorswitch, cursorset, openfont, buildfont, freefont, Pconv, Rconv, strtochan, chantostr, chantodepth</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/hypot">hypot</A>
 -  Euclidean distance
@@ -240,7 +252,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/libsec">libsec</A>
 -  cryptographic security library
-<DD><TT> setupDESstate, des_key_setup, block_cipher, desCBCencrypt, desCBCdecrypt, desECBencrypt, desECBdecrypt, des3CBCencrypt, des3CBCdecrypt, des3ECBencrypt, des3ECBdecrypt, key_setup, des56to64, des64to56, setupDES3state, triple_block_cipher, md4, md5, sha1, hmac_md5, hmac_sha1, dec64, enc64, dec32, enc32, genrandom, prng, genprime, gensafeprime, genstrongprime, DSAprimes, probably_prime, smallprimetest, setupRC4state, rc4, rc4skip, rc4back, crtpre, crtin, crtout, crtprefree, crtresfree, rsagen, rsaencrypt, rsadecrypt, rsaalloc, rsafree, rsapuballoc, rsapubfree, rsaprivalloc, rsaprivfree, rsaprivtopub, eggen, egencrypt, egdecrypt, egsign, egverify, egalloc, egfree, egpuballoc, egpubfree, egprivalloc, egprivfree, egsigalloc, egsigfree, egprivtopub</TT>
+<DD><TT> setupDESstate, des_key_setup, block_cipher, desCBCencrypt, desCBCdecrypt, desECBencrypt, desECBdecrypt, des3CBCencrypt, des3CBCdecrypt, des3ECBencrypt, des3ECBdecrypt, key_setup, des56to64, des64to56, setupDES3state, triple_block_cipher, md4, md5, sha1, hmac_md5, hmac_sha1, dec64, enc64, dec32, enc32, genrandom, prng, genprime, gensafeprime, genstrongprime, DSAprimes, probably_prime, smallprimetest, setupRC4state, rc4, rc4skip, rc4back, crtpre, crtin, crtout, crtprefree, crtresfree, rsagen, rsaencrypt, rsadecrypt, rsaalloc, rsafree, rsapuballoc, rsapubfree, rsaprivalloc, rsaprivfree, rsaprivtopub, X509toRSApub, eggen, egencrypt, egdecrypt, egsign, egverify, egalloc, egfree, egpuballoc, egpubfree, egprivalloc, egprivfree, egsigalloc, egsigfree, egprivtopub</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/lock">lock</A>
 -  shared memory spin locks, rendez-vous locks, reader-writer locks, and atomic increment and decrement
@@ -260,11 +272,11 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/memdraw">memdraw</A>
 -  drawing routines for memory-resident images
-<DD><TT> Memimage, Memdata, Memdrawparam, memimageinit, wordaddr, byteaddr, memimagemove, allocmemimage, allocmemimaged, readmemimage, creadmemimage, writememimage, freememimage, memsetchan, loadmemimage, cloadmemimage, unloadmemimage, memfillcolor, memarc, mempoly, memellipse, memfillpoly, memimageline, memimagedraw, drawclip, memlinebbox, memlineendsize, allocmemsubfont, freememsubfont, memsubfontwidth, getmemdefont, memimagestring, iprint, hwdraw</TT>
+<DD><TT> Memimage, Memdata, Memdrawparam, memimageinit, wordaddr, byteaddr, memimagemove, allocmemimage, allocmemimaged, readmemimage, creadmemimage, writememimage, freememimage, memsetchan, loadmemimage, cloadmemimage, unloadmemimage, memfillcolor, memarc, mempoly, memellipse, memfillpoly, memimageline, memimagedraw, drawclip, memlinebbox, memlineendsize, allocmemsubfont, openmemsubfont, freememsubfont, memsubfontwidth, getmemdefont, memimagestring, iprint, hwdraw</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/memlayer">memlayer</A>
 -  windows of memory-resident images
-<DD><TT> memdraw, memlalloc, memldelete, memlexpose, memlfree, memlhide, memline, memlnorefresh, memload, memlorigin, memlsetrefresh, memltofront, memltofrontn, memltorear, memltorearn</TT>
+<DD><TT> memdraw, memlalloc, memldelete, memlexpose, memlfree, memlhide, memline, memlnorefresh, memload, memunload, memlorigin, memlsetrefresh, memltofront, memltofrontn, memltorear, memltorearn</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/memory">memory</A>
 -  memory operations
@@ -280,7 +292,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/mp">mp</A>
 -  extended precision arithmetic
-<DD><TT> mpsetminbits, mpnew, mpfree, mpbits, mpnorm, mpcopy, mpassign, mprand, strtomp, mpconv,mptoa, betomp, mptobe, letomp, mptole, mptoui, uitomp, mptoi, itomp, mpdigdiv, mpadd, mpsub, mpleft, mpright, mpmul, mpexp, mpmod, mpdiv, mpcmp, mpextendedgcd, mpinvert, mpsignif, mplowbits0, mpvecdigmuladd, mpvecdigmulsub, mpvecadd, mpvecsub, mpveccmp, mpvecmul, mpmagcmp, mpmagadd, mpmagsub, crtpre, crtin, crtout, crtprefree, crtresfree</TT>
+<DD><TT> mpsetminbits, mpnew, mpfree, mpbits, mpnorm, mpcopy, mpassign, mprand, strtomp, mpconv,mptoa, betomp, mptobe, letomp, mptole, mptoui, uitomp, mptoi, itomp, uvtomp, mptouv, vtomp, mptov, mpdigdiv, mpadd, mpsub, mpleft, mpright, mpmul, mpexp, mpmod, mpdiv, mpcmp, mpextendedgcd, mpinvert, mpsignif, mplowbits0, mpvecdigmuladd, mpvecdigmulsub, mpvecadd, mpvecsub, mpveccmp, mpvecmul, mpmagcmp, mpmagadd, mpmagsub, crtpre, crtin, crtout, crtprefree, crtresfree</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/muldiv">muldiv</A>
 -  high-precision multiplication and division
@@ -330,6 +342,10 @@
 -  print formatted output
 <DD><TT> print, fprint, sprint, snprint, seprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint</TT>
 </DT>
+<DT><A HREF="/magic/man2html/2/privalloc">privalloc</A>
+-  per-process private storage management
+<DD><TT> privalloc, privfree</TT>
+</DT>
 <DT><A HREF="/magic/man2html/2/proto">proto</A>
 -  parse and process a proto file listing
 <DD><TT> rdproto</TT>
@@ -350,13 +366,17 @@
 -  Quaternion arithmetic
 <DD><TT> qtom, mtoq, qadd, qsub, qneg, qmul, qdiv, qunit, qinv, qlen, slerp, qmid, qsqrt</TT>
 </DT>
+<DT><A HREF="/magic/man2html/2/quote">quote</A>
+-  quoted character strings
+<DD><TT> quotestrdup, quoterunestrdup, unquotestrdup, unquoterunestrdup, quotestrconv, quoterunestrconv, quotefmtinstall, doquote</TT>
+</DT>
 <DT><A HREF="/magic/man2html/2/rand">rand</A>
 -  random number generator
 <DD><TT> rand, lrand, frand, nrand, lnrand, srand, truerand, n_truerand, fastrand</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/read">read</A>
 -  read or write file
-<DD><TT> read, readn, write, read9p, write9p</TT>
+<DD><TT> read, readn, write, pread, pwrite, read9p, write9p</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/readcolmap">readcolmap</A>
 -  access display color map
@@ -381,6 +401,10 @@
 <DT><A HREF="/magic/man2html/2/runestrcat">runestrcat</A>
 -  rune string operations
 <DD><TT> runestrcat, runestrncat, runestrcmp, runestrncmp, runestrcpy, runestrncpy, runestrecpy, runestrlen, runestrchr, runestrrchr, runestrdup, runestrstr</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/scribble">scribble</A>
+-  character recognition
+<DD><TT> scribblealloc, recognize</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/scsi">scsi</A>
 -  SCSI device operations
@@ -424,7 +448,11 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/strcat">strcat</A>
 -  string operations
-<DD><TT> strcat, strncat, strcmp, strncmp, strcpy, strncpy, strecpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, strstr</TT>
+<DD><TT> strcat, strncat, strcmp, strncmp, cistrcmp, cistrncmp, strcpy, strncpy, strecpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, strstr, cistrstr</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/string">string</A>
+-  extensible strings
+<DD><TT> s_alloc, s_append, s_array, s_copy, s_error, s_free, s_incref, s_memappend, s_nappend, s_new, s_newalloc, s_parse, s_reset, s_restart, s_terminate, s_tolower, s_putc, s_unique, s_grow, s_read, s_read_line, s_getline</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/stringsize">stringsize</A>
 -  graphical size of strings
@@ -440,7 +468,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/thread">thread</A>
 -  thread and proc management
-<DD><TT> alt, chancreate, chaninit, proccreate, procdata, recv, recvp, recvul, send, sendp, sendul, nbrecv, nbrecvp, nbrecvul, nbsend, nbsendp, nbsendul, chanfree, procexec, procexecl, threadchdir, threadcreate, threadexits, threadexitsall, threadgetgrp, threadgetname, threadkill, threadkillgrp, threadmain, threadprint, threadsetgrp, threadsetname, threadwaitchan, yield</TT>
+<DD><TT> alt, chancreate, chanfree, chaninit, proccreate, procdata, procexec, procexecl, procrfork, recv, recvp, recvul, send, sendp, sendul, nbrecv, nbrecvp, nbrecvul, nbsend, nbsendp, nbsendul, threadchdir, threadcreate, threaddata, threadexits, threadexitsall, threadgetgrp, threadgetname, threadkill, threadkillgrp, threadmain, threadnonotes, threadpid, threadprint, threadsetgrp, threadsetname, threadwaitchan, yield</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/time">time</A>
 -  time in seconds and nanoseconds since epoch
@@ -457,9 +485,5 @@
 <DT><A HREF="/magic/man2html/2/window">window</A>
 -  window management
 <DD><TT> Screen, allocscreen, publicscreen, freescreen, allocwindow, bottomwindow, bottomnwindows, topwindow, topnwindows, originwindow</TT>
-</DT>
-<DT><A HREF="/magic/man2html/2/worldmap">worldmap</A>
--  generate world coast, river and border maps.
-<DD><TT> mapinit, readtile, drawtile, freetile, drawpoly</TT>
 </DT>
 </DL>

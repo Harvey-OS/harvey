@@ -111,6 +111,7 @@ enum {
 	/* authentication protocols */
 	APmd5=		5,
 	APmschap=	128,
+	APpasswd=	Ppasswd,		/* use Pap, not Chap */
 
 	/* lcp flags */
 	Fmtu=		1<<Omtu,
@@ -126,6 +127,11 @@ enum {
 	Cresponse=	2,
 	Csuccess=	3,
 	Cfailure=	4,
+
+	/* Pap codes */
+	Pauthreq=	1,
+	Pauthack=	2,
+	Pauthnak=	3,
 
 	/* Chap state */
 	Cunauth=	0,

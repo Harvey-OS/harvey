@@ -233,6 +233,12 @@
 .	fp 2 I PI
 .	fp 3 B PB
 .	fp 4 BI PX\}
+.if '\\$1'lucidabright'\{\
+.	fp 1 R LucidaBright
+.	fp 2 I LucidaBright-Italic
+.	fp 3 B LucidaBright-Demi
+.	fp 4 BI LucidaBright-DemiItalic
+.	fp 5 CW LucidaSansCW\}
 .if '\\$1'lucidasans'\{\
 .	fp 1 R LucidaSans
 .	fp 2 I LucidaSansI

@@ -23,4 +23,4 @@ client_io.$O:		client.h
 %.$O:	../%.c
 	$CC $CFLAGS ../$stem.c
 
-$O.ssh:	client_messages.$O client_io.$O packet.$O
+$O.ssh:	client_messages.$O client_io.$O packet.$O key.$O

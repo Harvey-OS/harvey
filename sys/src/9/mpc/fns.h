@@ -10,7 +10,7 @@ void	clockcheck(void);
 void	clockinit(void);
 void	clockintr(Ureg*);
 void	clrfptrap(void);
-#define coherence()		// not need on single processor machines
+#define coherence()
 void	cpminit(void);
 int	cpuidentify(void);
 void	cpuidprint(void);
@@ -88,7 +88,7 @@ ulong	rmapalloc(RMap*, ulong, int, int);
 void	screeninit(void);
 void	setpanic(void);
 int	screenprint(char*, ...);			/* debugging */
-#define screenputs(x, y)		// no screen
+#define screenputs(x, y)
 ulong	sdraminit(ulong*);
 int	segflush(void*, ulong);
 void	spireset(void);
@@ -103,6 +103,7 @@ void	tlbflushall(void);
 void	uartinstall(void);
 void	uartwait(void);	/* debugging */
 int unsac(uchar *dst, uchar *src, int n, int nsrc);
+#define	userureg(ur) ((ur)->status & KUSER)
 void	wbflush(void);
 
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))

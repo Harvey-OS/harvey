@@ -733,6 +733,7 @@ buildop(void)
 			break;
 
 		case AMULL:
+			oprange[AMULA] = oprange[r];
 			oprange[AMULAL] = oprange[r];
 			oprange[AMULLU] = oprange[r];
 			oprange[AMULALU] = oprange[r];

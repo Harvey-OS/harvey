@@ -8,7 +8,7 @@ case 0
 case 1
 	prompt=($prompt '	')
 }
-if(~ $rcname v.out) prompt=('broken! ' '	')
+if(~ $rcname ?.out) prompt=('broken! ' '	')
 if(flag p) path=/bin
 if not{
 	finit

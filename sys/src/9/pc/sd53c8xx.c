@@ -1,54 +1,16 @@
 /*
- * NCR 53c8xx driver for Plan 9
- * Nigel Roles (ngr@cotswold.demon.co.uk)
+ * NCR/Symbios/LSI Logic 53c8xx driver for Plan 9
+ * Nigel Roles (nigel@9fs.org)
  *
- * 08/07/99	Ultra2 fixed. Brazil #ifdefs added. Fixed script error 6 diagnostics.
+ * 13/3/01	Fixed microcode to support targets > 7
  *
- * 09/06/99	Enhancements to support 895 and 896 correctly. Attempt at Ultra 2 negotiation,
- *		though no device to test with yet.
- *		Variant now contains the number of valid chip registers to assist
- *		dumpncrregs() 
- *
- * 06/10/98	Various bug fixes and Brazil compiler inspired changes from jmk
- *
- * 05/10/98	Small fix to handle command length being greater than expected by device
- *
- * 04/08/98     Added missing locks to interrupt handler. Marked places where 
- *		multiple controller extensions could go
- *
- * 18/05/97	Fixed overestimate in size of local SCRIPT RAM
- *
- * 17/05/97	Bug fix to return status
- *
- * 06/10/96	Enhanced list of chip IDs. 875 revision 1 has no clock doubler, so assume it
- *		is shipped with 80MHz crystal. Use bit 3 of the GPREG to recognise differential
- *		boards. This is Symbios specific, but since they are about the only suppliers of
- *		differential cards.
- *
- * 23/9/96	Wide and Ultra supported. 825A and 860 added to variants. Dual compiling
- *		version for fileserver and cpu. 80MHz default clock for 860
- *		
- * 5/8/96	Waits for an Inquiry message before initiating synchronous negotiation
- *		in case capabilities byte [7] indicates device does not support it. Devices
- *		which do target initiated negotiation will typically get in first; a few
- *		bugs in handling this have been fixed
- *
- * 3/8/96	Added differential support (put scsi0=diff in plan9.ini)
- *		Split exec() into exec() and io(). Exec() is small, and Io() does not
- *		use any Plan 9 specific data structures, so alternate exec() functions
- *		may be done for other environments, such as the fileserver
- *
- * GENERAL
- *
- * Works on 810 and 875
- * Should work on 815, 825, 810A, 825A, 860A
- * Uses local RAM, large FIFO, prefetch, burst opcode fetch, and 16 byte synch. offset
- * where applicable
- * Supports multi-target, wide, Ultra
- * Differential mode can be enabled by putting scsi0=diff in plan9.ini
- * NO SUPPORT FOR tagged queuing (yet)
+ * 01/12/00	Removed previous comments. Fixed a small problem in
+ *			mismatch recovery for targets with synchronous offsets of >=16
+ *			connected to >=875s. Thanks, Jean.
  *
  * Known problems
+ *
+ * Read/write mismatch recovery may fail on 53c1010s. Really need to get a manual.
  */
 
 #define MAXTARGET	16		/* can be 8 or 16 */
@@ -60,7 +22,7 @@
 #include "fns.h"
 #include "io.h"
 
-#include "sd.h"
+#include "../port/sd.h"
 extern SDifc sd53c8xxifc;
 
 /**********************************/
@@ -352,7 +314,8 @@ typedef struct Controller {
 	QLock q[MAXTARGET];		/* queues for each target */
 } Controller;
 
-static Controller controller;
+#define SYNCOFFMASK(c)		(((c)->v->maxsyncoff * 2) - 1)
+#define SSIDMASK(c)		(((c)->v->feature & Wide) ? 15 : 7)
 
 /* ISTAT */
 enum { Abrt = 0x80, Srst = 0x40, Sigp = 0x20, Sem = 0x10, Con = 0x08, Intf = 0x04, Sip = 0x02, Dip = 0x01 };
@@ -1064,7 +1027,7 @@ read_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 		IPRINT(PRINTPREFIX "%d/%d: read_mismatch_recover: DMA FIFO = %d\n",
 		    dsa->target, dsa->lun, inchip);
 	}
-	if (n->sxfer & 0xf) {
+	if (n->sxfer & SYNCOFFMASK(c)) {
 		/* SCSI FIFO */
 		uchar fifo = n->sstat1 >> 4;
 		if (c->v->maxsyncoff > 8)
@@ -1092,7 +1055,7 @@ read_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 }
 
 static ulong
-write_mismatch_recover(Ncr *n, Dsa *dsa)
+write_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 {
 	ulong dbc;
 	uchar dfifo = n->dfifo;
@@ -1122,7 +1085,7 @@ write_mismatch_recover(Ncr *n, Dsa *dsa)
 		IPRINT(PRINTPREFIX "%d/%d: write_mismatch_recover: SODL msb full\n", dsa->target, dsa->lun);
 #endif
 	}
-	if (n->sxfer & 0xf) {
+	if (n->sxfer & SYNCOFFMASK(c)) {
 		/* synchronous SODR */
 		if (n->sstat0 & (1 << 6)) {
 			inchip++;
@@ -1245,7 +1208,7 @@ interrupt(Ureg *ur, void *a)
 				cont = E_data_block_mismatch_recover;
 			}
 			else if (sa == E_data_out_mismatch) {
-				dbc = write_mismatch_recover(n, dsa);
+				dbc = write_mismatch_recover(c, n, dsa);
 				tbc = legetl(dsa->data_buf.dbc) - dbc;
 				advancedata(&dsa->data_buf, tbc);
 				if (DEBUG(1) || DEBUG(2))
@@ -1254,7 +1217,7 @@ interrupt(Ureg *ur, void *a)
 				cont = E_to_decisions;
 			}
 			else if (sa == E_data_out_block_mismatch) {
-				dbc = write_mismatch_recover(n, dsa);
+				dbc = write_mismatch_recover(c, n, dsa);
 				tbc = legetl(dsa->data_buf.dbc) - dbc;
 				/* recover current state from registers */
 				dmablks = n->scratcha[2];
@@ -1288,7 +1251,7 @@ interrupt(Ureg *ur, void *a)
 				 */
 				ulong lim = legetl(dsa->msg_out_buf.dbc);
 				uchar p = n->sstat1 & 7;
-				dbc = write_mismatch_recover(n, dsa);
+				dbc = write_mismatch_recover(c, n, dsa);
 				tbc = lim - dbc;
 				IPRINT(PRINTPREFIX "%d/%d: msg_out_mismatch: %lud/%lud sent, phase %s\n",
 				    dsa->target, dsa->lun, tbc, lim, phase[p]);
@@ -1304,7 +1267,7 @@ interrupt(Ureg *ur, void *a)
 				 */
 				ulong lim = legetl(dsa->cmd_buf.dbc);
 				uchar p = n->sstat1 & 7;
-				dbc = write_mismatch_recover(n, dsa);
+				dbc = write_mismatch_recover(c, n, dsa);
 				tbc = lim - dbc;
 				IPRINT(PRINTPREFIX "%d/%d: cmd_out_mismatch: %lud/%lud sent, phase %s\n",
 				    dsa->target, dsa->lun, tbc, lim, phase[p]);
@@ -1378,8 +1341,8 @@ interrupt(Ureg *ur, void *a)
 				break;
 			case A_SIR_ERROR_NOT_MSG_IN_AFTER_RESELECT:
 				IPRINT(PRINTPREFIX "%d: not msg_in after reselect (%s)",
-				    n->ssid & 7, phase[n->sstat1 & 7]);
-				dsa = dsafind(c, n->ssid & 7, -1, A_STATE_DISCONNECTED);
+				    n->ssid & SSIDMASK(c), phase[n->sstat1 & 7]);
+				dsa = dsafind(c, n->ssid & SSIDMASK(c), -1, A_STATE_DISCONNECTED);
 				dumpncrregs(c, 1);
 				wakeme = 1;
 				break;
@@ -1732,8 +1695,18 @@ docheck:
 
 	while(waserror())
 		;
-	sleep(d, done, d);
+	tsleep(d, done, d, 600 * 1000);
 	poperror();
+
+	if (!done(d)) {
+		KPRINT(PRINTPREFIX "%d/%d: exec: Timed out\n", target, r->lun);
+		dumpncrregs(c, 0);
+		dsafree(c, d);
+		reset(c);
+		qunlock(&c->q[target]);
+		r->status = SDtimeout;
+		return r->status = SDtimeout;	/* assign */
+	}
 
 	if((status = d->p9status) == SDeio)
 		c->s[target] = NeitherDone;
@@ -1799,8 +1772,7 @@ cribbios(Controller *c)
 {
 	c->bios.scntl3 = c->n->scntl3;
 	c->bios.stest2 = c->n->stest2;
-	print(PRINTPREFIX "bios scntl3(%.2x) stest2(%.2x)\n",
-		c->bios.scntl3, c->bios.stest2);
+	print(PRINTPREFIX "bios scntl3(%.2x) stest2(%.2x)\n", c->bios.scntl3, c->bios.stest2);
 }
 
 static int
@@ -1866,6 +1838,8 @@ xfunc(Controller *c, enum na_external x, unsigned long *v)
 		*v = offsetof(Dsa, status_buf); return 1;
 	case X_dsa_head:
 		*v = DMASEG(&c->dsalist.head[0]); return 1;
+	case X_ssid_mask:
+		*v = SSIDMASK(c); return 1;
 	default:
 		print("xfunc: can't find external %d\n", x);
 		return 0;
@@ -1948,7 +1922,7 @@ sympnp(void)
 				break;
 		}
 		if(v >= &variant[nelem(variant)]) {
-			print(PRINTPREFIX "no match\n");
+			print("no match\n");
 			continue;
 		}
 		print(PRINTPREFIX "%s rev. 0x%2.2x intr=%d command=%4.4luX\n",
@@ -1962,11 +1936,8 @@ sympnp(void)
 			ba++;
 		}
 		regpa = upamalloc(regpa & ~0x0F, p->mem[1].size, 0);
-		if(regpa == 0){
-			print(PRINTPREFIX "failed to allocate register space (%d bytes at %.8lux)\n",
-				p->mem[1].size, regpa & ~0x0F);
+		if(regpa == 0)
 			continue;
-		}
 
 		script = nil;
 		scriptpa = 0;

@@ -14,6 +14,7 @@ OFILES=\
 	lsetrefresh.$O\
 	ltofront.$O\
 	ltorear.$O\
+	unload.$O\
 
 HFILES=/sys/include/memlayer.h /sys/include/memdraw.h /sys/include/draw.h
 

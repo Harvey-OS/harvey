@@ -2,11 +2,6 @@
 #include <mp.h>
 #include "dat.h"
 
-// for converting between int's and mpint's
-#define MAXUINT ((uint)-1)
-#define MAXINT (MAXUINT>>1)
-#define MININT (MAXINT+1)
-
 static mpdigit _mptwodata[1] = { 2 };
 static mpint _mptwo =
 {
@@ -118,69 +113,6 @@ mpnorm(mpint *b)
 	b->top = i+1;
 	if(b->top == 0)
 		b->sign = 1;
-}
-
-mpint*
-itomp(int i, mpint *b)
-{
-	if(b == nil)
-		b = mpnew(0);
-	mpassign(mpzero, b);
-	if(i != 0)
-		b->top = 1;
-	if(i < 0){
-		b->sign = -1;
-		*b->p = -i;
-	} else
-		*b->p = i;
-	return b;
-}
-
-int
-mptoi(mpint *b)
-{
-	uint x;
-
-	x = *b->p;
-	if(b->sign > 0){
-		if(b->top > 1 || (x > MAXINT))
-			x = (int)MAXINT;
-		else
-			x = (int)x;
-	} else {
-		if(b->top > 1 || x > MAXINT+1)
-			x = (int)MININT;
-		else
-			x = -(int)x;
-	}
-	return x;
-}
-
-mpint*
-uitomp(uint i, mpint *b)
-{
-	if(b == nil)
-		b = mpnew(0);
-	mpassign(mpzero, b);
-	if(i != 0)
-		b->top = 1;
-	*b->p = i;
-	return b;
-}
-
-uint
-mptoui(mpint *b)
-{
-	uint x;
-
-	x = *b->p;
-	if(b->sign < 0){
-		x = 0;
-	} else {
-		if(b->top > 1 || x > MAXUINT)
-			x =  MAXUINT;
-	}
-	return x;
 }
 
 mpint*

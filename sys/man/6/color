@@ -115,6 +115,19 @@ maximum value (255 for an 8-bit-per-color display) represents full intensity (e.
 Common display depths are 24 bits per pixel, with 8 bits per color in order
 red, green, blue, and 16 bits per pixel, with 5 bits of red, 6 bits of green, and 5 bits of blue.
 .PP
+Colors may also be created with an opacity factor called
+.BR alpha ,
+which is scaled so 0 represents fully transparent and 255 represents opaque color.
+The alpha is
+.I premultiplied
+into the other channels, as described in the paper by Porter and Duff cited in
+.IR draw (2).
+The function
+.B setalpha
+(see
+.IR allocimage (2))
+aids the initialization of color values with non-trivial alpha.
+.PP
 The packing of pixels into bytes and words is set by the display.
 In all extant
 implementations the bits within a pixel byte are in big-endian order (leftmost pixel

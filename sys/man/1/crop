@@ -26,6 +26,11 @@ crop, iconv \- frame, crop, and convert image
 .I maxy
 ]
 [
+.B -t
+.I tx
+.I ty
+]
+[
 .B -b
 .I red
 .I green
@@ -88,6 +93,14 @@ coordinates of the image.
 The
 .B -r
 option specifies an exact rectangle.
+.PP
+The 
+.B -t
+option specifies that the image's coordinate system should
+be translated by
+.IR tx ,
+.IR ty
+as the last step of processing.
 .PP
 The
 .B -b

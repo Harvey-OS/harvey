@@ -5,7 +5,7 @@ enum {
 	DENIED,
 	DIALUP,
 	BLOCKED,
-	RELAY,
+	DELAY,
 	NONE,
 
 	MAXREJECTS = 100,
@@ -51,9 +51,10 @@ void	noop(void);
 void	quit(void);
 void	parseinit(void);
 void	receiver(String*);
+int	recipok(char*);
 int	reply(char*, ...);
 void	reset(void);
-int	rmtdns(char*);
+int	rmtdns(char*, char*);
 void	sayhi(void);
 void	sender(String*);
 void	turn(void);

@@ -1,6 +1,6 @@
 #
 # This Plan 9 mkfile is for ``easy'' building.
-# It worked for Ghostscript 5.70 - 5.91
+# It worked for Ghostscript 5.70 - 6.32
 #
 # This mkfile consists of two parts: the first part builds the gs executable,
 # the second unpacks the gs distribution and sets configuration parameters.

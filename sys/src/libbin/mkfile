@@ -1,0 +1,11 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libbin.a
+OFILES=\
+	bin.$O\
+
+HFILES=\
+	/sys/include/bin.h\
+
+</sys/src/cmd/mksyslib
+

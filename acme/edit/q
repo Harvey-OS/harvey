@@ -1,7 +1,0 @@
-#!/bin/rc
-echo $#*
-if(! ~ $#* 1){
-	echo usage: q addr >[1=2]
-	exit usage
-}
-exec sed 's/$/;'$1'/'

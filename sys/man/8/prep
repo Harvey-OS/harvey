@@ -1,6 +1,6 @@
 .TH PREP 8
 .SH NAME
-prep, fdisk, format, mbr \- prepare hard and floppy diskettes
+prep, fdisk, format, mbr \- prepare hard and floppy diskettes, flashes
 .SH SYNOPSIS
 .B disk/prep
 [
@@ -56,7 +56,6 @@ prep, fdisk, format, mbr \- prepare hard and floppy diskettes
 .B -m
 .I mbrfile
 ]
-.I disk
 .SH DESCRIPTION
 A partition table is stored on a hard disk to specify the division of
 the physical disk into a set of logical units.
@@ -65,6 +64,14 @@ of the disk.
 Partitions of type
 .B 0x39
 are Plan 9 partitions.
+The names of PC partitions are chosen by convention from the type:
+.BR dos ,
+.BR plan9 ,
+etc.
+Second and subsequent partitions of the same type on a given disk are given
+unique names by appending a number (or a period and a number if the name
+already ends in a number).
+.PP
 Plan 9 partitions (and Plan 9 disks on non-PCs) are
 themselves divided, using a textual partition table, called the Plan 9 partition table, in the second
 sector of the partition (the first is left for architecture-specific boot data, such as PC boot blocks).
@@ -129,7 +136,17 @@ and is usually invoked with a disk partition
 like
 .B /dev/sdC0/plan9
 as its argument.
-They share most of their options:
+.I Fdisk
+works in units of disk ``cylinders'': the cylinder
+size in bytes is printed when
+.I fdisk
+starts.
+.I Prep
+works in units of disk sectors, which are almost always 512 bytes.
+.I Fdisk
+and
+.I prep
+share most of their options:
 .TP
 .B -a
 Automatically partition the disk.
@@ -244,17 +261,22 @@ and
 .I fdisk
 enter an interactive partition editor that
 operates on named partitions.
-Since
-.I fdisk
-is operating on a 4-entry boot sector table
-without names,
-its only valid partition names are
-.BR p1 ,
-.BR p2 ,
-.BR p3 ,
-and
-.BR p4 .
+The PC partition table distinguishes between
+primary partitions, which can be listed in the boot
+sector at the beginning of the disk,
+and secondary (or extended) partitions, arbitrarily
+many of which may be chained together in place
+of a primary partition.
+Primary partitions are named
+.BR p \fIn\fR,
+secondary partitions
+.BR s \fIn\fR.
+The number of primary partitions plus number of contiguous chains of
+secondary partitions cannot exceed four.
+.PP
 The commands are as follows.
+In the descriptions, read ``sector'' as ``cylinder'' when using
+.IR fdisk .
 .TP
 .B "a\fR \fIname\fR [ \fIstart\fR [ \fIend\fR ] ]"
 Create a partition named
@@ -606,7 +628,7 @@ for(disk in /dev/sd??) {
 Create a Plan 9 boot floppy on a previously formatted diskette:
 .IP
 .EX
-disk/format -b /386/pbs -d /dev/fd0disk /386/9load /386/9pcdisk.gz
+disk/format -b /386/pbs -df /dev/fd0disk /386/9load /tmp/plan9.ini
 .EE
 .PP
 Initialize the blank hard disk

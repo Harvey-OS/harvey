@@ -15,6 +15,7 @@ OFILES=\
 	iprint.$O\
 	line.$O\
 	load.$O\
+	openmemsubfont.$O\
 	poly.$O\
 	read.$O\
 	string.$O\

@@ -149,45 +149,53 @@ initdraw(void(*error)(Display*, char*), char *fontname , char *label)
  * If reattaching, maintain value of screen pointer.
  */
 int
-getwindow(Display *d, int ref)
+gengetwindow(Display *d, char *winname, Image **winp, Screen **scrp, int ref)
 {
 	int n, fd;
-	char buf[128];
+	char buf[64+1];
 	Image *image;
 
-	snprint(buf, sizeof buf, "%s/winname", d->windir);
-	fd = open(buf, OREAD);
-	if(fd<0 || (n=read(fd, buf, 64))<=0){
-		screen = display->image;
-		assert(screen && screen->chan != 0);
+	fd = open(winname, OREAD);
+	if(fd<0 || (n=read(fd, buf, sizeof buf-1))<=0){
+		*winp = d->image;
+		assert(*winp && (*winp)->chan != 0);
 		return 1;
 	}
 	close(fd);
-	buf[n] = 0;
-	if(screen != nil){
-		_freeimage1(screen);
-		freeimage(_screen->image);
-		freescreen(_screen);
-		_screen = nil;
+	buf[n] = '\0';
+	if(*winp != nil){
+		_freeimage1(*winp);
+		freeimage((*scrp)->image);
+		freescreen(*scrp);
+		*scrp = nil;
 	}
-	image = namedimage(display, buf);
+	image = namedimage(d, buf);
 	if(image == 0){
-		screen = nil;
+		*winp = nil;
 		return -1;
 	}
 	assert(image->chan != 0);
 
-	_screen = allocscreen(image, display->white, 0);
-	if(_screen == nil){
-		screen = nil;
+	*scrp = allocscreen(image, d->white, 0);
+	if(*scrp == nil){
+		*winp = nil;
 		return -1;
 	}
 
-	screen = _allocwindow(screen, _screen, insetrect(image->r, Borderwidth), ref, DWhite);
-	if(screen == nil)
+	*winp = _allocwindow(*winp, *scrp, insetrect(image->r, Borderwidth), ref, DWhite);
+	if(*winp == nil)
 		return -1;
-	assert(screen->chan != 0);
+	assert((*winp)->chan != 0);
 	return 1;
+}
+
+int
+getwindow(Display *d, int ref)
+{
+	char winname[128];
+
+	snprint(winname, sizeof winname, "%s/winname", d->windir);
+	return gengetwindow(d, winname, &screen, &_screen, ref);
 }
 
 #define	NINFO	12*12

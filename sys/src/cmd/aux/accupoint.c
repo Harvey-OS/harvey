@@ -49,7 +49,7 @@ writemouse(M *m)
 		m->byte,
 		m->xy.x,
 		m->xy.y,
-		m->buttons,
+		m->buttons&7,
 		m->msec);
 }
 
@@ -110,7 +110,8 @@ main(void)
 		}
 		if(button2)
 			m.buttons |= 2;
-		writemouse(&m);
+		if(m.byte!=om.byte || m.buttons!=om.buttons || !eqpt(m.xy, om.xy))
+			writemouse(&m);
 		om = m;
 	}
 }

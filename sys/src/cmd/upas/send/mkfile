@@ -18,14 +18,12 @@ SMOBJ=main.$O\
 	gateway.$O\
 
 LIB=../common/libcommon.av\
-	 ../libString/libString.av\
 
 HFILES=send.h\
 	../common/common.h\
 	../common/sys.h\
 
 LIB=../common/libcommon.a$O\
-	../libString/libString.a$O\
 
 BIN=/$objtype/bin/upas
 </sys/src/cmd/mkmany

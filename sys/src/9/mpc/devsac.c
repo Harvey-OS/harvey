@@ -173,8 +173,6 @@ sacwalk(Chan *c, char *name)
 	isdir(c);
 	if(name[0]=='.' && name[1]==0)
 		return 1;
-	if(name[0]=='.' && name[1]=='.' && name[2]==0)
-		return 1;
 	sac = c->aux;
 	sac = saclookup(sac, name);
 	if(sac == nil) {

@@ -560,11 +560,18 @@ texttype(Text *t, Rune r)
 	case 0x08:	/* ^H: erase character */
 	case 0x15:	/* ^U: erase line */
 	case 0x17:	/* ^W: erase word */
-		if(t->q0 == 0)
+		if(t->q0 == 0)	/* nothing to erase */
 			return;
 		nnb = textbswidth(t, r);
 		q1 = t->q0;
 		q0 = q1-nnb;
+		/* if selection is at beginning of window, avoid deleting invisible text */
+		if(q0 < t->org){
+			q0 = t->org;
+			nnb = q1-q0;
+		}
+		if(nnb <= 0)
+			return;
 		for(i=0; i<t->file->ntext; i++){
 			u = t->file->text[i];
 			u->nofill = TRUE;

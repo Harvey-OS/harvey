@@ -56,11 +56,8 @@ main(int argc, char **argv)
 	}
 
 	ctl = open("/dev/consctl", OWRITE);
-	if(ctl < 0){
-		perror("xms");
-		exits("consctl");
-	}
-	write(ctl, "rawon", 5);
+	if(ctl >= 0)
+		write(ctl, "rawon", 5);
 
 	/* give the other side a 30 seconds to signal ready */
 	atnotify(notifyf, 1);

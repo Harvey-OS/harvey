@@ -1,6 +1,6 @@
 .TH NDB 8
 .SH NAME
-query, mkhash, mkdb, cs, csquery, dns, dnsquery, dnsdebug, mkhosts \- network database
+query, mkhash, mkdb, cs, csquery, dns, dnsquery, ipquery, dnsdebug, mkhosts \- network database
 .SH SYNOPSIS
 .B ndb/query
 [

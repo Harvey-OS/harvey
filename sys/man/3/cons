@@ -423,11 +423,11 @@ toggles whether the console debugger will be run if the system fails.
 .L ^T^TD
 starts the console debugger immediately.
 .L ^T^Tk
-kills the largest process; use with care
+kills the largest process; use with care.
 .L ^T^Tp
 prints data about processes.
 .L ^T^Tq
-prints the run queue for processor 0
+prints the run queue for processor 0.
 .L ^T^Ts
 prints the kernel stack.
 .L ^T^Tx

@@ -53,7 +53,7 @@ Mach marm =
 	"setR12",	/* static base register name */
 	0,		/* static base register value */
 	0x1000,		/* page size */
-	0x80000000,	/* kernel base */
+	0xC0000000,	/* kernel base */
 	0,		/* kernel text mask */
 	4,		/* quantization of pc */
 	4,		/* szaddr */

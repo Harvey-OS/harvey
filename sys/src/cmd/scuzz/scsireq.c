@@ -521,10 +521,25 @@ seqdevopen(ScsiReq *rp)
 	if(SRrblimits(rp, limits) == -1)
 		return -1;
 	if(limits[1] || limits[2] != limits[4] || limits[3] != limits[5]){
+		/*
+		 * On some older hardware the optional 10-byte
+		 * modeselect command isn't implemented.
+		 */
+		if(!(rp->flags & Fmode6)){
+			memset(mode, 0, sizeof(mode));
+			mode[3] = 0x10;
+			mode[7] = 8;
+			if(SRmodeselect10(rp, mode, sizeof(mode)) != -1){
+				rp->lbsize = 1;
+				return 0;
+			}
+			rp->flags |= Fmode6;
+		}
+
 		memset(mode, 0, sizeof(mode));
-		mode[3] = 0x10;
-		mode[7] = 8;
-		if(SRmodeselect10(rp, mode, sizeof(mode)) == -1)
+		mode[2] = 0x10;
+		mode[3] = 8;
+		if(SRmodeselect6(rp, mode, 4+8) == -1)
 			return -1;
 		rp->lbsize = 1;
 	}

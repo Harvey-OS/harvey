@@ -121,7 +121,7 @@ impName(char *name)
 	if(cistrcmp(name, "inbox") == 0)
 		name = "mbox";
 	n = strlen(name) + STRLEN(".imp") + 1;
-	s = canAlloc(&parseCan, n, 0);
+	s = binalloc(&parseBin, n, 0);
 	if(s == nil)
 		return nil;
 	snprint(s, n, "%s.imp", name);
@@ -151,7 +151,7 @@ strmutf7(char *s)
 	int n;
 
 	n = strlen(s) * MUtf7Max + 1;
-	m = canAlloc(&parseCan, n, 0);
+	m = binalloc(&parseBin, n, 0);
 	if(m == nil)
 		return nil;
 	if(encmutf7(m, n, s) < 0)
@@ -171,7 +171,7 @@ mutf7str(char *s)
 	 */
 	n = strlen(s);
 	n = (n * 9 + 7) / 8 + 1;
-	m = canAlloc(&parseCan, n, 0);
+	m = binalloc(&parseBin, n, 0);
 	if(m == nil)
 		return nil;
 	if(decmutf7(m, n, s) < 0)
@@ -186,7 +186,7 @@ splitr(char *s, int c, char **left, char **right)
 	int n;
 
 	n = strlen(s);
-	d = canAlloc(&parseCan, n + 1, 0);
+	d = binalloc(&parseBin, n + 1, 0);
 	if(d == nil)
 		parseErr("out of memory");
 	strcpy(d, s);

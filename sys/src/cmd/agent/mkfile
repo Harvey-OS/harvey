@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+TARG=agent
+PROTO=\
+	apop.$O\
+	plan9.$O\
+	p9sk1.$O\
+	raw.$O\
+	ssh.$O\
+
+OFILES=\
+	config.$O\
+	fs.$O\
+	main.$O\
+	p9sk1.$O\
+	prototab.$O\
+	util.$O\
+	strtomp.$O\
+	$PROTO\
+
+HFILES=agent.h dat.h
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

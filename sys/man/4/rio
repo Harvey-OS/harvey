@@ -184,7 +184,7 @@ returns the full contents of the window.
 It may not be written.
 .TP
 .B wctl
-maybe be read or written.
+may be read or written.
 When read, it returns the location of the window as four decimal integers formatted
 in the usual 12-character style: upper left
 .I x
@@ -194,7 +194,14 @@ lower right
 .I x
 and
 .IR y .
-A subsequent read will block until the window changes size or location.
+Following these numbers are strings describing the window's state:
+.B hidden
+or
+.BR visible ;
+.B current
+or
+.BR notcurrent .
+A subsequent read will block until the window changes size, location, or state.
 When written to,
 .B wctl
 accepts messages to change the size or placement of the associated window,
@@ -211,10 +218,18 @@ The commands are
 (change the size and position of the window),
 .B move
 (move the window),
+.B scroll
+(enable scrolling in the window),
+.B noscroll
+(disable scrolling),
 .B top
 (move the window to the `top', making it fully visible),
 .B bottom
 (move the window to the `bottom', perhaps partially or totally obscuring it),
+.B hide
+(hide the window),
+.B unhide
+(restore a hidden window),
 .B current
 (make the window the recipient of keyboard and mouse input),
 and

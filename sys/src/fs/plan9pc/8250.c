@@ -186,10 +186,6 @@ uartintr(Ureg *ur, void *arg)
 		case 4:	/* received data available */
 		case 12:
 			ch = inb(up->port+Data);
-#ifndef nohacks
-			if((ch & 0x7F) == 0x10)
-				firmware();
-#endif /* nohacks */
 			if(up->rx)
 				(*up->rx)(ch & 0x7F);
 			break;

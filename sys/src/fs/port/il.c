@@ -27,7 +27,7 @@ enum
 	AckDelay	= (ulong)(2*Iltickms),	/* max time twixt message rcvd & ack sent */
 	MaxTimeout 	= (ulong)(4*Seconds),	/* max time between rexmit */
 	QueryTime	= (ulong)(10*Seconds),	/* time between subsequent queries */
-	DeathTime	= (ulong)(5*QueryTime),
+	DeathTime	= (ulong)(30*QueryTime),
 
 	MaxRexmit 	= 16,		/* max retransmissions before hangup */
 	DefWin		= 20,

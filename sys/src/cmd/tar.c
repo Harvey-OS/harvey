@@ -360,9 +360,11 @@ putfile(char *dir, char *longname, char *sname)
 		writetar(buf);
 		blocks--;
 	}
+	if (i < 0)
+		fprint(2, "tar: %s: error reading file: %r\n", longname);
+	else if (blocks != 0)
+		fprint(2, "tar: %s: file changed size\n", longname);
 	close(infile);
-	if (blocks != 0 || i != 0)
-		fprint(2, "%s: file changed size\n", longname);
 	while (blocks-- >  0)
 		putempty();
 }
@@ -505,7 +507,7 @@ checkdir(char *name, int mode)
 	}
 
 	/* if this is a directory, chmod it to the mode in the tar plus 700 */
-	if(cp[-1] == '/'){
+	if(cp[-1] == '/' || dblock.dbuf.linkflag == '5'){
 		if(dirstat(name, &d) >= 0){
 			d.mode = CHDIR | (mode & 0777) | 0700;
 			dirwstat(name, &d);

@@ -7,9 +7,13 @@ getenv(char *name)
 	int r, f;
 	long s;
 	char *ans;
-	char *p, *ep, ename[200];
+	char *p, *ep, ename[100];
 
-	sprint(ename, "/env/%s", name);
+	if(strchr(name, '/') != nil)
+		return nil;
+	snprint(ename, sizeof ename, "/env/%s", name);
+	if(strcmp(ename+5, name) != 0)
+		return nil;
 	f = open(ename, OREAD);
 	if(f < 0)
 		return 0;

@@ -599,7 +599,7 @@ struct Chwid {	/* data on one character */
 
 struct Font {	/* characteristics of a font */
 	int	name;		/* int name, e.g., BI (2 chars) */
-	char	longname[20];	/* long name of this font (e.g., "Bembo" */
+	char	longname[64];	/* long name of this font (e.g., "Bembo" */
 	char	*truename;	/* path name of table if not in standard place */
 	int	nchars;		/* number of width entries for this font */
 	char	specfont;	/* 1 == special font */

@@ -249,10 +249,16 @@ iptobinding(uchar *ip, int mk)
 static void
 lognolease(Binding *b)
 {
+	/* renew the old binding, and hope it eventually goes away */
+	b->offer = 5*60;
+	commitbinding(b);
+
+	/* complain if we haven't in the last 5 minutes */
 	if(now - b->lastcomplained < 5*60)
 		return;
 	syslog(0, blog, "dhcp: lease for %I to %s ended at %ld but still in use\n",
 		b->ip, b->boundto != nil ? b->boundto : "?", b->lease);
+	b->lastcomplained = now;
 }
 
 /*
@@ -306,8 +312,8 @@ idtobinding(char *id, Info *iip, int ping)
 		oldest->tried = now;
 		if(ping == 0 || icmpecho(oldest->ip) == 0)
 			return oldest;
-		else
-			lognolease(oldest);	/* sets lastcomplained */
+
+		lognolease(oldest);	/* sets lastcomplained */
 	}
 
 	/* try all bindings */
@@ -318,8 +324,8 @@ idtobinding(char *id, Info *iip, int ping)
 			b->tried = now;
 			if(ping == 0 || icmpecho(oldest->ip) == 0)
 				return b;
-			else
-				lognolease(b);
+
+			lognolease(b);
 		}
 	}
 
@@ -333,7 +339,7 @@ idtobinding(char *id, Info *iip, int ping)
 extern void
 mkoffer(Binding *b, char *id, long leasetime)
 {
-	if(leasetime == 0){
+	if(leasetime <= 0){
 		if(b->lease > now + minlease)
 			leasetime = b->lease - now;
 		else

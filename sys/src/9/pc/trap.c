@@ -50,19 +50,19 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	iunlock(&vctllock);
 }
 
-int
-irqallocread(char *buf, long n, vlong offset)
+static long
+irqallocread(Chan*, void *vbuf, long n, vlong offset)
 {
-	int vno;
-	Vctl *v;
+	char *buf, *p, str[11+1+NAMELEN+1];
+	int m, vno;
 	long oldn;
-	char str[11+1+NAMELEN+1], *p;
-	int m;
+	Vctl *v;
 
 	if(n < 0 || offset < 0)
 		error(Ebadarg);
 
 	oldn = n;
+	buf = vbuf;
 	for(vno=0; vno<nelem(vctl); vno++){
 		for(v=vctl[vno]; v; v=v->next){
 			m = snprint(str, sizeof str, "%11d %11d %.*s\n", vno, v->irq, NAMELEN, v->name);
@@ -164,6 +164,8 @@ trapinit(void)
 	trapenable(VectorPF, fault386, 0, "fault386");
 
 	nmienable();
+
+	addarchfile("irqalloc", 0444, irqallocread, nil);
 }
 
 static char* excname[32] = {
@@ -274,7 +276,7 @@ trap(Ureg* ureg)
 		 */
 		print("cpu%d: spurious interrupt %d, last %d",
 			m->machno, vno, m->lastintr);
-		for(i = 0; i < 32; i++){
+		for(i = 0; i < conf.nmach; i++){
 			if(!(active.machs & (1<<i)))
 				continue;
 			mach = MACHP(i);

@@ -105,6 +105,13 @@ bzfs.root.s: /sys/lib/pcdist/bin/$objtype/bzfs
 	strip bzfs.out
 	../port/mkroot bzfs kfs
 
+bzroot.root.s: /sys/lib/pcdist/disk/root.bz2
+	aux/data2s bzroot < /sys/lib/pcdist/disk/root.bz2 > bzroot.root.s
+
+9660srv.root.s: /$objtype/bin/9660srv
+	strip < /$objtype/bin/9660srv >9660srv.out
+	../port/mkroot 9660srv kfs
+
 boot$CONF.root.s: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
 	$BOOTDIR/mkboot $CONF > boot$CONF.c
 	$CC $CFLAGS boot$CONF.c

@@ -59,6 +59,10 @@ and the
 entry in
 .LR /sys/lib/lp/devices .
 .TP
+.B -k
+Kill the job(s) given as subsequent arguments instead of file names
+for the given destination.
+.TP
 .BI -p " proc"
 The given processor is invoked.
 The default processor is
@@ -76,9 +80,10 @@ may be specified.
 Print the queue for the given destination.
 For some devices, include printer status.
 .TP
-.B -k
-Kill the job(s) given as subsequent arguments instead of file names
-for the given destination.
+.B -R
+Stops and restarts the printer daemon.
+If the printer is wedged, it is often useful to cycle the power on the printer
+before running this command.
 .PD
 .PP
 The remaining options may be used to affect the output at a given device.

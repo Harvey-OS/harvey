@@ -111,6 +111,7 @@ ctlr
 	0xC0044="Phoenix S3 TRIO64V+ Enhanced VGA BIOS. Version 1."
 	0xC0044="S3 86C325 Video BIOS. Version 1.00-05"
 	0xC0094="#9-764 BIOS Version 1.02.00u"
+	0xC0094="#9-764 BIOS Version 1.02.01u"
 	0xC0044="S3 86C765 Video BIOS"
 	link=vga
 	hwgc=s3hwgc
@@ -138,6 +139,7 @@ ctlr
 	0xC001A="PNTNIBM VGA Compatible BIOS" 	# Hercules Terminator
 	0xCBCBC="TOSHIBA Savage\MX BIOS Ver. 4.00.20 - 21" # Portégé 3440CT
 	0xC0044="S3 86CM65 Video BIOS"		# Compaq Presario 3060 (Aurora64V+)
+	0xC0045="S3 Savage\IX BIOS Ver. 4.02.50 - 39"	# IBM Thinkpad T21
 	link=vga
 	hwgc=s3hwgc
 	ctlr=virge linear=1
@@ -251,6 +253,7 @@ ctlr
 ctlr
 	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V1.9 )"	# Millennium
 	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V3.0 )"	# Millennium
+	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V2.2 )"	# Millennium
 	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V2.5 )"	# Millennium
 	0xC002D="MATROX/MISTRAL  VGA/VBE BIOS (V1."		# Millennium II
 	link=vga
@@ -289,6 +292,7 @@ ctlr
 	0xC0056="Voodoo3 1000 16MB BIOS"		# Voodoo3 1000
 	0xC0056="Voodoo3 2000 BIOS"			# Voodoo3 2000
 	0xC0056="Voodoo3 3000 BIOS"			# Voodoo3 3000
+	0xC0056="Voodoo3 3000 LC BIOS"			# Voodoo3 3000
 	link=vga
 	ctlr=3dfx linear=1
 	hwgc=3dfxhwgc
@@ -571,7 +575,7 @@ ms8617
 #
 mf8221e
 	videobw=200
-	alias=sm17GLsi
+	alias=multisync
 mf8221e = 1600x1200					# 75Hz, 93.3KHz
 	defaultclock=200
 	shb=1664 ehb=2088 ht=2144
@@ -868,6 +872,15 @@ sgi1600sw = 800x512
 	vrs=512 vre=514 vt=515
 	zoom=1
 	hsync=+ vsync=+
+#
+# SGI 1600SW Flat Panel with Multilink Adapter.
+#
+multilink = 1600x1024
+	defaultclock=108
+	shb=1608 ehb=1624 ht=1712
+	shs=1608 ehs=1624
+	vrs=1027 vre=1030 vt=1055
+	hsync=- vsync=-
 #
 # Viewsonic VPD150
 # Usually coupled with an ATI Xpert LCD PCI/AGP.

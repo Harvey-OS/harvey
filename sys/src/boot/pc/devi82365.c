@@ -437,21 +437,34 @@ pcmspecial(char *idstr, ISAConf *isa)
 {
 	Slot *pp;
 	extern char *strstr(char*, char*);
+	int enabled;
 
 	i82365reset();
 	for(pp = slot; pp < lastslot; pp++){
 		if(pp->special)
 			continue;	/* already taken */
-		increfp(pp);
-
-		if(pp->occupied)
-		if(strstr(pp->verstr, idstr))
-		if(isa == 0 || pcmio(pp->slotno, isa) == 0){
-			pp->special = 1;
-			return pp->slotno;
+		enabled = 0;
+		/* make sure we don't power on cards when we already know what's
+		 * in them.  We'll reread every two minutes if necessary
+		 */
+		if (pp->verstr[0] == '\0') {
+			increfp(pp);
+			enabled++;
 		}
 
-		decrefp(pp);
+		if(pp->occupied) {
+			if(strstr(pp->verstr, idstr)) {
+				if (!enabled)
+					increfp(pp);
+				if(isa == 0 || pcmio(pp->slotno, isa) == 0){
+					pp->special = 1;
+					return pp->slotno;
+				}
+			}
+		} else
+			pp->special = 1;
+		if (enabled)
+			decrefp(pp);
 	}
 	return -1;
 }

@@ -8,3 +8,7 @@
 .hy 0
 ..
 .nr LL 20i
+.dePP
+\Xhtml <P>
+.}p
+..

@@ -23,6 +23,7 @@ extern	char*	strncpy(char*, char*, long);
 extern	int	strncmp(char*, char*, long);
 extern	long	strlen(char*);
 extern	char*	strrchr(char*, char);
+extern	char*	strstr(char*, char*);
 
 /*
  * print routines
@@ -42,8 +43,6 @@ extern	int	print(char*, ...);
  * one-of-a-kind
  */
 extern	int	atoi(char*);
-extern	void	longjmp(jmp_buf, int);
-extern	int	setjmp(jmp_buf);
 extern	long	strtol(char*, char**, int);
 extern	ulong	strtoul(char*, char**, int);
 extern	long	end;
@@ -93,7 +92,7 @@ struct Dir
 	ulong	mode;
 	long	atime;
 	long	mtime;
-	Length;
+	vlong	length;
 	short	type;
 	short	dev;
 };

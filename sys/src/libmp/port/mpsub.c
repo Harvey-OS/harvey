@@ -47,5 +47,6 @@ mpsub(mpint *b1, mpint *b2, mpint *diff)
 
 	sign = b1->sign;
 	mpmagsub(b1, b2, diff);
-	diff->sign *= sign;
+	if(diff->top != 0)
+		diff->sign *= sign;
 }

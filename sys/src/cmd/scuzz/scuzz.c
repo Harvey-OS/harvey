@@ -9,6 +9,7 @@
 Biobuf bin, bout;
 static char rwbuf[MaxIOsize];
 static int verbose = 1;
+long maxiosize = MaxIOsize;
 
 typedef struct {
 	char *name;
@@ -120,12 +121,13 @@ waitfor(int pid)
 static long
 cmdread(ScsiReq *rp, int argc, char *argv[])
 {
-	long n, nbytes, total, iosize;
+	long n, iosize;
+	vlong nbytes, total;
 	int fd, pid;
 	char *p;
 
-	iosize = MaxIOsize;
-	nbytes = 0x7FFFFFFF & ~iosize;
+	iosize = maxiosize;
+	nbytes = 0x7FFFFFFFFFFFULL & ~iosize;
 	switch(argc){
 
 	default:
@@ -133,7 +135,8 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 		return -1;
 
 	case 2:
-		if((nbytes = strtol(argv[1], &p, 0)) == 0 && p == argv[1]){
+		nbytes = strtoll(argv[1], &p, 0);
+		if(nbytes == 0 && p == argv[1]){
 			rp->status = Status_BADARG;
 			return -1;
 		}
@@ -149,8 +152,10 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 	print("bsize=%lud\n", rp->lbsize);
 	total = 0;
 	while(nbytes){
-		n = MIN(nbytes, iosize);
-		if((n = SRread(rp, rwbuf, n)) == -1){
+		n = iosize;
+		if(n > nbytes)
+			n = nbytes;
+		if((n = SRread(rp, rwbuf, n)) <= 0){
 			if(total == 0)
 				total = -1;
 			break;
@@ -176,11 +181,12 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 static long
 cmdwrite(ScsiReq *rp, int argc, char *argv[])
 {
-	long n, nbytes, total;
+	long n;
+	vlong nbytes, total;
 	int fd, pid;
 	char *p;
 
-	nbytes = 0x7FFFFFFF & ~MaxIOsize;
+	nbytes = 0x7FFFFFFF & ~maxiosize;
 	switch(argc){
 
 	default:
@@ -188,7 +194,8 @@ cmdwrite(ScsiReq *rp, int argc, char *argv[])
 		return -1;
 
 	case 2:
-		if((nbytes = strtol(argv[1], &p, 0)) == 0 && p == argv[1]){
+		nbytes = strtoll(argv[1], &p, 0);
+		if(nbytes == 0 && p == argv[1]){
 			rp->status = Status_BADARG;
 			return -1;
 		}
@@ -203,8 +210,10 @@ cmdwrite(ScsiReq *rp, int argc, char *argv[])
 	}
 	total = 0;
 	while(nbytes){
-		n = MIN(nbytes, MaxIOsize);
-		if((n = read(fd, rwbuf, n)) == -1){
+		n = maxiosize;
+		if(n > nbytes)
+			n = nbytes;
+		if((n = readn(fd, rwbuf, n)) <= 0){
 			if(total == 0)
 				total = -1;
 			break;
@@ -1273,8 +1282,8 @@ cmdwtrack(ScsiReq *rp, int argc, char *argv[])
 		break;
 	}
 	total = 0;
-	n = MIN(nbytes, MaxIOsize);
-	if((n = read(fd, rwbuf, n)) == -1){
+	n = MIN(nbytes, maxiosize);
+	if((n = readn(fd, rwbuf, n)) == -1){
 		fprint(2, "file read failed %r\n");
 		close(fd);
 		return -1;
@@ -1289,7 +1298,7 @@ cmdwtrack(ScsiReq *rp, int argc, char *argv[])
 	nbytes -= n;
 	total += n;
 	while(nbytes){
-		n = MIN(nbytes, MaxIOsize);
+		n = MIN(nbytes, maxiosize);
 		if((n = read(fd, rwbuf, n)) == -1){
 			break;
 		}
@@ -1798,7 +1807,7 @@ parse(char *s, char *fields[], int nfields)
 static void
 usage(void)
 {
-	fprint(2, "%s: usage: %s [-q] [/dev/sdXX]\n", argv0, argv0);
+	fprint(2, "%s: usage: %s [-q] [-m maxiosize] [/dev/sdXX]\n", argv0, argv0);
 	exits("usage");
 }
 
@@ -1839,7 +1848,14 @@ main(int argc, char *argv[])
 	case 'q':
 		verbose = 0;
 		break;
-
+	case 'm':
+		ap = ARGF();
+		if(ap == nil)
+			usage();
+		maxiosize = atol(ap);
+		if(maxiosize < 512 || maxiosize > MaxIOsize)
+			usage();
+		break;
 	default:
 		usage();
 	} ARGEND

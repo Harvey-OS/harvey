@@ -17,10 +17,11 @@ main(int argc, char *argv[])
 	fmtinstall('R', Rconv);
 	fmtinstall('D', Dconv);
 
-	init();
 	per = PER;
 	deld = PER/NPTS;
+	init();
 	args(argc, argv);
+	init();
 
 loop:
 	d = day;
@@ -123,6 +124,7 @@ args(int argc, char *argv[])
 
 	case 'a':
 	case 'd':
+	case 'j':
 	case 'k':
 	case 'l':
 	case 'm':
@@ -143,6 +145,8 @@ args(int argc, char *argv[])
 	day = t/86400. + 25567.5;
 	if(flags['d'])
 		day = readate();
+	if(flags['j'])
+		print("jday = %.4f\n", day);
 	deltat = day * .001704;
 	if(deltat > 32.184)		// assume date is utc1
 		deltat = 32.184;	// correct by leap sec

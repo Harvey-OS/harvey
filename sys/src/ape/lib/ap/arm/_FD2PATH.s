@@ -1,0 +1,4 @@
+TEXT _FD2PATH(SB), 1, $-4
+MOVW $23, R0
+SWI 0
+RET

@@ -1,8 +1,8 @@
 // NCR 53c8xx driver for Plan 9
-// Nigel Roles (ngr@cotswold.demon.co.uk)
+// Nigel Roles (nigel@9fs.org)
 //
 // Microcode
-// 05/10/98	Small fix to handle command length being greater than expected by device
+// 13/3/01	Fixed microcode to support targets > 7
 //
 
 extern	scsi_id_buf
@@ -14,6 +14,7 @@ extern	msgin_buf
 extern	dsa_0
 extern  dsa_1
 extern	dsa_head
+extern	ssid_mask
 
 SIR_MSG_IO_COMPLETE = 0
 error_not_cmd_complete = 1
@@ -330,7 +331,7 @@ find_dsa_1:
 	move	memory 4, state, scratcha		// get dsastate in scratcha
 	move	scratcha0 to sfbr			// and state variable in sfbr
 	jump	find_dsa_next, if not STATE_DISCONNECTED // wrong state
-	move	ssid & 7 to sfbr			// get target ID
+	move	ssid & ssid_mask to sfbr			// get target ID
 	move	memory 1, targ, find_dsa_smc1		// forge target comparison instruction
 find_dsa_smc1:
 	jump	find_dsa_next, if not 255		// jump if not matched

@@ -1,0 +1,27 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libcontrol.a
+
+OFILES=\
+	box.$O\
+	button.$O\
+	cache.$O\
+	control.$O\
+	entry.$O\
+	keyboard.$O\
+	label.$O\
+	radiobutton.$O\
+	scribble.$O\
+	slider.$O\
+	text.$O\
+	textbutton.$O\
+
+HFILES=/sys/include/draw.h\
+	/sys/include/mouse.h\
+	/sys/include/keyboard.h\
+	/sys/include/control.h
+
+</sys/src/cmd/mksyslib
+
+
+$OFILES: $HFILES

@@ -94,6 +94,7 @@ main(int argc, char *argv[])
 		syslog(0, "mail", "error: used %s", s_to_c(tmp));
 		s_free(tmp);
 	}
+	Bseek(fp, 0, 2);
 	if(m_print(mp, fp, (char *)0, 1) < 0
 	|| Bprint(fp, "\n") < 0
 	|| Bflush(fp) < 0){

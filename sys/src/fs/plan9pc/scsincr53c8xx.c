@@ -1,44 +1,15 @@
 /*
- * NCR 53c8xx driver for Plan 9
- * Nigel Roles (ngr@cotswold.demon.co.uk)
+ * NCR/Symbios/LSI Logic 53c8xx driver for Plan 9
+ * Nigel Roles (nigel@9fs.org)
  *
- * 04/08/98     Added missing locks to interrupt handler. Marked places where 
- *		multiple controller extensions could go
- *
- * 18/05/97	Fixed overestimate in size of local SCRIPT RAM
- *
- * 17/05/97	Bug fix to return status
- *
- * 06/10/96	Enhanced list of chip IDs. 875 revision 1 has no clock doubler, so assume it
- *		is shipped with 80MHz crystal. Use bit 3 of the GPREG to recognise differential
- *		boards. This is Symbios specific, but since they are about the only suppliers of
- *		differential cards.
- *
- * 23/9/96	Wide and Ultra supported. 825A and 860 added to variants. Dual compiling
- *		version for fileserver and cpu. 80MHz default clock for 860
- *		
- * 5/8/96	Waits for an Inquiry message before initiating synchronous negotiation
- *		in case capabilities byte [7] indicates device does not support it. Devices
- *		which do target initiated negotiation will typically get in first; a few
- *		bugs in handling this have been fixed
- *
- * 3/8/96	Added differential support (put scsi0=diff in plan9.ini)
- *		Split exec() into exec() and io(). Exec() is small, and Io() does not
- *		use any Plan 9 specific data structures, so alternate exec() functions
- *		may be done for other environments, such as the fileserver
- *
- * GENERAL
- *
- * Works on 810 and 875
- * Should work on 815, 825, 810A, 825A, 860A
- * Uses local RAM, large FIFO, prefetch, burst opcode fetch, and 16 byte synch. offset
- * where applicable
- * Supports multi-target, wide, Ultra
- * Differential mode can be enabled by putting scsi0=diff in plan9.ini
- * NO SUPPORT FOR tagged queuing (yet)
+ * 01/12/00	Removed previous comments. Fixed a small problem in
+ *			mismatch recovery for targets with synchronous offsets of >=16
+ *			connected to >=875s. Thanks, Jean.
  *
  * Known problems
- */
+ *
+ * Read/write mismatch recovery may fail on 53c1010s. Really need to get a manual.
+*/
 
 #define MAXTARGET	8		/* can be 8 or 16 */
 
@@ -327,7 +298,7 @@ typedef struct Variant {
 	uchar maxrid;			/* maximum allowed revision ID */
 	char *name;
 	Burst burst;			/* codings for max burst */
-	uchar maxsyncoff;		/* max synchronous offset */
+	uchar maxsyncoff;		/* max synchronous offset - must be power of 2 */
 	uchar registers;		/* number of 32 bit registers */
 	unsigned feature;
 } Variant;
@@ -373,6 +344,8 @@ typedef struct Controller {
 
 	QLock q[MAXTARGET];		/* queues for each target */
 } Controller;
+
+#define SYNCOFFMASK(c)		(((c)->v->maxsyncoff * 2) - 1)
 
 static Controller *ctlrxx[MaxScsi];
 
@@ -1090,7 +1063,7 @@ read_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 		IPRINT(PRINTPREFIX "%d/%d: read_mismatch_recover: DMA FIFO = %d\n",
 		    dsa->target, dsa->lun, inchip);
 	}
-	if (n->sxfer & 0xf) {
+	if (n->sxfer & SYNCOFFMASK(c)) {
 		/* SCSI FIFO */
 		uchar fifo = n->sstat1 >> 4;
 		if (c->v->maxsyncoff > 8)
@@ -1118,7 +1091,7 @@ read_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 }
 
 static ulong
-write_mismatch_recover(Ncr *n, Dsa *dsa)
+write_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 {
 	ulong dbc;
 	uchar dfifo = n->dfifo;
@@ -1148,7 +1121,7 @@ write_mismatch_recover(Ncr *n, Dsa *dsa)
 		IPRINT(PRINTPREFIX "%d/%d: write_mismatch_recover: SODL msb full\n", dsa->target, dsa->lun);
 #endif
 	}
-	if (n->sxfer & 0xf) {
+	if (n->sxfer & SYNCOFFMASK(c)) {
 		/* synchronous SODR */
 		if (n->sstat0 & (1 << 6)) {
 			inchip++;
@@ -1271,7 +1244,7 @@ interrupt(Ureg *ur, void *a)
 				cont = E_data_block_mismatch_recover;
 			}
 			else if (sa == E_data_out_mismatch) {
-				dbc = write_mismatch_recover(n, dsa);
+				dbc = write_mismatch_recover(c, n, dsa);
 				tbc = legetl(dsa->data_buf.dbc) - dbc;
 				advancedata(&dsa->data_buf, tbc);
 				if (DEBUG(1) || DEBUG(2))
@@ -1280,7 +1253,7 @@ interrupt(Ureg *ur, void *a)
 				cont = E_to_decisions;
 			}
 			else if (sa == E_data_out_block_mismatch) {
-				dbc = write_mismatch_recover(n, dsa);
+				dbc = write_mismatch_recover(c, n, dsa);
 				tbc = legetl(dsa->data_buf.dbc) - dbc;
 				/* recover current state from registers */
 				dmablks = n->scratcha[2];
@@ -1314,7 +1287,7 @@ interrupt(Ureg *ur, void *a)
 				 */
 				ulong lim = legetl(dsa->msg_out_buf.dbc);
 				uchar p = n->sstat1 & 7;
-				dbc = write_mismatch_recover(n, dsa);
+				dbc = write_mismatch_recover(c, n, dsa);
 				tbc = lim - dbc;
 				IPRINT(PRINTPREFIX "%d/%d: msg_out_mismatch: %lud/%lud sent, phase %s\n",
 				    dsa->target, dsa->lun, tbc, lim, phase[p]);
@@ -1330,7 +1303,7 @@ interrupt(Ureg *ur, void *a)
 				 */
 				ulong lim = legetl(dsa->cmd_buf.dbc);
 				uchar p = n->sstat1 & 7;
-				dbc = write_mismatch_recover(n, dsa);
+				dbc = write_mismatch_recover(c, n, dsa);
 				tbc = lim - dbc;
 				IPRINT(PRINTPREFIX "%d/%d: cmd_out_mismatch: %lud/%lud sent, phase %s\n",
 				    dsa->target, dsa->lun, tbc, lim, phase[p]);

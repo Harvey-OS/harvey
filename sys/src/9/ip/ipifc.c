@@ -99,7 +99,7 @@ ipfindmedium(char *name)
 
 /*
  *  attach a device (or pkt driver) to the interface.
- *  called with c->car locked
+ *  called with c locked
  */
 static char*
 ipifcbind(Conv *c, char **argv, int argc)
@@ -136,11 +136,8 @@ ipifcbind(Conv *c, char **argv, int argc)
 	ifc->m = m;
 	ifc->minmtu = ifc->m->minmtu;
 	ifc->maxmtu = ifc->m->maxmtu;
-	if(ifc->m->unbindonclose == 0){
-		qlock(ifc->conv);
+	if(ifc->m->unbindonclose == 0)
 		ifc->conv->inuse++;
-		qunlock(ifc->conv);
-	}
 	ifc->ifcid++;
 
 	wunlock(ifc);
@@ -151,6 +148,7 @@ ipifcbind(Conv *c, char **argv, int argc)
 
 /*
  *  detach a device from an interface, close the interface
+ *  called with ifc->conv closed
  */
 static char*
 ipifcunbind(Ipifc *ifc)
@@ -166,11 +164,8 @@ ipifcunbind(Ipifc *ifc)
 	wlock(ifc);
 
 	/* dissociate routes */
-	if(ifc->m != nil && ifc->m->unbindonclose == 0){
-		qlock(ifc->conv);
+	if(ifc->m != nil && ifc->m->unbindonclose == 0)
 		ifc->conv->inuse--;
-		qunlock(ifc->conv);
-	}
 	ifc->ifcid++;
 
 	/* disassociate device */
@@ -262,7 +257,7 @@ ipifcinuse(Conv *c)
  *  called when a process writes to an interface's 'data'
  */
 static void
-ipifckick(Conv *c, int)
+ipifckick(Conv *c)
 {
 	Block *bp;
 	Ipifc *ifc;
@@ -309,7 +304,6 @@ ipifcclose(Conv *c)
 	m = ifc->m;
 	if(m != nil && m->unbindonclose)
 		ipifcunbind(ifc);
-	qunlock(c);
 }
 
 /*
@@ -630,8 +624,6 @@ ipifcctl(Conv* c, char**argv, int argc)
 	ifc = (Ipifc*)c->ptcl;
 	if(strcmp(argv[0], "add") == 0)
 		return ipifcadd(ifc, argv, argc);
- 	else if(strcmp(argv[0], "bootp") == 0)
-		return bootp(ifc);
 	else if(strcmp(argv[0], "remove") == 0)
 		return ipifcrem(ifc, argv, argc, 1);
 	else if(strcmp(argv[0], "unbind") == 0)

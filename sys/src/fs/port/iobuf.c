@@ -223,7 +223,7 @@ checktag(Iobuf *p, int tag, long qpath)
 		}
 		if(p->dev->type == Devcw)
 			cwfree(p->dev, p->addr);
-		print("	tag = %d/%lud; expected %d/%ld -- flushed (%ld)\n",
+		print("	tag = %G/%lud; expected %G/%ld -- flushed (%ld)\n",
 			t->tag, t->path, tag, qpath, p->addr);
 		p->dev = devnone;
 		p->addr = -1;

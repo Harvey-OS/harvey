@@ -29,6 +29,7 @@ EXTERN	struct
 	Node*	basetree;
 	short	scale;
 	short	reg;
+	short	ptr;
 } idx;
 
 struct	Adr
@@ -111,7 +112,7 @@ struct	Reg
 };
 #define	R	((Reg*)0)
 
-#define	NRGN	300
+#define	NRGN	600
 struct	Rgn
 {
 	Reg*	enter;

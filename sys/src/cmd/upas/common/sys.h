@@ -1,11 +1,12 @@
 /*
  * System dependent header files for research
  */
+
 #include <u.h>
 #include <libc.h>
 #include <regexp.h>
 #include <bio.h>
-#include "../libString/String.h"
+#include "String.h"
 
 /*
  *  for the lock routines in libsys.c

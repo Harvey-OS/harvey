@@ -63,7 +63,7 @@ static Memimage xgscreen =
 	0,	/* zero */
 	512,	/* width */
 	0,	/* layer */
-	Frepl,	/* flags */
+	0,	/* flags */
 };
 
 Memimage *gscreen;
@@ -310,9 +310,12 @@ screenputc(char *buf)
 	case '\t':
 		p = memsubfontwidth(memdefont, " ");
 		w = p.x;
-		*xp++ = curpos.x;
+		if(curpos.x >= window.max.x-8*w)
+			screenputc("\n");
+
 		pos = (curpos.x-window.min.x)/w;
 		pos = 8-(pos%8);
+		*xp++ = curpos.x;
 		r = Rect(curpos.x, curpos.y, curpos.x+pos*w, curpos.y + h);
 		memimagedraw(gscreen, r, back, back->r.min, nil, back->r.min);
 		curpos.x += pos*w;
@@ -324,6 +327,8 @@ screenputc(char *buf)
 		r = Rect(*xp, curpos.y, curpos.x, curpos.y + h);
 		memimagedraw(gscreen, r, back, back->r.min, nil, back->r.min);
 		curpos.x = *xp;
+		break;
+	case '\0':
 		break;
 	default:
 		p = memsubfontwidth(memdefont, buf);

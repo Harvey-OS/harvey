@@ -1,7 +1,15 @@
-TEXT	_mainp(SB), 1, $16
+#define NPRIVATES	16
+
+TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 
 	MOVW	$setR30(SB), R30
 	MOVW	R1, _clock(SB)
+
+	MOVW	$p-64(SP), R1
+	MOVW	R1, _privates(SB)
+	MOVW	$NPRIVATES, R1
+	MOVW	R1, _nprivates(SB)
+
 	JAL	_profmain(SB)
 	MOVW	__prof+4(SB), R1
 	MOVW	R1, __prof+0(SB)

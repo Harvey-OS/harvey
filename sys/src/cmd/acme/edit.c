@@ -126,10 +126,10 @@ allupdate(Window *w, void*)
 			for(i=0; i<f->ntext; i++)
 				f->text[i]->w->dirty = FALSE;
 		}
-		textsetselect(t, t->q0, t->q1);
-		textscrdraw(t);
-		winsettag(w);
 	}
+	textsetselect(t, t->q0, t->q1);
+	textscrdraw(t);
+	winsettag(w);
 }
 
 void

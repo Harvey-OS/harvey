@@ -889,7 +889,7 @@ PP = p;
 
 		o2 = oprrr(AADD, p->scond);
 		o2 |= REGTMP;
-		r = p->reg;
+		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
 		o2 |= r << 16;

@@ -218,6 +218,7 @@ EXTERN	Sym*	histfrog[MAXHIST];
 EXTERN	int	histfrogp;
 EXTERN	int	histgen;
 EXTERN	char*	library[50];
+EXTERN	char*	libraryobj[50];
 EXTERN	int	libraryp;
 EXTERN	int	xrefresolv;
 EXTERN	char*	hunk;

@@ -6,9 +6,6 @@
 #define	ADDFREE		(100)
 #define	CACHE_ADDR	SUPER_ADDR
 #define	MAXAGE		10000
-#define	BKPERBLK	10
-#define CEPERBK		((BUFSIZE-BKPERBLK*sizeof(long))/\
-				(sizeof(Centry)*BKPERBLK))
 
 #define	CDEV(d)		(d->cw.c)
 #define	WDEV(d)		(d->cw.w)
@@ -38,44 +35,6 @@ enum
 };
 
 typedef	struct	Cw	Cw;
-typedef	struct	Cache	Cache;
-typedef	struct	Centry	Centry;
-typedef	struct	Bucket	Bucket;
-
-/* DONT TOUCH, this is the disk structure */
-struct	Cache
-{
-	long	maddr;		/* cache map addr */
-	long	msize;		/* cache map size in buckets */
-	long	caddr;		/* cache addr */
-	long	csize;		/* cache size */
-	long	fsize;		/* current size of worm */
-	long	wsize;		/* max size of the worm */
-	long	wmax;		/* highwater write */
-
-	long	sbaddr;		/* super block addr */
-	long	cwraddr;	/* cw root addr */
-	long	roraddr;	/* dump root addr */
-
-	long	toytime;	/* somewhere convienent */
-	long	time;
-};
-
-/* DONT TOUCH, this is the disk structure */
-struct	Centry
-{
-	ushort	age;
-	short	state;
-	long	waddr;		/* worm addr */
-};
-
-/* DONT TOUCH, this is the disk structure */
-struct	Bucket
-{
-	long	agegen;		/* generator for ages in this bkt */
-	Centry	entry[CEPERBK];
-};
-
 struct	Cw
 {
 	Device*	dev;

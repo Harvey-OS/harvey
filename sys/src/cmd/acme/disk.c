@@ -33,7 +33,7 @@ tempfile(void)
 }
 
 Disk*
-diskinit()
+diskinit(void)
 {
 	Disk *d;
 

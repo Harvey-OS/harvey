@@ -16,7 +16,7 @@ readmemimage(int fd)
 	int new, miny, maxy;
 	Rectangle r;
 	uchar *tmp;
-	int ldepth;
+	int ldepth, chunk;
 	Memimage *i;
 
 	if(readn(fd, hdr, 11) != 11)
@@ -73,13 +73,16 @@ readmemimage(int fd)
 	i = allocmemimage(r, chan);
 	if(i == nil)
 		return nil;
-	tmp = malloc(CHUNK);
+	chunk = CHUNK;
+	if(chunk < l)
+		chunk = l;
+	tmp = malloc(chunk);
 	if(tmp == nil)
 		goto Err;
 	while(maxy > miny){
 		dy = maxy - miny;
-		if(dy*l > CHUNK)
-			dy = CHUNK/l;
+		if(dy*l > chunk)
+			dy = chunk/l;
 		if(dy <= 0){
 			werrstr("readmemimage: image too wide for buffer");
 			goto Err;

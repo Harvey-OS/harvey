@@ -129,17 +129,13 @@ devcntl(Biobufhdr *inp) {
 			error(FATAL, "InlinePicture not implemented yet.\n");
 /*			inlinepic(inp, buf);			*/
 		} else if (strncmp(str, "BeginPath", sizeof("BeginPath")-1) == 0) {
-			error(FATAL, "BeginPath not implemented yet.\n");
-/*			beginpath(buf, FALSE);		*/
+			beginpath(buf, FALSE);
 		} else if (strncmp(str, "DrawPath", sizeof("DrawPath")-1) == 0) {
-			error(FATAL, "DrawPath not implemented yet.\n");
-/*			drawpath(buf, FALSE);		*/
+			drawpath(buf, FALSE);
 		} else if (strncmp(str, "BeginObject", sizeof("BeginObject")-1) == 0) {
-			error(FATAL, "BeginObject not implemented yet.\n");
-/*			beginpath(buf, TRUE);		*/
+			beginpath(buf, TRUE);
 		} else if (strncmp(str, "EndObject", sizeof("EndObject")-1) == 0) {
-			error(FATAL, "EndObject not implemented yet.\n");
-/*			drawpath(buf, TRUE);		*/
+			drawpath(buf, TRUE);
 		} else if (strncmp(str, "NewBaseline", sizeof("NewBaseline")-1) == 0) {
 			error(FATAL, "NewBaseline not implemented yet.\n");
 /*			newbaseline(buf);			*/

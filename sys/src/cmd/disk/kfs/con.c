@@ -106,6 +106,14 @@ cmd_halt(void)
 }
 
 void
+cmd_start(void)
+{
+	superok(cur_fs->dev, superaddr(cur_fs->dev), 0);
+	wunlock(&mainlock);
+	print("kfs: file system started\n");
+}
+
+void
 cmd_help(void)
 {
 	int i;
@@ -416,6 +424,16 @@ cmd_chat(void)
 }
 
 void
+cmd_nosync(void)
+{
+	nosync = !nosync;
+	if(nosync)
+		cprint("sync timer off\n");
+	else
+		cprint("sync timer on\n");
+}
+
+void
 cmd_noneattach(void)
 {
 	allownone = !allownone;
@@ -470,8 +488,10 @@ Command	command[] =
 	"newuser",	cmd_newuser,	"username",
 	"noauth",		cmd_noauth,	"",
 	"noneattach",	cmd_noneattach, "",
+	"nosync",		cmd_nosync,	"",
 	"remove",	cmd_remove,	"filename",
 	"rename",	cmd_rename,	"file newname",
+	"start",	cmd_start, "",
 	"stats",	cmd_stats,	"[fw]",
 	"sync",		cmd_sync,	"",
 	"user",		cmd_user,	"",

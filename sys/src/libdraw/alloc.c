@@ -12,6 +12,21 @@ drawld2chan[] = {
 
 int log2[] = { -1, 0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4, -1, -1, -1, -1, -1, -1, -1, 4 /* BUG */, -1, -1, -1, -1, -1, -1, -1, 5 };
 
+ulong
+setalpha(ulong color, uchar alpha)
+{
+	int red, green, blue;
+
+	red = (color >> 3*8) & 0xFF;
+	green = (color >> 2*8) & 0xFF;
+	blue = (color >> 1*8) & 0xFF;
+	/* ignore incoming alpha */
+	red = (red * alpha)/255;
+	green = (green * alpha)/255;
+	blue = (blue * alpha)/255;
+	return (red<<3*8) | (green<<2*8) | (blue<<1*8) | (alpha<<0*8);
+}
+
 Image*
 allocimage(Display *d, Rectangle r, ulong chan, int repl, ulong val)
 {

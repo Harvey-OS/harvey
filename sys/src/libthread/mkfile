@@ -21,9 +21,9 @@ all:V:	$LIB syms
 
 CFLAGS = $CFLAGS -DM$objtype
 
-syms: threadimpl.h
-	$CC -a thread.c	>syms
-	$CC -a channel.c >>syms
+syms:V: threadimpl.h
+	$CC -a thread.c	>syms.$objtype
+	$CC -a channel.c >>syms.$objtype
 
 assert.$O: assert.h threadimpl.h
 channel.$O: assert.h threadimpl.h

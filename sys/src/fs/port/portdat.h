@@ -37,13 +37,13 @@
 #define	SMALLBUF	(MAXMSG)
 #define	LARGEBUF	(MAXMSG+MAXDAT+256)
 #define	RAGAP		(300*1024)/BUFSIZE		/* readahead parameter */
-
-typedef	struct	Vmedevice Vmedevice;	/* not defined here */
+#define CEPERBK		((BUFSIZE-BKPERBLK*sizeof(long))/\
+				(sizeof(Centry)*BKPERBLK))
+#define	BKPERBLK	10
 
 typedef struct	Alarm	Alarm;
 typedef	struct	Conf	Conf;
 typedef	struct	Label	Label;
-typedef	struct	List	List;
 typedef	struct	Lock	Lock;
 typedef	struct	Mach	Mach;
 typedef	struct	QLock	QLock;
@@ -65,7 +65,6 @@ typedef	struct	Iobuf	Iobuf;
 typedef	struct	Wpath	Wpath;
 typedef	struct	File	File;
 typedef	struct	Chan	Chan;
-typedef	struct	P9call	P9call;
 typedef	struct	Cons	Cons;
 typedef	struct	Time	Time;
 typedef	struct	Tm	Tm;
@@ -77,9 +76,7 @@ typedef	struct	Queue	Queue;
 typedef	struct	Command	Command;
 typedef	struct	Flag	Flag;
 typedef	struct	Bp	Bp;
-typedef	struct	Bit	Bit;
 typedef	struct	Rabuf	Rabuf;
-typedef	struct	Rout	Rout;
 typedef	struct	Rendez	Rendez;
 typedef	struct	Filter	Filter;
 typedef		ulong	Float;
@@ -91,6 +88,9 @@ typedef	struct	Ilpkt	Ilpkt;
 typedef	struct	Udppkt	Udppkt;
 typedef	struct	Icmppkt	Icmppkt;
 typedef	struct	Ifc	Ifc;
+typedef	struct	Cache	Cache;
+typedef	struct	Centry	Centry;
+typedef	struct	Bucket	Bucket;
 
 struct	Lock
 {
@@ -201,6 +201,10 @@ struct	Device
 			long	base;
 			long	size;
 		} part;
+		struct			/* part */
+		{
+			Device*	d;
+		} swab;
 	};
 };
 
@@ -400,14 +404,6 @@ struct	Cons
 	Filter	binit[3];	/* getbufs that miss and dont read */
 };
 
-struct	P9call
-{
-	uchar	calln;
-	uchar	rxflag;
-	short	msize;
-	void	(*func)(Chan*, int);
-};
-
 struct	File
 {
 	QLock;
@@ -562,11 +558,6 @@ struct	Fcall
 	};
 };
 
-struct	List
-{
-	void*	next;
-};
-
 struct	Label
 {
 	ulong	pc;
@@ -575,8 +566,8 @@ struct	Label
 
 struct	Alarm
 {
-	List;
 	Lock;
+	Alarm*	next;
 	int	busy;
 	int	dt;		/* in ticks */
 	void	(*f)(Alarm*, void*);
@@ -664,6 +655,7 @@ enum
 	Mbeth2,
 	Mbeth3,
 	Mbeth4,
+	Mbsntp,
 	MAXCAT,
 };
 
@@ -758,6 +750,44 @@ struct	Rtc
 	int	mday;
 	int	mon;
 	int	year;
+};
+
+/*
+ * cw device
+ */
+
+/* DONT TOUCH, this is the disk structure */
+struct	Cache
+{
+	long	maddr;		/* cache map addr */
+	long	msize;		/* cache map size in buckets */
+	long	caddr;		/* cache addr */
+	long	csize;		/* cache size */
+	long	fsize;		/* current size of worm */
+	long	wsize;		/* max size of the worm */
+	long	wmax;		/* highwater write */
+
+	long	sbaddr;		/* super block addr */
+	long	cwraddr;	/* cw root addr */
+	long	roraddr;	/* dump root addr */
+
+	long	toytime;	/* somewhere convienent */
+	long	time;
+};
+
+/* DONT TOUCH, this is the disk structure */
+struct	Centry
+{
+	ushort	age;
+	short	state;
+	long	waddr;		/* worm addr */
+};
+
+/* DONT TOUCH, this is the disk structure */
+struct	Bucket
+{
+	long	agegen;		/* generator for ages in this bkt */
+	Centry	entry[CEPERBK];
 };
 
 /*
@@ -924,6 +954,7 @@ enum
 	Devpart,		/* partition */
 	Devfloppy,		/* floppy drive */
 	Devide,			/* IDE drive */
+	Devswab,		/* swab data between mem and device */
 	MAXDEV
 };
 
@@ -1016,6 +1047,8 @@ enum
 	Ilfsport	= 17008,
 	Ilauthport	= 17020,
 	Ilfsout		= 5000,
+	SNTP		= 123,
+	SNTP_LOCAL	= 6001,
 };
 
 struct	Enpkt
@@ -1170,3 +1203,4 @@ Cons	cons;
 #pragma	varargck	type	"I"	uchar*
 #pragma	varargck	type	"E"	uchar*
 #pragma	varargck	type	"F"	Filter*
+#pragma	varargck	type	"G"	int

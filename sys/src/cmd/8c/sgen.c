@@ -356,143 +356,6 @@ noretval(int n)
 	}
 }
 
-void
-testshift(Node *n)
-{
-	ulong c3;
-	int o, s1, s2, c1, c2;
-
-	if(!typechlp[n->type->etype])
-		return;
-	switch(n->op) {
-	default:
-		return;
-	case OASHL:
-		s1 = 0;
-		break;
-	case OLSHR:
-		s1 = 1;
-		break;
-	case OASHR:
-		s1 = 2;
-		break;
-	}
-	if(n->right->op != OCONST)
-		return;
-	if(n->left->op != OAND)
-		return;
-	if(n->left->right->op != OCONST)
-		return;
-	switch(n->left->left->op) {
-	default:
-		return;
-	case OASHL:
-		s2 = 0;
-		break;
-	case OLSHR:
-		s2 = 1;
-		break;
-	case OASHR:
-		s2 = 2;
-		break;
-	}
-	if(n->left->left->right->op != OCONST)
-		return;
-
-	c1 = n->right->vconst;
-	c2 = n->left->left->right->vconst;
-	c3 = n->left->right->vconst;
-
-/*
-	if(debug['h'])
-		print("%.3o %ld %ld %d #%.lux\n",
-			(s1<<3)|s2, c1, c2, topbit(c3), c3);
-*/
-
-	o = n->op;
-	switch((s1<<3)|s2) {
-	case 000:	/* (((e <<u c2) & c3) <<u c1) */
-		c3 >>= c2;
-		c1 += c2;
-		if(c1 >= 32)
-			break;
-		goto rewrite1;
-
-	case 002:	/* (((e >>s c2) & c3) <<u c1) */
-		if(topbit(c3) >= (32-c2))
-			break;
-	case 001:	/* (((e >>u c2) & c3) <<u c1) */
-		if(c1 > c2) {
-			c3 <<= c2;
-			c1 -= c2;
-			o = OASHL;
-			goto rewrite1;
-		}
-		c3 <<= c1;
-		if(c1 == c2)
-			goto rewrite0;
-		c1 = c2-c1;
-		o = OLSHR;
-		goto rewrite2;
-
-	case 022:	/* (((e >>s c2) & c3) >>s c1) */
-		if(c2 <= 0)
-			break;
-	case 012:	/* (((e >>s c2) & c3) >>u c1) */
-		if(topbit(c3) >= (32-c2))
-			break;
-		goto s11;
-	case 021:	/* (((e >>u c2) & c3) >>s c1) */
-		if(topbit(c3) >= 31 && c2 <= 0)
-			break;
-		goto s11;
-	case 011:	/* (((e >>u c2) & c3) >>u c1) */
-	s11:
-		c3 <<= c2;
-		c1 += c2;
-		if(c1 >= 32)
-			break;
-		o = OLSHR;
-		goto rewrite1;
-
-	case 020:	/* (((e <<u c2) & c3) >>s c1) */
-		if(topbit(c3) >= 31)
-			break;
-	case 010:	/* (((e <<u c2) & c3) >>u c1) */
-		c3 >>= c1;
-		if(c1 == c2)
-			goto rewrite0;
-		if(c1 > c2) {
-			c1 -= c2;
-			goto rewrite2;
-		}
-		c1 = c2 - c1;
-		o = OASHL;
-		goto rewrite2;
-	}
-	return;
-
-rewrite0:	/* get rid of both shifts */
-	*n = *n->left;
-	n->left = n->left->left;
-	n->right->vconst = c3;
-	return;
-rewrite1:	/* get rid of lower shift */
-	n->left->left = n->left->left->left;
-	n->left->right->vconst = c3;
-	n->right->vconst = c1;
-	n->op = o;
-	if(o == OASHL && c1 >= 0 && c1 < 4)
-		n->addable = 7;
-	return;
-rewrite2:	/* get rid of upper shift */
-	*n = *n->left;
-	n->right->vconst = c3;
-	n->left->right->vconst = c1;
-	n->left->op = o;
-	return;
-}
-
 /*
  *	calculate addressability as follows
  *		NAME ==> 10/11		name+value(SB/SP)
@@ -558,32 +421,55 @@ xcom(Node *n)
 		if(n->type->etype != TIND)
 			break;
 
-		if(l->addable == 20)
 		switch(r->addable) {
-		case 13:
-		case 1:
-			n->addable = r->addable;
-			goto brk;
-		}
-		if(r->addable == 20)
-		switch(l->addable) {
-		case 13:
-		case 1:
-			n->addable = l->addable;
-			goto brk;
-		}
+		case 20:
+			switch(l->addable) {
+			case 1:
+			case 13:
+			commadd:
+				l->type = n->type;
+				*n = *l;
+				l = new(0, Z, Z);
+				*l = *(n->left);
+				l->xoffset += r->vconst;
+				n->left = l;
+				r = n->right;
+				goto brk;
+			}
+			break;
 
-		switch(r->addable) {
-		case 13:
 		case 1:
-			n->addable = 8;
+		case 13:
+		case 10:
+		case 11:
+			// l is the base, r is the index
+			if(l->addable != 20)
+				n->addable = 8;
+			break;
 		}
 		switch(l->addable) {
+		case 20:
+			switch(r->addable) {
+			case 13:
+			case 1:
+				r = n->left;
+				l = n->right;
+				n->left = l;
+				n->right = r;
+				goto commadd;
+			}
+			break;
+
 		case 13:
 		case 1:
-			n->addable = 8;
+		case 10:
+		case 11:
+			// r is the base, l is the index
+			if(r->addable != 20)
+				n->addable = 8;
+			break;
 		}
-		if(n->addable == 8) {
+		if(n->addable == 8 && !side(n)) {
 			indx(n);
 			l = new1(OINDEX, idx.basetree, idx.regtree);
 			l->scale = idx.scale;
@@ -593,7 +479,7 @@ xcom(Node *n)
 			n->op = OADDR;
 			n->left = l;
 			n->right = Z;
-			n->addable = 0;
+			n->addable = 8;
 			break;
 		}
 		break;
@@ -631,12 +517,19 @@ xcom(Node *n)
 		g = vconst(r);
 		if(g >= 0 && g < 4)
 			n->addable = 7;
-		goto shift;
+		break;
 
 	case OMUL:
 	case OLMUL:
 		xcom(l);
 		xcom(r);
+		g = vlog(l);
+		if(g >= 0) {
+			n->left = r;
+			n->right = l;
+			l = r;
+			r = n->right;
+		}
 		g = vlog(r);
 		if(g >= 0) {
 			n->op = OASHL;
@@ -644,19 +537,7 @@ xcom(Node *n)
 			if(g < 4)
 				n->addable = 7;
 			r->type = types[TINT];
-			goto shift;
-		}
-		g = vlog(l);
-		if(g >= 0) {
-			n->left = r;
-			n->right = l;
-			l = r;
-			r = n->right;
-			n->op = OASHL;
-			r->vconst = g;
-			if(g < 4)
-				n->addable = 7;
-			goto shift;
+			break;
 		}
 		break;
 
@@ -679,7 +560,7 @@ xcom(Node *n)
 			n->op = OLSHR;
 			r->vconst = g;
 			r->type = types[TINT];
-			goto shift;
+			break;
 		}
 		break;
 
@@ -718,8 +599,6 @@ xcom(Node *n)
 	case OASHR:
 		xcom(l);
 		xcom(r);
-	shift:
-		testshift(n);
 		break;
 
 	default:
@@ -838,7 +717,7 @@ indx(Node *n)
 
 	l = n->left;
 	r = n->right;
-	if(l->addable == 1 || l->addable == 13) {
+	if(l->addable == 1 || l->addable == 13 || r->complex > l->complex) {
 		n->right = l;
 		n->left = r;
 		l = r;

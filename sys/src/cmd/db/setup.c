@@ -28,6 +28,7 @@ setsym(void)
 	}
 	if (crackhdr(fsym, &fhdr)) {
 		machbytype(fhdr.type);
+print("name = %s\n", mach->name);
 		symmap = loadmap(symmap, fsym, &fhdr);
 		if (symmap == 0)
 			symmap = dumbmap(fsym);

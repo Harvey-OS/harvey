@@ -1,0 +1,41 @@
+dev
+	root
+	cons
+	dup
+	draw
+	env
+	ether	netif
+	flash
+	ip	arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+	kprof
+	mnt
+	µc
+	pcmcia	cis
+	penmouse
+	pipe
+	proc
+	sac	tar unsac
+	srv
+	ssl
+	uart	sa1110uart
+	uda1341
+
+ip
+	il
+	tcp
+	udp
+	ipifc
+	icmp
+	gre
+	ipmux
+
+link
+	etherwavelan
+	ethermedium
+
+port
+	int cpuserver = 1;
+
+boot cpu
+boot
+	sac

@@ -18,11 +18,12 @@ case go
 	sz=`{ls -l $distdir/$distname.9gz | awk '{print $6}'}
 	{ sleep 3; watchfd gunzip 0 $sz | bargraph -k -w 145,129,445,168 'unpacking file system' }&
 	wrap/inst -ovr /n/kfs $distdir/$distname.9gz >>/srv/log
-#	extract -uvd /n/kfs $distdir/$distname.9gz >>/srv/log
+	# incorporate local vgadb changes
+	cp /lib/vgadb /n/kfs/lib/vgadb
 	disk/kfscmd -n$disk sync
 
 case checkdone
-	if(! test -f /n/kfs/wrap/$distname/*/md5sum) {
+	if(! test -f /n/kfs/wrap/*/*/md5sum) {
 		unpack=notdone
 		export unpack
 	}

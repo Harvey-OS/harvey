@@ -8,6 +8,7 @@ unsigned long na_script[] = {
 			/*	extern	dsa_0 */
 			/*	extern  dsa_1 */
 			/*	extern	dsa_head */
+			/*	extern	ssid_mask */
 			/*	SIR_MSG_IO_COMPLETE = 0 */
 			/*	error_not_cmd_complete = 1 */
 			/*	error_disconnected = 2 */
@@ -424,7 +425,7 @@ unsigned long na_script[] = {
 /* 05a8 */ 0x00000000L,
 /* 05ac */ 0x80840003L, /*		jump	find_dsa_next, if not STATE_DISCONNECTED */
 /* 05b0 */ 0x00000038L,
-/* 05b4 */ 0x740a0700L, /*		move	ssid & 7 to sfbr */
+/* 05b4 */ 0x740a0900L, /*		move	ssid & ssid_mask to sfbr */
 /* 05b8 */ 0x00000000L,
 /* 05bc */ 0xc0000001L, /*		move	memory 1, targ, find_dsa_smc1 */
 /* 05c0 */ 0x00000680L,
@@ -609,6 +610,7 @@ struct na_patch na_patches[] = {
 	{ 0x0153, 2 }, /* 0000054c */
 	{ 0x0167, 1 }, /* 0000059c */
 	{ 0x0168, 2 }, /* 000005a0 */
+	{ 0x016d, 3 }, /* 000005b4 */
 	{ 0x0170, 1 }, /* 000005c0 */
 	{ 0x0171, 1 }, /* 000005c4 */
 	{ 0x0175, 1 }, /* 000005d4 */
@@ -630,7 +632,7 @@ struct na_patch na_patches[] = {
 	{ 0x01d8, 1 }, /* 00000760 */
 	{ 0x01d9, 2 }, /* 00000764 */
 };
-#define NA_PATCHES 79
+#define NA_PATCHES 80
 
 enum na_external {
 	X_scsi_id_buf,
@@ -642,6 +644,7 @@ enum na_external {
 	X_dsa_0,
 	X_dsa_1,
 	X_dsa_head,
+	X_ssid_mask,
 };
 
 enum {

@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zcsindex.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: zcsindex.c,v 1.3 2000/09/19 19:00:53 lpd Exp $ */
 /* Indexed color space support */
 #include "memory_.h"
 #include "ghost.h"
@@ -174,27 +174,19 @@ zcs_begin_map(i_ctx_t *i_ctx_p, gs_indexed_map ** pmap, const ref * pproc,
 	      op_proc_t map1)
 {
     gs_memory_t *mem = gs_state_memory(igs);
+    int space = imemory_space((gs_ref_memory_t *)mem);
     int num_components =
 	cs_num_components((const gs_color_space *)base_space);
     int num_values = num_entries * num_components;
     gs_indexed_map *map;
+    int code = alloc_indexed_map(&map, num_values, mem,
+				 "setcolorspace(mapped)");
     es_ptr ep;
-    float *values;
 
-    rc_alloc_struct_0(map, gs_indexed_map, &st_indexed_map,
-		      mem, return_error(e_VMerror),
-		      "setcolorspace(mapped)");
-    values =
-	(float *)gs_alloc_byte_array(mem, num_values, sizeof(float),
-				     "setcolorspace(mapped)");
-
-    if (values == 0) {
-	gs_free_object(mem, map, "setcolorspace(mapped)");
-	return_error(e_VMerror);
-    }
-    map->rc.free = free_indexed_map;
-    map->num_values = num_values;
-    map->values = values;
+    if (code < 0)
+	return code;
+    /* Set the reference count to 0 rather than 1. */
+    rc_init_free(map, mem, 0, free_indexed_map);
     *pmap = map;
     /* Map the entire set of color indices.  Since the */
     /* o-stack may not be able to hold N*4096 values, we have */
@@ -202,7 +194,7 @@ zcs_begin_map(i_ctx_t *i_ctx_p, gs_indexed_map ** pmap, const ref * pproc,
     check_estack(num_csme + 1);	/* 1 extra for map1 proc */
     ep = esp += num_csme;
     make_int(ep + csme_num_components, num_components);
-    make_struct(ep + csme_map, imemory_space((gs_ref_memory_t *) mem), map);
+    make_struct(ep + csme_map, space, map);
     ep[csme_proc] = *pproc;
     make_int(ep + csme_hival, num_entries - 1);
     make_int(ep + csme_index, -1);

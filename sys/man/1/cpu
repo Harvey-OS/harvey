@@ -138,8 +138,13 @@ environment variables reflect the server's architecture.
 .SH FILES
 The name space of the terminal side of the
 .B cpu
-command is mounted on the CPU side on directory
+command is mounted, via
+.IR exportfs (4),
+on the CPU side on directory
 .BR /mnt/term .
+The files such as
+.B /dev/cons
+are bound to their standard locations from there.
 .SH SOURCE
 .B /sys/src/cmd/cpu.c
 .SH SEE ALSO

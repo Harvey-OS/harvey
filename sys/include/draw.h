@@ -224,6 +224,7 @@ struct	Subfont
 	char		ascent;		/* top of image to baseline */
 	Fontchar 	*info;		/* n+1 character descriptors */
 	Image		*bits;		/* of font */
+	int		ref;
 };
 
 enum
@@ -306,7 +307,9 @@ extern int	geninitdraw(char*, void(*)(Display*, char*), char*, char*, char*, int
 extern int	initdraw(void(*)(Display*, char*), char*, char*);
 extern Display*	initdisplay(char*, char*, void(*)(Display*, char*));
 extern int	loadimage(Image*, Rectangle, uchar*, int);
+extern int	cloadimage(Image*, Rectangle, uchar*, int);
 extern int	getwindow(Display*, int);
+extern int	gengetwindow(Display*, char*, Image**, Screen**, int);
 extern Image* readimage(Display*, int, int);
 extern Image* creadimage(Display*, int, int);
 extern int	unloadimage(Image*, Rectangle, uchar*, int);
@@ -321,6 +324,7 @@ extern Image* allocimagemix(Display*, ulong, ulong);
  */
 extern	void	readcolmap(Display*, RGB*);
 extern	void	writecolmap(Display*, RGB*);
+extern	ulong	setalpha(ulong, uchar);
 
 /*
  * Windows
@@ -441,6 +445,7 @@ extern	Rectangle	ZR;
 extern	Display	*display;
 extern	Font		*font;
 extern	Image	*screen;
+extern	Screen	*_screen;
 extern	int	_cursorfd;
 extern	int	_drawdebug;	/* set to 1 to see errors from flushimage */
 

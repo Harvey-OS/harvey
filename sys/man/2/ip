@@ -27,9 +27,6 @@ ulong	v4parsecidr(uchar *addr, uchar *mask, char *str)
 int	parseether(uchar *eaddr, char *str)
 .PP
 .B
-int	myipaddr(uchar *ipaddr, char *net)
-.PP
-.B
 int	myetheraddr(uchar *eaddr, char *net)
 .PP
 .B
@@ -134,7 +131,7 @@ masks.
 .I Parseip
 converts a string pointed to by
 .I str
-to a 6-byte IP address starting at
+to a 16-byte IP address starting at
 .IR ipaddr .
 As a concession to backwards compatibility,
 if the string is a V4 address, the return value
@@ -146,12 +143,7 @@ converts a string pointed to by
 to a 6-byte IP mask starting at
 .IR ipaddr .
 It too returns an unsigned long big-endian V4 address or 6.
-.I Myipaddr
-reads the IP address string from file
-.BI / net /1/local
-and parses it into
-.IR ipaddr .
-All three routines return -1 on errors.
+Both routines return -1 on errors.
 .PP
 .I V4parseip
 converts a string pointed to by

@@ -52,9 +52,6 @@ struct Ref {
 	long ref;
 };
 
-extern	int		threadrforkflag;
-extern	int		threadhack;
-
 int		alt(Alt alts[]);
 Channel*	chancreate(int elemsize, int bufsize);
 int		chaninit(Channel *c, int elemsize, int elemcnt);
@@ -68,6 +65,7 @@ int		nbsend(Channel *c, void *v);
 int		nbsendp(Channel *c, void *v);
 int		nbsendul(Channel *c, ulong v);
 int		proccreate(void (*f)(void *arg), void *arg, uint stacksize);
+int		procrfork(void (*f)(void *arg), void *arg, uint stacksize, int flag);
 ulong *		procdata(void);
 void		procexec(Channel *, char *, char *[]);
 void		procexecl(Channel *, char *, ...);
@@ -86,6 +84,8 @@ char*		threadgetname(void);
 void		threadkill(int);	/* kill thread */
 void		threadkillgrp(int);	/* kill threads in group */
 void		threadmain(int argc, char *argv[]);
+void		threadnonotes(void);
+int		threadpid(int);
 int		threadprint(int, char*, ...);
 int		threadsetgrp(int);	/* set thread group, return old */
 void		threadsetname(char *name);

@@ -200,6 +200,7 @@ Sym*	histfrog[MAXHIST];
 int	histfrogp;
 int	histgen;
 char*	library[50];
+char*	libraryobj[50];
 int	libraryp;
 char*	hunk;
 char	inuxi1[1];

@@ -80,6 +80,11 @@ openBox(char *name, char *fsname, int writable)
 
 	fsInit();
 	if(fprint(fsCtl, "open /mail/box/%s/%s %s", username, name, fsname) < 0){
+//ZZZ
+char err[ERRLEN];
+errstr(err);
+if(strstr(err, "file does not exist") != nil)
+	fprint(2, "upas/fs open %s/%s as %s failed: '%s' '%r' %s", username, name, fsname, err, ctime(time(nil)));
 		fprint(fsCtl, "close %s", fsname);
 		return nil;
 	}
@@ -194,6 +199,8 @@ readBox(Box *box)
 
 	fd = cdOpen(box->fsDir, ".", OREAD);
 	if(fd < 0){
+//ZZZ
+fprint(2, "upas/fs stat of %s/%s aka %s failed: %r\n", username, box->name, box->fsDir);
 		mboxGone(box);
 		return -1;
 	}
@@ -285,12 +292,29 @@ openImp(Box *box, int new)
 	Biobuf b;
 	MbLock *ml;
 	int fd;
+//ZZZZ
+	int once;
 
 	ml = mbLock();
 	if(ml == nil)
 		return nil;
 	fd = cdOpen(mboxDir, box->imp, OREAD);
+	once = 0;
+ZZZhack:
 	if(fd < 0 || dirfstat(fd, &d) < 0){
+		if(fd < 0){
+			char buf[ERRLEN];
+
+			errstr(buf);
+			if(cistrstr(buf, "does not exist") == nil)
+				fprint(2, "imp open failed: %s\n", buf);
+			if(!once && cistrstr(buf, "locked") != nil){
+				once = 1;
+				fprint(2, "imp %s/%s %s locked when it shouldn't be; spinning\n", username, box->name, box->imp);
+				fd = openLocked(mboxDir, box->imp, OREAD);
+				goto ZZZhack;
+			}
+		}
 		if(fd >= 0)
 			close(fd);
 		fd = createImp(box, &d);

@@ -888,7 +888,7 @@ patom(char type, Store *res)
 {
 	int i;
 	char buf[512];
-	extern char *typestr[];
+	extern char *typenames[];
 
 	switch(res->fmt) {
 	case 'c':
@@ -961,7 +961,7 @@ patom(char type, Store *res)
 	case 'f':
 	case 'F':
 		if(type != TFLOAT)
-			Bprint(bout, "*%c<%s>*", res->fmt, typestr[type]);
+			Bprint(bout, "*%c<%s>*", res->fmt, typenames[type]);
 		else
 			Bprint(bout, "%g", res->fval);
 		break;
@@ -969,13 +969,13 @@ patom(char type, Store *res)
 	case 'g':
 	case 'G':
 		if(type != TSTRING)
-			Bprint(bout, "*%c<%s>*", res->fmt, typestr[type]);
+			Bprint(bout, "*%c<%s>*", res->fmt, typenames[type]);
 		else
 			Bwrite(bout, res->string->string, res->string->len);
 		break;
 	case 'R':
 		if(type != TSTRING)
-			Bprint(bout, "*%c<%s>*", res->fmt, typestr[type]);
+			Bprint(bout, "*%c<%s>*", res->fmt, typenames[type]);
 		else
 			Bprint(bout, "%S", (Rune*)res->string->string);
 		break;
@@ -987,7 +987,7 @@ patom(char type, Store *res)
 	case 'I':
 	case 'i':
 		if(type != TINT)
-			Bprint(bout, "*%c<%s>*", res->fmt, typestr[type]);
+			Bprint(bout, "*%c<%s>*", res->fmt, typenames[type]);
 		else {
 			if ((*machdata->das)(symmap, res->ival, res->fmt, buf, sizeof(buf)) < 0)
 				Bprint(bout, "no instruction: %r");

@@ -29,6 +29,7 @@ PORT=\
 	mworm.$O\
 	print.$O\
 	proc.$O\
+	sntp.$O\
 	sub.$O\
 	time.$O\
 	uidgid.$O\
@@ -92,7 +93,6 @@ $TARG:	$OBJ $TARG.$O
 installall:V:	install
 install:V:	$TARG
 	cp $TARG /$objtype/$TARG
-	import dinar / /n/dinar && cp $TARG /n/dinar/$objtype/$TARG
 
 $TARG.$O:	$TARG.c
 	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c

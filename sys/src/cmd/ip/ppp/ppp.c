@@ -71,35 +71,38 @@ static char *snames[] =
 	"Sopened",
 };
 
+static	void		authtimer(PPP*);
+static	void		chapinit(PPP*);
+static	void		config(PPP*, Pstate*, int);
+static	uchar*		escapeuchar(PPP*, ulong, uchar*, ushort*);
+static	void		getchap(PPP*, Block*);
+static	Block*		getframe(PPP*, int*);
+static	void		getlqm(PPP*, Block*);
+static	int		getopts(PPP*, Pstate*, Block*);
+static	void		getpap(PPP*, Block*);
 static	void		init(PPP*);
-static	void		setphase(PPP*, int);
-static	char*		ipopen(PPP*);
+static	void		invalidate(Ipaddr);
 static	void		ipinproc(PPP*);
+static	char*		ipopen(PPP*);
 static	void		mediainproc(PPP*);
+static	void		newstate(PPP*, Pstate*, int);
+static	int		nipifcs(char*);
+static	void		papinit(PPP*);
 static	void		pinit(PPP*, Pstate*);
 static	void		ppptimer(PPP*);
-static	void		ptimer(PPP*, Pstate*);
-static	Block*		getframe(PPP*, int*);
-static	int		putframe(PPP*, int, Block*);
-static	uchar*		escapeuchar(PPP*, ulong, uchar*, ushort*);
-static	void		config(PPP*, Pstate*, int);
-static	int		getopts(PPP*, Pstate*, Block*);
-static	void		rejopts(PPP*, Pstate*, Block*, int);
-static	void		newstate(PPP*, Pstate*, int);
-static	void		rcv(PPP*, Pstate*, Block*);
-static	void		chapinit(PPP*);
-static	void		getchap(PPP*, Block*);
-static	void		getlqm(PPP*, Block*);
-static	void		putlqm(PPP*);
 static	void		printopts(Pstate*, Block*, int);
-static	void		sendtermreq(PPP*, Pstate*);
-static	void		sendechoreq(PPP*, Pstate*);
-static	int		validv4(Ipaddr);
-static	void		invalidate(Ipaddr);
-static	void		terminate(PPP*, int);
-static	int		nipifcs(char*);
+static	void		ptimer(PPP*, Pstate*);
+static	int		putframe(PPP*, int, Block*);
+static	void		putlqm(PPP*);
 static	void		putndb(PPP*, char*);
-
+static	void		putpaprequest(PPP*);
+static	void		rcv(PPP*, Pstate*, Block*);
+static	void		rejopts(PPP*, Pstate*, Block*, int);
+static	void		sendechoreq(PPP*, Pstate*);
+static	void		sendtermreq(PPP*, Pstate*);
+static	void		setphase(PPP*, int);
+static	void		terminate(PPP*, int);
+static	int		validv4(Ipaddr);
 
 void
 pppopen(PPP *ppp, int mediafd, char *net,
@@ -238,6 +241,8 @@ setphase(PPP *ppp, int phase)
 	case Pauth:
 		if(server)
 			chapinit(ppp);
+		else if(ppp->chap->proto == APpasswd)
+			papinit(ppp);
 		else
 			setphase(ppp, Pnet);
 		break;
@@ -735,7 +740,7 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 	Lcpmsg *m, *repm;	
 	Lcpopt *o;
 	uchar *cp, *ap;
-	ulong rejecting, nacking, flags, proto;
+	ulong rejecting, nacking, flags, proto, pap;
 	ulong mtu, ctlmap, period;
 	ulong x;
 	Block *repb;
@@ -752,6 +757,7 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 	ctlmap = 0xffffffff;
 	period = 0;
 	ctype = nil;
+	pap = 0;
 
 	m = (Lcpmsg*)b->rptr;
 	repb = alloclcp(Lconfack, m->id, BLEN(b), &repm);
@@ -797,6 +803,10 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 				continue;
 			case Oauth:
 				proto = nhgets(o->data);
+				if(proto == Ppasswd && !server){
+					pap = 1;
+					continue;
+				}
 				if(proto != Pchap)
 					break;
 				if(o->data[2] != APmd5)
@@ -940,6 +950,8 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 			if(mtu < Minmtu)
 				mtu = Minmtu;
 			ppp->mtu = mtu;
+			if(pap)
+				ppp->chap->proto = APpasswd;
 			
 			break;
 		case Pccp:
@@ -1265,6 +1277,21 @@ ptimer(PPP *ppp, Pstate *p)
 	}
 }
 
+static void
+authtimer(PPP* ppp)
+{
+	if(ppp->chap->proto != APpasswd)
+		return;
+
+	if(ppp->chap->id < 21)
+		putpaprequest(ppp);
+	else {
+		terminate(ppp, 0);
+		netlog("ppp: pap timed out--not authorized\n");
+	}
+}
+
+
 /*
  *  timer for ppp
  */
@@ -1277,8 +1304,15 @@ ppptimer(PPP *ppp)
 
 		ptimer(ppp, ppp->lcp);
 		if(ppp->lcp->state == Sopened) {
-			ptimer(ppp, ppp->ccp);
-			ptimer(ppp, ppp->ipcp);
+			switch(ppp->phase){
+			case Pnet:
+				ptimer(ppp, ppp->ccp);
+				ptimer(ppp, ppp->ipcp);
+				break;
+			case Pauth:
+				authtimer(ppp);
+				break;
+			}
 		}
 
 		/* link quality measurement */
@@ -1388,7 +1422,6 @@ pppread(PPP *ppp)
 		b = getframe(ppp, &proto);
 		if(b == nil)
 			return nil;
-/* netlog("ppp: getframe %ux %d %d (%d uchars)\n", proto, b->rptr[0], b->rptr[1], BLEN(b)); /* */
 
 Again:
 		switch(proto){
@@ -1412,6 +1445,9 @@ Again:
 			break;
 		case Pchap:
 			getchap(ppp, b);
+			break;
+		case Ppasswd:
+			getpap(ppp, b);
 			break;
 		case Pvjctcp:
 		case Pvjutcp:
@@ -1917,6 +1953,94 @@ getchap(PPP *ppp, Block *b)
 	freeb(b);
 }
 
+static void
+putpaprequest(PPP *ppp)
+{
+	Block *b;
+	Lcpmsg *m;
+	Chap *c;
+	int len, nlen, slen;
+
+	c = ppp->chap;
+	c->id++;
+	netlog("PPP: pap: send authreq %d %s %s\n", c->id, ppp->chapname, "****");
+
+	nlen = strlen(ppp->chapname);
+	slen = strlen(ppp->secret);
+	len = 4 + 1 + nlen + 1 + slen;
+	b = alloclcp(Pauthreq, c->id, len, &m);
+
+	*b->wptr++ = nlen;
+	memmove(b->wptr, ppp->chapname, nlen);
+	b->wptr += nlen;
+	*b->wptr++ = slen;
+	memmove(b->wptr, ppp->secret, slen);
+	b->wptr += slen;
+	hnputs(m->len, len);
+
+	putframe(ppp, Ppasswd, b);
+	freeb(b);
+}
+
+static void
+papinit(PPP *ppp)
+{
+	ppp->chap->id = 0;
+	putpaprequest(ppp);
+}
+
+static void
+getpap(PPP *ppp, Block *b)
+{
+	Lcpmsg *m;
+	int len;
+
+	m = (Lcpmsg*)b->rptr;
+	len = 4;
+	if(BLEN(b) < 4 || BLEN(b) < (len = nhgets(m->len))){
+		syslog(0, LOG, "short pap message (%ld < %d)", BLEN(b), len);
+		freeb(b);
+		return;
+	}
+	if(len < sizeof(Lcpmsg))
+		m->data[0] = 0;
+
+	qlock(ppp);
+	switch(m->code){
+	case Pauthreq:
+		netlog("PPP: pap auth request, not supported\n");
+		break;
+	case Pauthack:
+		if(ppp->phase == Pauth
+		&& ppp->chap->proto == APpasswd
+		&& m->id <= ppp-> chap->id){
+			netlog("PPP: pap succeeded\n");
+			setphase(ppp, Pnet);
+		}
+		break;
+	case Pauthnak:
+		if(ppp->phase == Pauth
+		&& ppp->chap->proto == APpasswd
+		&& m->id <= ppp-> chap->id){
+			netlog("PPP: pap failed (%d:%.*s)\n",
+				m->data[0], m->data[0], (char*)m->data+1);
+			terminate(ppp, 0);
+		}
+		break;
+	default:
+		netlog("PPP: unknown pap messsage %d\n", m->code);
+	}
+	qunlock(ppp);
+	freeb(b);
+}
+
+/* paptimer -- pap timer event handler
+ *
+ * If PAP authorization hasn't come through, resend an authreqst.  If
+ * the maximum number of requests have been sent (~ 30 seconds), give
+ * up.
+ *
+ */
 static void
 printopts(Pstate *p, Block *b, int send)
 {

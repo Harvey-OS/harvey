@@ -338,10 +338,22 @@ undo(Text *et, Text*, Text*, int flag1, int, Rune*, int)
 	if(et==nil || et->w== nil)
 		return;
 	seq = seqof(et->w, flag1);
+	if(seq == 0){
+		/* nothing to undo */
+		return;
+	}
+	/*
+	 * Undo the executing window first. Its display will update. other windows
+	 * in the same file will not call show() and jump to a different location in the file.
+	 * Simultaneous changes to other files will be chaotic, however.
+	 */
+	winundo(et->w, flag1);
 	for(i=0; i<row.ncol; i++){
 		c = row.col[i];
 		for(j=0; j<c->nw; j++){
 			w = c->w[j];
+			if(w == et->w)
+				continue;
 			if(seqof(w, flag1) == seq)
 				winundo(w, flag1);
 		}
@@ -631,7 +643,8 @@ cut(Text *et, Text *t, Text*, int dosnarf, int docut, Rune*, int)
 	if(et!=t && dosnarf && et->w!=nil){
 		if(et->w->body.q1>et->w->body.q0){
 			t = &et->w->body;
-			filemark(t->file);	/* seq has been incremented by execute */
+			if(docut)
+				filemark(t->file);	/* seq has been incremented by execute */
 		}else if(et->w->tag.q1>et->w->tag.q0)
 			t = &et->w->tag;
 	}
@@ -688,6 +701,10 @@ paste(Text *et, Text *t, Text*, int selectall, int tobody, Rune*, int)
 	uint q, q0, q1, n;
 	Rune *r;
 
+	getsnarf();
+	if(snarfbuf.nc==0)
+		return;
+
 	/* if(tobody), use body of executing window  (Paste or Send command) */
 	if(tobody && et!=nil && et->w!=nil){
 		t = &et->w->body;
@@ -696,9 +713,6 @@ paste(Text *et, Text *t, Text*, int selectall, int tobody, Rune*, int)
 	if(t == nil)
 		return;
 
-	getsnarf();
-	if(t==nil || snarfbuf.nc==0)
-		return;
 	if(t->w!=nil && et->w!=t->w){
 		c = 'M';
 		if(et->w)
@@ -735,13 +749,17 @@ paste(Text *et, Text *t, Text*, int selectall, int tobody, Rune*, int)
 }
 
 void
-look(Text *et, Text *t, Text *argt, int, int, Rune*, int)
+look(Text *et, Text *t, Text *argt, int, int, Rune *arg, int narg)
 {
 	Rune *r;
 	int n;
 
 	if(et && et->w){
 		t = &et->w->body;
+		if(narg > 0){
+			search(t, arg, narg);
+			return;
+		}
 		getarg(argt, FALSE, FALSE, &r, &n);
 		if(r == nil){
 			n = t->q1-t->q0;

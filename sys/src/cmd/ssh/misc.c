@@ -73,7 +73,7 @@ debugbig(int level, mpint *b, char term) {
 void *
 zalloc(int size) {
 	void *x;
-	/* allocatye and set to zero */
+	/* allocate and set to zero */
 
 	if ((x = mallocz(size, 1)) == 0)
 		error("malloc");
@@ -130,13 +130,29 @@ int
 readpublickey(FILE *f, RSApub *key) {
 	char buf[2048];
 	char *p;
+	mpint *ek, *n;
 
-	if (fgets(buf, 2048, f) == nil) return 0;
-	if (strtok(buf, " ") == 0) return 0;
-	if ((p = strtok(0, " ")) == 0) return 0;
-	key->ek = strtomp(p, nil, 16, key->ek);
-	if ((p = strtok(0, " \n")) == 0) return 0;
-	key->n = strtomp(p, nil, 16, key->n);
+	if (fgets(buf, 2048, f) == nil)
+		return 0;
+
+	/* 
+	 * hostname size exponent modulus
+	 * but the hostname gets cut out before we get called.
+	 */
+	ek = n = nil;
+
+	if((p = strchr(buf, ' ')) == nil
+	|| (ek=strtomp(p, &p, 16, key->ek)) == nil
+	|| (n=strtomp(p, &p, 16, key->n)) == nil){
+		if(ek != key->ek)
+			mpfree(ek);
+		if(n != key->n)
+			mpfree(n);
+		return 0;
+	}
+
+	key->ek = ek;
+	key->n = n;
 	return 1;
 }
 
@@ -158,25 +174,53 @@ int
 readsecretkey(FILE *f, RSApriv *key) {
 	char buf[2048];
 	char *p;
+	mpint *ek, *dk, *n, *pp, *q, *kp, *kq, *c2;
 
-	if (fgets(buf, 2048, f) == nil) return 0;
-	if (strtok(buf, " ") == 0) return 0;
-	if ((p = strtok(0, " ")) == 0) return 0;
-	key->pub.ek = strtomp(p, nil, 16, key->pub.ek);
-	if ((p = strtok(0, " ")) == 0) return 0;
-	key->dk = strtomp(p, nil, 16, key->dk);
-	if ((p = strtok(0, " ")) == 0) return 0;
-	key->pub.n = strtomp(p, nil, 16, key->pub.n);
-	if ((p = strtok(0, " ")) == 0) return 0;
-	key->p = strtomp(p, nil, 16, key->p);
-	if ((p = strtok(0, " ")) == 0) return 0;
-	key->q = strtomp(p, nil, 16, key->q);
-	if ((p = strtok(0, " ")) == 0) return 0;
-	key->kp = strtomp(p, nil, 16, key->kp);
-	if ((p = strtok(0, " ")) == 0) return 0;
-	key->kq = strtomp(p, nil, 16, key->kq);
-	if ((p = strtok(0, " \n")) == 0) return 0;
-	key->c2 = strtomp(p, nil, 16, key->c2);
+	if (fgets(buf, 2048, f) == nil)
+		return 0;
+
+	/*
+	 * size ek dk n p q kp kq c2
+	 */
+
+	ek = dk = n = pp = q = kp = kq = c2 = nil;
+
+	if((p = strchr(buf, ' ')) == nil
+	|| (ek=strtomp(p, &p, 16, key->pub.ek)) == nil
+	|| (dk=strtomp(p, &p, 16, key->dk)) == nil
+	|| (n=strtomp(p, &p, 16, key->pub.n)) == nil
+	|| (pp=strtomp(p, &p, 16, key->p)) == nil
+	|| (q=strtomp(p, &p, 16, key->q)) == nil
+	|| (kp=strtomp(p, &p, 16, key->kp)) == nil
+	|| (kq=strtomp(p, &p, 16, key->kq)) == nil
+	|| (c2=strtomp(p, &p, 16, key->c2)) == nil){
+		if(ek != key->pub.ek)
+			mpfree(ek);
+		if(dk != key->dk)
+			mpfree(dk);
+		if(n != key->pub.n)
+			mpfree(n);
+		if(pp != key->p)
+			mpfree(pp);
+		if(q != key->q)
+			mpfree(q);
+		if(kp != key->p)
+			mpfree(kp);
+		if(kq != key->q)
+			mpfree(kq);
+		if(c2 != key->c2)
+			mpfree(c2);
+		return 0;
+	}
+
+	key->pub.ek = ek;
+	key->dk = dk;
+	key->pub.n = n;
+	key->p = pp;
+	key->q = q;
+	key->kp = kp;
+	key->kq = kq;
+	key->c2 = c2;
 	return 1;
 }
 

@@ -8,6 +8,8 @@
 #include "mips.h"
 #elif Talpha
 #include "alpha.h"
+#elif Tarm
+#include "arm.h"
 #else
 	I do not know about your architecture.
 	Update switch in arch.h with new architecture.

@@ -1,6 +1,6 @@
 .TH MEMLAYER 2
 .SH NAME
-memdraw, memlalloc, memldelete, memlexpose, memlfree, memlhide, memline, memlnorefresh, memload, memlorigin, memlsetrefresh, memltofront, memltofrontn, memltorear, memltorearn \- windows of memory-resident images
+memdraw, memlalloc, memldelete, memlexpose, memlfree, memlhide, memline, memlnorefresh, memload, memunload, memlorigin, memlsetrefresh, memltofront, memltofrontn, memltorear, memltorearn \- windows of memory-resident images
 .SH SYNOPSIS
 .nf
 .B #include <u.h>
@@ -83,6 +83,18 @@ void	memdraw(Image *dst, Rectangle r,
 .B
 		   Image *src, Point sp, Image *mask, Point mp)
 .fi
+.B
+int	memload(Memimage *i, Rectangle r,
+.br
+.B
+		uchar *buf, int n, int iscompressed)
+.PP
+.B
+int	memunload(Memimage *i, Rectangle r,
+.br
+.B
+		uchar *buf, int n)
+.PP
 .SH DESCRIPTION
 These functions build upon the
 .IR memdraw (2)
@@ -264,6 +276,25 @@ but accept
 or
 .B Memimage
 arguments both.
+.PP
+.I Memload
+and
+.I memunload
+are similarly layer-savvy versions of
+.I loadmemimage
+and
+.IR unloadmemimage .
+The
+.I iscompressed
+flag to
+.I memload
+specifies whether the
+.I n
+bytes of data in
+.I buf
+are in compressed image format
+(see
+.IR image (6)).
 .SH SOURCE
 .B /sys/src/libmemlayer
 .SH SEE ALSO

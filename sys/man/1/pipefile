@@ -15,9 +15,9 @@ pipefile \- attach filter to file in name space
 .I file
 .SH DESCRIPTION
 .I Pipefile
-binds (see
-.IR mount (2))
-a pair of pipes to
+uses
+.IR bind (2)
+to attach a pair of pipes to
 .IR file ,
 using them to
 interpose filter

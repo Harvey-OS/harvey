@@ -56,6 +56,15 @@ the first 64 bytes of packets of all types.
 If multiple connections are assigned to a given packet type
 a copy of each packet is passed up each connection.
 .PP
+Some interfaces also accept unique options when written to the
+.I ctl
+(or
+.IR clone )
+file; see the description of
+.I wavelan
+in
+.IR plan9.ini (8).
+.PP
 Reading the
 .B ctl
 file returns the decimal index of the associated connection, 0 through 7.

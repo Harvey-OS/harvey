@@ -1,6 +1,6 @@
 .TH JPG 1
 .SH NAME
-jpg, gif, ppm, togif, toppm \- view and convert pictures
+jpg, gif, ppm, togif, toppm, topng \- view and convert pictures
 .SH SYNOPSIS
 .B jpg
 [
@@ -52,6 +52,18 @@ jpg, gif, ppm, togif, toppm \- view and convert pictures
 ] [
 .I file
 ]
+.PP
+.B topng
+[
+.B -c
+.I comment
+] [
+[
+.B -g
+.I gamma
+] [
+.I file
+]
 .SH DESCRIPTION
 These programs read, display, and write image files in public formats.
 .IR Jpg ,
@@ -61,10 +73,11 @@ and
 read files in the corresponding formats and, by default, display
 them in the current window; options cause them instead to convert the images
 to Plan 9 image format and write them to standard output.
-.I Togif
+.IR Togif ,
+.IR Toppm ,
 and
-.I toppm
-read Plan 9 images files, convert them to GIF and PPM, and write them to standard output.
+.I topng
+read Plan 9 images files, convert them to GIF, PPM, or PNG, and write them to standard output.
 .PP
 The default behavior of
 .IR jpg ,
@@ -168,6 +181,10 @@ By default, the images are displayed as fast as they can be rendered.
 This option specifies the time, in milliseconds, to pause while
 displaying the next named
 .IR file .
+.PP
+.I Gif
+translates files that contain a `transparency' index by attaching
+an alpha channel to the converted image.
 .SH SOURCE
 .B /sys/src/cmd/jpg
 .SH "SEE ALSO"

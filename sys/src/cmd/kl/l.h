@@ -220,6 +220,7 @@ EXTERN	Sym*	histfrog[MAXHIST];
 EXTERN	int	histfrogp;
 EXTERN	int	histgen;
 EXTERN	char*	library[50];
+EXTERN	char*	libraryobj[50];
 EXTERN	int	libraryp;
 EXTERN	char*	hunk;
 EXTERN	char	inuxi1[1];

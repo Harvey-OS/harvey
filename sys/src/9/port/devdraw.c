@@ -237,7 +237,7 @@ drawgen(Chan *c, Dirtab *tab, int x, int s, Dir *dp)
 	if(t == Q2nd || t == Qnew){
 		if(s == 0){
 			q = (Qid){Qnew, 0};
-			devdir(c, q, "new", 0, eve, 0666, dp);
+			devdir(c, q, "new", 0, eve, 0600, dp);
 		}
 		else if(s <= sdraw.nclient){
 			cl = sdraw.client[s-1];
@@ -1225,7 +1225,7 @@ printmesg(char *fmt, uchar *a, int plsprnt)
 	char *p, *q;
 	int s;
 
-	if(1|| plsprnt==0){
+	if(1 || plsprnt==0){
 		SET(s,q,p);
 		USED(fmt, a, buf, p, q, s);
 		return;
@@ -1363,10 +1363,8 @@ drawmesg(Client *client, void *av, int n)
 				continue;
 			}
 			i = allocmemimage(r, chan);
-			if(i == 0){
-				iprint("chan %lux\n", chan);
+			if(i == 0)
 				error(Edrawmem);
-			}
 			if(repl)
 				i->flags |= Frepl;
 			i->clipr = clipr;
@@ -1746,8 +1744,6 @@ drawmesg(Client *client, void *av, int n)
 			if(n < m)
 				error(Eshortdraw);
 			i = drawimage(client, a+1);
-			if(i->layer)
-				error("readimage from window unimplemented");
 			drawrectangle(&r, a+5);
 			if(!rectinrect(r, i->r))
 				error(Ereadoutside);
@@ -1757,7 +1753,7 @@ drawmesg(Client *client, void *av, int n)
 			client->readdata = mallocz(c, 0);
 			if(client->readdata == nil)
 				error("readimage malloc failed");
-			client->nreaddata = unloadmemimage(i, r, client->readdata, c);
+			client->nreaddata = memunload(i, r, client->readdata, c);
 			if(client->nreaddata < 0){
 				free(client->readdata);
 				client->readdata = nil;

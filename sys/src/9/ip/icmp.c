@@ -120,7 +120,7 @@ icmpstate(Conv *c, char *state, int n)
 static void
 icmpcreate(Conv *c)
 {
-	c->rq = qopen(64*1024, 0, 0, c);
+	c->rq = qopen(64*1024, 1, 0, c);
 	c->wq = qopen(64*1024, 0, 0, 0);
 }
 
@@ -145,17 +145,15 @@ icmpclose(Conv *c)
 	ipmove(c->laddr, IPnoaddr);
 	ipmove(c->raddr, IPnoaddr);
 	c->lport = 0;
-	qunlock(c);
 }
 
 static void
-icmpkick(Conv *c, int l)
+icmpkick(Conv *c)
 {
 	Icmp *p;
 	Block *bp;
 	Icmppriv *ipriv;
 
-	USED(l);
 	bp = qget(c->wq);
 	if(bp == nil)
 		return;

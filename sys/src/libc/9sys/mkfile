@@ -24,9 +24,11 @@ OFILES=\
 	getenv.$O\
 	getpid.$O\
 	getppid.$O\
+	getuser.$O\
 	getwd.$O\
 	nsec.$O\
 	postnote.$O\
+	privalloc.$O\
 	pushssl.$O\
 	putenv.$O\
 	qlock.$O\

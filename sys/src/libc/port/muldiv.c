@@ -4,7 +4,12 @@
 ulong
 umuldiv(ulong a, ulong b, ulong c)
 {
-	return ((double)a*(double)b) / (double)c;
+	double d;
+
+	d = ((double)a * (double)b) / (double)c;
+	if(d >= 4294967296.)
+		abort();
+	return d;
 }
 
 long

@@ -186,7 +186,7 @@ interface.
 .br
 Allocate an image with a given 
 .I id 
-on a the
+on the
 screen named by
 .IR screenid .
 The image will have rectangle

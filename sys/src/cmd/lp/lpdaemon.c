@@ -33,8 +33,8 @@
 #define ARGSIZ 4096
 #define NAMELEN 30
 
-char argvstr[ARGSIZ];		/* arguments after parsing */
-char *argvals[ARGSIZ/2+1];	/* pointers to arguments after parsing */
+unsigned char argvstr[ARGSIZ];		/* arguments after parsing */
+unsigned char *argvals[ARGSIZ/2+1];	/* pointers to arguments after parsing */
 int ascnt = 0, argcnt = 0;	/* number of arguments parsed */
 /* for 'stuff' gleened from lpr cntrl file */
 struct jobinfo {
@@ -50,10 +50,10 @@ struct jobinfo {
 #define NAK()	write(1, "\001", 1)
 
 #define LNBFSZ	4096
-char lnbuf[LNBFSZ];
+unsigned char lnbuf[LNBFSZ];
 
 #define	RDSIZE 512
-char jobbuf[RDSIZE];
+unsigned char jobbuf[RDSIZE];
 
 int datafd[400], cntrlfd = -1;
 
@@ -97,21 +97,21 @@ void
 forklp(int inputfd)
 {
 	int i, cpid;
-	char *bp, *cp;
-	char logent[LNBFSZ];
+	unsigned char *bp, *cp;
+	unsigned char logent[LNBFSZ];
 
 	/* log this call to lp */
 	cp = logent;
 	for (i=1; i<argcnt; i++) {
 		bp = argvals[i];
-		if (cp+strlen(bp)+1 < logent+LNBFSZ-1) {
+		if (cp+strlen((const char *)bp)+1 < logent+LNBFSZ-1) {
 			CPYFIELD(bp, cp);
 			*cp++ = ' ';
 		}
 	}
 	*--cp = '\n';
 	*++cp = '\0';
-	error(logent);
+	error((const char *)logent);
 	switch((cpid=fork())){
 	case -1:
 		error("fork error\n");
@@ -121,7 +121,7 @@ forklp(int inputfd)
 			dup2(inputfd, 0);
 		dup2(1, 2);
 		lseek(0, 0L, 0);
-		execvp(LP, argvals);
+		execvp(LP, (const char **)argvals);
 		error("exec failed\n");
 		exit(3);
 	default:
@@ -203,7 +203,7 @@ readfile(int outfd, int bsize)
 int
 readline(int inpfd)
 {
-	char *ap;
+	unsigned char *ap;
 	int i, rv;
 
 	ap = lnbuf;
@@ -230,7 +230,7 @@ readline(int inpfd)
 int
 getfiles(void)
 {
-	char *ap;
+	unsigned char *ap;
 	int filecnt, bsize, rv;
 
 	filecnt = 0;
@@ -245,7 +245,7 @@ getfiles(void)
 		case '\1':		/* cleanup - data sent was bad (whatever that means) */
 			break;
 		case '\2':		/* read control file */
-			bsize = atoi(ap);
+			bsize = atoi((const char *)ap);
 			cntrlfd = tempfile();
 			if (readfile(cntrlfd, bsize) < 0) {
 				close(cntrlfd);
@@ -254,7 +254,7 @@ getfiles(void)
 			}
 			break;
 		case '\3':		/* read data file */
-			bsize = atoi(ap);
+			bsize = atoi((const char *)ap);
 			datafd[filecnt] = tempfile();
 			if (readfile(datafd[filecnt], bsize) < 0) {
 				close(datafd[filecnt]);
@@ -274,7 +274,7 @@ getfiles(void)
 struct jobinfo *
 getjobinfo(int fd)
 {
-	register char *ap;
+	unsigned char *ap;
 	int rv;
 	static struct jobinfo info;
 
@@ -299,14 +299,14 @@ getjobinfo(int fd)
 			if (ap[1] == '\0')
 				strncpy(info.host, "unknown", NAMELEN);
 			else
-				strncpy(info.host, &ap[1], NAMELEN);
+				strncpy(info.host, (const char *)&ap[1], NAMELEN);
 			info.host[strlen(info.host)] = '\0';
 			break;
 		case 'P':
 			if (ap[1] == '\0')
 				strncpy(info.user, "unknown", NAMELEN);
 			else
-				strncpy(info.user, &ap[1], NAMELEN);
+				strncpy(info.user, (const char *)&ap[1], NAMELEN);
 			info.user[strlen(info.user)] = '\0';
 			break;
 		}
@@ -322,7 +322,7 @@ alarmhandler(int sig) {
 
 main()
 {
-	char *ap, *bp, *cp, *savbufpnt;
+	unsigned char *ap, *bp, *cp, *savbufpnt;
 	int i, blen, rv, saveflg, savargcnt;
 	struct jobinfo *jinfop;
 
@@ -331,7 +331,7 @@ main()
 	cp = argvstr;
 	/* setup argv[0] for exec */
 	argvals[argcnt++] = cp;
-	for (bp = LP, i = 0; (*bp != '\0') && (i < ARGSIZ-1); *cp++ = *bp++, i++);
+	for (bp = (unsigned char *)LP, i = 0; (*bp != '\0') && (i < ARGSIZ-1); *cp++ = *bp++, i++);
 	*cp++ = '\0';
 	/* get the first line sent and parse it as arguments for lp */
 	if ((rv=readline(0)) < 0)
@@ -369,12 +369,12 @@ main()
 			cp = savbufpnt;
 			argvals[argcnt++] = cp;
 			*cp++ = '-'; *cp++ = 'M'; 			/* -M */
-			bp = jinfop->host;
+			bp = (unsigned char *)jinfop->host;
 			CPYFIELD(bp, cp);				/* host name */
 			*cp++ = '\0';
 			argvals[argcnt++] = cp;
 			*cp++ = '-'; *cp++ = 'u'; 			/* -u */
-			bp = jinfop->user;
+			bp = (unsigned char *)jinfop->user;
 			CPYFIELD(bp, cp);				/* user name */
 			*cp++ = '\0';
 			for(i=0;i<rv;i++)
@@ -394,7 +394,7 @@ main()
 		CPYFIELD(bp, cp);				/* username */
 		*cp++ = '\0';
 		datafd[0] = tempfile();
-		blen = strlen(bp);
+		blen = strlen((const char *)bp);
 		if (write(datafd[0], bp, blen) != blen) {
 			error("write error\n");
 			exit(6);
@@ -431,7 +431,7 @@ main()
 		} while (*bp!='\n' && *bp!='\0');
 		if (readline(0) < 0) exit(7);
 		datafd[0] = tempfile();
-		if(readfile(datafd[0], atoi(lnbuf)) < 0) {
+		if(readfile(datafd[0], atoi((const char *)lnbuf)) < 0) {
 			error("readfile failed\n");
 			exit(8);
 		}

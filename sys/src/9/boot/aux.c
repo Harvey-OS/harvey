@@ -54,19 +54,13 @@ sendmsg(int fd, char *msg)
 void
 warning(char *s)
 {
-	char buf[ERRLEN];
-
-	errstr(buf);
-	fprint(2, "boot: %s: %s\n", s, buf);
+	fprint(2, "boot: %s: %r\n", s);
 }
 
 void
 fatal(char *s)
 {
-	char buf[ERRLEN];
-
-	errstr(buf);
-	fprint(2, "boot: %s: %s\n", s, buf);
+	fprint(2, "boot fatal: %s: %r\n", s);
 	exits(0);
 }
 

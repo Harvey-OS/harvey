@@ -80,6 +80,7 @@ NS	ipns = { "ip", 0 };
 NS	etns = { "ether", 0 };
 
 #define NetS(x) (((x)[0]<<8) | (x)[1])
+#define Net3(x) (((x)[0]<<16) | ((x)[1]<<8) | (x)[2])
 #define NetL(x) (((x)[0]<<24) | ((x)[1]<<16) | ((x)[2]<<8) | (x)[3])
 
 /*
@@ -182,7 +183,7 @@ main(int argc, char *argv[])
 	Etherpkt e;
 	long n, m;
 	int fd, cfd, dfd;
-	int all, ts=0;
+	int all;
 	char buf[8*1024];
 	long start;
 	char dev[256];
@@ -191,6 +192,7 @@ main(int argc, char *argv[])
 	char *cp;
 	uchar h[6];
 	long now;
+	uvlong ts = 0, ots = 0;
 
 	Binit(&bout, 1, OWRITE);
 	all = 1;
@@ -296,15 +298,14 @@ main(int argc, char *argv[])
 		else
 			strcpy(dev, "/net/ether0");
 	
-		if(special)
-			snprint(buf, sizeof(buf), "%s!-2", dev);
-		else
-			snprint(buf, sizeof(buf), "%s!-1", dev);
+		snprint(buf, sizeof(buf), "%s!-1", dev);
 		fd = dial(buf, 0, 0, &cfd);
 		if(fd < 0)
 			error("opening ether data");
 		if(pflag && write(cfd, "promiscuous", sizeof("promiscuous")-1) <= 0)
 			error("connecting");
+		if(special && write(cfd, "headersonly", sizeof("headersonly")-1) <= 0)
+			error("headersonly");
 	}
 
 	timefd = open("/dev/cputime", OREAD);
@@ -352,10 +353,18 @@ main(int argc, char *argv[])
 				write(dfd, &e, m);
 			}
 			if(special){
-				ts = (e.d[60]<<24)|(e.d[61]<<16)|(e.d[62]<<8)|e.d[63];
-				Bprint(&bout, "%d ", ts);
+				ts = e.d[60];
+				ts = (ts<<8) | e.d[61];
+				ts = (ts<<8) | e.d[62];
+				ts = (ts<<8) | e.d[63];
+				ts = (ts<<8) | e.d[64];
+				ts = (ts<<8) | e.d[65];
+				ts = (ts<<8) | e.d[66];
+				ts = (ts<<8) | e.d[67];
+				Bprint(&bout, "%llud %llud ", ts, ts-ots);
+				ots = ts;
 			} else if(fromsniffer) {
-				Bprint(&bout, "%d ", ts);
+				Bprint(&bout, "%llud ", ts);
 			} else
 				Bprint(&bout, "%lud ", gettime()-start);
 			strcat(buf, "\n");
@@ -754,7 +763,7 @@ ospfauth(Ospfpkt *ospf)
 			ospf->auth[2], ospf->auth[3]);
 		break;
 	default:
-		sprint(auth, "auth%d(%8.8ux %8.8ux)", ospf->type, NetL(ospf->auth),	
+		sprint(auth, "auth%d(%8.8ux %8.8ux)", NetS(ospf->autype), NetL(ospf->auth),	
 			NetL(ospf->auth+4));
 	}
 	return auth;
@@ -781,9 +790,242 @@ sprintospfhello(void *p, char *buf)
 
 	h = p;
 
-	n += sprint(buf+n, "hello(mask %V interval %d opt %ux pri %ux deadt %d designated %V bdesignated %V)",
+	n += sprint(buf+n, "%s(mask %V interval %d opt %ux pri %ux deadt %d designated %V bdesignated %V)",
+		ospftype[OSPFhello],
 		h->mask, NetS(h->interval), h->options, h->pri,
 		NetL(h->deadint), h->designated, h->bdesignated);
+	return n;
+}
+
+enum
+{
+	LSARouter=	1,
+	LSANetwork=	2,
+	LSASummN=	3,
+	LSASummR=	4,
+	LSAASext=	5
+};
+
+
+char *lsatype[] = {
+	[LSARouter]	"Router LSA",
+	[LSANetwork]	"Network LSA",
+	[LSASummN]	"Summary LSA (Network)",
+	[LSASummR]	"Summary LSA (Router)",
+	[LSAASext]	"LSA AS external",
+};
+
+char*
+lsapkttype(int x)
+{
+	static char type[16];
+
+	if(x > 0 && x <= LSAASext)
+		return lsatype[x];
+	sprint(type, "type %d", x);
+	return type;
+}
+
+/* OSPF Link State Advertisement Header */
+/* rfc2178 section 12.1 */
+/* data of Ospfpkt point to a 4-uchar value that is the # of LSAs */
+struct OspfLSAhdr {
+	uchar	lsage[2];
+	uchar	options;	/* 0x2=stub area, 0x1=TOS routing capable */
+
+	uchar	lstype;	/* 1=Router-LSAs
+						 * 2=Network-LSAs
+						 * 3=Summary-LSAs (to network)
+						 * 4=Summary-LSAs (to AS boundary routers)
+						 * 5=AS-External-LSAs
+						 */
+	uchar	lsid[4];
+	uchar	advtrt[4];
+
+	uchar	lsseqno[4];
+	uchar	lscksum[2];
+	uchar	lsalen[2];	/* includes the 20 byte lsa header */
+};
+
+struct Ospfrt {
+	uchar	linkid[4];
+	uchar	linkdata[4];
+	uchar	typ;
+	uchar	numtos;
+	uchar	metric[2];
+	
+};
+
+struct OspfrtLSA {
+	struct OspfLSAhdr	hdr;
+	uchar			netmask[4];
+};
+
+struct OspfntLSA {
+	struct OspfLSAhdr	hdr;
+	uchar			netmask[4];
+	uchar			attrt[4];
+};
+
+/* Summary Link State Advertisement info */
+struct Ospfsumm {
+	uchar	flag;	/* always zero */
+	uchar	metric[3];
+};
+
+struct OspfsummLSA {
+	struct OspfLSAhdr	hdr;
+	uchar			netmask[4];
+	struct Ospfsumm		lsa;
+};
+
+/* AS external Link State Advertisement info */
+struct OspfASext {
+	uchar	flag;	/* external */
+	uchar	metric[3];
+	uchar	fwdaddr[4];
+	uchar	exrttag[4];
+};
+
+struct OspfASextLSA {
+	struct OspfLSAhdr	hdr;
+	uchar			netmask[4];
+	struct OspfASext	lsa;
+};
+
+/* OSPF Link State Update Packet */
+struct OspfLSupdpkt {
+	uchar	lsacnt[4];
+	union {
+		uchar			hdr[1];
+		struct OspfrtLSA	rt[1];
+		struct OspfntLSA	nt[1];
+		struct OspfsummLSA	sum[1];
+		struct OspfASextLSA	as[1];
+	};
+};
+
+int
+sprintospflsaheader(struct OspfLSAhdr *h, char *buf)
+{
+	int n = 0;
+
+	n += sprint(buf+n, "age %d opt %ux type %ux lsid %V adv_rt %V seqno %ux c %4.4ux l %d",
+		NetS(h->lsage), h->options&0xff, h->lstype,
+		h->lsid, h->advtrt, NetL(h->lsseqno), NetS(h->lscksum),
+		NetS(h->lsalen));
+	return n;
+}
+
+/* OSPF Database Description Packet */
+struct OspfDDpkt {
+	uchar	intMTU[2];
+	uchar	options;
+	uchar	bits;
+	uchar	DDseqno[4];
+	struct OspfLSAhdr	hdr[1];		/* LSA headers... */
+};
+
+int
+sprintospfdatadesc(void *p, char *buf, int len) {
+	int n = 0, nlsa, i;
+	struct OspfDDpkt *g;
+
+	g = (struct OspfDDpkt *)p;
+	nlsa = (len - OSPF_HDRSIZE)/sizeof(struct OspfLSAhdr);
+	for (i=0; i<nlsa; i++) {
+		n += sprint(buf+n, "lsa%d(", i);
+		n += sprintospflsaheader(&(g->hdr[i]), buf+n);
+		n += sprint(buf+n, ")");
+	}
+	n += sprint(buf+n, ")");
+	return n;
+}
+
+int
+sprintospflsupdate(void *p, char *buf)
+{
+	int n = 0, nlsa, i;
+	struct OspfLSupdpkt *g;
+	struct OspfLSAhdr *h;
+
+	g = (struct OspfLSupdpkt *)p;
+	nlsa = NetL(g->lsacnt);
+	h = (struct OspfLSAhdr *)(g->hdr);
+	n += sprint(buf+n, "%d-%s(", nlsa, ospfpkttype(OSPFlsupdate));
+
+	switch(h->lstype) {
+	case LSARouter:
+		{
+/*			struct OspfrtLSA *h;
+ */
+		}
+		break;
+	case LSANetwork:
+		{
+			struct OspfntLSA *h;
+
+			for (i=0; i<nlsa; i++) {
+				h = &(g->nt[i]);
+				n += sprint(buf+n, "lsa%d(", i);
+				n += sprintospflsaheader(&(h->hdr), buf+n);
+				n += sprint(buf+n, " mask %V attrt %V)",
+					h->netmask, h->attrt);
+			}
+		}
+		break;
+	case LSASummN:
+	case LSASummR:
+		{
+			struct OspfsummLSA *h;
+
+			for (i=0; i<nlsa; i++) {
+				h = &(g->sum[i]);
+				n += sprint(buf+n, "lsa%d(", i);
+				n += sprintospflsaheader(&(h->hdr), buf+n);
+				n += sprint(buf+n, " mask %V met %d)",
+					h->netmask, Net3(h->lsa.metric));
+			}
+		}
+		break;
+	case LSAASext:
+		{
+			struct OspfASextLSA *h;
+
+			for (i=0; i<nlsa; i++) {
+				h = &(g->as[i]);
+				n += sprint(buf+n, " lsa%d(", i);
+				n += sprintospflsaheader(&(h->hdr), buf+n);
+				n += sprint(buf+n, " mask %V extflg %1.1ux met %d fwdaddr %V extrtflg %ux)",
+					h->netmask, h->lsa.flag, Net3(h->lsa.metric),
+					h->lsa.fwdaddr, NetL(h->lsa.exrttag));
+			}
+		}
+		break;
+	default:
+		n += sprint(buf+n, "Not an LS update, lstype %d ", h->lstype);
+		n += sprintx(p, buf+n, 20);
+		break;
+	}
+	n += sprint(buf+n, ")");
+	return n;
+}
+
+int
+sprintospflsack(void *p, char *buf, int len)
+{
+	int n = 0, nlsa, i;
+	struct OspfLSAhdr *h;
+
+	h = (struct OspfLSAhdr *)p;
+	nlsa = (len - OSPF_HDRSIZE)/sizeof(struct OspfLSAhdr);
+	n += sprint(buf+n, "%d-%s(", nlsa, ospfpkttype(OSPFlsack));
+	for (i=0; i<nlsa; i++) {
+		n += sprint(buf+n, " lsa%d(", i);
+		n += sprintospflsaheader(&(h[i]), buf+n);
+		n += sprint(buf+n, ")");
+	}
+	n += sprint(buf+n, ")");
 	return n;
 }
 
@@ -794,18 +1036,31 @@ sprintospf(void *a, char *buf, int len)
 	int n = 0;
 
 	len -= OSPF_HDRSIZE;
-	n += sprint(buf+n, "OSPFv%d(%d r %V a %V c %4.4ux l %d %s) ",
-		ospf->version, ospf->type,
-		ospf->router, ospf->area, NetS(ospf->sum), NetS(ospf->length),
+	n += sprint(buf+n, "OSPFv%d(%d l %d r %V a %V c %4.4ux %s ",
+		ospf->version, ospf->type, NetS(ospf->length),
+		ospf->router, ospf->area, NetS(ospf->sum),
 		ospfauth(ospf));
-	switch(ospf->type){
+	switch (ospf->type) {
 	case OSPFhello:
 		n += sprintospfhello(ospf->data, buf+n);
 		break;
+	case OSPFdd:
+		n += sprintospfdatadesc(ospf->data, buf+n, NetS(ospf->length));
+		break;
+	case OSPFlsrequest:
+		n += sprint(buf+n, "%s->", ospfpkttype(ospf->type));
+		goto Default;
+	case OSPFlsupdate:
+		n += sprintospflsupdate(ospf->data, buf+n);
+		break;
+	case OSPFlsack:
+		n += sprintospflsack(ospf->data, buf+n, NetS(ospf->length));
+		break;
 	default:
+Default:
 		n += sprintx(ospf->data, buf+n, len);
 	}
-
+	n += sprint(buf+n, ")");
 	return n;
 }
 
@@ -836,7 +1091,7 @@ sprintip(void *a, char *buf, int len)
 	if(ip->tos != 0)
 		n += sprint(buf+n, "TOS(%ux)", ip->tos);
 	if(ip->proto==IP_ICMPPROTO && (iflag||cflag)){
-		n += sprint(buf+n, "IP%d(%V > %V, %d/%d) ", ip->proto, ip->src, ip->dst, ip->ttl, id);
+		n += sprint(buf+n, "IP%d(%V > %V, %d/%d, %d) ", ip->proto, ip->src, ip->dst, ip->ttl, id, i);
 		frag = NetS(ip->frag);
 		if(frag & ~(IP_MF|IP_DF)) {
 			n += sprint(buf+n, "ICMP(FRAGMENT 0x%4.4ux) ", frag);
@@ -844,7 +1099,7 @@ sprintip(void *a, char *buf, int len)
 		} else
 			n += sprinticmp(ip->data, buf+n, len);
 	} else if(ip->proto==IP_UDPPROTO && (iflag||uflag||bflag)){
-		n += sprint(buf+n, "IP%d(%V > %V, %d/%d) ", ip->proto, ip->src, ip->dst, ip->ttl, id);
+		n += sprint(buf+n, "IP%d(%V > %V, %d/%d, %d) ", ip->proto, ip->src, ip->dst, ip->ttl, id, i);
 		frag = NetS(ip->frag);
 		if(frag & ~(IP_MF|IP_DF)) {
 			n += sprint(buf+n, "UDP(FRAGMENT 0x%4.4ux) ", frag);
@@ -852,7 +1107,7 @@ sprintip(void *a, char *buf, int len)
 		} else
 	 		n += sprintudp(ip->data, buf+n, len);
 	} else if(ip->proto==IP_RUDPPROTO && (iflag||rflag||bflag)){
-		n += sprint(buf+n, "IP%d(%V > %V, %d/%d) ", ip->proto, ip->src, ip->dst, ip->ttl, id);
+		n += sprint(buf+n, "IP%d(%V > %V, %d/%d, %d) ", ip->proto, ip->src, ip->dst, ip->ttl, id, i);
 		frag = NetS(ip->frag);
 		if(frag & ~(IP_MF|IP_DF)) {
 			n += sprint(buf+n, "RUDP(FRAGMENT 0x%4.4ux) ", frag);
@@ -861,7 +1116,7 @@ sprintip(void *a, char *buf, int len)
 	 		n += sprintrudp(ip->data, buf+n, len);
 	}else if(ip->proto==IP_TCPPROTO && (iflag||tflag)){
 	  int iphdrlen = (ip->vihl&0xF)<<2;
-		n += sprint(buf+n, "IP%d(%V > %V, %d/%d) ", ip->proto, ip->src, ip->dst, ip->ttl, id);
+		n += sprint(buf+n, "IP%d(%V > %V, %d/%d, %d) ", ip->proto, ip->src, ip->dst, ip->ttl, id, i);
 		frag = NetS(ip->frag);
 		if(frag & ~(IP_MF|IP_DF)) {
 			n += sprint(buf+n, "TCP(FRAGMENT 0x%4.4ux) ", frag);
@@ -869,10 +1124,10 @@ sprintip(void *a, char *buf, int len)
 		} else
 			n += sprinttcp(ip->data, buf+n, len, iphdrlen);
 	}else if(ip->proto==IP_OSPFPROTO && (iflag||oflag)){
-		n += sprint(buf+n, "IP%d(%V > %V, %d/%d) ", ip->proto, ip->src, ip->dst, ip->ttl, id);
+		n += sprint(buf+n, "IP%d(%V > %V, %d/%d, %d) ", ip->proto, ip->src, ip->dst, ip->ttl, id, i);
 		n += sprintospf(ip->data, buf+n, len);
 	}else if(ip->proto==IP_ILPROTO && (iflag||lflag)){
-		n += sprint(buf+n, "IP%d(%V > %V, %d/%d) ", ip->proto, ip->src, ip->dst, ip->ttl, id);
+		n += sprint(buf+n, "IP%d(%V > %V, %d/%d, %d) ", ip->proto, ip->src, ip->dst, ip->ttl, id, i);
 		frag = NetS(ip->frag);
 		if(frag & ~(IP_MF|IP_DF)) {
 			n += sprint(buf+n, "IL(FRAGMENT 0x%4.4ux) ", frag);
@@ -880,7 +1135,7 @@ sprintip(void *a, char *buf, int len)
 		} else
 			n += sprintil(ip->data, buf+n, len);	
 	}else if(ip->proto==IP_GREPROTO && (iflag||gflag)){
-		n += sprint(buf+n, "IP%d(%V > %V, %d/%d len=%d/%d) ", ip->proto, ip->src, ip->dst, ip->ttl, id, len, olen);
+		n += sprint(buf+n, "IP%d(%V > %V, %d/%d %d) ", ip->proto, ip->src, ip->dst, ip->ttl, id, i);
 		frag = NetS(ip->frag);
 		if(frag & ~(IP_MF|IP_DF)) {
 			n += sprint(buf+n, "GRE(FRAGMENT 0x%4.4ux len=%d/%d) ", frag, len, olen);
@@ -888,7 +1143,7 @@ sprintip(void *a, char *buf, int len)
 		} else
 			n += sprintgre(ip->data, buf+n, len);	
 	}else if(ip->proto==IP_ESPPROTO && (iflag||Eflag)){
-		n += sprint(buf+n, "IP%d(%V > %V, %d/%d) ", ip->proto, ip->src, ip->dst, ip->ttl, id);
+		n += sprint(buf+n, "IP%d(%V > %V, %d/%d, %d) ", ip->proto, ip->src, ip->dst, ip->ttl, id, i);
 		frag = NetS(ip->frag);
 		if(frag & ~(IP_MF|IP_DF)) {
 			n += sprint(buf+n, "ESP(FRAGMENT 0x%4.4ux) ", frag);
@@ -896,7 +1151,7 @@ sprintip(void *a, char *buf, int len)
 		} else
 			n += sprintesp(ip->data, buf+n, len);
 	}else if(iflag){
-		n += sprint(buf+n, "IP%d(%V > %V, %d/%d) ", ip->proto, ip->src, ip->dst, ip->ttl, id);
+		n += sprint(buf+n, "IP%d(%V > %V, %d/%d, %d) ", ip->proto, ip->src, ip->dst, ip->ttl, id, i);
 		n += sprintx(ip->data, buf+n, len);
 	} else
 		punt = 1;

@@ -331,11 +331,6 @@ dofile(Dir *dp)
 		remmatch(dp->name);
 		return;
 	}
-	if(d.length == 0){
-		syslog(0, runqlog, "empty data file for %s", dp->name);
-		remmatch(dp->name);
-		return;
-	}
 	if(dp->length == 0){
 		if(time(0)-dp->mtime > 15*60){
 			syslog(0, runqlog, "empty ctl file for %s", dp->name);
@@ -437,7 +432,7 @@ dofile(Dir *dp)
 	av[0] = cmd;
 	av[ac] = 0;
 
-	if(time(0) - dtime > giveup){
+	if(!Eflag &&time(0) - dtime > giveup){
 		if(returnmail(av, dp->name, "Giveup") == 0)
 			remmatch(dp->name);
 		else {

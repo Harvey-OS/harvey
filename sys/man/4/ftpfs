@@ -70,6 +70,13 @@ To avoid seeing startup messages from the server use option
 To see all messages from the server use option
 .BR -d .
 .PP
+Some systems will hangup an ftp connection that has no activity
+for a given period.  The
+.BR -k
+option causes ftp to send a NOP command every 15 seconds to attempt
+to keep the connection open.  This command can cause some servers to
+hangup, so you'll have to feel your way.
+.PP
 To terminate the connection,
 .B unmount
 (see

@@ -402,7 +402,7 @@ dir2fattr(Unixidmap *up, Dir *dp, void *mp)
 	}
 	r = name2id(&up->u.ids, dp->uid);
 	if(r < 0){
-		r = name2id(&up->g.ids, "daemon");
+		r = name2id(&up->u.ids, "daemon");
 		if(r < 0)
 			r = 1;
 	}

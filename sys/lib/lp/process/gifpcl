@@ -1,0 +1,20 @@
+#!/bin/rc
+# convert GIF to PCL
+if (! ~ $DEBUG '') flag x +
+switch ($LPCLASS) {
+case *hpdeskjet*;
+	GSDEVICE=cdj670
+case *;
+	echo no or unknown printer type given in class field of 'devices' file >[1=2]
+	exit 'unknown printer type'
+}
+
+GSTMPFILE=/tmp/phpcl^$pid
+GSOPT=('-sDEVICE='^$GSDEVICE '-sOutputFile='^$GSTMPFILE -dSAFER -dNOPAUSE -dQUIET -dBATCH -dNOPAUSE)
+
+$LPLIB/process/gifpost | gs $GSOPT - >/dev/null >[2=1]
+
+cat $GSTMPFILE
+rm -f $GSTMPFILE
+exit
+

@@ -19,18 +19,19 @@ dumppool(p)
 defn
 dumparena(arena)
 {
-	local atail, b;
+	local atail, b, nb;
 
 	atail = A2TB(arena);
 	complex Bhdr arena;
 	b = a;
 	while b.magic != ARENATAIL_MAGIC && b < atail do {
 		dumpblock(b);
-		if B2NB(b) == b then {
+		nb = B2NB(b);
+		if nb == b then {
 			print("B2NB(", b\X, ") = b\n");
 			b = atail;	// end loop
 		}
-		b = B2NB(b);
+		b = nb;
 	}
 
 	dumpblock(b);
@@ -41,7 +42,7 @@ dumparena(arena)
 defn
 isptr(a)
 {
-	if end <= a && a < *bloc then
+	if end <= a && a < xbloc then
 		return 1;
 	if 0x7efff000 <= a && a < 0x7ffff000 then
 		return 1;
@@ -67,11 +68,13 @@ dumpblock(addr)
 defn
 dumprange(s, e, type)
 {
-	local x;
+	local x, y;
 
+	print("range ", type, " ", s\X, " ", e\X, "\n");
 	x = s;
 	while x < e do {
-		if isptr(*x) then print("data ", x\X, " ", *x\X, " ", type, "\n");
+		y = *x;
+		if isptr(y) then print("data ", x\X, " ", y\X, " ", type, "\n");
 		x = x + 4;
 	}
 }
@@ -81,9 +84,10 @@ dumpmem()
 {
 	local s;
 
+	xbloc = *bloc;
 	// assume map()[1] is "data" 
 	dumprange(map()[1][1], end, "bss");	// bss
-	dumprange(end, *bloc, "alloc");	// allocated
+	dumprange(end, xbloc, "alloc");	// allocated
 
 	if 0x7efff000 < *SP && *SP < 0x7ffff000 then 
 		s = *SP;

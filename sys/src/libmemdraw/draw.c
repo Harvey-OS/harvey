@@ -82,8 +82,7 @@ memimagedraw(Memimage *dst, Rectangle r, Memimage *src, Point p0, Memimage *mask
 	if(mask == nil)
 		mask = memopaque;
 
-//	if(drawdebug)
-//		iprint("memimagedraw %p/%luX %R %p/%luX %P %p/%luX %P... ", dst, dst->chan, r, src, src->chan, p0, mask, mask->chan, p1);
+DBG	print("memimagedraw %p/%luX %R @ %p %p/%luX %P %p/%luX %P... ", dst, dst->chan, r, dst->data->bdata, src, src->chan, p0, mask, mask->chan, p1);
 
 	if(drawclip(dst, &r, src, &p0, mask, &p1, &par.sr, &par.mr) == 0){
 //		if(drawdebug)
@@ -140,6 +139,7 @@ DBG print("draw dr %R sr %R mr %R %lux\n", r, par.sr, par.mr, par.state);
 	 * which checks to see if there is anything it can help with.
 	 * There could be an if around this checking to see if dst is in video memory.
 	 */
+DBG print("test hwdraw\n");
 	if(hwdraw(&par)){
 //if(drawdebug) iprint("hw handled\n");
 DBG print("hwdraw handled\n");
@@ -148,6 +148,7 @@ DBG print("hwdraw handled\n");
 	/*
 	 * Optimizations using memmove and memset.
 	 */
+DBG print("test memoptdraw\n");
 	if(memoptdraw(&par)){
 //if(drawdebug) iprint("memopt handled\n");
 DBG print("memopt handled\n");
@@ -158,6 +159,7 @@ DBG print("memopt handled\n");
 	 * Character drawing.
 	 * Solid source color being painted through a boolean mask onto a high res image.
 	 */
+DBG print("test chardraw\n");
 	if(chardraw(&par)){
 //if(drawdebug) iprint("chardraw handled\n");
 DBG print("chardraw handled\n");
@@ -167,6 +169,7 @@ DBG print("chardraw handled\n");
 	/*
 	 * General calculation-laden case that does alpha for each pixel.
 	 */
+DBG print("do alphadraw\n");
 	alphadraw(&par);
 //if(drawdebug) iprint("alphadraw handled\n");
 DBG print("alphadraw handled\n");
@@ -978,7 +981,7 @@ static Buffer
 readcmap(Param *p, uchar *buf, int y)
 {
 	Buffer b;
-	int i, dx, convgrey;
+	int a, convgrey, copyalpha, dx, i, m;
 	uchar *q, *cmap, *begin, *end, *r, *w;
 
 	begin = p->bytey0s + y*p->bwidth;
@@ -986,34 +989,54 @@ readcmap(Param *p, uchar *buf, int y)
 	end = p->bytey0e + y*p->bwidth;
 	cmap = p->img->cmap->cmap2rgb;
 	convgrey = p->convgrey;
+	copyalpha = (p->img->flags&Falpha) ? 1 : 0;
 
 	w = buf;
 	dx = p->dx;
-	for(i=0; i<dx; i++){
-		q = cmap+*r++*3;
-		if(r == end)
-			r = begin;
-		if(convgrey){
-			*w++ = RGB2K(q[0], q[1], q[2]);
-		}else{
-			*w++ = q[2];	/* blue */
-			*w++ = q[1];	/* green */
-			*w++ = q[0];	/* red */
+	if(copyalpha){
+		b.alpha = buf++;
+		a = p->img->shift[CAlpha]/8;
+		m = p->img->shift[CMap]/8;
+		for(i=0; i<dx; i++){
+			*w++ = r[a];
+			q = cmap+r[m]*3;
+			r += 2;
+			if(r == end)
+				r = begin;
+			if(convgrey){
+				*w++ = RGB2K(q[0], q[1], q[2]);
+			}else{
+				*w++ = q[2];	/* blue */
+				*w++ = q[1];	/* green */
+				*w++ = q[0];	/* red */
+			}
+		}
+	}else{
+		b.alpha = nil;
+		for(i=0; i<dx; i++){
+			q = cmap+*r++*3;
+			if(r == end)
+				r = begin;
+			if(convgrey){
+				*w++ = RGB2K(q[0], q[1], q[2]);
+			}else{
+				*w++ = q[2];	/* blue */
+				*w++ = q[1];	/* green */
+				*w++ = q[0];	/* red */
+			}
 		}
 	}
 
 	if(convgrey){
-		b.alpha = nil;
 		b.grey = buf;
 		b.red = b.blu = b.grn = buf;
-		b.delta = 1;
+		b.delta = 1+copyalpha;
 	}else{
 		b.blu = buf;
 		b.grn = buf+1;
 		b.red = buf+2;
-		b.alpha = nil;
 		b.grey = nil;
-		b.delta = 3;
+		b.delta = 3+copyalpha;
 	}
 	return b;
 }
@@ -1209,7 +1232,7 @@ readfn(Memimage *img)
 {
 	if(img->depth < 8)
 		return readnbit;
-	if(img->chan == CMAP8)
+	if(img->nbits[CMap] == 8)
 		return readcmap;
 	return readbyte;
 }
@@ -1591,6 +1614,7 @@ rgbatoimg(Memimage *img, ulong rgba)
 	return v;
 }
 
+#define DBG if(0)
 static int
 memoptdraw(Memdrawparam *par)
 {
@@ -1604,7 +1628,7 @@ memoptdraw(Memdrawparam *par)
 	src = par->src;
 	dst = par->dst;
 
-//if(drawdebug) iprint("state %lux mval %lux dd %d\n", par->state, par->mval, dst->depth);
+DBG print("state %lux mval %lux dd %d\n", par->state, par->mval, dst->depth);
 	/*
 	 * If we have an opaque mask and source is one opaque pixel we can convert to the
 	 * destination format and just replicate with memset.
@@ -1615,11 +1639,11 @@ memoptdraw(Memdrawparam *par)
 		int d, dwid, ppb, np, nb;
 		uchar lm, rm;
 
-//print("memopt\n");
+DBG print("memopt, dst %p, dst->data->bdata %p\n", dst, dst->data->bdata);
 		dwid = dst->width*sizeof(ulong);
 		dp = byteaddr(dst, par->r.min);
 		v = par->sdval;
-//print("sdval %lud\n", v);
+DBG print("sdval %lud, depth %d\n", v, dst->depth);
 		switch(dst->depth){
 		case 1:
 		case 2:
@@ -1633,16 +1657,16 @@ memoptdraw(Memdrawparam *par)
 			dx -= (ppb-np);
 			nb = 8 - np * dst->depth;		/* no. bits used on right side of word */
 			lm = (1<<nb)-1;
-//print("np %d x %d nb %d lm %ux ppb %d m %ux\n", np, par->r.min.x, nb, lm, ppb, m);	
+DBG print("np %d x %d nb %d lm %ux ppb %d m %ux\n", np, par->r.min.x, nb, lm, ppb, m);	
 
 			/* right edge */
 			np = par->r.max.x&m;	/* no. pixels used on left side of word */
 			dx -= np;
 			nb = 8 - np * dst->depth;		/* no. bits unused on right side of word */
 			rm = ~((1<<nb)-1);
-//print("np %d x %d nb %d rm %ux ppb %d m %ux\n", np, par->r.max.x, nb, rm, ppb, m);	
+DBG print("np %d x %d nb %d rm %ux ppb %d m %ux\n", np, par->r.max.x, nb, rm, ppb, m);	
 
-//print("dx %d Dx %d\n", dx, Dx(par->r));
+DBG print("dx %d Dx %d\n", dx, Dx(par->r));
 			/* lm, rm are masks that are 1 where we should touch the bits */
 			if(dx < 0){	/* just one byte */
 				lm &= rm;
@@ -1654,7 +1678,7 @@ memoptdraw(Memdrawparam *par)
 
 				for(y=0; y<dy; y++, dp+=dwid){
 					if(lm){
-//print("dp %p v %ux lm %ux (v ^ *dp) & lm %ux\n", dp, v, lm, (v^*dp)&lm);
+DBG print("dp %p v %lux lm %ux (v ^ *dp) & lm %lux\n", dp, v, lm, (v^*dp)&lm);
 						*dp ^= (v ^ *dp) & lm;
 						dp++;
 					}
@@ -1685,6 +1709,8 @@ memoptdraw(Memdrawparam *par)
 			p[0] = v;		/* make little endian */
 			p[1] = v>>8;
 			v = *(ushort*)p;
+DBG print("dp=%p; dx=%d; for(y=0; y<%d; y++, dp+=%d)\nmemsets(dp, v, dx);\n",
+	dp, dx, dy, dwid);
 			for(y=0; y<dy; y++, dp+=dwid)
 				memsets(dp, v, dx);
 			return 1;
@@ -1836,6 +1862,7 @@ memoptdraw(Memdrawparam *par)
 	}
 	return 0;	
 }
+#undef DBG
 
 /*
  * Boolean character drawing.

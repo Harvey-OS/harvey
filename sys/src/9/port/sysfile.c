@@ -446,6 +446,38 @@ sysread(ulong *arg)
 }
 
 long
+syspread(ulong *arg)
+{
+	long n;
+	Chan *c;
+	union {
+		uvlong v;
+		ulong u[2];
+	} o;
+
+	n = arg[2];
+	validaddr(arg[1], n, 1);
+	c = fdtochan(arg[0], OREAD, 1, 1);
+	o.u[0] = arg[3];
+	o.u[1] = arg[4];
+
+	if(waserror()) {
+		cclose(c);
+		nexterror();
+	}
+
+	if(c->qid.path&CHDIR)
+		error(Eisdir);
+
+	n = devtab[c->type]->read(c, (void*)arg[1], n, o.v);
+
+	poperror();
+	cclose(c);
+
+	return n;
+}
+
+long
 syswrite9p(ulong *arg)
 {
 	Chan *c;
@@ -508,6 +540,37 @@ syswrite(ulong *arg)
 		c->offset -= n - m;
 		unlock(c);
 	}
+
+	poperror();
+	cclose(c);
+
+	return m;
+}
+
+long
+syspwrite(ulong *arg)
+{
+	Chan *c;
+	long m, n;
+	union {
+		uvlong v;
+		ulong u[2];
+	} o;
+
+	validaddr(arg[1], arg[2], 0);
+	n = arg[2];
+	c = fdtochan(arg[0], OWRITE, 1, 1);
+	o.u[0] = arg[3];
+	o.u[1] = arg[4];
+	if(waserror()) {
+		cclose(c);
+		nexterror();
+	}
+
+	if(c->qid.path & CHDIR)
+		error(Eisdir);
+
+	m = devtab[c->type]->write(c, (void*)arg[1], n, o.v);
 
 	poperror();
 	cclose(c);
@@ -584,7 +647,7 @@ sysoseek(ulong *arg)
 	} o;
 	ulong a[5];
 
-	o.v = arg[1];
+	o.v = (long)arg[1];
 	a[0] = (ulong)&o.v;
 	a[1] = arg[0];
 	a[2] = o.u[0];

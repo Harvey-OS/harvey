@@ -48,9 +48,15 @@ entry.
 .PP
 .I Type
 may be
-.B ether
+.BR ether ,
+.BR ppp ,
 or
-.BR ppp .
+.BR gbe .
+The
+.B gbe
+type is equivalent to
+.B ether
+except that it allows jumbo packets.
 For
 .B ppp
 the device can be any byte stream device.

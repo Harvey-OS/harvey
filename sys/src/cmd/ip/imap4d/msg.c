@@ -2,9 +2,12 @@
 #include <libc.h>
 #include <bio.h>
 #include <libsec.h>
+#include <auth.h>
+#include <fcall.h>
 #include "imap4d.h"
 
 static void	body64(int in, int out);
+static void	bodystrip(int in, int out);
 static void	cleanupHeader(Header *h);
 static char	*domBang(char *s);
 static void	freeMAddr(MAddr *a);
@@ -41,6 +44,26 @@ static long	msgReadFile(Msg *m, char *file, char **ss);
 static int	msgUnix(Msg *m, int top);
 static void	stripQuotes(char *q);
 static MAddr	*unixFrom(char *s);
+
+
+static char bogusBody[] = 
+	"This message contains null characters, so it cannot be displayed correctly.\r\n"
+	"Most likely you were sent a bogus message or a binary file.\r\n"
+	"\r\n"
+	"Each of the following attachments has a different version of the message.\r\n"
+	"The first is inlined with all non-printable characters stripped.\r\n"
+	"The second contains the message as it was stored in your mailbox.\r\n"
+	"The third has the initial header stripped.\r\n";
+
+static char bogusMimeText[] =
+	"Content-Disposition: inline\r\n"
+	"Content-Type: text/plain; charset=\"US-ASCII\"\r\n"
+	"Content-Transfer-Encoding: 7bit\r\n";
+
+static char bogusMimeBinary[] =
+	"Content-Disposition: attachment\r\n"
+	"Content-Type: application/octet-stream\r\n"
+	"Content-Transfer-Encoding: base64\r\n";
 
 /*
  * stop list for header fields
@@ -154,38 +177,149 @@ maddrStr(MAddr *a)
 int
 msgFile(Msg *m, char *f)
 {
+	Msg *parent, *p;
+	Dir d;
 	Tm tm;
-	char buf[64];
-	int fd, fd1;
+	char buf[64], dbuf[DIRLEN];
+	int i, n, fd, fd1, fd2;
 
 	if(!m->bogus
-	|| strcmp(f, "rawbody") != 0 && strcmp(f, "rawheader") != 0 && strcmp(f, "mimeheader") != 0){
+	|| strcmp(f, "") != 0 && strcmp(f, "rawbody") != 0
+	&& strcmp(f, "rawheader") != 0 && strcmp(f, "mimeheader") != 0
+	&& strcmp(f, "info") != 0){
 		if(strlen(f) > NAMELEN)
 			bye("internal error: msgFile name too long");
 		strcpy(m->efs, f);
 		return cdOpen(m->fsDir, m->fs, OREAD);
 	}
+
+	/*
+	 * walk up the stupid runt message parts for non-multipart messages
+	 */
+	parent = m->parent;
+	if(parent != nil && parent->parent != nil){
+		m = parent;
+		parent = m->parent;
+	}
+	p = m;
+	if(parent != nil)
+		p = parent;
+
+	if(strcmp(f, "info") == 0){
+		strcpy(p->efs, f);
+		return cdOpen(p->fsDir, p->fs, OREAD);
+	}
+
 	fd = imapTmp();
 	if(fd < 0)
 		return -1;
-	if(strcmp(f, "mimeheader") == 0)
-		return fd;
-	if(strcmp(f, "rawheader") == 0){
-		date2tm(&tm, m->unixDate);
-		rfc822date(buf, sizeof(buf), &tm);
-		fprint(fd, "Date: %s\r\n", buf);
-		fprint(fd, "From: imap4 daemon <%s@%s>\r\n", username, site);
-		fprint(fd, "Subject: This message was illegal or corrupted; the bytes follow\r\n");
-		fprint(fd, "Content-Type: application/octet-stream\r\n");
-		fprint(fd, "Content-Transfer-Encoding: base64\r\n");
-	}else{
-		fd1 = msgFile(m, "raw");
-		if(fd1 < 0){
+
+	/*
+	 * craft the message parts for bogus messages
+	 */
+	if(strcmp(f, "") == 0){
+		/*
+		 * make a fake directory for each kid
+		 * all we care about is the name
+		 */
+		if(parent == nil){
+			memset(&d, 0, sizeof(Dir));
+			d.mode = CHDIR|0600;
+			for(i = '1'; i <= '4'; i++){
+				d.name[0] = i;
+				n = convD2M(&d, dbuf);
+				if(n != DIRLEN)
+					fprint(2, "bad convD2M %d\n", n);
+				write(fd, dbuf, n);
+			}
+		}
+	}else if(strcmp(f, "mimeheader") == 0){
+		if(parent != nil){
+			switch(m->id){
+			case 1:
+			case 2:
+				fprint(fd, "%s", bogusMimeText);
+				break;
+			case 3:
+			case 4:
+				fprint(fd, "%s", bogusMimeBinary);
+				break;
+			}
+		}
+	}else if(strcmp(f, "rawheader") == 0){
+		if(parent == nil){
+			date2tm(&tm, m->unixDate);
+			rfc822date(buf, sizeof(buf), &tm);
+			fprint(fd,
+				"Date: %s\r\n"
+				"From: imap4 daemon <%s@%s>\r\n"
+				"To: <%s@%s>\r\n"
+				"Subject: This message was illegal or corrupted\r\n"
+				"MIME-Version: 1.0\r\n"
+				"Content-Type: multipart/mixed;\r\n\tboundary=\"upas-%s\"\r\n",
+					buf, username, site, username, site, m->info[IDigest]);
+		}
+	}else if(strcmp(f, "rawbody") == 0){
+		fd1 = msgFile(p, "raw");
+		strcpy(p->efs, "rawbody");
+		fd2 = cdOpen(p->fsDir, p->fs, OREAD);
+		if(fd1 < 0 || fd2 < 0){
 			close(fd);
+			close(fd1);
+			close(fd2);
 			return -1;
 		}
-		body64(fd1, fd);
+		if(parent == nil){
+			fprint(fd,
+				"This is a multi-part message in MIME format.\r\n"
+				"--upas-%s\r\n"
+				"%s"
+				"\r\n"
+				"%s"
+				"\r\n",
+					m->info[IDigest], bogusMimeText, bogusBody);
+
+			fprint(fd,
+				"--upas-%s\r\n"
+				"%s"
+				"\r\n",
+					m->info[IDigest], bogusMimeText);
+			bodystrip(fd1, fd);
+
+			fprint(fd,
+				"--upas-%s\r\n"
+				"%s"
+				"\r\n",
+					m->info[IDigest], bogusMimeBinary);
+			seek(fd1, 0, 0);
+			body64(fd1, fd);
+
+			fprint(fd,
+				"--upas-%s\r\n"
+				"%s"
+				"\r\n",
+					m->info[IDigest], bogusMimeBinary);
+			body64(fd2, fd);
+
+			fprint(fd, "--upas-%s--\r\n", m->info[IDigest]);
+		}else{
+			switch(m->id){
+			case 1:
+				fprint(fd, "%s", bogusBody);
+				break;
+			case 2:
+				bodystrip(fd1, fd);
+				break;
+			case 3:
+				body64(fd1, fd);
+				break;
+			case 4:
+				body64(fd2, fd);
+				break;
+			}
+		}
 		close(fd1);
+		close(fd2);
 	}
 	seek(fd, 0, 0);
 	return fd;
@@ -275,8 +409,8 @@ msgStruct(Msg *m, int top)
 	|| !msgBodySize(m)
 	|| !msgHeader(m, &m->mime, "mimeheader")
 	|| (top || msgIsRfc822(&m->mime)) && !msgHeader(m, &m->head, "rawheader")){
-		if(top && m->bogus == 1){
-			m->bogus = 2;
+		if(top && m->bogus && !(m->bogus & BogusTried)){
+			m->bogus |= BogusTried;
 			return msgStruct(m, top);
 		}
 		msgDead(m);
@@ -290,6 +424,8 @@ msgStruct(Msg *m, int top)
 		k = MKZ(Msg);
 		k->id = 1;
 		k->fsDir = m->fsDir;
+		k->bogus = m->bogus;
+		k->parent = m->parent;
 		ns = m->efs - m->fs;
 		k->fs = emalloc(ns + NAMELEN+1);
 		memmove(k->fs, m->fs, ns);
@@ -326,6 +462,8 @@ msgStruct(Msg *m, int top)
 			k = MKZ(Msg);
 			k->id = id;
 			k->fsDir = m->fsDir;
+			k->bogus = m->bogus;
+			k->parent = m;
 			ns = strlen(m->fs) + 2*(NAMELEN+1);
 			k->fs = emalloc(ns);
 			k->efs = seprint(k->fs, k->fs + ns, "%s%lud/", m->fs, id);
@@ -425,10 +563,10 @@ freeMAddr(MAddr *a)
  * relying on msgFile to make up corrected body parts.
  */
 static int
-msgBogus(Msg *m)
+msgBogus(Msg *m, int flags)
 {
-	if(!m->bogus)
-		m->bogus = 1;
+	if(!(m->bogus & flags))
+		m->bogus |= flags;
 	m->lines = ~0;
 	free(m->head.buf);
 	free(m->mime.buf);
@@ -437,16 +575,16 @@ msgBogus(Msg *m)
 	return 0;
 }
 
-//
-//  stolen from upas/marshall; base64 encodes from one fd to another.
-//
-//  the size of buf is very important to enc64.  Anything other than
-//  a multiple of 3 will cause enc64 to output a termination sequence.
-//  To ensure that a full buf corresponds to a multiple of complete lines,
-//  we make buf a multiple of 3*18 since that's how many enc64 sticks on
-//  a single line.  This avoids short lines in the output which is pleasing
-//  but not necessary.
-//
+/*
+ *  stolen from upas/marshall; base64 encodes from one fd to another.
+ *
+ *  the size of buf is very important to enc64.  Anything other than
+ *  a multiple of 3 will cause enc64 to output a termination sequence.
+ *  To ensure that a full buf corresponds to a multiple of complete lines,
+ *  we make buf a multiple of 3*18 since that's how many enc64 sticks on
+ *  a single line.  This avoids short lines in the output which is pleasing
+ *  but not necessary.
+ */
 static int
 enc64x18(char *out, int lim, uchar *in, int n)
 {
@@ -487,6 +625,34 @@ body64(int in, int out)
 }
 
 /*
+ * strip all non-printable characters from a file
+ */
+static void
+bodystrip(int in, int out)
+{
+	uchar buf[3*18*54];
+	int m, n, i, c;
+
+	for(;;){
+		n = read(in, buf, sizeof(buf));
+		if(n < 0)
+			return;
+		if(n == 0)
+			break;
+		m = 0;
+		for(i = 0; i < n; i++){
+			c = buf[i];
+			if(c > 0x1f && c < 0x7f		/* normal characters */
+			|| c >= 0x9 && c <= 0xd)	/* \t, \n, vertical tab, form feed, \r */
+				buf[m++] = c;
+		}
+
+		if(m && write(out, buf, m) < 0)
+			return;
+	}
+}
+
+/*
  * read in the message body to count \n without a preceeding \r
  */
 static int
@@ -521,7 +687,7 @@ msgBodySize(Msg *m)
 			c = *s;
 			if(c == '\0'){
 				close(fd);
-				return msgBogus(m);
+				return msgBogus(m, BogusBody);
 			}
 			if(c != '\n')
 				continue;
@@ -638,7 +804,7 @@ msgHeader(Msg *m, Header *h, char *file)
 	for(t = s; t < te; t++){
 		c = *t;
 		if(c == '\0')
-			return msgBogus(m);
+			return msgBogus(m, BogusHeader);
 		if(c != '\n')
 			continue;
 		if(t == s || t[-1] != '\r')

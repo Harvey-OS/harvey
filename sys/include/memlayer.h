@@ -26,9 +26,10 @@ struct Memlayer
 };
 
 /*
- * This function accepts local coordinates
+ * These functions accept local coordinates
  */
 int			memload(Memimage*, Rectangle, uchar*, int, int);
+int			memunload(Memimage*, Rectangle, uchar*, int);
 
 /*
  * All these functions accept screen coordinates, not local ones.

@@ -58,18 +58,50 @@ fornax 8917649
 	sbaddr =  8919379
 	craddr =  8919383  8919383
 
-/* BOOTES 00006b8244f8 */
+/* BOOTES little endian */
+config xw5
+service bootes
+filsys main c[xw5]j(w1.1.8xw1.1.1)(r<0-44>r<50-94>)
+filsys dump o
+filsys fornax c[xw3]j(w1.2.8xw1.2.0)(r<0-18>)
+filsys fdump o
+ip 135.104.9.30
+ipgw 135.104.9.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+/* BOOTES little endian with only fornax filesystem */
+config xw5
+service bootes
+//filsys main c[xw5]j(w1.1.8xw1.1.1)(r<0-44>r<50-94>)
+//filsys dump o
+filsys main c[xw3]j(w1.2.8xw1.2.0)(r<0-18>)
+filsys dump o
+ip 135.104.9.30
+ipgw 135.104.9.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+/* BOOTES little endian with only bootes filesystem */
+config xw5
+service bootes
+filsys main c[xw5]j(w1.2.8xw1.2.1)(r<0-44>r<50-94>)
+filsys dump o
+ip 135.104.9.30
+ipgw 135.104.9.1
+ipmask 255.255.255.0
+ipauth 135.104.9.7
+end
+
+/* BOOTES 00006b8244f8 big endian */
 config w5
 service bootes
 filsys main c[w5]j(w0.1.8w0.1.1)(r<0-44>r<50-94>)
 filsys dump o
-
-filsys fornax c[w3]j(w0.2.8w0.2.0)(r<0-18>)
-filsys fdump o
-
-//filsys fornax c[w3]j(w0.2.8w0.2.0w0.2.1)(r<0-18>)
+//filsys fornax c[w3]j(w0.2.8w0.2.0)(r<0-18>)
 //filsys fdump o
-
 ip 135.104.9.30
 ipgw 135.104.9.1
 ipmask 255.255.255.0

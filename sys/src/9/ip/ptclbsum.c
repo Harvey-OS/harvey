@@ -4,7 +4,6 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
-#include	"kernel.h"
 #include	"ip.h"
 
 static	short	endian	= 1;

@@ -16,7 +16,7 @@
 //	'f'		is the clock frequency
 //	'ticks'		are clock ticks
 //
-//  to avoid too much calculation in gettod(), we calculate
+//  to avoid too much calculation in todget(), we calculate
 //
 //	mult = (1000000000<<31)/f
 //
@@ -37,7 +37,7 @@ struct {
 	vlong	hz;		// frequency of fast clock
 	vlong	last;		// last reading of fast clock
 	vlong	off;		// offset from epoch to last
-	vlong	lasttime;	// last return value from gettod
+	vlong	lasttime;	// last return value from todget
 	vlong	delta;		// add 'delta' each slow clock tick from sstart to send
 	ulong	sstart;		// ...
 	ulong	send;		// ...
@@ -46,7 +46,9 @@ struct {
 void
 todinit(void)
 {
-	fastticks((uvlong*)&tod.hz);
+	ilock(&tod);
+	tod.last = fastticks((uvlong*)&tod.hz);
+	iunlock(&tod);
 	todsetfreq(tod.hz);
 	addclock0link(todfix);
 }
@@ -155,8 +157,8 @@ todfix(void)
 		ilock(&tod);
 	
 		// convert to epoch
-		diff = ticks - tod.last;
-		x = (diff * tod.multiplier) >> 31;
+		x = diff * tod.multiplier;
+		x = x >> 31;
 		x = x + tod.off;
 	
 		// protect against overflows

@@ -61,6 +61,7 @@ int		tas(ulong*);
 void		tlbinit(void);
 ulong		tlbvirt(void);
 void		touser(void*);
+#define userureg(ur) ((ur)->status & KUSER)
 void		vecinit(void);
 void		vector0(void);
 void		vector100(void);

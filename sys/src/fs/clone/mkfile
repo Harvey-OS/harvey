@@ -30,6 +30,7 @@ PORT=\
 	mworm.$O\
 	print.$O\
 	proc.$O\
+	sntp.$O\
 	sub.$O\
 	time.$O\
 	uidgid.$O\

@@ -66,7 +66,6 @@ $p$CONF:	$OBJ $CONF.c $LIB
 
 install:V:	$p$CONF
 	cp $p$CONF /$objtype/$p$CONF
-	import dinar / /n/dinar && cp $p$CONF /n/dinar/$objtype/$p$CONF
 
 <../boot/bootmkfile
 <../port/portmkfile

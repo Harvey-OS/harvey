@@ -280,6 +280,11 @@ language is implemented except for the commands
 .BR q ,
 and
 .BR ! .
+The
+.B =
+command is slightly different: it includes the file name and
+gives only the line address unless the command is explicitly
+.BR =# .
 The `current window' for the command is the body of the window in which the
 .B Edit
 command is executed.
@@ -298,7 +303,8 @@ after checking that windows are not dirty.
 .B Font
 With no arguments, change the font of the associated window from fixed-spaced to
 proportional-spaced or
-.I vice versa\f1.
+.I vice
+.I versa .
 Given a file name argument, change the font of the window to that stored in the named file.
 If the file name argument is prefixed by
 .B var

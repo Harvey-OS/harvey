@@ -1,22 +1,22 @@
-/* Copyright (C) 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: imainarg.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: imainarg.c,v 1.4.2.2 2000/11/09 22:45:17 rayjj Exp $ */
 /* Command line parsing and dispatching */
 #include "ctype_.h"
 #include "memory_.h"
@@ -38,6 +38,7 @@
 #include "sfilter.h"		/* for iscan.h */
 #include "ostack.h"		/* must precede iscan.h */
 #include "iscan.h"
+#include "iconf.h"
 #include "imain.h"
 #include "imainarg.h"
 #include "iminst.h"
@@ -76,16 +77,11 @@ extern int zflushpage(P1(i_ctx_t *));
 /* Redefine puts to use fprintf, so it will work even without stdio. */
 #undef puts
 private void
-fpputs(const char *str)
+fpputs(const gs_main_instance *minst, const char *str)
 {
-    fprintf(stdout, "%s\n", str);
+    fprintf(minst->fstdout, "%s\n", str);
 }
-#define puts(str) fpputs(str)
-
-/* Other imported data */
-extern const char *const gs_doc_directory;
-extern const char *const gs_lib_default_path;
-extern const ref gs_emulator_name_array[];
+#define puts(str) fpputs(minst, str)
 
 /* Forward references */
 #define runInit 1
@@ -102,13 +98,13 @@ private int run_finish(P4(gs_main_instance *, int, int, ref *));
 
 /* Forward references for help printout */
 private void print_help(P1(gs_main_instance *));
-private void print_revision(P0());
-private void print_version(P0());
-private void print_usage(P0());
-private void print_devices(P0());
-private void print_emulators(P0());
+private void print_revision(P1(const gs_main_instance *));
+private void print_version(P1(const gs_main_instance *));
+private void print_usage(P1(const gs_main_instance *));
+private void print_devices(P1(const gs_main_instance *));
+private void print_emulators(P1(const gs_main_instance *));
 private void print_paths(P1(gs_main_instance *));
-private void print_help_trailer(P0());
+private void print_help_trailer(P1(const gs_main_instance *));
 
 /* ------ Main program ------ */
 
@@ -165,7 +161,7 @@ gs_main_init_with_args(gs_main_instance * minst, int argc, char *argv[])
 		print_help(minst);
 		helping = true;
 	    } else if (!strcmp(argv[i], "--version")) {
-		print_version();
+		print_version(minst);
 		puts("");	/* \n */
 		helping = true;
 	    }
@@ -193,8 +189,11 @@ gs_main_init_with_args(gs_main_instance * minst, int argc, char *argv[])
     while ((arg = arg_next(&args)) != 0) {
 	switch (*arg) {
 	    case '-':
-		if (swproc(minst, arg, &args) < 0)
-		    fprintf(stdout,
+		code = swproc(minst, arg, &args);
+		if (code < 0)
+		    return code;
+		if (code > 0)
+		    fprintf(minst->fstdout,
 			    "Unknown switch %s - ignoring\n", arg);
 		break;
 	    default:
@@ -217,12 +216,14 @@ gs_main_run_start(gs_main_instance * minst)
     run_string(minst, "systemdict /start get exec", runFlush);
 }
 
-/* Process switches */
+/* Process switches.  Return 0 if processed, 1 for unknown switch, */
+/* <0 if error. */
 private int
 swproc(gs_main_instance * minst, const char *arg, arg_list * pal)
 {
     char sw = arg[1];
     ref vtrue;
+    int code;
 #undef initial_enter_name
 #define initial_enter_name(nstr, pvalue)\
   i_initial_enter_name(minst->i_ctx_p, nstr, pvalue)
@@ -231,7 +232,7 @@ swproc(gs_main_instance * minst, const char *arg, arg_list * pal)
     arg += 2;			/* skip - and letter */
     switch (sw) {
 	default:
-	    return -1;
+	    return 1;
 	case 0:		/* read stdin as a file char-by-char */
 	    /* This is a ******HACK****** for Ghostview. */
 	    minst->stdin_is_interactive = true;
@@ -241,8 +242,12 @@ swproc(gs_main_instance * minst, const char *arg, arg_list * pal)
 run_stdin:
 	    minst->run_start = false;	/* don't run 'start' */
 	    /* Set NOPAUSE so showpage won't try to read from stdin. */
-	    swproc(minst, "-dNOPAUSE", pal);
-	    gs_main_init2(minst);	/* Finish initialization */
+	    code = swproc(minst, "-dNOPAUSE", pal);
+	    if (code)
+		return code;
+	    code = gs_main_init2(minst);	/* Finish initialization */
+	    if (code < 0)
+		return code;
 	    gs_stdin_is_interactive = minst->stdin_is_interactive;
 	    run_string(minst, ".runstdin", runFlush);
 	    break;
@@ -254,12 +259,15 @@ run_stdin:
 		const char *psarg = arg_next(pal);
 
 		if (psarg == 0) {
-		    fprintf(stdout, "Usage: gs ... -%c file.ps arg1 ... argn\n", sw);
+		    fprintf(minst->fstdout,
+			    "Usage: gs ... -%c file.ps arg1 ... argn\n", sw);
 		    arg_finit(pal);
 		    gs_exit(1);
 		}
 		psarg = arg_heap_copy(psarg);
-		gs_main_init2(minst);
+		code = gs_main_init2(minst);
+		if (code < 0)
+		    return code;
 		run_string(minst, "userdict/ARGUMENTS[", 0);
 		while ((arg = arg_next(pal)) != 0)
 		    runarg(minst, "", arg_heap_copy(arg), "", runInit);
@@ -288,7 +296,7 @@ run_stdin:
 		if (sscanf((const char *)arg, "%u", &bsize) != 1 ||
 		    bsize <= 0 || bsize > MAX_BUFFERED_SIZE
 		    ) {
-		    fprintf(stdout, "-B must be followed by - or size between 1 and %u\n", MAX_BUFFERED_SIZE);
+		    fprintf(minst->fstdout, "-B must be followed by - or size between 1 and %u\n", MAX_BUFFERED_SIZE);
 		    gs_exit(1);
 		}
 		minst->run_buffer_size = bsize;
@@ -298,7 +306,9 @@ run_stdin:
 	    {
 		bool ats = pal->expand_ats;
 
-		gs_main_init2(minst);
+		code = gs_main_init2(minst);
+		if (code < 0)
+		    return code;
 		pal->expand_ats = false;
 		while ((arg = arg_next(pal)) != 0) {
 		    char *sarg;
@@ -374,7 +384,8 @@ run_stdin:
 
 		sscanf((const char *)arg, "%ld", &msize);
 		if (msize <= 0 || msize > max_long >> 10) {
-		    fprintf(stdout, "-K<numK> must have 1 <= numK <= %ld\n",
+		    fprintf(minst->fstdout,
+			    "-K<numK> must have 1 <= numK <= %ld\n",
 			    max_long >> 10);
 		    gs_exit(1);
 		}
@@ -538,7 +549,7 @@ run_stdin:
 	    i_initial_remove_name(minst->i_ctx_p, arg);
 	    break;
 	case 'v':		/* print revision */
-	    print_revision();
+	    print_revision(minst);
 	    gs_exit(0);
 /*#ifdef DEBUG */
 	    /*
@@ -546,7 +557,9 @@ run_stdin:
 	     * run in place of the normal interpreter code.
 	     */
 	case 'X':
-	    gs_main_init2(minst);
+	    code = gs_main_init2(minst);
+	    if (code < 0)
+		return code;
 	    {
 		int xec;	/* exit_code */
 		ref xeo;	/* error_object */
@@ -624,7 +637,7 @@ run_buffered(gs_main_instance * minst, const char *arg)
     int code;
 
     if (in == 0) {
-	fprintf(stdout, "Unable to open %s for reading", arg);
+	fprintf(minst->fstdout, "Unable to open %s for reading", arg);
 	return_error(e_invalidfileaccess);
     }
     code = gs_main_init2(minst);
@@ -742,20 +755,26 @@ private const char help_paths[] = "Search path:";
 private void
 print_help(gs_main_instance * minst)
 {
-    print_revision();
-    print_usage();
-    print_emulators();
-    print_devices();
+    print_revision(minst);
+    print_usage(minst);
+    print_emulators(minst);
+    print_devices(minst);
     print_paths(minst);
-    print_help_trailer();
+    if (gs_init_string_sizeof > 0) {
+        fprintf(minst->fstdout,
+		"Initialization files are compiled into the executable.\n");
+    }
+    print_help_trailer(minst);
 }
 
 /* Print the revision, revision date, and copyright. */
 private void
-print_revision(void)
+print_revision(const gs_main_instance *minst)
 {
-    printf_program_ident(stdout, gs_product, gs_revision);
-    fprintf(stdout, " (%d-%02d-%02d)\n%s\n",
+    FILE *out = minst->fstdout;
+
+    printf_program_ident(out, gs_product, gs_revision);
+    fprintf(out, " (%d-%02d-%02d)\n%s\n",
 	    (int)(gs_revisiondate / 10000),
 	    (int)(gs_revisiondate / 100 % 100),
 	    (int)(gs_revisiondate % 100),
@@ -764,24 +783,30 @@ print_revision(void)
 
 /* Print the version number. */
 private void
-print_version(void)
+print_version(const gs_main_instance *minst)
 {
-    printf_program_ident(stdout, NULL, gs_revision);
+    FILE *out = minst->fstdout;
+
+    printf_program_ident(out, NULL, gs_revision);
 }
 
 /* Print usage information. */
 private void
-print_usage(void)
+print_usage(const gs_main_instance *minst)
 {
-    fprintf(stdout, "%s", help_usage1);
-    fprintf(stdout, "%s", help_usage2);
+    FILE *out = minst->fstdout;
+
+    fprintf(out, "%s", help_usage1);
+    fprintf(out, "%s", help_usage2);
 }
 
 /* Print the list of available devices. */
 private void
-print_devices(void)
+print_devices(const gs_main_instance *minst)
 {
-    fprintf(stdout, "%s", help_devices);
+    FILE *out = minst->fstdout;
+
+    fprintf(out, "%s", help_devices);
     {
 	int i;
 	int pos = 100;
@@ -792,19 +817,21 @@ print_devices(void)
 	    int len = strlen(dname);
 
 	    if (pos + 1 + len > 76)
-		fprintf(stdout, "\n  "), pos = 2;
-	    fprintf(stdout, " %s", dname);
+		fprintf(out, "\n  "), pos = 2;
+	    fprintf(out, " %s", dname);
 	    pos += 1 + len;
 	}
     }
-    fprintf(stdout, "\n");
+    fprintf(out, "\n");
 }
 
 /* Print the list of language emulators. */
 private void
-print_emulators(void)
+print_emulators(const gs_main_instance *minst)
 {
-    fprintf(stdout, "%s", help_emulators);
+    FILE *out = minst->fstdout;
+
+    fprintf(out, "%s", help_emulators);
     {
 	const ref *pes;
 
@@ -816,16 +843,18 @@ print_emulators(void)
 	     * an array of string refs, each string is actually a
 	     * (null terminated) C string.
 	     */
-	    fprintf(stdout, " %s", (const char *)pes->value.const_bytes);
+	    fprintf(out, " %s", (const char *)pes->value.const_bytes);
     }
-    fprintf(stdout, "\n");
+    fprintf(out, "\n");
 }
 
 /* Print the search paths. */
 private void
 print_paths(gs_main_instance * minst)
 {
-    fprintf(stdout, "%s", help_paths);
+    FILE *out = minst->fstdout;
+
+    fprintf(out, "%s", help_paths);
     gs_main_set_lib_paths(minst);
     {
 	uint count = r_size(&minst->lib_path.list);
@@ -842,32 +871,35 @@ print_paths(gs_main_instance * minst)
 	    const char *sepr = (i == count - 1 ? "" : fsepr);
 
 	    if (1 + pos + strlen(sepr) + len > 76)
-		fprintf(stdout, "\n  "), pos = 2;
-	    fprintf(stdout, " ");
+		fprintf(out, "\n  "), pos = 2;
+	    fprintf(out, " ");
 	    /*
-	     * This is really ugly, but it's necessary.
-	     * We wish we could just do:
-	     fwrite(prdir->value.bytes, 1, len, stdout);
+	     * This is really ugly, but it's necessary because some
+	     * platforms rely on all console output being funneled through
+	     * fprintf.  We wish we could just do:
+	     fwrite(prdir->value.bytes, 1, len, out);
 	     */
 	    {
 		const char *p = (const char *)prdir->value.bytes;
 		uint j;
 
 		for (j = len; j; j--)
-		    fprintf(stdout, "%c", *p++);
+		    fprintf(out, "%c", *p++);
 	    }
-	    fprintf(stdout, sepr);
+	    fprintf(out, sepr);
 	    pos += 1 + len + strlen(sepr);
 	}
     }
-    fprintf(stdout, "\n");
+    fprintf(out, "\n");
 }
 
 /* Print the help trailer. */
 private void
-print_help_trailer(void)
+print_help_trailer(const gs_main_instance *minst)
 {
-    fprintf(stdout, help_trailer, gs_doc_directory,
+    FILE *out = minst->fstdout;
+
+    fprintf(out, help_trailer, gs_doc_directory,
 	    gp_file_name_concat_string(gs_doc_directory,
 				       strlen(gs_doc_directory),
 				       "Use.htm", 7),

@@ -3,6 +3,7 @@
 #define OP16	BYTE	$0x66
 #define NOP	XCHGL	AX,AX
 #define CPUID	BYTE $0x0F; BYTE $0xA2	/* CPUID, argument in AX */
+#define RDMSR	BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
 
 TEXT	origin(SB),$0
 
@@ -250,15 +251,6 @@ TEXT	tas(SB),$0
 
 TEXT wbflush(SB), $0
 	CPUID
-	RET
-
-/*
- *  exchange 2 32-bit words, this is an interlocked (LOCK#) instruction
- */
-TEXT	ilputl(SB),$0
-	MOVL	v+4(FP),AX
-	MOVL	a+0(FP),BX
-	XCHGL	AX,(BX)
 	RET
 
 /*
@@ -567,41 +559,68 @@ TEXT	getstatus(SB),$0
 	POPL	AX
 	RET
 
+TEXT rdmsr(SB), $0				/* model-specific register */
+	MOVL	index+0(FP), CX
+	RDMSR
+	MOVL	vlong+4(FP), CX			/* &vlong */
+	MOVL	AX, (CX)			/* lo */
+	MOVL	DX, 4(CX)			/* hi */
+	RET
+
 /*
- *  return cpu type (586 == pentium or better)
+ * Try to determine the CPU type which requires fiddling with EFLAGS.
+ * If the Id bit can be toggled then the CPUID instruciton can be used
+ * to determine CPU identity and features. First have to check if it's
+ * a 386 (Ac bit can't be set). If it's not a 386 and the Id bit can't be
+ * toggled then it's an older 486 of some kind.
+ *
+ *	cpuid(id[], &ax, &dx);
  */
-TEXT	x86cpuid(SB),$0
+TEXT cpuid(SB), $0
+	MOVL	$0x240000, AX
+	PUSHL	AX
+	POPFL					/* set Id|Ac */
 
 	PUSHFL
-	MOVL	0(SP),AX
-	XORL	$0x240000,AX
+	POPL	BX				/* retrieve value */
+
+	MOVL	$0, AX
 	PUSHL	AX
-	POPFL
+	POPFL					/* clear Id|Ac, EFLAGS initialised */
+
 	PUSHFL
-	MOVL	0(SP),AX
-	XORL	4(SP),AX
-	MOVL	AX, BX
-	ANDL	$0x40000,BX	/* on 386 we can't change this bit */
-	JZ	is386
-	ANDL	$0x200000,AX	/* if we can't change this, there's no CPUID */
-	JZ	is486
-	MOVL	$1,AX
+	POPL	AX				/* retrieve value */
+	XORL	BX, AX
+	TESTL	$0x040000, AX			/* Ac */
+	JZ	_cpu386				/* can't set this bit on 386 */
+	TESTL	$0x200000, AX			/* Id */
+	JZ	_cpu486				/* can't toggle this bit on some 486 */
+
+	MOVL	$0, AX
 	CPUID
-	JMP	done
-is486:
-	MOVL	$(4<<8),AX
-	MOVL	$0,DX
-	JMP	done
-is386:
-	MOVL	$(3<<8),AX
-	MOVL	$0,DX
-done:
-	MOVL	a+0(FP),CX
-	MOVL	AX,0(CX)
-	MOVL	d+4(FP),CX
-	MOVL	DX,0(CX)
-	POPFL
-	POPL	BX
+	MOVL	id+0(FP), BP
+	MOVL	BX, 0(BP)			/* "Genu" "Auth" "Cyri" */
+	MOVL	DX, 4(BP)			/* "ineI" "enti" "xIns" */
+	MOVL	CX, 8(BP)			/* "ntel" "cAMD" "tead" */
+
+	MOVL	$1, AX
+	CPUID
+	JMP	_cpuid
+
+_cpu486:
+	MOVL	$0x400, AX
+	MOVL	$0, DX
+	JMP	_cpuid
+
+_cpu386:
+	MOVL	$0x300, AX
+	MOVL	$0, DX
+
+_cpuid:
+	MOVL	ax+4(FP), BP
+	MOVL	AX, 0(BP)
+	MOVL	dx+8(FP), BP
+	MOVL	DX, 0(BP)
 	RET
 
 /*

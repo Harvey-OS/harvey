@@ -168,7 +168,9 @@ yields ½.
 .IP
 The letter s followed by a character gives that character as a superscript, e.g.,
 .B s1
-yields ¹.
+yields ⁱ.
+These characters are taken from the Unicode block 0x2070; the 1, 2, and 3
+superscripts in the Latin-1 block are available by using a capital S instead of s.
 .IP
 Sometimes a pair of characters give a symbol related to the superimposition of the characters, e.g.,
 .B cO

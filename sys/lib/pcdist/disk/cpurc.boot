@@ -16,6 +16,12 @@ for (i in '#P' '#S' '#f' '#m' '#t' '#v') {
 }
 if(~ $debug yes) echo binddev done
 
+for(disk in /dev/sd??) {
+	if(test -f $disk/data && test -f $disk/ctl)
+		disk/fdisk -p $disk/data >$disk/ctl >[2]/dev/null
+}
+
+
 for (i in /sys/log/*) {
 	if(~ $debug yes) echo bind $i
 	bind /dev/null $i

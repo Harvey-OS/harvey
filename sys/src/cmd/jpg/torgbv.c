@@ -106,7 +106,6 @@ torgbv(Rawimage *i, int errdiff)
 			/* to avoid a range check in inner loop below, make a full-size cmap */
 			memmove(cmap1, cmap, i->cmaplen);
 			cmap = cmap1;
-			errdiff = 0;	/* why not? */
 		}
 		if(errdiff == 0){
 			k = 0;

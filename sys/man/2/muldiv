@@ -20,6 +20,8 @@ using a
 to hold the intermediate result.
 .I Umuldiv
 is the equivalent for unsigned integers.
+They can be used to scale integer values without worry about
+overflowing the intermediate result.
 .PP
 On some architectures, these routines can generate a trap if the
 final result does not fit in a

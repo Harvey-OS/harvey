@@ -853,20 +853,22 @@ remoteaddr(int fd, char *dir)
 	int n;
 
 	if(dir == 0){
-			/* parse something of the form /net/tcp/nnnn/data */
-		if(fd2path(fd, buf, sizeof(buf)) == 0) {
-			p = strrchr(buf, '/');
-			if(p == 0)
-				return "";
-			strncpy(p+1, "remote", sizeof(buf)-(p-buf)-2);
-		}
+		if(fd2path(fd, buf, sizeof(buf)) != 0)
+			return "";
+
+		/* parse something of the form /net/tcp/nnnn/data */
+		p = strrchr(buf, '/');
+		if(p == 0)
+			return "";
+		strncpy(p+1, "remote", sizeof(buf)-(p-buf)-2);
 	} else
 		snprint(buf, sizeof buf, "%s/remote", dir);
 	buf[sizeof(buf)-1] = 0;
+
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		return "";
-	n = read(fd, buf, sizeof(buf));
+	n = read(fd, buf, sizeof(buf)-1);
 	close(fd);
 	if(n > 0){
 		buf[n] = 0;

@@ -1,0 +1,114 @@
+CONF=bitsy
+CONFLIST=bitsy
+
+objtype=arm
+</$objtype/mkfile
+p=9
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	fault.$O\
+	latin1.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	main.$O\
+	trap.$O\
+	clock.$O\
+	mmu.$O\
+	power.$O\
+	random.$O\
+	sa1110dma.$O\
+	screen.$O\
+	$DEVS\
+	$PORT\
+	boot$CONF.root.$O\
+	fpi.$O\
+	fpiarm.$O\
+	fpimem.$O\
+	defont.$O\
+
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libauth.a\
+	/$objtype/lib/libc.a\
+	/$objtype/lib/libsec.a\
+
+size:VQ: $p$CONF
+	ls -l $p$CONF|sed 's/^[^ ]+ [^ ]+ [^ ]+ [^ ]+ [^ ]+ ([^ ]+).*/load ram 0xc0008000 \1/'
+	echo !xms /sys/src/9/bitsy/^$p$CONF
+	echo jump 0xc0008010
+
+acid:VQ:
+	echo acid -lmap s9bitsy
+
+$p$CONF:	$OBJ $CONF.c $LIB /arm/inflate
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -H5 -R4 -T0xC0008010 -l $OBJ $CONF.$O $LIB
+	$LD -o s$target -R4 -T0xC0008010 -l $OBJ $CONF.$O $LIB
+	gzip $target
+	cat /arm/inflate $target.gz > $target
+	echo the boot loader misses the last 12 bytes >> $target
+	rm $target.gz
+
+install:V:	$p$CONF
+	cp $p$CONF /$objtype/$p$CONF
+
+<../boot/bootmkfile
+<../port/portmkfile
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	$AS initcode
+	$LD -l -s -R4 -o init.out initcode.$O
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+clock.$O:	/$objtype/include/ureg.h
+
+devether.$O: ../port/netif.h
+
+fpi.$O: fpi.h
+fpiarm.$O: fpi.h
+fpimem.$O: fpi.h
+
+screen.$O: gamma.h
+
+ramdisk:V:
+	rm -fr armsac
+	mkdir armsac
+	cd armsac
+	disk/mkfs -a ../armsac.proto|disk/mkext -d .
+	disk/mksacfs -o ../fs.sac
+	cd ..
+	rm -fr armsac
+	tar c fs.sac > ramdisk
+	rm -fr fs.sac
+	echo load ramdisk
+	echo !xms /sys/src/9/bitsy/ramdisk

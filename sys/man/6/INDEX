@@ -16,7 +16,6 @@ mpictures mpictures
 ms ms
 namespace namespace
 ndb ndb
-noweb noweb
 plot plot
 plumb plumb
 regexp regexp

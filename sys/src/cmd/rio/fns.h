@@ -1,5 +1,8 @@
+void	keyboardsend(char*, int);
+int	whide(Window*);
+int	wunhide(int);
 void	freescrtemps(void);
-int	parsewctl(char**, Rectangle, Rectangle*, int*, char**, char*, char*);
+int	parsewctl(char**, Rectangle, Rectangle*, int*, int*, char**, char*, char*);
 int	writewctl(Xfid*, char*);
 Window *new(Image*, int, char*, char*, char**);
 void	riosetcursor(Cursor*, int);

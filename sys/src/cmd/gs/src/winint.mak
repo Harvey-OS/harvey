@@ -1,21 +1,21 @@
 #    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: winint.mak,v 1.3 2000/03/17 03:01:58 lpd Exp $
+# $Id: winint.mak,v 1.5 2000/09/19 19:00:52 lpd Exp $
 # Common interpreter makefile section for 32-bit MS Windows.
 
 # This makefile must be acceptable to Microsoft Visual C++, Watcom C++,
@@ -63,6 +63,14 @@ UNINSTALL_XE_NAME=uninstgs.exe
 UNINSTALL_XE=$(BINDIR)\$(UNINSTALL_XE_NAME)
 !endif
 
+# Define the RCOMP switch for including INCDIR.
+!if "$(INCDIR)"==""
+i_INCDIR=
+!else
+i_INCDIR=-i$(INCDIR)
+!endif
+
+
 # ----------------------------- Main program ------------------------------ #
 
 ICONS=$(GLGEN)gsgraph.ico $(GLGEN)gstext.ico
@@ -88,7 +96,7 @@ $(GS_OBJ).res: $(GLSRC)dwmain.rc $(dwmain_h) $(ICONS) $(WININT_MAK)
 	$(ECHOGS_XE) -w $(GLGEN)_exe.rc -x 23 define -s gstext_ico $(GLGENDIR)\gstext.ico
 	$(ECHOGS_XE) -a $(GLGEN)_exe.rc -x 23 define -s gsgraph_ico $(GLGENDIR)\gsgraph.ico
 	$(ECHOGS_XE) -a $(GLGEN)_exe.rc -R $(GLSRC)dwmain.rc
-	$(RCOMP) -I$(GLSRCDIR) -i$(INCDIR)$(_I) -r $(RO_)$(GS_OBJ).res $(GLGEN)_exe.rc
+	$(RCOMP) -I$(GLSRCDIR) $(i_INCDIR) -r $(RO_)$(GS_OBJ).res $(GLGEN)_exe.rc
 	del $(GLGEN)_exe.rc
 
 # resources for main program (includes dialogs)
@@ -96,7 +104,7 @@ $(GSDLL_OBJ).res: $(GLSRC)gsdll32.rc $(gp_mswin_h) $(ICONS) $(WININT_MAK)
 	$(ECHOGS_XE) -w $(GLGEN)_dll.rc -x 23 define -s gstext_ico $(GLGENDIR)\gstext.ico
 	$(ECHOGS_XE) -a $(GLGEN)_dll.rc -x 23 define -s gsgraph_ico $(GLGENDIR)\gsgraph.ico
 	$(ECHOGS_XE) -a $(GLGEN)_dll.rc -R $(GLSRC)gsdll32.rc
-	$(RCOMP) -I$(GLSRCDIR) -i$(INCDIR)$(_I) -r $(RO_)$(GSDLL_OBJ).res $(GLGEN)_dll.rc
+	$(RCOMP) -I$(GLSRCDIR) $(i_INCDIR) -r $(RO_)$(GSDLL_OBJ).res $(GLGEN)_dll.rc
 	del $(GLGEN)_dll.rc
 
 
@@ -156,7 +164,7 @@ $(GLOBJ)dwnodllc.obj: $(GLSRC)dwnodll.cpp $(AK) $(dwdll_h) $(gsdll_h)
 # don't hurt.
 
 $(GLOBJ)dwsetup.res: $(GLSRC)dwsetup.rc $(GLSRC)dwsetup.h $(GLGEN)gstext.ico
-	$(RCOMP) -I$(GLSRCDIR) -i$(GLOBJDIR) -i$(INCDIR)$(_I) -r $(RO_)$(GLOBJ)dwsetup.res $(GLSRC)dwsetup.rc
+	$(RCOMP) -I$(GLSRCDIR) -i$(GLOBJDIR) $(i_INCDIR) -r $(RO_)$(GLOBJ)dwsetup.res $(GLSRC)dwsetup.rc
 
 $(GLOBJ)dwsetup.obj: $(GLSRC)dwsetup.cpp $(GLSRC)dwsetup.h $(GLSRC)dwinst.h
 	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwsetup.obj $(C_) $(GLSRC)dwsetup.cpp
@@ -167,7 +175,7 @@ $(GLOBJ)dwinst.obj: $(GLSRC)dwinst.cpp $(GLSRC)dwinst.h
 # Modules for uninstall program
 
 $(GLOBJ)dwuninst.res: $(GLSRC)dwuninst.rc $(GLSRC)dwuninst.h $(GLGEN)gstext.ico
-	$(RCOMP) -I$(GLSRCDIR) -i$(GLOBJDIR) -i$(INCDIR)$(_I) -r $(RO_)$(GLOBJ)dwuninst.res $(GLSRC)dwuninst.rc
+	$(RCOMP) -I$(GLSRCDIR) -i$(GLOBJDIR) $(i_INCDIR) -r $(RO_)$(GLOBJ)dwuninst.res $(GLSRC)dwuninst.rc
 
 $(GLOBJ)dwuninst.obj: $(GLSRC)dwuninst.cpp $(GLSRC)dwuninst.h
 	$(GLCPP) $(COMPILE_FOR_EXE) $(GLO_)dwuninst.obj $(C_) $(GLSRC)dwuninst.cpp
@@ -210,8 +218,8 @@ zip: $(SETUP_XE) $(UNINSTALL_XE)
 	echo $(ZIPPROGFILE5) >> $(ZIPTEMPFILE)
 	echo $(ZIPPROGFILE6) >> $(ZIPTEMPFILE)
 	echo $(ZIPPROGFILE7) >> $(ZIPTEMPFILE)
-	$(SETUP_XE_NAME) -title "Aladdin Ghostscript $(GS_DOT_VERSION)" -dir "gs$(GS_DOT_VERSION)" -list "$(FILELIST_TXT)" @$(ZIPTEMPFILE)
-	$(SETUP_XE_NAME) -title "Aladdin Ghostscript Fonts" -dir "fonts" -list "$(FONTLIST_TXT)" $(ZIPFONTFILES)
+	$(SETUP_XE_NAME) -title "AFPL Ghostscript $(GS_DOT_VERSION)" -dir "gs$(GS_DOT_VERSION)" -list "$(FILELIST_TXT)" @$(ZIPTEMPFILE)
+	$(SETUP_XE_NAME) -title "AFPL Ghostscript Fonts" -dir "fonts" -list "$(FONTLIST_TXT)" $(ZIPFONTFILES)
 	-del gs$(GS_VERSION)w32.zip
 	$(ZIP_XE) -9 -r gs$(GS_VERSION)w32.zip $(SETUP_XE_NAME) $(UNINSTALL_XE_NAME) $(FILELIST_TXT) $(FONTLIST_TXT)
 	$(ZIP_XE) -9 -r gs$(GS_VERSION)w32.zip $(ZIPFONTDIR)
@@ -240,16 +248,16 @@ ZIP_RSP = $(GLOBJ)setupgs.rsp
 # to avoid ANSI/OEM character mapping.
 archive: zip $(GLOBJ)gstext.ico $(ECHOGS_XE)
 	$(ECHOGS_XE) -w $(ZIP_RSP) -q "-win32 -setup"
-	$(ECHOGS_XE) -a $(ZIP_RSP) -q -st -x 22 Aladdin Ghostscript $(GS_DOT_VERSION) for Win32 -x 22
+	$(ECHOGS_XE) -a $(ZIP_RSP) -q -st -x 22 AFPL Ghostscript $(GS_DOT_VERSION) for Win32 -x 22
 	$(ECHOGS_XE) -a $(ZIP_RSP) -q -i -s $(GLOBJ)gstext.ico
 	$(ECHOGS_XE) -a $(ZIP_RSP) -q -a -s $(GLOBJ)about.txt
 	$(ECHOGS_XE) -a $(ZIP_RSP) -q -t -s $(GLOBJ)dialog.txt
 	$(ECHOGS_XE) -a $(ZIP_RSP) -q -c -s $(SETUP_XE_NAME)
-	$(ECHOGS_XE) -w $(GLOBJ)about.txt "Aladdin Ghostscript is Copyright " -x A9 " 1999 Aladdin Enterprises."
+	$(ECHOGS_XE) -w $(GLOBJ)about.txt "AFPL Ghostscript is Copyright " -x A9 " 1999, 2000 Aladdin Enterprises."
 	$(ECHOGS_XE) -a $(GLOBJ)about.txt See license in gs$(GS_DOT_VERSION)\doc\PUBLIC.
 	$(ECHOGS_XE) -a $(GLOBJ)about.txt See gs$(GS_DOT_VERSION)\doc\Commprod.htm regarding commercial distribution.
-	$(ECHOGS_XE) -w $(GLOBJ)dialog.txt This installs Aladdin Ghostscript $(GS_DOT_VERSION).
-	$(ECHOGS_XE) -a $(GLOBJ)dialog.txt Aladdin Ghostscript displays, prints and converts PostScript and PDF files.
+	$(ECHOGS_XE) -w $(GLOBJ)dialog.txt This installs AFPL Ghostscript $(GS_DOT_VERSION).
+	$(ECHOGS_XE) -a $(GLOBJ)dialog.txt AFPL Ghostscript displays, prints and converts PostScript and PDF files.
 	$(WINZIPSE_XE) ..\gs$(GS_VERSION)w32 @$(GLOBJ)setupgs.rsp
 # Don't delete temporary files, because make continues
 # before these files are used.

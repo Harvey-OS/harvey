@@ -47,27 +47,56 @@ isv4(uchar *ip)
 	return memcmp(ip, v4prefix, IPv4off) == 0;
 }
 
+/*
+ *  the following routines are unrolled with no memset's to speed
+ *  up the usual case
+ */
 void
 v4tov6(uchar *v6, uchar *v4)
 {
-	if(memcmp(v4, IPnoaddr+IPv4off, IPv4addrlen) == 0){
-		memmove(v6, IPnoaddr, IPaddrlen);
-		return;
-	}
-	memmove(v6, v4prefix, IPv4off);
-	memmove(v6 + IPv4off, v4, IPv4addrlen);
+	v6[0] = 0;
+	v6[1] = 0;
+	v6[2] = 0;
+	v6[3] = 0;
+	v6[4] = 0;
+	v6[5] = 0;
+	v6[6] = 0;
+	v6[7] = 0;
+	v6[8] = 0;
+	v6[9] = 0;
+	v6[10] = 0xff;
+	v6[11] = 0xff;
+	v6[12] = v4[0];
+	v6[13] = v4[1];
+	v6[14] = v4[2];
+	v6[15] = v4[3];
 }
 
 int
 v6tov4(uchar *v4, uchar *v6)
 {
-	if(ipcmp(v6, IPnoaddr) == 0){
-		memset(v4, 0, IPv4addrlen);
+	if(v6[0] == 0
+	&& v6[1] == 0
+	&& v6[2] == 0
+	&& v6[3] == 0
+	&& v6[4] == 0
+	&& v6[5] == 0
+	&& v6[6] == 0
+	&& v6[7] == 0
+	&& v6[8] == 0
+	&& v6[9] == 0
+	&& v6[10] == 0xff
+	&& v6[11] == 0xff)
+	{
+		v4[0] = v6[12];
+		v4[1] = v6[13];
+		v4[2] = v6[14];
+		v4[3] = v6[15];
 		return 0;
+	} else {
+		memset(v4, 0, 4);
+		if(memcmp(v6, IPnoaddr, IPaddrlen) == 0)
+			return 0;
+		return -1;
 	}
-	if(memcmp(v6, v4prefix, IPv4off) == 0){
-		memmove(v4, v6 + IPv4off, IPv4addrlen);
-		return 0;
-	}
-	return -1;
 }

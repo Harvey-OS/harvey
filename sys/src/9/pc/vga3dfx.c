@@ -41,6 +41,7 @@ tdfxlinear(VGAscr* scr, int* size, int* align)
 	aperture = 0;
 	if(p = pcimatch(nil, 0x121A, 0)){
 		switch(p->did){
+		case 0x0003:		/* Banshee */
 		case 0x0005:		/* Avenger (a.k.a. Voodoo3) */
 			aperture = p->mem[1].bar & ~0x0F;
 			*size = p->mem[1].size;
@@ -89,6 +90,7 @@ tdfxenable(VGAscr* scr)
 		return;
 	if(p = pcimatch(nil, 0x121A, 0)){
 		switch(p->did){
+		case 0x0003:		/* Banshee */
 		case 0x0005:		/* Avenger (a.k.a. Voodoo3) */
 			break;
 		default:

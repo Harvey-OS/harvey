@@ -10,6 +10,7 @@
 
 int bflag;
 int list;
+int package;
 char *root = "/";
 
 void
@@ -51,12 +52,13 @@ usage(void)
 void
 main(int argc, char **argv)
 {
-	Wrap *w;
-	char *p, *q, *f[2];
-	uchar digest[MD5dlen];
-	char str[4*MD5dlen];
 	Biobuf *b;
 	Dir d;
+	Wrap *w;
+	char *p, *q, *f[2];
+	int i;
+	uchar digest[MD5dlen], digest0[MD5dlen];
+	vlong t;
 
 	ARGBEGIN{
 	case 'b':
@@ -64,6 +66,9 @@ main(int argc, char **argv)
 		break;
 	case 'l':
 		list = 1;
+		break;
+	case 'p':
+		package = 1;
 		break;
 	case 'r':
 		root = ARGF();
@@ -78,47 +83,76 @@ main(int argc, char **argv)
 	if(argc < 1)
 		usage();
 
-	if(access(argv[0], 0) < 0)
-		sysfatal("no such file '%s'", argv[0]);
-
 	if(list)
-		w = openwraphdr(argv[0], root, nil, 0);
-	else
+		w = openwraphdr(argv[0], root, nil, -1);
+	else {
+		if(access(argv[0], 0) < 0)
+			sysfatal("no such file '%s'", argv[0]);
+
 		w = openwraphdr(argv[0], root, argv+1, argc-1);
+	}
 
 	if(w == nil)
 		sysfatal("no such package found");
 
-	b = Bopen(mkpath(w->u->dir, "md5sum"), OREAD);
-	if(b == nil)
-		sysfatal("md5sum file not found");
-	while(p = Brdline(b, '\n')) {
-		p[Blinelen(b)-1] = '\0';
-		if(tokenize(p, f, 2) != 2)
-			sysfatal("error in md5sum file");
-		if(argc != 1 && match(f[0], argv+1, argc-1) == 0)
-			continue;
+	if(package) {
+		while(w->nu > 0 && w->u[w->nu-1].type == UPD)
+			w->nu--;
+	}
 
-		q = mkpath(root, f[0]);
-		if(dirstat(q, &d) >= 0 && (d.mode & CHDIR)) {
+	/*
+	 * Loop through each md5sum file of each package,
+	 * in increasing time order.
+	 */
+	for(i=0; i<w->nu; i++) {
+		b = Bopen(mkpath(w->u[i].dir, "md5sum"), OREAD);
+		if(b == nil)
+			sysfatal("md5sum file not found");
+
+		while(p = Brdline(b, '\n')) {
+			p[Blinelen(b)-1] = '\0';
+			if(tokenize(p, f, 2) != 2)
+				sysfatal("error in md5sum file");
+			if(argc != 1 && match(f[0], argv+1, argc-1) == 0)
+				continue;
+
+			/* Ignore directories. */	
+			q = mkpath(root, f[0]);
+			if(dirstat(q, &d) >= 0 && (d.mode & CHDIR)) {
+				free(q);
+				continue;
+			}
+
+			if(getfileinfo(w, f[0], &t, nil, digest0) < 0) {
+				free(q);
+				print("can't happen\n");
+				continue;
+			}
+
+			/* If the file is covered by a later update, handle it later. */
+			if(t != w->u[i].time) {
+				free(q);
+				continue;
+			}
+
+			/* If the file does not exist, complain. */	
+			if(md5file(q, digest) < 0) {
+				if(list)
+					print("# %s\n", f[0]);
+				else
+					print("%s removed\n", f[0]);
+				free(q);
+				continue;
+			}
 			free(q);
-			continue;
+
+			/* If the digest doesn't match, complain. */
+			if(memcmp(digest, digest0, MD5dlen) != 0) {
+				if(list)
+					print("%s\n", f[0]);
+				else
+					diff(w, f[0]);
+			}
 		}
-
-		if(md5file(q, digest) < 0) {
-			print("%s removed\n", f[0]);
-			free(q);
-			continue;
-		}
-		free(q);
-
-		snprint(str, sizeof str, "%M", digest);
-		if(strcmp(str, f[1]) == 0)
-			continue;
-
-		if(list)
-			print("%s modified\n", f[0]);
-		else
-			diff(w, f[0]);
 	}
 }

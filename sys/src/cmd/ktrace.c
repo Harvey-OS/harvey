@@ -92,8 +92,32 @@ main(int argc, char *argv[])
 	if(fd < 0)
 		fatal("can't open %s: %r", argv[0]);
 	inithdr(fd);
-	if(fhdr.magic == I_MAGIC)
+	switch(fhdr.magic){
+	case I_MAGIC:	/* intel 386 */
 		t = i386trace;
+		break;
+	case A_MAGIC:	/* 68020 */
+	case J_MAGIC:	/* intel 960 */
+		t = ctrace;
+		break;
+	case K_MAGIC:	/* sparc */
+	case D_MAGIC:	/* amd 29000 */
+	case V_MAGIC:	/* mips 3000 */
+	case M_MAGIC:	/* mips 4000 */
+	case E_MAGIC:	/* arm 7-something */
+	case Q_MAGIC:	/* powerpc */
+	case N_MAGIC:	/* mips 4000 LE */
+	case L_MAGIC:	/* dec alpha */
+		t = rtrace;
+		break;
+	case X_MAGIC:	/* att dsp 3210 */
+		sysfatal("can't ktrace %s\n", argv[0]);
+		break;
+	default:
+		fprint(2, "%s: warning: can't tell what type of stack %s uses; assuming it's %s\n",
+			argv0, argv[0], argc == 4 ? "risc" : "cisc");
+		break;
+	}
 	(*t)(pc, sp, link);
 	exits(0);
 }
@@ -128,9 +152,11 @@ rtrace(ulong pc, ulong sp, ulong link)
 		fmt(buf);
 
 		oldpc = pc;
-		if(s.type == 'L' || s.type == 'l' || pc <= s.value+mach->pcquant)
+		if(s.type == 'L' || s.type == 'l' || pc <= s.value+mach->pcquant){
+			if(link == 0)
+				fprint(2, "%s: need to supply a valid link register\n", argv0);
 			pc = link;
-		else{
+		}else{
 			pc = getval(sp);
 			if(pc == 0)
 				break;

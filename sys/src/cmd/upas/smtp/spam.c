@@ -38,7 +38,8 @@ static Keyword actions[] = {
 	"block",		BLOCKED,
 	"deny",			DENIED,
 	"dial",			DIALUP,
-	"relay",		RELAY,
+	"relay",		DELAY,
+	"delay",		DELAY,
 	0,			NONE,
 };
 
@@ -63,14 +64,13 @@ getconf(void)
 	char buf[512];
 /*
 **		let it fail on unix
-**
-**
-**	if(hisaddr && *hisaddr){
-**		sprint(buf, "/mail/ratify/trusted/ip/%s#32\n", hisaddr);
-**		if(access(buf,0) >= 0)
-**			trusted++;
-**	}
 */
+	if(hisaddr && *hisaddr){
+		sprint(buf, "/mail/ratify/trusted/%s#32", hisaddr);
+		if(access(buf,0) >= 0)
+			trusted++;
+	}
+
 
 	snprint(buf, sizeof(buf), "%s/smtpd.conf", UPASLIB);
 	bp = sysopen(buf, "r", 0);
@@ -228,7 +228,7 @@ blocked(String *path)
 {
 	char buf[512], *cp, *p, *user;
 	Biobuf *bp;
-	int action, type, ipallow;
+	int action, type;
 	List doms;
 	String *s, *lpath;
 
@@ -275,7 +275,6 @@ blocked(String *path)
 	 * params are path names; if not present, params are ip addresses in
 	 * CIDR format.
 	 */
-	ipallow = 0;
 	for(;;){
 		action = ACCEPT;
 		cp = getline(bp);
@@ -292,21 +291,11 @@ blocked(String *path)
 			continue;
 
 		cp += strlen(cp)+1;
-		if(type == '*') {
-			if(accountmatch(cp, &doms, user))
-				break;
-		} else {
-			/*
-			 * An ACCEPT match on IP addresses overrides all later
-			 * blocks on IP address but not blocks on domain or user names
-			 */
-			if(ipallow == 0 && cidrcheck(cp))
-				if(action == ACCEPT)
-					ipallow = 1;
-				else {
-					blockedbyip = 1;
-					break;
-				}
+		if(type == '*' && accountmatch(cp, &doms, user))
+			break;
+		else if(type != '*'&& cidrcheck(cp)) {
+			blockedbyip = 1;
+			break;
 		}
 	}
 	sysclose(bp);
@@ -501,4 +490,43 @@ dumpfile(char *sender)
 		}
 	}
 	return "/dev/null";
+}
+
+int
+recipok(char *user)
+{
+	char *cp, *p, c;
+	char buf[512];
+	int n;
+	Biobuf *bp;
+
+	snprint(buf, sizeof(buf), "%s/names.blocked", UPASLIB);
+	bp = sysopen(buf, "r", 0);
+	if(bp == 0)
+		return 1;
+	for(;;){
+		cp = Brdline(bp, '\n');
+		if(cp == 0)
+			break;
+		n = Blinelen(bp);
+		cp[n-1] = 0;
+
+		while(*cp == ' ' || *cp == '\t')
+			cp++;
+		for(p = cp; c = *p; p++){
+			if(c == '#')
+				break;
+			if(c == ' ' || c == '\t')
+				break;
+		}
+		if(p > cp){
+			*p = 0;
+			if(cistrcmp(user, cp) == 0){
+				Bterm(bp);
+				return 0;
+			}
+		}
+	}
+	Bterm(bp);
+	return 1;
 }

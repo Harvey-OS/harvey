@@ -262,11 +262,9 @@ trap(Ureg *ur)
 			return;
 
 		default:
-			print("exception/interrupt %d\n", v);
 			dumpregs(ur);
-			//spllo();
-			print("^P to reset\n");
-			for(;;);
+			panic("exception/interrupt %d", v);
+			return;
 		}
 	}
 

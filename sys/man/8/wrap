@@ -4,7 +4,7 @@ wrap, create, info, inst, wdiff \- software package preparation
 .SH SYNOPSIS
 .B wrap/create
 [
-.B -luUv
+.B -luv
 ]
 [
 .B -d
@@ -49,7 +49,7 @@ wrap, create, info, inst, wdiff \- software package preparation
 .PP
 .B wrap/wdiff
 [
-.B -bl
+.B -blp
 ]
 [
 .B -r
@@ -72,63 +72,67 @@ and corresponds to the root of the Plan 9 distribution file server
 at Bell Labs.
 Successive versions are distinguished by a date
 stored as seconds since January 1, 1970.
-There are three kinds of archive:
-.IP
+.PP
 A 
-.I package 
-is an archive of the entire reference tree.
-.I Create
-writes these by default.
-.IP
-An 
-.I update 
-to a particular package contains
-only files from the reference tree that differ from
-those in the package, and is usually restricted to 
-chosen subtrees.
-For example, one might create an update
+.I base
+.I package
+contains all files in the reference tree at some time.
+.B Wrap/create 
+creates these by default.
+.PP
+An
+.I update
+is a package listing only files modified relative to some earlier tree.
+The time of the prerequisite tree is included in the update.
+The target tree's time is the time of the base package
+or the time of the last installed update.
+The update cannot be installed unless the target tree is dated
+at or after the prerequisite time.
+.B Wrap/create
+.B -u
+creates updates when no
+.I prefix
+is given.
+.PP
+A
+.I partial
+.I update
+is like an update but usually only contains a few subtrees.
+For example, one might create a partial update
 of the Plan 9 distribution package containing
 only changes to 
 .IR acme .
-Updates can only be in reference to
-packages, not other updates.
-An update can only be installed if the package 
-it is updating is already installed.
-.I Create
-writes these when given the
+Installing a partial update does not change the target tree's time.
+.B Wrap/create
 .B -u
-flag.
-.IP
-An
-.I update
-.I package
-is a hybrid of the two:
-it is an update in that it contains only
-files changed since some earlier package.
-At the same time, once installed it functions
-as a full package for the purposes of satisfying
-the prerequisites of later updates.
-.I Create
-writes these when given the
-.B -U
-flag.
+creates partial updates when one or more
+.I prefixes
+are given.
 .PP
 .I Wrap/inst
-installs packages and updates,
+installs base packages, updates, and partial updates,
 taking into account version conflicts,
-prerequisite packages, and the possibility of local modifications.
+prerequisites, and the possibility of local modifications.
 .I Wrap/info
 prints information about a package or update,
 and
 .I wrap/wdiff
 runs
 .I diff
-to compare files in a package or update
-with installed files;
-.B wdiff 
+to compare files in a package archive
+with installed files.
+.B Wdiff 
 .B -l
 merely lists those files modified or removed
-since the package or update was created.
+since the package or update was created,
+and can be used on an installed tree instead
+of a package file.
+When used with an installed tree,
+only files modified or removed since the
+most recent updates are listed;
+.B wdiff
+.B -p
+shows changes since the last full package.
 .PP
 To decide whether a given update
 contains files fresher than those currently
@@ -224,8 +228,11 @@ flag, prefixes are not allowed.
 If
 .I create
 is given the
-.B -U
-flag, it creates an update package.
+.B -u
+flag it creates an update package.
+If prefixes are specified,
+.I create
+creates a partial update.
 .PP
 The 
 .B -l
@@ -283,26 +290,28 @@ Create a package consisting of the entire Plan 9 distribution tree:
 .IP
 .EX
 wrap/create -r /plan9dist -d 'Plan 9 — Third Edition' \e
-	-p /sys/lib/sysconfig/proto/allproto plan9 | gzip > plan9.9gz
+	-p plan9proto plan9 | gzip > plan9.9gz
 .EE
 .PP
-Create a package as well as an update package.
+Create a base package as well as a full update.
 Note that we need to use the
 .B -t
 flag to make sure both have the same timestamp.
 .IP
 .EX
 now=`{date -n}
-wrap/create -r /plan9dist -d 'Plan 9 — Third Edition' -t $now \e
-	-p /sys/lib/sysconfig/proto/allproto plan9 | gzip > plan9.9gz
+wrap/create -r /plan9dist -d 'Plan 9 — Third Edition' \e
+	-p plan9proto -t $now plan9 | gzip > plan9.9gz
 
-wrap/create -Ur /plan9dist -t $now old.9gz | gzip > updatepkg.9gz
+wrap/create -ur /plan9dist -t $now oldplan9.9gz |
+	gzip > update.9gz
 .EE
 .PP
-Create an update containing new VGA software:
+Create a partial update containing new VGA software:
 .IP
 .EX
-wrap/create -ur /plan9dist `{cat /tmp/vgafiles} | gzip >vga.9gz
+wrap/create -ur /plan9dist plan9.9gz `{cat /tmp/vgafiles} |
+	gzip >vga.9gz
 .EE
 .PP
 where 
@@ -323,10 +332,15 @@ prefixes, the last line will match files such as
 and
 .BR /sys/src/9/pc/vga.h .
 .PP
-Install the VGA update:
+Install the VGA update on a
+.IR kfs (4)
+file system.
 .IP
 .EX
-wrap/inst vga.9gz
+disk/kfscmd allow
+mount /srv/kfs /n/kfs
+wrap/inst -or /n/kfs vga.9gz
+disk/kfscmd disallow
 .EE
 .PP
 Suppose that the update contains a new
@@ -354,7 +368,7 @@ to actually overwrite the files,
 change
 .B wdiff
 to
-.B update
+.B inst
 .B -F
 and send the command again.
 .PP
@@ -363,16 +377,27 @@ Wrap an installed package
 for redistribution as a standalone package:
 .IP
 .EX
-wrap/create -r /root -a 'Repackaged quux' quux \e
-	/wrap/quux/time/proto | gzip > newquux.9gz
+wrap/create -d 'Repackaged quux' -r /root \e
+	-p /root/wrap/quux/time/proto quux | gzip > newquux.9gz
 .EE
 .PP
 To view and then package just your changes:
 .IP
 .EX
-wrap/wdiff -r /root quux.9gz 
+wrap/wdiff -lr /root quux
+wrap/wdiff -r /root quux.9gz
 wrap/create -u -r /root quux >quuxpatch.9gz
 .EE
+.LP
+Note that 
+.B wrap/wdiff
+.B -l
+does not require the original archive: it can use checksums
+to determine which files have changed.
+By default 
+(without
+.BR -l )
+an archive is required for access to the original files.
 .SH FILES
 Installed package information is maintained via
 a small tree rooted at 
@@ -444,7 +469,7 @@ permission checking must be turned off
 on the file server
 in order to create files
 in unwritable directories
-or overwrite updated files
+or to overwrite updated files
 that are not normally writable.
 .PP
 In the absence of the
@@ -454,5 +479,3 @@ flag (which can use the MD5 checksums alone)
 must uncompress the entire archive 
 to pass it to
 .IR archfs (4).
-.PP
-The terminology can be confusing.

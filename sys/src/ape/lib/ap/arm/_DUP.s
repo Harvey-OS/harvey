@@ -1,0 +1,4 @@
+TEXT _DUP(SB), 1, $-4
+MOVW $5, R0
+SWI 0
+RET

@@ -27,6 +27,7 @@ Objtype objtype[] = {
 	{"68020",	"2c", "2l", "2"},
 	{"alpha",	"7c", "7l", "7"},
 	{"mips",	"vc", "vl", "v"},
+	{"arm",	"5c", "5l", "5"},
 	{"mips2",	"4c", "4l", "4"},
 	{"power",	"qc", "ql", "q"},
 	{"sparc",	"kc", "kl", "k"},

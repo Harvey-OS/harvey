@@ -536,6 +536,7 @@ xfidwrite(Xfid *x)
 					filemark(t->file);
 				}
 				q0 = textbsinsert(t, q0, r, nr, TRUE, &nr);
+				textsetselect(t, t->q0, t->q1);	/* insert could leave it somewhere else */
 				if(qid!=QWwrsel && !t->w->noscroll)
 					textshow(t, q0+nr, q0+nr);
 				textscrdraw(t);
@@ -599,6 +600,14 @@ xfidctlwrite(Xfid *x, Window *w)
 			filereset(t->file);
 			t->file->mod = FALSE;
 			w->dirty = FALSE;
+			settag = TRUE;
+			m = 5;
+		}else
+		if(strncmp(p, "dirty", 5) == 0){	/* mark window 'dirty' */
+			t = &w->body;
+			/* doesn't change sequence number, so "Put" won't appear.  it shouldn't. */
+			t->file->mod = TRUE;
+			w->dirty = TRUE;
 			settag = TRUE;
 			m = 5;
 		}else

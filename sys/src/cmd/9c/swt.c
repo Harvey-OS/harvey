@@ -354,10 +354,16 @@ gextern(Sym *s, Node *a, long o, long w)
 {
 
 	if(a->op == OCONST && typev[a->type->etype]) {
-		gpseudo(ADATA, s, nod32const(a->vconst>>32));
+		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
+			gpseudo(ADATA, s, nod32const(a->vconst>>32));
+		else
+			gpseudo(ADATA, s, nod32const(a->vconst));
 		p->from.offset += o;
 		p->reg = 4;
-		gpseudo(ADATA, s, nod32const(a->vconst));
+		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
+			gpseudo(ADATA, s, nod32const(a->vconst));
+		else
+			gpseudo(ADATA, s, nod32const(a->vconst>>32));
 		p->from.offset += o + 4;
 		p->reg = 4;
 		return;

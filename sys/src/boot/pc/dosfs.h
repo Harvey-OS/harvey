@@ -20,6 +20,7 @@ struct Dospart
 #define FAT16	0x04
 #define FATHUGE	0x06
 #define FAT32	0x0b
+#define FAT32X	0x0c
 #define DMDDO	0x54
 #define PLAN9	0x39
 

@@ -1,16 +1,21 @@
 #include <u.h>
 #include <libc.h>
 #include <ip.h>
+#include <mp.h>
 
-
+/* nanosecond times */
 #define SEC 1000000000LL
-#define MAXSECS 5*60
-double gain = .25;
+#define MIN (60LL*SEC)
+#define HOUR (60LL*MIN)
+#define DAY (24LL*HOUR)
 
 enum {
 	Fs,
 	Rtc,
 	Ntp,
+
+	HZAvgSecs=	3*60,	/* target averaging period for the frequency in seconds */
+	MinSampleSecs=	60,	/* minimum sampling time in seconds */
 };
 
 
@@ -25,8 +30,8 @@ int gmtdelta;	// rtc+gmtdelta = gmt
 
 // ntp server info
 int stratum = 14;
-int mydisp, rootdisp;
-int mydelay, rootdelay;
+vlong mydisp, rootdisp;
+vlong mydelay, rootdelay;
 vlong avgdelay;
 uchar rootid[4];
 char *sysid;
@@ -60,351 +65,76 @@ struct NTPpkt
 	uchar	digest[16];
 };
 
+// ntp server
+typedef struct NTPserver NTPserver;
+struct NTPserver
+{
+	NTPserver *next;
+	char	*name;
+	uchar	stratum;
+	uchar	precision;
+	vlong	rootdelay;
+	vlong	rootdisp;
+	vlong	disp;
+	vlong	rtt;
+	vlong	dt;
+};
+
+NTPserver *ntpservers;
+
 enum
 {
 	NTPSIZE= 	48,		// basic ntp packet
 	NTPDIGESTSIZE=	20,		// key and digest
 };
 
+static void	addntpserver(char *name);
+static int	adjustperiod(vlong diff, vlong accuracy, int secs);
+static int	caperror(vlong dhz, int tsecs, vlong taccuracy);
+static long	fstime(void);
+static int	gettime(vlong *nsec, uvlong *ticks, uvlong *hz); // returns time, ticks, hz
+static void	hnputts(void *p, vlong nsec);
+static void	hnputts(void *p, vlong nsec);
 static void	inittime(void);
-static int	gettime(vlong*, uvlong*, uvlong*);	// returns time, ticks, hz
-static void	settime(vlong, uvlong, vlong, int);	// set time, hz, delta, period
+static vlong	nhgetts(void *p);
+static vlong	nhgetts(void *p);
+static void	ntpserver(void);
+static vlong	ntpsample(void);
+static int	ntptimediff(NTPserver *ns);
+static int	openfreqfile(void);
+static vlong	readfreqfile(int fd, vlong ohz, vlong minhz, vlong maxhz);
+static long	rtctime(void);
+static vlong	sample(long (*get)(void));
 static void	setpriority(void);
+static void	setrootid(char *d);
+static void	settime(vlong now, uvlong hz, vlong delta, int n); // set time, hz, delta, period
+static uvlong	vabs(vlong);
+static uvlong	whatisthefrequencykenneth(uvlong hz, uvlong minhz, uvlong maxhz, vlong dt, vlong ticks, vlong period);
+static void	writefreqfile(int fd, vlong hz, int secs, vlong diff);
 
 // ((1970-1900)*365 + 17/*leap days*/)*24*60*60
 #define EPOCHDIFF 2208988800UL
 
-// convert to ntp timestamps
-void
-hnputts(void *p, vlong nsec)
-{
-	uchar *a;
-	ulong tsh;
-	ulong tsl;
-
-	a = p;
-
-	// zero is a special case
-	if(nsec == 0)
-		return;
-
-	tsh = (nsec/SEC);
-	nsec -= tsh*SEC;
-	tsl = (nsec<<32)/SEC;
-	hnputl(a, tsh+EPOCHDIFF);
-	hnputl(a+4, tsl);
-}
-
-// convert from ntp timestamps
-vlong
-nhgetts(void *p)
-{
-	uchar *a;
-	ulong tsh, tsl;
-	vlong nsec;
-
-	a = p;
-	tsh = nhgetl(a);
-	tsl = nhgetl(a+4);
-	nsec = tsl*SEC;
-	nsec >>= 32;
-	nsec += (tsh - EPOCHDIFF)*SEC;
-	return nsec;
-}
-
-// get network address of the server
-void
-setrootid(char *d)
-{
-	char buf[128];
-	int fd, n;
-	char *p;
-
-	snprint(buf, sizeof(buf), "%s/remote", d);
-	fd = open(buf, OREAD);
-	if(fd < 0)
-		return;
-	n = read(fd, buf, sizeof buf);
-	close(fd);
-	if(n <= 0)
-		return;
-	p = strchr(buf, '!');
-	if(p != nil)
-		*p = 0;
-	v4parseip(rootid, buf);
-}
-
-void
-ding(void*, char *s)
-{
-	if(strstr(s, "alarm") != nil)
-		noted(NCONT);
-	noted(NDFLT);
-}
-
-//
-//  sntp client, we keep calling if the delay seemed
-//  unusually high, i.e., 30% longer than avg.
-//
-vlong
-ntptimediff(char *server)
-{
-	int fd, tries, n;
-	NTPpkt ntpin, ntpout;
-	vlong dt, recvts, origts, xmitts, destts, delay, x;
-	char dir[64];
-
-	fd = dial(netmkaddr(server, "udp", "ntp"), 0, 0, 0);
-	if(fd < 0){
-		syslog(0, logfile, "can't reach %s: %r", server);
-		return 0LL;
-	}
-	setrootid(dir);
-	notify(ding);
-
-	memset(&ntpout, 0, sizeof(ntpout));
-	ntpout.mode = 3 | (3 << 3);
-
-	for(tries = 0; tries < 100; tries++){
-		alarm(2*1000);
-
-		gettime(&x, 0, 0);
-		hnputts(ntpout.xmitts, x);
-		if(write(fd, &ntpout, NTPSIZE) < 0){
-			alarm(0);
-			continue;
-		}
-
-		n = read(fd, &ntpin, sizeof(ntpin));
-		alarm(0);
-		gettime(&destts, 0, 0);
-		if(n >= NTPSIZE){
-			recvts = nhgetts(ntpin.recvts);
-			origts = nhgetts(ntpin.origts);
-			xmitts = nhgetts(ntpin.xmitts);
-			stratum = ntpin.stratum;
-			dt = ((recvts - origts) + (xmitts - destts))/2;
-			delay = ((destts - origts) - (xmitts - recvts))/2;
-			mydelay = (avgdelay<<16)/SEC;
-			rootdelay = nhgetl(ntpin.rootdelay);
-			mydisp = (dt<<16)/SEC;
-			rootdisp = nhgetl(ntpin.rootdisp);
-			if(100*delay < avgdelay*130){
-				avgdelay = 7*(avgdelay>>3) + (delay>>3);
-				if(debug)
-					fprint(2, "ntpdelay(%lld)\n", delay);
-				close(fd);
-				return dt;
-			}
-			avgdelay = 7*(avgdelay>>3) + (delay>>3);
-		}
-
-		// try again
-		sleep(1000);
-	}
-	close(fd);
-	return 0LL;
-}
-
-//
-//  sntp server
-//
-void
-ntpserver(void)
-{
-	int fd, cfd, n;
-	NTPpkt *ntp;
-	char buf[512];
-	int vers, mode;
-	vlong recvts, x;
-
-	fd = dial("udp!0!ntp", "123", 0, &cfd);
-	if(fd < 0)
-		return;
-	if(fprint(cfd, "headers") < 0)
-		return;
-	close(cfd);
-
-	switch(type){
-	case Fs:
-		memmove(rootid, "WWV", 3);
-		break;
-	case Rtc:
-		memmove(rootid, "LOCL", 3);
-		break;
-	case Ntp:
-		/* set by the ntp client */
-		break;
-	}
-
-	for(;;){
-		n = read(fd, buf, sizeof(buf));
-		gettime(&recvts, 0, 0);
-		if(n < 0)
-			return;
-		if(n < Udphdrsize + NTPSIZE)
-			continue;
-
-		ntp = (NTPpkt*)(buf+Udphdrsize);
-		mode = ntp->mode & 7;
-		vers = (ntp->mode>>3) & 7;
-		if(mode != 3)
-			continue;
-
-		ntp->mode = (vers<<3)|4;
-		ntp->stratum = stratum + 1;
-		hnputl(ntp->rootdelay, rootdelay + mydelay);
-		hnputl(ntp->rootdisp, rootdelay + mydisp);
-		memmove(ntp->origts, ntp->xmitts, sizeof(ntp->origts));
-		hnputts(ntp->recvts, recvts);
-		memmove(ntp->rootid, rootid, sizeof(ntp->rootid));
-		gettime(&x, 0, 0);
-		hnputts(ntp->xmitts, x);
-		write(fd, buf, NTPSIZE+Udphdrsize);
-	}
-}
-
-long
-fstime(void)
-{
-	Dir d;
-
-	if(dirstat("/n/boot", &d) < 0)
-		sysfatal("stating /n/boot: %r");
-	return d.atime;
-}
-
-long
-rtctime(void)
-{
-	char b[20];
-	static int f = -1;
-	int i, retries;
-
-	memset(b, 0, sizeof(b));
-	for(retries = 0; retries < 100; retries++){
-		if(f < 0)
-			f = open("/dev/rtc", OREAD|OCEXEC);
-		if(f < 0)
-			break;
-		if(seek(f, 0, 0) < 0 || (i = read(f, b, sizeof(b))) < 0){
-			close(f);
-			f = -1;
-		} else {
-			if(i != 0)
-				break;
-		}
-	}
-	return strtoul(b, 0, 10)+gmtdelta;
-}
-
-vlong
-sample(long (*get)(void))
-{
-	long this, last;
-	vlong start, end;
-
-	/*
-	 *  wait for the second to change
-	 */
-	last = (*get)();
-	for(;;){
-		gettime(&start, 0, 0);
-		this = (*get)();
-		gettime(&end, 0, 0);
-		if(this != last)
-			break;
-		last = this;
-	}
-	return SEC*this - (end-start)/2;
-}
-
-void
-getsysid(void)
-{
-	sysid = getenv("sysname");
-	if(sysid != nil)
-		return;
-}
-
-int
-openfreqfile(void)
-{
-	char buf[64];
-	int fd;
-
-	if(sysid == nil)
-		return -1;
-
-	switch(type){
-	case Ntp:
-		snprint(buf, sizeof buf, "%s/ts.%s.%d.%s", dir, sysid, type, timeserver);
-		break;
-	default:
-		snprint(buf, sizeof buf, "%s/ts.%s.%d", dir, sysid, type);
-		break;
-	}
-	fd = open(buf, ORDWR);
-	if(fd < 0)
-		fd = create(buf, ORDWR, 0666);
-	if(fd < 0)
-		return -1;
-	return fd;
-}
-
-//
-//  the file contains the last known frequency and the
-//  number of seconds it was sampled over
-//
-vlong
-readfreqfile(int fd, vlong ohz, vlong minhz, vlong maxhz)
-{
-	int n;
-	char buf[128];
-	vlong hz;
-
-	n = read(fd, buf, sizeof(buf)-1);
-	if(n <= 0)
-		return ohz;
-	buf[n] = 0;
-	hz = strtoll(buf, nil, 0);
-
-	if(hz > maxhz || hz < minhz)
-		return ohz;
-	return hz;
-}
-
-//
-//  remember hz and averaging period
-//
-void
-writefreqfile(int fd, vlong hz, int secs, vlong diff)
-{
-	if(fd < 0)
-		return;
-	if(seek(fd, 0, 0) < 0)
-		return;
-	fprint(fd, "%lld %d %d %lld\n", hz, secs, type, diff);
-}
-
 void
 main(int argc, char **argv)
 {
-	int diffsecs, secs, minsecs, avgdiff;
+	int i;
+	int secs;	// sampling period
+	int tsecs;	// temporary sampling period
 	int t, fd;
 	Sample *s, *x, *first, **l;
-	vlong diff, absdiff, accuracy;
-	uvlong hz;
-	double dT, dt, minhz, maxhz;
+	vlong diff, accuracy, taccuracy;
+	uvlong hz, minhz, maxhz, avgerr, period, nhz;
+	int server;
 	char *a;
 	Tm tl, tg;
+	int already = 0;
 
-	type = Fs;
+	type = Fs;		// by default, sync with the file system
 	debug = 0;
-	minsecs = 60;		// most frequent resync
 	accuracy = 1000000LL;	// default accuracy is 1 millisecond
-	avgdiff = 1;
-	diffsecs = 0;
+	server = 0;
+	tsecs = secs = MinSampleSecs;
 
 	ARGBEGIN{
 	case 'a':
@@ -421,7 +151,7 @@ main(int argc, char **argv)
 		break;
 	case 'r':
 		type = Rtc;
-		stratum = 1;
+		stratum = 0;
 		break;
 	case 'n':
 		type = Ntp;
@@ -464,6 +194,9 @@ main(int argc, char **argv)
 	case 'i':
 		impotent = 1;
 		break;
+	case 's':
+		server = 1;
+		break;
 	case 'l':
 		logging = 1;
 		break;
@@ -472,22 +205,23 @@ main(int argc, char **argv)
 	fmtinstall('E', eipconv);
 	fmtinstall('I', eipconv);
 	fmtinstall('V', eipconv);
-	getsysid();
+	sysid = getenv("sysname");
 
-	// initial sampling period
-	secs = 60;
-
-	if(argc > 0)
-		timeserver = argv[0];
-	else
-		switch(type){
-		case Fs:
+	switch(type){
+	case Fs:
+		if(argc > 0)
+			timeserver = argv[0];
+		else
 			timeserver = "/srv/boot";
-			break;
-		case Ntp:
-			timeserver = "$ntp";
-			break;
-		}
+		break;
+	case Ntp:
+		if(argc > 0){
+			for(i = 0; i <argc; i++)
+				addntpserver(argv[i]);
+		} else
+			addntpserver("$ntp");
+		break;
+	}
 
 	setpriority();
 
@@ -508,13 +242,14 @@ main(int argc, char **argv)
 		}
 	}
 
-	// figure out our time interface
+	// figure out our time interface and initial frequency
 	inittime();
 	gettime(0, 0, &hz);
+	minhz = hz - (hz>>2);
+	maxhz = hz + (hz>>2);
 
-	// some sanity limits
-	minhz = hz * 0.8;
-	maxhz = hz * 1.2;
+	// convert the accuracy from nanoseconds to ticks
+	taccuracy = hz*accuracy/SEC;
 
 	//
 	//  bind in clocks
@@ -536,9 +271,9 @@ main(int argc, char **argv)
 	}
 
 	//
-	//  start an ntp server
+	//  start a local ntp server
 	//
-	if(!impotent){
+	if(server){
 		switch(rfork(RFPROC|RFFDG|RFMEM|RFNOWAIT)){
 		case -1:
 			sysfatal("forking: %r");
@@ -552,14 +287,18 @@ main(int argc, char **argv)
 		}
 	}
 
-	fd = openfreqfile();
-
 	// get the last known frequency from the file
+	fd = openfreqfile();
 	hz = readfreqfile(fd, hz, minhz, maxhz);
 
+	// this is the main loop.  it gets a sample, adjusts the
+	// clock and computes a sleep period until the next loop.
+	// we balance frequency drift against the length of the
+	// period to avoid blowing the accuracy limit.
 	first = nil;
 	l = &first;
-	for(;; sleep(secs*(1000))){
+	avgerr = accuracy>>1;
+	for(;; sleep(tsecs*(1000))){
 		s = mallocz(sizeof(*s), 1);
 		diff = 0;
 
@@ -572,7 +311,15 @@ main(int argc, char **argv)
 			s->stime = sample(rtctime);
 			break;
 		case Ntp:
-			diff = ntptimediff(timeserver);
+			diff = ntpsample();
+			if(diff == 0LL){
+				if(logging)
+					syslog(0, logfile, "no sample");
+				free(s);
+				if(secs > 60*15)
+					tsecs = 60*15;
+				continue;
+			}
 			break;
 		}
 
@@ -580,86 +327,167 @@ main(int argc, char **argv)
 		gettime(&s->ltime, &s->ticks, 0);
 		if(type == Ntp)
 			s->stime = s->ltime + diff;
-		if(s->stime < 0)
-			continue;
 
-		// forget any old samples
+		// if the sample was bad or if this is the first sample, ignore it
+		if(s->stime < 0 || !already){
+			already = 1;
+			free(s);
+			continue;
+		}
+
+		// reset local time
+		diff = s->stime - s->ltime;
+		if(diff > 10*SEC || diff < -10*SEC){
+			// we're way off, just set the time
+			secs = MinSampleSecs;
+			settime(s->stime, 0, 0, 0);
+		} else {
+			// keep a running average of the error.
+			avgerr = (avgerr>>1) + (vabs(diff)>>1);
+
+			// the time to next sample depends on how good or
+			// bad we're doing.
+			tsecs = secs = adjustperiod(diff, accuracy, secs);
+
+			// work off the fixed difference.  This is done
+			// by adding a ramp to the clock.  Each 100th of a
+			// second (or so) the kernel will add diff/(4*secs*100)
+			// to the clock.  we only do 1/4 of the difference per
+			// period to dampen any measurement noise.
+			settime(-1, 0, diff, 4*secs);
+
+		}
+		if(debug)
+			fprint(2, "δ %lld avgδ %lld f %lld\n", diff, avgerr, hz);
+
+		// dump old samples (keep at least one)
 		while(first != nil){
 			if(first->next == nil)
 				break;
-			if(s->stime - first->stime <= (5LL*MAXSECS*SEC)/4LL)
+			if(s->stime - first->next->stime < DAY)
 				break;
-			x = first->next;
-			free(first);
-			first = x;
-		}
-		
-		diff = s->stime - s->ltime;
-		if(debug)
-			fprint(2, "diff = %lld\n", diff);
-		if(diff > 10*SEC || diff < -10*SEC){
-			// we're way off, set the time
-			// and forget all previous samples
-			settime(s->stime, 0, 0, 0);
-			while(first != nil){
-				x = first;
-				first = x->next;
-				free(x);
-			}
-			l = &first;
-		} else {
-			// adjust period to fit error
-			absdiff = diff;
-			if(diff < 0)
-				absdiff = -diff;
-			if(secs < minsecs || absdiff < (accuracy>>1))
-				secs += 30;
-			else if(absdiff > accuracy && secs > minsecs)
-				secs >>= 1;
-
-			// work off difference
-			avgdiff = (avgdiff>>1) + (diff>>1);
-			if(avgdiff == 0)
-				avgdiff = 1;
-			diffsecs = 2*(diff*secs)/avgdiff;
-			if(diffsecs < 0)
-				diffsecs = -diffsecs;
-			else if(diffsecs == 0)
-				diffsecs = 1;
-			else if(diffsecs > 4*secs)
-				diffsecs = 4*secs;
-			settime(-1, 0, diff, diffsecs);
+			x = first;
+			first = first->next;
+			free(x);
 		}
 
-		// lots of checking to avoid floating pt exceptions
-		if(first != nil)
-		if(s->ticks > first->ticks)
-		if(s->stime > first->stime){
-			dT = s->ticks - first->ticks;
-			dt = s->stime - first->stime;
-			dT = dT/dt;
-			dT *= SEC;
-
-			// use result only if it looks sane
-			if(dT <= maxhz && dT > minhz){
-				hz = (1-gain)*hz + gain*dT;
-				settime(-1, hz, 0, 0);
-				writefreqfile(fd, hz, (s->stime - first->stime)/SEC, diff);
-			}
+		// The sampling error is limited by the total error.  If
+		// we make sure the sampling period is at least 16 million
+		// times the average error, we should calculate a frequency
+		// with on average a 1e-7 error.
+		//
+		// So that big hz changes don't blow our accuracy requirement,
+		// we shorten the period to make sure that δhz*secs will be
+		// greater than the accuracy limit.
+		period = avgerr<<24;
+		for(x = first; x != nil; x = x->next){
+			if(s->stime - x->stime < period)
+				break;
+			if(x->next == nil || s->stime - x->next->stime < period)
+				break;
+		}
+		if(x != nil){
+			nhz = whatisthefrequencykenneth(
+				hz, minhz, maxhz,
+				s->stime - x->stime,
+				s->ticks - x->ticks,
+				period);
+			tsecs = caperror(vabs(nhz-hz), tsecs, taccuracy);
+			hz = nhz;
+			writefreqfile(fd, hz, (s->stime - x->stime)/SEC, diff);
 		}
 
-		if(logging)
-			syslog(0, logfile, "%lld %lld %lld %lld %d %s %lld %d",
-				s->ltime, s->stime,
-				s->ticks, hz,
-				type, type == Ntp ? timeserver : "",
-				avgdelay, diffsecs);
-
+		// add current sample to list.
 		*l = s;
 		l = &s->next;
+
+		if(logging)
+			syslog(0, logfile, "δ %lld avgδ %lld hz %lld",
+				diff, avgerr, hz);
 	}
 }
 
+//
+// adjust the sampling period with some histeresis
+//
+static int
+adjustperiod(vlong diff, vlong accuracy, int secs)
+{
+	uvlong absdiff;
+
+	absdiff = vabs(diff);
+
+	if(absdiff < (accuracy>>1))
+		secs += 60;
+	else if(absdiff > accuracy)
+		secs >>= 1;
+	else
+		secs -= 60;
+	if(secs < MinSampleSecs)
+		secs = MinSampleSecs;
+	return secs;
+}
+
+//
+// adjust the frequency
+//
+static uvlong
+whatisthefrequencykenneth(uvlong hz, uvlong minhz, uvlong maxhz, vlong dt, vlong ticks, vlong period)
+{
+	static mpint *mpdt;
+	static mpint *mpticks;
+	static mpint *mphz;
+	static mpint *mpbillion;
+	uvlong ohz = hz;
+
+	// sanity check
+	if(dt <= 0 || ticks <= 0)
+		return hz;
+
+	if(mphz == nil){
+		mphz = mpnew(0);
+		mpbillion = uvtomp(SEC, nil);
+	}
+
+	// hz = (ticks*SEC)/dt
+	mpdt = vtomp(dt, mpdt);
+	mpticks = vtomp(ticks, mpticks);
+	mpmul(mpticks, mpbillion, mpticks);
+	mpdiv(mpticks, mpdt, mphz, nil);
+	hz = mptoui(mphz);
+
+	// sanity
+	if(hz < minhz || hz > maxhz)
+		return ohz;
+
+	// damp the change if we're shorter than the target period
+	if(period > dt)
+		hz = (12ULL*ohz + 4ULL*hz)/16ULL;
+
+	settime(-1, hz, 0, 0);
+	return hz;
+}
+
+// We may be changing the frequency to match a bad measurement
+// or to match a condition no longer in effet.  To make sure
+// that this doesn't blow our error budget over the next measurement
+// period, shorten the period to make sure that δhz*secs will be
+// less than the accuracy limit.  Here taccuracy is accuracy converted
+// from nanoseconds to ticks.
+static int
+caperror(vlong dhz, int tsecs, vlong taccuracy)
+{
+	if(dhz*tsecs < taccuracy)
+		return tsecs;
+
+	if(debug)
+		fprint(2, "δhz %lld tsecs %d tacc %lld\n", dhz, tsecs, taccuracy);
+
+	tsecs = taccuracy/dhz;
+	if(tsecs < MinSampleSecs)
+		tsecs = MinSampleSecs;
+	return tsecs;
+}
 
 //
 //  kernel interface
@@ -901,7 +729,7 @@ settime(vlong now, uvlong hz, vlong delta, int n)
 }
 
 //
-//  set priority high
+//  set priority high and wire process to a processor
 //
 static void
 setpriority(void)
@@ -917,5 +745,449 @@ setpriority(void)
 	}
 	if(fprint(fd, "pri 100") < 0)
 		fprint(2, "can't set priority\n");
+	if(fprint(fd, "wired 2") < 0)
+		fprint(2, "can't wire process\n");
 	close(fd);
+}
+
+// convert to ntp timestamps
+static void
+hnputts(void *p, vlong nsec)
+{
+	uchar *a;
+	ulong tsh;
+	ulong tsl;
+
+	a = p;
+
+	// zero is a special case
+	if(nsec == 0)
+		return;
+
+	tsh = (nsec/SEC);
+	nsec -= tsh*SEC;
+	tsl = (nsec<<32)/SEC;
+	hnputl(a, tsh+EPOCHDIFF);
+	hnputl(a+4, tsl);
+}
+
+// convert from ntp timestamps
+static vlong
+nhgetts(void *p)
+{
+	uchar *a;
+	ulong tsh, tsl;
+	vlong nsec;
+
+	a = p;
+	tsh = nhgetl(a);
+	tsl = nhgetl(a+4);
+	nsec = tsl*SEC;
+	nsec >>= 32;
+	nsec += (tsh - EPOCHDIFF)*SEC;
+	return nsec;
+}
+
+// convert to ntp 32 bit fixed point
+static void
+hnputfp(void *p, vlong nsec)
+{
+	uchar *a;
+	ulong fp;
+
+	a = p;
+
+	fp = nsec/(SEC/((vlong)(1<<16)));
+	hnputl(a, fp);
+}
+
+// convert from ntp fixed point to nanosecs
+static vlong
+nhgetfp(void *p)
+{
+	uchar *a;
+	ulong fp;
+	vlong nsec;
+
+	a = p;
+	fp = nhgetl(a);
+	nsec = ((vlong)fp)*(SEC/((vlong)(1<<16)));
+	return nsec;
+}
+
+// get network address of the server
+static void
+setrootid(char *d)
+{
+	char buf[128];
+	int fd, n;
+	char *p;
+
+	snprint(buf, sizeof(buf), "%s/remote", d);
+	fd = open(buf, OREAD);
+	if(fd < 0)
+		return;
+	n = read(fd, buf, sizeof buf);
+	close(fd);
+	if(n <= 0)
+		return;
+	p = strchr(buf, '!');
+	if(p != nil)
+		*p = 0;
+	v4parseip(rootid, buf);
+}
+
+static void
+ding(void*, char *s)
+{
+	if(strstr(s, "alarm") != nil)
+		noted(NCONT);
+	noted(NDFLT);
+}
+
+static void
+addntpserver(char *name)
+{
+	NTPserver *ns, **l;
+
+	ns = mallocz(sizeof(NTPserver), 1);
+	if(ns == nil)
+		sysfatal("addntpserver: %r");
+	ns->name = name;
+	for(l = &ntpservers; *l != nil; l = &(*l)->next)
+		;
+	*l = ns;
+}
+
+//
+//  sntp client, we keep calling if the delay seems
+//  unusually high, i.e., 30% longer than avg.
+//
+static int
+ntptimediff(NTPserver *ns)
+{
+	int fd, tries, n;
+	NTPpkt ntpin, ntpout;
+	vlong dt, recvts, origts, xmitts, destts, x;
+	char dir[64];
+
+	fd = dial(netmkaddr(ns->name, "udp", "ntp"), 0, 0, 0);
+	if(fd < 0){
+		syslog(0, logfile, "can't reach %s: %r", ns->name);
+		return -1;
+	}
+	setrootid(dir);
+	notify(ding);
+
+	memset(&ntpout, 0, sizeof(ntpout));
+	ntpout.mode = 3 | (3 << 3);
+
+	for(tries = 0; tries < 3; tries++){
+		alarm(2*1000);
+
+		gettime(&x, 0, 0);
+		hnputts(ntpout.xmitts, x);
+		if(write(fd, &ntpout, NTPSIZE) < 0){
+			alarm(0);
+			continue;
+		}
+
+		n = read(fd, &ntpin, sizeof(ntpin));
+		alarm(0);
+		gettime(&destts, 0, 0);
+		if(n >= NTPSIZE){
+			close(fd);
+
+			// we got one, use it
+			recvts = nhgetts(ntpin.recvts);
+			origts = nhgetts(ntpin.origts);
+			xmitts = nhgetts(ntpin.xmitts);
+			dt = ((recvts - origts) + (xmitts - destts))/2;
+
+			// save results
+			ns->rtt = ((destts - origts) - (xmitts - recvts))/2;
+			ns->dt = dt;
+			ns->stratum = ntpin.stratum;
+			ns->precision = ntpin.precision;
+			ns->rootdelay = nhgetfp(ntpin.rootdelay);
+			ns->rootdisp = nhgetfp(ntpin.rootdisp);
+
+			if(debug)
+				fprint(2, "ntp %s stratum %d ntpdelay(%lld)\n", 
+					ns->name, ntpin.stratum, ns->rtt);
+			return 0;
+		}
+
+		// try again
+		sleep(250);
+	}
+	close(fd);
+	return -1;
+}
+
+static vlong
+ntpsample(void)
+{
+	NTPserver *tns, *ns;
+	vlong metric, x;
+
+	metric = 1000LL*SEC;
+	ns = nil;
+	for(tns = ntpservers; tns != nil; tns = tns->next){
+		if(ntptimediff(tns) < 0)
+			continue;
+		if(tns->stratum == 0)
+			x = 0xff;
+		else
+			x = tns->stratum;
+		x *= SEC;
+		x += (vabs(tns->rootdelay+tns->rtt)>>1) + tns->rootdisp + tns->rtt;
+if(debug) fprint(2, "ntp %s rootdelay %lld rootdisp %lld metric %lld\n", tns->name, tns->rootdelay, tns->rootdisp, x);
+		if(x < metric){
+			metric = x;
+			ns = tns;
+		}
+	}
+
+	if(ns == nil)
+		return 0LL;
+
+	// save data for our server
+	rootdisp = ns->rootdisp;
+	rootdelay = ns->rootdelay;
+	mydelay = ns->rtt;
+	x = vabs(ns->dt);
+	if(ns->disp == 0LL)
+		ns->disp = x;
+	else
+		ns->disp = (x+3LL*ns->disp)>>2;
+	mydisp = ns->disp;
+	if(ns->stratum == 0)
+		stratum = 0;
+	else
+		stratum = ns->stratum + 1;
+
+	return ns->dt;
+}
+
+//
+//  sntp server
+//
+static int
+openlisten(char *net)
+{
+	int fd, cfd;
+	char data[128];
+	char devdir[40];
+
+	sprint(data, "%s/udp!*!ntp", net);
+	cfd = announce(data, devdir);
+	if(cfd < 0)
+		sysfatal("can't announce");
+	if(fprint(cfd, "headers") < 0)
+		sysfatal("can't set header mode");
+
+	sprint(data, "%s/data", devdir);
+
+	fd = open(data, ORDWR);
+	if(fd < 0)
+		sysfatal("open udp data");
+	return fd;
+}
+static void
+ntpserver(void)
+{
+	int fd, n;
+	NTPpkt *ntp;
+	char buf[512];
+	int vers, mode;
+	vlong recvts, x;
+
+	fd = openlisten("/net");
+
+	switch(type){
+	case Fs:
+		memmove(rootid, "WWV", 3);
+		break;
+	case Rtc:
+		memmove(rootid, "LOCL", 3);
+		break;
+	case Ntp:
+		/* set by the ntp client */
+		break;
+	}
+
+	for(;;){
+		n = read(fd, buf, sizeof(buf));
+		gettime(&recvts, 0, 0);
+		if(n < 0)
+			return;
+		if(n < Udphdrsize + NTPSIZE)
+			continue;
+
+		ntp = (NTPpkt*)(buf+Udphdrsize);
+		mode = ntp->mode & 7;
+		vers = (ntp->mode>>3) & 7;
+		if(mode != 3)
+			continue;
+
+		ntp->mode = (vers<<3)|4;
+		ntp->stratum = stratum;
+		hnputfp(ntp->rootdelay, rootdelay + mydelay);
+		hnputfp(ntp->rootdisp, rootdisp + mydisp);
+		memmove(ntp->origts, ntp->xmitts, sizeof(ntp->origts));
+		hnputts(ntp->recvts, recvts);
+		memmove(ntp->rootid, rootid, sizeof(ntp->rootid));
+		gettime(&x, 0, 0);
+		hnputts(ntp->xmitts, x);
+		write(fd, buf, NTPSIZE+Udphdrsize);
+	}
+}
+
+//
+//  get the current time from the file system
+//
+static long
+fstime(void)
+{
+	Dir d;
+
+	if(dirstat("/n/boot", &d) < 0)
+		sysfatal("stating /n/boot: %r");
+	return d.atime;
+}
+
+//
+//  get the current time from the real time clock
+//
+static long
+rtctime(void)
+{
+	char b[20];
+	static int f = -1;
+	int i, retries;
+
+	memset(b, 0, sizeof(b));
+	for(retries = 0; retries < 100; retries++){
+		if(f < 0)
+			f = open("/dev/rtc", OREAD|OCEXEC);
+		if(f < 0)
+			break;
+		if(seek(f, 0, 0) < 0 || (i = read(f, b, sizeof(b))) < 0){
+			close(f);
+			f = -1;
+		} else {
+			if(i != 0)
+				break;
+		}
+	}
+	return strtoul(b, 0, 10)+gmtdelta;
+}
+
+
+//
+//  Sample a clock.  We wait for the clock to always
+//  be at the leading edge of a clock period.
+//
+static vlong
+sample(long (*get)(void))
+{
+	long this, last;
+	vlong start, end;
+
+	/*
+	 *  wait for the second to change
+	 */
+	last = (*get)();
+	for(;;){
+		gettime(&start, 0, 0);
+		this = (*get)();
+		gettime(&end, 0, 0);
+		if(this != last)
+			break;
+		last = this;
+	}
+	return SEC*this - (end-start)/2;
+}
+
+//
+// the name of the frequency file has the method and possibly the
+// server name encoded in it.
+//
+static int
+openfreqfile(void)
+{
+	char buf[64];
+	int fd;
+
+	if(sysid == nil)
+		return -1;
+
+	switch(type){
+	case Ntp:
+		snprint(buf, sizeof buf, "%s/ts.%s.%d.%s", dir, sysid, type, timeserver);
+		break;
+	default:
+		snprint(buf, sizeof buf, "%s/ts.%s.%d", dir, sysid, type);
+		break;
+	}
+	fd = open(buf, ORDWR);
+	if(fd < 0)
+		fd = create(buf, ORDWR, 0666);
+	if(fd < 0)
+		return -1;
+	return fd;
+}
+
+//
+//  the file contains the last known frequency and the
+//  number of seconds it was sampled over
+//
+static vlong
+readfreqfile(int fd, vlong ohz, vlong minhz, vlong maxhz)
+{
+	int n;
+	char buf[128];
+	vlong hz;
+
+	n = read(fd, buf, sizeof(buf)-1);
+	if(n <= 0)
+		return ohz;
+	buf[n] = 0;
+	hz = strtoll(buf, nil, 0);
+
+	if(hz > maxhz || hz < minhz)
+		return ohz;
+
+	settime(-1, hz, 0, 0);
+	return hz;
+}
+
+//
+//  remember hz and averaging period
+//
+static void
+writefreqfile(int fd, vlong hz, int secs, vlong diff)
+{
+	long now;
+	static long last;
+
+	if(fd < 0)
+		return;
+	now = time(0);
+	if(now - last < 60*60)
+		return;
+	last = now;
+	if(seek(fd, 0, 0) < 0)
+		return;
+	fprint(fd, "%lld %d %d %lld\n", hz, secs, type, diff);
+}
+
+static uvlong
+vabs(vlong x)
+{
+	if(x < 0LL)
+		return (uvlong)-x;
+	else
+		return (uvlong)x;
 }

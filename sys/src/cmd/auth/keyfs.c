@@ -738,7 +738,7 @@ readusers(void)
 
 	if(usepass) {
 		if(*authkey == 0)
-			getpass(authkey, nil, 0);
+			getpass(authkey, nil, 0, 0);
 	} else {
 		if(!getauthkey(authkey))
 			print("keyfs: warning: can't read /dev/key\n");

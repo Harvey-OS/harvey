@@ -53,8 +53,6 @@ Header head[] =
 	{ 0, },
 };
 
-static	char	stdmbox[4*NAMELEN];
-
 static	void	fatal(char *fmt, ...);
 static	void	initquoted(void);
 static	void	startheader(Message*);
@@ -65,18 +63,31 @@ static	char*	getstring(char*, String*, int);
 static	void	setfilename(Message*, char*);
 static	char*	lowercase(char*);
 static	int	is8bit(Message*);
-static	void	parse(Message*, int, Mailbox*);
-static	void	parseunix(Message*);
 static	int	headerline(char**, String*);
 static	void	initheaders(void);
 static void	parseattachments(Message*, Mailbox*);
 
-int debug;
+int		debug;
+char		stdmbox[4*NAMELEN];
+
+char *Enotme = "path not served by this file server";
 
 enum
 {
 	Chunksize = 1024,
 };
+
+Mailboxinit *boxinit[] = {
+	imap4mbox,
+	pop3mbox,
+	plan9mbox,
+};
+
+char*
+syncmbox(Mailbox *mb, int doplumb)
+{
+	return (*mb->sync)(mb, doplumb);
+}
 
 /* create a new mailbox */
 char*
@@ -84,6 +95,12 @@ newmbox(char *path, char *name, int std)
 {
 	Mailbox *mb, **l;
 	char *p, *rv;
+	int i;
+
+	initheaders();
+
+	if(stdmbox[0] == 0)
+		snprint(stdmbox, sizeof(stdmbox), "/mail/box/%s/mbox", user);
 
 	mb = emalloc(sizeof(*mb));
 	strncpy(mb->path, path, sizeof(mb->path)-1);
@@ -102,6 +119,20 @@ newmbox(char *path, char *name, int std)
 		strncpy(mb->name, name, sizeof(mb->name)-1);
 	}
 
+	rv = nil;
+	// check for a mailbox type
+	for(i=0; i<nelem(boxinit); i++)
+		if((rv = (*boxinit[i])(mb, path)) != Enotme)
+			break;
+	if(i == nelem(boxinit)){
+		free(mb);
+		return "bad path";
+	}
+
+	// on error, give up
+	if(rv)
+		return rv;
+
 	// make sure name isn't taken
 	qlock(&mbllock);
 	for(l = &mbl; *l != nil; l = &(*l)->next){
@@ -110,6 +141,8 @@ newmbox(char *path, char *name, int std)
 				rv = nil;
 			else
 				rv = "mbox name in use";
+			if(mb->close)
+				(*mb->close)(mb);
 			free(mb);
 			qunlock(&mbllock);
 			return rv;
@@ -117,8 +150,6 @@ newmbox(char *path, char *name, int std)
 	}
 
 	// all mailboxes in /mail/box/$user are locked using /mail/box/$user/mbox
-	if(stdmbox[0] == 0)
-		snprint(stdmbox, sizeof(stdmbox), "/mail/box/%s/mbox", user);
 	p = strrchr(stdmbox, '/');
 	mb->dolock = strncmp(mb->path, stdmbox, p - stdmbox) == 0;
 
@@ -131,6 +162,10 @@ newmbox(char *path, char *name, int std)
 	qunlock(&mbllock);
 
 	qlock(mb);
+	if(mb->ctl){
+		henter(CHDIR|PATH(mb->id, Qmbox), "ctl",
+			(Qid){PATH(mb->id, Qmboxctl), 0}, nil, mb);
+	}
 	rv = syncmbox(mb, 0);
 	qunlock(mb);
 
@@ -153,369 +188,6 @@ freembox(char *name)
 	qunlock(&mbllock);
 }
 
-enum {
-	Buffersize = 64*1024,
-};
-
-typedef struct Inbuf Inbuf;
-struct Inbuf
-{
-	int	fd;
-	uchar	*lim;
-	uchar	*rptr;
-	uchar	*wptr;
-	uchar	data[Buffersize+7];
-};
-
-static void
-addtomessage(Message *m, uchar *p, int n, int done)
-{
-	int i, len;
-
-	// add to message (+ 1 in malloc is for a trailing null)
-	if(m->lim - m->end < n){
-		if(m->start != nil){
-			i = m->end-m->start;
-			if(done)
-				len = i + n;
-			else
-				len = (4*(i+n))/3;
-			m->start = erealloc(m->start, len + 1);
-			m->end = m->start + i;
-		} else {
-			if(done)
-				len = n;
-			else
-				len = 2*n;
-			m->start = emalloc(len + 1);
-			m->end = m->start;
-		}
-		m->lim = m->start + len;
-	}
-
-	memmove(m->end, p, n);
-	m->end += n;
-}
-
-//
-//  read in a single message
-//
-static int
-readmessage(Message *m, Inbuf *inb)
-{
-	int i, n, done;
-	uchar *p, *np;
-	char sdigest[SHA1dlen*2+1];
-
-	for(done = 0; !done;){
-		n = inb->wptr - inb->rptr;
-		if(n < 6){
-			if(n)
-				memmove(inb->data, inb->rptr, n);
-			inb->rptr = inb->data;
-			inb->wptr = inb->rptr + n;
-			i = read(inb->fd, inb->wptr, Buffersize);
-			if(i < 0){
-				fprint(2, "error reading mbox: %r");
-				return -1;
-			}
-			if(i == 0){
-				if(n != 0)
-					addtomessage(m, inb->rptr, n, 1);
-				if(m->end == m->start)
-					return -1;
-				break;
-			}
-			inb->wptr += i;
-		}
-
-		// look for end of message
-		for(p = inb->rptr; p < inb->wptr; p = np+1){
-			// first part of search for '\nFrom '
-			np = memchr(p, '\n', inb->wptr - p);
-			if(np == nil){
-				p = inb->wptr;
-				break;
-			}
-
-			/*
-			 *  if we've found a \n but there's
-			 *  not enough room for '\nFrom ', don't do
-			 *  the comparison till we've read in more.
-			 */
-			if(inb->wptr - np < 6){
-				p = np;
-				break;
-			}
-
-			if(strncmp((char*)np, "\nFrom ", 6) == 0){
-				done = 1;
-				p = np+1;
-				break;
-			}
-		}
-
-		// add to message (+ 1 in malloc is for a trailing null)
-		n = p - inb->rptr;
-		addtomessage(m, inb->rptr, n, done);
-		inb->rptr += n;
-	}
-
-	// if it doesn't start with a 'From ', this ain't a mailbox
-	if(strncmp(m->start, "From ", 5) != 0)
-		return -1;
-
-	// dump trailing newline, make sure there's a trailing null
-	// (helps in body searches)
-	if(*(m->end-1) == '\n')
-		m->end--;
-	*m->end = 0;
-	m->bend = m->rbend = m->end;
-
-	// digest message
-	sha1((uchar*)m->start, m->end - m->start, m->digest, nil);
-	for(i = 0; i < SHA1dlen; i++)
-		sprint(sdigest+2*i, "%2.2ux", m->digest[i]);
-	m->sdigest = s_copy(sdigest);
-
-	return 0;
-}
-
-// throw out deleted messages.  return number of freshly deleted messages
-int
-purgedeleted(Mailbox *mb)
-{
-	Message *m, *next;
-	int newdels;
-
-	// forget about what's no longer in the mailbox
-	newdels = 0;
-	for(m = mb->root->part; m != nil; m = next){
-		next = m->next;
-		if(m->deleted && m->refs == 0){
-			if(m->inmbox)
-				newdels++;
-			delmessage(mb, m);
-		}
-	}
-	return newdels;
-}
-
-//
-//  read in the mailbox and parse into messages.
-//
-static char*
-_readmbox(Mailbox *mb, int doplumb, Mlock *lk)
-{
-	int fd;
-	String *tmp;
-	Dir d;
-	static char err[ERRLEN];
-	Message *m, **l;
-	Inbuf *inb;
-	char *x;
-
-	l = &mb->root->part;
-	initheaders();
-
-	/*
-	 *  open the mailbox.  If it doesn't exist, try the temporary one.
-	 */
-retry:
-	fd = open(mb->path, OREAD);
-	if(fd < 0){
-		errstr(err);
-		if(strstr(err, "exist") != 0){
-			tmp = s_copy(mb->path);
-			s_append(tmp, ".tmp");
-			if(sysrename(s_to_c(tmp), mb->path) == 0){
-				s_free(tmp);
-				goto retry;
-			}
-			s_free(tmp);
-		}
-		return err;
-	}
-
-	/*
-	 *  a new qid.path means reread the mailbox, while
-	 *  a new qid.vers means read any new messages
-	 */
-	if(dirfstat(fd, &d) < 0){
-		close(fd);
-		errstr(err);
-		return err;
-	}
-	if(d.qid.path == mb->d.qid.path && d.qid.vers == mb->d.qid.vers){
-		close(fd);
-		return nil;
-	}
-	if(d.qid.path == mb->d.qid.path){
-		while(*l != nil)
-			l = &(*l)->next;
-		seek(fd, mb->d.length, 0);
-	}
-	memmove(&mb->d, &d, sizeof(d));
-	mb->vers++;
-	henter(CHDIR|PATH(0, Qtop), mb->name,
-		(Qid){CHDIR|PATH(mb->id, Qmbox), mb->vers}, nil, mb);
-
-	inb = emalloc(sizeof(Inbuf));
-	inb->rptr = inb->wptr = inb->data;
-	inb->fd = fd;
-
-	//  read new messages
-	logmsg("reading mbox", nil);
-	for(;;){
-		if(lk != nil)
-			syslockrefresh(lk);
-		m = newmessage(mb->root);
-		m->mallocd = 1;
-		m->inmbox = 1;
-		if(readmessage(m, inb) < 0){
-			delmessage(mb, m);
-			mb->root->subname--;
-			break;
-		}
-
-		// merge mailbox versions
-		while(*l != nil){
-			if(memcmp((*l)->digest, m->digest, SHA1dlen) == 0){
-				// matches mail we already read, discard
-				logmsg("duplicate", *l);
-				delmessage(mb, m);
-				mb->root->subname--;
-				m = nil;
-				l = &(*l)->next;
-				break;
-			} else {
-				// old mail no longer in box, mark deleted
-				logmsg("disappeared", *l);
-				if(doplumb)
-					mailplumb(mb, *l, 1);
-				(*l)->inmbox = 0;
-				(*l)->deleted = 1;
-				l = &(*l)->next;
-			}
-		}
-		if(m == nil)
-			continue;
-
-		x = strchr(m->start, '\n');
-		if(x == nil)
-			m->header = m->end;
-		else
-			m->header = x + 1;
-		m->mheader = m->mhend = m->header;
-		parseunix(m);
-		parse(m, 0, mb);
-		logmsg("new", m);
-
-		/* chain in */
-		*l = m;
-		l = &m->next;
-		if(doplumb)
-			mailplumb(mb, m, 0);
-
-	}
-	logmsg("mbox read", nil);
-
-	// whatever is left has been removed from the mbox, mark deleted
-	while(*l != nil){
-		if(doplumb)
-			mailplumb(mb, *l, 1);
-		(*l)->inmbox = 0;
-		(*l)->deleted = 1;
-		l = &(*l)->next;
-	}
-
-	close(fd);
-	free(inb);
-	return nil;
-}
-
-static void
-_writembox(Mailbox *mb, Mlock *lk)
-{
-	Dir d;
-	Message *m;
-	String *tmp;
-	int mode, errs;
-	Biobuf *b;
-
-	tmp = s_copy(mb->path);
-	s_append(tmp, ".tmp");
-
-	/*
-	 * preserve old files permissions, if possible
-	 */
-	if(dirstat(mb->path, &d) >= 0)
-		mode = d.mode&0777;
-	else
-		mode = MBOXMODE;
-
-	sysremove(s_to_c(tmp));
-	b = sysopen(s_to_c(tmp), "alc", mode);
-	if(b == 0){
-		fprint(2, "can't write temporary mailbox %s: %r\n", s_to_c(tmp));
-		return;
-	}
-
-	logmsg("writing new mbox", nil);
-	errs = 0;
-	for(m = mb->root->part; m != nil; m = m->next){
-		if(lk != nil)
-			syslockrefresh(lk);
-		if(m->deleted)
-			continue;
-		logmsg("writing", m);
-		if(Bwrite(b, m->start, m->end - m->start) < 0)
-			errs = 1;
-		if(Bwrite(b, "\n", 1) < 0)
-			errs = 1;
-	}
-	logmsg("wrote new mbox", nil);
-
-	if(sysclose(b) < 0)
-		errs = 1;
-
-	if(errs){
-		fprint(2, "error writing temporary mail file\n");
-		s_free(tmp);
-		return;
-	}
-
-	sysremove(mb->path);
-	if(sysrename(s_to_c(tmp), mb->path) < 0)
-		fprint(2, "%s: can't rename %s to %s: %r\n", argv0,
-			s_to_c(tmp), mb->path);
-	s_free(tmp);
-	dirstat(mb->path, &mb->d);
-}
-
-char*
-syncmbox(Mailbox *mb, int doplumb)
-{
-	Mlock *lk;
-	char *rv;
-
-	lk = nil;
-	if(mb->dolock){
-		lk = syslock(stdmbox);
-		if(lk == nil)
-			return "can't lock mailbox";
-	}
-
-	rv = _readmbox(mb, doplumb, lk);		/* interpolate */
-	if(purgedeleted(mb) > 0)
-		_writembox(mb, lk);
-
-	if(lk != nil)
-		sysunlock(lk);
-
-	return rv;
-}
-
 static void
 initheaders(void)
 {
@@ -533,7 +205,7 @@ initheaders(void)
 /*
  *  parse a Unix style header
  */
-static void
+void
 parseunix(Message *m)
 {
 	char *p;
@@ -554,14 +226,13 @@ parseunix(Message *m)
 /*
  *  parse a message
  */
-static void
-parse(Message *m, int justmime, Mailbox *mb)
+void
+parseheaders(Message *m, int justmime, Mailbox *mb)
 {
 	String *hl;
 	Header *h;
-	char *p;
+	char *p, *q;
 	int i;
-
 
 	if(m->whole == m->whole->whole){
 		henter(CHDIR|PATH(mb->id, Qmbox), m->name,
@@ -603,6 +274,51 @@ parse(Message *m, int justmime, Mailbox *mb)
 		p++;
 	m->rbody = m->body = p;
 
+	//
+	// cobble together Unix-style from line
+	// for local mailbox messages, we end up recreating the
+	// original header.
+	// for pop3 messages, the best we can do is 
+	// use the From: information and the RFC822 date.
+	//
+	if(m->unixdate == nil){
+		// look for the date in the first Received: line.
+		// it's likely to be the right time zone (it's
+	 	// the local system) and in a convenient format.
+		if(cistrncmp(m->header, "received:", 9)==0){
+			if((q = strchr(m->header, ';'))
+			&& (p = strchr(q, '\n'))){
+				*p = '\0';
+				m->unixdate = date822tounix(q+1);
+				*p = '\n';
+			}
+		}
+
+		// fall back on the rfc822 date	
+		if(m->unixdate==nil && m->date822)
+			m->unixdate = date822tounix(s_to_c(m->date822));
+	}
+
+	m->unixheader = s_copy("From ");
+	if(m->unixfrom)
+		s_append(m->unixheader, s_to_c(m->unixfrom));
+	else if(m->from822)
+		s_append(m->unixheader, s_to_c(m->from822));
+	else
+		s_append(m->unixheader, "???");
+
+	s_append(m->unixheader, " ");
+	if(m->unixdate)
+		s_append(m->unixheader, s_to_c(m->unixdate));
+	else
+		s_append(m->unixheader, "Thu Jan  1 00:00:00 EST 1970");
+
+	s_append(m->unixheader, "\n");
+}
+
+void
+parsebody(Message *m, Mailbox *mb)
+{
 	// if the message isn't mime, ignore the type
 	if(m->whole == m->whole->whole && m->mimeversion == nil){
 		s_append(s_reset(m->type), "text/plain");
@@ -615,6 +331,13 @@ parse(Message *m, int justmime, Mailbox *mb)
 			parseattachments(m, mb);
 		}
 	}
+}
+
+void
+parse(Message *m, int justmime, Mailbox *mb)
+{
+	parseheaders(m, justmime, mb);
+	parsebody(m, mb);
 }
 
 static void
@@ -1164,6 +887,10 @@ mboxdecref(Mailbox *mb)
 		}
 		delmessage(mb, mb->root);
 		qunlock(mb);
+		if(mb->ctl)
+			hfree(CHDIR|PATH(mb->id, Qmbox), "ctl");
+		if(mb->close)
+			(*mb->close)(mb);
 		free(mb);
 	} else
 		qunlock(mb);
@@ -1592,9 +1319,10 @@ emalloc(ulong n)
 
 	p = mallocz(n, 1);
 	if(!p){
-		fprint(2, "%s: out of memory\n", argv0);
+		fprint(2, "%s: out of memory alloc %lud\n", argv0, n);
 		exits("out of memory");
 	}
+	setmalloctag(p, getcallerpc(&n));
 	return p;
 }
 
@@ -1603,9 +1331,10 @@ erealloc(void *p, ulong n)
 {
 	p = realloc(p, n);
 	if(!p){
-		fprint(2, "%s: out of memory\n", argv0);
+		fprint(2, "%s: out of memory realloc %lud\n", argv0, n);
 		exits("out of memory");
 	}
+	setrealloctag(p, getcallerpc(&p));
 	return p;
 }
 
@@ -1722,3 +1451,30 @@ logmsg(char *s, Message *m)
 			m->from822 ? s_to_c(m->from822) : "?",
 			s_to_c(m->sdigest));
 }
+
+//
+// convert an RFC822 date into a Unix style date
+// for when the Unix From line isn't there (e.g. POP3).
+// enough client programs depend on having a Unix date
+// that it's easiest to write this conversion code once, right here.
+//
+// people don't follow RFC822 particularly closely,
+// so we use strtotm, which is a bunch of heuristics.
+//
+
+extern int strtotm(char*, Tm*);
+String*
+date822tounix(char *s)
+{
+	char *p, *q;
+	Tm tm;
+
+	if(strtotm(s, &tm) < 0)
+		return nil;
+
+	p = asctime(&tm);
+	if(q = strchr(p, '\n'))
+		*q = '\0';
+	return s_copy(p);
+}
+

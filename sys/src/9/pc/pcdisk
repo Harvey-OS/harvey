@@ -11,24 +11,28 @@ dev
 	rtc
 	ssl
 	bridge
+	loopback
+	kprof
 
-	ether		netif
-	ip		arp dial inferno ip ipaux iproute kio netlog nullmedium pktmedium ptclbsum386
+	ether	netif
+	ip	arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
 
-	draw		screen vga vgax
-	mouse		mouse
+	draw	screen vga vgax
+	mouse	mouse
 	vga
 
 	sd
-	floppy		dma
+	floppy	dma
 
-	audio		dma
-	i82365
+	audio	dma
+	i82365	cis
 	lpt
 	ns16552
 
 
+
 link
+	apm		apmjump
 	ether2000	ether8390
 	ether2114x	pci
 	ether589	etherelnk3
@@ -37,7 +41,9 @@ link
 	ether82557	pci
 	etherec2t	ether8390
 	etherelnk3	pci
+	etherwavelan
 	ethermedium
+	loopbackmedium
 	pcmciamodem
 
 misc

@@ -9,21 +9,8 @@ typedef	signed char	schar;
 typedef	struct	Vlong	Vlong;
 struct	Vlong
 {
-	union
-	{
-		struct
-		{
-			ulong	hi;
-			ulong	lo;
-		};
-		struct
-		{
-			ushort	hims;
-			ushort	hils;
-			ushort	loms;
-			ushort	lols;
-		};
-	};
+	ulong	lo;
+	ulong	hi;
 };
 
 void	abort(void);

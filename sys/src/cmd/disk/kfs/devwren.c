@@ -169,6 +169,8 @@ wrenread(Device dev, long addr, void *b)
 	qlock(w);
 	i = seek(fd, (vlong)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
+	if(i)
+		print("wrenread failed: %r\n");
 	return i;
 }
 
@@ -183,5 +185,7 @@ wrenwrite(Device dev, long addr, void *b)
 	qlock(w);
 	i = seek(fd, (vlong)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
+	if(i)
+		print("wrenwrite failed: %r\n");
 	return i;
 }

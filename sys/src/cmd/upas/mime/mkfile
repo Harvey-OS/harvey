@@ -6,7 +6,6 @@ HFILES=../ed/print.h\
 	../smtp/y.tab.h\
 
 LIB=../common/libcommon.a$O\
-	../libString/libString.a$O\
 
 TARG=unmime
 OFILES=unmime.$O

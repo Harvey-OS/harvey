@@ -1,0 +1,22 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libsec.a
+
+ALLOFILES = des.$O desmodes.$O desECB.$O desCBC.$O des3ECB.$O des3CBC.$O\
+	hmac.$O md5.$O md5block.$O md4.$O sha1.$O sha1block.$O\
+	rc4.$O\
+	genrandom.$O prng.$O\
+	probably_prime.$O smallprimetest.$O genprime.$O dsaprimes.$O gensafeprime.$O genstrongprime.$O\
+	u64.$O u32.$O\
+	rsagen.$O rsaencrypt.$O rsadecrypt.$O rsaalloc.$O rsaprivtopub.$O x509.$O \
+	eggen.$O egencrypt.$O egdecrypt.$O egalloc.$O egprivtopub.$O egsign.$O egverify.$O \
+
+# cull things in the per-machine directories from this list
+OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
+
+HFILES=/sys/include/libsec.h
+
+CFLAGS=$CFLAGS -I../../libmp/port
+
+</sys/src/cmd/mksyslib
+

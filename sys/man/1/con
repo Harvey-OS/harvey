@@ -113,7 +113,7 @@ with parity as
 The
 .RB control\- \e
 character is a local escape.
-It prompts with the local machine name and
+It prompts with
 .BR >>> .
 Legitimate responses to the prompt are
 .TP
@@ -137,6 +137,9 @@ Standard error will go to the screen.
 This is useful for transmitting and receiving files
 over the connections using programs such as
 .IR xms .
+.TP
+.B r
+Toggle printing of carriage returns.
 .PD
 .PP
 .I Telnet

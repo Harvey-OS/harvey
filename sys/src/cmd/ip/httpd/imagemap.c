@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 #include "httpd.h"
+#include "httpsrv.h"
 
 typedef struct Point	Point;
 typedef struct OkPoint	OkPoint;
@@ -30,32 +31,37 @@ static	char *me;
 int		polytest(int, Point, Point, Point);
 Strings		getfield(char*);
 OkPoint		pt(char*);
-char*		translate(Connect*, char*, char*);
+char*		translate(HConnect*, char*, char*);
 Point		sub(Point, Point);
 float		dist(Point, Point);
 
 void
 main(int argc, char **argv)
 {
-	Connect *c;
+	HConnect *c;
 	Hio *hout;
 	char *dest;
 
 	me = "imagemap";
 	c = init(argc, argv);
 	hout = &c->hout;
-	httpheaders(c);
+	if(hparseheaders(c, HSTIMEOUT) < 0)
+		exits("failed");
 	anonymous(c);
 
-	if(strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0)
-		unallowed(c, "GET, HEAD");
-	if(c->head.expectother || c->head.expectcont)
-		fail(c, ExpectFail, nil);
+	if(strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0){
+		hunallowed(c, "GET, HEAD");
+		exits("unallowed");
+	}
+	if(c->head.expectother || c->head.expectcont){
+		hfail(c, HExpectFail, nil);
+		exits("failed");
+	}
 	dest = translate(c, c->req.uri, c->req.search);
 
 	if(dest == nil){
 		if(c->req.vermaj){
-			okheaders(c);
+			hokheaders(c);
 			hprint(hout, "Content-type: text/html\r\n");
 			hprint(hout, "\r\n");
 		}
@@ -67,14 +73,14 @@ main(int argc, char **argv)
 	}
 
 	if(http11(c) && strcmp(c->req.meth, "POST") == 0)
-		redirected(c, "303 See Other", dest);
+		hredirected(c, "303 See Other", dest);
 	else
-		redirected(c, "302 Found", dest);
+		hredirected(c, "302 Found", dest);
 	exits(nil);
 }
 
 char*
-translate(Connect *c, char *uri, char *search)
+translate(HConnect *c, char *uri, char *search)
 {
 	Biobuf *b;
 	Strings ss;
@@ -84,16 +90,22 @@ translate(Connect *c, char *uri, char *search)
 	char *line, *to, *def, *s, *dst;
 	int n, inside, r, ncsa;
 
-	if(search == nil)
-		fail(c, NoData, me);
+	if(search == nil){
+		hfail(c, HNoData, me);
+		exits("failed");
+	}
 	okp = pt(search);
-	if(!okp.ok)
-		fail(c, BadSearch, me);
+	if(!okp.ok){
+		hfail(c, HBadSearch, me);
+		exits("failed");
+	}
 	p = okp.p;
 
 	b = Bopen(uri, OREAD);
-	if(b == nil)
-		fail(c, NotFound, uri);
+	if(b == nil){
+		hfail(c, HNotFound, uri);
+		exits("failed");
+	}
 
 	to = nil;
 	def = nil;

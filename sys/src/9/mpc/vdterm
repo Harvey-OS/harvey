@@ -9,7 +9,7 @@ dev
 	dup
 	rtc
 	ether	netif
-	ip		dial ip ipaux iproute arp nullmedium pktmedium kio netlog inferno nullmedium pktmedium ptclbsum
+	ip		chandial ip ipaux iproute arp nullmedium pktmedium netlog inferno nullmedium pktmedium ptclbsum
 	bridge
 	uart
 #	sac	unsac

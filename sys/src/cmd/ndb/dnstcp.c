@@ -38,7 +38,7 @@ main(int argc, char *argv[])
 	char tname[32];
 	char *err;
 	char *ext = "";
-
+	Ipifc *ifcs;
 
 	ARGBEGIN{
 	case 'd':
@@ -64,9 +64,10 @@ main(int argc, char *argv[])
 	dninit();
 
 	snprint(mntpt, sizeof(mntpt), "/net%s", ext);
-	snprint((char*)buf, sizeof(buf), "/net%s/ipifc", ext);
-	if(myipaddr(ipaddr, (char*)buf) < 0)
+	ifcs = readipifc(mntpt, nil);
+	if(ifcs == nil)
 		sysfatal("can't read my ip address");
+	ipmove(ipaddr, ifcs->ip);
 	syslog(0, logfile, "dnstcp call from %s to %I", caller, ipaddr);
 
 	db2cache(1);
@@ -261,9 +262,8 @@ dnzone(DNSmsg *reqp, DNSmsg *repp, Request *req)
 						if(rp->negative)
 							continue;
 
-						/* don't resend top level soa till the end */
+						/* don't send an soa's, ns's are enough */
 						if(rp->type == Tsoa)
-						if(rp->owner == dp)
 							continue;
 
 						r = *rp;

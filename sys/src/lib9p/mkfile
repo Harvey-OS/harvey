@@ -7,6 +7,7 @@ OFILES=\
 	intmap.$O\
 	req.$O\
 	srv.$O\
+	threadsrv.$O\
 	uid.$O\
 	util.$O\
 

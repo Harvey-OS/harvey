@@ -1,0 +1,10 @@
+#!/bin/rc
+9fs emelie
+bind -b /n/emelie/arm/bin /bin
+bind -b /n/emelie/rc/bin /bin
+bind -b /n/emelie/lib /lib
+bind -b /n/emelie/sys /sys
+user=`{cat /dev/user}
+bind -a /n/emelie/usr/$user /usr/$user
+bind -cb /usr/$user/tmp /tmp
+#aux/listen -t /bin/service

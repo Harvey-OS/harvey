@@ -770,6 +770,7 @@ pasvcmd(char *arg)
 {
 	Endpoints *ep;
 	Passive *p;
+	static Ipifc *ifcs;
 
 	USED(arg);
 	p = &passive;
@@ -782,22 +783,25 @@ pasvcmd(char *arg)
 	if(mountnet() < 0)
 		return 0;
 
+	/* announce on a port picked by the system */
 	p->afd = announce("tcp!*!0", passive.adir);
 	if(p->afd < 0){
 		unmountnet();
 		return reply("500 No free ports");
 	}
 	ep = getendpoints(p->adir);
-	unmountnet();
 
-	/* parse the local address */
-	if(debug)
-		logit("local sys is %s", ep->lsys);
-	parseip(p->ipaddr, ep->lsys);
-	if(ipcmp(p->ipaddr, v4prefix) == 0)
-		parseip(p->ipaddr, ends->lsys);
+	/* get the address the client called, of failing that one that
+         * should work.
+	 */
+	parseip(p->ipaddr, ends->lsys);
+	if(ipcmp(p->ipaddr, IPnoaddr) == 0 || ipcmp(p->ipaddr, v4prefix) == 0 ){
+		if(ifcs == nil)
+			ifcs = readipifc("/net", ifcs);
+		ipmove(p->ipaddr, ifcs->ip);
+	}
 	p->port = atoi(ep->lserv);
-
+	unmountnet();
 	freeendpoints(ep);
 	p->inuse = 1;
 

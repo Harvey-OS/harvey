@@ -1,8 +1,3 @@
-struct Reqpool {
-	Intmap	*map;
-	Srv		*srv;
-};
-
 void _postfd(char*, int);
 
 #define emalloc _lib9p_emalloc

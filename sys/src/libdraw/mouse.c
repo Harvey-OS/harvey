@@ -79,7 +79,6 @@ ioproc(void *arg)
 			m.xy.y = atoi(buf+1+1*12);
 			m.buttons = atoi(buf+1+2*12);
 			m.msec = atoi(buf+1+3*12);
-			m.buttons &= 7;
 			send(mc->c, &m);
 			/*
 			 * mc->Mouse is updated after send so it doesn't have wrong value if we block during send.
@@ -123,7 +122,7 @@ initmouse(char *file, Image *i)
 	mc->image = i;
 	mc->c = chancreate(sizeof(Mouse), 0);
 	mc->resizec = chancreate(sizeof(int), 2);
-	proccreate(ioproc, mc, 4096);
+	proccreate(ioproc, mc, 8192);
 	return mc;
 }
 

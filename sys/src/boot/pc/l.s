@@ -1,72 +1,10 @@
+#include "x16.h"
 #include "mem.h"
 
 #define PDB		0x08000		/* temporary page tables (24KB) */
 
 #define NoScreenBlank	1
 /*#define ResetDiscs	1*/
-
-#define OP16	BYTE	$0x66
-
-/*
- * Some horrid macros for writing 16-bit code.
- */
-#define rAX		0		/* rX  */
-#define rCX		1
-#define rDX		2
-#define rBX		3
-#define rSP		4		/* SP */
-#define rBP		5		/* BP */
-#define rSI		6		/* SI */
-#define rDI		7		/* DI */
-
-#define rAL		0		/* rL  */
-#define rCL		1
-#define rDL		2
-#define rBL		3
-#define rAH		4		/* rH */
-#define rCH		5
-#define rDH		6
-#define rBH		7
-
-#define rES		0		/* rS */
-#define rCS		1
-#define rSS		2
-#define rDS		3
-#define rFS		4
-#define rGS		5
-
-#define rCR0		0		/* rC */
-#define rCR2		2
-#define rCR3		3
-#define rCR4		4
-
-#define OP(o, m, r, rm)	BYTE $o;		/* op + modr/m byte */	\
-			BYTE $(((m)<<6)|((r)<<3)|(rm))
-#define OPrr(o, r0, r1)	OP(o, 0x03, r0, r1);	/* general r -> r */
-
-#define LWI(i, rX)	BYTE $(0xB8+rX);	/* i -> rX */		\
-			WORD $i;
-#define LBI(i, rB)	BYTE $(0xB0+rB);	/* i -> r[HL] */	\
-			BYTE $i
-
-#define MFSR(rS, rX)	OPrr(0x8C, rS, rX)	/* rS -> rX */
-#define MTSR(rX, rS)	OPrr(0x8E, rS, rX)	/* rX -> rS */
-#define MFCR(rC, rX)	BYTE $0x0F;		/* rC -> rX */		\
-			OP(0x20, 0x03, rC, rX)
-#define MTCR(rX, rC)	BYTE $0x0F;		/* rX -> rC */		\
-			OP(0x22, 0x03, rC, rX)
-
-#define ANDI(i, r)	OP(0x81, 0x03, 0x04, r);/* i & r -> r */	\
-			WORD $i;
-#define CLR(r)		OPrr(0x31, r, r)	/* r^r -> r */
-
-#define FARJUMP(s, o)	BYTE $0xEA;		/* far jump to s:o */	\
-			WORD $o; WORD $s
-#define	DELAY		BYTE $0xEB;		/* jmp .+2 */		\
-			BYTE $0x00
-#define OUTb(p, d)	LBI(d, rAL);		/* d -> I/O port p */	\
-			BYTE $0xE6;					\
-			BYTE $p; DELAY
 
 TEXT origin(SB), $0
 	/*
@@ -93,25 +31,15 @@ TEXT origin(SB), $0
 	MOVB	$0x0F, AH
 	INT	$0x10			/* get current video mode in AL */
 	CMPB	AL, $03
-	JEQ	_BIOSputs
+	JEQ	sayhello
 #endif /* NoScreenBlank */
 	XORL	AX, AX
 	MOVB	$0x03, AL
 	INT	$0x10			/* set video mode in AL */
 
-_BIOSputs:
-	MOVW	$_hello(SB), SI
-	XORL	BX, BX
-_BIOSputsloop:
-	LODSB
-	ORB	AL, AL
-	JEQ	_BIOSputsret
-
-	MOVB	$0x0E, AH
-	INT	$0x10
-	JMP	_BIOSputsloop
-
-_BIOSputsret:
+sayhello:
+	LWI(hello(SB), rSI)
+	CALL16(biosputs(SB))
 
 #ifdef ResetDiscs
 	XORL	AX, AX			/* reset disc system */
@@ -143,11 +71,12 @@ _BIOSputsret:
 	 * Jump to the copied image;
 	 * fix up the DS for the new location.
 	 */
-	FARJUMP(0x8000, _start8000(SB))
+	FARJUMP16(0x8000, _start8000(SB))
 
 TEXT _start8000(SB), $0
-	MFSR(rCS, rAX)			/* fix up DS (0x8000) */
+	MFSR(rCS, rAX)			/* fix up DS, ES (0x8000) */
 	MTSR(rAX, rDS)
+	MTSR(rAX, rES)
 
 	/*
 	 * If we are already in protected mode, have to get back
@@ -174,10 +103,10 @@ TEXT _start8000(SB), $0
 	BYTE	$0x07			/* MOVW	AX, ES:[BX] */
 
 	CLR(rDX)
-	OUTb(0x70, 0x8F)
-	OUTb(0x71, 0x0A)
+	OUTPORTB(0x70, 0x8F)
+	OUTPORTB(0x71, 0x0A)
 
-	FARJUMP(0xFFFF, 0x0000)		/* reset */
+	FARJUMP16(0xFFFF, 0x0000)		/* reset */
 #endif /* DOTCOM */
 
 _real:
@@ -186,6 +115,78 @@ _real:
  *	turn off interrupts
  */
 	CLI
+
+/*
+ *	do things that need to be done in real mode.
+ *	the results get written to CONFADDR (0x1200)
+ *	in a series of <4-byte-magic-number><block-of-data>
+ *	the data length is dependent on the magic number.
+ *
+ *	this gets parsed by conf.c:/^readlsconf
+ *
+ *	N.B. CALL16 kills rDI, so we can't call anything.
+ */
+	LWI(0x0000, rAX)
+	MTSR(rAX, rES)
+	LWI(0x1200, rDI)
+
+/*
+ *	detect APM1.2 bios support
+ */
+
+	/* save DI */
+	SW(rDI, rock(SB))
+
+	/* disconnect anyone else */
+	LWI(0x5304, rAX)
+	LWI(0x0000, rBX)
+	INT $0x15
+	
+	/* connect */
+	CLC
+	LWI(0x5303, rAX)
+	LWI(0x0000, rBX)
+	INT $0x15
+
+	JC noapm
+
+	OPSIZE; PUSHR(rSI)
+	OPSIZE; PUSHR(rBX)
+	PUSHR(rDI)
+	PUSHR(rDX)
+	PUSHR(rCX)
+	PUSHR(rAX)
+
+	/* put DI, ES back */
+	LW(rock(SB), rDI)
+	LWI(0x0000, rAX)
+	MTSR(rAX, rES)
+
+	/*
+	 * write APM data.  first four bytes are APM\0.
+	 */
+	LWI(0x5041, rAX)
+	STOSW
+
+	LWI(0x004d, rAX)
+	STOSW
+
+	LWI(8, rCX)
+apmmove:
+	POPR(rAX)
+	STOSW
+	LOOP apmmove
+	
+noapm:
+/*
+ *	end of real mode hacks: write terminator, put ES back.
+ */
+	LWI(0x0000, rAX)
+	STOSW
+	STOSW
+
+	MFSR(rCS, rAX)			/* fix up ES (0x8000) */
+	MTSR(rAX, rES)
 
 /*
  * 	goto protected mode
@@ -286,7 +287,7 @@ setpte:
  * to the instruction right after `JUMP', which gets
  * us into kzero.
  *
- * The name is so we are not optimized away.
+ * The name prevents it from being optimized away.
  */
 TEXT jumplabel(SB), $0
 	BYTE $'J'; BYTE $'U'; BYTE $'M'; BYTE $'P'
@@ -352,6 +353,26 @@ TEXT	tgdtptr(SB),$0
 	LONG	$tgdt-KZERO(SB)
 
 /*
+ * Output a string to the display.
+ * String argument is in rSI.
+ */
+TEXT biosputs(SB), $0
+	PUSHA
+	CLR(rBX)
+_BIOSputs:
+	LODSB
+	ORB(rAL, rAL)
+	JEQ _BIOSputsret
+
+	LBI(0x0E, rAH)
+	BIOSCALL(0x10)
+	JMP _BIOSputs
+
+_BIOSputsret:
+	POPA
+	RET
+
+/*
  *  input a byte
  */
 TEXT	inb(SB),$0
@@ -368,7 +389,7 @@ TEXT	ins(SB), $0
 
 	MOVL	p+0(FP), DX
 	XORL	AX, AX
-	OP16; INL
+	OPSIZE; INL
 	RET
 
 /*
@@ -397,7 +418,7 @@ TEXT	outb(SB),$0
 TEXT	outs(SB), $0
 	MOVL	p+0(FP), DX
 	MOVL	s+4(FP), AX
-	OP16; OUTL
+	OPSIZE; OUTL
 	RET
 
 /*
@@ -428,7 +449,7 @@ TEXT	inss(SB),$0
 	MOVL	a+4(FP),DI
 	MOVL	c+8(FP),CX
 	CLD
-	REP; OP16; INSL
+	REP; OPSIZE; INSL
 	RET
 
 /*
@@ -450,7 +471,7 @@ TEXT	outss(SB),$0
 	MOVL	a+4(FP),SI
 	MOVL	c+8(FP),CX
 	CLD
-	REP; OP16; OUTSL
+	REP; OPSIZE; OUTSL
 	RET
 
 /*
@@ -765,7 +786,7 @@ aaml1:
 	LOOP	aaml1
 	RET
 
-TEXT _hello(SB), $0
+TEXT hello(SB), $0
 	BYTE $'P'; BYTE $'l'; BYTE $'a'; BYTE $'n';
 	BYTE $' '; BYTE $'9'; BYTE $' '; BYTE $'f';
 	BYTE $'r'; BYTE $'o'; BYTE $'m'; BYTE $' ';
@@ -775,3 +796,6 @@ TEXT _hello(SB), $0
 	BYTE $'\r';
 	BYTE $'\n';
 	BYTE $'\z';
+
+TEXT rock(SB), $0
+	BYTE $0; BYTE $0; BYTE $0; BYTE $0;

@@ -1,7 +1,7 @@
 #!/bin/rc
 switch($#*){
 case 0
-	exec upas/nedmail -m
+	exec upas/nedmail
 }
 
 switch($1){

@@ -34,12 +34,13 @@ char	topsdir[64];		/* name of listed directory for TOPS */
 char	remrootpath[256];	/* path on remote side to remote root */
 char	user[NAMELEN];
 int	nopassive;
+long	lastsend;
 
-static void	sendrequest(char*, ...);
+static void	sendrequest(char*, char*);
 static int	getreply(Biobuf*, char*, int, int);
-static int	active(int, Biobuf**, char*);
-static int	passive(int, Biobuf**, char*);
-static int	data(int, Biobuf**, char*, ...);
+static int	active(int, Biobuf**, char*, char*);
+static int	passive(int, Biobuf**, char*, char*);
+static int	data(int, Biobuf**, char*, char*);
 static int	port(void);
 static void	ascii(void);
 static void	image(void);
@@ -99,7 +100,7 @@ rlogin(void)
 			strncpy(user, line, sizeof(user));
 			user[sizeof(user)-1] = 0;
 		}
-		sendrequest("USER %s", user);
+		sendrequest("USER", user);
 		switch(getreply(&ctlin, msg, sizeof(msg), 1)){
 		case Success:
 			return;
@@ -112,7 +113,7 @@ rlogin(void)
 
 		if(getpassword(pass, pass+sizeof(pass)) < 0)
 			exits(0);
-		sendrequest("PASS %s", pass);
+		sendrequest("PASS", pass);
 		if(getreply(&ctlin, msg, sizeof(msg), 1) == Success){
 			if(strstr(msg, "Sess#"))
 				defos = MVS;
@@ -132,7 +133,7 @@ clogin(char *cuser, char *cpassword)
 	if (strcmp(user, "anonymous") != 0 &&
 		strcmp(user, "ftp") != 0)
 		fatal("User must be 'anonymous' or 'ftp'");
-	sendrequest("USER %s", user);
+	sendrequest("USER", user);
 	switch(getreply(&ctlin, msg, sizeof(msg), 1)){
 	case Success:
 		return;
@@ -144,7 +145,7 @@ clogin(char *cuser, char *cpassword)
 	}
 	if (cpassword == 0)
 		fatal("password needed");
-	sendrequest("PASS %s", cpassword);
+	sendrequest("PASS", cpassword);
 	if(getreply(&ctlin, msg, sizeof(msg), 1) != Success)
 		fatal("password failed");
 	if(strstr(msg, "Sess#"))
@@ -174,7 +175,7 @@ preamble(char *mountroot)
 	/*
 	 *  get system type
 	 */
-	sendrequest("SYST");
+	sendrequest("SYST", nil);
 	switch(getreply(&ctlin, msg, sizeof(msg), 1)){
 	case Success:
 		for(o = oslist; o->os != Unknown; o++)
@@ -199,7 +200,7 @@ preamble(char *mountroot)
 		 *  go to the remote root, if asked
 		 */
 		if(mountroot){
-			sendrequest("CWD %s", mountroot);
+			sendrequest("CWD", mountroot);
 			getreply(&ctlin, msg, sizeof(msg), 0);
 			*remrootpath = 0;
 		} else
@@ -208,10 +209,10 @@ preamble(char *mountroot)
 		/*
 		 *  get the root directory
 		 */
-		sendrequest("PWD");
+		sendrequest("PWD", nil);
 		rv = getreply(&ctlin, msg, sizeof(msg), 1);
 		if(rv == PermFail){
-			sendrequest("XPWD");
+			sendrequest("XPWD", nil);
 			rv = getreply(&ctlin, msg, sizeof(msg), 1);
 		}
 		if(rv == Success){
@@ -262,10 +263,10 @@ preamble(char *mountroot)
 		/*
 		 *  get current directory
 		 */
-		sendrequest("PWD");
+		sendrequest("PWD", nil);
 		rv = getreply(&ctlin, msg, sizeof(msg), 1);
 		if(rv == PermFail){
-			sendrequest("XPWD");
+			sendrequest("XPWD", nil);
 			rv = getreply(&ctlin, msg, sizeof(msg), 1);
 		}
 		if(rv == Success){
@@ -293,7 +294,7 @@ preamble(char *mountroot)
 static void
 ascii(void)
 {
-	sendrequest("TYPE A");
+	sendrequest("TYPE A", nil);
 	switch(getreply(&ctlin, msg, sizeof(msg), 0)){
 	case Success:
 		break;
@@ -305,7 +306,7 @@ ascii(void)
 static void
 image(void)
 {
-	sendrequest("TYPE I");
+	sendrequest("TYPE I", nil);
 	switch(getreply(&ctlin, msg, sizeof(msg), 0)){
 	case Success:
 		break;
@@ -442,6 +443,41 @@ strpunct(char *p)
 	return 0;
 }
 
+/* convert a single cha
+int
+latin1toutf(char *out, char *in, char *e)
+{
+	Rune r;
+	char *p;
+
+	p = out;
+	for(; in < e; in++){
+		r = (*in) & 0xff;
+		p += runetochar(p, &r);
+	}
+	*p = 0;
+	return p - out;
+}
+
+/*
+ *  convert from latin1 to utf
+ */
+static char*
+fromlatin1(char *from, char *to, int len)
+{
+	char *p, *e;
+	Rune r;
+
+	e = to + len - 4;
+	for(p = to; *from && p < e; from++){
+		r = (*from) & 0xff;
+		p += runetochar(p, &r);
+	}
+	*p = 0;
+
+	return to;
+}
+
 /*
  *  shorten a symbol to NAMELEN bytes
  */
@@ -451,8 +487,14 @@ shorten(char *from, char *to, int offset)
 	int n, s;
 	char *p;
 	char tmp[512];
+	char utf[1024];
 
 	memset(to, 0, NAMELEN);
+
+	/*
+	 *  if it contains latin-1, convert to utf
+	 */
+	from = fromlatin1(from, utf, sizeof(utf));
 
 	/*
 	 *  if it fits, keep it
@@ -772,11 +814,11 @@ readdir(Node *node)
 	usenlist = 0;
 	for(tries = 0; tries < 3; tries++){
 		if(usenlist || usenlst)
-			x = data(OREAD, &bp, "NLST");
+			x = data(OREAD, &bp, "NLST", nil);
 		else if(os == Unix && !uselist)
-			x = data(OREAD, &bp, "LIST -l");
+			x = data(OREAD, &bp, "LIST -l", nil);
 		else
-			x = data(OREAD, &bp, "LIST");
+			x = data(OREAD, &bp, "LIST", nil);
 		switch(x){
 		case Extra:
 			break;
@@ -847,7 +889,7 @@ createdir(Node *node)
 	if(changedir(node->parent) < 0)
 		return -1;
 	
-	sendrequest("MKD %s", node->d.name);
+	sendrequest("MKD", node->d.name);
 	if(getreply(&ctlin, msg, sizeof(msg), 0) != Success)
 		return -1;
 	return 0;
@@ -909,7 +951,7 @@ changedir(Node *node)
 	 *  connect, if we need a password (Incomplete)
 	 *  act like it worked (best we can do).
 	 */
-	sendrequest("CWD %s", cdpath);
+	sendrequest("CWD", cdpath);
 	switch(getreply(&ctlin, msg, sizeof(msg), 0)){
 	case Success:
 	case Incomplete:
@@ -937,7 +979,7 @@ extern char errstring[ERRLEN];
 		return -1;
 
 	for(tries = 0; tries < 4; tries++){
-		switch(data(OREAD, &bp, "RETR %s", node->longname)){
+		switch(data(OREAD, &bp, "RETR", node->longname)){
 		case Extra:
 			break;
 		case TempFail:
@@ -1012,7 +1054,7 @@ createfile1(Node *node)
 	if(changedir(node->parent) < 0)
 		return -1;
 
-	if(data(OWRITE, &bp, "STOR %s", node->longname) != Extra)
+	if(data(OWRITE, &bp, "STOR", node->longname) != Extra)
 		return -1;
 	for(off = 0; ; off += n){
 		n = fileread(node, buf, off, sizeof(buf));
@@ -1059,7 +1101,7 @@ removefile(Node *node)
 	if(changedir(node->parent) < 0)
 		return -1;
 	
-	sendrequest("DELE %s", node->d.name);
+	sendrequest("DELE", node->d.name);
 	if(getreply(&ctlin, msg, sizeof(msg), 0) != Success)
 		return -1;
 	return 0;
@@ -1074,7 +1116,7 @@ removedir(Node *node)
 	if(changedir(node->parent) < 0)
 		return -1;
 	
-	sendrequest("RMD %s", node->d.name);
+	sendrequest("RMD", node->d.name);
 	if(getreply(&ctlin, msg, sizeof(msg), 0) != Success)
 		return -1;
 	return 0;
@@ -1086,7 +1128,7 @@ removedir(Node *node)
 void
 quit(void)
 {
-	sendrequest("QUIT");
+	sendrequest("QUIT", nil);
 	getreply(&ctlin, msg, sizeof(msg), 0);
 	exits(0);
 }
@@ -1095,20 +1137,28 @@ quit(void)
  *  send a request
  */
 static void
-sendrequest(char *fmt, ...)
+sendrequest(char *a, char *b)
 {
-	va_list arg;
-	char buf[8*1024], *s;
+	char buf[2*1024];
+	int n;
 
-	va_start(arg, fmt);
-	s = doprint(buf, buf + (sizeof(buf)-4) / sizeof(*buf), fmt, arg);
-	va_end(arg);
-	*s++ = '\r';
-	*s++ = '\n';
-	if(write(ctlfd, buf, s - buf) != s - buf)
+	n = strlen(a)+2+1;
+	if(b != nil)
+		n += strlen(b)+1;
+	if(n >= sizeof(buf))
+		fatal("proto request too long");
+	strcpy(buf, a);
+	if(b != nil){
+		strcat(buf, " ");
+		strcat(buf, b);
+	}
+	strcat(buf, "\r\n");
+	n = strlen(buf);
+	if(write(ctlfd, buf, n) != n)
 		fatal("remote side hung up");
 	if(debug)
-		write(2, buf, s - buf);
+		write(2, buf, n);
+	lastsend = time(0);
 }
 
 /*
@@ -1194,8 +1244,9 @@ port(void)
 	port = atoi(ptr);
 
 	/* tell remote side */
-	sendrequest("PORT %d,%d,%d,%d,%d,%d", ipaddr[IPv4off+0], ipaddr[IPv4off+1],
+	sprint(buf, "PORT %d,%d,%d,%d,%d,%d", ipaddr[IPv4off+0], ipaddr[IPv4off+1],
 		ipaddr[IPv4off+2], ipaddr[IPv4off+3], port>>8, port&0xff);
+	sendrequest(buf, nil);
 	if(getreply(&ctlin, msg, sizeof(msg), 0) != Success)
 		return seterr(msg);
 	return 0;
@@ -1205,7 +1256,7 @@ port(void)
  *  have server call back for a data connection
  */
 static int
-active(int mode, Biobuf **bpp, char *cmd)
+active(int mode, Biobuf **bpp, char *cmda, char *cmdb)
 {
 	int cfd, dfd, rv;
 	char newdir[NETPATHLEN];
@@ -1214,7 +1265,7 @@ active(int mode, Biobuf **bpp, char *cmd)
 	if(port() < 0)
 		return TempFail;
 
-	sendrequest("%s", cmd);
+	sendrequest(cmda, cmdb);
 
 	rv = getreply(&ctlin, msg, sizeof(msg), 0);
 	if(rv != Extra){
@@ -1243,7 +1294,7 @@ active(int mode, Biobuf **bpp, char *cmd)
  *  call out for a data connection
  */
 static int
-passive(int mode, Biobuf **bpp, char *cmd)
+passive(int mode, Biobuf **bpp, char *cmda, char *cmdb)
 {
 	char msg[1024];
 	char *f[6];
@@ -1253,7 +1304,7 @@ passive(int mode, Biobuf **bpp, char *cmd)
 	if(nopassive)
 		return Impossible;
 
-	sendrequest("PASV");
+	sendrequest("PASV", nil);
 	if(getreply(&ctlin, msg, sizeof(msg), 0) != Success){
 		nopassive = 1;
 		return Impossible;
@@ -1288,7 +1339,7 @@ passive(int mode, Biobuf **bpp, char *cmd)
 	}
 
 	/* tell remote to send a file */
-	sendrequest("%s", cmd);
+	sendrequest(cmda, cmdb);
 	x = getreply(&ctlin, msg, sizeof(msg), 0);
 	if(x != Extra){
 		close(fd);
@@ -1304,20 +1355,14 @@ passive(int mode, Biobuf **bpp, char *cmd)
 }
 
 static int
-data(int mode, Biobuf **bpp, char *fmt, ...)
+data(int mode, Biobuf **bpp, char* cmda, char *cmdb)
 {
-	va_list arg;
-	char cmd[8*1024];
 	int x;
 
-	va_start(arg, fmt);
-	doprint(cmd, cmd + (sizeof(cmd)-4) / sizeof(*cmd), fmt, arg);
-	va_end(arg);
-
-	x = passive(mode, bpp, cmd);
+	x = passive(mode, bpp, cmda, cmdb);
 	if(x != Impossible)
 		return x;
-	return active(mode, bpp, cmd);
+	return active(mode, bpp, cmda, cmdb);
 }
 
 /*
@@ -1326,7 +1371,9 @@ data(int mode, Biobuf **bpp, char *fmt, ...)
 void
 nop(void)
 {
-	sendrequest("NOOP");
+	if(lastsend - time(0) < 15)
+		return;
+	sendrequest("PWD", nil);
 	getreply(&ctlin, msg, sizeof(msg), 0);
 }
 

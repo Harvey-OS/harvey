@@ -59,19 +59,23 @@ snarf(Vga* vga, Ctlr* ctlr)
 			error("%s: unknown chip - DID %4.4uX\n",
 				ctlr->name, tdfx->pci->did);
 			break;
+		case 0x0003:		/* Banshee */
+			vga->f[1] = 270000000;
+			break;
 		case 0x0005:		/* Avenger (a.k.a. Voodoo3) */
-			/*
-			 * Frequency output of PLL's is given by
-			 *	fout = RefFreq*(n+2)/((m+2)*2^p)
-			 * where there are 6 bits for m, 8 bits for n
-			 * and 2 bits for p (k).
-			 */
-			vga->m[1] = 64;
-			vga->n[1] = 256;
-			vga->p[1] = 4;
 			vga->f[1] = 300000000;
 			break;
 		}
+		/*
+		 * Frequency output of PLL's is given by
+		 *	fout = RefFreq*(n+2)/((m+2)*2^p)
+		 * where there are 6 bits for m, 8 bits for n
+		 * and 2 bits for p (k).
+		 */
+		vga->m[1] = 64;
+		vga->n[1] = 256;
+		vga->p[1] = 4;
+
 		if((v = (tdfx->pci->mem[2].bar & ~0x3)) == 0)
 			error("%s: I/O not mapped\n", ctlr->name);
 		tdfx->io = v;

@@ -34,6 +34,9 @@ extern	long	strlen(char*);
 extern	long	strspn(char*, char*);
 extern	long	strcspn(char*, char*);
 extern	char*	strstr(char*, char*);
+extern	int	cistrncmp(char*, char*, int);
+extern	int	cistrcmp(char*, char*);
+extern	char*	cistrstr(char*, char*);
 extern	int	tokenize(char*, char**, int);
 
 enum
@@ -141,7 +144,9 @@ extern	int	fprint(int, char*, ...);
 #pragma	varargck	type	"e"	double
 #pragma	varargck	type	"g"	double
 #pragma	varargck	type	"s"	char*
+#pragma	varargck	type	"q"	char*
 #pragma	varargck	type	"S"	Rune*
+#pragma	varargck	type	"Q"	Rune*
 #pragma	varargck	type	"r"	void
 #pragma	varargck	type	"%"	void
 #pragma	varargck	type	"|"	int
@@ -154,6 +159,19 @@ extern	void	Strconv(Rune*, Fconv*);
 extern	int	fltconv(va_list*, Fconv*);
 extern	char	*dtoa(double, int, int, int*, int*, char**);
 extern	void	freedtoa(char*);
+
+/*
+ * quoted strings
+ */
+extern	char	*unquotestrdup(char*);
+extern	Rune	*unquoterunestrdup(Rune*);
+extern	char	*quotestrdup(char*);
+extern	Rune	*quoterunestrdup(Rune*);
+extern	int	quotestrconv(va_list*, Fconv*);
+extern	int	quoterunestrconv(va_list*, Fconv*);
+extern	void	quotefmtinstall(void);
+extern	int	(*doquote)(int);
+
 /*
  * random number
  */
@@ -251,7 +269,7 @@ extern	int	atnotify(int(*)(void*, char*), int);
 extern	double	atof(char*);
 extern	int	atoi(char*);
 extern	long	atol(char*);
-extern	vlong atoll(char*);
+extern	vlong	atoll(char*);
 extern	double	charstod(int(*)(void*), void*);
 extern	char*	cleanname(char*);
 extern	int	decrypt(void*, void*, int);
@@ -275,7 +293,6 @@ extern  int	postnote(int, int, char *);
 extern	double	pow10(int);
 extern	int	putenv(char*, char*);
 extern	void	qsort(void*, long, long, int (*)(void*, void*));
-extern	char*	setfields(char*);
 extern	int	setjmp(jmp_buf);
 extern	double	strtod(char*, char**);
 extern	long	strtol(char*, char**, int);
@@ -340,6 +357,9 @@ extern	void	rlock(RWLock*);
 extern	void	runlock(RWLock*);
 extern	void	wlock(RWLock*);
 extern	void	wunlock(RWLock*);
+
+extern	void**	privalloc(void);
+extern	void	privfree(void**);
 
 /*
  *  network dialing and authentication
@@ -436,7 +456,7 @@ struct Dir
 	ulong	mode;
 	long	atime;
 	long	mtime;
-	Length;
+	vlong	length;
 	ushort	type;
 	ushort	dev;
 } Dir;
@@ -476,6 +496,8 @@ extern	int	notify(void(*)(void*, char*));
 extern	int	open(char*, int);
 extern	int	fd2path(int, char*, int);
 extern	int	pipe(int*);
+extern	long	pread(int, void*, long, vlong);
+extern	long	pwrite(int, void*, long, vlong);
 extern	long	read(int, void*, long);
 extern	long	readn(int, void*, long);
 extern	long	read9p(int, void*, long);

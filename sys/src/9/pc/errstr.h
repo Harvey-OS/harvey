@@ -33,6 +33,7 @@ char Eisstream[] = "seek on a stream";
 char Ebadexec[] = "exec header invalid";
 char Etimedout[] = "connection timed out";
 char Econrefused[] = "connection refused";
+char Econinuse[] = "connection in use";
 char Eintr[] = "interrupted";
 char Enomem[] = "kernel allocate failed";
 char Enoswap[] = "swap space full";

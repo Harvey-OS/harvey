@@ -1,10 +1,17 @@
+#define NPRIVATES	16
+
 arg=0
 sp=13
 sb=12
 
-TEXT	_main(SB), 1, $16
+TEXT	_main(SB), 1, $(16 + NPRIVATES*4)
 	MOVW	$setR12(SB), R(sb)
 	MOVW	R(arg), _clock(SB)
+
+	MOVW	$p-64(SP), R1
+	MOVW	R1, _privates(SB)
+	MOVW	$NPRIVATES, R1
+	MOVW	R1, _nprivates(SB)
 
 	MOVW	$inargv+0(FP), R(arg)
 	MOVW	R(arg), 8(R(sp))

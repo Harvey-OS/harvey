@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 	/* set up a new environment */
 	cputype = getenv("cputype");
 	sysname = getenv("sysname");
-	tz = getenv("sysname");
+	tz = getenv("timezone");
 	rfork(RFCENVG);
 	setenv("#e/service", "con");
 	setenv("#e/user", user);
@@ -122,9 +122,6 @@ main(int argc, char *argv[])
 		chdir("/");
 
 	/* read profile and start interactive rc */
-	if(access("lib/profile", 1) == 0)
-		execl("/bin/rc", "rc", "-c", ". lib/profile; exec rc -i", 0);
-	else
-		execl("/bin/rc", "rc", "-i", 0);
+	execl("/bin/rc", "rc", "-li", 0);
 	exits(0);
 }

@@ -99,7 +99,7 @@ ExecTable exectab[] =
 	{ (0x160<<16)|3,		/* Mips boot image */
 		"mips 4k plan 9 boot image",
 		FMIPSB,
-		&mmips,
+		&mmips2be,
 		sizeof(struct mips4kexec),
 		beswal,
 		mips4kboot },
@@ -322,7 +322,7 @@ common(int fd, Fhdr *fp, ExecHdr *hp)
 			fp->dataddr = fp->txtaddr+fp->txtsz;
 			break;
 		case FARM:
-			fp->txtaddr = kbase+0xC000+sizeof(Exec);
+			fp->txtaddr = kbase+0x8010;
 			fp->name = "ARM plan 9 boot image";
 			fp->hdrsz = 0;		/* header stripped */
 			fp->dataddr = fp->txtaddr+fp->txtsz;

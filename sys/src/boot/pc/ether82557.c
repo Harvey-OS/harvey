@@ -86,8 +86,6 @@ enum {					/* Ecr */
 
 	EEstart		= 0x04,		/* start bit */
 	EEread		= 0x02,		/* read opcode */
-
-	EEaddrsz	= 6,		/* bits of address */
 };
 
 enum {					/* Mcr */
@@ -174,7 +172,8 @@ enum {					/* CbTransmit count */
 
 typedef struct Ctlr {
 	int	port;
-	ushort	eeprom[0x40];
+	int	eepromsz;		/* address size in bits */
+	ushort*	eeprom;
 
 	int	ctlrno;
 	char*	type;
@@ -475,14 +474,15 @@ miiw(Ctlr* ctlr, int phyadd, int regadd, int data)
 static int
 hy93c46r(Ctlr* ctlr, int r)
 {
-	int i, op, data;
+	int data, i, op, size;
 
 	/*
 	 * Hyundai HY93C46 or equivalent serial EEPROM.
 	 * This sequence for reading a 16-bit register 'r'
 	 * in the EEPROM is taken straight from Section
-	 * 2.3.4.2 of the Intel 82557 User's Guide.
+	 * 3.3.4.2 of the Intel 82557 User's Guide.
 	 */
+reread:
 	csr16w(ctlr, Ecr, EEcs);
 	op = EEstart|EEread;
 	for(i = 2; i >= 0; i--){
@@ -494,14 +494,20 @@ hy93c46r(Ctlr* ctlr, int r)
 		microdelay(1);
 	}
 
-	for(i = EEaddrsz-1; i >= 0; i--){
-		data = (((r>>i) & 0x01)<<2)|EEcs;
+	/*
+	 * First time through must work out the EEPROM size.
+	 */
+	if((size = ctlr->eepromsz) == 0)
+		size = 8;
+
+	for(size = size-1; size >= 0; size--){
+		data = (((r>>size) & 0x01)<<2)|EEcs;
 		csr16w(ctlr, Ecr, data);
 		csr16w(ctlr, Ecr, data|EEsk);
-		microdelay(1);
+		delay(1);
 		csr16w(ctlr, Ecr, data);
 		microdelay(1);
-		if((csr16r(ctlr, Ecr) & EEdo) == 0)
+		if(!(csr16r(ctlr, Ecr) & EEdo))
 			break;
 	}
 
@@ -516,6 +522,12 @@ hy93c46r(Ctlr* ctlr, int r)
 	}
 
 	csr16w(ctlr, Ecr, 0);
+
+	if(ctlr->eepromsz == 0){
+		ctlr->eepromsz = 8-size;
+		ctlr->eeprom = malloc((1<<ctlr->eepromsz)*sizeof(ushort));
+		goto reread;
+	}
 
 	return data;
 }
@@ -670,9 +682,12 @@ i82557reset(Ether* ether)
 
 	/*
 	 * Read the EEPROM.
+	 * Do a dummy read first to get the size
+	 * and allocate ctlr->eeprom.
 	 */
+	hy93c46r(ctlr, 0);
 	sum = 0;
-	for(i = 0; i < 0x40; i++){
+	for(i = 0; i < (1<<ctlr->eepromsz); i++){
 		x = hy93c46r(ctlr, i);
 		ctlr->eeprom[i] = x;
 		sum += x;

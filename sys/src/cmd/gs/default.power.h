@@ -1,4 +1,5 @@
 /* Parameters derived from machine and compiler architecture */
+/* NOTE: THIS WAS COPIED FROM default.mips.h AND HAS NOT BEEN TESTED */
 
 	 /* ---------------- Scalar alignments ---------------- */
 

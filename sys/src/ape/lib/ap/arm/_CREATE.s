@@ -1,0 +1,4 @@
+TEXT _CREATE(SB), 1, $-4
+MOVW $22, R0
+SWI 0
+RET

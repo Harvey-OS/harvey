@@ -9,13 +9,13 @@
 #include <u.h>
 #include <libc.h>
 #define	NBUF	(8*1024)
-long nline, tnline, pline;
-long nword, tnword, pword;
-long nrune, tnrune, prune;
-long nbadr, tnbadr, pbadr;
-long nchar, tnchar, pchar;
+uvlong nline, tnline, pline;
+uvlong nword, tnword, pword;
+uvlong nrune, tnrune, prune;
+uvlong nbadr, tnbadr, pbadr;
+uvlong nchar, tnchar, pchar;
 void count(int, char *);
-void report(long, long, long, long, long, char *);
+void report(uvlong, uvlong, uvlong, uvlong, uvlong, char *);
 void
 main(int argc, char *argv[])
 {
@@ -31,8 +31,11 @@ main(int argc, char *argv[])
 		fprint(2, "Usage: %s [-lwrbc] [file ...]\n", argv0);
 		exits("usage");
 	} ARGEND
-	if(pline+pword+prune+pbadr+pchar == 0)
-		pline=pword=pchar=1;
+	if(pline+pword+prune+pbadr+pchar == 0) {
+		pline = 1;
+		pword = 1;
+		pchar = 1;
+	}
 	if(argc==0)
 		count(0, 0);
 	else{
@@ -58,28 +61,28 @@ main(int argc, char *argv[])
 	exits(status);
 }
 void
-report(long nline, long nword, long nrune, long nbadr, long nchar, char *fname)
+report(uvlong nline, uvlong nword, uvlong nrune, uvlong nbadr, uvlong nchar, char *fname)
 {
 	char line[1024], word[128];
 	line[0] = '\0';
 	if(pline){
-		sprint(word, " %7ld", nline);
+		sprint(word, " %7llud", nline);
 		strcat(line, word);
 	}
 	if(pword){
-		sprint(word, " %7ld", nword);
+		sprint(word, " %7llud", nword);
 		strcat(line, word);
 	}
 	if(prune){
-		sprint(word, " %7ld", nrune);
+		sprint(word, " %7llud", nrune);
 		strcat(line, word);
 	}
 	if(pbadr){
-		sprint(word, " %7ld", nbadr);
+		sprint(word, " %7llud", nbadr);
 		strcat(line, word);
 	}
 	if(pchar){
-		sprint(word, " %7ld", nchar);
+		sprint(word, " %7llud", nchar);
 		strcat(line, word);
 	}
 	if(fname){
@@ -262,7 +265,13 @@ count(int f, char *name)
 	uchar buf[NBUF];
 	uchar *bufp, *ebuf;
 	uchar *state=statesp;
-	nline=nword=nrune=nbadr=nchar=0;
+
+	nline = 0;
+	nword = 0;
+	nrune = 0;
+	nbadr = 0;
+	nchar = 0;
+
 	for(;;){
 		n=read(f, buf, NBUF);
 		if(n<=0)

@@ -19,6 +19,9 @@ kfs \- disk file system
 .I perm
 ] [
 .B -s
+] [
+.B -B
+.I nbuf
 ]
 .SH DESCRIPTION
 .I Kfs
@@ -90,6 +93,13 @@ and adding all blocks to the free list.
 Post file descriptor zero in
 .BI /srv/ service
 and read and write protocol messages on file descriptor one.
+.TP
+.B B
+Allocate 
+.I nbuf
+in-memory file system blocks.
+The default is as many as will fit in 10% of memory
+or two megabytes, whichever is smaller.
 .PD
 .SH EXAMPLES
 Create a file system with service name

@@ -4,16 +4,13 @@ ssh, sshserve, scp \- secure login and file copy from/to Unix or Plan 9
 .SH SYNOPSIS
 .B ssh
 [
-.B \-v
+.B -CiImprv
 ]
 [
-.B \-r
-]
-[
-.B \-u
+.B -[lu]
 .I user
 ]
-.I hostname
+.RI [ user\fB@ ] hostname
 [
 .I command
 [
@@ -27,6 +24,9 @@ ssh, sshserve, scp \- secure login and file copy from/to Unix or Plan 9
 [host:]file ... [host:]dir
 .PP
 .B sshserve
+[
+.B -p
+]
 .I address
 .PP
 .B aux/ssh_genkey
@@ -46,41 +46,135 @@ authentication details).
 takes the host name of the machine to connect to as its mandatory argument.
 It may be specified as a domain name or an IP address.
 Normally, login is attempted using the user name from /dev/user.
+.PP
+Command-line options are:
+.TP
+.B -C
+force input to be read in cooked mode:
+``line at a time'' with local echo.
+.TP
+.B -i
+force interactive mode.
+In interactive mode, 
+.I ssh
+prompts for passwords and confirmations of
+new host keys when necessary.
+(In non-interactive mode, password requests
+are rejected and unrecognized host keys are 
+cause for disconnecting.)
+By default, 
+.I ssh 
+runs in interactive mode only when its 
+input file descriptor is 
+.BR /dev/cons .
+.TP
+.B -I
+force non-interactive mode.
+.TP
+.B -m
+disable the 
+.RB control- \e
+menu, described below.
+.TP
+.B -p
+force pseudoterminal request.
 The
-.B \-v
-(verbose) flag gives feedback during the connection and authentication process. 
+.I ssh
+protocol, grounded in Unix tradition,
+differentiates between connections
+that request controlling pseudoterminals
+and those that do not.
+By default, 
+.I ssh
+requests a pseudoterminal only when no
+.I command
+is given.
+.TP
+.B -r
+strip carriage returns.
+.TP
+.B -v
+enable verbose feedback during the connection and authentication process. 
+.TP
+.BR - [ lu ] "\fI user
+specify user name.
+This option is deprecated in favor of the
+.IB user @ hostname
+syntax.
+.PD
+.PP
 The
-.B \-r
-flag strips carriage returns. 
-The
-.B \-u
-flag allows login under a different name.
+.RB control\- \e
+character is a local escape, as in
+.IR con (1).
+It prompts with
+.BR >>> .
+Legitimate responses to the prompt are
+.TP
+.B q
+Exit.
+.TP
+.B .
+Return from the escape.
+.TP
+.B !cmd
+Run the command with the network connection as its
+standard input and standard output.
+Standard error will go to the screen.
+.TP
+.B r
+Toggle printing of carriage returns.
+.PD
 .LP
-If no command is specified, an interactive shell is started on the remote
+If no command is specified,
+a login session is started on the remote
 host.
 Otherwise, the command is executed with its arguments.
 .LP
-Ssh establishes a connection with an ssh daemon on the remote host.
-The daemon sends to ssh its RSA public host key and session key.
-Using these, ssh sends a session key which, presumably, only the
+.I Ssh
+establishes a connection with an ssh daemon on the remote host.
+The daemon sends to 
+.I ssh
+its RSA public host key and session key.
+Using these,
+.I ssh
+sends a session key which, presumably, only the
 daemon can decipher.  After this, both sides start encrypting their
 data with this session key.  The encryption algorithm preferred by
-Plan9 ssh for data transfer is RC4, with triple-DES (which isn't
+Plan9
+.I ssh
+for data transfer is RC4, with triple-DES (which isn't
 really triple DES but a somewhat doubtful variation on it) as
 backup.  (All ssh implementations are required to be able to do 3DES.)
 .LP
 When the daemon's host key has been received,
 .I ssh
-looks it up in $home/lib/keyring and in /sys/lib/ssh/keyring.  If
+looks it up in 
+.B $home/lib/keyring
+and in 
+.BR /sys/lib/ssh/keyring .
+If
 the key is found there, and it matches the received key,
 .I ssh
 is satisfied.  If not,
-.ssh
-reports this and offers to add the key to $home/lib/keyring.
+.I ssh
+reports this and offers to add the key to
+.BR $home/lib/keyring .
 .LP
 Over the encrypted channel,
 .I ssh
-attempts to convince the daemon to accept the call.  It may prompt for
+attempts to convince the daemon to accept the call.  
+It will try to use RSA private keys, first those mounted
+at 
+.B /mnt/auth/ssh
+(see
+.IR agent (4)),
+and then any in the private keyring
+.BR $home/lib/userkeyring .
+.PP
+If RSA authentication fails,
+.I ssh
+may prompt for
 the password on the remote host \- note that this password will be sent
 over the
 .I encrypted
@@ -111,6 +205,12 @@ calls from remote hosts.  On Plan 9, it always requires either
 a response to a challenge (netkey), or a password.  The password is
 protected by encryption as it travels from the remote host to
 .IR sshserve .
+The 
+.B -p
+option keeps
+.I sshserve
+from accepting passwords, forcing the use of the netkey-style
+challenge-response.
 By default, users start with the namespace defined in
 .BR /lib/namespace .
 Users in group
@@ -161,9 +261,16 @@ System keyring file containing public keys for remote ssh clients and servers.
 .B /usr/\fIuser\fP/lib/keyring
 Personal keyring file containing public keys for remote ssh clients and
 servers.
+.TP
+.B /mnt/auth/ssh
+Expected mount point for private keys held by an agent.
+.TP
+.B /usr/\fIuser\fP/lib/userkeyring
+Personal keyring file containing private keys to be used in authentication.
 .SH SOURCE
 .B /sys/src/cmd/ssh
 .SH "SEE ALSO"
 .IR /sys/src/cmd/ssh/RFC*
 .br
+.IR agent (4),
 .IR auth (6)

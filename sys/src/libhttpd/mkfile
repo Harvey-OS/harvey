@@ -1,0 +1,16 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libhttpd.a
+OFILES=\
+	date.$O\
+	hio.$O\
+	parse.$O\
+	parsereq.$O\
+	query.$O\
+
+HFILES=\
+	/sys/include/httpd.h\
+	escape.h\
+
+</sys/src/cmd/mksyslib
+

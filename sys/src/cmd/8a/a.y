@@ -135,7 +135,7 @@ nonrel:
 	}
 
 spec1:	/* DATA */
-	mem '/' con ',' imm
+	nam '/' con ',' imm
 	{
 		$$.from = $1;
 		$$.from.scale = $3;
@@ -216,6 +216,8 @@ rom:
 	{
 		$$ = $2;
 	}
+|	reg
+|	omem
 
 rim:
 	rem

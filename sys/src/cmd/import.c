@@ -27,6 +27,9 @@ main(int argc, char **argv)
 	case 'c':
 		mntflags |= MCREATE;
 		break;
+	case 'C':
+		mntflags |= MCACHE;
+		break;
 	case 'f':
 		fflag = 1;
 		break;
@@ -112,7 +115,7 @@ error(char *fmt, ...)
 void
 usage(void)
 {
-	print("Usage: import [-abc] host remotefs [mountpoint]\n");
+	print("Usage: import [-abcC] host remotefs [mountpoint]\n");
 	exits("usage");
 }
 

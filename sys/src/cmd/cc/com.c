@@ -62,7 +62,7 @@ tcomo(Node *n, int f)
 	n->addable = 0;
 	l = n->left;
 	r = n->right;
-		
+
 	switch(n->op) {
 	default:
 		diag(n, "unknown op in type complex: %O", n->op);
@@ -82,10 +82,12 @@ tcomo(Node *n, int f)
 			break;
 		if(n->type->width == types[TLONG]->width) {
 			if(tcomo(l, ADDROF|CASTOF))
-					goto bad;
+				goto bad;
 		} else
 			if(tcom(l))
 				goto bad;
+		if(isfunct(n))
+			break;
 		if(tcompat(n, l->type, n->type, tcast))
 			goto bad;
 		break;
@@ -130,9 +132,12 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
-
+		if(tlvalue(l))
+			goto bad;
+		if(isfunct(n))
+			break;
 		typeext(l->type, r);
-		if(tlvalue(l) || tcompat(n, l->type, r->type, tasign))
+		if(tcompat(n, l->type, r->type, tasign))
 			goto bad;
 		constas(n, l->type, r->type);
 		if(!sametype(l->type, r->type)) {
@@ -148,8 +153,12 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
+		if(tlvalue(l))
+			goto bad;
+		if(isfunct(n))
+			break;
 		typeext1(l->type, r);
-		if(tlvalue(l) || tcompat(n, l->type, r->type, tasadd))
+		if(tcompat(n, l->type, r->type, tasadd))
 			goto bad;
 		constas(n, l->type, r->type);
 		t = l->type;
@@ -171,8 +180,12 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
+		if(tlvalue(l))
+			goto bad;
+		if(isfunct(n))
+			break;
 		typeext1(l->type, r);
-		if(tlvalue(l) || tcompat(n, l->type, r->type, tmul))
+		if(tcompat(n, l->type, r->type, tmul))
 			goto bad;
 		constas(n, l->type, r->type);
 		t = l->type;
@@ -199,7 +212,11 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
-		if(tlvalue(l) || tcompat(n, l->type, r->type, tand))
+		if(tlvalue(l))
+			goto bad;
+		if(isfunct(n))
+			break;
+		if(tcompat(n, l->type, r->type, tand))
 			goto bad;
 		n->type = l->type;
 		if(typeu[n->type->etype]) {
@@ -216,7 +233,11 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
-		if(tlvalue(l) || tcompat(n, l->type, r->type, tand))
+		if(tlvalue(l))
+			goto bad;
+		if(isfunct(n))
+			break;
+		if(tcompat(n, l->type, r->type, tand))
 			goto bad;
 		t = l->type;
 		arith(n, 0);
@@ -240,7 +261,11 @@ tcomo(Node *n, int f)
 	case OPOSTDEC:
 		if(tcom(l))
 			goto bad;
-		if(tlvalue(l) || tcompat(n, l->type, types[TINT], tadd))
+		if(tlvalue(l))
+			goto bad;
+		if(isfunct(n))
+			break;
+		if(tcompat(n, l->type, types[TINT], tadd))
 			goto bad;
 		n->type = l->type;
 		if(n->type->etype == TIND)
@@ -253,6 +278,8 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
+		if(isfunct(n))
+			break;
 		typeext(l->type, r);
 		typeext(r->type, l);
 		if(tcompat(n, l->type, r->type, trel))
@@ -268,6 +295,8 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
+		if(isfunct(n))
+			break;
 		typeext1(l->type, r);
 		typeext1(r->type, l);
 		if(tcompat(n, l->type, r->type, trel))
@@ -306,6 +335,8 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
+		if(isfunct(n))
+			break;
 		if(tcompat(n, l->type, r->type, tadd))
 			goto bad;
 		arith(n, 1);
@@ -315,6 +346,8 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
+		if(isfunct(n))
+			break;
 		if(tcompat(n, l->type, r->type, tsub))
 			goto bad;
 		arith(n, 1);
@@ -327,6 +360,8 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
+		if(isfunct(n))
+			break;
 		if(tcompat(n, l->type, r->type, tmul))
 			goto bad;
 		arith(n, 1);
@@ -344,6 +379,8 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
+		if(isfunct(n))
+			break;
 		if(tcompat(n, l->type, r->type, tand))
 			goto bad;
 		n->right = Z;
@@ -361,6 +398,8 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
+		if(isfunct(n))
+			break;
 		if(tcompat(n, l->type, r->type, tand))
 			goto bad;
 		arith(n, 1);
@@ -371,6 +410,8 @@ tcomo(Node *n, int f)
 		o = tcom(l);
 		if(o | tcom(r))
 			goto bad;
+		if(isfunct(n))
+			break;
 		if(tcompat(n, l->type, r->type, tand))
 			goto bad;
 		arith(n, 1);
@@ -378,9 +419,74 @@ tcomo(Node *n, int f)
 			n->op = OLMOD;
 		break;
 
+	case OPOS:
+		if(tcom(l))
+			goto bad;
+		if(isfunct(n))
+			break;
+
+		r = l;
+		l = new(OCONST, Z, Z);
+		l->vconst = 0;
+		l->type = types[TINT];
+		n->op = OADD;
+		n->right = r;
+		n->left = l;
+
+		if(tcom(l))
+			goto bad;
+		if(tcompat(n, l->type, r->type, tsub))
+			goto bad;
+		arith(n, 1);
+		break;
+
+	case ONEG:
+		if(tcom(l))
+			goto bad;
+		if(isfunct(n))
+			break;
+
+		r = l;
+		l = new(OCONST, Z, Z);
+		l->vconst = 0;
+		l->type = types[TINT];
+		n->op = OSUB;
+		n->right = r;
+		n->left = l;
+
+		if(tcom(l))
+			goto bad;
+		if(tcompat(n, l->type, r->type, tsub))
+			goto bad;
+		arith(n, 1);
+		break;
+
+	case OCOM:
+		if(tcom(l))
+			goto bad;
+		if(isfunct(n))
+			break;
+
+		r = l;
+		l = new(OCONST, Z, Z);
+		l->vconst = -1;
+		l->type = types[TINT];
+		n->op = OXOR;
+		n->right = r;
+		n->left = l;
+
+		if(tcom(l))
+			goto bad;
+		if(tcompat(n, l->type, r->type, tand))
+			goto bad;
+		arith(n, 1);
+		break;
+
 	case ONOT:
 		if(tcom(l))
 			goto bad;
+		if(isfunct(n))
+			break;
 		if(tcompat(n, T, l->type, tnot))
 			goto bad;
 		n->type = types[TINT];
@@ -698,18 +804,10 @@ tcomd(Node *n)
 	long o;
 
 	o = 0;
-	t = n->left->type;
-	for(;;) {
-		t = dotsearch(n->sym, t->link, n);
-		if(t == T) {
-			diag(n, "not a member of struct/union: %F", n);
-			return 1;
-		}
-		o += t->offset;
-		if(t->sym == n->sym)
-			break;
-		if(sametype(t, n->sym->type))
-			break;
+	t = dotsearch(n->sym, n->left->type->link, n, &o);
+	if(t == T) {
+		diag(n, "not a member of struct/union: %F", n);
+		return 1;
 	}
 	makedot(n, t, o);
 	return 0;

@@ -19,7 +19,7 @@ enum
 
 	MinDecode	= 8,		/* minimum bits to decode a match or lit; >= 8 */
 
-	EWinBlocks	= 32,		/* blocks held in encoder window */
+	EWinBlocks	= 22,		/* blocks held in encoder window */
 	DWinBlocks	= 32,		/* blocks held in decoder window */
 	CompBlocks	= 10,		/* max blocks used to encode data */
 
@@ -65,3 +65,4 @@ void	unthwackinit(Unthwack*);
 int	thwack(Thwack*, uchar *dst, uchar *src, int nsrc, ulong seq, ulong stats[ThwStats]);
 void	thwackack(Thwack*, ulong seq, ulong mask);
 int	unthwack(Unthwack*, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq);
+ulong	unthwackstate(Unthwack *ut, uchar *mask);

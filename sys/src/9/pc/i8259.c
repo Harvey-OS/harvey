@@ -164,3 +164,13 @@ i8259enable(Vctl* v)
 
 	return VectorPIC+irq;
 }
+
+void
+i8259dump(void)
+{
+	uchar aux0, aux1;
+
+	aux0 = inb(Int0aux);
+	aux1 = inb(Int1aux);
+	print("i8269: %ux %2.2ux %2.2ux\n", i8259mask, aux0, aux1);
+}

@@ -333,7 +333,7 @@ long	FtoB(int);
 int	BtoR(long);
 int	BtoF(long);
 
-void predicate(void); 
+void	predicate(void); 
 int	isbranch(Prog *); 
 int	predicable(Prog *p); 
 int	modifiescpsr(Prog *p); 

@@ -129,7 +129,7 @@ extern	int		tokenizec(char*, char**, int, char*);
 extern	Window	*wbox;
 extern	Message	mbox;
 extern	Message	replies;
-extern	char		*mboxname;
+extern	char		*fsname;
 extern	int		plumbsendfd;
 extern	int		plumbseemailfd;
 extern	char		*home;

@@ -177,10 +177,13 @@ mbrpart(SDunit *unit)
 		 * so that the partition we call ``dos'' agrees with the
 		 * partition disk/fdisk calls ``dos''. 
 		 */
-		if(havedos == 0 && (dp->type == FAT12 || dp->type == FAT16
-					|| dp->type == FATHUGE || dp->type == FAT32)) {
-			havedos = 1;
-			sdaddpart(unit, "dos", start, end);
+		if(havedos == 0){
+			if(dp->type == FAT12 || dp->type == FAT16
+			|| dp->type == FATHUGE || dp->type == FAT32
+			|| dp->type == FAT32X){
+				havedos = 1;
+				sdaddpart(unit, "dos", start, end);
+			}
 		}
 	}
 	return nplan9 ? 0 : -1;
@@ -202,6 +205,9 @@ partition(SDunit *unit)
 		return;
 
 	p = getconf("partition");
+	if(p == nil)
+		p = defaultpartition;
+
 	if(p != nil && strncmp(p, "new", 3) == 0)
 		type = NEW;
 	else if(p != nil && strncmp(p, "old", 3) == 0)

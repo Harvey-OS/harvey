@@ -12,6 +12,7 @@
 #define WRMSR		BYTE $0x0F; BYTE $0x30	/* WRMSR, argument in AX/DX (lo/hi) */
 #define RDMSR		BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
 #define WBINVD		BYTE $0x0F; BYTE $0x09
+#define HLT		BYTE $0xF4
 
 /*
  * Macros for calculating offsets within the page directory base
@@ -502,6 +503,13 @@ TEXT setlabel(SB), $0
 	MOVL	0(SP), BX			/* store return pc */
 	MOVL	BX, 4(AX)
 	MOVL	$0, AX				/* return 0 */
+	RET
+
+/*
+ * Attempt at power saving. -rsc
+ */
+TEXT halt(SB), $0
+	HLT
 	RET
 
 /*

@@ -1,22 +1,22 @@
-/* Copyright (C) 1991, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: sfilter2.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: sfilter2.c,v 1.3 2000/09/19 19:00:49 lpd Exp $ */
 /* Simple Level 2 filters */
 #include "stdio_.h"		/* includes std.h */
 #include "memory_.h"
@@ -52,6 +52,7 @@ s_A85E_process(stream_state * st, stream_cursor_read * pr,
     const byte *rlimit = pr->limit;
     byte *wlimit = pw->limit;
     int status = 0;
+    int prev = ss->last_char;
     int count;
 
     if_debug3('w', "[w85]initial ss->count = %d, rcount = %d, wcount = %d\n",
@@ -67,7 +68,7 @@ s_A85E_process(stream_state * st, stream_cursor_read * pr,
 		    status = 1;
 		    break;
 		}
-		*++q = '\n';
+		*++q = prev = '\n';
 		qn = q + LINE_LIMIT;
 		if_debug1('w', "[w85]EOL at %d bytes written\n",
 			  (int)(q - pw->ptr));
@@ -77,7 +78,7 @@ s_A85E_process(stream_state * st, stream_cursor_read * pr,
 		    break;
 		}
 	    }
-	    *++q = 'z';
+	    *++q = prev = 'z';
 	} else {
 	    ulong v4 = word / 85;	/* max 85^4 */
 	    ulong v3 = v4 / 85;	/* max 85^3 */
@@ -89,7 +90,7 @@ put:	    if (q + 5 > qn) {
 		    status = 1;
 		    break;
 		}
-		*++q = '\n';
+		*++q = prev = '\n';
 		qn = q + LINE_LIMIT;
 		if_debug1('w', "[w85]EOL at %d bytes written\n",
 			  (int)(q - pw->ptr));
@@ -105,59 +106,73 @@ put:	    if (q + 5 > qn) {
 	    q[4] = (byte) ((uint) v4 - (uint) v3 * 85) + '!';
 	    q[5] = (byte) ((uint) word - (uint) v4 * 85) + '!';
 	    /*
-	     * Two consecutive '%' characters at the beginning
-	     * of the line will confuse some document managers:
-	     * insert (an) EOL(s) if necessary to prevent this.
+	     * '%%' or '%!' at the beginning of the line will confuse some
+	     * document managers: insert (an) EOL(s) if necessary to prevent
+	     * this.
 	     */
 	    if (q[1] == '%') {
-		if (q == pw->ptr) {
-		    /*
-		     * The very first character written is a %.
-		     * Add an EOL before it in case the last
-		     * character of the previous batch was a %.
-		     */
-		    *++q = '\n';
-		    qn = q + LINE_LIMIT;
-		    if_debug1('w', "[w85]EOL at %d bytes written\n",
-			      (int)(q - pw->ptr));
-		    goto put;
-		}
-		if (q[2] == '%' && *q == '\n') {
+		if (prev == '%') {
+		    if (qn - q == LINE_LIMIT - 1) {
+			/* A line would begin with %%. */
+			*++q = prev = '\n';
+			qn = q + LINE_LIMIT;
+			if_debug1('w',
+				  "[w85]EOL for %%%% at %d bytes written\n",
+				  (int)(q - pw->ptr));
+			goto put;
+		    }
+		} else if (prev == '\n' && (q[2] == '%' || q[2] == '!')) {
 		    /*
 		     * We may have to insert more than one EOL if
 		     * there are more than two %s in a row.
 		     */
 		    int extra =
-			(q[3] != '%' ? 1 : q[4] != '%' ? 2 :
+			(q[2] == '!' ? 1 : /* else q[2] == '%' */
+			 q[3] == '!' ? 2 :
+			 q[3] != '%' ? 1 :
+			 q[4] == '!' ? 3 :
+			 q[4] != '%' ? 2 :
+			 q[5] == '!' ? 4 :
 			 q[5] != '%' ? 3 : 4);
 
 		    if (wlimit - q < 5 + extra) {
 			status = 1;
 			break;
 		    }
+		    if_debug6('w', "[w]%c%c%c%c%c extra = %d\n",
+			      q[1], q[2], q[3], q[4], q[5], extra);
 		    switch (extra) {
 			case 4:
-			    q[9] = '%', q[8] = '\n';
+			    q[9] = q[5], q[8] = '\n';
 			    goto e3;
 			case 3:
 			    q[8] = q[5];
-			  e3:q[7] = '%', q[6] = '\n';
+			  e3:q[7] = q[4], q[6] = '\n';
 			    goto e2;
 			case 2:
 			    q[7] = q[5], q[6] = q[4];
-			  e2:q[5] = '%', q[4] = '\n';
+			  e2:q[5] = q[3], q[4] = '\n';
 			    goto e1;
 			case 1:
 			    q[6] = q[5], q[5] = q[4], q[4] = q[3];
-			  e1:q[3] = '%', q[2] = '\n';
+			  e1:q[3] = q[2], q[2] = '\n';
 		    }
 		    if_debug1('w', "[w85]EOL at %d bytes written\n",
 			      (int)(q + 2 * extra - pw->ptr));
 		    qn = q + 2 * extra + LINE_LIMIT;
 		    q += extra;
 		}
+	    } else if (q[1] == '!' && prev == '%' &&
+		       qn - q == LINE_LIMIT - 1
+		       ) {
+		/* A line would begin with %!. */
+		*++q = prev = '\n';
+		qn = q + LINE_LIMIT;
+		if_debug1('w', "[w85]EOL for %%! at %d bytes written\n",
+			  (int)(q - pw->ptr));
+		goto put;
 	    }
-	    q += 5;
+	    prev = *(q += 5);
 	}
     }
  end:
@@ -201,6 +216,8 @@ put:	    if (q + 5 > qn) {
     if_debug3('w', "[w85]final ss->count = %d, %d bytes read, %d written\n",
 	      ss->count, (int)(p - pr->ptr), (int)(q - pw->ptr));
     pr->ptr = p;
+    if (q > pw->ptr)
+	ss->last_char = *q;
     pw->ptr = q;
     return status;
 }

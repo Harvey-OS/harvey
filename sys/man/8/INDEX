@@ -2,6 +2,7 @@
 intro 0intro
 9load 9load
 ld 9load
+apm apm
 auth auth
 auth.srv auth
 changeuser auth
@@ -58,7 +59,6 @@ tcp17007 listen
 tcp17009 listen
 tcp17013 listen
 tcp19 listen
-tcp2 listen
 tcp21 listen
 tcp23 listen
 tcp25 listen
@@ -69,8 +69,6 @@ tcp564 listen
 tcp565 listen
 tcp566 listen
 tcp567 listen
-tcp6000 listen
-tcp6667 listen
 tcp7 listen
 tcp9 listen
 tcp993 listen
@@ -88,6 +86,7 @@ csquery ndb
 dns ndb
 dnsdebug ndb
 dnsquery ndb
+ipquery ndb
 mkdb ndb
 mkhash ndb
 mkhosts ndb
@@ -102,7 +101,6 @@ pcmcia pcmcia
 gping ping
 ping ping
 traceroute ping
-pip pip
 plan9.ini plan9.ini
 ppp ppp
 pptpd ppp

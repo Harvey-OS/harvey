@@ -41,4 +41,4 @@ else negative infinity.
 returns true if its first argument is infinity
 with the same sign as the second argument.
 .SH SOURCE
-.B /sys/src/libc/$objtype/nan.c
+.B /sys/src/libc/port/nan.c

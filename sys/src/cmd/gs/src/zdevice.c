@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zdevice.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: zdevice.c,v 1.3 2000/09/19 19:00:53 lpd Exp $ */
 /* Device-related operators */
 #include "string_.h"
 #include "ghost.h"
@@ -34,20 +34,23 @@
 #include "gxgetbit.h"
 #include "store.h"
 
-/* <device> copydevice <newdevice> */
+/* <device> <keep_open> .copydevice2 <newdevice> */
 private int
-zcopydevice(i_ctx_t *i_ctx_p)
+zcopydevice2(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
     gx_device *new_dev;
     int code;
 
-    check_read_type(*op, t_device);
-    code = gs_copydevice(&new_dev, op->value.pdevice, imemory);
+    check_read_type(op[-1], t_device);
+    check_type(*op, t_boolean);
+    code = gs_copydevice2(&new_dev, op[-1].value.pdevice, op->value.boolval,
+			  imemory);
     if (code < 0)
 	return code;
     new_dev->memory = imemory;
-    make_tav(op, t_device, icurrent_space | a_all, pdevice, new_dev);
+    make_tav(op - 1, t_device, icurrent_space | a_all, pdevice, new_dev);
+    pop(1);
     return 0;
 }
 
@@ -426,7 +429,7 @@ zsetdevice(i_ctx_t *i_ctx_p)
 
 const op_def zdevice_op_defs[] =
 {
-    {"1copydevice", zcopydevice},
+    {"1.copydevice2", zcopydevice2},
     {"0currentdevice", zcurrentdevice},
     {"1.devicename", zdevicename},
     {"0.doneshowpage", zdoneshowpage},

@@ -11,9 +11,11 @@ dev
 	dup
 	rtc
 	ssl
+	loopback
+	kprof
 
 	ether		netif
-	ip		arp dial inferno ip ipaux iproute kio netlog nullmedium pktmedium ptclbsum386
+	ip		arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
 
 	sd
 	floppy		dma
@@ -28,6 +30,8 @@ link
 	ether8003	ether8390
 	ether82557	pci
 	etherelnk3	pci
+	etherga620	pci
+	loopbackmedium
 	ethermedium
 
 misc

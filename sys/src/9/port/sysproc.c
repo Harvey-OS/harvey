@@ -187,6 +187,7 @@ sysrfork(ulong *arg)
 	flushmmu();
 	p->priority = up->priority;
 	p->basepri = up->basepri;
+	p->fixedpri = up->fixedpri;
 	p->mp = up->mp;
 	wm = up->wired;
 	if(wm)

@@ -1,10 +1,12 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <ctype.h>
 #include "../common/common.h"
 #include "tr2post.h"
 
 BOOLEAN drawflag = FALSE;
+BOOLEAN	inpath = FALSE;			/* TRUE if we're putting pieces together */
 
 void
 cover(double x, double y) {
@@ -152,9 +154,8 @@ draw(Biobufhdr *Bp) {
 	}
 }
 
-#ifdef NOTYET
 void
-beginpath(Biobufhdr *Bp, int copy) {
+beginpath(char *buf, int copy) {
 
 /*
  * Called from devcntrl() whenever an "x X BeginPath" command is read. It's used
@@ -175,18 +176,167 @@ beginpath(Biobufhdr *Bp, int copy) {
  * anything important.
  *
  */
-
 	if (inpath == FALSE) {
 		endstring();
-		getdraw();
-		getcolor();
+	/*	getdraw();	*/
+	/*	getcolor(); */
 		Bprint(Bstdout, "gsave\n");
 		Bprint(Bstdout, "newpath\n");
 		Bprint(Bstdout, "%d %d m\n", hpos, vpos);
 		Bprint(Bstdout, "/inpath true def\n");
 		if ( copy == TRUE )
-			fprintf(tf, "%s", buf);
+			Bprint(Bstdout, "%s\n", buf);
 		inpath = TRUE;
 	}
 }
-#endif
+
+static void parsebuf(char*);
+
+void
+drawpath(char *buf, int copy) {
+
+/*
+ *
+ * Called from devcntrl() whenever an "x X DrawPath" command is read. It marks the
+ * end of the path started by the last "x X BeginPath" command and uses whatever
+ * has been passed along in *buf to manipulate the path (eg. fill and/or stroke
+ * the path). Once that's been done the drawing procedures are restored to their
+ * default behavior in which each drawing command is treated as an isolated path.
+ * The new version (called after "x X DrawPath") has copy set to FALSE, and calls
+ * parsebuf() to figure out what goes in the output file. It's a feeble attempt
+ * to free users and preprocessors (like pic) from having to know PostScript. The
+ * comments in parsebuf() describe what's handled.
+ *
+ * In the early version a path was started with "x X BeginObject" and ended with
+ * "x X EndObject". In both cases *buf was just copied to the output file, and
+ * was expected to be legitimate PostScript that manipulated the current path.
+ * The old escape sequence will be supported for a while (for Ravi), and always
+ * call this routine with copy set to TRUE.
+ * 
+ *
+ */
+
+	if ( inpath == TRUE ) {
+		if ( copy == TRUE )
+			Bprint(Bstdout, "%s\n", buf);
+		else
+			parsebuf(buf);
+		Bprint(Bstdout, "grestore\n");
+		Bprint(Bstdout, "/inpath false def\n");
+/*		reset();		*/
+		inpath = FALSE;
+	}
+}
+
+
+/*****************************************************************************/
+
+static void
+parsebuf(char *buf)
+{
+	char	*p;			/* usually the next token */
+	char *q;
+	int		gsavelevel = 0;		/* non-zero if we've done a gsave */
+
+/*
+ *
+ * Simple minded attempt at parsing the string that followed an "x X DrawPath"
+ * command. Everything not recognized here is simply ignored - there's absolutely
+ * no error checking and what was originally in buf is clobbered by strtok().
+ * A typical *buf might look like,
+ *
+ *	gray .9 fill stroke
+ *
+ * to fill the current path with a gray level of .9 and follow that by stroking the
+ * outline of the path. Since unrecognized tokens are ignored the last example
+ * could also be written as,
+ *
+ *	with gray .9 fill then stroke
+ *
+ * The "with" and "then" strings aren't recognized tokens and are simply discarded.
+ * The "stroke", "fill", and "wfill" force out appropriate PostScript code and are
+ * followed by a grestore. In otherwords changes to the grahics state (eg. a gray
+ * level or color) are reset to default values immediately after the stroke, fill,
+ * or wfill tokens. For now "fill" gets invokes PostScript's eofill operator and
+ * "wfill" calls fill (ie. the operator that uses the non-zero winding rule).
+ *
+ * The tokens that cause temporary changes to the graphics state are "gray" (for
+ * setting the gray level), "color" (for selecting a known color from the colordict
+ * dictionary defined in *colorfile), and "line" (for setting the line width). All
+ * three tokens can be extended since strncmp() makes the comparison. For example
+ * the strings "line" and "linewidth" accomplish the same thing. Colors are named
+ * (eg. "red"), but must be appropriately defined in *colorfile. For now all three
+ * tokens must be followed immediately by their single argument. The gray level
+ * (ie. the argument that follows "gray") should be a number between 0 and 1, with
+ * 0 for black and 1 for white.
+ *
+ * To pass straight PostScript through enclose the appropriate commands in double
+ * quotes. Straight PostScript is only bracketed by the outermost gsave/grestore
+ * pair (ie. the one from the initial "x X BeginPath") although that's probably
+ * a mistake. Suspect I may have to change the double quote delimiters.
+ *
+ */
+
+	for( ; p != nil ; p = q ) {
+		if( q = strchr(p, ' ') ) {
+			*q++ = '\0';
+		}
+
+		if ( gsavelevel == 0 ) {
+			Bprint(Bstdout, "gsave\n");
+			gsavelevel++;
+		}
+		if ( strcmp(p, "stroke") == 0 ) {
+			Bprint(Bstdout, "closepath stroke\ngrestore\n");
+			gsavelevel--;
+		} else if ( strcmp(p, "openstroke") == 0 ) {
+			Bprint(Bstdout, "stroke\ngrestore\n");
+			gsavelevel--;
+		} else if ( strcmp(p, "fill") == 0 ) {
+			Bprint(Bstdout, "eofill\ngrestore\n");
+			gsavelevel--;
+		} else if ( strcmp(p, "wfill") == 0 ) {
+			Bprint(Bstdout, "fill\ngrestore\n");
+			gsavelevel--;
+		} else if ( strcmp(p, "sfill") == 0 ) {
+			Bprint(Bstdout, "eofill\ngrestore\ngsave\nstroke\ngrestore\n");
+			gsavelevel--;
+		} else if ( strncmp(p, "gray", strlen("gray")) == 0 ) {
+			if( q ) {
+				p = q;
+				if ( q = strchr(p, ' ') )
+					*q++ = '\0';
+				Bprint(Bstdout, "%s setgray\n", p);
+			}
+		} else if ( strncmp(p, "color", strlen("color")) == 0 ) {
+			if( q ) {
+				p = q;
+				if ( q = strchr(p, ' ') )
+					*q++ = '\0';
+				Bprint(Bstdout, "/%s setcolor\n", p);
+			}
+		} else if ( strncmp(p, "line", strlen("line")) == 0 ) {
+			if( q ) {
+				p = q;
+				if ( q = strchr(p, ' ') )
+					*q++ = '\0';
+				Bprint(Bstdout, "%s resolution mul 2 div setlinewidth\n", p);
+			}
+		} else if ( strncmp(p, "reverse", strlen("reverse")) == 0 )
+			Bprint(Bstdout, "reversepath\n");
+		else if ( *p == '"' ) {
+			for ( ; gsavelevel > 0; gsavelevel-- )
+				Bprint(Bstdout, "grestore\n");
+			if ( q != nil )
+				*--q = ' ';
+			if ( (q = strchr(p, '"')) != nil ) {
+				*q++ = '\0';
+				Bprint(Bstdout, "%s\n", p);
+			}
+		}
+	}
+
+	for ( ; gsavelevel > 0; gsavelevel-- )
+		Bprint(Bstdout, "grestore\n");
+
+}

@@ -3,13 +3,14 @@
  *	8a mbr.s; 8l -o mbr -l -H3 -T0x0600 mbr.8
  */
 #include "x16.h"
+#include "mem.h"
 
 /*#define FLOPPY	1		/* test on a floppy */
 #define TRACE(C)	PUSHA;\
 			CLR(rBX);\
 			MOVB $C, AL;\
 			LBI(0x0E, rAH);\
-			SYSCALL(0x10);\
+			BIOSCALL(0x10);\
 			POPA
 
 /*
@@ -47,7 +48,7 @@ TEXT _start0600(SB), $0
 	LBI(0x80, rDL)
 #else
 	CLRB(rAL)			/* some systems pass 0 */
-	CMPB(rAL, rDL)
+	CMPBR(rAL, rDL)
 	JNE _save
 	LBI(0x80, rDL)
 #endif /* FLOPPY */
@@ -55,7 +56,7 @@ _save:
 	SXB(rDL, Xdrive, xBP)		/* save disc */
 
 	LWI(confidence(SB), rSI)	/* for that warm, fuzzy feeling */
-	CALL(BIOSputs(SB))
+	CALL16(BIOSputs(SB))
 
 	LWI(_start+0x01BE(SB), rSI)	/* address of partition table */
 	LWI(0x04, rCX)			/* 4 entries in table */
@@ -64,10 +65,10 @@ _save:
 
 _activeloop0:
 	LXB(0x00, xSI, rBL)		/* get active entry from table */
-	CMPB(rBL, rAH)			/* is this an active entry? */
+	CMPBR(rBL, rAH)			/* is this an active entry? */
 	JEQ _active
 
-	CMPB(rBL, rAL)			/* if not active it should be 0 */
+	CMPBR(rBL, rAL)			/* if not active it should be 0 */
 	JNE _invalidMBR
 
 	ADDI(0x10, rSI)			/* next table entry */
@@ -75,7 +76,7 @@ _activeloop0:
 	JNE _activeloop0
 
 	LWI(noentry(SB), rSI)
-	CALL(buggery(SB))
+	CALL16(buggery(SB))
 
 _active:
 	MW(rSI, rDI)			/* save table address */
@@ -86,18 +87,18 @@ _activeloop1:
 	JEQ _readsector
 
 	LXB(0x00, xSI, rBL)		/* get active entry from table */
-	CMPB(rBL, rAH)			/* is this an active entry? */
+	CMPBR(rBL, rAH)			/* is this an active entry? */
 	JNE _activeloop1		/* should only be one active */
 
 _invalidMBR:
 	LWI(invalidMBR(SB), rSI)
-	CALL(buggery(SB))
+	CALL16(buggery(SB))
 
 _readsector:
 	LBI(0x41, rAH)			/* check extensions present */
 	LWI(0x55AA, rBX)
 	LXB(Xdrive, xBP, rDL)		/* drive */
-	SYSCALL(0x13)			/* CF set on failure */
+	BIOSCALL(0x13)			/* CF set on failure */
 	JCS _readsector2
 	CMPI(0xAA55, rBX)
 	JNE _readsector2
@@ -120,15 +121,15 @@ _readsector42:
 
 	MW(rBP, rSI)			/* disk address packet */
 	LBI(0x42, rAH)			/* extended read */
-	SYSCALL(0x13)			/* CF set on failure */
+	BIOSCALL(0x13)			/* CF set on failure */
 	JCC _readsectorok
 
 	LWI(ioerror(SB), rSI)
-	CALL(buggery(SB))
+	CALL16(buggery(SB))
 
 /*
  * Read a sector from a disc using the traditional BIOS call.
- * For SYSCALL(0x13/AH=0x02):
+ * For BIOSCALL(0x13/AH=0x02):
  *   rAH	0x02
  *   rAL	number of sectors to read (1)
  *   rCH	low 8 bits of cylinder
@@ -144,11 +145,11 @@ _readsector2:
 	LWI(0x0201, rAX)		/* read one sector */
 	LXB(Xdrive, xBP, rDL)		/* drive */
 	LWI(0x7C00, rBX)		/* buffer address (rES already OK) */
-	SYSCALL(0x13)			/* CF set on failure */
+	BIOSCALL(0x13)			/* CF set on failure */
 	JCC _readsectorok
 
 	LWI(ioerror(SB), rSI)
-	CALL(buggery(SB))
+	CALL16(buggery(SB))
 
 _readsectorok:
 	LWI(0x7C00, rBX)		/* buffer address (rES already OK) */
@@ -168,13 +169,13 @@ _bbnotok:
 	LWI(invalidPBS(SB), rSI)
 
 TEXT buggery(SB), $0
-	CALL(BIOSputs(SB))
+	CALL16(BIOSputs(SB))
 	LWI(reboot(SB), rSI)
-	CALL(BIOSputs(SB))
+	CALL16(BIOSputs(SB))
 
 _wait:
 	CLR(rAX)			/* wait for any key */
-	SYSCALL(0x16)
+	BIOSCALL(0x16)
 
 _reset:
 	CLR(rBX)			/* set ES segment for BIOS area */
@@ -199,7 +200,7 @@ _BIOSputs:
 	JEQ _BIOSputsret
 
 	LBI(0x0E, rAH)
-	SYSCALL(0x10)
+	BIOSCALL(0x10)
 	JMP _BIOSputs
 
 _BIOSputsret:

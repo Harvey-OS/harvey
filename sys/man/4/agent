@@ -1,0 +1,227 @@
+.TH AGENT 4
+.SH NAME
+agent \- authentication management
+.SH SYNOPSIS
+.B agent
+[
+.B -m
+.I mtpt
+]
+.PP
+.B aux/rdwr
+[
+.B -w
+]
+.I file
+.SH DESCRIPTION
+.I Agent
+provides authentication services via a
+file system mounted at
+.I mtpt
+(default
+.BR /mnt/auth ).
+.PP
+The file system presents 
+.BR config ,
+.BR confirm ,
+and
+.B log
+files
+in addition to those specified by its
+current configuration.
+.B Config
+contains the agent's current configuration and is described more fully below,
+.B confirm
+is used for confirmation of key usage,
+and
+.B log
+contains messages from the agent.
+.SS Configuration
+The agent must be initialized by writing 
+to its 
+.B config 
+file.
+It can be reconfigured by editing
+.BR config .
+Typically, the permanent home for configuration
+files is not the network file server but rather NVRAM,
+local disk, or an encrypted file store.
+.PP
+Configuration files are a series of file descriptions,
+separated by blank lines.
+A sharp
+.RB ( # )
+begins a comment to the end of the line.
+Lines containing only comments are equivalent to blank lines.
+.PP
+File descriptions are a sequence of key-value pairs,
+naming the file, protocol, authentication data, and any (optional) flags to be used:
+.de XE
+.PP
+..
+.IP
+.EX
+file /netkey/plan9.bell-labs.com/rsc
+protocol netkey
+data $plan9password
+flag confirmuse
+.EE
+.XE
+Protocols are discussed in the next section.
+The 
+.B confirmuse
+provokes a confirmation each time the key is used;
+.B confirmopen
+provokes a confirmation each time the key file is opened.
+The exact interpretation of these is protocol-specific.
+.PP
+Authentication data may be a quoted string
+or a variable, as in the example.
+Variables are introduced by assignment lines,
+which may occur anywhere before their use:
+.IP
+.EX
+plan9password = "my secret"
+.EE
+.XE
+Variables may not be reassigned once created.
+.PP
+Variable definitions are not included when
+reading
+.B config
+back from the agent, so that changing your
+configuration does not result in having your
+keys on the screen or in an editor's temporary file.
+When a new configuration is written to 
+.BR config ,
+any uninitialized variables are searched for
+in the current configuration.
+Unnamed quoted strings are assigned to fresh variables,
+so that after writing the configuration
+.IP
+.EX
+file /apop/plan9.bell-labs.com/rsc
+protocol apop
+data "another secret"
+.EE
+.XE
+reading 
+.B config
+will produce something like
+.IP
+.EX
+file /apop/plan9.bell-labs.com/rsc
+protocol apop
+data $xyzzy2
+.EE
+.XE
+Thus once a quoted string has been given to the agent,
+there is no way to force it to hand it back via
+the
+.B config
+file
+(but see the security hole called
+.B raw
+in the protocol section).
+.SS Protocols
+The semantics of interacting with a given file
+vary according to the protocol it follows.
+.I Agent
+currently provides the following protocols.
+Some are challenge-responsed based: clients open the
+file for reading and writing, write a challenge to the file,
+and read back a response.
+.TP
+.B apop
+The POP3 protocol's MD5-based challenge-response protocol.
+The response is the MD5 checksum of the secret catenated with
+the challenge.
+.TP
+.B netkey
+.I Netkey
+(see 
+.IR passwd (1))
+challenge-response.
+A challenges is a decimal number, and the response
+is the hexadecimal for the first four bytes of the
+challenge padded to some length and encrypted
+using the data as password.
+.\" .TP
+.\" .B p9sk1
+.\" Plan 9 ticket-based authentication.  XXX
+.\" .TP
+.\" .B p9sk2
+.\" Another Plan 9 protocol.  XXX
+.TP
+.B raw
+This is not a challenge-response protocol.
+Writes are not allowed, and reads return the 
+data itself.
+.TP
+.B sshrsa
+RSA authentication as used in SSH.
+The key data is a single (long) line in the format
+produced by 
+.I ssh_genkey
+(see
+.IR ssh (1)).
+Multiple-precision numbers are read and written
+from the file in base 16.
+Reading the file immediately after opening it will
+yield the public modulus for the key.
+After that, a challenge must be written to the file.
+The challenge will be decrypted and the result
+made available for reading back.
+This challenge-response cycle may be repeated.
+.SS Confirmation
+The exclusive-use
+.B confirm
+file in the file system facilitates user confirmation.
+A confirmation program loops reading requests and
+then writing back either
+.B yes
+or
+.B no
+in response.
+If no program has opened the
+.B confirm
+file, all confirmations are successful.
+This is useful for bootstrapping the system.
+.SS Aux/rdwr
+The program
+.I aux/rdwr
+carries on a conversation with any of the
+challenge-response files: you type a challenge
+at a prompt, 
+.I aux/rdwr writes
+it to the file and then reads and prints the response.
+.PP
+The 
+.B -w
+flag inverts the loop:
+.I aux/rdwr
+reads a challenge from the file, writes it
+to the console, and then relays your response.
+Thus,
+.B aux/rdwr
+.B -w
+.B /mnt/auth/confirm
+acts as a simple confirmation program.
+.SH SOURCE
+.B /sys/src/cmd/agent
+.br
+.B /sys/src/cmd/aux/rdwr.c
+.SH SEE ALSO
+.B /sys/lib/agent.config
+is a sample configuration file from which
+to build your personal keyring.
+.SH BUGS
+The parsing of quoted strings is simplistic: in particular, 
+quoted strings cannot contain double-quotes nor sharp characters.
+.PP
+The
+.B raw
+protocol negates most insulation from outside processes,
+as does the fact that the agent can be debugged via
+the usual channels.
+If a rogue process is running as you, it can easily access your keys.

@@ -60,6 +60,7 @@ main(int argc, char *argv[])
 	char file[2*NAMELEN];
 	int arp;
 	char *p, *ndbfile;
+	Ipifc *ifcs;
 
 	ndbfile = nil;
 	setnetmtpt(net, sizeof(net), nil);
@@ -99,9 +100,10 @@ main(int argc, char *argv[])
 	if(edata < 0)
 		error("can't open ethernet");
 
-	snprint(file, sizeof(file), "%s/udp", net);
-	if(myipaddr(myip, file) < 0)
+	ifcs = readipifc(net, nil);
+	if(ifcs == nil)
 		error("can't get my ip address");
+	ipmove(myip, ifcs->ip);
 	sprint(ebuf, "%s/%s", net, device);
 	if(myetheraddr(myether, ebuf) < 0)
 		error("can't get my ether address");

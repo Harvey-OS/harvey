@@ -1,8 +1,14 @@
 # we start with the namespace of the console...
 
 # man2html expects man pages under /sys/man
-bind /sys/man /usr/web/sys/man
+mount #s/boot /n/emelieother other
+bind /n/emelieother/plan9/sys/man /usr/web/sys/man
+#bind /n/emelieother/plan9/sys/doc /usr/web/sys/doc
+#bind /sys/man /usr/web/sys/man
 bind /sys/doc /usr/web/sys/doc
+
+# just so people will find something under plan9
+bind /usr/web/plan9dist /usr/web/plan9
 
 # users
 bind /usr/mike/www /usr/web/incoming/mike
@@ -26,5 +32,8 @@ bind /usr/web/cm/ms/what/wavelet /usr/web/wavelet
 
 # formerly ftp.research.bell-labs.com
 bind -b /n/alice/usr/ftp /usr/web/dist
+
+# wiki (questions to rsc)
+mount -b #s/wiki.plan9 /usr/web/wiki/plan9
 
 # httpd will bind /usr/web onto /
