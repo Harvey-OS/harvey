@@ -15109,3 +15109,4 @@
 1084510904 0 c 386/lib/libc.a - 664 sys sys 1084509809 495150
 1084543307 0 c sys/src/cmd/acme/rows.c - 664 sys sys 1084542482 14664
 1084543307 1 c sys/src/cmd/acme/text.c - 664 sys sys 1084542489 27383
+1084766548 0 c sys/src/cmd/8c/machcap.c - 664 sys sys 1084766030 957
