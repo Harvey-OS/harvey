@@ -17072,3 +17072,7 @@
 1042641175 4 c 386/bin/fossil/fossil - 775 sys sys 1042640744 332102
 1042641175 5 c 386/bin/ip/httpd/httpd - 775 sys sys 1042640745 283885
 1042641175 6 c sys/src/cmd/pcc.c - 664 sys sys 1042640611 5937
+1042857047 0 c sys/src/9/pc/wavelan.c - 664 sys sys 1042855781 27095
+1042857047 1 c sys/src/9/pc/wavelan.h - 664 sys sys 1042855780 6228
+1042857047 2 c sys/src/9/port/netif.c - 664 sys sys 1042855805 13131
+1042857047 3 c sys/src/9/port/netif.h - 664 sys sys 1042855799 2908

@@ -5189,8 +5189,8 @@ sys/src/9/pc/vgatvp3020.c - 664 sys sys 1015014528 4491
 sys/src/9/pc/vgatvp3026.c - 664 sys sys 1015014528 3940
 sys/src/9/pc/vgavmware.c - 664 sys sys 1020284822 6334
 sys/src/9/pc/vgax.c - 664 sys sys 1015014528 1655
-sys/src/9/pc/wavelan.c - 664 sys sys 1036812833 25627
-sys/src/9/pc/wavelan.h - 664 sys sys 1026860150 5684
+sys/src/9/pc/wavelan.c - 664 sys sys 1042855781 27095
+sys/src/9/pc/wavelan.h - 664 sys sys 1042855780 6228
 sys/src/9/port - 20000000775 sys sys 1018469625 0
 sys/src/9/port/alarm.c - 664 sys sys 1026847545 1733
 sys/src/9/port/alloc.c - 664 sys sys 1019663885 5328
@@ -5246,8 +5246,8 @@ sys/src/9/port/mkerrstr - 775 sys sys 1015278340 75
 sys/src/9/port/mkextract - 775 sys sys 1039753334 435
 sys/src/9/port/mkroot - 775 sys sys 1039753334 235
 sys/src/9/port/mksystab - 664 sys sys 1014931176 783
-sys/src/9/port/netif.c - 664 sys sys 1026847549 12722
-sys/src/9/port/netif.h - 664 sys sys 1014931176 2748
+sys/src/9/port/netif.c - 664 sys sys 1042855805 13131
+sys/src/9/port/netif.h - 664 sys sys 1042855799 2908
 sys/src/9/port/nulledf.c - 664 sys sys 1037669300 821
 sys/src/9/port/page.c - 664 sys sys 1014931177 8086
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
