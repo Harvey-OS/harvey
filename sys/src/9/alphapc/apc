@@ -62,5 +62,6 @@ boot
 bootdir
 	bootapc.out boot
 	/alpha/bin/disk/kfs
-	factotum.hack factotum
-	ipconfig.hack ipconfig
+	/alpha/bin/auth/factotum
+	/alpha/bin/ip/ipconfig
+

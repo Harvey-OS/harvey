@@ -54,6 +54,7 @@ boot cpu
 
 bootdir
 	bootapccpu.out boot
-	ipconfig.hack ipconfig
-	factotum.hack factotum
+	/alpha/bin/ip/ipconfig
+	/alpha/bin/auth/factotum
+
 

@@ -21,6 +21,7 @@ ulong	now;
 int	maxage;
 uchar	ipaddr[IPaddrlen];	/* my ip address */
 char	*LOG;
+char	*zonerefreshprogram;
 
 static int	readmsg(int, uchar*, int);
 static void	reply(int, DNSmsg*, Request*);

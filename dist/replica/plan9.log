@@ -12340,3 +12340,8 @@
 1056155485 0 c sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1056155537 16374
 1056155485 1 c sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1056155538 11716
 1056164491 0 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1056163716 30830
+1056171697 0 c sys/src/9/alphapc/apc - 664 sys sys 1056171197 624
+1056171697 1 c sys/src/9/alphapc/apccpu - 664 sys sys 1056171198 510
+1056171697 2 c sys/src/cmd/ndb/cs.c - 664 sys sys 1056171180 32752
+1056171697 3 c sys/src/cmd/ndb/dnstcp.c - 664 sys sys 1056171180 7066
+1056214978 0 d sys/src/cmd/mk/xyz - 775 sys sys 1055698814 0
