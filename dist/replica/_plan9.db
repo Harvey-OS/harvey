@@ -6,16 +6,16 @@
 29000/mkfile - 664 sys sys 948141302 46
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1071175100 188380
-386/9loaddebug - 775 sys sys 1077033686 271334
+386/9loaddebug - 775 sys sys 1085583486 270508
 386/9loadlite - 775 sys sys 1077033685 125344
-386/9loadlitedebug - 775 sys sys 1068385814 184444
-386/9pc - 775 sys sys 1077049334 1842517
+386/9loadlitedebug - 775 sys sys 1085583486 183619
+386/9pc - 775 sys sys 1085583489 1810627
 386/9pc.gz - 664 sys sys 1077049336 635727
-386/9pccpu - 775 sys sys 1077049386 1485859
+386/9pccpu - 775 sys sys 1085583493 1464801
 386/9pccpu.gz - 664 sys sys 1077049387 519909
-386/9pcdisk - 775 sys sys 1068385827 2037837
+386/9pcdisk - 775 sys sys 1085583499 2013077
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
-386/9pcf - 775 sys sys 1077049487 2380610
+386/9pcf - 775 sys sys 1085583502 2333080
 386/9pcf.gz - 664 sys sys 1077049490 872650
 386/9pxeload - 775 sys sys 1071320501 188380
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -544,7 +544,7 @@
 386/lib/libmach.a - 664 sys sys 1085077145 735256
 386/lib/libmemdraw.a - 664 sys sys 1085077145 287684
 386/lib/libmemlayer.a - 664 sys sys 1085077145 47360
-386/lib/libmp.a - 664 sys sys 1085368185 80226
+386/lib/libmp.a - 664 sys sys 1085583503 76502
 386/lib/libndb.a - 664 sys sys 1085077146 60772
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1085077146 37440
@@ -10903,7 +10903,7 @@ sys/src/cmd/upas/ml/mlmgr.c - 664 sys sys 1045505888 2332
 sys/src/cmd/upas/ml/mlowner.c - 664 sys sys 1015096763 1142
 sys/src/cmd/upas/ned - 20000000775 sys sys 1015013194 0
 sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
-sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1075069148 43120
+sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1085599621 44170
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1015009816 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1064589604 186
 sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1076176207 14301
@@ -12427,4 +12427,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/lib/libmp.a - 664 sys sys 1085541057 76502
+386/bin/upas/nedmail - 775 sys sys 1085627355 153957
