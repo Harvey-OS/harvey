@@ -1,0 +1,54 @@
+dirs = playlistfs jukefs jukebox
+
+DEFAULTMAP = /sys/lib/music/map
+ICONPATH = /sys/lib/music/icon
+
+ICONS = \
+	next.bit\
+	pause.bit\
+	play.bit\
+	prev.bit\
+	question.bit\
+	root.bit\
+	skull.bit\
+	stop.bit\
+	trash.bit\
+
+ICONFILES = ${ICONS:%.bit=icon/%.bit}
+
+all:
+
+all dep clean:V:
+	for (i in $dirs) { 
+		echo $i
+		cd $i
+		mk $MKFLAGS $target
+		cd ..
+	}
+
+rcinstall:V:	juke.rc
+	cp juke.rc /rc/bin/juke
+	chmod +x /rc/bin/juke
+
+$ICONPATH:
+	mkdir $ICONPATH
+
+iconinstall:V:	$ICONFILES $ICONPATH
+	for (i in $ICONS) {
+		cp $ICONFILES $ICONPATH
+	}
+
+install:V:
+	for (i in $dirs) { 
+		echo $i
+		cd $i
+		mk $MKFLAGS $target
+		cd ..
+	}
+	mk rcinstall
+	mk iconinstall
+
+installall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS install
+	mk rcinstall

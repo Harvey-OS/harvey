@@ -1,0 +1,156 @@
+.TH PLAYLISTFS 7
+.SH NAME
+playlistfs \- playlist file system
+.SH SYNOPSIS
+.B games/playlistfs
+[
+.B \-s
+.I postname
+]
+[
+.B \-m
+.I mountpoint
+]
+[
+.B \-a
+]
+.SH DESCRIPTION
+.B Playlistfs
+implements an audio player which plays files from a built-in play list.
+The player is controlled through three files, usually mounted at
+.BR /mnt .
+The files are
+.B /playctl
+for controlling play: start, stop, pause, skip, etc.;
+.B /playvol
+for controlling the playout volume; and
+.B /playlist
+for controlling the play list itself.
+.PP
+All three files can be written to control the player and read to obtain player
+status information.
+.PP
+When read, the files report the current status of the player, volume and playlist,
+respectively.  End of file is indicated by a read that returns zero bytes, as usual.
+However, in all three files, subsequent read operations will block until the status
+of the file changes and then report the changed state.  When the changed state has
+been read, another end-of-file indication is given, after which another read
+can be issued to wait for state changes.
+.PP
+The
+.B /playctl
+file returns strings of the form `\f2cmd n\fP'
+where
+.I cmd
+is one of
+.IR stop ,
+.IR pause ,
+or
+.I play
+and
+.I n
+is an index (or offset) into the playlist; indices start at zero.
+.PP
+The commands that can be written to
+.B /playctl
+take the same form; however, the index is an optional argument.  If the
+index is omitted, the current value is used. The commands are
+.IR play ,
+.IR stop ,
+.IR pause ,
+.IR resume ,
+and
+.IR skip .
+.I Play
+starts playing at the index.
+.I Stop
+stops playing.  If an index is given, the current index is set to it and
+can be used in future commands.
+.I Pause
+and
+.I Resume
+interrupt and continue play, respectively.  The index argument is always ignored and
+the whole command is ignored if the state in which they occur does not
+make sense.
+.I Skip
+adds the argument to the current index (adds one if no argument is given)
+and starts play at that index, stopping current play, if necessary.
+.PP
+Reads of
+.B /playvol
+return strings of the form
+.BR "`volume \f2n\fP'" ,
+where
+.I n
+is a number or, if there is more than one channel, a quoted set of numbers, between 0
+(minimum) and 100 (maximum).
+Writes to
+.B /playvol
+take the same form.
+.PP
+The
+.B /playlist
+file is an append-only file which accepts lines with one or two fields
+per line (parsed using
+.BR tokenize ).
+The first, compulsory, field is a file name, the optional second argument
+may contain a reference to, or a description of, the item, for instance in a graphical
+user interface.
+.B /playlist
+is append-only, individual lines cannot be removed.  However, the playlist
+can be cleared by opening the file with the
+.B OTRUNC
+flag.  A process that has
+.B /playlist
+open while the file is truncated will receive an error on the next read with
+.B errstr
+set to
+.IR "reading past eof" .
+When this error occurs, clients can seek to the beginning of the file and reread its contents.
+.PP
+After starting up,
+.B Playlistfs
+puts itself in the background. When called with the
+.B \-s
+flag, it posts a mountable file descriptor in
+.BR /srv/playlist.\f2postname\fP .
+The
+.B \-m
+flag can be used to specify a mount point other than
+.BR /mnt .
+.PP
+The files to be played are recognized by one of four extensions, and an appropriate
+player is then selected to play them.  Files without a recognized extension are played by the
+.I pac
+player:
+.TP
+\&.mp3
+/bin/games/mp3dec
+.TP
+\&.pac
+/bin/games/pac4dec
+.TP
+\&.pcm
+/bin/cp
+.TP
+\&.ogg
+/bin/games/vorbisdec
+.SH FILES
+.BR /srv/playlistfs.\f2user\fP :
+default
+.B playlistfs
+mountable file descriptor used by juke(7).
+.br
+.BR /mnt/playctl :
+Control file
+.br
+.BR /mnt/playlist :
+Playlist file
+.br
+.BR /mnt/playvol :
+Volume control file
+.SH SOURCE
+.B /sys/src/games/music/playlistfs
+.SH SEE ALSO
+.IR juke (7),
+.IR audio (7)

@@ -1,0 +1,12 @@
+The Plan 9 Jukebox consists of three applications: a play-list server, a browse server
+and a GUI:
+	playlist server: playlistfs
+	browse server: jukefs
+	GUI: jukebox
+The juke.rc script (installed, by default, in /rc/bin/juke) starts them all up.
+
+To configure, adjust the DEFAULTMAP and ICONPATH in the central mkfile.
+The default map is used by jukefs as the root of the descriptive database.
+The iconpath is used by jukebox to find the icons.
+
+Report problems to sape@plan9.bell-labs.com
