@@ -904,7 +904,7 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 	int ac, fd;
 	int pfd[2];
 	char folder[Elemlen];
-	String *file;
+	String *file, *cmd;
 	Addr *a;
 
 	fd = -1;
@@ -970,6 +970,8 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 			}
 		}
 
+		cmd = mboxpath("pipefrom", user, s_new(), 0);
+		exec(s_to_c(cmd), av);
 		exec("/bin/myupassend", av);
 		exec("/bin/upas/send", av);
 		fatal("execing: %r");
