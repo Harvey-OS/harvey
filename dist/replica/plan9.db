@@ -6798,7 +6798,7 @@ sys/src/cmd/aux/apm.c - 664 sys sys 1046654953 20263
 sys/src/cmd/aux/astarld.c - 664 sys sys 1015008684 4638
 sys/src/cmd/aux/cddb.c - 664 sys sys 1032059267 4303
 sys/src/cmd/aux/clog.c - 664 sys sys 1014925109 1000
-sys/src/cmd/aux/consolefs.c - 664 sys sys 1014925110 20022
+sys/src/cmd/aux/consolefs.c - 664 sys sys 1068916113 20175
 sys/src/cmd/aux/conswdir.c - 664 sys sys 1045504955 2077
 sys/src/cmd/aux/data2s.c - 664 sys sys 1032059295 796
 sys/src/cmd/aux/depend.c - 664 sys sys 1015008684 25780
