@@ -13810,3 +13810,7 @@
 1109304125 1 c sys/man/1/2c - 664 sys sys 1109303821 8237
 1109304125 2 c sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 1109304125 3 c sys/src/cmd/cc/lex.c - 664 sys sys 1109303822 23826
+1109365217 0 c sys/src/boot/pc/boot.c - 664 sys sys 1109364490 8418
+1109365217 1 c sys/src/boot/pc/dat.h - 664 sys sys 1109364490 3565
+1109365217 2 c sys/src/boot/pc/fns.h - 664 sys sys 1109364490 4221
+1109365217 3 c sys/src/boot/pc/load.c - 664 sys sys 1109364491 8903

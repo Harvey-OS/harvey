@@ -127,6 +127,7 @@ void*	xspanalloc(ulong, int, ulong);
 #define	GLONG(p)	((GSHORT(p+2)<<16)|GSHORT(p))
 #define	GLSHORT(p)	(((p)[0]<<8)|(p)[1])
 #define	GLLONG(p)	(((ulong)GLSHORT(p)<<16)|GLSHORT(p+2))
+#define	PLLONG(p,v)	(p)[3]=(v);(p)[2]=(v)>>8;(p)[1]=(v)>>16;(p)[0]=(v)>>24
 
 #define KADDR(a)	((void*)((ulong)(a)|KZERO))
 #define PADDR(a)	((ulong)(a)&~KZERO)
