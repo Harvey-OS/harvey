@@ -3461,7 +3461,7 @@ sys/include/html.h - 664 sys sys 1091904420 15220
 sys/include/httpd.h - 664 sys sys 1091904418 5771
 sys/include/ip.h - 664 sys sys 1103554773 2989
 sys/include/keyboard.h - 664 sys sys 1079577798 815
-sys/include/libc.h - 664 sys sys 1102093062 19516
+sys/include/libc.h - 664 sys sys 1108157980 19587
 sys/include/libsec.h - 664 sys sys 1084318867 9264
 sys/include/mach.h - 664 sys sys 1089313992 8164
 sys/include/memdraw.h - 664 sys sys 1091904419 5645
@@ -4844,7 +4844,7 @@ sys/man/2/ctime - 664 sys sys 954378853 2547
 sys/man/2/ctype - 664 sys sys 1079535676 2611
 sys/man/2/debugger - 664 sys sys 944959696 8629
 sys/man/2/des - 664 sys sys 1032058673 3517
-sys/man/2/dial - 664 sys sys 1015701029 6523
+sys/man/2/dial - 664 sys sys 1108158522 6594
 sys/man/2/dirread - 664 sys sys 1015091519 1901
 sys/man/2/disk - 664 sys sys 1015091519 3188
 sys/man/2/draw - 664 sys sys 1059484405 19362
@@ -7252,7 +7252,7 @@ sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
 sys/src/cmd/cc/lex.c - 664 sys sys 1089299182 23826
 sys/src/cmd/cc/lexbody - 664 sys sys 1098499731 9014
 sys/src/cmd/cc/mac.c - 664 sys sys 944960808 36
-sys/src/cmd/cc/macbody - 664 sys sys 1098463324 11358
+sys/src/cmd/cc/macbody - 664 sys sys 1108182410 11358
 sys/src/cmd/cc/machcap.c - 664 sys sys 1084472048 78
 sys/src/cmd/cc/mkfile - 664 sys sys 1107365240 563
 sys/src/cmd/cc/pickle.c - 664 sys sys 1063855374 4829
@@ -9792,7 +9792,7 @@ sys/src/cmd/nfs.c - 664 sys sys 1050068720 31096
 sys/src/cmd/nm.c - 664 sys sys 1073313392 4912
 sys/src/cmd/nntpfs.c - 664 sys sys 1100524486 18920
 sys/src/cmd/ns.c - 664 sys sys 984717934 3558
-sys/src/cmd/p.c - 664 sys sys 1043516305 1497
+sys/src/cmd/p.c - 664 sys sys 1108151788 1502
 sys/src/cmd/page - 20000000775 sys sys 956344628 0
 sys/src/cmd/page/filter.c - 664 sys sys 1069793856 2166
 sys/src/cmd/page/gfx.c - 664 sys sys 1084470500 6894
@@ -11591,7 +11591,7 @@ sys/src/libc/9sys/dirwstat.c - 664 sys sys 1014927337 246
 sys/src/libc/9sys/fcallfmt.c - 664 sys sys 1033829606 5733
 sys/src/libc/9sys/fork.c - 664 sys sys 950892938 89
 sys/src/libc/9sys/getenv.c - 664 sys sys 985023079 548
-sys/src/libc/9sys/getnetconninfo.c - 664 sys sys 1014927338 2030
+sys/src/libc/9sys/getnetconninfo.c - 664 sys sys 1108157974 2477
 sys/src/libc/9sys/getpid.c - 664 sys sys 944961712 198
 sys/src/libc/9sys/getppid.c - 664 sys sys 944961712 202
 sys/src/libc/9sys/getwd.c - 664 sys sys 971455516 248

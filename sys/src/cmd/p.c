@@ -33,7 +33,7 @@ main(int argc, char *argv[])
 			n++;
 			f = open(argv[0], OREAD);
 			if(f < 0){
-				fprint(2, "p: can't open %s\n", argv[0]);
+				fprint(2, "p: can't open %s - %r\n", argv[0]);
 				continue;
 			}
 			printfile(f);

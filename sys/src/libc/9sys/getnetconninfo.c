@@ -43,6 +43,7 @@ getnetconninfo(char *dir, int fd)
 	Dir *d;
 	char spec[10];
 	char path[128];
+	char netname[128], *p;
 
 	/* get a directory address via fd */
 	if(dir == nil || *dir == 0){
@@ -90,7 +91,16 @@ getnetconninfo(char *dir, int fd)
 	getendpoint(nci->dir, "remote", &nci->rsys, &nci->rserv);
 	if(nci->rsys == nil || nci->rserv == nil)
 		goto err;
-	
+
+	strecpy(netname, netname+sizeof netname, nci->dir);
+	if((p = strrchr(netname, '/')) != nil)
+		*p = 0;
+	if(strncmp(netname, "/net/", 5) == 0)
+		memmove(netname, netname+5, strlen(netname+5)+1);
+	nci->laddr = smprint("%s!%s!%s", netname, nci->lsys, nci->lserv);
+	nci->raddr = smprint("%s!%s!%s", netname, nci->rsys, nci->rserv);
+	if(nci->laddr == nil || nci->raddr == nil)
+		goto err;
 	return nci;
 err:
 	freenetconninfo(nci);
@@ -117,5 +127,7 @@ freenetconninfo(NetConnInfo *nci)
 	xfree(nci->lserv);
 	xfree(nci->rsys);
 	xfree(nci->rserv);
+	xfree(nci->laddr);
+	xfree(nci->raddr);
 	free(nci);
 }
