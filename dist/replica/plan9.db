@@ -23,7 +23,7 @@
 386/bin/9660srv - 775 sys sys 1039758527 105203
 386/bin/aan - 775 sys sys 1039758528 127563
 386/bin/acid - 775 sys sys 1039758528 377948
-386/bin/acme - 775 sys sys 1039758529 413667
+386/bin/acme - 775 sys sys 1041143637 415113
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1038443079 135228
 386/bin/ape/cc - 775 sys sys 1039758529 68927
@@ -217,7 +217,7 @@
 386/bin/gunzip - 775 sys sys 1039758563 79918
 386/bin/gzip - 775 sys sys 1039758563 84015
 386/bin/hayes - 775 sys sys 1039758563 63552
-386/bin/hget - 775 sys sys 1039758563 101403
+386/bin/hget - 775 sys sys 1041143638 216044
 386/bin/history - 775 sys sys 1039758564 71183
 386/bin/hoc - 775 sys sys 1039758564 98955
 386/bin/html2ms - 775 sys sys 1039758564 64730
@@ -386,13 +386,13 @@
 386/bin/upas/aliasmail - 775 sys sys 1039758599 100876
 386/bin/upas/deliver - 775 sys sys 1039758599 68805
 386/bin/upas/filter - 775 sys sys 1039758600 145556
-386/bin/upas/fs - 775 sys sys 1039758600 326172
+386/bin/upas/fs - 775 sys sys 1041143641 326189
 386/bin/upas/list - 775 sys sys 1039758601 81422
-386/bin/upas/marshal - 775 sys sys 1040366675 126814
+386/bin/upas/marshal - 775 sys sys 1041143642 127874
 386/bin/upas/ml - 775 sys sys 1039758601 118090
 386/bin/upas/mlmgr - 775 sys sys 1039758601 100861
 386/bin/upas/mlowner - 775 sys sys 1039758602 92131
-386/bin/upas/nedmail - 775 sys sys 1039758602 147378
+386/bin/upas/nedmail - 775 sys sys 1041143643 147500
 386/bin/upas/pop3 - 775 sys sys 1039758602 251568
 386/bin/upas/qer - 775 sys sys 1039758603 98517
 386/bin/upas/ratfs - 775 sys sys 1039758603 112389
@@ -428,7 +428,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1039758612 127738
 386/bin/venti/wrarena - 775 sys sys 1039758612 181345
 386/bin/venti/write - 775 sys sys 1039758613 102982
-386/bin/vncs - 775 sys sys 1039758613 440826
+386/bin/vncs - 775 sys sys 1041143646 440998
 386/bin/vncv - 775 sys sys 1039914698 174139
 386/bin/vt - 775 sys sys 1039758614 169349
 386/bin/vtdump - 775 sys sys 1039914698 163327
@@ -607,7 +607,7 @@ acme/bin/source/win/win.c - 664 sys sys 1015011255 4240
 acme/bin/unind - 755 sys sys 1015011256 27
 acme/mail - 20000000775 sys sys 1015011265 0
 acme/mail/386 - 20000000775 sys sys 1015011538 0
-acme/mail/386/Mail - 775 sys sys 1037034920 175589
+acme/mail/386/Mail - 775 sys sys 1041145349 175523
 acme/mail/Mail - 775 sys sys 1015011264 202
 acme/mail/alpha - 20000000775 sys sys 1015011521 0
 acme/mail/arm - 20000000775 sys sys 1015011525 0
@@ -10111,7 +10111,7 @@ sys/src/cmd/unix/u9fs/rune.c - 664 sys sys 1015092353 2160
 sys/src/cmd/unix/u9fs/strecpy.c - 664 sys sys 1015092353 193
 sys/src/cmd/unix/u9fs/sun-inttypes.h - 664 sys sys 1039110816 441
 sys/src/cmd/unix/u9fs/tokenize.c - 664 sys sys 1015092353 602
-sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1039110878 29852
+sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1041139559 29984
 sys/src/cmd/unix/u9fs/u9fs.h - 664 sys sys 1015092354 377
 sys/src/cmd/unix/u9fs/u9fsauth.h - 664 sys sys 1015092354 126
 sys/src/cmd/unix/u9fs/utfrune.c - 664 sys sys 1015092354 387
@@ -10138,6 +10138,7 @@ sys/src/cmd/upas/filterkit/deliver.c - 664 sys sys 1018549520 1315
 sys/src/cmd/upas/filterkit/list.c - 664 sys sys 1020313488 4751
 sys/src/cmd/upas/filterkit/mkfile - 664 sys sys 1031707322 264
 sys/src/cmd/upas/filterkit/myupassend.sample - 775 sys sys 1019854294 380
+sys/src/cmd/upas/filterkit/pipefrom.sample - 775 sys sys 1041184939 380
 sys/src/cmd/upas/filterkit/pipeto.sample - 664 sys sys 1019673597 1731
 sys/src/cmd/upas/filterkit/pipeto.sample-hold - 664 sys sys 1019837081 872
 sys/src/cmd/upas/filterkit/readaddrs.c - 664 sys sys 1018549521 1381
@@ -11431,7 +11432,7 @@ sys/src/libregexp - 20000000775 sys sys 988249530 0
 sys/src/libregexp/mkfile - 664 sys sys 1035389780 385
 sys/src/libregexp/regaux.c - 664 sys sys 944961751 2069
 sys/src/libregexp/regcomp.c - 664 sys sys 944961751 9572
-sys/src/libregexp/regcomp.h - 664 sys sys 944961751 1986
+sys/src/libregexp/regcomp.h - 664 sys sys 1041196492 1986
 sys/src/libregexp/regerror.c - 664 sys sys 944961751 210
 sys/src/libregexp/regexec.c - 664 sys sys 944961751 4945
 sys/src/libregexp/regsub.c - 664 sys sys 988225293 1133

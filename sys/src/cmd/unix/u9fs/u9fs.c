@@ -1420,10 +1420,16 @@ useropen(Fid *fid, int omode, char **ep)
 			return -1;
 		}
 	}else{
+		/*
+		 * This is wrong because access used the real uid
+		 * and not the effective uid.  Let the open sort it out.
+		 *
 		if(access(fid->path, a) < 0){
 			*ep = strerror(errno);
 			return -1;
 		}
+		 *
+		 */
 		if((fid->fd = open(fid->path, o)) < 0){
 			*ep = strerror(errno);
 			return -1;

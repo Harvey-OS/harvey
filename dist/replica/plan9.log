@@ -16848,3 +16848,13 @@
 1041137557 0 c sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
 1041137557 1 c sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1041137524 30766
 1041137557 2 c sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1041137519 40289
+1041139808 0 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1041139559 29984
+1041145213 0 c 386/bin/acme - 775 sys sys 1041143637 415113
+1041145213 1 c 386/bin/hget - 775 sys sys 1041143638 216044
+1041145213 2 c 386/bin/vncs - 775 sys sys 1041143646 440998
+1041145213 3 c 386/bin/upas/fs - 775 sys sys 1041143641 326189
+1041145213 4 c 386/bin/upas/marshal - 775 sys sys 1041143642 127874
+1041145213 5 c 386/bin/upas/nedmail - 775 sys sys 1041143643 147500
+1041147015 0 c acme/mail/386/Mail - 775 sys sys 1041145349 175523
+1041186629 0 a sys/src/cmd/upas/filterkit/pipefrom.sample - 775 sys sys 1041184939 380
+1041197439 0 c sys/src/libregexp/regcomp.h - 664 sys sys 1041196492 1986
