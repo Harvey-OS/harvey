@@ -137,7 +137,7 @@
 386/bin/aux/sprog - 775 sys sys 1085077006 77357
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
 386/bin/aux/sshserve - 775 sys sys 1092539157 249442
-386/bin/aux/stub - 775 sys sys 1089397310 132953
+386/bin/aux/stub - 775 sys sys 1098284028 133023
 386/bin/aux/tcpostio - 775 sys sys 1094040084 200808
 386/bin/aux/text2post - 775 sys sys 1085077008 76406
 386/bin/aux/timesync - 775 sys sys 1089257530 125409
@@ -12387,4 +12387,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/stub - 775 sys sys 1098241820 133023
