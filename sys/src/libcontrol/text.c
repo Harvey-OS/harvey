@@ -456,8 +456,12 @@ textctl(Control *c, CParse *cp)
 		break;
 	case EWarp:
 		_ctlargcount(t, cp, 2);
-		if(cp->iargs[1]<0 || cp->iargs[1]>=t->nline)
+		i = cp->iargs[1];
+		if(i <0 || i>=t->nline)
 			ctlerror("%q: selection index out of range (nline %d): %s", t->name, t->nline, cp->str);
+		if(i < t->topline || i >=  t->topline+t->nvis){
+			t->topline = i;
+		}
 		t->warp = cp->iargs[1];
 		textshow(t);
 		t->warp = -1;

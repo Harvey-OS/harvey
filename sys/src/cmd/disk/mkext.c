@@ -76,7 +76,7 @@ main(int argc, char **argv)
 			warn("too few fields in file header");
 			continue;
 		}
-		p = unquotestrdup(fields[0])
+		p = unquotestrdup(fields[0]);
 		strcpy(namep, p);
 		free(p);
 		mode = strtoul(fields[1], 0, 8);
