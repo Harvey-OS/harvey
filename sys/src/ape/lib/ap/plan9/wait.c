@@ -1,134 +1,150 @@
 #include "lib.h"
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <string.h>
 #include <errno.h>
 #include <stdio.h>
 #include "sys9.h"
+#include "dir.h"
 
 /*
-**	PID cache
-*/
-typedef struct wdesc wdesc;
-struct wdesc {
-	pid_t w_pid;
-	Waitmsg *w_msg;
-	wdesc *w_next;
+ * status not yet collected for processes that have exited
+ */
+typedef struct Waited Waited;
+struct Waited {
+	Waitmsg*	msg;
+	Waited*	next;
 };
-static wdesc *wd = 0;
+static Waited *wd;
 
 static Waitmsg *
-lookpid (pid_t pid) {
-	wdesc **wp0 = &wd, *wp;
+lookpid(int pid)
+{
+	Waited **wl, *w;
 	Waitmsg *msg;
 
-	if (pid == -1) {
-		if (wd == 0)
-			return 0;
-		pid = wd->w_pid;
-	}
-	for (wp = wd; wp; wp = wp->w_next) {
-		if (wp->w_pid == pid) {
-			msg = wp->w_msg;
-			*wp0 = wp->w_next;
-			free (wp);
+	for(wl = &wd; (w = *wl) != nil; wl = &w->next)
+		if(pid <= 0 || w->msg->pid == pid){
+			msg = w->msg;
+			*wl = w->next;
+			free(w);
 			return msg;
 		}
-		wp0 = &(wp->w_next);
-	}
 	return 0;
 }
 
 static void
-addpid (Waitmsg *msg) {
-	wdesc *wp = malloc (sizeof (wdesc));
+addpid(Waitmsg *msg)
+{
+	Waited *w;
 
-	wp->w_msg = msg;
-	wp->w_pid = msg->pid;
-	wp->w_next = wd;
-	wd = wp;
+	w = malloc(sizeof(*w));
+	if(w == nil){
+		/* lost it; what can we do? */
+		free(msg);
+		return;
+	}
+	w->msg = msg;
+	w->next = wd;
+	wd = w;
+}
+
+static int
+waitstatus(Waitmsg *w)
+{
+	int r, t;
+	char *bp, *ep;
+
+	r = 0;
+	t = 0;
+	if(w->msg[0]){
+		/* message is 'prog pid:string' */
+		bp = w->msg;
+		while(*bp){
+			if(*bp++ == ':')
+				break;
+		}
+		if(*bp == 0)
+			bp = w->msg;
+		r = strtol(bp, &ep, 10);
+		if(*ep == 0){
+			if(r < 0 || r >= 256)
+				r = 1;
+		}else{
+			t = _stringsig(bp);
+			if(t == 0)
+				r = 1;
+		}
+	}
+	return (r<<8) | t;
+}
+
+static void
+waitresource(struct rusage *ru, Waitmsg *w)
+{
+	memset(ru, 0, sizeof(*ru));
+	ru->ru_utime.tv_sec = w->time[0]/1000;
+	ru->ru_utime.tv_usec = (w->time[0]%1000)*1000;
+	ru->ru_stime.tv_sec = w->time[1]/1000;
+	ru->ru_stime.tv_usec = (w->time[1]%1000)*1000;
 }
 
 pid_t
-wait (int *status) {
-	return wait4(-1, status, 0, 0);
+wait(int *status)
+{
+	return wait4(-1, status, 0, nil);
 }
 
 pid_t
-waitpid (pid_t wpid, int *status, int options) {
-	return wait4(wpid, status, options, 0);
+waitpid(pid_t wpid, int *status, int options)
+{
+	return wait4(wpid, status, options, nil);
 }
 
 pid_t
-wait3 (int *status, int options, Waitmsg *waitmsg) {
-	return wait4(-1, status, options, waitmsg);
+wait3(int *status, int options, struct rusage *res)
+{
+	return wait4(-1, status, options, res);
 }
 
 pid_t
-wait4 (pid_t wpid, int *status, int options, Waitmsg *waitmsg) {
+wait4(pid_t wpid, int *status, int options, struct rusage *res)
+{
+	char pname[50];
+	Dir *d;
 	Waitmsg *w;
 
-	if (options & WNOHANG) {
-		char pname[128];
-		int i;
-		struct stat buf;
-
-		snprintf (pname, sizeof (pname), "/proc/%d/wait", getpid());
-		i = stat (pname, &buf);
-		if (i >= 0 && buf.st_size == 0)
-			return 0;
-	}
-	if (w = lookpid (wpid)) {
-		waitmsg = w;
-		wpid = w->pid;
-		return wpid;
-	}
-	w = _WAIT();
-	while (w) {
-		if (wpid <= 0) {
-			waitmsg = w;
-			wpid = w->pid;
-			if(status)
-				*status = 0;
-			return wpid;
-		}
-		if (w->pid == wpid) {
-			if (status) {
-				int r = 0;
-				int t = 0;
-				char *bp, *ep;
-
-				if (w->msg[0]) {
-					/* message is 'prog pid:string' */
-					bp = w->msg;
-					while (*bp) {
-						if (*bp++ == ':')
-							break;
-					}
-					if (*bp == 0)
-						bp = w->msg;
-					r = strtol (bp, &ep, 10);
-					if (*ep == 0) {
-						if (r < 0 || r >= 256)
-							r = 1;
-					} else {
-						t = _stringsig (bp);
-						if (t == 0)
-							r = 1;
-					}
-				}
-				*status = (r << 8) | t;
+	w = lookpid(wpid);
+	if(w == nil){
+		if(options & WNOHANG){
+			snprintf(pname, sizeof(pname), "/proc/%d/wait", getpid());
+			d = _dirstat(pname);
+			if(d != nil && d->length == 0){
+				free(d);
+				return 0;
 			}
-			waitmsg = w;
-			wpid = w->pid;
-			return wpid;
-		} else {
-			addpid (w);
+			free(d);
 		}
-		w = _WAIT();
+		for(;;){
+			w = _WAIT();
+			if(w == nil){
+				_syserrno();
+				return -1;
+			}
+			if(wpid <= 0 || w->pid == wpid)
+				break;
+			addpid(w);
+		}
 	}
-	if (w == 0) {
-		_syserrno ();
-	}
+	if(res != nil)
+		waitresource(res, w);
+	if(status != nil)
+		*status = waitstatus(w);
+	wpid = w->pid;
+	free(w);
+	return wpid;
 }
