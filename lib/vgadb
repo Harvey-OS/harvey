@@ -150,6 +150,7 @@ ctlr
 	vid=0x5333 did=0x8C12		# Savage IX/MV
 	# vid=0x5333 did=0x8C13		# Savage IX, not supported
 	vid=0x5333 did=0x8C2E		# SuperSavage IXC/16 (Thinkpad T23)
+	vid=0x5333 did=0x8D04		# ProSavage8 in P4M266 chipset
 	# vid=0x5333 did=0x9102		# Savage 2000, not supported
 	vid=0x5333 did=0x8811		# ViRGE ???
 	0xC0048="Stealth 3D 2000 Vers. 1.03"
