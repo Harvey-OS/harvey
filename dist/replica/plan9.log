@@ -12370,3 +12370,4 @@
 1068836496 0 c sys/src/9/boot/local.c - 664 sys sys 1068835808 5355
 1068859816 0 c sys/src/cmd/ki/mkfile - 664 sys sys 1068859845 245
 1068859816 1 c sys/src/cmd/ki/stats.c - 664 sys sys 1068859845 4536
+1068917423 0 c sys/src/cmd/aux/consolefs.c - 664 sys sys 1068916113 20175
