@@ -17,7 +17,7 @@ if(! test -d /n/sources/patch){
 
 d=/n/sources/patch/$1
 if(! mkdir $d){
-	echo mkdir $d/$1 failed >[1=2]
+	echo mkdir $d failed >[1=2]
 	exit mkdir
 }
 

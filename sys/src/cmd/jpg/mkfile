@@ -10,6 +10,7 @@ TARG=jpg\
 	yuv\
 	ico\
 	toico\
+	bmp\
 
 IMFILES=\
 	torgbv.$O\
@@ -48,6 +49,7 @@ $O.toppm:	writeppm.$O multichan.$O toppm.$O
 $O.png:		$IMFILES readpng.$O png.$O
 $O.topng:	writepng.$O topng.$O
 $O.yuv:		$IMFILES readyuv.$O yuv.$O
+$O.bmp:		$IMFILES readbmp.$O bmp.$O
 
 torgbv.$O:	ycbcr.h rgbv.h
 

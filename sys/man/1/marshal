@@ -136,15 +136,6 @@ are all passed as command line options to the
 that
 .I marshal
 invokes.
-.TP
-.BI -C recipient
-specifies that a copy of the mail should also be sent to
-.I recipient
-and that
-.I recipient
-should be included in a
-.B CC:
-header line.
 .PD
 .PP
 .I Marshal
