@@ -172,13 +172,13 @@ enum {
 	mtuopt	= 5,
 };
 
-static void icmpkick6(void *x);
+static void icmpkick6(void *x, Block *bp);
 
 static void
 icmpcreate6(Conv *c)
 {
 	c->rq = qopen(64*1024, Qmsg, 0, c);
-	c->wq = qopen(64*1024, Qkick, icmpkick6, c);
+	c->wq = qbypass(icmpkick6, c);
 }
 
 static void
@@ -228,16 +228,14 @@ icmpadvise6(Proto *icmp, Block *bp, char *msg)
 }
 
 static void
-icmpkick6(void *x)
+icmpkick6(void *x, Block *bp)
 {
 	Conv *c = x;
 	IPICMP *p;
-	Block *bp;
 	uchar laddr[IPaddrlen], raddr[IPaddrlen];
 	Icmppriv6 *ipriv = c->p->priv;
 	Icmpcb6 *icb = (Icmpcb6*)c->ptcl;
 
-	bp = qget(c->wq);
 	if(bp == nil)
 		return;
 

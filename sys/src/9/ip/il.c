@@ -335,14 +335,13 @@ ilclose(Conv *c)
 }
 
 void
-ilkick(void *x)
+ilkick(void *x, Block *bp)
 {
 	Conv *c = x;
 	Ilhdr *ih;
 	Ilcb *ic;
 	int dlen;
 	ulong id, ack;
-	Block *bp;
 	Fs *f;
 	Ilpriv *priv;
 
@@ -350,7 +349,6 @@ ilkick(void *x)
 	priv = c->p->priv;
 	ic = (Ilcb*)c->ptcl;
 
-	bp = qget(c->wq);
 	if(bp == nil)
 		return;
 
@@ -418,7 +416,7 @@ static void
 ilcreate(Conv *c)
 {
 	c->rq = qopen(64*1024, 0, 0, c);
-	c->wq = qopen(64*1024, Qkick, ilkick, c);
+	c->wq = qbypass(ilkick, c);
 }
 
 int

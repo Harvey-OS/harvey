@@ -104,13 +104,13 @@ struct Icmppriv
 	ulong	out[Maxtype+1];
 };
 
-static void icmpkick(void *x);
+static void icmpkick(void *x, Block*);
 
 static void
 icmpcreate(Conv *c)
 {
 	c->rq = qopen(64*1024, Qmsg, 0, c);
-	c->wq = qopen(64*1024, Qkick, icmpkick, c);
+	c->wq = qbypass(icmpkick, c);
 }
 
 extern char*
@@ -157,14 +157,12 @@ icmpclose(Conv *c)
 }
 
 static void
-icmpkick(void *x)
+icmpkick(void *x, Block *bp)
 {
 	Conv *c = x;
 	Icmp *p;
-	Block *bp;
 	Icmppriv *ipriv;
 
-	bp = qget(c->wq);
 	if(bp == nil)
 		return;
 

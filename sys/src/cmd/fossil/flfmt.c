@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 	superInit(label, root);
 	diskFree(disk);
 
-	if(argc == 1)
+	if(score == nil)
 		topLevel(argv[0]);
 
 Out:
@@ -163,7 +163,7 @@ fdsize(int fd)
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-b blocksize] file [vac:score]\n", argv0);
+	fprint(2, "usage: %s [-b blocksize] [-h host] [-l label] [-v score] [-y] file\n", argv0);
 	exits("usage");
 }
 
