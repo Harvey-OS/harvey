@@ -463,6 +463,7 @@ serveraddrs(RR *nsrp, Dest *dest, int nd, int depth, Request *reqp)
 	 */
 	arp = 0;
 	for(rp = nsrp; rp; rp = rp->next){
+		assert(rp->magic == RRmagic);
 		if(rp->marker)
 			continue;
 		arp = rrlookup(rp->host, Ta, NOneg);

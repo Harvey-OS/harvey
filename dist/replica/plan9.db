@@ -5085,7 +5085,7 @@ sys/man/8/ping - 664 sys sys 1063855805 3309
 sys/man/8/plan9.ini - 664 sys sys 1063855903 20744
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1050361032 4424
-sys/man/8/prep - 664 sys sys 1079576131 13820
+sys/man/8/prep - 664 sys sys 1079705872 13820
 sys/man/8/qer - 664 sys sys 1067723129 4909
 sys/man/8/reboot - 664 sys sys 969499895 414
 sys/man/8/replica - 664 sys sys 1021579979 6239
@@ -9763,13 +9763,13 @@ sys/src/cmd/ndb/cs.c - 664 sys sys 1079357413 33069
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1078927860 18090
-sys/src/cmd/ndb/dn.c - 664 sys sys 1078928034 26771
+sys/src/cmd/ndb/dn.c - 664 sys sys 1079747687 26999
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1055701929 2126
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1055701929 3062
-sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1055701926 15331
-sys/src/cmd/ndb/dns.c - 664 sys sys 1063855017 15261
-sys/src/cmd/ndb/dns.h - 664 sys sys 1063855018 8983
-sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1063861697 8449
+sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1079747687 15363
+sys/src/cmd/ndb/dns.c - 664 sys sys 1079747686 15333
+sys/src/cmd/ndb/dns.h - 664 sys sys 1079747686 8980
+sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1079747685 8488
 sys/src/cmd/ndb/dnserver.c - 664 sys sys 1021579994 3687
 sys/src/cmd/ndb/dnsquery.c - 664 sys sys 1014926160 2108
 sys/src/cmd/ndb/dnstcp.c - 664 sys sys 1063861697 7085
